@@ -44,151 +44,19 @@ const EDITION='mobile';
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
    dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
 if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
-/* L'ÉDITION POKI (2026-10-04, Sacha : « créer une version de Cash Car pour Poki en enlevant les missions et la carrière »). Le dossier
-   `POKI/` du dépôt est une COPIE GÉNÉRÉE de celui-ci (`node poki-construire.js`, racine du dépôt) : la seule ligne qui diffère est
-   `POKI_BUILD`, basculée à true. `?poki=1` force l'édition Poki sur n'importe quelle copie (banc, Vercel). Ce qu'elle change, tout
-   gardé par `POKI` : ni MISSIONS, ni CARRIÈRE, ni BOUTIQUE (Poki interdit les achats en vrai argent), plus de mode TEST (les caisses
-   des missions, de la carrière et de la boutique passent à un prix en argent du jeu), plus d'intro « 1.61 » à toucher, le kit Poki
-   (chargement fini, début/fin de partie, pause pub avant REJOUER — son et clavier coupés pendant la pub), et sur l'ordi l'écran du
-   téléphone couché qui REMPLIT la fenêtre de Poki (16:9) au lieu d'un téléphone posé au milieu. Voir « L'ÉDITION POKI » dans CLAUDE.md. */
-const POKI_BUILD=false;
-/* LES PORTAILS (2026-10-05) : `POKI` est l'ÉDITION DES PORTAILS (sans missions, carrière, boutique ni voix) ; `PORTAIL_SDK` dit QUEL kit
-   elle charge — 'poki' (Poki), 'crazy' (CrazyGames), '' (aucun : itch.io, un site à soi — pas de pub, chaque appel se résout tout de
-   suite). `node poki-construire.js [itch|crazy]` bascule les deux lignes. `?poki=1` / `?crazy=1` forcent l'édition sur n'importe quelle copie.
-   (CrazyGames, Sacha : « prépare-moi le zip pour CrazyGames et ne mets pas de mode facile » : `FACILE_OK` faux → ni le choix du mode au
-   1er JOUER, ni l'interrupteur MODE FACILE.) */
-const PORTAIL_SDK='poki';
-const POKI=POKI_BUILD||/[?&](poki|crazy|playgama)=1\b/.test(location.search);
-const PORTAIL=/[?&]crazy=1\b/.test(location.search)?'crazy':/[?&]playgama=1\b/.test(location.search)?'playgama':PORTAIL_SDK;
-const FACILE_OK=!(POKI&&PORTAIL==='crazy');
-if(POKI)document.documentElement.classList.add('poki');
 /* (2026-10-14, session INTERFACE) LA CHARTE 6 — ENCRE · BLANC · OR : toutes ses règles commencent par html.c6 ; ?ui=5 = l'ancienne interface, pour comparer (voir <style id="charte6">) */
 if(!/[?&]ui=5\b/.test(location.search))document.documentElement.classList.add('c6');
-/* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'édition Poki vaut
-   désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
+/* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'ancienne édition Poki
+   vaut désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
    et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
    dépôt ; les sons de SYNTHÈSE (chœurs, cri stylisé du dauphin, intro 1.61) ne sont pas des voix : ils restent. `?voix=1` les rend. */
-const SANS_VOIX=POKI||!/[?&]voix=1\b/.test(location.search);
+const SANS_VOIX=!/[?&]voix=1\b/.test(location.search);
 if(SANS_VOIX)document.documentElement.classList.add('sansVoix');
-if(!FACILE_OK)document.documentElement.classList.add('sansFacile');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
-const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?' · '+({poki:'POKI',crazy:'CRAZYGAMES',playgama:'PLAYGAMA'}[PORTAIL]||'WEB'):'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
-/* LE KIT DES PORTAILS (édition POKI seulement). Le document de PLUS HAUT du jeu (la page-cadre sur l'ordi, la page elle-même sur un
-   téléphone) charge le SDK du portail et porte `CC_PK` ; le jeu, dans la colonne, l'appelle par `parent.CC_PK` (même origine). Le SDK
-   bloqué (bloqueur de pubs, hors ligne, mauvais domaine) ne bloque RIEN : chaque appel se résout tout de suite, sans pub. Pendant une pub,
-   `CC_PUB` est vrai dans le document du jeu : plus de son (AudioContext.resume et media.play refusés) et plus de clavier — consigne de Poki
-   comme de CrazyGames ; `CC_MUET` (le réglage « son coupé » de CrazyGames) refuse le son, pas le clavier. Un PILOTE par portail
-   (`KITS`) : le jeu ne parle qu'à `CC_PK` (fini, jeu, pub, bonus, surMuet), jamais au SDK. */
-if(POKI)(function(){
-  var dedans=/[?&]colonne=1\b/.test(location.search);
-  // le clavier ne fait pas défiler la page de Poki, la molette non plus (sauf dans une liste qui défile vraiment)
-  addEventListener('keydown',function(e){var t=e.target;if(window.CC_PUB){e.stopImmediatePropagation();e.preventDefault();return;}
-    if(/^(Space|Arrow|PageUp|PageDown)/.test(e.code)&&!(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)))e.preventDefault();},true);
-  addEventListener('keyup',function(e){if(window.CC_PUB){e.stopImmediatePropagation();e.preventDefault();}},true);
-  addEventListener('wheel',function(e){for(var n=e.target;n&&n.nodeType===1&&n!==document.documentElement;n=n.parentNode){
-    var o=getComputedStyle(n).overflowY;if((o==='auto'||o==='scroll')&&n.scrollHeight>n.clientHeight+1)return;}e.preventDefault();},{passive:false});
-  var AP=window.AudioContext||window.webkitAudioContext;
-  if(AP&&AP.prototype.resume){var r0=AP.prototype.resume;AP.prototype.resume=function(){if(window.CC_PUB||window.CC_MUET)return Promise.resolve();return r0.apply(this,arguments);};}
-  if(window.HTMLMediaElement){var p0=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){
-    if(window.CC_PUB||window.CC_MUET)return Promise.reject(new Error('pub / son coupé par le portail'));return p0.apply(this,arguments);};}
-  if(dedans)return; // la colonne : le SDK vit dans la page-cadre
-  // LES PILOTES : `init(ok, non)` (ok(sdk) quand il est prêt, non() s'il est absent ou inutilisable), puis fini, jeu, pub, bonus, muet
-  var KITS={
-    poki:{src:'https://game-cdn.poki.com/scripts/v2/poki-sdk.js',
-      init:function(ok,non){var S=window.PokiSDK;if(!S)return non();if(/[?&]pokidebug=1\b/.test(location.search))try{S.setDebug(true);}catch(e){}
-        S.init().then(function(){ok(S);},function(){ok(S);});},
-      fini:function(S){S.gameLoadingFinished();},
-      jeu:function(S,on){if(on)S.gameplayStart();else S.gameplayStop();},
-      pub:function(S,deb,fin){S.commercialBreak(deb).then(fin,fin);},
-      bonus:function(S,deb,fin){S.rewardedBreak(deb).then(function(r){fin(!!r);},function(){fin(false);});}},
-    /* CRAZYGAMES (SDK v3) : hors de leurs domaines (et de localhost, où il joue des pubs de démonstration) le SDK est « disabled » et ses
-       méthodes LÈVENT des erreurs : on le traite comme absent. loadingStart dès qu'il est prêt, loadingStop au menu ; une pub `midgame`
-       avant REJOUER (le SDK tient lui-même son délai de ~3 min : une demande trop tôt revient en adError, la partie part tout de suite) ;
-       leur réglage `muteAudio` passe AVANT les nôtres (surMuet). */
-    crazy:{src:'https://sdk.crazygames.com/crazygames-sdk-v3.js',
-      init:function(ok,non){var C=window.CrazyGames&&window.CrazyGames.SDK;if(!C)return non();
-        C.init().then(function(){if(C.environment==='disabled')return non();try{C.game.loadingStart();}catch(e){}ok(C);},non);},
-      fini:function(C){C.game.loadingStop();},
-      jeu:function(C,on){if(on)C.game.gameplayStart();else C.game.gameplayStop();},
-      pub:function(C,deb,fin){C.ad.requestAd('midgame',{adStarted:deb,adFinished:fin,adError:fin});},
-      bonus:function(C,deb,fin){C.ad.requestAd('rewarded',{adStarted:deb,adFinished:function(){fin(true);},adError:function(){fin(false);}});},
-      muet:function(C,f){var lis=function(s){f(!!(s&&s.muteAudio));};lis(C.game.settings);C.game.addSettingsChangeListener(lis);}},
-    /* PLAYGAMA (Bridge SDK v2, 2026-10-06 — « Playgama exige le Bridge pour chaque jeu ») : `game_ready` au menu ; une pub INTERSTITIELLE
-       avant REJOUER (Bridge tient lui-même son délai de 60 s : pas d'état dans les 2,5 s = pas de pub, la partie part) ; le son et la pause
-       que la plateforme impose ; la LANGUE de la plateforme (étape obligatoire) ; la SAUVEGARDE par `bridge.storage` (« jamais localStorage
-       seul » : le jeu garde son localStorage et le recopie dans le Bridge à chaque écriture, voir SAVE.flush). Hors de Playgama, le Bridge
-       tourne en « mock » : tout répond, rien ne s'affiche. Les noms des événements : bridge.EVENT_NAME, avec un repli sur leur valeur. */
-    playgama:{src:'https://bridge.playgama.com/v2/stable/playgama-bridge.js',
-      init:function(ok,non){var B=window.bridge;if(!B||!B.initialize)return non();B.initialize().then(function(){ok(B);},non);},
-      fini:function(B){B.platform.sendMessage('game_ready');},
-      jeu:function(){}, // (pas d'événement de partie obligatoire chez Playgama)
-      ev:function(B,k,v){return (B.EVENT_NAME&&B.EVENT_NAME[k])||v;},
-      pub:function(B,deb,fin){var A=B.advertisement,E=KITS.playgama.ev(B,'INTERSTITIAL_STATE_CHANGED','interstitial_state_changed');
-        if(!A||!A.isInterstitialSupported)return fin();
-        var vu=false,clos=false,t=null,h=function(st){if(clos)return;
-            if(st==='loading'){vu=true;clearTimeout(t);t=setTimeout(ferme,12000);}
-            else if(st==='opened'){vu=true;clearTimeout(t);t=setTimeout(ferme,120000);try{deb();}catch(e){}}
-            else if(st==='closed'||st==='failed')ferme();},
-          ferme=function(){if(clos)return;clos=true;clearTimeout(t);try{A.off(E,h);}catch(e){}fin();};
-        A.on(E,h);t=setTimeout(function(){if(!vu)ferme();},2500);
-        try{A.showInterstitial();}catch(e){ferme();}},
-      bonus:function(B,deb,fin){var A=B.advertisement,E=KITS.playgama.ev(B,'REWARDED_STATE_CHANGED','rewarded_state_changed');
-        if(!A||!A.isRewardedSupported)return fin(false);
-        var gagne=false,clos=false,t=null,h=function(st){if(clos)return;
-            if(st==='opened'){clearTimeout(t);try{deb();}catch(e){}}
-            else if(st==='rewarded')gagne=true;
-            else if(st==='closed'||st==='failed'){clos=true;clearTimeout(t);try{A.off(E,h);}catch(e){}fin(gagne);}};
-        A.on(E,h);t=setTimeout(function(){if(!clos){clos=true;try{A.off(E,h);}catch(e){}fin(false);}},15000);
-        try{A.showRewarded();}catch(e){clos=true;fin(false);}},
-      muet:function(B,f){var P=B.platform;if(P.isAudioEnabled===false)f(true);
-        P.on(KITS.playgama.ev(B,'AUDIO_STATE_CHANGED','audio_state_changed'),function(on){f(!on);});},
-      pause:function(B,f){B.platform.on(KITS.playgama.ev(B,'PAUSE_STATE_CHANGED','pause_state_changed'),function(p){f(!!p);});},
-      langue:function(B){return String(B.platform.language||'').toLowerCase().slice(0,2);},
-      lit:function(B,k){return B.storage.get([k]).then(function(d){var v=d&&d[0];return v==null?null:typeof v==='string'?v:JSON.stringify(v);});}, // (le Bridge rend parfois l'objet déjà décodé)
-      ecrit:function(B,k,v){return B.storage.set([k],[v]);}}};
-  var K=KITS[PORTAIL]||null;
-  var PK=window.CC_PK={etat:0,sdk:null,portail:K?PORTAIL:'',veut:{fini:false,jeu:false},jeuEnvoye:false,finiEnvoye:false,enPub:false,muets:[],pauses:[],attend:[],
-    // 0 = SDK en route · 1 = prêt · -1 = absent (bloqué, mauvais domaine, ou édition sans kit) : tout se résout sans pub
-    pret:function(){if(PK.veut.fini&&!PK.finiEnvoye&&PK.etat===1){PK.finiEnvoye=true;try{K.fini(PK.sdk);}catch(e){}}PK.jeuSync();},
-    fini:function(){PK.veut.fini=true;PK.pret();},
-    jeu:function(on){PK.veut.jeu=!!on;PK.jeuSync();},
-    jeuSync:function(){if(PK.etat!==1||PK.enPub||PK.veut.jeu===PK.jeuEnvoye)return;PK.jeuEnvoye=PK.veut.jeu;
-      try{K.jeu(PK.sdk,PK.jeuEnvoye);}catch(e){}},
-    // la pause pub : `muet(true)` à l'instant où une pub démarre (s'il y en a une — le portail décide), `muet(false)` puis `suite()` après
-    pub:function(muet,suite){if(PK.etat!==1||PK.enPub){suite();return;}
-      PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
-      var apres=function(){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite();};
-      try{K.pub(PK.sdk,function(){coupe=true;try{muet(true);}catch(e){}},apres);}catch(e){apres();}},
-    // la pub récompensée (prête pour une SECONDE CHANCE ou un ×2 : rien ne l'appelle encore) — `suite(true)` si elle a été vue jusqu'au bout
-    bonus:function(muet,suite){if(PK.etat!==1||PK.enPub){suite(false);return;}
-      PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
-      var apres=function(ok){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite(!!ok);};
-      try{K.bonus(PK.sdk,function(){coupe=true;try{muet(true);}catch(e){}},apres);}catch(e){apres(false);}},
-    // le « son coupé » imposé par le portail (CrazyGames, Playgama) : le jeu s'y abonne, le pilote le lui transmet dès qu'il est prêt
-    surMuet:function(f){PK.muets.push(f);if(PK.etat===1&&K.muet)try{K.muet(PK.sdk,f);}catch(e){}},
-    // la PAUSE imposée par le portail (Playgama : un onglet, une pub du site…) — même abonnement
-    surPause:function(f){PK.pauses.push(f);if(PK.etat===1&&K.pause)try{K.pause(PK.sdk,f);}catch(e){}},
-    // `f(true)` quand le kit est prêt, `f(false)` s'il est absent — tout de suite si c'est déjà tranché
-    surPret:function(f){if(PK.etat!==0){try{f(PK.etat===1);}catch(e){}}else PK.attend.push(f);},
-    langue:function(){try{return PK.etat===1&&K.langue?K.langue(PK.sdk):null;}catch(e){return null;}},
-    stockage:function(){return PK.etat===1&&!!K.lit;},
-    lit:function(k){try{return PK.stockage()?K.lit(PK.sdk,k):Promise.resolve(null);}catch(e){return Promise.resolve(null);}},
-    ecrit:function(k,v){try{if(PK.stockage())K.ecrit(PK.sdk,k,v).catch(function(){});}catch(e){}},
-    tranche:function(ok){var a=PK.attend;PK.attend=[];a.forEach(function(f){try{f(ok);}catch(e){}});},
-    charge:function(){if(PK.charge.f)return;PK.charge.f=1;if(!K){PK.etat=-1;PK.tranche(false);return;} // l'édition WEB (itch.io…) : aucun kit
-      var s=document.createElement('script');s.src=K.src;
-      var non=function(){if(PK.etat!==0)return;PK.etat=-1;PK.tranche(false);};
-      s.onerror=non;s.onload=function(){try{K.init(function(S){PK.sdk=S;PK.etat=1;
-          if(K.muet)PK.muets.forEach(function(f){try{K.muet(S,f);}catch(e){}});
-          if(K.pause)PK.pauses.forEach(function(f){try{K.pause(S,f);}catch(e){}});
-          PK.pret();PK.tranche(true);},non);}catch(e){non();}};
-      document.head.appendChild(s);}};
-  // `PK.charge()` est appelé par le script de la colonne, juste en dessous : tout de suite sur un téléphone ; sur l'ordi, une fois que la
-  // page-cadre a rangé le jeu qu'elle ne fait pas tourner (sinon le cadre de pub que le SDK pose dans la page serait masqué avec lui)
-})();
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
   /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
@@ -197,34 +65,22 @@ if(POKI)(function(){
      `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
   /* (2026-10-06, Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main ») : le BOÎTIER du 13 Pro revient par
      défaut — lunette, coins arrondis, encoche. L'écran nu de Léo reste à portée : `?encoche=0` dans l'adresse. */
-  var ENCOCHE_DEFAUT=true,ENC=!POKI&&(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
-  var PKC=POKI?window.CC_PK:null; // (POKI) le document de plus haut charge le SDK de Poki
-  /* (POKI) le jeu tourne TOUJOURS dans un cadre chez Poki (leur page) : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à
-     `window.top`. Et pas de marges d'iPhone (`telCadre`) : la colonne de Poki est l'écran entier de leur cadre. */
-  if(POKI?/[?&]colonne=1\b/.test(q):window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
-    if(!POKI&&/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+  var ENCOCHE_DEFAUT=true,ENC=(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
+  if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
+    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
-  if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop)=1|[?&]colonne=0/.test(q)&&!/[?&](tel|mobile)=1/.test(q)){if(PKC)PKC.charge();return;} // ?pc=1 : menu desktop · ?colonne=0 : l'ancien plein écran
+  if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop)=1|[?&]colonne=0/.test(q)&&!/[?&](tel|mobile)=1/.test(q))return; // ?pc=1 : menu desktop · ?colonne=0 : l'ancien plein écran
   var tactile=(M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0;
-  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600)){if(PKC)PKC.charge();return;} // un vrai téléphone : il EST l'écran
+  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600))return; // un vrai téléphone : il EST l'écran
   /* (2026-10-01, Léo : « sur tous les ordis ») la taille de l'ÉCRAN, plus celle de la fenêtre : un portable à écran tactile
      (1 536 × 864 → fenêtre < 820 px de haut) passait pour un téléphone et jouait sans cadre, étiré sur tout le moniteur */
   window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)
   var debout=/[?&]colonne=portrait/.test(q);
   document.documentElement.classList.add('colonne',debout?'debout':'couche');
   var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
-  /* (POKI) LE TÉLÉPHONE COUCHÉ QUI REMPLIT LE CADRE DE POKI : Poki veut un jeu qui couvre TOUT son cadre 16:9 (pas de bandes). La
-     colonne garde la hauteur d'un téléphone couché (390) et prend la LARGEUR de la fenêtre (16:9 → 693 × 390, un téléphone 16:9
-     tenu en paysage) : la même mise en page qu'un téléphone, agrandie sans bande ni boîtier. Fenêtre plus haute que large : debout. */
-  var pokiDims=function(){var a=Math.min(2,innerWidth/Math.max(1,innerHeight));debout=a<1; // (≤ 2:1 : au-delà, des bandes sur les côtés)
-    if(debout){L=390;H=Math.max(390,Math.round(390/a));}else{H=390;L=Math.max(390,Math.round(390*a));}
-    document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);};
-  if(POKI)pokiDims();
   document.addEventListener('DOMContentLoaded',function(){
-    if(POKI){for(var k=document.body.children,i=0;i<k.length;i++)k[i].classList.add('ccHors'); // le jeu que la page-cadre ne fait pas tourner
-      if(PKC)PKC.charge();} // …et seulement maintenant le SDK : ce qu'il posera dans la page reste visible (le cadre de pub)
     var f=document.createElement('iframe'),u=location.href.split('#')[0];
     f.id='colonne';f.setAttribute('aria-label','CASH CAR'); // (2026-10-08, Léo : « c'est un peu goofy ici ») le NOM du cadre sans `title` : un title affichait l'infobulle grise « CASH CAR » dès que la souris s'arrêtait sur le jeu
     f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
@@ -247,11 +103,6 @@ if(POKI)(function(){
     var MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom'; // voir « LE ZOOM NE PASSE PAS PARTOUT » plus bas
     var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
     var cadre=function(){
-      if(POKI){pokiDims();f.style.width=L+'px';f.style.height=H+'px'; // (POKI) bord à bord : ni air, ni boîtier, ni bouton TOURNER
-        var zp=Math.min(innerWidth/L,innerHeight/H),tp=tel.style;
-        if(MODE==='zoom'){f.style.transform='';f.style.zoom=zp.toFixed(4);}else{f.style.zoom='';f.style.transformOrigin='0 0';f.style.transform='scale('+zp.toFixed(4)+')';}
-        tp.width=(L*zp)+'px';tp.height=(H*zp)+'px';tp.padding='0';tp.borderRadius='0';
-        tp.left=((innerWidth-L*zp)/2)+'px';tp.top=((innerHeight-H*zp)/2)+'px';return;}
       // de l'air autour du boîtier ; en bas la place du bouton TOURNER et du numéro de version
       var PW=0,LW=innerWidth-PW;
       var mx=Math.max(16,LW*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
@@ -276,7 +127,6 @@ if(POKI)(function(){
     /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
        resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
-    if(!POKI){ // (POKI) ni numéro de version sous le jeu, ni bouton TOURNER : la fenêtre de Poki décide de la forme
     var vv=document.createElement('div');vv.id='ccVer';vv.textContent='VERSION '+CC_VER;document.body.appendChild(vv); // à comparer d'un coup d'œil avec les réglages du téléphone
     var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
     var tLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr'); /* (2026-10-07) la langue CHOISIE d'abord, comme l'écran de crash */
@@ -289,7 +139,6 @@ if(POKI)(function(){
       f.style.width=L+'px';f.style.height=H+'px';cadre();tLbl();
       try{var u=new URL(location.href);if(debout)u.searchParams.set('colonne','portrait');else u.searchParams.delete('colonne');history.replaceState(null,'',u.toString());}catch(_){}
       donne();});
-    }
     // le CLAVIER va au jeu : focus donné au chargement et à chaque clic hors de la colonne ; une touche frappée entre-temps est relayée
     var donne=function(){try{f.contentWindow.focus();}catch(_){}};
     f.addEventListener('load',donne);addEventListener('pointerdown',donne);
@@ -307,8 +156,6 @@ html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
-html.colonne.poki body>.ccHors{display:none!important} /* (POKI) seulement le jeu rangé : ce que le SDK de Poki pose dans la page (la pub) reste visible */
-html.poki,html.poki body{overscroll-behavior:none}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
@@ -6062,7 +5909,7 @@ html[data-reduced-motion] body #garage.deplie:not(.menu) #gBottom,html[data-redu
 </style>
 <style id="hubGarage">
 /* LE GARAGE, HUB DES TROIS (2026-10-06, Sacha : « le garage doit servir de hub aux 3, mets-toi dans la peau d'un designer UX/UI senior »).
-   html.hub   = la version de Sacha (MENU_SACHA, hors Poki) : l'accueil n'a plus que GARAGE · BOUTIQUE · ⚙ et JOUER.
+   html.hub   = la version de Sacha (MENU_SACHA) : l'accueil n'a plus que GARAGE · BOUTIQUE · ⚙ et JOUER.
    html.hubOn = on est DANS le hub (atelier, missions ou carrière ouverts depuis le garage) : la barre est là, chaque page lui laisse sa place.
    LA BARRE : trois onglets à parts égales, au même endroit sur les trois pages (la mémoire du pouce) — en bas debout, en bas à GAUCHE
    couché (la colonne de droite est celle de la console et de JOUER). Un onglet = sa couleur (atelier magenta comme la console,
@@ -6921,8 +6768,6 @@ html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvCof{grid-column:1/3!important;--pc:#5ee6ff}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis{grid-column:3/5!important;--pc:#b07bff}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{grid-column:5/7!important;--pc:#ff4fc3}
-html.poki body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvCof{grid-column:1/4!important}
-html.poki body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{grid-column:4/7!important}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas) .pxi{--pxs:2!important;color:var(--pc)!important;filter:drop-shadow(0 0 5px var(--pc))!important}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas) .gvIco,html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvFx{display:none!important}
 html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvPips{position:absolute;right:7px;top:5px;gap:3px}
@@ -6977,28 +6822,9 @@ html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:
 #carr .carrNiv .carrSel{position:absolute;z-index:2;top:-8px;right:10px} /* à cheval sur le bord haut, comme la pastille NEW de la boutique : debout, la case est étroite et son numéro est centré */
 #carr .carrPied .carrSel{flex:none}
 </style>
-<style id="poki">
-/* L'ÉDITION POKI (2026-10-04) — tout est sous `html.poki` : sans elle, rien ici ne s'applique. Ce qui n'existe pas chez Poki disparaît
-   de l'écran : les MISSIONS (porte de l'accueil, socle et écran de l'atelier, écran #mMis, mission suivie en course), la CARRIÈRE (tuile,
-   feuille #carr, et les portes du menu de Léo) et la BOUTIQUE en vrai argent (tuiles, portes du garage, écran #mShop). Le code reste :
-   rien n'y mène plus. L'écran de mort garde son bloc #mObj, que objRender remplit en OBJECTIF D'ACHAT (voir objRender). */
-/* l'ACCUEIL : la rangée des tuiles (GARAGE · CARRIÈRE · BOUTIQUE) n'aurait plus gardé que GARAGE, seul et étiré ; il prend la place
-   de la porte des MISSIONS, à côté du ⚙ (le script POKI en fin de jeu la rhabille), et la rangée des tuiles s'efface */
-html.poki #mHome .mIcons{display:none!important}
-html.poki #mHome .mMisBtn{--nc:var(--neoC)}
-html.poki #mHome .mMisBtn .pxi{color:var(--neoC)}
-html.poki #mHome .mMisBtn:not([data-m="garage"]),html.poki #gMisAncre,html.poki #gMis,html.poki #mMis,html.poki #misFocus,
-html.poki [data-m="carr"],html.poki #gCarr,html.poki .gLevel,html.poki #carr,
-html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.poki #mShop,html.poki #bdShop{display:none!important}
-/* (2026-10-05) PAS DE VOIX dans l'édition Poki : l'interrupteur VOIX et son curseur de volume n'ont plus rien à régler (réglages, pause, menu desktop) */
-html.poki [data-m="vox"],html.poki #mVolRowVox,html.poki [data-a="vox"],html.poki #voxBtn,html.poki [data-tg="voxBtn"],html.poki #volRowVox,html.poki #volLock{display:none!important}
+<style id="sansVoix">
 /* (2026-10-07, Sacha) plus de voix nulle part : les mêmes réglages disparaissent de la version principale (voir SANS_VOIX) */
 html.sansVoix [data-m="vox"],html.sansVoix #mVolRowVox,html.sansVoix [data-a="vox"],html.sansVoix #voxBtn,html.sansVoix [data-tg="voxBtn"],html.sansVoix #volRowVox,html.sansVoix #volLock{display:none!important}
-/* (2026-10-05) la VITRINE de l'atelier (nouvelle barre du bas, session de Léo) a sa propre porte MISSIONS sous JOUER (#gvMis) : masquée aussi.
-   Le cartouche du niveau (#gvNiv) reste : il dit le 1er niveau de la partie sans fin (NIVEAUX[0], la ville ici). */
-html.poki #gvMis{display:none!important}
-/* (CrazyGames) pas de MODE FACILE : l'interrupteur des réglages disparaît (FACILE_OK, voir le <head>) */
-html.sansFacile [data-m="facile"]{display:none!important}
 </style>
 <style id="uxPasse">
 /* LA PASSE UX/UI (2026-10-11, session GRAPHISME — Sacha : « la disposition des boutons dans chaque écran du jeu est super moche : mets-toi
@@ -7535,15 +7361,6 @@ html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:40px!importa
 /* l'ombre FLOUE des lettres (.lg::before, 0 .16em .3em) part : il ne reste que l'extrusion en marches — sinon le cerne dur entourait un nuage */
 html.c6 body #mHome .mPlay.mMot .lg::before{text-shadow:0 .015em 0 #6e3f00,0 .03em 0 #5c3300,0 .05em 0 #472700,0 .07em 0 #331c00}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:translateY(4px)!important}
-/* L'ÉDITION POKI (ni missions, ni carrière, ni offres : GARAGE · RÉGLAGES puis JOUER) : la même peau, 48 px, 8 px d'écart, la même ombre dure */
-html.c6.poki body #mHome .mOutils{gap:8px}
-html.c6.poki body #mHome :is(.mMisBtn,.mGear){--nc:var(--c6-b0);height:48px;min-height:48px!important;font-size:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;
-  clip-path:none!important;filter:none!important;background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
-html.c6.poki body #mHome .mGear{width:48px;min-width:48px;padding:0}
-html.c6.poki body #mHome :is(.mMisBtn,.mGear):is(:active,.appui){transform:translateY(4px);box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
-html.c6.poki body #mHome :is(.mMisBtn,.mGear)::before,html.c6.poki body #mHome :is(.mMisBtn,.mGear)::after{content:none!important}
-html.c6.poki body #mHome :is(.mMisBtn,.mGear) .pxi{--pxs:2;color:var(--c6-b0)!important;filter:none!important}
-html.c6.poki body #mHome .mPlay.mMot{filter:drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000) drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000) drop-shadow(0 4px 0 #000)!important}
 /* DEBOUT TRÈS ÉTROIT (320 px) : les carrés à 44, 4 px d'écart — les mots gardent leurs 64 px */
 @media (orientation:portrait) and (max-width:350px){
   html.c6.hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px 44px 44px;column-gap:4px}}
@@ -13045,7 +12862,7 @@ function traitMat(m,minPx,pal){
      · DE JOUR (matin, midi, soir, orbite) le rail n'est plus une lumière : c'est le CHANFREIN clair de la dalle (béton #C9C3B6), la nappe de
        lueur est éteinte ;
      · la NUIT, sous la PLUIE, à l'ORAGE : un rail BLANC doux (#E8E4DA à demi) — le bord du vide reste lisible — et une nappe très discrète ;
-     · les flancs sont en béton sombre #3A3833 ; le liseré et les catadioptres (1,5 m tous les 6 m) sont AMBRE (#FFB04A ; or à CRYPTOCITY et aux
+     · les flancs sont en béton sombre #3A3833 ; le liseré et les catadioptres (1,5 m tous les 6 m) sont AMBRE (#FFB04A ; or aux
        PICS DE JADE, blanc froid en orbite) ; la ligne centrale est un blanc cassé ; les plaques turbo ont un fond de béton sombre.
    Rien de plus pour la puce : des valeurs, des couleurs de matière existantes, les MÊMES programmes (le flanc change de clé : un programme
    remplacé, pas ajouté), aucune texture en plus. INTERRUPTEUR : `?sans=bords` (ou `…,bords,…`) rend l'image d'avant.
@@ -13108,15 +12925,15 @@ function trancheMat(){
   return m;
 }
 const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
-const GLACE={k:1,nuages:.45,espace:.5,jade:.55,crypto:.5}; // (v11) l'émeraude est polie comme une pierre taillée — (v12) « beaucoup plus brillante » : .5 → .8 // (v9) le jade est POLI : il renvoie le ciel en rasant
+const GLACE={k:1,nuages:.45,espace:.5,jade:.55}; // (v11) l'émeraude est polie comme une pierre taillée — (v12) « beaucoup plus brillante » : .5 → .8 // (v9) le jade est POLI : il renvoie le ciel en rasant
 const ROUTE_JADE=[1,1,.96]; /* (2026-10-14, passe graphismes) béton : un rien plus chaud aux PICS DE JADE (c'était [.95,1.04,.86] × la base violette) */ // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=Math.max(LVL.pluie,parisPluie()*1.8);ROAD_U.uVil.value=LVL.ville;try{ROAD_U.uEcl.value=CAMP_FLASH;}catch(e){} /* (2026-09-30) les enseignes reflétées : en VILLE seulement · l'éclair dans les flaques (CAMP_FLASH est déclaré plus bas : le try couvre l'init) */ // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
-  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0)+GLACE.crypto*(LVL.crypto||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=ROAD_U.uJStyle.value>4.5?0:LVL.jade||0;ROAD_U.uHalf.value=ROAD_HALF;ROAD_U.uGlace.value*=1-(LVL.jade||0)*(ROAD_U.uJStyle.value<.5?0:ROAD_U.uJStyle.value<1.5?.85:ROAD_U.uJStyle.value<2.5?.7:ROAD_U.uJStyle.value<3.5?.9:ROAD_U.uJStyle.value<4.5?.95:0); /* (2026-10-13) 5 = la route NORMALE : le bitume du jeu */
-  {const j9=Math.max(LVL.mer,LVL.crypto||0)*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
+  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=ROAD_U.uJStyle.value>4.5?0:LVL.jade||0;ROAD_U.uHalf.value=ROAD_HALF;ROAD_U.uGlace.value*=1-(LVL.jade||0)*(ROAD_U.uJStyle.value<.5?0:ROAD_U.uJStyle.value<1.5?.85:ROAD_U.uJStyle.value<2.5?.7:ROAD_U.uJStyle.value<3.5?.9:ROAD_U.uJStyle.value<4.5?.95:0); /* (2026-10-13) 5 = la route NORMALE : le bitume du jeu */
+  {const j9=Math.max(LVL.mer,0)*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
   {let rk9=1;try{rk9=BIO.cur.rtK;if(rk9==null)rk9=1;}catch(e9){} /* (2026-10-14, passe graphismes · contrôle) CLARTÉ DU BÉTON PAR AMBIANCE : `rtK` (1 par défaut, voir BIO_ETAL0) multiplie la clarté de niveau ET la teinte — le béton de jour était à L* 50-60 (cible 32-45) */ const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=(b.lift0+b.lift*LVL.route)*rk9,a9=b.amb,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
@@ -13418,8 +13235,8 @@ function buildTrack(seed){
      VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
-  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?(LVL.cur.crypto?0x35ff9e:0xf24aa0):idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
-  if(BORDS_V2){const ia9=Math.max(0,ACCENTS.indexOf(accR));ACCENTS.splice(0,6,0xffb04a,0xf2b93b,0xe8e4da,0xffc477,0xf2b93b,0xffb04a);accC.setHex(idA9==='espace'?0xe8eef2:idA9==='paris'?0xd9d4ca:(idA9==='jade'||(idA9==='ville'&&LVL.cur.crypto))?0xf2b93b:(idA9==='nuages'||idA9==='orage'||idA9==='ville')?0xffb04a:ACCENTS[ia9]);} // (2026-10-14, bords-route) L'ACCENT N'EST PLUS UN NÉON : ambre sodium (nuages, ville, orage, hasard), or (jade, cryptocity), blanc froid (orbite) — il nourrit le reflet des flaques (uAcc), le liseré des flancs, la couronne des tours (buildVoxCity) et le ciel musical
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
+  if(BORDS_V2){const ia9=Math.max(0,ACCENTS.indexOf(accR));ACCENTS.splice(0,6,0xffb04a,0xf2b93b,0xe8e4da,0xffc477,0xf2b93b,0xffb04a);accC.setHex(idA9==='espace'?0xe8eef2:idA9==='paris'?0xd9d4ca:idA9==='jade'?0xf2b93b:(idA9==='nuages'||idA9==='orage'||idA9==='ville')?0xffb04a:ACCENTS[ia9]);} // (2026-10-14, bords-route) L'ACCENT N'EST PLUS UN NÉON : ambre sodium (nuages, ville, orage, hasard), or (jade), blanc froid (orbite) — il nourrit le reflet des flaques (uAcc), le liseré des flancs, la couronne des tours (buildVoxCity) et le ciel musical
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
@@ -14122,559 +13939,22 @@ function villeMatPub(){
       .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.78+.22*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(.85+.15*sin(uT9*(3.+vS9*4.)))*uCour9;\n#include <fog_fragment>');};
   m.dispose=function(){};CITY.matP=m;return m;
 }
-/* ================================ CRYPTOCITY — LA VILLE EN BULL RUN ================================
-   (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur :
-   c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente,
-   ça respire la réussite et l'argent ; un immeuble BULL, et tout ; et pour la peine ramène la pluie d'argent que t'as enlevée entretemps,
-   et augmente la qualité »)
-   LE NIVEAU (`NIV_CRYPTO` : id 'ville' + crypto:1, comme MINUIT EN VILLE) : la piste et les tours sont celles de la VILLE — genCtrl (ruban
-   sans looping, l'entrée surélevée), buildVoxCity (le canyon, la forêt, la règle d'or : jamais une tour sur la route), les tours DURES, la
-   loi 15 du flow. À graine égale c'est la MÊME ville (les tirages `vr` ne bougent pas d'un pas : tout ce qui est à CRYPTOCITY tire dans
-   son propre flux `cr`). Ce qui change, c'est tout le reste :
-   · LE CIEL DU BULL RUN (biome `bullrun`) : le jour d'altitude, un azur profond, l'horizon et la brume en OR, le soleil franc ; la lune du
-     dôme cède la place à une PIÈCE ₿ qui tourne dans le ciel (la lune, c'est là où l'on va) ; route anthracite et glacée (elle renvoie le ciel).
-   · LES TOURS DE VERRE (`cryptoMatTours`) : murs-rideaux qui renvoient le ciel (émeraude, or, azur, marbre blanc), l'éclat du soleil sur
-     les vitres, et sur les plus hautes un BANDEAU DE COURS qui défile (chiffres verts et ▲) ; néons verts, or, orange bitcoin ; réclames LED
-     du bull run (`cryptoPubAtlas` : BTC +420 %, TO THE MOON, HODL, ATH, WAGMI…).
-   · LES TAUREAUX (`cryptoTaureau`) : deux gratte-ciel en forme de taureau qui CHARGE (celui de Wall Street), en verre d'or, à côté de la
-     route, tête basse vers la caisse qui arrive, cornes au ciel, les yeux LASER ; ses pattes sont des tours qui plongent dans la brume d'or.
-   · LE GRAPHIQUE : des rangées de BOUGIES VERTES géantes qui montent le long de la route (le cours qui grimpe, deux petites rouges pour
-     le vrai), des bougies dans la forêt du lointain ; des PIÈCES ₿ GÉANTES qui tournent au-dessus du canyon (la traverser en vol paie), des
-     DIAMANTS (diamond hands), des DIRIGEABLES à écran (le cours en direct), des FUSÉES « TO THE MOON » qui décollent des toits vers la
-     lune, des FEUX D'ARTIFICE verts et or ; les pièces de la route frappées du ₿ (coinPeint 'B').
-   · LE NOUVEL ATH : toutes les ~35 s, « NOUVEL ATH ! », le cours du bitcoin qui grimpe, une salve de feux d'artifice, et la pluie qui redouble.
-   · LA PLUIE D'ARGENT v2 (`PLA`) : voir son bloc juste après.
-   Lancement : `dbgNiveauCrypto()` ou `?niveau=crypto` (le JOUER de cette adresse lance CRYPTOCITY). Console : `dbgCrypto()`. */
-const MOON_DIR=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme (cielLune) — CRYPTOCITY y pose sa pièce, les fusées y vont
-const CRYPTO={root:null,res:[],toits:[],taureaux:[],bougies:null,pieces:null,pInfo:[],diam:null,dInfo:[],dirig:[],fus:[],feux:null,lune:null,
-  sites:null,colExtra:[],jeter:[],ath:{t:20,n:0,prix:104000},fusT:4,feuT:2.5,rf:null,tick:null,mat:{},
-  uT:{value:0},uSun:{value:new THREE.Vector3().copy(SUN_DIR)},
-  v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),m4:new THREE.Matrix4(),q:new THREE.Quaternion(),s:new THREE.Vector3(),
-  ax:new THREE.Vector3(0,1,0),c:new THREE.Color()};
-function cryptoOn(){return !!(LVL.cur&&LVL.cur.crypto&&!PARK.on);}
-function cryptoReserve(x,z,r){const R=CRYPTO.res;for(let i=0;i<R.length;i+=3){const dx=x-R[i],dz=z-R[i+1],q=R[i+2]+r;if(dx*dx+dz*dz<q*q)return true;}return false;}
-function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avant avait de crypto s'en va avec elle
-  for(const o of CRYPTO.jeter){try{if(o.isInstancedMesh)o.dispose();else if(o.geometry)o.geometry.dispose();}catch(e){}}
-  CRYPTO.jeter.length=0;CRYPTO.res.length=0;CRYPTO.toits.length=0;CRYPTO.taureaux.length=0;CRYPTO.colExtra.length=0;
-  CRYPTO.bougies=CRYPTO.pieces=CRYPTO.diam=null;CRYPTO.pInfo.length=0;CRYPTO.dInfo.length=0;CRYPTO.dirig.length=0;CRYPTO.sites=null;CRYPTO.root=null;
-  for(const f of CRYPTO.fus){f.on=false;f.g.visible=false;f.tr.visible=false;}
-  if(CRYPTO.feux){CRYPTO.feux.visible=false;for(let k=0;k<CRYPTO.feux.userData.K;k++)CRYPTO.feux.material.uniforms.uO.value[k].w=-99;}
-  if(CRYPTO.lune)CRYPTO.lune.visible=false;
-}
-/* LE PLAN — appelé par buildVoxCity AVANT les tours (`proches` = sa grille de la piste) : où vont les taureaux, les bougies, les pièces,
-   les diamants et les dirigeables. Chaque site vérifie qu'aucun étage de la route ne le traverse (`libre`) et se RÉSERVE : les tours qui
-   tomberaient dessus sont bâties puis retirées (leurs tirages ont eu lieu : la ville d'à côté ne bouge pas). */
-function cryptoPlace(seed,proches){
-  const cr=mulberry32(seed^0xB0117A11),S={taureaux:[],bougies:[],pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
-  CRYPTO.res.length=0;CRYPTO.rf=mulberry32(seed^0xF0E57B0);
-  const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
-  const dessous=function(x,z,R,y){let h=-1e9;proches(x,z,R,function(i){const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y<y&&p.y>h)h=p.y;});return h;};
-  const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
-  const ix=function(f){return Math.min(NP-2,Math.max(iE+6,Math.floor(f*NP)));};
-  // LES TAUREAUX : à 30 % et à 70 % de la piste, à ~230 m de l'axe, le ventre 70 m sous la route (le dos 120 m au-dessus, les cornes 230)
-  for(const F0 of [.3,.7]){
-    for(let k=0;k<14;k++){const i=ix(F0+(cr()-.5)*.2),c=cadre(i),sg=cr()<.5?-1:1,lat=ROAD_HALF+300+cr()*80;
-      const x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,yb=pts[i].y-70;
-      if(cryptoReserve(x,z,330)||!libre(x,z,280,yb-20,yb+440))continue;
-      const pied=Math.max(yb-820,dessous(x,z,280,yb)+70),a=.45; // la tête : vers la caisse qui arrive (−T), tournée vers la route (−sg·B)
-      const hx=-c.tx*Math.cos(a)-sg*c.px*Math.sin(a),hz=-c.tz*Math.cos(a)-sg*c.pz*Math.sin(a);
-      S.taureaux.push({x:x,z:z,y:yb,pied:pied,cap:Math.atan2(hx,hz),ph:cr()*6.28,s:i*dS});CRYPTO.res.push(x,z,330);
-      for(const f of [.3,.52,.74])CRYPTO.res.push(x+(pts[i].x-x)*f,z+(pts[i].z-z)*f,95); // L'ESPLANADE : pas une tour entre le taureau et la route qu'il regarde
-      break;}}
-  // LE GRAPHIQUE : trois rangées de bougies qui MONTENT le long de la route (une bougie tous les ~42 m), deux petites rouges dans chaque
-  for(const F0 of [.13,.5,.88]){const i0=ix(F0+(cr()-.5)*.05),sg=cr()<.5?-1:1,lat0=ROAD_HALF+115+cr()*90,pas=Math.max(1,Math.round(42/dS)),n=10+((cr()*4)|0),r1=2+((cr()*4)|0);
-    let niv=pts[i0].y-150;
-    for(let k=0;k<n;k++){const i=Math.min(NP-1,i0+k*pas),c=cadre(i),lat=lat0+(cr()-.5)*14,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat;
-      const rouge=(k===r1||k===r1+4)&&k<n-2,h=rouge?14+cr()*16:28+cr()*52,y0=rouge?niv-h:niv,y1=y0+h,mh=12+cr()*28,mb=8+cr()*22,w=16+cr()*6;
-      if(cryptoReserve(x,z,w*.75)||!libre(x,z,w*.75+4,y0-mb,y1+mh)){niv+=rouge?-h*.5:h*.7;continue;}
-      S.bougies.push({x:x,z:z,y0:y0,y1:y1,mh:mh,mb:mb,w:w,rouge:rouge});CRYPTO.res.push(x,z,w*.75+3);
-      niv=rouge?y0+h*.3:y1-h*.22+cr()*8;}}
-  // LES PIÈCES ₿ GÉANTES : douze, de 13 à 25 m de rayon, à 40-150 m du bord, 45-155 m au-dessus de la route
-  for(let k=0;k<12;k++){for(let e=0;e<4;e++){const i=ix(.07+.86*(k+cr()*.7)/12),c=cadre(i),sg=cr()<.5?-1:1,r=13+cr()*12;
-      const lat=ROAD_HALF+r+40+cr()*110,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+45+cr()*110;
-      if(cryptoReserve(x,z,r+6)||!libre(x,z,r+18,y-r-10,y+r+10))continue;
-      S.pieces.push({x:x,y:y,z:z,r:r,a:cr()*6.28,w:(.35+cr()*.4)*(cr()<.5?-1:1),ph:cr()*6.28,cd:0});CRYPTO.res.push(x,z,r+8);break;}}
-  // LES DIAMANTS (diamond hands) : huit, plus petits, plus haut
-  for(let k=0;k<8;k++){for(let e=0;e<4;e++){const i=ix(.1+.8*(k+cr())/8),c=cadre(i),sg=cr()<.5?-1:1,r=6+cr()*5;
-      const lat=ROAD_HALF+r+60+cr()*160,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+90+cr()*120;
-      if(cryptoReserve(x,z,r+6)||!libre(x,z,r+14,y-r*1.6-10,y+r*1.6+10))continue;
-      S.diam.push({x:x,y:y,z:z,r:r,a:cr()*6.28,w:.5+cr()*.6,ph:cr()*6.28});CRYPTO.res.push(x,z,r+6);break;}}
-  // LES DIRIGEABLES À ÉCRAN : trois, le long de la route, au-dessus du canyon
-  for(const F0 of [.24,.56,.84]){for(let k=0;k<8;k++){const i=ix(F0+(cr()-.5)*.12),c=cadre(i),sg=cr()<.5?-1:1;
-      const lat=ROAD_HALF+75+cr()*80,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,y=pts[i].y+70+cr()*50;
-      if(cryptoReserve(x,z,48)||!libre(x,z,62,y-28,y+28))continue;
-      S.dirig.push({x:x,y:y,z:z,cap:Math.atan2(c.tx,c.tz),ph:cr()*6.28});CRYPTO.res.push(x,z,48);break;}}
-  CRYPTO.sites=S;return S;
-}
-// la tour (cx,cz) qu'on vient de bâtir : retirée si elle tombe sur un site ; dans la forêt, une sur huit devient une BOUGIE (rend vrai = retirée)
-function cryptoTour(cx,cz,hd,b,t,canyon){
-  if(cryptoReserve(cx,cz,hd))return true;
-  const H=t-b;
-  if(!canyon&&CRYPTO.rf()<.13&&H>160){const w=Math.max(14,Math.min(30,hd*.75)),rouge=CRYPTO.rf()<.16,y1=t-20-CRYPTO.rf()*40,y0=Math.max(b+40,y1-(rouge?50:90+CRYPTO.rf()*160));
-    CRYPTO.sites.bougies.push({x:cx,z:cz,y0:y0,y1:y1,mh:14+CRYPTO.rf()*30,mb:Math.min(y0-b,30+CRYPTO.rf()*90),w:w,rouge:rouge});return true;}
-  if(H>200&&CRYPTO.toits.length<1800)CRYPTO.toits.push(cx,t,cz);
-  return false;
-}
-function cryptoColBougies(){ // les bougies sont DURES, comme les tours (villeHeurt les lit dans CITY.col)
-  const X=CRYPTO.colExtra;X.length=0;if(!CRYPTO.sites)return X;
-  for(const b of CRYPTO.sites.bougies){const yb=b.y0-b.mb,yt=b.y1+b.mh;X.push(b.x,(b.y0+b.y1)/2,b.z,b.w,b.y1-b.y0,b.w);X.push(b.x,(yb+yt)/2,b.z,3,yt-yb,3);}
-  return X;
-}
-/* ---- LES MATIÈRES (partagées, jamais disposées ; compilées au menu par cryptoChauffe) ---- */
-// LES TOURS DE VERRE — la tour de la ville (même sommet : tri hors champ, portée des lampes, pied noyé), une autre façade : le jour.
-const CRYPTO_VERRE=
-  '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
-  'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),s4=fract(vSeed9*53.17),sty=s3<.32?0.:s3<.46?1.:s3<.74?2.:3.;'+ // 32 % émeraude · 14 % or · 28 % azur · 26 % marbre
-  'vec2 cel=vec2(1.7+s1*1.5,3.9+s2*.5),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4));'+
-  'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),fe=max(fwidth(de),1e-4);'+
-  'float ux=(an.x>an.z?vLoc9.z*sign(vNrm9.x):-vLoc9.x*sign(vNrm9.z)),fu=max(fwidth(ux),1e-4);'+ // le long de la façade, pour le bandeau
-  '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nbool VIS9=fogDepth<fogFar;\n#else\nbool VIS9=true;\n#endif\n'+
-  'if(VIS9){vec3 V9=normalize(vW9-cameraPosition);'+
-  ' if(fv>0.){vec3 N9=normalize(vec3(vNrm9.x,0.,vNrm9.z)),R9=reflect(V9,N9);float ry=R9.y;'+
-  '  vec3 sky=ry>0.?mix(mix(uHor9,uMid9,smoothstep(0.,.16,ry)),uZen9,smoothstep(.12,.92,ry)):mix(uHor9*.72,vec3(.12,.11,.09),smoothstep(0.,-.28,ry));'+ // en dessous : la ville et sa brume, sombres
-  '  float lu=dot(sky,vec3(.3,.59,.11)),sd=max(dot(R9,uSun9),0.),gl=pow(sd,220.)*5.+pow(sd,14.)*.25,or9=step(.5,sty)*step(sty,1.5);'+
-  '  float fr=clamp((.50+.50*pow(1.-abs(dot(V9,N9)),5.))*(1.+.4*or9),0.,1.);vec3 rf=mix(sky,vec3(lu),.4+.35*or9);'+ // FRESNEL : de face on voit l'intérieur, de biais le ciel ; l'or renvoie la LUMIÈRE du ciel, pas son bleu
-  '  vec3 tint=sty<.5?vec3(.42,.95,.74):sty<1.5?vec3(1.,.74,.34):sty<2.5?vec3(.55,.80,1.):vec3(.60,.76,.95);'+
-  '  vec2 f=fract(uv),hw=vec2(mix(.41,.47,s2),mix(.40,.46,s1));if(sty>2.5)hw.x*=.62;'+ // le marbre : des baies plus étroites
-  '  vec2 dd=(hw-abs(f-.5))/fw;float far=smoothstep(.3,.75,max(fw.x,fw.y)),pane=mix(clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.),4.*hw.x*hw.y,far);'+
-  '  float ph=fract(sin(dot(floor(uv)+vSeed9*31.,vec2(12.9898,78.233)))*43758.5453);'+
-  '  vec3 ins=tint*(.055+.05*or9)*(.7+.6*ph);'+ // l'intérieur, sombre (un bureau derrière une vitre teintée)
-  '  vec3 glass=mix(ins,rf*tint*1.08,clamp(fr*(.82+.36*ph*(1.-far)),0.,1.))+gl*vec3(1.,.95,.8)+vec3(1.,.8,.5)*.2*step(.972,ph)*(1.-far);'+
-  '  gl_FragColor.rgb=mix(gl_FragColor.rgb,glass,pane*.93);'+
-  // LE BANDEAU DE COURS : sur une tour haute sur deux, à mi-hauteur, des chiffres verts et des ▲ qui défilent
-  '  if(s4>.5&&vSc9.y>150.){float bh=6.5+s2*3.,yb=vSc9.y*(.56+.24*s1),yy=vB9-yb;'+
-  '   if(abs(yy)<bh*.5+.9){float ps=bh/7.,gx=(ux-uT9*(9.+s1*7.))/ps,gy=floor((yy+bh*.5)/ps),ch=floor(gx/6.),cx=floor(mod(gx,6.));'+
-  '    float fl=step(abs(yy),bh*.5),cad=1.-fl;vec3 led=vec3(.004,.012,.006);'+
-  '    if(fl>0.&&fu<ps*.5){float on=0.;if(mod(ch,5.)<.5){float r=gy-1.;on=step(0.,r)*step(r,4.)*step(abs(cx-2.),2.-r*.5+.01);}'+ // le ▲
-  '     else on=step(cx,4.)*step(1.,gy)*step(gy,5.)*step(.42,fract(sin(dot(vec3(cx,gy,ch+vSeed9*17.),vec3(12.9898,78.233,37.719)))*43758.5453));'+
-  '     led+=mix(vec3(.15,1.6,.55),vec3(1.8,1.3,.3),step(.8,fract(ch*.37+vSeed9)))*on;}'+
-  '    else if(fl>0.)led+=vec3(.08,.5,.2);'+ // trop loin pour lire : la moyenne du bandeau
-  '    gl_FragColor.rgb=mix(gl_FragColor.rgb,led+cad*vec3(1.,.78,.32)*.9,max(fl,cad));}}'+
-  ' }'+
-  // LES TOITS : le parapet en or (vert pour les tours d'émeraude)
-  ' if(tt>0.&&fe<1.4){vec3 rc=sty<.5?vec3(.2,1.,.55):vec3(1.,.78,.3);gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.75;}'+
-  '}}\n';
-function cryptoPied(){return villePied(function(c){return c;}).replace('vec3(.16,.04,.2)','vec3(.05,.04,0.)');} // le pied dans la brume d'or (la lueur violette des rues de la ville la nuit n'a rien à faire ici)
-function cryptoMatToursLoin(){ // la tour AU LOIN (voir villeMatToursLoin) : la couleur de la brume, le pied doré
-  if(CRYPTO.mat.toursL)return CRYPTO.mat.toursL;
-  const m=new THREE.MeshBasicMaterial({color:0x000000});
-  m.onBeforeCompile=function(sh){sh.uniforms.uWet9=ROAD_U.uWet;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vB9;varying vec3 vW9;')
-      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\nvB9=(position.y+.5)*length(instanceMatrix[1].xyz);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvB9=position.y+.5;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uWet9;varying float vB9;varying vec3 vW9;')
-      .replace('#include <fog_fragment>','#include <fog_fragment>\n'+cryptoPied());};
-  m.customProgramCacheKey=function(){return 'toursLoinCrypto';};m.dispose=function(){};
-  CRYPTO.mat.toursL=m;return m;
-}
-function cryptoMatTours(){
-  if(CRYPTO.mat.tours)return CRYPTO.mat.tours;
-  const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x0c0a06});
-  m.extensions={derivatives:true};
-  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;';
-  m.onBeforeCompile=function(sh){Object.assign(sh.uniforms,{uT9:CITY.uT,uWet9:ROAD_U.uWet,uLum9:CITY.uL,uImp9:IMPACT.u,uImpN9:IMPACT.n,uZen9:skyU.uJZen,uMid9:skyU.uJMid,uHor9:skyU.uJHor,uSun9:CRYPTO.uSun});
-    sh.vertexShader='#undef USE_SHADOWMAP\n'+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n')
-      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
-        'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
-        'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n'+
-        'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;')
-      .replace('#include <project_vertex>','#include <project_vertex>\nbool loin9=false;\n'+VILLE_TRI+
-        '#ifdef USE_INSTANCING\nbool proche9=false;{vec3 w9=(modelMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;float r9=.5*length(sc9)+1.;'+
-        'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n')
-      .replace('#include <lights_lambert_vertex>','vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
-    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9;uniform vec3 uZen9,uMid9,uHor9,uSun9;uniform vec4 uImp9,uImpN9;'+DECL)
-      .replace('#include <fog_fragment>',CRYPTO_VERRE+VILLE_IMPACT+'#include <fog_fragment>\n'+cryptoPied());};
-  m.customProgramCacheKey=function(){return 'toursCrypto1';};m.dispose=function(){};
-  CRYPTO.mat.tours=m;return m;
-}
-/* LES RÉCLAMES DU BULL RUN : seize écrans LED (la police du jeu ; ▲, ₿, Ξ, fusée, taureau, diamant, bougies dessinés au pinceau) —
-   OPAQUES (en plein jour l'additif de la ville la nuit ne se voyait plus), balayage et glitch comme les réclames de la ville. */
-function cryptoPicto(x,k,cx,cy,s,col){x.save();x.translate(cx,cy);x.fillStyle=x.strokeStyle=col;x.lineWidth=s*.12;x.lineJoin='round';
+function plaPicto(x,k,cx,cy,s,col){x.save();x.translate(cx,cy);x.fillStyle=x.strokeStyle=col;x.lineWidth=s*.12;x.lineJoin='round'; // (pluie d'argent v2) les symboles frappés sur le billet ₿ et les pièces Ξ
   const tri=function(px,py,r){x.beginPath();x.moveTo(px,py-r);x.lineTo(px+r,py+r*.8);x.lineTo(px-r,py+r*.8);x.closePath();x.fill();};
-  if(k==='up'){tri(0,0,s*.55);}
-  else if(k==='btc'){x.beginPath();x.arc(0,0,s*.55,0,6.283);x.fill();x.fillStyle='#08130c';x.font='bold '+Math.round(s*.72)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('B',s*.03,s*.04);
+  if(k==='btc'){x.beginPath();x.arc(0,0,s*.55,0,6.283);x.fill();x.fillStyle='#08130c';x.font='bold '+Math.round(s*.72)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('B',s*.03,s*.04);
     x.fillRect(-s*.16,-s*.47,s*.08,s*.16);x.fillRect(s*.04,-s*.47,s*.08,s*.16);x.fillRect(-s*.16,s*.3,s*.08,s*.16);x.fillRect(s*.04,s*.3,s*.08,s*.16);}
   else if(k==='eth'){x.beginPath();x.moveTo(0,-s*.6);x.lineTo(s*.36,0);x.lineTo(0,s*.18);x.lineTo(-s*.36,0);x.closePath();x.fill();x.beginPath();x.moveTo(-s*.36,s*.1);x.lineTo(0,s*.3);x.lineTo(s*.36,s*.1);x.lineTo(0,s*.6);x.closePath();x.fill();}
-  else if(k==='fusee'){x.rotate(.6);x.beginPath();x.moveTo(0,-s*.62);x.quadraticCurveTo(s*.22,-s*.3,s*.18,s*.3);x.lineTo(-s*.18,s*.3);x.quadraticCurveTo(-s*.22,-s*.3,0,-s*.62);x.fill();
-    x.fillRect(-s*.32,s*.12,s*.14,s*.26);x.fillRect(s*.18,s*.12,s*.14,s*.26);x.fillStyle='#ff9a2e';x.beginPath();x.moveTo(-s*.12,s*.34);x.lineTo(0,s*.7);x.lineTo(s*.12,s*.34);x.fill();}
-  else if(k==='taureau'){x.beginPath();x.ellipse(0,s*.08,s*.42,s*.3,0,0,6.283);x.fill();x.lineWidth=s*.11;x.beginPath();x.moveTo(-s*.3,-s*.08);x.quadraticCurveTo(-s*.7,-s*.2,-s*.56,-s*.62);x.stroke();
-    x.beginPath();x.moveTo(s*.3,-s*.08);x.quadraticCurveTo(s*.7,-s*.2,s*.56,-s*.62);x.stroke();x.fillStyle='#ff2a2a';x.fillRect(-s*.2,-s*.02,s*.1,s*.08);x.fillRect(s*.1,-s*.02,s*.1,s*.08);}
-  else if(k==='diam'){x.beginPath();x.moveTo(-s*.5,-s*.2);x.lineTo(-s*.25,-s*.5);x.lineTo(s*.25,-s*.5);x.lineTo(s*.5,-s*.2);x.lineTo(0,s*.6);x.closePath();x.fill();
-    x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=s*.04;x.beginPath();x.moveTo(-s*.5,-s*.2);x.lineTo(s*.5,-s*.2);x.moveTo(-s*.12,-s*.5);x.lineTo(-s*.2,-s*.2);x.lineTo(0,s*.6);x.moveTo(s*.12,-s*.5);x.lineTo(s*.2,-s*.2);x.lineTo(0,s*.6);x.stroke();}
-  else if(k==='bougies'){for(let i=0;i<5;i++){const h=s*(.22+i*.14),px=-s*.5+i*s*.25;x.fillRect(px-s*.07,s*.5-h-s*.08*i,s*.14,h);x.fillRect(px-s*.015,s*.5-h-s*.08*i-s*.1,s*.03,h+s*.2);}}
-  else if(k==='lune'){x.beginPath();x.arc(0,0,s*.5,0,6.283);x.fill();x.fillStyle='rgba(0,0,0,.18)';x.beginPath();x.arc(-s*.15,-s*.1,s*.11,0,6.283);x.arc(s*.18,s*.16,s*.08,0,6.283);x.fill();}
   x.restore();}
-function cryptoPubAtlas(){
-  if(CRYPTO.mat.pubT)return CRYPTO.mat.pubT;
-  const N=1024,C=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
-  const PUB=[['BTC','#3dff9a','#03170c','+420 %','up'],['TO THE MOON','#ffd75e','#140c3a','NEXT STOP','fusee'],['HODL','#7df9ff','#2a0c4a','DIAMOND HANDS','diam'],['ATH','#3dff9a','#062014','ALL TIME HIGH','up'],
-    ['BULL RUN','#ffd75e','#0b3a1c','GREEN ONLY','taureau'],['WAGMI','#ffffff','#0f7a3a','WE ALL MAKE IT','up'],['100X','#ffd75e','#3a1206','LEVIER MAX','up'],['ETH','#d8e2ff','#2b1d6e','+69 %','eth'],
-    ['LAMBO','#ffe23e','#0a0a0a','WEN ? NOW.','up'],['PUMP','#3dff9a','#0c0c18','IT. ALWAYS.','bougies'],['GM','#ff9a2e','#1a0f04','GOOD MORNING','btc'],['$1 000 000','#ffd75e','#08130c','1 BTC','btc'],
-    ['NUMBER','#3dff9a','#03170c','GO UP','bougies'],['CASH CAR','#ffd75e','#b0106a','LA CAISSE QUI PAIE','btc'],['BUY','#3dff9a','#062014','QUEL DIP ?','up'],['MOON','#ffffff','#0d1640','MISSION','lune']];
-  PUB.forEach(function(p,k){const ox=(k%4)*C,oy=((k/4)|0)*C;
-    const g=x.createLinearGradient(0,oy,0,oy+C);g.addColorStop(0,p[2]);g.addColorStop(1,'#020304');x.fillStyle=g;x.fillRect(ox+6,oy+6,C-12,C-12);
-    x.strokeStyle=p[1];x.lineWidth=6;x.strokeRect(ox+12,oy+12,C-24,C-24);x.globalAlpha=.35;x.lineWidth=2;x.strokeRect(ox+24,oy+24,C-48,C-48);x.globalAlpha=1;
-    cryptoPicto(x,p[4],ox+C/2,oy+C*.3,C*.3,p[1]);
-    x.fillStyle=p[1];x.textAlign='center';x.textBaseline='middle';
-    const fz=Math.min(40,Math.floor((C-44)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.62);
-    x.font='12px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.8);
-    if(p[4]==='up'||p[4]==='bougies'){x.fillStyle=p[1];x.globalAlpha=.6;for(let i=0;i<7;i++)x.fillRect(ox+30+i*28,oy+C-34-i*3,16,6+i*3);x.globalAlpha=1;}});
-  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;texLibere(t); // (2026-10-14, passe perf mobile) 1024² : 4 Mo
-  CRYPTO.mat.pubT=t;return t;
-}
-function cryptoMatPub(){
-  if(CRYPTO.mat.pub)return CRYPTO.mat.pub;
-  const m=new THREE.MeshBasicMaterial({map:cryptoPubAtlas(),side:THREE.DoubleSide});
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
-      .replace('#include <uv_vertex>','#include <uv_vertex>\n#ifdef USE_INSTANCING\n'+
-        'vS9=fract(instanceMatrix[3].x*.0713+instanceMatrix[3].z*.0419+instanceMatrix[3].y*.017);float c9=floor(vS9*16.);'+
-        'float gl9=step(.95,fract(uT9*(.3+vS9*.4)+vS9*9.))*(fract(sin(floor(uT9*12.)+vS9*50.)*43.7)-.5)*.3;'+
-        'vUv=(vec2(clamp(vUv.x+gl9,0.,1.),vUv.y)*.97+.015+vec2(mod(c9,4.),3.-floor(c9/4.)))/4.;\n#else\nvS9=0.;\n#endif');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying float vS9;')
-      .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.86+.14*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(1.25+.15*sin(uT9*(3.+vS9*4.)));\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'pubsCrypto1';};m.dispose=function(){};
-  CRYPTO.mat.pub=m;return m;
-}
-// LES BOUGIES : un prisme de verre qui s'allume du bas vers le haut, ses arêtes plus claires, des données qui montent dedans
-function cryptoMatBougie(){
-  if(CRYPTO.mat.bougie)return CRYPTO.mat.bougie;
-  const m=new THREE.MeshBasicMaterial({color:0xffffff});
-  m.extensions={derivatives:true};
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CRYPTO.uT;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vL9,vN9,vC9;')
-      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\nvC9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));\n#else\nvC9=vec3(1.);\n#endif\nvL9=position*vC9;vN9=normal;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying vec3 vL9,vN9,vC9;')
-      .replace('#include <fog_fragment>','{vec3 an=abs(vN9);vec2 p=an.y>.5?vL9.xz:(an.x>an.z?vL9.zy:vL9.xy),hs=an.y>.5?vC9.xz*.5:(an.x>an.z?vC9.zy:vC9.xy)*.5;'+
-        'vec2 e=hs-abs(p),fe=max(fwidth(p),vec2(1e-3));float ar=1.-smoothstep(0.,max(fe.x,fe.y)*2.5+.6,min(e.x,e.y));'+
-        'float h=clamp(vL9.y/vC9.y+.5,0.,1.),sc=smoothstep(.9,1.,fract(vL9.y*.03-uT9*.3))*step(9.,vC9.x),me=step(vC9.x,5.);'+ // me : la MÈCHE (pleine lumière)
-        'float k9=mix((.16+.30*h+.22*sc)+1.25*ar+.7*step(.5,an.y),1.,me);gl_FragColor.rgb*=k9;}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'bougiesCrypto1';};m.dispose=function(){};
-  CRYPTO.mat.bougie=m;return m;
-}
-// LE TAUREAU : verre d'or — une baie tous les 3,4 m, un étage tous les 4,6 m (dans le monde), le ciel et le soleil dans les vitres
-const TAUREAU_VERRE=
-  '{vec3 N9=normalize(vN9);float vert=1.-smoothstep(.55,.85,abs(N9.y));vec3 V9=normalize(vW9-cameraPosition);'+
-  'vec3 Th=normalize(vec3(-N9.z,0.,N9.x)+vec3(1e-4,0.,0.));vec2 uv=vec2(dot(vW9,Th)/3.4,vW9.y/4.6),fw=max(fwidth(uv),vec2(1e-4));'+
-  'vec2 f=fract(uv),dd=(vec2(.40,.35)-abs(f-.5))/fw;float far=smoothstep(.3,.75,max(fw.x,fw.y)),pane=mix(clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.),.56,far)*vert;'+
-  'vec3 R9=reflect(V9,N9);float ry=R9.y;vec3 sky=ry>0.?mix(mix(uHor9,uMid9,smoothstep(0.,.16,ry)),uZen9,smoothstep(.12,.92,ry)):mix(uHor9*.7,vec3(.12,.1,.07),smoothstep(0.,-.28,ry));'+
-  'float sd=max(dot(R9,uSun9),0.),gl=pow(sd,240.)*6.+pow(sd,16.)*.35,fr=clamp(.22+.78*pow(1.-abs(dot(V9,N9)),3.),0.,1.),ph=fract(sin(dot(floor(uv),vec2(12.9898,78.233)))*43758.5453);'+
-  'vec3 rf=vec3(dot(sky,vec3(.3,.59,.11)));'+ // le miroir d'or : la LUMIÈRE du ciel, teintée d'or
-  'vec3 glass=mix(vec3(.16,.09,.02)*(.7+.6*ph),rf*vec3(1.,.82,.42)*1.1,fr*(.85+.3*ph*(1.-far)))+gl*vec3(1.,.92,.7)+vec3(1.,.84,.5)*.4*step(.95,ph)*(1.-far);'+
-  'gl_FragColor.rgb=mix(gl_FragColor.rgb,glass,pane*.86);'+
-  // LE BANDEAU DU TAUREAU : un ruban de cours vert tout autour du ventre (à hauteur de route : on le lit en passant)
-  'float yy=vW9.y-uBand9;if(abs(yy)<4.2&&vert>.5){float ps=1.15,gx=(dot(vW9,Th)-uT9*14.)/ps,gy=floor((yy+4.)/ps),ch=floor(gx/6.),cx=floor(mod(gx,6.));'+
-  ' float on=mod(ch,4.)<.5?step(0.,gy-1.)*step(gy-1.,4.)*step(abs(cx-2.),2.-(gy-1.)*.5+.01):step(cx,4.)*step(1.,gy)*step(gy,5.)*step(.4,fract(sin(dot(vec3(cx,gy,ch),vec3(12.9898,78.233,37.719)))*43758.5453));'+
-  ' float lo=smoothstep(.4,1.2,fwidth(gx));on=mix(on,.35,lo);gl_FragColor.rgb=vec3(.01,.03,.015)+vec3(.15,1.7,.55)*on;}'+
-  '}\n';
-function cryptoMatTaureau(){
-  if(CRYPTO.mat.taureau)return CRYPTO.mat.taureau;
-  const m=new THREE.MeshPhongMaterial({color:0xe0b44a,specular:0xffffff,shininess:110,emissive:0x0a0702});
-  m.extensions={derivatives:true};
-  m.onBeforeCompile=function(sh){Object.assign(sh.uniforms,{uT9:CRYPTO.uT,uZen9:skyU.uJZen,uMid9:skyU.uJMid,uHor9:skyU.uJHor,uSun9:CRYPTO.uSun,uBand9:m.userData.uBand});
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vW9,vN9;')
-      .replace('#include <project_vertex>','#include <project_vertex>\nvW9=(modelMatrix*vec4(transformed,1.)).xyz;vN9=normalize(mat3(modelMatrix)*objectNormal);');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uBand9;uniform vec3 uZen9,uMid9,uHor9,uSun9;varying vec3 vW9,vN9;')
-      .replace('#include <fog_fragment>',TAUREAU_VERRE+'#include <fog_fragment>');};
-  m.userData.uBand={value:-1e5}; // la hauteur du ruban (celle du taureau le plus proche : cryptoTick)
-  m.customProgramCacheKey=function(){return 'taureauCrypto1';};m.dispose=function(){};
-  CRYPTO.mat.taureau=m;return m;
-}
-function cryptoMats(){ // les petites matières, une fois
-  const M=CRYPTO.mat;if(M.corne)return M;
-  M.corne=new THREE.MeshPhongMaterial({color:0xfff4dc,specular:0xffffff,shininess:90,emissive:0x3a3326});
-  M.oeil=new THREE.MeshBasicMaterial({color:new THREE.Color(4,.35,.25)});
-  M.laser=new THREE.MeshBasicMaterial({color:new THREE.Color(3.2,.18,.12),transparent:true,opacity:.42,depthWrite:false,blending:THREE.AdditiveBlending});
-  M.laserC=new THREE.MeshBasicMaterial({color:new THREE.Color(4,2.2,1.8),transparent:true,opacity:.8,depthWrite:false,blending:THREE.AdditiveBlending});
-  M.anneau=new THREE.MeshPhongMaterial({color:0xffcf4a,specular:0xffffff,shininess:120,emissive:0x5a3a00});
-  M.ballon=new THREE.MeshPhongMaterial({color:0xf3f5f9,specular:0xffffff,shininess:60,emissive:0x1a1a20});
-  M.or=new THREE.MeshPhongMaterial({color:0xffc63a,specular:0xfff3c0,shininess:100,emissive:0x4a3000});
-  M.diam=new THREE.MeshPhongMaterial({color:0x8fefff,specular:0xffffff,shininess:140,emissive:0x1c4a7a,flatShading:true});
-  M.fusee=new THREE.MeshPhongMaterial({color:0xf6f6f8,specular:0xffffff,shininess:70,emissive:0x141418});
-  M.fuseeR=new THREE.MeshPhongMaterial({color:0xff3a3a,specular:0xffd0d0,shininess:60,emissive:0x300404});
-  M.flamme=new THREE.SpriteMaterial({map:lampTex,color:new THREE.Color(3,1.5,.5),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-  for(const k in M)if(M[k]&&M[k].isMaterial)M[k].dispose=function(){};
-  return M;
-}
-/* ---- LES FORMES ---- */
-// un triangle tourné vers l'EXTÉRIEUR (ref = un point à l'intérieur du volume) : toutes nos formes sont des volumes convexes par tranche
-function crTri(P,a,b,c,ref){const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
-  const gx=(a[0]+b[0]+c[0])/3-ref[0],gy=(a[1]+b[1]+c[1])/3-ref[1],gz=(a[2]+b[2]+c[2])/3-ref[2];
-  if(nx*gx+ny*gy+nz*gz<0)P.push(a[0],a[1],a[2],c[0],c[1],c[2],b[0],b[1],b[2]);else P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);}
-// un LOFT octogonal le long de z : anneaux [z, cy, largeur, hauteur, cx] (coins coupés à 34 %), fermé aux deux bouts
-function crLoft(P,R,ch){ch=ch==null?.34:ch;
-  const sec=function(r){const z=r[0],cy=r[1],w=r[2]/2,h=r[3]/2,x0=r[4]||0,cw=w*ch,chh=h*ch;
-    return [[x0-w+cw,cy+h,z],[x0+w-cw,cy+h,z],[x0+w,cy+h-chh,z],[x0+w,cy-h+chh,z],[x0+w-cw,cy-h,z],[x0-w+cw,cy-h,z],[x0-w,cy-h+chh,z],[x0-w,cy+h-chh,z]];};
-  const S=R.map(sec);
-  for(let k=0;k<S.length-1;k++){const A=S[k],B=S[k+1],ref=[((R[k][4]||0)+(R[k+1][4]||0))/2,(R[k][1]+R[k+1][1])/2,(R[k][0]+R[k+1][0])/2];
-    for(let j=0;j<8;j++){const j2=(j+1)%8;crTri(P,A[j],B[j],B[j2],ref);crTri(P,A[j],B[j2],A[j2],ref);}}
-  for(const e of [0,S.length-1]){const A=S[e],r=R[e],o=e===0?1:-1,ref=[r[4]||0,r[1],r[0]+o*5],c=[r[4]||0,r[1],r[0]];
-    for(let j=0;j<8;j++)crTri(P,c,A[j],A[(j+1)%8],ref);}}
-// un PRISME octogonal vertical (une patte-tour) : du pied (yb, largeur wb, centre xb,zb) au sommet (yt, wt, xt,zt)
-function crPatte(P,xb,zb,yb,wb,xt,zt,yt,wt){
-  const sec=function(x,z,y,w){const r=w/2,c=r*.42,o=[];for(const q of [[-r+c,-r],[r-c,-r],[r,-r+c],[r,r-c],[r-c,r],[-r+c,r],[-r,r-c],[-r,-r+c]])o.push([x+q[0],y,z+q[1]]);return o;};
-  const A=sec(xb,zb,yb,wb),B=sec(xt,zt,yt,wt),ref=[(xb+xt)/2,(yb+yt)/2,(zb+zt)/2];
-  for(let j=0;j<8;j++){const j2=(j+1)%8;crTri(P,A[j],B[j],B[j2],ref);crTri(P,A[j],B[j2],A[j2],ref);}
-  const cb=[xb,yb,zb],ct=[xt,yt,zt];for(let j=0;j<8;j++){crTri(P,cb,A[j],A[(j+1)%8],ref);crTri(P,ct,B[j],B[(j+1)%8],ref);}}
-// un TUBE effilé le long d'une courbe (corne, queue) : rayon r0 → r1, six pans
-function crTube(P,pts9,r0,r1,n){const cu=new THREE.CatmullRomCurve3(pts9.map(function(p){return new THREE.Vector3(p[0],p[1],p[2]);}));
-  const rings=[],up=new THREE.Vector3(0,1,0),tg=new THREE.Vector3(),a=new THREE.Vector3(),b=new THREE.Vector3(),c=[];
-  for(let i=0;i<=n;i++){const u=i/n,p=cu.getPointAt(u);cu.getTangentAt(u,tg);a.crossVectors(tg,Math.abs(tg.y)>.9?a.set(1,0,0):up).normalize();b.crossVectors(tg,a).normalize();
-    const r=r0+(r1-r0)*Math.pow(u,.8),R=[];for(let j=0;j<6;j++){const t=j/6*6.2832;R.push([p.x+(a.x*Math.cos(t)+b.x*Math.sin(t))*r,p.y+(a.y*Math.cos(t)+b.y*Math.sin(t))*r,p.z+(a.z*Math.cos(t)+b.z*Math.sin(t))*r]);}
-    rings.push(R);c.push([p.x,p.y,p.z]);}
-  for(let i=0;i<n;i++){const A=rings[i],B=rings[i+1],ref=[(c[i][0]+c[i+1][0])/2,(c[i][1]+c[i+1][1])/2,(c[i][2]+c[i+1][2])/2];
-    for(let j=0;j<6;j++){const j2=(j+1)%6;crTri(P,A[j],B[j],B[j2],ref);crTri(P,A[j],B[j2],A[j2],ref);}}
-  const e=rings[n],ce=c[n],cb=c[0],r0r=rings[0];for(let j=0;j<6;j++){crTri(P,ce,e[j],e[(j+1)%6],c[n-1]);crTri(P,cb,r0r[j],r0r[(j+1)%6],c[1]);}}
-function crGeo(P){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();g.computeBoundingSphere();return g;}
-/* LE TAUREAU QUI CHARGE (le taureau de Wall Street, en gratte-ciel) — repère local : +z = la tête, +y = le haut, le ventre à y = 0.
-   Le corps est un loft de la croupe au mufle (la tête BASSE : il charge), le garrot bossu ; les quatre pattes sont des tours (les
-   avant lancées en avant, les arrière en arrière) qui descendent dans la brume ; cornes et queue en tubes ; les yeux LASER. */
-function cryptoTaureauGeo(pied){
-  const P=[],Pc=[];
-  crLoft(P,[[-178,122,74,96],[-156,126,122,160],[-86,120,120,150],[-14,128,134,178],[46,148,156,222],[94,144,146,210],[128,118,120,166], // la croupe, le flanc, le GARROT massif, l'encolure
-             [162,86,108,132],[198,62,100,116],[230,40,86,90],[256,22,70,58],[272,14,56,38]]); // la TÊTE basse (il charge) jusqu'au mufle
-  crLoft(P,[[30,258,70,26],[64,268,84,30],[100,254,64,24]],.4); // la BOSSE du garrot
-  for(const s of [-1,1]){crPatte(P,s*50,150,pied,66,s*46,72,46,52);crPatte(P,s*52,-210,pied,68,s*48,-128,46,56); // les pattes-tours : avant lancées, arrière tirées (la charge)
-    crLoft(P,[[178,118,10,34,s*52],[190,126,10,30,s*62],[200,128,8,20,s*68]],.3); // l'OREILLE
-    crTube(Pc,[[s*40,112,196],[s*100,134,212],[s*152,178,240],[s*150,236,276],[s*120,280,306]],17,2.5,16);} // la CORNE : grande, ivoire, en lyre (c'est elle qui fait le taureau de loin)
-  crTube(Pc,[[0,176,-172],[4,214,-200],[14,258,-216],[28,294,-208],[34,308,-192]],6.5,2.2,12); // la QUEUE en fouet
-  crLoft(Pc,[[-196,304,10,16,36],[-186,310,16,22,38],[-176,308,10,14,36]],.5); // sa touffe
-  return {corps:crGeo(P),cornes:crGeo(Pc)};
-}
-const TAUREAU_K=1.35; // l'échelle du taureau : son dos ~250 m au-dessus de la route, ses cornes ~340
-function cryptoTaureau(root,t){
-  const M=cryptoMats(),G=cryptoTaureauGeo((t.pied-t.y)/TAUREAU_K),g=new THREE.Group();
-  g.position.set(t.x,t.y,t.z);g.rotation.y=t.cap;g.scale.setScalar(TAUREAU_K);
-  const c=new THREE.Mesh(G.corps,cryptoMatTaureau()),k=new THREE.Mesh(G.cornes,M.corne);g.add(c);g.add(k);CRYPTO.jeter.push(c,k);
-  const an=new THREE.Mesh(CRYPTO_G.tore,M.anneau);an.position.set(0,6,274);an.scale.setScalar(14);g.add(an); // l'anneau dans le mufle
-  const yeux=[],lasers=[];
-  for(const s of [-1,1]){const o=new THREE.Mesh(CRYPTO_G.oeil,M.oeil);o.position.set(s*44,82,214);o.scale.setScalar(7);g.add(o);yeux.push(o);
-    const L9=new THREE.Group();L9.position.copy(o.position);g.add(L9);
-    const b=new THREE.Mesh(CRYPTO_G.laser,M.laser);b.scale.set(5,1700,5);L9.add(b);const b2=new THREE.Mesh(CRYPTO_G.laser,M.laserC);b2.scale.set(1.3,1700,1.3);L9.add(b2);
-    b.frustumCulled=b2.frustumCulled=false;lasers.push(L9);}
-  root.add(g);g.updateMatrixWorld(true);
-  // les boîtes DURES (repère du taureau) : le corps, la tête, les quatre pattes
-  const pl=(t.pied-t.y)/TAUREAU_K,bx=[[0,128,-20,75,118,160],[0,62,222,52,66,56],[0,258,64,42,22,40]];
-  for(const s of [-1,1]){bx.push([s*48,(pl+46)/2,110,40,(46-pl)/2+4,44]);bx.push([s*50,(pl+46)/2,-170,40,(46-pl)/2+4,46]);}
-  return {k:TAUREAU_K,g:g,x:t.x,y:t.y,z:t.z,co:Math.cos(t.cap),si:Math.sin(t.cap),bx:bx,lasers:lasers,ph:t.ph,s:t.s};
-}
-function cryptoHeurt(p){ // la caisse est-elle DANS un taureau ? (comme villeHeurt : en vol)
-  for(const b of CRYPTO.taureaux){const dx=p.x-b.x,dz=p.z-b.z;if(dx*dx+dz*dz>420*420)continue;
-    const lx=(dx*b.co-dz*b.si)/b.k,lz=(dx*b.si+dz*b.co)/b.k,ly=(p.y-b.y)/b.k; // rotation.y = cap (et l'échelle) : le local se lit par la transformation inverse
-    for(const q of b.bx)if(Math.abs(lx-q[0])<q[3]+.7&&Math.abs(ly-q[1])<q[4]+.4&&Math.abs(lz-q[2])<q[5]+.7)return true;}
-  return false;
-}
-/* ---- LES GÉOMÉTRIES PARTAGÉES (une fois) ---- */
-const CRYPTO_G={};
-function cryptoGeos(){
-  if(CRYPTO_G.cube)return CRYPTO_G;
-  CRYPTO_G.cube=new THREE.BoxGeometry(1,1,1);
-  CRYPTO_G.tore=new THREE.TorusGeometry(1,.17,6,14);
-  CRYPTO_G.oeil=new THREE.OctahedronGeometry(1,1);
-  {const g=new THREE.CylinderGeometry(1,1,1,6,1,true);g.translate(0,.5,0);g.rotateX(Math.PI/2);CRYPTO_G.laser=g;} // le long de +z, depuis l'œil
-  {const g=plaGeoPiece(40,.16);g.rotateX(Math.PI/2);CRYPTO_G.piece=g;} // la pièce ₿ géante : celle de la pluie, plus ronde, DEBOUT (ses faces regardent ±z ; elle tourne sur la verticale)
-  {const g=new THREE.OctahedronGeometry(1,0);g.scale(1,1.45,1);CRYPTO_G.diam=g;}
-  {const g=new THREE.SphereGeometry(1,24,14);g.scale(16,16,60);CRYPTO_G.ballon=g;}
-  CRYPTO_G.plan=new THREE.PlaneGeometry(1,1);
-  {const g=new THREE.CylinderGeometry(1,1,1,12);CRYPTO_G.cyl=g;const c=new THREE.ConeGeometry(1,1,12);CRYPTO_G.cone=c;}
-  for(const k in CRYPTO_G)CRYPTO_G[k].dispose=function(){};
-  return CRYPTO_G;
-}
-// LE BANDEAU DU COURS (dirigeables) : une bande LED qui défile — la police du jeu, les ▲ dessinés
-function cryptoTickerTex(){
-  if(CRYPTO.mat.tick)return CRYPTO.mat.tick;
-  const W=2048,H=96,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
-  x.fillStyle='#020604';x.fillRect(0,0,W,H);x.fillStyle='rgba(61,255,154,.08)';for(let i=0;i<W;i+=4)x.fillRect(i,0,1,H);
-  const L9=[['BTC','$1 000 000','+420 %'],['ETH','$69 000','+69 %'],['CASH','$161 000','+161 %'],['DOGE','$4,20','+1 000 %'],['SOL','$9 000','+88 %'],['MOON','',''],['HODL','','']];
-  x.textBaseline='middle';x.font='34px "Press Start 2P",monospace';let px=20;
-  for(const l of L9){x.fillStyle='#ffd75e';x.fillText(l[0],px,H/2);px+=x.measureText(l[0]).width+22;
-    if(l[1]){x.fillStyle='#ffffff';x.fillText(l[1],px,H/2);px+=x.measureText(l[1]).width+22;}
-    if(l[2]){x.fillStyle='#3dff9a';x.beginPath();x.moveTo(px,H/2+14);x.lineTo(px+16,H/2-16);x.lineTo(px+32,H/2+14);x.fill();px+=44;x.fillText(l[2],px,H/2);px+=x.measureText(l[2]).width;}
-    px+=70;if(px>W-200)break;}
-  const t=new THREE.CanvasTexture(cv);t.wrapS=THREE.RepeatWrapping;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.NearestFilter;t.anisotropy=4;
-  texLibere(t); // (2026-10-14, passe perf mobile) 2048 × 96 : 0,8 Mo (le défilement = `offset`, la toile n'est jamais repeinte)
-  CRYPTO.mat.tick=t;CRYPTO.mat.ecran=new THREE.MeshBasicMaterial({map:t,color:new THREE.Color(1.5,1.5,1.5)});CRYPTO.mat.ecran.dispose=function(){};return t;
-}
-/* LES CONSTRUCTIONS DU NIVEAU — après les tours (buildVoxCity) : tout dans le groupe de la ville (il part avec la piste) */
-function cryptoBatit(root){
-  const S=CRYPTO.sites;if(!S)return;CRYPTO.root=root;const M=cryptoMats(),G=cryptoGeos(),M4=CRYPTO.m4,c=CRYPTO.c;cryptoInit();
-  const nb=S.bougies.length;
-  if(nb){const im=new THREE.InstancedMesh(G.cube,cryptoMatBougie(),nb*2);
-    for(let k=0;k<nb;k++){const b=S.bougies[k];
-      M4.makeScale(b.w,b.y1-b.y0,b.w);M4.setPosition(b.x,(b.y0+b.y1)/2,b.z);im.setMatrixAt(2*k,M4);c.setRGB(b.rouge?1.3:.12,b.rouge?.12:1,b.rouge?.18:.42);im.setColorAt(2*k,c);
-      const yb=b.y0-b.mb,yt=b.y1+b.mh;M4.makeScale(3,yt-yb,3);M4.setPosition(b.x,(yb+yt)/2,b.z);im.setMatrixAt(2*k+1,M4);c.setRGB(b.rouge?1.2:.35,b.rouge?.35:1.2,b.rouge?.4:.6);im.setColorAt(2*k+1,c);}
-    im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;im.frustumCulled=false;root.add(im);CRYPTO.bougies=im;CRYPTO.jeter.push(im);}
-  for(const t of S.taureaux)CRYPTO.taureaux.push(cryptoTaureau(root,t));
-  if(S.pieces.length){const im=new THREE.InstancedMesh(G.piece,cryptoMatPiece(),S.pieces.length);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im.frustumCulled=false;root.add(im);CRYPTO.pieces=im;CRYPTO.jeter.push(im);
-    for(const p of S.pieces)CRYPTO.pInfo.push(p);}
-  if(S.diam.length){const im=new THREE.InstancedMesh(G.diam,M.diam,S.diam.length);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im.frustumCulled=false;root.add(im);CRYPTO.diam=im;CRYPTO.jeter.push(im);
-    for(const d of S.diam)CRYPTO.dInfo.push(d);}
-  if(S.dirig.length){cryptoTickerTex();
-    for(const d of S.dirig){const g=new THREE.Group();g.position.set(d.x,d.y,d.z);g.rotation.y=d.cap;
-      g.add(new THREE.Mesh(G.ballon,M.ballon));
-      for(const a of [0,1,2,3]){const f=new THREE.Mesh(G.cube,M.or);const s9=a<2?(a?1:-1):0,u9=a>=2?(a===2?1:-1):0;f.position.set(s9*12,u9*12,-52);f.scale.set(s9?16:1.6,u9?16:1.6,18);g.add(f);} // les ailerons d'or
-      const go=new THREE.Mesh(G.cube,M.or);go.position.set(0,-17,6);go.scale.set(8,5,22);g.add(go); // la nacelle
-      for(const s of [-1,1]){const e=new THREE.Mesh(G.plan,CRYPTO.mat.ecran);e.position.set(s*16.4,1,2);e.rotation.y=s*Math.PI/2;e.scale.set(56,9,1);g.add(e);} // les écrans du cours
-      root.add(g);CRYPTO.dirig.push({g:g,y:d.y,ph:d.ph});}}
-  CRYPTO.ath.t=22;CRYPTO.fusT=3;CRYPTO.feuT=2;
-}
-function cryptoMatPiece(){
-  if(CRYPTO.mat.piece)return CRYPTO.mat.piece;
-  const m=new THREE.MeshPhongMaterial({map:plaTexPieces(),color:0xffffff,specular:0xffe7a8,shininess:90,emissive:0x2c1a04});
-  m.onBeforeCompile=function(sh){sh.vertexShader=sh.vertexShader.replace('#include <uv_vertex>','#include <uv_vertex>\n#ifdef USE_UV\nvUv.y=vUv.y*.5+.5;\n#endif');}; // la moitié ₿ de l'atlas des pièces
-  m.customProgramCacheKey=function(){return 'pieceGeante1';};m.dispose=function(){};
-  CRYPTO.mat.piece=m;return m;
-}
-/* ---- LES OBJETS DU CIEL (une fois pour toute la session : la lune ₿, trois fusées, les feux d'artifice) ---- */
-function cryptoInit(){
-  if(CRYPTO.lune)return;const M=cryptoMats(),G=cryptoGeos();
-  // LA LUNE ₿ : la face de la pièce, qui tourne lentement, posée à l'endroit de la lune du dôme
-  {const cv=document.createElement('canvas');cv.width=cv.height=512;const x=cv.getContext('2d'),src=plaTexPieces().image;
-    const g=x.createRadialGradient(256,256,150,256,256,256);g.addColorStop(0,'rgba(255,214,120,.55)');g.addColorStop(.62,'rgba(255,190,90,.18)');g.addColorStop(1,'rgba(255,180,80,0)');
-    x.fillStyle=g;x.fillRect(0,0,512,512);x.save();x.beginPath();x.arc(256,256,158,0,6.283);x.clip();x.drawImage(src,8,2,240,240,98,98,316,316);x.restore();
-    const t=texLibere(new THREE.CanvasTexture(cv));t.anisotropy=4; // (2026-10-14, passe perf mobile) 512² : 1 Mo
-    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,fog:false,color:new THREE.Color(1.25,1.18,1.05)}));
-    s.renderOrder=24;s.frustumCulled=false;s.visible=false;scene.add(s);CRYPTO.lune=s;}
-  // LES FUSÉES « TO THE MOON » : le corps blanc, la coiffe et les ailerons rouges, la flamme, et un sillage de fumée (ruban de 56 points)
-  for(let k=0;k<3;k++){const g=new THREE.Group();
-    const b=new THREE.Mesh(G.cyl,M.fusee);b.scale.set(2.2,17,2.2);g.add(b);
-    const n=new THREE.Mesh(G.cone,M.fuseeR);n.scale.set(2.2,7,2.2);n.position.y=12;g.add(n);
-    for(let a=0;a<3;a++){const f=new THREE.Mesh(G.cube,M.fuseeR);const r=a/3*6.283;f.position.set(Math.cos(r)*2.6,-7,Math.sin(r)*2.6);f.rotation.y=-r;f.scale.set(3.4,6,.5);g.add(f);}
-    const fl=new THREE.Sprite(M.flamme);fl.position.y=-12;fl.scale.set(9,16,1);g.add(fl);
-    g.scale.setScalar(1.5);g.visible=false;scene.add(g);
-    const NT=56,pos=new Float32Array(NT*2*3),al=new Float32Array(NT*2),sd9=new Float32Array(NT*2),idx=[];for(let i=0;i<NT*2;i++)sd9[i]=i%2;for(let i=0;i<NT-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
-    const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(pos,3).setUsage(THREE.DynamicDrawUsage));tg.setAttribute('aA',new THREE.BufferAttribute(al,1).setUsage(THREE.DynamicDrawUsage));tg.setAttribute('aS',new THREE.BufferAttribute(sd9,1));tg.setIndex(idx);
-    const tm=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:false,vertexShader:'attribute float aA,aS;varying float vA;varying float vS;void main(){vA=aA;vS=aS;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      fragmentShader:'varying float vA;varying float vS;void main(){float e=1.-pow(abs(vS*2.-1.),2.);gl_FragColor=vec4(vec3(1.,.98,.95),vA*e*.62);}'});
-    const tr=new THREE.Mesh(tg,tm);tr.frustumCulled=false;tr.visible=false;tr.renderOrder=8;scene.add(tr);
-    CRYPTO.fus.push({g:g,fl:fl,tr:tr,pos:pos,al:al,NT:NT,hist:[],on:false,t:0,p:new THREE.Vector3(),v:new THREE.Vector3(),dT:0});}
-  // LES FEUX D'ARTIFICE : dix gerbes de 120 étoiles, calculées par la puce (l'origine et l'heure de chaque gerbe en uniforms)
-  {const K=10,NP9=120,n=K*NP9,aB=new Float32Array(n),aD=new Float32Array(n*3),aR=new Float32Array(n),po=new Float32Array(n*3);
-    for(let i=0;i<n;i++){aB[i]=Math.floor(i/NP9);let x,y,z,l;do{x=Math.random()*2-1;y=Math.random()*2-1;z=Math.random()*2-1;l=x*x+y*y+z*z;}while(l>1||l<.05);l=Math.sqrt(l);
-      const r=.82+Math.random()*.18;aD[i*3]=x/l*r;aD[i*3+1]=y/l*r;aD[i*3+2]=z/l*r;aR[i]=Math.random();}
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(po,3));g.setAttribute('aB',new THREE.BufferAttribute(aB,1));g.setAttribute('aD',new THREE.BufferAttribute(aD,3));g.setAttribute('aR',new THREE.BufferAttribute(aR,1));
-    const uO=[],uC=[];for(let k=0;k<K;k++){uO.push(new THREE.Vector4(0,0,0,-99));uC.push(new THREE.Vector3(1,1,1));}
-    const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,
-      uniforms:{uO:{value:uO},uC:{value:uC},uT:{value:0},uPx:{value:600}},
-      vertexShader:'uniform vec4 uO['+K+'];uniform vec3 uC['+K+'];uniform float uT,uPx;attribute float aB,aR;attribute vec3 aD;varying vec3 vC;varying float vA;'+
-        'void main(){int b=int(aB+.5);vec4 o=uO[b];float t=uT-o.w;if(t<0.||t>2.8){gl_Position=vec4(0.,0.,2.,1.);gl_PointSize=0.;vA=0.;return;}'+
-        'float v=(150.+120.*aR)*(1.-exp(-t*2.6))/2.6;vec3 p=o.xyz+aD*v+vec3(0.,-4.2*t*t,0.);vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;'+
-        'float k=1.-t/2.8;vA=k*k*(.6+.4*sin(uT*31.+aR*40.))*smoothstep(0.,.08,t);vC=mix(uC[b],vec3(1.,.95,.8),step(.86,aR))*3.2;gl_PointSize=max(1.5,(7.+6.*aR)*k*uPx/max(1.,-mv.z));}',
-      fragmentShader:'varying vec3 vC;varying float vA;void main(){vec2 d=gl_PointCoord-.5;float r=dot(d,d);if(r>.25)discard;gl_FragColor=vec4(vC*vA*(1.-r*3.2),1.);}'});
-    const p=new THREE.Points(g,m);p.frustumCulled=false;p.visible=false;p.renderOrder=9;p.userData.K=K;p.userData.k=0;scene.add(p);CRYPTO.feux=p;}
-}
-function cryptoFeu(x,y,z){const F=CRYPTO.feux;if(!F)return;const U=F.material.uniforms,k=F.userData.k=(F.userData.k+1)%F.userData.K;
-  U.uO.value[k].set(x,y,z,U.uT.value);const C=[[.2,1,.5],[1,.8,.25],[1,.95,.85],[1,.55,.12],[.45,1,.85]][(Math.random()*5)|0];U.uC.value[k].set(C[0],C[1],C[2]);
-  F.visible=true;}
-function cryptoFeuDevant(){ // une gerbe au-dessus de la ville, DEVANT la caméra (300-800 m), dans le ciel
-  const v=CRYPTO.v1;camera.getWorldDirection(v);v.y=Math.max(.05,v.y*.4+.12);v.normalize();const d=300+Math.random()*500,s=CRYPTO.v2.set(-v.z,0,v.x).normalize().multiplyScalar((Math.random()-.5)*d*.9);
-  cryptoFeu(camera.position.x+v.x*d+s.x,camera.position.y+v.y*d+60+Math.random()*160,camera.position.z+v.z*d+s.z);}
-function cryptoFusee(){ // une fusée part d'un toit DEVANT la caméra (300-1 400 m) et file vers la lune ₿
-  const f=CRYPTO.fus.find(function(q){return !q.on;}),T9=CRYPTO.toits;if(!f||T9.length<3)return;
-  const v=CRYPTO.v1;camera.getWorldDirection(v);v.y=0;v.normalize();
-  for(let e=0;e<24;e++){const i=((Math.random()*T9.length/3)|0)*3,dx=T9[i]-camera.position.x,dz=T9[i+2]-camera.position.z,d=Math.hypot(dx,dz);
-    if(d<300||d>1400||(dx*v.x+dz*v.z)/d<.45)continue;
-    f.on=true;f.t=0;f.p.set(T9[i],T9[i+1]+12,T9[i+2]);f.v.set(0,14,0);f.hist.length=0;f.dT=0;f.g.visible=true;f.tr.visible=true;f.g.position.copy(f.p);
-    for(let j=0;j<f.NT*2;j++)f.al[j]=0;f.tr.geometry.attributes.aA.needsUpdate=true;return;}}
-function cryptoFuseeTick(f,dt){
-  f.t+=dt;const k=Math.min(1,f.t/5),dir=CRYPTO.v2.set(0,1,0).lerp(MOON_DIR,k*.85).normalize();
-  f.v.addScaledVector(dir,(16+f.t*7)*dt);f.p.addScaledVector(f.v,dt);f.g.position.copy(f.p);
-  CRYPTO.q.setFromUnitVectors(CRYPTO.ax,CRYPTO.v3.copy(f.v).normalize());f.g.quaternion.copy(CRYPTO.q);
-  f.fl.scale.set(9+Math.random()*2,15+Math.random()*7,1);
-  f.dT-=dt;if(f.dT<=0){f.dT=.11;f.hist.unshift(f.p.x,f.p.y,f.p.z,f.t);if(f.hist.length>f.NT*4)f.hist.length=f.NT*4;}
-  const H=f.hist,n=H.length/4,cam=camera.position,P=f.pos,A=f.al,vw=CRYPTO.v3,sd=CRYPTO.s;
-  for(let i=0;i<f.NT;i++){const j=Math.min(n-1,i);if(n<2){A[i*2]=A[i*2+1]=0;continue;}
-    const a=j*4,b=Math.min(n-1,j+1)*4,age=f.t-H[a+3],w=3+age*5.5;
-    sd.set(H[a]-H[b],H[a+1]-H[b+1],H[a+2]-H[b+2]);vw.set(H[a]-cam.x,H[a+1]-cam.y,H[a+2]-cam.z);sd.cross(vw).normalize().multiplyScalar(w);
-    P[i*6]=H[a]+sd.x;P[i*6+1]=H[a+1]+sd.y;P[i*6+2]=H[a+2]+sd.z;P[i*6+3]=H[a]-sd.x;P[i*6+4]=H[a+1]-sd.y;P[i*6+5]=H[a+2]-sd.z;
-    const al=i<n-1?Math.max(0,1-age/6.5)*Math.min(1,i/2)*(f.t>12?Math.max(0,1-(f.t-12)/2):1):0;A[i*2]=A[i*2+1]=al;}
-  f.tr.geometry.attributes.position.needsUpdate=true;f.tr.geometry.attributes.aA.needsUpdate=true;
-  if(f.t>14.5){f.on=false;f.g.visible=false;f.tr.visible=false;}
-}
-function cryptoAth(){ // LE NOUVEL ATH : le cours grimpe, la pluie redouble, le ciel tire ses feux
-  const A=CRYPTO.ath;A.n++;A.prix=Math.round(A.prix*(1.18+Math.random()*.22)/100)*100;
-  const pr=A.prix>=1e6?(A.prix/1e6).toFixed(A.prix>=1e7?1:2).replace('.',',')+' M':Math.round(A.prix/1000)+' K';
-  try{slam(TR('NOUVEL ATH !'),'BTC $ '+pr,'#3dff9a','#ffd75e',30,1,true);}catch(e){}
-  plaSurge(6);for(let i=0;i<5;i++)setTimeout(cryptoFeuDevant,i*260);
-  try{if(SONV2)sfx('argent.palier');}catch(e){}
-}
-function cryptoTick(dt,sim){
-  const on=cryptoOn()&&!!CRYPTO.root;
-  if(!on){if(CRYPTO.lune&&CRYPTO.lune.visible){CRYPTO.lune.visible=false;CRYPTO.feux.visible=false;for(const f of CRYPTO.fus){f.on=false;f.g.visible=f.tr.visible=false;}}return;}
-  const d=sim?dt:0,cam=camera.position;CRYPTO.uT.value+=d;const t=CRYPTO.uT.value;CRYPTO.uSun.value.copy(SUN_DIR);
-  // la lune ₿
-  {const L9=CRYPTO.lune;L9.visible=true;L9.position.copy(cam).addScaledVector(MOON_DIR,5200);L9.scale.setScalar(5200*.16);L9.material.rotation=Math.sin(t*.25)*.12;}
-  // les pièces géantes : elles tournent, elles flottent ; la traverser en vol = JACKPOT
-  if(CRYPTO.pieces){const im=CRYPTO.pieces,M4=CRYPTO.m4,q=CRYPTO.q,s=CRYPTO.s,pp=CRYPTO.v1,cp=carGroup.position;
-    for(let k=0;k<CRYPTO.pInfo.length;k++){const p=CRYPTO.pInfo[k];p.a+=p.w*d;q.setFromAxisAngle(CRYPTO.ax,p.a);pp.set(p.x,p.y+Math.sin(t*.7+p.ph)*4,p.z);s.setScalar(p.r);M4.compose(pp,q,s);im.setMatrixAt(k,M4);
-      if(p.cd>0)p.cd-=d;else if(sim&&mode==='fall'&&cp.distanceToSquared(pp)<p.r*p.r*.8){p.cd=8;cryptoJackpot(pp);}}
-    im.instanceMatrix.needsUpdate=true;}
-  if(CRYPTO.diam){const im=CRYPTO.diam,M4=CRYPTO.m4,q=CRYPTO.q,s=CRYPTO.s,pp=CRYPTO.v1;
-    for(let k=0;k<CRYPTO.dInfo.length;k++){const p=CRYPTO.dInfo[k];p.a+=p.w*d;q.setFromAxisAngle(CRYPTO.ax,p.a);pp.set(p.x,p.y+Math.sin(t*.9+p.ph)*3,p.z);s.setScalar(p.r);M4.compose(pp,q,s);im.setMatrixAt(k,M4);}
-    im.instanceMatrix.needsUpdate=true;}
-  for(const b of CRYPTO.dirig){b.g.position.y=b.y+Math.sin(t*.4+b.ph)*3;b.g.rotation.z=Math.sin(t*.3+b.ph)*.03;}
-  if(CRYPTO.mat.tick)CRYPTO.mat.tick.offset.x=(t*.045)%1;
-  // les yeux laser balaient le ciel ; le ruban du taureau le plus proche se pose à la hauteur de la route
-  let bd=1e18;for(const b of CRYPTO.taureaux){for(let i=0;i<2;i++){const L9=b.lasers[i];L9.rotation.set(-.32-.12*Math.sin(t*.37+b.ph),.22*Math.sin(t*.5+b.ph+i*.4)+(i?-.06:.06),0);}
-    const dd=(b.x-cam.x)*(b.x-cam.x)+(b.z-cam.z)*(b.z-cam.z);if(dd<bd){bd=dd;CRYPTO.mat.taureau.userData.uBand.value=b.y+78*b.k;}}
-  // fusées, feux, ATH
-  for(const f of CRYPTO.fus)if(f.on&&d>0)cryptoFuseeTick(f,d);
-  if(CRYPTO.feux){const U=CRYPTO.feux.material.uniforms;U.uT.value+=d;U.uPx.value=(renderer.domElement.height||600)*.5*camera.projectionMatrix.elements[5];}
-  if(sim&&started&&!gameOver){
-    CRYPTO.fusT-=d;if(CRYPTO.fusT<=0){CRYPTO.fusT=5+Math.random()*5;cryptoFusee();}
-    CRYPTO.feuT-=d;if(CRYPTO.feuT<=0){CRYPTO.feuT=1.6+Math.random()*2.6;cryptoFeuDevant();}
-    CRYPTO.ath.t-=d;if(CRYPTO.ath.t<=0&&mode!=='boom'){CRYPTO.ath.t=32+Math.random()*14;cryptoAth();}}
-}
-function cryptoJackpot(p){ // traverser une pièce ₿ géante en vol
-  try{chaineAura('JACKPOT',160);}catch(e){}
-  try{popTexte(TR('JACKPOT !'),'#ffd75e',2);}catch(e){}
-  plaSurge(3.5);try{cryptoFeu(p.x,p.y+20,p.z);}catch(e){}
-  try{if(SONV2)sfx('argent.palier');}catch(e){}
-}
-function cryptoChauffe(){ // au menu (chauffeDivers) : chaque matière de CRYPTOCITY compilée et dessinée une fois hors écran — 0 programme en course
-  const G=cryptoGeos(),M=cryptoMats();cryptoInit();plaInit();
-  const L9=[],add=function(o){o.position.copy(camera.position);camera.getWorldDirection(CRYPTO.v1);o.position.addScaledVector(CRYPTO.v1,30);scene.add(o);L9.push(o);};
-  {const im=new THREE.InstancedMesh(G.cube,cryptoMatTours(),1);im.setMatrixAt(0,CRYPTO.m4.identity());im.setColorAt(0,CRYPTO.c.set(1,1,1));add(im);}
-  {const im=new THREE.InstancedMesh(G.cube,cryptoMatToursLoin(),1);im.setMatrixAt(0,CRYPTO.m4.identity());add(im);}
-  {const im=new THREE.InstancedMesh(G.plan,cryptoMatPub(),1);im.setMatrixAt(0,CRYPTO.m4.identity());add(im);}
-  {const im=new THREE.InstancedMesh(G.cube,cryptoMatBougie(),1);im.setMatrixAt(0,CRYPTO.m4.identity());im.setColorAt(0,CRYPTO.c.set(1,1,1));add(im);}
-  {const im=new THREE.InstancedMesh(G.piece,cryptoMatPiece(),1);im.setMatrixAt(0,CRYPTO.m4.identity());add(im);}
-  {const im=new THREE.InstancedMesh(G.diam,M.diam,1);im.setMatrixAt(0,CRYPTO.m4.identity());add(im);}
-  add(new THREE.Mesh(G.cube,cryptoMatTaureau()));for(const k of ['corne','oeil','laser','laserC','anneau','ballon','or','fusee','fuseeR'])add(new THREE.Mesh(G.cube,M[k]));
-  cryptoTickerTex();add(new THREE.Mesh(G.plan,CRYPTO.mat.ecran));
-  for(const o of [CRYPTO.lune,CRYPTO.feux,PLA.mB,PLA.mP])if(o){o.visible=true;L9.push(o);}
-  for(const f of CRYPTO.fus){f.g.visible=f.tr.visible=true;L9.push(f.g,f.tr);}
-  try{chauffeRendu(L9);}catch(e){}
-  for(const o of L9){if(o===CRYPTO.lune||o===CRYPTO.feux||o===PLA.mB||o===PLA.mP||CRYPTO.fus.some(function(f){return f.g===o||f.tr===o;}))o.visible=false;else scene.remove(o);}
-}
-window.dbgCrypto=function(k,v){ // console : l'état de CRYPTOCITY · ('ath') un ATH tout de suite · ('feu') une gerbe · ('fusee') une fusée · ('pluie',s) une averse
-  if(k==='ath'){cryptoAth();return CRYPTO.ath;}if(k==='feu'){cryptoFeuDevant();return 'gerbe';}if(k==='fusee'){cryptoFusee();return CRYPTO.fus.map(function(f){return f.on;});}
-  if(k==='pluie'){plaSurge(v||6);return PLA.dens;}
-  if(k==='sansPluie'){PLA.off=!PLA.off;return PLA.off;}
-  if(k==='vue'&&CRYPTO.taureaux.length){const b=CRYPTO.taureaux[v|0]||CRYPTO.taureaux[0];return {x:Math.round(b.x),y:Math.round(b.y),z:Math.round(b.z)};}
-  if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();if(acesPass)acesPass.uniforms.uSpeed.value=0;camera.position.fromArray(v.p);camera.lookAt(v.c[0],v.c[1],v.c[2]);if(v.fov){camera.fov=v.fov;camera.updateProjectionMatrix();}camera.updateMatrixWorld(); // (banc) MODE PHOTO libre : la caméra en p, qui regarde c
-    try{plaTick(0,false);cryptoTick(0,false);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'photo';}
-  if(k==='cam'){const d=camera.getWorldDirection(new THREE.Vector3());return {p:camera.position.toArray().map(Math.round),d:d.toArray().map(function(x){return +x.toFixed(3);}),car:carGroup.position.toArray().map(Math.round)};}
-  if(k==='masque'){const T9={pla:[PLA.mB,PLA.mP],lune:[CRYPTO.lune],feux:[CRYPTO.feux],bougies:[CRYPTO.bougies],pieces:[CRYPTO.pieces],diam:[CRYPTO.diam],ville:[CITY.root]};
-    for(const o of (T9[v]||[]))if(o)o.visible=!o.visible;if(v==='taureaux')for(const b of CRYPTO.taureaux)b.g.visible=!b.g.visible;if(v==='fam')for(const F of CITY.fam||[]){F.im.visible=!F.im.visible;F.imL.visible=!F.imL.visible;}
-    if(POST_ON&&composer)composer.render();return v;}
-  if(k==='progs')return renderer.info.programs.filter(function(p){return p.diagnostics&&!p.diagnostics.runnable;}).map(function(p){return [p.cacheKey.slice(0,60),JSON.stringify(p.diagnostics).slice(0,400)];});
-  if(k==='pla')return {mB:!!PLA.mB,vis:PLA.mB&&PLA.mB.visible,dens:PLA.dens,u:PLA.u&&{d:PLA.u.uDens9.value,t:PLA.u.uT9.value,c:PLA.u.uC9.value.toArray().map(Math.round)},prog:renderer.info.programs.filter(function(p){return /plaBillet1|plaPiece1/.test(p.cacheKey||'');}).map(function(p){return [p.cacheKey.slice(0,40),p.diagnostics?JSON.stringify(p.diagnostics).slice(0,600):'ok'];}),
-    pix:PLA.texB?Array.from(PLA.texB.image.getContext('2d').getImageData(256,128,1,1).data):null,pixP:PLA.texP?Array.from(PLA.texP.image.getContext('2d').getImageData(128,122,1,1).data):null,inst:PLA.mB.geometry.instanceCount,max:PLA.mB.geometry._maxInstanceCount};
-  if(k==='sites'){const S=CRYPTO.sites;return S?{bougies:S.bougies.slice(0,40).map(function(b){return [Math.round(b.x),Math.round(b.y0),Math.round(b.z),Math.round(b.y1-b.y0)];}),pieces:S.pieces.map(function(p){return [Math.round(p.x),Math.round(p.y),Math.round(p.z),Math.round(p.r)];}),dirig:S.dirig.map(function(d){return [Math.round(d.x),Math.round(d.y),Math.round(d.z)];})}:null;}
-  if(k==='taureaux')return CRYPTO.taureaux.map(function(b){return {x:Math.round(b.x),y:Math.round(b.y),z:Math.round(b.z),cap:+Math.atan2(b.si,b.co).toFixed(2),s:Math.round(b.s)};});
-  const S=CRYPTO.sites;return {on:cryptoOn(),ville:!!CITY.root,taureaux:CRYPTO.taureaux.length,bougies:S?S.bougies.length:0,pieces:CRYPTO.pInfo.length,diamants:CRYPTO.dInfo.length,
-    dirigeables:CRYPTO.dirig.length,toits:CRYPTO.toits.length/3,reserve:CRYPTO.res.length/3,fusees:CRYPTO.fus.filter(function(f){return f.on;}).length,
-    ath:{dans:+CRYPTO.ath.t.toFixed(1),n:CRYPTO.ath.n,prix:CRYPTO.ath.prix},pluie:{dens:+PLA.dens.toFixed(2),surge:+PLA.surge.toFixed(1),n:PLA.N,np:PLA.NP},ville9:CITY.n};};
 /* ======================= LA PLUIE D'ARGENT v2 — `PLA` (2026-10-13, Léo : « ramène la pluie d'argent, et augmente la qualité ») =======================
    L'averse de glyphes (startMoneyRain : des « $ € ¥ » en sprites, 3 s) ne tombait plus que passé 4 000 $ × ECO3.gain dans UNE partie — on ne
    la voyait plus. Elle revient en VRAIS objets : les billets de la pluie de richesse (la série de sept couleurs, recto dessiné, + le billet
-   ₿ de CRYPTOCITY) qui tombent en FEUILLE MORTE ou en CULBUTE et se courbent dans l'air, des pièces ₿ et Ξ en métal qui voilent et FLASHENT
+   ₿) qui tombent en FEUILLE MORTE ou en CULBUTE et se courbent dans l'air, des pièces ₿ et Ξ en métal qui voilent et FLASHENT
    au soleil, des confettis verts et or. Tout est calculé par la puce : chaque objet a sa place (aO) et son caractère (aR) une fois pour
    toutes ; le sommet calcule la chute, le vent, la rotation, la flexion et la lumière (soleil, ciel, reflet), et replie l'objet dans une
    BOÎTE de 120 × 70 × 160 m qui suit la caméra (le monde est rempli à l'infini, on traverse le rideau à n'importe quelle vitesse) ; les bords
    de la boîte et l'objectif fondent l'objet en trame (aucun tri, aucune transparence). Deux appels de dessin, zéro calcul par objet et par
-   image. `PLA.dens` (0 → 1, une part des objets) : à CRYPTOCITY une pluie de fond (.5), une AVERSE (1) à chaque NOUVEL ATH et à chaque
-   pièce géante traversée ; ailleurs elle remplace l'averse de glyphes (même déclencheur : startMoneyRain). */
+   image. `PLA.dens` (0 → 1, une part des objets) : une AVERSE (1) qui remplace
+   l'averse de glyphes (même déclencheur : startMoneyRain). */
 const PLA={N:IS_MOBILE?900:1400,NP:IS_MOBILE?220:360,B:new THREE.Vector3(120,70,160),dens:0,surge:0,mB:null,mP:null,u:null,c:new THREE.Vector3(),f:new THREE.Vector3()};
 PAL.B.memTexBillets=[.5,1,1]; // (2026-10-14, passe perf mobile) l'échelle de l'atlas des billets de la PLUIE : 1024 × 384 au palier ancien (un billet qui tombe fait quelques dizaines de pixels à l'écran) — 8,4 Mo de puce → 2,1 Mo ; paliers 1-2 : 2048 × 768 comme avant
 function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie de richesse) + le billet ₿ · la rangée du bas : les confettis
@@ -14685,13 +13965,13 @@ function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie 
   ['#2bff88','#ffd23e','#ffffff','#ff9a2e'].forEach(function(c,i){const g=x.createLinearGradient(i*512,512,i*512+512,768);g.addColorStop(0,c);g.addColorStop(1,'#ffffff');x.fillStyle=c;x.fillRect(i*512+40,552,432,176);x.globalAlpha=.35;x.fillStyle=g;x.fillRect(i*512+40,552,432,60);x.globalAlpha=1;});
   const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=texLibere(t);return t; // (2026-10-14, passe perf mobile) 2048 × 768 : 6,3 Mo rendus après l'envoi (paliers 0-1)
 }
-function plaBilletBtc(){ // le billet de CRYPTOCITY : vert billet et or, un ₿ dans la rosace, « 1 BITCOIN »
+function plaBilletBtc(){ // le billet ₿ : vert billet et or, un ₿ dans la rosace, « 1 BITCOIN »
   return richCv(512,236,function(x,w,h){
     const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,'#0a3a1c');G.addColorStop(.55,'#127a3a');G.addColorStop(1,'#0c4f26');x.fillStyle=G;x.fillRect(0,0,w,h);
     x.strokeStyle='rgba(160,255,200,.12)';x.lineWidth=1;for(let k=0;k<26;k++){x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));x.stroke();}
     x.strokeStyle='rgba(255,215,94,.6)';x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);
     for(let i=0;i<14;i++){x.strokeStyle='rgba(255,215,94,'+(.07+i*.014)+')';x.beginPath();x.arc(118,118,62-i*4,0,6.2832);x.stroke();}
-    cryptoPicto(x,'btc',118,118,92,'#ffb347');
+    plaPicto(x,'btc',118,118,92,'#ffb347');
     x.fillStyle='rgba(255,236,170,.9)';x.font='bold 54px Helvetica,Arial,sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('1',30,48);x.textAlign='right';x.fillText('1',w-30,h-44);
     x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CRYPTOCITY',w*.6,h*.42);
     x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(200,255,220,.6)';x.fillText('BULL RUN · UN BITCOIN · TO THE MOON',w*.6,h*.56);
@@ -14705,7 +13985,7 @@ function plaTexPieces(){ // l'atlas des pièces : en haut la ₿ (la pièce de l
   for(const cx of [128,384]){const cy=256+122,R=120;const G=x.createRadialGradient(cx-38,cy-40,10,cx,cy,R);G.addColorStop(0,'#f4f7ff');G.addColorStop(1,'#7c88b0');x.fillStyle=G;x.beginPath();x.arc(cx,cy,R,0,6.283);x.fill();
     x.lineWidth=8;x.strokeStyle='rgba(255,255,255,.4)';x.beginPath();x.arc(cx,cy,R*.95,0,6.283);x.stroke();
     const O=x.createRadialGradient(cx-25,cy-23,8,cx,cy,R*.79);O.addColorStop(0,'#8f7dff');O.addColorStop(1,'#3b2fa8');x.fillStyle=O;x.beginPath();x.arc(cx,cy,R*.79,0,6.283);x.fill();
-    cryptoPicto(x,'eth',cx,cy,150,'#eef1ff');}
+    plaPicto(x,'eth',cx,cy,150,'#eef1ff');}
   x.fillStyle='#c9d2ee';x.fillRect(0,500,512,12);x.fillStyle='#e8b048';x.fillRect(0,244,512,12);for(let i=0;i<512;i+=8){x.fillStyle='rgba(40,28,8,.3)';x.fillRect(i,244,4,12);x.fillStyle='rgba(30,30,60,.3)';x.fillRect(i,500,4,12);}
   const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texP=t;return t;
 }
@@ -14775,12 +14055,17 @@ function plaInit(){
   PLA.mB=mB;PLA.mP=mP;
 }
 function plaSurge(s){plaInit();PLA.surge=Math.max(PLA.surge,s||4);}
+function plaChauffe(){ // au menu (chauffeDivers) : les deux matières de la pluie compilées et dessinées une fois hors écran — 0 programme en course
+  plaInit();const L9=[PLA.mB,PLA.mP];for(const o of L9)o.visible=true;
+  try{chauffeRendu(L9);}catch(e){}
+  for(const o of L9)o.visible=false;
+}
 function plaTick(dt,sim){
-  if(!PLA.mB){if(!(PLA.surge>0)&&!cryptoOn())return;plaInit();}
-  const cr9=cryptoOn()&&started&&!gameOver,cible=PLA.surge>0?1:cr9?.5:0;
+  if(!PLA.mB){if(!(PLA.surge>0))return;plaInit();}
+  const cible=PLA.surge>0?1:0;
   if(sim){PLA.surge=Math.max(0,PLA.surge-dt);PLA.dens+=(cible-PLA.dens)*Math.min(1,dt*(cible>PLA.dens?2.2:.9));PLA.u.uT9.value+=dt;}
   if(!started||gameOver&&PLA.surge<=0)PLA.dens=Math.max(0,PLA.dens-dt*.8);
-  const vis=PLA.dens>.004&&!PLA.off;PLA.mB.visible=PLA.mP.visible=vis;if(!vis)return; // PLA.off : le banc la coupe (dbgCrypto('sansPluie'))
+  const vis=PLA.dens>.004;PLA.mB.visible=PLA.mP.visible=vis;if(!vis)return;
   const U=PLA.u;U.uDens9.value=PLA.dens;
   camera.getWorldDirection(PLA.f);U.uC9.value.copy(camera.position).addScaledVector(PLA.f,PLA.B.z*.3);U.uC9.value.y+=PLA.B.y*.12;
   U.uSunD9.value.copy(sun.position).normalize();
@@ -15542,11 +14827,6 @@ function parisHeurt(p){ // EN VOL : dans une façade ? dans la Seine ? dans le s
 const BALADE_MOTEUR=(/[?&]moteur=(\d+)/.exec(location.search)||[0,8])[1]|0; // (BALADE) le moteur de la balade : sans pièces il ne monterait jamais — un V6 biturbo par défaut, `?moteur=n` pour un autre palier
 const JADE_NOM='SOLEIL DE JADE'; // (2026-10-12) le nom du NIVEAU (choisi par Claude, à la demande de Léo) — la map, elle, reste « PICS DE JADE »
 const NIV_JADE={graine:(+((/[?&]graine=(\d+)/.exec(location.search)||[])[1])||0x51ADE),id:'jade',nm:'PICS DE JADE',bio:['jade'],planete:0,espace:0,pluie:0,cielMusical:false,route:.42,sheen:.16,piste:'jade',pr:''};
-/* (2026-10-13, Léo) CRYPTOCITY — LA VILLE EN BULL RUN : id 'ville' (toute la mécanique de la ville suit, comme MINUIT EN VILLE), `crypto`
-   change l'air (voir « CRYPTOCITY — LA VILLE EN BULL RUN », après villeMatPub). CRYPTO_JEU : lvlChoisir rend ce niveau à chaque portail
-   (un autre quartier, une autre graine) ; posé par cryptoJouer, remis à faux par la carrière, le jade, le retour à l'accueil. */
-const NIV_CRYPTO={id:'ville',crypto:1,nm:'CRYPTOCITY',bio:['bullrun'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.16,pr:'BULL RUN'};
-let CRYPTO_JEU=false;const CRYPTO_URL=/[?&]niveau=crypto\b/.test(location.search);
 const JADE={root:null,Q:null,fam:[],col:null,porte:null,pont:null,brume:null,n:{},ms:0,merY:-420,t:0,sig:0,geos:null,cl:null};
 const JADE_U={uSunDir:{value:SUN_DIR},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillD:{value:new THREE.Vector3(0,-1,0)},uFillC:{value:new THREE.Color()},uMist:{value:new THREE.Color(.86,.87,.82)},
@@ -16154,7 +15434,7 @@ function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.rou
    au lâcher : deux newTrack). Désormais la carte qu'on quitte n'est plus jetée : elle est RANGÉE hors de la scène (JADE_GARDE, une seule), et
    le prochain buildJade de la MÊME vallée (même graine, même ruban au bit près : `jadeCle`) la reprend telle quelle en quelques ms
    (jadeReprend : l'effondrement défait comme au redémarrage du niveau, les familles et les cubes fins à retrier, monuments et pièces du bord
-   comme neufs). Une autre vallée (la balade, ?graine=) jette l'ancienne ; une course sur un autre niveau (portail, carrière, CRYPTOCITY)
+   comme neufs). Une autre vallée (la balade, ?graine=) jette l'ancienne ; une course sur un autre niveau (portail, carrière)
    aussi : hors du menu, jamais deux cartes. Rangée, elle rend à la carte graphique ce qu'elle seule y tenait (jadeRendGPU : la même mémoire
    GPU au menu qu'avant ; three renvoie ses tableaux au prochain rendu). Le menu garde SON ciel : la carte rangée n'est plus dans la scène. */
 const JADE_GARDE={m:null,reprises:0,ms:0};
@@ -16202,9 +15482,9 @@ function buildJade(seed){
   try{JADE_ESPRITS.visible=false;}catch(e){} // …et les lucioles s'éteignent : jadeTick ne tourne plus hors de la map, elles restaient figées dans le niveau suivant
   if(JADE.root)jadeRange(); // (2026-10-13) la carte en place n'est plus jetée : rangée (voir LA CARTE GARDÉE)
   jadeEtatVide();
-  try{coinSymbole((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on?'Y':LVL.cur&&LVL.cur.crypto&&!PARK.on?'B':'$');}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
+  try{coinSymbole((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on?'Y':'$');}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
   try{jadeEauRaz();}catch(e){} // (2026-10-13) la mer : rien sous l'eau d'une piste à l'autre
-  if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)){if((started&&!gameOver)||CARR.actif||CRYPTO_JEU)jadeOublie();return;} // une course sur un autre niveau : la carte rangée est libérée (au menu, elle attend le prochain JOUER)
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)){if((started&&!gameOver)||CARR.actif)jadeOublie();return;} // une course sur un autre niveau : la carte rangée est libérée (au menu, elle attend le prochain JOUER)
   const cle=jadeCle(seed);
   if(JADE_GARDE.m&&JADE_GARDE.m.J.cle===cle){jadeReprend();return;} // LA MÊME VALLÉE : reprise telle quelle
   jadeOublie(); // une autre vallée : l'ancienne carte est libérée avant de bâtir
@@ -17425,11 +16705,10 @@ function baladeDepart(){
 addEventListener('load',function(){setTimeout(baladeDepart,0);});
 function buildVoxCity(seed,accC){
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
-  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;villeImpactFin();cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
+  CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;villeImpactFin(); // (l'ancien cratère s'éteint avec son quartier)
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
-  const CR=!!(LVL.cur&&LVL.cur.crypto); // (2026-10-13) CRYPTOCITY : la même ville (mêmes tirages), un autre air — voir cryptoPlace / cryptoTour / cryptoBatit
   const t00=performance.now();
   const vr=mulberry32(seed^0x5EED10C1); // flux DÉRIVÉ (voir ⚠ ci-dessus)
   const root=new THREE.Group();scene.add(root);CITY.root=root;trackMeshes.push(root);
@@ -17459,9 +16738,7 @@ function buildVoxCity(seed,accC){
   const corps=[],genre=[],neon=[],neonC=[],pubs=[],tqC=[],tqN=[]; // tqC/tqN (passe perf) : le centre de la TOUR à laquelle appartient chaque volume / néon (son quartier, voir fam)
   // (2026-09-26, vague 2) les ENSEIGNES parlent MAGENTA et CYAN (#ff3ec8 / #3ee8ff et leurs deux voisins) : le jaune, le vert et le violet
   // en faisaient une guirlande. Cinq teintes comme avant (le tirage `vr` ne bouge pas), le feu d'antenne au rouge DANGER, la couronne à l'accent.
-  const NEON=CR?[new THREE.Color(0x2bff88),new THREE.Color(0xffd23e),new THREE.Color(0xf7931a),new THREE.Color(0x6dffc8), // CRYPTOCITY : le vert profit, l'or, l'orange bitcoin, la menthe…
-                 new THREE.Color(0xfff2c8),new THREE.Color(0xff3b5c),new THREE.Color(0xffc63a)]: // …un blanc chaud, le feu d'antenne, la couronne en OR
-             NEONVILLE_V5?[new THREE.Color(0xffb04a),new THREE.Color(0xe8eef2),new THREE.Color(0xffb04a),new THREE.Color(0xe8eef2), // (2026-10-14, passe graphismes · facades-jour)
+  const NEON=NEONVILLE_V5?[new THREE.Color(0xffb04a),new THREE.Color(0xe8eef2),new THREE.Color(0xffb04a),new THREE.Color(0xe8eef2), // (2026-10-14, passe graphismes · facades-jour)
               new THREE.Color(0xffb04a),new THREE.Color(0xe5484d),new THREE.Color(0xe8eef2)]: // DIRECTION §2.2 : enseignes ambre #FFB04A / blanc de bureau #E8EEF2, feu d'antenne rouge de balise #E5484D (l'unique accent saturé), couronne blanche — mêmes indices, même tirage `vr` ; ?sans=neonville rend le magenta/cyan
              [new THREE.Color(0xff3ec8),new THREE.Color(0x3ee8ff),new THREE.Color(0xff4f9e),new THREE.Color(0x52c8ff),
               new THREE.Color(0xff3ec8),new THREE.Color(0xff3b5c),accC];
@@ -17481,9 +16758,8 @@ function buildVoxCity(seed,accC){
     if(!(iEB>iEA))iEA=iEB=-1;}
   const eEnt=i=>iEA<0?0:i<=iEA?1:i>=iEB?0:1-THREE.MathUtils.smoothstep((i-iEA)/(iEB-iEA),.25,1);
   CITY.entree=iEA<0?null:[iEA,iEB];
-  if(CR)cryptoPlace(seed,proches); // (CRYPTOCITY) les taureaux, les bougies, les pièces géantes… se réservent leur place AVANT les tours
   const batir=(cx,cz,d,yN,yLo,canyon,w,p,eE)=>{
-    const hd=Math.hypot(w,p)*.5+5,l0=corps.length,lg=genre.length,lq=tqC.length,ln=neon.length,lnc=neonC.length,lqn=tqN.length,le=CITY.ens.length;
+    const hd=Math.hypot(w,p)*.5+5;
     let t;
     if(canyon){const k=1-Math.min(1,(d-54)/(R_CAN-54));           // LE CANYON : les murs montent AU-DESSUS de la route
       t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;}
@@ -17516,8 +16792,6 @@ function buildVoxCity(seed,accC){
       neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push((vr()*5)|0);tqN.push(cx,km,cz);
       if(canyon&&CITY.ens.length<24)CITY.ens.push([cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?sg:0,fx?0:sg,hs]); // (dev) quelques enseignes à photographier (dbgEnseigne)
     }
-    // (CRYPTOCITY) la tour tombe sur un site réservé, ou devient une bougie : bâtie (ses tirages ont eu lieu), puis retirée
-    if(CR&&cryptoTour(cx,cz,hd,b,t,canyon)){corps.length=l0;genre.length=lg;tqC.length=lq;neon.length=ln;neonC.length=lnc;tqN.length=lqn;CITY.ens.length=le;}
   };
   /* LE CANYON, BÂTI LE LONG DU RUBAN — et non par cases au sol : la piste de la ville descend en SPIRALE sur 7 à 9 km, plusieurs
      étages de route se superposent à la verticale d'un même point ; une grille horizontale ne voyait que l'étage le plus proche,
@@ -17534,7 +16808,7 @@ function buildVoxCity(seed,accC){
       const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,rw===ROWS[0]?eI:0); // (2026-10-04) seul le MUR (1er rang) passe sous la route à l'entrée — voir ENTRÉE v2
       // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle
       if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
-        (eI>.3||CR&&cryptoReserve(pts[i].x+px*sg*d9+tx*al,pts[i].z+pz*sg*d9+tz*al,pw*.6)?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
+        (eI>.3?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
   }
   // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
   const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.55/Math.max(1,cF.length));
@@ -17546,7 +16820,7 @@ function buildVoxCity(seed,accC){
   // (2026-09-26, user : « enlève les carrés qui bougent en l'air ») : la CIRCULATION VOLANTE est retirée
   // LES TOURS SONT DURES (2026-09-26, user : « si le joueur entre en collision avec un immeuble, il meurt ») : chaque volume est rangé
   // dans une grille de 60 m ; la boucle de vol demande `villeHeurt(position)` — quelques boîtes testées par image, rien de plus.
-  {const CG=60,g9=new Map(),cc=CR?corps.concat(cryptoColBougies()):corps; // (CRYPTOCITY) les bougies sont dures aussi
+  {const CG=60,g9=new Map(),cc=corps;
    for(let k=0;k<cc.length/6;k++){if(k<genre.length&&genre[k]===2)continue;const o=k*6,x0=cc[o]-cc[o+3]/2,x1=cc[o]+cc[o+3]/2,z0=cc[o+2]-cc[o+5]/2,z1=cc[o+2]+cc[o+5]/2;
      for(let gx=Math.floor(x0/CG);gx<=Math.floor(x1/CG);gx++)for(let gz=Math.floor(z0/CG);gz<=Math.floor(z1/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(o);}}
    CITY.col={g:g9,CG:CG,c:Float32Array.from(cc)};}
@@ -17554,10 +16828,7 @@ function buildVoxCity(seed,accC){
   const CUBE=new THREE.BoxGeometry(1,1,1),M=new THREE.Matrix4();
   const col=new THREE.Color(),colT=new Float32Array(genre.length*3),colN=new Float32Array(neonC.length*3);
   for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i]; // (le tirage `vr` dans le MÊME ordre qu'avant : chaque tour garde sa teinte)
-    if(CR){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,st9=(function(q){return q<.32?0:q<.46?1:q<.74?2:3;})((sd9*29.37)%1),k9=Math.min(1.12,t9); // CRYPTOCITY : la STRUCTURE de la tour de verre (la façade, c'est le shader)
-      if(g===0){const P9=[[.14,.24,.20],[.74,.62,.36],[.62,.68,.76],[.90,.88,.82]][st9];col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // acier vert · or · argent · marbre
-      else if(g===1)col.setRGB(.76*k9,.78*k9,.82*k9);else col.setRGB(.16,.16,.18);}               // tuyaux de chrome, mâts sombres (dorés, c'étaient des sucettes partout)
-    else if(g===0)col.setRGB(.20*t9,.21*t9,.26*t9);                   // le BÉTON du village : gris-bleu, mouillé
+    if(g===0)col.setRGB(.20*t9,.21*t9,.26*t9);                   // le BÉTON du village : gris-bleu, mouillé
     else if(g===1)col.setRGB(.32*t9,.33*t9,.37*t9);              // le MÉTAL des tuyaux : il accroche le néon
     else col.setRGB(.10,.10,.12);                                // le mât : une ligne sombre
     col.toArray(colT,i*3);}
@@ -17584,13 +16855,12 @@ function buildVoxCity(seed,accC){
     F.e.fill(1);villeRefait(F);villePousse(F); // tout PRÈS tant qu'aucun rendu n'a trié (= la ville d'avant)
     return F;};
   CITY.fam=[];
-  if(corps.length){const F=fam(corps,tqC,colT,CR?cryptoMatTours():villeMatTours(),CR?cryptoMatToursLoin():villeMatToursLoin());CITY.imC=F.im;CITY.fam.push(F);}
+  if(corps.length){const F=fam(corps,tqC,colT,villeMatTours(),villeMatToursLoin());CITY.imC=F.im;CITY.fam.push(F);}
   if(neon.length){const F=fam(neon,tqN,colN,villeMatNeon(),villeMatNeonLoin());CITY.imN=F.im;CITY.fam.push(F);}
   if(pubs.length){const Qp=new THREE.Quaternion(),Pp=new THREE.Vector3(),Sp=new THREE.Vector3(),Ay=new THREE.Vector3(0,1,0),PL=new THREE.PlaneGeometry(1,1),n9=pubs.length/6;
-    const imP=new THREE.InstancedMesh(PL,CR?cryptoMatPub():villeMatPub(),n9);
+    const imP=new THREE.InstancedMesh(PL,villeMatPub(),n9);
     for(let i=0;i<n9;i++){const o=i*6;Qp.setFromAxisAngle(Ay,pubs[o+3]);Pp.set(pubs[o],pubs[o+1],pubs[o+2]);Sp.set(pubs[o+4],pubs[o+5],1);M.compose(Pp,Qp,Sp);imP.setMatrixAt(i,M);}
     imP.instanceMatrix.needsUpdate=true;imP.frustumCulled=false;imP.renderOrder=3;root.add(imP);trackMeshes.push(imP);}
-  if(CR)cryptoBatit(root); // (CRYPTOCITY) les taureaux, le graphique, les pièces, les diamants, les dirigeables
   CITY.n={pubs:pubs.length/6,tours:nT,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon,villeMatToursLoin,villeMatNeonLoin])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
@@ -17669,7 +16939,7 @@ function villePousse(F){ // n'envoie à la puce QUE la plage touchée (updateRan
 }
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);villeTri(cam);};} // CHAÎNÉ (jamais réassigné)
 function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge : la demi-caisse)
-  const C=CITY.col;if(!C||!CITY.root)return false;if(CRYPTO.taureaux.length&&cryptoHeurt(p))return true; // (CRYPTOCITY) les taureaux sont durs
+  const C=CITY.col;if(!C||!CITY.root)return false;
   const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return false;const c=C.c;
   for(let j=0;j<a.length;j++){const o=a[j];if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return true;}
   return false;
@@ -18630,10 +17900,6 @@ Object.assign(I18N,{"VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA
 Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over."}); // (2026-09-29, passe qualité)
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
 Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"}); /* (2026-10-14, charte 6) les réglages : « POUCE HAUT EN VOL » et « REVOIR L'AUTO-ECOLE » raccourcis (une ligne = un nom + une valeur) */
-// (POKI) les textes propres à l'édition Poki (les habillages des anciens carnets, l'effacement sans missions ni carrière)
-if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"Twenty-four carats on the bodywork. Subtle, like you.",
-  "Toutes les couleurs à la fois. Personne ne t'oublie.":"Every colour at once. Nobody forgets you.",
-  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, records and settings: everything starts over."});}
 // (2026-09-29) écran de fin v5
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
@@ -19187,15 +18453,6 @@ const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir',
 /* L'AMBIANCE DU TITRE (titre v3) : le matin d'altitude, poussé vers l'écran titre de Zelda TOTK — un azur plus profond au zénith, un
    turquoise franc, l'horizon presque blanc, une brume très loin (les cumulus du titre font la perspective), un soleil un peu plus fort.
    Lue par chuteRender seulement (`BIOMES.titre`) ; le niveau garde son 'matin'. `dbgAmb('titre',{…})` pour retoucher à chaud. */
-/* LE CIEL DU BULL RUN (2026-10-13, CRYPTOCITY) : le jour d'altitude du midi, un azur profond au zénith, l'horizon et la brume en OR (la
-   ville sort d'une brume dorée), le soleil franc et chaud, le remplissage vert « profit », le sol qui renvoie de l'or ; pas de lune (une
-   pièce ₿ la remplace, voir cryptoTick). Étalonnage : un cran plus saturé, hautes lumières dorées, vignette d'or sombre. */
-BIOMES.bullrun=Object.assign(JSON.parse(JSON.stringify(BIOMES.midi)),{nm:'BULL RUN',
-  jZen:[.03,.22,.60],jMid:[.18,.56,.90],jHor:[.98,.90,.72],jSol:[1,.62,.22],sunTint:[1,.92,.70],sunHalo:1,moon:0,stars:0,city:0,
-  fog:[.95,.88,.72],fogN:620,fogF:3300,fogCj:[1,.86,.60],fogIn:[1,.96,.88],
-  hemiS:[.80,.88,1],hemiG:[.66,.52,.26],hemiI:.80,sunC:[1,.92,.72],sunI:1.6,fillC:[.42,.92,.62],fillI:.22,kickC:[1,.80,.38],kickI:.12,
-  volSun:[2.2,2,1.6],volAmb:.9,expo:.95,sat:1.12,con:1.24,hi:[.016,.008,-.01],vigC:[.16,.11,.03],vigK:.22,
-  env:[[0,'#1d64c8'],[.3,'#58aee6'],[.48,'#f6ecd0'],[.58,'#ffe2a0'],[.66,'#c9b48a'],[1,'#8a7a5a']],eS1:[255,236,180,.5],eS2:[120,255,190,.3]});
 BIOMES.titre=JSON.parse(JSON.stringify(BIOMES.matin));
 Object.assign(BIOMES.titre,{nm:'TITRE',jZen:[.05,.27,.66],jMid:[.22,.62,.90],jHor:[.90,.95,.94],fog:[.80,.90,.96],fogN:500,fogF:5200,sunC:[1,.96,.88],sunI:1.6,hemiI:.78,expo:.94,sat:1.24,vigK:.2});
 /* LES HEURES DU TITRE (2026-10-05, Sacha : « pour l'écran d'accueil dans le ciel, fais plusieurs éclairages et ambiances à plusieurs
@@ -19327,12 +18584,11 @@ Object.assign(BIOMES.jadeOrage,{sat:1.02,wb:[1,1,1],sh:[0,.01,.02],sunC:[.58,.68
 // (fin PICS DE JADE)
 //
 //
-// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) + CRYPTOCITY (bullrun) ----
+// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) ----
 Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.012,.008,0],daHi:0,sunC:[1,.94,.84],sunI:1.9,sunTint:[1,.86,.68],hemiG:[.22,.32,.55],fillC:[.32,.52,.92],kickC:[.8,.74,.7],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.012,.014,.024],env:[[0,'#06070f'],[.3,'#0e1226'],[.48,'#28325a'],[.58,'#8a7c72'],[.66,'#0e1226'],[1,'#030308']],eS1:[255,226,185,.4],eS2:[120,150,235,.26]}); // (2026-10-14, passe graphismes) LEVER derrière la Terre : clé or pâle, Terre bleue en rebond, ombres bleu-nuit neutres (plus de violet ni de vert), sat/con sous les plafonds, vignette neutre
 Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],sunI:2.05,hemiG:[.22,.32,.55],fillC:[.3,.5,.9],kickC:[.7,.72,.8],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.012,.014,.024],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#1c2a54'],[.58,'#3a4e86'],[.66,'#0b1024'],[1,'#020208']],eS1:[215,230,255,.4],eS2:[130,160,240,.26]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
 Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunC:[1,.82,.66],sunI:1.6,sunTint:[1,.55,.36],hemiG:[.2,.28,.5],fillC:[.32,.42,.82],kickC:[.8,.56,.5],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.014,.012,.022],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#2c2c52'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS1:[255,170,120,.42],eS2:[120,130,220,.24]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre
 Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphismes · hasard-beaute) ESPACE SOIR : béton gris-taupe au lieu de chocolat (clé [1,.82,.66] → [1,.9,.8]) ; vu au vrai tirage
-Object.assign(BIOMES.bullrun,{expo:.88,sat:1.12,con:1.18,sunI:1.2,hemiI:.62,jZen:[.2,.42,.82],jMid:[.5,.7,.9],jHor:[.98,.92,.76],jSol:[1,.7,.3],fog:[.9,.88,.8],fogCj:[1,.88,.64],fogIn:[1,.96,.9],hemiS:[.84,.9,1],fillC:[.52,.74,.92],vigK:.2,vigC:[.05,.06,.08],env:[[0,'#3f86d8'],[.3,'#7ab6ea'],[.48,'#f2ecd8'],[.58,'#ffe6a8'],[.66,'#c9b890'],[1,'#8a7e66']]}); // (2026-10-14, passe graphismes) CRYPTOCITY : jour clair TENU — ciel sans cobalt (azur → horizon or pâle), con 1,24 → 1,18 (produit 1,26), rebond vert retiré (le vert de hausse reste aux tours), vignette neutre, or du ₿ intact
 // (fin EN ORBITE)
 //
 //
@@ -19343,7 +18599,7 @@ Object.assign(BIOMES.bullrun,{expo:.88,sat:1.12,con:1.18,sunI:1.2,hemiI:.62,jZen
 //    wb neutre, ombres bleu-nuit (plus de −vert), lumières à peine chaudes, con 1.23 → 1.16, vignette ENCRE BLEU-NUIT [.03,.045,.09] au lieu du violet,
 //    halo plus sélectif (bloomS .54 → .46, bloomT .92 → .95 : seul ce qui émet s'allume).
 //    Héritent du défaut (wb/sh/hi/con) : tempete, nuitNoire, villeOrage, pluie + les heures de l'ancien parc (aube, lever, golden, couchant, soir, nuit, orage, aurore) ;
-//    (bloomS/bloomT) : matin, midi, aprem, nuagesSoir/Nuit/Pluie, villeMatin/Midi/Soir, bullrun, les 7 titres ; (vigK/vigC) : pluie (la VILLE sous la pluie) et l'ancien parc.
+//    (bloomS/bloomT) : matin, midi, aprem, nuagesSoir/Nuit/Pluie, villeMatin/Midi/Soir, les 7 titres ; (vigK/vigC) : pluie (la VILLE sous la pluie) et l'ancien parc.
 //    Les ambiances qui ont LEUR vigC/con/wb (jade*, espace*, nuages*, ville*…) ne bougent que par DA : leur réglage appartient aux équipes par map.
 //  · Les bords d'écran des BONUS (#pwrFx) : dosés à 40 % par `PWR_BORD_K` (grep), à côté de PWR_DEFS.
 // (fin COUCHE COMMUNE)
@@ -19473,13 +18729,6 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   {id:'ville', nm:'MINUIT EN VILLE',      bio:['nuitNoire'],           planete:0,   espace:0,pluie:.55,cielMusical:true,route:.42,sheen:.2,nuit:1,pr:'PLEINS PHARES'}, // (2026-09-30, Sacha) le 5e : la VILLE plus tard, après l'orage — très sombre, des PHARES PUISSANTS (id 'ville' : toute la ville suit ; `nuit` ne change que la lumière — voir « MINUIT EN VILLE »)
   {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard)
 ];
-/* (POKI, 2026-10-05, Sacha : « mets la map de la ville en premier puis nuage en deux, fais pareil pour les versions hardcore ») : dans
-   l'édition Poki la VILLE ouvre la partie et les NUAGES viennent en 2e ; côté hardcore, MINUIT EN VILLE passe devant L'ORAGE. On ÉCHANGE
-   les places (chaque niveau trouvé par son id, pas par sa place) : un niveau ajouté plus tard sur main garde la sienne. La version
-   principale garde son ordre (NUAGES en 1er, verdict du 25/09). L'auto-école (zone 0) garde son ciel d'aurore, quel que soit l'ordre. */
-if(POKI){const ech=function(a,b){const i=NIVEAUX.findIndex(a),j=NIVEAUX.findIndex(b);if(i>=0&&j>=0&&i<j){const t=NIVEAUX[i];NIVEAUX[i]=NIVEAUX[j];NIVEAUX[j]=t;}};
-  ech(function(n){return n.id==='nuages';},function(n){return n.id==='ville'&&!n.nuit;});
-  ech(function(n){return n.id==='orage';},function(n){return n.id==='ville'&&n.nuit;});}
 /* ============================================================================
    LE MODE CLASSIQUE AU HASARD (2026-10-13, Sacha : « il faut que les biomes soient aléatoires — montagne chinoise, nuages, ville… — et
    que la suite soit aléatoire, indépendante de la météo : la map, le biome, et la météo. À chaque fois qu'on passe un portail ou qu'on
@@ -19494,12 +18743,12 @@ if(POKI){const ech=function(a,b){const i=NIVEAUX.findIndex(a),j=NIVEAUX.findInde
    MODE CLASSIQUE », près de BIOMES) et les leviers de toujours : la pluie (LVL.pluie : le rideau, la route mouillée), la nuit (LVL.nuit :
    les phares), l'orage (`orage` : les éclairs d'orageTick, partout sauf dans l'espace). Les PICS DE JADE y sont un niveau COMPLET (le
    SOLEIL DE JADE : pièces ¥, ses fruits, sa musique GLISSE V2) dont le portail mène à la suite au lieu de l'ARRIVÉE.
-   PARIS reste hors de la partie sans fin (Sacha, 10/10). L'édition POKI garde son cycle fixe ; `?classique=cycle` le rend aussi ici,
+   PARIS reste hors de la partie sans fin (Sacha, 10/10). `?classique=cycle` rend le cycle fixe,
    et `?play=sansfin` (le simulateur de Léo : sa « PARTIE SANS FIN » clique JOUER et attend la MER DE NUAGES) le garde.
    Le tirage d'une partie est tenu dans `SF.tirage` (un couple par zone) : la piste bâtie sous le voile du JOUER est celle qu'on roule.
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
-const SF={on:!POKI&&!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null};
+const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null};
 {const q9=/[?&]carte=(\w+)/.exec(location.search),m9=/[?&]meteo=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null};}
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
   ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
@@ -19652,7 +18901,6 @@ const LVL={cur:null,n:0,k:1,dur:4,paris:0,parisDe:0,parisA:0, // paris : le CIEL
   ville:0,villeDe:0,villeA:0,          // présence de la VILLE dans le ciel (skyline, abîme) — le plafond, lui, suit la pluie
   nuit:0,nuitDe:0,nuitA:0,             // (2026-09-30) MINUIT EN VILLE : 1 = fenêtres éteintes, néons baissés, phares puissants (villeApres, carVit, les faisceaux)
   jade:0,jadeDe:0,jadeA:0,             // (2026-10-09) LES PICS DE JADE : le rouleau peint du dôme (uJade)
-  crypto:0,cryptoDe:0,cryptoA:0,       // (2026-10-13) CRYPTOCITY : le bitume anthracite et glacé du jour (routeTick)
   mer:0,merDe:0,merA:0,                // (2026-09-26) la MER DE NUAGES peinte sous l'horizon (niveau NUAGES, pas l'auto-école au ciel nu)
   route:0,routeDe:0,routeA:0,sheen:.1,sheenDe:.1,sheenA:.1, // bitume v2 : clarté et brillance d'horizon du niveau (routeTick)
   dir:PLANET_DIR.clone(),tmp:new THREE.Vector3(),tmp2:new THREE.Vector3(),haut:new THREE.Vector3(0,1,0)};
@@ -19665,7 +18913,7 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
   if(PARK.on){LVL.cur=null;lvlAstre(null);return null;}
   if(BALADE||JADE_JEU){LVL.cur=NIV_JADE;LVL.n=1;LVL.tutoZ=0;lvlAstre(null);return LVL.cur;}
-  if(CRYPTO_JEU){LVL.cur=NIV_CRYPTO;LVL.n=z+1;LVL.tutoZ=0;lvlAstre(null);return LVL.cur;} // (2026-10-13) CRYPTOCITY : chaque portail ouvre un autre quartier du bull run // (2026-10-09) LA BALADE : toujours les PICS DE JADE, chaque portail mène à une autre vallée
+  // (2026-10-09) LA BALADE : toujours les PICS DE JADE, chaque portail mène à une autre vallée
   if(CARR.actif){ // CARRIÈRE : le niveau de départ + les portails franchis ; chaque portail TERMINE le précédent
     const bi=CARR.actif.b,der=CARRIERE[bi].niveaux.length-1,i=Math.min(der,CARR.actif.i+z);
     if(z>0)carrMarque(bi,Math.min(der,CARR.actif.i+z-1));
@@ -19692,7 +18940,7 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'&&!c.crypto?1:0;LVL.cryptoDe=LVL.crypto;LVL.cryptoA=c&&c.crypto?1:0;LVL.nuitDe=LVL.nuit;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage'||c.crypto)&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.nuitDe=LVL.nuit;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage')&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
@@ -19705,7 +18953,7 @@ function lvlStep(dt){
   LVL.planete=LVL.planeteDe+(LVL.planeteA-LVL.planeteDe)*e;
   LVL.pluie=LVL.pluieDe+(LVL.pluieA-LVL.pluieDe)*e;LVL.ville=LVL.villeDe+(LVL.villeA-LVL.villeDe)*e;LVL.nuit=LVL.nuitDe+(LVL.nuitA-LVL.nuitDe)*e;LVL.paris=LVL.parisDe+(LVL.parisA-LVL.parisDe)*e;
   LVL.route=LVL.routeDe+(LVL.routeA-LVL.routeDe)*e;LVL.sheen=LVL.sheenDe+(LVL.sheenA-LVL.sheenDe)*e;
-  LVL.jade=LVL.jadeDe+(LVL.jadeA-LVL.jadeDe)*e;skyU.uJade.value=LVL.jade;LVL.crypto=LVL.cryptoDe+(LVL.cryptoA-LVL.cryptoDe)*e;
+  LVL.jade=LVL.jadeDe+(LVL.jadeA-LVL.jadeDe)*e;skyU.uJade.value=LVL.jade;
   LVL.mer=LVL.merDe+(LVL.merA-LVL.merDe)*e;skyU.uMer.value=LVL.mer;
   skyU.uSpace.value=LVL.espace;
 }
@@ -20715,7 +19963,7 @@ function carrLancer(bi,i){
   ecranWipe(function(){carrLancerSous(bi,i);},function(){garageLaunch();});
 }
 function carrLancerSous(bi,i){
-  JADE_JEU=false;CRYPTO_JEU=false;CARR.actif={b:bi,i:i};carrSelPose(bi,i); // (2026-10-07) le niveau lancé devient celui des PLAY (voir « LE NIVEAU DES PLAY »)
+  JADE_JEU=false;CARR.actif={b:bi,i:i};carrSelPose(bi,i); // (2026-10-07) le niveau lancé devient celui des PLAY (voir « LE NIVEAU DES PLAY »)
   if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // (2026-09-27) la carrière passe devant le parc freestyle : sinon lvlChoisir rendait le parc, jamais le niveau
   /* (2026-09-28) PASSER PAR LA CARRIÈRE EN PREMIER SAUTAIT L'AUTO-ÉCOLE : le niveau 1 (AURORE) roule sur la piste d'apprentissage, mais
      sans le coach. Jamais faite → on l'arme ici, avec les mêmes refus que tutoArme (sans son rebuildMenuScene : celui d'en dessous suffit). */
@@ -20737,7 +19985,7 @@ function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.a
      des portails), les fins de monde (le monde suivant, comme REJOUER), et un toucher dans la carrière (`carrChoisit`).
    · Rien de choisi : le niveau en cours du 1er monde (celui de sa carte). L'auto-école qui attend (1re partie, REVOIR L'AUTO-ÉCOLE) :
      AURORE, le niveau 1, qui l'arme lui-même (carrLancerSous) — l'ancien JOUER l'armait par tutoArme.
-   · La partie sans fin d'avant reste à qui l'a demandée : le PARC ou le SURVIVANT armés dans MODES, Poki (pas de carrière) et la vitrine
+   · La partie sans fin d'avant reste à qui l'a demandée : le PARC ou le SURVIVANT armés dans MODES et la vitrine
      `?menu=leo` (sa vignette dit le niveau sans fin) — `carrPlayOk()`. */
 function carrPlayOk(){return PLAY_CARR&&HUB&&!PARK.on&&!SURV.armed;} /* (2026-10-08) éteint par défaut : voir PLAY_CARR */
 function carrSelPose(bi,i){const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;const s=SAVE.d.carrSel;
@@ -27243,7 +26491,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{parisChauffe();}catch(e){console.warn('parisChauffe',e);}}, // (2026-09-30) PARIS : ses matières compilées au menu (16 programmes de moins au portail)
   function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();},
-  function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTOCITY et la pluie d'argent : leurs matières compilées au menu
+  function(){try{plaChauffe();}catch(e){console.warn('plaChauffe',e);}}, // (2026-10-13) la pluie d'argent : ses matières compilées au menu
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
@@ -27605,8 +26853,8 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
      vif vers l'orange : le vert tient à la luminance, le rouge s'envole et `roule` divise par lui. D'où une pièce qui ÉMET (voir
      pickMat) et un champ peint en or CITRON #fff27a : c'est lui qui ressort OR à l'écran (mesuré : #fcb120 au couchant au lieu de
      #fe8004, un or franc au lieu du bronze dans la ville) — et plus jamais de la teinte des plots. */
-  const COL=sym==='B'?{k:'#5a2600',d:'#d8780c',g:'#ffab2e',l:'#fff1d0',h:'#ffd38a',s:'#fffaf0'}: /* (2026-10-13) CRYPTOCITY : la pièce BITCOIN — champ orange, ₿ blanc */sym==='Y'?{k:'#073a20',d:'#e0a818',g:'#6ff0ae',l:'#fff6c8',h:'#d6ffe8',s:'#0a4428'}:{k:'#6e3c00',d:'#d8a412',g:'#fff27a',l:'#fffbe6',h:'#fffbd0',s:'#8a4a00'}; // (2026-10-12) au SOLEIL DE JADE : le champ en JADE, la tranche d'OR, le ¥ en vert sombre (une pièce d'or se perdait sur la route en pièces d'or)
-  const DOL=sym==='B'?['.#.#.','####.','#...#','#...#','####.','#...#','#...#','####.','.#.#.']:sym==='Y'?['#...#','#...#','.#.#.','..#..','#####','..#..','#####','..#..','..#..']:['..#..','.####','#.#..','#.#..','.###.','..#.#','..#.#','####.','..#..'];
+  const COL=sym==='Y'?{k:'#073a20',d:'#e0a818',g:'#6ff0ae',l:'#fff6c8',h:'#d6ffe8',s:'#0a4428'}:{k:'#6e3c00',d:'#d8a412',g:'#fff27a',l:'#fffbe6',h:'#fffbd0',s:'#8a4a00'}; // (2026-10-12) au SOLEIL DE JADE : le champ en JADE, la tranche d'OR, le ¥ en vert sombre (une pièce d'or se perdait sur la route en pièces d'or)
+  const DOL=sym==='Y'?['#...#','#...#','.#.#.','..#..','#####','..#..','#####','..#..','..#..']:['..#..','.####','#.#..','#.#..','.###.','..#.#','..#.#','####.','..#..'];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);let k;
     if(r>6.9)k='k';                                   // le liseré sombre (il découpe la pièce sur n'importe quel ciel)
@@ -28055,7 +27303,7 @@ const CAR_UNLOCK=[
   /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables. Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
      `k:'bientot'` = un DÉFI encore à écrire (LA RAIE, COMÈTE, REQUIN : verrouillées, « DÉFI À VENIR ») ; `k:'pubs'` = L'ÉTERNELLE,
-     100 pubs regardées (`SAVE.d.ex.pubs`, compté par pkPasse — l'édition des portails, la seule qui ait des pubs). */
+     100 pubs regardées (`SAVE.d.ex.pubs` : seule l'édition des portails, retirée le 14/10, avait des pubs). */
   null,                 // LA HONTE — le point de départ, jamais verrouillée
   /* ⚠ ÉCONOMIE v3 (2026-09-25) — LES PRIX SONT CALÉS SUR UNE MESURE, PLUS SUR UNE INTUITION. Le pilote
      automatique (`dbgAuto`, aucune figure, aucun nitro) encaisse ~2 600 $ en une minute avant de tomber ;
@@ -28141,17 +27389,6 @@ const CAR_UNLOCK=[
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
 ]
-/* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
-   des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE
-   juste après les communes… LE MASTODONTE parmi les épiques), les deux trophées de la carrière en haut des épiques, les LÉGENDAIRES de la
-   boutique AU-DESSUS de LA RAIE (2,5 M), rangées par leur ancien prix en euros. Leur famille suit : LÉGENDAIRE reste légendaire (la
-   couleur or), une caisse « défi » devient ce que son prix dit (rare / épique). POSTER 84 (rang d'aura) reste un DÉFI : il se gagne au style. */
-if(POKI){const PRIX_CARNET={1:30e3,2:80e3,3:220e3,6:420e3,7:700e3,8:1.05e6,9:1.45e6},PRIX_CARR={carrN:1.8e6,carrV:2.2e6};
-  CAR_UNLOCK.forEach(function(u,i){if(!u||!u.k)return;const c=CARS[i];let p=0;
-    if(u.k==='premium'){p=Math.round((2e6+(parseFloat(String(u.eur).replace(',','.'))||5)*450e3)/1e5)*1e5;if(c)c.rar='legendaire';}
-    else if(u.k==='carnet')p=PRIX_CARNET[u.v]||Math.round(300e3*u.v/1e5)*1e5;
-    else if(PRIX_CARR[u.k])p=PRIX_CARR[u.k];
-    if(!p)return;CAR_UNLOCK[i]={p:p};if(c&&c.rar==='defi')delete c.rar;});}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
    ----------------------------------------------------------------------------
@@ -28235,7 +27472,7 @@ function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE 
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
-const TEST_CAISSES=!POKI; // (POKI) la version publique : les caisses se GAGNENT
+const TEST_CAISSES=true; // false : les caisses se GAGNENT (c'était l'édition des portails, retirée le 14/10)
 function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i));}
 /* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
    pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était
@@ -29358,7 +28595,6 @@ function misOn(){return started&&!gameOver&&!SANDBOX&&!PARK.on;}
 function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIRECT, pas à la fin
   if(!misOn()){if(misTick._f!==0){misTick._f=0;try{misFocusMaj();}catch(e){}}return;} // (2026-09-30) la mission suivie s'éteint hors course
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
-  if(POKI)return; // (POKI) pas de missions : les compteurs de la partie tournent (écran de fin), aucun défi ne se coche
   misT-=dt;if(misT>0)return;misT=.25;
   if(TUTO.on||(MIS0.on&&RUNX.t-MIS0.t<20)){misTick._f=1;try{misFocusMaj();}catch(e){}return;} // (2026-10-14, gameplay) rien ne se coche pendant la leçon, ni dans les 20 premières secondes de la course qui suit le permis (MIS0)
   const s=misEtat(),c=carnet(s.n);
@@ -29376,7 +28612,6 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
    compteurs d'une partie déjà bien entamée, et ses missions tomberaient toutes seules — gagnées sans
    avoir été lues. Rend la récompense (pour l'écran de mort) ou null. */
 function misFin(){
-  if(POKI)return null; // (POKI) pas de carnet à refermer (une vieille sauvegarde aux trois défis cochés n'y ouvre rien)
   const s=misEtat();if(!(s.ok[0]&&s.ok[1]&&s.ok[2]))return null;
   const c=carnet(s.n),r=c.r;
   if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
@@ -29508,20 +28743,6 @@ let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (n
    (plein), ce que la partie vient d'y verser (qui se remplit sous les yeux), et ce qu'il manque. */
 function objRender(el){
   if(!el)return;
-  /* (POKI) PAS DE PORTE DES MISSIONS : l'écran de mort montre L'OBJECTIF D'ACHAT — la prochaine caisse (ou le prochain habillage) à
-     s'offrir, sa photo, la barre du compte qui se remplit sous les yeux ; touché, le garage s'ouvre dessus (`buyGoal`). Tout acquis : rien. */
-  if(POKI){const o=objectif();
-    if(!o){el.className='mObj';el.removeAttribute('data-m');el.innerHTML='';return;} // :empty → masqué
-    const b=bank(),pret=b>=o.prix,w=Math.min(100,b/Math.max(1,o.prix)*100),fig=objFig(o);
-    el.className='mObj misPorte'+(fig?' aFig':'');el.setAttribute('data-m','buyGoal');
-    try{el.style.setProperty('--rc',o.car!=null?rarInfo(carRar(o.car)).c:(MIS_CAT_COL[o.cat]||'#ffffff'));}catch(e){}
-    el.innerHTML='<div class="obHd"><span>'+pxi(pret?'coche':o.car!=null?'voiture':'piece')+' '+TR(pret?'TU PEUX TE L\'OFFRIR':'OBJECTIF')+'</span></div>'
-      +fig+'<div class="obBig">'+TR(o.nom)+'</div>'
-      +'<div class="obBar'+(pret?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
-      +'<div class="obFt"><span>'+fmtC(Math.min(b,o.prix))+' / '+fmtC(o.prix)+'</span><span class="obGain"><b>'+TR('VOIR')+'</b>'+pxi('droite')+'</span></div>';
-    const gi=el.querySelector('.obBar i');
-    setTimeout(function(){requestAnimationFrame(function(){if(gi)gi.style.width=gi.dataset.w+'%';});},REDUCED_MOTION?0:520);
-    return;}
   if(MIS_REC){const r=MIS_REC;
     el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
     // (2026-09-28, console de son) CARNET BOUCLÉ — la récompense la plus rare : la carte arrive à 490 ms, UNE fois par mort
@@ -29904,10 +29125,6 @@ const COSM={
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}] // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
 };
-if(POKI){ // (POKI) sans missions, les deux habillages des carnets s'achètent, au sommet de leur rayon
-  const o9=COSM.peinture.find(function(d){return d.id==='or';}),a9=COSM.trainee.find(function(d){return d.id==='arcenciel';});
-  if(o9){delete o9.mis;o9.p=150000;o9.d='Vingt-quatre carats sur la carrosserie. Discret, comme toi.';}
-  if(a9){delete a9.mis;a9.p=40000;a9.d='Toutes les couleurs à la fois. Personne ne t\'oublie.';}}
 /* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
    (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
    « équipée » ne veut rien dire pour une figure : toutes celles qu'on a JOUENT (le double-tap tire au hasard parmi elles). */
@@ -32223,7 +31440,7 @@ let BOOMV=BOOM_VARS[0];
    permis), `c-<id>-<n>` en carrière (ses niveaux ne se mêlent pas au cycle). Le temps s'accumule en MÉMOIRE et se verse au changement de
    niveau, à la mort, à la fin de partie et toutes les 20 s (SAVE.mark : c'est le filet des 30 s qui écrit). `dbgMorts()` lit tout ça. */
 const MORTS={c:null,k:'',t:0};
-function mortsCle(c){if(!c)return '';if(c.carr)return 'c-'+c.id+'-'+(c.carr.i+1);if(c.piste==='tuto')return 'ecole';return c.id+(c.crypto?'-crypto':'')+(c.nuit?'-nuit':'')+(c.hard?'-hard':'');}
+function mortsCle(c){if(!c)return '';if(c.carr)return 'c-'+c.id+'-'+(c.carr.i+1);if(c.piste==='tuto')return 'ecole';return c.id+(c.nuit?'-nuit':'')+(c.hard?'-hard':'');}
 function mortsEx(){const E=SAVE.d.ex;if(!E.morts||typeof E.morts!=='object')E.morts={};if(!E.temps||typeof E.temps!=='object')E.temps={};return E;}
 function mortsVerse(){if(MORTS.k&&MORTS.t>0){const T=mortsEx().temps;T[MORTS.k]=Math.min(1e8,Math.round(((T[MORTS.k]||0)+MORTS.t)*10)/10);SAVE.mark();}MORTS.t=0;}
 function mortsSuit(){if(LVL.cur!==MORTS.c){mortsVerse();MORTS.c=LVL.cur;MORTS.k=mortsCle(LVL.cur);}} // la clé se calcule UNE fois par niveau (zéro chaîne par image)
@@ -33697,13 +32914,13 @@ var MUS_WA=(function(){
    au-dessus de −4,6 dBFS en régime : banc `son/banc/muswa/compresseur.cjs`). */
 function musWaTient(){return !!(MUS_WA&&MUS_WA.br);} // (déclarée en fonction, `MUS_WA` en var : sfxVol peut la lire sans zone morte)
 function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musique (appel, Siri, iOS « interrupted ») — au toucher, avant de relancer l'élément
-  if(!musWaTient()||!AC||AC.state==='running'||paused||document.hidden||window.CC_PUB||window.CC_MUET)return;
+  if(!musWaTient()||!AC||AC.state==='running'||paused||document.hidden)return;
   try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
 }
 function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
   if(!musWaTient()||!AC||!MASTER)return;
   try{const p=MASTER._limIn&&MASTER._limIn.gain;if(p){const t=AC.currentTime;p.cancelScheduledValues(t);p.setTargetAtTime(SND.sfx?.937:0,t,.015);}}catch(e){}
-  try{if(paused||document.hidden||window.CC_PUB||window.CC_MUET){if(AC.state==='running')AC.suspend();}else musWaReveil();}catch(e){} // en pause / caché / pub : la musique est déjà en pause, le contexte peut dormir
+  try{if(paused||document.hidden){if(AC.state==='running')AC.suspend();}else musWaReveil();}catch(e){} // en pause / caché : la musique est déjà en pause, le contexte peut dormir
 }
 function musWaBranche(){
   const W=MUS_WA;
@@ -35020,7 +34237,7 @@ function waCharge(url){
     .then(function(ab){return new Promise(function(ok,ko){const p=AC.decodeAudioData(ab,ok,ko);if(p&&p.then)p.then(ok,ko);});})
     .then(function(b){WA_BUF[url]=b;}).catch(function(){delete WA_BUF[url];});}catch(e){delete WA_BUF[url];}
 }
-function waPrecharge(){try{if(!SANS_VOIX){for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);waCharge(FX_DIR+FX_WOW.f);}for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);}catch(e){}} // (POKI) ni annonceur ni « WOW » : pas livrés
+function waPrecharge(){try{if(!SANS_VOIX){for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);waCharge(FX_DIR+FX_WOW.f);}for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);}catch(e){}} // (SANS_VOIX) ni annonceur ni « WOW » : pas livrés
 function voixWA(e,prio){ // l'annonceur en WebAudio : voix + doublure démon (tierce dessous) + échos d'or 162/324 ms — même recette que les 4 <audio>
   const u9=ANN_DIR+e.f,b=WA_BUF[u9];if(!b){try{waCharge(u9);}catch(x){}return false;}if(!AC||AC.state!=='running')return false;
   try{
@@ -35830,7 +35047,7 @@ const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurren
 };
 /* (POKI, 2026-10-05, Sacha : « enlève toutes les voix de cette version ») : l'édition Poki n'a PLUS AUCUNE VOIX — l'annonceur naît `dead`
    (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts et le « WOW » des combos sont retirés plus
-   bas, l'interrupteur VOIX disparaît des réglages, et poki-construire.js ne copie même pas les fichiers. Les sons de SYNTHÈSE (chœurs,
+   bas, l'interrupteur VOIX disparaît des réglages. Les sons de SYNTHÈSE (chœurs,
    cri stylisé du dauphin) ne sont pas des voix : ils restent. */
 for(const k in ANN_LIB){const e=ANN_LIB[k];e.dead=SANS_VOIX;e.cool=0;e.n=0;e.slot=e.first?0:Math.floor(Math.random()*3);}
 const ANN={playing:null,queue:null,duck:false};
@@ -35841,7 +35058,7 @@ function annRoll(e){ // « 1 sur 3 » : dans chaque paquet de 3 déclenchements,
   return hit;
 }
 function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix part sans latence
-  if(!SANS_VOIX)try{for(const k in ANN_LIB){const a=new Audio(ANN_DIR+ANN_LIB[k].f);a.preload='auto';a.load();}}catch(e){} // (POKI) pas de voix
+  if(!SANS_VOIX)try{for(const k in ANN_LIB){const a=new Audio(ANN_DIR+ANN_LIB[k].f);a.preload='auto';a.load();}}catch(e){} // (SANS_VOIX) pas de voix
   deathPreload(); // …et les sons de mort avec elles : une mort qui arrive en retard ne fait pas rire
   fxPreload();    // …et les samples d'evenement : un « WOW » en retard tombe sur le combo suivant
 }
@@ -35869,7 +35086,7 @@ const DEATH_LIB=[
   {f:'eww.m4a',       v:.95, max:2.3, voix:1},  // « ewwwww » (voix TTS — placeholder) · `voix` : écarté quand l'annonceur parle
   {f:'gong.m4a',      v:.72, max:3.6}   // gong (synthèse — placeholder)
 ];
-if(SANS_VOIX)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (POKI) pas de voix : le « ewww » part, les trois sons de synthèse restent
+if(SANS_VOIX)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (SANS_VOIX) pas de voix : le « ewww » part, les trois sons de synthèse restent
 let deathLast=-1,deathEls=[];
 function deathPreload(){
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
@@ -35885,7 +35102,7 @@ function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se c
    en trois minutes. Deux garde-fous, donc : un SEUIL (il faut mériter le son) et une PÉRIODE
    RÉFRACTAIRE (même mérité, il ne repart pas tout de suite). Le silence est ce qui lui rend sa valeur. */
 const FX_DIR='assets/audio/fx/';
-const FX_WOW={f:'wow.mp3',v:.80,max:2.2,dead:SANS_VOIX}; // (POKI) pas de voix : le « WOW » se tait (fxPlay sort sur `dead`)
+const FX_WOW={f:'wow.mp3',v:.80,max:2.2,dead:SANS_VOIX}; // (SANS_VOIX) pas de voix : le « WOW » se tait (fxPlay sort sur `dead`)
 /* ⚠ PAS DE VOIX ICI (2026-08-18). Les répliques parlées — « shut up and take my money », le
    « fight money » de Balrog, le medic de TF2, « loads of money » — ont été retirées : une phrase
    se reconnaît, donc elle s'use, et sur un jeu où l'argent tombe toutes les dix secondes elle finit
@@ -35904,7 +35121,7 @@ const FX_ARGENT=[
 let fxEls=[],fxArgLast=-1,fxWowCd=0,fxArgCd=0;
 function fxStop(){for(const a of fxEls){try{a.pause();}catch(e){}}fxEls.length=0;}
 function fxPreload(){try{
-  const t=(SANS_VOIX?[]:[FX_WOW]).concat(FX_ARGENT); // (POKI) le « WOW » n'est pas livré
+  const t=(SANS_VOIX?[]:[FX_WOW]).concat(FX_ARGENT); // (SANS_VOIX) le « WOW » n'est pas livré
   for(const d of t){const a=new Audio(FX_DIR+d.f);a.preload='auto';a.load();}
 }catch(e){}}
 function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui mange l'événement suivant
@@ -36050,7 +35267,7 @@ const SAVE={
     // `floor` = clause de GRAND-PÈRE : les caisses gagnées sous les anciennes règles (déblocage à
     // l'argent de la partie) restent acquises. Sans elle, changer de règles reprenait au joueur des
     // caisses qu'il avait méritées — une mise à jour ne doit jamais confisquer.
-    ex:{eng:0,tricks:0,gaps:0,bumps:0,zones:0,chain:0,kmh:0,surv:0,runs:0,floor:0,pubs:0,morts:{},temps:{}}, // (2026-10-06) `pubs` : les pubs regardées (L'ÉTERNELLE, voir pkPasse) // (2026-09-30) `morts`/`temps` : la mesure des morts par niveau (voir MORTS) — jamais affichée
+    ex:{eng:0,tricks:0,gaps:0,bumps:0,zones:0,chain:0,kmh:0,surv:0,runs:0,floor:0,pubs:0,morts:{},temps:{}}, // (2026-10-06) `pubs` : les pubs regardées (L'ÉTERNELLE — plus aucune pub depuis le retrait des portails, 14/10) // (2026-09-30) `morts`/`temps` : la mesure des morts par niveau (voir MORTS) — jamais affichée
     /* ---- LE COMPTE EN BANQUE ET L'AURA (2026-08-17) --------------------------------------------
        `bank` : l'argent survit désormais à la partie. À la fin d'un run, ce qui a été ENCAISSÉ y est
        versé — et c'est avec ça qu'on achète les caisses. ⚠ ça n'annule pas le bank-or-bust : la
@@ -36200,9 +35417,7 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  portail:0, // (édition des portails) 0 : la sauvegarde du portail n'est pas encore lue — on n'y écrit rien · 1 : chaque flush l'y recopie
   flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
-    if(this.portail===1)try{const p9=pk();if(p9)p9.ecrit(this.K,s);}catch(e){} // (Playgama) bridge.storage, le miroir
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -36233,7 +35448,6 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
     else{SAVE.natif=0;SAVE.flush();}
   }).catch(function(){});}catch(e){}
 }
-const SAVE_VIDE=(function(){try{return !localStorage[SAVE.K];}catch(e){return true;}})(); // (portails) rien en local avant ce lancement : la sauvegarde du portail peut le remplir
 SAVE.load();
 if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;SAVE.flush=function(){};SAVE.mark=function(){};} // (2026-10-09) LA BALADE n'écrit rien : ni leçon, ni question du mode, ni sauvegarde
 /* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
@@ -36391,7 +35605,7 @@ function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
    · 3 VIES — une chute, un vol trop long, une tour : la caisse repart de sa ligne sûre (facileSauve — le filet du BOUCLIER, pouvoir retiré le 29/09) ;
    · POSE — 5 m de bitume en plus de chaque côté pour se poser (la caisse est ramenée dans la largeur), angle de pose ratée +30°. */
 const FAC={coeurs:3},FAC_AIR=10/6,FAC_BORD=5,FAC_VIRAGE=.8,FAC_CAP=1.6;
-function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on&&FACILE_OK;} // (CrazyGames) FACILE_OK faux : jamais de mode facile, même par une sauvegarde importée
+function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on;}
 function facBord(){return facOn()?FAC_BORD:0;}
 function facFilet(){return facOn()&&FAC.coeurs>1&&!TUTO.on;} // il reste une vie à perdre : la chute perdue d'avance est rattrapée tout de suite
 function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
@@ -37830,7 +37044,6 @@ function recBattu(){
 function recSurplus(a){const t=avE('avRecT');if(!t)return;const s='+'+fmtAura(Math.max(0,a-CHA.rec))+' '+TR('AU-DESSUS');if(t.textContent!==s)t.textContent=s;}
 // (vague 2) les libellés neufs du HUD de course (police pixel : capitales SANS accent)
 Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TIP'});
-Object.assign(I18N,{'NOUVEL ATH !':'NEW ATH!','JACKPOT !':'JACKPOT!','CRYPTOCITY':'CRYPTOCITY'}); // (2026-10-13) CRYPTOCITY
 Object.assign(I18N,{'PLUIE DE BILLETS':'CASH RAIN','AIMANT À PIÈCES':'COIN MAGNET','CAISSE EN FEU':'CAR ON FIRE'}); // (2026-09-30) les capacités moteur, dans le titre de la carte
 function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
 /* LE HUD DISCRET — la veille des plaques qui DURENT (voir hudDA §9, repris de Léo) : présente depuis plus de 3 s → `.discret` ; cachée →
@@ -41519,24 +40732,17 @@ for(const [k,v] of [['SILLAGE','SLIPSTREAM'],['ELLE MENE DE','SHE LEADS BY'],['E
 window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état des éclairs · dbgOrage('eclair') en fait tomber un tout de suite
   if(q==='eclair'){if(!(LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))||CAMP.n)return 'pas au niveau orage';eclFrappe();ECL.t=6;}
   return {lieu:LVL.cur&&LVL.cur.id,flash:+CAMP_FLASH.toFixed(3),brumeOuverte:Math.round(CAMP_FOG),prochain:+ECL.t.toFixed(2),pluie:+LVL.pluie.toFixed(2),brume:[Math.round(scene.fog.near),Math.round(scene.fog.far)],bancs:CLOUDS.filter(function(c){return c.onRoad||c.mesh&&c.mesh.userData.trav;}).length,nuages:CLOUDS.length};};
-function jadePlayOk(){return JADE_PLAY&&!POKI&&!PARK.on&&!SURV.armed&&!!(SAVE.d.tuto||SAVE.d.permis);} // un tout premier joueur passe d'abord par l'auto-école
+function jadePlayOk(){return JADE_PLAY&&!PARK.on&&!SURV.armed&&!!(SAVE.d.tuto||SAVE.d.permis);} // un tout premier joueur passe d'abord par l'auto-école
 function jadeJouer(){ // (2026-10-12) lancer le SOLEIL DE JADE — le chemin de la carrière : la piste sous le voile (si elle n'est pas déjà là), l'atelier, le lâcher
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
-  JADE_JEU=true;CRYPTO_JEU=false;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
+  JADE_JEU=true;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
   jadeMusGeste(); // dans le geste du JOUER : la musique du niveau peut naître (règle des navigateurs)
   const ici=LVL.cur&&LVL.cur.id==='jade'&&!!JADE.root;
   ecranWipe(function(){runStats.zones=0;if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;}
 window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
-function cryptoPlayOk(){return CRYPTO_URL&&!POKI&&!PARK.on&&!SURV.armed&&!!(SAVE.d.tuto||SAVE.d.permis);} // ?niveau=crypto : le JOUER lance CRYPTOCITY (un tout premier joueur passe d'abord par l'auto-école)
-function cryptoJouer(){ // (2026-10-13) lancer CRYPTOCITY — le chemin du SOLEIL DE JADE : la piste sous le voile, l'atelier, le lâcher
-  if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
-  CRYPTO_JEU=true;JADE_JEU=false;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
-  const ici=LVL.cur&&LVL.cur.crypto&&!!CITY.root;
-  ecranWipe(function(){runStats.zones=0;if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return NIV_CRYPTO.nm;}
-window.dbgNiveauCrypto=cryptoJouer; // (le simulateur l'appelle)
 function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU HASARD : la 1re map et sa météo tirées, la piste bâtie sous le voile (le chemin de jadeJouer)
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
-  JADE_JEU=false;CRYPTO_JEU=false;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
+  JADE_JEU=false;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
   const t=SF.force?sfImpose(SF.der):(SF.prochain||sfTire(SF.der));SF.prochain=null;SF.tirage=[t];SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait
   if(t.carte==='jade')jadeMusGeste(); // GLISSE V2 naît dans le geste (Safari)
   ecranWipe(function(){runStats.zones=0;rebuildMenuScene();if(!garageOn)openGarage(true);try{jadeGabarits();}catch(e){}},function(){garageLaunch();});return t;} // jadeGabarits : taillés une fois par session, sous le voile (≈ 0,7 s de moins au 1er portail vers la jade)
@@ -42548,7 +41754,7 @@ function accueilRetour(){
   survMenage();SURV.on=false;survHudEl.style.display='none';lastAlertEl.style.display='none';
   CARR.actif=null;runStats.zones=0; // JOUER, de l'accueil, lance la course libre (la CARRIÈRE a sa porte)
   SF.pret=false;SF.tirage=[]; // (2026-10-13) le menu reprend SA piste et SON ciel (NIVEAUX[0]) : le prochain JOUER tirera la sienne
-  CRYPTO_JEU=false;if(!/[?&]niveau=jade\b/.test(location.search))JADE_JEU=false; // (2026-10-13, Léo : « t'as changé le ciel du menu, c'est très grave ») JOUER lance le SOLEIL DE JADE (jadeJouer le rallume) : revenu à l'accueil, il reprend SON ciel — il gardait celui du jade
+  if(!/[?&]niveau=jade\b/.test(location.search))JADE_JEU=false; // (2026-10-13, Léo : « t'as changé le ciel du menu, c'est très grave ») JOUER lance le SOLEIL DE JADE (jadeJouer le rallume) : revenu à l'accueil, il reprend SON ciel — il gardait celui du jade
   rebuildMenuScene();
   MENUV.L=-1;MENUV.sd=null;MENUV.pl=0;MENUV.pt=0; // la vitrine recadre sur la piste neuve et ouvre sur l'AFFICHE
 }
@@ -43072,7 +42278,7 @@ function buildGarageRoom(){
      néon VERT (la couleur des défis), coiffée d'une cible qui tourne. Au sol, HORS du plateau (il ne tourne pas avec la caisse), côté
      porte, à 3,8 m du centre : la plus longue caisse (6 m) balaie 3,2 m. x < 0 = à DROITE de l'écran (la caméra regarde la porte, +Z).
      Son étiquette MISSIONS est du DOM qui le suit à l'écran (#gMisAncre, garMenuSuit) : un vrai bouton, net, traduit, accessible. */
-  if(!POKI){const n9=g.children.length,sx=-2.9,sz=2.5,vert=BA(0x5ee37a); // (POKI) pas de missions : pas de socle
+  {const n9=g.children.length,sx=-2.9,sz=2.5,vert=BA(0x5ee37a);
    cy(sx,.62,sz,.42,1.24,M.fer);cy(sx,1.27,sz,.47,.07,M.acier);cy(sx,.08,sz,.5,.16,M.acier);
    for(const y9 of [.34,.98])cy(sx,y9,sz,.435,.06,vert);                                   // deux cerclages néon
    const ci=new THREE.Group();ci.position.set(sx,1.78,sz);g.add(ci);GAR.misCible=ci;GAR.misPos=new THREE.Vector3(sx,2.28,sz);
@@ -43586,7 +42792,6 @@ function garLacherSon(){try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22
 // du user) — le garage reste la scène du départ, seule sa vitrine de shopping n'a rien à y faire.
 function playViaGarage(tuto){
   if(pendingScore!=null||(started&&!gameOver))return; // course en cours, ou nom en cours de saisie : rien à faire
-  if(!pkPasse(function(){playViaGarage(tuto);}))return; // (POKI) la pause pub d'avant partie (jamais avant la toute première) — voir pkPasse
   // (2026-09-25, transitions App Store) le menu ne disparaît plus d'un coup sur l'atelier : fondu au noir, l'atelier
   // s'allume DESSOUS, et le LÂCHER démarre quand le voile se lève — la caméra quitte l'orbite sous les yeux du joueur.
   if(garageOn){if(tuto)tutoArme();garageLaunch();return;}
@@ -44020,7 +43225,7 @@ function garAtelierTick(dt,ay){
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
    ouvre la BOUTIQUE. Visible replié (#garage.consoleCachee) et en INVENTAIRE (.modeInv, la vue d arrivée : sous l inventaire, au-dessus des touches). */
-try{if(!POKI&&gEl){const gb=document.getElementById('gBottom'),ga=document.getElementById('gAct');if(gb&&ga&&!document.getElementById('gRappel')){
+try{if(gEl){const gb=document.getElementById('gBottom'),ga=document.getElementById('gAct');if(gb&&ga&&!document.getElementById('gRappel')){
   const r=document.createElement('div');r.id='gRappel';r.className='pbtn';r.setAttribute('role','button');r.setAttribute('aria-label',sansAcc(TR('OFFRES ÉPHÉMÈRES')));
   r.innerHTML=pxi('cadeau')+'<span data-fr="OFFRES ÉPHÉMÈRES">'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><b class="grT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b>'+pxi('droite');
   gb.insertBefore(r,ga);
@@ -44044,11 +43249,11 @@ function gVueSeule(on){if(!gEl)return;on=!!on;if(gEl.classList.contains('vueSeul
   const b=document.getElementById('gOeil');if(b)b.setAttribute('aria-pressed',on?'true':'false');}
 /* (2026-10-11, passe UX) LE PANNEAU QUI FLOTTE : HOME et l'ŒIL quittent la console (#gAct, coupée par le clip-path du panneau) pour #gFlot,
    posé sur la scène (voir <style id="uxPasse">). Mêmes éléments, mêmes écouteurs. --gPanB = la hauteur du panneau depuis le bas de l'écran :
-   debout, la paire se pose juste au-dessus. Pas chez Poki (sa console garde sa rangée). */
+   debout, la paire se pose juste au-dessus. */
 /* (2026-10-11, Léo : « remets comme avant ») HOME et l'ŒIL restent dans la console (#gAct) : plus de #gFlot */
 /* (2026-10-11, Léo : « reviens comme avant : l'argent et l'aura à leur place, HOME et l'œil au-dessus d'INVENTAIRE · BOUTIQUE ») le coin #gCoin est retiré ;
    (même soir) HOME et l'ŒIL dans leur rangée à eux (#gRang1), au-dessus d'INVENTAIRE · BOUTIQUE, sur la largeur des deux : voir « LA RANGÉE HOME + ŒIL » */
-try{if(!POKI&&gEl){const ac=document.getElementById('gAct'),r1=document.createElement('div');r1.id='gRang1';
+try{if(gEl){const ac=document.getElementById('gAct'),r1=document.createElement('div');r1.id='gRang1';
   for(const id of ['gHomeBas','gOeil']){const b9=document.getElementById(id);if(b9)r1.appendChild(b9);}
   if(ac)ac.insertBefore(r1,ac.firstChild);}}catch(e){}
 try{document.getElementById('gOeil').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic(gEl.classList.contains('vueSeule')?'on':'off');gVueSeule(!gEl.classList.contains('vueSeule'));});}catch(e){}
@@ -47299,7 +46504,6 @@ function garJouer(e){
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
     else if(SHOP.prev&&!shopOwned(SHOP.prev.cat,COSM[SHOP.prev.cat][SHOP.prev.i].id)){shopTab('voiture');garageShow(equippedCar());}
     goImmersive();
-    if(cryptoPlayOk()){cryptoJouer();return;} // (2026-10-13) ?niveau=crypto : le JOUER lance CRYPTOCITY
     if(jadePlayOk()){jadeJouer();return;} // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE — depuis le 13/10 seulement avec ?play=jade
     if(sfPlayOk()&&!carrPlayOk()){classiqueJouer();return;} // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
     if(carrPlayOk()){carrJouer();return;} // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière, par son départ (le voile, la piste du niveau, sa musique)
@@ -47345,7 +46549,7 @@ try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.cl
    (même soir, Sacha a tranché : « je préfère ma version de l'interface finalement ») — le DÉFAUT est la version de Sacha : ses boutons,
    son écran MISSIONS rangé (f474c51, rétabli à côté de celui de Léo : gmRenderS/gmPlace/gmSuitS, CSS sous html.misS) et sa porte fermée.
    La version de Léo reste ENTIÈRE derrière `?menu=leo` (menu du sketch, ses missions, la porte relevée). ?menu=sacha marche toujours. */
-const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujours le menu de Sacha
+const MENU_SACHA=!/[?&]menu=leo\b/.test(location.search);
 /* ================= LE GARAGE, HUB DES TROIS (2026-10-06) =================
    Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage doit servir de hub aux 3 ».
    · L'ACCUEIL : la porte des MISSIONS devient la PORTE DU GARAGE (même place, même largeur, à côté du ⚙) ; la BOUTIQUE la rejoint en
@@ -47354,8 +46558,8 @@ const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujou
    · LE GARAGE : une barre ATELIER · MISSIONS · CARRIÈRE (#gHub), au MÊME endroit sur les trois pages. Chaque page garde sa rangée
      d'actions (HOME à gauche, JOUER en or à droite ; la carrière, elle, se joue en touchant un monde) ; la carrière ouverte du hub
      remplace son RETOUR par HOME — on ne « revient » pas d'un onglet, on en change.
-   · ?menu=leo (sa vitrine) et Poki (pas de missions ni de carrière) : rien ne change. */
-const HUB=MENU_SACHA&&!POKI;
+   · ?menu=leo (sa vitrine) : rien ne change. */
+const HUB=MENU_SACHA;
 /* (2026-10-08, Sacha : « maintenant quand on clique sur JOUER on lance les niveaux au lieu de lancer le mode classique ») LE PLAY REDEVIENT
    LE MODE CLASSIQUE (la partie sans fin), et la CARRIÈRE relance ses niveaux au toucher, comme avant le 7/10. « LE NIVEAU DES PLAY » de
    Léo (PLAY = la map de carrière choisie, la carrière qui CHOISIT au lieu de lancer, la pastille JOUER, la petite ligne sous PLAY) est
@@ -47382,7 +46586,7 @@ if(HUB){document.documentElement.classList.add('hub');
      d'ici qu'on rejoint les missions et la carrière.
    · RANGÉE 2 (`.mAccP`) : ⚙ · JOUER (le mot d'or, un cran plus petit) · la BOUTIQUE en € (gardée : c'est la seule porte du shop payant).
    · Les vraies touches sont DÉPLACÉES (leurs écouteurs, leur badge, leur aiguillage `data-m` restent) ; MISSIONS et CARRIÈRE sont neuves
-     (l'aiguilleur de la coque lit `data-m` : 'mis', 'carr'). ?menu=leo et Poki ne passent pas ici (HUB faux). */
+     (l'aiguilleur de la coque lit `data-m` : 'mis', 'carr'). ?menu=leo ne passe pas ici (HUB faux). */
 if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.querySelector('.mHubPorte'),ge=ou&&ou.querySelector('.mGear'),
     sh=ou&&ou.querySelector('.mHubShop'),pl=hm&&hm.querySelector('.mPlay');
   if(ou&&gar&&ge&&sh&&pl){hm.classList.add('acc2');
@@ -51466,7 +50670,6 @@ function loop(now){
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
-  try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);} // (2026-10-13) CRYPTOCITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
   if(mortS9){}else
@@ -51797,7 +51000,7 @@ renderLeaders(-1);
     // utilisateur qu'un `AudioContext` réclame — autant s'en servir tout de suite. `if(!AC)` : même
     // garde que `playMusic`/`musicStartRun`, zéro risque de double contexte avec le garde ajouté
     // dans `start()`.
-    if(!AC&&!POKI){try{if(typeof initAudio==='function')initAudio();}catch(e){}} // (POKI) pas de geste ici : le contexte naît au premier toucher
+    if(!AC){try{if(typeof initAudio==='function')initAudio();}catch(e){}}
     // (2026-10-03, Léo : « pour toutes les musiques, fais démarrer au moment du menu ciel ») : la musique du lobby part à l'instant où le
     // voile s'ouvre sur le CIEL (420 ms, le fondu ci-dessous), et du DÉBUT du morceau — le 1er toucher l'avait lancée en silence une fraction
     // de seconde pour libérer le lecteur. Avant : 700 ms, au milieu du fondu.
@@ -51815,9 +51018,6 @@ renderLeaders(-1);
     if(!launched)launch();
     else if(performance.now()-tLaunch>600)hide(); // ⚠ un DOUBLE-CLIC sur la plaque sautait tout
   });
-  /* (POKI) PAS D'INTRO À TOUCHER : Poki veut le jeu tout de suite (sa page a déjà son écran de chargement) — le voile s'ouvre seul sur
-     le menu. Le son et la musique attendent le premier geste (voir « LE KIT POKI, CÔTÉ JEU » : initAudio au premier toucher). */
-  if(POKI)hide();
 })();
 /* ============ MOBILE / TACTILE / PAUSE / PWA — ajout non intrusif (rien de la physique n'est réécrit) ============ */
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
@@ -51884,7 +51084,7 @@ function goImmersive(){
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
   // supporté — on le garde pour le web uniquement. Et pas sur l'ordi en `?tel=1` : cliquer JOUER
   // ne doit pas avaler l'écran entier sans qu'on l'ait demandé.
-  if(!window.Capacitor&&!FORCE_TEL&&!POKI){ try{ const el=document.documentElement; // (POKI) le plein écran est celui de Poki : on ne le prend pas soi-même
+  if(!window.Capacitor&&!FORCE_TEL){ try{ const el=document.documentElement;
     if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
     else if(el.webkitRequestFullscreen&&!document.webkitFullscreenElement)el.webkitRequestFullscreen();
   }catch(e){} }
@@ -52212,7 +51412,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else {carrIci();resetGame();} };
-        if(q9||mode==='boom'||pkPasse(f9))f9(); }); } // (POKI) RECOMMENCER passe par la pause pub, le panneau reste ouvert (jeu en pause) pendant qu'elle passe // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
+        f9(); }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
     uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
@@ -52497,16 +51697,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
-    else if(a==='play'&&cryptoPlayOk()){ const go9=function(){goImmersive();cryptoJouer();}; // (2026-10-13) ?niveau=crypto : le JOUER lance CRYPTOCITY
-      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
+    if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()&&!carrPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
     else if(a==='play'&&carrPlayOk()){ const go9=function(){goImmersive();carrJouer();}; // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière (la dernière jouée, ou choisie), par le départ de la carrière — sa musique comprise
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); } // le 1er JOUER demande toujours le mode
-    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, Poki, ?menu=leo (carrPlayOk)
+    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, ?menu=leo (carrPlayOk)
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
@@ -52570,7 +51768,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
-      modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
+      modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
@@ -52712,7 +51910,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
 // PWA : enregistrement du service worker (offline + installable), en http(s) uniquement et HORS Capacitor.
 // Sous Capacitor (app native iOS), window.Capacitor est défini et le protocole est capacitor:// — un
 // service worker n'y a pas sa place : on ne l'installe pas.
-if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
+if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
 /* LA MISE À JOUR TOUTE SEULE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste — fais-moi ça en un coup »).
    Deux joueurs pouvaient voir deux jeux : une appli posée sur l'écran d'accueil de l'iPhone REPREND la page gardée en mémoire (aucun
    rechargement pendant des jours), un onglet resté ouvert garde l'ancienne. Le jeu connaît son commit (CC_BUILD, gravé par
@@ -52723,7 +51921,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
-  if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||BALADE||SIMU_JEU)return; // (l'atelier des nuages ne se recharge pas en plein réglage — le simulateur non plus)
+  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:')||BALADE||SIMU_JEU)return; // (l'atelier des nuages ne se recharge pas en plein réglage — le simulateur non plus)
   var neuf=null,vu=0,touche=Date.now();
   /* (2026-10-05, Léo : « au début, quand CASH CAR explose, une musique part très fort, puis ça relance au niveau ciel ») ⚠ LA MISE À JOUR
      TOMBAIT EN PLEINE INTRO : la 1re lecture de version.json partait 4 s après l'ouverture et « pas en course » comprenait l'intro — un
@@ -52858,65 +52056,6 @@ if(BANC_ON)(function(){
     bouton('COPIER',k=>copier(txt,k));
   })();
 })();
-/* ============ LE KIT POKI, CÔTÉ JEU (édition POKI — voir « LE KIT POKI » dans le <head>) ============
-   Le SDK vit dans le document de plus haut (`CC_PK`) ; le jeu lui dit ce qui se passe :
-   · `fini()` une fois, ici : le menu est là, le chargement est fini (gameLoadingFinished) ;
-   · `jeu(on)` 4 fois par seconde : on joue VRAIMENT (course lancée, pas finie, pas en pause, pas de pub) → gameplayStart / Stop ;
-   · `pkPasse(f)` devant chaque nouvelle partie (JOUER, REJOUER, RECOMMENCER) : la pause pub (commercialBreak) — Poki décide s'il y en
-     a une ; jamais avant la toute première partie de la session. Pendant la pub : `pkMuet(true)` (son, musique et clavier coupés). */
-function pk(){if(!POKI)return null;try{return window.CC_PK||(window.parent!==window?window.parent.CC_PK:null)||null;}catch(e){return null;}}
-let pkDeja=false; // une partie a déjà été jouée dans cette session : la pause pub peut passer avant la suivante
-function pkMuet(on){
-  window.CC_PUB=!!on; // lu par le <head> : AudioContext.resume, media.play et le clavier refusés tant qu'il est vrai
-  try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); pkMuet._m=!!(musicEl&&!musicEl.paused); if(pkMuet._m)musicEl.pause(); }
-    else{ if(AC&&(SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); if(pkMuet._m){pkMuet._m=false;musicJoue();} } }catch(e){}
-}
-function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub passe d'abord, et f() suivra
-  if(!POKI||!pkDeja||pkPasse._dedans)return true;
-  const p=pk();if(!p||p.etat!==1)return true;  // SDK absent ou pas prêt : on joue, sans pub
-  if(pkPasse._attente)return false;            // un 2e tap pendant la pub : rien
-  pkPasse._attente=true;
-  // (2026-10-06) une pub qui DÉMARRE (muet(true)) compte pour L'ÉTERNELLE — 100 pubs
-  p.pub(function(on){if(on)try{const e9=SAVE.d.ex;e9.pubs=Math.min(1e6,(e9.pubs|0)+1);SAVE.mark();}catch(e){}pkMuet(on);},function(){pkPasse._attente=false;pkPasse._dedans=true;try{f();}catch(e){}pkPasse._dedans=false;});
-  return false;
-}
-function pkSilence(on){ // (CrazyGames) leur réglage « son coupé » passe avant les nôtres : même coupure qu'une pub, le clavier en moins
-  window.CC_MUET=!!on;
-  try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); if(musicEl&&!musicEl.paused){pkSilence._m=true;musicEl.pause();} }
-    else{ if(AC&&(SND.sfx||musWaTient())&&!paused&&!window.CC_PUB&&AC.state!=='running')AC.resume(); if(pkSilence._m&&!window.CC_PUB){pkSilence._m=false;musicJoue();} } }catch(e){}
-}
-if(POKI){
-  if(!FACILE_OK){SAVE.d.facile=0;} // (CrazyGames) pas de mode facile : le choix du 1er JOUER ne se pose plus, l'interrupteur est masqué (html.sansFacile)
-  /* le SON imposé par le portail : coupé si SON réglage le dit (CrazyGames muteAudio, Playgama audio) OU s'il a mis le jeu en pause */
-  let pkMuA=false,pkMuP=false;
-  try{const p=pk();if(p&&p.surMuet)p.surMuet(function(on){pkMuA=!!on;pkSilence(pkMuA||pkMuP);});}catch(e){}
-  /* (Playgama) LA PAUSE DU PORTAIL : en pleine course on ouvre le vrai panneau de pause (REPRENDRE attend sous le pouce), et le son se tait ;
-     au retour, le son revient — la partie, elle, reprend quand le joueur touche REPRENDRE */
-  try{const p=pk();if(p&&p.surPause)p.surPause(function(on){pkMuP=!!on;
-    if(on&&started&&!gameOver&&!paused){const g=document.getElementById('tGear');if(g&&getComputedStyle(g).display!=='none')g.click();else togglePause();}
-    pkSilence(pkMuA||pkMuP);});}catch(e){}
-  /* LA LANGUE ET LA SAUVEGARDE DU PORTAIL, une fois son kit prêt. Langue : celle de la plateforme, si le joueur n'en a pas choisi une
-     dans les réglages (`ccLang`) et que le jeu la parle en entier (LANG_AUTO). Sauvegarde : rien en local à ce lancement mais une partie
-     chez le portail (autre appareil, cache vidé) → elle est semée et le jeu se recharge une fois (garde-fou : SAVE.natif=2, comme le
-     miroir natif de l'appli) ; sinon le local fait foi et part chez le portail (SAVE.portail=1, puis chaque flush). */
-  try{const p=pk();if(p&&p.surPret)p.surPret(function(ok){if(!ok)return;
-    try{const lg=p.langue();let ch=null;try{ch=localStorage.ccLang;}catch(e){}
-      if(lg&&!ch&&LANG_AUTO.indexOf(lg)>=0&&lg!==LANG){LANG=lg;applyLangDOM();}}catch(e){}
-    if(p.stockage())p.lit(SAVE.K).then(function(v){
-      if(v&&typeof v==='string'&&SAVE_VIDE&&!sessionStorage.ccPortailSeme){SAVE.natif=2;let ok9=false;
-        try{localStorage[SAVE.K]=v;ok9=localStorage[SAVE.K]===v;sessionStorage.ccPortailSeme=1;}catch(e){}
-        if(ok9){location.reload();return;}SAVE.natif=0;}
-      SAVE.portail=1;SAVE.flush();}).catch(function(){SAVE.portail=1;});});}catch(e){}
-  // pas d'intro à toucher (voir le splash) : le contexte audio naît au PREMIER geste, et se réveille aux suivants
-  const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
-  ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,g9,{capture:true,passive:true});});
-  setInterval(function(){const p=pk();if(!p)return;const on=started&&!gameOver&&!paused&&!window.CC_PUB;if(on)pkDeja=true;p.jeu(on);},250);
-  // l'ACCUEIL : la porte des MISSIONS devient la porte du GARAGE (même place, à côté du ⚙), avec la pastille des caisses à portée (voir <style id="poki">)
-  try{const mb=document.querySelector('#mHome .mMisBtn'),bd=document.getElementById('bdGar');
-    if(mb){mb.setAttribute('data-m','garage');mb.setAttribute('aria-label','Garage');
-      mb.innerHTML='<i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">'+TR('GARAGE')+'</span>';if(bd)mb.appendChild(bd);}}catch(e){}
-  try{const p=pk();if(p)p.fini();}catch(e){}
-}
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 requestAnimationFrame(loop);
 })();
