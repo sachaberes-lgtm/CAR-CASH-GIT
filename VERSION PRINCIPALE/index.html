@@ -13754,9 +13754,9 @@ function villeRose(){const c=typeof LVL!=='undefined'&&LVL.cur;return VILLE_ROSE
 /* (2026-10-14, LA BIBLE CAR CASH — passation/DA-CARCASH.md, validée par Sacha) LA SIGNATURE DE ROUTE : bords néon ROSE + nappe + ligne centrale OR, sur
    chaque map passée à la bible (une map à la fois, chacune son `?sans=`). routeSig() dit si la map courante la porte. La ville au néon (villeRose) garde
    sa peinture caméléon d'origine ; les autres reçoivent le rose de la marque, plein la nuit et sous la pluie, ~70 % de jour (jamais blanc ni éteint). */
-const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search)};
+const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),canyon:!/[?&]sans=([^&]*,)?canyon2(,|&|$)/.test(location.search)};
 function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)return false;const b=c.bio[0];
-  return (SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
+  return (SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'))||(SIG_V.canyon&&c.id==='canyon');}
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
@@ -14126,7 +14126,7 @@ function buildTrack(seed){
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
   const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:idA9==='foret'?0xd8b45a:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
-  if(BORDS_V2){const ia9=Math.max(0,ACCENTS.indexOf(accR));ACCENTS.splice(0,6,0xffb04a,0xf2b93b,0xe8e4da,0xffc477,0xf2b93b,0xffb04a);accC.setHex(idA9==='espace'?0xe8eef2:idA9==='paris'?0xd9d4ca:idA9==='jade'?0xf2b93b:(idA9==='nuages'||idA9==='orage'||idA9==='ville')?((villeRose()||routeSig())?0xf24aa0:0xffb04a):ACCENTS[ia9]);} /* (villerose) la ville au néon garde son accent ROSE */ // (2026-10-14, bords-route) L'ACCENT N'EST PLUS UN NÉON : ambre sodium (nuages, ville, orage, hasard), or (jade), blanc froid (orbite) — il nourrit le reflet des flaques (uAcc), le liseré des flancs, la couronne des tours (buildVoxCity) et le ciel musical
+  if(BORDS_V2){const ia9=Math.max(0,ACCENTS.indexOf(accR));ACCENTS.splice(0,6,0xffb04a,0xf2b93b,0xe8e4da,0xffc477,0xf2b93b,0xffb04a);accC.setHex((routeSig()&&idA9!=='ville')?0xf24aa0:idA9==='espace'?0xe8eef2:idA9==='paris'?0xd9d4ca:idA9==='jade'?0xf2b93b:(idA9==='nuages'||idA9==='orage'||idA9==='ville')?((villeRose()||routeSig())?0xf24aa0:0xffb04a):ACCENTS[ia9]);} /* (villerose) la ville au néon garde son accent ROSE */ // (2026-10-14, bords-route) L'ACCENT N'EST PLUS UN NÉON : ambre sodium (nuages, ville, orage, hasard), or (jade), blanc froid (orbite) — il nourrit le reflet des flaques (uAcc), le liseré des flancs, la couronne des tours (buildVoxCity) et le ciel musical
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
@@ -21342,7 +21342,16 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fog:[.17,.18,.25],f
    fillC:[.3,.38,.6],fillI:.24,kickC:[.45,.5,.75],kickI:.2,expo:.88,sat:.92,con:1.16,sh:[0,.006,.024],hi:[0,0,0],bloomS:.55,bloomT:.85,vigK:.4,vigC:[.015,.018,.028],rimK:.7,rimS:.5,daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35,
    env:[[0,'#1E2740'],[.3,'#2A3450'],[.48,'#4A5670'],[.58,'#5A6680'],[.66,'#3A3236'],[1,'#141012']],eS1:[170,190,255,.3],eS2:[110,140,220,.25],
    cyZ:[.013,.02,.051],cyM:[.03,.04,.08],cyH:[.069,.093,.162],cyS:[.9,.6,.4],cyB:[0,0,0],cyC:[.10,.12,.18],cyD:[.02,.025,.045],cyR:[.06,.07,.11],
-   cyK:[0,0,0,0],cyN:[0,.8,.3,1],cyA:[40,170,1,1],cyL:[.25,.22,.24],cyT:[.86,.84,.88],cyW:[.30,.22,.16],cyX:[.14,.09,.06],cyF:[.16,.18,.24],cyQ:[.45,90,1,1]});}
+   cyK:[0,0,0,0],cyN:[0,.8,.3,1],cyA:[40,170,1,1],cyL:[.25,.22,.24],cyT:[.86,.84,.88],cyW:[.30,.22,.16],cyX:[.14,.09,.06],cyF:[.16,.18,.24],cyQ:[.45,90,1,1]});
+/* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · canyon2) LE CANYON DES GÉANTS PARLE LA LANGUE DES AUTRES MAPS : contre-jour ROSE sur les caisses, saturation
+   effective ~1,35 ; MIDI : plus d'horizon ni de brume gris neutre (#c0c4c6, le « ciel délavé ») → sable pêche ; SOIR : soleil à 6°, les ombres des parois tombaient
+   au NOIR (ciel .45 / remplissage .2) → ombres bleu-violet (ciel .62, remplissage bleu .38). Plus la signature de route (bords roses, ligne or). `?sans=canyon2`. */
+if(SIG_V.canyon){
+ Object.assign(BIOMES.canyonMatin,{sat:1.12,con:1.2,fillI:.28,kickC:[1,.40,.66],kickI:.18});
+ Object.assign(BIOMES.canyonMidi,{sat:1.12,con:1.22,jHor:[.95,.74,.55],cyH:[.95,.74,.55],fog:[.84,.70,.58],fogCj:[1,.82,.62],fogIn:[.96,.88,.80],cyF:[.90,.76,.64],cyB:[.80,.62,.58],fillI:.26,kickC:[1,.40,.68],kickI:.18});
+ Object.assign(BIOMES.canyonSoir,{sat:1.12,con:1.22,hemiS:[.44,.40,.72],hemiI:.62,fillC:[.42,.46,.92],fillI:.38,kickC:[1,.38,.62],kickI:.2});
+ for(const k of ['canyonNuit','canyonPluie','canyonOrage'])if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.16)});
+}}
 // L'ORBITE — le soleil a ses heures aussi : doré au lever sur le bord de la Terre, rouge au couchant (le noir et la Terre ne changent pas)
 /* LA FORÊT NOIRE — SES SIX TEMPS (2026-10-14, Sacha : « regarde que toutes les heures et les météos sont bien comprises »). Écrites d'après la
    CHARTE (pilotage-notes, chantiers/gfx/CHARTE.md) : ciel d'altitude (jour:1), jZen/jMid/jHor/jSol et fog en LINÉAIRE, sat ≤ 1,03 de jour (× DA 1,08
