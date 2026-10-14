@@ -8908,6 +8908,20 @@ html.sansFacile [data-m="facile"]{display:none!important}
 @keyframes spMonte{0%{transform:translateY(8px);opacity:0}100%{transform:none;opacity:1}}
 #spinM .spTire{width:min(100%,320px);min-height:56px;justify-content:center;font-size:var(--f5)}
 #spinM.roule .spTire{opacity:.45;pointer-events:none}
+/* LE LEVIER (finition 1) : la tige d'or et la boule de laque rouge sur le flanc droit ; elle descend au tirage. Sa cible de doigt dépasse le
+   dessin (::before, 48 px), comme le veut la charte. */
+#spinM .spLevier{position:absolute;right:calc(var(--spH)*-.46);top:14%;width:calc(var(--spH)*.3);height:46%;z-index:3;cursor:pointer}
+#spinM .spLevier::before{content:'';position:absolute;left:50%;top:-10px;width:48px;height:calc(100% + 20px);transform:translateX(-50%)}
+#spinM .spTige{position:absolute;left:50%;bottom:0;width:6px;height:100%;transform:translateX(-50%);transform-origin:50% 100%;
+  background:linear-gradient(90deg,var(--auE),var(--au1) 45%,var(--au2) 60%,var(--auE));box-shadow:0 0 0 2px var(--k0)}
+#spinM .spBoule{position:absolute;left:50%;top:0;width:calc(var(--spH)*.3);height:calc(var(--spH)*.3);transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 35% 30%,#fff 0 12%,var(--neoR) 30%,#8a0f24 100%);box-shadow:0 0 0 2px var(--k0),0 0 12px rgba(255,74,100,.5)}
+#spinM .spLevier.tire .spTige{animation:spTige .62s var(--ease)}
+#spinM .spLevier.tire .spBoule{animation:spBoule .62s var(--ease)}
+@keyframes spTige{0%{transform:translateX(-50%)}32%{transform:translateX(-50%) scaleY(-.2)}100%{transform:translateX(-50%)}}
+@keyframes spBoule{0%{top:0}32%{top:120%}100%{top:0}}
+/* LE FILÉ : un rouleau lancé à pleine vitesse s'étire et se brouille (un élément, pas l'arrière-plan : la règle du flou reste tenue) */
+#spinM .spRou.file .spSym .pxi{filter:blur(1.4px);transform:scaleY(1.3);opacity:.85}
 /* le flash et les éclats du jackpot */
 #spinM .spFlash{position:absolute;inset:0;background:var(--au0);opacity:0;pointer-events:none;z-index:3}
 #spinM .spPart{position:absolute;z-index:4;pointer-events:none;will-change:transform,opacity}
@@ -36342,16 +36356,19 @@ function spinDom(){ // la machine, fabriquée UNE fois (au premier tirage de la 
   let bu='';const pts=[];for(let i=0;i<9;i++)pts.push([4+i*11.5,0]);for(let i=1;i<5;i++)pts.push([100,i*20]);for(let i=8;i>=0;i--)pts.push([4+i*11.5,100]);for(let i=4;i>0;i--)pts.push([0,i*20]);
   pts.forEach(function(q,i){bu+='<i style="left:'+q[0]+'%;top:'+q[1]+'%;--i:'+i+'"></i>';});
   el.innerHTML='<div class="spFlash"></div><div class="spBox"><div class="spTitre"></div><div class="spJet"></div>'
-    +'<div class="spMachine"><div class="spBulbs">'+bu+'</div><div class="spFens">'+rou+'</div><div class="spLigne"></div></div>'
+    +'<div class="spMachine"><div class="spBulbs">'+bu+'</div><div class="spFens">'+rou+'</div><div class="spLigne"></div>'
+    +'<div class="spLevier" role="button" aria-label="Levier"><i class="spTige"></i><i class="spBoule"></i></div></div>'
     +'<div class="spGain" aria-live="polite"></div><div class="pbtn pb-gold big wide spTire" role="button" tabindex="0"></div></div>';
   document.body.appendChild(el);
   SPIN.el=el;SPIN.rous=[].slice.call(el.querySelectorAll('.spRou'));SPIN.bds=[].slice.call(el.querySelectorAll('.spBande'));
   SPIN.btn=el.querySelector('.spTire');SPIN.gEl=el.querySelector('.spGain');SPIN.jEl=el.querySelector('.spJet');
   SPIN.p=[0,0,0].map(function(){return ((Math.random()*SPIN.N)|0);}); // positions en SYMBOLES (le symbole du milieu = index + 1)
   SPIN.btn.addEventListener('click',function(e){e.stopPropagation();spinAppui();});
+  SPIN.lev=el.querySelector('.spLevier');SPIN.lev.addEventListener('click',function(e){e.stopPropagation();if((SAVE.d.spinJ|0)>0)spinAppui();}); // (finition) le levier se tire aussi au doigt
   el.addEventListener('click',function(e){e.stopPropagation();});
   return el;}
-function spinH(){return SPIN.rous[0].getBoundingClientRect().height/3||60;} // mesurée à l'ouverture (SPIN.H) : jamais dans l'animation
+function spinH(){return SPIN.rous[0].offsetHeight/3||60;} /* la hauteur de MISE EN PAGE : à l'ouverture la machine est encore réduite à 94 % par son entrée (transform), getBoundingClientRect donnait un symbole trop court et le décalage s'accumulait à chaque cran (banc : une PAIRE affichée avec trois symboles différents) */
+addEventListener('resize',function(){if(SPIN.ouvert&&SPIN.rous){SPIN.H=spinH();spinPeint();}}); // l'iPhone qu'on tourne : les rouleaux se remesurent
 function spinPeint(){ // les trois bandes à leur position (une bande = deux tours : le défilement boucle sans couture)
   const H=SPIN.H||spinH();for(let r=0;r<3;r++){const p=((SPIN.p[r]%SPIN.N)+SPIN.N)%SPIN.N;SPIN.bds[r].style.transform='translate3d(0,'+(-p*H).toFixed(1)+'px,0)';}}
 function spinLabels(){const n=SAVE.d.spinJ|0;
@@ -36371,6 +36388,7 @@ function spinAppui(){
   uiClic('');try{SPIN.btn.classList.add('appui');setTimeout(function(){SPIN.btn.classList.remove('appui');},140);}catch(e){}
   if((SAVE.d.spinJ|0)<=0){hap(8);spinFerme();return;}
   hap(16);SAVE.d.spinJ=(SAVE.d.spinJ|0)-1;SAVE.flush();spinLabels();
+  try{SPIN.lev.classList.remove('tire');void SPIN.lev.offsetWidth;SPIN.lev.classList.add('tire');}catch(e){} // le levier s'abaisse
   spinLance(spinTire());}
 function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — positions en SYMBOLES, vitesse en symboles par seconde
   SPIN.roule=true;SPIN.el.classList.add('roule');SPIN.el.classList.remove('gagne');SPIN.gEl.innerHTML='';SPIN.gEl.className='spGain';
@@ -36384,13 +36402,13 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
     for(let r=0;r<3;r++){const S=st[r];if(S.fin)continue;tous=false;
       if(S.ph===0){
         if(t<.09)SPIN.p[r]=S.p0-.22*Math.sin(t/.09*Math.PI/2); // l'élan : un cran en arrière
-        else{S.v=Math.min(V,S.v+V*dt/.32);SPIN.p[r]+=S.v*dt;}
+        else{S.v=Math.min(V,S.v+V*dt/.32);SPIN.p[r]+=S.v*dt;if(S.v>9&&!S.file){S.file=true;SPIN.rous[r].classList.add('file');}}
         const P=r>0?st[r-1]:null,fPrev=!P?0:P.fin?P.tf:P.ph===1?P.ts+P.D:-1;
         if(t>=stop[r]&&fPrev>=0){
           const B=SPIN.bandes[r];let pe=Math.ceil(SPIN.p[r]+6);while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
           const d=pe-SPIN.p[r],D=4*d/Math.max(6,S.v);
           if(d<=7.5&&t+D>=fPrev+.3){S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=D;}}}
-      else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);
+      else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
         if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('arret.tic',{vol:.9});}catch(e){}hap(9);
           const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
           if(r===1&&tease)SPIN.el.classList.add('tease');}}}
