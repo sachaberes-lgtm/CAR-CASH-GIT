@@ -1,6 +1,9 @@
-# ÉTAT — SON (14/10, 13 h 25, dernière heure sur le Mac)
-- Fait : 38 correctifs SON intégrés dans `son-integration` (= assemblage T6 242da07 + SON) ; détail et suite : `passation/SON.md`.
-- Vérifié : syntaxe 0, garde du burn-out OK, chinois/Poki 0, fumée couché + debout OK (0 erreur JS).
-- En cours : rien (aucun agent, aucune branche `son/*` non intégrée).
-- Suite : ÉCOUTER sur un vrai iPhone iOS 17+ (MUS_WA d'abord) avec `passation/SON-ECOUTE.md` ; puis BACKLOG SON (P3 mots du son).
-- QUESTIONS pour Sacha : aucune nouvelle (les 4 choix d'oreille Q-SON sont tranchés par défaut, réversibles — voir SON.md §4).
+# ÉTAT — SON (14/10, reprise sur le PC de Sacha)
+- Worktree PC : `C:\Users\sacha\Documents\GitHub\CCG-son-integration`, branche `son-integration` = assemblage T8 `27b4199` (fast-forward, main 3ca83ec inclus).
+- Vérifié : syntaxe 14 scripts / 0 erreur, garde du burn-out OK.
+- Fait (Mac) : 38 correctifs SON, tous fusionnés dans assemblage au train T8 ; détail et suite : `passation/SON.md`.
+- En cours : rien (0 agent, 0 navigateur) — état envoyé à PILOTAGE (PC), j'attends mon plafond et l'ordre de la vague.
+- Suite : ÉCOUTER sur un vrai iPhone iOS 17+ (MUS_WA d'abord) avec `passation/SON-ECOUTE.md` ; sans oreille : BACKLOG SON P3
+  (extrait du lobby au relâcher du curseur MUSIQUE, « SON »/« SFX ») et mineurs de `passation/SON-oreille-neuve-4.md`.
+- Pour DEBUGGING (hors SON) : `eauPTick`, une ligne avalée par un `//` (gouttes de la mer du jade en erreur).
+- QUESTIONS pour Sacha : aucune nouvelle (les 4 choix d'oreille Q-SON restent tranchés par défaut, réversibles — SON.md §4).
