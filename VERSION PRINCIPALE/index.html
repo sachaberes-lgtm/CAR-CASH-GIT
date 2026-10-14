@@ -16588,11 +16588,12 @@ function lensSortie(k){if(REDUCED_MOTION)return;lensInit();LENS.nappe=1;LENS.t=0
 function lensEntree(){if(REDUCED_MOTION)return;lensInit();LENS.flash=1;LENS.g.length=0;LENS.nappe=0;}
 function lensTick(dt){const cv=LENS.cv;if(!cv)return;const U=acesPass&&acesPass.uniforms;const vide=!LENS.g.length&&LENS.nappe<=0&&LENS.flash<=0;
   if(vide){if(cv.style.visibility!=='hidden'){cv.style.visibility='hidden';LENS.cx.clearRect(0,0,LENS.W,LENS.H);}if(U&&U.uLensK)U.uLensK.value=0;return;}
-  const W=Math.max(1,Math.ceil(innerWidth/3)),H=Math.max(1,Math.ceil(innerHeight/3));
+  const W=Math.max(1,Math.ceil(VP.w/3)),H=Math.max(1,Math.ceil(VP.h/3)); // (2026-10-14, OPTIMISATION — relevé par GENERAL) VP au lieu d'innerWidth : la lecture forçait une mise en page à chaque image (piège n° 11)
   if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}if(LENS.cvN.width!==W||LENS.cvN.height!==H){LENS.cvN.width=W;LENS.cvN.height=H;LENS.img=null;}
   if(!LENS.img)LENS.img=LENS.cxN.createImageData(W,H);LENS.W=W;LENS.H=H;
   if(cv.style.visibility!=='visible')cv.style.visibility='visible';const x=LENS.cx;x.clearRect(0,0,W,H);LENS.t+=dt;
-  const D=LENS.img.data;for(let i=0;i<D.length;i+=4){D[i]=128;D[i+1]=128;D[i+2]=0;D[i+3]=255;} // la toile des normales, au repos : aucun décalage
+  const D=LENS.img.data; // la toile des normales, au repos : aucun décalage — (OPTIMISATION) recopiée d'un modèle (une copie mémoire) au lieu de 4 écritures par pixel à chaque image
+  if(!LENS.rep||LENS.rep.length!==D.length){const R9=LENS.rep=new Uint8ClampedArray(D.length);for(let i=0;i<R9.length;i+=4){R9[i]=128;R9[i+1]=128;R9[i+2]=0;R9[i+3]=255;}}D.set(LENS.rep);
   const N=function(px,py,nx,ny){if(px<0||py<0||px>=W||py>=H)return;const o=(py*W+px)*4;D[o]=Math.max(0,Math.min(255,128+nx*7.94));D[o+1]=Math.max(0,Math.min(255,128-ny*7.94));}; // (nx, ny en pixels de toile ; ÷16 → ±127)
   if(LENS.flash>0){LENS.flash=Math.max(0,LENS.flash-dt/.22);x.fillStyle='rgba(215,252,255,'+(.55*LENS.flash).toFixed(3)+')';x.fillRect(0,0,W,H);}
   let lens=0;
@@ -16614,7 +16615,7 @@ function lensTick(dt){const cv=LENS.cv;if(!cv)return;const U=acesPass&&acesPass.
     x.fillStyle='rgba(255,255,255,'+(.75*ev).toFixed(3)+')';x.fillRect(cx-Math.round(r*.45),cy-Math.round(r*.5),r>6?2:1,r>6?2:1); // l'éclat
     if(r>4){x.fillStyle='rgba(255,255,255,'+(.35*ev).toFixed(3)+')';x.fillRect(cx+Math.round(r*.3),cy+Math.round(r*.45),1,1);}}
   LENS.cxN.putImageData(LENS.img,0,0);LENS.tex.needsUpdate=true;
-  if(U&&U.uLensK){U.uLensK.value=lens;U.uLensA.value.set(16*3/Math.max(1,innerWidth),16*3/Math.max(1,innerHeight));if(U.uLens.value!==LENS.tex)U.uLens.value=LENS.tex;}}
+  if(U&&U.uLensK){U.uLensK.value=lens;U.uLensA.value.set(16*3/Math.max(1,VP.w),16*3/Math.max(1,VP.h));if(U.uLens.value!==LENS.tex)U.uLens.value=LENS.tex;}}
 /* LE SON SOUS L'EAU : un passe-bas devant la sortie (grand ouvert hors de l'eau), des bloups de bulles */
 function eauFiltre(sous,net){if(!AC||!MASTER||typeof BUSOUT==='undefined'||!BUSOUT)return;
   if(!MASTER._eauLp){if(!sous)return;try{const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=AC.sampleRate/2;lp.Q.value=.6;MASTER.disconnect(BUSOUT);MASTER.connect(lp);lp.connect(BUSOUT);MASTER._eauLp=lp;}catch(e){return;}}
