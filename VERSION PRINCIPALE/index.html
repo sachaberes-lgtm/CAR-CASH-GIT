@@ -46767,6 +46767,11 @@ if(TITRE_V2){
       env:[[0,'#2a3c78'],[.3,'#98909e'],[.48,'#ffb070'],[.58,'#ffd08a'],[.66,'#a08a88'],[1,'#605a6a']],eS1:[255,200,140,.5],eS2:[170,170,200,.25]},
     P:{mzT:[.30,.26,.30,.55],mzO:[.58,.47,.44,.6],mzH:[1,.84,.62,.7],amb:.9,sk:2.9,cjA:1.2,cjF:1.8},
     v:['36,28,40',.30,.48,'32,24,36',.58],t:[1,.88,.76]});
+  // NUIT : signature #0B1230 → #1E2A52 (outremer saturé → bleu nuit calme), sat 0,9, mer de nuages sombre, cirrus effacés ; caisse lisible
+  T2('nuit',{ciel:{z:[.004,.008,.04],m:[.009,.017,.065],h:[.03,.05,.13],s:[.03,.05,.10],mh:[.50,.58,.74],mo:[.045,.055,.10],c:[.22,.28,.42],ca:.12},
+    amb:{jZen:[.004,.008,.04],jMid:[.009,.017,.065],jHor:[.03,.05,.13],fog:[.03,.04,.09],hemiS:[.32,.40,.62],sat:.9,con:1.12,vigC:[.005,.01,.03],vigK:.4},
+    P:{mzT:[.015,.025,.06,.9],mzO:[.045,.055,.10,.85],mzH:[.52,.60,.78,.85],K:[.5,.58,1.05,1.2],amb:1.1,sk:3.3,cjA:1.2,cjF:1.8},
+    v:['4,8,24',.45,.65,'4,8,24',.7]});
 }
 function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);if(!on)return T;
   U.uTZen.value.fromArray(T.z);U.uTMid.value.fromArray(T.m);U.uTHor.value.fromArray(T.h);U.uTSol.value.fromArray(T.s);
