@@ -198,6 +198,8 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
 - (14/10) LE PLATEAU DES BRAS à la taille de celui de l'atelier (rayon 4,4, 12 cm, `GBQ.socleH=.12` = son dessus) et FIXE (il suivait le cap
   de la caisse) ; LE POINT DE VUE retenu dans `BQ_POV` : couché {h −0,7, d 0,92}, debout {h −0,6, d 0,95} (la caméra plus basse, plus près) ;
   le 1.61 remonté (y 9,6, z −24 : il chevauchait le nom).
+  ⚠ REVENU le même jour (Léo : « c'était mieux avant, juste le socle un tout petit peu plus grand, 1,5× ») : point de vue d'avant
+  (`BQ_POV` null), 1.61 à sa place (y 7,2, z −22), le plateau d'avant ×1,5 (rayon 1,83, socleH .01) ; il reste FIXE (ne suit plus le cap).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
