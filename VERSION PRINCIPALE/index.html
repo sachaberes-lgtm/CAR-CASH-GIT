@@ -8129,6 +8129,9 @@ html.c6 #overlay #mDead #nameEntry{order:9;grid-area:auto}
    Gauche : verdict · argent (prend la place libre) · aura · bande. Droite : moteur · défi · (ressort) · touches. Rien ne défile. */
 @media (orientation:landscape){
   html.c6 #overlay #mDead.on{flex:1 1 0%;min-height:0;height:100%;box-sizing:border-box;flex-flow:column wrap;align-content:space-between;align-items:stretch;gap:0}
+  /* (2026-10-14, vérif P1 au banc) #mob (le parent) n'a pas de hauteur définie (flex:1 0 auto) : height:100 % ne bornait rien, la colonne de
+     gauche s'allongeait (argent 340 px), l'écran DÉFILAIT (569 / 390) et REJOUER sortait de l'écran. La hauteur de la fenêtre, en dur. */
+  html.c6 #overlay #mDead.on{flex:0 0 auto;height:100vh;height:100dvh;max-height:100dvh}
   html.c6 #overlay #mDead.on>*,html.c6 #overlay #mDead .hCard{box-sizing:border-box;width:calc(50% - 12px);max-width:calc(50% - 12px);flex-shrink:0}
   html.c6 #overlay #mDead .mCashL{margin:12px 0 0}
   html.c6 #overlay #mDead :is(.hAura,.mStats){margin-top:12px}
