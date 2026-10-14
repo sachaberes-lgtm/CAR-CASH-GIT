@@ -39553,7 +39553,19 @@ window.dbgPortail=function(d){if(!started||gameOver||PARK.on)return 'pas de cour
 // console : dbgSaut() → franchit le portail tout de suite (niveau suivant), comme le vrai portail le fait
 window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course en cours';
   runStats.zones++;SURV.pBase+=survPortS();newTrack();return window.dbgNiveau(); }; // (2026-09-30) comme le vrai portail : en vol, au moins l'entrée de l'ovule
+/* (2026-10-14, session SON) CE QUI SONNE ENCORE DE LA MORT QUAND ON REJOUE. L'explosion dure 3,35 s, la fanfare du record 1,87 s, le
+   « compte » de l'écran de fin 1,1 s : un REJOUER pressé (le volet noir ne dure que 0,35 s) les laissait finir PAR-DESSUS le logo, le
+   whoomp et le réacteur du départ de la partie suivante (ils sont dans le bus des effets, `stopJeu` ne les connaît que pour la pause).
+   `resetGame` les éteint (CCSON.stop : rampe de 10 ms, jamais net) et annule ce qui était programmé en avance, UNIQUEMENT si l'on sort d'un
+   écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
+const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
+  'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+function finSonsCoupe(){
+  if(!SONV2||!window.CCSON)return;
+  try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
+}
 function resetGame(){
+  if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
   PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
