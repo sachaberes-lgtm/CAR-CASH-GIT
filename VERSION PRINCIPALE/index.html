@@ -10206,11 +10206,6 @@ if(CAN_POST){ try{
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
-  /* (2026-10-14, passe perf mobile) UNE SEULE CIBLE PLEIN ÉCRAN. Une ShaderPass demande par défaut l'échange des deux cibles du composer
-     après elle : comme l'ACES écrit à l'ÉCRAN, cet échange ne servait qu'à faire dessiner la scène une image dans la cible 1, la suivante
-     dans la cible 2 — deux cibles demi-flottantes + profondeur allouées à la taille de l'écran pour une seule utile. Sans l'échange, la
-     scène va toujours dans la même et l'autre n'est jamais créée sur la puce (three ne l'alloue qu'à son premier usage). Même image. */
-  acesPass.needsSwap=false;
   /* FUSION DU BLOOM (2026-09-27, passe perf iPhone). UnrealBloomPass finissait par DEUX passes : un « composite » qui somme ses 5 mips
      dans une cible 8 bits, puis une COPIE additive de cette cible sur l'image entière — un aller-retour plein écran en demi-flottant
      rien que pour ajouter le halo, sur un GPU à tuiles (Apple) le plus cher des deux. L'ACES relisait ensuite cette même image. Le halo
@@ -16379,7 +16374,7 @@ function jadeReprend(){const t0=performance.now(),m=JADE_GARDE.m;JADE_GARDE.m=nu
   FIN.near.length=0;FIN.sig=0;FIN.sale=false;FIN.mats=new Map();FIN.dans=new Set();if(FIN.stamp){FIN.stamp.fill(0);FIN.was.fill(0);}FIN.gen=0;
   NUVOX.sig=0;for(const im of NUVOX.ims||[]){im.count=0;im.visible=false;}for(const n of NUVOX.L||[])n.v=0;
   for(const e of JADE.eauPil||[])e.t=0;JADE.eauT=0;JADE.sale=false;
-  for(const o of JADE.monu||[]){o.loin=false;o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;}}
+  for(const o of JADE.monu||[]){o.loin=false;o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;if(o.lo){o.lo.visible=false;o.L[0].visible=true;}}}
   for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;M9.pres=false;for(const x of M9.mF)x.visible=false;for(const x of M9.mL)x.visible=true;}
   if(JADE.decoPieces)for(const x of JADE.decoPieces.children)x.visible=true;
   if(FIN.on&&JADE.geos&&FIN.cap)for(let t=0;t<JADE.geos.p.length;t++)if(JADE.geos.p[t].fin&&!FIN.fam[t])finFamille(t); // (les gabarits fins finis depuis : leur famille, comme une carte neuve)
@@ -17236,6 +17231,30 @@ function jadeMonument(root,g,Mr,jx,M9){ // un monument en verre de jade : ses tr
   const L9=[];for(const k of (VIT?[[M9.vitM,0]]:[[M9.vrM,3],[M9.vrXM,2],[M9.vrPM,2.5]])){const m=new THREE.Mesh(g,k[0]);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;m.renderOrder=k[1];m.frustumCulled=true;if(!L9.length)m.userData.jeter=true;gr.add(m);L9.push(m);}
   const c=g.boundingSphere.center.clone().applyMatrix4(Mr);(JADE.monu||(JADE.monu=[])).push({g:gr,c:c,r:g.boundingSphere.radius*Mr.getMaxScaleOnAxis(),L:VIT?null:L9,loin:false});
   return L9;}
+/* (2026-10-14, passe perf mobile) LE MONUMENT DE LOIN, ALLÉGÉ — paliers ANCIEN et MOYEN. MESURÉ (iPhone 7 émulé) : la Porte du ciel, seule en
+   matière opaque au-delà de 450 m, pesait ~158 000 triangles à CHAQUE image (grille 224×218×34 en cubes de 5 m, maillée avec ses faces
+   intérieures — qu'on ne voit qu'à travers le verre, donc jamais en opaque). De loin, elle prend un 4e maillage : la DEMI-grille (voxDemi,
+   le niveau de détail des montagnes) SANS faces intérieures, posée à l'échelle ×2 — le sommet (x,y,z) de la demi-grille tombe sur
+   o+2·VXG·(x,y,z), là où tombait (2x,2y,2z) de la grille : même endroit, même taille, des cubes de 10 m — ~30 000 triangles (calculé hors
+   navigateur sur la même grille : 158 k → 29-31 k). De près (< 450 m) : le verre en trois passes, intact. Bâti UNE fois, dans la chauffe du
+   niveau (jadeChauffeNiveau, l'image déjà sacrifiée 120 ms après newTrack) — jamais au palier RÉCENT, jamais en course ; tant qu'il n'est
+   pas bâti, le maillage plein reste (comme avant). 1 = allégé, 0 = comme avant. */
+PAL.B.jadeMonuLoin=[1,1,0];
+/* (2026-10-14, passe perf mobile) LE VERRE DU MONUMENT, DE TOUT PRÈS SEULEMENT — paliers ANCIEN et MOYEN. MESURÉ (iPhone 7 émulé) : à 1 250 m du
+   centre de la Porte du ciel la scène prenait +729 000 triangles d'un coup (469 k → 1 198 k) : la bascule comparait « distance au CENTRE −
+   RAYON de la sphère » à 450 m, et la sphère de la Porte (1 120 × 1 090 × 170 m) a ~790 m de rayon — le verre en trois passes (3 × 158 k)
+   s'allumait donc à 1 240 m, et restait allumé ~1 240 m après (la sphère coupe toujours le champ) : ~30 s à 300 km/h. Deux leviers, par palier :
+   · jadePorteVerre : le seuil (m) à la place du 450 en dur, pour tous les monuments ;
+   · pour la Porte allégée (celle qui a son maillage de loin, o.dP), la distance est celle de sa FAÇADE le long de la route (|u| − D/2, la
+     route la traverse droit), et passé 30 m derrière sa face arrière elle est tout entière dans le dos de la caméra : opaque allégée aussitôt.
+   Reste en verre plein : 150 m (300 m) avant la façade + les 170 m de l'arche + 30 m ≈ 350 m (500 m), soit ~4 s (~6 s) à 300 km/h.
+   Palier RÉCENT : 450 m sur la sphère, comme avant (o.dP n'y existe pas). */
+PAL.B.jadePorteVerre=[150,300,450];JADE_LOD.mv=PAL.b('jadePorteVerre',450);
+function jadeMonuLoin(o){if(!o||!o.dG||o.lo||!o.L)return;const G=o.dG;o.dG=null; // (une seule tentative : une exception laisse le maillage plein)
+  const g=voxMesh(voxDemi(G));if(!g.index||!g.index.count)return;
+  const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=o.dJ;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));
+  const m=new THREE.Mesh(g,jadeMats().vrOM);m.matrixAutoUpdate=false;m.matrix.copy(o.dM);m.matrixWorldNeedsUpdate=true;m.renderOrder=0;m.frustumCulled=true;m.userData.jeter=true;
+  m.visible=!!o.loin;if(o.loin)o.L[0].visible=false;o.g.add(m);o.lo=m;o.loTri=g.index.count/3;}
 function jadeDansGrille(R,p){const dx=p.x-R.o.x,dy=p.y-R.o.y,dz=p.z-R.o.z; // un point du monde est-il dans un cube de cette grille ?
   return voxAt(R.G,Math.floor((dx*R.b.x+dz*R.b.z)/VXG),Math.floor(dy/VXG),Math.floor(-(dx*R.t.x+dz*R.t.z)/VXG))>0;}
 /* LA PORTE DU CIEL — un massif FLOTTANT en cubes, percé d'une arche (176 m) : faces bosselées, crête en pitons, un DESSOUS en pointes
@@ -17289,7 +17308,8 @@ function jadePorte(root,i0,jr,M9,pose){
     const gF=colMesh(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
     jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
     for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;}catch(e){console.warn('porte fine',e);}}
-  if(!fin9){const g=voxMesh(G,4);jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;}
+  if(!fin9){const g=voxMesh(G,4);jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;
+    if(PAL.b('jadeMonuLoin',0)&&!VIT){const e9=JADE.monu[JADE.monu.length-1];e9.dG=G;e9.dM=jadeRepere(o,b,t,VXG*2);e9.dJ=.37;e9.dP=JADE.porte;}} // (2026-10-14, passe perf mobile) de loin : la demi-grille posée ×2 (voir jadeMonuLoin)
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
       for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+62)+t.x*fa*(D*.5-18),p.z+b.z*sg*(hw+62)+t.z*fa*(D*.5-18),40,y0+crete(.5+sg*(hw+62)/W)+40+jr()*80);
       for(let v=hw+140;v<W9-40;v+=75+jr()*60)for(const fa of [-1,1])if(jr()<.7){const r=24+jr()*26,f9=(v*sg+wG)/W;
@@ -17553,8 +17573,9 @@ function jadeTick(dt){
   if(!JADE.t0&&started)JADE.t0=performance.now();
   if(JADE.decoPieces&&JADE.decoPieces.visible){const cp=camera.position;for(const m of JADE.decoPieces.children){const S9=m.geometry.boundingSphere,v=!!S9&&cp.distanceTo(S9.center)-S9.radius<450;if(m.visible!==v)m.visible=v;}} // (12/10) les pièces du bord : à moins de 450 m seulement
   if(JADE.monu){const ff=(scene.fog&&scene.fog.far)||2600;for(const o of JADE.monu){const d9=camera.position.distanceTo(o.c)-o.r,v=d9<ff+80;if(o.g.visible!==v)o.g.visible=v; // (v17) au-delà de la brume : pas dessinés…
-    const lo=d9>450;if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
-  for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
+    let dv9=d9;if(o.dP){const P9=o.dP,cp=camera.position,u9=(cp.x-P9.c.x)*P9.t.x+(cp.z-P9.c.z)*P9.t.z;dv9=Math.max(d9,u9<0?-u9-P9.D/2:(u9-P9.D/2>30?1e9:0));} /* (2026-10-14, passe perf mobile) la Porte allégée : la distance à sa façade, et rien derrière soi (voir jadePorteVerre) */
+    const lo=dv9>(JADE_LOD.mv||450);if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;if(o.lo){o.lo.visible=lo;o.L[0].visible=!lo;}/* (2026-10-14, passe perf mobile) de loin, le maillage allégé à la place du plein (jadeMonuLoin) */}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
+  for(let i9J=0;i9J<2;i9J++){const M9=i9J?JADE.pont:JADE.porte;/* (2026-10-14, passe perf mobile) même ordre (porte, pont), sans tableau neuf par image */if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
     if(n!==M9.pres){M9.pres=n;for(const m of M9.mF)m.visible=n;for(const m of M9.mL)m.visible=!n;}}
   JADE_U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);
   JADE_U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);JADE_U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
@@ -17630,6 +17651,7 @@ function jadeHeurt(p){
    (avec la chauffe de la piste, 120 ms après newTrack) : tout le sous-arbre de la map, caché compris, plus une grue, compilé et dessiné une
    fois hors écran — sous l'éclairage de la course, donc les mêmes programmes. */
 function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
+  try{for(const o of JADE.monu||[])jadeMonuLoin(o);}catch(e){console.warn('monument de loin',e);} // (2026-10-14, passe perf mobile) le monument allégé de loin, paliers 0-1 (une fois par carte)
   let g=null;const eau=[],vu=[];
   try{grueGeos();g=new THREE.Group();g.add(new THREE.Mesh(GRUE.gC,GRUE.M));
     const m0=JADE.monu&&JADE.monu.find(function(o){return o.L&&o.L[0];}); // les monuments changent de matière à 450 m (vrOM au loin → vrM de près) : la matière de PRÈS aussi
@@ -32935,9 +32957,10 @@ function pwrPrend(k,pos){
   }
 }
 /* LES MINUTEURS DES NOUVEAUX POUVOIRS (boucle, à côté de ceux d'origine) — la fin se dit à l'oreille (pwrFinSnd). */
+const PWR_MX=['m','x']; // (2026-10-14, passe perf mobile) la liste des deux minuteurs, bâtie UNE fois (un tableau neuf par image avant)
 function pwrTick(dt){
   if(SONV2){const B9=PWR_V2.bt||(PWR_V2.bt={});for(const k of PWR_ORDRE){const t9=pwrT(k);if(t9>0&&t9<1.5){if(!B9[k]&&pwrVu(k)){B9[k]=1;sfx('pwr.bientot');}}else B9[k]=0;}} // (console de son) le tic-tac de fin de pouvoir, une fois
-  for(const k of ['m','x']){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0)pwrFinSnd(k);}}
+  for(const k of PWR_MX){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0)pwrFinSnd(k);}}
 }
 /* MODE FACILE — LES 3 VIES : le filet qu'avait le BOUCLIER (retiré le 29/09) — mêmes causes : la caisse, pas le règlement. */
 function facileSauve(cause){
@@ -37392,6 +37415,7 @@ function boostSnd(k){
    hauteur, en éclat et en vitesse de trémolo à chaque niveau (bleu → or → rose). On sait, sans regarder, qu'il est temps
    de lâcher. Chaîne créée une fois, à la première glisse, puis juste pilotée (zéro allocation par image). */
 let DRS=null;
+const DRS_BASE=[123.47,164.81,246.94,329.63],DRS_D0=[0,.45,.9,1.4],DRS_DD=[.45,.45,.5,1]; // (2026-10-14, passe perf mobile) les tables de la charge du drift, bâties UNE fois (3 tableaux par image de drift avant)
 function driftChargeSnd(){
   if(!AC||!MASTER)return;
   const on=mode==='drive'&&driftC>0&&started&&!gameOver&&!paused;
@@ -37404,7 +37428,7 @@ function driftChargeSnd(){
       o1.start();o2.start();lfo.start();DRS={o1:o1,o2:o2,lp:lp,g:g,lfo:lfo};porte(g,MASTER);}catch(e){DRS=false;return;} }
   const T=AC.currentTime;
   if(on){
-    const lv=driftLv,base=[123.47,164.81,246.94,329.63][lv],d0=[0,.45,.9,1.4][lv],dd=[.45,.45,.5,1][lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
+    const lv=driftLv,base=DRS_BASE[lv],d0=DRS_D0[lv],dd=DRS_DD[lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
     const f=base*(1+.25*fr);
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
@@ -39698,7 +39722,7 @@ function chaineTick(dt){
   if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
   CHA.age+=dt; // (2026-10-01) l'âge de la chaîne, lui, court partout
   if(CHA.t<=0||(CHA.age>=CHA_VIE&&mode==='drive')){chaineEncaisse();return;}
-  const b9=avE('avBarF');if(b9)b9.style.transform='scaleX('+(mode==='fall'?1:Math.max(0,CHA.t/CHA_FEN)).toFixed(3)+')';
+  const b9=avE('avBarF');if(b9){const s9='scaleX('+(mode==='fall'?1:Math.max(0,CHA.t/CHA_FEN)).toFixed(3)+')';if(b9._tf!==s9){b9._tf=s9;b9.style.transform=s9;}} // (2026-10-14, passe perf mobile) écrite seulement quand elle change (en l'air elle est figée à 1 : plus une écriture de style par image)
   const u9=mode!=='fall'&&CHA.t<1.1;if(u9!==CHA.urg){CHA.urg=u9;if(b9&&b9.parentNode)b9.parentNode.classList.toggle('urg',u9);} // la dernière seconde : la barre rougit et clignote
 }
 function chaineEncaisse(){
@@ -41618,6 +41642,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   sparkBurst(sparkGold,carGroup.position,8,7);
   try{thud(3.5);if(!SONV2)noiseBurst(.1,.08,900);pneuMord(.35);}catch(e){}
 }
+const TRACE_ATT=['position','uv']; // (2026-10-14, passe perf mobile) bâtie UNE fois (un tableau par image de trace avant)
 function traceTick(actif){
   if(!actif||wheels.length<4){TRACE.r[0]=TRACE.r[1]=null;return;}
   if(!TRACE.pos)traceInit();
@@ -41633,7 +41658,7 @@ function traceTick(actif){
     traceQuad(r.q,r.a0,r.a1,L9,R9,v0,v1);                                            // LE BOUT VIVANT : jusqu'au pneu, à chaque image
     if(dd>=.5){r.a0.copy(L9);r.a1.copy(R9);r.d+=dd;r.q=TRACE.i;TRACE.i=(TRACE.i+1)%TRACE.N;} // on fige, et un nouveau bout part de là
   }
-  if(TRACE.lo>=0)for(const n of ['position','uv']){const a=TRACE.geo.attributes[n],st=n==='uv'?8:12;
+  if(TRACE.lo>=0)for(const n of TRACE_ATT){const a=TRACE.geo.attributes[n],st=n==='uv'?8:12;
     if(TRACE.hi-TRACE.lo<40){a.updateRange.offset=TRACE.lo*st;a.updateRange.count=(TRACE.hi-TRACE.lo+1)*st;}else{a.updateRange.offset=0;a.updateRange.count=-1;}
     a.needsUpdate=true;}
 }
@@ -43399,7 +43424,7 @@ function jadeMusTick(){
   if(!JMUS.mod){if(JADE_PLAY||JADE_JEU||SF.on)jadeMusCharge();return;}
   const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
   if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
-      const P=1+[5,10,15,20].filter(function(t){return engTier>=t;}).length;if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
+      const P=1+(engTier>=5)+(engTier>=10)+(engTier>=15)+(engTier>=20);/* (2026-10-14, passe perf mobile) le même compte, sans tableau + fermeture + filtre par image */if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
       const vo=VOL.mus/.62*JMUS_NIV*(1-.55*JEAU.k); /* (2026-10-13) sous l'eau, la musique s'étouffe */if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
   else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
 // (2026-10-12, Léo : « on entend parfois la musique, et il y a des coupures ») le 1er toucher de la course la REDÉMARRAIT (stop + start : coupure,
@@ -51668,7 +51693,7 @@ window.dbgCout=function(on){ // (banc) — voir COUT
    écran où trois images sur quatre ne coûtent rien : son horloge `dprT` est tenue (elle repartait sinon en netteté, à payer au départ suivant).
    `dbgMortImg()` lit l'état ; `dbgMortImg(n)` force N sur le palier courant (banc). */
 PAL.B.mortImg=[4,2,1];
-const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false};
+const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
   const N=PAL.b('mortImg',1)|0;
   if(N<=1)return false;
@@ -53160,7 +53185,7 @@ function loop(now){
            et chaque palier d'élan (1,5 · 3 · 4,2 s de ligne tenue) allume un CYLINDRE (`moteur.cylindre`, un degré plus haut à chaque palier), réarmé
            seulement quand l'élan est retombé de 0,8 s sous le palier : conduire propre a un rythme qu'on entend. */
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
-         const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=[1.5,3,4.2][k9];if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
+         const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
@@ -53342,10 +53367,10 @@ function loop(now){
     // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
     // (pouvoirs v2) les plaques naissent de la fiche (PWR_DEFS : px, plq) dans l'ordre fixe PWR_ORDRE — (2026-09-28) pendant l'auto-école,
     // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
-    const pwL=[];for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9];pwL.push([k9,pwrT(k9),d9.px,sansAcc(TR(d9.plq))]);}
-    pch=pwL.map(function(x){return x[0];}).join('');
+    const pwL=[];for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9];pwL.push([k9,pwrT(k9),d9.px,d9.plq]);} // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
+    for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
     if(pch!==loop._pch){loop._pch=pch;
-      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+x[3]+'</small><b>0.0</b></span><u></u></div>';}).join('');
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
@@ -53519,16 +53544,23 @@ function loop(now){
      dauphins, le serpent et la BOULE DE FEU restaient figés en l'air. Chacun son filet, chacun son avertissement (une fois : loopWarn) */
   try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
   try{villeApres();}catch(e){loopWarn(2,'ville',e);}
-  try{updateDolphins(dt);}catch(e){loopWarn(4,'dauphins',e);}
+  const mortS9=mortSaute(dt); // (2026-10-14, passe perf mobile) écran de mort, paliers ANCIEN et MOYEN : la scène n'est redessinée qu'une image sur N (voir mortSaute)
+  /* (2026-10-14, passe perf mobile) …et sur une image SAUTÉE, l'AMBIANCE ne tourne pas non plus : dauphins, Paris, jade (lumières, eau, mer,
+     monuments), grues ne font que de l'affichage — remplir des tampons et des uniformes pour une image qui n'est pas dessinée, c'est du
+     processeur (et de la chaleur) pour rien. Leur temps est CUMULÉ (MORT_IMG.dt) et rendu à l'image dessinée suivante : mêmes vitesses.
+     Borné à 0,1 s (2× le pas maximal de la boucle : 4 images à 60 i/s = 0,067 s). La musique du jade (jadeMusTick) reste à chaque image.
+     mortSaute est remontée ici depuis le rendu (rien entre les deux ne touche ce qu'elle lit : écran, toile, dprT, sonde). Palier RÉCENT :
+     mortS9 toujours faux, dtA9 = dt — rien ne change. */
+  let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
+  if(!mortS9)try{updateDolphins(dtA9);}catch(e){loopWarn(4,'dauphins',e);}
   try{singeJeu(dt);}catch(e){loopWarn(64,'singe',e);} // (2026-10-11) LES SINGES EN COURSE (3 sauts en 5 s)
   try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(PARIS.meshes.length)parisTick(dt);
-  if(JADE.root){jadeTick(dt);try{jadeSousTick(dt);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
+  if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);} // (2026-10-13) CRYPTOCITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
-  if(GRUE.L.length||JADE.root)grueTick(dt); // …et les vols de grues // (Paris) le scintillement et le phare
-  const mortS9=mortSaute(dt); // (2026-10-14, passe perf mobile) écran de mort, paliers ANCIEN et MOYEN : la scène n'est redessinée qu'une image sur N (voir mortSaute)
+  if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
   if(mortS9){}else
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
