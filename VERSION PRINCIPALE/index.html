@@ -7953,6 +7953,7 @@ html.c6 body #gMenuBas .gVerrou,html.c6 body #gStrip>.gT.gMys{display:none!impor
    le nom en haut, dessous la rareté (barre de 4 px) et le rang « 1 / 49 » en police système 13 px, l'ŒIL au bord droit de la plaque, sur les deux lignes ; (2) l'inventaire à peu de cartes
    se serre sur son contenu et dit quoi faire ; (3) plus aucun texte sous 11 px dans ces deux écrans. Les comptes de l'en-tête sont réglés plus haut (pastilles de même largeur). */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{display:grid!important;grid-template-columns:max-content max-content 48px;grid-template-rows:auto auto;justify-content:start;align-items:center!important;column-gap:12px!important;row-gap:4px!important;
+  container-type:normal; /* l'ancienne feuille y posait inline-size : sa largeur intrinsèque tombait à 0 */
   box-sizing:border-box;width:max-content!important;max-width:100%!important;margin:0!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{grid-template-columns:max-content max-content}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gName{grid-column:1/3;grid-row:1;text-shadow:none!important}
@@ -7976,7 +7977,7 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.mode
 html.c6.hubOn #gTourne.on{box-sizing:content-box;border-block:9px solid transparent;margin-block:-9px}
 /* les onglets de l'inventaire : cinq mots dans 304-384 px, en pixel 8-10 px ils se touchaient (« VOITURESPEINTURE », « TRAINEESFIGURES ») ; police système 800, 12 px (11 px sur 375-390 px debout et 667 couché),
    chaque onglet prend la largeur de son mot + sa part du reste (AILES est plus court que TRAÎNÉES) */
-html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gTabs>.gTab{flex:1 1 auto!important;padding:0 2px!important;font:800 12px/1 var(--sans)!important;text-transform:uppercase}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gTabs>.gTab{flex:1 1 auto!important;min-width:44px!important;padding:0 2px!important;font:800 12px/1 var(--sans)!important;text-transform:uppercase}
 @media (max-width:400px),(orientation:landscape) and (max-width:700px){
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gTabs>.gTab{font-size:11px!important}
 }
