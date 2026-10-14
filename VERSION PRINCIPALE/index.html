@@ -8600,6 +8600,235 @@ html.c6 .tFigB.non{box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 4px 0
 /* L'INVENTAIRE : une figure équipée porte le NUMÉRO de son emplacement (là où les autres objets ont leur coche) */
 .ivT u .ivNum{display:block;font-style:normal;font-family:var(--pix);font-size:var(--f1);line-height:1;min-width:10px;text-align:center}
 </style>
+<style id="ecoleV2">
+/* ==============================================================================================================
+   L'AUTO-ÉCOLE v2 (2026-10-14, Sacha : « le tutoriel est un peu intimidant, pas très beau — plus d'animation, plus de trucs clairs ; les carrés
+   qui donnent les instructions pourraient être plus animés, plus clean ; et un truc pour apprendre les figures »)
+   La carte n'est plus un rectangle de texte. UN MOT (le geste, en or, qui arrive lettre par lettre), UNE ligne courte (les mots à retenir
+   surlignés), à gauche un PETIT FILM du geste en pixels qui tourne en boucle, en haut six pastilles. Sur l'écran, une MAIN FANTÔME
+   (`#ecMain`) fait le geste LÀ où il se fait : sur le volant, sur le bouton NITRO. Réussite : la carte vire au vert, le mot devient « BIEN ! »
+   (le seul rebond : c'est une célébration), la pastille se remplit, les confettis partent, puis la carte s'efface et la suivante descend.
+   Un raté : la carte tremble, l'en-tête dit pourquoi en rouge. Sélecteurs doublés (`#coach.v2.v2`) : la carte d'avant a dix couches de
+   règles, celle-ci passe devant toutes sans les toucher.
+   ===================================================================================================================== */
+html body #coach.v2.v2{
+  --ecC:var(--neoC,#00eaff);
+  left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 56px);width:min(410px,calc(100vw - 24px));box-sizing:border-box;
+  display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto auto 1fr;column-gap:12px;row-gap:3px;align-items:center;
+  padding:10px 12px 11px 10px;border:0!important;border-radius:0!important;overflow:visible;font-family:var(--pix);color:#fff;
+  background:linear-gradient(100deg,#150e33 0%,#22165a 58%,#150e33 100%)!important;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+  box-shadow:inset 0 0 0 2px rgba(0,234,255,.42),inset 0 3px 0 rgba(255,255,255,.10),inset 0 -3px 0 rgba(0,0,0,.35)!important;
+  transform:translate(-50%,-16px) scale(.94);opacity:0;pointer-events:none;
+  transition:transform var(--t-slow) var(--ease),opacity var(--t-slow) var(--ease);animation:none}
+html body #coach.v2.v2.on{transform:translate(-50%,0) scale(1);opacity:1;pointer-events:auto}
+html body #coach.v2.v2.sort{transform:translate(-50%,-12px) scale(.96);opacity:0;transition-duration:var(--t-fast)}
+html body #coach.v2.v2::before{content:'';position:absolute;inset:0;pointer-events:none;  /* le reflet qui passe : la carte VIT */
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.10) 45%,transparent 60%) no-repeat;background-size:250% 100%;
+  animation:ecReflet 3.2s var(--ease) infinite}
+@keyframes ecReflet{0%,55%{background-position:120% 0}100%{background-position:-60% 0}}
+/* LE BRAVO : vert franc, le mot devient l'éloge */
+html body #coach.v2.v2.bravo{background:linear-gradient(100deg,#0d3a1d 0%,#167a37 58%,#0d3a1d 100%)!important;
+  box-shadow:inset 0 0 0 2px rgba(125,255,155,.75),inset 0 3px 0 rgba(255,255,255,.18),inset 0 -3px 0 rgba(0,0,0,.35)!important}
+/* LE RATÉ : elle tremble, l'en-tête parle rouge */
+html body #coach.v2.v2.rate{animation:ecTremble .42s steps(6)}
+@keyframes ecTremble{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:3px 0}}
+/* — l'en-tête : six pastilles, et PASSER au coin — */
+html body #coach.v2 .ecH{grid-column:2;display:flex;align-items:center;gap:8px;min-height:14px;padding-right:62px} /* (la place de PASSER, au coin) */
+html body #coach.v2 .ecPips{display:flex;gap:5px}
+html body #coach.v2 .ecPips i{width:10px;height:10px;background:#2a2158;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transform:skewX(-11deg)}
+html body #coach.v2 .ecPips i.ok{background:var(--neoV,#5ee37a);box-shadow:0 0 6px rgba(94,227,122,.6)}
+html body #coach.v2 .ecPips i.on{background:var(--or);animation:ecPip 1s steps(2) infinite}
+@keyframes ecPip{50%{background:#fff4b8;box-shadow:0 0 8px rgba(255,215,94,.9)}}
+html body #coach.v2 .ecPips i.vient{animation:ecPipOk .5s var(--ease)}
+@keyframes ecPipOk{0%{transform:skewX(-11deg) scale(2.2);background:#fff}100%{transform:skewX(-11deg) scale(1)}}
+html body #coach.v2 .coN{flex:1;min-width:0;font-size:9px;letter-spacing:1px;color:var(--neoR,#ff4a64);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #coach.v2.passe .coN{color:var(--or)}
+html body #coach.v2 .coSkip{position:absolute;right:4px;top:0;min-width:44px;min-height:30px;padding:8px 8px 6px;margin:0;border:0;background:none;
+  font:9px var(--pix);letter-spacing:1px;color:var(--tx2,#c9bdf0);opacity:.75;cursor:pointer}
+html body #coach.v2 .coSkip:hover{opacity:1}
+html body #coach.v2 .coSkip.sur{color:var(--neoR,#ff4a64);opacity:1}
+/* — LE MOT : en or, il arrive lettre par lettre — */
+html body #coach.v2 .ecT{grid-column:2;position:relative;display:block;margin:2px 0 1px;white-space:nowrap;line-height:1.15;
+  font-size:min(22px,calc((min(410px,100vw - 24px) - 116px) / var(--n,8)));letter-spacing:1px;color:var(--or);
+  text-shadow:0 3px 0 #7a4400,0 0 16px rgba(255,215,94,.35)}
+html body #coach.v2 .ecT .l{display:inline-block;animation:ecLettre .38s var(--ease) both;animation-delay:calc(var(--i) * 32ms)}
+@keyframes ecLettre{from{opacity:0;transform:translateY(12px) scale(.6)}to{opacity:1;transform:none}}
+html body #coach.v2.bravo .ecT{color:#fff;text-shadow:0 3px 0 #0b5a24,0 0 18px rgba(125,255,155,.6)}
+html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(var(--i) * 26ms)} /* la célébration : seul rebond de la carte */
+@keyframes ecHourra{from{opacity:0;transform:translateY(-14px) scale(1.8)}to{opacity:1;transform:none}}
+/* — LA LIGNE : courte, les mots à retenir surlignés — */
+html body #coach.v2 .ecD{grid-column:2;align-self:start;font:700 13.5px/1.3 var(--sans);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
+html body #coach.v2 .ecD em{font-style:normal;color:#0a0616;background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 #7a4400;white-space:nowrap}
+html body #coach.v2 .ecD kbd{font:9px var(--pix);color:#0a0616;background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
+@keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+html body #coach.v2.bravo .ecD{visibility:hidden} /* le bravo parle seul */
+/* — LE PETIT FILM du geste (76 × 76) : une scène en pixels qui tourne en boucle — */
+html body #coach.v2 .ecScene{grid-column:1;grid-row:1/4;position:relative;width:76px;height:76px;overflow:hidden;
+  background:radial-gradient(120% 70% at 50% 112%,rgba(0,234,255,.30),rgba(0,234,255,0) 62%),linear-gradient(180deg,#1d1450,#0a0720);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);box-shadow:inset 0 0 0 2px rgba(0,234,255,.30)}
+html body #coach.v2 .ecScene i{position:absolute;display:block;background:currentColor;
+  -webkit-mask:var(--m) center/100% 100% no-repeat;mask:var(--m) center/100% 100% no-repeat}
+html body #coach.v2 .ecScene i.nm{-webkit-mask:none;mask:none}
+html body #coach.v2 .ecScene .car{--m:var(--pxi-voiture);width:30px;height:30px;color:#ff8d2e}
+html body #coach.v2 .ecScene .main{--m:var(--pxi-pouce);width:22px;height:22px;color:#fff}
+html body #coach.v2 .ecScene .flam{--m:var(--pxi-flamme);width:13px;height:13px;color:#ffb02a;transform:rotate(-90deg)}
+html body #coach.v2 .ecScene .cible{--m:var(--pxi-cible);width:26px;height:26px;color:#7dff9a}
+html body #coach.v2 .ecScene .ok{--m:var(--pxi-coche);width:40px;height:40px;left:18px;top:18px;color:#7dff9b;opacity:0}
+html body #coach.v2 .ecScene .btn{width:20px;height:20px;background:linear-gradient(180deg,#ffe58a,#ff9a1a);box-shadow:inset 0 -3px 0 #a14c00,0 0 0 2px #0a0616}
+html body #coach.v2 .ecScene .btn::after{content:'';position:absolute;inset:3px;background:#0a0616;-webkit-mask:var(--pxi-eclair) center/100% 100% no-repeat;mask:var(--pxi-eclair) center/100% 100% no-repeat}
+html body #coach.v2 .ecScene .sol{left:0;right:0;bottom:0;height:16px;background:#2b2350;box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
+html body #coach.v2 .ecScene .tirets{left:0;right:0;bottom:7px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.6) 0 6px,transparent 6px 14px);animation:ecTirets .42s steps(7) infinite}
+@keyframes ecTirets{to{background-position:-14px 0}}
+html body #coach.v2 .ecScene .vit{height:2px;width:14px;background:rgba(255,255,255,.65);animation:ecVit .5s steps(5) infinite}
+@keyframes ecVit{from{transform:translateX(14px);opacity:1}to{transform:translateX(-26px);opacity:0}}
+html body #coach.v2 .ecScene .x2{left:44px;top:30px;font:9px var(--pix);color:#0a0616;background:var(--or);padding:3px 3px 2px;-webkit-mask:none;mask:none;opacity:0}
+html body #coach.v2.bravo .ecScene>*{animation-play-state:paused}
+html body #coach.v2.bravo .ecScene .ok{opacity:1;animation:ecOk .5s cubic-bezier(.3,1.7,.5,1) both!important;animation-play-state:running!important}
+@keyframes ecOk{from{transform:scale(2.4) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
+/* 1 · TOURNE — la route file en perspective, la caisse va et vient, le pouce la mène */
+html body #coach.v2 .f-glisse .route{left:4px;right:4px;bottom:0;height:46px;background:#2b2350;clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);box-shadow:none}
+html body #coach.v2 .f-glisse .axe{left:36px;width:4px;bottom:0;height:46px;background:repeating-linear-gradient(180deg,rgba(255,255,255,.7) 0 6px,transparent 6px 12px);animation:ecAxe .4s steps(6) infinite}
+@keyframes ecAxe{to{background-position:0 12px}}
+html body #coach.v2 .f-glisse .car{left:23px;bottom:14px;animation:ecVire 1.8s steps(18) infinite}
+html body #coach.v2 .f-glisse .main{left:27px;bottom:-3px;animation:ecVireM 1.8s steps(18) infinite}
+@keyframes ecVire{0%,100%{transform:translateX(-13px) rotate(-8deg)}50%{transform:translateX(13px) rotate(8deg)}}
+@keyframes ecVireM{0%,100%{transform:translateX(-17px)}50%{transform:translateX(17px)}}
+/* 2 · NITRO — le doigt reste sur le bouton, la caisse crache le feu et file */
+html body #coach.v2 .f-nitro .car{left:24px;bottom:15px;animation:ecTremblote .12s steps(2) infinite}
+html body #coach.v2 .f-nitro .flam{left:13px;bottom:21px;animation:ecFeu .2s steps(2) infinite}
+html body #coach.v2 .f-nitro .vit.v1{left:40px;top:12px}html body #coach.v2 .f-nitro .vit.v2{left:50px;top:24px;animation-delay:.2s}
+html body #coach.v2 .f-nitro .btn{right:6px;top:6px;animation:ecTenu 1.6s steps(8) infinite}
+html body #coach.v2 .f-nitro .main{right:3px;top:16px;animation:ecTenuM 1.6s steps(8) infinite}
+@keyframes ecTremblote{50%{transform:translate(1px,-1px)}}
+@keyframes ecFeu{0%{transform:rotate(-90deg) scale(1)}50%{transform:rotate(-90deg) scale(1.35,1.1)}}
+@keyframes ecTenu{0%,8%{transform:none}14%,88%{transform:translateY(2px) scale(.88);filter:brightness(1.3)}}
+@keyframes ecTenuM{0%{transform:translateY(8px);opacity:0}10%{transform:none;opacity:1}14%,88%{transform:translateY(2px)}100%{transform:translateY(8px);opacity:0}}
+/* 3 · DÉCOLLE — la route s'arrête net : la caisse fonce au bord et part en l'air */
+html body #coach.v2 .f-bord .sol{right:30px}
+html body #coach.v2 .f-bord .car{left:0;bottom:15px;animation:ecBord 1.9s steps(19) infinite}
+@keyframes ecBord{0%{transform:translateX(-24px);opacity:1}45%{transform:translateX(26px)}70%{transform:translate(42px,-18px) rotate(-14deg)}
+  92%{transform:translate(54px,6px) rotate(10deg);opacity:1}100%{transform:translate(58px,14px) rotate(16deg);opacity:0}}
+html body #coach.v2 .f-bord .fleche{--m:var(--pxi-droite);width:14px;height:14px;left:52px;top:12px;color:var(--or);animation:ecFleche .6s steps(2) infinite}
+@keyframes ecFleche{50%{transform:translateX(4px);opacity:.4}}
+/* 4 · VOLE — en l'air, le doigt sur NITRO : la caisse remonte sur sa flamme */
+html body #coach.v2 .f-vole .car{left:20px;top:22px;animation:ecPlane 1.6s steps(16) infinite}
+html body #coach.v2 .f-vole .flam{left:9px;top:31px;animation:ecPlane 1.6s steps(16) infinite,ecFeu .2s steps(2) infinite}
+@keyframes ecPlane{0%,100%{translate:0 6px}50%{translate:0 -6px}}
+html body #coach.v2 .f-vole .route{left:18px;right:10px;bottom:4px;height:6px;background:#2b2350;box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
+html body #coach.v2 .f-vole .btn{right:5px;top:5px;transform:translateY(2px) scale(.88);filter:brightness(1.3)}
+html body #coach.v2 .f-vole .main{right:2px;top:15px}
+/* 5 · POSE-TOI — la caisse descend en arc et se pose pile dans l'anneau, qui flambe en or */
+html body #coach.v2 .f-pose .cible{left:38px;bottom:8px;animation:ecCible 2s steps(2) infinite}
+html body #coach.v2 .f-pose .car{left:0;top:0;animation:ecPose 2s steps(20) infinite}
+@keyframes ecPose{0%{transform:translate(-6px,4px) rotate(10deg);opacity:0}10%{opacity:1}60%{transform:translate(34px,30px) rotate(0)}
+  64%{transform:translate(36px,33px)}68%,88%{transform:translate(36px,31px);opacity:1}100%{transform:translate(36px,31px);opacity:0}}
+@keyframes ecCible{0%,60%{color:#7dff9a;transform:none}64%,90%{color:var(--or);transform:scale(1.3)}}
+/* 6 · FIGURE — deux tapes sur NITRO (×2) : la caisse saute et fait un tonneau */
+html body #coach.v2 .f-figure .btn{right:6px;top:6px;animation:ecDouble 2.2s steps(22) infinite}
+html body #coach.v2 .f-figure .main{right:3px;top:16px;animation:ecDoubleM 2.2s steps(22) infinite}
+html body #coach.v2 .f-figure .x2{animation:ecX2 2.2s steps(22) infinite}
+html body #coach.v2 .f-figure .car{left:16px;bottom:15px;animation:ecSalto 2.2s steps(22) infinite}
+@keyframes ecDouble{0%,6%,14%,22%,100%{transform:none;filter:none}9%,18%{transform:translateY(2px) scale(.86);filter:brightness(1.4)}}
+@keyframes ecDoubleM{0%,6%,14%,22%,100%{transform:none}9%,18%{transform:translateY(3px)}}
+@keyframes ecX2{0%,16%{opacity:0;transform:scale(.4)}20%,46%{opacity:1;transform:none}52%,100%{opacity:0}}
+@keyframes ecSalto{0%,24%{transform:none}38%{transform:translateY(-22px) rotate(-180deg)}52%{transform:translateY(-22px) rotate(-360deg)}66%,100%{transform:none}}
+/* L'ACCUEIL — « six gestes, impossible de perdre » : la caisse roule tranquille */
+html body #coach.v2 .f-accueil .car{left:22px;bottom:15px;animation:ecTremblote .5s steps(2) infinite}
+html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16px;left:46px;top:8px;color:var(--neoM,#ff3ec8);animation:ecPip 1s steps(2) infinite}
+/* — LA MAIN FANTÔME : le geste montré SUR la commande (le volant, le bouton NITRO) — */
+#ecMain{position:fixed;left:0;top:0;width:46px;height:46px;z-index:67;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease)}
+#ecMain.on{opacity:1}
+#ecMain .p{position:absolute;inset:0}
+#ecMain .m,#ecMain .o{position:absolute;inset:0;-webkit-mask:var(--pxi-pouce) center/100% 100% no-repeat;mask:var(--pxi-pouce) center/100% 100% no-repeat}
+#ecMain .o{background:#0a0616;transform:translate(3px,3px);opacity:.7}
+#ecMain .m{background:#fff}
+#ecMain .r{position:absolute;left:23px;top:5px;width:18px;height:18px;margin:-9px 0 0 -9px;border:3px solid var(--or);opacity:0}
+#ecMain .fg,#ecMain .fd{position:absolute;top:10px;width:18px;height:18px;background:var(--or);opacity:0;
+  -webkit-mask:var(--pxi-gauche) center/100% 100% no-repeat;mask:var(--pxi-gauche) center/100% 100% no-repeat}
+#ecMain .fd{-webkit-mask-image:var(--pxi-droite);mask-image:var(--pxi-droite)}
+#ecMain .x2{position:absolute;left:-34px;top:-14px;font:10px var(--pix);color:#0a0616;background:var(--or);padding:4px 4px 3px;opacity:0;box-shadow:0 2px 0 #7a4400}
+#ecMain.glisse .p{animation:ecMGlisse 1.8s var(--ease) infinite}
+#ecMain.glisse .fg{left:-44px;opacity:1;animation:ecFleche .6s steps(2) infinite}
+#ecMain.glisse .fd{left:72px;opacity:1;animation:ecFleche .6s steps(2) infinite .3s}
+@keyframes ecMGlisse{0%,100%{transform:translateX(-40px)}45%,55%{transform:translateX(40px)}}
+#ecMain.pousse .p{animation:ecMPousse 1.6s var(--ease) infinite}
+#ecMain.pousse .fd{left:84px;opacity:1;animation:ecFleche .6s steps(2) infinite}
+@keyframes ecMPousse{0%{transform:none;opacity:0}12%{opacity:1}45%,85%{transform:translateX(46px);opacity:1}100%{transform:translateX(46px);opacity:0}}
+#ecMain.appui .p{animation:ecMAppui 1.6s var(--ease) infinite}
+#ecMain.appui .r{animation:ecMOnde 1.6s var(--ease) infinite}
+@keyframes ecMAppui{0%{transform:translateY(-14px);opacity:0}14%{transform:none;opacity:1}20%,84%{transform:translateY(4px) scale(.9);opacity:1}100%{transform:translateY(-10px);opacity:0}}
+@keyframes ecMOnde{0%,18%{opacity:0;transform:scale(.4)}22%{opacity:1;transform:scale(.6)}60%{opacity:0;transform:scale(3.4)}61%,100%{opacity:0}}
+#ecMain.double .p{animation:ecMDouble 1.8s steps(18) infinite}
+#ecMain.double .r{animation:ecMOnde2 1.8s var(--ease) infinite}
+#ecMain.double .x2{animation:ecX2 1.8s steps(18) infinite}
+@keyframes ecMDouble{0%,100%{transform:translateY(-10px);opacity:.4}10%,22%{transform:none;opacity:1}14%,28%{transform:translateY(5px) scale(.88);opacity:1}34%{transform:none;opacity:1}}
+@keyframes ecMOnde2{0%,12%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(.6)}26%{opacity:1;transform:scale(.6)}50%{opacity:0;transform:scale(3.4)}51%,100%{opacity:0}}
+body.hTp:not(#ccH) #ecMain,html.balade #ecMain,body.dead #ecMain{display:none}
+/* (2026-10-14, INTERFACE l'a vu au banc) LA PAUSE ET LES RÉGLAGES PASSENT DEVANT : la carte restait au-dessus du titre PAUSE (couché) et de la page
+   RÉGLAGES ouverte depuis la pause. hTp = la pause ouverte (HAS_D), setPause = RÉGLAGES depuis la pause. */
+html body:is(.hTp,.setPause,.setPauseSort) #coach.v2.v2,html body:is(.hTp,.setPause,.setPauseSort) #ecMain,
+#modale.on~#coach.v2.v2,#modale.on~#ecMain{visibility:hidden!important;transition:none!important;animation:none!important} /* …et sous la fenêtre QUITTER : #coach et #ecMain naissent en fin de <body>, APRÈS #modale — un voisin, pas un body:has() (la charte) */
+@media (prefers-reduced-motion:reduce){html body #coach.v2.v2,html body #coach.v2 *,#ecMain *{animation:none!important;transition:none!important}html body #coach.v2.v2::before{display:none}}
+html[data-reduced-motion="1"] body #coach.v2.v2 *,html[data-reduced-motion="1"] #ecMain *{animation:none!important}
+/* ---- LA CARTE DANS LA CHARTE 6 — ENCRE · BLANC · OR (2026-10-14, après la fusion de la nuit : la charte d'INTERFACE est arrivée, et son ticket
+   « première minute » : la carte faisait 44 % de la hauteur en couché, la caisse disparaissait dessous). Même carte, mêmes gestes, mêmes films —
+   mais À PLAT : l'encre, un filet blanc de 2 px, une épaisseur noire de 4 px ; aucun dégradé, aucune lueur, aucun reflet, aucun coin coupé,
+   rien de penché ; le mot en pixel (jamais sous 16 px), tout le reste en police système ; entrer 200 ms, sortir 100 ms, une courbe, aucun rebond ;
+   et BASSE : le film passe à 56 px (zoom), la carte à ~74 px. `?ui=5` rend la carte néon d'avant. ---- */
+html.c6 body #coach.v2.v2{width:min(380px,calc(100vw - 32px));grid-template-columns:56px 1fr;column-gap:10px;row-gap:2px;padding:8px 10px 9px 8px;
+  background:var(--c6-e1)!important;clip-path:none!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 var(--c6-noir)!important;
+  transform:translate(-50%,calc(-1 * var(--c6-monte)));transition:transform var(--c6-pose) var(--c6-courbe),opacity var(--c6-pose) var(--c6-courbe)}
+html.c6 body #coach.v2.v2.on{transform:translate(-50%,0)}
+html.c6 body #coach.v2.v2.sort{transform:translate(-50%,calc(-1 * var(--c6-monte)));transition-duration:var(--c6-sort)}
+html.c6 body #coach.v2.v2::before{display:none}
+html.c6 body #coach.v2.v2.bravo{background:var(--c6-e1)!important;box-shadow:inset 0 0 0 var(--c6-sel) var(--c6-b0),0 4px 0 0 var(--c6-noir)!important} /* réussi = le filet « choisi » de 4 px */
+html.c6 body #coach.v2.v2.rate{box-shadow:inset 0 0 0 2px var(--c6-rouge),0 4px 0 0 var(--c6-noir)!important}
+html.c6 body #coach.v2 .ecH{padding-right:60px;min-height:12px}
+html.c6 body #coach.v2 .ecPips{gap:3px}
+html.c6 body #coach.v2 .ecPips i{width:14px;height:4px;transform:none;background:var(--c6-e3);box-shadow:none;animation:none}
+html.c6 body #coach.v2 .ecPips i.ok{background:var(--c6-b0);box-shadow:none}
+html.c6 body #coach.v2 .ecPips i.on{background:var(--c6-or);animation:none}
+html.c6 body #coach.v2 .coN{font:var(--c6-wf) var(--c6-t11)/var(--c6-lh11) var(--c6-sys);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-rouge)}
+html.c6 body #coach.v2.passe .coN{color:var(--c6-or)}
+html.c6 body #coach.v2 .coSkip{top:2px;right:2px;min-height:44px;padding:10px 10px 8px;font:var(--c6-wf) 12px/1 var(--c6-sys);letter-spacing:var(--c6-cap);
+  text-transform:uppercase;color:var(--c6-g1);opacity:1}
+html.c6 body #coach.v2 .coSkip.sur{color:var(--c6-rouge)}
+html.c6 body #coach.v2 .ecT{margin:1px 0 0;letter-spacing:0;color:var(--c6-or);text-shadow:none;
+  font-size:max(var(--c6-t16),min(22px,calc((min(380px,100vw - 32px) - 98px) / var(--n,8))))}
+html.c6 body #coach.v2 .ecT .l{animation:ecLettre6 var(--c6-pose) var(--c6-courbe) both;animation-delay:calc(var(--i) * var(--c6-cascade))}
+@keyframes ecLettre6{from{opacity:0;transform:translateY(var(--c6-monte))}to{opacity:1;transform:none}}
+html.c6 body #coach.v2.bravo .ecT{color:var(--c6-b0);text-shadow:none}
+html.c6 body #coach.v2.bravo .ecT .l{animation:ecLettre6 var(--c6-pose) var(--c6-courbe) both;animation-delay:calc(var(--i) * var(--c6-cascade))}
+html.c6 body #coach.v2 .ecD{font:var(--c6-w) var(--c6-t13)/var(--c6-lh13) var(--c6-sys);color:var(--c6-b0);animation:ecLigne6 var(--c6-pose) var(--c6-courbe) 120ms both}
+@keyframes ecLigne6{from{opacity:0}to{opacity:1}}
+html.c6 body #coach.v2 .ecD em{color:var(--c6-or);background:none;box-shadow:none;padding:0;margin:0;font-weight:var(--c6-wf)}
+html.c6 body #coach.v2 .ecD kbd{font:var(--c6-wf) var(--c6-t11)/1 var(--c6-sys);color:var(--c6-e0);background:var(--c6-b0);padding:2px 5px;margin:0 1px;box-shadow:0 2px 0 var(--c6-noir)}
+/* le film : à plat, en blanc et or, sur l'encre — 56 px (zoom : les acteurs gardent leurs coordonnées de 76 px) */
+html.c6 body #coach.v2 .ecScene{zoom:.737;clip-path:none;background:var(--c6-e0);box-shadow:inset 0 0 0 2px var(--c6-e3)}
+html.c6 body #coach.v2 .ecScene .car{color:var(--c6-b0)}
+html.c6 body #coach.v2 .ecScene .main{color:var(--c6-b0)}
+html.c6 body #coach.v2 .ecScene .flam,html.c6 body #coach.v2 .ecScene .fleche{color:var(--c6-or)}
+html.c6 body #coach.v2 .ecScene .cible{color:var(--c6-b0)}
+html.c6 body #coach.v2 .f-pose .cible{animation-name:ecCible6}
+@keyframes ecCible6{0%,60%{color:var(--c6-b0);transform:none}64%,90%{color:var(--c6-or);transform:scale(1.3)}}
+html.c6 body #coach.v2 .ecScene .ok{color:var(--c6-or)}
+html.c6 body #coach.v2.bravo .ecScene .ok{animation:ecOk6 var(--c6-pose) var(--c6-courbe) both!important}
+@keyframes ecOk6{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+html.c6 body #coach.v2 .ecScene .btn{background:var(--c6-or);box-shadow:0 0 0 2px var(--c6-noir)}
+html.c6 body #coach.v2 .ecScene .btn::after{background:var(--c6-orE)}
+html.c6 body #coach.v2 .ecScene .sol,html.c6 body #coach.v2 .f-vole .route{background:var(--c6-e3);box-shadow:inset 0 2px 0 var(--c6-b0)}
+html.c6 body #coach.v2 .f-glisse .route{background:var(--c6-e3)}
+html.c6 body #coach.v2 .ecScene .x2{background:var(--c6-or);color:var(--c6-orE)}
+html.c6 body #coach.v2 .f-accueil .coeur{color:var(--c6-b0);animation:none}
+html.c6 body #coach.v2 .ecScene{--or:var(--c6-or)}
+/* la main fantôme : blanche, son épaisseur noire de 4 px dessous ; flèches et ×2 en or ; l'onde en filet blanc */
+html.c6 #ecMain .o{background:var(--c6-noir);opacity:1;transform:translateY(4px)}
+html.c6 #ecMain .m{background:var(--c6-b0)}
+html.c6 #ecMain .r{border:2px solid var(--c6-b0)}
+html.c6 #ecMain .fg,html.c6 #ecMain .fd{background:var(--c6-or)}
+html.c6 #ecMain .x2{font:var(--c6-wf) var(--c6-t13)/1 var(--c6-sys);background:var(--c6-or);color:var(--c6-orE);padding:5px 6px 4px;box-shadow:0 4px 0 var(--c6-noir)}
+</style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » — la CARRIÈRE, voir SANS_CARRIERE dans le <head>)
    Toutes les portes de la carrière disparaissent sous `html.sansCarr` ; sur l'accueil, la carte CARRIÈRE n'est même plus fabriquée, et
@@ -9074,7 +9303,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=2"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="figures.js?v=3"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -11404,11 +11633,22 @@ const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.c
   e.style.cssText='position:fixed;left:calc(var(--sL) + 6px);top:calc(var(--sT) + 4px);z-index:2147483000;pointer-events:none;'+
     'font:600 var(--f1)/1.35 var(--sans);color:var(--tx);background:var(--k1);padding:2px 5px;white-space:pre;max-width:70vw';
   document.body.appendChild(e);return {el:e,t:0,pire:0,txt:''};})():null;
-function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if(now-M.t<250)return;M.t=now;
+/* (2026-10-14, session OPTIMISATION — Sacha : « la version mobile saccade, juste de quoi tester en bonne condition ») LE RELEVÉ DES À-COUPS :
+   le moniteur ne disait que la dernière seconde. Il garde maintenant chaque image de plus de 50 ms depuis l'ouverture : combien (> 50,
+   > 100, > 250 ms), et les 5 dernières avec ce qui se passait — l'écran (menu, atelier, course, fin), le niveau, une construction de
+   niveau (newTrack il y a < 1 s), les PROGRAMMES compilés et les TEXTURES envoyées pendant l'image. Une capture d'écran suffit. */
+function perfAcoup(now,rawMs){const M=PERF_MON,I=renderer.info,np=(I.programs||[]).length,nt=I.memory.textures,dp=np-(M.np|0),dt9=nt-(M.nt|0);M.np=np;M.nt=nt;
+  if(!M.t0)M.t0=now;if(rawMs<=50||!M.vu){M.vu=1;return;}
+  M.n50=(M.n50|0)+1;if(rawMs>100)M.n100=(M.n100|0)+1;if(rawMs>250)M.n250=(M.n250|0)+1;if(rawMs>(M.max|0))M.max=rawMs;
+  const ou=started&&!gameOver?'course':gameOver?'fin':(typeof garageOn!=='undefined'&&garageOn)?'atelier':'menu';
+  const cs=[];if(loop._rebuildT&&now-loop._rebuildT<1000)cs.push('construction');if(dp>0)cs.push('+'+dp+' prog');if(dt9>0)cs.push('+'+dt9+' tex');
+  (M.L||(M.L=[])).push(Math.round((now-M.t0)/1000)+' s · '+Math.round(rawMs)+' ms · '+ou+(LVL.cur?' '+LVL.cur.id:'')+(cs.length?' · '+cs.join(' '):''));if(M.L.length>5)M.L.shift();}
+function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;try{perfAcoup(now,loop._brut||rawMs);}catch(e){}if(now-M.t<250)return;M.t=now;
   const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
   if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
   const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+(CAD.on?'  30 i/s CALÉ':'')+(QLR.vraiT?'  vrai '+QLR.vrai.toFixed(1):'')+(QL.bride&&now-QL.bride<3000?'  ÉCRAN BRIDÉ':'')+'  p50/75/90 '+QLR.p50.toFixed(0)+'/'+QLR.p75.toFixed(0)+'/'+QLR.p90.toFixed(0)+(QL.essai?'  essai':'')+
-    '\nPALIER '+PAL.n+' ('+PAL.src+')  DPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein');
+    '\nPALIER '+PAL.n+' ('+PAL.src+')  DPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein')
+    +'\nÀ-COUPS en '+Math.round((now-(M.t0||now))/1000)+' s : '+(M.n50|0)+' > 50 ms · '+(M.n100|0)+' > 100 · '+(M.n250|0)+' > 250 · pire '+Math.round(M.max|0)+' ms'+(M.L&&M.L.length?'\n'+M.L.join('\n'):'');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
 // ============================================================================
@@ -16411,8 +16651,8 @@ function plaBilletBtc(){ // le billet ₿ : vert billet et or, un ₿ dans la ro
     for(let i=0;i<14;i++){x.strokeStyle='rgba(255,215,94,'+(.07+i*.014)+')';x.beginPath();x.arc(118,118,62-i*4,0,6.2832);x.stroke();}
     plaPicto(x,'btc',118,118,92,'#ffb347');
     x.fillStyle='rgba(255,236,170,.9)';x.font='bold 54px Helvetica,Arial,sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('1',30,48);x.textAlign='right';x.fillText('1',w-30,h-44);
-    x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CRYPTOCITY',w*.6,h*.42);
-    x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(200,255,220,.6)';x.fillText('BULL RUN · UN BITCOIN · TO THE MOON',w*.6,h*.56);
+    x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CASH CAR',w*.6,h*.42); /* (2026-10-14, revue des idées de Léo) le niveau CRYPTOCITY est retiré : le billet ₿ de la pluie d'argent, lui, pleut partout — il porte la marque du jeu */
+    x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(200,255,220,.6)';x.fillText('1 BITCOIN · TO THE MOON',w*.6,h*.56);
     const Bd=x.createLinearGradient(w*.78,0,w*.86,0);Bd.addColorStop(0,'rgba(255,215,94,0)');Bd.addColorStop(.5,'rgba(255,230,140,.55)');Bd.addColorStop(1,'rgba(255,215,94,0)');x.fillStyle=Bd;x.fillRect(w*.78,0,w*.08,h);});
 }
 function plaTexPieces(){ // l'atlas des pièces : en haut la ₿ (la pièce de la pluie de richesse), en bas l'Ξ d'argent bleuté
@@ -18228,7 +18468,8 @@ function jadeEcume(x,y,z,r){const n=Math.min(90,30+r*1.6|0);
    · L'ASSIETTE : dans l'eau la vrille s'arrête, la caisse se REDRESSE (le haut vers le ciel), à flot elle suit la pente de la houle et son
      nez garde le cap (jadeEauNez, branché sur l'orientation du vol).
    · À FLOT trop longtemps sans nitro (EAU.ramene s), la mer te RAMÈNE sur la route (pas de mort). */
-const EAU={B:3.4,H:1.3,cv:7,cl:.2,cq:.009,vPl:50,cP:1.2,mot:110,vB:95,choc:.55,chocK:.3,ricoA:.24,ricoV:55,rend:1.06,hRend:.85,profSaut:2.5,plonge:6,fond:420,ramene:9};
+const EAU={amorti:.85,paye:4, /* (2026-10-14, revue des idées de Léo) chaque sortie rendait vRef×1,06+4 : la caisse rebondissait SEULE entre la mer et sa hauteur, et chaque cycle payait REPLONGEON + HORS DE L'EAU + du flow, sans fin. Désormais l'élan rendu baisse de 15 % par plongeon du même vol (la profondeur, elle — un vrai geste à la nitro —, rend toujours son élan) et seuls les 4 premiers paient, comme le ricochet */
+  B:3.4,H:1.3,cv:7,cl:.2,cq:.009,vPl:50,cP:1.2,mot:110,vB:95,choc:.55,chocK:.3,ricoA:.24,ricoV:55,rend:1.06,hRend:.85,profSaut:2.5,plonge:6,fond:420,ramene:9};
 /* (2026-10-14, Sacha : « le gameplay quand tu vas dans l'eau pourrait être plus fun : là ça ralentit, alors qu'il pourrait y avoir une
    dimension où tu peux PLONGER et SURFER de manière cool ») LA MER QUI SE JOUE — par-dessus la physique de Léo (3e passe), rien n'en est retiré :
    · L'ENTRÉE GARDE L'ÉLAN : le choc ne prend plus que la vitesse VERTICALE (×choc) ; l'avance en garde 90 à 100 % (c'était ×0,55 à ×0,85
@@ -18290,13 +18531,13 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       // maintenant −26…−22 (sous le cratère −20, au-dessus d'une pose −30), dosé par la force k9. Plus de doublon : le « pouf » d'ouate `nuage.entre` (−36, inaudible sous le plouf) est retiré ;
       // `flaque.eau` (le vrai son d'eau, les bulles) reste dessous, dosé aussi (−34 → −28). Et le moteur se creuse un peu, comme pour un grand moment (audit oreille-neuve n°3 §1).
       try{subBoom(.14+.14*k9);noiseBurst(.6,.14+.10*k9,520);noiseBurst(.9,.06+.05*k9,2600);if(SONV2)sfx('flaque.eau',{vol:-6+6*k9});duckT=Math.max(duckT,.15+.25*k9);}catch(e){}
-      try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
+      if(JEAU.n<=EAU.paye)try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
     else{eauRide(fallPos.x,sy,fallPos.z,.15);try{if(SONV2)sfx('flaque.eau');}catch(e){}}} // un simple contact : une ride
   else if(JEAU.dans&&d<-.3&&fallVel.y>0){ // ---- ELLE QUITTE L'EAU ----
     JEAU.dans=false;JEAU.cd=.35;JEAU.sorti=0;
     if(JEAU.prof>EAU.plonge&&JEAU.t>.4){ // le JAILLISSEMENT : la colonne d'eau, la caisse qui ruisselle
       JEAU.goutT=1.6;
-      const vr=Math.max(Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend+4,Math.sqrt(2*g*EAU.profSaut*JEAU.prof/SPD));if(fallVel.y<vr)fallVel.y=vr; // l'élan du premier plongeon, ou celui de la profondeur — jamais plus
+      const vr=Math.max(Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend*Math.pow(EAU.amorti,Math.max(0,JEAU.n-1))+4,Math.sqrt(2*g*EAU.profSaut*JEAU.prof/SPD));if(fallVel.y<vr)fallVel.y=vr; // l'élan du premier plongeon, ou celui de la profondeur — jamais plus
       {const h2=Math.hypot(fallVel.x,fallVel.z),hw=Math.max(h2,JEAU.hIn*(EAU.fun?1+Math.min(EAU.dauphMax,EAU.dauph*Math.max(0,JEAU.n-1)):EAU.hRend));if(h2>1){fallVel.x*=hw/h2;fallVel.z*=hw/h2;}else{fallVel.x=JEAU.cap.x*hw;fallVel.z=JEAU.cap.z*hw;}fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
       fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve
       const k9=Math.min(1,fallVel.y/170);
@@ -18304,7 +18545,7 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
       // (2026-10-14, session SON) le jet de Léo est gardé, ramené de −23 à −30…−26 dBFS selon k9 (toujours sous le plongeon, ≈ −22) ; `nuage.sort` (−42) redisait le jet : retiré, `flaque.eau` et `air.regain` restent dessous
       try{noiseBurst(.8,.14+.08*k9,2200);noiseBurst(.5,.12+.08*k9,450);subBoom(.08+.06*k9);if(SONV2){sfx('flaque.eau',{vol:-4});sfx('air.regain');}}catch(e){}
-      if(JEAU.t>.3){try{addTrick('jailli',EAU.fun&&JEAU.n>1?'HORS DE L EAU ×'+JEAU.n:'HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12)+(EAU.fun?3*Math.min(5,Math.max(0,JEAU.n-1)):0),2);flowAdd(8,'risque');}catch(e){}}}
+      if(JEAU.t>.3&&JEAU.n<=EAU.paye){try{addTrick('jailli',EAU.fun&&JEAU.n>1?'HORS DE L\'EAU ×'+JEAU.n:'HORS DE L\'EAU !',8+Math.min(18,JEAU.prof*.12)+(EAU.fun?3*Math.min(5,Math.max(0,JEAU.n-1)):0),2);flowAdd(8,'risque');}catch(e){}}}
     else{JEAU.goutT=.6;jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.08);}} // une vague la lâche, un bond de bateau : un petit jet
   if(!JEAU.dans){ // hors de l'eau : la caisse ruisselle, et au ras de la surface elle laisse un sillage
     if(JEAU.goutT>0){JEAU.goutT-=dt;const p=carGroup.position,n9=Math.random()<dt*70*Math.min(1,JEAU.goutT/1.6)?3:0;
@@ -18339,6 +18580,7 @@ function jadeEauRamene(){ // à flot depuis trop longtemps, sans nitro : la mer 
   try{dolFin();}catch(e){}
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
   respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
+  fallVel.set(0,0,0);fallPos.copy(carGroup.position); /* (2026-10-14, revue des idées de Léo) appelée AU MILIEU de la branche du vol : la suite (fallPos qui avance, pickupsTick, tryLand) tournait encore sur l'élan de la mer — elle reste immobile cette image-là, la route la reprend à la suivante */
   try{popTexte(sansAcc(TR('LA MER TE RAMENE')),'#7dffec',2);}catch(e){}try{if(SONV2)sfx('air.regain');}catch(e){}}
 function jadeEauNez(nez,dt){ // dans l'orientation du vol : nez = la direction du nez (normalisée), à corriger ; FLY_U se redresse
   const ci=JEAU.dans?1:0;JEAU.wB+=(ci-JEAU.wB)*Math.min(1,dt*(ci?5:1.5));const w=JEAU.wB;if(w<.01)return;
@@ -20203,6 +20445,7 @@ const I18N={
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory color. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.": "Board on the roof, peace in the heart, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
 Object.assign(I18N,{"DAUPHIN":"DOLPHIN"}); // (dauphin v3) l'étiquette
+Object.assign(I18N,{"TOURNE": "TURN", "VOLE": "FLY", "Glisse ton *pouce* à gauche, puis à droite": "Slide your *thumb* left, then right", "Flèches [←] puis [→]": "Arrows [←] then [→]", "Garde le doigt sur *NITRO*": "Keep your finger on *NITRO*", "Maintiens [ESPACE]": "Hold [SPACE]", "Sors de la route *par le bord* !": "Drive off the road *over the edge*!", "En l'air : garde *NITRO* et reviens sur la route": "In the air: hold *NITRO* and get back over the road", "En l'air : [ESPACE] et reviens sur la route": "In the air: hold [SPACE] and get back over the road", "Vise *l'anneau* sur la route. Doré = parfait !": "Aim for *the ring* on the road. Gold = perfect!", "Tape *2 fois* vite sur *NITRO*": "Tap *NITRO* *twice*, fast", "Tape *2 fois* vite sur [ESPACE]": "Tap [SPACE] *twice*, fast", "6 gestes. Ici, *impossible de perdre* !": "6 moves. Here, *you can't lose*!", "BIEN !": "NICE!", "PARFAIT !": "PERFECT!", "ÇA DÉCOLLE !": "LIFTOFF!", "TU VOLES !": "YOU'RE FLYING!", "POSÉ !": "LANDED!", "STYLÉ !": "STYLISH!", "TAPE 2 FOIS VITE SUR NITRO": "TAP NITRO TWICE, FAST", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN"}); // (2026-10-14) L'AUTO-ÉCOLE v2
 Object.assign(I18N,{"SOIR": "EVENING", "NUIT": "NIGHT", "PLUIE": "RAIN", "LA VILLE": "THE CITY", "Restaurer un code": "Restore a code", "REPORT": "CARRY-OVER", "(au garage)": "(in your garage)", "Copie ce code :": "Copy this code:", "Colle ton code de sauvegarde :": "Paste your save code:", "PARFAIT ! ": "PERFECT! ", "PARFAIT !": "PERFECT!", "DIVIN !!": "DIVINE!!", "POSÉ LOURD — AÏE…": "HEAVY LANDING — OUCH…", "PARFAIT (BOOST ×2) !": "PERFECT (BOOST ×2)!", "DOUBLE MONSTRE": "DOUBLE MONSTER", "TRIPLE MONSTRE": "TRIPLE MONSTER", "🍉 PASTÈQUE !": "🍉 WATERMELON!", "🧃 RAFALE": "🧃 FRUIT RUSH", "⏱ AU CHEVEU —": "⏱ BY A HAIR —", "⏱ À L'ARRACHÉE —": "⏱ CLUTCH —", "ESSOREUSE COSMIQUE !!": "COSMIC SPIN CYCLE!!", "CHAÎNE ×": "CHAIN ×", "CARREAU": "DIAMOND", "CŒUR": "HEART", "TRÈFLE": "CLUB", "TÊTE DE MORT": "SKULL", "LE NOMBRE D'OR": "THE GOLDEN RATIO", "Z Q S D": "W A S D", "HORS DE L'EAU !": "OUT OF THE WATER!", "HORS DE L'EAU": "OUT OF THE WATER"}); // (2026-10-14) LES TEXTES : les clés qui manquaient (audits A, B, C du 14/10)
 Object.assign(I18N,{"VERT OGRE": "OGRE GREEN", "Le vert des marais. Ça sent un peu, mais c'est chez toi.": "Swamp green. It smells a bit, but it's home.", "BLEU HÉRISSON": "HEDGEHOG BLUE", "Le bleu d'un hérisson pressé. Les anneaux sont en option.": "The blue of a hedgehog in a hurry. Rings sold separately.", "ROSE POUPÉE": "DOLL PINK", "Rose bonbon, laque parfaite. Tu n'es pas en plastique, tu es en carbone.": "Candy pink, flawless lacquer. You're not plastic, you're carbon fiber.", "BANANA": "BANANA", "Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.": "Overalls at the bottom, yellow on top. It says \"banana\" at every turn.", "NUIT DE GOTHAM": "GOTHAM NIGHT", "Noir laqué, la ville qui brille dedans. Les toits sont à toi.": "Gloss black with the city shining in it. The rooftops are yours.", "MONDE À L'ENVERS": "UPSIDE DOWN", "Noir en bas, rouge sang en haut : cette caisse vient de l'autre côté. Les guirlandes clignotent.": "Black at the bottom, blood red on top: this car came from the other side. The lights are flickering.", "VAPORWAVE": "VAPORWAVE", "Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.": "Cyan, pink, purple: a 1986 sunset on a worn-out tape.", "LAVE": "LAVA", "Du volcan au toit, la coulée ne refroidit jamais. N'y jette pas d'anneau.": "From the volcano to the roof, the flow never cools down. Don't throw a ring in.", "HOLOGRAMME": "HOLOGRAM", "Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.": "Iridescent chrome that changes color at every angle. A rare card… on wheels.", "SUPER GUERRIER": "SUPER WARRIOR", "Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.": "Gold from roof to tires. Hair standing up, power level over 9,000.", "PIGEON": "PIGEON", "Gris, deux barres noires, un reflet vert au cou. Le roi des toits bat des ailes trop vite et ne sait pas pourquoi.": "Gray, two black bars, a green sheen on the neck. The king of the rooftops flaps too fast and has no idea why.", "AVION EN PAPIER": "PAPER PLANE", "Une feuille à grands carreaux, trois plis, zéro aérodynamique. Ça plane quand même : c'est toi qui pilotes.": "A sheet of school paper, three folds, zero aerodynamics. It glides anyway: you're the pilot.", "MONARQUE": "MONARCH", "Des ailes de papillon orange et noir qui battent en plein vol. Délicates. Jusqu'à 900 à l'heure.": "Orange-and-black butterfly wings that flap mid-flight. Delicate. Up to 900 km/h.", "8-BIT": "8-BIT", "Des ailes d'ange en gros pixels, qui battent par à-coups. La console de ton grand frère approuve.": "Angel wings in chunky pixels, flapping frame by frame. Your big brother's console approves.", "BARON ROUGE": "RED BARON", "Deux plans de toile rouge, des haubans, une odeur d'huile de ricin. Un chien sur sa niche en rêve encore.": "Two red canvas wings, bracing wires, a whiff of castor oil. A dog on his doghouse still dreams about it.", "ENGRENAGES": "GEARWORKS", "Du laiton, de la toile et des rouages qui tournent. Léonard l'avait dessinée, toi tu la pilotes.": "Brass, canvas and spinning gears. Leonardo drew it; you fly it.", "AILES EN X": "X-FOILS", "Quatre plans qui s'écartent en X une fois dépliés. Verrouillez les ailes en position d'attaque.": "Four foils that split into an X once deployed. Lock wings in attack position.", "FÉE": "FAIRY", "Quatre voiles irisés qui bourdonnent. Il suffit d'y croire. Et d'un plein de nitro.": "Four shimmering veils that buzz. You just have to believe. And have a full tank of nitro.", "DRAGON": "DRAGON", "Membranes veinées de lave, griffe au poignet. Elles battent lentement : la puissance n'a pas besoin de se presser.": "Lava-veined membranes, a claw at the wrist. They beat slowly: real power never rushes.", "PHÉNIX": "PHOENIX", "Des plumes de feu qui ne s'éteignent jamais. Tu exploses ? Tu renais de tes cendres. Au prochain run.": "Feathers of fire that never go out. You blow up? You rise from your ashes. Next run.", "SAKURA": "SAKURA", "Des pétales de cerisier, comme dans un générique d'animé. Le drame, c'est pour les autres.": "Cherry blossom petals, straight out of an anime opening. The drama is for everyone else.", "MATRICE": "MATRIX", "Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c'est toi qui la réécris.": "Red pill swallowed: green code streams behind you. You rewrite the road as you go.", "ANNEAUX D'OR": "GOLD RINGS", "Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.": "You spill rings like a hedgehog that just got hit. Except you never slow down.", "PLUIE DE BLOCS": "BLOCK RAIN", "Des pièces de quatre carrés tombent en tournant. Aucune ligne ne disparaît : tout reste à toi.": "Four-square pieces tumble down. No line ever clears: you keep it all.", "GLOUTON": "CHOMPER", "Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.": "A line of dots and four ghosts on your tail. Let go of the nitro: they turn blue.", "HYPERESPACE": "HYPERSPACE", "Les étoiles s'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.": "Stars stretch into streaks. You jump to light speed; everyone else stays a tourist.", "88 MILES À L'HEURE": "88 MPH", "Deux sillons de feu restent sur le bitume. Le futur, c'est toi qui l'écris.": "Two trails of fire keep burning on the asphalt. The future is yours to write.", "LA GRILLE": "THE GRID", "Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.": "A wall of light in your wake. Whoever tailgates you ends up in pixels.", "FAIS PLEUVOIR": "MAKE IT RAIN", "Des liasses qui s'envolent à chaque nitro. Ce n'est pas du gaspillage, c'est de la communication.": "Cash flies out with every nitro. It's not a waste, it's marketing.", "FOUDRE DIVINE": "DIVINE LIGHTNING", "Des éclairs crépitent derrière toi. Le marteau, tu l'as laissé au garage.": "Lightning crackles behind you. You left the hammer in the garage."}); // (2026-10-14) LES PEINTURES, LES AILES ET LES TRAÎNÉES POP
 Object.assign(I18N,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "OFF THE ROAD! SLIDE YOUR THUMB TO FOLLOW IT", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "TOO LONG IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "En l'air : pouce en HAUT = plonge, en BAS = monte.": "In the air: thumb UP = dive, DOWN = climb.", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE À LA NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "In the air, HOLD NITRO and steer back over the road.", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "Over the road, the ring appears: land on it (gold = perfect).", "PERMIS OBTENU !": "LICENSE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
@@ -30751,8 +30994,15 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
    CET appareil tout est À TOI : les caisses (carUnlockedVrai : en vente, en €, à défi), les habillages (shopOwned), les FIGURES (figPossede),
    tous les niveaux de la carrière. Rien n'est écrit ailleurs (l'argent, l'aura et les records ne bougent pas) ; EFFACER MA PROGRESSION l'enlève. */
 function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(k!=='cousin'&&k!=='cousin161')return false;SAVE.d.cousin=1;SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}return true;}
+  if(k!=='cousin'&&k!=='cousin161')return false;SAVE.d.cousin=1;SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
+  try{carSnapshot();}catch(e){} // (2026-10-14) la photo des caisses acquises suit : sans elle, la partie suivante criait « NOUVELLE CAISSE » ~70 fois au 1er gain
+  return true;}
 function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE peut ne pas exister encore : le tout premier buildCar tourne avant lui)
+/* (2026-10-14, Sacha, après la revue des idées de Léo : « le code cousin ne débloque PLUS rien de ce qui se paie en euros ») un code partageable
+   vidait la boutique en vrai argent (et l'App Store, règle 3.1.1, interdit d'ouvrir un contenu payant autrement que par l'achat). Il garde tout le
+   reste : caisses à l'argent du jeu et à défi, habillages, figures, niveaux. `carEuros(i)` = la caisse se vend en € (le futur pack de peintures
+   devra lire la même règle). */
+function carEuros(i){const u=CAR_UNLOCK[i];return !!(u&&(u.k==='premium'||u.eur));}
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
@@ -30763,7 +31013,7 @@ function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i)
    « déjà à toi », le testeur ne voyait jamais la boucle achat → caisse que vivra le joueur. */
 function carUnlockedVrai(i){
   if(carRetiree(i))return false; // (2026-10-02) retirée : ni à toi, ni à gagner
-  if(cousin())return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses
+  if(cousin()&&!carEuros(i))return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses — (même jour, Sacha) SAUF celles qui se paient en EUROS
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;
@@ -31769,7 +32019,7 @@ function runxReset(){flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le rel
 RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
-  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
+  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;chanceRaz();} /* (2026-10-14) une partie neuve, une SECONDE CHANCE neuve */ // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
 /* (2026-09-30) « FRANCHIS N PORTAILS » restait à 0 / 1 toute la zone : la mort à 90 m du portail disait « 0 », comme la mort au départ.
    La zone EN COURS compte pour sa part de piste roulée (s/L, jamais 1 : l'entier ne tombe qu'AU portail, la complétion ne change pas).
    Pas en campagne/carrière (niveaux dessinés : le portail y finit parfois la partie), ni à l'auto-école (son portail tourne en rond).
@@ -32612,22 +32862,67 @@ let FX_EFF=null; // la signature de traînée EFFECTIVE (caisse + boutique), rec
    Piste : `genTuto()` (dessinée à la main : larges virages, une descente, un looping), ciel nu de l'aurore.
    ========================================================================== */
 const TUTO={on:false,i:0,t:0,l:0,r:0,hold:0,air:0,vole:false,fini:0,attente:false};
+/* (2026-10-14, Sacha : « le tutoriel est un peu intimidant, pas très beau — plus d'animation, plus clair ; et un truc pour apprendre les
+   figures ») L'AUTO-ÉCOLE v2 — SIX gestes (la FIGURE au double-tap NITRO arrive en dernier, une fois posé), un mot par étape au lieu d'une
+   phrase, la phrase raccourcie (`d` au doigt, `dk` au clavier : « pouce » ne veut rien dire à qui joue au clavier), un PETIT FILM du geste
+   (`film`, voir <style id="ecoleV2">), une MAIN FANTÔME qui fait le geste sur la commande (`main` : 'glisse' le volant · 'pousse' vers le
+   bord · 'appui' tenu sur NITRO · 'double' deux tapes), et l'éloge de la réussite (`bravo`). Les *mots* entre étoiles sont surlignés. */
 const TUTO_ETAPES=[
-  {ico:'volant',t:'TOURNE',        d:'Glisse ton pouce à gauche… puis à droite.',          geste:'glisse'},
-  {ico:'eclair',t:'NITRO',         d:'Maintiens NITRO : ça pousse fort.',                   geste:'nitro'},
-  {ico:'rampe', t:'DÉCOLLE',       d:'Fonce hors de la route, par le bord. N\'aie pas peur.',geste:'bord'},
-  {ico:'eclair',t:'VOLE À LA NITRO', d:'En l\'air, MAINTIENS NITRO et reviens au-dessus de la route.',  geste:'nitro'},
-  {ico:'cible', t:'POSE-TOI',      d:'Au-dessus de la route, l\'anneau apparaît : pose-toi dessus (or = parfait).', geste:'pose'}
-]; // (2026-09-28) VOLE et POSE-TOI disent OÙ aller : « ton pouce guide le vol » ne disait pas vers où, et l'anneau ne s'allume que si la trajectoire retombe sur le bitume
+  {ico:'volant',t:'TOURNE',  d:'Glisse ton *pouce* à gauche, puis à droite',      dk:'Flèches [←] puis [→]',                      geste:'glisse', film:'glisse', main:'glisse', bravo:'BIEN !'},
+  {ico:'eclair',t:'NITRO',   d:'Garde le doigt sur *NITRO*',                       dk:'Maintiens [ESPACE]',                        geste:'nitro',  film:'nitro',  main:'appui',  bravo:'PARFAIT !'},
+  {ico:'rampe', t:'DÉCOLLE', d:'Sors de la route *par le bord* !',                 dk:'Sors de la route *par le bord* !',          geste:'bord',   film:'bord',   main:'pousse', bravo:'ÇA DÉCOLLE !'},
+  {ico:'eclair',t:'VOLE',    d:'En l\'air : garde *NITRO* et reviens sur la route', dk:'En l\'air : [ESPACE] et reviens sur la route', geste:'nitro', film:'vole', main:'appui', bravo:'TU VOLES !'},
+  {ico:'cible', t:'POSE-TOI',d:'Vise *l\'anneau* sur la route. Doré = parfait !',   dk:'Vise *l\'anneau* sur la route. Doré = parfait !', geste:'pose', film:'pose', main:'',  bravo:'POSÉ !'},
+  {ico:'rotation',t:'FIGURE',d:'Tape *2 fois* vite sur *NITRO*',                   dk:'Tape *2 fois* vite sur [ESPACE]',           geste:'figure', film:'figure', main:'double', bravo:'STYLÉ !'}
+];
+const TUTO_ACCUEIL={t:'AUTO-ÉCOLE',d:'6 gestes. Ici, *impossible de perdre* !',film:'accueil'}; // la 1re carte : on rassure avant d'exiger
+const TUTO_FILMS={ // les acteurs de chaque petit film (leur mouvement est dans le CSS)
+  glisse:'<i class="route nm"></i><i class="axe nm"></i><i class="car"></i><i class="main"></i>',
+  nitro:'<i class="sol nm"></i><i class="tirets nm"></i><i class="vit v1 nm"></i><i class="vit v2 nm"></i><i class="flam"></i><i class="car"></i><i class="btn nm"></i><i class="main"></i>',
+  bord:'<i class="sol nm"></i><i class="car"></i><i class="fleche"></i>',
+  vole:'<i class="route nm"></i><i class="flam"></i><i class="car"></i><i class="btn nm"></i><i class="main"></i>',
+  pose:'<i class="sol nm"></i><i class="cible"></i><i class="car"></i>',
+  figure:'<i class="sol nm"></i><i class="tirets nm"></i><i class="car"></i><i class="btn nm"></i><i class="main"></i><i class="x2 nm">×2</i>',
+  accueil:'<i class="sol nm"></i><i class="tirets nm"></i><i class="car"></i><i class="coeur"></i>'};
+function tutoTouche(){return document.body.classList.contains('touch');} // au doigt (téléphone, la colonne de l'ordi) ou au clavier
+function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
+  return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
+    .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>');}
+function tutoMot(el,mot){ // le mot arrive lettre par lettre (--i : le retard de chaque lettre)
+  mot=String(mot);el.style.setProperty('--n',Math.max(6,mot.length));
+  el.innerHTML=mot.split('').map(function(ch,i){return '<span class="l" style="--i:'+i+'">'+(ch===' '?'&nbsp;':ch.replace(/[&<>]/g,''))+'</span>';}).join('');
+  el.setAttribute('aria-label',mot);}
 function tutoCarte(){
   let c=document.getElementById('coach');
-  if(!c){c=document.createElement('div');c.id='coach';c.setAttribute('role','status');c.setAttribute('aria-live','polite');
-    c.innerHTML='<div class="coTop"><span class="coN"></span><button class="coSkip" type="button"></button></div>'
-      +'<div class="coRow"><i class="coIco pxi"></i><div class="coTx"><b></b><span></span></div></div>'
-      +'<div class="coPips"></div><div class="coGeste"></div>';
+  if(!c){c=document.createElement('div');c.id='coach';c.className='v2';c.setAttribute('role','status');c.setAttribute('aria-live','polite');
+    c.innerHTML='<div class="ecScene"></div><div class="ecH"><span class="ecPips"></span><span class="coN"></span></div>'
+      +'<b class="ecT"></b><span class="ecD"></span><button class="coSkip" type="button"></button>';
     document.body.appendChild(c);
     c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();tutoPasse(this);});}
+  if(!document.getElementById('ecMain')){const m=document.createElement('div');m.id='ecMain';m.setAttribute('aria-hidden','true');
+    m.innerHTML='<div class="p"><i class="o"></i><i class="m"></i></div><i class="r"></i><i class="fg"></i><i class="fd"></i><b class="x2">×2</b>';document.body.appendChild(m);}
   return c;
+}
+/* LA MAIN FANTÔME : posée sur la commande du geste (le volant : le centre de son cercle ; NITRO : le bouton), le bout du doigt pile dessus.
+   Seulement au doigt (au clavier il n'y a rien à montrer à l'écran : la ligne dit les touches), et seulement si la commande est visible. */
+function tutoMain(){
+  const m=document.getElementById('ecMain');if(!m)return;
+  const c=document.getElementById('coach'),E=TUTO_ETAPES[TUTO.i];
+  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';
+  const vol=mode==='glisse'||mode==='pousse';
+  if(vol&&typeof TCTL!=='undefined'&&TCTL.act)mode='';if(mode==='appui'&&nitroOn)mode=''; // le joueur FAIT déjà le geste : la main s'efface
+  let cx=0,cy=0,ok=false;
+  if(mode&&vol){ // le volant : sous le doigt, le stick ; au repos, le cercle en pointillés (le ::after de la zone)
+    const st=document.getElementById('tStick'),sv=document.getElementById('tSteer');
+    if(st&&+getComputedStyle(st).opacity>.05){const r=st.getBoundingClientRect();if(r.width>4){cx=r.left+r.width/2;cy=r.top+r.height/2;ok=true;}}
+    if(!ok&&sv){const r=sv.getBoundingClientRect(),a=getComputedStyle(sv,'::after'),w=parseFloat(a.width),h=parseFloat(a.height),l=parseFloat(a.left),tp=parseFloat(a.top);
+      if(r.width>4&&a.content!=='none'&&isFinite(w)&&isFinite(l)&&isFinite(tp)){cx=r.left+l+w/2;cy=r.top+tp+h/2;ok=true;}else if(r.width>4){cx=r.left+r.width*.4;cy=r.top+r.height*.72;ok=true;}}}
+  else if(mode){const n=document.getElementById('tNitro'),r=n&&n.getBoundingClientRect();if(r&&r.width>4){cx=r.left+r.width/2;cy=r.top+r.height/2;ok=true;}}
+  if(!ok)mode='';
+  if(!mode){m.classList.remove('on');return;}
+  m.style.transform='translate('+Math.round(cx-23)+'px,'+Math.round(cy-5)+'px)';
+  if(m.dataset.mode!==mode){m.dataset.mode=mode;m.className='';void m.offsetWidth;}
+  m.classList.add('on',mode);
 }
 /* (2026-09-29, audit des 10 premières minutes) PASSER COÛTAIT LE PERMIS EN UN TAP, SANS LE DIRE : 500 $, le tiers d'une 1re caisse. Le 1er
    appui DEMANDE — le bouton devient « VRAIMENT ? » en rouge, l'en-tête dit ce qu'on laisse (« PERMIS +$ 500 ») — le 2e, dans les
@@ -32637,33 +32932,45 @@ function tutoPasse(b){
   const c=document.getElementById('coach');if(!c||!TUTO.on)return;
   if(SAVE.d.permis||b.classList.contains('sur')){clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);return;}
   uiClic('danger');hap(8);
-  b.classList.add('sur');b.textContent=TR('VRAIMENT ?').replace(' ',' ');
+  b.classList.add('sur');b.textContent=TR('VRAIMENT ?').replace(' ',' ');
   clearTimeout(tutoAffiche._t);c.classList.remove('rate');c.classList.add('passe');
   c.querySelector('.coN').textContent=TR('PERMIS')+' +'+fmtC(500);
   clearTimeout(tutoPasse._t);tutoPasse._t=setTimeout(function(){tutoPasseRange(c);},3000);
 }
-function tutoPasseRange(c){ // la question retombe : PASSER et la progression reviennent
+function tutoPasseRange(c){ // la question retombe : PASSER revient, l'en-tête se vide
   clearTimeout(tutoPasse._t);if(!c)return;const b=c.querySelector('.coSkip');
   if(b){b.classList.remove('sur');b.textContent=TR('PASSER');}
-  if(c.classList.contains('passe')){c.classList.remove('passe');c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;}
+  if(c.classList.contains('passe')){c.classList.remove('passe');c.querySelector('.coN').textContent='';}
 }
-function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tête de la carte, en rouge, jusqu'à la réussite suivante
+function tutoPips(c,vient){ // les six pastilles : faites (vert), celle en cours (or qui bat), à venir ; `vient` = celle qui vient de se remplir
+  c.querySelector('.ecPips').innerHTML=TUTO_ETAPES.map(function(x,j){return '<i class="'+(j<TUTO.i?'ok':j===TUTO.i?'on':'')+(j===vient?' vient':'')+'"></i>';}).join('');}
+function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tête de la carte, en rouge, et la carte tremble
   msg=typeof msg==='string'?msg:'';
-  const c=tutoCarte(),E=TUTO_ETAPES[TUTO.i];tutoPasseRange(c); // une nouvelle consigne range la question de PASSER
-  c.querySelector('.coN').textContent=msg?TR(msg):TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;c.classList.toggle('rate',!!msg);
-  /* (2026-09-29, balade) le raté se DIT (rouge, son), puis l'en-tête redevient la progression : « RATÉ ! ON RECOMMENCE » restait écrit
-     tant que l'étape n'était pas réussie — trente secondes de reproche pour qui cherche encore le geste */
-  clearTimeout(tutoAffiche._t);if(msg)tutoAffiche._t=setTimeout(function(){if(TUTO.on&&c.classList.contains('rate')){c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;c.classList.remove('rate');}},2600);
-  c.querySelector('.coSkip').textContent=TR('PASSER');
-  c.querySelector('.coIco').className='coIco pxi pxi-'+E.ico;
-  c.querySelector('.coTx b').textContent=TR(E.t);
-  c.querySelector('.coTx span').textContent=TR(E.d);
-  c.querySelector('.coPips').innerHTML=TUTO_ETAPES.map(function(x,j){return '<i class="'+(j<TUTO.i?'ok':j===TUTO.i?'on':'')+'"></i>';}).join('');
-  c.querySelector('.coGeste').className='coGeste g-'+E.geste;
-  if(E.geste==='nitro'){nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);nitroGain(.01,'ecole');} // le PLEIN, offert : on apprend sans compter
-  c.classList.remove('bravo');c.classList.remove('entre');void c.offsetWidth;c.classList.add('on','entre');document.body.classList.add('coOn');
-  document.body.classList.toggle('coNitro',E.geste==='nitro'); // le bouton NITRO s'entoure d'un anneau qui bat
-  try{sfx(msg?'tuto.rate':'tuto.info');}catch(e){} // (2026-09-28, console de son) la carte de consigne sonne son « ding » ; un raté, ses deux notes qui descendent
+  const c=tutoCarte();tutoPasseRange(c);
+  /* L'ACCUEIL (v2) : la toute 1re carte rassure — « 6 gestes, impossible de perdre » — 2,4 s, puis la 1re consigne (pendant ce temps la leçon
+     n'exige rien : tutoTick attend que la carte ne soit plus `intro`) */
+  const intro=TUTO.i===0&&!TUTO.accueilVu&&!msg;if(intro)TUTO.accueilVu=1;
+  const E=intro?TUTO_ACCUEIL:TUTO_ETAPES[TUTO.i];if(!E)return; // (leçon finie : la caisse attend de se poser — plus de consigne à montrer)
+  const montre=function(){
+    c.classList.remove('bravo','sort','rate','intro');if(intro)c.classList.add('intro');
+    c.querySelector('.coN').textContent=msg?TR(msg):'';
+    c.querySelector('.coSkip').textContent=TR('PASSER');
+    tutoMot(c.querySelector('.ecT'),TR(E.t));
+    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
+    c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
+    tutoPips(c,-1);
+    if(msg){void c.offsetWidth;c.classList.add('rate');clearTimeout(tutoAffiche._t);
+      tutoAffiche._t=setTimeout(function(){if(TUTO.on&&c.classList.contains('rate')){c.querySelector('.coN').textContent='';c.classList.remove('rate');}},2600);} // le raté se DIT, puis l'en-tête se vide (2026-09-29 : pas trente secondes de reproche)
+    c.classList.add('on');document.body.classList.add('coOn');
+    document.body.classList.toggle('coNitro',!intro&&(E.geste==='nitro'||E.geste==='figure')); // le bouton NITRO s'entoure d'un anneau qui bat
+    if(!intro&&E.geste==='figure')TUTO.p0=tutoPayees(); // (v2) le compteur des figures PLANTÉES à l'entrée de l'étape (FIGURES v2 de GAMEPLAY)
+    if(!intro&&(E.geste==='nitro'||E.geste==='figure')){nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);nitroGain(.01,'ecole');} // le PLEIN, offert : on apprend sans compter
+    tutoMain();
+    try{sfx(msg?'tuto.rate':'tuto.info');}catch(e){} // la carte de consigne sonne son « ding » ; un raté, ses deux notes qui descendent
+    if(intro)setTimeout(function(){if(TUTO.on&&started&&!gameOver&&c.classList.contains('intro'))tutoAffiche();},2400);
+  };
+  // la carte d'avant s'efface d'abord (un raté reste en place : il tremble)
+  if(c.classList.contains('on')&&!msg&&!REDUCED_MOTION){c.classList.add('sort');c.classList.remove('on');setTimeout(function(){if(TUTO.on)montre();},170);}else montre();
 }
 function tutoArme(){ // à appeler AVANT le lancement : la piste d'apprentissage doit être construite pour la 1re zone
   if(SAVE.d.tuto||SANDBOX||PARK.on||TUTO.on||(started&&!gameOver))return;
@@ -32673,34 +32980,42 @@ function tutoDebut(){
   TUTO.on=true;TUTO.i=0;TUTO.t=0;TUTO.l=TUTO.r=0;TUTO.hold=TUTO.air=0;TUTO.vole=false;
   TUTO.touche=0; // (2026-10-14) le premier geste du joueur n'a pas encore eu lieu : aucun message d'échec (tutoTick)
   TUTO.rates=0;TUTO.quitte=0;TUTO.pa=0; // (2026-09-28) les ratés de POSE-TOI (repêchage au 2e), la leçon QUITTÉE (écran de mort), l'airtime PRÊTÉ par la leçon
+  TUTO.fig=0;TUTO.sauts=0;TUTO.accueilVu=0; // (v2) la FIGURE finie, les sauts tentés à l'étape FIGURE, la carte d'accueil
   TUTO.attente=true; // (2026-09-25) la 1re consigne attend la FIN du logo de départ (fireLaunchBoost) — elle tombait pendant la sortie du garage, impossible à exécuter
   /* (2026-09-28) RECOMMENCER pendant la leçon : TUTO.i repartait à 0 mais la carte gardait l'ANCIENNE étape à l'écran ~2 s (jusqu'à la fin
      du logo de départ). On la range tout de suite, l'anneau du bouton NITRO avec ; tutoAffiche la ressort sur la 1re consigne. */
-  const c=document.getElementById('coach');if(c)c.classList.remove('on','entre','bravo','rate');
-  document.body.classList.remove('coNitro');
+  const c=document.getElementById('coach');if(c)c.classList.remove('on','sort','bravo','rate','intro');
+  document.body.classList.remove('coNitro');tutoMain();
 }
-function tutoBravo(){ // la réussite d'une étape : coche, son, vibration, gerbe — puis la suivante
-  const c=tutoCarte();if(c.classList.contains('rate')){c.classList.remove('rate');c.querySelector('.coN').textContent=TR('AUTO-ÉCOLE')+' · '+(TUTO.i+1)+'/'+TUTO_ETAPES.length;}
-  c.classList.add('bravo');
+function tutoBravo(){ // la réussite d'une étape : le mot devient l'éloge, coche, son, vibration, gerbe — puis la suivante
+  const c=tutoCarte(),E=TUTO_ETAPES[TUTO.i];clearTimeout(tutoAffiche._t);c.classList.remove('rate','passe','intro');c.querySelector('.coN').textContent='';
+  c.classList.add('bravo');tutoMot(c.querySelector('.ecT'),TR(E.bravo));
   try{if(SONV2)sfx('tuto.bravo');else{chimeNote(1046,0,.10,.16);chimeNote(1568,.09,.14,.16);}}catch(e){} /* (console de son) la quinte, DANS la gamme */hap([10,40,20]);
-  pixBurst(c,14);
-  TUTO.i++;TUTO.t=0;
-  if(TUTO.i>=TUTO_ETAPES.length){setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoFin(false);},700);return;}
-  setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoAffiche();},750); /* (débogage son 2026-09-29) QUITTER dans l'intervalle : ni carte ni son sur l'écran de fin */
+  pixBurst(c.querySelector('.ecScene')||c,14);
+  TUTO.i++;TUTO.t=0;tutoPips(c,TUTO.i-1);document.body.classList.remove('coNitro');tutoMain();
+  /* (v2) LA DERNIÈRE ÉTAPE se finit LES ROUES SUR LA ROUTE : une FIGURE faite en l'air (hors de la route) terminait la leçon en plein vol — le
+     vol redevenait mortel et le joueur explosait juste après « PERMIS OBTENU » (vu au banc). On attend la pose, le vol reste infini ; au bout de
+     8 s la caisse est replacée. */
+  if(TUTO.i>=TUTO_ETAPES.length){const fin=function(n){if(!(TUTO.on&&started&&!gameOver))return;
+      if(mode==='drive'){tutoFin(false);return;}
+      if(mode==='fall'){pwrAirT=Math.max(pwrAirT,2);TUTO.pa=1;}
+      if(n>40){sandRevive();setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoFin(false);},300);return;}
+      setTimeout(function(){fin(n+1);},200);};
+    setTimeout(function(){fin(0);},900);return;}
+  setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoAffiche();},1050); /* (débogage son 2026-09-29) QUITTER dans l'intervalle : ni carte ni son sur l'écran de fin */
 }
 function tutoFin(passe){
   if(TUTO.on)misBaseTuto(); // (2026-10-14, gameplay) LA COURSE COMMENCE ICI pour les défis : ce que la leçon a ramassé ne compte pas (MIS0)
   TUTO.on=false;document.body.classList.remove('coNitro','coOn');
-  const c=document.getElementById('coach');if(c)c.classList.remove('on','entre','bravo');
+  const c=document.getElementById('coach');if(c)c.classList.remove('on','sort','bravo','rate','intro');tutoMain();
   /* (2026-09-28) L'AIRTIME PRÊTÉ PAR LA LEÇON s'arrête avec elle, sans bruit : il lui restait jusqu'à 7 s, qui ressortaient après le permis
      en plaque « AIR MAX » puis en son de fin de pouvoir — un pouvoir jamais ramassé. En l'air, la jauge repart neuve (comme à l'expiration). */
   if(TUTO.pa){TUTO.pa=0;if(pwrAirT>0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
   SAVE.d.tuto=1;
   if(!passe){const paye=!SAVE.d.permis; // (2026-09-28) la prime du permis ne se verse qu'UNE fois : REVOIR L'AUTO-ÉCOLE ne doit pas devenir un robinet à 500
     if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);bankMaxMaj();}
-    /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : c'était une bannière du haut de 1,8 s, la même qu'un défi. La grande
-       annonce du centre (tenue 1,6 s, les cartes retenues pendant la leçon attendent derrière), puis — à la 1re fois — ce qui vient de
-       changer : le joueur sort d'une leçon où il ne pouvait pas mourir et où le vol était infini. */
+    /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : la grande annonce du centre (tenue 1,6 s, les cartes retenues pendant
+       la leçon attendent derrière), puis — à la 1re fois — ce qui vient de changer : fini l'entraînement où l'on ne pouvait pas mourir. */
     hautPasse(function(){slamMontre('PERMIS OBTENU !',paye?'+'+fmtC(500):'','#62e062','#ffd75e',40,22);},1900,'slam',3,{min:1600});
     if(paye)hautPasse(function(){misBanMontre('ASTUCE',TR((typeof facOn==='function'&&facOn())?"Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono."),'','drapeau');},2800,'mis',3);
     try{if(SONV2)sfx('ui.debloque');else fanfare();}catch(e){}hap([20,60,20,60,60]);}
@@ -32710,12 +33025,16 @@ function tutoFin(passe){
 /* (2026-09-28) QUITTER N'EST PAS PASSER. Les deux passaient par tutoFin(true), qui écrit SAVE.d.tuto=1 : quitter la partie au milieu de
    la leçon la marquait faite POUR TOUJOURS. Ici on range la leçon pareil, mais elle sera reproposée au prochain JOUER — PASSER (le bouton
    de la carte) reste le seul abandon définitif. Le drapeau `quitte` dit à l'écran de mort que ce n'est pas une partie (pas de record). */
-window.dbgTuto=function(k){if(k==='permis'&&TUTO.on)tutoFin(false);return {on:TUTO.on,i:TUTO.i,tuto:SAVE.d.tuto,permis:SAVE.d.permis,bank:bank()};}; // banc : l'état de la leçon ; dbgTuto('permis') la termine comme une réussite
+window.dbgTuto=function(k){if(k==='permis'&&TUTO.on)tutoFin(false);if(k==='etape'&&TUTO.on){TUTO.accueilVu=1;tutoAffiche();}if(typeof k==='number'&&TUTO.on){TUTO.i=Math.max(0,Math.min(TUTO_ETAPES.length-1,k|0));TUTO.accueilVu=1;TUTO.t=0;TUTO.fig=0;TUTO.sauts=0;tutoAffiche();} /* dbgTuto(n) : aller à l'étape n */ // banc : l'état de la leçon ; dbgTuto('permis') la termine comme une réussite
+  return {on:TUTO.on,i:TUTO.i,tuto:SAVE.d.tuto,permis:SAVE.d.permis,bank:bank(),fig:TUTO.fig,sauts:TUTO.sauts};};
 function tutoQuitte(){tutoFin(true);SAVE.d.tuto=0;TUTO.quitte=1;SAVE.flush();}
+function tutoPayees(){try{return (typeof FX2!=='undefined'&&FX2&&FX2.payees)|0;}catch(e){return 0;}} // FIGURES v2 (GAMEPLAY) : +1 par figure PLANTÉE
+function tutoFigOuverte(){return TUTO.on&&TUTO_ETAPES[TUTO.i]&&TUTO_ETAPES[TUTO.i].geste==='figure';} // (v2) le double-tap des figures, fermé pendant la leçon… sauf à SON étape
 function tutoTick(dt){
   if(!TUTO.on||!started||gameOver||paused)return;
   const c=document.getElementById('coach');if(!c||!c.classList.contains('on')||c.classList.contains('bravo'))return;
   TUTO.t+=dt;
+  TUTO.mT=(TUTO.mT||0)+dt;if(TUTO.mT>.25){TUTO.mT=0;tutoMain();} // la main suit sa commande (rotation, clavier qui sort, réglage COMMANDES)
   /* (2026-09-26, audit UX : 3 essais sur 3, la caisse sortait de la route juste après TOURNE, et l'étape NITRO ne se validait
      pas en l'air → 6 s de vol, explosion, « RATÉ »). Aux deux premières étapes, une sortie de route (plus d'une demi-seconde
      en l'air : une bosse ne compte pas) remet la caisse sur la piste tout de suite, en DISANT pourquoi. Zéro aide en vraie course. */
@@ -32725,6 +33044,7 @@ function tutoTick(dt){
      secondes d'une étape (sinon la consigne reste neutre). Affichage seul : la physique, la vitesse et le replacement ne changent pas. */
   if(Math.abs(steer)>.05||nitroOn)TUTO.touche=1;
   if(TUTO.i<2&&mode==='fall'){TUTO.chute=(TUTO.chute||0)+dt;if(TUTO.chute>.5){TUTO.chute=0;sandRevive();if(TUTO.touche&&TUTO.t>3)tutoAffiche('SORTI ! SUIS LA ROUTE');return;}}else TUTO.chute=0; /* (2026-09-28) « ton pouce ramène la caisse » ne disait pas QUEL geste */
+  if(c.classList.contains('intro'))return; // (v2) l'accueil n'exige rien
   switch(TUTO.i){
     case 0: if(steer<-.25)TUTO.l=1;if(steer>.25)TUTO.r=1;if(TUTO.l&&TUTO.r)tutoBravo();break; // .45 exigeait la moitié du braquage : on sortait de la route en le cherchant
     case 1: if(nitroOn)TUTO.hold+=dt;if(TUTO.hold>1.1)tutoBravo();break; // la nitro tenue compte aussi en l'air (une crête ne remet plus le compteur à zéro)
@@ -32735,15 +33055,17 @@ function tutoTick(dt){
             break;
     case 4: if(mode==='drive')tutoBravo();
             else if(mode==='fall'){pwrAirT=Math.max(pwrAirT,2);TUTO.pa=1;
-              /* (2026-09-28, passe de lancement) LE DÉBUTANT QUI NE RETROUVE PLUS LA ROUTE. La piste d'apprentissage n'a qu'un ruban : passé
-                 SOUS le niveau du bitume sans assez de nitro, on ne peut plus se poser — et comme cette étape rend le vol infini, la caisse
-                 rebondissait contre le FLANC de la dalle pour toujours (banc « école » : 2 essais sur 2, plus d'une minute, ni réussite ni
-                 échec). Au bout de 9 s de vol : on la replace, on reprend à DÉCOLLE, et on dit comment réussir.
-                 (2026-09-28) …mais un débutant pouvait boucler DÉCOLLE → VOLE → raté sans fin : au 2e raté, la caisse replacée, le permis est
-                 ACCORDÉ (tutoBravo valide la dernière étape → tutoFin). Il a décollé et volé deux fois : la pose s'apprendra en jouant. */
+              /* (2026-09-28, passe de lancement) LE DÉBUTANT QUI NE RETROUVE PLUS LA ROUTE : au bout de 9 s de vol on la replace, on reprend à
+                 DÉCOLLE et on dit comment réussir ; au 2e raté la pose est ACCORDÉE (il a décollé et volé deux fois : elle s'apprendra en jouant). */
               if(TUTO.t>9){sandRevive();TUTO.rates=(TUTO.rates|0)+1;
                 if(TUTO.rates>=2)tutoBravo();
                 else{TUTO.i=2;TUTO.air=0;TUTO.t=0;tutoAffiche('RATÉ ! NITRO, VISE LE DESSUS');}}}
+            break;
+    /* (v2) LA FIGURE : le double-tap NITRO — au sol la caisse SAUTE et fait sa figure, en l'air elle part tout de suite. Réussie = une figure
+       FINIE (veqFigFinie pose TUTO.fig). Trois sauts sans figure finie (posée en plein tour) : elle est accordée, la caisse sur ses roues. */
+    case 5: if(TUTO.fig||tutoPayees()>(TUTO.p0|0))tutoBravo(); // une figure plantée (v2) — ou finie (`?fig=ancien`)
+            else if(TUTO.sauts>=3&&mode==='drive')tutoBravo();
+            else if(mode==='fall'&&TUTO.t>12){sandRevive();TUTO.t=0;tutoAffiche('TAPE 2 FOIS VITE SUR NITRO');}
             break;
   }
 }
@@ -34897,6 +35219,7 @@ let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GA
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
 function partieRecord(){try{return !SANDBOX&&((money>(RUNX.best0||0)&&money>START_CASH+.5)||!!CHA.recB||engTier>(RUNX.engAvant|0));}catch(e){return false;}}
 function explode(cause){
+  if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   if(facileSauve(cause))return; // (MODE FACILE) une vie de moins au lieu de la partie (le BOUCLIER, qui pardonnait une chute, est retiré le 29/09)
   RALENTI.t=0; // (passe qualité) le ralenti de la frénésie s'arrête net à l'explosion : sinon le plan de la mort passait à ×0,3 et l'écran de fin arrivait 2× plus tard
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
@@ -38805,6 +39128,7 @@ const SAVE={
        valeur >1 sur `.volume` lève, elle, une exception qui tuerait la lecture. */
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
+    {const v9=Math.round(+d.vu);if(isFinite(v9)&&v9>0)c.vu=v9;} // (2026-10-14, session SON) la DERNIÈRE VISITE (ms) : la musique qui revient après une longue absence (MUS_RETOUR_H) — absente = inconnue
     c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
@@ -38974,6 +39298,31 @@ if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
+/* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
+   doit se réactiver dans les réglages ») LA MUSIQUE REVIENT APRÈS UNE LONGUE ABSENCE. Au lancement et au retour d'arrière-plan : si la
+   dernière visite (`SAVE.d.vu`, posée au départ en arrière-plan — le flush du départ l'écrit) date de plus de MUS_RETOUR_H heures et que
+   MUSIQUE est coupée ou à 0, elle repasse sur ON au volume d'usine. Une fois par retour : la visite est réécrite aussitôt. Rien d'autre ne
+   bouge : ni les EFFETS, ni la VOIX, ni leurs curseurs. Le bouton Silencieux de l'iPhone suit la règle de toujours (musicSession).
+   Visite inconnue (sauvegarde d'avant ce champ, joueur neuf) = rien. Banc : `?retour=1` simule 25 h d'absence au lancement ; dbgMusRetour(). */
+const MUS_RETOUR_H=24;
+const MUS_RETOUR_TEST=(function(){try{return new URLSearchParams(location.search).get('retour')==='1';}catch(e){return false;}})();
+const MUSRET={n:0,dernier:null}; // n : réactivations de cette session · dernier : la dernière décision (banc)
+function musRetour(boot){try{
+  const now=Date.now(),vu=(boot&&MUS_RETOUR_TEST)?now-25*36e5:(+SAVE.d.vu||0);
+  const loin=vu>0&&now-vu>MUS_RETOUR_H*36e5,coupee=!SND.music||!(VOL.mus>0);
+  MUSRET.dernier={boot:!!boot,h:vu>0?+((now-vu)/36e5).toFixed(1):null,loin:loin,coupee:coupee};
+  SAVE.d.vu=now;
+  if(!(loin&&coupee)){SAVE.mark();return;}
+  MUSRET.n++;
+  VOL.mus=SAVE.def().vol.mus;SAVE.d.vol.mus=VOL.mus; // le volume d'usine, depuis la SEULE source (SAVE.def)
+  if(boot){SND.music=true;SAVE.d.mus=true;SAVE.flush();return;} // au lancement : sndRefresh et le menu partent juste après, sur l'état rallumé
+  if(!SND.music)musBascule();else{SAVE.flush();volUI();} // au retour : le même chemin que le bouton MUSIQUE (session audio, relance selon le contexte)
+}catch(e){}}
+musRetour(true);
+document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE.d.vu=Date.now();SAVE.mark();}else musRetour(false);}); // départ : le flush de l'arrière-plan (plus bas) l'écrit
+window.dbgMusRetour=function(simH){ // (banc) l'état ; dbgMusRetour(26) simule un retour d'arrière-plan après 26 h d'absence
+  if(simH>0){SAVE.d.vu=Date.now()-simH*36e5;musRetour(false);}
+  return {vu:SAVE.d.vu,mus:SND.music,vol:VOL.mus,sfx:VOL.sfx,vox:VOL.vox,n:MUSRET.n,dernier:MUSRET.dernier,test:MUS_RETOUR_TEST,mode:musicMode,voulue:musicVoulue};};
 /* ---- LES CURSEURS : appliquer au graphe · repeindre les deux interfaces · retenir --------------
    ⚠ `volApply` ne touche QUE ce qui n'est pas déjà repiloté chaque image. La musique en course est
    réécrite par `musicTick` à chaque frame (filtre-mouvement + ducking) : y poser une valeur ici
@@ -39021,7 +39370,8 @@ function musApercu(){
 window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait du curseur : lecture seule
   return {mode:musicMode,ciel:!!(typeof CHUTE!=='undefined'&&CHUTE.on),paused:paused,cible:+musicVolCible.toFixed(3),cour:+musicVolCour.toFixed(3),
     el:musicEl?{p:musicEl.paused,v:+musicEl.volume.toFixed(3),t:+musicEl.currentTime.toFixed(2),src:(musicEl.src||'').split('/').pop()}:null,
-    ap:{reste:Math.round(MUSAP.t-performance.now()),joue:MUSAP.joue,rev:MUSAP.rev},ctx:AC&&AC.state,volMus:VOL.mus,reglagesPause:!!window.__setPause};};
+    ap:{reste:Math.round(MUSAP.t-performance.now()),joue:MUSAP.joue,rev:MUSAP.rev},ctx:AC&&AC.state,volMus:VOL.mus,reglagesPause:!!window.__setPause,
+    jade:jadeMusOn(),jmus:!!(JMUS.inst&&JMUS.inst.playing),jvol:JMUS.vol};}; // (2026-10-14) au SOLEIL DE JADE la course joue JMUS, pas la radio
 (function(){ // un seul câblage pour les six curseurs (trois par interface)
   const bind=function(id,k){const e=document.getElementById(id);if(!e)return;
     const go=function(){volSet(k,+e.value);};
@@ -39055,11 +39405,12 @@ function sndRefresh(){
 }
 sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
 voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;SAVE.d.vox=SND.voice;SAVE.flush();sndRefresh();});
-if(musBtnEl)musBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh();
+function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh(); // (2026-10-14, session SON) LA bascule MUSIQUE : le bouton et le retour d'une longue absence (musRetour) passent par elle
   musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend
   if(SND.music){ if(started&&running&&!gameOver)musicStartRun(); else musicMenu(); } // rallumée : relance selon le contexte
   else musicStop(false); // éteinte : coupe net
-});
+}
+if(musBtnEl)musBtnEl.addEventListener('click',function(e){e.stopPropagation();musBascule();});
 sndRefresh();
 // ---------- ÉTAT ----------
 const keys={};
@@ -39559,10 +39910,10 @@ function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'a
   if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;}else VEQ.dDn=n;
 }
 function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
-  if(!started||gameOver||paused||introD||(TUTO.on&&!(FIGV2.on&&figTutoOk())))return false; // (2026-10-14, LES FIGURES v2) l'étape FIGURE de l'auto-école l'ouvre
-  if(mode==='drive')return veqSaut();
-  if(mode==='fall')return veqFigure();
-  return false;
+  if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte()))return false; // (2026-10-14) fermé pendant l'auto-école… sauf à son étape FIGURE
+  let ok=false;if(mode==='drive')ok=veqSaut();else if(mode==='fall')ok=veqFigure();
+  if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
+  return ok;
 }
 function veqSaut(){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle
   if(hopY>0||hopV!==0||POSE_F||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
@@ -39698,7 +40049,7 @@ function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on p
   VEQ.n++;try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}hap([10,30,10]);
   return true;
 }
-function veqFigFinie(f){addTrick('fig_'+f.id,f.n,Math.round(f.aura/16),f.aura>=120?2:1);} // la figure finie entre dans la CHAÎNE (son aura, payée à la pose)
+function veqFigFinie(f){addTrick('fig_'+f.id,f.n,Math.round(f.aura/16),f.aura>=120?2:1);if(TUTO.on)TUTO.fig=1;} // (2026-10-14) …et à l'auto-école, l'étape FIGURE est réussie // la figure finie entre dans la CHAÎNE (son aura, payée à la pose)
 function veqFigurePose(dt){ // en vol, chaque image, une fois la caisse placée : les figures en cours tournent autour du MILIEU de la caisse
   if(FL.actif)figLibreTick(dt); // les FIGURES LIBRES (l'élan du double-tap)
   const L9=VEQ.lect;if(!L9||!L9.occupe())return;
@@ -41526,7 +41877,7 @@ function respawn(){
   for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
-  JEAU.dans=false; // (2026-10-13) replacé sur la route : plus sous l'eau
+  JEAU.dans=false;JEAU.wB=0; // (2026-10-13) replacé sur la route : plus sous l'eau — (2026-10-14, revue des idées de Léo) et plus redressé par elle : wB restait vers 1 en conduite, et au saut suivant la vrille et le vol équilibré étaient coupés 1-2 s
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
@@ -42322,7 +42673,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
   if(bord)secBord(); // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
+  ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.wB=0;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
@@ -42568,7 +42919,7 @@ function tryLand(dt){
      la route. 0° = axé, 90° = en crabe, 180° = à contresens. Au-delà de FLOW2.pose.angle : pose RATÉE — pas de PARFAIT possible, et le
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
-  const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
+  const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */ FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose — (2026-10-14, revue des idées de Léo) il était collé au commentaire d'avant, donc avalé : jamais écrit
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
   vA*=(1-landLoss);vL*=(1-landLoss);
@@ -42853,6 +43204,110 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+/* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
+   ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER contre de l'ARGENT DU JEU — jamais d'euros, jamais de pub :
+   on repart d'où l'on est tombé (`respawn` : la dernière route sûre) avec le MOTEUR, la zone et le compteur de la partie ; la chaîne d'aura,
+   le flow et les pouvoirs sont partis avec l'explosion, une part des gains avec le prix, et le MOTEUR perd un palier (CHANCE.moteurPerte :
+   la caisse a explosé) — la mort reste une vraie sanction.
+   · LE PRIX monte avec la partie (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
+     triplait son revenu par minute), puis +0,05 par minute, plafond 0,8 ; CHANCE.plancher au moins, arrondi à deux chiffres (2 437 → 2 400). Le moteur perdu casse la pente de
+     l'argent (≈ T^2,1 : continuer une longue partie vaut bien plus que d'en recommencer une). Il se paie sur le COMPTE — qui contient déjà la partie, commitExploits vient de la verser. Jamais
+     proposée si le compte ne couvre pas le prix, ni sur une partie de moins de CHANCE.tMin secondes (on ne vend rien à qui a raté le 1er virage).
+   · LA FENÊTRE : CHANCE.fen après endGame, puis l'offre s'éteint seule. Aucun chrono à l'écran (INTERFACE : pas de fausse urgence).
+     Quitter l'écran de mort (menu, garage) la ferme aussi. Pas au bac à sable, à l'auto-école, au parc, au Survivant, ni sur une fin de
+     RÈGLE (semé, terminé : endGame sans explosion).
+   · LA COMPTABILITÉ SUIT. endGame a déjà VERSÉ la première partie (banque, aura, exploits, Top 10) : on ne rembourse rien, on décale les
+     BASES — la fin suivante ne verse que ce qui a été gagné depuis la reprise (`chanceBase`, CHANCE.a0, CHANCE.rs), ne compte pas une
+     2e partie (ex.runs), et la ligne du Top 10 de la première fin part (le score final, plus haut, la remplace).
+   · LA REPRISE : sous le volet, la caisse retombe sur sa ligne ; 3 · 2 · 1 (1,5 s) puis GO ; elle CLIGNOTE, invulnérable CHANCE.invD
+     secondes de course : un choc est ignoré, une chute (vide, trop d'air) la replace sans frais. 2 s de nitro offerte, comme au départ.
+   Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
+   (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
+const CHANCE={on:!/[?&]chance=0\b/.test(location.search),k0:.6,kPente:.05,kMax:.8,plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
+  offre:false,used:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
+function chanceJoli(x){if(!(x>0))return 0;const p=Math.pow(10,Math.max(0,Math.floor(Math.log10(x))-1));return Math.round(x/p)*p;} // deux chiffres qui comptent
+function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
+function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
+function chanceRaz(){clearTimeout(CHANCE.tm);const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
+function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
+  clearTimeout(CHANCE.tm);CHANCE.offre=false;
+  if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(RUNX.t||0)<CHANCE.tMin)return;
+  const k=Math.min(CHANCE.kMax,CHANCE.k0+CHANCE.kPente*Math.max(0,(RUNX.t||0)/60-3));
+  CHANCE.prix=chanceJoli(Math.max(CHANCE.plancher,k*Math.max(0,money-START_CASH)));
+  CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
+  CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
+  CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
+  chanceSignal();
+}
+function chanceEtat(){
+  const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&bank()>=CHANCE.prix);
+  return {ok:ok,prix:CHANCE.prix,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+}
+function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on repart sous le volet
+  if(!chanceEtat().ok)return false;
+  const P=CHANCE.prix;
+  clearTimeout(CHANCE.tm);CHANCE.used=true;CHANCE.offre=false;
+  SAVE.d.bank=Math.max(0,bank()-P);
+  CHANCE.m0=money;CHANCE.rs={tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0};
+  if(CHANCE.lb!=null){const i9=leaders.findIndex(function(e){return e.s===CHANCE.lb;});if(i9>=0)leaders.splice(i9,1);} // la ligne de la 1re fin part : la fin suivante posera le score de toute la partie
+  saveLeaders(); // (flush : le paiement et le Top 10 partent ensemble sur le disque)
+  RUNX.verse=null;MIS_REC=null;
+  try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(e){}hap([12,40,12,40,30]);
+  chanceSignal();
+  const go=function(){chanceRepart(P);};
+  try{goImmersive();}catch(e){}
+  if(typeof ecranWipe==='function')ecranWipe(go);else go();
+  return true;
+}
+function chanceRepart(P){ // sous le volet : la course reprend où elle s'est arrêtée
+  if(!started||!gameOver)return;
+  try{finSonsCoupe();}catch(e){}
+  mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';
+  clearBoom();RALENTI.t=0;
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
+  airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
+  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
+  if(CHANCE.moteurPerte>0&&engTier>0){engTier=Math.max(0,engTier-CHANCE.moteurPerte);coinsGot=ENGINE_TIERS[engTier].coins;} // le MOTEUR encaisse le choc : un palier (ses pièces avec), la vignette et le timbre suivent seuls
+  startBoostT=Math.max(startBoostT,2);paintMoney();
+  if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage (niveau 10) et le banquier (niveau 20) : ils reviennent
+  if(VBQ.on&&!VBQ.fini)VBQ.g.visible=true;
+  if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
+  musicStartRun(true);
+  CHANCE.inv=CHANCE.invD;
+  try{flashEcran('rgba(255,255,255,.35)');}catch(e){}
+  try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // les commandes reviennent À L'INSTANT
+  let n=3;const pas=function(){ // 3 · 2 · 1 : le compte du BOUCLIER (la caisse roule déjà ; ce n'est pas un gel)
+    const s9=avE('slam9');
+    if(!started||gameOver){if(s9)s9.classList.remove('compte','on');return;}
+    if(paused){CHANCE.tm=setTimeout(pas,200);return;} // la pause pendant le compte : il attend
+    if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2)sfx('ui.go');}catch(e){}return;}
+    slam(String(n),n===3?'−'+fmtC(P):'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
+    try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6);
+    n--;CHANCE.tm=setTimeout(pas,500);};
+  CHANCE.tm=setTimeout(pas,120);
+}
+function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige le bouclier avec le reste
+  CHANCE.inv=Math.max(0,CHANCE.inv-dt);
+  if(mode==='boom')return;
+  carGroup.visible=CHANCE.inv<=0||((CHANCE.inv*(CHANCE.inv<1?16:9))|0)%2===0; // il clignote, plus vite à la fin
+}
+function chanceProtege(cause){ // explode, pendant le bouclier
+  if(!(CHANCE.inv>0)||gameOver||mode==='boom'||!started)return false;
+  if(mode==='fall'||cause==='vide'||cause==='air'){ // une chute : replacée sans frais (comme le filet du mode facile)
+    airPie.style.display='none';airFlash=0;try{dolFin();}catch(e){}
+    respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;CHANCE.inv=Math.max(CHANCE.inv,1);}
+  return true; // un choc : ignoré
+}
+function chanceRefuse(){if(!CHANCE.offre)return false;clearTimeout(CHANCE.tm);CHANCE.offre=false;chanceSignal();return true;} // l'offre se ferme tout de suite (un geste ailleurs, la machine à sous d'IDEE qui veut sa place)
+function chanceAttend(){return !!(CHANCE.offre&&!CHANCE.used&&performance.now()<CHANCE.fin&&chanceEtat().ok);} // vrai tant que l'offre est à l'écran : ce qui vient APRÈS la mort (le FINAL SPIN) attend qu'elle tombe — l'événement cc:chance le dit
+window.chanceEtat=chanceEtat;window.chanceJoue=chanceJoue;window.chanceRefuse=chanceRefuse;window.chanceAttend=chanceAttend; // (l'écran de mort, IDEE et les bancs les appellent hors de l'IIFE)
+window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose · ('joue') prend l'offre · ('t',s) vieillit la partie · ('$',n) n $ encaissés · ('choc') un choc
+  if(k==='mort'&&started&&!gameOver&&mode!=='boom')explode('vide');
+  if(k==='joue')return chanceJoue();
+  if(k==='t'&&arguments.length>1)RUNX.t=+arguments[1];
+  if(k==='$'&&arguments.length>1){money=START_CASH+(+arguments[1]);try{paintMoney();}catch(e){}}
+  if(k==='choc'&&started&&!gameOver)explode('tour'); // pendant le bouclier : rien ne doit se passer
+  const e=chanceEtat();return {ok:e.ok,prix:e.prix,reste:e.reste,offre:CHANCE.offre,used:CHANCE.used,inv:+CHANCE.inv.toFixed(2),bank:Math.round(bank()),money:Math.round(money),t:+(RUNX.t||0).toFixed(1),gameOver:gameOver,mode:mode,base:chanceBase()};};
 function finSonsCoupe(){
   if(!SONV2||!window.CCSON)return;
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
@@ -42922,14 +43377,15 @@ function commitExploits(){
   const lecon=!!TUTO.quitte;
   if(!lecon){
   ex.eng=Math.max(ex.eng,engTier);
-  ex.tricks+=runStats.tricks|0;
-  ex.gaps+=runStats.gaps|0;
-  ex.bumps+=runStats.bumps|0;
-  ex.surv+=runStats.surv|0;
+  const rs9=(CHANCE.used&&CHANCE.rs)||{tr:0,ga:0,bu:0,sv:0}; // (2026-10-14) SECONDE CHANCE : la 1re fin a déjà versé ces compteurs-là
+  ex.tricks+=Math.max(0,(runStats.tricks|0)-rs9.tr);
+  ex.gaps+=Math.max(0,(runStats.gaps|0)-rs9.ga);
+  ex.bumps+=Math.max(0,(runStats.bumps|0)-rs9.bu);
+  ex.surv+=Math.max(0,(runStats.surv|0)-rs9.sv);
   ex.zones=Math.max(ex.zones,runStats.zones|0);
   ex.chain=Math.max(ex.chain,runStats.chainMax|0);
   ex.kmh=Math.max(ex.kmh,Math.round(runStats.vmax)||0);
-  ex.runs++;
+  if(!CHANCE.used)ex.runs++; // (une partie reprise reste UNE partie)
   }
   /* ---- LE VIREMENT ET L'AURA PARTENT EN PERSISTANT ------------------------------------------
      ⚠ ON NE VERSE QUE LES GAINS, PAS LE COMPTEUR. `money` démarre à `START_CASH` (1,61 €) à chaque
@@ -42938,12 +43394,12 @@ function commitExploits(){
      ⚠ ET ON NE VERSE QUE CE QUI A ÉTÉ ENCAISSÉ : la mallette en cours n'a jamais touché `money`,
      donc mourir en vol la perd, exactement comme avant. La banque ne rachète pas le bank-or-bust,
      elle en est la conséquence logique. */
-  const vire=Math.max(0,money-START_CASH)||0; // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
+  const vire=Math.max(0,money-chanceBase())||0; /* (2026-10-14) SECONDE CHANCE : après une reprise, seulement ce qui a été gagné depuis */ // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
   SAVE.d.bank=Math.min(1e30,bank()+vire);bankMaxMaj();
   const rangAvant=auraRank();
-  if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
+  if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0)); // (SECONDE CHANCE : l'aura d'avant la reprise est déjà versée)
   SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun));} // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
-  commitExploits._vire=vire;                       // relus par l'écran de fin
+  commitExploits._vire=CHANCE.used?Math.max(0,vire+CHANCE.v1-CHANCE.prix):vire; // relus par l'écran de fin (après une reprise : toute la partie, prix déduit)
   commitExploits._aura=Math.round(auraRun);
   commitExploits._rangMonte=auraRank()>rangAvant;  // un rang franchi se crie
   const got=carScan();
@@ -42963,18 +43419,20 @@ function enCoursPose(){
   try{
     if(!(started&&!gameOver&&!SANDBOX&&!TUTO.on&&!PARK.on))return false;
     const g=(CHA.n&&mode==='drive'&&running)?Math.round(CHA.pts*Math.max(1,CHA.x)):0; // endGame : chaineEncaisse() au sol seulement
-    SAVE.d.enCours={v:Math.max(0,money-START_CASH),a:Math.round(auraRun)+Math.max(0,g),e:engTier|0,
-      tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0,zo:runStats.zones|0,ch:runStats.chainMax|0,
+    const rs9=(CHANCE.used&&CHANCE.rs)||{tr:0,ga:0,bu:0,sv:0}; // (2026-10-14) SECONDE CHANCE : la 1re fin a déjà versé sa part
+    SAVE.d.enCours={v:Math.max(0,money-chanceBase()),a:Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0))+Math.max(0,g),e:engTier|0,
+      tr:Math.max(0,(runStats.tricks|0)-rs9.tr),ga:Math.max(0,(runStats.gaps|0)-rs9.ga),bu:Math.max(0,(runStats.bumps|0)-rs9.bu),sv:Math.max(0,(runStats.surv|0)-rs9.sv),zo:runStats.zones|0,ch:runStats.chainMax|0,
       km:Math.round(runStats.vmax)||0,s:Math.round(money),f:(FLOW.lv===4&&FREN.t>0)?Math.floor(FREN.t*10)/10:0};
     return true;
   }catch(e){return false;}
 }
 function enCoursRetire(){try{if(SAVE.d&&SAVE.d.enCours){delete SAVE.d.enCours;SAVE.flush();}}catch(e){}} // l'appli est revenue : la partie continue, c'est elle qui versera
 function endGame(){
+  nitroOn=false;nitroBlue=false; // (2026-10-14, revue des idées de Léo) mort nitro tenue : nitroOn restait vrai au garage et au ciel — le DOGE gardait sa gueule de nitro, grande ouverte, jusqu'à la partie suivante
   try{nitroooVide();}catch(e){} // (2026-09-29) …ni sur l'écran de fin
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
-  if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=3){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } // AUTO-ÉCOLE : on ne meurt pas en apprenant
+  if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=TUTO_ETAPES.length)return; if(TUTO.i>=3&&TUTO.i<5){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } /* (2026-10-14) à l'étape FIGURE on reste à la FIGURE */ // AUTO-ÉCOLE : on ne meurt pas en apprenant
   try{mortsVerse();}catch(e){} // (2026-09-30) le temps du dernier niveau rejoint la sauvegarde (flush plus bas)
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record
   if(mode!=='boom'&&!CAMP.garde)mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant · (2026-09-27) sauf une fin de CAMPAGNE (semé, terminé) qui pose la sienne
@@ -43041,6 +43499,7 @@ function endGame(){
     saveLeaders();
   }
   renderLeaders(q?leaders.findIndex(function(e){return e.s===sc;}):-1);
+  try{chanceOuvre(mode==='boom',sc,q);}catch(e){} // (2026-10-14) LA SECONDE CHANCE (voir CHANCE)
   overlay.style.display='flex';
   hautVide(); // l'écran de mort récapitule moteur et défis : la file du haut n'a plus rien à dire
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
@@ -52850,6 +53309,7 @@ function loop(now){
   let dt=Math.max(0,Math.min((now-last)/1000,.05));last=Math.max(last,now);
   if(TCTL.on&&running&&!paused&&!gameOver)hudColonne(dt); // (2026-10-14) la colonne de droite se MESURE ici, avant toute écriture du HUD de l'image (voir hudColonne)
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
+  if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
   const rawMs=Math.min(100,now-(loop._pn||now));
   const ms9=CAD.on?Math.max(0,rawMs-(CAD.per-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
   loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
@@ -53044,6 +53504,7 @@ function loop(now){
     if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
     steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
     graceT=Math.max(0,graceT-dt);
+    if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
     if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
     if(mode==='drive'){
