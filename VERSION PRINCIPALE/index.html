@@ -7751,7 +7751,7 @@ html.c6 body #garage #gCard>#gOeil:is(:active,.appui){translate:none!important;t
 html.c6 body #garage.vueSeule #gCard>#gOeil{--c6-f:var(--c6-b0);--c6-l:var(--c6-e0);--c6-x:var(--c6-e0)}
 html.c6 body #garage:is(.menu,.vitrine,.shopRet,.atelierInv,.modeShop) #gCard>#gOeil{display:none!important}
 /* le bas : deux rangées — INVENTAIRE | BOUTIQUE (48), puis LA décision (64, l'or) ; 8 px entre deux touches, la tranche de 4 px en plus sous la rangée */
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:48px 64px!important;column-gap:8px!important;row-gap:12px!important;align-items:stretch}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:var(--c6-h) var(--c6-hD)!important;column-gap:var(--c6-e)!important;row-gap:var(--c6-ev)!important;align-items:stretch} /* (accord n° 50) les jetons : 48 · 64, 8 côte à côte, 12 empilées (8 + la tranche) */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gRang1{display:contents!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvMis,#gvBranche,#gvLvl,#gvNivs,#gClose,#gPerso,#gBuyRow,#gCache),html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gBottom>#gRappel,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct #gHomeBas{display:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas){grid-row:1!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px!important;box-sizing:border-box;width:auto!important;min-width:0!important;height:48px!important;min-height:48px!important;
@@ -7786,6 +7786,13 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage :is(#gCard>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip,#gStrip>.gT){transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear!important}
 html.c6 body #garage #gTabs>.gTab{transition:background-color var(--c6-vite) linear,color var(--c6-vite) linear!important}
 html.c6 body #garage.atelierInv #gTabs>.gTab:not(.on):is(:active,.appui){background:var(--c6-e2)!important}
+/* (accord n° 49) LES MARGES SANS COMPENSATION : la plaque du bas (#gBottom de l'ancienne feuille : 12 px de marge intérieure, posée à sR+14 couché et à
+   10 px de chaque bord debout) se pose elle-même sur la marge de la charte, sans marge intérieure de côté — #gAct n'a plus de marges négatives (−10 / −6)
+   pour retomber sur 16 + zone sûre. Debout : sa largeur = l'écran − 2 × 16 − les zones sûres (la vieille max-width 560 la centre sur tablette). */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gBottom{padding-left:0!important;padding-right:0!important;width:calc(100% - var(--sL,0px) - var(--sR,0px) - 2 * var(--c6-m))!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gBottom{right:var(--c6-x-d)!important;width:min(48%,450px)!important}
+}
 @media (prefers-reduced-motion:reduce){html.c6 body #garage :is(#gCard>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip,#gStrip>.gT,#gTabs>.gTab){transition:none!important}}
 html.c6[data-reduced-motion="1"] body #garage :is(#gCard>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip,#gStrip>.gT,#gTabs>.gTab){transition:none!important}
 /* la jauge qui tourne le garage (Léo) : gardée, à plat — un patin blanc droit cerné d'encre */
@@ -7795,14 +7802,13 @@ html.c6 body #bdGar2{top:-4px!important;right:-4px!important;width:8px;height:8p
   transform:none!important;animation:none!important;background:var(--c6-or)!important;box-shadow:0 0 0 2px #000!important}
 /* COUCHÉ : le bloc des touches ne s'élargit pas (la caisse garde la place), calé à droite */
 @media (orientation:landscape){
-  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:-10px!important}
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:0!important}
   /* (p2, accord) INVENTAIRE · BOUTIQUE en 15/800 : couché, 10 lettres ≈ 112 px remplissent la touche (144 px utiles) → le mot seul, sans l'icône */
-  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) .pxi{display:none!important} /* son bord droit = celui des comptes (16 px + zone sûre) : #gBottom garde 12 px de marge intérieure et déborde de 2 */
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) .pxi{display:none!important}
 }
 /* DEBOUT : les deux comptes s'empilent à droite (ils ne tiennent pas à côté du titre sur 390 px) ; la fiche passe dessous, sur toute la largeur */
 @media (orientation:portrait){
   html.c6 body #garage>#gC6Tete .c6Comptes{grid-auto-flow:row;align-self:flex-start}
-  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{margin-left:-6px!important;margin-right:-6px!important} /* debout : la rangée va de marge à marge (16 px), comme l'en-tête */
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
 }
 /* ---- L'INVENTAIRE = L'ATELIER FERMÉ (#garage.atelierInv) (2026-10-14, charte 6) ---------------------------------------
