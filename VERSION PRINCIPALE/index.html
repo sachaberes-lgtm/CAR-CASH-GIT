@@ -28279,6 +28279,7 @@ let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPun
    · sensSecoue(k) : une petite secousse de caméra, plafonnée (.4), moitié en vol (on y vise), rien sous « Réduire les animations ». */
 const SCOUP={p:0,pv:0,ht:0,hf:0,hop:0,hopP:false}; // le tangage EN PLUS du jeu (rad, rad/s) — le roulis et le débattement ont déjà leurs ressorts (rollV, susV) · ht/hf : la dernière vibration · hop/hopP : la hauteur du petit saut en cours (dos d'âne, replacement) et s'il porte une pose déclarée en l'air
 function sensCoup(versLat,nez,pompe){if(!SENS||mode!=='drive')return;rollV=THREE.MathUtils.clamp(rollV-(versLat||0),-5,5);SCOUP.pv=THREE.MathUtils.clamp(SCOUP.pv+(nez||0),-4,4);susV=THREE.MathUtils.clamp(susV+(pompe||0),-4,4);}
+SCOUP.vp=0;SCOUP.vt=0; // (2026-10-14, gameplay · accord) la vibration du verdict de pose qui attend le contact (motif, heure) — voir tryLand
 function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;if(t-(hap._t||-1e9)<70)return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
 /* (2026-10-14, gameplay · accord) LA MAIN N'A QU'UNE VOIX PAR ÉVÉNEMENT. Le limiteur ne voyait que les vibrations de la passe : un détail
    SENS pouvait doubler, à la même image, le coup que le jeu venait de donner (le braquage qui arrache la caisse : [16,40,16] PUIS le tic
@@ -39088,11 +39089,14 @@ function poseParfaiteFx(divin){
    deux impulsions sur ses ressorts (sensCoup), elle se repose seule. Le débattement reste à squashT : on ne le double pas. */
 function sensPose(imp,psi0,verdict){
   const k=Math.min(1,Math.max(0,imp||0)/10);
-  sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),.35+1.5*k,0);
+  /* (2026-10-14, gameplay · accord) LE NEZ NE PLONGE QU'UNE FOIS : le VOL ÉQUILIBRÉ de Léo le fait plonger au même contact (veqContact →
+     VEQ.sp, ressort ω 13, dosé lui aussi par le choc) — les deux ressorts s'additionnaient (mesuré au banc, voir notes/accord.md). Sous le vol
+     de Léo, seul son nez reste ; ce détail garde le DÉVERS du crabe (que veqContact ne fait pas). `?vol=ancien` : le nez d'ici revient. */
+  sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),VEQ.on?0:.35+1.5*k,0);
   /* LA MAIN : la vibration de pose vit dans le VERDICT (PARFAIT 15 · ordinaire 14 · LOURD 45) — qui ne juge que les vrais vols (> 0,7 s ou
      une chaîne). Une petite retombée (trou enjambé, crête, sortie courte) touchait le bitume sans que la main le sache. Celle-là, et elle
      seule, reçoit son coup au contact, dosé par le choc : plume · net · lourd. */
-  if(!verdict)sensHap(imp>=10?34:imp>=4.5?16:9,imp>=10?3:imp>=4.5?2:1);
+  if(!verdict)sensHap(imp>=10?45:imp>=4.5?16:9,imp>=10?3:imp>=4.5?2:1); // (2026-10-14, accord) lourde = 45, comme le POSÉ LOURD du verdict (34 ms passait pour un coup MOYEN sur le Taptic d'iOS)
 }
 /* (2026-10-14, sensations · pose) LE BUMP RACLE. Les étincelles du rebond naissaient au CENTRE de la caisse, en boule, et restaient sur
    place. Celles-ci partent du FLANC qui a touché (la tranche, une demi-largeur vers la route), giclent vers le vide et filent AVEC la
@@ -39147,6 +39151,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   if(fallVel.y>70)fallVel.y=70;
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
+  SCOUP.vp=0; // (2026-10-14, accord) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   {tmp.copy(fallVel).normalize();FLY_U.copy(F.n).addScaledVector(tmp,-F.n.dot(tmp)); // (vol libre) le haut du vol part de celui de la route
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
@@ -39369,6 +39374,7 @@ function tryLand(dt){
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
+     if(SENS&&SCOUP.vp)try{const p9=SCOUP.vp,n9=performance.now();SCOUP.vp=0;if(n9-SCOUP.vt<1200&&n9-(hap._t||-1e9)>=70)hap(p9);}catch(e){} // (2026-10-14, accord) la vibration du VERDICT, gardée depuis la déclaration : elle tombe avec les roues (et se tait si une autre vient de partir)
      engRpm*=.6;charge9=1;if(imp9>2)pneuMord(Math.min(1,imp9/10));}; // la gomme MORD : le moteur reprend en charge, et ça piaille
    if(hR9>.25){hopY=hR9;hopV=(sd9>0?vN9:-vN9)*SPD;POSE_F=touche9;}else{hopY=0;hopV=0;POSE_F=null;if(sd9>0&&hR9<0)levreY=Math.max(-.6,hR9);touche9();}} /* posée SOUS le niveau du bitume (lèvre, plan percé) : elle remonte sa marche en ~0,15 s (levreY) au lieu d'y sauter */
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
@@ -39391,16 +39397,21 @@ function tryLand(dt){
     }
   }
   // ---- LE VERDICT : la CHAÎNE se cashe — grade de réception × face × série ----
+  /* (2026-10-14, gameplay · accord) LA MAIN SENT LE CONTACT, PAS LA DÉCLARATION. La pose est déclarée à 3 m du bitume (voir LA POSE SANS
+     SAUT) ; la caisse finit sa descente en hopY et TOUT le choc part au contact (touche9 : gerbe, thud, secousse, suspension, nez, caméra
+     de Léo) — sauf la vibration du verdict, qui partait ici, un quart à un tiers de seconde AVANT les roues (mesuré au banc). Elle attend
+     désormais le contact (SCOUP.vp, joué par touche9). Posée tout de suite (sans descente) : rien ne change. `?sens=0` : comme avant. */
+  const hapV9=SENS&&POSE_F?function(p){SCOUP.vp=p;SCOUP.vt=performance.now();}:hap;
   if(fallT>.7||chain>0||chainVal>0){ // (2026-09-26) chainVal>0 : le REPORT annoncé au décollage se paie même sur une courte sortie
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
     if(poseRatee){g=.65;gTxt='';} // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
-    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
-    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hap(45);}
-    else hap(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
+    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hapV9(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
+    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hapV9(45);}
+    else hapV9(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
     if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée)
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
-      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hap(15);}
+      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hapV9(15);}
       else{g=1;gTxt='';}
     }
     if(g>=1.5)try{poseParfaiteFx(g>=2);}catch(e){} // (2026-09-28) coup de zoom + couronne dorée
