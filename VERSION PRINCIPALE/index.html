@@ -7813,6 +7813,14 @@ html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{di
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
   html.c6 body #garage.atelierInv>#gC6Tete>#gC6TitreInv{font-size:12px}
 }
+/* (2026-10-14, vu au banc) COUCHÉ : la fiche s'arrête 8 px AVANT la plaque (à 48 % elle passait dessous de 24 px à 844 et de 36 px à 667 : un nom long y aurait disparu).
+   Sous 700 px de large il reste ~150 px au nom : il passe à 12 px sur des lignes de 16 (12 lettres × 12 = 144 : « TOUT-TERRAIN » tient sans être coupé). */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:calc(100% - var(--sR) - 24px - min(48%,400px))!important}
+}
+@media (orientation:landscape) and (max-height:540px) and (max-width:700px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName{font-size:12px!important;line-height:16px!important}
+}
 </style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
