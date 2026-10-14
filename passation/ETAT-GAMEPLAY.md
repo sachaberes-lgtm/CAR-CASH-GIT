@@ -15,9 +15,13 @@
   CADEAU toutes les ~6 h. Contrat INTERFACE `cadeauEtat()`→{pret,dansMs,jour,serie}, `cadeauOuvre()`. Ligne d'accueil `#mCadeau` posée par
   GAMEPLAY (style `cadeauLigne`, JS `cadeauLigne()` 1 Hz) : debout au-dessus de MISSIONS, couché sous JOUER — INTERFACE peut la redessiner.
   `dbgJour()`, `dbgCadeau('pret'|'attente')` ; tests `outils/jour-modele.cjs`, `outils/jour-test.cjs`.
-- **LES ÉVÉNEMENTS RARES** (même push) : moutons · caisse-nuage · banquier, 1 max par partie (`EVT_P=.75`), prime `120×denom()` ; `?evt=0`,
-  `dbgEvt(nom)` ; test `outils/evt-test.cjs`. Caisse-nuage et banquier vus en vraie course (0 erreur JS). Moutons : refusés là où la route n'est pas
+- **LES ÉVÉNEMENTS RARES** (même push) : moutons · caisse-nuage, 1 max par partie (`EVT_P=.75`), prime `120×denom()` ; `?evt=0`, `dbgEvt(nom)` ;
+  test `outils/evt-test.cjs`. Le BANQUIER a été retiré le soir même (ordre de Sacha, DEBUGING ff4205c). Moutons : refusés là où la route n'est pas
   droite (voulu, la caisse-nuage prend le relais) — pas encore VUS à l'écran.
+- **Soir (train)** : le « +1 » de la pièce flotte à côté de la caisse (`piece1Plus`, `.p1f`, 3 étiquettes recyclées, cumul +2 +3) et le « +$ » sous le
+  compteur est éteint · le SOLDE PRÉCIS partout (`fmtSolde`/`soldeEcrit`/`soldeFit`, un seul « $ », il roule 0,7 s, la police descend si ça déborde ;
+  `dbgSolde({banque,course})`) · l'ESPACE : 5 s de vol (`ORB_AIR=5/6`, Sacha) · la règle des RACCOURCIS (`passation/RACCOURCIS.md`, `dbgTrace`,
+  `vPalier`, `rayonPalier`, banc `cc-banc/raccourcis.cjs <carte> <graine> [--palier N] [--depuis trace.json]`).
 - **Son** : la matière du tour par axe (`figMat`, diff de SON). **Seconde chance** (GENERAL) : barème conseillé k0 .6, kPente .05, kMax .8, plancher 300, moteur −1.
 
 ## SUITE, PAR PRIORITÉ
@@ -28,6 +32,7 @@
 
 ## RÈGLES DE TRAVAIL (apprises aujourd'hui)
 - Worktree à soi ; `git -c core.autocrlf=false add` de fichiers nommés ; avant commit, `git diff --stat` = vrai nombre de lignes (piège CRLF).
-- Bancs : `C:/Users/sacha/cc-banc/lib.cjs` (file équitable), fumée `cc-banc/fumee.cjs` AVANT le verrou `cc-push.lock` ; cache sw.js = main + 1.
+- Bancs : `C:/Users/sacha/cc-banc/lib.cjs` (file équitable). POUSSÉE = LE TRAIN (`C:/Users/sacha/cc-train/LISEZMOI.txt`) : merge main, gardes, banc métier,
+  push de la branche, inscription dans `cc-train/file.txt` ; ne pas monter sw.js.
 - Une boucle gelée au banc (`__gel`) ne se relance pas seule : avancer par `dbgStep` jusqu'au bout.
 - Accueil ux8 : JOUER se lance au DOIGT (`page.touchscreen.tap`), un clic souris ne démarre pas la partie.
