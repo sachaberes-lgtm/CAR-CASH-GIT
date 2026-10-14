@@ -42424,8 +42424,8 @@ function buildGarageRoom(){
          dx.clearRect(x0+8,yw+8,w-16,h-16);                                                     // le trou : derrière, le feu
          for(const [cx,cy] of [[x0+8,yw+8],[x0+w-11,yw+8],[x0+8,yw+h-11],[x0+w-11,yw+h-11]]){dx.fillStyle='#5a6078';dx.fillRect(cx,cy,3,3);} // coins arrondis, en pixels
          ex.fillStyle='#3a1206';ex.fillRect(x0,yw,w,h);}}                                        // le reflet du feu sur le cadre
-       if(i===4){dx.fillStyle='#ff3ec8';dx.fillRect(40,y0+14,DW-80,3);dx.fillRect(40,y0+84,DW-80,3);   // LE BANDEAU : néon rose
-         ex.fillStyle='#c4268e';ex.fillRect(40,y0+14,DW-80,3);ex.fillRect(40,y0+84,DW-80,3);
+       if(i===4){dx.fillStyle=GARAGE_V?'#ffb24a':'#ff3ec8';dx.fillRect(40,y0+14,DW-80,3);dx.fillRect(40,y0+84,DW-80,3);   // LE BANDEAU : néon rose
+         ex.fillStyle=GARAGE_V?'#b8741c':'#c4268e';ex.fillRect(40,y0+14,DW-80,3);ex.fillRect(40,y0+84,DW-80,3);
          dx.font='44px "Press Start 2P", monospace';dx.textAlign='center';dx.textBaseline='middle';
          const tx=DW/2,ty=y0+52;dx.fillStyle='#4a2600';dx.fillText('CASH CAR',tx+5,ty+5);dx.fillText('CASH CAR',tx+3,ty+3); // l'épaisseur
          const go=dx.createLinearGradient(0,ty-22,0,ty+22);go.addColorStop(0,'#fff4b0');go.addColorStop(.45,'#ffcf3a');go.addColorStop(1,'#c4820c');
@@ -42671,8 +42671,8 @@ function buildGarageRoom(){
     cb('C',.05,.16,.018,x9,3.47,pz,0,0,0,.006);cl('C',.02,.03,8,x9,3.38,pz,Math.PI/2);}
   // L'ÉTAGÈRE HAUTE sur équerres : bidons d'huile étiquetés, cartons scotchés
   
-  GAR.neons.push(flat(neonTex('CASH CAR',0xff4fbf,26),-2.4,5.35,-hd+.2,7.2,2.25,0,THREE.AdditiveBlending));
-  GAR.neons.push(flat(neonTex('$',0x5ff0ff,52),5.4,4.5,-hd+.2,1.9,1.9,0,THREE.AdditiveBlending));
+  GAR.neons.push(flat(neonTex('CASH CAR',GARAGE_V?0xffc46a:0xff4fbf,26),-2.4,5.35,-hd+.2,7.2,2.25,0,THREE.AdditiveBlending));
+  GAR.neons.push(flat(neonTex('$',GARAGE_V?0xfff0d0:0x5ff0ff,52),5.4,4.5,-hd+.2,1.9,1.9,0,THREE.AdditiveBlending));
   flat(postTex,6.9,2.9,-hd+.2,2.3,1.72);                                                // l'affiche, dans un cadre noir
   cb('N',2.42,.06,.04,6.9,3.79,-hd+.19,0,0,0,.01);cb('N',2.42,.06,.04,6.9,2.01,-hd+.19,0,0,0,.01);
   for(const s of [-1,1])cb('N',.06,1.84,.04,6.9+s*1.18,2.9,-hd+.19,0,0,0,.01);
@@ -42832,7 +42832,7 @@ function buildGarageRoom(){
    const hh=new THREE.Mesh(CN,haloM);hh.scale.set(2.4,2.8,2.4);hh.position.y=-4.1;piv.add(hh);}
   for(let i=0;i<14;i++){                                                // fanions de course au-dessus de la porte
     const u=i/13,px=-9.5+u*19,py=5.25-Math.sin(u*Math.PI)*.5;
-    const f=add9(PL,BA([0xff4fbf,0x5ff0ff,0xffcf3d,0x67ff9e][i%4],{side:THREE.DoubleSide}),px,py-.16,10.8,.28,.34,1);
+    const f=add9(PL,BA((GARAGE_V?[0xe9b94a,0xf4ead2,0xffffff,0xc99a3a]:[0xff4fbf,0x5ff0ff,0xffcf3d,0x67ff9e])[i%4],{side:THREE.DoubleSide}) /* (garage-lumiere) la guirlande : or, crème, blanc */,px,py-.16,10.8,.28,.34,1);
     f.rotation.z=Math.PI/4;f.rotation.y=.4;}
   // POUSSIÈRE EN SUSPENSION : 110 points qui montent lentement dans les cônes. C'est le détail qui
   // fait passer un décor de « propre » à « habité » — et ça tient en un seul draw call.
@@ -42901,7 +42901,7 @@ function buildGarageRoom(){
    B9.plaf=nappe(plaTex,0xff5a18,0,H-.02,hd-6,W-1,12,.16);B9.plaf.rotation.x=Math.PI/2;
    // --- LE PORTAIL : liseré néon rose autour de l'ouverture (un cœur blanc, un halo rose — le bloom finit le travail)
    const neoTex=cvT(32,4,(x,w,h)=>{const gr=x.createLinearGradient(0,0,w,0);
-     gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.36,'rgba(255,90,190,.55)');gr.addColorStop(.5,'rgba(255,245,252,1)');gr.addColorStop(.64,'rgba(255,90,190,.55)');gr.addColorStop(1,'rgba(255,255,255,0)');
+     gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.36,GARAGE_V?'rgba(255,176,90,.55)':'rgba(255,90,190,.55)');gr.addColorStop(.5,GARAGE_V?'rgba(255,248,236,1)':'rgba(255,245,252,1)');gr.addColorStop(.64,GARAGE_V?'rgba(255,176,90,.55)':'rgba(255,90,190,.55)');gr.addColorStop(1,'rgba(255,255,255,0)');
      x.fillStyle=gr;x.fillRect(0,0,w,h);});
    B9.neons=[];
    for(const sx of [-1,1]){const m=nappe(neoTex,0xffffff,sx*4.64,2.32,hd-.33,.46,4.62,.95);m.rotation.y=Math.PI;B9.neons.push(m);}
@@ -42919,7 +42919,7 @@ function buildGarageRoom(){
      const sp=add(new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xffa218,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})));
      sp.position.set(sx*5.3,5.04,hd-.34);sp.scale.set(2.2,1.3,1);B9.gyro.push({s:sp,ph:sx>0?0:Math.PI*.85});}
    // --- LE PLAFOND : une bande LED sous chaque poutre, et deux qui filent le long des gaines vers le feu
-   const ledM=BA(0xc8f1ff);
+   const ledM=BA(GARAGE_V?0xfff0dc:0xc8f1ff); // (garage-lumiere) blanc chaud
    for(let i=-2;i<=2;i++)bx(0,H-.86,i*5.4,W-1.4,.035,.1,ledM);
    for(const px of [-3.4,3.4])bx(px,H-1.12,0,.05,.035,D-2,ledM);
    // --- LE PLATEAU DE SHOWROOM : le dessus en acier brossé brillant (le côté et le dessous gardent le fer)
