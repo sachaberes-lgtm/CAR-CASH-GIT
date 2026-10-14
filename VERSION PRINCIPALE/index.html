@@ -18076,7 +18076,39 @@ let level=0; // la caisse CONDUITE (choisie au garage). Fixe pendant toute une p
 // PUREMENT COSMÉTIQUE : l'indexer sur `level` faisait qu'équiper une belle caisse donnait d'emblée
 // des pièces à 40 000 — d'où la tirelire à 320 000 dès le premier écran. Le moteur, lui, part
 // toujours de zéro : l'économie repart donc au même point à chaque partie.
-function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain;} // clamp sur la table elle-même : la liste de paliers peut grandir sans qu'un 23 codé en dur la tronque · ×ECO3.gain (vague 3) : tous les seuils relatifs (mallette « chaude », caisse enregistreuse, verdicts) suivent seuls
+function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain*ECOD.k;} // clamp sur la table elle-même : la liste de paliers peut grandir sans qu'un 23 codé en dur la tronque · ×ECO3.gain (vague 3) : tous les seuils relatifs (mallette « chaude », caisse enregistreuse, verdicts) suivent seuls
+/* (2026-10-14, GAMEPLAY — Sacha : « le premier achat — la PEINTURE la moins chère — doit tomber à la 4e PARTIE d'un joueur MOYEN, sans toucher aux PRIX de Léo ; les gains du début sont relevés, et ce relèvement s'éteint après le 1er achat ») L'ARGENT DU DÉBUT.
+   LE LEVIER : denom() × ECOD.k. Toute la paie de COURSE (pièces, portail, fins de monde, butins de la ville) passe déjà par denom() × flowMult() : on ne crée pas
+   de deuxième chemin d'argent, on règle le robinet qui existe. Les PRIMES (permis, défis) et les PRIX (COSM, CAR_UNLOCK) ne bougent pas.
+   QUAND IL VAUT — décidé au DÉPART de chaque partie (runxReset → ecoDebutMaj), donc constant pendant toute la partie : ECOD.coup (×1,5) tant que
+   (1) rien n'a été acheté en boutique (caisse, peinture, aile, traînée, figure : voir ecoDebutAchat — un habillage GAGNÉ par un carnet n'est pas un achat) ;
+   (2) la banque n'atteint pas la peinture la moins chère (le filet : qui peut déjà se l'offrir n'a plus besoin d'aide, même s'il garde son argent pour autre chose) ;
+   (3) ni `?eco=ancien` (strictement l'ancienne économie) ni le code cousin. Un achat, quel qu'il soit, l'éteint pour toujours : aucun champ de sauvegarde, tout se relit sur l'état.
+   LE CALCUL (outils/eco-debut-modele.cjs : les constantes sont LUES dans ce fichier, les comportements sont des hypothèses écrites) — le joueur MOYEN tient 45-90 s, prend la
+   moitié des pièces, entre dans le flow I vers 40 s, remplit le carnet 1 vers la 1re-3e partie : ~175 $ par partie. Sans relèvement la MENTHE GLACÉE (2 500 $) tombe à la 6e
+   partie (médiane, 11 % des joueurs avant la 5e) ; avec ×1,5 à la 4e (25 % dès la 3e, 62 % au plus tard à la 4e, 89 % à la 5e). ⚠ Le résultat dépend surtout des PRIMES, pas des
+   pièces : si ce joueur fait aussi la moitié des défis du carnet 2 (1 800 $), il l'a déjà à la 3e même sans relèvement — ECOD.coup est LE bouton à reprendre après un vrai test
+   (`dbgEcoDebut()` dit où l'on en est). Le joueur qui meurt avant 45 s (25-30 $ par partie) n'y arrive pas par les pièces : son plancher est un autre chantier. */
+const ECO_ANCIEN=/[?&]eco=ancien\b/.test(location.search); // `?eco=ancien` : ECOD.k reste à 1, l'économie d'avant au dollar près
+const ECOD={coup:1.5,k:1,raison:'depart'}; // coup : LE réglage · k : ce que la partie en cours applique · raison : pourquoi (actif · achat · assez · cousin · ancien · erreur)
+function ecoDebutPrix(){let m=1e30;for(const x of COSM.peinture)if(x.p>0&&x.p<m&&!x.sec&&!x.mis&&!x.retire&&!x.eur)m=x.p;return m;} // la peinture la moins chère EN VENTE, LUE sur COSM : si les prix changent, le seuil suit — (GAMEPLAY, relecture) ni les couleurs SECRÈTES (gagnées par un DÉFI ou le pack), ni celles d'un carnet, ni les retirées, ni celles en euros
+function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TONNEAU est offert), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
+  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.length>1)return true;
+  const o=d.shop&&d.shop.own;if(o)for(let i=0;i<o.length;i++){const a=String(o[i]).split(':'),l=COSM[a[0]],x=l&&l.find(function(y){return y.id===a[1];});if(x&&x.p>0)return true;}
+  return false;
+}
+function ecoDebutEtat(){ // {k, raison} — pur : ne touche à rien
+  try{
+    if(ECO_ANCIEN)return {k:1,raison:'ancien'};
+    if(cousin())return {k:1,raison:'cousin'};
+    if(ecoDebutAchat())return {k:1,raison:'achat'};
+    if(bank()>=ecoDebutPrix())return {k:1,raison:'assez'};
+    return {k:ECOD.coup,raison:'actif'};
+  }catch(e){return {k:1,raison:'erreur'};} // SAVE ou COSM pas encore déclarés (le tout premier buildCar tourne avant eux) : l'ancienne économie
+}
+function ecoDebutMaj(){const e=ecoDebutEtat();ECOD.k=e.k;ECOD.raison=e.raison;return e.k;} // appelée par runxReset : UNE fois par partie
+window.dbgEcoDebut=function(){const e=ecoDebutEtat(),p=ecoDebutPrix(),b=bank(); // (2026-10-14, GAMEPLAY) l'état du relèvement : `k` = ce que la partie en cours applique, `prochain` = ce que la suivante appliquerait
+  return {actif:ECOD.k>1,k:ECOD.k,raison:ECOD.raison,prochain:e.k,raisonProchaine:e.raison,coup:ECOD.coup,parties:(SAVE.d.ex&&SAVE.d.ex.runs)|0,achatFait:ecoDebutAchat(),banque:b,peintureMin:p,manque:Math.max(0,p-b),ancien:ECO_ANCIEN};};
 // LANGUE & DEVISE (2026-09-03) : la devise est désormais UNIQUE — le dollar, quelle que soit la
 // langue d'affichage (avant : le français comptait en euros). `CUR()` ne dépend donc plus de `LANG` ;
 // seul `LOC()` (le séparateur des milliers/décimales) suit encore la langue.
@@ -18739,7 +18771,7 @@ function cashHudTick(dt){
 // La 2e ligne parle du MOTEUR et non plus d'un « NIVEAU X / 24 » : le numéro de caisse n'est plus une
 // progression depuis qu'on choisit sa carrosserie au garage, il ne veut plus rien dire.
 function paintCarHud(){
-  const k=level+'|'+engTier;
+  const k=level+'|'+engTier+'|'+ECOD.k; // (2026-10-14, GAMEPLAY) + le relèvement du début : la valeur de la pièce change avec lui
   if(paintCarHud._k===k)return;
   paintCarHud._k=k;
   try{
@@ -29664,7 +29696,7 @@ function nitroGain(q,src){
   if(LIVRE.on){livre('n+:'+(src||'?'),nitroR-av);livre('n0:'+(src||'?'),q-(nitroR-av));}
   if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
-function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
+function runxReset(){flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le relèvement du début se décide ICI, une fois par partie (voir ECOD) */RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
 RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
