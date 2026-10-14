@@ -13718,9 +13718,9 @@ function villeRose(){const c=typeof LVL!=='undefined'&&LVL.cur;return VILLE_ROSE
 /* (2026-10-14, LA BIBLE CAR CASH — passation/DA-CARCASH.md, validée par Sacha) LA SIGNATURE DE ROUTE : bords néon ROSE + nappe + ligne centrale OR, sur
    chaque map passée à la bible (une map à la fois, chacune son `?sans=`). routeSig() dit si la map courante la porte. La ville au néon (villeRose) garde
    sa peinture caméléon d'origine ; les autres reçoivent le rose de la marque, plein la nuit et sous la pluie, ~70 % de jour (jamais blanc ni éteint). */
-const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search)};
+const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),nuagesjour:!/[?&]sans=([^&]*,)?nuagesjour(,|&|$)/.test(location.search)};
 function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)return false;const b=c.bio[0];
-  return (SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
+  return (SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
@@ -20696,6 +20696,14 @@ Object.assign(BIOMES.tempete,{sunI:.4,hemiI:.46,volSun:[.45,.5,.72],volSky:[.2,.
    et brume en LINÉAIRE. `?sans=aurore2` = l'image d'avant (rien n'est écrit). */
 const AURORE2_V=!/[?&]sans=([^&]*,)?aurore2(,|&|$)/.test(location.search);
 if(AURORE2_V)Object.assign(BIOMES.aurore,{jour:1,daHi:0,wb:[1,1,1],sh:[-.006,.008,.03],hi:[0,0,0],sat:1.06,con:1.16,expo:.97,rtK:.85,jZen:[.20,.37,.67],jMid:[.51,.60,.75],jHor:[.90,.83,.72],jSol:[.38,.29,.18],sunTint:[1,.88,.68],sunHalo:.85,fog:[.90,.86,.82],fogN:900,fogF:5200,fogCj:[.95,.89,.80],fogIn:[.95,.95,.96],hemiS:[.80,.85,.92],hemiG:[.62,.62,.66],hemiI:.66,sunC:[1,.90,.76],sunI:1.5,fillC:[.56,.68,.90],fillI:.26,kickC:[.9,.8,.7],kickI:.1,volSun:[2.1,2.0,1.9],volSky:[.78,.82,.92],volGnd:[.7,.72,.8],volAmb:.85,vigK:.24,vigC:[.05,.07,.1],env:[[0,'#6E95C8'],[.3,'#A9BFDA'],[.48,'#F2DFC8'],[.58,'#FBEBD6'],[.66,'#B8BEC8'],[1,'#8C94A6']],eS1:[255,232,200,.46],eS2:[170,200,240,.3]});
+/* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · nuagesjour) LA MER DE NUAGES DE JOUR SORT DU BLANC (mur des maps : ciel L* 91-95, chroma 1-2, brume #f7f0ea).
+   Des COPIES pour la course (`nuagesMatinCC`, `nuagesMidiCC`, branchées sur SF_CARTES plus bas) : le menu et le titre gardent matin/midi au bit près.
+   Zénith azur → horizon PÊCHE, brume bleu tendre (plus jamais blanche), ombre des cumulus bleu ciel (ventres colorés, pas gris), mer aux sommets crème
+   chaud et aux creux bleus, contre-jour ROSE, saturation effective ~1,38 ; plus la signature de route (bords roses, ligne or). `?sans=nuagesjour`. */
+if(SIG_V.nuagesjour){
+ BIOMES.nuagesMatinCC=bioMet(BIOMES.matin,{nm:'MATIN CLAIR',sat:1.14,con:1.22,jZen:[.10,.30,.66],jMid:[.40,.60,.86],jHor:[1,.74,.52],jSol:[.62,.40,.20],fog:[.70,.74,.84],fogCj:[1,.80,.62],fogIn:[.88,.90,.96],kickC:[1,.38,.66],kickI:.2,nuLav:[.62,.74,1],nuR:[-.3,.45,.62,1],mzH:[1,.92,.82,.5],mzO:[.42,.56,.86,.6],vigC:[.05,.06,.14]});
+ BIOMES.nuagesMidiCC=bioMet(BIOMES.midi,{nm:'MIDI',sat:1.14,con:1.24,jZen:[.08,.28,.68],jMid:[.34,.58,.90],jHor:[.95,.80,.64],jSol:[.40,.32,.20],fog:[.66,.74,.88],fogCj:[.96,.86,.72],fogIn:[.86,.90,.96],kickC:[1,.38,.68],kickI:.18,nuLav:[.60,.74,1],nuR:[-.3,.45,.62,1],mzH:[1,.95,.88,.45],mzO:[.40,.56,.88,.6],vigC:[.05,.06,.14]});
+}
 if(MERNUIT_V2){ // (2026-10-14, passe graphismes · mer-nuit) LA MER S'ÉTEINT LA NUIT ET À L'ORAGE : sommets et ombres de la mer (GLSL merZ) posés en LINÉAIRE ; ailleurs w 0 (BIO_ETAL0)
  Object.assign(BIOMES.nuagesNuit,{mzH:[.013,.023,.084,.85],mzO:[.004,.007,.028,.85],nuA:[.32,.34,.41]}); // NUIT : sommets bleu nuit #1E2A52 (= l'horizon du ciel), ombres encre — avant : sommets blanc crème, ombres indigo clair (+.10,.10,.16) ; ouate ×(.32,.34,.41) : la couleur du ciel nocturne, un cran moins bleue que la cible .30/.34/.45 (vu : bleu roi saturé), plus la lune en plein
  Object.assign(BIOMES.tempete,{mzH:[.068,.093,.162,.8],mzO:[.022,.03,.055,.8],nuA:[.55,.58,.66]}); // ORAGE : sommets ardoise #4A5670, ombres ardoise sombre — avant : mer indigo claire ; ouate ardoise ×(.55,.58,.66) (ses filles villeOrage/jadeOrage, copies figées plus haut, ne bougent pas)
@@ -20964,6 +20972,7 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'},
   saturne:{teinte:0x6c5e4a,atmo:0xf0dca0,limbe:0xe8d090,rim:.3,peint:'saturne'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
 if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);SF_CARTES.espace.m.satellites.astre=Object.assign({echelle:1.35},PLANETES.saturne);} // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
+if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
 if(PLANETES_ON&&ORBITE2_V)SF_CARTES.espace.m.satellites.bio='espaceSat'; // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
