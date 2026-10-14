@@ -1,0 +1,21 @@
+# nuages-jour — la mer de nuages de jour (passe graphismes, 14/10)
+
+Branche `gfx/nuages-jour` (copie `wt/nuages-jour`). Interrupteur : `?sans=nujour` = l'image d'avant. 4 commits (plomberie+matin, midi, soir, midi affiné).
+Planche : `shots/nuages-jour/planche.png` (AVANT | APRÈS sur la MÊME image figée : matin, midi, soir couchés + midi debout ; L* sommet / ventre / béton en légende). Captures AVANT d'origine (HUD, 2 instants) : `shots/nuages-jour/avant/`. Essais : `shots/nuages-jour/e1..e4`. Banc : `banc/nuages-jour/` (cap.cjs, essai.cjs = variantes à chaud sur image figée, stats.py, mes.py).
+
+## La découverte
+Les `volSun/volSky/volGnd` ne règlent PAS la luminance des cumulus de la course (le shader `nuage8Mat` les ignore : seule la teinte compte, et seulement pour l'ancien programme `nuageShader`).
+La vraie cause du « gris-lavande » : dans `nuage8Mat`, l'ombre est `ciel = vec3(.72,.78,.97)` (constante, un bleu-lavande franc) × `uR.z` (.64) ; hemi/fill/volGnd n'y changent rien (testé : hemiG, fillC, hemiI, volSky/volGnd neutres = aucun effet sur les nuages). Le liseré/galet vient de la même ombre + frontière `uR` étroite.
+
+## Ce qui est fait
+- Shader (derrière `NUJOUR_V`, coût nul : un uniforme `uLav` à la place d'une constante, aucun échantillon/boucle/texture ; source différente = programme à part, même nombre de programmes) : `uLav` + champs d'ambiance `nuLav` (teinte de l'ombre), `nuR` (= uR : frontière d'ombre, clarté de l'ombre), `nuK` (= uK : albédo, soleil, lisière, bord). Défauts (BIO_ETAL0) = les anciennes valeurs, inertes pour toutes les autres ambiances. Écrits dans `bioApply` (le titre a ses propres uK/uR ; `uLav` partagé mais à sa valeur par défaut au titre).
+- matin : nuLav [.72,.78,.97] → [.82,.89,.95] ; nuR [-.25,.5,.64] → [-.3,.45,.78] ; nuK.y 1 → 1,15 ; volSun [2.1,2.05,2] → [2.75,2.7,2.65] (albédo .89 → ~1). Mesure (image figée) : sommets L* 83,8 → 91,2 ; ventres 63 → 75 (autre instant 53 → 70). Verdict : nettement mieux, vapeur blanche aux ventres bleu-gris.
+- midi : nuLav → [.80,.89,.97] ; nuR z .78 ; nuK.y 1,08 (1,15 écrasait le modelé au debout : sommet 95) ; volSun [2.35,2.35,2.3] → [2.7,2.7,2.65]. Sommets 87 → 95, ventres 69 → 72 (couché), 43 → 53 (debout). Nettement mieux : plus d'orage lavande, nuages blancs. Le béton passe L* 38-41 → 44 (adaptation d'exposition de l'œil sur la scène plus claire, à surveiller).
+- soir (nuagesSoir, seule ambiance écrite ; titre vérifié inchangé : couleur moyenne identique avec/sans, dump BIOMES.titreGolden inchangé hors clés par défaut) : famille du titre SOIR (demande du chef) jZen [.14,.17,.42] → [.14,.14,.42], jHor [1,.66,.46] → [.95,.70,.58], fog [.93,.76,.66] → [.93,.78,.70], sat 1,16 → 1,08, con 1,18 → 1,14 ; nuLav [.84,.72,.78], nuR z .74, nuK [1,1.12,.5,.5] (lisière de contre-jour adoucie), volSun [2.5,2.25,2.0], hemiS [.7,.66,.82] → [.76,.69,.8]. Cumulus pêche crème, ventres prune rosée au lieu de mauve/bleu ; L* sommets inchangés (~76-80), ventres 45-50 → 47-48 : amélioration de TEINTE, pas de valeur. Verdict : mieux, sans plus.
+
+## Pas fait / essayé et rejeté
+- Défaut 7 (dalle de béton à horizon droit et dur) : NON corrigé par fogN/fogF. Essayé matin 200/1100, 260/1500, 320/1900, 380/2200 (base 900/5200) : l'horizon ne bouge presque pas (la dalle a sa propre brume dans le shader de route, zone route-beton) ; en traversant un nuage les fogF courts virent la route au beige. Aucune valeur de fog gardée. PROPOSITION : fondu d'horizon dans le shader de la route (zone route-beton), ou dégradé alpha de la dalle à son extrémité.
+- hemiS plus neutre au matin (+2 L* de béton, sans gain de nuage) ; nuK.y 1,2-1,3 (brûle, perd le modelé) ; hemiG/fillC (sans effet sur les nuages).
+- Non touché : nuagesNuit, tempete, pluie, ville, jade, orbite, route, titre.
+- Non vérifié : le test `?sans=nujour` complet en course n'a pas été rejoué (l'AVANT de la planche = les anciennes valeurs reposées à chaud) ; au titre, le dump `?sans=nujour` redonne les anciennes valeurs de nuagesSoir (jZen [.14,.17,.42], sat 1,16).
+- Hors zone à noter : la fusion de gfx/titre-heures (77dfafc) n'est pas dans cette branche : à l'intégration, vérifier que mes lignes `if(NUJOUR_V)Object.assign(BIOMES.nuagesSoir…)` (après la section ÉTALONNAGE) viennent bien APRÈS la copie de titreGolden.

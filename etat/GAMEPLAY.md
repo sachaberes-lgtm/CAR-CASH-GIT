@@ -1,4 +1,4 @@
-# GAMEPLAY (passe SENSATIONS) — état à 11 h 40 (passation : GAMEPLAY-PASSATION.md)
+# GAMEPLAY (passe SENSATIONS) — état à 13 h 35 · PASSÉE SUR LE PC (passation : GAMEPLAY-PASSATION.md)
 - Dossier : `~/cash-car/sensations/` · worktree `sensations/integ` · branche **`sensations-integration`** (partie de origin/main `ecb1897` ; je fusionne `assemblage` dès « T0 prêt »).
 - Commités (9, dont chocs au sol, eau, explosion ×4) — les 3 premiers : `89eba81` interrupteur `SENS` (`?sens=0` = le jeu d'avant) · `437c4b8` VOLANT TACTILE un cran plus sensible (braquage plein 46 px au lieu de 54, assiette haute 38 px, lissage du pouce τ 30 ms ; geste du drift inchangé ; mesuré au banc node `sensations/banc/volant-sim.cjs`) · `5a5626e` outils communs `sensCoup` / `sensHap` / `sensSecoue` (coups visuels dans la carrosserie, vibration à limiteur, secousse plafonnée).
 - Fonctions touchées : `stDown`, `stMove` (volant), lissage de `steer` et `pitchS` dans `loop`, `startFall` (1 remise à zéro), bloc roulis/tangage de `loop` (1 ligne). Aucune constante de conduite, de collision ni d'économie.
@@ -11,4 +11,8 @@
 - Sacha (11 h 55) : le PARFAIT (gel, flash, zoom, couronne) tombera AU CONTACT → confié à l'agent oeil. Mise en ligne : « attends le train » (PILOTAGE pousse, pas GAMEPLAY).
 - Navigateur : aucun pour l'instant ; UNE fumée (sémaphore commun) avant chaque train.
 - Blocages : aucun. Rien de poussé.
-- SUIVANT (après l'agent oeil) : l'ARGENT DU DÉBUT — Sacha : « 4 parties » pour le premier achat. Sans toucher aux prix de Léo : gains du début de carrière relevés (s'éteint après le 1er achat), réversible ?eco=ancien.
+- FAIT 13 h 05 : agent oeil intégré (5 commits : moutons lisibles — laine claire + tête noire —, PARFAIT au contact, un tic ne coupe plus un coup hors app, BEEE seulement au sol) ; assemblage T6 242da07 fusionné → **d1b011a** (0 conflit), VERIF OK ; FUMÉE OK 13 h 15 (couché + debout + ?play=jade, 0 erreur JS). Notes : sensations/notes/oeil.md.
+- EN COURS 13 h 10 (1 agent, `wt/eco`) : l'ARGENT DU DÉBUT — Sacha : « 4 parties » pour le premier achat. Sans toucher aux prix de Léo : gains du début de carrière relevés (s'éteint après le 1er achat), réversible ?eco=ancien.
+- ARRÊT 13 h 35 (ordre de Sacha relayé par INTERFACE : passation de toutes les sessions vers le PC). Agent éco : AUCUN COMMIT — l'objet le moins cher est à $ 2 000 (MENTHE / SHIMMY, pas NOIR MAT 9 k) et un joueur qui tient 45-90 s l'atteint dès la 2e-3e partie ; question à Sacha (quel « premier achat » ?) + proposition d'une ligne « objet à portée » à l'écran de fin, dans la passation.
+- **POUSSÉ : `origin/sensations-integration` = `a3524e7`** (jeu = `d1b011a` : assemblage T6 242da07 + toute la passe ; syntaxe 0 erreur, garde OK, chinois/POKI = 0, fumée OK 13 h 15). Jamais main.
+- Passation : `passation/GAMEPLAY.md` à la racine de la branche (+ notes accord / œil / éco, 2 captures). Aucune autre branche ne porte de travail non intégré. Plus aucun agent.

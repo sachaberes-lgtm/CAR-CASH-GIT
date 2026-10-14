@@ -29,3 +29,9 @@
   ne se pose plus sous la carte de l'auto-école ; textes FR/EN sans chinois ; accueil : RÉGLAGES couché recalé ; pause en système 13 px).
   Syntaxe 0, garde OK, chinois/POKI = 0. Charge du Mac 150 à 12 h 40 (consigne aux agents : pas de navigateur au-dessus de 40).
   En vol (3) : fin+transitions (`ui/socle`), accord garage (`ui/garage` + socle), accord carrière/missions + HUD (`ui/carriere-missions` + socle).
+- 13 h 00 — FIN PROPRE, PASSATION AU PC. `ui-integration` = `245ac62` POUSSÉE sur origin (branche, pas main), = socle d'accord + réglages,
+  pause, accueil, fin, transitions (ui/socle) + accord garage (ui/garage) + assemblage T6 `242da07`. Syntaxe 0 (14 scripts), garde OK,
+  chinois/POKI = 0, fumée `detail/banc/fumee` 8500 couché + debout OK (0 erreur JS).
+  Passation : `passation/INTERFACE.md` à la racine de la branche (+ BRIEF-INTERFACE.md, accord.md, 3 planches jpg).
+  NON intégré : `ui/carriere-missions` `db27aa9` (accord carrière/missions/HUD, jamais vu au banc) — poussé lui aussi en branche
+  `ui/carriere-missions` pour le PC. Plus aucun agent ; la session INTERFACE du Mac s'arrête.

@@ -1,3 +1,8 @@
+# 🔀 12 h 58 — DEUX MACHINES (Sacha) : INTERFACE part sur le PC (autre compte Claude, autre quota) ; un autre compte tournera sur le Mac.
+#    Lien PÉRENNE = GitHub (CAR-CASH-GIT), sans jamais toucher à main : à la fin de CHAQUE train, `sh ~/cash-car/pilotage/sync.sh` pousse
+#    `assemblage`, toutes les branches `*-integration`, `ios-capacitor` et `pilotage-notes` (ces fichiers + états + notes des chantiers).
+#    Les trains fusionnent désormais `origin/ui-integration` (poussée depuis le PC). Protocole de l'autre machine : `PROTOCOLE-PC.md`.
+
 # ⚠ 12 h 16 — TROP RAPIDE : 28 % de la fenêtre en 56 min (≈ 29 %/h ; il faut ≤ 18 %/h pour tenir jusqu'à 16 h 20) et l'HEBDOMADAIRE est à 46 %.
 #    PLAFONDS RÉDUITS dès ta prochaine vague (7 agents en tout) : INTERFACE 2 · GRAPHISME 2 · DEBUGGING 1 · OPTIMISATION 1 · SON 1 · GAMEPLAY 0
 #    (GAMEPLAY : finis l'agent en cours puis pause jusqu'au prochain ordre) · PILOTAGE : l'assembleur des trains seulement.

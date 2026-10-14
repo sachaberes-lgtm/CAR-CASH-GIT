@@ -44,3 +44,7 @@
       rouge « Session expired / Sign in again » apparaît : cliquer « Sign In » et refaire la connexion.
    4. Quitter Xcode (⌘Q) pour que le compte soit écrit sur le disque, puis me prévenir : je relance l'export (1 min, sans envoi).
   NB : se connecter sur developer.apple.com dans un navigateur NE suffit PAS ; c'est le compte dans Xcode qui compte.
+- 13 h 20 — PASSATION FAITE (ordre de Sacha relayé par INTERFACE). Branche poussée : `origin/ios-capacitor` = `16a6ac5` (avance rapide,
+  sans force, pas main). Passation : `passation/APP-STORE.md` (+ `passation/regard-apple.md`) à la racine de la branche. www/ embarqué =
+  assemblage T4 4febc49 (vert au simulateur) ; essai sur T7 d8af462 en échec voulu (témoin de la rangée de l'accueil) ; garde burn-out OK ;
+  0 chinois / POKI dans le jeu embarqué. Export IPA toujours bloqué (aucun compte dans Xcode). SESSION ARRÊTÉE : la suite se fait sur le PC.

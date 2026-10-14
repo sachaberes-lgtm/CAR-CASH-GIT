@@ -119,3 +119,9 @@
 - Relayé à nuages-jour : aligner la course au soir (nuagesSoir) sur le nouveau titre.
 - garage-lumiere (port 8329, `?sans=garage`) : le garage 3D, dernier lieu néon (disque cyan, moitié droite noire), à accorder à la charte 6. Valeurs seules, créations de Léo intactes.
 - En vol (3) : nuages-jour, neon-residuel, garage-lumiere.
+
+### 13:40 — neon-residuel fusionné (c0988e7) · orbite-finitions lancé
+- Nitro : la nitro infinie (pouvoir) ne baigne plus la caisse et la route de violet (lumière et bords blanc-or), la réserve bleue est désaturée et la lueur de bord recolore 16 % de l'image au lieu de 42 %. La plume NINF.jet est intacte. Plafond de la ville à l'orage : ardoise (prouvé par le calcul, peu visible au banc). `?sans=neon`.
+- POUR INTERFACE / LÉO : les lavis violets restants sont DOM (`#pwrFx`, `#speedFx`, les taches JUS, la jauge et l'AURA du HUD). Les taches de jus DOMINENT encore toutes les captures (question 266 de QUESTIONS.md).
+- orbite-finitions (port 8330, `?sans=orbite2`) : rebond de lumière qui suit la planète, béton modelé par une clé rasante, noir profond.
+- En vol (3) : nuages-jour, garage-lumiere, orbite-finitions.
