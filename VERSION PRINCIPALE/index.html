@@ -52377,7 +52377,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const ci=Math.min(CARS.length-1,Math.max(0,level|0)),nm=CARS[ci]&&CARS[ci].name||'';
     let px=Infinity,pe='';for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||carOwned(i))continue;const v=parseFloat(String(u.eur).replace(',','.'));if(v<px){px=v;pe=u.eur;}}
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
-    pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9+' '+T('DÉFIS','DONE'),ok9>=n9);
+    pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9,ok9>=n9); /* (14 h 15, Sacha : « défi » = les défis SECRETS de la palette, plus jamais une mission) */
     pose('.mHubPorte',T('GARAGE','GARAGE'),LANG==='fr'?nm:TR(nm));
     pose('.mOffres',T('OFFRES','OFFERS'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
     pose('.mGear',T('RÉGLAGES','SETTINGS'));}
