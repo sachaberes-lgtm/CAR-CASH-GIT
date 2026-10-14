@@ -9143,6 +9143,15 @@ html:not(.c6) body.chOffre #mDead [data-m="replay"]{opacity:.45;transition:opaci
 @keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
 @keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
+/* (vu à la fumée, 844×390, une fin AVEC record) le badge RECORD et « ENCORE 2 PIÈCES POUR… » grandissaient la carte MOTEUR, la grille étirait toute
+   la rangée, et ⌂ · REJOUER passaient SOUS le bord de l'écran. Couché : l'indice part (la place est rare), les cartes ne s'étirent plus, et la rangée
+   d'action (+ la seconde chance) reste ancrée en bas de la colonne de droite quoi qu'il arrive — une décision ne sort jamais de l'écran. */
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 76px)}
+  html:not(.c6) #mDead .hNx{display:none}
+  html:not(.c6) #mDead .mFin{position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);width:min(368px,44vw);margin:0}
+  html:not(.c6) #mDead #mChance:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 76px);width:min(368px,44vw);margin:0}
+  html:not(.c6) #mDead #mChanceNon:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 132px);margin:0}}
 </style>
 <style id="ux8-mouvement">
 /* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
