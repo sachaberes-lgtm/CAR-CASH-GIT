@@ -28569,7 +28569,7 @@ function sensGlisse(on){
 const SENS_CA={t:0,c:0,tc:0,tk:0};
 function sensCaisse(){
   const t=performance.now(),v=Math.abs(vA);
-  if(t-SENS_CA.t>150||introD){SENS_CA.t=t;SENS_CA.c=0;return;}
+  if(t-SENS_CA.t>150||introD){SENS_CA.t=t;SENS_CA.c=0;SENS_CA.o=true;SENS_CA.pk=0;return;} // (la lèvre) on repart « dehors, sans élan » : posé roues dans le vide, pas de tic ; posé sur la route, l'état se range en silence
   SENS_CA.t=t;
   /* LE COUP DE VOLANT SEC : le pouce passe d'un bord à l'autre (plus de la moitié du braquage de chaque côté, en moins de 0,3 s) — une
      chicane, un évitement. Le ressort du roulis faisait passer la caisse d'un flanc à l'autre en fondu ; là le poids est JETÉ sur le
@@ -28581,7 +28581,19 @@ function sensCaisse(){
         const k=Math.min(1,(v-14)/26);sensCoup(-g*(.5+.6*k),0,-(.15+.2*k));SENS_CA.tk=t;} // même sens que le roulis de virage (rollT du côté de `steer`)
       SENS_CA.c=g;}
     SENS_CA.tc=t;}
+  /* LA ROUE PASSE LA LÈVRE : dès que les roues extérieures sortent de la dalle, la carrosserie s'affaisse vers le vide (bord v2) et le
+     plancher racle — mais en fondu, et la main n'apprenait le bord qu'au RASE-BORD, 0,6 s plus tard. À l'instant où la roue quitte le
+     bitume : elle TOMBE d'un cran (≈ 1,1° vers le vide, ≈ 1 cm) et le pouce reçoit UN tic. Une fois par approche (pas avant 0,45 s). */
+  const sp9=CARS[level];if(!sp9)return;
+  const hw9=sp9.w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9); // > 0 = les roues extérieures sont dehors (la même mesure que le roulis du bord)
+  if(PARIS.sol||hopY>0){SENS_CA.o=false;SENS_CA.pk=0;return;} // pas de vide (Paris au sol) · roues en l'air : rien, et on oublie
+  if(!SENS_CA.o){
+    if(dB9>0){SENS_CA.o=true;SENS_CA.pk=0;
+      if(v>12&&t-SENS_CA.tl>450){SENS_CA.tl=t;sensHap(8,1);if(!REDUCED_MOTION)sensCoup(Math.sign(lat)*.45,0,-.3);}}
+  }
+  else if(dB9<-.12)SENS_CA.o=false; // revenue de 12 cm sur le bitume : l'approche est finie (l'écart évite le clignotement sur la lèvre)
 }
+SENS_CA.o=false;SENS_CA.pk=0;SENS_CA.tl=0; // (la lèvre) roues dehors · le plus loin qu'elles sont allées (0 → 1 = le centre de gravité au bord) · l'heure du dernier tic
 function driftTick(dt,on){
   if(SENS)try{sensGlisse(!!on);}catch(e){} // (2026-10-14, sensations) AVANT le traitement : au relâché, `driftLv` porte encore le niveau atteint
   driftCd=Math.max(0,driftCd-dt); // (2026-09-25) recharge après un mini-turbo : le zigzag de drifts ne se « farme » plus
