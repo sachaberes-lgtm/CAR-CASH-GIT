@@ -9782,7 +9782,7 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:3;grid-column:1/
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=24"></script>
+<script defer src="sons-banque.js?v=25"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
@@ -36370,7 +36370,7 @@ function mkPower(kind,dir){
      la machine, accélèrent pendant le tirage, clignotent toutes au gain.
    · LE RÉSULTAT est tiré AVANT (`spinTire`, `SPIN.proba`), les rouleaux s'y posent. Gains en ARGENT DU JEU (`SPIN.gains`, à caler par
      GAMEPLAY) : rien = une pièce de consolation · une PAIRE · un BRELAN (selon le symbole) · le JACKPOT (trois couronnes) qui explose :
-     flash, pièces et liasses, vibration, `fig.jackpot` + `pluie.billets`. Versé au compte tout de suite (SAVE.flush) ; l'écran de fin relit.
+     flash, pièces et liasses, vibration, `spin.jackpot` (les sons de la machine : spin.*, session SON). Versé au compte tout de suite (SAVE.flush) ; l'écran de fin relit.
    · `?spin=0` éteint tout. Banc : `dbgSpin(n,'jackpot'|'brelan'|'paire'|'rien')` donne n jetons et impose le prochain tirage. */
 Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','JETONS':'TOKENS','TIRER':'PULL','CONTINUER':'CONTINUE','JACKPOT !':'JACKPOT!',
   'BRELAN':'THREE OF A KIND','PAIRE':'PAIR','CONSOLATION':'CONSOLATION','TOTAL':'TOTAL','JETON':'TOKEN'});
@@ -36465,8 +36465,9 @@ function spinFerme(){if(!SPIN.el)return;SPIN.ouvert=false;SPIN.roule=false;SPIN.
   setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{mFill();}catch(e){}}
 function spinAppui(){
   if(SPIN.roule)return;
-  uiClic('');try{SPIN.btn.classList.add('appui');setTimeout(function(){SPIN.btn.classList.remove('appui');},140);}catch(e){}
-  if((SAVE.d.spinJ|0)<=0){hap(8);spinFerme();return;}
+  try{SPIN.btn.classList.add('appui');setTimeout(function(){SPIN.btn.classList.remove('appui');},140);}catch(e){}
+  if((SAVE.d.spinJ|0)<=0){uiClic('');hap(8);spinFerme();return;}
+  try{if(SONV2)sfx('spin.levier');else uiClic('');}catch(e){} /* (2026-10-14, session SON) le LEVIER a son clac mécanique (avant : le clic d'interface) */
   hap(16);SAVE.d.spinJ=(SAVE.d.spinJ|0)-1;SAVE.flush();spinLabels();
   try{SPIN.lev.classList.remove('tire');void SPIN.lev.offsetWidth;SPIN.lev.classList.add('tire');}catch(e){} // le levier s'abaisse
   spinLance(spinTire());}
@@ -36489,10 +36490,10 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
           const d=pe-SPIN.p[r],D=4*d/Math.max(6,S.v);
           if(d<=7.5&&t+D>=fPrev+.3){S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=D;}}}
       else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
-        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('arret.tic',{vol:.9});}catch(e){}hap(9);
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK du rouleau, une note plus haut à chaque rouleau */
           const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
           if(r===1&&tease)SPIN.el.classList.add('tease');}}}
-    const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('ui.compteur',{vol:.32});}catch(e){}}
+    const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){} /* (session SON) un CRAN par symbole qui passe : le cliquetis ralentit avec les rouleaux */}
     spinPeint();
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
     else if(SPIN.ouvert){SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPaye(R);}
@@ -36504,11 +36505,11 @@ function spinPaye(R){ // le gain : au compte TOUT DE SUITE, puis le compteur mon
   SPIN.gEl.className='spGain '+R.k;SPIN.gEl.innerHTML='<small>'+sansAcc(TR(titre))+'</small><b>+'+fmtC(0)+'</b>';
   const b=SPIN.gEl.querySelector('b'),T0=performance.now(),D=R.k==='jackpot'?1400:R.k==='brelan'?900:550;let last=0;
   (function monte(now){const u=Math.min(1,(now-T0)/D),v=R.g*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
-    if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('ui.compteur',{vol:.25});}catch(e){}}
+    if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){} /* (session SON) les pièces qui tombent dans le bac */}
     if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(R.g);})(T0);
   if(R.k!=='rien'){SPIN.el.classList.add('gagne');setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne');},R.k==='jackpot'?2600:1400);}
-  try{if(SONV2){if(R.k==='jackpot'){sfx('fig.jackpot');setTimeout(function(){sfx('pluie.billets');},180);}
-    else sfx(R.k==='brelan'?'argent.gros':R.k==='paire'?'argent.palier':'piece.recolte');}}catch(e){}
+  try{if(SONV2){if(R.k==='jackpot')sfx('spin.jackpot'); /* (2026-10-14, session SON) les GAINS de la machine ont leurs sons (avant : fig.jackpot + pluie.billets, argent.*, piece.recolte) */
+    else sfx('spin.gain',{var:R.k==='brelan'?1:0,vol:R.k==='rien'?-6:0});}}catch(e){}
   if(R.k==='jackpot'){hap([30,60,40,80,60,120,90]);spinExplose(46);}else if(R.k==='brelan'){hap([20,40,30]);spinExplose(14);}else if(R.k==='paire')hap(14);
   spinLabels();try{mFill();}catch(e){}SPIN.roule=false;}
 function spinExplose(n){ // le gros lot : un flash, puis des pièces et des liasses qui jaillissent de la machine

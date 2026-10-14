@@ -615,6 +615,28 @@ D('fig.slide.fin',{fam:'figures',bus:'fx',dur:.8,st:1,db:-6,max:1,cd:.15,dit:'le
 D('fig.slide.paye',{fam:'figures',dur:.7,key:1,db:-2,max:1,cd:.2,pre:1,dit:'le SLIDE est payé : un tchak doux + une clochette (l’aura encaissée)',
   r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.0006,d:.03,v:.3,ft:'bp',f:1500,q:1},R);clic(b,{t0:0,f:3800,d:.004,v:.18},R);
     cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.25,.12],d:[.45,.18,.08],t0:.012,v:.2},R);scintille(b,R,.03,.25,4,.06,36,44);}});
+/* (2026-10-14, session SON ; la machine : IDEE) LE FINAL SPIN A SES SONS — une machine à sous d'ARCADE. Elle empruntait ceux du jeu
+   (ui.compteur pour les rouleaux, arret.tic, argent.*, fig.jackpot) : ils disaient « menu » ou « course », pas « machine ». Ici, du
+   MÉCANIQUE : le levier qui descend sur son cliquet et claque en butée, le cran de chaque symbole qui passe (le cliquetis ralentit
+   avec les rouleaux, tout seul : un cran par symbole), le TCHONK du rouleau qui se verrouille (une note qui monte d'un rouleau à
+   l'autre), le tintement des pièces du compteur, deux gains, et le JACKPOT : la sonnette d'alarme, la fanfare, la cascade de pièces. */
+D('spin.levier',{fam:'spin',bus:'fx',dur:.7,st:1,db:+1,max:1,cd:.2,dit:'FINAL SPIN : le LEVIER — il descend sur son cliquet (trois crans), claque en butée, le ressort vibre',
+  r:function(b,R,o){for(let k=0;k<3;k++){clic(b,{t0:k*.045,f:2600-k*300,d:.004,v:.3},R);bruit(b,{c:'b',t0:k*.045,a:.0005,d:.02,v:.18,ft:'bp',f:1700,q:2},R);}
+    coup(b,R,o,.15,.6,1100,150,60,.22);tole(b,R,.152,620,.12,.25);osc(b,{f:92,w:'tri',t0:.16,a:.003,d:.35,v:.12,vib:[11,.06]});}});
+D('spin.cran',{fam:'spin',bus:'fx',dur:.12,db:-4,max:4,cd:.03,v:2,dit:'FINAL SPIN : un CRAN de rouleau (un symbole qui passe) — le cliquetis ralentit avec les rouleaux',
+  r:function(b,R,o){clic(b,{t0:0,f:o.v?2900:2500,d:.003,v:.35},R);bruit(b,{c:'b',t0:0,a:.0004,d:.016,v:.25,ft:'bp',f:o.v?2100:1800,q:2.4},R);
+    osc(b,{f:o.v?760:690,w:'sin',t0:0,a:.0005,d:.03,v:.08});}});
+D('spin.arret',{fam:'spin',bus:'fx',dur:.6,key:1,db:+1,max:3,cd:.04,pre:1,dit:'FINAL SPIN : un rouleau se VERROUILLE — tchonk (le choc, le loquet de métal) + sa note (qui monte d’un rouleau à l’autre : st)',
+  r:function(b,R,o){coup(b,R,o,0,.55,700,170,72,.18);tole(b,R,.004,880,.1,.18);clic(b,{t0:.003,f:3400,d:.004,v:.25},R);marimba(b,R,nE(12),.01,.32,.3);}});
+D('spin.piece',{fam:'spin',dur:.3,key:1,db:-5,max:4,cd:.05,v:3,dit:'FINAL SPIN : une PIÈCE qui tombe dans le bac (le compteur du gain qui monte)',
+  r:function(b,R,o){clic(b,{t0:0,f:6200,d:.0015,v:.3},R);cloche(b,{f:nE(24+[0,4,7][o.v]),r:[1,2.01,3.01,5.43],m:[1,.35,.15,.1],d:[.2,.09,.05,.03],t0:0,v:.3,jit:.004},R);}});
+D('spin.gain',{fam:'spin',dur:1.4,st:1,key:1,db:+2,max:1,cd:.3,v:2,pre:1,dit:'FINAL SPIN : un GAIN — 0 petit (paire, consolation : trois notes et quelques pièces) · 1 BRELAN (l’arpège qui monte plus haut, plus de pièces)',
+  r:function(b,R,o){const N=o.v?[0,4,7,12,16]:[0,4,7];N.forEach(function(st,i){marimba(b,R,nE(12+st),i*.07,.36,.4);});
+    pieces(b,R,.1,o.v?.8:.4,o.v?12:5,.22);if(o.v){stab(b,R,[12,16,19],.36,.06,.45,.3,.9);scintille(b,R,.36,.6,8,.08,36,48);}}});
+D('spin.jackpot',{fam:'spin',dur:3.2,st:1,key:1,db:+5,max:1,cd:1,pre:1,dit:'FINAL SPIN : le JACKPOT — la sonnette qui s’affole, la fanfare, la cascade de pièces',
+  r:function(b,R,o){for(let k=0;k<20;k++)cloche(b,{f:k%2?nE(31):nE(28),r:[1,2.76,5.4],m:[1,.3,.1],d:[.09,.05,.03],t0:k*.06,v:.2,pan:k%2?.4:-.4},R);
+    stab(b,R,[0,4,7,12],.05,.12,.7,.42,1);stab(b,R,[7,12,16,19],.42,.12,.9,.42,1);
+    pieces(b,R,.3,2.2,46,.3);scintille(b,R,.4,1.6,18,.09,36,50);grave(b,o,.05,110,55,.1,.4,.4);}});
 D('pose.lourde',{fam:'pose',bus:'fx',dur:.9,db:+2,max:1,cd:.2,grp:'r',prio:2,dit:'POSÉ LOURD : la tôle qui encaisse — craquement + ressorts en butée + grave sale',
   r:function(b,R,o){coup(b,R,o,0,1,1400,90,40,.4);tole(b,R,.005,190,.3,.5);tole(b,R,.04,135,.22,.4);
     bruit(b,{c:'r',t0:0,a:.002,d:.25,v:.4,ft:'bp',f:900,q:1.5,am:[38,.8]},R);osc(b,{f:98,f1:92,g:.3,w:'saw',t0:.02,a:.01,d:.4,v:.08,flt:['lp',600,300,.3]});}});
