@@ -184,6 +184,9 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
 - LE 1.61 (14/10, Léo : « un petit 1.61 blanc en 3D qui ressort du mur blanc ») — `bq161(g)` : chiffres pixel 3 × 5 en cubes (P .38,
   profondeur .5, InstancedMesh, blanc laqué bqLaqueMat), devant un pan blanc invisible qui porte leur OMBRE floutée (décalée en bas à
   droite) : sans elle, blanc sur blanc, on ne le lisait pas. Posé loin derrière la caisse (z −22, y 7,2), un peu tourné (−0,18) pour la tranche.
+- (14/10) LE PLATEAU DES BRAS à la taille de celui de l'atelier (rayon 4,4, 12 cm, `GBQ.socleH=.12` = son dessus) et FIXE (il suivait le cap
+  de la caisse) ; LE POINT DE VUE retenu dans `BQ_POV` : couché {h −0,7, d 0,92}, debout {h −0,6, d 0,95} (la caméra plus basse, plus près) ;
+  le 1.61 remonté (y 9,6, z −24 : il chevauchait le nom).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un

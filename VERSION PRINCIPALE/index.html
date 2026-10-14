@@ -45734,7 +45734,7 @@ function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGA
    boutique (au fondu de GBQ.k) : `a` tourne la vue autour de la caisse (rad), `h` monte la caméra (m), `d` recule (×), `ty` monte la visée (m),
    `f` ouvre l'objectif (°), `sx`/`sy` déplacent la place de la caisse à l'écran (part de la largeur / hauteur). Avec `?cadrage=1`, un panneau
    de curseurs le règle en direct (gardé dans ce navigateur) ; `dbgPov()` le relit pour le recopier ici. */
-const BQ_POV={couche:null,debout:null};
+const BQ_POV={couche:{h:-.7,d:.92},debout:{h:-.6,d:.95}}; /* (2026-10-14, Léo : « mieux placé sur la voiture, le plan, le point de vue ») la caméra descend et se rapproche */
 const BQ_POV_DEF={a:0,h:0,d:1,ty:0,f:0,sx:0,sy:0},BQ_CADRAGE=/[?&]cadrage=1\b/.test(location.search);
 function bqPovSens(){return VP.w>VP.h?'couche':'debout';}
 function bqPovLu(){if(!BQ_CADRAGE)return null;if(bqPovLu._v)return bqPovLu._v;let v=null;try{v=JSON.parse(localStorage.getItem('ccCadrageBq')||'null');}catch(e){}return bqPovLu._v=(v&&typeof v==='object')?v:{};}
@@ -45834,7 +45834,7 @@ function bq161(g){
   pos.forEach(function(p){x.fillRect((mg+p[0])*S,(mg+4-p[1])*S,S,S);});
   const L9=(lx-1+2*mg)*P,H9=(5+2*mg)*P,mur=new THREE.Mesh(new THREE.PlaneGeometry(L9,H9),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,fog:false}));
   const grp=new THREE.Group();grp.add(im);mur.position.set(P*.45,-P*.55+2.5*P,-D/2-.02);grp.add(mur);
-  grp.position.set(0,7.2,-22);grp.rotation.set(.06,-.18,0);g.add(grp);GBQ.s161=grp;}
+  grp.position.set(0,9.6,-24);grp.rotation.set(.06,-.18,0);g.add(grp);GBQ.s161=grp;}
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
   const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
@@ -45864,7 +45864,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
       ne sont plus posés ; les bras et leur plateau sortent du SOL (socleH ≈ 0, mais jamais 0 : plusieurs tests le lisent comme « il y a un socle ») */
    let y=0;if(!SANS_MARCHES)for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
      const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,10,120),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
-   GBQ.socleH=SANS_MARCHES?.01:y;
+   GBQ.socleH=SANS_MARCHES?.12:y; /* (14/10) le dessus du grand plateau des bras */
    /* LA ROTONDE (2026-10-13, Léo : « un cercle de piliers, comme si on était au Panthéon autour de la voiture, un peu ambiance Assassin's Creed »)
       — avant : deux colonnes et une architrave derrière la caisse. Seize colonnes sur un cercle de 8,2 m, chacune une peau de petits cubes (le
       blanc structuré : quelques cubes en retrait ou en saillie pour le grain), base et chapiteau en blocs de cubes, l'entablement en anneau de
@@ -46205,9 +46205,12 @@ function garBqBrasBatit(){if(GBQ.bras)return GBQ.bras;
   const cyl=new THREE.CylinderGeometry(1,1,1,8),sph=new THREE.SphereGeometry(1,10,8),box=new THREE.BoxGeometry(1,1,1),M=function(geo,mt){const m=new THREE.Mesh(geo,mt);g.add(m);return m;};
   // le plateau tournant : un disque d'argent, douze crans de graphite sur sa tranche
   const pl=new THREE.Group();g.add(pl);GBQ.brasPl=pl;
-  {const d=new THREE.Mesh(new THREE.CylinderGeometry(1.22,1.26,.04,48),argent);d.position.y=.02;pl.add(d);
-   const c=new THREE.Mesh(new THREE.TorusGeometry(.6,.025,4,48),graph);c.rotation.x=Math.PI/2;c.position.y=.042;pl.add(c);
-   for(let i=0;i<12;i++){const n=new THREE.Mesh(box,graph);const a=i/12*Math.PI*2;n.scale.set(.06,.045,.16);n.position.set(Math.sin(a)*1.16,.025,Math.cos(a)*1.16);n.rotation.y=a;pl.add(n);}}
+  /* (2026-10-14, Léo : « la plateforme aussi grosse que celle du garage, plus fixe ») le plateau a la TAILLE de celui de l'atelier (rayon 4,4,
+     12 cm d'épaisseur, son dessus = le haut du « socle » : GBQ.socleH), un anneau de graphite à mi-rayon, douze crans sur le bord — et il ne
+     tourne plus avec la caisse (voir garBqBras) */
+  {const d=new THREE.Mesh(new THREE.CylinderGeometry(4.4,4.52,.12,96),argent);d.position.y=-.06;pl.add(d);
+   const c=new THREE.Mesh(new THREE.TorusGeometry(2.2,.03,6,96),graph);c.rotation.x=Math.PI/2;c.position.y=.004;pl.add(c);
+   for(let i=0;i<12;i++){const n=new THREE.Mesh(box,graph);const a=i/12*Math.PI*2;n.scale.set(.1,.03,.22);n.position.set(Math.sin(a)*4.08,.008,Math.cos(a)*4.08);n.rotation.y=a;pl.add(n);}}
   GBQ.brasL=[0,1].map(function(){const A={
       pied:M(cyl,graph),tour:M(cyl,argent),epaule:M(sph,graph),bras:M(cyl,argent),verin:M(cyl,chrome),coude:M(cyl,graph),
       avant:M(cyl,argent),tige:M(cyl,chrome),poignet:M(sph,graph),main:new THREE.Group()};
@@ -46225,7 +46228,7 @@ function garBqBras(dt,t9,ay){
   const V=GBQ._bv||(GBQ._bv=[0,1,2,3,4,5,6,7,8,9].map(function(){return new THREE.Vector3();})),[G,S,W,E,D,o,n,up,T,X]=V;
   const e=GBQ.ba*GBQ.ba*(3-2*GBQ.ba),y0=ay+GBQ.socleH,q=carGroup.quaternion,s9=carGroup.scale,p0=carGroup.position,mont=(1-e)*.75; // ils montent du socle
   // le plateau suit le cap de la caisse
-  X.set(0,0,1).applyQuaternion(q);g.position.set(0,0,0);GBQ.brasPl.position.set(0,y0-mont*.05,0);GBQ.brasPl.rotation.y=Math.atan2(X.x,X.z);
+  X.set(0,0,1).applyQuaternion(q);g.position.set(0,0,0);GBQ.brasPl.position.set(0,y0-mont*.05,0);GBQ.brasPl.rotation.y=0; /* (14/10) FIXE : il ne suit plus le cap de la caisse */
   up.set(0,1,0).applyQuaternion(q);
   const bb=hm.bb,zc=bb?(bb.min.z+bb.max.z)/2:0,lg=bb?(bb.max.z-bb.min.z):4;
   for(let i=0;i<2;i++){const A=GBQ.brasL[i],sg=i?-1:1;
