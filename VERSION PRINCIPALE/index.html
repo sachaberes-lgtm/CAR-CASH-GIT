@@ -8627,6 +8627,29 @@ html:not(.c6) #modale .modB>.pbtn.pb-red:is(:active,.appui){transform:skewX(var(
 html:not(.c6) #modale .modIn:has(.pb-red){box-shadow:inset 0 0 0 1px var(--fil),var(--levre),inset 0 3px 0 var(--neoM),inset 0 70px 60px -60px rgba(255,62,200,.35)} /* le liseré rouge de la feuille s'en va : le rouge n'est plus que sur QUITTER */
 html:not(.c6) #modale .modIn:has(.pb-red) #modT{text-shadow:0 2px 0 var(--txO),0 0 14px rgba(255,62,200,.5)}
 
+/* ===== 3. LES RÉGLAGES #mSet — AUDIO · JEU · AIDE · SAUVEGARDE · EFFACER (rouge, seul, tout en bas) ===== */
+html:not(.c6) #mSet .c6Col{display:contents}
+html:not(.c6) #mSet .c6Corps>.c6Col:first-child>:nth-child(-n+2){order:1}
+html:not(.c6) #mSet .c6Corps .oJeu{order:2}
+html:not(.c6) #mSet .c6Corps .oAide{order:3}
+html:not(.c6) #mSet .c6Corps .oSauv{order:4}
+html:not(.c6) #mSet .c6Corps>.c6Pied{order:5;margin-top:36px}
+html:not(.c6) #mSet .mSec{font-size:var(--f1)}
+html:not(.c6) #mSet [data-m="imp"]{display:none} /* « RESTAURER UN CODE » : fondu dans « ENTRER UN CODE » */
+html:not(.c6) #mSet [data-m="facile"]{display:none} /* le MODE FACILE est retiré du jeu */
+html:not(.c6) #mSet .volRow{display:flex;align-items:center;gap:12px;padding:0 16px 12px 62px}
+html:not(.c6) #mSet .volRow .volS{flex:1 1 auto;min-width:0;width:auto}
+html:not(.c6) #mSet .volRow .volV{flex:none;min-width:54px;text-align:right;margin:0}
+html:not(.c6) #mSet .c6Efface{--nc:var(--neoR);color:var(--neoR);background:transparent;min-height:48px;width:100%;max-width:320px;text-shadow:none;box-shadow:inset 0 0 0 2px var(--neoR)}
+html:not(.c6) #mSet .c6Efface .pxi,html:not(.c6) #mSet .c6Efface .tpL{color:var(--neoR)}
+html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mSet .c6Corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-items:start}
+  html:not(.c6) #mSet .c6Col{display:flex;flex-direction:column;min-width:0}
+  html:not(.c6) #mSet .c6Corps .c6Col>*{order:0}
+  html:not(.c6) #mSet .c6Corps>.c6Pied{grid-column:1/-1;margin-top:20px}
+}
+
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -8989,11 +9012,13 @@ html:not(.c6) #modale .modIn:has(.pb-red) #modT{text-shadow:0 2px 0 var(--txO),0
             <div class="volRow" id="mVolRowMus"><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62" aria-label="Volume de la musique"><b class="volV" id="mVolMusV">62%</b></div>
             <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
             <div class="volRow" id="mVolRowVox"><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100" aria-label="Volume des voix"><b class="volV" id="mVolVoxV">100%</b></div>
+            <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
           </div>
           <div class="mSec oSauv">SAUVEGARDE</div>
           <div class="mPanel oSauv">
             <div class="mLigne lien" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
             <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
+            <div class="mLigne lien" data-m="code"><i class="pxi pxi-verrou" aria-hidden="true"></i><span class="tpL" data-fr="ENTRER UN CODE">ENTRER UN CODE</span></div><!-- (2026-10-14, UX 8) restaurer une sauvegarde OU entrer un code secret : UNE ligne (RESTAURER UN CODE est masquée hors charte 6) -->
           </div>
         </div>
         <div class="c6Col">
@@ -9004,7 +9029,9 @@ html:not(.c6) #modale .modIn:has(.pb-red) #modT{text-shadow:0 2px 0 var(--txO),0
             <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
             <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
-            <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
+          </div>
+          <div class="mSec oAide" data-fr="AIDE">AIDE</div>
+          <div class="mPanel oAide">
             <div class="mLigne" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">AUTO-ECOLE</span><b id="mvTuto" class="valeur">REVOIR</b></div><!-- (2026-10-14, charte 6) « REVOIR L'AUTO-ECOLE » + la prime ne tenaient pas sur une ligne : le nom à gauche, le geste à droite, comme les autres lignes (mFill écrit REVOIR ou la prime) -->
           </div>
         </div>
@@ -9012,7 +9039,6 @@ html:not(.c6) #modale .modIn:has(.pb-red) #modT{text-shadow:0 2px 0 var(--txO),0
           <div class="pbtn c6Efface" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
           <span class="c6Ver" id="mvVer"></span>
         </div>
-        <div class="mPanel mCode"><div class="mLigne lien" data-m="code"><i class="pxi pxi-verrou" aria-hidden="true"></i><span class="tpL">ENTRER UN CODE</span></div></div><!-- (2026-10-14, Léo) le CODE (voir « LE CODE COUSIN ») -->
       </div>
     </div>
   </div>
@@ -18610,7 +18636,7 @@ for(const k of Object.keys(I18N)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in I18N))I18N[m[1]]=String(I18N[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
-Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
+Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); Object.assign(I18N,{'AIDE':'HELP','Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.'}); // (2026-10-14, UX 8) // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 /* ============================================================================================================================
    LA PASSE DES TEXTES (2026-10-14) — un seul mot par rôle dans les trois langues, plus d'anglais dans l'interface française.
    I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
@@ -53547,15 +53573,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         const rate9=function(){toast(pxi('croix')+' '+TR('COPIE IMPOSSIBLE : COPIE-LE A LA MAIN'));
           modale({titre:'MA SAUVEGARDE',texte:'Sélectionne le code et copie-le à la main.',champ:c9,lecture:true,boutons:[{l:'FERMER',v:0}]});};
         if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(c9).then(function(){toast(pxi('coche')+' '+TR('COPIE !'));},rate9);else rate9(); }); }
-    else if(a==='imp'){
-      modale({titre:'RESTAURER',texte:'Colle ton code de sauvegarde.',champ:'',
-        boutons:[{l:'RESTAURER',ic:'importer',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
+    else if(a==='imp'||a==='code'){ /* (2026-10-14, UX 8) UNE seule ligne « ENTRER UN CODE » : une sauvegarde (restaure + recharge) OU un code cousin (voir codeCousin) — la ligne RESTAURER est masquée */
+      modale({titre:'ENTRER UN CODE',texte:'Colle un code de sauvegarde, ou un code secret.',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(!r.v)return;
-        if(SAVE.import(r.texte.trim())){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);}
-        else toast(pxi('croix')+' '+TR('CODE INVALIDE')); }); }
-    else if(a==='code'){ /* LE CODE COUSIN (2026-10-14, Léo) — voir codeCousin */
-      modale({titre:'ENTRER UN CODE',texte:'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
-        if(!r.v)return;
+        const t9=String(r.texte||'').trim();
+        if(t9&&SAVE.import(t9)){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
