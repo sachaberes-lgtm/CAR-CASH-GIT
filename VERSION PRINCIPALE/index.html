@@ -14719,8 +14719,8 @@ function plaBilletBtc(){ // le billet ₿ : vert billet et or, un ₿ dans la ro
     for(let i=0;i<14;i++){x.strokeStyle='rgba(255,215,94,'+(.07+i*.014)+')';x.beginPath();x.arc(118,118,62-i*4,0,6.2832);x.stroke();}
     plaPicto(x,'btc',118,118,92,'#ffb347');
     x.fillStyle='rgba(255,236,170,.9)';x.font='bold 54px Helvetica,Arial,sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('1',30,48);x.textAlign='right';x.fillText('1',w-30,h-44);
-    x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CRYPTOCITY',w*.6,h*.42);
-    x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(200,255,220,.6)';x.fillText('BULL RUN · UN BITCOIN · TO THE MOON',w*.6,h*.56);
+    x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CASH CAR',w*.6,h*.42); /* (2026-10-14, revue des idées de Léo) le niveau CRYPTOCITY est retiré : le billet ₿ de la pluie d'argent, lui, pleut partout — il porte la marque du jeu */
+    x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(200,255,220,.6)';x.fillText('1 BITCOIN · TO THE MOON',w*.6,h*.56);
     const Bd=x.createLinearGradient(w*.78,0,w*.86,0);Bd.addColorStop(0,'rgba(255,215,94,0)');Bd.addColorStop(.5,'rgba(255,230,140,.55)');Bd.addColorStop(1,'rgba(255,215,94,0)');x.fillStyle=Bd;x.fillRect(w*.78,0,w*.08,h);});
 }
 function plaTexPieces(){ // l'atlas des pièces : en haut la ₿ (la pièce de la pluie de richesse), en bas l'Ξ d'argent bleuté
