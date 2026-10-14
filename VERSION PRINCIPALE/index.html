@@ -19303,7 +19303,7 @@ function satPassage(s9){
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;
-  SATOB.list.length=0;SATOB.on=false; // (2026-09-30) la pluie de satellites part avec sa piste (sinon ses obstacles survivaient au portail : la ligne parfaite les évitait encore aux NUAGES)
+  SATOB.list.length=0;SATOB.on=false;SATOB.pv=false; /* (2026-10-14, chasse aux bugs) piste rebâtie : pas de trajet à balayer depuis l'ancienne */ // (2026-09-30) la pluie de satellites part avec sa piste (sinon ses obstacles survivaient au portail : la ligne parfaite les évitait encore aux NUAGES)
   if(!ORB.actif)return;
   if(!ORB.peinte)lunePeint();
   const t00=performance.now();
@@ -19435,7 +19435,10 @@ function satHard(){
      6 à 9 m, et à 30 i/s (iPhone en économie d'énergie) la caisse avance de plus que ça au-delà de ~700 km/h : elle TRAVERSAIT un satellite
      plein axe sans mourir. On teste en plus le point où le TRAJET de l'image (pp → P) coupe le plan médian de l'obstacle. Un saut de
      position (relance, portail : > 60 m ou garde ci-dessus) retombe sur le test en un point. */
-  const pp=SATOB.pp,ex=P.x-pp.x,ey=P.y-pp.y,ez=P.z-pp.z,bal=SATOB.pv&&ex*ex+ey*ey+ez*ez<3600;pp.copy(P);SATOB.pv=true;
+  // (2026-10-14, chasse aux bugs, preuve à 1/30) la garde de saut SUIT LA VITESSE : fixe à 60 m, elle coupait le balayage dès 60 m par image (1 800 m/s à 30 i/s,
+  // 1 200 m/s sur une image de 50 ms — NITROOO ×2,6 aux derniers moteurs) et le satellite redevenait traversable. Un trajet d'image ne dépasse jamais vitesse × 0,05 s ; ×1,5 de marge.
+  const pas9=Math.max(60,Math.max(Math.abs(vA)*vitMult(),fallVel.length())*SPD*.075);
+  const pp=SATOB.pp,ex=P.x-pp.x,ey=P.y-pp.y,ez=P.z-pp.z,bal=SATOB.pv&&ex*ex+ey*ey+ez*ez<pas9*pas9;pp.copy(P);SATOB.pv=true;
   for(const o of SATOB.list){
     if(o.fait)continue;
     const dx=P.x-o.q.x,dy=P.y-o.q.y,dz=P.z-o.q.z;
