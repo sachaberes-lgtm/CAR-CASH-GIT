@@ -17187,6 +17187,11 @@ const CARS=[
  {name:'LA MERCURE',shape:'mercure',color:0xd9dde6,accent:0x8a4dff,maxKmh:435,accel:52,turn:3.1,h:1.16,w:2.0,l:4.72,spoiler:0,rar:'epique',
   fx:{jet:0xb46bff,core:0xf3e6ff,trail:[1.1,.55,1.5],light:0xa864ff},
   desc:'Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.'},
+ // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
+ // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
+ {name:'LE DOGE',shape:'doge',color:0xdc9a48,accent:0xf7e8c8,maxKmh:440,accel:53,turn:3.1,h:1.5,w:2.25,l:3.3,spoiler:0,rar:'epique',
+  fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a},
+  desc:'Wow. Très voiture. Beaucoup vitesse. Il te regarde de côté, et il a raison.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -17663,6 +17668,11 @@ Object.assign(I18N,{
 Object.assign(I18N,{
  "LA DÉFERLANTE":"THE BREAKER",
  "Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d'air.":"A rogue wave that learned to drive. It curls right over the back of your neck, and you breathe inside an air bubble."
+});
+// (2026-10-14) LE DOGE
+Object.assign(I18N,{
+ "LE DOGE":"DOGE",
+ "Wow. Très voiture. Beaucoup vitesse. Il te regarde de côté, et il a raison.":"Wow. Such car. Much speed. He side-eyes you, and he is right.",
 });
 // (2026-10-11) LA MERCURE
 Object.assign(I18N,{
@@ -25773,6 +25783,144 @@ Object.assign(SHAPES,{
     const pot=sd=>{const q=trace(sd*.33,.42,-3.3,0,0,1);return [sd*.20,.42,(q?q[2]:-2.3)-.01];};
     return {hl:[.22,.45,2.30],tl:[.40,.66,-2.40],lamps:0,halos:0,wx:WX,wzF:ZF,wzR:-ZR,pots:[pot(1),pot(-1)],
             lpw:{R:R,w:.30,style:'multi',n:12,jante:0x3a3d47,accent:0x8a4dff,pneu:0x0e0d12}};
+  },
+/* LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — le mème du shiba en VOXELS,
+   comme le CHAT POP-TART : la même grille (`voxGrille`), la même laque (`nyLaque` : couleurs cuites par face, brillant de studio), le
+   même dessous noir, et une animation en PAS ENTIERS (jamais interpolée).
+   · LA CAISSE (cases de 10 cm) : le corps du chien couché en châssis — dos fauve, selle plus sombre sur l'échine, ventre crème — une
+     BULLE de verre sur le dos (c'est une voiture), un COLLIER rouge clouté d'or au cou, et les PATTES en ailes au-dessus des roues
+     (bouts crème : les chaussettes du shiba). Les roues : des PIÈCES d'or.
+   · LA TÊTE (cases de 7 cm) dressée à l'avant : crâne fauve, museau et joues crème, truffe noire en relief, bouche en coin, les deux
+     points crème au-dessus des yeux (les « sourcils » du shiba), oreilles en triangle à l'intérieur rose.
+   · LE REGARD : les yeux sont en relief, trois dessins (à gauche · au milieu · à droite) — il te regarde DE CÔTÉ (le side-eye du mème) :
+     au garage, du côté où est la caméra, avec un coup d'œil de l'autre côté de temps en temps ; les sourcils se LÈVENT d'une case par
+     moments, et pour de bon à la nitro, où la langue sort (deux dessins qui battent).
+   · LA QUEUE en tire-bouchon sur la croupe (c'est l'aileron) bat d'une case, plus vite quand il roule, à fond à la nitro ; la tête
+     hoche d'une case sur le tempo quand il roule ; une oreille tressaille.
+   · SA SIGNATURE (comme l'arc-en-ciel du chat) : les PHRASES DU MÈME en Comic Sans, de toutes les couleurs, qui surgissent autour de lui
+     — « wow », « such speed », « much nitro »… — une de temps en temps au garage, en RAFALE à la nitro (sprites, textures cuites une fois).
+   Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
+  doge:function(K){
+    const BU=.1,HU=.085,R=.36,ZF=1.05,ZR=-.85,WX=.86,WXF=.98;
+    let rs=0x0d06e5;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
+    const COUL={T:0xdc9a48,S:0xb06c2a,C:0xf7e8c8,E:0xf2b9b0,W:0xffffff,N:0x141118,D:0x4e2c1a,P:0xff7a9a,R:0xe8283e,O:0xffc93a,V:0x182036,v:0x6d86b8,L:0xff2a3a},
+      TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'nyl',c:0x14141c}},cc=new THREE.Color();
+    for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'nyl',c:cc.getHex()};}
+    const mL=nyLaque();
+    const emitG=(G,u,o,plan,par)=>{const kt=lpKit(pal);
+      G.emit(kt,u,o,(c,ax,sg)=>(c==='B'||(ax===1&&sg<0))?'B':c+(ax===plan?'d':(ax===1?'h':'c')));   // tout ce qui regarde le SOL est noir
+      const gs=kt.done();for(const g in gs){const m=new THREE.Mesh(gs[g],mL);m.userData.lp=1;par.add(m);}return par;};
+    const grp=par=>{const g9=new THREE.Group();par.add(g9);return g9;};
+    const g=K.add(new THREE.Group());
+    // ---- 1. LE CORPS (cases de 10 cm ; i → x centré, j → y, k → z) : court et bombé, la grosse tête devant (les proportions du mème)
+    const Bv=voxGrille(),LARG=[0,0,0,5,6,6,6,5,4],dansC=(a,j,k,m)=>{if(j<3-m||j>8+m||k<-13-m||k>4+m)return false;const jj=Math.max(3,Math.min(8,j));
+      let w=LARG[jj]+m;if(k<=-12)w-=1;if(k<=-13)w-=1;if((k<=-13)&&(j>=8||j<=3))return false;return a<=w;};
+    for(let k=-13;k<=4;k++)for(let j=3;j<=8;j++)for(let i=-6;i<=6;i++){const a=Math.abs(i);if(!dansC(a,j,k,0))continue;
+      let c=j<=4?'C':'T';if(j===8&&a<=2)c='S';if(k>=2&&j<=6)c='C';                             // ventre crème, selle sombre, poitrail
+      if(k===-13&&j===6&&a===2)c='L';                                                           // les feux, sur la croupe
+      Bv.set(i,j,k,c);}
+    for(let k=-7;k<=-2;k++)for(let j=9;j<=10;j++)for(let i=-3;i<=3;i++){const a=Math.abs(i);    // LA BULLE de verre sur le dos
+      if(j===10&&(a===3||k===-7||k===-2))continue;if((k===-7||k===-2)&&a===3)continue;
+      Bv.set(i,j,k,(j===10&&i===-1&&k>=-5&&k<=-4)||(j===9&&a===3&&k===-4)?'v':'V');}
+    for(let j=2;j<=9;j++)for(let i=-7;i<=7;i++){const a=Math.abs(i);                            // LE COLLIER : l'anneau autour du cou
+      if(dansC(a,j,3,0)||!dansC(a,j,3,1))continue;Bv.set(i,j,3,((i+j)%3===0)?'O':'R');}
+    for(const sx of [-1,1]){const k0=Math.round((ZR-.40)/BU),k1=Math.round((ZR+.40)/BU)-1;    // les CUISSES arrière, bombées, sur la roue
+      for(let k=k0;k<=k1;k++)for(let a=7;a<=9;a++)for(let j=5;j<=8;j++){const bout=k===k0||k===k1;   // une demi-boule : elle bombe dehors, pas une planche
+        if(j===8&&(a===9||bout))continue;if(j===5&&a>7)continue;if(bout&&a===9)continue;Bv.set(sx*a,j,k,(k===k1&&j<=6)?'C':'T');}}
+    emitG(Bv,BU,[-BU/2,0,0],1,g);
+    // ---- 2. LA TÊTE (cases de 7 cm) : crâne, museau, joues ----
+    const HY=.30,HZ=.32,oH=[-HU/2,HY,HZ],tete=grp(g),Hv=voxGrille(),E9=(x,y,z,cx,cy,cz,rx,ry,rz)=>((x-cx)/rx)**2+((y-cy)/ry)**2+((z-cz)/rz)**2<=1;
+    for(let i=-11;i<=11;i++)for(let j=0;j<=16;j++)for(let k=-1;k<=19;k++){const x=i,y=j+.5,z=k+.5;
+      const crane=E9(x,y,z,0,7.5,7,9.2,6.2,6.6),museau=E9(x,y,z,0,4.6,12.6,4.6,3.2,5),joue=E9(x,y,z,5.6,4.6,9.5,3.8,3.4,3.8)||E9(x,y,z,-5.6,4.6,9.5,3.8,3.4,3.8);
+      if(!(crane||museau||joue))continue;
+      Hv.set(i,j,k,(museau&&z>9)||joue||(y<6.2&&z>8)||(y<3.5)?'C':'T');}
+    const kS=(i,j)=>{for(let k=20;k>=-1;k--)if(Hv.has(i,j,k))return k;return null;};
+    const peint=(i,j,c)=>{const k=kS(i,j);if(k!=null)Hv.set(i,j,k,c);};
+    const S9={};for(let i=-6;i<=6;i++)for(let j=0;j<=14;j++)S9[i+','+j]=kS(i,j);               // la surface AVANT, avant tout relief
+    const relief=(G,i,j,c,d)=>{const k=S9[i+','+j];if(k!=null)G.set(i,j,k+(d||1),c);};
+    for(const s of [-1,1])for(const a of [2,3,4])peint(s*a,10,'D');                             // les paupières
+    for(const [i,j] of [[0,4],[0,5],[-3,3],[-2,3],[-1,3],[0,3],[1,3],[2,3],[3,4]])peint(i,j,'D'); // la bouche EN COIN (le sourire en biais du mème)
+    for(let i=-1;i<=1;i++)for(let j=6;j<=7;j++)relief(Hv,i,j,j===7&&i===-1?'W':'N');            // la truffe, en relief (et son reflet)
+    emitG(Hv,HU,oH,2,tete);
+    // les OREILLES : un triangle épais, l'intérieur rose ; chacune dans son groupe (elle tressaille)
+    const ORE=[];
+    for(const s of [-1,1]){const piv=[s*5.2*HU,HY+11*HU,HZ+6*HU],og=grp(tete);og.position.set(piv[0],piv[1],piv[2]);
+      const Ov=voxGrille(),dans=(x,y,m)=>{const t=(y-10.5)/(17.6-10.5-m*.9);if(t<0||t>1)return false;const c=5.2,hw=(1-t)*(2.8-m);return Math.abs(s*x-c)<=hw;};
+      for(let i=-11;i<=11;i++)for(let j=9;j<=19;j++)for(let k=4;k<=7;k++){const x=i,y=j+.5;
+        if(!dans(x,y,0)||Hv.has(i,j,k))continue;Ov.set(i,j,k,(k===7&&dans(x,y,1.1))?'E':'T');}
+      emitG(Ov,HU,[oH[0]-piv[0],oH[1]-piv[1],oH[2]-piv[2]],2,og);ORE.push(og);}
+    // les YEUX en relief : trois dessins (le regard à gauche · au milieu · à droite)
+    const YEUX=[-1,0,1].map(gz=>{const Y=voxGrille();
+      for(const s of [-1,1]){const cs=[s*2,s*3,s*4].sort((a,b)=>a-b);
+        const pup=gz===0?[cs[1]]:gz>0?[cs[1],cs[2]]:[cs[0],cs[1]];
+        for(const i of cs)for(const j of [8,9])relief(Y,i,j,pup.indexOf(i)>=0?'N':'W');}   // la pupille dans le COIN, le blanc de l'autre côté
+      const yg=grp(tete);emitG(Y,HU,oH,2,yg);yg.visible=gz===1;return yg;});
+    // les SOURCILS (les deux points crème) : un dessin, qui monte d'une case
+    const Sv=voxGrille();for(const s of [-1,1])for(const a of [3,4])relief(Sv,s*a,11,'C');
+    const sourcils=grp(tete);emitG(Sv,HU,oH,2,sourcils);
+    // la LANGUE (deux dessins qui battent), cachée hors de la nitro
+    const LANGUE=[[[0,2],[1,2],[0,1],[1,1]],[[0,2],[1,2],[0,1],[1,1],[0,0],[1,0]]].map(cs=>{const Lv=voxGrille();
+      for(const [i,j] of cs){const k=S9[i+',3'];if(k!=null)Lv.set(i,j,k+(j<2?2:1),'P');}
+      const lg=grp(tete);emitG(Lv,HU,oH,2,lg);lg.visible=false;return lg;});
+    // ---- 3. LA QUEUE en tire-bouchon sur la croupe : l'aileron ----
+    const queue=grp(g),Qv=voxGrille(),QC=[0,4.4,0];
+    for(let n=0;n<=160;n++){const u=n/160,ph=(-35+335*u)*Math.PI/180,r=3.5-1.9*u,ep=1.95-.75*u,                // de la croupe, par-dessus, et elle s'enroule
+      cz=QC[2]-r*Math.cos(ph),cy=QC[1]+r*Math.sin(ph);
+      for(let i=-3;i<=3;i++)for(let j=Math.floor(cy-ep);j<=Math.ceil(cy+ep);j++)for(let k=Math.floor(cz-ep);k<=Math.ceil(cz+ep);k++){
+        const y=j+.5,z=k+.5;if(Math.hypot(i,y-cy,z-cz)>ep)continue;
+        const dd=Math.hypot(y-QC[1],z-QC[2]);if(Qv.has(i,j,k)&&dd>=r-.3)continue;Qv.set(i,j,k,(dd<r-.35||u>.86)?'C':'T');}}
+    emitG(Qv,HU,[-HU/2,.86,-1.12],0,queue);
+    // ---- 4. LES SORTIES : deux canons d'or sous la queue ----
+    const P=K.kit({o:{g:'o',c:0xd9a520},k:{g:'m',c:0x08080a}});
+    P.sym(sd=>{P.cyl('o',.075,.22,12,sd*.22,.42,-1.36,'z');P.cyl('k',.055,.23,12,sd*.22,.42,-1.37,'z');});
+    K.commit(P);
+    // ---- 5. LES PHRASES DU MÈME (cuites une fois par session) ----
+    if(!SHAPES.doge._tx){SHAPES.doge._tx=[];
+      const MOTS=['wow','such speed','much fast','very nitro','so car','many coin','amaze','such drift','much aura','very vroom','excite','wow'],
+            TEINTES=['#ff3ec8','#5ee6ff','#7dff5a','#ffe25a','#ff8a2a','#c07bff'];
+      MOTS.forEach((m9,n)=>{const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='bold 64px "Comic Sans MS","Comic Sans","Chalkboard SE","Comic Neue",cursive';
+        x.font=F;const w=Math.ceil(x.measureText(m9).width)+28;cv.width=w;cv.height=96;x.font=F;x.textBaseline='middle';x.lineJoin='round';
+        x.lineWidth=9;x.strokeStyle='#1c0430';x.strokeText(m9,14,50);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,14,50);
+        const tx=new THREE.CanvasTexture(cv);tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;SHAPES.doge._tx.push({tx,a:w/96});});}
+    const TX=SHAPES.doge._tx,MOT=[];
+    for(let n=0;n<10;n++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:TX[0].tx,transparent:true,depthWrite:false,fog:false}));
+      sp.visible=false;sp.renderOrder=7;g.add(sp);MOT.push({sp,v:0});}
+    let mi=0,mDer=-1;
+    let enC=false;
+    const crie=()=>{const o=MOT.find(q=>q.v<=0);if(!o)return;let n;do{n=rnd()*TX.length|0;}while(n===mDer&&TX.length>1);mDer=n;
+      const T9=TX[n];o.sp.material.map=T9.tx;o.sp.material.rotation=(rnd()-.5)*.35;o.h=(.30+rnd()*.12)*(enC?3.0:1);o.a=T9.a;                                                    // en course : la caméra est loin, elles grossissent
+      const sx=(mi++%2?1:-1);o.x=sx*(enC?1.9+rnd()*1.2:1.15+rnd()*.9);o.y=enC?1.7+rnd()*1.0:.95+rnd()*1.0;o.z=enC?0+rnd()*2.6:-1.0+rnd()*2.4;o.v=1.5;o.sp.visible=true;};
+    // ---- 6. LA VIE ----
+    let t=0,F=0,sV=0,pPrev=null,regard=1,coupT=2+rnd()*3,coupD=0,sourT=2.5,sourD=0,sourD0=0,oreT=3,oreD=0,oreS=1,crieT=.6,acc=0,pas=0;
+    const V9=new THREE.Vector3();
+    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;
+      const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;F+=(fort-F)*Math.min(1,dt*6);
+      const e=g.matrixWorld.elements;
+      if(pPrev){const d=Math.hypot(e[12]-pPrev[0],e[13]-pPrev[1],e[14]-pPrev[2])/Math.max(dt,1e-3);sV+=(Math.min(1,d/40)-sV)*Math.min(1,dt*3);}else pPrev=[0,0,0];
+      pPrev[0]=e[12];pPrev[1]=e[13];pPrev[2]=e[14];
+      let course=false,vol=false;try{course=enC=typeof started!=='undefined'&&started&&typeof gameOver!=='undefined'&&!gameOver;vol=course&&typeof mode!=='undefined'&&mode==='fall';}catch(_){}
+      // le REGARD : du côté de la caméra (au garage), un coup d'œil de l'autre côté de temps en temps
+      try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);g.worldToLocal(V9);if(V9.x>.5)regard=1;else if(V9.x<-.5)regard=-1;}}catch(_){}
+      coupT-=dt;if(coupT<=0){coupD=.55;coupT=3+rnd()*4;}let gz=regard;if(coupD>0){coupD-=dt;gz=-regard;}
+      for(let q=0;q<3;q++)YEUX[q].visible=(q-1)===gz;
+      // les SOURCILS se lèvent (et restent levés à la nitro) ; la LANGUE sort à la nitro
+      sourT-=dt;if(sourT<=0){sourD=rnd()<.35?.9:.5;sourD0=sourD;sourT=2.5+rnd()*3.5;}if(sourD>0)sourD-=dt;
+      sourcils.position.y=(F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52)))?HU:0;                       // levés (deux fois de suite, parfois)
+      acc+=dt;if(acc>=1/8){acc=0;pas++;
+        const lg=F>.5?pas%2:-1;LANGUE[0].visible=lg===0;LANGUE[1].visible=lg===1;
+        const bat=F>.5?1:sV>.15?2:4;queue.position.x=[0,HU,0,-HU][Math.floor(pas/bat)%4];                     // la queue bat (plus vite en roulant, à fond à la nitro)
+        tete.position.y=(sV>.15||F>.5)&&(Math.floor(pas/(F>.5?1:2))%2)?HU:0;}                                // la tête hoche sur le tempo
+      oreT-=dt;if(oreT<=0){oreD=.16;oreS=rnd()<.5?0:1;oreT=2+rnd()*4;}if(oreD>0)oreD-=dt;
+      ORE[0].rotation.z=oreD>0&&oreS===0?.22:0;ORE[1].rotation.z=oreD>0&&oreS===1?-.22:0;
+      // les PHRASES : une de temps en temps, en rafale à la nitro, plus souvent en vol
+      crieT-=dt;if(crieT<=0){crie();crieT=F>.5?.38:vol?.8:course?1.8:1.5;}
+      for(const o of MOT){if(o.v<=0)continue;o.v-=dt;const u=1.5-o.v,p=u<.12?u/.12*1.15:u<.2?1.15-(u-.12)/.08*.15:1,f=o.v<.4?o.v/.4:1;
+        o.y+=dt*.18;o.sp.position.set(o.x,o.y,o.z);o.sp.scale.set(o.h*o.a*p,o.h*p,1);o.sp.material.opacity=f;if(o.v<=0)o.sp.visible=false;}};
+    anime(1/30);
+    g.userData.anime=anime;
+    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
+    return {hl:[.30,.50,1.80],tl:[.20,.65,-1.32],lamps:0,halos:0,wx:WX,wxF:WXF,wzF:ZF,wzR:-ZR,pots:[[.22,.42,-1.48],[-.22,.42,-1.48]],
+            lpw:{R:R,w:.30,style:'cadran',jante:0xffc93a,accent:0xffc93a,pneu:0x141118}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
@@ -27997,6 +28145,7 @@ const CAR_UNLOCK=[
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
+  {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
    des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE

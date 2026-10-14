@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — caisse ajoutée EN DERNIER (index 76), ÉPIQUE 4 000 000 $, `SHAPES.doge`
+Le mème du shiba en VOXELS, avec les outils du CHAT POP-TART : `voxGrille` (faces à l'air fusionnées), `nyLaque` (couleurs cuites par face d/h/c, brillant
+de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,{…})`, juste après LA MERCURE.
+- CORPS (cases de 10 cm) court et bombé (`dansC` : la section), selle sombre, ventre crème, BULLE de verre sur le dos, COLLIER rouge clouté d'or
+  (l'anneau = la section élargie d'une case moins la section), CUISSES arrière en demi-boule sur les roues. Roues : pièces d'or (`cadran`), voie avant
+  plus large (`wxF` .98 : la tête de 1,6 m passe entre les roues). Feux sur la croupe, deux canons d'or sous la queue (`pots` déclarés).
+- TÊTE (cases de 8,5 cm, `HY`/`HZ`) : crâne + museau + joues en ellipsoïdes ; `S9` = la surface AVANT relevée avant tout relief ; `relief()` pose
+  un voxel UNE case devant (yeux, sourcils, truffe, langue : jamais coplanaires avec la tête). Bouche en coin et paupières PEINTES sur la surface.
+  Oreilles dans leur groupe (pivot à la base, elles tressaillent).
+- LE REGARD : 3 dessins d'yeux (`YEUX`, pupille dans un coin) — side-eye du côté de la caméra (`camera` en repère caisse), coup d'œil de l'autre côté
+  par moments ; sourcils levés d'une case (deux fois parfois, et pour de bon à la nitro) ; LANGUE en deux dessins à la nitro. Pas entiers à 8 i/s :
+  la queue (tire-bouchon en spirale qui se resserre, l'aileron) bat d'une case, la tête hoche quand il roule.
+- LES PHRASES DU MÈME (sa signature, comme l'arc-en-ciel du chat) : 12 textures Comic Sans (« wow », « such speed »…) cuites UNE fois
+  (`SHAPES.doge._tx`), 10 sprites ; une toutes les 1,5 s au garage, 1,8 s en course, 0,8 s en vol, RAFALE à la nitro (0,38 s) ; en course ×3 et plus
+  loin de la caisse (la caméra de poursuite est loin). Mesuré au banc : 60 i/s en course, comme LA DÉFERLANTE.
+- ⚠ À trancher avant une sortie : c'est un mème (le shiba « Doge »), même question que le CHAT POP-TART (Nyan Cat).
+
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
 NETTE, JOUER → Soleil de jade au pilote auto ; processeur ralenti ×4 = un téléphone modeste ; A/B contre `origin/main` servi à côté.
