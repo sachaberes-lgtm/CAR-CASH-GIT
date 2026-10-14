@@ -12064,6 +12064,7 @@ const SANS_LOOPING=true;
    grisants, un looping, des tout-droits qui laissent booster ». Chaque ligne droite est une INVITATION à la
    nitro ; les virages ont de grands rayons (on les prend à fond) ; le looping arrive après une longue ligne
    droite, pour qu'on l'aborde avec de la vitesse. Mêmes briques que genCtrl (droite, arc, loop). */
+const TUTO_DOUX=true; // (2026-10-14, gameplay) le départ de l'auto-école : longue droite puis 1er virage large (voir genTuto)
 function genTuto(){
   const ctrl=[];GAPMARK.length=0;
   let P=new THREE.Vector3(0,0,0),phi=0;
@@ -12076,8 +12077,17 @@ function genTuto(){
     for(let k=1;k<=8;k++){const th=k*Math.PI/4;
       P.set(base.x+d.x*R*Math.sin(th)+sx*shift*(th-Math.sin(th))/(2*Math.PI),base.y+R*(1-Math.cos(th)),base.z+d.z*R*Math.sin(th)+sz*shift*(th-Math.sin(th))/(2*Math.PI));push();}};
   push();
+  /* (2026-10-14, gameplay — relevé du banc, BACKLOG P3) LA LEÇON « TOURNE » TOMBAIT DANS LE VIRAGE : la carte paraît 1,9 s après le départ
+     (fin du logo), à ~256 km/h, ~100 m avant la fin des 300 m de droite ; le 1er virage (R 190) sortait de la route ~3 s plus tard sans un
+     geste (« SORTI ! SUIS LA ROUTE »), avant qu'un débutant ait trouvé le volant. Le DÉBUT seulement : 520 m de droite (≈ 6 s de calme
+     après la carte pour glisser le pouce à gauche, à droite) puis le même virage de 70° deux fois plus large (R 380 : sans un geste on en
+     sort ~2 s après son entrée, au lieu de 1,4) — il donne encore un SENS au volant. Le reste du tracé est le même, déplacé d'un bloc
+     (même cap) : aucun croisement (banc outils/tuto-trace.cjs : 275 m d'écart mini, comme avant). TUTO_DOUX=false = l'ancien départ. */
+  if(TUTO_DOUX){straight(520,0,4);arc(70,380,8);}
+  else{
   straight(300,0,3);            // le départ : on sent le gaz auto
   arc(70,190,6);                // 1er virage : large, on le prend à fond
+  }
   straight(360,-24,3);          // 1re ligne droite en légère descente : « appuie sur NITRO »
   arc(-90,210,7);               // le grand virage grisant
   straight(420,0,4);            // on reprend de la vitesse…
