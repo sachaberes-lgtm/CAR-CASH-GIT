@@ -45785,13 +45785,48 @@ function bqLaqueMat(k){bqLaqueMat._m=bqLaqueMat._m||{};const cle=String(k||1);if
      écrase les blancs contre un plafond (le sol a dû monter à ×3,4) — un vernis linéaire y sortait uniforme ; là, le corps reste un blanc doux et
      le reflet claque */
   if(k)lq.color.setScalar(k);return bqLaqueMat._m[cle]=lq;}
+/* LA PRAIRIE (2026-10-14, Léo : « tente un truc sur l'herbe paisible, un peu comme le fond d'écran Windows connu ; même interface de vente,
+   mêmes bras robots ») — un ESSAI de décor pour la boutique, l'interrupteur `BQ_DECOR` ('herbe' · 'blanc' = la salle blanche, `?bq=blanc`).
+   Rien de la photo : un ciel bleu profond qui pâlit vers l'horizon, des cumulus de coton, et UNE colline douce, d'un vert franc, dont la
+   crête file en biais derrière la caisse ; l'herbe est cuite (lumière du soleil de gauche dans la couleur des sommets, taches plus claires et
+   plus sombres) + un grain d'herbe en texture. Le pied de la caisse reste à plat (les bras se posent dans l'herbe). Tout en MeshBasic : la
+   lumière du studio ne la change pas. Repère : celui de la boutique (+z = vers la caméra, il suit son azimut). */
+const BQ_DECOR=/[?&]bq=blanc\b/.test(location.search)?'blanc':'herbe';
+function bqPrairie(g,R){
+  const cv=document.createElement('canvas');cv.width=1024;cv.height=512;const x0=cv.getContext('2d'),r=mulberry32(0xB1155);
+  {const gr=x0.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#1a4fc4');gr.addColorStop(.55,'#3f86e6');gr.addColorStop(1,'#a9d1f7');x0.fillStyle=gr;x0.fillRect(0,0,1024,256);
+   x0.fillStyle='#a9d1f7';x0.fillRect(0,256,1024,256);}
+  const ciel=new THREE.Mesh(new THREE.SphereGeometry(R,48,32),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),side:THREE.BackSide,fog:false}));ciel.renderOrder=-10;ciel.material.color.setScalar(1.2);g.add(ciel);
+  // LES NUAGES sur leur propre couche (une sphère un peu plus petite, transparente) : poussés au BLANC (×2,4, comme la salle blanche) sans délaver le bleu
+  const cn=document.createElement('canvas');cn.width=1024;cn.height=512;const x=cn.getContext('2d');
+  const nuage=function(cx,cy,w){for(let k=0;k<18;k++){const px=cx+(r()-.5)*w,py=cy+(r()-.5)*w*.12-Math.abs(r()-.5)*w*.1,rr=w*(.06+r()*.1);
+      for(const dx of [-1024,0,1024]){const gr=x.createRadialGradient(px+dx,py,0,px+dx,py,rr);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.6,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.beginPath();x.arc(px+dx,py,rr,0,7);x.fill();}}};
+  for(let k=0;k<13;k++)nuage(r()*1024,196+r()*44,110+r()*150); /* la bande VUE du ciel (la caméra regarde un peu vers le bas : 2-12° au-dessus de l'horizon) */
+  for(let k=0;k<5;k++)nuage(r()*1024,120+r()*60,140+r()*120);
+  const nu=new THREE.Mesh(new THREE.SphereGeometry(R*.985,48,32),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cn),side:THREE.BackSide,transparent:true,depthWrite:false,fog:false}));nu.renderOrder=-9;nu.material.color.setScalar(2.4);g.add(nu);
+  // LA COLLINE : un plan de 116 m, 120 × 120 mailles, soulevé ; crête en biais derrière la caisse (−z), à plat sous elle
+  const N=120,L=116,ge=new THREE.PlaneGeometry(L,L,N,N);ge.rotateX(-Math.PI/2);
+  const P=ge.attributes.position,col=new Float32Array(P.count*3),a=.32,ca=Math.cos(a),sa=Math.sin(a),ss=function(e0,e1,v){v=Math.max(0,Math.min(1,(v-e0)/(e1-e0)));return v*v*(3-2*v);};
+  const H=function(x9,z9){const d=Math.hypot(x9,z9),u=-z9*ca+x9*sa,plat=ss(6.5,15,d);
+    return plat*(3.4*Math.exp(-Math.pow((u-30)/13,2))+1.6*Math.exp(-(Math.pow((x9+18)/13,2)+Math.pow((z9+14)/12,2)))+.35*Math.sin(x9*.11+1.3)*Math.cos(z9*.09))-.05;}; /* la crête SOUS l'œil (la caméra est à ~4,6 m) : le ciel tient le haut de l'image */
+  for(let i=0;i<P.count;i++)P.setY(i,H(P.getX(i),P.getZ(i)));
+  ge.computeVertexNormals();
+  const Nn=ge.attributes.normal,sol9=new THREE.Vector3(-.55,.75,.35).normalize(),t9=new THREE.Vector3();
+  for(let i=0;i<P.count;i++){t9.fromBufferAttribute(Nn,i);const lu=Math.max(0,t9.dot(sol9)),x9=P.getX(i),z9=P.getZ(i),n9=.5+.5*Math.sin(x9*.07+Math.cos(z9*.05)*2)*Math.cos(z9*.06-x9*.03);
+    const k=.55+.55*lu,far=ss(14,52,Math.hypot(x9,z9))*.45;let R9=(.26+.10*n9)*k,G9=(.46+.10*n9)*k,B9=(.10+.03*n9)*k; /* vert d'été, un peu jaune ; au loin il pâlit vers le bleu du ciel */
+    R9+=(.52-R9)*far;G9+=(.70-G9)*far;B9+=(.86-B9)*far;col[3*i]=R9;col[3*i+1]=G9;col[3*i+2]=B9;}
+  ge.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const gc=document.createElement('canvas');gc.width=gc.height=128;{const y=gc.getContext('2d'),r2=mulberry32(0x6A55);y.fillStyle='#e6e6e6';y.fillRect(0,0,128,128);
+    for(let k=0;k<900;k++){const v=r2()<.5?255:180+((r2()*30)|0);y.fillStyle='rgb('+v+','+v+','+v+')';y.fillRect((r2()*128)|0,(r2()*128)|0,1,2+((r2()*3)|0));}}
+  const tG=new THREE.CanvasTexture(gc);tG.wrapS=tG.wrapT=THREE.RepeatWrapping;tG.repeat.set(70,70);tG.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+  const pre=new THREE.Mesh(ge,new THREE.MeshBasicMaterial({vertexColors:true,map:tG,fog:false}));pre.material.color.setScalar(1.18);g.add(pre);GBQ.prairie=pre;}
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
   const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
   const cvT=function(w,h,f){const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
   // LE FOND : une sphère retournée, blanc pur au zénith, gris perle à l'horizon — aucun mur, aucun coin
   const R=60,tF=cvT(4,256,function(x,w,h){const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#ffffff');gr.addColorStop(.42,'#fafbfc');gr.addColorStop(.5,'#eceff2');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const fond=new THREE.Mesh(new THREE.SphereGeometry(R,32,24),B(0xffffff,{map:tF,side:THREE.BackSide}));fond.renderOrder=-10;fond.material.color.setScalar(2.6);g.add(fond); /* (×1,5 : l'étalonnage du jeu tasse les blancs — le fond doit sortir BLANC) */ // (elle écrit la profondeur : rien du monde ne passe derrière)
+  const fond=new THREE.Mesh(new THREE.SphereGeometry(R,32,24),B(0xffffff,{map:tF,side:THREE.BackSide}));fond.renderOrder=-10;fond.material.color.setScalar(2.6);if(BQ_DECOR!=='herbe')g.add(fond); /* (×1,5 : l'étalonnage du jeu tasse les blancs — le fond doit sortir BLANC) */ // (elle écrit la profondeur : rien du monde ne passe derrière)
   /* LE BLANC STRUCTURÉ (2026-10-12, Léo : « le sol blanc pareil ; un arrière de la salle, même style ») : une toile de 4 × 4 petites dalles en
      relief (arête claire en haut à gauche, ombre en bas à droite, une teinte à peine différente par dalle) — la peau du sol, du socle, des murs */
   const tuileCv=document.createElement('canvas');tuileCv.width=tuileCv.height=128;{const x=tuileCv.getContext('2d'),r=mulberry32(0x7E1E);
@@ -45802,7 +45837,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   GBQ.tuile=tuile;
   // LE SOL : en blanc structuré (des dalles de ~34 cm), à perte de vue
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(3.4);g.add(sol); /* (2026-10-13, Léo : « le sol de la boutique plus blanc, comme les socles qui tiennent les bras robots ») ×1,75 → ×3,4 (mesuré : 220 → 234, le blanc du fond) : le gris lavande devient blanc, les joints des dalles restent à peine lisibles */ // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(3.4);if(BQ_DECOR!=='herbe')g.add(sol);else bqPrairie(g,R); /* (2026-10-13, Léo : « le sol de la boutique plus blanc, comme les socles qui tiennent les bras robots ») ×1,75 → ×3,4 (mesuré : 220 → 234, le blanc du fond) : le gris lavande devient blanc, les joints des dalles restent à peine lisibles */ // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
@@ -45885,7 +45920,7 @@ function garBqLueurBatit(){if(GBQ.halo)return;
   const t=new THREE.CanvasTexture(cv),m=function(){const mt=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0,depthWrite:false,fog:false});mt.color.setScalar(1.3);return mt;};
   GBQ.halo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.halo.visible=false;GBQ.halo.renderOrder=5;scene.add(GBQ.halo);
   GBQ.nappe=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.nappe.rotation.x=-Math.PI/2;GBQ.nappe.visible=false;GBQ.nappe.renderOrder=4;scene.add(GBQ.nappe);}
-function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;
+function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;if(BQ_DECOR==='herbe'){G9.visible=false;return;} /* (prairie) pas de gloire dans l'herbe : la colline la coupait net */
   const kg=GBQ.on?Math.min(1,Math.max(0,(GBQ.t-.95)/.75)):Math.max(0,(GBQ.gk||0)-dt*5);GBQ.gk=kg;G9.visible=kg>.01;if(!G9.visible)return;
   const v=GBQ._vg||(GBQ._vg=new THREE.Vector3()),d=GBQ._dg||(GBQ._dg=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.5;
   d.copy(v).sub(camera.position);d.y=0;d.normalize();G9.position.copy(v).addScaledVector(d,3.6);G9.quaternion.copy(camera.quaternion);G9.rotateZ(t9*.045);
