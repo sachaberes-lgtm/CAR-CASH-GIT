@@ -62,7 +62,9 @@ Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NI
   `banq.chant` (la nuit et le soir, les lacs qui chantent au loin), `banq.vent` (boucle d'ambiance). Les boucles suivent l'élan (`bkBoucle` :
   gain et vitesse). À juger à l'oreille par Sacha ou Léo dans `sons.html`.
 - PERF : 0 lumière ajoutée, matières chauffées au menu (`banqChauffe`), morceaux de neige coupés à la brume, pics en morceaux de 600 m (le tri
-  par champ de three), géants en morceaux de 1,5 km ; budgets `PAL.B.banq*`.
+  par champ de three), géants en morceaux de 1,5 km ; budgets `PAL.B.banq*`. MESURÉ (navigateur, banc muet, palier récent) : construction
+  156-179 ms (dont la neige 114-131 ms), neige 140-153 k triangles en ~60 morceaux, pics et stalactites 12-14 k, géants 2,2 k ; palier ancien
+  (Node) 60-115 ms, neige 42 k. 0 erreur JS sur les six temps ; en jeu : la poudreuse porte (0,4-0,8 m), la glisse sur un lac (85 → 80 en 2 s).
 - Console : `dbgBanq()` (comptes, temps), `dbgBanq('meteo','nuit')`, `dbgBanq('vue',{p,c,fov})`, `dbgBanq('pic'|'lac',{d,h})` (photos),
   `dbgBanq('poudre'|'glace'|'pic9',{h,v,pq})` (la caisse lâchée au-dessus de la poudreuse, d'un lac, d'un pic), `dbgBanq('etat')`,
   `dbgBanq('phys',{prof:…})` (régler la physique en direct). Lancer : `?carte=banquise&meteo=nuit` puis JOUER, ou `dbgClassique('banquise','soir');dbgSaut()`.
