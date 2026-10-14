@@ -41938,6 +41938,13 @@ function capVise(v){const vw=Math.max(6,Math.abs(v)*SPD);return Math.asin(Math.m
    trajectoire (`slipB`, jusqu'à ~20°) — une vraie glisse, qui se voit ET se conduit. */
 const VOL_R0=40,VOL_RK=.3,VOL_TAU=.1;
 function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);} // rad/s au plein pouce — ×spdMult dans la boucle (HAUTE VITESSE, 2026-09-30)
+/* (2026-10-14, GAMEPLAY — LECTURE SEULE, la règle commune des maps : passation/RACCOURCIS.md) « Plus la vitesse du palier est élevée, plus les virages
+   doivent être larges. » `vPalier(t)` : la vitesse de croisière MONDE (m/s) du palier moteur t (par défaut le palier courant) — le même calcul que
+   `lvPiste` (palier +2, overdrive, poussée). `rayonPalier(t)` : le rayon mini qu'on TIENT volant à fond à cette vitesse (lacetMax : r = R0 + RK·v).
+   Un virage d'axe plus serré que `rayonPalier` ne passe PAS à la vitesse du palier ; entre 1 et 1,5 × rayonPalier, c'est un virage SERRÉ (volant à
+   fond) ; au-delà, il passe au pouce. Rien ne les appelle dans le jeu : ce sont les mesures du banc (cc-banc/raccourcis.cjs) et des générateurs de pistes. */
+function vPalier(t){const u=Math.min(ENGINE_TIERS.length-1,((t==null?engTier:t)|0)+2);return 2.75*CARS[0].maxKmh/3.6*engLate(u)*ENGINE_TIERS[u].push*SPD;}
+function rayonPalier(t){return VOL_R0+VOL_RK*vPalier(t);}
 /* LE BALAYAGE (2026-09-30, HAUTE VITESSE). Plots, pads, dos d'âne et flaques se testaient en UN POINT (`|s−objet| < w`) : la caisse avance
    de km/h ÷ 3,6 ÷ images/s par image — à 30 i/s (iPhone bridé) un plot (w 2,6) devenait fantôme au-delà de ~560 km/h, un dos d'âne (w 2,2)
    de ~475, une flaque (w 4-5) de ~860 ; à 60 i/s, le double. On teste désormais le TRAJET de l'image, comme la catapulte : l'écart latéral
@@ -45492,6 +45499,39 @@ window.dbgPas=function(){const ds=L/(NP-1),r=[];let sauts=0;for(let i=1;i<NP;i++
     modules:MODS.map(function(m){return [Math.round(m.s0),Math.round(m.s1)];}),plots:CONES.length,flaques:OILS.length,bancs:Z.length,
     plotsDansModule:CONES.filter(function(c){return dans(c.s,MODS.map(function(m){return [m.s0+60,m.s1];}));}).length,
     plotsDansBanc:CONES.filter(function(c){return dans(c.s,Z);}).length,premierPlot:CONES.length?Math.round(Math.min.apply(null,CONES.map(function(c){return c.s;}))):null,sas:Math.round(2.5*vC)};};
+/* (2026-10-14, BANC RACCOURCIS — LECTURE SEULE) dbgTrace(o) → la piste COURANTE échantillonnée, pour les mesures en Node (cc-banc/raccourcis.cjs).
+   · o.pas    : écart des échantillons en mètres (4 par défaut ; les points du jeu sont équidistants, on en saute k = pas/ds).
+   · o.graine : REBÂTIT la piste de la carte courante avec CETTE graine, par la fonction du jeu elle-même (newTrack). newTrack tire sa graine
+                sd=(Math.random()*1e9)|0 (campagne exceptée : niv.graine) et la passe à buildTrack(sd) : on lui sert (graine+.5)/1e9 pour CE seul
+                appel — reconnu à sa pile (l'appelant direct est newTrack0), jamais un autre Math.random — puis Math.random redevient le vrai.
+   · o.carte / o.meteo : impose le couple du mode classique comme `?carte=&meteo=` (même au menu : SF.pret le temps de l'appel). Sans eux, la carte en cours.
+   · o.palier : pose `engTier` le temps du newTrack (la piste se bâtit à l'échelle de CE palier moteur, comme à un portail), puis le restaure.
+   ⚠ Rebâtir = newTrack() ENTIER (piste, décor, pièces) : s repart de 0 — pas au milieu d'une vraie course. La piste est celle de la zone 0, au palier moteur courant (ou o.palier).
+   Rend {carte,meteo,piste,L,NP,half,thick,minY,g,spd,airMax,pas,p,t,n,b,trou,graine,graineOk,lv,eng,vPal,rMin} : vPal = vPalier(), rMin = rayonPalier() AU PALIER DE LA PISTE ; p en mètres (2 décimales), t/n/b = le repère de la dalle
+   (tangente, normale, binormale ; 3 décimales), trou[i]=1 si l'échantillon est au-dessus du VIDE (pas de dalle : holeAtI, comme dalleProche).
+   graineOk=false : la graine n'a pas pris (niveau à graine FIXE, ou newTrack ne l'a pas tirée) — la piste n'est alors pas celle de la graine demandée. */
+window.dbgTrace=function(o){o=o||{};let graineOk=null,graine=null;const eT9=engTier,pal9=o.palier!=null?(o.palier|0):eT9;
+  if(o.graine!=null||o.carte||o.palier!=null){
+    const raV=Math.random,sv={p:SF.pret},v=o.graine!=null?Math.abs(Math.floor(+o.graine))%1e9:-1;let pris=false;
+    const randGraine=function randGraine(){ // nommée : sa pile la trahit
+      if(v>=0&&!pris&&/^\s*at newTrack0\b/.test(String(new Error().stack).split('\n')[2]||'')){pris=true;Math.random=raV;return (v+.5)/1e9;}
+      return raV();};
+    try{
+      if(o.carte){SF.force={carte:String(o.carte),meteo:o.meteo?String(o.meteo):null};SF.tirage=[];SF.der=null;SF.pret=true;}
+      if(v>=0)Math.random=randGraine;
+      engTier=pal9;
+      newTrack();
+    }finally{Math.random=raV;engTier=eT9;if(o.carte){SF.pret=sv.p;SF.force=null;}}
+    if(v>=0){graine=v;graineOk=pris&&!(LVL.cur&&LVL.cur.graine);}
+  }
+  const ds=L/(NP-1),k=Math.max(1,Math.round((o.pas||4)/ds)),nb=Math.floor((NP-1)/k)+1,r2=function(x){return Math.round(x*100)/100;},r3=function(x){return Math.round(x*1000)/1000;};
+  const p=new Array(nb*3),t=new Array(nb*3),n=new Array(nb*3),b=new Array(nb*3),trou=new Array(nb);
+  for(let j=0;j<nb;j++){const i=j*k,P=pts[i],a=T[i],c=Nn[i],d=B[i],q=j*3;
+    p[q]=r2(P.x);p[q+1]=r2(P.y);p[q+2]=r2(P.z);t[q]=r3(a.x);t[q+1]=r3(a.y);t[q+2]=r3(a.z);
+    n[q]=r3(c.x);n[q+1]=r3(c.y);n[q+2]=r3(c.z);b[q]=r3(d.x);b[q+1]=r3(d.y);b[q+2]=r3(d.z);trou[j]=holeAtI(i)?1:0;}
+  let lv9=0,vp9=0,rm9=0;engTier=pal9;try{lv9=lvPiste();vp9=vPalier();rm9=rayonPalier();}finally{engTier=eT9;} // les trois se lisent AU PALIER de la piste
+  return {carte:LVL.cur?(LVL.cur.carte||LVL.cur.id):null,meteo:LVL.cur?LVL.cur.meteo||null:null,piste:LVL.cur?LVL.cur.piste||null:null,L:r2(L),NP:NP,half:ROAD_HALF,thick:THICK,minY:r2(trackMinY),
+    g:FALL_G*SPD,spd:SPD,airMax:airMax(),pas:r2(k*ds),graine:graine,graineOk:graineOk,lv:r2(lv9),eng:pal9,vPal:r2(vp9),rMin:r2(rm9),p:p,t:t,n:n,b:b,trou:trou};};
 // console : dbgPortail(d) → la caisse à d mètres AVANT l'ovule (sur la route) ; dbgPortail('ciel') → lâchée à la verticale AU-DESSUS de lui
 window.dbgPortail=function(d){if(!started||gameOver||PARK.on)return 'pas de course';
   if(d==='ciel'){s=Math.max(0,L-400);startFall(10,1);fallPos.copy(PORTAL.c);fallPos.y+=PORTAL.R*1.7;fallVel.set(0,-35,0);return {mode,c:PORTAL.c.toArray().map(Math.round),R:PORTAL.R};}
