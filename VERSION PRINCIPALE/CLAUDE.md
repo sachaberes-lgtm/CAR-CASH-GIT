@@ -1,5 +1,12 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes les voitures et tous les trucs débloquables — c'est caché »)
+RÉGLAGES › tout en bas, sous EFFACER : ENTRER UN CODE (`data-m="code"`, la feuille `modale` avec un champ). `codeCousin(t)` : « cousin » ou
+« cousin 1.61 » (accents, majuscules, espaces et points ignorés) → `SAVE.d.cousin=1` (gardé par `san`, parti avec EFFACER MA PROGRESSION, voyage
+dans COPIER / RESTAURER). `cousin()` ouvre, sur CET appareil : toutes les caisses (`carUnlockedVrai` : en vente, en €, à défi), tous les habillages
+(`shopOwned`), toutes les FIGURES (`figPossede`, `veqFigsAMoi`), toute la carrière. L'argent, l'aura et les records ne bougent pas. Code inconnu :
+« CODE INCONNU ». ⚠ App Store (règle 2.3.1) : une fonction cachée doit être signalée dans les notes de review.
+
 ## LE DOGE v2 (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
 La v1 (gros voxels, un kart) : « nul » — pas une vraie voiture, pas assez Doge, trop cubique et cheap — et « les textes à ajouter en trail carrément ».
 La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devant, tout en `nyLaque`), main plus fine :
@@ -9,19 +16,23 @@ La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devan
   la tête sort de la calandre —, feu ROUGE sur toute la largeur avec la PIÈCE D'OR au milieu, becquet, deux sorties rectangulaires d'or, jantes
   bronze à 5 branches. Aucun nom ni insigne de marque. ⚠ LE DÉFIEUR existe déjà (le muscle car orange) : le DOGE s'en distingue par la livrée,
   le widebody riveté, les phares à anneau et la tête. Palette `nyl` (cuite, sans lumière) : jamais de teinte qui vire sous les ciels.
-- LE VISAGE FAÇON « CARS » (2026-10-14, Léo : « la tête au niveau de la vitre, bien intégrée, comme Cars ») — la tête sculptée qui sortait de la
-  calandre est RETIRÉE (`dogeTete` supprimée) : la voiture EST le chien. Les YEUX remplissent le pare-brise : un panneau (grille 28 × 14 posée sur
-  les points du dessus de `S(z)`, z .60 → 0, +12 mm) dessiné par `FACE_FS` (yeux en amande au trait sombre, iris brun + pupille + éclat qui filent
-  de côté `uLook`, PAUPIÈRES lourdes `uLid` .36 (blasé), .10 à la nitro, 1 au clignement ; sourcils crème `uBrow` ; joues crème ; front sombre ;
-  cadre du pare-brise). Le bouclier avant est CRÈME (le museau, cap du loft), la TRUFFE noire posée sur le bord du capot, le SOURIRE dessiné en
-  tubes bruns sur le bouclier, la LANGUE à la nitro au coin de la bouche, les OREILLES (`dogeOreille`, champ de distance → `dogeNets`) sur le
-  toit au-dessus du pare-brise (elles tressaillent, se couchent à la nitro). Un phare à anneau de chaque côté du museau ; plus de prise d'air.
+- LE VISAGE EN 3D, RÉPARTI SUR LA CAISSE (2026-10-14, Léo : « le même effet que la tête 3D, pareil pour les animations ; les yeux agrandis sur
+  la vitre, un peu Cars mais pas trop, assez grands pour faire les deux côtés de la vitre ; les oreilles sur les deux coins du capot ; le petit nez
+  pointu qui dépasse, comme une Chevrolet ») — `dogeTete` retirée ; tout reste en VOLUME :
+  · les YEUX : deux globes (sphère colorée : blanc, iris brun, pupille, éclat) encastrés dans le pare-brise, une moitié chacun (`vitre(t)` lit le
+    point du pare-brise sur `S(z)`), couchés sur la vitre mais le globe tourné vers l'AVANT (`rotation.x` .38) ; PAUPIÈRE fauve en coque (`PAU`,
+    `pauR` : .42 blasé, 1,15 grande ouverte à la nitro, −1,2 au clignement), paupière basse crème, cerne d'encre, deux points crème des sourcils ;
+    le regard suit la caméra (repère `g`), coup d'œil de l'autre côté par moments ;
+  · les OREILLES (`dogeOreille`, champ de distance) dressées sur les deux coins avant du capot (×1,25) — elles tressaillent, se couchent à la nitro ;
+  · la TRUFFE (`dogeTruffe` : arrondie dessus, pointée vers l'avant, deux narines) en BEC au milieu de la calandre, qui dépasse ; la LANGUE dessous.
+  ⚠ Essayés et refusés : la tête qui sort de la calandre (v2), le visage PEINT dans le pare-brise (« ne perds pas la 3D »), la tête entière posée
+  à la place du pare-brise (on lisait un passager).
 - LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
   derrière (sprites monde, 18 max, 86 % de l'élan de la caisse). Traînée d'origine du DOGE (`fx.wow`) ET traînée de la boutique « WOW » (30 000 $,
   `COSM.trainee`, `FX_EFF.wow`). Coupée avec l'arc-en-ciel (`rainbowCoupe`). Aperçu au garage (onglet TRAÎNÉES). Console `dbgWow()`.
 - Mesuré au banc : 60 i/s en course. ⚠ pas de `THREE.CapsuleGeometry` (r128). ⚠ c'est un mème (Kabosu / Doge) : même question que la Nyan avant une sortie.
 
-## LE VOL ÉQUILIBRÉ + LE TONNEAU (2026-10-14, Léo : « en vol, la voiture tourne dans le sens de la route qu'elle a quittée ; il faudrait qu'elle quitte la route et qu'il y ait un effet réaliste de balance dans l'air — équilibré ; selon l'endroit du joystick, la voiture se pivote et se dirige » + « un trick que tu choisis, qui s'actionne quand j'appuie deux fois rapidement sur le booster »)
+## LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP (2026-10-14, Léo : « en vol, la voiture tourne dans le sens de la route qu'elle a quittée ; il faudrait qu'elle quitte la route et qu'il y ait un effet réaliste de balance dans l'air — équilibré ; selon l'endroit du joystick, la voiture se pivote et se dirige » + « un trick que tu choisis, qui s'actionne quand j'appuie deux fois rapidement sur le booster »)
 Bloc « LE VOL ÉQUILIBRÉ » juste après `const FLY_U` (`VEQ_K` = tous les réglages, `VEQ` = l'état). `?vol=ancien` / `dbgVol('ancien'|'neuf')` = le vol
 d'avant au chiffre près (le tonneau reste) ; `dbgVol()` = l'état (verrou, lacet/tangage/roulis de la caisse, haut, tonneau).
 - **CE QUI TOURNAIT** (mesuré au banc, joystick tenu à gauche au décollage) : le braquage du virage continuait de tourner la trajectoire en l'air
@@ -37,12 +48,32 @@ d'avant au chiffre près (le tonneau reste) ; `dbgVol()` = l'état (verrou, lace
   (`tangage` .2), une houle de 1,4° ; le redressement laisse un retard (`iner`) qu'elle rattrape en se balançant ; un tremplin lève un peu le nez ;
   BORD : coup de roulis vers le vide (`brV` 4) rattrapé. `VEQ.qb` = l'assiette lissée (×12/s). À LA POSE (`veqPose`, tryLand + lèvre) : roulis →
   `carRoll9`/`rollV`, lacet → `driftYaw`, tangage → `pitch9` — elle se balance sur ses ressorts de conduite.
-- **LE TONNEAU** (double-tap NITRO : 1er appui < 240 ms, 2e < 320 ms après — lu aux ÉVÉNEMENTS `veqDoigt` : clavier en capture, `nitroDown` et le
-  relâcher de `bindHold` ; joué par la boucle `VEQ.dReq`) : un tour autour du nez (milieu de la caisse, `veqTonneauPose`), du côté du pouce (neutre :
-  alterné). EN VOL 0,62 s + écart latéral `dash` 16 du côté du pouce + `addTrick('tonneau')` (chaîne, payée à la pose, flow NARCISSE ; pas fini à la
-  pose = rien). AU SOL : saut `hopV` 9,5 (la mécanique du dos d'âne, on reste en conduite), il passe PAR-DESSUS les plots (hopY > 1,25, « PAR-DESSUS ! »)
-  et l'huile (> ,5) ; à la retombée `chaineAura('TONNEAU',45)` + flow style. Pas en auto-école. Son `fig.vrille`. EN : BARREL ROLL.
-- Bancs (scratchpad de la session dcadf71c) : `scen.py` (A/B joystick tenu), `ton.py` (tonneau sol / vol), `bord.py` (sortie par le bord), `endu.py`.
+- **LE DÉCOLLAGE ET L'ATTERRISSAGE** (2026-10-14, 2e passe, Léo : « travaille encore plus la physique de quitter et d'atterrir sur le sol, ça
+  doit être cool ») : en l'air la suspension se DÉTEND (`ext` .11 : la carrosserie monte au-dessus des roues) ; à l'approche (temps avant que la
+  pose soit DÉCLARÉE — tryLand la déclare à 3 m — sous `posB` .45 s) la caisse se met dans le plan de la route, nez dans sa trajectoire
+  (`veqRoute`, radar `VEQ.si/sh/sl/sd` posé par tryLand) ; au CONTACT (`veqContact`, en tête de `touche9`) la suspension claque (`susY/susV`),
+  le nez plonge puis rebondit (`VEQ.sp`, ressort ω 13 lu par `veqConduite` dans `carBody.rotation.x`), la caméra s'enfonce 0,36 s (`veqCamera`),
+  anneau de poussière (`dust`) sur les grosses poses. `veqPose` calcule l'écart RÉEL caisse ↔ place de conduite (quaternion → Euler YXZ).
+- **LES FIGURES S'ACCUMULENT** (2026-10-14, Léo : « au lieu de supprimer les tricks, on va les accumuler ; une boîte blanche pour les voir ; on
+  les achète au shop, on les cumule dans l'inventaire, on les enchaîne en double-cliquant, ça les pose automatiquement, aléatoirement ») :
+  · le CATALOGUE et le LECTEUR vivent dans **`figures.js`** (`window.FIG`, chargé juste après three) — PARTAGÉ avec la boîte. 12 figures
+    (TONNEAU offert, TOUPIE 360, SHIMMY, CHANDELLE, SALTO ARRIÈRE / AVANT, DOUBLE TONNEAU, TIRE-BOUCHON, HÉLICO 720, VRILLE PENCHÉE, RODÉO,
+    SALTO COSMIQUE — 2 k → 50 k pièces) ; une figure = des mouvements simultanés (n tours sur un axe, ou un aller-retour) qui finissent TOUJOURS
+    à l'identité. `FIG.Lecteur` lance la suivante à 70 % de la précédente (`CHEV`) : les rotations se composent, la caisse ne s'arrête jamais.
+  · le DOUBLE-TAP NITRO (`veqDouble`) : AU SOL = le SAUT NITRO (`veqSaut` : impulsion 21, coûte 20 % de la jauge, sa pose rend 30 % du nitro
+    d'un vrai saut, pas de verrou du volant) + une figure qui part toute seule ; EN VOL = une figure AU HASARD parmi celles qu'on a (`FIG.tire`,
+    jamais deux fois la même d'affilée), ENCHAÎNÉE derrière celle en cours (3 au plus). Elle se RACCOURCIT pour finir avant la pose (le viseur :
+    `CAMV.eta`, jusqu'à 55 % de sa durée), sinon elle ne part pas. Finie = `addTrick('fig_'+id)` (son aura dans la chaîne, payée à la pose ;
+    des figures DIFFÉRENTES font monter le ×). Posée en plein tour : < 20° = elle compte, > 50° = POSE RATÉE (« FIGURE RATÉE ! »).
+  · le SHOP : catégorie FIGURES (`BQ_CATS`, `bqListe/bqCos/bqEtat/bqAction` → `figAchete`), toucher = la caisse la fait sur le plateau
+    (`garFigEssai`/`garFigTick`). L'INVENTAIRE (la console du garage) : onglet FIGURES (`COSM.figure` = la vue du catalogue, `shopBuy` →
+    `figAchat`, la fiche dit ACQUISE). Possédées : `SAVE.d.figs` (san : le TONNEAU toujours dedans). Rareté = prix (`cosmRar`).
+  · LA BOÎTE À FIGURES : **`boite-figures.html`** (EN LIGNE : /jouer/boite-figures.html) — la caisse dans une salle blanche, la liste
+    (prix / À TOI), ENCHAÎNER ×3, RALENTI, GÉNÉRER (une figure neuve au hasard, nommée d'après son geste) → AJOUTER AU JEU (localStorage
+    « cashcarFigPerso », même origine : elle passe au shop sur cet appareil ; pour tout le monde, la recopier dans BASE de figures.js).
+  · Console : `dbgVol('tout'|'rien')` (toutes / juste le tonneau), `dbgVol('double')`, `dbgVol()` (figures en cours, radar, pose, nez…).
+- Bancs (scratchpad de la session dcadf71c) : `scen.py` (A/B joystick tenu), `bord.py` (sortie par le bord), `chaine.py` (3 double-taps
+  enchaînés), `pose2.py` (préparation de la pose, contact), `shop3.py` / `inv2.py` (shop et inventaire au vrai clic), `boite.py`, `endu3.py`.
 
 ## LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — caisse ajoutée EN DERNIER (index 76), ÉPIQUE 4 000 000 $, `SHAPES.doge`
 Le mème du shiba en VOXELS, avec les outils du CHAT POP-TART : `voxGrille` (faces à l'air fusionnées), `nyLaque` (couleurs cuites par face d/h/c, brillant
