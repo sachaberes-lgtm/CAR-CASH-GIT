@@ -41,7 +41,7 @@ const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','at
 const SAUTE_REL=new Set([2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 2 à 5 de la CARRIÈRE (nuages…
   .concat(['assets/audio/music/ville'])                 // …et le dossier ENTIER de la ville : NÉON COMPLÈTE 1-10, que la carrière seule joue (musicLieuVoulu)
   .concat(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3']) // les VOIX (dossier entier pour l'annonceur)
-  .concat(['boucles','depart','direct','paliers','lobby-chris','petites-musiques','inspi-generateur','ciel/ciel-donnees.js'].map(d=>'assets/audio/music/'+d))); // (2026-10-14) la bibliothèque des sons : rien que le jeu lise
+  .concat(['boucles','depart','direct','paliers','lobby-chris','petites-musiques','inspi-generateur','ciel/ciel-donnees.js','lobby/menu-donnees.js'].map(d=>'assets/audio/music/'+d))); // (2026-10-14) la bibliothèque des sons : rien que le jeu lise
 function copie(de,vers,rel){
   fs.mkdirSync(vers,{recursive:true});
   for(const n of fs.readdirSync(de)){

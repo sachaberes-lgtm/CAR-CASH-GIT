@@ -27786,7 +27786,8 @@ window.dbgGap=function(go){
 // impossible de vérifier une mécanique. Ce pas-à-pas fait avancer la boucle À LA MAIN, sans rAF.
 const DBG_AUTO={on:false,lat:0,vol:false,nit:0,saut:0,imp:12,tS:0,l0:null,sg:1}; /* (2026-10-01) vol : il pilote aussi EN VOL (revient sur l'axe) · nit : 1 nitro tenue · 2 en vol seulement · 3 au sol seulement · saut : il décolle toutes les `saut` s de route (élan `imp`) — banc de LA LOI DU RÉSERVOIR */
 window.dbgMusique=function(){const e=musicEl;return {mode:musicMode,lieu:musicLieu&&musicLieu.titre,cur:musicCur,ctx:AC?AC.state:null,
-  el:e?{src:(e.currentSrc||e.src).split('/').pop(),paused:e.paused,t:+e.currentTime.toFixed(2),ready:e.readyState,err:e.error&&e.error.code,vol:+musicVolCour.toFixed(2),voulue:musicVoulue,attente:musicEnAttente,analyse:!!musicAna,muted:e.muted}:null,son:SND.music};};
+  el:e?{src:(e.currentSrc||e.src).split('/').pop(),paused:e.paused,t:+e.currentTime.toFixed(2),ready:e.readyState,err:e.error&&e.error.code,vol:+musicVolCour.toFixed(2),voulue:musicVoulue,attente:musicEnAttente,analyse:!!musicAna,muted:e.muted}:null,son:SND.music,
+  menu:typeof MENU_MUS!=='undefined'?{on:MENU_MUS.on,ciel:MENU_MUS.tire.ciel.split('/').pop(),garage:MENU_MUS.tire.garage.split('/').pop(),veut:(musicMenuUrl()||'').split('/').pop(),tait:MUS_TAIT}:null};}; // (14/10) menu : la musique du CIEL et du GARAGE tirées, celle que le lieu veut
 window.dbgEngBig=function(i){i=i==null?5:i;engBig(ENGINE_TIERS[i],i);return ENGINE_TIERS[i].n;};
 // (v5) mesurer la carte moteur au banc : dbgEngCarte() rend échelle, tailles, place du moteur ; dbgEngCarte('fige') la garde à l'écran (pas de plongée)
 window.dbgEngCarte=function(k){if(k==='fige'){clearTimeout(engBig._p);clearTimeout(engBig._a);}const b=avE('engBig'),r=b&&b.getBoundingClientRect();
@@ -33851,6 +33852,20 @@ function musicPickNext(excludeIdx){
 // et petites_musiques.py de la branche musique). Toujours une tirée au hasard à chaque lancement. Avant : VAPEUR · SALON et ASCENSEUR DORÉ.
 const MUSIC_LOBBY=['matin','dimanche','nuit','polaroid','ciel','siffleur'].map(k=>'assets/audio/music/lobby/chris-'+k+'.m4a');
 const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; // avant : 'assets/audio/music/nocturnal-groove.mp3' · (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
+/* (2026-10-14, Léo : « le son de la boutique, c'est incroyable ; le ciel et le garage devraient aussi avoir une musique légère — l'inspi des
+   Lobby Chris, mais calme ; le ciel très discret, le garage aussi, différentes ambiances ; plusieurs propositions, direct sur le main »)
+   LA MUSIQUE DU CIEL ET DU GARAGE : au menu, le CIEL (LA CHUTE, l'écran titre) et le GARAGE ont chacun SA musique, tirée au hasard à chaque
+   lancement parmi trois (atelier-son/ciel_garage.py, le moteur des Lobby Chris) : NUAGES LENTS · HAUTE ALTITUDE · APESANTEUR (sans batterie)
+   et ATELIER · HUILE DE MINUIT · CLÉ DE 12 (le léger filtre d'atelier cuit dedans). Passer de l'un à l'autre : la musique d'avant s'efface,
+   celle du lieu arrive en fondu (musicTick, mode menu ; iPhone, volume verrouillé : la bascule est franche). Les niveaux de volume ne changent
+   pas (le ciel à MUS_CIEL, le garage au niveau du menu) ; la boutique garde son son. MENU_MUS.on=false = le lobby Chris partout, comme avant. */
+const MENU_MUS={on:true,ciel:['nuages','altitude','apesanteur'].map(k=>'assets/audio/music/lobby/ciel-'+k+'.m4a'),
+  garage:['atelier','huile','cle'].map(k=>'assets/audio/music/lobby/garage-'+k+'.m4a'),_abs:{}};
+MENU_MUS.tire={ciel:MENU_MUS.ciel[Math.floor(Math.random()*MENU_MUS.ciel.length)],garage:MENU_MUS.garage[Math.floor(Math.random()*MENU_MUS.garage.length)]};
+MENU_MUS.abs=function(u){return this._abs[u]||(this._abs[u]=(function(){try{return new URL(u,location.href).href;}catch(e){return u;}})());};
+function musicMenuUrl(){ // le morceau du menu, là où l'on est : le ciel de LA CHUTE ou le garage
+  if(!MENU_MUS.on)return MUSIC.menu;
+  return (typeof CHUTE!=='undefined'&&CHUTE.on)?MENU_MUS.tire.ciel:MENU_MUS.tire.garage;}
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
@@ -33939,7 +33954,7 @@ function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) :
   musicJoue._vu=1; // un toucher : la page est à l'écran (voir la garde de musicJoue)
   const el=musicElGet();musicSession();
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
-    if(!el.src)el.src=MUSIC.menu||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
+    if(!el.src)el.src=musicMenuUrl()||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
     if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
       /* (2026-10-05, Léo : « une musique qui commence très fort au début ») le son ne se ROUVRE qu'une fois l'arrêt CONSTATÉ : rouvert
          dans la même image que pause(), un lecteur lent à s'arrêter (téléphone, réseau lent : la lecture muette démarre parfois en pleine
@@ -34060,12 +34075,12 @@ function musicMenu(){
   /* (2026-10-05, Léo : « une musique qui commence très fort ») le lobby partait à .8 × le curseur… et musicTick (mode menu) le ramenait à .5
      dans la demi-seconde : un départ FORT puis un creux de −4 dB, à chaque retour au menu. Il part désormais de zéro et monte en ~0,4 s
      jusqu'au niveau du menu (musicTick, inchangé : c'est celui qu'on entend depuis toujours). (iPhone : volume verrouillé, rien ne change.) */
-  playMusic(MUSIC.menu||musicPremier(),{loop:true,volume:0,garde:true});
+  playMusic(musicMenuUrl()||musicPremier(),{loop:true,volume:0,garde:true});
 }
 function musicPlayCurrent(){
   if(musicMode==='run'&&jadeMusOn()){stopMusic();return;} // (2026-10-12) le SOLEIL DE JADE a SA musique (JMUS) : la radio se tait
   const ouv=musicMode==='run'&&!!musicLieu;
-  const url=musicMode==='menu'?(MUSIC.menu||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
+  const url=musicMode==='menu'?(musicMenuUrl()||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
   if(!url)return;
   playMusic(url,{loop:musicMode==='menu'||ouv,garde:true}); // menu et LIEU bouclent ; ensuite la radio enchaîne (`ended`)
 }
@@ -34349,6 +34364,9 @@ function musicTick(dt,mvt){
       d'un <audio> y est verrouillé — la musique y joue au même niveau partout, comme avant.) */
    const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9;MUS_TAIT=tait9;
    if(ciel9){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant
+   if(MENU_MUS.on&&musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&!musicTick._pz){const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
+     if(u9&&musicEl.src!==MENU_MUS.abs(u9)){musicVolCible=0;                       // on a changé de lieu : la musique d'avant s'efface…
+       if(VOL_LOCKED||musicVolCour<.015||musicEl.paused)playMusic(u9,{loop:true,volume:0});}} // …puis celle du lieu prend sa place, en fondu depuis zéro
    if(tait9){musicVolCible=0;if(!musicTick._pz&&(VOL_LOCKED||musicVolCour<.012)){musicTick._pz=true;musicPause(true);}}
    else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
    musicTick._bq=bq9;}
@@ -35338,7 +35356,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'chris-matin':-2,'chris-dimanche':1,'chris-nuit':-1,'chris-polaroid':3,'chris-ciel':-1,'chris-siffleur':-1,'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+const SON_TON={'ciel-nuages':-2,'ciel-altitude':-6,'ciel-apesanteur':1,'garage-atelier':3,'garage-huile':-4,'garage-cle':5,'chris-matin':-2,'chris-dimanche':1,'chris-nuit':-1,'chris-polaroid':3,'chris-ciel':-1,'chris-siffleur':-1,'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 /* (2026-10-04) GLASSY PLUCKS −2 : MESURÉ (chroma de harmonie.py) — si, la, ré, mi, fa# dominent, ré♯ et la♯ presque absents : si mineur /
    ré majeur (comme VITESSE), pas le « do# dorien » noté sur la branche de Léo (0). Sa fiche d'harmonie (la phrase du boost) est dans harmonie.js. */
 function sonTonSuit(){
@@ -52161,7 +52179,7 @@ renderLeaders(-1);
     // (2026-10-03, Léo : « pour toutes les musiques, fais démarrer au moment du menu ciel ») : la musique du lobby part à l'instant où le
     // voile s'ouvre sur le CIEL (420 ms, le fondu ci-dessous), et du DÉBUT du morceau — le 1er toucher l'avait lancée en silence une fraction
     // de seconde pour libérer le lecteur. Avant : 700 ms, au milieu du fondu.
-    setTimeout(function(){try{if(!started){if(musicEl&&musicEl.paused&&MUSIC.menu&&musicEl.src.indexOf(MUSIC.menu)>=0)musicEl.currentTime=0;musicMenu();}}catch(e){}},420); // la musique du menu arrive avec le ciel
+    setTimeout(function(){try{if(!started){if(musicEl&&musicEl.paused&&musicMenuUrl()&&musicEl.src.indexOf(musicMenuUrl())>=0)musicEl.currentTime=0;musicMenu();}}catch(e){}},420); // la musique du menu arrive avec le ciel
     // (2026-09-24, audit UX) sur TÉLÉPHONE on atterrit sur le MENU (JOUER · CARRIÈRE · GARAGE…) : le garage était le 1er écran
     // avec trois actions concurrentes (PLAY, CARRIÈRE, ✕) et une croix qui menait… au menu. Il redevient le lieu du CHOIX de la caisse.
     try{if(typeof openGarage==='function'&&!IS_MOBILE)openGarage();}catch(e){}

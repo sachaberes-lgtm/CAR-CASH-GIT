@@ -218,6 +218,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
     <div class="grille" id="gMoteur"></div></section>
   <section><h2>Niveaux <span id="nNiv"></span></h2><div class="liste" id="gNiv"></div></section>
   <section><h2>Lobby Chris <span id="nChr"></span></h2><div class="liste" id="gChr"></div></section>
+  <section><h2>Ciel et garage <span id="nMenu"></span></h2><div class="liste" id="gMenu"></div></section>
   <section><h2>Anciens <span id="nAnc"></span></h2><p class="aide">Les musiques du jeu d'avant et les premiers essais.</p><div class="liste" id="gAnc"></div></section>
   <section><h2>Petits sons <span id="nPet"></span></h2><div class="liste" id="gPet"></div></section>
   <div id="corb"></div>
@@ -241,6 +242,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
 <script src="assets/audio/music/ciel/ciel-donnees.js?v=3"></script>
 <script src="assets/audio/music/boucles/inspi-donnees.js?v=1"></script>
 <script src="assets/audio/music/lobby-chris/chris-donnees.js?v=5"></script>
+<script src="assets/audio/music/lobby/menu-donnees.js?v=1"></script>
 <script src="assets/audio/music/petites-musiques/petites-donnees.js?v=2"></script>
 <script src="assets/audio/music/ville/ville-donnees.js?v=4"></script>
 <script>
@@ -295,6 +297,8 @@ const G9 = { lobby: 'LOBBY · 8 SECONDES', niv: 'NIVEAUX · 8 SECONDES', longues
 (window.BOUCLES || []).filter(b => b.f && !b.sequence && b.groupe === G9.niv).forEach(b => ajoute({ id: b.id, sec: 'niv', type: 'boucle', titre: b.titre, style: (b.pour || '').split('·').pop().trim(), bpm: b.bpm, cle: b.cle, dur: b.dur, f: b.f }));
 // LE LOBBY « CHRIS » (14/10) : cinq versions dans l'esprit de Chris (C418), longues — leur section À PART (« fais ça séparément »)
 (window.CHRIS || []).forEach(p => ajoute({ id: p.id, sec: 'chris', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
+// LE CIEL ET LE GARAGE (14/10, Léo : « une musique légère pour le ciel et le garage, dans l'esprit des Lobby Chris, calme ») — ce que le jeu joue au menu
+(window.MENU_MUS || []).forEach(p => ajoute({ id: p.id, sec: 'menu', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
 // LES PETITES MUSIQUES (14/10) : cinq mondes neufs (atelier-son/petites_musiques.py), leur onglet à part
 (window.PETITES_MUS || []).forEach(p => ajoute({ id: p.id, sec: p.sec || 'pm', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
 (window.LOBBY5 || []).forEach(p => ajoute({ id: p.id, sec: 'lobby', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
@@ -374,7 +378,7 @@ function badge(S) {
   return '<div class="badge"><span class="points">' + '<i></i>'.repeat(S.nb) + '</span>' + S.nb + ' paliers moteur</div>';
 }
 function dessine() {
-  const secs = { inspi: $('gIns'), bleu: $('gBleu'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
+  const secs = { inspi: $('gIns'), bleu: $('gBleu'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), menu: $('gMenu'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
   catsSections().forEach(c => { secs['cat-' + c.id] = $('gCat-' + c.id); });   // (14/10) les catégories de Léo
   Object.values(secs).forEach(x => { if (!x) return; x.innerHTML = ''; x.classList.toggle('edit', EDIT); });   // (14/10 : « Petites musiques » et « Lobby » retirées)
   for (const S of CAT) {
@@ -405,7 +409,7 @@ function dessine() {
   }
   PREF.cats.forEach(c => { const x = $('nCat-' + c.id); if (x) x.textContent = n['cat-' + c.id] || 0; });
   dessineBleus(); if ($('gIns')) { $('nIns').textContent = n.inspi || ''; $('gIns').hidden = !n.inspi; }   // (en ligne, la section des inspirations n'existe pas)
-  $('nMot').textContent = n.moteur || 0; $('nNiv').textContent = n.niv || 0; $('nChr').textContent = n.chris || 0; if ($('nPm')) $('nPm').textContent = n.pm || 0; if ($('nLob')) $('nLob').textContent = n.lobby || 0; $('nAnc').textContent = n.anciens || 0; $('nPet').textContent = n.petits || 0;
+  $('nMot').textContent = n.moteur || 0; $('nNiv').textContent = n.niv || 0; $('nChr').textContent = n.chris || 0; $('nMenu').textContent = n.menu || 0; if ($('nPm')) $('nPm').textContent = n.pm || 0; if ($('nLob')) $('nLob').textContent = n.lobby || 0; $('nAnc').textContent = n.anciens || 0; $('nPet').textContent = n.petits || 0;
   $('compte').textContent = CAT.filter(S => !retire(S) && S.sec !== 'inspi').length + ' sons · tout est déjà prêt, rien ne se calcule' + (SERVEUR ? '' : ' · en ligne : tes 👍 et tes changements restent sur cet appareil');
   const r = CAT.filter(retire), c = $('corb');
   c.innerHTML = '' && r.length ? '<a id="corbA">Sons supprimés (' + r.length + ') — les remettre</a><div class="l">' + r.map(S => '<div><span></span><button data-id="' + S.id + '">Remettre</button></div>').join('') + '</div>' : '';
@@ -422,7 +426,7 @@ $('filtre').onclick = () => { FILTRE = !FILTRE; dessine(); };
 // titre, « Retirer la catégorie » renvoie ses sons chez eux. Le rangement va dans musique-moteur.json (PREF.place : id → catégorie ;
 // PREF.cats : les catégories de Léo). Le son ne change pas de nature : un morceau qui suit le moteur se joue toujours en montant.
 const GL = { S: null, el: null };
-const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gAnc: 'anciens', gPet: 'petits' };
+const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gMenu: 'menu', gAnc: 'anciens', gPet: 'petits' };
 function placeDe(S, secs) { const p = PREF.place && PREF.place[S.id]; return p && secs[p] ? p : S.sec; }
 function secCle(sec) { const l = sec && sec.querySelector('.liste,.grille'); if (!l) return null; return sec.dataset.cat ? 'cat-' + sec.dataset.cat : SEC_DE[l.id] || null; }
 function catsSections() {   // une <section> par catégorie de Léo (au bout de la page : la barre d'onglets la voit toute seule)
@@ -846,7 +850,8 @@ main.onglets:not(.pouces)>section.vue{margin-top:22px}
 (() => {
   const main = document.querySelector('main.page'); let secs = [...main.querySelectorAll(':scope>section')];
   const slug = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const AIDE = { gChr: 'Les musiques de lobby dans l’esprit de Chris (C418), chacune son monde — et le SIFFLEUR. De 1 à 2 minutes et demie.' };
+  const AIDE = { gChr: 'Les musiques de lobby dans l’esprit de Chris (C418), chacune son monde — et le SIFFLEUR. De 1 à 2 minutes et demie.',
+    gMenu: 'Ce que le jeu joue au menu : le CIEL (l’écran titre, très discret, sans batterie) et le GARAGE (le léger filtre d’atelier compris). Une de chaque, tirée au hasard à chaque lancement.' };
   secs.forEach(s => { const h = s.querySelector('h2'); s.dataset.nom = (h && h.firstChild ? h.firstChild.textContent : s.id).trim(); s.dataset.cle = slug(s.dataset.nom);
     const l = s.querySelector('.liste,.grille'); if (l && AIDE[l.id] && !s.querySelector('.aide')) { const p = document.createElement('p'); p.className = 'aide'; p.textContent = AIDE[l.id]; h.after(p); } });
   const nav = document.createElement('nav'); nav.id = 'onglets'; nav.innerHTML = '<div class="in"></div>'; main.querySelector('.outils').after(nav);

@@ -743,3 +743,15 @@ Léo : « il y a des instruments qui parfois ne vont pas ensemble, tu arrives à
   dans Pouce bleu ils se pilotent à la main, moteur 1 à 30, le son INTACT ; les 30 étapes musicales différentes : NON faites (risque).
 - Jamais sur le main (public) : les sons d'artistes réels (inspirations, IN DA BACK, BOR, NOTHING LIKE U, OG GINOBILI).
 
+
+## 2026-10-14 (nuit) — LA MUSIQUE DU CIEL ET DU GARAGE (pôle SON)
+Léo : « le ciel garage devrait également avoir une musique légère — l'inspi des Lobby Chris (instruments, inspirations), mais calme ;
+musique ciel très discrète et garage aussi, différentes ambiances, même registre ; les propositions direct sur le main et dans la librairie ».
+- `atelier-son/ciel_garage.py` : six fiches pour le moteur des Lobby Chris (`lobby_chris.compose/mixe`), rendues et bouclées par `boucle_aac`.
+  CIEL sans batterie (sub, réverbe 5 s, forme lente) : NUAGES LENTS (piano feutré + vibraphone, 60, ré lydien) · HAUTE ALTITUDE (vibraphone
+  qui chante, 66, si♭) · APESANTEUR (Rhodes + célesta, pouls doux, 56, fa lydien). GARAGE (filtre d'atelier de lobby_main recopié) : ATELIER
+  (piano + Rhodes, 84, sol) · HUILE DE MINUIT (lo-fi, 76, la m) · CLÉ DE 12 (bossa lente, 92, la).
+- Contrôles : aucun frottement (`frottements`), brillance 745-1 867 Hz (jamais clinquant), le kit_fin coupé au ciel (un kick tombait sur la
+  dernière mesure). Piège noté : la tonalité de HAUTE ALTITUDE (si♭) = −6 depuis mi, pas −4.
+- Dans le jeu : `MENU_MUS`, `musicMenuUrl()`, bascule en fondu dans musicTick (voir VERSION PRINCIPALE/CLAUDE.md). Bibliothèque : onglet
+  « Ciel et garage » (`lobby/menu-donnees.js`).

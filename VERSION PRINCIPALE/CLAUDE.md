@@ -118,6 +118,20 @@ de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,
   (`SHAPES.doge._tx`), 10 sprites ; une toutes les 1,5 s au garage, 1,8 s en course, 0,8 s en vol, RAFALE à la nitro (0,38 s) ; en course ×3 et plus
   loin de la caisse (la caméra de poursuite est loin). Mesuré au banc : 60 i/s en course, comme LA DÉFERLANTE.
 - ⚠ À trancher avant une sortie : c'est un mème (le shiba « Doge »), même question que le CHAT POP-TART (Nyan Cat).
+## LA MUSIQUE DU CIEL ET DU GARAGE (2026-10-14 soir, Léo : « le ciel et le garage devraient aussi avoir une musique légère — l'inspi des Lobby Chris, les instruments, mais calme ; musique ciel très discrète, garage aussi, différentes ambiances ; plusieurs propositions, direct sur le main, et dans la librairie »)
+- Au MENU, le CIEL (LA CHUTE, l'écran titre) et le GARAGE ont chacun SA musique : `MENU_MUS` (juste après `MUSIC`), une de chaque tirée au
+  hasard à chaque lancement (`MENU_MUS.tire`), `musicMenuUrl()` = celle du lieu (CHUTE.on → ciel, sinon garage). Elle remplace `MUSIC.menu`
+  (le lobby Chris) dans musicDeverrouille, musicMenu, musicPlayCurrent et le retour au ciel. `MENU_MUS.on=false` = le lobby Chris partout, comme avant.
+- CIEL (sans batterie, basse ronde, longue réverbe) : NUAGES LENTS (60, ré lydien) · HAUTE ALTITUDE (66, si♭) · APESANTEUR (56, fa lydien, un pouls).
+  GARAGE (le léger filtre d'atelier cuit dedans, comme les Chris) : ATELIER (84, sol) · HUILE DE MINUIT (76, la m, lo-fi) · CLÉ DE 12 (92, la, bossa).
+  Fichiers `assets/audio/music/lobby/ciel-*.m4a` / `garage-*.m4a` (1 min 50 à 3 min, bouclés sans couture par boucle_aac), faits par
+  `atelier-son/ciel_garage.py` (le moteur des Lobby Chris, `lobby_chris.compose/mixe`) ; fiche `lobby/menu-donnees.js` (la bibliothèque la lit :
+  onglet « Ciel et garage » ; hors des portails). `SON_TON` a leurs six tonalités EN TÊTE (la clé 'ciel' attraperait 'ciel-nuages').
+- LA BASCULE (musicTick, mode menu, hors boutique) : on change de lieu → la musique d'avant s'efface (~0,4 s), celle du lieu repart du début
+  en fondu (iPhone, volume verrouillé : franche). Les niveaux ne changent pas : ciel à MUS_CIEL (mesuré .03-.05), garage .31, la boutique se tait.
+  Vérifié au banc muet (vrais clics) : téléphone couché, cadre de l'ordi, debout — ciel → garage → boutique (pause, bqSon) → retour → ciel → JOUER
+  (le lobby s'efface au piqué, la course part), 0 erreur. `dbgMusique().menu` = le tirage et ce que le lieu veut.
+
 ## LE LOBBY « CHRIS » (2026-10-14, Léo : « applique les lobby Chris dans la musique lobby du main »)
 - `MUSIC_LOBBY` = six musiques dans l'esprit de « Chris » (C418), composées sur la branche musique (`CAR CAHS V3/atelier-son/lobby_chris.py`
   et `petites_musiques.py`), chacune son monde : PREMIER MATIN (piano feutré + groove doux, ré) · DIMANCHE (bossa, fa) · GARAGE DE NUIT
