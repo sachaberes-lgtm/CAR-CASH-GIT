@@ -16,12 +16,17 @@ La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devan
   la tête sort de la calandre —, feu ROUGE sur toute la largeur avec la PIÈCE D'OR au milieu, becquet, deux sorties rectangulaires d'or, jantes
   bronze à 5 branches. Aucun nom ni insigne de marque. ⚠ LE DÉFIEUR existe déjà (le muscle car orange) : le DOGE s'en distingue par la livrée,
   le widebody riveté, les phares à anneau et la tête. Palette `nyl` (cuite, sans lumière) : jamais de teinte qui vire sous les ciels.
-- LA TÊTE 3D AU PARE-BRISE (2026-10-14, Léo : « la tête au niveau de la vitre, bien intégrée, comme Cars », puis sur le visage peint dans le
-  pare-brise : « non, ne perds pas la 3D ») : la tête SCULPTÉE (`dogeTete` : champ de distance lissé, couleurs de Kabosu, yeux-sphères qui suivent
-  la caméra, sourcils, langue à la nitro) TIENT LIEU DE PARE-BRISE : posée en (0, 1,23, ,56) ×1,10, les yeux à hauteur de vitre, le museau couché
-  sur le capot, le bas de la tête DANS la caisse ; plus de verre au pare-brise (le pelage fauve l'entoure, la lunette reste), le pavillon un peu
-  relevé pour rejoindre le crâne. À peine penchée (elle fait partie de la caisse). L'avant reste celui du muscle car. ⚠ Le visage PEINT dans le
-  pare-brise (shader) a été essayé et refusé : garder la tête en volume.
+- LE VISAGE EN 3D, RÉPARTI SUR LA CAISSE (2026-10-14, Léo : « le même effet que la tête 3D, pareil pour les animations ; les yeux agrandis sur
+  la vitre, un peu Cars mais pas trop, assez grands pour faire les deux côtés de la vitre ; les oreilles sur les deux coins du capot ; le petit nez
+  pointu qui dépasse, comme une Chevrolet ») — `dogeTete` retirée ; tout reste en VOLUME :
+  · les YEUX : deux globes (sphère colorée : blanc, iris brun, pupille, éclat) encastrés dans le pare-brise, une moitié chacun (`vitre(t)` lit le
+    point du pare-brise sur `S(z)`), couchés sur la vitre mais le globe tourné vers l'AVANT (`rotation.x` .38) ; PAUPIÈRE fauve en coque (`PAU`,
+    `pauR` : .42 blasé, 1,15 grande ouverte à la nitro, −1,2 au clignement), paupière basse crème, cerne d'encre, deux points crème des sourcils ;
+    le regard suit la caméra (repère `g`), coup d'œil de l'autre côté par moments ;
+  · les OREILLES (`dogeOreille`, champ de distance) dressées sur les deux coins avant du capot (×1,25) — elles tressaillent, se couchent à la nitro ;
+  · la TRUFFE (`dogeTruffe` : arrondie dessus, pointée vers l'avant, deux narines) en BEC au milieu de la calandre, qui dépasse ; la LANGUE dessous.
+  ⚠ Essayés et refusés : la tête qui sort de la calandre (v2), le visage PEINT dans le pare-brise (« ne perds pas la 3D »), la tête entière posée
+  à la place du pare-brise (on lisait un passager).
 - LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
   derrière (sprites monde, 18 max, 86 % de l'élan de la caisse). Traînée d'origine du DOGE (`fx.wow`) ET traînée de la boutique « WOW » (30 000 $,
   `COSM.trainee`, `FX_EFF.wow`). Coupée avec l'arc-en-ciel (`rainbowCoupe`). Aperçu au garage (onglet TRAÎNÉES). Console `dbgWow()`.
