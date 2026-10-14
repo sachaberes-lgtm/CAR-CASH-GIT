@@ -26,6 +26,16 @@ de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,
   encodés AVEC DÉBORD (fin devant, début derrière), paquets utiles seulement (un d'avance), liste d'édition `elst` (saut 1024, durée
   EXACTE en 44 100e), iTunSMPB retiré. Mesuré dans Chrome (<audio loop>, capture muette) : durée exacte, aucun creux à la reprise.
   Pour les refaire : `<venv>/python atelier-son/lobby_main.py "<…>/VERSION PRINCIPALE/assets/audio/music/lobby"`.
+- **LE CIEL SE TAIT, LE GARAGE JOUE** (même jour, Léo : « la musique se lance seulement quand j'appuie sur le mode garage — un léger
+  filtre adapté ; quand on est et qu'on revient dans le menu ciel, un bruit de chute libre doux ») : `MUS_TAIT` (posé par musicTick en
+  mode menu : le ciel de LA CHUTE, ou la boutique) → le lobby s'efface (~0,8 s) puis se met en PAUSE, et musicJoue l'ignore en mode menu
+  (ni un toucher ni le retour d'arrière-plan ne le relancent). Au garage il repart en fondu (du début la 1re fois, puis là où il était).
+  Le LÉGER FILTRE est CUIT dans les six fichiers (la musique ne passe pas par Web Audio, iPhone) : aigus −4,4 dB au-dessus de ~3,5 kHz +
+  une petite pièce de 0,7 s à 15 % (`garage()` de lobby_main.py) ; la bibliothèque garde les versions sans filtre. Au ciel :
+  LA CHUTE LIBRE DOUCE (`chuteDoux`/`chuteDouxCoupe`, `CHDOUX_VOL` .15) — deux souffles de bruit filtré (grave et rond / clair, qui passe
+  d'une oreille à l'autre) qui respirent ; `chute.vent` (le claquement des tôles) et le vent du moteur ne jouent plus qu'au PIQUÉ de JOUER.
+  Vérifié au banc muet (Chrome sans fenêtre, vrais clics) : ciel → musique en pause + vent ; GARAGE → musique de 0 à .31 en 0,4 s, vent
+  coupé ; HOME → fondu, pause, vent revenu ; un toucher sur la caisse ne relance rien ; PLAY depuis le ciel → musique de course. `dbgChuteDoux()`.
 
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
