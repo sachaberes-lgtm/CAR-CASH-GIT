@@ -60,3 +60,13 @@ Ma recommandation : **A seul**, puis on re-mesure. Ajouter B seulement si les 3 
 - ⚠ Il reste un trou : après LE DÉFIEUR (10 000), la marche suivante est LA BAVAROISE à 42 000 (×4,2). À trancher : une caisse
   vers 20 000 ? (LE CAÏD est à 50 000.)
 - FINAL SPIN (IDEE) : espérance plafonnée à 10 % du gain moyen d'une partie (~100 $ aujourd'hui).
+
+## 7. LA MARCHE À 20 000 $ ET LA COURBE COMPLÈTE (14/10 soir)
+- LA BAVAROISE 42 000 → **20 000 $** : c'est la caisse active juste au-dessus du DÉFIEUR, de même rareté.
+- Le bas de gamme devient 3 000 · 6 000 · 10 000 · 20 000 · 50 000 (LE CAÏD) · 90 000, soit ×1,7 à ×2,5 par marche.
+- Le reste de la gamme : 120 k · 140 k · 200 k · 300 k ×2 · 460 k · 550 k · 650 k · 700 k · 750 k ×2 · 800 k · 850 k · 900 k ·
+  1,2 M · 1,6 M · 2,5 M · 3 M · 3,2 M · 3,4 M · 3,6 M · 3,8 M · 4 M.
+  Plus aucun trou au-dessus de ×2,5 : le plus grand écart restant est 1,6 M → 2,5 M (×1,56).
+- Ce que je note sans y toucher : de 550 k à 900 k, sept caisses se suivent à ×1,07-1,17, puis cinq de 3 M à 4 M à ×1,06. Ce sont
+  des plateaux : on choisit sa caisse plutôt que de « monter ». À garder si c'est voulu (la rareté épique les distingue), sinon les
+  espacer à ×1,3 environ.
