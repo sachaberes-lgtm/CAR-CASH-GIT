@@ -9091,7 +9091,12 @@ const kick=new THREE.DirectionalLight(0xff3d9e,.20);kick.position.set(-520,260,4
 // --- OMBRES LONGUES (golden hour) : une seule casteuse — le soleil — dans une fenêtre ortho serrée qui SUIT la caisse.
 // Soleil à ~5,9° → l'ombre fait ~9,7× la hauteur de l'objet : le rasant étire tout au sol.
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+/* (2026-10-14, passe perf mobile) LE FILTRE DE L'OMBRE, PAR PALIER. L'ombre douce (PCFSoft) lit la carte 36 fois par pixel éclairé (9 prises
+   interpolées à la main × 4) ; l'ombre PCF simple, 17 fois, sans les interpolations — même carte, même biais, bord un peu moins fondu.
+   Le type entre dans le #define des matières : il se choisit ICI, avant toute compilation, et plus personne ne le change ensuite.
+   RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
+PAL.B.postOmbreDouce=[0,0,1];
+renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
 sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1280,IS_MOBILE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
