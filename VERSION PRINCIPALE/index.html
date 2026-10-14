@@ -14075,7 +14075,7 @@ function buildTrack(seed){
      VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
-  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:idA9==='foret'?0xd8b45a:idA9==='volcan'?0xff6a1e:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:idA9==='foret'?0xd8b45a:idA9==='volcan'?0xf24aa0:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
   if(BORDS_V2){const ia9=Math.max(0,ACCENTS.indexOf(accR));ACCENTS.splice(0,6,0xffb04a,0xf2b93b,0xe8e4da,0xffc477,0xf2b93b,0xffb04a);accC.setHex(idA9==='espace'?0xe8eef2:idA9==='paris'?0xd9d4ca:idA9==='jade'?0xf2b93b:(idA9==='nuages'||idA9==='orage'||idA9==='ville')?0xffb04a:ACCENTS[ia9]);} // (2026-10-14, bords-route) L'ACCENT N'EST PLUS UN NÉON : ambre sodium (nuages, ville, orage, hasard), or (jade), blanc froid (orbite) — il nourrit le reflet des flaques (uAcc), le liseré des flancs, la couronne des tours (buildVoxCity) et le ciel musical
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
@@ -15917,11 +15917,13 @@ function buildVolcan(seed){
   // ---- 5. LES HORNITOS (petits cônes de scories au bord de la route) ET LEURS GEYSERS ----
   const HO=[],GY=[];
   {const nG=PAL_B9('volcanGey',12);let sd=fr()<.5?-1:1;
-   for(let s9=520+fr()*200;s9<L-260&&HO.length<nG;s9+=(L-760)/nG*(.75+fr()*.5)){const i=Math.round(s9/ds),l9=lat9(i);sd=-sd;
-     for(let e=0;e<5;e++){const lat=ROAD_HALF+40+fr()*110,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat,h=vlcH(x,z);
-       if(h<vlcL(x,z)+1.5||h>pts[i].y-22||!horsArche(x,z,90))continue;
+   for(let s9=520+fr()*200;s9<L-260&&GY.length<nG;s9+=(L-760)/nG*(.75+fr()*.5)){const i=Math.round(s9/ds),l9=lat9(i);sd=-sd;
+     for(let e=0;e<8;e++){const lat=ROAD_HALF+40+fr()*200,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat,h=vlcH(x,z),yl=vlcL(x,z);
+       if(h>pts[i].y-22||!horsArche(x,z,90))continue;
        let pres=false;for(const g of AG)if(Math.hypot(g.x-x,g.z-z)<42){pres=true;break;}if(pres||!loinRoute(x,z,ROAD_HALF+24))continue;
-       const sc=.8+fr()*.6,per=6+fr()*5;HO.push({m:mat(x,h-1,z,fr()*6.283,sc,sc,sc),j:[fr(),0,0,0]});GY.push({x:x,y:h-1+12.4*sc,z:z,per:per,ph:fr(),v:30+fr()*16,sz:3.4+fr()*1.4,pr:0});
+       const sc=.8+fr()*.6,per=6+fr()*5;
+       if(h<yl+1.5){GY.push({x:x,y:yl+.5,z:z,per:per,ph:fr(),v:26+fr()*14,sz:3.8+fr()*1.4,pr:0});break;} // dans un LAC : la fontaine jaillit de la lave elle-même
+       HO.push({m:mat(x,h-1,z,fr()*6.283,sc,sc,sc),j:[fr(),0,0,0]});GY.push({x:x,y:h-1+12.4*sc,z:z,per:per,ph:fr(),v:30+fr()*16,sz:3.4+fr()*1.4,pr:0});
        COL.push({a:[x,h-2,z],b:[x,h+10*sc,z],r:6.5*sc});break;}}}
   vlcInst(root,G.horn,HO,'hornitos');VOLCAN.gey=GY;
   {const nP=TEL_NATIF?40:56,Pg=[],Rg=[],Ag=[];const R=mulberry32((seed^0x6E75E)>>>0);
@@ -15946,7 +15948,7 @@ function buildVolcan(seed){
   {const CG=120,Gc=new Map();for(const c of COL){const r=c.r+2,i0=Math.floor((Math.min(c.a[0],c.b[0])-r)/CG),i1=Math.floor((Math.max(c.a[0],c.b[0])+r)/CG),j0=Math.floor((Math.min(c.a[2],c.b[2])-r)/CG),j1=Math.floor((Math.max(c.a[2],c.b[2])+r)/CG);
      for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i+','+j;let a=Gc.get(k);if(!a)Gc.set(k,a=[]);a.push(c);}}
    VOLCAN.gcol={CG:CG,G:Gc,n:COL.length};}
-  VOLCAN.n.aiguilles=AG.length;VOLCAN.n.hornitos=HO.length;VOLCAN.n.loin=VOLCAN.loin.length;
+  VOLCAN.n.aiguilles=AG.length;VOLCAN.n.hornitos=HO.length;VOLCAN.n.geysers=GY.length;VOLCAN.n.loin=VOLCAN.loin.length;
   VOLCAN.ms=Math.round(performance.now()-t0);VOLCAN.msSol=Math.round(tS-t0);
   volcanMeteo(VOLCAN.met,started?BIO_PORTAIL:.01);
 }
@@ -21319,30 +21321,32 @@ BIOMES.foretOrage=bioMet(BIOMES.tempete,{nm:'FORÊT · ORAGE',jour:1,jZen:[.013,
    Identité : le NOIR du basalte, l'ORANGE de la lave — et un ciel qui change tout : l'aube rose et violette, le midi bleu soufré, le SOIR
    ROUGE SANG (la carte postale), la nuit sans autre lumière que la lave, la pluie de cendres brune, l'orage volcanique noir et violet.
    Le rebond du sol (hemiG) et le FILL par en dessous prennent le rouge de la lave : la caisse est éclairée PAR LE BAS. La lumière de la
-   roche elle-même (hauteur du soleil, lueur des rives, panache, braises, cendre) est dans VLC_MET. */
+   roche elle-même (hauteur du soleil, lueur des rives, panache, braises, cendre) est dans VLC_MET.
+   Raccord à la bible DA (passation/DA-CARCASH.md) : le contre-jour ROSE (kick) à toutes les heures, le ciel froid contre la braise (deux
+   températures), la vignette à l'encre bleu nuit, les bords de route néon rose ; l'accent propre de la map, c'est l'ORANGE de la lave. */
 BIOMES.volcanMatin=bioMet(BIOMES.matin,{nm:'VOLCAN · MATIN',jour:1,jZen:[.07,.08,.28],jMid:[.36,.24,.44],jHor:[1,.55,.42],jSol:[1,.56,.32],sunTint:[1,.74,.55],sunHalo:.9,stars:.1,moon:0,city:0,
-  fog:[.60,.38,.42],fogN:120,fogF:2600,fogCj:[1,.64,.50],fogIn:[.82,.64,.68],hemiS:[.56,.50,.74],hemiG:[.36,.13,.08],hemiI:.66,sunC:[1,.72,.52],sunI:1.5,fillC:[.62,.24,.12],fillI:.24,kickC:[1,.48,.28],kickI:.14,
-  expo:.96,sat:1.03,con:1.18,rtK:.72,wb:[1,1,1],sh:[0,.004,.03],hi:[.016,.006,-.004],vigK:.26,vigC:[.05,.02,.05],bloomS:.5,bloomT:.9,
+  fog:[.60,.38,.42],fogN:120,fogF:2600,fogCj:[1,.64,.50],fogIn:[.82,.64,.68],hemiS:[.56,.50,.74],hemiG:[.36,.13,.08],hemiI:.66,sunC:[1,.72,.52],sunI:1.5,fillC:[.62,.24,.12],fillI:.24,kickC:[1,.20,.52],kickI:.16,
+  expo:.96,sat:1.03,con:1.18,rtK:.72,wb:[1,1,1],sh:[0,.004,.03],hi:[.016,.006,-.004],vigK:.26,vigC:[.03,.035,.08],bloomS:.5,bloomT:.9,
   env:[[0,'#1c1a4a'],[.3,'#5a3a78'],[.48,'#ff9a78'],[.58,'#ffc49a'],[.66,'#3a1a16'],[1,'#140806']],eS1:[255,180,140,.45],eS2:[150,130,220,.28]});
 BIOMES.volcanMidi=bioMet(BIOMES.midi,{nm:'VOLCAN · MIDI',jour:1,jZen:[.06,.20,.56],jMid:[.30,.40,.60],jHor:[.86,.70,.46],jSol:[.52,.40,.24],sunTint:[1,.95,.84],sunHalo:.5,stars:0,moon:0,city:0,
-  fog:[.64,.52,.40],fogN:160,fogF:3200,fogCj:[.94,.82,.62],fogIn:[.82,.76,.68],hemiS:[.64,.70,.88],hemiG:[.34,.16,.09],hemiI:.74,sunC:[1,.95,.86],sunI:1.7,fillC:[.55,.22,.10],fillI:.22,kickC:[1,.62,.38],kickI:.08,
-  expo:.97,sat:1.02,con:1.2,rtK:.8,wb:[1,1,1],sh:[0,.006,.03],hi:[.012,.006,-.006],vigK:.22,vigC:[.05,.03,.03],bloomS:.46,bloomT:.92,
+  fog:[.64,.52,.40],fogN:160,fogF:3200,fogCj:[.94,.82,.62],fogIn:[.82,.76,.68],hemiS:[.64,.70,.88],hemiG:[.34,.16,.09],hemiI:.74,sunC:[1,.95,.86],sunI:1.7,fillC:[.55,.22,.10],fillI:.22,kickC:[1,.26,.56],kickI:.12,
+  expo:.97,sat:1.02,con:1.2,rtK:.8,wb:[1,1,1],sh:[0,.006,.03],hi:[.012,.006,-.006],vigK:.22,vigC:[.03,.04,.08],bloomS:.46,bloomT:.92,
   env:[[0,'#2f62b8'],[.3,'#6c8cc0'],[.48,'#e8cfa0'],[.58,'#fff0d0'],[.66,'#3a2418'],[1,'#120a08']],eS1:[255,248,230,.46],eS2:[150,190,240,.3]});
 BIOMES.volcanSoir=bioMet(BIOMES.nuagesSoir,{nm:'VOLCAN · SOIR',jour:1,jZen:[.10,.025,.09],jMid:[.55,.08,.06],jHor:[1,.30,.07],jSol:[1,.40,.10],sunTint:[1,.45,.20],sunHalo:1.1,stars:.08,moon:0,city:0,
-  fog:[.50,.11,.05],fogN:100,fogF:2500,fogCj:[1,.42,.16],fogIn:[.86,.32,.20],hemiS:[.62,.30,.32],hemiG:[.42,.10,.04],hemiI:.6,sunC:[1,.50,.24],sunI:1.6,fillC:[.70,.20,.06],fillI:.26,kickC:[1,.36,.14],kickI:.18,
-  expo:.93,sat:1.06,con:1.22,rtK:.86,wb:[1,1,1],sh:[0,.002,.02],hi:[.02,.006,-.01],vigK:.3,vigC:[.08,.015,.02],bloomS:.55,bloomT:.88,
+  fog:[.50,.11,.05],fogN:100,fogF:2500,fogCj:[1,.42,.16],fogIn:[.86,.32,.20],hemiS:[.46,.34,.62],hemiG:[.42,.10,.04],hemiI:.6,sunC:[1,.50,.24],sunI:1.6,fillC:[.70,.20,.06],fillI:.26,kickC:[1,.16,.50],kickI:.2,
+  expo:.93,sat:1.07,con:1.22,rtK:.86,wb:[1,1,1],sh:[0,.002,.02],hi:[.02,.006,-.01],vigK:.3,vigC:[.04,.025,.08],bloomS:.55,bloomT:.88,
   env:[[0,'#2a0818'],[.3,'#7a1a1a'],[.48,'#ff6a2a'],[.58,'#ffb060'],[.66,'#3a0c06'],[1,'#120404']],eS1:[255,150,90,.5],eS2:[200,80,90,.3]});
 BIOMES.volcanNuit=bioMet(BIOMES.nuagesNuit,{nm:'VOLCAN · NUIT',jour:1,jZen:[.008,.004,.022],jMid:[.03,.01,.04],jHor:[.17,.035,.02],jSol:[0,0,0],sunTint:[.6,.6,.9],sunHalo:0,stars:.45,moon:.35,city:0,
-  fog:[.10,.026,.02],fogN:60,fogF:2100,fogCj:[.42,.11,.05],fogIn:[.32,.09,.07],hemiS:[.24,.17,.34],hemiG:[.34,.08,.03],hemiI:.55,sunC:[.55,.52,.78],sunI:.5,fillC:[.80,.22,.06],fillI:.34,kickC:[1,.32,.10],kickI:.22,
-  expo:.95,sat:.95,con:1.18,rtK:1,wb:[1,1,1],sh:[0,.004,.02],hi:[0,0,0],daSh:.3,vigK:.42,vigC:[.03,.005,.01],bloomS:.6,bloomT:.85,
+  fog:[.10,.026,.02],fogN:60,fogF:2100,fogCj:[.42,.11,.05],fogIn:[.32,.09,.07],hemiS:[.24,.17,.34],hemiG:[.34,.08,.03],hemiI:.55,sunC:[.55,.52,.78],sunI:.5,fillC:[.80,.22,.06],fillI:.34,kickC:[1,.14,.55],kickI:.24,
+  expo:.95,sat:.95,con:1.18,rtK:1,wb:[1,1,1],sh:[0,.004,.02],hi:[0,0,0],daSh:.3,vigK:.42,vigC:[.01,.012,.04],bloomS:.6,bloomT:.85,
   env:[[0,'#040208'],[.3,'#140810'],[.48,'#3a1010'],[.58,'#6a1c0c'],[.66,'#200604'],[1,'#0a0202']],eS1:[255,140,80,.4],eS2:[120,80,140,.25]});
 BIOMES.volcanCendre=bioMet(BIOMES.nuagesPluie,{nm:'VOLCAN · CENDRES',jour:1,jZen:[.10,.085,.08],jMid:[.20,.16,.14],jHor:[.38,.27,.20],jSol:[0,0,0],sunTint:[.9,.75,.6],sunHalo:.1,stars:0,moon:0,city:0,
-  fog:[.25,.18,.15],fogN:50,fogF:1350,fogCj:[.42,.30,.24],fogIn:[.38,.31,.28],hemiS:[.56,.50,.48],hemiG:[.32,.14,.08],hemiI:.72,sunC:[.86,.72,.60],sunI:.62,fillC:[.62,.24,.10],fillI:.24,kickC:[.9,.45,.25],kickI:.14,
-  expo:.95,sat:.92,con:1.14,rtK:.8,wb:[1,1,1],sh:[0,.004,.02],hi:[0,0,0],vigK:.32,vigC:[.05,.03,.025],bloomS:.52,bloomT:.88,
+  fog:[.25,.18,.15],fogN:50,fogF:1350,fogCj:[.42,.30,.24],fogIn:[.38,.31,.28],hemiS:[.50,.50,.64],hemiG:[.32,.14,.08],hemiI:.72,sunC:[.86,.72,.60],sunI:.62,fillC:[.62,.24,.10],fillI:.24,kickC:[.95,.22,.52],kickI:.16,
+  expo:.95,sat:.92,con:1.14,rtK:.8,wb:[1,1,1],sh:[0,.004,.02],hi:[0,0,0],vigK:.32,vigC:[.03,.035,.07],bloomS:.52,bloomT:.88,
   env:[[0,'#2a2420'],[.3,'#4a3c34'],[.48,'#7a6250'],[.58,'#8a6c56'],[.66,'#2a1a12'],[1,'#120a06']],eS1:[220,190,160,.3],eS2:[150,120,110,.25]});
 BIOMES.volcanOrage=bioMet(BIOMES.tempete,{nm:'VOLCAN · ORAGE',jour:1,jZen:[.014,.010,.03],jMid:[.04,.028,.06],jHor:[.15,.06,.06],jSol:[0,0,0],sunTint:[.7,.65,.9],sunHalo:0,stars:0,moon:0,city:0,
-  fog:[.09,.05,.06],fogN:50,fogF:1600,fogCj:[.30,.16,.16],fogIn:[.28,.18,.20],hemiS:[.34,.30,.46],hemiG:[.24,.07,.03],hemiI:.52,sunC:[.58,.56,.76],sunI:.5,fillC:[.70,.20,.07],fillI:.3,kickC:[.62,.42,.86],kickI:.2,
-  expo:.9,sat:.92,con:1.18,rtK:.85,wb:[1,1,1],sh:[0,.006,.024],hi:[0,0,0],daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35,vigK:.46,vigC:[.02,.008,.02],bloomS:.56,bloomT:.88,
+  fog:[.09,.05,.06],fogN:50,fogF:1600,fogCj:[.30,.16,.16],fogIn:[.28,.18,.20],hemiS:[.34,.30,.46],hemiG:[.24,.07,.03],hemiI:.52,sunC:[.58,.56,.76],sunI:.5,fillC:[.70,.20,.07],fillI:.3,kickC:[.95,.24,.70],kickI:.2,
+  expo:.9,sat:.92,con:1.18,rtK:.85,wb:[1,1,1],sh:[0,.006,.024],hi:[0,0,0],daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35,vigK:.46,vigC:[.012,.014,.04],bloomS:.56,bloomT:.88,
   env:[[0,'#0c0812'],[.3,'#1c1420'],[.48,'#3a2030'],[.58,'#5a2a2a'],[.66,'#1a0a08'],[1,'#080404']],eS1:[200,180,240,.3],eS2:[160,80,80,.25]});
 BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',sunC:[1,.84,.62],sunI:1.85,sunTint:[1,.8,.6],fillC:[.36,.56,1],kickC:[.8,.7,.75],volSun:[1.5,1.2,1.0],
   env:[[0,'#06050e'],[.3,'#120d24'],[.48,'#3a2a50'],[.58,'#7a5a6a'],[.66,'#14102a'],[1,'#030208']],eS1:[255,214,170,.48],eS2:[120,150,255,.3]});
