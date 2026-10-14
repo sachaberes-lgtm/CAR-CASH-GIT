@@ -138,6 +138,11 @@ LA BANQUISE (section suivante) devient LE GLACIER / THE GLACIER partout où le n
 - LA CONSTRUCTION : la piste est plus longue (10 km) ; Node, graine chaude : ~78 ms ordinateur, ~30 ms palier ancien (la cible de PILOTAGE
   est 60 ms) ; la toute première construction d'une session reste ~170 ms (JIT à froid). Le contrôle de dégagement des cristaux rejette d'abord
   les points de route trop loin (rejet rapide).
+- ALIGNÉ SUR LA RÈGLE DE GAMEPLAY (`passation/RACCOURCIS.md`, banc `cc-banc/raccourcis.cjs --depuis` sur des traces bâties en Node avec
+  `genBanq` : `trace-node.cjs` du scratchpad MONTAGNE) : rayons × `rayonPalier()/63` quand il existe (sinon `lvPiste`) ; chaque épingle en DEUX
+  quarts de tour enchaînés (l'intervalle grandit avec le palier) ; 4 S sur 10 SERRÉS ; lignes droites fixes (≤ 80 m hors cassure) ; un virage
+  avant l'arrivée. MESURÉ, 4 graines par palier : palier 0 et 10 → 40/40 ✓ ; paliers 20 et 27 → 36/40 (seul « virages par km » manque :
+  2,1-2,5 pour 2,5 — en fin de partie les rayons tenables grandissent plus vite que les virages ne se resserrent).
 - Console : `dbgBanq('raccourci',{n,f,v})` (la caisse sort par le bord aval de la spirale n, à la fraction f du tour) puis `dbgBanq('etat').s`
   (le gain) ; `dbgBanq('spirale',{n,h,d,a})` (la photo d'ensemble, en pause).
 
