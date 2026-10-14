@@ -216,6 +216,19 @@ html.nav7.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{position:fixed!import
 @media (orientation:landscape) and (max-height:540px){
   html.nav7.c6.hub:not(.poki) body #mHome.acc2{grid-template-rows:48px minmax(0,1fr) auto minmax(0,1fr)}
   html.nav7.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:16px!important}}
+/* ---------- LE CADEAU (#n7Cadeau, accueil seulement — Sacha 14 h 35 : « une ligne sur l'accueil, pas un écran de plus ») ----------
+   La mécanique est à GAMEPLAY (cadeauEtat / cadeauOuvre) ; tant qu'elle n'existe pas, la ligne n'existe pas. PRÊT = une plaque d'ENCRE (JOUER
+   garde l'or, la seule décision), pas prêt = une ligne qu'on lit, sans compte qui presse. Juste au-dessus de JOUER. */
+html.nav7 #n7Cadeau{display:none}
+html.nav7.n7on[data-n7="home"] #n7Cadeau:not([hidden]){display:flex;position:fixed;z-index:88;left:var(--n7DecL);right:var(--n7DecR);width:var(--n7DecW);
+  bottom:calc(var(--n7DecB) + var(--n7DecH) + 12px);height:32px;box-sizing:border-box;align-items:center;justify-content:center;gap:8px;padding:0 12px;
+  font:600 13px/16px var(--sans);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-g1);background:none;pointer-events:none;white-space:nowrap}
+html.nav7.n7on[data-n7="home"] #n7Cadeau.pret:not([hidden]){height:48px;bottom:calc(var(--n7DecB) + var(--n7DecH) + 16px);font-weight:800;font-size:15px;line-height:20px;
+  color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000;pointer-events:auto;cursor:pointer;
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
+html.nav7 #n7Cadeau.pret:is(:active,.appui){transform:translateY(4px);box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000}
+html.nav7 #n7Cadeau .pxi{--pxs:2;color:var(--c6-or);filter:none}
+html.nav7 #n7Cadeau:not(.pret) .pxi{color:var(--c6-g2)}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
@@ -53316,7 +53329,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      Les écrans lui parlent par un événement (`n7:va` {onglet, cat}) ; elle parle à la boutique par `n7:bq` {cat}. `?nav=0` la coupe. */
   const N7=document.documentElement.classList.contains('nav7')&&document.documentElement.classList.contains('c6');
   const N7_ONG=[['home','maison','ACCUEIL','HOME'],['garage','voiture','GARAGE','GARAGE'],['defis','cible','MISSIONS','MISSIONS'],['shop','panier','BOUTIQUE','SHOP']];
-  let n7Bar=null,n7Bank=null;
+  let n7Bar=null,n7Bank=null,n7Cad=null;
+  function n7CadMaj(){ /* LE CADEAU de l'accueil : cadeauEtat() de GAMEPLAY → {pret, dansMs, jour} ; pas de fonction = pas de ligne */
+    if(!n7Cad)return;let e=null;
+    if(n7Tick.o==='home'&&typeof cadeauEtat==='function'){try{e=cadeauEtat();}catch(e9){e=null;}}
+    n7Cad.hidden=!e;if(!e)return;
+    const pret=!!(e.pret||e.jour);n7Cad.classList.toggle('pret',pret);
+    if(pret){n7Cad.setAttribute('role','button');n7Cad.tabIndex=0;}else{n7Cad.removeAttribute('role');n7Cad.tabIndex=-1;}
+    let t;if(pret)t=LANG==='en'?'GIFT READY · TAP':'CADEAU PRÊT · TOUCHE';
+    else{const m=Math.max(1,Math.ceil((e.dansMs||0)/60000)),h=Math.floor(m/60),mn=m%60;
+      t=(LANG==='en'?'NEXT GIFT IN ':'PROCHAIN CADEAU DANS ')+(h?h+' H '+String(mn).padStart(2,'0'):mn+' MIN');}
+    if(n7Cad._t!==t){n7Cad._t=t;n7Cad.querySelector('span').textContent=t;}}
   function n7Ou(){ /* l'onglet où l'on est ('' = hors des menus de l'atelier) */
     if(!garageOn||!gEl||(started&&!gameOver))return '';
     if(gEl.classList.contains('missions'))return 'defis';
@@ -53358,6 +53381,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const o=n7Ou();
     if(o!==n7Tick.o){n7Tick.o=o;R.setAttribute('data-n7',o);
       n7Bar.querySelectorAll('.n7T').forEach(function(b){const on=b.dataset.n7===o;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});}
+    if(o==='home'){if((n7Tick.n=(n7Tick.n|0)+1)%8===0||n7Tick.o9!=='home')n7CadMaj();}else if(n7Cad&&!n7Cad.hidden)n7Cad.hidden=true;n7Tick.o9=o;
     const au=Math.floor(SAVE.d.aura||0),k=Math.floor(bank())+'|'+au+'|'+LANG;
     if(k!==n7Tick.k){n7Tick.k=k;n7Bank.querySelector('.n7Cash b').textContent=fmtC(bank());n7Bank.querySelector('.n7Aura b').textContent=fmtAura(au);
       if(n7Tick.lang!==LANG){n7Tick.lang=LANG;n7Libelles();}}}
@@ -53365,6 +53389,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     n7Bar=document.createElement('nav');n7Bar.id='n7Bar';n7Bar.setAttribute('role','tablist');
     n7Bar.innerHTML=N7_ONG.map(function(o){return '<div class="n7T" role="tab" tabindex="0" data-n7="'+o[0]+'">'+pxi(o[1])+'<span></span></div>';}).join('');
     document.body.appendChild(n7Bar);
+    n7Cad=document.createElement('div');n7Cad.id='n7Cadeau';n7Cad.hidden=true;n7Cad.innerHTML=pxi('cadeau')+'<span></span>';document.body.appendChild(n7Cad);
+    n7Cad.addEventListener('click',function(e){e.stopPropagation();if(!n7Cad.classList.contains('pret')||ecranWipe._on||typeof cadeauOuvre!=='function')return;
+      uiPop(n7Cad);uiClic('nav');try{const r=cadeauOuvre();if(r&&r.then)r.then(n7CadMaj,n7CadMaj);}catch(e9){console.warn('cadeau',e9);}n7CadMaj();});
     n7Bank=document.createElement('div');n7Bank.id='n7Bank';
     n7Bank.innerHTML='<span class="n7Cash">'+pxi('piece')+'<b></b></span><span class="n7Aura">'+pxi('etoile')+'<b></b></span>';
     document.body.appendChild(n7Bank);
