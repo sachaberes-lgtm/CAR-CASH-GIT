@@ -38697,7 +38697,7 @@ function portPasseNiveau(){
   const tok=PORTV.att=++PORTV.n;
   requestAnimationFrame(function(){requestAnimationFrame(function(){
     if(PORTV.att!==tok)return;PORTV.att=0;
-    if(started&&!gameOver&&!PARK.on)newTrack();
+    if(started&&!gameOver&&!PARK.on&&mode!=='boom')newTrack(); // (2026-10-14, chasse aux bugs) mode!=='boom' : morte dans les 2 images d'attente, la caisse explose ENCORE (gameOver ne tombe qu'à endGame, 1,8 s plus tard) — newTrack lui remettait mode='drive' : plus d'endGame, elle roulait après sa mort
     portVoileSort(280);});});
 }
 /* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
