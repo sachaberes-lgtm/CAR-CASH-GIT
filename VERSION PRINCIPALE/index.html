@@ -42482,7 +42482,7 @@ function buildGarageRoom(){
      Coût : 3 200 cases à 30 images/s + une texture de 80 × 40 envoyée — rien ; seulement quand l'atelier est ouvert. */
   {const W9=96,H9=48,cv=document.createElement('canvas');cv.width=W9;cv.height=H9; // (2026-09-30, v3) 80 × 40 → 96 × 48 : des cases de 10 cm
    const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
-   const fm=new THREE.MeshBasicMaterial({map:tex,fog:false,toneMapped:false});
+   const fm=new THREE.MeshBasicMaterial({map:tex,fog:false,toneMapped:false,color:GARAGE_V?0xd6d1cc:0xffffff}); // (garage-lumiere) le rideau de flammes de Léo : −16 % de lumière, même forme
    const fl=add9(PL,fm,0,2.45,hd+.36,10,4.9,1);fl.rotation.y=Math.PI;
    const F=GAR.feu={cv:cv,cx:cv.getContext('2d'),img:null,f:new Uint8Array(W9*H9),h:new Float32Array(W9),em:[],W:W9,H:H9,tex:tex,acc:0,t:0,k:0};
    F.img=F.cx.createImageData(W9,H9);GAR.feuM=fl;
@@ -42880,7 +42880,7 @@ function buildGarageRoom(){
     for(let r=0;r<N;r++){const a=r*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
     const gR=new THREE.BufferGeometry();gR.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));gR.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
     gR.setAttribute('color',new THREE.Float32BufferAttribute(col,3));gR.setIndex(idx);
-    const rf=add(new THREE.Mesh(gR,new THREE.MeshBasicMaterial({map:GAR.feu.tex,vertexColors:true,transparent:true,opacity:.5,fog:false,depthWrite:false,
+    const rf=add(new THREE.Mesh(gR,new THREE.MeshBasicMaterial({map:GAR.feu.tex,vertexColors:true,color:GARAGE_V?0xb8b8b8:0xffffff,transparent:true,opacity:.5,fog:false,depthWrite:false,
       blending:THREE.AdditiveBlending,toneMapped:false,side:THREE.DoubleSide})));
     rf.position.set(0,.014,hd);rf.renderOrder=-1;B9.reflet=rf;}
    // --- LES NAPPES DU FEU : la façade autour de l'ouverture, les deux murs, le plafond côté porte
@@ -42889,16 +42889,16 @@ function buildGarageRoom(){
      const gr=x.createRadialGradient(w/2,h,ox*.6,w/2,h,w*.48);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.45)');gr.addColorStop(1,'rgba(255,255,255,0)');
      x.fillStyle=gr;x.fillRect(0,0,w,h);
      x.globalCompositeOperation='destination-out';x.fillStyle='#000';x.fillRect(w/2-ox,h-oy,ox*2,oy);});
-   B9.fac=nappe(facTex,0xff5a18,0,3.1,hd-.02,22.6,6.2,.5);B9.fac.rotation.y=Math.PI;
+   B9.fac=nappe(facTex,GARAGE_V?0xb23f11:0xff5a18,0,3.1,hd-.02,22.6,6.2,.5);B9.fac.rotation.y=Math.PI;
    const murTex=cvT(128,32,(x,w,h)=>{const gr=x.createLinearGradient(0,0,w,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.7,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,1)');
      x.fillStyle=gr;x.fillRect(0,0,w,h);x.globalCompositeOperation='destination-in';
      const gv=x.createLinearGradient(0,0,0,h);gv.addColorStop(0,'rgba(0,0,0,.25)');gv.addColorStop(.6,'rgba(0,0,0,1)');gv.addColorStop(1,'rgba(0,0,0,.7)');x.fillStyle=gv;x.fillRect(0,0,w,h);});
-   B9.murG=nappe(murTex,0xff5a18,hw-.02,3.1,hd-6,12,6.2,.42);B9.murG.rotation.y=-Math.PI/2;              // x > 0 : u croît vers la porte
-   B9.murD=nappe(murTex,0xff5a18,-hw+.02,3.1,hd-6,-12,6.2,.42);B9.murD.rotation.y=Math.PI/2;             // (miroir : échelle négative)
+   B9.murG=nappe(murTex,GARAGE_V?0xb23f11:0xff5a18,hw-.02,3.1,hd-6,12,6.2,.42);B9.murG.rotation.y=-Math.PI/2;              // x > 0 : u croît vers la porte
+   B9.murD=nappe(murTex,GARAGE_V?0xb23f11:0xff5a18,-hw+.02,3.1,hd-6,-12,6.2,.42);B9.murD.rotation.y=Math.PI/2;             // (miroir : échelle négative)
    const plaTex=cvT(64,128,(x,w,h)=>{const gr=x.createLinearGradient(0,h,0,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,'rgba(255,255,255,1)');
      x.fillStyle=gr;x.fillRect(0,0,w,h);x.globalCompositeOperation='destination-in';const gh=x.createLinearGradient(0,0,w,0);
      gh.addColorStop(0,'rgba(0,0,0,0)');gh.addColorStop(.3,'rgba(0,0,0,1)');gh.addColorStop(.7,'rgba(0,0,0,1)');gh.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gh;x.fillRect(0,0,w,h);});
-   B9.plaf=nappe(plaTex,0xff5a18,0,H-.02,hd-6,W-1,12,.16);B9.plaf.rotation.x=Math.PI/2;
+   B9.plaf=nappe(plaTex,GARAGE_V?0xb23f11:0xff5a18,0,H-.02,hd-6,W-1,12,.16);B9.plaf.rotation.x=Math.PI/2;
    // --- LE PORTAIL : liseré néon rose autour de l'ouverture (un cœur blanc, un halo rose — le bloom finit le travail)
    const neoTex=cvT(32,4,(x,w,h)=>{const gr=x.createLinearGradient(0,0,w,0);
      gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.36,GARAGE_V?'rgba(255,176,90,.55)':'rgba(255,90,190,.55)');gr.addColorStop(.5,GARAGE_V?'rgba(255,248,236,1)':'rgba(255,245,252,1)');gr.addColorStop(.64,GARAGE_V?'rgba(255,176,90,.55)':'rgba(255,90,190,.55)');gr.addColorStop(1,'rgba(255,255,255,0)');
