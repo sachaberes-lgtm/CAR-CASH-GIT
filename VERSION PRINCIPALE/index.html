@@ -13718,9 +13718,9 @@ function villeRose(){const c=typeof LVL!=='undefined'&&LVL.cur;return VILLE_ROSE
 /* (2026-10-14, LA BIBLE CAR CASH — passation/DA-CARCASH.md, validée par Sacha) LA SIGNATURE DE ROUTE : bords néon ROSE + nappe + ligne centrale OR, sur
    chaque map passée à la bible (une map à la fois, chacune son `?sans=`). routeSig() dit si la map courante la porte. La ville au néon (villeRose) garde
    sa peinture caméléon d'origine ; les autres reçoivent le rose de la marque, plein la nuit et sous la pluie, ~70 % de jour (jamais blanc ni éteint). */
-const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),nuagesjour:!/[?&]sans=([^&]*,)?nuagesjour(,|&|$)/.test(location.search),jade:!/[?&]sans=([^&]*,)?jade2(,|&|$)/.test(location.search),foret:!/[?&]sans=([^&]*,)?foret2(,|&|$)/.test(location.search)};
+const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),nuagesjour:!/[?&]sans=([^&]*,)?nuagesjour(,|&|$)/.test(location.search),jade:!/[?&]sans=([^&]*,)?jade2(,|&|$)/.test(location.search),foret:!/[?&]sans=([^&]*,)?foret2(,|&|$)/.test(location.search),orbite:!/[?&]sans=([^&]*,)?orbite3(,|&|$)/.test(location.search)};
 function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)return false;const b=c.bio[0];
-  return (SIG_V.foret&&c.id==='foret')||(SIG_V.jade&&c.id==='jade')||(SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
+  return (SIG_V.orbite&&c.id==='espace')||(SIG_V.foret&&c.id==='foret')||(SIG_V.jade&&c.id==='jade')||(SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
@@ -20794,6 +20794,9 @@ if(ORBITE2_V){
  Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.34,.19,.12],fillC:[.64,.4,.28],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS2:[215,150,120,.24]}); // MARS : rouille sombre
  Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.36,.27,.16],fillC:[.6,.48,.34],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
 }
+/* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · orbite3) L'ORBITE REJOINT LA FAMILLE : exposition remontée (~0,73 → ~0,84 effective, les autres maps sont
+   à ~1) pour que la caisse et la route sortent du noir, contre-jour ROSE, et la signature de route (bords roses, ligne or) sur le vide. `?sans=orbite3`. */
+if(SIG_V.orbite)for(const k of ['espaceMatin','espace','espaceSoir','espaceSat'])if(BIOMES[k])Object.assign(BIOMES[k],{expo:+(BIOMES[k].expo*1.15).toFixed(3),kickC:[1,.38,.66],kickI:.18});
 // (fin EN ORBITE)
 //
 //
