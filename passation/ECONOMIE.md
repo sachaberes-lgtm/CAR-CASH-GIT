@@ -49,3 +49,14 @@ Ma recommandation : **A seul**, puis on re-mesure. Ajouter B seulement si les 3 
 ## 5. Comment re-mesurer
 `scratchpad/pop/eco.js` (session GENERAL) : `CC_QUI=GENERAL node verrou.js node eco.js <racine>` → l'argent toutes les 15 s, par partie.
 `?eco=ancien` coupe l'argent du début ; `dbgEcoDebut()` dit si le ×1,5 est actif.
+
+## 6. DÉCISION DE SACHA (14/10 soir) : OPTION A, APPLIQUÉE
+- ELDORADO 10 000 → **3 000 $**. LE CHARGEUR 16 000 → **6 000 $** et LE DÉFIEUR 24 000 → **10 000 $** servent de marches
+  de transition. Les communes retirées n'ont plus de modèle 3D (leurs gabarits ont été supprimés) : on ne pouvait pas les remettre
+  en vente sans les redessiner. Aucun gain ne change.
+- Vérification par le calcul, sur la mesure du §1 : le pilote fait ~1 100 $ par partie en moyenne (5 parties, 267 → 2 456 $). Un
+  humain moyen qui prend la moitié des pièces fait ~550 $ ; avec le permis (+500) et le carnet 1 (+500), il atteint 3 000 $ vers la
+  **3e-4e partie**. Puis 6 000 vers la 9e, et 10 000 vers la 16e.
+- ⚠ Il reste un trou : après LE DÉFIEUR (10 000), la marche suivante est LA BAVAROISE à 42 000 (×4,2). À trancher : une caisse
+  vers 20 000 ? (LE CAÏD est à 50 000.)
+- FINAL SPIN (IDEE) : espérance plafonnée à 10 % du gain moyen d'une partie (~100 $ aujourd'hui).
