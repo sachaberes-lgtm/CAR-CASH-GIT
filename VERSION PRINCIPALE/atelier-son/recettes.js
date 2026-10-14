@@ -509,6 +509,65 @@ D('pose.parfait',{fam:'pose',dur:.9,key:1,db:+2,max:1,cd:.2,pre:1,dit:'PARFAIT :
   r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'b',t0:k*.008,a:.0005,d:.025,v:.6-k*.12,ft:'bp',f:1800,q:.9},R);
     clic(b,{t0:0,f:5000,d:.006,v:.4},R);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.2],d:[.6,.25,.12],t0:.01,v:.3},R);cloche(b,{f:nE(43),r:[1,2],m:[1,.2],d:[.4,.15],t0:.03,v:.14},R);
     scintille(b,R,.02,.35,6,.1,36,46);}});
+/* (2026-10-14, session SON) LA POSE DIVINE A SA SIGNATURE : c'était le tchak de la PARFAITE joué une quinte plus haut. Le même tchak (on
+   reconnaît la famille), puis le ciel s'ouvre — le chœur « aaah » (la couleur sacrée, réservée), deux cloches, une pluie d'or plus longue. */
+D('pose.divin',{fam:'pose',dur:1.8,st:1,key:1,db:+3,max:1,cd:.2,pre:1,dit:'DIVIN : le TCHAK de la PARFAITE, puis le ciel s’ouvre — chœur « aaah », cloches, pluie d’or',
+  r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'b',t0:k*.008,a:.0005,d:.025,v:.6-k*.12,ft:'bp',f:2200,q:.9},R);
+    clic(b,{t0:0,f:5500,d:.006,v:.4},R);cloche(b,{f:nE(43),r:[1,2,2.76],m:[1,.3,.2],d:[.9,.3,.14],t0:.01,v:.3},R);cloche(b,{f:nE(50),r:[1,2],m:[1,.2],d:[.6,.2],t0:.06,v:.16},R);
+    choeur(b,R,[19,23,26,31],.04,.18,.45,.9,.42);scintille(b,R,.05,1.1,14,.11,38,50);}});
+/* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE DU CATALOGUE. Payées, les douze sonnaient le même maillon : chacune a désormais sa
+   phrase, sur l'échelle du vol (la 1re note = le degré du maillon, st). Une variante par figure — l'ordre est celui de FIG_SIGNE dans le jeu. */
+D('fig.signe',{fam:'figures',dur:.9,st:1,key:1,db:-1,max:3,cd:.04,v:12,pre:1,bases:[0,12],dit:'la SIGNATURE d’une figure payée : 0 TONNEAU · 1 TOUPIE · 2 SHIMMY · 3 CHANDELLE · 4 SALTO ARRIÈRE · 5 SALTO AVANT · 6 DOUBLE TONNEAU · 7 TIRE-BOUCHON · 8 HÉLICO · 9 VRILLE PENCHÉE · 10 RODÉO · 11 SALTO COSMIQUE',
+  r:function(b,R,o){const f=nE(12+o.base),P=function(k,t,v,d,pan){pluck(b,R,f*k,t,v,d||.4,1,pan||0);};
+    clic(b,{t0:0,f:4000,d:.004,v:.14},R);
+    if(o.v===0){P(1,0,.5,.35,-.5);P(1.5,.07,.42,.4,.5);swish(b,R,0,.22,1200,3600,.14,-.8,.8,1.4);} /* TONNEAU : une quinte qui roule d'une oreille à l'autre */
+    else if(o.v===1){P(1,0,.5,.3,0);P(1,.06,.36,.3,0);bruit(b,{c:'r',t0:0,a:.01,d:.18,v:.28,ft:'bp',f:1300,q:2,am:[26,.85],pan:-.3,pan1:.3},R);} /* TOUPIE : la note frappée deux fois à plat, l'air haché */
+    else if(o.v===2){for(let k=0;k<4;k++)P(k%2?1.125:1,k*.045,.4-k*.05,.18,k%2?.6:-.6);} /* SHIMMY : un trille qui se dandine gauche-droite */
+    else if(o.v===3){osc(b,{f:f,f1:f*2,g:.22,gc:.6,w:'tri',t0:0,a:.01,h:.12,d:.2,v:.22});P(2,.2,.42,.45,0);} /* CHANDELLE : ça se cabre, la note monte et se pose en haut */
+    else if(o.v===4){grave(b,o,0,f*.25,f*.125,.18,.3,.4);P(1.5,0,.45,.3,0);P(1,.08,.48,.4,0);} /* SALTO ARRIÈRE : le wouomp, la quinte qui retombe */
+    else if(o.v===5){grave(b,o,0,f*.125,f*.25,.18,.3,.4);P(1,0,.45,.3,0);P(1.5,.08,.48,.4,0);} /* SALTO AVANT : le wouomp, la quinte qui monte */
+    else if(o.v===6){P(1,0,.46,.3,-.6);P(1.5,.06,.42,.3,.6);P(2,.12,.46,.45,-.3);swish(b,R,0,.3,1200,4200,.14,-.8,.8,1.4);} /* DOUBLE TONNEAU : deux roulés, l'arpège monte à l'octave */
+    else if(o.v===7){[1,1.25,1.5,2].forEach(function(k,i){P(k,i*.05,.42,.3,Math.sin(i*1.6)*.7);});} /* TIRE-BOUCHON : l'arpège en spirale */
+    else if(o.v===8){bruit(b,{c:'r',t0:0,a:.02,d:.35,v:.3,ft:'bp',f:900,q:1.6,am:[17,.9]},R);P(1,0,.44,.3,0);P(2,.1,.42,.4,0);} /* HÉLICO : les pales, la note qui saute l'octave */
+    else if(o.v===9){P(1,0,.44,.3,-.3);pluck(b,R,f*1.682,.07,.44,.45,.8,.3);osc(b,{f:f*1.682,w:'sin',t0:.07,a:.02,d:.35,v:.08,vib:[6,.012]});} /* VRILLE PENCHÉE : la sixte, de biais, qui ondule */
+    else if(o.v===10){corde(b,{f:f*.5,t0:0,d:.5,v:.5,br:.8},R);corde(b,{f:f*.75,t0:.09,d:.45,v:.42,br:.8},R);P(1,.18,.42,.35,0);} /* RODÉO : deux ruades de corde, puis la note */
+    else{cloche(b,{f:f*2,r:[1,2.76,5.4],m:[1,.3,.12],d:[.6,.2,.08],t0:0,v:.22},R);[1,1.5,2,3].forEach(function(k,i){P(k,i*.06,.38,.35,i%2?.5:-.5);});scintille(b,R,.05,.6,8,.08,38,48);} /* SALTO COSMIQUE : l'arpège qui file dans les étoiles */
+  }});
+/* (2026-10-14, session SON ; les combos : GENERAL) LES COMBOS À TROIS. Un combo = trois figures, sa clé = leurs trois AXES triés (T tonneau,
+   P toupie, S salto, M mixte). Sa signature (sonCombo, dans le jeu) : trois FRAPPES — une matière par axe, dans l'ordre de la clé, qui montent
+   la pentatonique — puis le SCEAU. Vingt clés, vingt phrases : TTT tinte trois fois le verre, PST (LE GYROSCOPE) passe par les trois matières. */
+D('combo.frappe',{fam:'figures',dur:.5,st:1,key:1,db:0,max:6,cd:0,v:4,pre:1,bases:[0,12],dit:'une FRAPPE de combo (trois d’affilée) : 0 TONNEAU le verre qui roule · 1 TOUPIE le bois haché · 2 SALTO le tambour grave · 3 MIXTE le métal',
+  r:function(b,R,o){const f=nE(12+o.base);clic(b,{t0:0,f:4500,d:.003,v:.2},R);
+    if(o.v===0){cloche(b,{f:f,r:[1,2.01,3.98,5.2],m:[1,.45,.22,.1],d:[.38,.16,.08,.05],t0:0,v:.36},R);swish(b,R,0,.2,1800,4200,.16,-.8,.8,1.4);}
+    else if(o.v===1){marimba(b,R,f,0,.42,.26);bruit(b,{c:'r',t0:0,a:.004,d:.14,v:.3,ft:'bp',f:1400,q:2,am:[32,.85]},R);}
+    else if(o.v===2){grave(b,o,0,f*.25,f*.125,.08,.22,.55);pluck(b,R,f,0,.42,.3,.8);}
+    else{cloche(b,{f:f,r:[1,2.76,5.4,8.93],m:[1,.5,.25,.12],d:[.3,.14,.07,.04],t0:0,v:.32,jit:.004},R);osc(b,{f:f*.5,w:'saw',t0:0,a:.002,d:.16,v:.14,flt:['lp',3200,700,.1,1.2]});}
+  }});
+D('combo.sceau',{fam:'figures',dur:1.3,st:1,key:1,db:+2,max:1,cd:.3,v:4,pre:1,bases:[0,12],dit:'le SCEAU du combo, après ses trois frappes : 0 PUR (trois fois le même axe) · 1 MÉLANGÉ · 2 LE GYROSCOPE (les trois axes, le roi) · 3 LE GRAND CHAOS',
+  r:function(b,R,o){const s=o.base;
+    if(o.v===0){stab(b,R,[s,s+7,s+12],0,.06,.55,.5,1);clic(b,{t0:0,f:5000,d:.004,v:.3},R);cloche(b,{f:nE(s+24),r:[1,2],m:[1,.2],d:[.5,.2],t0:.01,v:.16},R);}
+    else if(o.v===1){stab(b,R,[s,s+4,s+7,s+14],0,.06,.6,.45,.8);clic(b,{t0:0,f:4200,d:.004,v:.25},R);scintille(b,R,.03,.4,5,.08,36,46);}
+    else if(o.v===2){stab(b,R,[s,s+7,s+12,s+16],0,.1,.8,.5,1);choeur(b,R,[s+12,s+16,s+19],.02,.12,.35,.7,.35);
+      cloche(b,{f:nE(s+24),r:[1,2,2.76],m:[1,.3,.2],d:[.9,.35,.15],t0:.02,v:.2},R);scintille(b,R,.05,.8,10,.1,36,48);}
+    else{const t=Toile(b.sr,b.dur,!!b.R);stab(t,R,[s,s+6,s+11],0,.05,.5,.55,1);O.decime(t,6,3);
+      for(let i=0;i<b.n;i++){b.L[i]+=t.L[i];if(b.R)b.R[i]+=t.R[i];}
+      crepite(b,R,0,.45,14,.35,400,3000);clic(b,{t0:0,f:3000,d:.006,v:.35},R);}
+  }});
+/* (2026-10-14, session SON — le son par figure, étape 2) LES FIGURES DES MONDES. Celles de LA BANQUISE et de l'eau payaient le même maillon
+   que tout le reste : chacune a sa phrase, dans la matière de son monde (la glace tinte et glisse, la poudreuse feutre, l'eau fait des bulles),
+   sur l'échelle du vol (la note = le degré du maillon, st). Une variante par figure — l'ordre est celui de FIG_MONDE dans le jeu. */
+D('fig.monde',{fam:'figures',dur:.9,st:1,key:1,db:-1,max:3,cd:.04,v:9,pre:1,bases:[0,12],dit:'la SIGNATURE d’une figure de monde : 0 TREMPLIN DE GLACE · 1 GLISSE / SUR LE PIC · 2 POUDREUSE · 3 TRACE PARFAITE · 4 PATINOIRE · 5 DÉRAPAGE GLACE · 6 RICOCHET · 7 PLONGEON · 8 SURF',
+  r:function(b,R,o){const f=nE(12+o.base),P=function(k,t,v,d,pan){pluck(b,R,f*k,t,v,d||.4,1,pan||0);},G=function(k,t,v,d,pan){cloche(b,{f:f*k,r:[1,2.01,3.98],m:[1,.35,.15],d:[d||.5,.2,.08],t0:t,v:v,pan:pan||0},R);};
+    if(o.v===0){osc(b,{f:f,f1:f*2,g:.18,gc:.6,w:'sin',t0:0,a:.005,h:.1,d:.2,v:.18});G(2,.17,.32,.6,0);clic(b,{t0:.17,f:6000,d:.003,v:.2},R);} /* TREMPLIN DE GLACE : ça s'envole, et le verre tinte en haut */
+    else if(o.v===1){osc(b,{f:f*1.5,f1:f,g:.3,gc:.5,w:'sin',t0:0,a:.01,h:.15,d:.25,v:.14,vib:[7,.006]});G(1,0,.3,.45,-.3);} /* GLISSE : la note qui glisse sur la glace */
+    else if(o.v===2){bruit(b,{c:'r',t0:0,a:.03,d:.3,v:.32,ft:'lp',f:2200,f1:700,g:.3,q:.7,pan:-.4,pan1:.4},R);P(1,.04,.36,.35,0);} /* POUDREUSE : un souffle feutré, la note étouffée */
+    else if(o.v===3){G(1,0,.32,.45,-.4);G(1.5,.08,.3,.55,.4);scintille(b,R,.08,.4,6,.08,38,48);} /* TRACE PARFAITE : deux tintements nets, une pincée d'or */
+    else if(o.v===4){for(let k=0;k<2;k++)bruit(b,{c:'b',t0:k*.11,a:.005,d:.09,v:.24,ft:'hp',f:5000,f1:2500,g:.09,q:.8,pan:k?.5:-.5},R);G(1,.02,.28,.4,-.3);G(1.25,.13,.26,.45,.3);} /* PATINOIRE : deux coups de lame, deux notes */
+    else if(o.v===5){bruit(b,{c:'r',t0:0,a:.01,d:.32,v:.3,ft:'bp',f:3200,f1:1400,g:.3,q:2.2,pan:-.6,pan1:.6},R);P(1,.06,.4,.35,0);} /* DÉRAPAGE GLACE : la lame qui racle, puis la note */
+    else if(o.v===6){bulle(b,R,0,f*.5,f*1.5,.08,.3,-.3);bulle(b,R,.07,f*.75,f*2,.07,.24,.3);P(1,.12,.38,.3,0);} /* RICOCHET : deux bulles qui rebondissent, la note */
+    else if(o.v===7){bulle(b,R,0,f*.5,f*.25,.25,.34,0);bruit(b,{c:'n',t0:0,a:.01,d:.3,v:.4,ft:'lp',f:700,f1:250,g:.3,q:.7},R);P(.5,.12,.4,.45,0);} /* PLONGEON : on coule, la note grave */
+    else{swish(b,R,0,.45,600,2400,.26,-.7,.7,.9);P(1,.08,.4,.3,-.2);P(1.5,.18,.36,.4,.2);} /* SURF : la vague qui passe, la quinte qui glisse dessus */
+  }});
 D('pose.lourde',{fam:'pose',bus:'fx',dur:.9,db:+2,max:1,cd:.2,grp:'r',prio:2,dit:'POSÉ LOURD : la tôle qui encaisse — craquement + ressorts en butée + grave sale',
   r:function(b,R,o){coup(b,R,o,0,1,1400,90,40,.4);tole(b,R,.005,190,.3,.5);tole(b,R,.04,135,.22,.4);
     bruit(b,{c:'r',t0:0,a:.002,d:.25,v:.4,ft:'bp',f:900,q:1.5,am:[38,.8]},R);osc(b,{f:98,f1:92,g:.3,w:'saw',t0:.02,a:.01,d:.4,v:.08,flt:['lp',600,300,.3]});}});
@@ -1262,3 +1321,108 @@ D('foret.nuitAmb',{fam:'foret',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'la FO
     O.filtre(b,'lp',1200,.7);O.boucle(b,.6);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN FORET>>> */
+/* <<<BANQUISE>>> */
+(function(G){
+'use strict';
+/* LES VOIX DE LA BANQUISE (2026-10-14, Sacha : « on peut faire des traces dans la poudreuse en frôlant le sol… glisser de manière ultra
+   stylée sur les lacs gelés et les pics de glace »). Joués par banqVolFx / banqTouche / banqPlouf / banqSons (index.html). Aucune voix.
+   · `banq.glisse` — LA GLISSE SUR LA GLACE (boucle) : le chuintement des patins (bruit rose en bande 1,4-2 kHz, haché par la glace),
+     le grondement de la caisse sur le lac, des cristaux qui crépitent. Le jeu en règle le gain et la vitesse sur l'élan.
+   · `banq.poudre` — LA POUDREUSE (boucle) : le souffle rond de la neige qui gicle (bruit brun et rose, sous 1,2 kHz), des bouffées.
+   · `banq.plouf` — l'entrée dans la poudreuse : un « POUF » sourd, la neige qui retombe en pluie fine.
+   · `banq.craque` — la glace touchée : le CLAC, puis le « PIOU » dispersif des lacs gelés (l'onde qui file dans la plaque : un sifflement
+     qui descend très vite), un écho grave.
+   · `banq.chant` — LE CHANT DES LACS GELÉS (la nuit, au loin) : de longs « piouuu » qui roulent sous la plaque, l'écho de la vallée.
+   · `banq.vent` — LE VENT DE LA MONTAGNE (boucle, bas) : le souffle grave, un sifflement d'arête qui monte et descend.
+   ⚠ Rien d'aigu en continu au-dessus de ~2 kHz : la leçon du « son parasite » des nuages (2026-10-08). */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic;
+// le « PIOU » d'une plaque de glace : l'onde de flexion est DISPERSIVE (les aigus arrivent d'abord) — un sifflement qui tombe en exponentielle
+function piou(b,t0,f0,f1,dur,v,pan){osc(b,{f:f0,f1:f1,g:dur,gc:.45,t0:t0,a:.002,h:dur*.15,d:dur*.85,v:v,pan:pan});osc(b,{f:f0*1.5,f1:f1*1.2,g:dur*.7,gc:.45,t0:t0+.004,a:.002,d:dur*.5,v:v*.3,pan:pan});}
+D('banq.glisse',{fam:'banquise',dur:3.4,st:1,db:-6,max:1,cd:.3,dit:'LA GLISSE SUR LA GLACE (boucle) : le chuintement des patins, le grondement du lac, des cristaux qui crépitent',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.001,h:3.4,d:.001,v:.34,ft:'bp',f:1650,q:.9,am:[13,.45],pan:-.15},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:3.4,d:.001,v:.22,ft:'bp',f:1150,q:1.1,am:[7.3,.5],pan:.2},R);
+    bruit(b,{c:'n',t0:0,a:.001,h:3.4,d:.001,v:.30,ft:'lp',f:160,am:[2.1,.35]},R);                 // le lac qui gronde sous la caisse
+    for(let k=0;k<44;k++)clic(b,{t0:R()*3.3,f:1900+R()*900,d:.004,v:.05+R()*.06,pan:R()*1.4-.7},R); // les cristaux
+    O.filtre(b,'lp',2600,.7);O.boucle(b,.4);}});
+D('banq.poudre',{fam:'banquise',dur:3.4,st:1,db:-5,max:1,cd:.3,dit:'LA POUDREUSE (boucle) : le souffle rond de la neige qui gicle, des bouffées',
+  r:function(b,R){bruit(b,{c:'n',t0:0,a:.001,h:3.4,d:.001,v:.55,ft:'lp',f:520,am:[5.2,.45],pan:-.2},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:3.4,d:.001,v:.22,ft:'bp',f:850,q:.7,am:[3.1,.6],pan:.25},R);
+    for(let k=0;k<9;k++){const t=R()*3.1;bruit(b,{c:'r',t0:t,a:.04,d:.35,v:.18,ft:'bp',f:600+R()*500,q:.8,pan:R()*1.2-.6},R);}
+    O.filtre(b,'lp',1300,.7);O.boucle(b,.4);}});
+D('banq.plouf',{fam:'banquise',dur:1.2,st:1,v:2,db:-3,max:2,cd:.15,dit:'L’ENTRÉE DANS LA POUDREUSE : un « POUF » sourd, la neige qui retombe en pluie fine',
+  r:function(b,R,o){osc(b,{f:o.v?78:66,f1:38,g:.25,t0:0,a:.004,d:.32,v:.55});
+    bruit(b,{c:'n',t0:0,a:.004,d:.45,v:.7,ft:'lp',f:900,f1:300,g:.4},R);
+    bruit(b,{c:'r',t0:.01,a:.01,d:.5,v:.25,ft:'bp',f:1300,q:.7},R);
+    bruit(b,{c:'r',t0:.18,a:.08,h:.1,d:.6,v:.06,ft:'bp',f:2000,q:.9,am:[23,.6]},R);               // la pluie de neige qui retombe
+    O.versStereo(b,.5,R);}});
+D('banq.craque',{fam:'banquise',dur:1.6,st:1,v:3,db:-3,max:2,cd:.12,dit:'LA GLACE TOUCHÉE : le CLAC, puis le « PIOU » dispersif des lacs gelés, un écho grave',
+  r:function(b,R,o){const p=R()*.6-.3;
+    clic(b,{t0:0,f:3200,d:.006,v:.55,pan:p},R);bruit(b,{c:'b',t0:0,a:.0006,d:.07,v:.32,ft:'bp',f:2400,q:1.2,pan:p},R);
+    for(let k=0;k<3+o.v;k++)clic(b,{t0:.01+R()*.09,f:2200+R()*1600,d:.004,v:.18,pan:p},R);
+    piou(b,.02,2300+o.v*300,260,.42+.1*o.v,.20,p);piou(b,.12+R()*.1,1700,190,.5,.10,-p);
+    osc(b,{f:55,f1:40,g:.4,t0:0,a:.003,d:.45,v:.35});
+    O.echo(b,.19,.28,1,true);O.versStereo(b,.4,R);}});
+D('banq.chant',{fam:'banquise',bus:'amb',dur:3.6,st:1,v:3,db:-4,max:1,cd:2,dit:'LE CHANT DES LACS GELÉS (la nuit, au loin) : de longs « piouuu » qui roulent sous la plaque, l’écho de la vallée',
+  r:function(b,R,o){const p=R()*1.4-.7;let t=0;const n=2+o.v;
+    for(let k=0;k<n;k++){piou(b,t,1400+R()*900,150+R()*80,.7+R()*.5,.14,p+(R()-.5)*.3);t+=.25+R()*.55;}
+    osc(b,{f:48,f1:36,g:1,t0:.05,a:.05,d:1.2,v:.18});
+    O.filtre(b,'lp',3000,.7);O.echo(b,.33,.4,1,true);O.echo(b,.71,.22,1,true);O.versStereo(b,.6,R);}});
+D('banq.vent',{fam:'banquise',bus:'amb',dur:9,st:1,db:-12,max:1,cd:1,dit:'LE VENT DE LA MONTAGNE (boucle, bas) : le souffle grave, un sifflement d’arête qui monte et descend',
+  r:function(b,R){bruit(b,{c:'n',t0:0,a:.001,h:9,d:.001,v:.42,ft:'lp',f:300,am:[.11,.55],pan:-.25},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.06,ft:'bp',f:520,f1:760,g:9,q:6,am:[.13,.75],pan:.35},R);   // le sifflement d'arête
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.05,ft:'bp',f:880,f1:610,g:9,q:6,am:[.07,.8],pan:-.4},R);
+    O.filtre(b,'lp',1400,.7);O.boucle(b,.6);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN BANQUISE>>> */
+/* <<<VOLCAN>>> */
+(function(G){
+'use strict';
+/* LES VOIX DU ROYAUME DE FEU (2026-10-14, Sacha : « il faut qu'il se passe des choses cool… une ambiance… bien travaillée »). Jouées par
+   vlcEruption / vlcSons / vlcEruptTick (index.html), sur le bus d'AMBIANCE. Aucune voix humaine (SANS_VOIX) : de la roche, du feu, du gaz.
+   · `volcan.eruption` — LE CRATÈRE QUI CRACHE : un coup de canon grave (sub qui plonge de 55 à 28 Hz), le souffle de l'explosion, une pluie de
+     pierres qui crépite et cogne, puis le grondement qui roule longtemps. Deux variantes.
+   · `volcan.gronde` — LA MONTAGNE QUI GRONDE (entre deux éruptions) : un roulement brun qui enfle et s'éteint, un sub qui tremble.
+   · `volcan.geyser` — UN HORNITO QUI CRACHE : un souffle de gaz qui monte (300 → 1300 Hz), des éclats de lave qui pétillent.
+   · `volcan.lave` — LA LAVE QUI BULLE (et les bombes qui tombent dans les lacs) : un « bloup » grave et épais, une bulle qui crève.
+   · `volcan.amb` — LA BOUCLE (très bas, −14 dB) : le feu sourd des lacs, des crépitements épars. ⚠ Rien d'aigu en continu (le « son
+     parasite » de Léo, 2026-10-08) : tout le souffle est sous 1,6 kHz. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,clic=O.clic;
+D('volcan.eruption',{fam:'volcan',bus:'amb',dur:6.5,st:1,v:2,db:+4,max:1,cd:3,rj:.03,dit:'L’ÉRUPTION : le coup de canon du cratère, le souffle, la pluie de pierres qui crépite, le grondement qui roule',
+  r:function(b,R,o){const k=o.v,p=R()*.6-.3;
+    osc(b,{f:k?50:58,f1:k?26:30,g:.7,gc:.6,t0:0,a:.006,h:.12,d:2.4,v:.9,pan:p});                      // le SUB qui plonge
+    osc(b,{f:96,f1:42,g:.25,t0:0,a:.003,d:.7,v:.5,pan:p});                                             // le coup
+    bruit(b,{c:'n',t0:0,a:.004,h:.18,d:1.9,v:.95,ft:'lp',f:1100,f1:170,g:1.3,pan:p},R);                // le souffle
+    bruit(b,{c:'r',t0:0,a:.002,d:.45,v:.4,ft:'bp',f:1700,q:.6,pan:p},R);                               // l'éclat
+    for(let i=0;i<46;i++){const t=.25+Math.pow(R(),1.6)*4.2,pn=R()*1.8-.9,v9=.22*(1-(t-.25)/4.5);     // les PIERRES qui retombent
+      clic(b,{t0:t,f:1400+R()*2600,d:.006+R()*.01,v:v9,pan:pn},R);
+      if(R()<.4)osc(b,{f:70+R()*60,f1:45,g:.08,t0:t,a:.002,d:.14,v:v9*1.6,pan:pn});}
+    bruit(b,{c:'n',t0:.35,a:.7,h:1.6,d:3.2,v:.6,ft:'lp',f:150,am:[3.1,.35],pan:-p},R);                 // le GRONDEMENT qui roule
+    O.sature(b,1.25);O.filtre(b,'lp',5200,.7);O.echo(b,.23,.28,1,true);O.versStereo(b,.5,R);}});
+D('volcan.gronde',{fam:'volcan',bus:'amb',dur:4.4,st:1,v:3,db:0,max:1,cd:2,rj:.04,dit:'LA MONTAGNE GRONDE : un roulement brun qui enfle et s’éteint, un sub qui tremble',
+  r:function(b,R,o){const p=R()*1.2-.6,f0=30+o.v*3;
+    bruit(b,{c:'n',t0:0,a:1.3,h:.8,d:2.6,v:.85,ft:'lp',f:85,f1:135,g:3,am:[2.2+o.v*.7,.45],pan:p},R);
+    osc(b,{f:f0,f1:f0*.85,g:4,t0:.2,a:1,h:1,d:2.2,v:.5,pan:p,vib:[2.3,.06]});
+    for(let i=0;i<6;i++)clic(b,{t0:1+R()*2.2,f:900+R()*1200,d:.01,v:.06,pan:R()*1.6-.8},R);
+    O.filtre(b,'lp',900,.7);O.versStereo(b,.6,R);}});
+D('volcan.geyser',{fam:'volcan',bus:'amb',dur:2.6,st:1,v:3,db:-2,max:2,cd:.6,rj:.05,dit:'UN GEYSER DE LAVE : le gaz qui siffle en montant, les éclats qui pétillent, le coup sourd du départ',
+  r:function(b,R,o){const p=R()*1.2-.6;
+    osc(b,{f:84,f1:44,g:.3,t0:0,a:.004,d:.35,v:.45,pan:p});
+    bruit(b,{c:'r',t0:0,a:.07,h:.55+o.v*.1,d:1.3,v:.6,ft:'bp',f:360,f1:1250,g:.55,q:1.1,pan:p},R);
+    bruit(b,{c:'n',t0:0,a:.05,h:.5,d:1.1,v:.45,ft:'lp',f:420,pan:p},R);
+    for(let i=0;i<26;i++){const t=.05+R()*1.7;clic(b,{t0:t,f:1600+R()*2400,d:.004+R()*.006,v:.16*(1-t/2),pan:p+R()*.6-.3},R);}
+    O.filtre(b,'lp',5500,.7);O.echo(b,.17,.2,1,true);}});
+D('volcan.lave',{fam:'volcan',bus:'amb',dur:1.1,st:1,v:4,db:-6,max:2,cd:.3,rj:.06,dit:'LA LAVE BULLE : un « bloup » grave et épais, une bulle qui crève',
+  r:function(b,R,o){const p=R()*1.4-.7,f0=120+o.v*18;
+    osc(b,{f:f0,f1:f0*.42,g:.14,gc:.7,t0:0,a:.012,h:.02,d:.28,v:.5,pan:p});
+    osc(b,{f:f0*.8,f1:f0*.36,g:.12,t0:.22+R()*.08,a:.01,h:.01,d:.22,v:.32,pan:p});
+    bruit(b,{c:'n',t0:.02,a:.004,d:.1,v:.35,ft:'lp',f:420,pan:p},R);
+    clic(b,{t0:.3+R()*.1,f:700,d:.01,v:.12,ft:'bp',pan:p},R);
+    O.filtre(b,'lp',1600,.7);O.echo(b,.11,.2,1,true);}});
+D('volcan.amb',{fam:'volcan',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'LE ROYAUME DE FEU (boucle, très bas) : le feu sourd des lacs, des crépitements épars',
+  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.001,h:9,d:.001,v:.42,ft:'lp',f:150,am:[.09,.5],pan:-.25},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.05,ft:'bp',f:260,q:1.5,am:[.13,.6],pan:.3},R);
+    for(let i=0;i<20;i++)clic(b,{t0:.3+R()*8.2,f:1500+R()*2000,d:.006,v:.05,pan:R()*1.6-.8},R);
+    for(let i=0;i<4;i++){const t=.5+R()*7.5,f0=90+R()*50;osc(b,{f:f0,f1:f0*.5,g:.15,t0:t,a:.01,d:.25,v:.12,pan:R()*1.4-.7});}
+    O.filtre(b,'lp',1600,.7);O.boucle(b,.6);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN VOLCAN>>> */
