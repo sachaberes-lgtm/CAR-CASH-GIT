@@ -27871,7 +27871,8 @@ const coinTex=(function(){coinPeint('$');const cv=COIN_CV;
   const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;
   return t; // (pas d'anisotropie : sous D3D/ANGLE elle force un filtrage LINÉAIRE à l'agrandissement — adieu les vrais pixels de près)
 })();
-function coinSymbole(yen){const k=yen===true?'Y':yen||'$';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;}
+function coinSymbole(yen){const k=yen===true?'Y':yen||'$';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;
+  try{coinIM.geometry=k==='Y'?pickGeoY:pickGeo;}catch(e){}} // (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») la piste jade troque aussi la FORME : deux géométries bâties UNE fois au chargement, la même instance, la même matière, le même programme
 /* (2026-09-26, user : « les items sur la route plus gros, plus beaux, mieux travaillés ») : la pièce grossit (Ø 2,6 m), passe à 12 pans
    et reçoit un JONC en relief — un tore fusionné à la galette, dont les UV lisent le pixel clair de la tranche : on voit une vraie
    pièce frappée, avec sa bordure qui accroche la lumière, et c'est toujours UNE matière, UN appel de dessin. */
@@ -27886,6 +27887,39 @@ const pickGeo=(function(){
   const uv=g.attributes.uv;for(let i=0;i<26;i++)uv.setXY(i,.47,.16); // la TRANCHE : tout le pourtour lit un pixel « ombre d'or »
   const t=new THREE.TorusGeometry(1.18,.13,6,24);const tu=t.attributes.uv;for(let i=0;i<tu.count;i++)tu.setXY(i,.47,.91); // le JONC : le pixel clair
   return geoFusion([g,t]);
+})();
+/* (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») LA FORME DE LA SAPÈQUE : un disque à 16 pans PERCÉ d'un trou carré — de vraies
+   parois, on voit la montagne au travers, sans alphaTest ni transparence. En relief : le listel du bord (chanfrein d'encre, plat, pente) et
+   celui du trou. Les faces lisent la toile 16 × 16 À PLAT (1 px = R/8 m ; au dos en miroir), la tranche et les parois lisent UN pixel.
+   304 triangles (la pièce « $ » : 336), mêmes attributs que pickGeo. Bâtie une fois ; coinSymbole la pose sur l'instance des pièces. */
+const pickGeoY=(function(){
+  const P=[],Nn=[],U=[],R=1.31,K=R/8,N=16,ZR=.15,ZE=.09,ZF=.08;
+  const tri=(a,b,c,hx,hy,hz)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+    let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
+    if(nx*hx+ny*hy+nz*hz<0){const t=b;b=c;c=t;nx=-nx;ny=-ny;nz=-nz;}
+    for(const p of [a,b,c]){P.push(p[0],p[1],p[2]);Nn.push(nx,ny,nz);U.push(p[3],p[4]);}};
+  const quad=(a,b,c,d,hx,hy,hz)=>{tri(a,b,c,hx,hy,hz);tri(a,c,d,hx,hy,hz);};
+  const pt=(q,z,sz)=>[q[0]*K,q[1]*K,sz*z,.5+sz*q[0]/16,.5+q[1]/16];
+  const uni=(p,uv)=>[p[0],p[1],p[2],uv[0],uv[1]];
+  const TR=[.47,.16],TP=[.47,.53]; // la tranche : le pixel d'ombre de laiton que lit déjà pickGeo · les parois : un pixel du trou (encre)
+  const cer=(r,i)=>{const a=Math.PI/4+i*2*Math.PI/N;return [r*Math.cos(a),r*Math.sin(a)];};
+  const car=(h,j)=>{const a=Math.PI/4+j*Math.PI/2;return [h*Math.SQRT2*Math.cos(a),h*Math.SQRT2*Math.sin(a)];};
+  for(const sz of [1,-1]){
+    for(let i=0;i<N;i++){
+      quad(pt(cer(8,i),ZE,sz),pt(cer(8,i+1),ZE,sz),pt(cer(7.2,i+1),ZR,sz),pt(cer(7.2,i),ZR,sz),0,0,sz);
+      quad(pt(cer(7.2,i),ZR,sz),pt(cer(7.2,i+1),ZR,sz),pt(cer(6.5,i+1),ZR,sz),pt(cer(6.5,i),ZR,sz),0,0,sz);
+      quad(pt(cer(6.5,i),ZR,sz),pt(cer(6.5,i+1),ZR,sz),pt(cer(6,i+1),ZF,sz),pt(cer(6,i),ZF,sz),0,0,sz);}
+    for(let q=0;q<4;q++){
+      const A=pt(car(3.15,q),ZF,sz),B=pt(car(3.15,q+1),ZF,sz),v=[];for(let m=0;m<=4;m++)v.push(pt(cer(6,q*4+m),ZF,sz));
+      tri(A,v[0],v[1],0,0,sz);tri(A,v[1],v[2],0,0,sz);tri(A,v[2],B,0,0,sz);tri(B,v[2],v[3],0,0,sz);tri(B,v[3],v[4],0,0,sz);
+      const A2=pt(car(2.8,q),ZR,sz),B2=pt(car(2.8,q+1),ZR,sz);
+      quad(A,B,B2,A2,0,0,sz);quad(A2,B2,pt(car(2,q+1),ZR,sz),pt(car(2,q),ZR,sz),0,0,sz);}}
+  for(let i=0;i<N;i++){const e0=cer(8,i),e1=cer(8,i+1);
+    quad(uni(pt(e0,ZE,1),TR),uni(pt(e1,ZE,1),TR),uni(pt(e1,ZE,-1),TR),uni(pt(e0,ZE,-1),TR),e0[0]+e1[0],e0[1]+e1[1],0);}
+  for(let q=0;q<4;q++){const a=car(2,q),b=car(2,q+1);
+    quad(uni(pt(a,ZR,1),TP),uni(pt(b,ZR,1),TP),uni(pt(b,ZR,-1),TP),uni(pt(a,ZR,-1),TP),-(a[0]+b[0]),-(a[1]+b[1]),0);}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));
+  o.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return o;
 })();
 /* (2026-09-26, vague 2) LA LUMIÈRE, C'EST L'ARGENT : la pièce ÉMET son or (émissif blanc × sa propre texture ×1,05) et ne prend plus que la
    moitié de la lumière de la scène (diffus ×.5) — elle garde son relief (facettes, jonc, reflet spéculaire) sans virer à l'orange au
