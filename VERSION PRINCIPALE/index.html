@@ -28509,6 +28509,11 @@ function sensGlisse(on){
       if(!REDUCED_MOTION)sensCoup(-Math.sign(steer)*1.3,.8,-.45); // même sens que le roulis de virage (carRoll9 du côté de `steer`) : ≈ 3° de plus, ≈ 2° de nez, ≈ 2 cm
       sensHap(8,1);}
   }
+  if(!on&&SENS_GL.on&&driftLv>0&&!REDUCED_MOTION){ // LE RELÂCHÉ CHARGÉ : le turbo part — la caisse S'ASSOIT sur son train arrière (nez levé ≈ 2° bleu → 3,5° ULTRA, ≈ 2-3 cm), et la charge ÉCLATE aux deux roues, de sa couleur
+    const lv=driftLv,pool=lv===3?sparkPink:lv===2?sparkGold:sparkBlue,sp9=CARS[level];
+    sensCoup(0,-(.4+.3*lv),-(.25+.15*lv));
+    if(sp9)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,3+lv,8);} // 8 à 12 étincelles en tout (anneaux de 70) : une gerbe, pas un feu d'artifice
+  }
   if(!on&&SENS_GL.on)SENS_GL.ta=performance.now();
   SENS_GL.on=on;
 }
