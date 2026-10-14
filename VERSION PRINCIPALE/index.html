@@ -30110,7 +30110,7 @@ const CAR_UNLOCK=[
   {p:1600000}, // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {k:'bientot',v:1}, // LA RAIE — (2026-10-06) DÉFI à définir (était épique, 2,5 M)
-  {k:'pubs',v:100}, // L'ÉTERNELLE — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
+  {k:'runs',v:100}, // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'9,99 €',rar:'leg'}, // LE BLINDÉ NOIR (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
@@ -30203,7 +30203,7 @@ const RARETES=[
    contrats 1-3 RARE · 6-7 EXOTIQUE · 8-9 ÉPIQUE ; rang d'aura MYTHE (POSTER 84) LÉGENDAIRE ; les cinq niveaux des NUAGES ÉPIQUE, ceux de la
    VILLE LÉGENDAIRE ; 100 pubs ÉPIQUE ; défi encore à définir (REQUIN, COMÈTE, LA RAIE) EXOTIQUE. */
 function rarDefi(u){if(u.k==='carnet')return u.v>=8?'epique':u.v>=6?'exotique':'rare';if(u.k==='aura')return u.v>=6?'legendaire':'epique';
-  if(u.k==='carrN'||u.k==='pubs')return 'epique';if(u.k==='carrV')return 'legendaire';return 'exotique';}
+  if(u.k==='carrN'||u.k==='pubs'||u.k==='runs')return 'epique';if(u.k==='carrV')return 'legendaire';return 'exotique';}
 function carRar(i){const c=CARS[i];if(c&&c.rar&&c.rar!=='defi')return c.rar;const u=CAR_UNLOCK[i];
   if(!u)return 'commun';if(u.k==='premium')return 'legendaire';if(u.k)return rarDefi(u);return u.p>=1e6?'epique':u.p>=20e3?'rare':'commun';}
 function carOrdre(i){const c9=CARS[i];if(c9&&c9.ordre!=null)return c9.ordre;return carPrixOrdre(i);} // DANS UNE FAMILLE : un rang posé à la main (la salle
@@ -32382,6 +32382,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
     case 'prem':  return [ 'CAISSE PREMIUM — offerte pour l\'instant','PREMIUM CAR — free for now'][L];
     case 'bientot':return [ 'DEFI A VENIR','CHALLENGE COMING SOON'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
     case 'pubs':  return [ 'REGARDE '+v+' PUBS  ('+Math.min(cur,v)+' / '+v+')','WATCH '+v+' ADS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-06) L'ÉTERNELLE
+    case 'runs':  return [ 'JOUE '+v+' PARTIES  ('+Math.min(cur,v)+' / '+v+')','PLAY '+v+' RUNS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-14) L'ÉTERNELLE : 100 parties jouées (police pixel : pas d'accent)
   }
   return '';
 }
