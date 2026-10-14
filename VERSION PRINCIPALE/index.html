@@ -9149,11 +9149,11 @@ html:not(.c6):not(.ux8g) #gBqUne .bqUf,html:not(.c6):not(.ux8g) #gBqUne.vert .bq
 /* la voiture ENTIÈRE dans sa vignette (plus de photo rognée par le haut en couché) */
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKph,#gBqUne .bqUph) img{width:100%;height:100%;max-width:none;object-fit:contain;display:block}
 html:not(.c6):not(.ux8g) #gBqUne .bqUph{width:100%;height:100%}
-html:not(.c6):not(.ux8g) :is(.bqKr,.bqUrr){align-self:flex-start;margin:6px 0 0 6px;padding:3px 5px 2px;max-width:calc(100% - 12px);box-sizing:border-box;overflow:hidden;white-space:nowrap;background:#14171c;color:var(--rc);font-size:10px;line-height:1.1;letter-spacing:0}
+html:not(.c6):not(.ux8g) :is(.bqKr,.bqUrr){position:absolute;top:6px;right:6px;z-index:1;margin:0;padding:3px 5px 2px;max-width:calc(100% - 12px);box-sizing:border-box;overflow:hidden;white-space:nowrap;background:#14171c;color:var(--rc);font-size:10px;line-height:1.1;letter-spacing:0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKn,#gBqUne .bqUn){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere;text-overflow:clip;font-size:9px;line-height:11px;letter-spacing:0;min-height:22px;padding:5px 6px 0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp){font-size:10px;letter-spacing:0;padding:4px 6px 8px;white-space:nowrap}
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKn{-webkit-line-clamp:3;min-height:33px;font-size:9px;padding:5px 5px 0}
-html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr{font-size:8px;margin-left:5px}
+html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr{font-size:8px;top:4px;right:4px}
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKp{padding:4px 5px 7px}
 html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl,html:not(.c6):not(.ux8g) #gBqUne .bqUl{font-size:8px}
 html:not(.c6):not(.ux8g) #gBqUne .bqUt b{font-size:10px;letter-spacing:1px}
@@ -9161,13 +9161,11 @@ html:not(.c6):not(.ux8g) #gBqUne .bqUt em{font-size:10px}
 html:not(.c6):not(.ux8g) #gBqNom .bqRar{font-size:10px;letter-spacing:1px}
 html:not(.c6):not(.ux8g) #gBqNom .bqRar::before{width:9px;height:9px}
 html:not(.c6):not(.ux8g) #gBqNom .bqNom{font-size:14px;letter-spacing:1px}
-/* LES ONGLETS : rien ne se coupe, et l'on voit que VOITURES ouvre un choix (flèche franche dans une pastille) */
+/* LES ONGLETS : rien ne se coupe (la flèche de VOITURES reste celle de Léo) */
 html:not(.c6):not(.ux8g) #gBqPan .bqOng button{min-width:0;white-space:nowrap;font-size:10px;letter-spacing:1px;gap:6px;padding:0 4px;min-height:44px}
 html:not(.c6):not(.ux8g) #gBqPan .bqOng button .bqOc{overflow:hidden;text-overflow:clip}
 html:not(.c6):not(.ux8g) #gBqPan .bqOng button i{font-size:10px}
 html:not(.c6):not(.ux8g) #gBqPan .bqOng button[data-o="cat"]{flex:1.35}
-html:not(.c6):not(.ux8g) #gBqPan .bqOng button[data-o="cat"] .bqChev{box-sizing:content-box;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid currentColor;margin-left:4px;padding:6px 6px;background:rgba(255,255,255,.18);background-clip:content-box;box-shadow:0 0 0 1px currentColor}
-html:not(.c6):not(.ux8g) #gBqPan .bqOng button[data-o="cat"]:not(.on) .bqChev{background:none;box-shadow:0 0 0 1px #7f8893}
 html:not(.c6):not(.ux8g) #gBqPan .bqMenu button{font-size:10px;letter-spacing:1px;min-height:44px}
 html:not(.c6):not(.ux8g) #gBqPan .bqMenu button i:not(.pxi){font-size:10px}
 @media (max-width:380px){html:not(.c6):not(.ux8g) #gBqPan .bqOng button{font-size:9px;letter-spacing:0}}
@@ -9179,7 +9177,8 @@ html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="equip"],html
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:none;color:#5b6572;box-shadow:none;font-size:11px;cursor:default}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{height:44px}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{background:#e3e6ea;color:#5b6572;box-shadow:inset 0 0 0 1px #c7ccd3;cursor:default;translate:none;font-size:10px}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b{color:#14171c}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b{color:#14171c;font-size:9px}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{font-size:9px;gap:6px;padding-left:8px;padding-right:8px}
 /* (15/10) prix au format GTA : un prix long (≥ 1 000 000) passe un corps en dessous pour tenir dans sa carte / son bouton */
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp).lg{font-size:8px}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b.lg{font-size:10px}
