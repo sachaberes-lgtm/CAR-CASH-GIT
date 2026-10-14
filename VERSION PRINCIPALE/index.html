@@ -9315,7 +9315,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=19"></script>
+<script defer src="sons-banque.js?v=20"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
@@ -38025,9 +38025,29 @@ function sonTonSuit(){
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol — (2026-10-14, session SON) une figure du catalogue FINIE (`fig_*`, lecteur `?fig=script`) sonne le MAILLON, comme le tour complet d'une figure libre : elle rejouait la vrille de son départ (veqFigure), deux fois le même son par figure
   if(!SONV2){trickPop(chain);return;}
+  if(id.indexOf('fig_combo_')===0)return; /* (2026-10-14, session SON) le COMBO a SA signature (sonCombo, appelée par comboNote) : pas le maillon par-dessus */
+  const sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;
+  if(sg!=null){sfx('fig.signe',{st:echSt(),var:sg});return;} /* (2026-10-14, session SON) une figure du CATALOGUE payée sonne SA phrase (fig.signe), plus le maillon commun aux douze */
   sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
+/* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE : la variante de `fig.signe` (atelier-son/recettes.js) de chaque figure du catalogue
+   (figures.js). Une figure inventée par le joueur, ou une figure automatique (la toupie de drift), garde le maillon. */
+const FIG_SIGNE={tonneau:0,toupie:1,shimmy:2,chandelle:3,saltoa:4,saltov:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
+/* (2026-10-14, session SON ; les combos : GENERAL, comboNote) LA SIGNATURE DES COMBOS. La clé = les trois AXES triés (T tonneau, P toupie,
+   S salto, M mixte). Trois FRAPPES (une matière par axe, dans l'ordre de la clé) qui montent la pentatonique du vol, puis le SCEAU : pur
+   (trois fois le même axe), mélangé, LE GYROSCOPE (PST, les trois axes : le roi) ou LE GRAND CHAOS (MMM). Vingt clés, vingt phrases.
+   `neuf` (1re découverte) : le sceau sort plus fort. */
+const COMBO_AXE={T:0,P:1,S:2,M:3};
+function sonCombo(cle,neuf){
+  if(!SONV2||typeof cle!=='string'||cle.length!==3)return;
+  const b=Math.min(4,ECH|0),pur=cle[0]===cle[1]&&cle[1]===cle[2];
+  for(let i=0;i<3;i++)sfx('combo.frappe',{var:COMBO_AXE[cle[i]]|0,st:sonPd(b+2*i),t:i*.085});
+  sfx('combo.sceau',{var:cle==='PST'?2:cle==='MMM'?3:pur?0:1,st:sonPd(b+5),t:.27,vol:neuf?2:0});
+}
+window.dbgSonJoue=function(id,o){ // (banc) joue un son de la banque par le vrai lecteur : vrai = une voix est partie · dbgSonJoue('combo','PST') = sonCombo
+  if(id==='combo'){sonCombo(o,true);return true;}if(id==='figSnd'){figSnd(o);return true;}
+  return !!sfx(id,Object.assign({force:true},o||{}));};
 /* ---- LES VOIX ET LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
    ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
    réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;
@@ -43047,12 +43067,12 @@ function tryLand(dt){
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
       if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2);
       if(gapOk)chaineAura(gapArmed===3?'DOUBLE GAP':'GAP',gapArmed===3?200:120,'gap',false,true);else if(g>=1.5)chaineAura(g>=2?'POSE DIVINE':'POSE PARFAITE',g>=2?120:70,'pose',false,true); // (aura v2) la pose PROLONGE la chaîne // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
-      if(g>=1.5){try{if(SONV2)sfx('pose.parfait',g>=2?{t:.08,st:7}:{t:.08});else{ /* (2026-10-14, session SON) la POSE DIVINE (×2) sonnait comme la PARFAITE : son tchak monte d'une quinte (accordé, key:1) — l'ancien son lui donnait déjà une note de plus */chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
+      if(g>=1.5){try{if(SONV2)sfx(g>=2?'pose.divin':'pose.parfait',{t:.08});else{ /* (2026-10-14, session SON) la POSE DIVINE (×2) a SON son, pose.divin : le tchak de la PARFAITE, puis chœur, cloches et pluie d'or (avant : le tchak une quinte plus haut) */chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
       addStyle(14+chain*4);
     }
-    if(SONV2&&g>=1.5&&!(gain>0))sfx('pose.parfait',g>=2?{t:.08,st:7}:{t:.08}); // (console de son) PARFAIT sans rien à encaisser : le tchak quand même, une fois
+    if(SONV2&&g>=1.5&&!(gain>0))sfx(g>=2?'pose.divin':'pose.parfait',{t:.08}); // (console de son) PARFAIT sans rien à encaisser : le tchak quand même, une fois
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
   // (FLOW v2) LE RACCOURCI, DANS TOUS LES MODES : la piste parcourue entre le décollage et la pose, moins la distance VOLÉE en ligne
