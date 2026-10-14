@@ -27320,7 +27320,7 @@ const CAR_UNLOCK=[
   /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables. Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
      `k:'bientot'` = un DÉFI encore à écrire (LA RAIE, COMÈTE, REQUIN : verrouillées, « DÉFI À VENIR ») ; `k:'pubs'` = L'ÉTERNELLE,
-     100 pubs regardées (`SAVE.d.ex.pubs`, compté par pkPasse — l'édition des portails, la seule qui ait des pubs). */
+     100 pubs regardées (`SAVE.d.ex.pubs` : seule l'édition des portails, retirée le 14/10, avait des pubs). */
   null,                 // LA HONTE — le point de départ, jamais verrouillée
   /* ⚠ ÉCONOMIE v3 (2026-09-25) — LES PRIX SONT CALÉS SUR UNE MESURE, PLUS SUR UNE INTUITION. Le pilote
      automatique (`dbgAuto`, aucune figure, aucun nitro) encaisse ~2 600 $ en une minute avant de tomber ;
@@ -35114,7 +35114,7 @@ const SAVE={
     // `floor` = clause de GRAND-PÈRE : les caisses gagnées sous les anciennes règles (déblocage à
     // l'argent de la partie) restent acquises. Sans elle, changer de règles reprenait au joueur des
     // caisses qu'il avait méritées — une mise à jour ne doit jamais confisquer.
-    ex:{eng:0,tricks:0,gaps:0,bumps:0,zones:0,chain:0,kmh:0,surv:0,runs:0,floor:0,pubs:0,morts:{},temps:{}}, // (2026-10-06) `pubs` : les pubs regardées (L'ÉTERNELLE, voir pkPasse) // (2026-09-30) `morts`/`temps` : la mesure des morts par niveau (voir MORTS) — jamais affichée
+    ex:{eng:0,tricks:0,gaps:0,bumps:0,zones:0,chain:0,kmh:0,surv:0,runs:0,floor:0,pubs:0,morts:{},temps:{}}, // (2026-10-06) `pubs` : les pubs regardées (L'ÉTERNELLE — plus aucune pub depuis le retrait des portails, 14/10) // (2026-09-30) `morts`/`temps` : la mesure des morts par niveau (voir MORTS) — jamais affichée
     /* ---- LE COMPTE EN BANQUE ET L'AURA (2026-08-17) --------------------------------------------
        `bank` : l'argent survit désormais à la partie. À la fin d'un run, ce qui a été ENCAISSÉ y est
        versé — et c'est avec ça qu'on achète les caisses. ⚠ ça n'annule pas le bank-or-bust : la
@@ -35260,9 +35260,7 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  portail:0, // (édition des portails) 0 : la sauvegarde du portail n'est pas encore lue — on n'y écrit rien · 1 : chaque flush l'y recopie
   flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
-    if(this.portail===1)try{const p9=pk();if(p9)p9.ecrit(this.K,s);}catch(e){} // (Playgama) bridge.storage, le miroir
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -35293,7 +35291,6 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
     else{SAVE.natif=0;SAVE.flush();}
   }).catch(function(){});}catch(e){}
 }
-const SAVE_VIDE=(function(){try{return !localStorage[SAVE.K];}catch(e){return true;}})(); // (portails) rien en local avant ce lancement : la sauvegarde du portail peut le remplir
 SAVE.load();
 if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;SAVE.flush=function(){};SAVE.mark=function(){};} // (2026-10-09) LA BALADE n'écrit rien : ni leçon, ni question du mode, ni sauvegarde
 /* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
@@ -42454,7 +42451,6 @@ function garLacherSon(){try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22
 // du user) — le garage reste la scène du départ, seule sa vitrine de shopping n'a rien à y faire.
 function playViaGarage(tuto){
   if(pendingScore!=null||(started&&!gameOver))return; // course en cours, ou nom en cours de saisie : rien à faire
-  if(!pkPasse(function(){playViaGarage(tuto);}))return; // (POKI) la pause pub d'avant partie (jamais avant la toute première) — voir pkPasse
   // (2026-09-25, transitions App Store) le menu ne disparaît plus d'un coup sur l'atelier : fondu au noir, l'atelier
   // s'allume DESSOUS, et le LÂCHER démarre quand le voile se lève — la caméra quitte l'orbite sous les yeux du joueur.
   if(garageOn){if(tuto)tutoArme();garageLaunch();return;}
@@ -50643,7 +50639,7 @@ renderLeaders(-1);
     // utilisateur qu'un `AudioContext` réclame — autant s'en servir tout de suite. `if(!AC)` : même
     // garde que `playMusic`/`musicStartRun`, zéro risque de double contexte avec le garde ajouté
     // dans `start()`.
-    if(!AC&&!POKI){try{if(typeof initAudio==='function')initAudio();}catch(e){}} // (POKI) pas de geste ici : le contexte naît au premier toucher
+    if(!AC){try{if(typeof initAudio==='function')initAudio();}catch(e){}}
     // (2026-10-03, Léo : « pour toutes les musiques, fais démarrer au moment du menu ciel ») : la musique du lobby part à l'instant où le
     // voile s'ouvre sur le CIEL (420 ms, le fondu ci-dessous), et du DÉBUT du morceau — le 1er toucher l'avait lancée en silence une fraction
     // de seconde pour libérer le lecteur. Avant : 700 ms, au milieu du fondu.
@@ -50661,9 +50657,6 @@ renderLeaders(-1);
     if(!launched)launch();
     else if(performance.now()-tLaunch>600)hide(); // ⚠ un DOUBLE-CLIC sur la plaque sautait tout
   });
-  /* (POKI) PAS D'INTRO À TOUCHER : Poki veut le jeu tout de suite (sa page a déjà son écran de chargement) — le voile s'ouvre seul sur
-     le menu. Le son et la musique attendent le premier geste (voir « LE KIT POKI, CÔTÉ JEU » : initAudio au premier toucher). */
-  if(POKI)hide();
 })();
 /* ============ MOBILE / TACTILE / PAUSE / PWA — ajout non intrusif (rien de la physique n'est réécrit) ============ */
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
@@ -50730,7 +50723,7 @@ function goImmersive(){
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
   // supporté — on le garde pour le web uniquement. Et pas sur l'ordi en `?tel=1` : cliquer JOUER
   // ne doit pas avaler l'écran entier sans qu'on l'ait demandé.
-  if(!window.Capacitor&&!FORCE_TEL&&!POKI){ try{ const el=document.documentElement; // (POKI) le plein écran est celui de Poki : on ne le prend pas soi-même
+  if(!window.Capacitor&&!FORCE_TEL){ try{ const el=document.documentElement;
     if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
     else if(el.webkitRequestFullscreen&&!document.webkitFullscreenElement)el.webkitRequestFullscreen();
   }catch(e){} }
@@ -51058,7 +51051,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else {carrIci();resetGame();} };
-        if(q9||mode==='boom'||pkPasse(f9))f9(); }); } // (POKI) RECOMMENCER passe par la pause pub, le panneau reste ouvert (jeu en pause) pendant qu'elle passe // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
+        f9(); }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
     uiClic(a==='close'?'retour':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
@@ -51343,7 +51336,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   function mTap(a,el){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
+    if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()&&!carrPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
@@ -51414,7 +51407,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'));try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
-      modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
+      modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
@@ -51556,7 +51549,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
 // PWA : enregistrement du service worker (offline + installable), en http(s) uniquement et HORS Capacitor.
 // Sous Capacitor (app native iOS), window.Capacitor est défini et le protocole est capacitor:// — un
 // service worker n'y a pas sa place : on ne l'installe pas.
-if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
+if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
 /* LA MISE À JOUR TOUTE SEULE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste — fais-moi ça en un coup »).
    Deux joueurs pouvaient voir deux jeux : une appli posée sur l'écran d'accueil de l'iPhone REPREND la page gardée en mémoire (aucun
    rechargement pendant des jours), un onglet resté ouvert garde l'ancienne. Le jeu connaît son commit (CC_BUILD, gravé par
@@ -51567,7 +51560,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
-  if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||BALADE||SIMU_JEU)return; // (l'atelier des nuages ne se recharge pas en plein réglage — le simulateur non plus)
+  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:')||BALADE||SIMU_JEU)return; // (l'atelier des nuages ne se recharge pas en plein réglage — le simulateur non plus)
   var neuf=null,vu=0,touche=Date.now();
   /* (2026-10-05, Léo : « au début, quand CASH CAR explose, une musique part très fort, puis ça relance au niveau ciel ») ⚠ LA MISE À JOUR
      TOMBAIT EN PLEINE INTRO : la 1re lecture de version.json partait 4 s après l'ouverture et « pas en course » comprenait l'intro — un
@@ -51702,65 +51695,6 @@ if(BANC_ON)(function(){
     bouton('COPIER',k=>copier(txt,k));
   })();
 })();
-/* ============ LE KIT POKI, CÔTÉ JEU (édition POKI — voir « LE KIT POKI » dans le <head>) ============
-   Le SDK vit dans le document de plus haut (`CC_PK`) ; le jeu lui dit ce qui se passe :
-   · `fini()` une fois, ici : le menu est là, le chargement est fini (gameLoadingFinished) ;
-   · `jeu(on)` 4 fois par seconde : on joue VRAIMENT (course lancée, pas finie, pas en pause, pas de pub) → gameplayStart / Stop ;
-   · `pkPasse(f)` devant chaque nouvelle partie (JOUER, REJOUER, RECOMMENCER) : la pause pub (commercialBreak) — Poki décide s'il y en
-     a une ; jamais avant la toute première partie de la session. Pendant la pub : `pkMuet(true)` (son, musique et clavier coupés). */
-function pk(){if(!POKI)return null;try{return window.CC_PK||(window.parent!==window?window.parent.CC_PK:null)||null;}catch(e){return null;}}
-let pkDeja=false; // une partie a déjà été jouée dans cette session : la pause pub peut passer avant la suivante
-function pkMuet(on){
-  window.CC_PUB=!!on; // lu par le <head> : AudioContext.resume, media.play et le clavier refusés tant qu'il est vrai
-  try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); pkMuet._m=!!(musicEl&&!musicEl.paused); if(pkMuet._m)musicEl.pause(); }
-    else{ if(AC&&SND.sfx&&!paused&&AC.state!=='running')AC.resume(); if(pkMuet._m){pkMuet._m=false;musicJoue();} } }catch(e){}
-}
-function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub passe d'abord, et f() suivra
-  if(!POKI||!pkDeja||pkPasse._dedans)return true;
-  const p=pk();if(!p||p.etat!==1)return true;  // SDK absent ou pas prêt : on joue, sans pub
-  if(pkPasse._attente)return false;            // un 2e tap pendant la pub : rien
-  pkPasse._attente=true;
-  // (2026-10-06) une pub qui DÉMARRE (muet(true)) compte pour L'ÉTERNELLE — 100 pubs
-  p.pub(function(on){if(on)try{const e9=SAVE.d.ex;e9.pubs=Math.min(1e6,(e9.pubs|0)+1);SAVE.mark();}catch(e){}pkMuet(on);},function(){pkPasse._attente=false;pkPasse._dedans=true;try{f();}catch(e){}pkPasse._dedans=false;});
-  return false;
-}
-function pkSilence(on){ // (CrazyGames) leur réglage « son coupé » passe avant les nôtres : même coupure qu'une pub, le clavier en moins
-  window.CC_MUET=!!on;
-  try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); if(musicEl&&!musicEl.paused){pkSilence._m=true;musicEl.pause();} }
-    else{ if(AC&&SND.sfx&&!paused&&!window.CC_PUB&&AC.state!=='running')AC.resume(); if(pkSilence._m&&!window.CC_PUB){pkSilence._m=false;musicJoue();} } }catch(e){}
-}
-if(POKI){
-  if(!FACILE_OK){SAVE.d.facile=0;} // (CrazyGames) pas de mode facile : le choix du 1er JOUER ne se pose plus, l'interrupteur est masqué (html.sansFacile)
-  /* le SON imposé par le portail : coupé si SON réglage le dit (CrazyGames muteAudio, Playgama audio) OU s'il a mis le jeu en pause */
-  let pkMuA=false,pkMuP=false;
-  try{const p=pk();if(p&&p.surMuet)p.surMuet(function(on){pkMuA=!!on;pkSilence(pkMuA||pkMuP);});}catch(e){}
-  /* (Playgama) LA PAUSE DU PORTAIL : en pleine course on ouvre le vrai panneau de pause (REPRENDRE attend sous le pouce), et le son se tait ;
-     au retour, le son revient — la partie, elle, reprend quand le joueur touche REPRENDRE */
-  try{const p=pk();if(p&&p.surPause)p.surPause(function(on){pkMuP=!!on;
-    if(on&&started&&!gameOver&&!paused){const g=document.getElementById('tGear');if(g&&getComputedStyle(g).display!=='none')g.click();else togglePause();}
-    pkSilence(pkMuA||pkMuP);});}catch(e){}
-  /* LA LANGUE ET LA SAUVEGARDE DU PORTAIL, une fois son kit prêt. Langue : celle de la plateforme, si le joueur n'en a pas choisi une
-     dans les réglages (`ccLang`) et que le jeu la parle en entier (LANG_AUTO). Sauvegarde : rien en local à ce lancement mais une partie
-     chez le portail (autre appareil, cache vidé) → elle est semée et le jeu se recharge une fois (garde-fou : SAVE.natif=2, comme le
-     miroir natif de l'appli) ; sinon le local fait foi et part chez le portail (SAVE.portail=1, puis chaque flush). */
-  try{const p=pk();if(p&&p.surPret)p.surPret(function(ok){if(!ok)return;
-    try{const lg=p.langue();let ch=null;try{ch=localStorage.ccLang;}catch(e){}
-      if(lg&&!ch&&LANG_AUTO.indexOf(lg)>=0&&lg!==LANG){LANG=lg;applyLangDOM();}}catch(e){}
-    if(p.stockage())p.lit(SAVE.K).then(function(v){
-      if(v&&typeof v==='string'&&SAVE_VIDE&&!sessionStorage.ccPortailSeme){SAVE.natif=2;let ok9=false;
-        try{localStorage[SAVE.K]=v;ok9=localStorage[SAVE.K]===v;sessionStorage.ccPortailSeme=1;}catch(e){}
-        if(ok9){location.reload();return;}SAVE.natif=0;}
-      SAVE.portail=1;SAVE.flush();}).catch(function(){SAVE.portail=1;});});}catch(e){}
-  // pas d'intro à toucher (voir le splash) : le contexte audio naît au PREMIER geste, et se réveille aux suivants
-  const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
-  ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,g9,{capture:true,passive:true});});
-  setInterval(function(){const p=pk();if(!p)return;const on=started&&!gameOver&&!paused&&!window.CC_PUB;if(on)pkDeja=true;p.jeu(on);},250);
-  // l'ACCUEIL : la porte des MISSIONS devient la porte du GARAGE (même place, à côté du ⚙), avec la pastille des caisses à portée (voir <style id="poki">)
-  try{const mb=document.querySelector('#mHome .mMisBtn'),bd=document.getElementById('bdGar');
-    if(mb){mb.setAttribute('data-m','garage');mb.setAttribute('aria-label','Garage');
-      mb.innerHTML='<i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">'+TR('GARAGE')+'</span>';if(bd)mb.appendChild(bd);}}catch(e){}
-  try{const p=pk();if(p)p.fini();}catch(e){}
-}
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 requestAnimationFrame(loop);
 })();
