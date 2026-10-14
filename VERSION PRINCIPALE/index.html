@@ -9235,10 +9235,23 @@ html:not(.c6) #mDead #mChance .chT,html:not(.c6) #mDead #mChance .chP{position:r
 html:not(.c6) #mDead #mChance.chOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
 html:not(.c6) #mDead #mChance .chBar{position:absolute;left:0;right:0;bottom:0;height:4px;background:currentColor;opacity:.7;transform-origin:0 50%;pointer-events:none}
 html:not(.c6) #mDead #mChance.chOn .chBar{animation:u8ChBar var(--chD,5500ms) linear forwards}
-html:not(.c6) #mDead #mChanceNon{order:2;align-self:center;min-height:44px;min-width:120px;padding:0 16px;margin:6px auto 0;font-size:var(--f0);letter-spacing:1px;
-  background:none!important;box-shadow:none!important;clip-path:none!important;color:var(--tx3,#9fa6c8);text-shadow:none}
-html:not(.c6) #mDead #mChanceNon[hidden]{display:none}
-html:not(.c6) body.chOffre #mDead [data-m="replay"]{opacity:.45;transition:opacity var(--t-fast) var(--ease)}
+/* (v2, capture de Sacha : « c'est n'importe quoi ») PENDANT L'OFFRE la seconde chance a SA place : une bande d'encre OPAQUE qui monte du bas et
+   tient le tiers bas (#mChanceFond), CONTINUER · prix en or + la barre du vrai temps qui reste, puis NON MERCI en VRAI bouton secondaire ;
+   ⌂ et REJOUER sont MASQUÉS (plus grisés) et reviennent à la fin de l'offre ou au refus. Rien ne chevauche plus les stats ni la mission. */
+html:not(.c6) #mDead #mChanceNon{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 16px;font-size:var(--f1);letter-spacing:1px}
+html:not(.c6) #mDead :is(#mChanceNon,#mChanceFond)[hidden]{display:none}
+html:not(.c6) body.chOffre #mDead .mFin{visibility:hidden}
+html:not(.c6) #mDead #mChanceFond{position:fixed;left:0;right:0;bottom:0;z-index:5;height:calc(var(--sB) + 156px);pointer-events:auto;
+  background:linear-gradient(180deg,rgba(7,5,15,0) 0,rgba(7,5,15,.97) 28px,#07050f 100%);animation:u8ChFond var(--t-slow) var(--ease) both}
+html:not(.c6) body.chOffre #mDead :is(#mChance,#mChanceNon):not([hidden]){position:fixed;z-index:6;left:0;right:0;margin:0 auto;
+  width:min(560px,calc(100% - 32px - var(--sL) - var(--sR)))}
+html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){bottom:calc(var(--sB) + 76px);min-height:64px}
+html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){bottom:calc(var(--sB) + 16px);animation:u8ChMonte var(--t-slow) var(--ease) both}
+@keyframes u8ChFond{from{opacity:0}to{opacity:1}}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead #mChanceFond{height:calc(var(--sB) + 128px)}
+  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){bottom:calc(var(--sB) + 64px);min-height:52px}
+  html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){bottom:calc(var(--sB) + 10px);min-height:44px}}
 @keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
 @keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
@@ -9249,8 +9262,7 @@ html:not(.c6) body.chOffre #mDead [data-m="replay"]{opacity:.45;transition:opaci
   html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 76px)}
   html:not(.c6) #mDead .hNx{display:none}
   html:not(.c6) #mDead .mFin{position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);width:min(368px,44vw);margin:0}
-  html:not(.c6) #mDead #mChance:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 76px);width:min(368px,44vw);margin:0}
-  html:not(.c6) #mDead #mChanceNon:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 132px);margin:0}}
+}
 </style>
 <style id="ux8-mouvement">
 /* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
@@ -56554,7 +56566,7 @@ function loop(now){
       const momF=1+Math.min(1.8,momT*momT*.1);
       let a=0;
       if(up)a=acc9*(vA<maxSp*(1+FLOW.lv*.05)?1:.55)*(boost>0?1.5:1)*momF*(1+FLOW.lv*.06); // ça pousse TOUJOURS sur la route — et le FLOW pousse plus loin
-      if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.5; /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
+      if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.75; /* (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») en recul .5 → .75 : 1,5× plus vive */ /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
       vA+=a*dt;
       if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       else if(startBoostT>0)vA+=30*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // (2026-10-08) L'ÉLAN DU DÉPART : la poussée de la nitro, sans la nitro — de la vitesse, rien d'autre
@@ -56564,7 +56576,7 @@ function loop(now){
       vA*=Math.max(0,1-.03*dt);
       if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.4*dt);
       if(PARK.on&&vA>PARK_VCAP)vA=PARK_VCAP; // PARC : gouverneur de vitesse — la nitro infinie POUSSE mais ne s'emballe pas (contrôlable)
-      if(vA<-8)vA=-8;
+      if(vA<-16)vA=-16; // (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») -8 → -16 : 13,8 → 27,6 km/h affichés en recul (×3,6×SPD)
       if(introD){vA=0;momT=0;steer=0;psi=0;} // LARGAGE : chute verticale, contrôles gelés
       if(Math.abs(target)>.1)steerHold=Math.min(.3,steerHold+dt);else steerHold=0;
       // LE DRIFT : braquage FORT à bonne vitesse, ou pouce tiré vers le bas (le geste du frein) en braquant
@@ -59293,12 +59305,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     el.removeAttribute('data-fr');el.innerHTML='<span class="chT" data-fr="CONTINUER">'+TR('CONTINUER')+'</span><b class="chP"></b><i class="chBar" aria-hidden="true"></i>';
     const non=document.createElement('div');non.id='mChanceNon';non.className='pbtn';non.setAttribute('role','button');non.tabIndex=0;non.hidden=true;
     non.setAttribute('data-fr','NON MERCI');non.textContent=TR('NON MERCI');el.parentNode.insertBefore(non,el.nextSibling);
+    const fond=document.createElement('div');fond.id='mChanceFond';fond.hidden=true;fond.setAttribute('aria-hidden','true');el.parentNode.insertBefore(fond,el);
     let vu=false;
     const maj=function(){let e=null;try{e=chanceEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
       if(ok){el.querySelector('.chP').textContent=fmtC(e.prix);
         if(!vu){vu=true;el.style.setProperty('--chD',Math.max(300,e.reste||5500)+'ms');el.classList.remove('chOn');void el.offsetWidth;el.classList.add('chOn');}}
       else vu=false;
-      el.hidden=!ok;non.hidden=!ok;el.classList.toggle('pb-gold',ok);el.classList.toggle('pb-cyan',!ok);document.body.classList.toggle('chOffre',ok);};
+      el.hidden=!ok;non.hidden=!ok;fond.hidden=!ok;el.classList.toggle('pb-gold',ok);el.classList.toggle('pb-cyan',!ok);document.body.classList.toggle('chOffre',ok);};
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
     const go=function(e){e.preventDefault();e.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);let r=false;try{r=chanceJoue();}catch(_){r=false;}if(!r){uiClic('refus');maj();}};
     el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')go(e);});
