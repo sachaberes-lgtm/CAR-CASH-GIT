@@ -7623,8 +7623,17 @@ html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-hei
 /* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » = 200 px de mot, le chevron cède sa place — le libellé ne se coupe jamais */
 @media (orientation:landscape) and (max-width:700px){
   html.c6 #mSet .mLigne.lien::after{display:none}
-  html.c6 #mSet .mLigne.lien{padding-right:12px}
+  /* et « AUTO-ECOLE / DRIVING SCHOOL » (14 lettres = 140 px) + sa commande doivent tenir sur 263 px : écarts et marges de la ligne à 8, sélecteur en 8 px (comme l'interrupteur) */
+  html.c6 #mSet .mLigne{gap:8px;padding:0 8px}
+  html.c6 #mSet b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
 }
+/* ?ui=5 (l'ancienne interface) : le DOM des réglages est celui de la charte 6 (en-tête ◀ + titre, colonnes, pied). Sans la charte, on lui rend l'allure d'avant :
+   le titre en tête, une seule colonne, la touche EFFACER et la version en bas — la 2e colonne couché et le dock RETOUR ne reviennent pas (voir notes/pages.md) */
+html:not(.c6) #mSet .c6Tete{display:flex;align-items:center;gap:14px;margin:6px 0 24px}
+html:not(.c6) #mSet .c6Titre{font-family:var(--pix);font-weight:400;font-size:var(--f9);color:#fff}
+html:not(.c6) #mSet :is(.c6Corps,.c6Col){display:flex;flex-direction:column;width:100%}
+html:not(.c6) #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:12px;margin:22px 0 0}
+html:not(.c6) #mSet .c6Ver{font-family:var(--sans);font-size:11px;color:var(--tx3)}
 </style>
 <style id="c6-carriere-missions">
 /* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
