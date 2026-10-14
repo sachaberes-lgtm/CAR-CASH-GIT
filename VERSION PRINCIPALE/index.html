@@ -39382,6 +39382,14 @@ function poseParfaiteFx(divin){
   flashEcran(divin?'rgba(255,238,150,1)':'rgba(255,200,60,.95)');
   if(divin)setTimeout(function(){try{if(running&&!gameOver)flashEcran('rgba(255,215,110,.8)');}catch(e){}},200);
 }
+/* (2026-10-14, sensations · pose) LA CAISSE ENCAISSE LA POSE. Au contact elle se tassait bien droite (squashT), quelle que soit l'arrivée :
+   une plume ou une enclume, dans l'axe ou en crabe, même geste. Désormais le NEZ plonge à proportion du choc (≈ 1° pour une plume, ≈ 5°
+   pour un POSÉ LOURD) et, posée de travers, la carrosserie VERSE du côté où elle ripe (son élan la couche pendant que la gomme mord) —
+   deux impulsions sur ses ressorts (sensCoup), elle se repose seule. Le débattement reste à squashT : on ne le double pas. */
+function sensPose(imp,psi0,verdict){
+  const k=Math.min(1,Math.max(0,imp||0)/10);
+  sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),.35+1.5*k,0);
+}
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
   ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
@@ -39635,10 +39643,12 @@ function tryLand(dt){
      Désormais la hauteur qui reste devient un SAUT de conduite (hopY / hopV, la mécanique du dos d'âne et du replacement) : la caisse FINIT
      sa descente à sa vitesse de chute, et la gerbe, le choc, la secousse, le tassement et la gomme partent AU CONTACT (POSE_F). La règle de
      pose (quand on est posé, où, à quelle vitesse, ce que ça paie) ne change pas d'une virgule. */
+  const sensPsi9=psi,sensVer9=fallT>.7||chain>0||chainVal>0; // (2026-10-14, sensations · pose) le crabe de l'arrivée, et « cette pose aura-t-elle un verdict (donc sa vibration) ? » — lus ICI, rendus au contact (sensPose)
   {const hR9=sideL>0?hOff:-THICK-hOff,nI9=bestI,lL9=landLoss,vN9=vN,imp9=impact,sd9=sideL;
    const touche9=function(){
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
+     if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
      engRpm*=.6;charge9=1;if(imp9>2)pneuMord(Math.min(1,imp9/10));}; // la gomme MORD : le moteur reprend en charge, et ça piaille
    if(hR9>.25){hopY=hR9;hopV=(sd9>0?vN9:-vN9)*SPD;POSE_F=touche9;}else{hopY=0;hopV=0;POSE_F=null;if(sd9>0&&hR9<0)levreY=Math.max(-.6,hR9);touche9();}} /* posée SOUS le niveau du bitume (lèvre, plan percé) : elle remonte sa marche en ~0,15 s (levreY) au lieu d'y sauter */
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
