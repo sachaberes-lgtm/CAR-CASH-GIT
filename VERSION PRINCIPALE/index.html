@@ -9372,6 +9372,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
   // AU GARAGE ET À LA VITRINE DU MENU aussi : la caisse posée sur son plateau ou sur la route n'avait RIEN sous elle
   const vitrine=garageOn||(((!running&&!started)||MENUV.retour)&&carGroup.visible); // (2026-09-28) l'accueil d'après-mort aussi (accueilRetour)
   if(!SHADOW_ON||(mode==='boom'&&!garageOn)||(!running&&!vitrine)){contactShadow.visible=false;return;}
+  if(garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut||Math.abs(GBQ.lev||0)>.02)){contactShadow.visible=false;return;} /* (2026-10-14, Léo : « la plate sous la voiture : l'ombre se pose sur un sol invisible ») en BOUTIQUE la caisse lévite : l'empreinte la suivait en l'air ; l'ombre au sol, c'est GBQ.omb */
   const M9=contactShadow.material;
   if(vitrine||mode==='drive'){
     EMPR.f.set(0,0,1).applyQuaternion(carGroup.quaternion);                                   // le nez de la caisse (glisse et drift compris)
@@ -17323,6 +17324,11 @@ const CARS=[
  {name:'LA MERCURE',shape:'mercure',color:0xd9dde6,accent:0x8a4dff,maxKmh:435,accel:52,turn:3.1,h:1.16,w:2.0,l:4.72,spoiler:0,rar:'epique',
   fx:{jet:0xb46bff,core:0xf3e6ff,trail:[1.1,.55,1.5],light:0xa864ff},
   desc:'Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.'},
+ // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
+ // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
+ {name:'LE DOGE',shape:'doge',color:0xdc9a48,accent:0xf7e8c8,maxKmh:440,accel:53,turn:3.1,h:1.5,w:2.25,l:3.3,spoiler:0,rar:'epique',
+  fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a},
+  desc:'Wow. Très voiture. Beaucoup vitesse. Il te regarde de côté, et il a raison.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -17799,6 +17805,11 @@ Object.assign(I18N,{
 Object.assign(I18N,{
  "LA DÉFERLANTE":"THE BREAKER",
  "Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d'air.":"A rogue wave that learned to drive. It curls right over the back of your neck, and you breathe inside an air bubble."
+});
+// (2026-10-14) LE DOGE
+Object.assign(I18N,{
+ "LE DOGE":"DOGE",
+ "Wow. Très voiture. Beaucoup vitesse. Il te regarde de côté, et il a raison.":"Wow. Such car. Much speed. He side-eyes you, and he is right.",
 });
 // (2026-10-11) LA MERCURE
 Object.assign(I18N,{
@@ -26019,6 +26030,144 @@ Object.assign(SHAPES,{
     const pot=sd=>{const q=trace(sd*.33,.42,-3.3,0,0,1);return [sd*.20,.42,(q?q[2]:-2.3)-.01];};
     return {hl:[.22,.45,2.30],tl:[.40,.66,-2.40],lamps:0,halos:0,wx:WX,wzF:ZF,wzR:-ZR,pots:[pot(1),pot(-1)],
             lpw:{R:R,w:.30,style:'multi',n:12,jante:0x3a3d47,accent:0x8a4dff,pneu:0x0e0d12}};
+  },
+/* LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — le mème du shiba en VOXELS,
+   comme le CHAT POP-TART : la même grille (`voxGrille`), la même laque (`nyLaque` : couleurs cuites par face, brillant de studio), le
+   même dessous noir, et une animation en PAS ENTIERS (jamais interpolée).
+   · LA CAISSE (cases de 10 cm) : le corps du chien couché en châssis — dos fauve, selle plus sombre sur l'échine, ventre crème — une
+     BULLE de verre sur le dos (c'est une voiture), un COLLIER rouge clouté d'or au cou, et les PATTES en ailes au-dessus des roues
+     (bouts crème : les chaussettes du shiba). Les roues : des PIÈCES d'or.
+   · LA TÊTE (cases de 7 cm) dressée à l'avant : crâne fauve, museau et joues crème, truffe noire en relief, bouche en coin, les deux
+     points crème au-dessus des yeux (les « sourcils » du shiba), oreilles en triangle à l'intérieur rose.
+   · LE REGARD : les yeux sont en relief, trois dessins (à gauche · au milieu · à droite) — il te regarde DE CÔTÉ (le side-eye du mème) :
+     au garage, du côté où est la caméra, avec un coup d'œil de l'autre côté de temps en temps ; les sourcils se LÈVENT d'une case par
+     moments, et pour de bon à la nitro, où la langue sort (deux dessins qui battent).
+   · LA QUEUE en tire-bouchon sur la croupe (c'est l'aileron) bat d'une case, plus vite quand il roule, à fond à la nitro ; la tête
+     hoche d'une case sur le tempo quand il roule ; une oreille tressaille.
+   · SA SIGNATURE (comme l'arc-en-ciel du chat) : les PHRASES DU MÈME en Comic Sans, de toutes les couleurs, qui surgissent autour de lui
+     — « wow », « such speed », « much nitro »… — une de temps en temps au garage, en RAFALE à la nitro (sprites, textures cuites une fois).
+   Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
+  doge:function(K){
+    const BU=.1,HU=.085,R=.36,ZF=1.05,ZR=-.85,WX=.86,WXF=.98;
+    let rs=0x0d06e5;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
+    const COUL={T:0xdc9a48,S:0xb06c2a,C:0xf7e8c8,E:0xf2b9b0,W:0xffffff,N:0x141118,D:0x4e2c1a,P:0xff7a9a,R:0xe8283e,O:0xffc93a,V:0x182036,v:0x6d86b8,L:0xff2a3a},
+      TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'nyl',c:0x14141c}},cc=new THREE.Color();
+    for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'nyl',c:cc.getHex()};}
+    const mL=nyLaque();
+    const emitG=(G,u,o,plan,par)=>{const kt=lpKit(pal);
+      G.emit(kt,u,o,(c,ax,sg)=>(c==='B'||(ax===1&&sg<0))?'B':c+(ax===plan?'d':(ax===1?'h':'c')));   // tout ce qui regarde le SOL est noir
+      const gs=kt.done();for(const g in gs){const m=new THREE.Mesh(gs[g],mL);m.userData.lp=1;par.add(m);}return par;};
+    const grp=par=>{const g9=new THREE.Group();par.add(g9);return g9;};
+    const g=K.add(new THREE.Group());
+    // ---- 1. LE CORPS (cases de 10 cm ; i → x centré, j → y, k → z) : court et bombé, la grosse tête devant (les proportions du mème)
+    const Bv=voxGrille(),LARG=[0,0,0,5,6,6,6,5,4],dansC=(a,j,k,m)=>{if(j<3-m||j>8+m||k<-13-m||k>4+m)return false;const jj=Math.max(3,Math.min(8,j));
+      let w=LARG[jj]+m;if(k<=-12)w-=1;if(k<=-13)w-=1;if((k<=-13)&&(j>=8||j<=3))return false;return a<=w;};
+    for(let k=-13;k<=4;k++)for(let j=3;j<=8;j++)for(let i=-6;i<=6;i++){const a=Math.abs(i);if(!dansC(a,j,k,0))continue;
+      let c=j<=4?'C':'T';if(j===8&&a<=2)c='S';if(k>=2&&j<=6)c='C';                             // ventre crème, selle sombre, poitrail
+      if(k===-13&&j===6&&a===2)c='L';                                                           // les feux, sur la croupe
+      Bv.set(i,j,k,c);}
+    for(let k=-7;k<=-2;k++)for(let j=9;j<=10;j++)for(let i=-3;i<=3;i++){const a=Math.abs(i);    // LA BULLE de verre sur le dos
+      if(j===10&&(a===3||k===-7||k===-2))continue;if((k===-7||k===-2)&&a===3)continue;
+      Bv.set(i,j,k,(j===10&&i===-1&&k>=-5&&k<=-4)||(j===9&&a===3&&k===-4)?'v':'V');}
+    for(let j=2;j<=9;j++)for(let i=-7;i<=7;i++){const a=Math.abs(i);                            // LE COLLIER : l'anneau autour du cou
+      if(dansC(a,j,3,0)||!dansC(a,j,3,1))continue;Bv.set(i,j,3,((i+j)%3===0)?'O':'R');}
+    for(const sx of [-1,1]){const k0=Math.round((ZR-.40)/BU),k1=Math.round((ZR+.40)/BU)-1;    // les CUISSES arrière, bombées, sur la roue
+      for(let k=k0;k<=k1;k++)for(let a=7;a<=9;a++)for(let j=5;j<=8;j++){const bout=k===k0||k===k1;   // une demi-boule : elle bombe dehors, pas une planche
+        if(j===8&&(a===9||bout))continue;if(j===5&&a>7)continue;if(bout&&a===9)continue;Bv.set(sx*a,j,k,(k===k1&&j<=6)?'C':'T');}}
+    emitG(Bv,BU,[-BU/2,0,0],1,g);
+    // ---- 2. LA TÊTE (cases de 7 cm) : crâne, museau, joues ----
+    const HY=.30,HZ=.32,oH=[-HU/2,HY,HZ],tete=grp(g),Hv=voxGrille(),E9=(x,y,z,cx,cy,cz,rx,ry,rz)=>((x-cx)/rx)**2+((y-cy)/ry)**2+((z-cz)/rz)**2<=1;
+    for(let i=-11;i<=11;i++)for(let j=0;j<=16;j++)for(let k=-1;k<=19;k++){const x=i,y=j+.5,z=k+.5;
+      const crane=E9(x,y,z,0,7.5,7,9.2,6.2,6.6),museau=E9(x,y,z,0,4.6,12.6,4.6,3.2,5),joue=E9(x,y,z,5.6,4.6,9.5,3.8,3.4,3.8)||E9(x,y,z,-5.6,4.6,9.5,3.8,3.4,3.8);
+      if(!(crane||museau||joue))continue;
+      Hv.set(i,j,k,(museau&&z>9)||joue||(y<6.2&&z>8)||(y<3.5)?'C':'T');}
+    const kS=(i,j)=>{for(let k=20;k>=-1;k--)if(Hv.has(i,j,k))return k;return null;};
+    const peint=(i,j,c)=>{const k=kS(i,j);if(k!=null)Hv.set(i,j,k,c);};
+    const S9={};for(let i=-6;i<=6;i++)for(let j=0;j<=14;j++)S9[i+','+j]=kS(i,j);               // la surface AVANT, avant tout relief
+    const relief=(G,i,j,c,d)=>{const k=S9[i+','+j];if(k!=null)G.set(i,j,k+(d||1),c);};
+    for(const s of [-1,1])for(const a of [2,3,4])peint(s*a,10,'D');                             // les paupières
+    for(const [i,j] of [[0,4],[0,5],[-3,3],[-2,3],[-1,3],[0,3],[1,3],[2,3],[3,4]])peint(i,j,'D'); // la bouche EN COIN (le sourire en biais du mème)
+    for(let i=-1;i<=1;i++)for(let j=6;j<=7;j++)relief(Hv,i,j,j===7&&i===-1?'W':'N');            // la truffe, en relief (et son reflet)
+    emitG(Hv,HU,oH,2,tete);
+    // les OREILLES : un triangle épais, l'intérieur rose ; chacune dans son groupe (elle tressaille)
+    const ORE=[];
+    for(const s of [-1,1]){const piv=[s*5.2*HU,HY+11*HU,HZ+6*HU],og=grp(tete);og.position.set(piv[0],piv[1],piv[2]);
+      const Ov=voxGrille(),dans=(x,y,m)=>{const t=(y-10.5)/(17.6-10.5-m*.9);if(t<0||t>1)return false;const c=5.2,hw=(1-t)*(2.8-m);return Math.abs(s*x-c)<=hw;};
+      for(let i=-11;i<=11;i++)for(let j=9;j<=19;j++)for(let k=4;k<=7;k++){const x=i,y=j+.5;
+        if(!dans(x,y,0)||Hv.has(i,j,k))continue;Ov.set(i,j,k,(k===7&&dans(x,y,1.1))?'E':'T');}
+      emitG(Ov,HU,[oH[0]-piv[0],oH[1]-piv[1],oH[2]-piv[2]],2,og);ORE.push(og);}
+    // les YEUX en relief : trois dessins (le regard à gauche · au milieu · à droite)
+    const YEUX=[-1,0,1].map(gz=>{const Y=voxGrille();
+      for(const s of [-1,1]){const cs=[s*2,s*3,s*4].sort((a,b)=>a-b);
+        const pup=gz===0?[cs[1]]:gz>0?[cs[1],cs[2]]:[cs[0],cs[1]];
+        for(const i of cs)for(const j of [8,9])relief(Y,i,j,pup.indexOf(i)>=0?'N':'W');}   // la pupille dans le COIN, le blanc de l'autre côté
+      const yg=grp(tete);emitG(Y,HU,oH,2,yg);yg.visible=gz===1;return yg;});
+    // les SOURCILS (les deux points crème) : un dessin, qui monte d'une case
+    const Sv=voxGrille();for(const s of [-1,1])for(const a of [3,4])relief(Sv,s*a,11,'C');
+    const sourcils=grp(tete);emitG(Sv,HU,oH,2,sourcils);
+    // la LANGUE (deux dessins qui battent), cachée hors de la nitro
+    const LANGUE=[[[0,2],[1,2],[0,1],[1,1]],[[0,2],[1,2],[0,1],[1,1],[0,0],[1,0]]].map(cs=>{const Lv=voxGrille();
+      for(const [i,j] of cs){const k=S9[i+',3'];if(k!=null)Lv.set(i,j,k+(j<2?2:1),'P');}
+      const lg=grp(tete);emitG(Lv,HU,oH,2,lg);lg.visible=false;return lg;});
+    // ---- 3. LA QUEUE en tire-bouchon sur la croupe : l'aileron ----
+    const queue=grp(g),Qv=voxGrille(),QC=[0,4.4,0];
+    for(let n=0;n<=160;n++){const u=n/160,ph=(-35+335*u)*Math.PI/180,r=3.5-1.9*u,ep=1.95-.75*u,                // de la croupe, par-dessus, et elle s'enroule
+      cz=QC[2]-r*Math.cos(ph),cy=QC[1]+r*Math.sin(ph);
+      for(let i=-3;i<=3;i++)for(let j=Math.floor(cy-ep);j<=Math.ceil(cy+ep);j++)for(let k=Math.floor(cz-ep);k<=Math.ceil(cz+ep);k++){
+        const y=j+.5,z=k+.5;if(Math.hypot(i,y-cy,z-cz)>ep)continue;
+        const dd=Math.hypot(y-QC[1],z-QC[2]);if(Qv.has(i,j,k)&&dd>=r-.3)continue;Qv.set(i,j,k,(dd<r-.35||u>.86)?'C':'T');}}
+    emitG(Qv,HU,[-HU/2,.86,-1.12],0,queue);
+    // ---- 4. LES SORTIES : deux canons d'or sous la queue ----
+    const P=K.kit({o:{g:'o',c:0xd9a520},k:{g:'m',c:0x08080a}});
+    P.sym(sd=>{P.cyl('o',.075,.22,12,sd*.22,.42,-1.36,'z');P.cyl('k',.055,.23,12,sd*.22,.42,-1.37,'z');});
+    K.commit(P);
+    // ---- 5. LES PHRASES DU MÈME (cuites une fois par session) ----
+    if(!SHAPES.doge._tx){SHAPES.doge._tx=[];
+      const MOTS=['wow','such speed','much fast','very nitro','so car','many coin','amaze','such drift','much aura','very vroom','excite','wow'],
+            TEINTES=['#ff3ec8','#5ee6ff','#7dff5a','#ffe25a','#ff8a2a','#c07bff'];
+      MOTS.forEach((m9,n)=>{const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='bold 64px "Comic Sans MS","Comic Sans","Chalkboard SE","Comic Neue",cursive';
+        x.font=F;const w=Math.ceil(x.measureText(m9).width)+28;cv.width=w;cv.height=96;x.font=F;x.textBaseline='middle';x.lineJoin='round';
+        x.lineWidth=9;x.strokeStyle='#1c0430';x.strokeText(m9,14,50);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,14,50);
+        const tx=new THREE.CanvasTexture(cv);tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;SHAPES.doge._tx.push({tx,a:w/96});});}
+    const TX=SHAPES.doge._tx,MOT=[];
+    for(let n=0;n<10;n++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:TX[0].tx,transparent:true,depthWrite:false,fog:false}));
+      sp.visible=false;sp.renderOrder=7;g.add(sp);MOT.push({sp,v:0});}
+    let mi=0,mDer=-1;
+    let enC=false;
+    const crie=()=>{const o=MOT.find(q=>q.v<=0);if(!o)return;let n;do{n=rnd()*TX.length|0;}while(n===mDer&&TX.length>1);mDer=n;
+      const T9=TX[n];o.sp.material.map=T9.tx;o.sp.material.rotation=(rnd()-.5)*.35;o.h=(.30+rnd()*.12)*(enC?3.0:1);o.a=T9.a;                                                    // en course : la caméra est loin, elles grossissent
+      const sx=(mi++%2?1:-1);o.x=sx*(enC?1.9+rnd()*1.2:1.15+rnd()*.9);o.y=enC?1.7+rnd()*1.0:.95+rnd()*1.0;o.z=enC?0+rnd()*2.6:-1.0+rnd()*2.4;o.v=1.5;o.sp.visible=true;};
+    // ---- 6. LA VIE ----
+    let t=0,F=0,sV=0,pPrev=null,regard=1,coupT=2+rnd()*3,coupD=0,sourT=2.5,sourD=0,sourD0=0,oreT=3,oreD=0,oreS=1,crieT=.6,acc=0,pas=0;
+    const V9=new THREE.Vector3();
+    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;
+      const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;F+=(fort-F)*Math.min(1,dt*6);
+      const e=g.matrixWorld.elements;
+      if(pPrev){const d=Math.hypot(e[12]-pPrev[0],e[13]-pPrev[1],e[14]-pPrev[2])/Math.max(dt,1e-3);sV+=(Math.min(1,d/40)-sV)*Math.min(1,dt*3);}else pPrev=[0,0,0];
+      pPrev[0]=e[12];pPrev[1]=e[13];pPrev[2]=e[14];
+      let course=false,vol=false;try{course=enC=typeof started!=='undefined'&&started&&typeof gameOver!=='undefined'&&!gameOver;vol=course&&typeof mode!=='undefined'&&mode==='fall';}catch(_){}
+      // le REGARD : du côté de la caméra (au garage), un coup d'œil de l'autre côté de temps en temps
+      try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);g.worldToLocal(V9);if(V9.x>.5)regard=1;else if(V9.x<-.5)regard=-1;}}catch(_){}
+      coupT-=dt;if(coupT<=0){coupD=.55;coupT=3+rnd()*4;}let gz=regard;if(coupD>0){coupD-=dt;gz=-regard;}
+      for(let q=0;q<3;q++)YEUX[q].visible=(q-1)===gz;
+      // les SOURCILS se lèvent (et restent levés à la nitro) ; la LANGUE sort à la nitro
+      sourT-=dt;if(sourT<=0){sourD=rnd()<.35?.9:.5;sourD0=sourD;sourT=2.5+rnd()*3.5;}if(sourD>0)sourD-=dt;
+      sourcils.position.y=(F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52)))?HU:0;                       // levés (deux fois de suite, parfois)
+      acc+=dt;if(acc>=1/8){acc=0;pas++;
+        const lg=F>.5?pas%2:-1;LANGUE[0].visible=lg===0;LANGUE[1].visible=lg===1;
+        const bat=F>.5?1:sV>.15?2:4;queue.position.x=[0,HU,0,-HU][Math.floor(pas/bat)%4];                     // la queue bat (plus vite en roulant, à fond à la nitro)
+        tete.position.y=(sV>.15||F>.5)&&(Math.floor(pas/(F>.5?1:2))%2)?HU:0;}                                // la tête hoche sur le tempo
+      oreT-=dt;if(oreT<=0){oreD=.16;oreS=rnd()<.5?0:1;oreT=2+rnd()*4;}if(oreD>0)oreD-=dt;
+      ORE[0].rotation.z=oreD>0&&oreS===0?.22:0;ORE[1].rotation.z=oreD>0&&oreS===1?-.22:0;
+      // les PHRASES : une de temps en temps, en rafale à la nitro, plus souvent en vol
+      crieT-=dt;if(crieT<=0){crie();crieT=F>.5?.38:vol?.8:course?1.8:1.5;}
+      for(const o of MOT){if(o.v<=0)continue;o.v-=dt;const u=1.5-o.v,p=u<.12?u/.12*1.15:u<.2?1.15-(u-.12)/.08*.15:1,f=o.v<.4?o.v/.4:1;
+        o.y+=dt*.18;o.sp.position.set(o.x,o.y,o.z);o.sp.scale.set(o.h*o.a*p,o.h*p,1);o.sp.material.opacity=f;if(o.v<=0)o.sp.visible=false;}};
+    anime(1/30);
+    g.userData.anime=anime;
+    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
+    return {hl:[.30,.50,1.80],tl:[.20,.65,-1.32],lamps:0,halos:0,wx:WX,wxF:WXF,wzF:ZF,wzR:-ZR,pots:[[.22,.42,-1.48],[-.22,.42,-1.48]],
+            lpw:{R:R,w:.30,style:'cadran',jante:0xffc93a,accent:0xffc93a,pneu:0x141118}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
@@ -28243,6 +28392,7 @@ const CAR_UNLOCK=[
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
+  {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
    des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE
@@ -33673,7 +33823,11 @@ function musicPickNext(excludeIdx){
 // VIEILLE FORTUNE (rock cyberpunk, façon jeu vidéo), TEMPLE DE JADE (DJ tech au temple). MÉTRO et FILTRE D'OR abandonnés.
 // (2026-10-03, Léo : « enlève TEMPLE DE JADE ») : le tirage se fait entre les trois.
 // (2026-10-03, Léo : « enlève VIEILLE FORTUNE aussi ») : le tirage se fait entre les deux.
-const MUSIC_LOBBY=['assets/audio/music/lobby/vapeur-salon.m4a','assets/audio/music/lobby/lobby-ascenseur.m4a'];
+// (2026-10-14, Léo : « applique les lobby Chris dans la musique lobby du main ») : LE LOBBY « CHRIS » — six musiques dans l'esprit de Chris
+// (C418), chacune son monde : PREMIER MATIN (piano feutré + groove doux) · DIMANCHE (bossa) · GARAGE DE NUIT (lo-fi) · POLAROÏD (synthés) ·
+// GRAND CIEL (ambiant) · SIFFLEUR (soul 12/8). 1 min 35 à 2 min 40 chacune, bouclées sans couture (atelier : atelier-son/lobby_chris.py
+// et petites_musiques.py de la branche musique). Toujours une tirée au hasard à chaque lancement. Avant : VAPEUR · SALON et ASCENSEUR DORÉ.
+const MUSIC_LOBBY=['matin','dimanche','nuit','polaroid','ciel','siffleur'].map(k=>'assets/audio/music/lobby/chris-'+k+'.m4a');
 const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; // avant : 'assets/audio/music/nocturnal-groove.mp3' · (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
@@ -35148,7 +35302,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+const SON_TON={'chris-matin':-2,'chris-dimanche':1,'chris-nuit':-1,'chris-polaroid':3,'chris-ciel':-1,'chris-siffleur':-1,'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 /* (2026-10-04) GLASSY PLUCKS −2 : MESURÉ (chroma de harmonie.py) — si, la, ré, mi, fa# dominent, ré♯ et la♯ presque absents : si mineur /
    ré majeur (comme VITESSE), pas le « do# dorien » noté sur la branche de Léo (0). Sa fiche d'harmonie (la phrase du boost) est dans harmonie.js. */
 function sonTonSuit(){
@@ -45990,7 +46144,7 @@ function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGA
    boutique (au fondu de GBQ.k) : `a` tourne la vue autour de la caisse (rad), `h` monte la caméra (m), `d` recule (×), `ty` monte la visée (m),
    `f` ouvre l'objectif (°), `sx`/`sy` déplacent la place de la caisse à l'écran (part de la largeur / hauteur). Avec `?cadrage=1`, un panneau
    de curseurs le règle en direct (gardé dans ce navigateur) ; `dbgPov()` le relit pour le recopier ici. */
-const BQ_POV={couche:null,debout:null};
+const BQ_POV={couche:null,debout:null}; /* (14/10) essayé {h −0,7, d 0,92} : « c'était mieux avant » */ /* (2026-10-14, Léo : « mieux placé sur la voiture, le plan, le point de vue ») la caméra descend et se rapproche */
 const BQ_POV_DEF={a:0,h:0,d:1,ty:0,f:0,sx:0,sy:0},BQ_CADRAGE=/[?&]cadrage=1\b/.test(location.search);
 function bqPovSens(){return VP.w>VP.h?'couche':'debout';}
 function bqPovLu(){if(!BQ_CADRAGE)return null;if(bqPovLu._v)return bqPovLu._v;let v=null;try{v=JSON.parse(localStorage.getItem('ccCadrageBq')||'null');}catch(e){}return bqPovLu._v=(v&&typeof v==='object')?v:{};}
@@ -46048,7 +46202,7 @@ function bqLaqueMat(k){bqLaqueMat._m=bqLaqueMat._m||{};const cle=String(k||1);if
    crête file en biais derrière la caisse ; l'herbe est cuite (lumière du soleil de gauche dans la couleur des sommets, taches plus claires et
    plus sombres) + un grain d'herbe en texture. Le pied de la caisse reste à plat (les bras se posent dans l'herbe). Tout en MeshBasic : la
    lumière du studio ne la change pas. Repère : celui de la boutique (+z = vers la caméra, il suit son azimut). */
-const BQ_DECOR=/[?&]bq=blanc\b/.test(location.search)?'blanc':'herbe';
+const BQ_DECOR=/[?&]bq=herbe\b/.test(location.search)?'herbe':'blanc'; /* (2026-10-14, Léo : « reviens sur le blanc, c'est mauvais ») la salle blanche par défaut ; la prairie reste derrière ?bq=herbe */
 function bqPrairie(g,R){
   const cv=document.createElement('canvas');cv.width=1024;cv.height=512;const x0=cv.getContext('2d'),r=mulberry32(0xB1155);
   {const gr=x0.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#1a4fc4');gr.addColorStop(.55,'#3f86e6');gr.addColorStop(1,'#a9d1f7');x0.fillStyle=gr;x0.fillRect(0,0,1024,256);
@@ -46077,6 +46231,20 @@ function bqPrairie(g,R){
     for(let k=0;k<900;k++){const v=r2()<.5?255:180+((r2()*30)|0);y.fillStyle='rgb('+v+','+v+','+v+')';y.fillRect((r2()*128)|0,(r2()*128)|0,1,2+((r2()*3)|0));}}
   const tG=new THREE.CanvasTexture(gc);tG.wrapS=tG.wrapT=THREE.RepeatWrapping;tG.repeat.set(70,70);tG.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
   const pre=new THREE.Mesh(ge,new THREE.MeshBasicMaterial({vertexColors:true,map:tG,fog:false}));pre.material.color.setScalar(1.18);g.add(pre);GBQ.prairie=pre;}
+/* LE 1.61 (2026-10-14, Léo : « à la limite, un petit 1.61 blanc en 3D qui ressort du mur blanc de la boutique ») — la signature du jeu (le
+   soleil « 1.61 »), en chiffres PIXEL (la police du jeu, 3 × 5) taillés en cubes, dans le BLANC LAQUÉ des colonnes (bqLaqueMat : le relief se lit
+   à ses reflets, blanc sur blanc) ; derrière la caisse, au-dessus de son nom, loin dans la salle. Un seul maillage instancié. */
+function bq161(g){
+  const G={'1':['.X.','XX.','.X.','.X.','XXX'],'6':['XXX','X..','XXX','X.X','XXX'],'.':['.','.','.','.','X']},txt='1.61',P=.38,D=.5,pos=[];
+  let lx=0;for(const ch of txt){const m=G[ch],w=m[0].length;for(let j=0;j<5;j++)for(let i=0;i<w;i++)if(m[j][i]==='X')pos.push([lx+i,4-j]);lx+=w+1;}
+  const W=(lx-1)*P,im=new THREE.InstancedMesh(new THREE.BoxGeometry(P*.96,P*.96,D),bqLaqueMat(),pos.length),M9=new THREE.Matrix4();
+  pos.forEach(function(p,k){M9.makeTranslation(-W/2+p[0]*P+P/2,p[1]*P+P/2,0);im.setMatrixAt(k,M9);});
+  // il RESSORT D'UN MUR : un pan blanc (le blanc du fond, invisible en lui-même) juste derrière, qui porte son OMBRE douce, décalée en bas à droite
+  const cv=document.createElement('canvas'),S=24,mg=3;cv.width=(lx-1+2*mg)*S;cv.height=(5+2*mg)*S;const x=cv.getContext('2d');x.filter='blur('+(S*.35)+'px)';x.fillStyle='rgba(60,70,90,.55)';
+  pos.forEach(function(p){x.fillRect((mg+p[0])*S,(mg+4-p[1])*S,S,S);});
+  const L9=(lx-1+2*mg)*P,H9=(5+2*mg)*P,mur=new THREE.Mesh(new THREE.PlaneGeometry(L9,H9),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,fog:false}));
+  const grp=new THREE.Group();grp.add(im);mur.position.set(P*.45,-P*.55+2.5*P,-D/2-.02);grp.add(mur);
+  grp.position.set(0,7.2,-22);grp.rotation.set(.06,-.18,0);g.add(grp);GBQ.s161=grp;}
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
   const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
@@ -46094,7 +46262,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   GBQ.tuile=tuile;
   // LE SOL : en blanc structuré (des dalles de ~34 cm), à perte de vue
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(3.4);if(BQ_DECOR!=='herbe')g.add(sol);else bqPrairie(g,R); /* (2026-10-13, Léo : « le sol de la boutique plus blanc, comme les socles qui tiennent les bras robots ») ×1,75 → ×3,4 (mesuré : 220 → 234, le blanc du fond) : le gris lavande devient blanc, les joints des dalles restent à peine lisibles */ // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(3.4);if(BQ_DECOR!=='herbe'){g.add(sol);bq161(g);}else bqPrairie(g,R); /* (2026-10-13, Léo : « le sol de la boutique plus blanc, comme les socles qui tiennent les bras robots ») ×1,75 → ×3,4 (mesuré : 220 → 234, le blanc du fond) : le gris lavande devient blanc, les joints des dalles restent à peine lisibles */ // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
@@ -46151,7 +46319,12 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
      x.moveTo(c0+Math.cos(a-w)*95,c0+Math.sin(a-w)*95);x.lineTo(c0+Math.cos(a)*L,c0+Math.sin(a)*L);x.lineTo(c0+Math.cos(a+w)*95,c0+Math.sin(a+w)*95);x.closePath();x.fill();}
    x.strokeStyle='rgba(246,148,48,.72)';x.lineWidth=5;x.beginPath();x.arc(c0,c0,176,0,Math.PI*2);x.stroke();x.lineWidth=2;x.beginPath();x.arc(c0,c0,158,0,Math.PI*2);x.stroke();
    GBQ.gloire=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0,depthWrite:false,fog:false}));
-   GBQ.gloire.renderOrder=4;GBQ.gloire.visible=false;scene.add(GBQ.gloire);}
+   GBQ.gloire.renderOrder=4;GBQ.gloire.visible=false;scene.add(GBQ.gloire);
+   /* (2026-10-14, Léo : « la plate sous la voiture ») la gloire, plantée derrière la caisse, descend sous le sol : le sol la tranchait d'un trait
+      net (sur le blanc, on croyait voir un sol invisible). Elle s'EFFACE en approchant du sol (alpha × lissé sur la hauteur du monde). */
+   {const U=GBQ.gloireU={uY0:{value:0},uY1:{value:1}};GBQ.gloire.material.onBeforeCompile=function(sh){sh.uniforms.uY0=U.uY0;sh.uniforms.uY1=U.uY1;
+     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vWy;').replace('#include <project_vertex>','#include <project_vertex>\nvWy=(modelMatrix*vec4(transformed,1.)).y;');
+     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vWy;uniform float uY0;uniform float uY1;').replace('#include <dithering_fragment>','gl_FragColor.a*=smoothstep(uY0,uY1,vWy);\n#include <dithering_fragment>');};}} /* (three r128 : pas d'output_fragment dans la matière de base — l'accroche est le dithering) */
   const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(20,24,30,.55)');gr.addColorStop(1,'rgba(20,24,30,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
   GBQ.omb=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}));GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.position.y=(GBQ.socleH||0)+.006;GBQ.omb.renderOrder=3;g.add(GBQ.omb);
   // L'ONDE DU BOUM : dans la scène (elle part encore dans l'atelier)
@@ -46177,7 +46350,7 @@ function garBqLueurBatit(){if(GBQ.halo)return;
   const t=new THREE.CanvasTexture(cv),m=function(){const mt=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0,depthWrite:false,fog:false});mt.color.setScalar(1.3);return mt;};
   GBQ.halo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.halo.visible=false;GBQ.halo.renderOrder=5;scene.add(GBQ.halo);
   GBQ.nappe=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.nappe.rotation.x=-Math.PI/2;GBQ.nappe.visible=false;GBQ.nappe.renderOrder=4;scene.add(GBQ.nappe);}
-function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;if(BQ_DECOR==='herbe'){G9.visible=false;return;} /* (prairie) pas de gloire dans l'herbe : la colline la coupait net */
+function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;if(GBQ.gloireU&&GBQ.grp){const y0=GBQ.grp.position.y+(GBQ.socleH||0);GBQ.gloireU.uY0.value=y0+.15;GBQ.gloireU.uY1.value=y0+1.6;}if(BQ_DECOR==='herbe'){G9.visible=false;return;} /* (prairie) pas de gloire dans l'herbe : la colline la coupait net */
   const kg=GBQ.on?Math.min(1,Math.max(0,(GBQ.t-.95)/.75)):Math.max(0,(GBQ.gk||0)-dt*5);GBQ.gk=kg;G9.visible=kg>.01;if(!G9.visible)return;
   const v=GBQ._vg||(GBQ._vg=new THREE.Vector3()),d=GBQ._dg||(GBQ._dg=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.5;
   d.copy(v).sub(camera.position);d.y=0;d.normalize();G9.position.copy(v).addScaledVector(d,3.6);G9.quaternion.copy(camera.quaternion);G9.rotateZ(t9*.045);
@@ -46442,9 +46615,12 @@ function garBqBrasBatit(){if(GBQ.bras)return GBQ.bras;
   const cyl=new THREE.CylinderGeometry(1,1,1,8),sph=new THREE.SphereGeometry(1,10,8),box=new THREE.BoxGeometry(1,1,1),M=function(geo,mt){const m=new THREE.Mesh(geo,mt);g.add(m);return m;};
   // le plateau tournant : un disque d'argent, douze crans de graphite sur sa tranche
   const pl=new THREE.Group();g.add(pl);GBQ.brasPl=pl;
-  {const d=new THREE.Mesh(new THREE.CylinderGeometry(1.22,1.26,.04,48),argent);d.position.y=.02;pl.add(d);
-   const c=new THREE.Mesh(new THREE.TorusGeometry(.6,.025,4,48),graph);c.rotation.x=Math.PI/2;c.position.y=.042;pl.add(c);
-   for(let i=0;i<12;i++){const n=new THREE.Mesh(box,graph);const a=i/12*Math.PI*2;n.scale.set(.06,.045,.16);n.position.set(Math.sin(a)*1.16,.025,Math.cos(a)*1.16);n.rotation.y=a;pl.add(n);}}
+  /* (2026-10-14, Léo : « la plateforme aussi grosse que celle du garage, plus fixe ») le plateau a la TAILLE de celui de l'atelier (rayon 4,4,
+     12 cm d'épaisseur, son dessus = le haut du « socle » : GBQ.socleH), un anneau de graphite à mi-rayon, douze crans sur le bord — et il ne
+     tourne plus avec la caisse (voir garBqBras) */
+  {const d=new THREE.Mesh(new THREE.CylinderGeometry(1.83,1.89,.04,64),argent);d.position.y=.02;pl.add(d); /* (même jour, Léo : « c'était mieux avant, juste le socle un tout petit peu plus grand, 1,5× ») le disque d'avant ×1,5 */
+   const c=new THREE.Mesh(new THREE.TorusGeometry(.9,.028,4,64),graph);c.rotation.x=Math.PI/2;c.position.y=.042;pl.add(c);
+   for(let i=0;i<12;i++){const n=new THREE.Mesh(box,graph);const a=i/12*Math.PI*2;n.scale.set(.08,.045,.2);n.position.set(Math.sin(a)*1.74,.025,Math.cos(a)*1.74);n.rotation.y=a;pl.add(n);}}
   GBQ.brasL=[0,1].map(function(){const A={
       pied:M(cyl,graph),tour:M(cyl,argent),epaule:M(sph,graph),bras:M(cyl,argent),verin:M(cyl,chrome),coude:M(cyl,graph),
       avant:M(cyl,argent),tige:M(cyl,chrome),poignet:M(sph,graph),main:new THREE.Group()};
@@ -46462,7 +46638,7 @@ function garBqBras(dt,t9,ay){
   const V=GBQ._bv||(GBQ._bv=[0,1,2,3,4,5,6,7,8,9].map(function(){return new THREE.Vector3();})),[G,S,W,E,D,o,n,up,T,X]=V;
   const e=GBQ.ba*GBQ.ba*(3-2*GBQ.ba),y0=ay+GBQ.socleH,q=carGroup.quaternion,s9=carGroup.scale,p0=carGroup.position,mont=(1-e)*.75; // ils montent du socle
   // le plateau suit le cap de la caisse
-  X.set(0,0,1).applyQuaternion(q);g.position.set(0,0,0);GBQ.brasPl.position.set(0,y0-mont*.05,0);GBQ.brasPl.rotation.y=Math.atan2(X.x,X.z);
+  X.set(0,0,1).applyQuaternion(q);g.position.set(0,0,0);GBQ.brasPl.position.set(0,y0-mont*.05,0);GBQ.brasPl.rotation.y=0; /* (14/10) FIXE : il ne suit plus le cap de la caisse */
   up.set(0,1,0).applyQuaternion(q);
   const bb=hm.bb,zc=bb?(bb.min.z+bb.max.z)/2:0,lg=bb?(bb.max.z-bb.min.z):4;
   for(let i=0;i<2;i++){const A=GBQ.brasL[i],sg=i?-1:1;
