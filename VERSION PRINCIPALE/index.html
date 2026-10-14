@@ -13252,7 +13252,7 @@ function traitMat(m,minPx,pal){
    blanc ne vire donc plus de teinte avec la musique. `villeApres` (minuit) baisse ensuite le rail ×kr : on le pré-divise pour qu'il reste lisible.
    Banc : `dbgBords({kNuit,kJ,glowN,jour:[r,g,b],nuit:[r,g,b]})`. ========================================================================== */
 const BORDS_V2=!/[?&]sans=([^&]*,)?bords(,|&|$)/.test(location.search);
-const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.5,glowN:.3,jf:1}; // kNuit .5 = le « rail blanc doux, opacité .5 » (le rail est opaque : on baisse sa couleur)
+const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
 function bordsTick(){ // appelée par musicTick, APRÈS la peinture « caméléon » des rails et de la nappe
