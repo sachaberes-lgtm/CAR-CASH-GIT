@@ -36256,7 +36256,9 @@ let AUTO_GAS=false; // mobile : accélération auto (le doigt sert à tourner et
 // LE VOLANT ANALOGIQUE À DEUX AXES. `st` = braquage (X) · `sv` = assiette en vol (Y, + = pouce vers
 // le HAUT = PIQUÉ, manche d'avion). Un SEUL point d'entrée dans la physique : le tactile écrit dans
 // le même `keys` et le même `steer` que le clavier — aucune équation n'est réécrite pour le doigt.
-const TCTL={on:false,pad:false,act:false,st:0,sv:0,id:null,ox:0,oy:0,dy:0,dyS:0,x0:0,lx:0,ly:0,ab:0,tr:0,ar:-1,play:null,dead:null,ov:null,airTip:false};
+const TCTL={on:false,pad:false,act:false,doigt:false,st:0,sv:0,id:null,ox:0,oy:0,dy:0,dyS:0,x0:0,lx:0,ly:0,ab:0,tr:0,ar:-1,play:null,dead:null,ov:null,airTip:false};
+const VOLANT_PX=Math.max(34,Math.min(60,+((/[?&]volant=(\d+)/.exec(location.search)||[])[1])||46)); // (2026-10-14, sensations) la course du pouce pour le braquage plein, en px (54 avant) — `?volant=40` pour en essayer une autre sur le téléphone
+const VOL_LIS=21.4,VOL_LIS_D=SENS?33.3:21.4; // (2026-10-14, sensations) le lissage du volant et du manche, en 1/s : 21,4 = τ 47 ms (clavier, tout ou rien) · 33,3 = τ 30 ms quand le POUCE tient le stick (`TCTL.doigt`, voir le volant analogique)
 const DRIFT_PX=34.9; // LE GESTE DU DRIFT : pouce tiré de 34,9 px vers le bas (réglé le 28/09 — l'ancien sv < -0,45), lu par la conduite ; pour ENTRER à droite, `TCTL.dyS` (le seuil de l'ARC du pouce, voir stMove) peut le relever
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré
 // HAPTIQUE : son propre interrupteur depuis le 2026-09-28 (avant, couper le SON coupait aussi les vibrations)
@@ -49422,7 +49424,8 @@ function loop(now){
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
     const target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-psi)*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
-    steer+=(target-steer)*(1-Math.exp(-dt*21.4)); /* (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
+    if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
+    steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
     graceT=Math.max(0,graceT-dt);
     sideCd=Math.max(0,sideCd-dt);
     if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
@@ -50020,7 +50023,7 @@ function loop(now){
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
-        pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*21.4)); /* (2026-10-09) LE MANCHE LISSÉ COMME LE VOLANT (τ 47 ms) : le lacet passait par le lissage de steer, le tangage attaquait brut — 97°/s d'un coup au clavier, dosage aux petits coups. Plafonds inchangés (1,7 / 0,85 rad/s) */
+        pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); /* (2026-10-14, sensations) τ 30 ms quand c'est le pouce qui donne l'assiette · (2026-10-09) LE MANCHE LISSÉ COMME LE VOLANT (τ 47 ms) : le lacet passait par le lissage de steer, le tangage attaquait brut — 97°/s d'un coup au clavier, dosage aux petits coups. Plafonds inchangés (1,7 / 0,85 rad/s) */
         if(Math.abs(pitchS)>1e-4){const a9=-pitchS*1.7*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);}
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x5b7dff:pwrNitroT>0?NINF.jet:0xff7a24);    // (vague 3) le RÉACTEUR aux couleurs de la bible : feu #ff7a24, réserve #5b7dff
@@ -50055,7 +50058,7 @@ function loop(now){
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
         const pitT=TCTL.act?TCTL.sv*volSens():0;
         const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
-        pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*21.4)); // (2026-10-09) le même manche lissé (voir le réacteur)
+        pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); // (2026-10-14) τ 30 ms au pouce · (2026-10-09) le même manche lissé (voir le réacteur)
         if(Math.abs(pitchS)>1e-4){const a9=-pitchS*.85*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas
       }
       /* (vol v7, 2026-09-25, user : « l'airtime doit être basé sur un principe d'INERTIE, dépendre de la vitesse de la voiture au
@@ -51423,7 +51426,19 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
   // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
   // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
-  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=54,LOCKV=44,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38; // 54 px = braquage plein · 44 px = assiette pleine · ARC_* : l'arc du pouce (voir stMove)
+  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENS?VOLANT_PX:54,LOCKV=44,LOCKU=SENS?38:44,PIQ_K=SENS?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
+  /* (2026-10-14, passe SENSATIONS — Sacha : « sur mobile le joystick n'est pas assez sensible, améliore un petit peu la sensibilité »)
+     UN PETIT PEU, sur toute la chaîne du pouce, sans toucher à ce que la caisse SAIT faire (plafonds de lacet et de tangage, VOL_TAU : inchangés) :
+     · braquage plein à 46 px au lieu de 54 (−15 % de course : le même geste braque ~18 % de plus) ; la zone morte reste 6 % (2,8 px au lieu de 3,2) ;
+     · l'arc du pouce suit la course : sa descente à la butée va comme la course^1,2 (37,6 px à 54 → ~31 à 46), d'où ARC_R0 = 38 × (course/54)^1,2 ;
+     · en vol, pouce vers le HAUT : assiette pleine à 38 px au lieu de 44 (`LOCKU`, le socle flotte au-delà comme avant) ; vers le BAS la course
+       reste 44 px — c'est elle que lit le GESTE DU DRIFT (34,9 px, seuil d'arc ≤ 42,5 : rien ne bouge) — et l'assiette y monte 12 % plus vite (`PIQ_K`) ;
+     · le lissage du volant et du manche passe de τ 47 ms à τ 30 ms quand c'est le POUCE qui tient le stick (`VOL_LIS_D`, dans la boucle) : un pouce
+       est déjà analogique, le lissage du clavier (tout ou rien) lui ajoutait du retard pour rien. Le clavier garde ses 47 ms.
+     `?sens=0` rend le volant d'avant, au pixel près (pour comparer) ; `?volant=40` essaie une autre course (34 à 60 px : plus petit = plus sensible).
+     MESURÉ (banc node `sensations/banc/volant-sim.cjs`, le vrai stMove joué par des pouces simulés, 5 prises) : même geste → +18 à +22 % de braquage ;
+     drifts involontaires en slalom 29 → 6 et 58 → 41 images sur 420 (prises tendues), 0 ailleurs ; butée tenue 1 s : 38 → 0 ; le drift VOULU part toujours
+     (12 à 29 px de tirage à droite, comme avant à gauche). */
   function stSet(h,v,kx,ky){ TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
     if(knb)knb.style.transform='translate('+(kx||0)+'px,'+(ky||0)+'px)'; } // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
   if(sz){
@@ -51441,7 +51456,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(boomSkip())return; // (2026-09-25) un tap passe l'explosion
       const r=sz.getBoundingClientRect(); sL=r.left; sT=r.top; sB=r.bottom;
       gx=Math.max(24,Math.min(LOCK,x-sL-6)); gy=Math.max(20,Math.min(LOCKV,sB-y-6));
-      TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.x0=TCTL.lx=x; TCTL.ly=y; TCTL.ab=TCTL.tr=0; TCTL.ar=-1; TCTL.act=true; TCTL.dy=0; TCTL.dyS=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
+      TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.x0=TCTL.lx=x; TCTL.ly=y; TCTL.ab=TCTL.tr=0; TCTL.ar=-1; TCTL.act=true; TCTL.doigt=true; TCTL.dy=0; TCTL.dyS=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
       stk.style.left=(x-sL)+'px'; stk.style.top=(y-sT)+'px';
       stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
       start();
@@ -51470,17 +51485,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(pou9&&fx<0&&dym<0)TCTL.oy+=ARC_B*fx;
       const pxr=x-TCTL.ox,cr=pxr>0&&TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0)*Math.min(1,pxr/LOCK):0,rawY=y-TCTL.oy-cr;
       if(rawY>gy)TCTL.oy=y-cr-gy;        // IMMÉDIATEMENT (jamais collé au plein braquage)
-      if(rawY<-LOCKV){TCTL.oy=y-cr+LOCKV;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));}
+      if(rawY<-LOCKU){TCTL.oy=y-cr+LOCKU;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));} // (2026-10-14) vers le HAUT le socle flotte dès 38 px (LOCKU)
       if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=(TCTL.ox-sL)+'px';stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
-      const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKV,Math.min(gy,y-TCTL.oy-cr)),
-            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKV:py/gy,
+      const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKU,Math.min(gy,y-TCTL.oy-cr)),
+            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:py/gy,
             ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
             /* (2026-09-30) ZONE MORTE CROISÉE : le pouce pivote à sa base, un glissé « de côté » décrit un ARC — 54 px de braquage portent
                15 à 30 px de vertical, soit 35 à 70 % d'assiette avec l'ancienne zone morte fixe de 10 % (tourner en vol faisait piquer ou
                cabrer). La zone morte verticale s'ÉLARGIT avec le braquage (10 % au neutre → 55 % = 24 px au plein braquage) et la sortie est
                re-étalée sur ce qui reste : une poussée franche (44 px) donne toujours l'assiette pleine. Au neutre la courbe linéaire
                re-étalée colle à l'ancienne (ny^1,15) à 0,015 près au-delà de 40 % de course — la sensibilité réglée le 28/09 est gardée. */
-            dz=.10+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*(Math.abs(ny)-dz)/(1-dz);
+            dz=.10+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*Math.min(1,(Math.abs(ny)-dz)/(1-dz)*(ny>0?PIQ_K:1)); // (2026-10-14) vers le BAS l'assiette monte 12 % plus vite (PIQ_K) : la course, elle, reste celle du drift
       TCTL.dy=py>0?py*LOCKV/gy:py; // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité) — rapporté aux 44 px d'une course pleine quand le bas de l'écran la raccourcit
       /* (2026-09-30) L'ENTRÉE EN DRIFT CONNAÎT L'ARC DU JOUEUR. Dans la course, l'arc d'un pouce tendu descend déjà de 37,6 px à la butée
          droite (> 34,9 : drift sans rien tirer), celui d'une prise basse de 21,7. `ar` = la descente de CET arc à la butée, relevée pendant
@@ -51496,7 +51511,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(pou9&&nx>=.4&&Math.abs(dxm)>Math.abs(dym)&&TCTL.dy<ARC_MAX){const r9=TCTL.dy/Math.pow(nx,1.2);TCTL.ar=TCTL.ar<0||r9>TCTL.ar?r9:Math.max(r9,TCTL.ar-1);}
       TCTL.dyS=pou9&&nx>0?Math.min(ARC_MAX,(TCTL.ar<0?ARC_R0:TCTL.ar)*Math.pow(nx,1.2)+ARC_M):0; // la conduite y ajoute le plancher de 34,9 (DRIFT_PX)
       stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
-            -ay,px,Math.max(-LOCKV,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 (en vol, `volSens()` en fait MONTE par défaut depuis le 2026-10-10, PLONGE au réglage) — le bouton reste SOUS le pouce (sans `cr`)
+            -ay,px,Math.max(-LOCKU,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 (en vol, `volSens()` en fait MONTE par défaut depuis le 2026-10-10, PLONGE au réglage) — le bouton reste SOUS le pouce (sans `cr`)
     };
     const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
     sz.addEventListener('touchstart',function(e){
