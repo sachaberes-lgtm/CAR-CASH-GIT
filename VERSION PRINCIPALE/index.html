@@ -9297,6 +9297,13 @@ if(CAN_POST){ try{
   bloomPass._a=0; // l'alpha du halo de l'image (strength·Σpoids écrêté à 1) — relu par l'ACES
   {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){this._W=W;this._H=H;s0(Math.max(2,Math.round(W*bSc*2*BLOOM_RES)),Math.max(2,Math.round(H*bSc*2*BLOOM_RES)));
     const v0=this.renderTargetsVertical[0];if(this._cRT&&(this._cRT.width!==v0.width||this._cRT.height!==v0.height))this._cRT.setSize(v0.width,v0.height);};} // (_W/_H retenus : l'échelle QL retaille le bloom seul) — le halo composé suit le 1er mip
+  /* (2026-10-14, passe perf mobile) LES ÉTAGES DU HALO, PAR PALIER. Le halo, c'est 5 étages de flou (½, ¼ … 1/32 de sa base), 2 passes
+     chacun, + la passe qui les somme : 11 changements de cible par image. Sur un iPhone 7 l'image entière fait 667×375 : les deux derniers
+     étages n'y pèsent que ~200 et ~50 pixels — leurs 4 passes ne coûtent pas des pixels mais 4 allers-retours de cible sur une puce à
+     tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
+     reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
+     Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
+  PAL.B.postBloomMips=[3,4,5];bloomPass._nM=PAL.b('postBloomMips',5);
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
@@ -9318,7 +9325,8 @@ if(CAN_POST){ try{
       if(!pl){this.highPassUniforms.tDiffuse.value=rb.texture;this.highPassUniforms.luminosityThreshold.value=this.threshold;
         this.fsQuad.material=this.materialHighPassFilter;rd.setRenderTarget(this.renderTargetBright);rd.clear();this.fsQuad.render(rd);}
       let inp=pl?rb:this.renderTargetBright;
-      for(let i=0;i<this.nMips;i++){const m=this.separableBlurMaterials[i],hz=this.renderTargetsHorizontal[i],vt=this.renderTargetsVertical[i];
+      const nM=Math.min(this.nMips,this._nM||this.nMips); // (2026-10-14, passe perf mobile) les étages de flou de ce palier — voir postBloomMips
+      for(let i=0;i<nM;i++){const m=this.separableBlurMaterials[i],hz=this.renderTargetsHorizontal[i],vt=this.renderTargetsVertical[i];
         if(pl&&i>=3&&this.plie2d!==false){const q=this._p2[i];q.uniforms.colorTexture.value=inp.texture;q.uniforms.texSize.value=m.uniforms.texSize.value; // mips 3-4 : le flou 2D en UNE passe
           this.fsQuad.material=q;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);inp=vt;continue;}
         const mh=(pl&&i===0)?this._p0:m;if(mh!==m){mh.uniforms.texSize.value=m.uniforms.texSize.value;mh.uniforms.thr.value=this.threshold;mh.uniforms.sw.value=this.highPassUniforms.smoothWidth.value;}
@@ -9328,7 +9336,7 @@ if(CAN_POST){ try{
         inp=vt;}
       if(this._cMat&&this.nMips===5){ // LE HALO COMPOSÉ (voir sa création) : poids `strength·mix(f,1.2−f,radius)` = lerpBloomFactor, facteurs 1/.8/.6/.4/.2
         const cu=this._cMat.uniforms,s=this.strength,r=this.radius,w0=s*(1-.8*r),w1=s*(.8-.4*r),w2=s*.6,w3=s*(.4+.4*r),w4=s*(.2+.8*r);
-        for(let i=0;i<5;i++)cu['t'+(i+1)].value=this.renderTargetsVertical[i].texture;
+        for(let i=0;i<5;i++)cu['t'+(i+1)].value=this.renderTargetsVertical[Math.min(i,nM-1)].texture; // (2026-10-14) un étage non calculé lit le dernier calculé : son poids s'y reporte
         cu.w.value.set(w0,w1,w2,w3);cu.w5.value=w4;cu.a.value=this._a=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));
         this.fsQuad.material=this._cMat;rd.setRenderTarget(this._cRT);rd.clear();this.fsQuad.render(rd);}
       else this._a=0;
