@@ -40373,6 +40373,7 @@ const SAVE={
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(Array.isArray(d.figs))c.figs=[...new Set(['tonneau'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées (le TONNEAU, offert)
+    if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,3); // (2026-10-14, LES FIGURES v2) les TROIS emplacements
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0; /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
@@ -41073,7 +41074,7 @@ function veqPose(bI,sd){ // la caisse se pose (tryLand, lèvre) : ce qui reste d
     rx=VEQ.eu.x;ry=VEQ.eu.y;rz=VEQ.eu.z;}
   let corps=false;
   if(FIGV2.on&&FX2.corps){const C=FX2.corps,j=C.pose(); /* (2026-10-14, LES FIGURES v2) près de l'endroit, les figures finies comptent ; à plus de 52°, CHUTE */
-    for(let i=0;i<j.payees.length;i++)figPaye(j.payees[i]);if(j.ratee)VEQ.rate=true;
+    for(let i=0;i<j.payees.length;i++)figPaye(j.payees[i]);if(j.ratee)VEQ.rate=true;FX2.trio=[]; /* (COMBOS À TROIS) la pose ferme le vol : un trio entamé ne passe pas au vol suivant */
     corps=j.ecart>.002;if(corps){VEQ.qd.set(C.q[0],C.q[1],C.q[2],C.q[3]);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');rx+=VEQ.eu.x;ry+=VEQ.eu.y;rz+=VEQ.eu.z;}
     FX2.wPose=C.w[2];C.vide();}
   const L9=VEQ.lect,enCours=!!(L9&&L9.occupe());
@@ -41320,7 +41321,7 @@ function figEquipe(id){if(!window.FIG||!FIG.par[id]||!figPossede(id))return null
 function figRetire(id){const E=figEquipees().slice(),i=E.indexOf(id);if(i<0||E.length<=1)return false;E.splice(i,1);SAVE.d.figEq=E;SAVE.flush();FX2.cle='';return true;}
 function figMemo(dt){FX2.qm1.copy(FX2.qm0);FX2.qm0.copy(carGroup.quaternion);FX2.dm=dt;FX2.memo=FX2.memoN;FX2.memoN=true;} // (conduite, chaque image) l'assiette des deux dernières images
 function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;if(!C)return;
-  C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
+  C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
   if(!FIGV2.on||bord||!VEQ.on){FX2.memo=false;return;} // le BORD garde la bascule de Léo (VEQ)
   tmp.copy(fallVel).normalize();FX2.m4.makeBasis(FLY_R,FLY_U,tmp);FX2.qf.setFromRotationMatrix(FX2.m4);
   FX2.qr.copy(FX2.qf).invert().multiply(carGroup.quaternion); // l'écart de la caisse à sa trajectoire : elle l'EMPORTE
@@ -41405,7 +41406,8 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const sens=Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
-  const r=C.lance(f,sens,D,{tient:!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;FX2.n++;VEQ.n++;
+  const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
+  const r=C.lance(f,sens,D,{tient:!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;FX2.n++;VEQ.n++;
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
@@ -41414,12 +41416,53 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   if(sautN){try{if(SONV2)sfx('turbo.mini',{vol:-6});}catch(e){}}else figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);figBtFx(s,'boum');
   return r;}
 function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');}
+/* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
+   de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
+   ferme un TRIO (1-2-3, puis 4-5-6…). Son NOM dépend des AXES des trois figures, dans n'importe quel ordre : T le tonneau (l'axe de la
+   caisse), P la toupie (l'axe vertical), S le salto (l'axe des roues), M le mixte (deux axes, un axe penché, un battement). Cela donne
+   20 familles (COMBO_NOMS) : on les découvre avec ses trois emplacements, et chaque figure achetée en ouvre d'autres.
+   · LA PRIME : de l'AURA = la moitié des trois figures. ×1,5 pour LE GYROSCOPE (les trois axes purs), +25 % par enchaînement PILE
+     (la figure suivante lancée pendant la PRISE de la précédente : `r.bm`, posé par figLance), ×2 à la 1re fois. Elle entre dans la
+     chaîne comme une figure (FX2.pts) : une pose ratée (figChute) l'emporte avec les autres. Plus un peu de nitro, comme une figure.
+   · LE CARNET : `SAVE.d.combos` {famille: nombre}. Une famille neuve → bandeau « NOUVEAU COMBO » avec le compte « n / 20 ».
+   `?combo=0` les éteint. `dbgCombo()` : le carnet, le trio en cours. */
+const COMBO_ON=!/[?&]combo=0\b/.test(location.search);
+const COMBO_NOMS={TTT:['LA PERCEUSE','THE DRILL'],PPP:['LE TOURBILLON','THE WHIRLWIND'],SSS:['LA GRANDE ROUE','THE FERRIS WHEEL'],MMM:['LE GRAND CHAOS','TOTAL CHAOS'],
+  PTT:['LE TAILLE-CRAYON','THE SHARPENER'],STT:['LA CENTRIFUGEUSE','THE CENTRIFUGE'],MTT:['LE MIXEUR','THE BLENDER'],
+  PPT:['LA TOUPIE FOLLE','THE MAD TOP'],PPS:['LE MOULINET','THE PINWHEEL'],MPP:['LE DERVICHE','THE DERVISH'],
+  PSS:['LA MACHINE A LAVER','THE WASHER'],SST:['LA ROUE DU HAMSTER','THE HAMSTER WHEEL'],MSS:['LE CASCADEUR','THE STUNTMAN'],
+  MMT:['LA TORNADE','THE TORNADO'],MMP:['LA BOULE DISCO','THE DISCO BALL'],MMS:['LE CRASH-TEST','THE CRASH TEST'],
+  PST:['LE GYROSCOPE','THE GYROSCOPE'],MPT:['LE SATELLITE','THE SATELLITE'],MST:['LE BOOMERANG','THE BOOMERANG'],MPS:['LE KAMIKAZE','THE KAMIKAZE']};
+const COMBO_K={part:.5,gyro:1.5,pile:.25,neuf:2,nitro:.15};
+function comboAxe(f){const m=f&&f.m||[];if(m.length!==1||!m[0].t)return 'M';const a=m[0].a;
+  if(a[2]&&!a[0]&&!a[1])return 'T';if(a[1]&&!a[0]&&!a[2])return 'P';if(a[0]&&!a[1]&&!a[2])return 'S';return 'M';}
+function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou à la pose)
+  if(!COMBO_ON||!r||!r.f||r.douce)return;const T=FX2.trio||(FX2.trio=[]); // (GAMEPLAY) jamais les figures AUTOMATIQUES (saut nitro, toupie de drift) : un saut nitro ne doit pas suffire
+  T.push({ax:comboAxe(r.f),aura:Math.round(r.f.aura||60),bm:!!r.bm});
+  if(T.length<3)return;
+  const tr=T.splice(0,3),cle=tr.map(function(x){return x.ax;}).sort().join(''),nm=COMBO_NOMS[cle];if(!nm)return;
+  const D=SAVE.d.combos||(SAVE.d.combos={}),neuf=!D[cle];D[cle]=Math.min(1e6,(D[cle]|0)+1);SAVE.mark();
+  const pile=(tr[1].bm?1:0)+(tr[2].bm?1:0),K=COMBO_K,en=LANG==='en';
+  const aura=Math.round((tr[0].aura+tr[1].aura+tr[2].aura)*K.part*(cle==='PST'?K.gyro:1)*(1+K.pile*pile)*(neuf?K.neuf:1));
+  const txt=(en?nm[1]:nm[0])+(pile?(en?' · ON BEAT':' · PILE')+(pile>1?' ×2':''):'');
+  FX2.aura=aura;const c0=CHA.pts;
+  addTrick('fig_combo_'+cle,txt,Math.round(aura/16),3); // (dans la chaîne comme une figure : sa famille s'use à la redite, ×0,7)
+  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.combos=(FX2.combos|0)+1;
+  try{nitroGain(K.nitro,'figair');}catch(e){}
+  hap([14,30,14,30,40]);
+  try{sonCombo(cle,neuf);}catch(e){} // (SON) la signature sonore du combo : livrée par la session SON — muet tant qu'elle n'existe pas
+  if(neuf){const n=Object.keys(D).filter(function(k){return COMBO_NOMS[k];}).length;
+    try{misBanniere(en?'NEW COMBO':'NOUVEAU COMBO',(en?nm[1]:nm[0])+' · '+n+' / 20','+'+aura,'etoile');}catch(e){}
+    try{if(SONV2)sfx('ui.debloque',{t:.6});}catch(e){}} // (SON) après le sceau de sonCombo, pas par-dessus
+}catch(e){}}
+window.dbgCombo=function(k){if(k==='raz'){SAVE.d.combos={};SAVE.mark();}return {on:COMBO_ON,carnet:Object.assign({},SAVE.d.combos||{}),trio:(FX2.trio||[]).map(function(x){return x.ax;}).join(''),faits:FX2.combos|0};};
 function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),aura=Math.round((f.aura||60)*(reps>1?1+(reps-1)*1.25:1));
   FX2.aura=aura;const c0=CHA.pts;
   addTrick('fig_'+f.id,FIG.nomReps(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1); // le nom français : TR le traduit (« TOUPIE 360 ×2 »)
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;
   const k=NITRO2.figAir;nitroGain((k.base+k.rep*(reps-1))*Math.pow(k.k,FX2.nPay),'figair');FX2.nPay++; // ASPHALT 8 : la figure plantée remplit le NITRO, tout de suite
-  hap([10,22,10]);}
+  hap([10,22,10]);
+  comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
 function figChute(){if(FX2.pts>0&&CHA.n>0){CHA.pts=Math.max(0,CHA.pts-FX2.pts);chaHud(true,false);}FX2.pts=0;FX2.chutes++;} // posée en plein tour : les figures du vol quittent la chaîne (BMX)
 function figIco(f){let m=null;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null&&(!m||Math.abs(f.m[i].t)>Math.abs(m.t)))m=f.m[i];
   if(!m)return 'fgBa';let n=0;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null)n++;if(n>1)return 'fgCo';
