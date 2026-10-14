@@ -28612,7 +28612,7 @@ function coinSerie(p){
   if(n<4||c!==n)return;
   flowAdd(3+n*.4,'style','n');
   popTexte(TR('SÉRIE COMPLÈTE')+' ×'+n,'#ffd75e',0);
-  try{if(SONV2)sfx('piece.serie');else{chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
+  try{if(SONV2)sfx('piece.serie',{vol:4});else{ /* (2026-10-14, session SON) +4 comme la pièce : la SÉRIE COMPLÈTE (−31) sonnait sous une pièce seule (−30) */chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
 }
 /* (v4, Sacha : « quand on passe en frénésie après avoir POSÉ UNE FIGURE — l'atterrissage est la condition pour déclencher la frénésie,
    en plus du score de flow — ça doit déclencher la voix TRIPLE MONSTRE et l'écriture TRIPLE MONSTER »). LA JAUGE PLEINE ARME (frenArme :
@@ -35214,7 +35214,7 @@ function blip(){
     // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
     // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
     try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-3,t:.03});}catch(e){}
-    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
+    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:4});return;} // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
