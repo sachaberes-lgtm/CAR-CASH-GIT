@@ -19,6 +19,12 @@ VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sach
   `/jouer/?perf=1`, 1 min de jeu, une capture). En attendant sa capture : traquer les à-coups iPhone. Vu au banc PC (palier 0) :
   ~100-200 ms à chaque construction (JOUER, portail, REJOUER : newTrack), +1 texture envoyée à l'atelier au JOUER.
 
+- SONDE À DISTANCE (demandée par PILOTAGE, PAS FAITE) : aucun service où le téléphone peut écrire ET le PC lire sans clé : pas de
+  fonction Vercel ni de CLI vercel ici, `support-email/` (Cloudflare → Telegram) jamais déployé. Il faut qu'un humain crée un
+  stockage (Vercel Blob/KV dans le tableau de bord du projet : la clé s'injecte seule dans les fonctions). Ensuite : `api/sonde.js`
+  (POST, taille bornée) + lecture protégée, côté jeu opt-in par lien (`?sonde=on` posé en sauvegarde, `?sonde=off`), envoi en
+  `sendBeacon` à la fin de partie : modèle (UA), palier, i/s, pics > 33 ms et leur cause (`perfAcoup`), 30 i/s, durée.
+
 ## Mesurer (PC, sans fenêtre, palier 0) — outils dans le scratchpad de la session (à recopier si besoin)
 - `banc.cjs <port> tout|portail|rejouer|boutique [params] [--debout] [--noinline] --tag=x` : profil CPU, tâches longues, compilations,
   `newTrack` en ms par portail (`dbgClassique(c,m);dbgSaut()`), coût d'image (`dbgCout`).
