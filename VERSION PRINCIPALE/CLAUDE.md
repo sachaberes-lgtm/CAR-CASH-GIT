@@ -163,13 +163,15 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 
 **Jeu (verdicts tenus — ne pas les défaire sans demande)**
 - Zéro assistance de conduite (`ASSIST_VIRAGE=0`, `AIR_ASSIST=0`) : pouce lâché, la caisse garde son cap et sort dans les virages.
-  Seule exception : le mode FACILE, en option (`facOn()`).
+  Le mode FACILE (la seule exception) est COUPÉ depuis le 14/10 : `SANS_FACILE`, `?facile=1` le rend.
 - `AIR_RATE=1` : le temps du vol n'est pas accéléré. Le virage en vol ne suit pas la vitesse (voulu).
 - En vol, pouce HAUT = la caisse MONTE (`volSens`) ; au clavier ↑ piqué, ↓ cabré.
 - La loi du réservoir : le vol dépense la nitro, la route la remplit — sauf les FIGURES PLANTÉES, qui en rendent tout de suite (Asphalt 8, 14/10).
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
+- Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
+  vit sur la branche `garde/carriere`. Les missions restent.
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
@@ -345,7 +347,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « ⚠ DEUX ÉDITIONS, UN SEUL JEU » (25/09) — les éditions, la colonne de l'ordi, beaucoup de règles de conduite et de piste
 - « L'ÉDITION POKI » (04/10) · « LA MÊME VERSION POUR TOUT LE MONDE — LA MISE À JOUR TOUTE SEULE » (01/10)
 - « LE MENU = LE GARAGE + LES BOUTONS DE SACHA » (30/09) · « JOUER = LE MODE CLASSIQUE » (08/10) · « L'iPHONE PAR DÉFAUT SUR L'ORDI » (06/10)
-- « PLUS AUCUNE VOIX » (07/10) · « LE CODE COUSIN » (14/10)
+- « PLUS AUCUNE VOIX » (07/10) · « LE CODE COUSIN » (14/10) · « PLUS DE CARRIÈRE + PLUS DE MODE FACILE » (14/10)
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 **Débogage, perf, bancs**
