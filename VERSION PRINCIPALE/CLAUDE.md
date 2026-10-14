@@ -7,30 +7,18 @@ dans COPIER / RESTAURER). `cousin()` ouvre, sur CET appareil : toutes les caisse
 (`shopOwned`), toutes les FIGURES (`figPossede`, `veqFigsAMoi`), toute la carrière. L'argent, l'aura et les records ne bougent pas. Code inconnu :
 « CODE INCONNU ». ⚠ App Store (règle 2.3.1) : une fonction cachée doit être signalée dans les notes de review.
 
-## LE DOGE v2 (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
-La v1 (gros voxels, un kart) : « nul » — pas une vraie voiture, pas assez Doge, trop cubique et cheap — et « les textes à ajouter en trail carrément ».
-La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devant, tout en `nyLaque`), main plus fine :
-- LA CAISSE (« nickel la tête, travaille le modèle — une doge dodge ») : un MUSCLE CAR widebody en loft à facettes (13 points de section :
-  bas crème = l'urajiro, filet brun au flanc, épaule vive, vitrage en retrait, DEUX BANDES brunes capot → malle = la selle), élargisseurs à RIVETS
-  D'OR, capot à bossage + grosse prise d'air + extracteurs + goupilles, calandre noire de toute la largeur et DEUX PHARES À ANNEAU de chaque côté —
-  la tête sort de la calandre —, feu ROUGE sur toute la largeur avec la PIÈCE D'OR au milieu, becquet, deux sorties rectangulaires d'or, jantes
-  bronze à 5 branches. Aucun nom ni insigne de marque. ⚠ LE DÉFIEUR existe déjà (le muscle car orange) : le DOGE s'en distingue par la livrée,
-  le widebody riveté, les phares à anneau et la tête. Palette `nyl` (cuite, sans lumière) : jamais de teinte qui vire sous les ciels.
-- LE VISAGE EN 3D, RÉPARTI SUR LA CAISSE (2026-10-14, Léo : « le même effet que la tête 3D, pareil pour les animations ; les yeux agrandis sur
-  la vitre, un peu Cars mais pas trop, assez grands pour faire les deux côtés de la vitre ; les oreilles sur les deux coins du capot ; le petit nez
-  pointu qui dépasse, comme une Chevrolet ») — `dogeTete` retirée ; tout reste en VOLUME :
-  · les YEUX : deux globes (sphère colorée : blanc, iris brun, pupille, éclat) encastrés dans le pare-brise, une moitié chacun (`vitre(t)` lit le
-    point du pare-brise sur `S(z)`), couchés sur la vitre mais le globe tourné vers l'AVANT (`rotation.x` .38) ; PAUPIÈRE fauve en coque (`PAU`,
-    `pauR` : .42 blasé, 1,15 grande ouverte à la nitro, −1,2 au clignement), paupière basse crème, cerne d'encre, deux points crème des sourcils ;
-    le regard suit la caméra (repère `g`), coup d'œil de l'autre côté par moments ;
-  · les OREILLES (`dogeOreille`, champ de distance) dressées sur les deux coins avant du capot (×1,25) — elles tressaillent, se couchent à la nitro ;
-  · la TRUFFE (`dogeTruffe` : arrondie dessus, pointée vers l'avant, deux narines) en BEC au milieu de la calandre, qui dépasse ; la LANGUE dessous.
-  ⚠ Essayés et refusés : la tête qui sort de la calandre (v2), le visage PEINT dans le pare-brise (« ne perds pas la 3D »), la tête entière posée
-  à la place du pare-brise (on lisait un passager).
+## LE DOGE (2026-10-14, Léo) — LA GROSSE TÊTE DE SHIBA SUR ROUES — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
+Parcours (tout dans l'historique git) : gros voxels (« nul ») → coupé puis muscle car avec la tête 3D qui sort de la calandre (« nickel la tête ») →
+visage PEINT dans le pare-brise (« ne perds pas la 3D ») → tête à la place du pare-brise → visage réparti sur la caisse, yeux-globes dans la vitre,
+oreilles sur le capot (« terrifiant ») → Léo : « LA GROSSE TÊTE DE SHIBA, mais avec des roues, les mêmes roues, un peu plus jaune le truc au milieu ».
+- LA VOITURE EST LA TÊTE : `dogeTete` (juste avant `const SHAPES` ; champ de distance `DOGE_SDF` → `dogeNets` surface nets, lissé, couleurs de
+  Kabosu moyennées) ×1,75, posée en (0, 1,02, ,06) sur un châssis sombre, deux essieux, roues de bronze à 5 branches au centre JAUNE OR (`jante`
+  0xffc42e), deux sorties d'or sous la nuque. Fiche : h 2,0 · w 2,0 · l 2,3 (la caméra recule pour les caisses hautes).
+- LE REGARD : yeux-sphères (blanc, iris, pupille, éclat) qui suivent la caméra (repère `pivot`), coup d'œil de l'autre côté ; sourcils crème qui se
+  lèvent ; tête PENCHÉE (le mème) qui hoche en roulant ; LANGUE à la nitro.
 - LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
-  derrière (sprites monde, 18 max, 86 % de l'élan de la caisse). Traînée d'origine du DOGE (`fx.wow`) ET traînée de la boutique « WOW » (30 000 $,
-  `COSM.trainee`, `FX_EFF.wow`). Coupée avec l'arc-en-ciel (`rainbowCoupe`). Aperçu au garage (onglet TRAÎNÉES). Console `dbgWow()`.
-- Mesuré au banc : 60 i/s en course. ⚠ pas de `THREE.CapsuleGeometry` (r128). ⚠ c'est un mème (Kabosu / Doge) : même question que la Nyan avant une sortie.
+  derrière (sprites monde, 18 max). Traînée d'origine du DOGE (`fx.wow`) ET traînée de boutique « WOW » (30 000 $). Coupée avec l'arc-en-ciel.
+- Mesuré au banc : 60 i/s en course. ⚠ r128 : pas de `CapsuleGeometry`. ⚠ c'est un mème (Kabosu / Doge) : même question que la Nyan avant une sortie.
 
 ## LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP (2026-10-14, Léo : « en vol, la voiture tourne dans le sens de la route qu'elle a quittée ; il faudrait qu'elle quitte la route et qu'il y ait un effet réaliste de balance dans l'air — équilibré ; selon l'endroit du joystick, la voiture se pivote et se dirige » + « un trick que tu choisis, qui s'actionne quand j'appuie deux fois rapidement sur le booster »)
 Bloc « LE VOL ÉQUILIBRÉ » juste après `const FLY_U` (`VEQ_K` = tous les réglages, `VEQ` = l'état). `?vol=ancien` / `dbgVol('ancien'|'neuf')` = le vol
