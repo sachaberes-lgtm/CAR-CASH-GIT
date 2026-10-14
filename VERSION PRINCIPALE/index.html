@@ -48337,6 +48337,7 @@ function foudreTick(dt,sp){
 // l'impact laisse le CRATÈRE de la figure MÉTÉORE en version légère. TOUCHÉ = −40 % de vitesse, du flow perdu, la gerbe te
 // soulève (gravité lunaire : ça plane) ; ESQUIVÉ de près = aura, un peu de nitro, et la série fait monter la mise. Sous la dalle : à l'abri.
 // La pluie se durcit vers le portail (≈ 3,4 s entre deux chutes au départ, 1,9 s à la fin) ; le couloir d'un tremplin est épargné.
+const DEB_ON=/[?&]debris=1/.test(location.search); /* (2026-10-15, Sacha : « enlève la pluie de satellites dans l'espace ») la pluie de débris s'éteint — l'orbite garde ses Starlink dans le décor ; `?debris=1` la rallume */
 const DEB_T=1.5,DEB_R=7.5; // DEB_T : le préavis — le temps de LIRE la cible et de braquer, au pouce ; en dessous c'est une loterie
 const DEB=(function(){
   const cvT=function(w,h,f){const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);return new THREE.CanvasTexture(cv);};
@@ -48409,7 +48410,7 @@ function debFrappe(){
 function debK(){const c=LVL.cur;return c&&c.carr&&c.id==='espace'?1-.045*Math.min(9,c.carr.i|0):1;}
 function debTick(dt){
   const D=DEB;
-  if(!(gK()<1)||!started||TUTO.on){if(D.on)debCache();return;} // seulement en orbite (gK : l'espace, hors parc)
+  if(!DEB_ON||!(gK()<1)||!started||TUTO.on){if(D.on)debCache();return;} // seulement en orbite (gK : l'espace, hors parc)
   if(!D.on){
     if(mode==='drive'&&side>0&&!introD){D.prochain-=dt;
       if(D.prochain<=0){const prog=THREE.MathUtils.clamp(s/L,0,1),ok=debArme();
