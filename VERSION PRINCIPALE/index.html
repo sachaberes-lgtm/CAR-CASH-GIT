@@ -9662,12 +9662,14 @@ const PLANET_DIR=new THREE.Vector3(-.76,.11,.64).normalize(); // BASSE et DÉPOR
 // ON EST AU RAS DE L'ATMOSPHÈRE : la Terre n'est plus une bille dans le ciel mais un MONDE dont on
 // voit la COURBURE (~40° d'arc ≈ la moitié de la hauteur d'écran), posé bas, avec son limbe qui brille.
 const PLANET_R=1560,PLANET_D=3400; // ~62 % de la hauteur : la demi-sphère barre franchement le ciel — on rase l'atmosphère
+const TERRE_VOLUTES=true; // (2026-10-14, passe graphismes) interrupteur d'UNE ligne : les volutes blanches peintes sur la Terre (les seuls « nuages » qu'on voie en orbite — buildClouds/buildCoton/mkCloud n'y créent rien, lvlNuageOk dit non). false = Terre sans nuages. Laissé à true en attendant la réponse de Sacha (QUESTIONS.md).
 const planetGroup=(function(){
   const g=new THREE.Group();
   // texture : océans profonds, continents verts, calottes blanches et volutes nuageuses
   // TEXTURE ÉQUIRECTANGULAIRE d'après la réf : EUROPE + AFRIQUE, océan azur vif, Sahara ocre,
   // massifs enneigés, récifs et fosses. Tout est procédural (aucun asset) mais géographiquement lisible.
   const W9=1024,H9=512,cv=document.createElement('canvas');cv.width=W9;cv.height=H9;const x=cv.getContext('2d');
+  const paintTerre=function(x){ // (2026-10-14, passe graphismes) la peinture de la Terre, mise en fonction pour pouvoir REPEINDRE la même toile (même taille) quand la variante d'orbite change de planète (voir PLANETES) — le corps est inchangé
   const oc=x.createLinearGradient(0,0,0,H9); // OCÉAN : azur vibrant, plus profond aux pôles
   oc.addColorStop(0,'#0a3f7d');oc.addColorStop(.30,'#1370cf');oc.addColorStop(.5,'#1b8ae6');
   oc.addColorStop(.70,'#1370cf');oc.addColorStop(1,'#0a3f7d');
@@ -9699,11 +9701,12 @@ const planetGroup=(function(){
   }
   x.fillStyle='rgba(238,248,255,.95)';x.fillRect(0,0,W9,26);x.fillRect(0,H9-26,W9,26); // calottes polaires
   x.globalAlpha=.46;x.fillStyle='#ffffff';                                   // volutes nuageuses en bandes
-  for(let i=0;i<54;i++){
+  for(let i=0;i<(TERRE_VOLUTES?54:0);i++){
     const cx=Math.random()*W9,cy=34+Math.random()*(H9-68),w=40+Math.random()*130;
     x.beginPath();x.ellipse(cx,cy,w,7+Math.random()*13,(Math.random()-.5)*.5,0,6.2832);x.fill();
   }
   x.globalAlpha=1;
+  };const peintTerre=function(x){const r0=Math.random;Math.random=planetesAlea(77);try{paintTerre(x);}finally{Math.random=r0;}};peintTerre(x); // (graine fixe : la Terre est la même à chaque repeinte)
   const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;texLibere(tex); // (2026-10-14, passe perf mobile) 1024 × 512 peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
   // ⚠ le grade final (expo + saturation + bloom) BRÛLE tout ce qui est clair : mesurée à [253,231,239],
   // la planète ressortait BLANCHE. On la rentre donc volontairement sombre — c'est le post qui la rallume.
@@ -9785,6 +9788,7 @@ const planetGroup=(function(){
      de profondeur) : la route, les caisses, la ville les masquent ; le ciel, lui, est plus loin qu'eux. */
   atmo.material.depthTest=true;halo.material.depthTest=true;
   g.userData.globe=globe;g.userData.atmo=atmo;g.userData.halo=halo;
+  g.userData.tex=tex;g.userData.peintTerre=peintTerre;g.userData.W9=W9;g.userData.H9=H9;g.userData.peint='terre'; // (2026-10-14, passe graphismes) de quoi repeindre la toile (planetesPeint)
   scene.add(g);return g;
 })();
 /* <<<FIN CIEL>>> */
@@ -19894,6 +19898,66 @@ const SF_CARTES={
     pluie:{bio:'jadePluie',pluie:.75,sheen:.2},orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'},satellites:{niv:'satellites',p:.5}}} // ni nuages, ni pluie, ni orage (Sacha)
 };
+/* ==========================================================================
+   (2026-10-14, passe graphismes · agent planetes) LES PLANÈTES DE L'ORBITE — Sacha : « on peut mettre différentes planètes du système
+   solaire à la place de la Terre ». DÉMONSTRATION : MARS sur la variante MIDI d'EN ORBITE ; matin, soir et satellites gardent la Terre.
+   Le MÊME globe, le MÊME shader (globeJourNuit2) : seuls changent le CONTENU de la toile 1024×512 (repeinte UNE fois, au portail —
+   newTrack → lvlChoisir → lvlAstre —, jamais en course), la teinte multiplicative du globe et la couleur du limbe. Rien en plus au dessin.
+   Interrupteur : `PLANETES_ON=false` → le jeu redevient exactement celui d'avant (Terre partout, aucune repeinte).
+   ========================================================================== */
+const PLANETES_ON=true;
+const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile
+  terre:{teinte:0x55708c,atmo:0x8fd4ff,limbe:0x6fc0ff},
+  mars:{teinte:0x72625a,atmo:0xd09064,limbe:0xc07a52,peint:'mars'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
+if(PLANETES_ON)SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars); // midi seulement (la démonstration) : les trois autres variantes restent la Terre
+function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
+function planetesMars(x,W,H){ // MARS : rouille et ocre, mers sombres, poussière claire, une faille, quelques cratères, deux calottes. AUCUN nuage (Sacha).
+  const R=planetesAlea(4242),rd=function(a,b){return a+R()*(b-a);};
+  const fond=x.createLinearGradient(0,0,0,H); // plus clair et plus ocre vers les pôles
+  fond.addColorStop(0,'#cf9a72');fond.addColorStop(.17,'#b8663f');fond.addColorStop(.5,'#a94a28');fond.addColorStop(.83,'#b8663f');fond.addColorStop(1,'#cf9a72');
+  x.fillStyle=fond;x.fillRect(0,0,W,H);
+  const tache=function(cx,cy,rx,ry,rot,col,a){ // une tache DOUCE (dégradé radial), recopiée de part et d'autre si elle coupe le bord (la toile se raccorde)
+    for(let k=-1;k<=1;k++){const X=cx+k*W;if(X+rx<0||X-rx>W)continue;
+      x.save();x.translate(X,cy);x.rotate(rot);x.scale(1,ry/rx);
+      const g=x.createRadialGradient(0,0,0,0,0,rx);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(.6,'rgba('+col+','+(a*.7)+')');g.addColorStop(1,'rgba('+col+',0)');
+      x.fillStyle=g;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();}};
+  for(let i=0;i<11;i++)tache(rd(0,W),rd(90,430),rd(80,190),rd(34,80),rd(-.5,.5),'240,184,132',rd(.42,.62)); // poussière claire (Arabia, Hellas…)
+  for(let i=0;i<13;i++)tache(rd(0,W),rd(90,430),rd(70,170),rd(30,70),rd(-.6,.6),'70,30,20',rd(.7,.9)); // les mers sombres (Syrtis, Acidalia…) : franches, le grade final aplatit tout (mesuré : à .5-.7 elles ne se lisaient pas)
+  for(let i=0;i<26;i++)tache(rd(0,W),rd(80,440),rd(16,44),rd(10,24),rd(-.8,.8),'84,36,24',rd(.45,.7)); // taches fines
+  tache(700,372,95,70,0,'236,204,176',.65);tache(190,228,34,28,0,'238,196,156',.8); // un grand bassin clair, un volcan clair
+  x.lineCap='round';x.strokeStyle='rgba(66,28,20,.8)';x.lineWidth=5; // la grande faille équatoriale (Valles Marineris)
+  x.beginPath();x.moveTo(262,266);for(let i=1;i<=9;i++)x.lineTo(262+i*21,266+Math.sin(i*1.3)*7+i*1.4);x.stroke();
+  x.strokeStyle='rgba(66,28,20,.5)';x.lineWidth=3;x.beginPath();x.moveTo(300,258);for(let i=1;i<=6;i++)x.lineTo(300+i*20,258+Math.sin(i*1.9)*5+i*2.2);x.stroke();
+  x.lineWidth=1.6; // cratères : un anneau sombre, un reflet clair de l'autre côté (retenue : peu, et petits)
+  for(let i=0;i<70;i++){const cx=rd(0,W),cy=rd(60,H-60),r=rd(3,9);
+    x.strokeStyle='rgba(60,28,20,.38)';x.beginPath();x.arc(cx,cy,r,0,6.2832);x.stroke();
+    x.strokeStyle='rgba(240,200,160,.30)';x.beginPath();x.arc(cx+1,cy+1,r,.4,2.4);x.stroke();}
+  for(let i=0;i<700;i++){x.fillStyle=R()<.5?'rgba(60,28,20,.13)':'rgba(236,190,150,.13)';const s=1+R()*2;x.fillRect(rd(0,W),rd(0,H),s,s);} // le grain de la poussière
+  for(const haut of [1,0]){ // calottes polaires : irrégulières, petites, d'un blanc rosé (jamais un blanc de Terre)
+    const y0=haut?0:H;x.fillStyle='rgba(248,238,230,.96)';
+    for(let i=0;i<46;i++){x.beginPath();x.arc(rd(0,W),y0+(haut?1:-1)*rd(0,12),rd(10,26),0,6.2832);x.fill();}
+    x.fillRect(0,haut?0:H-12,W,12);}
+}
+const PLANETES_PEINTRES={mars:planetesMars};
+function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
+  const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
+function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
+  const g=planetGroup.userData,nom=(a&&a.peint)||'terre';
+  try{PLANET_BLEU.setHex(a&&a.limbe!=null?a.limbe:0x6fc0ff);}catch(e){} // le limbe au repos prend la couleur de l'atmosphère de CETTE planète
+  if(g.peint===nom)return;
+  const cv=document.createElement('canvas');cv.width=g.W9;cv.height=g.H9;const x=cv.getContext('2d');
+  if(nom==='terre')g.peintTerre(x);else (PLANETES_PEINTRES[nom]||g.peintTerre)(x,g.W9,g.H9);
+  g.tex.image=cv;g.tex._lib=0;texLibere(g.tex);g.tex.needsUpdate=true;g.peint=nom;}
+let planetesCache=null;
+window.dbgPlanete=function(nom,o){ // banc : peint la planète `nom` tout de suite, réglages à chaud o={teinte,atmo,limbe} ; o.vue = cadre la planète et re-rend une image (course en pause) ; vue:2 = SEULE (ni route, ni voiture, ni lune) ; '?' = laquelle est peinte
+  if(planetesCache){for(const c of planetesCache)c[0].visible=c[1];planetesCache=null;}
+  if(nom==='?')return {peint:planetGroup.userData.peint};
+  const base=PLANETES[nom||'terre'];if(!base)return Object.keys(PLANETES);
+  const a=Object.assign({},base,o||{}),g=planetGroup.userData;g.globe.material.color.setHex(a.teinte);g.atmo.material.color.setHex(a.atmo);planetesPeint(a);
+  if(o&&o.vue){camera.lookAt(planetGroup.position);camera.updateMatrixWorld();
+    if(o.vue===2){planetesCache=scene.children.map(function(c){return [c,c.visible];});for(const c of scene.children)if(c!==planetGroup&&c!==skyDome)c.visible=false;}
+    if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
+  return {peint:g.peint,teinte:a.teinte,atmo:a.atmo,limbe:a.limbe};};
 function sfNiveau(c,m){ // le NIVEAU d'un couple map × météo, sous la forme que lit tout le jeu (id, bio, pluie, nuit, route…)
   const C=SF_CARTES[c],M=C.m[m],B=SF_NIV[M.niv||C.base];
   const o=Object.assign({},B,M,{nm:C.nm,mt:SF_METEOS[m],carte:c,meteo:m,sansFin:1,graine:0}); // graine 0 : une piste neuve à chaque fois (la jade comprise)
@@ -19948,7 +20012,7 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   /* (2026-10-13, Sacha) LE MODE CLASSIQUE AU HASARD — en course (et sous le voile du JOUER : SF.pret) ; la piste du MENU garde NIVEAUX[0] et son ciel */
   if(SF.on&&(started||SF.pret)){const zn=Math.max(0,z-(LVL.tutoZ|0));let t=SF.tirage[zn];
     if(!t){t=SF.tirage[zn]=SF.force?sfImpose(SF.tirage[zn-1]||null):sfTire(SF.tirage[zn-1]||SF.der);SF.der=t;}
-    LVL.cur=sfNiveau(t.carte,t.meteo);LVL.n=zn+1;lvlAstre(null);return LVL.cur;}
+    LVL.cur=sfNiveau(t.carte,t.meteo);LVL.n=zn+1;lvlAstre(LVL.cur.astre||null);return LVL.cur;} // (2026-10-14, passe graphismes) la variante peut porter sa planète (PLANETES)
   {const zn=Math.max(0,z-(LVL.tutoZ|0));LVL.cur=NIVEAUX[zn%NIVEAUX.length];LVL.n=zn+1;lvlAstre(null);}
   return LVL.cur;
 }
@@ -20888,7 +20952,9 @@ function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
 const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
+  if(PLANETES_ON&&planetesGarde(a))return; // (2026-10-14, passe graphismes) PLANETES
   g.globe.material.color.setHex(a.teinte);g.atmo.material.color.setHex(a.atmo);
+  if(PLANETES_ON)planetesPeint(a); // la toile et le limbe suivent la planète du niveau
 }
 function carrFait(bi){return Math.max(0,Math.min(CARRIERE[bi].niveaux.length,((SAVE.d.carr||{})[CARRIERE[bi].id])|0));}
 function carrMarque(bi,i){ // le niveau i vient d'être TERMINÉ
