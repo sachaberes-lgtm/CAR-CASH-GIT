@@ -17964,13 +17964,6 @@ Object.assign(I18N_ZH,{"MULTI MAX":"最高倍数","Fini l'entraînement : tu as 
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
 Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"});Object.assign(I18N_ZH,{"POUCE HAUT":"拇指向上","REVOIR":"重温","AUTO-ECOLE":"驾校"}); /* (2026-10-14, charte 6) les réglages : « POUCE HAUT EN VOL » et « REVOIR L'AUTO-ECOLE » raccourcis (une ligne = un nom + une valeur) */
 Object.assign(I18N_ZH,{"MODE FACILE": "简单模式", "POUCE HAUT EN VOL": "空中拇指向上", "PLONGE": "俯冲", "MONTE": "爬升", "CHOISIS TON MODE": "选择模式", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "简单模式：车更容易过弯，空中停留更久，还有 3 条命。可以在设置里更改。", "FACILE": "简单", "NORMAL": "普通", "VIES": "条命", "DERNIERE VIE !": "最后一条命！", "ON REPART !": "重新上路！", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "空中：拇指向上 = 爬升，向下 = 俯冲。"});
-// (POKI) les textes propres à l'édition Poki (les habillages des anciens carnets, l'effacement sans missions ni carrière)
-if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"Twenty-four carats on the bodywork. Subtle, like you.",
-  "Toutes les couleurs à la fois. Personne ne t'oublie.":"Every colour at once. Nobody forgets you.",
-  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, records and settings: everything starts over."});
- Object.assign(I18N_ZH,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"车身镀上二十四K金。低调，就像你。",
-  "Toutes les couleurs à la fois. Personne ne t'oublie.":"所有颜色一次到齐。没人会忘记你。",
-  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"金钱、赛车、外观、纪录和设置：全部清零。"});}
 // (2026-09-29) écran de fin v5
 Object.assign(I18N_ZH,{"MEILLEUR": "最佳", "COMPTE": "账户"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
@@ -18784,13 +18777,6 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   {id:'ville', nm:'MINUIT EN VILLE',      bio:['nuitNoire'],           planete:0,   espace:0,pluie:.55,cielMusical:true,route:.42,sheen:.2,nuit:1,pr:'PLEINS PHARES'}, // (2026-09-30, Sacha) le 5e : la VILLE plus tard, après l'orage — très sombre, des PHARES PUISSANTS (id 'ville' : toute la ville suit ; `nuit` ne change que la lumière — voir « MINUIT EN VILLE »)
   {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard)
 ];
-/* (POKI, 2026-10-05, Sacha : « mets la map de la ville en premier puis nuage en deux, fais pareil pour les versions hardcore ») : dans
-   l'édition Poki la VILLE ouvre la partie et les NUAGES viennent en 2e ; côté hardcore, MINUIT EN VILLE passe devant L'ORAGE. On ÉCHANGE
-   les places (chaque niveau trouvé par son id, pas par sa place) : un niveau ajouté plus tard sur main garde la sienne. La version
-   principale garde son ordre (NUAGES en 1er, verdict du 25/09). L'auto-école (zone 0) garde son ciel d'aurore, quel que soit l'ordre. */
-if(POKI){const ech=function(a,b){const i=NIVEAUX.findIndex(a),j=NIVEAUX.findIndex(b);if(i>=0&&j>=0&&i<j){const t=NIVEAUX[i];NIVEAUX[i]=NIVEAUX[j];NIVEAUX[j]=t;}};
-  ech(function(n){return n.id==='nuages';},function(n){return n.id==='ville'&&!n.nuit;});
-  ech(function(n){return n.id==='orage';},function(n){return n.id==='ville'&&n.nuit;});}
 /* ============================================================================
    LE MODE CLASSIQUE AU HASARD (2026-10-13, Sacha : « il faut que les biomes soient aléatoires — montagne chinoise, nuages, ville… — et
    que la suite soit aléatoire, indépendante de la météo : la map, le biome, et la météo. À chaque fois qu'on passe un portail ou qu'on
@@ -18805,12 +18791,12 @@ if(POKI){const ech=function(a,b){const i=NIVEAUX.findIndex(a),j=NIVEAUX.findInde
    MODE CLASSIQUE », près de BIOMES) et les leviers de toujours : la pluie (LVL.pluie : le rideau, la route mouillée), la nuit (LVL.nuit :
    les phares), l'orage (`orage` : les éclairs d'orageTick, partout sauf dans l'espace). Les PICS DE JADE y sont un niveau COMPLET (le
    SOLEIL DE JADE : pièces ¥, ses fruits, sa musique GLISSE V2) dont le portail mène à la suite au lieu de l'ARRIVÉE.
-   PARIS reste hors de la partie sans fin (Sacha, 10/10). L'édition POKI garde son cycle fixe ; `?classique=cycle` le rend aussi ici,
+   PARIS reste hors de la partie sans fin (Sacha, 10/10). `?classique=cycle` rend le cycle fixe,
    et `?play=sansfin` (le simulateur de Léo : sa « PARTIE SANS FIN » clique JOUER et attend la MER DE NUAGES) le garde.
    Le tirage d'une partie est tenu dans `SF.tirage` (un couple par zone) : la piste bâtie sous le voile du JOUER est celle qu'on roule.
    Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
    ========================================================================== */
-const SF={on:!POKI&&!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null};
+const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null};
 {const q9=/[?&]carte=(\w+)/.exec(location.search),m9=/[?&]meteo=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null};}
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
   ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
@@ -20047,7 +20033,7 @@ function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.a
      des portails), les fins de monde (le monde suivant, comme REJOUER), et un toucher dans la carrière (`carrChoisit`).
    · Rien de choisi : le niveau en cours du 1er monde (celui de sa carte). L'auto-école qui attend (1re partie, REVOIR L'AUTO-ÉCOLE) :
      AURORE, le niveau 1, qui l'arme lui-même (carrLancerSous) — l'ancien JOUER l'armait par tutoArme.
-   · La partie sans fin d'avant reste à qui l'a demandée : le PARC ou le SURVIVANT armés dans MODES, Poki (pas de carrière) et la vitrine
+   · La partie sans fin d'avant reste à qui l'a demandée : le PARC ou le SURVIVANT armés dans MODES et la vitrine
      `?menu=leo` (sa vignette dit le niveau sans fin) — `carrPlayOk()`. */
 function carrPlayOk(){return PLAY_CARR&&HUB&&!PARK.on&&!SURV.armed;} /* (2026-10-08) éteint par défaut : voir PLAY_CARR */
 function carrSelPose(bi,i){const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;const s=SAVE.d.carrSel;
@@ -27420,17 +27406,6 @@ const CAR_UNLOCK=[
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
 ]
-/* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
-   des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE
-   juste après les communes… LE MASTODONTE parmi les épiques), les deux trophées de la carrière en haut des épiques, les LÉGENDAIRES de la
-   boutique AU-DESSUS de LA RAIE (2,5 M), rangées par leur ancien prix en euros. Leur famille suit : LÉGENDAIRE reste légendaire (la
-   couleur or), une caisse « défi » devient ce que son prix dit (rare / épique). POSTER 84 (rang d'aura) reste un DÉFI : il se gagne au style. */
-if(POKI){const PRIX_CARNET={1:30e3,2:80e3,3:220e3,6:420e3,7:700e3,8:1.05e6,9:1.45e6},PRIX_CARR={carrN:1.8e6,carrV:2.2e6};
-  CAR_UNLOCK.forEach(function(u,i){if(!u||!u.k)return;const c=CARS[i];let p=0;
-    if(u.k==='premium'){p=Math.round((2e6+(parseFloat(String(u.eur).replace(',','.'))||5)*450e3)/1e5)*1e5;if(c)c.rar='legendaire';}
-    else if(u.k==='carnet')p=PRIX_CARNET[u.v]||Math.round(300e3*u.v/1e5)*1e5;
-    else if(PRIX_CARR[u.k])p=PRIX_CARR[u.k];
-    if(!p)return;CAR_UNLOCK[i]={p:p};if(c&&c.rar==='defi')delete c.rar;});}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
    ----------------------------------------------------------------------------
@@ -27514,7 +27489,7 @@ function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE 
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
-const TEST_CAISSES=!POKI; // (POKI) la version publique : les caisses se GAGNENT
+const TEST_CAISSES=true; // false : les caisses se GAGNENT (c'était l'édition des portails, retirée le 14/10)
 function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i));}
 /* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
    pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était
@@ -28626,7 +28601,6 @@ function misOn(){return started&&!gameOver&&!SANDBOX&&!PARK.on;}
 function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIRECT, pas à la fin
   if(!misOn()){if(misTick._f!==0){misTick._f=0;try{misFocusMaj();}catch(e){}}return;} // (2026-09-30) la mission suivie s'éteint hors course
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
-  if(POKI)return; // (POKI) pas de missions : les compteurs de la partie tournent (écran de fin), aucun défi ne se coche
   misT-=dt;if(misT>0)return;misT=.25;
   const s=misEtat(),c=carnet(s.n);
   for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
@@ -28643,7 +28617,6 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
    compteurs d'une partie déjà bien entamée, et ses missions tomberaient toutes seules — gagnées sans
    avoir été lues. Rend la récompense (pour l'écran de mort) ou null. */
 function misFin(){
-  if(POKI)return null; // (POKI) pas de carnet à refermer (une vieille sauvegarde aux trois défis cochés n'y ouvre rien)
   const s=misEtat();if(!(s.ok[0]&&s.ok[1]&&s.ok[2]))return null;
   const c=carnet(s.n),r=c.r;
   if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
@@ -28775,20 +28748,6 @@ let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (n
    (plein), ce que la partie vient d'y verser (qui se remplit sous les yeux), et ce qu'il manque. */
 function objRender(el){
   if(!el)return;
-  /* (POKI) PAS DE PORTE DES MISSIONS : l'écran de mort montre L'OBJECTIF D'ACHAT — la prochaine caisse (ou le prochain habillage) à
-     s'offrir, sa photo, la barre du compte qui se remplit sous les yeux ; touché, le garage s'ouvre dessus (`buyGoal`). Tout acquis : rien. */
-  if(POKI){const o=objectif();
-    if(!o){el.className='mObj';el.removeAttribute('data-m');el.innerHTML='';return;} // :empty → masqué
-    const b=bank(),pret=b>=o.prix,w=Math.min(100,b/Math.max(1,o.prix)*100),fig=objFig(o);
-    el.className='mObj misPorte'+(fig?' aFig':'');el.setAttribute('data-m','buyGoal');
-    try{el.style.setProperty('--rc',o.car!=null?rarInfo(carRar(o.car)).c:(MIS_CAT_COL[o.cat]||'#ffffff'));}catch(e){}
-    el.innerHTML='<div class="obHd"><span>'+pxi(pret?'coche':o.car!=null?'voiture':'piece')+' '+TR(pret?'TU PEUX TE L\'OFFRIR':'OBJECTIF')+'</span></div>'
-      +fig+'<div class="obBig">'+TR(o.nom)+'</div>'
-      +'<div class="obBar'+(pret?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
-      +'<div class="obFt"><span>'+fmtC(Math.min(b,o.prix))+' / '+fmtC(o.prix)+'</span><span class="obGain"><b>'+TR('VOIR')+'</b>'+pxi('droite')+'</span></div>';
-    const gi=el.querySelector('.obBar i');
-    setTimeout(function(){requestAnimationFrame(function(){if(gi)gi.style.width=gi.dataset.w+'%';});},REDUCED_MOTION?0:520);
-    return;}
   if(MIS_REC){const r=MIS_REC;
     el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
     // (2026-09-28, console de son) CARNET BOUCLÉ — la récompense la plus rare : la carte arrive à 490 ms, UNE fois par mort
@@ -29171,10 +29130,6 @@ const COSM={
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}] // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
 };
-if(POKI){ // (POKI) sans missions, les deux habillages des carnets s'achètent, au sommet de leur rayon
-  const o9=COSM.peinture.find(function(d){return d.id==='or';}),a9=COSM.trainee.find(function(d){return d.id==='arcenciel';});
-  if(o9){delete o9.mis;o9.p=150000;o9.d='Vingt-quatre carats sur la carrosserie. Discret, comme toi.';}
-  if(a9){delete a9.mis;a9.p=40000;a9.d='Toutes les couleurs à la fois. Personne ne t\'oublie.';}}
 /* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
    (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
    « équipée » ne veut rien dire pour une figure : toutes celles qu'on a JOUENT (le double-tap tire au hasard parmi elles). */
@@ -40425,7 +40380,7 @@ for(const [k,v,z] of [['SILLAGE','SLIPSTREAM','尾流'],['ELLE MENE DE','SHE LEA
 window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état des éclairs · dbgOrage('eclair') en fait tomber un tout de suite
   if(q==='eclair'){if(!(LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))||CAMP.n)return 'pas au niveau orage';eclFrappe();ECL.t=6;}
   return {lieu:LVL.cur&&LVL.cur.id,flash:+CAMP_FLASH.toFixed(3),brumeOuverte:Math.round(CAMP_FOG),prochain:+ECL.t.toFixed(2),pluie:+LVL.pluie.toFixed(2),brume:[Math.round(scene.fog.near),Math.round(scene.fog.far)],bancs:CLOUDS.filter(function(c){return c.onRoad||c.mesh&&c.mesh.userData.trav;}).length,nuages:CLOUDS.length};};
-function jadePlayOk(){return JADE_PLAY&&!POKI&&!PARK.on&&!SURV.armed&&!!(SAVE.d.tuto||SAVE.d.permis);} // un tout premier joueur passe d'abord par l'auto-école
+function jadePlayOk(){return JADE_PLAY&&!PARK.on&&!SURV.armed&&!!(SAVE.d.tuto||SAVE.d.permis);} // un tout premier joueur passe d'abord par l'auto-école
 function jadeJouer(){ // (2026-10-12) lancer le SOLEIL DE JADE — le chemin de la carrière : la piste sous le voile (si elle n'est pas déjà là), l'atelier, le lâcher
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
   JADE_JEU=true;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
@@ -41985,7 +41940,7 @@ function buildGarageRoom(){
      néon VERT (la couleur des défis), coiffée d'une cible qui tourne. Au sol, HORS du plateau (il ne tourne pas avec la caisse), côté
      porte, à 3,8 m du centre : la plus longue caisse (6 m) balaie 3,2 m. x < 0 = à DROITE de l'écran (la caméra regarde la porte, +Z).
      Son étiquette MISSIONS est du DOM qui le suit à l'écran (#gMisAncre, garMenuSuit) : un vrai bouton, net, traduit, accessible. */
-  if(!POKI){const n9=g.children.length,sx=-2.9,sz=2.5,vert=BA(0x5ee37a); // (POKI) pas de missions : pas de socle
+  {const n9=g.children.length,sx=-2.9,sz=2.5,vert=BA(0x5ee37a);
    cy(sx,.62,sz,.42,1.24,M.fer);cy(sx,1.27,sz,.47,.07,M.acier);cy(sx,.08,sz,.5,.16,M.acier);
    for(const y9 of [.34,.98])cy(sx,y9,sz,.435,.06,vert);                                   // deux cerclages néon
    const ci=new THREE.Group();ci.position.set(sx,1.78,sz);g.add(ci);GAR.misCible=ci;GAR.misPos=new THREE.Vector3(sx,2.28,sz);
@@ -42931,7 +42886,7 @@ function garAtelierTick(dt,ay){
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
    ouvre la BOUTIQUE. Visible replié (#garage.consoleCachee) et en INVENTAIRE (.modeInv, la vue d arrivée : sous l inventaire, au-dessus des touches). */
-try{if(!POKI&&gEl){const gb=document.getElementById('gBottom'),ga=document.getElementById('gAct');if(gb&&ga&&!document.getElementById('gRappel')){
+try{if(gEl){const gb=document.getElementById('gBottom'),ga=document.getElementById('gAct');if(gb&&ga&&!document.getElementById('gRappel')){
   const r=document.createElement('div');r.id='gRappel';r.className='pbtn';r.setAttribute('role','button');r.setAttribute('aria-label',sansAcc(TR('OFFRES ÉPHÉMÈRES')));
   r.innerHTML=pxi('cadeau')+'<span data-fr="OFFRES ÉPHÉMÈRES">'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><b class="grT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b>'+pxi('droite');
   gb.insertBefore(r,ga);
@@ -42955,11 +42910,11 @@ function gVueSeule(on){if(!gEl)return;on=!!on;if(gEl.classList.contains('vueSeul
   const b=document.getElementById('gOeil');if(b)b.setAttribute('aria-pressed',on?'true':'false');}
 /* (2026-10-11, passe UX) LE PANNEAU QUI FLOTTE : HOME et l'ŒIL quittent la console (#gAct, coupée par le clip-path du panneau) pour #gFlot,
    posé sur la scène (voir <style id="uxPasse">). Mêmes éléments, mêmes écouteurs. --gPanB = la hauteur du panneau depuis le bas de l'écran :
-   debout, la paire se pose juste au-dessus. Pas chez Poki (sa console garde sa rangée). */
+   debout, la paire se pose juste au-dessus. */
 /* (2026-10-11, Léo : « remets comme avant ») HOME et l'ŒIL restent dans la console (#gAct) : plus de #gFlot */
 /* (2026-10-11, Léo : « reviens comme avant : l'argent et l'aura à leur place, HOME et l'œil au-dessus d'INVENTAIRE · BOUTIQUE ») le coin #gCoin est retiré ;
    (même soir) HOME et l'ŒIL dans leur rangée à eux (#gRang1), au-dessus d'INVENTAIRE · BOUTIQUE, sur la largeur des deux : voir « LA RANGÉE HOME + ŒIL » */
-try{if(!POKI&&gEl){const ac=document.getElementById('gAct'),r1=document.createElement('div');r1.id='gRang1';
+try{if(gEl){const ac=document.getElementById('gAct'),r1=document.createElement('div');r1.id='gRang1';
   for(const id of ['gHomeBas','gOeil']){const b9=document.getElementById(id);if(b9)r1.appendChild(b9);}
   if(ac)ac.insertBefore(r1,ac.firstChild);}}catch(e){}
 try{document.getElementById('gOeil').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic(gEl.classList.contains('vueSeule')?'on':'off');gVueSeule(!gEl.classList.contains('vueSeule'));});}catch(e){}
@@ -46246,7 +46201,7 @@ try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.cl
    (même soir, Sacha a tranché : « je préfère ma version de l'interface finalement ») — le DÉFAUT est la version de Sacha : ses boutons,
    son écran MISSIONS rangé (f474c51, rétabli à côté de celui de Léo : gmRenderS/gmPlace/gmSuitS, CSS sous html.misS) et sa porte fermée.
    La version de Léo reste ENTIÈRE derrière `?menu=leo` (menu du sketch, ses missions, la porte relevée). ?menu=sacha marche toujours. */
-const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujours le menu de Sacha
+const MENU_SACHA=!/[?&]menu=leo\b/.test(location.search);
 /* ================= LE GARAGE, HUB DES TROIS (2026-10-06) =================
    Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage doit servir de hub aux 3 ».
    · L'ACCUEIL : la porte des MISSIONS devient la PORTE DU GARAGE (même place, même largeur, à côté du ⚙) ; la BOUTIQUE la rejoint en
@@ -46255,8 +46210,8 @@ const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujou
    · LE GARAGE : une barre ATELIER · MISSIONS · CARRIÈRE (#gHub), au MÊME endroit sur les trois pages. Chaque page garde sa rangée
      d'actions (HOME à gauche, JOUER en or à droite ; la carrière, elle, se joue en touchant un monde) ; la carrière ouverte du hub
      remplace son RETOUR par HOME — on ne « revient » pas d'un onglet, on en change.
-   · ?menu=leo (sa vitrine) et Poki (pas de missions ni de carrière) : rien ne change. */
-const HUB=MENU_SACHA&&!POKI;
+   · ?menu=leo (sa vitrine) : rien ne change. */
+const HUB=MENU_SACHA;
 /* (2026-10-08, Sacha : « maintenant quand on clique sur JOUER on lance les niveaux au lieu de lancer le mode classique ») LE PLAY REDEVIENT
    LE MODE CLASSIQUE (la partie sans fin), et la CARRIÈRE relance ses niveaux au toucher, comme avant le 7/10. « LE NIVEAU DES PLAY » de
    Léo (PLAY = la map de carrière choisie, la carrière qui CHOISIT au lieu de lancer, la pastille JOUER, la petite ligne sous PLAY) est
@@ -46283,7 +46238,7 @@ if(HUB){document.documentElement.classList.add('hub');
      d'ici qu'on rejoint les missions et la carrière.
    · RANGÉE 2 (`.mAccP`) : ⚙ · JOUER (le mot d'or, un cran plus petit) · la BOUTIQUE en € (gardée : c'est la seule porte du shop payant).
    · Les vraies touches sont DÉPLACÉES (leurs écouteurs, leur badge, leur aiguillage `data-m` restent) ; MISSIONS et CARRIÈRE sont neuves
-     (l'aiguilleur de la coque lit `data-m` : 'mis', 'carr'). ?menu=leo et Poki ne passent pas ici (HUB faux). */
+     (l'aiguilleur de la coque lit `data-m` : 'mis', 'carr'). ?menu=leo ne passe pas ici (HUB faux). */
 if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.querySelector('.mHubPorte'),ge=ou&&ou.querySelector('.mGear'),
     sh=ou&&ou.querySelector('.mHubShop'),pl=hm&&hm.querySelector('.mPlay');
   if(ou&&gar&&ge&&sh&&pl){hm.classList.add('acc2');
