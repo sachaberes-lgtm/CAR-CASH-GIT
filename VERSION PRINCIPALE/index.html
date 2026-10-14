@@ -7987,6 +7987,13 @@ html.c6 #gBqUne .bqUf,html.c6 #gBqUne.vert .bqUf{height:40px}
 html.c6 #gBqUne .bqUn{font-family:var(--sans);font-size:12px;font-weight:800;line-height:14px;letter-spacing:0;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:28px;padding:4px 6px 0}
 html.c6 #gBqUne .bqUp{font-family:var(--sans);font-size:12px;font-weight:800;letter-spacing:0;padding:3px 6px 6px}
 html.c6 #gBqUne .bqUl{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:0;padding:2px 4px}
+/* petit iPhone debout (375 × 667) : cartes compactes et le chrono sous silence, pour que DEUX cartes entières tiennent dans la colonne */
+@media (orientation:portrait) and (max-height:720px){
+  html.c6 #gBqUne .bqUf,html.c6 #gBqUne.vert .bqUf{height:32px}
+  html.c6 #gBqUne .bqUn{font-size:11px;line-height:12px;min-height:24px;padding:3px 6px 0}
+  html.c6 #gBqUne .bqUp{font-size:12px;line-height:14px;padding:2px 6px 4px}
+  html.c6 #gBqUne .bqUt em{display:none}
+}
 </style>
 <style id="c6-hud">
 /* CHARTE 6 · le HUD de course, les commandes tactiles, les annonces — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
