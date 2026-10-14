@@ -9662,7 +9662,7 @@ const PLANET_DIR=new THREE.Vector3(-.76,.11,.64).normalize(); // BASSE et DÉPOR
 // ON EST AU RAS DE L'ATMOSPHÈRE : la Terre n'est plus une bille dans le ciel mais un MONDE dont on
 // voit la COURBURE (~40° d'arc ≈ la moitié de la hauteur d'écran), posé bas, avec son limbe qui brille.
 const PLANET_R=1560,PLANET_D=3400; // ~62 % de la hauteur : la demi-sphère barre franchement le ciel — on rase l'atmosphère
-const TERRE_VOLUTES=true; // (2026-10-14, passe graphismes) interrupteur d'UNE ligne : les volutes blanches peintes sur la Terre (les seuls « nuages » qu'on voie en orbite — buildClouds/buildCoton/mkCloud n'y créent rien, lvlNuageOk dit non). false = Terre sans nuages. Laissé à true en attendant la réponse de Sacha (QUESTIONS.md).
+const TERRE_VOLUTES=false; // (2026-10-14, passe graphismes) interrupteur d'UNE ligne : les volutes blanches peintes sur la Terre (les seuls « nuages » qu'on voie en orbite — buildClouds/buildCoton/mkCloud n'y créent rien, lvlNuageOk dit non). false = Terre sans nuages. FALSE (Sacha a validé le retrait des « nuages » de l'espace, 14/10) : la Terre du matin est nette ; remettre true pour les revoir.
 const planetGroup=(function(){
   const g=new THREE.Group();
   // texture : océans profonds, continents verts, calottes blanches et volutes nuageuses
@@ -9734,11 +9734,12 @@ const planetGroup=(function(){
         '  c+=vec3(1.,.42,.20)*.16*(1.-smoothstep(0.,.20,abs(ndl-.02)));',                  // le couchant qui court sur le terminateur
         '  float mer=smoothstep(.02,.12,c0.b-max(c0.r,c0.g));vec3 H=normalize(uSol+V);',
         '  c+=vec3(1.,.9,.74)*pow(max(dot(N,H),0.),70.)*mer*jour*.55;',                     // le soleil qui scintille sur l océan
-        '  c+=vec3(.30,.62,1.)*pow(1.-max(dot(N,V),0.),3.)*(.12+.40*jour);',                // l atmosphère vue par la tranche, DANS le disque
+        '  vec3 rim9=mix(mix(vec3(.85,.52,.30),vec3(.92,.82,.58),clamp(opacity*3.,0.,1.)),vec3(.30,.62,1.),step(.9,opacity));diffuseColor.a=1.;', // (2026-10-14, passe graphismes) la couleur du liseré se lit dans `opacity` (uniforme déjà là, inutilisé par un globe opaque) : 1 = bleu de la Terre (inchangé), 0 = ocre (Mars), .3 = crème (Jupiter, Saturne) ; l'alpha reste 1
+        '  c+=rim9*pow(1.-max(dot(N,V),0.),3.)*(.12+.40*jour);',                // l atmosphère vue par la tranche, DANS le disque
         '  outgoingLight=c; }',
         '#include <envmap_fragment>'].join('\n'));
   };
-  globe.material.customProgramCacheKey=function(){return 'globeJourNuit2';};
+  globe.material.customProgramCacheKey=function(){return 'globeJourNuit3';};
   globe.rotation.z=.28; // axe incliné, comme la vraie
   g.add(globe);
   // ATMOSPHÈRE : un liseré bleu qui déborde du disque (BackSide = on ne voit que le pourtour)
@@ -19907,9 +19908,28 @@ const SF_CARTES={
    ========================================================================== */
 const PLANETES_ON=true;
 const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile
-  terre:{teinte:0x55708c,atmo:0x8fd4ff,limbe:0x6fc0ff},
-  mars:{teinte:0x72625a,atmo:0xd09064,limbe:0xc07a52,peint:'mars'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
-if(PLANETES_ON)SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars); // midi seulement (la démonstration) : les trois autres variantes restent la Terre
+  terre:{teinte:0x55708c,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1},
+  mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars'},
+  jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'},
+  saturne:{teinte:0x6c5e4a,atmo:0xf0dca0,limbe:0xe8d090,rim:.3,peint:'saturne'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
+if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);SF_CARTES.espace.m.satellites.astre=Object.assign({echelle:1.35},PLANETES.saturne);} // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
+const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
+/* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
+   Il se dessine JUSTE AVANT le globe (renderOrder 20,5 < 21), sans écrire la profondeur : le globe, sur le plan lointain, le recouvre là où il passe derrière lui, et la route
+   (test de profondeur réel) le cache comme tout le reste. Visible UNIQUEMENT quand la planète peinte est Saturne (planetesPeint) ; son programme (MeshBasic + carte + alphaTest)
+   est compilé avec le reste au chargement, l'anneau étant dans la scène même caché (renderer.compile parcourt tout). Le pivot suit le cap de la planète (lvlPlanete) pour que
+   l'anneau garde la même inclinaison à l'écran quand la piste tourne. */
+const planetesAnneau=(PLANETES_ON&&SATURNE_ANNEAU)?(function(){
+  const cv=document.createElement('canvas');cv.width=256;cv.height=2;const x=cv.getContext('2d');
+  const B=[[0,.12,150,128,92],[.15,.50,232,212,162],[.56,.88,206,184,136],[.90,.97,190,170,126]]; // C sombre · B vif · A (après la division de Cassini) · F fin ; le reste = transparent
+  for(let i=0;i<256;i++){const u=i/256;for(const b of B)if(u>=b[0]&&u<b[1]){const f=.93+.07*Math.sin(i*1.9)+.04*Math.sin(i*.55);x.fillStyle='rgb('+(b[2]*f|0)+','+(b[3]*f|0)+','+(b[4]*f|0)+')';x.fillRect(i,0,1,2);}}
+  const tex=new THREE.CanvasTexture(cv);tex.generateMipmaps=false;tex.minFilter=tex.magFilter=THREE.LinearFilter;tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;
+  const geo=new THREE.RingGeometry(.74,1,72,1),pos=geo.attributes.position,uv=geo.attributes.uv; // UV radiales : u = distance au centre
+  for(let i=0;i<pos.count;i++)uv.setXY(i,(Math.hypot(pos.getX(i),pos.getY(i))-.74)/.26,.5);
+  const mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex,alphaTest:.5,side:THREE.DoubleSide,fog:false,depthWrite:false,color:0x6c5e4a}));
+  mesh.rotation.x=-Math.PI/2;mesh.scale.setScalar(PLANET_R*1.55);mesh.renderOrder=20.5;mesh.frustumCulled=false;
+  const pivot=new THREE.Group();pivot.rotation.order='YXZ';pivot.rotation.z=.6;pivot.add(mesh);pivot.visible=false;planetGroup.add(pivot);
+  return {pivot:pivot,mesh:mesh};})():null;
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
 function planetesMars(x,W,H){ // MARS : rouille et ocre, mers sombres, poussière claire, une faille, quelques cratères, deux calottes. AUCUN nuage (Sacha).
   const R=planetesAlea(4242),rd=function(a,b){return a+R()*(b-a);};
@@ -19938,12 +19958,42 @@ function planetesMars(x,W,H){ // MARS : rouille et ocre, mers sombres, poussièr
     for(let i=0;i<46;i++){x.beginPath();x.arc(rd(0,W),y0+(haut?1:-1)*rd(0,12),rd(10,26),0,6.2832);x.fill();}
     x.fillRect(0,haut?0:H-12,W,12);}
 }
-const PLANETES_PEINTRES={mars:planetesMars};
+function planetesBandes(x,W,H,R,cols,n,amp,streaks){ // des BANDES horizontales à bords ondulés (périodiques : la toile se raccorde), puis des filets fins ; un bord est partagé par deux bandes (aucun interstice)
+  const hs=[];let tot=0;for(let i=0;i<n;i++){const h=.55+R()*.95;hs.push(h);tot+=h;}
+  const bord=[];let y=0;for(let j=0;j<=n;j++){bord.push({y:j===0?-12:j===n?H+12:y,a:(j===0||j===n)?0:amp*(.5+R()),k:2+((R()*4)|0),p:R()*6.28,k2:5+((R()*5)|0),p2:R()*6.28});if(j<n)y+=hs[j]/tot*H;}
+  const yb=function(b,X){return b.y+b.a*(Math.sin(6.2832*b.k*X/W+b.p)*.62+Math.sin(6.2832*b.k2*X/W+b.p2)*.38);};
+  let prev=-1;
+  for(let i=0;i<n;i++){let c;do{c=(R()*cols.length)|0;}while(c===prev&&cols.length>1);prev=c;
+    x.fillStyle=cols[c];x.beginPath();x.moveTo(0,yb(bord[i],0));for(let X=8;X<=W;X+=8)x.lineTo(X,yb(bord[i],X));
+    for(let X=W;X>=0;X-=8)x.lineTo(X,yb(bord[i+1],X));x.closePath();x.fill();}
+  x.lineCap='round';
+  for(let i=0;i<streaks;i++){const b=bord[1+((R()*(n-1))|0)],o=(R()-.5)*14,k=2+((R()*5)|0),p=R()*6.28,a=2+R()*5;
+    x.strokeStyle=R()<.5?'rgba(90,56,38,'+(.14+R()*.14)+')':'rgba(246,230,196,'+(.14+R()*.14)+')';x.lineWidth=1+R()*2.6;
+    x.beginPath();for(let X=0;X<=W;X+=8){const Y=yb(b,X)+o+a*Math.sin(6.2832*k*X/W+p);if(X===0)x.moveTo(X,Y);else x.lineTo(X,Y);}x.stroke();}
+  return bord;}
+function planetesJupiter(x,W,H){ // JUPITER : bandes crème / ocre / roux / brun, UNE grande tache rouille (discrète), trois ovales clairs. Pas de nuage dessiné : de la couleur.
+  const R=planetesAlea(1969);
+  x.fillStyle='#c99a64';x.fillRect(0,0,W,H);
+  planetesBandes(x,W,H,R,['#ecd9b0','#c8955c','#9a5a36','#f2e3be','#6a4030','#d8b484'],15,7,46); // (bandes plus franches : le grade rapproche tout vers l'orange)
+  const tache=function(cx,cy,rx,ry,col,a){x.save();x.translate(cx,cy);x.scale(1,ry/rx);const g=x.createRadialGradient(0,0,0,0,0,rx);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(.7,'rgba('+col+','+(a*.8)+')');g.addColorStop(1,'rgba('+col+',0)');x.fillStyle=g;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();};
+  tache(330,338,50,27,'190,84,50',.8);x.strokeStyle='rgba(240,214,176,.45)';x.lineWidth=2.5;x.beginPath();x.ellipse(330,338,46,24,0,0,6.2832);x.stroke(); // la Grande Tache et son anneau clair
+  tache(700,300,17,9,'246,232,208',.6);tache(780,352,14,8,'246,232,208',.55);tache(520,176,15,8,'246,232,208',.5); // petits ovales blancs
+  for(const haut of [1,0]){const g=x.createLinearGradient(0,haut?0:H,0,haut?H*.2:H*.8);g.addColorStop(0,'rgba(78,52,40,.55)');g.addColorStop(1,'rgba(78,52,40,0)');x.fillStyle=g;x.fillRect(0,haut?0:H*.8,W,H*.2);} // les pôles s'assombrissent
+}
+function planetesSaturne(x,W,H){ // SATURNE : un globe beige doré, bandes très douces (le contraste est dans l'anneau), pôles un peu gris
+  const R=planetesAlea(1610);
+  x.fillStyle='#d8c08a';x.fillRect(0,0,W,H);
+  planetesBandes(x,W,H,R,['#dcc58e','#e8d6a4','#cdb27c','#efe2bc','#d4ba84'],13,3,26);
+  for(const haut of [1,0]){const g=x.createLinearGradient(0,haut?0:H,0,haut?H*.22:H*.78);g.addColorStop(0,'rgba(120,108,84,.5)');g.addColorStop(1,'rgba(120,108,84,0)');x.fillStyle=g;x.fillRect(0,haut?0:H*.78,W,H*.22);}
+}
+const PLANETES_PEINTRES={mars:planetesMars,jupiter:planetesJupiter,saturne:planetesSaturne};
 function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
   const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
 function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
   const g=planetGroup.userData,nom=(a&&a.peint)||'terre';
+  if(planetesAnneau){planetesAnneau.pivot.visible=nom==='saturne';planetesAnneau.mesh.material.color.setHex(a&&a.teinte!=null?a.teinte:0x6c5e4a);} // l'anneau n'existe que sous Saturne
   try{PLANET_BLEU.setHex(a&&a.limbe!=null?a.limbe:0x6fc0ff);}catch(e){} // le limbe au repos prend la couleur de l'atmosphère de CETTE planète
+  g.globe.material.opacity=a&&a.rim!=null?a.rim:1; // la couleur du liseré intérieur (voir le shader du globe)
   if(g.peint===nom)return;
   const cv=document.createElement('canvas');cv.width=g.W9;cv.height=g.H9;const x=cv.getContext('2d');
   if(nom==='terre')g.peintTerre(x);else (PLANETES_PEINTRES[nom]||g.peintTerre)(x,g.W9,g.H9);
@@ -19951,13 +20001,16 @@ function planetesPeint(a){ // la toile change si la planète change — UNE repe
 let planetesCache=null;
 window.dbgPlanete=function(nom,o){ // banc : peint la planète `nom` tout de suite, réglages à chaud o={teinte,atmo,limbe} ; o.vue = cadre la planète et re-rend une image (course en pause) ; vue:2 = SEULE (ni route, ni voiture, ni lune) ; '?' = laquelle est peinte
   if(planetesCache){for(const c of planetesCache)c[0].visible=c[1];planetesCache=null;}
-  if(nom==='?')return {peint:planetGroup.userData.peint};
+  if(nom==='?'){const r={peint:planetGroup.userData.peint,anneau:!!(planetesAnneau&&planetesAnneau.pivot.visible)};
+    if(o&&o.mesure){const I=renderer.info;I.autoReset=false;I.reset();if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);r.appels=I.render.calls;r.triangles=I.render.triangles;r.programmes=I.programs?I.programs.length:null;I.autoReset=true;} // banc : le coût d'UNE image
+    return r;}
   const base=PLANETES[nom||'terre'];if(!base)return Object.keys(PLANETES);
   const a=Object.assign({},base,o||{}),g=planetGroup.userData;g.globe.material.color.setHex(a.teinte);g.atmo.material.color.setHex(a.atmo);planetesPeint(a);
+  if(planetesAnneau&&o&&o.anneau){const r=o.anneau;if(r.roll!=null)planetesAnneau.pivot.rotation.z=r.roll;if(r.tilt!=null)planetesAnneau.pivot.rotation.x=r.tilt;if(r.r1!=null)planetesAnneau.mesh.scale.setScalar(PLANET_R*r.r1);} // banc : l'inclinaison et la taille de l'anneau à chaud
   if(o&&o.vue){camera.lookAt(planetGroup.position);camera.updateMatrixWorld();
     if(o.vue===2){planetesCache=scene.children.map(function(c){return [c,c.visible];});for(const c of scene.children)if(c!==planetGroup&&c!==skyDome)c.visible=false;}
     if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
-  return {peint:g.peint,teinte:a.teinte,atmo:a.atmo,limbe:a.limbe};};
+  return {peint:g.peint,teinte:a.teinte,atmo:a.atmo,limbe:a.limbe,anneau:!!(planetesAnneau&&planetesAnneau.pivot.visible)};};
 function sfNiveau(c,m){ // le NIVEAU d'un couple map × météo, sous la forme que lit tout le jeu (id, bio, pluie, nuit, route…)
   const C=SF_CARTES[c],M=C.m[m],B=SF_NIV[M.niv||C.base];
   const o=Object.assign({},B,M,{nm:C.nm,mt:SF_METEOS[m],carte:c,meteo:m,sansFin:1,graine:0}); // graine 0 : une piste neuve à chaque fois (la jade comprise)
@@ -20057,6 +20110,7 @@ function lvlPlanete(dt){
   LVL.dir.lerp(t,Math.min(1,dt*.35)).normalize();
   const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
   planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
+  if(planetesAnneau&&planetesAnneau.pivot.visible)planetesAnneau.pivot.rotation.y=Math.atan2(d.x,d.z); // (2026-10-14, passe graphismes) l'anneau suit le cap de la planète
 }
 function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par mkCloud)
   const c=LVL.cur;if(!c)return true;
