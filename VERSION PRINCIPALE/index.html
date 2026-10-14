@@ -15458,7 +15458,7 @@ function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='
    Console : `dbgBanq()` (comptes, temps), `dbgBanq('meteo','nuit')`, `dbgBanq('vue',{p,c,fov})`, `dbgBanq('pic'|'lac',{d,h})`,
    `dbgBanq('poudre'|'glace',{h,v})` (la caisse lâchée au-dessus de la poudreuse ou d'un lac). Lancer : `?carte=banquise&meteo=nuit`. */
 const NIV_BANQ={id:'banquise',nm:'LA BANQUISE',bio:['banqMidi'],planete:0,espace:0,pluie:0,cielMusical:false,route:.34,sheen:.16,piste:'banquise',pr:'LA GLACE GLISSE, LA POUDRE AVALE'};
-const BANQ={root:null,Q:null,cas:[],sol:null,solM:null,pics:[],picG:null,lacs:[],lacG:null,met:'midi',cur:null,de:null,to:null,k:1,dur:1,ms:0,msSol:0,n:{},fx:{},mats:null,graine:0,
+const BANQ={root:null,file:[],fi:0,Q:null,cas:[],sol:null,solM:null,pics:[],picG:null,lacs:[],lacG:null,met:'midi',cur:null,de:null,to:null,k:1,dur:1,ms:0,msSol:0,n:{},fx:{},mats:null,graine:0,
   sur:0,glisse:false,pou:false,heurt:'',mort:'',dNow:9,tNow:0,nS:new THREE.Vector3(0,1,0),drift:0,gT:0,pT:0,fT:0,lent:0,figs:{},son:{t:4},yRaz:true,boucles:{}};
 // LES MÉTÉOS DE LA BANQUISE — el : hauteur de la lumière (°) · spark : la neige qui scintille · dd : la poussière de diamant · neige : la neige
 // qui tombe (0-1) · vent · aur : les aurores · alp/alpC : l'alpenglow (le haut des pics qui rougit) · ice : la teinte de la glace · mist/mC :
@@ -15482,8 +15482,8 @@ const BK_LUNE=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme 
 //  le choc de face qui tue · vnRebond/rebond : le gros choc à plat qui fait rebondir (galet) · frG : la glace qui retient (presque rien) ·
 //  grip : la part du volant qui tourne la trajectoire sur la glace (le reste fait DÉRIVER la caisse) · colle : la marge qui garde la glisse ·
 //  rameneT/rameneV : arrêté plus de rameneT s sous rameneV, la montagne te ramène
-const BK_PH={prof:2.4,kN:16,flot:2.3,H:1.4,kT:.10,kTp:.75,vPl:70,lift:1.15,nyMin:.5,vnMort:66,sinMax:.80,vnRebond:30,rebond:.24,frG:.03,grip:.42,colle:.9,rameneT:2.2,rameneV:40};
-try{Object.assign(PAL.B,{banqSolC:[36,30,26],banqMarge:[1400,1800,2200],banqPics:[.55,.8,1],banqStal:[.45,.75,1],banqFlo:[700,1400,2400],banqDD:[160,300,500],
+const BK_PH={prof:2.4,kN:16,flot:2.3,H:1.4,kT:.10,kTp:.75,vPl:70,lift:1.15,nyMin:.5,vnMort:105,sinMax:.88,vnRebond:30,rebond:.24,frG:.03,grip:.42,colle:.9,rameneT:2.2,rameneV:40};
+try{Object.assign(PAL.B,{banqSolC:[40,34,30],banqMarge:[1400,1800,2200],banqPics:[.55,.8,1],banqStal:[.45,.75,1],banqFlo:[700,1400,2400],banqDD:[160,300,500],
   banqPoudre:[260,400,520],banqTrace:[500,800,1100],banqLoin:[.5,.75,1]});}catch(e){}
 function PAL_BK(k,d){return PAL_B9(k,d);}
 /* ---------------- LA ROUTE : LE SLALOM GÉANT QUI DÉVALE ---------------- */
@@ -15529,36 +15529,63 @@ function genBanq(rnd){
    Une grille (26-36 m selon le palier) : pour chaque case, la distance à la route (d) et la hauteur de la route LISSÉE autour (noyau de
    ~130 m), puis le profil — la neige 10 à 45 m SOUS la dalle (`D0`, en bruit lent : des combes où l'on frôle facilement, des gorges), des
    flancs qui montent de 40 à 120 m au-dessus de la route à 520 m, des arêtes au-delà ; des bosses de poudreuse. Puis une passe de sûreté :
-   jamais moins de 7 m d'air sous la dalle. Les LACS se creusent ensuite (banqLacs) : la grille y est aplatie en terrasse. */
+   jamais moins de 7 m d'air sous la dalle. Les LACS se creusent ensuite (banqLacs) : la grille y est aplatie en terrasse.
+   (2026-10-14, soir — PILOTAGE : « descends la construction sous ~50 ms ») LA GRILLE v2 : la distance à la route de la grille grossière par
+   TRANSFORMÉE DE DISTANCE (le point de route le plus proche voyage de case en case, deux passes : linéaire en cases, au lieu de cases ×
+   points de route) ; le bruit seulement là où il compte (D0 sous 540 m, les arêtes au-delà de 420 m, les bosses sous 1 km) ; au-delà de
+   `BK_DF` = 1 km, la neige vient de la grille grossière (le loin, sous la brume). Mesuré : 86-133 → voir JOURNAL. */
+const BK_DF=1000;
+function bkProfil(x,z,d,ys,sd9){
+  const W9=70+50*forBruit(x*.43,z*.43,sd9+3);let h;
+  if(d<540){const D0=Math.max(10,24+14*forBruit(x,z,sd9)+9*forBruit(x*.21,z*.21,sd9+11));h=ys-D0+(D0+W9)*Math.pow(THREE.MathUtils.smoothstep(d,40,520),1.3);}
+  else h=ys+W9;
+  if(d>420)h+=38*forBruit(x*.31,z*.31,sd9+5)*THREE.MathUtils.smoothstep(d,420,900);                      // les ARÊTES
+  if(d>480)h+=170*Math.max(0,forBruit(x*.13,z*.13,sd9+7)+.25)*THREE.MathUtils.smoothstep(d,480,1500);
+  return h;}
 function banqSol(){
-  const C=PAL_BK('banqSolC',26),MARG=PAL_BK('banqMarge',2200),R1=380;
+  const C=PAL_BK('banqSolC',26),MARG=PAL_BK('banqMarge',2200),R1=380,sd9=BANQ.graine*.001,T0=performance.now(),TQ=BANQ.tq={};let tq=T0;const tqm=k=>{const n=performance.now();TQ[k]=Math.round((n-tq)*10)/10;tq=n;};
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
   const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N);
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
-  const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz),GY=new Float32Array(gx*gz);
-  for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18,by=0;for(let k=0;k<RS.length;k+=2){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd){bd=d;by=p.y;}}GD[i+j*gx]=Math.sqrt(bd);GY[i+j*gx]=by;}
+  // 1. LA GRILLE GROSSIÈRE (4 C) : la transformée de distance — chaque case garde le point de route le plus proche (GI) ; on le propage
+  const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,G=gx*gz,GD=new Float32Array(G).fill(1e18),GY=new Float32Array(G),GI=new Int32Array(G).fill(-1);
+  for(let q=0;q<RS.length;q++){const p=pts[RS[q]],ic=Math.round((p.x-x0)/CG),jc=Math.round((p.z-z0)/CG);
+    for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++){const i=ic+a,j=jc+b;if(i<0||j<0||i>=gx||j>=gz)continue;const k=i+j*gx,dx=x0+i*CG-p.x,dz=z0+j*CG-p.z,d=dx*dx+dz*dz;if(d<GD[k]){GD[k]=d;GI[k]=RS[q];}}}
+  tqm('graines');const essai=(k,i,j,n)=>{const r=GI[n];if(r<0)return;const p=pts[r],dx=x0+i*CG-p.x,dz=z0+j*CG-p.z,d=dx*dx+dz*dz;if(d<GD[k]){GD[k]=d;GI[k]=r;}};
+  for(let tour=0;tour<2;tour++){
+    for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const k=i+j*gx;if(i>0)essai(k,i,j,k-1);if(j>0){essai(k,i,j,k-gx);if(i>0)essai(k,i,j,k-gx-1);if(i<gx-1)essai(k,i,j,k-gx+1);}}
+    for(let j=gz-1;j>=0;j--)for(let i=gx-1;i>=0;i--){const k=i+j*gx;if(i<gx-1)essai(k,i,j,k+1);if(j<gz-1){essai(k,i,j,k+gx);if(i<gx-1)essai(k,i,j,k+gx+1);if(i>0)essai(k,i,j,k+gx-1);}}}
+  for(let k=0;k<G;k++){GD[k]=Math.sqrt(GD[k]);GY[k]=GI[k]>=0?pts[GI[k]].y:0;}
   for(let it=0;it<5;it++){const T9=GY.slice();for(let j=1;j<gz-1;j++)for(let i=1;i<gx-1;i++){let s9=0;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++)s9+=T9[i+a+(j+b)*gx];GY[i+j*gx]=s9/9;}}
-  const gBil=(A,x,z)=>{const fx=Math.max(0,Math.min(gx-1.001,(x-x0)/CG)),fz=Math.max(0,Math.min(gz-1.001,(z-z0)/CG)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*gx;
+  tqm('transfo');const gBil=(A,x,z)=>{const fx=Math.max(0,Math.min(gx-1.001,(x-x0)/CG)),fz=Math.max(0,Math.min(gz-1.001,(z-z0)/CG)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*gx;
     return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+gx]*(1-u)+A[k+gx+1]*u)*v;};
+  // le LOIN : la neige des cases grossières (au-delà de BK_DF, la grille fine ne fait plus que les lire)
+  const HF=new Float32Array(G);for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const k=i+j*gx;HF[k]=GD[k]>BK_DF-260?bkProfil(x0+i*CG,z0+j*CG,GD[k],GY[k],sd9):0;}
+  tqm('loin');
+  // 2. le noyau fin (≤ R1 du ruban) : distance exacte, hauteur de la route lissée
   const rC=Math.ceil(R1/C),iR=1/(R1*R1);
   for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
         if(d2<D[k])D[k]=d2;const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;}}}
-  const H=new Float32Array(N),sd9=BANQ.graine*.001;
+  tqm('noyau');
+  // 3. chaque case fine
+  const H=new Float32Array(N);
   for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys;
     if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);}else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);}
     D[k]=d;
-    const n1=forBruit(x,z,sd9),n2=forBruit(x*.43,z*.43,sd9+3),n3=forBruit(x*.21,z*.21,sd9+11);
-    const D0=Math.max(10,24+14*n1+9*n3),W9=70+50*n2;                                       // l'air sous la dalle · la hauteur des flancs
-    let h=ys-D0+(D0+W9)*Math.pow(THREE.MathUtils.smoothstep(d,40,520),1.3);
-    h+=170*Math.max(0,forBruit(x*.13,z*.13,sd9+7)+.25)*THREE.MathUtils.smoothstep(d,480,1500)+38*forBruit(x*.31,z*.31,sd9+5)*THREE.MathUtils.smoothstep(d,420,900); // les ARÊTES
-    h+=2.4*forBruit(x*2.7,z*2.7,sd9+1)+1.1*forBruit(x*6.1,z*6.1,sd9+2);                  // les bosses de la poudreuse
+    if(d>=BK_DF){H[k]=gBil(HF,x,z);continue;}
+    let h=bkProfil(x,z,d,ys,sd9);
+    if(d>BK_DF-200)h+=(gBil(HF,x,z)-h)*THREE.MathUtils.smoothstep(d,BK_DF-200,BK_DF);                 // le raccord avec le loin
+    const kb=1-THREE.MathUtils.smoothstep(d,700,BK_DF-200);
+    if(kb>0)h+=kb*(2.4*forBruit(x*2.7,z*2.7,sd9+1)+(d<500?1.1*forBruit(x*6.1,z*6.1,sd9+2):0));     // les bosses de la poudreuse
     H[k]=h;}
+  tqm('cases');
   // LA SÛRETÉ : jamais moins de 7 m d'air sous la dalle (ni sous ses bords, ni sous la caméra qui suit à 14 m)
   {const rr=Math.ceil((ROAD_HALF+16)/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=p.y-THICK-7;
     for(let b=-rr;b<=rr;b++)for(let a=-rr;a<=rr;a++){const i=ci+a,j=cj+b;if(i<0||j<0||i>=nx||j>=nz)continue;const x=x0+i*C,z=z0+j*C;if((x-p.x)**2+(z-p.z)**2>(ROAD_HALF+16)**2)continue;const k=i+j*nx;if(H[k]>lim)H[k]=lim;}}}
+  tqm('surete');
   return BANQ.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,MARG:MARG,gBil:gBil,GY:GY,GD:GD};
 }
 function bkSolH(x,z){const S=BANQ.sol;if(!S)return -1e9;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx,A=S.h;
@@ -15774,22 +15801,34 @@ function banqMats(){if(BANQ.mats)return BANQ.mats;const U=BK_U,F=THREE.UniformsL
   M.aur=new THREE.ShaderMaterial({uniforms:{uTime:U.uTime,uAur:U.uAur,uAurC:U.uAurC,uAurC2:U.uAurC2},vertexShader:BK_AUR_VS,fragmentShader:BK_AUR_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});M.aur.dispose=function(){};
   return BANQ.mats=M;}
 /* ---------------- LES MAILLAGES ---------------- */
+/* LA FILE DES TRANCHES (2026-10-14, soir — PILOTAGE : « descends la construction sous ~50 ms ») : buildBanq ne bâtit tout de suite que la
+   PHYSIQUE (la grille de neige, les lacs, les cristaux) et le décor à moins de BK_TOUT m du départ ; le reste (morceaux de neige, pics,
+   géants, stalactites) part dans `BANQ.file`, trié du plus proche au plus loin, et banqTick en bâtit ~3 ms par image (8 en pause). */
+const BK_TOUT=600;
+function bkTache(x,z,f){const p0=pts[0];BANQ.file.push({d:Math.hypot(x-p0.x,z-p0.z),f:f});}
+function bkTranches(ms,dMax){const F=BANQ.file;if(!F)return 0;const t0=performance.now();let n=0;
+  while(BANQ.fi<F.length){const j=F[BANQ.fi];if(dMax!=null&&j.d>=dMax)break;BANQ.fi++;try{j.f();}catch(e){window.__banqErr=e;}n++;if(performance.now()-t0>ms)break;}
+  BANQ.msFile=(BANQ.msFile||0)+performance.now()-t0;if(BANQ.fi>=F.length&&F.length){BANQ.file=[];BANQ.fi=0;}return n;}
+function bkSolMorceau(root,ci,cj){
+  const S=BANQ.sol,M=BANQ.mats,CH=40;if(!S||!BANQ.root)return;
+  const i1=Math.min(S.nx-1,ci+CH),j1=Math.min(S.nz-1,cj+CH),w=i1-ci+1,hh=j1-cj+1;
+  const P=new Float32Array(w*hh*3),Nm=new Float32Array(w*hh*3),A=new Float32Array(w*hh*2),I=[];
+  for(let j=0;j<hh;j++)for(let i=0;i<w;i++){const gi=ci+i,gj=cj+j,k=gi+gj*S.nx,q=i+j*w;
+    P[q*3]=S.x0+gi*S.C;P[q*3+1]=S.h[k];P[q*3+2]=S.z0+gj*S.C;
+    const hl=S.h[Math.max(0,gi-1)+gj*S.nx],hr=S.h[Math.min(S.nx-1,gi+1)+gj*S.nx],hd=S.h[gi+Math.max(0,gj-1)*S.nx],hu=S.h[gi+Math.min(S.nz-1,gj+1)*S.nx];
+    let nx9=hl-hr,ny9=2*S.C,nz9=hd-hu;const l=Math.hypot(nx9,ny9,nz9);Nm[q*3]=nx9/l;Nm[q*3+1]=ny9/l;Nm[q*3+2]=nz9/l;A[q*2]=S.d[k];A[q*2+1]=0;}
+  for(let j=0;j<hh-1;j++)for(let i=0;i<w-1;i++){const k=(ci+i)+(cj+j)*S.nx;if(S.d[k]>S.MARG+120&&S.d[k+1+S.nx]>S.MARG+120)continue;const a=i+j*w;I.push(a,a+w,a+1,a+1,a+w,a+w+1);}
+  if(!I.length)return;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(Nm,3));g.setAttribute('aS',new THREE.BufferAttribute(A,2));
+  g.setIndex(I);g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.name='banquise neige';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);BANQ.solM.push(m);BANQ.n.sol=(BANQ.n.sol||0)+I.length/3;}
 function banqSolMesh(root){
-  const S=BANQ.sol,M=BANQ.mats,CH=40,out=[];let tri=0;
+  const S=BANQ.sol,CH=40;BANQ.solM=[];BANQ.n.sol=0;
   for(let cj=0;cj<S.nz-1;cj+=CH)for(let ci=0;ci<S.nx-1;ci+=CH){
-    const i1=Math.min(S.nx-1,ci+CH),j1=Math.min(S.nz-1,cj+CH),w=i1-ci+1,hh=j1-cj+1;let ok=false;
+    const i1=Math.min(S.nx-1,ci+CH),j1=Math.min(S.nz-1,cj+CH);let ok=false;
     for(let j=cj;j<=j1&&!ok;j+=2)for(let i=ci;i<=i1;i+=2)if(S.d[i+j*S.nx]<S.MARG){ok=true;break;}
     if(!ok)continue;
-    const P=new Float32Array(w*hh*3),Nm=new Float32Array(w*hh*3),A=new Float32Array(w*hh*2),I=[];
-    for(let j=0;j<hh;j++)for(let i=0;i<w;i++){const gi=ci+i,gj=cj+j,k=gi+gj*S.nx,q=i+j*w;
-      P[q*3]=S.x0+gi*S.C;P[q*3+1]=S.h[k];P[q*3+2]=S.z0+gj*S.C;
-      const hl=S.h[Math.max(0,gi-1)+gj*S.nx],hr=S.h[Math.min(S.nx-1,gi+1)+gj*S.nx],hd=S.h[gi+Math.max(0,gj-1)*S.nx],hu=S.h[gi+Math.min(S.nz-1,gj+1)*S.nx];
-      let nx9=hl-hr,ny9=2*S.C,nz9=hd-hu;const l=Math.hypot(nx9,ny9,nz9);Nm[q*3]=nx9/l;Nm[q*3+1]=ny9/l;Nm[q*3+2]=nz9/l;A[q*2]=S.d[k];A[q*2+1]=0;}
-    for(let j=0;j<hh-1;j++)for(let i=0;i<w-1;i++){const k=(ci+i)+(cj+j)*S.nx;if(S.d[k]>S.MARG+120&&S.d[k+1+S.nx]>S.MARG+120)continue;const a=i+j*w;I.push(a,a+w,a+1,a+1,a+w,a+w+1);}
-    if(!I.length)continue;
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(Nm,3));g.setAttribute('aS',new THREE.BufferAttribute(A,2));
-    g.setIndex(I);g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.name='banquise neige';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);out.push(m);tri+=I.length/3;}
-  BANQ.n.sol=tri;BANQ.solM=out;return out;}
+    const cx=S.x0+(ci+i1)*.5*S.C,cz=S.z0+(cj+j1)*.5*S.C,dm=Math.hypot(i1-ci,j1-cj)*.5*S.C;
+    bkTache(cx,cz,function(){bkSolMorceau(root,ci,cj);});BANQ.file[BANQ.file.length-1].d=Math.max(0,BANQ.file[BANQ.file.length-1].d-dm);}}
 function banqLacMesh(root){
   if(!BANQ.lacs.length)return null;const P=[],A=[],I=[],NA=64,FR=[0,.3,.58,.8,.92,1];let n=0;
   for(const o of BANQ.lacs){const b=n;P.push(o.x,o.y,o.z);A.push(0,o.sd,o.R,0);n++;
@@ -15815,7 +15854,7 @@ function bkMesh(root,K,mat,nom){if(!K.P.length)return null;const g=new THREE.Buf
   const m=new THREE.Mesh(g,mat);m.name=nom;m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);return m;}
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la banquise) ---------------- */
 function banqVide(){
-  BANQ.sol=null;BANQ.solM=null;BANQ.pics=[];BANQ.picG=null;BANQ.lacs=[];BANQ.lacG=null;BANQ.picM=[];BANQ.loinM=[];
+  BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.lacs=[];BANQ.lacG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
   if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
   BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();
 }
@@ -15825,8 +15864,9 @@ function buildBanq(seed){
   const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1);
   BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
-  banqSol();banqLacs(fr);const tS=performance.now();
-  banqSolMesh(root);banqLacMesh(root);
+  const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
+  banqSol();tp('sol');banqLacs(fr);tp('lacs');const tS=performance.now();
+  banqSolMesh(root);tp('solMesh');banqLacMesh(root);tp('lacMesh');
   // ---- la route en grille (les règles de distance) ----
   const HB=100,grille=new Map(),pg=Math.max(1,Math.round(3/ds)); // un point tous les 3 m : un sérac de 8 m ne passe pas entre deux
   for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
@@ -15835,13 +15875,13 @@ function buildBanq(seed){
   // une grappe ne doit JAMAIS crever la dalle, ni ses bords, ni l'air de la caméra (14 m de chaque côté) : 5 m d'air au moins
   const libre=L9=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
     let ok=true;const W9=ROAD_HALF+14,LAT9=[-W9,-ROAD_HALF,-ROAD_HALF*.5,0,ROAD_HALF*.5,ROAD_HALF,W9];
-    proches(cx,cz,r+W9,function(j){if(!ok)return;const p=pts[j],l9=lat9(j);
+    if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],l9=lat9(j);
       for(let q=0;q<7;q++){const l=LAT9[q],x=p.x+l9[0]*l,z=p.z+l9[1]*l;if((x-cx)**2+(z-cz)**2>r*r)continue;
         for(const P of L9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;if(bkPrimH(P,x,z)>p.y-THICK-5){ok=false;return;}}}});
     if(ok)for(const o of BANQ.lacs)if(Math.hypot(o.x-cx,o.z-cz)<o.R*1.25+r*.6){ok=false;break;}
     return ok;};
   const PH=[],KN={},KF={},cle=(x,z,c)=>Math.floor(x/c)*100003+Math.floor(z/c);
-  const pose=(L9,phys,loin)=>{for(const P of L9){const C=loin?1500:600,k=cle(P.cx,P.cz,C),D9=loin?KF:KN;bkPrimGeo(D9[k]||(D9[k]=bkLot()),P);if(phys)PH.push(P);}};
+  const pose=(L9,phys,loin)=>{for(const P of L9){const C=loin?1500:600,k=cle(P.cx,P.cz,C),D9=loin?KF:KN;(D9[k]||(D9[k]={L:[],x:(Math.floor(P.cx/C)+.5)*C,z:(Math.floor(P.cz/C)+.5)*C,r:C*.71})).L.push(P);if(phys)PH.push(P);}};
   // ---- 1. LES PICS OÙ L'ON GLISSE : des dômes et des pyramides de glace au bord de la route (pente ≤ 1 : 45° au plus) ----
   let nG=0,nS=0,nA=0,nL=0;
   {let sd=fr()<.5?-1:1;for(let s9=380+fr()*120;s9<L-220;s9+=(105+fr()*115)/KP){const i=Math.round(s9/ds);if(fr()<.7)sd=-sd;
@@ -15862,28 +15902,34 @@ function buildBanq(seed){
    for(const fin of [0,1]){const i=fin?NP-1:0,t=T[i],hl=Math.hypot(t.x,t.z)||1,dx=t.x/hl*(fin?1:-1),dz=t.z/hl*(fin?1:-1);
      for(let k=0;k<7;k++){const a=(k-3)*.32+(fr()-.5)*.2,c=Math.cos(a),s9=Math.sin(a),d=2400+fr()*1800,x=pts[i].x+(dx*c-dz*s9)*d,z=pts[i].z+(dz*c+dx*s9)*d;
        const H=600+fr()*900;pose(bkGrappe(x,z,bkSolH(x,z)-40,H,1.5+fr()*1.2,4+((fr()*4)|0),fr,2,520),false,true);nL++;}}}
-  BANQ.picM=[];for(const k in KN){const m=bkMesh(root,KN[k],M.pic,'banquise pics');if(m)BANQ.picM.push(m);}
-  BANQ.loinM=[];for(const k in KF){const m=bkMesh(root,KF[k],M.loin,'banquise géants');if(m){m.renderOrder=-.5;BANQ.loinM.push(m);}}
+  BANQ.picM=[];BANQ.loinM=[];
+  for(const k in KN){const o=KN[k];bkTache(o.x,o.z,function(){const K=bkLot();for(const P of o.L)bkPrimGeo(K,P);const m=bkMesh(root,K,M.pic,'banquise pics');if(m)BANQ.picM.push(m);});BANQ.file[BANQ.file.length-1].d=Math.max(0,BANQ.file[BANQ.file.length-1].d-o.r);}
+  for(const k in KF){const o=KF[k];bkTache(o.x,o.z,function(){const K=bkLot();for(const P of o.L)bkPrimGeo(K,P);const m=bkMesh(root,K,M.loin,'banquise géants');if(m){m.renderOrder=-.5;BANQ.loinM.push(m);}});}
+  tp('pics');
   // ---- 5. LES STALACTITES sous la dalle : des glaçons le long des deux bords, et des lustres sous le milieu ----
-  {const KS=PAL_BK('banqStal',1),ST={},st=Math.max(1,Math.round(7/ds/KS));let nI=0;
+  {const KS=PAL_BK('banqStal',1),st=Math.max(1,Math.round(7/ds/KS));BANQ.n.stalactites=0;
     const glacon=(K,cx,cy,cz,Lg,r,rg)=>{const n=5,tip=[cx+(rg()-.5)*r*.6,cy-Lg,cz+(rg()-.5)*r*.6],R9=[],rot=rg()*6.28;
       for(let a=0;a<n;a++){const th=rot+a/n*6.2832;R9.push([cx+Math.cos(th)*r,cy,cz+Math.sin(th)*r]);}
       for(let a=0;a<n;a++){const p=R9[a],q=R9[(a+1)%n],ux=q[0]-p[0],uy=q[1]-p[1],uz=q[2]-p[2],vx=tip[0]-p[0],vy=tip[1]-p[1],vz=tip[2]-p[2];
         let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const mx=(p[0]+q[0]+tip[0])/3-cx,mz=(p[2]+q[2]+tip[2])/3-cz;if(nx*mx+nz*mz<0){nx=-nx;ny=-ny;nz=-nz;}const l=Math.hypot(nx,ny,nz)||1;
-        bkTri(K,p,q,tip,nx/l,ny/l,nz/l,1,1,0,rg(),3);}nI++;};
-    for(let i=Math.round(200/ds);i<NP-Math.round(60/ds);i+=st){const p=pts[i],b=B[i],nn=Nn[i],k=Math.floor(i*ds/300),K=ST[k]||(ST[k]=bkLot()),air=p.y-THICK-bkSolH(p.x,p.z);
-      for(const sg of [-1,1]){if(fr()<.28)continue;const l=sg*(ROAD_HALF-.6-fr()*1.4),x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97;
-        const Lg=Math.min(air-4,1+Math.pow(fr(),2.2)*6.5);if(Lg>.6)glacon(K,x,y,z,Lg,.18+Lg*.05+fr()*.15,fr);}
-      if(fr()<.16&&air>14){const n9=3+((fr()*3)|0);for(let q=0;q<n9;q++){const l=(fr()-.5)*ROAD_HALF*1.3,x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97; // un LUSTRE
-        const Lg=Math.min(air-6,4+fr()*10);if(Lg>2)glacon(K,x+(fr()-.5)*3,y,z+(fr()-.5)*3,Lg,.45+Lg*.06,fr);}}}
-    for(const k in ST){const m=bkMesh(root,ST[k],M.pic,'banquise stalactites');if(m)BANQ.picM.push(m);}BANQ.n.stalactites=nI;}
+        bkTri(K,p,q,tip,nx/l,ny/l,nz/l,1,1,0,rg(),3);}BANQ.n.stalactites++;};
+    const i0=Math.round(200/ds),i9=NP-Math.round(60/ds),pk=Math.max(st,Math.round(300/ds/st)*st);
+    for(let ia=i0,k=0;ia<i9;ia+=pk,k++){const ib=Math.min(i9,ia+pk),rg=mulberry32(((seed^0x57A1C)+k*7919)>>>0),pm=pts[Math.min(NP-1,(ia+ib)>>1)];
+      bkTache(pm.x,pm.z,function(){const K=bkLot();
+        for(let i=ia;i<ib;i+=st){const p=pts[i],b=B[i],nn=Nn[i],air=p.y-THICK-bkSolH(p.x,p.z);
+          for(const sg of [-1,1]){if(rg()<.28)continue;const l=sg*(ROAD_HALF-.6-rg()*1.4),x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97;
+            const Lg=Math.min(air-4,1+Math.pow(rg(),2.2)*6.5);if(Lg>.6)glacon(K,x,y,z,Lg,.18+Lg*.05+rg()*.15,rg);}
+          if(rg()<.16&&air>14){const n9=3+((rg()*3)|0);for(let q=0;q<n9;q++){const l=(rg()-.5)*ROAD_HALF*1.3,x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97; // un LUSTRE
+            const Lg=Math.min(air-6,4+rg()*10);if(Lg>2)glacon(K,x+(rg()-.5)*3,y,z+(rg()-.5)*3,Lg,.45+Lg*.06,rg);}}}
+        const m=bkMesh(root,K,M.pic,'banquise stalactites');if(m)BANQ.picM.push(m);});}}
+  tp('stal');
   // ---- la physique des pics en grille de 120 m ----
   {const CG=120,G=new Map();for(const P of PH){const r=P.r,i0=Math.floor((P.cx-r)/CG),i1=Math.floor((P.cx+r)/CG),j0=Math.floor((P.cz-r)/CG),j1=Math.floor((P.cz+r)/CG);
      for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i*100003+j;let a=G.get(k);if(!a)G.set(k,a=[]);a.push(P);}}
    BANQ.picG={CG:CG,G:G};BANQ.pics=PH;}
   BANQ.n.glisse=nG;BANQ.n.seracs=nS;BANQ.n.aiguilles=nA;BANQ.n.geants=nL;BANQ.n.prims=PH.length;
-  BANQ.n.triPics=BANQ.picM.reduce(function(a,m){return a+m.geometry.attributes.position.count/3;},0);BANQ.n.triLoin=BANQ.loinM.reduce(function(a,m){return a+m.geometry.attributes.position.count/3;},0);
-  BANQ.ms=Math.round(performance.now()-t0);BANQ.msSol=Math.round(tS-t0);BANQ.yRaz=true;
+  BANQ.file.sort(function(a,b){return a.d-b.d;});BANQ.fi=0;bkTranches(1e9,BK_TOUT);tp('depart');BANQ.nFile=BANQ.file.length-BANQ.fi;
+  tp('grille');BANQ.ms=Math.round(performance.now()-t0);BANQ.msSol=Math.round(tS-t0);BANQ.yRaz=true;
   banqMeteo(BANQ.met,started?BIO_PORTAIL:.01);
 }
 /* ---------------- LA SURFACE : ce qu'il y a sous la caisse (neige, lac, pic) ---------------- */
@@ -16055,6 +16101,7 @@ function banqTick(dt){
   if(!on){banqFxCache();return;}
   const fx=banqFx(),U=BK_U,c=BANQ.cur||(banqMeteo(BANQ.met,.01),BANQ.cur);fx.on=true;
   const vit=!paused;banqPas(dt);if(vit)U.uTime.value+=dt;
+  if(BANQ.file.length)bkTranches(paused||!started?8:3); // LA SUITE DE LA CONSTRUCTION : ~3 ms par image, du plus proche au plus loin
   // LA LUMIÈRE : l'azimut du soleil du ciel, la hauteur de la météo ; la nuit, la LUNE
   {const a=Math.atan2(SUN_DIR.x,SUN_DIR.z),el=c.el*Math.PI/180;BK_V.set(Math.sin(a)*Math.cos(el),Math.sin(el),Math.cos(a)*Math.cos(el));
    U.uSunDir.value.copy(BK_V).lerp(BK_V2.copy(BK_LUNE).setY(Math.max(.45,BK_LUNE.y)).normalize(),c.lune).normalize();}
@@ -16160,8 +16207,10 @@ window.dbgBanq=function(k,o){
   if(k==='etat')return {mode:mode,sur:BANQ.sur,glisse:BANQ.glisse,pou:BANQ.pou,d:+(+BANQ.dNow).toFixed(2),t:BANQ.tNow,drift:+BANQ.drift.toFixed(2),lent:+BANQ.lent.toFixed(2),
     v:+Math.hypot(fallVel.x,fallVel.z).toFixed(1),vy:+fallVel.y.toFixed(1),y:+fallPos.y.toFixed(1),fallTR:+fallTR.toFixed(2),traces:BK_TR.i,figs:Object.keys(BANQ.figs)};
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
+  if(k==='fini'){const t=performance.now(),n=bkTranches(1e9);return {taches:n,ms:Math.round(performance.now()-t)};}
   if(k==='ramene'){if(mode==='fall')banqRamene();return mode;}
-  return {on:!!BANQ.root,met:BANQ.met,ms:BANQ.ms,msSol:BANQ.msSol,n:BANQ.n,cas:BANQ.cas.map(function(x){return Math.round(x);}),lacs:BANQ.lacs.length,
+  const triM=function(L9){return (L9||[]).reduce(function(a,m){return a+(m.geometry.index?m.geometry.index.count:m.geometry.attributes.position.count)/3;},0);};
+  return {on:!!BANQ.root,met:BANQ.met,ms:BANQ.ms,msSol:BANQ.msSol,tp:BANQ.tp,file:{reste:BANQ.file.length-BANQ.fi,total:BANQ.nFile,ms:Math.round(BANQ.msFile||0)},tri:{sol:triM(BANQ.solM),pics:triM(BANQ.picM),loin:triM(BANQ.loinM)},n:BANQ.n,cas:BANQ.cas.map(function(x){return Math.round(x);}),lacs:BANQ.lacs.length,
     sol:BANQ.sol&&{nx:BANQ.sol.nx,nz:BANQ.sol.nz,C:BANQ.sol.C,morceaux:BANQ.solM&&BANQ.solM.length,vus:BANQ.solM&&BANQ.solM.filter(function(m){return m.visible;}).length},
     cur:BANQ.cur&&{aur:+BANQ.cur.aur.toFixed(2),neige:+BANQ.cur.neige.toFixed(2),alp:+BANQ.cur.alp.toFixed(2)},L:Math.round(L),yMin:Math.round(trackMinY),y0:pts[0]&&Math.round(pts[0].y)};};
 
