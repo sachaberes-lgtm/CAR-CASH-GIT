@@ -42536,14 +42536,14 @@ function buildGarageRoom(){
   // c'est une machine qui matérialise la suivante. (La solution « deux caisses et on permute »
   // coûterait un second jeu de matériaux et de géométries pour exactement le même effet.)
   const scanTex=cvT(64,64,(x,w,h)=>{const gr=x.createRadialGradient(32,32,0,32,32,32);
-    gr.addColorStop(0,'rgba(150,255,255,0)');gr.addColorStop(.70,'rgba(120,245,255,.50)');
-    gr.addColorStop(.93,'rgba(225,255,255,.95)');gr.addColorStop(1,'rgba(120,245,255,0)');
+    gr.addColorStop(0,GARAGE_V?'rgba(255,240,215,0)':'rgba(150,255,255,0)');gr.addColorStop(.70,GARAGE_V?'rgba(255,222,170,.50)':'rgba(120,245,255,.50)');
+    gr.addColorStop(.93,GARAGE_V?'rgba(255,248,236,.95)':'rgba(225,255,255,.95)');gr.addColorStop(1,GARAGE_V?'rgba(255,222,170,0)':'rgba(120,245,255,0)');
     x.fillStyle=gr;x.fillRect(0,0,64,64);});
   const scan=new THREE.Mesh(PL,new THREE.MeshBasicMaterial({map:scanTex,transparent:true,fog:false,
     depthWrite:false,blending:THREE.AdditiveBlending,opacity:0}));
   scan.rotation.x=-Math.PI/2;scan.scale.set(7.4,7.4,1);scan.visible=false;scan.renderOrder=2; // il ÉPOUSE le plateau : plus large, il éclairait le sol de l'atelier et on perdait le disque
   pod.add(scan);GAR.scan=scan;
-  add9(PL,new THREE.MeshBasicMaterial({map:blobTex,color:0x1c0430,transparent:true,fog:false,depthWrite:false}),
+  add9(PL,new THREE.MeshBasicMaterial({map:blobTex,color:GARAGE_V?0x0a1226:0x1c0430,transparent:true,fog:false,depthWrite:false}),
        0,GAR.POD+.012,0,7.6,9.4,1).rotation.x=-Math.PI/2;               // l'ombre douce qui POSE la caisse — (vague 2) à l'ENCRE, comme toute ombre du jeu
   for(const sx of [-1,1])bx(sx*5.2,.005,1,.14,.01,17,M.jaune);          // lignes de baie
   for(const p of [[-7.4,-4.6,3.1],[6.8,5.2,2.4]])                        // flaques d'huile jamais essuyées
@@ -42805,7 +42805,7 @@ function buildGarageRoom(){
      const w9=f[2]*1.5+.4,d9b=f[3]*1.5+.4,x0=f[0]-w9/2,x1=f[0]+w9/2,z0=f[1]-d9b/2,z1=f[1]+d9b/2;
      P9.push(x0,.009,z1, x1,.009,z1, x1,.009,z0, x0,.009,z1, x1,.009,z0, x0,.009,z0);U9.push(0,0,1,0,1,1,0,0,1,1,0,1);}
    const gA=new THREE.BufferGeometry();gA.setAttribute('position',new THREE.Float32BufferAttribute(P9,3));gA.setAttribute('uv',new THREE.Float32BufferAttribute(U9,2));
-   const mA=new THREE.Mesh(gA,new THREE.MeshBasicMaterial({map:blobTex,color:0x1c0430,transparent:true,opacity:.72,fog:false,depthWrite:false}));mA.renderOrder=-1;g.add(mA);}
+   const mA=new THREE.Mesh(gA,new THREE.MeshBasicMaterial({map:blobTex,color:GARAGE_V?0x0a1226:0x1c0430,transparent:true,opacity:.72,fog:false,depthWrite:false}));mA.renderOrder=-1;g.add(mA);}
   // ===== LE PLAFOND QUI ÉCLAIRE : six tubes, leur cône de poussière, et la baladeuse =====
   // (2026-09-26, vague 2) les tubes à .62 de blanc (0xfff3d2 → 0x9e9682) et les cônes à .05 (.085) : plein blanc, les tubes passaient
   // au-dessus du seuil du bloom et BRÛLAIENT le haut de l'écran en taches laiteuses, et les six cônes additifs voilaient toute la moitié
@@ -42933,13 +42933,13 @@ function buildGarageRoom(){
    const ledTex=cvT(512,512,(x,w,h)=>{const N=72,r0=256*4.18/4.42,r1=256*4.36/4.42;x.lineCap='butt';
      for(let i=0;i<N;i++){const a=i/N*Math.PI*2,q=(i%(N/2))/(N/2),v=.1+.9*Math.pow(1-q,2.2);
        x.strokeStyle='rgba(255,255,255,'+v.toFixed(3)+')';x.lineWidth=r1-r0;x.beginPath();x.arc(256,256,(r0+r1)/2,a,a+Math.PI*2/N*.62);x.stroke();}});
-   const ledRing=new THREE.Mesh(new THREE.RingGeometry(4.12,4.42,96,1),new THREE.MeshBasicMaterial({map:ledTex,color:0x5ff0ff,transparent:true,opacity:.9,
+   const ledRing=new THREE.Mesh(new THREE.RingGeometry(4.12,4.42,96,1),new THREE.MeshBasicMaterial({map:ledTex,color:GARAGE_V?0xfff0d2:0x5ff0ff,transparent:true,opacity:.9,
      fog:false,depthWrite:false,blending:THREE.AdditiveBlending}));
    ledRing.rotation.x=-Math.PI/2;ledRing.position.y=GAR.POD+.006;g.add(ledRing);B9.led=ledRing; // hors du plateau : il tourne À SA vitesse
    // le halo SOUS la caisse (sur le plateau) et le halo du plateau AU SOL
    const haloTex=cvT(128,128,x=>{const gr=x.createRadialGradient(64,64,0,64,64,63);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.55,'rgba(255,255,255,.35)');
      gr.addColorStop(.8,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);});
-   B9.sous=nappe(haloTex,0x3fdcff,0,GAR.POD+.009,0,7.4,7.4,.22);B9.sous.rotation.x=-Math.PI/2;B9.sous.renderOrder=1;
+   B9.sous=nappe(haloTex,GARAGE_V?0xffd9a6:0x3fdcff,0,GAR.POD+.009,0,7.4,7.4,.22);B9.sous.rotation.x=-Math.PI/2;B9.sous.renderOrder=1;
    const solHaloTex=cvT(256,256,x=>{const gr=x.createRadialGradient(128,128,0,128,128,127);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.66,'rgba(255,255,255,0)');
      gr.addColorStop(.72,'rgba(255,255,255,.8)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);});
    /* --- (2026-10-05, Léo : « travaille plus le rendu ») L'OMBRE AU PIED DES MURS : les murs tombaient sur l'époxy sans un pli de lumière,
@@ -42948,10 +42948,10 @@ function buildGarageRoom(){
       géométrie, une matière, aucune lumière. */
    {const aoTex=cvT(8,64,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.5)');
       gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-    const mAO=new THREE.MeshBasicMaterial({map:aoTex,color:0x06030e,transparent:true,opacity:.62,fog:false,depthWrite:false}),L9=2.2,o9=hw-4.8;
+    const mAO=new THREE.MeshBasicMaterial({map:aoTex,color:GARAGE_V?0x050a18:0x06030e,transparent:true,opacity:.62,fog:false,depthWrite:false}),L9=2.2,o9=hw-4.8;
     for(const b of [[0,-hd+L9/2,W,0],[-hw+L9/2,0,D,Math.PI/2],[hw-L9/2,0,D,-Math.PI/2],[-(4.8+o9/2),hd-L9/2,o9,Math.PI],[4.8+o9/2,hd-L9/2,o9,Math.PI]]){
       const m=add(new THREE.Mesh(PL,mAO));m.rotation.set(-Math.PI/2,b[3],0,'YXZ');m.position.set(b[0],.012,b[1]);m.scale.set(b[2],L9,1);m.renderOrder=-1;}}
-   B9.solHalo=nappe(solHaloTex,0x2fb8ff,0,.016,0,13,13,.3);B9.solHalo.rotation.x=-Math.PI/2;B9.solHalo.renderOrder=-1;
+   B9.solHalo=nappe(solHaloTex,GARAGE_V?0xb4c0d6:0x2fb8ff,0,.016,0,13,13,.3);B9.solHalo.rotation.x=-Math.PI/2;B9.solHalo.renderOrder=-1;
    // --- LES BRAISES : 64 étincelles qui sortent du feu, montent, dérivent dans l'atelier et s'éteignent (un seul appel de dessin)
    {const N=64,pos=new Float32Array(N*3),v=new Float32Array(N*4);
     for(let i=0;i<N;i++){pos[i*3+1]=-50;v[i*4+3]=Math.random()*3;} // (au départ hors de vue ; elles naissent au fil des secondes)
@@ -44075,7 +44075,7 @@ function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu 
   B.murG.material.opacity=B.murD.material.opacity=Math.min(1,.15*fl)*(.2+.8*po);B.plaf.material.opacity=Math.min(1,.06*fl)*(.2+.8*po); // (Léo) murs .42 → .15, plafond .16 → .06 (la façade : voir la porte, .5 → .2)
   for(const n of B.neons)n.material.opacity=.86+.1*Math.sin(t9*2.3)+(Math.random()<.004?-.5:0); // le néon respire, et hoquette parfois
   for(const G9 of B.gyro){const c=Math.cos(t9*4.2+G9.ph),c3=c>0?c*c*c:0;G9.s.material.opacity=c3*.95;G9.s.scale.x=1.2+1.6*c3;} // le faisceau qui passe
-  B.led.rotation.z+=dt*(.9+k*6);B.led.material.opacity=Math.min(1,.75+.2*Math.sin(t9*3.1)+k*.6);
+  B.led.rotation.z+=dt*(.9+k*6);B.led.material.opacity=Math.min(1,.75+.2*Math.sin(t9*3.1)+k*.6)*(GARAGE_V?.6:1); /* (garage-lumiere) l'anneau de LED : un liseré, pas un néon */
   const P=B.braises.geometry.attributes.position,a=P.array,v=B.bv,hd=GAR.D/2,n9=v.length/4;
   for(let i=0;i<n9;i++){const j=i*3,q=i*4;v[q+3]-=dt;
     if(v[q+3]<=0){a[j]=(Math.random()-.5)*9;a[j+1]=.2+Math.random()*2.6;a[j+2]=hd-.4; // elle naît dans le feu…
