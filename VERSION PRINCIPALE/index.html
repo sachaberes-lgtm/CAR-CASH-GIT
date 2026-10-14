@@ -45860,7 +45860,7 @@ function bqEtatC6(k){if(!bqC6())return null;
   if(prix&&bank()<prix)return {e:'manque',t:'IL TE MANQUE',p:fmtC(prix-bank()),j:Math.max(0,Math.min(1,bank()/prix))};
   return null;}
 /* OFFRES ouvertes : la 1re offre est déjà posée sur le plateau (l'aperçu 3D ne montre plus la dernière caisse touchée) */
-function bqOffreAuto(E){if(!bqC6()||!E.length||GAR.go||ecranWipe._on)return;if(E.indexOf(garageI)<0)try{bqEssaie('v:'+E[0]);}catch(e){}}
+function bqOffreAuto(E){if(!bqC6()||!E.length)return;if(GAR.go||ecranWipe._on){GBQ.rk='';return;} /* sous le voile : on refait la liste à l'image suivante */ if(E.indexOf(garageI)<0)try{bqEssaie('v:'+E[0]);}catch(e){}}
 /* LE ◀ DE LA BOUTIQUE (BRIEF §0 bis 5) : carré, en haut à gauche, comme partout — il fait ce que faisait RETOUR (#gShopBas, masqué sous c6) */
 function bqRetourC6(ui){if(!bqC6()||document.getElementById('gBqRet'))return;ui.classList.add('c6Clair');
   const r=document.createElement('div');r.id='gBqRet';r.className='pbtn pbCarre c6Ret';r.setAttribute('role','button');r.tabIndex=0;r.setAttribute('aria-label',sansAcc(TR('RETOUR')));r.innerHTML=pxi('gauche');ui.appendChild(r);
