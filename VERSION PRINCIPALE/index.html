@@ -46646,7 +46646,7 @@ function bqSon(dt,on){
       a.connect(gv);b.connect(gv);a.start();b.start();V.push({a:a,b:b,g:gv});}
     const air=AC.createBufferSource();air.buffer=noiseBuf(2.7);air.loop=true;
     const ah=AC.createBiquadFilter();ah.type='highpass';ah.frequency.value=4200;const al=AC.createBiquadFilter();al.type='lowpass';al.frequency.value=9000;
-    const ag=AC.createGain();ag.gain.value=.004;air.connect(ah);ah.connect(al);al.connect(ag);ag.connect(g);air.start();
+    const ag=AC.createGain();ag.gain.value=.0028;air.connect(ah); // l'air de la salle — (2026-10-14, Léo : « alléger un tout petit peu le bruit constant ») .004 → .0028 (−3 dB)ah.connect(al);al.connect(ag);ag.connect(g);air.start();
     const ec=AC.createDelay(1);ec.delayTime.value=.38;const eg=AC.createGain();eg.gain.value=.35;const pg=AC.createGain();pg.gain.value=1;
     pg.connect(g);pg.connect(ec);ec.connect(eg);eg.connect(ec);eg.connect(g);
     n=BQSON.n={g:g,lp:lp,V:V,air:air,pg:pg,ec:ec,eg:eg,t:0,tA:0};BQSON.tP=1.5;
