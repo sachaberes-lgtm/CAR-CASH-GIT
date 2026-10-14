@@ -49723,7 +49723,7 @@ window.dbgCout=function(on){ // (banc) — voir COUT
    écran où trois images sur quatre ne coûtent rien : son horloge `dprT` est tenue (elle repartait sinon en netteté, à payer au départ suivant).
    `dbgMortImg()` lit l'état ; `dbgMortImg(n)` force N sur le palier courant (banc). */
 PAL.B.mortImg=[4,2,1];
-const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false};
+const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
   const N=PAL.b('mortImg',1)|0;
   if(N<=1)return false;
@@ -51538,16 +51538,23 @@ function loop(now){
      dauphins, le serpent et la BOULE DE FEU restaient figés en l'air. Chacun son filet, chacun son avertissement (une fois : loopWarn) */
   try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
   try{villeApres();}catch(e){loopWarn(2,'ville',e);}
-  try{updateDolphins(dt);}catch(e){loopWarn(4,'dauphins',e);}
+  const mortS9=mortSaute(dt); // (2026-10-14, passe perf mobile) écran de mort, paliers ANCIEN et MOYEN : la scène n'est redessinée qu'une image sur N (voir mortSaute)
+  /* (2026-10-14, passe perf mobile) …et sur une image SAUTÉE, l'AMBIANCE ne tourne pas non plus : dauphins, Paris, jade (lumières, eau, mer,
+     monuments), grues ne font que de l'affichage — remplir des tampons et des uniformes pour une image qui n'est pas dessinée, c'est du
+     processeur (et de la chaleur) pour rien. Leur temps est CUMULÉ (MORT_IMG.dt) et rendu à l'image dessinée suivante : mêmes vitesses.
+     Borné à 0,1 s (2× le pas maximal de la boucle : 4 images à 60 i/s = 0,067 s). La musique du jade (jadeMusTick) reste à chaque image.
+     mortSaute est remontée ici depuis le rendu (rien entre les deux ne touche ce qu'elle lit : écran, toile, dprT, sonde). Palier RÉCENT :
+     mortS9 toujours faux, dtA9 = dt — rien ne change. */
+  let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
+  if(!mortS9)try{updateDolphins(dtA9);}catch(e){loopWarn(4,'dauphins',e);}
   try{singeJeu(dt);}catch(e){loopWarn(64,'singe',e);} // (2026-10-11) LES SINGES EN COURSE (3 sauts en 5 s)
   try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(PARIS.meshes.length)parisTick(dt);
-  if(JADE.root){jadeTick(dt);try{jadeSousTick(dt);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
+  if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);} // (2026-10-13) CRYPTOCITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
-  if(GRUE.L.length||JADE.root)grueTick(dt); // …et les vols de grues // (Paris) le scintillement et le phare
-  const mortS9=mortSaute(dt); // (2026-10-14, passe perf mobile) écran de mort, paliers ANCIEN et MOYEN : la scène n'est redessinée qu'une image sur N (voir mortSaute)
+  if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
   if(mortS9){}else
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
