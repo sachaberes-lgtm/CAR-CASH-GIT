@@ -11367,17 +11367,33 @@ function cotonMat(){ if(COTON.mat)return COTON.mat; // la ouate des nuages (MÊM
    le côté soleil crème, le côté ombre pris par le CIEL (bleu, lavande sous le ventre), l'ombre PORTÉE des bourgeons du haut (G cuit),
    les creux (R cuit), la base plus sourde, et à contre-jour la LISIÈRE qui s'embrase (diffusion avant). Les couleurs sont celles de
    l'ambiance (le soleil, l'hémisphère : bioApply) — aucune couleur écrite ici. Les bords s'allègent (la vapeur). Instanciée (COTON). */
+/* (2026-10-14, passe graphismes, coton-blanc) LA MATIÈRE DES NUAGES v2 — Sacha : « des cumulus blancs et vaporeux, pas beige sable / lavande,
+   pas du plastique ». `?sans=coton` = l'image d'avant au bit près (l'ancien programme, les anciennes teintes). Trois choses :
+   (1) la teinte PAR NUAGE (cotonPose) devient un blanc NEUTRE à ±3 % de luminance — c'était elle qui mêlait sable et lavande dans la même
+       image (±20 % de rouge contre ±22 % de bleu, vue à 30 % par le shader) ; tous paliers, gratuit (même nombre de tirages `cr`) ;
+   (2) au palier 2 SEULEMENT (`N8_VAP`) : une toile de bruit 256² (`n8Vap`, fabriquée UNE fois, 128 Ko) lue UNE fois par pixel de nuage
+       (bruit 3D de valeur en une lecture : deux tranches côte à côte dans la toile) — les bords s'effilochent sur 3-8 % du rayon, le cœur
+       prend un grain de vapeur ; éteint au loin (une cellule sous ~3 px : pas de scintillement) ; paliers 0-1 = le programme d'aujourd'hui ;
+   (3) la lisière d'OR seulement à contre-jour (de face, l'allègement du bord reste blanc neutre). Réglage à chaud : `dbgCotonV2({…})`. */
+const COTON_V2=!/[?&]sans=coton\b/.test(location.search),N8_VAP=COTON_V2&&PAL.n===2;
+function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=mulberry32(0x7A9E5C01);
+  for(let i=0;i<N*N;i++)A[i]=(rg()*256)|0;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=y*N+x;D[i*2]=A[i];D[i*2+1]=A[((y+17)&255)*N+((x+37)&255)];} // L = la tranche z, A = la tranche z+1 (décalée de 37,17)
+  const t=new THREE.DataTexture(D,N,N,THREE.LuminanceAlphaFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
+if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
 function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
   const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k in N8_U)U[k]=N8_U[k];
   U.uSunC.value=sun.color;U.uSky.value=hemi.color;U.uGnd.value=hemi.groundColor;
+  if(N8_VAP)U.uVap.value=n8Vap(); // (coton-blanc) fabriquée une fois, à la 1re matière (au menu : nuageChauffe → cotonInit)
   const m=new THREE.ShaderMaterial({uniforms:U,vertexColors:true,fog:true,transparent:true,depthWrite:true,
-    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW,vA,vT;uniform float uTps;',
+    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW,vA,vT;uniform float uTps;',...(N8_VAP?['varying vec3 vP;varying float vQ;']:[]),
       'void main(){vec3 tr=position;vec3 nn=normal;vT=vec3(1.);',
       '  float ph=0.;',
       '#ifdef USE_INSTANCING',
       '  ph=dot(instanceMatrix[3].xyz,vec3(.013,.007,.011));',
       '#endif',
+      ...(N8_VAP?['  vP=position*13.+vec3(fract(ph*.71),fract(ph*.53),fract(ph*.37))*256.;']:[]), /* (coton-blanc) la vapeur ACCROCHÉE au nuage (avant le bouillonnement) : une cellule = 7,7 % du rayon ; chaque nuage son décalage */
       /* LA OUATE QUI BOUILLONNE (v8) : chaque lobe gonfle et se retire très lentement (deux ondes lentes le long de la normale, 1,5 % du nuage),
          déphasées par nuage — le ciel vit sans qu'aucun nuage ne bouge de place. Un calcul par sommet, zéro par pixel. */
       '  tr+=nn*(sin(uTps*.33+ph+dot(position,vec3(3.1,4.7,2.3)))*.011+sin(uTps*.19-ph+dot(position,vec3(-5.3,2.9,3.7)))*.007)*step(-.33,position.y);',
@@ -11391,9 +11407,10 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '#endif',
       '  vA=color;vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);',
       '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;',
+      ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;',
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
@@ -11413,16 +11430,19 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',   /* (SON, mesuré) au matin les nuages sortaient BEIGE-SABLE : un blanc franc côté soleil */
       '  vec3 col=alb*mix(ombre,soleil,lit);',
       '  float fr=1.-max(dot(N,V),0.),bk=pow(max(dot(-V,uSunW),0.),3.);',
-      '  col+=soleil*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;',   /* (SON, mesuré) la lueur de contre-jour ne teinte plus TOUTE la face en sable : le liseré, et un voile léger */                                  /* à contre-jour : la LISIÈRE d argent, et la vapeur éclairée par derrière */
-      '  col+=alb*soleil*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);',                                     /* de face, le bord qui tourne s ALLÈGE (la vapeur mince diffuse la lumière) */
+      ...(N8_VAP?['  float nz=n8vap(vP),kq=smoothstep(.0045,.013,vQ)*uVapK.w,e9=smoothstep(.62,.95,fr)*kq;']:[]), /* (coton-blanc) UNE lecture : nz la vapeur, e9 la frange (3-8 % du rayon au bord de la silhouette) */
+      N8_VAP?'  col+=soleil*mix(vec3(1.),vec3(1.,.9,.7),uVapK.z*smoothstep(.3,.8,dot(uSunC,vec3(.3,.59,.11))))*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;':'  col+=soleil*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;',   /* (SON, mesuré) la lueur de contre-jour ne teinte plus TOUTE la face en sable : le liseré, et un voile léger */                                  /* à contre-jour : la LISIÈRE d argent, et la vapeur éclairée par derrière */
+      N8_VAP?'  col+=alb*vec3(dot(soleil,vec3(.3,.59,.11)))*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);':'  col+=alb*soleil*pow(fr,2.)*.16*(1.-bk)*(.4+.6*lit);',                                     /* de face, le bord qui tourne s ALLÈGE (la vapeur mince diffuse la lumière) */
       '  float a=(1.-pow(fr,6.)*.45*uK.w)*uFondu;',
+      ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
       '#ifdef NUAGE8_INST',
       '  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
       '#endif',
+      ...(N8_VAP?['  if(e9>.01&&a<.02)discard;']:[]), /* (coton-blanc) un bord effiloché n écrit pas sa profondeur : le lobe de derrière le remplit */
       '  gl_FragColor=vec4(col,a);',
       '#include <fog_fragment>',
       '}'].join('\n')});
-  m.defines={NUAGE8_INST:''};m.customProgramCacheKey=function(){return 'nuage8inst';};
+  m.defines={NUAGE8_INST:''};m.customProgramCacheKey=function(){return N8_VAP?'nuage8inst2':'nuage8inst';}; /* (coton-blanc) la solo garde 'nuage8solo' : le titre (CHUTE.nuM) en partage le programme — sa source change déjà la clé de three */
   return (COTON.mat8=m);}
 function nuage8Solo(){ if(COTON.mat8s)return COTON.mat8s; // (v8) la même matière pour un maillage seul (bancs de route, coussins de vol, tours) — chauffée au menu (nuageChauffe)
   const m=nuage8Mat().clone();m.uniforms=nuage8Mat().uniforms;m.defines={};m.customProgramCacheKey=function(){return 'nuage8solo';};return (COTON.mat8s=m);}
@@ -11430,6 +11450,7 @@ window.dbgNet=function(on){FLOU_OK=!on;if(on&&acesPass)acesPass.uniforms.uSpeed.
 window.dbgN8Regen=function(o){if(o)Object.assign(N8_OPT,o);if(!COTON.root||!NUAGE8)return null;COTON.pret.fill(0);COTON.msPret=0; // (dev) refaire toutes les surfaces avec d'autres réglages
   for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){cotonFinesse(k,f,cotonBuf(r));});return Object.assign({},N8_OPT);};
 window.dbgN8=function(o){if(o){for(const k of ['x','y','z','w'])if(o[k]!=null)N8_U.uK.value[k]=o[k];if(o.r)N8_U.uR.value.fromArray(o.r);if(o.near)GFX_U.uNearF.value.set(o.near[0],o.near[1]);}return {uK:N8_U.uK.value.toArray(),v8:NUAGE8};}; // (dev) albédo, soleil, lisière, vapeur
+window.dbgCotonV2=function(o){if(o&&N8_U.uVapK)for(const k of ['x','y','z','w'])if(o[k]!=null)N8_U.uVapK.value[k]=o[k];return {v2:COTON_V2,vap:N8_VAP,palier:PAL.n,k:N8_U.uVapK?N8_U.uVapK.value.toArray():null,tex:!!(N8_U.uVap&&N8_U.uVap.value)};}; // (banc, coton-blanc) doses de la vapeur à chaud : x érosion · y grain · z or · w tout
 /* NUAGES v7 (2026-09-29, Sacha : « apporte plus de soin aux nuages, il faut qu'ils soient plus beaux dans leurs formes ») — MESURÉ sur
    captures (banc dragon.js) : les nuages se lisaient comme des GRAPPES DE BALLONS — chaque bourgeon avait son reflet et une ligne sombre à
    chaque soudure, les tours étaient des PILES D'ŒUFS (l'étirement vertical ×1,3 ovalisait des bourgeons censés être ronds), et aucun
@@ -11482,7 +11503,7 @@ function cotonPose(x,yB,z,r,k,cr,syF){ // un nuage dont le DESSOUS est à yB —
   const gn=cotonGenre(k),sx=.86+cr()*.44,sy0=(gn==='fractus'||gn==='altocumulus'||gn==='stratocumulus')?.75+cr()*.25:.85+cr()*.3,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
   if(cotonTouche(x,yB+h*.5,z,r*1.02*sx,h*.5+r*.05))return false;
   const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;
-  {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;I[o+10]=l9*(1+.2*w9)*(lourd?.8:1);I[o+11]=l9*(1+.02*w9)*(lourd?.83:1);I[o+12]=l9*(1-.22*w9)*(lourd?.95:1);} // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
+  {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;if(COTON_V2){const g9=(.88+(l9-.82)*.727)*(lourd?.94:1);I[o+10]=I[o+11]=I[o+12]=g9;}else{I[o+10]=l9*(1+.2*w9)*(lourd?.8:1);I[o+11]=l9*(1+.02*w9)*(lourd?.83:1);I[o+12]=l9*(1-.22*w9)*(lourd?.95:1);}} /* (coton-blanc) un BLANC neutre .83-1,04 (vu à 30 % par le shader : ±3 % de luminance, 0 % de teinte) — mêmes trois tirages `cr` ; ?sans=coton = le sable et la lavande d'avant */ // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
   COTON.n++;return true;}
 function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const im of COTON.im)im.count=0;}}
 // classique · bas · tour · flocon · banc · double | (v4) humilis ×2 · mediocris ×2 · congestus ×2 · castellanus · fractus
