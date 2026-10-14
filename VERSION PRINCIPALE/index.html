@@ -30052,9 +30052,17 @@ function photoPropre(){if(carWingL){carWingL.visible=false;carWingR.visible=fals
    (rose, cyan) qui la DÉTOURENT, peu d'ambiance (du modelé) ; une relève douce avec une ÉPAULE (les couleurs vives gardent leur dégradé) ;
    une ombre de contact et le reflet d'un sol verni sous les roues. Mêmes appels, même cache : garage, missions et boutique en profitent. */
 const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.27;
-function carPhoto(i){
-  if(PHOTO.cache[i])return PHOTO.cache[i];
-  if(started&&!gameOver)return null;
+/* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
+   `carPhoto(i, cb)` : avec un rappel, la photo finit en `toBlob` (l'encodage PNG part hors du fil, le rappel reçoit une adresse `blob:` d'une
+   soixantaine de caractères) au lieu de `toDataURL` (encodage sur place + ~400 Ko de base64 par photo, recopiés dans chaque innerHTML de la
+   vitrine, de l'inventaire, des missions). Même PNG, même image. Les deux toiles de travail (5 Mo et 1,3 Mo) sont rendues aussitôt (toileRend).
+   Sans rappel : comme avant (data: URL, synchrone). Une photo déjà en cours d'encodage n'est pas reprise : le rappel attend la même.
+   `dbgPhoto()` : les temps de la dernière photo (caisse, rendu + lecture, pellicule, montage, caisse rendue). */
+function carPhoto(i,cb){
+  if(PHOTO.cache[i]){if(cb)cb(PHOTO.cache[i]);return PHOTO.cache[i];}
+  if(started&&!gameOver){if(cb)cb(null);return null;}
+  if(cb&&PHOTO.att&&PHOTO.att[i]){PHOTO.att[i].push(cb);return null;}
+  const T9=PHOTO.ms={i:i,t0:performance.now()};
   const W=PHOTO_W,H=PHOTO_H,SS=PHOTO_SS,RW=W*SS,RH=H*SS;
   if(!PHOTO.rt){PHOTO.rt=new THREE.WebGLRenderTarget(RW,RH);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
     const hemi=new THREE.HemisphereLight(0xdfe6ff,0x281a40,.62),key=new THREE.DirectionalLight(0xfff4e6,1.75),
@@ -30063,9 +30071,9 @@ function carPhoto(i){
     PHOTO.scene.add(hemi,key,rim,rim2,bas);PHOTO.key=key;}
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin)
-  let url=null;
+  let url=null,asy=false;
   try{
-    buildCar(CARS[i]);
+    buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
     PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
@@ -30087,7 +30095,7 @@ function carPhoto(i){
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
     renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,cam);
     const buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);
-    renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);
+    renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;
     // la PELLICULE : retournée, relevée sur la LUMINANCE (la teinte ne bouge pas), une ÉPAULE au-dessus de .82 (les vifs gardent leur modelé), un soupçon de saturation
     const gros=document.createElement('canvas');gros.width=RW;gros.height=RH;const gx=gros.getContext('2d'),im=gx.createImageData(RW,RH),dd=im.data;
     for(let y=0;y<RH;y++){const s0=(RH-1-y)*RW*4,d0=y*RW*4;for(let k=0;k<RW*4;k+=4){const al=buf[s0+k+3];if(!al){dd[d0+k+3]=0;continue;}
@@ -30096,7 +30104,7 @@ function carPhoto(i){
       const l2=.2126*r+.7152*g+.0722*bl;r=Math.max(0,l2+(r-l2)*1.14);g=Math.max(0,l2+(g-l2)*1.14);bl=Math.max(0,l2+(bl-l2)*1.14);
       const m=Math.max(r,g,bl);if(m>1){r/=m;g/=m;bl/=m;}
       dd[d0+k]=r*255;dd[d0+k+1]=g*255;dd[d0+k+2]=bl*255;dd[d0+k+3]=al;}}
-    gx.putImageData(im,0,0);
+    gx.putImageData(im,0,0);T9.pellicule=performance.now()-T9.t0;
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
@@ -30106,14 +30114,23 @@ function carPhoto(i){
     {const rf=document.createElement('canvas');rf.width=W;rf.height=H;const rx=rf.getContext('2d');rx.imageSmoothingQuality='high';
      rx.save();rx.translate(0,2*yb);rx.scale(1,-1);rx.drawImage(gros,0,0,W,H);rx.restore();
      rx.globalCompositeOperation='destination-in';const gr=rx.createLinearGradient(0,yb,0,yb+H*.18);gr.addColorStop(0,'rgba(0,0,0,.26)');gr.addColorStop(1,'rgba(0,0,0,0)');
-     rx.fillStyle=gr;rx.fillRect(0,0,W,H);x.drawImage(rf,0,0);}
-    x.drawImage(gros,0,0,W,H);
-    url=cv.toDataURL('image/png');
-  }catch(e){console.warn('photo',e);}
+     rx.fillStyle=gr;rx.fillRect(0,0,W,H);x.drawImage(rf,0,0);toileRend(rf);}
+    x.drawImage(gros,0,0,W,H);toileRend(gros);
+    if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[i]=[cb];
+      cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
+        if(u){if(PHOTO.cache[i]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[i];}else PHOTO.cache[i]=u;}
+        const L9=PHOTO.att[i]||[];delete PHOTO.att[i];for(const f of L9)try{f(u);}catch(e){console.warn('photo',e);}},'image/png');}
+    else{url=cv.toDataURL('image/png');toileRend(cv);}
+    T9.montage=performance.now()-T9.t0;
+  }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[i];asy=false;}
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
   {const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée)
-  if(url)PHOTO.cache[i]=url;return url;
+  T9.total=performance.now()-T9.t0;
+  if(url)PHOTO.cache[i]=url;
+  if(cb&&!asy)cb(url);
+  return url;
 }
+window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
 /* L'ATELIER DES CAISSES (dev, 2026-09-26) — `dbgEssaiCaisse(src, fiche, vues)` : essaie un gabarit ÉCRIT EN TEXTE (une expression
    `function(K){…}` au format de SHAPES — ou le nom d'un gabarit existant, pour comparer) sur une fiche, et rend des PHOTOS de studio
    720 × 440 (dataURL) sous les angles demandés (rotation Y de la caisse, en radians), plus le nombre de facettes et le hors-tout.
@@ -30311,9 +30328,10 @@ function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} // hors de la boutique (ou en course) : la file attend la prochaine ouverture
-  const i=SHQ.q.shift();let u=PHOTO.cache[i];if(!u)try{u=carPhoto(i);}catch(e){u=null;}
-  if(u)sc.querySelectorAll('[data-car="'+i+'"] .shPhoto,[data-car="'+i+'"].shUne .shPhoto').forEach(function(ph){if(ph.querySelector('img'))return;const at=ph.querySelector('.shAttente');if(at)at.remove();
-    const im=document.createElement('img');im.alt='';im.src=u;im.className='shArrive';ph.insertBefore(im,ph.firstChild);});
+  const i=SHQ.q.shift();
+  const pose=function(u){if(u)sc.querySelectorAll('[data-car="'+i+'"] .shPhoto,[data-car="'+i+'"].shUne .shPhoto').forEach(function(ph){if(ph.querySelector('img'))return;const at=ph.querySelector('.shAttente');if(at)at.remove();
+    const im=document.createElement('img');im.alt='';im.src=u;im.className='shArrive';ph.insertBefore(im,ph.firstChild);});};
+  if(PHOTO.cache[i])pose(PHOTO.cache[i]);else try{carPhoto(i,pose);}catch(e){} // (OPTIMISATION) la photo s'encode hors du fil (toBlob) : elle se pose à son arrivée
   setTimeout(shopPhotoTour,40); // une photo, puis on rend la main : l'écran respire entre deux
 }
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
@@ -44659,8 +44677,9 @@ function photoFile(i,cb){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.pus
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   if(GAR.sw||GAR.go){requestAnimationFrame(photoTour);return;}
-  const it=PHQ.q.shift();let u=PHOTO.cache[it[0]];if(!u)try{u=carPhoto(it[0]);}catch(e){u=null;}
-  if(u)it[1](u);requestAnimationFrame(photoTour);
+  const it=PHQ.q.shift(),u=PHOTO.cache[it[0]];
+  if(u)it[1](u);else try{carPhoto(it[0],function(u9){if(u9)it[1](u9);});}catch(e){} // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
+  requestAnimationFrame(photoTour);
 }
 function gBankPaint(){const gb=$('gBank');
   if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtC(bank())+'<span class="aura">'+pxi('etoile')+' '+auraRankName()+'</span>';
