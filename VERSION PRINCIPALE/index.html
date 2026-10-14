@@ -36630,6 +36630,12 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
   }catch(x){}
   return 0;
 }
+function jourFinTexte(){ // (écran de fin) ce que le quotidien a donné à CETTE partie, à ajouter à la ligne « COMPTE : $ N » : « · ×2 DU JOUR · SÉRIE 3 +$ 40 » ('' si rien) — en capitales JS (accents gardés : la ligne est en police système)
+  const f=JOUR.fin;if(!f)return '';
+  let s=f.k>1?TR('×2 du jour'):'';
+  if(f.p>0)s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' +'+fmtC(f.p);
+  return s?' · '+s.toUpperCase():'';
+}
 function jourTexte(){ // la phrase du quotidien, déjà traduite ('' = rien à dire) : « Série 3 jours · ×2 sur ta 1re partie » / « Prochain ×2 demain ». Les mots sont en casse mixte (TR ne retire alors aucun accent) : la feuille met en capitales.
   try{
     if(!JOUR.on||BALADE||!SAVE.d.tuto)return '';
@@ -36670,7 +36676,7 @@ function cadeauOuvre(){ // donne le cadeau s'il est prêt (banque + flush, toast
     return Promise.resolve(v);
   }catch(x){return Promise.resolve(0);}
 }
-Object.assign(I18N,{'CADEAU':'GIFT','Série {n} jours':'{n}-day streak','×2 sur ta 1re partie du jour':'×2 on your 1st run of the day','×2 sur ta 1re partie':'×2 on your 1st run','Prochain ×2 demain':'Next ×2 tomorrow'});
+Object.assign(I18N,{'CADEAU':'GIFT','Série {n} jours':'{n}-day streak','×2 sur ta 1re partie du jour':'×2 on your 1st run of the day','×2 sur ta 1re partie':'×2 on your 1st run','Prochain ×2 demain':'Next ×2 tomorrow','×2 du jour':'×2 of the day','Série {n}':'Streak {n}'});
 window.dbgJour=function(a){ // (banc) l'état du quotidien. 'demain' = le jour d'après · 'saute' = un jour sauté (+2) · 'hier' = −1 (fuseau) · 'recule' = l'horloge recule de 2 jours · 'auj' = décalage remis à 0 · 'raz' = jour et série effacés · 'compte' = la partie en cours a tenu tMin secondes
   if(a==='demain')JOUR.dec+=1;else if(a==='saute')JOUR.dec+=2;else if(a==='hier')JOUR.dec-=1;else if(a==='recule')JOUR.dec-=2;else if(a==='auj')JOUR.dec=0;
   else if(a==='raz'){SAVE.d.jour={d:'',n:0};SAVE.flush();}else if(a==='compte')RUNX.t=Math.max(RUNX.t,JOUR.tMin);
@@ -53497,7 +53503,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
-       if(t9)t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtC(bank());
+       if(t9)t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtC(bank())+jourFinTexte(); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
        mCount(c9,v9,!prem9);}
       const ot=$t('mOverT');
       // (2026-09-26, audit UX) LES RECORDS NE SE CONTREDISENT PLUS : le jeu criait « RECORD BATTU » sur l'AURA en course, et

@@ -24,7 +24,7 @@ function monde(opt){opt=opt||{};
     TR:s=>s,I18N:{},window:{},document:{dispatchEvent(){}},SONV2:true,sfx:id=>sons.push(id),uiClic(){},hap(){},toast:(h,m)=>toasts.push([h,m]),pxi:n=>'['+n+']',fmtC:v=>'$'+Math.round(v),
     ecoRond:v=>{if(v<100)return Math.max(10,Math.round(v/10)*10);const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p;},Date:FD,Event:class{}};
   const names=Object.keys(g);
-  const F=new Function(...names,CODE+'\nreturn {JOUR,CADO,jourAuj,jourNum,jourEtat,jourPrime,jourMaj,jourCommit,jourTexte,cadeauValeur,cadeauEtat,cadeauOuvre,dbgJour:window.dbgJour,dbgCadeau:window.dbgCadeau};');
+  const F=new Function(...names,CODE+'\nreturn {JOUR,CADO,jourAuj,jourNum,jourEtat,jourPrime,jourMaj,jourCommit,jourTexte,jourFinTexte,cadeauValeur,cadeauEtat,cadeauOuvre,dbgJour:window.dbgJour,dbgCadeau:window.dbgCadeau};');
   const m=F(...names.map(k=>g[k]));
   return Object.assign(m,{H,save,g,flush,toasts,sons,FD,
     jour:(a,mo,d,h,mi)=>{H.now=new Date(a,mo-1,d,h==null?12:h,mi||0,0).getTime();}, // se placer à une date/heure LOCALE
@@ -207,6 +207,15 @@ const jr=(Y,M,D)=>Y+'-'+String(M).padStart(2,'0')+'-'+String(D).padStart(2,'0');
  t('jourTexte : ?jour=0 → rien',L({search:'?jour=0'})==='');
  t('jourTexte : horloge illisible → rien',(()=>{const m=monde();m.H.now=NaN;return m.jourTexte();})()==='');
  t('jourTexte : le texte français n\'est jamais en capitales (TR garde ses accents ; la feuille met en capitales)',!/[A-ZÀ-Ý]{4,}/.test(L({jour:{d:'2026-10-13',n:3}})));}
+
+// ---------- 9 bis. la ligne de l'ecran de fin ----------
+{const m=monde();m.JOUR.fin=null;t('jourFinTexte : rien a dire → ""',m.jourFinTexte()==='');
+ m.JOUR.fin={n:3,p:40,k:2};t('jourFinTexte : x2 + prime → « · ×2 DU JOUR · SÉRIE 3 +$40 »',m.jourFinTexte()===' · ×2 DU JOUR · SÉRIE 3 +$40',m.jourFinTexte());
+ m.JOUR.fin={n:1,p:0,k:2};t('jourFinTexte : x2 sans prime (série 1) → « · ×2 DU JOUR »',m.jourFinTexte()===' · ×2 DU JOUR',m.jourFinTexte());
+ m.JOUR.fin={n:2,p:25,k:1};t('jourFinTexte : la lecon (pas de x2) mais une prime → « · SÉRIE 2 +$25 »',m.jourFinTexte()===' · SÉRIE 2 +$25',m.jourFinTexte());
+ m.JOUR.fin={n:1,p:0,k:1};t('jourFinTexte : ni x2 ni prime → ""',m.jourFinTexte()==='');
+ m.partie();m.jourCommit();t('jourFinTexte : après une vraie fin de partie (jourCommit), la ligne vient de JOUR.fin',m.JOUR.fin&&m.JOUR.fin.k===2&&m.jourFinTexte()===' · ×2 DU JOUR',m.JOUR.fin);
+ m.partie();t('jourFinTexte : une partie neuve remet JOUR.fin à rien',m.JOUR.fin===null&&m.jourFinTexte()==='');}
 
 // ---------- 10. les crochets de banc ----------
 {const m=monde({jour:{d:'2026-10-13',n:2}});let d=m.dbgJour();
