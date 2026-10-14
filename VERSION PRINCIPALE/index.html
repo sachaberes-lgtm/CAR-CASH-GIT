@@ -51299,7 +51299,7 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   if(slCv.width!==W||slCv.height!==H){slCv.width=W;slCv.height=H;}
   if(juiceCv&&(juiceCv.width!==W||juiceCv.height!==H)){juiceCv.width=W;juiceCv.height=H;} }catch(e){} }
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
-addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
+addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused&&mode!=='boom')togglePause(); /* (2026-10-14, chasse aux bugs) PAS pendant l'EXPLOSION : la pause figeait la boule de feu, coupait le son de mort et rouvrait le panneau PAUSE au retour sur une partie déjà perdue — l'arrière-plan gèle déjà tout (plus d'images, contexte audio suspendu) ; au retour la mort avance comme au ⏸ (boomSkip, plus bas) */
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
   try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
@@ -51726,7 +51726,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(document.hidden){ if(started&&!gameOver&&paused&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))){feuilleOuvre(pan,'open');panSync();} return; } // (2026-09-29) « sortant » : parti pendant le 3-2-1 qui suit REPRENDRE — le compte s'annule, le panneau revient
     // (2026-09-29) une course qui a DÉMARRÉ pendant que l'appli dormait (REJOUER puis bouton d'accueil dans la foulée) : au retour elle
     // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
-    if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
+    if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
+    else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
     wakeAsk(); audioKick(); });
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
