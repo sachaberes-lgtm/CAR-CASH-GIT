@@ -40188,12 +40188,12 @@ function tryLand(dt){
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
       if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2);
       if(gapOk)chaineAura(gapArmed===3?'DOUBLE GAP':'GAP',gapArmed===3?200:120,'gap',false,true);else if(g>=1.5)chaineAura(g>=2?'POSE DIVINE':'POSE PARFAITE',g>=2?120:70,'pose',false,true); // (aura v2) la pose PROLONGE la chaîne // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
-      if(g>=1.5){try{if(SONV2)sfx('pose.parfait',{t:.08});else{chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
+      if(g>=1.5){try{if(SONV2)sfx('pose.parfait',g>=2?{t:.08,st:7}:{t:.08});else{ /* (2026-10-14, session SON) la POSE DIVINE (×2) sonnait comme la PARFAITE : son tchak monte d'une quinte (accordé, key:1) — l'ancien son lui donnait déjà une note de plus */chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
       addStyle(14+chain*4);
     }
-    if(SONV2&&g>=1.5&&!(gain>0))sfx('pose.parfait',{t:.08}); // (console de son) PARFAIT sans rien à encaisser : le tchak quand même, une fois
+    if(SONV2&&g>=1.5&&!(gain>0))sfx('pose.parfait',g>=2?{t:.08,st:7}:{t:.08}); // (console de son) PARFAIT sans rien à encaisser : le tchak quand même, une fois
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
   // (FLOW v2) LE RACCOURCI, DANS TOUS LES MODES : la piste parcourue entre le décollage et la pose, moins la distance VOLÉE en ligne
