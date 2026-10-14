@@ -7799,7 +7799,7 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvMis,#gvBranche,#gvLvl,#gvNivs,#gClose,#gPerso,#gBuyRow,#gCache),html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gBottom>#gRappel,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct #gHomeBas{display:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas){grid-row:1!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px!important;box-sizing:border-box;width:auto!important;min-width:0!important;height:48px!important;min-height:48px!important;
   margin:0!important;padding:0 8px!important;translate:none;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0!important;
-  font-size:10px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-x)!important;text-shadow:none!important;
+  font-size:12px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-x)!important;text-shadow:none!important;
   background:var(--c6-f)!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 4px 0 0 var(--c6-tr)!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gvCof{grid-column:1/2!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gShopBas{grid-column:2/3!important}
@@ -7830,7 +7830,9 @@ html.c6 body #bdGar2{top:-4px!important;right:-4px!important;width:8px;height:8p
   transform:none!important;animation:none!important;background:var(--c6-or)!important;box-shadow:0 0 0 2px #000!important}
 /* COUCHÉ : le bloc des touches ne s'élargit pas (la caisse garde la place), calé à droite */
 @media (orientation:landscape){
-  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:-10px!important} /* son bord droit = celui des comptes (16 px + zone sûre) : #gBottom garde 12 px de marge intérieure et déborde de 2 */
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:-10px!important}
+  /* (p2) INVENTAIRE · BOUTIQUE passent à 12 px (la taille d'une touche du socle, aucun texte sous 11 px) : couché, 10 lettres × 12 = 120 px remplissent la touche (144-160 px) → le mot seul, sans l'icône */
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) .pxi{display:none!important} /* son bord droit = celui des comptes (16 px + zone sûre) : #gBottom garde 12 px de marge intérieure et déborde de 2 */
 }
 /* DEBOUT : les deux comptes s'empilent à droite (ils ne tiennent pas à côté du titre sur 390 px) ; la fiche passe dessous, sur toute la largeur */
 @media (orientation:portrait){
@@ -7972,6 +7974,15 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.mode
 /* la jauge qui tourne le garage (Léo) : sa ZONE de toucher fait déjà 48 px (.gtZone, 9 px de plus en haut et en bas) mais son conteneur n'en mesurait que 30 (« PETIT 294×30 » à l'audit). On lui rend sa vraie
    hauteur par une bordure transparente de 9 px : le trait, le patin et leur centre ne bougent pas ; les marges négatives rendent la place prise (debout, dans le flux, il reste 9 px de plus au total). Le comportement est intact. */
 html.c6.hubOn #gTourne.on{box-sizing:content-box;border-block:9px solid transparent;margin-block:-9px}
+/* les onglets de l'inventaire : cinq mots dans 304-384 px, en pixel 8-10 px ils se touchaient (« VOITURESPEINTURE », « TRAINEESFIGURES ») ; police système 800, 12 px (11 px sur 375-390 px debout et 667 couché),
+   chaque onglet prend la largeur de son mot + sa part du reste (AILES est plus court que TRAÎNÉES) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gTabs>.gTab{flex:1 1 auto!important;padding:0 2px!important;font:800 12px/1 var(--sans)!important;text-transform:uppercase}
+@media (max-width:400px),(orientation:landscape) and (max-width:700px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gTabs>.gTab{font-size:11px!important}
+}
+/* les cartes : le nom de l'objet et le prix passent du pixel 8 px à la police système 12 px (aucun texte sous 11 px) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gStrip>.gT>b{font:800 12px/14px var(--sans)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gStrip>.gT>em{height:20px!important;font:800 12px/20px var(--sans)!important}
 html.c6.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{margin:auto auto 1px}
 </style>
 <style id="c6-boutique">
