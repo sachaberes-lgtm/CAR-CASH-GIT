@@ -179,6 +179,41 @@ html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:trans
 html.colonne.labNuages:not(.debout) #tourne{left:calc((100% - var(--labPW,0px))/2)} /* (atelier des nuages) sous le téléphone, pas sous le panneau */
 html.colonne.labNuages.debout #tourne{right:calc(var(--labPW,0px) + 16px)}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
+/* ---------- LA BARRE D'ONGLETS #n7Bar (posée par le script, hors de l'overlay : elle reste quand l'atelier change de mode) ----------
+   Une SURFACE (encre, filet sourd en haut), quatre onglets égaux : icône + MOT (13/800 capitales) ; l'onglet où l'on est = face BLANCHE,
+   texte d'encre (la grammaire des onglets de la charte 6). Elle ne vit que là où l'on choisit (html.n7on, posée par n7Tick). */
+html.nav7 #n7Bar,html.nav7 #n7Bank{display:none}
+html.nav7.n7on #n7Bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;box-sizing:border-box;height:calc(var(--sB) + var(--n7H));margin:0;
+  padding:4px calc(var(--sR) + 16px) calc(var(--sB) + 4px) calc(var(--sL) + 16px);gap:4px;align-items:stretch;
+  background:var(--c6-e0);box-shadow:inset 0 2px 0 0 var(--c6-e3)}
+html.nav7 #n7Bar .n7T{flex:1 1 0;min-width:0;height:48px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:var(--c6-g1);background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;outline:none;
+  transition:background-color var(--c6-vite) linear,color var(--c6-vite) linear}
+html.nav7 #n7Bar .n7T .pxi{--pxs:2;color:currentColor;filter:none}
+html.nav7 #n7Bar .n7T span{font:800 13px/16px var(--sans);letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap}
+html.nav7 #n7Bar .n7T:is(:active,.appui){background:var(--c6-e2);color:var(--c6-b0)}
+html.nav7 #n7Bar .n7T.on{background:var(--c6-b0);color:var(--c6-e0)}
+html.nav7 #n7Bar .n7T:focus-visible{box-shadow:inset 0 0 0 2px var(--c6-or)}
+/* COUCHÉ : la barre occupe la gauche de la rangée du bas, la DÉCISION de l'écran se pose au bout, à droite (--n7DecW) — elle n'est jamais sous la barre */
+@media (orientation:landscape) and (max-height:540px){
+  html.nav7.n7on #n7Bar{right:calc(var(--sR) + var(--n7DecW) + 32px);padding-right:16px}
+  html.nav7 #n7Bar .n7T{flex:1 1 0;max-width:140px;flex-direction:row;gap:8px}}
+/* ---------- L'ARGENT ET L'AURA #n7Bank : en haut à droite de tous les onglets, ce qu'on LIT (pas une touche) ---------- */
+html.nav7.n7on #n7Bank{display:flex;position:fixed;z-index:70;top:calc(var(--sT) + 16px);right:calc(var(--sR) + 16px);gap:8px;pointer-events:none}
+html.nav7 #n7Bank>span{display:flex;align-items:center;gap:6px;height:32px;padding:0 10px;box-sizing:border-box;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);
+  font:800 13px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap}
+html.nav7 #n7Bank .n7Cash{color:var(--c6-cash)}
+html.nav7 #n7Bank .n7Aura{color:var(--c6-aura)}
+html.nav7 #n7Bank .pxi{--pxs:2;color:currentColor;filter:none}
+/* ---------- L'ACCUEIL : le logo, la caisse, JOUER. Les quatre cartes (CARRIÈRE · MISSIONS · GARAGE · OFFRES) sont devenues la barre ----------
+   RÉGLAGES reste en haut à gauche (icône + mot) ; JOUER prend l'emplacement de décision, au-dessus de la barre (couché : au bout, à droite). */
+html.nav7.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB[data-m="carr"],.mAccP>.mMisBarre,.mHubPorte,.mOffres){display:none!important}
+html.nav7.c6.hub:not(.poki) body #mHome.acc2{grid-template-rows:48px 8px auto minmax(0,1fr);padding-bottom:var(--n7Res)}
+html.nav7.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{position:fixed!important;left:var(--n7DecL);right:var(--n7DecR);bottom:var(--n7DecB);
+  width:var(--n7DecW)!important;height:var(--n7DecH)!important;min-height:0!important;box-sizing:border-box;z-index:2}
+@media (orientation:landscape) and (max-height:540px){
+  html.nav7.c6.hub:not(.poki) body #mHome.acc2{grid-template-rows:48px minmax(0,1fr) auto minmax(0,1fr)}
+  html.nav7.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:16px!important}}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
@@ -52545,6 +52580,74 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
+  /* ================= LA NAVIGATION 7 (2026-10-14, session INTERFACE — Sacha : « là c'est trop éparpillé partout ; beaucoup plus simple
+     d'accéder à tous les trucs, clair pour les enfants, pour tout le monde ») =================
+     UNE barre d'onglets fixe en bas de tous les écrans de menu : ACCUEIL · GARAGE · DÉFIS · BOUTIQUE (la carrière est retirée du jeu).
+     Les quatre sont des MODES de l'atelier (#garage) : le menu, la collection, les missions, la boutique — changer d'onglet = changer de
+     mode sous le rideau, jamais d'écrans empilés ni de ◀ qui fait trois choses selon d'où l'on vient. En haut à droite, l'ARGENT et l'AURA
+     (#n7Bank), les mêmes partout. La barre ne vit que là où l'on choisit : ni en course, ni à la fin, ni dans les réglages, ni sous l'œil.
+     Les écrans lui parlent par un événement (`n7:va` {onglet, cat}) ; elle parle à la boutique par `n7:bq` {cat}. `?nav=0` la coupe. */
+  const N7=document.documentElement.classList.contains('nav7')&&document.documentElement.classList.contains('c6');
+  const N7_ONG=[['home','maison','ACCUEIL','HOME'],['garage','voiture','GARAGE','GARAGE'],['defis','cible','DÉFIS','MISSIONS'],['shop','panier','BOUTIQUE','SHOP']];
+  let n7Bar=null,n7Bank=null;
+  function n7Ou(){ /* l'onglet où l'on est ('' = hors des menus de l'atelier) */
+    if(!garageOn||!gEl||(started&&!gameOver))return '';
+    if(gEl.classList.contains('missions'))return 'defis';
+    if(gEl.classList.contains('menu'))return 'home';
+    if(GMODE.m==='shop')return 'shop';
+    return 'garage';}
+  function n7Visible(){
+    if(!N7||!garageOn||!gEl||GAR.go||(started&&!gameOver)||window.__intro)return false;
+    const c=gEl.classList;if(c.contains('quiet')||c.contains('launching')||c.contains('vueSeule')||c.contains('inv'))return false;
+    return !document.body.classList.contains('setPause');}
+  function n7Libelles(){if(!n7Bar)return;
+    n7Bar.querySelectorAll('.n7T').forEach(function(b){const o=N7_ONG.find(function(x){return x[0]===b.dataset.n7;}),t=LANG==='en'?o[3]:o[2];
+      b.querySelector('span').textContent=t;b.setAttribute('aria-label',t);});
+    n7Bar.setAttribute('aria-label',LANG==='en'?'Menu':'Menu');}
+  function n7Cat(cat){try{document.dispatchEvent(new CustomEvent('n7:bq',{detail:{cat:cat}}));}catch(e){}}
+  function n7Va(dest,cat,el){
+    if(!N7||!garageOn||!gEl||GAR.go||ecranWipe._on||(started&&!gameOver))return;
+    if(el){uiPop(el);uiClic('onglet');}
+    const ici=n7Ou();
+    if(dest===ici){if(dest==='shop'&&cat)n7Cat(cat);return;} /* l'onglet où l'on est : rien ne bouge (une catégorie demandée s'y applique) */
+    ecranWipe(function(){
+      if(!garageOn||GAR.go||(started&&!gameOver))return;
+      if(ici==='shop'&&dest!=='shop'){ /* la boutique 3D ne se défait d'un coup que sous le rideau — la même rangée que son ◀ venu de l'accueil (#gBqRet) */
+        gGarageReplie();GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);try{garBqAmbiance(false);bqSonCoupe(.4);}catch(e){}GBQ.lueur=0;
+        try{SHOP.prev=null;buildCar(CARS[equippedCar()]);}catch(e){}}
+      if(GATL.on&&dest!=='garage')gAtelier(false); /* la porte de l'atelier se relève : la collection est fermée */
+      GAR.misVit=false;GBQ.deAcc=0;
+      if(dest==='home')garMode('menu');
+      else if(dest==='defis')garMode('missions');
+      else if(dest==='garage'){garMode('boutique');if(GMODE.m!=='inv')gModeVa('inv');} /* GARAGE = la collection, tout droit (plus de hub replié entre les deux) */
+      else if(dest==='shop'){if(cat==='offres')GBQ.ong='off';else if(GBQ.ong==='off')GBQ.ong='cat';
+        garMode('boutique');if(GMODE.m!=='shop')gModeVa('shop');if(cat)n7Cat(cat);}
+    });}
+  function n7Tick(){
+    const v=n7Visible(),R=document.documentElement;
+    if(v!==n7Tick.v){n7Tick.v=v;R.classList.toggle('n7on',v);}
+    if(!v)return;
+    const o=n7Ou();
+    if(o!==n7Tick.o){n7Tick.o=o;R.setAttribute('data-n7',o);
+      n7Bar.querySelectorAll('.n7T').forEach(function(b){const on=b.dataset.n7===o;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});}
+    const au=Math.floor(SAVE.d.aura||0),k=Math.floor(bank())+'|'+au+'|'+LANG;
+    if(k!==n7Tick.k){n7Tick.k=k;n7Bank.querySelector('.n7Cash b').textContent=fmtC(bank());n7Bank.querySelector('.n7Aura b').textContent=fmtAura(au);
+      if(n7Tick.lang!==LANG){n7Tick.lang=LANG;n7Libelles();}}}
+  if(N7)try{
+    n7Bar=document.createElement('nav');n7Bar.id='n7Bar';n7Bar.setAttribute('role','tablist');
+    n7Bar.innerHTML=N7_ONG.map(function(o){return '<div class="n7T" role="tab" tabindex="0" data-n7="'+o[0]+'">'+pxi(o[1])+'<span></span></div>';}).join('');
+    document.body.appendChild(n7Bar);
+    n7Bank=document.createElement('div');n7Bank.id='n7Bank';
+    n7Bank.innerHTML='<span class="n7Cash">'+pxi('piece')+'<b></b></span><span class="n7Aura">'+pxi('etoile')+'<b></b></span>';
+    document.body.appendChild(n7Bank);
+    n7Libelles();
+    n7Bar.addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.n7T');if(!t)return;e.stopPropagation();n7Va(t.dataset.n7,null,t);});
+    n7Bar.addEventListener('keydown',function(e){if(e.code!=='Enter'&&e.code!=='Space')return;const t=e.target.closest&&e.target.closest('.n7T');if(t){e.preventDefault();n7Va(t.dataset.n7,null,t);}});
+    for(const ev of ['pointerdown','touchstart','mousedown'])n7Bar.addEventListener(ev,function(e){e.stopPropagation();},{passive:true}); /* le doigt sur la barre ne tourne pas le garage, ne lance pas le burn-out */
+    document.addEventListener('n7:va',function(e){const d=e.detail||{};if(d.onglet)n7Va(d.onglet,d.cat||null,null);});
+    setInterval(n7Tick,120);
+    window.dbgNav=function(o,c){if(o)n7Va(o,c||null,null);return {ou:n7Ou(),visible:n7Visible(),wipe:!!ecranWipe._on,mode:GMODE.m,atelier:!!GATL.on};};
+  }catch(e){console.warn('navigation 7',e);}
   if(mob){
     const mHit=function(e){
       const el=e.target&&e.target.closest?e.target.closest('[data-m]'):null;
