@@ -29862,7 +29862,7 @@ function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie
 RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
-  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
+  try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;chanceRaz();} /* (2026-10-14) une partie neuve, une SECONDE CHANCE neuve */ // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
 /* (2026-09-30) « FRANCHIS N PORTAILS » restait à 0 / 1 toute la zone : la mort à 90 m du portail disait « 0 », comme la mort au départ.
    La zone EN COURS compte pour sa part de piste roulée (s/L, jamais 1 : l'entier ne tombe qu'AU portail, la complétion ne change pas).
    Pas en campagne/carrière (niveaux dessinés : le portail y finit parfois la partie), ni à l'auto-école (son portail tourne en rond).
@@ -32969,6 +32969,7 @@ let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GA
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
 function partieRecord(){try{return !SANDBOX&&((money>(RUNX.best0||0)&&money>START_CASH+.5)||!!CHA.recB||engTier>(RUNX.engAvant|0));}catch(e){return false;}}
 function explode(cause){
+  if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   if(facileSauve(cause))return; // (MODE FACILE) une vie de moins au lieu de la partie (le BOUCLIER, qui pardonnait une chute, est retiré le 29/09)
   RALENTI.t=0; // (passe qualité) le ralenti de la frénésie s'arrête net à l'explosion : sinon le plan de la mort passait à ×0,3 et l'écran de fin arrivait 2× plus tard
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
@@ -40641,6 +40642,110 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+/* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
+   ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER contre de l'ARGENT DU JEU — jamais d'euros, jamais de pub :
+   on repart d'où l'on est tombé (`respawn` : la dernière route sûre) avec le MOTEUR, la zone et le compteur de la partie ; la chaîne d'aura,
+   le flow et les pouvoirs sont partis avec l'explosion, une part des gains avec le prix, et le MOTEUR perd un palier (CHANCE.moteurPerte :
+   la caisse a explosé) — la mort reste une vraie sanction.
+   · LE PRIX monte avec la partie (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,5 jusqu'à 3 min puis
+     +0,05 par minute, plafond 0,8 ; CHANCE.plancher au moins, arrondi à deux chiffres (2 437 → 2 400). Le moteur perdu casse la pente de
+     l'argent (≈ T^2,1 : continuer une longue partie vaut bien plus que d'en recommencer une). Il se paie sur le COMPTE — qui contient déjà la partie, commitExploits vient de la verser. Jamais
+     proposée si le compte ne couvre pas le prix, ni sur une partie de moins de CHANCE.tMin secondes (on ne vend rien à qui a raté le 1er virage).
+   · LA FENÊTRE : CHANCE.fen après endGame, puis l'offre s'éteint seule. Aucun chrono à l'écran (INTERFACE : pas de fausse urgence).
+     Quitter l'écran de mort (menu, garage) la ferme aussi. Pas au bac à sable, à l'auto-école, au parc, au Survivant, ni sur une fin de
+     RÈGLE (semé, terminé : endGame sans explosion).
+   · LA COMPTABILITÉ SUIT. endGame a déjà VERSÉ la première partie (banque, aura, exploits, Top 10) : on ne rembourse rien, on décale les
+     BASES — la fin suivante ne verse que ce qui a été gagné depuis la reprise (`chanceBase`, CHANCE.a0, CHANCE.rs), ne compte pas une
+     2e partie (ex.runs), et la ligne du Top 10 de la première fin part (le score final, plus haut, la remplace).
+   · LA REPRISE : sous le volet, la caisse retombe sur sa ligne ; 3 · 2 · 1 (1,5 s) puis GO ; elle CLIGNOTE, invulnérable CHANCE.invD
+     secondes de course : un choc est ignoré, une chute (vide, trop d'air) la replace sans frais. 2 s de nitro offerte, comme au départ.
+   Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
+   (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
+const CHANCE={on:!/[?&]chance=0\b/.test(location.search),k0:.5,kPente:.05,kMax:.8,plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
+  offre:false,used:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
+function chanceJoli(x){if(!(x>0))return 0;const p=Math.pow(10,Math.max(0,Math.floor(Math.log10(x))-1));return Math.round(x/p)*p;} // deux chiffres qui comptent
+function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
+function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
+function chanceRaz(){clearTimeout(CHANCE.tm);const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
+function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
+  clearTimeout(CHANCE.tm);CHANCE.offre=false;
+  if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(RUNX.t||0)<CHANCE.tMin)return;
+  const k=Math.min(CHANCE.kMax,CHANCE.k0+CHANCE.kPente*Math.max(0,(RUNX.t||0)/60-3));
+  CHANCE.prix=chanceJoli(Math.max(CHANCE.plancher,k*Math.max(0,money-START_CASH)));
+  CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
+  CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
+  CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
+  chanceSignal();
+}
+function chanceEtat(){
+  const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&bank()>=CHANCE.prix);
+  return {ok:ok,prix:CHANCE.prix,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+}
+function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on repart sous le volet
+  if(!chanceEtat().ok)return false;
+  const P=CHANCE.prix;
+  clearTimeout(CHANCE.tm);CHANCE.used=true;CHANCE.offre=false;
+  SAVE.d.bank=Math.max(0,bank()-P);
+  CHANCE.m0=money;CHANCE.rs={tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0};
+  if(CHANCE.lb!=null){const i9=leaders.findIndex(function(e){return e.s===CHANCE.lb;});if(i9>=0)leaders.splice(i9,1);} // la ligne de la 1re fin part : la fin suivante posera le score de toute la partie
+  saveLeaders(); // (flush : le paiement et le Top 10 partent ensemble sur le disque)
+  RUNX.verse=null;MIS_REC=null;
+  try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(e){}hap([12,40,12,40,30]);
+  chanceSignal();
+  const go=function(){chanceRepart(P);};
+  try{goImmersive();}catch(e){}
+  if(typeof ecranWipe==='function')ecranWipe(go);else go();
+  return true;
+}
+function chanceRepart(P){ // sous le volet : la course reprend où elle s'est arrêtée
+  if(!started||!gameOver)return;
+  try{finSonsCoupe();}catch(e){}
+  mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';
+  clearBoom();RALENTI.t=0;
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
+  airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
+  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
+  if(CHANCE.moteurPerte>0&&engTier>0){engTier=Math.max(0,engTier-CHANCE.moteurPerte);coinsGot=ENGINE_TIERS[engTier].coins;} // le MOTEUR encaisse le choc : un palier (ses pièces avec), la vignette et le timbre suivent seuls
+  startBoostT=Math.max(startBoostT,2);paintMoney();
+  if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage (niveau 10) et le banquier (niveau 20) : ils reviennent
+  if(VBQ.on&&!VBQ.fini)VBQ.g.visible=true;
+  if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
+  musicStartRun(true);
+  CHANCE.inv=CHANCE.invD;
+  try{flashEcran('rgba(255,255,255,.35)');}catch(e){}
+  try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // les commandes reviennent À L'INSTANT
+  let n=3;const pas=function(){ // 3 · 2 · 1 : le compte du BOUCLIER (la caisse roule déjà ; ce n'est pas un gel)
+    const s9=avE('slam9');
+    if(!started||gameOver){if(s9)s9.classList.remove('compte','on');return;}
+    if(paused){CHANCE.tm=setTimeout(pas,200);return;} // la pause pendant le compte : il attend
+    if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2)sfx('ui.go');}catch(e){}return;}
+    slam(String(n),n===3?'−'+fmtC(P):'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
+    try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6);
+    n--;CHANCE.tm=setTimeout(pas,500);};
+  CHANCE.tm=setTimeout(pas,120);
+}
+function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige le bouclier avec le reste
+  CHANCE.inv=Math.max(0,CHANCE.inv-dt);
+  if(mode==='boom')return;
+  carGroup.visible=CHANCE.inv<=0||((CHANCE.inv*(CHANCE.inv<1?16:9))|0)%2===0; // il clignote, plus vite à la fin
+}
+function chanceProtege(cause){ // explode, pendant le bouclier
+  if(!(CHANCE.inv>0)||gameOver||mode==='boom'||!started)return false;
+  if(mode==='fall'||cause==='vide'||cause==='air'){ // une chute : replacée sans frais (comme le filet du mode facile)
+    airPie.style.display='none';airFlash=0;try{dolFin();}catch(e){}
+    respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;CHANCE.inv=Math.max(CHANCE.inv,1);}
+  return true; // un choc : ignoré
+}
+function chanceRefuse(){if(!CHANCE.offre)return false;clearTimeout(CHANCE.tm);CHANCE.offre=false;chanceSignal();return true;} // l'offre se ferme tout de suite (un geste ailleurs, la machine à sous d'IDEE qui veut sa place)
+function chanceAttend(){return !!(CHANCE.offre&&!CHANCE.used&&performance.now()<CHANCE.fin&&chanceEtat().ok);} // vrai tant que l'offre est à l'écran : ce qui vient APRÈS la mort (le FINAL SPIN) attend qu'elle tombe — l'événement cc:chance le dit
+window.chanceEtat=chanceEtat;window.chanceJoue=chanceJoue;window.chanceRefuse=chanceRefuse;window.chanceAttend=chanceAttend; // (l'écran de mort, IDEE et les bancs les appellent hors de l'IIFE)
+window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose · ('joue') prend l'offre · ('t',s) vieillit la partie · ('$',n) n $ encaissés · ('choc') un choc
+  if(k==='mort'&&started&&!gameOver&&mode!=='boom')explode('vide');
+  if(k==='joue')return chanceJoue();
+  if(k==='t'&&arguments.length>1)RUNX.t=+arguments[1];
+  if(k==='$'&&arguments.length>1){money=START_CASH+(+arguments[1]);try{paintMoney();}catch(e){}}
+  if(k==='choc'&&started&&!gameOver)explode('tour'); // pendant le bouclier : rien ne doit se passer
+  const e=chanceEtat();return {ok:e.ok,prix:e.prix,reste:e.reste,offre:CHANCE.offre,used:CHANCE.used,inv:+CHANCE.inv.toFixed(2),bank:Math.round(bank()),money:Math.round(money),t:+(RUNX.t||0).toFixed(1),gameOver:gameOver,mode:mode,base:chanceBase()};};
 function finSonsCoupe(){
   if(!SONV2||!window.CCSON)return;
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
@@ -40708,14 +40813,15 @@ function commitExploits(){
   const lecon=!!TUTO.quitte;
   if(!lecon){
   ex.eng=Math.max(ex.eng,engTier);
-  ex.tricks+=runStats.tricks|0;
-  ex.gaps+=runStats.gaps|0;
-  ex.bumps+=runStats.bumps|0;
-  ex.surv+=runStats.surv|0;
+  const rs9=(CHANCE.used&&CHANCE.rs)||{tr:0,ga:0,bu:0,sv:0}; // (2026-10-14) SECONDE CHANCE : la 1re fin a déjà versé ces compteurs-là
+  ex.tricks+=Math.max(0,(runStats.tricks|0)-rs9.tr);
+  ex.gaps+=Math.max(0,(runStats.gaps|0)-rs9.ga);
+  ex.bumps+=Math.max(0,(runStats.bumps|0)-rs9.bu);
+  ex.surv+=Math.max(0,(runStats.surv|0)-rs9.sv);
   ex.zones=Math.max(ex.zones,runStats.zones|0);
   ex.chain=Math.max(ex.chain,runStats.chainMax|0);
   ex.kmh=Math.max(ex.kmh,Math.round(runStats.vmax)||0);
-  ex.runs++;
+  if(!CHANCE.used)ex.runs++; // (une partie reprise reste UNE partie)
   }
   /* ---- LE VIREMENT ET L'AURA PARTENT EN PERSISTANT ------------------------------------------
      ⚠ ON NE VERSE QUE LES GAINS, PAS LE COMPTEUR. `money` démarre à `START_CASH` (1,61 €) à chaque
@@ -40724,12 +40830,12 @@ function commitExploits(){
      ⚠ ET ON NE VERSE QUE CE QUI A ÉTÉ ENCAISSÉ : la mallette en cours n'a jamais touché `money`,
      donc mourir en vol la perd, exactement comme avant. La banque ne rachète pas le bank-or-bust,
      elle en est la conséquence logique. */
-  const vire=Math.max(0,money-START_CASH)||0; // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
+  const vire=Math.max(0,money-chanceBase())||0; /* (2026-10-14) SECONDE CHANCE : après une reprise, seulement ce qui a été gagné depuis */ // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
   SAVE.d.bank=Math.min(1e30,bank()+vire);bankMaxMaj();
   const rangAvant=auraRank();
-  if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
+  if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0)); // (SECONDE CHANCE : l'aura d'avant la reprise est déjà versée)
   SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun));} // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
-  commitExploits._vire=vire;                       // relus par l'écran de fin
+  commitExploits._vire=CHANCE.used?Math.max(0,vire+CHANCE.v1-CHANCE.prix):vire; // relus par l'écran de fin (après une reprise : toute la partie, prix déduit)
   commitExploits._aura=Math.round(auraRun);
   commitExploits._rangMonte=auraRank()>rangAvant;  // un rang franchi se crie
   const got=carScan();
@@ -40749,8 +40855,9 @@ function enCoursPose(){
   try{
     if(!(started&&!gameOver&&!SANDBOX&&!TUTO.on&&!PARK.on))return false;
     const g=(CHA.n&&mode==='drive'&&running)?Math.round(CHA.pts*Math.max(1,CHA.x)):0; // endGame : chaineEncaisse() au sol seulement
-    SAVE.d.enCours={v:Math.max(0,money-START_CASH),a:Math.round(auraRun)+Math.max(0,g),e:engTier|0,
-      tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0,zo:runStats.zones|0,ch:runStats.chainMax|0,
+    const rs9=(CHANCE.used&&CHANCE.rs)||{tr:0,ga:0,bu:0,sv:0}; // (2026-10-14) SECONDE CHANCE : la 1re fin a déjà versé sa part
+    SAVE.d.enCours={v:Math.max(0,money-chanceBase()),a:Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0))+Math.max(0,g),e:engTier|0,
+      tr:Math.max(0,(runStats.tricks|0)-rs9.tr),ga:Math.max(0,(runStats.gaps|0)-rs9.ga),bu:Math.max(0,(runStats.bumps|0)-rs9.bu),sv:Math.max(0,(runStats.surv|0)-rs9.sv),zo:runStats.zones|0,ch:runStats.chainMax|0,
       km:Math.round(runStats.vmax)||0,s:Math.round(money),f:(FLOW.lv===4&&FREN.t>0)?Math.floor(FREN.t*10)/10:0};
     return true;
   }catch(e){return false;}
@@ -40828,6 +40935,7 @@ function endGame(){
     saveLeaders();
   }
   renderLeaders(q?leaders.findIndex(function(e){return e.s===sc;}):-1);
+  try{chanceOuvre(mode==='boom',sc,q);}catch(e){} // (2026-10-14) LA SECONDE CHANCE (voir CHANCE)
   overlay.style.display='flex';
   hautVide(); // l'écran de mort récapitule moteur et défis : la file du haut n'a plus rien à dire
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
@@ -50796,6 +50904,7 @@ function loop(now){
     if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
     steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
     graceT=Math.max(0,graceT-dt);
+    if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
     if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
     if(mode==='drive'){
