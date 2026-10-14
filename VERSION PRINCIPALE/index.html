@@ -34418,6 +34418,16 @@ let engPre=null,engPost=null,engEq=null,engFmt=null,engTickG=null,engTickO=null,
 let MASTER=null,BUSOUT=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null,
     skF1=null,skF2=null,skLfo=null,skD1=null,skD2=null,jcFb=null,jcDep=null,jetDist=null,jrG=null,jrF=null,jrDep=null;
 let engLvl=-1,engGear=1,engRpm=0,engShiftT=0,engWasUp=false,nA=0,duckT=0;const LANCEE={a:[0,0,0]}; /* (2026-10-07) les paliers d'élan déjà sonnés (voir « LA LANCÉE S'ENTEND ») */
+/* (2026-10-14, session SON) LE VOL QUI MONTE : `SVOL.t` = secondes VÉCUES du vol en cours (jamais rendues par un bump ni par la mer,
+   contrairement à fallTR), `SVOL.k` = la TENSION 0 → 1, lissée par dt (même courbe à 30, 60, 120 i/s : banc son/banc/vol/tension.cjs).
+   Elle monte avec la durée du vol (~2,5 s) et un peu avec les figures (ECH), ouvre le vent et fait chanter le moteur en vol ; à la
+   pose elle retombe en ~0,2 s : c'est la RÉSOLUTION, le verdict claque sur un mix qui se relâche. Remis à zéro par startFall (t),
+   respawn / newTrack / resetGame (t et k). */
+const SVOL={t:0,k:0};
+/* (2026-10-14, session SON) LA TURBULENCE DU JET, TIRÉE À INTERVALLE FIXE : le hasard de jrG / jetLowG était retiré À CHAQUE IMAGE —
+   l'écart dépassait toujours la garde de `stt` (setTargetAtTime à chaque image) et le grain allait deux fois plus vite à 120 Hz.
+   On retire `r` (×.84-1.16) et `l` (×.7-1.3) toutes les 90 ms (horloge par dt) ; entre deux, la consigne ne bouge pas. */
+const JETN={t:0,r:1,l:1};
 /* ================= LES 30 VOIX — UNE PAR MOTEUR (2026-08-05) =================
    ⚠ C'ÉTAIT LE PLUS GROS MANQUE DU JEU (noté tel quel dans la passation). Les 30 paliers se
    partageaient les 24 timbres de `ENGINES` — des voix de CARROSSERIE — par une règle de trois :
@@ -38137,6 +38147,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
     dolHudAtt=0;dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
+  SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
   for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
@@ -38930,7 +38941,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
+  ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
@@ -39179,7 +39190,7 @@ function tryLand(dt){
   if(landLoss>.2&&impact>=4.5)dropChip(2); // (2026-10-09) la tôle qui part = une pose DURE : un grand vol posé en douceur (PARFAIT) ne se casse plus
   if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
   if(window.__poseJ)window.__poseJ.push({h:+hOff.toFixed(2),hAvant:+prevH.toFixed(2),lat:+latX9.toFixed(2),vN:+vN.toFixed(1),vT:+fallVel.dot(T[bestI]).toFixed(1),face:sideL,t:+fallT.toFixed(2),vA:+vA.toFixed(1),psi:+psi.toFixed(2)}); /* (banc) le journal des poses */
-  prevTvalid=false;mode='drive';
+  prevTvalid=false;mode='drive';duckT=Math.max(duckT,.2*SVOL.k); /* (2026-10-14, session SON) LA RÉSOLUTION : la pose d'un vol tendu creuse les chaînes continues ~80 ms (dk ≥ .9, duckT retombe à 2,6/s) — le verdict (pose.parfait, choc) claque dans ce creux, puis la tension retombe en ~0,2 s (SVOL.k hors du vol) */
   /* LA POSE SANS SAUT (2026-10-01, Sacha : « il y a des bugs quand on essaye de se poser sur la route » — MESURÉ au banc des poses,
      da/pose-banc.js, 144 lâchers à 1/60 s) : la pose est DÉCLARÉE dès que la caisse passe sous 3 m de la dalle (la fenêtre élargie), et la
      conduite la posait SUR le bitume à l'image suivante — elle descendait de 2,1 à 2,6 m EN UNE IMAGE (le monde sautait à l'écran, 0,12 à
@@ -39386,6 +39397,7 @@ function traceTick(actif){
     a.needsUpdate=true;}
 }
 function newTrack(){
+  SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
   for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
@@ -39440,6 +39452,7 @@ window.dbgPortail=function(d){if(!started||gameOver||PARK.on)return 'pas de cour
 window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course en cours';
   runStats.zones++;SURV.pBase+=survPortS();newTrack();return window.dbgNiveau(); }; // (2026-09-30) comme le vrai portail : en vol, au moins l'entrée de l'ovule
 function resetGame(){
+  SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
   PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
   try{nitroooVide();}catch(e){} // (2026-09-29) NITROOO et le dragon ne débordent plus sur la partie suivante
@@ -50537,6 +50550,10 @@ function loop(now){
       if(duckT>0)duckT=Math.max(0,duckT-dt*2.6); // les gros événements creusent le mix, puis il respire
       const dk=(1-.5*duckT)*(ANN.duck?ANN_DUCK:1);
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
+      /* (2026-10-14, session SON) LA TENSION DU VOL (voir SVOL) : en l'air elle vise 85 % à 2,5 s de vol + 6 % par geste (30 % au plus),
+         plafonnée à 1, et y monte en douceur (taux 2,6/s) ; hors du vol elle retombe (taux 5/s ≈ 0,2 s). Rien d'aléatoire : du lisse. */
+      if(mode==='fall'){SVOL.t+=dt;const kT9=Math.min(1,.85*Math.min(1,SVOL.t/2.5)+Math.min(.3,ECH*.06));SVOL.k+=(kT9-SVOL.k)*(1-Math.exp(-dt*2.6));}
+      else if(SVOL.k>0)SVOL.k=SVOL.k<.002?0:SVOL.k*Math.exp(-dt*5);
       if(osc&&gainN&&mode==='drive'){
         // LE BRUIT DU MOTEUR, C'EST LE MOTEUR — jamais la caisse (règle posée par le user, 2026-08-03).
         // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetTier ci-dessous), mais la
@@ -50611,13 +50628,19 @@ function loop(now){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
         // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
         if(mode==='fall'&&!nitroOn){ // (2026-09-25) ROUES LIBRES : le moteur s'emballe doucement en vol (il était figé et muet), rupteur par le LFO déjà branché
-          const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],T0=AC.currentTime;
-          engRpm+=(.9-engRpm)*Math.min(1,dt*2.2);
+          const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],T0=AC.currentTime,k9=SVOL.k;
+          /* (2026-10-14, session SON) LE MOTEUR CHANTE AVEC LA TENSION : la roue libre vise .85 → .98 du régime (jamais au-delà du
+             plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
+             le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
+          engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
           const f0=(e0.i+engRpm*e0.r)*.62;
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
-          stt(gainN.gain,.013*e0.vol*dk,T0,.08);
-          stt(engLfo.frequency,9,T0,.05);stt(engLfoG.gain,.009*e0.vol*dk,T0,.08);
+          /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
+             et son plancher en vol passe de .013 à .02 — toujours SOUS le moteur au sol à la vitesse d'un décollage (ev ≈ .032×vol sur
+             ordi, .045 sur iPhone ; ici ≤ .027×vol, tension comprise). Le battement suit la même pente (il s'ajoute au gain). */
+          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk,T0,.18);
+          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk,T0,.18);
         }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
@@ -50635,8 +50658,8 @@ function loop(now){
            qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
         {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
                raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
-         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
-        stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)+340*SVOL.k),AC.currentTime,.15); // (2026-10-14, session SON) +340 Hz × la tension du vol : le vent S'AIGUISE à mesure que le vol dure (et son gain +.016×k au-dessus, sous le plafond .075) ; à la pose k retombe en ~0,2 s — le vent se relâche au lieu de couper // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
@@ -50667,13 +50690,14 @@ function loop(now){
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
         const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE:0;
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
-        stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
+        JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
+        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
         stt(jetG.gain,nOn9&&air9?.01*dk:0,AC.currentTime,.06);
-        stt(jetLowG.gain,TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
+        stt(jetLowG.gain,TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*JETN.l*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
         stt(jetOscG.gain,nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
         stt(jcFb.gain,.12,AC.currentTime,.1);stt(jcDep.gain,.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nOn9){
@@ -50681,7 +50705,7 @@ function loop(now){
           stt(jetOsc.frequency,900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
-          if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
+          if(Math.random()<dt*(air9?(TEL_NATIF?4:9):(TEL_NATIF?6:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops, plus hauts (audibles) — (2026-10-14, session SON) 10 → 6/s au sol et 9 → 4/s en l'air sur iPhone : chaque pop alloue 4 nœuds WebAudio, la cadence était un coût CPU ; le timbre ne change pas
           if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
         if(nOn9&&air9&&!loop._jetWas&&NFX.ign<.5){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé) — (vague 3) seulement quand on DÉCOLLE nitro tenue : un allumage frais a déjà son WHOOMP (nitroAllume)
