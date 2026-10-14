@@ -7537,6 +7537,17 @@ html.c6 body.touch #pwrChip .pw u{left:10px;right:10px;height:4px;background:var
 html.c6 body.touch #pwrChip .pw.cumul u{height:4px;background:var(--c6-b0);box-shadow:none}   /* cumulé au-delà de sa durée : la barre passe au blanc (elle « brillait plus fort ») */
 @media (prefers-reduced-motion:reduce){html.c6 body.touch #pwrChip .pw{animation:none}}
 html.c6[data-reduced-motion="1"] body.touch #pwrChip .pw{animation:none}
+/* ---- 3. LES BANDEAUX D'ANNONCE (2026-10-14, charte 6) : l'étiquette au-dessus du grand mot (« NOUVEAU SOMMET », « NOUVEAU MOTEUR »,
+   « + CAPACITE ») était un octogone à pointes à la couleur du moteur ; le ruban du record, penché de 4° en dégradé. Une étiquette
+   d'OR à plat, rectangulaire, encre dessus, sans chasse. Le grand mot dessous ne change pas. (Toutes en or, même hors record :
+   la couleur du moteur reste sur le nom et sur le moteur 3D.) */
+html.c6 body #engBig .ebTit,html.c6 body #engBig.rec .ebTit{clip-path:none;filter:none;letter-spacing:0!important;
+  background:var(--c6-or)!important;color:var(--c6-orE)!important;-webkit-text-fill-color:var(--c6-orE);text-shadow:none!important;box-shadow:none!important}
+@keyframes c6Ruban{from{opacity:0;transform:scale(1.25)}to{opacity:1;transform:none}}
+html.c6 body #engBig .ebRuban{transform:none;clip-path:none;background:var(--c6-or);box-shadow:inset 0 0 0 2px var(--c6-orE);
+  animation:c6Ruban var(--c6-pose) var(--c6-courbe) both}
+html.c6 body #engBig .ebRuban b,html.c6 body #engBig .ebRuban small{color:var(--c6-orE);-webkit-text-fill-color:var(--c6-orE);letter-spacing:0;text-shadow:none;filter:none}
+@media (prefers-reduced-motion:reduce){html.c6 body #engBig .ebRuban{animation:none}}
 </style>
 <style id="c6-pause-fin">
 /* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
