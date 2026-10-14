@@ -11404,11 +11404,22 @@ const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.c
   e.style.cssText='position:fixed;left:calc(var(--sL) + 6px);top:calc(var(--sT) + 4px);z-index:2147483000;pointer-events:none;'+
     'font:600 var(--f1)/1.35 var(--sans);color:var(--tx);background:var(--k1);padding:2px 5px;white-space:pre;max-width:70vw';
   document.body.appendChild(e);return {el:e,t:0,pire:0,txt:''};})():null;
-function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if(now-M.t<250)return;M.t=now;
+/* (2026-10-14, session OPTIMISATION — Sacha : « la version mobile saccade, juste de quoi tester en bonne condition ») LE RELEVÉ DES À-COUPS :
+   le moniteur ne disait que la dernière seconde. Il garde maintenant chaque image de plus de 50 ms depuis l'ouverture : combien (> 50,
+   > 100, > 250 ms), et les 5 dernières avec ce qui se passait — l'écran (menu, atelier, course, fin), le niveau, une construction de
+   niveau (newTrack il y a < 1 s), les PROGRAMMES compilés et les TEXTURES envoyées pendant l'image. Une capture d'écran suffit. */
+function perfAcoup(now,rawMs){const M=PERF_MON,I=renderer.info,np=(I.programs||[]).length,nt=I.memory.textures,dp=np-(M.np|0),dt9=nt-(M.nt|0);M.np=np;M.nt=nt;
+  if(!M.t0)M.t0=now;if(rawMs<=50||!M.vu){M.vu=1;return;}
+  M.n50=(M.n50|0)+1;if(rawMs>100)M.n100=(M.n100|0)+1;if(rawMs>250)M.n250=(M.n250|0)+1;if(rawMs>(M.max|0))M.max=rawMs;
+  const ou=started&&!gameOver?'course':gameOver?'fin':(typeof garageOn!=='undefined'&&garageOn)?'atelier':'menu';
+  const cs=[];if(loop._rebuildT&&now-loop._rebuildT<1000)cs.push('construction');if(dp>0)cs.push('+'+dp+' prog');if(dt9>0)cs.push('+'+dt9+' tex');
+  (M.L||(M.L=[])).push(Math.round((now-M.t0)/1000)+' s · '+Math.round(rawMs)+' ms · '+ou+(LVL.cur?' '+LVL.cur.id:'')+(cs.length?' · '+cs.join(' '):''));if(M.L.length>5)M.L.shift();}
+function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;try{perfAcoup(now,loop._brut||rawMs);}catch(e){}if(now-M.t<250)return;M.t=now;
   const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
   if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
   const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+(CAD.on?'  30 i/s CALÉ':'')+(QLR.vraiT?'  vrai '+QLR.vrai.toFixed(1):'')+(QL.bride&&now-QL.bride<3000?'  ÉCRAN BRIDÉ':'')+'  p50/75/90 '+QLR.p50.toFixed(0)+'/'+QLR.p75.toFixed(0)+'/'+QLR.p90.toFixed(0)+(QL.essai?'  essai':'')+
-    '\nPALIER '+PAL.n+' ('+PAL.src+')  DPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein');
+    '\nPALIER '+PAL.n+' ('+PAL.src+')  DPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein')
+    +'\nÀ-COUPS en '+Math.round((now-(M.t0||now))/1000)+' s : '+(M.n50|0)+' > 50 ms · '+(M.n100|0)+' > 100 · '+(M.n250|0)+' > 250 · pire '+Math.round(M.max|0)+' ms'+(M.L&&M.L.length?'\n'+M.L.join('\n'):'');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
 // ============================================================================
@@ -52067,6 +52078,7 @@ function loop(now){
   let dt=Math.max(0,Math.min((now-last)/1000,.05));last=Math.max(last,now);
   if(TCTL.on&&running&&!paused&&!gameOver)hudColonne(dt); // (2026-10-14) la colonne de droite se MESURE ici, avant toute écriture du HUD de l'image (voir hudColonne)
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
+  if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
   const rawMs=Math.min(100,now-(loop._pn||now));
   const ms9=CAD.on?Math.max(0,rawMs-(CAD.per-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
   loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
