@@ -11811,14 +11811,47 @@ function genPark(rnd){
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
 const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},uVil:{value:0},uEcl:{value:0},
   uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)},uJadeR:{value:0},uHalf:{value:14},uJStyle:{value:1}}; // (v14) uJStyle : 0 émeraude · 1 NUAGE · 2 PLANCHES (voir jadeRouteStyle) // (v9) uJadeR : la route EN JADE (les PICS DE JADE seulement, LVL.jade) // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
-let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
+/* ================= LE BÉTON BRUT (2026-10-14, passe graphismes) — Sacha : « retravaille la texture de la route pour que ça soit un beau béton bien brut et bien, bien mat » =====
+   GRATUIT pour la puce : la MÊME texture 256² (même lecture, même shader), REPEINTE en béton — granulat serré, laitance et coulures en paliers nets, micro-fissures, bullage,
+   et les JOINTS DE DALLE sur les bords de la tuile. ASPH_K 1,7 → .57 : une tuile = une dalle de 7 m (la route de 56 m = 8 dalles pile, un joint sous la ligne centrale). */
+function betonPeint(N){ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N de BÉTON BRUT qui se raccorde sur ses 4 bords — une tuile = UNE DALLE de 7 m (voir ASPH_K) ; rejoué tel quel par gfx/banc/route-beton/apercu.cjs
+  const d=new Uint8ClampedArray(N*N*4);let sd=20261014;
+  const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const grille=function(px,py){const g=new Float32Array(px*py);for(let i=0;i<g.length;i++)g[i]=r();return {g:g,px:px,py:py};}; // bruit de valeur BOUCLÉ
+  const lit=function(G,u,v){const x=u*G.px,y=v*G.py,xi=Math.floor(x),yi=Math.floor(y);let fx=x-xi,fy=y-yi;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);
+    const x0=xi%G.px,x1=(xi+1)%G.px,y0=(yi%G.py)*G.px,y1=((yi+1)%G.py)*G.px,g=G.g;
+    return (g[y0+x0]*(1-fx)+g[y0+x1]*fx)*(1-fy)+(g[y1+x0]*(1-fx)+g[y1+x1]*fx)*fy;};
+  // LA LAITANCE (nuages de ciment, 3 échelles) et LES COULURES (étirées dans le sens de la route : elles ne scintillent pas quand on file), en PALIERS nets (pas un flou de photo)
+  const A=grille(3,3),B=grille(7,7),C=grille(15,15),S1=grille(34,2),S2=grille(90,4),S3=grille(18,1),W=grille(2,2),V=new Float32Array(N*N);let mn=9,mx=-9;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const u=(x+.5)/N,v=(y+.5)/N,
+      w=.60*(.50*lit(A,u,v)+.32*lit(B,u,v)+.18*lit(C,u,v))+.40*(.45*lit(S1,u,v)+.20*lit(S2,u,v)+.35*lit(S3,u,v));
+    V[y*N+x]=w;if(w<mn)mn=w;if(w>mx)mx=w;}
+  let mV=0;for(let i=0;i<V.length;i++){const w=Math.round((V[i]-mn)/(mx-mn)*7)/7;V[i]=w;mV+=w;}mV/=V.length; // 8 paliers
+  // LES MICRO-FISSURES (marches au hasard, un texel de large, qui bifurquent) et LE BULLAGE (trous d'air en grappes)
+  const F=new Float32Array(N*N),pose=function(x,y,a){x=((Math.floor(x)%N)+N)%N;y=((Math.floor(y)%N)+N)%N;const k=y*N+x;if(a>F[k])F[k]=a;};
+  const fis=[];for(let f=0;f<3;f++)fis.push([r()*N,r()*N,r()*6.283,50+r()*90,.55+r()*.4]);
+  while(fis.length){const f=fis.pop();let x=f[0],y=f[1],th=f[2];const len=f[3],a=f[4];
+    for(let s=0;s<len;s++){th+=(r()-.5)*.55;if(r()<.03)th+=(r()-.5)*2.;x+=Math.cos(th);y+=Math.sin(th);
+      pose(x,y,a*Math.min(1,s/8,(len-s)/8)*(.7+.3*r()));if(len>60&&r()<.012)fis.push([x,y,th+(r()<.5?1:-1)*(.6+r()*.7),18+r()*len*.4,a*.8]);}}
+  for(let c=0;c<12;c++){const cx=r()*N,cy=r()*N,n=3+Math.floor(r()*8),R0=4+r()*16;
+    for(let i=0;i<n;i++){const an=r()*6.283,q=r()*R0;pose(cx+Math.cos(an)*q,cy+Math.sin(an)*q,.4+r()*.5);}}
+  // LES JOINTS DE DALLE, sur les bords de la tuile (ils se raccordent avec la tuile voisine) : le joint EN LONG (franc : il file vers l'horizon sans jamais clignoter)
+  // et le joint EN TRAVERS (plus discret : c'est lui qui défile) ; une arête claire d'un côté (le chanfrein prend la lumière), la salissure qui s'accumule autour
+  const JL=.42,JT=.26,jd=function(p){return Math.min(p,N-1-p);}; // p : distance (texels) au bord ; joint = 2 texels à cheval sur le raccord
+  for(let i=0;i<N*N;i++){const x=i%N,y=(i-x)/N,o=i*4,u=(x+.5)/N,v=(y+.5)/N;
+    let g=(r()-.5)*.20;const q=r();if(q<.045)g+=.10+r()*.10;else if(q<.075)g-=.20; // LE GRANULAT : grain serré, granulats clairs, petits trous
+    let b=1+g+(V[i]-mV)*.30-F[i]*.34;
+    const dx=jd(x),dy=jd(y);
+    b*=1-.07*Math.max(Math.max(0,1-dx/9),Math.max(0,1-dy/9)*.7);                 // la salissure autour des joints
+    if(x===1||x===N-2)b+=.05;if(y===1||y===N-2)b+=.03;                           // l'arête du chanfrein
+    if(dx<1)b*=1-JL;else if(dy<1)b*=1-JT;                                        // le joint (2 texels ≈ 5,5 cm)
+    const t=lit(W,u,v)-.5,k=204*b;                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
+    d[o]=k*(1+t*.035);d[o+1]=k;d[o+2]=k*(1-t*.05);d[o+3]=255;}
+  return d;
+} // fin betonPeint
+let ASPH_TEX=null;const ASPH_K=.57; // (2026-10-14, passe graphismes) une tuile = une DALLE de 7 m (4 ÷ .57) — (vague 2) c'était 1,7 : la finesse du grain d'asphalte
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
-  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
-  let sd=1337;const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
-  for(let i=0;i<N*N;i++){let v=208+(r()-.5)*44;          // le grain fin, autour de 0,8
-    if(r()<.035)v+=30+r()*30;                                // les granulats clairs : ce sont eux qui scintillent
-    if(r()<.02)v-=45;                                        // les petits trous sombres
-    v=Math.max(140,Math.min(255,v));d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255;}
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N);im.data.set(betonPeint(N));
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
   t.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
