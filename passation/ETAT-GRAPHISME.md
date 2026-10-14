@@ -3,6 +3,11 @@
 Branche `gfx-integration` (worktree `C:/Users/sacha/Documents/GitHub/CCG-gfx-integration`). Je pousse moi-même sur main (protocole PILOTAGE : fumée → cc-push.lock → merge → syntaxe + garde → push → recopie Downloads → « POUSSÉ »).
 La passation longue (règles, plafonds de la charte, outils dbg) reste `passation/GRAPHISME.md`.
 
+## ⭐ ORDRES DE SACHA EN ATTENTE (17 h 10, par PILOTAGE) — à prendre dans cet ordre
+1. « Garde quand même la première map de la VILLE avec les NÉONS ROSES, elle était bien. » Rétablir ses néons roses d'avant mes passes, sur cette map SEULEMENT.
+   Pistes : `?sans=bords` (fin du néon de bord : les bandes roses de la route, accent ville `0xf24aa0` dans `accC`), `?sans=neon` (néon résiduel), `?sans=ville2` / étalonnage ville (pluie, villeSoir…). Comparer ces interrupteurs au banc pour trouver ce qui a éteint le rose, puis exclure CETTE map du correctif. Capture avant/après à PILOTAGE AVANT de pousser.
+2. « Les maps VILLE sont toujours assez bof à la lumière du jour. » Villes de JOUR (villeMatin, villeMidi) : lumière, couleurs, matières, ciel, ombres, SANS ajouter d'éléments ; saturé et contrasté façon GTA 6 Vice City, jamais délavé ni gris. Planche avant/après de chaque ville de jour (debout et couché) à PILOTAGE avant toute poussée. (Contredit en partie mes lignes VILLE2 de jour, désaturées : sat .98-1.02 → à remonter.)
+
 ## Poussé sur main (18d585e, cache v384)
 - AURORE sobre = 1re image de l'auto-école (`?sans=aurore2`) : route L* 63 sable → 41-43 gris, ciel bleu pâle, horizon b* +22 → +12.
 - ORBITE2 (`?sans=orbite2`) : rebond par planète (Terre bleu-gris, Mars rouille, Jupiter ambre, Saturne or pâle), `BIOMES.espaceSat` pour les satellites. ⚠ Pas encore d'A/B au même instant (captures prises en vol) : à juger avec dbgAmb.
