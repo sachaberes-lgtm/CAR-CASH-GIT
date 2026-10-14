@@ -35404,13 +35404,14 @@ function raseSnd(dt,kmh){
   const on=mode==='drive'&&raseT>0&&started&&!gameOver&&!paused;
   if(!RSN){ if(!on||RSN===false)return;
     try{const src=AC.createBufferSource();src.buffer=noiseBuf(1.2);src.loop=true;
-      const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=190;bp.Q.value=1.3;
+      const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=TEL_NATIF?520:190;bp.Q.value=1.3; // (2026-10-14, session SON) iPhone : 190 Hz ne sort pas du haut-parleur (comme le moteur `lpMin` et `subBoom` TEL_NATIF) — le frôlé du vide à 700 km/h était muet ; bande à 520 Hz, l'ordi garde 190 (audit oreille-neuve n°3 §6)
+      
       const am=AC.createGain();am.gain.value=.5;const lfo=AC.createOscillator(),lg=AC.createGain();lfo.type='square';lfo.frequency.value=30;lg.gain.value=.5;
       lfo.connect(lg);lg.connect(am.gain);
       const g=AC.createGain();g.gain.value=0;src.connect(bp);bp.connect(am);am.connect(g);g.connect(MASTER);src.start();lfo.start();
       RSN={g:g,lfo:lfo};porte(g,MASTER);}catch(e){RSN=false;return;} }
   const T=AC.currentTime;
-  if(on){ RSN.g.gain.setTargetAtTime(Math.min(.22,.09+raseT*.12),T,.03);RSN.lfo.frequency.setTargetAtTime(Math.min(60,18+kmh*.05),T,.05); // ⚠ la vitesse arrive en paramètre (speedKmh est locale à loop : ReferenceError avalée, le tic ne partait jamais) ; plafond 60 Hz : au-delà le hachage devient une note
+  if(on){ RSN.g.gain.setTargetAtTime(Math.min(.22,.09+raseT*.12)*(TEL_NATIF?1.5:1),T,.03);RSN.lfo.frequency.setTargetAtTime(Math.min(60,18+kmh*.05),T,.05); // ⚠ la vitesse arrive en paramètre (speedKmh est locale à loop : ReferenceError avalée, le tic ne partait jamais) ; plafond 60 Hz : au-delà le hachage devient une note
     raseSnd._h=(raseSnd._h||0)-dt;if(raseSnd._h<=0){raseSnd._h=.16;hap(4);} }
   else RSN.g.gain.setTargetAtTime(0,T,.04);
 }
