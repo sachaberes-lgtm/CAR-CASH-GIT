@@ -7933,6 +7933,21 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gLvl{grid-column:2;grid-row:2;justify-self:end;font:var(--c6-wf) var(--c6-t13)/16px var(--c6-sys)!important;font-variant-numeric:tabular-nums;text-shadow:none!important;color:var(--c6-g1)!important} /* (accord) deux graisses : 800 (700 sortait de l'échelle) */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gOeil{grid-column:3;grid-row:1/3;align-self:center}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>:is(#gMeta,#gDesc){text-shadow:none!important}
+/* (accord, p2 ouvert) la condition d'une caisse fermée ou à défi (#gDesc) DANS la plaque : plus l'encadré à coins coupés de l'ancienne feuille (une plaque dans
+   la plaque), une ligne de lecture sous la rareté — système 13/600 gris, bornée à 296 px pour que la plaque ne s'étale pas ; les défis : le titre en 13/800
+   capitales blanc (plus d'or : l'or est la décision), une case de 16 px par défi, cochée en vert (gagné). */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc{grid-column:1/-1;box-sizing:border-box;width:auto!important;max-width:296px!important;margin:4px 0 0!important;padding:0!important;font:var(--c6-w) var(--c6-t13)/var(--c6-lh13) var(--c6-sys)!important;letter-spacing:0!important;
+  color:var(--c6-g1)!important;background:none!important;box-shadow:none!important;clip-path:none!important;text-shadow:none!important;white-space:pre-line;text-wrap:pretty}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .pxi{--pxs:1!important;color:var(--c6-b0)!important;filter:none!important;vertical-align:-1px}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc :is(.gDfT,.gEur,b){font:var(--c6-wf) var(--c6-t13)/var(--c6-lh13) var(--c6-sys)!important;letter-spacing:var(--c6-cap)!important;text-transform:uppercase;color:var(--c6-b0)!important;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gDfT{display:block;margin:0 0 4px!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gDf{display:flex;align-items:flex-start;gap:8px;margin:4px 0 0!important;color:var(--c6-b0)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gDf>i{flex:none;width:16px;height:16px;margin:1px 0 0!important;background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-e4)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gDf>i .pxi{color:var(--c6-cash)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gDf.ok{color:var(--c6-g1)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gDf.ok>i{box-shadow:inset 0 0 0 2px var(--c6-cash)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gDf em{font-style:normal;margin-left:8px;color:var(--c6-g1)!important;font-variant-numeric:tabular-nums}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gDesc .gTest{font:var(--c6-wf) var(--c6-t11)/var(--c6-lh11) var(--c6-sys)!important;padding:2px 4px!important;margin-right:4px;color:var(--c6-g2)!important;box-shadow:inset 0 0 0 2px var(--c6-e4)!important}
 /* l'inventaire à peu de cartes (≤ 3, classe posée par le script) : la plaque prend la hauteur de son contenu (au moins 200 px : la même sur tous les onglets, la rangée d'onglets ne saute pas) */
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu{height:auto!important;min-height:200px;max-height:min(40vh,360px)!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu>#gStrip{flex:0 1 auto!important}
