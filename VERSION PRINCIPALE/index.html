@@ -28562,6 +28562,26 @@ function sensGlisse(on){
   }
   SENS_GL.on=on;
 }
+/* (2026-10-14, sensations · caisse) LE POIDS DE LA CAISSE DANS LES MOMENTS MUETS DE LA CONDUITE. Le roulis suit déjà le virage sur son
+   ressort, la carrosserie s'affaisse déjà vers le vide roues dehors — mais certains INSTANTS ne disaient rien. `sensCaisse` les guette
+   (elle LIT steer, lat, vA, hopY… et n'écrit que par sensCoup / sensHap / une gerbe) ; des seuils franchis et des heures, jamais « par image ».
+   `t` : l'heure du dernier passage (un trou de plus de 150 ms = vol, pause, mort : on repart de zéro, sans rien jouer). */
+const SENS_CA={t:0,c:0,tc:0,tk:0};
+function sensCaisse(){
+  const t=performance.now(),v=Math.abs(vA);
+  if(t-SENS_CA.t>150||introD){SENS_CA.t=t;SENS_CA.c=0;return;}
+  SENS_CA.t=t;
+  /* LE COUP DE VOLANT SEC : le pouce passe d'un bord à l'autre (plus de la moitié du braquage de chaque côté, en moins de 0,3 s) — une
+     chicane, un évitement. Le ressort du roulis faisait passer la caisse d'un flanc à l'autre en fondu ; là le poids est JETÉ sur le
+     nouveau flanc extérieur (≈ 1,2° → 2,7° de plus selon la vitesse) et elle s'y TASSE (≈ 0,5 → 1,5 cm), puis se repose seule.
+     Rien en glisse (elle a son accroche), rien sur une flaque (elle louvoie déjà), rien dans la main (un slalom bourdonnerait). */
+  if(Math.abs(steer)>.5){const g=Math.sign(steer);
+    if(g!==SENS_CA.c){
+      if(SENS_CA.c!==0&&t-SENS_CA.tc<300&&t-SENS_CA.tk>220&&v>14&&hopY<=0&&!driftEnCours&&slipT<=0&&!REDUCED_MOTION){
+        const k=Math.min(1,(v-14)/26);sensCoup(-g*(.5+.6*k),0,-(.15+.2*k));SENS_CA.tk=t;} // même sens que le roulis de virage (rollT du côté de `steer`)
+      SENS_CA.c=g;}
+    SENS_CA.tc=t;}
+}
 function driftTick(dt,on){
   if(SENS)try{sensGlisse(!!on);}catch(e){} // (2026-10-14, sensations) AVANT le traitement : au relâché, `driftLv` porte encore le niveau atteint
   driftCd=Math.max(0,driftCd-dt); // (2026-09-25) recharge après un mini-turbo : le zigzag de drifts ne se « farme » plus
@@ -50116,6 +50136,7 @@ function loop(now){
         if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAuraMuette('VIRAGE SERRÉ',45,'virage',false,SONV2);}} // (2026-09-29, Sacha) ne s'écrit plus
        filetTick();} // (2026-09-29) LA ROUTE QUI TE RATTRAPE : le VIRAGE À FOND (voir FILET)
       driftTick(dt,drifte);
+      if(SENS)try{sensCaisse();}catch(e){} // (2026-10-14, sensations · caisse) le coup de volant sec, la roue qui passe la lèvre et qui remonte : dans la tôle et la main
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;if(!nitroOn)nitroGain(NITRO2.rase*dt,'rase'); /* (LA LOI DU RÉSERVOIR) le rase-bord ne remplit que nitro COUPÉE */flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
         if(raseT>.6&&!raseAnn){raseAnn=true;hap(12);try{chaineAuraMuette('RASE-BORD',40,'rase');}catch(e){}} // (2026-09-29, Sacha) ne s'écrit plus
