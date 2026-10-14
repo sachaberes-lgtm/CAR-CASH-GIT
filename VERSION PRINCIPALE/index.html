@@ -43791,7 +43791,7 @@ function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la
   /* (2026-10-14, passe graphismes · facades-jour) LE JOUR DES FAÇADES (CITY.uJ, lu par villeMatTours) : `uJour` seul ne dit pas le jour —
      minuit, la pluie et l'orage de la ville ont aussi jour:1 (le dégradé d'altitude). On le croise avec la ville PEINTE du ciel (`city` :
      matin .25, midi .12 · soir 1,1, pluie et orage 1,2) et avec la nuit du niveau. Fondu comme l'ambiance au portail (bioLerp). */
-  CITY.uJ.value=FACADES_V5?skyU.uJour.value*(1-nu)*(1-THREE.MathUtils.smoothstep(skyU.uCity.value,.45,.95)):0;
+  CITY.uJ.value=!FACADES_V5?0:CITY.uJf!=null?CITY.uJf:skyU.uJour.value*(1-nu)*(1-THREE.MathUtils.smoothstep(skyU.uCity.value,.45,.95));
   if(CAMP.n!==16)CITY.uC.value=1-.72*nu; // (la panne du niveau 16 de la campagne garde la main sur le courant)
   const k=(CAMP.n===16?VC.cour:1)*(1-.6*nu);
   if(k<.999){const kr=.07+.93*k; // on ne baisse QUE ce que musicTick repeint (userData.base) : rien ne s'accumule d'une image à l'autre
@@ -44290,6 +44290,7 @@ window.dbgRendu=function(){ // (dev) le fourgon, le banquier et les flaques sont
       bitume:hs.length?{h:+(30-hs[0].distance).toFixed(3),obj:(hs[0].object.name||hs[0].object.type)+' '+(hs[0].object.material&&hs[0].object.material.type)}:null};});
   return o;};
 window.dbgCourant=function(v){VC.cour=+v;CITY.uC.value=+v;return VC.cour;}; // (dev) le courant de la ville (0 = panne) — hors niveau 16, la boucle le laisse tel quel
+window.dbgFacades=function(v){if(v!==undefined)CITY.uJf=v;return {v5:FACADES_V5,neon:NEONVILLE_V5,uJ:+CITY.uJ.value.toFixed(3),force:CITY.uJf==null?null:CITY.uJf,jour:skyU.uJour.value,city:+skyU.uCity.value.toFixed(2),nuit:LVL.nuit};}; // (banc, facades-jour) dbgFacades(0) = les façades de nuit sur l'image figée (A/B exact), dbgFacades(null) = auto
 // reconstruit le décor du menu dans le mode courant (course/parc) — même séquence que l'init
 function rebuildMenuScene(){
   // (2026-09-28) revenu à l'ACCUEIL après une mort (`MENUV.retour`), `started` est encore vrai : on le baisse le temps de newTrack,
