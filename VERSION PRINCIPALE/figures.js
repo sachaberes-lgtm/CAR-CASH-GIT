@@ -130,7 +130,7 @@
      tourne plus vite). o.tient : le doigt est encore sur le bouton (poussée continue) · o.vise : la vitesse visée est un TOTAL (la toupie de
      drift reprend l'élan qu'a déjà la caisse au lieu de s'y ajouter). */
   Corps.prototype.lance=function(f,sens,D,o){o=o||{};D=Math.max(.3,D||f.D);sens=sens||1;
-    var r={f:f,s:sens,D:D,t:0,mv:[],imp:[0,0,0],impT:PHY.tImp,tient:!!o.tient,tenu:0,fini:false,paye:false,reps:0,osc:null,boums:[],force:false},tq=[0,0,0];
+    var r={f:f,s:sens,D:D,t:0,mv:[],imp:[0,0,0],impT:PHY.tImp,tient:!!o.tient,tenu:0,fini:false,paye:false,reps:0,osc:null,boums:[],force:false,douce:!!o.douce},tq=[0,0,0]; // douce : une figure AUTOMATIQUE (celle du saut nitro, la toupie de drift) — le joueur ne l'a pas risquée : pas finie = pas payée, jamais une CHUTE
     for(var i=0;i<f.m.length;i++){var m=f.m[i],a=vNorm(m.a);
       if(m.t!=null){var d=(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)?(m.t>0?1:-1):(m.t>0?1:-1)*sens,tours=Math.abs(m.t),sp=6.2832*tours/D*PHY.kImp;
         if(o.vise)sp=Math.max(0,sp-vDot(this.w,a)*d);
@@ -222,7 +222,7 @@
     for(var i=0;i<this.figs.length;i++){var r=this.figs[i];if(r.paye)continue;
       if(!r.mv.length){if(r.t>=r.D*.6&&a<PHY.ok)this.paye(r,pay);continue;}
       var x=1;for(var j=0;j<r.mv.length;j++)x=Math.min(x,r.mv[j].th/(6.2832*r.mv[j].tours));
-      if(a<PHY.ok&&x>.75&&sp<PHY.wPose){r.force=false;this.paye(r,pay);}else if(a>.9||sp>=PHY.wPose)rat=true;}
+      if(a<PHY.ok&&x>.75&&sp<PHY.wPose){r.force=false;this.paye(r,pay);}else if((a>.9||sp>=PHY.wPose)&&!r.douce)rat=true;}
     return {payees:pay,ratee:rat,ecart:a};};
   function nomReps(f,reps,lang){var n=FIG.nom(f,lang);return reps>1?n+' ×'+reps:n;}
   // ---- LE GÉNÉRATEUR (la boîte blanche) : une figure neuve, tirée au hasard, toujours jouable ----

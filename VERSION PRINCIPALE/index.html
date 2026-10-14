@@ -37588,12 +37588,18 @@ function figJet(r,dt){const n=emiN('figJet',dt),vx=fallVel.x*SPD*.85,vy=fallVel.
    du bitume et le viseur, qui cherche la dalle à moins de 3 m, annonçait une pose dans 0,12 s (MESURÉ au banc : le salto du saut nitro était
    annulé à la 1re image, ou ne partait pas). Tant qu'elle s'éloigne de SA dalle (le radar de tryLand), c'est la parabole qui compte, le long de
    la normale de la route : le temps d'y revenir (plané nitro compris). */
-function figBudget(){const e=CAMV.eta<90?Math.max(0,+CAMV.eta):9;let vn,gn,h;
-  const i=VEQ.si;
+function figBudget(){let vn,gn,h;
+  /* (relecture, MESURÉ au banc du jeu fusionné : un saut nitro sur deux finissait en CHUTE) le max(viseur, parabole) gardait la parabole quand la
+     ROUTE REMONTE devant : la pose arrivait plus tôt que prévu et la prise n'avait plus le temps. Le viseur intègre la vraie trajectoire contre la
+     vraie route : il fait FOI — sauf tant qu'il voit encore la dalle qu'on vient de quitter (moins de 0,35 s de vol et une pose « dans 0,12-0,36 s »,
+     la fenêtre où tryLand ne pose de toute façon pas). Sans pose en vue : la parabole si l'on s'éloigne de la route, sinon 9 s. */
+  const raw=CAMV.eta<90?Math.max(0,+CAMV.eta):-1,faux=raw>=0&&fallTR<.35&&raw<=.36;
+  if(raw>=0&&!faux)return raw;
+  const e=9,i=VEQ.si;
   if(i>=0&&Nn[i]){const n=Nn[i],sd=VEQ.sh>-THICK*.5?1:-1;vn=fallVel.dot(n)*sd;gn=FALL_G*gK()*Math.max(.2,n.y*sd);h=Math.max(0,sd>0?VEQ.sh:-THICK-VEQ.sh)/SPD;}
   else{vn=fallVel.y;gn=FALL_G*gK();h=Math.max(0,fallPos.y-lastNearY)/SPD;}
-  if(!(vn>1))return e;if(nitroOn)gn*=nitroBlue?.25:.4;
-  return Math.max(e,(vn+Math.sqrt(vn*vn+2*gn*h))/gn);}
+  if(!(vn>1))return faux?.4:e;if(nitroOn)gn*=nitroBlue?.25:.4;
+  return (vn+Math.sqrt(vn*vn+2*gn*h))/gn;}
 /* (2026-10-14, session SON) LA MATIÈRE DU TOUR : chaque axe a son souffle, accordé sur la gamme du vol — x tangage = fig.salto (le wouomp qui passe par-dessus), y lacet = fig.toupie (le frrrt qui tournoie à plat), z roulis = fig.tonneau (l'air qui s'enroule d'une oreille à l'autre) ; un axe penché prend sa composante la plus forte */
 function figMat(a){const x=Math.abs(a[0]),y=Math.abs(a[1]),z=Math.abs(a[2]);return x>=y&&x>=z?'fig.salto':y>=z?'fig.toupie':'fig.tonneau';}
 function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, une fois l'assiette de vol posée (veqCorps) : le CORPS tourne par-dessus, autour du MILIEU de la caisse
@@ -37601,7 +37607,7 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
   FX2.img++;C.budget=figBudget();C.poseK=VEQ.pose;
   if(FX2.att&&FX2.img>=2){const a=FX2.att;FX2.att=null;figLance(a.s,a.o);} // la figure demandée À L'IMAGE DU DÉCOLLAGE part maintenant que le viseur a mesuré le vol
   if(FX2.deriveArm&&window.FIG&&FIG.auto&&(CAMV.eta<90||fallTR>.1)){const s9=FX2.deriveArm;FX2.deriveArm=0; // la TOUPIE DE DRIFT : seulement si on a le temps de la planter
-    if(C.budget>.95&&C.occupe()<3){C.lance(FIG.auto.derive,s9,Math.min(1.05,Math.max(.62,(C.budget-.3)/.85)),{vise:true});C.evts.length=0; // pas d'explosion : c'est le DRIFT qui la lance — une bouffée de gomme aux roues arrière
+    if(C.budget>.95&&C.occupe()<3){C.lance(FIG.auto.derive,s9,Math.min(1.05,Math.max(.62,(C.budget-.3)/.85)),{vise:true,douce:true});C.evts.length=0; // pas d'explosion : c'est le DRIFT qui la lance — une bouffée de gomme aux roues arrière
       const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.3,-sp9.l*.38);carGroup.localToWorld(FX2.v);
         for(let k9=0;k9<7;k9++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,fallVel.x*SPD*.7+(Math.random()-.5)*6,fallVel.y*SPD*.7+(Math.random()-.5)*4,fallVel.z*SPD*.7+(Math.random()-.5)*6,.35+Math.random()*.25);}
       try{if(SONV2)sfx('turbo.mini',{vol:-6});}catch(e){}hap([8,16]);}}
@@ -37622,6 +37628,7 @@ function figTutoOk(){return !TUTO.on||(typeof tutoFigOuverte==='function'&&!!tut
 function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)return null;
   if(!started||gameOver||paused||introD||!figTutoOk()||mode!=='fall')return null;
   const E=figEquipees();if(!E.length)return null;s=(s|0)%E.length;const f=FIG.par[E[s]];if(!f)return null;
+  if(o.dispo!=null)o.douce=true; // la figure du SAUT NITRO part toute seule : le joueur ne l'a pas risquée (pas finie = pas payée, jamais une CHUTE)
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};FX2.cyc=(s+1)%E.length;return {attente:true};}
@@ -37629,7 +37636,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const sens=Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
-  const r=C.lance(f,sens,D,{tient:!!o.tient&&!!FX2.tenus[s]});FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;FX2.n++;VEQ.n++;
+  const r=C.lance(f,sens,D,{tient:!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;FX2.n++;VEQ.n++;
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
