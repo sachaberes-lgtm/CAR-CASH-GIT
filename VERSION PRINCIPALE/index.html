@@ -8005,6 +8005,18 @@ html.c6 #overlay #mDead #nameEntry{order:9;grid-column:1/-1;grid-area:auto}
   html.c6 #overlay #mDead .hCard.hAura>b{font-size:calc(24px - 8px*clamp(0,var(--n,3) - 4,1) - 4px*clamp(0,var(--n,3) - 6,1))}
   html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{width:min-content;white-space:normal;line-height:12px;text-align:center}   /* « MULTI MAX » + « KM/H MAX » + NIVEAU + FRENESIE = 248 px pour 247 : les légendes de deux mots passent sur deux lignes, toutes pareil */
 }
+/* (2026-10-14, Sacha via PILOTAGE : « les badges RECORD !, je veux les revoir ») LES TROIS BADGES « RECORD ! » REVIENNENT (argent · aura · moteur), en charte 6 :
+   une petite étiquette d'OR à plat (encre dessus, 8 px, 12 px de haut, ni lueur ni coin coupé), HORS FLUX : rien ne bouge dessous. Celle de l'argent est posée
+   au-dessus du montant (dans la marge du héros), celles des cartes à cheval sur leur bord haut, à droite (la légende centrée et la valeur restent libres).
+   Seule exception, avec REJOUER, à « un seul or par écran ». Le badge d'argent garde son style en ligne display:none hors record (pas de !important sur display). */
+html.c6 #overlay #mDead .mCashL{position:relative}
+html.c6 #overlay #mDead .mCashL>em{display:block}
+html.c6 #overlay #mDead .hCard>em{display:block}
+html.c6 #overlay #mDead .mCashL>em,html.c6 #overlay #mDead .hCard>em{position:absolute!important;z-index:2;inset:auto!important;top:-6px!important;right:8px!important;box-sizing:border-box;width:auto!important;height:12px!important;min-height:0!important;margin:0!important;padding:2px 4px!important;
+  font-family:var(--pix);font-size:8px!important;line-height:8px!important;font-style:normal!important;font-weight:400;letter-spacing:0!important;white-space:nowrap;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:var(--c6-or)!important;
+  border:0!important;border-radius:0!important;clip-path:none!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;transform:none!important;rotate:none!important;translate:none!important;animation:none!important;opacity:1!important;order:0}
+html.c6 #overlay #mDead .mCashL>em{top:-8px!important;right:auto!important;left:50%!important;translate:-50% 0!important}
+html.c6 #overlay #mDead .mCashL>em::before,html.c6 #overlay #mDead .mCashL>em::after,html.c6 #overlay #mDead .hCard>em::before,html.c6 #overlay #mDead .hCard>em::after{content:none!important}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
