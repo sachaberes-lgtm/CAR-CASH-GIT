@@ -9501,6 +9501,7 @@ function portalMat(){if(PORTAL.mat)return PORTAL.mat;
       'gl_FragColor=vec4(c*(f*1.7+.12+bd*.55)+vec3(1.,.95,1.)*pow(f,6.)*.7,a);}'});
   PORTAL.mat.dispose=function(){};return PORTAL.mat;}
 const trackMeshes=[];let PADS=[],PADL=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
+const PLOTS_ON=false; // ⚠ LES PLOTS DE CHANTIER SONT RETIRÉS DE LA ROUTE (2026-10-14, passe graphismes — Sacha : « enlève les cônes de chantier sur la route, ça ne sert plus ») — UN seul interrupteur : `placeCone` ne pose plus rien (chantiers, portes de frôlé, murs à porte de la campagne), `CONES` reste vide et tout ce qui le lit (choc, frôlé, instances, rival, écart des pièces) tourne à vide. Les tirages `rnd` des boucles de pose sont GARDÉS : la piste en aval ne bouge pas. `true` = les plots reviennent tels quels.
 const GAP_ON=false; // ⚠ LES TREMPLINS SONT COUPÉS (demande du user) — un seul interrupteur, voir gapRun
 // TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
 let RAMPS=[];
@@ -12600,6 +12601,7 @@ function buildTrack(seed){
   // plots de chantier orange : slaloms + lignes de bord — à esquiver… ou à envoyer valser
   let grp9=0; // (revue PISTE) le GROUPE du plot (slalom, ligne, porte) : un banc de nuage retire le groupe entier, jamais une moitié de slalom
   function placeCone(cs,cl,fc){
+    if(!PLOTS_ON)return; // (2026-10-14, passe graphismes) plus AUCUN plot posé, nulle part (voir PLOTS_ON) — placeCone ne tire aucun nombre : les trois boucles qui l'appellent gardent leurs tirages, la piste est la même au plot près
     fc=fc||1;
     if(cs>L-140)return;
     frameAt(cs,F);
@@ -19651,6 +19653,7 @@ const CARRIERE=[
     {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.35},pr:'LES ANNEAUX PLEUVENT SUR TOI'} /* (2026-09-28) 1,5 et 1,45 : la planète « mangeait tout le cadre dès qu'on plongeait » (mesuré pour lvlPlanete, d'où 1,35) */,{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35},pr:'DEBRIS SERRES, GARDE LE CAP'},
     {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35},pr:'LA DERNIERE PLUIE AVANT PLUTON'},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0},hard:1,pr:'ESQUIVE LES SATELLITES'}]},
 ];
+if(!PLOTS_ON)for(const B9 of CARRIERE)for(const N9 of B9.niveaux)if(N9.camp===4)N9.pr=''; // (2026-10-14, passe graphismes) le niveau 4 des NUAGES promettait « PASSE LES PORTES » : ses portes étaient des murs de plots, retirés avec eux — plus de promesse qui demande l'impossible (elle est éteinte aujourd'hui, LVL_BAN.prom 0, mais ne doit pas revenir si on la rallume)
 const CARR_LARG=[2,2,2,2,2,2,2,2,2,2]; // (2026-09-26) plus larges, comme la course // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
 // (2026-09-27) VERSION TEST : les dix niveaux de chaque monde se lancent sans avoir fini les précédents (Sacha teste la campagne tout de
@@ -41359,6 +41362,7 @@ function campRaccourci(d){ // se poser loin devant son décollage : la coupe est
    la boucle) est PROPRE : un pluck qui monte d'une porte à l'autre, un petit coup de FLOW et d'aura (sans texte : la liste d'aura), et la
    plaque du haut compte « PORTES 6 / 9 ». Survolée (en vol à son passage), elle ne compte pas : on l'a sautée, pas passée. Rien au centre. */
 function campPortesTick(){ // (⚠ PAS « portesTick » : ce nom est déjà celui des portes du SON, appelé à chaque image — le second l'aurait écrasé)
+  if(!PLOTS_ON)return; // (2026-10-14, passe graphismes) sans plots, les murs à porte du niveau 4 n'existent plus : on ne COMPTE pas des portes qu'on ne voit pas (ni plaque « PORTES n / 9 », ni pluck, ni flow, ni aura PORTE — elles seraient toutes « propres » d'office). Les repères CAMP.portes restent : les pads s'en écartent toujours (campPadNon), la piste du niveau est la même.
   const P=CAMP.portes;if(!P.length)return;
   const sp=vPos();let nx=null,der=0,n9=0;
   for(let i=0;i<P.length;i++){const p=P[i];if(p.s>der)der=p.s;
