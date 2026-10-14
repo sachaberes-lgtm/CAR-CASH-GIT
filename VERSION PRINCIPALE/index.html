@@ -29738,6 +29738,7 @@ function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` 
 }
 function shopPopFerme(){
   const el=SPOP.el;if(!el||!el.classList.contains('on')||el.classList.contains('sortant'))return;
+  try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) la fenêtre qui s'efface a pointer-events:none : le 2e tap d'un double-tap sur ANNULER / ÉQUIPER traversait jusqu'à OFFRES (vignette, RETOUR) — comme à l'ouverture, on avale les clics 320 ms
   const src=SPOP.src;
   if(src&&src.isConnected)shopPopVise(src.getBoundingClientRect()); // la vignette a pu bouger (défilement) : on vise sa place d'ARRIVÉE (la carte est au repos, sa mesure est juste)
   el.classList.add('sortant');
