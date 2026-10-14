@@ -7747,7 +7747,7 @@ html.c6 body #garage #gCard>#gOeil{grid-column:2;grid-row:1;display:flex!importa
 html.c6 body #garage #gCard>#gOeil::before,html.c6 body #garage #gCard>#gOeil::after,html.c6 body #garage #gCard>#gOeil .gLueur::after{content:none!important}
 html.c6 body #garage #gCard>#gOeil .gLueur{display:flex;line-height:0;filter:none!important}
 html.c6 body #garage #gCard>#gOeil .gLueur .pxi{--pxs:2!important;color:currentColor!important;filter:none!important}
-html.c6 body #garage #gCard>#gOeil:is(:active,.appui){translate:0 4px!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 0 0 0 var(--c6-tr)!important}
+html.c6 body #garage #gCard>#gOeil:is(:active,.appui){translate:none!important;transform:translateY(var(--c6-t))!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 0 0 0 var(--c6-tr)!important}
 html.c6 body #garage.vueSeule #gCard>#gOeil{--c6-f:var(--c6-b0);--c6-l:var(--c6-e0);--c6-x:var(--c6-e0)}
 html.c6 body #garage:is(.menu,.vitrine,.shopRet,.atelierInv,.modeShop) #gCard>#gOeil{display:none!important}
 /* le bas : deux rangées — INVENTAIRE | BOUTIQUE (48), puis LA décision (64, l'or) ; 8 px entre deux touches, la tranche de 4 px en plus sous la rangée */
@@ -7765,14 +7765,14 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas)>span{transform:none!important;font-style:normal!important;text-shadow:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) :is(.gvIco,.gvFx){display:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas).modeOn{--c6-f:var(--c6-b0);--c6-l:var(--c6-e0);--c6-x:var(--c6-e0);color:var(--c6-x)!important;background:var(--c6-f)!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 4px 0 0 var(--c6-tr)!important;outline:0!important;filter:none!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas):is(:active,.appui){translate:0 4px!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 0 0 0 var(--c6-tr)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas):is(:active,.appui){translate:none!important;transform:translateY(var(--c6-t))!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 0 0 0 var(--c6-tr)!important}
 /* LA décision : JOUER — ou ACHETER (verbe + prix) quand la caisse montrée est à vendre ; un seul or à l'écran */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat){grid-row:2!important;grid-column:1/3!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:16px!important;justify-self:stretch!important;box-sizing:border-box;
   width:auto!important;min-width:0!important;height:64px!important;min-height:64px!important;margin:0!important;padding:0 16px!important;translate:none;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0!important;
   letter-spacing:0!important;white-space:nowrap;color:var(--c6-orE)!important;text-shadow:none!important;background:var(--c6-or)!important;
   box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 4px 0 0 var(--c6-orT),0 4px 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat)::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat)::after{content:none!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat):is(:active,.appui){translate:0 4px!important;box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat):is(:active,.appui){translate:none!important;transform:translateY(var(--c6-t))!important;box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gJouer>span{font-size:24px!important;line-height:1!important;letter-spacing:0!important;transform:none!important;font-style:normal!important;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gJouer>.mChev{display:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){display:inline-block;margin:0!important;padding:0!important;line-height:1!important;letter-spacing:0!important;transform:none!important;font-style:normal!important;font-weight:400;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:none!important}
@@ -7780,6 +7780,14 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .gEqP{font-size:16px!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .pxi{color:var(--c6-orE)!important;filter:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct:has(>#gEquip.achat)>#gJouer{display:none!important}
+/* (accord n° 39) LE toucher du socle, partout dans le garage : la touche descend de 4 px, sa tranche rentre — 90 ms, linear, aller et retour
+   (l'œil, INVENTAIRE · BOUTIQUE, la décision, la carte de l'inventaire). Plus de « translate » : la propriété du socle est transform. L'onglet est une
+   surface plate : il ne bouge pas, sa face passe à l'encre e2 (comme .c6Onglet du socle). */
+html.c6 body #garage :is(#gCard>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip,#gStrip>.gT){transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear!important}
+html.c6 body #garage #gTabs>.gTab{transition:background-color var(--c6-vite) linear,color var(--c6-vite) linear!important}
+html.c6 body #garage.atelierInv #gTabs>.gTab:not(.on):is(:active,.appui){background:var(--c6-e2)!important}
+@media (prefers-reduced-motion:reduce){html.c6 body #garage :is(#gCard>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip,#gStrip>.gT,#gTabs>.gTab){transition:none!important}}
+html.c6[data-reduced-motion="1"] body #garage :is(#gCard>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip,#gStrip>.gT,#gTabs>.gTab){transition:none!important}
 /* la jauge qui tourne le garage (Léo) : gardée, à plat — un patin blanc droit cerné d'encre */
 html.c6 body #gTourne .gtPouce{transform:none!important;border-radius:0!important;background:var(--c6-b0)!important;box-shadow:0 0 0 2px #000!important}
 /* la pastille du garage (écran de fin) : un carré d'or 8 × 8 sans chiffre, comme #bdGar à l'accueil */
@@ -7797,7 +7805,6 @@ html.c6 body #bdGar2{top:-4px!important;right:-4px!important;width:8px;height:8p
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{margin-left:-6px!important;margin-right:-6px!important} /* debout : la rangée va de marge à marge (16 px), comme l'en-tête */
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
 }
-@media (prefers-reduced-motion:reduce){html.c6 body #garage #gCard>#gOeil{transition:none}}
 /* ---- L'INVENTAIRE = L'ATELIER FERMÉ (#garage.atelierInv) (2026-10-14, charte 6) ---------------------------------------
    Il doit être le MÊME écran que le hub : le même en-tête (#gC6Tete : ◀ = retour au hub, le geste de la touche RETOUR #gvCof, qui
    quitte le bas ; le titre devient INVENTAIRE ; cash vert / aura violette), la même fiche à gauche (nom 16 px, rang, famille).
@@ -7849,7 +7856,7 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip::before,html.c6
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT{position:relative;display:block;box-sizing:border-box;width:auto!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:48px!important;aspect-ratio:16/10;margin:0!important;padding:0!important;overflow:hidden;
   border-radius:0!important;outline:0!important;transform:none!important;translate:none;clip-path:none!important;filter:none!important;animation:none!important;scroll-snap-align:none!important;
   background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
-html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT:active{translate:0 4px;box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT:is(:active,.appui){translate:none!important;transform:translateY(var(--c6-t))!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT::after,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT:not(.lock)::before{content:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.lock::before{left:8px!important;top:8px!important;width:12px!important;height:12px!important;z-index:2;background-color:var(--c6-b0)!important;transform:none!important;filter:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>.gTl{display:none!important}
@@ -7869,6 +7876,8 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT :is(.gRub,.
 /* choisie (montrée sur le plateau, pas encore à toi) = filet blanc PLEIN ; équipée = face BLANCHE, encre dessus */
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.on{box-shadow:inset 0 0 0 4px var(--c6-b0),0 4px 0 0 #000!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq{background:var(--c6-b0)!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.on:is(:active,.appui){box-shadow:inset 0 0 0 4px var(--c6-b0),0 0 0 0 #000!important} /* (accord n° 39) choisie ou équipée, la tranche rentre aussi */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq:is(:active,.appui){box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq>b,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq .gIc{color:var(--c6-e0)!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gVide{grid-column:1/-1;display:flex;align-items:center;justify-content:center;min-height:48px;font-family:var(--pix);font-size:8px!important;letter-spacing:0!important;color:var(--c6-g1)!important;text-shadow:none!important;transform:none!important}
 /* COUCHÉ (la même condition que la console de l'ancienne feuille : là, la jauge de Léo est fixe en bas à gauche) : la plaque à droite, de l'en-tête au bas ; la fiche à gauche.
