@@ -46773,6 +46773,9 @@ function titreHeureTick(dt){ // l'heure, relue toutes les 20 s (un menu laissé 
 window.dbgHeure=function(h){ // (dev) forcer une heure du titre : dbgHeure('golden') · dbgHeure(null) : l'horloge du téléphone
   if(h!==undefined){TITRE_HF.force=h&&TITRE_H[h]?h:null;TITRE_HF.tc=0;titreHeureTick(0);}
   return {heure:TITRE_HF.h,forcee:TITRE_HF.force,horloge:titreHeureDe(new Date()),heures:TITRE_HEURES};};
+window.dbgTitre=function(h,o){ /* banc (2026-10-14, passe graphismes) : retoucher à chaud une heure du titre : dbgTitre('midi',{ciel:{z:[..],h:[..]},amb:{fog:[..]},P:{..},v:[..],t:[..]}) ; la repose aussitôt */
+  const H=TITRE_H[h];if(!H||!o)return null;if(o.ciel)Object.assign(TITRE_CIEL[h],JSON.parse(JSON.stringify(o.ciel)));if(o.amb)Object.assign(BIOMES[H.bio],JSON.parse(JSON.stringify(o.amb)));if(o.P)Object.assign(H.P,JSON.parse(JSON.stringify(o.P)));if(o.v)H.v=o.v.slice();if(o.t)H.t=o.t.slice();
+  TITRE_HF.force=h;TITRE_HF.tc=0;titreHeurePose(h);return {ciel:TITRE_CIEL[h],amb:BIOMES[H.bio].nm};};
 /* LA CAISSE AU DOIGT, AU CIEL — v2 « TRASH » (2026-10-07, Léo : « dans le menu ciel la voiture doit pouvoir être tournée, tapée, balancée ;
    le clic sur elle doit être plus trash ») — remplace LE TAPOTEMENT AU CIEL du 03/10 (mêmes points d'entrée : chuteTape, chuteTapeTick).
    · TAPÉE (un tap SUR la caisse) : le COUP part du point touché, dans le sens du rayon — une vraie poussée (V), le couple r × F (W : taper
