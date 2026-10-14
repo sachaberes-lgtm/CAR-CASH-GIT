@@ -57532,7 +57532,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')go(e);});
     const refuse=function(e){e.preventDefault();e.stopPropagation();if(sourd()||non.hidden)return;uiClic('retour');try{chanceRefuse();}catch(_){}maj();};
     non.addEventListener('click',refuse);non.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')refuse(e);});
-    document.addEventListener('cc:chance',maj);window.__chanceMaj=maj;maj();})();}catch(e){console.warn('seconde chance',e);}
+    /* (vu au banc) `cc:chance` part quand l'offre s'OUVRE — l'écran de fin n'est pas encore là, chanceEtat().ok est encore faux — et plus rien
+       ensuite : la plaque SUIT donc l'offre, relue toutes les 200 ms pendant sa fenêtre (5,5 s + marge), puis se tait. */
+    let suitT=0;const suit=function(){maj();clearInterval(suitT);let n=0;suitT=setInterval(function(){maj();if(++n>45)clearInterval(suitT);},200);};
+    document.addEventListener('cc:chance',suit);window.__chanceMaj=maj;maj();})();}catch(e){console.warn('seconde chance',e);}
   if(mob){
     const mHit=function(e){
       const el=e.target&&e.target.closest?e.target.closest('[data-m]'):null;
