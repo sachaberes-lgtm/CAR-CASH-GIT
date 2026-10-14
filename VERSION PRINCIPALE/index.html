@@ -18108,7 +18108,7 @@ function ecoDebutEtat(){ // {k, raison} — pur : ne touche à rien
 }
 function ecoDebutMaj(){const e=ecoDebutEtat();ECOD.k=e.k;ECOD.raison=e.raison;return e.k;} // appelée par runxReset : UNE fois par partie
 window.dbgEcoDebut=function(){const e=ecoDebutEtat(),p=ecoDebutPrix(),b=bank(); // (2026-10-14, GAMEPLAY) l'état du relèvement : `k` = ce que la partie en cours applique, `prochain` = ce que la suivante appliquerait
-  return {actif:ECOD.k>1,k:ECOD.k,raison:ECOD.raison,prochain:e.k,raisonProchaine:e.raison,coup:ECOD.coup,parties:(SAVE.d.ex&&SAVE.d.ex.runs)|0,achatFait:ecoDebutAchat(),banque:b,peintureMin:p,manque:Math.max(0,p-b),ancien:ECO_ANCIEN};};
+  return {actif:ECOD.raison==='actif',k:ECOD.k,raison:ECOD.raison,prochain:e.k,raisonProchaine:e.raison,coup:ECOD.coup,parties:(SAVE.d.ex&&SAVE.d.ex.runs)|0,achatFait:ecoDebutAchat(),banque:b,peintureMin:p,manque:Math.max(0,p-b),ancien:ECO_ANCIEN};};
 // LANGUE & DEVISE (2026-09-03) : la devise est désormais UNIQUE — le dollar, quelle que soit la
 // langue d'affichage (avant : le français comptait en euros). `CUR()` ne dépend donc plus de `LANG` ;
 // seul `LOC()` (le séparateur des milliers/décimales) suit encore la langue.
@@ -29696,7 +29696,7 @@ function nitroGain(q,src){
   if(LIVRE.on){livre('n+:'+(src||'?'),nitroR-av);livre('n0:'+(src||'?'),q-(nitroR-av));}
   if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
-function runxReset(){flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le relèvement du début se décide ICI, une fois par partie (voir ECOD) */RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
+function runxReset(){flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le relèvement du début se décide ICI, une fois par partie (voir ECOD) */jourMaj(); /* (2026-10-14, GAMEPLAY) …et le ×2 du jour juste après : ECOD.k = le MAX des deux, jamais le produit (voir JOUR) */RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
 RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
@@ -36573,6 +36573,118 @@ function annStop(){
 }
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
 const SND={sfx:true,voice:true,music:true,vib:true};
+/* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo ; interrupteur ?jour=0 » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road ») LE RETOUR DU JOUR ET LE CADEAU — UN SEUL barème (le modèle : outils/jour-modele.cjs, dont les constantes sont LUES ici).
+   LE PRINCIPE : une partie moyenne (R, ~175 $ avant le relèvement du début) sert d'étalon. Le QUOTIDIEN est le gros rendez-vous (~1 R par jour, plus la série : jusqu'à 0,6 R), le CADEAU le petit (~0,25 R, une ou deux fois par jour), ECOD reste le relèvement du début : rien ne le double.
+   1. LE ×2 DU JOUR — le jour = la date LOCALE de l'appareil ('AAAA-MM-JJ'). La 1re partie COMPTÉE de ce jour paie ×2 sur l'argent de COURSE : même robinet que ECOD (denom() × ECOD.k), donc ECOD.k = MAX(relèvement du début, ×2) et JAMAIS leur produit
+      (×1,5 × 2 = ×3 : mesuré, la peinture à 2 500 $ tombait à la 2e partie pour 29 % des joueurs). Compte : ni le bac à sable, ni le parc, ni la balade ; l'AUTO-ÉCOLE MARQUE le jour sans prendre le ×2 (le jour 1 est déjà aidé par le permis, les défis et ECOD) ; et au moins `tMin` secondes
+      de course (sinon JOUER puis QUITTER brûlait le ×2).
+   2. LA SÉRIE — des jours consécutifs avec une partie comptée ; un jour sauté la remet à 1. À la FIN de la 1re partie du jour, une prime en banque : prime[min(série, 7) - 1] = 0 · 25 · 40 · 55 · 70 · 85 · 100 (le plafond est au 7e jour ; la série, elle, continue de se compter).
+      Versée dans commitExploits : elle entre dans « VERSÉS AU COMPTE ».
+   3. LE CADEAU — toutes les 6 h (`periode`), à OUVRIR (cadeauOuvre) à l'accueil : max(25 $, 8 % du meilleur gain d'une partie) en banque. Il ne s'accumule pas (un seul en attente), il n'expire pas et le compte à rebours part de l'OUVERTURE (aucune fausse urgence) ; il ne s'allume qu'après l'auto-école.
+   L'HORLOGE — jours : UTC pur sur les dates locales (ni fuseau ni heure d'été) ; hier → série +1, plus ancien → série 1, la même date → déjà pris ; UN jour de moins (voyage vers l'ouest) = déjà pris ; l'horloge reculée de 2 jours ou plus : pas de ×2 ce jour-là, la date est recalée au versement
+      (jamais une série infinie, jamais un ×2 bloqué des mois). Cadeau : Date.now() ; un dernier cadeau « dans le futur » (horloge reculée) est ramené à maintenant — ni plantage, ni cadeaux à l'infini.
+   Interrupteurs : ?jour=0 (ni ×2, ni série, ni prime : le jeu d'avant au dollar près) · ?cadeau=0. Sauvegarde : SAVE.d.jour={d,n} (dernier jour compté, série à cette date) · SAVE.d.cad={t} (dernier cadeau ouvert, en ms). Crochets : dbgJour(), dbgCadeau().
+   Contrat avec l'accueil (INTERFACE) : cadeauEtat() · cadeauOuvre() · jourTexte() — c'est elle qui dessine la ligne, ce bloc ne touche pas au DOM. */
+const JOUR={on:!/[?&]jour=0\b/.test(location.search),x2:2,prime:[0,25,40,55,70,85,100],tMin:15,max:9999,k:1,e:1,cmp:false,dep:'',fin:null,dec:0}; // x2 · prime[] : par jour de série (sa longueur = le plafond) · tMin : secondes de course pour qu'une partie COMPTE · max : borne de la série · k : le multiplicateur de la partie en cours (e : celui d'ECOD seul) · cmp/dep : la partie compte, sa date de DÉPART · fin : ce que la dernière fin de partie a versé · dec : décalage des bancs, en jours
+const CADO={on:!/[?&]cadeau=0\b/.test(location.search),periode:216e5,min:25,pc:.08,force:false}; // periode : 6 h en ms · min : le plancher en $ · pc : la part du meilleur gain d'une partie · force : le banc (dbgCadeau) passe outre l'auto-école
+function jourAuj(){ // la date LOCALE de l'appareil, 'AAAA-MM-JJ' ; '' si l'horloge est illisible ou absurde (le jour est alors ignoré, rien ne plante)
+  const t=new Date();if(JOUR.dec)t.setDate(t.getDate()+JOUR.dec);
+  const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
+  return (y>=2020&&y<=2100)?y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d:'';
+}
+function jourNum(s){ // les jours entiers depuis 1970 d'une date 'AAAA-MM-JJ' en UTC PUR (ni fuseau, ni heure d'été : deux dates se retranchent juste) ; NaN si illisible
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof s==='string'?s:'');if(!m)return NaN;
+  const y=+m[1],mo=+m[2],d=+m[3];if(y<2020||y>2100||mo<1||mo>12||d<1||d>31)return NaN;
+  const t=Date.UTC(y,mo-1,d);return new Date(t).getUTCDate()===d?Math.round(t/864e5):NaN; // un « 31 février » déborde sur mars : refusé
+}
+function jourEtat(a){ // pur : où en est le quotidien à la date `a` ? {ok : horloge lisible · dispo : le ×2 n'est pas encore pris · suiv : la série que fera une partie comptée · n : la série vivante · recale : l'horloge a reculé}
+  const A=jourNum(a);if(A!==A)return {ok:false,dispo:false,suiv:1,n:0,recale:false};
+  const S=(SAVE.d&&SAVE.d.jour)||{d:'',n:0},B=jourNum(S.d),n=Math.max(0,Math.min(JOUR.max,Math.round(+S.n)||0)),j=A-B;
+  if(B!==B)return {ok:true,dispo:true,suiv:1,n:0,recale:false}; // jamais compté (ou date abîmée : on repart de zéro)
+  if(j===0||j===-1)return {ok:true,dispo:false,suiv:n,n:n,recale:false}; // pris aujourd'hui · ou UN jour de moins (voyage vers l'ouest) : même chose
+  if(j===1)return {ok:true,dispo:true,suiv:Math.min(JOUR.max,n+1),n:n,recale:false}; // hier : la série continue
+  if(j>1)return {ok:true,dispo:true,suiv:1,n:0,recale:false}; // un jour sauté (ou plus) : la série est cassée
+  return {ok:true,dispo:false,suiv:n,n:n,recale:true}; // l'horloge a reculé de 2 jours ou plus : pas de ×2 (on ne le rejoue pas en reculant la montre), la date est recalée au prochain versement
+}
+function jourPrime(suiv){return JOUR.prime[Math.min(suiv,JOUR.prime.length)-1]||0;}
+function jourMaj(){ // UNE fois par partie, juste après ecoDebutMaj (runxReset) : cette partie prend-elle le ×2 ? ECOD.k = le MAX des deux, jamais le produit
+  const J=JOUR;J.k=1;J.cmp=false;J.dep='';J.fin=null;J.e=ECOD.k;
+  try{
+    if(!J.on||BALADE||SANDBOX||PARK.on)return 1;
+    const a=jourAuj();if(!a)return 1;const e=jourEtat(a);if(!e.ok)return 1;
+    J.cmp=true;J.dep=a; // la partie COMPTE pour le jour (l'auto-école aussi : elle marque le jour, mais sans ×2)
+    if(e.dispo&&!TUTO.on){J.k=J.x2;if(J.k>ECOD.k)ECOD.k=J.k;}
+  }catch(x){}
+  return J.k;
+}
+function jourCommit(){ // appelée par commitExploits : la partie compte → le jour est marqué, la série monte, la prime de série est versée en banque. Rend la prime.
+  const J=JOUR;
+  try{
+    if(!J.on||!J.cmp||!J.dep||!(RUNX.t>=J.tMin))return 0;
+    const e=jourEtat(J.dep),S=SAVE.d.jour;
+    if(e.dispo){S.d=J.dep;S.n=e.suiv;const p=jourPrime(e.suiv);
+      if(p>0){SAVE.d.bank=Math.min(1e30,bank()+p);bankMaxMaj();}
+      J.fin={n:e.suiv,p:p,k:J.k};J.cmp=false; // une seule fois par partie
+      return p;}
+    if(e.recale){S.d=J.dep;J.cmp=false;} // l'horloge avait reculé : on recale la date, sans ×2 ni prime
+  }catch(x){}
+  return 0;
+}
+function jourTexte(){ // la phrase du quotidien, déjà traduite ('' = rien à dire) : « Série 3 jours · ×2 sur ta 1re partie » / « Prochain ×2 demain ». Les mots sont en casse mixte (TR ne retire alors aucun accent) : la feuille met en capitales.
+  try{
+    if(!JOUR.on||BALADE||!SAVE.d.tuto)return '';
+    const a=jourAuj();if(!a)return '';
+    const e=jourEtat(a),se=e.n>=2?TR('Série {n} jours').replace('{n}',e.n):'';
+    if(e.dispo)return se?se+' · '+TR('×2 sur ta 1re partie'):TR('×2 sur ta 1re partie du jour');
+    return se?se+' · '+TR('Prochain ×2 demain'):TR('Prochain ×2 demain');
+  }catch(x){return '';}
+}
+function cadeauValeur(){ // ce que le prochain cadeau donnera : la plus grande de deux choses, un plancher et une part de TON meilleur gain — il grandit avec le joueur, jamais plus qu'un dixième d'une bonne partie
+  let b=0;try{b=SAVE.d.best||0;}catch(x){}
+  return Math.max(CADO.min,ecoRond(CADO.pc*b));
+}
+function cadeauEtat(){ /* LE CONTRAT avec l'accueil, appelé chaque seconde : {actif : le cadeau existe (pas ?cadeau=0, l'auto-école est faite) · pret : un cadeau à OUVRIR maintenant · dansMs : le temps avant le prochain · jour : le ×2 du jour est à prendre · serie : les jours de série vivante · valeur : ce que le cadeau donnera}.
+  Pur, sauf une branche : une horloge RECULÉE (dernier cadeau dans le futur) le ramène à maintenant — sans cela un cadeau « du futur » bloquerait le suivant pendant des mois. */
+  let actif=false,pret=false,dans=0,jour=false,serie=0;
+  try{
+    const ok=!BALADE&&(SAVE.d.tuto||CADO.force);
+    if(ok&&CADO.on){
+      actif=true;const nw=Date.now(),C=SAVE.d.cad;
+      if(C.t>nw){C.t=nw;SAVE.mark();} // horloge reculée : le cadeau part de MAINTENANT
+      const reste=C.t>0?CADO.periode-(nw-C.t):0;
+      if(reste<=0)pret=true;else dans=Math.min(CADO.periode,reste);
+    }
+    if(ok&&JOUR.on){const a=jourAuj();if(a){const e=jourEtat(a);jour=e.dispo;serie=e.n;}}
+  }catch(x){}
+  return {actif:actif,pret:pret,dansMs:dans,jour:jour,serie:serie,valeur:actif?cadeauValeur():0};
+}
+function cadeauOuvre(){ // donne le cadeau s'il est prêt (banque + flush, toast, son, vibration) ; rend une promesse du montant (0 si rien)
+  try{
+    const e=cadeauEtat();if(!e.actif||!e.pret)return Promise.resolve(0);
+    const v=e.valeur;
+    SAVE.d.cad.t=Date.now();SAVE.d.bank=Math.min(1e30,bank()+v);bankMaxMaj();SAVE.flush();
+    try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(x){}
+    hap([12,40,12,40,30]);
+    try{toast(pxi('cadeau')+' '+TR('CADEAU')+' : +'+fmtC(v),true);}catch(x){}
+    try{document.dispatchEvent(new Event('cc:cadeau'));}catch(x){} // l'accueil se repeint (la banque a bougé)
+    return Promise.resolve(v);
+  }catch(x){return Promise.resolve(0);}
+}
+Object.assign(I18N,{'CADEAU':'GIFT','Série {n} jours':'{n}-day streak','×2 sur ta 1re partie du jour':'×2 on your 1st run of the day','×2 sur ta 1re partie':'×2 on your 1st run','Prochain ×2 demain':'Next ×2 tomorrow'});
+window.dbgJour=function(a){ // (banc) l'état du quotidien. 'demain' = le jour d'après · 'saute' = un jour sauté (+2) · 'hier' = −1 (fuseau) · 'recule' = l'horloge recule de 2 jours · 'auj' = décalage remis à 0 · 'raz' = jour et série effacés · 'compte' = la partie en cours a tenu tMin secondes
+  if(a==='demain')JOUR.dec+=1;else if(a==='saute')JOUR.dec+=2;else if(a==='hier')JOUR.dec-=1;else if(a==='recule')JOUR.dec-=2;else if(a==='auj')JOUR.dec=0;
+  else if(a==='raz'){SAVE.d.jour={d:'',n:0};SAVE.flush();}else if(a==='compte')RUNX.t=Math.max(RUNX.t,JOUR.tMin);
+  const au=jourAuj(),e=jourEtat(au);
+  return {actif:JOUR.on,auj:au,decalage:JOUR.dec,sauvegarde:{d:SAVE.d.jour.d,n:SAVE.d.jour.n},dispo:e.dispo,serie:e.n,serieSuivante:e.suiv,recale:e.recale,primeSuivante:e.dispo?jourPrime(e.suiv):0,
+    partie:{k:JOUR.k,ecod:JOUR.e,appliquee:ECOD.k,comptee:JOUR.cmp,depart:JOUR.dep,versee:JOUR.fin},ligne:jourTexte(),cadeau:cadeauEtat()};
+};
+window.dbgCadeau=function(a){ // (banc) l'état du cadeau. 'pret' = il est prêt (même avant la fin de l'auto-école) · 'attente' = on vient de l'ouvrir · 'recule' = le dernier cadeau est dans le futur (horloge reculée) · 'ouvre' = l'ouvrir
+  if(a==='pret'){SAVE.d.cad.t=0;CADO.force=true;}else if(a==='attente')SAVE.d.cad.t=Date.now();else if(a==='recule')SAVE.d.cad.t=Date.now()+864e5;
+  if(a==='ouvre')return cadeauOuvre();
+  const e=cadeauEtat(),h=Math.floor(e.dansMs/36e5),m=Math.floor(e.dansMs%36e5/6e4);
+  return {actif:e.actif,pret:e.pret,dansMs:e.dansMs,dans:h+' h '+(m<10?'0':'')+m,jour:e.jour,serie:e.serie,valeur:e.valeur,dernier:SAVE.d.cad.t,force:CADO.force,banque:bank()};
+};
+/* fin LE RETOUR DU JOUR ET LE CADEAU */
 // ---------- SAVE : UNE clé versionnée ('cashcarSave'), migration douce depuis rrXxx5 ----------
 // Toute la persistance passe par ici : SAVE.d vit en mémoire, flush() écrit tout d'un bloc,
 // mark() note un changement (le filet des 30 s l'écrira). Les anciennes clés rrXxx5 sont lues
@@ -36601,6 +36713,7 @@ const SAVE={
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
     mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tonneau'], figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
+    jour:{d:'',n:0},cad:{t:0}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
@@ -36712,6 +36825,9 @@ const SAVE={
     if(!(d.eco>=3)){const k9=ECO3.gain*.5;c.best=Math.round(c.best*k9);c.leaders.forEach(function(e){e.s=Math.round(e.s*k9);});}
     c.eco=3;
     if(d.bq&&typeof d.bq==='object'&&isFinite(+d.bq.j)&&Array.isArray(d.bq.l))c.bq={j:Math.round(+d.bq.j),l:d.bq.l.filter(function(x){return typeof x==='string';}).slice(0,12).map(function(x){return x.slice(0,32);})}; // (2026-10-10) LA BOUTIQUE DU JOUR : la vitrine tirée ce jour-là
+    /* (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR ET LE CADEAU : une date illisible repart de zéro, la série est bornée ; un cadeau « dans le futur » (horloge reculée, code importé) est ramené à maintenant — il ne bloquerait pas le suivant des mois */
+    c.jour={d:'',n:0};if(d.jour&&typeof d.jour==='object'){const nj=jourNum(d.jour.d);if(nj===nj){c.jour.d=String(d.jour.d);c.jour.n=Math.max(0,Math.min(JOUR.max,Math.round(+d.jour.n)||0));}}
+    c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
     return c;
   },
   load(){
@@ -40720,6 +40836,7 @@ function commitExploits(){
      elle en est la conséquence logique. */
   const vire=Math.max(0,money-START_CASH)||0; // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
   SAVE.d.bank=Math.min(1e30,bank()+vire);bankMaxMaj();
+  if(!lecon)jourCommit(); /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE ») la partie COMPTE : le jour est marqué, la série monte, la prime de série entre en banque (voir JOUR) */
   const rangAvant=auraRank();
   if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
   SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun));} // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
