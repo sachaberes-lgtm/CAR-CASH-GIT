@@ -35755,7 +35755,13 @@ let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — 
    en impacts — une impulsion courte = LÉGÈRE, moyenne = MOYENNE, longue = LOURDE, et un motif [on,off,on…] rejoue
    chaque impulsion à son heure. Hors app (navigateur Android), le vibreur d'origine reste la voie. */
 function hap(p){
-  if(!TCTL.on||!SND.vib)return;hap._t=performance.now();{let m=0;if(Array.isArray(p)){for(let i=0;i<p.length;i+=2)if(+p[i]>m)m=+p[i];}else m=+p||0;hap._k=m<=12?1:m<=40?2:3;} // (2026-10-14, gameplay · accord) l'heure et la CLASSE (1 léger · 2 moyen · 3 lourd, comme le Taptic) de la dernière impulsion : le limiteur des détails SENS les lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
+  if(!TCTL.on||!SND.vib)return;const n9=performance.now();let k9;{let m=0;if(Array.isArray(p)){for(let i=0;i<p.length;i+=2)if(+p[i]>m)m=+p[i];}else m=+p||0;k9=m<=12?1:m<=40?2:3;}
+  /* (2026-10-14, gameplay · œil · vibrations) UN TIC NE COUPE PAS UN COUP. Hors app (navigateur Android), navigator.vibrate REMPLACE la vibration
+     en cours : au banc, une pièce ramassée à la même image qu'un POSÉ LOURD (45, puis 5 à la même ms) ou qu'un motif de récompense
+     ([18,50,30,60,40], puis 5) ne laissait sentir que le tic de 5 ms. Un tic léger (classe 1) qui tombe pendant la 1re impulsion d'une
+     vibration plus forte se tait. Dans l'app (Taptic), chaque impulsion se joue à part : rien ne change. `?sens=0` : comme avant. */
+  if(SENS&&k9===1&&(hap._k||0)>1&&n9-(hap._t||-1e9)<(hap._d||0)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics))return;
+  hap._t=n9;hap._k=k9;hap._d=Math.min(60,+(Array.isArray(p)?p[0]:p)||0); // (2026-10-14, gameplay · accord) l'heure et la CLASSE (1 léger · 2 moyen · 3 lourd, comme le Taptic) de la dernière impulsion : le limiteur des détails SENS les lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
   const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
   if(H){try{
     const L=Array.isArray(p)?p:[p];let at=0;
