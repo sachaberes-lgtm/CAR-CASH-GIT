@@ -8251,6 +8251,8 @@ html.c6 #tPanel #tpIn .tp.ligne.lien::after{content:'';flex:none;width:9px;heigh
 html:not(.c6) #tPanel .tp[data-a="tous"]{display:none}
 /* l'écran des réglages passe AU-DESSUS de la pause (z-index 9) ; à sa fermeture son fond d'encre s'efface en fondu sec de 130 ms (opacité seule) */
 html.c6 body.setPause #overlay{z-index:12}
+/* à l'ouverture le fond d'encre est PLEIN tout de suite (pas de fondu de l'overlay : la pause et les réglages se lisaient superposés pendant ~200 ms) ; la page, elle, arrive en glissant */
+html.c6 body.setPause:not(.setPauseSort) #overlay{animation:none}
 @keyframes c6FondSort{to{opacity:0}}
 html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort 120ms linear forwards}
 </style>
