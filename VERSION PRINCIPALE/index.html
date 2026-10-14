@@ -19427,13 +19427,22 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
    profondeur T), gonflée de la demi-caisse (1,0 en travers, 0,75 en hauteur, 2,2 en long). Dedans : la caisse EXPLOSE (« PERCUTÉ PAR UN
    SATELLITE »). Passé à moins de ~3 m sans toucher : FRÔLÉ (la même récompense que les plots : nitro, flow, aura — et le SLALOM qui
    s'enchaîne d'un satellite à l'autre). Le tri par distance au carré (R2) écarte tout ce qui est loin : ~150 obstacles = 150 soustractions. */
-const SATOB={list:[],on:false,d:new THREE.Vector3()};
+const SATOB={list:[],on:false,d:new THREE.Vector3(),pp:new THREE.Vector3(),pv:false};
 function satHard(){
-  if(!SATOB.on||!ORB.actif||!started||gameOver||mode==='boom'||graceT>0)return;
+  if(!SATOB.on||!ORB.actif||!started||gameOver||mode==='boom'||graceT>0){SATOB.pv=false;return;}
   const P=carGroup.position,d=SATOB.d;
+  /* (2026-10-14, chasse aux bugs) LE BALAYAGE (comme balEcart) : la boîte se testait en UN POINT par image — la fenêtre en long ne fait que
+     6 à 9 m, et à 30 i/s (iPhone en économie d'énergie) la caisse avance de plus que ça au-delà de ~700 km/h : elle TRAVERSAIT un satellite
+     plein axe sans mourir. On teste en plus le point où le TRAJET de l'image (pp → P) coupe le plan médian de l'obstacle. Un saut de
+     position (relance, portail : > 60 m ou garde ci-dessus) retombe sur le test en un point. */
+  const pp=SATOB.pp,ex=P.x-pp.x,ey=P.y-pp.y,ez=P.z-pp.z,bal=SATOB.pv&&ex*ex+ey*ey+ez*ez<3600;pp.copy(P);SATOB.pv=true;
   for(const o of SATOB.list){
     if(o.fait)continue;
     const dx=P.x-o.q.x,dy=P.y-o.q.y,dz=P.z-o.q.z;
+    if(bal){const t1=dx*o.T.x+dy*o.T.y+dz*o.T.z,eT=ex*o.T.x+ey*o.T.y+ez*o.T.z;
+      if(t1*(t1-eT)<0){const k=t1/eT;d.set(dx-ex*k,dy-ey*k,dz-ez*k);const a=Math.abs(d.dot(o.W)),u=Math.abs(d.dot(o.U)); // le plan a été franchi PENDANT l'image : la caisse à cet instant
+        if(a<o.hw&&u<o.hu){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}explode('sat');return;}
+        if(u<o.hu+1.2&&a<o.hw+3.2)o.min=Math.min(o.min,Math.max(0,a-o.hw)),o.pres=1;}} // le frôlé raté de la même façon (seulement s'il paie : < 3,2 m)
     if(dx*dx+dy*dy+dz*dz>o.R2){if(o.pres){o.fait=true;if(o.min<3.2)try{frole(o.fr,1.6+o.min*.62,1);}catch(e){}}continue;} // sorti de la bulle : le frôlé se paie
     d.set(dx,dy,dz);const a=Math.abs(d.dot(o.W)),u=Math.abs(d.dot(o.U)),t=Math.abs(d.dot(o.T));
     if(a<o.hw&&u<o.hu&&t<o.ht){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}explode('sat');return;}
