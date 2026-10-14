@@ -8020,6 +8020,113 @@ html.c6 #overlay #mDead .mCashL>em,html.c6 #overlay #mDead .hCard>em{position:ab
   border:0!important;border-radius:0!important;clip-path:none!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;transform:none!important;rotate:none!important;translate:none!important;animation:none!important;opacity:1!important;order:0}
 html.c6 #overlay #mDead .mCashL>em{top:-8px!important;right:auto!important;left:50%!important;translate:-50% 0!important}
 html.c6 #overlay #mDead .mCashL>em::before,html.c6 #overlay #mDead .mCashL>em::after,html.c6 #overlay #mDead .hCard>em::before,html.c6 #overlay #mDead .hCard>em::after{content:none!important}
+
+/* =====================================================================================================================
+   LA PAUSE (#tPanel) — UN PANNEAU D'ENCRE, UNE SEULE DÉCISION (2026-10-14, charte 6)
+   Avant : titre en laque penchée + livrée tricolore, deux touches à coins coupés (cyan / rouge), un résumé à coins coupés, une liste
+   de réglages à lueurs, un lingot d'or à reflet animé, le tout sur un voile magenta + trame. Maintenant, À PLAT : le jeu figé derrière
+   un voile d'encre uni (pas de flou), UN panneau d'encre (filet blanc 2 px, tranche noire 4 px) : PAUSE · le résumé (AURA / MOTEUR /
+   NIVEAU) · les cinq réglages rapides · RECOMMENCER, QUITTER (touches d'encre 48 px) · REPRENDRE (l'or, seul).
+   Couché : le panneau est centré, les réglages sur deux colonnes (3 + 2) et la rangée du bas = les deux touches à gauche, l'or à
+   droite. Debout : une feuille collée en bas (sous le pouce), une colonne, REPRENDRE pleine largeur tout en bas.
+   Les lignes de réglage ont EXACTEMENT la peau de celles de #mSet (c6-pages) : plaque d'encre 48 px, filet sourd 2 px, libellé à
+   gauche, commande à droite (ON = face blanche + texte d'encre ; OFF = encre + filet blanc ; sélecteur = filet blanc).
+   Le DOM ne change pas (on déplace par `grid-area`) ; `.tpRow` se dissout (display:contents) pour que RECOMMENCER et QUITTER
+   rejoignent la grille. « LA PARTIE » et « REGLAGES » (les intertitres) disparaissent : les touches et les lignes parlent seules.
+   Le préfixe `html.c6 #tPanel #tpIn` (deux id) domine les anciennes règles sans !important ; les seuls !important répondent à celui de
+   `.tpRow .tp` (corps et marges, plus haut dans la page).
+   ===================================================================================================================== */
+html.c6 #tPanel{box-sizing:border-box;background:rgba(11,13,18,.88);
+  padding:calc(var(--sT) + 16px) calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px)}
+html.c6 #tPanel.open{display:flex;flex-direction:column}
+html.c6 #tPanel #tpIn{box-sizing:border-box;display:grid;flex:none;width:100%;max-width:440px;min-height:0;margin:auto auto 0;padding:16px;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"t t" "s s" "p p" "r q" "g g";gap:16px 8px;
+  background:var(--c6-e0);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000;clip-path:none;filter:none}
+html.c6 #tPanel #tpIn::before,html.c6 #tPanel #tpIn::after{content:none}
+html.c6 #tPanel #tpIn>.tpRow{display:contents}
+/* le TITRE ; les deux intertitres s'en vont */
+html.c6 #tPanel #tpIn>.tpH:first-child{grid-area:t;align-self:center;margin:0;font-size:16px;line-height:24px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
+html.c6 #tPanel #tpIn>.tpH:not(:first-child){display:none}
+/* le RÉSUMÉ : trois chiffres, sans boîte (l'aura en violet : c'est un chiffre qui dit quelque chose) */
+html.c6 #tPanel #tpIn>.tpResume{grid-area:s;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:auto;margin:0;padding:0;
+  background:none;clip-path:none;box-shadow:none}
+html.c6 #tPanel #tpIn .tpResume .mStat{min-height:0;padding:0;gap:4px;background:none;clip-path:none;box-shadow:none}
+html.c6 #tPanel #tpIn .tpResume .mStat+.mStat::before{content:none}
+html.c6 #tPanel #tpIn .tpResume .mStat b{font-size:16px;line-height:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
+html.c6 #tPanel #tpIn .tpResume .mStat:first-child b{color:var(--c6-aura)}
+html.c6 #tPanel #tpIn .tpResume .mStat span{font-size:8px;line-height:8px;letter-spacing:0;white-space:nowrap;color:var(--c6-g2)}
+/* les RÉGLAGES : une colonne debout ; couché trois lignes par colonne, deux colonnes */
+html.c6 #tPanel #tpIn>.tpPanel{grid-area:p;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:0;overflow:visible;
+  background:none;clip-path:none;box-shadow:none}
+html.c6 #tPanel #tpIn>.tpPanel::before,html.c6 #tPanel #tpIn>.tpPanel::after{content:none}
+html.c6 #tPanel #tpIn .tp.ligne{box-sizing:border-box;display:flex;align-items:center;height:48px;min-height:48px;margin:0;padding:0 8px 0 12px;gap:12px;border:0;
+  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;
+  background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);transition:background-color var(--c6-vite) linear}
+html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui){background:var(--c6-e2)}
+html.c6 #tPanel #tpIn .tp.ligne>.pxi{flex:none;--pxs:2;margin:0;color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:12px;letter-spacing:0}
+html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]>.pxi{margin:0}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;transform:none;font-size:8px;line-height:8px;letter-spacing:0;
+  color:var(--c6-e0);text-shadow:none;background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
+html.c6 #tPanel #tpIn .tp.ligne b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
+  letter-spacing:0;color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.valeur::after{content:none}
+html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
+/* les TOUCHES de la partie (RECOMMENCER, QUITTER) : la touche du socle, 48 px, rien de rouge (une fenêtre demande confirmation) */
+html.c6 #tPanel #tpIn .tp:not(.ligne){box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin:0;padding:0 16px;
+  font-family:var(--pix);font-size:12px;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
+  background:var(--c6-e1);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000;
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear}
+html.c6 #tPanel #tpIn .tp:not(.ligne):is(:active,.appui){transform:translateY(var(--c6-t));
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 0 0 0 #000}
+html.c6 #tPanel #tpIn .tp:not(.ligne)>.pxi{--pxs:2;margin:0;color:currentColor}
+html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:1;letter-spacing:0;color:inherit}
+html.c6 #tPanel #tpIn .tp.rouge{color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;font-size:10px!important;padding:0 8px!important}
+html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:none}
+html.c6 #tPanel #tpIn .tp[data-a="reset"]{grid-area:r}
+html.c6 #tPanel #tpIn .tp[data-a="quit"]{grid-area:q}
+/* REPRENDRE : l'or, la seule décision (pleine largeur, 64 px, debout) */
+html.c6 #tPanel #tpIn>.tp.go{grid-area:g;position:relative;bottom:auto;z-index:auto;margin:0;min-height:64px;padding:0 16px;font-size:24px;
+  color:var(--c6-orE);background:var(--c6-or);outline:0;
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 var(--c6-t) 0 0 var(--c6-orT),0 var(--c6-t) 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 #tPanel #tpIn>.tp.go:is(:active,.appui){transform:translateY(var(--c6-t));
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:3;color:var(--c6-orE)}
+html.c6 #tPanel #tpIn .tp:not(.go):not(.ligne):focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
+/* l'entrée : le voile fond (200 ms), les blocs montent de 8 px en cascade de 30 ms ; la sortie = le voile qui s'efface (le panneau ne glisse plus) */
+html.c6 #tPanel.open #tpIn>*,html.c6 #tPanel.open #tpIn .tpRow>.tp{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:90ms}
+html.c6 #tPanel.open #tpIn>.tpH:first-child{animation-delay:0ms}
+html.c6 #tPanel.open #tpIn>.tpResume{animation-delay:30ms}
+html.c6 #tPanel.open #tpIn>.tpPanel{animation-delay:60ms}
+html.c6 #tPanel.sortant #tpIn{animation:none}
+@media (prefers-reduced-motion:reduce){html.c6 #tPanel.open #tpIn>*,html.c6 #tPanel.open #tpIn .tpRow>.tp{animation:none}}
+html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motion="1"] #tPanel.open #tpIn .tpRow>.tp{animation:none}
+/* COUCHÉ : un panneau centré ; le titre à gauche, le résumé à droite ; les réglages sur deux colonnes (3 + 2) ; en bas les deux touches à gauche, l'or à droite */
+@media (orientation:landscape) and (max-height:540px){
+  html.c6 #tPanel.open{justify-content:center}
+  html.c6 #tPanel #tpIn{max-width:720px;margin:auto;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-rows:none;grid-template-areas:"t t s s" "p p p p" "r q . g"}  /* rows:none : l'ancienne règle couchée posait 5 rangées explicites (32 px de vide sous les touches) */
+  html.c6 #tPanel #tpIn>.tpResume{grid-template-columns:repeat(3,auto);gap:24px;justify-self:end}
+  html.c6 #tPanel #tpIn .tpResume .mStat{align-items:flex-end}
+  html.c6 #tPanel #tpIn>.tpPanel{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:48px;grid-auto-flow:row;column-gap:16px}  /* 4 lignes (sans voix) = 2 × 2 ; 5 = 2 + 2 + 1 */
+  html.c6 #tPanel #tpIn .tpRow>.tp{padding:0 16px!important}
+  html.c6 #tPanel #tpIn>.tp.go{min-height:48px;min-width:192px;padding:0 24px;font-size:16px}
+  html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:2}
+}
+/* grand téléphone couché : de la place pour les icônes des deux touches */
+@media (orientation:landscape) and (max-height:540px) and (min-width:800px){
+  html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:block}
+}
+/* couché étroit (iPhone 7/8) : comme les réglages — écarts à 8, sélecteurs en 8 px (« POUCE HAUT » + « PLONGE » tiennent sur 246 px) */
+@media (orientation:landscape) and (max-width:700px){
+  html.c6 #tPanel #tpIn .tp.ligne{gap:8px;padding:0 8px}
+  html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:8px}
+  html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
+}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -52659,7 +52766,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
       else if(a==='q'){const f=SAVE.d.q!=='net';e.innerHTML=tpLbl('eclair','IMAGE',f?'RAPIDE':'NETTE',true);}
-      else if(a==='volh')e.innerHTML=tpLbl('aile','POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
+      else if(a==='volh')/* (2026-10-14, charte 6) « POUCE HAUT » seul, comme dans les réglages : la ligne tient sur 246 px (iPhone 7 couché) */e.innerHTML=tpLbl('aile',document.documentElement.classList.contains('c6')?'POUCE HAUT':'POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
