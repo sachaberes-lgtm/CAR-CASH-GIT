@@ -1,4 +1,98 @@
-# CASH CAR — guide projet pour Claude Code
+# CASH CAR — le JOURNAL de VERSION PRINCIPALE
+
+> Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
+> une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
+
+## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
+**Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
+l'équilibrage, son nom et sa description en français ET en anglais, un pictogramme pixel (`ico`, grilles `tr_*` / `ai_*` dans `PXI_G`).
+Aucun nom de marque : des allusions (le hérisson bleu, la moto de néon, le chasseur en X, les fantômes du labyrinthe…).
+
+| | rare (5-12 k) | exotique (20-42 k) | épique (85-160 k) | légendaire (300-500 k) | mythique (DÉFI) |
+|---|---|---|---|---|---|
+| TRAÎNÉES | SAKURA 8 k · MATRICE 11 k | ANNEAUX D'OR 22 k · PLUIE DE BLOCS 30 k · GLOUTON 40 k | HYPERESPACE 90 k · 88 MILES À L'HEURE 140 k | LA GRILLE 350 k · FAIS PLEUVOIR 500 k | FOUDRE DIVINE (carnet 11) |
+| AILES | PIGEON 6 k · AVION EN PAPIER 9 k · MONARQUE 12 k | 8-BIT 25 k · BARON ROUGE 38 k | ENGRENAGES 100 k · AILES EN X 120 k · FÉE 160 k | DRAGON 450 k | PHÉNIX (carnet 10) |
+| PEINTURES | VERT OGRE 5 k · BLEU HÉRISSON 7 k · ROSE POUPÉE 9 k | BANANA 20 k · NUIT DE GOTHAM 32 k · MONDE À L'ENVERS 42 k | VAPORWAVE 85 k · LAVE 130 k | HOLOGRAMME 300 k | SUPER GUERRIER (carnet 12) |
+
+**LES TRAÎNÉES POP — un seul moteur, `TRX`** (juste après `wowStep`). Des quads INSTANCIÉS en deux maillages (ADDITIF : ce qui brille ;
+NORMAL : ce qui a une matière), une planche de 8 × 8 cases peinte une fois (`trxPlanche` : halo, trait, étincelle, mur de lumière, 8
+glyphes, anneau, pastilles, 5 fantômes, 7 pièces de quatre carrés, 3 pétales, billet recto/verso, flamme en 2 images). Trois poses
+(`iP.w`) : sprite face caméra · TRAIT (demi-axe monde, largeur vers l'objectif) · PAN (deux demi-axes). Chaque traînée = un émetteur
+dans `TRX_EMET` (`grille` mur de lumière + liseré couché ; `matrice` colonnes de code, tête blanche ; `anneaux` qui tournent en
+s'écrasant et CLIGNOTENT avant de disparaître ; `glouton` pastilles posées au sol + 4 fantômes qui suivent le chemin `TRX.H` et
+virent au bleu quand la nitro lâche ; `hyper` filés ; `retour` deux sillons de feu POSÉS sur le bitume aux roues arrière + les arcs
+bleus du départ, des braises en vol ; `foudre` éclairs tordus le long du chemin, accrochés à la tuyère, avec une branche ; `blocs`
+qui tournent PAR QUARTS ; `sakura` pétales qui se balancent ; `billets` qui montrent recto puis verso en tournoyant). Comme
+l'arc-en-ciel et WOW : seulement à la NITRO (`loop._arcK`), éteintes en réserve bleue, en nitro infinie et à l'explosion, coupées avec
+lui (`rainbowCoupe` → `trxCoupe`). Fiche : `pop:'nom'`, `rgb` (le ruban qui l'accompagne) ou `rubOff:1` (pas de ruban : l'effet EST
+la traînée) ; `FX_EFF.pop`/`FX_EFF.rubOff` posés par `buildCar`. Au garage : `trxApercu` (la caisse posée « roule » à 14 m/s sur un
+chemin qui ondule). Bâti à la PREMIÈRE traînée pop portée : zéro coût sinon.
+- MESURÉ (banc GPU, course) : 0,03 à 0,17 ms par image ; au plus ~550 quads (les sillons de feu, avant leur espacement selon la vitesse).
+- ⚠ **L'ÉLAN GARDÉ `vk` DÉCIDE CE QU'ON VOIT EN COURSE** : la caméra de poursuite est à quelques mètres derrière ; une particule qui
+  garde 55 % de l'élan recule de 36 m/s à 80 m/s et passe l'objectif en 0,15 s. Ce qui doit se lire garde 0,86-0,9 (comme WOW).
+  Au garage, le recul vaut au moins 35 % des 14 m/s (`trxVit`). En course les sprites sont ×1,35 (la caisse est petite à l'image).
+- Pastilles et flammes s'espacent avec la vitesse (sinon ~550 flammes vivantes à pleine vitesse).
+
+**LES AILES POP — `AILES_POP`** (juste avant `buildCar`) : un bâtisseur par style, appelé par `buildCar` sur les pivots des mini-ailes
+(`carWingL/R`), avec (pivot, côté, W9, L9, H9, y0). Les contours se donnent à plat (x dehors, y vers l'arrière) → `ailForme` (couchée,
+miroir à droite, UV ramenés à 0..1 sur la boîte : une texture se peint dans la MÊME boîte que le contour). `ailTige` (tige entre deux
+points), `ailMat`, `ailTex` (textures cuites une fois dans `AIL_TX` : buildCar libère les matières, pas les textures). Ce qui bouge passe
+par `ailAnime` → `BLING.anim` et lit `wingT` (repliée, une aile ne bat pas) : AILES EN X qui s'écartent en X une fois dépliées
+(« position d'attaque »), tuyères qui flambent à la nitro ; MONARQUE qui bat ; DRAGON (membrane à veines de LAVE en carte d'émission,
+griffe, épines) qui bat lentement et couve plus fort à la nitro ; PHÉNIX (plumes de feu en couleurs de sommet au-delà de 1 + halo
+additif) qui danse ; FÉE (voiles irisés, depuis le TOIT) qui bourdonne ; ENGRENAGES (laiton, voile de toile peinte, deux roues dentées
+qui engrènent) ; 8-BIT (un cube par pixel, `InstancedMesh`) qui bat PAR À-COUPS ; PIGEON (deux barres noires, reflet vert-violet) qui
+bat vite puis plane ; AVION EN PAPIER (cahier à grands carreaux, le pan du dehors relevé le long du pli) ; BARON ROUGE (biplan, mâts,
+haubans) dont la toile vibre à la nitro. Les plumes du phénix étaient trop fines au 1er banc (« des baguettes ») : élargies.
+
+**La rareté des habillages** : `r` sur la fiche a le dernier mot ; sinon `cosmRar` range au prix — commune < 4 k · rare < 16 k ·
+exotique < 60 k · épique < 250 k · légendaire < 900 k (MENTHE, HÉLICES → communes ; NOIR MAT, PLUMES, POUDRE D'OR → rares ;
+COUCHER DE SOLEIL, CHAUVE-SOURIS, WOW → exotiques ; CHROME → épique). Affichage seulement (lueur, tri, nom).
+**Les carnets POP** (10 à 12, après « LES CARNETS DES 50 — FIN ») gagnent PHÉNIX, FOUDRE DIVINE et SUPER GUERRIER. Un joueur déjà au-delà
+(la suite sans fin commençait au 10e) reçoit les trois une fois (`popCarnets`, appelé par `misEtat`). Sur Poki (sans missions), ils
+s'achètent au prix `pk`.
+**Les vignettes** : traînées POP rangées comme les ailes (pictogramme + nom, classe `.pop`) ; peintures en dégradé = leur dégradé (plus
+la plaque chrome/or par-dessus).
+**Bancs** (scratchpad de la session) : `pop/bench.js <racine> [ailes|trainees|peintures|course]` (photos garage + course, muet, GPU),
+`pop/ui.js` (la boutique du garage en FR puis EN, captures DOM). Crochets : `dbgTrx()` / `dbgTrx('grille')` (la forcer en course) /
+`dbgTrx(null)` ; `dbgHab(cat,id)` (porter un habillage à l'essai, à toi ou non). Résultat : zéro erreur, les 30 se construisent.
+
+**L'ÉQUILIBRAGE ARGENT / AURA** (rapport complet : scratchpad `eco/RAPPORT.md`). Diagnostic : la paie de course est saine (pas
+d'inflation) ; le problème était autour — 1re caisse à 24 000 $ depuis le retrait des communes (~58 parties pour un débutant), aura
+plafonnée en ~25 min (après DIVINITÉ elle ne servait plus), portail < 1 % d'une partie, la suite sans fin des carnets payait 4× moins
+que le 9e. Changé :
+- `ECO3.prime` .5 → 1 (les primes de défis pleines : un salaire d'accueil) ;
+- ELDORADO 24 000 → **10 000 $** (+ `rar:'rare'` dans sa fiche, sinon COMMUNE), LE CHARGEUR 26 000 → 16 000, LE DÉFIEUR 32 000 → 24 000
+  (une marche ×1,5 : 10 · 16 · 24 · 42 · 50 k). ⚠ **la fiche de prix est celle de Léo (06/10) : à valider avec lui** ;
+- `AURA_RANKS` : quatre rangs après DIVINITÉ DU CIEL — PATRON DU CIEL 250 k · ICÔNE 500 k · LÉGENDE ÉTERNELLE 1 M · LE CIEL
+  T'APPARTIENT 2,5 M (EN et ZH) ; aucun index existant ne bouge ;
+- portail `denom()*24` → `*120` (+3-5 % sur une bonne partie) ; base de la suite sans fin des carnets 5 000 → 40 000.
+Non touché exprès : `DENOMS`, la paie de course, la frénésie, la nitro, les prix des épiques. ⚠ `TEST_CAISSES` est vrai sur main :
+tant qu'il l'est, toutes les caisses s'équipent sans être achetées — l'argent n'achète rien de visible côté caisses.
+
+**LES TEXTES FR / EN** (trois audits en lecture seule, ~120 points ; rapports scratchpad `audit-out/A-dictionnaires.md`,
+`B-code-1.md`, `C-code-2.md`). Corrigé : toutes les HAUTE et MOYENNE —
+- français : « HORS DE L'EAU » (l'apostrophe perdue), « TU ES DERNIER » (un vouvoiement isolé), « Un tour en vrille penchée » ;
+- anglais manquant : météos du mode classique (SOIR/NUIT/PLUIE) et LA VILLE, la pastille ÉDITION LIMITÉE (en CSS → `html:not([lang=fr])`),
+  les DESCRIPTIONS DES FIGURES (`figDesc(f,lg)` bilingue, appelée à l'affichage), « Restaurer un code », les réclames de la VILLE et de
+  CRYPTOCITY (`PUB_EN`/`pubLangue`), le prix du nouvel ATH (`fmtC`), l'écran « a calé » et son diagnostic (`ccEn`, drapeau `__ccLent`
+  au lieu de reconnaître la phrase), three.js absent, `aria-label` de la carrière, W A S D au clavier anglais ;
+- doublons et contresens : VOLANT = WHEEL (le bloc mort du GUIDE l'écrasait en STEER), VOIR = VIEW, SON = SOUND, Volumes = Volume,
+  THE CHARGER, THE DEFIER, THE DISGRACE, color, « 999.9 fine », et les blagues rendues (WELL… THE CRASH PART, IN THE BAG, SIGNED,
+  SEALED, DRIVEN, BROKEN IN, FLOWN, YOU WERE SUPPOSED TO FOLLOW HER, FINISH THE 3 CHALLENGES FIRST) ;
+- phrases composées AVANT `TR` (édition PC surtout) : verdict de pose (traduit en deux moitiés dans `trickMsg`), ZONE_LINES,
+  CAR_LINES + « (au garage) », l'échelle LADDER, REPORT, ROULE OU CRÈVE, AU CHEVEU / À L'ARRACHÉE, ESSOREUSE COSMIQUE, CHAÎNE ×,
+  ENCHAÎNEMENT, PASTÈQUE, RAFALE, le butin du logo, les boutons et `prompt` de la sauvegarde.
+Laissé (BASSE, à trancher par Sacha) : « HOME », « SHOP », « SEE ALL ITEMS », « NEW », « TRIPLE MONSTER » écrits en anglais dans
+l'interface française (choix de Léo) ; la clé `A DECOUVRIR1` ; 177 clés mortes et 29 doublons inoffensifs ; apostrophes ’ mêlées dans
+4 fiches de caisse ; le nom anglais des figures générées dans la boîte blanche (`figures.js`, `en:nom`).
+
+**LE GUIDE** : `CLAUDE.md` était devenu ce journal (854 Ko, 6 000 lignes — trop gros pour qu'une session le lise). Sacha a choisi
+« guide court + journal à part » : le journal est devenu `JOURNAL.md` TEL QUEL (rien n'est perdu), et `CLAUDE.md` est un guide
+d'environ 400 lignes (le jeu, la méthode, la carte du code, les règles, les bancs, les recettes, les pièges, l'index du journal).
+`JOURNAL.md` est retiré du site (`vercel-build.sh`) et des portails (`poki-construire.js`), comme l'était `CLAUDE.md`.
+**Désormais : chaque demande livrée = une section EN HAUT de `JOURNAL.md` ; le guide ne change que si une règle, une architecture
+ou une recette change.**
 
 ## LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes les voitures et tous les trucs débloquables — c'est caché »)
 RÉGLAGES › tout en bas, sous EFFACER : ENTRER UN CODE (`data-m="code"`, la feuille `modale` avec un champ). `codeCousin(t)` : « cousin » ou

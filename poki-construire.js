@@ -29,7 +29,7 @@ const NOM={poki:'POKI',crazy:'CRAZY',itch:'ITCH',playgama:'PLAYGAMA'}[ED],SDK={p
 const OU={poki:'Poki for Developers',crazy:'CrazyGames (developer.crazygames.com, type HTML5)',itch:'itch.io (Kind of project : HTML)',
   playgama:'Playgama (developer.playgama.com)'}[ED];
 const SRC=path.join(__dirname,'VERSION PRINCIPALE'),DST=path.join(__dirname,NOM),ZIP=path.join(__dirname,NOM+'.zip');
-const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js', // à la racine du jeu
+const SAUTE=new Set(['CLAUDE.md','JOURNAL.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js', // à la racine du jeu
   // (2026-10-12, passe qualité) les OUTILS LOCAUX de Léo : chacun a son serveur.py — deux fichiers du même nom cassaient l'édition À PLAT
   // (CrazyGames : « deux fichiers serveur.py »), et Poki/itch embarquaient 4 Mo d'outils et trois serveurs Python
   'maps-ciel','maps-ciel.html','simulateur','simulateur.html','salle-blanche','salle-blanche.html','boite-dauphins.html','boite-singe.html']);
