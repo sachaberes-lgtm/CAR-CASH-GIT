@@ -36640,8 +36640,12 @@ function figLibreTap(gx,hy){ // le double-tap en vol : un coup de reins sur l'ax
   if(FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // LE DOUBLE-TAP N'EST PAS UN BOOST : le coup de réacteur de son 1er appui est rendu (vitesse et nitro) — marteler fait tourner, pas filer
   FL.actif=true;FL.tTap=performance.now();FL.taps++;FL.cumT=(FL.cumT||0)+1;VEQ.n++;
   const p=carGroup.position; // le souffle des tuyères qui la font tourner
-  for(let j=0;j<10;j++)spawnP(j%3?flames:flameCore,p.x+(Math.random()-.5)*1.6,p.y+.5+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*1.6,(Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14,.12+Math.random()*.12);
-  shake=Math.max(shake,.22);fovPunch=Math.max(fovPunch,3.5);hap([10,22,14]);
+  /* (2026-10-14, gameplay · accord) DANS LE SAUT NITRO, la figure part à la même image que le saut (veqSaut → veqFigure) : le souffle du
+     booster de Léo (26 flammes contre la route) et son motif dans la main ([12,30,18]) disent déjà le coup — les tuyères et leur
+     vibration ici le doublaient. Elles se taisent ; le son de la vrille reste (la caisse se met bien à tourner). */
+  const sautN9=SENS&&performance.now()-VEQ.sautT<60; // (`?sens=0` : comme avant)
+  if(!sautN9)for(let j=0;j<10;j++)spawnP(j%3?flames:flameCore,p.x+(Math.random()-.5)*1.6,p.y+.5+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*1.6,(Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14,.12+Math.random()*.12);
+  shake=Math.max(shake,.22);fovPunch=Math.max(fovPunch,3.5);if(!sautN9)hap([10,22,14]);
   try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}
   return true;
 }
@@ -39184,7 +39188,9 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   /* (2026-10-14, sensations · pose) LE SOL LÂCHE DANS LA MAIN. Le décollage avait sa poussière et son souffle, mais le pouce ne sentait rien :
      on apprenait qu'on volait en le voyant. Un tic au moment où les roues quittent le bitume — léger pour une crête, un trou ou le bord,
      et le « ta-tac » des deux essieux (avant, puis arrière) sur la lèvre d'une CATAPULTE. Une seule vibration, par le limiteur commun. */
-  if(SENS&&running&&!gameOver&&!introD)try{if(!bord&&impU>=5)sensHap([10,26,14],2);else sensHap(9,1);}catch(e){}
+  /* (2026-10-14, gameplay · accord) …sauf le SAUT NITRO de Léo : il a son motif à lui ([12,30,18], dans veqSaut, juste après cet appel) —
+     le « ta-tac » d'ici partait à la même image et se mêlait au sien. Le braquage qui arrache la caisse a déjà vibré : le limiteur le tait. */
+  if(SENS&&running&&!gameOver&&!introD&&!(performance.now()-VEQ.sautT<60))try{if(!bord&&impU>=5)sensHap([10,26,14],2);else sensHap(9,1);}catch(e){}
   if(AC&&engRpm>.42){const e9=ENG_SND[Math.max(0,engLvl)];if(e9&&e9.crk)crackle(e9.crk*.8);} // (2026-09-25) le moteur se décharge en quittant le sol
   if(SONV2){ /* (console de son) tomber n'est pas décoller : chacun son son */
     /* (bord, 1/10, Sacha : « un son de merde quand on sort de la route et qu'on va dans les airs, deux petites notes ») : la sortie par le
