@@ -38,7 +38,7 @@ et `planche-nuit.jpg` (avant les derniers correctifs : arche verte corrigée dep
 
 ## 14/10 soir — v2 « RACCOURCIS » (session FORÊT)
 - Étape 1 (main 88755598) : les SÉQUOIAS-TOURS (`FOR_GEANTS.sequoia`, 290-570 m) — colonnade le long de la descente + second rang ; un séquoia au centre de chaque boucle.
-- Étape 2 : `genForet` v2 — slalom serré (rayons × rayonPalier()/63), six BOUCLES À FILET (demi-tour R, 45 m, demi-tour R+66 : la route ressort
+- Étape 2 (main 843dab1e, v429, train n°1) : `genForet` v2 — slalom serré (rayons × rayonPalier()/63), six BOUCLES À FILET (demi-tour R, 45 m, demi-tour R+66 : la route ressort
   132 m à l'extérieur, ~48 m plus bas, même cap ; on coupe par le bord à l'entrée de la boucle : ~700 m de gagnés), arche entre la 3e et la 4e.
 - Banc raccourcis (GAMEPLAY) au palier 0, 12 graines : raccourcis 0,9-1,5/km ✓, pente ~7 % ✓, 0 croisement dangereux ✓, droites ≤ 5 s ✓ (2 graines à 5,1-5,2),
   virages 2,5-3,0/km (1 graine à 2,43). Itérer SANS Chrome : `node gentrace.cjs <graines> t.json` (scratchpad opt/) puis `raccourcis.cjs foret 1 --depuis=t.json`.
