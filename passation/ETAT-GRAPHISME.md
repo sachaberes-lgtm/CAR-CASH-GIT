@@ -15,6 +15,8 @@ La passation longue (règles, plafonds de la charte, outils dbg) reste `passatio
 - POUSSÉ ensuite (21 h 40) : e4ccd87a (v419) cumulus nuit/pluie/orage + banquise ; 98961b11 (v420) VILLE LA NUIT EN ROSE (nuit, orage, pluie : `villeRose()`),
   CIEL DU CANYON réparé (le masque du disque solaire était inversé : `?sans=cysoleil`), béton de l'orbite ; 032f2361 (v422) NUAGES DE NUIT EN CLAIR DE LUNE (`?sans=clairdelune`).
   Planches : graphisme-ville-nuit-rose.jpg, graphisme-canyon-ciel.jpg, graphisme-orbite-ab.jpg, graphisme-cumulus.jpg, graphisme-nuages-nuit-lune.jpg.
+- POUSSÉ 591544f5 (v426, 22 h 12) : le CIEL DES NUAGES SANS POMMELÉ (`cielMotif` retiré des passes pleine ET basse `basN`, `?sans=ciel2`) et la mer lointaine
+  fondue plus tôt (`uMerLoin` 16 000 → 8 000). Sonde en vol : `sonde-vol.cjs` du scratchpad (fige la caméra en l'air, coupe les couches une à une).
 - RESTE, dans l'ordre : (1) l'ORAGE de la ville encore peu rose : son plafond de nuages lilas/éclair a été retiré par `NEON_V` à la COMPILATION (l. ~9364/9367,
   le plafond sous la pluie) → il faut un uniforme pour le rendre à la ville seule ; (2) le MIDI du canyon peut-être trop saturé (ciel chroma 88) : baisser `cyZ`/`cyM`
   de canyonMidi si Sacha le juge ; (3) la LUNE du titre la nuit : la direction en uniforme ne suffit pas (essai retiré) → vérifier si le ciel du titre dessine
