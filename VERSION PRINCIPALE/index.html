@@ -46775,6 +46775,9 @@ if(TITRE_V2){
   // MIDI : plus de cobalt au coin haut-gauche (zénith #3F8FE0 max, horizon #CFE8F7), voile haut bleu clair, mer de nuages plus claire
   T2('midi',{ciel:{z:[.05,.26,.70],m:[.26,.58,.88],h:[.66,.82,.93],mo:[.62,.74,.90]},
     amb:{jZen:[.05,.26,.70],jHor:[.66,.82,.93],sat:1.12,con:1.2},P:{mzO:[.70,.80,.92,.25],amb:.75,sol:.7,sk:2.1},v:['40,84,150',.2,.34,'40,84,150',.5]});
+  // MATIN : sa propre signature (or pâle bas, horizon pêche clair, brume rosée), léger — avant, identique au midi
+  T2('matin',{ciel:{m:[.40,.64,.86],h:[.92,.80,.68],s:[.62,.46,.28],mo:[.50,.60,.82],mh:[1,.94,.86]},
+    amb:{jHor:[.92,.80,.68],fog:[.88,.80,.78],sunC:[1,.90,.76],sat:1.14,con:1.14},P:{amb:.75,sol:.7,sk:2.1},v:['40,84,150',.24,.44,'40,84,150',.5]});
 }
 function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);if(!on)return T;
   U.uTZen.value.fromArray(T.z);U.uTMid.value.fromArray(T.m);U.uTHor.value.fromArray(T.h);U.uTSol.value.fromArray(T.s);
