@@ -105,7 +105,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G`, `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_CRYPTO`,
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_CRYPTO`, `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
 - **Ciel et décor** : `BIOMES`/`bioApply` (le SEUL écrivain des lumières), `skyDome`, `CIEL2`, `COTON`/`CLOUDS`/`buildClouds`/
   `updateClouds`, `paintEnv`.
@@ -230,7 +230,7 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 `dbgQual()`/`dbgDPR()`/`dbgPerf()` · `dbgAppels(n)`/`dbgProgsListe()` (traquer une compilation en course) · `dbgMaj()` · `dbgPoki()`.
 
 **Adresses utiles** : `?perf=1` (moniteur) · `?banc=1` (le banc de perf à lancer sur un VRAI téléphone) · `?poki=1`, `?crazy=1` ·
-`?menu=leo` · `?carte=jade&meteo=orage` · `?niveau=jade`, `?niveau=crypto` · `?heure=nuit` · `?simu=1`.
+`?menu=leo` · `?carte=jade&meteo=orage` · `?carte=canyon&meteo=soir` (`?cyw=0` : sans travailleur) · `?niveau=jade`, `?niveau=crypto` · `?heure=nuit` · `?simu=1`.
 
 **Les outils de Léo** (locaux, retirés du site par `vercel-build.sh` et des portails par `poki-construire.js`) : `simulateur.html`
 (`python3 simulateur/serveur.py 9101`), `maps-ciel.html` (`python3 maps-ciel/serveur.py 9019`), `salle-blanche.html`,
@@ -360,7 +360,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « LE FLOW v2 » (28/09) · « LA TRIADE v5 » et « LA TRIADE SIMPLIFIÉE » (28/09) · « LA FRÉNÉSIE ×3 » (29/09)
 
 **Niveaux et maps**
-- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10)
+- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « LE CANYON DES GÉANTS » (14/10)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)

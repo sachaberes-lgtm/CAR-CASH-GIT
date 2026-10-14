@@ -3,6 +3,49 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CANYON DES GÉANTS — LA MAP DU DÉSERT (2026-10-14, session CANYON — Sacha : « fais une map façon canyon Monument Valley mais genre géant, avec des grandes gorges où la route passe entre au-dessus des lits de rivière entre deux grandes parois de pierre ; il faut quand même que la route descende vers le bas, pas comme la map montagne chinoise ; fais quelque chose de magnifique où tu t'amuses sur les couleurs de la roche avec des teintes jaune et rose ; le même niveau d'exigence que les autres, et toutes les météos et heures de la journée parfaitement gérées et adaptées à un biome désertique »)
+- LA MAP du mode classique : `SF_CARTES.canyon` (`NIV_CANYON`, id 'canyon', piste 'canyon') avec ses SIX météos (matin · midi · soir · nuit · pluie
+  · orage), ambiances `BIOMES.canyonMatin…canyonOrage`. Nom validé par Sacha (quiz PILOTAGE 14 h 10). Lien de test : `?carte=canyon&meteo=soir`,
+  ou `dbgClassique('canyon','orage')` puis `dbgSaut()`. Réservée au WebGL2 (`CANYON_OK` : sinon elle n'entre pas au tirage).
+- LA ROUTE (`genCanyon`) PLONGE comme celle des nuages. MESURÉ avant : MER DE NUAGES = 7,8 km de dénivelé sur 18 km, pente médiane ~30° ; les
+  Pics de jade restent à plat. Le canyon : ~19 km, ~7,2 km de dénivelé, pente médiane −0,41 (grade). Ses sections (repères `CY.Q` → `CY.sQ`) :
+  la vallée des MITAINES (presque plate), LA BRÈCHE (le grand plongeon à ~38°), les méandres et trois bosses, LE FER À CHEVAL (épaule · boucle
+  de ~210° · épaule), un plongeon, LES ÉTROITS, L'ARCHE (une droite), L'AMPHITHÉÂTRE (un grand balayage), le DOS DE CHAMEAU (le grand saut), la
+  finale. Cap ±58° hors du fer à cheval ; contrôle de séparation (deux tronçons à plus de 1,2 km de route l'un de l'autre restent à ≥ ~560 m :
+  8 essais au plus, son propre flux de hasard, UN tirage de `rnd`).
+- LE MONDE (`buildCanyon` → `cyMondeCalc` → `cyMondePose`) : échantillons de la route tous les 8 m et leur profil par section (clés fondues :
+  largeur du fond `wF`, hauteur des parois `H`, raideur `st`, hauteur de la route au-dessus de la rivière `D`, densité de buttes `V`, zones
+  étroits/arche/amphithéâtre) ; LA RIVIÈRE ne remonte jamais (le minimum de route − D), en VASQUES et en CASCADES (marche de 22 m, l'écume au
+  pied) ; LE PLATEAU en ESCALIER (marche de ~250 m, escarpement dans les derniers 14 %, seulement là où les parois sont hautes : la vallée reste
+  plate et le plateau ne passe jamais sous la rivière) ; LES BUTTES de Monument Valley (grille de 760 m, loin de la route, `cyButteDe`) ;
+  quatre textures de données (taille fine RG32F à 12 m : creusement + empreintes ; méta RGBA8 : eau, roche, ripisylve, écume ; plateau RGBA32F
+  à 64 m jusqu'à 7,5 km ; hauteur d'ombre R32F à 27 m) et deux bruits RGBA8 partagés avec le processeur (la collision lit les MÊMES données que
+  la puce, `cyHauteur` = `cyHt` du shader).
+- LE RENDU : terrain GPU CDLOD (`cyTerrain`, `cySelect` chaîné sur scene.onBeforeRender : un maillage de grille 33×33 en instances, nœuds de
+  64 m au niveau 0, portée R0·2^l, morphe entre niveaux — ni fissure ni saut), hauteur taillée en CORNICHES (marches 15-26 m) ; la matière
+  `CY_FS` : STRATES (`cyStrates`, une colonne de 1 024 couches sRGB : grès massifs crème / jaune beurre / saumon / corail / blanc, lits minces
+  rose / brique / lavande / ocre / magenta — le jaune et le rose d'abord), litage oblique, VERNIS du désert, sable et maquis sur les replats,
+  ripisylve verte, l'ombre portée des parois (balayée pour le soleil de l'heure), le ciel qui s'éteint au fond de la gorge, le REBOND chaud des
+  parois éclairées dans l'ombre (`cyL`), l'EAU (turquoise, reflet de la gorge, éclat du soleil, cascades blanches, boue de l'orage), la BRUME
+  du matin au fond (`cyQ`), sous la pluie les CASCADES qui tombent des rebords et la pierre mouillée, l'éclair.
+- LES MONUMENTS (`cyMitaines`, `cyMonuPrevoir`, `cyMonuments`) : LES MITAINES (deux buttes à pouce + une mesa, empreintes dans la taille fine),
+  L'ARCHE (un tube de grès qui enjambe la gorge, intrados ~120 m au-dessus de la dalle), LES CHEMINÉES DE FÉES (jusqu'à 300 colonnes à
+  chapeau en instances sur les gradins de l'amphithéâtre), LES RAIS DE LUMIÈRE des étroits (lames additives, quand le soleil est haut). Même
+  matière que le relief (`CY_MVS` + `CY_FS`), dans le balayage de l'ombre, et dures en vol (`cyMonuHeurt`).
+- L'HEURE : le SEUL niveau où le SOLEIL BOUGE (`cyA` = hauteur, azimut) — matin 13° · midi 63° · soir 6° · la nuit la LUNE 34° · pluie 48° ·
+  orage 40°. `canyonSoleil` (dans la boucle, avant les ombres) pose SUN_DIR ; hors du canyon il revient à `SUN_DIR0` au bit près (SUN_PERP,
+  SUN_UP, RIM_DIR recalculés par les mêmes opérations). Le ciel est à lui (`COUCHES.canyon`, programme dédié `cy` quand uCanyon = 1, fondu
+  dans le PLEIN sinon) : dégradé sec, lueur et disque du soleil, CEINTURE DE VÉNUS à l'opposé du soleil bas, cumulus et cirrus, PLAFOND de la
+  pluie que l'éclair allume, VOIE LACTÉE et LUNE la nuit, trois plans de MESAS sur l'horizon. L'ombre des parois sur la CAISSE (`canyonTick` :
+  la clé baisse dans l'ombre, l'hémisphère au fond de la gorge — seuls écrits du soleil hors de bioApply, rendus en sortant).
+- EN VOL la paroi, l'eau et le fond tuent : `canyonHeurt` → causes « ENCASTRÉ DANS LA PAROI », « À LA RIVIÈRE ! », « AU FOND DU CANYON ».
+  RÈGLE D'OR : aucun relief ne touche la route, dessus ni dessous — `dbgCanyon('test')` (et le banc processeur).
+- LES FRUITS DU DÉSERT (fin de FRUIT_DEFS, `cf` = leur fréquence au canyon, `cs` = seulement là) : FIGUE DE BARBARIE, DATTE, MELON DU DÉSERT ;
+  la GRENADE y pousse aussi (`cf` 4, sa fréquence ailleurs inchangée). Pièces : le « $ » (le Far West).
+- LA MUSIQUE : la radio du jeu (choix de Sacha : c'est Léo qui la gère) — UNE ligne commentée dans `MUSIC_LIEU` (`canyon:{…}`) est sa place.
+- LA CONSTRUCTION EN DEUX TEMPS : MESURÉ au banc : monde ~0,3 s (plateau 66, taille 113, ombre 33, pose 7 ms) ; au portail dans un travailleur (`cyTravailleur`), sinon synchrone sous le voile ; `?cyw=0` le coupe.
+- ⚠ BRANCHE `canyon`, PAS ENCORE SUR MAIN : à l'ombre (soir), de larges bandes NOIRES horizontales sur les parois (cause non trouvée : ni la lumière — plancher posé —, ni le vernis) ; ciel crème délavé ; strates en « fenêtres » étirées. Midi est coloré. Reste : planches des 6 météos, mesure perf/programmes (`dbgCout`), fumée commune, sw.js CACHE +1.
+
 ## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
 **Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
 l'équilibrage, son nom et sa description en français ET en anglais, un pictogramme pixel (`ico`, grilles `tr_*` / `ai_*` dans `PXI_G`).
