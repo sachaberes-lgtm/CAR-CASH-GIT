@@ -33404,7 +33404,7 @@ function musicLieuVoulu(){
    en réclame un autre que celui qui joue. */
 function musicSuitLieu(){
   if(musicMode!=='run')return;
-  if(jadeMusOn()){musicLieu=null;if(musicOn)stopMusic();return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick)
+  if(jadeMusOn()){musicLieu=null;if(musicOn){if(VOL_LOCKED&&!musWaTient())stopMusic();else MUSJ.f0=performance.now();}return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick) — (2026-10-14, session SON) la radio lui CÈDE en 0,3 s (musicTick) au lieu d'un pause() net sous le portail ; volume verrouillé (iPhone avant iOS 17) : rien à ramper, coupure comme avant
   const v=musicLieuVoulu();
   if(v===musicLieu&&(musicOn||!SND.music||FRENM.sw))return; // (2026-10-13) …et en en sortant, la radio qu'elle avait fait taire repart
   musicLieu=v;
@@ -33735,9 +33735,10 @@ function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e)
    voiture booste, pour tous les niveaux ») : le son de transition `depart.envol` (1,55 s de montée AVANT la musique) est RETIRÉ — la
    musique n'attend plus rien. NE PAS remettre de son ni de délai entre le départ et la musique.
    ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
+const MUSJ={f0:0,ms:300}; // (2026-10-14, session SON) la radio cède l'antenne à GLISSE (entrée au SOLEIL DE JADE par un portail) : l'instant où son fondu de sortie a commencé, 0 = pas de fondu
 const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
 function musicStartRun(depart){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course
-  DEPMUS.f0=-1;DEPMUS.sort=0;
+  DEPMUS.f0=-1;DEPMUS.sort=0;MUSJ.f0=0;
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
@@ -33777,7 +33778,7 @@ function musicNext(){
 }
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   musicMode='none';musicVoulue=false;
-  DEPMUS.f0=-1; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
+  DEPMUS.f0=-1;MUSJ.f0=0; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
   const el=musicEl;
   /* (2026-09-30) LA BANDE N'A PLUS QU'UN FIL : l'intervalle du tape-stop (~0,6 s) n'était jamais rangé — un REJOUER rapide (uiGarde
@@ -34052,6 +34053,11 @@ function musicTick(dt,mvt){
    if(tait9){musicVolCible=0;if(!musicTick._pz&&((VOL_LOCKED&&!musWaTient())||musicVolCour<.012)){ /* (2026-10-14, session SON) branchée en WebAudio, l'iPhone fait comme l'ordi : un fondu, puis la pause */musicTick._pz=true;musicPause(true);}}
    else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
    musicTick._bq=bq9;}
+  if(MUSJ.f0){ /* (2026-10-14, session SON) la radio s'efface avant de se taire (voir musicSuitLieu) : rampe linéaire sur MUSJ.ms, puis pause */
+    const k8=(performance.now()-MUSJ.f0)/MUSJ.ms;
+    if(musicMode!=='run'||!jadeMusOn()||!musicOn){MUSJ.f0=0;}
+    else if(k8>=1){MUSJ.f0=0;stopMusic();}
+    else{musicVolCible*=1-k8;musicVolCour=Math.min(musicVolCour,musicVolCible);}}
   if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
     if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
   if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
