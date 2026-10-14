@@ -36,3 +36,6 @@ JEU=$(cd .vercel-static/jouer && find . -type f ! -name version.json -print0 | L
 [ -n "$JEU" ] || JEU="$SHA"
 sed "s/__CC_BUILD__/$JEU/" .vercel-static/jouer/index.html > .vercel-static/jouer/index.tmp && mv .vercel-static/jouer/index.tmp .vercel-static/jouer/index.html
 printf '{"v":"%s","commit":"%s"}\n' "$JEU" "$SHA" > .vercel-static/jouer/version.json
+# (2026-10-14, Sacha : « publie ») LES DEUX PAGES QUE L'APP STORE EXIGE, à la racine du site : /confidentialite.html et /assistance.html
+# (dossier pages-app/ ; leur source est app-ios/fiche/ sur la branche ios-capacitor). Rien du jeu n'en dépend.
+cp pages-app/confidentialite.html pages-app/assistance.html .vercel-static/
