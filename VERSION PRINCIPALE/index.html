@@ -37640,6 +37640,46 @@ window.dbgFig=function(a,b){
   return {on:FIGV2.on,equipees:figEquipees(),mode:C?C.mode:null,ecart:C?Math.round(C.ecart()*57.3):0,w:C?C.w.map(function(x){return +x.toFixed(2);}):null,
     figures:C?C.figs.map(function(r){return r.f.id+(r.paye?' payée':r.fini?' finie':'')+' '+r.mv.map(function(m){return (m.th/6.2832).toFixed(2);}).join('/');}):null,
     herite:FX2.herite,lancees:FX2.n,payees:FX2.payees,chutes:FX2.chutes,ptsVol:FX2.pts,budget:C?+(+C.budget).toFixed(2):0,boutons:document.body.classList.contains('figVol')};};
+/* ===== LES DÉFIS SECRETS — les détections (2026-10-14, Sacha via PILOTAGE : « une dizaine de couleurs secrètes, chacune gagnée par un défi
+   caché un peu compliqué à avoir, façon Geometry Dash » ; GRAPHISME écrit les peintures `COSM.peinture` (`sec:'id'`, l'indice) et `secDonne(id)`
+   — la peinture donnée, le toast COULEUR SECRÈTE ; GAMEPLAY écrit ici QUAND on la gagne). Rien en BALADE, en BAC À SABLE, au PARC ni à
+   l'auto-école. Les seuils sont dans `SEC_K` ; l'état de la partie dans `SEC` (remis à zéro par `resetGame`). Console : `dbgSec()`.
+   1 PRISME — six figures nommées dans UN vol, posé proprement (`secPose` : `chain` ≥ 6, pose non ratée).
+   2 FANTÔME — deux minutes de course sans toucher un bord (le rase-bord, la sortie par le bord, un bump sur la tranche, la lèvre : `secBord`).
+   3 OR ROSE — une pose DIVINE à plus de 900 km/h.
+   4 ÉCLAIR — 1 500 km/h affichés.
+   5 NACRE — cinq poses PARFAIT (ou DIVINES) d'affilée (une vraie pose, > 0,7 s de vol ; une pose ordinaire remet à zéro).
+   6 ORAGE — MER DE NUAGES · ORAGE : 3 km d'affilée sans allumer la nitro.
+   7 JADE IMPÉRIAL — PICS DE JADE : 8 km roulés (ou volés) sur les pics dans une même partie.
+   8 LUNAIRE — EN ORBITE : franchir un portail qui est le 3e de la partie (au moins).
+   9 LAMPADAIRE — LA VILLE · NUIT : 25 figures dans une même partie.
+   10 CAMÉLÉON — traverser les QUATRE maps du mode classique dans une même partie (une seule vie). */
+const SEC_K={prisme:6,fantome:120,orrose:900,eclair:1500,nacre:5,orage:3000,jade:8000,lunaire:3,lampadaire:25,cameleon:4};
+const SEC={bordT:0,parf:0,sansNit:0,jadeD:0,villeFig:0,cartes:{},nCartes:0,dits:{}};
+function secOk(){return typeof secDonne==='function'&&started&&!gameOver&&!BALADE&&!SANDBOX&&!(PARK&&PARK.on)&&!TUTO.on;}
+function secGagne(id){if(SEC.dits[id]||!secOk())return;SEC.dits[id]=1;try{secDonne(id);}catch(e){console.warn('secDonne',id,e);}} // une fois par partie : secDonne ne fait rien si elle est déjà à toi
+function secReset(){SEC.bordT=0;SEC.parf=0;SEC.sansNit=0;SEC.jadeD=0;SEC.villeFig=0;SEC.cartes={};SEC.nCartes=0;SEC.dits={};}
+function secCarte(){const c=LVL&&LVL.cur;return c?{c:c.carte||null,m:c.meteo||null}:{c:null,m:null};}
+function secTick(dt,kmh){ // chaque image de course (après la vitesse affichée)
+  if(!started||gameOver||paused)return;
+  const k=secCarte(),d=kmh/3.6*dt;
+  if(k.c&&!SEC.cartes[k.c]){SEC.cartes[k.c]=1;SEC.nCartes++;if(SEC.nCartes>=SEC_K.cameleon)secGagne('cameleon');}
+  if(kmh>=SEC_K.eclair)secGagne('eclair');
+  if(mode==='drive'&&Math.abs(lat)>ROAD_HALF*.8)SEC.bordT=0;else{SEC.bordT+=dt;if(SEC.bordT>=SEC_K.fantome)secGagne('fantome');}
+  if(k.c==='nuages'&&k.m==='orage'){if(nitroOn)SEC.sansNit=0;else{SEC.sansNit+=d;if(SEC.sansNit>=SEC_K.orage)secGagne('orage');}}else SEC.sansNit=0;
+  if(k.c==='jade'){SEC.jadeD+=d;if(SEC.jadeD>=SEC_K.jade)secGagne('jadeimperial');}
+}
+function secBord(){SEC.bordT=0;} // le bord touché (sortie par le côté, bump, lèvre)
+function secPose(g,ratee,vol,kmh){ // au verdict d'une pose : g = 1,5 PARFAIT · 2 DIVIN
+  if(!ratee&&chain>=SEC_K.prisme)secGagne('prisme');
+  if(!ratee&&g>=2&&kmh>SEC_K.orrose)secGagne('orrose');
+  if(vol>.7){if(!ratee&&g>=1.5){SEC.parf++;if(SEC.parf>=SEC_K.nacre)secGagne('nacre');}else SEC.parf=0;}
+}
+function secFig(){const k=secCarte();if(k.c==='ville'&&k.m==='nuit'){SEC.villeFig++;if(SEC.villeFig>=SEC_K.lampadaire)secGagne('lampadaire');}} // une figure (addTrick)
+function secPorte(){const k=secCarte();if(k.c==='espace'&&(runStats.zones|0)>=SEC_K.lunaire)secGagne('lunaire');} // un portail franchi (après le compte)
+window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}const k=secCarte();
+  return {actif:secOk(),secDonne:typeof secDonne==='function',carte:k.c,meteo:k.m,sansBord:+SEC.bordT.toFixed(1),parfaitsDeSuite:SEC.parf,sansNitroOrage:Math.round(SEC.sansNit),
+    jade:Math.round(SEC.jadeD),villeNuitFigures:SEC.villeFig,cartes:Object.keys(SEC.cartes),portails:runStats.zones|0,gagnesCettePartie:Object.keys(SEC.dits),seuils:SEC_K};};
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -39054,7 +39094,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
       ladderI++;
     }
   }
-  chain++;
+  chain++;if(!free)secFig(); // (2026-10-14) LES DÉFIS SECRETS : LAMPADAIRE (les figures de la ville, la nuit)
   if(chain>(runStats.chainMax||0))runStats.chainMax=chain;
   if(!(id==='dauphin'&&mode==='fall'))trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false); // (dauphin v5) en vol, le dauphin ne s'ÉCRIT pas : on le voit nager
   addStyle(tier===3?16:tier===2?11:7);
@@ -39944,7 +39984,7 @@ function portailPasse(){
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
   if(SENS)try{sensHap([22,36,12],3);}catch(e){} // (2026-10-14, sensations · passages) le portail CLAQUE dans la main : un coup lourd puis son écho — le plus gros passage du jeu avait son flash, son souffle et sa secousse, mais pas une vibration (les finales et l'auto-école sortent plus haut : rien)
   const zb=denom()*120*(fever>0?2:1)*flowMult(); /* (2026-10-14, équilibrage) 24 → 120 : un portail paie 15-20 s de pièces, un vrai jalon (+3-5 % sur une bonne partie) */money+=zb;levelCash+=zb;livre('$:portail',zb);checkUpgrade();frenCash(zb,carGroup.position); // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
-  runStats.zones++;
+  runStats.zones++;secPorte(); // (2026-10-14) LES DÉFIS SECRETS : LUNAIRE
   if(SONV2&&nitroR<nitroCap()-.05)sfx('nitro.plein',{t:.45}); // (console de son) le portail refait le plein : on l'entend, après l'aspiration
   nitroR=Math.max(nitroR,nitroCap()); // le portail regonfle la nitro : chaque zone repart pied au plancher — au plein du MOTEUR (en dur à 2, il vidait un réservoir de 3,6)
   trickMsg(TR(pickL(ZONE_LINES))+' +'+fmtC(zb),true);
@@ -40023,6 +40063,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
+  if(bord)secBord(); // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
   ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
@@ -40218,7 +40259,7 @@ function tryLand(dt){
     fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
     sideCd=.35;bascOn=false; /* (1/10, soir) la tranche touchée : la bascule est finie */
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
-    bounceN++;runStats.bumps++;try{singeSaut();}catch(e){} // (2026-10-11) un rebond sur la tranche est aussi un SAUT pour la troupe de singes
+    bounceN++;runStats.bumps++;secBord(); /* (DÉFIS SECRETS) FANTÔME : la tranche touchée */try{singeSaut();}catch(e){} // (2026-10-11) un rebond sur la tranche est aussi un SAUT pour la troupe de singes
     hap(24);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
@@ -40335,6 +40376,7 @@ function tryLand(dt){
     }
     if(g>=1.5){if(SENS&&POSE_F){SCOUP.fp=g>=2?2:1;SCOUP.fh=hitT;hitT=0;}else try{poseParfaiteFx(g>=2);}catch(e){}} // (2026-09-28) coup de zoom + couronne dorée — (2026-10-14, œil · pose) sous SENS, AU CONTACT comme sa vibration : joués par touche9
     if(fallT>.7)sfaPose(!poseRatee&&g>=1); // (2026-09-28) SANS FAUTE : les poses propres d'affilée
+    secPose(g,poseRatee,fallT,Math.hypot(fallVel.x,fallVel.z)*3.6*SPD); // (2026-10-14) LES DÉFIS SECRETS : PRISME, OR ROSE, NACRE
     rollover=0; // (2026-09-29, passe qualité) plus de REPORT : il date de la mallette d'argent — les figures ne paient plus qu'en aura, et le report fabriquait une FAUSSE figure au vol suivant (verdict, voix, mission « figures » comptée sur une simple chute)
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{if(SONV2){/* (console) pose ratée : flowCasse ; cratère à la pose : il couvre la tôle */if(!poseRatee&&!(performance.now()-(CRAT.tSon||-1e9)<400))sfx('pose.lourde');}else{clank9(0,190,.12);clank9(.05,135,.09);}}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
@@ -40455,6 +40497,7 @@ function traceQuad(q,A0,A1,B0,B1,v0,v1){ // écrit le quad q : (A0,A1) = bord ar
 // trajectoire (aucun redressement), sa vitesse moins le choc. Le roulis pris en basculant repart dans le RESSORT de la carrosserie
 // (elle se repose, elle ne se redresse pas d'un coup) et la marche sous la lèvre se remonte en ~0,15 s (`levreY`).
 function levreRattrape(bI,latOff,hOff,tOff){
+  secBord(); // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — la lèvre rattrapée, c'est le bord
   tmp.set(0,1,0).applyQuaternion(carGroup.quaternion);
   const r9=Math.atan2(-tmp.dot(B[bI]),tmp.dot(Nn[bI])); // le roulis VISIBLE, dans la convention de carRoll9 (+ = toit vers −B)
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
@@ -40558,6 +40601,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
@@ -52065,6 +52109,7 @@ function loop(now){
     // `nitroOn`) — il ne manquait qu'un appelant.
     if(!REDUCED_MOTION){drawSpeedLines(speedKmh,nitroOn,dt);nfxFiles(dt);} // reduced-motion : speed lines coupées (la garde avait sauté au rétablissement du 2026-09-05) — (vague 3) + la gerbe de l'allumage
     if(speedKmh>runStats.vmax)runStats.vmax=speedKmh;
+    secTick(dt,speedKmh); // (2026-10-14) LES DÉFIS SECRETS : vitesse, bords, distances, maps traversées
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
