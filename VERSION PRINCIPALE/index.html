@@ -32407,6 +32407,7 @@ function explode(cause){
     scene.add(d);
   }
   if(SENS)try{sensBoomElan();}catch(e){} // (2026-10-14, sensations) l'épave garde une part de l'élan de la caisse (voir sensBoomElan)
+  if(SENS)try{sensBoomRoc();}catch(e){} // (2026-10-14, sensations) contre un PIC DE JADE : les pièces ricochent, la roche crache et craque
   // boule de feu dispersée, moins centrée : foyers décalés, 3 tons — (vague 2) des TRAITS, quatre fois moins : à 950 traits la gerbe
   // faisait un HÉRISSON qui mangeait la boule ; ce sont les volutes qui portent le volume
   for(let k=0;k<44;k++){
@@ -36681,6 +36682,20 @@ function sensBoomBraises(P){
     const r=.06-h,w=-.45*vn; // remise sur la dalle · la vitesse de rebond
     p[j]+=nx*r;p[j+1]+=ny*r;p[j+2]+=nz*r;
     v[j]=(v[j]-nx*vn)*.7+nx*w;v[j+1]=(v[j+1]-ny*vn)*.7+ny*w;v[j+2]=(v[j+2]-nz*vn)*.7+nz*w;}
+}
+/* (2026-10-14, sensations) CONTRE UN PIC DE JADE, ON S'ÉCRASE. La mort 'pic' était la seule sans signature : même étoile, pas de son
+   de cause. La roche ne se traverse pas : la part de vitesse de chaque pièce qui FONÇAIT dans le pic repart en arrière (un quart rendu,
+   doux : rien ne vole vers l'objectif), une gerbe d'étincelles gicle à rebours du choc, et la pierre craque (`cratere`, baissé de
+   7 dB sous l'explosion — faute d'un vrai son de roche, voir les notes). Instantané : rien n'attend, rien ne dure. */
+function sensBoomRoc(){
+  if(mortCause!=='pic')return;
+  const V=SENS_BOOM.v.copy(PT_U.uVc.value),l=V.length();if(!(l>3))return;
+  V.multiplyScalar(1/l);
+  for(const d of debris){if(!d||!d.v)continue;const a=d.v.dot(V);if(a>0)d.v.addScaledVector(V,-1.25*a);}
+  const k=Math.min(1,l/60);
+  for(let i=0;i<12;i++){const u=5+Math.random()*(6+10*k);
+    spawnP(sparkGold,boomPos.x,boomPos.y,boomPos.z,-V.x*u+(Math.random()-.5)*9,-V.y*u+2+Math.random()*5,-V.z*u+(Math.random()-.5)*9,.3+Math.random()*.3);}
+  if(!TUTO.on)sfx('cratere',{vol:-7});
 }
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
 /* ================= LA CAMÉRA DE ROUTE S'ADAPTE (vague 3, 2026-09-27) =================
