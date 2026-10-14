@@ -3,6 +3,73 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA BANQUISE — LA DESCENTE DES PICS DE GLACE (2026-10-14, session MONTAGNE — Sacha : « fais une nouvelle map en mode banquise, mais genre la route dévale une montagne au-dessus du sol, avec d'immenses pics de glace partout ; on peut faire des traces dans la poudreuse en frôlant le sol, mais on meurt si on va trop profondément, et on doit pouvoir glisser de manière ultra stylée sur les lacs gelés et les pics de glace pas trop abrupts » · « fais une map absolument magnifique bien sûr »)
+Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NIV_BANQ`, id `'banquise'`, piste `'banquise'`). Nom provisoire
+« LA BANQUISE » (le mot de Sacha) — à valider. Tout le code est dans le bloc « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (balises
+`<<<BANQUISE>>>` … `<<<FIN BANQUISE>>>`, juste après la forêt) ; les branchements, un par endroit : `buildTrack` (genBanq, buildBanq),
+`accC` (le NÉON ROSE 0xff5fd0 sur la glace), `BIOMES.banq*` (après ceux de la forêt), `SF_NIV`/`SF_METEOS` (+ NEIGE, BLIZZARD)/`SF_CARTES`,
+`lvlNuageOk` (pas de nuages du jeu), `chauffeDivers` (`banqChauffe`), `MUSIC_LIEU` (une ligne commentée : la place du morceau de Léo),
+`I18N`, le vol (`banqSolVol` juste après `jadeEauVol`, `banqAssiette` après les figures, `banqHeurt` dans la chaîne des morts →
+`explode('poudreuse'|'glace')`), la boucle (`banqTick` après foretTick), `CAUSES` + `facileSauve`, `GV_TEINTE` + la vignette pixel de `gvVignette`.
+- LA ROUTE (`genBanq`) : un SLALOM GÉANT — grandes courbes (R 260-500 m × l'échelle du moteur) qui changent de côté 78 fois sur 100, des
+  SCHUSS (une droite de 260-460 m tous les cinq virages) ; la pente (positive = on descend) ondule entre 5 et 14 %, intégrée tous les
+  10 m : AUCUN point ne remonte ; trois ou quatre CASSURES (`BANQ.cas` : 140 m à 2 % puis 220 m à 25-28 % — la caisse lancée décolle) ;
+  380 premiers mètres en douceur. Dénivelé mesuré : ~700-760 m sur 6,5-7 km.
+- LA NEIGE SOUS LA ROUTE (`banqSol`, grille de 26-36 m) : le manteau suit la route lissée (noyau ~130 m) — 10 à 45 m d'air sous la dalle
+  (`D0` en bruit lent : des combes où l'on frôle, des gorges), des flancs qui montent de 40 à 120 m au-dessus de la route à 520 m, des
+  arêtes au-delà, des bosses de poudreuse ; passe de SÛRETÉ : jamais moins de 7 m d'air sous la dalle (mesuré 7,0-9,2 m au plus juste,
+  25 m en moyenne ; 7-10 % de la route à moins de 12 m d'air, là où l'on frôle facilement).
+- LES LACS GELÉS (`banqLacs`, `bkLacR`) : au pied de chaque cassure (on y retombe après le grand saut), puis tous les 430-850 m, sous la route
+  ou à côté ; un contour en harmoniques, une terrasse aplatie dans la grille, une rive de 40 m ; 8-11 lacs par piste. Glace NOIRE où l'on voit
+  dedans : deux réseaux de craquelures (Voronoï, l'un en surface, l'autre en profondeur décalé par la PARALLAXE), des bulles figées à trois
+  profondeurs, des congères poussées sur la rive, le ciel qui s'y reflète, le chemin du soleil, l'éclat des phares, les aurores la nuit.
+- LES PICS DE GLACE (`bkPrim`, `bkGrappe`) : des PYRAMIDES dont chaque facette est un vrai plan — la hauteur d'un cristal = le MIN des plans
+  de ses facettes (le dessus d'un polyèdre convexe), une grappe = le MAX de ses cristaux : la physique lit exactement ce que l'on voit.
+  Quatre familles : (0) les PICS OÙ L'ON GLISSE au bord de la route (26-98 m, pente ≤ 1 : 45° au plus) et les SÉRACS semés sur la neige,
+  quelques-uns sous la route (`libre` : jamais à moins de 5 m sous la dalle, ses bords et le couloir de la caméra, contrôlé tous les 3 m) ;
+  (1) les AIGUILLES de 110 à 420 m (trop raides : on y meurt) ; (2) les GÉANTS de 0,4 à 1,3 km de haut, de 1,1 à 3,6 km de la route, et
+  l'amphithéâtre dans l'axe de la descente — leur propre brume plafonnée (`LOIN`, `uHazeK`/`uHazeM`) : ils gardent leur silhouette
+  jusqu'au bout du monde ; (3) les STALACTITES sous la dalle (glaçons des deux bords, lustres sous le milieu). Matière `BK_PIC_FS` :
+  glace bleue profonde en bas, turquoise vers le haut, des FRACTURES et des bulles qui glissent avec le regard (trois nappes à des
+  profondeurs différentes), le ciel par Fresnel, une facette entière qui s'allume quand le soleil s'y aligne, la lumière qui traverse à
+  contre-jour, les ARÊTES qui accrochent la lumière (barycentriques + fwidth), la neige sur les faces douces des aiguilles et des géants,
+  le givre au pied, l'ALPENGLOW (le haut des pics qui rougit matin et soir).
+- LA POUDREUSE SE JOUE (`banqSolVol`, `BK_PH`) : dedans, elle PORTE (×2,3 g sur 1,4 m), elle TASSE (la vitesse qui entre est mangée en
+  ~1/16 s), elle freine d'autant plus qu'on s'enfonce, et vite (> 70) la caisse PLANE dessus. Au ras (le dessous dans le premier mètre), une
+  TRACE (`BK_TR` : un anneau de 1 100 quads, tranchée bleue d'ombre et deux bourrelets qui scintillent, 70 s de vie) et une GERBE (la queue de
+  coq, `BANQ.fx.poudre`) ; à quelques mètres, le souffle lève déjà un voile. Au-delà de `BK_PH.prof` = 2,4 m : 'poudreuse' (« ENSEVELI DANS LA
+  POUDREUSE »). La neige et la glace RECHARGENT la jauge d'air. MESURÉ (banc Node `banq-node.cjs`, 60 i/s) : tomber du bord (15 m) à 60-140 →
+  on survit (1,0-1,2 m d'enfoncement) et l'on trace 2,5 s ; piquer fort (90, 0,9) → 2 m, vivant ; piquer très fort (120, 1,5) → mort ;
+  frôler à 3 m puis cabrer → +40 m en 1,5 s : on regagne la route.
+- LA GLACE SE GLISSE (`banqSolVol`, `banqAssiette`) : lacs et flancs de pics — au contact, une facette trop raide (> 60°, ny < ,5) ou un choc
+  de face (vitesse normale > 66 et angle > ~53°) : 'glace' (« FRACASSÉ SUR LA GLACE ») ; un gros choc à plat sur un lac : la caisse REBONDIT
+  (le galet) ; sinon elle GLISSE : la vitesse qui entre est retirée, la caisse est posée sur la glace, la friction est presque nulle (×e^−0,03/s),
+  la pente ACCÉLÈRE (sur un pic, on dévale le flanc), le volant ne tourne que 42 % de la trajectoire — le reste fait DÉRIVER la caisse
+  (`BANQ.drift`, jusqu'à 60°, en travers comme un snowboard qui carve), des éclats de givre jaillissent, deux rayures de patins restent sur
+  la glace. Une arête quittée vers le haut : TREMPLIN DE GLACE. MESURÉ : posée à plat à 85 → 2,7 s de glisse (85 → 79) ; tombée de 25 m à 70
+  → glisse ; piquée de 60 m → morte ; un pic touché par le sommet → elle dévale le flanc (47 → 54).
+- LES FIGURES (aura) : POUDREUSE !, TRACE PARFAITE ! (1,2 s de trace), GLISSE !/SUR LE PIC !, PATINOIRE ! (1,4 s de glisse), DÉRAPAGE GLACÉ !
+  (dérive > 0,6 rad pendant 0,8 s), TREMPLIN DE GLACE !. Une fois par vol chacune (`BANQ.figs`, remis à zéro par `flightId`).
+- LA MONTAGNE TE RAMÈNE (`banqRamene`) : arrêté au contact (sous 18) plus de 2,6 s sans nitro → sur ta route, la chaîne seule est perdue.
+- LES SIX TEMPS : `BIOMES.banqMatin/banqMidi/banqSoir/banqNuit/banqNeige/banqBlizzard` (charte : jour:1, couleurs linéaires, sat/con sous
+  les plafonds ; le bleu profond, les OMBRES BLEUES, la neige et le blizzard tirés vers le LAVANDE — jamais le gris délavé) et `BK_MET` (la
+  lumière de la banquise : hauteur du soleil, étincelles, poussière de diamant, neige qui tombe, vent, aurores, alpenglow, teinte de la
+  glace, brume de vallée, phares). NUIT : les AURORES BORÉALES (`BANQ.fx.aur` : quatre rideaux à 6 km qui suivent la caméra, des rais qui
+  coulent, vert en bas, magenta en haut) qui se reflètent dans la glace et teintent la neige ; NEIGE et BLIZZARD : `BANQ.fx.flo` (des points
+  dans une boîte qui suit la caméra, chacun à sa place dans le monde) ; MATIN/MIDI : la poussière de diamant (`BANQ.fx.dd`) qui scintille.
+- LE SON (`atelier-son/recettes.js`, bloc `<<<BANQUISE>>>`, `sons-banque.js?v=19`) : `banq.glisse` (boucle, le chuintement des patins),
+  `banq.poudre` (boucle, le souffle de la neige), `banq.plouf`, `banq.craque` (le CLAC puis le « PIOU » dispersif des lacs gelés),
+  `banq.chant` (la nuit et le soir, les lacs qui chantent au loin), `banq.vent` (boucle d'ambiance). Les boucles suivent l'élan (`bkBoucle` :
+  gain et vitesse). À juger à l'oreille par Sacha ou Léo dans `sons.html`.
+- PERF : 0 lumière ajoutée, matières chauffées au menu (`banqChauffe`), morceaux de neige coupés à la brume, pics en morceaux de 600 m (le tri
+  par champ de three), géants en morceaux de 1,5 km ; budgets `PAL.B.banq*`. MESURÉ (navigateur, banc muet, palier récent) : construction
+  156-179 ms (dont la neige 114-131 ms), neige 140-153 k triangles en ~60 morceaux, pics et stalactites 12-14 k, géants 2,2 k ; palier ancien
+  (Node) 60-115 ms, neige 42 k. 0 erreur JS sur les six temps ; en jeu : la poudreuse porte (0,4-0,8 m), la glisse sur un lac (85 → 80 en 2 s).
+- Console : `dbgBanq()` (comptes, temps), `dbgBanq('meteo','nuit')`, `dbgBanq('vue',{p,c,fov})`, `dbgBanq('pic'|'lac',{d,h})` (photos),
+  `dbgBanq('poudre'|'glace'|'pic9',{h,v,pq})` (la caisse lâchée au-dessus de la poudreuse, d'un lac, d'un pic), `dbgBanq('etat')`,
+  `dbgBanq('phys',{prof:…})` (régler la physique en direct). Lancer : `?carte=banquise&meteo=nuit` puis JOUER, ou `dbgClassique('banquise','soir');dbgSaut()`.
+- À trancher par Sacha ou Léo : le nom ; la musique (Léo, la ligne `banquise:` de MUSIC_LIEU) ; l'écoute des six sons (`sons.html`) ;
+  l'étalonnage final des six temps (GRAPHISME) ; le dosage de la poudreuse (profondeur qui tue, freinage).
 ## LE RETOUR DU JOUR + LE CADEAU (2026-10-14, Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road » · « la série de jours doit être lisible : jour 1, 2, 3…, une récompense qui monte, remise à zéro si on saute un jour »)
 Une raison de revenir demain, en UN barème avec le relèvement du début (ECOD). Code : le bloc `JOUR` / `CADO` (juste avant `const SAVE=`), qui finit sur `/* fin LE RETOUR DU JOUR ET LE CADEAU */`.
 Preuves : `node outils/jour-test.cjs` (158 vérifications, aucun navigateur : il exécute le VRAI bloc extrait d'index.html avec une horloge et une sauvegarde simulées) et `node outils/jour-modele.cjs` (le modèle du barème, qui LIT ses constantes dans le jeu).
