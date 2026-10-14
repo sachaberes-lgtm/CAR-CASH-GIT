@@ -39389,6 +39389,19 @@ function poseParfaiteFx(divin){
 function sensPose(imp,psi0,verdict){
   const k=Math.min(1,Math.max(0,imp||0)/10);
   sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),.35+1.5*k,0);
+  /* LA MAIN : la vibration de pose vit dans le VERDICT (PARFAIT 15 · ordinaire 14 · LOURD 45) — qui ne juge que les vrais vols (> 0,7 s ou
+     une chaîne). Une petite retombée (trou enjambé, crête, sortie courte) touchait le bitume sans que la main le sache. Celle-là, et elle
+     seule, reçoit son coup au contact, dosé par le choc : plume · net · lourd. */
+  if(!verdict)sensHap(imp>=10?34:imp>=4.5?16:9,imp>=10?3:imp>=4.5?2:1);
+}
+/* (2026-10-14, sensations · pose) LE BUMP RACLE. Les étincelles du rebond naissaient au CENTRE de la caisse, en boule, et restaient sur
+   place. Celles-ci partent du FLANC qui a touché (la tranche, une demi-largeur vers la route), giclent vers le vide et filent AVEC la
+   caisse le long de la dalle (elles héritent de sa vitesse d'avance) : on lit de quel côté on a cogné. 4 à 10 selon la violence. */
+function sensBumpFlanc(b,t,n,sg,impB){
+  const k=Math.min(1,Math.max(0,impB||0)/20),nb=4+Math.round(6*k),w=CARS[level].w*.5,vt=fallVel.dot(t)*SPD;
+  const px=fallPos.x-b.x*sg*w,py=fallPos.y-b.y*sg*w,pz=fallPos.z-b.z*sg*w;
+  for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
+    spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
