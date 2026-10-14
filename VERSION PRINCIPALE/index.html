@@ -21248,12 +21248,47 @@ const DOGE_SDF=(()=>{
   const capsule=(x,y,z,a,b,r)=>{const bax=b[0]-a[0],bay=b[1]-a[1],baz=b[2]-a[2],pax=x-a[0],pay=y-a[1],paz=z-a[2],
     h=Math.max(0,Math.min(1,(pax*bax+pay*bay+paz*baz)/(bax*bax+bay*bay+baz*baz))),dx=pax-bax*h,dy=pay-bay*h,dz=paz-baz*h;return Math.sqrt(dx*dx+dy*dy+dz*dz)-r;};
   return {sm,sM,ell,rcone,capsule};})();
-function dogeOreille(){ // (2026-10-14) l'OREILLE du DOGE (posée sur le toit) : un cône aplati, creusé devant, l'intérieur rose
-  const {rcone,sM}=DOGE_SDF,K=2.4;
-  const pleine=(x,y,z)=>rcone(x,y,z*K,0,0,0,0,.40,0,.15,.014)/K,creux=(x,y,z)=>rcone(x,y,(z-.03)*K,0,.05,0,0,.32,0,.095,.01)/K;
-  const F=(x,y,z)=>sM(pleine(x,y,z),-creux(x,y,z),.012);
-  const coul=(x,y,z,o)=>{const q=new THREE.Color(z>.0&&creux(x,y,z)<.02?0xf0b0a2:(y>.30?0xb8702e:0xd99545));o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
-  return dogeNets(F,-.2,-.06,-.12,.011,37,46,23,coul);}
+function dogeTete(){
+  const {sm,sM,ell,rcone,capsule}=DOGE_SDF;
+  const EYE=[[.185,.075,.312],[-.185,.075,.312]],RE=.086;
+  // les oreilles : un cône aplati (épaisseur ÷2,4), creusé devant
+  const oreille=(x,y,z,s,creux)=>{const zc=creux?.005:-.05,zz=zc+(z-zc)*2.4;
+    return creux?rcone(x,y,zz,s*.255,.27,zc,s*.335,.60,zc,.10,.012)/2:rcone(x,y,zz,s*.255,.24,zc,s*.36,.67,zc,.175,.016)/2;};
+  const museau=(x,y,z)=>rcone(x,y,z,0,-.10,.20,0,-.15,.50,.22,.12);
+  const base=(x,y,z)=>{const ax=Math.abs(x),s=x<0?-1:1;
+    let f=ell(x,y,z,0,.06,0,.47,.40,.40);                                         // le crâne
+    f=sm(f,ell(ax,y,z,.25,-.15,.17,.25,.21,.23),.10);                              // les joues bombées
+    f=sm(f,museau(x,y,z),.10);                                                     // le museau effilé
+    f=sm(f,ell(x,y,z,0,-.29,.18,.22,.13,.20),.08);                                 // le menton
+    f=sm(f,oreille(x,y,z,s,false),.06);f=sM(f,-oreille(x,y,z,s,true),.02);         // l'oreille, et son creux
+    const e=EYE[x<0?1:0],de=Math.hypot(x-e[0],y-e[1],z-e[2]);
+    f=sM(f,-(de-RE-.012),.02);                                                     // l'orbite
+    f=sm(f,Math.max(de-RE-.016,(e[1]+.032-.22*(ax-.185))-y),.012);                 // la PAUPIÈRE : le haut de l'œil couvert (le regard blasé)
+    f=sm(f,ell(x,y,z,0,-.072,.585,.072,.05,.045),.02);                             // la truffe
+    return f;};
+  // la BOUCHE EN COIN : la ligne est posée sur la surface (lancer de rayon), puis creusée
+  const trace=(x,y)=>{let z=1;for(let i=0;i<220;i++){const d=base(x,y,z);if(d<.0015)return z;z-=Math.max(d*.6,.002);if(z<-.2)break;}return null;};
+  const LIG=[[0,-.118],[0,-.19],[-.125,-.215],[-.06,-.222],[0,-.21],[.07,-.20],[.135,-.155]],PTS=LIG.map(([x,y])=>{const z=trace(x,y);return z==null?null:[x,y,z+.004];});
+  const SEG=[[0,1],[2,3],[3,4],[4,5],[5,6]].filter(([a,b])=>PTS[a]&&PTS[b]).map(([a,b])=>[PTS[a],PTS[b]]);
+  const bouche=(x,y,z)=>{let d=1e9;for(const s of SEG)d=Math.min(d,capsule(x,y,z,s[0],s[1],0));return d;};
+  const F=(x,y,z)=>sM(base(x,y,z),-(bouche(x,y,z)-.011),.008);
+  const H=(c,o)=>{const q=new THREE.Color(c);o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
+  const coul=(x,y,z,o)=>{const ax=Math.abs(x),s=x<0?-1:1,e=EYE[x<0?1:0],de=Math.hypot(x-e[0],y-e[1],z-e[2]);
+    if(ell(x,y,z,0,-.072,.585,.072,.05,.045)<.012)return H(0x121014,o);              // la truffe
+    if(bouche(x,y,z)<.024)return H(0x3a1f14,o);                                       // la bouche
+    if(de<RE+.03&&y<e[1]+.03)return H(0x2a1810,o);                                    // le tour des yeux, sombre (le trait du shiba)
+    if(oreille(x,y,z,s,true)<.03&&z>-.06&&y>.30)return H(0xf0b0a2,o);                 // le dedans des oreilles
+    const mu=museau(x,y,z)<.03,arete=ax<.075&&y>-.11&&z>.22;
+    if((mu&&!arete)||y<-.14||(ell(ax,y,z,.25,-.15,.17,.25,.21,.23)<.03&&y<.0)||(ax>.08&&ax<.34&&y<e[1]-.06&&y>e[1]-.2&&z>.18))return H(0xf6e6c6,o); // le MASQUE crème
+    if(y>.30&&ax<.20&&z>-.1)return H(0xb8702e,o);                                     // le front, plus sombre
+    return H(0xd99545,o);};
+  // les couleurs : la moyenne de 7 prises autour du point — les bords des taches se fondent au lieu de faire des dents de scie
+  const c1=[0,0,0],coulD=(x,y,z,o)=>{o[0]=o[1]=o[2]=0;const e=.009;for(const d of [[0,0,0],[e,0,0],[-e,0,0],[0,e,0],[0,-e,0],[0,0,e],[0,0,-e]]){coul(x+d[0],y+d[1],z+d[2],c1);o[0]+=c1[0]/7;o[1]+=c1[1]/7;o[2]+=c1[2]/7;}return o;};
+  const h=.016,X0=-.62,Y0=-.47,Z0=-.47,nx=78,ny=78,nz=74,G=dogeNets(F,X0,Y0,Z0,h,nx,ny,nz,coulD);
+  G.yeux=EYE.map(e=>[e[0],e[1],e[2]+.004,RE]);
+  G.sourcils=EYE.map(e=>[e[0]*.92,e[1]+.13,(trace(e[0]*.92,e[1]+.13)||.33)+.006]);
+  G.bouche=[0,-.215,(trace(0,-.215)||.55)-.01];
+  return G;}
 function dogeQueue(){
   const {capsule}=DOGE_SDF,S=[],RQ=.25;
   for(let n=0;n<=36;n++){const u=n/36,ph=(-35+335*u)*Math.PI/180,r=RQ-.14*u;S.push([.05*u,r*Math.sin(ph),-r*Math.cos(ph),.15-.06*u,u]);} // dodue : le creux se referme
@@ -26019,7 +26054,7 @@ Object.assign(SHAPES,{
     const P=lpKit(pal),bosse=d=>Math.max(0,1-d*d),ss=(a,b,v)=>{const t=U.cl((v-a)/(b-a),0,1);return t*t*(3-2*t);};
     const XW=z=>U.lin([[ZT,.95],[-2.3,1.0],[2.2,1.0],[ZN,.93]],z)+.075*bosse((z-ZF)/.66)+.10*bosse((z-ZR)/.70),   // les ÉLARGISSEURS
           YB=z=>U.lin([[ZT,.98],[-2.3,1.04],[-1.6,1.03],[0,1.0],[1.6,.99],[2.25,.95],[ZN,.90]],z)+.035*bosse((z-ZR)/.9),                   // la ligne d'épaule
-          T=z=>U.lin([[ZT,1.03],[-2.36,1.10],[-2.28,1.08],[-1.62,1.07],[-1.48,1.12],[-1.0,1.36],[-.88,1.385],[-.15,1.395],[-.02,1.375],
+          T=z=>U.lin([[ZT,1.03],[-2.36,1.10],[-2.28,1.08],[-1.62,1.07],[-1.48,1.12],[-1.0,1.40],[-.88,1.44],[-.15,1.47],[-.02,1.46],
                       [.62,1.05],[.78,1.04],[1.6,1.03],[2.25,.98],[ZN,.93]],z),                                        // le dessus au milieu
           AR=[[0,2*R+.05],[R*.62,2*R+.04],[R*.96,R*1.32],[R+.14,.26]];
     const zs=[ZT,-2.36,-2.28,-2.1,-1.9,-1.62,-1.55,-1.48,-1.3,-1.15,-1.0,-.88,-.6,-.36,-.24,-.15,-.02,.2,.42,.62,.78,1.0,1.2,1.85,2.05,2.25,ZN];
@@ -26032,18 +26067,19 @@ Object.assign(SHAPES,{
               [Math.min(.34,xr-.02),t+.008],[.12,t+.013],[0,t+.016]];};
     const VERRE=z=>(z>-.02&&z<.62)||(z<-.88&&z>-1.48);                                    // pare-brise, lunette
     P.loft(zs,S,(j,z)=>{
-      if(j<0)return j===-1?'C':'T';                                                          // le bouclier crème : le MUSEAU
+      if(j<0)return 'T';
       if(j===0)return 'k';
       if(j<=2)return 'C';                                                                    // le bas de caisse crème (l'urajiro)
       if(j===4)return (z>ZR+.62&&z<ZF-.6)?'S':'T';                                           // le filet brun du flanc
       if(j<=7)return 'T';
       const cab=z>-1.42&&z<.56,pil=z>-.4&&z<-.28;
       if(j===8)return (cab&&!pil&&z<.5)?'G':(cab?'k':'T');                                   // les vitres de côté, montants noirs
-      if(VERRE(z))return 'G';
+      if(VERRE(z))return z>-.02&&z<.62?'T':'G';                                             // pas de pare-brise : la TÊTE en tient lieu, le pelage l'entoure ; la lunette reste
       if(j===10)return 'S';                                                                  // les deux BANDES brunes (la selle du shiba)
       return 'T';});
     // LA FACE : la calandre noire de toute la largeur, deux phares ronds à anneau de chaque côté, le menton et sa lame
-        P.sym(sd=>{for(const x of [.80]){P.cyl('k',.085,.03,18,sd*x,.74,ZN+.012,'z');P.cyl('W',.076,.034,18,sd*x,.74,ZN+.014,'z');
+    P.box('k',1.74,.26,.03,0,.74,ZN+.002);P.box('k',1.82,.03,.04,0,.88,ZN+.004);P.box('k',1.82,.03,.04,0,.60,ZN+.004);
+        P.sym(sd=>{for(const x of [.86,.70]){P.cyl('k',.085,.03,18,sd*x,.74,ZN+.012,'z');P.cyl('W',.076,.034,18,sd*x,.74,ZN+.014,'z');
       P.cyl('G',.058,.038,18,sd*x,.74,ZN+.016,'z');P.cyl('W',.03,.042,12,sd*x,.74,ZN+.018,'z');}});                 // l'anneau de lumière, le phare au milieu
     P.box('k',1.84,.10,.10,0,.42,ZN-.02);P.box('k',1.90,.025,.30,0,.30,ZN-.06);              // le pare-chocs, la lame
     P.sym(sd=>P.box('k',.30,.08,.04,sd*.66,.50,ZN+.002));                                   // les entrées d'air basses
@@ -26064,62 +26100,31 @@ Object.assign(SHAPES,{
     P.sym(sd=>{P.box('o',.26,.11,.10,sd*.48,.34,ZT-.02);P.box('k',.21,.07,.11,sd*.48,.34,ZT-.022);});
     P.box('k',1.5,.02,4.4,0,.262,0);
     const gs=P.done();for(const k in gs)mesh(gs[k],g);
-    // ---- 2. LE VISAGE, À LA FAÇON DES VOITURES DU DESSIN ANIMÉ (2026-10-14, Léo : « la tête au niveau de la vitre, bien intégrée, comme
-    //      Cars ») : plus de tête qui sort de la calandre — la VOITURE est le chien. Les YEUX remplissent le pare-brise (un panneau posé
-    //      dessus, dessiné par son programme : le regard blasé de Kabosu, paupières lourdes, iris qui file de côté, les deux points crème
-    //      des sourcils, les joues crème sous les yeux, le front plus sombre) ; la TRUFFE noire est posée sur le bord du capot ; le SOURIRE
-    //      EN COIN est dessiné sur le bouclier crème (le museau) ; la LANGUE sort à la nitro ; les OREILLES pointent sur le toit.
-    const FACE_VS='varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      FACE_FS='uniform float uLook,uLid,uBrow,uT;varying vec2 vUv;'+
-      'float dedans(float d,float w){return 1.-smoothstep(-w,w,d);}'+
-      'void main(){vec2 p=vec2(vUv.x*.58,vUv.y*.72);'+
-      'vec3 FAU=vec3(.851,.584,.271),CRE=vec3(.965,.902,.776),SOM=vec3(.62,.36,.15),RIM=vec3(.15,.085,.055),IRI=vec3(.45,.25,.10),PUP=vec3(.035,.025,.025);'+
-      'vec3 c=mix(FAU,SOM,smoothstep(.40,.72,p.y)*(1.-smoothstep(.0,.30,abs(p.x)))*.7);'+                                 /* le front, plus sombre au milieu */
-      'for(int k=0;k<2;k++){float s=k==0?-1.:1.;'+
-      ' vec2 q=(p-vec2(s*.33,.04))/vec2(.30,.15);c=mix(c,CRE,dedans(length(q)-1.,.03));'+                                   /* les JOUES crème */
-      ' vec2 b=(p-vec2(s*.21,.60+uBrow*.04))/vec2(.07,.038);c=mix(c,CRE,dedans(length(b)-1.,.06));'+                       /* les SOURCILS : deux points crème */
-      ' vec2 d=p-vec2(s*.275,.35);d.y-=s*d.x*.14;float ax=d.x/.235,ay=d.y/(.165*(1.-.28*ax*ax));float E=length(vec2(ax,ay));'+   /* l'ŒIL en amande */
-      ' c=mix(c,RIM,dedans(E-1.14,.025));'+                                                                                     /* le trait sombre du shiba */
-      ' if(E<1.05){vec3 ey=vec3(.98,.97,.94);vec2 ic=vec2(s*.275+uLook*.11,.335);float r=length(p-ic);'+
-      '  ey=mix(ey,IRI*(.75+.45*smoothstep(.105,.03,r)),dedans(r-.105,.005));ey=mix(ey,PUP,dedans(r-.055,.005));'+              /* l'iris brun, la pupille */
-      '  ey=mix(ey,vec3(1.),dedans(length(p-ic-vec2(-.034,.034))-.021,.004));'+                                                /* l'éclat */
-      '  float yL=.35+.165-uLid*.33+s*d.x*.05;ey=mix(ey,FAU,smoothstep(yL-.004,yL+.004,p.y));'+                              /* la PAUPIÈRE lourde (le regard blasé) */
-      '  ey=mix(ey,RIM,dedans(abs(p.y-yL)-.011,.004));c=mix(c,ey,dedans(E-1.,.03));}}'+
-      'float bx=1.-abs(vUv.x),by=min(vUv.y,1.-vUv.y);c=mix(RIM,c,smoothstep(.018,.03,min(bx*.58,by*.72)));'+                  /* le cadre du pare-brise */
-      'c+=vec3(1.)*.10*dedans(abs(p.x*.55+p.y-.62)-.035,.02)*(1.-smoothstep(.2,.58,abs(p.x)));'+                              /* un reflet de vitre, discret */
-      'gl_FragColor=vec4(c,1.);}';
-    const UF={uLook:{value:1},uLid:{value:.36},uBrow:{value:0},uT:{value:0}};
-    const faceM=new THREE.ShaderMaterial({uniforms:UF,vertexShader:FACE_VS,fragmentShader:FACE_FS,side:THREE.DoubleSide});faceM.userData.g='doge';
-    {const NU=28,NV=14,pos=[],uv=[],ix=[];
-     for(let j=0;j<=NV;j++){const v=j/NV,z=.60-.60*v,q=S(z),poly=[q[12],q[11],q[10],q[9]],xr=q[9][0];
-       for(let i=0;i<=NU;i++){const u=-1+2*i/NU,x=Math.abs(u)*xr*.985;let y=poly[poly.length-1][1];
-         for(let m=1;m<poly.length;m++){const a=poly[m-1],b=poly[m];if(x<=b[0]){const tt=(x-a[0])/((b[0]-a[0])||1);y=a[1]+(b[1]-a[1])*tt;break;}}
-         pos.push(u<0?-x:x,y+.012,z);uv.push(u,v);}}
-     for(let j=0;j<NV;j++)for(let i=0;i<NU;i++){const a=j*(NU+1)+i,b=a+1,c=a+NU+1,d=c+1;ix.push(a,b,d,a,d,c);}
-     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
-     geo.setIndex(ix);geo.computeVertexNormals();const m=new THREE.Mesh(geo,faceM);m.userData.brut=1;g.add(m);}
-    const coulGeo=(geo,col)=>{const n=geo.attributes.position.count,c=new Float32Array(n*3),q=new THREE.Color(col);for(let i=0;i<n;i++)c.set([q.r,q.g,q.b],i*3);
-      geo.setAttribute('color',new THREE.BufferAttribute(c,3));return geo;};
-    // la TRUFFE sur le bord du capot, et son éclat
-    {const tr=mesh(coulGeo(new THREE.SphereGeometry(1,20,14),0x121014),g);tr.scale.set(.19,.11,.12);tr.position.set(0,.90,ZN+.01);
-     const ec=mesh(coulGeo(new THREE.SphereGeometry(1,10,8),0xffffff),g);ec.scale.set(.05,.022,.02);ec.position.set(-.06,.975,ZN+.075);}
-    // le SOURIRE EN COIN sur le museau (le bouclier crème) : il tombe sous la truffe et remonte d'un seul côté
-    {const M=lpKit(pal),tige=(a,b,r)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy),cg=new THREE.CylinderGeometry(r,r,l,8,1);
-       cg.applyMatrix4(new THREE.Matrix4().makeRotationZ(-Math.atan2(dx,dy)));cg.translate((a[0]+b[0])/2,(a[1]+b[1])/2,ZN+.014);M.put('D',cg,0,0,0);
-       const bo=new THREE.SphereGeometry(r,8,6);bo.translate(b[0],b[1],ZN+.014);M.put('D',bo,0,0,0);};
-     const L1=[[0,.81],[0,.72],[-.12,.655],[-.26,.645],[-.38,.70]],L2=[[0,.72],[.12,.675],[.24,.685]];
-     for(const L of [L1,L2])for(let i=1;i<L.length;i++)tige(L[i-1],L[i],.022);
-     const gm=M.done();for(const k in gm)mesh(gm[k],g);}
-    // la LANGUE (à la nitro), qui pend du coin de la bouche
-    const langue=new THREE.Group();langue.position.set(-.28,.645,ZN+.03);g.add(langue);
-    {const m=mesh(coulGeo(new THREE.SphereGeometry(1,16,12),0xff7b97),langue);m.scale.set(.085,.13,.03);m.position.set(0,-.11,0);}
+    // ---- 2. LA TÊTE EN 3D, AU NIVEAU DU PARE-BRISE (2026-10-14, Léo : « la tête au niveau de la vitre, bien intégrée, comme Cars » puis « non,
+    //      ne perds pas la 3D ») : la tête SCULPTÉE (`dogeTete`) prend la place du pare-brise, comme les yeux des voitures du dessin animé —
+    //      les yeux à hauteur de vitre, le crâne qui forme l'avant du pavillon (les oreilles au-dessus du toit), le museau couché sur le
+    //      capot, la truffe à la base du pare-brise ; le bas de la tête est DANS la caisse (même fauve : elle en sort, elle n'est pas posée).
+    if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTete();
+    const DT=SHAPES.doge._tete,tete=new THREE.Group();tete.position.set(0,1.23,.56);tete.scale.setScalar(1.10);g.add(tete);
+    const pivot=new THREE.Group();tete.add(pivot);
+    {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(DT.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(DT.N,3));
+     geo.setAttribute('color',new THREE.BufferAttribute(DT.C,3));geo.setIndex(new THREE.BufferAttribute(DT.I,1));geo.computeBoundingSphere();mesh(geo,pivot);}
+    // les YEUX : blanc, iris brun, pupille, éclat — la sphère TOURNE (le regard)
+    const oeilGeo=(()=>{const s=new THREE.SphereGeometry(1,28,20),p=s.attributes.position,c=new Float32Array(p.count*3);
+      for(let i=0;i<p.count;i++){const z=p.getZ(i),x=p.getX(i),y=p.getY(i);let col=[1,1,1];
+        if(z>.70)col=[.42,.24,.10];if(z>.86)col=[.07,.05,.05];if(z>.86&&x<-.12&&y>.12)col=[1,1,1];c.set(col,i*3);}
+      s.setAttribute('color',new THREE.BufferAttribute(c,3));return s;})();
+    const YEUX=DT.yeux.map(e=>{const o=new THREE.Group();o.position.set(e[0],e[1],e[2]);pivot.add(o);const m=mesh(oeilGeo,o);m.scale.setScalar(e[3]);return o;});
+    // les SOURCILS : les deux points crème
+    const sGeo=new THREE.SphereGeometry(1,16,10),sc=new Float32Array(sGeo.attributes.position.count*3);for(let i=0;i<sc.length;i+=3){sc[i]=.97;sc[i+1]=.91;sc[i+2]=.78;}
+    sGeo.setAttribute('color',new THREE.BufferAttribute(sc,3));
+    const SOUR=DT.sourcils.map(e=>{const m=mesh(sGeo,pivot);m.position.set(e[0],e[1],e[2]);m.scale.set(.078,.044,.034);m.rotation.z=e[0]>0?-.25:.25;m.userData.y0=e[1];return m;});
+    // la LANGUE (cachée hors de la nitro)
+    const lGeo=new THREE.SphereGeometry(1,16,12),lc=new Float32Array(lGeo.attributes.position.count*3);
+    for(let i=0;i<lc.length;i+=3){lc[i]=1;lc[i+1]=.48;lc[i+2]=.6;}lGeo.setAttribute('color',new THREE.BufferAttribute(lc,3));
+    const langue=new THREE.Group();langue.position.set(DT.bouche[0],DT.bouche[1],DT.bouche[2]);pivot.add(langue);
+    {const m=mesh(lGeo,langue);m.scale.set(.06,.085,.024);m.position.set(0,-.07,.012);}
     langue.scale.setScalar(.001);
-    // les OREILLES, sur le toit, au-dessus du pare-brise
-    if(!SHAPES.doge._oreille)SHAPES.doge._oreille=dogeOreille();
-    const DO=SHAPES.doge._oreille,ORE=[];
-    for(const sd of [1,-1]){const o=new THREE.Group();o.position.set(sd*.42,T(-.06)-.05,-.12);o.rotation.set(-.12,sd*.30,-sd*.22);o.scale.setScalar(1.3);g.add(o);
-      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(DO.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(DO.N,3));
-      geo.setAttribute('color',new THREE.BufferAttribute(DO.C,3));geo.setIndex(new THREE.BufferAttribute(DO.I,1));geo.computeBoundingSphere();mesh(geo,o);ORE.push(o);}
     // ---- 3. LA QUEUE en tire-bouchon : l'aileron ----
     if(!SHAPES.doge._queue)SHAPES.doge._queue=dogeQueue();
     const DQ=SHAPES.doge._queue,queue=new THREE.Group();queue.position.set(0,1.20,-1.96);queue.rotation.z=.18;g.add(queue);
@@ -26127,34 +26132,34 @@ Object.assign(SHAPES,{
      geo.setAttribute('color',new THREE.BufferAttribute(DQ.C,3));geo.setIndex(new THREE.BufferAttribute(DQ.I,1));geo.computeBoundingSphere();mesh(geo,queue);}
     // ---- 4. LA VIE ----
     let rs=0x0d06e5;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
-    let t=0,F=0,sV=0,pPrev=null,regard=1,gz=1,coupT=2+rnd()*3,coupD=0,sourT=2,sourD=0,sourD0=0,cligT=3,cligD=0,oreT=3,oreD=0,oreS=0;
+    let t=0,F=0,sV=0,pPrev=null,regard=1,gz=1,coupT=2+rnd()*3,coupD=0,sourT=2,sourD=0,sourD0=0,sourY=0,oreT=3,oreD=0;
     const V9=new THREE.Vector3();
-    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UF.uT.value=t;
+    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;
       const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;F+=(fort-F)*Math.min(1,dt*6);
       const e=g.matrixWorld.elements;
       if(pPrev){const d=Math.hypot(e[12]-pPrev[0],e[13]-pPrev[1],e[14]-pPrev[2])/Math.max(dt,1e-3);sV+=(Math.min(1,d/40)-sV)*Math.min(1,dt*3);}else pPrev=[0,0,0];
       pPrev[0]=e[12];pPrev[1]=e[13];pPrev[2]=e[14];
       // le REGARD : du côté de la caméra, et un coup d'œil de l'autre côté par moments (l'œil saute, il ne glisse pas)
-      try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);g.worldToLocal(V9);if(V9.x>.4)regard=1;else if(V9.x<-.4)regard=-1;}}catch(_){}
+      try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);pivot.worldToLocal(V9);if(V9.x>.4)regard=1;else if(V9.x<-.4)regard=-1;}}catch(_){}
       coupT-=dt;if(coupT<=0){coupD=.6;coupT=3+rnd()*4;}const vise=coupD>0?-regard:regard;if(coupD>0)coupD-=dt;
-      gz+=(vise-gz)*Math.min(1,dt*22);UF.uLook.value=gz;
-      // les PAUPIÈRES : lourdes (blasé), grandes ouvertes à la nitro, un clignement de temps en temps
-      cligT-=dt;if(cligT<=0){cligD=.13;cligT=2.5+rnd()*4;}if(cligD>0)cligD-=dt;
-      UF.uLid.value+=((cligD>0?1:F>.5?.10:.36)-UF.uLid.value)*Math.min(1,dt*(cligD>0?40:12));
+      gz+=(vise-gz)*Math.min(1,dt*22);
+      for(const o of YEUX){o.rotation.y=gz*.62;o.rotation.x=-.10;}
       // les SOURCILS se lèvent (deux fois de suite, parfois), et restent levés à la nitro
       sourT-=dt;if(sourT<=0){sourD=rnd()<.35?.9:.5;sourD0=sourD;sourT=2+rnd()*3.5;}if(sourD>0)sourD-=dt;
-      const lev=F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52));UF.uBrow.value+=((lev?1:0)-UF.uBrow.value)*Math.min(1,dt*20);
+      const lev=F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52));sourY+=((lev?.035:0)-sourY)*Math.min(1,dt*20);
+      for(const m of SOUR)m.position.y=m.userData.y0+sourY;
       // la LANGUE à la nitro, qui bat
       const lk=F>.5?1:0;langue.scale.setScalar(Math.max(.001,langue.scale.x+((lk?1:.001)-langue.scale.x)*Math.min(1,dt*12)));langue.rotation.x=lk?.25+.18*Math.sin(t*22):0;
-      // une OREILLE tressaille de temps en temps ; à la nitro elles se couchent en arrière
-      oreT-=dt;if(oreT<=0){oreD=.16;oreS=rnd()<.5?0:1;oreT=2+rnd()*4;}if(oreD>0)oreD-=dt;
-      for(let i=0;i<2;i++)ORE[i].rotation.x=-.12-F*.55-(oreD>0&&oreS===i?.25:0);
+      // la tête un peu penchée (le mème), qui vibre en roulant ; un à-coup d'oreille de temps en temps
+      oreT-=dt;if(oreT<=0){oreD=.14;oreT=2.5+rnd()*4;}if(oreD>0)oreD-=dt;
+      pivot.rotation.z=.05+(oreD>0?.04:0)+Math.sin(t*(F>.5?14:7))*.015*Math.max(sV,F);                // à peine penchée : elle fait partie de la caisse
+      pivot.position.y=Math.abs(Math.sin(t*(F>.5?14:7)))*.012*Math.max(sV,F);
       // la QUEUE remue
       queue.rotation.y=Math.sin(t*(F>.5?18:sV>.15?11:6))*.16;queue.rotation.z=.18;};
     anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.80,.74,ZN+.02],tl:[.45,.92,ZT-.02],lamps:0,halos:0,wx:.90,wzF:ZF,wzR:-ZR,pots:[[.48,.34,ZT-.08],[-.48,.34,ZT-.08]],
+    return {hl:[.78,.74,ZN+.02],tl:[.45,.92,ZT-.02],lamps:0,halos:0,wx:.90,wzF:ZF,wzR:-ZR,pots:[[.48,.34,ZT-.08],[-.48,.34,ZT-.08]],
             lpw:{R:R,w:.34,style:'rayons',n:5,jante:0xc8913a,accent:0xc8913a,pneu:0x141118}};
   }
 });
