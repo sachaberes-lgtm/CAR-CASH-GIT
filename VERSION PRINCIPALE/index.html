@@ -7917,7 +7917,10 @@ html.c6 body #coach.bravo .coTx b,html.c6 body #coach.bravo .coIco,html.c6 body 
 @media (prefers-reduced-motion:reduce){html.c6 body #coach .coGeste::before{animation:none!important}}
 /* (2026-10-14, vérif P1) DEBOUT, les plaques de POUVOIR reprennent leur place ordinaire (+184 : ~28 px sous la carte) pendant l'auto-école : la carte ne fait plus
    que ~76 px (bas vers +138 à l'écran), le +290 de 5361 était calculé pour l'ancienne carte de 172 px et laissait un trou de ~110 px. Couché : inchangé (+124, déjà sous la carte). */
-@media (orientation:portrait){html.c6 body.touch.coOn:not(#ccH) #pwrChip{top:calc(var(--hudH) + 184px)}}
+/* (vérif P1, MESURÉ au banc avec dbgPwr pendant la carte) +184 posait la plaque à y 113, SOUS la carte (109-185, 202 si la phrase fait 2 lignes) ;
+   couché, le +124 ordinaire la posait à y 66, sous la carte (62-108). Valeurs refaites pour finir ~8 px sous la carte (pente du zoom .8 / .72). */
+@media (orientation:portrait){html.c6 body.touch.coOn:not(#ccH) #pwrChip{top:calc(var(--hudH) + 305px)}}
+@media (orientation:landscape) and (max-height:540px){html.c6 body.touch.coOn:not(#ccH) #pwrChip{top:calc(var(--hudH) + 194px)}}
 </style>
 <style id="c6-pause-fin">
 /* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
