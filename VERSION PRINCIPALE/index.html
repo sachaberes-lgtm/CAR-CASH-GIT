@@ -28724,7 +28724,7 @@ function auraRank(total){ // l'index de rang atteint pour une aura donnée
   return r;
 }
 function auraRankName(r){return TR((AURA_RANKS[r==null?auraRank():r]||AURA_RANKS[0]).n);}
-function auraSansNom(){return document.documentElement.classList.contains('c6');} // (2026-10-14, ordre de Sacha : « plus de surnom bizarre, juste l'aura ») sous la charte 6 on n'ÉCRIT plus aucun nom de rang : le chiffre d'aura seul. Les paliers (auraRank, déblocages) ne changent pas.
+function auraSansNom(){return true;} // (2026-10-14, ordre de Sacha : « plus de surnom bizarre, juste l'aura ») sous la charte 6 on n'ÉCRIT plus aucun nom de rang : le chiffre d'aura seul. Les paliers (auraRank, déblocages) ne changent pas.
 function auraNext(){ // ce qu'il reste pour le rang suivant (null au sommet)
   const r=auraRank();if(r>=AURA_RANKS.length-1)return null;
   const n=AURA_RANKS[r+1];return {n:n.n,reste:Math.max(0,n.v-(SAVE.d.aura||0)),seuil:n.v};
@@ -44878,7 +44878,7 @@ function photoTour(){
   requestAnimationFrame(photoTour);
 }
 function gBankPaint(){const gb=$('gBank');
-  if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtC(bank())+'<span class="aura">'+pxi('etoile')+' '+auraRankName()+'</span>';
+  if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtC(bank())+'<span class="aura">'+pxi('etoile')+' '+fmtAura(SAVE.d.aura||0)+'</span>';
   gCompteur();}
 /* LE COMPTEUR DU GARAGE, FAÇON GTA (2026-09-25, user : « trop de texte — mets le prix en haut, joliment, avec un vrai
    compteur comme GTA »). Le solde en chiffres COMPLETS (« $35,850 », pas « 35,9 k »), vert, contour noir, en haut à
@@ -44886,8 +44886,8 @@ function gBankPaint(){const gb=$('gBank');
 function gAuraMaj(){ // (2026-10-09, Léo) LA JAUGE AURA sous le compte : le total, le rang, et la jauge vers le rang suivant
   const el=$('gAuraC');if(!el)return;const au=SAVE.d.aura||0,r=auraRank(au),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
   const k=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,cle=au+'|'+r+'|'+LANG;if(cle===gAuraMaj._k)return;gAuraMaj._k=cle;
-  el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent=sansAcc(auraRankName(r));
-  el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au)+', '+auraRankName(r));}
+  el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent='';
+  el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au));}
 function gCompteur(){
   try{gAuraMaj();}catch(e){}
   const el=$('gCompteur');if(!el)return;const b=el.querySelector('b'),v=Math.floor(bank()),v0=gCompteur._v;
@@ -48544,7 +48544,7 @@ function gvJauges(anim){
   rA.innerHTML='';if(casse){rA.textContent=ac('RECORD !','RECORD !')+' ';const e9=document.createElement('em');e9.textContent='+'+fmtC(R-Rvu);rA.appendChild(e9);}
   else if(plein)rA.textContent=ac('SOMMET');
   else{rA.textContent=ac('RECORD')+' ';const e9=document.createElement('em');e9.textContent=fmtC(R);rA.appendChild(e9);}
-  rU.innerHTML='';if(nx){rU.textContent='▸ '+ac(nx.n)+' ';const e9=document.createElement('em');e9.textContent=Math.floor(fU*100)+' %';rU.appendChild(e9);}else rU.textContent=ac('INTOUCHABLE');
+  rU.innerHTML='';if(nx){rU.textContent='▸ ';const e9=document.createElement('em');e9.textContent=Math.floor(fU*100)+' %';rU.appendChild(e9);}else rU.textContent=ac('MAX');
   U.classList.toggle('sommet',!nx);
   A.title=ac('RECORD')+' '+fmtC(R);U.title=auraSansNom()?'AURA '+fmtAura(au):ac(AURA_RANKS[r].n)+(nx?' → '+ac(nx.n)+' · '+fmtAura(Math.max(0,nx.v-au)):'');
   const o=objectif(),pe=$('gPerso');if(pe)pe.toggleAttribute('data-portee',!!(o&&o.prix&&b>=o.prix)); // une caisse est à ta portée : le SHOP le dit
@@ -49484,7 +49484,7 @@ function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, l
   const af=$('gpArgF');if(af)af.style.width=pc(o&&o.prix?b/o.prix:1);                 // la jauge d'argent : vers la prochaine caisse à vendre
   const au=SAVE.d.aura||0,r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
   const gu=$('gpAur');if(gu)gu.textContent=fmtAura(au);
-  const gr=$('gpRang');if(gr)gr.textContent=auraRankName(r);
+  const gr=$('gpRang');if(gr)gr.textContent='';
   const uf=$('gpAurF');if(uf)uf.style.width=pc(nx?(au-lo)/(nx.v-lo):1);                // la jauge d'aura : vers le rang suivant
   let w=0;for(let k=0;k<CARRIERE.length;k++){w=k;if(carrFait(k)<CARRIERE[k].niveaux.length)break;} /* (2026-10-07, audit) chaque monde a SON nombre de niveaux (5 ou 10) */              // le monde en cours de la CARRIÈRE
   GAR.lvlW=w;const n=Math.min(CARRIERE[w].niveaux.length,carrFait(w)+1);
@@ -52111,7 +52111,7 @@ function loop(now){
       const tot=(SAVE.d.aura||0)+auraRun, r=auraRank(tot);
       const bas=AURA_RANKS[r].v, haut=r<AURA_RANKS.length-1?AURA_RANKS[r+1].v:bas+1;
       auraBarEl.style.width=(r>=AURA_RANKS.length-1?100:Math.min(100,(tot-bas)/(haut-bas)*100)).toFixed(1)+'%';
-      auraSubEl.textContent='MAX '+(SAVE.d.auraMax||0)+' · '+auraRankName(r);
+      auraSubEl.textContent='MAX '+(SAVE.d.auraMax||0);
       // LE HALO : il enfle au gain puis retombe. C'est lui qui fait « énergie » plutôt que « score ».
       if(auraPop>0)auraPop=Math.max(0,auraPop-dt*2.4);
       if(auraFlash>0)auraFlash=Math.max(0,auraFlash-dt*1.5);
