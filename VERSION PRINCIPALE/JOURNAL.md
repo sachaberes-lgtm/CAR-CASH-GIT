@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE ROYAUME DE FEU — LES BANCS DE FUMÉE + LA CONSTRUCTION EN TRANCHES (2026-10-14 au soir, session VOLCAN — Sacha, relayé par PILOTAGE : « plus de particules de FUMÉE dans la map volcan : il faut que le CHALLENGE vienne de la DIFFICULTÉ À VOIR » · règle commune : « construction en tranches < 60 ms »)
+- LES BANCS DE FUMÉE (`VOLCAN.bancs`, posés par buildVolcan dans leur propre flux de hasard) : des nappes de 220-480 m (× √(vPalier/78)) et des
+  FENÊTRES dégagées de 300-650 m ; 8 à 10 bancs par niveau, 25-40 % de la piste (mesuré, Node, 9 graines × 3 paliers). JAMAIS sur l'élan d'un
+  raccourci (sE − 260 → sE + 140) ni là où l'on se pose (sS − 20 → sS + 420), ni au départ, ni au portail ; un banc qui ne rentre pas se
+  raccourcit. DEDANS (volcanTick, sur la route sous la caisse — `lastNearS` en vol) : `FUMEE_K` monte en ~0,3 s, et `updateClouds` (le seul
+  écrivain de la brume en course) referme la brume vers `FUMEE_F` (220-300 m selon la météo) et la teinte `FOG_FUMEE` (lie-de-vin, noir-violet
+  la nuit : `VLC_MET.fuC`) ; les braises ×3,5, la cendre s'épaissit ; la lave et les fissures PERCENT la brume (elles rougeoient dessous) ; les
+  néons du bord et la ligne or restent lisibles quelques dizaines de mètres. VUS DE LOIN : des bouffées noires-violettes au ventre orange
+  (`VLC_FUM`, genre 4 : immobiles, effacées à moins de 25-85 m de l'objectif — la brume prend le relais), dans l'InstancedMesh du panache.
+- MESURÉ AU BANC GPU (RX 6600, 844 × 390) : 60 i/s en course, DANS les bancs aussi (FUMEE_K 0,59 / 0,78), qualité auto FULL, aucun à-coup ;
+  0 erreur. Hors du volcan, `vlcFxCache` remet FUMEE_K à 0.
+- LA CONSTRUCTION EN TRANCHES : TOUT DE SUITE la préparation de la grille, les cases du MORCEAU DU DÉPART (~1,1 km) et son maillage, la mer
+  lointaine — MESURÉ 44-46 ms (au banc) ; ENSUITE, 5 ms par image (12 en pause), dans l'ORDRE (`VOLCAN.file`, `vlcTranches`) : les rangées
+  restantes du plus proche au plus loin, les coulées (elles creusent la grille), tous les morceaux (ceux du départ refaits), les rubans, les
+  aiguilles, l'arche, hornitos et geysers, orgues, volcans du loin et panaches, les collisions — MESURÉ ~230 ms étalés, `VOLCAN.pret` en ~1 s.
+  Une case pas encore calculée vaut la MER (jamais de mort sur un sol qui n'existe pas encore). Le tampon de la route passe de 560 à 340 m
+  (au-delà, la distance grossière suffit). Console : `dbgVolcan()` → pret, file, msFile, msTot, fu, bancs ; `dbgVolcan('banc',{k,dedans})`.
+
 ## LE ROYAUME DE FEU v2 — LA DESCENTE PAR LES BOUCLES DE RACCOURCI (2026-10-14 au soir, session VOLCAN — Sacha, relayé par PILOTAGE : « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus bas ; les maps doivent DESCENDRE » · « c'est un jeu de COURSE, pas de balade : plus de virages » · « plus la vitesse du palier est élevée, plus les virages doivent être larges »)
 La route du volcan est refaite sur la règle commune de GAMEPLAY (`passation/RACCOURCIS.md`) ; l'identité reste (éruptions, panaches, lave, aiguilles, arche).
 - LE TRACÉ (`genVolcan` → `vlcTrace`) : départ sur la LÈVRE DU CRATÈRE du grand volcan (dans le dos), le SAUT DU CRATÈRE (replat puis 15-17 %), puis la
