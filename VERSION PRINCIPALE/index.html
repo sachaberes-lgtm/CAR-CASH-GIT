@@ -9321,11 +9321,6 @@ if(CAN_POST){ try{
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
-  /* (2026-10-14, passe perf mobile) UNE SEULE CIBLE PLEIN ÉCRAN. Une ShaderPass demande par défaut l'échange des deux cibles du composer
-     après elle : comme l'ACES écrit à l'ÉCRAN, cet échange ne servait qu'à faire dessiner la scène une image dans la cible 1, la suivante
-     dans la cible 2 — deux cibles demi-flottantes + profondeur allouées à la taille de l'écran pour une seule utile. Sans l'échange, la
-     scène va toujours dans la même et l'autre n'est jamais créée sur la puce (three ne l'alloue qu'à son premier usage). Même image. */
-  acesPass.needsSwap=false;
   /* FUSION DU BLOOM (2026-09-27, passe perf iPhone). UnrealBloomPass finissait par DEUX passes : un « composite » qui somme ses 5 mips
      dans une cible 8 bits, puis une COPIE additive de cette cible sur l'image entière — un aller-retour plein écran en demi-flottant
      rien que pour ajouter le halo, sur un GPU à tuiles (Apple) le plus cher des deux. L'ACES relisait ensuite cette même image. Le halo
