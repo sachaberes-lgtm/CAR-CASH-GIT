@@ -2141,7 +2141,9 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
    la règle de l'accueil v2 qui réaffiche la tuile OFFRES) */
 html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}
 /* la BOUTIQUE du garage : plus aucune caisse en €, son onglet OFFRES resterait vide (« OFFRES 0 ») */
-#gBqPan .bqOng button[data-o="off"]{display:none!important}</style>
+#gBqPan .bqOng button[data-o="off"]{display:none!important}
+/* le bouton verrouillé « BIENTÔT » du menu du garage */
+#gMenuBas .gVerrou{display:none!important}</style>
 </head>
 <body>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
@@ -27731,7 +27733,7 @@ const CAR_UNLOCK=[
    juste après les communes… LE MASTODONTE parmi les épiques), les deux trophées de la carrière en haut des épiques, les LÉGENDAIRES de la
    boutique AU-DESSUS de LA RAIE (2,5 M), rangées par leur ancien prix en euros. Leur famille suit : LÉGENDAIRE reste légendaire (la
    couleur or), une caisse « défi » devient ce que son prix dit (rare / épique). POSTER 84 (rang d'aura) reste un DÉFI : il se gagne au style. */
-/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'))return;const c=CARS[i];const e=u.k==='pubs'?9.99:(parseFloat(String(u.eur).replace(',','.'))||5);CAR_UNLOCK[i]={p:Math.round((2e6+e*450e3)/1e5)*1e5};if(c){c.rar='legendaire';}});
+/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'&&u.k!=='bientot'))return;const c=CARS[i];if(u.k==='bientot'){CAR_UNLOCK[i]={p:(c&&{'REQUIN':6.5e6,'COMÈTE':4.2e6,'LA RAIE':2.5e6}[c.name])||3e6};if(c&&c.rar==='defi')delete c.rar;return;}const e=u.k==='pubs'?9.99:(parseFloat(String(u.eur).replace(',','.'))||5);CAR_UNLOCK[i]={p:Math.round((2e6+e*450e3)/1e5)*1e5};if(c){c.rar='legendaire';}});
 if(POKI){const PRIX_CARNET={1:30e3,2:80e3,3:220e3,6:420e3,7:700e3,8:1.05e6,9:1.45e6},PRIX_CARR={carrN:1.8e6,carrV:2.2e6};
   CAR_UNLOCK.forEach(function(u,i){if(!u||!u.k)return;const c=CARS[i];let p=0;
     if(u.k==='premium'){p=Math.round((2e6+(parseFloat(String(u.eur).replace(',','.'))||5)*450e3)/1e5)*1e5;if(c)c.rar='legendaire';}
@@ -42099,7 +42101,7 @@ function afficheVise(e){ // l'affiche sous le pointeur — sauf si la caisse est
 function afficheTap(a){ // ⚠ LE POINT D'EXTENSION des affiches : leurs vraies fonctions viendront ici
   a.pop=.45;
   try{uiClic();chimeNote(a.k==='perso'?659:587,0,.12,.12);chimeNote(a.k==='perso'?988:880,.06,.18,.1);}catch(e){}
-  toast(sansAcc(TR(a.k==='perso'?'TES RECORDS : BIENTOT EN DETAIL':'CLASSEMENT MONDIAL : BIENTOT EN LIGNE')));
+  /* (app iOS) l'affiche saute et tinte, sans annoncer de « bientôt » */
 }
 /* (2026-09-30) UNE BOÎTE CHANFREINÉE à la vraie taille w × h × d, chanfrein b : 6 faces, 12 biseaux, 8 coins (44 triangles), non indexée
    (facettes franches, comme la caisse). NEUVE à chaque appel : les meubles du garage la versent dans leur kit (lpKit.put la déplace EN

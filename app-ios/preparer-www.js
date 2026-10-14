@@ -46,22 +46,32 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
    · plus de vrai argent (pas d'achats intégrés pour l'instant) : les caisses vendues en € et L'ÉTERNELLE (100 pubs : l'app n'a pas
-     de pubs) passent À L'ARGENT DU JEU, au prix que l'édition POKI leur donne déjà ; la page OFFRES (en €) et ses portes disparaissent. */
+     de pubs) passent À L'ARGENT DU JEU, au prix que l'édition POKI leur donne déjà ; la page OFFRES (en €) et ses portes disparaissent ;
+   · plus de « BIENTÔT » (2026-10-14) : Apple refuse ce qui est annoncé mais absent. Les trois caisses « DÉFI À VENIR » (REQUIN, COMÈTE,
+     LA RAIE : leur défi n'est pas écrit) passent aussi à l'argent du jeu — REQUIN et COMÈTE au prix POKI de leur ancien prix en €
+     (9,99 et 4,99), LA RAIE à ses 2,5 M d'avant ; le bouton verrouillé « BIENTÔT » du menu du garage est masqué ; l'affiche RECORD
+     PERSO touchée ne dit plus « BIENTÔT EN DÉTAIL ». */
 une("const TEST_CAISSES=!POKI;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses');
 une("const TEST_CARRIERE=true;","const TEST_CARRIERE=false; /* (app iOS) */",'mode TEST de la carrière');
 une("if(POKI){const PRIX_CARNET=",
-  "/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'))return;const c=CARS[i];"+
+  "/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'&&u.k!=='bientot'))return;const c=CARS[i];"+
+  "if(u.k==='bientot'){CAR_UNLOCK[i]={p:(c&&{'REQUIN':6.5e6,'COMÈTE':4.2e6,'LA RAIE':2.5e6}[c.name])||3e6};if(c&&c.rar==='defi')delete c.rar;return;}"+
   "const e=u.k==='pubs'?9.99:(parseFloat(String(u.eur).replace(',','.'))||5);CAR_UNLOCK[i]={p:Math.round((2e6+e*450e3)/1e5)*1e5};if(c){c.rar='legendaire';}});\n"+
   "if(POKI){const PRIX_CARNET=",'caisses en €');
+une("toast(sansAcc(TR(a.k==='perso'?'TES RECORDS : BIENTOT EN DETAIL':'CLASSEMENT MONDIAL : BIENTOT EN LIGNE')));",
+  "/* (app iOS) l'affiche saute et tinte, sans annoncer de « bientôt » */",'annonce de l\'affiche du garage');
 une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
   '   la règle de l\'accueil v2 qui réaffiche la tuile OFFRES) */\n'+
   'html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}\n'+
   '/* la BOUTIQUE du garage : plus aucune caisse en €, son onglet OFFRES resterait vide (« OFFRES 0 ») */\n'+
-  '#gBqPan .bqOng button[data-o="off"]{display:none!important}</style>\n</head>','page OFFRES');
+  '#gBqPan .bqOng button[data-o="off"]{display:none!important}\n'+
+  '/* le bouton verrouillé « BIENTÔT » du menu du garage */\n'+
+  '#gMenuBas .gVerrou{display:none!important}</style>\n</head>','page OFFRES');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
-  ['<button data-o="off"','l\'onglet OFFRES de la boutique du garage'],["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs']])
+  ['<button data-o="off"','l\'onglet OFFRES de la boutique du garage'],["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],
+  ["k:'bientot'",'les caisses « DÉFI À VENIR »'],['class="pbtn gVerrou"','le bouton verrouillé BIENTÔT du menu du garage']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 
