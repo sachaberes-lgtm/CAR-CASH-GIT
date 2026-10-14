@@ -10910,7 +10910,7 @@ const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0
        = le départ RAPIDE / 181 000 = le plancher net RAPIDE) ; MOYEN 1,15 / 0,9 (iPhone 11 : 491 000 / 300 000) ;
      · qNetDefaut : 1 = une sauvegarde qui n'a JAMAIS choisi (SAVE.d.qChoisi absent ou 0) part en NETTE sur ce palier. Tout à 0 tant que
        Sacha n'a pas tranché : RAPIDE reste le défaut partout. RAPIDE n'est touché par AUCUNE de ces lignes. `dbgNette()` décrit. */
-PAL.B.dprNetCap=[1.25,1.35,1.5];PAL.B.dprNet=[1,1.15,1.25];PAL.B.dprNetBas=[.85,.9,1];PAL.B.qNetDefaut=[0,0,0];
+PAL.B.dprNetCap=[1.25,1.35,1.5];PAL.B.dprNet=[1,1.15,1.25];PAL.B.dprNetBas=[.85,.9,1];/* (2026-10-14 11 h 30, passe perf mobile) NETTE PAR DÉFAUT sur le palier RÉCENT seulement (sauvegarde neuve ou jamais choisie) : mesuré (perf/mesures/v10.log, iPhone émulé) — au palier 2 NETTE = 2,25× les pixels, la puce tient (le contrôle QL redescend de lui-même s il faut) ; paliers 0-1 restent RAPIDE (vieux iPhone fluides), NETTE au choix. */PAL.B.qNetDefaut=[0,0,1];
 /* (2026-10-14, passe perf mobile) ⚠ `typeof SAVE` NE PROTÈGE PAS d'un `const` encore en zone morte : au chargement, le départ au bon cran
    (`qlPose(qlDepart)`, plus bas) levait « Cannot access 'SAVE' before initialization », avalé par son try — les paliers 0-1 ne partaient
    jamais à leur cran (MOYEN au cran 0 au lieu de 2, ANCIEN au 4 de qlMin au lieu de 5). Avant la sauvegarde = RAPIDE. Palier 2 : inchangé. */
