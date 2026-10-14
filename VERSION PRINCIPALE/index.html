@@ -37074,6 +37074,22 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
   try{crackle(.7);}catch(e){}
 }
+/* (2026-10-14, sensations · nitro) LA POUSSÉE SE SENT DANS LES RESSORTS. L'allumage avait tout (cabrage, onde, champ, vibration, whoomp) ;
+   la COUPURE, elle, n'avait que du son et une langue de feu : la caisse accroupie (pitch9 −1,7°) se relevait en fondu, sans poids.
+   `sensNitro` ne fait que REGARDER (nitroOn, nitroHeldT, engGear, VPAL.n) et répond par les outils communs : elle ne calcule rien du jeu.
+   Appelée une fois par image, juste avant la remise à zéro de `nitroHeldT`. `on` : l'état de l'image d'avant. */
+const SENS_NI={on:false};
+function sensNitro(dt,veut){
+  const n9=performance.now();
+  if(!nitroOn&&SENS_NI.on&&mode!=='boom'&&!gameOver){
+    if(nitroHeldT>.35){ /* LE TRANSFERT DE CHARGE : la poussée lâche, le poids repasse sur l'avant — le nez PLONGE d'un coup (≈ 1,6° après un coup
+        bref → 3,6° après 1,5 s tenue), la caisse se tasse (1 → 2 cm), puis se repose seule ; un tic léger dans le pouce qui vient de lâcher */
+      const k=Math.min(1,(nitroHeldT-.35)/1.15);
+      if(!REDUCED_MOTION)sensCoup(0,.6+.8*k,-(.25+.25*k));
+      sensHap(9,1);}
+  }
+  SENS_NI.on=nitroOn;
+}
 /* LE BOOST JOUE UN ARPÈGE (2026-10-03, Léo : « que le boost joue directement un instrument qu'on peut SPAMMER, APPUYER LONGTEMPS,
    ACCORDÉ à la musique » · puis « mille fois plus discret » · puis « pas cool comme instrument : bien filtré, vise plutôt un ARPÈGE et
    une HARMONIE »). Un piano électrique doux (sinus + modulation FM qui s'éteint, filtré sous 1,8 kHz, comme les Rhodes du CIEL) égrène
@@ -49910,6 +49926,7 @@ function loop(now){
     if(!nitroOn&&loop._nOn&&nitroHeldT>.35)blowOff();
     if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
     if(!nitroOn&&loop._nOn)nitroEteint(); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro)
+    if(SENS)try{sensNitro(dt,!!wantN);}catch(e){} // (2026-10-14, sensations · nitro) la coupure, la panne sèche, les rapports, les paliers : dans la tôle et la main (lit nitroHeldT avant sa remise à zéro)
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
     if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;if(SONV2)sfx('respawn');}
