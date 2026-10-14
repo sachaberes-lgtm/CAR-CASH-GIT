@@ -8373,6 +8373,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
         <button class="gTab" data-tab="peinture" role="tab"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="PEINTURE">PEINTURE</span></button>
         <button class="gTab" data-tab="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span></button>
         <button class="gTab" data-tab="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span></button>
+        <button class="gTab" data-tab="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span></button><!-- (2026-10-14) les figures du double-tap nitro -->
       </div>
       <div id="gRar" role="tablist" aria-label="Familles"></div>
       <div id="gStrip" aria-label="Vignettes"></div>
@@ -8413,6 +8414,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
         <button class="ivTab" data-c="peinture" role="tab"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="PEINTURE">PEINTURE</span><em></em></button>
         <button class="ivTab" data-c="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span><em></em></button>
         <button class="ivTab" data-c="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span><em></em></button>
+        <button class="ivTab" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) -->
       </div>
       <div id="ivGrille"></div>
     </div>
@@ -8665,6 +8667,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
           <div class="pbtn c6Efface" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
           <span class="c6Ver" id="mvVer"></span>
         </div>
+        <div class="mPanel mCode"><div class="mLigne lien" data-m="code"><i class="pxi pxi-verrou" aria-hidden="true"></i><span class="tpL">ENTRER UN CODE</span></div></div><!-- (2026-10-14, Léo) le CODE (voir « LE CODE COUSIN ») -->
       </div>
     </div>
   </div>
@@ -8736,6 +8739,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
+<script src="figures.js?v=1"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -18250,8 +18254,9 @@ Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BOR
 Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "弹弓"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
 Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','PARIS TERMINE':'PARIS COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','PARIS TERMINE':'巴黎完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
-Object.assign(I18N,{'TONNEAU':'BARREL ROLL','TONNEAU !':'BARREL ROLL!','PAR-DESSUS':'OVER IT','PAR-DESSUS !':'OVER IT!','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
-Object.assign(I18N_ZH,{'TONNEAU':'桶滚','TONNEAU !':'桶滚！','PAR-DESSUS':'飞越','PAR-DESSUS !':'飞越！','AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
+try{if(window.FIG)FIG.liste.forEach(function(f){if(f.en&&f.en!==f.n)I18N[f.n]=f.en;});}catch(e){} // (2026-10-14) les noms des FIGURES (figures.js) en anglais
+Object.assign(I18N,{'ENTRER UN CODE':'ENTER A CODE','TOUT EST DÉBLOQUÉ !':'EVERYTHING UNLOCKED!','CODE INCONNU':'UNKNOWN CODE','FIGURE RATEE !':'BOTCHED TRICK!','FIGURES':'TRICKS','FIGURE':'TRICK','ACQUISE':'OWNED','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
+Object.assign(I18N_ZH,{'FIGURE RATEE !':'特技失败！','FIGURES':'特技','AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
@@ -20523,7 +20528,7 @@ function carrVue(bi){
         +'<div class="carrPied"><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div><span class="carrGo">'+pxi('droite')+' '+TR('NIVEAU')+' '+(nx+1)+'</span>'+(ch?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div></div>'; /* (2026-10-07, Sacha : « mauvaise police, pas besoin d'autant de texte ») plus de description : le nom, la progression, le niveau à jouer */}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
-    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
+    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||cousin()||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
       h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv'+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':LANG==='zh'?'关卡 ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':LANG==='zh'?' 未解锁':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span>'+(sel&&sel.b===bi&&sel.i===i?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
     h+='</div>';
   }
@@ -20609,7 +20614,7 @@ function carrSelPose(bi,i){const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;cons
 function carrSel(){ // {b,i} : le niveau que lancent les PLAY
   if(!SAVE.d.tuto&&!SANDBOX&&CARRIERE[0].niveaux[0].piste==='tuto')return {b:0,i:0};
   const s=SAVE.d.carrSel,b=s?CARRIERE.findIndex(function(B){return B.id===s.id;}):-1;
-  if(b>=0&&CARRIERE[b].niveaux[s.i]&&(TEST_CARRIERE||s.i<=carrFait(b)))return {b:b,i:s.i};
+  if(b>=0&&CARRIERE[b].niveaux[s.i]&&(TEST_CARRIERE||cousin()||s.i<=carrFait(b)))return {b:b,i:s.i};
   return {b:0,i:Math.min(CARRIERE[0].niveaux.length-1,carrFait(0))};}
 function carrJouer(){ // le PLAY de l'accueil et du garage
   if(pendingScore!=null)return; // un nom en cours de saisie (comme playViaGarage)
@@ -22221,11 +22226,17 @@ const DOGE_SDF=(()=>{
     h=Math.max(0,Math.min(1,(pax*bax+pay*bay+paz*baz)/(bax*bax+bay*bay+baz*baz))),dx=pax-bax*h,dy=pay-bay*h,dz=paz-baz*h;return Math.sqrt(dx*dx+dy*dy+dz*dz)-r;};
   return {sm,sM,ell,rcone,capsule};})();
 function dogeOreille(){ // (2026-10-14) l'OREILLE du DOGE (posée sur le toit) : un cône aplati, creusé devant, l'intérieur rose
-  const {rcone,sM}=DOGE_SDF,K=2.4;
-  const pleine=(x,y,z)=>rcone(x,y,z*K,0,0,0,0,.40,0,.15,.014)/K,creux=(x,y,z)=>rcone(x,y,(z-.03)*K,0,.05,0,0,.32,0,.095,.01)/K;
+  const {rcone,sM}=DOGE_SDF,K=1.6;
+  const pleine=(x,y,z)=>rcone(x,y,z*K,0,0,0,0,.40,0,.18,.02)/K,creux=(x,y,z)=>rcone(x,y,(z-.045)*K,0,.05,0,0,.32,0,.115,.012)/K;
   const F=(x,y,z)=>sM(pleine(x,y,z),-creux(x,y,z),.012);
   const coul=(x,y,z,o)=>{const q=new THREE.Color(z>.0&&creux(x,y,z)<.02?0xf0b0a2:(y>.30?0xb8702e:0xd99545));o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
   return dogeNets(F,-.2,-.06,-.12,.011,37,46,23,coul);}
+function dogeTruffe(){ // (2026-10-14) la TRUFFE du DOGE, en bec au milieu de la calandre : arrondie dessus, pointée vers l'avant, deux narines
+  const {sm,sM,ell,rcone}=DOGE_SDF;
+  const F=(x,y,z)=>{let f=sm(ell(x,y,z,0,0,0,.15,.095,.11),rcone(x,y,z,0,-.005,0,0,-.02,.17,.095,.04),.05);
+    for(const s of [-1,1])f=sM(f,-ell(x,y,z,s*.045,-.03,.19,.028,.02,.045),.012);return f;};
+  const coul=(x,y,z,o)=>{const q=new THREE.Color(y>.05?0x2c2a33:0x141118);o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
+  return dogeNets(F,-.18,-.13,-.14,.008,46,33,51,coul);}
 function dogeQueue(){
   const {capsule}=DOGE_SDF,S=[],RQ=.25;
   for(let n=0;n<=36;n++){const u=n/36,ph=(-35+335*u)*Math.PI/180,r=RQ-.14*u;S.push([.05*u,r*Math.sin(ph),-r*Math.cos(ph),.15-.06*u,u]);} // dodue : le creux se referme
@@ -25674,7 +25685,7 @@ Object.assign(SHAPES,{
     const P=lpKit(pal),bosse=d=>Math.max(0,1-d*d),ss=(a,b,v)=>{const t=U.cl((v-a)/(b-a),0,1);return t*t*(3-2*t);};
     const XW=z=>U.lin([[ZT,.95],[-2.3,1.0],[2.2,1.0],[ZN,.93]],z)+.075*bosse((z-ZF)/.66)+.10*bosse((z-ZR)/.70),   // les ÉLARGISSEURS
           YB=z=>U.lin([[ZT,.98],[-2.3,1.04],[-1.6,1.03],[0,1.0],[1.6,.99],[2.25,.95],[ZN,.90]],z)+.035*bosse((z-ZR)/.9),                   // la ligne d'épaule
-          T=z=>U.lin([[ZT,1.03],[-2.36,1.10],[-2.28,1.08],[-1.62,1.07],[-1.48,1.12],[-1.0,1.36],[-.88,1.385],[-.15,1.395],[-.02,1.375],
+          T=z=>U.lin([[ZT,1.03],[-2.36,1.10],[-2.28,1.08],[-1.62,1.07],[-1.48,1.12],[-1.0,1.40],[-.88,1.44],[-.15,1.47],[-.02,1.46],
                       [.62,1.05],[.78,1.04],[1.6,1.03],[2.25,.98],[ZN,.93]],z),                                        // le dessus au milieu
           AR=[[0,2*R+.05],[R*.62,2*R+.04],[R*.96,R*1.32],[R+.14,.26]];
     const zs=[ZT,-2.36,-2.28,-2.1,-1.9,-1.62,-1.55,-1.48,-1.3,-1.15,-1.0,-.88,-.6,-.36,-.24,-.15,-.02,.2,.42,.62,.78,1.0,1.2,1.85,2.05,2.25,ZN];
@@ -25687,7 +25698,7 @@ Object.assign(SHAPES,{
               [Math.min(.34,xr-.02),t+.008],[.12,t+.013],[0,t+.016]];};
     const VERRE=z=>(z>-.02&&z<.62)||(z<-.88&&z>-1.48);                                    // pare-brise, lunette
     P.loft(zs,S,(j,z)=>{
-      if(j<0)return j===-1?'C':'T';                                                          // le bouclier crème : le MUSEAU
+      if(j<0)return 'T';
       if(j===0)return 'k';
       if(j<=2)return 'C';                                                                    // le bas de caisse crème (l'urajiro)
       if(j===4)return (z>ZR+.62&&z<ZF-.6)?'S':'T';                                           // le filet brun du flanc
@@ -25698,7 +25709,8 @@ Object.assign(SHAPES,{
       if(j===10)return 'S';                                                                  // les deux BANDES brunes (la selle du shiba)
       return 'T';});
     // LA FACE : la calandre noire de toute la largeur, deux phares ronds à anneau de chaque côté, le menton et sa lame
-        P.sym(sd=>{for(const x of [.80]){P.cyl('k',.085,.03,18,sd*x,.74,ZN+.012,'z');P.cyl('W',.076,.034,18,sd*x,.74,ZN+.014,'z');
+    P.box('k',1.74,.26,.03,0,.74,ZN+.002);P.box('k',1.82,.03,.04,0,.88,ZN+.004);P.box('k',1.82,.03,.04,0,.60,ZN+.004);
+        P.sym(sd=>{for(const x of [.86,.70]){P.cyl('k',.085,.03,18,sd*x,.74,ZN+.012,'z');P.cyl('W',.076,.034,18,sd*x,.74,ZN+.014,'z');
       P.cyl('G',.058,.038,18,sd*x,.74,ZN+.016,'z');P.cyl('W',.03,.042,12,sd*x,.74,ZN+.018,'z');}});                 // l'anneau de lumière, le phare au milieu
     P.box('k',1.84,.10,.10,0,.42,ZN-.02);P.box('k',1.90,.025,.30,0,.30,ZN-.06);              // le pare-chocs, la lame
     P.sym(sd=>P.box('k',.30,.08,.04,sd*.66,.50,ZN+.002));                                   // les entrées d'air basses
@@ -25719,62 +25731,45 @@ Object.assign(SHAPES,{
     P.sym(sd=>{P.box('o',.26,.11,.10,sd*.48,.34,ZT-.02);P.box('k',.21,.07,.11,sd*.48,.34,ZT-.022);});
     P.box('k',1.5,.02,4.4,0,.262,0);
     const gs=P.done();for(const k in gs)mesh(gs[k],g);
-    // ---- 2. LE VISAGE, À LA FAÇON DES VOITURES DU DESSIN ANIMÉ (2026-10-14, Léo : « la tête au niveau de la vitre, bien intégrée, comme
-    //      Cars ») : plus de tête qui sort de la calandre — la VOITURE est le chien. Les YEUX remplissent le pare-brise (un panneau posé
-    //      dessus, dessiné par son programme : le regard blasé de Kabosu, paupières lourdes, iris qui file de côté, les deux points crème
-    //      des sourcils, les joues crème sous les yeux, le front plus sombre) ; la TRUFFE noire est posée sur le bord du capot ; le SOURIRE
-    //      EN COIN est dessiné sur le bouclier crème (le museau) ; la LANGUE sort à la nitro ; les OREILLES pointent sur le toit.
-    const FACE_VS='varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      FACE_FS='uniform float uLook,uLid,uBrow,uT;varying vec2 vUv;'+
-      'float dedans(float d,float w){return 1.-smoothstep(-w,w,d);}'+
-      'void main(){vec2 p=vec2(vUv.x*.58,vUv.y*.72);'+
-      'vec3 FAU=vec3(.851,.584,.271),CRE=vec3(.965,.902,.776),SOM=vec3(.62,.36,.15),RIM=vec3(.15,.085,.055),IRI=vec3(.45,.25,.10),PUP=vec3(.035,.025,.025);'+
-      'vec3 c=mix(FAU,SOM,smoothstep(.40,.72,p.y)*(1.-smoothstep(.0,.30,abs(p.x)))*.7);'+                                 /* le front, plus sombre au milieu */
-      'for(int k=0;k<2;k++){float s=k==0?-1.:1.;'+
-      ' vec2 q=(p-vec2(s*.33,.04))/vec2(.30,.15);c=mix(c,CRE,dedans(length(q)-1.,.03));'+                                   /* les JOUES crème */
-      ' vec2 b=(p-vec2(s*.21,.60+uBrow*.04))/vec2(.07,.038);c=mix(c,CRE,dedans(length(b)-1.,.06));'+                       /* les SOURCILS : deux points crème */
-      ' vec2 d=p-vec2(s*.275,.35);d.y-=s*d.x*.14;float ax=d.x/.235,ay=d.y/(.165*(1.-.28*ax*ax));float E=length(vec2(ax,ay));'+   /* l'ŒIL en amande */
-      ' c=mix(c,RIM,dedans(E-1.14,.025));'+                                                                                     /* le trait sombre du shiba */
-      ' if(E<1.05){vec3 ey=vec3(.98,.97,.94);vec2 ic=vec2(s*.275+uLook*.11,.335);float r=length(p-ic);'+
-      '  ey=mix(ey,IRI*(.75+.45*smoothstep(.105,.03,r)),dedans(r-.105,.005));ey=mix(ey,PUP,dedans(r-.055,.005));'+              /* l'iris brun, la pupille */
-      '  ey=mix(ey,vec3(1.),dedans(length(p-ic-vec2(-.034,.034))-.021,.004));'+                                                /* l'éclat */
-      '  float yL=.35+.165-uLid*.33+s*d.x*.05;ey=mix(ey,FAU,smoothstep(yL-.004,yL+.004,p.y));'+                              /* la PAUPIÈRE lourde (le regard blasé) */
-      '  ey=mix(ey,RIM,dedans(abs(p.y-yL)-.011,.004));c=mix(c,ey,dedans(E-1.,.03));}}'+
-      'float bx=1.-abs(vUv.x),by=min(vUv.y,1.-vUv.y);c=mix(RIM,c,smoothstep(.018,.03,min(bx*.58,by*.72)));'+                  /* le cadre du pare-brise */
-      'c+=vec3(1.)*.10*dedans(abs(p.x*.55+p.y-.62)-.035,.02)*(1.-smoothstep(.2,.58,abs(p.x)));'+                              /* un reflet de vitre, discret */
-      'gl_FragColor=vec4(c,1.);}';
-    const UF={uLook:{value:1},uLid:{value:.36},uBrow:{value:0},uT:{value:0}};
-    const faceM=new THREE.ShaderMaterial({uniforms:UF,vertexShader:FACE_VS,fragmentShader:FACE_FS,side:THREE.DoubleSide});faceM.userData.g='doge';
-    {const NU=28,NV=14,pos=[],uv=[],ix=[];
-     for(let j=0;j<=NV;j++){const v=j/NV,z=.60-.60*v,q=S(z),poly=[q[12],q[11],q[10],q[9]],xr=q[9][0];
-       for(let i=0;i<=NU;i++){const u=-1+2*i/NU,x=Math.abs(u)*xr*.985;let y=poly[poly.length-1][1];
-         for(let m=1;m<poly.length;m++){const a=poly[m-1],b=poly[m];if(x<=b[0]){const tt=(x-a[0])/((b[0]-a[0])||1);y=a[1]+(b[1]-a[1])*tt;break;}}
-         pos.push(u<0?-x:x,y+.012,z);uv.push(u,v);}}
-     for(let j=0;j<NV;j++)for(let i=0;i<NU;i++){const a=j*(NU+1)+i,b=a+1,c=a+NU+1,d=c+1;ix.push(a,b,d,a,d,c);}
-     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
-     geo.setIndex(ix);geo.computeVertexNormals();const m=new THREE.Mesh(geo,faceM);m.userData.brut=1;g.add(m);}
-    const coulGeo=(geo,col)=>{const n=geo.attributes.position.count,c=new Float32Array(n*3),q=new THREE.Color(col);for(let i=0;i<n;i++)c.set([q.r,q.g,q.b],i*3);
-      geo.setAttribute('color',new THREE.BufferAttribute(c,3));return geo;};
-    // la TRUFFE sur le bord du capot, et son éclat
-    {const tr=mesh(coulGeo(new THREE.SphereGeometry(1,20,14),0x121014),g);tr.scale.set(.19,.11,.12);tr.position.set(0,.90,ZN+.01);
-     const ec=mesh(coulGeo(new THREE.SphereGeometry(1,10,8),0xffffff),g);ec.scale.set(.05,.022,.02);ec.position.set(-.06,.975,ZN+.075);}
-    // le SOURIRE EN COIN sur le museau (le bouclier crème) : il tombe sous la truffe et remonte d'un seul côté
-    {const M=lpKit(pal),tige=(a,b,r)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy),cg=new THREE.CylinderGeometry(r,r,l,8,1);
-       cg.applyMatrix4(new THREE.Matrix4().makeRotationZ(-Math.atan2(dx,dy)));cg.translate((a[0]+b[0])/2,(a[1]+b[1])/2,ZN+.014);M.put('D',cg,0,0,0);
-       const bo=new THREE.SphereGeometry(r,8,6);bo.translate(b[0],b[1],ZN+.014);M.put('D',bo,0,0,0);};
-     const L1=[[0,.81],[0,.72],[-.12,.655],[-.26,.645],[-.38,.70]],L2=[[0,.72],[.12,.675],[.24,.685]];
-     for(const L of [L1,L2])for(let i=1;i<L.length;i++)tige(L[i-1],L[i],.022);
-     const gm=M.done();for(const k in gm)mesh(gm[k],g);}
-    // la LANGUE (à la nitro), qui pend du coin de la bouche
-    const langue=new THREE.Group();langue.position.set(-.28,.645,ZN+.03);g.add(langue);
-    {const m=mesh(coulGeo(new THREE.SphereGeometry(1,16,12),0xff7b97),langue);m.scale.set(.085,.13,.03);m.position.set(0,-.11,0);}
-    langue.scale.setScalar(.001);
-    // les OREILLES, sur le toit, au-dessus du pare-brise
+    // ---- 2. LE VISAGE EN 3D, RÉPARTI SUR LA CAISSE (2026-10-14, Léo : « le même effet que la tête 3D, pareil pour les animations ; les yeux
+    //      agrandis, sur la vitre, un peu en mode Cars mais pas trop — assez grands pour faire les deux côtés de la vitre ; les oreilles sur les
+    //      deux coins du capot ; le petit nez pointu, bien positionné, comme une Chevrolet : le petit nez qui dépasse ») :
+    //   · LES YEUX : deux globes en volume encastrés dans le pare-brise, chacun en couvre une moitié — iris brun, pupille, éclat ; ils
+    //     suivent la caméra (le regard en coin) ; PAUPIÈRE fauve en coque qui descend (blasé), cerne d'encre autour, paupière basse crème ;
+    //     les deux points crème des SOURCILS au-dessus, sur la vitre ;
+    //   · LES OREILLES sculptées (champ de distance, comme la tête) dressées sur les deux coins avant du capot ;
+    //   · LA TRUFFE sculptée, en BEC au milieu de la calandre (la calandre fendue des vieilles américaines), qui dépasse ; la LANGUE en dessous.
+    const coulGeo=(geo,f)=>{const p=geo.attributes.position,c=new Float32Array(p.count*3),q=new THREE.Color();
+      for(let i=0;i<p.count;i++){q.setHex(f(p.getX(i),p.getY(i),p.getZ(i)));c[i*3]=q.r;c[i*3+1]=q.g;c[i*3+2]=q.b;}geo.setAttribute('color',new THREE.BufferAttribute(c,3));return geo;};
+    const nets=(G,par)=>{const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(G.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(G.N,3));
+      geo.setAttribute('color',new THREE.BufferAttribute(G.C,3));geo.setIndex(new THREE.BufferAttribute(G.I,1));geo.computeBoundingSphere();return mesh(geo,par);};
+    const vitre=t=>{const z=.62-.64*t,q=S(z);return [z,q[12][1]];};                          // un point du pare-brise (au milieu), t = 0 en bas → 1 en haut
+    const [zE,yE]=vitre(.47),PENTE=Math.atan2(vitre(.6)[1]-vitre(.3)[1],vitre(.3)[0]-vitre(.6)[0]);
+    const oeilGeo=coulGeo(new THREE.SphereGeometry(1,32,22),(x,y,z)=>{if(z>.86&&x<-.16&&y>.14&&x>-.42&&y<.40)return 0xffffff;
+      return z>.84?0x0b0808:z>.60?0x5a3214:0xfbf8f2;});                                       // l'éclat, la pupille, l'iris brun, le blanc
+    const pauGeo=coulGeo(new THREE.SphereGeometry(1.05,32,14,0,Math.PI*2,0,Math.PI*.56),(x,y,z)=>y<-.05?0x2a1810:0xd99545); // la paupière : fauve, son bord à l'encre
+    const basGeo=coulGeo(new THREE.SphereGeometry(1.04,32,8,0,Math.PI*2,Math.PI*.70,Math.PI*.30),()=>0xf6e6c6);           // la paupière basse, crème
+    const cerneGeo=coulGeo(new THREE.TorusGeometry(1.0,.075,8,40),()=>0x2a1810);
+    const souGeo=coulGeo(new THREE.SphereGeometry(1,16,10),()=>0xf6e6c6);
+    const YEUX=[],PAU=[],SOUR=[];
+    for(const sd of [1,-1]){
+      const o=new THREE.Group();o.position.set(sd*.305,yE-.03,zE);o.rotation.x=-(Math.PI/2-PENTE)*.75;o.scale.set(.30,.235,.17);g.add(o); // couché sur la vitre, mais le regard vers l'avant
+      const globe=new THREE.Group();o.add(globe);mesh(oeilGeo,globe);YEUX.push(globe);
+      const pau=new THREE.Group();o.add(pau);mesh(pauGeo,pau);PAU.push(pau);
+      mesh(basGeo,o);const ce=mesh(cerneGeo,o);ce.position.z=.02;
+      const s9=mesh(souGeo,o);s9.scale.set(.30,.20,.25);s9.position.set(-sd*.22,1.38,.15);s9.userData.y0=1.38;SOUR.push(s9);}
+    // LES OREILLES, sur les deux coins avant du capot
     if(!SHAPES.doge._oreille)SHAPES.doge._oreille=dogeOreille();
-    const DO=SHAPES.doge._oreille,ORE=[];
-    for(const sd of [1,-1]){const o=new THREE.Group();o.position.set(sd*.42,T(-.06)-.05,-.12);o.rotation.set(-.12,sd*.30,-sd*.22);o.scale.setScalar(1.3);g.add(o);
-      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(DO.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(DO.N,3));
-      geo.setAttribute('color',new THREE.BufferAttribute(DO.C,3));geo.setIndex(new THREE.BufferAttribute(DO.I,1));geo.computeBoundingSphere();mesh(geo,o);ORE.push(o);}
+    const ORE=[];
+    for(const sd of [1,-1]){const o=new THREE.Group();o.position.set(sd*.74,YB(2.12)-.02,2.10);o.rotation.set(-.08,sd*.22,-sd*.14);o.scale.setScalar(1.25);g.add(o);
+      nets(SHAPES.doge._oreille,o);ORE.push(o);}
+    // LA TRUFFE en bec, au milieu de la calandre
+    if(!SHAPES.doge._truffe)SHAPES.doge._truffe=dogeTruffe();
+    {const tr=nets(SHAPES.doge._truffe,g);tr.position.set(0,.95,ZN-.03);tr.scale.setScalar(1.45);}
+    // la LANGUE (à la nitro), sous la truffe
+    const langue=new THREE.Group();langue.position.set(0,.84,ZN+.16);g.add(langue);
+    {const m=mesh(coulGeo(new THREE.SphereGeometry(1,16,12),()=>0xff7b97),langue);m.scale.set(.09,.13,.03);m.position.set(0,-.10,0);}
+    langue.scale.setScalar(.001);
     // ---- 3. LA QUEUE en tire-bouchon : l'aileron ----
     if(!SHAPES.doge._queue)SHAPES.doge._queue=dogeQueue();
     const DQ=SHAPES.doge._queue,queue=new THREE.Group();queue.position.set(0,1.20,-1.96);queue.rotation.z=.18;g.add(queue);
@@ -25782,9 +25777,9 @@ Object.assign(SHAPES,{
      geo.setAttribute('color',new THREE.BufferAttribute(DQ.C,3));geo.setIndex(new THREE.BufferAttribute(DQ.I,1));geo.computeBoundingSphere();mesh(geo,queue);}
     // ---- 4. LA VIE ----
     let rs=0x0d06e5;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
-    let t=0,F=0,sV=0,pPrev=null,regard=1,gz=1,coupT=2+rnd()*3,coupD=0,sourT=2,sourD=0,sourD0=0,cligT=3,cligD=0,oreT=3,oreD=0,oreS=0;
+    let t=0,F=0,sV=0,pPrev=null,regard=1,gz=1,coupT=2+rnd()*3,coupD=0,sourT=2,sourD=0,sourD0=0,sourY=0,oreT=3,oreD=0,oreS=0,cligT=3,cligD=0,pauR=.45;
     const V9=new THREE.Vector3();
-    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UF.uT.value=t;
+    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;
       const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;F+=(fort-F)*Math.min(1,dt*6);
       const e=g.matrixWorld.elements;
       if(pPrev){const d=Math.hypot(e[12]-pPrev[0],e[13]-pPrev[1],e[14]-pPrev[2])/Math.max(dt,1e-3);sV+=(Math.min(1,d/40)-sV)*Math.min(1,dt*3);}else pPrev=[0,0,0];
@@ -25792,24 +25787,26 @@ Object.assign(SHAPES,{
       // le REGARD : du côté de la caméra, et un coup d'œil de l'autre côté par moments (l'œil saute, il ne glisse pas)
       try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);g.worldToLocal(V9);if(V9.x>.4)regard=1;else if(V9.x<-.4)regard=-1;}}catch(_){}
       coupT-=dt;if(coupT<=0){coupD=.6;coupT=3+rnd()*4;}const vise=coupD>0?-regard:regard;if(coupD>0)coupD-=dt;
-      gz+=(vise-gz)*Math.min(1,dt*22);UF.uLook.value=gz;
+      gz+=(vise-gz)*Math.min(1,dt*22);
+      for(const o of YEUX){o.rotation.y=gz*.55;o.rotation.x=.38;}                          // (couchés sur la vitre : le globe regarde vers l'AVANT)
       // les PAUPIÈRES : lourdes (blasé), grandes ouvertes à la nitro, un clignement de temps en temps
       cligT-=dt;if(cligT<=0){cligD=.13;cligT=2.5+rnd()*4;}if(cligD>0)cligD-=dt;
-      UF.uLid.value+=((cligD>0?1:F>.5?.10:.36)-UF.uLid.value)*Math.min(1,dt*(cligD>0?40:12));
+      pauR+=((cligD>0?-1.2:F>.5?1.15:.42)-pauR)*Math.min(1,dt*(cligD>0?40:12));for(const p9 of PAU)p9.rotation.x=-pauR;
       // les SOURCILS se lèvent (deux fois de suite, parfois), et restent levés à la nitro
       sourT-=dt;if(sourT<=0){sourD=rnd()<.35?.9:.5;sourD0=sourD;sourT=2+rnd()*3.5;}if(sourD>0)sourD-=dt;
-      const lev=F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52));UF.uBrow.value+=((lev?1:0)-UF.uBrow.value)*Math.min(1,dt*20);
+      const lev=F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52));sourY+=((lev?.30:0)-sourY)*Math.min(1,dt*20);
+      for(const m of SOUR)m.position.y=m.userData.y0+sourY;
       // la LANGUE à la nitro, qui bat
       const lk=F>.5?1:0;langue.scale.setScalar(Math.max(.001,langue.scale.x+((lk?1:.001)-langue.scale.x)*Math.min(1,dt*12)));langue.rotation.x=lk?.25+.18*Math.sin(t*22):0;
       // une OREILLE tressaille de temps en temps ; à la nitro elles se couchent en arrière
       oreT-=dt;if(oreT<=0){oreD=.16;oreS=rnd()<.5?0:1;oreT=2+rnd()*4;}if(oreD>0)oreD-=dt;
-      for(let i=0;i<2;i++)ORE[i].rotation.x=-.12-F*.55-(oreD>0&&oreS===i?.25:0);
+      for(let i=0;i<2;i++)ORE[i].rotation.x=-.08-F*.6-(oreD>0&&oreS===i?.28:0);
       // la QUEUE remue
       queue.rotation.y=Math.sin(t*(F>.5?18:sV>.15?11:6))*.16;queue.rotation.z=.18;};
     anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.80,.74,ZN+.02],tl:[.45,.92,ZT-.02],lamps:0,halos:0,wx:.90,wzF:ZF,wzR:-ZR,pots:[[.48,.34,ZT-.08],[-.48,.34,ZT-.08]],
+    return {hl:[.78,.74,ZN+.02],tl:[.45,.92,ZT-.02],lamps:0,halos:0,wx:.90,wzF:ZF,wzR:-ZR,pots:[[.48,.34,ZT-.08],[-.48,.34,ZT-.08]],
             lpw:{R:R,w:.34,style:'rayons',n:5,jante:0xc8913a,accent:0xc8913a,pneu:0x141118}};
   }
 });
@@ -28065,6 +28062,13 @@ function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&
 const RAR_LOGO={commun:'rond',rare:'gemme',exotique:'palmier',epique:'flamme',legendaire:'couronne',mythique:'dragon',infini:'infini',defi:'cible'}; // (2026-10-10, Léo : « trouve les pictogrammes adaptés pour que les gens comprennent exactement ce que c'est ») COMMUNE un simple rond · RARE la gemme · LÉGENDAIRE la couronne · MYTHIQUE le dragon · INFINI le signe ∞ (la roue et la cible étaient le même dessin) // (2026-10-09, Léo : « enlève les nombres de voitures dans chaque rareté, fais des logotypes ») — DÉFI : la cible des missions
 function rarInfo(r){return RARETES.find(function(x){return x.id===r;})||RARETES[0];}
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
+/* LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes
+   les voitures et tous les trucs débloquables ») : RÉGLAGES › ENTRER UN CODE. « cousin » (ou « cousin 1.61 ») pose `SAVE.d.cousin` — et sur
+   CET appareil tout est À TOI : les caisses (carUnlockedVrai : en vente, en €, à défi), les habillages (shopOwned), les FIGURES (figPossede),
+   tous les niveaux de la carrière. Rien n'est écrit ailleurs (l'argent, l'aura et les records ne bougent pas) ; EFFACER MA PROGRESSION l'enlève. */
+function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(k!=='cousin'&&k!=='cousin161')return false;SAVE.d.cousin=1;SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}return true;}
+function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE peut ne pas exister encore : le tout premier buildCar tourne avant lui)
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
@@ -28075,6 +28079,7 @@ function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i)
    « déjà à toi », le testeur ne voyait jamais la boucle achat → caisse que vivra le joueur. */
 function carUnlockedVrai(i){
   if(carRetiree(i))return false; // (2026-10-02) retirée : ni à toi, ni à gagner
+  if(cousin())return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;
@@ -28799,13 +28804,13 @@ function frenFin(mort){ // la frénésie est tombée (mort = avec la caisse : on
 }
 /* (v4) LA POSE RATÉE : le flow retombe à ZÉRO, frénésie comprise (sa tenue compte pour le record). La triade reste ouverte : on sait
    ce qu'on vient de perdre. Le jeu dit pourquoi : « DE TRAVERS ! » ou « À CONTRESENS ! ». */
-function flowCasse(contre){
+function flowCasse(contre,txt){
   if(SONV2)sfx(contre?'pose.contresens':'pose.travers'); // (console de son) la pose RATÉE se dit à l'oreille, flow ou pas
   if(!(FLOW.v>0))return;
   const lv0=FLOW.lv;
   if(lv0===4){try{frenMus(false);}catch(e){}frenFin(true);}
   FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FREN.acc=0;FREN.arme=false;
-  popTexte(contre?'À CONTRESENS !':'DE TRAVERS !','#ff5e7a',3);flowTag('n',-1); // (v5) la pose ratée, c'est NARCISSE qui tombe
+  popTexte(txt||(contre?'À CONTRESENS !':'DE TRAVERS !'),'#ff5e7a',3);flowTag('n',-1); // (v5) la pose ratée, c'est NARCISSE qui tombe
   if(!SONV2){if(lv0>0){try{flowDropSnd(lv0);}catch(e){}}try{clank9(0,150,.14);}catch(e){}} /* (console) pose.travers / pose.contresens, en tête, les remplacent */
   hap([30,40,30,40,60]);shake=Math.max(shake,.6);
   if(lv0>=2)try{flashEcran('rgba(255,42,61,.35)');}catch(e){}
@@ -29728,15 +29733,24 @@ if(POKI){ // (POKI) sans missions, les deux habillages des carnets s'achètent, 
   const o9=COSM.peinture.find(function(d){return d.id==='or';}),a9=COSM.trainee.find(function(d){return d.id==='arcenciel';});
   if(o9){delete o9.mis;o9.p=150000;o9.d='Vingt-quatre carats sur la carrosserie. Discret, comme toi.';}
   if(a9){delete a9.mis;a9.p=40000;a9.d='Toutes les couleurs à la fois. Personne ne t\'oublie.';}}
-const SHOP_CATS=['voiture','peinture','aile','trainee'];
+/* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
+   (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
+   « équipée » ne veut rien dire pour une figure : toutes celles qu'on a JOUENT (le double-tap tire au hasard parmi elles). */
+function figDesc(f){const tx=function(m){const n=['x','y','z'].filter(function(c,i){return Math.abs(m.a[i])>.1;});const q=n.length>1?'penché':n[0]==='x'?'salto':n[0]==='y'?'toupie':'tonneau';
+    return m.t!=null?(Math.abs(m.t)>1?Math.abs(m.t)+' tours en ':'Un tour en ')+q:'Un balancement en '+q;};
+  return f.m.map(tx).join(' + ')+'. Double-tape NITRO : elle part au hasard parmi tes figures — et elles s\'enchaînent.';}
+COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f),fig:1};});
+const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
-function shopOwned(cat,id){const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
+function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
+const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(!d.p&&!d.mis)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;}
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
 function cosmSur(cat){try{return cosm(cat);}catch(e){return null;}}
 function shopBuy(cat,i){ // ⚠ débit et possession dans la MÊME fonction, comme `carBuy` : jamais l'un sans l'autre
+  if(cat==='figure')return figAchat(i); // (2026-10-14) une FIGURE : SAVE.d.figs
   const d=COSM[cat][i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};
   if(shopOwned(cat,d.id))return {ok:false,raison:'deja-possedee'};
   if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
@@ -34670,7 +34684,7 @@ function sonTonSuit(){
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol
   if(!SONV2){trickPop(chain);return;}
-  sfx(id==='vrille'||id==='tonneau'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
+  sfx(id==='vrille'||String(id).indexOf('fig_')===0?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
 /* ---- LES VOIX ET LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
@@ -35712,7 +35726,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tonneau'], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
@@ -35780,8 +35794,9 @@ const SAVE={
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
+    if(Array.isArray(d.figs))c.figs=[...new Set(['tonneau'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées (le TONNEAU, offert)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0; /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0; /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
@@ -36312,20 +36327,37 @@ const FLY_U=new THREE.Vector3(0,1,0),FLY_R=new THREE.Vector3(1,0,0);
      la trajectoire du côté du pouce, s'INCLINE dans le virage, lève / baisse le nez avec le manche ; le redressement et le décollage lui
      laissent un retard qu'elle rattrape en se balançant. Sortie par le bord : un coup de roulis vers le vide, rattrapé.
    · À LA POSE (`veqPose`), l'assiette qui reste passe à la conduite (roulis de caisse, lacet visuel, tangage) : elle se balance sur ses ressorts.
-   · LE TONNEAU (`veqTonneau`) : DOUBLE-TAP NITRO (deux appuis brefs) — un tour complet autour du nez en ~0,6 s, du côté du pouce (au neutre :
-     un coup à droite, un coup à gauche). En vol : un petit écart du côté du pouce + une FIGURE (la chaîne, payée à la pose). Au sol : un
-     saut (la mécanique du dos d'âne, on reste en conduite) qui passe PAR-DESSUS les plots et l'huile, payé en aura à la retombée.
+   · LE DÉCOLLAGE : la suspension se DÉTEND (la caisse monte sur ses roues pendantes, `ext`), un tremplin lève le nez.
+   · L'ATTERRISSAGE (`veqCorps`, `veqPose`, `veqContact`) : à l'approche de la dalle (temps avant contact < `posB` s) la caisse PRÉPARE sa pose :
+     elle se met dans le plan de la route, les roues dessous, le nez dans sa trajectoire. Au contact : la suspension détendue CLAQUE et s'écrase,
+     le nez PLONGE puis rebondit (`VEQ.sp`, ressort), la caméra s'enfonce un instant (`VEQ.cam*`), un anneau de poussière sur les grosses poses ;
+     ce qui reste d'assiette passe aux ressorts de la conduite (roulis, lacet, tangage — calculé sur la VRAIE orientation de la caisse).
+   · LES FIGURES AU DOUBLE-TAP NITRO (`veqDouble`, deux appuis brefs) — elles s'ACCUMULENT (Léo, 14/10 : « au lieu de supprimer les tricks, on
+     va les accumuler ») : le catalogue vit dans figures.js (`FIG`, partagé avec la BOÎTE BLANCHE boite-figures.html), on les ACHÈTE au shop
+     (catégorie FIGURES), on les garde dans l'inventaire (`SAVE.d.figs`, le TONNEAU offert) ; le double-tap en joue UNE AU HASARD parmi celles
+     qu'on possède (jamais deux fois la même d'affilée), et un double-tap pendant une figure ENCHAÎNE la suivante (le lecteur `FIG.Lecteur` la
+     lance à 70 % de la précédente : les rotations se composent, la caisse ne s'arrête jamais). « Ça les pose automatiquement » : la figure
+     se RACCOURCIT pour finir avant la pose (le viseur dit quand on touche, `CAMV.eta`) ; trop bas, rien ne part.
+     AU SOL = LE SAUT NITRO (`veqSaut`) : le booster plaque la route, la caisse DÉCOLLE (~1,2 s, ~2,5 m) et sa figure part toute seule — il coûte
+     du nitro, et sa pose en rend moins qu'un vrai saut (on ne fabrique pas de nitro en sautant sur place).
+     Chaque figure finie entre dans la CHAÎNE (son aura, payée à la pose ; des figures DIFFÉRENTES font monter le multiplicateur). Posée en plein
+     tour : à moins de 20° de la fin elle compte ; au-delà de 50° c'est une POSE RATÉE (« FIGURE RATÉE ! », le flow tombe).
    `?vol=ancien` (ou `dbgVol('ancien')`) rend le vol d'avant au chiffre près (le tonneau reste). Console : `dbgVol()`, `dbgVol('tonneau')`. */
-const VEQ_K={latch:.7,niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR:.36,houle:.024,saut:9.5,dash:16,dur:.62};
-const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0,by:0,byV:0,bp:0,bpV:0,br:0,brV:0,tf:0,
-  qb:new THREE.Quaternion(),qa:new THREE.Quaternion(),qaOk:false,qo:new THREE.Quaternion(),eu:new THREE.Euler(0,0,0,'YXZ'),tv:new THREE.Vector3(),tc:new THREE.Vector3(),
-  tn:null,cd:0,sens:1,saut:false,plots:0,dReq:false,dDn:0,dUp:0,pv:new THREE.Vector3(),pv2:new THREE.Vector3(),ax:new THREE.Vector3(0,0,1),qr:new THREE.Quaternion(),n:0};
+const VEQ_K={latch:.7,niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR:.36,houle:.024,
+  ext:.11,posA:.05,posB:.45,    // la suspension pendante en vol · la pose se prépare entre ,45 s et ,05 s avant qu'elle soit déclarée
+  saut:21,sautCout:.2,sautNit:.3,sautCd:.9}; // LE SAUT NITRO : impulsion, coût (part de la jauge), part du nitro rendu à sa pose, attente (s)
+const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0,by:0,byV:0,bp:0,bpV:0,br:0,brV:0,tf:0,ext:0,
+  qb:new THREE.Quaternion(),qp:new THREE.Quaternion(),qo:new THREE.Quaternion(),qd:new THREE.Quaternion(),eu:new THREE.Euler(0,0,0,'YXZ'),
+  tv:new THREE.Vector3(),tc:new THREE.Vector3(),n9:new THREE.Vector3(),f9:new THREE.Vector3(),g9:new THREE.Vector3(),m4:new THREE.Matrix4(),
+  si:-1,sh:0,sl:0,sd:1e9,pose:0,      // le radar de la dalle (tryLand) · pose : l'alignement de pose en cours (0-1)
+  lect:window.FIG?new FIG.Lecteur():null,sautT:-9,sautF:-1,rate:false,dReq:false,dDn:0,dUp:0,n:0,
+  sp:0,spV:0,camT:-1,camA:0,volT:0,   // le nez qui rebondit à la pose · la caméra qui s'enfonce
+  pv:new THREE.Vector3(),pv2:new THREE.Vector3(),ax:new THREE.Vector3(),qr:new THREE.Quaternion()};
 function veqDepart(bord,impU,roll0,qDep){ // au décollage (startFall)
-  VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;
+  VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;VEQ.ext=0;VEQ.pose=0;VEQ.si=-1;VEQ.rate=false;VEQ.sp=0;VEQ.spV=0;
   VEQ.by=0;VEQ.byV=0;VEQ.bp=0;VEQ.bpV=bord?0:-1.1*THREE.MathUtils.clamp((impU==null?.9:impU)/30,0,1); // un tremplin lève un peu le nez : la balance commence
   VEQ.br=bord?roll0:0;VEQ.brV=bord?bascDir*4:0; // bord : la caisse BASCULE vers le vide, les ressorts la rattrapent
-  VEQ.qb.copy(qDep);
-  if(VEQ.tn&&VEQ.tn.sol){VEQ.tn.sol=false;VEQ.saut=false;} // un tonneau du sol qui quitte la route finit en l'air (et y devient une figure)
+  VEQ.qb.copy(qDep);if(VEQ.lect)VEQ.lect.vide();
 }
 function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'efface, tout geste nouveau agit
   if(!VEQ.on)return steer;
@@ -36344,6 +36376,11 @@ function veqNiveau(dt,dir){ // L'ÉQUILIBRE : le haut du vol se redresse vers la
   if(Math.abs(a)<1e-7)return;
   FLY_U.applyAxisAngle(dir,a);VEQ.br-=a*VEQ_K.iner; // la caisse a de l'INERTIE : le repère se redresse, elle traîne un peu… et se balance pour le rattraper
 }
+function veqRoute(bI,sd,f,q){ // l'assiette de CONDUITE sur la dalle bI, face sd, nez vers f (dans le plan) → q
+  const n=VEQ.n9.copy(Nn[bI]).multiplyScalar(sd);
+  VEQ.g9.copy(f).addScaledVector(n,-f.dot(n));if(VEQ.g9.lengthSq()<1e-6)VEQ.g9.copy(T[bI]);VEQ.g9.normalize();
+  VEQ.tc.crossVectors(n,VEQ.g9).normalize();VEQ.m4.makeBasis(VEQ.tc,n,VEQ.g9);return q.setFromRotationMatrix(VEQ.m4);
+}
 function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la caisse, sur ses ressorts, autour
   const d=Math.min(dt,1/30),K=VEQ_K,m=1-JEAU.wB,u=VEQ.u;
   VEQ.tf+=dt;const h=REDUCED_MOTION?0:K.houle*Math.min(1,VEQ.tf/.6)*m;
@@ -36352,58 +36389,121 @@ function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la
   VEQ.bpV+=(K.w*K.w*(bpT-VEQ.bp)-2*K.z*K.w*VEQ.bpV)*d;VEQ.bp=THREE.MathUtils.clamp(VEQ.bp+VEQ.bpV*d,-.6,.6);
   VEQ.brV+=(K.wR*K.wR*(brT-VEQ.br)-2*K.zR*K.wR*VEQ.brV)*d;VEQ.br=THREE.MathUtils.clamp(VEQ.br+VEQ.brV*d,-1.2,1.2);
   VEQ.eu.set(VEQ.bp,VEQ.by,VEQ.br,'YXZ');VEQ.qo.setFromEuler(VEQ.eu);qTmp.multiply(VEQ.qo);
-  VEQ.qb.slerp(qTmp,Math.min(1,dt*12));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
+  /* LA POSE SE PRÉPARE : le temps avant de toucher la face visée (hauteur ÷ vitesse d'approche, en mètres du monde) — sous `posB` s la caisse
+     se met dans le plan de la route, nez dans sa trajectoire, roues dessous ; à `posA` s elle y est. Hors de la largeur (+6 m) : rien. */
+  let a=0;
+  if(VEQ.si>=0&&VEQ.sd<1600&&Math.abs(VEQ.sl)<ROAD_HALF+6){
+    const i=VEQ.si,dessus=VEQ.sh>-THICK*.5,hs=dessus?VEQ.sh:-THICK-VEQ.sh,sd=dessus?1:-1,vN=-fallVel.dot(Nn[i])*sd*SPD;
+    if(hs>-1.5&&vN>.4)a=1-THREE.MathUtils.smoothstep(Math.max(0,hs-2.8)/vN,K.posA,K.posB); // ⚠ la pose est DÉCLARÉE à 3 m (tryLand) : à 2,8 m la caisse doit être prête
+    if(a>.001){veqRoute(i,sd,fallVel,VEQ.qp);qTmp.slerp(VEQ.qp,a*m);}}
+  VEQ.pose+=(a-VEQ.pose)*Math.min(1,dt*10);
+  VEQ.qb.slerp(qTmp,Math.min(1,dt*(12+10*a)));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
+  // LES ROUES PENDENT : en l'air la suspension se détend (la carrosserie monte au-dessus de ses roues)
+  VEQ.ext+=(K.ext-VEQ.ext)*Math.min(1,dt*9);carBody.position.y=VEQ.ext;
 }
-function veqPose(){ // la caisse se pose : l'assiette qui reste passe aux ressorts de la conduite
-  let r=VEQ.on?VEQ.br:0;
-  if(VEQ.tn&&!VEQ.tn.sol){const T=VEQ.tn;if(!T.fini){const p=veqPhi(T);r+=Math.atan2(Math.sin(p),Math.cos(p));}VEQ.tn=null;} // un tonneau pas fini ne paie pas
-  if(VEQ.on){driftYaw=THREE.MathUtils.clamp(VEQ.by,-.3,.3);pitch9=THREE.MathUtils.clamp(VEQ.bp,-.15,.15);rollV=THREE.MathUtils.clamp(VEQ.brV,-4,4);}
-  carRoll9=THREE.MathUtils.clamp(r,-.42,.42);
+function veqPose(bI,sd){ // la caisse se pose (tryLand, lèvre) : ce qui reste d'assiette passe aux ressorts de la conduite
+  VEQ.rate=false;VEQ.volT=fallTR;
+  let rx=0,ry=0,rz=0;
+  if(VEQ.on&&bI!=null&&bI>=0){ // l'écart RÉEL entre la caisse et sa place de conduite (nez = cap de la pose)
+    VEQ.f9.copy(T[bI]).multiplyScalar(Math.cos(psi)).addScaledVector(B[bI],Math.sin(psi)*sd);
+    veqRoute(bI,sd,VEQ.f9,VEQ.qp);VEQ.qd.copy(VEQ.qp).invert().multiply(VEQ.qb);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');
+    rx=VEQ.eu.x;ry=VEQ.eu.y;rz=VEQ.eu.z;}
+  const L9=VEQ.lect,enCours=!!(L9&&L9.occupe());
+  if(enCours){ // posée en plein tour
+    const e9=L9.ecart();
+    if(e9<.35)L9.actifs.forEach(function(a){veqFigFinie(a.f);}); // à moins de 20° de la fin : elle compte (posée au ras)
+    else{VEQ.qd.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');rx+=VEQ.eu.x;ry+=VEQ.eu.y;rz+=VEQ.eu.z;if(e9>.9)VEQ.rate=true;} // au-delà de 50° : POSE RATÉE
+    L9.vide();}
+  if(!VEQ.on&&!enCours)return;
+  driftYaw=THREE.MathUtils.clamp(ry,-.35,.35);carRoll9=THREE.MathUtils.clamp(rz,-.42,.42);
+  if(VEQ.on){rollV=THREE.MathUtils.clamp(VEQ.brV*.5,-4,4);pitch9=0;VEQ.sp=THREE.MathUtils.clamp(rx,-.35,.35);VEQ.spV=0;}
 }
-function veqPhi(T){const x=Math.min(1,T.t/T.D);return x*x*x*(x*(x*6-15)+10)*6.2832*T.dir;} // un tour, départ et arrivée en douceur
+function veqContact(imp,nI,sd){ // LE CONTACT (touche9 : quand les roues touchent vraiment) — la suspension claque, le nez plonge, la caméra s'enfonce
+  if(!VEQ.on)return;
+  const k=THREE.MathUtils.clamp(imp/14,0,1),gros=imp>6||VEQ.volT>1.2;
+  susY=Math.min(.12,VEQ.ext);susV=Math.min(susV,-.6-imp*.32);VEQ.ext=0; // détendue en l'air, elle s'ÉCRASE
+  VEQ.spV+=.9+k*2.4; // le nez plonge (avant chargé), le ressort le relève
+  if(!REDUCED_MOTION){VEQ.camT=0;VEQ.camA=.12+k*.5+(gros?.12:0);}
+  if(gros&&nI!=null&&nI>=0){ // L'ANNEAU DE POUSSIÈRE : la route a pris le coup
+    const n=VEQ.n9.copy(Nn[nI]).multiplyScalar(sd),p=carGroup.position,nb=Math.round(14+k*14);
+    VEQ.f9.copy(T[nI]);VEQ.g9.crossVectors(n,VEQ.f9).normalize();
+    for(let j=0;j<nb;j++){const a=j/nb*6.2832,c=Math.cos(a),s9=Math.sin(a),v=7+k*9+Math.random()*3;
+      spawnP(dust,p.x+(VEQ.f9.x*c+VEQ.g9.x*s9)*1.4,p.y+(VEQ.f9.y*c+VEQ.g9.y*s9)*1.4+n.y*.2,p.z+(VEQ.f9.z*c+VEQ.g9.z*s9)*1.4,
+        (VEQ.f9.x*c+VEQ.g9.x*s9)*v+n.x*1.2,(VEQ.f9.y*c+VEQ.g9.y*s9)*v+n.y*1.2,(VEQ.f9.z*c+VEQ.g9.z*s9)*v+n.z*1.2,.45+Math.random()*.25);}}
+}
+function veqConduite(d9){ // au sol, chaque image : le nez qui rebondit après la pose (ressort ω 13)
+  if(VEQ.sp===0&&VEQ.spV===0)return 0;
+  VEQ.spV+=(-169*VEQ.sp-2*.32*13*VEQ.spV)*d9;VEQ.sp=THREE.MathUtils.clamp(VEQ.sp+VEQ.spV*d9,-.4,.4);
+  if(Math.abs(VEQ.sp)<1e-4&&Math.abs(VEQ.spV)<1e-3){VEQ.sp=0;VEQ.spV=0;}
+  return VEQ.sp;
+}
+function veqCamera(dt){ // au sol : la caméra s'enfonce sous le choc de la pose, puis revient
+  if(VEQ.camT<0)return;VEQ.camT+=dt;const x=VEQ.camT/.36;
+  if(x>=1){VEQ.camT=-1;return;}
+  if(!window.dbgNoShake)camera.position.addScaledVector(F.n,-VEQ.camA*Math.sin(Math.PI*x)*(1-.4*x));
+}
+function veqNitK(){return VEQ.sautF===flightId?VEQ_K.sautNit:1;} // la pose d'un SAUT NITRO rend moins de nitro
 function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'actionne quand j'appuie deux fois rapidement sur le booster ») : deux appuis BREFS
    sur NITRO — le 1er de moins de 240 ms, le 2e moins de 320 ms après le 1er. Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
   if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;}else VEQ.dDn=n;
 }
-function veqTonneau(){ // LE TONNEAU — double-tap NITRO
-  if(VEQ.tn&&(gameOver||mode==='boom'))VEQ.tn=null;
-  if(VEQ.tn||VEQ.cd>0||!started||gameOver||paused||introD||TUTO.on||(mode!=='drive'&&mode!=='fall'))return false;
-  const sd=steer>.2?-1:steer<-.2?1:(VEQ.sens=-VEQ.sens); // roulis négatif = côté gauche vers le bas (le pouce à gauche : steer > 0)
-  if(mode==='drive'){
-    if(hopY>0||hopV!==0||POSE_F)return false;
-    hopV=VEQ_K.saut;VEQ.tn={t:0,D:2*hopV/(26*gK())*.9,dir:sd,sol:true,fini:false};VEQ.saut=true;VEQ.plots=0;
-  }else{
-    VEQ.tn={t:0,D:VEQ_K.dur,dir:sd,sol:false,fini:false};
-    if(Math.abs(steer)>.2)fallVel.addScaledVector(FLY_R,Math.sign(steer)*VEQ_K.dash); // l'écart : FLY_R = la gauche de la caisse
-  }
-  VEQ.n++;try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}hap([10,30,10]);shake=Math.max(shake,.18);
+function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
+  if(!started||gameOver||paused||introD||TUTO.on)return false;
+  if(mode==='drive')return veqSaut();
+  if(mode==='fall')return veqFigure();
+  return false;
+}
+function veqSaut(){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle
+  if(hopY>0||hopV!==0||POSE_F||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
+  const libre=pwrNitroT>0||PARK.on||startBoostT>0,cout=libre?0:VEQ_K.sautCout*nitroCap();
+  if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
+  if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
+  VEQ.sautT=performance.now();
+  const p9=carGroup.position.clone();
+  startFall(VEQ_K.saut,1);VEQ.sautF=flightId;VEQ.l0=0; // un saut VOULU : le volant tenu continue de tourner (pas de verrou), on reste sur sa route
+  veqFigure(2*VEQ_K.saut/(FALL_G*gK())-.15); // la figure part TOUTE SEULE, à la taille du saut
+  for(let k=0;k<26;k++){const a=Math.random()*6.2832,r=Math.random()*1.2; // le souffle du booster contre la route
+    spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*r,p9.y+.2,p9.z+Math.sin(a)*r,Math.cos(a)*(3+Math.random()*6),-2-Math.random()*3,Math.sin(a)*(3+Math.random()*6),.18+Math.random()*.16);}
+  sparkBurst(sparkGold,p9,10,9);shake=Math.max(shake,.45);fovPunch=Math.max(fovPunch,8);hap([12,30,18]);
+  try{if(SONV2)sfx('nitro.plein',{vol:-6});}catch(e){}
+  VEQ.n++;return true;
+}
+function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){return f.id;});const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tonneau'];}
+function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
+  const L9=VEQ.lect;if(!L9||!window.FIG||L9.occupe()>=3)return false;
+  const f=FIG.tire(veqFigsAMoi(),L9.der);
+  // « ça les pose automatiquement » : elle finit avant la pose — raccourcie jusqu'à 55 % de sa durée, sinon elle ne part pas
+  let t=dispo!=null?dispo:(CAMV.eta<90?CAMV.eta:9);
+  if(L9.occupe()){const d9=L9.actifs[L9.actifs.length-1];let deb=d9?Math.max(0,d9.D*FIG.CHEV-d9.t):0;for(const e of L9.file)deb+=e.D*FIG.CHEV;t-=deb;}
+  const D=Math.min(f.D,t-.08);
+  if(D<f.D*.55){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
+  L9.lance(f,Math.random()<.5?-1:1,D);
+  VEQ.n++;try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}hap([10,30,10]);
   return true;
 }
-function veqTonneauPose(dt){ // chaque image, une fois la caisse placée (conduite ET vol) : le tour, autour du MILIEU de la caisse
-  if(VEQ.cd>0)VEQ.cd-=dt;VEQ.qaOk=false;
-  const T=VEQ.tn;if(!T)return;
-  if(gameOver||mode==='boom'||(!T.sol&&mode!=='fall')){VEQ.tn=null;VEQ.saut=false;return;}
-  T.t+=dt;
-  const hc=(CARS[level].h||1.3)*.5;VEQ.qa.copy(carGroup.quaternion);VEQ.qaOk=true;
-  VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.setFromAxisAngle(VEQ.ax,veqPhi(T));carGroup.quaternion.multiply(VEQ.qr);
-  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
-  if(T.t>=T.D&&!T.fini){T.fini=true;if(mode==='fall'){addTrick('tonneau','TONNEAU !',4,false);VEQ.tn=null;VEQ.cd=.12;return;}}
-  if(T.fini&&T.sol&&hopY<=0){ // retombé sur ses roues
-    VEQ.tn=null;VEQ.saut=false;VEQ.cd=.12;
-    chaineAura('TONNEAU',45,'tonneau');flowAdd(4,'style');
-    if(VEQ.plots){chaineAura('PAR-DESSUS',30*VEQ.plots,'pardessus');popTexte('PAR-DESSUS !','#5ee6ff',1);}VEQ.plots=0;
-  }
+function veqFigFinie(f){addTrick('fig_'+f.id,f.n,Math.round(f.aura/16),f.aura>=120?2:1);} // la figure finie entre dans la CHAÎNE (son aura, payée à la pose)
+function veqFigurePose(dt){ // en vol, chaque image, une fois la caisse placée : les figures en cours tournent autour du MILIEU de la caisse
+  const L9=VEQ.lect;if(!L9||!L9.occupe())return;
+  if(gameOver||mode!=='fall'){L9.vide();return;}
+  const fin=L9.tick(dt);
+  if(L9.actifs.length){const hc=(CARS[level].h||1.3)*.5;
+    VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
+    VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
+    VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
+  for(const f of fin)veqFigFinie(f);
 }
 window.dbgVol=function(a){
   if(a==='ancien'||a==='neuf'){VEQ.on=a==='neuf';return VEQ.on?'vol équilibré':'vol d’avant';}
-  if(a==='tonneau')return veqTonneau();
+  if(a==='double')return veqDouble();
+  if(a==='tout'){SAVE.d.figs=FIG.liste.map(function(f){return f.id;});SAVE.flush();return SAVE.d.figs;} // (banc) toutes les figures
+  if(a==='rien'){SAVE.d.figs=['tonneau'];SAVE.flush();return SAVE.d.figs;}
   return {on:VEQ.on,mode:mode,u:+VEQ.u.toFixed(3),steer:+steer.toFixed(3),verrou:+VEQ.l0.toFixed(3),lT:+VEQ.lT.toFixed(2),
-    lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),
-    haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),tonneau:VEQ.tn?{t:+VEQ.tn.t.toFixed(2),D:+VEQ.tn.D.toFixed(2),sol:VEQ.tn.sol,fini:VEQ.tn.fini}:null,
-    tonneaux:VEQ.n,hopY:+hopY.toFixed(2),carRoll:+(carRoll9*57.3).toFixed(1),cap:+(Math.atan2(fallVel.x,fallVel.z)*57.3).toFixed(1),
-    hautCaisse:+VEQ.pv.set(0,1,0).applyQuaternion(carGroup.quaternion).y.toFixed(3),airRoll:+(airRoll*57.3).toFixed(1),fallT:+fallTR.toFixed(2)};};
+    lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),pose:+VEQ.pose.toFixed(2),ext:+VEQ.ext.toFixed(3),
+    haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),figures_en_cours:VEQ.lect?VEQ.lect.actifs.map(function(a){return a.f.id+' '+a.t.toFixed(2)+'/'+a.D.toFixed(2);}).concat(VEQ.lect.file.map(function(a){return '+'+a.f.id;})):null,aMoi:veqFigsAMoi(),
+    figures:VEQ.n,rate:VEQ.rate,nez:+(VEQ.sp*57.3).toFixed(1),camT:+VEQ.camT.toFixed(2),hopY:+hopY.toFixed(2),carRoll:+(carRoll9*57.3).toFixed(1),
+    cap:+(Math.atan2(fallVel.x,fallVel.z)*57.3).toFixed(1),radar:[VEQ.si,+VEQ.sh.toFixed(1),+VEQ.sl.toFixed(1),Math.round(VEQ.sd)],vy:+fallVel.y.toFixed(1),eta:+(+CAMV.eta).toFixed(2),hautCaisse:+VEQ.pv.set(0,1,0).applyQuaternion(carGroup.quaternion).y.toFixed(3),fallT:+fallTR.toFixed(2),nitro:+(nitroR+nitroX).toFixed(2)};};
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -37798,7 +37898,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
   else if(id==='airnitro')chaineAura('AIR NITROOO',120,'airnitro',false,true); // (2026-09-29) la comète en vol vaut la comète au sol
   else if(id==='dauphin')dolAura9('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150 — (v5) sa ligne attend la POSE (dolAura9)
-  else if(id==='tonneau')chaineAura('TONNEAU',50,'tonneau',false,true); // (2026-10-14) le tonneau en vol (double-tap nitro)
+  else if(String(id).indexOf('fig_')===0){const f9=window.FIG&&FIG.par[id.slice(4)];chaineAura(txt,f9?f9.aura:60,id,false,true);} // (2026-10-14) LES FIGURES du double-tap nitro (figures.js)
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
   else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
   // (FLOW v2) LE RISQUE NOURRIT LE FLOW EN DIRECT : en l'air la jauge monte PENDANT qu'on vrille (et le vide ne la fait pas fuir).
@@ -38825,7 +38925,6 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
-  if(VEQ.tn&&VEQ.qaOk)carGroup.quaternion.copy(VEQ.qa); // (vol équilibré) un tonneau en cours : on repart de l'assiette SANS son tour (il continue par-dessus)
   if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
   veqDepart(bord,impU,roll0,carGroup.quaternion); // (2026-10-14) LE VOL ÉQUILIBRÉ : verrou du volant, ressorts de la caisse
   /* (bord v2) L'IMAGE DU DÉCOLLAGE : elle ne passe ni par le placement de la conduite (le mode vient de changer) ni par celui du vol
@@ -38913,7 +39012,7 @@ function tryLand(dt){
   const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
   // radar de dalle AVANT le filtre des 40 m (dauphin v3) : le DAUPHIN compte le vol au-dessus de la route jusqu'à DOL_HMAX, à
   // toute largeur. curTOff = décalage LE LONG de la piste : au-dessus d'un TROU le point le plus proche est le bord, ça le trahit.
-  curNear=true;curHOff=hOff;curLatOff=latOff;curTOff=dTmp.dot(T[bestI]);
+  curNear=true;curHOff=hOff;curLatOff=latOff;curTOff=dTmp.dot(T[bestI]);VEQ.si=bestI;VEQ.sh=hOff;VEQ.sl=latOff;VEQ.sd=bd; // (vol équilibré) la pose se prépare sur ce radar
   if(bd>1600)return false;
   // SNAKE LOOP v2 : passer SOUS la route pendant le vol — côté OPPOSÉ à la face de départ, dans la
   // largeur de la dalle — puis reposer la caisse sur la face de DÉPART (validé à l'atterrissage).
@@ -39004,12 +39103,12 @@ function tryLand(dt){
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   {const vm9=vitMult();vA=fallVel.dot(T[bestI])/vm9;vL=fallVel.dot(B[bestI])*.4*sideL/vm9;} // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
-  {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
+  {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
@@ -39020,7 +39119,7 @@ function tryLand(dt){
      la route. 0° = axé, 90° = en crabe, 180° = à contresens. Au-delà de FLOW2.pose.angle : pose RATÉE — pas de PARFAIT possible, et le
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
-  const poseRatee=!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0);FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
+  const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; // (2026-10-14) posée en plein SALTO / TOUPIE : ratéeFLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
   vA*=(1-landLoss);vL*=(1-landLoss);
@@ -39038,6 +39137,7 @@ function tryLand(dt){
   const sensPsi9=psi,sensVer9=fallT>.7||chain>0||chainVal>0; // (2026-10-14, sensations · pose) le crabe de l'arrivée, et « cette pose aura-t-elle un verdict (donc sa vibration) ? » — lus ICI, rendus au contact (sensPose)
   {const hR9=sideL>0?hOff:-THICK-hOff,nI9=bestI,lL9=landLoss,vN9=vN,imp9=impact,sd9=sideL;
    const touche9=function(){
+     veqContact(imp9,nI9,sd9); // (2026-10-14) LE CONTACT : la suspension claque, le nez plonge, la caméra s'enfonce
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
@@ -39109,7 +39209,7 @@ function tryLand(dt){
     if(g>=1.5&&!poseRatee&&(fallT>.7||gain>0))RUNX.perfect++;
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
-      nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit),'figure'); // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
+      nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit)*veqNitK(),'figure'); // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
       runStats.tricks++;
@@ -39147,7 +39247,7 @@ function tryLand(dt){
      la console de son. Pas sur un petit saut (< 0,4 s), pas sur la pose ratée (elle a son son et éteint la frénésie), pas sur la pose qui
      DÉCLENCHE la frénésie (FLOW.lv lu avant). Après le « tchak » de la pose (t .15). */
   if(FLOW.lv===4&&!poseRatee&&!PARK.on&&fallT>.4&&SONV2)sfx('frenesie.pose',{t:.15});
-  if(poseRatee)flowCasse(poseAng>90); // (v4) la pose est jugée (chaîne encaissée, raccourci compté) : ENSUITE le flow tombe
+  if(poseRatee)flowCasse(poseAng>90,VEQ.rate?'FIGURE RATEE !':null); // (v4) la pose est jugée (chaîne encaissée, raccourci compté) : ENSUITE le flow tombe
   else if(FREN.arme&&FLOW.lv<4&&(chain>0||trkBigA||(rc9&&FLOW2.decl.racc)))frenDeclenche(); // (v4) jauge pleine + FIGURE POSÉE : la FRÉNÉSIE part, ici, au contact · (loi 20) en VILLE, le RACCOURCI posé aussi
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
@@ -39201,7 +39301,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
-  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
   vA=vTan*.94;vL=0; // le choc de la lèvre coûte 6 %
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
@@ -43178,7 +43278,7 @@ function bqCles(){const V=[],C=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&u.p>0)V.push('v:'+i);} // (2026-10-10) les caisses en € passent dans les OFFRES (bqOffres)
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat])if(d.p>0)C.push(cat+':'+d.id);
   return {V:V,C:C};}
-function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
+function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);if(cat==='figure')return {cat:cat,d:window.FIG?FIG.par[k.slice(p+1)]:null};return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
 function bqA(k){if(k[0]==='v'){const i=+k.slice(2);return carUnlockedVrai(i)||i===(SAVE.d.equipped|0);}const o=bqCos(k);return !!o.d&&shopOwned(o.cat,o.d.id);}
 function bqValide(k){if(typeof k!=='string')return false;if(k[0]==='v'){const i=+k.slice(2);return !!CARS[i]&&!carRetiree(i);}return !!bqCos(k).d;}
 function bqRar(k){if(k[0]==='v')return carRar(+k.slice(2));const o=bqCos(k);return cosmRar(o.cat,o.d);}
@@ -43235,7 +43335,7 @@ setInterval(function(){try{if(!garageOn)return;const c=document.querySelector('#
   let i=-1;S.forEach(function(e,j){if(e.classList.contains('on'))i=j;});const n=(i+1)%S.length;if(i>=0){S[i].classList.remove('on');S[i].classList.add('sort');setTimeout(function(){S[i].classList.remove('sort');},500);if(P[i])P[i].classList.remove('on');}
   S[n].classList.add('on');if(P[n])P[n].classList.add('on');}catch(e){}},2600); // (2026-10-12) le défilé des offres
 function gOffresPage(){window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
-function bqCourant(){if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
+function bqCourant(){if(GBQ.figK&&GBQ.panOn&&(GBQ.cat==='figure'))return GBQ.figK;if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   if(gEl)gEl.classList.toggle('shopJour',!GMODE.paye);
   if(GMODE.paye){gShopPaye(bar,st);return;}
@@ -43491,7 +43591,7 @@ function gDots(L){const el=$('gDots');if(!el)return;
    Même fiche, mêmes flèches, même caisse au milieu : l'onglet change ce qu'on feuillette. Dans une catégorie
    d'habillage, la caisse montrée est TA caisse équipée (on habille ce qu'on conduit), et l'article feuilleté
    est ESSAYÉ dessus (`SHOP.prev`) — qu'il soit à toi ou pas. Fermer l'atelier retire l'essai. */
-const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎNÉE'};
+const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎNÉE',figure:'FIGURE'};
 /* LE CIEL DU MENU DANS LE HOME DU GARAGE (2026-10-11, Léo : « le bouton HOME doit être le MÊME ciel que le ciel du menu, en plus petit ;
    quand c'est la nuit, il faut que ce soit la nuit aussi dans le HOME du garage ») : l'atelier ne dessine pas le ciel du menu (il a sa
    propre lumière) — alors, tant que l'ACCUEIL est à l'écran, on recopie toutes les 3 s un morceau du VRAI ciel rendu (le haut de l'image,
@@ -43517,7 +43617,7 @@ function homeCielPrise(now){
    la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
    lente ; le doigt l'interrompt). TRAÎNÉES 3,5 (trois-quarts arrière) · PEINTURE ,42 (trois-quarts avant) · AILES 1,2 (de profil). */
-const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2};
+const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2,figure:1.25}; // (FIGURES : de profil, on voit les saltos)
 function garTourneVers(a,D){if(!garageOn||GAR.go)return;const a0=garageAng,T=2*Math.PI,d=((a-a0)%T+T*1.5)%T-T/2;if(Math.abs(d)<.02)return;GAR.angTw={a0:a0,d:d,t:0,D:D||.9};}
 function shopTab(tab){
   if(SHOP_CATS.indexOf(tab)<0)tab='voiture';
@@ -43533,6 +43633,7 @@ function shopTab(tab){
 function shopShow(cat,i){
   const L=COSM[cat];i=((i%L.length)+L.length)%L.length;
   SHOP.i[cat]=i;SHOP.prev={cat:cat,i:i};
+  if(cat==='figure'&&garageOn)try{garFigEssai(L[i].id);}catch(e){} // (2026-10-14) la caisse FAIT la figure qu'on regarde
   const eqC=equippedCar();garageI=eqC;buildCar(CARS[eqC]);
   const d=L[i],a=shopOwned(cat,d.id),eq=shopEqD(cat)===d,Lg=LANG==='zh'?2:LANG==='en'?1:0;
   gNomEntre(TR(d.n));
@@ -43556,6 +43657,7 @@ function shopShow(cat,i){
     bt.style.display=(!a&&d.p)?'none':'';
     bt.disabled=false;
     if(!a)gEtat(bt,'verrou','verrou','À GAGNER');
+    else if(cat==='figure')gEtat(bt,'eq','coche','ACQUISE'); // (2026-10-14) une figure à toi joue d'office
     else if(eq)gEtat(bt,'eq','coche','ÉQUIPÉE');
     else gEtat(bt,'',null,'ÉQUIPER');
   }
@@ -43600,11 +43702,12 @@ function gStripHabits(cat,i){
       if(cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;
         fig='<i class="gSwc'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
+      else if(cat==='figure')fig='<i class="pxi pxi-rotation gIc" style="color:'+(a?rarInfo(cosmRar(cat,d)).c:'#6c6390')+'"></i>'; // (2026-10-14) une FIGURE
       else fig='<i class="pxi pxi-aile gIc" style="color:'+(a?'#dff6ff':'#6c6390')+'"></i>';
       const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
-      return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
+      return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
@@ -45593,6 +45696,7 @@ function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; /
     V=T.filter(function(k){return k[0]==='v'&&!pr(k)&&bqValide(k);}).slice(0,3),C=T.filter(function(k){return k[0]!=='v'&&bqValide(k);}).slice(0,3),L=[];
   for(let i=0;i<3;i++){if(V[i])L.push(V[i]);if(C[i])L.push(C[i]);}return GBQ.sem={w:w,l:L};}
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
+  if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
   if(o.cat==='peinture')return '<i class="bqSw" style="background:'+(d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi('aile');}
@@ -45605,8 +45709,8 @@ function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sans
    · en-tête : BOUTIQUE et, juste à côté, l'argent ; dessous en petit ce qu'on regarde ; couché, la boutique monte jusqu'en haut à droite ;
    · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, le 2e les OFFRES ;
    · la colonne de gauche, qui défile : CETTE SEMAINE — trois caisses et trois habillages tirés sur la semaine (bqSemaine). */
-const BQ_CATS=[['voiture','VOITURES','voiture'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee']];
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+const BQ_CATS=[['voiture','VOITURES','voiture'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee'],['figure','FIGURES','rotation']]; // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+fmtC(d.p);c='pc';}else{px=sansAcc(TR('DÉFI'));c='defi';}
@@ -45694,7 +45798,8 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
 }
 function bqSkins(k){if(!k)return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris
   return [{id:'original',n:'ORIGINAL',c:'linear-gradient(135deg,#fff,#d9dde3)'}];} // (2026-10-12) aucun skin n'est encore dessiné : chaque voiture, aile, traînée a son ORIGINAL
-function bqEssaie(k){ // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
+function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai(k.slice(7));try{gShopJour();}catch(e){}GBQ.ck='';return;}GBQ.figK=null; // (2026-10-14) une FIGURE : la caisse la fait sur le plateau
+  // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)bqOutil(o.cat,'essai',o.d,function(){shopShow(o.cat,j);try{gShopJour();}catch(e){}});} // (2026-10-13) LES BRAS D'ATELIER posent la pièce (voir bqOutil)
   try{gShopJour();}catch(e){}GBQ.ck='';}
@@ -45704,15 +45809,36 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
     if(eq)return {e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
     if(u.k==='premium')return {e:'achat',t:'ACHETER',p:eurTxt(u.eur)};if(u.p)return {e:'achat',t:'ACHETER',p:fmtC(u.p)};return {e:'defi',t:'À GAGNER'};}
-  const o=bqCos(k),d=o.d;if(!d)return null;const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
+  const o=bqCos(k),d=o.d;if(!d)return null;
+  if(o.cat==='figure')return figPossede(d.id)?{e:'eq',t:'ACQUISE'}:{e:'achat',t:'ACHETER',p:fmtC(d.p)}; // (2026-10-14) une figure : on l'a, ou on l'achète
+  const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.p)return {e:'achat',t:'ACHETER',p:fmtC(d.p)};return {e:'defi',t:'À GAGNER'};}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
+  if(s.e==='achat'&&k.indexOf('figure:')===0){figAchete(k.slice(7),bt);return;} // (2026-10-14) acheter une FIGURE
   if(s.e==='achat'){const b=$('gBuy');if(b)b.click();return;}
   if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
   if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);bqOutil(o.cat,'retire',o.d,function(){if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{gShopJour();}catch(e){}});try{hap(6);}catch(e){}return;}
   if(s.e==='defi'){if(bt)gSecoue(bt);uiClic('refus');if(k[0]==='v')toast(pxi('verrou')+' '+String(carUnlockText(+k.slice(2))).replace(/</g,'&lt;'));return;}
   try{hap(6);}catch(e){}}
+/* LES FIGURES AU SHOP ET À L'INVENTAIRE (2026-10-14) — possédées : SAVE.d.figs ; achetées en pièces (la banque) ; toucher = la caisse la fait */
+function figAchat(i){const d=COSM.figure[i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};if(figPossede(d.id))return {ok:false,raison:'deja-possedee'};
+  if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
+  SAVE.d.bank=bank()-d.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(d.id);SAVE.flush();return {ok:true,paye:d.p};}
+function figPossede(id){if(cousin())return !!(window.FIG&&FIG.par[id]); // (2026-10-14) LE CODE COUSIN : toutes les figures
+const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);}
+function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))return false;
+  if(bank()<f.p){if(bt)gSecoue(bt);uiClic('refus');toast(pxi('piece')+' '+sansAcc(TR('IL MANQUE'))+' '+fmtC(f.p-bank()));return false;}
+  SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(id);SAVE.flush();
+  try{if(SONV2)sfx('ui.achat');}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id);return true;}
+const GFIG={lect:null,t:0,D:0};
+function garFigEssai(id){const f=window.FIG&&FIG.par[id];if(!f)return;if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
+  try{if(SONV2)sfx('fig.vrille',{st:2});}catch(e){}}
+function garFigTick(dt){const L9=GFIG.lect;if(!L9||!L9.occupe())return;L9.tick(Math.min(dt,.05));GFIG.t+=Math.min(dt,.05);
+  const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,lev=1.5*Math.sin(Math.PI*x); // elle saute du plateau, tourne, se repose
+  carGroup.position.y+=lev;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
+  VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
+  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):'')):'';}
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
@@ -46119,7 +46245,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;garArgentMaj(); // (2026-10-01) les tas de billets suivent le compte (une comparaison par image)
   garPorte(dt);garFeu(dt);garBeaute(dt,t9); // (2026-09-30) la PORTE (fermée au menu, ouverte au JOUER) ; le rideau de flammes : il brûle au repos, il RUGIT pendant le lâcher
-  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true;try{garBqIndus(dt,ay,t9);}catch(e){} /* (essai) LA BOUTIQUE INDUSTRIELLE */ // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
+  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true;try{garBqIndus(dt,ay,t9);}catch(e){}try{garFigTick(dt);}catch(e){} /* (essai) LA BOUTIQUE INDUSTRIELLE · (2026-10-14) la FIGURE essayée */ // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
@@ -47181,10 +47307,12 @@ try{const b9=document.querySelector('#gOutils [data-go="set"]');if(MENU_SACHA&&b
    `dbgInv()` : état · `dbgInv('ouvre'|'ferme')` · `dbgInv('cat','peinture')`. */
 var INV={on:false,cat:'voiture',hold:null,mange:null,raf:0,D0:.12,D:.45};
 const INV_RANG={infini:6,mythique:5,legendaire:4,epique:3,exotique:2,defi:2,rare:1,commun:0},INV_LUEUR={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1};
-function cosmRar(cat,d){if(!d)return 'commun';if(d.mis)return d.mis>=8?'epique':d.mis>=6?'exotique':'rare';if(!d.p)return 'commun';return d.p<=5000?'rare':'epique';}
+function cosmRar(cat,d){if(!d)return 'commun';if(cat==='figure')return !d.p?'commun':d.p<=4000?'rare':d.p<=12000?'exotique':d.p<=25000?'epique':'legendaire'; // (2026-10-14) une figure : sa rareté suit son prix
+if(d.mis)return d.mis>=8?'epique':d.mis>=6?'exotique':'rare';if(!d.p)return 'commun';return d.p<=5000?'rare':'epique';}
 function invListe(cat){
   if(cat==='voiture'){const eq=equippedCar(),L=[];for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&(i===eq||carUnlockedVrai(i)))L.push({cat:cat,i:i,r:carRar(i),eq:i===eq});
     return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||(carOrdre(b.i)-carOrdre(a.i));});}
+  if(cat==='figure'){const L=[];if(window.FIG)FIG.liste.forEach(function(f,j){if(figPossede(f.id))L.push({cat:cat,i:j,d:f,r:cosmRar(cat,f),eq:true});});return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});} // (2026-10-14) toutes JOUENT (le double-tap tire au hasard parmi elles)
   const e=shopEqD(cat),L=[];COSM[cat].forEach(function(d,j){if(shopOwned(cat,d.id))L.push({cat:cat,i:j,d:d,r:cosmRar(cat,d),eq:e===d});});
   return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});
 }
@@ -47202,6 +47330,7 @@ function invRender(){
       else{const d=o.d;nm=TR(d.n);
         if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
         else if(o.cat==='trainee')fig='<i class="ivRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
+        else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
       const nmA=sansAcc(String(nm)).replace(/"/g,'');
       return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+pxi('coche')+'</u></div>';}).join('');
@@ -47228,6 +47357,7 @@ function invFerme(sec){
 }
 function invEquipe(i,el){
   if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;
+  if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f)garFigEssai(f.id);hap(8);return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau
   if(cat==='voiture'){if(i===equippedCar()){hap(8);return;}if(!carUnlocked(i))return;
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
   else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){hap(8);return;}if(!shopEquip(cat,i))return;
@@ -49190,7 +49320,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;veqTonneau();} // LE TONNEAU (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;veqDouble();} // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
@@ -49465,7 +49595,6 @@ function loop(now){
            plot était un fantôme. Un plot traversé EN UNE image se juge désormais dans cette image-là (choc, sinon frôlé juste en dessous). */
         const e9=balEcart(c9.s,2.6,sDe9,s,lDe9,lat,side*c9.lat);
         if(e9<Infinity)c9.dm=Math.min(c9.dm==null?9:c9.dm,e9); // l'écart le plus serré vu pendant le passage
-        if(e9<1.6&&VEQ.saut&&hopY>1.25){if(!c9.saute){c9.saute=true;VEQ.plots++;}continue;} // (2026-10-14) LE TONNEAU au sol passe PAR-DESSUS le plot
         if(e9<1.6){
           c9.hit=true;
           const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
@@ -49487,7 +49616,7 @@ function loop(now){
       if(fr9)frole(fr9,fd9,fk9);
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
-      if(mode==='drive'&&oilCd<=0&&!(VEQ.saut&&hopY>.5))for(const o9 of OILS){ // (2026-10-14) en plein TONNEAU, on survole l'huile
+      if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
         if(o9.face!==side)continue; // chaque flaque vit sur SA face
         if(balEcart(o9.s,o9.r+2,sDe9,s,lDe9,lat,side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus) — (BALAYAGE) sur le trajet de l'image : à 30 i/s, une flaque de 2 m sautait au-delà de ~860 km/h
           slipT=.75;oilCd=1.2;
@@ -49551,7 +49680,7 @@ function loop(now){
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
            const pv=carBody.userData.pivY||.45;
            if(SENS){SCOUP.pv+=(-SCOUP.p*169-SCOUP.pv*13)*d9;SCOUP.p=THREE.MathUtils.clamp(SCOUP.p+SCOUP.pv*d9,-.14,.14);} // (2026-10-14, sensations) le ressort des COUPS de tangage (ω 13, amorti .5) : voir sensCoup
-           carBody.rotation.set(pitch9+SCOUP.p,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
+           carBody.rotation.set(pitch9+SCOUP.p+veqConduite(d9),0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
         }
         /* (2026-09-28) LA SUSPENSION : la réception, le dos d'âne, le bump écrasaient TOUTE la caisse (`carGroup.scale`) — roues comprises,
            qui devenaient ovales, comme du caoutchouc. Désormais la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) : elle se tasse,
@@ -49560,7 +49689,6 @@ function loop(now){
          susV+=((-sq*.17-susY)*230-susV*16)*d9;susY=THREE.MathUtils.clamp(susY+susV*d9,-.26,.12);
          const pv=carBody.userData.pivY||.45;carBody.position.y=pv-pv*Math.cos(carRoll9)+susY;}
         carGroup.scale.set(1,1,1);
-        veqTonneauPose(dt); // (2026-10-14) LE TONNEAU au sol : le saut tourne autour du milieu de la caisse
         ROUES.v=vF*SPD; // (2026-09-26) la vitesse du SOL sous les pneus : carVit fait tourner chaque roue à v ÷ R (+ flou de jante)
         // ombre
         shadow.material.opacity=0; // (2026-09-25) .10 → 0 : ce disque à bord NET se lisait comme une tache sombre autour de la caisse — l'ombre portée (shadow map) et le blob de contact doux suffisent // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
@@ -49759,6 +49887,7 @@ function loop(now){
             camera.rotateZ(a9*.03*Math.sin(t*27+.7));}
           shake=Math.max(0,shake-3.5*dt);
         }
+        veqCamera(dt); // (2026-10-14) la caméra s'enfonce sous le choc de la pose
         // VIBRATION DE VITESSE — RELATIVE à la caisse : ça frémit dès ~45 % de TA vmax (une LA HONTE
         // à fond doit trembler autant qu'une COMÈTE à fond), puis le PLANÉ SUPERSONIQUE calme tout :
         // passé ~350 km/h affichés, l'air ne lutte plus, la caisse fend — les vibrations fondent à 30 %.
@@ -49969,10 +50098,9 @@ function loop(now){
        if(JEAU.wB>.01){const r0=Math.round(airRoll/6.2832)*6.2832;airRoll+=(r0-airRoll)*Math.min(1,dt*3.5*JEAU.wB);}}
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
-      if(VEQ.qaOk)carGroup.quaternion.copy(VEQ.qa); // (le tonneau se pose par-dessus : on lisse l'assiette sans lui)
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       }
-      veqTonneauPose(dt); // LE TONNEAU (double-tap nitro), par-dessus l'assiette
+      veqFigurePose(dt); // LES FIGURES (double-tap nitro en vol), par-dessus l'assiette
       if(SENS&&(JEAU.dans||SEAU.pose))try{sensEau(dt);}catch(e){} // (2026-10-14, sensations) L'EAU SE SENT : le bouchon, le bouillon, le creux du plongeon (voir SEAU)
       shadow.position.y=-99999;
       /* ===== LA CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE (2026-09-28, soir, Sacha : « la caméra en air time déconne
@@ -51895,6 +52023,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(!r.v)return;
         if(SAVE.import(r.texte.trim())){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);}
         else toast(pxi('croix')+' '+TR('CODE INVALIDE')); }); }
+    else if(a==='code'){ /* LE CODE COUSIN (2026-10-14, Léo) — voir codeCousin */
+      modale({titre:'ENTRER UN CODE',texte:'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
+        if(!r.v)return;
+        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'));try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
+        else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
