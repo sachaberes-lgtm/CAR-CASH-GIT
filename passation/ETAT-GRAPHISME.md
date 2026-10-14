@@ -3,10 +3,24 @@
 Branche `gfx-integration` (worktree `C:/Users/sacha/Documents/GitHub/CCG-gfx-integration`). Je pousse moi-même sur main (protocole PILOTAGE : fumée → cc-push.lock → merge → syntaxe + garde → push → recopie Downloads → « POUSSÉ »).
 La passation longue (règles, plafonds de la charte, outils dbg) reste `passation/GRAPHISME.md`.
 
-## ⭐ ORDRES DE SACHA EN ATTENTE (17 h 10, par PILOTAGE) — à prendre dans cet ordre
-1. « Garde quand même la première map de la VILLE avec les NÉONS ROSES, elle était bien. » Rétablir ses néons roses d'avant mes passes, sur cette map SEULEMENT.
-   Pistes : `?sans=bords` (fin du néon de bord : les bandes roses de la route, accent ville `0xf24aa0` dans `accC`), `?sans=neon` (néon résiduel), `?sans=ville2` / étalonnage ville (pluie, villeSoir…). Comparer ces interrupteurs au banc pour trouver ce qui a éteint le rose, puis exclure CETTE map du correctif. Capture avant/après à PILOTAGE AVANT de pousser.
-2. « Les maps VILLE sont toujours assez bof à la lumière du jour. » Villes de JOUR (villeMatin, villeMidi) : lumière, couleurs, matières, ciel, ombres, SANS ajouter d'éléments ; saturé et contrasté façon GTA 6 Vice City, jamais délavé ni gris. Planche avant/après de chaque ville de jour (debout et couché) à PILOTAGE avant toute poussée. (Contredit en partie mes lignes VILLE2 de jour, désaturées : sat .98-1.02 → à remonter.)
+## ⭐ MISSION PRINCIPALE : LA BIBLE CAR CASH (`passation/DA-CARCASH.md`, VALIDÉE par Sacha) — état au 14/10, 20 h 15
+- Le trio NÉON ROSE / OR / LAQUE BLEU NUIT + la SIGNATURE DE ROUTE commune : `routeSig()` (bords et nappe roses, ligne centrale or, accent rose) + `SIG_V`
+  (un interrupteur par map). Contre-jour rose (`kickC`) sur toutes les maps passées à la bible.
+- POUSSÉ (8ce8520f) : ville au néon rose (`?sans=villerose`), villes de jour (`?sans=villejour`), CANYON DES GÉANTS sur main (fusionné avec forêt, banquise et volcan ; `?sans=canyon2`).
+  Planches : `passation/graphisme-ville-rose.jpg`, `graphisme-villes-jour.jpg`, `graphisme-canyon.jpg`.
+- COMMITÉ sur gfx-integration, fumée en cours puis push : nuages de jour (`?sans=nuagesjour`, copies de course nuagesMatinCC/nuagesMidiCC : le menu ne bouge pas),
+  jade (`?sans=jade2`, soir et forme de Léo intacts), forêt (`?sans=foret2`), orbite (`?sans=orbite3`, expo +15 %), banquise et volcan (`?sans=banquise2` / `volcan2`).
+  Planche nuages : `passation/graphisme-nuages-jour.jpg` ; jade/forêt/orbite : banc `shots/jfo/` du scratchpad (mur.cjs).
+- POUSSÉ aussi 87b22350 (cache v413) : nuages de jour, jade, forêt, orbite, banquise, volcan.
+- POUSSÉ ensuite (21 h 40) : e4ccd87a (v419) cumulus nuit/pluie/orage + banquise ; 98961b11 (v420) VILLE LA NUIT EN ROSE (nuit, orage, pluie : `villeRose()`),
+  CIEL DU CANYON réparé (le masque du disque solaire était inversé : `?sans=cysoleil`), béton de l'orbite ; 032f2361 (v422) NUAGES DE NUIT EN CLAIR DE LUNE (`?sans=clairdelune`).
+  Planches : graphisme-ville-nuit-rose.jpg, graphisme-canyon-ciel.jpg, graphisme-orbite-ab.jpg, graphisme-cumulus.jpg, graphisme-nuages-nuit-lune.jpg.
+- RESTE, dans l'ordre : (1) l'ORAGE de la ville encore peu rose : son plafond de nuages lilas/éclair a été retiré par `NEON_V` à la COMPILATION (l. ~9364/9367,
+  le plafond sous la pluie) → il faut un uniforme pour le rendre à la ville seule ; (2) le MIDI du canyon peut-être trop saturé (ciel chroma 88) : baisser `cyZ`/`cyM`
+  de canyonMidi si Sacha le juge ; (3) la LUNE du titre la nuit : la direction en uniforme ne suffit pas (essai retiré) → vérifier si le ciel du titre dessine
+  `cielLune` (variante du shader) et si `titreCiel` est appelé la nuit ; (4) MONTAGNE / toute nouvelle map : routeSig + contre-jour rose + plafonds de la bible.
+- Pièges vus : `</style>` collé dans un commentaire (fusion boutique-pop) = CSS affiché en texte ; les fusions de maps se percutent toujours aux mêmes endroits
+  (ctrl, build*, SF_NIV, SF_CARTES, chauffe, musique, CAUSES, accC) : garder tous les côtés (script `resout_volcan.py` du scratchpad) ; motif du cache dans sw.js.
 
 ## Poussé sur main (18d585e, cache v384)
 - AURORE sobre = 1re image de l'auto-école (`?sans=aurore2`) : route L* 63 sable → 41-43 gris, ciel bleu pâle, horizon b* +22 → +12.
@@ -15,8 +29,8 @@ La passation longue (règles, plafonds de la charte, outils dbg) reste `passatio
 - Pots d'échappement recalés sur les poupes de Léo : BAVAROISE, ELDORADO, DAYTONA (y relevé), AIGLE DE FEU (mesure node `pots.js` de GENERAL, rien vu à l'écran).
 - LA PALETTE, couche données (`?palette=0`) : 40 peintures dans COSM.peinture APRÈS les 17. 30 en grille (pastels / francs / métallisés × 10 teintes) + 10 secrètes (sec:id, masquées « ? ? ? » + indice tant qu'elles ne sont pas gagnées). PACK à 0,99 € qui donne les 40 (`PALETTE_PACK`, produit `cashcar.palette40`, via shopPaye seulement → palDonne). `secDonne(id)` = « DÉFI RÉUSSI · COULEUR … » (appelée par GAMEPLAY, commit 0d7cb23 de sa branche). Finitions neuves sans programme de plus : `k` MÉTALLISÉ, `n` NACRE (LP_MAT).
 
-## Commité, PAS ENCORE POUSSÉ (à pousser en premier)
-- 717f847 : MÉTALLISÉS recalés à la mesure (entrées ÷1,8 : la tôle métallisée rend ~2× plus clair que la laque) + VERT BILLET / LAGON / CITRON sans fluo. Fusion origin/main faite (b8c017a, sans conflit) ; la fumée `cc-banc/fumee.cjs` était en file. Cache : main est à v386 → mettre v387.
+## Poussé ensuite (bdcaea8, cache v391, 17 h 20)
+- MÉTALLISÉS recalés à la mesure (entrées ÷1,8 : la tôle métallisée rend ~2× plus clair que la laque) + VERT BILLET / LAGON / CITRON sans fluo.
 - Planches pour le quiz de Sacha : `passation/graphisme-palette-villeMidi.jpg` et `…-villeSoir.jpg` (SA MAJESTÉ, LA BULLE ; ville jour / soir).
 
 ## En suspens
