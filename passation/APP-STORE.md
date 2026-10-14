@@ -1,5 +1,7 @@
 # MISE À JOUR — 14/10, 17 h 40 : LES MISES À JOUR EN DIRECT (oui de Sacha) · le jeu sera figé dans ~1 mois (Sacha)
-- Sacha a accepté le nouveau contrat Apple (bandeau disparu) ; le bandeau « statut de commerçant UE » est encore là à 17 h 30.
+- Sacha a accepté le nouveau contrat Apple. 18 h 15 : DÉCLARATION DSA faite (statut COMMERÇANT, choix de Sacha ; EI SIREN 104 067 996,
+  adresse de l'attestation RNE, +33 6 51 96 89 02, 16180contact@gmail.com ; justificatifs chargés par Sacha) → « En cours de vérification »
+  (27 pays UE). Ces coordonnées seront PUBLIQUES sur la fiche dans l'UE une fois validées.
 - Module `@capgo/capacitor-updater` 8.52.1 (mode manuel, stats COUPÉES) + `natif.js` partie 7 + `publier-maj.js` (branche
   `app-maj` du dépôt public, fichiers rangés par sha256, latest.json) + `www/maj.json` (version = commit-empreinte). Manifeste de
   confidentialité : + C617.1 (FileTimestamp) et E174.1 (DiskSpace). Mode d'emploi : `app-ios/LISEZ-MOI.md`.
