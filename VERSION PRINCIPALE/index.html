@@ -36526,7 +36526,7 @@ const SAVE={
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
     if(!d||typeof d!=='object')return c;
-    c.best=Math.max(0,Math.round(+d.best)||0);
+    c.best=Math.max(0,Math.min(1e30,Math.round(+d.best)||0)); // (2026-10-14, chasse aux bugs) borné comme la banque : un code importé à « 1e999 » posait un record INFINI (« Infinity » à l'écran, puis null → 0 au flush suivant)
     // ⚠ `equipped` NE SE BORNE PLUS À `bestCar` (2026-08-05). Ce clamp datait de l'époque où les
     // caisses se gagnaient DANS L'ORDRE : `bestCar` était alors le plus haut index atteint, donc un
     // plafond valable. Depuis que chaque caisse a sa condition — et surtout depuis que les trois
