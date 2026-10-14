@@ -10012,6 +10012,7 @@ const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shad
 let POST_EXPO=0.71;        // exposition BASSE : la nuit gagne — le sol s'éteint pour que nitro/boost/phares RAYONNENT dessus (let : les BIOMES la pilotent, le contre-jour la relit chaque frame)
 const POST_SAT=1.40;       // SATURATION forte : néons Vice City (valeur d'init — les biomes écrivent acesPass.uniforms.uSat en direct)
 const POST_CONTRAST=1.23;  // CONTRASTE : noirs profonds, hautes lumières franches
+let POST_PIVOT=.5;          // (2026-10-14, passe graphismes · chaîne de couleur) le PIVOT du contraste. À .5 (l'image d'avant, au bit près) tout ce qui sort de l'ACES sous ~.14 est écrêté à 0 dès que le contraste dépasse 1,3 : des noirs BOUCHÉS (seuil = 25 à 35/255 en valeur de scène). Plus bas (.35) les ombres gardent leur dégradé — mais toute l'image monte de (con−1)·(.5−pivot) : à régler avec l'exposition. INTERRUPTEUR ÉTEINT (.5) : `dbgGfx({pivot:.35})` pour essayer à chaud ; uniforme `uKC` calculé en JS, coût nul.
 const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
 const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
@@ -10314,7 +10315,7 @@ if(CAN_POST){ try{
    acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
-     U9.uKC.value.set(U9.uContrast.value,.5-.5*U9.uContrast.value);      // …et le contraste en pente + décalage
+     U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
      return THREE.ShaderPass.prototype.render.apply(this,arguments);};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
@@ -10823,6 +10824,7 @@ window.dbgGfx=function(o){
   if(o){if(o.coeur!=null)GFX_U.uCoeur.value=o.coeur===true?1.16:(+o.coeur||1);if(o.glace!=null)GLACE.k=o.glace===true?1:+o.glace;
     if(o.cotonOpaque!=null&&COTON.mat){COTON.mat.transparent=!o.cotonOpaque;COTON.mat.depthWrite=true;}
     if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
+    if(o.pivot!=null)POST_PIVOT=+o.pivot; // (2026-10-14, chaîne de couleur) le pivot du contraste, à chaud (.5 = l'image d'avant)
     if(o.haloNorme!=null&&bloomPass)bloomPass.norme=!!o.haloNorme; // (2026-10-14, chaîne de couleur) le halo à largeur d'écran constante, à chaud
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
