@@ -26,7 +26,8 @@ Un seul créneau de banc par session. REPORTÉ par PILOTAGE (fin de séance du 1
   (verre bleu / acier / béton clair / sombres) dans la boucle `colT` de buildVoxCity, GRUES (genre 3 rouge, 4 jaune) dans `batir()`, enseignes jaunes (NEON 0 et 4),
   `CITY.uPied` (voile violet au pied des tours : 1 la nuit, .12 de jour), le VERRE DE JOUR qui reflète le bleu du ciel (il divisait la tour par 2 + horizon crème = beige),
   béton de jour neutre, ciel azur → pêche pâle (jSol et sunHalo bas). Planche : graphisme-metropole.jpg. Sonde utile : `sonde-ville.cjs` (couleurs d'instance réelles).
-- RESTE, dans l'ordre : (1) l'ORAGE de la ville encore peu rose : son plafond de nuages lilas/éclair a été retiré par `NEON_V` à la COMPILATION (l. ~9364/9367,
+- FAIT 15/10 (train) : l'ORAGE DE LA VILLE EN ROSE (`?sans=plafrose`) : la ligne `VILLE2_V` (ardoise) écrasait l'orage rose → sautée en ville au néon ; plafond de nuages lilas + éclair violet rendus par l'uniforme `skyU.uRose` (posé dans `bordsTick`). Planche : graphisme-ville-orage-rose.jpg.
+- RESTE (ancienne liste, (1) fait) : (1) l'ORAGE de la ville encore peu rose : son plafond de nuages lilas/éclair a été retiré par `NEON_V` à la COMPILATION (l. ~9364/9367,
   le plafond sous la pluie) → il faut un uniforme pour le rendre à la ville seule ; (2) le MIDI du canyon peut-être trop saturé (ciel chroma 88) : baisser `cyZ`/`cyM`
   de canyonMidi si Sacha le juge ; (3) la LUNE du titre la nuit : la direction en uniforme ne suffit pas (essai retiré) → vérifier si le ciel du titre dessine
   `cielLune` (variante du shader) et si `titreCiel` est appelé la nuit ; (4) MONTAGNE / toute nouvelle map : routeSig + contre-jour rose + plafonds de la bible. (5) Les GRUES de la métropole : à vérifier EN VOL au-dessus des toits (densité `metroH<.11`, `.07` téléphone ; taille du mât 36-76 m, flèche 46-82 m) — rarement dans le cadre du banc au sol.
