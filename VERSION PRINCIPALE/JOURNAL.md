@@ -3,6 +3,70 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 : « façon Subway Surfers », contre de l'argent du jeu — barème de GAMEPLAY, plaque d'INTERFACE)
+À la mort, UNE fois par partie, l'écran de fin propose de CONTINUER (bloc `CHANCE`, juste avant `finSonsCoupe`). Payé sur le COMPTE,
+jamais en euros ni en pub. **Prix** = k × l'encaissé de la partie (`money − START_CASH`), avec k = 0,5 jusqu'à 3 min, puis +0,05 par
+minute, plafond 0,8. Minimum 300 $, arrondi à deux chiffres (`chanceJoli`). Pas d'offre sur une partie de moins de 20 s, si le compte
+ne couvre pas le prix, au bac à sable, à l'auto-école, au parc, au Survivant, ni sur une fin de règle (endGame sans explosion).
+L'offre **s'éteint seule** 5,5 s après endGame, sans chrono affiché (INTERFACE : pas de fausse urgence). Quitter l'écran la ferme aussi.
+**La reprise** (`chanceJoue` → `chanceRepart`, sous le volet) : la caisse retombe sur la dernière route sûre (`respawn`). Elle garde la
+zone et le compteur, mais le MOTEUR perd un palier (`moteurPerte`, ses pièces avec : GAMEPLAY, pour casser la pente ≈ T^2,1 de l'argent).
+Puis 3 · 2 · 1 avec le prix sous le « 3 », et 3 s de BOUCLIER où la caisse clignote (`chanceTick` dans la porte de simulation).
+Pendant le bouclier, un choc est ignoré et une chute replace sans frais (`chanceProtege`, en tête d'`explode`). 2 s de nitro offerte.
+**La comptabilité** : endGame a déjà versé la 1re moitié. On ne rembourse rien, on décale les BASES : `chanceBase()` (argent),
+`CHANCE.a0` (aura) et `CHANCE.rs` (figures, gaps, bumps, survie), relues par commitExploits et enCoursPose. `ex.runs` ne compte
+qu'une partie. La ligne du Top 10 de la 1re fin est retirée (le score final la remplace). ⚠ La reprise n'appelle JAMAIS
+`runxReset` ni `resetGame` : l'argent du début (ECOD), le ×2 du jour et les défis secrets (SEC) de GAMEPLAY y vivent.
+**Contrat** : `chanceEtat()` → {ok, prix, reste}, `chanceJoue()`, `chanceRefuse()` et `chanceAttend()` (pour le FINAL SPIN d'IDEE,
+qui passe APRÈS l'offre), et l'événement `cc:chance` sur document (ouverture, extinction, achat). `?chance=0` coupe tout.
+Banc : `dbgChance()` · ('mort') · ('joue') · ('t',s) · ('$',n) · ('choc'). Mesuré : prix 1 100 à 4 min pour 2 000 $, compte
+débité, Top 10 remplacé, runs = 1, choc ignoré sous bouclier, 2e mort sans offre, partie courte sans offre, extinction à 5,5 s.
+Effet estimé sur le revenu par minute d'un BON joueur (mort à 6 min, prix 9 750 $) : −18 % s'il survit 2 min de plus, +25 % s'il
+en survit 4, +65 % s'il en survit 6. À juger sur de vraies parties.
+
+## LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 + LE CODE COUSIN SANS LE PAYANT (2026-10-14)
+- **Point 7, l'eau du Soleil de jade** : `JEAU.wB` repart de zéro au décollage et au `respawn` (il restait vers 1 et coupait la
+  vrille du saut suivant). Le rebond plonger / jaillir s'amortit (`EAU.amorti` .85 par plongeon du même vol) et seuls les 4 premiers
+  paient (`EAU.paye`) : avant, la caisse rebondissait SEULE en payant REPLONGEON + HORS DE L'EAU sans fin. `jadeEauRamene` fige
+  l'élan (`fallVel`/`fallPos`) : la suite de la branche du vol la remettait dans l'eau. « HORS DE L'EAU » retrouve son apostrophe.
+- **Point 13** : le billet ₿ de la pluie d'argent ne porte plus CRYPTOCITY / BULL RUN (le niveau est retiré) : CASH CAR · 1 BITCOIN.
+- **Point 14** : `FLOW.poseA` était collé derrière un `//` dans tryLand, donc jamais écrit. Et `endGame` éteint la nitro : le DOGE
+  gardait sa gueule de nitro ouverte au garage.
+- **Code cousin** (Sacha : « il ne débloque PLUS rien de ce qui se paie en euros ») : `carEuros(i)` exclut les caisses premium / en €
+  de `carUnlockedVrai`. La photo des caisses acquises se refait au moment du code, ce qui évite une fanfare de 70 caisses.
+
+**La carte de l'auto-école passe dans la CHARTE 6 d'INTERFACE** (bloc en fin de `<style id="ecoleV2">`, sous `html.c6`). Même carte,
+mêmes gestes, mêmes films, mais À PLAT : l'encre, un filet blanc de 2 px et une épaisseur noire de 4 px, sans dégradé, sans lueur
+et sans coin coupé. Le mot est en pixel (≥ 16 px), le reste en police système. Le film passe à 56 px (`zoom:.737`) et la carte à
+~74 px : elle ne cache plus la caisse. Réussi = filet de 4 px, raté = filet rouge. Banc : couché FR et debout EN, 0 erreur, permis +500.
+
+## L'AUTO-ÉCOLE v2 — PLUS BELLE, PLUS ANIMÉE, PLUS CLAIRE + L'ÉTAPE FIGURE (2026-10-14, Sacha : « refais le tutoriel, il est un peu intimidant, il n'est pas très beau ; mets plus d'animation, plus de trucs clairs ; rajoute un truc pour leur apprendre à faire des figures ; les carrés qui donnent des instructions pourraient être plus animés, plus clean, plus clairs »)
+Avant (capturé) : un rectangle sombre, un en-tête « AUTO-ÉCOLE · 1/5 PASSER », un titre, une phrase de deux lignes, une barre, une
+petite icône — du texte figé au milieu de l'écran, cinq étapes, rien sur les commandes elles-mêmes.
+**La carte v2** (`#coach.v2`, `<style id="ecoleV2">` juste après `passeMobile`) : à gauche un PETIT FILM du geste en pixels qui tourne
+en boucle (`TUTO_FILMS` : la route qui file et la caisse qui va et vient sous le pouce ; le doigt tenu sur NITRO et la caisse qui
+crache le feu ; la route qui s'arrête net et la caisse qui part en l'air ; le vol sur la flamme ; la caisse qui se pose dans l'anneau
+qui flambe en or ; deux tapes « ×2 » et la caisse qui saute en tonneau) ; à droite UN MOT en or qui arrive lettre par lettre
+(`tutoMot`), UNE ligne courte où les mots à retenir sont surlignés (`*mot*`) et les touches dessinées (`[ESPACE]`) — `d` au doigt,
+`dk` au clavier (« pouce » ne veut rien dire au clavier) ; six pastilles ; PASSER au coin (toujours en deux temps : « VRAIMENT ? »).
+Un reflet passe sur la carte. Réussite : elle vire au VERT, le mot devient l'éloge (BIEN ! · PARFAIT ! · ÇA DÉCOLLE ! · TU VOLES ! ·
+POSÉ ! · STYLÉ ! — le seul rebond de la carte : c'est une célébration), la coche claque sur le film, la pastille se remplit, les
+confettis partent ; puis elle s'efface et la suivante descend. Raté : elle TREMBLE et l'en-tête dit pourquoi en rouge (2,6 s).
+**L'accueil** (`TUTO_ACCUEIL`) : la toute 1re carte rassure — « 6 gestes. Ici, impossible de perdre ! » — 2,4 s pendant lesquelles
+la leçon n'exige rien (`.intro`).
+**La main fantôme** (`#ecMain`, `tutoMain`) fait le geste LÀ où il se fait : sur le cercle du volant au repos (le `::after` de
+`#tSteer` ; sous le doigt, `#tStick`) elle glisse de gauche à droite entre deux flèches (TOURNE) ou pousse vers le bord (DÉCOLLE) ;
+sur `#tNitro` elle appuie et tient avec une onde (NITRO, VOLE) ou tape deux fois avec un badge « ×2 » (FIGURE). Elle s'efface quand
+le joueur fait déjà le geste (`TCTL.act`, `nitroOn`), au clavier, en pause, quand une grande carte passe en haut. Repositionnée 4×/s.
+**L'étape FIGURE** (6e, une fois posé) : le double-tap NITRO — au sol la caisse SAUTE et fait sa figure. Il était FERMÉ pendant toute
+la leçon (`veqDouble`) : il ne s'ouvre qu'à cette étape (`tutoFigOuverte()`, que GAMEPLAY lit aussi pour ses boutons de figure en vol,
+FIGURES v2). Réussie = une figure plantée ; accordée après 3 sauts. La leçon se finit LES ROUES SUR LA ROUTE : une figure faite en
+l'air hors de la route terminait la leçon en plein vol, et le joueur explosait juste après « PERMIS OBTENU » (vu au banc) — on attend
+la pose (vol infini), replacée au bout de 8 s. Un crash à l'étape FIGURE n'y renvoie plus à DÉCOLLE.
+**Sous la pause et les réglages** (vu par INTERFACE) : carte et main s'effacent (`body.hTp`, `body.setPause`).
+Bancs (scratchpad de la session) : `pop/tuto2.js <racine> <préfixe> [debout] [en]` — un joueur neuf, JOUER, l'accueil, chaque carte
+(`dbgTuto(n)` va à l'étape n), puis la vraie FIGURE au double-tap ; couché et debout, FR et EN : zéro erreur, permis obtenu (+500 $).
+
 ## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
 **Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
 l'équilibrage, son nom et sa description en français ET en anglais, un pictogramme pixel (`ico`, grilles `tr_*` / `ai_*` dans `PXI_G`).
