@@ -27638,8 +27638,30 @@ shadow.visible=false;
    facture « clip-art » au milieu d'un jeu en pixels et en facettes. Désormais : un OCTOGONE épais (la coupe low-poly
    des caisses), frappé d'un « $ » en VRAIS pixels (texture 16×16, filtrage au plus proche), UNE matière, UN appel. */
 const COIN_CV=document.createElement('canvas');COIN_CV.width=COIN_CV.height=16;
+/* (2026-10-14, passe graphismes) LA SAPÈQUE DES PICS DE JADE — Sacha : « dans la map montagne chinoise, change les pièces qui sont pour
+   l'instant vertes en pièces chinoises avec un carré, un trou carré à l'intérieur ». Le vert venait de la palette 'Y' de coinPeint (champ
+   de jade #6ff0ae). Sur la piste jade (mode classique ET Soleil de Jade : la clé 'Y' de coinSymbole, l'appel de buildJade ne bouge pas) la
+   MÊME toile 16 × 16 est repeinte en sapèque de LAITON doré : liseré d'encre, listel (lumière en haut à gauche, ombre en bas à droite),
+   champ, quatre marques en relief (haut · bas · droite · gauche : l'inscription d'une monnaie, sans prétendre se lire), listel du trou,
+   et le TROU CARRÉ en encre sombre très nette (4 px : le quart du diamètre). Rien de plus pour la puce : ni géométrie, ni texture, ni
+   alphaTest. ⚠ Palette PEINTE, pas celle de l'écran : la pièce émet sa texture et l'étalonnage pousse le jaune vers l'orange (coinPeint). */
+const SAPEQUE={k:'#3a2006',l:'#fff0b0',h:'#f6d065',g:'#d2a23c',d:'#8a5a22',t:'#1e1003',
+  M:{'6,3':1,'7,3':1,'9,3':1,'6,12':1,'8,12':1,'9,12':1,'3,6':1,'3,8':1,'3,9':1,'12,6':1,'12,7':1,'12,9':1}}; // les quatre marques (x,y)
+function sapequePeint(c){
+  for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+    const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy),a=Math.max(Math.abs(dx),Math.abs(dy));let k;
+    if(r>6.9)k='k';                                   // le liseré d'encre
+    else if(r>5.7)k=(dx+dy<-1)?'l':(dx+dy>2?'d':'h'); // le listel, biseauté comme la tranche du « $ »
+    else if(a<2)k='t';                                // le TROU CARRÉ
+    else if(a<3)k=(dx+dy<0)?'l':'h';                  // le listel du trou
+    else if(SAPEQUE.M[x+','+y])k='l';                 // une marque en relief
+    else if(SAPEQUE.M[(x-1)+','+(y-1)]||(a<4&&dx+dy>1))k='d'; // son ombre, et l'ombre portée du listel du trou
+    else k='g';                                       // le champ
+    c.fillStyle=SAPEQUE[k];c.fillRect(x,y,1,1);}
+}
 function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
   const N=16,cv=COIN_CV;const c=cv.getContext('2d');
+  if(sym==='Y'){sapequePeint(c);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile 16 × 16, repeinte)
   /* (2026-09-26, vague 2) L'OR DE LA BIBLE À L'ÉCRAN : #ffd75e. MESURÉ en course (pixels lus après l'ACES et le grade) : l'ancienne pièce
      (#ffc12e, émissif blanc ×.42, et surtout éclairée par la scène) sortait #fe8004 au couchant — ORANGE pur, la teinte des plots
      et de la flamme — et BRONZE sombre (#682800) dans la nuit de la ville. Deux causes : (1) elle vivait de la lumière de la scène,
