@@ -11,7 +11,11 @@ La passation longue (règles, plafonds de la charte, outils dbg) reste `passatio
 - COMMITÉ sur gfx-integration, fumée en cours puis push : nuages de jour (`?sans=nuagesjour`, copies de course nuagesMatinCC/nuagesMidiCC : le menu ne bouge pas),
   jade (`?sans=jade2`, soir et forme de Léo intacts), forêt (`?sans=foret2`), orbite (`?sans=orbite3`, expo +15 %), banquise et volcan (`?sans=banquise2` / `volcan2`).
   Planche nuages : `passation/graphisme-nuages-jour.jpg` ; jade/forêt/orbite : banc `shots/jfo/` du scratchpad (mur.cjs).
-- RESTE, dans l'ordre : (1) ciel du CANYON encore crème (son ciel propre `canyonCiel` : brume du fond `cyF` / horizon `cyH` à travailler) ; (2) A/B propre d'ORBITE2 et
+- POUSSÉ aussi 87b22350 (cache v413) : nuages de jour, jade, forêt, orbite, banquise, volcan.
+- RESTE, dans l'ordre : (1) ciel du CANYON encore crème : L* 92-94, chroma 11-15, IDENTIQUE au matin, à midi ET au soir (qui devrait être orange). Ce n'est PAS le dôme
+  `canyonCiel` (bleu dès 7-12°, l. ~10309), ni le voile de cumulus `cyC`/`cyK`, ni `fogN` : les changer ne bouge rien (essai revert d5aac9de). Une surface
+  constante recouvre le dôme → à trancher au banc : `skyDome.visible=false` (crochet `k==='ciel'` ~l.21146), puis chercher un plan/sprite de fond, la
+  brume de scène appliquée au dôme, ou un « fond » du canyon (CIEL2.mode, dbgCanyon()). Le défaut existait AVANT la passe (captures cy-avant) ; (2) A/B propre d'ORBITE2 et
   d'orbite3 ; (3) cumulus de nuit/pluie (worktree CCG-gfx-cumulus, non committé, captures `cumulus/shots2/`) ; (4) lune du titre la nuit (hors cadre) ; (5) MONTAGNE
   et toute nouvelle map : leur passer routeSig + kick rose + les plafonds de la bible.
 - Pièges vus : `</style>` collé dans un commentaire (fusion boutique-pop) = CSS affiché en texte ; les fusions de maps se percutent toujours aux mêmes endroits
