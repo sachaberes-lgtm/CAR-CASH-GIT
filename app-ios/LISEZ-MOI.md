@@ -1,4 +1,4 @@
-# CAR CASH — l'app iOS (Capacitor 8)
+# CASH CAR — l'app iOS (Capacitor 8)
 
 L'app iOS **emballe le jeu web de `VERSION PRINCIPALE/`** dans une vraie app iPhone (Capacitor = une coquille native
 qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas recopié à la main** : `www/` est
@@ -6,7 +6,7 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
 
 | Quoi | Où |
 |---|---|
-| Identifiant de l'app | `com.sachaberes.carcash` · nom sous l'icône : **CAR CASH** · version **1.0.0 (1)** |
+| Identifiant de l'app | `com.sachaberes.carcash` · nom sous l'icône : **CASH CAR** · version **1.0.0 (1)** · équipe Apple `M532TDYCH2` |
 | Le jeu embarqué (généré, ne pas éditer) | `www/` |
 | La colle native (chargée en premier, inerte hors de l'app) | `natif/natif.js` |
 | Le projet Xcode | `ios/App/App.xcodeproj` (Swift Package Manager, pas de CocoaPods) |
@@ -25,6 +25,23 @@ npm run ouvrir       # ouvre le projet dans Xcode
 
 `preparer-www.js` **refuse** de continuer s'il reste une adresse réseau (http/https) dans ce qu'on embarque : l'app est
 100 % hors ligne. Il grave aussi la version du jeu (le commit) : RÉGLAGES affiche « VERSION xxxxxxx ».
+
+## L'édition App Store : ce que l'app coupe, et que le jeu web garde (2026-10-13, Sacha : « couper dans l'app seulement »)
+
+Apple refuse une version de test et des prix en argent réel sans achats intégrés. `preparer-www.js` fait donc ces coupes
+dans `www/` **seulement** — `VERSION PRINCIPALE/` (le jeu web de `main`, celui de Vercel) n'est pas touchée :
+
+- **plus de mode TEST** : `TEST_CAISSES` et `TEST_CARRIERE` passent à `false` (les caisses et la carrière se gagnent) ;
+- **plus de vrai argent** : les caisses vendues en € et L'ÉTERNELLE (100 pubs — l'app n'a pas de pubs) passent à l'argent
+  du jeu, au prix que l'édition POKI leur donne déjà ;
+- **plus de page OFFRES** : la tuile de l'accueil, la page `#mShop` et l'onglet OFFRES de la boutique du garage sont masqués.
+
+Chaque coupe **vérifie sa cible** : si le jeu a changé et qu'une cible n'est plus trouvée, la fabrication s'arrête avec un
+message (elle ne passe jamais en silence). Pour le savoir **avant** de fusionner une autre branche du jeu :
+
+```bash
+npm run essai -- "/chemin/vers/une/autre/VERSION PRINCIPALE"   # joue toute la fabrication à blanc, www/ n'est pas touché
+```
 
 ## Ce qui est réglé pour l'iPhone
 
