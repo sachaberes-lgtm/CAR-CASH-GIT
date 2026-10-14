@@ -38308,9 +38308,9 @@ const SND={sfx:true,voice:true,music:true,vib:true};
       Versée dans commitExploits : elle entre dans « VERSÉS AU COMPTE ».
    3. LE CADEAU — toutes les 6 h (`periode`), à OUVRIR (cadeauOuvre) à l'accueil : max(25 $, 8 % du meilleur gain d'une partie) en banque. Il ne s'accumule pas (un seul en attente), il n'expire pas et le compte à rebours part de l'OUVERTURE (aucune fausse urgence) ; il ne s'allume qu'après l'auto-école.
    L'HORLOGE — jours : UTC pur sur les dates locales (ni fuseau ni heure d'été) ; hier → série +1, plus ancien → série 1, la même date → déjà pris ; UN jour de moins (voyage vers l'ouest) = déjà pris ; l'horloge reculée de 2 jours ou plus : pas de ×2 ce jour-là, la date est recalée au versement
-      (jamais une série infinie, jamais un ×2 bloqué des mois). Cadeau : Date.now() ; un dernier cadeau « dans le futur » (horloge reculée) est ramené à maintenant — ni plantage, ni cadeaux à l'infini.
+      (jamais une série infinie, jamais un ×2 bloqué des mois). Cadeau : Date.now() ; un dernier cadeau « dans le futur » (horloge reculée) compte comme ouvert à l'instant (cadeauEtat le lit sans rien écrire ; cadeauRecale, à chaque départ de partie, et san(), au chargement, le rangent) — ni plantage, ni cadeaux à l'infini.
    Interrupteurs : ?jour=0 (ni ×2, ni série, ni prime : le jeu d'avant au dollar près) · ?cadeau=0. Sauvegarde : SAVE.d.jour={d,n} (dernier jour compté, série à cette date) · SAVE.d.cad={t} (dernier cadeau ouvert, en ms). Crochets : dbgJour(), dbgCadeau().
-   Contrat avec l'accueil (INTERFACE) : cadeauEtat() · cadeauOuvre() · jourTexte() — c'est elle qui dessine la ligne, ce bloc ne touche pas au DOM. */
+   Contrat avec l'accueil (INTERFACE), aussi sur window : cadeauEtat() → {pret, dansMs, jour} (PUR, appelable chaque seconde ; + actif · serie · valeur) · cadeauOuvre() → false si rien n'est prêt, sinon verse et rend une promesse du montant (événement document 'cc:cadeau', .valeur = le montant) · jourTexte() → la phrase du quotidien. C'est elle qui dessine la ligne : ce bloc ne pose AUCUN élément d'accueil. */
 const JOUR={on:!/[?&]jour=0\b/.test(location.search),x2:2,prime:[0,25,40,55,70,85,100],tMin:15,max:9999,k:1,e:1,cmp:false,dep:'',fin:null,dec:0}; // x2 · prime[] : par jour de série (sa longueur = le plafond) · tMin : secondes de course pour qu'une partie COMPTE · max : borne de la série · k : le multiplicateur de la partie en cours (e : celui d'ECOD seul) · cmp/dep : la partie compte, sa date de DÉPART · fin : ce que la dernière fin de partie a versé · dec : décalage des bancs, en jours
 const CADO={on:!/[?&]cadeau=0\b/.test(location.search),periode:216e5,min:25,pc:.08,force:false}; // periode : 6 h en ms · min : le plancher en $ · pc : la part du meilleur gain d'une partie · force : le banc (dbgCadeau) passe outre l'auto-école
 function jourAuj(){ // la date LOCALE de l'appareil, 'AAAA-MM-JJ' ; '' si l'horloge est illisible ou absurde (le jour est alors ignoré, rien ne plante)
@@ -38335,6 +38335,7 @@ function jourEtat(a){ // pur : où en est le quotidien à la date `a` ? {ok : ho
 function jourPrime(suiv){return JOUR.prime[Math.min(suiv,JOUR.prime.length)-1]||0;}
 function jourMaj(){ // UNE fois par partie, juste après ecoDebutMaj (runxReset) : cette partie prend-elle le ×2 ? ECOD.k = le MAX des deux, jamais le produit
   const J=JOUR;J.k=1;J.cmp=false;J.dep='';J.fin=null;J.e=ECOD.k;
+  cadeauRecale(); /* l'horloge du cadeau, rangée une fois par partie (elle n'a rien à voir avec ?jour=0) */
   try{
     if(!J.on||BALADE||SANDBOX||PARK.on)return 1;
     const a=jourAuj();if(!a)return 1;const e=jourEtat(a);if(!e.ok)return 1;
@@ -38375,33 +38376,40 @@ function cadeauValeur(){ // ce que le prochain cadeau donnera : la plus grande d
   let b=0;try{b=SAVE.d.best||0;}catch(x){}
   return Math.max(CADO.min,ecoRond(CADO.pc*b));
 }
-function cadeauEtat(){ /* LE CONTRAT avec l'accueil, appelé chaque seconde : {actif : le cadeau existe (pas ?cadeau=0, l'auto-école est faite) · pret : un cadeau à OUVRIR maintenant · dansMs : le temps avant le prochain · jour : le ×2 du jour est à prendre · serie : les jours de série vivante · valeur : ce que le cadeau donnera}.
-  Pur, sauf une branche : une horloge RECULÉE (dernier cadeau dans le futur) le ramène à maintenant — sans cela un cadeau « du futur » bloquerait le suivant pendant des mois. */
+function cadeauHorlogeOk(nw){return nw>=1.6e12&&nw<4.2e12;} // 2020 → 2100 : une horloge absurde (NaN, 1970) ne donne ni ne bloque rien
+function cadeauRecale(){ // la SEULE écriture de l'horloge du cadeau (cadeauEtat, lui, ne touche à rien) : un dernier cadeau « dans le futur » (montre reculée) repart de MAINTENANT ; appelée une fois par partie (jourMaj) — et san() fait pareil au chargement
+  try{if(!CADO.on)return;const C=SAVE.d.cad,nw=Date.now();if(C&&C.t>nw&&cadeauHorlogeOk(nw)){C.t=nw;SAVE.mark();}}catch(x){}
+}
+function cadeauEtat(){ /* LE CONTRAT avec l'accueil, appelé chaque seconde — PUR : il lit, il n'écrit rien (ni sauvegarde, ni horloge, ni DOM). {pret : un cadeau à OUVRIR maintenant · dansMs : ms avant le prochain (0 si prêt) · jour : le ×2 du jour est à prendre} + trois champs de confort {actif : le cadeau existe (ni ?cadeau=0, ni leçon pas faite, ni horloge absurde) · serie : jours de série vivante · valeur : ce que le cadeau donnera}.
+  Une horloge RECULÉE (dernier cadeau « dans le futur ») compte comme un cadeau ouvert à l'instant : jamais prêt, 6 h pleines — reculer la montre ne donne donc jamais de cadeau (le rangement est dans cadeauRecale). */
   let actif=false,pret=false,dans=0,jour=false,serie=0;
   try{
     const ok=!BALADE&&(SAVE.d.tuto||CADO.force);
     if(ok&&CADO.on){
-      actif=true;const nw=Date.now(),C=SAVE.d.cad;
-      if(C.t>nw){C.t=nw;SAVE.mark();} // horloge reculée : le cadeau part de MAINTENANT
-      const reste=C.t>0?CADO.periode-(nw-C.t):0;
-      if(reste<=0)pret=true;else dans=Math.min(CADO.periode,reste);
+      const nw=Date.now();
+      if(cadeauHorlogeOk(nw)){
+        actif=true;const t=Math.min(+SAVE.d.cad.t||0,nw); /* un dernier cadeau dans le futur = maintenant */
+        const reste=t>0?CADO.periode-(nw-t):0;
+        if(reste<=0)pret=true;else dans=Math.min(CADO.periode,reste);
+      }
     }
     if(ok&&JOUR.on){const a=jourAuj();if(a){const e=jourEtat(a);jour=e.dispo;serie=e.n;}}
   }catch(x){}
-  return {actif:actif,pret:pret,dansMs:dans,jour:jour,serie:serie,valeur:actif?cadeauValeur():0};
+  return {pret:pret,dansMs:dans,jour:jour,actif:actif,serie:serie,valeur:actif?cadeauValeur():0};
 }
-function cadeauOuvre(){ // donne le cadeau s'il est prêt (banque + flush, toast, son, vibration) ; rend une promesse du montant (0 si rien)
+function cadeauOuvre(){ // LE CONTRAT : s'il y a un cadeau prêt, le verse (banque + flush, toast, son, vibration, événement 'cc:cadeau') et rend une promesse du montant ; sinon ne fait RIEN et rend false
   try{
-    const e=cadeauEtat();if(!e.actif||!e.pret)return Promise.resolve(0);
+    const e=cadeauEtat();if(!e.actif||!e.pret)return false;
     const v=e.valeur;
     SAVE.d.cad.t=Date.now();SAVE.d.bank=Math.min(1e30,bank()+v);bankMaxMaj();SAVE.flush();
     try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(x){}
     hap([12,40,12,40,30]);
     try{toast(pxi('cadeau')+' '+TR('CADEAU')+' : +'+fmtC(v),true);}catch(x){}
-    try{document.dispatchEvent(new Event('cc:cadeau'));}catch(x){} // l'accueil se repeint (la banque a bougé)
+    try{const ev=new Event('cc:cadeau');ev.valeur=v;document.dispatchEvent(ev);}catch(x){} // l'accueil se repeint (la banque a bougé) ; ev.valeur = le montant versé
     return Promise.resolve(v);
-  }catch(x){return Promise.resolve(0);}
+  }catch(x){return false;}
 }
+window.cadeauEtat=cadeauEtat;window.cadeauOuvre=cadeauOuvre;window.jourTexte=jourTexte; /* le contrat avec la session INTERFACE : mêmes noms au niveau de la fenêtre */
 Object.assign(I18N,{'CADEAU':'GIFT','Série {n} jours':'{n}-day streak','×2 sur ta 1re partie du jour':'×2 on your 1st run of the day','×2 sur ta 1re partie':'×2 on your 1st run','Prochain ×2 demain':'Next ×2 tomorrow','×2 du jour':'×2 of the day','Série {n}':'Streak {n}'});
 window.dbgJour=function(a){ // (banc) l'état du quotidien. 'demain' = le jour d'après · 'saute' = un jour sauté (+2) · 'hier' = −1 (fuseau) · 'recule' = l'horloge recule de 2 jours · 'auj' = décalage remis à 0 · 'raz' = jour et série effacés · 'compte' = la partie en cours a tenu tMin secondes
   if(a==='demain')JOUR.dec+=1;else if(a==='saute')JOUR.dec+=2;else if(a==='hier')JOUR.dec-=1;else if(a==='recule')JOUR.dec-=2;else if(a==='auj')JOUR.dec=0;

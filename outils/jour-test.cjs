@@ -24,7 +24,7 @@ function monde(opt){opt=opt||{};
     TR:s=>s,I18N:{},window:{},document:{dispatchEvent(){}},SONV2:true,sfx:id=>sons.push(id),uiClic(){},hap(){},toast:(h,m)=>toasts.push([h,m]),pxi:n=>'['+n+']',fmtC:v=>'$'+Math.round(v),
     ecoRond:v=>{if(v<100)return Math.max(10,Math.round(v/10)*10);const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p;},Date:FD,Event:class{}};
   const names=Object.keys(g);
-  const F=new Function(...names,CODE+'\nreturn {JOUR,CADO,jourAuj,jourNum,jourEtat,jourPrime,jourMaj,jourCommit,jourTexte,jourFinTexte,cadeauValeur,cadeauEtat,cadeauOuvre,dbgJour:window.dbgJour,dbgCadeau:window.dbgCadeau};');
+  const F=new Function(...names,CODE+'\nreturn {JOUR,CADO,jourAuj,jourNum,jourEtat,jourPrime,jourMaj,jourCommit,jourTexte,jourFinTexte,cadeauValeur,cadeauEtat,cadeauOuvre,cadeauRecale,cadeauHorlogeOk,win:window,dbgJour:window.dbgJour,dbgCadeau:window.dbgCadeau};');
   const m=F(...names.map(k=>g[k]));
   return Object.assign(m,{H,save,g,flush,toasts,sons,FD,
     jour:(a,mo,d,h,mi)=>{H.now=new Date(a,mo-1,d,h==null?12:h,mi||0,0).getTime();}, // se placer à une date/heure LOCALE
@@ -169,16 +169,20 @@ const jr=(Y,M,D)=>Y+'-'+String(M).padStart(2,'0')+'-'+String(D).padStart(2,'0');
  m=monde({best:0});let v=null;m.cadeauOuvre().then(x=>v=x);
  t('cadeauOuvre : prêt → banque +25 (plancher), flush, toast muet, son, t=now',m.save.d.bank===25&&m.flush.n===1&&m.save.d.cad.t===m.H.now&&m.toasts.length===1&&m.toasts[0][1]===true&&m.sons.includes('ui.achat'),[m.save.d,m.flush.n,m.toasts,m.sons]);
  e=m.cadeauEtat();t('…juste après : pas prêt, dans 6 h exactement',!e.pret&&e.dansMs===H6,e);
- let r=null;m.cadeauOuvre().then(x=>r=x);
- Promise.resolve().then(()=>{});
- t('cadeauOuvre : un 2e appel immédiat ne donne rien (et n\'écrit pas)',m.save.d.bank===25&&m.flush.n===1&&m.toasts.length===1);
+ const r=m.cadeauOuvre();
+ t('cadeauOuvre : un 2e appel immédiat ne donne rien (rend false, n\'écrit pas)',r===false&&m.save.d.bank===25&&m.flush.n===1&&m.toasts.length===1);
  m.H.now+=H6-60000;e=m.cadeauEtat();t('5 h 59 plus tard : pas prêt, dans 1 min',!e.pret&&e.dansMs===60000,e);
  m.H.now+=60000;e=m.cadeauEtat();t('6 h pile : prêt',e.pret&&e.dansMs===0,e);
  m.H.now+=864e5*30;e=m.cadeauEtat();t('un mois plus tard : un SEUL cadeau en attente (il ne s\'accumule pas)',e.pret);
  m.cadeauOuvre();m.cadeauOuvre();t('…on l\'ouvre : un seul cadeau versé malgré deux appels',m.save.d.bank===50,m.save.d.bank);
  // horloge reculée
- m=monde();m.cadeauOuvre();m.H.now-=864e5*3;e=m.cadeauEtat();t('horloge reculée de 3 jours : pas de cadeau à l\'infini — le compte repart de MAINTENANT (6 h)',!e.pret&&e.dansMs===H6&&m.save.d.cad.t===m.H.now,[e,m.save.d.cad]);
+ m=monde();m.cadeauOuvre();const t0=m.save.d.cad.t;m.H.now-=864e5*3;e=m.cadeauEtat();t('horloge reculée de 3 jours : pas de cadeau à l\'infini — jamais prêt, 6 h pleines',!e.pret&&e.dansMs===H6,e);
+ t('…et cadeauEtat n\'a RIEN écrit (pur) : le dernier cadeau est resté dans le futur',m.save.d.cad.t===t0&&m.flush.n===1,[m.save.d.cad,m.flush.n]);
+ m.cadeauRecale();t('cadeauRecale : le dernier cadeau « du futur » repart de MAINTENANT',m.save.d.cad.t===m.H.now,m.save.d.cad);
  m.H.now+=H6;e=m.cadeauEtat();t('…et 6 h plus tard le cadeau revient (pas bloqué des jours)',e.pret);
+ m=monde();m.cadeauOuvre();m.H.now-=864e5*3;m.partie();t('jourMaj (le départ d\'une partie) range l\'horloge du cadeau',m.save.d.cad.t===m.H.now);
+ m=monde({search:'?cadeau=0'});m.save.d.cad.t=m.H.now+864e5;m.cadeauRecale();t('?cadeau=0 : cadeauRecale ne touche à rien',m.save.d.cad.t===m.H.now+864e5);
+ m=monde();m.cadeauOuvre();m.H.now-=864e5*3;m.H.now+=864e5*3+H6-1;e=m.cadeauEtat();t('horloge reculée puis remise à l\'heure : jamais prêt avant 6 h réelles',!e.pret&&e.dansMs===1,e);
  m=monde();m.cadeauOuvre();m.H.now-=3e3;e=m.cadeauEtat();t('horloge reculée de 3 s (NTP) : tolérée, le compte repart',!e.pret&&e.dansMs===H6);
  m=monde({cad:{t:NaN}});e=m.cadeauEtat();t('cad.t NaN en mémoire : prêt, sans exception',e.pret);
  m=monde({cad:undefined});m.save.d.cad=undefined;e=m.cadeauEtat();t('SAVE.d.cad absent : pas d\'exception (rien d\'actif)',e&&typeof e.pret==='boolean',e);
@@ -188,7 +192,18 @@ const jr=(Y,M,D)=>Y+'-'+String(M).padStart(2,'0')+'-'+String(D).padStart(2,'0');
  t('cadeauValeur : meilleur gain NaN / undefined / négatif → 25',val(NaN)===25&&val(undefined)===25&&val(-3)===25,[val(NaN),val(undefined),val(-3)]);
  t('cadeauValeur : toujours ≤ 8 % du meilleur gain à partir de 400 $ (le cadeau reste PETIT)',[400,1000,5000,1e5,1e8,1e12].every(b=>val(b)<=Math.round(.0825*b)+0)||false,[400,1000,5000,1e5,1e8,1e12].map(b=>[b,val(b)]));
  m=monde({bank:1e30-3,best:1e9});m.cadeauOuvre();t('cadeauOuvre : la banque reste plafonnée à 1e30',m.save.d.bank<=1e30);
- m=monde();e=m.cadeauEtat();t('cadeauEtat : la forme du contrat {actif, pret, dansMs, jour, serie, valeur}',['actif','pret','dansMs','jour','serie','valeur'].every(k=>k in e)&&typeof e.dansMs==='number'&&typeof e.pret==='boolean'&&typeof e.jour==='boolean',e);
+ {const mp=monde({bank:7,jour:{d:'2026-10-13',n:2},cad:{t:new Date(2026,9,14,9,0,0).getTime()}});const av=JSON.stringify(mp.save.d),fl=mp.flush.n,to=mp.toasts.length;
+  for(let k=0;k<50;k++){mp.H.now+=1000;mp.cadeauEtat();}
+  t('cadeauEtat est PUR : 50 appels (une seconde d\'écart), la sauvegarde est identique, ni flush ni toast ni son',JSON.stringify(mp.save.d)===av&&mp.flush.n===fl&&mp.toasts.length===to&&mp.sons.length===0,[av,JSON.stringify(mp.save.d)]);
+  mp.save.d.cad.t=mp.H.now+864e5;const av2=JSON.stringify(mp.save.d);mp.cadeauEtat();t('…y compris avec un dernier cadeau dans le futur (horloge reculée)',JSON.stringify(mp.save.d)===av2);}
+ m=monde();t('le contrat est aussi sur window : cadeauEtat · cadeauOuvre · jourTexte (la session INTERFACE les appelle par là)',m.win.cadeauEtat===m.cadeauEtat&&m.win.cadeauOuvre===m.cadeauOuvre&&m.win.jourTexte===m.jourTexte);
+ m=monde({tuto:0});t('cadeauOuvre : pas prêt (leçon pas faite) → false, rien écrit',m.cadeauOuvre()===false&&m.save.d.bank===0&&m.flush.n===0&&m.toasts.length===0);
+ m=monde({search:'?cadeau=0'});t('?cadeau=0 : cadeauOuvre → false, rien écrit',m.cadeauOuvre()===false&&m.save.d.bank===0&&m.flush.n===0);
+ m=monde();m.cadeauOuvre();t('cadeauOuvre : juste après une ouverture → false (rien ne se verse deux fois)',m.cadeauOuvre()===false&&m.save.d.bank===25&&m.flush.n===1);
+ m=monde();{const pr=m.cadeauOuvre();t('cadeauOuvre : prêt → une promesse du montant',pr&&typeof pr.then==='function');}
+ m=monde();m.H.now=NaN;e=m.cadeauEtat();t('horloge NaN : pas de cadeau (ni prêt ni actif), pas d\'exception',!e.pret&&!e.actif&&m.cadeauOuvre()===false&&m.save.d.bank===0,e);
+ m=monde();m.H.now=new Date(1970,0,2).getTime();e=m.cadeauEtat();t('horloge en 1970 : pas de cadeau',!e.pret&&!e.actif&&m.cadeauOuvre()===false);
+ m=monde();e=m.cadeauEtat();t('cadeauEtat : la forme du contrat {pret, dansMs, jour} (+ actif, serie, valeur)',['pret','dansMs','jour','actif','serie','valeur'].every(k=>k in e)&&typeof e.dansMs==='number'&&typeof e.pret==='boolean'&&typeof e.jour==='boolean',e);
  // le quotidien dans le contrat
  m=monde({jour:{d:'2026-10-13',n:2}});e=m.cadeauEtat();t('cadeauEtat.jour : ×2 dispo, série vivante 2',e.jour&&e.serie===2,e);
  m=monde({jour:{d:'2026-10-14',n:2}});e=m.cadeauEtat();t('cadeauEtat.jour : ×2 déjà pris → faux',!e.jour&&e.serie===2,e);
@@ -227,7 +242,7 @@ const jr=(Y,M,D)=>Y+'-'+String(M).padStart(2,'0')+'-'+String(D).padStart(2,'0');
  d=m.dbgJour('raz');m.dbgJour('auj');d=m.dbgJour();t('dbgJour(\'raz\') : jour et série effacés',d.sauvegarde.d===''&&d.dispo,d);
  const c=m.dbgCadeau('pret');t('dbgCadeau(\'pret\') : le force',c.pret===true&&c.dans==='0 h 00',c);
  const a=m.dbgCadeau('attente');t('dbgCadeau(\'attente\') : on vient de l\'ouvrir → dans 6 h 00',a.pret===false&&a.dans==='6 h 00',a);
- const r=m.dbgCadeau('recule');t('dbgCadeau(\'recule\') : dernier cadeau dans le futur → ramené à maintenant, sans plantage',r.pret===false&&r.dans==='6 h 00',r);
+ const r=m.dbgCadeau('recule');t('dbgCadeau(\'recule\') : dernier cadeau dans le futur → jamais prêt, 6 h pleines, sans plantage',r.pret===false&&r.dans==='6 h 00',r);
  const f=monde({tuto:0});f.dbgCadeau('pret');const ef=f.cadeauEtat();t('dbgCadeau(\'pret\') passe outre l\'auto-école (banc)',ef.actif&&ef.pret,ef);}
 
 // ---------- 11. l'argent : denom() lit toujours ECOD.k — le ×2 passe par le MÊME robinet ----------
