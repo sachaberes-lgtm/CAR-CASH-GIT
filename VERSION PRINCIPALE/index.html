@@ -45821,6 +45821,20 @@ function bqPrairie(g,R){
     for(let k=0;k<900;k++){const v=r2()<.5?255:180+((r2()*30)|0);y.fillStyle='rgb('+v+','+v+','+v+')';y.fillRect((r2()*128)|0,(r2()*128)|0,1,2+((r2()*3)|0));}}
   const tG=new THREE.CanvasTexture(gc);tG.wrapS=tG.wrapT=THREE.RepeatWrapping;tG.repeat.set(70,70);tG.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
   const pre=new THREE.Mesh(ge,new THREE.MeshBasicMaterial({vertexColors:true,map:tG,fog:false}));pre.material.color.setScalar(1.18);g.add(pre);GBQ.prairie=pre;}
+/* LE 1.61 (2026-10-14, Léo : « à la limite, un petit 1.61 blanc en 3D qui ressort du mur blanc de la boutique ») — la signature du jeu (le
+   soleil « 1.61 »), en chiffres PIXEL (la police du jeu, 3 × 5) taillés en cubes, dans le BLANC LAQUÉ des colonnes (bqLaqueMat : le relief se lit
+   à ses reflets, blanc sur blanc) ; derrière la caisse, au-dessus de son nom, loin dans la salle. Un seul maillage instancié. */
+function bq161(g){
+  const G={'1':['.X.','XX.','.X.','.X.','XXX'],'6':['XXX','X..','XXX','X.X','XXX'],'.':['.','.','.','.','X']},txt='1.61',P=.38,D=.5,pos=[];
+  let lx=0;for(const ch of txt){const m=G[ch],w=m[0].length;for(let j=0;j<5;j++)for(let i=0;i<w;i++)if(m[j][i]==='X')pos.push([lx+i,4-j]);lx+=w+1;}
+  const W=(lx-1)*P,im=new THREE.InstancedMesh(new THREE.BoxGeometry(P*.96,P*.96,D),bqLaqueMat(),pos.length),M9=new THREE.Matrix4();
+  pos.forEach(function(p,k){M9.makeTranslation(-W/2+p[0]*P+P/2,p[1]*P+P/2,0);im.setMatrixAt(k,M9);});
+  // il RESSORT D'UN MUR : un pan blanc (le blanc du fond, invisible en lui-même) juste derrière, qui porte son OMBRE douce, décalée en bas à droite
+  const cv=document.createElement('canvas'),S=24,mg=3;cv.width=(lx-1+2*mg)*S;cv.height=(5+2*mg)*S;const x=cv.getContext('2d');x.filter='blur('+(S*.35)+'px)';x.fillStyle='rgba(60,70,90,.55)';
+  pos.forEach(function(p){x.fillRect((mg+p[0])*S,(mg+4-p[1])*S,S,S);});
+  const L9=(lx-1+2*mg)*P,H9=(5+2*mg)*P,mur=new THREE.Mesh(new THREE.PlaneGeometry(L9,H9),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,fog:false}));
+  const grp=new THREE.Group();grp.add(im);mur.position.set(P*.45,-P*.55+2.5*P,-D/2-.02);grp.add(mur);
+  grp.position.set(0,7.2,-22);grp.rotation.set(.06,-.18,0);g.add(grp);GBQ.s161=grp;}
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
   const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
@@ -45838,7 +45852,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   GBQ.tuile=tuile;
   // LE SOL : en blanc structuré (des dalles de ~34 cm), à perte de vue
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(3.4);if(BQ_DECOR!=='herbe')g.add(sol);else bqPrairie(g,R); /* (2026-10-13, Léo : « le sol de la boutique plus blanc, comme les socles qui tiennent les bras robots ») ×1,75 → ×3,4 (mesuré : 220 → 234, le blanc du fond) : le gris lavande devient blanc, les joints des dalles restent à peine lisibles */ // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(3.4);if(BQ_DECOR!=='herbe'){g.add(sol);bq161(g);}else bqPrairie(g,R); /* (2026-10-13, Léo : « le sol de la boutique plus blanc, comme les socles qui tiennent les bras robots ») ×1,75 → ×3,4 (mesuré : 220 → 234, le blanc du fond) : le gris lavande devient blanc, les joints des dalles restent à peine lisibles */ // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or

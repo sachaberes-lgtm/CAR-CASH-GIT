@@ -181,6 +181,9 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
   caisse qui lévite (coupée en boutique : `updateContactShadow` sort quand GBQ.on/veut/lev) ; la GLOIRE plantée derrière descendait sous
   le sol, qui la tranchait d'un trait net (sur le blanc = un sol invisible) → elle s'efface sur la hauteur (`GBQ.gloireU` uY0/uY1, accroche
   shader sur `<dithering_fragment>` : ⚠ three r128 n'a pas d'`output_fragment` dans MeshBasicMaterial).
+- LE 1.61 (14/10, Léo : « un petit 1.61 blanc en 3D qui ressort du mur blanc ») — `bq161(g)` : chiffres pixel 3 × 5 en cubes (P .38,
+  profondeur .5, InstancedMesh, blanc laqué bqLaqueMat), devant un pan blanc invisible qui porte leur OMBRE floutée (décalée en bas à
+  droite) : sans elle, blanc sur blanc, on ne le lisait pas. Posé loin derrière la caisse (z −22, y 7,2), un peu tourné (−0,18) pour la tranche.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
