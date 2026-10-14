@@ -225,3 +225,13 @@ origin/ui-integration (autre machine) : 245ac62 — 14/10 12:58 Passation de la 
 ```
 
 CONSIGNE : chaque session : `git merge assemblage` (ou `origin/assemblage` sur l'autre machine) avant sa prochaine vague.
+
+## T8 (dernier train sur le Mac) — 13 h 31
+- **SHA final : `27b4199`** (branche `assemblage`, poussée) · AVANT = `676a3ad` (T7).
+- Fusionnées (toutes 0 conflit) : debug-integration (+1 : passation DEBUGGING + preuves node) → `09079a7` · sensations-integration (+1 : passation GAMEPLAY) → `43ad859` · gfx-integration (+6 : nuages de jour matin/midi/soir + passation GRAPHISME) → `0d41050` · son-integration (+1 : passation SON) → `197840c`.
+- Sans commit nouveau (passées) : origin/main (tête `3ca83ec`), perf-integration, ui-integration.
+- Reportées : aucune. Réintroductions POKI / I18N_ZH / CRYPTOCITY / pk( : 0 (diff index.html = +8 lignes, nuages gfx).
+- Syntaxe 0 erreur (14 scripts) · garde du burn-out OK · 0 marqueur — après chaque fusion. Fumées (serveur 8600) : couche + debout OK, `?play=jade` OK, 0 erreur JS.
+- Cache : `cashcar-v382` (max(origin/main v378, assemblage v381) + 1), commit séparé `27b4199`.
+- Têtes sur GitHub : assemblage 27b4199 · debug-integration b496001 · gfx-integration 5e15978 · sensations-integration a3524e7 · son-integration dd997e9 · perf-integration e809d5b · ui-integration 245ac62 · ios-capacitor 16a6ac5 · pilotage-notes c6218b2 (avant relance finale de sync.sh).
+- **La suite se fait sur le PC : voir pilotage-notes:PASSATION-PILOTAGE.md.**
