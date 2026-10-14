@@ -7376,6 +7376,7 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
         <button class="gTab" data-tab="peinture" role="tab"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="PEINTURE">PEINTURE</span></button>
         <button class="gTab" data-tab="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span></button>
         <button class="gTab" data-tab="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span></button>
+        <button class="gTab" data-tab="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span></button><!-- (2026-10-14) les figures du double-tap nitro -->
       </div>
       <div id="gRar" role="tablist" aria-label="Familles"></div>
       <div id="gStrip" aria-label="Vignettes"></div>
@@ -7416,6 +7417,7 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
         <button class="ivTab" data-c="peinture" role="tab"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="PEINTURE">PEINTURE</span><em></em></button>
         <button class="ivTab" data-c="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span><em></em></button>
         <button class="ivTab" data-c="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span><em></em></button>
+        <button class="ivTab" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) -->
       </div>
       <div id="ivGrille"></div>
     </div>
@@ -7727,6 +7729,7 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
+<script src="figures.js?v=1"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -17477,8 +17480,9 @@ Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BOR
 Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "弹弓"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
 Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
-Object.assign(I18N,{'TONNEAU':'BARREL ROLL','TONNEAU !':'BARREL ROLL!','PAR-DESSUS':'OVER IT','PAR-DESSUS !':'OVER IT!','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
-Object.assign(I18N_ZH,{'TONNEAU':'桶滚','TONNEAU !':'桶滚！','PAR-DESSUS':'飞越','PAR-DESSUS !':'飞越！','AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
+try{if(window.FIG)FIG.liste.forEach(function(f){if(f.en&&f.en!==f.n)I18N[f.n]=f.en;});}catch(e){} // (2026-10-14) les noms des FIGURES (figures.js) en anglais
+Object.assign(I18N,{'FIGURE RATEE !':'BOTCHED TRICK!','FIGURES':'TRICKS','FIGURE':'TRICK','ACQUISE':'OWNED','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
+Object.assign(I18N_ZH,{'FIGURE RATEE !':'特技失败！','FIGURES':'特技','AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
@@ -29077,13 +29081,13 @@ function frenFin(mort){ // la frénésie est tombée (mort = avec la caisse : on
 }
 /* (v4) LA POSE RATÉE : le flow retombe à ZÉRO, frénésie comprise (sa tenue compte pour le record). La triade reste ouverte : on sait
    ce qu'on vient de perdre. Le jeu dit pourquoi : « DE TRAVERS ! » ou « À CONTRESENS ! ». */
-function flowCasse(contre){
+function flowCasse(contre,txt){
   if(SONV2)sfx(contre?'pose.contresens':'pose.travers'); // (console de son) la pose RATÉE se dit à l'oreille, flow ou pas
   if(!(FLOW.v>0))return;
   const lv0=FLOW.lv;
   if(lv0===4){try{frenMus(false);}catch(e){}frenFin(true);}
   FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FREN.acc=0;FREN.arme=false;
-  popTexte(contre?'À CONTRESENS !':'DE TRAVERS !','#ff5e7a',3);flowTag('n',-1); // (v5) la pose ratée, c'est NARCISSE qui tombe
+  popTexte(txt||(contre?'À CONTRESENS !':'DE TRAVERS !'),'#ff5e7a',3);flowTag('n',-1); // (v5) la pose ratée, c'est NARCISSE qui tombe
   if(!SONV2){if(lv0>0){try{flowDropSnd(lv0);}catch(e){}}try{clank9(0,150,.14);}catch(e){}} /* (console) pose.travers / pose.contresens, en tête, les remplacent */
   hap([30,40,30,40,60]);shake=Math.max(shake,.6);
   if(lv0>=2)try{flashEcran('rgba(255,42,61,.35)');}catch(e){}
@@ -30021,15 +30025,23 @@ if(POKI){ // (POKI) sans missions, les deux habillages des carnets s'achètent, 
   const o9=COSM.peinture.find(function(d){return d.id==='or';}),a9=COSM.trainee.find(function(d){return d.id==='arcenciel';});
   if(o9){delete o9.mis;o9.p=150000;o9.d='Vingt-quatre carats sur la carrosserie. Discret, comme toi.';}
   if(a9){delete a9.mis;a9.p=40000;a9.d='Toutes les couleurs à la fois. Personne ne t\'oublie.';}}
-const SHOP_CATS=['voiture','peinture','aile','trainee'];
+/* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
+   (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
+   « équipée » ne veut rien dire pour une figure : toutes celles qu'on a JOUENT (le double-tap tire au hasard parmi elles). */
+function figDesc(f){const tx=function(m){const n=['x','y','z'].filter(function(c,i){return Math.abs(m.a[i])>.1;});const q=n.length>1?'penché':n[0]==='x'?'salto':n[0]==='y'?'toupie':'tonneau';
+    return m.t!=null?(Math.abs(m.t)>1?Math.abs(m.t)+' tours en ':'Un tour en ')+q:'Un balancement en '+q;};
+  return f.m.map(tx).join(' + ')+'. Double-tape NITRO : elle part au hasard parmi tes figures — et elles s\'enchaînent.';}
+COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f),fig:1};});
+const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
-function shopOwned(cat,id){const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
+function shopOwned(cat,id){if(cat==='figure')return figPossede(id);const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(!d.p&&!d.mis)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;}
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
 function cosmSur(cat){try{return cosm(cat);}catch(e){return null;}}
 function shopBuy(cat,i){ // ⚠ débit et possession dans la MÊME fonction, comme `carBuy` : jamais l'un sans l'autre
+  if(cat==='figure')return figAchat(i); // (2026-10-14) une FIGURE : SAVE.d.figs
   const d=COSM[cat][i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};
   if(shopOwned(cat,d.id))return {ok:false,raison:'deja-possedee'};
   if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
@@ -35294,7 +35306,7 @@ function sonTonSuit(){
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol
   if(!SONV2){trickPop(chain);return;}
-  sfx(id==='vrille'||id==='tonneau'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
+  sfx(id==='vrille'||String(id).indexOf('fig_')===0?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
 // console : `dbgSon()` l'état · `dbgSon('piece',{st:4})` joue un son
@@ -36386,7 +36398,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tonneau'], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
@@ -36454,6 +36466,7 @@ const SAVE={
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
+    if(Array.isArray(d.figs))c.figs=[...new Set(['tonneau'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées (le TONNEAU, offert)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0; /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
@@ -36960,20 +36973,37 @@ const FLY_U=new THREE.Vector3(0,1,0),FLY_R=new THREE.Vector3(1,0,0);
      la trajectoire du côté du pouce, s'INCLINE dans le virage, lève / baisse le nez avec le manche ; le redressement et le décollage lui
      laissent un retard qu'elle rattrape en se balançant. Sortie par le bord : un coup de roulis vers le vide, rattrapé.
    · À LA POSE (`veqPose`), l'assiette qui reste passe à la conduite (roulis de caisse, lacet visuel, tangage) : elle se balance sur ses ressorts.
-   · LE TONNEAU (`veqTonneau`) : DOUBLE-TAP NITRO (deux appuis brefs) — un tour complet autour du nez en ~0,6 s, du côté du pouce (au neutre :
-     un coup à droite, un coup à gauche). En vol : un petit écart du côté du pouce + une FIGURE (la chaîne, payée à la pose). Au sol : un
-     saut (la mécanique du dos d'âne, on reste en conduite) qui passe PAR-DESSUS les plots et l'huile, payé en aura à la retombée.
+   · LE DÉCOLLAGE : la suspension se DÉTEND (la caisse monte sur ses roues pendantes, `ext`), un tremplin lève le nez.
+   · L'ATTERRISSAGE (`veqCorps`, `veqPose`, `veqContact`) : à l'approche de la dalle (temps avant contact < `posB` s) la caisse PRÉPARE sa pose :
+     elle se met dans le plan de la route, les roues dessous, le nez dans sa trajectoire. Au contact : la suspension détendue CLAQUE et s'écrase,
+     le nez PLONGE puis rebondit (`VEQ.sp`, ressort), la caméra s'enfonce un instant (`VEQ.cam*`), un anneau de poussière sur les grosses poses ;
+     ce qui reste d'assiette passe aux ressorts de la conduite (roulis, lacet, tangage — calculé sur la VRAIE orientation de la caisse).
+   · LES FIGURES AU DOUBLE-TAP NITRO (`veqDouble`, deux appuis brefs) — elles s'ACCUMULENT (Léo, 14/10 : « au lieu de supprimer les tricks, on
+     va les accumuler ») : le catalogue vit dans figures.js (`FIG`, partagé avec la BOÎTE BLANCHE boite-figures.html), on les ACHÈTE au shop
+     (catégorie FIGURES), on les garde dans l'inventaire (`SAVE.d.figs`, le TONNEAU offert) ; le double-tap en joue UNE AU HASARD parmi celles
+     qu'on possède (jamais deux fois la même d'affilée), et un double-tap pendant une figure ENCHAÎNE la suivante (le lecteur `FIG.Lecteur` la
+     lance à 70 % de la précédente : les rotations se composent, la caisse ne s'arrête jamais). « Ça les pose automatiquement » : la figure
+     se RACCOURCIT pour finir avant la pose (le viseur dit quand on touche, `CAMV.eta`) ; trop bas, rien ne part.
+     AU SOL = LE SAUT NITRO (`veqSaut`) : le booster plaque la route, la caisse DÉCOLLE (~1,2 s, ~2,5 m) et sa figure part toute seule — il coûte
+     du nitro, et sa pose en rend moins qu'un vrai saut (on ne fabrique pas de nitro en sautant sur place).
+     Chaque figure finie entre dans la CHAÎNE (son aura, payée à la pose ; des figures DIFFÉRENTES font monter le multiplicateur). Posée en plein
+     tour : à moins de 20° de la fin elle compte ; au-delà de 50° c'est une POSE RATÉE (« FIGURE RATÉE ! », le flow tombe).
    `?vol=ancien` (ou `dbgVol('ancien')`) rend le vol d'avant au chiffre près (le tonneau reste). Console : `dbgVol()`, `dbgVol('tonneau')`. */
-const VEQ_K={latch:.7,niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR:.36,houle:.024,saut:9.5,dash:16,dur:.62};
-const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0,by:0,byV:0,bp:0,bpV:0,br:0,brV:0,tf:0,
-  qb:new THREE.Quaternion(),qa:new THREE.Quaternion(),qaOk:false,qo:new THREE.Quaternion(),eu:new THREE.Euler(0,0,0,'YXZ'),tv:new THREE.Vector3(),tc:new THREE.Vector3(),
-  tn:null,cd:0,sens:1,saut:false,plots:0,dReq:false,dDn:0,dUp:0,pv:new THREE.Vector3(),pv2:new THREE.Vector3(),ax:new THREE.Vector3(0,0,1),qr:new THREE.Quaternion(),n:0};
+const VEQ_K={latch:.7,niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR:.36,houle:.024,
+  ext:.11,posA:.05,posB:.45,    // la suspension pendante en vol · la pose se prépare entre ,45 s et ,05 s avant qu'elle soit déclarée
+  saut:21,sautCout:.2,sautNit:.3,sautCd:.9}; // LE SAUT NITRO : impulsion, coût (part de la jauge), part du nitro rendu à sa pose, attente (s)
+const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0,by:0,byV:0,bp:0,bpV:0,br:0,brV:0,tf:0,ext:0,
+  qb:new THREE.Quaternion(),qp:new THREE.Quaternion(),qo:new THREE.Quaternion(),qd:new THREE.Quaternion(),eu:new THREE.Euler(0,0,0,'YXZ'),
+  tv:new THREE.Vector3(),tc:new THREE.Vector3(),n9:new THREE.Vector3(),f9:new THREE.Vector3(),g9:new THREE.Vector3(),m4:new THREE.Matrix4(),
+  si:-1,sh:0,sl:0,sd:1e9,pose:0,      // le radar de la dalle (tryLand) · pose : l'alignement de pose en cours (0-1)
+  lect:window.FIG?new FIG.Lecteur():null,sautT:-9,sautF:-1,rate:false,dReq:false,dDn:0,dUp:0,n:0,
+  sp:0,spV:0,camT:-1,camA:0,volT:0,   // le nez qui rebondit à la pose · la caméra qui s'enfonce
+  pv:new THREE.Vector3(),pv2:new THREE.Vector3(),ax:new THREE.Vector3(),qr:new THREE.Quaternion()};
 function veqDepart(bord,impU,roll0,qDep){ // au décollage (startFall)
-  VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;
+  VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;VEQ.ext=0;VEQ.pose=0;VEQ.si=-1;VEQ.rate=false;VEQ.sp=0;VEQ.spV=0;
   VEQ.by=0;VEQ.byV=0;VEQ.bp=0;VEQ.bpV=bord?0:-1.1*THREE.MathUtils.clamp((impU==null?.9:impU)/30,0,1); // un tremplin lève un peu le nez : la balance commence
   VEQ.br=bord?roll0:0;VEQ.brV=bord?bascDir*4:0; // bord : la caisse BASCULE vers le vide, les ressorts la rattrapent
-  VEQ.qb.copy(qDep);
-  if(VEQ.tn&&VEQ.tn.sol){VEQ.tn.sol=false;VEQ.saut=false;} // un tonneau du sol qui quitte la route finit en l'air (et y devient une figure)
+  VEQ.qb.copy(qDep);if(VEQ.lect)VEQ.lect.vide();
 }
 function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'efface, tout geste nouveau agit
   if(!VEQ.on)return steer;
@@ -36992,6 +37022,11 @@ function veqNiveau(dt,dir){ // L'ÉQUILIBRE : le haut du vol se redresse vers la
   if(Math.abs(a)<1e-7)return;
   FLY_U.applyAxisAngle(dir,a);VEQ.br-=a*VEQ_K.iner; // la caisse a de l'INERTIE : le repère se redresse, elle traîne un peu… et se balance pour le rattraper
 }
+function veqRoute(bI,sd,f,q){ // l'assiette de CONDUITE sur la dalle bI, face sd, nez vers f (dans le plan) → q
+  const n=VEQ.n9.copy(Nn[bI]).multiplyScalar(sd);
+  VEQ.g9.copy(f).addScaledVector(n,-f.dot(n));if(VEQ.g9.lengthSq()<1e-6)VEQ.g9.copy(T[bI]);VEQ.g9.normalize();
+  VEQ.tc.crossVectors(n,VEQ.g9).normalize();VEQ.m4.makeBasis(VEQ.tc,n,VEQ.g9);return q.setFromRotationMatrix(VEQ.m4);
+}
 function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la caisse, sur ses ressorts, autour
   const d=Math.min(dt,1/30),K=VEQ_K,m=1-JEAU.wB,u=VEQ.u;
   VEQ.tf+=dt;const h=REDUCED_MOTION?0:K.houle*Math.min(1,VEQ.tf/.6)*m;
@@ -37000,58 +37035,121 @@ function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la
   VEQ.bpV+=(K.w*K.w*(bpT-VEQ.bp)-2*K.z*K.w*VEQ.bpV)*d;VEQ.bp=THREE.MathUtils.clamp(VEQ.bp+VEQ.bpV*d,-.6,.6);
   VEQ.brV+=(K.wR*K.wR*(brT-VEQ.br)-2*K.zR*K.wR*VEQ.brV)*d;VEQ.br=THREE.MathUtils.clamp(VEQ.br+VEQ.brV*d,-1.2,1.2);
   VEQ.eu.set(VEQ.bp,VEQ.by,VEQ.br,'YXZ');VEQ.qo.setFromEuler(VEQ.eu);qTmp.multiply(VEQ.qo);
-  VEQ.qb.slerp(qTmp,Math.min(1,dt*12));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
+  /* LA POSE SE PRÉPARE : le temps avant de toucher la face visée (hauteur ÷ vitesse d'approche, en mètres du monde) — sous `posB` s la caisse
+     se met dans le plan de la route, nez dans sa trajectoire, roues dessous ; à `posA` s elle y est. Hors de la largeur (+6 m) : rien. */
+  let a=0;
+  if(VEQ.si>=0&&VEQ.sd<1600&&Math.abs(VEQ.sl)<ROAD_HALF+6){
+    const i=VEQ.si,dessus=VEQ.sh>-THICK*.5,hs=dessus?VEQ.sh:-THICK-VEQ.sh,sd=dessus?1:-1,vN=-fallVel.dot(Nn[i])*sd*SPD;
+    if(hs>-1.5&&vN>.4)a=1-THREE.MathUtils.smoothstep(Math.max(0,hs-2.8)/vN,K.posA,K.posB); // ⚠ la pose est DÉCLARÉE à 3 m (tryLand) : à 2,8 m la caisse doit être prête
+    if(a>.001){veqRoute(i,sd,fallVel,VEQ.qp);qTmp.slerp(VEQ.qp,a*m);}}
+  VEQ.pose+=(a-VEQ.pose)*Math.min(1,dt*10);
+  VEQ.qb.slerp(qTmp,Math.min(1,dt*(12+10*a)));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
+  // LES ROUES PENDENT : en l'air la suspension se détend (la carrosserie monte au-dessus de ses roues)
+  VEQ.ext+=(K.ext-VEQ.ext)*Math.min(1,dt*9);carBody.position.y=VEQ.ext;
 }
-function veqPose(){ // la caisse se pose : l'assiette qui reste passe aux ressorts de la conduite
-  let r=VEQ.on?VEQ.br:0;
-  if(VEQ.tn&&!VEQ.tn.sol){const T=VEQ.tn;if(!T.fini){const p=veqPhi(T);r+=Math.atan2(Math.sin(p),Math.cos(p));}VEQ.tn=null;} // un tonneau pas fini ne paie pas
-  if(VEQ.on){driftYaw=THREE.MathUtils.clamp(VEQ.by,-.3,.3);pitch9=THREE.MathUtils.clamp(VEQ.bp,-.15,.15);rollV=THREE.MathUtils.clamp(VEQ.brV,-4,4);}
-  carRoll9=THREE.MathUtils.clamp(r,-.42,.42);
+function veqPose(bI,sd){ // la caisse se pose (tryLand, lèvre) : ce qui reste d'assiette passe aux ressorts de la conduite
+  VEQ.rate=false;VEQ.volT=fallTR;
+  let rx=0,ry=0,rz=0;
+  if(VEQ.on&&bI!=null&&bI>=0){ // l'écart RÉEL entre la caisse et sa place de conduite (nez = cap de la pose)
+    VEQ.f9.copy(T[bI]).multiplyScalar(Math.cos(psi)).addScaledVector(B[bI],Math.sin(psi)*sd);
+    veqRoute(bI,sd,VEQ.f9,VEQ.qp);VEQ.qd.copy(VEQ.qp).invert().multiply(VEQ.qb);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');
+    rx=VEQ.eu.x;ry=VEQ.eu.y;rz=VEQ.eu.z;}
+  const L9=VEQ.lect,enCours=!!(L9&&L9.occupe());
+  if(enCours){ // posée en plein tour
+    const e9=L9.ecart();
+    if(e9<.35)L9.actifs.forEach(function(a){veqFigFinie(a.f);}); // à moins de 20° de la fin : elle compte (posée au ras)
+    else{VEQ.qd.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');rx+=VEQ.eu.x;ry+=VEQ.eu.y;rz+=VEQ.eu.z;if(e9>.9)VEQ.rate=true;} // au-delà de 50° : POSE RATÉE
+    L9.vide();}
+  if(!VEQ.on&&!enCours)return;
+  driftYaw=THREE.MathUtils.clamp(ry,-.35,.35);carRoll9=THREE.MathUtils.clamp(rz,-.42,.42);
+  if(VEQ.on){rollV=THREE.MathUtils.clamp(VEQ.brV*.5,-4,4);pitch9=0;VEQ.sp=THREE.MathUtils.clamp(rx,-.35,.35);VEQ.spV=0;}
 }
-function veqPhi(T){const x=Math.min(1,T.t/T.D);return x*x*x*(x*(x*6-15)+10)*6.2832*T.dir;} // un tour, départ et arrivée en douceur
+function veqContact(imp,nI,sd){ // LE CONTACT (touche9 : quand les roues touchent vraiment) — la suspension claque, le nez plonge, la caméra s'enfonce
+  if(!VEQ.on)return;
+  const k=THREE.MathUtils.clamp(imp/14,0,1),gros=imp>6||VEQ.volT>1.2;
+  susY=Math.min(.12,VEQ.ext);susV=Math.min(susV,-.6-imp*.32);VEQ.ext=0; // détendue en l'air, elle s'ÉCRASE
+  VEQ.spV+=.9+k*2.4; // le nez plonge (avant chargé), le ressort le relève
+  if(!REDUCED_MOTION){VEQ.camT=0;VEQ.camA=.12+k*.5+(gros?.12:0);}
+  if(gros&&nI!=null&&nI>=0){ // L'ANNEAU DE POUSSIÈRE : la route a pris le coup
+    const n=VEQ.n9.copy(Nn[nI]).multiplyScalar(sd),p=carGroup.position,nb=Math.round(14+k*14);
+    VEQ.f9.copy(T[nI]);VEQ.g9.crossVectors(n,VEQ.f9).normalize();
+    for(let j=0;j<nb;j++){const a=j/nb*6.2832,c=Math.cos(a),s9=Math.sin(a),v=7+k*9+Math.random()*3;
+      spawnP(dust,p.x+(VEQ.f9.x*c+VEQ.g9.x*s9)*1.4,p.y+(VEQ.f9.y*c+VEQ.g9.y*s9)*1.4+n.y*.2,p.z+(VEQ.f9.z*c+VEQ.g9.z*s9)*1.4,
+        (VEQ.f9.x*c+VEQ.g9.x*s9)*v+n.x*1.2,(VEQ.f9.y*c+VEQ.g9.y*s9)*v+n.y*1.2,(VEQ.f9.z*c+VEQ.g9.z*s9)*v+n.z*1.2,.45+Math.random()*.25);}}
+}
+function veqConduite(d9){ // au sol, chaque image : le nez qui rebondit après la pose (ressort ω 13)
+  if(VEQ.sp===0&&VEQ.spV===0)return 0;
+  VEQ.spV+=(-169*VEQ.sp-2*.32*13*VEQ.spV)*d9;VEQ.sp=THREE.MathUtils.clamp(VEQ.sp+VEQ.spV*d9,-.4,.4);
+  if(Math.abs(VEQ.sp)<1e-4&&Math.abs(VEQ.spV)<1e-3){VEQ.sp=0;VEQ.spV=0;}
+  return VEQ.sp;
+}
+function veqCamera(dt){ // au sol : la caméra s'enfonce sous le choc de la pose, puis revient
+  if(VEQ.camT<0)return;VEQ.camT+=dt;const x=VEQ.camT/.36;
+  if(x>=1){VEQ.camT=-1;return;}
+  if(!window.dbgNoShake)camera.position.addScaledVector(F.n,-VEQ.camA*Math.sin(Math.PI*x)*(1-.4*x));
+}
+function veqNitK(){return VEQ.sautF===flightId?VEQ_K.sautNit:1;} // la pose d'un SAUT NITRO rend moins de nitro
 function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'actionne quand j'appuie deux fois rapidement sur le booster ») : deux appuis BREFS
    sur NITRO — le 1er de moins de 240 ms, le 2e moins de 320 ms après le 1er. Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
   if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;}else VEQ.dDn=n;
 }
-function veqTonneau(){ // LE TONNEAU — double-tap NITRO
-  if(VEQ.tn&&(gameOver||mode==='boom'))VEQ.tn=null;
-  if(VEQ.tn||VEQ.cd>0||!started||gameOver||paused||introD||TUTO.on||(mode!=='drive'&&mode!=='fall'))return false;
-  const sd=steer>.2?-1:steer<-.2?1:(VEQ.sens=-VEQ.sens); // roulis négatif = côté gauche vers le bas (le pouce à gauche : steer > 0)
-  if(mode==='drive'){
-    if(hopY>0||hopV!==0||POSE_F)return false;
-    hopV=VEQ_K.saut;VEQ.tn={t:0,D:2*hopV/(26*gK())*.9,dir:sd,sol:true,fini:false};VEQ.saut=true;VEQ.plots=0;
-  }else{
-    VEQ.tn={t:0,D:VEQ_K.dur,dir:sd,sol:false,fini:false};
-    if(Math.abs(steer)>.2)fallVel.addScaledVector(FLY_R,Math.sign(steer)*VEQ_K.dash); // l'écart : FLY_R = la gauche de la caisse
-  }
-  VEQ.n++;try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}hap([10,30,10]);shake=Math.max(shake,.18);
+function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
+  if(!started||gameOver||paused||introD||TUTO.on)return false;
+  if(mode==='drive')return veqSaut();
+  if(mode==='fall')return veqFigure();
+  return false;
+}
+function veqSaut(){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle
+  if(hopY>0||hopV!==0||POSE_F||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
+  const libre=pwrNitroT>0||PARK.on||startBoostT>0,cout=libre?0:VEQ_K.sautCout*nitroCap();
+  if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
+  if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
+  VEQ.sautT=performance.now();
+  const p9=carGroup.position.clone();
+  startFall(VEQ_K.saut,1);VEQ.sautF=flightId;VEQ.l0=0; // un saut VOULU : le volant tenu continue de tourner (pas de verrou), on reste sur sa route
+  veqFigure(2*VEQ_K.saut/(FALL_G*gK())-.15); // la figure part TOUTE SEULE, à la taille du saut
+  for(let k=0;k<26;k++){const a=Math.random()*6.2832,r=Math.random()*1.2; // le souffle du booster contre la route
+    spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*r,p9.y+.2,p9.z+Math.sin(a)*r,Math.cos(a)*(3+Math.random()*6),-2-Math.random()*3,Math.sin(a)*(3+Math.random()*6),.18+Math.random()*.16);}
+  sparkBurst(sparkGold,p9,10,9);shake=Math.max(shake,.45);fovPunch=Math.max(fovPunch,8);hap([12,30,18]);
+  try{if(SONV2)sfx('nitro.plein',{vol:-6});}catch(e){}
+  VEQ.n++;return true;
+}
+function veqFigsAMoi(){const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tonneau'];}
+function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
+  const L9=VEQ.lect;if(!L9||!window.FIG||L9.occupe()>=3)return false;
+  const f=FIG.tire(veqFigsAMoi(),L9.der);
+  // « ça les pose automatiquement » : elle finit avant la pose — raccourcie jusqu'à 55 % de sa durée, sinon elle ne part pas
+  let t=dispo!=null?dispo:(CAMV.eta<90?CAMV.eta:9);
+  if(L9.occupe()){const d9=L9.actifs[L9.actifs.length-1];let deb=d9?Math.max(0,d9.D*FIG.CHEV-d9.t):0;for(const e of L9.file)deb+=e.D*FIG.CHEV;t-=deb;}
+  const D=Math.min(f.D,t-.08);
+  if(D<f.D*.55){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
+  L9.lance(f,Math.random()<.5?-1:1,D);
+  VEQ.n++;try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}hap([10,30,10]);
   return true;
 }
-function veqTonneauPose(dt){ // chaque image, une fois la caisse placée (conduite ET vol) : le tour, autour du MILIEU de la caisse
-  if(VEQ.cd>0)VEQ.cd-=dt;VEQ.qaOk=false;
-  const T=VEQ.tn;if(!T)return;
-  if(gameOver||mode==='boom'||(!T.sol&&mode!=='fall')){VEQ.tn=null;VEQ.saut=false;return;}
-  T.t+=dt;
-  const hc=(CARS[level].h||1.3)*.5;VEQ.qa.copy(carGroup.quaternion);VEQ.qaOk=true;
-  VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.setFromAxisAngle(VEQ.ax,veqPhi(T));carGroup.quaternion.multiply(VEQ.qr);
-  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
-  if(T.t>=T.D&&!T.fini){T.fini=true;if(mode==='fall'){addTrick('tonneau','TONNEAU !',4,false);VEQ.tn=null;VEQ.cd=.12;return;}}
-  if(T.fini&&T.sol&&hopY<=0){ // retombé sur ses roues
-    VEQ.tn=null;VEQ.saut=false;VEQ.cd=.12;
-    chaineAura('TONNEAU',45,'tonneau');flowAdd(4,'style');
-    if(VEQ.plots){chaineAura('PAR-DESSUS',30*VEQ.plots,'pardessus');popTexte('PAR-DESSUS !','#5ee6ff',1);}VEQ.plots=0;
-  }
+function veqFigFinie(f){addTrick('fig_'+f.id,f.n,Math.round(f.aura/16),f.aura>=120?2:1);} // la figure finie entre dans la CHAÎNE (son aura, payée à la pose)
+function veqFigurePose(dt){ // en vol, chaque image, une fois la caisse placée : les figures en cours tournent autour du MILIEU de la caisse
+  const L9=VEQ.lect;if(!L9||!L9.occupe())return;
+  if(gameOver||mode!=='fall'){L9.vide();return;}
+  const fin=L9.tick(dt);
+  if(L9.actifs.length){const hc=(CARS[level].h||1.3)*.5;
+    VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
+    VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
+    VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
+  for(const f of fin)veqFigFinie(f);
 }
 window.dbgVol=function(a){
   if(a==='ancien'||a==='neuf'){VEQ.on=a==='neuf';return VEQ.on?'vol équilibré':'vol d’avant';}
-  if(a==='tonneau')return veqTonneau();
+  if(a==='double')return veqDouble();
+  if(a==='tout'){SAVE.d.figs=FIG.liste.map(function(f){return f.id;});SAVE.flush();return SAVE.d.figs;} // (banc) toutes les figures
+  if(a==='rien'){SAVE.d.figs=['tonneau'];SAVE.flush();return SAVE.d.figs;}
   return {on:VEQ.on,mode:mode,u:+VEQ.u.toFixed(3),steer:+steer.toFixed(3),verrou:+VEQ.l0.toFixed(3),lT:+VEQ.lT.toFixed(2),
-    lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),
-    haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),tonneau:VEQ.tn?{t:+VEQ.tn.t.toFixed(2),D:+VEQ.tn.D.toFixed(2),sol:VEQ.tn.sol,fini:VEQ.tn.fini}:null,
-    tonneaux:VEQ.n,hopY:+hopY.toFixed(2),carRoll:+(carRoll9*57.3).toFixed(1),cap:+(Math.atan2(fallVel.x,fallVel.z)*57.3).toFixed(1),
-    hautCaisse:+VEQ.pv.set(0,1,0).applyQuaternion(carGroup.quaternion).y.toFixed(3),airRoll:+(airRoll*57.3).toFixed(1),fallT:+fallTR.toFixed(2)};};
+    lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),pose:+VEQ.pose.toFixed(2),ext:+VEQ.ext.toFixed(3),
+    haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),figures_en_cours:VEQ.lect?VEQ.lect.actifs.map(function(a){return a.f.id+' '+a.t.toFixed(2)+'/'+a.D.toFixed(2);}).concat(VEQ.lect.file.map(function(a){return '+'+a.f.id;})):null,aMoi:veqFigsAMoi(),
+    figures:VEQ.n,rate:VEQ.rate,nez:+(VEQ.sp*57.3).toFixed(1),camT:+VEQ.camT.toFixed(2),hopY:+hopY.toFixed(2),carRoll:+(carRoll9*57.3).toFixed(1),
+    cap:+(Math.atan2(fallVel.x,fallVel.z)*57.3).toFixed(1),radar:[VEQ.si,+VEQ.sh.toFixed(1),+VEQ.sl.toFixed(1),Math.round(VEQ.sd)],vy:+fallVel.y.toFixed(1),eta:+(+CAMV.eta).toFixed(2),hautCaisse:+VEQ.pv.set(0,1,0).applyQuaternion(carGroup.quaternion).y.toFixed(3),fallT:+fallTR.toFixed(2),nitro:+(nitroR+nitroX).toFixed(2)};};
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -38546,7 +38644,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
   else if(id==='airnitro')chaineAura('AIR NITROOO',120,'airnitro',false,true); // (2026-09-29) la comète en vol vaut la comète au sol
   else if(id==='dauphin')dolAura9('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150 — (v5) sa ligne attend la POSE (dolAura9)
-  else if(id==='tonneau')chaineAura('TONNEAU',50,'tonneau',false,true); // (2026-10-14) le tonneau en vol (double-tap nitro)
+  else if(String(id).indexOf('fig_')===0){const f9=window.FIG&&FIG.par[id.slice(4)];chaineAura(txt,f9?f9.aura:60,id,false,true);} // (2026-10-14) LES FIGURES du double-tap nitro (figures.js)
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
   else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
   // (FLOW v2) LE RISQUE NOURRIT LE FLOW EN DIRECT : en l'air la jauge monte PENDANT qu'on vrille (et le vide ne la fait pas fuir).
@@ -39560,7 +39658,6 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
-  if(VEQ.tn&&VEQ.qaOk)carGroup.quaternion.copy(VEQ.qa); // (vol équilibré) un tonneau en cours : on repart de l'assiette SANS son tour (il continue par-dessus)
   if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
   veqDepart(bord,impU,roll0,carGroup.quaternion); // (2026-10-14) LE VOL ÉQUILIBRÉ : verrou du volant, ressorts de la caisse
   /* (bord v2) L'IMAGE DU DÉCOLLAGE : elle ne passe ni par le placement de la conduite (le mode vient de changer) ni par celui du vol
@@ -39644,7 +39741,7 @@ function tryLand(dt){
   const hOff=dTmp.dot(Nn[bestI]),latOff=dTmp.dot(B[bestI]);
   // radar de dalle AVANT le filtre des 40 m (dauphin v3) : le DAUPHIN compte le vol au-dessus de la route jusqu'à DOL_HMAX, à
   // toute largeur. curTOff = décalage LE LONG de la piste : au-dessus d'un TROU le point le plus proche est le bord, ça le trahit.
-  curNear=true;curHOff=hOff;curLatOff=latOff;curTOff=dTmp.dot(T[bestI]);
+  curNear=true;curHOff=hOff;curLatOff=latOff;curTOff=dTmp.dot(T[bestI]);VEQ.si=bestI;VEQ.sh=hOff;VEQ.sl=latOff;VEQ.sd=bd; // (vol équilibré) la pose se prépare sur ce radar
   if(bd>1600)return false;
   // SNAKE LOOP v2 : passer SOUS la route pendant le vol — côté OPPOSÉ à la face de départ, dans la
   // largeur de la dalle — puis reposer la caisse sur la face de DÉPART (validé à l'atterrissage).
@@ -39734,12 +39831,12 @@ function tryLand(dt){
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   {const vm9=vitMult();vA=fallVel.dot(T[bestI])/vm9;vL=fallVel.dot(B[bestI])*.4*sideL/vm9;} // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
-  {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
+  {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
@@ -39750,7 +39847,7 @@ function tryLand(dt){
      la route. 0° = axé, 90° = en crabe, 180° = à contresens. Au-delà de FLOW2.pose.angle : pose RATÉE — pas de PARFAIT possible, et le
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
-  const poseRatee=!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0);FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
+  const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; // (2026-10-14) posée en plein SALTO / TOUPIE : ratéeFLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
   vA*=(1-landLoss);vL*=(1-landLoss);
@@ -39767,6 +39864,7 @@ function tryLand(dt){
      pose (quand on est posé, où, à quelle vitesse, ce que ça paie) ne change pas d'une virgule. */
   {const hR9=sideL>0?hOff:-THICK-hOff,nI9=bestI,lL9=landLoss,vN9=vN,imp9=impact,sd9=sideL;
    const touche9=function(){
+     veqContact(imp9,nI9,sd9); // (2026-10-14) LE CONTACT : la suspension claque, le nez plonge, la caméra s'enfonce
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      engRpm*=.6;charge9=1;if(imp9>2)pneuMord(Math.min(1,imp9/10));}; // la gomme MORD : le moteur reprend en charge, et ça piaille
@@ -39837,7 +39935,7 @@ function tryLand(dt){
     if(g>=1.5&&!poseRatee&&(fallT>.7||gain>0))RUNX.perfect++;
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
-      nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit),'figure'); // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
+      nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit)*veqNitK(),'figure'); // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
       runStats.tricks++;
@@ -39875,7 +39973,7 @@ function tryLand(dt){
      la console de son. Pas sur un petit saut (< 0,4 s), pas sur la pose ratée (elle a son son et éteint la frénésie), pas sur la pose qui
      DÉCLENCHE la frénésie (FLOW.lv lu avant). Après le « tchak » de la pose (t .15). */
   if(FLOW.lv===4&&!poseRatee&&!PARK.on&&fallT>.4&&SONV2)sfx('frenesie.pose',{t:.15});
-  if(poseRatee)flowCasse(poseAng>90); // (v4) la pose est jugée (chaîne encaissée, raccourci compté) : ENSUITE le flow tombe
+  if(poseRatee)flowCasse(poseAng>90,VEQ.rate?'FIGURE RATEE !':null); // (v4) la pose est jugée (chaîne encaissée, raccourci compté) : ENSUITE le flow tombe
   else if(FREN.arme&&FLOW.lv<4&&(chain>0||trkBigA||(rc9&&FLOW2.decl.racc)))frenDeclenche(); // (v4) jauge pleine + FIGURE POSÉE : la FRÉNÉSIE part, ici, au contact · (loi 20) en VILLE, le RACCOURCI posé aussi
   chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
@@ -39929,7 +40027,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
-  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
   vA=vTan*.94;vL=0; // le choc de la lèvre coûte 6 %
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
@@ -44051,7 +44149,7 @@ function bqCles(){const V=[],C=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&u.p>0)V.push('v:'+i);} // (2026-10-10) les caisses en € passent dans les OFFRES (bqOffres)
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat])if(d.p>0)C.push(cat+':'+d.id);
   return {V:V,C:C};}
-function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
+function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);if(cat==='figure')return {cat:cat,d:window.FIG?FIG.par[k.slice(p+1)]:null};return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
 function bqA(k){if(k[0]==='v'){const i=+k.slice(2);return carUnlockedVrai(i)||i===(SAVE.d.equipped|0);}const o=bqCos(k);return !!o.d&&shopOwned(o.cat,o.d.id);}
 function bqValide(k){if(typeof k!=='string')return false;if(k[0]==='v'){const i=+k.slice(2);return !!CARS[i]&&!carRetiree(i);}return !!bqCos(k).d;}
 function bqRar(k){if(k[0]==='v')return carRar(+k.slice(2));const o=bqCos(k);return cosmRar(o.cat,o.d);}
@@ -44108,7 +44206,7 @@ setInterval(function(){try{if(!garageOn)return;const c=document.querySelector('#
   let i=-1;S.forEach(function(e,j){if(e.classList.contains('on'))i=j;});const n=(i+1)%S.length;if(i>=0){S[i].classList.remove('on');S[i].classList.add('sort');setTimeout(function(){S[i].classList.remove('sort');},500);if(P[i])P[i].classList.remove('on');}
   S[n].classList.add('on');if(P[n])P[n].classList.add('on');}catch(e){}},2600); // (2026-10-12) le défilé des offres
 function gOffresPage(){window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
-function bqCourant(){if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
+function bqCourant(){if(GBQ.figK&&GBQ.panOn&&(GBQ.cat==='figure'))return GBQ.figK;if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   if(gEl)gEl.classList.toggle('shopJour',!GMODE.paye);
   if(GMODE.paye){gShopPaye(bar,st);return;}
@@ -44372,7 +44470,7 @@ function gDots(L){const el=$('gDots');if(!el)return;
    Même fiche, mêmes flèches, même caisse au milieu : l'onglet change ce qu'on feuillette. Dans une catégorie
    d'habillage, la caisse montrée est TA caisse équipée (on habille ce qu'on conduit), et l'article feuilleté
    est ESSAYÉ dessus (`SHOP.prev`) — qu'il soit à toi ou pas. Fermer l'atelier retire l'essai. */
-const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎNÉE'};
+const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎNÉE',figure:'FIGURE'};
 /* LE CIEL DU MENU DANS LE HOME DU GARAGE (2026-10-11, Léo : « le bouton HOME doit être le MÊME ciel que le ciel du menu, en plus petit ;
    quand c'est la nuit, il faut que ce soit la nuit aussi dans le HOME du garage ») : l'atelier ne dessine pas le ciel du menu (il a sa
    propre lumière) — alors, tant que l'ACCUEIL est à l'écran, on recopie toutes les 3 s un morceau du VRAI ciel rendu (le haut de l'image,
@@ -44398,7 +44496,7 @@ function homeCielPrise(now){
    la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
    lente ; le doigt l'interrompt). TRAÎNÉES 3,5 (trois-quarts arrière) · PEINTURE ,42 (trois-quarts avant) · AILES 1,2 (de profil). */
-const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2};
+const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2,figure:1.25}; // (FIGURES : de profil, on voit les saltos)
 function garTourneVers(a,D){if(!garageOn||GAR.go)return;const a0=garageAng,T=2*Math.PI,d=((a-a0)%T+T*1.5)%T-T/2;if(Math.abs(d)<.02)return;GAR.angTw={a0:a0,d:d,t:0,D:D||.9};}
 function shopTab(tab){
   if(SHOP_CATS.indexOf(tab)<0)tab='voiture';
@@ -44414,6 +44512,7 @@ function shopTab(tab){
 function shopShow(cat,i){
   const L=COSM[cat];i=((i%L.length)+L.length)%L.length;
   SHOP.i[cat]=i;SHOP.prev={cat:cat,i:i};
+  if(cat==='figure'&&garageOn)try{garFigEssai(L[i].id);}catch(e){} // (2026-10-14) la caisse FAIT la figure qu'on regarde
   const eqC=equippedCar();garageI=eqC;buildCar(CARS[eqC]);
   const d=L[i],a=shopOwned(cat,d.id),eq=shopEqD(cat)===d,Lg=LANG==='zh'?2:LANG==='en'?1:0;
   gNomEntre(TR(d.n));
@@ -44437,6 +44536,7 @@ function shopShow(cat,i){
     bt.style.display=(!a&&d.p)?'none':'';
     bt.disabled=false;
     if(!a)gEtat(bt,'verrou','verrou','À GAGNER');
+    else if(cat==='figure')gEtat(bt,'eq','coche','ACQUISE'); // (2026-10-14) une figure à toi joue d'office
     else if(eq)gEtat(bt,'eq','coche','ÉQUIPÉE');
     else gEtat(bt,'',null,'ÉQUIPER');
   }
@@ -44481,11 +44581,12 @@ function gStripHabits(cat,i){
       if(cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;
         fig='<i class="gSwc'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
+      else if(cat==='figure')fig='<i class="pxi pxi-rotation gIc" style="color:'+(a?rarInfo(cosmRar(cat,d)).c:'#6c6390')+'"></i>'; // (2026-10-14) une FIGURE
       else fig='<i class="pxi pxi-aile gIc" style="color:'+(a?'#dff6ff':'#6c6390')+'"></i>';
       const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
-      return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
+      return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
@@ -46554,6 +46655,7 @@ function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; /
     V=T.filter(function(k){return k[0]==='v'&&!pr(k)&&bqValide(k);}).slice(0,3),C=T.filter(function(k){return k[0]!=='v'&&bqValide(k);}).slice(0,3),L=[];
   for(let i=0;i<3;i++){if(V[i])L.push(V[i]);if(C[i])L.push(C[i]);}return GBQ.sem={w:w,l:L};}
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
+  if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
   if(o.cat==='peinture')return '<i class="bqSw" style="background:'+(d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi('aile');}
@@ -46566,8 +46668,8 @@ function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sans
    · en-tête : BOUTIQUE et, juste à côté, l'argent ; dessous en petit ce qu'on regarde ; couché, la boutique monte jusqu'en haut à droite ;
    · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, le 2e les OFFRES ;
    · la colonne de gauche, qui défile : CETTE SEMAINE — trois caisses et trois habillages tirés sur la semaine (bqSemaine). */
-const BQ_CATS=[['voiture','VOITURES','voiture'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee']];
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+const BQ_CATS=[['voiture','VOITURES','voiture'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee'],['figure','FIGURES','rotation']]; // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+fmtC(d.p);c='pc';}else{px=sansAcc(TR('DÉFI'));c='defi';}
@@ -46655,7 +46757,8 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
 }
 function bqSkins(k){if(!k)return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris
   return [{id:'original',n:'ORIGINAL',c:'linear-gradient(135deg,#fff,#d9dde3)'}];} // (2026-10-12) aucun skin n'est encore dessiné : chaque voiture, aile, traînée a son ORIGINAL
-function bqEssaie(k){ // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
+function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai(k.slice(7));try{gShopJour();}catch(e){}GBQ.ck='';return;}GBQ.figK=null; // (2026-10-14) une FIGURE : la caisse la fait sur le plateau
+  // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)bqOutil(o.cat,'essai',o.d,function(){shopShow(o.cat,j);try{gShopJour();}catch(e){}});} // (2026-10-13) LES BRAS D'ATELIER posent la pièce (voir bqOutil)
   try{gShopJour();}catch(e){}GBQ.ck='';}
@@ -46665,15 +46768,35 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
     if(eq)return {e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
     if(u.k==='premium')return {e:'achat',t:'ACHETER',p:eurTxt(u.eur)};if(u.p)return {e:'achat',t:'ACHETER',p:fmtC(u.p)};return {e:'defi',t:'À GAGNER'};}
-  const o=bqCos(k),d=o.d;if(!d)return null;const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
+  const o=bqCos(k),d=o.d;if(!d)return null;
+  if(o.cat==='figure')return figPossede(d.id)?{e:'eq',t:'ACQUISE'}:{e:'achat',t:'ACHETER',p:fmtC(d.p)}; // (2026-10-14) une figure : on l'a, ou on l'achète
+  const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.p)return {e:'achat',t:'ACHETER',p:fmtC(d.p)};return {e:'defi',t:'À GAGNER'};}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
+  if(s.e==='achat'&&k.indexOf('figure:')===0){figAchete(k.slice(7),bt);return;} // (2026-10-14) acheter une FIGURE
   if(s.e==='achat'){const b=$('gBuy');if(b)b.click();return;}
   if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
   if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);bqOutil(o.cat,'retire',o.d,function(){if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{gShopJour();}catch(e){}});try{hap(6);}catch(e){}return;}
   if(s.e==='defi'){if(bt)gSecoue(bt);uiClic('refus');if(k[0]==='v')toast(pxi('verrou')+' '+String(carUnlockText(+k.slice(2))).replace(/</g,'&lt;'));return;}
   try{hap(6);}catch(e){}}
+/* LES FIGURES AU SHOP ET À L'INVENTAIRE (2026-10-14) — possédées : SAVE.d.figs ; achetées en pièces (la banque) ; toucher = la caisse la fait */
+function figAchat(i){const d=COSM.figure[i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};if(figPossede(d.id))return {ok:false,raison:'deja-possedee'};
+  if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
+  SAVE.d.bank=bank()-d.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(d.id);SAVE.flush();return {ok:true,paye:d.p};}
+function figPossede(id){const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);}
+function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))return false;
+  if(bank()<f.p){if(bt)gSecoue(bt);uiClic('refus');toast(pxi('piece')+' '+sansAcc(TR('IL MANQUE'))+' '+fmtC(f.p-bank()));return false;}
+  SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(id);SAVE.flush();
+  try{if(SONV2)sfx('ui.achat');}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id);return true;}
+const GFIG={lect:null,t:0,D:0};
+function garFigEssai(id){const f=window.FIG&&FIG.par[id];if(!f)return;if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
+  try{if(SONV2)sfx('fig.vrille',{st:2});}catch(e){}}
+function garFigTick(dt){const L9=GFIG.lect;if(!L9||!L9.occupe())return;L9.tick(Math.min(dt,.05));GFIG.t+=Math.min(dt,.05);
+  const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,lev=1.5*Math.sin(Math.PI*x); // elle saute du plateau, tourne, se repose
+  carGroup.position.y+=lev;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
+  VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
+  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):'')):'';}
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
@@ -47085,7 +47208,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;garArgentMaj(); // (2026-10-01) les tas de billets suivent le compte (une comparaison par image)
   garPorte(dt);garFeu(dt);garBeaute(dt,t9); // (2026-09-30) la PORTE (fermée au menu, ouverte au JOUER) ; le rideau de flammes : il brûle au repos, il RUGIT pendant le lâcher
-  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true;try{garBqIndus(dt,ay,t9);}catch(e){} /* (essai) LA BOUTIQUE INDUSTRIELLE */ // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
+  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true;try{garBqIndus(dt,ay,t9);}catch(e){}try{garFigTick(dt);}catch(e){} /* (essai) LA BOUTIQUE INDUSTRIELLE · (2026-10-14) la FIGURE essayée */ // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
@@ -48166,10 +48289,12 @@ try{const b9=document.querySelector('#gOutils [data-go="set"]');if(MENU_SACHA&&b
    `dbgInv()` : état · `dbgInv('ouvre'|'ferme')` · `dbgInv('cat','peinture')`. */
 var INV={on:false,cat:'voiture',hold:null,mange:null,raf:0,D0:.12,D:.45};
 const INV_RANG={infini:6,mythique:5,legendaire:4,epique:3,exotique:2,defi:2,rare:1,commun:0},INV_LUEUR={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1};
-function cosmRar(cat,d){if(!d)return 'commun';if(d.mis)return d.mis>=8?'epique':d.mis>=6?'exotique':'rare';if(!d.p)return 'commun';return d.p<=5000?'rare':'epique';}
+function cosmRar(cat,d){if(!d)return 'commun';if(cat==='figure')return !d.p?'commun':d.p<=4000?'rare':d.p<=12000?'exotique':d.p<=25000?'epique':'legendaire'; // (2026-10-14) une figure : sa rareté suit son prix
+if(d.mis)return d.mis>=8?'epique':d.mis>=6?'exotique':'rare';if(!d.p)return 'commun';return d.p<=5000?'rare':'epique';}
 function invListe(cat){
   if(cat==='voiture'){const eq=equippedCar(),L=[];for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&(i===eq||carUnlockedVrai(i)))L.push({cat:cat,i:i,r:carRar(i),eq:i===eq});
     return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||(carOrdre(b.i)-carOrdre(a.i));});}
+  if(cat==='figure'){const L=[];if(window.FIG)FIG.liste.forEach(function(f,j){if(figPossede(f.id))L.push({cat:cat,i:j,d:f,r:cosmRar(cat,f),eq:true});});return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});} // (2026-10-14) toutes JOUENT (le double-tap tire au hasard parmi elles)
   const e=shopEqD(cat),L=[];COSM[cat].forEach(function(d,j){if(shopOwned(cat,d.id))L.push({cat:cat,i:j,d:d,r:cosmRar(cat,d),eq:e===d});});
   return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});
 }
@@ -48187,6 +48312,7 @@ function invRender(){
       else{const d=o.d;nm=TR(d.n);
         if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
         else if(o.cat==='trainee')fig='<i class="ivRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
+        else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
       const nmA=sansAcc(String(nm)).replace(/"/g,'');
       return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+pxi('coche')+'</u></div>';}).join('');
@@ -48213,6 +48339,7 @@ function invFerme(sec){
 }
 function invEquipe(i,el){
   if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;
+  if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f)garFigEssai(f.id);hap(8);return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau
   if(cat==='voiture'){if(i===equippedCar()){hap(8);return;}if(!carUnlocked(i))return;
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
   else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){hap(8);return;}if(!shopEquip(cat,i))return;
@@ -50067,7 +50194,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;veqTonneau();} // LE TONNEAU (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;veqDouble();} // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
@@ -50328,7 +50455,6 @@ function loop(now){
            plot était un fantôme. Un plot traversé EN UNE image se juge désormais dans cette image-là (choc, sinon frôlé juste en dessous). */
         const e9=balEcart(c9.s,2.6,sDe9,s,lDe9,lat,side*c9.lat);
         if(e9<Infinity)c9.dm=Math.min(c9.dm==null?9:c9.dm,e9); // l'écart le plus serré vu pendant le passage
-        if(e9<1.6&&VEQ.saut&&hopY>1.25){if(!c9.saute){c9.saute=true;VEQ.plots++;}continue;} // (2026-10-14) LE TONNEAU au sol passe PAR-DESSUS le plot
         if(e9<1.6){
           c9.hit=true;
           const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
@@ -50349,7 +50475,7 @@ function loop(now){
       if(fr9)frole(fr9,fd9,fk9);
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
-      if(mode==='drive'&&oilCd<=0&&!(VEQ.saut&&hopY>.5))for(const o9 of OILS){ // (2026-10-14) en plein TONNEAU, on survole l'huile
+      if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
         if(o9.face!==side)continue; // chaque flaque vit sur SA face
         if(balEcart(o9.s,o9.r+2,sDe9,s,lDe9,lat,side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus) — (BALAYAGE) sur le trajet de l'image : à 30 i/s, une flaque de 2 m sautait au-delà de ~860 km/h
           slipT=.75;oilCd=1.2;
@@ -50410,7 +50536,7 @@ function loop(now){
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
            const pv=carBody.userData.pivY||.45;
-           carBody.rotation.set(pitch9,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
+           carBody.rotation.set(pitch9+veqConduite(d9),0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
         }
         /* (2026-09-28) LA SUSPENSION : la réception, le dos d'âne, le bump écrasaient TOUTE la caisse (`carGroup.scale`) — roues comprises,
            qui devenaient ovales, comme du caoutchouc. Désormais la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) : elle se tasse,
@@ -50419,7 +50545,6 @@ function loop(now){
          susV+=((-sq*.17-susY)*230-susV*16)*d9;susY=THREE.MathUtils.clamp(susY+susV*d9,-.26,.12);
          const pv=carBody.userData.pivY||.45;carBody.position.y=pv-pv*Math.cos(carRoll9)+susY;}
         carGroup.scale.set(1,1,1);
-        veqTonneauPose(dt); // (2026-10-14) LE TONNEAU au sol : le saut tourne autour du milieu de la caisse
         ROUES.v=vF*SPD; // (2026-09-26) la vitesse du SOL sous les pneus : carVit fait tourner chaque roue à v ÷ R (+ flou de jante)
         // ombre
         shadow.material.opacity=0; // (2026-09-25) .10 → 0 : ce disque à bord NET se lisait comme une tache sombre autour de la caisse — l'ombre portée (shadow map) et le blob de contact doux suffisent // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
@@ -50618,6 +50743,7 @@ function loop(now){
             camera.rotateZ(a9*.03*Math.sin(t*27+.7));}
           shake=Math.max(0,shake-3.5*dt);
         }
+        veqCamera(dt); // (2026-10-14) la caméra s'enfonce sous le choc de la pose
         // VIBRATION DE VITESSE — RELATIVE à la caisse : ça frémit dès ~45 % de TA vmax (une LA HONTE
         // à fond doit trembler autant qu'une COMÈTE à fond), puis le PLANÉ SUPERSONIQUE calme tout :
         // passé ~350 km/h affichés, l'air ne lutte plus, la caisse fend — les vibrations fondent à 30 %.
@@ -50828,10 +50954,9 @@ function loop(now){
        if(JEAU.wB>.01){const r0=Math.round(airRoll/6.2832)*6.2832;airRoll+=(r0-airRoll)*Math.min(1,dt*3.5*JEAU.wB);}}
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
-      if(VEQ.qaOk)carGroup.quaternion.copy(VEQ.qa); // (le tonneau se pose par-dessus : on lisse l'assiette sans lui)
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       }
-      veqTonneauPose(dt); // LE TONNEAU (double-tap nitro), par-dessus l'assiette
+      veqFigurePose(dt); // LES FIGURES (double-tap nitro en vol), par-dessus l'assiette
       shadow.position.y=-99999;
       /* ===== LA CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE (2026-09-28, soir, Sacha : « la caméra en air time déconne
          complètement, ça devient beaucoup trop dur de viser juste ») =====
