@@ -10013,6 +10013,21 @@ let POST_EXPO=0.71;        // exposition BASSE : la nuit gagne — le sol s'éte
 const POST_SAT=1.40;       // SATURATION forte : néons Vice City (valeur d'init — les biomes écrivent acesPass.uniforms.uSat en direct)
 const POST_CONTRAST=1.23;  // CONTRASTE : noirs profonds, hautes lumières franches
 let POST_PIVOT=.5;          // (2026-10-14, passe graphismes · chaîne de couleur) le PIVOT du contraste. À .5 (l'image d'avant, au bit près) tout ce qui sort de l'ACES sous ~.14 est écrêté à 0 dès que le contraste dépasse 1,3 : des noirs BOUCHÉS (seuil = 25 à 35/255 en valeur de scène). Plus bas (.35) les ombres gardent leur dégradé — mais toute l'image monte de (con−1)·(.5−pivot) : à régler avec l'exposition. INTERRUPTEUR ÉTEINT (.5) : `dbgGfx({pivot:.35})` pour essayer à chaud ; uniforme `uKC` calculé en JS, coût nul.
+/* LA COURBE DE TON v2 (2026-10-14, passe graphismes · courbe-noirs) — ÉTEINTE par défaut (Sacha, 5 h 45 : « plus aucun changement global
+   sans planche validée ») : `?courbe=2` dans l'adresse, ou `dbgGfx({courbe:1})` à chaud. Éteinte = l'image d'avant AU BIT PRÈS (même programme).
+   CE QUI CHANGE quand elle est allumée :
+   · LE PIED : l'ancien contraste était une droite c·k+b ÉCRÊTÉE à 0, puis le grade du téléphone retirait encore .024 : tout ce qui sortait
+     de l'ACES sous ~25-45/255 (selon le contraste de l'ambiance) devenait NOIR PUR, sans dégradé. La droite est GARDÉE au-dessus de
+     `POST_PIED`× le point où elle touchait 0 (x0) — mi-tons et lumières identiques, l'étalonnage de la nuit ne bouge pas — et en dessous
+     un PIED quadratique c·(s0 + a·c), raccordé en valeur ET en pente, qui part de 0 (le noir le plus noir reste un vrai noir) avec une pente
+     s0 = k(1−2/m) : les ombres gardent leur détail et rejoignent le noir progressivement. Même coût que l'ancien max() (une sélection).
+   · LE GRADE DU TÉLÉPHONE (sat ×1,12, contraste ×1,0185 −.02425, ex-filtre CSS de la toile) n'est plus une 3e couche figée dans le shader :
+     son affine est replié dans la droite (uKC, calculée en JS), sa saturation dans DA.sat (×1,12 — LE seul endroit où la saturation commune
+     se règle) ; le filtre CSS de l'ordi se retire aussi (body.post) : ordi et téléphone voient LA MÊME image.
+   · LE SPLIT des ombres (sarcelle) s'éteint dans le noir (pondéré par la luminance sous ~20/255) : plus de plancher coloré. */
+let COURBE_V2=/[?&]courbe=2(&|$)/.test(location.search);
+let POST_PIED=2.5; // la largeur du pied, en multiples de x0 : 2 = pied sans pente au noir (le plus sombre), 3 = ombres très ouvertes
+const POST_FONDU=12.5; // le split des ombres s'éteint sous l = 1/12,5 = .08 (≈ 20/255)
 const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
 const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
@@ -10161,6 +10176,16 @@ ACESShader.uniforms.uLens={value:null};ACESShader.uniforms.uLensK={value:0};ACES
  ACESShader.fragmentShader=fs.slice(0,k).replace('varying vec2 vUv;','varying vec2 vUv;uniform sampler2D uLens;uniform float uLensK;uniform vec2 uLensA;')+
    '\n  vec2 uvL=vUv;if(uLensK>0.001){vec2 ln9=texture2D(uLens,vUv).rg*2.-1.;if(dot(ln9,ln9)>.0004)uvL=clamp(vUv-ln9*uLensA*uLensK,vec2(.001),vec2(.999));}'+
    fs.slice(k).replace(/vUv/g,'uvL');}
+/* (2026-10-14, courbe-noirs) LES DEUX PROGRAMMES DE LA PASSE FINALE : V1 = l'ancien, au caractère près ; V2 = la courbe de ton (voir COURBE_V2).
+   Le V2 est DÉRIVÉ du V1 par trois remplacements : si l'un manque (quelqu'un a retouché ces lignes), V2 = V1 et la bascule ne fait rien. */
+const ACES_FS_V1=ACESShader.fragmentShader;
+const ACES_FS_V2=(function(f){const R=[['c=max(c*uKC.x+uKC.y,0.);','c=mix(c*(uTo.x+uTo.y*c),c*uKC.x+uKC.y,step(uTo.z,c));'],
+    ['c+=uSh*(1.-smoothstep(0.,0.5,l2));','c+=uSh*((1.-smoothstep(0.,0.5,l2))*min(l2*uTo.w,1.));'],
+    ['varying vec2 vUv;','varying vec2 vUv;uniform vec4 uTo;']];
+  for(const r of R){if(f.indexOf(r[0])<0)return ACES_FS_V1;f=f.replace(r[0],r[1]);}
+  return f.replace('c=max(c,0.);c=max(c*1.12-dot(c,LUM)*.12,0.);c=max(c*1.0185-.02425,0.);','');})(ACES_FS_V1);
+ACESShader.uniforms.uTo={value:new THREE.Vector4(0,0,0,POST_FONDU)}; // (courbe-noirs) le pied : pente au noir, courbure, fin du pied ; .w = le fondu du split
+if(COURBE_V2)ACESShader.fragmentShader=ACES_FS_V2;
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
   const w=innerWidth,h=innerHeight;
@@ -10315,11 +10340,14 @@ if(CAN_POST){ try{
    acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
-     U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
+     if(COURBE_V2){ // (courbe-noirs) l'affine du grade (×1,0185 −.02425) replié dans la droite, puis le pied qui la raccorde à 0
+       const k9=U9.uContrast.value*1.0185,b9=1.0185*(POST_PIVOT-POST_PIVOT*U9.uContrast.value)-.02425,x9=b9<0?-b9/k9:0,m9=POST_PIED;
+       U9.uKC.value.set(k9,b9);U9.uTo.value.set(k9*(1-2/m9),x9>1e-5?k9/(m9*m9*x9):0,m9*x9,POST_FONDU);
+     }else U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
      return THREE.ShaderPass.prototype.render.apply(this,arguments);};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
-  if(GRADE_ACES)document.body.classList.add('post'); // le shader étalonne → le CSS se retire (si le post échoue, la classe n'est jamais posée : le filtre reste le repli)
+  if(GRADE_ACES||COURBE_V2)document.body.classList.add('post'); // le shader étalonne → le CSS se retire (si le post échoue, la classe n'est jamais posée : le filtre reste le repli)
 }catch(e){composer=null;POST_ON=false;} }
 
 // OMBRE DE CONTACT : un blob dégradé posé au sol sous la caisse — ancre la voiture au monde (coût ~1 draw, mobile-friendly).
@@ -10820,14 +10848,19 @@ window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.t
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
 /* (2026-09-28, passe graphismes mobile) BANC : chaque petite technique s'éteint et se rallume À CHAUD (des uniformes : zéro recompilation),
    pour comparer la même image avec et sans. `dbgGfx({coeur:0,trame:0,pique:0})` = le rendu d'avant ; `dbgGfx()` décrit. */
+function courbeBascule(v){ // (2026-10-14, courbe-noirs) banc / essai sur l'iPhone : passe d'une courbe à l'autre (une recompilation de la passe finale — jamais en course)
+  if(v===COURBE_V2||!acesPass)return;COURBE_V2=v;DA.sat=v?DA.sat*1.12:DA.sat/1.12;
+  acesPass.material.fragmentShader=v?ACES_FS_V2:ACES_FS_V1;acesPass.material.needsUpdate=true;
+  if(POST_ON)document.body.classList.toggle('post',GRADE_ACES||v);if(typeof BIO!=='undefined'&&BIO.cur)bioApply(BIO.cur);RESPIN=true;}
 window.dbgGfx=function(o){
   if(o){if(o.coeur!=null)GFX_U.uCoeur.value=o.coeur===true?1.16:(+o.coeur||1);if(o.glace!=null)GLACE.k=o.glace===true?1:+o.glace;
     if(o.cotonOpaque!=null&&COTON.mat){COTON.mat.transparent=!o.cotonOpaque;COTON.mat.depthWrite=true;}
     if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
+    if(o.courbe!=null)courbeBascule(!!o.courbe); if(o.pied!=null)POST_PIED=Math.max(2,+o.pied); // (courbe-noirs) la courbe de ton, à chaud (banc : recompile la passe finale)
     if(o.pivot!=null)POST_PIVOT=+o.pivot; // (2026-10-14, chaîne de couleur) le pivot du contraste, à chaud (.5 = l'image d'avant)
     if(o.haloNorme!=null&&bloomPass)bloomPass.norme=!!o.haloNorme; // (2026-10-14, chaîne de couleur) le halo à largeur d'écran constante, à chaud
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
-  return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
+  return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio,courbe:COURBE_V2?1:0,pied:POST_PIED,daSat:+DA.sat.toFixed(4)};};
 window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
 window.dbgQual=function(k){ if(k!=null){QL.force=true;qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
@@ -19777,6 +19810,7 @@ function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = comp
    noirs bouchés, coins recolorés (Sacha : « trop IA »). → sat 1.08, con 1.06, split sarcelle/or divisé par 2, vignette de TOUTES les ambiances
    à 60 %. Choisi à l'œil sur 5 ambiances (shots/etal-commun/planche-essais-DA.png). Le reste se règle PAR AMBIANCE (plafonds de la charte). */
 const DA={on:1,expo:1.06,sat:1.08,con:1.06,vivid:1,wbN:1,sh:[-.013,.022,-.003],hi:[.01,.019,-.021],vigK:.6};
+if(COURBE_V2)DA.sat*=1.12; // (2026-10-14, courbe-noirs) la saturation du grade figé du téléphone repliée ICI (1,08 × 1,12 = 1,2096) : un seul endroit
 function daPose(U,c){
   // par ambiance (champs lerpés comme les autres) : daCon / daExpo / daWbN — les niveaux SOMBRES (tempête, minuit) prennent moins de
   // contraste, plus d'exposition et gardent la moitié de leur voile violet (MESURÉ : le contraste de la couche DA les noyait dans le noir)
