@@ -15379,7 +15379,7 @@ function jadeReprend(){const t0=performance.now(),m=JADE_GARDE.m;JADE_GARDE.m=nu
   FIN.near.length=0;FIN.sig=0;FIN.sale=false;FIN.mats=new Map();FIN.dans=new Set();if(FIN.stamp){FIN.stamp.fill(0);FIN.was.fill(0);}FIN.gen=0;
   NUVOX.sig=0;for(const im of NUVOX.ims||[]){im.count=0;im.visible=false;}for(const n of NUVOX.L||[])n.v=0;
   for(const e of JADE.eauPil||[])e.t=0;JADE.eauT=0;JADE.sale=false;
-  for(const o of JADE.monu||[]){o.loin=false;o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;}}
+  for(const o of JADE.monu||[]){o.loin=false;o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;if(o.lo){o.lo.visible=false;o.L[0].visible=true;}}}
   for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;M9.pres=false;for(const x of M9.mF)x.visible=false;for(const x of M9.mL)x.visible=true;}
   if(JADE.decoPieces)for(const x of JADE.decoPieces.children)x.visible=true;
   if(FIN.on&&JADE.geos&&FIN.cap)for(let t=0;t<JADE.geos.p.length;t++)if(JADE.geos.p[t].fin&&!FIN.fam[t])finFamille(t); // (les gabarits fins finis depuis : leur famille, comme une carte neuve)
@@ -16208,6 +16208,20 @@ function jadeMonument(root,g,Mr,jx,M9){ // un monument en verre de jade : ses tr
   const L9=[];for(const k of (VIT?[[M9.vitM,0]]:[[M9.vrM,3],[M9.vrXM,2],[M9.vrPM,2.5]])){const m=new THREE.Mesh(g,k[0]);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;m.renderOrder=k[1];m.frustumCulled=true;if(!L9.length)m.userData.jeter=true;gr.add(m);L9.push(m);}
   const c=g.boundingSphere.center.clone().applyMatrix4(Mr);(JADE.monu||(JADE.monu=[])).push({g:gr,c:c,r:g.boundingSphere.radius*Mr.getMaxScaleOnAxis(),L:VIT?null:L9,loin:false});
   return L9;}
+/* (2026-10-14, passe perf mobile) LE MONUMENT DE LOIN, ALLÉGÉ — paliers ANCIEN et MOYEN. MESURÉ (iPhone 7 émulé) : la Porte du ciel, seule en
+   matière opaque au-delà de 450 m, pesait ~158 000 triangles à CHAQUE image (grille 224×218×34 en cubes de 5 m, maillée avec ses faces
+   intérieures — qu'on ne voit qu'à travers le verre, donc jamais en opaque). De loin, elle prend un 4e maillage : la DEMI-grille (voxDemi,
+   le niveau de détail des montagnes) SANS faces intérieures, posée à l'échelle ×2 — le sommet (x,y,z) de la demi-grille tombe sur
+   o+2·VXG·(x,y,z), là où tombait (2x,2y,2z) de la grille : même endroit, même taille, des cubes de 10 m — ~30 000 triangles (calculé hors
+   navigateur sur la même grille : 158 k → 29-31 k). De près (< 450 m) : le verre en trois passes, intact. Bâti UNE fois, dans la chauffe du
+   niveau (jadeChauffeNiveau, l'image déjà sacrifiée 120 ms après newTrack) — jamais au palier RÉCENT, jamais en course ; tant qu'il n'est
+   pas bâti, le maillage plein reste (comme avant). 1 = allégé, 0 = comme avant. */
+PAL.B.jadeMonuLoin=[1,1,0];
+function jadeMonuLoin(o){if(!o||!o.dG||o.lo||!o.L)return;const G=o.dG;o.dG=null; // (une seule tentative : une exception laisse le maillage plein)
+  const g=voxMesh(voxDemi(G));if(!g.index||!g.index.count)return;
+  const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=o.dJ;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));
+  const m=new THREE.Mesh(g,jadeMats().vrOM);m.matrixAutoUpdate=false;m.matrix.copy(o.dM);m.matrixWorldNeedsUpdate=true;m.renderOrder=0;m.frustumCulled=true;m.userData.jeter=true;
+  m.visible=!!o.loin;if(o.loin)o.L[0].visible=false;o.g.add(m);o.lo=m;o.loTri=g.index.count/3;}
 function jadeDansGrille(R,p){const dx=p.x-R.o.x,dy=p.y-R.o.y,dz=p.z-R.o.z; // un point du monde est-il dans un cube de cette grille ?
   return voxAt(R.G,Math.floor((dx*R.b.x+dz*R.b.z)/VXG),Math.floor(dy/VXG),Math.floor(-(dx*R.t.x+dz*R.t.z)/VXG))>0;}
 /* LA PORTE DU CIEL — un massif FLOTTANT en cubes, percé d'une arche (176 m) : faces bosselées, crête en pitons, un DESSOUS en pointes
@@ -16261,7 +16275,8 @@ function jadePorte(root,i0,jr,M9,pose){
     const gF=colMesh(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
     jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
     for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;}catch(e){console.warn('porte fine',e);}}
-  if(!fin9){const g=voxMesh(G,4);jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;}
+  if(!fin9){const g=voxMesh(G,4);jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;
+    if(PAL.b('jadeMonuLoin',0)&&!VIT){const e9=JADE.monu[JADE.monu.length-1];e9.dG=G;e9.dM=jadeRepere(o,b,t,VXG*2);e9.dJ=.37;}} // (2026-10-14, passe perf mobile) de loin : la demi-grille posée ×2 (voir jadeMonuLoin)
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
       for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+62)+t.x*fa*(D*.5-18),p.z+b.z*sg*(hw+62)+t.z*fa*(D*.5-18),40,y0+crete(.5+sg*(hw+62)/W)+40+jr()*80);
       for(let v=hw+140;v<W9-40;v+=75+jr()*60)for(const fa of [-1,1])if(jr()<.7){const r=24+jr()*26,f9=(v*sg+wG)/W;
@@ -16525,7 +16540,7 @@ function jadeTick(dt){
   if(!JADE.t0&&started)JADE.t0=performance.now();
   if(JADE.decoPieces&&JADE.decoPieces.visible){const cp=camera.position;for(const m of JADE.decoPieces.children){const S9=m.geometry.boundingSphere,v=!!S9&&cp.distanceTo(S9.center)-S9.radius<450;if(m.visible!==v)m.visible=v;}} // (12/10) les pièces du bord : à moins de 450 m seulement
   if(JADE.monu){const ff=(scene.fog&&scene.fog.far)||2600;for(const o of JADE.monu){const d9=camera.position.distanceTo(o.c)-o.r,v=d9<ff+80;if(o.g.visible!==v)o.g.visible=v; // (v17) au-delà de la brume : pas dessinés…
-    const lo=d9>450;if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
+    const lo=d9>450;if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;if(o.lo){o.lo.visible=lo;o.L[0].visible=!lo;}/* (2026-10-14, passe perf mobile) de loin, le maillage allégé à la place du plein (jadeMonuLoin) */}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
   for(let i9J=0;i9J<2;i9J++){const M9=i9J?JADE.pont:JADE.porte;/* (2026-10-14, passe perf mobile) même ordre (porte, pont), sans tableau neuf par image */if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
     if(n!==M9.pres){M9.pres=n;for(const m of M9.mF)m.visible=n;for(const m of M9.mL)m.visible=!n;}}
   JADE_U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);
@@ -16602,6 +16617,7 @@ function jadeHeurt(p){
    (avec la chauffe de la piste, 120 ms après newTrack) : tout le sous-arbre de la map, caché compris, plus une grue, compilé et dessiné une
    fois hors écran — sous l'éclairage de la course, donc les mêmes programmes. */
 function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
+  try{for(const o of JADE.monu||[])jadeMonuLoin(o);}catch(e){console.warn('monument de loin',e);} // (2026-10-14, passe perf mobile) le monument allégé de loin, paliers 0-1 (une fois par carte)
   let g=null;const eau=[],vu=[];
   try{grueGeos();g=new THREE.Group();g.add(new THREE.Mesh(GRUE.gC,GRUE.M));
     const m0=JADE.monu&&JADE.monu.find(function(o){return o.L&&o.L[0];}); // les monuments changent de matière à 450 m (vrOM au loin → vrM de près) : la matière de PRÈS aussi
