@@ -29,6 +29,55 @@
   l'ombre de la roche qui tire au VIOLET (la bible).
 - À trancher / à faire : le banc `raccourcis.cjs` de GAMEPLAY attend son crochet `dbgTrace` (pas encore sur main) — à repasser dès qu'il y est
   (cible 0,6 raccourci/km : le canyon en a ~0,35, couloir et tunnel compris) ; les six météos à revoir avec la nouvelle roche.
+## LA SECONDE CHANCE COÛTE TOUTE LA PARTIE (2026-10-14 soir, Sacha : « le bouton continuer malgré la mort doit coûter au joueur la même somme que ce qu'il a gagné durant la partie »)
+`chanceOuvre` : `CHANCE.prix = max(CHANCE.plancher, round(money − START_CASH))`, soit 100 % de l'encaissé, au dollar près. Le barème
+de GAMEPLAY (k 0,6 → 0,8) et l'arrondi à deux chiffres (`chanceJoli`) sont retirés. Le plancher de 300 $ ne joue que pour une partie
+qui n'a presque rien rapporté (sinon la reprise serait gratuite). Le moteur perd toujours un palier. Comptabilité inchangée : la 1re
+fin verse la partie, la reprise la reprend en entier, la fin suivante ne verse que ce qui a été gagné depuis. La plaque d'INTERFACE
+lit `chanceEtat().prix` : elle affiche le nouveau prix sans rien changer de son côté. Banc : mort à 1 000 $ gagnés → CONTINUER coûte 1 000 $.
+
+## LE ROYAUME DE FEU — LES BANCS DE FUMÉE + LA CONSTRUCTION EN TRANCHES (2026-10-14 au soir, session VOLCAN — Sacha, relayé par PILOTAGE : « plus de particules de FUMÉE dans la map volcan : il faut que le CHALLENGE vienne de la DIFFICULTÉ À VOIR » · règle commune : « construction en tranches < 60 ms »)
+- LES BANCS DE FUMÉE (`VOLCAN.bancs`, posés par buildVolcan dans leur propre flux de hasard) : des nappes de 220-480 m (× √(vPalier/78)) et des
+  FENÊTRES dégagées de 300-650 m ; 8 à 10 bancs par niveau, 25-40 % de la piste (mesuré, Node, 9 graines × 3 paliers). JAMAIS sur l'élan d'un
+  raccourci (sE − 260 → sE + 140) ni là où l'on se pose (sS − 20 → sS + 420), ni au départ, ni au portail ; un banc qui ne rentre pas se
+  raccourcit. DEDANS (volcanTick, sur la route sous la caisse — `lastNearS` en vol) : `FUMEE_K` monte en ~0,3 s, et `updateClouds` (le seul
+  écrivain de la brume en course) referme la brume vers `FUMEE_F` (220-300 m selon la météo) et la teinte `FOG_FUMEE` (lie-de-vin, noir-violet
+  la nuit : `VLC_MET.fuC`) ; les braises ×3,5, la cendre s'épaissit ; la lave et les fissures PERCENT la brume (elles rougeoient dessous) ; les
+  néons du bord et la ligne or restent lisibles quelques dizaines de mètres. VUS DE LOIN : des bouffées noires-violettes au ventre orange
+  (`VLC_FUM`, genre 4 : immobiles, effacées à moins de 25-85 m de l'objectif — la brume prend le relais), dans l'InstancedMesh du panache.
+- MESURÉ AU BANC GPU (RX 6600, 844 × 390) : 60 i/s en course, DANS les bancs aussi (FUMEE_K 0,59 / 0,78), qualité auto FULL, aucun à-coup ;
+  0 erreur. Hors du volcan, `vlcFxCache` remet FUMEE_K à 0.
+- LA CONSTRUCTION EN TRANCHES : TOUT DE SUITE la préparation de la grille, les cases du MORCEAU DU DÉPART (~1,1 km) et son maillage, la mer
+  lointaine — MESURÉ 44-46 ms (au banc) ; ENSUITE, 5 ms par image (12 en pause), dans l'ORDRE (`VOLCAN.file`, `vlcTranches`) : les rangées
+  restantes du plus proche au plus loin, les coulées (elles creusent la grille), tous les morceaux (ceux du départ refaits), les rubans, les
+  aiguilles, l'arche, hornitos et geysers, orgues, volcans du loin et panaches, les collisions — MESURÉ ~230 ms étalés, `VOLCAN.pret` en ~1 s.
+  Une case pas encore calculée vaut la MER (jamais de mort sur un sol qui n'existe pas encore). Le tampon de la route passe de 560 à 340 m
+  (au-delà, la distance grossière suffit). Console : `dbgVolcan()` → pret, file, msFile, msTot, fu, bancs ; `dbgVolcan('banc',{k,dedans})`.
+
+## LE ROYAUME DE FEU v2 — LA DESCENTE PAR LES BOUCLES DE RACCOURCI (2026-10-14 au soir, session VOLCAN — Sacha, relayé par PILOTAGE : « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus bas ; les maps doivent DESCENDRE » · « c'est un jeu de COURSE, pas de balade : plus de virages » · « plus la vitesse du palier est élevée, plus les virages doivent être larges »)
+La route du volcan est refaite sur la règle commune de GAMEPLAY (`passation/RACCOURCIS.md`) ; l'identité reste (éruptions, panaches, lave, aiguilles, arche).
+- LE TRACÉ (`genVolcan` → `vlcTrace`) : départ sur la LÈVRE DU CRATÈRE du grand volcan (dans le dos), le SAUT DU CRATÈRE (replat puis 15-17 %), puis la
+  descente vers la MER DE LAVE : des enchaînements de virages (un sur trois SERRÉ, 1,2-1,45 × le rayon mini ; les autres entre 1,55 × et 240 m) et
+  5 BOUCLES (4 au-delà du palier 10) : un ÉLAN droit, un tour complet (deux demi-cercles, R 1,25-1,5 × rMin) dont l'ENTRÉE plonge à 16 % sur
+  120 m, puis la SORTIE — dans l'axe de l'élan, 22-30 m à côté (côté extérieur du tour), ~40 m plus bas, longue de la portée du saut
+  (vPalier × 2,4 s), prolongée d'un virage doux. LE RACCOURCI : au bout de l'élan, ne pas tourner, filer tout droit : la route se dérobe
+  (le plongeon de l'entrée), la caisse passe au-dessus du bord et retombe dans l'axe sur la sortie (~600 m de gagnés au palier 0, ~850 au palier 10).
+  Le contrôle `conflits` refuse tout tracé où deux dalles passent à moins de 70 m l'une de l'autre avec moins de 32 m d'air (6 essais, flux de
+  hasard propre). L'échelle du palier : `vw = 70 + 100·(lvPiste() − 1)`, `rM = 40 + 0,3·vw`.
+- POURQUOI CETTE GÉOMÉTRIE (mesuré au banc `cc-banc/raccourcis.cjs`, rejoué HORS LIGNE sur des traces exportées de Node — `--depuis`, sans
+  Chrome) : une sortie à 72-80 m de l'élan n'était atteinte qu'en braquant en l'air, donc posée de travers (> 55° : pose ratée) ; à 60 m, la
+  caisse lancée tout droit retombait dans le trou entre les dalles ; à 22-30 m elle tombe dessus, mais au palier 0 (58-97 m/s) elle restait
+  au ras de sa propre dalle qui s'éloigne lentement : heurt de tranche — d'où le PLONGEON d'entrée, qui dérobe la route sous elle.
+- LE RELIEF : la MER DE LAVE est désormais PLATE (`VOLCAN.ySea`, 72 m sous le point le plus bas de la route), semée d'îles et de mesas ; les
+  deux cônes en sortent ; le couloir de la route se cale sur la dalle LA PLUS BASSE à moins de 120 m (là où la route repasse sous elle-même) ;
+  au-delà de la grille, `vlcMerLoin` (un plan de 40 km) continue la mer jusqu'à l'horizon, sa braise se fond dans la brume tout au loin.
+  Aucune aiguille, aucun hornito, aucun orgue dans les COULOIRS DE SAUT (`horsSaut`) ; pas d'aiguille de plus de 260 m sous la route ;
+  pas d'arche au-dessus d'une autre route.
+- MESURÉ (banc RACCOURCIS hors ligne, 5 graines) : PALIER 0 → les 10 cibles sur les 5 graines (pente 6,7 %, 0 montée, 2,6-3,1 virages/km,
+  ~1 raccourci rentable/km dont 8-10 gros, 0 croisement dangereux, 0 virage infranchissable, droite ≤ 5 s) ; PALIER 10 → 3 graines sur 5
+  complètes (2,3-2,4 virages/km sur les deux autres) ; paliers 18-27 → raccourcis 3-5/km mais 1,7-2,4 virages/km (les sorties s'allongent
+  avec la portée du saut) : À REPRENDRE.
+- Console : `dbgVolcan()` (sauts : [début, sortie, chute], conflits, croisements, niveau de la mer), `dbgVolcan('saut',{k})` (photo du raccourci).
 
 ## LE FINAL SPIN — LA MACHINE À SOUS DE FIN DE PARTIE, VERSION 1 (2026-10-14, Sacha au quiz de 14 h 50 : « le final spin [de Jetpack Joyride] est une bonne inspi, fais la même machine exactement, mais travaille-la très bien avec la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque partie »)
 Session IDEE. Tout vit dans le bloc `SPIN` (juste après `mkPower`) et dans `<style id="finalSpin">` ; `?spin=0` éteint tout.
@@ -165,6 +214,11 @@ LA BANQUISE (section suivante) devient LE GLACIER / THE GLACIER partout où le n
 - LA CONSTRUCTION : la piste est plus longue (10 km) ; Node, graine chaude : ~78 ms ordinateur, ~30 ms palier ancien (la cible de PILOTAGE
   est 60 ms) ; la toute première construction d'une session reste ~170 ms (JIT à froid). Le contrôle de dégagement des cristaux rejette d'abord
   les points de route trop loin (rejet rapide).
+- ALIGNÉ SUR LA RÈGLE DE GAMEPLAY (`passation/RACCOURCIS.md`, banc `cc-banc/raccourcis.cjs --depuis` sur des traces bâties en Node avec
+  `genBanq` : `trace-node.cjs` du scratchpad MONTAGNE) : rayons × `rayonPalier()/63` quand il existe (sinon `lvPiste`) ; chaque épingle en DEUX
+  quarts de tour enchaînés (l'intervalle grandit avec le palier) ; 4 S sur 10 SERRÉS ; lignes droites fixes (≤ 80 m hors cassure) ; un virage
+  avant l'arrivée. MESURÉ, 4 graines par palier : palier 0 et 10 → 40/40 ✓ ; paliers 20 et 27 → 36/40 (seul « virages par km » manque :
+  2,1-2,5 pour 2,5 — en fin de partie les rayons tenables grandissent plus vite que les virages ne se resserrent).
 - Console : `dbgBanq('raccourci',{n,f,v})` (la caisse sort par le bord aval de la spirale n, à la fraction f du tour) puis `dbgBanq('etat').s`
   (le gain) ; `dbgBanq('spirale',{n,h,d,a})` (la photo d'ensemble, en pause).
 

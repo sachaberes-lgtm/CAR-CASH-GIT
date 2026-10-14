@@ -1,4 +1,4 @@
-# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~21 h)
+# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~23 h 30)
 
 Lire d'abord `passation/OPTIMISATION.md` (la passe perf mobile du Mac, le socle `PAL`) puis la section « LES GELS DE CONSTRUCTION,
 VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sacha/Documents/GitHub/CCG-optim`, branche `optimisation`
@@ -39,6 +39,14 @@ VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sach
 - `flashEcran` : plus de `void offsetWidth` (flash9/flash9b alternés, une relance par tâche).
 - Reste au profil de course (8 s, PC) : `hudColonne` → zRect/getBoundingClientRect ~10 ms/s (10 Hz), `volgTick` → zRect ~3 ms/s.
   Piste : hauteurs du HUD par ResizeObserver au lieu de lectures forcées (zone INTERFACE : à proposer).
+
+## Nuit (train n°1, main 843dab1e, v429)
+- LES DAUPHINS SUIVENT LA FIGURE (Sacha) : jaillissent au départ du DAUPHIN, nagent tant qu'il est tenu, PLONGENT en `DOL_SORTIE`
+  (0,4 s) dès `dolFin` ; plus de minimum DOL_VU à l'écran ni de grand bond final (`final=false`). `dolNbT` = l'ancienne minuterie,
+  gardée pour le compte du banc (dolNb, qui paie l'aura) : paiement inchangé. Banc `banc.cjs dauphin` : 0,56 s → 0,95 s visibles
+  (avant 3,5) ; 3,1 s → 3,5 s (avant 5,7).
+- POUSSÉE = LE TRAIN (PILOTAGE, 14/10 23 h) : merge main, syntaxe + garde-burnout + garde-charte, PAS de sw.js, banc métier,
+  `git push origin optimisation`, puis `echo "OPTIMISATION optimisation" >> /c/Users/sacha/cc-train/file.txt`. Lire cc-train/LISEZMOI.txt.
 
 ## Mesurer (PC, sans fenêtre, palier 0) — outils dans le scratchpad de la session (à recopier si besoin)
 - `banc.cjs <port> tout|portail|rejouer|boutique [params] [--debout] [--noinline] --tag=x` : profil CPU, tâches longues, compilations,
