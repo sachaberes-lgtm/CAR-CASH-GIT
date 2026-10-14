@@ -28591,7 +28591,17 @@ function sensCaisse(){
     if(dB9>0){SENS_CA.o=true;SENS_CA.pk=0;
       if(v>12&&t-SENS_CA.tl>450){SENS_CA.tl=t;sensHap(8,1);if(!REDUCED_MOTION)sensCoup(Math.sign(lat)*.45,0,-.3);}}
   }
-  else if(dB9<-.12)SENS_CA.o=false; // revenue de 12 cm sur le bitume : l'approche est finie (l'écart évite le clignotement sur la lèvre)
+  else if(dB9<-.12){SENS_CA.o=false; // revenue de 12 cm sur le bitume : l'approche est finie (l'écart évite le clignotement sur la lèvre)
+    /* LA ROUE REMONTE : on a mordu le vide pour de bon (au moins 30 % du chemin vers la bascule) et on revient — l'instant du « sauvé »
+       ne disait rien, les étincelles s'arrêtaient, c'est tout. La roue REGRIMPE la lèvre : la carrosserie est renvoyée vers la route
+       et se soulève d'un rien (≈ 1,5° → 2,5°, ≈ 1 → 1,5 cm, selon la profondeur de la sortie), une dernière pincée d'étincelles saute de
+       la roue arrière extérieure, un tic net dans le pouce. */
+    if(SENS_CA.pk>.3&&v>12){const k=SENS_CA.pk,g=Math.sign(lat);
+      sensHap(10,1);
+      if(!REDUCED_MOTION){sensCoup(-g*(.4+.6*k),0,.15+.25*k);
+        DRIFT_V.set(g*hw9,.1,-sp9.l*.4);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,2+Math.round(2*k),5);}} // la réserve du raclage (même or), 2 à 4 étincelles
+    SENS_CA.pk=0;}
+  else{const pe9=Math.min(1,dB9/hw9);if(pe9>SENS_CA.pk)SENS_CA.pk=pe9;} // dehors : on retient jusqu'où
 }
 SENS_CA.o=false;SENS_CA.pk=0;SENS_CA.tl=0; // (la lèvre) roues dehors · le plus loin qu'elles sont allées (0 → 1 = le centre de gravité au bord) · l'heure du dernier tic
 function driftTick(dt,on){
