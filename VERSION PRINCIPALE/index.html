@@ -37078,7 +37078,7 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    la COUPURE, elle, n'avait que du son et une langue de feu : la caisse accroupie (pitch9 −1,7°) se relevait en fondu, sans poids.
    `sensNitro` ne fait que REGARDER (nitroOn, nitroHeldT, engGear, VPAL.n) et répond par les outils communs : elle ne calcule rien du jeu.
    Appelée une fois par image, juste avant la remise à zéro de `nitroHeldT`. `on` : l'état de l'image d'avant. */
-const SENS_NI={on:false,ts:0,h:0,g:1,tg:0};
+const SENS_NI={on:false,ts:0,h:0,g:1,tg:0,c:99};
 function sensNitro(dt,veut){
   const n9=performance.now();
   if(!nitroOn&&SENS_NI.on&&mode!=='boom'&&!gameOver){
@@ -37104,6 +37104,11 @@ function sensNitro(dt,veut){
      tous les 350 ms comme la cérémonie sonore, et pas pendant le cabrage de l'allumage (il le contredirait). Aucune vibration : elle existe. */
   if(engGear===SENS_NI.g+1&&mode==='drive'&&n9-SENS_NI.tg>350&&NFX.ign<.3){SENS_NI.tg=n9;if(!REDUCED_MOTION)sensCoup(0,.45,0);}
   SENS_NI.g=engGear;
+  /* LE MUR D'AIR APPUIE : chaque centaine criée (« 400 KM/H ! ») avait son texte, son champ, sa vibration, son son — la caisse traversait
+     le mur sans le sentir. Elle s'ÉCRASE d'un coup sur ses roues (≈ 2 cm à 300 → 3,5 cm passé 700 : l'appui grandit, puis plafonne), le nez
+     un rien levé, et se repose. Lu sur `VPAL.n` (la centaine déjà criée par vpalTick) ; sa remise à zéro de début de partie est muette. */
+  if(VPAL.n>SENS_NI.c&&!REDUCED_MOTION)sensCoup(0,-.3,-(.5+.1*Math.min(4,VPAL.n-3)));
+  SENS_NI.c=VPAL.n;
   SENS_NI.on=nitroOn;
 }
 /* LE BOOST JOUE UN ARPÈGE (2026-10-03, Léo : « que le boost joue directement un instrument qu'on peut SPAMMER, APPUYER LONGTEMPS,
