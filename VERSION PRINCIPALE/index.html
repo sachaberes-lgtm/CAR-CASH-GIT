@@ -8358,17 +8358,18 @@ html.c6 #tPanel #tpIn .tp:not(.ligne):is(:active,.appui){transform:translateY(va
 html.c6 #tPanel #tpIn .tp:not(.ligne)>.pxi{--pxs:2;margin:0;color:currentColor}
 html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:inherit;letter-spacing:var(--c6-cap);color:inherit}
 html.c6 #tPanel #tpIn .tp.rouge{color:var(--c6-b0)}
-html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;padding:0 12px!important}
+html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;font-size:var(--c6-t15)!important;padding:0 12px!important}
 html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:none}
 html.c6 #tPanel #tpIn .tp[data-a="reset"]{grid-area:r}
 html.c6 #tPanel #tpIn .tp[data-a="quit"]{grid-area:q}
 /* REPRENDRE : l'or, la seule décision (pleine largeur, 64 px, debout) */
-html.c6 #tPanel #tpIn>.tp.go{grid-area:g;position:relative;bottom:auto;z-index:auto;margin:0;min-height:64px;padding:0 16px;font-size:24px;
+html.c6 #tPanel #tpIn>.tp.go{grid-area:g;position:relative;bottom:auto;z-index:auto;margin:0;min-height:64px;padding:0 16px;font-family:var(--pix);font-size:24px;line-height:1;font-weight:400;letter-spacing:0;text-transform:none;
   color:var(--c6-orE);background:var(--c6-or);outline:0;
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 var(--c6-t) 0 0 var(--c6-orT),0 var(--c6-t) 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
 html.c6 #tPanel #tpIn>.tp.go:is(:active,.appui){transform:translateY(var(--c6-t));
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
 html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:3;color:var(--c6-orE)}
+html.c6 #tPanel #tpIn>.tp.go .tpL{letter-spacing:0}
 html.c6 #tPanel #tpIn .tp:not(.go):not(.ligne):focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
 /* l'entrée : le voile fond (200 ms), les blocs montent de 8 px en cascade de 30 ms ; la sortie = le voile qui s'efface (le panneau ne glisse plus) */
 html.c6 #tPanel.open #tpIn>*,html.c6 #tPanel.open #tpIn .tpRow>.tp{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:90ms}
