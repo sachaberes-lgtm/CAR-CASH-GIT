@@ -7571,7 +7571,7 @@ html.c6 #overlay #mDead .hMot3 .hMotCv{flex:1 1 0;display:block;width:100%;max-w
 html.c6 #overlay #mDead .hMotN{flex:none;display:flex;align-items:baseline;justify-content:center;gap:8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
 html.c6 #overlay #mDead .hMotN i{font-style:normal;font-size:8px;letter-spacing:0;color:var(--c6-g2)}
 /* 4 — LA BANDE : quatre petits chiffres, sans boîte ni filet — elle se lit, elle ne pèse pas */
-html.c6 #overlay #mDead .mStats{order:5;display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-content:center;align-items:start;gap:0;margin:16px 0 0;padding:0 8px;
+html.c6 #overlay #mDead .mStats{order:5;display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-content:center;align-items:start;gap:0;box-sizing:border-box;width:auto;min-width:0;margin:16px 0 0;padding:0 8px;
   background:none;clip-path:none;box-shadow:none}
 html.c6 #overlay #mDead .mStat{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;min-width:0;min-height:0;padding:0;background:none;box-shadow:none}
 html.c6 #overlay #mDead .mStat::before{content:none}
@@ -7611,6 +7611,13 @@ html.c6 #overlay #mDead .mFin>[data-m="replay"]{flex:1 1 0;min-width:0;width:aut
 html.c6 #overlay #mDead .mFin>[data-m="replay"]>span{font-size:calc(24px - 8px*clamp(0,var(--nb,7) - 7,1));line-height:1;letter-spacing:0;white-space:nowrap}
 html.c6 #overlay #mDead>.mRow{display:none}                                       /* OFFRES · RÉGLAGES : à l'accueil, pas ici (le script ne les lit pas) */
 html.c6 #overlay #mDead #nameEntry{order:9;grid-column:1/-1;grid-area:auto}
+/* DEBOUT, grand écran (≥ 760 px de haut) : on a la place — les blocs respirent (24 px), les jumelles prennent de la hauteur ; REJOUER reste en bas, sous le pouce */
+@media (orientation:portrait) and (min-height:760px){
+  html.c6 #overlay #mDead .mCashL{margin-top:24px;padding:16px 0}
+  html.c6 #overlay #mDead .mHero{min-height:216px;margin-top:24px}
+  html.c6 #overlay #mDead .mStats,html.c6 #overlay #mDead .mObj{margin-top:24px}
+  html.c6 #overlay #mDead .mObj{padding:16px}
+}
 /* DEBOUT, écran très court : le contenu défile SOUS les deux touches, qui restent collées en bas sur un fond d'encre */
 @media (orientation:portrait) and (max-height:620px){
   html.c6 #overlay #mDead .mHero{min-height:144px}
@@ -7633,9 +7640,10 @@ html.c6 #overlay #mDead #nameEntry{order:9;grid-column:1/-1;grid-area:auto}
   html.c6 #overlay #mDead .mEsp,html.c6 #overlay #mDead .mNew{display:none!important}
   html.c6 #overlay #mDead #nameEntry{grid-area:auto;grid-column:1/-1}
 }
-/* COUCHÉ ÉTROIT (iPhone 7 : 667 px) : une carte jumelle n'a plus que 13 lettres de large — l'aura descend d'un cran plus tôt */
+/* COUCHÉ ÉTROIT (iPhone 7 : 667 px) : une carte jumelle n'a plus que 13 lettres de large — l'aura descend d'un cran plus tôt ; la bande se serre */
 @media (orientation:landscape) and (max-width:720px){
   html.c6 #overlay #mDead .hCard.hAura>b{font-size:calc(24px - 8px*clamp(0,var(--n,3) - 4,1) - 4px*clamp(0,var(--n,3) - 6,1))}
+  html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{width:min-content;white-space:normal;line-height:12px;text-align:center}   /* « MULTI MAX » + « KM/H MAX » + NIVEAU + FRENESIE = 248 px pour 247 : les légendes de deux mots passent sur deux lignes, toutes pareil */
 }
 </style>
 <style id="c6-transitions">
