@@ -29686,7 +29686,7 @@ function shopPopEl(){
     if(k==='non'){uiClic('retour');shopPopFerme();return;}
     if(carOwned(i)){ // ÉQUIPER : la fenêtre rentre, puis l'atelier s'ouvre sur la caisse
       uiClic('nav');hap(8);shopPopFerme();
-      setTimeout(function(){ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
+      setTimeout(function(){window.__offGar=false; /* (2026-10-14, chasse aux bugs) on QUITTE OFFRES par ÉQUIPER : le drapeau « venue de la porte du garage » n'était consommé que par RETOUR — il restait armé et le RETOUR d'une visite suivante (mort, accueil) rouvrait le garage-boutique */ ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
     if(b.classList.contains('off'))return;
     uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
     shopPaye(i).then(function(){
@@ -43213,6 +43213,7 @@ function garageLaunch(){
   // de caisse puis taper JOUER dans la seconde ne lançait RIEN. On la TERMINE sur-le-champ, exactement comme sa dernière image
   // (l'échange s'il n'a pas eu lieu, puis scanner éteint, échelle rendue) : la caisse qui sort est bien celle qu'on vient de choisir.
   if(GAR.sw){const SW=GAR.sw;GAR.sw=null;if(!SW.fait)garageShow(SW.to);if(GAR.scan)GAR.scan.visible=false;carGroup.scale.set(1,1,1);}
+  window.__offGar=false; // (2026-10-14, chasse aux bugs) une course part : plus de RETOUR d'OFFRES vers le garage
   window.__mRetour=null; // (2026-09-29) une course part de l'atelier : l'écran qui l'attend à la fin, c'est la mort, pas les missions
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(CHUTE.on){chuteLance();return;} // (2026-09-30) LA CHUTE : depuis le ciel, pas de porte — elle PIQUE vers la route (voir chuteRender)
