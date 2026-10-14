@@ -7743,6 +7743,13 @@ html.c6 #carr .cmCarte.verr .cmEtat u{color:var(--c6-g1)}
   html.c6 #carr .cmTxt,html.c6 #carr .cmNiv .cmTxt{flex:0 0 auto;justify-content:flex-start;gap:6px;padding:10px 8px 12px}
   html.c6 #carr .cmMonde .cmNom{font-size:16px}
 }
+/* (2026-10-14, vérif P1 au banc) COUCHÉ ÉTROIT (667×375) : « SKY HIGH » (128 px en pixel 16) était coupé dans une carte de 110 px → le nom du monde
+   passe sur deux lignes ; « MONTMARTRE » (96 px en 13 px) coupé dans 86 px → marges de 6 px et 12 px pour les noms de niveau (le plus long mot des 30 niveaux). */
+@media (orientation:landscape) and (max-height:540px) and (max-width:700px){
+  html.c6 #carr .cmMonde .cmNom{white-space:normal;overflow-wrap:normal}
+  html.c6 #carr .cmNiv .cmTxt{padding-left:6px;padding-right:6px}
+  html.c6 #carr .cmNiv .cmNom{font-size:12px;letter-spacing:0}
+}
 @media (orientation:portrait){html.c6 #carr .cmJouer{width:100%}}
 
 /* ====== LES MISSIONS #gMis (2026-10-14, charte 6) ===================================================================
