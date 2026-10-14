@@ -3,6 +3,71 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ARGENT DU DÉBUT (2026-10-14, Sacha : « le premier achat — la PEINTURE la moins chère — doit tomber à la 4e PARTIE d'un joueur MOYEN, sans toucher aux PRIX de Léo ; les gains du début sont relevés, et ce relèvement s'éteint après le 1er achat »)
+Session GAMEPLAY (worktree `CCG-eco`, branche `eco-debut`, tirée de `origin/assemblage`). Rien n'est poussé : la session qui intègre relit et pousse.
+
+**Ce qui a changé** (`index.html`, ~35 lignes ; aucun prix, aucune prime, aucun champ de sauvegarde)
+- `denom()` est multiplié par `ECOD.k`. C'est le robinet UNIQUE de la paie de course : pièces (`denom()*2.2*récolte*flowMult()`), portail, fins de monde,
+  butins de la ville passent tous par lui. Pas de deuxième chemin d'argent.
+- `ECOD={coup:1.5,k:1,raison}` : `coup` est LE réglage (×1,5), `k` ce que la partie en cours applique, `raison` pourquoi. `ecoDebutEtat()` (pur) décide,
+  `ecoDebutMaj()` pose `k` UNE fois au départ de chaque partie (appelée par `runxReset`, donc par `start()` et `resetGame()`, auto-école comprise) : constant pendant toute la partie.
+- Il vaut (`raison:'actif'`) tant que : (1) rien n'a été acheté (`ecoDebutAchat()` : `SAVE.d.owned` non vide, `SAVE.d.figs` au-delà du TONNEAU offert, ou un `SAVE.d.shop.own`
+  dont l'habillage a un prix `p` — un habillage GAGNÉ par un carnet n'est pas un achat) ; (2) la banque n'atteint pas la peinture la moins chère (`ecoDebutPrix()`, lue sur
+  `COSM.peinture` : `'assez'` — le filet : qui peut déjà se l'offrir n'a plus besoin d'aide, même s'il garde son argent) ; (3) ni `?eco=ancien` (`'ancien'`) ni le code cousin (`'cousin'`).
+  Un achat, de n'importe quoi (caisse, peinture, aile, traînée, figure), l'éteint pour toujours. Tout se relit sur l'état : une vieille sauvegarde qui a déjà acheté n'est pas touchée.
+- `paintCarHud` : sa clé de cache suit `ECOD.k` (« pièces de $ N »).
+- Crochets : **`?eco=ancien`** (strictement l'économie d'avant : `ECOD.k` reste à 1, le test du banc compare au dollar près) et **`window.dbgEcoDebut()`** →
+  `{actif, k, raison, prochain, raisonProchaine, coup, parties, achatFait, banque, peintureMin, manque, ancien}`.
+- Banc : `outils/eco-debut-modele.cjs` (le modèle ci-dessous ; **les constantes sont LUES dans `index.html`** — DENOMS, ECO3, ENGINE_TIERS, COSM, CARNETS, ecoRond/ecoCash, la prime du permis,
+  `ECOD.coup` —, donc elles ne dérivent pas d'une copie) et `outils/eco-debut-test.cjs` (16 cas sur le VRAI bloc ECOD extrait : joueur neuf, banque 2 499 / 2 500, achat de chaque
+  famille, habillage gagné, `?eco=ancien` / `ancienne`, cousin, SAVE absent, achat en cours de partie). `node outils/eco-debut-modele.cjs --n=4000 --seed=7` ; `--k=2` force un autre coup.
+  Aucun navigateur, aucun serveur : le jeu n'est pas exécuté, le modèle recalcule la paie à partir des formules du code.
+
+**Le joueur MOYEN (le cahier ; chaque hypothèse est une ligne `PROFILS` du banc, marquée [H])**
+1. Il tient **45 à 90 s** par partie (tirage uniforme à chaque partie), prend **la moitié** des pièces et des fruits rencontrés (±20 % d'une partie à l'autre), à la croisière du palier
+   (`vCroisiere` = 2,75 × maxSp × push × SPD, comme `lvPiste` ; 69,7 m/s au palier 0).
+2. La route est celle de `spawnPickups` en zone 0 (`rich` .88) : la boucle est recopiée ligne à ligne et tirée sur 40 graines → **20,4 pièces et 4,8 fruits au km** (les fruits remplacent des
+   pièces : `rnd()<.34` / `.45`). Une pièce vaut `denom() × 2,2 × récolte × flowMult()`, la récolte vient des combos réels (+.5 toutes les 5 pièces, fenêtre `comboT=3` s), le palier moteur monte
+   avec les pièces prises (`engineFor`, `ENGINE_TIERS[].coins`) et le flow I (×1,3) arrive entre 25 et 60 s (la route seule nourrit mal le flow : `FLOW2.fam.route`).
+3. Banque : `commitExploits` verse `money − START_CASH` ; l'auto-école verse **+500** (`tutoFin`, une fois) ; les défis versent leur prime à l'instant (`misTick`) — **carnet 1 : 25 pièces
+   +300, 4 fruits +300, encaisser 200 $ +400 (`ECO3.prime` 1, `ecoCash(1000)`=200), chacun DANS UNE partie** ; il le remplit vers la 1re-3e partie.
+4. Le carnet 2 (2 figures / 10 s de nitro / 672 km/h, 1 800 $) n'est PAS dans le cahier : il est compté à part (sensibilité).
+5. Il ne dépense rien en route : la banque est un cumul ; il achète la peinture à la 1re partie où elle atteint 2 500 $. Calibrage : le même modèle, réglé sur le pilote « humain » du banc
+   de l'autre session (25 s : 74 $, 40 s : 218, 50 s : 433, 55 s : 546), retombe à +24 % (40 s), −12 % (50 s) et −16 % (55 s) avec p = 0,8 et k = 1,2 (+57 % à 25 s : la montée du flow est plus tardive dans le modèle) ;
+   le moyen du cahier (p = 0,5, k = 1) gagne à 55 s 127 $, soit un quart de ce pilote.
+
+**Chiffres** (4 000 joueurs simulés par ligne, graine 7 ; banque = médiane du cumul après les parties 1 à 6, sans rien dépenser)
+
+| cahier (carnet 1 seul) | argent / partie | banque après 1 · 2 · 3 · 4 · 5 · 6 | MENTHE GLACÉE 2 500 $ achetable à… |
+|---|---|---|---|
+| faible (25-45 s, 40 % des pièces) AVANT | 31 $ | 817 · 856 · 893 · 932 · 987 · 1 275 | jamais avant la 30e |
+| faible APRÈS ×1,5 | 47 $ | 826 · 887 · 941 · 1 003 · 1 158 · 1 365 | la 29e |
+| **moyen AVANT** | 175 $ | 1 273 · 1 854 · 2 049 · 2 234 · 2 416 · 2 602 | **la 6e** (1 % dès la 3e, 11 % au plus tard à la 4e, 35 % à la 5e) |
+| **moyen APRÈS ×1,5** | 263 $ | 1 750 · 2 033 · 2 316 · 2 590 · 2 803 · 2 992 | **la 4e** (25 % dès la 3e, 62 % au plus tard à la 4e, 89 % à la 5e) |
+| fort (2-4 min, 75 % des pièces) AVANT | 1 754 $ | 3 196 · 4 951 · 6 703 · 8 437 · 10 207 · 11 968 | la 1re |
+| fort APRÈS | 2 631 $ | 4 044 · 5 802 · 7 564 · 9 304 · 11 071 · 12 823 | la 1re (le relèvement s'éteint dès la partie 2 : banque ≥ 2 500) |
+
+Le coup de pouce, pour le moyen du cahier : ×1 → 6e · ×1,25 → 5e · **×1,5 → 4e** · ×1,75 → 4e (43 % dès la 3e) · ×2 → 3e · ×2,5 → 3e. ×1,5 est le plus petit coup qui met la médiane à la 4e.
+La traînée MENTHE et la figure SHIMMY (2 000 $, moins chères que toute peinture) tombent une partie plus tôt : la 3e → la 2e pour le moyen.
+
+**Sensibilité — à lire avant de croire le chiffre** (partie médiane de la peinture, AVANT → APRÈS ×1,5)
+- Cahier p = 0,5 : 6 → 4 · plus maladroit (p = 0,4) : 9 → 6 · plus adroit (p = 0,65) : 4 → 3 · parties de 35-70 s : 9 → 6 · parties de 60-120 s : 4 → 3.
+- Le « débutant » du rapport du 14/10 (p = 0,68, k = 1,2) : 3 → 2. Il saute l'auto-école (pas de permis) : 9 → 6.
+- **Les PRIMES pèsent plus que les pièces.** S'il fait aussi la moitié du carnet 2 : 3 → 2 (53 % ont déjà la peinture à la 3e SANS relèvement) ; le carnet 2 « plausible » : 3 → 2.
+  Dans ce monde-là le relèvement n'est pas nécessaire. ×1,5 est le compromis entre le monde « carnet 1 seul » (6e → 4e) et le monde « carnet 2 fait » (3e → 2e). `ECOD.coup` est LE bouton.
+- Le faible (il meurt avant 45 s) gagne 30-45 $ par partie : aucun coup de pouce raisonnable ne l'amène à la peinture, et le défi « encaisser 200 $ en UNE partie » lui échappe. Son problème est la
+  survie, pas le prix.
+
+**À trancher / à vérifier en vrai** (Sacha, GAMEPLAY)
+- Un vrai test : jouer quatre parties « en moyen » (45-90 s, sans chercher les défis du carnet 2) avec `dbgEcoDebut()` ouvert ; si la banque est déjà > 2 500 $ à la 3e, baisser `ECOD.coup`.
+- `best` (le record d'argent d'une partie) enregistre l'argent relevé : les 3-4 premières parties peuvent poser un record ×1,5 que les suivantes, sans relèvement, battent un peu moins vite.
+- Proposition, NON faite (à valider) : une ligne sobre sous « VERSÉS AU COMPTE » (`#mCashTot`) à l'écran de fin — « MENTHE GLACÉE · $ 2 500 — IL TE MANQUE $ 800 » — visant la peinture la moins chère
+  tant que rien n'est acheté ; aujourd'hui l'écran de fin montre la porte des missions et l'objectif d'achat ne vit qu'au garage.
+- Proposition, NON faite : un plancher pour le joueur qui meurt avant 45 s (prime proportionnelle au temps tenu, seulement tant qu'il n'a rien acheté).
+- Le tout premier achat probable est la traînée MENTHE ou la figure SHIMMY (2 000 $) : elles éteignent le relèvement avant la peinture. Si Sacha veut vraiment « la peinture d'abord », le seuil
+  du filet (`ecoDebutPrix`) devrait viser l'objet le moins cher de TOUTE la boutique.
+- `sw.js` (`CACHE` +1) est laissé à la session qui intègre, comme demandé.
+
 ## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
 **Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
 l'équilibrage, son nom et sa description en français ET en anglais, un pictogramme pixel (`ico`, grilles `tr_*` / `ai_*` dans `PXI_G`).
