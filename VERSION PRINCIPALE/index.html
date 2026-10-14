@@ -35386,11 +35386,13 @@ function driftChargeSnd(){
   const T=AC.currentTime;
   if(on){
     const lv=driftLv,base=DRS_BASE[lv],d0=DRS_D0[lv],dd=DRS_DD[lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
-    const f=base*(1+.25*fr);
+    // (2026-10-14, session SON) le bourdon suit la TONALITÉ comme `drift.charge` de la banque (SON_TON, de −2 à +5 demi-tons ; GLISSE de Jade +1) : avant, il restait sur si-mi fixes
+    // et se frottait à la note de palier de la banque (jusqu'à 5 demi-tons d'écart). `_t` est null/undefined tant que la banque n'est pas branchée : alors ×1. (audit oreille-neuve n°3 §4)
+    const f=base*Math.pow(2,(sonTonSuit._t||0)/12)*(1+.25*fr);
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
-    DRS.g.gain.setTargetAtTime(lv?.014+lv*.008:.006,T,.04);
+    DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
   }else DRS.g.gain.setTargetAtTime(0,T,.03);
 }
 /* LE RASE-BORD GRONDE (2026-09-25) : frôler le vide à pleine vitesse rechargeait le nitro en silence. Maintenant la
