@@ -11504,7 +11504,7 @@ function cotonJade(cr){ // (2026-10-14, passe graphismes) le coton des PICS DE J
       else{ // (c) CEUX D'EN HAUT, au-dessus des cimes, qui se découpent sur le ciel du rouleau — jamais au-dessus du ruban (≥ 450 m de côté) ; vus à l'image : sans eux le ciel restait vide, les pics cachent les bancs
         const r=cotonR(cr,160,380,1.4),d=450+cr()*1500;cotonPose(x0+q[0]*sg*d,p.y+330+cr()*500,z0+q[1]*sg*d,r,cr()<.6?plats[cr()*2|0]:KS[cr()*KS.length|0],cr,.7+cr()*.25);}}
     J.lim[pa]=COTON.n;}
-  {const c=LVL.cur,t=c.nuit?[.56,.58,.68]:(c.orage?[.8,.8,.86]:null); // de NUIT, la ouate prenait la lune en plein (vue à l'image : lavande claire devant des pics noirs) — sa teinte par nuage la rentre dans l'ombre ; sous l'ORAGE, un peu
+  {const c=LVL.cur,t=c.nuit?(JADENUIT_V2?[.28,.34,.38]:[.56,.58,.68]):(c.orage?(JADENUIT_V2?[.62,.66,.70]:[.8,.8,.86]):null); // de NUIT, la ouate prenait la lune en plein (vue à l'image : lavande claire devant des pics noirs) — sa teinte par nuage la rentre dans l'ombre ; sous l'ORAGE, un peu
     if(t)for(let j=0;j<COTON.n;j++){const o=j*COTON_ST;COTON.I[o+10]*=t[0];COTON.I[o+11]*=t[1];COTON.I[o+12]*=t[2];}}
   COTON.jd=J;COTON.root.visible=COTON.n>0;}
 function buildCoton(cr){
@@ -19769,6 +19769,17 @@ Object.assign(BIOMES.jade,{sat:1.2,vigC:[.06,.045,.06]}); // (2026-10-14, passe 
 Object.assign(BIOMES.jadeNuit,{sat:1.06,sunTint:[.7,.82,.95],sunC:[.6,.76,.92],sunI:.5,hemiI:.58,hemiS:[.16,.28,.34],hemiG:[.04,.08,.09],fillC:[.24,.42,.5],kickC:[.4,.6,.7],volSun:[.8,1,1.1],volSky:[.1,.15,.19],volGnd:[.04,.06,.07],sh:[0,.012,.024],vigC:[.012,.02,.03],fog:[.03,.075,.1],fogCj:[.2,.3,.38],fogIn:[.2,.28,.34],jdZ:[.01,.025,.045],jdL:[.02,.045,.07],jdM:[.03,.07,.1],jdH:[.05,.11,.15],jdR:[.012,.025,.035],jdB:[.04,.09,.12],jdS:[.3,.42,.55],env:[[0,'#030a0e'],[.3,'#08181f'],[.48,'#1b3440'],[.58,'#35566a'],[.66,'#0d1a22'],[1,'#04080b']],eS1:[170,205,225,.4],eS2:[80,120,140,.3]}); // (2026-10-14, passe graphismes) nuit bleu-vert sombre sans violet : lune argent-bleuté, ciel et brume du même bleu-vert, coton et ouate moins clairs (hemi/lune/vol), vignette neutre
 Object.assign(BIOMES.jadePluie,{sat:.95,wb:[1,1,1],sh:[0,.01,.022],sunC:[.84,.88,.88],hemiS:[.62,.7,.68],hemiG:[.28,.34,.32],fillC:[.5,.62,.6],kickC:[.58,.66,.66],vigC:[.04,.05,.05],fog:[.5,.56,.53],fogCj:[.6,.66,.63],fogIn:[.64,.7,.67],volSky:[.5,.56,.56],jdZ:[.3,.38,.38],jdL:[.4,.48,.47],jdM:[.5,.57,.55],jdH:[.6,.66,.62],jdR:[.26,.32,.31],jdB:[.52,.58,.55],env:[[0,'#3a4a4a'],[.3,'#5c6c68'],[.48,'#8c9a94'],[.58,'#9eaaa4'],[.66,'#5a6862'],[1,'#2e3836']],eS1:[200,216,222,.3],eS2:[150,175,175,.25]}); // (2026-10-14, passe graphismes) pluie gris-vert perle : ciel, brume et lumières du même gris à peine vert (plus de lavande), vignette neutre
 Object.assign(BIOMES.jadeOrage,{sat:1.02,wb:[1,1,1],sh:[0,.01,.02],sunC:[.58,.68,.72],hemiS:[.36,.42,.46],hemiG:[.08,.1,.11],fillC:[.28,.4,.44],kickC:[.38,.52,.58],kickI:.18,volSun:[.9,1,1.04],volSky:[.26,.32,.34],volGnd:[.07,.09,.1],vigC:[.015,.02,.025],fog:[.14,.17,.18],fogCj:[.24,.3,.32],fogIn:[.28,.34,.36],jdZ:[.09,.12,.13],jdL:[.15,.19,.2],jdM:[.19,.24,.25],jdH:[.25,.31,.32],jdR:[.09,.11,.11],jdB:[.2,.25,.26],jdS:[.2,.24,.28],env:[[0,'#1c2628'],[.3,'#2e3c40'],[.48,'#56686c'],[.58,'#6c7e82'],[.66,'#2c383a'],[1,'#141a1c']],eS1:[190,210,215,.3],eS2:[110,140,150,.25]}); // (2026-10-14, passe graphismes) orage ardoise verdie : plus d'indigo ni de kick violet, ciel/brume/lumières gris-vert sombres, vignette neutre
+/* (2026-10-14, passe graphismes · A4 jade-nuit) L'ESTAMPE DE NUIT — les pics en silhouette d'encre sur un horizon encre-vert PLUS CLAIR, la brume qui
+   sépare les plans. Les cibles de la charte (#0D1A1E zénith, #1C3036 horizon) ne se posent PAS en « linéaire » : la chaîne (ACES, contraste pivot .5,
+   saturation du grade) écrase tout ce qui sort du shader sous ~.09 en noir pur — le ciel de nuit d'avant tombait donc à 0 et les pics noirs ne se
+   détachaient de rien. Valeurs inversées sur la vraie chaîne (banc/jade-nuit/modele.cjs + inverse.cjs) : il faut ~.10-.16 pour sortir #0D1A1E → #1C3036.
+   `fog` = le même vert que l'horizon : les pics lointains s'y fondent (plans pâles), les proches restent noirs. Interrupteur : ?sans=jadenuit
+   rend l'image d'avant au bit près (nuit ET orage ET teinte du coton de nuit, voir cotonJade). */
+const JADENUIT_V2=!/[?&]sans=jadenuit\b/.test(location.search);
+if(JADENUIT_V2){
+Object.assign(BIOMES.jadeNuit,{fog:[.13,.155,.16],fogCj:[.17,.21,.22],fogIn:[.15,.18,.19],jdZ:[.100,.113,.116],jdL:[.108,.126,.131],jdM:[.118,.140,.146],jdH:[.130,.155,.160],jdR:[.09,.10,.10],jdB:[.15,.19,.20],jdS:[.55,.78,.74],jdK:[.9,.12,.32,1]}); // nuit : ciel encre-vert (zénith #0D1A1E → horizon #1C3036), brume bleu-vert près de l'eau (jdB), lune et trait d'argent sur le fleuve (jdS, jdK.z)
+Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.28,.32,.33],jdZ:[.125,.14,.141],jdL:[.145,.165,.170],jdM:[.173,.200,.207],jdH:[.23,.27,.28],jdR:[.12,.14,.14],jdB:[.25,.29,.30]}); // orage : ardoise verdie, horizon plus clair que le zénith (#1C282B → #4D6468) pour que les pics s'y découpent
+}
 // (fin PICS DE JADE)
 //
 //
