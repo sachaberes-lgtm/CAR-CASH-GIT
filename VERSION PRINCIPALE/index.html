@@ -51677,7 +51677,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- BOUTONS : ils pilotent le MÊME objet `keys` que le clavier → aucune nouvelle physique ----
   function bindHold(el,code,onDown,vis){ if(!el)return; vis=vis||el; el._tenu=code; // `vis` : l'élément qui s'ENFONCE (la zone NITRO élargie enfonce le disque)
     const dn=function(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); // un appui sur un bouton n'arme JAMAIS le volant
-      if(!keys[code]){keys[code]=true;vis.classList.add('on');hap(9);if(onDown)onDown();} };
+      if(!keys[code]){keys[code]=true;vis.classList.add('on');if(!(SENSG&&code==='Space'&&running&&!paused&&!gameOver&&mode!=='boom'))hap(9);if(onDown)onDown();} }; // (2026-10-14, gameplay · accord) en course, la NITRO répond elle-même à l'image suivante (allumage [14,26,10], « à vide » 6, saut nitro, figure) : le tic d'appui (9) partait 16 ms avant — deux impulsions pour un seul appui. Il reste pour les flèches, et pour la nitro hors course
     const up=function(e){ if(e&&e.cancelable)e.preventDefault();
       if(e&&e.touches&&keys[code])for(let i=0;i<e.touches.length;i++){const c=e.touches[i].target;const b=c&&c.closest?c.closest('#tNitro,#tNitroZone,#tLeft,#tRight'):null;if(b&&b._tenu===code)return;} // (2026-10-14, chasse aux bugs) un AUTRE doigt tient encore cette commande (le pouce sur le disque NITRO, quand la paume quitte la zone élargie) : le lever d'un intrus ne coupe plus la nitro sous le pouce — même règle que le volant (2026-09-30)
       if(code==='Space'&&keys[code])veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU
