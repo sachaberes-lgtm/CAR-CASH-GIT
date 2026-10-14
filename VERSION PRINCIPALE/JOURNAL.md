@@ -3,6 +3,33 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ÉVÉNEMENTS RARES (2026-10-14, Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares, annoncés CLAIREMENT, jamais mortels de façon injuste, avec une RÉCOMPENSE »)
+Le bloc `EVT` (juste avant `dbgVille`, repère : « LES ÉVÉNEMENTS RARES ») rejoue les trois morceaux de la campagne TELS QUELS (`fantomeTick`,
+`banquierTick`, `campMoutonsTick`, leur plaque `vChip`) dans la partie CLASSIQUE ; seul ce qui les finissait change de main quand ils viennent d'ici
+(`GH.evt`, `VBQ.evt`, l'argument `ev` du troupeau). Perdre ne coûte RIEN (la partie continue), gagner paie la prime ; la caisse-nuage et le lingot
+restent les trophées de la carrière. Interrupteur `?evt=0` : le jeu d'avant au chiffre près (`EVT_ON` faux : aucun appel au hasard, aucune chauffe,
+aucun crochet actif).
+- **Quand** : tirage au départ de la partie (`evtPartie`, `Math.random` HORS génération — `rnd` n'est jamais touché) : 65 % des parties sont « armées »
+  (`EVT_P`). Une partie armée pose son événement dans la PREMIÈRE zone qui en porte un (`evtZone`, appelée en fin de `campDebut`) : MER DE NUAGES →
+  les MOUTONS (1 fois sur 2, hors orage) ou la CAISSE-NUAGE ; LA VILLE → le BANQUIER ; jade, forêt, banquise, orbite : rien. Jamais avant 20 s de
+  course, jamais deux fois par partie (`EVT.fait`), jamais hors partie classique (`evtLieuOk` : ni auto-école, balade, jade-jeu, bac à sable, parc,
+  Survivant, carrière, campagne, ni `?classique=cycle`). Rareté mesurée au modèle (`outils/evt-test.cjs`) : ≈ 29 % des parties en voient un
+  (1 sur 3,4), 23-37 % selon la vie des joueurs — 2 maps sur 6 seulement en portent, et il faut vivre jusqu'au point de l'événement.
+- **Annonce** : la bannière de niveau prêtée (`evtAnnonce` : le NOM en gros, la consigne en or), puis la plaque de la campagne qui suit la course.
+  Textes courts, FR + EN dans `I18N`, sans capitale accentuée (police pixel).
+- **Jamais mortel** : un mouton pris de face éclate (BEEE !, rien d'autre) et se voit de loin (tête noire, laine claire, nom + distance sur la plaque) ;
+  les moutons ne se posent jamais à moins de 70 m avant / 35 m après un plot, une flaque, un pad, un dos d'âne, ni dans un module, un filet ou un banc,
+  sur du droit et du plat seulement (3 à 5 repères) ; la caisse-nuage ne touche personne (elle te tire dans son sillage) ; le coup d'épaule du
+  banquier est bridé : il ne te sort jamais de la route (`clamp` à ROAD_HALF−1,6) ; perdre = « ELLE T'A SEME » / « LE BANQUIER A GAGNE ».
+  Sans route droite pour les moutons, la caisse-nuage prend la place.
+- **Prime** : un PORTAIL (`EVT_PRIME` = 120 × `denom()`, par `vPaie` : × FLOW, × frénésie, ligne `$:evt` du grand livre) + 200 d'aura (`chaineAura`) ;
+  la caisse-nuage rend 60 % de nitro (`nitroPct` → `nitroGain(q,'evt')`), les moutons paient au prorata des sauts (BERGER D'OR pour le troupeau entier).
+- **Console** : `dbgEvt()` = l'état · `dbgEvt('moutons'|'caisse'|'banquier')` = le forcer TOUT DE SUITE sur la zone en cours (les moutons exigent la MER
+  DE NUAGES) · `dbgEvt('arme')` = armer la partie et poser l'événement de la zone comme à la naissance d'une zone. Test Node : `node outils/evt-test.cjs`.
+- **Reste à juger en jeu** (pas de navigateur à l'écriture) : les moutons trouvent-ils 3-5 repères sur une vraie piste NUAGES ? la caisse-nuage, sans
+  ses coupes, se rattrape-t-elle en ~15 s ? le banquier (4 km avant le portail) arrive-t-il au portail en ~40 s ? aucun programme neuf compilé à la
+  naissance des moutons (têtes noires : `campChauffe` les pré-compile) ?
+
 ## LA BANQUISE — LA DESCENTE DES PICS DE GLACE (2026-10-14, session MONTAGNE — Sacha : « fais une nouvelle map en mode banquise, mais genre la route dévale une montagne au-dessus du sol, avec d'immenses pics de glace partout ; on peut faire des traces dans la poudreuse en frôlant le sol, mais on meurt si on va trop profondément, et on doit pouvoir glisser de manière ultra stylée sur les lacs gelés et les pics de glace pas trop abrupts » · « fais une map absolument magnifique bien sûr »)
 Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NIV_BANQ`, id `'banquise'`, piste `'banquise'`). Nom provisoire
 « LA BANQUISE » (le mot de Sacha) — à valider. Tout le code est dans le bloc « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (balises

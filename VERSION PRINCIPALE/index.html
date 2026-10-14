@@ -46023,13 +46023,15 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
    vChip) ; seul ce qui les FINISSAIT change de main quand ils viennent d'ici (`GH.evt`, `VBQ.evt`, l'argument `ev` du troupeau). En
    campagne, perdre la course finissait la partie (CAMP.finT → campEchec) et la gagner donnait la caisse ; ici, perdre ne coûte RIEN (on
    roule, on n'a pas la prime) et gagner paie la PRIME — la caisse-nuage et le lingot restent les trophées de la carrière.
-   · QUAND : le tirage se fait au départ de la partie (evtPartie) — 4 parties sur 10 sont « armées » (EVT_P) ; celle-là verra son
+   · QUAND : le tirage se fait au départ de la partie (evtPartie) — 65 parties sur 100 sont « armées » (EVT_P) ; celle-là verra son
      événement dans la PREMIÈRE zone qui a sa map : MER DE NUAGES → les MOUTONS (hors orage, une fois sur deux) ou la CAISSE-NUAGE, LA
      VILLE → le BANQUIER ; les PICS DE JADE et l'ORBITE n'en ont pas (rien n'y aurait de sens). Jamais avant 20 s de course (EVT_T0),
      jamais à l'auto-école, en balade, au bac à sable, au parc, au Survivant, en carrière ni en campagne : la partie classique seule (SF).
      Une fois parti, il ne revient plus de la partie (EVT.fait), réussi ou raté. Une partie qui meurt avant le point de l'événement ne
-     l'a pas vu : avec des zones de 3 à 4 minutes, ~1 partie sur 3 en voit un (les parties de 2-3 zones presque toutes celles qui sont
-     armées, les toutes premières parties d'un débutant rarement).
+     l'a pas vu. Seules 2 maps sur 6 en portent un (NUAGES, VILLE) : une zone sur trois environ en offre la chance, et il faut vivre jusqu'à
+     son point (30-55 % de la zone). Modèle de outils/evt-test.cjs (une zone = 45 % de mort, mort uniformément répartie) : 65 % armées →
+     ≈ 29 % des parties en voient un (1 sur 3,4) ; de 23 % (mort à 60 % par zone) à 37 % (30 % par zone) selon la vie des joueurs.
+     Au plus UN par partie, toujours.
      Le hasard : Math.random, HORS de la génération (le tirage de la partie, celui de la zone) — `rnd` n'est jamais touché ; les boules
      des moutons ont leur propre mulberry32. La piste, ses pièces, ses nuages sont ceux d'avant au mètre près.
    · OÙ : les MOUTONS sur le 1er bout de route DROIT et PLAT trouvé après 30 % de la zone (cinq repères à ~250 m × lvPiste l'un de
@@ -46046,9 +46048,9 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
    · CONSOLE : dbgEvt() = l'état · dbgEvt('moutons'|'caisse'|'banquier') = le forcer TOUT DE SUITE sur la zone en cours (les moutons
      exigent la mer de nuages) · dbgEvt('arme') = armer la partie et poser l'événement de la zone en cours comme à la naissance d'une zone.
    ========================================================================== */
-const EVT_ON=!/[?&]evt=0\b/.test(location.search),EVT_P=.4,EVT_T0=20,EVT_PRIME=120,EVT_AURA=200,EVT_FUITE=600,EVT_COURSE=4000;
+const EVT_ON=!/[?&]evt=0\b/.test(location.search),EVT_P=.65,EVT_T0=20,EVT_PRIME=120,EVT_AURA=200,EVT_FUITE=600,EVT_COURSE=4000;
 const EVT_MT=[[0],[11],[-12],[0],[-15,0,15]]; // les cinq repères du troupeau : au milieu, décalé, de l'autre côté, au milieu, puis TROIS en travers (l'escalade du niveau 4)
-const EVT={arme:false,fait:false,nom:'',etat:0,ici:false,fini:false,res:'',s0:0,sMax:0,tRun:0,t0:0,paye:0,mt:[],mtOk:0,mtBee:0,mtCle:-1,mtVu:0}; // etat : 0 rien · 1 posé (il attend son point) · 2 parti · 3 la zone l'a emporté
+const EVT={arme:false,fait:false,nom:'',etat:0,ici:false,fini:false,res:'',s0:0,sMax:0,tRun:0,t0:0,finT:0,paye:0,mt:[],mtOk:0,mtBee:0,mtCle:-1,mtVu:0}; // etat : 0 rien · 1 posé (il attend son point) · 2 parti · 3 la zone l'a emporté
 function evtPartie(){ // une partie neuve (resetGame, start) : SON tirage — aucun appel au hasard quand ?evt=0
   EVT.fait=false;EVT.nom='';EVT.etat=0;EVT.ici=false;EVT.fini=false;EVT.res='';EVT.tRun=0;EVT.paye=0;EVT.mt.length=0;
   EVT.arme=EVT_ON&&Math.random()<EVT_P;
@@ -46072,13 +46074,16 @@ function evtPrepare(nom,ici){ // pose l'événement sur la zone en cours — ici
   else if(nom==='caisse'){s0=ici?sp:L*(.3+Math.random()*.25);sM=Math.min(L-1500,s0+1500);}
   else{s0=ici?sp:Math.max(L*.3,L-EVT_COURSE);sM=L-(ici?600:2500);}
   if(sM<=s0&&!ici)return false;
+  if(nom==='caisse'){CAMP.coupes.length=0;CAMP.bancs.length=0;fantomeLigne();} /* les coupes et les bancs d'une campagne jouée AVANT dans la session n'ont rien à faire ici : sa ligne est la corde nue ; gravée dès la naissance de la zone (rien d'alloué en course) */
+  else if(nom==='banquier')banquierLigne();
   EVT.nom=nom;EVT.etat=1;EVT.ici=!!ici;EVT.s0=s0;EVT.sMax=Math.max(sM,s0+200);EVT.fini=false;EVT.res='';
   return true;
 }
 function evtMoutonsPose(a0){ // le troupeau sur la route d'une zone de NUAGES — rend l'abscisse du 1er mouton, 0 s'il n'y a pas la place
   if(!lvlNuageOk({onRoad:true,camp:true}))return 0; // la ville, la jade, l'orbite n'ont pas un nuage : mkCloud n'y poserait rien
-  const D=Math.max(240,250*lvPiste()),n=EVT_MT.length,fin=L-900,bancs=[];
+  const D=Math.max(240,250*lvPiste()),n=EVT_MT.length,fin=L-900,bancs=[],rep=[];
   for(const c of CLOUDS)if(c.onRoad&&!c.mouton){let bi=0,bd=1e18;for(let i=0;i<NP;i+=4){const d2=pts[i].distanceToSquared(c.c);if(d2<bd){bd=d2;bi=i;}}bancs.push(bi/(NP-1)*L,c.r);}
+  for(const k of CONES)rep.push(k.s);for(const o of OILS)rep.push(o.s);for(const q of PADS)rep.push(q);for(const q of BUMPS)rep.push(q); /* rien ne se cache dans la laine : un plot, une flaque, un pad ou un dos d'âne dans les 70 m avant / 35 m après un mouton écarte la place */
   const ok=function(sv){
     if(sv<200||sv>fin)return false;
     for(const q of [-140,-60,0,70])if(bancCourbe(sv+q)>1/260)return false; // DROIT : on le voit venir de loin, on retombe dans l'axe
@@ -46086,14 +46091,15 @@ function evtMoutonsPose(a0){ // le troupeau sur la route d'une zone de NUAGES �
     for(let j=0;j<bancs.length;j+=2)if(Math.abs(sv-bancs[j])<bancs[j+1]+90)return false; // pas dans un banc : on doit VOIR le mouton
     for(const m of MODS)if(sv>m.s0-40&&sv<m.s1+40)return false;
     for(const f of FILETS)if(sv>f.sC0-80&&sv<f.sN1+40)return false;
+    for(let j=0;j<rep.length;j++)if(rep[j]>sv-70&&rep[j]<sv+35)return false;
     return true;};
   for(let a=Math.max(200,a0);a<Math.min(fin,a0+L*.45);a+=40){
     if(!ok(a))continue;
     const S=[a];let p=a;
     while(S.length<n){let t=-1;for(let q=p+D;q<p+D*2.2&&q<fin;q+=20)if(ok(q)){t=q;break;}if(t<0)break;S.push(t);p=t;}
-    if(S.length<n)continue;
+    if(S.length<3)continue; // trois repères au moins (cinq si la route le permet : le 5e est le troupeau en travers)
     const cr=mulberry32((Math.random()*1e9)|0); // les boules des moutons : LEUR flux (le ciel de la zone est déjà tiré, la piste aussi)
-    for(let k=0;k<n;k++){const lats=EVT_MT[k],r=lats.length>1?MOUTON_RT:MOUTON_R;
+    for(let k=0;k<S.length;k++){const lats=EVT_MT[k],r=lats.length>1?MOUTON_RT:MOUTON_R;
       frameAt(S[k],GF);
       const m={s:S[k],cl:[],t:GF.t.clone(),fait:false,dans:false,dessus:false};
       for(const lt of lats){const nC=CLOUDS.length; // la recette de moutonsPose : couché, seul le dos dépasse du bitume
@@ -46123,6 +46129,7 @@ function evtTick(dt){ // la boucle, juste après campTick — rien quand ?evt=0
     if(EVT.nom!=='moutons'&&!(mode==='drive'&&side>0&&!introD))return; // la caisse-nuage et le banquier roulent sur le DESSUS : on part de là
     evtDemarre();return;}
   if(EVT.etat!==2)return;
+  if(EVT.fini){if(EVT.finT>0){EVT.finT-=dt;if(EVT.finT<=0)vChip('');}return;} // fini : le verdict est dit (slam), la plaque se tait 2,6 s plus tard — et les moutons cessent d'offrir leur saut
   if(EVT.nom==='moutons'){campMoutonsTick(dt,EVT.mt,EVT,true);if(!EVT.fini){let n9=0;for(const m of EVT.mt)if(m.fait)n9++;if(n9===EVT.mt.length)evtMoutonsFin();}}
   else if(EVT.nom==='caisse'){
     if(CAMP.pvOk&&dt>0){CAMP.vel.subVectors(carGroup.position,CAMP.pv).divideScalar(dt);if(CAMP.vel.lengthSq()>2.5e5)CAMP.vel.set(0,0,0);}CAMP.pv.copy(carGroup.position);CAMP.pvOk=true; // la ouate du sillage suit la caisse (fumeTick le fait en campagne)
@@ -46147,11 +46154,11 @@ function evtDemarre(){ // l'événement SURGIT
     evtAnnonce('LE BANQUIER','PREMIER AU PORTAIL');}
   else evtAnnonce('LES MOUTONS','SAUTE-LES !');
 }
-function evtFin(res){EVT.fini=true;EVT.res=res;} // perdu : rien n'est dû, rien n'est retiré — la partie continue
+function evtFin(res){EVT.fini=true;EVT.res=res;EVT.finT=2.6;if(GH.evt)GH.on=false;if(VBQ.evt)VBQ.on=false;campFx(0,0,0,0);} // perdu : rien n'est dû, rien n'est retiré — la partie continue (la caisse-nuage et le banquier sont rangés, le halo d'écran éteint)
 function evtPortail(){ // portailPasse : franchir le portail pendant la course
   if(EVT.etat!==2||EVT.fini)return;
   if(EVT.nom==='banquier'&&VBQ.on&&!VBQ.fini)evtBqGagne();
-  else if(EVT.nom==='caisse'&&GH.on&&!GH.pris&&!GH.fini)fantomeSeme(vPos()>GH.s+18); // devant elle au portail : « TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE »
+  else if(EVT.nom==='caisse'&&GH.on&&!GH.pris&&!GH.fini){GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);vChip('');evtFin('rate');} // le portail l'emporte : sans bruit, il parle déjà
 }
 function evtBqGagne(){ // le portail franchi AVANT le banquier
   VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);vChip('');
@@ -46193,6 +46200,7 @@ window.dbgEvt=function(a){ // dbgEvt() l'état · dbgEvt('moutons'|'caisse'|'ban
   if(!a)return evtEtat();
   if(!EVT_ON)return 'evt=0 : les evenements rares sont eteints';
   if(!started||gameOver)return 'pas de course';
+  if(!evtLieuOk())return 'hors partie classique (auto-ecole, balade, bac a sable, parc, survivant, carriere, campagne, jade, ?classique=cycle)';
   if(a==='arme'){EVT.arme=true;EVT.fait=false;EVT.etat=0;evtZone();return evtEtat();}
   const nom={moutons:'moutons',mouton:'moutons',caisse:'caisse','caisse-nuage':'caisse',nuage:'caisse',banquier:'banquier',lingot:'banquier'}[a];
   if(!nom)return ['moutons','caisse','banquier','arme'];
