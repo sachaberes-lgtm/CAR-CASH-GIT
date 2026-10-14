@@ -3,6 +3,49 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES GELS DE CONSTRUCTION, VAGUE 1 — LE DOGE, LA BOUTIQUE, LA PORTE DU CIEL, LES GABARITS (2026-10-14, session OPTIMISATION — Sacha : « tu es la session optimisation, lis la passation, tu pousses après chaque vague » · PILOTAGE pour Sacha : « les idées de Léo bien intégrées : le DOGE et la boutique passent chez toi, sans changer la forme ni le rendu »)
+Reprise de `passation/OPTIMISATION.md` (branche `assemblage`) sur le PC. Règle tenue partout : **même image, même simulation** — on
+déplace ou on accélère le calcul, on ne change aucun résultat. Le palier RÉCENT ne change pas (sauf ce qui est exact au bit près).
+
+**Mesure de départ (PC de Sacha, Chrome sans fenêtre, palier 0, 667 × 375, profil CPU)** : portail → jade **835 ms d'un bloc** (dont
+Porte du ciel 363 ms, dont 272 ms pour le seul `voxMesh(G,4)`), portail → ville 220 ms ; JOUER : tâche la plus longue 641 ms (dont
+`jadeGabarits` 389 ms, taillés même quand on tire la ville) ; REJOUER 315 ms ; 1re construction du DOGE 532 ms (≈ 2-3 s sur iPhone 7).
+
+1. **LE DOGE ne fige plus** (`dogeSdf`, `dogeTete(pre)`, `DOGE_OUV`, `dogeOuvrier`, `dogeTeteObtient`, `dbgDoge`).
+   · La tête calcule ~1,6× plus vite, **même maillage au bit près** : chaque pièce du champ de distance (museau, oreilles, joues, menton,
+     truffe, œil, trait de la bouche) a sa SPHÈRE ENGLOBANTE ; quand elle est trop loin pour toucher le mélange (sm(f,d,k) avec d ≥ f+k
+     rend f tel quel), elle n'est pas calculée (`loin`, `ellG`, `sph`). Plus : couleurs lues une fois (~260 000 `new THREE.Color` en
+     moins), les tests bon marché avant F dans `dedans`, coins de case précalculés dans `dogeNets`. Banc node `doge-banc.cjs` : empreinte
+     SHA-256 de tous les tableaux rendus = identique avant/après.
+   · **L'OUVRIER DU DOGE** : la tête (ses deux surface nets, ~99 % du coût) se calcule dans un Web Worker bâti depuis la source même
+     (modèle de L'OUVRIER DES NUAGES), 5 s après le démarrage. Le DOGE demandé avant : calcul sur place (repli). MESURÉ : 1re construction
+     du DOGE **532 → 18 ms** (servie par l'ouvrier, ~340 ms de travail hors du fil). `dbgDoge('compare')` : octet par octet = identique.
+   · NB : `dogeQueue` (citée par la passation comme « file jamais appelée ») est la QUEUE du chien (un maillage), pas une file d'attente.
+2. **LA LÈVRE DU HAUT EN QUEUE DU TAMPON** (relevé par GENERAL : « poseGueule renvoie 18 907 sommets par image pour en bouger 673 ») :
+   les 673 sommets qui bougent sont rangés à la fin du tampon (index renuméroté, mêmes triangles dans le même ordre → même image), et
+   `updateRange` n'envoie qu'eux : **454 Ko → 16 Ko par image** quand la gueule bouge (banc `doge-perm.cjs` : renumérotation exacte).
+3. **LES PHOTOS DE LA BOUTIQUE EN `toBlob`** (`carPhoto(i,cb)`, `shopPhotoTour`, `photoTour`, `dbgPhoto`) : avec un rappel, l'encodage
+   PNG part hors du fil et la vignette reçoit une adresse `blob:` (~60 caractères) au lieu de ~400 Ko de base64 recopiés dans chaque
+   innerHTML de la vitrine, de l'inventaire et des missions. Même PNG. Les deux toiles de travail (5 Mo + 1,3 Mo) sont rendues aussitôt.
+4. **ESSAYÉ PUIS RETIRÉ — la Porte du ciel maillée en tranches après newTrack** : MESURÉ au banc, au départ de la jade la Porte est
+   déjà à portée de brume (2 335 m de sa sphère englobante, brume 2 500 m au soir, 1 736 / 3 000 à midi) : le garde-fou « visible ⇒
+   bâtie » la finissait à l'image suivante (newTrack 334 ms + Porte 384 ms au lieu de 835 d'un bloc) — un gel coupé en deux, pas un gel
+   en moins. Pistes restantes pour le portail vers la jade : garder le maillage de la Porte d'une visite à l'autre (la graine est fixe),
+   ou le préparer pendant la course qui précède.
+5. **LES GABARITS DE LA JADE TAILLÉS AU MENU** (`jadeGabaritsG`, `jadeGabFond`, `GAB_FOND`, `PAL.B.gabFondMs=[5,6,8]`, `dbgGabarits`) :
+   après la chauffe du menu, hors volet, quelques ms par image ; un JOUER pressé les finit d'un trait là où elles en sont (mêmes gabarits
+   au bit près). Le JOUER ne paie plus 389 ms quand le menu a eu le temps.
+6. **L'OBJECTIF MOUILLÉ** (relevé par GENERAL, `lensTick`) : la toile des normales remise au repos par UNE copie mémoire (au lieu de 4
+   écritures par pixel à chaque image) ; `VP.w/VP.h` au lieu d'`innerWidth/innerHeight` (piège n° 11). Même image.
+
+**MESURÉ APRÈS** (même banc, debout 375 × 667, machine très chargée — à refaire au calme) : JOUER, tâche la plus longue **641 → 207 ms**
+(les gabarits taillés au menu en 47 tranches, 242 ms de travail réparti) ; REJOUER **315 → 156 ms** (pas le même niveau tiré : ville
+avant, espace après) ; DOGE : 1re construction **532 → 24 ms** servie par l'ouvrier (338 ms de travail hors du fil), repli sur place
+310 ms ; `dbgDoge('compare')` = tête, mâchoire, poids identiques octet par octet ; une course avec le DOGE, gueule ouverte à la nitro :
+0 erreur. Aucun programme compilé de plus au JOUER ni au REJOUER (172 liens avant et après). À REMESURER AU CALME : la boutique (le banc n'a pas ouvert l'écran OFFRES).
+Bancs (scratchpad de la session) : `banc.cjs` (JOUER · portail · REJOUER · boutique, profils CPU, tâches longues, compilations),
+`banc-doge.cjs`, `doge-banc.cjs` (node, empreinte), `doge-perm.cjs`, `lot.cjs` (un seul créneau de banc pour plusieurs bancs).
+
 ## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
 **Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
 l'équilibrage, son nom et sa description en français ET en anglais, un pictogramme pixel (`ico`, grilles `tr_*` / `ai_*` dans `PXI_G`).
