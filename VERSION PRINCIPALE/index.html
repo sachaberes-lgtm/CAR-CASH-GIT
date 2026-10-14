@@ -45791,7 +45791,7 @@ function bqLaqueMat(k){bqLaqueMat._m=bqLaqueMat._m||{};const cle=String(k||1);if
    crête file en biais derrière la caisse ; l'herbe est cuite (lumière du soleil de gauche dans la couleur des sommets, taches plus claires et
    plus sombres) + un grain d'herbe en texture. Le pied de la caisse reste à plat (les bras se posent dans l'herbe). Tout en MeshBasic : la
    lumière du studio ne la change pas. Repère : celui de la boutique (+z = vers la caméra, il suit son azimut). */
-const BQ_DECOR=/[?&]bq=blanc\b/.test(location.search)?'blanc':'herbe';
+const BQ_DECOR=/[?&]bq=herbe\b/.test(location.search)?'herbe':'blanc'; /* (2026-10-14, Léo : « reviens sur le blanc, c'est mauvais ») la salle blanche par défaut ; la prairie reste derrière ?bq=herbe */
 function bqPrairie(g,R){
   const cv=document.createElement('canvas');cv.width=1024;cv.height=512;const x0=cv.getContext('2d'),r=mulberry32(0xB1155);
   {const gr=x0.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#1a4fc4');gr.addColorStop(.55,'#3f86e6');gr.addColorStop(1,'#a9d1f7');x0.fillStyle=gr;x0.fillRect(0,0,1024,256);
