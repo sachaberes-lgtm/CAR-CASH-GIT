@@ -48395,7 +48395,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'&&garageOn&&!gEl.classList.contains('menu')){hap(8); // (2026-10-10) les OFFRES vivent dans la boutique du garage : ACHETER + le prix en € ouvre la fenêtre d'achat ICI, sur la caisse affichée
     let src=document.querySelector('#gStrip .fnC[data-fn="v:'+garageI+'"]')||document.querySelector('#gStrip .gT[data-car="'+garageI+'"]');if(!src)src=e.currentTarget;src.setAttribute('data-car',garageI);
     try{shopPop(src);return;}catch(er){}}
-  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8);if(bqC6()&&!POKI){bqVaOffres();return;} /* (2026-10-14, charte 6) l'onglet OFFRES, pas l'ancien écran */ // LÉGENDAIRE : direction la BOUTIQUE
+  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8);if(bqC6()){bqVaOffres();return;} /* (2026-10-14, charte 6) l'onglet OFFRES, pas l'ancien écran */ // LÉGENDAIRE : direction la BOUTIQUE
     // (2026-09-28) la boutique s'ouvre AU LEVER du voile (`apres`) : le clic simulé sur le bouton de l'accueil partait PENDANT le
     // fondu, et son propre ecranWipe était ignoré (garde `_on`) — ou en faisait un second. Pas dans `fn` : l'observateur de l'overlay
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
@@ -52074,7 +52074,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='misVoir'){ const c9=carnet(misEtat().n).r; // la récompense des MISSIONS, sur la vraie caisse, au garage (sa fiche porte ses trois défis)
       window.__mRetour=PROF[mCur]?mCur:null; // (2026-09-29) le RETOUR de l'atelier ramène aux MISSIONS
       ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
-    else if(a==='shop'&&bqC6()&&!POKI){ bqVaOffres(1); } // (2026-10-14, charte 6) le cadeau de l'accueil = la boutique, onglet OFFRES (UN seul écran OFFRES ; l'ancien #mShop reste pour ?ui=5)
+    else if(a==='shop'&&bqC6()){ bqVaOffres(1); } // (2026-10-14, charte 6) le cadeau de l'accueil = la boutique, onglet OFFRES (UN seul écran OFFRES ; l'ancien #mShop reste pour ?ui=5)
     else if(a==='shop'){ ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
