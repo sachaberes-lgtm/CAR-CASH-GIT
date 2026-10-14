@@ -13874,6 +13874,13 @@ function buildTrack(seed){
 const VOX_M=.05;            // LA BRIQUE. Le module de base du jeu, et il n'y en a qu'un.
 const VOX_CITY=VOX_M*128;   // 6,4 m — la maille de la ville : un multiple ENTIER de la brique.
 const CITY={root:null,uT:{value:0},uC:{value:1},n:{}}; // uC : le COURANT de la ville (1 = allumée, 0 = la panne du niveau 16 de la campagne VILLE)
+/* (2026-10-14, passe graphismes · facades-jour) LES FAÇADES DE JOUR — Sacha : « la ville ensoleillée ne marche pas » (fenêtres orange
+   allumées en plein midi, tours lavande). De jour, une fenêtre est un REFLET (le verre renvoie le ciel), pas une lumière ; le béton perd
+   sa teinte lavande. `CITY.uJ` = le JOUR des façades (0 la nuit, le soir, sous la pluie et l'orage ; 1 au matin et à midi), posé par
+   villeApres. `?sans=facades` rend l'image d'avant au bit près (ancien shader, clé toursV4, anciennes teintes) ; `?sans=neonville`
+   ne coupe que la palette des néons et des parapets (ambre / blanc / rouge de balise au lieu de magenta / cyan). */
+const FACADES_V5=!/[?&]sans=([^&]*,)?facades(,|&|$)/.test(location.search),NEONVILLE_V5=FACADES_V5&&!/[?&]sans=([^&]*,)?neonville(,|&|$)/.test(location.search);
+CITY.uJ={value:0};
 /* (2026-09-27/28, passe perf iPhone) LA VILLE NE TRAVAILLE PLUS POUR RIEN — mesuré au banc en rendu logiciel (image figée, iPhone
    585×1266) : la ville coûtait ~25 % de l'image en VILLE, et la plus grosse part n'était PAS des pixels — avec une fenêtre de rendu
    d'un seul pixel, elle en coûtait encore les deux tiers. C'était le travail PAR SOMMET : ~5 000 volumes × 24 sommets, chacun éclairé
@@ -14098,20 +14105,25 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
   const K=ancien?'matT0':'matT';if(CITY[K])return CITY[K];
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x07080d});
   m.extensions={derivatives:true}; // fwidth (WebGL1) : les fenêtres se filtrent à la taille du pixel
-  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;';
+  // (2026-10-14, passe graphismes · facades-jour) V5 = les façades de jour (voir FACADES_V5) ; FIN9 = le verre en Fresnel vrai (normale
+  // monde + reflet du ciel), réservé au palier 2 — aux paliers 0-1 le verre prend une part fixe de l'horizon (zéro calcul de plus).
+  const V5=FACADES_V5,NV5=NEONVILLE_V5,FIN9=V5&&PAL.n===2;
+  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;'+(FIN9?'varying vec3 vWN9;':'');
   const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;if(!ancien){sh.uniforms.uLum9=CITY.uL;sh.uniforms.uImp9=IMPACT.u;sh.uniforms.uImpN9=IMPACT.n;}
+    if(V5){sh.uniforms.uJ9=CITY.uJ;sh.uniforms.uJHor9=skyU.uJHor;sh.uniforms.uJMid9=skyU.uJMid;} // le jour, et le ciel que le verre renvoie
     sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
         'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n'+
-        'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;')
+        'vLoc9=position*sc9;vNrm9=normal;vB9=(position.y+.5)*sc9.y;vSc9=sc9;'+
+        (FIN9?'\n#ifdef USE_INSTANCING\nvWN9=mat3(modelMatrix)*(mat3(instanceMatrix)*normal);\n#else\nvWN9=mat3(modelMatrix)*normal;\n#endif\n':''))
       .replace('#include <project_vertex>','#include <project_vertex>\nbool loin9=false;\n'+(ancien?'':VILLE_TRI+
         '#ifdef USE_INSTANCING\nbool proche9=false;{vec3 w9=(modelMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;float r9=.5*length(sc9)+1.;'+ // la boîte touche-t-elle la portée d'une lampe ?
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n'))
       .replace('#include <lights_lambert_vertex>',ancien?'#include <lights_lambert_vertex>':'vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
     if(!ancien)sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader;
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9;'+DECL+(ancien?'':'uniform vec4 uImp9,uImpN9;'))
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9;'+DECL+(ancien?'':'uniform vec4 uImp9,uImpN9;')+(V5?'uniform float uJ9;uniform vec3 uJHor9,uJMid9;':''))
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
            d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
@@ -14134,7 +14146,9 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nbool VIS9=fogDepth<fogFar;\n#else\nbool VIS9=true;\n#endif\n'+ // au-delà, le brouillard rend fogColor au bit près : rien de ce qui suit ne se verrait
         'if('+Q('VIS9&&uCour9>0.')+'){vec3 cW=vec3(1.,.69,.29),cC=vec3(.56,.85,1.),dom=mix(cW,cC,fro),aut=mix(cC,cW,fro);'+ // #ffb04a / #8fd8ff : la dominante et l'autre
         'if('+Q('fv>0.')+'){vec2 hw=vec2(mix(.3,.46,bur),.26);float tx=.55+.1*s2,far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;vec3 wv=mix(dom,aut,.2)*avg*1.05;'+ // wv : la lueur MOYENNE (le lointain)
+        (V5?'float gm9=4.*hw.x*hw.y;':'')+ // (facades-jour) gm9 : la part de VERRE du mur (le carreau de près, la moyenne au loin)
         'if('+Q('far<1.')+'){vec2 id=floor(uv),f=fract(uv),dd=(hw-abs(f-.5))/fw;float w=clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.);'+ // (passe perf) motif sous le pixel : la moyenne suffit, les hachages ne se calculent pas
+        (V5?'gm9=mix(w,gm9,far);':'')+
         'vec3 wo=vec3(0.);if('+Q('w>0.')+'){'+ // (passe perf) entre deux carreaux (la moitié du mur de près) : rien à allumer, les hachages ne se calculent pas
         'vec2 idH=bur>.5?vec2(floor(id.x/5.),id.y):id;'+                                   // les bureaux s'allument par PLATEAUX
         'float h=fract(sin(dot(idH+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
@@ -14144,12 +14158,22 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'if('+Q('on>0.')+'){vec3 wc=mix(dom,aut,step(.8,fract(h*7.77)))*(.8+.4*fract(h*13.1));'+ // (passe perf) fenêtre éteinte : ni teinte ni écran
         'float tv=step(.955,hv)*step(hv,.975)*(.55+.45*sin(uT9*7.3+h*40.)*sin(uT9*2.9+h*9.));wc=mix(wc,vec3(.45,.6,1.)*1.2*tv,step(.001,tv));'+ // les ÉCRANS
         'wo=wc*w*on;}}wv=mix(wo,wv,far);}'+
-        'gl_FragColor.rgb+=wv*fv*1.3*uCour9;}'+ // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16)
-        'if('+Q('tt>0.&&fe<1.4')+'){vec3 rc=fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);'+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8
-        'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9;}}}\n'+
+        /* (2026-10-14, passe graphismes · facades-jour) LE VERRE DE JOUR : le carreau s'assombrit (l'intérieur d'un bureau au soleil)
+           et, en rasant, renvoie le CIEL de la ville (horizon → milieu du ciel selon le reflet) — Fresnel de Schlick au palier 2, une
+           part fixe d'horizon ailleurs. Pondéré par uJ9 : la nuit, le soir, la pluie et l'orage gardent leur image au bit près. */
+        (V5?(FIN9?'{vec3 V9=normalize(cameraPosition-vW9),N9=normalize(vWN9);float F9=min(.04+.96*pow(1.-max(dot(N9,V9),0.),5.),.8);'+
+          'vec3 R9=reflect(-V9,N9),sk9=mix(uJHor9,uJMid9,smoothstep(0.,.6,R9.y))*.85;gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(gl_FragColor.rgb*.5,sk9,F9),gm9*fv*uJ9);}'
+          :'gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(gl_FragColor.rgb*.5,uJHor9*.85,.3),gm9*fv*uJ9);'):'')+
+        'gl_FragColor.rgb+=wv*fv*1.3*uCour9'+(V5?'*(1.-.9*uJ9)':'')+';}'+ // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16) ; (facades-jour) de jour, un reflet à 10 %, pas une lumière
+        'if('+Q('tt>0.&&fe<1.4')+'){vec3 rc='+(NV5?'fro>.5?vec3(.91,.93,.95):vec3(1.,.69,.29);':'fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);')+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8 — (facades-jour) blanc de bureau #E8EEF2 / ambre #FFB04A
+        'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9'+(V5?'*(1.-.9*uJ9)':'')+';}}}\n'+
         (ancien?'':VILLE_IMPACT)+'#include <fog_fragment>\n'+villePied(Q));
+    // (2026-10-14, passe graphismes · facades-jour) LE BÉTON DE JOUR : la teinte d'instance (.20,.21,.26)×t9 — lavande — glisse vers le
+    // béton neutre-froid #6B717A ramené à la même luminance (.2016,.2126,.2294), soit ×(1.008,1.013,.883) ; t9 garde sa variation.
+    // Pondéré par uJ9 : la nuit garde ses teintes au bit près (mix(…,0) rend la couleur telle quelle).
+    if(V5)sh.fragmentShader=sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=mix(vec3(1.),vec3(1.008,1.013,.883),uJ9);');
   };
-  m.customProgramCacheKey=function(){return ancien?'toursV3':'toursV4';};
+  m.customProgramCacheKey=function(){return ancien?(V5?'toursV3j':'toursV3'):(V5?'toursV5'+(FIN9?'f':'')+(NV5?'n':''):'toursV4');}; // (facades-jour) une clé remplacée, pas un programme de plus
   CITY[K]=m;return m;
 }
 function villeMatNeon(ancien){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
@@ -43762,6 +43786,10 @@ function panneTick(dt,sp){
 }
 function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la route à chaque image depuis sa teinte de base)
   const nu=LVL.nuit; // (2026-09-30) MINUIT EN VILLE : 3 fenêtres sur 4 éteintes, les néons de la route à 40 %, des phares xénon qui portent à ~260 m
+  /* (2026-10-14, passe graphismes · facades-jour) LE JOUR DES FAÇADES (CITY.uJ, lu par villeMatTours) : `uJour` seul ne dit pas le jour —
+     minuit, la pluie et l'orage de la ville ont aussi jour:1 (le dégradé d'altitude). On le croise avec la ville PEINTE du ciel (`city` :
+     matin .25, midi .12 · soir 1,1, pluie et orage 1,2) et avec la nuit du niveau. Fondu comme l'ambiance au portail (bioLerp). */
+  CITY.uJ.value=FACADES_V5?skyU.uJour.value*(1-nu)*(1-THREE.MathUtils.smoothstep(skyU.uCity.value,.45,.95)):0;
   if(CAMP.n!==16)CITY.uC.value=1-.72*nu; // (la panne du niveau 16 de la campagne garde la main sur le courant)
   const k=(CAMP.n===16?VC.cour:1)*(1-.6*nu);
   if(k<.999){const kr=.07+.93*k; // on ne baisse QUE ce que musicTick repeint (userData.base) : rien ne s'accumule d'une image à l'autre
