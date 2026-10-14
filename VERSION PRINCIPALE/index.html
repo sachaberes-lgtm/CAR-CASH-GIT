@@ -42295,7 +42295,7 @@ function buildGarageRoom(){
   // jaune sécurité, bleu fût, orange palan) qui suffisent à faire lire « atelier » d'un coup d'œil.
   const M={
     sol   :L(0xffffff,0x090b10,{flatShading:false}),
-    mur   :L(0x3c4557,0x0c0f16), bas:L(0x1c2433,0x06080e), toit:L(0x101319,0x030408),
+    mur   :L(0x3c4557,GARAGE_V?0x1b212f:0x0c0f16), bas:L(0x1c2433,GARAGE_V?0x0e1422:0x06080e), toit:L(0x101319,GARAGE_V?0x0a0f1a:0x030408), /* (garage-lumiere) émissifs remontés : on lit les murs */
     fer   :L(0x232a38,0x070910), acier:L(0x6b7688,0x101319), chrome:L(0xc2cbd8,0x171b21),
     noir  :L(0x15181f,0x040609), pneu:L(0x1a1c21,0x050608),
     rouge :L(0xd53c2f,0x2e0906), bleu:L(0x2f6cb8,0x0a1526), vert:L(0x2f9e63,0x092312),
@@ -42324,7 +42324,7 @@ function buildGarageRoom(){
       x.arc(Math.random()*w,Math.random()*h,70+Math.random()*140,Math.random()*6,Math.random()*6+1.3);x.stroke();}   // traces de gomme
   });
   solTex.wrapS=solTex.wrapT=THREE.RepeatWrapping;solTex.repeat.set(W/8.8,D/8.8);solTex.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
-  M.sol=new THREE.MeshPhongMaterial({color:0xffffff,map:solTex,specular:0x2c3850,shininess:90,emissive:0x04060b,fog:false});
+  M.sol=new THREE.MeshPhongMaterial({color:0xffffff,map:solTex,specular:0x2c3850,shininess:90,emissive:GARAGE_V?0x0a1020:0x04060b,fog:false});
   // LES MURS : un bardage de panneaux de 2,6 m (nervures, joint, rivets, lisse) avec la lumière du plafond cuite (clair en haut, sombre
   // en bas) — une matière par mur, parce que la répétition d'une texture est une propriété de la TEXTURE (et les murs n'ont pas la même largeur)
   const murTexB=cvT(128,256,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#566279');gr.addColorStop(.45,'#3c465a');gr.addColorStop(1,'#252c3a');
@@ -42333,7 +42333,7 @@ function buildGarageRoom(){
     x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,3,h);x.fillStyle='rgba(255,255,255,.1)';x.fillRect(3,0,1,h);
     x.fillStyle='rgba(0,0,0,.35)';for(let j=6;j<h;j+=24)x.fillRect(5,j,2,2);
     x.fillStyle='rgba(0,0,0,.3)';x.fillRect(0,h*.5,w,2);x.fillStyle='rgba(255,255,255,.06)';x.fillRect(0,h*.5+2,w,1);});
-  const murM=(rx,ry,oy)=>{const t=murTexB.clone();t.needsUpdate=true;t.wrapS=THREE.RepeatWrapping;t.repeat.set(rx,ry||1);t.offset.y=oy||0;return L(0xffffff,0x0b0e15,{map:t});};
+  const murM=(rx,ry,oy)=>{const t=murTexB.clone();t.needsUpdate=true;t.wrapS=THREE.RepeatWrapping;t.repeat.set(rx,ry||1);t.offset.y=oy||0;return L(0xffffff,GARAGE_V?0x1b212f:0x0b0e15,{map:t});};
   const pegTex=cvT(64,64,(x,w,h)=>{ // le panneau perforé de l'établi
     x.fillStyle='#414c60';x.fillRect(0,0,w,h);x.fillStyle='#141a26';
     for(let i=0;i<8;i++)for(let j=0;j<8;j++){x.beginPath();x.arc(i*8+4,j*8+4,1.6,0,7);x.fill();}
