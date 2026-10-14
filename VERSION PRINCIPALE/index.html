@@ -13236,6 +13236,35 @@ function traitMat(m,minPx,pal){
   m.polygonOffset=true; // … et plus de Z-FIGHTING : 4 à 9 cm au-dessus du bitume, c'était sous la précision du tampon de profondeur dès 300 m
   return m;
 }
+/* ==========================================================================
+   (2026-10-14, passe graphismes · agent bords-route) FIN DU NÉON DE BORD — flancs et rail en BÉTON.
+   Sacha : « le néon violet/magenta fait trop IA ». Les bords de la route (rail cyan/rose/violet + nappe de lueur additive, flancs d'ENCRE
+   violette, liseré et catadioptres à l'accent de la zone, ligne centrale lavande, plaques turbo sur encre violette) passent à la matière :
+     · DE JOUR (matin, midi, soir, orbite) le rail n'est plus une lumière : c'est le CHANFREIN clair de la dalle (béton #C9C3B6), la nappe de
+       lueur est éteinte ;
+     · la NUIT, sous la PLUIE, à l'ORAGE : un rail BLANC doux (#E8E4DA à demi) — le bord du vide reste lisible — et une nappe très discrète ;
+     · les flancs sont en béton sombre #3A3833 ; le liseré et les catadioptres (1,5 m tous les 6 m) sont AMBRE (#FFB04A ; or à CRYPTOCITY et aux
+       PICS DE JADE, blanc froid en orbite) ; la ligne centrale est un blanc cassé ; les plaques turbo ont un fond de béton sombre.
+   Rien de plus pour la puce : des valeurs, des couleurs de matière existantes, les MÊMES programmes (le flanc change de clé : un programme
+   remplacé, pas ajouté), aucune texture en plus. INTERRUPTEUR : `?sans=bords` (ou `…,bords,…`) rend l'image d'avant.
+   Mécanique : `bordsTick()` repeint la couleur du rail et l'opacité de la nappe à chaque image, JUSTE APRÈS la boucle « caméléon » de
+   musicTick (qui les repeint depuis `userData.base`, laquelle reste l'accent ambre : le ciel musical, `lvlTick`, le lit toujours). Le rail
+   blanc ne vire donc plus de teinte avec la musique. `villeApres` (minuit) baisse ensuite le rail ×kr : on le pré-divise pour qu'il reste lisible.
+   Banc : `dbgBords({kNuit,kJ,glowN,jour:[r,g,b],nuit:[r,g,b]})`. ========================================================================== */
+const BORDS_V2=!/[?&]sans=([^&]*,)?bords(,|&|$)/.test(location.search);
+const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
+const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
+const _c9=new THREE.Color(),_d9=new THREE.Color();
+function bordsTick(){ // appelée par musicTick, APRÈS la peinture « caméléon » des rails et de la nappe
+  const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf; // 1 = plein jour sec ; 0 = nuit / pluie / orage (fondus par lvlStep au portail)
+  _c9.copy(BORDS.nuit).multiplyScalar(BORDS.kNuit);_d9.copy(BORDS.jour).multiplyScalar(BORDS.kJ);_c9.lerp(_d9,jf);
+  let kk=1,kg=BORDS.glowN*(1-jf);
+  try{const nu=LVL.nuit,k=(CAMP.n===16?VC.cour:1)*(1-.6*nu);if(k<.999){kk=1/(.07+.93*k);kg*=kk*kk;}}catch(e){} // villeApres multipliera la couleur par kr et l'opacité par kr² : on l'annule d'avance
+  _c9.multiplyScalar(kk);
+  for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.copy(_c9);}
+  for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i],b=m.userData.base;if(b!=null)m.opacity=Math.min(1,b*kg);}
+}
+window.dbgBords=function(o){if(o){for(const k in o){if(k==='jour'||k==='nuit')BORDS[k].setRGB(o[k][0],o[k][1],o[k][2]);else BORDS[k]=o[k];}bordsTick();if(paused&&POST_ON&&composer)composer.render();}return {jf:BORDS.jf,kJ:BORDS.kJ,kNuit:BORDS.kNuit,glowN:BORDS.glowN,v2:BORDS_V2,fog:FOG_BASE.toArray(),fogS:scene.fog.color.toArray(),hemi:hemi.intensity,sun:sun.intensity,nuit:LVL.nuit,pluie:LVL.pluie,bio:BIO.name,acc:ROAD_U.uAcc.value.toArray(),rail:NEON_RAILS[0]?NEON_RAILS[0].color.toArray():null,glow:NEON_GLOW[0]?NEON_GLOW[0].opacity:null};}; // banc
 let LIGNE_TEX=null;
 /* (2026-10-07) LES TIRETS FILENT : la ligne centrale a un tiret tous les ~31 m. À 30 images par seconde (l'iPhone bride), passé ~1 100 km/h
    la caisse avance d'un tiers de période par image et les tirets se mettent à BÉGAYER (ils semblent ralentir, puis sauter — l'effet de la
@@ -13250,7 +13279,7 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
     LIGNE_TEX.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
   // (2026-09-26, vague 2) la peinture passe du SODIUM doré (0xffc978) au BLANC lavande : sous le grade, les tirets se lisaient ORANGE,
   // une rangée de fausses pièces au milieu de la route. L'or ne sert qu'à ce qui rapporte ; la peinture n'est que de la peinture.
-  const m9=traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:0xe4ddff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
+  const m9=traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:BORDS_V2?0xf2eee6:0xe4ddff,transparent:true,opacity:BORDS_V2?.7:.5,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
   const ob9=m9.onBeforeCompile;m9.onBeforeCompile=function(sh){ob9(sh);sh.uniforms.uFile9=LIGNE_U.uFile;
     sh.fragmentShader='uniform float uFile9;\n'+sh.fragmentShader.replace('#include <map_fragment>',
       '{vec4 texelColor=(texture2D(map,vUv+vec2(0.,uFile9*.375))+texture2D(map,vUv+vec2(0.,uFile9*.125))+texture2D(map,vUv-vec2(0.,uFile9*.125))+texture2D(map,vUv-vec2(0.,uFile9*.375)))*.25;'+
@@ -13264,7 +13293,7 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    comme une structure, de loin et d'en dessous. Anticrénelé, et fondu en lueur moyenne quand il passe sous le pixel. Aucun sommet de
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
-  const m=new THREE.MeshLambertMaterial({color:0x1c0430,side:THREE.DoubleSide});m.extensions={derivatives:true}; // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
+  const m=new THREE.MeshLambertMaterial({color:BORDS_V2?0x3a3833:0x1c0430,side:THREE.DoubleSide});m.extensions={derivatives:true}; /* (2026-10-14, bords-route) le flanc en BÉTON sombre #3A3833 (c'était l'encre violette) ; liseré plus discret, catadioptres ambre (uAcc) */ // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
   m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
@@ -13272,8 +13301,8 @@ function trancheMat(){
       'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5));'+                                       // le liseré (13 cm sur 2,6 m)
       'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*step(abs(vTr9.x-.5),.09);'+ // les catadioptres : 1,5 m tous les 6 m
       'float lo=smoothstep(.5,1.6,fy);'+                                                                // un pixel couvre plus d un demi-mètre de route : la lueur moyenne
-      'gl_FragColor.rgb+=uAcc9*(mix(bd*.55+ce*.9,.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'trancheV2';};
+      'gl_FragColor.rgb+=uAcc9*(mix('+(BORDS_V2?'bd*.30+ce*1.':'bd*.55+ce*.9')+',.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
+  m.customProgramCacheKey=function(){return BORDS_V2?'trancheV3':'trancheV2';};
   return m;
 }
 const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
@@ -13588,6 +13617,7 @@ function buildTrack(seed){
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
   const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?(LVL.cur.crypto?0x35ff9e:0xf24aa0):idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
+  if(BORDS_V2){const ia9=Math.max(0,ACCENTS.indexOf(accR));ACCENTS.splice(0,6,0xffb04a,0xf2b93b,0xe8e4da,0xffc477,0xf2b93b,0xffb04a);accC.setHex(idA9==='espace'?0xe8eef2:idA9==='paris'?0xd9d4ca:(idA9==='jade'||(idA9==='ville'&&LVL.cur.crypto))?0xf2b93b:(idA9==='nuages'||idA9==='orage'||idA9==='ville')?0xffb04a:ACCENTS[ia9]);} // (2026-10-14, bords-route) L'ACCENT N'EST PLUS UN NÉON : ambre sodium (nuages, ville, orage, hasard), or (jade, cryptocity), blanc froid (orbite) — il nourrit le reflet des flaques (uAcc), le liseré des flancs, la couronne des tours (buildVoxCity) et le ciel musical
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
@@ -13623,6 +13653,7 @@ function buildTrack(seed){
     const mat9=traitMat(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),2,1);
     mat9.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(mat9);
+    if(BORDS_V2)bordsTick(); // (2026-10-14, bords-route) la 1re image du rail est déjà à la bonne couleur (chanfrein de jour / rail blanc de nuit)
     pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3]},{blocs:4,pr:2,np:NP,pas:1},holeSeg,mat9,{ordre:1,marge:20}); // ...et leur nappe aussi
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
@@ -13640,7 +13671,7 @@ function buildTrack(seed){
     }
     // (passe perf) découpée en tranches : une paire de sommets tous les 2 points, par face — la ligne centrale ne flotte pas au-dessus du vide
     pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
-      k=>holeSeg(2*k)||holeSeg(2*k+1),(function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xc8f5df);m9.opacity=.42;JADE.ligne=m9;}return m9;})(),{ordre:1,marge:20,loin:0}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
+      k=>holeSeg(2*k)||holeSeg(2*k+1),(function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(BORDS_V2?0xeaf0e8:0xc8f5df);m9.opacity=LIGNE_OPJ;JADE.ligne=m9;}return m9;})(),{ordre:1,marge:20,loin:0}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
   // BORDS DU VIDE : on ferme la coupe. La dalle montre sa TRANCHE en rouge d'alerte — à pleine vitesse,
   // c'est cette barre qui hurle « ça s'arrête LÀ », et on la voit bien avant d'y être.
@@ -16696,8 +16727,8 @@ function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface
   const ac=nrm?(NEON_RAILS[0]&&NEON_RAILS[0].userData.c0||0x4fe0a8):[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e,0xa8acb4][k],gl=nrm?(NEON_GLOW[0]&&NEON_GLOW[0].userData.o0!=null?NEON_GLOW[0].userData.o0:.6):[.78,.30,0,0,.22][k];
   if(NEON_RAILS[0]){NEON_RAILS[0].color.setHex(ac);if(NEON_RAILS[0].userData.base)NEON_RAILS[0].userData.base.setHex(ac);NEON_RAILS[0].userData.hsl=null;} // (le caméléon garde la teinte mesurée : on la lui fait remesurer)
   if(NEON_GLOW[0]){NEON_GLOW[0].opacity=gl;NEON_GLOW[0].userData.base=gl;}
-  {const fl=[0x1c0430,0xd9deec,0x2a140a,0x1e140c,0x2a2c32,0x1c0430][k];if(nrm)ROAD_U.uAcc.value.setHex(0x4fe0a8);else ROAD_U.uAcc.value.setHex(0);if(JADE.flank)JADE.flank.color.setHex(fl);} // le liseré et les catadioptres des tranches s'éteignent (accent noir : rien ne s'ajoute)
-  if(JADE.ligne)JADE.ligne.opacity=[.42,0,0,0,0,.42][k];
+  {const fl=[0x1c0430,0xd9deec,0x2a140a,0x1e140c,0x2a2c32,BORDS_V2?0x3a3833:0x1c0430][k];if(nrm)ROAD_U.uAcc.value.setHex(BORDS_V2?0xf2b93b:0x4fe0a8);else ROAD_U.uAcc.value.setHex(0);if(JADE.flank)JADE.flank.color.setHex(fl);} // le liseré et les catadioptres des tranches s'éteignent (accent noir : rien ne s'ajoute)
+  if(JADE.ligne)JADE.ligne.opacity=[LIGNE_OPJ,0,0,0,0,LIGNE_OPJ][k];
   return ['EMERAUDE','NUAGE','PLANCHES','RONDINS','PIECES D ARGENT','NORMALE'][k];}
 window.dbgEffondre=function(){return {montagnes:JCH.L.length,tombees:JCH.L.filter(function(c){return c.t0;}).length,finies:JCH.L.filter(function(c){return c.fin;}).length,ecume:JCH.sp.length,sChute:JCH.L.length?Math.round(Math.min.apply(null,JCH.L.map(function(c){return c.sN;}))):null,L:Math.round(L)};};
 window.dbgRoute=function(k){return jadeRouteStyle(k==null?(JROUTE.style+1)%6:k);};
@@ -18282,7 +18313,7 @@ const padTex=(function(){
     const R=(x,y,w,h,col)=>{c.fillStyle=col;for(const dy of [0,-H,H])c.fillRect(x,y+dy,w,h);}; // posé 3 fois : le motif se REPLIE sans couture
     R(0,0,W,H,fond);                                                                          // la plaque
     if(grille)for(let y=0;y<H;y+=8)R(16,y,96,4,grille);                                       // la grille de la plaque (un souffle, pas un motif)
-    const OR='#fff27a',OR_C='#fffbd0',OR_O='#d8a412'; // l'or CITRON en texture = l'or #ffd75e à l'écran, une fois passé l'ACES et le grade (même étalonnage que la pièce)
+    const OR='#fff27a',OR_C=BORDS_V2?'#fffefa':'#fffbd0',OR_O='#d8a412'; // (2026-10-14, bords-route) l'arête des chevrons : blanc franc (blanc + or) // l'or CITRON en texture = l'or #ffd75e à l'écran, une fois passé l'ACES et le grade (même étalonnage que la pièce)
     for(const x of [4,116]){R(x,0,8,H,OR);R(x===4?x:x+6,0,2,H,OR_O);R(x===4?x+6:x,0,2,H,OR_C);} // les RAILS d'or : ombre dehors, lumière dedans
     for(let k=-1;k<=4;k++){const A=k*64+10;                                                   // 4 chevrons par tour de texture (période 64 px = 2,25 m)
       for(let cx=0;cx<11;cx++){const y=A+cx*2;
@@ -18294,7 +18325,7 @@ const padTex=(function(){
      loin — vue rasante — un PAVÉ BRUN à peine plus clair que le bitume : on ne voyait plus la cible. Les deux premiers niveaux sont la
      plaque telle quelle ; à partir du 3e (la plaque fait moins de 32 pixels de large à l'écran) son fond passe à l'or sombre : de loin
      elle LUIT d'or, de près on lit ses chevrons sur l'encre. Le fondu entre les niveaux (trilinéaire) fait la transition, sans saut. */
-  const pres=dessine('#1c0430','#22073a'),loin=dessine('#9a6a0e',null),niv=[pres];
+  const pres=BORDS_V2?dessine('#2e2c29','#37352f'):dessine('#1c0430','#22073a'),loin=dessine('#9a6a0e',null),niv=[pres]; // (2026-10-14, bords-route) la plaque turbo sur BÉTON sombre (c'était l'encre violette)
   for(let w=W>>1,h=H>>1,k=1;w>=1||h>=1;w>>=1,h>>=1,k++){const cv=document.createElement('canvas');cv.width=Math.max(1,w);cv.height=Math.max(1,h);
     const c=cv.getContext('2d');c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(k<2?niv[k-1]:(k===2?loin:niv[k-1]),0,0,cv.width,cv.height);niv.push(cv);
     if(cv.width===1&&cv.height===1)break;}
@@ -36027,6 +36058,7 @@ function musicTick(dt,mvt){
   }
   for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i],b=m.userData.base;
     if(b!=null)m.opacity=Math.min(1,b*(1+kb*.75));}
+  if(BORDS_V2)bordsTick(); // (2026-10-14, bords-route) le rail ne suit plus la musique en teinte : chanfrein de béton de jour, rail blanc doux de nuit
   // LE VOILE DE BORD : il prend la teinte du caméléon et flashe sur la frappe
   if(beatFxEl){
     const op=Math.min(.5,frappe*.62+musicBoostEnv*.06);
