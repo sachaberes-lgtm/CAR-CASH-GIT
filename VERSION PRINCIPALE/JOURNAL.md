@@ -3,6 +3,31 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE ROYAUME DE FEU v2 — LA DESCENTE PAR LES BOUCLES DE RACCOURCI (2026-10-14 au soir, session VOLCAN — Sacha, relayé par PILOTAGE : « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus bas ; les maps doivent DESCENDRE » · « c'est un jeu de COURSE, pas de balade : plus de virages » · « plus la vitesse du palier est élevée, plus les virages doivent être larges »)
+La route du volcan est refaite sur la règle commune de GAMEPLAY (`passation/RACCOURCIS.md`) ; l'identité reste (éruptions, panaches, lave, aiguilles, arche).
+- LE TRACÉ (`genVolcan` → `vlcTrace`) : départ sur la LÈVRE DU CRATÈRE du grand volcan (dans le dos), le SAUT DU CRATÈRE (replat puis 15-17 %), puis la
+  descente vers la MER DE LAVE : des enchaînements de virages (un sur trois SERRÉ, 1,2-1,45 × le rayon mini ; les autres entre 1,55 × et 240 m) et
+  5 BOUCLES (4 au-delà du palier 10) : un ÉLAN droit, un tour complet (deux demi-cercles, R 1,25-1,5 × rMin) dont l'ENTRÉE plonge à 16 % sur
+  120 m, puis la SORTIE — dans l'axe de l'élan, 22-30 m à côté (côté extérieur du tour), ~40 m plus bas, longue de la portée du saut
+  (vPalier × 2,4 s), prolongée d'un virage doux. LE RACCOURCI : au bout de l'élan, ne pas tourner, filer tout droit : la route se dérobe
+  (le plongeon de l'entrée), la caisse passe au-dessus du bord et retombe dans l'axe sur la sortie (~600 m de gagnés au palier 0, ~850 au palier 10).
+  Le contrôle `conflits` refuse tout tracé où deux dalles passent à moins de 70 m l'une de l'autre avec moins de 32 m d'air (6 essais, flux de
+  hasard propre). L'échelle du palier : `vw = 70 + 100·(lvPiste() − 1)`, `rM = 40 + 0,3·vw`.
+- POURQUOI CETTE GÉOMÉTRIE (mesuré au banc `cc-banc/raccourcis.cjs`, rejoué HORS LIGNE sur des traces exportées de Node — `--depuis`, sans
+  Chrome) : une sortie à 72-80 m de l'élan n'était atteinte qu'en braquant en l'air, donc posée de travers (> 55° : pose ratée) ; à 60 m, la
+  caisse lancée tout droit retombait dans le trou entre les dalles ; à 22-30 m elle tombe dessus, mais au palier 0 (58-97 m/s) elle restait
+  au ras de sa propre dalle qui s'éloigne lentement : heurt de tranche — d'où le PLONGEON d'entrée, qui dérobe la route sous elle.
+- LE RELIEF : la MER DE LAVE est désormais PLATE (`VOLCAN.ySea`, 72 m sous le point le plus bas de la route), semée d'îles et de mesas ; les
+  deux cônes en sortent ; le couloir de la route se cale sur la dalle LA PLUS BASSE à moins de 120 m (là où la route repasse sous elle-même) ;
+  au-delà de la grille, `vlcMerLoin` (un plan de 40 km) continue la mer jusqu'à l'horizon, sa braise se fond dans la brume tout au loin.
+  Aucune aiguille, aucun hornito, aucun orgue dans les COULOIRS DE SAUT (`horsSaut`) ; pas d'aiguille de plus de 260 m sous la route ;
+  pas d'arche au-dessus d'une autre route.
+- MESURÉ (banc RACCOURCIS hors ligne, 5 graines) : PALIER 0 → les 10 cibles sur les 5 graines (pente 6,7 %, 0 montée, 2,6-3,1 virages/km,
+  ~1 raccourci rentable/km dont 8-10 gros, 0 croisement dangereux, 0 virage infranchissable, droite ≤ 5 s) ; PALIER 10 → 3 graines sur 5
+  complètes (2,3-2,4 virages/km sur les deux autres) ; paliers 18-27 → raccourcis 3-5/km mais 1,7-2,4 virages/km (les sorties s'allongent
+  avec la portée du saut) : À REPRENDRE.
+- Console : `dbgVolcan()` (sauts : [début, sortie, chute], conflits, croisements, niveau de la mer), `dbgVolcan('saut',{k})` (photo du raccourci).
+
 ## LES ÉVÉNEMENTS RARES (2026-10-14, Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares, annoncés CLAIREMENT, jamais mortels de façon injuste, avec une RÉCOMPENSE »)
 Le bloc `EVT` (juste avant `dbgVille`, repère : « LES ÉVÉNEMENTS RARES ») rejoue les trois morceaux de la campagne TELS QUELS (`fantomeTick`,
 `banquierTick`, `campMoutonsTick`, leur plaque `vChip`) dans la partie CLASSIQUE ; seul ce qui les finissait change de main quand ils viennent d'ici

@@ -17429,14 +17429,14 @@ function vlcNoise(x,z,s){const i=Math.floor(x),j=Math.floor(z),fx=x-i,fz=z-j,u=f
 function vlcB(x,z,s,o){let a=0,w=1,t=0;for(let k=0;k<(o||3);k++){const c=Math.cos(k*1.13),sn=Math.sin(k*1.13);a+=w*vlcNoise(x*c-z*sn+k*17.3,x*sn+z*c-k*9.1,s+k*31);t+=w;w*=.5;x*=2.03;z*=2.03;}
   return Math.max(-1,Math.min(1,a/t*1.8));}
 function volcanSol(){
-  const C=PAL_B9('volcanSolC',26),MARG=PAL_B9('volcanMarge',2300),R1=560,RY=ROAD_HALF+92,K=VOLCAN.K,VC=VOLCAN.C,K2=VOLCAN.K2,VC2=VOLCAN.C2,yS=VOLCAN.ySea;
+  const C=PAL_B9('volcanSolC',26),MARG=PAL_B9('volcanMarge',2300),R1=340,RY=ROAD_HALF+92,K=VOLCAN.K,VC=VOLCAN.C,K2=VOLCAN.K2,VC2=VOLCAN.C2,yS=VOLCAN.ySea;
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   for(const c of [[VC,K],[VC2,K2]])if(c[0]){x0=Math.min(x0,c[0].x-900);x1=Math.max(x1,c[0].x+900);z0=Math.min(z0,c[0].z-900);z1=Math.max(z1,c[0].z+900);}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
   const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),YM=new Float32Array(N).fill(1e9);
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz);
-  for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18;for(let k=0;k<RS.length;k+=2){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd)bd=d;}GD[i+j*gx]=Math.sqrt(bd);}
+  for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18;for(let k=0;k<RS.length;k+=6){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd)bd=d;}GD[i+j*gx]=Math.sqrt(bd);} // (la distance lointaine ne sert qu'au tri des morceaux : un point de route sur 6 suffit)
   const gBil=(A,x,z)=>{const fx=Math.max(0,Math.min(gx-1.001,(x-x0)/CG)),fz=Math.max(0,Math.min(gz-1.001,(z-z0)/CG)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*gx;
     return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+gx]*(1-u)+A[k+gx+1]*u)*v;};
   const rC=Math.ceil(R1/C);
@@ -17444,12 +17444,15 @@ function volcanSol(){
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
         if(d2<D[k]){D[k]=d2;YN[k]=p.y;}if(d2<RY*RY&&p.y<YM[k])YM[k]=p.y;}}}
-  const H=new Float32Array(N),YL=new Float32Array(N),HT=new Float32Array(N),sd9=VOLCAN.graine|0,ss=THREE.MathUtils.smoothstep;
+  /* LES CASES, EN TRANCHES (14/10 au soir, règle de PILOTAGE : « construction en tranches < 60 ms ») : ~200 ms de calcul case par case. `S.rangee(j0,j1)`
+     calcule des rangées (ou un rectangle de cases) ; buildVolcan fait tout de suite les morceaux du départ, les autres partent dans la file (`vlcTache`) du plus proche au plus loin.
+     Une rangée pas encore calculée vaut la MER (H sous ySea, YL = ySea) : jamais de mort sur un sol qui n'existe pas encore. */
+  const H=new Float32Array(N).fill(yS-12),YL=new Float32Array(N).fill(yS),HT=new Float32Array(N),FAIT=new Uint8Array(N),sd9=VOLCAN.graine|0,ss=THREE.MathUtils.smoothstep;
   const cone=(K9,c9,x,z)=>{const dx=x-c9.x,dz=z-c9.z,r=Math.hypot(dx,dz);if(r>=K9.Rb)return -1e9;let hc=vlcConeY(K9,r);
     if(r>K9.rc){const an=Math.atan2(dx,dz);hc-=22*Math.pow(Math.abs(Math.sin(an*9+vlcB(x/70,z/70,sd9+5,2)*1.6)),.6)*Math.sin(Math.min(1,(r-K9.rc)/300)*Math.PI*.5)*(1-.6*r/K9.Rb); // les RAVINES
       hc+=Math.max(0,1-(r-K9.rc)/26)*9;}                                                                                            // la lèvre du cratère
     return hc+6*vlcB(x/45,z/45,sd9+13,2);};
-  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d;
+  const rangee=(ja,jb,ia,ib)=>{ia=ia||0;ib=ib==null?nx:ib;for(let j=ja;j<jb;j++)for(let i=ia;i<ib;i++){const k=i+j*nx;if(FAIT[k])continue;FAIT[k]=1;const x=x0+i*C,z=z0+j*C;let d;
     if(D[k]<1e8)d=Math.sqrt(D[k]);else{d=Math.max(R1,gBil(GD,x,z));YN[k]=yS+80;}
     D[k]=d;const ym=Math.min(YN[k],YM[k]);
     const n1=vlcB(x/380,z/380,sd9,3),n4=vlcB(x/1500,z/1500,sd9+11,2);
@@ -17459,8 +17462,8 @@ function volcanSol(){
     h=Math.min(h,ym-16+Math.max(0,d-ROAD_HALF-10)*1.2);                                                                       // jamais sous la dalle (la plus basse)
     H[k]=h;let yl=yS;
     for(const c of [[VC,K],[VC2,K2]])if(c[0]){const r=Math.hypot(x-c[0].x,z-c[0].z);if(r<c[1].rc)yl=Math.max(yl,c[1].yP-c[1].cr*.55);} // le LAC DU CRATÈRE
-    YL[k]=yl;HT[k]=Math.max(0,Math.min(1,(yl+16-h)/16));}
-  return VOLCAN.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yl:YL,ht:HT,riv:new Uint8Array(N),MARG:MARG};
+    YL[k]=yl;HT[k]=Math.max(0,Math.min(1,(yl+16-h)/16));}};
+  return VOLCAN.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yl:YL,ht:HT,riv:new Uint8Array(N),MARG:MARG,fait:FAIT,rangee:rangee,gd:function(x,z){return gBil(GD,x,z);}};
 }
 function vlcBil(A,x,z){const S=VOLCAN.sol;if(!S)return 0;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx;
   return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+n]*(1-u)+A[k+n+1]*u)*v;}
@@ -17640,13 +17643,20 @@ function vlcInst(root,geo,items,nom){if(!items.length)return null;const n=items.
   const aI=new Float32Array(n*4),im=new THREE.InstancedMesh(g,VOLCAN.mats.roc,n);
   for(let i=0;i<n;i++){im.instanceMatrix.array.set(items[i].m,i*16);aI.set(items[i].j,i*4);}
   g.setAttribute('aI',new THREE.InstancedBufferAttribute(aI,4));im.frustumCulled=false;im.matrixAutoUpdate=false;im.userData.jeter=true;im.userData.partage=true;im.name='volcan '+nom;root.add(im);return im;}
-/* ---------------- LE SOL ET LA LAVE EN MORCEAUX DE ~1,1 KM (peu d'appels de dessin ; volcanTick éteint ceux qui sont au-delà de la brume) ---------------- */
-function vlcSolMesh(root){
-  const S=VOLCAN.sol,M=VOLCAN.mats,CH=44,out=[],outL=[];let tri=0,triL=0;
-  for(let cj=0;cj<S.nz-1;cj+=CH)for(let ci=0;ci<S.nx-1;ci+=CH){
+/* ---------------- LE SOL ET LA LAVE EN MORCEAUX DE ~1,1 KM (peu d'appels de dessin ; volcanTick éteint ceux qui sont au-delà de la brume) ----------------
+   `vlcMorceau` bâtit UN morceau (et refait celui qui existait : les coulées ont creusé leur lit) ; `vlcMorceaux` les liste, du plus proche du départ au plus loin. */
+const VLC_CH=44;
+function vlcMorceaux(){const S=VOLCAN.sol,CH=VLC_CH,p0=pts[0],L9=[];
+  for(let cj=0;cj<S.nz-1;cj+=CH)for(let ci=0;ci<S.nx-1;ci+=CH){const xc=S.x0+(ci+CH/2)*S.C,zc=S.z0+(cj+CH/2)*S.C;if(S.gd(xc,zc)>S.MARG+CH*S.C*.75)continue;
+    const hc=CH*S.C/2;L9.push({ci:ci,cj:cj,d:Math.hypot(xc-p0.x,zc-p0.z),dr:Math.hypot(Math.max(0,Math.abs(xc-p0.x)-hc),Math.max(0,Math.abs(zc-p0.z)-hc))});}
+  return L9.sort(function(a,b){return a.d-b.d;});}
+function vlcMorceau(root,ci,cj){
+  const S=VOLCAN.sol,M=VOLCAN.mats,CH=VLC_CH,cle=ci+','+cj,vieux=VOLCAN.morc.get(cle),out=[];
+  if(vieux){for(const m of vieux){root.remove(m);m.geometry.dispose();const j=VOLCAN.solM.indexOf(m);if(j>=0)VOLCAN.solM.splice(j,1);}VOLCAN.morc.delete(cle);}
+  {
     const i1=Math.min(S.nx-1,ci+CH),j1=Math.min(S.nz-1,cj+CH),w=i1-ci+1,hh=j1-cj+1;let ok=false;
     for(let j=cj;j<=j1&&!ok;j+=2)for(let i=ci;i<=i1;i+=2)if(S.d[i+j*S.nx]<S.MARG){ok=true;break;}
-    if(!ok)continue;
+    if(!ok)return;
     const P=new Float32Array(w*hh*3),Nm=new Float32Array(w*hh*3),A=new Float32Array(w*hh*4),I=[],PL=new Float32Array(w*hh*3),AV=new Float32Array(w*hh*4),IL=[];
     for(let j=0;j<hh;j++)for(let i=0;i<w;i++){const gi=ci+i,gj=cj+j,k=gi+gj*S.nx,q=i+j*w,x=S.x0+gi*S.C,z=S.z0+gj*S.C;
       P[q*3]=x;P[q*3+1]=S.h[k];P[q*3+2]=z;
@@ -17659,16 +17669,18 @@ function vlcSolMesh(root){
     for(let j=0;j<hh-1;j++)for(let i=0;i<w-1;i++){const k=(ci+i)+(cj+j)*S.nx,a=i+j*w;if(S.d[k]>S.MARG+120&&S.d[k+1+S.nx]>S.MARG+120)continue;
       I.push(a,a+w,a+1,a+1,a+w,a+w+1);
       if(S.h[k]<S.yl[k]+.6||S.h[k+1]<S.yl[k+1]+.6||S.h[k+S.nx]<S.yl[k+S.nx]+.6||S.h[k+S.nx+1]<S.yl[k+S.nx+1]+.6)IL.push(a,a+w,a+1,a+1,a+w,a+w+1);}
-    if(!I.length)continue;
+    if(!I.length)return;
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(Nm,3));g.setAttribute('aS',new THREE.BufferAttribute(A,4));
-    g.setIndex(I);g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.name='volcan sol';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);out.push(m);tri+=I.length/3;
+    g.setIndex(I);g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.name='volcan sol';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);out.push(m);VOLCAN.solM.push(m);VOLCAN.n.sol+=I.length/3;
     if(IL.length){const gl=new THREE.BufferGeometry();gl.setAttribute('position',new THREE.BufferAttribute(PL,3));gl.setAttribute('aV',new THREE.BufferAttribute(AV,4));gl.setIndex(IL);gl.computeBoundingSphere();
-      const ml=new THREE.Mesh(gl,M.lave);ml.name='volcan lave';ml.matrixAutoUpdate=false;ml.userData.jeter=true;root.add(ml);outL.push(ml);triL+=IL.length/3;}}
-  VOLCAN.n.sol=tri;VOLCAN.n.lave=triL;VOLCAN.solM=out.concat(outL);return out;}
-/* LA MER AU LOIN : au-delà de la grille, la lave continue jusqu'à l'horizon (un plan de 40 km, 0,6 m sous la mer : la grille le couvre partout où elle existe) */
-function vlcMerLoin(root){const S=VOLCAN.sol,g=new THREE.PlaneGeometry(40000,40000,1,1);g.rotateX(-Math.PI/2);const n=g.attributes.position.count;
-  g.setAttribute('aV',new THREE.Float32BufferAttribute(new Float32Array(n*4).map((v,i)=>i%4===2?20:0),4));const cx=S.x0+S.nx*S.C/2,cz=S.z0+S.nz*S.C/2;
-  const m=new THREE.Mesh(g,VOLCAN.mats.lave);m.position.set(cx,VOLCAN.ySea-.6,cz);m.updateMatrix();m.matrixAutoUpdate=false;m.frustumCulled=false;m.renderOrder=-1;m.userData.jeter=true;m.name='volcan mer';root.add(m);return m;}
+      const ml=new THREE.Mesh(gl,M.lave);ml.name='volcan lave';ml.matrixAutoUpdate=false;ml.userData.jeter=true;root.add(ml);out.push(ml);VOLCAN.solM.push(ml);VOLCAN.n.lave+=IL.length/3;}
+  }
+  VOLCAN.morc.set(cle,out);return out;}
+/* LA FILE DES TRANCHES : des tâches exécutées DANS L'ORDRE, quelques millisecondes par image (volcanTick) */
+function vlcTache(f){VOLCAN.file.push(f);}
+function vlcTranches(ms){const F=VOLCAN.file;if(!F||VOLCAN.fi>=F.length)return 0;const t0=performance.now();let n=0;
+  while(VOLCAN.fi<F.length){const f=F[VOLCAN.fi++];try{f();}catch(e){window.__volcanErr=e;console.warn('Volcan (tranche)',e);}n++;if(performance.now()-t0>ms)break;}
+  VOLCAN.msFile=(VOLCAN.msFile||0)+performance.now()-t0;if(VOLCAN.fi>=F.length){VOLCAN.file=[];VOLCAN.fi=0;}return n;}
 /* UNE COULÉE : un ruban de trois rangs (rive, cœur, rive) posé 0,9 m au-dessus de son lit ; la vitesse suit la pente (les chutes filent) */
 function vlcRuban(root,P){const S=VOLCAN.sol,Pp=[],A=[],I=[];let n=0;
   for(let k=0;k<P.length;k++){const p=P[k],a=P[Math.max(0,k-1)],b=P[Math.min(P.length-1,k+1)];let tx=b[0]-a[0],tz=b[2]-a[2];const tl=Math.hypot(tx,tz)||1;tx/=tl;tz/=tl;
@@ -17733,7 +17745,7 @@ function vlcLoin(root,fr){VOLCAN.loin=[];const fin=VOLCAN.Q&&VOLCAN.Q.fin;if(!fi
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors du volcan) ---------------- */
 function volcanVide(){
   if(VOLCAN.root){VOLCAN.root.traverse(function(o){if(!o.userData.jeter||!o.geometry)return;const g=o.geometry;if(o.userData.partage){for(const k in g.attributes)if(k!=='aI')g.deleteAttribute(k);g.setIndex(null);}g.dispose();});VOLCAN.root=null;}
-  VOLCAN.sol=null;VOLCAN.solM=null;VOLCAN.aig=[];VOLCAN.arche=null;VOLCAN.gcol=null;VOLCAN.loin=[];VOLCAN.gey=[];VOLCAN.yRaz=true;
+  VOLCAN.sol=null;VOLCAN.solM=null;VOLCAN.morc=null;VOLCAN.file=[];VOLCAN.fi=0;VOLCAN.msFile=0;VOLCAN.pret=false;VOLCAN.aig=[];VOLCAN.arche=null;VOLCAN.gcol=null;VOLCAN.loin=[];VOLCAN.gey=[];VOLCAN.yRaz=true;
   const E=VOLCAN.erup;E.t=6+Math.random()*3;E.age=-1;VLC_U.uErupt.value=VLC_U.uErupt2.value=0; // (2026-10-14, chasse aux bugs) morte PENDANT une éruption puis REJOUER au volcan : le cratère et les flancs restaient embrasés 6-9 s (rien ne remettait ces uniforms à zéro tant que le volcan restait affiché)
   if(VOLCAN.fx.bL)for(const b of VOLCAN.fx.bL)b.on=false;
 }
@@ -17743,7 +17755,15 @@ function buildVolcan(seed){
   const t0=performance.now(),M=volcanMats(),G=vlcGeos(),fr=mulberry32((seed^0x7011CA)>>>0),ds=L/(NP-1),MOB=TEL_NATIF?.75:1;
   VOLCAN.graine=(seed>>>0)%100000;VOLCAN.met=LVL.cur.meteo||'soir';VOLCAN.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);VOLCAN.root=root;trackMeshes.push(root);
-  const S=volcanSol(),tS=performance.now(),COL=[];
+  const S=volcanSol(),COL=[];VOLCAN.morc=new Map();VOLCAN.solM=[];VOLCAN.n.sol=0;VOLCAN.n.lave=0;VOLCAN.file=[];VOLCAN.fi=0;VOLCAN.msFile=0;
+  vlcMerLoin(root);
+  /* 0. TOUT DE SUITE : les rangées et les morceaux du départ (ce que la caméra voit au portail) ; 1. EN TRANCHES : les autres rangées, du plus
+     proche au plus loin — la mer lointaine tient la place en attendant */
+  const MO=vlcMorceaux(),pres=MO.filter(function(m){return m.dr<60;}); // (le morceau du départ — ou les deux qui le bordent : leurs seules cases ; les voisins suivent dans les premières images)
+  for(const m of pres)S.rangee(Math.max(0,m.cj-1),Math.min(S.nz,m.cj+VLC_CH+2),Math.max(0,m.ci-1),Math.min(S.nx,m.ci+VLC_CH+2));for(const m of pres)vlcMorceau(root,m.ci,m.cj);
+  {const j0=Math.round((pts[0].z-S.z0)/S.C),BJ=8,BA=[];for(let j=0;j<S.nz;j+=BJ)BA.push(j);BA.sort(function(a,b){return Math.abs(a+BJ/2-j0)-Math.abs(b+BJ/2-j0);});
+   for(const j of BA)vlcTache(function(){S.rangee(j,Math.min(S.nz,j+BJ));});}
+  const tS=performance.now();
   const lat9=i=>{const t=T[i],hl=Math.hypot(t.x,t.z)||1;return [-t.z/hl,t.x/hl];};
   const HB=100,grille=new Map(),pg=Math.max(1,Math.round(8/ds));
   for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
@@ -17758,16 +17778,17 @@ function buildVolcan(seed){
   const horsSaut=(x,z)=>{for(const c of CS){const u=Math.max(0,Math.min(c[4],(x-c[0])*c[2]+(z-c[1])*c[3]));if(Math.hypot(x-c[0]-c[2]*u,z-c[1]-c[3]*u)<100)return false;}return true;};
   // ---- 1. LES COULÉES (avant le maillage : elles creusent leur lit) ----
   const RIV=[];
-  {const nR=PAL_B9('volcanRiv',10),K=VOLCAN.K,C=VOLCAN.C,ta=VOLCAN.th0,tb=VOLCAN.th1;
+  vlcTache(function(){const nR=PAL_B9('volcanRiv',10),K=VOLCAN.K,C=VOLCAN.C,ta=VOLCAN.th0,tb=VOLCAN.th1;
    for(let k=0;k<Math.ceil(nR*.6);k++){const dans=k<Math.ceil(nR*.42),an=dans?ta+(tb-ta)*(.06+.88*fr()):fr()*6.283,r=K.rc+22; // la plupart dans l'arc que longe la route : elles passent SOUS elle
      const P=vlcCoulee(C.x+Math.sin(an)*r,C.z+Math.cos(an)*r,3600,fr);if(P)RIV.push(P);}
    if(VOLCAN.C2){const K2=VOLCAN.K2,C2=VOLCAN.C2;for(let k=0;k<3;k++){const an=fr()*6.283,r=K2.rc+20,P=vlcCoulee(C2.x+Math.sin(an)*r,C2.z+Math.cos(an)*r,3000,fr);if(P)RIV.push(P);}}
    let nM=0,essais=0;const i0=Math.round(VOLCAN.sSp/L*(NP-1));
    while(nM<3&&essais++<300){const i=i0+Math.round(fr()*(NP-1-i0)),l9=lat9(i),sd=fr()<.5?-1:1,lat=150+fr()*450,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat; // les CASCADES des mesas
-     if(vlcH(x,z)<vlcL(x,z)+35)continue;const P=vlcCoulee(x,z,1500,fr);if(P&&P.length>14){RIV.push(P);nM++;}}}
-  VOLCAN.n.coulees=RIV.length;
+     if(vlcH(x,z)<vlcL(x,z)+35)continue;const P=vlcCoulee(x,z,1500,fr);if(P&&P.length>14){RIV.push(P);nM++;}}
+  VOLCAN.n.coulees=RIV.length;});
   // ---- 2. LE SOL, LES LACS, LES COULÉES ----
-  vlcSolMesh(root);vlcMerLoin(root);for(const P of RIV)vlcRuban(root,P);
+  for(const m of MO)vlcTache(function(){vlcMorceau(root,m.ci,m.cj);}); // (ceux du départ sont REFAITS : les coulées ont creusé leur lit)
+  vlcTache(function(){for(const P of RIV)vlcRuban(root,P);});
   // ---- 3. LES AIGUILLES D'OBSIDIENNE : à la corde des virages de la plaine, au large des S du flanc, en quinconce sur les droites ----
   const AG=[];
   const aiguille=(i,sg,lat)=>{const p=pts[i],l9=lat9(i),x=p.x+l9[0]*sg*lat,z=p.z+l9[1]*sg*lat;if(!horsArche(x,z,140)||!horsSaut(x,z))return false;
@@ -17777,6 +17798,7 @@ function buildVolcan(seed){
     for(const g of AG)if(Math.hypot(g.x-x,g.z-z)<60)return false;
     if(!loinRoute(x,z,ROAD_HALF+rR+5))return false;
     AG.push({x:x,z:z,y:base,v:v,sy:sy,sxz:sxz,ry:fr()*6.283,top:base+100*sy,i:i,lave:vlcH(x,z)<vlcL(x,z)+4?1:.35});return true;};
+  vlcTache(function(){
   {const st=Math.max(1,Math.round(6/ds)),K9=[];
    for(let i=st;i<NP-st;i+=st){const a=T[i-st],b=T[i+st],th=Math.atan2(a.x*b.z-a.z*b.x,a.x*b.x+a.z*b.z);K9.push([i,th/(2*st*ds)]);}
    const sm=K9.map(function(k,j){let s9=0,n9=0;for(let d=-4;d<=4;d++){const o=K9[j+d];if(o){s9+=o[1];n9++;}}return [k[0],s9/n9];});
@@ -17793,11 +17815,12 @@ function buildVolcan(seed){
      const me=G.aig[g.v].userData.meta,c=Math.cos(g.ry),s9=Math.sin(g.ry),tr=q=>[g.x+(q[0]*c+q[2]*s9)*g.sxz,g.y+q[1]*g.sy,g.z+(-q[0]*s9+q[2]*c)*g.sxz];
      for(let k=0;k<me.pts.length-1;k++)COL.push({a:tr(me.pts[k]),b:tr(me.pts[k+1]),r:Math.max(me.rad[k],me.rad[k+1])*g.sxz*.92});}
    for(let v=0;v<3;v++)vlcInst(root,G.aig[v],AGI[v],'aiguilles');}
-  VOLCAN.aig=AG;
+  VOLCAN.aig=AG;});
   // ---- 4. L'ARCHE DE FEU ----
-  vlcArche(root,fr,COL);
+  vlcTache(function(){vlcArche(root,fr,COL);});
   // ---- 5. LES HORNITOS (petits cônes de scories au bord de la route) ET LEURS GEYSERS ----
   const HO=[],GY=[];
+  vlcTache(function(){
   {const nG=PAL_B9('volcanGey',12);let sd=fr()<.5?-1:1;
    for(let s9=520+fr()*200;s9<L-260&&GY.length<nG;s9+=(L-760)/nG*(.75+fr()*.5)){const i=Math.round(s9/ds),l9=lat9(i);sd=-sd;
      for(let e=0;e<8;e++){const lat=ROAD_HALF+40+fr()*200,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat,h=vlcH(x,z),yl=vlcL(x,z);
@@ -17813,9 +17836,10 @@ function buildVolcan(seed){
    const fo=(c,K,code,n)=>{const y=K.yP-K.cr*.55+4;for(let k=0;k<n;k++){Pg.push(c.x+(R()-.5)*30,y,c.z+(R()-.5)*30);Rg.push(R(),R(),R(),R());Ag.push(code,0,88+R()*26,9+R()*5);}};
    fo(VOLCAN.C,VOLCAN.K,-1,TEL_NATIF?90:140);if(VOLCAN.C2)fo(VOLCAN.C2,VOLCAN.K2,-2,TEL_NATIF?60:100);  // les FONTAINES des cratères (allumées par l'éruption)
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(Pg,3));g.setAttribute('aR',new THREE.Float32BufferAttribute(Rg,4));g.setAttribute('aG',new THREE.Float32BufferAttribute(Ag,4));
-   const m=new THREE.Points(g,M.gey);m.frustumCulled=false;m.matrixAutoUpdate=false;m.renderOrder=8;m.userData.jeter=true;m.name='volcan geysers';root.add(m);VOLCAN.n.gouttes=Pg.length/3;}
+   const m=new THREE.Points(g,M.gey);m.frustumCulled=false;m.matrixAutoUpdate=false;m.renderOrder=8;m.userData.jeter=true;m.name='volcan geysers';root.add(m);VOLCAN.n.gouttes=Pg.length/3;}});
   // ---- 6. LES ORGUES DE BASALTE : des faisceaux de colonnes hexagonales sur les rives et les plateaux ----
   const OR=[];
+  vlcTache(function(){
   {const nO=Math.round(PAL_B9('volcanOrgues',52)*MOB);let essais=0,nC=0;
    while(nC<nO&&essais++<nO*8){const i=Math.round(fr()*(NP-1)),l9=lat9(i),sd=fr()<.5?-1:1,lat=ROAD_HALF+48+fr()*420,cx=pts[i].x+l9[0]*sd*lat,cz=pts[i].z+l9[1]*sd*lat,h0=vlcH(cx,cz);
      if(h0<vlcL(cx,cz)+2||h0>pts[i].y-26||!horsArche(cx,cz,80)||!horsSaut(cx,cz))continue;
@@ -17823,15 +17847,16 @@ function buildVolcan(seed){
      for(let k=0;k<n;k++){const a=fr()*6.283,r=Math.sqrt(fr())*R9,x=cx+Math.cos(a)*r,z=cz+Math.sin(a)*r,hb=vlcH(x,z)-2,hh=hm*(.55+fr()*.6)*(1-.4*r/R9)+2,rr=1.7+fr()*1.2;
        OR.push({m:mat(x,hb,z,fr()*1.05,rr,hh,rr),j:[fr(),0,0,0]});}
      COL.push({a:[cx,h0-2,cz],b:[cx,h0+hm,cz],r:R9+1.5});nC++;}}
-  vlcInst(root,G.org,OR,'orgues');VOLCAN.n.orgues=OR.length;
+  vlcInst(root,G.org,OR,'orgues');VOLCAN.n.orgues=OR.length;});
   // ---- 7. LES VOLCANS DU LOIN, LES PANACHES ----
-  vlcLoin(root,fr);vlcPanaches(root,fr);
+  vlcTache(function(){vlcLoin(root,fr);vlcPanaches(root,fr);});
   // ---- 8. LES COLLISIONS en grille de 120 m ----
+  vlcTache(function(){
   {const CG=120,Gc=new Map();for(const c of COL){const r=c.r+2,i0=Math.floor((Math.min(c.a[0],c.b[0])-r)/CG),i1=Math.floor((Math.max(c.a[0],c.b[0])+r)/CG),j0=Math.floor((Math.min(c.a[2],c.b[2])-r)/CG),j1=Math.floor((Math.max(c.a[2],c.b[2])+r)/CG);
      for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i+','+j;let a=Gc.get(k);if(!a)Gc.set(k,a=[]);a.push(c);}}
    VOLCAN.gcol={CG:CG,G:Gc,n:COL.length};}
-  VOLCAN.n.aiguilles=AG.length;VOLCAN.n.hornitos=HO.length;VOLCAN.n.geysers=GY.length;VOLCAN.n.loin=VOLCAN.loin.length;
-  VOLCAN.ms=Math.round(performance.now()-t0);VOLCAN.msSol=Math.round(tS-t0);
+  VOLCAN.n.aiguilles=AG.length;VOLCAN.n.hornitos=HO.length;VOLCAN.n.geysers=GY.length;VOLCAN.n.loin=VOLCAN.loin.length;VOLCAN.pret=true;VOLCAN.msTot=Math.round(VOLCAN.msFile+VOLCAN.ms);});
+  VOLCAN.ms=Math.round(performance.now()-t0);VOLCAN.msSol=Math.round(tS-t0); // (le temps TOUT DE SUITE ; le reste se mesure dans VOLCAN.msFile)
   volcanMeteo(VOLCAN.met,started?BIO_PORTAIL:.01);
 }
 /* ---------------- LES MÉTÉOS : le volcan glisse d'un temps à l'autre au même fondu que le ciel ---------------- */
@@ -17891,6 +17916,7 @@ function vlcEruptTick(dt,c,vit){const E=VOLCAN.erup,U=VLC_U,fx=VOLCAN.fx;
 function volcanTick(dt){
   const on=!!VOLCAN.root&&!!LVL.cur&&LVL.cur.id==='volcan'&&!PARK.on;
   if(!on){vlcFxCache();return;}
+  if(VOLCAN.file&&VOLCAN.fi<VOLCAN.file.length)vlcTranches(paused?12:5); // LES TRANCHES : la construction se finit quelques millisecondes par image
   const fx=vlcFx(),U=VLC_U,c=VOLCAN.cur||(volcanMeteo(VOLCAN.met,.01),VOLCAN.cur);fx.on=true;
   const vit=!paused;vlcPas(dt);if(vit)U.uTime.value+=dt;
   // LA LUMIÈRE : l'azimut du soleil du ciel, la hauteur de la météo ; les couleurs, celles de bioApply
@@ -17976,6 +18002,7 @@ window.dbgVolcan=function(k,o){
   return {on:!!VOLCAN.root,met:VOLCAN.met,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
     sauts:(VOLCAN.sauts||[]).map(function(S){return [Math.round(S.sE),Math.round(S.sS),Math.round(S.yE-S.yS)];}),conflits:VOLCAN.conflits,croise:VOLCAN.croise,ySea:Math.round(VOLCAN.ySea||0),
     erup:{t:+VOLCAN.erup.t.toFixed(1),age:+VOLCAN.erup.age.toFixed(1),n:VOLCAN.erup.n},vit:Math.round(VOLCAN.vit||0),
+    pret:!!VOLCAN.pret,file:VOLCAN.file?VOLCAN.file.length-VOLCAN.fi:0,msFile:Math.round(VOLCAN.msFile||0),msTot:VOLCAN.msTot,
     cur:VOLCAN.cur&&{lue:+VOLCAN.cur.lue.toFixed(2),lav:+VOLCAN.cur.lav.toFixed(2),cen:+VOLCAN.cur.cen.toFixed(2)}};};
 /* <<<FIN VOLCAN>>> */
 /* ---------- LA VILLE SOUS LES NUAGES — LE FOND DE SCÈNE EN VOXELS (2026-09-11) ----------------
