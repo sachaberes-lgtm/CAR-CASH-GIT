@@ -9697,7 +9697,7 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
       <!-- (2026-09-30, Léo : « un bouton HOME qui remplacera tous les boutons GARAGE ou MENU ») la tuile GARAGE est partie : HOME, au-dessus,
            mène au garage (c'est l'accueil) — elle ne faisait plus que la même chose -->
       <div class="mRow">
-        <div class="pbtn ico pb-mag" data-m="shop" role="button"><i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="OFFRES">OFFRES</span></div><!-- (2026-10-12, passe qualité) elle mène à la page OFFRES (les caisses en €), comme l'icône cadeau de l'accueil v2 : « BOUTIQUE » désigne maintenant celle du garage -->
+        <div class="pbtn ico pb-mag" data-m="shop" role="button"><i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></div><!-- (2026-10-12, passe qualité) elle mène à la page OFFRES (les caisses en €), comme l'icône cadeau de l'accueil v2 : « BOUTIQUE » désigne maintenant celle du garage -->
 
         <div class="pbtn ico" data-m="set" role="button"><i class="pxi pxi-reglages" aria-hidden="true"></i>REGLAGES</div>
       </div>
@@ -54256,8 +54256,8 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
        conducteurs d'or), puis JOUER dans sa plaque. */
     try{Object.assign(I18N,{'REGLAGES':'SETTINGS'});if(!ge.querySelector('span'))ge.insertAdjacentHTML('beforeend','<span data-fr="REGLAGES">'+TR('REGLAGES')+'</span>');}catch(e){} /* (UX 8) le mot sous le pictogramme : un enfant lit, il ne devine pas */
     ou.insertBefore(ge,gar);if(!SANS_CARRIERE)ou.appendChild(ca); /* (2026-10-14, Sacha) sans carrière : pas de carte — MISSIONS prend sa place (<style id="sansCarriere">) */
-    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Offres');
-      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="OFFRES">'+TR('OFFRES')+'</span>';if(bd)sh.appendChild(bd);ou.appendChild(sh);}
+    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Boutique');
+      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="BOUTIQUE">'+TR('BOUTIQUE')+'</span>'; /* (2026-10-15, Sacha : « offre doit s'appeler boutique ») */if(bd)sh.appendChild(bd);ou.appendChild(sh);}
     mi.classList.add('mMisBarre');
     const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(mi);bas.appendChild(pl);
     }
@@ -59339,7 +59339,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
     pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9+' '+T('FAITES','DONE'),ok9>=n9);
     pose('.mHubPorte',T('GARAGE','GARAGE'),LANG==='fr'?nm:TR(nm));
-    pose('.mOffres',T('OFFRES','OFFERS'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
+    pose('.mOffres',T('BOUTIQUE','SHOP'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
     pose('.mGear',T('RÉGLAGES','SETTINGS'));}
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
