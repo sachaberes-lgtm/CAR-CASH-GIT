@@ -9212,20 +9212,20 @@ html:not(.c6) #mDead #mChance[hidden]{display:none}
   html:not(.c6) #mDead #mChance{grid-area:row;margin:10px 0 0}
 }
 
-/* ===== 5. LES MISSIONS — le ◀ en haut à gauche, UN seul ; JOUER = l'or ; les cartes se lisent ; pas de fil à travers la caisse ===== */
-html:not(.c6) #gMis #gmHead .c6Ret{display:flex;pointer-events:auto;margin-bottom:6px}
-html:not(.c6) #gMis #gmBas .gmHome{display:none}
-html:not(.c6) #gMis #gmHead small,html:not(.c6) #gMis #gmHead em{font-size:var(--f1);line-height:1.6}
-html:not(.c6) #gMis .gmC,html:not(.c6) #gMis .gmC *:not(u):not(em):not(.gmChk):not(.gmChk *):not(.obFig):not(.obFig *){font-size:var(--f1);letter-spacing:0;line-height:1.4}
-html:not(.c6) #gMis .gmC{padding:10px 10px 10px}
-html:not(.c6) #gMis #gmFils path.lead.r{display:none}
+/* ===== 5. LES MISSIONS (UX 8, endormi derrière ?ux8g=1 avec le garage : Sacha veut les écrans de LÉO) — le ◀ en haut à gauche, UN seul ; JOUER = l'or ; les cartes se lisent ; pas de fil à travers la caisse ===== */
+html.ux8g:not(.c6) #gMis #gmHead .c6Ret{display:flex;pointer-events:auto;margin-bottom:6px}
+html.ux8g:not(.c6) #gMis #gmBas .gmHome{display:none}
+html.ux8g:not(.c6) #gMis #gmHead small,html.ux8g:not(.c6) #gMis #gmHead em{font-size:var(--f1);line-height:1.6}
+html.ux8g:not(.c6) #gMis .gmC,html.ux8g:not(.c6) #gMis .gmC *:not(u):not(em):not(.gmChk):not(.gmChk *):not(.obFig):not(.obFig *){font-size:var(--f1);letter-spacing:0;line-height:1.4}
+html.ux8g:not(.c6) #gMis .gmC{padding:10px 10px 10px}
+html.ux8g:not(.c6) #gMis #gmFils path.lead.r{display:none}
 /* COUCHÉ (844 x 390) : l'en-tête se resserre (260 px) — le script (gmPlace) lit sa largeur pour poser les trois cartes à sa droite : plus larges (~165 px), texte à 10 px, qui passe à la ligne sans déborder ni chevaucher */
 @media (orientation:landscape) and (max-height:540px){
-  html:not(.c6) #gMis #gmHead{width:260px;max-width:260px}
-  html:not(.c6) #gMis #gmHead :is(small,em){display:block;overflow-wrap:break-word}
-  html:not(.c6) #gMis .gmC{overflow:hidden;white-space:normal;overflow-wrap:break-word;word-break:normal;padding:8px 9px}
-  html:not(.c6) #gMis .gmC .gmX{overflow-wrap:break-word}
-  html:not(.c6) #gMis .gmC .gmP b,html:not(.c6) #gMis .gmC .gmNext{white-space:normal}}
+  html.ux8g:not(.c6) #gMis #gmHead{width:260px;max-width:260px}
+  html.ux8g:not(.c6) #gMis #gmHead :is(small,em){display:block;overflow-wrap:break-word}
+  html.ux8g:not(.c6) #gMis .gmC{overflow:hidden;white-space:normal;overflow-wrap:break-word;word-break:normal;padding:8px 9px}
+  html.ux8g:not(.c6) #gMis .gmC .gmX{overflow-wrap:break-word}
+  html.ux8g:not(.c6) #gMis .gmC .gmP b,html.ux8g:not(.c6) #gMis .gmC .gmNext{white-space:normal}}
 /* ---- LA SECONDE CHANCE (UX 8, 14/10 soir — PILOTAGE + DEBUGING : la plaque #mChance n'était jamais montrée ; contrat de GENERAL) ----
    Pendant les 5,5 s de l'offre, CONTINUER · prix est LA décision : la plaque d'or monte du bas, une barre qui se vide dit le VRAI temps qui reste
    (l'offre s'éteint vraiment : ce n'est pas une fausse urgence) ; « NON MERCI » la ferme sans bruit ; REJOUER s'efface le temps de l'offre
