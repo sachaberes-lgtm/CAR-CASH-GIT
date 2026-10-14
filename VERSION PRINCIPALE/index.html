@@ -18508,6 +18508,28 @@ BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',sunC:[1,.84,.62],s
   env:[[0,'#06050e'],[.3,'#120d24'],[.48,'#3a2a50'],[.58,'#7a5a6a'],[.66,'#14102a'],[1,'#030208']],eS1:[255,214,170,.48],eS2:[120,150,255,.3]});
 BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',sunC:[1,.56,.40],sunI:1.6,sunTint:[1,.5,.38],fillC:[.40,.42,.95],kickC:[.9,.5,.75],volSun:[1.6,.95,.8],
   env:[[0,'#08040e'],[.3,'#1a0a22'],[.48,'#4a1e40'],[.58,'#8a3a4a'],[.66,'#180a20'],[1,'#040208']],eS1:[255,160,120,.5],eS2:[140,120,255,.3]});
+/* ================= L'ÉTALONNAGE PAR MAP × MÉTÉO (2026-10-14, passe graphismes) =================
+   Sacha : « pour chaque map, pour chaque météo… la colorimétrie, l'étalonnage… que tout soit cohérent » — et la route devient un béton mat.
+   Des SURCHARGES de valeurs, posées APRÈS toutes les définitions : `bioMet` COPIE son parent, donc retoucher ici une ambiance mère ne
+   change plus ses filles — chaque couple se règle seul. Une section par map (une équipe par section). Gratuit pour la puce : des nombres. */
+// ---- ÉTALONNAGE · MER DE NUAGES (matin · midi · nuagesSoir · nuagesNuit · nuagesPluie · tempete) ----
+// (fin MER DE NUAGES)
+//
+//
+// ---- ÉTALONNAGE · LA VILLE (villeMatin · villeMidi · villeSoir · nuitNoire · pluie · villeOrage) ----
+// (fin LA VILLE)
+//
+//
+// ---- ÉTALONNAGE · PICS DE JADE (jadeMatin · jadeMidi · jade · jadeNuit · jadePluie · jadeOrage) ----
+// (fin PICS DE JADE)
+//
+//
+// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) + CRYPTOCITY (bullrun) ----
+// (fin EN ORBITE)
+//
+//
+// ---- ÉTALONNAGE · LA COUCHE COMMUNE (retouches de DA / BIO_ETAL0 : voir aussi `const DA=` plus bas) ----
+// (fin COUCHE COMMUNE)
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
