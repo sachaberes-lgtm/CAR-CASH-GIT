@@ -52190,6 +52190,52 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     };
     sz.addEventListener('touchend',stEnd,{passive:false});
     sz.addEventListener('touchcancel',stEnd,{passive:false});
+    /* (2026-10-14, Sacha : « on a un souci de maniabilité avec le joystick : on le perd souvent du doigt » — et déjà le 09/10 : « quand on
+       saute dans le vide vite, des fois le joystick disparaît et on peut plus contrôler la voiture ») LE POUCE ORPHELIN. Un doigt appartient
+       pour toujours à l'élément où il s'est POSÉ : posé pendant le VOLET de REJOUER (`#wipe` prend le doigt), pendant le lâcher du JOUER (il
+       tombe sur le canvas, les commandes ne sont pas encore là), sur la feuille de pause qui redescend pendant le 3-2-1, ou sur la carte de
+       l'auto-école, ce pouce n'était JAMAIS celui du volant — pas d'anneau, braquage 0 tant qu'on ne le relevait pas (le correctif du 09/10,
+       commit 11c4441, n'avait jamais été fusionné : il est porté ici). Désormais, en course, un doigt posé dans la zone du volant qui ne
+       tient aucun bouton DEVIENT le volant : quand la course part (`cc:jeu`) s'il attendait déjà, sinon à son premier mouvement — et il est
+       suivi par son IDENTIFIANT, sur `window`, où qu'il soit né. Les doigts nés SUR le volant gardent leurs écouteurs à eux, juste au-dessus :
+       rien ne change pour eux. Pas pendant l'explosion (y reposer le pouce ne la passe pas), pas en pause (le doigt y fait défiler la feuille).
+       `stDoigts` = les doigts sur le verre au dernier événement tactile (la liste `touches` du navigateur, recopiée : rien à oublier au lever).
+       `stIntrus` = ceux qui se sont posés pendant qu'un autre tenait le volant (la paume, voir le 30/09) : ils ne l'héritent jamais. */
+    let stDoigts=[],stIntrus=[];
+    const stNote=function(e){ let tenu=false; stDoigts=[];
+      for(let i=0;i<e.touches.length;i++){const t=e.touches[i];stDoigts.push({id:t.identifier,x:t.clientX,y:t.clientY,tg:t.target});if(t.identifier===TCTL.id)tenu=true;}
+      if(stIntrus.length)stIntrus=stIntrus.filter(function(id){for(let i=0;i<stDoigts.length;i++)if(stDoigts[i].id===id)return true;return false;});
+      if(TCTL.act&&TCTL.id!=='souris'&&!tenu)stUp(); }; // FILET : le doigt du volant n'est plus sur le verre (lever perdu, doigt adopté qui se lève) → le volant se rend, il ne reste jamais braqué tout seul
+    const stLibre=function(tg){ return !!(tg&&tg.isConnected)&&!(tg.closest&&tg.closest('.tbtn,#tNitroZone,#tSet,#modale,button,[data-a],[data-m]')); }; // le doigt d'un bouton (NITRO, pause, PASSER) reste à son bouton
+    const stAdopte=function(){
+      if(TCTL.act||TCTL.pad||!started||gameOver||paused||mode==='boom')return;
+      let r=null;
+      for(let i=0;i<stDoigts.length;i++){ const d=stDoigts[i];
+        if(stIntrus.indexOf(d.id)>=0||!stLibre(d.tg))continue; // (un doigt qui se pose SUR le volant est pris ici puis repris, à l'identique, par son propre touchstart)
+        if(!r)r=sz.getBoundingClientRect();
+        if(d.x<r.left||d.x>r.right||d.y<r.top||d.y>r.bottom)continue;
+        stDown(d.id,d.x,d.y);return; }
+    };
+    addEventListener('visibilitychange',function(){ if(document.hidden){stDoigts=[];stIntrus=[];} }); // l'appli passe derrière : des levers peuvent se perdre, la liste repart vide
+    document.addEventListener('cc:jeu',stAdopte); // la course part (JOUER, REJOUER) : le pouce qui attendait sur le verre prend le volant tout de suite
+    addEventListener('touchstart',function(e){
+      if(TCTL.act&&TCTL.id!=='souris'){ let tient=false; // le volant est tenu par un doigt toujours posé : ceux qui arrivent sont des intrus, pour toute leur vie
+        for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===TCTL.id)tient=true;
+        for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id)tient=false;
+        if(tient)for(let i=0;i<e.changedTouches.length;i++)stIntrus.push(e.changedTouches[i].identifier); }
+      stNote(e); stAdopte(); },{capture:true,passive:true});
+    addEventListener('touchmove',function(e){
+      stNote(e);
+      if(TCTL.pad)return;
+      if(!TCTL.act){stAdopte();return;}
+      for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i];
+        if(t.identifier===TCTL.id&&!sz.contains(t.target)){if(e.cancelable)e.preventDefault();stMove(t.clientX,t.clientY);} } // (un doigt né sur le volant est suivi par l'écouteur du volant : jamais deux fois)
+    },{capture:true,passive:false});
+    addEventListener('touchend',stNote,{capture:true,passive:true});    // le lever du doigt adopté : c'est le filet de stNote qui rend le volant
+    addEventListener('touchcancel',stNote,{capture:true,passive:true});
+    addEventListener('mousemove',function(e){ // le même pouce orphelin, à la souris (le cadre de l'ordi : bouton enfoncé pendant le volet)
+      if(TCTL.act||TCTL.pad||!(e.buttons&1)||(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents)||!started||gameOver||paused||mode==='boom'||!stLibre(e.target))return;
+      const r=sz.getBoundingClientRect(); if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)stDown('souris',e.clientX,e.clientY); });
     // repli SOURIS : on attrape sur le volant, on suit et on lâche PARTOUT (le curseur sort vite de la zone)
     sz.addEventListener('mousedown',function(e){ if(TCTL.pad||e.button!==0)return; e.preventDefault(); stDown('souris',e.clientX,e.clientY); });
     addEventListener('mousemove',function(e){ if(TCTL.act&&TCTL.id==='souris')stMove(e.clientX,e.clientY); });
