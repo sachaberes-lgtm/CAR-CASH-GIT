@@ -3,6 +3,33 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ÉVÉNEMENTS RARES (2026-10-14, Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares, annoncés CLAIREMENT, jamais mortels de façon injuste, avec une RÉCOMPENSE »)
+Le bloc `EVT` (juste avant `dbgVille`, repère : « LES ÉVÉNEMENTS RARES ») rejoue les trois morceaux de la campagne TELS QUELS (`fantomeTick`,
+`banquierTick`, `campMoutonsTick`, leur plaque `vChip`) dans la partie CLASSIQUE ; seul ce qui les finissait change de main quand ils viennent d'ici
+(`GH.evt`, `VBQ.evt`, l'argument `ev` du troupeau). Perdre ne coûte RIEN (la partie continue), gagner paie la prime ; la caisse-nuage et le lingot
+restent les trophées de la carrière. Interrupteur `?evt=0` : le jeu d'avant au chiffre près (`EVT_ON` faux : aucun appel au hasard, aucune chauffe,
+aucun crochet actif).
+- **Quand** : tirage au départ de la partie (`evtPartie`, `Math.random` HORS génération — `rnd` n'est jamais touché) : 75 % des parties sont « armées »
+  (`EVT_P`). Une partie armée pose son événement dans la PREMIÈRE zone qui en porte un (`evtZone`, appelée en fin de `campDebut`) : MER DE NUAGES →
+  les MOUTONS (1 fois sur 2, hors orage) ou la CAISSE-NUAGE ; LA VILLE → le BANQUIER ; jade, forêt, banquise, orbite : rien. Jamais avant 20 s de
+  course, jamais deux fois par partie (`EVT.fait`), jamais hors partie classique (`evtLieuOk` : ni auto-école, balade, jade-jeu, bac à sable, parc,
+  Survivant, carrière, campagne, ni `?classique=cycle`). Rareté mesurée au modèle (`outils/evt-test.cjs`) : ≈ 30 % des parties en voient un
+  (1 sur 3,3), 23-39 % selon la vie des joueurs — 2 maps sur 7 seulement en portent, et il faut vivre jusqu'au point de l'événement.
+- **Annonce** : la bannière de niveau prêtée (`evtAnnonce` : le NOM en gros, la consigne en or), puis la plaque de la campagne qui suit la course.
+  Textes courts, FR + EN dans `I18N`, sans capitale accentuée (police pixel).
+- **Jamais mortel** : un mouton pris de face éclate (BEEE !, rien d'autre) et se voit de loin (tête noire, laine claire, nom + distance sur la plaque) ;
+  les moutons ne se posent jamais à moins de 70 m avant / 35 m après un plot, une flaque, un pad, un dos d'âne, ni dans un module, un filet ou un banc,
+  sur du droit et du plat seulement (3 à 5 repères) ; la caisse-nuage ne touche personne (elle te tire dans son sillage) ; le coup d'épaule du
+  banquier est bridé : il ne te sort jamais de la route (`clamp` à ROAD_HALF−1,6) ; perdre = « ELLE T'A SEME » / « LE BANQUIER A GAGNE ».
+  Sans route droite pour les moutons, la caisse-nuage prend la place.
+- **Prime** : un PORTAIL (`EVT_PRIME` = 120 × `denom()`, par `vPaie` : × FLOW, × frénésie, ligne `$:evt` du grand livre) + 200 d'aura (`chaineAura`) ;
+  la caisse-nuage rend 60 % de nitro (`nitroPct` → `nitroGain(q,'evt')`), les moutons paient au prorata des sauts (BERGER D'OR pour le troupeau entier).
+- **Console** : `dbgEvt()` = l'état · `dbgEvt('moutons'|'caisse'|'banquier')` = le forcer TOUT DE SUITE sur la zone en cours (les moutons exigent la MER
+  DE NUAGES) · `dbgEvt('arme')` = armer la partie et poser l'événement de la zone comme à la naissance d'une zone. Test Node : `node outils/evt-test.cjs`.
+- **Reste à juger en jeu** (pas de navigateur à l'écriture) : les moutons trouvent-ils 3-5 repères sur une vraie piste NUAGES ? la caisse-nuage, sans
+  ses coupes, se rattrape-t-elle en ~15 s ? le banquier (4 km avant le portail) arrive-t-il au portail en ~40 s ? aucun programme neuf compilé à la
+  naissance des moutons (têtes noires : `campChauffe` les pré-compile) ?
+
 ## LE ROYAUME DE FEU — LA MAP DU VOLCAN (2026-10-14, session VOLCAN — Sacha : « fais une nouvelle map en mode royaume des flammes dans Adventure Time ou Mustafar dans Star Wars, avec une map volcanique, des lacs de lave, de volcan et tout » · « il faut qu'il se passe des choses cool, pas d'élément de gameplay trop bizarre (lac de lave tue bien sûr), mais sinon une génération de map qui descend le long du volcan, des lacs de lave et tout ; il faut une ambiance et des couleurs bien travaillées »)
 Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.volcan`, niveau de base `NIV_VOLCAN`, id `'volcan'`, piste `'volcan'`). Nom proposé :
 LE ROYAUME DE FEU (aucun nom de marque) — à faire valider par Sacha. Tout le code est dans le bloc « LE ROYAUME DE FEU — LA MAP DU VOLCAN »
@@ -141,6 +168,31 @@ Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NI
   `dbgBanq('phys',{prof:…})` (régler la physique en direct). Lancer : `?carte=banquise&meteo=nuit` puis JOUER, ou `dbgClassique('banquise','soir');dbgSaut()`.
 - À trancher par Sacha ou Léo : le nom ; la musique (Léo, la ligne `banquise:` de MUSIC_LIEU) ; l'écoute des six sons (`sons.html`) ;
   l'étalonnage final des six temps (GRAPHISME) ; le dosage de la poudreuse (profondeur qui tue, freinage).
+## LE RETOUR DU JOUR + LE CADEAU (2026-10-14, Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road » · « la série de jours doit être lisible : jour 1, 2, 3…, une récompense qui monte, remise à zéro si on saute un jour »)
+Une raison de revenir demain, en UN barème avec le relèvement du début (ECOD). Code : le bloc `JOUR` / `CADO` (juste avant `const SAVE=`), qui finit sur `/* fin LE RETOUR DU JOUR ET LE CADEAU */`.
+Preuves : `node outils/jour-test.cjs` (158 vérifications, aucun navigateur : il exécute le VRAI bloc extrait d'index.html avec une horloge et une sauvegarde simulées) et `node outils/jour-modele.cjs` (le modèle du barème, qui LIT ses constantes dans le jeu).
+**Le barème (UN seul, aucun prix de Léo touché : CAR_UNLOCK, COSM, les prix en euros ne bougent pas)**
+| | quoi | combien |
+|---|---|---|
+| QUOTIDIEN | la 1re partie COMPTÉE du jour paie ×2 sur l'argent de COURSE | ECOD.k = MAX(relèvement du début, ×2), JAMAIS le produit |
+| SÉRIE | prime en banque à la fin de cette partie, par jour d'affilée | J1 0 · J2 25 · J3 40 · J4 55 · J5 70 · J6 85 · J7 et + 100 $ (plafond au 7e jour ; la série, elle, continue de se compter) ; un jour sauté → retour à 1 |
+| CADEAU | toutes les 6 h, à OUVRIR à l'accueil, un seul en attente, il n'expire pas, le compte à rebours part de l'OUVERTURE | max(25 $, 8 % du meilleur gain d'une partie) en banque |
+**Pourquoi MAX et pas le produit** : ×1,5 (ECOD) × 2 = ×3 ; mesuré, la peinture à 2 500 $ tombait dès la 2e partie pour 12 % des joueurs. Avec le MAX, la médiane reste à la 4e partie, comme ECOD l'a voulu.
+**Les chiffres du modèle** (joueur MOYEN 45-90 s, 1 à 3 parties par jour, 1 ou 2 séances, 4 000 joueurs par cas, carnet 1 seul ; hypothèses [H] écrites dans le modèle) :
+- 7 jours : 4 471 $ (AVANT, ECOD seul) → 6 213 $ (APRÈS), soit **+1 742 $ (+39 %)** : ×2 du jour ≈ +955, primes de série 375, cadeaux 401 (en moyenne). Dans le monde « carnet 1 + 2 » (ECOD déjà en trop) : 5 732 → 7 530 $ (+1 798 $, +31 %).
+- argent gagné par jour (médiane) : AVANT 2 023 · 527 · 404 · 355 · 346 · 349 · 334 → APRÈS 2 071 · 713 · 632 · 647 · 675 · 677 · 698. Le jour 1 ne bouge presque pas (la leçon marque le jour sans prendre le ×2) : c'est le retour du jour 2 qui est payé.
+- **la 1re peinture (MENTHE GLACÉE, 2 500 $)** : médiane **4e partie, AVANT comme APRÈS** ; au plus tard à la 2e : 4 → 9 % ; à la 3e : 26 → 48 % ; à la 4e : 63 → 86 % ; à la 5e : 89 → 98 %. Jamais avant la 3e pour le joueur médian ; les 9 % de la 2e sont ceux dont la première partie réelle tombe le jour 2 (×2 + prime). Essayé : interdire le ×2 avant la 3e partie de la vie ne ramène ce 9 % qu'à 6 % pour −0,7 % de revenu : écarté (une règle de plus pour rien).
+- autres joueurs, 7 jours : occasionnel (saute 1 jour sur 3) 3 285 → 4 148 (+26 %) · très régulier (3 parties/jour) 5 802 → 7 665 (+32 %) · faible 1 777 → 2 494 (+40 %) · fort 26 975 → 40 637 (+51 %).
+- un mois (30 jours réguliers, ECOD éteint depuis longtemps) : 13 068 → 23 393 $ (+79 %), dont primes 2 675 et cadeaux 2 381. Le quotidien pèse plus que l'ECOD à long terme : c'est voulu (c'est lui, le gros rendez-vous ; le cadeau est petit et vaut ~0,25 partie).
+**Ce qui compte pour le jour** : une partie de course d'au moins `JOUR.tMin` = 15 s (JOUER puis QUITTER ne brûle pas le ×2). Ni le bac à sable, ni le parc, ni la balade (`?map=jade`). L'AUTO-ÉCOLE (la leçon terminée) MARQUE le jour 1 sans prendre le ×2 (le jour 1 est déjà aidé par le permis, les défis et ECOD) ; la leçon QUITTÉE ne compte pas. Une partie tuée en arrière-plan (enCoursPose) marque le jour aussi : sinon on la tuait d'un balayage pour rejouer un 2e ×2.
+**L'horloge** : le jour = la date LOCALE (`jourAuj`, 'AAAA-MM-JJ'), comparée en UTC pur (`jourNum` : ni fuseau ni heure d'été). Hier → série +1 ; plus ancien → série 1 ; même date → déjà pris ; UN jour de moins (voyage vers l'ouest) → déjà pris ; l'horloge reculée de 2 jours ou plus → pas de ×2, la date est recalée au versement (jamais une série infinie, jamais un ×2 bloqué des mois). Une partie démarrée à 23 h 59 marque le jour de son DÉPART. Horloge illisible ou absurde (NaN, avant 2020, après 2100) : ni ×2, ni cadeau, rien ne plante. Cadeau : `Date.now()` ; un dernier cadeau « dans le futur » compte comme ouvert à l'instant (jamais prêt, 6 h pleines) — reculer la montre ne donne donc jamais de cadeau ; `cadeauRecale` (départ de chaque partie) et `san()` (chargement) le rangent.
+**Sauvegarde** : `SAVE.d.jour={d,n}` (dernier jour compté, série à cette date) et `SAVE.d.cad={t}` (dernier cadeau ouvert, en ms ; 0 = jamais), dans `def()` ET `san()` (borné ; un `t` dans le futur est ramené à maintenant). `san()` teste `typeof jourNum` : les preuves de sauvegarde de passation/preuves n'exécutent que la zone SAVE (bouchon `jourCommit` ajouté à preuve-sauvegarde).
+**Où l'argent entre** : `jourMaj()` (appelée par `runxReset`, juste après `ecoDebutMaj`) pose `ECOD.k = max(ECOD.k, 2)` si le ×2 est à prendre ; `denom()` lit toujours ECOD.k (UN seul robinet, aucun deuxième chemin d'argent). `jourCommit()` (dans `commitExploits` et `enCoursPose`) marque le jour, monte la série et verse la prime en banque : elle entre dans « VERSÉS AU COMPTE ». L'écran de fin ajoute `jourFinTexte()` à la ligne « COMPTE : $ N » (« · ×2 DU JOUR · SÉRIE 3 +$ 40 »).
+**Interrupteurs** : `?jour=0` (ni ×2, ni série, ni prime : le jeu d'avant au dollar près) · `?cadeau=0` (pas de cadeau) · les deux sont indépendants. Crochets console : `dbgJour()` (l'état), `dbgJour('demain'|'saute'|'hier'|'recule'|'auj'|'raz'|'compte')` · `dbgCadeau()` (l'état), `dbgCadeau('pret'|'attente'|'recule'|'ouvre')`.
+**LE CONTRAT avec la session INTERFACE** (elle dessine la ligne de l'accueil au-dessus de JOUER ; ce bloc ne pose AUCUN élément d'accueil). Exposé aussi sur `window` :
+- `cadeauEtat()` → `{pret, dansMs, jour}` + `{actif, serie, valeur}`. PUR : appelable chaque seconde, il ne lit que l'horloge et la sauvegarde, n'écrit rien. `pret` : un cadeau à ouvrir maintenant ; `dansMs` : ms avant le prochain (0 si prêt) ; `jour` : le ×2 du jour est à prendre ; `serie` : les jours d'affilée (0 si jamais joué, ou si un jour a été sauté, ou avec `?jour=0`) ; `actif` : le cadeau existe (ni `?cadeau=0`, ni leçon pas faite, ni balade, ni horloge absurde) ; `valeur` : ce que le cadeau donnera.
+- `cadeauOuvre()` → `false` si rien n'est prêt (rien n'est écrit) ; sinon verse en banque (`SAVE.flush()`), toast (`CADEAU : +$ N`), `sfx('ui.achat')`, haptique, événement `cc:cadeau` sur document (`.valeur` = le montant) et rend une promesse du montant.
+- `jourTexte()` → la phrase du quotidien, déjà traduite (« Série 3 jours · ×2 sur ta 1re partie », « Prochain ×2 demain » ; '' = rien à dire).
 
 ## LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 : « façon Subway Surfers », contre de l'argent du jeu — barème de GAMEPLAY, plaque d'INTERFACE)
 À la mort, UNE fois par partie, l'écran de fin propose de CONTINUER (bloc `CHANCE`, juste avant `finSonsCoupe`). Payé sur le COMPTE,
