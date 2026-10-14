@@ -7762,6 +7762,10 @@ html.c6 body #garage>#gC6Tete{display:none}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop):not(.quiet):not(.launching):not(.missions)>#gC6Tete{display:flex}
 html.c6 body #garage>#gC6Tete .pxi{--pxs:2}
 html.c6 body #garage>#gC6Tete .c6Sou .pxi{--pxs:1}
+/* (2026-10-14, charte 6, p2) les comptes : deux pastilles de MÊME largeur (colonnes égales), l'icône à gauche, le chiffre calé à droite, 12 px (aucun texte sous 11 px) ;
+   côte à côte couché, empilées debout (voir la requête portrait plus bas) : le bord gauche ne fait plus d'escalier */
+html.c6 body #garage>#gC6Tete .c6Comptes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:center;gap:8px}
+html.c6 body #garage>#gC6Tete .c6Sou{justify-content:space-between;gap:12px;min-width:112px;font-size:12px}
 /* le haut : plus de plaques néon (compteur, aura + rang, outils) — la fiche seule, sous l'en-tête */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{box-sizing:border-box;width:min(60%,480px)!important;max-width:none!important;margin:0!important;padding:calc(var(--sT) + 72px) 0 0 calc(var(--sL) + 16px)!important;background:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop>:is(#gTopRow,#gAuraC,#gVJ,#gPlayMain,#gCarr){display:none!important}
@@ -7830,7 +7834,7 @@ html.c6 body #bdGar2{top:-4px!important;right:-4px!important;width:8px;height:8p
 }
 /* DEBOUT : les deux comptes s'empilent à droite (ils ne tiennent pas à côté du titre sur 390 px) ; la fiche passe dessous, sur toute la largeur */
 @media (orientation:portrait){
-  html.c6 body #garage>#gC6Tete .c6Comptes{flex-direction:column;align-items:flex-end;align-self:flex-start}
+  html.c6 body #garage>#gC6Tete .c6Comptes{grid-auto-flow:row;align-self:flex-start}
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{margin-left:-6px!important;margin-right:-6px!important} /* debout : la rangée va de marge à marge (16 px), comme l'en-tête */
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
 }
@@ -7941,6 +7945,34 @@ html.c6 body #gProfil #gpRang{display:none!important}
    le lit) et les blocs « ? » de raretés à venir (gMystere, aussi retirés du JS sous c6) sortent de la mise en page — display:none = pas de trou dans
    la grille, ni de séparateur orphelin dans la rangée ; les autres touches de #gMenuBas se re-partagent la place. */
 html.c6 body #gMenuBas .gVerrou,html.c6 body #gStrip>.gT.gMys{display:none!important}
+/* ---- (2026-10-14, charte 6, p2) LE PEAUFINAGE : la fiche sur sa plaque, l'œil au bord, l'inventaire d'un joueur neuf --------------------------
+   Le relecteur : la fiche (nom, rang, rareté) flottait sur le décor 3D, l'œil s'intercalait entre le nom et « 1 / 49 », et l'inventaire d'un joueur qui n'a qu'une caisse
+   était un panneau de 430 px avec une carte et rien d'autre. Ici : (1) la fiche = UNE plaque d'encre (la même peau que la plaque de l'inventaire : rgba(11,13,18,.8) + filet 2 px) ;
+   le nom en haut, dessous la rareté (barre de 4 px) et le rang « 1 / 49 » en police système 13 px, l'ŒIL au bord droit de la plaque, sur les deux lignes ; (2) l'inventaire à peu de cartes
+   se serre sur son contenu et dit quoi faire ; (3) plus aucun texte sous 11 px dans ces deux écrans. Les comptes de l'en-tête sont réglés plus haut (pastilles de même largeur). */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{display:grid!important;grid-template-columns:max-content 1fr 48px;grid-template-rows:auto auto;justify-content:start;align-items:center!important;column-gap:12px!important;row-gap:4px!important;
+  box-sizing:border-box;width:max-content!important;max-width:100%!important;margin:0!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{grid-template-columns:max-content 1fr}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gName{grid-column:1/3;grid-row:1;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gRarPill{grid-column:1;grid-row:2;justify-self:start;height:auto!important;padding:0 0 0 12px!important;font:800 13px/16px var(--sans)!important;text-transform:uppercase;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gLvl{grid-column:2;grid-row:2;justify-self:start;font:700 13px/16px var(--sans)!important;text-shadow:none!important;color:var(--c6-g1)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gOeil{grid-column:3;grid-row:1/3;align-self:center}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>:is(#gMeta,#gDesc){text-shadow:none!important}
+/* l'inventaire à peu de cartes (≤ 3, classe posée par le script) : la plaque prend la hauteur de son contenu (au moins 200 px : la même sur tous les onglets, la rangée d'onglets ne saute pas) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu{height:auto!important;min-height:200px;max-height:min(40vh,360px)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu>#gStrip{flex:0 1 auto!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu{bottom:auto!important;height:auto!important;max-height:calc(100% - var(--sT) - 72px - var(--sB) - 16px)!important}
+}
+/* la ligne d'état vide : deux lignes en police système (la première en blanc, la seconde en gris) sous la rangée de cartes */
+#gC6Vide{display:none} /* sans html.c6 (?ui=5) il n'existe pas */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6VideV>#gC6Vide{display:flex;flex-direction:column;gap:2px;box-sizing:border-box;margin:0;padding:8px 4px 4px;font:700 13px/18px var(--sans);letter-spacing:0;color:var(--c6-g1)}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6VideV>#gC6Vide>span:first-child{color:var(--c6-b0)}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gStrip>.gVide{font:700 13px/18px var(--sans)!important;text-align:center;padding:16px 8px}
+/* la jauge qui tourne le garage (Léo) : sa ZONE de toucher fait déjà 48 px (.gtZone, 9 px de plus en haut et en bas) mais son conteneur n'en mesurait que 30 (« PETIT 294×30 » à l'audit). On lui rend sa vraie
+   hauteur par une bordure transparente de 9 px : le trait, le patin et leur centre ne bougent pas ; les marges négatives rendent la place prise (debout, dans le flux, il reste 9 px de plus au total). Le comportement est intact. */
+html.c6.hubOn #gTourne.on{box-sizing:content-box;border-block:9px solid transparent;margin-block:-9px}
+html.c6.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{margin:auto auto 1px}
 </style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -8377,6 +8409,8 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
       </div>
       <div id="gRar" role="tablist" aria-label="Familles"></div>
       <div id="gStrip" aria-label="Vignettes"></div>
+      <!-- (2026-10-14, charte 6, p2) l'état presque vide de l'INVENTAIRE (joueur neuf) : une ligne qui dit quoi faire ; affichée par html.c6 + `#gBottom.c6VideV` seulement (voir « L'EN-TÊTE DU HUB » dans le script) -->
+      <p id="gC6Vide"><span data-fr="Tes caisses apparaîtront ici">Tes caisses apparaîtront ici</span><span data-fr="Gagne-les en course ou à la boutique">Gagne-les en course ou à la boutique</span></p>
       <button id="gPrev" class="gNav pbtn" aria-label="Précédente"><i class="pxi pxi-gauche" aria-hidden="true"></i></button>
       <button id="gNext" class="gNav pbtn" aria-label="Suivante"><i class="pxi pxi-droite" aria-hidden="true"></i></button>
       <div id="gAct">
@@ -43537,6 +43571,13 @@ try{if(gEl&&document.documentElement.classList.contains('c6')){const o9=document
     r9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});}
   for(const pr of [['#gCompteur b','gC6Cash'],['#gAuraC b','gC6Aura']]){const a9=document.querySelector(pr[0]),b9=document.getElementById(pr[1]);if(!a9||!b9)continue;
     const cp=function(){const t=a9.textContent;if(b9.textContent!==t)b9.textContent=t;};cp();new MutationObserver(cp).observe(a9,{childList:true,characterData:true,subtree:true});}
+  /* (2026-10-14, charte 6, p2) L'INVENTAIRE D'UN JOUEUR NEUF : peu de cartes (≤ 3) → la plaque se serre sur son contenu (classe c6Peu) ; sur l'onglet VOITURES, une ligne d'état vide
+     dit quoi faire (classe c6VideV, le texte est #gC6Vide). Un observateur sur la grille et un sur les onglets : aucune fonction du jeu n'est touchée, et les classes se posent sur #gBottom,
+     que ni l'un ni l'autre n'observe (pas de boucle). */
+  const gs9=document.getElementById('gStrip'),gb9=document.getElementById('gBottom'),gt9=document.getElementById('gTabs');
+  if(gs9&&gb9&&gt9){const peu9=function(){const v=gt9.querySelector('.gTab.on'),n=gs9.querySelectorAll('.gT').length,peu=n<=3;gb9.classList.toggle('c6Peu',peu);gb9.classList.toggle('c6VideV',peu&&!!v&&v.getAttribute('data-tab')==='voiture');};
+    peu9();new MutationObserver(peu9).observe(gs9,{childList:true});new MutationObserver(peu9).observe(gt9,{attributes:true,attributeFilter:['class'],subtree:true});}
+  try{for(const k of ['Tes caisses apparaîtront ici','Gagne-les en course ou à la boutique'])if(!I18N[k])I18N[k]=k.charAt(0)==='T'?'Your crates will show up here':'Win them in a race or at the shop';}catch(e){}
 }}catch(e){}
 function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
   const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
