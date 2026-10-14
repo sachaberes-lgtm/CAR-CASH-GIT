@@ -89,6 +89,32 @@ vit, et la lave TUE.
   Lancer : `?carte=volcan&meteo=soir` (le 1er niveau du JOUER), ou `dbgClassique('volcan','nuit')` puis `dbgSaut()`.
 - À TRANCHER PAR SACHA : le nom ; la musique (Léo) ; la fréquence des éruptions ; la teinte du SOIR (rouge sang : la plus « Mustafar »).
 
+## LE GLACIER — LA FACE EN LACETS QUI SE SUPERPOSENT (2026-10-14 soir, session MONTAGNE — Sacha, relayé par PILOTAGE à 20 h 40 : « pour la map banquise, ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme si on la descendait, comme dans STEEP » + la règle des nouvelles maps : le but = les RACCOURCIS, tout descend, une course pas une balade)
+LA BANQUISE (section suivante) devient LE GLACIER / THE GLACIER partout où le nom s'affiche (`SF_CARTES.banquise.nm`, `NIV_BANQ`, I18N, ambiances
+« GLACIER · … ») ; l'id reste `banquise` (`?carte=banquise`). Gardé : la poudreuse, la glisse, les lacs, les pics, les figures et leurs sons (SON :
+`FIG_MONDE`), les six temps, les aurores, la construction en tranches.
+- LA ROUTE (`genBanq` v2) : ⚠ en course la caisse repart toujours dans le sens de la route (`tryLand` : driveDir = 1) — retomber sur une épingle
+  simple, c'est retomber à CONTRESENS (pose ratée). Les lacets du glacier sont donc des SPIRALES OVALES qui descendent : jambe en travers de la
+  pente (avec une chicane gauche-droite-gauche qui revient sur sa ligne), épingle R1 vers l'aval, jambe de retour, épingle R2 = R1 − 18 m vers
+  l'amont — les deux épingles tournent dans le MÊME sens ; le tour suivant revient 46-56 m plus bas, DÉCALÉ de `BK_LAC_D` = 36 m vers l'aval.
+  On sort par le bord AVAL (partout : jambes, épingles) → on tombe d'un tour → on retombe au milieu de la dalle d'en dessous, dans le même sens,
+  et l'on a gagné un tour (~1 km). Deux spirales de deux tours ; entre elles des COULOIRS en S (R 150-240 × moteur, 10-15 %) et leur CASSURE
+  (140 m à 2 %, 200 m à 25 %). Sortie de spirale : la jambe du dessus une dernière fois puis un quart de tour plus large que les épingles. Le
+  départ au sommet, l'arrivée en bas, aucun point ne remonte ; aucune droite de plus de 340 m. ⚠ `cap()` enroule l'angle : après une spirale le
+  cap a tourné de 720°, l'écart brut faisait faire des tours complets (la piste mesurait 16-22 km).
+- MESURÉ (banc Node `raccourcis-node.cjs`, la caisse lâchée par chaque bord tous les 20 m à 90, gravité du jeu) : piste 10-11 km, dénivelé
+  790-865 m (≈ 8 %) ; 13-15 zones de raccourci (~1,3/km), 85 % des poses dans le même sens, gain moyen ~1,2 km (max ~2,3 km), chute moyenne
+  ~60 m (règle de GAMEPLAY : 25-150 m, même sens ±55°, gain ≥ 150 m, ≥ 0,6/km, un ≥ 400 m par niveau — `passation/RACCOURCIS.md`).
+- SOUS LES TOURS SUPERPOSÉS : la neige se cale sous le tour le PLUS BAS (min des routes à 120 m + 12 m, au lieu de la moyenne) ; un lac se
+  cale sous TOUTES les routes proches ; une stalactite ne descend jamais jusqu'à la route d'en dessous ; les cristaux évitent toutes les routes.
+- STEEP : des CREVASSES dans la neige (des fentes bleues en travers de la pente, par plaques, au fond qui luit) ; séracs, lacs, aiguilles,
+  géants : inchangés.
+- LA CONSTRUCTION : la piste est plus longue (10 km) ; Node, graine chaude : ~78 ms ordinateur, ~30 ms palier ancien (la cible de PILOTAGE
+  est 60 ms) ; la toute première construction d'une session reste ~170 ms (JIT à froid). Le contrôle de dégagement des cristaux rejette d'abord
+  les points de route trop loin (rejet rapide).
+- Console : `dbgBanq('raccourci',{n,f,v})` (la caisse sort par le bord aval de la spirale n, à la fraction f du tour) puis `dbgBanq('etat').s`
+  (le gain) ; `dbgBanq('spirale',{n,h,d,a})` (la photo d'ensemble, en pause).
+
 ## LA BANQUISE — LA DESCENTE DES PICS DE GLACE (2026-10-14, session MONTAGNE — Sacha : « fais une nouvelle map en mode banquise, mais genre la route dévale une montagne au-dessus du sol, avec d'immenses pics de glace partout ; on peut faire des traces dans la poudreuse en frôlant le sol, mais on meurt si on va trop profondément, et on doit pouvoir glisser de manière ultra stylée sur les lacs gelés et les pics de glace pas trop abrupts » · « fais une map absolument magnifique bien sûr »)
 Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NIV_BANQ`, id `'banquise'`, piste `'banquise'`). Nom provisoire
 « LA BANQUISE » (le mot de Sacha) — à valider. Tout le code est dans le bloc « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (balises
