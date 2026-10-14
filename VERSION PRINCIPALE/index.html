@@ -15937,7 +15937,7 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       JEAU.rico++;JEAU.cd=.4;fallVel.y=Math.abs(fallVel.y)*.55+15;fallVel.x*=.82;fallVel.z*=.82;fallPos.y=sy+.4;
       const k9=Math.min(1,hv/160);jadeCouronne(fallPos.x,sy,fallPos.z,.25+.3*k9,fallVel);
       shake=Math.max(shake,.3);fovPunch=Math.max(fovPunch,5);hap([10,14]);
-      try{noiseBurst(.28,.32,1500);subBoom(.18);if(SONV2)sfx('flaque.eau');}catch(e){}
+      try{noiseBurst(.28,.13,1500);subBoom(.07);if(SONV2)sfx('flaque.eau',{vol:-3});}catch(e){} // (2026-10-14, session SON) un galet qui rebondit : ≈ −33 dBFS (était −25, au niveau d'un verdict) — le plus léger des trois bruits d'eau (ricochet < sortie < plongeon), audit oreille-neuve n°3 §1
       try{addTrick('ricochet',JEAU.rico>1?'RICOCHET ×'+JEAU.rico:'RICOCHET !',5*JEAU.rico,1,true);flowAdd(5,'risque');}catch(e){}
       return false;}
     JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.flotT=0;JEAU.surfT=0;
@@ -15950,7 +15950,10 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       jadeCouronne(fallPos.x,sy,fallPos.z,.12+.88*k9,null); // la taille de la gerbe suit la vitesse
       jadeBullesJet(fallPos,20+90*k9,4);
       shake=Math.max(shake,.45+.5*k9);fovPunch=Math.max(fovPunch,9+10*k9);hap([20,30,40]);
-      try{subBoom(.4+.35*k9);noiseBurst(.6,.4+.25*k9,520);noiseBurst(.9,.18+.12*k9,2600);if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
+      // (2026-10-14, session SON) le plouf de Léo (subBoom + deux noiseBurst) est GARDÉ, mais ramené au rang d'une grosse éclaboussure : il sortait à −17,5…−14,7 dBFS (presque l'explosion, −16),
+      // maintenant −26…−22 (sous le cratère −20, au-dessus d'une pose −30), dosé par la force k9. Plus de doublon : le « pouf » d'ouate `nuage.entre` (−36, inaudible sous le plouf) est retiré ;
+      // `flaque.eau` (le vrai son d'eau, les bulles) reste dessous, dosé aussi (−34 → −28). Et le moteur se creuse un peu, comme pour un grand moment (audit oreille-neuve n°3 §1).
+      try{subBoom(.14+.14*k9);noiseBurst(.6,.14+.10*k9,520);noiseBurst(.9,.06+.05*k9,2600);if(SONV2)sfx('flaque.eau',{vol:-6+6*k9});duckT=Math.max(duckT,.15+.25*k9);}catch(e){}
       try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
     else{eauRide(fallPos.x,sy,fallPos.z,.15);try{if(SONV2)sfx('flaque.eau');}catch(e){}}} // un simple contact : une ride
   else if(JEAU.dans&&d<-.3&&fallVel.y>0){ // ---- ELLE QUITTE L'EAU ----
@@ -15963,7 +15966,8 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       const k9=Math.min(1,fallVel.y/170);
       jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
       shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
-      try{noiseBurst(.8,.34,2200);noiseBurst(.5,.3,450);subBoom(.22);if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
+      // (2026-10-14, session SON) le jet de Léo est gardé, ramené de −23 à −30…−26 dBFS selon k9 (toujours sous le plongeon, ≈ −22) ; `nuage.sort` (−42) redisait le jet : retiré, `flaque.eau` et `air.regain` restent dessous
+      try{noiseBurst(.8,.14+.08*k9,2200);noiseBurst(.5,.12+.08*k9,450);subBoom(.08+.06*k9);if(SONV2){sfx('flaque.eau',{vol:-4});sfx('air.regain');}}catch(e){}
       if(JEAU.t>.3){try{addTrick('jailli',EAU.fun&&JEAU.n>1?'HORS DE L EAU ×'+JEAU.n:'HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12)+(EAU.fun?3*Math.min(5,Math.max(0,JEAU.n-1)):0),2);flowAdd(8,'risque');}catch(e){}}}
     else{JEAU.goutT=.6;jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.08);}} // une vague la lâche, un bond de bateau : un petit jet
   if(!JEAU.dans){ // hors de l'eau : la caisse ruisselle, et au ras de la surface elle laisse un sillage
@@ -33017,9 +33021,10 @@ function musVol(){return musicBaseVol*VOL.mus*musTrim();} // le niveau accordé 
 const MUS_SONIE={'noite-de-velocidade':3,'swag-cash-car-2':3,'glassy-plucks':2.6,'addictive-loop':2.1,'lvl1-neon':.9,'lvl2-cash-car-vitesse':0,
   'ciel-complet':.9,'ciel-n1':-.4,'ciel-n2':-.6,'ciel-n3':1.5,'ciel-n4':.4,'ciel-n5':1.5,'ville-n1':-.5,'ville-n2':-.6,'ville-n3':1,'ville-n4':1.2,'ville-n5':.9,
   'chris-siffleur':-1.3,'chris-polaroid':-.7,'chris-dimanche':-.6,'chris-matin':-.4,'chris-nuit':-.3,'chris-ciel':-.2};
-function musTrim(){const s9=musicEl&&musicEl.src||'';if(s9===musTrim._s)return musTrim._g;musTrim._s=s9;let d9=0;
+function musTrim(){const n9=performance.now();if(n9-musTrim._t<400)return musTrim._g;musTrim._t=n9; /* (2026-10-14, session SON) relire `src` (une chaîne neuve à chaque lecture) deux fois par image allouait : on ne la relit que 2,5 fois par seconde */
+  const s9=musicEl&&musicEl.src||'';if(s9===musTrim._s)return musTrim._g;musTrim._s=s9;let d9=0;
   for(const k in MUS_SONIE)if(s9.indexOf(k)>=0){d9=MUS_SONIE[k];break;}return musTrim._g=Math.pow(10,d9/20);}
-musTrim._s=null;musTrim._g=1;
+musTrim._s=null;musTrim._g=1;musTrim._t=-1e9;
 /* ⚠⚠ LA MUSIQUE v4 — RÉÉCRITE DE ZÉRO (2026-09-25, user : « réécriture complète du code autour de la musique, ça ne
    marche toujours pas »).
    ⚠ POURQUOI L'ANCIENNE CHAÎNE LÂCHAIT. La bande-son passait par Web Audio (`createMediaElementSource` → filtre →
@@ -34129,6 +34134,16 @@ function engWave9(AC9,e){
     e.w=AC9.createPeriodicWave(re,im);}
   return e.w;
 }
+/* (2026-10-14, session SON) LE GENOU — LA NOTE NE MONTE PLUS EN MOUSTIQUE.
+   Les `r` des paliers 17-30 vont jusqu'à 3 300 : à plein régime la fondamentale grimpait à 941 Hz (palier 17), 1 342 (26), 2 081 (30),
+   le sub à 1 kHz — un sifflet continu dans la zone où l'oreille est la plus sensible, 100 % du temps de la 2e moitié du jeu (audit n°3 §2).
+   Au-dessus de ENG_GENOU la hauteur est COMPRIMÉE (puissance .30) : 30 → ~680 Hz, sub ~340 ; la montée ralenti → croisière reste un
+   vrai « spool ». Les paliers 1-12 ne passent jamais 420 Hz (palier 12 plein régime, nitro comprise : 347) : inchangés au bit près.
+   Seule la HAUTEUR est comprimée : le filtre et le souffle lisent toujours la fréquence d'origine (même timbre, même brillance).
+   ENG_DOUX=false (ou `?genou=0`, ou dbgGenou(0)) = l'ancien son, pour comparer. */
+let ENG_DOUX=true;
+const ENG_GENOU=420,ENG_GENOU_P=.30;
+function engGenou(f){return ENG_DOUX&&f>ENG_GENOU?ENG_GENOU*Math.pow(f/ENG_GENOU,ENG_GENOU_P):f;}
 /* TOUS LES RÉGLAGES D'UNE FRAME, pour un moteur `e` dans un état `st`.
    st = {rpm 0..1 · charge 0..1 · ovr 0..1 · drift −.5..+.5 · nA nitro 0..1 · thr 0|1 ·
          vsp vitesse normalisée · wob · boost · cloudIn · dk ducking} */
@@ -34149,7 +34164,8 @@ function engSndParams(e,st){
      (3) LE BOOST MONTAIT LA NOTE (+12 %) — donc plus aigu, plus moustique. Il GONFLE maintenant
          le bas (sub + battement) au lieu de monter : on sent la poussée dans le ventre. */
   const ENG_PITCH=.62;
-  const fF=(e.i+rpm*e.r)*ENG_PITCH*(1+.04*nA)*(1+(st.wob||0));
+  const fF0=(e.i+rpm*e.r)*ENG_PITCH*(1+.04*nA)*(1+(st.wob||0)); // (2026-10-14, session SON) la fréquence d'ORIGINE : le filtre et le souffle la lisent
+  const fF=engGenou(fF0)*(1+(ENG_DOUX?(st.resp||0):0));          // la HAUTEUR qu'on entend (oscillateurs, sub, cliquetis), comprimée au-dessus du genou · `resp` : la respiration (engSouffle), APRÈS le genou pour qu'il ne l'écrase pas
   /* ⚠ PLANCHER OBLIGATOIRE. `post` vaut `1.05/Math.pow(drv,.55)` : dès que `drv` passe à zéro ou
      dans le négatif (fort frein moteur, `ov` élevé et charge nulle), `Math.pow` d'un négatif rend
      NaN — et un NaN écrit dans un AudioParam ne se répare pas, il ÉTEINT le nœud pour toute la
@@ -34157,16 +34173,22 @@ function engSndParams(e,st){
      Le plancher coûte un `Math.max` et supprime la classe entière de pannes. */
   const nB=st.nB||0,gE=st.gE==null?.72:st.gE; // (2026-09-25) nB : part du nitro qui GONFLE le moteur (téléphone) · gE : recul face à la bande-son (1 sur iOS, où la musique est verrouillée à 100 %)
   const drv=Math.max(.08,.42+ch*2.45+ov*-.16+.55*nB*nA);
-  const lpB=Math.max(240,Math.min(2800,e.fq+fF*e.fr)); // plafond 6200→2800 : le moustique vivait au-dessus
+  const lpB=Math.max(240,Math.min(2800,e.fq+fF0*e.fr)); // (2026-10-14) fF0 : le genou ne doit pas assourdir les paliers du haut · plafond 6200→2800 : le moustique vivait au-dessus
   // ×.72 : le moteur recule d'un cran pour que la BANDE-SON passe devant (plainte du même jour)
   const ev=(.019+.026*rpm+.009*ch)*(1-.10*nA+.38*nB*nA)*e.vol*(st.dk==null?1:st.dk)*gE;
   const vsp=st.vsp||0;
   return {
     fF:fF, detune:7+ch*19, subF:Math.max(22,fF*.5),
-    nzF:Math.min(3200,Math.max(260,fF*6*(.72+ch*.62))),
+    nzF:Math.min(3200,Math.max(260,fF0*6*(.72+ch*.62))), // (2026-10-14) fF0 : le lit de bruit des turbines garde sa couleur
     nzG:(.06+.26*ch+.08*rpm)*(e.nz||1)*(1-.5*nA)*.7,
-    whineOn:!!e.whine, whineF:e.whine?Math.min(9000,fF*e.whine):2000,
-    whineG:e.whine?(.10+.16*ch)*Math.pow(Math.min(1,rpm),.7)*(1-.45*nA)*(1-ov*.7)*.4:0,
+    /* (2026-10-14, session SON) LE SIFFLET DESCEND SOUS 3,4 kHz. `fF×whine` passait 11 kHz dès 76 % de régime aux paliers 20, 21, 24-30 :
+       collé à 9 000 Hz (le plafond), une dent de scie dont le filtre (ewf, 9 kHz) tombe sur sa fondamentale = un SINUS PUR, fixe, qui
+       contourne le filtre du moteur — un acouphène sans aucune information de vitesse (audit n°3 §3). Le plafond MONTE AVEC LE RÉGIME
+       (1 000 Hz au ralenti → 2 900-3 400 à plein, plus haut pour les gros sifflets) : il redit la vitesse. Sous ce plafond rien ne change
+       (paliers 6, 7 : jamais atteint ; 9 et 12 : 3,2 / 4,3 kHz → 2,9-3,0 kHz en haut du régime seulement). Dans la zone du genou
+       (fF0 > 420 Hz) le sifflet recule de 30 % au plus, en fondu sur 140 Hz (pas de marche quand le régime traverse le genou). */
+    whineOn:!!e.whine, whineF:e.whine?(ENG_DOUX?Math.min(fF0*e.whine,1000+2400*Math.min(1,rpm)*(.7+.3*Math.min(1,e.whine/30))):Math.min(9000,fF0*e.whine)):2000,
+    whineG:e.whine?(.10+.16*ch)*Math.pow(Math.min(1,rpm),.7)*(1-.45*nA)*(1-ov*.7)*.4*(ENG_DOUX?1-.3*Math.min(1,Math.max(0,(fF0-ENG_GENOU)/140)):1):0,
     drv:drv, post:1.05/Math.pow(drv,.55), eq:-8.0+ch*7.0,
     mix:.42+.20*ch+.10*(st.thr||0)+.05*nA,
     subG:e.sub*(.34+.30*ch+.22*(st.thr||0)+.45*nA), // la touche ET le boost gonflent le VENTRE du son
@@ -34245,6 +34267,14 @@ const ENG_SND=[
  {i:56, r:3300,h:[1,.05,.02,.07,.015],                    sub:1.00,dr:1.3, fq:900,fr:5.8,gr:1,lope:0,wob:0,crk:0,vol:1.10,nz:1.3,fLen:1.50,fHz:6, fJit:.05,whine:34,fmt:[38,0.4,2.6]}  // 30 TROU NOIR : le plus GRAVE et le plus AIGU à la fois, rien au milieu
 ];
 /* <<<FIN SON-MOTEUR>>> */
+/* (2026-10-14, session SON) COMPARER LE GENOU EN JEU : `?genou=0` dans l'adresse (iPhone compris) ou dbgGenou(0) / dbgGenou(1) à la console. */
+try{if(/[?&]genou=0\b/.test(location.search))ENG_DOUX=false;}catch(_){}
+/* (2026-10-14, session SON) LE MOTEUR RESPIRE. À vitesse tenue la hauteur était figée au hertz près (audit n°3 §8 : `wob` ne vit que sous
+   29 % de régime, `drift9` ne touche que le filtre) — un bourdon fixe sur les longues lignes des paliers 20-30, sans rapports. Deux sinus
+   lents sans rapport simple (0,23 et 0,37 Hz : jamais un vibrato, jamais Math.random par image) bougent la hauteur de ±0,7 % au plus
+   (12 cents, bien sous le demi-ton). Il ne s'allume qu'APRÈS le tremblement du ralenti (`wob`, éteint à 29 % de régime) : plein à 49 %. */
+function engSouffle(t,rpm){return .007*(.62*Math.sin(t*1.45)+.38*Math.sin(t*2.31+1.7))*Math.min(1,Math.max(0,(rpm-.29)/.2));}
+window.dbgGenou=function(v){if(v!=null)ENG_DOUX=!!v;return {genou:ENG_DOUX,hz:ENG_GENOU,puissance:ENG_GENOU_P};};
 /* (2026-10-05) LES RÉGLAGES D'UNE IMAGE APPLIQUÉS AUX NŒUDS DU MOTEUR — sortis de la boucle de course pour que le BURN-OUT du garage
    (voir LE BURN-OUT) fasse chanter le MÊME moteur, au même timbre, sans recopier une ligne. */
 function engApplique(P9){
@@ -34496,6 +34526,14 @@ function flamePop(dur,vol,freq){ // pop de combustion : tranche de bruit BROWN f
    ⚠ La porte lit la CONSIGNE (`_cib`, posée à chaque setTargetAtTime) et non la valeur courante : un nœud débranché ne fait plus avancer
    sa valeur, elle resterait figée — on ne se rebrancherait jamais. ⚠ Tout écrivain de ces gains passe par setTargetAtTime (vérifié :
    `stt` et les coupures du menu) ; un `.value=` ou une rampe n'ouvriraient PAS la porte. */
+/* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE S'ENTEND. Le rideau `PLUIE` (VILLE, MINUIT EN VILLE, L'ORAGE, la pluie du JOUER, la bruine de Paris)
+   se voyait sans rien dire : une incohérence. Une seule boucle de bruit rose, SYNTHÉTISÉE (aucun fichier) : passe-haut 1,4 kHz → passe-bas 7,5 kHz (le crépitement
+   d'une pluie sur la tôle, sans le grave qui est celui du moteur et du vent). `pluieG` est bâti UNE fois dans initAudio, comme `windG`/`whG`, et passe par `porte()` :
+   débranché de MASTER tant que sa consigne est nulle (coût zéro hors pluie). `PLUIE_SON=false` = comme avant. PLUIE_NIV est le gain pour LVL.pluie = 1 : le bruit
+   rose normalisé et filtré 1,4-7,5 kHz sort à −21 dB RMS avant gain (MESURÉ hors ligne, mêmes filtres) ; .055 → ≈ −46 dBFS RMS, à 17 dB sous le moteur seul (−29)
+   et 10 sous le vent à 300 km/h (−56) : on l'entend quand rien ne couvre, jamais en premier. (Le .0075 de l'audit ne donnait que −64 dBFS : inaudible.) */
+const PLUIE_SON=true,PLUIE_NIV=.035; // (2026-10-14, session SON) .055 → .035 (−4 dB, ≈ −50 dBFS) : prudence — un souffle aigu de ce genre, au-dessus de la musique, a déjà été retiré par Léo (« LE SON PARASITE DU DÉPART DES NUAGES », 08/10) ; on l'entend sans qu'il passe devant
+let pluieG=null;
 const PORTES=[];
 function porteOuvre(P){if(P.on)return;try{P.g.connect(P.d);}catch(e){}P.on=true;}
 function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.value;prm._fin=0;const o=AudioParam.prototype.setTargetAtTime;
@@ -34513,14 +34551,14 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie'];
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
   const o={total:db(dbgVu.M)};dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
 function initAudio(){
   AC=new (window.AudioContext||window.webkitAudioContext)();
-  if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
+  if(!SND.sfx&&!(MUS_WA&&MUS_WA.on))try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
   /* ⚠ DEUX NŒUDS LÀ OÙ IL N'Y EN AVAIT QU'UN, ET C'EST CE QUI REND LE CURSEUR « EFFETS » POSSIBLE.
@@ -34667,6 +34705,12 @@ function initAudio(){
   whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;
   whG=AC.createGain();whG.gain.value=0;
   wsrc2.connect(whF);whF.connect(whG);whG.connect(MASTER);wsrc2.start();
+  // LA PLUIE (voir PLUIE_SON) : bruit rose bouclé → passe-haut 1,4 kHz → passe-bas 7,5 kHz (Q .4) → gain mené par la boucle (LVL.pluie)
+  {const rsrc=AC.createBufferSource();rsrc.buffer=pinkBuf(3);rsrc.loop=true;
+   const rhp=AC.createBiquadFilter();rhp.type='highpass';rhp.frequency.value=1400;rhp.Q.value=.7;
+   const rlp=AC.createBiquadFilter();rlp.type='lowpass';rlp.frequency.value=7500;rlp.Q.value=.4;
+   pluieG=AC.createGain();pluieG.gain.value=0;
+   rsrc.connect(rhp);rhp.connect(rlp);rlp.connect(pluieG);pluieG.connect(MASTER);rsrc.start();}
   // réacteur nitro : souffle + grondement grave + sifflement de turbine (3 couches)
   // + FILTRE EN PEIGNE sur le souffle : rebouclé fort AU SOL = la flamme qui rugit ;
   // en l'air le peigne s'ouvre et un LFO lent module le délai = le whoosh flangé du jet
@@ -34707,6 +34751,7 @@ function initAudio(){
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
   sonConsole(); // (2026-09-28) LA CONSOLE DE SON se branche sur ce contexte et ce MASTER
   try{porte(gainN,MASTER,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
+  try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
      fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
      ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.
@@ -34929,11 +34974,13 @@ function driftChargeSnd(){
   const T=AC.currentTime;
   if(on){
     const lv=driftLv,base=DRS_BASE[lv],d0=DRS_D0[lv],dd=DRS_DD[lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
-    const f=base*(1+.25*fr);
+    // (2026-10-14, session SON) le bourdon suit la TONALITÉ comme `drift.charge` de la banque (SON_TON, de −2 à +5 demi-tons ; GLISSE de Jade +1) : avant, il restait sur si-mi fixes
+    // et se frottait à la note de palier de la banque (jusqu'à 5 demi-tons d'écart). `_t` est null/undefined tant que la banque n'est pas branchée : alors ×1. (audit oreille-neuve n°3 §4)
+    const f=base*Math.pow(2,(sonTonSuit._t||0)/12)*(1+.25*fr);
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
-    DRS.g.gain.setTargetAtTime(lv?.014+lv*.008:.006,T,.04);
+    DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
   }else DRS.g.gain.setTargetAtTime(0,T,.03);
 }
 /* LE RASE-BORD GRONDE (2026-09-25) : frôler le vide à pleine vitesse rechargeait le nitro en silence. Maintenant la
@@ -34945,13 +34992,14 @@ function raseSnd(dt,kmh){
   const on=mode==='drive'&&raseT>0&&started&&!gameOver&&!paused;
   if(!RSN){ if(!on||RSN===false)return;
     try{const src=AC.createBufferSource();src.buffer=noiseBuf(1.2);src.loop=true;
-      const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=190;bp.Q.value=1.3;
+      const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=TEL_NATIF?520:190;bp.Q.value=1.3; // (2026-10-14, session SON) iPhone : 190 Hz ne sort pas du haut-parleur (comme le moteur `lpMin` et `subBoom` TEL_NATIF) — le frôlé du vide à 700 km/h était muet ; bande à 520 Hz, l'ordi garde 190 (audit oreille-neuve n°3 §6)
+      
       const am=AC.createGain();am.gain.value=.5;const lfo=AC.createOscillator(),lg=AC.createGain();lfo.type='square';lfo.frequency.value=30;lg.gain.value=.5;
       lfo.connect(lg);lg.connect(am.gain);
       const g=AC.createGain();g.gain.value=0;src.connect(bp);bp.connect(am);am.connect(g);g.connect(MASTER);src.start();lfo.start();
       RSN={g:g,lfo:lfo};porte(g,MASTER);}catch(e){RSN=false;return;} }
   const T=AC.currentTime;
-  if(on){ RSN.g.gain.setTargetAtTime(Math.min(.22,.09+raseT*.12),T,.03);RSN.lfo.frequency.setTargetAtTime(Math.min(60,18+kmh*.05),T,.05); // ⚠ la vitesse arrive en paramètre (speedKmh est locale à loop : ReferenceError avalée, le tic ne partait jamais) ; plafond 60 Hz : au-delà le hachage devient une note
+  if(on){ RSN.g.gain.setTargetAtTime(Math.min(.22,.09+raseT*.12)*(TEL_NATIF?1.5:1),T,.03);RSN.lfo.frequency.setTargetAtTime(Math.min(60,18+kmh*.05),T,.05); // ⚠ la vitesse arrive en paramètre (speedKmh est locale à loop : ReferenceError avalée, le tic ne partait jamais) ; plafond 60 Hz : au-delà le hachage devient une note
     raseSnd._h=(raseSnd._h||0)-dt;if(raseSnd._h<=0){raseSnd._h=.16;hap(4);} }
   else RSN.g.gain.setTargetAtTime(0,T,.04);
 }
@@ -39352,7 +39400,7 @@ function endGame(){
   // frein moteur y sont branchés en parallèle). Les oublier laissait un sifflement de boîte
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
-  for(const n9 of [whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
+  for(const n9 of [whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;
   pwrNitroT=pwrAirT=pwrSpdT=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
@@ -40390,7 +40438,10 @@ function tirSnd(gap){ // le « piou » néon : un carré qui plonge (arcade, jam
     g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+.085);
     o.connect(g);g.connect(MASTER);o.start(t);o.stop(t+.1);}catch(e){}
 }
-function impactSnd(){try{noiseBurst(.05,.07,3400);}catch(e){}} // le « tink » de tôle
+// (2026-10-14, session SON, audit oreille-neuve §10) le « tink » de tôle de la poursuite (une touche toutes les 0,13 s sous le feu) passe par la banque :
+// `debris.tole` (cliquetis de tôle, −40 LUFS, dans la table de niveaux) à −6 dB — il revient 7 fois par seconde, il ne doit pas devenir un crépitement.
+// Sans banque, le noiseBurst d'avant. (`tirSnd`, le « piou » néon voulu par le brief de la poursuite, n'a pas d'équivalent en banque : gardé.)
+function impactSnd(){try{if(!(SONV2&&sfx('debris.tole',{vol:-6})))noiseBurst(.05,.07,3400);}catch(e){}} // le « tink » de tôle
 // LA LIGNE DE VUE : la dalle protège (sous la route, on est à l'abri), et un nuage opaque coupe le tir — le canon DANS un banc ne voit rien
 function campVue(a,b){
   if(mode==='drive'&&side<0)return false;
@@ -41117,7 +41168,7 @@ function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
 function chainesTick(dt,sp){
   let vu=null;
   for(const ch of VZ.chaines){
-    if(!ch.brise&&!ch.fini&&sp>ch.sP[ch.n]+9){ch.brise=true;popTexte('LIGNE CASSEE','#8f84c8',0);try{if(SONV2)sfx('defaite',{vol:-5});else chimeNote(noteP(1,0),0,.08,.3);}catch(e){}}
+    if(!ch.brise&&!ch.fini&&sp>ch.sP[ch.n]+9){ch.brise=true;popTexte('LIGNE CASSEE','#8f84c8',0);try{if(SONV2)sfx('aura.perdue',{st:-2});/* (2026-10-14, session SON) une ligne manquée n'est pas une DÉFAITE de duel : `defaite` (+3 dB, prio 5) creusait tout le mix (SON_DUCK) et faisait reculer les récompenses voisines ; les trois notes qui retombent disent « raté » à leur juste taille */else chimeNote(noteP(1,0),0,.08,.3);}catch(e){}}
     ch.br+=((ch.brise?1:0)-ch.br)*Math.min(1,dt*3);ch.fl=Math.max(0,ch.fl-dt*.8);
     for(const mt of ch.mats){mt.uniforms.uOn.value=ch.n-1;mt.uniforms.uBr.value=ch.br;mt.uniforms.uF.value=ch.fl;}
     if(!vu&&sp>ch.s0-170&&sp<ch.s1+70)vu=ch;
@@ -42071,7 +42122,10 @@ function afficheVise(e){ // l'affiche sous le pointeur — sauf si la caisse est
 }
 function afficheTap(a){ // ⚠ LE POINT D'EXTENSION des affiches : leurs vraies fonctions viendront ici
   a.pop=.45;
-  try{uiClic();chimeNote(a.k==='perso'?659:587,0,.12,.12);chimeNote(a.k==='perso'?988:880,.06,.18,.1);}catch(e){}
+  /* (2026-10-14, session SON, audit oreille-neuve §10) l'affiche TINTE toujours (design de Léo) mais en banque : deux chimeNote à 659/988 Hz
+     (587/880 pour l'autre) jouaient PAR-DESSUS le clic, fixes, hors de la tonalité de la musique et hors de la table de niveaux.
+     `ui.ok` (deux notes claires qui montent, key1 : elle suit la tonalité du morceau) dit la même chose ; sans banque, les deux cloches d'avant. */
+  try{uiClic();if(SONV2&&window.CCSON&&window.CCSON.existe('ui.ok'))sfx('ui.ok');else{chimeNote(a.k==='perso'?659:587,0,.12,.12);chimeNote(a.k==='perso'?988:880,.06,.18,.1);}}catch(e){}
   /* (2026-10-14, nettoyage, Sacha : « ce qui dit bientôt : on cache ») plus de toast « TES RECORDS : BIENTOT EN DETAIL » ni « CLASSEMENT MONDIAL : BIENTOT EN LIGNE » : l'affiche rebondit et tinte, c'est tout. L'affiche MONDE n'existe plus dans buildAffiches depuis le 2026-09-30. */
 }
 /* (2026-09-30) UNE BOÎTE CHANFREINÉE à la vraie taille w × h × d, chanfrein b : 6 faces, 12 biseaux, 8 coins (44 triangles), non indexée
@@ -50405,8 +50459,15 @@ function loop(now){
           const lo=Math.pow((engGear-1)/gn,1.3),hi=Math.pow(engGear/gn,1.3)*1.05;
           const pos=Math.min(1.05,Math.max(0,(sN-lo)/Math.max(.01,hi-lo)));
           if(pos>.99&&engGear<gn&&up&&engShiftT<=0){engGear++;engShiftT=.12;
-            const T9=performance.now();if(T9-(loop._shT||0)>350){loop._shT=T9; // UN passage = UNE cérémonie (la boîte pompait : rafales de pétarades)
-              subBoom(.06+.07*engGear/gn);noiseBurst(.05,.07,3000);crackle(Math.max(.3,eng.crk));hap(5);fovPunch=Math.max(fovPunch,1.8);}} // (2026-09-25) LE PASSAGE CLAQUE : coupure, thump, pétarade À CHAQUE rapport, un tic dans le pouce, un coup de champ — c'est le RYTHME de l'accélération (le gaz est automatique : sans ça, on n'entendait qu'une rampe)
+            const T9=performance.now();if(T9-(loop._shT||0)>500){loop._shT=T9; // UN passage = UNE cérémonie (la boîte pompait : rafales de pétarades)
+              /* (2026-10-14, session SON) LA CÉRÉMONIE À LA TAILLE DU RAPPORT. Au départ la boîte monte 6-7 rapports en ~3 s (0,17 · 0,42 · 0,76 ·
+                 1,22 · 1,85 · 2,8 s en 8 rapports, audit n°3 §9) : six claquements pleins = une mitrailleuse, pile sur le piqué, la musique et le
+                 boost offert. Désormais les premiers rapports sont des TICS (q = .35 + .65·rapport/gn : ~.5 au 2e, 1 au dernier), la pétarade est
+                 réservée aux deux derniers, le garde-temps passe de 350 à 500 ms. La vibration et le coup de champ (le ressenti) gardent leur
+                 FORCE mais s'espacent : 900 ms au moins entre deux. Rien ne touche la vitesse : la boîte est sonore. */
+              const q9=.35+.65*engGear/gn;
+              subBoom((.06+.07*engGear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(engGear>=gn-1)crackle(Math.max(.3,eng.crk));
+              if(T9-(loop._shR||0)>900){loop._shR=T9;hap(5);fovPunch=Math.max(fovPunch,1.8);}}} // (2026-09-25, dosé le 14/10 : voir ci-dessus) LE PASSAGE CLAQUE : coupure, thump, pétarade À CHAQUE rapport, un tic dans le pouce, un coup de champ — c'est le RYTHME de l'accélération (le gaz est automatique : sans ça, on n'entendait qu'une rampe)
           else if(engGear>1&&sN<lo*.95)engGear--; // (2026-09-25) VRAIE hystérésis : on ne rétrograde qu'à 5 % sous le bas du rapport (l'ancien seuil tombait AU-DESSUS du seuil de montée)
           tgt=Math.pow(Math.min(1,pos),.9);
           if(spd3<8)tgt=thr*.72; // sur place : vroum-vroum libre
@@ -50443,7 +50504,7 @@ function loop(now){
            recopier une ligne. Une palette de 30 timbres qu'on ne peut pas écouter côte à côte
            n'est pas une palette, c'est un tableau de nombres. */
         const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
-          vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0});
+          vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,resp:engSouffle(t,engRpm),boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0});
         /* (2026-10-07) LA LANCÉE S'ENTEND : l'élan GONFLE le ventre du moteur (sub + corps, jusqu'à +35 % / +12 %) — jamais sa note (le « moustique ») ;
            et chaque palier d'élan (1,5 · 3 · 4,2 s de ligne tenue) allume un CYLINDRE (`moteur.cylindre`, un degré plus haut à chaque palier), réarmé
            seulement quand l'élan est retombé de 0,8 s sous le palier : conduire propre a un rythme qu'on entend. */
@@ -50459,7 +50520,7 @@ function loop(now){
              plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
              le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
           engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
-          const f0=(e0.i+engRpm*e0.r)*.62;
+          const f0=engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0)); // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
           /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
@@ -50492,11 +50553,19 @@ function loop(now){
         stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
+      if(pluieG){ /* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE : suit ce que le rideau montre (LVL.pluie, fondu du portail ; la bruine de Paris), se tait à la
+        mort, sous l'eau (comme le vent) et s'étouffe dans un nuage (comme le sifflement). Coupée sous .02 : la porte se ferme, zéro coût hors pluie. Elle respecte le creux des
+        grands moments (dk). Fondu .4 s (l'orage qui s'installe ne saute pas) ; PLUIE_SON=false la rend muette. */
+        const pl9=PLUIE_SON&&mode!=='boom'&&!gameOver?Math.max(LVL.pluie||0,parisPluie()):0;
+        stt(pluieG.gain,pl9<.02?0:PLUIE_NIV*Math.min(1,pl9)*dk*(1-.85*JEAU.k)*(1-.6*cloudInS),AC.currentTime,mode==='boom'?.08:.4);
+      }
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
         const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
-        stt(skidG.gain,drift>0?Math.min(.17,Math.pow(drift,1.3)*.15*(.4+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
+        // (2026-10-14, session SON) il était 10 à 20 dB SOUS le moteur (−46 dBFS à drift .4, −36 à plein drift, le moteur seul −29) : l'exposant 1,3 l'éteignait pile où le joueur en a besoin.
+        // Courbe linéaire en drift, gain .20, cap .30 : +5,6 dB à drift .4 (300 km/h), +4,9 dB à plein drift. Le burn-out du garage réécrit skidG lui-même (burnSon) : NON touché. (audit oreille-neuve n°3 §5)
+        stt(skidG.gain,drift>0?Math.min(.30,drift*.20*(.5+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
         if(drift>0){
           const sq=900+drift*430+spd3*.35;
           stt(skF1.frequency,sq,AC.currentTime,.05);stt(skF2.frequency,sq*1.56,AC.currentTime,.05);
@@ -51191,7 +51260,7 @@ function togglePause(){ if(!started||gameOver)return;
      sans ça, à la reprise, la boucle croirait la cible déjà envoyée et laisserait tout à zéro. `jrDep`/`engLfoG` en font partie :
      ce sont des LFO branchés sur un gain, ils rendraient un trémolo audible même gain principal à zéro. */
   if(paused&&AC){ try{ const T9=AC.currentTime;
-    for(const n9 of [gainN,windG,whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG])
+    for(const n9 of [gainN,windG,whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG])
       if(n9){const p9=n9.gain;p9.cancelScheduledValues(T9);p9.setTargetAtTime(0,T9,.012);p9._s9=undefined;} }catch(e){} }
   /* (2026-09-28) …et en FONDU : un `suspend()` sec coupait le moteur en plein cycle — un « tic » à chaque pause. La sortie commune
      (`BUSOUT`) descend en ~40 ms, le contexte s'endort derrière ; la reprise (ou le compte 3-2-1) remet la sortie à plein. */
