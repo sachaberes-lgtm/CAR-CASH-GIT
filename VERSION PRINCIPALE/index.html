@@ -7513,6 +7513,15 @@ html.c6 .c6Entre>*:nth-child(n+5){animation-delay:120ms}
 </style>
 <style id="c6-hud">
 /* CHARTE 6 · le HUD de course, les commandes tactiles, les annonces — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* ---- 1. LE ⏸ (2026-10-14, charte 6) : c'était une plaque de laque penchée à bande cyan et lueur — la seule touche du HUD qui parlait
+   encore néon. Une touche d'encre 48 × 48, DROITE, filet blanc 2 px, épaisseur noire 4 px, l'icône blanche à plat. Même place (5451),
+   même clic. Les anciennes règles (2699-2705, 5318-5326) sont en !important : on les domine par html.c6. */
+html.c6 body #tGear{--nc:#fff;transform:none!important;background:var(--c6-e1)!important;clip-path:none!important;filter:none!important;
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6 body #tGear:active,html.c6 body #tGear.appui{transform:translateY(4px)!important;background:var(--c6-e2)!important;
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
+html.c6 body #tGear>.pxi,html.c6 body #tGear:active>.pxi,html.c6 body #tGear.appui>.pxi{transform:none!important;color:var(--c6-b0)!important;
+  background:var(--c6-b0)!important;filter:none!important}
 </style>
 <style id="c6-pause-fin">
 /* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
