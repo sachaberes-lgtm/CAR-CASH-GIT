@@ -11839,7 +11839,18 @@ PAL.B.dprNetCap=[1.25,1.35,1.5];PAL.B.dprNet=[1,1.15,1.25];PAL.B.dprNetBas=[.85,
 /* (2026-10-14, passe perf mobile) ⚠ `typeof SAVE` NE PROTÈGE PAS d'un `const` encore en zone morte : au chargement, le départ au bon cran
    (`qlPose(qlDepart)`, plus bas) levait « Cannot access 'SAVE' before initialization », avalé par son try — les paliers 0-1 ne partaient
    jamais à leur cran (MOYEN au cran 0 au lieu de 2, ANCIEN au 4 de qlMin au lieu de 5). Avant la sauvegarde = RAPIDE. Palier 2 : inchangé. */
-function qlNet(){try{return !!(SAVE.d&&SAVE.d.q==='net');}catch(e){return false;}}
+function qlNet(){try{return !!(SAVE.d&&(SAVE.d.q==='net'||SAVE.d.q==='haute'));}catch(e){return false;}}
+/* L'IMAGE EN AUTOMATIQUE, SUR TÉLÉPHONE SEULEMENT (2026-10-14, session OPTIMISATION — Sacha, relayé par PILOTAGE : « oui, en automatique » :
+   sur TÉLÉPHONE et seulement quand ça rame, le jeu baisse un peu le rendu pour rester fluide ; sur PC, et quand tout va bien, rien ne change ;
+   le réglage IMAGE garde la main, et si le joueur choisit HAUTE, on ne baisse jamais). L'échelle QL faisait déjà le travail (crans les moins
+   visibles d'abord — ombre, halo, puis la résolution EN DERNIER : verdict du 27/09 contre le « mode pixel » —, sonde contre la bride à 30 i/s,
+   remontée sans yoyo). Elle ne décide plus que : sur un VRAI téléphone (TEL_NATIF : l'ordi, colonne comprise, ne bouge plus), en COURSE
+   (ni menus, ni atelier, ni photos), et pas en HAUTE. IMAGE : RAPIDE → NETTE → HAUTE (RAPIDE et NETTE restent automatiques ; HAUTE = la
+   résolution NETTE, tout au plus haut, jamais baissé). */
+function qHaute(){try{return !!(SAVE.d&&SAVE.d.q==='haute');}catch(e){return false;}}
+function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
+function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
+function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
   const cap=DPR_CAP,net=qlNet(),pl=Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
         nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
@@ -11848,7 +11859,7 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=QL.N_EFF)return b.cap;
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
-function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));QL.k=k; // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
+function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
   const br=k>=3?.75:1;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
@@ -40193,11 +40204,11 @@ const SAVE={
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
     {const v9=Math.round(+d.vu);if(isFinite(v9)&&v9>0)c.vu=v9;} // (2026-10-14, session SON) la DERNIÈRE VISITE (ms) : la musique qui revient après une longue absence (MUS_RETOUR_H) — absente = inconnue
-    c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
+    c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net'||d.q==='haute')?d.q:'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
        suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
-    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&d.q==='net'))?1:0;if(!c.qChoisi)c.q=PAL.b('qNetDefaut',0)?'net':'fast';
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=PAL.b('qNetDefaut',0)?'net':'fast';
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
@@ -54605,7 +54616,7 @@ function loop(now){
          combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
       else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
       else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
-  else if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5;
+  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5; /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
        floute pas l'image pour rien. */
@@ -56779,7 +56790,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   TCTL.on=true;
   AUTO_GAS=true; // GAZ AUTOMATIQUE : deux pouces, pas trois — ça pousse tout seul, on gère la trajectoire
   TCTL.pad=false;SAVE.d.tctl='stick'; // ⚠ (2026-09-25) le réglage COMMANDES est retiré : tout le monde au VOLANT (un joueur resté sur « flèches » ne pourrait plus en sortir)
-  setTimeout(function(){applyQ(SAVE.d.q!=='net');},0); // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
+  setTimeout(function(){applyQ(SAVE.d.q==='fast');},0); // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
   document.body.classList.toggle('tpad',TCTL.pad);
   SANDBOX=BALADE;SAVE.d.sand=false; // ⚠ UN SEUL MODE (2026-09-25, user) : le bac à sable, le parc et le Survivant sont retirés de l'interface — une ancienne sauvegarde ne doit pas en rallumer un en douce
   const $t=function(i){return document.getElementById(i);};
@@ -57011,6 +57022,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // comme sur l'ordi en `?tel=1`. À 0,66 un iPhone rendait l'image sur ~260 px de large : c'était LA pixellisation.
   // Le plafond peut monter sans risque parce que la résolution adaptative redescend si le GPU peine — et
   // qu'elle sait maintenant REMONTER (voir la boucle).
+  try{if(!I18N['HAUTE'])I18N['HAUTE']='HIGH';}catch(e){} /* (OPTIMISATION) le 3e choix du réglage IMAGE (voir L'IMAGE EN AUTOMATIQUE) */
   function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
     qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
@@ -57029,7 +57041,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='vox')e.innerHTML=tpLbl('voix','VOIX',SND.voice?'ON':'OFF',SND.voice);
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
-      else if(a==='q'){const f=SAVE.d.q!=='net';e.innerHTML=tpLbl('eclair','IMAGE',f?'RAPIDE':'NETTE',true);}
+      else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
       else if(a==='volh')/* (2026-10-14, charte 6) « POUCE HAUT » seul, comme dans les réglages : la ligne tient sur 246 px (iPhone 7 couché) */e.innerHTML=tpLbl('aile',document.documentElement.classList.contains('c6')?'POUCE HAUT':'POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
@@ -57077,7 +57089,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=false;
       document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
+    else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); panSync(); }
     else if(a==='volh'){ volhBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
@@ -57398,7 +57410,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvFacile',SAVE.d.facile?'ON':'OFF',!!SAVE.d.facile);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
-      sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
+      sv('mvQ',TR(qLbl()),true);
       sv('mvLang',LANG.toUpperCase(),true);
 
       {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=false;e9.textContent=on9?'+'+fmtC(500):TR('REVOIR');}} /* (2026-10-14, charte 6) la ligne s'appelle AUTO-ECOLE, sa valeur dit le geste (REVOIR) — ou la prime */ // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit
@@ -57474,7 +57486,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q!=='net'); mFill(); }
+    else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); mFill(); }
     else if(a==='exp'){ const c9=SAVE.export();
       modale({titre:'MA SAUVEGARDE',texte:'Garde ce code : il restaure toute ta progression.',champ:c9,lecture:true,
         boutons:[{l:'COPIER',ic:'copier',cls:'pb-gold',v:1},{l:'FERMER',v:0}]}).then(function(r){
@@ -57586,7 +57598,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
       else if(a==='snd')e.innerHTML=tpLbl(SND.sfx?'son':'muet','SON',SND.sfx?'ON':'OFF',SND.sfx);
       else if(a==='vox')e.innerHTML=tpLbl('voix','VOIX',SND.voice?'ON':'OFF',SND.voice);
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
-      else if(a==='q'){const f=SAVE.d.q!=='net';e.innerHTML=tpLbl('eclair','IMAGE',f?'RAPIDE':'NETTE',true);}
+      else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
       else if(a==='volh')e.style.display='none'; /* (R7-5) au clavier ce réglage ne change rien (volSens ne touche que le pouce) : pas de ligne qui ment */
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=dPan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
@@ -57604,7 +57616,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='snd'){dClic(sndBtnEl);dPanSync();}
     else if(a==='vox'){dClic(voxBtnEl);dPanSync();}
     else if(a==='mus'){dClic(musBtnEl);dPanSync();}
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q!=='net'); dPanSync(); }
+    else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q==='fast'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'){ dPanOpen(false); if(started){carrIci();resetGame();} } // (2026-09-28) carrIci : la carrière repart du niveau en cours
