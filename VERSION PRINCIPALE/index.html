@@ -13766,11 +13766,12 @@ window.dbgCrypto=function(k,v){ // console : l'état de CRYPTOCITY · ('ath') un
    image. `PLA.dens` (0 → 1, une part des objets) : à CRYPTOCITY une pluie de fond (.5), une AVERSE (1) à chaque NOUVEL ATH et à chaque
    pièce géante traversée ; ailleurs elle remplace l'averse de glyphes (même déclencheur : startMoneyRain). */
 const PLA={N:IS_MOBILE?900:1400,NP:IS_MOBILE?220:360,B:new THREE.Vector3(120,70,160),dens:0,surge:0,mB:null,mP:null,u:null,c:new THREE.Vector3(),f:new THREE.Vector3()};
+PAL.B.memTexBillets=[.5,1,1]; // (2026-10-14, passe perf mobile) l'échelle de l'atlas des billets de la PLUIE : 1024 × 384 au palier ancien (un billet qui tombe fait quelques dizaines de pixels à l'écran) — 8,4 Mo de puce → 2,1 Mo ; paliers 1-2 : 2048 × 768 comme avant
 function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie de richesse) + le billet ₿ · la rangée du bas : les confettis
   if(PLA.texB)return PLA.texB;
-  const cv=document.createElement('canvas');cv.width=2048;cv.height=768;const x=cv.getContext('2d');
+  const kT=PAL.b('memTexBillets',1),cv=document.createElement('canvas');cv.width=2048*kT;cv.height=768*kT;const x=cv.getContext('2d');if(kT!==1)x.scale(kT,kT); // (2026-10-14, passe perf mobile) même dessin, mêmes coordonnées, toile taillée au palier
   for(let k=0;k<8;k++){let t=null;try{t=k<7?richTexBillet(RICH_BILLETS[k]):plaBilletBtc();}catch(e){}
-    if(t&&t.image)x.drawImage(t.image,(k%4)*512,Math.floor(k/4)*256+10,512,236);if(t&&t.dispose)t.dispose();}
+    if(t&&t.image)x.drawImage(t.image,(k%4)*512,Math.floor(k/4)*256+10,512,236);if(t&&t.image)toileRend(t.image);if(t&&t.dispose)t.dispose();} // (2026-10-14, passe perf mobile) les 8 toiles de travail 512 × 236 (3,9 Mo) rendues tout de suite : elles ne vont jamais à la puce
   ['#2bff88','#ffd23e','#ffffff','#ff9a2e'].forEach(function(c,i){const g=x.createLinearGradient(i*512,512,i*512+512,768);g.addColorStop(0,c);g.addColorStop(1,'#ffffff');x.fillStyle=c;x.fillRect(i*512+40,552,432,176);x.globalAlpha=.35;x.fillStyle=g;x.fillRect(i*512+40,552,432,60);x.globalAlpha=1;});
   const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=texLibere(t);return t; // (2026-10-14, passe perf mobile) 2048 × 768 : 6,3 Mo rendus après l'envoi (paliers 0-1)
 }
@@ -13789,7 +13790,7 @@ function plaBilletBtc(){ // le billet de CRYPTOCITY : vert billet et or, un ₿ 
 function plaTexPieces(){ // l'atlas des pièces : en haut la ₿ (la pièce de la pluie de richesse), en bas l'Ξ d'argent bleuté
   if(PLA.texP)return PLA.texP;
   const cv=document.createElement('canvas');cv.width=512;cv.height=512;const x=cv.getContext('2d');
-  try{const b=richTexBtc();x.drawImage(b[0].image,0,0,512,256);for(const t of b)t.dispose();}catch(e){x.fillStyle='#e8a030';x.fillRect(0,0,512,256);}
+  try{const b=richTexBtc();x.drawImage(b[0].image,0,0,512,256);for(const t of b){toileRend(t.image);t.dispose();}}catch(e){x.fillStyle='#e8a030';x.fillRect(0,0,512,256);}
   x.fillStyle='#9aa6c8';x.fillRect(0,256,512,256);
   for(const cx of [128,384]){const cy=256+122,R=120;const G=x.createRadialGradient(cx-38,cy-40,10,cx,cy,R);G.addColorStop(0,'#f4f7ff');G.addColorStop(1,'#7c88b0');x.fillStyle=G;x.beginPath();x.arc(cx,cy,R,0,6.283);x.fill();
     x.lineWidth=8;x.strokeStyle='rgba(255,255,255,.4)';x.beginPath();x.arc(cx,cy,R*.95,0,6.283);x.stroke();
@@ -45386,6 +45387,7 @@ function richInit(){
   Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
+  for(const k9 in M)for(const m9 of [].concat(M[k9]))if(m9&&m9.uniforms)for(const u9 in m9.uniforms){const v9=m9.uniforms[u9].value;if(v9&&v9.isCanvasTexture)texLibere(v9);} // (2026-10-14, passe perf mobile) les ~30 toiles de la pluie de richesse (pièces, billets, jetons, carte, montre, liasse : ~14 Mo), peintes UNE fois ici et plus jamais relues (la liasse a déjà recopié son billet) : rendues après l'envoi (paliers 0-1)
   for(const t in RICH_CAP){RICH.libres[t]=[];for(let i=0;i<RICH_CAP[t];i++){let m;
       if(t==='fruit'){const fg=fruitGeo(i%FRUIT_DEFS.length);m=new THREE.Mesh(fg,FRUIT_MAT);} // les fruits de la piste, leur matière (déjà compilée)
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
