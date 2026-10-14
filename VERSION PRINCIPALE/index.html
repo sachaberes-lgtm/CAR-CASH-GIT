@@ -7906,13 +7906,12 @@ html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{di
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
 }
 /* (2026-10-14, vu au banc) COUCHÉ : la fiche s'arrête 8 px AVANT la plaque (à 48 % elle passait dessous de 24 px à 844 et de 36 px à 667 : un nom long y aurait disparu).
-   Sous 700 px de large il reste ~150 px au nom : il passe à 12 px sur des lignes de 16 (12 lettres × 12 = 144 : « TOUT-TERRAIN » tient sans être coupé). */
+   (le passage du nom à 12 px sous 700 px de large est retiré par l'accord : voir plus bas) */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:calc(100% - var(--sR) - 24px - min(48%,400px))!important}
 }
-@media (orientation:landscape) and (max-height:540px) and (max-width:700px){
-  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName{font-size:12px!important;line-height:16px!important}
-}
+/* (accord n° 24) le nom reste au pixel 16 couché étroit aussi : mesuré à 667 × 375 (zones 47), la fiche garde 213 px, la plaque 197 px au nom — le plus long mot
+   d'une caisse en jeu, SILENCIEUSE, fait 176 px ; les noms composés (CAISSE-NUAGE, POP-TART) se coupent au trait d'union. Plus de pixel 12. */
 /* (2026-10-14, vu au banc, grille pleine SIMULÉE de 14 cartes) dès que la grille déborde, ses rangées « auto » retombaient à la hauteur mini des cartes (48 px) alors que les
    cartes gardent leur 16/10 (77 px) : elles se CHEVAUCHAIENT. Les rangées prennent la hauteur vraie des cartes ; la grille défile. */
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip{grid-auto-rows:max-content!important}
