@@ -553,6 +553,21 @@ D('combo.sceau',{fam:'figures',dur:1.3,st:1,key:1,db:+2,max:1,cd:.3,v:4,pre:1,ba
       for(let i=0;i<b.n;i++){b.L[i]+=t.L[i];if(b.R)b.R[i]+=t.R[i];}
       crepite(b,R,0,.45,14,.35,400,3000);clic(b,{t0:0,f:3000,d:.006,v:.35},R);}
   }});
+/* (2026-10-14, session SON — le son par figure, étape 2) LES FIGURES DES MONDES. Celles de LA BANQUISE et de l'eau payaient le même maillon
+   que tout le reste : chacune a sa phrase, dans la matière de son monde (la glace tinte et glisse, la poudreuse feutre, l'eau fait des bulles),
+   sur l'échelle du vol (la note = le degré du maillon, st). Une variante par figure — l'ordre est celui de FIG_MONDE dans le jeu. */
+D('fig.monde',{fam:'figures',dur:.9,st:1,key:1,db:-1,max:3,cd:.04,v:9,pre:1,bases:[0,12],dit:'la SIGNATURE d’une figure de monde : 0 TREMPLIN DE GLACE · 1 GLISSE / SUR LE PIC · 2 POUDREUSE · 3 TRACE PARFAITE · 4 PATINOIRE · 5 DÉRAPAGE GLACE · 6 RICOCHET · 7 PLONGEON · 8 SURF',
+  r:function(b,R,o){const f=nE(12+o.base),P=function(k,t,v,d,pan){pluck(b,R,f*k,t,v,d||.4,1,pan||0);},G=function(k,t,v,d,pan){cloche(b,{f:f*k,r:[1,2.01,3.98],m:[1,.35,.15],d:[d||.5,.2,.08],t0:t,v:v,pan:pan||0},R);};
+    if(o.v===0){osc(b,{f:f,f1:f*2,g:.18,gc:.6,w:'sin',t0:0,a:.005,h:.1,d:.2,v:.18});G(2,.17,.32,.6,0);clic(b,{t0:.17,f:6000,d:.003,v:.2},R);} /* TREMPLIN DE GLACE : ça s'envole, et le verre tinte en haut */
+    else if(o.v===1){osc(b,{f:f*1.5,f1:f,g:.3,gc:.5,w:'sin',t0:0,a:.01,h:.15,d:.25,v:.14,vib:[7,.006]});G(1,0,.3,.45,-.3);} /* GLISSE : la note qui glisse sur la glace */
+    else if(o.v===2){bruit(b,{c:'r',t0:0,a:.03,d:.3,v:.32,ft:'lp',f:2200,f1:700,g:.3,q:.7,pan:-.4,pan1:.4},R);P(1,.04,.36,.35,0);} /* POUDREUSE : un souffle feutré, la note étouffée */
+    else if(o.v===3){G(1,0,.32,.45,-.4);G(1.5,.08,.3,.55,.4);scintille(b,R,.08,.4,6,.08,38,48);} /* TRACE PARFAITE : deux tintements nets, une pincée d'or */
+    else if(o.v===4){for(let k=0;k<2;k++)bruit(b,{c:'b',t0:k*.11,a:.005,d:.09,v:.24,ft:'hp',f:5000,f1:2500,g:.09,q:.8,pan:k?.5:-.5},R);G(1,.02,.28,.4,-.3);G(1.25,.13,.26,.45,.3);} /* PATINOIRE : deux coups de lame, deux notes */
+    else if(o.v===5){bruit(b,{c:'r',t0:0,a:.01,d:.32,v:.3,ft:'bp',f:3200,f1:1400,g:.3,q:2.2,pan:-.6,pan1:.6},R);P(1,.06,.4,.35,0);} /* DÉRAPAGE GLACE : la lame qui racle, puis la note */
+    else if(o.v===6){bulle(b,R,0,f*.5,f*1.5,.08,.3,-.3);bulle(b,R,.07,f*.75,f*2,.07,.24,.3);P(1,.12,.38,.3,0);} /* RICOCHET : deux bulles qui rebondissent, la note */
+    else if(o.v===7){bulle(b,R,0,f*.5,f*.25,.25,.34,0);bruit(b,{c:'n',t0:0,a:.01,d:.3,v:.4,ft:'lp',f:700,f1:250,g:.3,q:.7},R);P(.5,.12,.4,.45,0);} /* PLONGEON : on coule, la note grave */
+    else{swish(b,R,0,.45,600,2400,.26,-.7,.7,.9);P(1,.08,.4,.3,-.2);P(1.5,.18,.36,.4,.2);} /* SURF : la vague qui passe, la quinte qui glisse dessus */
+  }});
 D('pose.lourde',{fam:'pose',bus:'fx',dur:.9,db:+2,max:1,cd:.2,grp:'r',prio:2,dit:'POSÉ LOURD : la tôle qui encaisse — craquement + ressorts en butée + grave sale',
   r:function(b,R,o){coup(b,R,o,0,1,1400,90,40,.4);tole(b,R,.005,190,.3,.5);tole(b,R,.04,135,.22,.4);
     bruit(b,{c:'r',t0:0,a:.002,d:.25,v:.4,ft:'bp',f:900,q:1.5,am:[38,.8]},R);osc(b,{f:98,f1:92,g:.3,w:'saw',t0:.02,a:.01,d:.4,v:.08,flt:['lp',600,300,.3]});}});
