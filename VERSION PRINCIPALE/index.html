@@ -36687,7 +36687,7 @@ const SAVE={
    rattrape le miroir ; réponse pleine → 2 : plus AUCUNE écriture jusqu'au rechargement (le passage en arrière-plan qui accompagne
    un rechargement flushait la sauvegarde vierge PAR-DESSUS celle qu'on venait de semer). Lecture en échec : on reste à 1 — on
    n'écrase pas un secours qu'on n'a pas pu lire. Et on ne recharge que si le localStorage a GARDÉ la valeur (sinon : boucle). */
-if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!localStorage[SAVE.K]){
+if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object';}catch(e){return false;}})()){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
   SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     if(r&&r.value){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
