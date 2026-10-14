@@ -105,7 +105,7 @@ function etude(nom,P,opt,N,seed){const rnd=mulberry(seed);const ach=[],banques=[
   for(let i=0;i<N;i++){const c=carriere(P,opt,rnd);ach.push(c.achat||99);dist[c.achat||'30+']=(dist[c.achat||'30+']||0)+1;for(let j=0;j<6;j++)banques[j].push(c.tab[j]!==undefined?c.tab[j]:c.tab[c.tab.length-1]);}
   const cumul=(function(){const o={};let c=0;for(let n=1;n<=30;n++){c+=dist[n]||0;o[n]=Math.round(100*c/N);}return o;})();
   return {nom,ach:quantiles(ach),dist,banques:banques.map(b=>quantiles(b).med),cumul};}
-module.exports={PROFILS,carriere,etude,partie,ECOD_PRIX,PEINTURE_MIN,OPT_C2,OPT_C2_MOITIE,mulberry};
+module.exports={PROFILS,carriere,etude,partie,ECOD_PRIX,PEINTURE_MIN,OPT_C2,OPT_C2_MOITIE,mulberry,C1,C2,PERMIS,ECOD_K,quantiles,ECO3,SRC}; // (2026-10-14, GAMEPLAY, LE RETOUR DU JOUR) + C1 C2 PERMIS ECOD_K quantiles ECO3 SRC : outils/jour-modele.cjs rejoue les memes parties jour apres jour
 
 if(require.main===module){
   const N=+(arg('n')||4000),seed=+(arg('seed')||7),prix=PEINTURE_MIN.p,K=ECOD_K;
