@@ -14835,6 +14835,11 @@ try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[700,900,1150],foret
   foretLuc:[300,560,900],foretFollets:[8,11,14],foretTex:[.5,.75,1],foretLierre:[0,1,1],foretChampi:[0,1,1],foretSolCh:[999,64,64],foretPres:[1,0,0]});}catch(e){}
 /* ---------------- LA ROUTE : LE SLALOM QUI DESCEND ---------------- */
 function genForet(rnd){
+  /* (2026-10-14 soir, v2 — Sacha : « le but du jeu, c'est les RACCOURCIS » · « un jeu de COURSE, pas de balade » ; règle commune :
+     passation/RACCOURCIS.md, banc cc-banc/raccourcis.cjs) LA DESCENTE AUX BOUCLES. Des virages SERRÉS qui s'enchaînent (rayon 80-230 m,
+     jamais de droite de plus de 330 m), et six BOUCLES À FILET : la route plonge dans un grand tour (360°) autour d'un SÉQUOIA-TOUR et
+     ressort SOUS l'entrée de la boucle, 44 m à l'EXTÉRIEUR du virage, dans le même sens, ~60 m plus bas. Au début de la boucle, on sort
+     par le bord extérieur : on tombe sur la route d'en dessous, droit devant — un tour entier de gagné (~1 km). Rater, c'est le vide. */
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
   let P=new THREE.Vector3(0,0,0),phi=0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
@@ -14842,40 +14847,61 @@ function genForet(rnd){
   const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}};
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
-  const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),LIM=72*Math.PI/180;
+  const LV=Math.min(4.4,typeof lvPiste==='function'?lvPiste():1),LIM=72*Math.PI/180;
+  /* L'ÉCHELLE DU PALIER (RACCOURCIS.md, Sacha : « plus la vitesse est élevée, plus les virages doivent être larges ») : les rayons × rayonPalier()/63
+     (63 m au palier 0 → 172 m au 27), les longueurs de saut × vPalier()/70 — en attendant ces deux fonctions, la même pente tirée de lvPiste. */
+  const vP9=70+(LV-1)*100; // = vPalier() : lvPiste en est l'image exacte (lvPiste = 1 + (vPalier − 70)/100)
+  let kR=(40+.3*vP9)/63,kV=vP9/70;try{if(typeof rayonPalier==='function')kR=rayonPalier()/63;if(typeof vPalier==='function')kV=vPalier()/70;}catch(e){}
+  kR=Math.max(1,Math.min(2.8,kR||1));kV=Math.max(1,Math.min(3.2,kV||1));
   const slalom=len=>{let sg=rnd()<.5?-1:1,n=0,fait=0;
     while(fait<len){
       if(rnd()<.84)sg=-sg;                                                   // le plus souvent on change de côté : c'est un SLALOM
-      let a=34+rnd()*48,R=(190+rnd()*170)*LV;
-      if(rnd()<.13){R=(150+rnd()*40)*LV;a=24+rnd()*16;}                    // la CHICANE : deux portes serrées
+      let a=50+rnd()*55,R=(95+rnd()*105)*kR;
+      if(rnd()<.32){R=(76+rnd()*26)*kR;a=30+rnd()*24;}                     // le SERRÉ : volant à fond
       const lib=(LIM-sg*phi)*57.2958;if(lib<20){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
       arc(sg*a,R);fait+=R*a/57.2958;n++;
-      if(rnd()<.45){const l=(30+rnd()*110)*Math.sqrt(LV);droite(l);fait+=l;}
-      if(n%6===5){const l=(220+rnd()*160)*Math.sqrt(LV);droite(l);fait+=l;}} // une RESPIRATION : la ligne où l'on voit loin dans la descente
+      if(rnd()<.25){const l=(30+rnd()*80)*kV;droite(l);fait+=l;}                 // l'ENCHAÎNEMENT : jamais plus de 130 m entre deux virages…
+      if(n%6===5){const l=(160+rnd()*110)*kV;droite(l);fait+=l;}}               // …sauf la RESPIRATION, où l'on voit loin dans la descente (≤ 270 m)
     };
-  push();ici('depart');droite(340,4);
-  slalom(2300*(.8+.2*LV)+rnd()*500);
-  {const a=-phi*57.2958*.8;if(Math.abs(a)>5)arc(a,520*LV);}               // l'ARCHE se prend plutôt dans l'axe de la vallée
-  droite(260,3);ici('arche0');droite(170,2);ici('arche');droite(170,2);ici('arche1');droite(200,2);
-  slalom(2300*(.8+.2*LV)+rnd()*500);
-  droite(420,5);ici('fin');droite(160,2);
-  /* LE RELIEF : TOUJOURS EN DESCENTE. La pente (positive = on descend) ondule entre 4 et 11 % ; trois PLONGEONS (un replat de 140 m
-     puis 17-20 % sur 190 m : la cassure fait décoller la caisse lancée) ; les 380 premiers mètres en douceur (le départ, le portail) ;
-     l'arche sur un replat à 5 %. Intégrée tous les 10 m : aucun point ne remonte. */
+  // LA BOUCLE À FILET : demi-tour de rayon R, puis demi-tour de rayon R+dR — la route revient au cap d'entrée, 2·dR à l'extérieur
+  const BO=[];
+  const boucle=()=>{const sg=phi>0?-1:phi<0?1:(rnd()<.5?-1:1),R=(72+rnd()*24)*kR,dR=66; // (le côté qui ramène vers l'axe de la vallée)
+    droite((90+rnd()*40)*kV,2);                                              // l'APPROCHE : la boucle et sa route d'en dessous se voient venir
+    const i0=ctrl.length-1,c=P.clone().addScaledVector(new THREE.Vector3(Math.cos(phi),0,-Math.sin(phi)),sg*R),ph0=phi;ici('boucle'+BO.length);
+    arc(sg*180,R);droite(45,1);arc(sg*180,R+dR);phi=ph0;                                   // (le cap revient, à 2π près : on le replie pour le limiteur du slalom)
+    const i1=ctrl.length-1;droite((205+rnd()*30)*kV,3);                           // la ROUTE D'EN DESSOUS, droit devant, sous l'entrée de la boucle
+    BO.push({i0:i0,i1:i1,c:c,R:R,sg:sg,e:ctrl[i0],g:Math.max(.045,Math.min(.075,48/(Math.PI*(2*R+dR))))});MODMARK.push({i0:i0,i1:i1});};
+  push();ici('depart');droite(300,4);
+  const NB=6;
+  for(let b=0;b<NB;b++){
+    slalom((280+rnd()*130)*(.85+.15*LV));
+    if(b===3){ // L'ARCHE, une fois, entre la 3e et la 4e boucle, dans l'axe de la vallée
+      {const a=-phi*57.2958*.8;if(Math.abs(a)>5)arc(a,Math.min(230,200*kR));}
+      droite(50,1);ici('arche0');droite(100,2);ici('arche');droite(100,2);ici('arche1');droite(40,1);slalom(150+rnd()*80);}
+    boucle();}
+  slalom(200+rnd()*100);
+  droite(220,3);ici('fin');droite(120,2);
+  /* LE RELIEF : TOUJOURS EN DESCENTE. La pente ondule entre 5 et 10 % ; deux ou trois PLONGEONS (replat de 140 m puis 17-20 % sur 190 m :
+     la cassure fait décoller la caisse lancée), jamais dans une boucle ; dans les BOUCLES la pente qui donne ~50 m de chute sur le tour (4-7 % : la route d'en
+     dessous passe sous l'entrée de la boucle avec de la marge, et le sol de la vallée reste sous la dalle du bas) ; les 300 premiers mètres
+     en douceur ; l'arche sur un replat à 5 %. Intégrée tous les 10 m : aucun point ne remonte. */
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
   const Ltot=acc,ph1=rnd()*6.283,ph2=rnd()*6.283;
   const sDe=v=>{let bi=0,bd=1e18;for(let k=0;k<ctrl.length;k++){const d=(ctrl[k].x-v.x)**2+(ctrl[k].z-v.z)**2;if(d<bd){bd=d;bi=k;}}return sOf[bi];};
-  const sA=Q.arche?sDe(Q.arche.p):-1e9,plg=[];
-  {const n=2+((rnd()*2)|0);for(let k=0;k<n;k++){const s0=900+(Ltot-2300)*(k+.25+rnd()*.5)/n;if(Math.abs(s0-sA)>520&&s0<Ltot-900)plg.push(s0);}}
-  const pente=s9=>{let g=.072+.026*Math.sin(s9/950*6.283+ph1)+.014*Math.sin(s9/380*6.283+ph2);
+  const sA=Q.arche?sDe(Q.arche.p):-1e9,plg=[],BS=BO.map(function(o){return [sOf[o.i0],sOf[o.i1],o.g];});
+  const dansB=(s9,m)=>BS.some(function(b){return s9>b[0]-m&&s9<b[1]+m;});
+  {const n=2+((rnd()*2)|0);for(let k=0;k<n;k++){const s0=900+(Ltot-2300)*(k+.25+rnd()*.5)/n;if(Math.abs(s0-sA)>520&&s0<Ltot-900&&!dansB(s0,260)&&!dansB(s0+190,120))plg.push(s0);}}
+  const pente=s9=>{let g=.075+.018*Math.sin(s9/950*6.283+ph1)+.008*Math.sin(s9/380*6.283+ph2);
     for(const s0 of plg){const u=s9-s0;if(u>-140&&u<0)g=Math.min(g,.025);else if(u>=0&&u<190)g=.175+.025*Math.sin(u/190*Math.PI);}
-    if(s9<380)g=.03+(g-.03)*THREE.MathUtils.smoothstep(s9,240,380);
-    if(Math.abs(s9-sA)<340)g=.05;
+    for(const b of BS)if(s9>=b[0]&&s9<=b[1])g=b[2]; // ~50 m de chute sur le tour, à toutes les échelles
+    if(s9<300)g=.03+(g-.03)*THREE.MathUtils.smoothstep(s9,180,300);
+    if(Math.abs(s9-sA)<300)g=.05;
     return Math.max(.035,g);};
   let y=0;ctrl[0].y=0;
   for(let k=1;k<ctrl.length;k++){const a=sOf[k-1],b=sOf[k],n=Math.max(1,Math.ceil((b-a)/10));for(let j=0;j<n;j++){const s9=a+(b-a)*(j+.5)/n;y-=pente(s9)*(b-a)/n;}ctrl[k].y=y;}
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=(ctrl[j].x-o.p.x)**2+(ctrl[j].z-o.p.z)**2;if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
-  FORET.Q=Q;FORET.plg=plg;
+  for(const o of BO)o.c.y=ctrl[o.i1].y;
+  FORET.Q=Q;FORET.plg=plg;FORET.boucles=BO;
   return ctrl;
 }
 /* ---------------- L'ATELIER DES ARBRES : un petit maillage indexé (position, normale, aA, aC, aB) ----------------
@@ -15594,6 +15620,8 @@ function buildForet(seed){
     if(pres)continue;sd=-sd;const sp=ge[(fr()*ge.length)|0];geant(i,sd,ROAD_HALF+6+FOR_GEANT_RR[sp]*1.05+fr()*22,sp);}}
   /* LES SÉQUOIAS-TOURS (2026-10-14 soir) : une COLONNADE le long de toute la descente — un fût tous les 55-95 m, d'un côté puis de
      l'autre, au ras du bord (la route serpente entre les troncs), et un second rang plus loin qui ferme la vallée comme des immeubles. */
+  for(const o of FORET.boucles||[]){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(o.e);if(d<bd){bd=d;bi=i;}}
+    geant(bi,-o.sg,o.R,'sequoia');} // LE SÉQUOIA DE LA BOUCLE : au centre du premier demi-tour, la route tourne autour de lui
   {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=55+fr()*40){const i=Math.round(s9/ds);sd=-sd;
      geant(i,sd,ROAD_HALF+FOR_GEANT_RR.sequoia*1.3+4+fr()*26,'sequoia');}
    for(let s9=340;s9<L-200;s9+=95+fr()*70)for(const sg of [-1,1])if(fr()<.8)geant(Math.round(s9/ds),sg,ROAD_HALF+70+fr()*120,'sequoia');}
