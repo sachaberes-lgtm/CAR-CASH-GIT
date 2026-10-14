@@ -180,10 +180,12 @@ html.colonne.labNuages:not(.debout) #tourne{left:calc((100% - var(--labPW,0px))/
 html.colonne.labNuages.debout #tourne{right:calc(var(--labPW,0px) + 16px)}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 /* ---------- LA BARRE D'ONGLETS #n7Bar (posée par le script, hors de l'overlay : elle reste quand l'atelier change de mode) ----------
+   z-index 88 : au-dessus de tout le décor de l'atelier (la jauge #gTourne à 82, couchée en bas à gauche, mangeait les touches de la barre ;
+   les boutons du burn-out à 86, à droite), sous la fenêtre d'achat (94), les fenêtres (95), le message (96) et le rideau (300).
    Une SURFACE (encre, filet sourd en haut), quatre onglets égaux : icône + MOT (13/800 capitales) ; l'onglet où l'on est = face BLANCHE,
    texte d'encre (la grammaire des onglets de la charte 6). Elle ne vit que là où l'on choisit (html.n7on, posée par n7Tick). */
 html.nav7 #n7Bar,html.nav7 #n7Bank{display:none}
-html.nav7.n7on #n7Bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;box-sizing:border-box;height:calc(var(--sB) + var(--n7H));margin:0;
+html.nav7.n7on #n7Bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:88;box-sizing:border-box;height:calc(var(--sB) + var(--n7H));margin:0;
   padding:4px calc(var(--sR) + 16px) calc(var(--sB) + 4px) calc(var(--sL) + 16px);gap:4px;align-items:stretch;
   background:var(--c6-e0);box-shadow:inset 0 2px 0 0 var(--c6-e3)}
 html.nav7 #n7Bar .n7T{flex:1 1 0;min-width:0;height:48px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
@@ -199,7 +201,7 @@ html.nav7 #n7Bar .n7T:focus-visible{box-shadow:inset 0 0 0 2px var(--c6-or)}
   html.nav7.n7on #n7Bar{right:calc(var(--sR) + var(--n7DecW) + 32px);padding-right:16px}
   html.nav7 #n7Bar .n7T{flex:1 1 0;max-width:140px;flex-direction:row;gap:8px}}
 /* ---------- L'ARGENT ET L'AURA #n7Bank : en haut à droite de tous les onglets, ce qu'on LIT (pas une touche) ---------- */
-html.nav7.n7on #n7Bank{display:flex;position:fixed;z-index:70;top:calc(var(--sT) + 16px);right:calc(var(--sR) + 16px);gap:8px;pointer-events:none}
+html.nav7.n7on #n7Bank{display:flex;position:fixed;z-index:88;top:calc(var(--sT) + 16px);right:calc(var(--sR) + 16px);gap:8px;pointer-events:none}
 html.nav7 #n7Bank>span{display:flex;align-items:center;gap:6px;height:32px;padding:0 10px;box-sizing:border-box;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);
   font:800 13px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap}
 html.nav7 #n7Bank .n7Cash{color:var(--c6-cash)}
