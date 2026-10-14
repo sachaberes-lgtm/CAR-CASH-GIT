@@ -7663,7 +7663,7 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.quiet):not(.launch
 html.c6 body #garage.atelierInv>#gC6Tete>.c6Titre:not(#gC6TitreInv){display:none}
 html.c6 body #garage.atelierInv>#gC6Tete>#gC6TitreInv{display:block}
 /* la fiche, comme au hub (sans l'œil : l'atelier tient la caisse) */
-html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{box-sizing:border-box;width:48%!important;max-width:none!important;margin:0!important;padding:calc(var(--sT) + 72px) 0 0 calc(var(--sL) + 16px)!important;background:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{box-sizing:border-box;width:100%!important;max-width:none!important;margin:0!important;padding:calc(var(--sT) + 72px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important;background:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop>:is(#gTopRow,#gAuraC,#gVJ,#gPlayMain,#gCarr){display:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop::after{content:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard{display:grid!important;grid-template-columns:minmax(0,max-content) max-content;grid-template-rows:48px;justify-content:start;align-items:center!important;gap:12px 16px!important;width:100%!important;margin:0!important;padding:0!important;
@@ -7679,9 +7679,9 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill{displa
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill::after{content:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>:is(#gMeta,#gDesc){grid-column:1/-1;margin:0!important;letter-spacing:0!important;font-style:normal!important;transform:none!important;text-shadow:0 2px 0 #000!important}
 /* la plaque : sous l'en-tête, calée à droite jusqu'en bas ; RETOUR (#gvCof, tout #gAct), le bandeau « INVENTAIRE · n » (#gRar : le titre est en haut) et le rappel s'effacent */
-html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{position:absolute!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:stretch!important;gap:8px!important;box-sizing:border-box;
-  top:calc(var(--sT) + 72px)!important;right:calc(var(--sR) + 16px)!important;bottom:calc(var(--sB) + 16px)!important;left:auto!important;width:min(48%,400px)!important;height:auto!important;max-width:none!important;max-height:none!important;
-  margin:0!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important;clip-path:none!important;transform:none!important;translate:none!important;animation:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{position:relative!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:stretch!important;gap:8px!important;box-sizing:border-box;
+  top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;flex:none!important;align-self:stretch!important;width:auto!important;height:min(40vh,360px)!important;max-width:none!important;max-height:none!important;
+  margin:0 calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px)!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important;clip-path:none!important;transform:none!important;translate:none!important;animation:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom::after{content:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom>:is(#gRar,#gAct,#gPrev,#gNext,#gRappel){display:none!important}
 /* les onglets : une rangée de 48 px posée sur un filet blanc ; l'actif = face blanche, texte d'encre (pas une couleur) ; le mot seul, entier */
@@ -7725,12 +7725,19 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.on{box-shad
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq{background:var(--c6-b0)!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq>b,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq .gIc{color:var(--c6-e0)!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gVide{grid-column:1/-1;display:flex;align-items:center;justify-content:center;min-height:48px;font-family:var(--pix);font-size:8px!important;letter-spacing:0!important;color:var(--c6-g1)!important;text-shadow:none!important;transform:none!important}
+/* COUCHÉ (la même condition que la console de l'ancienne feuille : là, la jauge de Léo est fixe en bas à gauche) : la plaque à droite, de l'en-tête au bas ; la fiche à gauche.
+   Ailleurs (debout, tablette) la plaque reste DANS LE FLUX, en bas : la jauge (#gTourne, rangée dans #garage par gtPlace) reste posée juste au-dessus d'elle. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{position:absolute!important;top:calc(var(--sT) + 72px)!important;right:calc(var(--sR) + 16px)!important;bottom:calc(var(--sB) + 16px)!important;width:min(48%,400px)!important;height:auto!important;margin:0!important}
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:48%!important;padding-right:0!important}
+}
+/* (2026-10-14, ordre de Sacha) plus AUCUN surnom / nom de rang d'aura à l'écran (« DIVINITE DU CIEL »…) ni sa jauge : seulement le chiffre, en violet. Les nœuds restent (le script les écrit). */
+html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{display:none!important}
 @media (orientation:landscape) and (min-width:800px){
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{font-size:10px!important} /* 8 lettres × 10 = 80 px dans 96 : tient ; en dessous (667) on reste à 8 */
 }
-/* DEBOUT : la plaque en bas, de marge à marge ; la fiche sous l'en-tête à deux étages ; INVENTAIRE (10 lettres) passe à 12 px pour ne pas toucher les comptes */
+/* DEBOUT : la fiche sous l'en-tête à deux étages ; INVENTAIRE (10 lettres) passe à 12 px pour ne pas toucher les comptes */
 @media (orientation:portrait){
-  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{top:auto!important;left:calc(var(--sL) + 16px)!important;width:auto!important;height:min(40vh,360px)!important}
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
   html.c6 body #garage.atelierInv>#gC6Tete>#gC6TitreInv{font-size:12px}
 }
