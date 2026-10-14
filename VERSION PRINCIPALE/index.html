@@ -20079,6 +20079,7 @@ function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète)
   LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'&&!c.crypto?1:0;LVL.cryptoDe=LVL.crypto;LVL.cryptoA=c&&c.crypto?1:0;LVL.nuitDe=LVL.nuit;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage'||c.crypto)&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.k=0;LVL.dur=dur||4;
+  if(c&&c.espace)LVL.dirVif=.9; // (2026-10-14, passe graphismes · hasard) on ENTRE en orbite (portail ou REJOUER) : la planète rejoint sa place sous le fondu (voir lvlPlanete)
   if(LVL.dur<=.05)lvlStep(1);
 }
 function lvlStep(dt){
@@ -20107,7 +20108,8 @@ function lvlPlanete(dt){
   const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
   if(t.lengthSq()<1e-6)t.copy(LVL.dir);
   t.normalize().applyAxisAngle(LVL.haut,.5);t.y=-.70;t.normalize();
-  LVL.dir.lerp(t,Math.min(1,dt*.35)).normalize();
+  if(LVL.dirVif>0)LVL.dirVif-=dt; // (2026-10-14, passe graphismes · hasard) X → EN ORBITE : pendant le fondu du portail la planète REJOINT sa place d'un trait (12/s au lieu de .35/s) — le cap de la caméra saute d'une piste à l'autre, et avec le seul retard de croisière elle passait ~8 s hors cadre (ou dans le dos) avant de glisser à sa place : une orbite « sans planète » à l'arrivée
+  LVL.dir.lerp(t,Math.min(1,dt*(LVL.dirVif>0?12:.35))).normalize();
   const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
   planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
   if(planetesAnneau&&planetesAnneau.pivot.visible)planetesAnneau.pivot.rotation.y=Math.atan2(d.x,d.z); // (2026-10-14, passe graphismes) l'anneau suit le cap de la planète
