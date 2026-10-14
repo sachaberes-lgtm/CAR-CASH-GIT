@@ -44557,7 +44557,7 @@ function closeGarage(){
   invFerme(true);invHoldFin(); // (2026-10-04) l'INVENTAIRE ne survit pas à l'atelier
   GAR.vD=0;GAR.wD=0;GAR.preE=0;GAR.misVit=false; // (2026-10-05) la composition de la vitrine repart de zéro à la prochaine visite
   chuteSort(true); // (2026-09-30) LA CHUTE : les nuages, les filets de vent et le vent s'en vont avec le menu
-  try{bqSonCoupe(.4);}catch(e){} // (2026-10-14) …et la voix de la boutique
+  try{bqSonCoupe(.4);BQSON.atelier=false;}catch(e){} // (2026-10-14) …et la voix de la boutique
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   try{if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){}
   trailApercu(0,false);
@@ -44911,7 +44911,7 @@ window.dbgPorte=function(e){if(GAR.porte)GAR.porte.force=(e==null||e==='libre')?
 function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 → 1 en 1,7 s, lissé) ; 30 pas/s (12 si « réduire les animations »)
   const F=GAR.feu;if(!F)return;const G=GAR.go;
   const u=G?Math.min(1,G.t/1.7):0,k0=u*u*(3-2*u);F.k+=(k0-F.k)*Math.min(1,dt*(G?12:3));
-  {const po=GAR.porte?Math.max(0,GAR.porte.e):1,db=8*F.k-9*(1-po);if(openGarage._feu&&(G||GAR.porte&&Math.abs(db-(GAR.porte.db==null?99:GAR.porte.db))>.3)){if(GAR.porte)GAR.porte.db=db;try{openGarage._feu.gain(db,.05);}catch(e){}}} // le feu GRONDE quand la caisse entre dedans — (2026-09-30) ÉTOUFFÉ derrière la porte fermée
+  {const po=GAR.porte?Math.max(0,GAR.porte.e):1,db=8*F.k-9*(1-po);if(openGarage._feu&&!BQSON.atelier&&(G||GAR.porte&&Math.abs(db-(GAR.porte.db==null?99:GAR.porte.db))>.3)){if(GAR.porte)GAR.porte.db=db;try{openGarage._feu.gain(db,.05);}catch(e){}}} // le feu GRONDE quand la caisse entre dedans — (2026-09-30) ÉTOUFFÉ derrière la porte fermée
   if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.16+.03*Math.sin(F.t*9.1)+.02*Math.sin(F.t*23.7))*(1+F.k*2.4)*(.4+.6*(GAR.porte?Math.max(0,GAR.porte.e):1))); // (v3, Léo : « le sol ») .42 → .16 au repos, elle monte au lâcher ; (porte fermée : la lueur qui passe SOUS la porte)
   try{garFeuCubes(dt);}catch(e){}
   const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;F.acc=Math.min(F.acc-pas,pas);F.t+=pas;F.dt=pas;feuPixPas(F);
@@ -46502,9 +46502,20 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
    C#m7(11), transposés sur la tonalité du moment, `sonTonSuit._t` : les clics restent justes), l'AIR de la salle (un souffle très aigu,
    très bas) et, toutes les 2,5-6 s, une petite note CRISTALLINE avec son écho. Bus des effets (MASTER). Monte en 1,2 s quand la boutique
    s'ouvre, s'efface en 0,6 s quand on en sort. */
-const BQSON={n:null,off:0,acc:0,tP:0},BQSON_VOL=1;
+const BQSON={n:null,off:0,acc:0,tP:0,atelier:false},BQSON_VOL=1;
+/* (même soir, Léo : « session débogage sonore : à la boutique, au début, ça fait un bruit louche ») MESURÉ au banc muet (journal des sons +
+   enregistrement de la sortie à l'ouverture de la boutique) : l'ATELIER continuait de sonner dans la salle blanche — `garage.ambiance` (le
+   bourdon des néons, le tube qui GRÉSILLE) et `garage.feu` (la porte en feu qui gronde et crépite), aussi forts que la nouvelle nappe, sous le
+   glitch (`ui.volet`) et la musique qui s'efface. En boutique, ces deux boucles plongent à −45 dB (0,35 s) ; au retour à l'atelier, le néon
+   remonte et le feu reprend le niveau que lui donne garFeu. La nappe de la boutique arrive après le glitch (montée plus lente). */
+function bqAtelierSourdine(on){
+  if(BQSON.atelier===on)return;BQSON.atelier=on;
+  try{if(openGarage._amb)openGarage._amb.gain(on?-45:0,on?.12:.25);}catch(e){}
+  try{if(openGarage._feu){if(on)openGarage._feu.gain(-45,.12);else if(GAR.porte)GAR.porte.db=null;else openGarage._feu.gain(0,.25);}}catch(e){}
+}
 const BQSON_ACC=[[52,59,66,68,73],[49,56,64,66,71]]; // E 6/9 (mi · si · fa# · sol# · do#) ↔ C#m7(11) (do# · sol# · mi · fa# · si) : chaque voix glisse d'un pas
 function bqSon(dt,on){
+  bqAtelierSourdine(!!on);
   if(!on){if(BQSON.n&&!BQSON.off)bqSonCoupe(.6);return;}
   if(!AC||AC.state!=='running'||!SND.sfx)return;
   let n=BQSON.n;const now=AC.currentTime,ton=(sonTonSuit._t|0);
@@ -46523,7 +46534,7 @@ function bqSon(dt,on){
     n=BQSON.n={g:g,lp:lp,V:V,air:air,pg:pg,ec:ec,eg:eg,t:0,tA:0};BQSON.tP=1.5;
   }
   if(BQSON.off){clearTimeout(BQSON.off);BQSON.off=0;}
-  n.t+=dt;stt(n.g.gain,BQSON_VOL*(.85+.15*Math.sin(n.t*.31)),now,.4);
+  n.t+=dt;stt(n.g.gain,BQSON_VOL*(.85+.15*Math.sin(n.t*.31))*Math.min(1,Math.max(0,(n.t-.35)/.5)),now,.45); // elle attend la fin du glitch (~0,35 s) puis monte
   n.tA+=dt;if(n.tA>9){n.tA=0;BQSON.acc^=1;}                                   // l'accord change toutes les 9 s, chaque voix glisse en ~1,5 s
   const A=BQSON_ACC[BQSON.acc];
   for(let i=0;i<n.V.length;i++){const f=440*Math.pow(2,(A[i]+ton-69)/12);stt(n.V[i].a.frequency,f,now,.5);stt(n.V[i].b.frequency,f,now,.5);
