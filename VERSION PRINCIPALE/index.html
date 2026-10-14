@@ -34210,7 +34210,7 @@ function musicPremier(){const n0=NIVEAUX[0],l=n0&&MUSIC_LIEU[n0.id];return l?l.f
 function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return;
-  if(MUS_TAIT&&musicMode==='menu')return; // (2026-10-14) au ciel et à la boutique, le lobby se tait — voir MUS_TAIT
+  if(MUS_TAIT&&musicMode==='menu')return; // (2026-10-14) à la boutique le lobby se tait — et au ciel là où son volume ne se règle pas (iPhone sans MUS_WA) : voir MUS_TAIT dans musicTick
   // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
   /* (2026-10-12, passe qualité) …SAUF une fois la page VUE visible (`_vu`, posé au retour visible et à chaque toucher) : trois minuteries
      (musicMenu 1,4 s après la mort, la fin de l'intro, le départ d'un REJOUER) relançaient la musique APRÈS le passage en arrière-plan —
@@ -34638,8 +34638,14 @@ function musicTick(dt,mvt){
       même soir (Léo : « le vent est fort ; joue la musique de fond derrière le vent, mais moins fort que dans le garage ») : la musique
       joue au ciel, à MUS_CIEL du niveau du garage, DERRIÈRE la chute libre douce. Seule la boutique se tait encore. (iPhone : le volume
       d'un <audio> y est verrouillé — la musique y joue au même niveau partout, comme avant.) */
-   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9;MUS_TAIT=tait9;
-   if(ciel9&&!(MUSAP.t>performance.now())){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé
+   /* (2026-10-14, session SON, relevé par GENERAL) DEUX CIELS QUI MENTAIENT. (1) Volume verrouillé SANS MUS_WA (iPhone < iOS 17, MUS_WA
+      condamnée, avant le 1er toucher) : MUS_CIEL ne peut rien, le lobby jouait au ciel à plein, PAR-DESSUS une chute douce baissée de −8 dB
+      pour passer sous lui — le mix inverse de celui que Léo a demandé. Là, le ciel se tait comme la boutique (le 1er choix de Léo : « la
+      musique se lance au garage ») ; dès que MUS_WA se branche, elle revient en fondu. (2) SON coupé, MUSIQUE allumée : pas de vent du tout
+      (chuteDoux exige SND.sfx), et la musique restait à −16/−22 dB « derrière » ce vent absent — un ciel presque muet. Sans vent, plus de
+      MUS_CIEL : le niveau du garage. */
+   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9&&VOL_LOCKED&&!musWaTient(),tait9=bq9||cielV9;MUS_TAIT=tait9;
+   if(ciel9&&SND.sfx&&!(MUSAP.t>performance.now())){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé
    if(tait9){musicVolCible=0;if(!musicTick._pz&&((VOL_LOCKED&&!musWaTient())||musicVolCour<.012)){ /* (2026-10-14, session SON) branchée en WebAudio, l'iPhone fait comme l'ordi : un fondu, puis la pause */musicTick._pz=true;musicPause(true);}}
    else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
    musicTick._bq=bq9;}
@@ -46210,8 +46216,8 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
   e.style.cssText='position:fixed;inset:0;pointer-events:none;opacity:0;z-index:60;background:radial-gradient(ellipse at 50% 55%,#ffffff 0%,#f4f9ff 48%,#dfeefe 100%)';
   document.body.appendChild(e);CHUTE.voile=e;return e;
 }
-/* LA CHUTE LIBRE DOUCE (2026-10-14, Léo : « quand on est — et quand on revient — dans le menu ciel, un bruit de chute libre doux ») : au ciel il
-   n'y a plus de musique (le lobby part au garage, voir MUS_TAIT) — on entend l'air qui glisse autour de la caisse qui tombe. Deux souffles :
+/* LA CHUTE LIBRE DOUCE (2026-10-14, Léo : « quand on est — et quand on revient — dans le menu ciel, un bruit de chute libre doux ») : au ciel la
+   musique joue loin derrière (MUS_CIEL, elle plonge sous ses rafales : voir CHDOUX.h dans musicTick) — on entend l'air qui glisse autour de la caisse qui tombe. Deux souffles :
    un GRAND, grave et rond (bruit passé deux fois sous ~350 Hz), et un plus CLAIR et léger (une bande autour de 900 Hz) qui passe lentement
    d'une oreille à l'autre ; tous deux RESPIRENT (des houles de 2 à 15 s), jamais le claquement des tôles de `chute.vent` (gardé pour le
    piqué de JOUER). Bus des effets (MASTER : curseur EFFETS, interrupteur SON). Créé au 1er passage au ciel, éteint 0,4 s après qu'on le quitte. */
@@ -46439,7 +46445,7 @@ function chuteRender(dt){
   /* (niveau 1 v2) LA CHUTE LIBRE a sa boucle (`chute.vent` : grondement, rafales, l'air qui claque sur les tôles) ; retentée tant que le son
      n'est pas prêt (premier geste). Au piqué de JOUER, elle monte de 4 dB et s'accélère de 25 % : l'air hurle. */
   /* (2026-10-14, Léo : « quand on est — et quand on revient — dans le menu ciel, un bruit de chute libre doux ») AU REPOS, le ciel n'a plus que
-     LA CHUTE LIBRE DOUCE (`chuteDoux`, plus de musique ici : le lobby part au garage) ; le grondement claquant de `chute.vent` et le vent du
+     LA CHUTE LIBRE DOUCE (`chuteDoux`, la musique du lobby loin derrière : MUS_CIEL) ; le grondement claquant de `chute.vent` et le vent du
      moteur ne servent plus qu'au PIQUÉ de JOUER, où l'air se met à hurler (comme avant). */
   try{chuteDoux(t,G?u:0);}catch(e){}
   if(G){
