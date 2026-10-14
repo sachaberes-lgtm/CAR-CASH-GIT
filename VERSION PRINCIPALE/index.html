@@ -9127,6 +9127,31 @@ html:not(.c6) #gMis #gmFils path.lead.r{display:none}
   html:not(.c6) #gMis .gmC{overflow:hidden;white-space:normal;overflow-wrap:break-word;word-break:normal;padding:8px 9px}
   html:not(.c6) #gMis .gmC .gmX{overflow-wrap:break-word}
   html:not(.c6) #gMis .gmC .gmP b,html:not(.c6) #gMis .gmC .gmNext{white-space:normal}}
+/* ---- LA SECONDE CHANCE (UX 8, 14/10 soir — PILOTAGE + DEBUGING : la plaque #mChance n'était jamais montrée ; contrat de GENERAL) ----
+   Pendant les 5,5 s de l'offre, CONTINUER · prix est LA décision : la plaque d'or monte du bas, une barre qui se vide dit le VRAI temps qui reste
+   (l'offre s'éteint vraiment : ce n'est pas une fausse urgence) ; « NON MERCI » la ferme sans bruit ; REJOUER s'efface le temps de l'offre
+   (jamais deux plaques d'or), puis reprend sa place. */
+html:not(.c6) #mDead #mChance{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:12px}
+html:not(.c6) #mDead #mChance .chT,html:not(.c6) #mDead #mChance .chP{position:relative;z-index:1}
+html:not(.c6) #mDead #mChance.chOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
+html:not(.c6) #mDead #mChance .chBar{position:absolute;left:0;right:0;bottom:0;height:4px;background:currentColor;opacity:.7;transform-origin:0 50%;pointer-events:none}
+html:not(.c6) #mDead #mChance.chOn .chBar{animation:u8ChBar var(--chD,5500ms) linear forwards}
+html:not(.c6) #mDead #mChanceNon{order:2;align-self:center;min-height:44px;min-width:120px;padding:0 16px;margin:6px auto 0;font-size:var(--f0);letter-spacing:1px;
+  background:none!important;box-shadow:none!important;clip-path:none!important;color:var(--tx3,#9fa6c8);text-shadow:none}
+html:not(.c6) #mDead #mChanceNon[hidden]{display:none}
+html:not(.c6) body.chOffre #mDead [data-m="replay"]{opacity:.45;transition:opacity var(--t-fast) var(--ease)}
+@keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
+@keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
+/* (vu à la fumée, 844×390, une fin AVEC record) le badge RECORD et « ENCORE 2 PIÈCES POUR… » grandissaient la carte MOTEUR, la grille étirait toute
+   la rangée, et ⌂ · REJOUER passaient SOUS le bord de l'écran. Couché : l'indice part (la place est rare), les cartes ne s'étirent plus, et la rangée
+   d'action (+ la seconde chance) reste ancrée en bas de la colonne de droite quoi qu'il arrive — une décision ne sort jamais de l'écran. */
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead{align-items:start;align-content:start;padding-bottom:calc(var(--sB) + 76px)}
+  html:not(.c6) #mDead .hNx{display:none}
+  html:not(.c6) #mDead .mFin{position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);width:min(368px,44vw);margin:0}
+  html:not(.c6) #mDead #mChance:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 76px);width:min(368px,44vw);margin:0}
+  html:not(.c6) #mDead #mChanceNon:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 132px);margin:0}}
 </style>
 <style id="ux8-mouvement">
 /* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
@@ -9149,6 +9174,26 @@ html:not(.c6) .mscr.sort{will-change:transform,opacity}
 html[data-reduced-motion="1"]:not(.c6) :is(#modale.on .modIn,#modale.on .modB>.pbtn,#tPanel.open #tpIn){animation:k4Voile var(--t-fast) linear both}
 html[data-reduced-motion="1"]:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortant #tpIn){animation:k4VoileOut var(--t-fast) linear forwards}
 @media (prefers-reduced-motion:reduce){html:not(.c6) :is(#modale.on .modIn,#modale.on .modB>.pbtn,#tPanel.open #tpIn){animation:k4Voile var(--t-fast) linear both}html:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortant #tpIn){animation:k4VoileOut var(--t-fast) linear forwards}}
+/* ---- LE PORTAIL (2026-10-14 soir, PILOTAGE + PERF : « l'entrée dans le niveau suivant gèle jusqu'à 700 ms sur le jade ») ----
+   portPasseNiveau pose #portV d'un coup, attend deux images, puis newTrack() BLOQUE le script (160 à 700 ms) : l'ancien éclair rose restait
+   FIGÉ à l'écran tout ce temps. Le voile devient une laque bleu nuit à contre-jour rose, traversée d'une pluie de PIXELS D'OR qui défile en
+   animation CSS de TRANSFORM — le compositeur la joue même quand le script est bloqué : plus aucune image figée, et une vraie transition
+   de niveau, la signature du balayage doré. Il passe au-dessus du HUD (dont les chiffres se figeaient aussi), sous les fenêtres.
+   Rien ne change dans le JS du portail (l'opacité .94 → 0 reste posée par portVoile / portVoileSort). */
+html:not(.c6) #portV{z-index:8;overflow:hidden;contain:strict;
+  background:radial-gradient(120% 90% at 50% 58%,rgba(242,74,160,.55) 0,rgba(242,74,160,0) 55%),linear-gradient(180deg,#141d3a 0%,#0b0f24 60%,#07050f 100%)}
+html:not(.c6) #portV::before{content:"";position:absolute;left:-60px;top:-60px;width:calc(100% + 120px);height:calc(100% + 120px);will-change:transform;
+  background-image:linear-gradient(90deg,transparent 0 22px,rgba(255,215,94,.95) 22px 28px,transparent 28px),linear-gradient(0deg,transparent 0 22px,rgba(255,215,94,.95) 22px 28px,transparent 28px);
+  background-size:84px 56px,84px 56px;background-position:0 0,42px 28px;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 18%,transparent 18% 36%,#000 36% 54%,transparent 54% 72%,#000 72% 90%,transparent 90%);
+  mask-image:linear-gradient(180deg,#000 0,#000 18%,transparent 18% 36%,#000 36% 54%,transparent 54% 72%,#000 72% 90%,transparent 90%);
+  opacity:.55;animation:u8PortPluie .6s steps(6) infinite}
+html:not(.c6) #portV::after{content:"";position:absolute;left:50%;top:56%;width:28px;height:28px;margin:-14px 0 0 -14px;background:#ffd75e;
+  box-shadow:0 0 0 6px #07050f,0 0 0 12px #ffd75e,0 0 0 18px #07050f,0 0 0 24px rgba(242,74,160,.9);will-change:transform;animation:u8PortCoeur .4s steps(4) infinite}
+@keyframes u8PortPluie{from{transform:translate3d(0,0,0)}to{transform:translate3d(-42px,56px,0)}} /* en paliers : ce qui bouge dans l'UI pixel bouge par crans entiers */
+@keyframes u8PortCoeur{0%{transform:scale(1)}50%{transform:scale(1.5)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){html:not(.c6) #portV::before,html:not(.c6) #portV::after{animation:none}}
+html[data-reduced-motion="1"]:not(.c6) #portV::before,html[data-reduced-motion="1"]:not(.c6) #portV::after{animation:none}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -9622,7 +9667,7 @@ html[data-reduced-motion="1"]:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortan
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=20"></script>
+<script defer src="sons-banque.js?v=21"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
@@ -39832,9 +39877,29 @@ function sonTonSuit(){
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol — (2026-10-14, session SON) une figure du catalogue FINIE (`fig_*`, lecteur `?fig=script`) sonne le MAILLON, comme le tour complet d'une figure libre : elle rejouait la vrille de son départ (veqFigure), deux fois le même son par figure
   if(!SONV2){trickPop(chain);return;}
+  if(id.indexOf('fig_combo_')===0)return; /* (2026-10-14, session SON) le COMBO a SA signature (sonCombo, appelée par comboNote) : pas le maillon par-dessus */
+  const sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;
+  if(sg!=null){sfx('fig.signe',{st:echSt(),var:sg});return;} /* (2026-10-14, session SON) une figure du CATALOGUE payée sonne SA phrase (fig.signe), plus le maillon commun aux douze */
   sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
+/* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE : la variante de `fig.signe` (atelier-son/recettes.js) de chaque figure du catalogue
+   (figures.js). Une figure inventée par le joueur, ou une figure automatique (la toupie de drift), garde le maillon. */
+const FIG_SIGNE={tonneau:0,toupie:1,shimmy:2,chandelle:3,saltoa:4,saltov:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
+/* (2026-10-14, session SON ; les combos : GENERAL, comboNote) LA SIGNATURE DES COMBOS. La clé = les trois AXES triés (T tonneau, P toupie,
+   S salto, M mixte). Trois FRAPPES (une matière par axe, dans l'ordre de la clé) qui montent la pentatonique du vol, puis le SCEAU : pur
+   (trois fois le même axe), mélangé, LE GYROSCOPE (PST, les trois axes : le roi) ou LE GRAND CHAOS (MMM). Vingt clés, vingt phrases.
+   `neuf` (1re découverte) : le sceau sort plus fort. */
+const COMBO_AXE={T:0,P:1,S:2,M:3};
+function sonCombo(cle,neuf){
+  if(!SONV2||typeof cle!=='string'||cle.length!==3)return;
+  const b=Math.min(4,ECH|0),pur=cle[0]===cle[1]&&cle[1]===cle[2];
+  for(let i=0;i<3;i++)sfx('combo.frappe',{var:COMBO_AXE[cle[i]]|0,st:sonPd(b+2*i),t:i*.085});
+  sfx('combo.sceau',{var:cle==='PST'?2:cle==='MMM'?3:pur?0:1,st:sonPd(b+5),t:.27,vol:neuf?2:0});
+}
+window.dbgSonJoue=function(id,o){ // (banc) joue un son de la banque par le vrai lecteur : vrai = une voix est partie · dbgSonJoue('combo','PST') = sonCombo
+  if(id==='combo'){sonCombo(o,true);return true;}if(id==='figSnd'){figSnd(o);return true;}
+  return !!sfx(id,Object.assign({force:true},o||{}));};
 /* ---- LES VOIX ET LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
    ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
    réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;
@@ -44897,12 +44962,12 @@ function tryLand(dt){
       rewardSfx(vKey,vTier); // signature sonore courte assortie à la récompense
       if(TCTL.on&&(g>=1.5||gapOk))popTexte(gapOk?(gapArmed===3?'DOUBLE GAP !':'GAP !'):g>=2?'DIVIN !!':'PARFAIT !',g>=2||gapOk?'#ff5ec8':'#ffd75e',2);
       if(gapOk)chaineAura(gapArmed===3?'DOUBLE GAP':'GAP',gapArmed===3?200:120,'gap',false,true);else if(g>=1.5)chaineAura(g>=2?'POSE DIVINE':'POSE PARFAITE',g>=2?120:70,'pose',false,true); // (aura v2) la pose PROLONGE la chaîne // (2026-09-25) la pose ×1,5 : LE geste à répéter — il faut qu'on le voie
-      if(g>=1.5){try{if(SONV2)sfx('pose.parfait',g>=2?{t:.08,st:7}:{t:.08});else{ /* (2026-10-14, session SON) la POSE DIVINE (×2) sonnait comme la PARFAITE : son tchak monte d'une quinte (accordé, key:1) — l'ancien son lui donnait déjà une note de plus */chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
+      if(g>=1.5){try{if(SONV2)sfx(g>=2?'pose.divin':'pose.parfait',{t:.08});else{ /* (2026-10-14, session SON) la POSE DIVINE (×2) a SON son, pose.divin : le tchak de la PARFAITE, puis chœur, cloches et pluie d'or (avant : le tchak une quinte plus haut) */chimeNote(1980,.08,.055,.2);chimeNote(2640,.11,.04,.26);sparkle(.08,.06);if(g>=2)chimeNote(1320,.15,.06,.4);}}catch(e){}} // (2026-09-25) le « tchak » du PARFAIT : harmoniques 3 et 4 du 660, au-dessus de l'arpège
       landBoom(carGroup.position,vTier); // P'TIT BOOM D'ATTERRISSAGE : toute figure MONSTER+ éclate à la pose (calibré sur le tier)
       boost=Math.max(boost,1.2);
       addStyle(14+chain*4);
     }
-    if(SONV2&&g>=1.5&&!(gain>0))sfx('pose.parfait',g>=2?{t:.08,st:7}:{t:.08}); // (console de son) PARFAIT sans rien à encaisser : le tchak quand même, une fois
+    if(SONV2&&g>=1.5&&!(gain>0))sfx(g>=2?'pose.divin':'pose.parfait',{t:.08}); // (console de son) PARFAIT sans rien à encaisser : le tchak quand même, une fois
     if(fallT>2)slowT=.35; // slow-mo savoureux sur les gros airs
   }
   // (FLOW v2) LE RACCOURCI, DANS TOUS LES MODES : la piste parcourue entre le décollage et la pose, moins la distance VOLÉE en ligne
@@ -58242,6 +58307,30 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
+  /* LA SECONDE CHANCE À L'ÉCRAN DE FIN (UX 8, 2026-10-14 soir — PILOTAGE et DEBUGING : la plaque #mChance existait, cachée, jamais branchée : la
+     fonction validée par Sacha était invisible). Contrat de la session GENERAL : chanceEtat() → {ok, prix, reste}, chanceJoue(), chanceRefuse(),
+     l'événement `cc:chance` à l'ouverture, à l'extinction et à l'achat. La plaque se relit à chaque événement ; même garde de 600 ms que les
+     autres touches de l'écran de fin (les pouces qui martèlent NITRO ne paient pas par erreur). */
+  try{(function(){const el=$t('mChance');if(!el||typeof chanceEtat!=='function')return;
+    Object.assign(I18N,{'CONTINUER':'CONTINUE','NON MERCI':'NO THANKS'});
+    el.removeAttribute('data-fr');el.innerHTML='<span class="chT" data-fr="CONTINUER">'+TR('CONTINUER')+'</span><b class="chP"></b><i class="chBar" aria-hidden="true"></i>';
+    const non=document.createElement('div');non.id='mChanceNon';non.className='pbtn';non.setAttribute('role','button');non.tabIndex=0;non.hidden=true;
+    non.setAttribute('data-fr','NON MERCI');non.textContent=TR('NON MERCI');el.parentNode.insertBefore(non,el.nextSibling);
+    let vu=false;
+    const maj=function(){let e=null;try{e=chanceEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
+      if(ok){el.querySelector('.chP').textContent=fmtC(e.prix);
+        if(!vu){vu=true;el.style.setProperty('--chD',Math.max(300,e.reste||5500)+'ms');el.classList.remove('chOn');void el.offsetWidth;el.classList.add('chOn');}}
+      else vu=false;
+      el.hidden=!ok;non.hidden=!ok;el.classList.toggle('pb-gold',ok);el.classList.toggle('pb-cyan',!ok);document.body.classList.toggle('chOffre',ok);};
+    const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
+    const go=function(e){e.preventDefault();e.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);let r=false;try{r=chanceJoue();}catch(_){r=false;}if(!r){uiClic('refus');maj();}};
+    el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')go(e);});
+    const refuse=function(e){e.preventDefault();e.stopPropagation();if(sourd()||non.hidden)return;uiClic('retour');try{chanceRefuse();}catch(_){}maj();};
+    non.addEventListener('click',refuse);non.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')refuse(e);});
+    /* (vu au banc) `cc:chance` part quand l'offre s'OUVRE — l'écran de fin n'est pas encore là, chanceEtat().ok est encore faux — et plus rien
+       ensuite : la plaque SUIT donc l'offre, relue toutes les 200 ms pendant sa fenêtre (5,5 s + marge), puis se tait. */
+    let suitT=0;const suit=function(){maj();clearInterval(suitT);let n=0;suitT=setInterval(function(){maj();if(++n>45)clearInterval(suitT);},200);};
+    document.addEventListener('cc:chance',suit);window.__chanceMaj=maj;maj();})();}catch(e){console.warn('seconde chance',e);}
   if(mob){
     const mHit=function(e){
       const el=e.target&&e.target.closest?e.target.closest('[data-m]'):null;
