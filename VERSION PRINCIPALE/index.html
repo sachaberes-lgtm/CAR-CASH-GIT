@@ -37930,7 +37930,7 @@ function dolGerbe(x,y,z,power,k,nM){ // la gerbe : une COURONNE qui monte, un AN
 const crV3=new THREE.Vector3(),dolUp=new THREE.Vector3(),dolQc=new THREE.Quaternion(),dolQp=new THREE.Quaternion(),FDOL={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // (v6) dolQc : l'orientation VISÉE du banc · dolQp : celle de l'image d'avant (banc) · FDOL : le repère de la route sous la caisse
 let dolRasK=0,dolRasF=null,dolSync=false,dolSyncT=0,dolSyncVr=1,dolRigMax=0; // (v6) dolRasK : le RAS lissé qui se VOIT (0-1 ; dolRasF le force au banc) · dolSync/T/Vr : le BOND ROYAL du 6e dauphin · dolRigMax : la plus grande rotation du banc en UNE image (°, lue et remise à zéro par dbgDauphin('etat'))
 let dolCh=0,dolChF=null,dolVrS=0,dolXR=0,dolBi=0,dolHY=0;const DOLP={},DCAM=new THREE.Vector3(),DQ9=new THREE.Vector3(); // dolBi : la route où se pose le banc (graine de dalleProche) · DCAM : le regard de la caméra // dolXR : l'axe de la route en x du banc (lissé) // (2026-10-09) la CHORÉ en cours (dolChF : forcée par la console) · dolVrS : la vrille décidée pour toute la vague (sync) · DOLP : la pose de l'image
-let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
+let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13,dolNbT=0; /* (2026-10-14) dolNbT : l'ancienne durée d'affichage, gardée pour le compte du BANC (dolNb, qui paie l'aura) — voir LA DURÉE SUIT LA FIGURE */ // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
 /* L'ESCORTE (2026-10-11, Léo : « trop de dauphins, et ils doivent être plus connectés à la route, bien timés en fonction de la vitesse
    moyenne de la voiture pour que la voiture passe sous les dauphins — ou alors les dauphins suivent la voiture amicalement — mais là ça se
    sent, ils sont collés à la voiture et c'est dénaturé »). Le banc vivait dans le repère de la CAMÉRA (09/10) : il bougeait avec l'écran.
@@ -37944,6 +37944,12 @@ let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes
    caisse quand elle vole — ils ne la percent jamais. Puis LE FINAL : à la fin de l'apparition, chacun RALENTIT et fait un grand bond
    au-dessus de la ligne de la caisse, calé sur sa vitesse moyenne pour qu'elle passe DESSOUS au sommet ; il replonge derrière elle. Le
    compte d'aura (dolTick, « DAUPHIN ×n ») ne change pas. */
+/* LA DURÉE SUIT LA FIGURE (2026-10-14, session OPTIMISATION — Sacha via PILOTAGE : « les DAUPHINS durent trop longtemps par rapport à
+   la durée de la figure faite par le joueur »). Le banc restait au moins DOL_VU (2,6 s) puis faisait son grand bond final (0,9-2 s) :
+   un dauphin d'une demi-seconde en montrait trois. Désormais il jaillit quand la figure démarre, nage tant qu'elle est tenue, et PLONGE
+   en DOL_SORTIE dès qu'elle s'arrête (dolFin) : il pique sous son eau (la gerbe du replongeon le dit), plus de longue traîne. Le grand
+   bond final n'est plus déclenché. La détection, l'aura, le compte du banc (dolNbT, l'ancienne minuterie) et les sons ne changent pas. */
+const DOL_SORTIE=.4;
 const DOL_ES={k:2.4,avance:[12,19],ond:4,lat:1.3,ressort:.9,surf:1.2,saut:.7,fin:1.1,finH:3,finMin:.9,finMax:2};
 const DOLA={vel:new THREE.Vector3(),p0:new THREE.Vector3(),ok:false,pts:null,L:0,dir:1,face:1,t:0,N:new THREE.Vector3(0,1,0),
   v1:new THREE.Vector3(),O:new THREE.Vector3(),X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),P:new THREE.Vector3(),m:new THREE.Matrix4(),q:new THREE.Quaternion(),
@@ -37971,6 +37977,7 @@ function updateDolphins(dt,photo){
   if(dt>0){DOLA.v1.subVectors(carGroup.position,DOLA.p0).multiplyScalar(1/dt);if(DOLA.ok&&DOLA.v1.lengthSq()<4e6)DOLA.vel.lerp(DOLA.v1,Math.min(1,dt*1.2));DOLA.ok=true;}DOLA.p0.copy(carGroup.position);
   if(DOLA.pts&&(DOLA.pts!==pts||DOLA.L!==L)){for(const d of dolphins)d.userData.es=null;DOLA.pts=null;} // nouvelle piste : l'escorte de l'ancienne s'efface
   let actifs=false;for(const d of dolphins)if(d.userData.es&&!d.userData.es.parti)actifs=true;
+  if(dolNbT>0)dolNbT-=dt; // (2026-10-14) le compte du banc s'use comme l'ancien affichage
   if(dolShow<=0&&dolPart<=0&&!actifs){if(dolphinRig.visible)dolphinRig.visible=false;return;} // rien à montrer : zéro draw call
   dolphinRig.visible=true;dolPart=Math.max(0,dolPart-dt);dolNoirMaj();
   dolphinRig.position.set(0,0,0);dolphinRig.quaternion.identity();dolPod.position.set(0,0,0); // le banc vit dans le MONDE : ses dauphins et ses gerbes y restent où ils sont nés
@@ -37983,16 +37990,21 @@ function updateDolphins(dt,photo){
   {const c9=dolRasF!=null?dolRasF:(mode==='fall'&&dolOn?dolRasV:0);dolRasK+=(c9-dolRasK)*(1-Math.exp(-dt*4));} // (v6) le RAS se voit : liseré, gerbes
   const k=DOL_ES.k,gK=1+dolRasK;DOL_U.uEcume.value=.2*k;DOL_U.uRimK.value=1.5+2.5*dolRasK*dolRasK;
   const dir=DOLA.dir,v=Math.max(10,Math.abs(r.vs)),camD=Math.max(2,-DOLA.v1.subVectors(camera.position,carGroup.position).dot(DOLA.F.t)*dir),tanH=Math.tan(camera.fov*Math.PI/360)*camera.aspect;
-  const final=(!dolOn&&dolShow<=DOL_ES.fin)||DOLA.t>7; // LE FINAL : la caisse a quitté les abords de la route (posée, partie), ou l'escorte dure depuis 7 s
+  const final=false,sortie=!dolOn; /* (2026-10-14) plus de grand bond final : la figure arrêtée, le banc PLONGE (voir LA DURÉE SUIT LA FIGURE) — avant : (!dolOn&&dolShow<=DOL_ES.fin)||DOLA.t>7 */ // LE FINAL : la caisse a quitté les abords de la route (posée, partie), ou l'escorte dure depuis 7 s
   const X=DOLA.X,Y=DOLA.Y,Z=DOLA.Z,P=DOLA.P,FD=DOLA.FD;
   for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=d.userData,b=u.b,E=u.es;
     if(!E||E.parti){if(d.visible)d.visible=false;if(E&&E.parti)u.es=null;continue;}
     const av=(E.s-r.s)*dir; // sa distance devant la caisse, sur la piste
     let vy=0,y,amp,base=0,hz=14; // hz : l'allure qu'on donne au nez (la vraie, 60-90 m/s, rendrait chaque bond tout plat)
-    if(final&&!E.fin&&E.p>-.12&&E.p<.05){ // il RALENTIT et prend son élan : au sommet, la caisse passe dessous
+    if(!sortie&&E.pl)E.pl=null; // la figure reprend : il remonte nager
+    if(sortie&&!E.pl&&!E.fin)E.pl={t:0,y0:E.y||0};
+    if(E.pl){const Pl=E.pl;Pl.t+=dt;const q=Math.min(1,Pl.t/DOL_SORTIE);E.s+=dir*E.vs*dt; // LE PLONGEON : il file encore et pique sous son eau
+      base=0;amp=b.amp*k*DOL_ES.saut;const H9=Pl.y0+amp*.9;y=Pl.y0-H9*q*q;vy=-2*H9*q/DOL_SORTIE;E.p=.5;
+      if(q>=1){E.parti=true;d.visible=false;continue;}}
+    else if(final&&!E.fin&&E.p>-.12&&E.p<.05){ // il RALENTIT et prend son élan : au sommet, la caisse passe dessous
       const T9=Math.max(DOL_ES.finMin,Math.min(DOL_ES.finMax,2*Math.max(4,av)/(.45*v)));
       E.fin={t:0,T:T9,vs:v-Math.max(4,av)/(T9*.5),a:Math.max(b.amp*k*DOL_ES.saut,r.h-E.h+DOL_ES.finH+1.2*k)};} // assez haut pour que la caisse passe sous son ventre
-    if(E.fin){const Fn=E.fin;Fn.t+=dt;const q=Fn.t/Fn.T,tr=Fn.T*.5-Fn.t;
+    if(E.pl){} /* le plongeon est déjà posé plus haut : ni bond, ni escorte */else if(E.fin){const Fn=E.fin;Fn.t+=dt;const q=Fn.t/Fn.T,tr=Fn.T*.5-Fn.t;
       E.vs=tr>.08?Math.max(.15*v,Math.min(1.2*v,v-av/tr)):.6*v;E.s+=dir*E.vs*dt;E.lat+=(r.lat-E.lat)*Math.min(1,dt*5); // au-dessus de SA ligne /* il RÈGLE sa vitesse à chaque image pour être pile au-dessus d'elle au sommet (mesuré : sur la seule prévision, elle passait parfois à travers lui), puis la laisse filer */
       base=0;amp=Fn.a;const ar=Math.sin(Math.PI*Math.min(1,q));y=base+amp*ar;vy=amp*Math.PI*Math.cos(Math.PI*Math.min(1,q))/Fn.T;
       E.p=q;if(q>1.15){E.parti=true;d.visible=false;continue;}}
@@ -38004,6 +38016,7 @@ function updateDolphins(dt,photo){
       E.h+=(Math.max(DOL_ES.surf,r.h-1)-E.h)*Math.min(1,dt*2); // son eau : au-dessus du bitume, à la hauteur de la caisse quand elle vole
       E.p+=dt*b.speed*b.speed*8.8;if(E.p>1.2){E.p-=DOL_CYCLE;E.vr=Math.random()<.2?(Math.random()<.5?1:-1):0;}
       base=0;amp=b.amp*k*DOL_ES.saut;const ar=Math.sin(Math.PI*E.p);y=base+amp*ar;vy=amp*Math.PI*Math.cos(Math.PI*E.p)*b.speed*b.speed*8.8;}
+    E.y=y; // (2026-10-14) sa hauteur sur l'eau : le départ du plongeon
     const q9=E.fin?E.p:E.p,vis=q9>-.18&&q9<1.18;
     frameAt(Math.max(0,Math.min(L-.01,E.s)),FD);const N=DOLA.v1.copy(FD.n).multiplyScalar(DOLA.face);
     const O=DOLA.O.copy(FD.p);if(DOLA.face<0)O.addScaledVector(FD.n,-THICK);O.addScaledVector(N,E.h); // le niveau de son eau
@@ -44053,7 +44066,7 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
       dolMul+=(dolVitMul()-dolMul)*Math.min(1,dt*4); // (v5) la vitesse, relue en continu (lissée : un coup de nitro se sent en ~0,25 s)
       dolQ+=ras*ras*(.3+.7*Math.max(0,Math.min(1,(dolMul-.6)/1.5)))*dt; // (v5) la QUALITÉ du geste : au ras ET vite — elle fera le flow
       dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.375*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
-      dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
+      dolShow=Math.max(dolShow,.7);dolNbT=Math.max(dolNbT,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
       dolHudVal();if(!DAUPH.enVol&&!PARK.on&&Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE))>=DOL_AURA_MIN)dolHudVol(); // (v7) l'aura MONTE sous les yeux pendant que les dauphins nagent
     }
   }else{
@@ -44068,8 +44081,8 @@ function dolStart(){
   dolOn=true;dolLive=0;
   dolMul=dolVitMul();dolQ=0; // (v5) la vitesse du vol, relue ensuite à chaque image (dolTick) ; la qualité repart de zéro à chaque passage
   dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
-  if(dolShow<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
-  dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
+  if(dolNbT<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
+  dolNbT=Math.max(dolNbT,DOL_VU);dolShow=Math.max(dolShow,.7);dolIn=0; // LE BANC jaillit (dolNbT : son compte tient DOL_VU comme avant ; l'affichage, lui, suit la figure) — et on a le temps de le VOIR
   if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<2)hap([10,24,10]); /* (2026-10-14, gameplay · accord) le banc des dauphins part AU décollage : le « ta-tac » du décollage (startFall) vient de partir, quasi le même motif — un seul */ // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
 }
 /* (2026-09-29, Sacha : « dauphin écrit plus petit avec une police aquatique avec des vagues ») : une lettre = un <i> qui ondule sur SA
@@ -44077,7 +44090,7 @@ function dolStart(){
 function dolHudNom(){if(!DAUPH.nom)return;const t=TR('DAUPHIN')+(dolNb>1?' ×'+dolNb:'');if(DAUPH.nom._t===t)return;DAUPH.nom._t=t;
   DAUPH.nom.classList.add('eau');DAUPH.nom.innerHTML=Array.from(t).map(function(c,i){return c===' '?' ':'<i style="--i:'+i+'">'+c.replace(/[<>&]/g,'')+'</i>';}).join('');}
 function dolFin(){ // on QUITTE la route ou on se pose : le total se fige, s'encaisse, puis s'efface
-  if(!dolOn)return;dolOn=false;dolHudVal();
+  if(!dolOn)return;dolOn=false;dolHudVal();dolShow=Math.min(dolShow,DOL_SORTIE); // (2026-10-14) la figure s'arrête : le banc plonge (voir LA DURÉE SUIT LA FIGURE)
   if(DAUPH.enVol){DAUPH.enVol=false;dolHudT=.7;dolHudAtt=0;} // (v7) le compteur de vol reste 0,7 s figé — à la pose, le récapitulatif le remplace
   const n=Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE)); // (v6) la nage ne s'encaisse que si le dauphin est NÉ (la figure : 1 s au ras) — la règle de son flow (v5)
   if(n>=DOL_AURA_MIN)dolAura9('DAUPHIN EN VOL',n,'dauphinLive',true); /* (v6) sous 10 : pas de ligne */ // brut : la vitesse est DÉJÀ dans le compteur (addAura refuse seule en parc) — (v5) versé à la POSE
@@ -44107,7 +44120,7 @@ function dolHudLibre(){const c=document.body.classList;return !(c.contains('verd
 function dolKill(){ // fin SANS encaissement : explosion, replacement, nouvelle partie, fin de partie
   try{singeCache();}catch(e){} // (2026-10-10) le singe aussi
   for(const d of dolphins)d.userData.es=null; // (l'escorte) elle part avec la caisse
-  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolQ=0;dolRasT=0;dolRasV=0;dolSync=false;dolSyncT=0;DOL_DIFF.length=0;dolHudOff(); // (v5) les lignes en attente de pose partent avec la caisse
+  dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolNbT=0;dolLive=0;dolNb=1;dolQ=0;dolRasT=0;dolRasV=0;dolSync=false;dolSyncT=0;DOL_DIFF.length=0;dolHudOff(); // (v5) les lignes en attente de pose partent avec la caisse
 }
 function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN nœud texte
   const e=document.createElement('div');e.id='dolHud';e.setAttribute('aria-hidden','true');
