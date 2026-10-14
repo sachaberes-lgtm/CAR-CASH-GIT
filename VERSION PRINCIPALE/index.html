@@ -8812,13 +8812,13 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>';
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':k.v?'':'retour');try{c.blur();}catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
 let toastT=0;
-function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
-  try{if(SONV2){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
+  try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
 function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
   return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
@@ -29638,8 +29638,8 @@ function shopPopEl(){
     if(b.classList.contains('off'))return;
     uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
     shopPaye(i).then(function(){
-      shopDonne(i);el.classList.remove('attend');uiClic('ok');hap([12,40,12,40,30]);try{pixBurst(b,18);}catch(_){}
-      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'));
+      shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
+      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
     },function(){ // pas encore branché : on le DIT, dans la fenêtre, et rien n'est donné
       el.classList.remove('attend');el.classList.add('refus');uiClic('refus');hap([10,40,10]);
       const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('BIENTÔT DISPONIBLE'));
@@ -48542,12 +48542,12 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
     ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('shop');});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
-    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
+    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque),true);}return;} /* (2026-10-14, session SON) toast muet : le refus a déjà dit « non » (avant : refus + erreur, deux non-non identiques) */
     garEquipeHabit(c9,i9);shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI !')); /* (2026-10-11) acheté = équipé */
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){}return;} /* (console de son) le tiroir-caisse, puis le TAMPON quand il s'abat (14 % de 1,9 s) — en mouvement réduit c'est un toast (ui.ok) */
   const r=carBuy(garageI);
   if(!r.ok){
-    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
+    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque),true);} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
   garEquipeCaisse(garageI); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
@@ -52134,7 +52134,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     return 'nav';
   }
   function mTap(a,el){
-    if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
+    if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&cryptoPlayOk()){ const go9=function(){goImmersive();cryptoJouer();}; // (2026-10-13) ?niveau=crypto : le JOUER lance CRYPTOCITY
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
@@ -52205,7 +52205,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='code'){ /* LE CODE COUSIN (2026-10-14, Léo) — voir codeCousin */
       modale({titre:'ENTRER UN CODE',texte:'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(!r.v)return;
-        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'));try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
+        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
