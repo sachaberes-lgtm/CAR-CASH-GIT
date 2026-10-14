@@ -26883,7 +26883,6 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
-window.dbgChauffe=function(){return {appels:CHAUFFE_R.appels,ms:CHAUFFE_R.ms,atelier:!!GAR.chaud,garde:CAR_GARDE.size};}; // (dev) la dernière chauffe de la puce : appels de dessin, ms de soumission
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
@@ -27158,22 +27157,9 @@ function engVigRender(dt){
 }
 buildCar(CARS[0]);
 try{renderer.initTexture(flouRoueTex);}catch(e){} // (2026-09-26) le flou de jante ne s'allume qu'en course, lancé : sa texture monte au GPU dès maintenant, pas au premier virage
-window.dbgBling=function(){return {etoiles:BLING.s.length,allumees:BLING.s.filter(m=>m.visible).length,t:+BLING.t.toFixed(2),mode:mode,started:started,go:gameOver};}; // (2026-10-10) L'ICEBERG : ses éclats (banc)
 window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max(0,Math.min(CARS.length-1,i|0));SAVE.d.equipped=i;level=i;buildCar(CARS[i]);return CARS[i].name;}; // (2026-09-26) équiper une caisse depuis la console (tests)
 window.dbgPots=function(){const a=v=>[+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];return {src:CAR_POT_SRC,un:CAR_POT_1,pots:CAR_POTS.map(a),L:a(CAR_POT_L),R:a(CAR_POT_R),C:a(CAR_POT_C)};}; // (dev) les pots relevés sur la caisse montée
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
-window.dbgSoude=function(on){if(on!=null)CAISSE_SOUDE.on=!!on;let d=0;carGroup.traverse(o=>{if((o.isMesh||o.isSprite)&&o.visible)d++;});return {soude:CAISSE_SOUDE.on,dessins:d,pieces:CAR_PIECES.length,essieux:ESSIEUX.length,ailes:[carWingL,carWingR].filter(Boolean).concat(carFins)};}; // (banc, 2026-09-27) souder ou non les caisses construites ensuite (voir caisseSoude)
-window.dbgCar=function(i){buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);};
-window.dbgJetsVoir=function(i,side,d,h,lg){ // (banc) la caisse i, plumes de nitro ALLUMÉES, photographiée de trois quarts arrière (side : 0 = pile derrière, 1 = de côté) — la flamme sort-elle du pot ?
-  if(started&&!gameOver&&!paused)togglePause();if(i!=null)buildCar(CARS[Math.max(0,Math.min(CARS.length-1,i|0))]);
-  const jl=lg==null?1.3:lg,jr=.17,vu=jl>0;for(let k=0;k<JETS.shells.length;k++){const m=JETS.shells[k],c=JETS.cores[k];m.visible=vu;m.scale.set(jr,jr,jl);if(c){c.visible=vu;c.scale.set(jr*.48,jr*.48,Math.max(.01,jl)*.72);}}
-  for(const g of JETS.glows){g.visible=vu;g.scale.set(.5,.5,1);}jetShellM.color.setHex(0xff7a24);jetCoreM.color.setHex(0xfff2da);jetGlowM.opacity=.9;
-  const q=carGroup.quaternion,p=carGroup.position,sd=side==null?.45:side,D=d||6.5,H=h==null?1.6:h;
-  const F=new THREE.Vector3(0,0,1).applyQuaternion(q),Rt=new THREE.Vector3(1,0,0).applyQuaternion(q),U=new THREE.Vector3(0,1,0).applyQuaternion(q);
-  camera.position.copy(p).addScaledVector(F,-D*Math.cos(sd)).addScaledVector(Rt,D*Math.sin(sd)).addScaledVector(U,H);camera.up.copy(U);
-  const L=p.clone().addScaledVector(U,.6).addScaledVector(F,-.8);camera.lookAt(L);camera.updateMatrixWorld();camera.up.set(0,1,0);
-  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  const o=window.dbgPots();o.n=CARS.length;o.nom=(CARS[i|0]||{}).name;return o;};
  // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
@@ -27184,66 +27170,12 @@ vA:+vA.toFixed(2),s:+s.toFixed(1),lat:+lat.toFixed(2),side:side,driveDir:driveDi
 // `dbgCam9()` — état de la dynamique de caméra v1 (lean/swing/kick, voir leur déclaration) : pour
 // régler au clavier sans deviner ce qui bouge derrière l'écran.
 window.dbgCam9=function(){return {camLean:+camLean.toFixed(3),camSwing:+camSwing.toFixed(3),camKick:+camKick.toFixed(3),steer:+steer.toFixed(3)};};
-/* (vague 3, caméra) `dbgCamRoute(o)` — LE BANC DE LA CAMÉRA DE CONDUITE. o={s,side,lat,v} POSE la caisse en conduite (face ±1) ;
-   'scan' relève la piste tous les 10 m (pente monde, cabrage de la route 45 m devant vu de chaque face) ; sans argument, MESURE ce que
-   voit le joueur : où tombe à l'écran la route à 30/45/60 m (y écran −1 bas → +1 haut, >1 = sortie par le haut : le « mur »), l'angle
-   entre l'axe de la caméra et la tangente là-bas, et la hauteur de l'horizon du monde à l'écran. Lecture seule hors pose. */
-window.dbgCamRoute=function(o){
-  const FP={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},v=new THREE.Vector3(),f=new THREE.Vector3(),r2=x=>+x.toFixed(2);
-  if(o&&o.regle){Object.assign(CAM_ROUTE,o.regle);return 'reglee';} // réglage à chaud : dbgCamRoute({regle:{ANTICIPE:0,ANTICIPE_DESSOUS:0}}) = la caméra d'avant
-  if(o&&(o.regard||o.taille||o.heros)){if(o.regard)Object.assign(CAM_REGARD,o.regard);if(o.taille)Object.assign(CAM_TAILLE,o.taille);if(o.heros)Object.assign(CAM_HEROS,o.heros);return {regard:CAM_REGARD,taille:CAM_TAILLE,heros:CAM_HEROS};} /* (2026-09-30) + CAM_HEROS */ // (2026-09-30) A/B : dbgCamRoute({regard:{on:false},taille:{on:false}}) = la caméra d'avant
-  if(o==='scan'){const out=[];for(let s9=0;s9<L-60;s9+=10){frameAt(s9,FP);const n0=FP.n.clone(),ty=FP.t.y;frameAt(s9+45,FP);
-    const k=Math.asin(THREE.MathUtils.clamp(FP.t.dot(n0),-1,1))*57.3;out.push([s9,r2(ty),Math.round(k)]);}return {L:Math.round(L),pts:out};}
-  if(o&&typeof o==='object'){s=THREE.MathUtils.clamp(o.s||0,0,L-80);side=o.side<0?-1:1;lat=(o.lat||0)*side;psi=0;vL=0;mode='drive';driveDir=1;
-    if(o.v!=null)vA=o.v;prevTvalid=false;hopY=0;return 'posee';}
-  camera.getWorldDirection(f);const sd=side<0?-1:1,res={s:Math.round(s),side:sd,kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode};
-  frameAt(s,FP);const n0=FP.n.clone().multiplyScalar(sd);res.penteMonde=r2(FP.t.y);
-  for(const d of [30,45,60]){frameAt(s+d,FP);v.copy(FP.p).addScaledVector(FP.b,lat*sd).addScaledVector(FP.n,sd<0?-THICK:0);
-    res['cabrage'+d]=Math.round(Math.asin(THREE.MathUtils.clamp(FP.t.dot(n0),-1,1))*57.3);
-    res['angleAxe'+d]=Math.round(Math.acos(THREE.MathUtils.clamp(FP.t.dot(f),-1,1))*57.3);
-    const pr=v.clone().project(camera);res['yEcran'+d]=pr.z<1?r2(pr.y):'derriere';}
-  v.set(f.x,0,f.z);if(v.lengthSq()>1e-6){v.normalize().multiplyScalar(5000).add(camera.position);const pr=v.project(camera);res.yHorizon=pr.z<1?r2(pr.y):'derriere';}
-  res.upY=r2(camera.up.y);res.fov=Math.round(camera.fov);res.pivot=Math.round(CAM_ROUTE.phi*57.3);
-  /* (2026-09-30) LA CAISSE À L'ÉCRAN : la boîte de la fiche (l × w × h) projetée — `h`/`l` = part de la hauteur/largeur d'écran, x/y = son
-     centre (−1..1). C'est le chiffre de CAM_TAILLE : relevé au repos, en croisière, en nitro, sous NITROOO, dessus puis dessous. */
-  {const c=CARS[level],x0=1,y0=1,mm=[x0,-x0,y0,-y0];carGroup.updateMatrixWorld(true);
-   for(const a of [-.5,.5])for(const b of [0,1])for(const z of [-.5,.5]){const pr=v.set(a*c.w,b*(c.h||1.3),z*c.l).applyMatrix4(carGroup.matrixWorld).project(camera);
-     mm[0]=Math.min(mm[0],pr.x);mm[1]=Math.max(mm[1],pr.x);mm[2]=Math.min(mm[2],pr.y);mm[3]=Math.max(mm[3],pr.y);}
-   res.caisse={h:r2((mm[3]-mm[2])/2),l:r2((mm[1]-mm[0])/2),x:r2((mm[0]+mm[1])/2),y:r2((mm[2]+mm[3])/2)};}
-  res.heros={acc:+CAM_HEROS.acc.toFixed(2),champ:Math.round(CAM_HEROS.fb||0),coup:Math.round(CAM_HEROS.pu||0),flow:FLOW.lv,r9:+(Math.abs(vA)*3.6*SPD*vitMult()/Math.max(1,vCroisiere())).toFixed(2)};res.regardD=Math.round(CAM_REGARD.D);res.regardK=+CAM_REGARD.kV.toFixed(3);res.recul=r2(camera.position.distanceTo(carGroup.position));res.por=r2(POR);
-  return res;};
-// TREMPLINS de la zone courante : archétype, longueur de piste, et chaque lèvre (position + variante).
-// `dbgGap(true)` téléporte à 220 m avant la 1re lèvre — pour juger le gap sans refaire la course d'élan.
-window.dbgGap=function(go){
-  const FP={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
-  const g=HOLES.map(h=>{
-    const sLv=h.lip/(NP-1)*L;
-    frameAt(sLv,FP);const penteLevre=+FP.t.y.toFixed(3),yLevre=FP.p.y;      // pente AU point de catapulte
-    frameAt(Math.max(0,sLv-7),FP);const penteAvant=+FP.t.y.toFixed(3);      // ...et 7 u avant (là où ça se déclenche vraiment)
-    frameAt(h.s0,FP);const p0=FP.p.clone();
-    frameAt(h.s1,FP);
-    return {variante:['propre','surélevé','double'][h.v],
-            levre:Math.round(h.lip/(NP-1)*L),
-            largeur:Math.round(p0.distanceTo(FP.p)), // largeur RÉELLE du vide, bord à bord (doit rester < ~118)
-            denivele:Math.round(FP.p.y-p0.y),        // + = route d'en face SURÉLEVÉE (il faut s'engager)
-            i0:h.i0,i1:h.i1,s0:Math.round(h.s0),s1:Math.round(h.s1),penteLevre:penteLevre,penteAvant:penteAvant,dLevreBord:Math.round(p0.y-yLevre),
-            mid:[(p0.x+FP.p.x)/2,(p0.y+FP.p.y)/2,(p0.z+FP.p.z)/2], // plein milieu du vide (pour vérif au rayon)
-            avant:[p0.x,p0.y,p0.z]};                 // dernier point de dalle avant le trou
-  });
-  if(go&&HOLES.length){s=Math.max(0,HOLES[0].lip/(NP-1)*L-260);lat=0;psi=0;side=1;mode='drive';vA=Math.max(vA,110);prevTvalid=false;}
-  return {zone:zoneArch,L:Math.round(L),trous:g};
-};
 // SIMULATION PAS À PAS : en headless l'onglet est « caché », rAF est suspendu et le jeu ne bouge plus —
 // impossible de vérifier une mécanique. Ce pas-à-pas fait avancer la boucle À LA MAIN, sans rAF.
 const DBG_AUTO={on:false,lat:0,vol:false,nit:0,saut:0,imp:12,tS:0,l0:null,sg:1}; /* (2026-10-01) vol : il pilote aussi EN VOL (revient sur l'axe) · nit : 1 nitro tenue · 2 en vol seulement · 3 au sol seulement · saut : il décolle toutes les `saut` s de route (élan `imp`) — banc de LA LOI DU RÉSERVOIR */
 window.dbgMusique=function(){const e=musicEl;return {mode:musicMode,lieu:musicLieu&&musicLieu.titre,cur:musicCur,ctx:AC?AC.state:null,
   el:e?{src:(e.currentSrc||e.src).split('/').pop(),paused:e.paused,t:+e.currentTime.toFixed(2),ready:e.readyState,err:e.error&&e.error.code,vol:+musicVolCour.toFixed(2),voulue:musicVoulue,attente:musicEnAttente,analyse:!!musicAna,muted:e.muted}:null,son:SND.music};};
-window.dbgEngBig=function(i){i=i==null?5:i;engBig(ENGINE_TIERS[i],i);return ENGINE_TIERS[i].n;};
-// (v5) mesurer la carte moteur au banc : dbgEngCarte() rend échelle, tailles, place du moteur ; dbgEngCarte('fige') la garde à l'écran (pas de plongée)
-window.dbgEngCarte=function(k){if(k==='fige'){clearTimeout(engBig._p);clearTimeout(engBig._a);}const b=avE('engBig'),r=b&&b.getBoundingClientRect();
-  return {on:engBig.on,s:engBig.s,pw:engBig.pw,ph:engBig.ph,cw:Math.round(engCaisseL()),Q:{x:Math.round(ENG_Q.x),y:Math.round(ENG_Q.y),w:Math.round(ENG_Q.w),h:Math.round(ENG_Q.h),op:ENG_Q.op},carte:r?[r.left,r.top,r.width,r.height].map(Math.round):null,hex:engBig.hex};};
 window.dbgMoteur=function(){const E=ENGINE_TIERS[engTier+1];if(!E)return 'palier max';addCoins(Math.max(1,E.coins-coinsGot));return engTier+' · '+ENGINE_TIERS[engTier].n;}; // console : monter d'UN palier en course (la vraie scène : son, carte 3D, boîte) // console : la grande carte « NOUVEAU MOTEUR »
-window.dbgLigne=function(k){const d=[];for(const q of LIGNE.pts)if(q.s>s-4&&d.length<3)d.push({s:Math.round(q.s),lat:+q.lat.toFixed(1),k:q.k?'pad':'fruit'});if(k==='parfait'&&d.length&&mode==='drive'&&d[0].s-s<90)lat=side*d[0].lat; /* banc : la TRAJECTOIRE PARFAITE (la caisse posée sur l'objet qui arrive) */return {on:LIGNE.on,poses:{fruits:LIGNE.n[0],pads:LIGNE.n[1]},pris:{fruits:LIGNE.pris[0],pads:LIGNE.pris[1]},devant:d,s:Math.round(s),lat:+(side*lat).toFixed(1),nitro:+(nitroR+nitroX).toFixed(2),nitroOn:nitroOn,kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode,padCd:+padCd.toFixed(2),devantN:[LIGNE.pts.filter(q=>q.s>s&&!q.k).length,LIGNE.pts.filter(q=>q.s>s&&q.k).length]};}; // banc : LA LIGNE PARFAITE (les objets devant, la jauge, posés / pris)
 window.dbgAuto=function(on,l,o){DBG_AUTO.on=!!on;o=o||{};DBG_AUTO.lat=o.latK!=null?o.latK*ROAD_HALF:(+l||0); /* latK : en part de la demi-route (,86 = le rase-bord) */DBG_AUTO.vol=!!o.vol;DBG_AUTO.nit=o.nit|0;DBG_AUTO.saut=+o.saut||0;DBG_AUTO.imp=o.imp==null?12:+o.imp;DBG_AUTO.sg=o.sg==null?1:+o.sg;DBG_AUTO.tS=0;DBG_AUTO.l0=null;return DBG_AUTO.on;};
 function dbgAutoVol(dt){ /* banc : en vol, le pilote de mesure ramène la caisse sur l'axe de la route (écart latéral du radar de tryLand, et sa dérive) */
   if(!curNear){DBG_AUTO.l0=null;return 0;}
@@ -27263,49 +27195,6 @@ window.dbgStep=function(n,ms){
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
 window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',r30:!!loop._r30,jit:+(loop._jit||0).toFixed(1),cad:CAD.on?30:60};};
-// dbgDiff : EXPÉRIENCE CONTRÔLÉE DU CLIGNOTEMENT — même instant, on ne bouge QUE la caméra (position
-// dpos m + lacet dyaw rad), on rend 2 images et on mesure la différence par cellules. Un flicker
-// caméra = grosse différence pour un tout petit mouvement. En comparant dbgDiff avant/après dbgFlicker,
-// on ISOLE la cause sans jamais avoir à voir l'écran. Retourne {mean,max,bigCells} sur grille 48×27.
-window.dbgDiff=function(dpos,dyaw){ dpos=dpos==null?0.4:dpos; dyaw=dyaw==null?0.01:dyaw;
-  try{
-    const gl=renderer.getContext(),cv=renderer.domElement,w=cv.width,h=cv.height,GW=48,GH=27;
-    const tFix=performance.now()/1000, buf=new Uint8Array(w*h*4);
-    const grab=()=>{ updateClouds(0,tFix); if(POST_ON&&composer)composer.render(); else renderer.render(scene,camera);
-      gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);
-      const g=new Float32Array(GW*GH);
-      for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const px=Math.min(w-1,(gx+.5)/GW*w|0),py=Math.min(h-1,(gy+.5)/GH*h|0),i=(py*w+px)*4;g[gy*GW+gx]=(buf[i]+buf[i+1]+buf[i+2])/3;}
-      return g; };
-    const p=camera.position.clone(),q=camera.quaternion.clone();
-    const A=grab();
-    camera.position.x+=dpos; camera.rotateY(dyaw); camera.updateMatrixWorld();
-    const B=grab();
-    camera.position.copy(p); camera.quaternion.copy(q); camera.updateMatrixWorld(); grab();
-    let mean=0,max=0,big=0; for(let i=0;i<A.length;i++){const d=Math.abs(A[i]-B[i]); mean+=d; if(d>max)max=d; if(d>35)big++;}
-    return {mean:+(mean/A.length).toFixed(1), max:max|0, bigCells:big, of:GW*GH};
-  }catch(e){return 'err '+e.message;}
-};
-// dbgPop : DÉTECTEUR DE CLIGNOTEMENT RÉEL. 3 frames de JEU consécutives (caméra/shake/tri/dérive tous
-// réels), on mesure l'écart à un mouvement LISSE : |2·milieu − avant − après|. La parallaxe (linéaire)
-// s'annule ; ne restent que les POPS (un nuage présent 1 frame puis absent = pic). Découpé par tiers
-// d'écran (haut = ciel/nuages, bas = route/caisse) pour localiser. Comparer entre modes dbgFlicker.
-window.dbgPop=function(){
-  try{
-    const gl=renderer.getContext(),cv=renderer.domElement,w=cv.width,h=cv.height,GW=48,GH=27;
-    const buf=new Uint8Array(w*h*4);
-    const grab=()=>{ if(POST_ON&&composer)composer.render(); else renderer.render(scene,camera);
-      gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);
-      const g=new Float32Array(GW*GH);
-      for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const px=Math.min(w-1,(gx+.5)/GW*w|0),py=Math.min(h-1,(gy+.5)/GH*h|0),i=(py*w+px)*4;g[gy*GW+gx]=(buf[i]+buf[i+1]+buf[i+2])/3;}
-      return g; };
-    const fP=camera.position.clone(),fQ=camera.quaternion.clone();
-    const pin=()=>{if(window.dbgFreezeCam){camera.position.copy(fP);camera.quaternion.copy(fQ);camera.updateMatrixWorld();}}; // caméra figée, seul le temps avance
-    pin();const A=grab(); dbgStep(1,16); pin();const B=grab(); dbgStep(1,16); pin();const C=grab();
-    let mean=0,max=0; const band=[0,0,0]; // pops par tiers vertical
-    for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const i=gy*GW+gx,dd=Math.abs(2*B[i]-A[i]-C[i]);mean+=dd;if(dd>max)max=dd;if(dd>35)band[gy<GH/3?0:gy<2*GH/3?1:2]++;}
-    return {popMean:+(mean/(GW*GH)).toFixed(1),popMax:max|0,popHaut:band[0],popMilieu:band[1],popBas:band[2]};
-  }catch(e){return 'err '+e.message;}
-};
 window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse sous l'angle a (rad), distance d, hauteur h, re-rend UNE frame
   if(started&&!gameOver&&!paused)togglePause(); // sans pause, la chase-cam écrase le cadrage à la frame suivante
   const p=carGroup.position;
@@ -28545,7 +28434,6 @@ function ralentiDt(dt){ // dt RÉEL → dt du JEU (appelé par la boucle, après
   if(paused)return dt;
   RALENTI.t=Math.max(0,RALENTI.t-dt);const u=1-RALENTI.t/RALENTI.d,k=RALENTI.k;
   return dt*(1+(k-1)*THREE.MathUtils.smoothstep(u,0,.04)*(1-THREE.MathUtils.smootherstep(u,.45,1)));}
-window.dbgRalenti=function(d,k){if(k!=null)RALENTI.k=k;ralentiPose(d);return {t:RALENTI.t,d:RALENTI.d,k:RALENTI.k};};
 function frenArme(){
   FREN.arme=true;FLOW.aff=-1;
   if(FREN.coup)return; // (loi 20) le geste qui arme DÉCLENCHE aussi (voir flowAddDecl) : « DRIFT OU FIGURE ! » par-dessus TRIPLE MONSTER serait un contresens
@@ -28967,9 +28855,6 @@ const NIT={vol:0,nit:0}; // le vol en cours : sa durée (s), et le temps passé 
    `a:…` aura versée au compteur · `ab:famille` points de chaîne avant le × · `f:famille` flow réellement gagné. */
 const LIVRE={on:false,t:0,tN:0,tV:0,d:{}};
 function livre(k,q){if(!LIVRE.on||!(q>0))return;LIVRE.d[k]=(LIVRE.d[k]||0)+q;}
-window.dbgLivre=function(a){if(a==='ouvre'){LIVRE.on=true;LIVRE.t=LIVRE.tN=LIVRE.tV=0;LIVRE.d={};return 'ouvert';}if(a==='ferme'){LIVRE.on=false;return 'fermé';}
-  const o={};Object.keys(LIVRE.d).sort().forEach(function(k){o[k]=+LIVRE.d[k].toFixed(2);});
-  return {t:+LIVRE.t.toFixed(1),nitroPct:LIVRE.t>0?Math.round(100*LIVRE.tN/LIVRE.t):0,volPct:LIVRE.t>0?Math.round(100*LIVRE.tV/LIVRE.t):0,moteur:engTier,flow:FLOW.lv,argent:Math.round(money),aura:Math.round(auraRun),d:o};};
 function nitroPct(p,src){nitroGain(p*((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2),src);} // (2026-09-26) une PART de la jauge (0,2 = 20 %), quel que soit le moteur
 // LE PLEIN = la capacité du MOTEUR (2,0 → 3,6). Tout ce qui « remplit la jauge » passe par ici : écrit `nitroR=2` en dur,
 // un portail ou une NITRO INFINIE VIDAIENT un réservoir de 3,6 (porté de la lignée car-crash, 2026-09-28).
@@ -29351,7 +29236,6 @@ const PHOTO={cache:{},rt:null,scene:null,cam:null};
 // une photo de STUDIO : ailes de vol rentrées, ni halos, ni flaques de phares, ni plumes de réacteur — la carrosserie, les roues, point
 function photoPropre(){if(carWingL){carWingL.visible=false;carWingR.visible=false;}
   carGroup.traverse(o=>{if(o.isSprite||(o.isMesh&&!(o.userData&&o.userData.lp)&&o.material&&(o.material.transparent||o.material.blending===THREE.AdditiveBlending)))o.visible=false;});}
-window.dbgPhoto=function(i,ancien){if(started&&!gameOver)return null;delete PHOTO.cache[i|0];PHOTO.ancien=!!ancien;const u=carPhoto(i|0);PHOTO.ancien=false;delete PHOTO.cache[i|0];return u;}; // (dev) la vignette de garage d'une caisse, refaite
 /* LE STUDIO PHOTO v2 (2026-09-30, Sacha, capture de la boutique : « pourquoi ces photos sont aussi moches ») — MESURÉ sur l'ancien : la caisse
    était tournée PILE face à l'objectif (rotation .72 pour une caméra à .70 d'azimut : on la voyait de face, écrasée), photographiée en
    360 × 220 puis affichée deux fois plus grand sur un écran Retina (flou, escaliers), sous une ambiance à 1,25 et une clé à 1,3 que la
@@ -31969,12 +31853,6 @@ function mortsCompte(cause){ // une mort RÉELLE (explode, passé le filet du mo
   if(mortsHors())return;mortsSuit();const k=MORTS.k;if(!k)return;
   const M=mortsEx().morts,c=/^[a-z]{1,12}$/.test(cause)?cause:'autre',o=M[k]||(M[k]={});
   o[c]=Math.min(1e6,(o[c]|0)+1);mortsVerse();SAVE.mark();}
-window.dbgMorts=function(q){ // (dev) {ici, niveaux:{clé:{morts:{cause:n}, total, min (de course), parMin (morts/minute)}}} · dbgMorts('raz') remet à zéro
-  const E=mortsEx();if(q==='raz'){E.morts={};E.temps={};MORTS.t=0;SAVE.flush();return 'ok';}
-  const o={},ks=new Set(Object.keys(E.morts).concat(Object.keys(E.temps)));if(MORTS.k)ks.add(MORTS.k);
-  for(const k of ks){const m=E.morts[k]||{},s=(E.temps[k]||0)+(k===MORTS.k?MORTS.t:0);let n=0;for(const c in m)n+=m[c]|0;
-    o[k]={morts:Object.assign({},m),total:n,min:+(s/60).toFixed(2),parMin:s>0?+(n*60/s).toFixed(3):null};}
-  return {ici:MORTS.k,niveaux:o};};
 let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GAME OVER : une mort comprise donne envie de rejouer
 /* (2026-09-30) LA PARTIE BAT-ELLE UN RECORD ? Les TROIS de l'écran de mort (mFill) : l'ARGENT (montants bruts ; 1,61 $ n'en est pas un),
    l'AURA battue en course (CHA.recB), le MOTEUR (un palier jamais atteint avant cette partie). explode s'en sert pour ne pas se moquer
@@ -33131,19 +33009,6 @@ function singeJeu(dt){
   }
   if(!vivants)singeCache();
 }
-window.dbgSinge=function(f){ // dbgSinge(1) : la troupe tout de suite · dbgSinge('sauts') : le pilote du banc décolle toutes les 1,1 s (de VRAIS sauts) · dbgSinge(0) : le pilote s'arrête
-  if(f==='sauts'){if(!started||gameOver)return 'il faut rouler';window.dbgAuto(1,0,{saut:1.1,imp:9});return 'pilote : un saut toutes les 1,1 s';}
-  if(f===0){window.dbgAuto(0);return 'pilote coupé';}
-  if(f&&typeof f==='object'){for(const m of SGC.S)for(const k in f){const u=m.S.U[k];if(!u)continue;if(typeof f[k]==='number')u.value=f[k];else if(u.value.setRGB)u.value.setRGB(f[k][0],f[k][1],f[k][2]);}return 'réglé';} // dbgSinge({uLueur:.5,…}) : les réglages vitrail des trois singes, à chaud
-  if(f){SGC.cd=0;SGC.att=SGR_ATT;}
-  const v=new THREE.Vector3();
-  if(f==='cap'){const p=a=>a.project(camera).toArray().slice(0,2).map(x=>+x.toFixed(3));frameAt(SGC.sC,SGC.F);const fu=p(carGroup.position.clone().addScaledVector(SGC.F.t,2000*SGC.dir));
-    return {fuite:fu,singes:SGC.S.filter(m=>m.nd.visible).map(m=>({tete:p(m.nd.localToWorld(m.S.F.cou.clone())),queue:p(m.nd.localToWorld(new THREE.Vector3(0,.9,-.95))),avant:m.nd.localToWorld(new THREE.Vector3(0,0,1)).sub(m.nd.getWorldPosition(new THREE.Vector3())).normalize().dot(SGC.F.t)*SGC.dir}))};}
-  return {pret:SGC.pret,chaud:SGC.chaud,tri:SINGE_FC._geo?Math.round((SINGE_FC._geo.lisse.index.count*2+SINGE_FC._geo.ecailles.index.count)/3):0,etat:SGC.etat,jeu:started&&!gameOver&&!TUTO.on&&!PARK.on,tuto:TUTO.on,parc:PARK.on,t:+SGC.t.toFixed(2),cd:+SGC.cd.toFixed(1),att:+SGC.att.toFixed(2),face:SGC.face,dir:SGC.dir,
-    sauts:SGC.sauts.map(t=>+(SGC.horl-t).toFixed(2)),route:{s:+SGC.sC.toFixed(1),lat:+SGC.lC.toFixed(1),h:+SGC.hC.toFixed(1)},
-    singes:SGC.S.map(m=>({ph:m.ph,ds:+(m.ds||0).toFixed(1),lat:+(m.lat||0).toFixed(1),h:+(m.h||0).toFixed(1),vu:m.nd.visible,
-      ecran:m.nd.visible?m.nd.getWorldPosition(v).project(camera).toArray().map(a=>+a.toFixed(2)):null}))};
-};
 // ---- SERPENT : tube néon (cyan→magenta, ventre doré) à reptation en place ----
 const SN_NSEG=54,SN_RSEG=10,SN_SEGL=0.34;
 const snRP=[[0,.02],[.018,.30],[.05,.44],[.10,.30],[.34,.30],[.62,.20],[.82,.11],[.94,.06],[1,.02]];
@@ -33513,8 +33378,6 @@ function distTick(dt){
   const cible=Math.max(0,DIST.env)*.85*musVol();
   if(Math.abs((DIST._g||0)-cible)>.002){DIST._g=cible;try{DIST.wet.gain.setTargetAtTime(cible,AC.currentTime,.03);}catch(e){}}
 }
-window.dbgDisto=function(a){if(a===0||a===1)DIST.on=!!a;if(a===1&&musicAnaEl&&AC){distPrete();try{if(DIST.in)musicAnaEl.connect(DIST.in);}catch(e){}}return{on:DIST.on,branchee:!!DIST.in,copieDuSon:!!musicAnaEl,niveau:+DIST.env.toFixed(2),
-  vitesse:+flowVitN().toFixed(2),nitro:!!nitroOn,boost:+Math.min(1,boost).toFixed(2)};};
 function musicGraph(){} // (v4 : plus de graphe Web Audio pour la bande-son — gardée vide pour les anciens appelants)
 function playMusic(url,opt){opt=opt||{};
   const el=musicElGet();
@@ -33996,32 +33859,7 @@ window.dbgAura=function(b,a){
    C'est la seule façon de juger la courbe d'un enchaînement sans réussir sept figures d'affilée
    manette en main. `dbgFig()` avance aussi la fenêtre si on lui passe un délai. */
 
-window.dbgFig=function(n,delai,redite){
-  // `redite` : simule la MEME figure repetee n fois (le 3e argument d'auraFigure), pour verifier
-  // que le farm par repetition ne paie pas.
-  const out=[];for(let i=0;i<(n==null?1:n);i++){const a=auraRun;auraFigure(redite?i+1:1);out.push(Math.round(auraRun-a));} // ⚠ n=0 doit vouloir dire ZÉRO figure : `n||1` en faisait une quand même
-  if(delai)auraComboTick(delai);
-  return {gains:out,combo:figCombo,fenetreRestante:+figComboT.toFixed(2),
-    cumulDuCombo:figComboAura,auraDeLaPartie:Math.round(auraRun)};
-};
-// l'achat par le VRAI chemin (débit + flush compris), sans passer par le garage
-/* `dbgPod()` — l'état du RETOURNEUR. Sans lui il n'y a aucun moyen de savoir si une bascule est en
-   cours, bloquée, ou terminée : tout se joue dans `GAR.sw` et `carGroup.scale`, deux valeurs
-   invisibles à l'écran dès que l'animation se fige (une caisse écrasée ressemble à une caisse
-   écrasée, qu'elle soit en train de descendre ou plantée là). */
-window.dbgPod=function(){return {enCours:!!GAR.sw,t:GAR.sw?+GAR.sw.t.toFixed(3):0,echange:GAR.sw?GAR.sw.fait:null,
-  cible:GAR.sw?CARS[GAR.sw.to].name:null,caisse:CARS[garageI].name,
-  echelleY:+carGroup.scale.y.toFixed(3),scanY:GAR.scan?+GAR.scan.position.y.toFixed(2):null,
-  scanVu:GAR.scan?GAR.scan.visible:null,podY:GAR.pod?+GAR.pod.rotation.y.toFixed(2):null};};
 window.dbgBuy=function(i){const r=carBuy(i);if(r.ok&&garageOn)garageShow(garageI);return r;};
-// `dbgGo()` — l'état du LÂCHER (2026-09-05) : sans lui, impossible de savoir depuis la console si
-// `GAR.go` a bien été armé par `garageLaunch()`, où en est sa progression, ou s'il a déjà rendu la
-// main à `start()`/`resetGame()` — les mêmes lexicaux `let`/`const` du script ne sont pas visibles
-// depuis un contexte d'évaluation isolé (voir `dbgPod`, même raison).
-window.dbgGo=function(){return {armé:!!GAR.go,t:GAR.go?+GAR.go.t.toFixed(3):0,garageOn,started,gameOver,
-  startBoostT:+startBoostT.toFixed(2),inGarage:document.body.classList.contains('inGarage'),
-  gFadeOn:$('gFade').classList.contains('on'),launchLogoOn:$('launchLogo').classList.contains('on'),
-  launchGlowOn:$('launchGlow').classList.contains('on'),quiet:!!(GAR.go&&GAR.go.quiet)};};
 /* `dbgRunEnd(argent, aura)` — simule la FIN d'une partie par le vrai chemin (`commitExploits`).
    C'est la seule façon de vérifier la règle du virement sans jouer trois minutes : on pose ce que
    la partie a rapporté, on clôture, et on lit ce qui est arrivé en banque. */
@@ -34034,77 +33872,6 @@ window.dbgRunEnd=function(argent,aura){
   return {argentDeLaPartie:misé,depart:START_CASH,
     avant:av,apres:{banque:bank(),aura:SAVE.d.aura,rang:auraRankName()},
     vire:commitExploits._vire,auraVersee:commitExploits._aura,rangMonte:!!commitExploits._rangMonte};
-};
-/* `dbgSfx()` — l'état des samples d'événement : présence des fichiers, réfractaires en cours.
-   `dbgSfx('wow')` / `dbgSfx('argent')` joue sans attendre le réfractaire.
-   ⚠ PAS `dbgFx` : ce nom est DÉJÀ pris par les effets visuels (bloom, expo, soleil), plus bas dans
-   le fichier — donc il écrasait celui-ci en silence, et on récupérait l'état du post-traitement en
-   croyant lire celui des sons. */
-window.dbgSfx=function(quoi){
-  if(quoi==='wow'){fxWowCd=0;fxWow(9);}
-  if(quoi==='argent'){fxArgCd=0;fxArgent(true);}
-  return {wowRefractaire:+fxWowCd.toFixed(1),argentRefractaire:+fxArgCd.toFixed(1),
-    dernierArgent:fxArgLast>=0?FX_ARGENT[fxArgLast].f:null,
-    sons:[FX_WOW].concat(FX_ARGENT).map(d=>d.f+(d.dead?' ABSENT':' ok')),
-    rafaleFruits:fruitRaf,comboFigures:figCombo};
-};
-/* `dbgJus(n)` — gicle n taches de jus sur l'objectif, sans avoir a croquer un fruit. Rend la part
-   d'ecran reellement repeinte : c'est la seule mesure qui reponde a « on ne le voit pas ». */
-window.dbgJus=function(n,col,gel,u){ // (v7) n = 0 : l'objectif est ESSUYÉ · u : chaque tache avancée à cette fraction de sa vie, glissade au bout
-  if(n===0){for(const j of JUS)j.toile.pris=false;JUS.length=0;}else juiceScreen(col==null?0xff3ec8:col,1.2,n||5);
-  if(gel)for(const j of JUS)j.vie=40; // FIGÉ : les taches vivent 1,2 s, trop court pour une capture
-  if(u!=null)for(const j of JUS){j.t=u*j.vie;j.gy=j.gm;}
-  juiceScreenTick(u!=null?.0001:.05);
-  let pct=null;
-  try{const d=juiceCx.getImageData(0,0,juiceCv.width,juiceCv.height).data;
-    let p=0,t=0,pz=0,tz=0;const W9=juiceCv.width,H9=juiceCv.height;
-    for(let i=3;i<d.length;i+=4*13){t++;const q=(i-3)>>2,x9=q%W9,y9=(q/W9)|0,z9=!jusHors(x9,y9,0,W9,H9);if(z9)tz++;if(d[i]>12){p++;if(z9)pz++;}}
-    pct=+(100*p/t).toFixed(1);dbgJus.route=tz?+(100*pz/tz).toFixed(1):0;}catch(e){}
-  return {taches:JUS.length,partDEcranPeinte:pct+' %',partDeLaRoute:dbgJus.route+' %',canvas:[juiceCv.width,juiceCv.height]}; // (v7) la ROUTE : visée 0
-};
-/* `dbgRadio()` — l'état de la radio (pas `dbgMusic`, déjà pris par le debug audio-réactif du ciel
-   plus bas dans le fichier — même piège que `dbgSfx`/`dbgFx` documenté ailleurs). `dbgRadio(1)`
-   force l'enchaînement sur le morceau suivant, sans ça il faudrait attendre trois minutes pour voir
-   un changement de piste une fois. */
-window.dbgRadio=function(suivant){
-  if(suivant)try{musicNext();}catch(e){return {erreur:String(e.message)};}
-  const t=MUSIC_TRACKS[musicCur];
-  if(musicLieu&&musicMode==='run')return {piste:musicLieu.titre,lieu:LVL.cur&&LVL.cur.id,poolSize:MUSIC_TRACKS.length,mode:musicMode};
-  return {piste:t?t.titre:null,morceau:t?t.f.split('/').pop():null,
-    poolSize:MUSIC_TRACKS.length,mode:musicMode};
-};
-/* `dbgLogo()` — casse le logo une fois. `dbgLogo(n)` tire n jetons SANS animation et rend la
-   distribution : c'est la seule façon de vérifier qu'un trèfle à 4 feuilles reste bien rare, sans
-   cliquer deux cents fois. */
-window.dbgLogo=function(n){
-  if(!n){logoCasse();return {jeton:'(voir l ecran)',vus:butinVus};}
-  const c={};for(let i=0;i<n;i++){const j=jetonTire();c[j.n]=(c[j.n]||0)+1;}
-  return {tirages:n,distribution:JETONS.map(j=>({jeton:j.n,voulu:j.p+' %',
-    obtenu:+(100*(c[j.n]||0)/n).toFixed(2)+' %',unClicSur:Math.round(n/Math.max(1,c[j.n]||0))}))};
-};
-window.dbgDolphins=function(sec,nb,ch){ // `ch` : la CHORÉ (0-6, ou son nom ; null = au hasard)
-  if(sec==='royal'){if(dolShow<=0)dolIn=0;dolShow=Math.max(dolShow,4.5);dolNb=DOL_BANC.length;dolSync=true;return 'bond royal';} // (v6) le banc au complet bondit d'un seul corps
-  if(sec==='ras'){dolRasF=nb==null?null:+nb;return dolRasF;} // (v6) force le RAS vu (0-1 ; null = le vrai) : liseré, gerbes, tempo
-  dolShow=sec||4;dolIn=0;if(nb)dolNb=Math.max(1,Math.min(DOL_BANC.length,nb|0));}; // (2026-09-29) `nb` : le banc au complet d'entrée (banc photo)
-// (dev, 2026-09-29) `dbgDolView(i,a,d,h,pas)` : MODE PHOTO d'un dauphin — met en pause, fait nager le banc `pas` images de 1/60 s, cadre le
-// dauphin i (i = -1 : tout le banc) sous l'angle a (rad, dans le repère du banc : 0 = de face, π/2 = de profil), à d × sa longueur, hauteur
-// h × sa longueur, et rend UNE image. Renvoie la pose (phase du bond, échelle) pour que le banc sache ce qu'il a photographié.
-window.dbgDolView=function(i,a,d,h,pas,ph){ // `ph` : on nage jusqu'à ce que le dauphin i soit à cette phase du bond (0,5 = le sommet)
-  if(started&&!gameOver&&!paused)togglePause();
-  for(let k=0;k<(pas|0);k++)updateDolphins(1/60,true);
-  if(ph!=null&&i>=0)for(let k=0;k<900&&Math.abs(dolphins[i].userData.p-ph)>.012;k++){dolphins[i].userData.vr=0;updateDolphins(1/60,true);} // (sans la vrille : au sommet du bond, il serait sur le dos)
-  dolphinRig.updateMatrixWorld(true);
-  const D=dolphins[Math.max(0,i|0)],L=i<0?dolW*.5:DOL_L*Math.max(.01,D.scale.x);
-  if(i<0)dolPod.getWorldPosition(crV1);else D.getWorldPosition(crV1);
-  crV2.set(Math.sin(a||0),h==null?.35:h,Math.cos(a||0)).multiplyScalar((d||2.4)*L).applyQuaternion(dolphinRig.quaternion).add(crV1);
-  const f0=camera.fov;camera.fov=34;camera.updateProjectionMatrix(); // un téléobjectif le temps de la photo (le grand-angle du portrait rapetisse tout), rendu juste après
-  camera.position.copy(crV2);camera.up.set(0,1,0).applyQuaternion(dolphinRig.quaternion);camera.lookAt(crV1);camera.updateMatrixWorld();camera.up.set(0,1,0);
-  skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;
-  RIM_U.uSunV.value.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
-  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
-  try{window.dbgDolView.png=renderer.domElement.toDataURL('image/png');}catch(e){} // lue DANS la même tâche que le rendu : la boucle, qui re-rend en pause (flou de boost figé compris), ne l'a pas encore écrasée
-  camera.fov=f0;camera.updateProjectionMatrix();
-  return {p:+D.userData.p.toFixed(2),ech:+D.scale.x.toFixed(2),vis:D.visible,nb:dolNb,kS:+dolKS.toFixed(2)};
 };
 // `dbgDauphin(impU,v,vl,lat0)` : un VRAI décollage (startFall) depuis la position courante — impU 60 ≈ 3,6 s de vol ; v = vitesse le long
 // de la piste ; vl = dérive latérale ; lat0 = départ dans la largeur. `dbgDauphin('force',true|false|null)` impose le verdict « au-dessus »
@@ -34122,7 +33889,6 @@ window.dbgDauphin=function(a,b,c,d){
   if(mode!=='drive')return 'déjà en vol : '+mode;
   lat=d||0;vA=b||15;vL=c||0;startFall(a||60,1);return window.dbgState();
 }; // forcer le banc de dauphins
-window.dbgSerpent=function(sec){serpShow=sec||3;};  // forcer le serpent
 /* `dbgBeat(v)` — force un coup de grosse caisse (0..1) pour VOIR la réaction sans dépendre de
    l'audio. Indispensable : en test automatisé il n'y a pas de sortie son, l'analyseur ne rend que
    des zéros, et le réactif serait donc invérifiable. Rend l'état des rails néon avant/après. */
