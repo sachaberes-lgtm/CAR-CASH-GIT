@@ -20644,7 +20644,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;ORB.cleOk=false; /* (2026-10-14, passe graphismes · hasard) X → EN ORBITE pour la 2e fois de la partie (espace → ville → espace…) : le SOLEIL de l'orbite (ORB.cle, calé sur le cap de la caméra) gardait la direction de la FIN de l'orbite précédente et mettait ~3 s à rejoindre le cap de la nouvelle piste — ombres, flanc éclairé et reflet d'objectif (FLARE) balayaient l'image à l'arrivée. Comme la lune (capOk) : il se cale d'un coup sur la nouvelle piste. */} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;
   SATOB.list.length=0;SATOB.on=false; // (2026-09-30) la pluie de satellites part avec sa piste (sinon ses obstacles survivaient au portail : la ligne parfaite les évitait encore aux NUAGES)
   if(!ORB.actif)return;
