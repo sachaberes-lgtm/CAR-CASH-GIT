@@ -7743,6 +7743,88 @@ html.c6 #gMis .obFig{background:none}
 /* l'aide en anglais (« TAP A CHALLENGE TO TRACK IT ») laissait un « IT » seul à la 2e ligne : on équilibre les deux lignes */
 html.c6 #gMis #gmHead #gmAide{text-wrap:balance}
 </style>
+<style id="n7-defis">
+/* NAVIGATION 7 · l'ONGLET MISSIONS (#gMis, dans #garage.missions ; clé d'onglet 'defis') — (2026-10-14, session INTERFACE) toutes les règles
+   commencent par html.nav7 ; ?nav=0 rend l'écran de la charte 6 (bloc ci-dessus). La structure commune : le TITRE en haut à gauche (pas de ◀ :
+   la barre d'onglets est le retour), le contenu entre --n7Haut et --n7Res, JOUER dans l'emplacement de décision. Les cartes sont écrites par
+   defisRender (script, « L'ONGLET MISSIONS ») : une police par carte (le système), aucun texte sous 13 px, la carte entière se touche. */
+html.nav7 #gMis #gmHead{left:var(--n7TitreX);top:var(--n7TitreY);display:flex;align-items:center;width:auto;max-width:none;height:var(--c6-h);gap:0}
+html.nav7 #gMis #gmHead>:not(b){display:none!important}   /* le ◀, la sous-ligne, l'aide (elle vit dans chaque carte : « TOUCHE POUR SUIVRE ») ; le titre MISSIONS reste, en pixel 16 */
+html.nav7 #gMis #gmHead>b{line-height:var(--c6-lh16)}
+/* les fils et les points DOM s'effacent (le fil de la récompense traversait la caisse) : les hologrammes 3D de Léo marquent toujours les meubles */
+html.nav7 #gMis #gmFils{display:none}
+/* JOUER : LA plaque de décision, à sa place commune (debout : pleine largeur au-dessus de la barre ; couché : au bout de la barre, à droite) */
+html.nav7 #gMis #gmBas{position:fixed;left:var(--n7DecL);right:var(--n7DecR);bottom:var(--n7DecB);width:var(--n7DecW);height:var(--n7DecH);transform:none;display:flex;gap:0;margin:0;padding:0}
+html.nav7 #gMis #gmBas .gmHome,html.nav7 #gMis #gmBas .gmJouer .mChev{display:none}
+html.nav7 #gMis #gmBas .gmJouer{flex:1 1 auto;width:auto;min-width:0;max-width:none;min-height:var(--n7DecH);height:var(--n7DecH);margin:0;justify-content:center}
+/* LA LISTE : les trois missions en haut, la récompense en bas — la caisse et l'atelier respirent entre les deux */
+html.nav7 #gMis .dfL{position:absolute;top:var(--n7Haut);bottom:var(--n7Res);left:calc(var(--sL) + 16px);right:calc(var(--sR) + 16px);display:flex;flex-direction:column;
+  justify-content:space-between;gap:var(--c6-ev);pointer-events:none;font-family:var(--c6-sys);-webkit-font-smoothing:antialiased}
+html.nav7 #gMis .dfD{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--c6-ev)}
+/* LA CARTE : une touchable à filet blanc 2 + tranche 4 (accord, peau 10) ; le toucher de la charte (4 px, 90 ms) */
+html.nav7 #gMis .dfC{position:relative;box-sizing:border-box;display:flex;flex-direction:column;gap:var(--c6-e);padding:var(--c6-pad);pointer-events:auto;cursor:pointer;
+  background:var(--c6-e1);color:var(--c6-b0);text-align:left;
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 var(--c6-noir);
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear;
+  animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:calc(var(--i,0) * var(--c6-cascade))}
+html.nav7 #gMis .dfC.vu{animation:none}
+html.nav7 #gMis .dfC:active{transform:translateY(var(--c6-t));box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 0 0 0 var(--c6-noir)}
+/* rangée 1 : CE QU'IL FAUT FAIRE (15 / 800) et CE QUE ÇA RAPPORTE (le vert de l'argent) */
+html.nav7 #gMis .dfX{flex:1 1 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:var(--c6-eg)}
+html.nav7 #gMis :is(.dfX>span,.dfX>b,.dfP>b,.dfRn>b){font-size:var(--c6-t15);line-height:var(--c6-lh15);font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase}
+html.nav7 #gMis .dfX>span{min-width:0;text-wrap:balance}
+html.nav7 #gMis .dfX>b{flex:none;color:var(--c6-cash);white-space:nowrap}
+/* rangée 2 : la jauge et « x / y » (le meilleur essai en UNE partie) */
+html.nav7 #gMis .dfP{display:flex;align-items:center;gap:var(--c6-ev)}
+html.nav7 #gMis .dfP u{display:block;flex:1 1 auto;min-width:40px;height:8px;margin:0 2px;background:var(--c6-e3);box-shadow:0 0 0 2px var(--c6-noir)}
+html.nav7 #gMis .dfP u em{display:block;height:100%;background:var(--c6-b0)}
+html.nav7 #gMis .dfP>b{flex:none;white-space:nowrap}
+/* rangée 3 : la CASE et l'état — vide « TOUCHE POUR SUIVRE » · d'or « SUIVIE EN COURSE » · verte « RÉUSSIE » */
+html.nav7 #gMis :is(.dfS,.dfRT,.dfVoir){font-size:var(--c6-t13);line-height:var(--c6-lh13);font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase}
+html.nav7 #gMis .dfS{display:flex;align-items:center;gap:var(--c6-e);color:var(--c6-g1)}
+html.nav7 #gMis .dfK{flex:none;display:grid;place-items:center;width:20px;height:20px;box-sizing:border-box;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0);font-style:normal}
+html.nav7 #gMis .dfK .pxi{--pxs:1.6;color:var(--c6-e0)}
+/* SUIVIE EN COURSE : le filet d'or de 4 px (« en cours », la grammaire de la charte), la case et la jauge d'or */
+html.nav7 #gMis .dfC.f{box-shadow:inset 0 0 0 var(--c6-sel) var(--c6-or),0 var(--c6-t) 0 0 var(--c6-noir)}
+html.nav7 #gMis .dfC.f:active{box-shadow:inset 0 0 0 var(--c6-sel) var(--c6-or),0 0 0 0 var(--c6-noir)}
+html.nav7 #gMis .dfC.f .dfS{color:var(--c6-or)}
+html.nav7 #gMis .dfC.f .dfK{background:var(--c6-or);box-shadow:none}
+html.nav7 #gMis .dfC.f .dfP u em{background:var(--c6-or)}
+/* RÉUSSIE : plus rien à toucher (le doigt reçoit un « non ») — filet sourd, sans tranche, tout passe au vert */
+html.nav7 #gMis .dfC:is(.ok,.muet){cursor:default;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e4)}
+html.nav7 #gMis .dfC:is(.ok,.muet):active{transform:none;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e4)}
+html.nav7 #gMis .dfC.ok .dfS{color:var(--c6-cash)}
+html.nav7 #gMis .dfC.ok .dfK{background:var(--c6-cash);box-shadow:none}
+html.nav7 #gMis .dfC.ok .dfP u em{background:var(--c6-cash)}
+/* LA RÉCOMPENSE : « ★ RÉCOMPENSE ▪▪▪ 0 / 3 », puis la caisse (vignette, nom dans la couleur de sa rareté, rareté) et VOIR › */
+html.nav7 #gMis .dfRT{display:flex;align-items:center;gap:var(--c6-e);color:var(--c6-g1)}
+html.nav7 #gMis .dfRT>span{display:flex;align-items:center;gap:var(--c6-e);min-width:0}
+html.nav7 #gMis :is(.dfRT,.dfVoir) .pxi{--pxs:2;color:currentColor}
+html.nav7 #gMis .dfPips{display:flex;gap:4px;margin-left:auto;font-style:normal}
+html.nav7 #gMis .dfPips u{display:block;width:12px;height:12px;background:var(--c6-e3)}
+html.nav7 #gMis .dfPips u.ok{background:var(--c6-cash)}
+html.nav7 #gMis .dfRT>b{flex:none;color:var(--c6-b0)}
+html.nav7 #gMis .dfRw{display:flex;align-items:center;gap:var(--c6-ev);min-height:40px}
+html.nav7 #gMis .dfC.r .obFig{position:relative;right:auto;top:auto;flex:none;width:64px;height:40px;margin:0;background:none}
+html.nav7 #gMis .dfC.r .obFig img{width:100%;height:100%;max-width:none;object-fit:contain}
+html.nav7 #gMis .dfRn{flex:1 1 auto;display:flex;flex-direction:column;min-width:0}
+html.nav7 #gMis .dfRn>b{color:var(--rc,var(--c6-b0));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* la couleur de rareté : du sens, sans halo */
+html.nav7 #gMis .dfRn>small{font-size:var(--c6-t13);line-height:var(--c6-lh13);font-weight:var(--c6-w);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-g2)}
+html.nav7 #gMis .dfVoir{flex:none;display:flex;align-items:center;gap:4px;color:var(--c6-b0)}
+/* COUCHÉ : les trois missions en trois colonnes, la récompense sous la première (la caisse reste au milieu) */
+@media (orientation:landscape) and (max-height:540px){
+  html.nav7 #gMis .dfD{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--c6-e)}
+  html.nav7 #gMis .dfC.r{align-self:flex-start;width:min(100%,320px)}   /* 320 : elle s'arrête avant le nez de la caisse (vu au banc 844 × 390) */
+}
+/* DEBOUT, écran court (iPhone SE) : les marges intérieures passent à 8 pour que tout tienne au-dessus de JOUER */
+@media (orientation:portrait) and (max-height:720px){
+  html.nav7 #gMis :is(.dfL,.dfD){gap:var(--c6-e)}
+  html.nav7 #gMis .dfC{gap:4px;padding:8px 12px}
+}
+@media (prefers-reduced-motion:reduce){html.nav7 #gMis .dfC{animation:none;transition:none}}
+/* LA CARTE DÉFI DE LA FIN (#mObj, contenu écrit par objRender ; sa place dans #mDead appartient à la fin) : la prime reste collée à son « $ » */
+html.nav7 #overlay #mDead .mObj .obBig .obPrime{white-space:nowrap}
+</style>
 <style id="c6-garage">
 /* CHARTE 6 · le garage : le hub, la fiche, l'inventaire — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
 /* ---- LE HUB DU GARAGE (2026-10-14, charte 6) -------------------------------------------------------------------------
@@ -48595,7 +48677,51 @@ function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite)
 }
 function gmHoloTick(t9){const e=GMIS.e;for(let i=0;i<GMIS.holo.length;i++){const h=GMIS.holo[i],o=e*(.34+.12*Math.sin(t9*2.7+i*1.3));
   h.beam.material.opacity=o;if(h.ring){h.ring.material.opacity=e*.8;const k=1+.12*Math.sin(t9*3.1+i);h.ring.scale.set(k,k,k);}}}
+/* ==================== L'ONGLET MISSIONS — NAVIGATION 7 (2026-10-14, session INTERFACE ; Sacha : « beaucoup plus clair pour les enfants ») ====================
+   (Le nom reste MISSIONS, en français comme en anglais : pour Sacha, les « DÉFIS » sont autre chose — les défis secrets des couleurs. La clé
+   d'onglet de la barre, elle, est 'defis' : `n7:va` {onglet:'defis'} ; d'où les noms defis* / df* ci-dessous.)
+   Sous html.nav7, l'écran MISSIONS devient un onglet : trois GRANDES cartes qu'un enfant lit en une seconde — CE QU'IL FAUT FAIRE (avec
+   ce que ça rapporte, en vert), la jauge et « x / y » (son meilleur essai en UNE partie), et une case : vide = « TOUCHE POUR SUIVRE », or =
+   « SUIVIE EN COURSE » (le filet d'or de la charte autour de la carte), verte = « RÉUSSIE ». Puis la carte de la RÉCOMPENSE (la caisse des trois
+   missions : la toucher la montre au garage, comme avant). Debout : une carte par rangée ; couché : trois colonnes. Les cartes vivent dans le
+   flux (CSS, <style id="n7-defis">) : plus de placement image par image, plus de fils ni de points DOM (le fil de la récompense traversait la
+   caisse) — les hologrammes 3D de Léo (faisceaux, anneaux) marquent toujours les meubles. ?nav=0 garde l'écran d'avant (gmRenderS / gmRender).
+   Une seule police par carte : le SYSTÈME (il garde ses accents ; TR passe par majPix, qui est fait pour le pixel — d'où n7Tx). */
+function defisN7(){return document.documentElement.classList.contains('nav7');}
+function n7Tx(s){return LANG==='fr'?s:TR(s);}
+Object.assign(I18N,{'TOUCHE POUR SUIVRE':'TAP TO TRACK','RÉUSSIE':'DONE','SUIVIE EN COURSE':'TRACKED','RÉCOMPENSE':'REWARD',
+  /* (2026-10-14, règle de Sacha : une MISSION n'est plus jamais un « défi », FR comme EN — le mot est réservé aux défis secrets de la palette) */
+  'MISSION':'MISSION','CHAQUE MISSION EN UNE PARTIE':'EACH MISSION IN ONE RUN','TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE':'TAP A MISSION TO TRACK IT',
+  "LES 3 MISSIONS D'ABORD":'THE 3 MISSIONS FIRST','LES MISSIONS · CHACUNE EN UNE PARTIE':'MISSIONS · EACH IN ONE RUN',
+  'MISSION RÉUSSIE !':'MISSION DONE!','MISSIONS RÉUSSIES !':'MISSIONS DONE!','REUSSIE':'DONE','SUIVIE':'TRACKING'});
+function defisResume(){ // (pour NAV) la pastille de l'onglet MISSIONS : missions relevées dans le carnet en cours (sur 3) ; celle qui est suivie (-1 : aucune) ; le n° du carnet
+  const s=misEtat();let f=0;for(let i=0;i<3;i++)if(s.ok[i])f++;
+  return {fait:f,total:3,suivi:(s.f>=0&&!s.ok[s.f])?s.f:-1,carnet:s.n};}
+window.dbgDefis=function(){return defisResume();};
+function defisRender(vu){
+  const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;
+  const s=misEtat(),c=carnet(s.n),g=misGain(c),fait=s.ok.filter(Boolean).length;
+  if(s.f>=0&&s.ok[s.f])s.f=-1;
+  let hd='',hr='';
+  GMIS.ancres.forEach(function(a,k){
+    if(a.k==='d'){const m=c.m[a.i];if(!m)return;const ok=!!s.ok[a.i],f=s.f===a.i,b=ok?m.v:Math.min(m.v,s.best[a.i]||0);
+      hd+='<div class="dfC d'+(ok?' ok':'')+(f?' f':'')+(vu?' vu':'')+'" data-k="'+k+'" style="--i:'+a.i+'" role="button" aria-pressed="'+f+'">'
+        +'<span class="dfX"><span>'+misTxt(m,true)+'</span><b>+'+fmtC(m.p)+'</b></span>'
+        +'<span class="dfP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>'+misProgV(m,b)+'</b></span>'
+        +'<span class="dfS"><i class="dfK">'+(ok?pxi('coche'):'')+'</i>'+n7Tx(ok?'RÉUSSIE':f?'SUIVIE EN COURSE':'TOUCHE POUR SUIVRE')+'</span></div>';}
+    else if(a.k==='r'){let pp='';for(let i=0;i<3;i++)pp+='<u'+(s.ok[i]?' class="ok"':'')+'></u>';
+      const fam=g.car!=null?n7Tx(rarInfo(carRar(g.car)).n1):g.cat?n7Tx(SHOP_LBL[g.cat]||''):g.fam;
+      hr='<div class="dfC r'+(g.voir?'':' muet')+(vu?' vu':'')+'" data-k="'+k+'" style="--i:3;--rc:'+g.col+'" role="button">'
+        +'<span class="dfRT"><span>'+pxi('etoile')+n7Tx('RÉCOMPENSE')+'</span><i class="dfPips">'+pp+'</i><b>'+fait+' / 3</b></span>'
+        +'<span class="dfRw">'+misGainFig(g)+'<span class="dfRn"><b>'+g.nom+'</b><small>'+(fam||'')+'</small></span>'
+        +(g.voir?'<span class="dfVoir">'+n7Tx('VOIR')+pxi('droite')+'</span>':'')+'</span></div>';}
+  });
+  el.innerHTML='<div class="dfL"><div class="dfD">'+hd+'</div>'+hr+'</div>';
+  if(sv)sv.innerHTML='';
+  GMIS.cards=[].slice.call(el.querySelectorAll('.dfC'));GMIS.pts=[];GMIS.paths=[];GMIS.Q=[];GMIS.last=null; // les cartes dans l'ordre des ancres (d, d, d, r) : le toucher les retrouve par data-k
+}
 function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
+  if(defisN7())return defisRender(vu); // (2026-10-14, navigation 7) l'onglet MISSIONS ; ?nav=0 garde les deux écrans d'avant
   if(MENU_SACHA)return gmRenderS(vu); // (Sacha a tranché) son écran rangé ; celui de Léo avec ?menu=leo
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el||!sv)return;
   const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
@@ -48616,10 +48742,11 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
   GMIS.paths=[].slice.call(sv.querySelectorAll('path'));GMIS.sz=GMIS.cards.map(function(c9){return [c9.offsetWidth||150,c9.offsetHeight||60];});
   GMIS.last=null;
-  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
+  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE MISSION EN UNE PARTIE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVIE')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
 }
 function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à côté (écartées, dans l'écran), les fils
+  if(defisN7())return; // (navigation 7) les cartes de l'onglet MISSIONS sont dans le flux : rien à suivre image par image
   if(MENU_SACHA)return gmSuitS();
   if(!GMIS.cards||!GMIS.cards.length)return;
   const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]),Q=GMIS.Q||(GMIS.Q=[]);
@@ -48754,7 +48881,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
  clicM(document.querySelector('#gmHead .c6Ret'),function(){uiClic('retour');garMisRetour();}); // (2026-10-14, charte 6) le ◀ de l'en-tête = HOME (masqué sous c6)             // HOME : le menu (ou la VITRINE, si on en vient)
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
-   const c9=e.target.closest&&e.target.closest('.gmC');if(!c9)return;const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
+   const c9=e.target.closest&&e.target.closest('.gmC,.dfC');if(!c9)return; /* .dfC : les cartes de l'onglet MISSIONS (navigation 7) */const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
    if(a.k==='d'){if(s.ok[a.i]){uiClic('refus');return;}s.f=s.f===a.i?-1:a.i;SAVE.flush();uiClic(s.f>=0?'on':'off');hap(10);gmRender(true);
      const c2=GMIS.cards[GMIS.ancres.indexOf(a)];if(c2)c2.classList.add('flash');}
    else if(a.k==='r'){const g=misGain(carnet(s.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
@@ -48911,7 +49038,7 @@ $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarge
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gC6Tete,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return; /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gC6Tete,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gMis .dfC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return; /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
