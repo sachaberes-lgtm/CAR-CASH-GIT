@@ -8,7 +8,8 @@
     "sync": "node preparer-www.js && npx cap sync ios",
     "icones": "node generer-icones.js && npx capacitor-assets generate --ios",
     "ouvrir": "npx cap open ios",
-    "essai": "node preparer-www.js --essai"
+    "essai": "node preparer-www.js --essai",
+    "archive": "sh archiver.sh"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",

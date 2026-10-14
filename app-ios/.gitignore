@@ -2,3 +2,5 @@
 node_modules/
 # entrées de @capacitor/assets, refaites par generer-icones.js depuis ressources/
 /assets/
+# l'archive App Store et son .ipa, refaits par archiver.sh
+/build/
