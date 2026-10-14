@@ -21348,7 +21348,7 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fog:[.17,.18,.25],f
    au NOIR (ciel .45 / remplissage .2) → ombres bleu-violet (ciel .62, remplissage bleu .38). Plus la signature de route (bords roses, ligne or). `?sans=canyon2`. */
 if(SIG_V.canyon){
  Object.assign(BIOMES.canyonMatin,{sat:1.12,con:1.2,fillI:.28,kickC:[1,.40,.66],kickI:.18});
- Object.assign(BIOMES.canyonMidi,{sat:1.12,con:1.22,jHor:[.95,.74,.55],cyH:[.95,.74,.55],fog:[.84,.70,.58],fogCj:[1,.82,.62],fogIn:[.96,.88,.80],cyF:[.90,.76,.64],cyB:[.80,.62,.58],fillI:.26,kickC:[1,.40,.68],kickI:.18});
+ Object.assign(BIOMES.canyonMidi,{rtK:.7,sat:1.12,con:1.22,jHor:[.95,.74,.55],cyH:[.95,.74,.55],fog:[.84,.70,.58],fogCj:[1,.82,.62],fogIn:[.96,.88,.80],cyF:[.90,.76,.64],cyB:[.80,.62,.58],fillI:.26,kickC:[1,.40,.68],kickI:.18});
  Object.assign(BIOMES.canyonSoir,{sat:1.12,con:1.22,hemiS:[.44,.40,.72],hemiI:.62,fillC:[.42,.46,.92],fillI:.38,kickC:[1,.38,.62],kickI:.2});
  for(const k of ['canyonNuit','canyonPluie','canyonOrage'])if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.16)});
 }}
