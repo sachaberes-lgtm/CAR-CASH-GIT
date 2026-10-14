@@ -19280,8 +19280,8 @@ function slideTick(dt){ // boucle de conduite, chaque image, après le RASE-BORD
 }
 function slideContact(){SLD.mur=.12;} // le crochet des MURS : une paroi qui touche le flanc ce tour-ci (Paris, les couloirs du CANYON…) — à rappeler à chaque image de contact
 window.slideContact=slideContact;
-window.dbgSlide=function(k,v){if(k==='force')SLD.force=+v||200;if(k==='stop')SLD.force=0;
-  return {on:SLD.on,t:+SLD.t.toFixed(2),aura:Math.round(SLD.aura),k:+SLD.k.toFixed(2),force:SLD.force,lat:+lat.toFixed(2),bord:+ROAD_HALF.toFixed(2),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode,auraRun:Math.round(auraRun)};};
+window.dbgSlide=function(k,v){if(k==='force')SLD.force=+v||200;if(k==='stop'){SLD.force=0;lat=0;vL=0;}
+  return {on:SLD.on,t:+SLD.t.toFixed(2),aura:Math.round(SLD.aura),k:+SLD.k.toFixed(2),force:SLD.force,lat:+lat.toFixed(2),bord:+ROAD_HALF.toFixed(2),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode,vmax:Math.round(vmaxShow()),chaine:Math.round(CHA.pts||0),auraRun:Math.round(auraRun)};};
 function parisMur(dt){ // LES FAÇADES SONT DES MURS : un CHOC par contact (vitesse perdue selon l'angle), puis on FROTTE (étincelles) — de face à pleine vitesse, on s'encastre
   const out=Math.sign(lat)||1,lim=ROAD_HALF-1.15;lat=out*lim;
   const into=vL*driveDir*out;if(into<=0)return;
@@ -45490,11 +45490,13 @@ const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,mo
   offre:false,used:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
-function chanceRaz(){clearTimeout(CHANCE.tm);const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
+function chanceRaz(){clearTimeout(CHANCE.tm);CHANCE.gratuit=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
   clearTimeout(CHANCE.tm);CHANCE.offre=false;
-  if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(RUNX.t||0)<CHANCE.tMin)return;
-  CHANCE.prix=Math.max(CHANCE.plancher,Math.round(Math.max(0,money-START_CASH))); /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
+  const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
+  CHANCE.gratuit=false;
+  if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(!bon&&(RUNX.t||0)<CHANCE.tMin))return;
+  CHANCE.prix=bon?0:Math.max(CHANCE.plancher,Math.round(Math.max(0,money-START_CASH)));CHANCE.gratuit=bon; /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
@@ -45502,14 +45504,14 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
 }
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&bank()>=CHANCE.prix);
-  return {ok:ok,prix:CHANCE.prix,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
 function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on repart sous le volet
   if(!chanceEtat().ok)return false;
   if(ecranWipe._on)return false; // (2026-10-14, chasse aux bugs) un volet déjà en route (REJOUER, ⌂ touchés juste avant) n'appellerait jamais la reprise (ecranWipe sort sans `go`) : on paierait pour rester sur l'écran de mort, offre éteinte et ligne du Top 10 retirée — on ne débite rien
   const P=CHANCE.prix;
   clearTimeout(CHANCE.tm);CHANCE.used=true;CHANCE.offre=false;
-  SAVE.d.bank=Math.max(0,bank()-P);
+  if(CHANCE.gratuit)SAVE.d.chanceG=Math.max(0,(SAVE.d.chanceG|0)-1); /* le bon sert */ else SAVE.d.bank=Math.max(0,bank()-P);
   CHANCE.m0=money;CHANCE.rs={tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0};
   if(CHANCE.lb!=null){const i9=leaders.findIndex(function(e){return e.s===CHANCE.lb;});if(i9>=0)leaders.splice(i9,1);} // la ligne de la 1re fin part : la fin suivante posera le score de toute la partie
   saveLeaders(); // (flush : le paiement et le Top 10 partent ensemble sur le disque)
@@ -45543,7 +45545,7 @@ function chanceRepart(P){ // sous le volet : la course reprend où elle s'est ar
     if(!started||gameOver){if(s9)s9.classList.remove('compte','on');return;}
     if(paused){CHANCE.tm=setTimeout(pas,200);return;} // la pause pendant le compte : il attend
     if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2)sfx('ui.go');}catch(e){}return;}
-    slam(String(n),n===3?'−'+fmtC(P):'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
+    slam(String(n),n===3?(P>0?'−'+fmtC(P):(LANG==='en'?'FREE':'GRATUIT')):'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
     try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6);
     n--;CHANCE.tm=setTimeout(pas,500);};
   CHANCE.tm=setTimeout(pas,120);
