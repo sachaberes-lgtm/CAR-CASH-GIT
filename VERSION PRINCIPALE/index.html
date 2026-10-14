@@ -28834,7 +28834,7 @@ function frole(c9,dl,k){
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
   if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
-  try{froleSnd(pres,FROLE.n);}catch(e){}
+  try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
   if(SENS)try{sensCoup((lat-side*c9.lat>0?1:-1)*(.35+.5*pres),0,0);}catch(e){} // (2026-10-14, sensations) le SOUFFLE du plot rasé : la caisse s'en écarte d'un rien (plus on rase près, plus elle tique) — le frôlé se lisait aux étincelles, pas dans la caisse
@@ -34656,12 +34656,16 @@ const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'pwr.bouclierCasse':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
   'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
+// (2026-10-14, session SON) passé le 9e degré (+21, le plafond des bases [0,12]), une gamme du vol ne se FIGE plus sur sa note : elle redescend
+// et remonte l'octave haute (degrés 8-7-6-5-6-7-8-9 : +19 +16 +14 +12 +14 +16 +19 +21) — jamais plus haut qu'avant
+const SON_ECH_AR=[8,7,6,5,6,7,8,9];
+function sonPdAR(i){i=Math.max(0,i|0);return sonPd(i<=9?i:SON_ECH_AR[(i-10)%SON_ECH_AR.length]);}
 function sfx(id,o){
   if(!SONV2||!sfxOk()||document.hidden)return null;
   try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
-function echSt(){return sonPd(Math.min(9,ECH++));} // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
+function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
   if(SONV2||!AC||!MASTER||!window.CCSON)return;
   try{window.CCSON.init(AC,MASTER);SONV2=!!(window.CCSON.etat().ok&&window.CCSON.existe('ui.tap'));sonTonSuit._t=null;}catch(e){SONV2=false;} // (débogage 2026-09-29) sans banque chargée, l'ancien son reprend la main
@@ -35265,8 +35269,14 @@ function raseSnd(dt,kmh){
 }
 /* LE FRÔLÉ S'ENTEND : un souffle Doppler (aigu à l'approche, grave en s'éloignant — l'objet PASSE à côté de nous) et un
    « ting » qui monte d'un ton par plot enchaîné. La chaîne d'un slalom se joue comme une gamme. */
-function froleSnd(pres,n){
-  if(SONV2){sfx('frole',{st:sonPd(Math.min(9,(n|0)-1)),vol:-3+3*(pres||0)});return;}
+// (2026-10-14, session SON) LE CÔTÉ DE L'OBSTACLE : `ob` = l'objet frôlé (plot, satellite, voiture du trafic — tous ont .mesh.position, en monde).
+// Son écart sur l'axe DROIT de la caméra (celle de l'image d'avant) le place à l'écran : le souffle passe de ce côté, ±0,35 au plus.
+// Sans objet (ou sans position), pas de pan : rien n'est deviné. Vecteurs réutilisés : aucune allocation par frôlé.
+const SON_FR_D=new THREE.Vector3(),SON_FR_R=new THREE.Vector3(),SON_FR_C=new THREE.Vector3();
+function froleSnd(pres,n,ob){
+  if(SONV2){let p9=0;try{if(ob&&ob.mesh&&ob.mesh.position){SON_FR_R.setFromMatrixColumn(camera.matrixWorld,0);SON_FR_C.setFromMatrixPosition(camera.matrixWorld);
+      p9=.35*Math.max(-1,Math.min(1,SON_FR_D.copy(ob.mesh.position).sub(SON_FR_C).dot(SON_FR_R)/2.5));if(!(p9===p9))p9=0;}}catch(e){p9=0;}
+    sfx('frole',{st:sonPdAR((n|0)-1),vol:-3+3*(pres||0),pan:p9});return;} // (2026-10-14, session SON) sonPdAR : aller-retour sur l'octave haute après le 9e maillon, au lieu de figer
   if(!sfxOk())return;
   try{
     const t0=AC.currentTime,d=.32,up=Math.min(1.9,1+(n-1)*.12);
