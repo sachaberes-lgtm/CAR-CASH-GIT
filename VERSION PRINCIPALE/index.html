@@ -8619,7 +8619,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=13"></script>
-<script defer src="assets/audio/music/harmonie.js?v=16"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
 (function(){
@@ -33176,7 +33176,7 @@ const MUSIC_CIEL=[1,2,3,4,5].map(function(k){return{titre:'CIEL · NIVEAU '+k,f:
 // 12 tours de 4 mesures qui évoluent, 96 s chacune ; avant, NÉON seule au niveau 1)
 // (2026-10-05, Léo : « fais les 4 prochains niveaux en t'inspirant de la base… qu'à la cinq on ressente EXPLOSION, ARGENT, BOOMIN, LUXURY ») : 6 à 10 = la
 // suite composée (atelier-son/ville_suite.py) — PLUIE D'OR · SOUS-SOL · PENTHOUSE · CHAMBRE FORTE · CASH EXPLOSION
-const MUSIC_VILLE=['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','NÉON COMPLÈTE 4','NÉON COMPLÈTE 5',"PLUIE D'OR",'SOUS-SOL','PENTHOUSE','CHAMBRE FORTE','CASH EXPLOSION']
+const MUSIC_VILLE=['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','NÉON COMPLÈTE 4','NÉON COMPLÈTE 5']
   .map(function(t,i){return{titre:t,f:'assets/audio/music/ville/ville-n'+(i+1)+'.m4a'};});
 const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
 function musicLieuVoulu(){
@@ -34439,7 +34439,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'chris-matin':-2,'chris-dimanche':1,'chris-nuit':-1,'chris-polaroid':3,'chris-ciel':-1,'chris-siffleur':-1,'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+const SON_TON={'chris-matin':-2,'chris-dimanche':1,'chris-nuit':-1,'chris-polaroid':3,'chris-ciel':-1,'chris-siffleur':-1,'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 /* (2026-10-04) GLASSY PLUCKS −2 : MESURÉ (chroma de harmonie.py) — si, la, ré, mi, fa# dominent, ré♯ et la♯ presque absents : si mineur /
    ré majeur (comme VITESSE), pas le « do# dorien » noté sur la branche de Léo (0). Sa fiche d'harmonie (la phrase du boost) est dans harmonie.js. */
 function sonTonSuit(){
