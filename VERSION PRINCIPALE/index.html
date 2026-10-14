@@ -38246,7 +38246,7 @@ function dolStart(){
   dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
   if(dolShow<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
   dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
-  hap([10,24,10]); // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
+  if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<2)hap([10,24,10]); /* (2026-10-14, gameplay · accord) le banc des dauphins part AU décollage : le « ta-tac » du décollage (startFall) vient de partir, quasi le même motif — un seul */ // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
 }
 /* (2026-09-29, Sacha : « dauphin écrit plus petit avec une police aquatique avec des vagues ») : une lettre = un <i> qui ondule sur SA
    phase (la vague court le long du mot), en eau — lèvre d'écume blanche, bleu lagon, fond marine — et une vague de pixels coule dessous. */
