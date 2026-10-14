@@ -7,6 +7,7 @@ const SRC=fs.readFileSync(path.join(__dirname,'..','VERSION PRINCIPALE','index.h
 const a=SRC.indexOf('const EVT_ON='),z=SRC.indexOf("\nObject.assign(I18N,{'LE BANQUIER'");
 if(a<0||z<0){console.error('bloc EVT introuvable');process.exit(1);}
 const CODE=SRC.slice(a,z);
+const CARTES=(/^const SF_CARTES=\{([\s\S]*?)^\};/m.exec(SRC)||['',''])[1].match(/^  [a-z]+:\{nm:/gm).map(function(s){return s.trim().split(':')[0];}); // les maps du tirage, lues dans le jeu
 let rate=0,echecs=0;const ok=(c,m)=>{if(!c){echecs++;console.error('  ECHEC : '+m);}else console.log('  ok : '+m);};
 
 function bac(search,over){
@@ -60,8 +61,8 @@ console.log('4. au plus UN événement par partie');
   run(c,'evtPartie();EVT.arme=true');c.__prep.length=0;run(c,'evtZone()');run(c,'EVT.etat=0');run(c,'evtZone()');ok(c.__prep.length===2,'posé mais jamais parti : la zone suivante le reprend');
   run(c,'EVT.etat=2;EVT.fait=true');c.__prep.length=0;run(c,'evtZone()');ok(c.__prep.length===0,'parti : plus rien pour la partie');}
 
-console.log('5. la rareté : combien de parties en voient un ? (modèle : une zone = 45 % de mort, mort uniforme ; maps tirées sans la même deux fois)');
-{const P=run(bac(''),'EVT_P'),T0=20,N=200000,PD=+process.env.EVT_MORT||.45,cartes=['nuages','ville','jade','foret','banquise','espace'];
+console.log('5. la rareté ('+CARTES.length+' maps : '+CARTES.join(' ')+') : combien de parties en voient un ? (modèle : une zone = 45 % de mort, mort uniforme ; maps tirées sans la même deux fois)');
+{const P=run(bac(''),'EVT_P'),N=200000,PD=+process.env.EVT_MORT||.45,cartes=CARTES;
   let vues=0;
   for(let g=0;g<N;g++){if(Math.random()>=P)continue;let prev=null,vu=false;
     for(let zone=0;zone<12&&!vu;zone++){let carte;do{carte=cartes[(Math.random()*cartes.length)|0];}while(carte===prev);prev=carte;
