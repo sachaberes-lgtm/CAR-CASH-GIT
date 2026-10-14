@@ -10966,7 +10966,6 @@ const COTON={S:[],im:[],I:null,n:0,cap:560,mat:null,grid:null,root:null,L:null,M
    PRENNENT LE CIEL DE COTON : les volutes en cubes (NUVOX, 353 000 triangles / 26 appels) ne sont plus bâties ni dessinées ; à leur place,
    les cumulus de la Mer de nuages (mêmes gabarits, mêmes instances, même matière déjà compilée au menu — rien de neuf pour la puce),
    posés par `cotonJade` ENTRE et DERRIÈRE les pics, à l'altitude de la brume. `?nucubes=1` (ou true ici) : les cubes reviennent, tels quels. */
-const JADE_NUAGES_CUBES=/[?&]nucubes=1\b/.test(location.search);
 /* LE BUDGET (session OPTIMISATION) : palier 0 ≤ 40 000 triangles / 6 appels · 1 ≤ 90 000 / 10 · 2 ≤ 180 000 / 16, par image. Tenu par
    construction : `K` = les gabarits permis (3 pour la 1re tranche, 5 ensuite), `f` = la finesse la plus fine permise par palier (donc
    3×2, 5×2, 5×3 lots au plus), `n` = nuages par km de piste dans chaque TRANCHE — les tranches sont posées l'une après l'autre et
@@ -11345,7 +11344,7 @@ function cotonJade(cr){ // (2026-10-14, passe graphismes) le coton des PICS DE J
   COTON.jd=J;COTON.root.visible=COTON.n>0;}
 function buildCoton(cr){
   cotonInit();cotonVide();COTON.jd=null;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
-  if(LVL.cur&&LVL.cur.piste==='jade'&&!JADE_NUAGES_CUBES&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
+  if(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
@@ -11433,7 +11432,7 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
 window.dbgCotonJade=function(o){o=o||{}; // (banc, 2026-10-14, passe graphismes) le coton des PICS DE JADE : palier forcé (pal 0-2, null = le vrai), densités, et le PIRE cas par palier ({balaie:mètres entre deux poses}) en posant une caméra tout le long de la piste
   const J=COTON_JADE;if(o.pal!==undefined)J.force=o.pal;if(o.n)J.n=o.n;if(o.f)J.f=o.f;if(o.rebati)buildCoton(mulberry32(o.rebati));
   const mes=function(){let lots=0;for(const im of COTON.im)if(im.count>0)lots++;return [COTON.tri,lots,COTON.nN+COTON.nF];};
-  if(!o.balaie||!COTON.jd)return {jade:!!COTON.jd,cubes:JADE_NUAGES_CUBES,palier:cotonPalier(),nuages:COTON.n,lim:J.lim.slice(),km:+(L/1000).toFixed(1),image:mes(),gabarits:J.K[1].map(function(k){return [0,1,2,3].map(function(f){return COTON.im[k*4+f].userData.tri;});})};
+  if(!o.balaie||!COTON.jd)return {jade:!!COTON.jd,cubes:false,palier:cotonPalier(),nuages:COTON.n,lim:J.lim.slice(),km:+(L/1000).toFixed(1),image:mes(),gabarits:J.K[1].map(function(k){return [0,1,2,3].map(function(f){return COTON.im[k*4+f].userData.tri;});})};
   const c=camera.clone(),sv=J.force,R={},pas=Math.max(1,Math.round(o.balaie/(L/(NP-1)))),av=Math.max(2,Math.round(60/(L/(NP-1))));
   for(let pa=0;pa<3;pa++){J.force=pa;let mt=0,ml=0,mn=0,st=0,q=0;
     for(let i=0;i+av<NP;i+=pas){c.position.copy(pts[i]);c.position.y+=7;c.lookAt(pts[i+av].x,pts[i+av].y+3,pts[i+av].z);c.updateMatrixWorld(true);c.matrixWorldInverse.copy(c.matrixWorld).invert();cotonTick(c);
@@ -15488,7 +15487,7 @@ function jadeKit(){const P=[],C=[];
 /* (v7, Léo : « pas Minecraft » → « des cubes minuscules ») VX 3,5 → 1,75 m sur l'ordi (3,5 m sur un vrai téléphone), la muraille et l'arche
    5 → 2,5 m ; un 4e niveau de détail (1,75 · 3,5 · 7 · 14 m) garde le coût : les petits cubes ne se dessinent que de près. */
 const VX=TEL_NATIF?3.5:1.75,VXG=TEL_NATIF?5:2.5;
-const VIT=/[?&]vitrail=1\b/.test(location.search),JADE_NUVOX=!/[?&]nuvox=0\b/.test(location.search); // (v13) les volutes en cubes — `?nuvox=0` : les panneaux en relief de la v9
+const JADE_NUVOX=!/[?&]nuvox=0\b/.test(location.search); // (v13) les volutes en cubes — `?nuvox=0` : les panneaux en relief de la v9
  // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
 const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
 const JADE_TPL=[[10,190,1],[14,250,0],[16,220,3],[18,300,2],[23,350,3],[26,330,1],[29,400,0],[36,440,2],[45,490,1],[56,540,3]]; // rayon (m), hauteur (m), sorte : 0 colonne · 1 aiguille · 2 gradins · 3 tête large
@@ -15585,8 +15584,6 @@ function* voxMeshG(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous 
   return g;
   }finally{if(own)VOXM.pris=false;}
 }
-// UN NIVEAU DE DÉTAIL : la grille divisée par 2 (un cube plein si 3 de ses 8 enfants le sont ; la vie l'emporte en haut)
-function voxDemi(G){return jadeFini(voxDemiG(G));}
 function* voxDemiG(G){const H=voxG(Math.ceil(G.nx/2),Math.ceil(G.ny/2),Math.ceil(G.nz/2)),gx=G.nx,gy=G.ny,gz=G.nz,D=G.d,Fe=JM.feuille,He=JM.herbe,Ro=JM.rouille; // (perf) mêmes cases, lues à plat
   for(let y=0;y<H.ny;y++){if(performance.now()>JF.lim)yield;for(let z=0;z<H.nz;z++)for(let x=0;x<H.nx;x++){let n=0,v=0,r=0;
     for(let k=0;k<8;k++){const X=2*x+(k&1),Y=2*y+((k>>1)&1),Z=2*z+(k>>2);if(X>=gx||Y>=gy||Z>=gz)continue;const m=D[X+gx*(Z+gz*Y)];if(m){n++;if(m===Fe||m===He)v++;else if(m===Ro)r++;}}
@@ -15646,8 +15643,8 @@ function* voxPilierG(R,H,kind,graine){
   let yTop=0,rmax=0;for(let i=0;i<N;i++)for(let j=0;j<N;j++){let yh=-1;for(let yy=G.ny-1;yy>=0;yy--)if(D9[i+N*(j+N*yy)]){yh=yy;break;} // la colonne : sa case pleine la plus haute
     if(yh>=0){yTop=Math.max(yTop,yh+1);rmax=Math.max(rmax,Math.hypot(i+.5-M,j+.5-M)+.71);}}
   if(performance.now()>JF.lim)yield;
-  const G1=VIT?null:yield* voxDemiG(G),G2=VIT?null:yield* voxDemiG(G1),G3=VIT?null:yield* voxDemiG(G2);
-  const geo=VIT?null:[yield* voxMeshG(G,4),yield* voxMeshG(G1,2),yield* voxMeshG(G2,1),yield* voxMeshG(G3)];
+  const G1=(yield* voxDemiG(G)),G2=(yield* voxDemiG(G1)),G3=(yield* voxDemiG(G2));
+  const geo=[yield* voxMeshG(G,4),yield* voxMeshG(G1,2),yield* voxMeshG(G2,1),yield* voxMeshG(G3)];
   return {G:G,M:M,H:H,Hb:Hb,yTop:yTop,rmax:rmax,N:N,ly:LY,harm:harm,can:can,tr:tr,graine:graine,tops:tops.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),cor:cor.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),des:des,
     geo:geo}; // les plans intérieurs tous les 7 m à chaque niveau (le verre garde la même teinte) — en vitrail : la peau et le cœur lisses (jadeLisse) // les plans intérieurs tous les 7 m à chaque niveau (le verre garde la même teinte) — en vitrail : la peau et le cœur lisses (jadeLisse)
 }
@@ -15774,71 +15771,8 @@ function* colMeshG(NU,NV,LO,HI,perm,mat,nb,inner){ // (passe perf) en tranches a
   g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));
   g.setAttribute('aM',new THREE.Float32BufferAttribute(Ma,1));g.setAttribute('aAO',new THREE.Float32BufferAttribute(new Float32Array(nv).fill(.92),1));
   g.setIndex(nv>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();return g;}
-/* ==== LE VITRAIL (v10, Léo : « grâce à la technique vitrail, essaie d'alléger et d'embellir en même temps les montagnes ») ====
-   La recette du dauphin (CAR-dauphins, 10/10 : « de loin lisse et brillant, de près le pixel qui apparaît, avec des joints de lumière très
-   fins »), appliquée aux montagnes — de l'intérieur vers l'extérieur :
-   · LE CŒUR : la montagne LISSE, rentrée de ~1 m sous les cubes (`jadeLisse(…,false)`), une lumière de jade (profonde en bas, pâle en
-     haut, ses strates), opaque ;
-   · LES ÉCAILLES : de PRÈS seulement (≤ 170 m, les cubes de 58 cm de FIN), à 89 % de leur taille (`uEcart`) — la lumière du cœur passe par
-     les JOINTS ; elles apparaissent en fondu tramé de 170 à 125 m ;
-   · LA PEAU DE VERRE : la montagne lisse un peu GONFLÉE autour des cubes (`jadeLisse(…,true)`), transparente de face (.45), opaque sur la
-     silhouette (.95) : le ciel du niveau s'y reflète, un éclat de soleil, un film irisé discret sur les bords ;
-   · L'ONDE : une bande de lumière qui MONTE à travers les montagnes (du fleuve vers le ciel, ~25 s, chaque montagne son déphasage) — elle
-     allume le cœur, les arêtes des écailles et la peau à son passage.
-   ALLÉGER : la peau et le cœur sont des ANNEAUX lisses (4 niveaux de détail, ~23 k triangles au plus près pour la plus grande montagne,
-   quelques centaines au loin) au lieu des milliers de cubes en trois passes ; plus de maillage de 1,75 m à bâtir (la grille ne sert qu'aux
-   chocs). L'arche et le pont gardent leurs cubes, en écailles de vitrail (joints de lumière, sans cœur derrière). `?vitrail=0` : la v9. */
-function jadeLisse(T9,peau,dy,naMax){
-  const LY=T9.ly,H=T9.H,Rm=T9.rmax||T9.N/2,na=Math.max(8,Math.min(naMax,Math.round(6.2832*Rm/(peau?1.1:2.2))));
-  const fT=new Float32Array(na),cs=new Float32Array(na),sn=new Float32Array(na);
-  for(let k=0;k<na;k++){const an=k/na*6.2832;cs[k]=Math.cos(an);sn[k]=Math.sin(an);let f=1;for(const h of T9.harm)f+=h[1]*Math.cos(h[0]*an+h[2]);
-    for(const c of T9.can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}fT[k]=Math.max(.05,f);}
-  const W9=peau?1.4:.7,marge=peau?.6:-.55,ys=[];for(let y=0;y<H;y+=dy)ys.push(y);ys.push(H);
-  const RG=[];
-  for(const y of ys){let cx=0,cz=0,wt=0;const sel=[];
-    for(const l of LY)if(l[1]>=y-W9&&l[0]<=y+W9){sel.push(l);cx+=l[2];cz+=l[3];wt++;}
-    if(!wt){let bl=LY[0],bd=1e9;for(const l of LY){const d=Math.min(Math.abs(l[0]-y),Math.abs(l[1]-y));if(d<bd){bd=d;bl=l;}}sel.push(bl);cx=bl[2];cz=bl[3];wt=1;}
-    cx/=wt;cz/=wt;const r=new Float32Array(na).fill(peau?0:1e9);
-    for(const l of sel){const dx=l[2]-cx,dz=l[3]-cz;for(let k=0;k<na;k++){const rr=l[4]*fT[k]+dx*cs[k]+dz*sn[k];if(peau?rr>r[k]:rr<r[k])r[k]=rr;}}
-    for(let k=0;k<na;k++)r[k]=Math.max(.2,r[k]+marge);RG.push({y:y,cx:cx,cz:cz,r:r});}
-  for(let pass=0;pass<2;pass++)for(let i=1;i<RG.length-1;i++)for(let k=0;k<na;k++){const m9=(RG[i-1].r[k]+2*RG[i].r[k]+RG[i+1].r[k])/4;RG[i].r[k]=peau?Math.max(RG[i].r[k]*.6+m9*.4,m9):Math.min(RG[i].r[k]*.6+m9*.4,m9);} // adouci dans la hauteur (la peau ne rentre jamais, le cœur ne sort jamais)
-  const P=[],A=[],I=[];
-  for(const g of RG)for(let k=0;k<na;k++){P.push(g.cx+cs[k]*g.r[k],g.y,g.cz+sn[k]*g.r[k]);A.push(g.y/H);}
-  const nR=RG.length;
-  for(let i=0;i+1<nR;i++)for(let k=0;k<na;k++){const a=i*na+k,b=i*na+(k+1)%na,c=a+na,d=b+na;I.push(a,c,b,b,c,d);}
-  const g0=RG[0],gT=RG[nR-1];let rb=0,rt=0;for(let k=0;k<na;k++){rb+=g0.r[k];rt+=gT.r[k];}rb/=na;rt/=na;
-  const pb=P.length/3;P.push(g0.cx,g0.y-Math.max(.6,rb*.6),g0.cz);A.push(0);for(let k=0;k<na;k++)I.push(pb,k,(k+1)%na);   // la pointe du dessous
-  const pt=P.length/3;P.push(gT.cx,gT.y+rt*.22,gT.cz);A.push(1);for(let k=0;k<na;k++)I.push(pt,(nR-1)*na+(k+1)%na,(nR-1)*na+k); // le dôme du sommet
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aT',new THREE.Float32BufferAttribute(A,1));
-  g.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();g.computeBoundingSphere();return g;}
 const JADE_VIT_U={uCielH:{value:new THREE.Color(.8,.87,.89)},uCielZ:{value:new THREE.Color(.48,.66,.8)},uPeauA0:{value:.56},uPeauA1:{value:.95},uEcart:{value:.89},uLueur:{value:.85}};
 const JADE_ONDE='float onde(float sd){return uMerY+mod(uTime*55.+sd*977.,1500.)-80.;}'; // l ONDE : un plan de lumière qui monte du fleuve vers le ciel
-const JADE_LISSE_VS=['attribute float aT;attribute vec4 aJ;varying vec3 vW,vN;varying float vT;varying vec4 vJ;','#include <fog_pars_vertex>','void main(){',
-  '#ifdef USE_INSTANCING','  mat4 mw=modelMatrix*instanceMatrix;','#else','  mat4 mw=modelMatrix;','#endif',
-  '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vN=normalize(mat3(mw)*normal);vT=aT;vJ=aJ;vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const JADE_LISSE_FS0=['uniform vec3 uSunDir,uSunC,uMist,uCielH,uCielZ;uniform float uMerY,uTime,uPeauA0,uPeauA1,uLueur;varying vec3 vW,vN;varying float vT;varying vec4 vJ;','#include <fog_pars_fragment>',
-  'float rh(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}',
-  'float rn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
-  '  return mix(mix(mix(rh(i),rh(i+vec3(1,0,0)),f.x),mix(rh(i+vec3(0,1,0)),rh(i+vec3(1,1,0)),f.x),f.y),mix(mix(rh(i+vec3(0,0,1)),rh(i+vec3(1,0,1)),f.x),mix(rh(i+vec3(0,1,1)),rh(i+vec3(1,1,1)),f.x),f.y),f.z);}',
-  JADE_ONDE].join('\n');
-const JADE_COEUR_FS=[JADE_LISSE_FS0,'void main(){vec3 N=normalize(vN),p=vW+vJ.x*137.;float dif=max((dot(N,uSunDir)+.4)/1.4,0.);',
-  '  float st=rn(vec3(p.x*.2,p.y*.035,p.z*.2)),rg=rn(p*.09);',
-  '  vec3 c=mix(vec3(.035,.15,.13),vec3(.40,.58,.48),smoothstep(0.,1.,vT));c*=(.62+.5*st)*(.85+.3*rg);', // la lumière de jade : profonde en bas, pâle en haut, ses strates
-  '  c*=(.55+.45*dif)*uLueur;float on=exp(-pow((vW.y-onde(vJ.x))/16.,2.));c+=vec3(.50,.95,.78)*on*.6;',
-  '  float hm=((1.-smoothstep(0.,130.,vW.y-uMerY))*.38);c=mix(c,uMist,hm*hm*(3.-2.*hm));gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
-const JADE_PEAU_FS=[JADE_LISSE_FS0,'void main(){vec3 N=normalize(vN),V=normalize(cameraPosition-vW),p=vW+vJ.x*137.;float nv=abs(dot(N,V)),fr=pow(1.-nv,1.4);',
-  '  vec3 Rf=reflect(-V,N),sky=mix(uCielH,uCielZ,smoothstep(-.05,.7,Rf.y));',
-  '  float st=rn(vec3(p.x*.22,p.y*.02,p.z*.22)),dif=max((dot(N,uSunDir)+.3)/1.3,0.);',
-  '  float fv=pow(1.-abs(2.*rn(vec3(p.x*.13,p.y*.028,p.z*.13)+19.)-1.),13.);',
-  '  vec3 body=mix(vec3(.16,.23,.21),vec3(.42,.47,.43),st)*(.45+.55*dif)*(1.-fv*.4);',            // une pierre de jade polie (ses coulées, ses fissures), éclairée
-  '  vec3 c=mix(body,sky,fr*.85)+uSunC*pow(max(dot(Rf,uSunDir),0.),220.)*1.4;',                // le ciel sur la silhouette, l éclat
-  '  c+=(.5+.5*cos(6.2832*(fr*1.4+vT*.6+vec3(0.,.33,.67))))*fr*.08;',                          // le film irisé, discret
-  '  float on=exp(-pow((vW.y-onde(vJ.x))/16.,2.));c+=vec3(.50,.95,.78)*on*.22;',
-  '  float a=mix(uPeauA0,uPeauA1,fr),hm=((1.-smoothstep(0.,130.,vW.y-uMerY))*.38);c=mix(c,uMist,hm*hm*(3.-2.*hm));',
-  '  float fo=0.;','#ifdef USE_FOG','  fo=smoothstep(fogNear,fogFar,fogDepth);c=mix(c,fogColor,fo);','#endif',
-  '  gl_FragColor=vec4(c,a);}'].join('\n');
-function jadeLisseMat(peau){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,JADE_VIT_U),
-    vertexShader:JADE_LISSE_VS,fragmentShader:peau?JADE_PEAU_FS:JADE_COEUR_FS,fog:true,transparent:!!peau,depthWrite:!peau,side:THREE.FrontSide});m.dispose=function(){};return m;}
 /* ---- LA MATIÈRE : des CUBES de pierre réaliste ---- */
 const JADE_VR_VS=[
   'attribute float aM,aAO;attribute vec4 aJ;varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
@@ -15949,7 +15883,7 @@ function jadeVRMat(k){if(k==='V'||k==='VM'){const m=new THREE.ShaderMaterial({un
   if(k==='A'){m.polygonOffset=true;m.polygonOffsetFactor=-1;m.polygonOffsetUnits=-1;}m.dispose=function(){};return m;}
 const JADE_BUMP={value:6};
 const JADE_M={vrO:null,vrOM:null,vr:null,vrM:null,vrX:null,vrXM:null,vrP:null,vrPM:null,col:null,arb:null,vit:null,vitM:null,peau:null,coeur:null};
-function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat('O');JADE_M.vrOM=jadeVRMat('O');JADE_M.vrM=jadeVRMat('A');JADE_M.vrX=jadeVRMat('M');JADE_M.vrXM=jadeVRMat('M');JADE_M.vrP=jadeVRMat('P');JADE_M.vrPM=jadeVRMat('P');if(VIT){JADE_M.vit=jadeVRMat('V');JADE_M.vitM=jadeVRMat('VM');JADE_M.peau=jadeLisseMat(true);JADE_M.coeur=jadeLisseMat(false);} // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
+function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat('O');JADE_M.vrOM=jadeVRMat('O');JADE_M.vrM=jadeVRMat('A');JADE_M.vrX=jadeVRMat('M');JADE_M.vrXM=jadeVRMat('M');JADE_M.vrP=jadeVRMat('P');JADE_M.vrPM=jadeVRMat('P'); // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
     JADE_M.col=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U),vertexShader:JADE_COL_VS,fragmentShader:JADE_COL_FS,fog:true});JADE_M.col.dispose=function(){};
     JADE_M.arb=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uTex:{value:jadeArbresTex()}}),vertexShader:JADE_ARB_VS,fragmentShader:JADE_ARB_FS,fog:true,side:THREE.DoubleSide});JADE_M.arb.dispose=function(){};}
   return JADE_M;}
@@ -15957,7 +15891,7 @@ function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat
 function jadeGabarits(){if(JADE.geos)return JADE.geos;const t0=performance.now();
   const p=JADE_TPL.map(function(q,k){return voxPilier(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131);});
   for(let v=0;v<3;v++)p.push(voxPilier((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
-  if(VIT)for(const T9 of p){T9.peau=[jadeLisse(T9,true,1.6,60),jadeLisse(T9,true,4,30),jadeLisse(T9,true,10,16),jadeLisse(T9,true,24,10)];T9.coeur=[jadeLisse(T9,false,3.2,30),jadeLisse(T9,false,8,16),jadeLisse(T9,false,20,10),jadeLisse(T9,false,40,8)];}
+  
   JADE.geos={p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:Math.round(performance.now()-t0)};return JADE.geos;}
 function jadeTplDe(r){let bi=0,bd=1e9;for(let k=0;k<JADE_NTPL;k++){const d=Math.abs(JADE_TPL[k][0]-r);if(d<bd){bd=d;bi=k;}}return bi;}
 /* ---- LA MATIÈRE DES TEMPLES (couleur par sommet, lumière du niveau, brume) ---- */
@@ -16100,7 +16034,7 @@ function jadeRange(){ // la carte en place quitte la scène, rangée telle quell
 function jadeOublie(){if(JADE_GARDE.m){jadeJette(JADE_GARDE.m);JADE_GARDE.m=null;}}
 function jadeCle(seed){ // l'identité d'une vallée : la graine et le ruban tel que buildTrack l'a posé (au bit près), la largeur, les réglages qui changent la carte
   const f=new Float64Array(1),u=new Uint32Array(f.buffer);let h=0x811c9dc5;const mx=x=>{f[0]=x;h=Math.imul(h^u[0],16777619);h=Math.imul(h^u[1],16777619);};
-  mx(seed);mx(NP);mx(L);mx(ROAD_HALF);mx(VX);mx(VXG);mx(FIN.on?1:0);mx(VIT?1:0);mx(JADE_NUVOX?1:0);mx(TEL_NATIF?1:0);mx(JROUTE.style);
+  mx(seed);mx(NP);mx(L);mx(ROAD_HALF);mx(VX);mx(VXG);mx(FIN.on?1:0);mx(0);mx(JADE_NUVOX?1:0);mx(TEL_NATIF?1:0);mx(JROUTE.style);
   for(let i=0;i<NP;i++){const p=pts[i],t=T[i],b=B[i],n=Nn[i];mx(p.x);mx(p.y);mx(p.z);mx(t.x);mx(t.y);mx(t.z);mx(b.x);mx(b.y);mx(b.z);mx(n.x);mx(n.y);mx(n.z);}
   const Q=JADE.Q||{};for(const k of Object.keys(Q).sort()){mx(k.length);mx(Q[k].p.x);mx(Q[k].p.y);mx(Q[k].p.z);mx(Q[k].phi);}
   return seed+':'+NP+':'+(h>>>0).toString(36);}
@@ -16234,14 +16168,10 @@ function* jadeBatit(seed,cle){
       F.im3=new THREE.InstancedMesh(g,M9.vrP,n);F.im3.instanceMatrix=F.im.instanceMatrix;F.im3.frustumCulled=false;F.im3.matrixAutoUpdate=false;F.im3.renderOrder=2.5;F.im3.count=0;root.add(F.im3);} // …et celle de la PROFONDEUR
     return F;};
   const parT=G.p.map(function(){return [[],[],[],[]];});
-  if(VIT){PIL.forEach(function(q){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);parT[q[5]][0].push({q:o,m:jadeMatPilier(q,0).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0]});}); // (v10) le VITRAIL : la peau et le cœur lisses, dans le repère des cubes de 1,75 m
-    const BD=[[0,0],[1,1],[2,4],[5,5]];
-    for(let t=0;t<G.p.length;t++){const T9=G.p[t],L9=parT[t][0];for(let k=0;k<4;k++){famille(T9.coeur[k],M9.coeur,L9,BD[k][0],BD[k][1]);famille(T9.peau[k],M9.peau,L9,BD[k][0],BD[k][1]);}}
-    for(const F of JADE.fam)if(F.im.material===M9.peau)F.im.renderOrder=3;}
-  else{PIL.forEach(function(q,pi){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
+  {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
     for(let t=0;t<G.p.length;t++){const Gt=G.p[t].geo;famille(Gt[0],M9.vr,parT[t][0],0,0);famille(Gt[1],M9.vr,parT[t][1],1,1);famille(Gt[2],M9.vrO,parT[t][2],2,4);famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
   // (v8) LES CUBES MINUSCULES : une famille par gabarit, remplie à chaque image des montagnes proches (finProches) — elles quittent leur famille de 1,75 m
-  FIN.cap=parT.map(function(a){return Math.min(a[0].length,48);});FIN.vit=VIT;
+  FIN.cap=parT.map(function(a){return Math.min(a[0].length,48);});FIN.vit=false;
   if(FIN.on)for(let t=0;t<G.p.length;t++)if(G.p[t].fin)finFamille(t);
   FIN.stamp=new Int32Array(PIL.length);FIN.was=new Uint8Array(PIL.length);FIN.gen=0;
   famille(G.arbreQ,M9.arb,ARB.map(function(a){const o=qDe(a.x,a.z);ext(o,a.x,a.y-80,a.y+25,a.z,20);return {q:o,m:Mt.makeTranslation(a.x,a.y,a.z).toArray(),j:a.j,pq:a.pq};}),0,2);
@@ -16259,21 +16189,7 @@ function* jadeBatit(seed,cle){
      for(let k=0;k<4;k++){const r9=jr();if(r9>.8)continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
        const y=haut?pts[i].y+260+jr()*820:JADE.eauY+45+jr()*120;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}
      if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}} // au-dessus de la route
-   if(JADE_NUAGES_CUBES&&NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex(); // (v16) des CUMULUS (les volutes en spirale : un cliché)
-     const Mx=new THREE.Matrix4(),couche=(L9,ro)=>{const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,L9.length),aj=new Float32Array(L9.length*4);
-       L9.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
-       g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=ro;root.add(im);};
-     if(JADE_NUVOX){const GV=jadeNuagesVox(),par=GV.map(function(){return [];}),Mr=new THREE.Matrix4(),Ms=new THREE.Matrix4(),Mo=new THREE.Matrix4().makeTranslation(-NUVOX.GX/2,-NUVOX.GY/2,-NUVOX.mid); // (v13) LES VOLUTES EN CUBES
-       for(const n of NU){const yaw=Math.atan2(n[7]-n[0],n[8]-n[2])+(n[6]>.5?Math.PI:0),sc=n[3]/NUVOX.GX;
-         par[n[5]].push(new THREE.Matrix4().makeTranslation(n[0],n[1],n[2]).multiply(Mr.makeRotationY(yaw)).multiply(Ms.makeScale(sc*1.7,sc*.55,sc*1.15)).multiply(Mo));}
-       NUVOX.L=[];NUVOX.ims=[];NUVOX.sig=0;NUVOX.S=NUVOX.S||new THREE.Sphere();
-       par.forEach(function(L9,t){for(const g9 of (NUVOX.pas>2?[GV[t],NUVOX.loin[t],NUVOX.quart[t]]:[GV[t],NUVOX.loin[t]])){const im=new THREE.InstancedMesh(g9,JADE_NUVOX_M,Math.max(1,L9.length));im.count=0;im.visible=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-           im.frustumCulled=false;im.renderOrder=4.5;root.add(im);NUVOX.ims.push(im);}
-         for(const M9 of L9){const c9=new THREE.Vector3().setFromMatrixPosition(M9);NUVOX.L.push({t:t,m:Float32Array.from(M9.elements),c:c9,r:M9.getMaxScaleOnAxis()*NUVOX.GX*.56,v:0});}});
-       JADE.nuages=NU.length;JADE.nuTri=NUVOX.L.reduce(function(a,n){return a+GV[n.t].index.count/3;},0);}
-     else{const VO=NU.map(function(n){const dx=n[0]-n[7],dz=n[2]-n[8],hl=Math.hypot(dx,dz)||1,o=n[3]*(.10+jr()*.08); // (v9) le VOILE de derrière : décalé, plus grand, à moitié — il glisse autrement quand on roule (la profondeur)
-       return [n[0]+dx/hl*o,n[1]+n[4]*(.08+jr()*.1),n[2]+dz/hl*o,n[3]*1.18,n[4]*1.18,(n[5]+5+((jr()*6)|0))%16,1+((n[6]+.5)%1)];});
-     couche(VO,4.4);couche(NU,4.5);JADE.nuages=NU.length;}}}
+   }
   // ---- (v17) LES MONTAGNES QUE L'EAU FRAPPE : la section de chacune au ras de l'eau (le centre et le rayon des cubes de cette couche) ----
   {const E=[],V9=new THREE.Vector3();for(const q of PIL){if(q[3]>JADE.eauY-2||q[4]<JADE.eauY)continue;const T9=G.p[q[5]],Gd=T9.G,yl=Math.floor((JADE.eauY-q[3])/VX);if(yl<0||yl>=Gd.ny)continue;
      let n=0,sx=0,sz=0;for(let x=0;x<Gd.nx;x++)for(let z=0;z<Gd.nz;z++)if(voxAt(Gd,x,yl,z)){n++;sx+=x;sz+=z;}
@@ -16298,7 +16214,7 @@ function* jadeBatit(seed,cle){
   try{jadeChutePrep(PIL,jr,root);}catch(e){console.warn('chute',e);}
   JADE.n={montagnes:PIL.filter(function(q){return q[5]<JADE_NTPL;}).length,rochers:PIL.filter(function(q){return q[5]>=JADE_NTPL;}).length,arbres:ARB.length,temples:PAG.length+PAV.length,cascades:CHU.length,
     brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),gabaritsMs:G.ms,
-    L:Math.round(L),merY:Math.round(JADE.merY),eauY:Math.round(JADE.eauY),trempees:JADE.eauPil?JADE.eauPil.length:0,triGabarits:G.p.map(function(T9){return (T9.geo||T9.peau||[]).map(function(g){return g.index.count/3;});}),vitrail:VIT};
+    L:Math.round(L),merY:Math.round(JADE.merY),eauY:Math.round(JADE.eauY),trempees:JADE.eauPil?JADE.eauPil.length:0,triGabarits:G.p.map(function(T9){return (T9.geo||T9.peau||[]).map(function(g){return g.index.count/3;});}),vitrail:false};
   JADE.cle=cle; // bâtie jusqu'au bout : elle pourra être gardée
 }
 /* (v14) LES BORDS DES DEUX ROUTES — en vrais volumes, posés le long du ruban (repère T / N / B de la piste), un maillage chacun :
@@ -16330,7 +16246,7 @@ addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!J
    celles des cubes fins (FIN.mats) sont réécrites à chaque image ; au redémarrage, tout revient. */
 const JCH={L:[],fixe:new Set(),splash:null,sp:[],t:0};
 function jadeChutePrep(PIL,jr,root){
-  JCH.L=[];JCH.sp.length=0;if(JADE.col)JADE.col.mort=new Set();if(VIT)return;
+  JCH.L=[];JCH.sp.length=0;if(JADE.col)JADE.col.mort=new Set();
   /* (v16, Léo : « évite que les montagnes s'effondrent sur la route ; petit à petit : au début ça tient, après ça tombe un peu ») — sur TOUT
      le niveau : rien avant 18 %, puis quelques-unes, de plus en plus jusqu'à la fin (probabilité 6 % → 90 %) ; chacune BASCULE VERS
      L'EXTÉRIEUR (l'axe est ⟂ à la direction route → montagne : son sommet s'éloigne) et dérive en s'éloignant ; jamais celles qui
@@ -16856,18 +16772,6 @@ function jadePiecesBord(root,jr){if(JADE.decoPieces)return;const T9=JADE_PB.tpl(
       if(jr()<.15)pose(p,sd,lat-sd*(.25+jr()*.4),.16+jr()*.05,r*(.9+jr()*.1),jr()*6.283,(jr()-.5)*.3,tilt+(jr()-.5)*.25);} // une autre, posée de biais dessus
     if(i/(NP-1)*L-s0>700){vide();s0=i/(NP-1)*L;}}
   vide();root.add(grp);JADE.decoPieces=grp;}
-/* (v16) LES CUMULUS — plus de volutes en spirale (le cliché) : des nuages de Ghibli, une base PLATE, des choux-fleurs empilés en trois rangées
-   (petits lobes en bas, gros au milieu, un ou deux au sommet). Même format que la planche des volutes (R hauteur, A couverture). */
-function jadeCumulusTex(){const CW=512,CH=256,W=CW*4,H=CH*4,HS=90,D=new Uint8Array(W*H*4),rg=mulberry32(0xC0B1),hb=new Float32Array(CW*CH);
-  for(let k=0;k<16;k++){const x0=(k%4)*CW,y0=((k/4)|0)*CH;hb.fill(0);const yb=CH*.82,B9=[];
-    const n0=4+((rg()*3)|0),wid=280+rg()*150,xa=(CW-wid)/2;
-    for(let i=0;i<n0;i++){const r=24+rg()*20;B9.push([xa+wid*(i+.5)/n0+(rg()-.5)*14,yb-r*.45,r]);}
-    const n1=2+((rg()*3)|0);for(let i=0;i<n1;i++){const r=40+rg()*24;B9.push([xa+wid*(.15+.7*(i+.5)/n1)+(rg()-.5)*20,yb-48-r*.25-rg()*10,r]);}
-    const n2=1+((rg()*2)|0);for(let i=0;i<n2;i++){const r=32+rg()*24;B9.push([CW/2+(rg()-.5)*wid*.45,yb-100-rg()*25,r]);}
-    for(const b of B9){const cx=b[0],cy=b[1],r=b[2];for(let py=Math.max(0,Math.floor(cy-r));py<=Math.min(CH-1,Math.ceil(cy+r));py++){if(py>yb)continue; // la BASE plate
-      for(let px=Math.max(0,Math.floor(cx-r));px<=Math.min(CW-1,Math.ceil(cx+r));px++){const dx=px-cx,dy=py-cy,d2=dx*dx+dy*dy;if(d2>=r*r)continue;const h=Math.sqrt(r*r-d2),q=px+CW*py;if(h>hb[q])hb[q]=h;}}}
-    for(let py=0;py<CH;py++)for(let px=0;px<CW;px++){const h=hb[px+CW*py],o=((H-1-(y0+py))*W+x0+px)*4;D[o]=Math.min(255,Math.round(h/HS*255));D[o+1]=0;D[o+3]=Math.min(255,Math.round(h/3*255));}}
-  const t=new THREE.DataTexture(D,W,H,THREE.RGBAFormat);t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.needsUpdate=true;return t;}
 /* une GRILLE posée dans un repère (o : coin, axes x = b, y = haut, z = −t ; en cubes de VX) — la muraille, l'arche */
 function jadeRepere(o,b,t,sc){const m=new THREE.Matrix4(),z=t.clone().negate(),k=sc||VXG;
   m.set(b.x*k,0,z.x*k,o.x, b.y*k,k,z.y*k,o.y, b.z*k,0,z.z*k,o.z, 0,0,0,1);return m;}
@@ -16876,8 +16780,8 @@ function jadeMonument(root,g,Mr,jx,M9){ // un monument en verre de jade : ses tr
   /* (v17, « ça bugue énormément ») MESURÉ : la porte du ciel (519 k triangles × 3 passes) était dessinée À CHAQUE IMAGE, de n'importe où dans
      le niveau (frustumCulled faux). Désormais chaque monument vit dans un groupe éteint au-delà de la brume, et le champ le trie. */
   if(!g.boundingSphere)g.computeBoundingSphere();const gr=new THREE.Group();gr.matrixAutoUpdate=false;root.add(gr);
-  const L9=[];for(const k of (VIT?[[M9.vitM,0]]:[[M9.vrM,3],[M9.vrXM,2],[M9.vrPM,2.5]])){const m=new THREE.Mesh(g,k[0]);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;m.renderOrder=k[1];m.frustumCulled=true;if(!L9.length)m.userData.jeter=true;gr.add(m);L9.push(m);}
-  const c=g.boundingSphere.center.clone().applyMatrix4(Mr);(JADE.monu||(JADE.monu=[])).push({g:gr,c:c,r:g.boundingSphere.radius*Mr.getMaxScaleOnAxis(),L:VIT?null:L9,loin:false});
+  const L9=[];for(const k of ([[M9.vrM,3],[M9.vrXM,2],[M9.vrPM,2.5]])){const m=new THREE.Mesh(g,k[0]);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;m.renderOrder=k[1];m.frustumCulled=true;if(!L9.length)m.userData.jeter=true;gr.add(m);L9.push(m);}
+  const c=g.boundingSphere.center.clone().applyMatrix4(Mr);(JADE.monu||(JADE.monu=[])).push({g:gr,c:c,r:g.boundingSphere.radius*Mr.getMaxScaleOnAxis(),L:L9,loin:false});
   return L9;}
 function jadeDansGrille(R,p){const dx=p.x-R.o.x,dy=p.y-R.o.y,dz=p.z-R.o.z; // un point du monde est-il dans un cube de cette grille ?
   return voxAt(R.G,Math.floor((dx*R.b.x+dz*R.b.z)/VXG),Math.floor(dy/VXG),Math.floor(-(dx*R.t.x+dz*R.t.z)/VXG))>0;}
@@ -16987,7 +16891,7 @@ function finProches(cp){
 function finFamille(t){const T9=JADE.geos.p[t],cap=FIN.cap&&FIN.cap[t];if(!T9||!T9.fin||!cap||!JADE.root||FIN.fam[t])return; // la famille fine d'un gabarit (quand il est prêt)
   const M9=jadeMats(),g=jadeVueGeo(T9.fin),aJ=new THREE.InstancedBufferAttribute(new Float32Array(cap*4),4);aJ.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aJ',aJ);
   const mk=(mat,ro)=>{const im=new THREE.InstancedMesh(g,mat,cap);im.frustumCulled=false;im.matrixAutoUpdate=false;im.renderOrder=ro;im.count=0;im.visible=false;JADE.root.add(im);return im;};
-  if(VIT){const im=mk(M9.vit,0);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);FIN.fam[t]={t:t,im:im,im2:im,im3:im,aJ:aJ,cap:cap,tri:T9.fin.index.count/3};return;} // (v10) les ÉCAILLES du vitrail : une passe opaque
+   // (v10) les ÉCAILLES du vitrail : une passe opaque
   const im=mk(M9.vr,3),im2=mk(M9.vrX,2),im3=mk(M9.vrP,2.5);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im2.instanceMatrix=im.instanceMatrix;im3.instanceMatrix=im.instanceMatrix;
   FIN.fam[t]={t:t,im:im,im2:im2,im3:im3,aJ:aJ,cap:cap,tri:T9.fin.index.count/3};}
 function finTravail(budget){ // (v8) les gabarits fins se bâtissent À LA VOLÉE, quelques ms par image (le départ n'attend pas) — d'abord ceux qu'on approche
@@ -17118,16 +17022,6 @@ const NUVOX={GX:96,GY:48,geos:null};
    Palier 2 : 2 500 / jamais = le tri d'avant, au triangle près (le 3e jeu de maillages n'est même pas construit). */
 PAL.B.jadeNuvoxPres=[0,1500,2500];PAL.B.jadeNuvoxQuart=[2500,5000,1e9];
 NUVOX.pres=PAL.b('jadeNuvoxPres',2500);NUVOX.qd=PAL.b('jadeNuvoxQuart',1e9);NUVOX.pas=NUVOX.qd<1e8?3:2; // pas = maillages par dessin (petits, doubles[, quadruples])
-function jadeNuagesVox(){if(NUVOX.geos)return NUVOX.geos;
-  const T=JADE_NUAGE_M.uniforms.uTex.value||(JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex()),D=T.image.data,W=T.image.width,H=T.image.height,CW=512,CH=256,HS=90,GX=NUVOX.GX,GY=NUVOX.GY,k=CW/GX,mi=Math.ceil(HS/k)+1,NZ=2*mi;
-  NUVOX.mid=mi;NUVOX.geos=[];
-  NUVOX.loin=[];NUVOX.quart=[];
-  for(let t=0;t<16;t++){const x0=(t%4)*CW,y0=((t/4)|0)*CH,G=voxG(GX,GY,NZ);
-    for(let gy=0;gy<GY;gy++)for(let gx=0;gx<GX;gx++){const px=Math.min(CW-1,Math.round(gx*k+k/2)),py=Math.min(CH-1,Math.round(CH-1-(gy*k+k/2))),o=((H-1-(y0+py))*W+x0+px)*4;
-      if(D[o+3]<128)continue;const th=Math.max(1,Math.round(D[o]/255*HS/k*.85)),m=D[o+1]>110?2:1;
-      for(let z=mi-th;z<mi+th;z++)G.d[gx+GX*(z+NZ*gy)]=m;}
-    const G2=voxDemi(G);NUVOX.geos.push(voxMesh(G));NUVOX.loin.push(voxMesh(G2));if(NUVOX.pas>2)NUVOX.quart.push(voxMesh(voxDemi(G2)));} // de LOIN (> 2,5 km) : des cubes deux fois plus gros (le même nuage, ¼ des triangles)
-  return NUVOX.geos;}
 /* LE TRI DES VOLUTES (à chaque rendu, chaîné sur jadeTri) : seules celles dans le champ partent au GPU, de près en petits cubes, de loin en gros */
 function nuvoxM2(n){const m=n.m2=Float32Array.from(n.m);for(let i=0;i<12;i++)m[i]*=2;return m;} // la même pose, les trois axes doublés (la grille ÷ 2 retrouve sa taille) — fait une fois par nuage, à la demande
 function nuvoxTri(cam){const N9=NUVOX.L;if(!N9||!N9.length)return;let sg=7;
