@@ -16549,8 +16549,8 @@ function sensEau(dt){ // chaque image de VOL, après l'orientation de la caisse
   SEAU.k+=((flot?1:0)-SEAU.k)*(1-Math.exp(-dt*(flot?2.2:5)));
   if(SEAU.k>.01){SEAU.t+=dt;const a=SEAU.k*(1-.6*Math.min(1,hv/120)),t=SEAU.t;
     carBody.rotation.set(a*(.045*Math.sin(t*3.1)+.02*Math.sin(t*5.3+1.3)),0,a*(.07*Math.sin(t*2.3+.7)+.025*Math.sin(t*4.1)));
-    carBody.position.y=a*.07*Math.sin(t*2.7+2.1);SEAU.pose=true;}
-  else if(SEAU.pose){carBody.rotation.set(0,0,0);carBody.position.y=0;SEAU.pose=false;}
+    carBody.position.y=(VEQ.on?VEQ.ext:0)+a*.07*Math.sin(t*2.7+2.1);SEAU.pose=true;} // (2026-10-14, gameplay · accord) le pilonnement s'AJOUTE à la suspension pendante du vol de Léo (veqCorps : VEQ.ext, posée juste avant) — il l'écrasait : la carrosserie tombait de 11 cm d'un coup en touchant l'eau, et y remontait d'un coup en la quittant
+  else if(SEAU.pose){carBody.rotation.set(0,0,0);carBody.position.y=VEQ.on?VEQ.ext:0;SEAU.pose=false;}
   if(flot&&hv<EAU.vB&&isFinite(JEAU.syF)){const sy=JEAU.syF,c=JEAU.cap;
     if(Math.random()<dt*(22+hv*.3)){eauPIm();eauP(fallPos.x-c.x*2+(Math.random()-.5)*1.5,sy+.15,fallPos.z-c.z*2+(Math.random()-.5)*1.5,-c.x*(2+Math.random()*3)+(Math.random()-.5)*2,1.4+Math.random()*2.4,-c.z*(2+Math.random()*3)+(Math.random()-.5)*2,.07+Math.random()*.1,.45+Math.random()*.4,sy,0);}
     SEAU.clap-=dt;if(SEAU.clap<=0){SEAU.clap=.7+Math.random()*1.1;eauBloop(.3);}}
