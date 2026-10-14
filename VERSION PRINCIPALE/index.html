@@ -16452,7 +16452,7 @@ function nuvoxTri(cam){const N9=NUVOX.L;if(!N9||!N9.length)return;let sg=7;
   if(sg===NUVOX.sig)return;NUVOX.sig=sg;
   for(const im of NUVOX.ims){im.count=0;}
   for(const n of N9){if(!n.v)continue;const im=NUVOX.ims[n.t*2+(n.v-1)];im.instanceMatrix.array.set(n.m,im.count*16);im.count++;}
-  for(const im of NUVOX.ims){im.instanceMatrix.needsUpdate=true;im.visible=im.count>0;}}
+  for(const im of NUVOX.ims){imEnvoi(im,im.count);im.visible=im.count>0;}} // (2026-10-14, passe perf mobile) [0,count) vient d'être réécrit : seul ce bout part (et rien pour un jeu vide)
 const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:true,
   uniforms:{uTeinte:JADE_NUAGE_M.uniforms.uTeinte,uFogC:JADE_NUAGE_M.uniforms.uFogC,uSunD:JADE_U.uSunDir,uSunC:JADE_U.uSunC},
   vertexShader:['attribute float aM,aAO;varying vec3 vO,vNo,vN;varying float vM,vAO,vD;',
@@ -20080,7 +20080,7 @@ function arcPose(cx,cy,cz,cam,t,dt){
     const g=R.e[o+6]/R.e[o+7],sz=c*R.e[o+9]*(g<.5?1:g<.8?.7:.4)*R.ech*fe;
     me[0]=sz;me[1]=me[2]=me[4]=0;me[5]=sz;me[6]=me[8]=me[9]=0;me[10]=sz;me[12]=R.e[o];me[13]=R.e[o+1];me[14]=R.e[o+2];
     R.m.setMatrixAt(n,M);const C9=ARC_COL[R.e[o+8]|0],j=n*3,K=g<.3?1.25:1;col[j]=C9[0]*K;col[j+1]=C9[1]*K;col[j+2]=C9[2]*K;n++;}
-  R.m.count=R.h.count=n;R.m.instanceMatrix.needsUpdate=true;R.m.instanceColor.needsUpdate=true;
+  R.m.count=R.h.count=n;imEnvoi(R.m,n,true); // (2026-10-14, passe perf mobile) seules les n premières instances partent (672 places) — le halo partage les mêmes tampons
   return n;
 }
 function arcEmet(dt,k,vx,vy,vz){ // les étincelles naissent dans les tranches jeunes, à la poupe — avec l'élan du chemin
@@ -34756,7 +34756,7 @@ function billsTick(dt){
     if(b9.life<=0){b9.m.userData.pris=false;bills.splice(i9,1);continue;}
     b9.m.updateMatrix();BILL_IM.setMatrixAt(n++,b9.m.matrix);
   }
-  if(n||BILL_IM.count){BILL_IM.count=n;BILL_IM.instanceMatrix.needsUpdate=true;}
+  if(n||BILL_IM.count){BILL_IM.count=n;imEnvoi(BILL_IM,n);} // (2026-10-14) n premières seulement (150 places) ; rien quand la dernière vient de s'éteindre
   const v=n>0||!BILL_IM.userData.chaud;if(BILL_IM.visible!==v)BILL_IM.visible=v;
 }
 function billsClear(){for(const b of bills)b.m.userData.pris=false;bills.length=0;BILL_IM.count=0;if(BILL_IM.userData.chaud)BILL_IM.visible=false;}
