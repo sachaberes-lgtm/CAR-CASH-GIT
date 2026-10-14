@@ -15981,7 +15981,6 @@ function jadeEtatVide(){ // plus de carte en place (les valeurs que buildJade po
   NUVOX.L=null;NUVOX.ims=[];JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;JADE.root=null;JADE.monu=[];JADE.cle=null;JADE.quart=null;JCH.L=[];JCH.splash=null;JCH.sp=[];}
 function jadeJette(m){ // libère une carte : ses familles (tampons d'instances, sans toucher aux gabarits partagés), ses maillages à elle, les tampons de ses instances
   for(const o of m.J.monu||[])if(o.loIt){try{o.loIt.return();}catch(e){}o.loIt=null;} // (2026-10-14, passe perf mobile) le monument de loin en cours : la file fermée (VOXM rendu), rien n'est ajouté à la carte jetée
-  if(m.J.porte&&m.J.porte.job){try{m.J.porte.job.it.return();}catch(e){}m.J.porte.job=null;} // (OPTIMISATION) …et la Porte maillée en tranches
   for(const F of m.J.fam.concat(m.F.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}
   if(m.J.root)m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});}
 function jadeRendGPU(m){m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});} // (ses tableaux restent : three les renverra)
@@ -16799,26 +16798,6 @@ function jadeMonuLoinPas(o){const it=o.loIt,S=o.loS,t=performance.now(),l0=JF.li
   try{r=it.next();}catch(e){o.loIt=null;S.err=String(e);console.warn('monument de loin',e);return;}finally{JF.lim=l0;S.ms+=performance.now()-t;S.n++;}
   if(!r.done)return;o.loIt=null;S.mur=performance.now()-S.t0;
   try{jadeMonuLoinPose(o,r.value);}catch(e){S.err=String(e);console.warn('monument de loin',e);}}
-/* LA PORTE MAILLÉE EN TRANCHES (2026-10-14, session OPTIMISATION — passation perf, n° 1 : « PORTAIL vers le jade : encore une image de
-   ~1,7 s (palier 0) — la CONSTRUCTION JavaScript du niveau »). MESURÉ (profil, PC, palier 0) : newTrack vers la jade = 835 ms d'un bloc, dont
-   jadePorte 363 ms, dont 272 ms pour UN seul appel : voxMesh(G,4), le maillage de la Porte du ciel (grille 224 × 218 × 34). Or ce maillage n'est
-   que l'HABIT de la Porte : les chocs lisent la grille G (jadeDansGrille), posée tout de suite comme avant ; et la Porte est à ~3 km du départ.
-   Paliers ANCIEN et MOYEN : la grille et ses chocs sont posés dans newTrack, le maillage part en file (voxMeshG, générateur à échéance JF.lim,
-   même maillage au bit près — voir LES TRANCHES) et jadeTick en mène une tranche par image (jadePorteMs), avant celles du monument de loin.
-   GARDE-FOU : si la Porte peut entrer dans le champ (caméra à moins de brume + 80 m de sa sphère englobante `rJob`, la règle même qui allume
-   les monuments) avant la fin de la file, elle se finit d'un trait sur place — jamais de Porte manquante à l'écran. Palier RÉCENT : comme
-   avant (maillée dans newTrack). Carte rangée : la file attend avec elle ; jetée : fermée (jadeJette). `dbgPorte()` : l'état. */
-PAL.B.jadePorteDiffere=[1,1,0];PAL.B.jadePorteMs=[6,6,6];
-function jadePorteTranche(P,force){const J=P.job,S=J.S,t=performance.now(),l0=JF.lim;let r;
-  JF.lim=force?Infinity:t+PAL.b('jadePorteMs',6);if(force)S.force=1;
-  try{r=J.it.next();}catch(e){P.job=null;S.err=String(e);console.warn('porte',e);return;}finally{JF.lim=l0;S.ms+=performance.now()-t;S.n++;}
-  if(!r.done)return;P.job=null;P.jobS=S;S.mur=performance.now()-S.t0;
-  try{J.fini(r.value);}catch(e){S.err=String(e);console.warn('porte',e);}}
-function jadePorteVue(P){ // la Porte peut-elle entrer dans le champ ? (même règle que l'allumage des monuments dans jadeTick, sur la sphère qui tient TOUTE la grille)
-  const ff=(scene.fog&&scene.fog.far)||2600;return camera.position.distanceTo(P.c)-P.rJob<ff+120;}
-window.dbgPorte=function(){const P=JADE.porte;if(!P)return 'pas de Porte';const S=P.job?P.job.S:P.jobS;
-  return {etat:P.job?'en tranches':S?(S.err?'erreur':'maillee'):'maillee dans newTrack',tranches:S?S.n:0,msTravail:S?+S.ms.toFixed(1):0,msMur:S&&S.mur?Math.round(S.mur):0,
-    finieSurPlace:S?!!S.force:false,tri:P.tri|0,distance:Math.round(camera.position.distanceTo(P.c)-(P.rJob||0)),brume:Math.round((scene.fog&&scene.fog.far)||0),err:S&&S.err||null};};
 window.dbgMonuLoin=function(){return (JADE.monu||[]).filter(function(o){return o.loS||o.dG;}).map(function(o){const S=o.loS||{};
   return {etat:o.lo?'pret':o.loIt?'tranche '+S.n:S.err?'erreur':S.n?'vide':'en attente',tranches:S.n||0,msTravail:+(S.ms||0).toFixed(1),msMur:Math.round(S.mur||0),tri:o.loTri||0,loin:!!o.loin,err:S.err||null};});};
 function jadeMonuLoinPose(o,g){
@@ -16879,10 +16858,8 @@ function jadePorte(root,i0,jr,M9,pose){
     const gF=colMesh(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
     jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
     for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;}catch(e){console.warn('porte fine',e);}}
-  if(!fin9){const P9=JADE.porte,Mr9=jadeRepere(o,b,t),fini=function(g){jadeMonument(root,g,Mr9,.37,M9);P9.tri=g.index.count/3;
-      if(PAL.b('jadeMonuLoin',0)){const e9=JADE.monu[JADE.monu.length-1];e9.dG=G;e9.dM=jadeRepere(o,b,t,VXG*2);e9.dJ=.37;e9.dP=P9;if(P9.job0)jadeMonuLoin(e9);}}; // (2026-10-14, passe perf mobile) de loin : la demi-grille posée ×2 (voir jadeMonuLoin) — maillée après la chauffe du niveau : sa file part tout de suite
-    if(PAL.b('jadePorteDiffere',0)){P9.job0=1;P9.job={it:voxMeshG(G,4),fini:fini,S:{t0:performance.now(),ms:0,n:0,force:0}};P9.rJob=Math.hypot(Math.max(wG,wD),Math.max(y0-oy,oy+ny*VXG-y0),D/2);} // voir LA PORTE MAILLÉE EN TRANCHES
-    else fini(voxMesh(G,4));}
+  if(!fin9){const g=voxMesh(G,4);jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;
+    if(PAL.b('jadeMonuLoin',0)){const e9=JADE.monu[JADE.monu.length-1];e9.dG=G;e9.dM=jadeRepere(o,b,t,VXG*2);e9.dJ=.37;e9.dP=JADE.porte;}} // (2026-10-14, passe perf mobile) de loin : la demi-grille posée ×2 (voir jadeMonuLoin)
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
       for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+62)+t.x*fa*(D*.5-18),p.z+b.z*sg*(hw+62)+t.z*fa*(D*.5-18),40,y0+crete(.5+sg*(hw+62)/W)+40+jr()*80);
       for(let v=hw+140;v<W9-40;v+=75+jr()*60)for(const fa of [-1,1])if(jr()<.7){const r=24+jr()*26,f9=(v*sg+wG)/W;
@@ -17104,8 +17081,7 @@ function jadeTick(dt){
   if(!paused){try{jadeChuteTick(dt);}catch(e){window.__jadeErr=e;}}
   if(!JADE.t0&&started)JADE.t0=performance.now();
   if(JADE.decoPieces&&JADE.decoPieces.visible){const cp=camera.position;for(const m of JADE.decoPieces.children){const S9=m.geometry.boundingSphere,v=!!S9&&cp.distanceTo(S9.center)-S9.radius<450;if(m.visible!==v)m.visible=v;}} // (12/10) les pièces du bord : à moins de 450 m seulement
-  if(JADE.porte&&JADE.porte.job)jadePorteTranche(JADE.porte,started&&!gameOver&&jadePorteVue(JADE.porte)); // (OPTIMISATION) une tranche de la Porte par image — d'un trait si elle peut entrer dans le champ (voir LA PORTE MAILLÉE EN TRANCHES)
-  else if(JADE.monu)for(const o of JADE.monu)if(o.loIt){jadeMonuLoinPas(o);break;} // (2026-10-14, passe perf mobile) une tranche du monument de loin par image (voir jadeMonuLoinPas)
+  if(JADE.monu)for(const o of JADE.monu)if(o.loIt){jadeMonuLoinPas(o);break;} // (2026-10-14, passe perf mobile) une tranche du monument de loin par image (voir jadeMonuLoinPas)
   if(JADE.monu){const ff=(scene.fog&&scene.fog.far)||2600;for(const o of JADE.monu){const d9=camera.position.distanceTo(o.c)-o.r,v=d9<ff+80;if(o.g.visible!==v)o.g.visible=v; // (v17) au-delà de la brume : pas dessinés…
     let dv9=d9;if(o.dP){const P9=o.dP,cp=camera.position,u9=(cp.x-P9.c.x)*P9.t.x+(cp.z-P9.c.z)*P9.t.z;dv9=Math.max(d9,u9<0?-u9-P9.D/2:(u9-P9.D/2>30?1e9:0));} /* (2026-10-14, passe perf mobile) la Porte allégée : la distance à sa façade, et rien derrière soi (voir jadePorteVerre) */
     const lo=dv9>(JADE_LOD.mv||450);if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;if(o.lo){o.lo.visible=lo;o.L[0].visible=!lo;}/* (2026-10-14, passe perf mobile) de loin, le maillage allégé à la place du plein (jadeMonuLoin) */}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
