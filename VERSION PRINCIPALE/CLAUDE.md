@@ -1,5 +1,28 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE VOL ÉQUILIBRÉ + LE TONNEAU (2026-10-14, Léo : « en vol, la voiture tourne dans le sens de la route qu'elle a quittée ; il faudrait qu'elle quitte la route et qu'il y ait un effet réaliste de balance dans l'air — équilibré ; selon l'endroit du joystick, la voiture se pivote et se dirige » + « un trick que tu choisis, qui s'actionne quand j'appuie deux fois rapidement sur le booster »)
+Bloc « LE VOL ÉQUILIBRÉ » juste après `const FLY_U` (`VEQ_K` = tous les réglages, `VEQ` = l'état). `?vol=ancien` / `dbgVol('ancien'|'neuf')` = le vol
+d'avant au chiffre près (le tonneau reste) ; `dbgVol()` = l'état (verrou, lacet/tangage/roulis de la caisse, haut, tonneau).
+- **CE QUI TOURNAIT** (mesuré au banc, joystick tenu à gauche au décollage) : le braquage du virage continuait de tourner la trajectoire en l'air
+  (~98°/s, le lacet du sol) ; la VRILLE visuelle permanente faisait tourner la caisse sur elle-même (600° en 2,4 s) ; le haut du vol restait celui
+  de la route (penchée).
+- **LE VOLANT SE RÉ-ARME AU DÉCOLLAGE** (`veqVolant`, appelé pour `yawIn`) : la part tenue depuis la route s'efface en `latch` 0,7 s — la caisse
+  part tout droit sur son élan ; pousser plus / changer de côté agit tout de suite ; le pouce qui revient au centre fait descendre le verrou
+  (jamais de contre-braquage). BORD : le verrou ne part qu'à la fin de la bascule (roues sur la lèvre = le sauvetage, comme au sol).
+  Le TAUX de virage en vol ne change pas (verdict de Sacha du 09/10). Mesuré : cap +8° à 0,27 s (avant +28°), puis le virage plein.
+- **L'ÉQUILIBRE** (`veqNiveau`) : FLY_U se redresse vers ±Y autour de la trajectoire (l'hémisphère où il est) — caisse et caméra à l'horizontale.
+- **LA BALANCE** (`veqCorps`, à la place de la vrille) : ressorts amortis (lacet/tangage ω 9,5 ζ .42 · roulis ω 8 ζ .36) autour de l'assiette de
+  vol : nez qui PIVOTE devant la trajectoire du côté du pouce (`lacet` .26 rad), INCLINAISON dans le virage (`roulis` .38), nez avec le manche
+  (`tangage` .2), une houle de 1,4° ; le redressement laisse un retard (`iner`) qu'elle rattrape en se balançant ; un tremplin lève un peu le nez ;
+  BORD : coup de roulis vers le vide (`brV` 4) rattrapé. `VEQ.qb` = l'assiette lissée (×12/s). À LA POSE (`veqPose`, tryLand + lèvre) : roulis →
+  `carRoll9`/`rollV`, lacet → `driftYaw`, tangage → `pitch9` — elle se balance sur ses ressorts de conduite.
+- **LE TONNEAU** (double-tap NITRO : 1er appui < 240 ms, 2e < 320 ms après — lu aux ÉVÉNEMENTS `veqDoigt` : clavier en capture, `nitroDown` et le
+  relâcher de `bindHold` ; joué par la boucle `VEQ.dReq`) : un tour autour du nez (milieu de la caisse, `veqTonneauPose`), du côté du pouce (neutre :
+  alterné). EN VOL 0,62 s + écart latéral `dash` 16 du côté du pouce + `addTrick('tonneau')` (chaîne, payée à la pose, flow NARCISSE ; pas fini à la
+  pose = rien). AU SOL : saut `hopV` 9,5 (la mécanique du dos d'âne, on reste en conduite), il passe PAR-DESSUS les plots (hopY > 1,25, « PAR-DESSUS ! »)
+  et l'huile (> ,5) ; à la retombée `chaineAura('TONNEAU',45)` + flow style. Pas en auto-école. Son `fig.vrille`. EN : BARREL ROLL.
+- Bancs (scratchpad de la session dcadf71c) : `scen.py` (A/B joystick tenu), `ton.py` (tonneau sol / vol), `bord.py` (sortie par le bord), `endu.py`.
+
 ## LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — caisse ajoutée EN DERNIER (index 76), ÉPIQUE 4 000 000 $, `SHAPES.doge`
 Le mème du shiba en VOXELS, avec les outils du CHAT POP-TART : `voxGrille` (faces à l'air fusionnées), `nyLaque` (couleurs cuites par face d/h/c, brillant
 de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,{…})`, juste après LA MERCURE.
