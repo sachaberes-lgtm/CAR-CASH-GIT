@@ -25,9 +25,14 @@ if(!fs.existsSync(path.join(SRC,'index.html')))meurt(SRC+'/index.html introuvabl
 
 const GARDE=['index.html','sfx.js','sons-banque.js','manifest.webmanifest','vendor','assets'];
 const JAMAIS=/\.py$|^\.DS_Store$|^Thumbs\.db$/;
+/* LES VOIX NE SONT PAS LIVRÉES (2026-10-14), comme dans l'édition POKI (poki-construire.js, même liste) : sans « ?voix=1 » dans
+   l'adresse — impossible dans l'app — le jeu naît SANS_VOIX : l'annonceur, le « ewww » des morts et le « WOW » des combos ne sont
+   ni chargés ni joués. Les embarquer, c'était distribuer onze fichiers de voix (dont deux d'origine tierce) que personne n'entend.
+   Le témoin plus bas vérifie que la règle SANS_VOIX du jeu est toujours celle-là. */
+const SANS_LIVRER=new Set(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3']);
 fs.rmSync(WWW,{recursive:true,force:true});fs.mkdirSync(WWW,{recursive:true});
 let nFic=0,nOct=0;
-const copie=(a,b)=>{const s=fs.statSync(a);
+const copie=(a,b)=>{if(SANS_LIVRER.has(path.relative(SRC,a).split(path.sep).join('/')))return;const s=fs.statSync(a);
   if(s.isDirectory()){fs.mkdirSync(b,{recursive:true});for(const n of fs.readdirSync(a))if(!JAMAIS.test(n))copie(path.join(a,n),path.join(b,n));}
   else{fs.copyFileSync(a,b);nFic++;nOct+=s.size;}};
 for(const n of GARDE){const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('manque '+n+' dans VERSION PRINCIPALE');copie(a,path.join(WWW,n));}
@@ -67,6 +72,7 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   '#gBqPan .bqOng button[data-o="off"]{display:none!important}\n'+
   '/* le bouton verrouillé « BIENTÔT » du menu du garage */\n'+
   '#gMenuBas .gVerrou{display:none!important}</style>\n</head>','page OFFRES');
+une("const SANS_VOIX=POKI||!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],

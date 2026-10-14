@@ -67,7 +67,7 @@ if(POKI)document.documentElement.classList.add('poki');
    désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
    et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
    dépôt ; les sons de SYNTHÈSE (chœurs, cri stylisé du dauphin, intro 1.61) ne sont pas des voix : ils restent. `?voix=1` les rend. */
-const SANS_VOIX=POKI||!/[?&]voix=1\b/.test(location.search);
+const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */
 if(SANS_VOIX)document.documentElement.classList.add('sansVoix');
 if(!FACILE_OK)document.documentElement.classList.add('sansFacile');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
