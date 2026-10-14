@@ -8862,9 +8862,9 @@ html.sansFacile [data-m="facile"]{display:none!important}
 #spinM .spBox{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);transform:translateY(22px) scale(.94);transition:transform var(--t-slow) var(--ease)}
 #spinM.vu .spBox{transform:none}
 /* L'ENSEIGNE : la plaque sombre, le nom en or néon, ses ampoules */
-#spinM .spEnseigne{position:relative;padding:calc(var(--spH)*.2) calc(var(--spH)*.5);background:linear-gradient(180deg,#1b1634,#07050f);
+#spinM .spEnseigne{position:relative;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,#1b1634,#07050f);
   box-shadow:inset 0 0 0 2px var(--auE),inset 0 0 0 4px var(--k0),0 0 0 3px var(--au2),0 6px 0 var(--k0),0 0 34px rgba(255,62,200,.28)}
-#spinM .spNeon{display:block;font-weight:400;font-size:calc(var(--spH)*.42);line-height:1;letter-spacing:2px;color:var(--au1);white-space:nowrap;
+#spinM .spNeon{display:block;font-weight:400;font-size:min(calc(var(--spH)*.42),calc((100vw - var(--sL) - var(--sR) - 96px)/11.5)); /* (banc) debout, l'enseigne débordait de l'écran */line-height:1;letter-spacing:2px;color:var(--au1);white-space:nowrap;
   text-shadow:0 3px 0 var(--auE),0 0 10px var(--au2),0 0 26px rgba(255,62,200,.65)}
 #spinM.gagne .spNeon{animation:spNeon .34s steps(1,end) infinite}
 @keyframes spNeon{50%{color:var(--au0);text-shadow:0 3px 0 var(--auE),0 0 14px var(--au0),0 0 32px var(--neoM)}}
@@ -8934,9 +8934,9 @@ html.sansFacile [data-m="facile"]{display:none!important}
 #spinM .spSocle{position:absolute;left:0;top:50%;width:calc(var(--spH)*.42);height:calc(var(--spH)*.7);transform:translateY(-50%);
   background:linear-gradient(90deg,var(--auE),var(--au2) 40%,var(--au1) 60%,var(--auE));box-shadow:0 0 0 2px var(--k0),inset -3px 0 0 rgba(0,0,0,.3)}
 #spinM .spBras{position:absolute;left:calc(var(--spH)*.3);top:0;width:calc(var(--spH)*.36);height:50%;--L:calc(var(--spH)*1.7)}
-#spinM .spTige{position:absolute;left:50%;bottom:0;width:calc(var(--spH)*.14);height:var(--L);margin-left:calc(var(--spH)*-.07);transform-origin:50% 100%;transform:scaleY(var(--lc,1));
+#spinM .spTige{position:absolute;left:50%;bottom:0;width:calc(var(--spH)*.2);height:var(--L);margin-left:calc(var(--spH)*-.1);transform-origin:50% 100%;transform:scaleY(var(--lc,1));
   background:linear-gradient(90deg,#6b4a10,#ffe27a 40%,#fff8d6 55%,#c08a1a 80%,#6b4a10);box-shadow:0 0 0 2px var(--k0)}
-#spinM .spBoule{position:absolute;border-radius:50%;left:50%;bottom:var(--L);width:calc(var(--spH)*.62);height:calc(var(--spH)*.62);
+#spinM .spBoule{position:absolute;border-radius:50%;left:50%;bottom:var(--L);width:calc(var(--spH)*.72);height:calc(var(--spH)*.72);
   transform:translate(-50%,calc(50% + var(--lb,0)*2*var(--L))) scale(calc(1 + var(--lb,0)*.18));
   background:radial-gradient(circle at 34% 30%,#fff 0 10%,#ff8a9a 20%,#ff2a4a 46%,#8a0f24 92%);box-shadow:0 0 0 2px var(--k0),0 4px 0 rgba(0,0,0,.35),0 0 16px rgba(255,42,74,.5)}
 #spinM .spBoule::before{content:'';position:absolute;left:50%;top:50%;width:64px;height:64px;transform:translate(-50%,-50%)} /* la cible du doigt : 64 px, plus grande que la boule */
@@ -8958,7 +8958,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
 /* COUCHÉ : la machine à gauche, aussi haute que l'écran le permet ; l'enseigne, le plateau et l'or à droite */
 @media (orientation:landscape) and (max-height:540px){
   #spinM{--spH:clamp(40px,min(calc((100vh - var(--sT) - var(--sB) - 48px)/5.1),calc((100vw - var(--sL) - var(--sR) - 290px)/4.95)),90px)}
-  #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:22px;row-gap:12px;align-items:center;justify-items:center}
+  #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:calc(var(--spH)*.95); /* (banc) la boule du levier mordait sur l'enseigne */row-gap:12px;align-items:center;justify-items:center}
   #spinM .spCorps{grid-column:1;grid-row:1/5}
   #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}
   #spinM .spNeon{font-size:var(--f6)}
