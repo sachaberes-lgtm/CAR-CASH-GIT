@@ -8724,7 +8724,7 @@ const sunSprite=(function(){
     const cvL=document.createElement('canvas');cvL.width=cvL.height=512;const l=cvL.getContext('2d');   // la face : or plein, reflet clair en tête
     l.font=c.font;l.textAlign='center';l.textBaseline='middle';l.fillStyle='#ffd75e';l.fillText('1.61',256,260);
     l.globalCompositeOperation='source-atop';l.fillStyle='#fff3b0';l.fillRect(0,0,512,248);
-    d.drawImage(cvL,0,0);
+    d.drawImage(cvL,0,0);toileRend(cvL); // (2026-10-14, passe perf mobile) toile de travail 512² : 1 Mo rendu tout de suite, à chaque dessin
     texO.needsUpdate=true;
   }
   draw();
@@ -8824,7 +8824,7 @@ const planetGroup=(function(){
     x.beginPath();x.ellipse(cx,cy,w,7+Math.random()*13,(Math.random()-.5)*.5,0,6.2832);x.fill();
   }
   x.globalAlpha=1;
-  const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;
+  const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;texLibere(tex); // (2026-10-14, passe perf mobile) 1024 × 512 peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
   // ⚠ le grade final (expo + saturation + bloom) BRÛLE tout ce qui est clair : mesurée à [253,231,239],
   // la planète ressortait BLANCHE. On la rentre donc volontairement sombre — c'est le post qui la rallume.
   const globe=new THREE.Mesh(new THREE.SphereGeometry(PLANET_R,44,30),
@@ -8973,6 +8973,82 @@ if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(device
   try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+/* ====================== LE PALIER DE L'APPAREIL — PAL (2026-10-14, passe perf mobile, Sacha : « la version mobile n'arrive pas à afficher
+   de bons graphismes sans bugger ; comprime un maximum, que ce soit fluide même sur un iPhone 7 ») ======================
+   Jusqu'ici RIEN ne distinguait un iPhone 7 d'un iPhone 15 Pro : `IS_MOBILE` = tout téléphone, Safari dit « 2 cœurs » et « Apple GPU » sur
+   tous les iPhone. Un iPhone 7 démarrait donc avec les réglages du 15 Pro, puis l'échelle QL descendait cran par cran — des dizaines de
+   secondes de saccades avant de trouver son régime, à chaque partie. Et l'échelle QL ne sait baisser que l'ombre, le halo et la
+   résolution : pas le nombre de triangles, d'appels de dessin, de particules ni le travail du processeur, qui sont ce qui étouffe une
+   vieille puce. PAL répond UNE fois, au démarrage, à « quelle machine ? » — et tout le jeu peut tailler ses budgets dessus :
+     PAL.n = 0  ANCIEN  (iPhone 6s / 7 / 8 / X / SE 1 — puces A9 à A11 ; Android d'entrée de gamme) : 30 i/s STABLES valent mieux que 45 hachées
+             1  MOYEN   (iPhone XR / XS / 11 / SE 2 — A12, A13 ; Android milieu de gamme)
+             2  RÉCENT  (iPhone 12 et après, ordinateurs) : l'image d'avant, au pixel près — RIEN ne change pour lui.
+     PAL.bas = (n===0) · PAL.moyen = (n<=1) · PAL.B = les BUDGETS par palier (`PAL.b('cle')` rend la valeur du palier courant).
+   COMMENT ON SAIT (du plus sûr au moins sûr) :
+     1 · `?palier=0|1|2` (banc, essai) ;
+     2 · ce que le jeu a APPRIS sur cet appareil aux parties d'avant (`localStorage.cashcarPalier`, écrit par `palNote` quand la mesure
+         réelle en course contredit le palier : voir palApprend) ;
+     3 · la version d'iOS — une CERTITUDE matérielle : un iPhone resté en iOS 15 ne peut pas avoir mieux qu'une puce A10 (6s, 7, SE 1),
+         en iOS 16 pas mieux qu'une A11 (8, X) ; en iOS 26 au moins une A13 (iPhone 11) ;
+     4 · sur Android : la mémoire annoncée (`deviceMemory`) et la puce graphique (affinée par `palPuce` une fois le contexte 3D créé) ;
+     5 · un PETIT BANC du processeur (quelques millisecondes d'arithmétique, le meilleur de 4 tours) pour départager le reste.
+   RÈGLE D'OR : tout ce qui se taille sur PAL doit laisser le palier 2 IDENTIQUE à avant (les téléphones récents gardent toute l'image).
+   `dbgPalier()` décrit ; `dbgPalier(n)` recharge la page à ce palier. */
+const PAL=(function(){
+  const P={n:2,src:'défaut',ios:0,banc:null,puce:'',mem:navigator.deviceMemory||0,appris:null};
+  const ua=navigator.userAgent||'',mI=/(?:iPhone|iPad|iPod).*? OS (\d+)[_.]/.exec(ua);P.ios=mI?+mI[1]:0;
+  const banc=function(){ // ~3-4 ms sur une puce M (ordi), ~7 sur A15, ~10 sur A12, ~15 sur A10 (ordres de grandeur : le banc DÉPARTAGE, il ne tranche pas seul)
+    try{const N=4096,a=new Float32Array(N),b=new Float32Array(N);let m=1e9;
+      for(let r=0;r<4;r++){const t0=performance.now();let s=0,h=7;
+        for(let k=0;k<120;k++)for(let i=0;i<N;i++){h=(Math.imul(h,1103515245)+12345)|0;a[i]=(h>>>8)*5.96e-8;b[i]=a[i]*a[(i+17)&4095]+b[(i+4095)&4095]*.5;s+=b[i];}
+        const d=performance.now()-t0;if(s===s&&d<m)m=d;}
+      return m;}catch(e){return null;}};
+  const force=/[?&]palier=([0-2])\b/.exec(location.search);
+  let appris=null;try{appris=JSON.parse(localStorage.getItem('cashcarPalier')||'null');}catch(e){}
+  if(appris&&!(appris.n>=0&&appris.n<=2&&appris.v===1))appris=null;
+  P.appris=appris;
+  if(force){P.n=+force[1];P.src='?palier';}
+  else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}
+  else if(!IS_MOBILE||FORCE_TEL){P.n=2;P.src='ordinateur';} // l'ordi (colonne comprise) : l'échelle QL suffit
+  else if(P.ios&&P.ios<=15){P.n=0;P.src='iOS '+P.ios+' (A10 au mieux)';}
+  else{
+    if(appris&&appris.src==='banc'&&Date.now()-appris.t<6048e5){P.banc=appris.banc;P.n=appris.n;P.src='banc (retenu)';}
+    else{P.banc=banc();const m=P.banc;P.n=m==null?1:m>=12.5?0:m>=8.5?1:2;P.src='banc '+(m==null?'?':m.toFixed(1)+' ms');
+      try{localStorage.setItem('cashcarPalier',JSON.stringify({v:1,n:P.n,src:'banc',banc:m,t:Date.now()}));}catch(e){}}
+    if(P.ios===16&&P.n>1){P.n=1;P.src+=' · iOS 16 (A11 au mieux)';}
+    if(P.ios>=26&&P.n<1){P.n=1;P.src+=' · iOS 26 (A13 au moins)';}
+    if(!P.ios&&P.mem){if(P.mem<=2&&P.n>0){P.n=0;P.src+=' · '+P.mem+' Go';}else if(P.mem<=4&&P.n>1){P.n=1;P.src+=' · '+P.mem+' Go';}}
+  }
+  P.bas=P.n===0;P.moyen=P.n<=1;
+  try{document.documentElement.dataset.palier=String(P.n);}catch(e){} // `html[data-palier="0"]` : le CSS peut s'alléger sur les vieux appareils
+  /* LES BUDGETS — une ligne par chose qui se taille, [ANCIEN, MOYEN, RÉCENT]. La 3e colonne = le jeu d'avant : on n'y touche pas.
+     Chaque zone du jeu AJOUTE ses lignes ici (une seule table à régler), et lit `PAL.b('cle')`. */
+  P.B={};
+  P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
+  return P;})();
+/* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
+   avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
+   qui n'a servi qu'à peindre UNE fois une `CanvasTexture` ne sert plus à rien dès que three l'a envoyée (`texture.onUpdate` est appelé
+   juste après l'envoi, mipmaps comprises) : `texLibere(tex)` la vide alors (largeur = hauteur = 0 → la mémoire est rendue tout de suite,
+   sans attendre le ramasse-miettes). ⚠ UNIQUEMENT pour une texture JAMAIS redessinée (aucun `needsUpdate` ultérieur, pas de redessin à
+   l'arrivée de la police, image jamais relue par un autre code, texture jamais `dispose()` puis resservie). Le contexte 3D perdu ne
+   demande rien : il RECHARGE la page (voir webglcontextrestored). Le palier se lit À L'ENVOI (pas à l'appel : des textures naissent
+   avant PAL dans le fichier). Palier 2 : inchangé (toiles gardées, outils `dbg*` qui les relisent intacts).
+   `toileRend(cv)` : pour une toile de TRAVAIL (copiée dans une autre puis jetée) — invisible, vaut pour tous les paliers. */
+PAL.B.memToiles=[1,1,0]; // rendre les toiles des textures peintes une fois : ancien, moyen = oui · récent = comme avant
+function toileRend(cv){try{if(cv&&cv.getContext)cv.width=cv.height=0;}catch(e){}}
+function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onUpdate;
+  tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)){toileRend(t.image);MEM_TOILES.n++;}};return tex;}
+const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0),rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
+function palNote(n,pourquoi){ // ce que la COURSE a appris : retenu pour les prochains démarrages (le palier courant ne change pas en vol : la plupart des budgets se prennent à la construction)
+  try{n=Math.max(0,Math.min(2,n|0));localStorage.setItem('cashcarPalier',JSON.stringify({v:1,n:n,src:'mesure',pourquoi:String(pourquoi||'').slice(0,80),t:Date.now()}));PAL.appris={n:n,src:'mesure'};}catch(e){}}
+function palPuce(gl9){ // (après la création du contexte) la puce graphique, là où le navigateur la dit (Android) : une puce d'entrée de gamme rabat le palier
+  try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;
+    if(PAL.src==='?palier'||PAL.src==='appris en course'||!IS_MOBILE||FORCE_TEL)return;
+    const vieux=/Adreno \(TM\) [1-5]\d\d|Mali-(4|T\d|G5[127]|G3\d|G71|G72)|PowerVR (SGX|Rogue G[6E])|Apple A(7|8|9|10)\b/i.test(r),moyenne=/Adreno \(TM\) 6[0-4]\d|Mali-G(7[6-8]|6[18])/i.test(r);
+    const n=vieux?0:moyenne?Math.min(PAL.n,1):PAL.n;if(n<PAL.n){PAL.n=n;PAL.bas=n===0;PAL.moyen=n<=1;PAL.src+=' · '+r.slice(0,40);try{document.documentElement.dataset.palier=String(n);}catch(e){}}}catch(e){}}
+window.dbgPalier=function(n){ if(n!=null){const u=new URL(location.href);u.searchParams.set('palier',String(n|0));location.href=u.toString();return 'rechargement au palier '+(n|0);}
+  return {n:PAL.n,nom:['ANCIEN','MOYEN','RÉCENT'][PAL.n],src:PAL.src,ios:PAL.ios,banc:PAL.banc,mem:PAL.mem,puce:PAL.puce,appris:PAL.appris,budgets:Object.keys(PAL.B).reduce(function(o,k){o[k]=PAL.B[k][PAL.n];return o;},{})};}; // (banc)
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
 if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');
 const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » : les COUPS de champ (fovPunch — nitro, boost, drift, +34° à l'entrée en orbite) à 30 %, là où ils s'appliquent
@@ -8985,6 +9061,7 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
+try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
 /* ⚠ LE CONTEXTE 3D PERDU (2026-09-25, audit App Store) : iOS reprend la carte graphique d'une app en arrière-plan
    (appel, appareil photo, jeu lourd). Sans ces deux écouteurs, le jeu revenait sur un ÉCRAN NOIR définitif — le
    refus classique pour « l'app ne répond plus ». On empêche l'abandon (`preventDefault` = « je veux le récupérer »),
@@ -9033,7 +9110,12 @@ const kick=new THREE.DirectionalLight(0xff3d9e,.20);kick.position.set(-520,260,4
 // --- OMBRES LONGUES (golden hour) : une seule casteuse — le soleil — dans une fenêtre ortho serrée qui SUIT la caisse.
 // Soleil à ~5,9° → l'ombre fait ~9,7× la hauteur de l'objet : le rasant étire tout au sol.
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+/* (2026-10-14, passe perf mobile) LE FILTRE DE L'OMBRE, PAR PALIER. L'ombre douce (PCFSoft) lit la carte 36 fois par pixel éclairé (9 prises
+   interpolées à la main × 4) ; l'ombre PCF simple, 17 fois, sans les interpolations — même carte, même biais, bord un peu moins fondu.
+   Le type entre dans le #define des matières : il se choisit ICI, avant toute compilation, et plus personne ne le change ensuite.
+   RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
+PAL.B.postOmbreDouce=[0,0,1];
+renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
 sun.shadow.mapSize.set(IS_MOBILE||IS_LOW_END?1024:1280,IS_MOBILE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
@@ -9234,9 +9316,21 @@ if(CAN_POST){ try{
   bloomPass._a=0; // l'alpha du halo de l'image (strength·Σpoids écrêté à 1) — relu par l'ACES
   {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){this._W=W;this._H=H;s0(Math.max(2,Math.round(W*bSc*2*BLOOM_RES)),Math.max(2,Math.round(H*bSc*2*BLOOM_RES)));
     const v0=this.renderTargetsVertical[0];if(this._cRT&&(this._cRT.width!==v0.width||this._cRT.height!==v0.height))this._cRT.setSize(v0.width,v0.height);};} // (_W/_H retenus : l'échelle QL retaille le bloom seul) — le halo composé suit le 1er mip
+  /* (2026-10-14, passe perf mobile) LES ÉTAGES DU HALO, PAR PALIER. Le halo, c'est 5 étages de flou (½, ¼ … 1/32 de sa base), 2 passes
+     chacun, + la passe qui les somme : 11 changements de cible par image. Sur un iPhone 7 l'image entière fait 667×375 : les deux derniers
+     étages n'y pèsent que ~200 et ~50 pixels — leurs 4 passes ne coûtent pas des pixels mais 4 allers-retours de cible sur une puce à
+     tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
+     reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
+     Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
+  PAL.B.postBloomMips=[3,4,5];bloomPass._nM=PAL.b('postBloomMips',5);
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+  /* (2026-10-14, passe perf mobile) UNE SEULE CIBLE PLEIN ÉCRAN. Une ShaderPass demande par défaut l'échange des deux cibles du composer
+     après elle : comme l'ACES écrit à l'ÉCRAN, cet échange ne servait qu'à faire dessiner la scène une image dans la cible 1, la suivante
+     dans la cible 2 — deux cibles demi-flottantes + profondeur allouées à la taille de l'écran pour une seule utile. Sans l'échange, la
+     scène va toujours dans la même et l'autre n'est jamais créée sur la puce (three ne l'alloue qu'à son premier usage). Même image. */
+  acesPass.needsSwap=false;
   /* FUSION DU BLOOM (2026-09-27, passe perf iPhone). UnrealBloomPass finissait par DEUX passes : un « composite » qui somme ses 5 mips
      dans une cible 8 bits, puis une COPIE additive de cette cible sur l'image entière — un aller-retour plein écran en demi-flottant
      rien que pour ajouter le halo, sur un GPU à tuiles (Apple) le plus cher des deux. L'ACES relisait ensuite cette même image. Le halo
@@ -9255,7 +9349,8 @@ if(CAN_POST){ try{
       if(!pl){this.highPassUniforms.tDiffuse.value=rb.texture;this.highPassUniforms.luminosityThreshold.value=this.threshold;
         this.fsQuad.material=this.materialHighPassFilter;rd.setRenderTarget(this.renderTargetBright);rd.clear();this.fsQuad.render(rd);}
       let inp=pl?rb:this.renderTargetBright;
-      for(let i=0;i<this.nMips;i++){const m=this.separableBlurMaterials[i],hz=this.renderTargetsHorizontal[i],vt=this.renderTargetsVertical[i];
+      const nM=Math.min(this.nMips,this._nM||this.nMips); // (2026-10-14, passe perf mobile) les étages de flou de ce palier — voir postBloomMips
+      for(let i=0;i<nM;i++){const m=this.separableBlurMaterials[i],hz=this.renderTargetsHorizontal[i],vt=this.renderTargetsVertical[i];
         if(pl&&i>=3&&this.plie2d!==false){const q=this._p2[i];q.uniforms.colorTexture.value=inp.texture;q.uniforms.texSize.value=m.uniforms.texSize.value; // mips 3-4 : le flou 2D en UNE passe
           this.fsQuad.material=q;rd.setRenderTarget(vt);rd.clear();this.fsQuad.render(rd);inp=vt;continue;}
         const mh=(pl&&i===0)?this._p0:m;if(mh!==m){mh.uniforms.texSize.value=m.uniforms.texSize.value;mh.uniforms.thr.value=this.threshold;mh.uniforms.sw.value=this.highPassUniforms.smoothWidth.value;}
@@ -9265,7 +9360,7 @@ if(CAN_POST){ try{
         inp=vt;}
       if(this._cMat&&this.nMips===5){ // LE HALO COMPOSÉ (voir sa création) : poids `strength·mix(f,1.2−f,radius)` = lerpBloomFactor, facteurs 1/.8/.6/.4/.2
         const cu=this._cMat.uniforms,s=this.strength,r=this.radius,w0=s*(1-.8*r),w1=s*(.8-.4*r),w2=s*.6,w3=s*(.4+.4*r),w4=s*(.2+.8*r);
-        for(let i=0;i<5;i++)cu['t'+(i+1)].value=this.renderTargetsVertical[i].texture;
+        for(let i=0;i<5;i++)cu['t'+(i+1)].value=this.renderTargetsVertical[Math.min(i,nM-1)].texture; // (2026-10-14) un étage non calculé lit le dernier calculé : son poids s'y reporte
         cu.w.value.set(w0,w1,w2,w3);cu.w5.value=w4;cu.a.value=this._a=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));
         this.fsQuad.material=this._cMat;rd.setRenderTarget(this._cRT);rd.clear();this.fsQuad.render(rd);}
       else this._a=0;
@@ -9759,7 +9854,7 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=QL.N_EFF)return b.cap;
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
-function qlPose(k){ const b=qlBornes();k=Math.max(0,Math.min(b.kMax,k|0));QL.k=k;
+function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));QL.k=k; // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
   const br=k>=3?.75:1;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
@@ -9786,12 +9881,12 @@ function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine rés
    tout revient À L'IDENTIQUE : l'échelle reprend le cran qu'elle avait, sa carte d'ombre et sa résolution. Les bascules tombent
    sous le volet (ecranWipe) : la réallocation des cibles ne se voit pas. `?hd=0` coupe le mode (comparer) ; `dbgVHD()` le décrit. */
 const VHD={on:false,dpr:1,max:1,ombre:2048,t:0,k0:0,lT:0,bT:0,sT:0,mur:0,murT:0,monteT:0,bride:0,log:[],bas:0,haut:0,off:/[?&]hd=0/.test(location.search)}; // (2026-10-13) max = la pleine définition de cet écran ; lT/bT = lenteur/marge TENUES ; sT = sonde en cours ; mur = le cran qui vient d'échouer (voir LE FILET v2)
-function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?3.2e6:8.3e6;
+function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF?1:1.5),Math.sqrt(bud/px),4));}
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?PAL.b('vhdOmbre',2048):4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
   else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
 function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
@@ -9800,6 +9895,23 @@ function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qu
   if(d9<VHD.dpr+.02||(vrai&&vrai*(d9/VHD.dpr)*(d9/VHD.dpr)>14))return false;VHD.dpr=d9;VHD.haut++;VHD.monteT=now;vhdNote(now,'monte');curDPR=-1;qlPose(0);return true;}
 function vhdNote(now,quoi){VHD.log.push([Math.round(now/100)/10,quoi,+VHD.dpr.toFixed(2),+QLR.vrai.toFixed(1),+QLR.p75.toFixed(1),+QLR.p90.toFixed(1)]);if(VHD.log.length>12)VHD.log.shift();} // (banc) dbgVHD().journal
 addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;curDPR=-1;qlPose(0);}}); // téléphone tourné, fenêtre retaillée : le budget de pixels se recalcule
+/* LE DÉPART AU BON CRAN, PAR PALIER (2026-10-14, passe perf mobile — voir PAL). MESURÉ (iPhone 7 émulé 667×375, avant) : l'accueil était
+   calculé en 1067×600 avec une carte d'ombre 2048 (le budget VHD « téléphone » = 3,2 M de pixels, celui d'un iPhone 15 Pro), l'écran de fin
+   de partie pareil — avec le niveau entier derrière (~1 M de triangles) —, puis chaque course repartait du cran 0 (ombre 1024, halo plein,
+   flou radial) et l'échelle QL mettait des dizaines de secondes de saccades à redescendre, un cran toutes les 1,1 s. À CHAQUE partie.
+   Un vieux téléphone commence désormais LÀ OÙ IL FINISSAIT :
+     · qlDepart : le cran posé au démarrage — ANCIEN : les 5 allègements « invisibles » d'emblée (ombre 512, halo ¾, plus de flou radial) ;
+       MOYEN : ombre ½ en vol + ombre 768 ; RÉCENT : cran 0, comme avant. L'échelle descend toujours plus bas si besoin ;
+     · qlMin : le cran sous lequel l'échelle ne REMONTE pas. Sur l'ANCIEN, 4 (ombre 512 + halo ¾ tenus) : chaque remontée réalloue une carte
+       d'ombre et des cibles — un à-coup — pour les reperdre dix secondes plus tard au premier envol. Le flou radial, lui, peut revenir ;
+     · vhdPx / vhdOmbre : l'accueil haute définition garde sa belle caisse (Léo, 10/10) mais à la mesure de la puce — ANCIEN : 0,45 M de
+       pixels (≈ densité 1,3 sur un iPhone 7) et ombre 1024 ; MOYEN : 1,6 M et 2048 ; RÉCENT : 3,2 M et 2048, comme avant. Le FILET de VHD
+       (baisse ×0,8 si l'image traîne) reste par-dessus ;
+     · vhdMort : l'écran de fin de partie en haute définition ? RÉCENT seulement — sur les deux autres il garde la résolution et les crans
+       de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
+   `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
+PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.6e6,3.2e6];PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
+if(PAL.b('qlDepart',0)>0){try{qlPose(PAL.b('qlDepart',0));}catch(e){}}
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
@@ -9812,7 +9924,7 @@ window.dbgGfx=function(o){
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
 window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
-window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
+window.dbgQual=function(k){ if(k!=null){QL.force=true;qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
     ombre:sun.shadow.mapSize.x,ombreVolDemi:renderer.shadowMap.autoUpdate===false,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,flou:FLOU_OK,allege:al};};
@@ -9826,8 +9938,8 @@ const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.c
 function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;if(now-M.t<250)return;M.t=now;
   const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
   if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
-  const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+(QLR.vraiT?'  vrai '+QLR.vrai.toFixed(1):'')+(QL.bride&&now-QL.bride<3000?'  ÉCRAN BRIDÉ':'')+'  p50/75/90 '+QLR.p50.toFixed(0)+'/'+QLR.p75.toFixed(0)+'/'+QLR.p90.toFixed(0)+(QL.essai?'  essai':'')+
-    '\nDPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein');
+  const tx=ms.toFixed(1)+' ms  pire '+M.pire.toFixed(0)+'  '+Math.round(1000/Math.max(1,ms))+' i/s'+(loop._r30?'  (30 Hz)':'')+(CAD.on?'  30 i/s CALÉ':'')+(QLR.vraiT?'  vrai '+QLR.vrai.toFixed(1):'')+(QL.bride&&now-QL.bride<3000?'  ÉCRAN BRIDÉ':'')+'  p50/75/90 '+QLR.p50.toFixed(0)+'/'+QLR.p75.toFixed(0)+'/'+QLR.p90.toFixed(0)+(QL.essai?'  essai':'')+
+    '\nPALIER '+PAL.n+' ('+PAL.src+')  DPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
 // ============================================================================
@@ -13133,7 +13245,7 @@ function villePubAtlas(){
     const fz=Math.min(26,Math.floor((C-28)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.44);
     x.font='8px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.74);
     for(let i=0;i<5;i++){x.fillStyle=p[1];x.globalAlpha=.55;x.fillRect(ox+14+i*20,oy+C-22,12,4);}x.globalAlpha=1;});
-  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;texLibere(t); // (2026-10-14, passe perf mobile) 512² : 1 Mo
   CITY.pub=t;return t;
 }
 function villeMatPub(){
@@ -13345,7 +13457,7 @@ function cryptoPubAtlas(){
     const fz=Math.min(40,Math.floor((C-44)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.62);
     x.font='12px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.8);
     if(p[4]==='up'||p[4]==='bougies'){x.fillStyle=p[1];x.globalAlpha=.6;for(let i=0;i<7;i++)x.fillRect(ox+30+i*28,oy+C-34-i*3,16,6+i*3);x.globalAlpha=1;}});
-  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;texLibere(t); // (2026-10-14, passe perf mobile) 1024² : 4 Mo
   CRYPTO.mat.pubT=t;return t;
 }
 function cryptoMatPub(){
@@ -13518,6 +13630,7 @@ function cryptoTickerTex(){
     if(l[2]){x.fillStyle='#3dff9a';x.beginPath();x.moveTo(px,H/2+14);x.lineTo(px+16,H/2-16);x.lineTo(px+32,H/2+14);x.fill();px+=44;x.fillText(l[2],px,H/2);px+=x.measureText(l[2]).width;}
     px+=70;if(px>W-200)break;}
   const t=new THREE.CanvasTexture(cv);t.wrapS=THREE.RepeatWrapping;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.NearestFilter;t.anisotropy=4;
+  texLibere(t); // (2026-10-14, passe perf mobile) 2048 × 96 : 0,8 Mo (le défilement = `offset`, la toile n'est jamais repeinte)
   CRYPTO.mat.tick=t;CRYPTO.mat.ecran=new THREE.MeshBasicMaterial({map:t,color:new THREE.Color(1.5,1.5,1.5)});CRYPTO.mat.ecran.dispose=function(){};return t;
 }
 /* LES CONSTRUCTIONS DU NIVEAU — après les tours (buildVoxCity) : tout dans le groupe de la ville (il part avec la piste) */
@@ -13557,7 +13670,7 @@ function cryptoInit(){
   {const cv=document.createElement('canvas');cv.width=cv.height=512;const x=cv.getContext('2d'),src=plaTexPieces().image;
     const g=x.createRadialGradient(256,256,150,256,256,256);g.addColorStop(0,'rgba(255,214,120,.55)');g.addColorStop(.62,'rgba(255,190,90,.18)');g.addColorStop(1,'rgba(255,180,80,0)');
     x.fillStyle=g;x.fillRect(0,0,512,512);x.save();x.beginPath();x.arc(256,256,158,0,6.283);x.clip();x.drawImage(src,8,2,240,240,98,98,316,316);x.restore();
-    const t=new THREE.CanvasTexture(cv);t.anisotropy=4;
+    const t=texLibere(new THREE.CanvasTexture(cv));t.anisotropy=4; // (2026-10-14, passe perf mobile) 512² : 1 Mo
     const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,fog:false,color:new THREE.Color(1.25,1.18,1.05)}));
     s.renderOrder=24;s.frustumCulled=false;s.visible=false;scene.add(s);CRYPTO.lune=s;}
   // LES FUSÉES « TO THE MOON » : le corps blanc, la coiffe et les ailerons rouges, la flamme, et un sillage de fumée (ruban de 56 points)
@@ -13702,13 +13815,14 @@ window.dbgCrypto=function(k,v){ // console : l'état de CRYPTOCITY · ('ath') un
    image. `PLA.dens` (0 → 1, une part des objets) : à CRYPTOCITY une pluie de fond (.5), une AVERSE (1) à chaque NOUVEL ATH et à chaque
    pièce géante traversée ; ailleurs elle remplace l'averse de glyphes (même déclencheur : startMoneyRain). */
 const PLA={N:IS_MOBILE?900:1400,NP:IS_MOBILE?220:360,B:new THREE.Vector3(120,70,160),dens:0,surge:0,mB:null,mP:null,u:null,c:new THREE.Vector3(),f:new THREE.Vector3()};
+PAL.B.memTexBillets=[.5,1,1]; // (2026-10-14, passe perf mobile) l'échelle de l'atlas des billets de la PLUIE : 1024 × 384 au palier ancien (un billet qui tombe fait quelques dizaines de pixels à l'écran) — 8,4 Mo de puce → 2,1 Mo ; paliers 1-2 : 2048 × 768 comme avant
 function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie de richesse) + le billet ₿ · la rangée du bas : les confettis
   if(PLA.texB)return PLA.texB;
-  const cv=document.createElement('canvas');cv.width=2048;cv.height=768;const x=cv.getContext('2d');
+  const kT=PAL.b('memTexBillets',1),cv=document.createElement('canvas');cv.width=2048*kT;cv.height=768*kT;const x=cv.getContext('2d');if(kT!==1)x.scale(kT,kT); // (2026-10-14, passe perf mobile) même dessin, mêmes coordonnées, toile taillée au palier
   for(let k=0;k<8;k++){let t=null;try{t=k<7?richTexBillet(RICH_BILLETS[k]):plaBilletBtc();}catch(e){}
-    if(t&&t.image)x.drawImage(t.image,(k%4)*512,Math.floor(k/4)*256+10,512,236);if(t&&t.dispose)t.dispose();}
+    if(t&&t.image)x.drawImage(t.image,(k%4)*512,Math.floor(k/4)*256+10,512,236);if(t&&t.image)toileRend(t.image);if(t&&t.dispose)t.dispose();} // (2026-10-14, passe perf mobile) les 8 toiles de travail 512 × 236 (3,9 Mo) rendues tout de suite : elles ne vont jamais à la puce
   ['#2bff88','#ffd23e','#ffffff','#ff9a2e'].forEach(function(c,i){const g=x.createLinearGradient(i*512,512,i*512+512,768);g.addColorStop(0,c);g.addColorStop(1,'#ffffff');x.fillStyle=c;x.fillRect(i*512+40,552,432,176);x.globalAlpha=.35;x.fillStyle=g;x.fillRect(i*512+40,552,432,60);x.globalAlpha=1;});
-  const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=t;return t;
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=texLibere(t);return t; // (2026-10-14, passe perf mobile) 2048 × 768 : 6,3 Mo rendus après l'envoi (paliers 0-1)
 }
 function plaBilletBtc(){ // le billet de CRYPTOCITY : vert billet et or, un ₿ dans la rosace, « 1 BITCOIN »
   return richCv(512,236,function(x,w,h){
@@ -13725,7 +13839,7 @@ function plaBilletBtc(){ // le billet de CRYPTOCITY : vert billet et or, un ₿ 
 function plaTexPieces(){ // l'atlas des pièces : en haut la ₿ (la pièce de la pluie de richesse), en bas l'Ξ d'argent bleuté
   if(PLA.texP)return PLA.texP;
   const cv=document.createElement('canvas');cv.width=512;cv.height=512;const x=cv.getContext('2d');
-  try{const b=richTexBtc();x.drawImage(b[0].image,0,0,512,256);for(const t of b)t.dispose();}catch(e){x.fillStyle='#e8a030';x.fillRect(0,0,512,256);}
+  try{const b=richTexBtc();x.drawImage(b[0].image,0,0,512,256);for(const t of b){toileRend(t.image);t.dispose();}}catch(e){x.fillStyle='#e8a030';x.fillRect(0,0,512,256);}
   x.fillStyle='#9aa6c8';x.fillRect(0,256,512,256);
   for(const cx of [128,384]){const cy=256+122,R=120;const G=x.createRadialGradient(cx-38,cy-40,10,cx,cy,R);G.addColorStop(0,'#f4f7ff');G.addColorStop(1,'#7c88b0');x.fillStyle=G;x.beginPath();x.arc(cx,cy,R,0,6.283);x.fill();
     x.lineWidth=8;x.strokeStyle='rgba(255,255,255,.4)';x.beginPath();x.arc(cx,cy,R*.95,0,6.283);x.stroke();
@@ -15179,7 +15293,7 @@ function jadeArbresTex(){const W=256,cv=document.createElement('canvas');cv.widt
       const cx=W/2,cy=W*.62;for(let q=0;q<900;q++){const a=rg()*6.2832,rr=Math.sqrt(rg()),tx=cx+Math.cos(a)*100*rr,ty=cy+Math.sin(a)*82*rr*(Math.sin(a)>0?.85:1.1);if(ty>W-4)continue;
         const hi=(cy-ty)/82;touche(tx,ty,3+rg()*4.5,vert(hi>.35?4:hi>0?3:hi>-.4?2:1,.75+rg()*.4));}}
     c.restore();}
-  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.minFilter=THREE.LinearMipmapLinearFilter;return t;}
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.minFilter=THREE.LinearMipmapLinearFilter;return texLibere(t);} // (2026-10-14, passe perf mobile) la planche 1024 × 512, peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
 const JADE_ARB_VS=['attribute vec4 aJ;uniform float uTime;varying vec2 vUv,vL;varying vec3 vW;','#include <fog_pars_vertex>',
   'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;',
   '  vec3 R=normalize(vec3(viewMatrix[0][0],0.,viewMatrix[2][0])+vec3(1e-4,0.,0.)),U=normalize(vec3(0.,1.,0.)+vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1])*.35);', // face à la caméra (un peu penché vers elle d en haut)
@@ -15248,6 +15362,11 @@ const JADE_BRUME_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
   m.dispose=function(){};return m;})();
 /* ---- LA CONSTRUCTION ---- */
 const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {r0:220*k,r1:750*k,pin:900*k,pav:1300*k,d1:1500*k};})(); // les distances (m) : cubes de 1,75 → 3,5 → 7 m, arbres, temples, cubes de 14 m
+/* (2026-10-14, passe perf mobile) LE VERRE EN TROIS PASSES, PAR PALIER — MESURÉ (iPhone 7 émulé) : la bande 220-750 m (cubes de 3,5 m) passe
+   TROIS fois par la puce (absorption, profondeur, lumière : 3 × 48 000 triangles). Les trois passes sont solidaires (la lumière est ADDITIVE
+   et n'écrit pas la profondeur : seule, elle ferait une lueur sans corps) — on n'en cache donc aucune ; on rapproche la frontière où la
+   montagne passe au verre « deviné » en UNE passe opaque (cubes de 7 m, le mécanisme de la v17). Palier 2 : 750 m, comme avant. */
+PAL.B.jadeVerreR1=[400,600,750];JADE_LOD.r1=PAL.b('jadeVerreR1',750)*(TEL_NATIF?.8:1);
 function jadeBande(d){const L9=JADE_LOD;return d<L9.r0?0:d<L9.r1?1:d<L9.pin?2:d<L9.pav?3:d<L9.d1?4:5;}
 function jadeMatPilier(q,k){ // la matrice d'une montagne (gabarit q[5], quart de tour q[6]) à son niveau de détail k (0 à 3)
   const T9=JADE.geos.p[q[5]],e=1<<(k|0);
@@ -15447,7 +15566,7 @@ function* jadeBatit(seed,cle){
        for(const n of NU){const yaw=Math.atan2(n[7]-n[0],n[8]-n[2])+(n[6]>.5?Math.PI:0),sc=n[3]/NUVOX.GX;
          par[n[5]].push(new THREE.Matrix4().makeTranslation(n[0],n[1],n[2]).multiply(Mr.makeRotationY(yaw)).multiply(Ms.makeScale(sc*1.7,sc*.55,sc*1.15)).multiply(Mo));}
        NUVOX.L=[];NUVOX.ims=[];NUVOX.sig=0;NUVOX.S=NUVOX.S||new THREE.Sphere();
-       par.forEach(function(L9,t){for(const g9 of [GV[t],NUVOX.loin[t]]){const im=new THREE.InstancedMesh(g9,JADE_NUVOX_M,Math.max(1,L9.length));im.count=0;im.visible=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+       par.forEach(function(L9,t){for(const g9 of (NUVOX.pas>2?[GV[t],NUVOX.loin[t],NUVOX.quart[t]]:[GV[t],NUVOX.loin[t]])){const im=new THREE.InstancedMesh(g9,JADE_NUVOX_M,Math.max(1,L9.length));im.count=0;im.visible=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
            im.frustumCulled=false;im.renderOrder=4.5;root.add(im);NUVOX.ims.push(im);}
          for(const M9 of L9){const c9=new THREE.Vector3().setFromMatrixPosition(M9);NUVOX.L.push({t:t,m:Float32Array.from(M9.elements),c:c9,r:M9.getMaxScaleOnAxis()*NUVOX.GX*.56,v:0});}});
        JADE.nuages=NU.length;JADE.nuTri=NUVOX.L.reduce(function(a,n){return a+GV[n.t].index.count/3;},0);}
@@ -15577,6 +15696,10 @@ function jadeChutePrep(PIL,jr,root){
   // L'ÉCUME EN CUBES : une réserve de 700 cubes blancs (une instance), lancés à l'impact
   const g=new THREE.BoxGeometry(1,1,1),im=new THREE.InstancedMesh(g,new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238}),700);im.count=0;im.frustumCulled=false;im.userData.jeter=true;
   im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);root.add(im);JCH.splash=im;}
+/* (2026-10-14, passe perf mobile) ENVOI BORNÉ d'une InstancedMesh recopiée en tête chaque image : seules les n premières instances (réécrites
+   cette image) partent à la puce — pas les 700 / 1 800 places du tampon — et RIEN quand n===0 (le mesh est caché). coul : la teinte aussi (3 par instance). */
+function imEnvoi(im,n,coul){if(!(n>0))return;const a=im.instanceMatrix;a.updateRange.offset=0;a.updateRange.count=n*16;a.needsUpdate=true;
+  if(coul&&im.instanceColor){const c=im.instanceColor;c.updateRange.offset=0;c.updateRange.count=n*3;c.needsUpdate=true;}}
 const JCH_M=new THREE.Matrix4(),JCH_R=new THREE.Matrix4(),JCH_T=new THREE.Matrix4(),JCH_A=new THREE.Matrix4(),JCH_V=new THREE.Vector3(),JCH_Z=new Float32Array(16);
 function jadeChuteTick(dt){
   if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;const tn=JADE_U.uTime.value;
@@ -15595,7 +15718,7 @@ function jadeChuteTick(dt){
   const S9=JCH.sp,im=JCH.splash;if(im&&S9.length){let n=0;const M9=JCH_M;
     for(let i=S9.length-1;i>=0;i--){const p=S9[i];p.t+=dt;if(p.t>p.l){S9.splice(i,1);continue;}p.vy-=22*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
       if(p.y<JADE.eauY-4){S9.splice(i,1);continue;}const k=p.sz*(1-Math.pow(p.t/p.l,3));M9.makeScale(k,k,k).setPosition(p.x,p.y,p.z);if(n<700)im.setMatrixAt(n++,M9);}
-    im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}else if(im&&(im.count||im.visible)){im.count=0;im.visible=false;}}
+    im.count=n;im.visible=n>0;imEnvoi(im,n);}else if(im&&(im.count||im.visible)){im.count=0;im.visible=false;}}
 function jadeChuteOrig(c){c.orig=[];
   for(const F of JADE.fam){if(F.pidx){const si=F.pidx.get(c.pi);if(si!==undefined)c.orig.push({F:F,si:si,m:F.M.slice(si*16,si*16+16)});}
     if(F.tq)for(let si=0;si<F.tq.length;si++)if(F.tq[si]===c.q)c.orig.push({F:F,si:si,m:F.M.slice(si*16,si*16+16)});}
@@ -15825,7 +15948,7 @@ function eauPTick(dt){const im=EAUP.im;if(!im)return;const L9=EAUP.L;if(!L9.leng
     let k=p.sz*(1-Math.pow(p.t/p.l,3));{const dx=p.x-cp.x,dy=p.y-cp.y,dz=p.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<36)k*=Math.max(.15,Math.sqrt(d2)/6);} // près de l'objectif, la goutte rapetisse
     const st=Math.min(2.4,1+Math.abs(p.vy)*.06);M9.makeScale(k,k*st,k).setPosition(p.x,p.y,p.z); // une goutte qui file s'étire
     if(n<EAUP.max){im.setMatrixAt(n,M9);im.setColorAt(n,EAUP.cols[p.c]);n++;}}
-  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
+  im.count=n;im.visible=n>0;imEnvoi(im,n,true);}
 /* LE SILLAGE EN V (Kelvin) : la trace de la caisse sur l'eau, un point toutes les 45 ms ; chaque point s'écarte de l'axe à ~19,5° (la vitesse
    × 0,354 × son âge) et s'élargit — deux bandes d'écume en PETITS CARRÉS de 50 cm, la crête blanche côté intérieur, qui s'éteignent en 1,8 s. */
 const SILL={P:[],mesh:null,N:48,acc:0};
@@ -15862,7 +15985,7 @@ function eauBTick(dt){const im=EAUB.im;if(!im)return;const L9=EAUB.L;if(!L9.leng
     if(b.t>b.l){L9[i]=L9[L9.length-1];L9.pop();continue;}const u=b.t/b.l;let k=b.s*(1+2.2*u)*(1-u*u);
     {const dx=b.x-cp.x,dy=b.y-cp.y,dz=b.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<64)k*=Math.max(.1,Math.sqrt(d2)/8);} // jamais un voile plein écran
     M9.makeScale(k,k*.7,k).setPosition(b.x,b.y,b.z);if(n<EAUB.max)im.setMatrixAt(n++,M9);}
-  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}
+  im.count=n;im.visible=n>0;imEnvoi(im,n);}
 /* LA COURONNE LISSE : une gerbe d'eau translucide (un cylindre ouvert déformé dans le vertex shader) qui s'ouvre, monte, s'évase en lobes et
    retombe — à l'entrée large et basse, à la sortie étroite et haute (la colonne). Des filets clairs, l'éclat du soleil, le bord blanc. */
 const COUR_VS=['uniform float uU,uR0,uR1,uH,uS,uFl;varying float vV,vA;varying vec3 vW;',
@@ -15972,7 +16095,7 @@ function jadeBullesTick(dt){const im=JEAU.im;if(!im)return;const B9=JEAU.bul;if(
   for(let i=B9.length-1;i>=0;i--){const b=B9[i];if(!paused){b.t+=dt;b.v=Math.min(14,b.v+6*dt);b.y+=b.v*dt;b.x+=Math.sin(b.t*5+b.ph)*dt*.9;b.z+=Math.cos(b.t*4.3+b.ph)*dt*.9;}
     if(b.t>b.l||b.y>jadeSurfCase(b.x,b.z)){B9.splice(i,1);continue;}
     const k=b.s*(1-Math.pow(b.t/b.l,4));M9.makeScale(k,k,k).setPosition(b.x,b.y,b.z);if(n<320)im.setMatrixAt(n++,M9);}
-  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}
+  im.count=n;im.visible=n>0;imEnvoi(im,n);}
 const JADE_MERP_VS=['uniform float uMerY,uEauT,uN;uniform vec2 uO;attribute vec2 aCell;attribute float aFace;varying vec3 vW,vNo;varying float vEd,vH;',
   JADE_EAU_GLSL,
   'void main(){vec2 c=uO+aCell;float h=jMerH(c),top=uMerY+h*JMS;',
@@ -16411,23 +16534,32 @@ const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
    « miroir » d'un dessin, c'est le même vu de l'autre côté (le volume est symétrique). Éclairés au soleil de la map, une ombre jade-lavande,
    chaque cube sa nuance, la perspective aérienne du loin. */
 const NUVOX={GX:96,GY:48,geos:null};
+/* (2026-10-14, passe perf mobile) LES VOLUTES PAR PALIER — MESURÉ (iPhone 7 émulé, Soleil de jade) : 353 000 triangles par image rien que
+   pour les nuages en cubes (un tiers de l'image ; la puce d'un iPhone 7 souffre au-delà de ~300 000 en tout). On garde TOUS les nuages, à
+   la même place et à la même taille ; seuls leurs cubes grossissent sur les vieux appareils (chaque cran = ¼ des triangles) :
+     jadeNuvoxPres  : en deçà, les petits cubes (avant : 2 500 m). De là à 2 500 m, les cubes DOUBLES posés à l'échelle ×2 (même volume).
+     jadeNuvoxQuart : au-delà, les cubes QUADRUPLES (grille ÷ 4, posés ×2 : la carrure exacte du nuage lointain d'avant, 1/16 des triangles).
+   Palier 2 : 2 500 / jamais = le tri d'avant, au triangle près (le 3e jeu de maillages n'est même pas construit). */
+PAL.B.jadeNuvoxPres=[0,1500,2500];PAL.B.jadeNuvoxQuart=[2500,5000,1e9];
+NUVOX.pres=PAL.b('jadeNuvoxPres',2500);NUVOX.qd=PAL.b('jadeNuvoxQuart',1e9);NUVOX.pas=NUVOX.qd<1e8?3:2; // pas = maillages par dessin (petits, doubles[, quadruples])
 function jadeNuagesVox(){if(NUVOX.geos)return NUVOX.geos;
   const T=JADE_NUAGE_M.uniforms.uTex.value||(JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex()),D=T.image.data,W=T.image.width,H=T.image.height,CW=512,CH=256,HS=90,GX=NUVOX.GX,GY=NUVOX.GY,k=CW/GX,mi=Math.ceil(HS/k)+1,NZ=2*mi;
   NUVOX.mid=mi;NUVOX.geos=[];
-  NUVOX.loin=[];
+  NUVOX.loin=[];NUVOX.quart=[];
   for(let t=0;t<16;t++){const x0=(t%4)*CW,y0=((t/4)|0)*CH,G=voxG(GX,GY,NZ);
     for(let gy=0;gy<GY;gy++)for(let gx=0;gx<GX;gx++){const px=Math.min(CW-1,Math.round(gx*k+k/2)),py=Math.min(CH-1,Math.round(CH-1-(gy*k+k/2))),o=((H-1-(y0+py))*W+x0+px)*4;
       if(D[o+3]<128)continue;const th=Math.max(1,Math.round(D[o]/255*HS/k*.85)),m=D[o+1]>110?2:1;
       for(let z=mi-th;z<mi+th;z++)G.d[gx+GX*(z+NZ*gy)]=m;}
-    NUVOX.geos.push(voxMesh(G));NUVOX.loin.push(voxMesh(voxDemi(G)));} // de LOIN (> 2,5 km) : des cubes deux fois plus gros (le même nuage, ¼ des triangles)
+    const G2=voxDemi(G);NUVOX.geos.push(voxMesh(G));NUVOX.loin.push(voxMesh(G2));if(NUVOX.pas>2)NUVOX.quart.push(voxMesh(voxDemi(G2)));} // de LOIN (> 2,5 km) : des cubes deux fois plus gros (le même nuage, ¼ des triangles)
   return NUVOX.geos;}
 /* LE TRI DES VOLUTES (à chaque rendu, chaîné sur jadeTri) : seules celles dans le champ partent au GPU, de près en petits cubes, de loin en gros */
+function nuvoxM2(n){const m=n.m2=Float32Array.from(n.m);for(let i=0;i<12;i++)m[i]*=2;return m;} // la même pose, les trois axes doublés (la grille ÷ 2 retrouve sa taille) — fait une fois par nuage, à la demande
 function nuvoxTri(cam){const N9=NUVOX.L;if(!N9||!N9.length)return;let sg=7;
-  for(let i=0;i<N9.length;i++){const n=N9[i];NUVOX.S.center.copy(n.c);NUVOX.S.radius=n.r;let v=0;if(JT.fr.intersectsSphere(NUVOX.S))v=cam.position.distanceTo(n.c)<2500?1:2;n.v=v;sg=(Math.imul(sg,31)+v)|0;}
+  for(let i=0;i<N9.length;i++){const n=N9[i];NUVOX.S.center.copy(n.c);NUVOX.S.radius=n.r;let v=0;if(JT.fr.intersectsSphere(NUVOX.S)){const d9=cam.position.distanceTo(n.c);v=d9<NUVOX.pres?1:d9<2500?(NUVOX.pres<2500?3:1):d9<NUVOX.qd?2:4;}n.v=v;sg=(Math.imul(sg,31)+v)|0;}
   if(sg===NUVOX.sig)return;NUVOX.sig=sg;
   for(const im of NUVOX.ims){im.count=0;}
-  for(const n of N9){if(!n.v)continue;const im=NUVOX.ims[n.t*2+(n.v-1)];im.instanceMatrix.array.set(n.m,im.count*16);im.count++;}
-  for(const im of NUVOX.ims){im.instanceMatrix.needsUpdate=true;im.visible=im.count>0;}}
+  for(const n of N9){if(!n.v)continue;const v=n.v,im=NUVOX.ims[n.t*NUVOX.pas+(v===1?0:v===4?2:1)];im.instanceMatrix.array.set(v>2?(n.m2||nuvoxM2(n)):n.m,im.count*16);im.count++;} // (2026-10-14, passe perf mobile) v : 1 petits cubes · 2 doubles (le lointain d'avant) · 3 doubles à l'échelle ×2 · 4 quadruples à l'échelle ×2
+  for(const im of NUVOX.ims){imEnvoi(im,im.count);im.visible=im.count>0;}} // (2026-10-14, passe perf mobile) [0,count) vient d'être réécrit : seul ce bout part (et rien pour un jeu vide)
 const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:true,
   uniforms:{uTeinte:JADE_NUAGE_M.uniforms.uTeinte,uFogC:JADE_NUAGE_M.uniforms.uFogC,uSunD:JADE_U.uSunDir,uSunC:JADE_U.uSunC},
   vertexShader:['attribute float aM,aAO;varying vec3 vO,vNo,vN;varying float vM,vAO,vD;',
@@ -19089,11 +19221,11 @@ const LUNE=(function(){
    gelée au menu, bien pire sur iPhone. Le pinceau est donc un GÉNÉRATEUR : une étape par image au menu (`luneAvance`, appelé par la
    boucle via orbiteTick), chacune de quelques ms ; les toiles de travail restent en mémoire CPU (`willReadFrequently` : les relire
    n'est plus un aller-retour GPU). `lunePeint()` finit d'une traite si on en a besoin tout de suite (orbite atteinte avant la fin). */
-function lunePeint(){if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}}
+function lunePeint(){if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}ORB.pinceau=null;}
 function luneAvance(){ // une étape du pinceau (au menu) ; la dernière monte la carte au GPU
   if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();
   const t0=performance.now(),fin=ORB.pinceau.next().done;ORB.pireMs=Math.max(ORB.pireMs|0,Math.round(performance.now()-t0));
-  if(fin)renderer.initTexture(LUNE.userData.tex);
+  if(fin){renderer.initTexture(LUNE.userData.tex);ORB.pinceau=null;} // (2026-10-14, passe perf mobile) le générateur fini ne retient plus ses toiles ni ses tableaux
 }
 function* lunePinceau(){
   const W=1024,H=512,R=mulberry32(0x1C0430),D=Math.PI/180;
@@ -19155,6 +19287,7 @@ function* lunePinceau(){
   for(let i=0;i<o.length;i+=4){if(i&&!(i%524288))yield;const m=M9[i]/255;o[i]=A9[i]*(1-.36*m);o[i+1]=H9[i]-m*9;o[i+2]=M9[i];o[i+3]=255;} // les mers : plus sombres, un peu plus basses (en 4 fois)
   yield;
   out.putImageData(im,0,0);LUNE.userData.tex.needsUpdate=true;ORB.peinte=true;
+  toileRend(xa.canvas);toileRend(xh.canvas);toileRend(xm.canvas);toileRend(cm);texLibere(LUNE.userData.tex); // (2026-10-14, passe perf mobile) les 3 toiles de travail 1024 × 512 (6,3 Mo, pour tous) + la carte finie (2 Mo, paliers 0-1) : peinte UNE fois
 }
 /* ---- LES MAILLAGES : des pièces (boîtes, cylindres, prismes) fusionnées en UN tampon, chaque sommet porte sa PIÈCE et sa VARIANTE ----
    Les normales ne sont PAS stockées : le shader les tire des dérivées (des facettes franches, comme les rochers d'avant). */
@@ -20074,7 +20207,7 @@ function arcPose(cx,cy,cz,cam,t,dt){
     const g=R.e[o+6]/R.e[o+7],sz=c*R.e[o+9]*(g<.5?1:g<.8?.7:.4)*R.ech*fe;
     me[0]=sz;me[1]=me[2]=me[4]=0;me[5]=sz;me[6]=me[8]=me[9]=0;me[10]=sz;me[12]=R.e[o];me[13]=R.e[o+1];me[14]=R.e[o+2];
     R.m.setMatrixAt(n,M);const C9=ARC_COL[R.e[o+8]|0],j=n*3,K=g<.3?1.25:1;col[j]=C9[0]*K;col[j+1]=C9[1]*K;col[j+2]=C9[2]*K;n++;}
-  R.m.count=R.h.count=n;R.m.instanceMatrix.needsUpdate=true;R.m.instanceColor.needsUpdate=true;
+  R.m.count=R.h.count=n;imEnvoi(R.m,n,true); // (2026-10-14, passe perf mobile) seules les n premières instances partent (672 places) — le halo partage les mêmes tampons
   return n;
 }
 function arcEmet(dt,k,vx,vy,vz){ // les étincelles naissent dans les tranches jeunes, à la poupe — avec l'élan du chemin
@@ -27274,6 +27407,11 @@ let engEndT=0,engEndBuf=null,engEndImg=null; // rapatriement GPU→CPU pour l'é
    seconde). En WebGL2 on lit dans un tampon GPU (PBO) marqué d'une barrière (`fenceSync`) : l'image arrive à la recopie SUIVANTE, 33 ms
    plus tard — invisible sur une pièce qui tourne — et personne n'attend. Repli : la lecture directe (WebGL1, ou refus du pilote). */
 const ENG_PBO={b:null,f:null,ctx:null,ko:false};
+/* (2026-10-14, passe perf mobile) LA CARTE MOTEUR DE L'ÉCRAN DE MORT, À LA CADENCE DU PALIER. Mesuré sur iPhone 7 émulé : engVigRender 23 % du
+   JavaScript de l'écran de fin + engLit 9 % + engVigRendRT 7 % — le moteur redessiné dans son tampon, relu depuis la puce (480×321 = 616 Ko)
+   et recopié dans la toile 2D, 30 fois par seconde. La pièce fait un tour en ~10 s : à 10 images/s elle avance de 3,4° par image, ça se lit
+   encore comme une rotation. `engVigMs` = l'écart en ms entre deux recopies au téléphone : ANCIEN 100 (10/s), MOYEN 66 (15/s), RÉCENT 33 (comme avant). */
+PAL.B.engVigMs=[100,66,33];
 function engPose(ctx,w,h){ // l'image lue → le <canvas> de la carte (les lignes arrivent de bas en haut : retournement, une ligne d'un bloc)
   const d=engEndImg.data,l9=w*4;for(let y=0;y<h;y++)d.set(engEndBuf.subarray((h-1-y)*l9,(h-y)*l9),y*l9);ctx.putImageData(engEndImg,0,0);}
 function engLit(w,h,ctx){
@@ -27659,7 +27797,7 @@ function engVigRender(dt){
     if(engEndEl&&engEndEl.style.display!=='none')engEndEl.style.display='none';
     // (2026-09-26, user : « dans l'écran de mort, au lieu d'avoir marqué ENGINE GAS TURBINE, il faut voir le 3D ») : le moteur tourne aussi
     // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
-    const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected&&ENG_MORT.cv.offsetParent!==null;
+    const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected; // (2026-10-14, passe perf mobile) `offsetParent` (carte affichée ?) se demande plus bas, à la cadence de la recopie : ici, à CHAQUE image, il forçait la mise en page pendant que les chiffres des cartes montent
     carte9=engBig.on&&!gameOver&&!paused; // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
     if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
     cible=null;
@@ -27738,7 +27876,8 @@ function engVigRender(dt){
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
   if(carte9){if(performance.now()-engEndT>33){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;}
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
-  if((fin||tel)&&performance.now()-engEndT<=(tel?33:50))return;
+  if((fin||tel)&&performance.now()-engEndT<=(tel?PAL.b('engVigMs',33):50))return;
+  if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
   engVigRendRT(engRT);
   /* (2a) ÉCRAN DE FIN : là, le recollage en WebGL NE MARCHE PAS. L'overlay de game over est un
@@ -27750,7 +27889,7 @@ function engVigRender(dt){
      arrivent de bas en haut, d'où le retournement. */
   if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
     const now9=performance.now(),ctx9=tel?ENG_MORT.ctx:engEndCtx; // (vague 2) la carte de course n'a plus de <canvas> : seul l'écran de mort relit
-    if(now9-engEndT>(tel?33:50)&&ctx9){
+    if(now9-engEndT>(tel?PAL.b('engVigMs',33):50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
       if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=ctx9.createImageData(w,h);}
@@ -27874,7 +28013,7 @@ window.dbgStep=function(n,ms){
 };
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
-window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',r30:!!loop._r30,jit:+(loop._jit||0).toFixed(1)};};
+window.dbgPerf=function(){return {ms:+(loop._ms||0).toFixed(1),fps:Math.round(1000/Math.max(1,loop._ms||16)),spikes:+(loop._spk||0).toFixed(1),dpr:+curDPR.toFixed(2),dprCeil:loop._dprCeilT?+loop._dprCeil.toFixed(2):null,cloudIn:+cloudInS.toFixed(2),nuages:CLOUDS.length,tier:QUAL_LOW?'LOW':QUAL_MED?'MED':'FULL',r30:!!loop._r30,jit:+(loop._jit||0).toFixed(1),cad:CAD.on?30:60};};
 // dbgDiff : EXPÉRIENCE CONTRÔLÉE DU CLIGNOTEMENT — même instant, on ne bouge QUE la caméra (position
 // dpos m + lacet dyaw rad), on rend 2 images et on mesure la différence par cellules. Un flicker
 // caméra = grosse différence pour un tout petit mouvement. En comparant dbgDiff avant/après dbgFlicker,
@@ -34986,7 +35125,7 @@ function billsTick(dt){
     if(b9.life<=0){b9.m.userData.pris=false;bills.splice(i9,1);continue;}
     b9.m.updateMatrix();BILL_IM.setMatrixAt(n++,b9.m.matrix);
   }
-  if(n||BILL_IM.count){BILL_IM.count=n;BILL_IM.instanceMatrix.needsUpdate=true;}
+  if(n||BILL_IM.count){BILL_IM.count=n;imEnvoi(BILL_IM,n);} // (2026-10-14) n premières seulement (150 places) ; rien quand la dernière vient de s'éteindre
   const v=n>0||!BILL_IM.userData.chaud;if(BILL_IM.visible!==v)BILL_IM.visible=v;
 }
 function billsClear(){for(const b of bills)b.m.userData.pris=false;bills.length=0;BILL_IM.count=0;if(BILL_IM.userData.chaud)BILL_IM.visible=false;}
@@ -45728,6 +45867,7 @@ function richInit(){
   Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
+  for(const k9 in M)for(const m9 of [].concat(M[k9]))if(m9&&m9.uniforms)for(const u9 in m9.uniforms){const v9=m9.uniforms[u9].value;if(v9&&v9.isCanvasTexture)texLibere(v9);} // (2026-10-14, passe perf mobile) les ~30 toiles de la pluie de richesse (pièces, billets, jetons, carte, montre, liasse : ~14 Mo), peintes UNE fois ici et plus jamais relues (la liasse a déjà recopié son billet) : rendues après l'envoi (paliers 0-1)
   for(const t in RICH_CAP){RICH.libres[t]=[];for(let i=0;i<RICH_CAP[t];i++){let m;
       if(t==='fruit'){const fg=fruitGeo(i%FRUIT_DEFS.length);m=new THREE.Mesh(fg,FRUIT_MAT);} // les fruits de la piste, leur matière (déjà compilée)
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
@@ -50048,11 +50188,122 @@ window.dbgJaugeAura=function(n){if(n>0&&running&&!gameOver){auraRun+=n;ajGain(n,
   return {moyenne:Math.round(AJ.moy||ajMoy()),record:Math.round(AJ.rec),montre:Math.round(AJ.vis),enVol:Math.round(AJ.envol),attend:Math.round(AJ.acc),vols:AJ.enVol,aura:Math.round(auraRun),
     phase:AJ.recB?'record battu':AJ.rev?'vers le record':'vers la moyenne',cellules:AJ.fs.slice(),bout:AJ.lbl+' '+AJ.txt,parties:(SAVE.d.ex&&SAVE.d.ex.runs)|0,auraTotale:SAVE.d.aura||0};};
 function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
+/* (2026-10-13, passe de sortie — perf-iphone7) BANC : LE COÛT D'UNE IMAGE ENTIÈRE. `renderer.info` se remet à zéro à CHAQUE render() du
+   compositeur : seul, il ne montre que la dernière passe (l'ACES : 1 appel, 2 triangles). Armé, il additionne TOUTES les passes de l'image
+   (ombre, scène, bloom, ACES, vignette moteur) et la puce se chronomètre là où le navigateur le permet (EXT_disjoint_timer_query_webgl2 —
+   Chrome/Mac ; jamais en même temps que la sonde de la qualité). dbgCout(1) arme · dbgCout() lit · dbgCout(0) désarme. Éteint : zéro coût. */
+const COUT={on:false,der:null,q:null,ext:null,att:[],gpu:[],cpu:[]};
+function coutDebut(){const r=renderer.info;r.autoReset=false;r.reset();
+  if(COUT.ext&&!QLT.q&&!COUT.q){try{const g9=renderer.getContext(),q=g9.createQuery();if(q){g9.beginQuery(COUT.ext.TIME_ELAPSED_EXT,q);COUT.q=q;}}catch(e){COUT.ext=null;}}}
+function coutFin(){const r=renderer.info,g9=renderer.getContext();
+  COUT.der={calls:r.render.calls,tris:r.render.triangles,pts:r.render.points,lignes:r.render.lines};
+  COUT.cpu.push(performance.now()-QLR.t0);if(COUT.cpu.length>120)COUT.cpu.shift();
+  try{if(COUT.q){const q=COUT.q;COUT.q=null;g9.endQuery(COUT.ext.TIME_ELAPSED_EXT);COUT.att.push(q);}
+    for(let i=COUT.att.length-1;i>=0;i--){const q=COUT.att[i];if(g9.getQueryParameter(q,g9.QUERY_RESULT_AVAILABLE)){
+      if(!g9.getParameter(COUT.ext.GPU_DISJOINT_EXT))COUT.gpu.push(g9.getQueryParameter(q,g9.QUERY_RESULT)/1e6);g9.deleteQuery(q);COUT.att.splice(i,1);}}
+    if(COUT.gpu.length>120)COUT.gpu.splice(0,COUT.gpu.length-120);}catch(e){COUT.ext=null;COUT.q=null;}}
+window.dbgSable=function(on){SANDBOX=!!on;return SANDBOX;}; // (2026-10-13, banc perf-iphone7) le bac à sable : la caisse se replace au lieu de mourir (mesures longues sans fin de partie)
+window.dbgCout=function(on){ // (banc) — voir COUT
+  if(on!=null){COUT.on=!!on;COUT.gpu.length=0;COUT.cpu.length=0;COUT.att.length=0;
+    if(COUT.on&&COUT.ext===null){try{COUT.ext=renderer.capabilities.isWebGL2?renderer.getContext().getExtension('EXT_disjoint_timer_query_webgl2'):null;}catch(e){COUT.ext=null;}}
+    if(!COUT.on)renderer.info.autoReset=true;}
+  const st=a=>{if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y);return {n:s.length,p50:+s[s.length>>1].toFixed(2),p90:+s[Math.min(s.length-1,(s.length*.9)|0)].toFixed(2),max:+s[s.length-1].toFixed(2)};};
+  const cv=renderer.domElement,m=renderer.info.memory,pa=composer?composer.passes.filter(p=>p.enabled).length:0;
+  return {on:COUT.on,image:COUT.der,gpu:st(COUT.gpu),cpu:st(COUT.cpu),chrono:!!COUT.ext,geo:m.geometries,tex:m.textures,progs:(renderer.info.programs||[]).length,
+    toile:[cv.width,cv.height],px:cv.width*cv.height,dpr:+curDPR.toFixed(2),post:POST_ON,passes:pa,bloom:bloomPass?(bloomPass.enabled?[bloomPass.renderTargetsHorizontal[0].width,bloomPass.renderTargetsHorizontal[0].height]:0):null,
+    ombre:renderer.shadowMap.enabled?sun.shadow.mapSize.x:0,ql:QL.k,vhd:VHD.on,qualite:typeof SAVE!=='undefined'&&SAVE.d?SAVE.d.q:null};};
+/* (2026-10-14, passe perf mobile) LE NIVEAU DERRIÈRE L'ÉCRAN DE MORT, UNE IMAGE SUR N. Mesuré sur iPhone 7 émulé : pendant l'écran de fin le jeu
+   dessinait encore ~286 appels et ~1 000 000 de triangles par image — le niveau entier, ombres et passes plein écran comprises — sous les cartes
+   ET sous le voile du téléphone (`body.touch #overlay[data-ecran="dead"]::before`, opacité .9) : il ne reste que 10 % d'une image où plus rien
+   ne se joue (endGame arrive APRÈS l'explosion, la simulation et la caméra sont arrêtées ; seuls le ciel, les nuages, l'eau dérivent). Un
+   téléphone qui chauffe là rame à la partie suivante. `mortImg` = on ne redessine la scène 3D qu'une image sur N : ANCIEN 4, MOYEN 2, RÉCENT 1
+   (chaque image, comme avant). Les autres images, RIEN n'est dessiné dans la toile : le navigateur garde l'image affichée (pas de dessin, pas
+   de nouvelle présentation). On espace le DESSIN seulement : simulation d'ambiance, sons, cartes et carte MOTEUR (son tampon à elle) continuent.
+   ⚠ les gardes : (1) seulement l'écran « dead » du téléphone, 1,5 s après son arrivée (le voile et les cartes sont posés) — accueil, atelier,
+   étal, REJOUER remettent le compteur à zéro : leur 1re image est dessinée tout de suite ; (2) une toile redimensionnée (rotation) est VIDÉE
+   par le navigateur : on redessine aussitôt ; (3) la sonde de qualité veut une vraie image ; (4) l'échelle de qualité (QL) ne conclut rien d'un
+   écran où trois images sur quatre ne coûtent rien : son horloge `dprT` est tenue (elle repartait sinon en netteté, à payer au départ suivant).
+   `dbgMortImg()` lit l'état ; `dbgMortImg(n)` force N sur le palier courant (banc). */
+PAL.B.mortImg=[4,2,1];
+const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false};
+function mortSaute(dt){
+  const N=PAL.b('mortImg',1)|0;
+  if(N<=1)return false;
+  if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
+  MORT_IMG.t+=dt;
+  if(MORT_IMG.t<1.5)return false;
+  MORT_IMG.on=true;if(dprT<2.2)dprT=2.2;
+  const c=renderer.domElement;
+  if(c.width!==MORT_IMG.w||c.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c.width;MORT_IMG.h=c.height;MORT_IMG.i=0;return false;}
+  MORT_IMG.i=(MORT_IMG.i+1)%N;
+  if(MORT_IMG.i===0)return false;
+  MORT_IMG.n++;return true;
+}
+window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);MORT_IMG.i=0;}return {N:PAL.b('mortImg',1),actif:MORT_IMG.on,depuis:+MORT_IMG.t.toFixed(2),sautees:MORT_IMG.n,ecran:overlay.getAttribute('data-ecran'),tel:TCTL.on};}; // (banc)
+/* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
+   Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
+   CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent
+   bien mieux. CAD cale donc la boucle sur 33,3 ms quand 60 ne tient pas, et la relâche quand la marge revient.
+   · EN TEMPS, pas « une image sur deux » : on saute l'appel de rAF tant qu'il ne s'est pas écoulé 33,3 ms − une demi-période d'écran depuis
+     la dernière image CALCULÉE. Sur un écran 60 Hz ça donne une sur deux, sur un 120 Hz une sur quatre, et quand iOS bride déjà l'écran à
+     30 Hz (économie d'énergie) plus rien n'est sauté. La période d'écran = le plus petit intervalle entre deux rAF sur 90 appels, ramené
+     à une fréquence connue (Safari arrondit les horodatages à 1 ms : on lit 16 ou 17, jamais 16,67).
+   · Une image sautée ne fait RIEN (ni `last`, ni moyenne, ni anneau QLR) : le `dt` de la suivante vaut ~33 ms tout seul (borné à 50 ms
+     comme toujours) — exactement le chemin déjà vécu quand iOS impose 30 Hz. La simulation ne change pas.
+   · ON ENTRE (en course seulement, `cadence30`) quand plus d'un quart des images ratent la synchro (`QLR.p75` > 19 ms) de façon TENUE et
+     « calme » (ni reconstruction de zone, ni retour d'onglet, ni 30 Hz imposé, ni essai de résolution de l'échelle QL en cours) :
+     `cadenceTenue` = 1 s sur l'ANCIEN, 2 s sur le MOYEN. Et sur l'ANCIEN, DÈS LE DÉPART de la course (`cadenceDepart`) : mesuré, une
+     course lui demande ~250 appels de dessin et ~1 M de triangles — il ne tient jamais 60 ; partir à 60, c'est lui offrir à CHAQUE partie
+     les secondes hachées qu'on veut supprimer. S'il a de la marge (niveau léger, palier mal deviné), la règle de sortie le rend à 60 en 5 s.
+   · ON SORT quand le TRAVAIL d'une image (processeur, de `QLR.t0` à la fin de `loop` : fiable même à 30 i/s) reste sous 10 ms pour plus
+     de 9 images sur 10 pendant 5 s (10 ms : il reste 6,7 ms à la puce et au compositeur sur 16,7) : ESSAI de retour à 60. Si dans les 10 s
+     la lenteur revient (1 s tenue), retour à 30 et MUR — 60 s, doublé à chaque échec jusqu'à 8 min (Safari ne chronomètre pas la puce :
+     l'essai et le mur sont le filet ; quand la sonde `QLR.vrai` vient de dire > 13 ms, on ne tente même pas).
+   · L'ÉCHELLE QL NE S'Y TROMPE PAS : calée, chaque image dure 33 ms — lue telle quelle, la règle (19 / 24 / 17,8 ms) y verrait de la lenteur
+     et sabrerait la résolution. On lui donne la durée RAMENÉE À UNE IMAGE D'ÉCRAN (`ms9` = durée − (33,3 − période d'écran)) : à l'heure =
+     16,7 ; en retard de 10 ms = 26,7. Toute la règle marche donc telle quelle « contre 30 », et le détecteur de 30 Hz imposé (`loop._r30`,
+     qui lit `loop._ms` entre 29,5 et 37,5) ne se déclenche pas sur NOTRE cadence. `rawMs` reste la durée VRAIE (temps de course, moniteur).
+   · `cadenceMonte` : calé, l'échelle peut-elle REMONTER ? ANCIEN oui (elle est tenue par `qlMin`, et à 30 i/s il regagne sa netteté) ;
+     MOYEN non — sinon elle remplirait les 33 ms de qualité et le travail ne repasserait jamais sous 10 ms : il resterait à 30 pour toujours
+     alors qu'il tient 60 un cran plus bas. Lui retourne d'abord à 60, PUIS remonte.
+   Palier RÉCENT : `CAD.ok` = 0 → un test faux par point d'accroche, rien d'autre. Hors course (accueil, garage, écran de fin) : jamais calé.
+   Banc : `dbgCadence()` décrit, `dbgCadence(30)` force, `dbgCadence(60)` coupe et fige, `dbgCadence(0)` rend la main. */
+/* (2026-10-14, décision de Sacha 3 h 30) INTERRUPTEUR FERMÉ : à 20-30 i/s la caisse TRAVERSE le trafic et les satellites (tests de choc ponctuels, prouvé par DEBUGGING). Remettre [1,1,0] seulement quand la ligne « choc balayé » est au journal des correctifs, puis vérifier sur un parcours avec trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[0,0,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];
+const CAD={ok:PAL.b('cadence30',0)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
+  w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
+function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
+  const d=now-CAD.rp;CAD.rp=now;if(d>3&&d<CAD.eMin)CAD.eMin=d;
+  if(++CAD.eN>=90){const m=CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
+  if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
+  CAD.der=now;return false;}
+function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&!PAL.b('cadenceMonte',1);CAD.der=now;CAD.lT=0;CAD.calT=now;
+  QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
+  if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
+function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
+  const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
+  const d=Math.min(100,now-CAD.vu);CAD.vu=now;
+  if(CAD.force)return;
+  if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
+  if(paused)return; // en pause : l'état reste tel quel
+  if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if(PAL.b('cadenceDepart',0)&&!loop._r30)cadPose(true,now);return;} // le départ de la course
+  if(!CAD.calme||QL.essai){CAD.lT=0;CAD.calT=now;return;}
+  if(!CAD.on){const ess9=CAD.essT>0&&now-CAD.essT<10000;
+    CAD.lT=QLR.p75>19?CAD.lT+d:0;
+    if(CAD.lT>(ess9?1000:PAL.b('cadenceTenue',2000))){
+      if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
+      CAD.essT=0;cadPose(true,now);}
+    else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
+  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13))CAD.calT=now;
+  else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
+window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0))?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
+  const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1)};};
 function loop(now){
   requestAnimationFrame(loop);
+  if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
   if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
+  if(COUT.on)coutDebut(); // (2026-10-13, banc perf-iphone7) le coût de l'image entière — voir COUT
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
@@ -50060,7 +50311,8 @@ function loop(now){
   if(TCTL.on&&running&&!paused&&!gameOver)hudColonne(dt); // (2026-10-14) la colonne de droite se MESURE ici, avant toute écriture du HUD de l'image (voir hudColonne)
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   const rawMs=Math.min(100,now-(loop._pn||now));
-  loop._ms=(loop._ms||16)*.96+rawMs*.04;loop._pn=now;
+  const ms9=CAD.on?Math.max(0,rawMs-(CAD.per-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
+  loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
   /* (2026-09-26, vague 2) L'IPHONE EN ÉCONOMIE D'ÉNERGIE bride l'affichage à 30 Hz : chaque image dure 33 ms PILE, GPU au repos. Lu
@@ -50070,17 +50322,18 @@ function loop(now){
      Et la résolution peut y REMONTER : au chargement (images irrégulières) elle descendait au plancher, puis la remontée exigeait
      < 17,8 ms — impossible à 30 Hz, donc 0,5 pour toute la session. Si la remontée surcharge vraiment, les images sautent, la
      cadence n'est plus régulière et l'anti-yoyo (plafond mémorisé) reprend la main. Banc : scratchpad gfx2-etal/r30.js. */
-  loop._jit=(loop._jit==null?4:loop._jit)*.95+Math.abs(rawMs-(loop._ms||16))*.05;
+  loop._jit=(loop._jit==null?4:loop._jit)*.95+Math.abs(ms9-(loop._ms||16))*.05;
   {const cad9=(loop._ms||16)>29.5&&(loop._ms||16)<37.5;if(cad9&&loop._jit<2)loop._r30T=now+2500; // tenu 2,5 s : une image sautée (66 ms) ne fait pas basculer
    loop._r30=cad9&&now<(loop._r30T||0);}
-  loop._spk=(loop._spk||0)*.985+(rawMs>(loop._r30?45:26)?1:0);
-  QLR.a[QLR.i]=rawMs;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; // (tour 2) l'anneau des 60 dernières images, lu par les centiles
+  loop._spk=(loop._spk||0)*.985+(ms9>(loop._r30?45:26)?1:0);
+  QLR.a[QLR.i]=ms9;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; // (tour 2) l'anneau des 60 dernières images, lu par les centiles
   /* ⚠ LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24) — toujours vrai : on ne dégrade que « calme » (ni reconstruction de zone, ni retour
      d'onglet, ni cadence 30 Hz imposée). Mais les paliers ne sont plus DÉFINITIFS et la résolution n'est plus la PREMIÈRE sacrifiée :
      (2026-09-27, passe perf iPhone) paliers MOYEN/BAS et résolution adaptative ne font plus qu'UNE échelle, `QL` — voir « LA NETTETÉ EN
      DERNIER » près de qlPose. Même horloge (un pas toutes les 1,1 s), mêmes seuils (19 / 24 / 17,8 ms), même anti-yoyo (4 pas de marge
      pour remonter, mur mémorisé 45 s) — appliqués au cran de l'échelle au lieu du seul pixelRatio. */
   const calme9=!document.hidden&&now-(loop._rebuildT||0)>(loop._rebuildD||2500)&&!loop._r30; // ni reconstruction de zone, ni départ de partie, ni retour d'onglet, ni cadence 30 Hz imposée
+  if(CAD.ok)CAD.calme=calme9; // (2026-10-14, passe perf mobile) la cadence stable ne décide que « calme », elle aussi
   const qb9=qlBornes();
   // EFFONDREMENT : au plancher, encore > 24 ms (< 42 i/s) pendant 6 s D'AFFILÉE → on s'autorise sous le plancher (puis le bloom)
   /* (2026-09-27, tour 2) LA MESURE, C'EST LA PART D'IMAGES RATÉES — plus la moyenne glissante. Sur un écran 60 Hz une image qui
@@ -50152,7 +50405,7 @@ function loop(now){
         const res9=qlDpr(k9,qb9)<qlDpr(QL.k,qb9)-.001;if(res9)QL.essai={t:now,k0:QL.k,p50:QLR.p50,p75:QLR.p75,ms:loop._ms||16};
         QL.roseT=0;QL.up=0;qlPose(k9);}
       else QL.up=0;}
-    else if(QLR.p90<17.8||loop._r30){const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
+    else if((QLR.p90<17.8||loop._r30)&&!CAD.gel){const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
       // la marge revient : la RÉSOLUTION remonte d'abord, et vite (2 crans d'un coup quand presque aucune image ne rate)
       if(QL.k>mur9&&QL.up>=3){QL.up=0;QL.roseT=now;const k9=Math.max(mur9,QL.k-(QLR.p90<16.9&&QL.k>QL.N_EFF+1?2:1));if(k9<=qb9.kNet)QL.effondre=false;qlPose(k9);}}
     else QL.up=0;
@@ -51672,7 +51925,7 @@ function loop(now){
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
-  vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||gameOver||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
+  vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1))||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)garageRender(dt);
   else if(!started||MENUV.retour)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
@@ -51818,9 +52071,11 @@ function loop(now){
   try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);} // (2026-10-13) CRYPTOCITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   if(GRUE.L.length||JADE.root)grueTick(dt); // …et les vols de grues // (Paris) le scintillement et le phare
+  const mortS9=mortSaute(dt); // (2026-10-14, passe perf mobile) écran de mort, paliers ANCIEN et MOYEN : la scène n'est redessinée qu'une image sur N (voir mortSaute)
+  if(mortS9){}else
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
-  try{homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
+  try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
   if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
@@ -51828,6 +52083,8 @@ function loop(now){
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
+  if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
+  if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
 }
