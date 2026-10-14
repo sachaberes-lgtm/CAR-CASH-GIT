@@ -51854,11 +51854,15 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     },{passive:false});
     sz.addEventListener('touchmove',function(e){
       if(e.cancelable)e.preventDefault();
-      if(!TCTL.act)return;
+      if(!TCTL.act){ // (2026-10-14, chasse aux bugs) le pouce RESTÉ POSÉ pendant la mort (syncJeu a rendu le volant sous lui) : à la partie suivante son 1er glissé refait naître le stick sous lui — sinon volant mort jusqu'à lever puis reposer le doigt
+        if(TCTL.fant!=null&&TCTL.play&&!paused&&mode!=='boom')for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i];
+          if(t.identifier===TCTL.fant){TCTL.fant=null;stDown(t.identifier,t.clientX,t.clientY);break;} }
+        return; }
       for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i];
         if(t.identifier===TCTL.id)stMove(t.clientX,t.clientY); }
     },{passive:false});
     const stEnd=function(e){
+      if(TCTL.fant!=null)for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.fant)TCTL.fant=null; // (2026-10-14, chasse aux bugs) le pouce orphelin s'est levé : plus rien à reprendre
       if(!TCTL.act)return;
       for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id)stUp();
     };
@@ -51968,7 +51972,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(dead!==TCTL.dead){ TCTL.dead=dead; document.body.classList.toggle('dead',dead); if(dead)TCTL.mortT=performance.now(); } // l'écran de mort a sa propre hiérarchie
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(gear)gear.innerHTML=pxi(play?'pause':'reglages'); // en jeu c'est un bouton PAUSE, au menu un bouton réglages
-      if(!play){ for(const k in keys)keys[k]=false; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
+      if(!play){ for(const k in keys)keys[k]=false; TCTL.fant=(TCTL.act&&TCTL.id!=='souris')?TCTL.id:null; // (2026-10-14, chasse aux bugs) on retient le doigt encore posé sur le volant (voir le touchmove de #tSteer)
+        try{document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on').forEach(function(b){b.classList.remove('on');});}catch(e){} // (2026-10-14, chasse aux bugs) …et un bouton tenu à la mort ne reste pas DESSINÉ enfoncé à la partie suivante, nitro coupée (comme l'écouteur blur)
+        TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
   }
   document.addEventListener('cc:jeu',syncJeu); // (2026-09-25) les commandes apparaissaient 0 à 140 ms APRÈS le départ, au hasard du tick
   setInterval(function(){
