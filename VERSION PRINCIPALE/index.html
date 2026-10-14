@@ -37446,6 +37446,7 @@ function veqCamera(dt){ // au sol : la caméra s'enfonce sous le choc de la pose
 function veqNitK(){return VEQ.sautF===flightId?VEQ_K.sautNit:1;} // la pose d'un SAUT NITRO rend moins de nitro
 function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'actionne quand j'appuie deux fois rapidement sur le booster ») : deux appuis BREFS
    sur NITRO — le 1er de moins de 240 ms, le 2e moins de 320 ms après le 1er. Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
+  if(bas&&FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);} // (2026-10-14, Sacha : « 1 seul tap permet de redresser la voiture ») un appui sur NITRO pendant une figure : la caisse se remet face à la route (FIG.Corps.redresse)
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
   if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;}else VEQ.dDn=n;
@@ -37639,7 +37640,7 @@ const FIGV2={on:!/[?&]fig=(ancien|script|libre)\b/.test(location.search)}; // ?f
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
   cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
   qf:new THREE.Quaternion(),qr:new THREE.Quaternion(),qd:new THREE.Quaternion(),m4:new THREE.Matrix4(),v:new THREE.Vector3(),d:new THREE.Vector3(),
-  n:0,payees:0,chutes:0,vis:null,cle:'',wPose:0,jetS:0,herite:null,img:0,att:null};
+  n:0,payees:0,chutes:0,vis:null,cle:'',wPose:0,jetS:0,herite:null,img:0,att:null,redresse:0};
 function figEquipees(){if(!window.FIG)return ['tonneau'];
   const E=Array.isArray(SAVE.d.figEq)?SAVE.d.figEq.filter(function(id){return !!FIG.par[id]&&figPossede(id);}).slice(0,3):[];
   if(E.length)return E;

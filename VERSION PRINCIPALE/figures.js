@@ -143,6 +143,12 @@
     for(var b=0;b<r.boums.length;b++)this.evts.push(r.boums[b]);
     this.figs.push(r);this.n++;this.der=f.id;return r;};
   Corps.prototype.tiens=function(r,on){if(r)r.tient=!!on&&!r.paye;};
+  /* LE REDRESSEMENT (2026-10-14, Sacha : « quand on a fait une figure stylée et qu'on veut se restabiliser face à la route : 1 seul tap permet de
+     redresser la voiture ») : tout ce qui tourne passe à la PRISE, tout de suite, avec un freinage deux fois plus fort (`urgent`) — la caisse
+     revient à l'endroit, face à son vol. Une figure faite aux trois quarts ou plus paie quand même ; coupée avant, elle ne paie pas — jamais une chute. */
+  Corps.prototype.redresse=function(){var n=0;for(var i=0;i<this.figs.length;i++){var r=this.figs[i];if(r.paye||!r.mv.length)continue;r.tient=false;r.impT=0;
+      if(!r.fini){r.fini=true;r.force=true;}n++;}
+    if(n||Math.hypot(this.w[0],this.w[1],this.w[2])>2.5||this.ecart()>.3){this.urgent=.7;if(this.mode==='aero')this.mode='prise';return true;}return false;};
   Corps.prototype.occupe=function(){var n=0;for(var i=0;i<this.figs.length;i++)if(!this.figs[i].paye)n++;return n;};
   // le temps qu'il faut encore pour finir les tours prévus ET se planter à l'endroit (s) — pour doser une figure de plus
   // ⚠ l'explosion encore EN COURS compte (MESURÉ au banc du jeu : à la 1re image du salto, la caisse ne tournait pas encore — 1,5 rad/s —,
@@ -182,20 +188,22 @@
     var sp0=Math.hypot(w[0],w[1],w[2]);this.cale=tourne&&!tient&&sp0<2.5?(this.cale||0)+h:0;
     if(tourne&&!tient&&(this.cale>.2||this.budget<this.reste()+.05)){for(i=0;i<F.length;i++){r=F[i];if(!r.paye&&r.mv.length&&!r.fini){r.fini=true;r.force=true;}}tourne=false;aPlanter=true;}
     var sp=Math.hypot(w[0],w[1],w[2]),R=this.r;
+    if(this.urgent>0&&!tourne&&!aPlanter&&this.ecart()>.3)aPlanter=true; // (le redressement) même une caisse qui ne fait que se balancer se remet tout de suite
     if(tourne){this.mode='libre';var dk=1-P.drag*h;w[0]*=dk;w[1]*=dk;w[2]*=dk;}
     else if(aPlanter&&this.mode!=='plante'){this.mode='prise';this.tPrise+=h;
       retour(this.q,R);var nf0=R.n[0],nf1=R.n[1],nf2=R.n[2],pf=R.phi,dn=w[0]*nf0+w[1]*nf1+w[2]*nf2;
-      if(dn<0&&sp>.5&&pf>.5&&!(this.budget<(6.2832-pf)/sp+.1&&this.budget>pf/Math.max(sp,P.wMin)))
+      if(dn<0&&sp>.5&&pf>.5&&!(this.urgent>0)&&!(this.budget<(6.2832-pf)/sp+.1&&this.budget>pf/Math.max(sp,P.wMin))) /* (le redressement : le plus court chemin, tout de suite) */
         {nf0=-nf0;nf1=-nf1;nf2=-nf2;pf=6.2832-pf;} // elle CONTINUE dans son sens jusqu'à l'endroit devant elle — sauf si elle vient de le dépasser (elle revient), ou si le sol arrive avant (on revient en arrière : sauver sa peau)
       if(pf<.22&&sp<P.wE*2.2)this.mode='plante';
       else{var tg=Math.sqrt(P.wE*P.wE+2*P.aCtl*pf),cap=Math.max(sp,P.wMin);if(tg>cap)tg=cap;
-        var e0=nf0*tg-w[0],e1=nf1*tg-w[1],e2=nf2*tg-w[2],em=Math.hypot(e0,e1,e2),lim=P.aCtl*1.6*h*(this.budget<.5?2:1);if(em>lim){e0*=lim/em;e1*=lim/em;e2*=lim/em;}
+        var e0=nf0*tg-w[0],e1=nf1*tg-w[1],e2=nf2*tg-w[2],em=Math.hypot(e0,e1,e2),lim=P.aCtl*1.6*h*(this.budget<.5||this.urgent>0?2:1);if(em>lim){e0*=lim/em;e1*=lim/em;e2*=lim/em;}
         w[0]+=e0;w[1]+=e1;w[2]+=e2;}}
     if(!tourne&&(this.mode==='plante'||!aPlanter)){ // LE RESSORT : le planté (raide, un rebond) ou l'air (mou : l'élan hérité se voit, puis se range)
       if(!aPlanter&&this.mode!=='aero'&&this.mode!=='plante')this.mode='aero'; // le planté va au bout de son rebond (il ne repasse pas au ressort mou en pleine course)
       var pr=this.mode==='plante'?P.pd:osc||P.aero,wn=pr.w*(this.mode==='aero'&&!osc?1+2.5*this.poseK:1),z=pr.z+(this.mode==='aero'&&!osc?.4*this.poseK:0);
       retour(this.q,R);var kp=wn*wn*R.phi,kd=2*z*wn;
       w[0]+=(kp*R.n[0]-kd*w[0])*h;w[1]+=(kp*R.n[1]-kd*w[1])*h;w[2]+=(kp*R.n[2]-kd*w[2])*h;}
+    if(this.urgent>0)this.urgent-=h;
     // 4. L'ASSIETTE AVANCE
     qExpMul(this.q,w,h);
     // 5. LES TOURS FAITS, figure par figure (la part de la rotation sur SON axe)
