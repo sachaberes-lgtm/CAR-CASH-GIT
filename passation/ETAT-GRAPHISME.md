@@ -3,10 +3,12 @@
 Branche `gfx-integration` (worktree `C:/Users/sacha/Documents/GitHub/CCG-gfx-integration`). Je pousse moi-même sur main (protocole PILOTAGE : fumée → cc-push.lock → merge → syntaxe + garde → push → recopie Downloads → « POUSSÉ »).
 La passation longue (règles, plafonds de la charte, outils dbg) reste `passation/GRAPHISME.md`.
 
-## ⭐ ORDRES DE SACHA EN ATTENTE (17 h 10, par PILOTAGE) — à prendre dans cet ordre
-1. « Garde quand même la première map de la VILLE avec les NÉONS ROSES, elle était bien. » Rétablir ses néons roses d'avant mes passes, sur cette map SEULEMENT.
-   Pistes : `?sans=bords` (fin du néon de bord : les bandes roses de la route, accent ville `0xf24aa0` dans `accC`), `?sans=neon` (néon résiduel), `?sans=ville2` / étalonnage ville (pluie, villeSoir…). Comparer ces interrupteurs au banc pour trouver ce qui a éteint le rose, puis exclure CETTE map du correctif. Capture avant/après à PILOTAGE AVANT de pousser.
-2. « Les maps VILLE sont toujours assez bof à la lumière du jour. » Villes de JOUR (villeMatin, villeMidi) : lumière, couleurs, matières, ciel, ombres, SANS ajouter d'éléments ; saturé et contrasté façon GTA 6 Vice City, jamais délavé ni gris. Planche avant/après de chaque ville de jour (debout et couché) à PILOTAGE avant toute poussée. (Contredit en partie mes lignes VILLE2 de jour, désaturées : sat .98-1.02 → à remonter.)
+## ⭐ MISSION PRINCIPALE (Sacha, 17 h 30) : L'IDENTITÉ CAR CASH — « une vraie connexion entre chaque map »
+- (0) FAIT, commité (126d4b7), PAS poussé : la VILLE AU NÉON (ambiance `pluie`) retrouve son rose d'avant (`villeRose()`, `?sans=villerose` : ambiance, bords roses, enseignes magenta/cyan). Avant/après : `passation/graphisme-ville-rose.jpg`. Attend le feu vert de PILOTAGE, puis push (fumée).
+- (1) FAIT : le mur des maps, `passation/graphisme-mur-des-maps.jpg` (5 maps × heure signature + midi, debout, mesures L*/chroma du ciel et de la route). Banc : `mur.cjs` du scratchpad (PAIRS, FMT, QX, NOM).
+- (2) FAIT : la bible `passation/DA-CARCASH.md` (trio NÉON ROSE / OR / LAQUE BLEU NUIT + un accent par map, règles de lumière, invariants, interdits, ordre d'application). PROPOSITION envoyée à PILOTAGE : attendre la validation de Sacha.
+- (4) À FAIRE après validation : application map par map, planche avant/après chacune → villes de jour, nuages de jour, jade, forêt, orbite.
+- Chiffres de toutes les ambiances (valeurs effectives, node) : scratchpad `amb/ambiances.md` (scripts amb.js / tab.js). Diagnostic de la ville rose : causes = étalonnage pluie (l. « ÉTALONNAGE · LA VILLE »), NEONVILLE_V5, BORDS_V2, couche DA.
 
 ## Poussé sur main (18d585e, cache v384)
 - AURORE sobre = 1re image de l'auto-école (`?sans=aurore2`) : route L* 63 sable → 41-43 gris, ciel bleu pâle, horizon b* +22 → +12.
