@@ -7562,6 +7562,64 @@ html.c6.poki body #mHome .mPlay.mMot{filter:drop-shadow(0 2px 0 #000) drop-shado
 </style>
 <style id="c6-pages">
 /* CHARTE 6 · réglages, offres, modes — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+
+/* ====== LES RÉGLAGES #mSet (2026-10-14, charte 6) ====================================================================
+   L'en-tête commun (◀ + REGLAGES) colle en haut ; le corps défile dessous (une seule zone qui défile : l'overlay).
+   Une ligne = un plaque d'encre de 48 px (filet sourd), 8 px d'écart ; sa commande est à DROITE et partage UNE peau : encre,
+   filet blanc 2 px ; allumé / appuyé = face blanche, texte d'encre. Pas d'or (aucune vraie décision ici) ; du rouge seulement
+   pour EFFACER (détruit la progression). Couché : deux colonnes (AUDIO + SAUVEGARDE | JEU) ; debout : une (AUDIO, JEU, SAUVEGARDE). */
+html.c6 #mSet{padding:0;min-height:100%}
+html.c6 #mSet.on{max-width:none;align-self:stretch}
+html.c6 #mSet.on>.c6Tete{animation:none}
+html.c6 #mSet .c6Corps{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;width:100%;max-width:640px;margin:0 auto;
+  padding:0 calc(var(--sR) + 16px) calc(var(--sB) + 24px) calc(var(--sL) + 16px)}
+html.c6 #mSet .c6Col{display:contents}
+html.c6 #mSet .c6Col>.mSec{margin:16px 0 0}
+html.c6 #mSet .c6Col:first-child>:nth-child(-n+2){order:1}
+html.c6 #mSet .c6Col>.oJeu{order:2}
+html.c6 #mSet .c6Col>.oSauv{order:3}
+html.c6 #mSet .c6Pied{order:4}
+/* les groupes : plus de plaque autour, des lignes séparées de 8 px */
+html.c6 #mSet .mPanel{display:flex;flex-direction:column;gap:8px;padding:0;overflow:visible;background:none;box-shadow:none;clip-path:none}
+html.c6 #mSet .mPanel::before,html.c6 #mSet .mPanel::after{content:none}
+/* la LIGNE */
+html.c6 #mSet .mLigne{box-sizing:border-box;min-height:48px;padding:0 8px 0 12px;gap:12px;border:0;color:var(--c6-b0);font-size:10px;letter-spacing:0;
+  text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3)}
+html.c6 #mSet .mLigne:is(:active,.appui){background:var(--c6-e2)}
+html.c6 #mSet .mLigne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #mSet .mLigne>.pxi{flex:none;--pxs:2;color:var(--c6-b0)}
+html.c6 #mSet .mLigne.lien{padding-right:12px}
+/* le curseur est SOUDÉ à sa ligne (sa moitié basse) : on lit « SON · ON · volume » comme un seul bloc */
+html.c6 #mSet .mLigne.avecVol{box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 2px 0 0 var(--c6-e3)}
+html.c6 #mSet .volRow{display:flex;align-items:center;gap:8px;box-sizing:border-box;min-height:44px;margin-top:-8px;padding:0 12px 0 20px;
+  background:var(--c6-e1);box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 -2px 0 0 var(--c6-e3)}
+html.c6 #mSet .volS{flex:1 1 auto;width:auto;min-width:0;height:44px}
+html.c6 #mSet .volV{flex:none;min-width:40px;font-family:var(--pix);font-weight:400;font-size:10px;line-height:12px;letter-spacing:0;text-align:right;color:var(--c6-b0)}
+html.c6 #mSet .volS::-webkit-slider-thumb{width:28px;height:42px;margin-top:-19px;border:solid transparent;border-width:9px 8px;background:var(--c6-b0);background-clip:padding-box;box-shadow:none}
+/* l'INTERRUPTEUR : ON = face blanche, texte d'encre, patin d'encre à droite ; OFF = encre, filet blanc, patin blanc à gauche */
+html.c6 #mSet b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;font-size:8px;line-height:8px;
+  color:var(--c6-e0);background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #mSet b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
+html.c6 #mSet .mLigne.off b.bascule{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #mSet .mLigne.off b.bascule::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
+/* le SÉLECTEUR (image, langue, pouce, auto-école) : la même peau, la valeur au centre ; au doigt il passe en blanc */
+html.c6 #mSet b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
+  color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #mSet b.valeur::after{content:none}
+html.c6 #mSet .mLigne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
+/* le pied : EFFACER, seule, sourde, en rouge (c'est la seule chose qu'on ne rattrape pas) ; la version dessous */
+html.c6 #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:16px}
+html.c6 #mSet .c6Efface{--c6-l:var(--c6-rouge);--c6-x:var(--c6-rouge);box-sizing:border-box;width:100%;max-width:320px;justify-content:center;gap:12px;padding:0 12px;font-size:10px}
+html.c6 #mSet .c6Efface .tpL{flex:none;white-space:nowrap;font-size:10px;color:var(--c6-rouge)}
+html.c6 #mSet .c6Efface .pxi{--pxs:2;color:var(--c6-rouge)}
+html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-height:8px;letter-spacing:0;color:var(--c6-g2);text-align:center}
+@media (orientation:landscape) and (max-height:540px){
+  html.c6 #mSet .c6Corps{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px;row-gap:0;align-items:start}
+  html.c6 #mSet .c6Col{display:flex;flex-direction:column;gap:8px;min-width:0}
+  html.c6 #mSet .c6Col>.mSec:first-child{margin-top:0}
+  html.c6 #mSet .c6Col>*{order:0}
+  html.c6 #mSet .c6Pied{grid-column:1/-1;order:0}
+}
 </style>
 <style id="c6-carriere-missions">
 /* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
