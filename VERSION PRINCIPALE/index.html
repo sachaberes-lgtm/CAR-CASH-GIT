@@ -17763,12 +17763,12 @@ function buildVolcan(seed){
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);VOLCAN.root=root;trackMeshes.push(root);
   const S=volcanSol(),COL=[];VOLCAN.morc=new Map();VOLCAN.solM=[];VOLCAN.n.sol=0;VOLCAN.n.lave=0;VOLCAN.file=[];VOLCAN.fi=0;VOLCAN.msFile=0;
   vlcMerLoin(root);
-  /* LES BANCS DE FUMÉE (14/10, Sacha : « plus de fumée dans la map volcan : le CHALLENGE vient de la DIFFICULTÉ À VOIR ») : des nappes de 180-440 m
-     (× √(vw/78)) et des FENÊTRES dégagées de 420-900 m ; jamais sur l'élan d'un raccourci ni là où l'on se pose, ni au départ, ni au portail.
+  /* LES BANCS DE FUMÉE (14/10, Sacha : « plus de fumée dans la map volcan : le CHALLENGE vient de la DIFFICULTÉ À VOIR ») : des nappes de 220-480 m
+     (× √(vw/78)) et des FENÊTRES dégagées de 300-650 m ; jamais sur l'élan d'un raccourci ni là où l'on se pose, ni au départ, ni au portail.
      Dedans, volcanTick referme la brume (FUMEE_K) ; leurs bouffées se dessinent avec le panache (vlcPanaches, genre 4). */
   {const R=mulberry32((seed^0xF0E1A)>>>0),vwF=70+100*((typeof lvPiste==='function'?lvPiste():1)-1),kv=Math.sqrt(Math.max(1,vwF/78)),B=[];
    const evite=(a,b)=>{if(a<380||b>L-320)return true;for(const S of VOLCAN.sauts||[]){if(b>S.sE-260&&a<S.sE+140)return true;if(b>S.sS-20&&a<S.sS+420)return true;}return false;};
-   for(let s9=420+R()*300;s9<L-400;){const l=(180+R()*260)*kv;if(!evite(s9,s9+l)){B.push({s0:s9,s1:s9+l,k:.8+R()*.2});s9+=l+(420+R()*480)*kv;}else s9+=60;}
+   for(let s9=420+R()*200;s9<L-400;){const l=(220+R()*260)*kv;if(!evite(s9,s9+l)){B.push({s0:s9,s1:s9+l,k:.8+R()*.2});s9+=l+(300+R()*350)*kv;}else s9+=60;}
    VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;}
   /* 0. TOUT DE SUITE : les rangées et les morceaux du départ (ce que la caméra voit au portail) ; 1. EN TRANCHES : les autres rangées, du plus
      proche au plus loin — la mer lointaine tient la place en attendant */
