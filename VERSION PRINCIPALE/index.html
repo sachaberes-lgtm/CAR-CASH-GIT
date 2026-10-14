@@ -7714,36 +7714,35 @@ html.c6 #mSet .c6Pied{order:4}
 html.c6 #mSet .mPanel{display:flex;flex-direction:column;gap:8px;padding:0;overflow:visible;background:none;box-shadow:none;clip-path:none}
 html.c6 #mSet .mPanel::before,html.c6 #mSet .mPanel::after{content:none}
 /* la LIGNE */
-html.c6 #mSet .mLigne{box-sizing:border-box;min-height:48px;padding:0 8px 0 12px;gap:12px;border:0;color:var(--c6-b0);font-size:10px;letter-spacing:0;
+html.c6 #mSet .mLigne{box-sizing:border-box;min-height:48px;gap:12px;border:0;color:var(--c6-b0);
   text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3)}
 html.c6 #mSet .mLigne:is(:active,.appui){background:var(--c6-e2)}
-html.c6 #mSet .mLigne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #mSet .mLigne .tpL{flex:1 1 auto;min-width:0;white-space:nowrap;color:var(--c6-b0)}
 html.c6 #mSet .mLigne>.pxi{flex:none;--pxs:2;color:var(--c6-b0)}
-html.c6 #mSet .mLigne.lien{padding-right:12px}
 /* le curseur est SOUDÉ à sa ligne (sa moitié basse) : on lit « SON · ON · volume » comme un seul bloc */
 html.c6 #mSet .mLigne.avecVol{box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 2px 0 0 var(--c6-e3)}
 html.c6 #mSet .volRow{display:flex;align-items:center;gap:8px;box-sizing:border-box;min-height:44px;margin-top:-8px;padding:0 12px 0 20px;
   background:var(--c6-e1);box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 -2px 0 0 var(--c6-e3)}
 html.c6 #mSet .volS{flex:1 1 auto;width:auto;min-width:0;height:44px}
-html.c6 #mSet .volV{flex:none;min-width:40px;font-family:var(--pix);font-weight:400;font-size:10px;line-height:12px;letter-spacing:0;text-align:right;color:var(--c6-b0)}
+html.c6 #mSet .volV{flex:none;min-width:40px;font:800 13px/16px var(--c6-sys);letter-spacing:0;font-variant-numeric:tabular-nums;text-align:right;color:var(--c6-b0)}
 html.c6 #mSet .volS::-webkit-slider-thumb{width:28px;height:42px;margin-top:-19px;border:solid transparent;border-width:9px 8px;background:var(--c6-b0);background-clip:padding-box;box-shadow:none}
 /* l'INTERRUPTEUR : ON = face blanche, texte d'encre, patin d'encre à droite ; OFF = encre, filet blanc, patin blanc à gauche */
-html.c6 #mSet b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;font-size:8px;line-height:8px;
+html.c6 #mSet b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;
   color:var(--c6-e0);background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #mSet b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
 html.c6 #mSet .mLigne.off b.bascule{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #mSet .mLigne.off b.bascule::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
 /* le SÉLECTEUR (image, langue, pouce, auto-école) : la même peau, la valeur au centre ; au doigt il passe en blanc */
-html.c6 #mSet b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
+html.c6 #mSet b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;
   color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #mSet b.valeur::after{content:none}
 html.c6 #mSet .mLigne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
 /* le pied : EFFACER, seule, sourde, en rouge (c'est la seule chose qu'on ne rattrape pas) ; la version dessous */
 html.c6 #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:16px}
-html.c6 #mSet .c6Efface{--c6-l:var(--c6-rouge);--c6-x:var(--c6-rouge);box-sizing:border-box;width:100%;max-width:320px;justify-content:center;gap:12px;padding:0 12px;font-size:10px}
-html.c6 #mSet .c6Efface .tpL{flex:none;white-space:nowrap;font-size:10px;color:var(--c6-rouge)}
+html.c6 #mSet .c6Efface{--c6-l:var(--c6-rouge);--c6-x:var(--c6-rouge);box-sizing:border-box;width:100%;max-width:320px;justify-content:center;gap:12px;padding:0 12px}
+html.c6 #mSet .c6Efface .tpL{flex:none;white-space:nowrap;color:var(--c6-rouge)}
 html.c6 #mSet .c6Efface .pxi{--pxs:2;color:var(--c6-rouge)}
-html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-height:8px;letter-spacing:0;color:var(--c6-g2);text-align:center}
+html.c6 #mSet .c6Ver{display:block;font:600 13px/16px var(--c6-sys);letter-spacing:0;text-transform:none;color:var(--c6-g2);text-align:center}
 @media (orientation:landscape) and (max-height:540px){
   html.c6 #mSet .c6Corps{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px;row-gap:0;align-items:start}
   html.c6 #mSet .c6Col{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -7751,12 +7750,13 @@ html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-hei
   html.c6 #mSet .c6Col>*{order:0}
   html.c6 #mSet .c6Pied{grid-column:1/-1;order:0}
 }
-/* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » = 200 px de mot, le chevron cède sa place — le libellé ne se coupe jamais */
+/* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » (20 lettres) ne tient pas à 15 : libellé de ligne à 13 (plancher de lecture), le chevron cède sa place */
 @media (orientation:landscape) and (max-width:700px){
   html.c6 #mSet .mLigne.lien::after{display:none}
-  /* et « AUTO-ECOLE / DRIVING SCHOOL » (14 lettres = 140 px) + sa commande doivent tenir sur 263 px : écarts et marges de la ligne à 8, sélecteur en 8 px (comme l'interrupteur) */
+  /* et « AUTO-ECOLE / DRIVING SCHOOL » (14 lettres = 140 px) + sa commande doivent tenir sur 263 px : écarts et marges de la ligne à 8, sélecteur à 13 */
   html.c6 #mSet .mLigne{gap:8px;padding:0 8px}
-  html.c6 #mSet b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
+  html.c6 #mSet b.valeur{min-width:64px;padding:0 6px}
+  html.c6 #mSet .mLigne,html.c6 #mSet .mLigne .tpL{font-size:13px;line-height:18px}
 }
 /* ?ui=5 (l'ancienne interface) : le DOM des réglages est celui de la charte 6 (en-tête ◀ + titre, colonnes, pied). Sans la charte, on lui rend l'allure d'avant :
    le titre en tête, une seule colonne, la touche EFFACER et la version en bas — la 2e colonne couché et le dock RETOUR ne reviennent pas (voir notes/pages.md) */
@@ -8322,39 +8322,39 @@ html.c6 #tPanel #tpIn .tpResume .mStat{min-height:0;padding:0;gap:4px;background
 html.c6 #tPanel #tpIn .tpResume .mStat+.mStat::before{content:none}
 html.c6 #tPanel #tpIn .tpResume .mStat b{font-size:16px;line-height:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
 html.c6 #tPanel #tpIn .tpResume .mStat:first-child b{color:var(--c6-aura)}
-html.c6 #tPanel #tpIn .tpResume .mStat span{font-size:8px;line-height:8px;letter-spacing:0;white-space:nowrap;color:var(--c6-g2)}
+html.c6 #tPanel #tpIn .tpResume .mStat span{font:800 13px/16px var(--c6-sys);letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap;color:var(--c6-g2)}
 /* les RÉGLAGES : une colonne debout ; couché trois lignes par colonne, deux colonnes */
 html.c6 #tPanel #tpIn>.tpPanel{grid-area:p;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:0;overflow:visible;
   background:none;clip-path:none;box-shadow:none}
 html.c6 #tPanel #tpIn>.tpPanel::before,html.c6 #tPanel #tpIn>.tpPanel::after{content:none}
-html.c6 #tPanel #tpIn .tp.ligne{box-sizing:border-box;display:flex;align-items:center;height:48px;min-height:48px;margin:0;padding:0 8px 0 12px;gap:12px;border:0;
-  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;
+html.c6 #tPanel #tpIn .tp.ligne{box-sizing:border-box;display:flex;align-items:center;height:48px;min-height:48px;margin:0;gap:12px;border:0;
+  color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;
   background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);transition:background-color var(--c6-vite) linear}
 html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui){background:var(--c6-e2)}
 html.c6 #tPanel #tpIn .tp.ligne>.pxi{flex:none;--pxs:2;margin:0;color:var(--c6-b0)}
-html.c6 #tPanel #tpIn .tp.ligne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
-html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:12px;letter-spacing:0}
+html.c6 #tPanel #tpIn .tp.ligne .tpL{flex:1 1 auto;min-width:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:12px}
 html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]>.pxi{margin:0}
-html.c6 #tPanel #tpIn .tp.ligne b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;transform:none;font-size:8px;line-height:8px;letter-spacing:0;
+html.c6 #tPanel #tpIn .tp.ligne b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;transform:none;
   color:var(--c6-e0);text-shadow:none;background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #tPanel #tpIn .tp.ligne b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
 html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
-html.c6 #tPanel #tpIn .tp.ligne b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
-  letter-spacing:0;color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;
+  color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #tPanel #tpIn .tp.ligne b.valeur::after{content:none}
 html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
 /* les TOUCHES de la partie (RECOMMENCER, QUITTER) : la touche du socle, 48 px, rien de rouge (une fenêtre demande confirmation) */
-html.c6 #tPanel #tpIn .tp:not(.ligne){box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin:0;padding:0 16px;
-  font-family:var(--pix);font-size:12px;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
+html.c6 #tPanel #tpIn .tp:not(.ligne){box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin:0;padding:0 16px;
+  font-family:var(--c6-sys);font-size:15px;line-height:20px;font-weight:800;letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
   background:var(--c6-e1);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000;
   transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear}
 html.c6 #tPanel #tpIn .tp:not(.ligne):is(:active,.appui){transform:translateY(var(--c6-t));
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 0 0 0 #000}
 html.c6 #tPanel #tpIn .tp:not(.ligne)>.pxi{--pxs:2;margin:0;color:currentColor}
-html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:1;letter-spacing:0;color:inherit}
+html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:inherit;letter-spacing:inherit;color:inherit}
 html.c6 #tPanel #tpIn .tp.rouge{color:var(--c6-b0)}
-html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;font-size:10px!important;padding:0 8px!important}
+html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;padding:0 12px!important}
 html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:none}
 html.c6 #tPanel #tpIn .tp[data-a="reset"]{grid-area:r}
 html.c6 #tPanel #tpIn .tp[data-a="quit"]{grid-area:q}
@@ -8382,7 +8382,11 @@ html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motio
   html.c6 #tPanel #tpIn .tpResume .mStat{align-items:flex-end}
   html.c6 #tPanel #tpIn>.tpPanel{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:48px;grid-auto-flow:row;column-gap:16px}  /* 4 lignes (sans voix) = 2 × 2 ; 5 = 2 + 2 + 1 */
   html.c6 #tPanel #tpIn .tpRow>.tp{padding:0 16px!important}
-  html.c6 #tPanel #tpIn>.tp.go{min-height:48px;min-width:192px;padding:0 24px;font-size:16px}
+  html.c6 #tPanel #tpIn>.tp.go{min-width:192px;padding:0 24px}
+}
+/* la décision tombe à 48 / 16 seulement sous 400 px de haut (accord §2-1) : à 844 × 390 et 667 × 375 ; au-dessus elle reste 64 / 24 */
+@media (orientation:landscape) and (max-height:400px){
+  html.c6 #tPanel #tpIn>.tp.go{min-height:48px;font-size:16px}
   html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:2}
 }
 /* grand téléphone couché : de la place pour les icônes des deux touches */
@@ -8392,8 +8396,9 @@ html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motio
 /* couché étroit (iPhone 7/8) : comme les réglages — écarts à 8, sélecteurs en 8 px (« POUCE HAUT » + « PLONGE » tiennent sur 246 px) */
 @media (orientation:landscape) and (max-width:700px){
   html.c6 #tPanel #tpIn .tp.ligne{gap:8px;padding:0 8px}
+  html.c6 #tPanel #tpIn .tp.ligne,html.c6 #tPanel #tpIn .tp.ligne .tpL{font-size:13px;line-height:18px}
   html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:8px}
-  html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
+  html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:64px;padding:0 6px}
 }
 /* TOUS LES REGLAGES (2026-10-14, demande de Sacha) : une ligne « lien » sous les réglages rapides (même peau, chevron ▶ à droite) qui ouvre l'écran
    complet #mSet par-dessus la pause. Pleine largeur dans la grille couchée ; hors charte 6 la ligne n'existe pas. */
