@@ -34654,7 +34654,9 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le
    faisaient, leurs remplaçants aussi. La valeur = la profondeur du creux (voir `dk` dans la boucle). */
 const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'pwr.bouclierCasse':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
-  'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35};
+  'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35,
+  // (2026-10-14, session SON) les grands moments qui n'écartaient pas le mix alors qu'ils sonnent aussi fort que ceux du dessus (audit oreille-neuve §6) : chaque id vérifié dans la banque et appelé
+  'aura.x5':.2,'aura.x8':.3,'fig.snake':.3,'fig.essoreuse':.25,'fig.dauphinRoyal':.3,'pwr.double':.25,'frenesie.record':.4,'verdict.1':.15,'argent.gros':.15};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
 // (2026-10-14, session SON) passé le 9e degré (+21, le plafond des bases [0,12]), une gamme du vol ne se FIGE plus sur sa note : elle redescend
 // et remonte l'octave haute (degrés 8-7-6-5-6-7-8-9 : +19 +16 +14 +12 +14 +16 +19 +21) — jamais plus haut qu'avant
