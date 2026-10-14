@@ -3,6 +3,133 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE ROYAUME DE FEU — LA MAP DU VOLCAN (2026-10-14, session VOLCAN — Sacha : « fais une nouvelle map en mode royaume des flammes dans Adventure Time ou Mustafar dans Star Wars, avec une map volcanique, des lacs de lave, de volcan et tout » · « il faut qu'il se passe des choses cool, pas d'élément de gameplay trop bizarre (lac de lave tue bien sûr), mais sinon une génération de map qui descend le long du volcan, des lacs de lave et tout ; il faut une ambiance et des couleurs bien travaillées »)
+Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.volcan`, niveau de base `NIV_VOLCAN`, id `'volcan'`, piste `'volcan'`). Nom proposé :
+LE ROYAUME DE FEU (aucun nom de marque) — à faire valider par Sacha. Tout le code est dans le bloc « LE ROYAUME DE FEU — LA MAP DU VOLCAN »
+(balises `<<<VOLCAN>>>` … `<<<FIN VOLCAN>>>`, juste après la forêt) ; les branchements, un par endroit, sur le modèle de la forêt :
+`buildTrack` (genVolcan, buildVolcan), `SF_NIV`/`SF_CARTES` (+ `sfNiveau` lit `M.mt` : la météo peut s'appeler CENDRES), `lvlNuageOk`
+(pas de nuages), la boucle (`volcanTick`, après foretTick), le vol (`volcanHeurt` → `explode('lave'|'roche')`), `CAUSES` + `facileSauve`,
+`chauffeDivers` (`volcanChauffe`), `I18N`, `accC` (orange 0xff6a1e), `BIOMES.volcan*`, `MUSIC_LIEU` (une ligne commentée : la place du
+morceau de Léo ; d'ici là la radio joue). Le gameplay est celui de toujours : la route, les sauts, les pièces. Le volcan est un DÉCOR qui
+vit, et la lave TUE.
+- LA ROUTE (`genVolcan`) : départ HAUT sur le flanc du grand volcan (`VOLCAN.K` : sommet 250-320 m au-dessus du départ, pied à −820,
+  profil concave de stratovolcan `vlcConeY`/`vlcConeR`) ; elle en fait le tour sur 130-170° en DESCENDANT, posée 26 m au-dessus de la
+  pente (son rayon = `vlcConeR(y−26)` : elle s'écarte du cône à mesure qu'elle descend), avec des S (deux sinus de 40-56 m et 12-20 m ×
+  √échelle) qui la font entrer et sortir du flanc — sauf autour des plongeons (la courbe douce du volcan). Puis elle quitte le flanc vers
+  le large, traverse la PLAINE DES LACS (slalom R 230-430 m × échelle, cap tenu à ±58° d'une direction « vers le large »), une ligne droite
+  sous l'ARCHE, et finit au pied du SECOND VOLCAN (`VOLCAN.K2`), posé droit devant la fin de piste. Toujours en descente (3,5-9 %), trois
+  PLONGEONS (`VOLCAN.plg` : deux au flanc, un dans la plaine loin de l'arche). Mesuré (Node, 12 graines × échelles 1 / 2 / 3,2) : 6,8 à
+  10,2 km, 450 à 630 m de dénivelé.
+- LE RELIEF (`volcanSol`, grille de 26-34 m selon le palier, construite en ~250 ms dans Node) : la vallée de la forêt, OUVERTE — le fond
+  40-100 m sous la route, des berges qui ne remontent qu'au ras de la lave (une plaine d'îles de basalte), des MESAS, les deux CÔNES
+  (ravines, lèvre du cratère, cuvette), coupés par le COULOIR de la route (à 18 m du bord, le sol reste 20 m sous la dalle). Le bruit est
+  un bruit de valeur fractal à octaves tournées (`vlcB`) : le bruit de la forêt (des produits de sinus) dessinait des lacs en RAYURES.
+  LE NIVEAU DE LA LAVE (`sol.yl`) suit la route lissée, 62 m dessous ; partout où le sol passe dessous, c'est un lac ; le cratère a son lac.
+  Mesuré : sol ≥ 17 m sous le bord de la dalle, lave ≥ 52 m sous la route, 25-56 % de la route au-dessus de la lave, ~35 % de lave à 700 m.
+- LA LAVE (`VLC_LAVE_*`, un seul programme pour les lacs, les coulées et les chutes) : plaques de croûte noire qui dérivent dans le sens de
+  la pente (le gradient du niveau de lave), lave vive entre elles (rouge → orange → jaune, émission > 1 : la bloom s'en empare), veines qui
+  fendent la croûte, rive qui fige ; elle PERCE le brouillard (l'émission ne prend que 62 % de la brume). Les COULÉES (`vlcCoulee` : la plus
+  grande pente, pas de 10 m, un peu d'inertie, un méandre ; elles creusent leur lit et chauffent la roche) partent des cratères — la
+  plupart dans l'arc que longe la route : elles passent SOUS elle — et des mesas (des cascades) ; sur les à-pics elles deviennent des chutes.
+- LA ROCHE (`VLC_SOL_*`) : basalte noir, cendre grise sur le plat, oxyde rouille sur les pentes, soufre jaune autour des bouches chaudes,
+  croûte vitreuse au bord des lacs ; la lave l'éclaire PAR EN DESSOUS (`uLue`), des fissures couvent où elle est chaude.
+- LES DÉCORS : les AIGUILLES D'OBSIDIENNE (`vlcGeos().aig`, trois variantes, verre noir à veines de feu, souvent plantées dans un lac) à la
+  CORDE des virages de la plaine, au large des S du flanc (jamais côté paroi), en quinconce sur les droites — en vol elles TUENT
+  ('roche') ; L'ARCHE DE FEU (`vlcArche` : basalte fendu de veines, ≥ 28 m d'air sur la route, une chute de lave à chacun de ses pieds) ;
+  les ORGUES DE BASALTE (faisceaux de colonnes hexagonales à faces nettes) ; les HORNITOS (petits cônes de scories au bord de la route) et
+  leurs GEYSERS ; deux VOLCANS DU LOIN (`vlcLoin` : cônes en anneaux à 3-4,3 km, coulées qui luisent sur leurs flancs, halo au cratère).
+- CE QUI SE PASSE (« des choses cool », sans gameplay bizarre) : les ÉRUPTIONS (`vlcEruption`, toutes les 15-29 s ÷ `VLC_MET.eru` — le
+  grand volcan tant qu'on est sur son flanc, le second ensuite) : le cratère s'embrase (`uErupt` éclaire les flancs, le pied du panache,
+  la lave), une FONTAINE de lave jaillit du cratère, 22-30 BOMBES partent en grands arcs au-dessus de la route et s'écrasent dans les
+  lacs DEVANT la caisse, côté vide (éclaboussures) — décor, elles ne touchent jamais la caisse —, le sol tremble ; les GEYSERS (`VLC_GEY` :
+  chaque goutte vit sa parabole dans le shader, une rafale toutes les 6-11 s) ; les PANACHES (`vlcPanaches` : des bouffées qui montent sans
+  fin le long d'une colonne penchée par le vent, le pied orange) ; les BRAISES qui montent et la CENDRE qui tombe autour de la caisse.
+- LES SIX TEMPS : `BIOMES.volcanMatin/Midi/Soir/Nuit/Cendre/Orage` (la grammaire de la forêt : jour:1, couleurs du ciel et brume en
+  linéaire, sat et con sous les plafonds de la charte ; le rebond du sol et le FILL par en dessous prennent le rouge de la lave) et
+  `VLC_MET` (hauteur du soleil, lueur de la roche, éclat de la lave, cendre, braises, panache, brume basse, geysers, éruptions, phares).
+  MATIN : aube rose et violette sur le basalte · MIDI : bleu profond, brume de soufre · SOIR : le ciel ROUGE SANG (la carte postale,
+  tiré un peu plus souvent : p 1,4) · NUIT : la lave est la seule lumière · PLUIE → PLUIE DE CENDRES (`mt:'CENDRES'`, `pluie` à 0 : pas une
+  goutte d'eau, la cendre brune tombe, la lave brille plus fort) · ORAGE → ORAGE VOLCANIQUE (les éclairs d'orageTick, éruptions ×1,6).
+- LES SONS (bloc `<<<VOLCAN>>>` de `atelier-son/recettes.js`, cuits, `sons-banque.js?v=19`) : `volcan.eruption` (coup de canon, souffle,
+  pluie de pierres, grondement qui roule), `volcan.gronde`, `volcan.geyser` (le gaz qui monte, les éclats), `volcan.lave` (le « bloup »),
+  `volcan.amb` (boucle très basse, rien d'aigu en continu). Joués par `vlcEruption`, `vlcSons` (le calendrier des geysers proches est
+  celui du shader), `vlcEruptTick` (les bombes qui tombent).
+- PERF : tout en ShaderMaterial (aucune lumière ajoutée, 0 programme compilé en course : `volcanChauffe` au menu) ; le relief et les lacs
+  en morceaux de ~1,1 km éteints au-delà de la brume ; aiguilles, orgues, hornitos en instances ; panaches, geysers, braises, cendre
+  calculés dans les shaders ; paliers `PAL.B.volcan*` (maille, portée, particules, bouffées, geysers, orgues, coulées).
+- Console : `dbgVolcan()` (comptes, temps de construction), `dbgVolcan('eruption')` (`'eruption',1` : le second), `dbgVolcan('meteo','nuit')`,
+  `dbgVolcan('vue',{p,c})`, photos en pause `dbgVolcan('volcan'|'second'|'aiguille'|'arche',{d,h})`, `dbgVolcan('reprend')`.
+  Lancer : `?carte=volcan&meteo=soir` (le 1er niveau du JOUER), ou `dbgClassique('volcan','nuit')` puis `dbgSaut()`.
+- À TRANCHER PAR SACHA : le nom ; la musique (Léo) ; la fréquence des éruptions ; la teinte du SOIR (rouge sang : la plus « Mustafar »).
+
+## LA BANQUISE — LA DESCENTE DES PICS DE GLACE (2026-10-14, session MONTAGNE — Sacha : « fais une nouvelle map en mode banquise, mais genre la route dévale une montagne au-dessus du sol, avec d'immenses pics de glace partout ; on peut faire des traces dans la poudreuse en frôlant le sol, mais on meurt si on va trop profondément, et on doit pouvoir glisser de manière ultra stylée sur les lacs gelés et les pics de glace pas trop abrupts » · « fais une map absolument magnifique bien sûr »)
+Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NIV_BANQ`, id `'banquise'`, piste `'banquise'`). Nom provisoire
+« LA BANQUISE » (le mot de Sacha) — à valider. Tout le code est dans le bloc « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (balises
+`<<<BANQUISE>>>` … `<<<FIN BANQUISE>>>`, juste après la forêt) ; les branchements, un par endroit : `buildTrack` (genBanq, buildBanq),
+`accC` (le NÉON ROSE 0xff5fd0 sur la glace), `BIOMES.banq*` (après ceux de la forêt), `SF_NIV`/`SF_METEOS` (+ NEIGE, BLIZZARD)/`SF_CARTES`,
+`lvlNuageOk` (pas de nuages du jeu), `chauffeDivers` (`banqChauffe`), `MUSIC_LIEU` (une ligne commentée : la place du morceau de Léo),
+`I18N`, le vol (`banqSolVol` juste après `jadeEauVol`, `banqAssiette` après les figures, `banqHeurt` dans la chaîne des morts →
+`explode('poudreuse'|'glace')`), la boucle (`banqTick` après foretTick), `CAUSES` + `facileSauve`, `GV_TEINTE` + la vignette pixel de `gvVignette`.
+- LA ROUTE (`genBanq`) : un SLALOM GÉANT — grandes courbes (R 260-500 m × l'échelle du moteur) qui changent de côté 78 fois sur 100, des
+  SCHUSS (une droite de 260-460 m tous les cinq virages) ; la pente (positive = on descend) ondule entre 5 et 14 %, intégrée tous les
+  10 m : AUCUN point ne remonte ; trois ou quatre CASSURES (`BANQ.cas` : 140 m à 2 % puis 220 m à 25-28 % — la caisse lancée décolle) ;
+  380 premiers mètres en douceur. Dénivelé mesuré : ~700-760 m sur 6,5-7 km.
+- LA NEIGE SOUS LA ROUTE (`banqSol`, grille de 26-36 m) : le manteau suit la route lissée (noyau ~130 m) — 10 à 45 m d'air sous la dalle
+  (`D0` en bruit lent : des combes où l'on frôle, des gorges), des flancs qui montent de 40 à 120 m au-dessus de la route à 520 m, des
+  arêtes au-delà, des bosses de poudreuse ; passe de SÛRETÉ : jamais moins de 7 m d'air sous la dalle (mesuré 7,0-9,2 m au plus juste,
+  25 m en moyenne ; 7-10 % de la route à moins de 12 m d'air, là où l'on frôle facilement).
+- LES LACS GELÉS (`banqLacs`, `bkLacR`) : au pied de chaque cassure (on y retombe après le grand saut), puis tous les 430-850 m, sous la route
+  ou à côté ; un contour en harmoniques, une terrasse aplatie dans la grille, une rive de 40 m ; 8-11 lacs par piste. Glace NOIRE où l'on voit
+  dedans : deux réseaux de craquelures (Voronoï, l'un en surface, l'autre en profondeur décalé par la PARALLAXE), des bulles figées à trois
+  profondeurs, des congères poussées sur la rive, le ciel qui s'y reflète, le chemin du soleil, l'éclat des phares, les aurores la nuit.
+- LES PICS DE GLACE (`bkPrim`, `bkGrappe`) : des PYRAMIDES dont chaque facette est un vrai plan — la hauteur d'un cristal = le MIN des plans
+  de ses facettes (le dessus d'un polyèdre convexe), une grappe = le MAX de ses cristaux : la physique lit exactement ce que l'on voit.
+  Quatre familles : (0) les PICS OÙ L'ON GLISSE au bord de la route (26-98 m, pente ≤ 1 : 45° au plus) et les SÉRACS semés sur la neige,
+  quelques-uns sous la route (`libre` : jamais à moins de 5 m sous la dalle, ses bords et le couloir de la caméra, contrôlé tous les 3 m) ;
+  (1) les AIGUILLES de 110 à 420 m (trop raides : on y meurt) ; (2) les GÉANTS de 0,4 à 1,3 km de haut, de 1,1 à 3,6 km de la route, et
+  l'amphithéâtre dans l'axe de la descente — leur propre brume plafonnée (`LOIN`, `uHazeK`/`uHazeM`) : ils gardent leur silhouette
+  jusqu'au bout du monde ; (3) les STALACTITES sous la dalle (glaçons des deux bords, lustres sous le milieu). Matière `BK_PIC_FS` :
+  glace bleue profonde en bas, turquoise vers le haut, des FRACTURES et des bulles qui glissent avec le regard (trois nappes à des
+  profondeurs différentes), le ciel par Fresnel, une facette entière qui s'allume quand le soleil s'y aligne, la lumière qui traverse à
+  contre-jour, les ARÊTES qui accrochent la lumière (barycentriques + fwidth), la neige sur les faces douces des aiguilles et des géants,
+  le givre au pied, l'ALPENGLOW (le haut des pics qui rougit matin et soir).
+- LA POUDREUSE SE JOUE (`banqSolVol`, `BK_PH`) : dedans, elle PORTE (×2,3 g sur 1,4 m), elle TASSE (la vitesse qui entre est mangée en
+  ~1/16 s), elle freine d'autant plus qu'on s'enfonce, et vite (> 70) la caisse PLANE dessus. Au ras (le dessous dans le premier mètre), une
+  TRACE (`BK_TR` : un anneau de 1 100 quads, tranchée bleue d'ombre et deux bourrelets qui scintillent, 70 s de vie) et une GERBE (la queue de
+  coq, `BANQ.fx.poudre`) ; à quelques mètres, le souffle lève déjà un voile. Au-delà de `BK_PH.prof` = 2,4 m : 'poudreuse' (« ENSEVELI DANS LA
+  POUDREUSE »). La neige et la glace RECHARGENT la jauge d'air. MESURÉ (banc Node `banq-node.cjs`, 60 i/s) : tomber du bord (15 m) à 60-140 →
+  on survit (1,0-1,2 m d'enfoncement) et l'on trace 2,5 s ; piquer fort (90, 0,9) → 2 m, vivant ; piquer très fort (120, 1,5) → mort ;
+  frôler à 3 m puis cabrer → +40 m en 1,5 s : on regagne la route.
+- LA GLACE SE GLISSE (`banqSolVol`, `banqAssiette`) : lacs et flancs de pics — au contact, une facette trop raide (> 60°, ny < ,5) ou un choc
+  de face (vitesse normale > 66 et angle > ~53°) : 'glace' (« FRACASSÉ SUR LA GLACE ») ; un gros choc à plat sur un lac : la caisse REBONDIT
+  (le galet) ; sinon elle GLISSE : la vitesse qui entre est retirée, la caisse est posée sur la glace, la friction est presque nulle (×e^−0,03/s),
+  la pente ACCÉLÈRE (sur un pic, on dévale le flanc), le volant ne tourne que 42 % de la trajectoire — le reste fait DÉRIVER la caisse
+  (`BANQ.drift`, jusqu'à 60°, en travers comme un snowboard qui carve), des éclats de givre jaillissent, deux rayures de patins restent sur
+  la glace. Une arête quittée vers le haut : TREMPLIN DE GLACE. MESURÉ : posée à plat à 85 → 2,7 s de glisse (85 → 79) ; tombée de 25 m à 70
+  → glisse ; piquée de 60 m → morte ; un pic touché par le sommet → elle dévale le flanc (47 → 54).
+- LES FIGURES (aura) : POUDREUSE !, TRACE PARFAITE ! (1,2 s de trace), GLISSE !/SUR LE PIC !, PATINOIRE ! (1,4 s de glisse), DÉRAPAGE GLACÉ !
+  (dérive > 0,6 rad pendant 0,8 s), TREMPLIN DE GLACE !. Une fois par vol chacune (`BANQ.figs`, remis à zéro par `flightId`).
+- LA MONTAGNE TE RAMÈNE (`banqRamene`) : arrêté au contact (sous 18) plus de 2,6 s sans nitro → sur ta route, la chaîne seule est perdue.
+- LES SIX TEMPS : `BIOMES.banqMatin/banqMidi/banqSoir/banqNuit/banqNeige/banqBlizzard` (charte : jour:1, couleurs linéaires, sat/con sous
+  les plafonds ; le bleu profond, les OMBRES BLEUES, la neige et le blizzard tirés vers le LAVANDE — jamais le gris délavé) et `BK_MET` (la
+  lumière de la banquise : hauteur du soleil, étincelles, poussière de diamant, neige qui tombe, vent, aurores, alpenglow, teinte de la
+  glace, brume de vallée, phares). NUIT : les AURORES BORÉALES (`BANQ.fx.aur` : quatre rideaux à 6 km qui suivent la caméra, des rais qui
+  coulent, vert en bas, magenta en haut) qui se reflètent dans la glace et teintent la neige ; NEIGE et BLIZZARD : `BANQ.fx.flo` (des points
+  dans une boîte qui suit la caméra, chacun à sa place dans le monde) ; MATIN/MIDI : la poussière de diamant (`BANQ.fx.dd`) qui scintille.
+- LE SON (`atelier-son/recettes.js`, bloc `<<<BANQUISE>>>`, `sons-banque.js?v=19`) : `banq.glisse` (boucle, le chuintement des patins),
+  `banq.poudre` (boucle, le souffle de la neige), `banq.plouf`, `banq.craque` (le CLAC puis le « PIOU » dispersif des lacs gelés),
+  `banq.chant` (la nuit et le soir, les lacs qui chantent au loin), `banq.vent` (boucle d'ambiance). Les boucles suivent l'élan (`bkBoucle` :
+  gain et vitesse). À juger à l'oreille par Sacha ou Léo dans `sons.html`.
+- PERF : 0 lumière ajoutée, matières chauffées au menu (`banqChauffe`), morceaux de neige coupés à la brume, pics en morceaux de 600 m (le tri
+  par champ de three), géants en morceaux de 1,5 km ; budgets `PAL.B.banq*`. MESURÉ (navigateur, banc muet, palier récent) : construction
+  156-179 ms (dont la neige 114-131 ms), neige 140-153 k triangles en ~60 morceaux, pics et stalactites 12-14 k, géants 2,2 k ; palier ancien
+  (Node) 60-115 ms, neige 42 k. 0 erreur JS sur les six temps ; en jeu : la poudreuse porte (0,4-0,8 m), la glisse sur un lac (85 → 80 en 2 s).
+- Console : `dbgBanq()` (comptes, temps), `dbgBanq('meteo','nuit')`, `dbgBanq('vue',{p,c,fov})`, `dbgBanq('pic'|'lac',{d,h})` (photos),
+  `dbgBanq('poudre'|'glace'|'pic9',{h,v,pq})` (la caisse lâchée au-dessus de la poudreuse, d'un lac, d'un pic), `dbgBanq('etat')`,
+  `dbgBanq('phys',{prof:…})` (régler la physique en direct). Lancer : `?carte=banquise&meteo=nuit` puis JOUER, ou `dbgClassique('banquise','soir');dbgSaut()`.
+- À trancher par Sacha ou Léo : le nom ; la musique (Léo, la ligne `banquise:` de MUSIC_LIEU) ; l'écoute des six sons (`sons.html`) ;
+  l'étalonnage final des six temps (GRAPHISME) ; le dosage de la poudreuse (profondeur qui tue, freinage).
+
 ## LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 : « façon Subway Surfers », contre de l'argent du jeu — barème de GAMEPLAY, plaque d'INTERFACE)
 À la mort, UNE fois par partie, l'écran de fin propose de CONTINUER (bloc `CHANCE`, juste avant `finSonsCoupe`). Payé sur le COMPTE,
 jamais en euros ni en pub. **Prix** = k × l'encaissé de la partie (`money − START_CASH`), avec k = 0,6 jusqu'à 3 min (GAMEPLAY, relevé de 0,5), puis +0,05 par

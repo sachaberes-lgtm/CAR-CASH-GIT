@@ -33,7 +33,7 @@ function fonction(entete){const i=unique(entete);return src.slice(i,finBloc(src,
 const iSave=unique('const SAVE={'),iFin=unique('if(BALADE){SAVE.d.tuto=1');
 const blocSave=src.slice(iSave,iFin);
 const F={enCoursPose:fonction('function enCoursPose(){'),enCoursRetire:fonction('function enCoursRetire(){'),
-  commitExploits:fonction('function commitExploits(){'),bank:fonction('function bank(){'),bankMaxMaj:fonction('function bankMaxMaj(){')};
+  commitExploits:fonction('function commitExploits(){'),bank:fonction('function bank(){'),bankMaxMaj:fonction('function bankMaxMaj(){'),chanceBase:fonction('function chanceBase(){')}; // (2026-10-14) la SECONDE CHANCE : chanceBase réelle, CHANCE bouchonné (jamais utilisée)
 // CARS : nombre de fiches et drapeau retire
 const iC=unique('const CARS=[')+'const CARS='.length,carsTxt=src.slice(iC,finBloc(src,iC,'[',']'));
 const fiches=[];{let d=0,deb=-1;for(let i=0;i<carsTxt.length;i++){const s=sauteTexte(carsTxt,i);if(s>=0){i=s;continue;}
@@ -58,7 +58,7 @@ function fauxCap(valeur,opt){const o=opt||{};const P={store:{},sets:[],gets:0,pe
 function boot(initLS,opt){const o=opt||{};const L=fauxLS(initLS,o);const cap=o.cap||null;const reloads={n:0};
   const sb={localStorage:L.ls,window:{Capacitor:cap},location:{reload(){reloads.n++;}},console,
     THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:ECOGAIN},ENGINE_TIERS:new Array(NE).fill(0),
-    CARS:RETIRE.map(r=>r?{retire:1}:{}),CAR_UNLOCK:RETIRE.map(r=>r?{p:1000}:null),pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}}; // PAL (T5, passe perf) : défaut = le palier « fast »
+    CARS:RETIRE.map(r=>r?{retire:1}:{}),CAR_UNLOCK:RETIRE.map(r=>r?{p:1000}:null),pk:()=>null,SANS_CARRIERE:false,CHANCE:{used:false},PAL:{b:(k,d)=>d}}; // PAL (T5, passe perf) : défaut = le palier « fast »
   const ctx=vm.createContext(sb);let err=null;
   try{vm.runInContext(blocSave+';',ctx);}catch(e){err=e;}
   return {ctx,store:L.store,reloads,err,cap,get S(){return vm.runInContext('SAVE',ctx);},run:t=>vm.runInContext(t,ctx)};}
@@ -178,7 +178,8 @@ console.log('F  partie interrompue (enCours) — le vrai code d\'enCoursPose / c
 function bacPartie(initLS,cap){const b=boot(initLS,{cap});
   b.run(`var started=true,gameOver=false,SANDBOX=false,TUTO={on:false,quitte:0},PARK={on:false},CHA={n:0,pts:0,x:1},mode='drive',running=true,money=1.61,START_CASH=1.61,auraRun=0,engTier=0,
     runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0},FLOW={lv:0},FREN={t:0};function auraRank(){return 0;}function carScan(){return [];}
-    ${F.bank}\n${F.bankMaxMaj}\n${F.enCoursPose}\n${F.enCoursRetire}\n${F.commitExploits}`);return b;}
+    ${F.bank}\n${F.bankMaxMaj}\n${F.enCoursPose}\n${F.enCoursRetire}\n${F.commitExploits}
+${F.chanceBase}`);return b;}
 {const gain=(b,v,a)=>b.run(`money=START_CASH+${v};auraRun=${a};runStats.tricks=2;runStats.vmax=210;engTier=3;`);
   let b=bacPartie({});gain(b,100,40);const banque0=b.S.d.bank;
   b.run('enCoursPose();SAVE.flush();');
