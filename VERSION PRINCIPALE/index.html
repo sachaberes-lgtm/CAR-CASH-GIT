@@ -15945,7 +15945,8 @@ function jadeSillage(sy,hv,dt,d){eauPIm();const p=fallPos,vx=fallVel.x/hv,vz=fal
   if(k>.45){const m=Math.min(10,Math.round(n*.6));for(let i=0;i<m;i++){const al=-2.6-Math.random()*1.5; // la QUEUE DE COQ derrière, à grande vitesse
     eauP(p.x+vx*al+(Math.random()-.5)*.8,sy+.2,p.z+vz*al+(Math.random()-.5)*.8,vx*vW*.35+(Math.random()-.5)*2,5+Math.random()*12*k,vz*vW*.35+(Math.random()-.5)*2,.05+Math.random()*.14,.7+Math.random()*.6,sy,(Math.random()*2)|0);}}
   sillonPose(p.x,sy,p.z,vx,vz,hv,dt,kh);eauBrume(p,vx,vz,px,pz,vW,k,kh,sy,dt);} // le V d'écume derrière elle, la brume de la gerbe
-function eauPTick(dt){const im=EAUP.im;if(!im)return;const L9=EAUP.L;if(!L9.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;} // (2026-10-14) vide = caché : un dessin de zéro exemplaire coûte sa préparation à chaque imagelet n=0;const M9=JCH_M,dr=Math.exp(-.5*dt),cp=camera.position;
+function eauPTick(dt){const im=EAUP.im;if(!im)return;const L9=EAUP.L;if(!L9.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;} // (2026-10-14) vide = caché : un dessin de zéro exemplaire coûte sa préparation à chaque image
+  let n=0;const M9=JCH_M,dr=Math.exp(-.5*dt),cp=camera.position; // (2026-10-14, chasse aux bugs) ces déclarations étaient collées au commentaire ci-dessus, donc avalées : ReferenceError dès qu il y avait des gouttes (signalé par SON)
   for(let i=L9.length-1;i>=0;i--){const p=L9[i];if(!paused){p.t+=dt;p.vy-=24*dt;p.vx*=dr;p.vz*=dr;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;}
     if(p.t>p.l||(p.vy<0&&p.y<p.y0-.5)){L9[i]=L9[L9.length-1];L9.pop();continue;}
     let k=p.sz*(1-Math.pow(p.t/p.l,3));{const dx=p.x-cp.x,dy=p.y-cp.y,dz=p.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<36)k*=Math.max(.15,Math.sqrt(d2)/6);} // près de l'objectif, la goutte rapetisse
@@ -29030,7 +29031,7 @@ function shopPopEl(){
     if(k==='non'){uiClic('retour');shopPopFerme();return;}
     if(carOwned(i)){ // ÉQUIPER : la fenêtre rentre, puis l'atelier s'ouvre sur la caisse
       uiClic('nav');hap(8);shopPopFerme();
-      setTimeout(function(){ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
+      setTimeout(function(){window.__offGar=false; /* (2026-10-14, chasse aux bugs) on QUITTE OFFRES par ÉQUIPER : le drapeau « venue de la porte du garage » n'était consommé que par RETOUR — il restait armé et le RETOUR d'une visite suivante (mort, accueil) rouvrait le garage-boutique */ ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
     if(b.classList.contains('off'))return;
     uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
     shopPaye(i).then(function(){
@@ -29082,6 +29083,7 @@ function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` 
 }
 function shopPopFerme(){
   const el=SPOP.el;if(!el||!el.classList.contains('on')||el.classList.contains('sortant'))return;
+  try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) la fenêtre qui s'efface a pointer-events:none : le 2e tap d'un double-tap sur ANNULER / ÉQUIPER traversait jusqu'à OFFRES (vignette, RETOUR) — comme à l'ouverture, on avale les clics 320 ms
   const src=SPOP.src;
   if(src&&src.isConnected)shopPopVise(src.getBoundingClientRect()); // la vignette a pu bouger (défilement) : on vise sa place d'ARRIVÉE (la carte est au repos, sa mesure est juste)
   el.classList.add('sortant');
@@ -42763,6 +42765,7 @@ function garageLaunch(){
   // de caisse puis taper JOUER dans la seconde ne lançait RIEN. On la TERMINE sur-le-champ, exactement comme sa dernière image
   // (l'échange s'il n'a pas eu lieu, puis scanner éteint, échelle rendue) : la caisse qui sort est bien celle qu'on vient de choisir.
   if(GAR.sw){const SW=GAR.sw;GAR.sw=null;if(!SW.fait)garageShow(SW.to);if(GAR.scan)GAR.scan.visible=false;carGroup.scale.set(1,1,1);}
+  window.__offGar=false; // (2026-10-14, chasse aux bugs) une course part : plus de RETOUR d'OFFRES vers le garage
   window.__mRetour=null; // (2026-09-29) une course part de l'atelier : l'écran qui l'attend à la fin, c'est la mort, pas les missions
   try{ if(carUnlocked(garageI)){const be=$('gEquip'); if(be&&be.getAttribute('aria-disabled')!=='true')be.click();} }catch(e){}
   if(CHUTE.on){chuteLance();return;} // (2026-09-30) LA CHUTE : depuis le ciel, pas de porte — elle PIQUE vers la route (voir chuteRender)
@@ -51408,14 +51411,32 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return;
-        const f9=function(){ if(!started||gameOver)return; panOpen(false);
+        const f9=function(){ if(!started||gameOver)return; const rc9=!q9&&mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
           if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
-          else {carrIci();resetGame();} };
+          else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
+            let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
+            if(ecranWipe._on){carrIci();resetGame();} // un fondu déjà en cours ignorerait le nôtre : jamais une partie gelée sans feuille
+            else{ecranWipe(function(){if(started&&!gameOver){carrIci();resetGame();}});
+              if(r9&&r9.then&&SONV2)r9.then(function(){try{if(ecranWipe._on)sfx('ui.volet');}catch(e){}},function(){});} } }; // le son du volet, perdu sur le contexte encore endormi, part au réveil
         f9(); }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
     uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
-  if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
+  /* (2026-10-14, chasse aux bugs) LE ⏸ AU DEUXIÈME DOIGT. Un doigt qui tape ⏸ pendant qu'un autre TIENT le volant ou la NITRO ne produit AUCUN `click`
+     (le navigateur n'en synthétise pas pour un toucher secondaire en multi-touch — Chrome comme Safari iOS) : impossible de mettre en pause sans lâcher la
+     commande. On lit donc le `touchend` du doigt NÉ sur le ⏸ (suivi par son identifiant) ; seul le cas « un autre doigt est encore posé » est pris ici —
+     un doigt seul garde son `click` d'avant, inchangé. `gearTt` écarte le click éventuel qui suivrait quand même (pas de double déclenchement). */
+  let gearId=null,gearTt=0;
+  if(gear){
+    gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
+    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true});
+    gear.addEventListener('touchend',function(e){
+      let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
+      if(!t)return; gearId=null;
+      if(!e.touches.length)return; // dernier doigt levé : le click suit, c'est lui qui ouvre
+      const r=gear.getBoundingClientRect(); if(t.clientX<r.left-12||t.clientX>r.right+12||t.clientY<r.top-12||t.clientY>r.bottom+12)return; // le doigt a glissé hors du bouton : rien
+      gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
+  if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
   if(pan)pan.addEventListener('click',panTapHandler);
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
@@ -51524,6 +51545,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function setPauseOuvre(){
     if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
     window.__setPause=true; // (2026-10-14, session SON) plus de uiClic('nav') ici : panTapHandler sonne déjà « nav » pour TOUS LES REGLAGES (c'était nav PUIS appui principal)
+    try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) mGo(…,true) saute le verrou du double-tap : le 2e tap d'un double-tap sur la ligne tombait sur une ligne de RÉGLAGES (bascule en silence)
     document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
     overlay.setAttribute('data-ecran','set'); // AVANT l'affichage : mGo force un reflow avant de le poser, et le fond (transition d'opacité de ::before) partait de l'accueil (transparent) → la pause se lisait derrière les réglages
     TCTL.ov=true;overlay.style.display='flex';
@@ -51531,6 +51553,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function setPauseFerme(){
     if(!window.__setPause)return;
     window.__setPause=false;
+    try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) même verrou à la sortie : le 2e tap du double-tap sur le ◀ rejouait mTap('back') → mGo('home') (accueil qui clignote), puis tombait sur la pause
     const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
       for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
       mCur=mRoot(); overlay.setAttribute('data-ecran',mCur);
