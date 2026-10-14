@@ -32406,6 +32406,7 @@ function explode(cause){
       rx:(Math.random()-.5)*14,ry:(Math.random()-.5)*14,own:1}); // own : géométrie et matière à lui — libérées au ménage
     scene.add(d);
   }
+  if(SENS)try{sensBoomElan();}catch(e){} // (2026-10-14, sensations) l'épave garde une part de l'élan de la caisse (voir sensBoomElan)
   // boule de feu dispersée, moins centrée : foyers décalés, 3 tons — (vague 2) des TRAITS, quatre fois moins : à 950 traits la gerbe
   // faisait un HÉRISSON qui mangeait la boule ; ce sont les volutes qui portent le volume
   for(let k=0;k<44;k++){
@@ -36637,6 +36638,17 @@ const PARK={on:false}; // MODE FREESTYLE : le parc de figures (pas une course). 
 const PARK_VCAP=145; // PARC : plafond de vitesse (m/s ≈ 260 km/h affichés) — la nitro infinie ne DOIT PAS envoyer à 1000 km/h ingérables ; on garde une vitesse RAPIDE mais CONTRÔLABLE (sol ET air)
 const SPD=0.48; // +20 % (2026-09-25, user : « augmente la vitesse global du jeu et des voitures de 20 % ») — 0.4 × 1,2 ; il venait de −20 % (0.5 → 0.4) le matin même —  // vitesse globale du jeu — RESTAURÉ à la valeur V1 (2026-07-19) : le ÷2 « trop rapide dès le début » tuait le fun nerveux/arcade de la V1 ; le user tranche pour la V1. SPD scale TOUT : avance joueur/bots, chute, viseur ET compteur (donc les km/h affichés DOUBLENT — seuils de sensation ABSOLUS ajustés en conséquence, les systèmes RELATIFS via vmaxShow s'ajustent seuls)
 const BOOM_SOL={ok:false,p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // (2026-09-28) le bitume sous l'explosion : ses pièces y rebondissent
+/* (2026-10-14, sensations) L'ÉPAVE GARDE SON ÉLAN. Les pièces partaient en étoile depuis un point FIXE : à 200 km/h la caisse
+   s'arrêtait net dans l'air, comme collée. Elles héritent d'une part de sa vraie vitesse (PT_U.uVc, celle que suit la caméra) : 22 %,
+   12 m/s au plus — au sol la roue file DEVANT, dans le vide la pluie de tôle continue de TOMBER. Les éclats, plus légers, moitié moins.
+   Pas contre un MUR (tour, façade, pic : rien ne traverse). debrisLoin repasse derrière : jamais vers l'objectif. */
+const SENS_BOOM={v:new THREE.Vector3(),n:0,t0:0};
+function sensBoomElan(){
+  if(mortCause==='tour'||mortCause==='facade'||mortCause==='pic')return;
+  const V=SENS_BOOM.v.copy(PT_U.uVc.value),l=V.length();if(!(l>3))return; // (un NaN ne passe pas)
+  V.multiplyScalar(Math.min(12,l*.22)/l);
+  for(const d of debris){if(!d||!d.v)continue;d.v.addScaledVector(V,d.part?1:.5);debrisLoin(d.v);}
+}
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
 /* ================= LA CAMÉRA DE ROUTE S'ADAPTE (vague 3, 2026-09-27) =================
    Sacha : « quand on est à l'envers de l'autre côté de la route, et que du coup on a l'impression que ça monte beaucoup, il faut que
