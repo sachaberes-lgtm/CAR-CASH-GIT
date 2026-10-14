@@ -35618,7 +35618,10 @@ const SAVE={
       if(ec.f>=5&&ec.f>(this.d.frenRec||0))this.d.frenRec=ec.f; // la frénésie qui tenait encore (endGame : frenFin)
       if(ec.s>0&&(L.length<10||ec.s>L[L.length-1].s)){L.push({n:this.d.pseudo||'TOI',s:ec.s});L.sort(function(a,b){return b.s-a.s;});if(L.length>10)L.length=10;} // le Top 10, comme lbQualifies
       this.repris={v:ec.v,a:ec.a};}
-    this.flush();
+    /* (2026-10-14, chasse aux bugs) APRÈS UNE PURGE (natif===1 : le secours n'est pas encore lu) ce flush écrivait une sauvegarde VIERGE dans localStorage : si l'appli était tuée avant la
+       réponse de `Preferences.get` (l'init synchrone dure des secondes), le lancement suivant trouvait un localStorage NON vide, ne consultait plus le miroir, puis l'écrasait — perte totale.
+       Rien à écrire à ce stade (pas d'instantané : localStorage était vide) ; la réponse vide, ou le 1er flush de jeu, écrivent. */
+    if(!(this.natif===1&&!ec))this.flush();
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
