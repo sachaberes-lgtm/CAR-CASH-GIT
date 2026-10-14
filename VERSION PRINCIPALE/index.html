@@ -41011,7 +41011,7 @@ function campPad(i){ // crochet : un pad vient d'être pris (boucle de conduite)
 function chainesTick(dt,sp){
   let vu=null;
   for(const ch of VZ.chaines){
-    if(!ch.brise&&!ch.fini&&sp>ch.sP[ch.n]+9){ch.brise=true;popTexte('LIGNE CASSEE','#8f84c8',0);try{if(SONV2)sfx('defaite',{vol:-5});else chimeNote(noteP(1,0),0,.08,.3);}catch(e){}}
+    if(!ch.brise&&!ch.fini&&sp>ch.sP[ch.n]+9){ch.brise=true;popTexte('LIGNE CASSEE','#8f84c8',0);try{if(SONV2)sfx('aura.perdue',{st:-2});/* (2026-10-14, session SON) une ligne manquée n'est pas une DÉFAITE de duel : `defaite` (+3 dB, prio 5) creusait tout le mix (SON_DUCK) et faisait reculer les récompenses voisines ; les trois notes qui retombent disent « raté » à leur juste taille */else chimeNote(noteP(1,0),0,.08,.3);}catch(e){}}
     ch.br+=((ch.brise?1:0)-ch.br)*Math.min(1,dt*3);ch.fl=Math.max(0,ch.fl-dt*.8);
     for(const mt of ch.mats){mt.uniforms.uOn.value=ch.n-1;mt.uniforms.uBr.value=ch.br;mt.uniforms.uF.value=ch.fl;}
     if(!vu&&sp>ch.s0-170&&sp<ch.s1+70)vu=ch;
