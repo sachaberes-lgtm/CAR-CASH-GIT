@@ -16526,7 +16526,7 @@ function jadeTick(dt){
   if(JADE.decoPieces&&JADE.decoPieces.visible){const cp=camera.position;for(const m of JADE.decoPieces.children){const S9=m.geometry.boundingSphere,v=!!S9&&cp.distanceTo(S9.center)-S9.radius<450;if(m.visible!==v)m.visible=v;}} // (12/10) les pièces du bord : à moins de 450 m seulement
   if(JADE.monu){const ff=(scene.fog&&scene.fog.far)||2600;for(const o of JADE.monu){const d9=camera.position.distanceTo(o.c)-o.r,v=d9<ff+80;if(o.g.visible!==v)o.g.visible=v; // (v17) au-delà de la brume : pas dessinés…
     const lo=d9>450;if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
-  for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
+  for(let i9J=0;i9J<2;i9J++){const M9=i9J?JADE.pont:JADE.porte;/* (2026-10-14, passe perf mobile) même ordre (porte, pont), sans tableau neuf par image */if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
     if(n!==M9.pres){M9.pres=n;for(const m of M9.mF)m.visible=n;for(const m of M9.mL)m.visible=!n;}}
   JADE_U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);
   JADE_U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);JADE_U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
@@ -31410,9 +31410,10 @@ function pwrPrend(k,pos){
   }
 }
 /* LES MINUTEURS DES NOUVEAUX POUVOIRS (boucle, à côté de ceux d'origine) — la fin se dit à l'oreille (pwrFinSnd). */
+const PWR_MX=['m','x']; // (2026-10-14, passe perf mobile) la liste des deux minuteurs, bâtie UNE fois (un tableau neuf par image avant)
 function pwrTick(dt){
   if(SONV2){const B9=PWR_V2.bt||(PWR_V2.bt={});for(const k of PWR_ORDRE){const t9=pwrT(k);if(t9>0&&t9<1.5){if(!B9[k]&&pwrVu(k)){B9[k]=1;sfx('pwr.bientot');}}else B9[k]=0;}} // (console de son) le tic-tac de fin de pouvoir, une fois
-  for(const k of ['m','x']){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0)pwrFinSnd(k);}}
+  for(const k of PWR_MX){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0)pwrFinSnd(k);}}
 }
 /* MODE FACILE — LES 3 VIES : le filet qu'avait le BOUCLIER (retiré le 29/09) — mêmes causes : la caisse, pas le règlement. */
 function facileSauve(cause){
@@ -35847,6 +35848,7 @@ function boostSnd(k){
    hauteur, en éclat et en vitesse de trémolo à chaque niveau (bleu → or → rose). On sait, sans regarder, qu'il est temps
    de lâcher. Chaîne créée une fois, à la première glisse, puis juste pilotée (zéro allocation par image). */
 let DRS=null;
+const DRS_BASE=[123.47,164.81,246.94,329.63],DRS_D0=[0,.45,.9,1.4],DRS_DD=[.45,.45,.5,1]; // (2026-10-14, passe perf mobile) les tables de la charge du drift, bâties UNE fois (3 tableaux par image de drift avant)
 function driftChargeSnd(){
   if(!AC||!MASTER)return;
   const on=mode==='drive'&&driftC>0&&started&&!gameOver&&!paused;
@@ -35859,7 +35861,7 @@ function driftChargeSnd(){
       o1.start();o2.start();lfo.start();DRS={o1:o1,o2:o2,lp:lp,g:g,lfo:lfo};porte(g,MASTER);}catch(e){DRS=false;return;} }
   const T=AC.currentTime;
   if(on){
-    const lv=driftLv,base=[123.47,164.81,246.94,329.63][lv],d0=[0,.45,.9,1.4][lv],dd=[.45,.45,.5,1][lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
+    const lv=driftLv,base=DRS_BASE[lv],d0=DRS_D0[lv],dd=DRS_DD[lv],fr=lv>=3?1:Math.min(1,Math.max(0,(driftC-d0)/dd));
     const f=base*(1+.25*fr);
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
@@ -37947,7 +37949,7 @@ function chaineTick(dt){
   if(mode!=='fall'&&mode!=='boom')CHA.t-=dt; // en l'air, l'horloge est GELÉE
   CHA.age+=dt; // (2026-10-01) l'âge de la chaîne, lui, court partout
   if(CHA.t<=0||(CHA.age>=CHA_VIE&&mode==='drive')){chaineEncaisse();return;}
-  const b9=avE('avBarF');if(b9)b9.style.transform='scaleX('+(mode==='fall'?1:Math.max(0,CHA.t/CHA_FEN)).toFixed(3)+')';
+  const b9=avE('avBarF');if(b9){const s9='scaleX('+(mode==='fall'?1:Math.max(0,CHA.t/CHA_FEN)).toFixed(3)+')';if(b9._tf!==s9){b9._tf=s9;b9.style.transform=s9;}} // (2026-10-14, passe perf mobile) écrite seulement quand elle change (en l'air elle est figée à 1 : plus une écriture de style par image)
   const u9=mode!=='fall'&&CHA.t<1.1;if(u9!==CHA.urg){CHA.urg=u9;if(b9&&b9.parentNode)b9.parentNode.classList.toggle('urg',u9);} // la dernière seconde : la barre rougit et clignote
 }
 function chaineEncaisse(){
@@ -39833,6 +39835,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   sparkBurst(sparkGold,carGroup.position,8,7);
   try{thud(3.5);if(!SONV2)noiseBurst(.1,.08,900);pneuMord(.35);}catch(e){}
 }
+const TRACE_ATT=['position','uv']; // (2026-10-14, passe perf mobile) bâtie UNE fois (un tableau par image de trace avant)
 function traceTick(actif){
   if(!actif||wheels.length<4){TRACE.r[0]=TRACE.r[1]=null;return;}
   if(!TRACE.pos)traceInit();
@@ -39848,7 +39851,7 @@ function traceTick(actif){
     traceQuad(r.q,r.a0,r.a1,L9,R9,v0,v1);                                            // LE BOUT VIVANT : jusqu'au pneu, à chaque image
     if(dd>=.5){r.a0.copy(L9);r.a1.copy(R9);r.d+=dd;r.q=TRACE.i;TRACE.i=(TRACE.i+1)%TRACE.N;} // on fige, et un nouveau bout part de là
   }
-  if(TRACE.lo>=0)for(const n of ['position','uv']){const a=TRACE.geo.attributes[n],st=n==='uv'?8:12;
+  if(TRACE.lo>=0)for(const n of TRACE_ATT){const a=TRACE.geo.attributes[n],st=n==='uv'?8:12;
     if(TRACE.hi-TRACE.lo<40){a.updateRange.offset=TRACE.lo*st;a.updateRange.count=(TRACE.hi-TRACE.lo+1)*st;}else{a.updateRange.offset=0;a.updateRange.count=-1;}
     a.needsUpdate=true;}
 }
@@ -41605,7 +41608,7 @@ function jadeMusTick(){
   if(!JMUS.mod){if(JADE_PLAY||JADE_JEU||SF.on)jadeMusCharge();return;}
   const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
   if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
-      const P=1+[5,10,15,20].filter(function(t){return engTier>=t;}).length;if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
+      const P=1+(engTier>=5)+(engTier>=10)+(engTier>=15)+(engTier>=20);/* (2026-10-14, passe perf mobile) le même compte, sans tableau + fermeture + filtre par image */if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
       const vo=VOL.mus/.62*JMUS_NIV*(1-.55*JEAU.k); /* (2026-10-13) sous l'eau, la musique s'étouffe */if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
   else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
 // (2026-10-12, Léo : « on entend parfois la musique, et il y a des coupures ») le 1er toucher de la course la REDÉMARRAIT (stop + start : coupure,
@@ -51160,7 +51163,7 @@ function loop(now){
            et chaque palier d'élan (1,5 · 3 · 4,2 s de ligne tenue) allume un CYLINDRE (`moteur.cylindre`, un degré plus haut à chaque palier), réarmé
            seulement quand l'élan est retombé de 0,8 s sous le palier : conduire propre a un rythme qu'on entend. */
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
-         const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=[1.5,3,4.2][k9];if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
+         const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
@@ -51342,10 +51345,10 @@ function loop(now){
     // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
     // (pouvoirs v2) les plaques naissent de la fiche (PWR_DEFS : px, plq) dans l'ordre fixe PWR_ORDRE — (2026-09-28) pendant l'auto-école,
     // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
-    const pwL=[];for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9];pwL.push([k9,pwrT(k9),d9.px,sansAcc(TR(d9.plq))]);}
-    pch=pwL.map(function(x){return x[0];}).join('');
+    const pwL=[];for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9];pwL.push([k9,pwrT(k9),d9.px,d9.plq]);} // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
+    for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
     if(pch!==loop._pch){loop._pch=pch;
-      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+x[3]+'</small><b>0.0</b></span><u></u></div>';}).join('');
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
