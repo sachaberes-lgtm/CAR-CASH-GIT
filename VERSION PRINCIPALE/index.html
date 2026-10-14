@@ -7548,6 +7548,13 @@ html.c6 body #engBig .ebRuban{transform:none;clip-path:none;background:var(--c6-
   animation:c6Ruban var(--c6-pose) var(--c6-courbe) both}
 html.c6 body #engBig .ebRuban b,html.c6 body #engBig .ebRuban small{color:var(--c6-orE);-webkit-text-fill-color:var(--c6-orE);letter-spacing:0;text-shadow:none;filter:none}
 @media (prefers-reduced-motion:reduce){html.c6 body #engBig .ebRuban{animation:none}}
+/* ---- 4. LA CONSIGNE « GLISSE POUR TOURNER » (2026-10-14, charte 6) : couché, elle était serrée dans 100 px à gauche de l'anneau
+   (5466) et passait sur TROIS lignes (11 lettres × 10 px = 110 > 100). Sans chasse (19 lettres × 8 px = 152 px) elle tient sur UNE
+   ligne : on la pose juste AU-DESSUS de l'anneau (dont le haut est à --sB + 126 px, + 4 px quand il respire), départ sur la marge
+   du HUD (--hudG = encoche + 14 px : rien dans l'encoche). Debout : une ligne, comme avant, sans chasse. Blanche, plus lilas. */
+html.c6 body #tSteerHint{--tc:#fff;letter-spacing:0!important;white-space:nowrap!important}
+@media (orientation:landscape) and (max-height:540px){html.c6 body.touch #tSteerHint{width:auto!important;line-height:1!important;
+  bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 136px)!important}}
 </style>
 <style id="c6-pause-fin">
 /* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
