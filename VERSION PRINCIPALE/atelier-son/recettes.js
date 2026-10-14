@@ -462,6 +462,14 @@ D('fig.goutte',{fam:'figures',dur:.18,st:0,key:1,db:-12,max:3,cd:.06,bases:[0,12
 D('dauphin.banc',{fam:'figures',dur:1.2,st:1,db:-6,max:1,cd:1,bus:'amb',dit:'le banc de dauphins apparaît : clics et sifflets au loin',
   r:function(b,R,o){for(let k=0;k<7;k++){const t=R()*.9,f=3000+R()*2500;osc(b,{f:f,f1:f*(1.2+R()*.4),g:.08,t0:t,a:.005,d:.1,v:.06,fm:{r:.25,i:.8,d:.08},pan:R()*1.6-.8});}
     for(let k=0;k<12;k++)clic(b,{t0:R()*1.1,f:5000,d:.002,v:.08},R);}});
+/* LA TROUPE DE SINGES (2026-10-14, session SON) — le babil qui déboule : des « hou-hou » ronds qui plongent (voyelle filtrée), des « ha » de souffle haché,
+   deux cris qui montent. Cinq voix décalées et panoramiquées, hauteurs tirées au sort : une bande, pas un chanteur. Rien d'aigu qui pique — il revient souvent. */
+function hou(b,R,t0,f,v,pan,d){osc(b,{f:f,f1:f*.7,g:d*.8,w:'saw',t0:t0,a:.025,h:d*.25,d:d,v:v*.45,pan:pan,vib:[8,.035],flt:['bp',f*3,f*2,d,1.5]});osc(b,{f:f,f1:f*.7,g:d*.8,t0:t0,a:.025,h:d*.25,d:d,v:v*.4,pan:pan,vib:[8,.035]});}
+function haha(b,R,t0,v,pan){bruit(b,{c:'b',t0:t0,a:.006,d:.08,v:v,ft:'bp',f:1000,f1:1500,g:.08,q:1.8,pan:pan},R);osc(b,{f:560,f1:480,g:.08,w:'saw',t0:t0,a:.006,d:.07,v:v*.25,pan:pan,flt:['lp',1500,900,.08,.8]});}
+D('singe.troupe',{fam:'figures',bus:'amb',dur:1.05,st:1,db:-6,max:1,cd:1,dit:'une troupe de singes déboule : « hou-hou » ronds, « ha-ha » hachés et deux cris qui montent (cinq voix, hauteurs tirées au sort)',
+  r:function(b,R,o){for(let k=0;k<5;k++){const t=k*.09+R()*.05,f=330+R()*200,pan=(k-2)*.38;hou(b,R,t,f,.7,pan,.22);hou(b,R,t+.22,f*1.12,.6,pan,.2);if(k%2===0&&k<4)hou(b,R,t+.42,f*.95,.45,pan,.2);}
+    for(let k=0;k<7;k++)haha(b,R,.42+k*.06+R()*.03,.33,R()*1.6-.8);
+    for(let k=0;k<2;k++)osc(b,{f:1300+k*350,f1:2500+k*500,g:.14,w:'saw',t0:.3+k*.25,a:.012,h:.04,d:.16,v:.13,pan:k?.5:-.5,vib:[22,.03],fm:{r:1.5,i:1.2,d:.1},flt:['bp',2400,2800,.2,1.4]});}});
 D('fig.bump',{fam:'figures',dur:.7,key:1,db:0,max:2,cd:.06,pre:1,bases:[0,12],grp:'r',prio:1,dit:'BUMP : la dalle qui rebondit (ressort caoutchouc) + la note (st)',
   r:function(b,R,o){osc(b,{f:220,f1:150,g:.25,t0:0,a:.002,d:.35,v:.4,vib:[22,.12]});clic(b,{t0:0,f:1500,d:.01,v:.3},R);pluck(b,R,nE(12+o.base),.02,.45,.4,.9);}});
 D('air.regain',{fam:'figures',dur:.4,key:1,db:-5,max:2,cd:.15,dit:'le chrono d’airtime se RECHARGE (nuage, bump) : un « whoop » qui remonte',
@@ -567,6 +575,8 @@ D('aura.encaisse3',{fam:'aura',dur:1.6,st:1,key:1,db:+4,max:1,cd:.2,grp:'r',prio
   r:function(b,R,o){[12,19,24,28,31].forEach(function(st,i){marimba(b,R,nE(st),i*.05,.42,.6);});stab(b,R,[12,19,24,28],.2,.2,.8,.14,1.3);grave(b,o,.2,90,40,.2,.4,.45);scintille(b,R,.22,1,12,.1);}});
 D('aura.record',{fam:'aura',dur:1.3,st:1,key:1,db:+3,max:1,cd:1,grp:'r',prio:4,dit:'record d’aura battu en course : « ta-DA » de marimba + cuivre',
   r:function(b,R,o){marimba(b,R,nE(19),0,.5,.3);marimba(b,R,nE(24),.1,.55,.8);stab(b,R,[12,19,24,28],.1,.15,.8,.14,1.3);scintille(b,R,.12,.8,10,.1);}});
+D('aura.moyenne',{fam:'aura',dur:.9,st:1,key:1,db:+1,max:1,cd:.5,grp:'r',prio:2,dit:'« moyenne battue » (2026-10-14, session SON) : trois notes de marimba qui montent, un accord court et une cloche — petite récompense, sous la victoire',
+  r:function(b,R,o){[12,19,24].forEach(function(st,i){marimba(b,R,nE(st),i*.07,.45,i===2?.7:.4);});stab(b,R,[12,19],.14,.05,.3,.08,1);cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.3,.1],d:[.3,.12,.05],t0:.2,v:.22},R);}});
 D('aura.perdue',{fam:'aura',dur:.9,st:1,key:1,db:-2,max:1,cd:.5,dit:'la chaîne d’aura retombe : trois notes qui DESCENDENT, étouffées',
   r:function(b,R,o){[24,19,12].forEach(function(st,i){marimba(b,R,nE(st),i*.09,.4,.3);});filtre(b,'lp',2500,.7);}});
 /* LE FLOW — l'ACCORD qui monte d'un degré à chaque palier (piano électrique FM + nappe) */
@@ -613,6 +623,12 @@ D('nitro.pleine',{fam:'machine',dur:.7,st:1,key:1,db:-6,max:1,cd:2,dit:'la jauge
   r:function(b,R,o){cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.3,.1],d:[.35,.15,.05],t0:0,v:.3},R);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.1],d:[.5,.2,.08],t0:.08,v:.3},R);scintille(b,R,.1,.4,5,.07);}});
 D('nitro.sec',{fam:'machine',bus:'fx',dur:.7,db:-2,max:1,cd:1,dit:'panne SÈCHE de nitro (en vol : on perd le plané) : la flamme qui tousse et s’étrangle',
   r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'n',t0:k*.13,a:.003,d:.08,v:.5-k*.12,ft:'lp',f:1200-k*300,q:.8},R);bruit(b,{c:'b',t0:.4,a:.01,d:.2,v:.2,ft:'bp',f:1800,f1:600,g:.2,q:1.5},R);osc(b,{f:180,f1:60,g:.4,w:'saw',t0:0,a:.01,d:.5,v:.06,flt:['lp',800,200,.4]});}});
+/* (2026-10-14, session SON) L'ATCHOUM — la panne sèche en éternuement : « a… » (une aspiration qui monte, souffle + sifflet nasal), un temps, puis « TCHOUM » (pop d'échappement,
+   corps brun, voyelle qui s'affaisse, miettes de crépitements). Comique sans être un bruitage de dessin animé : la matière reste la machine (bus fx, niveau de nitro.sec). */
+D('caisse.atchoum',{fam:'machine',bus:'fx',dur:.6,db:-2,max:1,cd:1,dit:'panne SÈCHE, version éternuement : la flamme prend une grande inspiration (« a… ») puis éternue (« TCHOUM »)',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.2,d:.05,v:.3,ft:'bp',f:500,f1:2600,g:.24,q:1.4},R);osc(b,{f:420,f1:1100,g:.24,t0:0,a:.2,d:.05,v:.1,vib:[18,.03]});
+    bruit(b,{c:'b',t0:.31,a:.002,d:.1,v:.55,ft:'bp',f:1500,f1:500,g:.1,q:1},R);bruit(b,{c:'n',t0:.31,a:.003,d:.2,v:.5,ft:'lp',f:900,q:.7},R);
+    osc(b,{f:320,f1:90,g:.2,w:'saw',t0:.31,a:.005,d:.24,v:.2,flt:['lp',1300,300,.2,.8]});clic(b,{t0:.31,f:3000,d:.01,v:.35},R);crepite(b,R,.4,.12,4,.2);}});
 D('nitro.vide',{fam:'machine',bus:'fx',dur:.12,db:-6,max:1,cd:.15,dit:'appui NITRO à vide : « tchk » de gâchette sèche',
   r:function(b,R,o){clic(b,{t0:0,f:2500,d:.01,v:.6},R);clic(b,{t0:.035,f:1800,d:.008,v:.4},R);bruit(b,{c:'b',t0:.035,a:.002,d:.05,v:.15,ft:'bp',f:1200,q:2},R);}});
 /* LES POUVOIRS ont chacun leur signature (avant : le souffle d'un pad + deux notes) */
