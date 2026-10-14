@@ -16392,11 +16392,11 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
-  '  float uw=dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4)),wl=smoothstep(.25,.6,stp);vec4 n0=texture2D(uNZ,vW.xz/2600.),n1=mix(texture2D(uNZ,vW.xz/170.),texture2D(uNZ,vec2(uw,vW.y)/170.),wl),n2=mix(texture2D(uNZ,vW.xz/31.),texture2D(uNZ,vec2(uw,vW.y)/31.),wl),nv=texture2D(uNZ,vec2(uw/210.,vW.y/9.));', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées */
+  '  float uw=dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4)),wl=smoothstep(.10,.30,stp);vec4 n0=texture2D(uNZ,vW.xz/2600.),n1=mix(texture2D(uNZ,vW.xz/170.),texture2D(uNZ,vec2(uw,vW.y)/170.),wl),n2=mix(texture2D(uNZ,vW.xz/31.),texture2D(uNZ,vec2(uw,vW.y)/31.),wl),nv=texture2D(uNZ,vec2(uw/140.,vW.y/70.));', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées */
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
-  '  float sy=(vW.y+110.*(n0.r-.5)+6.*(n1.g-.5))/2.3;vec4 st=texture2D(uSTR,vec2(.5,sy/1024.));vec3 rc=st.rgb*st.rgb*(.92+.16*n2.b);rc=mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,.84);',
-  '  float lb=fract(vW.y*.42+(vW.x*.31+vW.z*.23)*.55+n1.b*3.);rc*=1.-.12*st.a*smoothstep(.84,1.,lb)*rk;', // le litage oblique des grès
-  '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.62,.50,.46),vr*.5);', // le VERNIS du désert
+  '  float sy=(vW.y+34.*(n0.r-.5)+4.*(n1.g-.5))/2.3;vec4 st=texture2D(uSTR,vec2(.5,sy/1024.));vec3 rc=st.rgb*st.rgb*(.92+.16*n2.b);rc=mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,.84);',
+  '  float lb=fract(vW.y*.42+n1.b*.6);rc*=1.-(.08+.12*st.a)*smoothstep(.80,1.,lb)*rk;', // le litage des grès, horizontal
+  '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.74,.62,.60),vr*.28);', // le VERNIS du désert
   '  vec3 sab=vec3(.86,.58,.43)*(.9+.2*n2.r);float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
   '  col=mix(col,vec3(.10,.12,.05),smoothstep(.70,.80,n2.a)*top*.7);', // le maquis sur les replats
   '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*(.94+.1*sin(dot(vW.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
@@ -16404,7 +16404,9 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  col*=uRkT*(1.-.35*uWet*(1.-wat));',
   '  float ndl=max(dot(N,uSunD),0.);',
   '  vec3 Lc=uSunC*ndl*lit+mix(uGnd,uSky,N.y*.5+.5)*(1.-.5*dk)+uBnc*(1.-.65*lit)*(.35+.65*dk)*(.55+.45*stp)+uFillC*max(dot(N,uFillD),0.)*.6+(uSunC*.10+uSky*.22+uBnc*.18)*(.55+.45*stp);', /* le plancher : l'ombre d'un désert reste claire (ciel + rebond), jamais noire */
+  '  if(dist<220.){float gr=texture2D(uNZ,vec2(uw,vW.y)/5.3).g*wl+texture2D(uNZ,vW.xz/5.3).g*(1.-wl);col*=1.+(gr-.5)*.22*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
+  '  c*=mix(vec3(1.),vec3(.80,.70,1.04),(1.-lit)*.55*rk);', // l'ombre de la roche tire au VIOLET (la bible)
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
   '    vec3 Nw=normalize(N*3.+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.)*(1.-stp));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.5));wc=mix(wc,uMud,uQ.w);',
   '    float fr=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));sk=mix(sk,uBnc*1.6+col*.4,dk*.55);',
@@ -16551,7 +16553,8 @@ const CY_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uBnc;uniform float uWet;varyin
   '  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
 function cyMonuMats(){if(CY.mm)return CY.mm;const U=CY.mat.uniforms;
   const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_FS,fog:true});m.dispose=function(){};return m;};
-  CY.mm={a:mk(),i:mk(),b:(function(){const m=mk();m.side=THREE.DoubleSide;return m;})(),t:(function(){const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;})()};return CY.mm;}
+  const mt=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;};
+  CY.mm={a:mk(),i:mk(),b:(function(){const m=mk();m.side=THREE.DoubleSide;return m;})(),t:mt(),g:(function(){const m=mt();m.side=THREE.DoubleSide;return m;})()};return CY.mm;}
 function cyArbreGeo(){const P=[],C=[],I=[],ad=(g,col,tx,ty,tz,sx,sy,sz)=>{const b=P.length/3,p=g.attributes.position,n=g.index;for(let k=0;k<p.count;k++){const v=.88+.24*Math.abs(Math.sin(k*12.9898));P.push(p.getX(k)*sx+tx,p.getY(k)*sy+ty,p.getZ(k)*sz+tz);C.push(col[0]*v,col[1]*v,col[2]*v);}
     if(n)for(let k=0;k<n.count;k++)I.push(b+n.getX(k));else for(let k=0;k<p.count;k++)I.push(b+k);g.dispose();};
   ad(new THREE.CylinderGeometry(.05,.09,1,5),[.42,.33,.24],0,.5,0,1,1,1);
@@ -16602,17 +16605,23 @@ function cyBandes(iv,tun){const S=CY.S;if(!S)return null;const i0=Math.max(0,Mat
     V(0,L0,bas[k],-nx,0,-nz);V(1,L0,t9,-nx,0,-nz);V(2,L0,t9,0,1,0);V(3,L0+T,t9,0,1,0);  // la face (vers la route) et le dessus
     if(k<n-1){const b2=b+4;I.push(b,b2,b+1,b+1,b2,b2+1,b+2,b2+2,b+3,b+3,b2+2,b2+3);}}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setIndex(I);g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,cyMonuMats().b);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=true;CY.grp.add(m);
+  if(tun){cyRocheSombre(g);cyRocheNeon(g,function(v){return S.y[i0+Math.min(n-1,(v>>2)%n)];});}const m=new THREE.Mesh(g,tun?cyMonuMats().g:cyMonuMats().b);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=true;CY.grp.add(m);
   if(tun)cyGalerie(i0,i1,L0);
   return {i0:i0,i1:i1,top:top,bas:bas,L0:L0,tun:tun};}
 /* LA VOÛTE (une demi-ellipse de L0 à L0, de la tête des murs au sommet), LA FAÇADE (un mur de falaise percé d'une bouche en fer à cheval,
    tourné vers celui qui arrive) et LES NÉONS (deux filets rose au pied des murs, un filet or sous la clé, la bouche cerclée de rose) */
 const CY_NEON={r:null,o:null};
+function cyRocheSombre(g){const p=g.attributes.position,C=new Float32Array(p.count*3);for(let k=0;k<p.count;k++){const y=p.getY(k),b=.5+.5*Math.sin(y*.9+Math.sin(y*.23)*2.);
+  C[k*3]=.36+.10*b;C[k*3+1]=.22+.05*b;C[k*3+2]=.30+.06*b;}g.setAttribute('color',new THREE.BufferAttribute(C,3));}
+/* (la matière simple met la couleur au CARRÉ et la galerie est à l'ombre : il faut des teintes claires pour lire la roche) — la galerie
+   prend le reflet de ses néons : ROSE au pied des murs, OR vers la clé de voûte */
+function cyRocheNeon(g,yr){const p=g.attributes.position,C=g.attributes.color.array;for(let k=0;k<p.count;k++){const h=p.getY(k)-yr(k),u=Math.max(0,Math.min(1,(h-CY_TUN.vh)/(CY_TUN.ap-CY_TUN.vh))),r=Math.exp(-Math.max(0,h-6)*Math.max(0,h-6)/900);
+  C[k*3]=Math.min(1,.78+.20*r+.12*u*u);C[k*3+1]=Math.min(1,.50+.06*r+.30*u*u);C[k*3+2]=Math.min(1,.66+.18*r-.20*u*u);}g.attributes.color.needsUpdate=true;}
 function cyGalerie(i0,i1,L0){const S=CY.S,n=i1-i0+1,NA=14,vh=CY_TUN.vh,ap=CY_TUN.ap,P=[],I=[];
   const pt=(i,a)=>{const l=-L0*Math.cos(a),y=S.y[i]+vh+(ap-vh)*Math.sin(a);return [S.x[i]-S.tz[i]*l,y,S.z[i]+S.tx[i]*l];}; // a = 0 (un mur) → π (l'autre)
   for(let k=0;k<n;k++)for(let q=0;q<=NA;q++){P.push.apply(P,pt(i0+k,q/NA*Math.PI));if(k<n-1&&q<NA){const a=k*(NA+1)+q,b=a+NA+1;I.push(a,b,a+1,a+1,b,b+1);}}
   const gv=new THREE.BufferGeometry();gv.setAttribute('position',new THREE.Float32BufferAttribute(P,3));gv.setIndex(I);gv.computeVertexNormals();gv.computeBoundingSphere();
-  const mv=new THREE.Mesh(gv,cyMonuMats().b);mv.userData.jeter=1;mv.matrixAutoUpdate=false;mv.updateMatrix();CY.grp.add(mv);
+  cyRocheSombre(gv);cyRocheNeon(gv,function(v){return S.y[i0+Math.floor(v/(NA+1))];});const mv=new THREE.Mesh(gv,cyMonuMats().g);mv.userData.jeter=1;mv.matrixAutoUpdate=false;mv.updateMatrix();CY.grp.add(mv);
   // LA FAÇADE à la bouche : le contour de la bouche (murs + voûte) relié à un grand rectangle de falaise (en éventail)
   {const i=i0,tx=S.tx[i],tz=S.tz[i],W=CY_TUN.fw,H=Math.max(CY_TUN.fh,S.R[i]-S.y[i]+80),yb=Math.min(S.F[i],S.y[i]-40)-10,Q=[],J=[],B=[];
    const at=(l,y)=>[S.x[i]-tz*l,y,S.z[i]+tx*l];
@@ -16655,7 +16664,7 @@ function cyMonuments(seed){
     for(let v=0;v<2;v++){const L9=CY.chem.filter(c=>c.v===v);if(!L9.length)continue;const im=new THREE.InstancedMesh(CY.gChem[v],M9.i,L9.length);
       L9.forEach(function(c,k){q9.setFromAxisAngle(ax,c.a);s9.set(c.r/.5,c.h,c.r/.5);p9.set(c.x,c.y,c.z);mt.compose(p9,q9,s9);im.setMatrixAt(k,mt);});
       im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;CY.grp.add(im);}}
-  try{const ra=cyRais(CY.S,CY.sQ||{});if(ra)CY.grp.add(ra);CY.rais=ra;}catch(e){console.warn('canyon : rais',e);}
+  CY.rais=null; // (14/10 soir) les RAIS DE LUMIÈRE retirés : sur la paroi ils se lisaient comme des traînées de ciel étalé (verdict de Sacha)
   CY.grp.updateMatrixWorld(true);
   CY.monu=!!(CY.arche||CY.chem.length);
 }
