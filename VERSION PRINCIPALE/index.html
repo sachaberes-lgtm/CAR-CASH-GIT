@@ -35450,9 +35450,9 @@ function sonTonSuit(){
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
-function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol
+function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol — (2026-10-14, session SON) une figure du catalogue FINIE (`fig_*`, lecteur `?fig=script`) sonne le MAILLON, comme le tour complet d'une figure libre : elle rejouait la vrille de son départ (veqFigure), deux fois le même son par figure
   if(!SONV2){trickPop(chain);return;}
-  sfx(id==='vrille'||String(id).indexOf('fig_')===0?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
+  sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
 /* ---- LES VOIX ET LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
