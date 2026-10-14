@@ -17613,7 +17613,7 @@ Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡�
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
 Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "弹弓"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
-Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
+Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','PARIS TERMINE':'PARIS COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','PARIS TERMINE':'巴黎完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
 Object.assign(I18N,{'AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
 Object.assign(I18N_ZH,{'AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
@@ -19438,13 +19438,22 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
    profondeur T), gonflée de la demi-caisse (1,0 en travers, 0,75 en hauteur, 2,2 en long). Dedans : la caisse EXPLOSE (« PERCUTÉ PAR UN
    SATELLITE »). Passé à moins de ~3 m sans toucher : FRÔLÉ (la même récompense que les plots : nitro, flow, aura — et le SLALOM qui
    s'enchaîne d'un satellite à l'autre). Le tri par distance au carré (R2) écarte tout ce qui est loin : ~150 obstacles = 150 soustractions. */
-const SATOB={list:[],on:false,d:new THREE.Vector3()};
+const SATOB={list:[],on:false,d:new THREE.Vector3(),pp:new THREE.Vector3(),pv:false};
 function satHard(){
-  if(!SATOB.on||!ORB.actif||!started||gameOver||mode==='boom'||graceT>0)return;
+  if(!SATOB.on||!ORB.actif||!started||gameOver||mode==='boom'||graceT>0){SATOB.pv=false;return;}
   const P=carGroup.position,d=SATOB.d;
+  /* (2026-10-14, chasse aux bugs) LE BALAYAGE (comme balEcart) : la boîte se testait en UN POINT par image — la fenêtre en long ne fait que
+     6 à 9 m, et à 30 i/s (iPhone en économie d'énergie) la caisse avance de plus que ça au-delà de ~700 km/h : elle TRAVERSAIT un satellite
+     plein axe sans mourir. On teste en plus le point où le TRAJET de l'image (pp → P) coupe le plan médian de l'obstacle. Un saut de
+     position (relance, portail : > 60 m ou garde ci-dessus) retombe sur le test en un point. */
+  const pp=SATOB.pp,ex=P.x-pp.x,ey=P.y-pp.y,ez=P.z-pp.z,bal=SATOB.pv&&ex*ex+ey*ey+ez*ez<3600;pp.copy(P);SATOB.pv=true;
   for(const o of SATOB.list){
     if(o.fait)continue;
     const dx=P.x-o.q.x,dy=P.y-o.q.y,dz=P.z-o.q.z;
+    if(bal){const t1=dx*o.T.x+dy*o.T.y+dz*o.T.z,eT=ex*o.T.x+ey*o.T.y+ez*o.T.z;
+      if(t1*(t1-eT)<0){const k=t1/eT;d.set(dx-ex*k,dy-ey*k,dz-ez*k);const a=Math.abs(d.dot(o.W)),u=Math.abs(d.dot(o.U)); // le plan a été franchi PENDANT l'image : la caisse à cet instant
+        if(a<o.hw&&u<o.hu){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}explode('sat');return;}
+        if(u<o.hu+1.2&&a<o.hw+3.2)o.min=Math.min(o.min,Math.max(0,a-o.hw)),o.pres=1;}} // le frôlé raté de la même façon (seulement s'il paie : < 3,2 m)
     if(dx*dx+dy*dy+dz*dz>o.R2){if(o.pres){o.fait=true;if(o.min<3.2)try{frole(o.fr,1.6+o.min*.62,1);}catch(e){}}continue;} // sorti de la bulle : le frôlé se paie
     d.set(dx,dy,dz);const a=Math.abs(d.dot(o.W)),u=Math.abs(d.dot(o.U)),t=Math.abs(d.dot(o.T));
     if(a<o.hw&&u<o.hu&&t<o.ht){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}explode('sat');return;}
@@ -39357,6 +39366,7 @@ function portailPasse(){
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='nuages'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){campFinale();return;} // (2026-10-04) SKY HIGH finit au niveau 5
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='ville'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){villeFinale();return;} // (2026-10-05) la VILLE finit au niveau 5
   if(CAMP.n===20&&!PARK.on){if(!VBQ.fini)villeFinale();return;}
+  if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='paris'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){parisFinale();return;} // (2026-10-14, chasse aux bugs) PARIS 10 — MINUIT n'avait pas de fin non plus : lvlChoisir plafonne au dernier niveau, le portail le rejouait à l'infini (comme PLUTON le 28/09)
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='espace'&&LVL.cur.carr.i===9){espaceFinale();return;} // (2026-09-28) PLUTON n'avait pas de fin : le portail le rejouait à l'infini
   if(TUTO.on&&!CARR.actif&&!PARK.on){SURV.pBase+=sP;newTrack();return;} // (2026-09-28) l'auto-école ne s'échappe pas par le portail (le débutant qui n'osait pas sauter finissait la leçon dans la VILLE) : la piste d'apprentissage repart // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
   if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)/vitMult()); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie) — (2026-09-30) ÷ vitMult : le vol porte la vitesse réelle
@@ -39938,6 +39948,7 @@ function resetGame(){
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
   PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
   try{nitroooVide();}catch(e){} // (2026-09-29) NITROOO et le dragon ne débordent plus sur la partie suivante
+  try{hautVide();}catch(e){} // (2026-10-14, chasse aux bugs) RECOMMENCER depuis la pause ne passe ni par explode ni par endGame : une carte MOTEUR / DÉFI / RECORD en attente dans la file du haut (derrière le verrou d'une bannière de niveau) sortait dans la partie SUIVANTE — la file se vide ici aussi (auto-école : les cartes gardées restent, comme à l'explosion)
   try{engBigCoupe();engBig.vu=null;}catch(e){} /* (2026-09-30) vu : la dernière carte moteur montrée — une partie neuve repart de zéro */ /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
   try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
@@ -41423,6 +41434,13 @@ function espaceFinale(){ // (2026-09-28) le portail de PLUTON : l'ESPACE est fin
   CAMP.garde=true;mortCause='finEspace';
   endGame();CARR.actif=null; // tout est fini : REJOUER repart en partie sans fin
 }
+function parisFinale(){ // (2026-10-14, chasse aux bugs) le portail de MINUIT : PARIS est fini — la même cérémonie qu'espaceFinale (PARIS n'avait aucune fin)
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){}
+  try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
+  {const pb9=Math.max(0,CARRIERE.findIndex(function(B){return B.id==='paris';}));carrMarque(pb9,CARRIERE[pb9].niveaux.length-1);}runStats.zones++;
+  CAMP.garde=true;mortCause='finParis';
+  endGame();CARR.actif=null; // comme l'ESPACE : REJOUER repart en partie sans fin
+}
 function campEchec(){if(gameOver)return;CAMP.garde=true;mortCause=CAMP.cause||'';endGame();}
 // ============ LES HALOS DE L'ÉCRAN : la police derrière (rouge/bleu en bas), le feu (magenta), le sillage (or) ============
 // Quatre calques à dégradé FIXE : seule leur OPACITÉ bouge (le compositeur s'en charge — aucun repeint par image sur iPhone).
@@ -42298,11 +42316,16 @@ function traficTick(dt,sp){
     const T9=VTR_T[c.ty];
     if(moi){ // le choc et le FRÔLÉ (le trafic existe en miroir sous la dalle : même test sur les deux faces)
       const dl=Math.abs(side*lat-c.lat),dS=s-c.s;
-      if(Math.abs(dS)<T9[3]+2.1&&dl<T9[4]+1.15){traficChoc(c,dl);continue;}
+      // (2026-10-14, chasse aux bugs) BALAYAGE, comme balEcart : le choc se testait en UN point par image — sous NITROOO ×2,6 et à 20-25 i/s (dt plafonné à ,05)
+      // l'écart caisse-voiture avance de 10-15 m par image, plus que la fenêtre d'une petite voiture (9,8 m) : on la TRAVERSAIT sans ACCROCHAGE ni frôlé.
+      // Si la fenêtre entière est sautée entre deux images (d0 → dS), on juge l'écart latéral au moment du croisement. Sinon : l'ancien test, inchangé.
+      const W9=T9[3]+2.1,d0=c.d0,l0=c.l0,l1=side*lat-c.lat,saut9=d0<-W9&&dS>W9&&dS-d0<60,dlB=saut9?Math.abs(l0+(l1-l0)*(-d0/(dS-d0))):dl;c.d0=dS;c.l0=l1;
+      if((Math.abs(dS)<W9||saut9)&&dlB<T9[4]+1.15){traficChoc(c,dlB);continue;}
+      if(saut9)c.dm=Math.min(c.dm,dlB-T9[4]-1.15);
       if(Math.abs(dS)<T9[3]+2.6)c.dm=Math.min(c.dm,dl-T9[4]-1.15);
       if(!c.fr&&dS>T9[3]+2.6){c.fr=true;if(c.dm<1.5&&Math.abs(vA)-c.v>25){frameAt(c.s,VF);VTR.du.mesh.position.copy(VF.p).addScaledVector(VF.b,c.lat);VTR.froN++;frole(VTR.du,1.6+Math.max(0,c.dm)*1.3,1);}}
       if(dS<0&&dS>-45&&dl<T9[4]+1.4&&Math.abs(vA)-c.v>30&&c.klax<=0){c.klax=3;klaxon();} // tu lui fonces dessus dans sa file : il klaxonne
-    }
+    }else c.d0=NaN; // (2026-10-14, chasse aux bugs) en vol ou sous le répit d'un choc : pas de trajet à balayer à la reprise
     c.klax=Math.max(0,c.klax-dt);
     if(ds>0&&ds<proche)proche=ds;
     if(n>=VTR.N)continue;
@@ -48764,7 +48787,9 @@ window.dbgInv=function(a,b){if(a==='ouvre')return invOuvre();if(a==='D'){INV.D=+
     vitrine:!!(gEl&&gEl.classList.contains('vitrine')),aide:!!(gEl&&gEl.classList.contains('aideInv')),vit:+(GAR.vit||0).toFixed(2),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),cErr:+(GAR.cErr||0).toFixed(3),porte:GAR.porte?+GAR.porte.e.toFixed(2):null,
     compte:['voiture','peinture','aile','trainee'].map(function(c){return c+':'+invListe(c).length;}).join(' ')};};
 function garMode(m){
-  if(!gEl)return;invFerme(true);invHoldFin();burnFin();gEl.classList.remove('vitrine','deplie','aideInv');const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
+  if(!gEl)return;
+  try{uiGarde(320);}catch(e){} // (2026-10-14, chasse aux bugs) changer d'écran de l'atelier (menu ↔ missions ↔ boutique) arme le verrou du double-tap, comme gModeVa : sans volet (HOME des missions, porte MISSIONS de l'accueil), le 2e tap tombait sur l'écran d'arrivée — le JOUER de l'accueil lançait une course
+  invFerme(true);invHoldFin();burnFin();gEl.classList.remove('vitrine','deplie','aideInv');const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);try{gVueSeule(false);}catch(e){}} // au menu : TA caisse, sans essai — (2026-10-12, passe qualité) et l'ŒIL éteint : Échap depuis la vue seule laissait #garage caché, MISSIONS devenait un ciel sans aucun bouton
   const deMenu9=gEl.classList.contains('menu')||gEl.classList.contains('missions');
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
@@ -51895,10 +51920,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // sans ça, changer de langue faisait revenir « molette » sur un écran qui n'en a pas.
   const gh=$t('gHint'); if(gh){gh.textContent='glisse pour tourner · pince pour zoomer';gh.dataset.fr=gh.textContent;}
   // ---- BOUTONS : ils pilotent le MÊME objet `keys` que le clavier → aucune nouvelle physique ----
-  function bindHold(el,code,onDown,vis){ if(!el)return; vis=vis||el; // `vis` : l'élément qui s'ENFONCE (la zone NITRO élargie enfonce le disque)
+  function bindHold(el,code,onDown,vis){ if(!el)return; vis=vis||el; el._tenu=code; // `vis` : l'élément qui s'ENFONCE (la zone NITRO élargie enfonce le disque)
     const dn=function(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); // un appui sur un bouton n'arme JAMAIS le volant
       if(!keys[code]){keys[code]=true;vis.classList.add('on');hap(9);if(onDown)onDown();} };
-    const up=function(e){ if(e&&e.cancelable)e.preventDefault(); keys[code]=false; vis.classList.remove('on'); };
+    const up=function(e){ if(e&&e.cancelable)e.preventDefault();
+      if(e&&e.touches&&keys[code])for(let i=0;i<e.touches.length;i++){const c=e.touches[i].target;const b=c&&c.closest?c.closest('#tNitro,#tNitroZone,#tLeft,#tRight'):null;if(b&&b._tenu===code)return;} // (2026-10-14, chasse aux bugs) un AUTRE doigt tient encore cette commande (le pouce sur le disque NITRO, quand la paume quitte la zone élargie) : le lever d'un intrus ne coupe plus la nitro sous le pouce — même règle que le volant (2026-09-30)
+      keys[code]=false; vis.classList.remove('on'); };
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
     el.addEventListener('touchcancel',up,{passive:false});
@@ -52007,11 +52034,15 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     },{passive:false});
     sz.addEventListener('touchmove',function(e){
       if(e.cancelable)e.preventDefault();
-      if(!TCTL.act)return;
+      if(!TCTL.act){ // (2026-10-14, chasse aux bugs) le pouce RESTÉ POSÉ pendant la mort (syncJeu a rendu le volant sous lui) : à la partie suivante son 1er glissé refait naître le stick sous lui — sinon volant mort jusqu'à lever puis reposer le doigt
+        if(TCTL.fant!=null&&TCTL.play&&!paused&&mode!=='boom')for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i];
+          if(t.identifier===TCTL.fant){TCTL.fant=null;stDown(t.identifier,t.clientX,t.clientY);break;} }
+        return; }
       for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i];
         if(t.identifier===TCTL.id)stMove(t.clientX,t.clientY); }
     },{passive:false});
     const stEnd=function(e){
+      if(TCTL.fant!=null)for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.fant)TCTL.fant=null; // (2026-10-14, chasse aux bugs) le pouce orphelin s'est levé : plus rien à reprendre
       if(!TCTL.act)return;
       for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id)stUp();
     };
@@ -52121,7 +52152,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(dead!==TCTL.dead){ TCTL.dead=dead; document.body.classList.toggle('dead',dead); if(dead)TCTL.mortT=performance.now(); } // l'écran de mort a sa propre hiérarchie
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(gear)gear.innerHTML=pxi(play?'pause':'reglages'); // en jeu c'est un bouton PAUSE, au menu un bouton réglages
-      if(!play){ for(const k in keys)keys[k]=false; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
+      if(!play){ for(const k in keys)keys[k]=false; TCTL.fant=(TCTL.act&&TCTL.id!=='souris')?TCTL.id:null; // (2026-10-14, chasse aux bugs) on retient le doigt encore posé sur le volant (voir le touchmove de #tSteer)
+        try{document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on').forEach(function(b){b.classList.remove('on');});}catch(e){} // (2026-10-14, chasse aux bugs) …et un bouton tenu à la mort ne reste pas DESSINÉ enfoncé à la partie suivante, nitro coupée (comme l'écouteur blur)
+        TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
   }
   document.addEventListener('cc:jeu',syncJeu); // (2026-09-25) les commandes apparaissaient 0 à 140 ms APRÈS le départ, au hasard du tick
   setInterval(function(){
@@ -52242,7 +52275,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        0 $ versés : pas de compte (mCount affiche d'un coup), donc ni crans ni pose. La jauge des missions et le carnet : objRender. */
     if(SONV2){
       const s9=function(ms,id,o){setTimeout(function(){if(ici())try{sfx(id,o);}catch(e){}},ms);};
-      const d9=REDUCED_MOTION?0:360,cpt=!!mCntT,fin9=mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace';
+      const d9=REDUCED_MOTION?0:360,cpt=!!mCntT,fin9=mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'||mortCause==='finParis';
       s9(80,'mort.enseigne');
       if(commitExploits._rangMonte)s9(250,'ui.debloque');
       if(cpt){for(let j=0;j<9;j++)s9(d9+Math.round(750*(1-Math.sqrt(1-j/9))),'ui.compte',{st:sonPd(j)});s9(d9+750,'mort.compteFin');}
@@ -52280,7 +52313,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const CAUSES={air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',sat:'PERCUTE PAR UN SATELLITE',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          feu:'CRIBLE PAR LA POLICE',facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',sol:'ECRASE SUR LE PAVE',seme:"LA CAISSE-NUAGE T'A SEME",devant:"TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace')?'#ffe7a8':'';}}
-      if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'){ot.textContent=TR(mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINE');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
+      if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'||mortCause==='finParis'){ot.textContent=TR(mortCause==='finParis'?'PARIS TERMINE':mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINE');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
