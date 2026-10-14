@@ -439,6 +439,21 @@ D('fig.maillon',{fam:'figures',dur:.6,key:1,db:-1,max:3,cd:.04,pre:1,bases:[0,12
   r:function(b,R,o){pluck(b,R,nE(12+o.base),0,.55,.45,1);clic(b,{t0:0,f:4000,d:.004,v:.15},R);}});
 D('fig.vrille',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un demi-tour de vrille : le souffle TOURNE autour de la caisse + la note',
   r:function(b,R,o){const s=o.v?1:-1;swish(b,R,0,.28,700,3600,.35,-.85*s,.85*s,1.4);pluck(b,R,nE(12+o.base),.03,.5,.4,1,.2*s);}});
+/* (2026-10-14, session SON) Les trois MATIÈRES DE TOUR des FIGURES v2 : la caisse tourne en vraie physique, le jeu joue UN son
+   par tour complet et choisit la matière d'après l'AXE. Même famille que la vrille (souffle + note accordée, st = degré de la
+   gamme du vol), mais on les reconnaît les yeux fermés : le TONNEAU s'enroule d'une oreille à l'autre (espace), la TOUPIE
+   hache à plat (modulation), le SALTO plonge dans le grave et passe par-dessus la tête (filtre). Courts, un par tour : doux. */
+D('fig.tonneau',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TONNEAU (axe de roulis) : l’air s’enroule d’une oreille à l’autre + la note claire',
+  r:function(b,R,o){const s=o.v?1:-1;swish(b,R,0,.3,900,3000,.3,-.9*s,.9*s,1.5);swish(b,R,.17,.26,3000,1100,.24,.9*s,0,1.3);
+    pluck(b,R,nE(12+o.base),.04,.46,.36,1,.1*s);}});
+D('fig.toupie',{fam:'figures',dur:.5,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TOUPIE (axe de lacet) : un frrrt qui tournoie à plat, haché comme une pale + la note mate',
+  r:function(b,R,o){const s=o.v?1:-1;bruit(b,{c:'r',t0:0,a:.07,d:.3,v:.5,ft:'bp',f:1500,f1:1000,g:.3,gc:.8,q:1.9,pan:-.35*s,pan1:.35*s,am:[26,.8]},R);
+    osc(b,{f:nE(12+o.base)*.5,w:'tri',t0:0,a:.01,d:.2,v:.12,pan:0});
+    pluck(b,R,nE(12+o.base),.03,.42,.26,.55,.15*s);}});
+D('fig.salto',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de SALTO (axe de tangage) : un wouomp vertical dans le grave, l’air passe par-dessus la tête + la note',
+  r:function(b,R,o){grave(b,o,0,150,70,.22,.3,.5);
+    bruit(b,{c:'n',t0:0,a:.14,d:.12,v:.7,ft:'lp',f:350,f1:2800,g:.14,gc:.8,q:.8},R);bruit(b,{c:'n',t0:.13,a:.01,d:.3,v:.55,ft:'lp',f:2800,f1:300,g:.3,gc:.8,q:.8},R);
+    pluck(b,R,nE(12+o.base),.07,.44,.4,.8);}});
 D('fig.essoreuse',{fam:'figures',dur:1.3,st:1,key:1,db:+3,max:1,cd:.3,grp:'r',prio:3,dit:'720° et plus — ESSOREUSE COSMIQUE : tourbillon + accord de cuivres + coup',
   r:function(b,R,o){for(let k=0;k<3;k++)swish(b,R,k*.09,.3,600+k*400,4200,.3,k%2?.9:-.9,k%2?-.9:.9,1.4);
     stab(b,R,[12,19,24,28],.12,.12,.6,.16,1.2);grave(b,o,.12,90,40,.2,.4,.6);scintille(b,R,.15,.6,10,.1);}});
