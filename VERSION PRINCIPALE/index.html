@@ -42778,6 +42778,7 @@ function enCoursPose(){
     SAVE.d.enCours={v:Math.max(0,money-chanceBase()),a:Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0))+Math.max(0,g),e:engTier|0,
       tr:Math.max(0,(runStats.tricks|0)-rs9.tr),ga:Math.max(0,(runStats.gaps|0)-rs9.ga),bu:Math.max(0,(runStats.bumps|0)-rs9.bu),sv:Math.max(0,(runStats.surv|0)-rs9.sv),zo:runStats.zones|0,ch:runStats.chainMax|0,
       km:Math.round(runStats.vmax)||0,s:Math.round(money),f:(FLOW.lv===4&&FREN.t>0)?Math.floor(FREN.t*10)/10:0};
+    jourCommit(); /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2 ») une partie du jour tuée en arrière-plan marque le jour AUSSI : sinon on la tuait d'un balayage puis on rejouait un 2e ×2 le même jour (idempotent : jourCommit ne paie qu'une fois par partie) */
     return true;
   }catch(e){return false;}
 }
