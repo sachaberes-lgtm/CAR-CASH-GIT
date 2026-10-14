@@ -7867,37 +7867,47 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
       <div class="shRestaurer" data-m="shopRestore" role="button">RESTAURER MES ACHATS</div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
-    <div class="mscr" id="mSet">
-      <div class="mHead"><h3>REGLAGES</h3></div>
-      <div class="mSet">
-        <div class="mSec">AUDIO</div>
-        <div class="mPanel">
-          <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
-          <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>VOLUME</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
-          <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
-          <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
-          <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
-          <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOLUME</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
+    <!-- (2026-10-14, charte 6) LES RÉGLAGES : l'en-tête commun (◀ en haut à gauche, le titre) remplace le titre .mHead et le dock RETOUR
+         du bas (couché il mangeait un tiers de l'écran et MASQUAIT des lignes) ; le corps prend toute la hauteur et défile dessous.
+         Deux colonnes couché (AUDIO + SAUVEGARDE | JEU), une debout (AUDIO, JEU, SAUVEGARDE : .c6Col se dissout, voir <style id="c6-pages">).
+         Le curseur de volume vit sous sa ligne, son pourcentage au bout (le mot « VOLUME » répété est parti). EFFACER n'est plus une
+         plaque rouge au milieu : une touche sourde, seule, tout en bas. Mêmes data-m, mêmes ids (mv*, mVol*) : le routeur ne voit rien. -->
+    <div class="mscr c6Page" id="mSet">
+      <div class="c6Tete plein"><div class="pbtn pbCarre c6Ret" data-m="back" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i></div><b class="c6Titre" data-fr="REGLAGES">REGLAGES</b></div>
+      <div class="c6Corps c6Set">
+        <div class="c6Col">
+          <div class="mSec">AUDIO</div>
+          <div class="mPanel">
+            <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
+            <div class="volRow" id="mVolRowSfx"><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100" aria-label="Volume du son"><b class="volV" id="mVolSfxV">100%</b></div>
+            <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
+            <div class="volRow" id="mVolRowMus"><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62" aria-label="Volume de la musique"><b class="volV" id="mVolMusV">62%</b></div>
+            <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
+            <div class="volRow" id="mVolRowVox"><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100" aria-label="Volume des voix"><b class="volV" id="mVolVoxV">100%</b></div>
+          </div>
+          <div class="mSec oSauv">SAUVEGARDE</div>
+          <div class="mPanel oSauv">
+            <div class="mLigne lien" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
+            <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
+          </div>
         </div>
-        <div class="mSec">JEU</div>
-        <div class="mPanel">
-          <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
-          <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
-          <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
-          <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
-          <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT EN VOL</span><b id="mvVolH" class="valeur">MONTE</b></div>
-          <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
-          <div class="mLigne lien" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">REVOIR L'AUTO-ECOLE</span><b id="mvTuto" class="valeur" hidden></b></div>
+        <div class="c6Col">
+          <div class="mSec oJeu">JEU</div>
+          <div class="mPanel oJeu">
+            <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
+            <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
+            <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
+            <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
+            <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
+            <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
+            <div class="mLigne" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">AUTO-ECOLE</span><b id="mvTuto" class="valeur">REVOIR</b></div><!-- (2026-10-14, charte 6) « REVOIR L'AUTO-ECOLE » + la prime ne tenaient pas sur une ligne : le nom à gauche, le geste à droite, comme les autres lignes (mFill écrit REVOIR ou la prime) -->
+          </div>
         </div>
-        <div class="mSec">SAUVEGARDE</div>
-        <div class="mPanel">
-          <div class="mLigne lien" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
-          <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
+        <div class="c6Pied">
+          <div class="pbtn c6Efface" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
+          <span class="c6Ver" id="mvVer"></span>
         </div>
-        <div class="pbtn pb-red wide mWipe" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
-        <p class="ccVer" id="mvVer"></p>
       </div>
-      <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
   </div>
 </div>
@@ -17915,6 +17925,7 @@ Object.assign(I18N_ZH,{"VRAIMENT ?": "确定？", "PERMIS": "驾照", "SORTI ! S
 Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over."}); // (2026-09-29, passe qualité)
 Object.assign(I18N_ZH,{"MULTI MAX":"最高倍数","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"训练结束：你有 3 条命。空中要在计时结束前着陆。","IL MENE DE":"银行家领先","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"金钱、赛车、外观、任务、纪录、生涯和设置：全部清零。"});
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
+Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"});Object.assign(I18N_ZH,{"POUCE HAUT":"拇指向上","REVOIR":"重温","AUTO-ECOLE":"驾校"}); /* (2026-10-14, charte 6) les réglages : « POUCE HAUT EN VOL » et « REVOIR L'AUTO-ECOLE » raccourcis (une ligne = un nom + une valeur) */
 Object.assign(I18N_ZH,{"MODE FACILE": "简单模式", "POUCE HAUT EN VOL": "空中拇指向上", "PLONGE": "俯冲", "MONTE": "爬升", "CHOISIS TON MODE": "选择模式", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "简单模式：车更容易过弯，空中停留更久，还有 3 条命。可以在设置里更改。", "FACILE": "简单", "NORMAL": "普通", "VIES": "条命", "DERNIERE VIE !": "最后一条命！", "ON REPART !": "重新上路！", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "空中：拇指向上 = 爬升，向下 = 俯冲。"});
 // (POKI) les textes propres à l'édition Poki (les habillages des anciens carnets, l'effacement sans missions ni carrière)
 if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"Twenty-four carats on the bodywork. Subtle, like you.",
@@ -52015,7 +52026,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
       sv('mvLang',LANG.toUpperCase(),true);
 
-      {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=!on9;e9.textContent=on9?'+'+fmtC(500):'';}} // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit
+      {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=false;e9.textContent=on9?'+'+fmtC(500):TR('REVOIR');}} /* (2026-10-14, charte 6) la ligne s'appelle AUTO-ECOLE, sa valeur dit le geste (REVOIR) — ou la prime */ // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit
       volUI();
     }
   }catch(e){} }
