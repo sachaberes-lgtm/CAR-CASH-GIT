@@ -5279,6 +5279,19 @@ html body.touch #flowHud[data-lv="4"] .fM.cj2{animation:fx3Bat .9s steps(1,end) 
 @keyframes fx3Monte1{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}18%{opacity:1;transform:translate(-50%,calc(-50% - 10px)) scale(1)}65%{opacity:1;transform:translate(-50%,calc(-50% - 26px)) scale(1)}100%{opacity:0;transform:translate(-50%,calc(-50% - 34px)) scale(.9)}}
 @keyframes fx3Monte2{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}18%{opacity:1;transform:translate(-50%,calc(-50% - 10px)) scale(1)}65%{opacity:1;transform:translate(-50%,calc(-50% - 26px)) scale(1)}100%{opacity:0;transform:translate(-50%,calc(-50% - 34px)) scale(.9)}}
 body.dead .fx3,body.hTp:not(#ccH) .fx3{visibility:hidden}
+/* (2026-10-14, GAMEPLAY — Sacha : « enlève l'argent qui vient en dessous et mets plutôt le PLUS 1 FLOTTANT à côté de la voiture ») LE « +1 » DE LA
+   PIÈCE : petit, pixel, vert billet cerné d'encre, posé À CÔTÉ de la caisse (jamais dessus), il claque, monte et s'éteint en 0,6 s. Ancré par sa
+   gauche (translate 0) : il pousse vers l'extérieur, pas vers la caisse. Le « +$ » sous le compteur d'argent (.chD) est éteint : le total reste. */
+#cashHud .chD{display:none!important}
+.p1f{position:fixed;left:0;top:0;z-index:40;pointer-events:none;display:block;font-family:var(--pix);font-style:normal;font-weight:normal;font-size:var(--f3);
+  line-height:1;letter-spacing:1px;white-space:nowrap;color:#46de76;opacity:0;filter:var(--contourP)}
+.p1f.on{animation:p1fMonte1 .6s var(--ease) both}
+.p1f.on2{animation:p1fMonte2 .6s var(--ease) both}
+@keyframes p1fMonte1{0%{opacity:1;transform:translate(0,-50%) scale(1.4)}18%{opacity:1;transform:translate(0,calc(-50% - 6px)) scale(1)}65%{opacity:1;transform:translate(0,calc(-50% - 18px)) scale(1)}100%{opacity:0;transform:translate(0,calc(-50% - 26px)) scale(.9)}}
+@keyframes p1fMonte2{0%{opacity:1;transform:translate(0,-50%) scale(1.4)}18%{opacity:1;transform:translate(0,calc(-50% - 6px)) scale(1)}65%{opacity:1;transform:translate(0,calc(-50% - 18px)) scale(1)}100%{opacity:0;transform:translate(0,calc(-50% - 26px)) scale(.9)}}
+body.dead .p1f,body.hTp:not(#ccH) .p1f{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.p1f.on,.p1f.on2{animation:p1fFondu .6s linear both}}
+@keyframes p1fFondu{0%,65%{opacity:1;transform:translate(0,-50%)}100%{opacity:0;transform:translate(0,-50%)}}
 @keyframes fx3Fondu{0%,65%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-50%)}}
 @media (prefers-reduced-motion:reduce){
   html body.touch #flowHud[data-lv="4"] .fM,html body.touch #flowHud[data-lv="4"] .fM.cj1,html body.touch #flowHud[data-lv="4"] .fM.cj2{animation:none}
@@ -22638,9 +22651,10 @@ function cashTxt(v){v=Math.max(0,v);
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
-  if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=e.querySelector('.chD');}
+  if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
   if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;CASH.v.textContent=t;}}
+  if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
     if(kd!==CASH.kd2){CASH.kd2=kd;const td='+$ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
@@ -33649,6 +33663,23 @@ function fx3Tag(pos){ // le « ×3 » qui jaillit de la pièce : l'étiquette la
   const o=FX3.pool[FX3.i=(FX3.i+1)%FX3.pool.length],e=o.e,t9='×'+fmtMul(flowMult());
   if(e.textContent!==t9)e.textContent=t9;
   e.style.left=Math.round((v.x*.5+.5)*innerWidth)+'px';e.style.top=Math.round((-v.y*.5+.5)*innerHeight)+'px';
+  const k=o.k=!o.k;e.classList.remove(k?'on':'on2');e.classList.add(k?'on2':'on');
+}
+/* (2026-10-14, GAMEPLAY — Sacha : « mets plutôt le PLUS 1 FLOTTANT à côté de la voiture ») LE « +1 » DE LA PIÈCE. Trois étiquettes recyclées (rien
+   n'est créé en jeu), posées à côté de la caisse projetée à l'écran : à droite de sa silhouette (rayon = 0,55 × sa longueur, la même mesure que le
+   contre-jour), un peu au-dessus de son centre. Des pièces rapprochées (< 0,6 s) ne s'EMPILENT pas : la même étiquette compte +2, +3… et repart.
+   Ramené dans l'écran s'il déborde. Le style : .p1f (à côté de .fx3). */
+const P1F={pool:null,i:0,n:0,t:0,cur:null,v:new THREE.Vector3(),w:new THREE.Vector3()};
+function piece1Plus(){
+  if(!started||gameOver||!carGroup.visible)return;
+  if(!P1F.pool){P1F.pool=[];for(let j=0;j<3;j++){const e=document.createElement('i');e.className='p1f';e.setAttribute('aria-hidden','true');document.body.appendChild(e);P1F.pool.push({e:e,k:false});}}
+  const n=performance.now(),suite=!!P1F.cur&&n-P1F.t<600;P1F.t=n;P1F.n=suite?P1F.n+1:1;
+  const v=P1F.v.copy(carGroup.position).project(camera);if(v.z>1||v.x<-1.05||v.x>1.05||v.y<-1.05||v.y>1.05)return; /* hors champ : rien */
+  const R=.55*((CARS[level]&&CARS[level].l)||4.2),w=P1F.w.setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(R).add(carGroup.position).project(camera);
+  const cx=(v.x*.5+.5)*VP.w,cy=(.5-v.y*.5)*VP.h,dx=Math.max(16,Math.abs(w.x-v.x)*.5*VP.w);
+  const o=suite?P1F.cur:(P1F.cur=P1F.pool[P1F.i=(P1F.i+1)%P1F.pool.length]),e=o.e,t='+'+P1F.n;
+  if(e.textContent!==t)e.textContent=t;
+  e.style.left=Math.round(Math.min(VP.w-56,cx+dx+10))+'px';e.style.top=Math.round(Math.max(24,cy-dx*.35))+'px';
   const k=o.k=!o.k;e.classList.remove(k?'on':'on2');e.classList.add(k?'on2':'on');
 }
 /* L'EMBLÈME « THE DARK TRIAD » (#triade) : il NAÎT de la zone rouge — parti du bout de la jauge, il vient CLAQUER à sa place (onde de
@@ -55417,7 +55448,7 @@ function pickupsTick(dt){
         // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
         // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
         // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
-        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);
+        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);try{piece1Plus();}catch(e){} /* (2026-10-14) le « +1 » à côté de la caisse */
         /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT DANS LA MAIN. Chaque pièce a son tic à peine perceptible (ligne suivante) ; la 5e,
            la 10e, la 15e — celles où la salve d'aura tombe et où `piece.recolte` sonne — n'avaient rien de plus. Elles prennent un tic NET
            (moyen), DOUBLE à partir de la 15e d'affilée, et la caisse se soulève d'un rien (≈ 1 → 2 cm : elle s'allège). Un seul coup par
