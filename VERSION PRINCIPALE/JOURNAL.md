@@ -65,6 +65,18 @@ Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NI
   par champ de three), géants en morceaux de 1,5 km ; budgets `PAL.B.banq*`. MESURÉ (navigateur, banc muet, palier récent) : construction
   156-179 ms (dont la neige 114-131 ms), neige 140-153 k triangles en ~60 morceaux, pics et stalactites 12-14 k, géants 2,2 k ; palier ancien
   (Node) 60-115 ms, neige 42 k. 0 erreur JS sur les six temps ; en jeu : la poudreuse porte (0,4-0,8 m), la glisse sur un lac (85 → 80 en 2 s).
+- LA CONSTRUCTION EN TRANCHES (14/10 soir, PILOTAGE : « descends la construction sous ~50 ms ») : `buildBanq` ne bâtit tout de suite que la
+  PHYSIQUE (la grille de neige, les lacs, les cristaux) et le décor à moins de `BK_TOUT` = 600 m du départ ; le reste (morceaux de neige, pics,
+  géants, stalactites — chaque morceau de stalactites a SON hasard, l'ordre des tâches ne change rien) part dans `BANQ.file`, trié du plus
+  proche au plus loin, et `banqTick` en bâtit ~3 ms par image (8 en pause) — `bkTache`/`bkTranches`. La grille v2 (`banqSol`, `bkProfil`) :
+  distance à la route de la grille grossière par TRANSFORMÉE DE DISTANCE, bruit seulement où il compte, au-delà de `BK_DF` = 1 km la neige
+  vient de la grille grossière ; cases de 30 m sur ordinateur (le relief du shader fait le détail). Les pics loin de toute route sautent le
+  contrôle de dégagement. MESURÉ (Node, graine chaude) : ordinateur 143 → 52-58 ms, palier ancien 76 → 19-25 ms ; ~140 tâches derrière
+  (~50 ms en tout, réparties). `dbgBanq().tp` (les phases), `.file` (tâches restantes), `dbgBanq('fini')` (finir la file d'un coup).
+- LE CHOC MORTEL SUR LA GLACE plus exigeant (vitesse normale > 105 ET angle > ~62°) : au banc Node, 20 approches de pic sur 20 glissent
+  (7 sur 20 avant) ; l'aiguille de face et le plongeon de 60 m sur un lac tuent toujours.
+- RACCORD À LA BIBLE DA-CARCASH (proposition GRAPHISME) : horizons pêche (chroma 21-22), brumes teintées (L* ≤ 84, chroma 14-22), zénith
+  azur (chroma 61), contre-jour ROSE sur la caisse à toutes les heures, soleil légèrement chaud contre un remplissage froid ; la nuit indigo.
 - Console : `dbgBanq()` (comptes, temps), `dbgBanq('meteo','nuit')`, `dbgBanq('vue',{p,c,fov})`, `dbgBanq('pic'|'lac',{d,h})` (photos),
   `dbgBanq('poudre'|'glace'|'pic9',{h,v,pq})` (la caisse lâchée au-dessus de la poudreuse, d'un lac, d'un pic), `dbgBanq('etat')`,
   `dbgBanq('phys',{prof:…})` (régler la physique en direct). Lancer : `?carte=banquise&meteo=nuit` puis JOUER, ou `dbgClassique('banquise','soir');dbgSaut()`.
