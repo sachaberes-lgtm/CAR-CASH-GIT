@@ -28279,7 +28279,14 @@ let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPun
    · sensSecoue(k) : une petite secousse de caméra, plafonnée (.4), moitié en vol (on y vise), rien sous « Réduire les animations ». */
 const SCOUP={p:0,pv:0,ht:0,hf:0,hop:0,hopP:false}; // le tangage EN PLUS du jeu (rad, rad/s) — le roulis et le débattement ont déjà leurs ressorts (rollV, susV) · ht/hf : la dernière vibration · hop/hopP : la hauteur du petit saut en cours (dos d'âne, replacement) et s'il porte une pose déclarée en l'air
 function sensCoup(versLat,nez,pompe){if(!SENS||mode!=='drive')return;rollV=THREE.MathUtils.clamp(rollV-(versLat||0),-5,5);SCOUP.pv=THREE.MathUtils.clamp(SCOUP.pv+(nez||0),-4,4);susV=THREE.MathUtils.clamp(susV+(pompe||0),-4,4);}
-function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
+function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;if(t-(hap._t||-1e9)<70)return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
+/* (2026-10-14, gameplay · accord) LA MAIN N'A QU'UNE VOIX PAR ÉVÉNEMENT. Le limiteur ne voyait que les vibrations de la passe : un détail
+   SENS pouvait doubler, à la même image, le coup que le jeu venait de donner (le braquage qui arrache la caisse : [16,40,16] PUIS le tic
+   du décollage). `hap` note désormais l'heure de sa dernière impulsion (`hap._t`) et un détail SENS se TAIT dans les 70 ms qui suivent
+   n'importe quelle vibration : le geste d'origine garde la parole. L'échelle, la même partout (sol, air, eau, menu) — le Taptic d'iOS
+   la lit ainsi (hap) : TIC LÉGER ≤ 12 ms (une lèvre, une crête, une pièce, une petite retombée) · COUP NET 14-24 ms (une pose, un bump,
+   une porte, la lèvre rattrapée) · COUP LOURD ≥ 45 ms (la pose lourde, la flaque, la mort) · MOTIF DOUBLE [coup, 20-40 ms, coup] pour
+   les gestes à deux temps (la catapulte, le saut nitro, la figure, le train de boosts, la panne sèche). */
 function sensSecoue(k){if(!SENS||REDUCED_MOTION)return;shake=Math.max(shake,Math.min(.4,k)*(mode==='fall'?.5:1));}
 /* (2026-10-14, sensations · glisse) LA GLISSE SE SENT DANS LA TÔLE. Le drift avait déjà ses étincelles, sa fumée, son roulis (+4°) et ses
    vibrations de palier — mais l'ACCROCHE (l'instant où l'arrière décroche) ne faisait rien : le roulis et le nez s'installaient en fondu.
@@ -36104,7 +36111,7 @@ let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — 
    en impacts — une impulsion courte = LÉGÈRE, moyenne = MOYENNE, longue = LOURDE, et un motif [on,off,on…] rejoue
    chaque impulsion à son heure. Hors app (navigateur Android), le vibreur d'origine reste la voie. */
 function hap(p){
-  if(!TCTL.on||!SND.vib)return; // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
+  if(!TCTL.on||!SND.vib)return;hap._t=performance.now(); // (2026-10-14, gameplay · accord) l'heure de la dernière impulsion : le limiteur des détails SENS la lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
   const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
   if(H){try{
     const L=Array.isArray(p)?p:[p];let at=0;
