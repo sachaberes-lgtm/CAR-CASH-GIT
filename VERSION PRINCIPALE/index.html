@@ -359,6 +359,33 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* LE RIDEAU (ecranWipe : il cache un changement de SCÈNE 3D — le ciel de l'accueil ⇄ le garage ⇄ la course). Il reste, mais c'est un pan
+   d'ENCRE plein, droit, bordé d'un trait blanc de 4 px : plus de liserés or · cyan · magenta, plus de trame, plus de marque au milieu.
+   Il passe sans s'arrêter : 150 ms pour couvrir, 240 ms pour découvrir (la main revient au script à 160 ms, inchangé).
+   ⚠ les `!important` répondent à ceux de <style id="uxPasse"> (même propriété, même élément). */
+html.c6 #wipe::before{background:linear-gradient(90deg,var(--c6-b0) 0 4px,var(--c6-e0) 4px calc(100% - 4px),var(--c6-b0) calc(100% - 4px))!important}
+html.c6 #wipe::after{content:none!important}
+html.c6 #wipe.in::before{animation-duration:150ms!important;animation-timing-function:var(--c6-courbe)}
+html.c6 #wipe.out::before{animation-duration:240ms!important;animation-timing-function:cubic-bezier(.6,0,.8,.4)}
+/* LES PAGES DE LA COQUE (mGo : .on + .avant / .retour ; celle qui part garde .sort 220 ms).
+   AVANCER = la page arrive de la droite (24 px, en fondu) ; REVENIR = de la gauche ; celle qui part s'éteint en 100 ms, sans bouger :
+   deux pages qui glissent en même temps, c'est du bruit. Plus rien ne penche (les ±4° de la charte 5). */
+html.c6 .mscr.on{animation:c6Ecran var(--c6-pose) var(--c6-courbe) both}
+html.c6 .mscr.on.avant{animation-name:c6Avant}
+html.c6 .mscr.on.retour{animation-name:c6Retour}
+html.c6 .mscr.sort,html.c6 .mscr.sort.avant,html.c6 .mscr.sort.retour{animation:c6Sort 100ms linear forwards}
+/* ses BLOCS montent de 8 px en cascade de 30 ms (5 crans au plus : au-delà on attend pour rien) ; le reflet du lingot ne passe plus */
+html.c6 .mscr.on>*,html.c6 .mscr.on>.mPlay{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:calc(min(var(--i,0),5)*30ms)}
+html.c6 .mscr.on>.c6Tete{animation:none}                         /* l'en-tête est déjà là : le ◀ ne bouge jamais */
+html.c6 #mDead.on>.mOver{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards}   /* plus de néon qui clignote à la fin */
+html.c6 .mscr.sort>*{animation:none!important}
+/* (charte 5, gardé) l'écran que le RIDEAU a découvert ne rejoue pas son entrée : mêmes gardes .revu / body.voletSort, mêmes !important */
+html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.on.revu,html.c6 .mscr.on.revu>*,html.c6 .mscr.on.revu>.mPlay{animation:none!important}
+@keyframes c6Ecran{from{opacity:0}to{opacity:1}}
+@keyframes c6Avant{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes c6Retour{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+@keyframes c6Sort{to{opacity:0}}
+@media (prefers-reduced-motion:reduce){html.c6 .mscr.on,html.c6 .mscr.on>*,html.c6 .mscr.sort{animation:none!important}}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
