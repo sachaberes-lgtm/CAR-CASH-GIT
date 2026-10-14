@@ -7572,7 +7572,7 @@ html.c6 #mSet{padding:0;min-height:100%}
 html.c6 #mSet.on{max-width:none;align-self:stretch}
 html.c6 #mSet.on>.c6Tete{animation:none}
 html.c6 #mSet .c6Corps{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;width:100%;max-width:640px;margin:0 auto;
-  padding:0 calc(var(--sR) + 16px) calc(var(--sB) + 24px) calc(var(--sL) + 16px)}
+  padding:8px calc(var(--sR) + 16px) calc(var(--sB) + 24px) calc(var(--sL) + 16px)}
 html.c6 #mSet .c6Col{display:contents}
 html.c6 #mSet .c6Col>.mSec{margin:16px 0 0}
 html.c6 #mSet .c6Col:first-child>:nth-child(-n+2){order:1}
@@ -7619,6 +7619,11 @@ html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-hei
   html.c6 #mSet .c6Col>.mSec:first-child{margin-top:0}
   html.c6 #mSet .c6Col>*{order:0}
   html.c6 #mSet .c6Pied{grid-column:1/-1;order:0}
+}
+/* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » = 200 px de mot, le chevron cède sa place — le libellé ne se coupe jamais */
+@media (orientation:landscape) and (max-width:700px){
+  html.c6 #mSet .mLigne.lien::after{display:none}
+  html.c6 #mSet .mLigne.lien{padding-right:12px}
 }
 </style>
 <style id="c6-carriere-missions">
