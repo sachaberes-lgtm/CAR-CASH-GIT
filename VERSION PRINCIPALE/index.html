@@ -35569,11 +35569,14 @@ function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix p
 const DEATH_DIR='assets/audio/death/';
 // ⚠ SONS DE SYNTHÈSE (placeholders) : les originaux sous licence (minecraft/explosion/eww/gong)
 //   restent à fournir par Sacha. Format AAC .m4a (WKWebView natif — afconvert ne sait pas encoder mp3).
+/* (2026-10-14, session SON) LES MORTS AU MÊME COUP. Tirées au hasard, elles ne frappaient pas pareil — MESURÉ (crête de sonie sur 100 ms, × v) :
+   minecraft −8,0 dB, gong −8,1, déflagration −12,8 : une mort sur trois tombait 5 dB plus bas. v recalés sur −9,5 (minecraft .80 → .68,
+   déflagration .70 → .95 — pas plus : sur le chemin <audio> de repli, `volume` > 1 lèverait —, gong .85 → .72). */
 const DEATH_LIB=[
-  {f:'minecraft.m4a', v:.80, max:2.6},  // boum pixelisé (synthèse — placeholder)
-  {f:'explosion.m4a', v:.70, max:4.5},  // déflagration (synthèse — placeholder)
+  {f:'minecraft.m4a', v:.68, max:2.6},  // boum pixelisé (synthèse — placeholder)
+  {f:'explosion.m4a', v:.95, max:4.5},  // déflagration (synthèse — placeholder)
   {f:'eww.m4a',       v:.95, max:2.3, voix:1},  // « ewwwww » (voix TTS — placeholder) · `voix` : écarté quand l'annonceur parle
-  {f:'gong.m4a',      v:.85, max:3.6}   // gong (synthèse — placeholder)
+  {f:'gong.m4a',      v:.72, max:3.6}   // gong (synthèse — placeholder)
 ];
 if(SANS_VOIX)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (POKI) pas de voix : le « ewww » part, les trois sons de synthèse restent
 let deathLast=-1,deathEls=[];
