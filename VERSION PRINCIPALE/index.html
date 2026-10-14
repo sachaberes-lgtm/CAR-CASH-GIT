@@ -10730,6 +10730,29 @@ function buildClouds(rr){
   buildCoton(cr); // LE CIEL DE COTON : tout le décor de nuages, en instances (voir cotonBlobs / cotonTick)
   if(LVL.cur&&LVL.cur.camp)campNuages(cr); // (2026-09-27) CAMPAGNE : les bancs dessinés de la route, et le ciel refermé de l'orage — en dernier, sur `cr`
 }
+/* (2026-10-14, sensations ; Sacha : « oui pouf, mais travaille-le très bien ») LE POUF DE LA OUATE, dans la MAIN seulement — le nuage ne
+   touche toujours pas à la caisse (Sacha, 30/09 : « juste bloquer la vue, rien d'autre ») : ni ressort, ni secousse, ni particule en plus.
+   · ENTRER : la ouate cède puis se referme — un tic très doux, un silence, un tic un rien plus plein (« p…ouf »). Il se DOSE à la vitesse : traversé
+     lentement, un seul tic à peine posé ; pris vite, le pouf entier (≥ 260 km/h). Jamais plus fort que LÉGER.
+   · DÉFONCER un banc posé sur la route : un coup rond et son écho (le seul qui monte à MOYEN) — c'est un geste, il se paie.
+   · RESSORTIR à l'air libre après un vrai passage (≥ 0,4 s dedans) : un tic minuscule, l'air qui se rouvre. Un banc juste effleuré n'en a pas.
+   · JAMAIS DE BOURDON : un champ de bancs enfilés à pleine vitesse (l'ORAGE) ne donne qu'un pouf toutes les 0,5 s ; les autres sont muets. */
+const SENS_NU={t:-1e9,te:-1e9};
+function sensNuage(k,casse){
+  if(!SENS||!started||gameOver||paused||!running)return;
+  const n9=performance.now();
+  if(casse){SENS_NU.t=n9;sensHap([15,24,10],2);return;}
+  if(n9-SENS_NU.t<500)return;
+  SENS_NU.t=n9;
+  const v9=(mode==='fall'?fallVel.length():Math.abs(vA))*3.6*SPD,d9=Math.min(1,v9/260); // dosé par la VITESSE seule : à l'image d'entrée la profondeur k ne vaut encore presque rien
+  sensHap(d9<.35?6:[5,24+Math.round(10*(1-d9)),7+Math.round(4*d9)],1);
+}
+function sensNuageSort(c){
+  if(!SENS||!started||gameOver||paused||!running)return;
+  const n9=performance.now();
+  if(n9-(c.sensT||0)<400||n9-SENS_NU.t<300||n9-SENS_NU.te<500)return;
+  SENS_NU.te=n9;sensHap(5,1);
+}
 function updateClouds(dt,t){
   cloudIn=0;let prox=0; // prox : la CAMÉRA frôle un banc (0 = loin · 1 = à la paroi) — l'œil s'y prépare avant d'y entrer
   // Plus rien à pousser dans un shader : les nuages sont des mesh opaques ordinaires. On ne fait
@@ -10761,6 +10784,7 @@ function updateClouds(dt,t){
         /* (2026-09-30, Sacha : « les nuages doivent juste BLOQUER LA VUE, rien d'autre ») plus de budget d'airtime rendu par un banc (1,2 s — à l'ORAGE, un vol bas rechargeait toutes les 2-4 s) */
         shatterCloud(cp,Math.min(1,k+.35)); // MILLE MORCEAUX au point de contact (où l'on touche le banc)
         if(mode==='drive'&&(c.brokenT||0)<=0&&!c.ecran){c.brokenT=4.5;if(SONV2)sfx('nuage.defonce');else whoosh();addStyle(3);} // la caisse DÉFONCE le banc → il éclate puis se reforme · (2026-09-27) sauf l'ÉCRAN du niveau 5 : défoncé, il ne cacherait plus rien aux tireurs
+        if(SENS)try{c.sensT=performance.now();sensNuage(k,mode==='drive'&&c.brokenT===4.5);}catch(e){} // (2026-10-14, sensations) le POUF dans la main, dosé par la profondeur et la vitesse — la caisse, elle, ne sent rien
       }
       /* (2026-09-30, Sacha : « les nuages doivent juste bloquer la vue, rien d'autre ») le nuage ne touche plus à la CAISSE : plus de coussin
          d'air (portance), plus de turbulence (vitesse et vrille chahutées), plus de regain d'airtime ; au sol plus de tangage ni de frein.
@@ -10770,6 +10794,7 @@ function updateClouds(dt,t){
     }else if(c.wasIn&&d2>1.3){ // ---- SORTIE ----
       c.wasIn=false;
       if(SONV2)sfx('nuage.sort');else noiseBurst(.22,.07,1500); // l'air se rouvre d'un coup
+      if(SENS)try{sensNuageSort(c);}catch(e){} // (2026-10-14, sensations) l'air se rouvre : un tic minuscule, seulement après un vrai passage
       if(c.onRoad&&mode==='drive'&&Math.abs(vA)*3.6*SPD>140)addStyle(7); // percée à l'aveugle
       if(c.camp&&c.onRoad&&mode==='drive')try{campBancSorti(c);}catch(e){} // (2026-09-27) CAMPAGNE : la sortie du banc se fête (et le 1er banc du niveau 3 se nomme)
     }
