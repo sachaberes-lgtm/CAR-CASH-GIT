@@ -11826,7 +11826,7 @@ function updateClouds(dt,t){
   // Le frustum culling de three.js s'occupe du reste : la géométrie est réelle, sa sphère
   // englobante est exacte, donc aucun pop possible.
   const cp=carGroup.position;
-  if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=.82*e9;CLOUD_MAT_IN.opacity=.93*e9;CLOUD_MAT_IN8.opacity=.93*e9;if(COTON.mat)COTON.mat.opacity=.82*e9;N8_U.uFondu.value=e9;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule)
+  if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=.82*e9;CLOUD_MAT_IN.opacity=.93*e9;CLOUD_MAT_IN8.opacity=.93*e9;if(COTON.mat)COTON.mat.opacity=.82*e9;if(MOUTON_MAT)MOUTON_MAT.opacity=.9*e9;N8_U.uFondu.value=e9;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule)
   for(const c of CLOUDS){
     cldV1.subVectors(cp,c.g.position);
     const dh2=cldV1.x*cldV1.x+cldV1.z*cldV1.z,dv=cldV1.y;
@@ -11835,10 +11835,11 @@ function updateClouds(dt,t){
       c.brokenT-=dt;const bt=c.brokenT;
       const sc=bt>4.0?1-(4.5-bt)/0.5*0.92:bt>1.5?0.08:0.08+(1.5-bt)/1.5*0.92;
       c.g.scale.setScalar(bt<=0?1:Math.max(0.06,sc));
+      if(c.tete)c.tete.visible=bt<=0; // (2026-10-14, œil) le mouton éclaté : sa tête noire part avec lui (sinon elle traversait l'objectif)
     }
     {const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,
       dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);if(dc<2.6){const q=Math.min(1,(2.6-dc)/1.6);if(q>prox)prox=q;}
-      c.mesh.material=dc<1.1?(c.mesh.userData.m8?CLOUD_MAT_IN8:CLOUD_MAT_IN):(c.mesh.userData.m8||CLOUD_MAT);} // (2026-09-26) la caméra DANS l'ellipsoïde : la paroi intérieure se montre (white-out) ; dehors, l'endroit seul
+      c.mesh.material=dc<1.1?(c.mesh.userData.m8?CLOUD_MAT_IN8:CLOUD_MAT_IN):(c.mesh.userData.m8||c.mesh.userData.mm||CLOUD_MAT);} /* (2026-10-14, œil) mm : la laine plus blanche d'un mouton (moutonTete) */ // (2026-09-26) la caméra DANS l'ellipsoïde : la paroi intérieure se montre (white-out) ; dehors, l'endroit seul
     c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive au vent
     c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
     if(d2<1){ // ---- DEDANS ----
@@ -40882,8 +40883,28 @@ function moutonsPose(cr){ // dans campNuages (buildClouds) : un mouton (ou un tr
       mkCloud(cldV1.copy(F.p).addScaledVector(F.b,lt),r,{onRoad:true,camp:true},cr);
       if(CLOUDS.length>nC){const c=CLOUDS[CLOUDS.length-1],up=MOUTON_H-c.ry;
         c.g.position.addScaledVector(F.n,up);c.c.addScaledVector(F.n,up); // couché : seul son dos dépasse du bitume, le ventre dort dans la dalle
-        c.camp=true;c.mouton=true;m.cl.push(c);}}
+        c.camp=true;c.mouton=true;m.cl.push(c);if(SENS)try{moutonTete(c,F);}catch(e){}}}
     if(m.cl.length)CAMP.moutons.push(m);}
+}
+/* (2026-10-14, gameplay · œil) LE MOUTON SE LIT. Vus au banc (captures oeil/couche-m1-a*.png) : la ouate du matin prend la teinte pêche du
+   ciel et du bitume — à 120 m et à 50 m le mouton ne se voyait PAS (une tache rose de quelques pixels), il n'apparaissait qu'à ~15 m, soit
+   0,15 s avant le choc à 350 km/h : on ne sautait que sur la foi de la plaque « DANS 90 M ». Deux gestes, rien de neuf à compiler :
+   · sa laine est plus BLANCHE que les bancs du ciel (MOUTON_MAT : le même matériau de nuage, sa couleur partagée, une émission blanche
+     chaude en plus — même programme, aucune compilation) ;
+   · une petite TÊTE noire et deux oreilles à l'avant, tournées vers la caisse : le point sombre se voit de loin sur le bitume clair, et
+     dit « mouton » d'un coup d'œil. Elle suit la ouate (enfant du groupe : la dérive au vent, l'éclatement) et disparaît dès qu'il éclate.
+   `?sens=0` : les moutons d'avant (ouate du ciel, sans tête). */
+var MOUTON_MAT=null,MOUTON_TETE=null; // var : updateClouds les lit (hissés, nuls avant le 1er mouton)
+function moutonTete(c,F){
+  if(!MOUTON_MAT){MOUTON_MAT=CLOUD_MAT.clone();MOUTON_MAT.color=CLOUD_MAT.color;MOUTON_MAT.specular=CLOUD_MAT.specular;MOUTON_MAT.onBeforeCompile=nuageShader;MOUTON_MAT.customProgramCacheKey=CLOUD_MAT.customProgramCacheKey;MOUTON_MAT.emissive=new THREE.Color(0xfff0e2);MOUTON_MAT.emissiveIntensity=.34;MOUTON_MAT.opacity=.9;
+    MOUTON_TETE={geo:new THREE.SphereGeometry(1,10,8),mat:new THREE.MeshLambertMaterial({color:0x2b2731,emissive:0x0c0a10})};}
+  c.mesh.material=MOUTON_MAT;c.mesh.userData.mm=MOUTON_MAT;
+  const r=c.r,g=new THREE.Group(),q=cldV1;
+  q.copy(F.t).multiplyScalar(-r*.9).addScaledVector(F.n,1.45-(MOUTON_H-c.ry));g.position.copy(q); // à l'avant du dos, au ras de la laine (le centre du groupe est à MOUTON_H − ry du bitume)
+  g.lookAt(q.addScaledVector(F.t,-1)); // regarde la caisse qui arrive (son +Z = vers l'arrière de la route)
+  const h=new THREE.Mesh(MOUTON_TETE.geo,MOUTON_TETE.mat);h.scale.set(.95,.85,1.25);g.add(h);
+  for(const sd of [-1,1]){const o=new THREE.Mesh(MOUTON_TETE.geo,MOUTON_TETE.mat);o.scale.set(.55,.18,.3);o.position.set(sd*1.05,.45,-.15);o.rotation.z=sd*.45;g.add(o);}
+  c.g.add(g);c.tete=g;
 }
 function campMoutonLibre(){ // le SAUT NITRO est offert au pied d'un mouton (veqSaut)
   if(mode!=='drive'||CAMP.n!==4||!campMoutonsOn())return false;
@@ -40922,7 +40943,7 @@ function campMoutonsTick(dt){
 }
 window.dbgMoutons=function(){return {on:campMoutonsOn(),ok:CAMP.mtOk,n:CAMP.moutons.length,libre:campMoutonLibre(),s:Math.round(vPos()),
   moutons:CAMP.moutons.map(function(m){const c=m.cl[0];frameAt(m.s,GF);return {s:Math.round(m.s),nb:m.cl.length,r:c?+c.r.toFixed(1):0,ry:c?+c.ry.toFixed(2):0,
-    crete:c?+(c.g.position.clone().sub(GF.p).dot(GF.n)+c.ry).toFixed(2):0,fait:m.fait,dans:m.dans,dessus:m.dessus};})};};
+    crete:c?+(c.g.position.clone().sub(GF.p).dot(GF.n)+c.ry).toFixed(2):0,lat:c?+(c.c.clone().sub(GF.p).dot(GF.b)).toFixed(1):0,fait:m.fait,dans:m.dans,dessus:m.dessus};})};};
 function campTick(dt){
   if(!CAMP.n||gameOver)return;
   // LE RACCOURCI : un vol parti de leg1 d'un ovale (niveaux 6, 10, 18) et posé sur leg3 — (2026-09-30) et plus « tout vol posé > 300 m
