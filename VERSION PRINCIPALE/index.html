@@ -8580,6 +8580,28 @@ html.sansFacile [data-m="facile"]{display:none!important}
 <style id="ux8-partie">
 /* UX 8 · LA PARTIE : pause, fenêtres de confirmation, réglages, fin de partie, missions — même règle (ergonomie et soin, charte v4/v5, html:not(.c6)). */
 </style>
+<style id="ux8-mouvement">
+/* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
+/* le balayage : le canvas remplace l'ancien rideau (::before) tant que #wipe porte .ux8Wipe (posé par ecranWipe, hors réduire-les-animations) */
+html:not(.c6) #wipe.ux8Wipe::before,html:not(.c6) #wipe.ux8Wipe::after{display:none!important}
+html:not(.c6) #wipe>canvas.ux8Cv{display:none;position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+html:not(.c6) #wipe.ux8Wipe>canvas.ux8Cv{display:block!important}
+/* les fenêtres : la PLAQUE monte du bas (24 px + opacité) derrière un voile qui s'assombrit ; elle redescend plus vite */
+@keyframes ux8Plaque{from{opacity:0;translate:0 24px}to{opacity:1;translate:0 0}}
+@keyframes ux8PlaqueOut{from{opacity:1;translate:0 0}to{opacity:0;translate:0 14px}}
+html:not(.c6) #modale.on .modIn{animation:ux8Plaque var(--t-slow) var(--ease) both}
+html:not(.c6) #modale.sortant .modIn{animation:ux8PlaqueOut var(--t-fast) var(--ease) forwards}
+html:not(.c6) #modale.on .modB>.pbtn{animation:ux8Plaque var(--t-slow) var(--ease) 80ms backwards}
+html:not(.c6) #modale.on .modB>.pbtn+.pbtn{animation-delay:120ms}
+/* la pause : même geste que les fenêtres (le voile fond, le contenu monte) */
+html:not(.c6) #tPanel.open #tpIn{animation:ux8Plaque var(--t-slow) var(--ease) both}
+html:not(.c6) #tPanel.sortant #tpIn{animation:ux8PlaqueOut var(--t-fast) var(--ease) forwards}
+/* l'écran de la coque qui part : posé en absolu, il se prépare au GPU juste le temps de son départ */
+html:not(.c6) .mscr.sort{will-change:transform,opacity}
+html[data-reduced-motion="1"]:not(.c6) :is(#modale.on .modIn,#modale.on .modB>.pbtn,#tPanel.open #tpIn){animation:k4Voile var(--t-fast) linear both}
+html[data-reduced-motion="1"]:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortant #tpIn){animation:k4VoileOut var(--t-fast) linear forwards}
+@media (prefers-reduced-motion:reduce){html:not(.c6) :is(#modale.on .modIn,#modale.on .modB>.pbtn,#tPanel.open #tpIn){animation:k4Voile var(--t-fast) linear both}html:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortant #tpIn){animation:k4VoileOut var(--t-fast) linear forwards}}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -28844,6 +28866,36 @@ function airPieDraw(fr,sec,flash){
 }
 /* (2026-09-28) `airPiePx` (les cases cuites du cadran pixel) a disparu avec le cadran : le chrono de vol est un bloc du HUD (#airHud). */
 
+/* LE BALAYAGE PIXEL DORÉ (2026-10-14, UX 8 · transitions) — la SIGNATURE de CASH CAR : le rideau devient une mosaïque de gros pixels qui balaie
+   l'écran en diagonale (haut-gauche → bas-droite pour COUVRIR, retour en sens inverse pour DÉCOUVRIR), front d'or, corps de laque sombre.
+   UN canvas 2D plein écran créé une fois, dessiné au rAF SEULEMENT pendant le balayage, puis `display:none`. Même contrat de temps qu'avant
+   (couvert à 150 ms, `fn` à 160 ms, la classe se vide à 460 ms après le lever). Hors `html.c6` et hors « réduire les animations » : alors
+   l'ancien rideau (ou son fondu simple) reste. */
+const WIPEPX={cv:null,cx:null,ph:'',t0:0,raf:0,W:0,H:0,nc:0,nr:0,rn:null};
+function wipePxOk(){return !REDUCED_MOTION&&document.documentElement.getAttribute('data-reduced-motion')!=='1'&&!document.documentElement.classList.contains('c6');}
+function wipePxDraw(now){
+  const P=WIPEPX;if(!P.ph)return;const cx=P.cx,nc=P.nc,nr=P.nr,cw=P.W/nc,ch=P.H/nr,out=P.ph==='out';
+  const t=(now-P.t0)/(out?280:150);cx.clearRect(0,0,P.W,P.H);
+  for(let j=0;j<nr;j++)for(let i=0;i<nc;i++){
+    const d=(i+j)/(nc+nr-2),h=P.rn[j*nc+i];
+    let p=out?1-Math.min(1,Math.max(0,(t-(1-d)*.55)/.45)):Math.min(1,Math.max(0,(t-d*.55)/.45));
+    if(p<=0)continue;
+    const sc=Math.ceil(p*4)/4; // 4 crans : le pixel POP, il ne grossit pas en douceur
+    cx.fillStyle=p<.6?(h%9===0?'#fff3b0':'#ffd75e'):(h%3===0?'#0d0a1c':'#07050f');
+    const x0=Math.floor(i*cw+cw*(1-sc)/2),y0=Math.floor(j*ch+ch*(1-sc)/2),x1=Math.ceil(i*cw+cw*(1+sc)/2),y1=Math.ceil(j*ch+ch*(1+sc)/2);
+    cx.fillRect(x0,y0,x1-x0,y1-y0); }
+  if(out&&t>=1.2)wipePxEnd(); }
+function wipePxLoop(now){WIPEPX.raf=0;if(!WIPEPX.ph)return;wipePxDraw(now);if(WIPEPX.ph)WIPEPX.raf=requestAnimationFrame(wipePxLoop);}
+function wipePxStart(w,ph){
+  const P=WIPEPX;
+  if(!P.cv){P.cv=document.createElement('canvas');P.cv.className='ux8Cv';P.cx=P.cv.getContext('2d');w.appendChild(P.cv);}
+  if(P.cv.parentNode!==w)w.appendChild(P.cv);
+  if(ph==='in'){ const W=Math.max(1,innerWidth|0),H=Math.max(1,innerHeight|0),nc=Math.max(2,Math.round(W/28)),nr=Math.max(2,Math.round(H/28));
+    if(W!==P.W||H!==P.H||!P.rn){P.W=P.cv.width=W;P.H=P.cv.height=H;P.nc=nc;P.nr=nr;P.rn=new Uint8Array(nc*nr);for(let k=0;k<P.rn.length;k++)P.rn[k]=(k*2654435761>>>13)&255;}
+    P.cv.style.display='block'; }
+  P.ph=ph;P.t0=performance.now();w.classList.add('ux8Wipe');
+  if(!P.raf)P.raf=requestAnimationFrame(wipePxLoop); }
+function wipePxEnd(){const P=WIPEPX;P.ph='';if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}if(P.cv){P.cx.clearRect(0,0,P.W,P.H);P.cv.style.display='none';}}
 /* LE FONDU AU NOIR (2026-09-25, user : « les transitions entre les écrans, niveau App Store ») — remplace le rideau à
    cinq barres en `steps()`. C'est le geste des jeux premium quand le DÉCOR change (atelier, boutique, nouvelle course) :
    le voile MONTE en 200 ms, on bascule DESSOUS — même la première construction de l'atelier, qui fige le fil
@@ -28856,18 +28908,18 @@ function ecranWipe(fn,apres){
   if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
   if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;
   try{uiGarde(520);}catch(e){} // (2026-10-12, passe qualité) le VOLET arme le verrou du double-tap : le 2e tap d'un HOME du garage tombait sur le JOUER de l'accueil (~200-350 ms) et lançait une course
-  w.className='in';try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
+  w.className='in';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
     try{fn();}catch(e){console.error(e);}
     let leve=false;
     const lever=function(){ if(leve)return;leve=true;
-      w.className='out';ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
+      w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
       try{typeof sfx==='function'&&sfx('ui.voletSort');}catch(e){}
       document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre
       if(apres){try{apres();}catch(e){console.error(e);}}
       try{document.dispatchEvent(new Event('cc:revele'));}catch(e){} // la coque rejoue l'entrée de l'écran qu'on découvre
       document.querySelectorAll('#mob .mscr.on').forEach(function(e){e.classList.add('revu');}); // (charte v5) …mais c'est le VOLET qui a fait l'entrée : elle ne se rejouera pas quand il s'en va
-      setTimeout(function(){if(ecranWipe._id===id)w.className='';},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
+      setTimeout(function(){if(ecranWipe._id===id){w.className='';wipePxEnd();}},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
     requestAnimationFrame(function(){requestAnimationFrame(lever);});
     setTimeout(lever,160); // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
