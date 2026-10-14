@@ -38,6 +38,15 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
 - Curseur MUSIQUE avec MUS_WA : l'aperçu s'entend-il au bon volume, et 0 = silence ?
 - Appli tuée en arrière-plan : `SAVE.d.vu` survit-il (miroir Preferences) → retour à 24 h+ = musique ON ?
 
+## SON PAR FIGURE (ordre de Sacha via PILOTAGE, 14/10 soir)
+- Étape 1 : `fig.signe` (12 variantes, `FIG_SIGNE` dans figSnd) · combos de GENERAL : `sonCombo(cle,neuf)` = 3 `combo.frappe` (T verre, P bois,
+  S tambour, M métal) + `combo.sceau` (pur, mélangé, PST GYROSCOPE, MMM CHAOS), figSnd tait le maillon des `fig_combo_*` · `pose.divin`.
+  Banque ?v=21. Crochet `dbgSonJoue(id,o)`. Demandé à GENERAL : `sfx('ui.debloque',{t:.6})` dans comboNote (après le sceau).
+- Étape 2 (à faire) : tricks banquise `bk_*` et eau (RICOCHET, PLONGEON, HORS DE L'EAU, SURF) encore au maillon ; SHIMMY/CHANDELLE muets en
+  vol (pas de tic : mv vide) ; les explosions de figure partagent turbo.super avec le drift ; GAP/DOUBLE GAP sans son ; pose ordinaire = choc seul.
+- Un merge peut CONFLITER sur sons-banque.js (une autre session a cuit) : prendre la banque de main (`checkout --theirs`), recuire SES ids
+  (`node atelier-son/cuire.js "^(fig\.signe|combo\.|pose\.divin)"` : un id absent est recuit), ?v = celui de main + 1.
+
 ## SUITE
 1. Plus de test demandé à Sacha (14/10 : « fais-le toi-même ») : ce qui exige un iPhone attend un iPhone, liste ci-dessus.
 2. À l'oreille : niveau des matières de tour (vol −8 dans figPose) ; figJet et `echSt()` toutes les 0,28 s pendant le tenu.
