@@ -43981,13 +43981,6 @@ function garArgent(g){
 }
 window.dbgArgent=function(b){if(b!==undefined){GARG.force=b;GARG.bank=-1;garArgentMaj();}
   return GARG.mesh?{compte:GARG.force!=null?GARG.force:bank(),objets:GARG.n,max:GARG.offs.length-1,places:GARG.places,sommets:GARG.offs[Math.max(0,GARG.n)],visible:GARG.mesh.visible,ms:GARG.ms,tas:GARG.pos}:'atelier pas encore bâti';};
-/* (2026-10-05, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les billets, mes trophées, tout ça laisse,
-   mais aère un peu l'espace ») L'ATELIER AÉRÉ : le petit bazar (cartons, bidons, fûts, jerricans, cônes, seau, balai, poubelle, palettes,
-   cric, chandelles, planche, tabouret, poste, tasses, rallonge, clés semées, batterie, vidange, deux flaques, l'étagère haute du fond) ne se
-   construit plus. RESTENT : les billets, les affiches de records, les pneus, les jantes, les deux V8 (le palan, le moteur sur pied), et les
-   meubles qui portent les MISSIONS (compresseur, établi, pont, rack — vidé, il garde ses jantes et son pneu —, distributeur). Le code est
-   gardé : `?bazar=1` rend tout l'ancien atelier (à comparer). */
-const GAR_AERE=!/[?&]bazar=1/.test(location.search);
 function buildGarageRoom(){
   const W=GAR.W,D=GAR.D,H=GAR.H,hw=W/2,hd=D/2;
   const g=new THREE.Group();g.visible=false;scene.add(g);GAR.root=g;
@@ -44062,11 +44055,6 @@ function buildGarageRoom(){
     x.fillStyle='#0d1220';x.fillRect(0,27,w,h-27);
     x.textAlign='center';x.font="bold 15px 'Press Start 2P',monospace";
     x.fillStyle='#ffcf3d';x.fillText('CASH',w/2,56);x.fillStyle='#5ff0ff';x.fillText('CAR',w/2,78);
-  });
-  const calTex=cvT(64,80,(x,w,h)=>{ // le calendrier corné que personne ne tourne jamais
-    x.fillStyle='#e8e2d4';x.fillRect(0,0,w,h);x.fillStyle='#c0392b';x.fillRect(0,0,w,18);
-    x.fillStyle='#6b6455';for(let r=0;r<5;r++)for(let c=0;c<6;c++)x.fillRect(4+c*10,24+r*10,6,6);
-    x.fillStyle='#c0392b';x.fillRect(34,44,6,6);
   });
   // NÉON : lettres cernées de couleur, cœur blanc — le bloom du jeu fait le halo tout seul
   const neonTex=(txt,col,px)=>cvT(256,80,(x,w,h)=>{
@@ -44306,15 +44294,6 @@ function buildGarageRoom(){
     lt('D',[[r*.92,.03],[r*.92,-.04],[0,-.04]],18,x,y,z);
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;cb('C',r*.13,.03,r*.78,x+Math.sin(a)*r*.46,y+.035,z+Math.cos(a)*r*.46,0,a,0,.006);}
     cl('C',r*.22,.07,12,x,y+.03,z);cl('Or',r*.08,.08,6,x,y+.045,z);};
-  const carton=(x,y0,z,w,h,d,ry)=>{ry=ry||0;cb(ry?'T2':'T',w,h,d,x,y0+h/2,z,0,ry,0,.012);
-    cb('E',w+.006,.005,.09,x,y0+h+.002,z,0,ry,0,0);                                   // le scotch
-    if(!ry)cb('Wb',Math.min(.22,w*.4),.12,.005,x-w*.18,y0+h*.55,z+d/2+.003,0,0,0,0);}; // l'étiquette
-  const bidon=(x,y0,z,k)=>{lt(k,[[0,0],[.18,0],[.19,.015],[.19,.3],[.16,.37],[.07,.41],[0,.41]],14,x,y0,z);
-    lt('Wb',[[.194,.09],[.194,.23]],14,x,y0,z);cl('D',.05,.05,10,x,y0+.43,z);};
-  const jerry=(x,y0,z,k)=>{cb(k,.36,.5,.24,x,y0+.25,z,0,0,0,.03);
-    for(const s of [-1,1]){barre(k,.028,[x-.12,y0+.08,z+s*.122],[x+.12,y0+.42,z+s*.122]);barre(k,.028,[x+.12,y0+.08,z+s*.122],[x-.12,y0+.42,z+s*.122]);} // le X embouti
-    for(const s of [-.1,0,.1])cb(k,.035,.08,.06,x+s,y0+.54,z,0,0,0,.01);cb(k,.26,.03,.06,x,y0+.585,z,0,0,0,.008);   // les trois anses
-    cl('A',.03,.07,8,x+.15,y0+.53,z,0,0,-.5);};
   const clefM=(x,y,z,L)=>{cb('C',.045,L,.018,x,y,z,0,0,0,.006);to('C',.05,.016,x,y+L/2+.035,z,0,0,0,4);          // la clé mixte pendue : œil…
     cb('C',.028,.075,.018,x-.042,y-L/2-.025,z,0,0,0,.005);cb('C',.028,.075,.018,x+.042,y-L/2-.025,z,0,0,0,.005);cb('C',.12,.03,.018,x,y-L/2+.012,z,0,0,0,.005); // …et fourche
     cl('A',.007,.09,5,x,y+L/2+.035,z-.04,Math.PI/2);};
@@ -44356,7 +44335,7 @@ function buildGarageRoom(){
     for(let d=0;d<4;d++){const y9=.19+d*.18;cb('R',1.22,.155,.04,cx,y9,zB+.615,0,0,0,.012);
       cl('C',.011,.9,6,cx,y9+.035,zB+.66,0,0,Math.PI/2);for(const sx of [-.45,.45])cb('C',.02,.02,.04,cx+sx,y9+.035,zB+.645,0,0,0,0);
       cb('Wb',.12,.035,.005,cx-.47,y9-.03,zB+.637,0,0,0,0);}}
-  if(!GAR_AERE){carton(-4.6,.38,zB-.1,.7,.42,.6);carton(-3.75,.38,zB+.05,.55,.3,.5,.2);bidon(-1.2,.38,zB+.1,'V');}
+  
   cb('F',9.8,.14,.08,-3,1.06,zB-.73);                                                  // la lisse du fond
   cb('E',1.3,.08,.05,-.4,1.05,zB-.675,0,0,0,.01);for(let i=0;i<5;i++)cb('D',.07,.04,.01,-.9+i*.25,1.05,zB-.648,0,0,0,0);  // la multiprise
   // L'ÉTAU, mâchoires vers la salle
@@ -44371,19 +44350,9 @@ function buildGarageRoom(){
    cl('D',.018,.4,6,tx,1.41,tz,0,0,Math.PI/2);for(const sx of [-.22,.22]){cb('C',.03,.1,.04,tx+sx,1.36,tz,0,0,0,.005);cb('C',.05,.06,.02,tx+sx,1.23,tz+.215,0,0,0,.004);}
    cb('Or',.12,.05,.006,tx,1.14,tz+.203,0,0,0,0);}
   // LE POSTE qui gueule : haut-parleurs, cadran, poignée, antenne
-  if(!GAR_AERE){{const rx9=-1.5,rz=zB-.05,fz=rz+.14;cb('N',.86,.34,.28,rx9,1.155,rz,0,0,0,.03);
-   for(const sx of [-.25,.25]){lt('C',[[.135,0],[.13,.012],[.11,.012],[.105,.004]],16,rx9+sx,1.15,fz,Math.PI/2);
-     lt('D',[[.106,.006],[.04,.002],[0,.004]],16,rx9+sx,1.15,fz,Math.PI/2);cl('C',.028,.02,10,rx9+sx,1.15,fz+.01,Math.PI/2);}
-   cb('G',.16,.08,.012,rx9,1.22,fz,0,0,0,.003);for(const sx of [-.04,.04])cl('C',.02,.03,10,rx9+sx,1.09,fz+.012,Math.PI/2);
-   cl('C',.012,.62,6,rx9,1.385,rz,0,0,Math.PI/2);for(const sx of [-.3,.3])cl('C',.012,.07,6,rx9+sx,1.355,rz);
-   cl('C',.005,.8,4,rx9+.36,1.66,rz-.05,-.3,0,-.45);}}
+  
   // les tasses de café froid, la paperasse, le chiffon, les clés qui traînent
-  if(!GAR_AERE){for(const t of [[-.2,zB+.2,'E'],[.3,zB-.15,'R']]){const x9=t[0],z9=t[1];
-    lt(t[2],[[0,0],[.055,0],[.06,.005],[.062,.13],[.056,.13],[.052,.012],[0,.012]],12,x9,.98,z9);
-    cl('D',.054,.004,12,x9,1.085,z9);to(t[2],.035,.009,x9+.062,1.045,z9,0,0,-Math.PI/2,4,Math.PI);}
-  cb('E',.5,.018,.36,1.1,.99,zB+.1,0,.12,0,.004);cb('Wb',.46,.012,.32,1.13,1.004,zB+.12,0,-.1,0,0);
-  cb('O',.34,.07,.26,1.9,1.01,zB-.1,.1,.4,.08,.03);cb('O',.26,.05,.2,1.95,1.05,zB-.05,-.2,1.1,.1,.02);
-  for(let i=0;i<5;i++){const x9=-.9+i*.22,a=.15*i-.3;cb('C',.04,.012,.3,x9,.99,zB+.5,0,a,0,.004);to('C',.035,.011,x9+Math.sin(a)*.17,.992,zB+.5+Math.cos(a)*.17,Math.PI/2,0,0,4);}}
+  
   // LE PANNEAU PERFORÉ (texture) dans son cadre, et ses outils pendus
   flat(pegTex,-3,2.6,-hd+.18,9.6,2.6);
   cb('F',9.76,.08,.05,-3,3.94,-hd+.2,0,0,0,.01);cb('F',9.76,.08,.05,-3,1.26,-hd+.2,0,0,0,.01);
@@ -44400,16 +44369,13 @@ function buildGarageRoom(){
     for(const s of [-1,1])cb('B',.035,.42,.018,x9+s*.04,3.18,pz,0,0,s*.1,.006);
     cb('C',.05,.16,.018,x9,3.47,pz,0,0,0,.006);cl('C',.02,.03,8,x9,3.38,pz,Math.PI/2);}
   // L'ÉTAGÈRE HAUTE sur équerres : bidons d'huile étiquetés, cartons scotchés
-  if(!GAR_AERE){cb('F',9.4,.06,.62,-3,4.35,-hd+.34,0,0,0,.01);cb('A',9.4,.08,.02,-3,4.34,-hd+.655,0,0,0,.004);
-  for(const ex of [-7.4,-3,1.4])MK.prism('F',[[-hd+.02,4.32],[-hd+.02,3.86],[-hd+.5,4.32]],.04,ex);
-  for(let i=0;i<7;i++)bidon(-6.6+i*1.15,4.38,-hd+.34,i%3?'B':'V');
-  for(let i=0;i<4;i++)carton(1.2+i*.8,4.38,-hd+.36,.66,.36+(i%2)*.08,.5);}
+  
   GAR.neons.push(flat(neonTex('CASH CAR',0xff4fbf,26),-2.4,5.35,-hd+.2,7.2,2.25,0,THREE.AdditiveBlending));
   GAR.neons.push(flat(neonTex('$',0x5ff0ff,52),5.4,4.5,-hd+.2,1.9,1.9,0,THREE.AdditiveBlending));
   flat(postTex,6.9,2.9,-hd+.2,2.3,1.72);                                                // l'affiche, dans un cadre noir
   cb('N',2.42,.06,.04,6.9,3.79,-hd+.19,0,0,0,.01);cb('N',2.42,.06,.04,6.9,2.01,-hd+.19,0,0,0,.01);
   for(const s of [-1,1])cb('N',.06,1.84,.04,6.9+s*1.18,2.9,-hd+.19,0,0,0,.01);
-  if(!GAR_AERE){flat(calTex,3.9,2.9,-hd+.2,.86,1.08);cl('C',.012,.05,6,3.9,3.5,-hd+.22,Math.PI/2);}
+  
   {const cx=8.9,cy9=3.3,cz=-hd+.2;                                                       // l'horloge
    lt('N',[[.42,0],[.42,.07],[.37,.08],[.36,.03]],24,cx,cy9,cz,Math.PI/2);lt('E',[[.36,.03],[0,.03]],24,cx,cy9,cz,Math.PI/2);
    for(let h=0;h<12;h++){const a=h/12*Math.PI*2;cb('D',.02,h%3?.04:.07,.01,cx+Math.sin(a)*.3,cy9+Math.cos(a)*.3,cz+.035,0,0,-a,0);}
@@ -44450,30 +44416,7 @@ function buildGarageRoom(){
   for(let i=0;i<5;i++)to('J',.4+i*.012,.026,-10.74+i*.045,2.5-i*.01,4.3,0,Math.PI/2,0,5);  // le tuyau d'air, enroulé au mur
   cb('F',.2,.14,.3,-10.9,2.96,4.3,0,0,0,.02);cb('F',.3,.05,.1,-10.78,2.92,4.3,0,0,0,.01);cl('Or',.025,.08,8,-10.5,2.18,4.62,0,0,.6);
   // LE CRIC ROULEUR
-  if(!GAR_AERE){{const jx=-8.2,jz=-5.4;
-   for(const s of [-.19,.19])MK.prism('R',[[jz-.65,.06],[jz+.65,.06],[jz+.65,.24],[jz-.3,.3],[jz-.65,.2]],.04,jx+s);
-   cb('F',.34,.03,1.2,jx,.08,jz,0,0,0,.005);cl('C',.05,.34,10,jx,.19,jz+.1,Math.PI/2);
-   seg('R',.035,[jx,.22,jz-.1],[jx,.38,jz-.72]);lt('D',[[.09,0],[.09,.03],[.07,.04],[0,.04]],12,jx,.38,jz-.74);
-   for(const s of [-.22,.22]){cl('A',.075,.04,12,jx+s,.075,jz-.52,0,0,Math.PI/2);cl('D',.05,.04,10,jx+s,.05,jz+.55,0,0,Math.PI/2);}
-   seg('C',.018,[jx,.24,jz+.6],[jx,1.0,jz+1.3]);seg('D',.026,[jx,.94,jz+1.25],[jx,1.08,jz+1.37]);}
-  for(const p of [[-8.2,-3.6],[-8.7,-3.0]]){lt('J',[[.2,0],[.2,.02],[.07,.36],[0,.36]],4,p[0],0,p[1],0,Math.PI/4,0);   // les chandelles
-    cl('A',.03,.3,8,p[0],.45,p[1]);cb('A',.14,.03,.08,p[0],.6,p[1],0,0,0,.005);for(const s of [-.06,.06])cb('A',.02,.06,.08,p[0]+s,.64,p[1],0,0,0,0);
-    cb('R',.02,.05,.1,p[0]+.05,.36,p[1]+.05,0,0,0,0);}
-  {const px=-8.6,pz9=1.2;cb('O',.48,.05,1.4,px,.13,pz9,0,0,0,.02);cb('D',.44,.07,.26,px,.19,pz9+.52,0,0,0,.03);  // la planche à roulettes
-   for(const s of [-.26,.26])cb('F',.03,.04,1.5,px+s,.12,pz9,0,0,0,.005);
-   for(const a of [-.2,.2])for(const b of [-.6,0,.6])lt('D',[[0,-.05],[.045,-.04],[.05,0],[.045,.04],[0,.05]],8,px+a,.05,pz9+b);}
-  {const px=-8.9,pz9=5.6;lt('A',[[0,0],[.3,0],[.32,.03],[.34,.95],[.36,.97],[.36,1.0],[0,1.0]],16,px,0,pz9);   // la poubelle
-   for(const y9 of [.3,.65])lt('A',[[.33,y9-.025],[.345,y9],[.33,y9+.025]],16,px,0,pz9);
-   lt('A',[[.37,1.0],[.37,1.04],[.3,1.1],[.08,1.13],[0,1.13]],16,px,0,pz9);
-   cl('C',.015,.2,6,px,1.17,pz9,0,0,Math.PI/2);for(const s of [-.1,.1])cl('C',.012,.05,6,px+s,1.14,pz9);}
-  cl('W',.022,1.7,6,-8.15,.85,6.4,0,0,.16);cb('B',.42,.08,.14,-8.29,.1,6.4,0,0,.16,.02);cb('D',.4,.07,.12,-8.29,.04,6.4,0,0,0,.02);   // le balai
-  lt('J',[[0,.02],[.21,.02],[.21,0],[.23,0],[.29,.46],[.3,.48],[.28,.48],[.215,.04],[0,.04]],16,-9.9,0,6.9);   // le seau
-  lt('G',[[.26,.32],[0,.32]],16,-9.9,0,6.9);to('C',.29,.008,-9.9,.48,6.9,0,0,0,4,Math.PI);
-  {const palette=(x,y0,z)=>{for(let i=0;i<5;i++)cb('W',1.2,.022,.14,x,y0+.139,z-.43+i*.215,0,0,0,.004);
-     for(const s of [-.55,0,.55])cb('W2',.1,.1,1.0,x+s,y0+.078,z,0,0,0,.008);
-     for(const s of [-.43,0,.43])cb('W',1.2,.022,.14,x,y0+.011,z+s,0,0,0,.004);};
-   for(let i=0;i<3;i++)palette(-9.9,i*.15,-9.4);
-   carton(-9.75,.45,-9.4,.9,.5,.8);carton(-9.65,.95,-9.35,.8,.45,.7,.1);carton(-9.55,1.4,-9.4,.6,.4,.5,-.15);}}
+  
   {const ex=-10.62,ez=-4.5;cb('F',.08,.36,.2,-10.93,2.45,ez,0,0,0,.01);cb('F',.34,.04,.22,-10.72,2.1,ez,0,0,0,.01);   // l'extincteur
    lt('R',[[0,0],[.14,0],[.15,.02],[.15,.56],[.12,.64],[.05,.68],[0,.68]],16,ex,2.12,ez);lt('Wb',[[.153,.2],[.153,.42]],16,ex,2.12,ez);
    cl('C',.035,.08,8,ex,2.84,ez);cb('N',.2,.03,.05,ex+.03,2.91,ez,0,0,-.2,.005);cb('C',.16,.03,.04,ex+.02,2.86,ez,0,0,.15,.005);
@@ -44507,12 +44450,8 @@ function buildGarageRoom(){
    for(const s of [-2.1,2.1])for(let j=0;j<4;j++)barre('B',.035,[rx0-.66,.3+j*1.0,rz0+s],[rx0+.66,.8+j*1.0,rz0+s]);
    for(let i=0;i<4;i++){const y9=.5+i*1.15;for(const px of [-.7,.7])cb('O',.06,.12,4.3,rx0+px,y9,rz0,0,0,0,.012);
      cb('A',1.36,.025,4.2,rx0,y9+.055,rz0,0,0,0,.005);for(let k=0;k<6;k++)cb('F',1.36,.02,.03,rx0,y9+.03,rz0-1.8+k*.72,0,0,0,0);}
-   const bac=(z9,y0,k)=>{const bf=rx0-.5;cb(k,.9,.28,.44,rx0-.05,y0+.14,z9,0,0,0,.02);cb('D',.84,.006,.38,rx0-.05,y0+.281,z9,0,0,0,0);   // le bac, sa lèvre, son étiquette
-     cb(k,.06,.1,.4,bf-.02,y0+.07,z9,0,0,0,.01);cb('Wb',.005,.07,.2,bf-.003,y0+.2,z9,0,0,0,0);};
-   if(!GAR_AERE){bac(1.9,.57,'B');bac(2.45,.57,'B');carton(rx0,.57,3.6,.9,.5,.8,.1);carton(rx0-.05,.57,4.6,.8,.42,.7);}
-   for(let i=0;i<3;i++)jante(rx0,1.77+i*.1,rz0+1.2,.32,5);if(!GAR_AERE){carton(rx0,1.72,2.05,.9,.55,.9,-.08);carton(rx0,1.72,3.0,.7,.36,.6,.12);
-   for(let i=0;i<5;i++)jerry(rx0-.1+(i%2)*.2,2.87,4.4+i*.3-.6,'V');bac(2.0,2.87,'R');bac(2.55,2.87,'B');
-   carton(rx0,4.02,1.9,.9,.5,.8);carton(rx0,4.02,2.8,.8,.4,.7,.1);carton(rx0,4.52,1.95,.7,.36,.6,-.12);}pneu(rx0,4.14,4.3,.37,.235,0,.3,0);}
+   
+   for(let i=0;i<3;i++)jante(rx0,1.77+i*.1,rz0+1.2,.32,5);pneu(rx0,4.14,4.3,.37,.235,0,.3,0);}
   // LE DISTRIBUTEUR : caisse laquée, chapeau, cadre chromé de la vitrine, trappe, fente à pièces, pieds
   {const dx=10.3,dz=8.4,fx=9.85;
    cb('R',.9,1.94,1.5,dx,1.03,dz,0,0,0,.04);cb('N',.96,.16,1.56,dx,2.06,dz,0,0,0,.03);cb('D',.86,.06,1.44,dx,.03,dz,0,0,0,.01);
@@ -44520,23 +44459,11 @@ function buildGarageRoom(){
    cb('N',.05,.3,.74,fx-.005,.22,dz,0,0,0,.01);cb('D',.06,.12,.6,fx-.02,.2,dz,0,0,0,.006);cb('C',.02,.1,.06,fx-.01,.22,dz+.56,0,0,0,.004);
    cb('C',.012,.04,1.3,fx-.006,2.06,dz,0,0,0,0);}
   flat(vendTex,9.82,1.15,8.4,1.2,1.5,-Math.PI/2);
-  if(!GAR_AERE){for(const p of [[7.2,9.6],[6.2,10.3],[8.2,10.4]]){lt('O',[[.26,.07],[.05,.72],[.035,.74],[0,.74]],16,p[0],0,p[1]);   // cônes de chantier
-    for(const b of [[.34,.44],[.52,.6]])lt('Wb',[[.26-(b[0]-.07)*.323+.004,b[0]],[.26-(b[1]-.07)*.323+.004,b[1]]],16,p[0],0,p[1]);
-    cb('D',.62,.07,.62,p[0],.035,p[1],0,.3,0,.02);}
-  {const tx=7.6,tz=-4.2;lt('B',[[0,.44],[.28,.44],[.33,.47],[.34,.52],[.3,.56],[0,.57]],16,tx,0,tz);   // le tabouret roulant
-   cl('N',.05,.14,10,tx,.37,tz);cl('C',.03,.2,8,tx,.22,tz);to('C',.2,.012,tx,.26,tz,Math.PI/2,0,0,4);
-   for(let i=0;i<5;i++){const a=i/5*Math.PI*2;barre('N',.04,[tx,.12,tz],[tx+Math.sin(a)*.3,.08,tz+Math.cos(a)*.3]);
-     lt('D',[[0,-.04],[.035,-.03],[.04,0],[.035,.03],[0,.04]],8,tx+Math.sin(a)*.3,.04,tz+Math.cos(a)*.3);}}}
+  
   for(let i=-1;i<=1;i++){cb('G',.06,1.3,2.6,hw-.16,4.6,i*4.4,0,0,0,0);                   // fenêtres hautes : verre, dormant, croisillons
     for(const s of [-1,1])cb('F',.08,1.42,.1,hw-.2,4.6,i*4.4+s*1.33,0,0,0,.01);for(const y9 of [3.93,5.27])cb('F',.08,.1,2.76,hw-.2,y9,i*4.4,0,0,0,.01);
     cb('F',.05,1.3,.05,hw-.19,4.6,i*4.4,0,0,0,0);cb('F',.05,.05,2.6,hw-.19,4.6,i*4.4,0,0,0,0);}
-  if(!GAR_AERE){{const fut=(x,y,z,k,rx,ry,rz)=>{lt(k,[[0,0],[.4,0],[.42,.03],[.42,.97],[.4,1.0],[0,1.0]],18,x,y,z,rx,ry,rz);    // les fûts, côté porte
-     for(const h of [.32,.66])lt(k,[[.42,h-.03],[.44,h],[.42,h+.03]],18,x,y,z,rx,ry,rz);
-     for(const h of [0,1])lt('A',[[.415,h-.012],[.43,h],[.415,h+.012]],18,x,y,z,rx,ry,rz);};
-   for(let i=0;i<3;i++){const x9=-6.6+i*1.0;fut(x9,0,10.4,i===1?'V':'B');cl('Or',.05,.03,8,x9+.2,1.01,10.3);cl('Or',.035,.03,8,x9-.22,1.01,10.5);
-     cb('Wb',.3,.2,.006,x9,.5,10.4-.423,0,0,0,0);}
-   fut(-3.35,.42,10.4,'R',Math.PI/2,0,.1);}
-  for(let i=0;i<3;i++)jerry(-8.6+i*.44,0,9.2,'V');}
+  
 
   // ===== LE PONT ÉLÉVATEUR : deux poteaux en U, chariots, quatre bras à tampons, traverse haute, groupe hydraulique =====
   {const lx=9.9,lz=-10.3;cb('F',.5,.04,3.0,lx,.02,lz,0,0,0,.01);
@@ -44558,27 +44485,9 @@ function buildGarageRoom(){
   // ce qu'on a posé par terre en se disant qu'on le rangerait plus tard.
   pneu(5.9,.118,3.3,.37,.235,0,0,0);jante(5.9,.285,3.3,.25,6);pneu(6.5,.118,2.62,.37,.235,0,.5,0);   // deux pneus, une jante posée dessus
   pneu(-5.4,.118,-5.6,.37,.235,0,.8,0);
-  if(!GAR_AERE){{const a=.3;cb('R',.62,.3,.34,-5.6,.15,4.4,0,a,0,.02);cb('R',.64,.06,.36,-5.6,.33,4.4,0,a,0,.02);          // caisse à outils oubliée là
-   cl('D',.016,.36,6,-5.6,.42,4.4,0,a,Math.PI/2);for(const s of [-.2,.2])cb('C',.03,.06,.03,-5.6+s*Math.cos(a),.39,4.4-s*Math.sin(a),0,a,0,.004);}
-  lt('V',[[0,0],[.18,0],[.19,.015],[.19,.3],[.16,.37],[.07,.41],[0,.41]],14,6.789,.2,-3.48,0,.4,Math.PI/2);  // bidon renversé
-  cb('N',.46,.3,.3,7.2,.15,1.4,0,0,0,.02);cb('D',.47,.04,.31,7.2,.32,1.4,0,0,0,.01);                          // la batterie
-  cl('R',.035,.05,10,7.07,.36,1.4);cl('A',.035,.05,10,7.33,.36,1.4);cl('Or',.02,.03,8,7.07,.39,1.4);cl('Or',.02,.03,8,7.33,.39,1.4);
-  cb('Wb',.2,.1,.005,7.2,.17,1.553,0,0,0,0);
-  lt('A',[[0,0],[.42,0],[.46,.1],[.44,.1],[.4,.02],[0,.02]],20,-6.4,0,-2.6);lt('H',[[.43,.07],[0,.07]],20,-6.4,0,-2.6);   // le plateau de vidange, plein
-  lt('R',[[0,0],[.14,0],[.14,.04],[.1,.07],[.09,.28],[.07,.3],[0,.3]],12,5.2,0,5.6);cl('C',.05,.12,10,5.2,.36,5.6);    // le cric bouteille
-  lt('A',[[.06,.42],[.06,.45],[0,.45]],10,5.2,0,5.6);cb('A',.06,.06,.08,5.3,.08,5.6,0,0,0,.01);cb('C',.02,.04,.3,5.3,.1,5.78,0,0,0,.004);
-  for(const p of [[-4.2,6.6],[-4.55,6.35]])MK.prism('J',[[p[1]-.21,0],[p[1]+.21,0],[p[1]+.21,.04],[p[1]-.02,.18],[p[1]-.21,.18]],.3,p[0]);  // cales de roue
-  cb('R',.42,.04,.34,-3.6,.02,6.2,0,.5,0,.015);cb('R',.3,.05,.2,-3.5,.05,6.25,.2,1.2,.1,.015);                // le chiffon
-  {let pr=null;for(let i=0;i<9;i++){const a=1.1+i*.42,r9=5.4+((i*7)%5)*.5,p=[Math.sin(a)*r9,.02,Math.cos(a)*r9];   // la rallonge qui serpente
-     if(pr)seg('J',.018,pr,p,5);else cb('N',.06,.05,.12,p[0],.025,p[2],0,-a,0,.01);pr=p;}
-   cb('J',.16,.08,.1,pr[0],.04,pr[2],0,.3,0,.015);}
-  for(let i=0;i<7;i++){const a=i*2.4,r9=5.2+((i*3)%5)*.6,x9=Math.sin(a)*r9,z9=Math.cos(a)*r9,L9=.18+(i%3)*.1;   // clés, douilles, boulons semés
-    if(i%3===2)cl('C',.035,.06,8,x9,.035,z9,0,a,Math.PI/2);
-    else{cb('C',.04,.012,L9,x9,.006,z9,0,a,0,.004);to('C',.03,.01,x9+Math.sin(a)*L9/2,.01,z9+Math.cos(a)*L9/2,Math.PI/2,0,0,4);}}}
+  
   lt('F',[[.55,0],[.55,.02],[.5,.026],[0,.026]],20,-1.6,0,-6.4);for(let i=0;i<4;i++)cb('D',.8,.01,.07,-1.6,.03,-6.75+i*.23,0,0,0,0);  // la bouche d'égout
-  if(!GAR_AERE){for(const p of [[4.6,-5.2,2.2],[-6.2,2.2,2.6]])                          // deux flaques de plus
-    add9(PL,new THREE.MeshBasicMaterial({map:oilTex,transparent:true,fog:false,depthWrite:false}),
-         p[0],.008,p[1],p[2],p[2]*.8,1).rotation.x=-Math.PI/2;}
+  
   // LE MOBILIER VERSÉ : une géométrie par matière, l'ombre cuite au pied (lpOmbre), le plancher lumineux relevé (uG)
   {const G9=MK.done(),GL={p:.22,c:.16,o:.2,s:.24,m:.16,g:.06};GAR.meubles=[];
    for(const f in G9){lpOmbre(G9[f],1.1);const mt=lpMat(f);if(mt.userData.uG)mt.userData.uG.value=GL[f]!=null?GL[f]:.2;
@@ -44591,7 +44500,7 @@ function buildGarageRoom(){
   {const F9=[[-3,zB,9.8,1.5],[-9.4,-1.6,.8,1.5],[-9.5,2.6,.9,2.1],[-9.6,-7.2,.8,.8],[-9.6,-5.1,.8,.8],[-9.4,7.4,.8,.8],[-8.9,5.6,.7,.7],
      [-9.9,-9.4,1.2,1.0],[7.7,-6.4,3.4,1.8],[9.0,-2.2,1.9,1.2],[9.6,3.4,1.5,4.4],[10.3,8.4,.9,1.5],[-5.6,10.4,3.2,1.0],[9.9,-10.3,1.2,4.0],
      [-8.2,-5.4,.6,1.4],[-8.6,1.2,.5,1.5],[7.6,-4.2,.6,.6],[-8.16,9.2,1.3,.3]],P9=[],U9=[];
-   for(const f of F9){if(GAR_AERE&&[[-8.9,5.6],[-9.9,-9.4],[-5.6,10.4],[-8.2,-5.4],[-8.6,1.2],[7.6,-4.2],[-8.16,9.2]].some(o=>o[0]===f[0]&&o[1]===f[1]))continue; // (l'atelier aéré) plus d'ombre sans meuble
+   for(const f of F9){if([[-8.9,5.6],[-9.9,-9.4],[-5.6,10.4],[-8.2,-5.4],[-8.6,1.2],[7.6,-4.2],[-8.16,9.2]].some(o=>o[0]===f[0]&&o[1]===f[1]))continue; // (l'atelier aéré) plus d'ombre sans meuble
      const w9=f[2]*1.5+.4,d9b=f[3]*1.5+.4,x0=f[0]-w9/2,x1=f[0]+w9/2,z0=f[1]-d9b/2,z1=f[1]+d9b/2;
      P9.push(x0,.009,z1, x1,.009,z1, x1,.009,z0, x0,.009,z1, x1,.009,z0, x0,.009,z0);U9.push(0,0,1,0,1,1,0,0,1,1,0,1);}
    const gA=new THREE.BufferGeometry();gA.setAttribute('position',new THREE.Float32BufferAttribute(P9,3));gA.setAttribute('uv',new THREE.Float32BufferAttribute(U9,2));
