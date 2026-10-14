@@ -8,7 +8,10 @@
   NITRO, PASSER, course, vol, mort, garage 1/49, boutique en $, réglages sans ENTRER UN CODE, VERSION 27b4199).
 - Captures 6,9 pouces FR + EN : `app-ios/fiche/captures-t8/jpg/` (JPEG, sans alpha ; hors git).
 - Archive Release T8 RÉUSSIE ; export ÉCHOUÉ « No Accounts » (aucun compte dans Xcode). Adhésion payante confirmée (profil d'1 an, équipe M532TDYCH2).
-- Reste : Sacha connecte son compte dans Xcode et dans App Store Connect (navigateur intégré) ; création de la fiche ; envoi sur son OUI.
+- 16 h 24 : compte Apple connecté dans Xcode par Sacha → EXPORT RÉUSSI : `app-ios/build/ipa/App.ipa` (78 Mo, 1.0.0 build 1, certificat
+  « Cloud Managed Apple Distribution » jusqu'au 14/10/2027). Rien d'envoyé.
+- Reste : Sacha se connecte à App Store Connect (navigateur intégré : la session ne tape jamais de mot de passe) ; création de l'app et
+  de la fiche ; envoi (`xcodebuild -exportArchive` avec destination upload, ou `sh archiver.sh --envoyer`) seulement sur son OUI.
 - Petit défaut du jeu vu au passage (pas une coupe d'app) : « CETTE SEMAINE » n'est pas traduit dans la boutique en anglais.
 
 # PASSATION — session APP STORE (app iPhone CASH CAR) — Mac → PC de Sacha, 14/10 vers 13 h 15
