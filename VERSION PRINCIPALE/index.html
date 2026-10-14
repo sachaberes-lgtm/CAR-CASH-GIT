@@ -33741,7 +33741,10 @@ function frenMus(on){
   const el=musicEl;
   if(on){
     if(!SND.music||musicMode!=='run'||!el)return;
-    if(MUSIC_FREN.f&&FRENM.ok!==false){ // LE MORCEAU TOMBE
+    /* (2026-10-14, session SON) on ne bascule que sur un fichier CONFIRMÉ (`ok===true`, sondé au lancement). Dans l'appli iPhone la sonde reste
+       sans réponse quand le fichier manque (`ok` null) : la 1re frénésie coupait la musique sur un fichier absent, 0,3 à 1,5 s de trou pile sur
+       la récompense, puis la radio repartait. Sans confirmation, c'est le repli surmultiplié, sans changer de source ni de silence. */
+    if(MUSIC_FREN.f&&FRENM.ok===true){ // LE MORCEAU TOMBE
       clearInterval(FRENM.iv);
       FRENM.src=el.src;FRENM.t=el.currentTime||0;FRENM.loop=el.loop;FRENM.sw=true;
       try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}
