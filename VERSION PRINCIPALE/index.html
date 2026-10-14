@@ -18572,6 +18572,14 @@ BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.95,.86
   daCon:.6,daExpo:1,daWbN:1,daSh:.3,daHi:.2,
   jdZ:[.50,.56,.66],jdL:[.74,.72,.74],jdM:[1,.66,.42],jdH:[1,.78,.54],jdR:[.40,.38,.46],jdB:[.90,.82,.76],jdS:[1,.72,.44]}; // (12/10 soir, Léo : « le ciel, un mélange de GRIS, BLEU, ORANGÉ ») l orange en bas, un gris chaud au milieu, le gris-bleu en haut // (12/10, Léo : « le ciel plus ORANGÉ, du coup, asiatique ») l orange du soir, le zénith bleu-mauve (v17 bis : la soie céladon)
 for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
+/* (2026-10-14, passe graphismes · garage-lumiere) LE GARAGE SORT DU NÉON. Constat de l'œil neuf : c'était le seul lieu du jeu resté « néon » (disque
+   cerclé de cyan, guirlande de losanges, vignette violette, moitié droite de la salle en noir bouché) alors que l'interface autour est passée en charte 6
+   « ENCRE · BLANC · OR ». Tout ce qui suit est de la VALEUR (couleurs, intensités, brume, exposition) : zéro texture, zéro lumière, zéro appel de dessin
+   en plus. `?sans=garage` rend le garage d'avant. ATELIER_V0 = l'atelier d'avant, gardé tel quel : la BOUTIQUE de Léo (bqBio) en hérite, elle ne bouge pas. */
+const GARAGE_V=!/[?&]sans=([^&]*,)?garage(,|&|$)/.test(location.search);
+const ATELIER_V0=JSON.parse(JSON.stringify(BIOMES.atelier));
+if(GARAGE_V)Object.assign(BIOMES.atelier,{hemiS:[.84,.85,.96],hemiG:[.13,.13,.20],hemiI:.97,sunC:[1,.90,.76],sunI:.92,fillC:[.55,.62,.82],fillI:.26,kickC:[1,.72,.42],kickI:.05,
+  vigC:[.02,.03,.075],vigK:.26,expo:1.04,sat:1.15,con:1.12}); // lumière ambiante : de quoi LIRE les murs ; clé chaude, ombres bleu-nuit (la vignette n'est plus violette)
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
 const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir','orage'];
@@ -45404,7 +45412,7 @@ function bqSem(){return Math.floor((Math.floor(Date.now()/864e5)+3)/7);} // les 
 function bqHebdoReste(){const ms=Math.max(0,((bqSem()+1)*7-3)*864e5-Date.now()),t=Math.floor(ms/1000),d=Math.floor(t/86400),d2=function(n){return (n<10?'0':'')+n;};
   return (d>0?d+(LANG==='fr'?'J ':'D '):'')+d2(Math.floor(t/3600)%24)+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqIndusVoulu(){const m=gModeM();return !!gEl&&garageOn&&(m==='shop'||m==='tous')&&!GAR.go&&!gEl.classList.contains('menu')&&!gEl.classList.contains('missions')&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching');}
-function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGASIN',hemiS:[.98,.99,1],hemiG:[.62,.64,.68],hemiI:1.1,sunC:[1,1,1],sunI:.62,fillC:[.82,.84,.88],fillI:.2,
+function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},ATELIER_V0,{nm:'MAGASIN',hemiS:[.98,.99,1],hemiG:[.62,.64,.68],hemiI:1.1,sunC:[1,1,1],sunI:.62,fillC:[.82,.84,.88],fillI:.2,
   kickC:[1,.62,.3],kickI:.05,expo:1.2,sat:.92,con:1.02,daHi:0,daSh:0,daCon:.5,bloomS:.16,bloomT:.98,vigK:0,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
 /* LE MAGASIN : bâti une fois (à la 1re visite de la boutique), dans un repère qui suit l'azimut de la caméra (+z = vers elle, l'allée file vers −z) */
 /* LE CADRAGE DE LA BOUTIQUE (2026-10-13, Léo : « laisse-moi toucher, bouger le point de vue de la boutique pour bien cadrer, puis je te dirai
@@ -46261,6 +46269,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
    stallKey.position.set(Math.sin(cA9+.72)*5.2,ay+4.1,Math.cos(cA9+.72)*5.2);
    stallRim.color.setRGB(.44+.56*wF,.82-.42*wF,1-.86*wF);garRessort(GAR,'vitL','vitLv',GAR.vit||0,4.8,dt);stallRim.intensity=(.5+.6*wF)*(wF>0?fl9:1)+VITRINE_CAM.rim*(GAR.vitL||0);stallRim.distance=26;stallKey.intensity+=VITRINE_CAM.cle*(GAR.vitL||0); /* (LA MISE EN PLACE) les lampes gardent leur FONDU quand le plan se pose d'un coup (`vitL`) */ // (vitrine v2) la clé et le contre-jour montent d'un cran : la caisse se DÉTACHE
    stallRim.position.set(Math.sin(cA9+Math.PI+.35)*6,ay+2.3,Math.cos(cA9+Math.PI+.35)*6);}
+  if(GARAGE_V){const V9=GAR.V||(GAR.V={cle:1.3,rim:1.5});stallKey.intensity*=V9.cle;stallRim.intensity*=V9.rim;} // (2026-10-14, passe graphismes · garage-lumiere) la clé et le contre-jour : deux gains (la caisse se détache) réglables au banc par dbgGarObj().V
   try{garAtelierTick(dt,ay);}catch(e){}try{garBqLumiere();}catch(e){} // (2026-10-12) L'ATELIER FERMÉ de l'INVENTAIRE : porte, lampe, pinces (après les lampes : la clé passe au-dessus de la caisse)
   // LE TUBE AU MAUVAIS STARTER : un néon sur six grésille. C'est ce seul détail qui fait passer le
   // décor de « maquette bien rangée » à « garage » — un atelier neuf, ça n'existe pas.
@@ -46622,6 +46631,7 @@ function garageDecale(k,kx){ // k = part de la hauteur d'image dont l'objectif s
 }
 // (dev, 2026-09-26) cadrage d'atelier FIGÉ pour les bancs avant/après : angle, tangage, distance — le tour automatique s'arrête
 window.dbgGarage=function(a,p,d,v){if(a==='libre'){GAR.fige=false;garageDrag=false;return {libre:true};}if(a==='etat')return {vA:+(GAR.vA||0).toFixed(3),swO:+(GAR.swO||0).toFixed(3),swK:+(GAR.swK||0).toFixed(2),p:+garagePitch.toFixed(3),ang:+garageAng.toFixed(2)};if(a!=null)garageAng=a;if(p!=null)garagePitch=p;if(d!=null)garageDist=d;if(v!=null)GAR.vA=GAR.vAc=v;GAR.vW=0;GAR.pT=garagePitch;GAR.fige=true;GAR.swK=GAR.swO=GAR.swP=0;garageDrag=true;return {a:garageAng,p:garagePitch,d:garageDist,v:GAR.vA||0};}; // (2026-09-30) 4e argument : le regard (GAR.vA) ; dbgGarage('libre') rend la main
+window.dbgGarObj=function(){return GAR;}; // banc (2026-10-14, passe graphismes · garage-lumiere) : l'objet GAR pour régler à chaud les couleurs de l'atelier
 // ---------- RÉGLAGES : audio + commandes + sauvegarde (les toggles pilotent les MÊMES états que les boutons du HUD) ----------
 const setEl=$('settings');
 function setRefresh(){
