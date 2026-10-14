@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA SECONDE CHANCE COÛTE TOUTE LA PARTIE (2026-10-14 soir, Sacha : « le bouton continuer malgré la mort doit coûter au joueur la même somme que ce qu'il a gagné durant la partie »)
+`chanceOuvre` : `CHANCE.prix = max(CHANCE.plancher, round(money − START_CASH))`, soit 100 % de l'encaissé, au dollar près. Le barème
+de GAMEPLAY (k 0,6 → 0,8) et l'arrondi à deux chiffres (`chanceJoli`) sont retirés. Le plancher de 300 $ ne joue que pour une partie
+qui n'a presque rien rapporté (sinon la reprise serait gratuite). Le moteur perd toujours un palier. Comptabilité inchangée : la 1re
+fin verse la partie, la reprise la reprend en entier, la fin suivante ne verse que ce qui a été gagné depuis. La plaque d'INTERFACE
+lit `chanceEtat().prix` : elle affiche le nouveau prix sans rien changer de son côté. Banc : mort à 1 000 $ gagnés → CONTINUER coûte 1 000 $.
+
 ## LES ÉVÉNEMENTS RARES (2026-10-14, Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares, annoncés CLAIREMENT, jamais mortels de façon injuste, avec une RÉCOMPENSE »)
 Le bloc `EVT` (juste avant `dbgVille`, repère : « LES ÉVÉNEMENTS RARES ») rejoue les trois morceaux de la campagne TELS QUELS (`fantomeTick`,
 `banquierTick`, `campMoutonsTick`, leur plaque `vChip`) dans la partie CLASSIQUE ; seul ce qui les finissait change de main quand ils viennent d'ici

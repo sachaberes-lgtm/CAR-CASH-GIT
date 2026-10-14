@@ -45426,7 +45426,7 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
    on repart d'où l'on est tombé (`respawn` : la dernière route sûre) avec le MOTEUR, la zone et le compteur de la partie ; la chaîne d'aura,
    le flow et les pouvoirs sont partis avec l'explosion, une part des gains avec le prix, et le MOTEUR perd un palier (CHANCE.moteurPerte :
    la caisse a explosé) — la mort reste une vraie sanction.
-   · LE PRIX monte avec la partie (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
+   · LE PRIX — ⚠ REMPLACÉ le 14/10 soir par Sacha : 100 % de l'encaissé de la partie (voir chanceOuvre). Avant (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
      triplait son revenu par minute), puis +0,05 par minute, plafond 0,8 ; CHANCE.plancher au moins, arrondi à deux chiffres (2 437 → 2 400). Le moteur perdu casse la pente de
      l'argent (≈ T^2,1 : continuer une longue partie vaut bien plus que d'en recommencer une). Il se paie sur le COMPTE — qui contient déjà la partie, commitExploits vient de la verser. Jamais
      proposée si le compte ne couvre pas le prix, ni sur une partie de moins de CHANCE.tMin secondes (on ne vend rien à qui a raté le 1er virage).
@@ -45440,17 +45440,15 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
      secondes de course : un choc est ignoré, une chute (vide, trop d'air) la replace sans frais. 2 s de nitro offerte, comme au départ.
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
-const CHANCE={on:!/[?&]chance=0\b/.test(location.search),k0:.6,kPente:.05,kMax:.8,plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
+const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
   offre:false,used:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
-function chanceJoli(x){if(!(x>0))return 0;const p=Math.pow(10,Math.max(0,Math.floor(Math.log10(x))-1));return Math.round(x/p)*p;} // deux chiffres qui comptent
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
 function chanceRaz(){clearTimeout(CHANCE.tm);const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
   clearTimeout(CHANCE.tm);CHANCE.offre=false;
   if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(RUNX.t||0)<CHANCE.tMin)return;
-  const k=Math.min(CHANCE.kMax,CHANCE.k0+CHANCE.kPente*Math.max(0,(RUNX.t||0)/60-3));
-  CHANCE.prix=chanceJoli(Math.max(CHANCE.plancher,k*Math.max(0,money-START_CASH)));
+  CHANCE.prix=Math.max(CHANCE.plancher,Math.round(Math.max(0,money-START_CASH))); /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
