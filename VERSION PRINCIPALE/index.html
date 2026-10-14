@@ -10012,6 +10012,7 @@ const SUN_UP=new THREE.Vector3().crossVectors(SUN_PERP,SUN_DIR).normalize(),shad
 let POST_EXPO=0.71;        // exposition BASSE : la nuit gagne — le sol s'éteint pour que nitro/boost/phares RAYONNENT dessus (let : les BIOMES la pilotent, le contre-jour la relit chaque frame)
 const POST_SAT=1.40;       // SATURATION forte : néons Vice City (valeur d'init — les biomes écrivent acesPass.uniforms.uSat en direct)
 const POST_CONTRAST=1.23;  // CONTRASTE : noirs profonds, hautes lumières franches
+let POST_PIVOT=.5;          // (2026-10-14, passe graphismes · chaîne de couleur) le PIVOT du contraste. À .5 (l'image d'avant, au bit près) tout ce qui sort de l'ACES sous ~.14 est écrêté à 0 dès que le contraste dépasse 1,3 : des noirs BOUCHÉS (seuil = 25 à 35/255 en valeur de scène). Plus bas (.35) les ombres gardent leur dégradé — mais toute l'image monte de (con−1)·(.5−pivot) : à régler avec l'exposition. INTERRUPTEUR ÉTEINT (.5) : `dbgGfx({pivot:.35})` pour essayer à chaud ; uniforme `uKC` calculé en JS, coût nul.
 const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
 const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
@@ -10181,6 +10182,7 @@ if(CAN_POST){ try{
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
   // BLOOM demi-résolution partout : gros gain GPU, halation quasi identique à l'œil.
+  const HALO_REF=2,HALO_LOG=[3,10,28,72,176].map(Math.log2); // (2026-10-14, chaîne de couleur) la résolution où le halo a été réglé (banc : DPR 2) et le rayon de chaque étage, en log2 de texels de la base
   const bSc=IS_MOBILE?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
   const bRes=new THREE.Vector2(Math.max(320,Math.round(w*bSc)),Math.max(240,Math.round(h*bSc)));
   bloomPass=new THREE.UnrealBloomPass(bRes,IS_MOBILE?0.44:0.54,IS_MOBILE?0.44:.5,0.92);
@@ -10199,6 +10201,7 @@ if(CAN_POST){ try{
     fragmentShader:'varying vec2 vUv;uniform sampler2D t1,t2,t3,t4,t5;uniform vec4 w;uniform float w5,a;void main(){gl_FragColor=vec4(clamp(w.x*'+TXL('t1','vUv')+'.rgb+w.y*'+TXL('t2','vUv')+'.rgb+w.z*'+
       TXL('t3','vUv')+'.rgb+w.w*'+TXL('t4','vUv')+'.rgb+w5*'+TXL('t5','vUv')+'.rgb,0.,1.)*a,1.0);}'});
   bloomPass._a=0; // l'alpha du halo de l'image (strength·Σpoids écrêté à 1) — relu par l'ACES
+  bloomPass._wn=[0,0,0,0,0];bloomPass.norme=!/[?&]halo=large/.test(location.search); // (2026-10-14, passe graphismes · chaîne de couleur) le halo à largeur d'écran constante — voir « LE HALO GARDE SA LARGEUR » dans son rendu
   {const s0=bloomPass.setSize.bind(bloomPass);bloomPass.setSize=function(W,H){this._W=W;this._H=H;s0(Math.max(2,Math.round(W*bSc*2*BLOOM_RES)),Math.max(2,Math.round(H*bSc*2*BLOOM_RES)));
     const v0=this.renderTargetsVertical[0];if(this._cRT&&(this._cRT.width!==v0.width||this._cRT.height!==v0.height))this._cRT.setSize(v0.width,v0.height);};} // (_W/_H retenus : l'échelle QL retaille le bloom seul) — le halo composé suit le 1er mip
   /* (2026-10-14, passe perf mobile) LES ÉTAGES DU HALO, PAR PALIER. Le halo, c'est 5 étages de flou (½, ¼ … 1/32 de sa base), 2 passes
@@ -10246,7 +10249,21 @@ if(CAN_POST){ try{
       if(this._cMat&&this.nMips===5){ // LE HALO COMPOSÉ (voir sa création) : poids `strength·mix(f,1.2−f,radius)` = lerpBloomFactor, facteurs 1/.8/.6/.4/.2
         const cu=this._cMat.uniforms,s=this.strength,r=this.radius,w0=s*(1-.8*r),w1=s*(.8-.4*r),w2=s*.6,w3=s*(.4+.4*r),w4=s*(.2+.8*r);
         for(let i=0;i<5;i++)cu['t'+(i+1)].value=this.renderTargetsVertical[Math.min(i,nM-1)].texture; // (2026-10-14) un étage non calculé lit le dernier calculé : son poids s'y reporte
-        cu.w.value.set(w0,w1,w2,w3);cu.w5.value=w4;cu.a.value=this._a=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));
+        /* (2026-10-14, passe graphismes · chaîne de couleur) LE HALO GARDE SA LARGEUR À L'ÉCRAN, QUELLE QUE SOIT LA RÉSOLUTION. Les flous du halo
+           se comptent en TEXELS de sa cible, et sa cible suit la résolution (curDPR × BLOOM_RES) : à DPR 1 (un iPhone en RAPIDE) le halo
+           s'étalait donc DEUX FOIS plus large à l'écran qu'à DPR 2 (le banc où les ambiances ont été réglées), et il s'élargissait encore à
+           chaque cran de résolution perdu — un voile laiteux autour de chaque clair, que personne n'avait réglé. Les POIDS des étages sont
+           redistribués pour retrouver le profil de la référence (DPR 2, halo plein) : chaque étage de référence verse son poids sur les
+           étages réels de même rayon à l'écran (rayons 3·10·28·72·176 texels de la base ; ce qui est plus fin que le 1er étage y reste).
+           Même somme (même force, même alpha), que des uniformes, aucune passe ni lecture en plus. `bloomPass.norme=false` (ou
+           `?halo=large`, `dbgGfx({haloNorme:0})`) rend le halo d'avant. */
+        if(this.norme&&this._W){const L9=HALO_LOG,o9=this._wn,d9=Math.log2(HALO_REF/Math.max(.05,curDPR*BLOOM_RES));
+          if(Math.abs(d9)>.03){const e9=[w0,w1,w2,w3,w4];o9[0]=o9[1]=o9[2]=o9[3]=o9[4]=0;
+            for(let j=0;j<5;j++){const t9=L9[j]-d9;let x9=0;if(t9>=L9[4])x9=4;else if(t9>L9[0]){let i9=0;while(i9<3&&t9>L9[i9+1])i9++;x9=i9+(t9-L9[i9])/(L9[i9+1]-L9[i9]);}
+              const i0=Math.floor(x9),f9=x9-i0;o9[i0]+=e9[j]*(1-f9);if(f9>0)o9[Math.min(4,i0+1)]+=e9[j]*f9;}
+            cu.w.value.set(o9[0],o9[1],o9[2],o9[3]);cu.w5.value=o9[4];cu.a.value=this._a=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));}
+          else{cu.w.value.set(w0,w1,w2,w3);cu.w5.value=w4;cu.a.value=this._a=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));}}
+        else{cu.w.value.set(w0,w1,w2,w3);cu.w5.value=w4;cu.a.value=this._a=Math.min(1,Math.max(0,w0+w1+w2+w3+w4));}
         this.fsQuad.material=this._cMat;rd.setRenderTarget(this._cRT);rd.clear();this.fsQuad.render(rd);}
       else this._a=0;
       if(mask)rd.state.buffers.stencil.setTest(true);
@@ -10298,7 +10315,7 @@ if(CAN_POST){ try{
    acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
-     U9.uKC.value.set(U9.uContrast.value,.5-.5*U9.uContrast.value);      // …et le contraste en pente + décalage
+     U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
      return THREE.ShaderPass.prototype.render.apply(this,arguments);};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
@@ -10807,6 +10824,8 @@ window.dbgGfx=function(o){
   if(o){if(o.coeur!=null)GFX_U.uCoeur.value=o.coeur===true?1.16:(+o.coeur||1);if(o.glace!=null)GLACE.k=o.glace===true?1:+o.glace;
     if(o.cotonOpaque!=null&&COTON.mat){COTON.mat.transparent=!o.cotonOpaque;COTON.mat.depthWrite=true;}
     if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
+    if(o.pivot!=null)POST_PIVOT=+o.pivot; // (2026-10-14, chaîne de couleur) le pivot du contraste, à chaud (.5 = l'image d'avant)
+    if(o.haloNorme!=null&&bloomPass)bloomPass.norme=!!o.haloNorme; // (2026-10-14, chaîne de couleur) le halo à largeur d'écran constante, à chaud
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
 window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
@@ -46187,6 +46206,15 @@ let MENU_BIO='matin';
 window.dbgAmb=function(n,o){n=n||MENU_BIO;const B=BIOMES[n];if(!B)return null;if(o&&typeof o==='object')Object.assign(B,JSON.parse(JSON.stringify(o))); // (2026-09-30, dev) retoucher une ambiance à chaud : dbgAmb('matin',{jZen:[…]})
   MENUV.bio=false;if(BIO.name===n||BIO.to===B){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);paintEnv(B.env,B.eS1,B.eS2);BIO.pas=(BIO.pas|0)+1;}
   return JSON.parse(JSON.stringify(B));};
+/* (2026-10-14, passe graphismes · chaîne de couleur) banc ET téléphone : `dbgChaine()` dit ce que CET appareil exécute vraiment — palier, cran,
+   résolution, cible du composer (demi-flottant ou repli 8 bits), passes, halo, piqué, et les uniformes d'étalonnage posés. À lire sur l'iPhone
+   (Safari → Développement) pour savoir si l'image jugée est celle qu'on règle. */
+window.dbgChaine=function(){const U=acesPass&&acesPass.uniforms,r=function(v){return v&&v.toArray?v.toArray().map(function(x){return +x.toFixed(3);}):v;},rt=composer&&composer.renderTarget2;
+  return {tel:IS_MOBILE,basDeGamme:IS_LOW_END,palier:PAL.n,palierSrc:PAL.src,cran:QL.k,bornes:qlBornes(),dpr:+curDPR.toFixed(3),dprEcran:devicePixelRatio,plafond:DPR_CAP,qualite:(typeof SAVE!=='undefined'&&SAVE.d)?SAVE.d.q:null,vhd:VHD.on,
+    post:POST_ON,cible:rt?(rt.texture.type===THREE.HalfFloatType?'demi-flottant':'8 bits (repli : clairs écrêtés AVANT le tone mapping)'):null,toile:[renderer.domElement.width,renderer.domElement.height],
+    halo:bloomPass?{actif:bloomPass.enabled,force:+bloomPass.strength.toFixed(3),seuil:bloomPass.threshold,rayon:bloomPass.radius,res:BLOOM_RES,etages:bloomPass._nM,base:[bloomPass.renderTargetsVertical[0].width,bloomPass.renderTargetsVertical[0].height],norme:bloomPass.norme,alpha:+(bloomPass._a||0).toFixed(3)}:null,
+    reduireAnimations:REDUCED_MOTION,ombre:[sun.shadow.mapSize.x,renderer.shadowMap.type===THREE.PCFSoftShadowMap?'douce':'simple'],flouRadial:FLOU_OK,fxaa:FXAA_ON,gradeTel:GRADE_ACES,
+    etal:U?{expo:+U.uExposure.value.toFixed(3),sat:+U.uSat.value.toFixed(3),con:+U.uContrast.value.toFixed(3),vivid:U.uVivid.value,wb:r(U.uWB.value),sh:r(U.uSh.value),hi:r(U.uHi.value),vigK:+U.uVigK.value.toFixed(3),vigC:r(U.uVigC.value),pique:+U.uSharp.value.toFixed(3),trame:+(U.uTrame.value*255).toFixed(2)}:null};};
 window.dbgCielObj=function(){return {ROAD_U:ROAD_U,ROUTE_JOUR:ROUTE_JOUR,CHUTE_P:CHUTE_P,horizonGlow:horizonGlow,sunSprite:sunSprite,RAYS:RAYS,CLOUD_MAT:CLOUD_MAT,COTON:COTON,GFX_U:GFX_U,skyU:skyU,fog:scene.fog,aces:acesPass,LVL:LVL,BIO:BIO,hemi:hemi,sun:sun,fill:fill,kick:kick};}; // (2026-09-30, dev) disséquer le ciel au banc
 window.dbgMenuCiel=function(b){if(b&&BIOMES[b]){MENU_BIO=b;MENUV.bio=false;}return MENU_BIO;}; // (dev) essayer un autre ciel d'accueil : dbgMenuCiel('matin')
 function menuPlan(){ // le meilleur couple (position, angle) pour filmer la caisse devant le couchant — une fois par piste
