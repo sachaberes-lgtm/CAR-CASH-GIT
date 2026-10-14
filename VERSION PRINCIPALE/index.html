@@ -7821,6 +7821,8 @@ html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{di
 @media (orientation:landscape) and (max-height:540px) and (max-width:700px){
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName{font-size:12px!important;line-height:16px!important}
 }
+/* (2026-10-14, ordre de Sacha, suite) le nom de rang du profil du garage (#gpRang) se tait aussi : le chiffre d'aura et sa jauge restent. */
+html.c6 body #gProfil #gpRang{display:none!important}
 </style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -29038,6 +29040,7 @@ function auraRank(total){ // l'index de rang atteint pour une aura donnée
   return r;
 }
 function auraRankName(r){return TR((AURA_RANKS[r==null?auraRank():r]||AURA_RANKS[0]).n);}
+function auraSansNom(){return document.documentElement.classList.contains('c6');} // (2026-10-14, ordre de Sacha : « plus de surnom bizarre, juste l'aura ») sous la charte 6 on n'ÉCRIT plus aucun nom de rang : le chiffre d'aura seul. Les paliers (auraRank, déblocages) ne changent pas.
 function auraNext(){ // ce qu'il reste pour le rang suivant (null au sommet)
   const r=auraRank();if(r>=AURA_RANKS.length-1)return null;
   const n=AURA_RANKS[r+1];return {n:n.n,reste:Math.max(0,n.v-(SAVE.d.aura||0)),seuil:n.v};
@@ -30911,7 +30914,8 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
   if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)','完成 SKY HIGH  （'+cur+' / 5）'][L]; // (2026-09-27)
   if(u.k==='carrV')return ['TERMINE LA VILLE  ('+cur+' / 5)','FINISH THE CITY  ('+cur+' / 5)','完成城市  （'+cur+' / 5）'][L]; // (2026-09-27)
   switch(u.k){
-    case 'aura':  return [ 'RANG D\'AURA « '+auraRankName(v)+' »   (le tien : « '+auraRankName()+' »)',
+    case 'aura':  if(auraSansNom()){const s9=fmtAura((AURA_RANKS[v]||AURA_RANKS[0]).v),t9=fmtAura(SAVE.d.aura||0);return ['AURA '+s9+'   (la tienne : '+t9+')','AURA '+s9+'   (yours: '+t9+')','灵气 '+s9+'   （你的：'+t9+'）'][L];}
+                  return [ 'RANG D\'AURA « '+auraRankName(v)+' »   (le tien : « '+auraRankName()+' »)',
                            'AURA RANK "'+auraRankName(v)+'"   (yours: "'+auraRankName()+'")', // (2026-09-28) guillemets anglais
                            '灵气段位「'+auraRankName(v)+'」   （你的段位：「'+auraRankName()+'」）' ][L];
     case 'cash':  return [ 'RECORD DE PARTIE : ','BEST RUN: ','单局最高纪录：' ][L]+fmtC(v)+'  ('+fmtC(cur)+')';
@@ -38102,7 +38106,7 @@ function renderLeaders(hl){
 function setBestChip(){
   bestChip.textContent=(best>0?(TR('RECORD')+'  '+fmt(best)):TR('AUCUN RECORD — À TOI DE JOUER'))+
     (bank()>0?('  ·  '+TR('COMPTE')+' '+fmtC(bank())):'')+
-    ((SAVE.d.aura||0)>0?('  ·  ✦ '+auraRankName()):'');
+    ((SAVE.d.aura||0)>0?('  ·  ✦ '+(auraSansNom()?fmtAura(SAVE.d.aura||0):auraRankName())):'');
 }
 function commitName(){
   if(pendingScore==null)return;
@@ -40703,7 +40707,7 @@ function endGame(){
   runStatsEl.textContent=TR('FIGURES')+' '+runStats.tricks+' · '+TR('CHAÎNE MAX')+' '+(runStats.chainMax||0)+' · '+TR('BUMPS')+' '+runStats.bumps
     +' · '+TR('ZONES')+' '+runStats.zones+' · '+TR('GAPS')+' '+runStats.gaps+' · '+TR('VMAX')+' '+Math.round(runStats.vmax)+' KM/H'
     +'\n'+TR('VIREMENT')+' +'+fmtC(vire)+'  →  '+TR('COMPTE')+' '+fmtC(bank())
-    +'   ✦ '+TR('AURA')+' +'+auraG+'  →  '+auraRankName()
+    +'   ✦ '+TR('AURA')+' +'+auraG+(auraSansNom()?'':'  →  '+auraRankName())
     +(commitExploits._rangMonte?'   ★ '+TR('NOUVEAU RANG !'):'')
     +(gagnees.length?'\n'+TR('🔑 DÉBLOQUÉ : ')+gagnees.map(i=>TR(CARS[i].name)).join(' · '):'');
   finalScore.style.display='block';
@@ -48420,7 +48424,7 @@ function gvJauges(anim){
   else{rA.textContent=ac('RECORD')+' ';const e9=document.createElement('em');e9.textContent=fmtC(R);rA.appendChild(e9);}
   rU.innerHTML='';if(nx){rU.textContent='▸ '+ac(nx.n)+' ';const e9=document.createElement('em');e9.textContent=Math.floor(fU*100)+' %';rU.appendChild(e9);}else rU.textContent=ac('INTOUCHABLE');
   U.classList.toggle('sommet',!nx);
-  A.title=ac('RECORD')+' '+fmtC(R);U.title=ac(AURA_RANKS[r].n)+(nx?' → '+ac(nx.n)+' · '+fmtAura(Math.max(0,nx.v-au)):'');
+  A.title=ac('RECORD')+' '+fmtC(R);U.title=auraSansNom()?'AURA '+fmtAura(au):ac(AURA_RANKS[r].n)+(nx?' → '+ac(nx.n)+' · '+fmtAura(Math.max(0,nx.v-au)):'');
   const o=objectif(),pe=$('gPerso');if(pe)pe.toggleAttribute('data-portee',!!(o&&o.prix&&b>=o.prix)); // une caisse est à ta portée : le SHOP le dit
   gveInit();const BA=GVE.bars[0],BU=GVE.bars[1];BA.cible=fA;BU.cible=fU;
   if(anim&&!REDUCED_MOTION){
