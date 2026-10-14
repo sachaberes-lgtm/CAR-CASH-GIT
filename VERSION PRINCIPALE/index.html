@@ -28834,7 +28834,7 @@ function frole(c9,dl,k){
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
   if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
-  try{froleSnd(pres,FROLE.n);}catch(e){}
+  try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
   if(SENS)try{sensCoup((lat-side*c9.lat>0?1:-1)*(.35+.5*pres),0,0);}catch(e){} // (2026-10-14, sensations) le SOUFFLE du plot rasé : la caisse s'en écarte d'un rien (plus on rase près, plus elle tique) — le frôlé se lisait aux étincelles, pas dans la caisse
@@ -34675,14 +34675,20 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le
    faisaient, leurs remplaçants aussi. La valeur = la profondeur du creux (voir `dk` dans la boucle). */
 const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'pwr.bouclierCasse':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
-  'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35};
+  'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35,
+  // (2026-10-14, session SON) les grands moments qui n'écartaient pas le mix alors qu'ils sonnent aussi fort que ceux du dessus (audit oreille-neuve §6) : chaque id vérifié dans la banque et appelé
+  'aura.x5':.2,'aura.x8':.3,'fig.snake':.3,'fig.essoreuse':.25,'fig.dauphinRoyal':.3,'pwr.double':.25,'frenesie.record':.4,'verdict.1':.15,'argent.gros':.15};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
+// (2026-10-14, session SON) passé le 9e degré (+21, le plafond des bases [0,12]), une gamme du vol ne se FIGE plus sur sa note : elle redescend
+// et remonte l'octave haute (degrés 8-7-6-5-6-7-8-9 : +19 +16 +14 +12 +14 +16 +19 +21) — jamais plus haut qu'avant
+const SON_ECH_AR=[8,7,6,5,6,7,8,9];
+function sonPdAR(i){i=Math.max(0,i|0);return sonPd(i<=9?i:SON_ECH_AR[(i-10)%SON_ECH_AR.length]);}
 function sfx(id,o){
   if(!SONV2||!sfxOk()||document.hidden)return null;
   try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
-function echSt(){return sonPd(Math.min(9,ECH++));} // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
+function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
   if(SONV2||!AC||!MASTER||!window.CCSON)return;
   try{window.CCSON.init(AC,MASTER);SONV2=!!(window.CCSON.etat().ok&&window.CCSON.existe('ui.tap'));sonTonSuit._t=null;}catch(e){SONV2=false;} // (débogage 2026-09-29) sans banque chargée, l'ancien son reprend la main
@@ -35184,6 +35190,8 @@ function heartBeat(){ // la mallette est lourde : le cœur du pilote cogne — t
    ni avec celle d'avant ni avec la musique. Le combo (fenêtre de 3 s) EST la portée : lâche la ligne et la mélodie
    repart d'en bas. C'est ce qui donne envie de ne plus la lâcher (le même ressort que les anneaux d'un hérisson bleu). */
 const GAMME_P=[0,2,4,7,9,12,14,16,19,21,24];
+// (2026-10-14, session SON) au-delà du sommet (+24), la série ne rejoue plus la même note : elle redescend et remonte l'octave haute (aller-retour, période 10)
+const SON_P_AR=[21,19,16,14,12,14,16,19,21,24];
 /* (2026-09-25) UNE SEULE LANGUE pour toute la famille des récompenses : les pièces étaient en mi pentatonique, mais le FLOW jouait en
    do/ré/mi/sol majeur, le frôlé une gamme par tons, la chaîne du chromatique, l'échelle des tons depuis la5, le drift la/ré/sol…
    Or ces sons se SUPERPOSENT sans arrêt (ligne de pièces + slalom + palier de FLOW) : pièce n°3 (sol#5) contre l'accord de do du FLOW
@@ -35192,7 +35200,11 @@ const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660
 function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
 const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
 function blip(){
-  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)],vol:4}); /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
+  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1),st9=k9<GAMME_P.length?GAMME_P[k9]:SON_P_AR[(k9-GAMME_P.length)%SON_P_AR.length];
+    // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
+    // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
+    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-3,t:.03});}catch(e){}
+    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -35280,8 +35292,14 @@ function raseSnd(dt,kmh){
 }
 /* LE FRÔLÉ S'ENTEND : un souffle Doppler (aigu à l'approche, grave en s'éloignant — l'objet PASSE à côté de nous) et un
    « ting » qui monte d'un ton par plot enchaîné. La chaîne d'un slalom se joue comme une gamme. */
-function froleSnd(pres,n){
-  if(SONV2){sfx('frole',{st:sonPd(Math.min(9,(n|0)-1)),vol:-3+3*(pres||0)});return;}
+// (2026-10-14, session SON) LE CÔTÉ DE L'OBSTACLE : `ob` = l'objet frôlé (plot, satellite, voiture du trafic — tous ont .mesh.position, en monde).
+// Son écart sur l'axe DROIT de la caméra (celle de l'image d'avant) le place à l'écran : le souffle passe de ce côté, ±0,35 au plus.
+// Sans objet (ou sans position), pas de pan : rien n'est deviné. Vecteurs réutilisés : aucune allocation par frôlé.
+const SON_FR_D=new THREE.Vector3(),SON_FR_R=new THREE.Vector3(),SON_FR_C=new THREE.Vector3();
+function froleSnd(pres,n,ob){
+  if(SONV2){let p9=0;try{if(ob&&ob.mesh&&ob.mesh.position){SON_FR_R.setFromMatrixColumn(camera.matrixWorld,0);SON_FR_C.setFromMatrixPosition(camera.matrixWorld);
+      p9=.35*Math.max(-1,Math.min(1,SON_FR_D.copy(ob.mesh.position).sub(SON_FR_C).dot(SON_FR_R)/2.5));if(!(p9===p9))p9=0;}}catch(e){p9=0;}
+    sfx('frole',{st:sonPdAR((n|0)-1),vol:-3+3*(pres||0),pan:p9});return;} // (2026-10-14, session SON) sonPdAR : aller-retour sur l'octave haute après le 9e maillon, au lieu de figer
   if(!sfxOk())return;
   try{
     const t0=AC.currentTime,d=.32,up=Math.min(1.9,1+(n-1)*.12);
@@ -36023,7 +36041,14 @@ function hap(p){
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
 const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger'}; // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
-function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='string'?k:'']||'ui.tap');else chimeNote(1480,0,.045,.05);};
+/* (2026-10-14, session SON) LES APPUIS RAPPROCHÉS CHANTENT : un appui seul garde sa note ; des appuis à moins de 0,6 s l'un de l'autre montent
+   doucement la pentatonique du morceau (degrés 0-1-2-3 puis 2-3-2-3…), 0,6 à 1,2 s la tiennent, au-delà de 1,2 s sans appui elle repart d'en bas.
+   « retour » redescend d'un degré. Seulement les fiches key:1 (tap, nav, onglet, retour : dans la tonalité, jamais faux). +7 au plus (bases [0]). */
+const SON_UI={i:0,t:-9},SON_UI_MEL={'ui.tap':1,'ui.nav':1,'ui.onglet':1,'ui.retour':1};
+function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
+  if(g>1.2)SON_UI.i=0;else if(id==='ui.retour')SON_UI.i=Math.max(0,(SON_UI.i<4?SON_UI.i:2+(SON_UI.i&1))-1);else if(g<.6&&++SON_UI.i>5)SON_UI.i=4;
+  const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
+function uiClic(k){ try{ const id9=UI_CLIC[typeof k==='string'?k:'']||'ui.tap',st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:undefined);else chimeNote(1480,0,.045,.05);}; // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),w9=function(){if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
@@ -37764,6 +37789,10 @@ function juiceScreenTick(dt){
   }
   juiceCx.globalAlpha=1;
 }
+// (2026-10-14, session SON) L'ÉCHELLE DES FRUITS : le i-ème fruit de la rafale, en demi-tons — 0, 2, 4, 7 puis aller-retour 4-7 (+7 au plus :
+// le splotch reste un fruit, pas une voix de souris ; la rafale, bases [0], reste sous l'octave même tonalité comprise)
+const SON_FRUIT_ST=[0,2,4,7];
+function sonFruitSt(i){i=Math.max(0,i|0);return i<4?SON_FRUIT_ST[i]:SON_FRUIT_ST[2+(i&1)];}
 function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouche (console de son)
   fruitRafT=FRUIT_FENETRE;fruitRaf++;
   const r=Math.min(6,fruitRaf);
@@ -37773,7 +37802,7 @@ function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouch
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
   juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
-  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:1+Math.min(5,r-1)*.025});if(r>=3)sfx('fruit.rafale');}else crunchSfx(r); /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
+  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12)});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3)});}else crunchSfx(r); // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
     chaineAura('RAFALE ×'+fruitRaf,15+r*6,'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
