@@ -17477,8 +17477,8 @@ Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BOR
 Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "弹弓"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
 Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
-Object.assign(I18N,{'AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
-Object.assign(I18N_ZH,{'AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
+Object.assign(I18N,{'TONNEAU':'BARREL ROLL','TONNEAU !':'BARREL ROLL!','PAR-DESSUS':'OVER IT','PAR-DESSUS !':'OVER IT!','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
+Object.assign(I18N_ZH,{'TONNEAU':'桶滚','TONNEAU !':'桶滚！','PAR-DESSUS':'飞越','PAR-DESSUS !':'飞越！','AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
@@ -33834,6 +33834,11 @@ const MUSIC_FILT_OPEN=20000; // …et s'ouvre en grand quand on booste (approche
    ET UN FILET : la musique sait si elle DEVRAIT jouer (`musicVoulue`). Le premier toucher libère le lecteur ; chaque
    toucher suivant la relance si elle s'est tue (refus, interruption, appel, retour d'arrière-plan). */
 let musicVoulue=false,musicEnAttente=false,musicVolCible=1,musicVolCour=1,musicAnaEl=null;
+/* (2026-10-14, Léo : « la musique se lance seulement quand j'appuie sur le mode garage ; quand on est — et quand on revient — dans le menu
+   ciel, un bruit de chute libre doux ») LE LOBBY SE TAIT AU CIEL : `MUS_TAIT` (posé par musicTick en mode menu : le ciel de LA CHUTE ou
+   la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
+   (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
+let MUS_TAIT=false;
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
   if(!musicEl){
@@ -33857,7 +33862,9 @@ function musicPremier(){const n0=NIVEAUX[0],l=n0&&MUSIC_LIEU[n0.id];return l?l.f
    (les effets se mêlent à sa musique, et suivent le bouton silencieux comme n'importe quel jeu). Rappelé à chaque bascule MUSIQUE. */
 function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
-  if(!SND.music||!musicVoulue||paused)return; // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
+  if(!SND.music||!musicVoulue||paused)return;
+  if(MUS_TAIT&&musicMode==='menu')return; // (2026-10-14) au ciel et à la boutique, le lobby se tait — voir MUS_TAIT
+  // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
   /* (2026-10-12, passe qualité) …SAUF une fois la page VUE visible (`_vu`, posé au retour visible et à chaque toucher) : trois minuteries
      (musicMenu 1,4 s après la mort, la fin de l'intro, le départ d'un REJOUER) relançaient la musique APRÈS le passage en arrière-plan —
      elle jouait écran verrouillé jusqu'au retour. On la met en attente : le retour visible la relance (ci-dessous). */
@@ -34276,8 +34283,11 @@ function musicTick(dt,mvt){
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
   {const bq9=musicMode==='menu'&&typeof GBQ!=='undefined'&&!!GBQ.veut; /* (2026-10-13, Léo, dans la boutique : « le sound design est terrifiant, change ou enlève ») LA BOUTIQUE SE TAIT : la musique du
      lobby s'efface en fondu dès qu'on touche BOUTIQUE et revient au retour (seuls les petits clics restent) ; sur iPhone (volume en lecture seule) elle se met en pause */
-   if(bq9)musicVolCible=0;
-   if(VOL_LOCKED&&bq9!==!!musicTick._bq){musicTick._bq=bq9;musicPause(bq9);}else musicTick._bq=bq9;}
+   /* (2026-10-14) …et LE CIEL aussi (LA CHUTE, l'écran titre : on y entend la chute libre douce, `chuteDoux`) — le lobby ne part qu'au GARAGE */
+   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9||ciel9;MUS_TAIT=tait9;
+   if(tait9){musicVolCible=0;if(!musicTick._pz&&(VOL_LOCKED||musicVolCour<.012)){musicTick._pz=true;musicPause(true);}}
+   else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
+   musicTick._bq=bq9;}
   if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
     if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
   if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
@@ -35280,7 +35290,7 @@ function sonTonSuit(){
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol
   if(!SONV2){trickPop(chain);return;}
-  sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
+  sfx(id==='vrille'||id==='tonneau'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
 // console : `dbgSon()` l'état · `dbgSon('piece',{st:4})` joue un son
@@ -36668,7 +36678,8 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
   if(e.code==='Enter'&&!e.repeat&&(!started||MENUV.retour)&&!garageOn&&!(typeof stallOn!=='undefined'&&stallOn)&&!document.querySelector('#modale.on,#carr.on,#tPanel.open')){ // (2026-09-28) la même garde que la branche de mort : la feuille CARRIÈRE, une fenêtre ou le panneau ouverts ne lancent plus la partie derrière · (2026-09-28) l'accueil d'après-mort (MENUV.retour) aussi
     const pb=document.querySelector('#mHome.on [data-m="play"]');if(pb)pb.click();
   }});
-addEventListener('keyup',e=>{keys[e.code]=false;});
+addEventListener('keyup',e=>{if((e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight')&&keys[e.code])veqDoigt(false);keys[e.code]=false;});
+addEventListener('keydown',e=>{if(!e.repeat&&(e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight'))veqDoigt(true);},true); // (2026-10-14) LE TONNEAU : le double-tap NITRO au clavier (en capture : avant le gestionnaire du jeu)
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;try{document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on').forEach(e=>e.classList.remove('on'));}catch(e){}}); // alt-tab : aucune touche ne reste coincée — (passe qualité) ni ENFONCÉE à l'écran (l'éclair restait appuyé)
 const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 /* LA GRAVITÉ DE L'ORBITE (2026-09-28, portée de la lignée car-crash) — l'orbite était un décor : mêmes sauts, même jauge qu'aux nuages.
@@ -36930,6 +36941,113 @@ const BASC_T=.45;
    (on lui retire sa part le long de la vitesse, image après image). Le volant tourne autour de FLY_U, le manche autour de FLY_R,
    la caméra prend FLY_U pour « haut » — la caisse va là où on la guide, et l'écran la suit sans jamais se remettre à l'endroit. */
 const FLY_U=new THREE.Vector3(0,1,0),FLY_R=new THREE.Vector3(1,0,0);
+/* LE VOL ÉQUILIBRÉ (2026-10-14, Léo : « en vol, la voiture tourne dans le sens de la route qu'elle a quittée ; il faudrait qu'elle QUITTE la
+   route, avec un effet réaliste de BALANCE dans l'air — équilibré ; selon l'endroit du joystick, la voiture se pivote et se dirige »).
+   Ce qui tournait : (1) le volant TENU dans le virage continuait de tourner la trajectoire en l'air, au lacet du sol — la caisse suivait la
+   courbe qu'elle venait de quitter ; (2) la VRILLE visuelle permanente (3 rad/s autour du nez, vers le vide après le bord) ; (3) le haut du
+   vol partait de la normale de la route (penchée dans les virages relevés) et y restait.
+   · LE VOLANT SE RÉ-ARME AU DÉCOLLAGE (`veqVolant`) : la part du braquage tenue depuis la route s'efface sur VEQ_K.latch s — la caisse part
+     TOUT DROIT, sur son élan ; tout geste NOUVEAU (pousser plus, changer de côté) agit tout de suite, un pouce gardé finit par tourner.
+     Sortie par le BORD : le verrou ne part qu'à la fin de la bascule (roues encore sur la lèvre = on braque comme au sol : le sauvetage).
+     Le TAUX de virage en vol ne change pas (verdict de Sacha du 09/10).
+   · L'ÉQUILIBRE (`veqNiveau`) : le haut du vol (FLY_U) se redresse vers la verticale du monde autour de la trajectoire (l'hémisphère où il
+     est : partie à l'envers sous la dalle, elle reste à l'envers) — caisse et caméra reviennent à l'horizontale.
+   · LA BALANCE (`veqCorps`) : plus de vrille. La caisse est un corps sur ressorts amortis autour de son assiette de vol : elle PIVOTE devant
+     la trajectoire du côté du pouce, s'INCLINE dans le virage, lève / baisse le nez avec le manche ; le redressement et le décollage lui
+     laissent un retard qu'elle rattrape en se balançant. Sortie par le bord : un coup de roulis vers le vide, rattrapé.
+   · À LA POSE (`veqPose`), l'assiette qui reste passe à la conduite (roulis de caisse, lacet visuel, tangage) : elle se balance sur ses ressorts.
+   · LE TONNEAU (`veqTonneau`) : DOUBLE-TAP NITRO (deux appuis brefs) — un tour complet autour du nez en ~0,6 s, du côté du pouce (au neutre :
+     un coup à droite, un coup à gauche). En vol : un petit écart du côté du pouce + une FIGURE (la chaîne, payée à la pose). Au sol : un
+     saut (la mécanique du dos d'âne, on reste en conduite) qui passe PAR-DESSUS les plots et l'huile, payé en aura à la retombée.
+   `?vol=ancien` (ou `dbgVol('ancien')`) rend le vol d'avant au chiffre près (le tonneau reste). Console : `dbgVol()`, `dbgVol('tonneau')`. */
+const VEQ_K={latch:.7,niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR:.36,houle:.024,saut:9.5,dash:16,dur:.62};
+const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0,by:0,byV:0,bp:0,bpV:0,br:0,brV:0,tf:0,
+  qb:new THREE.Quaternion(),qa:new THREE.Quaternion(),qaOk:false,qo:new THREE.Quaternion(),eu:new THREE.Euler(0,0,0,'YXZ'),tv:new THREE.Vector3(),tc:new THREE.Vector3(),
+  tn:null,cd:0,sens:1,saut:false,plots:0,dReq:false,dDn:0,dUp:0,pv:new THREE.Vector3(),pv2:new THREE.Vector3(),ax:new THREE.Vector3(0,0,1),qr:new THREE.Quaternion(),n:0};
+function veqDepart(bord,impU,roll0,qDep){ // au décollage (startFall)
+  VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;
+  VEQ.by=0;VEQ.byV=0;VEQ.bp=0;VEQ.bpV=bord?0:-1.1*THREE.MathUtils.clamp((impU==null?.9:impU)/30,0,1); // un tremplin lève un peu le nez : la balance commence
+  VEQ.br=bord?roll0:0;VEQ.brV=bord?bascDir*4:0; // bord : la caisse BASCULE vers le vide, les ressorts la rattrapent
+  VEQ.qb.copy(qDep);
+  if(VEQ.tn&&VEQ.tn.sol){VEQ.tn.sol=false;VEQ.saut=false;} // un tonneau du sol qui quitte la route finit en l'air (et y devient une figure)
+}
+function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'efface, tout geste nouveau agit
+  if(!VEQ.on)return steer;
+  if(!VEQ.lArm){if(bascOn&&bascT<BASC_T)return VEQ.u=steer;VEQ.lArm=true;VEQ.l0=steer;VEQ.lT=0;}
+  const g=Math.max(0,1-VEQ.lT/VEQ_K.latch);
+  if(g<=0||steer*VEQ.l0<=0){VEQ.l0=0;return VEQ.u=steer;}
+  if(Math.abs(steer)<Math.abs(VEQ.l0))VEQ.l0=steer; // le pouce revient vers le centre : le verrou descend avec lui (jamais de contre-braquage)
+  return VEQ.u=Math.sign(steer)*Math.max(0,Math.abs(steer)-Math.abs(VEQ.l0)*g);
+}
+function veqNiveau(dt,dir){ // L'ÉQUILIBRE : le haut du vol se redresse vers la verticale, autour de la trajectoire `dir`
+  const sg=FLY_U.y>=0?1:-1;VEQ.tv.set(0,sg,0).addScaledVector(dir,-sg*dir.y);
+  const L=VEQ.tv.length();if(L<.15)return; // trajectoire presque verticale : pas d'horizon à retrouver
+  VEQ.tv.multiplyScalar(1/L);
+  const e=Math.atan2(VEQ.tc.crossVectors(FLY_U,VEQ.tv).dot(dir),THREE.MathUtils.clamp(FLY_U.dot(VEQ.tv),-1,1));
+  const a=e*(1-Math.exp(-dt*VEQ_K.niv*Math.min(1,(L-.15)/.35)*(1-JEAU.wB)));
+  if(Math.abs(a)<1e-7)return;
+  FLY_U.applyAxisAngle(dir,a);VEQ.br-=a*VEQ_K.iner; // la caisse a de l'INERTIE : le repère se redresse, elle traîne un peu… et se balance pour le rattraper
+}
+function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la caisse, sur ses ressorts, autour
+  const d=Math.min(dt,1/30),K=VEQ_K,m=1-JEAU.wB,u=VEQ.u;
+  VEQ.tf+=dt;const h=REDUCED_MOTION?0:K.houle*Math.min(1,VEQ.tf/.6)*m;
+  const byT=u*K.lacet*m,brT=(-u*K.roulis+h*Math.sin(VEQ.tf*5.3))*m,bpT=(-pitchS*K.tangage+h*.7*Math.sin(VEQ.tf*3.7+1.1))*m;
+  VEQ.byV+=(K.w*K.w*(byT-VEQ.by)-2*K.z*K.w*VEQ.byV)*d;VEQ.by=THREE.MathUtils.clamp(VEQ.by+VEQ.byV*d,-.6,.6);
+  VEQ.bpV+=(K.w*K.w*(bpT-VEQ.bp)-2*K.z*K.w*VEQ.bpV)*d;VEQ.bp=THREE.MathUtils.clamp(VEQ.bp+VEQ.bpV*d,-.6,.6);
+  VEQ.brV+=(K.wR*K.wR*(brT-VEQ.br)-2*K.zR*K.wR*VEQ.brV)*d;VEQ.br=THREE.MathUtils.clamp(VEQ.br+VEQ.brV*d,-1.2,1.2);
+  VEQ.eu.set(VEQ.bp,VEQ.by,VEQ.br,'YXZ');VEQ.qo.setFromEuler(VEQ.eu);qTmp.multiply(VEQ.qo);
+  VEQ.qb.slerp(qTmp,Math.min(1,dt*12));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
+}
+function veqPose(){ // la caisse se pose : l'assiette qui reste passe aux ressorts de la conduite
+  let r=VEQ.on?VEQ.br:0;
+  if(VEQ.tn&&!VEQ.tn.sol){const T=VEQ.tn;if(!T.fini){const p=veqPhi(T);r+=Math.atan2(Math.sin(p),Math.cos(p));}VEQ.tn=null;} // un tonneau pas fini ne paie pas
+  if(VEQ.on){driftYaw=THREE.MathUtils.clamp(VEQ.by,-.3,.3);pitch9=THREE.MathUtils.clamp(VEQ.bp,-.15,.15);rollV=THREE.MathUtils.clamp(VEQ.brV,-4,4);}
+  carRoll9=THREE.MathUtils.clamp(r,-.42,.42);
+}
+function veqPhi(T){const x=Math.min(1,T.t/T.D);return x*x*x*(x*(x*6-15)+10)*6.2832*T.dir;} // un tour, départ et arrivée en douceur
+function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'actionne quand j'appuie deux fois rapidement sur le booster ») : deux appuis BREFS
+   sur NITRO — le 1er de moins de 240 ms, le 2e moins de 320 ms après le 1er. Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
+  const n=performance.now();
+  if(!bas){VEQ.dUp=n;return;}
+  if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;}else VEQ.dDn=n;
+}
+function veqTonneau(){ // LE TONNEAU — double-tap NITRO
+  if(VEQ.tn&&(gameOver||mode==='boom'))VEQ.tn=null;
+  if(VEQ.tn||VEQ.cd>0||!started||gameOver||paused||introD||TUTO.on||(mode!=='drive'&&mode!=='fall'))return false;
+  const sd=steer>.2?-1:steer<-.2?1:(VEQ.sens=-VEQ.sens); // roulis négatif = côté gauche vers le bas (le pouce à gauche : steer > 0)
+  if(mode==='drive'){
+    if(hopY>0||hopV!==0||POSE_F)return false;
+    hopV=VEQ_K.saut;VEQ.tn={t:0,D:2*hopV/(26*gK())*.9,dir:sd,sol:true,fini:false};VEQ.saut=true;VEQ.plots=0;
+  }else{
+    VEQ.tn={t:0,D:VEQ_K.dur,dir:sd,sol:false,fini:false};
+    if(Math.abs(steer)>.2)fallVel.addScaledVector(FLY_R,Math.sign(steer)*VEQ_K.dash); // l'écart : FLY_R = la gauche de la caisse
+  }
+  VEQ.n++;try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}hap([10,30,10]);shake=Math.max(shake,.18);
+  return true;
+}
+function veqTonneauPose(dt){ // chaque image, une fois la caisse placée (conduite ET vol) : le tour, autour du MILIEU de la caisse
+  if(VEQ.cd>0)VEQ.cd-=dt;VEQ.qaOk=false;
+  const T=VEQ.tn;if(!T)return;
+  if(gameOver||mode==='boom'||(!T.sol&&mode!=='fall')){VEQ.tn=null;VEQ.saut=false;return;}
+  T.t+=dt;
+  const hc=(CARS[level].h||1.3)*.5;VEQ.qa.copy(carGroup.quaternion);VEQ.qaOk=true;
+  VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);VEQ.qr.setFromAxisAngle(VEQ.ax,veqPhi(T));carGroup.quaternion.multiply(VEQ.qr);
+  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
+  if(T.t>=T.D&&!T.fini){T.fini=true;if(mode==='fall'){addTrick('tonneau','TONNEAU !',4,false);VEQ.tn=null;VEQ.cd=.12;return;}}
+  if(T.fini&&T.sol&&hopY<=0){ // retombé sur ses roues
+    VEQ.tn=null;VEQ.saut=false;VEQ.cd=.12;
+    chaineAura('TONNEAU',45,'tonneau');flowAdd(4,'style');
+    if(VEQ.plots){chaineAura('PAR-DESSUS',30*VEQ.plots,'pardessus');popTexte('PAR-DESSUS !','#5ee6ff',1);}VEQ.plots=0;
+  }
+}
+window.dbgVol=function(a){
+  if(a==='ancien'||a==='neuf'){VEQ.on=a==='neuf';return VEQ.on?'vol équilibré':'vol d’avant';}
+  if(a==='tonneau')return veqTonneau();
+  return {on:VEQ.on,mode:mode,u:+VEQ.u.toFixed(3),steer:+steer.toFixed(3),verrou:+VEQ.l0.toFixed(3),lT:+VEQ.lT.toFixed(2),
+    lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),
+    haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),tonneau:VEQ.tn?{t:+VEQ.tn.t.toFixed(2),D:+VEQ.tn.D.toFixed(2),sol:VEQ.tn.sol,fini:VEQ.tn.fini}:null,
+    tonneaux:VEQ.n,hopY:+hopY.toFixed(2),carRoll:+(carRoll9*57.3).toFixed(1),cap:+(Math.atan2(fallVel.x,fallVel.z)*57.3).toFixed(1),
+    hautCaisse:+VEQ.pv.set(0,1,0).applyQuaternion(carGroup.quaternion).y.toFixed(3),airRoll:+(airRoll*57.3).toFixed(1),fallT:+fallTR.toFixed(2)};};
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -38424,6 +38542,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   else if(id==='meteo')chaineAura('MÉTÉORE',100,'meteo',false,true);
   else if(id==='airnitro')chaineAura('AIR NITROOO',120,'airnitro',false,true); // (2026-09-29) la comète en vol vaut la comète au sol
   else if(id==='dauphin')dolAura9('DAUPHIN',150,'dauphin',false,true); // (dauphin v4) 80 → 150 — (v5) sa ligne attend la POSE (dolAura9)
+  else if(id==='tonneau')chaineAura('TONNEAU',50,'tonneau',false,true); // (2026-10-14) le tonneau en vol (double-tap nitro)
   else if(id==='bump')chaineAura(bounceN>1?'BUMP ×'+bounceN:'BUMP',30,'bump',true,true);
   else chaineAura(String(txt).split(' — ')[0],40,id,false,true);
   // (FLOW v2) LE RISQUE NOURRIT LE FLOW EN DIRECT : en l'air la jauge monte PENDANT qu'on vrille (et le vide ne la fait pas fuir).
@@ -39437,7 +39556,9 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
+  if(VEQ.tn&&VEQ.qaOk)carGroup.quaternion.copy(VEQ.qa); // (vol équilibré) un tonneau en cours : on repart de l'assiette SANS son tour (il continue par-dessus)
   if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
+  veqDepart(bord,impU,roll0,carGroup.quaternion); // (2026-10-14) LE VOL ÉQUILIBRÉ : verrou du volant, ressorts de la caisse
   /* (bord v2) L'IMAGE DU DÉCOLLAGE : elle ne passe ni par le placement de la conduite (le mode vient de changer) ni par celui du vol
      (il commence à l'image suivante) — la caisse et la caméra restaient FIGÉES une image puis rattrapaient deux pas d'un coup (2,7 m au
      banc). On les avance ici d'un même pas ; la caméra de vol repart de là (voir le suivi en vol), et la conduite, au retour, repartira
@@ -39609,7 +39730,7 @@ function tryLand(dt){
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0; /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   {const vm9=vitMult();vA=fallVel.dot(T[bestI])/vm9;vL=fallVel.dot(B[bestI])*.4*sideL/vm9;} // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
@@ -39804,7 +39925,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
-  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0; /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
   vA=vTan*.94;vL=0; // le choc de la lèvre coûte 6 %
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
@@ -45832,6 +45953,40 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
   e.style.cssText='position:fixed;inset:0;pointer-events:none;opacity:0;z-index:60;background:radial-gradient(ellipse at 50% 55%,#ffffff 0%,#f4f9ff 48%,#dfeefe 100%)';
   document.body.appendChild(e);CHUTE.voile=e;return e;
 }
+/* LA CHUTE LIBRE DOUCE (2026-10-14, Léo : « quand on est — et quand on revient — dans le menu ciel, un bruit de chute libre doux ») : au ciel il
+   n'y a plus de musique (le lobby part au garage, voir MUS_TAIT) — on entend l'air qui glisse autour de la caisse qui tombe. Deux souffles :
+   un GRAND, grave et rond (bruit passé deux fois sous ~350 Hz), et un plus CLAIR et léger (une bande autour de 900 Hz) qui passe lentement
+   d'une oreille à l'autre ; tous deux RESPIRENT (des houles de 2 à 15 s), jamais le claquement des tôles de `chute.vent` (gardé pour le
+   piqué de JOUER). Bus des effets (MASTER : curseur EFFETS, interrupteur SON). Créé au 1er passage au ciel, éteint 0,4 s après qu'on le quitte. */
+const CHDOUX={n:null,off:0},CHDOUX_VOL=.15;
+function chuteDoux(t,u){
+  if(!AC||AC.state!=='running'||!SND.sfx)return;
+  let n=CHDOUX.n;
+  if(!n){
+    const g=AC.createGain();g.gain.value=0;g.connect(MASTER);
+    const s1=AC.createBufferSource();s1.buffer=noiseBuf(3.1);s1.loop=true;
+    const f1=AC.createBiquadFilter();f1.type='lowpass';f1.frequency.value=350;f1.Q.value=.4;
+    const f1b=AC.createBiquadFilter();f1b.type='lowpass';f1b.frequency.value=700;f1b.Q.value=.3;
+    const s2=AC.createBufferSource();s2.buffer=noiseBuf(2.3);s2.loop=true;
+    const f2=AC.createBiquadFilter();f2.type='bandpass';f2.frequency.value=900;f2.Q.value=.8;
+    const g2=AC.createGain();g2.gain.value=.22;
+    const pan=AC.createStereoPanner?AC.createStereoPanner():null;
+    s1.connect(f1);f1.connect(f1b);f1b.connect(g);s2.connect(f2);f2.connect(g2);
+    if(pan){g2.connect(pan);pan.connect(g);}else g2.connect(g);
+    s1.start();s2.start();n=CHDOUX.n={g:g,s1:s1,s2:s2,f1:f1,f2:f2,g2:g2,pan:pan};
+  }
+  clearTimeout(CHDOUX.off);CHDOUX.off=0;
+  const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);
+  stt(n.g.gain,CHDOUX_VOL*houle*(1+1.6*u),now,.5);                 // au piqué de JOUER il gonfle (+8 dB)…
+  stt(n.f1.frequency,330+70*Math.sin(t*.29)+600*u,now,.6);         // …et s'éclaircit
+  stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+1200*u,now,.6);
+  stt(n.g2.gain,.2+.08*Math.sin(t*.67),now,.6);
+  if(n.pan)stt(n.pan.pan,.45*Math.sin(t*.23),now,.8);
+}
+function chuteDouxCoupe(d){const n=CHDOUX.n;if(!n||!AC)return;
+  try{n.g.gain.cancelScheduledValues(AC.currentTime);n.g.gain.setTargetAtTime(0,AC.currentTime,d/3);n.g.gain._s9=0;}catch(e){} // (_s9 : la mémoire de stt, pour qu'un retour au ciel le rallume aussitôt)
+  clearTimeout(CHDOUX.off);CHDOUX.off=setTimeout(function(){if(CHDOUX.n!==n)return;try{n.s1.stop();n.s2.stop();n.g.disconnect();}catch(e){}CHDOUX.n=null;},d*1000+400);}
+window.dbgChuteDoux=function(){return {ciel:!!CHUTE.on,garage:!!garageOn,tait:MUS_TAIT,douxOn:!!CHDOUX.n,douxGain:CHDOUX.n?+CHDOUX.n.g.gain.value.toFixed(4):0,musique:musicEl?{pause:musicEl.paused,vol:+musicEl.volume.toFixed(3),src:(musicEl.src||'').split('/').pop(),t:+musicEl.currentTime.toFixed(2)}:null,mode:musicMode};}; // (dev) le ciel muet, la chute douce, le lobby au garage
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
   if(!CHUTE.lc)CHUTE.lc=new THREE.Color();CHUTE.lc.copy(carLight.color);CHUTE_TAP.p.set(0,0,0);CHUTE_TAP.v.set(0,0,0);CHUTE_TAP.Q.identity();CHUTE_TAP.w.set(0,0,0);CHUTE_TAP.tient=null;CHUTE_TAP.sh=0;
   CHUTE.on=true;CHUTE.t=0;CHUTE.sndT=0;TITRE_HF.tc=0;CHUTE.bioPas=-1;CHUTE.bioT=null; /* (2026-10-07) sndT et tc vivaient sur l'horloge d'AVANT (CHUTE.t repart de 0) : le vent restait muet et l'heure périmée jusqu'à 20 s */
@@ -45848,6 +46003,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   if(CHUTE.corps){carBody.position.set(0,0,0);carBody.rotation.set(0,0,0);CHUTE.corps=false;} // (LA CHUTE LIBRE RÉALISTE) la carrosserie se repose sur ses ressorts
   CHUTE.on=false;CHUTE.go=null;titreCiel(false);gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
+  try{chuteDouxCoupe(ferme?.5:.35);}catch(e){} // (2026-10-14) …la douce aussi
   trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) le studio du titre rend l'ambiance (il la baisse sur la caisse), puis la lumière du rebond (à 0 partout ailleurs) et la couleur de la lampe de caisse
   if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
   {const T9=CHUTE_TAP;T9.tient=null;T9.sh=0;if(T9.fl)T9.fl.visible=false;if(T9.deb)for(const D of T9.deb)D.m.visible=false;}richRange(); // (la caisse au doigt v2) l'éclat et les morceaux de tôle restent au ciel
@@ -46025,9 +46181,14 @@ function chuteRender(dt){
   // LE VENT : le souffle et le sifflement de la chute (les nœuds du moteur de son, au repos hors course)
   /* (niveau 1 v2) LA CHUTE LIBRE a sa boucle (`chute.vent` : grondement, rafales, l'air qui claque sur les tôles) ; retentée tant que le son
      n'est pas prêt (premier geste). Au piqué de JOUER, elle monte de 4 dB et s'accélère de 25 % : l'air hurle. */
-  if(SONV2&&!CHUTE.snd&&t>(CHUTE.sndT||0)){CHUTE.sndT=t+1;try{CHUTE.snd=sfx('chute.vent',{loop:true,vol:-20});if(CHUTE.snd)CHUTE.snd.gain(0,1.4);}catch(e){}}
-  if(CHUTE.snd&&G){CHUTE.snd.gain(4*u,.15);CHUTE.snd.rate(1+.25*u,.15);}
-  if(AC&&windG&&whG){try{if(!CHUTE.vent||G){CHUTE.vent=true;stt(windG.gain,G?.05+.05*u:.03,AC.currentTime,.3);stt(windF.frequency,G?900+2400*u:760,AC.currentTime,.3);stt(whG.gain,G?.02+.05*u:.008,AC.currentTime,.3);}}catch(e){}}
+  /* (2026-10-14, Léo : « quand on est — et quand on revient — dans le menu ciel, un bruit de chute libre doux ») AU REPOS, le ciel n'a plus que
+     LA CHUTE LIBRE DOUCE (`chuteDoux`, plus de musique ici : le lobby part au garage) ; le grondement claquant de `chute.vent` et le vent du
+     moteur ne servent plus qu'au PIQUÉ de JOUER, où l'air se met à hurler (comme avant). */
+  try{chuteDoux(t,G?u:0);}catch(e){}
+  if(G){
+    if(SONV2&&!CHUTE.snd&&t>(CHUTE.sndT||0)){CHUTE.sndT=t+1;try{CHUTE.snd=sfx('chute.vent',{loop:true,vol:-20});}catch(e){}}
+    if(CHUTE.snd){CHUTE.snd.gain(4*u,.15);CHUTE.snd.rate(1+.25*u,.15);}
+    if(AC&&windG&&whG){try{CHUTE.vent=true;stt(windG.gain,.05+.05*u,AC.currentTime,.3);stt(windF.frequency,900+2400*u,AC.currentTime,.3);stt(whG.gain,.02+.05*u,AC.currentTime,.3);}catch(e){}}}
   // JOUER : le banc de nuage traversé (voile blanc), puis la course sous le voile
   if(G){if(!G.voile&&u>.74){G.voile=true;try{sfx('nuage.entre');}catch(e){}}
     const v=chuteVoileEl();v.style.transition='none';v.style.opacity=String(Math.max(0,Math.min(1,(u-.74)/.2)));
@@ -49858,6 +50019,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
+    if(VEQ.dReq){VEQ.dReq=false;veqTonneau();} // LE TONNEAU (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
@@ -50118,6 +50280,7 @@ function loop(now){
            plot était un fantôme. Un plot traversé EN UNE image se juge désormais dans cette image-là (choc, sinon frôlé juste en dessous). */
         const e9=balEcart(c9.s,2.6,sDe9,s,lDe9,lat,side*c9.lat);
         if(e9<Infinity)c9.dm=Math.min(c9.dm==null?9:c9.dm,e9); // l'écart le plus serré vu pendant le passage
+        if(e9<1.6&&VEQ.saut&&hopY>1.25){if(!c9.saute){c9.saute=true;VEQ.plots++;}continue;} // (2026-10-14) LE TONNEAU au sol passe PAR-DESSUS le plot
         if(e9<1.6){
           c9.hit=true;
           const kv=new THREE.Vector3().copy(F.t).multiplyScalar(Math.max(8,Math.abs(vA)*.55))
@@ -50138,7 +50301,7 @@ function loop(now){
       if(fr9)frole(fr9,fd9,fk9);
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
-      if(mode==='drive'&&oilCd<=0)for(const o9 of OILS){
+      if(mode==='drive'&&oilCd<=0&&!(VEQ.saut&&hopY>.5))for(const o9 of OILS){ // (2026-10-14) en plein TONNEAU, on survole l'huile
         if(o9.face!==side)continue; // chaque flaque vit sur SA face
         if(balEcart(o9.s,o9.r+2,sDe9,s,lDe9,lat,side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus) — (BALAYAGE) sur le trajet de l'image : à 30 i/s, une flaque de 2 m sautait au-delà de ~860 km/h
           slipT=.75;oilCd=1.2;
@@ -50208,6 +50371,7 @@ function loop(now){
          susV+=((-sq*.17-susY)*230-susV*16)*d9;susY=THREE.MathUtils.clamp(susY+susV*d9,-.26,.12);
          const pv=carBody.userData.pivY||.45;carBody.position.y=pv-pv*Math.cos(carRoll9)+susY;}
         carGroup.scale.set(1,1,1);
+        veqTonneauPose(dt); // (2026-10-14) LE TONNEAU au sol : le saut tourne autour du milieu de la caisse
         ROUES.v=vF*SPD; // (2026-09-26) la vitesse du SOL sous les pneus : carVit fait tourner chaque roue à v ÷ R (+ flou de jante)
         // ombre
         shadow.material.opacity=0; // (2026-09-25) .10 → 0 : ce disque à bord NET se lisait comme une tache sombre autour de la caisse — l'ombre portée (shadow map) et le blob de contact doux suffisent // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
@@ -50450,7 +50614,8 @@ function loop(now){
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
-      const yawIn=steer*(1.15+Math.min(.6,fallVel.length()*.004))*dtF;
+      if(VEQ.lArm)VEQ.lT+=dt; // (vol équilibré) l'horloge du verrou du volant
+      const yawIn=veqVolant()*(1.15+Math.min(.6,fallVel.length()*.004))*dtF; // (2026-10-14) le braquage tenu depuis la route ne continue plus le virage en l'air (veqVolant)
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
@@ -50595,6 +50760,7 @@ function loop(now){
       FLY_U.addScaledVector(tmp,-FLY_U.dot(tmp));
       if(FLY_U.lengthSq()<1e-4)FLY_U.crossVectors(tmp,FLY_R); // (garde : trajectoire retournée d'un coup — on repart de la droite)
       FLY_U.normalize();
+      if(VEQ.on)veqNiveau(dt,tmp); // (2026-10-14) L'ÉQUILIBRE : le haut du vol revient à la verticale
       FLY_R.crossVectors(FLY_U,tmp).normalize();
       tmp3.copy(FLY_R);tmp2.copy(FLY_U);
       mat4.makeBasis(tmp3,tmp2,tmp);
@@ -50608,11 +50774,16 @@ function loop(now){
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
       // (bord v2) après une sortie par le BORD la vrille tourne du côté du vide (`bascDir`) et DÉMARRE comme une vraie bascule : le pivot sur
       // la lèvre l'accélère de 25 % à 100 % en ~0,4 s. Hors bord : bascDir = 1, facteur 1 → la formule de toujours, au chiffre près.
+      if(VEQ.on)veqCorps(dt); // (2026-10-14) LA BALANCE : plus de vrille, la caisse pivote, s'incline et se balance sur ses ressorts (voir LE VOL ÉQUILIBRÉ)
+      else{
       {const r9=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+bascT*1.9):1)+steer*2.2)*dtF;airRoll+=r9*(1-JEAU.wB); // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré) — (2026-10-13) l'eau l'arrête et la remet à l'endroit
        if(JEAU.wB>.01){const r0=Math.round(airRoll/6.2832)*6.2832;airRoll+=(r0-airRoll)*Math.min(1,dt*3.5*JEAU.wB);}}
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
+      if(VEQ.qaOk)carGroup.quaternion.copy(VEQ.qa); // (le tonneau se pose par-dessus : on lisse l'assiette sans lui)
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
+      }
+      veqTonneauPose(dt); // LE TONNEAU (double-tap nitro), par-dessus l'assiette
       shadow.position.y=-99999;
       /* ===== LA CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE (2026-09-28, soir, Sacha : « la caméra en air time déconne
          complètement, ça devient beaucoup trop dur de viser juste ») =====
@@ -51870,7 +52041,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function bindHold(el,code,onDown,vis){ if(!el)return; vis=vis||el; // `vis` : l'élément qui s'ENFONCE (la zone NITRO élargie enfonce le disque)
     const dn=function(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); // un appui sur un bouton n'arme JAMAIS le volant
       if(!keys[code]){keys[code]=true;vis.classList.add('on');hap(9);if(onDown)onDown();} };
-    const up=function(e){ if(e&&e.cancelable)e.preventDefault(); keys[code]=false; vis.classList.remove('on'); };
+    const up=function(e){ if(e&&e.cancelable)e.preventDefault(); if(code==='Space'&&keys[code])veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
     el.addEventListener('touchcancel',up,{passive:false});
@@ -51878,7 +52049,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   bindHold($t('tLeft'),'ArrowLeft',start);
   bindHold($t('tRight'),'ArrowRight',start);
-  const nitroDown=function(){ if(boomSkip())return; start(); // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+  const nitroDown=function(){ veqDoigt(true); if(boomSkip())return; start(); // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
   bindHold($t('tNitro'),'Space',nitroDown);
