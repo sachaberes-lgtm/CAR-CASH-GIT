@@ -26,6 +26,29 @@ npm run ouvrir       # ouvre le projet dans Xcode
 `preparer-www.js` **refuse** de continuer s'il reste une adresse réseau (http/https) dans ce qu'on embarque : l'app est
 100 % hors ligne. Il grave aussi la version du jeu (le commit) : RÉGLAGES affiche « VERSION xxxxxxx ».
 
+## Les mises à jour EN DIRECT, sans passer par l'App Store (2026-10-14, oui de Sacha ; à partir du build 2)
+
+Le jeu embarqué (`www/`) se remplace par internet : les joueurs n'ont rien à télécharger dans l'App Store.
+- **Comment** : le module `@capgo/capacitor-updater` (open source, mode manuel, AUCUNE statistique : `statsUrl` vide dans
+  `capacitor.config.json`). `natif/natif.js` (partie 7), une fois le jeu démarré (`__gameReady`) : feu vert au module, puis
+  lecture de `latest.json` sur la branche `app-maj` du dépôt public ; si la version diffère de `www/maj.json`, le module
+  télécharge **seulement les fichiers changés** (souvent `index.html`, ~5 Mo), et la nouvelle version s'applique au prochain
+  passage en arrière-plan.
+- **Publier** : `node publier-maj.js` (commit local sur `app-maj`, rien d'envoyé), puis `node publier-maj.js --envoyer`
+  **seulement sur le oui de Sacha** (tous les iPhone la prennent). Ce qui part est l'ÉDITION APP STORE (preparer-www.js et
+  toutes ses coupes), jamais le jeu web tel quel.
+- **Filet de sécurité (vérifié au simulateur le 14/10)** : une version qui ne démarre pas n'envoie pas de feu vert → au bout de
+  60 s (`appReadyTimeout`) le module revient seul à la version d'avant, et `natif.js` la note dans `ccMajRefus` : elle n'est
+  plus jamais retentée sur ce téléphone.
+- **Ce qui exige une vraie mise à jour App Store** : tout ce qui touche l'app native (nouveau module Capacitor, icône, nom,
+  autorisations, `Info.plist`). Une mise à jour en direct qui en aurait besoin se protège avec `--natif-min <version>`.
+- **Règle d'Apple** : corriger, équilibrer, ajouter du contenu (caisses, cartes, musiques) : oui. Changer la nature du jeu,
+  ajouter des achats ou de la pub, rallumer ce que l'édition App Store coupe : non (l'app peut être retirée).
+- **Essai au simulateur** : `node preparer-www.js --maj http://localhost:8765/`, build simulateur, puis
+  `node publier-maj.js --local <dossier> --maj http://localhost:8765/ --jeu <un VERSION PRINCIPALE modifié>` et
+  `python3 -m http.server 8765 --directory <dossier>`. Pour appliquer : passer sur une autre app puis revenir (un arrêt forcé
+  par `simctl terminate` ne déclenche pas l'arrière-plan). Remettre ensuite `node preparer-www.js` sans `--maj`.
+
 ## L'édition App Store : ce que l'app coupe, et que le jeu web garde (2026-10-13, Sacha : « couper dans l'app seulement »)
 
 Apple refuse une version de test et des prix en argent réel sans achats intégrés. `preparer-www.js` fait donc ces coupes

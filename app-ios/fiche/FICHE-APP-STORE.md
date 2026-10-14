@@ -147,8 +147,9 @@ First release of CASH CAR. Enjoy the ride!
 ## 5. Les questionnaires d'Apple
 
 **Confidentialité de l'app** (App Privacy) : répondre **« Non, nous ne collectons pas de données »**. C'est exact : l'app
-n'envoie rien (aucune adresse réseau dans ce qu'elle embarque — vérifié à chaque fabrication), n'a ni compte, ni pub, ni
-mesure d'audience. La fiche affichera « Aucune donnée collectée ».
+n'envoie rien, n'a ni compte, ni pub, ni mesure d'audience. Sa seule connexion (depuis le build 2) : lire les nouvelles versions
+du jeu sur la branche publique `app-maj` (raw.githubusercontent.com), sans identifiant — les statistiques du module Capgo sont
+COUPÉES (`statsUrl` vide), et preparer-www.js refuse toute autre adresse réseau. La fiche affichera « Aucune donnée collectée ».
 
 **Chiffrement** (Export Compliance) : déjà réglé dans l'app (`ITSAppUsesNonExemptEncryption = NO`) : aucune question à l'envoi.
 
@@ -174,7 +175,7 @@ d'abonnement payant à Suno au moment de la génération (Apple peut la demander
 Coordonnées : ⚠ ton prénom, ton nom, ton téléphone, ton e-mail. Connexion requise : **Non** (pas de compte).
 
 <!-- notes-revue -->
-CASH CAR is a single-player, fully offline arcade racing game. No account, no login, no network access, no ads and no in-app purchases in this version.
+CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads and no in-app purchases in this version. Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
 
 How to reach the gameplay:
 1. Launch the app and tap the CASH CAR logo.

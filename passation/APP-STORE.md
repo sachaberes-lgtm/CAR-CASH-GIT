@@ -1,3 +1,17 @@
+# MISE À JOUR — 14/10, 17 h 40 : LES MISES À JOUR EN DIRECT (oui de Sacha) · le jeu sera figé dans ~1 mois (Sacha)
+- Sacha a accepté le nouveau contrat Apple (bandeau disparu) ; le bandeau « statut de commerçant UE » est encore là à 17 h 30.
+- Module `@capgo/capacitor-updater` 8.52.1 (mode manuel, stats COUPÉES) + `natif.js` partie 7 + `publier-maj.js` (branche
+  `app-maj` du dépôt public, fichiers rangés par sha256, latest.json) + `www/maj.json` (version = commit-empreinte). Manifeste de
+  confidentialité : + C617.1 (FileTimestamp) et E174.1 (DiskSpace). Mode d'emploi : `app-ios/LISEZ-MOI.md`.
+- ESSAI COMPLET AU SIMULATEUR (serveur local) : bonne mise à jour = 2 fichiers téléchargés sur 63, appliquée au passage en
+  arrière-plan ; mise à jour CASSÉE = appliquée, écran de panne, retour seul à la bonne au bout de 60 s, puis plus jamais
+  retentée (`ccMajRefus`) — après arrière-plan ET relance.
+- `CURRENT_PROJECT_VERSION` = 2 (le prochain envoi). Le build 1 (sans module) n'a PAS les mises à jour en direct : ne jamais le
+  soumettre. Fiche + page de confidentialité (app-ios/fiche) disent maintenant « sa seule connexion : les nouvelles versions du
+  jeu » ; la page EN LIGNE (main) est à recopier avant la sortie (oui de Sacha), et les notes du testeur dans App Store Connect
+  à remplacer par celles de la fiche.
+- Rien n'est publié sur `app-maj` pour l'instant (la branche n'existe pas encore : 404 = « à jour » pour l'app).
+
 # MISE À JOUR — 14/10, 14 h 15 (session « fais tout », sur le Mac)
 - `assemblage` T8 `27b4199` (dernier train) fusionnée dans `ios-capacitor` (1 conflit, CLAUDE.md racine : les deux gardés). Garde burn-out OK.
 - `preparer-www.js` recalé : l'accueil est en cartes 2 × 2 → sans OFFRES, GARAGE prend toute sa ligne (4 nouveaux témoins).

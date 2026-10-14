@@ -26,6 +26,16 @@
     "SystemBars": {
       "hidden": true,
       "style": "DARK"
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": false,
+      "updateUrl": "",
+      "statsUrl": "",
+      "channelUrl": "",
+      "appReadyTimeout": 60000,
+      "autoDeleteFailed": true,
+      "autoDeletePrevious": true,
+      "resetWhenUpdate": true
     }
   }
 }

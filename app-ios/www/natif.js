@@ -11,7 +11,8 @@
       un contexte que le JEU a mis en veille lui-même (son coupé, pause) ;
    5. l'écran de lancement natif retiré dès que le jeu a peint son propre écran ;
    6. en version DEBUG seulement (Xcode ▶) : chaque requête qui sortirait de l'app est écrite dans la console de Xcode,
-      plus un bilan à 15 s et à 60 s — c'est le banc du « mode hors ligne ». La version App Store n'écrit rien. */
+      plus un bilan à 15 s et à 60 s — c'est le banc du « mode hors ligne ». La version App Store n'écrit rien ;
+   7. les mises à jour en direct du jeu (sans l'App Store), placées avant le 6 qui s'arrête hors DEBUG. */
 (function(){
   'use strict';
   var C=window.Capacitor;
@@ -74,6 +75,65 @@
   /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (retiré seul au bout de 4 s au plus : capacitor.config.json, launchShowDuration) */
   var cache=function(){try{if(P.SplashScreen)P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
   if(document.readyState!=='loading')setTimeout(cache,60);else document.addEventListener('DOMContentLoaded',function(){setTimeout(cache,60);});
+
+  /* ---- 7. LES MISES À JOUR EN DIRECT (2026-10-14, oui de Sacha) ----
+     Le jeu (les fichiers de www/) se met à jour SANS passer par l'App Store : publier-maj.js fabrique l'édition App Store d'une
+     nouvelle version (mêmes coupes que l'app, jamais le jeu web tel quel) et la pose sur la branche `app-maj` du dépôt public.
+     Ici, une fois le jeu démarré (__gameReady, le signal de son propre chien de garde) :
+     a. on dit au module (Capgo, @capgo/capacitor-updater, mode manuel, statistiques COUPÉES : statsUrl vide) que cette version
+        marche. Sans ce feu vert avant appReadyTimeout, il revient tout seul à la version d'avant : une mise à jour qui casse le
+        démarrage ne bloque jamais un joueur ;
+     b. on lit latest.json. Si sa version diffère de la nôtre (maj.json, écrit par preparer-www.js) et que l'app native est assez
+        récente (natifMin), le module télécharge SEULEMENT les fichiers changés (le manifeste donne chaque fichier par son
+        empreinte sha256 ; les autres sont repris de la version installée), puis la nouvelle version s'applique au prochain
+        passage en arrière-plan ou au prochain lancement — jamais en pleine course.
+     Rien n'est envoyé : la lecture de fichiers publics, sans identifiant. Hors ligne, ou si le dépôt ne répond pas, rien ne change. */
+  var MAJ='https://raw.githubusercontent.com/sachaberes-lgtm/CAR-CASH-GIT/app-maj/'; // (preparer-www.js --maj <adresse> : un essai)
+  var U=P.CapacitorUpdater;
+  if(U){
+    var vSup=function(a,b){a=String(a||'0').split('.');b=String(b||'0').split('.'); // a ≥ b, numéro de version par numéro
+      for(var i=0;i<Math.max(a.length,b.length);i++){var x=+a[i]||0,y=+b[i]||0;if(x!==y)return x>y;}return true;};
+    var lire=function(u){var H=P.CapacitorHttp; // la requête native : ni CORS ni « contenu mixte » ; repli fetch
+      if(H&&H.get)return H.get({url:u,headers:{'Cache-Control':'no-cache'}}).then(function(r){
+        if(r.status!==200)throw new Error('HTTP '+r.status);return typeof r.data==='string'?JSON.parse(r.data):r.data;});
+      return fetch(u,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});};
+    /* LA MÉMOIRE DES ÉCHECS (essai au simulateur, 14/10) : le module revient bien seul à la version d'avant quand une mise à jour
+       ne démarre pas, mais il la gardait en cache et la RÉAPPLIQUAIT au passage en arrière-plan suivant — une minute d'écran de
+       panne à chaque fois. On note donc la version qu'on vient de préparer (ccMajEssai) ; si au lancement suivant on tourne sur
+       une AUTRE version et qu'elle n'attend plus son tour (getNextBundle), c'est qu'elle a été appliquée puis rejetée : elle part
+       dans ccMajRefus et n'est plus jamais retentée. Une version qui démarre (__gameReady) efface sa marque. */
+    var ls=function(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}return null;};
+    var refus=function(){try{return JSON.parse(ls('ccMajRefus')||'[]');}catch(e){return [];}};
+    var ici0=fetch('maj.json',{cache:'no-store'}).then(function(r){return r.json();}).catch(function(){return {};});
+    var bilanEssai=function(){var essai=ls('ccMajEssai');if(!essai)return Promise.resolve();
+      return ici0.then(function(ici){
+        if(ici.version===essai){ls('ccMajEssai',null);dit('maj : la version '+essai+' a démarré');return;}
+        return U.getNextBundle().then(function(n){if(n&&n.version===essai)return; // pas encore appliquée : elle attend son tour
+          var r=refus();if(r.indexOf(essai)<0)r.push(essai);ls('ccMajRefus',JSON.stringify(r.slice(-20)));ls('ccMajEssai',null);
+          dit('maj : la version '+essai+' a échoué, elle ne sera plus retentée');}).catch(function(){});});};
+    var majVerif=function(){
+      if(navigator.onLine===false)return;
+      var der;
+      Promise.all([ici0,U.getBuiltinVersion().catch(function(){return {};}),lire(MAJ+'latest.json?t='+Date.now())])
+      .then(function(t){var ici=t[0]||{},natif=(t[1]||{}).version;der=t[2]||{};
+        if(!der.version||!der.manifest||der.version===ici.version){dit('maj : à jour',ici.version);return null;}
+        if(refus().indexOf(der.version)>=0){dit('maj : '+der.version+' a déjà échoué ici, ignorée');return null;}
+        if(der.natifMin&&!vSup(natif,der.natifMin)){dit('maj : demande une app plus récente',der.natifMin,natif);return null;}
+        return U.list().then(function(l){
+          var deja=((l&&l.bundles)||[]).filter(function(b){return b.version===der.version&&b.status!=='error'&&b.status!=='deleted'&&b.status!=='deleting';})[0];
+          if(deja)return deja;
+          dit('maj : téléchargement',der.version);
+          return U.download({url:MAJ+'latest.json',version:der.version,
+            manifest:der.manifest.map(function(e){return {file_name:e.f,file_hash:e.h,download_url:MAJ+'f/'+e.h};})});});})
+      .then(function(b){if(b&&b.id)return U.next({id:b.id}).then(function(){ls('ccMajEssai',der.version);dit('maj : prête pour le prochain lancement',der.version);});})
+      .catch(function(e){dit('maj : rien',e&&e.message);});};
+    var tours=0,guet=setInterval(function(){
+      if(!window.__gameReady&&++tours<240)return;clearInterval(guet);
+      if(!window.__gameReady)return; // jamais démarré : pas de feu vert, le module reviendra à la version d'avant
+      U.notifyAppReady().catch(function(){});
+      setTimeout(function(){bilanEssai().then(majVerif);},4000);},500);
+    // une version qui ne démarre jamais ne donne pas le feu vert ; au lancement d'après (la version d'avant), bilanEssai la classe
+  }
 
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */
   if(!DEBUG)return;
