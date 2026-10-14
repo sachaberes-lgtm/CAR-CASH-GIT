@@ -84,6 +84,13 @@ de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,
   Puis (Léo : « la musique vraiment très légère dans le ciel, comme si on l'entendait en tombant ») : `MUS_CIEL` .4 → .15, et elle
   RESPIRE avec le vent — `CHDOUX.h` (la houle de la chute douce) la fait plonger sous les rafales et remonter aux accalmies (× .62 à 1,38).
   Mesuré : au ciel .03-.055 (contre .31 au garage, −15 à −20 dB).
+- **LE BRUIT LOUCHE DE LA BOUTIQUE** (Léo : « session débogage sonore : à la boutique, au début, ça fait un bruit louche ») — trouvé au banc
+  muet (Chrome sans fenêtre, crochet `Page.addScriptToEvaluateOnNewDocument` : journal de chaque source lancée + enregistrement de la sortie
+  par une dérivation ScriptProcessor sur la destination) : à l'ouverture, l'ATELIER continuait de sonner dans la salle blanche —
+  `garage.ambiance` (le néon qui GRÉSILLE) et `garage.feu` (la porte en feu qui gronde et crépite), ~−38 dB, au niveau de la nouvelle nappe,
+  sous le glitch. `bqAtelierSourdine(on)` (appelée par bqSon) les plonge à −45 dB en ~0,35 s et les rend au retour (garFeu reprend la
+  main sur le feu ; il ne réécrit plus son gain tant que `BQSON.atelier`). La nappe attend la fin du glitch (0,35 s) avant de monter.
+  Mesuré : boutique −34/−37 dB (sa voix seule, l'atelier à −80), retour atelier −37 dB comme avant.
 
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
