@@ -38582,7 +38582,16 @@ function volSet(k,pc){
    musicTick). Rien si MUSIQUE est coupée ou à 0 (le silence EST la réponse), ni là où le volume ne se règle pas (iPhone sans MUS_WA : un
    extrait à plein mentirait sur le curseur), ni quand la boutique fait taire le lobby. */
 function musApercu(){
-  if(!SND.music||!(VOL.mus>0)||(VOL_LOCKED&&!musWaTient())||MUS_TAIT)return;
+  if(!SND.music||!(VOL.mus>0)||MUS_TAIT)return;
+  /* (2026-10-14, session SON — PILOTAGE : « c'est un bug ») AU SOLEIL DE JADE, la course ne joue pas la radio mais GLISSE V2 (JMUS) : l'extrait
+     passe par elle. Son contexte WebAudio se règle partout, iPhone compris (VOL_LOCKED ne la concerne pas). `JMUS.ap` ouvre jadeMusVeut le
+     temps de l'extrait ; on la relance ICI, dans le geste (Safari ne réveille un contexte que dans un geste) ; jadeMusTick monte au NOUVEAU
+     volume puis l'éteint en fondu. Hors pause elle joue déjà : jadeMusTick applique le volume à l'image suivante. */
+  if(jadeMusOn()&&started&&!gameOver){
+    if(paused&&!document.hidden)try{JMUS.ap=performance.now()+1400;const i=jadeMusInst();
+      if(i){if(JMUS.tS){clearTimeout(JMUS.tS);JMUS.tS=0;}if(!i.playing){i.start();i.setVolume(0);JMUS.vol=-1;JMUS.P=0;}else if(i.wake)i.wake();}}catch(e){}
+    return;}
+  if(VOL_LOCKED&&!musWaTient())return;
   MUSAP.t=performance.now()+1400;
   if(!(paused&&started&&!gameOver&&musicVoulue&&musicEl&&musicEl.paused)||document.hidden)return; // hors pause la musique joue déjà : musicTick applique le volume à l'image suivante
   MUSAP.joue=true;
@@ -38595,7 +38604,7 @@ window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait 
   return {mode:musicMode,ciel:!!(typeof CHUTE!=='undefined'&&CHUTE.on),paused:paused,cible:+musicVolCible.toFixed(3),cour:+musicVolCour.toFixed(3),
     el:musicEl?{p:musicEl.paused,v:+musicEl.volume.toFixed(3),t:+musicEl.currentTime.toFixed(2),src:(musicEl.src||'').split('/').pop()}:null,
     ap:{reste:Math.round(MUSAP.t-performance.now()),joue:MUSAP.joue,rev:MUSAP.rev},ctx:AC&&AC.state,volMus:VOL.mus,reglagesPause:!!window.__setPause,
-    jade:jadeMusOn(),jmus:!!(JMUS.inst&&JMUS.inst.playing),jvol:JMUS.vol};}; // (2026-10-14) au SOLEIL DE JADE la course joue JMUS, pas la radio
+    jade:jadeMusOn(),jmus:!!(JMUS.inst&&JMUS.inst.playing),jvol:JMUS.vol,jap:Math.round(JMUS.ap-performance.now())};}; // (2026-10-14) au SOLEIL DE JADE la course joue JMUS, pas la radio
 (function(){ // un seul câblage pour les six curseurs (trois par interface)
   const bind=function(id,k){const e=document.getElementById(id);if(!e)return;
     const go=function(){volSet(k,+e.value);};
@@ -44264,7 +44273,7 @@ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU H
    tait), son intensité = les 5 PALIERS DE MUSIQUE du simulateur (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), son volume
    = le curseur MUSIQUE (VOL.mus, .62 = le niveau du module), l'interrupteur MUSIQUE le coupe. Le module se charge dès le démarrage ; le
    1er toucher d'une course le relance une fois (Safari ne réveille un contexte audio que dans un geste). */
-const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null,tS:0}; // tS : l'arrêt différé (fondu) de GLISSE, voir jadeMusTick
+const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null,tS:0,ap:0}; // tS : l'arrêt différé (fondu) de GLISSE, voir jadeMusTick · ap : la fin de l'extrait du curseur MUSIQUE en pause (musApercu)
 /* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
    au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
    au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
@@ -44282,7 +44291,7 @@ function jadeMusOn(){return (JADE_JEU||!!(LVL.cur&&LVL.cur.sansFin))&&!!LVL.cur&
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
 function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))({basses:JMUS_BASSES,sortie:JMUS_SORTIE});}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
-function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&!paused&&!document.hidden&&!(mode==='boom'&&!SANDBOX&&!TUTO.on);} // (2026-10-14, session SON) …et PAS pendant l'explosion : la radio meurt à l'image du crash (musicStop(true) dans explode), GLISSE jouait encore 1,8 s de boule de feu jusqu'à endGame — puis se coupait net
+function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&(!paused||JMUS.ap>performance.now())&&!document.hidden&&!(mode==='boom'&&!SANDBOX&&!TUTO.on);} // (2026-10-14, session SON) …et PAS pendant l'explosion : la radio meurt à l'image du crash (musicStop(true) dans explode), GLISSE jouait encore 1,8 s de boule de feu jusqu'à endGame — puis se coupait net
 function jadeMusGeste(){const i=jadeMusInst();if(!i||!SND.music)return;try{if(i.playing)i.stop();i.start();i.setVolume(0);JMUS.vol=-1;JMUS.P=0;}catch(e){}} // réveillé dans le geste, muet jusqu'à la course
 function jadeMusTick(){
   if(!JMUS.mod){if(JADE_PLAY||JADE_JEU||SF.on)jadeMusCharge();return;}
