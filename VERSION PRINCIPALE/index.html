@@ -23158,13 +23158,11 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fog:[.17,.18,.25],f
    cyK:[0,0,0,0],cyN:[0,.8,.3,1],cyA:[40,170,1,1],cyL:[.25,.22,.24],cyT:[.86,.84,.88],cyW:[.30,.22,.16],cyX:[.14,.09,.06],cyF:[.16,.18,.24],cyQ:[.45,90,1,1]});
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · canyon2) LE CANYON DES GÉANTS PARLE LA LANGUE DES AUTRES MAPS : contre-jour ROSE sur les caisses, saturation
    effective ~1,35 ; MIDI : plus d'horizon ni de brume gris neutre (#c0c4c6, le « ciel délavé ») → sable pêche ; SOIR : soleil à 6°, les ombres des parois tombaient
-   au NOIR (ciel .45 / remplissage .2) → ombres bleu-violet (ciel .62, remplissage bleu .38). Plus la signature de route (bords roses, ligne or). `?sans=canyon2`.
-   (20 h 30) LE HAUT DU CADRE ÉTAIT CRÈME (L* 92-94) : un voile de cumulus `cyC` crème qui couvrait tout + la brume des parois proche → nuages moins couvrants
-   (`cyK`) et colorés (pêche, corail), milieu de ciel plus bleu (`cyM`), brume repoussée (`fogN`). */
+   au NOIR (ciel .45 / remplissage .2) → ombres bleu-violet (ciel .62, remplissage bleu .38). Plus la signature de route (bords roses, ligne or). `?sans=canyon2`. */
 if(SIG_V.canyon){
- Object.assign(BIOMES.canyonMatin,{sat:1.12,con:1.2,fillI:.28,kickC:[1,.40,.66],kickI:.18,cyK:[.05,.25,0,0],cyC:[.95,.62,.60],cyM:[.22,.38,.80],fogN:1200});
- Object.assign(BIOMES.canyonMidi,{cyK:[.12,.05,0,0],cyC:[.85,.88,.96],cyM:[.12,.40,.86],cyZ:[.03,.18,.72],cyS:[.7,.62,.5],fogN:1800,rtK:.7,sat:1.12,con:1.22,jHor:[.95,.74,.55],cyH:[.95,.74,.55],fog:[.84,.70,.58],fogCj:[1,.82,.62],fogIn:[.96,.88,.80],cyF:[.90,.76,.64],cyB:[.80,.62,.58],fillI:.26,kickC:[1,.40,.68],kickI:.18});
- Object.assign(BIOMES.canyonSoir,{cyK:[.10,.35,0,0],cyZ:[.10,.10,.50],cyM:[.40,.22,.50],cyC:[.9,.42,.40],fogN:1000,sat:1.12,con:1.22,hemiS:[.44,.40,.72],hemiI:.62,fillC:[.42,.46,.92],fillI:.38,kickC:[1,.38,.62],kickI:.2});
+ Object.assign(BIOMES.canyonMatin,{sat:1.12,con:1.2,fillI:.28,kickC:[1,.40,.66],kickI:.18});
+ Object.assign(BIOMES.canyonMidi,{rtK:.7,sat:1.12,con:1.22,jHor:[.95,.74,.55],cyH:[.95,.74,.55],fog:[.84,.70,.58],fogCj:[1,.82,.62],fogIn:[.96,.88,.80],cyF:[.90,.76,.64],cyB:[.80,.62,.58],fillI:.26,kickC:[1,.40,.68],kickI:.18});
+ Object.assign(BIOMES.canyonSoir,{sat:1.12,con:1.22,hemiS:[.44,.40,.72],hemiI:.62,fillC:[.42,.46,.92],fillI:.38,kickC:[1,.38,.62],kickI:.2});
  for(const k of ['canyonNuit','canyonPluie','canyonOrage'])if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.16)});
 }}
 // L'ORBITE — le soleil a ses heures aussi : doré au lever sur le bord de la Terre, rouge au couchant (le noir et la Terre ne changent pas)
