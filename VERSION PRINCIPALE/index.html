@@ -8853,7 +8853,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
    Taille : --spH (la hauteur d'un symbole) suit l'écran — debout il respire, couché il tient sous 390 px. */
 #spinM{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;box-sizing:border-box;
   padding:calc(var(--sT) + 10px) calc(var(--sR) + 16px) calc(var(--sB) + 14px) calc(var(--sL) + 16px);
-  background:radial-gradient(120% 80% at 50% 45%,rgba(39,32,70,.55),rgba(7,5,15,.94) 70%);font-family:var(--pix);color:var(--tx);
+  background:radial-gradient(120% 80% at 50% 45%,rgba(27,22,52,.94),rgba(7,5,15,.975) 70%); /* dense : l'écran de fin ne se lit plus au travers (banc : le montant du jackpot chevauchait un texte) */font-family:var(--pix);color:var(--tx);
   opacity:0;transition:opacity var(--t-slow) var(--ease);--spH:clamp(40px,10.4vh,74px);--spW:calc(var(--spH)*1.16);-webkit-user-select:none;user-select:none}
 #spinM.on{display:flex}
 #spinM.vu{opacity:1}
@@ -8914,11 +8914,16 @@ html.sansFacile [data-m="facile"]{display:none!important}
 #spinM .spPart .pxi{--pxs:3;color:var(--au2)}
 #spinM .spPart.liasse{width:22px;height:12px;background:var(--neoV);box-shadow:inset 0 0 0 2px var(--cashO),inset 0 0 0 4px var(--cash)}
 /* COUCHÉ : 390 px de haut — le titre et les marges se serrent */
+/* COUCHÉ : deux colonnes — la machine à gauche, aussi grande que la hauteur le permet ; le titre, le gain et l'or à droite. Le symbole se
+   règle sur la hauteur ET la largeur (667 × 375 compris). */
 @media (orientation:landscape) and (max-height:540px){
-  #spinM{--spH:clamp(36px,10.2vh,60px)}
-  #spinM .spBox{gap:6px}
-  #spinM .spTitre{font-size:var(--f6)}
-  #spinM .spTire{min-height:48px}}
+  #spinM{--spH:clamp(36px,min(calc((100vh - var(--sT) - var(--sB) - 60px)/3.75),calc((100vw - var(--sL) - var(--sR) - 330px)/4.4)),80px)}
+  #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,250px);grid-template-rows:auto auto 1fr auto;column-gap:28px;row-gap:8px;width:auto;align-items:center;justify-items:center}
+  #spinM .spMachine{grid-column:1;grid-row:1/5}
+  #spinM .spTitre{grid-column:2;grid-row:1;font-size:var(--f6)}
+  #spinM .spJet{grid-column:2;grid-row:2;flex-wrap:wrap;justify-content:center}
+  #spinM .spGain{grid-column:2;grid-row:3}
+  #spinM .spTire{grid-column:2;grid-row:4;width:100%;min-height:52px}}
 @media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:2.8s}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
