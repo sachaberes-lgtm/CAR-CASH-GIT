@@ -7952,12 +7952,12 @@ html.c6 body #gMenuBas .gVerrou,html.c6 body #gStrip>.gT.gMys{display:none!impor
    était un panneau de 430 px avec une carte et rien d'autre. Ici : (1) la fiche = UNE plaque d'encre (la même peau que la plaque de l'inventaire : rgba(11,13,18,.8) + filet 2 px) ;
    le nom en haut, dessous la rareté (barre de 4 px) et le rang « 1 / 49 » en police système 13 px, l'ŒIL au bord droit de la plaque, sur les deux lignes ; (2) l'inventaire à peu de cartes
    se serre sur son contenu et dit quoi faire ; (3) plus aucun texte sous 11 px dans ces deux écrans. Les comptes de l'en-tête sont réglés plus haut (pastilles de même largeur). */
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{display:grid!important;grid-template-columns:max-content 1fr 48px;grid-template-rows:auto auto;justify-content:start;align-items:center!important;column-gap:12px!important;row-gap:4px!important;
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{display:grid!important;grid-template-columns:max-content max-content 48px;grid-template-rows:auto auto;justify-content:start;align-items:center!important;column-gap:12px!important;row-gap:4px!important;
   box-sizing:border-box;width:max-content!important;max-width:100%!important;margin:0!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important}
-html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{grid-template-columns:max-content 1fr}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{grid-template-columns:max-content max-content}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gName{grid-column:1/3;grid-row:1;text-shadow:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gRarPill{grid-column:1;grid-row:2;justify-self:start;height:auto!important;padding:0 0 0 12px!important;font:800 13px/16px var(--sans)!important;text-transform:uppercase;text-shadow:none!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gLvl{grid-column:2;grid-row:2;justify-self:start;font:700 13px/16px var(--sans)!important;text-shadow:none!important;color:var(--c6-g1)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gLvl{grid-column:2;grid-row:2;justify-self:end;font:700 13px/16px var(--sans)!important;text-shadow:none!important;color:var(--c6-g1)!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gOeil{grid-column:3;grid-row:1/3;align-self:center}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>:is(#gMeta,#gDesc){text-shadow:none!important}
 /* l'inventaire à peu de cartes (≤ 3, classe posée par le script) : la plaque prend la hauteur de son contenu (au moins 200 px : la même sur tous les onglets, la rangée d'onglets ne saute pas) */
