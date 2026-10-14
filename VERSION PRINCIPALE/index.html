@@ -19085,7 +19085,7 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
     LVL.n=1;lvlAstre(null);ROAD_HALF=ROAD_HALF0*2.0;return LVL.cur;}
   /* (2026-10-13, Sacha) LE MODE CLASSIQUE AU HASARD — en course (et sous le voile du JOUER : SF.pret) ; la piste du MENU garde NIVEAUX[0] et son ciel */
   if(SF.on&&(started||SF.pret)){const zn=Math.max(0,z-(LVL.tutoZ|0));let t=SF.tirage[zn];
-    if(!t){t=SF.tirage[zn]=SF.force?sfImpose(SF.tirage[zn-1]||null):sfTire(SF.tirage[zn-1]||SF.der);SF.der=t;}
+    if(!t){t=SF.tirage[zn]=SF.force?sfImpose(SF.tirage[zn-1]||null):sfTire(SF.tirage[zn-1]||SF.der);SF.der=t;SF.prochain=null;} // (2026-10-14, chasse aux bugs) SF.der change : le couple « annoncé d'avance » (calculé contre l'ancien der) est périmé — il pouvait ressortir au JOUER suivant = la même map deux fois de suite
     LVL.cur=sfNiveau(t.carte,t.meteo);LVL.n=zn+1;lvlAstre(LVL.cur.astre||null);return LVL.cur;} // (2026-10-14, passe graphismes) la variante peut porter sa planète (PLANETES)
   {const zn=Math.max(0,z-(LVL.tutoZ|0));LVL.cur=NIVEAUX[zn%NIVEAUX.length];LVL.n=zn+1;lvlAstre(null);}
   return LVL.cur;
