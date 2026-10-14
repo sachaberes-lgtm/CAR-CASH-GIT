@@ -40240,6 +40240,7 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.combos=(FX2.combos|0)+1;
   try{nitroGain(K.nitro,'figair');}catch(e){}
   hap([14,30,14,30,40]);
+  try{sonCombo(cle,neuf);}catch(e){} // (SON) la signature sonore du combo : livrée par la session SON — muet tant qu'elle n'existe pas
   if(neuf){const n=Object.keys(D).filter(function(k){return COMBO_NOMS[k];}).length;
     try{misBanniere(en?'NEW COMBO':'NOUVEAU COMBO',(en?nm[1]:nm[0])+' · '+n+' / 20','+'+aura,'etoile');}catch(e){}
     try{if(SONV2)sfx('ui.debloque');}catch(e){}}
