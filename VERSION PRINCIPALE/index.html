@@ -51971,6 +51971,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function setPauseOuvre(){
     if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
     window.__setPause=true;uiClic('nav');
+    try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) mGo(…,true) saute le verrou du double-tap : le 2e tap d'un double-tap sur la ligne tombait sur une ligne de RÉGLAGES (bascule en silence)
     document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
     overlay.setAttribute('data-ecran','set'); // AVANT l'affichage : mGo force un reflow avant de le poser, et le fond (transition d'opacité de ::before) partait de l'accueil (transparent) → la pause se lisait derrière les réglages
     TCTL.ov=true;overlay.style.display='flex';
@@ -51978,6 +51979,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function setPauseFerme(){
     if(!window.__setPause)return;
     window.__setPause=false;
+    try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) même verrou à la sortie : le 2e tap du double-tap sur le ◀ rejouait mTap('back') → mGo('home') (accueil qui clignote), puis tombait sur la pause
     const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
       for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
       mCur=mRoot(); overlay.setAttribute('data-ecran',mCur);
