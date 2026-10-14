@@ -3,13 +3,19 @@
 ## LE DOGE v2 (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
 La v1 (gros voxels, un kart) : « nul » — pas une vraie voiture, pas assez Doge, trop cubique et cheap — et « les textes à ajouter en trail carrément ».
 La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devant, tout en `nyLaque`), main plus fine :
-- LA CAISSE : coupé en loft à facettes, livrée shiba (fauve dessus, CRÈME en bas = l'urajiro, selle sombre sur le pavillon), jantes bronze, deux
-  sorties d'or, bandeau rose. Les couleurs sont dans la palette `nyl` (cuites, sans lumière) : jamais de teinte qui vire sous les ciels.
-- LA TÊTE (`dogeTete`, juste avant `const SHAPES`) : champ de distance (`DOGE_SDF` : crâne, joues, museau `rcone`, menton, oreilles creusées,
-  orbites, PAUPIÈRES, truffe, BOUCHE EN COIN posée par lancer de rayon puis creusée) → `dogeNets` (surface nets, lisse), couleurs par région
-  moyennées sur 7 prises (bords doux). Une fois par session (`SHAPES.doge._tete`, ~0,2 s). Échelle 1,25, posée en (0,.77,1.80).
-- LE REGARD : vrais yeux (sphères colorées : blanc, iris, pupille, éclat) qui TOURNENT vers la caméra (repère `pivot`), coup d'œil de l'autre côté ;
-  sourcils (points crème) qui se lèvent ; tête PENCHÉE qui hoche en roulant ; LANGUE à la nitro ; queue en tire-bouchon (`dogeQueue`) qui remue.
+- LA CAISSE (« nickel la tête, travaille le modèle — une doge dodge ») : un MUSCLE CAR widebody en loft à facettes (13 points de section :
+  bas crème = l'urajiro, filet brun au flanc, épaule vive, vitrage en retrait, DEUX BANDES brunes capot → malle = la selle), élargisseurs à RIVETS
+  D'OR, capot à bossage + grosse prise d'air + extracteurs + goupilles, calandre noire de toute la largeur et DEUX PHARES À ANNEAU de chaque côté —
+  la tête sort de la calandre —, feu ROUGE sur toute la largeur avec la PIÈCE D'OR au milieu, becquet, deux sorties rectangulaires d'or, jantes
+  bronze à 5 branches. Aucun nom ni insigne de marque. ⚠ LE DÉFIEUR existe déjà (le muscle car orange) : le DOGE s'en distingue par la livrée,
+  le widebody riveté, les phares à anneau et la tête. Palette `nyl` (cuite, sans lumière) : jamais de teinte qui vire sous les ciels.
+- LE VISAGE FAÇON « CARS » (2026-10-14, Léo : « la tête au niveau de la vitre, bien intégrée, comme Cars ») — la tête sculptée qui sortait de la
+  calandre est RETIRÉE (`dogeTete` supprimée) : la voiture EST le chien. Les YEUX remplissent le pare-brise : un panneau (grille 28 × 14 posée sur
+  les points du dessus de `S(z)`, z .60 → 0, +12 mm) dessiné par `FACE_FS` (yeux en amande au trait sombre, iris brun + pupille + éclat qui filent
+  de côté `uLook`, PAUPIÈRES lourdes `uLid` .36 (blasé), .10 à la nitro, 1 au clignement ; sourcils crème `uBrow` ; joues crème ; front sombre ;
+  cadre du pare-brise). Le bouclier avant est CRÈME (le museau, cap du loft), la TRUFFE noire posée sur le bord du capot, le SOURIRE dessiné en
+  tubes bruns sur le bouclier, la LANGUE à la nitro au coin de la bouche, les OREILLES (`dogeOreille`, champ de distance → `dogeNets`) sur le
+  toit au-dessus du pare-brise (elles tressaillent, se couchent à la nitro). Un phare à anneau de chaque côté du museau ; plus de prise d'air.
 - LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
   derrière (sprites monde, 18 max, 86 % de l'élan de la caisse). Traînée d'origine du DOGE (`fx.wow`) ET traînée de la boutique « WOW » (30 000 $,
   `COSM.trainee`, `FX_EFF.wow`). Coupée avec l'arc-en-ciel (`rainbowCoupe`). Aperçu au garage (onglet TRAÎNÉES). Console `dbgWow()`.
@@ -104,6 +110,13 @@ de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,
   Puis (Léo : « la musique vraiment très légère dans le ciel, comme si on l'entendait en tombant ») : `MUS_CIEL` .4 → .15, et elle
   RESPIRE avec le vent — `CHDOUX.h` (la houle de la chute douce) la fait plonger sous les rafales et remonter aux accalmies (× .62 à 1,38).
   Mesuré : au ciel .03-.055 (contre .31 au garage, −15 à −20 dB).
+- **LE BRUIT LOUCHE DE LA BOUTIQUE** (Léo : « session débogage sonore : à la boutique, au début, ça fait un bruit louche ») — trouvé au banc
+  muet (Chrome sans fenêtre, crochet `Page.addScriptToEvaluateOnNewDocument` : journal de chaque source lancée + enregistrement de la sortie
+  par une dérivation ScriptProcessor sur la destination) : à l'ouverture, l'ATELIER continuait de sonner dans la salle blanche —
+  `garage.ambiance` (le néon qui GRÉSILLE) et `garage.feu` (la porte en feu qui gronde et crépite), ~−38 dB, au niveau de la nouvelle nappe,
+  sous le glitch. `bqAtelierSourdine(on)` (appelée par bqSon) les plonge à −45 dB en ~0,35 s et les rend au retour (garFeu reprend la
+  main sur le feu ; il ne réécrit plus son gain tant que `BQSON.atelier`). La nappe attend la fin du glitch (0,35 s) avant de monter.
+  Mesuré : boutique −34/−37 dB (sa voix seule, l'atelier à −80), retour atelier −37 dB comme avant.
 
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
