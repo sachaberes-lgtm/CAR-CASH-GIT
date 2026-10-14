@@ -44559,6 +44559,26 @@ function portPasseNiveau(){
     if(started&&!gameOver&&!PARK.on&&mode!=='boom')newTrack(); // (2026-10-14, chasse aux bugs) mode!=='boom' : morte dans les 2 images d'attente, la caisse explose ENCORE (gameOver ne tombe qu'à endGame, 1,8 s plus tard) — newTrack lui remettait mode='drive' : plus d'endGame, elle roulait après sa mort
     portVoileSort(280);});});
 }
+/* (2026-10-14, UX 8 — JOUER) LE VOILE DU DÉPART. Toucher JOUER : l'atelier s'ouvre, la caisse file vers la porte, et c'est à la FIN du lâcher que
+   resetGame() bâtit la piste (newTrack synchrone, ~90 ms ×3-5 sur iPhone) puis que chauffeRendu() dessine tout une fois (~120 ms plus tard) :
+   deux images lourdes, vues comme un gel juste après le toucher. Le voile de portail (#portV : laque + pixels d'or en animation de TRANSFORM,
+   le compositeur la joue même script bloqué) est donc POSÉ avant — au moment où le rideau de flammes tombe (garage) ou le banc de nuage se
+   referme (chute), il a le temps d'être peint — puis TENU pendant la construction, jusqu'à 'chauffe' + une image (filet 1,5 s), et ouvert par
+   le fondu du portail. Sans construction (1re partie de la session : piste du menu gardée), il s'ouvre après deux images. Rien sous `c6`. */
+const DEPV={on:false,fb:0,ec:null};
+function depVoileOk(){return !document.documentElement.classList.contains('c6');}
+function depVoilePose(){ if(!depVoileOk()||DEPV.on)return; DEPV.on=true; portVoile(); if(PORTV.el)PORTV.el.style.opacity='.94'; } /* .94 même en mouvement réduit : le fond est fixe, mais il COUVRE */
+function depVoileGo(fn){ // lance la construction du départ (fn) sous le voile et ne l'ouvre qu'après la dernière image lourde
+  if(!DEPV.on){fn();return;}
+  let vu=false,fini=false;
+  const lever=function(){ if(fini)return;fini=true;clearTimeout(DEPV.fb);document.removeEventListener('cc:construction',DEPV.ec);DEPV.on=false;
+    requestAnimationFrame(function(){portVoileSort(0);}); };
+  DEPV.ec=function(e){const t=e&&e.detail&&e.detail.etape;if(t==='debut')vu=true;else if(t==='chauffe'&&vu)lever();};
+  document.addEventListener('cc:construction',DEPV.ec);
+  try{fn();}finally{
+    if(!vu)requestAnimationFrame(function(){requestAnimationFrame(lever);}); // aucune construction : rien à cacher
+    else DEPV.fb=setTimeout(lever,1500); } // filet : la chauffe n'est jamais venue (onglet caché…)
+}
 /* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
    elle rendait la visée impossible — voir le bloc « CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE » dans la boucle. Restent : `t`
    (dernière image de vol : détecte le décollage), `eta` (secondes avant la réception prédite, posé par le viseur, 99 = rien en vue) ·
@@ -51359,12 +51379,12 @@ function chuteRender(dt){
     if(CHUTE.snd){CHUTE.snd.gain(4*u,.15);CHUTE.snd.rate(1+.25*u,.15);}
     if(AC&&windG&&whG){try{CHUTE.vent=true;stt(windG.gain,.05+.05*u,AC.currentTime,.3);stt(windF.frequency,900+2400*u,AC.currentTime,.3);stt(whG.gain,.02+.05*u,AC.currentTime,.3);}catch(e){}}}
   // JOUER : le banc de nuage traversé (voile blanc), puis la course sous le voile
-  if(G){if(!G.voile&&u>.74){G.voile=true;try{sfx('nuage.entre');}catch(e){}}
+  if(G){if(!G.voile&&u>.74){G.voile=true;depVoilePose();try{sfx('nuage.entre');}catch(e){}}
     const v=chuteVoileEl();v.style.transition='none';v.style.opacity=String(Math.max(0,Math.min(1,(u-.74)/.2)));
     if(u>=1){
       const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
       closeGarage();
-      if(wasStarted)resetGame();else{start();fireLaunchBoost();}
+      depVoileGo(function(){if(wasStarted)resetGame();else{start();fireLaunchBoost();}});
       setTimeout(function(){v.style.transition='opacity .5s ease-out';v.style.opacity='0';},60); // le nuage se déchire SUR la piste
     }}
 }
@@ -52548,7 +52568,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     {const v9=(garageRender._v||0)*POR,yv=ay+1.0-POR*.65-v9*1.35;camera.lookAt(G.lx0*(1-e9),yv+(ay+.85-yv)*e9,G.lz0+(cz+3.2-G.lz0)*e9);garCadre(1-e9);}
     const fovL=(56+u*10)*FOV_K;                            // le champ s'ouvre : c'est ça, la vitesse
     if(Math.abs(camera.fov-fovL)>.01){camera.fov=fovL;camera.updateProjectionMatrix();}
-    if(!G.voile&&u>.90){G.voile=true;const f=$('gFade');if(f)f.classList.add('on');} // (2026-09-29) .80 → .90 : la caisse ENTRE dans le rideau de flammes (la porte est à cz 13, atteinte à u .875) avant la coupure
+    if(!G.voile&&u>.90){G.voile=true;const f=$('gFade');if(f)f.classList.add('on');depVoilePose();} // (2026-09-29) .80 → .90 : la caisse ENTRE dans le rideau de flammes (la porte est à cz 13, atteinte à u .875) avant la coupure
     if(u>=1){
       GAR.go=null;carGroup.rotation.set(0,0,0);
       // ⚠ `resetGame()` fait DÉJÀ tout le travail de relance (piste neuve, meute, `fireLaunchBoost()`)
@@ -52558,7 +52578,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       // `started` déjà vrai que rien n'a encore posé.
       const wasStarted=started;
       closeGarage();
-      if(wasStarted)resetGame();else{start();fireLaunchBoost();}
+      depVoileGo(function(){if(wasStarted)resetGame();else{start();fireLaunchBoost();}});
       const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
     }
     return;                                                // ⚠ on ne rejoue pas l'orbite derrière
