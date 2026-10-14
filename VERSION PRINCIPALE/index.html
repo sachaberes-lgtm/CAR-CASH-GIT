@@ -33838,7 +33838,7 @@ let musicVoulue=false,musicEnAttente=false,musicVolCible=1,musicVolCour=1,musicA
    ciel, un bruit de chute libre doux ») LE LOBBY SE TAIT AU CIEL : `MUS_TAIT` (posé par musicTick en mode menu : le ciel de LA CHUTE ou
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
    (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
-let MUS_TAIT=false;const MUS_CIEL=.4; // au ciel, la musique à 40 % de celle du garage (−8 dB), derrière le vent
+let MUS_TAIT=false;const MUS_CIEL=.15; // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
   if(!musicEl){
@@ -34288,7 +34288,7 @@ function musicTick(dt,mvt){
       joue au ciel, à MUS_CIEL du niveau du garage, DERRIÈRE la chute libre douce. Seule la boutique se tait encore. (iPhone : le volume
       d'un <audio> y est verrouillé — la musique y joue au même niveau partout, comme avant.) */
    const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9;MUS_TAIT=tait9;
-   if(ciel9)musicVolCible*=MUS_CIEL;
+   if(ciel9){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant
    if(tait9){musicVolCible=0;if(!musicTick._pz&&(VOL_LOCKED||musicVolCour<.012)){musicTick._pz=true;musicPause(true);}}
    else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
    musicTick._bq=bq9;}
@@ -45963,7 +45963,7 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
    un GRAND, grave et rond (bruit passé deux fois sous ~350 Hz), et un plus CLAIR et léger (une bande autour de 900 Hz) qui passe lentement
    d'une oreille à l'autre ; tous deux RESPIRENT (des houles de 2 à 15 s), jamais le claquement des tôles de `chute.vent` (gardé pour le
    piqué de JOUER). Bus des effets (MASTER : curseur EFFETS, interrupteur SON). Créé au 1er passage au ciel, éteint 0,4 s après qu'on le quitte. */
-const CHDOUX={n:null,off:0},CHDOUX_VOL=.06; // (même soir, Léo : « le vent est fort ») .15 → .06 (−8 dB)
+const CHDOUX={n:null,off:0,h:.78},CHDOUX_VOL=.06; // (même soir, Léo : « le vent est fort ») .15 → .06 (−8 dB)
 function chuteDoux(t,u){
   if(!AC||AC.state!=='running'||!SND.sfx)return;
   let n=CHDOUX.n;
@@ -45981,7 +45981,7 @@ function chuteDoux(t,u){
     s1.start();s2.start();n=CHDOUX.n={g:g,s1:s1,s2:s2,f1:f1,f2:f2,g2:g2,pan:pan};
   }
   clearTimeout(CHDOUX.off);CHDOUX.off=0;
-  const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);
+  const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);CHDOUX.h=houle; // (la musique du ciel la lit : elle plonge sous les rafales)
   stt(n.g.gain,CHDOUX_VOL*houle*(1+1.6*u),now,.5);                 // au piqué de JOUER il gonfle (+8 dB)…
   stt(n.f1.frequency,330+70*Math.sin(t*.29)+600*u,now,.6);         // …et s'éclaircit
   stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+1200*u,now,.6);

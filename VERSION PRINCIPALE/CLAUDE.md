@@ -81,6 +81,9 @@ de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,
   C#m7(11) — la pentatonique des petits sons, transposée sur `sonTonSuit._t` —, l'air de la salle, une note cristalline + écho toutes les
   2,5-6 s ; monte en ~1 s, s'efface en 0,6 s. Mesuré au banc : ciel musique .124 / garage .31 / boutique musique en pause, son .85.
   (iPhone : la musique y garde le même niveau partout — volume d'<audio> verrouillé.) `dbgBqSon()`.
+  Puis (Léo : « la musique vraiment très légère dans le ciel, comme si on l'entendait en tombant ») : `MUS_CIEL` .4 → .15, et elle
+  RESPIRE avec le vent — `CHDOUX.h` (la houle de la chute douce) la fait plonger sous les rafales et remonter aux accalmies (× .62 à 1,38).
+  Mesuré : au ciel .03-.055 (contre .31 au garage, −15 à −20 dB).
 
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
