@@ -9084,7 +9084,7 @@ html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) tran
 @media (orientation:landscape) and (max-height:540px){
   html:not(.c6) #mSet .c6Corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-items:start}
   html:not(.c6) #mSet .c6Col{display:flex;flex-direction:column;min-width:0}
-  html:not(.c6) #mSet .c6Corps .c6Col>*{order:0}
+  html:not(.c6) #mSet .c6Corps>.c6Col:first-child>:nth-child(-n+2),html:not(.c6) #mSet .c6Corps .c6Col>*{order:0} /* (UX 8) le :nth-child de la règle debout (order:1) l'emportait sur ce reset : SAUVEGARDE passait AVANT AUDIO — couché chaque colonne se lit dans l'ordre du DOM (AUDIO, SAUVEGARDE | JEU, AIDE) */
   html:not(.c6) #mSet .c6Corps>.c6Pied{grid-column:1/-1;margin-top:20px}
 }
 
