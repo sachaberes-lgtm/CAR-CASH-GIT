@@ -1,4 +1,4 @@
-# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~20 h)
+# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~21 h)
 
 Lire d'abord `passation/OPTIMISATION.md` (la passe perf mobile du Mac, le socle `PAL`) puis la section « LES GELS DE CONSTRUCTION,
 VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sacha/Documents/GitHub/CCG-optim`, branche `optimisation`
@@ -31,6 +31,14 @@ VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sach
 - Profil d'une course (PC, palier 0) : 66 % du JS par image = `render` three.js ; hudColonne 6 % (déjà soignée) ; pickupsTick 3 %.
   Le reste du gain en course demande de toucher l'image (DPR, ombre, bloom) : interdit sans décision de Sacha.
 - Écartés (ne seraient pas identiques) : nuages mis à jour 1 image sur 4, moteur audio 1 image sur 2. Traits de vitesse : gain mince.
+
+## Soirée, suite (main 229acd57, v417)
+- IMAGE AUTOMATIQUE (décision de Sacha) : `qlAuto()` = TEL_NATIF + en course + pas HAUTE ; IMAGE RAPIDE → NETTE → HAUTE (`qSuivant`,
+  `qLbl`, `qHaute`) ; HAUTE = cran 0 forcé dans `qlPose`. Ordre des crans INCHANGÉ (résolution en dernier, verdict du 27/09).
+  Banc `banc.cjs qauto --q=fast|haute [--pc]` (processeur ×6).
+- `flashEcran` : plus de `void offsetWidth` (flash9/flash9b alternés, une relance par tâche).
+- Reste au profil de course (8 s, PC) : `hudColonne` → zRect/getBoundingClientRect ~10 ms/s (10 Hz), `volgTick` → zRect ~3 ms/s.
+  Piste : hauteurs du HUD par ResizeObserver au lieu de lectures forcées (zone INTERFACE : à proposer).
 
 ## Mesurer (PC, sans fenêtre, palier 0) — outils dans le scratchpad de la session (à recopier si besoin)
 - `banc.cjs <port> tout|portail|rejouer|boutique [params] [--debout] [--noinline] --tag=x` : profil CPU, tâches longues, compilations,
