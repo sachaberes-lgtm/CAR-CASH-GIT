@@ -36653,7 +36653,7 @@ function figLibreDemi(i){ // un demi-tour de plus sur l'axe i (0 salto · 1 toup
   FL.cum[i]++;const n=++FL.dem[i],axes=(FL.dem[0]?1:0)+(FL.dem[1]?1:0)+(FL.dem[2]?1:0),p=carGroup.position;
   const g=Math.min(Math.max(0,FLK.nitMax-FL.nit),FLK.nit*(1+FLK.nitVar*(axes-1)))*veqNitK();
   if(g>0){FL.nit+=g;FL.cumN+=g;try{nitroPct(g,'figure');}catch(e){}}
-  sparkBurst(n%2?sparkBlue:sparkGold,p,n%2?7:16,n%2?7:11);if(!SENS||performance.now()-(hap._t||-1e9)>=70)hap(n%2?7:[8,14,10]); // (2026-10-14, accord) un demi-tour en DIAGONALE se finit sur deux axes à la même image : une vibration, pas deux (ni par-dessus le coup du double-tap)
+  sparkBurst(n%2?sparkBlue:sparkGold,p,n%2?7:16,n%2?7:11);if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<(n%2?1:2))hap(n%2?7:[8,14,10]); // (2026-10-14, accord) un demi-tour en DIAGONALE se finit sur deux axes à la même image : une vibration, pas deux (ni par-dessus le coup du double-tap)
   if(n%2)return;
   const t=n/2;fovPunch=Math.max(fovPunch,4+Math.min(4,t));shake=Math.max(shake,.25);
   let nom;
