@@ -1262,3 +1262,55 @@ D('foret.nuitAmb',{fam:'foret',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'la FO
     O.filtre(b,'lp',1200,.7);O.boucle(b,.6);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN FORET>>> */
+/* <<<VOLCAN>>> */
+(function(G){
+'use strict';
+/* LES VOIX DU ROYAUME DE FEU (2026-10-14, Sacha : « il faut qu'il se passe des choses cool… une ambiance… bien travaillée »). Jouées par
+   vlcEruption / vlcSons / vlcEruptTick (index.html), sur le bus d'AMBIANCE. Aucune voix humaine (SANS_VOIX) : de la roche, du feu, du gaz.
+   · `volcan.eruption` — LE CRATÈRE QUI CRACHE : un coup de canon grave (sub qui plonge de 55 à 28 Hz), le souffle de l'explosion, une pluie de
+     pierres qui crépite et cogne, puis le grondement qui roule longtemps. Deux variantes.
+   · `volcan.gronde` — LA MONTAGNE QUI GRONDE (entre deux éruptions) : un roulement brun qui enfle et s'éteint, un sub qui tremble.
+   · `volcan.geyser` — UN HORNITO QUI CRACHE : un souffle de gaz qui monte (300 → 1300 Hz), des éclats de lave qui pétillent.
+   · `volcan.lave` — LA LAVE QUI BULLE (et les bombes qui tombent dans les lacs) : un « bloup » grave et épais, une bulle qui crève.
+   · `volcan.amb` — LA BOUCLE (très bas, −14 dB) : le feu sourd des lacs, des crépitements épars. ⚠ Rien d'aigu en continu (le « son
+     parasite » de Léo, 2026-10-08) : tout le souffle est sous 1,6 kHz. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,clic=O.clic;
+D('volcan.eruption',{fam:'volcan',bus:'amb',dur:6.5,st:1,v:2,db:+4,max:1,cd:3,rj:.03,dit:'L’ÉRUPTION : le coup de canon du cratère, le souffle, la pluie de pierres qui crépite, le grondement qui roule',
+  r:function(b,R,o){const k=o.v,p=R()*.6-.3;
+    osc(b,{f:k?50:58,f1:k?26:30,g:.7,gc:.6,t0:0,a:.006,h:.12,d:2.4,v:.9,pan:p});                      // le SUB qui plonge
+    osc(b,{f:96,f1:42,g:.25,t0:0,a:.003,d:.7,v:.5,pan:p});                                             // le coup
+    bruit(b,{c:'n',t0:0,a:.004,h:.18,d:1.9,v:.95,ft:'lp',f:1100,f1:170,g:1.3,pan:p},R);                // le souffle
+    bruit(b,{c:'r',t0:0,a:.002,d:.45,v:.4,ft:'bp',f:1700,q:.6,pan:p},R);                               // l'éclat
+    for(let i=0;i<46;i++){const t=.25+Math.pow(R(),1.6)*4.2,pn=R()*1.8-.9,v9=.22*(1-(t-.25)/4.5);     // les PIERRES qui retombent
+      clic(b,{t0:t,f:1400+R()*2600,d:.006+R()*.01,v:v9,pan:pn},R);
+      if(R()<.4)osc(b,{f:70+R()*60,f1:45,g:.08,t0:t,a:.002,d:.14,v:v9*1.6,pan:pn});}
+    bruit(b,{c:'n',t0:.35,a:.7,h:1.6,d:3.2,v:.6,ft:'lp',f:150,am:[3.1,.35],pan:-p},R);                 // le GRONDEMENT qui roule
+    O.sature(b,1.25);O.filtre(b,'lp',5200,.7);O.echo(b,.23,.28,1,true);O.versStereo(b,.5,R);}});
+D('volcan.gronde',{fam:'volcan',bus:'amb',dur:4.4,st:1,v:3,db:0,max:1,cd:2,rj:.04,dit:'LA MONTAGNE GRONDE : un roulement brun qui enfle et s’éteint, un sub qui tremble',
+  r:function(b,R,o){const p=R()*1.2-.6,f0=30+o.v*3;
+    bruit(b,{c:'n',t0:0,a:1.3,h:.8,d:2.6,v:.85,ft:'lp',f:85,f1:135,g:3,am:[2.2+o.v*.7,.45],pan:p},R);
+    osc(b,{f:f0,f1:f0*.85,g:4,t0:.2,a:1,h:1,d:2.2,v:.5,pan:p,vib:[2.3,.06]});
+    for(let i=0;i<6;i++)clic(b,{t0:1+R()*2.2,f:900+R()*1200,d:.01,v:.06,pan:R()*1.6-.8},R);
+    O.filtre(b,'lp',900,.7);O.versStereo(b,.6,R);}});
+D('volcan.geyser',{fam:'volcan',bus:'amb',dur:2.6,st:1,v:3,db:-2,max:2,cd:.6,rj:.05,dit:'UN GEYSER DE LAVE : le gaz qui siffle en montant, les éclats qui pétillent, le coup sourd du départ',
+  r:function(b,R,o){const p=R()*1.2-.6;
+    osc(b,{f:84,f1:44,g:.3,t0:0,a:.004,d:.35,v:.45,pan:p});
+    bruit(b,{c:'r',t0:0,a:.07,h:.55+o.v*.1,d:1.3,v:.6,ft:'bp',f:360,f1:1250,g:.55,q:1.1,pan:p},R);
+    bruit(b,{c:'n',t0:0,a:.05,h:.5,d:1.1,v:.45,ft:'lp',f:420,pan:p},R);
+    for(let i=0;i<26;i++){const t=.05+R()*1.7;clic(b,{t0:t,f:1600+R()*2400,d:.004+R()*.006,v:.16*(1-t/2),pan:p+R()*.6-.3},R);}
+    O.filtre(b,'lp',5500,.7);O.echo(b,.17,.2,1,true);}});
+D('volcan.lave',{fam:'volcan',bus:'amb',dur:1.1,st:1,v:4,db:-6,max:2,cd:.3,rj:.06,dit:'LA LAVE BULLE : un « bloup » grave et épais, une bulle qui crève',
+  r:function(b,R,o){const p=R()*1.4-.7,f0=120+o.v*18;
+    osc(b,{f:f0,f1:f0*.42,g:.14,gc:.7,t0:0,a:.012,h:.02,d:.28,v:.5,pan:p});
+    osc(b,{f:f0*.8,f1:f0*.36,g:.12,t0:.22+R()*.08,a:.01,h:.01,d:.22,v:.32,pan:p});
+    bruit(b,{c:'n',t0:.02,a:.004,d:.1,v:.35,ft:'lp',f:420,pan:p},R);
+    clic(b,{t0:.3+R()*.1,f:700,d:.01,v:.12,ft:'bp',pan:p},R);
+    O.filtre(b,'lp',1600,.7);O.echo(b,.11,.2,1,true);}});
+D('volcan.amb',{fam:'volcan',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'LE ROYAUME DE FEU (boucle, très bas) : le feu sourd des lacs, des crépitements épars',
+  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.001,h:9,d:.001,v:.42,ft:'lp',f:150,am:[.09,.5],pan:-.25},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.05,ft:'bp',f:260,q:1.5,am:[.13,.6],pan:.3},R);
+    for(let i=0;i<20;i++)clic(b,{t0:.3+R()*8.2,f:1500+R()*2000,d:.006,v:.05,pan:R()*1.6-.8},R);
+    for(let i=0;i<4;i++){const t=.5+R()*7.5,f0=90+R()*50;osc(b,{f:f0,f1:f0*.5,g:.15,t0:t,a:.01,d:.25,v:.12,pan:R()*1.4-.7});}
+    O.filtre(b,'lp',1600,.7);O.boucle(b,.6);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN VOLCAN>>> */
