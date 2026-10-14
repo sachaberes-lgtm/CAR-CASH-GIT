@@ -188,8 +188,8 @@ The game language follows the device language (French or English) and can be cha
 ## 7. Ce qu'il reste à fournir
 
 1. **Deux adresses publiques** pour `confidentialite.html` et `assistance.html` (ce dossier). Elles sont prêtes ; il manque
-   (a) ⚠ l'adresse e-mail d'assistance à y écrire — pour l'instant `support@example.com`, à remplacer par
-   `sh poser-adresse.sh ton@adresse` ; (b) ⚠ l'endroit où les publier (voir le message de la session : GitHub Pages ou Vercel).
+   (a) l'adresse e-mail d'assistance est posée : `16180contact@gmail.com` (Sacha, 14/10 ; pour la changer : `sh poser-adresse.sh autre@adresse`) ;
+   (b) ⚠ la mise en ligne : le site Vercel (un commit sur `main` : `pages-app/` + une ligne de `vercel-build.sh`), au oui de Sacha.
 2. **Captures d'écran** iPhone 6,9 pouces (1320 × 2868, ou 2868 × 1320 couché), de 3 à 10. À faire sur le **code final**, au
    simulateur iPhone 17 Pro Max : accueil, course dans les nuages, ville de nuit, NITRO, garage.
 3. **L'archive** envoyée depuis Xcode (Product › Archive › Distribute App › App Store Connect), une fois `www/` refait sur le code final.
