@@ -7531,8 +7531,10 @@ html.c6 body.touch #pwrChip .pw{background:var(--c6-e1);clip-path:none;box-shado
   animation:c6PwIn var(--c6-pose) var(--c6-courbe) both}
 html.c6 body.touch #pwrChip .pw.fin{animation:chipFin .24s steps(2) infinite}   /* la fin qui clignote : opacité seule, gardée */
 html.c6 body.touch #pwrChip .pw>.pxi{filter:none}
-html.c6 body.touch #pwrChip .pw span small{--tc:#fff;filter:none;letter-spacing:0}
-html.c6 body.touch #pwrChip .pw span b{color:var(--c6-b0)!important;-webkit-text-fill-color:var(--c6-b0)!important;background:none!important;filter:none!important;text-shadow:none}   /* !important : le repli des vieux iPhone (5262) le remettait à la couleur du pouvoir */
+html.c6 body.touch #pwrChip .pw span small,html.c6 body.touch #pwrChip .pw span b{   /* un contour d'encre DUR (text-shadow sans flou, pas un filter) : la plaquette passe à 45 % quand elle se fait discrète (hudDiscret), le blanc doit rester lisible sur un ciel clair */
+  text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000!important}
+html.c6 body.touch #pwrChip .pw span small{--tc:#fff;color:var(--c6-b0)!important;-webkit-text-fill-color:var(--c6-b0)!important;background:none!important;filter:none;letter-spacing:0}
+html.c6 body.touch #pwrChip .pw span b{color:var(--c6-b0)!important;-webkit-text-fill-color:var(--c6-b0)!important;background:none!important;filter:none!important}   /* !important : le repli des vieux iPhone (5262) le remettait à la couleur du pouvoir */
 html.c6 body.touch #pwrChip .pw u{left:10px;right:10px;height:4px;background:var(--pc);box-shadow:none}
 html.c6 body.touch #pwrChip .pw.cumul u{height:4px;background:var(--c6-b0);box-shadow:none}   /* cumulé au-delà de sa durée : la barre passe au blanc (elle « brillait plus fort ») */
 @media (prefers-reduced-motion:reduce){html.c6 body.touch #pwrChip .pw{animation:none}}
