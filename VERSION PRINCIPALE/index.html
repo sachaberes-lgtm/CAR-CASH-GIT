@@ -16029,8 +16029,8 @@ function sensEau(dt){ // chaque image de VOL, après l'orientation de la caisse
   SEAU.k+=((flot?1:0)-SEAU.k)*(1-Math.exp(-dt*(flot?2.2:5)));
   if(SEAU.k>.01){SEAU.t+=dt;const a=SEAU.k*(1-.6*Math.min(1,hv/120)),t=SEAU.t;
     carBody.rotation.set(a*(.045*Math.sin(t*3.1)+.02*Math.sin(t*5.3+1.3)),0,a*(.07*Math.sin(t*2.3+.7)+.025*Math.sin(t*4.1)));
-    carBody.position.y=a*.07*Math.sin(t*2.7+2.1);SEAU.pose=true;}
-  else if(SEAU.pose){carBody.rotation.set(0,0,0);carBody.position.y=0;SEAU.pose=false;}
+    carBody.position.y=(VEQ.on?VEQ.ext:0)+a*.07*Math.sin(t*2.7+2.1);SEAU.pose=true;} // (2026-10-14, gameplay · accord) le pilonnement s'AJOUTE à la suspension pendante du vol de Léo (veqCorps : VEQ.ext, posée juste avant) — il l'écrasait : la carrosserie tombait de 11 cm d'un coup en touchant l'eau, et y remontait d'un coup en la quittant
+  else if(SEAU.pose){carBody.rotation.set(0,0,0);carBody.position.y=VEQ.on?VEQ.ext:0;SEAU.pose=false;}
   if(flot&&hv<EAU.vB&&isFinite(JEAU.syF)){const sy=JEAU.syF,c=JEAU.cap;
     if(Math.random()<dt*(22+hv*.3)){eauPIm();eauP(fallPos.x-c.x*2+(Math.random()-.5)*1.5,sy+.15,fallPos.z-c.z*2+(Math.random()-.5)*1.5,-c.x*(2+Math.random()*3)+(Math.random()-.5)*2,1.4+Math.random()*2.4,-c.z*(2+Math.random()*3)+(Math.random()-.5)*2,.07+Math.random()*.1,.45+Math.random()*.4,sy,0);}
     SEAU.clap-=dt;if(SEAU.clap<=0){SEAU.clap=.7+Math.random()*1.1;eauBloop(.3);}}
@@ -27776,7 +27776,15 @@ let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPun
    · sensSecoue(k) : une petite secousse de caméra, plafonnée (.4), moitié en vol (on y vise), rien sous « Réduire les animations ». */
 const SCOUP={p:0,pv:0,ht:0,hf:0,hop:0,hopP:false}; // le tangage EN PLUS du jeu (rad, rad/s) — le roulis et le débattement ont déjà leurs ressorts (rollV, susV) · ht/hf : la dernière vibration · hop/hopP : la hauteur du petit saut en cours (dos d'âne, replacement) et s'il porte une pose déclarée en l'air
 function sensCoup(versLat,nez,pompe){if(!SENS||mode!=='drive')return;rollV=THREE.MathUtils.clamp(rollV-(versLat||0),-5,5);SCOUP.pv=THREE.MathUtils.clamp(SCOUP.pv+(nez||0),-4,4);susV=THREE.MathUtils.clamp(susV+(pompe||0),-4,4);}
-function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
+SCOUP.vp=0;SCOUP.vt=0; // (2026-10-14, gameplay · accord) la vibration du verdict de pose qui attend le contact (motif, heure) — voir tryLand
+function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;if(t-(hap._t||-1e9)<70&&(hap._k||0)>=f)return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
+/* (2026-10-14, gameplay · accord) LA MAIN N'A QU'UNE VOIX PAR ÉVÉNEMENT. Le limiteur ne voyait que les vibrations de la passe : un détail
+   SENS pouvait doubler, à la même image, le coup que le jeu venait de donner (le braquage qui arrache la caisse : [16,40,16] PUIS le tic
+   du décollage). `hap` note désormais l'heure de sa dernière impulsion (`hap._t`) et un détail SENS se TAIT dans les 70 ms qui suivent
+   une vibration du jeu AU MOINS aussi forte (`hap._k`) : le geste d'origine garde la parole — un tic de pièce ne fait pas taire une pose. L'échelle, la même partout (sol, air, eau, menu) — le Taptic d'iOS
+   la lit ainsi (hap) : TIC LÉGER ≤ 12 ms (une lèvre, une crête, une pièce, une petite retombée) · COUP NET 14-24 ms (une pose, un bump,
+   une porte, la lèvre rattrapée) · COUP LOURD ≥ 45 ms (la pose lourde, la flaque, la mort) · MOTIF DOUBLE [coup, 20-40 ms, coup] pour
+   les gestes à deux temps (la catapulte, le saut nitro, la figure, le train de boosts, la panne sèche). */
 function sensSecoue(k){if(!SENS||REDUCED_MOTION)return;shake=Math.max(shake,Math.min(.4,k)*(mode==='fall'?.5:1));}
 /* (2026-10-14, sensations · glisse) LA GLISSE SE SENT DANS LA TÔLE. Le drift avait déjà ses étincelles, sa fumée, son roulis (+4°) et ses
    vibrations de palier — mais l'ACCROCHE (l'instant où l'arrière décroche) ne faisait rien : le roulis et le nez s'installaient en fondu.
@@ -35749,7 +35757,7 @@ let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — 
    en impacts — une impulsion courte = LÉGÈRE, moyenne = MOYENNE, longue = LOURDE, et un motif [on,off,on…] rejoue
    chaque impulsion à son heure. Hors app (navigateur Android), le vibreur d'origine reste la voie. */
 function hap(p){
-  if(!TCTL.on||!SND.vib)return; // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
+  if(!TCTL.on||!SND.vib)return;hap._t=performance.now();{let m=0;if(Array.isArray(p)){for(let i=0;i<p.length;i+=2)if(+p[i]>m)m=+p[i];}else m=+p||0;hap._k=m<=12?1:m<=40?2:3;} // (2026-10-14, gameplay · accord) l'heure et la CLASSE (1 léger · 2 moyen · 3 lourd, comme le Taptic) de la dernière impulsion : le limiteur des détails SENS les lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
   const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
   if(H){try{
     const L=Array.isArray(p)?p:[p];let at=0;
@@ -36277,8 +36285,12 @@ function figLibreTap(gx,hy){ // le double-tap en vol : un coup de reins sur l'ax
   if(FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // LE DOUBLE-TAP N'EST PAS UN BOOST : le coup de réacteur de son 1er appui est rendu (vitesse et nitro) — marteler fait tourner, pas filer
   FL.actif=true;FL.tTap=performance.now();FL.taps++;FL.cumT=(FL.cumT||0)+1;VEQ.n++;
   const p=carGroup.position; // le souffle des tuyères qui la font tourner
-  for(let j=0;j<10;j++)spawnP(j%3?flames:flameCore,p.x+(Math.random()-.5)*1.6,p.y+.5+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*1.6,(Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14,.12+Math.random()*.12);
-  shake=Math.max(shake,.22);fovPunch=Math.max(fovPunch,3.5);hap([10,22,14]);
+  /* (2026-10-14, gameplay · accord) DANS LE SAUT NITRO, la figure part à la même image que le saut (veqSaut → veqFigure) : le souffle du
+     booster de Léo (26 flammes contre la route) et son motif dans la main ([12,30,18]) disent déjà le coup — les tuyères et leur
+     vibration ici le doublaient. Elles se taisent ; le son de la vrille reste (la caisse se met bien à tourner). */
+  const sautN9=SENS&&performance.now()-VEQ.sautT<60; // (`?sens=0` : comme avant)
+  if(!sautN9)for(let j=0;j<10;j++)spawnP(j%3?flames:flameCore,p.x+(Math.random()-.5)*1.6,p.y+.5+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*1.6,(Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14,.12+Math.random()*.12);
+  shake=Math.max(shake,.22);fovPunch=Math.max(fovPunch,3.5);if(!sautN9)hap([10,22,14]);
   try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}
   return true;
 }
@@ -36286,7 +36298,7 @@ function figLibreDemi(i){ // un demi-tour de plus sur l'axe i (0 salto · 1 toup
   FL.cum[i]++;const n=++FL.dem[i],axes=(FL.dem[0]?1:0)+(FL.dem[1]?1:0)+(FL.dem[2]?1:0),p=carGroup.position;
   const g=Math.min(Math.max(0,FLK.nitMax-FL.nit),FLK.nit*(1+FLK.nitVar*(axes-1)))*veqNitK();
   if(g>0){FL.nit+=g;FL.cumN+=g;try{nitroPct(g,'figure');}catch(e){}}
-  sparkBurst(n%2?sparkBlue:sparkGold,p,n%2?7:16,n%2?7:11);hap(n%2?7:[8,14,10]);
+  sparkBurst(n%2?sparkBlue:sparkGold,p,n%2?7:16,n%2?7:11);if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<(n%2?1:2))hap(n%2?7:[8,14,10]); // (2026-10-14, accord) un demi-tour en DIAGONALE se finit sur deux axes à la même image : une vibration, pas deux (ni par-dessus le coup du double-tap)
   if(n%2)return;
   const t=n/2;fovPunch=Math.max(fovPunch,4+Math.min(4,t));shake=Math.max(shake,.25);
   let nom;
@@ -37879,7 +37891,7 @@ function dolStart(){
   dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
   if(dolShow<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
   dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
-  hap([10,24,10]); // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
+  if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<2)hap([10,24,10]); /* (2026-10-14, gameplay · accord) le banc des dauphins part AU décollage : le « ta-tac » du décollage (startFall) vient de partir, quasi le même motif — un seul */ // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
 }
 /* (2026-09-29, Sacha : « dauphin écrit plus petit avec une police aquatique avec des vagues ») : une lettre = un <i> qui ondule sur SA
    phase (la vague court le long du mot), en eau — lèvre d'écume blanche, bleu lagon, fond marine — et une vague de pixels coule dessous. */
@@ -38727,17 +38739,21 @@ function poseParfaiteFx(divin){
    deux impulsions sur ses ressorts (sensCoup), elle se repose seule. Le débattement reste à squashT : on ne le double pas. */
 function sensPose(imp,psi0,verdict){
   const k=Math.min(1,Math.max(0,imp||0)/10);
-  sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),.35+1.5*k,0);
+  /* (2026-10-14, gameplay · accord) LE NEZ NE PLONGE QU'UNE FOIS : le VOL ÉQUILIBRÉ de Léo le fait plonger au même contact (veqContact →
+     VEQ.sp, ressort ω 13, dosé lui aussi par le choc) — les deux ressorts s'additionnaient (mesuré au banc, voir notes/accord.md). Sous le vol
+     de Léo, seul son nez reste ; ce détail garde le DÉVERS du crabe (que veqContact ne fait pas). `?vol=ancien` : le nez d'ici revient. */
+  sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),VEQ.on?0:.35+1.5*k,0);
   /* LA MAIN : la vibration de pose vit dans le VERDICT (PARFAIT 15 · ordinaire 14 · LOURD 45) — qui ne juge que les vrais vols (> 0,7 s ou
      une chaîne). Une petite retombée (trou enjambé, crête, sortie courte) touchait le bitume sans que la main le sache. Celle-là, et elle
      seule, reçoit son coup au contact, dosé par le choc : plume · net · lourd. */
-  if(!verdict)sensHap(imp>=10?34:imp>=4.5?16:9,imp>=10?3:imp>=4.5?2:1);
+  if(!verdict)sensHap(imp>=10?45:imp>=4.5?16:9,imp>=10?3:imp>=4.5?2:1); // (2026-10-14, accord) lourde = 45, comme le POSÉ LOURD du verdict (34 ms passait pour un coup MOYEN sur le Taptic d'iOS)
 }
 /* (2026-10-14, sensations · pose) LE BUMP RACLE. Les étincelles du rebond naissaient au CENTRE de la caisse, en boule, et restaient sur
    place. Celles-ci partent du FLANC qui a touché (la tranche, une demi-largeur vers la route), giclent vers le vide et filent AVEC la
-   caisse le long de la dalle (elles héritent de sa vitesse d'avance) : on lit de quel côté on a cogné. 4 à 10 selon la violence. */
+   caisse le long de la dalle (elles héritent de sa vitesse d'avance) : on lit de quel côté on a cogné. 4 à 10 selon la violence.
+   (2026-10-14, accord) 8 à 14 : elle REMPLACE la boule de 12 du centre (tryLand) au lieu de s'y ajouter — une seule gerbe par bump. */
 function sensBumpFlanc(b,t,n,sg,impB){
-  const k=Math.min(1,Math.max(0,impB||0)/20),nb=4+Math.round(6*k),w=CARS[level].w*.5,vt=fallVel.dot(t)*SPD;
+  const k=Math.min(1,Math.max(0,impB||0)/20),nb=8+Math.round(6*k),w=CARS[level].w*.5,vt=fallVel.dot(t)*SPD;
   const px=fallPos.x-b.x*sg*w,py=fallPos.y-b.y*sg*w,pz=fallPos.z-b.z*sg*w;
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
     spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
@@ -38786,6 +38802,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   if(fallVel.y>70)fallVel.y=70;
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
+  SCOUP.vp=0; // (2026-10-14, accord) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   {tmp.copy(fallVel).normalize();FLY_U.copy(F.n).addScaledVector(tmp,-F.n.dot(tmp)); // (vol libre) le haut du vol part de celui de la route
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
@@ -38818,7 +38835,9 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   /* (2026-10-14, sensations · pose) LE SOL LÂCHE DANS LA MAIN. Le décollage avait sa poussière et son souffle, mais le pouce ne sentait rien :
      on apprenait qu'on volait en le voyant. Un tic au moment où les roues quittent le bitume — léger pour une crête, un trou ou le bord,
      et le « ta-tac » des deux essieux (avant, puis arrière) sur la lèvre d'une CATAPULTE. Une seule vibration, par le limiteur commun. */
-  if(SENS&&running&&!gameOver&&!introD)try{if(!bord&&impU>=5)sensHap([10,26,14],2);else sensHap(9,1);}catch(e){}
+  /* (2026-10-14, gameplay · accord) …sauf le SAUT NITRO de Léo : il a son motif à lui ([12,30,18], dans veqSaut, juste après cet appel) —
+     le « ta-tac » d'ici partait à la même image et se mêlait au sien. Le braquage qui arrache la caisse a déjà vibré : le limiteur le tait. */
+  if(SENS&&running&&!gameOver&&!introD&&!(performance.now()-VEQ.sautT<60))try{if(!bord&&impU>=5)sensHap([10,26,14],2);else sensHap(9,1);}catch(e){}
   if(AC&&engRpm>.42){const e9=ENG_SND[Math.max(0,engLvl)];if(e9&&e9.crk)crackle(e9.crk*.8);} // (2026-09-25) le moteur se décharge en quittant le sol
   if(SONV2){ /* (console de son) tomber n'est pas décoller : chacun son son */
     /* (bord, 1/10, Sacha : « un son de merde quand on sort de la route et qu'on va dans les airs, deux petites notes ») : la sortie par le
@@ -38943,7 +38962,7 @@ function tryLand(dt){
     thud(impB);if(!SONV2)noiseBurst(.14,.09,1100); // choc + froissement de tôle (console : pose.choc le porte)
     shake=Math.min(1.3,.3+impB*.03);
     dropChip(2+Math.floor(Math.min(4,impB*.12))); // ça casse ENCORE PLUS de bouts
-    sparkBurst(sparkGold,carGroup.position,12,10);
+    if(!SENS)sparkBurst(sparkGold,carGroup.position,12,10); // (2026-10-14, gameplay · accord) sous SENS, la gerbe naît au FLANC qui cogne (sensBumpFlanc, ligne suivante) : deux gerbes d'or à la même image — une boule au centre de la caisse ET une au flanc — n'en font plus qu'une, au bon endroit
     if(SENS)try{sensBumpFlanc(B[bestI],T[bestI],Nn[bestI],sg,impB);}catch(e){} // (2026-10-14, sensations · pose) le flanc RACLE la tranche : la gerbe part du point de contact
     squashT=Math.max(squashT,.22);
     return false; // toujours en vol — enchaîne les bumps !
@@ -39008,6 +39027,7 @@ function tryLand(dt){
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
+     if(SENS&&SCOUP.vp)try{const p9=SCOUP.vp,n9=performance.now();SCOUP.vp=0;if(n9-SCOUP.vt<1200&&(n9-(hap._t||-1e9)>=70||(hap._k||0)<(p9>40?3:2)))hap(p9);}catch(e){} // (2026-10-14, accord) la vibration du VERDICT, gardée depuis la déclaration : elle tombe avec les roues (et se tait si une autre, aussi forte, vient de partir)
      engRpm*=.6;charge9=1;if(imp9>2)pneuMord(Math.min(1,imp9/10));}; // la gomme MORD : le moteur reprend en charge, et ça piaille
    if(hR9>.25){hopY=hR9;hopV=(sd9>0?vN9:-vN9)*SPD;POSE_F=touche9;}else{hopY=0;hopV=0;POSE_F=null;if(sd9>0&&hR9<0)levreY=Math.max(-.6,hR9);touche9();}} /* posée SOUS le niveau du bitume (lèvre, plan percé) : elle remonte sa marche en ~0,15 s (levreY) au lieu d'y sauter */
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
@@ -39030,16 +39050,21 @@ function tryLand(dt){
     }
   }
   // ---- LE VERDICT : la CHAÎNE se cashe — grade de réception × face × série ----
+  /* (2026-10-14, gameplay · accord) LA MAIN SENT LE CONTACT, PAS LA DÉCLARATION. La pose est déclarée à 3 m du bitume (voir LA POSE SANS
+     SAUT) ; la caisse finit sa descente en hopY et TOUT le choc part au contact (touche9 : gerbe, thud, secousse, suspension, nez, caméra
+     de Léo) — sauf la vibration du verdict, qui partait ici, un quart à un tiers de seconde AVANT les roues (mesuré au banc). Elle attend
+     désormais le contact (SCOUP.vp, joué par touche9). Posée tout de suite (sans descente) : rien ne change. `?sens=0` : comme avant. */
+  const hapV9=SENS&&POSE_F?function(p){SCOUP.vp=p;SCOUP.vt=performance.now();}:hap;
   if(fallT>.7||chain>0||chainVal>0){ // (2026-09-26) chainVal>0 : le REPORT annoncé au décollage se paie même sur une courte sortie
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
     if(poseRatee){g=.65;gTxt='';} // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
-    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
-    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hap(45);}
-    else hap(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
+    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hapV9(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
+    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hapV9(45);}
+    else hapV9(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
     if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée)
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
-      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hap(15);}
+      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hapV9(15);}
       else{g=1;gTxt='';}
     }
     if(g>=1.5)try{poseParfaiteFx(g>=2);}catch(e){} // (2026-09-28) coup de zoom + couronne dorée
@@ -49510,7 +49535,7 @@ function loop(now){
         if(b9>=Math.min(sDe9,s)-2.2&&b9<=Math.max(sDe9,s)+2.2){ // (BALAYAGE) sur le trajet de l'image : à 30 i/s, il passait entre deux images au-delà de ~475 km/h
           hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
           vA*=.97;shake=Math.max(shake,.15);if(SONV2)sfx('dosdane');else noiseBurst(.12,.1,300);
-          if(SENS)try{sensCoup(0,-1.2-Math.min(.8,Math.abs(vF)*.012),0);sensHap(14,2);}catch(e){} // (2026-10-14, sensations) les roues avant montent les premières : le nez se lève (plus sec quand on arrive vite) — avant, la caisse sautait à plat, sans un mot dans la main
+          if(SENS)try{sensCoup(0,-1.2-Math.min(.8,Math.abs(vF)*.012),0);sensHap(12,1);}catch(e){} /* (2026-10-14, accord) 14 → 12, force 1 : un dos d'âne fait SAUTILLER — un tic léger à la montée, un autre à la retombée (SCOUP.hop) ; à 14 / force 2 il passait pour un coup net et faisait taire sa propre retombée (220 ms) */ // (2026-10-14, sensations) les roues avant montent les premières : le nez se lève (plus sec quand on arrive vite) — avant, la caisse sautait à plat, sans un mot dans la main
           if(Math.random()<.5)dropChip(1);
           break;
         }
@@ -49552,8 +49577,8 @@ function loop(now){
           coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:F.n.clone().multiplyScalar(side),b0:F.b.clone()});
           try{if(SONV2&&c9.dur)sfx('porte');else coneSnd();}catch(e){}
-          vA*=.985;shake=Math.max(shake,.14);hap(10);
-          if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);if(c9.dur)sensHap([16,24,10],2);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
+          vA*=.985;shake=Math.max(shake,.14);hap(SENS&&c9.dur?16:10); // (2026-10-14, gameplay · accord) la PORTE dure : un COUP NET (16) à la place du tic — une seule vibration ; avant, le tic ET un motif [16,24,10] partaient à la même image
+          if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
           if(c9.dur){if(c9.pt)c9.pt.touche=true;vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-30) la porte touchée ne se compte pas propre (campPortesTick) · (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
@@ -51346,9 +51371,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- BOUTONS : ils pilotent le MÊME objet `keys` que le clavier → aucune nouvelle physique ----
   function bindHold(el,code,onDown,vis){ if(!el)return; vis=vis||el; el._tenu=code; // `vis` : l'élément qui s'ENFONCE (la zone NITRO élargie enfonce le disque)
     const dn=function(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); // un appui sur un bouton n'arme JAMAIS le volant
-      if(!keys[code]){keys[code]=true;vis.classList.add('on');hap(9);if(onDown)onDown();} };
+      if(!keys[code]){keys[code]=true;vis.classList.add('on');if(SENSG&&code==='Space'&&running&&!paused&&!gameOver&&mode!=='boom')vis._t9=performance.now();else hap(9);if(onDown)onDown();} }; // (2026-10-14, gameplay · accord) en course, la NITRO répond elle-même à l'image suivante (allumage [14,26,10], « à vide » 6, saut nitro, figure) : le tic d'appui (9) partait 16 ms avant — deux impulsions pour un seul appui. Il reste pour les flèches, et pour la nitro hors course
     const up=function(e){ if(e&&e.cancelable)e.preventDefault();
       if(e&&e.touches&&keys[code])for(let i=0;i<e.touches.length;i++){const c=e.touches[i].target;const b=c&&c.closest?c.closest('#tNitro,#tNitroZone,#tLeft,#tRight'):null;if(b&&b._tenu===code)return;} // (2026-10-14, chasse aux bugs) un AUTRE doigt tient encore cette commande (le pouce sur le disque NITRO, quand la paume quitte la zone élargie) : le lever d'un intrus ne coupe plus la nitro sous le pouce — même règle que le volant (2026-09-30)
+      if(vis._t9){if((hap._t||0)<vis._t9)hap(9);vis._t9=0;} // (2026-10-14, accord) un appui plus bref qu'une image : la nitro n'a rien vu, rien n'a vibré — le tic d'appui part au lâcher (mesuré au banc : sinon, silence)
       if(code==='Space'&&keys[code])veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
