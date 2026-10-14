@@ -32,7 +32,7 @@ async function essai(chemin){
     const reload={n:0};
     const sb={localStorage:store,window:{Capacitor:avecCap===false?undefined:{Plugins:{Preferences:P}}},location:{reload(){reload.n++;}},console,
       THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:.25},ENGINE_TIERS:new Array(NE).fill(0),
-      CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),pk:()=>null,PAL:{b:(k,d)=>d}};
+      CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}};
     const ctx=vm.createContext(sb);let err=null;try{vm.runInContext(bloc+';',ctx);}catch(e){err=e;}
     await attends();await attends();await attends();
     return {store,P,reload,err};}

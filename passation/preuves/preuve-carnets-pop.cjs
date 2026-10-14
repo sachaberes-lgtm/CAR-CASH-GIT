@@ -37,7 +37,7 @@ function essai(chemin){
   function lance(store){
     const ls=new Proxy(store,{get(t,p){if(p==='getItem')return k=>(k in t?t[k]:null);if(p==='setItem')return (k,x)=>{t[k]=String(x);};if(p==='removeItem')return k=>{delete t[k];};return t[p];},set(t,p,x){t[p]=String(x);return true;}});
     const sb={localStorage:ls,window:{},location:{reload(){}},console,THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:eco?+eco[1]:.25},
-      ENGINE_TIERS:new Array(NE).fill(0),CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),GAP_ON:false,pk:()=>null,PAL:{b:(k,d)=>d}};
+      ENGINE_TIERS:new Array(NE).fill(0),CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),GAP_ON:false,pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}};
     const ctx=vm.createContext(sb);vm.runInContext(code,ctx);
     return vm.runInContext('(function(){const s=misEtat();SAVE.flush();return {s:JSON.parse(JSON.stringify(s)),own:SAVE.d.shop.own.slice(),N:CARNETS.length};})()',ctx);}
   // une sauvegarde écrite par la version d'AVANT les carnets POP (pas de `pop`)

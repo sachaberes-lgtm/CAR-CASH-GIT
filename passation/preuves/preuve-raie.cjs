@@ -30,7 +30,7 @@ function essai(chemin){
   const raie=CARS.findIndex(c=>c.name==='LA RAIE'),aprix=CARS.findIndex((c,i)=>c.retire&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].p),libre=CARS.findIndex((c,i)=>!c.retire&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].p);
   const KO=[];const v=(c,cas,detail)=>{console.log('  '+(c?'ok':'KO')+'  '+cas+(detail?' — '+detail:''));if(!c)KO.push(cas);};
   function lance(store){const sb={localStorage:store,window:{},location:{reload(){}},console,THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:.25},
-      ENGINE_TIERS:new Array(NE).fill(0),CARS,CAR_UNLOCK,pk:()=>null,PAL:{b:(k,d)=>d}};
+      ENGINE_TIERS:new Array(NE).fill(0),CARS,CAR_UNLOCK,pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}};
     const ctx=vm.createContext(sb);vm.runInContext(bloc+';',ctx);return vm.runInContext('({bank:SAVE.d.bank,owned:SAVE.d.owned.slice(),remb:SAVE.remb||null})',ctx);}
   const sauve=(owned,bank)=>({cashcarSave:JSON.stringify({v:2,best:0,leaders:[],owned,bank,gamme:3,eco:3})});
   console.log(chemin+'  (LA RAIE = caisse '+raie+', retirée à prix = '+aprix+', en vente = '+libre+')');
