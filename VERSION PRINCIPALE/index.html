@@ -18238,6 +18238,13 @@ for(const k of Object.keys(I18N)){
   if(m&&!(m[1] in I18N))I18N[m[1]]=String(I18N[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
 Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
+/* ============================================================================================================================
+   LA PASSE DES TEXTES (2026-10-14) — un seul mot par rôle dans les trois langues, plus d'anglais dans l'interface française.
+   I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
+   les accents : majPix les retire tout seul des mots en capitales rendus en pixel.
+   ========================================================================================================================== */
+var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'HAUTE','MONTE':'MONTER','PLONGE':'PLONGER','HOME':'ACCUEIL'}; // var : hissée, TR() peut tourner avant cette ligne sans toucher une zone morte
+Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'HIGH','LOCALE':'LOCAL','VERSION':'VERSION'});
 Object.assign(I18N,{'Tu pourras changer dans les réglages.':'You can change this in the settings.','Virages aidés, 3 vies':'Assisted turns, 3 lives','Sans aide, une seule vie':'No assists, one life','TOUCHE POUR JOUER':'TAP TO PLAY'}); // (2026-10-14, charte 6 · accueil) le choix FACILE / NORMAL en cartes, l'invitation du splash
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
@@ -18245,10 +18252,20 @@ Object.assign(I18N,{'Tu pourras changer dans les réglages.':'You can change thi
 /* (2026-09-29, audit) « PLUS QUE 2 PIÈCES ▲ 3 CYLINDRES » se lisait « il m'en faut 2 pour l'ACHETER » : le moteur repart de zéro à chaque
    partie, la carte dit à quelle distance du palier suivant on est MORT */
 function presqueTxt(mq){if(LANG==='en')return mq+' '+(mq>1?'COINS':'COIN')+' SHORT OF';return majPix('ENCORE '+mq+' '+(mq>1?'PIÈCES':'PIÈCE')+' POUR');} // (passe qualité) « À 2 PIÈCES DU TURBINE À GAZ » : le moteur est souvent féminin
-function majPix(s){return typeof s==='string'?s.replace(/[\u00C0-\u00D6\u00D8-\u00DE]/g,c=>c.normalize('NFD')[0]):s;}
+/* (2026-10-14, passe des textes) majPix ne retire plus l'accent d'une capitale quand le MOT n'est pas tout en capitales : « Ça roule »,
+   « À 88 à l'heure », « Élue plus belle du monde » s'écrivaient « Ca roule », « A 88 »… dans les phrases en police système. Un mot tout en
+   capitales (« DÉCOLLAGE », « RÉGLAGES ») est toujours rendu en pixel : il perd son accent comme avant. Une capitale seule (« À », « É »)
+   garde son accent si la chaîne contient des minuscules. PIX_ACC=true laisserait passer aussi les capitales pixel : la police
+   Press Start 2P a bien les glyphes (É = un E aplati sur 5 rangées + accent, cmap vérifié), mais l'effet n'a pas été jugé à l'écran. */
+const PIX_ACC=false;
+function majPix(s){
+  if(typeof s!=='string'||PIX_ACC)return s;
+  const mn=/[a-z\u00DF-\u00FF\u0153]/.test(s);
+  return s.replace(/[^\s<>]+/g,t=>(/[a-z\u00DF-\u00FF\u0153]/.test(t)||(t.length===1&&mn))?t:t.replace(/[\u00C0-\u00D6\u00D8-\u00DE]/g,c=>c.normalize('NFD')[0]));
+}
 function TR(s){ // traduction EXACTE, repli français silencieux
   if(s==null)return s;
-  if(LANG==='fr')return majPix(s);
+  if(LANG==='fr')return majPix(I18N_FR&&I18N_FR[s]!==undefined?I18N_FR[s]:s);
   let t=I18N[s];
   // (2026-09-28, passe de lancement) LES COMPTEURS : « RÉCOLTE ×5 », « CHAÎNE ×3 » — une phrase + un nombre composé à l'exécution n'était
   // JAMAIS dans le dictionnaire (en anglais, la liste d'aura restait en français). Seulement si la recherche exacte échoue : la tête se
@@ -52256,7 +52273,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
-    else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); }
+    else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='facile'){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
     else if(a==='volh'){ volhBascule(); mFill(); }
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
@@ -52436,7 +52453,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
    Garde-fou : 2 rechargements au plus par version et par session (si le site sert encore l'ancienne page, on n'insiste pas).
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
-  var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
+  var e=document.getElementById('mvVer');if(e)e.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));
   if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:')||BALADE||SIMU_JEU)return; // (l'atelier des nuages ne se recharge pas en plein réglage — le simulateur non plus)
   var neuf=null,vu=0,touche=Date.now();
   /* (2026-10-05, Léo : « au début, quand CASH CAR explose, une musique part très fort, puis ça relance au niveau ciel ») ⚠ LA MISE À JOUR
