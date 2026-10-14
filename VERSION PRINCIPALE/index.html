@@ -16525,7 +16525,7 @@ window.dbgCanyon=function(k,a,b,c){
      image les couleurs de bioApply ; les PHARES de la caisse éclairent neige, glace et stalactites (`bPhare`).
    Console : `dbgBanq()` (comptes, temps), `dbgBanq('meteo','nuit')`, `dbgBanq('vue',{p,c,fov})`, `dbgBanq('pic'|'lac',{d,h})`,
    `dbgBanq('poudre'|'glace',{h,v})` (la caisse lâchée au-dessus de la poudreuse ou d'un lac). Lancer : `?carte=banquise&meteo=nuit`. */
-const NIV_BANQ={id:'banquise',nm:'LA BANQUISE',bio:['banqMidi'],planete:0,espace:0,pluie:0,cielMusical:false,route:.34,sheen:.16,piste:'banquise',pr:'LA GLACE GLISSE, LA POUDRE AVALE'};
+const NIV_BANQ={id:'banquise',nm:'LE GLACIER',bio:['banqMidi'],planete:0,espace:0,pluie:0,cielMusical:false,route:.34,sheen:.16,piste:'banquise',pr:'SAUTE AU LACET D EN DESSOUS'};
 const BANQ={root:null,file:[],fi:0,Q:null,cas:[],sol:null,solM:null,pics:[],picG:null,lacs:[],lacG:null,met:'midi',cur:null,de:null,to:null,k:1,dur:1,ms:0,msSol:0,n:{},fx:{},mats:null,graine:0,
   sur:0,glisse:false,pou:false,heurt:'',mort:'',dNow:9,tNow:0,nS:new THREE.Vector3(0,1,0),drift:0,gT:0,pT:0,fT:0,lent:0,figs:{},son:{t:4},yRaz:true,boucles:{}};
 // LES MÉTÉOS DE LA BANQUISE — el : hauteur de la lumière (°) · spark : la neige qui scintille · dd : la poussière de diamant · neige : la neige
@@ -16554,43 +16554,59 @@ const BK_PH={prof:2.4,kN:16,flot:2.3,H:1.4,kT:.10,kTp:.75,vPl:70,lift:1.15,nyMin
 try{Object.assign(PAL.B,{banqSolC:[40,34,30],banqMarge:[1400,1800,2200],banqPics:[.55,.8,1],banqStal:[.45,.75,1],banqFlo:[700,1400,2400],banqDD:[160,300,500],
   banqPoudre:[260,400,520],banqTrace:[500,800,1100],banqLoin:[.5,.75,1]});}catch(e){}
 function PAL_BK(k,d){return PAL_B9(k,d);}
-/* ---------------- LA ROUTE : LE SLALOM GÉANT QUI DÉVALE ---------------- */
+/* ---------------- LA ROUTE : LA FACE DU GLACIER, EN LACETS QUI SE SUPERPOSENT ----------------
+   (2026-10-14, 20 h 40, Sacha : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme si on la descendait, comme dans STEEP » ;
+   la règle des nouvelles maps : le but = les RACCOURCIS — la route repasse SOUS elle-même plus bas, on coupe en sortant par le bord pour
+   retomber sur la portion d'en dessous ; tout descend ; une course, pas une balade.)
+   ⚠ En course, la caisse repart TOUJOURS dans le sens de la route (tryLand : driveDir = 1) : retomber sur une épingle prise à l'envers est
+   une pose ratée. Les lacets du glacier sont donc des SPIRALES OVALES qui descendent : deux épingles qui tournent dans le MÊME sens par tour,
+   et chaque tour passe 45-55 m SOUS le précédent, DÉCALÉ de `BK_LAC_D` (36 m) vers l'aval — on sort par le bord AVAL (partout : les droites
+   du haut, celles du bas, les épingles), on tombe d'un tour, on retombe au milieu de la dalle d'en dessous, DANS LE MÊME SENS, et l'on a
+   gagné un tour entier (~1 km). Entre les spirales, des COULOIRS en S qui plongent (10-15 %) et leur CASSURE. Le départ au sommet,
+   l'arrivée en bas : aucun point ne remonte. Les rayons suivent l'échelle du moteur (`lvPiste`). `BANQ.spi` : les spirales (pour les bancs). */
+const BK_LAC_D=36;
 function genBanq(rnd){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
-  let P=new THREE.Vector3(0,0,0),phi=0;
+  let P=new THREE.Vector3(0,0,0),phi=0,sC=0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
-  const droite=(l,nn)=>{nn=nn||Math.max(2,Math.round(l/80));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);push();}};
-  const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
-    for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}};
+  const segs=[],note=(l,g,ty)=>{segs.push([sC,sC+l,g,ty||0]);sC+=l;};                       // le profil, tronçon par tronçon : [s0, s1, pente, type]
+  const D=(l,g,ty)=>{const nn=Math.max(2,Math.round(l/60));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);push();}note(l,g,ty);};
+  const A=(aDeg,R,g,ty)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
+    for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}note(R*Math.abs(a),g,ty);};
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
-  const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),LIM=78*Math.PI/180;
-  const geant=len=>{let sg=rnd()<.5?-1:1,n=0,fait=0;
-    while(fait<len){
-      if(rnd()<.78)sg=-sg;                                                       // le plus souvent on change de côté : un slalom GÉANT
-      let a=30+rnd()*48,R=(260+rnd()*240)*LV;
-      const lib=(LIM-sg*phi)*57.2958;if(lib<20){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
-      arc(sg*a,R);fait+=R*a/57.2958;n++;
-      if(rnd()<.5){const l=(60+rnd()*150)*Math.sqrt(LV);droite(l);fait+=l;}
-      if(n%5===4){const l=(260+rnd()*200)*Math.sqrt(LV);droite(l);fait+=l;}}}; // le SCHUSS : la ligne où l'on voit loin dans la descente
-  push();ici('depart');droite(360,4);
-  geant(2400*(.8+.2*LV)+rnd()*500);
-  droite(300,3);ici('mi');
-  geant(2400*(.8+.2*LV)+rnd()*500);
-  droite(420,5);ici('fin');droite(160,2);
-  /* LE RELIEF : TOUJOURS EN DESCENTE. La pente (positive = on descend) ondule entre 5 et 14 % ; trois ou quatre CASSURES (140 m de replat
-     à 2 % puis 220 m à 25-28 % : la caisse lancée décolle) ; les 380 premiers mètres en douceur (le départ, le portail). Intégrée tous les
-     10 m : aucun point ne remonte. */
+  const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),cas=[],spi=[];
+  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,(200+rnd()*80)*LV,.08);}; // se remettre dans la pente (phi = 0 : la ligne de pente, +z) — ⚠ l'angle ENROULÉ : après une spirale le cap a tourné de 720°, et l'écart brut faisait faire des tours complets
+  // LE COULOIR : des S qui plongent dans la ligne de pente, une CASSURE (140 m à 2 % puis 200 m à 25 %) — on y décolle
+  const couloir=n=>{let sg=rnd()<.5?-1:1;
+    for(let k=0;k<n;k++){sg=-sg;const a=40+rnd()*35,R=(150+rnd()*90)*LV;
+      const lib=(70*Math.PI/180-sg*phi)*57.2958;A(sg*Math.min(a,Math.max(20,lib)),R,.10+rnd()*.05);
+      if(k===((n/2)|0)){cap(0);D(140,.02);cas.push(sC);D(200,.25,2);}else D((40+rnd()*60)*Math.sqrt(LV),.12+rnd()*.03);}
+    cap(0);};
+  // LA SPIRALE : laps tours ; jambe A (en travers de la pente) → épingle R1 vers l'aval → jambe B → épingle R2 = R1 − D/2 vers l'amont :
+  // le tour suivant revient sous la jambe A, décalé de D vers l'aval. La pente règle la chute d'un tour (45-55 m).
+  const spirale=laps=>{const s=rnd()<.5?1:-1,R1=(95+rnd()*20)*LV,R2=R1-BK_LAC_D/2,Lg=(90+rnd()*50)*Math.sqrt(LV),Rc=120*LV,F=4*Rc*Math.sin(14*Math.PI/180),chu=46+rnd()*10;
+    const lJ=Lg+F,gL=.035,gH=Math.max(.04,(chu-2*lJ*gL)/(Math.PI*(R1+R2)));
+    cap(s*Math.PI/2);const o={s0:sC,laps:laps,R1:R1,Lg:lJ,lt:2*lJ+Math.PI*(R1+R2),chu:2*lJ*gL+Math.PI*(R1+R2)*gH,sens:s};
+    for(let k=0;k<laps;k++){D(Lg*.5,gL,1);A(-s*14,Rc,gL,1);A(s*28,Rc,gL,1);A(-s*14,Rc,gL,1);D(Lg*.5,gL,1); // la CHICANE du milieu (gauche-droite-gauche : elle revient sur sa ligne, les tours restent superposés)
+      A(-s*180,R1,gH,1);D(lJ,gL,1);A(-s*180,R2,gH,1);}
+    D(Lg*.5,gL,1);A(-s*14,Rc,gL,1);A(s*28,Rc,gL,1);A(-s*14,Rc,gL,1);D(Lg*.5,gL,1);A(-s*90,R1+60,.08,1);o.s1=sC;spi.push(o);cap(0);}; // la SORTIE : la jambe du dessus une dernière fois, puis un quart de tour plus large que les épingles (il passe dehors) et l'on replonge
+  push();ici('depart');D(300,.045);
+  couloir(3);
+  spirale(2);
+  couloir(3+((rnd()*2)|0));
+  spirale(2);
+  couloir(2);
+  D(220,.05);ici('fin');D(120,.04);
+  /* LE PROFIL : la pente de chaque tronçon (positive = on descend), lue sur la longueur de la polyligne, adoucie aux raccords (moyenne glissante
+     de 60 m) ; les 300 premiers mètres en douceur. Intégrée tous les 10 m : aucun point ne remonte. */
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
-  const Ltot=acc,ph1=rnd()*6.283,ph2=rnd()*6.283,cas=[];
-  {const n=3+((rnd()*2)|0);for(let k=0;k<n;k++){const s0=900+(Ltot-2200)*(k+.2+rnd()*.6)/n;if(s0<Ltot-800&&(!cas.length||s0-cas[cas.length-1]>700))cas.push(s0);}}
-  const pente=s9=>{let g=.095+.03*Math.sin(s9/1100*6.283+ph1)+.016*Math.sin(s9/420*6.283+ph2);
-    for(const s0 of cas){const u=s9-s0;if(u>-140&&u<0)g=Math.min(g,.02);else if(u>=0&&u<220)g=.25+.03*Math.sin(u/220*Math.PI);}
-    if(s9<380)g=.035+(g-.035)*THREE.MathUtils.smoothstep(s9,240,380);
-    return Math.max(.035,g);};
+  const kS=acc/Math.max(1,sC); // la polyligne (cordes) est un peu plus courte que les arcs nominaux
+  const brut=s9=>{const u=s9/kS;let lo=0,hi=segs.length-1;while(lo<hi){const m=(lo+hi)>>1;if(segs[m][1]<u)lo=m+1;else hi=m;}return segs[lo][2];};
+  const pente=s9=>{let g=0;for(let q=-3;q<=3;q++)g+=brut(Math.max(0,s9+q*10));g/=7;if(s9<300)g=.035+(g-.035)*THREE.MathUtils.smoothstep(s9,180,300);return Math.max(.03,g);};
   let y=0;ctrl[0].y=0;
   for(let k=1;k<ctrl.length;k++){const a=sOf[k-1],b=sOf[k],n=Math.max(1,Math.ceil((b-a)/10));for(let j=0;j<n;j++){const s9=a+(b-a)*(j+.5)/n;y-=pente(s9)*(b-a)/n;}ctrl[k].y=y;}
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=(ctrl[j].x-o.p.x)**2+(ctrl[j].z-o.p.z)**2;if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
-  BANQ.Q=Q;BANQ.cas=cas;
+  BANQ.Q=Q;BANQ.cas=cas.map(function(x){return x*kS;});BANQ.spi=spi.map(function(o){return Object.assign(o,{s0:o.s0*kS,s1:o.s1*kS});});
   return ctrl;
 }
 /* ---------------- LE MANTEAU DE NEIGE : LA MONTAGNE SOUS LA ROUTE ----------------
@@ -16614,7 +16630,7 @@ function banqSol(){
   const C=PAL_BK('banqSolC',26),MARG=PAL_BK('banqMarge',2200),R1=380,sd9=BANQ.graine*.001,T0=performance.now(),TQ=BANQ.tq={};let tq=T0;const tqm=k=>{const n=performance.now();TQ[k]=Math.round((n-tq)*10)/10;tq=n;};
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N);
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N),YM=new Float32Array(N).fill(1e9);
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   // 1. LA GRILLE GROSSIÈRE (4 C) : la transformée de distance — chaque case garde le point de route le plus proche (GI) ; on le propage
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,G=gx*gz,GD=new Float32Array(G).fill(1e18),GY=new Float32Array(G),GI=new Int32Array(G).fill(-1);
@@ -16636,12 +16652,12 @@ function banqSol(){
   for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k])D[k]=d2;const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;}}}
+        if(d2<D[k])D[k]=d2;const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;if(d2<14400&&p.y<YM[k])YM[k]=p.y;}}}
   tqm('noyau');
   // 3. chaque case fine
   const H=new Float32Array(N);
   for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys;
-    if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);}else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);}
+    if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);if(YM[k]<1e8)ys=Math.min(ys,YM[k]+12);}else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);} // (le GLACIER) sous des tours superposés, la neige se cale sous le PLUS BAS
     D[k]=d;
     if(d>=BK_DF){H[k]=gBil(HF,x,z);continue;}
     let h=bkProfil(x,z,d,ys,sd9);
@@ -16673,7 +16689,7 @@ function banqLacs(fr){
     const o={x:x,z:z,R:R0,a3:.08+fr()*.12,a5:.04+fr()*.07,a9:.02+fr()*.04,p3:fr()*6.28,p5:fr()*6.28,p9:fr()*6.28,sd:fr(),i:i};
     let y=1e9;for(let k=0;k<20;k++){const th=k/20*6.2832,r=bkLacR(o,th)*(k%2?.55:.95);y=Math.min(y,bkSolH(x+Math.cos(th)*r,z+Math.sin(th)*r));}y=Math.min(y,bkSolH(x,z));
     // la dalle au-dessus : toujours 9 m d'air
-    const st=Math.max(1,Math.round(8/ds)),Rm=o.R*1.4+ROAD_HALF+10;for(let j=Math.max(0,i-Math.round(600/ds));j<Math.min(NP,i+Math.round(600/ds));j+=st){const q=pts[j];if((q.x-x)**2+(q.z-z)**2<Rm*Rm)y=Math.min(y,q.y-THICK-9);}
+    const st=Math.max(1,Math.round(8/ds)),Rm=o.R*1.4+ROAD_HALF+10;for(let j=0;j<NP;j+=st){const q=pts[j];if((q.x-x)**2+(q.z-z)**2<Rm*Rm)y=Math.min(y,q.y-THICK-9);} // (le GLACIER) sous TOUTES les routes : les tours superposés aussi
     o.y=y-.4;out.push(o);return o;};
   for(const s0 of BANQ.cas)essai(s0+150+fr()*90,(fr()-.5)*30,70+fr()*45);                    // au pied de chaque CASSURE : là où l'on retombe
   for(let s9=520+fr()*300;s9<L-450;s9+=430+fr()*420){const sous=fr()<.4;essai(s9,sous?(fr()-.5)*40:(fr()<.5?-1:1)*(75+fr()*150),sous?55+fr()*55:40+fr()*70);}
@@ -16737,6 +16753,9 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  vec3 neige=mix(vec3(.76,.82,.93),vec3(.66,.74,.90),smoothstep(.45,.75,fn2(q*.012)));',                  // la neige soufflée, plus tassée, plus bleue
   '  vec3 pierre=vec3(.065,.075,.12)*(.65+.7*n2);pierre=mix(pierre,neige*.9,smoothstep(.58,.80,fn2(q*vec2(.05,.21)+n1*2.))*.75);',
   '  vec3 alb=mix(neige,pierre,roc);',
+  '  float cv=0.;{float b=abs(fract(q.y/170.+fn2(q*.0035)*1.8+fn2(q*.011)*.25)-.5),w=.010+.012*fn2(q*.021);',  // les CREVASSES (Steep) : des fentes bleues en travers de la pente (z = la ligne de pente), par plaques, jamais sur la roche ni les pentes raides
+  '   cv=(1.-smoothstep(w*.35,w,b))*smoothstep(.52,.70,fn2(q*.0042+3.7))*(1.-roc)*(1.-smoothstep(.30,.45,sl));}',
+  '  alb=mix(alb,vec3(.015,.07,.17),cv);',
   '  float ndl=dot(Np,L),dif=clamp((ndl+.08)/1.08,0.,1.);dif*=dif*(3.-2.*dif);',
   '  vec3 col=alb*(uSky*(.26+.30*Np.y)+uGnd*.08+uSunC*dif*.98+uFillC*max(dot(Np,-uFillD),0.)*.30);',
   '  col+=alb*uSky*(1.-dif)*vec3(.20,.42,.75)*.55*(1.-roc);',                                                // l'OMBRE BLEUE de la neige (le ciel qu'elle diffuse)
@@ -16749,6 +16768,7 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  sp*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*sp*2.6+uAurC*sp*uAur*1.2;',
   '  col+=alb*uAlpC*uAlp*dif*.40*smoothstep(-40.,120.,vW.y-uMistY);',                                         // l'alpenglow sur les pentes hautes
   '  col+=alb*mix(uAurC,uAurC2,.3)*uAur*.12*(.4+.6*Np.y);',                                                    // le vert des aurores sur la neige
+  '  col+=vec3(.10,.55,.80)*cv*(uSky*.35+uSunC*.12)*(.6+.4*fn2(q*.4));',  // le fond de la crevasse : la glace bleue qui luit
   '  col+=alb*bPhare(vW,Np)*1.1;col+=alb*uFlash*vec3(.8,.85,1.)*1.2;',
   '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
 /* LA GLACE DES PICS : des facettes planes (normales plates), une glace BLEUE PROFONDE à la base, TURQUOISE vers les arêtes et le haut ;
@@ -16943,7 +16963,7 @@ function buildBanq(seed){
   // une grappe ne doit JAMAIS crever la dalle, ni ses bords, ni l'air de la caméra (14 m de chaque côté) : 5 m d'air au moins
   const libre=L9=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
     let ok=true;const W9=ROAD_HALF+14,LAT9=[-W9,-ROAD_HALF,-ROAD_HALF*.5,0,ROAD_HALF*.5,ROAD_HALF,W9];
-    if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],l9=lat9(j);
+    if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],ex=p.x-cx,ez=p.z-cz;if(ex*ex+ez*ez>(r+W9)*(r+W9))return;const l9=lat9(j);
       for(let q=0;q<7;q++){const l=LAT9[q],x=p.x+l9[0]*l,z=p.z+l9[1]*l;if((x-cx)**2+(z-cz)**2>r*r)continue;
         for(const P of L9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;if(bkPrimH(P,x,z)>p.y-THICK-5){ok=false;return;}}}});
     if(ok)for(const o of BANQ.lacs)if(Math.hypot(o.x-cx,o.z-cz)<o.R*1.25+r*.6){ok=false;break;}
@@ -16984,7 +17004,8 @@ function buildBanq(seed){
     const i0=Math.round(200/ds),i9=NP-Math.round(60/ds),pk=Math.max(st,Math.round(300/ds/st)*st);
     for(let ia=i0,k=0;ia<i9;ia+=pk,k++){const ib=Math.min(i9,ia+pk),rg=mulberry32(((seed^0x57A1C)+k*7919)>>>0),pm=pts[Math.min(NP-1,(ia+ib)>>1)];
       bkTache(pm.x,pm.z,function(){const K=bkLot();
-        for(let i=ia;i<ib;i+=st){const p=pts[i],b=B[i],nn=Nn[i],air=p.y-THICK-bkSolH(p.x,p.z);
+        for(let i=ia;i<ib;i+=st){const p=pts[i],b=B[i],nn=Nn[i];let air=p.y-THICK-bkSolH(p.x,p.z);
+          proches(p.x,p.z,ROAD_HALF*2+8,function(j){if(Math.abs(j-i)*ds<160)return;const q=pts[j];if(q.y<p.y-8&&(q.x-p.x)**2+(q.z-p.z)**2<(ROAD_HALF*2+8)**2){const c=p.y-THICK-q.y-7;if(c<air)air=c;}}); // (le GLACIER) jamais jusqu'à la route d'en dessous
           for(const sg of [-1,1]){if(rg()<.28)continue;const l=sg*(ROAD_HALF-.6-rg()*1.4),x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97;
             const Lg=Math.min(air-4,1+Math.pow(rg(),2.2)*6.5);if(Lg>.6)glacon(K,x,y,z,Lg,.18+Lg*.05+rg()*.15,rg);}
           if(rg()<.16&&air>14){const n9=3+((rg()*3)|0);for(let q=0;q<n9;q++){const l=(rg()-.5)*ROAD_HALF*1.3,x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97; // un LUSTRE
@@ -17272,7 +17293,14 @@ window.dbgBanq=function(k,o){
     else{const b=B[i];x=pts[i].x+b.x*(ROAD_HALF+45);z=pts[i].z+b.z*(ROAD_HALF+45);y=bkSolH(x,z)+h;}
     startFall(.9,1,false);fallPos.set(x,y,z);fallVel.set(hx*v,-v*pq,hz*v);fallVH0=v;carGroup.position.copy(fallPos);BANQ.mort='';
     return {x:+x.toFixed(1),y:+y.toFixed(1),z:+z.toFixed(1),sol:+bkSolH(x,z).toFixed(1)};}
-  if(k==='etat')return {mode:mode,sur:BANQ.sur,glisse:BANQ.glisse,pou:BANQ.pou,d:+(+BANQ.dNow).toFixed(2),t:BANQ.tNow,drift:+BANQ.drift.toFixed(2),lent:+BANQ.lent.toFixed(2),
+  /* LE RACCOURCI (le GLACIER) : la caisse sort par le bord AVAL d'une spirale (o.n : laquelle, o.f : où dans le tour, 0-1), à o.v ; banc : lire dbgBanq('etat').s après la pose */
+  if(k==='raccourci'){if(!started||gameOver||mode!=='drive')return 'pas en course';const sp=BANQ.spi[(o&&o.n)|0];if(!sp)return 'pas de spirale';const ds=L/(NP-1),i=Math.min(NP-2,Math.round((sp.s0+sp.lt*((o&&o.f!=null)?o.f:.15))/ds));
+    let sd=1,best=1e18;for(const sg of [-1,1]){const x=pts[i].x+B[i].x*sg*40,z=pts[i].z+B[i].z*sg*40;for(let j=i+Math.round(300/ds);j<NP;j+=3){const q=pts[j];if(q.y>pts[i].y-15)continue;const d=(q.x-x)**2+(q.z-z)**2;if(d<best){best=d;sd=sg;}}}
+    const v=(o&&o.v)||90;s=i*ds;startFall(.9,1,true);fallPos.copy(pts[i]).addScaledVector(B[i],sd*(ROAD_HALF+.5)).addScaledVector(Nn[i],.6);fallVel.copy(T[i]).multiplyScalar(v).addScaledVector(B[i],sd*6);fallVH0=v;carGroup.position.copy(fallPos);
+    BANQ.racc={s0:Math.round(s),i:i};return {s0:Math.round(s),cote:sd,dessous:Math.round(Math.sqrt(best))};}
+  if(k==='spirale'){const sp=BANQ.spi[(o&&o.n)|0];if(!sp)return 'pas de spirale';const ds=L/(NP-1);let cx=0,cy=0,cz=0,n=0,ym=1e9;for(let j=Math.round(sp.s0/ds);j<Math.round(sp.s1/ds);j+=20){cx+=pts[j].x;cy+=pts[j].y;cz+=pts[j].z;n++;ym=Math.min(ym,pts[j].y);}cx/=n;cy/=n;cz/=n;
+    const j0=Math.round(sp.s0/ds),t=T[j0],a=(o&&o.a)||0,d=(o&&o.d)||520;return window.dbgBanq('vue',{p:[cx-Math.cos(a)*d*.7-t.x*d*.4,cy+(o&&o.h||300),cz-Math.sin(a)*d*.7-t.z*d*.4],c:[cx,ym+10,cz],fov:(o&&o.fov)||60});}
+  if(k==='etat')return {s:Math.round(s),racc:BANQ.racc||null,mode:mode,sur:BANQ.sur,glisse:BANQ.glisse,pou:BANQ.pou,d:+(+BANQ.dNow).toFixed(2),t:BANQ.tNow,drift:+BANQ.drift.toFixed(2),lent:+BANQ.lent.toFixed(2),
     v:+Math.hypot(fallVel.x,fallVel.z).toFixed(1),vy:+fallVel.y.toFixed(1),y:+fallPos.y.toFixed(1),fallTR:+fallTR.toFixed(2),traces:BK_TR.i,figs:Object.keys(BANQ.figs)};
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
   if(k==='fini'){const t=performance.now(),n=bkTranches(1e9);return {taches:n,ms:Math.round(performance.now()-t)};}
@@ -23234,27 +23262,27 @@ BIOMES.foretOrage=bioMet(BIOMES.tempete,{nm:'FORÊT · ORAGE',jour:1,jZen:[.013,
    basses, le vert des aurores la nuit ; la neige et le blizzard tirent vers le LAVANDE (jamais le gris délavé). La lumière de la banquise
    elle-même (hauteur du soleil, étincelles, alpenglow, aurores, brume de vallée, neige qui tombe) est dans BK_MET ; ici : le ciel, l'air,
    les lumières de la caisse. La nuit, la lune du dôme reste (moon) et les AURORES se lèvent (banqTick). */
-BIOMES.banqMatin=bioMet(BIOMES.matin,{nm:'BANQUISE · MATIN',jour:1,jZen:[.07,.20,.58],jMid:[.42,.42,.76],jHor:[1,.58,.50],jSol:[.92,.70,.72],sunTint:[1,.80,.66],sunHalo:1,stars:0,moon:0,city:0,
+BIOMES.banqMatin=bioMet(BIOMES.matin,{nm:'GLACIER · MATIN',jour:1,jZen:[.07,.20,.58],jMid:[.42,.42,.76],jHor:[1,.58,.50],jSol:[.92,.70,.72],sunTint:[1,.80,.66],sunHalo:1,stars:0,moon:0,city:0,
   fog:[.74,.58,.72],fogN:220,fogF:4200,fogCj:[1,.80,.70],fogIn:[.80,.82,.96],hemiS:[.56,.64,.98],hemiG:[.62,.52,.66],hemiI:.72,sunC:[1,.82,.68],sunI:1.5,fillC:[.48,.52,.92],fillI:.22,kickC:[1,.45,.76],kickI:.13,
   expo:.95,sat:1.03,con:1.18,rtK:.8,wb:[1,1,1],sh:[0,.01,.045],hi:[.014,.004,-.004],vigK:.2,vigC:[.04,.04,.09],bloomS:.48,bloomT:.92,
   env:[[0,'#3A62C8'],[.3,'#8C8EC8'],[.48,'#FFC2B0'],[.58,'#FFE2D2'],[.66,'#C8B8D8'],[1,'#8890B8']],eS1:[255,214,190,.46],eS2:[160,180,255,.3]});
-BIOMES.banqMidi=bioMet(BIOMES.midi,{nm:'BANQUISE · MIDI',jour:1,jZen:[.012,.14,.62],jMid:[.10,.40,.88],jHor:[.95,.62,.48],jSol:[.62,.66,.88],sunTint:[1,.93,.84],sunHalo:.7,stars:0,moon:0,city:0,
+BIOMES.banqMidi=bioMet(BIOMES.midi,{nm:'GLACIER · MIDI',jour:1,jZen:[.012,.14,.62],jMid:[.10,.40,.88],jHor:[.95,.62,.48],jSol:[.62,.66,.88],sunTint:[1,.93,.84],sunHalo:.7,stars:0,moon:0,city:0,
   fog:[.52,.64,.90],fogN:260,fogF:5200,fogCj:[.98,.86,.78],fogIn:[.80,.86,1],hemiS:[.56,.70,1],hemiG:[.58,.62,.78],hemiI:.80,sunC:[1,.94,.86],sunI:1.6,fillC:[.46,.62,1],fillI:.24,kickC:[1,.42,.76],kickI:.12,
   expo:.93,sat:1.03,con:1.2,rtK:.85,wb:[1,1,1],sh:[0,.012,.05],hi:[.01,.005,-.004],vigK:.18,vigC:[.02,.04,.09],bloomS:.5,bloomT:.9,
   env:[[0,'#1E5ED8'],[.3,'#5C9AF0'],[.48,'#CFE6FA'],[.58,'#FFFFFF'],[.66,'#C8D8F0'],[1,'#90A8D0']],eS1:[255,255,250,.48],eS2:[150,200,255,.32]});
-BIOMES.banqSoir=bioMet(BIOMES.nuagesSoir,{nm:'BANQUISE · SOIR',jour:1,jZen:[.06,.07,.30],jMid:[.50,.27,.46],jHor:[1,.46,.30],jSol:[.92,.48,.46],sunTint:[1,.56,.36],sunHalo:1.1,stars:.2,moon:0,city:0,
+BIOMES.banqSoir=bioMet(BIOMES.nuagesSoir,{nm:'GLACIER · SOIR',jour:1,jZen:[.06,.07,.30],jMid:[.50,.27,.46],jHor:[1,.46,.30],jSol:[.92,.48,.46],sunTint:[1,.56,.36],sunHalo:1.1,stars:.2,moon:0,city:0,
   fog:[.74,.44,.54],fogN:200,fogF:3900,fogCj:[1,.62,.44],fogIn:[.82,.64,.78],hemiS:[.46,.42,.78],hemiG:[.52,.34,.44],hemiI:.6,sunC:[1,.60,.42],sunI:1.6,fillC:[.40,.36,.78],fillI:.22,kickC:[1,.45,.62],kickI:.14,
   expo:.94,sat:1.06,con:1.2,rtK:.9,wb:[1,1,1],sh:[0,.004,.035],hi:[.02,.006,-.01],vigK:.26,vigC:[.07,.03,.09],bloomS:.5,bloomT:.9,
   env:[[0,'#2A2C78'],[.3,'#8A5A9A'],[.48,'#FF9A78'],[.58,'#FFC69A'],[.66,'#B87890'],[1,'#5A4870']],eS1:[255,170,120,.5],eS2:[150,130,230,.3]});
-BIOMES.banqNuit=bioMet(BIOMES.nuagesNuit,{nm:'BANQUISE · NUIT',jour:1,jZen:[.003,.008,.035],jMid:[.008,.022,.065],jHor:[.025,.07,.11],jSol:[.02,.05,.07],sunTint:[.6,.75,1],sunHalo:0,stars:1.35,moon:1.15,city:0,
+BIOMES.banqNuit=bioMet(BIOMES.nuagesNuit,{nm:'GLACIER · NUIT',jour:1,jZen:[.003,.008,.035],jMid:[.008,.022,.065],jHor:[.025,.07,.11],jSol:[.02,.05,.07],sunTint:[.6,.75,1],sunHalo:0,stars:1.35,moon:1.15,city:0,
   fog:[.035,.04,.10],fogN:120,fogF:2800,fogCj:[.14,.32,.30],fogIn:[.10,.22,.26],hemiS:[.28,.46,.70],hemiG:[.10,.18,.24],hemiI:.55,sunC:[.55,.72,1],sunI:.75,fillC:[.22,.60,.48],fillI:.26,kickC:[1,.32,.80],kickI:.14,
   expo:.96,sat:.95,con:1.16,rtK:1,wb:[1,1,1],sh:[0,.008,.03],hi:[0,0,0],daSh:.3,vigK:.38,vigC:[.005,.02,.03],bloomS:.56,bloomT:.88,
   env:[[0,'#02060e'],[.3,'#082036'],[.48,'#1E5A5A'],[.58,'#3E7A88'],[.66,'#0E1E2A'],[1,'#06101a']],eS1:[140,255,190,.36],eS2:[170,120,255,.28]});
-BIOMES.banqNeige=bioMet(BIOMES.nuagesPluie,{nm:'BANQUISE · NEIGE',jour:1,jZen:[.30,.34,.52],jMid:[.46,.50,.70],jHor:[.66,.69,.88],jSol:[.62,.66,.84],sunTint:[.86,.88,1],sunHalo:.08,stars:0,moon:0,city:0,
+BIOMES.banqNeige=bioMet(BIOMES.nuagesPluie,{nm:'GLACIER · NEIGE',jour:1,jZen:[.30,.34,.52],jMid:[.46,.50,.70],jHor:[.66,.69,.88],jSol:[.62,.66,.84],sunTint:[.86,.88,1],sunHalo:.08,stars:0,moon:0,city:0,
   fog:[.54,.56,.82],fogN:60,fogF:1400,fogCj:[.74,.76,.92],fogIn:[.70,.74,.90],hemiS:[.74,.80,1],hemiG:[.58,.62,.78],hemiI:.95,sunC:[.84,.88,1],sunI:.55,fillC:[.55,.62,.92],fillI:.2,kickC:[1,.48,.80],kickI:.12,
   expo:.95,sat:.95,con:1.14,rtK:.8,wb:[1,1,1],sh:[0,.01,.04],hi:[0,0,0],vigK:.28,vigC:[.05,.05,.11],bloomS:.46,bloomT:.92,
   env:[[0,'#5A6290'],[.3,'#8088B0'],[.48,'#B0B6D6'],[.58,'#C8CCE6'],[.66,'#9AA0C6'],[1,'#7880A8']],eS1:[220,226,255,.32],eS2:[170,170,230,.26]});
-BIOMES.banqBlizzard=bioMet(BIOMES.tempete,{nm:'BANQUISE · BLIZZARD',jour:1,jZen:[.09,.11,.24],jMid:[.20,.24,.40],jHor:[.38,.42,.60],jSol:[.36,.40,.58],sunTint:[.8,.82,.95],sunHalo:0,stars:0,moon:0,city:0,
+BIOMES.banqBlizzard=bioMet(BIOMES.tempete,{nm:'GLACIER · BLIZZARD',jour:1,jZen:[.09,.11,.24],jMid:[.20,.24,.40],jHor:[.38,.42,.60],jSol:[.36,.40,.58],sunTint:[.8,.82,.95],sunHalo:0,stars:0,moon:0,city:0,
   fog:[.38,.40,.64],fogN:25,fogF:720,fogCj:[.50,.54,.72],fogIn:[.48,.52,.70],hemiS:[.58,.64,.88],hemiG:[.36,.40,.56],hemiI:.85,sunC:[.70,.76,.95],sunI:.45,fillC:[.45,.52,.85],fillI:.24,kickC:[.95,.42,.80],kickI:.14,
   expo:.94,sat:.92,con:1.15,rtK:.85,wb:[1,1,1],sh:[0,.01,.035],hi:[0,0,0],vigK:.42,vigC:[.03,.03,.08],bloomS:.48,bloomT:.92,
   env:[[0,'#2a3050'],[.3,'#485270'],[.48,'#7a84a8'],[.58,'#8e98ba'],[.66,'#5a6488'],[1,'#3a4262']],eS1:[200,210,255,.3],eS2:[140,150,220,.25]});
@@ -23605,10 +23633,11 @@ const SF_CARTES={
      la pluie, l'orage (les éclairs blanchissent la forêt). Voir « LA FORÊT NOIRE — LA MAP DES CONTES » (genForet, buildForet, FOR_MET). */
   foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},nuit:{bio:'foretNuit',nuit:1,pr:'LA FORET EST HANTEE'},
     pluie:{bio:'foretPluie',pluie:.8,sheen:.18},orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
-  /* (2026-10-14, Sacha) LA BANQUISE : le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE qui tombe,
-     le BLIZZARD (plus rare). Ni pluie ni éclairs. Voir « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (genBanq, buildBanq, BK_MET). */
-  banquise:{nm:'LA BANQUISE',base:'banquise',m:{matin:{bio:'banqMatin'},midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1,pr:'LES AURORES BOREALES'},
-    neige:{bio:'banqNeige',pr:'LA POUDREUSE TOMBE'},blizzard:{bio:'banqBlizzard',p:.6,pr:'LE BLIZZARD SOUFFLE'}}},
+  /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
+     le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
+     éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
+  banquise:{nm:'LE GLACIER',base:'banquise',m:{matin:{bio:'banqMatin'},midi:{bio:'banqMidi'},soir:{bio:'banqSoir'},nuit:{bio:'banqNuit',nuit:1},
+    neige:{bio:'banqNeige'},blizzard:{bio:'banqBlizzard',p:.6}}},
   /* (2026-10-14, Sacha) LE ROYAUME DE FEU : ses six temps — l'aube rose, le midi soufré, le SOIR rouge sang (un peu plus souvent : c'est la carte
      postale), la NUIT de lave, la PLUIE DE CENDRES (pas une goutte d'eau : de la cendre, `pluie` reste à 0), l'ORAGE VOLCANIQUE (les éclairs
      d'orageTick dans le panache). `mt` : le nom de la météo dit au portail. Voir « LE ROYAUME DE FEU » (genVolcan, buildVolcan, VLC_MET). */
@@ -48613,7 +48642,7 @@ try{Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD
 try{Object.assign(I18N,{'Offres':'Offers','La voiture seule':'Car only','Cacher la console':'Hide the console','Tourner le garage':'Turn the garage',
   'MAINTIENS TA CAISSE':'HOLD YOUR CAR','BIENTOT':'SOON','CACHER':'HIDE','LES SINGES !':'MONKEYS!','ARRIVÉE':'FINISH','SOLEIL DE JADE':'JADE SUN','PICS DE JADE':'JADE PEAKS'});}catch(e){}
 // (2026-10-14) LA FORÊT NOIRE
-try{Object.assign(I18N,{'LA BANQUISE':'THE ICE SHELF','LA GLACE GLISSE, LA POUDRE AVALE':'ICE GLIDES, POWDER SWALLOWS','LES AURORES BOREALES':'THE NORTHERN LIGHTS','LA POUDREUSE TOMBE':'FRESH POWDER FALLING','LE BLIZZARD SOUFFLE':'THE BLIZZARD HOWLS','NEIGE':'SNOW','BLIZZARD':'BLIZZARD','GLISSE !':'GLIDE!','SUR LE PIC !':'ON THE PEAK!','POUDREUSE !':'POWDER!','TRACE PARFAITE !':'PERFECT TRACK!','PATINOIRE !':'ICE RINK!','DERAPAGE GLACE !':'ICE DRIFT!','TREMPLIN DE GLACE !':'ICE KICKER!','LA MONTAGNE TE RAMENE':'THE MOUNTAIN BRINGS YOU BACK','ENSEVELI DANS LA POUDREUSE':'BURIED IN THE POWDER','FRACASSE SUR LA GLACE':'SMASHED ON THE ICE'});}catch(e){} // (2026-10-14) LA BANQUISE
+try{Object.assign(I18N,{'LE GLACIER':'THE GLACIER','SAUTE AU LACET D EN DESSOUS':'JUMP TO THE BEND BELOW','LA BANQUISE':'THE ICE SHELF','LA GLACE GLISSE, LA POUDRE AVALE':'ICE GLIDES, POWDER SWALLOWS','LES AURORES BOREALES':'THE NORTHERN LIGHTS','LA POUDREUSE TOMBE':'FRESH POWDER FALLING','LE BLIZZARD SOUFFLE':'THE BLIZZARD HOWLS','NEIGE':'SNOW','BLIZZARD':'BLIZZARD','GLISSE !':'GLIDE!','SUR LE PIC !':'ON THE PEAK!','POUDREUSE !':'POWDER!','TRACE PARFAITE !':'PERFECT TRACK!','PATINOIRE !':'ICE RINK!','DERAPAGE GLACE !':'ICE DRIFT!','TREMPLIN DE GLACE !':'ICE KICKER!','LA MONTAGNE TE RAMENE':'THE MOUNTAIN BRINGS YOU BACK','ENSEVELI DANS LA POUDREUSE':'BURIED IN THE POWDER','FRACASSE SUR LA GLACE':'SMASHED ON THE ICE'});}catch(e){} // (2026-10-14) LA BANQUISE
 try{Object.assign(I18N,{'LA FORÊT NOIRE':'THE BLACK FOREST','SLALOME ENTRE LES GEANTS':'SLALOM THROUGH THE GIANTS','LA FORET EST HANTEE':'THE FOREST IS HAUNTED',
   'LES LOUPS HURLENT':'THE WOLVES ARE HOWLING','ENCASTRE DANS UN ARBRE':'SMASHED INTO A TREE','ECRASE DANS LES FOUGERES':'CRASHED INTO THE FERNS'});}catch(e){}
 try{Object.assign(I18N,{'LE ROYAUME DE FEU':'THE FIRE KINGDOM','LA LAVE NE PARDONNE PAS':'THE LAVA SHOWS NO MERCY','LA LAVE EST LA SEULE LUMIERE':'THE LAVA IS THE ONLY LIGHT', // (2026-10-14) LE ROYAUME DE FEU
@@ -53722,7 +53751,7 @@ function gvVignette(cle){
     const pil=function(px,w,top,c,c2){R(px,top,w,H-top-8,c);R(px,top,1,H-top-8,c2);R(px+1,top-1,w-2,1,c2);R(px+1,H-8,w-2,2,c);};
     pil(50,6,9,'#2f6a5a','#6fb896');pil(61,4,15,'#3f7e68','#86c8a6');pil(72,8,5,'#25584a','#5aa080');pil(87,5,12,'#356f5c','#78bc9a');
     R(0,H-5,W,5,'#3f8a9a');for(let k=2;k<W;k+=7)R(k,H-3,3,1,'#bfe6e8');               // le fleuve et ses lignes d'eau
-  }else if(cle==='banquise'){ // (2026-10-14) LA BANQUISE : le ciel bleu profond, des pics de glace a facettes (une face ombree, une face au soleil, la neige au sommet), la poudreuse, la route neon qui DEVALE
+  }else if(cle==='banquise'){ // (2026-10-14) LE GLACIER (ex-banquise) : le ciel bleu profond, des pics de glace a facettes (une face ombree, une face au soleil, la neige au sommet), la poudreuse, la route neon qui DEVALE
     ciel(['#1a4fc8','#3f86ec','#9fd2ff','#e4f4ff']);
     const pic=function(px,w,top,c,c2,c3){for(let y=top;y<H;y++){const k=(y-top)/(H-top),hw=Math.round(k*w);R(px-hw,y,hw,1,c);R(px,y,hw+1,1,c2);if(y-top<3)R(px-hw,y,2*hw+1,1,c3);}};
     pic(20,14,6,'#2a6fb0','#7fd6f0','#ffffff');pic(46,9,14,'#1f5a9a','#62c2e6','#f4fbff');pic(78,18,2,'#2a6fb0','#8fe0f6','#ffffff');pic(92,8,16,'#1f5a9a','#5ab8e0','#f4fbff');
