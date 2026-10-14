@@ -439,6 +439,21 @@ D('fig.maillon',{fam:'figures',dur:.6,key:1,db:-1,max:3,cd:.04,pre:1,bases:[0,12
   r:function(b,R,o){pluck(b,R,nE(12+o.base),0,.55,.45,1);clic(b,{t0:0,f:4000,d:.004,v:.15},R);}});
 D('fig.vrille',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un demi-tour de vrille : le souffle TOURNE autour de la caisse + la note',
   r:function(b,R,o){const s=o.v?1:-1;swish(b,R,0,.28,700,3600,.35,-.85*s,.85*s,1.4);pluck(b,R,nE(12+o.base),.03,.5,.4,1,.2*s);}});
+/* (2026-10-14, session SON) Les trois MATIÈRES DE TOUR des FIGURES v2 : la caisse tourne en vraie physique, le jeu joue UN son
+   par tour complet et choisit la matière d'après l'AXE. Même famille que la vrille (souffle + note accordée, st = degré de la
+   gamme du vol), mais on les reconnaît les yeux fermés : le TONNEAU s'enroule d'une oreille à l'autre (espace), la TOUPIE
+   hache à plat (modulation), le SALTO plonge dans le grave et passe par-dessus la tête (filtre). Courts, un par tour : doux. */
+D('fig.tonneau',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TONNEAU (axe de roulis) : l’air s’enroule d’une oreille à l’autre + la note claire',
+  r:function(b,R,o){const s=o.v?1:-1;swish(b,R,0,.3,900,3000,.3,-.9*s,.9*s,1.5);swish(b,R,.17,.26,3000,1100,.24,.9*s,0,1.3);
+    pluck(b,R,nE(12+o.base),.04,.46,.36,1,.1*s);}});
+D('fig.toupie',{fam:'figures',dur:.5,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TOUPIE (axe de lacet) : un frrrt qui tournoie à plat, haché comme une pale + la note mate',
+  r:function(b,R,o){const s=o.v?1:-1;bruit(b,{c:'r',t0:0,a:.07,d:.3,v:.5,ft:'bp',f:1500,f1:1000,g:.3,gc:.8,q:1.9,pan:-.35*s,pan1:.35*s,am:[26,.8]},R);
+    osc(b,{f:nE(12+o.base)*.5,w:'tri',t0:0,a:.01,d:.2,v:.12,pan:0});
+    pluck(b,R,nE(12+o.base),.03,.42,.26,.55,.15*s);}});
+D('fig.salto',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de SALTO (axe de tangage) : un wouomp vertical dans le grave, l’air passe par-dessus la tête + la note',
+  r:function(b,R,o){grave(b,o,0,150,70,.22,.3,.5);
+    bruit(b,{c:'n',t0:0,a:.14,d:.12,v:.7,ft:'lp',f:350,f1:2800,g:.14,gc:.8,q:.8},R);bruit(b,{c:'n',t0:.13,a:.01,d:.3,v:.55,ft:'lp',f:2800,f1:300,g:.3,gc:.8,q:.8},R);
+    pluck(b,R,nE(12+o.base),.07,.44,.4,.8);}});
 D('fig.essoreuse',{fam:'figures',dur:1.3,st:1,key:1,db:+3,max:1,cd:.3,grp:'r',prio:3,dit:'720° et plus — ESSOREUSE COSMIQUE : tourbillon + accord de cuivres + coup',
   r:function(b,R,o){for(let k=0;k<3;k++)swish(b,R,k*.09,.3,600+k*400,4200,.3,k%2?.9:-.9,k%2?-.9:.9,1.4);
     stab(b,R,[12,19,24,28],.12,.12,.6,.16,1.2);grave(b,o,.12,90,40,.2,.4,.6);scintille(b,R,.15,.6,10,.1);}});
@@ -462,6 +477,14 @@ D('fig.goutte',{fam:'figures',dur:.18,st:0,key:1,db:-12,max:3,cd:.06,bases:[0,12
 D('dauphin.banc',{fam:'figures',dur:1.2,st:1,db:-6,max:1,cd:1,bus:'amb',dit:'le banc de dauphins apparaît : clics et sifflets au loin',
   r:function(b,R,o){for(let k=0;k<7;k++){const t=R()*.9,f=3000+R()*2500;osc(b,{f:f,f1:f*(1.2+R()*.4),g:.08,t0:t,a:.005,d:.1,v:.06,fm:{r:.25,i:.8,d:.08},pan:R()*1.6-.8});}
     for(let k=0;k<12;k++)clic(b,{t0:R()*1.1,f:5000,d:.002,v:.08},R);}});
+/* LA TROUPE DE SINGES (2026-10-14, session SON) — le babil qui déboule : des « hou-hou » ronds qui plongent (voyelle filtrée), des « ha » de souffle haché,
+   deux cris qui montent. Cinq voix décalées et panoramiquées, hauteurs tirées au sort : une bande, pas un chanteur. Rien d'aigu qui pique — il revient souvent. */
+function hou(b,R,t0,f,v,pan,d){osc(b,{f:f,f1:f*.7,g:d*.8,w:'saw',t0:t0,a:.025,h:d*.25,d:d,v:v*.45,pan:pan,vib:[8,.035],flt:['bp',f*3,f*2,d,1.5]});osc(b,{f:f,f1:f*.7,g:d*.8,t0:t0,a:.025,h:d*.25,d:d,v:v*.4,pan:pan,vib:[8,.035]});}
+function haha(b,R,t0,v,pan){bruit(b,{c:'b',t0:t0,a:.006,d:.08,v:v,ft:'bp',f:1000,f1:1500,g:.08,q:1.8,pan:pan},R);osc(b,{f:560,f1:480,g:.08,w:'saw',t0:t0,a:.006,d:.07,v:v*.25,pan:pan,flt:['lp',1500,900,.08,.8]});}
+D('singe.troupe',{fam:'figures',bus:'amb',dur:1.05,st:1,db:-6,max:1,cd:1,dit:'une troupe de singes déboule : « hou-hou » ronds, « ha-ha » hachés et deux cris qui montent (cinq voix, hauteurs tirées au sort)',
+  r:function(b,R,o){for(let k=0;k<5;k++){const t=k*.09+R()*.05,f=330+R()*200,pan=(k-2)*.38;hou(b,R,t,f,.7,pan,.22);hou(b,R,t+.22,f*1.12,.6,pan,.2);if(k%2===0&&k<4)hou(b,R,t+.42,f*.95,.45,pan,.2);}
+    for(let k=0;k<7;k++)haha(b,R,.42+k*.06+R()*.03,.33,R()*1.6-.8);
+    for(let k=0;k<2;k++)osc(b,{f:1300+k*350,f1:2500+k*500,g:.14,w:'saw',t0:.3+k*.25,a:.012,h:.04,d:.16,v:.13,pan:k?.5:-.5,vib:[22,.03],fm:{r:1.5,i:1.2,d:.1},flt:['bp',2400,2800,.2,1.4]});}});
 D('fig.bump',{fam:'figures',dur:.7,key:1,db:0,max:2,cd:.06,pre:1,bases:[0,12],grp:'r',prio:1,dit:'BUMP : la dalle qui rebondit (ressort caoutchouc) + la note (st)',
   r:function(b,R,o){osc(b,{f:220,f1:150,g:.25,t0:0,a:.002,d:.35,v:.4,vib:[22,.12]});clic(b,{t0:0,f:1500,d:.01,v:.3},R);pluck(b,R,nE(12+o.base),.02,.45,.4,.9);}});
 D('air.regain',{fam:'figures',dur:.4,key:1,db:-5,max:2,cd:.15,dit:'le chrono d’airtime se RECHARGE (nuage, bump) : un « whoop » qui remonte',
@@ -567,6 +590,8 @@ D('aura.encaisse3',{fam:'aura',dur:1.6,st:1,key:1,db:+4,max:1,cd:.2,grp:'r',prio
   r:function(b,R,o){[12,19,24,28,31].forEach(function(st,i){marimba(b,R,nE(st),i*.05,.42,.6);});stab(b,R,[12,19,24,28],.2,.2,.8,.14,1.3);grave(b,o,.2,90,40,.2,.4,.45);scintille(b,R,.22,1,12,.1);}});
 D('aura.record',{fam:'aura',dur:1.3,st:1,key:1,db:+3,max:1,cd:1,grp:'r',prio:4,dit:'record d’aura battu en course : « ta-DA » de marimba + cuivre',
   r:function(b,R,o){marimba(b,R,nE(19),0,.5,.3);marimba(b,R,nE(24),.1,.55,.8);stab(b,R,[12,19,24,28],.1,.15,.8,.14,1.3);scintille(b,R,.12,.8,10,.1);}});
+D('aura.moyenne',{fam:'aura',dur:.9,st:1,key:1,db:+1,max:1,cd:.5,grp:'r',prio:2,dit:'« moyenne battue » (2026-10-14, session SON) : trois notes de marimba qui montent, un accord court et une cloche — petite récompense, sous la victoire',
+  r:function(b,R,o){[12,19,24].forEach(function(st,i){marimba(b,R,nE(st),i*.07,.45,i===2?.7:.4);});stab(b,R,[12,19],.14,.05,.3,.08,1);cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.3,.1],d:[.3,.12,.05],t0:.2,v:.22},R);}});
 D('aura.perdue',{fam:'aura',dur:.9,st:1,key:1,db:-2,max:1,cd:.5,dit:'la chaîne d’aura retombe : trois notes qui DESCENDENT, étouffées',
   r:function(b,R,o){[24,19,12].forEach(function(st,i){marimba(b,R,nE(st),i*.09,.4,.3);});filtre(b,'lp',2500,.7);}});
 /* LE FLOW — l'ACCORD qui monte d'un degré à chaque palier (piano électrique FM + nappe) */
@@ -613,6 +638,12 @@ D('nitro.pleine',{fam:'machine',dur:.7,st:1,key:1,db:-6,max:1,cd:2,dit:'la jauge
   r:function(b,R,o){cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.3,.1],d:[.35,.15,.05],t0:0,v:.3},R);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.1],d:[.5,.2,.08],t0:.08,v:.3},R);scintille(b,R,.1,.4,5,.07);}});
 D('nitro.sec',{fam:'machine',bus:'fx',dur:.7,db:-2,max:1,cd:1,dit:'panne SÈCHE de nitro (en vol : on perd le plané) : la flamme qui tousse et s’étrangle',
   r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'n',t0:k*.13,a:.003,d:.08,v:.5-k*.12,ft:'lp',f:1200-k*300,q:.8},R);bruit(b,{c:'b',t0:.4,a:.01,d:.2,v:.2,ft:'bp',f:1800,f1:600,g:.2,q:1.5},R);osc(b,{f:180,f1:60,g:.4,w:'saw',t0:0,a:.01,d:.5,v:.06,flt:['lp',800,200,.4]});}});
+/* (2026-10-14, session SON) L'ATCHOUM — la panne sèche en éternuement : « a… » (une aspiration qui monte, souffle + sifflet nasal), un temps, puis « TCHOUM » (pop d'échappement,
+   corps brun, voyelle qui s'affaisse, miettes de crépitements). Comique sans être un bruitage de dessin animé : la matière reste la machine (bus fx, niveau de nitro.sec). */
+D('caisse.atchoum',{fam:'machine',bus:'fx',dur:.6,db:-2,max:1,cd:1,dit:'panne SÈCHE, version éternuement : la flamme prend une grande inspiration (« a… ») puis éternue (« TCHOUM »)',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.2,d:.05,v:.3,ft:'bp',f:500,f1:2600,g:.24,q:1.4},R);osc(b,{f:420,f1:1100,g:.24,t0:0,a:.2,d:.05,v:.1,vib:[18,.03]});
+    bruit(b,{c:'b',t0:.31,a:.002,d:.1,v:.55,ft:'bp',f:1500,f1:500,g:.1,q:1},R);bruit(b,{c:'n',t0:.31,a:.003,d:.2,v:.5,ft:'lp',f:900,q:.7},R);
+    osc(b,{f:320,f1:90,g:.2,w:'saw',t0:.31,a:.005,d:.24,v:.2,flt:['lp',1300,300,.2,.8]});clic(b,{t0:.31,f:3000,d:.01,v:.35},R);crepite(b,R,.4,.12,4,.2);}});
 D('nitro.vide',{fam:'machine',bus:'fx',dur:.12,db:-6,max:1,cd:.15,dit:'appui NITRO à vide : « tchk » de gâchette sèche',
   r:function(b,R,o){clic(b,{t0:0,f:2500,d:.01,v:.6},R);clic(b,{t0:.035,f:1800,d:.008,v:.4},R);bruit(b,{c:'b',t0:.035,a:.002,d:.05,v:.15,ft:'bp',f:1200,q:2},R);}});
 /* LES POUVOIRS ont chacun leur signature (avant : le souffle d'un pad + deux notes) */
@@ -1139,3 +1170,95 @@ D('garage.feu',{fam:'interface',bus:'amb',dur:6.6,st:1,db:-9,max:1,cd:.5,rj:0,vj
     O.boucle(b,.6);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN GARAGEFEU>>> */
+
+/* <<<FORET>>> */
+(function(G){
+'use strict';
+/* LES VOIX DE LA FORÊT NOIRE (2026-10-14, Sacha : « la nuit, une ambiance de forêt hantée, avec des effets hantés et des bruits de
+   loup-garou » ; le jour « belle, ensoleillée, avec des fleurs et des papillons »). Joués par foretSons / foretLoupCri (index.html), sur
+   le bus d'AMBIANCE (loin, large, dans la salle). Aucun n'est une voix humaine (SANS_VOIX) : des bêtes, du bois, du vent.
+   · `foret.loup` — LE HURLEMENT DU LOUP-GAROU : une voix synthétisée par FORMANTS (somme d'harmoniques pondérées par trois résonances qui
+     glissent de « ou » à « a » puis reviennent à « ou »), la hauteur qui MONTE d'une octave en 0,4 s, tient en vibrant, puis retombe en
+     se brisant ; un grognement grave à l'attaque (sous-harmonique), le souffle dans les formants, deux échos de forêt. Trois variantes :
+     le hurlement proche, un plus lointain et plus aigu, et un DUO (un second loup répond un ton au-dessous).
+   · `foret.chouette` — la hulotte : « hou… hou-hou-houuuu » (le chevrotement de la fin). · `foret.corbeau` — deux ou trois « kraa ».
+   · `foret.oiseau` — des phrases de passereaux (merle, rouge-gorge, pinson) : des glissés rapides 2-5 kHz, quatre variantes.
+   · `foret.pic` — le pic qui tambourine sur un tronc creux. · `foret.craque` — une branche qui casse puis grince (la nuit).
+   · `foret.jourAmb` / `foret.nuitAmb` — deux BOUCLES très discrètes (−14 dB sous les autres ambiances) : le feuillage qui respire le
+     jour, le vent grave qui gémit la nuit. ⚠ Rien au-dessus de ~2 kHz en continu : le souffle de la mer de nuages, 11-26 dB au-dessus
+     de la musique dans les aigus, était le « son parasite » de Léo (2026-10-08). */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,TAU=Math.PI*2;
+// LA VOIX À FORMANTS : f(t) la hauteur, F(t) → [[fréquence, largeur, gain]×3] les résonances, a(t) l'enveloppe ; harmoniques jusqu'à 5,5 kHz
+function voix(b,t0,dur,f,F,a,o){o=o||{};const sr=b.sr,i0=Math.round(t0*sr),n=Math.min(b.n-i0,Math.round(dur*sr)),pan=o.pan||0,P=[Math.cos((pan+1)*Math.PI/4),Math.sin((pan+1)*Math.PI/4)];
+  let ph=0,ph2=0;const NH=28,W=new Float32Array(NH+1);
+  for(let i=0;i<n;i++){const t=i/sr,fr=f(t),av=a(t);ph+=fr/sr;if(ph>1)ph-=1;ph2+=fr*.5/sr;if(ph2>1)ph2-=1;
+    if((i&31)===0){const R9=F(t);for(let k=1;k<=NH;k++){const fk=k*fr;if(fk>5500){W[k]=0;continue;}let g=0;for(const r of R9){const x=(fk-r[0])/r[1];g+=r[2]/(1+x*x);}W[k]=g/Math.sqrt(k);}}
+    let s=0;for(let k=1;k<=NH;k++)if(W[k])s+=W[k]*Math.sin(TAU*k*ph);
+    if(o.grogne){const gg=o.grogne(t);if(gg>0)s+=gg*Math.sin(TAU*ph2)*(.6+.4*Math.sin(TAU*31*t));}
+    const x=s*av*(o.v||.2),k9=i0+i;if(b.R){b.L[k9]+=x*P[0];b.R[k9]+=x*P[1];}else b.L[k9]+=x;}}
+function lisse(a,b,t){t=Math.max(0,Math.min(1,t));t=t*t*(3-2*t);return a+(b-a)*t;}
+// UN HURLEMENT : départ f0, sommet f1 (atteint en `mo` s), tenue jusqu'à `te`, chute vers fe jusqu'à `dur`
+function hurle(b,R,t0,dur,f0,f1,fe,mo,te,v,pan){
+  const vib=5+R()*1.5,jit=R()*6;
+  const f=t=>{let x;if(t<mo)x=lisse(f0,f1,t/mo);else if(t<te)x=f1*(1+.06*(t-mo)/(te-mo));else x=lisse(f1*1.06,fe,(t-te)/(dur-te));
+    const vk=Math.min(1,Math.max(0,(t-mo*.8)/.5))*(1-.5*Math.max(0,(t-te)/(dur-te)));return x*(1+.016*vk*Math.sin(TAU*vib*t+jit)+.004*Math.sin(TAU*1.7*t));};
+  const F=t=>{const u=t<mo?t/mo:t<te?1:1-(t-te)/(dur-te),k=Math.max(0,Math.min(1,u));   // « ou » → « a » → « ou »
+    return [[lisse(330,720,k),90,1],[lisse(780,1180,k),130,.55],[lisse(2350,2650,k),260,.18]];};
+  const a=t=>Math.min(1,t/.22)*(t>dur-.9?Math.max(0,(dur-t)/.9):1)*(1+.08*Math.sin(TAU*3.1*t));
+  voix(b,t0,dur,f,F,a,{v:v,pan:pan,grogne:t=>t<.45?.5*(1-t/.45):0});
+  bruit(b,{c:'r',t0:t0+.05,a:.2,h:dur-1.2,d:.8,v:.035*v/.2,ft:'bp',f:900,q:2.2,pan:pan},R);} // le souffle
+D('foret.loup',{fam:'foret',bus:'amb',dur:5.2,st:1,v:3,db:+3,max:1,cd:2,rj:.02,dit:'LE LOUP-GAROU HURLE (la nuit, quand il se dresse sur son rocher) : voix à formants qui monte d’une octave, vibre, retombe en se brisant ; échos de forêt',
+  r:function(b,R,o){const k=o.v;
+    if(k===0)hurle(b,R,0,3.9,215,440,250,.42,2.7,.22,-.1);
+    else if(k===1){hurle(b,R,0,3.3,260,520,320,.36,2.3,.16,.25);O.filtre(b,'lp',2600,.7);} // plus loin, plus aigu
+    else{hurle(b,R,0,3.7,205,420,240,.4,2.6,.2,-.3);hurle(b,R,.85,3.4,185,375,220,.45,2.4,.13,.45);} // le DUO : un second loup répond
+    O.echo(b,.21,.32,1,true);O.echo(b,.47,.18,1,true);O.versStereo(b,.5,R);}});
+D('foret.chouette',{fam:'foret',bus:'amb',dur:2.6,st:1,v:2,db:-2,max:1,cd:1,dit:'la HULOTTE (la nuit) : « hou… hou-hou-houuuu », le chevrotement à la fin',
+  r:function(b,R,o){const f0=o.v?410:385,p=R()*1.2-.6;
+    osc(b,{f:f0*1.03,f1:f0,g:.08,t0:0,a:.04,h:.18,d:.18,v:.42,pan:p});
+    osc(b,{f:f0*1.02,f1:f0*.99,g:.05,t0:.95,a:.02,h:.04,d:.08,v:.3,pan:p});
+    osc(b,{f:f0*1.04,f1:f0*.95,g:.9,t0:1.12,a:.03,h:.65,d:.35,v:.4,pan:p,vib:[13,.022]});
+    O.filtre(b,'lp',1400,.7);O.echo(b,.29,.25,1,true);O.versStereo(b,.4,R);}});
+D('foret.corbeau',{fam:'foret',bus:'amb',dur:1.6,st:1,v:2,db:-4,max:1,cd:1,dit:'le CORBEAU : deux ou trois « kraa » rauques',
+  r:function(b,R,o){const n=2+o.v,p=R()*1.4-.7;
+    for(let k=0;k<n;k++){const t=k*(.36+R()*.08),f0=520+R()*60;
+      voix(b,t,.26,u=>f0*(1-.18*u/.26)*(1+.05*Math.sin(TAU*47*u)),u=>[[1150,260,1],[1900,320,.7],[3000,420,.3]],u=>Math.min(1,u/.02)*Math.max(0,1-u/.26),{v:.22,pan:p});
+      bruit(b,{c:'b',t0:t,a:.01,d:.22,v:.10,ft:'bp',f:1600,q:1.6,pan:p},R);}
+    O.echo(b,.24,.22,1,true);}});
+D('foret.oiseau',{fam:'foret',bus:'amb',dur:1.8,st:1,v:4,db:-6,max:2,cd:.6,dit:'un PASSEREAU (le jour) : une phrase de glissés rapides 2-5 kHz — merle, rouge-gorge, pinson',
+  r:function(b,R,o){const p=R()*1.6-.8,k=o.v;let t=0;
+    const n=k===0?6:k===1?9:k===2?5:7;
+    for(let i=0;i<n;i++){let f0,f1,d;
+      if(k===0){f0=1800+R()*900;f1=f0*(R()<.5?1.4:.75);d=.12+R()*.08;}           // merle : flûté, plus grave
+      else if(k===1){f0=3200+R()*1600;f1=f0*(.7+R()*.6);d=.05+R()*.05;}           // rouge-gorge : perlé, aigu
+      else if(k===2){f0=4200-i*380;f1=f0*.85;d=.07;}                               // pinson : la cascade qui descend
+      else{f0=2600+R()*1200;f1=f0*1.6;d=.06+R()*.04;}
+      osc(b,{f:f0,f1:f1,g:d*.8,t0:t,a:.006,h:d*.4,d:d*.6,v:.22,pan:p,fm:{r:2,i:.12,d:.05}});
+      t+=d+.03+R()*.06;}
+    if(k===2){osc(b,{f:2600,f1:4800,g:.09,t0:t,a:.004,d:.12,v:.2,pan:p});}
+    O.filtre(b,'lp',6500,.7);O.echo(b,.17,.2,1,true);}});
+D('foret.pic',{fam:'foret',bus:'amb',dur:1.4,st:1,v:2,db:-5,max:1,cd:2,dit:'le PIC qui tambourine sur un tronc creux (le jour)',
+  r:function(b,R,o){const p=R()*1.4-.7,n=14+((R()*6)|0);let t=0;
+    for(let i=0;i<n;i++){const u=i/n,dt=.052-.012*Math.sin(u*Math.PI);
+      clic(b,{t0:t,f:2200,d:.004,v:.35*(1-u*.4),pan:p},R);
+      osc(b,{f:620+R()*30,f1:540,g:.02,t0:t,a:.0006,d:.035,v:.25*(1-u*.35),pan:p});
+      bruit(b,{c:'r',t0:t,a:.0006,d:.025,v:.12,ft:'bp',f:1300,q:2,pan:p},R);t+=dt;}
+    O.echo(b,.13,.25,1,true);}});
+D('foret.craque',{fam:'foret',bus:'amb',dur:1.2,st:1,v:2,db:-4,max:1,cd:1,dit:'une BRANCHE qui casse dans le noir, puis le bois qui grince',
+  r:function(b,R,o){const p=R()*1.6-.8;
+    clic(b,{t0:0,f:2600,d:.008,v:.6,pan:p},R);bruit(b,{c:'b',t0:0,a:.0008,d:.09,v:.35,ft:'bp',f:2100,q:1.3,pan:p},R);
+    for(let k=0;k<4;k++)clic(b,{t0:.03+R()*.12,f:1800+R()*1500,d:.004,v:.25,pan:p},R);
+    osc(b,{f:o.v?150:120,f1:o.v?95:70,g:.6,gc:.7,w:'saw',t0:.25,a:.08,h:.25,d:.3,v:.07,pan:p,flt:['bp',500,350,.6,6]});
+    O.echo(b,.31,.3,1,true);O.versStereo(b,.4,R);}});
+D('foret.jourAmb',{fam:'foret',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'la FORÊT LE JOUR (boucle, très bas) : le feuillage qui respire au vent, des oiseaux très loin',
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.16,ft:'bp',f:700,q:.6,am:[.13,.6],pan:-.3},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.12,ft:'bp',f:1100,q:.7,am:[.21,.55],pan:.35},R);
+    for(let k=0;k<5;k++){const t=.5+R()*7.5,f0=2400+R()*1500;osc(b,{f:f0,f1:f0*(R()<.5?1.3:.8),g:.08,t0:t,a:.01,h:.03,d:.08,v:.03,pan:R()*1.6-.8});}
+    O.filtre(b,'lp',2200,.7);O.boucle(b,.6);}});
+D('foret.nuitAmb',{fam:'foret',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'la FORÊT LA NUIT (boucle, très bas) : le vent grave qui gémit entre les troncs',
+  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.001,h:9,d:.001,v:.35,ft:'lp',f:260,am:[.11,.55],pan:-.2},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.05,ft:'bp',f:300,f1:420,g:9,q:7,am:[.17,.7],pan:.3},R);   // le gémissement
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.04,ft:'bp',f:470,f1:330,g:9,q:7,am:[.07,.8],pan:-.4},R);
+    O.filtre(b,'lp',1200,.7);O.boucle(b,.6);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN FORET>>> */
