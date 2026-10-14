@@ -52018,27 +52018,28 @@ function pickupsTick(dt){
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;
-    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow;RAM.q.copy(p.mesh.position); // (2026-10-14, chasse aux bugs) l'objet AVANT l'attraction de l'image (ramD)
-    if(p.hk>0){if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
+    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow; // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
+    if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
       if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
       if(p.face!==fV9&&!p.air)continue;                         // (passe qualité) pas le jumeau de l'autre face…
       if(!p.air){const tw=pickups[i9+p.face];if(tw&&tw.face===-p.face&&tw.s===p.s&&tw.lat===p.lat&&(tw.taken||tw.hk>0))continue;} // …ni celui dont le jumeau est pris ou en route (voir LE JUMEAU)
       // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est déjà difficile — sans coup de pouce on
       // ne les attrape jamais. (v3) sous L'AIMANT, la sphère de MAG_R m.
-      const d9=p.mesh.position.distanceTo(carGroup.position);
+      RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
       if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:11+mag*3)>=(gros9?MAG_R:11+mag*3))continue; // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
       p.hk=1e-4;p.hkD=d9;RAM.n[6]++; // ACCROCHÉ
     }else if(gros9){ // (v3) L'AIMANT AU SOL : la sphère
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
       if(p.face!==fV9&&!p.air)continue; // (passe qualité) TA face seulement
-      const d9=p.mesh.position.distanceTo(carGroup.position);
+      RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
       if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));}
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
       if(ds9>22+(RAM.bal?Math.abs(s-sA9)+sg9:0))continue; // (2026-10-14, chasse aux bugs) + le trajet balayé : sans lui, à 30 i/s et grande vitesse, la pièce sortait du couloir avant d'être testée
       if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
+      RAM.q.copy(p.mesh.position);
       // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
       // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
       if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
@@ -53970,7 +53971,7 @@ function loop(now){
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
         stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
-        for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)stt(n9.gain,0,AC.currentTime,.12);
+        {const G9=loop._gn||(loop._gn=[0,0,0,0,0]);G9[0]=transG;G9[1]=diffG;G9[2]=ovrG;G9[3]=engTickG;G9[4]=pinkG;for(let i9=0;i9<5;i9++){const n9=G9[i9];if(n9)stt(n9.gain,0,AC.currentTime,.12);}}
         charge9+=(0-charge9)*Math.min(1,dt*4);ovr9+=(0-ovr9)*Math.min(1,dt*4);
       }
       if(windG){
@@ -54144,7 +54145,7 @@ function loop(now){
     // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
     // (pouvoirs v2) les plaques naissent de la fiche (PWR_DEFS : px, plq) dans l'ordre fixe PWR_ORDRE — (2026-09-28) pendant l'auto-école,
     // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
-    const pwL=[];for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9];pwL.push([k9,pwrT(k9),d9.px,d9.plq]);} // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
+    const pwL=loop._pwL||(loop._pwL=[]);let nPw=0;for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9],r9=pwL[nPw]||(pwL[nPw]=[0,0,0,0]);r9[0]=k9;r9[1]=pwrT(k9);r9[2]=d9.px;r9[3]=d9.plq;nPw++;}pwL.length=nPw; /* (OPTIMISATION) la liste et ses rangs sont gardés d'une image à l'autre (plus d'allocation par image) */ // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
     for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
     if(pch!==loop._pch){loop._pch=pch;
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
