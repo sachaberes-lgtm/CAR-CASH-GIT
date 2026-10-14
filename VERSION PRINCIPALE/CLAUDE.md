@@ -105,6 +105,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `fovFit`.
 - **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G`, `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
+- **Figures v2** (la physique) : `FIG.Corps`/`FIG.PHY` (figures.js), `FIGV2`/`FX2`, `figLance` (une explosion), `figPose` (chaque image de vol),
+  `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
+  les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
@@ -164,7 +167,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   Le mode FACILE (la seule exception) est COUPÉ depuis le 14/10 : `SANS_FACILE`, `?facile=1` le rend.
 - `AIR_RATE=1` : le temps du vol n'est pas accéléré. Le virage en vol ne suit pas la vitesse (voulu).
 - En vol, pouce HAUT = la caisse MONTE (`volSens`) ; au clavier ↑ piqué, ↓ cabré.
-- La loi du réservoir : le vol dépense la nitro, la route la remplit.
+- La loi du réservoir : le vol dépense la nitro, la route la remplit — sauf les FIGURES PLANTÉES, qui en rendent tout de suite (Asphalt 8, 14/10).
+- Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
 - Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
@@ -267,10 +271,12 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
   `trxPlanche`), `rubOff:1` s'il remplace le ruban. ⚠ Ce qui doit se voir en course garde ~0,86-0,9 de l'élan (`trxVit`).
 - Essayer : `dbgHab(cat,id)` (porté à l'essai), `dbgTrx('nom')` (forcée en course). Banc : photos garage + course, muet.
 
-**Ajouter une figure (double-tap nitro)**
-- Une ligne dans `BASE` de `figures.js` : `{id, n, en, p, D, aura, m:[{a:[x,y,z],t:n}]}` ou `{a, b:amplitude, k:battements}`.
-  Chaque mouvement finit à l'identité (`valide()` refuse le reste). Le nom anglais `en` entre seul dans `I18N`. Elle apparaît au shop
-  et à l'inventaire (`COSM.figure`). `figures.js?v=` +1 dans index.html, `sw.js` +1. On la regarde dans `boite-figures.html`.
+**Ajouter une figure (un emplacement de vol, le double-tap nitro)**
+- Une ligne dans `BASE` de `figures.js` : `{id, n, en, c, ce, p, D, aura, m:[{a:[x,y,z],t:n}]}` ou `{a, b:amplitude, k:battements}` — `c`/`ce` = le
+  nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
+  (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
+  au shop et à l'inventaire (`COSM.figure`), s'équipe dans un des trois emplacements. `figures.js?v=` +1 dans index.html ET boite-figures.html,
+  `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
 - Une figure DÉTECTÉE en vol (vrille, dauphin…) : `addTrick(id,txt,…)` → `chaineAura(nom,base,famille)`.
 
 **Ajouter un texte**
