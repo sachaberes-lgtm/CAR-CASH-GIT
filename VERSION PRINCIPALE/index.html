@@ -17681,7 +17681,7 @@ function vlcLoin(root,fr){VOLCAN.loin=[];const fin=VOLCAN.Q&&VOLCAN.Q.fin;if(!fi
 function volcanVide(){
   if(VOLCAN.root){VOLCAN.root.traverse(function(o){if(!o.userData.jeter||!o.geometry)return;const g=o.geometry;if(o.userData.partage){for(const k in g.attributes)if(k!=='aI')g.deleteAttribute(k);g.setIndex(null);}g.dispose();});VOLCAN.root=null;}
   VOLCAN.sol=null;VOLCAN.solM=null;VOLCAN.aig=[];VOLCAN.arche=null;VOLCAN.gcol=null;VOLCAN.loin=[];VOLCAN.gey=[];VOLCAN.yRaz=true;
-  const E=VOLCAN.erup;E.t=6+Math.random()*3;E.age=-1;
+  const E=VOLCAN.erup;E.t=6+Math.random()*3;E.age=-1;VLC_U.uErupt.value=VLC_U.uErupt2.value=0; // (2026-10-14, chasse aux bugs) morte PENDANT une éruption puis REJOUER au volcan : le cratère et les flancs restaient embrasés 6-9 s (rien ne remettait ces uniforms à zéro tant que le volcan restait affiché)
   if(VOLCAN.fx.bL)for(const b of VOLCAN.fx.bL)b.on=false;
 }
 function buildVolcan(seed){
