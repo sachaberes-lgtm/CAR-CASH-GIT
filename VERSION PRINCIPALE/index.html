@@ -28466,7 +28466,7 @@ let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPun
    · sensHap(p, force) : la vibration, avec un LIMITEUR commun (force 1 léger · 2 moyen · 3 lourd) — jamais deux en moins de 70 ms, et un
        coup faible ne passe pas dans les 220 ms qui suivent un coup plus fort (dix détails qui vibrent chacun = un bourdonnement).
    · sensSecoue(k) : une petite secousse de caméra, plafonnée (.4), moitié en vol (on y vise), rien sous « Réduire les animations ». */
-const SCOUP={p:0,pv:0,ht:0,hf:0}; // le tangage EN PLUS du jeu (rad, rad/s) — le roulis et le débattement ont déjà leurs ressorts (rollV, susV) · ht/hf : la dernière vibration
+const SCOUP={p:0,pv:0,ht:0,hf:0,hop:0,hopP:false}; // le tangage EN PLUS du jeu (rad, rad/s) — le roulis et le débattement ont déjà leurs ressorts (rollV, susV) · ht/hf : la dernière vibration · hop/hopP : la hauteur du petit saut en cours (dos d'âne, replacement) et s'il porte une pose déclarée en l'air
 function sensCoup(versLat,nez,pompe){if(!SENS||mode!=='drive')return;rollV=THREE.MathUtils.clamp(rollV-(versLat||0),-5,5);SCOUP.pv=THREE.MathUtils.clamp(SCOUP.pv+(nez||0),-4,4);susV=THREE.MathUtils.clamp(susV+(pompe||0),-4,4);}
 function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
 function sensSecoue(k){if(!SENS||REDUCED_MOTION)return;shake=Math.max(shake,Math.min(.4,k)*(mode==='fall'?.5:1));}
@@ -29018,6 +29018,7 @@ function frole(c9,dl,k){
   try{froleSnd(pres,FROLE.n);}catch(e){}
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
+  if(SENS)try{sensCoup((lat-side*c9.lat>0?1:-1)*(.35+.5*pres),0,0);}catch(e){} // (2026-10-14, sensations) le SOUFFLE du plot rasé : la caisse s'en écarte d'un rien (plus on rase près, plus elle tique) — le frôlé se lisait aux étincelles, pas dans la caisse
 }
 // combien de secondes avant de perdre le palier, si on ne nourrit plus (répit, pente, fuite — le même barème que la perte)
 function flowReste(){
@@ -49934,6 +49935,7 @@ function loop(now){
           const tr9=padTrain(PADS[i9]),trk9=Math.min(5,tr9)-1; /* (LE TRAIN DE BOOSTS) 1, 2, 3… les pads pris à la suite, sans en rater un */
           vA+=18+5*trk9;boost=Math.max(boost,1.5+.2*trk9);if(!pl9)padCd=1.5; /* (LIGNE PARFAITE, audit GAMEPLAY) un pad de la file ne met plus la recharge : au niveau 12 il bloquait le 1er pad de la LIGNE DE NÉON au-delà de ~470 km/h (« LIGNE CASSÉE ») */ // viser paie plus qu'avant (14 → 18)
           if(SONV2)sfx('pad',{st:sonPd(trk9)});else boostSnd(1+.1*trk9);shake=Math.max(shake,.3+.04*trk9);hap(trk9?[10,16,10]:10);
+          if(SENS)try{sensCoup(0,-1.7-.25*trk9,-.9);DRIFT_V.set(0,.12,-CARS[level].l*.42);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,5+trk9,7);}catch(e){} // (2026-10-14, sensations) la plaque POUSSE : le nez se lève, le cul s'écrase sur ses ressorts, une gerbe d'or part de sous la poupe — plus fort à chaque pad du train
           slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12,LIGNE.padI.has(i9)?'pad.ligne':'pad');flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           campPad(i9); // (2026-09-27) la LIGNE DE NÉON (campagne VILLE, niveau 12)
@@ -49972,6 +49974,7 @@ function loop(now){
         if(b9>=Math.min(sDe9,s)-2.2&&b9<=Math.max(sDe9,s)+2.2){ // (BALAYAGE) sur le trajet de l'image : à 30 i/s, il passait entre deux images au-delà de ~475 km/h
           hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
           vA*=.97;shake=Math.max(shake,.15);if(SONV2)sfx('dosdane');else noiseBurst(.12,.1,300);
+          if(SENS)try{sensCoup(0,-1.2-Math.min(.8,Math.abs(vF)*.012),0);sensHap(14,2);}catch(e){} // (2026-10-14, sensations) les roues avant montent les premières : le nez se lève (plus sec quand on arrive vite) — avant, la caisse sautait à plat, sans un mot dans la main
           if(Math.random()<.5)dropChip(1);
           break;
         }
@@ -49980,6 +49983,13 @@ function loop(now){
         hopY+=hopV*dt;hopV-=26*gK()*dt;
         if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();if(POSE_F){const f9=POSE_F;POSE_F=null;try{f9();}catch(e){}}} // SPLAT. — (2026-10-01) et le CONTACT d'une pose (gerbe, choc, gomme)
       }
+      /* (2026-10-14, sensations) LA RETOMBÉE D'UN PETIT SAUT. Un dos d'âne, un replacement : la caisse retombait et se tassait (squashT),
+         rien d'autre. Désormais, à proportion de la hauteur du saut : deux bouffées de poussière aux roues arrière, le nez qui pique
+         un instant, un tic dans la main. Une POSE déclarée en l'air (POSE_F) a déjà sa gerbe et son choc à elle : on ne double pas. */
+      if(SENS){if(hopY>0){if(hopY>SCOUP.hop)SCOUP.hop=hopY;if(POSE_F)SCOUP.hopP=true;}
+        else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;SCOUP.hop=0;SCOUP.hopP=false;
+          if(!po9&&k9>.12&&!introD&&mode==='drive')try{sensCoup(0,.5+.9*k9,0);sensHap(8+Math.round(10*k9),1);
+            for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.45,.06,-CARS[level].l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,1+Math.round(2*k9),2+2*k9);}}catch(e){}}}
       // plots orange : les percuter les envoie valser (étincelles + petite perte de vitesse)
       // (2026-09-25) LE FRÔLÉ : on regarde quels plots sont passés DERRIÈRE la caisse depuis l'image précédente (un
       // balayage, pas un point : à pleine vitesse on avance de plusieurs mètres par image). Saut de `s` (nouvelle
@@ -50006,6 +50016,7 @@ function loop(now){
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:F.n.clone().multiplyScalar(side),b0:F.b.clone()});
           try{if(SONV2&&c9.dur)sfx('porte');else coneSnd();}catch(e){}
           vA*=.985;shake=Math.max(shake,.14);hap(10);
+          if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);if(c9.dur)sensHap([16,24,10],2);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
           if(c9.dur){if(c9.pt)c9.pt.touche=true;vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-30) la porte touchée ne se compte pas propre (campPortesTick) · (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
@@ -50021,6 +50032,7 @@ function loop(now){
         if(o9.face!==side)continue; // chaque flaque vit sur SA face
         if(balEcart(o9.s,o9.r+2,sDe9,s,lDe9,lat,side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus) — (BALAYAGE) sur le trajet de l'image : à 30 i/s, une flaque de 2 m sautait au-delà de ~860 km/h
           slipT=.75;oilCd=1.2;
+          if(SENS)try{const e9=!!o9.eau;for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.5,.1,CARS[level].l*.25);carGroup.localToWorld(DRIFT_V);sparkBurst(e9?spray:dust,DRIFT_V,e9?7:3,e9?9:3.5);}sensCoup(lat>side*o9.lat?1.3:-1.3,.4,0);}catch(e){} // (2026-10-14, sensations) on ENTRE dans la flaque : l'eau gicle des deux roues avant (l'huile soulève un voile), la caisse se couche du côté où elle part
           shake=Math.max(shake,.2);
           if(SONV2)sfx(o9.eau?'flaque.eau':'flaque.huile');else noiseBurst(.35,.12,1900); // long crissement (console de son : l'eau de la ville ne sonne plus comme l'huile)
           hap(60); // (2026-09-26) par hap() : l'interrupteur et le Taptic d'iOS s'appliquent
@@ -50029,6 +50041,7 @@ function loop(now){
       }
       if(slipT>0){ // la voiture chasse : direction quasi coupée + embardée aléatoire
         slipT-=dt;driftT=Math.max(driftT,.7); // (2026-09-28) on VOIT la glisse : fumée de gomme + crissement (au téléphone, le message « huile » est masqué)
+        if(SENS)rollV+=Math.sin(slipT*26)*20*Math.min(dt,1/30); // (2026-10-14, sensations) elle LOUVOIE : la carrosserie balance d'un flanc sur l'autre (~2°, une onde lisse — jamais du hasard par image) tant que les pneus ne mordent plus
         psi+=(Math.random()-.5)*2.6*Math.sqrt(dt/60)*Math.min(1,Math.abs(vA)/12); /* (2026-10-09) une marche aléatoire grandit en √dt : ×√(dt/60) = la même embardée à toutes les cadences (à 30 i/s elle était +41 %) */
         psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       }
