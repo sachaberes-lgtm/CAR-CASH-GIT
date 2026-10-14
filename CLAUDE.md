@@ -1,10 +1,10 @@
 # CAR-CASH-GIT — à lire avant tout (Sacha et Léo, toutes les sessions)
 
-Le jeu web vit dans `VERSION PRINCIPALE/` : un seul fichier, `index.html`. Son guide complet est `VERSION PRINCIPALE/CLAUDE.md`, à lire
-avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROBLOX ne change pas le jeu web.
+Le jeu web vit dans `VERSION PRINCIPALE/` : un seul fichier, `index.html`. Son GUIDE est `VERSION PRINCIPALE/CLAUDE.md`, à lire
+avant d'y toucher ; le détail de chaque chantier est dans `VERSION PRINCIPALE/JOURNAL.md` (l'ancien CLAUDE.md, depuis le 14/10). `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROBLOX ne change pas le jeu web.
 **L'édition POKI** (2026-10-04) n'est pas un autre jeu : c'est `VERSION PRINCIPALE` sans missions, carrière ni boutique, avec le SDK de
 Poki. `node poki-construire.js [crazy|itch]` en tire `POKI/`+`POKI.zip`, `CRAZY/`+`CRAZY.zip` (CrazyGames) ou `ITCH/`+`ITCH.zip` (itch.io, sans kit) — ignorés par git, à refaire après chaque changement du jeu ; `?poki=1` (`?crazy=1`)
-la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `VERSION PRINCIPALE/CLAUDE.md`.
+la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `VERSION PRINCIPALE/JOURNAL.md`.
 **L'APP iOS** (2026-10-13, branche `ios-capacitor`) n'est pas un autre jeu non plus : `app-ios/` = Capacitor 8, appId `com.sachaberes.carcash`.
 Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sync`, jamais à la main) ; la colle native vit dans
 `app-ios/natif/natif.js` (inerte hors de l'app). Mode d'emploi : `app-ios/LISEZ-MOI.md`.
@@ -53,7 +53,7 @@ Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sy
   MARGES de l'iPhone : les boutons à la même place ; `?encoche=1` = le boîtier du 13 Pro) ; l'ATELIER DES NUAGES (`?nuages=1`) ; l'écran
   titre au regard presque à niveau, qui ne tourne qu'à l'horizontale, la caisse qu'on TAPOTE et son modelé ; les trois musiques du lobby
   (TEMPLE DE JADE retiré) ; le soir, le numéro de version = l'EMPREINTE du jeu (plus de rechargement à chaque push : c'était la
-  musique « coupée bizarrement ») et le tempo qui suivait la voiture retiré (il DISTORDAIT, mesuré). Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
+  musique « coupée bizarrement ») et le tempo qui suivait la voiture retiré (il DISTORDAIT, mesuré). Le détail : `VERSION PRINCIPALE/JOURNAL.md`.
   · (2026-10-03, Sacha) DEBOUT, la comète de NITROOO ne voile plus l'écran : le dragon n'est plus « transparent » (le paysage ne bouge pas).
   · la MISE À JOUR TOUTE SEULE et le numéro de version dans les réglages.
   · (2026-10-04, Léo, d'abord sur sa copie de test) LE DÉPART EN MUSIQUE : le lobby s'efface pendant le piqué et la musique de course
@@ -66,10 +66,10 @@ Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sy
     (`FEU_CUBES`), un brasier orange au centre ; et LA PORTE v2 — la porte fermée de Sacha est GARDÉE (Léo l'avait enlevée puis l'a
     fait remettre), mais redessinée : caissons en laque indigo, CASH CAR en or, hublots qui laissent voir le feu.
   · (2026-10-10, Léo) EN VOL, POUCE EN HAUT = LA CAISSE MONTE par défaut (réglage « POUCE HAUT EN VOL » : MONTE ; les anciennes
-    sauvegardes basculées une fois, PLONGE reste au choix ; le clavier ne change pas). Détail en tête de `VERSION PRINCIPALE/CLAUDE.md`.
+    sauvegardes basculées une fois, PLONGE reste au choix ; le clavier ne change pas). Détail : « EN VOL, POUCE EN HAUT » dans `VERSION PRINCIPALE/JOURNAL.md`.
   · (2026-10-13, Sacha) JOUER = LE MODE CLASSIQUE AU HASARD : à chaque départ et à chaque portail, une MAP (nuages, ville, jade,
     orbite) et une MÉTÉO (matin, midi, soir, nuit, pluie, orage ; l'orbite sans nuages, pluie ni orage) tirées au hasard. Le SOLEIL DE
-    JADE direct (le JOUER de Léo du 12/10) = `?play=jade`. Détail : « LE MODE CLASSIQUE AU HASARD » dans `VERSION PRINCIPALE/CLAUDE.md`.
+    JADE direct (le JOUER de Léo du 12/10) = `?play=jade`. Détail : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` dans `index.html`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
@@ -82,4 +82,4 @@ Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sy
      - **trouver ce qui a cassé** : `git diff c02c75a origin/main -- "VERSION PRINCIPALE"` ;
      - **réparer sur `main`** par un NOUVEAU commit.
 - **Changer de référence** : seulement quand Léo ou Sacha le demande. On note le nouveau commit et son nom `jeu-reference-AAAA-MM-JJ`
-  (une étiquette ne se déplace pas) dans ce paragraphe ET dans celui de `VERSION PRINCIPALE/CLAUDE.md`.
+  (une étiquette ne se déplace pas) dans ce paragraphe ET dans celui de `VERSION PRINCIPALE/JOURNAL.md`.
