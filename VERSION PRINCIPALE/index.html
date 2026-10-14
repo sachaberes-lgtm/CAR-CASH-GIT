@@ -28503,6 +28503,7 @@ function sensSecoue(k){if(!SENS||REDUCED_MOTION)return;shake=Math.max(shake,Math
    `sensGlisse` regarde seulement l'état que `driftTick` va traiter (on, driftLv, slipB) et répond par les outils communs : elle ne
    calcule RIEN du jeu. `ta` : l'heure de la dernière sortie (une glisse qui clignote ne recogne pas). */
 const SENS_GL={on:false,ta:0};
+SENS_GL.pk=0;SENS_GL.sg=0;SENS_GL.arm=false; // (reprise d'adhérence) le plus grand angle de glisse tenu, son côté, et « une reprise est due »
 function sensGlisse(on){
   if(on&&!SENS_GL.on){ // L'ACCROCHE : l'arrière part — la caisse se jette sur ses roues extérieures, le nez pique, elle se tasse ; un tic dans le pouce
     if(performance.now()-SENS_GL.ta>260){
@@ -28515,6 +28516,20 @@ function sensGlisse(on){
     if(sp9)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,3+lv,8);} // 8 à 12 étincelles en tout (anneaux de 70) : une gerbe, pas un feu d'artifice
   }
   if(!on&&SENS_GL.on)SENS_GL.ta=performance.now();
+  /* LA GOMME REPREND : pouce relâché, l'angle de glisse (slipB) se referme en ≈ 0,25 s — et rien ne disait l'instant où le pneu RACCROCHE.
+     Quand il repasse sous 3,5°, la carrosserie est RENVOYÉE d'un coup vers l'intérieur (elle se redresse en dépassant à peine), deux
+     bouffées de gomme sautent des roues arrière, un tic sec dans le pouce. Dosé par l'angle réellement tenu (pk : 7° → 24°).
+     Un seuil franchi, pas un minuteur : même instant à 30, 60 et 120 i/s. Périmé au bout de 0,7 s (décollage, pause, mort entre-temps). */
+  if(on){if(!SENS_GL.on)SENS_GL.pk=0;const a9=Math.abs(slipB);if(a9>SENS_GL.pk){SENS_GL.pk=a9;SENS_GL.sg=Math.sign(slipB);}SENS_GL.arm=SENS_GL.pk>.12;}
+  else if(SENS_GL.arm){
+    if(performance.now()-SENS_GL.ta>700)SENS_GL.arm=false;
+    else if(Math.abs(slipB)<.06){SENS_GL.arm=false;
+      const k=Math.min(1,SENS_GL.pk/.42),sp9=CARS[level];
+      sensHap(7,1);
+      if(!REDUCED_MOTION){sensCoup(SENS_GL.sg*(.5+.8*k),0,.2*k); // à l'opposé du coup d'accroche : ≈ 1,2° → 3,2°
+        if(sp9&&Math.abs(vA)>14)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.5,.12,-sp9.l*.5);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,3);}} // elles héritent de la vitesse de la caisse (sparkBurst) : rien ne reste en voile derrière
+    }
+  }
   SENS_GL.on=on;
 }
 function driftTick(dt,on){
