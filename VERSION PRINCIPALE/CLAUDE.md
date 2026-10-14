@@ -3,8 +3,12 @@
 ## LE DOGE v2 (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
 La v1 (gros voxels, un kart) : « nul » — pas une vraie voiture, pas assez Doge, trop cubique et cheap — et « les textes à ajouter en trail carrément ».
 La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devant, tout en `nyLaque`), main plus fine :
-- LA CAISSE : coupé en loft à facettes, livrée shiba (fauve dessus, CRÈME en bas = l'urajiro, selle sombre sur le pavillon), jantes bronze, deux
-  sorties d'or, bandeau rose. Les couleurs sont dans la palette `nyl` (cuites, sans lumière) : jamais de teinte qui vire sous les ciels.
+- LA CAISSE (« nickel la tête, travaille le modèle — une doge dodge ») : un MUSCLE CAR widebody en loft à facettes (13 points de section :
+  bas crème = l'urajiro, filet brun au flanc, épaule vive, vitrage en retrait, DEUX BANDES brunes capot → malle = la selle), élargisseurs à RIVETS
+  D'OR, capot à bossage + grosse prise d'air + extracteurs + goupilles, calandre noire de toute la largeur et DEUX PHARES À ANNEAU de chaque côté —
+  la tête sort de la calandre —, feu ROUGE sur toute la largeur avec la PIÈCE D'OR au milieu, becquet, deux sorties rectangulaires d'or, jantes
+  bronze à 5 branches. Aucun nom ni insigne de marque. ⚠ LE DÉFIEUR existe déjà (le muscle car orange) : le DOGE s'en distingue par la livrée,
+  le widebody riveté, les phares à anneau et la tête. Palette `nyl` (cuite, sans lumière) : jamais de teinte qui vire sous les ciels.
 - LA TÊTE (`dogeTete`, juste avant `const SHAPES`) : champ de distance (`DOGE_SDF` : crâne, joues, museau `rcone`, menton, oreilles creusées,
   orbites, PAUPIÈRES, truffe, BOUCHE EN COIN posée par lancer de rayon puis creusée) → `dogeNets` (surface nets, lisse), couleurs par région
   moyennées sur 7 prises (bords doux). Une fois par session (`SHAPES.doge._tete`, ~0,2 s). Échelle 1,25, posée en (0,.77,1.80).
