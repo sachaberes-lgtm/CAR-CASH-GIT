@@ -8601,7 +8601,7 @@ html.c6 .tFigB.non{box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 4px 0
 .ivT u .ivNum{display:block;font-style:normal;font-family:var(--pix);font-size:var(--f1);line-height:1;min-width:10px;text-align:center}
 </style>
 <style id="ecoleV2">
-/* ==============================================================================================================</style>
+/* ==============================================================================================================
    L'AUTO-ÉCOLE v2 (2026-10-14, Sacha : « le tutoriel est un peu intimidant, pas très beau — plus d'animation, plus de trucs clairs ; les carrés
    qui donnent les instructions pourraient être plus animés, plus clean ; et un truc pour apprendre les figures »)
    La carte n'est plus un rectangle de texte. UN MOT (le geste, en or, qui arrive lettre par lettre), UNE ligne courte (les mots à retenir
@@ -9303,7 +9303,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=2"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="figures.js?v=3"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -39106,6 +39106,7 @@ const SAVE={
        valeur >1 sur `.volume` lève, elle, une exception qui tuerait la lecture. */
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
+    {const v9=Math.round(+d.vu);if(isFinite(v9)&&v9>0)c.vu=v9;} // (2026-10-14, session SON) la DERNIÈRE VISITE (ms) : la musique qui revient après une longue absence (MUS_RETOUR_H) — absente = inconnue
     c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
@@ -39275,6 +39276,31 @@ if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
+/* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
+   doit se réactiver dans les réglages ») LA MUSIQUE REVIENT APRÈS UNE LONGUE ABSENCE. Au lancement et au retour d'arrière-plan : si la
+   dernière visite (`SAVE.d.vu`, posée au départ en arrière-plan — le flush du départ l'écrit) date de plus de MUS_RETOUR_H heures et que
+   MUSIQUE est coupée ou à 0, elle repasse sur ON au volume d'usine. Une fois par retour : la visite est réécrite aussitôt. Rien d'autre ne
+   bouge : ni les EFFETS, ni la VOIX, ni leurs curseurs. Le bouton Silencieux de l'iPhone suit la règle de toujours (musicSession).
+   Visite inconnue (sauvegarde d'avant ce champ, joueur neuf) = rien. Banc : `?retour=1` simule 25 h d'absence au lancement ; dbgMusRetour(). */
+const MUS_RETOUR_H=24;
+const MUS_RETOUR_TEST=(function(){try{return new URLSearchParams(location.search).get('retour')==='1';}catch(e){return false;}})();
+const MUSRET={n:0,dernier:null}; // n : réactivations de cette session · dernier : la dernière décision (banc)
+function musRetour(boot){try{
+  const now=Date.now(),vu=(boot&&MUS_RETOUR_TEST)?now-25*36e5:(+SAVE.d.vu||0);
+  const loin=vu>0&&now-vu>MUS_RETOUR_H*36e5,coupee=!SND.music||!(VOL.mus>0);
+  MUSRET.dernier={boot:!!boot,h:vu>0?+((now-vu)/36e5).toFixed(1):null,loin:loin,coupee:coupee};
+  SAVE.d.vu=now;
+  if(!(loin&&coupee)){SAVE.mark();return;}
+  MUSRET.n++;
+  VOL.mus=SAVE.def().vol.mus;SAVE.d.vol.mus=VOL.mus; // le volume d'usine, depuis la SEULE source (SAVE.def)
+  if(boot){SND.music=true;SAVE.d.mus=true;SAVE.flush();return;} // au lancement : sndRefresh et le menu partent juste après, sur l'état rallumé
+  if(!SND.music)musBascule();else{SAVE.flush();volUI();} // au retour : le même chemin que le bouton MUSIQUE (session audio, relance selon le contexte)
+}catch(e){}}
+musRetour(true);
+document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE.d.vu=Date.now();SAVE.mark();}else musRetour(false);}); // départ : le flush de l'arrière-plan (plus bas) l'écrit
+window.dbgMusRetour=function(simH){ // (banc) l'état ; dbgMusRetour(26) simule un retour d'arrière-plan après 26 h d'absence
+  if(simH>0){SAVE.d.vu=Date.now()-simH*36e5;musRetour(false);}
+  return {vu:SAVE.d.vu,mus:SND.music,vol:VOL.mus,sfx:VOL.sfx,vox:VOL.vox,n:MUSRET.n,dernier:MUSRET.dernier,test:MUS_RETOUR_TEST,mode:musicMode,voulue:musicVoulue};};
 /* ---- LES CURSEURS : appliquer au graphe · repeindre les deux interfaces · retenir --------------
    ⚠ `volApply` ne touche QUE ce qui n'est pas déjà repiloté chaque image. La musique en course est
    réécrite par `musicTick` à chaque frame (filtre-mouvement + ducking) : y poser une valeur ici
@@ -39322,7 +39348,8 @@ function musApercu(){
 window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait du curseur : lecture seule
   return {mode:musicMode,ciel:!!(typeof CHUTE!=='undefined'&&CHUTE.on),paused:paused,cible:+musicVolCible.toFixed(3),cour:+musicVolCour.toFixed(3),
     el:musicEl?{p:musicEl.paused,v:+musicEl.volume.toFixed(3),t:+musicEl.currentTime.toFixed(2),src:(musicEl.src||'').split('/').pop()}:null,
-    ap:{reste:Math.round(MUSAP.t-performance.now()),joue:MUSAP.joue,rev:MUSAP.rev},ctx:AC&&AC.state,volMus:VOL.mus,reglagesPause:!!window.__setPause};};
+    ap:{reste:Math.round(MUSAP.t-performance.now()),joue:MUSAP.joue,rev:MUSAP.rev},ctx:AC&&AC.state,volMus:VOL.mus,reglagesPause:!!window.__setPause,
+    jade:jadeMusOn(),jmus:!!(JMUS.inst&&JMUS.inst.playing),jvol:JMUS.vol};}; // (2026-10-14) au SOLEIL DE JADE la course joue JMUS, pas la radio
 (function(){ // un seul câblage pour les six curseurs (trois par interface)
   const bind=function(id,k){const e=document.getElementById(id);if(!e)return;
     const go=function(){volSet(k,+e.value);};
@@ -39356,11 +39383,12 @@ function sndRefresh(){
 }
 sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
 voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;SAVE.d.vox=SND.voice;SAVE.flush();sndRefresh();});
-if(musBtnEl)musBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh();
+function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh(); // (2026-10-14, session SON) LA bascule MUSIQUE : le bouton et le retour d'une longue absence (musRetour) passent par elle
   musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend
   if(SND.music){ if(started&&running&&!gameOver)musicStartRun(); else musicMenu(); } // rallumée : relance selon le contexte
   else musicStop(false); // éteinte : coupe net
-});
+}
+if(musBtnEl)musBtnEl.addEventListener('click',function(e){e.stopPropagation();musBascule();});
 sndRefresh();
 // ---------- ÉTAT ----------
 const keys={};
@@ -43195,6 +43223,7 @@ function chanceEtat(){
 }
 function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on repart sous le volet
   if(!chanceEtat().ok)return false;
+  if(ecranWipe._on)return false; // (2026-10-14, chasse aux bugs) un volet déjà en route (REJOUER, ⌂ touchés juste avant) n'appellerait jamais la reprise (ecranWipe sort sans `go`) : on paierait pour rester sur l'écran de mort, offre éteinte et ligne du Top 10 retirée — on ne débite rien
   const P=CHANCE.prix;
   clearTimeout(CHANCE.tm);CHANCE.used=true;CHANCE.offre=false;
   SAVE.d.bank=Math.max(0,bank()-P);
