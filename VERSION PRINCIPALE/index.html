@@ -8272,6 +8272,14 @@ html.c6 body.setPause:not(.setPauseSort) #overlay{animation:none}
 html.c6 body.setPause #overlay::before{opacity:1;transition:none}   /* le fond d'encre est plein dès la première image (jamais le fondu d'opacité de la coque) */
 @keyframes c6FondSort{to{opacity:0}}
 html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort 120ms linear forwards}
+/* (2026-10-14, vérif P1) RÈGLE 1 DANS LA PAUSE : la pause (2e mission, d'avant les règles de 6 h) gardait ses libellés en pixel 8-10 px
+   (légendes du résumé, lignes de réglage, valeurs, bascules, RECOMMENCER / QUITTER). Texte courant = police système 13 px 800 capitales ;
+   le pixel reste au titre PAUSE (16), aux chiffres du résumé (16) et à REPRENDRE. Placé en fin de bloc : domine aussi le 8 px du couché étroit. */
+html.c6 #tPanel #tpIn .tpResume .mStat span{font-family:var(--sans);font-size:13px;line-height:16px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+html.c6 #tPanel #tpIn .tp.ligne,html.c6 #tPanel #tpIn .tp.ligne .tpL,html.c6 #tPanel #tpIn .tp.ligne b.valeur{font-family:var(--sans);font-size:13px;line-height:16px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule{width:72px;font-family:var(--sans);font-size:12px;line-height:16px;font-weight:800;letter-spacing:0;text-transform:uppercase}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko::before{transform:translateX(-40px)}
+html.c6 #tPanel #tpIn .tp:not(.ligne):not(.go),html.c6 #tPanel #tpIn .tpRow>.tp{font-family:var(--sans)!important;font-size:13px!important;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
