@@ -42524,7 +42524,7 @@ function buildGarageRoom(){
   const pod=new THREE.Group();g.add(pod);GAR.pod=pod;
   const dis=new THREE.Mesh(new THREE.CylinderGeometry(4.4,4.52,GAR.POD,34),M.fer);dis.position.y=GAR.POD/2;pod.add(dis);
   const anneau=new THREE.Mesh(new THREE.TorusGeometry(4.42,.045,6,52),
-    BA(0x5ff0ff,{transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));
+    BA(GARAGE_V?0xf2deb4:0x5ff0ff,{transparent:true,opacity:GARAGE_V?.5:.8,blending:THREE.AdditiveBlending,depthWrite:false})); // (garage-lumiere) cyan → or pâle, plus discret
   anneau.rotation.x=-Math.PI/2;anneau.position.y=GAR.POD;pod.add(anneau);GAR.ring=anneau;
   for(let i=0;i<12;i++){const a=i/12*Math.PI*2,pl=new THREE.Mesh(CY8,M.acier);
     pl.position.set(Math.sin(a)*4.05,GAR.POD+.02,Math.cos(a)*4.05);pl.scale.set(.1,.035,.1);pod.add(pl);}
