@@ -29937,6 +29937,16 @@ function carUnlockedVrai(i){
    ⚠ Rien ici ne touche au bank-or-bust : la mallette en vol part toujours en fumée.
    ========================================================================== */
 const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0,fren:0,frenMax:0}; // ce que `runStats` ne comptait pas (v3 : frénésies de la partie, la plus longue en s)
+/* (2026-10-14, gameplay) LES DÉFIS PARTENT DU DÉPART DE LA COURSE, PAS DE L'AUTO-ÉCOLE (relevé du banc, BACKLOG P2) : la leçon et la 1re
+   course sont UNE seule partie — RUNX comptait les pièces et les fruits mangés pendant la leçon, et les cartes « DÉFI RÉUSSI » retenues
+   pendant la leçon (hautPasse) tombaient 2 s après le permis (« CROQUE 4 FRUITS +$ 150 » sans qu'on sache pourquoi : 2 défis sur 3
+   « réussis » avant la 1re vraie course). MIS0 = ce que la partie avait déjà au PERMIS (tutoFin) : misVal le retranche, rien ne compte
+   pendant la leçon, et aucun défi ne se coche dans les 20 premières secondes de la course qui suit. RUNX lui-même ne change pas (l'écran
+   de fin compte toujours toute la partie). Hors auto-école : MIS0 reste à zéro, les défis comptent comme avant. */
+const MIS0={on:false,coins:0,fruits:0,perfect:0,t:0,nitro:0,cash:0,kmh:0,tricks:0,gaps:0,chain:0};
+function misBaseTuto(){try{MIS0.on=true;MIS0.coins=RUNX.coins;MIS0.fruits=RUNX.fruits;MIS0.perfect=RUNX.perfect;MIS0.t=RUNX.t;MIS0.nitro=RUNX.nitro;
+  MIS0.cash=Math.max(0,money-START_CASH);MIS0.kmh=runStats.vmax||0;MIS0.tricks=runStats.tricks||0;MIS0.gaps=runStats.gaps||0;MIS0.chain=runStats.chainMax||0;}catch(e){}}
+function misBaseRaz(){MIS0.on=false;MIS0.coins=MIS0.fruits=MIS0.perfect=MIS0.t=MIS0.nitro=MIS0.cash=MIS0.kmh=MIS0.tricks=MIS0.gaps=MIS0.chain=0;}
 const RAM={p0:new THREE.Vector3(),ok:false,face:1,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
 /* LE NITRO SE GAGNE AU STYLE (2026-09-25) : une figure encaissée et un bump rechargent la réserve orange, dans la limite
    du réservoir du moteur. La jauge FLASHE : le joueur doit relier le geste à la récompense. */
@@ -30903,7 +30913,7 @@ function nitroGain(q,src){
   if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
 function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
-RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;
+RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
   try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
@@ -30913,13 +30923,14 @@ RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX
    Hors partie (écran de mort), la dernière part lue : la piste du menu peut se reconstruire sous `s`. */
 function misZoneFrac(){try{if(!misOn())return RUNX.zf||0;if((LVL.cur&&(LVL.cur.camp||LVL.cur.carr))||CARR.actif||TUTO.on||!(L>0))return RUNX.zf=0;return RUNX.zf=Math.min(.99,Math.max(0,s/L));}catch(e){return 0;}}
 function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
-  switch(k){
-    case 'coins':return RUNX.coins;      case 'fruits':return RUNX.fruits;   case 'perfect':return RUNX.perfect;
-    case 'survie':return RUNX.t;         case 'nitro':return RUNX.nitro;
-    case 'cash':return Math.max(0,money-START_CASH);
-    case 'kmh':return Math.round(runStats.vmax||0);  case 'zones':return (runStats.zones||0)+misZoneFrac();
-    case 'tricks':return runStats.tricks||0;         case 'gaps':return runStats.gaps||0;
-    case 'chain':return runStats.chainMax||0;
+  if(TUTO.on)return 0; // (2026-10-14, gameplay) pendant l'auto-école rien ne compte pour les défis (voir MIS0)
+  switch(k){ // (2026-10-14, gameplay) − MIS0 : ce que la leçon avait déjà fait ; les records (km/h, chaîne) ne comptent que battus APRÈS elle
+    case 'coins':return RUNX.coins-MIS0.coins;      case 'fruits':return RUNX.fruits-MIS0.fruits;   case 'perfect':return RUNX.perfect-MIS0.perfect;
+    case 'survie':return RUNX.t-MIS0.t;         case 'nitro':return RUNX.nitro-MIS0.nitro;
+    case 'cash':return Math.max(0,money-START_CASH-MIS0.cash);
+    case 'kmh':return (runStats.vmax||0)>MIS0.kmh?Math.round(runStats.vmax||0):0;  case 'zones':return (runStats.zones||0)+misZoneFrac();
+    case 'tricks':return (runStats.tricks||0)-MIS0.tricks;         case 'gaps':return (runStats.gaps||0)-MIS0.gaps;
+    case 'chain':return (runStats.chainMax||0)>MIS0.chain?runStats.chainMax:0;
   }
   return 0;
 }
@@ -31026,6 +31037,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
   if(POKI)return; // (POKI) pas de missions : les compteurs de la partie tournent (écran de fin), aucun défi ne se coche
   misT-=dt;if(misT>0)return;misT=.25;
+  if(TUTO.on||(MIS0.on&&RUNX.t-MIS0.t<20)){misTick._f=1;try{misFocusMaj();}catch(e){}return;} // (2026-10-14, gameplay) rien ne se coche pendant la leçon, ni dans les 20 premières secondes de la course qui suit le permis (MIS0)
   const s=misEtat(),c=carnet(s.n);
   for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
@@ -31714,6 +31726,7 @@ function tutoBravo(){ // la réussite d'une étape : coche, son, vibration, gerb
   setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoAffiche();},750); /* (débogage son 2026-09-29) QUITTER dans l'intervalle : ni carte ni son sur l'écran de fin */
 }
 function tutoFin(passe){
+  if(TUTO.on)misBaseTuto(); // (2026-10-14, gameplay) LA COURSE COMMENCE ICI pour les défis : ce que la leçon a ramassé ne compte pas (MIS0)
   TUTO.on=false;document.body.classList.remove('coNitro','coOn');
   const c=document.getElementById('coach');if(c)c.classList.remove('on','entre','bravo');
   /* (2026-09-28) L'AIRTIME PRÊTÉ PAR LA LEÇON s'arrête avec elle, sans bruit : il lui restait jusqu'à 7 s, qui ressortaient après le permis
