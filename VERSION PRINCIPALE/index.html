@@ -21076,7 +21076,7 @@ function atchFeu(course){
   for(let i=0;i<14;i++){const s9=6+Math.random()*10,a=(Math.random()-.5)*6;
     spawnP(embers,P.x,P.y,P.z,EXV.x+F.x*s9+R.x*a+H.x*(2+Math.random()*4),EXV.y+F.y*s9+R.y*a+H.y*(2+Math.random()*4),EXV.z+F.z*s9+R.z*a+H.z*(2+Math.random()*4),.3+Math.random()*.3);}
   if(course){popTexte(TR('ATCHOUM !'),'#ffb030',0);hap&&hap(18);}else ATCH.reste=2.5; // (audit) au garage : ses flammes vivent encore 2,5 s, même si on change de caisse
-  if(!(typeof sfx==='function'&&sfx('caisse.atchoum')))noiseBurst(.2,.09,620); // (son à cuire par la session SON : « caisse.atchoum »)
+  if(!(typeof sfx==='function'&&(sfx('caisse.atchoum')||sfx('nitro.sec',{st:5,vol:2}))))noiseBurst(.2,.09,620); // (son à cuire par la session SON : « caisse.atchoum ») — (2026-10-14, session SON) pas encore cuit : la flamme qui TOUSSE de la panne sèche, une quarte plus haut (l'éternuement), au lieu du vieux souffle de bruit blanc
 }
 function atchTick(dt){
   if(!ATCH.on){if(ATCH.reste>0){ATCH.reste-=dt;if(garageOn&&!running)for(const q of [flames,flameCore,embers])updatePool(q,dt,q===embers?4.5:1);}return;} /* (2026-10-07, audit) on a changé de caisse au garage : ses dernières flammes finissent leur vie au lieu de rester plantées */
@@ -33160,7 +33160,7 @@ function singeArrive(){
   for(const m of SGC.S){const P=SGR_PL[m.i];m.ph=0;m.t=-.14*m.i;m.ds0=P.ds-7;m.lat0=P.c*(ROAD_HALF+5+3*Math.random());m.h0=-6;
     m.ds=m.ds0;m.lat=m.lat0;m.h=m.h0;m.hl=Math.max(0,Math.min(32,SGC.hC));m.vh=0;m.nd.visible=false;m.S.e.ph=Math.random()*6.28;}
   chaineAura('LES SINGES !',150,'singe');nitroGain(nitroCap()*.15,'singe');
-  try{flowAdd(8,'risque');}catch(e){}hap([10,24,10]);try{if(typeof sfx==='function')sfx('singe.troupe');}catch(e){}
+  try{flowAdd(8,'risque');}catch(e){}hap([10,24,10]);try{if(typeof sfx==='function'&&!sfx('singe.troupe'))sfx('dauphin.banc',{st:7,vol:5});}catch(e){} /* (2026-10-14, session SON) « singe.troupe » n'est pas cuit : la troupe arrivait MUETTE. En attendant : le babil de clics et de sifflets du banc de dauphins, une quinte plus haut — des petites bêtes qui jacassent */
 }
 function singePart(m){if(m.ph===2)return;m.ph=2;m.tp=m.t+.18*m.i;m.latp=m.lat;m.dsp=m.ds;m.hp=m.h;} // il s'en va (chacun à son tour)
 function singeJeu(dt){
