@@ -46749,6 +46749,19 @@ const TITRE_CIEL={
   golden:{tw:1,ry:.7,cr:.34,z:[.12,.22,.50],m:[.56,.58,.74],h:[.96,.84,.70],s:[.42,.26,.12],mh:[1,.84,.66],mo:[.42,.42,.62],c:[1,.82,.66],ca:.5,hz:.9},
   soir:  {tw:1,ry:.45,cr:.36,z:[.04,.07,.22],m:[.20,.20,.44],h:[.66,.48,.56],s:[.28,.14,.15],mh:[.70,.58,.70],mo:[.18,.19,.36],c:[.88,.60,.66],ca:.45,hz:.85},
   nuit:  {tw:.85,ry:0,cr:.45,z:[.010,.016,.045],m:[.03,.05,.12],h:[.10,.14,.26],s:[.04,.06,.12],mh:[.34,.42,.62],mo:[.05,.07,.15],c:[.35,.42,.60],ca:.2,hz:.8}};
+/* (2026-10-14, passe graphismes — ÉCRAN TITRE, les 6 heures) Retouche d'étalonnage PAR VALEURS (charte : signatures MATIN/MIDI/SOIR/NUIT, plus de violet-néon,
+   sat ≤ 1,30, pas de cobalt, caisse mieux éclairée). Posée ICI, après les définitions de TITRE_CIEL/TITRE_H, donc APRÈS la copie de titreGolden/titreNuit par
+   nuagesSoir/nuagesNuit (la course ne bouge pas). `?sans=titre` rend l'ancien titre. Couleurs de ciel/brume en LINÉAIRE. */
+const TITRE_V2=!/[?&]sans=titre\b/.test(location.search);
+if(TITRE_V2){
+  const T2=function(h,o){const H=TITRE_H[h];if(o.ciel)Object.assign(TITRE_CIEL[h],o.ciel);if(o.amb)Object.assign(BIOMES[H.bio],o.amb);if(o.P)Object.assign(H.P,o.P);if(o.v)H.v=o.v;if(o.t)H.t=o.t;};
+  // SOIR : zénith bleu-mauve doux → horizon pêche (plus de ciel magenta) ; mer de nuages rosé-prune éclairée pêche ; ombres prune désaturée
+  T2('soir',{ciel:{z:[.12,.12,.38],m:[.58,.40,.44],h:[1,.66,.46],s:[.52,.30,.18],mh:[.95,.70,.58],mo:[.30,.21,.25],c:[1,.72,.60]},
+    amb:{jZen:[.12,.12,.38],jMid:[.58,.40,.44],jHor:[1,.66,.46],jSol:[.95,.40,.18],sunTint:[1,.60,.40],fog:[.70,.52,.46],fogCj:[1,.60,.42],fogIn:[.80,.64,.62],hemiS:[.64,.56,.70],hemiG:[.30,.20,.20],sunC:[1,.70,.52],sat:1.12,con:1.12,vigC:[.05,.035,.07],vigK:.22,
+      env:[[0,'#2e3470'],[.3,'#8a78a8'],[.48,'#e8907a'],[.58,'#ffb98a'],[.66,'#5a4a66'],[1,'#2a2438']],eS1:[255,185,138,.45],eS2:[150,150,200,.3]},
+    P:{mzT:[.26,.18,.22,.6],mzO:[.30,.21,.25,.6],mzH:[.95,.70,.58,.6],cleS:0xffc8a8,zenC:0xb8b8ee,rimC:0xb0b4f0,amb:1.2,sol:1.1,sk:3.4,cjA:1.3,cjF:1.9},
+    v:['34,28,56',.34,.54,'30,24,50',.64],t:[.78,.60,.54]});
+}
 function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);if(!on)return T;
   U.uTZen.value.fromArray(T.z);U.uTMid.value.fromArray(T.m);U.uTHor.value.fromArray(T.h);U.uTSol.value.fromArray(T.s);
   U.uTMerH.value.fromArray(T.mh);U.uTMerO.value.fromArray(T.mo);U.uTCir.value.fromArray(T.c);return T;}
