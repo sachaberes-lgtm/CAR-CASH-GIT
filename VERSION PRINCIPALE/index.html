@@ -8257,6 +8257,7 @@ html:not(.c6) #tPanel .tp[data-a="tous"]{display:none}
 html.c6 body.setPause #overlay{z-index:12}
 /* à l'ouverture le fond d'encre est PLEIN tout de suite (pas de fondu de l'overlay : la pause et les réglages se lisaient superposés pendant ~200 ms) ; la page, elle, arrive en glissant */
 html.c6 body.setPause:not(.setPauseSort) #overlay{animation:none}
+html.c6 body.setPause #overlay::before{opacity:1;transition:none}   /* le fond d'encre est plein dès la première image (jamais le fondu d'opacité de la coque) */
 @keyframes c6FondSort{to{opacity:0}}
 html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort 120ms linear forwards}
 </style>
@@ -54114,6 +54115,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
     window.__setPause=true;uiClic('nav');
     document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
+    overlay.setAttribute('data-ecran','set'); // AVANT l'affichage : mGo force un reflow avant de le poser, et le fond (transition d'opacité de ::before) partait de l'accueil (transparent) → la pause se lisait derrière les réglages
     TCTL.ov=true;overlay.style.display='flex';
     mGo('set','avant',true); }
   function setPauseFerme(){
