@@ -22255,7 +22255,7 @@ Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO
 Object.assign(I18N,{'LES NUAGES CACHENT LES VIRAGES':'CLOUDS HIDE THE TURNS','LES TOURS NE PARDONNENT PAS':'TOWERS SHOW NO MERCY'}); // (2026-09-30) les promesses des NUAGES et de la VILLE
 Object.assign(I18N,{'MINUIT EN VILLE':'MIDNIGHT CITY','PLEINS PHARES':'HIGH BEAMS','LES FACADES SONT DES MURS':'THE FACADES ARE WALLS'});
 Object.assign(I18N,{'CANYON DES GÉANTS':'CANYON OF GIANTS','LES PAROIS NE PARDONNENT PAS':'THE WALLS NEVER FORGIVE','ENCASTRE DANS LA PAROI':'SMASHED INTO THE CLIFF','AU FOND DU CANYON':'AT THE BOTTOM OF THE CANYON','A LA RIVIERE !':'INTO THE RIVER!'}); // (2026-10-14) LE CANYON DES GÉANTS
-Object.assign(I18N,{'PLUIE DE SATELLITES':'SATELLITE STORM','ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'}); // (2026-09-30) le 6e niveau
+Object.assign(I18N,{'ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'}); // (2026-09-30) le 6e niveau
 Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'THE ROAD HIDES: LIGHTNING SHOWS IT'}); // (2026-09-29) le 4e niveau
 Object.assign(I18N,{'VIRAGE A FOND':'FULL THROTTLE TURN','RATTRAPE':'CAUGHT','RATTRAPE !':'CAUGHT!'}); // (2026-09-29) LA ROUTE QUI TE RATTRAPE
 Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
@@ -23566,7 +23566,8 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
   {id:'orage', nm:'L\'ORAGE',               bio:['tempete'],             planete:0,   espace:0,pluie:1,cielMusical:false,route:.22,sheen:.16,pr:'LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE'}, // (2026-09-29, Sacha) le 4e : les NUAGES sous l'ORAGE — le niveau DUR (voir « L'ORAGE » : tempete, bancs, plafond, éclairs)
   {id:'ville', nm:'MINUIT EN VILLE',      bio:['nuitNoire'],           planete:0,   espace:0,pluie:.55,cielMusical:true,route:.42,sheen:.2,nuit:1,pr:'PLEINS PHARES'}, // (2026-09-30, Sacha) le 5e : la VILLE plus tard, après l'orage — très sombre, des PHARES PUISSANTS (id 'ville' : toute la ville suit ; `nuit` ne change que la lumière — voir « MINUIT EN VILLE »)
-  {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard)
+  /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») le 6e niveau sort du cycle — l'ORBITE reste, sans satellites sur la route :
+  {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard) */
 ];
 /* ============================================================================
    LE MODE CLASSIQUE AU HASARD (2026-10-13, Sacha : « il faut que les biomes soient aléatoires — montagne chinoise, nuages, ville… — et
@@ -23619,7 +23620,7 @@ const SF_CARTES={
      d'orageTick dans le panache). `mt` : le nom de la météo dit au portail. Voir « LE ROYAUME DE FEU » (genVolcan, buildVolcan, VLC_MET). */
   volcan:{nm:'LE ROYAUME DE FEU',base:'volcan',m:{matin:{bio:'volcanMatin'},midi:{bio:'volcanMidi'},soir:{bio:'volcanSoir',p:1.4},nuit:{bio:'volcanNuit',nuit:1,pr:'LA LAVE EST LA SEULE LUMIERE'},
     pluie:{bio:'volcanCendre',mt:'CENDRES',sheen:.1,pr:'PLUIE DE CENDRES'},orage:{bio:'volcanOrage',orage:1,mt:'ORAGE VOLCANIQUE',pr:'ORAGE VOLCANIQUE'}}},
-  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'},satellites:{niv:'satellites',p:.5}}}, // ni nuages, ni pluie, ni orage (Sacha)
+  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},midi:{bio:'canyonMidi'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
     pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{})
 };
@@ -23636,9 +23637,9 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars'},
   jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'},
   saturne:{teinte:0x6c5e4a,atmo:0xf0dca0,limbe:0xe8d090,rim:.3,peint:'saturne'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
-if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);SF_CARTES.espace.m.satellites.astre=Object.assign({echelle:1.35},PLANETES.saturne);} // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
+if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);} /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de variante satellites (Saturne) */ // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
 if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
-if(PLANETES_ON&&ORBITE2_V)SF_CARTES.espace.m.satellites.bio='espaceSat'; // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
+/* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») */ // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
    Il se dessine JUSTE AVANT le globe (renderOrder 20,5 < 21), sans écrire la profondeur : le globe, sur le plan lointain, le recouvre là où il passe derrière lui, et la route
