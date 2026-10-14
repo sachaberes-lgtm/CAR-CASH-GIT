@@ -43141,7 +43141,7 @@ function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
   uiClic('nav'); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
-    shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte');else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
+    shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
   if(!garageOn||!GAR.root||GAR.sw){garageShow(garageVoisin(garageI,d));return;}
   GAR.sw={t:0,fait:false,to:garageVoisin(garageI,d)};
   try{if(SONV2)sfx('garage.bascule');else{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){} /* (console de son) LA BASCULE, calée sur le retourneur de 1,06 s */
@@ -43438,7 +43438,7 @@ try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const k=t.getAttribute('data-fn');
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
-  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2)sfx('ui.carte');}catch(er){}}
+  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2)sfx('ui.carte',{vol:-3});}catch(er){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const v=bqReste();document.querySelectorAll('#gRar .fnT i:not(.pxi),#gStrip .fpTim i:not(.pxi)').forEach(function(t){if(t.textContent!==v)t.textContent=v;});}catch(e){}},1000);
@@ -46098,7 +46098,7 @@ function bqGesteCoul(cat,d){if(!d)return BQ_OR;
   if(cat==='trainee'){if(d.rainbow)return null;if(d.rgb){const m9=Math.max(1,...d.rgb);return d.rgb.map(function(x){return x/m9;});}return [1,.45,.12];}
   const h=d.c!=null?d.c:(d.grad?d.grad[0]:null);if(h==null)return BQ_OR;const c=new THREE.Color(h);return [c.r,c.g,c.b];}
 function bqGeste(k,d){bqGesteBatit();BQG.a=k;BQG.t=0;BQG.f=0;BQG.col=bqGesteCoul(k,d);BQG.th0=Math.random()*Math.PI*2;
-  if(k==='aile')GBQ.gFlash=1;try{if(SONV2)sfx(k==='voiture'?'ui.feuille':'ui.carte');}catch(e){}}
+  if(k==='aile')GBQ.gFlash=1;try{if(SONV2)sfx(k==='voiture'?'ui.feuille':'ui.carte',k==='voiture'?undefined:{vol:-3});}catch(e){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
 function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r;
   const vis=!!(GBQ.grp&&GBQ.grp.visible);if(!vis){m.visible=false;B.lame.visible=false;B.n=0;B.a=null;GBQ.hop=0;return;}m.visible=true;
   const hm=bqDessous(),bb=hm.bb,q=carGroup.quaternion,sc=carGroup.scale,p0=carGroup.position,v1=B.v1,v2=B.v2;
@@ -48417,7 +48417,7 @@ $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)r
   if(t.classList.contains('gMys')){uiClic('refus');toast(pxi('horloge')+' '+sansAcc(TR(t.getAttribute('aria-label')))+' — '+sansAcc(TR('BIENTÔT')));return;} // (2026-10-10) une rareté à venir
   uiClic('nav');
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture')return;const eq9=garEquipeHabit(SHOP.tab,j);
-    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2)sfx('ui.carte');else chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
+    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
   const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
