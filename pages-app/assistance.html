@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASH CAR — Support / Assistance</title>
+<style>
+  /* CHARTE 6 « ENCRE · BLANC · OR » : à plat, droit, sans dégradé ni lueur. Un seul or : le mot en couleur du titre. */
+  :root{--blanc:#fff;--gris:#f3f4f6;--encre:#14171c;--doux:#5d6570;--trait:#dde1e6;--or:#a87400}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--blanc);color:var(--encre);line-height:1.6;min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .top{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;background:var(--blanc);border-bottom:1px solid var(--trait)}
+  .brand{font-weight:800;font-size:18px;letter-spacing:.06em}
+  .lang-switch{display:flex;border:1px solid var(--encre)}
+  .lang-switch button{appearance:none;border:0;cursor:pointer;background:transparent;color:var(--doux);
+    font:inherit;font-size:13px;font-weight:600;padding:6px 14px;letter-spacing:.02em}
+  .lang-switch button.active{background:var(--encre);color:var(--blanc)}
+  main{max-width:720px;margin:0 auto;padding:40px 22px 80px}
+  h1{font-size:34px;line-height:1.15;margin:0 0 6px;font-weight:800}
+  h1 .accent{color:var(--or)}
+  .sub{color:var(--doux);margin:0 0 32px;font-size:15px}
+  section{border-top:1px solid var(--trait);padding:22px 0;margin:0}
+  h2{font-size:18px;margin:0 0 12px;font-weight:700}
+  p{margin:0 0 12px}
+  p:last-child{margin-bottom:0}
+  ul{margin:0 0 12px;padding-left:20px}
+  li{margin:6px 0}
+  a{color:var(--encre);text-decoration:underline}
+  .muted{color:var(--doux);font-size:13px}
+  .hl{font-weight:700}
+  .email{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;
+    background:var(--gris);border:1px solid var(--trait);padding:10px 16px}
+  .pill{display:inline-block;background:var(--gris);border:1px solid var(--trait);padding:3px 12px;font-size:12px;
+    margin:6px 6px 0 0;color:var(--doux)}
+  .qa{margin:0 0 14px}
+  .qa:last-child{margin-bottom:0}
+  .q{font-weight:700;margin:0 0 4px}
+  .a{margin:0;color:var(--doux)}
+  .updated{color:var(--doux);font-size:12px;margin-top:26px}
+  .fr.block,.en.block{display:none}
+  body.lang-fr .fr.block{display:block}
+  body.lang-en .en.block{display:block}
+</style>
+</head>
+<body class="lang-fr">
+  <div class="top">
+    <div class="brand">CASH CAR</div>
+    <div class="lang-switch" role="group" aria-label="Langue / Language">
+      <button id="btn-fr" class="active" type="button">FR</button>
+      <button id="btn-en" type="button">EN</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ============ FRANÇAIS ============ -->
+    <div class="fr block">
+      <h1>Support <span class="accent">CASH CAR</span></h1>
+      <p class="sub">Besoin d'aide ? On est là.</p>
+
+      <section>
+        <h2>Nous contacter</h2>
+        <p>Pour tout problème, question ou suggestion, écrivez-nous à :</p>
+        <p><a class="email" href="mailto:16180contact@gmail.com">16180contact@gmail.com</a></p>
+        <p class="muted">Décrivez votre problème, le modèle de votre iPhone et la version
+        du jeu (voir plus bas) : on vous répondra plus vite.</p>
+      </section>
+
+      <section>
+        <h2>Questions fréquentes</h2>
+
+        <div class="qa">
+          <p class="q">Le jeu a-t-il besoin d'Internet ?</p>
+          <p class="a">Non. CASH CAR est entièrement hors ligne : vous pouvez jouer partout,
+          même en mode avion, sans connexion.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Comment installer le jeu ?</p>
+          <p class="a">Depuis l'App Store, sur iPhone. Une fois le jeu installé, aucune connexion
+          n'est requise pour jouer.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Ma sauvegarde est-elle conservée après une mise à jour ?</p>
+          <p class="a">Oui. Votre progression et vos réglages sont stockés localement sur
+          votre appareil et restent en place lors des mises à jour de l'application.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Que se passe-t-il si je désinstalle l'application ?</p>
+          <p class="a">Toutes les données locales (scores, progression, réglages) sont
+          supprimées avec l'application. Elles ne sont sauvegardées nulle part ailleurs :
+          pour les conserver, ouvrez RÉGLAGES → « Copier ma sauvegarde » et gardez ce code ;
+          « Restaurer un code » le recharge plus tard.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Comment remettre le jeu à zéro ?</p>
+          <p class="a">Désinstallez puis réinstallez l'application.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">L'écran ne tourne pas.</p>
+          <p class="a">CASH CAR se joue téléphone debout ou couché. Si l'image ne suit pas, vérifiez
+          que le verrouillage de l'orientation est désactivé dans le Centre de contrôle de l'iPhone.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Je n'ai pas de son.</p>
+          <p class="a">Vérifiez que l'iPhone n'est pas en mode silencieux et montez le volume, puis
+          ouvrez RÉGLAGES dans le jeu : Effets sonores, Musique et Voix doivent être sur ON.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Les performances sont saccadées sur mon appareil.</p>
+          <p class="a">Dans RÉGLAGES (ou dans le menu PAUSE), passez IMAGE sur « RAPIDE ». Fermez les autres
+          applications, laissez refroidir l'iPhone s'il est chaud, et vérifiez qu'iOS est à jour.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Version du jeu</h2>
+        <p class="muted">Elle est écrite tout en bas de l'écran RÉGLAGES du jeu (« VERSION … ») :
+        recopiez-la dans votre message.</p>
+      </section>
+    </div>
+
+    <!-- ============ ENGLISH ============ -->
+    <div class="en block">
+      <h1>Support <span class="accent">CASH CAR</span></h1>
+      <p class="sub">Need a hand? We're here.</p>
+
+      <section>
+        <h2>Contact us</h2>
+        <p>For any issue, question or suggestion, email us at:</p>
+        <p><a class="email" href="mailto:16180contact@gmail.com">16180contact@gmail.com</a></p>
+        <p class="muted">Please describe your problem, your iPhone model and the
+        game version (see below) — it helps us reply faster.</p>
+      </section>
+
+      <section>
+        <h2>Frequently asked questions</h2>
+
+        <div class="qa">
+          <p class="q">Does the game need an internet connection?</p>
+          <p class="a">No. CASH CAR is fully offline: you can play anywhere, even in airplane
+          mode, with no connection at all.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">How do I install the game?</p>
+          <p class="a">From the App Store, on iPhone. Once the game is installed, no connection is
+          required to play.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Is my save kept after an update?</p>
+          <p class="a">Yes. Your progress and settings are stored locally on your device and
+          remain in place across app updates.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">What happens if I uninstall the app?</p>
+          <p class="a">All local data (scores, progress, settings) is removed together with the
+          app. It isn't backed up anywhere else — to keep it, open SETTINGS → "Copy my save" and store that code;
+          "Restore a code" loads it back later.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">How do I reset the game?</p>
+          <p class="a">Uninstall and reinstall the app.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">The screen doesn't rotate.</p>
+          <p class="a">CASH CAR plays in portrait or landscape. If the picture doesn't follow, make sure
+          Orientation Lock is off in your iPhone's Control Center.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">I have no sound.</p>
+          <p class="a">Make sure your iPhone isn't in silent mode and turn the volume up, then open
+          SETTINGS in the game: Sound effects, Music and Voice must be ON.</p>
+        </div>
+
+        <div class="qa">
+          <p class="q">Performance is choppy on my device.</p>
+          <p class="a">In SETTINGS (or in the PAUSE menu), set IMAGE to "FAST". Close other apps,
+          let your iPhone cool down if it is hot, and make sure iOS is up to date.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Game version</h2>
+        <p class="muted">It is written at the very bottom of the game's SETTINGS screen ("VERSION …"):
+        copy it into your message.</p>
+      </section>
+    </div>
+
+  </main>
+
+  <script>
+    (function(){
+      var body=document.body,fr=document.getElementById('btn-fr'),en=document.getElementById('btn-en');
+      var saved='';
+      try{ saved=localStorage.getItem('ccLang'); }catch(e){}
+      function apply(lang){
+        body.classList.remove('lang-fr','lang-en');
+        body.classList.add('lang-'+lang);
+        fr.classList.toggle('active', lang==='fr');
+        en.classList.toggle('active', lang==='en');
+        try{ localStorage.setItem('ccLang',lang); }catch(e){}
+      }
+      apply((saved==='en')?'en':'fr');
+      fr.addEventListener('click',function(){apply('fr');});
+      en.addEventListener('click',function(){apply('en');});
+    })();
+  </script>
+</body>
+</html>
