@@ -7130,7 +7130,18 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
        une seule). Le vert = l'argent, le violet = l'aura, le rouge = le danger : sur des CHIFFRES, jamais en décor.
      · AUCUN dégradé, AUCUNE lueur, AUCUN reflet animé, AUCUNE trame, AUCUN coin coupé, RIEN de penché.
      · UNE touche : face pleine, filet de 2 px, épaisseur de 4 px dessous ; à l'appui elle descend de son épaisseur.
-     · Le pixel reste la voix (Press Start 2P), DROIT, sans chasse ajoutée.
+     · Le pixel reste la voix (Press Start 2P), DROIT, sans chasse ajoutée — mais JAMAIS sous 16 px (règles de 6 h) :
+       titres, noms, la décision, les gros chiffres. Tout le reste (libellés de touche, lignes, légendes, comptes) se lit
+       en police système, 13 ou 15 px, graisse 600 ou 800.
+   L'ACCORD (2026-10-14, passe d'accord — ui/notes/accord.md §2) : UN seul jeu de valeurs pour que tous les écrans se
+   ressemblent. Elles sont les variables ci-dessous (--c6-h…, --c6-t13…, --c6-sort…) ; les composants du socle les lisent,
+   les blocs de zone doivent les lire aussi plutôt que de recopier des nombres.
+     · 3 hauteurs : 48 (toute touche, ligne, onglet, ◀) · 64 (la décision) · 32 (une commande DANS une ligne, un compte).
+     · 1 retour au toucher : la touche descend de 4 px et perd sa tranche, 90 ms linear, à l'aller et au retour ; une
+       surface plate (ligne, onglet) change seulement de face. Plus de flash au relâcher, plus de 2/3 px, plus de filtre.
+     · 3 durées : 90 ms (toucher) · 200 ms (ce qui entre) · 100 ms (ce qui sort) ; UNE courbe (--c6-courbe).
+     · 6 corps : système 11 · 13 · 15, pixel 16 · 24 · 32 ; 2 graisses (600 lire, 800 nommer) ; .04em sur les capitales.
+     · 2 voiles (.88 un panneau sur une scène, .45 assombrir une scène) ; plus de rouge rose, de vert « bravo », de voile violet.
    OÙ : ce bloc est le DERNIER <style> de la page et toutes ses règles commencent par `html.c6` (posée dans le <head>,
    retirée par `?ui=5` : l'ancienne interface, pour comparer). Les règles propres à un écran vivent dans leur propre
    bloc `<style id="c6-…">`, posés juste après celui-ci. Les anciennes feuilles (charte4, hubGarage, uxPasse…) restent
@@ -7145,9 +7156,34 @@ html.c6{
   --c6-or:#ffc62b;--c6-orL:#ffe389;--c6-orT:#b07a00;--c6-orE:#1d1300;
   /* le SENS : sur des chiffres et des états, jamais en décor */
   --c6-cash:#58e08c;--c6-aura:#b9a2ff;--c6-rouge:#ff5648;
-  --c6-t:4px;                                   /* l'épaisseur d'une touche */
+  --c6-noir:#000;                               /* la tranche, le contour dur */
+  /* (accord) les DEUX voiles : un panneau posé sur une scène (pause, plaque d'inventaire, fenêtre) · assombrir une scène 3D */
+  --c6-voile:rgba(11,13,18,.88);--c6-voile-leger:rgba(11,13,18,.45);
+  /* (accord) la scène CLAIRE (la boutique de Léo) : cinq gris et un vert, pas un de plus */
+  --c6-l0:#ffffff;--c6-l1:#eef0f3;--c6-l2:#d5d8df;--c6-l3:#a9aebb;--c6-l4:#8c93a3;--c6-cashL:#12813f;
+  /* (accord) les TROIS hauteurs */
+  --c6-h:48px;--c6-hD:64px;--c6-hC:32px;--c6-hMin:48px;
+  /* (accord) les MARGES (16 + la zone sûre) et les écarts : 8 côte à côte, 12 empilées (8 + la tranche), 16 entre groupes */
+  --c6-m:16px;
+  --c6-x-g:calc(var(--sL,0px) + 16px);--c6-x-d:calc(var(--sR,0px) + 16px);
+  --c6-y-haut:calc(var(--sT,0px) + 8px);--c6-tete:calc(var(--sT,0px) + 64px);
+  --c6-y-bas:calc(var(--sB,0px) + 20px);--c6-pied:calc(var(--sB,0px) + 16px);
+  --c6-e:8px;--c6-ev:12px;--c6-eg:16px;--c6-pad:12px;--c6-pad-p:16px;
+  /* (accord) le TEXTE : deux familles, six corps, deux graisses */
+  --c6-sys:var(--sans,-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif);
+  --c6-pixel:var(--pix);
+  --c6-t11:11px;--c6-t13:13px;--c6-t15:15px;--c6-t16:16px;--c6-t24:24px;--c6-t32:32px;
+  --c6-lh11:14px;--c6-lh13:18px;--c6-lh15:20px;--c6-lh16:24px;
+  --c6-w:600;--c6-wf:800;--c6-cap:.04em;
+  /* la TOUCHE */
+  --c6-t:4px;                                   /* l'épaisseur d'une touche = sa descente à l'appui */
   --c6-bord:2px;                                /* le filet */
-  --c6-vite:90ms;--c6-pose:200ms;--c6-courbe:cubic-bezier(.2,.8,.2,1);
+  --c6-sel:4px;                                 /* « choisi » / « en cours » : un filet de 4 px */
+  /* le MOUVEMENT : toucher 90 · entrer 200 · sortir 100 — une courbe */
+  --c6-vite:90ms;--c6-pose:200ms;--c6-sort:100ms;--c6-courbe:cubic-bezier(.2,.8,.2,1);
+  --c6-rideau-in:150ms;--c6-rideau-out:200ms;
+  --c6-cascade:30ms;--c6-monte:8px;--c6-glisse:24px;
+  --t-press:var(--c6-vite);                     /* (accord) l'ancien enfoncement (70 ms) suit le nôtre */
   /* ---- les jetons de la charte 5, REMIS À PLAT : toute règle ancienne qui les lit suit sans qu'on la réécrive ---- */
   --sk:0deg;--skI:0deg;
   --k0:#0b0d12;--k1:#0f1218;--k2:#13161d;--k3:#1c2029;--k4:#2a303c;--kl:#404858;--kl2:#5a6376;
@@ -7164,13 +7200,18 @@ html.c6{
   --coupe:0px;
   --livree:linear-gradient(transparent,transparent);
 }
+/* (accord) UN seul tap-highlight : aucun flash gris du navigateur, sur rien */
+html.c6 *{-webkit-tap-highlight-color:transparent}
 
 /* ============================================ LA TOUCHE =============================================================
    .pbtn — UNE construction. Par défaut : encre, filet blanc, épaisseur noire. --c6-f la face, --c6-l le filet,
-   --c6-tr la tranche, --c6-x le texte. Les variantes ne changent QUE ces quatre couleurs. */
-html.c6 .pbtn{--nc:var(--c6-b0);--c6-f:var(--c6-e1);--c6-l:var(--c6-b0);--c6-tr:#000;--c6-x:var(--c6-b0);
-  min-height:48px;padding:0 16px;gap:10px;border:0;border-radius:0;outline:0;
-  font-family:var(--pix);font-size:12px;line-height:1;letter-spacing:0;font-style:normal;color:var(--c6-x);text-shadow:none;
+   --c6-tr la tranche, --c6-x le texte. Les variantes ne changent QUE ces quatre couleurs.
+   (accord) Le LIBELLÉ d'une touche est en police système 15 / 800, capitales, .04em (comme les cartes de l'accueil et
+   l'auto-école) : le pixel 12 d'avant passait sous la règle « pixel ≥ 16 » et ne se lisait pas sur iPhone. */
+html.c6 .pbtn{--nc:var(--c6-b0);--c6-f:var(--c6-e1);--c6-l:var(--c6-b0);--c6-tr:var(--c6-noir);--c6-x:var(--c6-b0);
+  min-height:var(--c6-h);padding:0 16px;gap:var(--c6-e);border:0;border-radius:0;outline:0;
+  font-family:var(--c6-sys);font-size:var(--c6-t15);line-height:var(--c6-lh15);font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase;
+  font-style:normal;color:var(--c6-x);text-shadow:none;
   transform:none;filter:none;animation:none;clip-path:none;
   background:var(--c6-f);
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-l),0 var(--c6-t) 0 0 var(--c6-tr);
@@ -7178,79 +7219,113 @@ html.c6 .pbtn{--nc:var(--c6-b0);--c6-f:var(--c6-e1);--c6-l:var(--c6-b0);--c6-tr:
 html.c6 .pbtn::before,html.c6 .pbtn::after{filter:none;text-shadow:none}
 html.c6 .pbtn .pxi{color:currentColor;filter:none}
 html.c6 .pbtn>span,html.c6 .pbtn>b,html.c6 .pbtn>i{font-style:normal;transform:none;text-shadow:none}
+/* LE retour au toucher (le seul du jeu) : 4 px vers le bas, la tranche rentre — 90 ms, linear, aller et retour */
 html.c6 .pbtn:active,html.c6 .pbtn.appui{transform:translateY(var(--c6-t));filter:none;
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-l),0 0 0 0 var(--c6-tr)}
-html.c6 .pbtn:focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
+html.c6 :is(.pbtn,.c6Carte,.c6Onglet,.mLigne,.tp):focus-visible{outline:var(--c6-bord) solid var(--c6-or);outline-offset:var(--c6-t)}
 html.c6 .pb-cyan,html.c6 .pb-mag{--nc:var(--c6-b0)}
-/* l'OR — LA décision de l'écran : face d'or, encre dessus, un trait de lumière en haut, tranche d'or sombre */
+/* l'OR — LA décision de l'écran : face d'or, encre dessus, un trait de lumière en haut, tranche d'or sombre.
+   (accord) 64 de haut, le mot en pixel 24 — la même plaque partout (JOUER, REJOUER, REPRENDRE, ÉQUIPER) ; .long
+   (plus de 10 lettres) = pixel 16 ; iPhone 7/8 couché (≤ 400 px de haut) = 48 / 16 ; dans une rangée de fenêtre, à
+   côté d'une touche de 48, elle prend 48 / 16 (deux hauteurs côte à côte se voient tout de suite). */
 html.c6 .pb-gold{--nc:var(--c6-orE);--c6-f:var(--c6-or);--c6-l:var(--c6-orE);--c6-tr:var(--c6-orT);--c6-x:var(--c6-orE);
+  min-height:var(--c6-hD);font-family:var(--c6-pixel);font-size:var(--c6-t24);line-height:1;letter-spacing:0;font-weight:400;text-transform:none;
   background:var(--c6-or);background-size:auto;background-position:0 0;animation:none;text-shadow:none;
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 var(--c6-t) 0 0 var(--c6-orT),0 var(--c6-t) 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
 html.c6 .pb-gold:active,html.c6 .pb-gold.appui{transform:translateY(var(--c6-t));
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
 html.c6 .pb-gold .pxi{color:var(--c6-orE)}
+html.c6 .pb-gold.long{font-size:var(--c6-t16)}
+html.c6 :is(.modB,.spBtns) .pb-gold,html.c6 .pb-gold.carrNiv{min-height:var(--c6-h);font-size:var(--c6-t16)}
+@media (orientation:landscape) and (max-height:400px){html.c6 :is(.pb-gold,.pbtn.big){min-height:var(--c6-h);font-size:var(--c6-t16)}}
 /* le ROUGE — détruire (dans la confirmation seulement) · le VERT — valider */
-html.c6 .pb-red{--c6-f:var(--c6-rouge);--c6-l:#000;--c6-tr:#8e1c12;--c6-x:#fff;background:var(--c6-rouge);text-shadow:none}
-html.c6 .pb-green{--c6-f:var(--c6-cash);--c6-l:#000;--c6-tr:#1f7a45;--c6-x:var(--c6-e0);background:var(--c6-cash);text-shadow:none}
+html.c6 .pb-red{--c6-f:var(--c6-rouge);--c6-l:var(--c6-noir);--c6-tr:#8e1c12;--c6-x:#fff;background:var(--c6-rouge);text-shadow:none}
+html.c6 .pb-green{--c6-f:var(--c6-cash);--c6-l:var(--c6-noir);--c6-tr:#1f7a45;--c6-x:var(--c6-e0);background:var(--c6-cash);text-shadow:none}
 html.c6 .pb-red .pxi,html.c6 .pb-green .pxi{color:currentColor}
 /* ÉTEINTE : elle répond encore au doigt, elle n'appelle plus l'œil */
-html.c6 .pbtn.off{--c6-f:var(--c6-e1);--c6-l:var(--c6-e4);--c6-tr:#000;--c6-x:var(--c6-g2);background:var(--c6-e1);text-shadow:none}
-/* les tailles : 48 (la touche), 64 (la décision), 48 × 48 (l'icône seule) */
-html.c6 .pbtn.big{min-height:64px;font-size:24px;letter-spacing:0}
-html.c6 .pbCarre{width:48px;min-width:48px;min-height:48px;padding:0}
-html.c6 .pbtn.ico{min-height:64px;padding:8px 10px;gap:8px;font-size:8px;letter-spacing:0}
-/* le RELÂCHER : la face s'éclaire un instant — pas de rebond */
-html.c6 .pbtn.pop,html.c6 .gTab.pop,html.c6 .gR.pop,html.c6 .gT.pop,html.c6 .mLigne.pop,html.c6 .mMode.pop{animation:c6Pop 160ms linear}
-@keyframes c6Pop{0%{filter:brightness(1.6)}100%{filter:brightness(1)}}
-/* les PASTILLES : un chiffre ou NEW — un carré d'or, droit, sans lueur */
-html.c6 .mBadge,html.c6 #bdShop{top:-8px;right:-8px;min-width:20px;padding:4px 5px 3px;font-size:8px;letter-spacing:0;transform:none;
-  color:var(--c6-orE);background:var(--c6-or);box-shadow:0 0 0 2px #000;text-shadow:none;animation:none}
+html.c6 .pbtn.off{--c6-f:var(--c6-e1);--c6-l:var(--c6-e4);--c6-tr:var(--c6-noir);--c6-x:var(--c6-g2);background:var(--c6-e1);text-shadow:none}
+/* les tailles : 48 (la touche), 64 (la décision : .big = la même recette que l'or), 48 × 48 (l'icône seule) */
+html.c6 .pbtn.big{min-height:var(--c6-hD);font-family:var(--c6-pixel);font-size:var(--c6-t24);line-height:1;letter-spacing:0;font-weight:400;text-transform:none}
+html.c6 .pbCarre{width:var(--c6-h);min-width:var(--c6-h);min-height:var(--c6-h);padding:0}
+/* l'icône au-dessus du mot : 48 de haut comme toute touche, le mot en 13 (le 8 px est interdit) */
+html.c6 .pbtn.ico{min-height:var(--c6-h);padding:4px 10px;gap:4px;font-size:var(--c6-t13);line-height:16px}
+/* (accord) le RELÂCHER ne fait plus rien : l'ancien éclair (c6Pop / k4Pop, un filtre) était un second retour au toucher */
+html.c6 :is(.pbtn,.gTab,.gR,.gT,.mLigne,.mMode).pop{animation:none}
+/* (accord) les vieux enfoncements (2 px, 3 px, éclaircis) des cartes de l'ancienne feuille : une surface plate change de face, elle ne bouge pas */
+html.c6 :is(.mObj[data-m],.misPrix.voir,.mMode).appui,html.c6 .gR.appui{translate:none;filter:none}
+html.c6 :is(.mMode,.misPrix.voir).appui{background:var(--c6-e2)}
+/* les PASTILLES : un carré d'or MUET (un chiffre « 39 » ne disait rien) — droit, sans lueur, sans texte de 8 px */
+html.c6 .mBadge,html.c6 #bdShop{top:-4px;right:-4px;width:8px;height:8px;min-width:0;padding:0;font-size:0;line-height:0;overflow:hidden;letter-spacing:0;transform:none;
+  color:transparent;background:var(--c6-or);box-shadow:0 0 0 2px var(--c6-noir);text-shadow:none;animation:none}
 
 /* ============================================ CE QU'ON LIT ==========================================================
    Le panneau : encre pleine, filet sourd (un panneau ne crie pas : seules les touches ont le filet blanc). */
 html.c6 :is(.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn,#carr .carrBiome,.misPrix,.misDef){--c:0px;
   background:var(--c6-e1);clip-path:none;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e3)}
-/* le TITRE D'ÉCRAN : blanc, droit, seul — plus de livrée dessous */
+/* le TITRE D'ÉCRAN : pixel 16, blanc, droit, seul — plus de livrée dessous */
 html.c6 .mHead{gap:0;margin:0 0 16px}
-html.c6 :is(.mHead h3,.tpH:first-child){transform:none;font-size:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+html.c6 :is(.mHead h3,.tpH:first-child){transform:none;font-family:var(--c6-pixel);font-size:var(--c6-t16);line-height:1;font-weight:400;letter-spacing:0;text-transform:none;color:var(--c6-b0);text-shadow:none}
 html.c6 .mHead::after,html.c6 .tpH:first-child::after{content:none}
-/* le TITRE DE SECTION : petites capitales grises, un trait plein */
-html.c6 :is(.mSec,.tpH){gap:10px;margin:16px 0 8px;font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+/* le TITRE DE SECTION : capitales système 13 / 800, grises, un trait plein */
+html.c6 :is(.mSec,.tpH){gap:10px;margin:16px 0 8px;font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:16px;font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-g2)}
 html.c6 :is(.mSec,.tpH)::after{height:2px;background:var(--c6-e3)}
-/* les LIGNES de réglage : plus de puits autour de l'icône, un trait plein entre deux lignes */
-html.c6 :is(.mLigne,.tp.ligne){min-height:56px;gap:12px;padding:0 16px;font-size:10px;letter-spacing:0;border-top:2px solid var(--c6-e3);transition:background-color var(--c6-vite) linear}
+/* les LIGNES de réglage : 48 de haut, libellé système 15 / 800 ; plates : à l'appui la face passe à e2, rien ne bouge */
+html.c6 :is(.mLigne,.tp.ligne){min-height:var(--c6-h);gap:var(--c6-pad);padding:0 var(--c6-pad);
+  font-family:var(--c6-sys);font-size:var(--c6-t15);line-height:var(--c6-lh15);font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase;
+  border-top:2px solid var(--c6-e3);transition:background-color var(--c6-vite) linear}
 html.c6 :is(.mLigne,.tp.ligne):is(:active,.appui){background:var(--c6-e2)}
 html.c6 :is(.mLigne,.tp.ligne)::before{content:none}
 html.c6 :is(.mLigne,.tp.ligne)>.pxi{margin:0;color:var(--c6-b0)}
 html.c6 .mLigne.lien::after{background:var(--c6-g2)}
-/* l'INTERRUPTEUR : allumé = BLANC, patin d'encre à droite ; éteint = encre, patin gris à gauche */
-html.c6 b.bascule{width:64px;height:28px;padding:0 8px;transform:none;font-size:8px;letter-spacing:0;color:var(--c6-e0);text-shadow:none;
+/* l'INTERRUPTEUR : 64 × 32 (une commande DANS une ligne) ; allumé = BLANC, patin d'encre à droite ; éteint = encre, patin gris à gauche */
+html.c6 b.bascule{width:64px;height:var(--c6-hC);padding:0 8px;transform:none;
+  font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:1;font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);color:var(--c6-e0);text-shadow:none;
   background:var(--c6-b0);box-shadow:none}
-html.c6 b.bascule::before{top:4px;right:4px;width:20px;height:20px;background:var(--c6-e0);box-shadow:none;transition:transform var(--c6-vite) linear}
+html.c6 b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none;transition:transform var(--c6-vite) linear}
 html.c6 :is(.mLigne.off b.bascule,b.bascule.ko){color:var(--c6-g2);background:var(--c6-e0);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e4);text-shadow:none}
-html.c6 :is(.mLigne.off b.bascule,b.bascule.ko)::before{transform:translateX(-36px);background:var(--c6-e4);box-shadow:none}
-/* la VALEUR : blanche, son chevron */
-html.c6 b.valeur{gap:8px;font-size:10px;color:var(--c6-b0);text-shadow:none}
+html.c6 :is(.mLigne.off b.bascule,b.bascule.ko)::before{transform:translateX(-32px);background:var(--c6-e4);box-shadow:none}
+/* la VALEUR : blanche, son chevron — système 13 / 800 */
+html.c6 b.valeur{gap:8px;font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:1;font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);color:var(--c6-b0);text-shadow:none}
 /* le CURSEUR : un rail plein, blanc jusqu'au patin */
 html.c6 .volRow{padding:0 16px 10px 16px}
 html.c6 .volRow.mute,html.c6 .mLigne.off+.volRow{opacity:.35;filter:none}
-html.c6 .volHd{font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 .volHd{font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:16px;font-weight:var(--c6-w);letter-spacing:0;text-transform:none;color:var(--c6-g2)}
 html.c6 .volS{transform:none}
 html.c6 .volS::-webkit-slider-runnable-track{height:4px;background:linear-gradient(90deg,var(--c6-b0) 0,var(--c6-b0) var(--v,50%),var(--c6-e4) var(--v,50%));box-shadow:none}
 html.c6 .volS::-moz-range-track{height:4px;background:linear-gradient(90deg,var(--c6-b0) 0,var(--c6-b0) var(--v,50%),var(--c6-e4) var(--v,50%));box-shadow:none}
-html.c6 .volS::-webkit-slider-thumb{width:12px;height:24px;margin-top:-10px;background:var(--c6-b0);box-shadow:0 0 0 2px #000}
-html.c6 .volS::-moz-range-thumb{width:12px;height:24px;background:var(--c6-b0);box-shadow:0 0 0 2px #000}
+html.c6 .volS::-webkit-slider-thumb{width:12px;height:24px;margin-top:-10px;background:var(--c6-b0);box-shadow:0 0 0 2px var(--c6-noir)}
+html.c6 .volS::-moz-range-thumb{width:12px;height:24px;background:var(--c6-b0);box-shadow:0 0 0 2px var(--c6-noir)}
 
-/* ============================================ LA FENÊTRE, LE TOAST =================================================== */
+/* ============================================ LA FENÊTRE, LE TOAST, LE SPLASH ======================================
+   (accord) Elles entrent comme tout le reste (8 px vers le haut, en fondu, 200 ms, la courbe) et sortent en fondu sec de
+   100 ms : la fenêtre ne glisse plus du bas en 400 ms, le toast ne tombe plus de 26 px avec un zoom. Le voile est celui
+   de la pause (encre .88), plus le violet de l'ancienne feuille ; le titre perd sa lueur magenta ; le splash, son dégradé. */
+@keyframes c6Fondu{to{opacity:0}}
+html.c6 #modale{background:var(--c6-voile)}
+html.c6 #modale.on{animation:k4Voile var(--c6-pose) var(--c6-courbe) both}
+html.c6 #modale.sortant{animation:c6Fondu var(--c6-sort) linear forwards}
+html.c6 #modale.on .modIn{animation:c6Entre var(--c6-pose) var(--c6-courbe) both}
+html.c6 #modale.sortant .modIn{animation:c6Fondu var(--c6-sort) linear forwards}
+html.c6 #modale.on .modB>.pbtn{animation:c6Entre var(--c6-pose) var(--c6-courbe) var(--c6-cascade) backwards}
+html.c6 #modale.on .modB>.pbtn+.pbtn{animation-delay:calc(2*var(--c6-cascade))}
 html.c6 .modIn{--c:0px;padding:20px 16px 16px;gap:12px;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0)}
+html.c6 #modale .modIn #modT{transform:none;font-size:var(--c6-t16);line-height:var(--c6-lh16);letter-spacing:0;text-shadow:none}
+html.c6 #modale .modIn #modX{font-size:var(--c6-t13);line-height:var(--c6-lh13);font-weight:var(--c6-w)}
 html.c6 .modB{gap:12px}
-html.c6 .modB .pbtn{min-height:48px;font-size:10px}
-html.c6 #toast{background:var(--c6-e1);clip-path:none;text-shadow:none;letter-spacing:0;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000}
-html.c6 #toast:has(.pxi-coche){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-cash),0 var(--c6-t) 0 0 #000}
-html.c6 #toast:has(.pxi-croix){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 var(--c6-t) 0 0 #000}
+html.c6 .modB .pbtn{min-height:var(--c6-h)}
+html.c6 #toast{padding:12px 16px;font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:var(--c6-lh13);font-weight:var(--c6-wf);letter-spacing:0;
+  background:var(--c6-e1);clip-path:none;filter:none;text-shadow:none;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 var(--c6-noir);
+  transform:translate(-50%,calc(-1*var(--c6-monte)));transition:opacity var(--c6-sort) linear,transform var(--c6-pose) var(--c6-courbe)}
+html.c6 #toast.on{transform:translate(-50%,0);transition:opacity var(--c6-pose) var(--c6-courbe),transform var(--c6-pose) var(--c6-courbe)}
+html.c6 #toast:has(.pxi-coche){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-cash),0 var(--c6-t) 0 0 var(--c6-noir)}
+html.c6 #toast:has(.pxi-croix){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 var(--c6-t) 0 0 var(--c6-noir)}
 html.c6 #toast .pxi{color:var(--c6-b0)}
 html.c6 #toast .pxi-coche{color:var(--c6-cash)}
 html.c6 #toast .pxi-croix{color:var(--c6-rouge)}
+/* au garage couché, l'ancienne feuille le pose en haut à droite et le fait tomber de 14 px : la même entrée de 8 px */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body.inGarage #toast{transform:translate(0,calc(-1*var(--c6-monte)))}html.c6 body.inGarage #toast.on{transform:none}}
+html.c6 #splash{background:var(--c6-e0)}
 
 /* ============================================ LES COMPOSANTS COMMUNS =================================================
    Ce que plusieurs écrans partagent : ils le prennent ICI, ils ne le redessinent pas chacun (c'est comme ça qu'on avait
@@ -7259,63 +7334,75 @@ html.c6 #toast .pxi-croix{color:var(--c6-rouge)}
    Dans le flux d'une page qui défile, il colle en haut (.plein = fond d'encre, le contenu passe dessous) ;
    .flotte = posé sur une scène 3D (garage, boutique, missions) : transparent, il ne prend que ses touches. */
 html.c6 .c6Tete{position:sticky;top:0;z-index:20;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;
-  height:calc(var(--sT) + 64px);padding:calc(var(--sT) + 8px) calc(var(--sR) + 16px) 8px calc(var(--sL) + 16px);margin:0}
+  height:var(--c6-tete);padding:var(--c6-y-haut) var(--c6-x-d) 8px var(--c6-x-g);margin:0}
 html.c6 .c6Tete.plein{background:var(--c6-e0)}
 html.c6 .c6Tete.flotte{position:fixed;left:0;right:0;pointer-events:none}
 html.c6 .c6Tete.flotte>*{pointer-events:auto}
-html.c6 .c6Titre{font-family:var(--pix);font-weight:400;font-style:normal;font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
-html.c6 .c6Tete.flotte .c6Titre{text-shadow:0 2px 0 #000}
-html.c6 .c6Comptes{display:flex;align-items:center;gap:8px;margin-left:auto}
-/* LE COMPTE : la même plaquette partout (accueil, garage, boutique, fin) — l'argent vert, l'aura violette */
-html.c6 .c6Sou{display:flex;align-items:center;gap:8px;box-sizing:border-box;height:32px;padding:0 10px;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);
-  font-family:var(--pix);font-size:10px;line-height:1;letter-spacing:0;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
-html.c6 .c6Sou b{font-weight:400}
+html.c6 .c6Titre{font-family:var(--c6-pixel);font-weight:400;font-style:normal;font-size:var(--c6-t16);line-height:1;letter-spacing:0;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
+html.c6 .c6Tete.flotte .c6Titre{text-shadow:0 2px 0 var(--c6-noir)}
+html.c6 .c6Comptes{display:flex;align-items:center;gap:var(--c6-e);margin-left:auto}
+/* LE COMPTE : la même plaquette partout (accueil, garage, boutique, fin) — l'argent vert, l'aura violette ; 32 de haut,
+   système 13 / 800 à chiffres tabulaires (le pixel 10 d'avant passait sous le plancher) */
+html.c6 .c6Sou{display:flex;align-items:center;gap:8px;box-sizing:border-box;height:var(--c6-hC);padding:0 10px;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);
+  font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:1;font-weight:var(--c6-wf);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
+html.c6 .c6Sou b{font-weight:var(--c6-wf)}
 html.c6 .c6Sou .pxi{--pxs:1.5}
 html.c6 .c6Sou.cash :is(b,.pxi){color:var(--c6-cash)}
 html.c6 .c6Sou.aura :is(b,.pxi){color:var(--c6-aura)}
-/* LES ONGLETS : des mots ; celui qu'on regarde est blanc et souligné de 4 px */
+/* LES ONGLETS : des mots, 48 de haut, système 13 / 800 (quatre tiennent côte à côte) ; celui qu'on regarde = FACE
+   BLANCHE, texte d'encre — la même grammaire que « équipé », « ON », « suivi » (plus de soulignement) */
 html.c6 .c6Onglets{display:flex;box-shadow:inset 0 -2px 0 var(--c6-e3)}
-html.c6 .c6Onglet{flex:1 1 0;min-width:0;min-height:44px;margin:0;padding:0 8px;border:0;border-radius:0;background:none;cursor:pointer;transform:none;
-  font-family:var(--pix);font-size:10px;line-height:1;letter-spacing:0;color:var(--c6-g2);text-shadow:none;box-shadow:none;-webkit-tap-highlight-color:transparent;
-  transition:color var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
-html.c6 .c6Onglet.on{color:var(--c6-b0);box-shadow:inset 0 -4px 0 var(--c6-b0)}
-/* LA CARTE D'OBJET : l'image, le nom, le prix ; la rareté = la barre de 4 px du bas (--rc) ; choisie = filet blanc */
+html.c6 .c6Onglet{flex:1 1 0;min-width:0;min-height:var(--c6-h);margin:0;padding:0 8px;border:0;border-radius:0;background:none;cursor:pointer;transform:none;
+  font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:1;font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase;
+  color:var(--c6-g2);text-shadow:none;box-shadow:none;
+  transition:color var(--c6-vite) linear,background-color var(--c6-vite) linear}
+html.c6 .c6Onglet:active{background:var(--c6-e2)}
+html.c6 .c6Onglet.on{color:var(--c6-e0);background:var(--c6-b0);box-shadow:none}
+/* LA CARTE D'OBJET : la peau d'une touche (filet blanc 2, tranche 4, descente 4) ; la rareté = la barre de 4 px du bas
+   (--rc) ; choisie = filet blanc de 4 (comme les cartes de la carrière et de l'inventaire) */
 html.c6 .c6Carte{--rc:var(--c6-e4);position:relative;display:flex;flex-direction:column;box-sizing:border-box;min-width:0;cursor:pointer;
-  background:var(--c6-e1);box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-e3);-webkit-tap-highlight-color:transparent;transition:transform var(--c6-vite) linear}
-html.c6 .c6Carte:active{transform:translateY(2px)}
-html.c6 .c6Carte.on{box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-b0)}
+  background:var(--c6-e1);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),inset 0 calc(-1*var(--c6-t)) 0 0 var(--rc),0 var(--c6-t) 0 0 var(--c6-noir);
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
+html.c6 .c6Carte:active{transform:translateY(var(--c6-t));box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),inset 0 calc(-1*var(--c6-t)) 0 0 var(--rc),0 0 0 0 var(--c6-noir)}
+html.c6 .c6Carte.on{box-shadow:inset 0 0 0 var(--c6-sel) var(--c6-b0),inset 0 calc(-1*var(--c6-t)) 0 0 var(--rc),0 var(--c6-t) 0 0 var(--c6-noir)}
 html.c6 .c6Carte .c6Img{display:block;width:100%;aspect-ratio:16/9;background:center/contain no-repeat}
-html.c6 .c6Carte .c6Nom{display:block;padding:8px 8px 0;font-family:var(--pix);font-weight:400;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);overflow-wrap:anywhere}
-html.c6 .c6Carte .c6Prix{display:block;padding:4px 8px 12px;font-family:var(--pix);font-weight:400;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-cash)}
+html.c6 .c6Carte .c6Nom{display:block;padding:8px 8px 0;font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:16px;font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-b0);overflow-wrap:anywhere}
+html.c6 .c6Carte .c6Prix{display:block;padding:4px 8px 12px;font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:16px;font-weight:var(--c6-wf);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c6-cash)}
 /* UN CHIFFRE ET SA LÉGENDE · UNE JAUGE (--v de 0 à 1, --jc sa couleur) · UNE PHRASE D'AIDE */
 html.c6 .c6Stat{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
-html.c6 .c6Stat b{font-family:var(--pix);font-weight:400;font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0)}
-html.c6 .c6Stat small{font-family:var(--pix);font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2);white-space:nowrap}
-html.c6 .c6Jauge{display:block;height:8px;box-shadow:0 0 0 2px #000;
+html.c6 .c6Stat b{font-family:var(--c6-pixel);font-weight:400;font-size:var(--c6-t16);line-height:1;letter-spacing:0;color:var(--c6-b0)}
+html.c6 .c6Stat small{font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:16px;font-weight:var(--c6-wf);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-g2);white-space:nowrap}
+html.c6 .c6Jauge{display:block;height:8px;box-shadow:0 0 0 2px var(--c6-noir);
   background:linear-gradient(90deg,var(--jc,var(--c6-b0)) 0,var(--jc,var(--c6-b0)) calc(var(--v,0)*100%),var(--c6-e3) calc(var(--v,0)*100%))}
-html.c6 .c6Aide{font-family:var(--sans);font-size:13px;line-height:18px;font-weight:500;letter-spacing:0;color:var(--c6-g1);text-shadow:none}
+html.c6 .c6Aide{font-family:var(--c6-sys);font-size:var(--c6-t13);line-height:var(--c6-lh13);font-weight:var(--c6-w);letter-spacing:0;color:var(--c6-g1);text-shadow:none}
 /* SUR UNE SCÈNE CLAIRE (la boutique blanche de Léo) : les mêmes pièces, en blanc à filet d'encre */
-html.c6 .c6Clair .pbtn:not(.pb-gold):not(.pb-red):not(.pb-green){--c6-f:#fff;--c6-l:var(--c6-e0);--c6-tr:#a9aebb;--c6-x:var(--c6-e0)}
-html.c6 .c6Clair .pbtn.off{--c6-f:#fff;--c6-l:#a9aebb;--c6-tr:#d5d8df;--c6-x:#8c93a3;background:#fff}
-html.c6 .c6Clair :is(.c6Titre,.c6Onglet.on){color:var(--c6-e0);text-shadow:none}
-html.c6 .c6Clair .c6Onglet.on{box-shadow:inset 0 -4px 0 var(--c6-e0)}
-html.c6 .c6Clair .c6Onglets{box-shadow:inset 0 -2px 0 #c9ccd4}
-html.c6 .c6Clair .c6Sou{background:#fff;color:var(--c6-e0);box-shadow:inset 0 0 0 2px var(--c6-e0)}
-html.c6 .c6Clair .c6Sou.cash :is(b,.pxi){color:#12813f}
-html.c6 .c6Clair .c6Carte{background:#fff;box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px #d5d8df}
-html.c6 .c6Clair .c6Carte.on{box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-e0)}
+html.c6 .c6Clair .pbtn:not(.pb-gold):not(.pb-red):not(.pb-green){--c6-f:var(--c6-l0);--c6-l:var(--c6-e0);--c6-tr:var(--c6-l3);--c6-x:var(--c6-e0)}
+html.c6 .c6Clair .pbtn.off{--c6-f:var(--c6-l0);--c6-l:var(--c6-l3);--c6-tr:var(--c6-l2);--c6-x:var(--c6-l4);background:var(--c6-l0)}
+html.c6 .c6Clair .c6Titre{color:var(--c6-e0);text-shadow:none}
+html.c6 .c6Clair .c6Onglet.on{color:var(--c6-l0);background:var(--c6-e0);box-shadow:none}
+html.c6 .c6Clair .c6Onglets{box-shadow:inset 0 -2px 0 var(--c6-l2)}
+html.c6 .c6Clair .c6Sou{background:var(--c6-l0);color:var(--c6-e0);box-shadow:inset 0 0 0 2px var(--c6-e0)}
+html.c6 .c6Clair .c6Sou.cash :is(b,.pxi){color:var(--c6-cashL)}
+html.c6 .c6Clair .c6Carte{background:var(--c6-l0);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e0),inset 0 calc(-1*var(--c6-t)) 0 0 var(--rc),0 var(--c6-t) 0 0 var(--c6-l3)}
+html.c6 .c6Clair .c6Carte:active{box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e0),inset 0 calc(-1*var(--c6-t)) 0 0 var(--rc),0 0 0 0 var(--c6-l3)}
+html.c6 .c6Clair .c6Carte.on{box-shadow:inset 0 0 0 var(--c6-sel) var(--c6-e0),inset 0 calc(-1*var(--c6-t)) 0 0 var(--rc),0 var(--c6-t) 0 0 var(--c6-l3)}
 html.c6 .c6Clair .c6Carte .c6Nom{color:var(--c6-e0)}
-html.c6 .c6Clair .c6Carte .c6Prix{color:#12813f}
-/* UN ÉCRAN QUI ENTRE : ses blocs montent de 8 px en fondu, en cascade (5 au plus) — poser .c6Entre sur le conteneur */
+html.c6 .c6Clair .c6Carte .c6Prix{color:var(--c6-cashL)}
+/* UN ÉCRAN QUI ENTRE : ses blocs montent de 8 px en fondu, en cascade de 30 ms (5 au plus) — poser .c6Entre sur le conteneur */
 @keyframes c6Entre{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 html.c6 .c6Entre>*{animation:c6Entre var(--c6-pose) var(--c6-courbe) both}
-html.c6 .c6Entre>*:nth-child(2){animation-delay:30ms}
-html.c6 .c6Entre>*:nth-child(3){animation-delay:60ms}
-html.c6 .c6Entre>*:nth-child(4){animation-delay:90ms}
-html.c6 .c6Entre>*:nth-child(n+5){animation-delay:120ms}
+html.c6 .c6Entre>*:nth-child(2){animation-delay:var(--c6-cascade)}
+html.c6 .c6Entre>*:nth-child(3){animation-delay:calc(2*var(--c6-cascade))}
+html.c6 .c6Entre>*:nth-child(4){animation-delay:calc(3*var(--c6-cascade))}
+html.c6 .c6Entre>*:nth-child(n+5){animation-delay:calc(4*var(--c6-cascade))}
 
-/* ============================================ « RÉDUIRE LES ANIMATIONS » ============================================= */
-@media (prefers-reduced-motion:reduce){html.c6 .pbtn,html.c6 .pbtn:active,html.c6 .c6Carte,html.c6 .c6Onglet{transition:none}html.c6 .c6Entre>*{animation:none}}
+/* ============================================ « RÉDUIRE LES ANIMATIONS » =============================================
+   (accord) la préférence du système ET le réglage du jeu (html[data-reduced-motion="1"]) : les deux, pour les mêmes pièces. */
+@media (prefers-reduced-motion:reduce){html.c6 .pbtn,html.c6 .pbtn:active,html.c6 .c6Carte,html.c6 .c6Onglet{transition:none}html.c6 .c6Entre>*{animation:none}
+  html.c6 #toast{transition:opacity var(--c6-sort) linear;transform:translate(-50%,0)}html.c6 #modale.on .modB>.pbtn{animation:none}}
+html.c6[data-reduced-motion="1"] :is(.pbtn,.pbtn:active,.c6Carte,.c6Onglet){transition:none}
+html.c6[data-reduced-motion="1"] .c6Entre>*,html.c6[data-reduced-motion="1"] #modale.on .modB>.pbtn{animation:none}
+html.c6[data-reduced-motion="1"] #toast{transition:opacity var(--c6-sort) linear;transform:translate(-50%,0)}
 </style>
 <style id="c6-accueil">
 /* CHARTE 6 · l'accueil, le splash, la fenêtre, le toast, « a calé », le cadre de l'ordi — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -7330,9 +7417,9 @@ html.c6 .c6Entre>*:nth-child(n+5){animation-delay:120ms}
    · JOUER = UNE PLAQUE PLEINE en or (la même que .pb-gold), pleine largeur, 72 px, sous le pouce, le mot en encre ;
    · les pastilles (carré d'or muet) DISPARAISSENT : ce qu'elles signalaient se dit en toutes lettres dans la sous-ligne (OFFRES : NOUVEAU). */
 html.c6 #mHome .mTitle::after{content:none!important}
-html.c6.hub:not(.poki) body #mHome.acc2{padding:calc(var(--sT) + 16px) calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);
+html.c6.hub:not(.poki) body #mHome.acc2{padding:calc(var(--sT) + 8px) calc(var(--sR) + 16px) calc(var(--sB) + 20px) calc(var(--sL) + 16px);
   grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:8px;row-gap:0;
-  grid-template-rows:44px 8px auto minmax(16px,1fr) 64px 8px 64px 12px 72px}
+  grid-template-rows:48px 8px auto minmax(16px,1fr) 64px 12px 64px 16px 64px}
 html.c6.hub:not(.poki) body #mHome.acc2>.mTitle{grid-row:3;grid-column:1/-1;justify-self:center}
 html.c6.hub:not(.poki) body #mHome.acc2 .mGear{grid-row:1;grid-column:1/-1;justify-self:start!important}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccB[data-m="carr"]{grid-row:5;grid-column:1}
@@ -7349,29 +7436,30 @@ html.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB,.mGear):is(:active,.appui){tr
 html.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB,.mGear)::before,
 html.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB,.mGear)::after{content:none!important}
 html.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB,.mGear) .pxi{color:var(--c6-b0)!important;filter:none!important}
+/* un seul retour au toucher (accord §2-2) : 90 ms linear, descente et remontée */
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB,.mGear,.mAccP>.mPlay){transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
 /* LA CARTE : icône à gauche (sur deux lignes), le MOT, la SOUS-LIGNE — rien ne se coupe (la sous-ligne la plus longue est mesurée : voir notes) */
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccB{display:grid!important;grid-template-columns:28px minmax(0,1fr);grid-auto-rows:auto;align-content:center;align-items:center;
   justify-items:start;column-gap:10px!important;row-gap:2px!important;padding:0 12px!important;overflow:hidden!important;white-space:nowrap!important;text-align:left;
   width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;margin:0!important;font-size:15px!important;letter-spacing:0!important}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccB>.pxi{grid-column:1;grid-row:1/span 2;justify-self:center;--pxs:3!important}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccB>:is(span,.mMisPips,.mBadge){display:none!important}
-html.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB,.mGear)>.c6aT{grid-column:2;display:block;font:800 15px/18px var(--sans);letter-spacing:.02em;text-transform:uppercase;color:var(--c6-b0)}
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB,.mGear)>.c6aT{grid-column:2;display:block;font:800 15px/20px var(--sans);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-b0)}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccB>.c6aS{grid-column:2;display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;
-  font:600 13px/16px var(--sans);letter-spacing:.01em;text-transform:uppercase;color:var(--c6-g1)}
+  font:600 13px/16px var(--sans);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-g1)}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccB>.c6aS.or{color:var(--c6-or)}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccB>.c6aS:empty{display:none}
-/* RÉGLAGES : l'icône ET le mot, en haut à gauche, 44 px (le tour de l'écran reste au jeu) */
+/* RÉGLAGES : l'icône ET le mot, en haut à gauche, 48 px à sT+8 (là où tombent les ◀ ; le tour de l'écran reste au jeu) */
 html.c6.hub:not(.poki) body #mHome.acc2 .mGear{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;
-  width:auto!important;min-width:44px!important;height:44px!important;min-height:44px!important;padding:0 14px 0 12px!important;margin:0!important;overflow:visible}
+  width:auto!important;min-width:48px!important;height:48px!important;min-height:48px!important;padding:0 14px 0 12px!important;margin:0!important;overflow:visible}
 html.c6.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:2!important}
-html.c6.hub:not(.poki) body #mHome.acc2 .mGear>.c6aT{font-size:13px;line-height:16px}
 /* JOUER : la plaque d'or pleine (la même matière que .pb-gold du socle), le mot en encre — un bouton qui se lit en une seconde */
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{display:flex!important;align-items:center!important;justify-content:center!important;gap:0;padding:0!important;margin:0!important;
   width:auto!important;height:auto!important;min-height:0!important;clip-path:none!important;filter:none!important;transform:none!important;background:var(--c6-or)!important;
   box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 4px 0 0 var(--c6-orT),0 4px 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:translateY(4px)!important;
   box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 0 0 2px var(--c6-orE)!important}
-html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:32px!important;line-height:1!important;background:none!important;color:var(--c6-orE)!important;
+html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:24px!important;line-height:1!important;background:none!important;color:var(--c6-orE)!important;
   -webkit-text-fill-color:var(--c6-orE)!important;text-shadow:none!important;filter:none!important;animation:none!important}
 html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg::before,html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg::after{content:none!important}
 /* (l'ancienne v1 : l'ombre floue des lettres du JOUER de l'édition Poki, qui garde le mot flottant) */
@@ -7379,14 +7467,13 @@ html.c6 body #mHome .mPlay.mMot .lg::before{text-shadow:0 .015em 0 #6e3f00,0 .03
 /* LE LOGO : CAR quitte son dégradé rose (le seul rose de l'interface) — deux tons, CASH en or, CAR en blanc — ici ET au splash */
 html.c6 :is(#spTitle,#mHome .mTitle) .lg.grad,html.c6.hub:not(.poki) body #mHome.acc2 .mTitle .lg.grad{
   background:linear-gradient(180deg,#ffffff 0%,#fbf8f0 28%,#e6e1d6 52%,#8d877b 74%,#f4f1ea 96%)!important;-webkit-background-clip:text!important;background-clip:text!important}
-/* TRÈS ÉTROIT (≤ 350 px) : JOUER en 24 px, les cartes gardent leur forme */
+/* TRÈS ÉTROIT (≤ 350 px) : les cartes gardent leur forme */
 @media (orientation:portrait) and (max-width:350px){
-  html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:24px!important}
   html.c6.hub:not(.poki) body #mHome.acc2 .mAccB{padding:0 8px!important;column-gap:6px!important}}
 /* COUCHÉ : la caisse à gauche ; à droite le bloc (2 × 184 + 8 = 376 px) : logo, quatre cartes, JOUER ; RÉGLAGES en haut à gauche */
 @media (orientation:landscape) and (max-height:540px){
   html.c6.hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) 184px 184px;
-    grid-template-rows:44px minmax(0,1fr) auto 12px 56px 8px 56px 12px 64px minmax(0,1fr)}
+    grid-template-rows:48px minmax(0,1fr) auto 12px 48px 12px 48px 16px 64px minmax(0,1fr)}
   html.c6.hub:not(.poki) body #mHome.acc2 .mGear{grid-column:1}
   html.c6.hub:not(.poki) body #mHome.acc2>.mTitle{grid-row:3;grid-column:2/-1;justify-self:center}
   html.c6.hub:not(.poki) body #mHome.acc2 .mAccB[data-m="carr"]{grid-row:5;grid-column:2}
@@ -7394,6 +7481,10 @@ html.c6 :is(#spTitle,#mHome .mTitle) .lg.grad,html.c6.hub:not(.poki) body #mHome
   html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:2}
   html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:3}
   html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{grid-row:9;grid-column:2/-1}}
+/* couché sous 400 px de haut (accord §2-1) : la décision passe à 48 / 16 */
+@media (orientation:landscape) and (max-height:400px){
+  html.c6.hub:not(.poki) body #mHome.acc2{grid-template-rows:48px minmax(0,1fr) auto 12px 48px 12px 48px 16px 48px minmax(0,1fr)}
+  html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:16px!important}}
 
 /* ====== LE SPLASH (2026-10-14, règles de 6 h) : l'invitation revient, une ligne (#spInvite, montrée par le script sous html.c6 seulement :
    ?ui=5 garde l'écran nu que Sacha avait demandé le 01/10). Elle respire en opacité (iPhone 7 : opacity seulement). ====== */
@@ -7416,7 +7507,7 @@ html.c6 #modale.facC6 .modB .pbtn:not(.pb-gold):is(:active,.appui){transform:tra
 html.c6 #modale.facC6 .modB .pbtn .pxi{--pxs:3}
 html.c6 #modale.facC6 .modB .pbtn:not(.pb-gold) .pxi{color:var(--c6-b0)}
 html.c6 #modale.facC6 .modB .pbtn>span{font-family:var(--pix);font-size:16px;line-height:16px}
-html.c6 #modale.facC6 .modB .pbtn>small{display:block;font-family:var(--sans);font-size:13px;line-height:17px;font-weight:700;letter-spacing:0;text-transform:none;opacity:1}
+html.c6 #modale.facC6 .modB .pbtn>small{display:block;font-family:var(--sans);font-size:13px;line-height:17px;font-weight:600;letter-spacing:0;text-transform:none;opacity:1}
 html.c6 #modale.facC6 .modB .pb-gold>small{color:var(--c6-orE)}
 html.c6 #modale.facC6 .modB .pbtn:not(.pb-gold)>small{color:var(--c6-g1)}
 html.c6 body #mHome .mBadge{display:none!important} /* les pastilles muettes partent (elles ne disaient rien) */
@@ -7444,36 +7535,35 @@ html.c6 #mSet .c6Pied{order:4}
 html.c6 #mSet .mPanel{display:flex;flex-direction:column;gap:8px;padding:0;overflow:visible;background:none;box-shadow:none;clip-path:none}
 html.c6 #mSet .mPanel::before,html.c6 #mSet .mPanel::after{content:none}
 /* la LIGNE */
-html.c6 #mSet .mLigne{box-sizing:border-box;min-height:48px;padding:0 8px 0 12px;gap:12px;border:0;color:var(--c6-b0);font-size:10px;letter-spacing:0;
+html.c6 #mSet .mLigne{box-sizing:border-box;min-height:48px;gap:12px;border:0;color:var(--c6-b0);
   text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3)}
 html.c6 #mSet .mLigne:is(:active,.appui){background:var(--c6-e2)}
-html.c6 #mSet .mLigne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #mSet .mLigne .tpL{flex:1 1 auto;min-width:0;white-space:nowrap;color:var(--c6-b0)}
 html.c6 #mSet .mLigne>.pxi{flex:none;--pxs:2;color:var(--c6-b0)}
-html.c6 #mSet .mLigne.lien{padding-right:12px}
 /* le curseur est SOUDÉ à sa ligne (sa moitié basse) : on lit « SON · ON · volume » comme un seul bloc */
 html.c6 #mSet .mLigne.avecVol{box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 2px 0 0 var(--c6-e3)}
 html.c6 #mSet .volRow{display:flex;align-items:center;gap:8px;box-sizing:border-box;min-height:44px;margin-top:-8px;padding:0 12px 0 20px;
   background:var(--c6-e1);box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 -2px 0 0 var(--c6-e3)}
 html.c6 #mSet .volS{flex:1 1 auto;width:auto;min-width:0;height:44px}
-html.c6 #mSet .volV{flex:none;min-width:40px;font-family:var(--pix);font-weight:400;font-size:10px;line-height:12px;letter-spacing:0;text-align:right;color:var(--c6-b0)}
+html.c6 #mSet .volV{flex:none;min-width:40px;font:800 13px/16px var(--c6-sys);letter-spacing:0;font-variant-numeric:tabular-nums;text-align:right;color:var(--c6-b0)}
 html.c6 #mSet .volS::-webkit-slider-thumb{width:28px;height:42px;margin-top:-19px;border:solid transparent;border-width:9px 8px;background:var(--c6-b0);background-clip:padding-box;box-shadow:none}
 /* l'INTERRUPTEUR : ON = face blanche, texte d'encre, patin d'encre à droite ; OFF = encre, filet blanc, patin blanc à gauche */
-html.c6 #mSet b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;font-size:8px;line-height:8px;
+html.c6 #mSet b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;
   color:var(--c6-e0);background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #mSet b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
 html.c6 #mSet .mLigne.off b.bascule{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #mSet .mLigne.off b.bascule::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
 /* le SÉLECTEUR (image, langue, pouce, auto-école) : la même peau, la valeur au centre ; au doigt il passe en blanc */
-html.c6 #mSet b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
+html.c6 #mSet b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;
   color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #mSet b.valeur::after{content:none}
 html.c6 #mSet .mLigne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
 /* le pied : EFFACER, seule, sourde, en rouge (c'est la seule chose qu'on ne rattrape pas) ; la version dessous */
 html.c6 #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:16px}
-html.c6 #mSet .c6Efface{--c6-l:var(--c6-rouge);--c6-x:var(--c6-rouge);box-sizing:border-box;width:100%;max-width:320px;justify-content:center;gap:12px;padding:0 12px;font-size:10px}
-html.c6 #mSet .c6Efface .tpL{flex:none;white-space:nowrap;font-size:10px;color:var(--c6-rouge)}
+html.c6 #mSet .c6Efface{--c6-l:var(--c6-rouge);--c6-x:var(--c6-rouge);box-sizing:border-box;width:100%;max-width:320px;justify-content:center;gap:12px;padding:0 12px}
+html.c6 #mSet .c6Efface .tpL{flex:none;white-space:nowrap;color:var(--c6-rouge)}
 html.c6 #mSet .c6Efface .pxi{--pxs:2;color:var(--c6-rouge)}
-html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-height:8px;letter-spacing:0;color:var(--c6-g2);text-align:center}
+html.c6 #mSet .c6Ver{display:block;font:600 13px/16px var(--c6-sys);letter-spacing:0;text-transform:none;color:var(--c6-g2);text-align:center}
 @media (orientation:landscape) and (max-height:540px){
   html.c6 #mSet .c6Corps{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px;row-gap:0;align-items:start}
   html.c6 #mSet .c6Col{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -7481,12 +7571,13 @@ html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-hei
   html.c6 #mSet .c6Col>*{order:0}
   html.c6 #mSet .c6Pied{grid-column:1/-1;order:0}
 }
-/* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » = 200 px de mot, le chevron cède sa place — le libellé ne se coupe jamais */
+/* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » (20 lettres) ne tient pas à 15 : libellé de ligne à 13 (plancher de lecture), le chevron cède sa place */
 @media (orientation:landscape) and (max-width:700px){
   html.c6 #mSet .mLigne.lien::after{display:none}
-  /* et « AUTO-ECOLE / DRIVING SCHOOL » (14 lettres = 140 px) + sa commande doivent tenir sur 263 px : écarts et marges de la ligne à 8, sélecteur en 8 px (comme l'interrupteur) */
+  /* et « AUTO-ECOLE / DRIVING SCHOOL » (14 lettres = 140 px) + sa commande doivent tenir sur 263 px : écarts et marges de la ligne à 8, sélecteur à 13 */
   html.c6 #mSet .mLigne{gap:8px;padding:0 8px}
-  html.c6 #mSet b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
+  html.c6 #mSet b.valeur{min-width:64px;padding:0 6px}
+  html.c6 #mSet .mLigne,html.c6 #mSet .mLigne .tpL{font-size:13px;line-height:18px}
 }
 /* ?ui=5 (l'ancienne interface) : le DOM des réglages est celui de la charte 6 (en-tête ◀ + titre, colonnes, pied). Sans la charte, on lui rend l'allure d'avant :
    le titre en tête, une seule colonne, la touche EFFACER et la version en bas — la 2e colonne couché et le dock RETOUR ne reviennent pas (voir notes/pages.md) */
@@ -8096,49 +8187,50 @@ html.c6 #tPanel #tpIn .tpResume .mStat{min-height:0;padding:0;gap:4px;background
 html.c6 #tPanel #tpIn .tpResume .mStat+.mStat::before{content:none}
 html.c6 #tPanel #tpIn .tpResume .mStat b{font-size:16px;line-height:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
 html.c6 #tPanel #tpIn .tpResume .mStat:first-child b{color:var(--c6-aura)}
-html.c6 #tPanel #tpIn .tpResume .mStat span{font-size:8px;line-height:8px;letter-spacing:0;white-space:nowrap;color:var(--c6-g2)}
+html.c6 #tPanel #tpIn .tpResume .mStat span{font:800 13px/16px var(--c6-sys);letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap;color:var(--c6-g2)}
 /* les RÉGLAGES : une colonne debout ; couché trois lignes par colonne, deux colonnes */
 html.c6 #tPanel #tpIn>.tpPanel{grid-area:p;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:0;overflow:visible;
   background:none;clip-path:none;box-shadow:none}
 html.c6 #tPanel #tpIn>.tpPanel::before,html.c6 #tPanel #tpIn>.tpPanel::after{content:none}
-html.c6 #tPanel #tpIn .tp.ligne{box-sizing:border-box;display:flex;align-items:center;height:48px;min-height:48px;margin:0;padding:0 8px 0 12px;gap:12px;border:0;
-  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;
+html.c6 #tPanel #tpIn .tp.ligne{box-sizing:border-box;display:flex;align-items:center;height:48px;min-height:48px;margin:0;gap:12px;border:0;
+  color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;
   background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);transition:background-color var(--c6-vite) linear}
 html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui){background:var(--c6-e2)}
 html.c6 #tPanel #tpIn .tp.ligne>.pxi{flex:none;--pxs:2;margin:0;color:var(--c6-b0)}
-html.c6 #tPanel #tpIn .tp.ligne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
-html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:12px;letter-spacing:0}
+html.c6 #tPanel #tpIn .tp.ligne .tpL{flex:1 1 auto;min-width:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:12px}
 html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]>.pxi{margin:0}
-html.c6 #tPanel #tpIn .tp.ligne b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;transform:none;font-size:8px;line-height:8px;letter-spacing:0;
+html.c6 #tPanel #tpIn .tp.ligne b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;transform:none;
   color:var(--c6-e0);text-shadow:none;background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #tPanel #tpIn .tp.ligne b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
 html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
-html.c6 #tPanel #tpIn .tp.ligne b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
-  letter-spacing:0;color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;
+  color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
 html.c6 #tPanel #tpIn .tp.ligne b.valeur::after{content:none}
 html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
 /* les TOUCHES de la partie (RECOMMENCER, QUITTER) : la touche du socle, 48 px, rien de rouge (une fenêtre demande confirmation) */
-html.c6 #tPanel #tpIn .tp:not(.ligne){box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin:0;padding:0 16px;
-  font-family:var(--pix);font-size:12px;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
+html.c6 #tPanel #tpIn .tp:not(.ligne){box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin:0;padding:0 16px;
+  font-family:var(--c6-sys);font-size:var(--c6-t15);line-height:var(--c6-lh15);font-weight:800;letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
   background:var(--c6-e1);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000;
   transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear}
 html.c6 #tPanel #tpIn .tp:not(.ligne):is(:active,.appui){transform:translateY(var(--c6-t));
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 0 0 0 #000}
 html.c6 #tPanel #tpIn .tp:not(.ligne)>.pxi{--pxs:2;margin:0;color:currentColor}
-html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:1;letter-spacing:0;color:inherit}
+html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:inherit;letter-spacing:var(--c6-cap);color:inherit}
 html.c6 #tPanel #tpIn .tp.rouge{color:var(--c6-b0)}
-html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;font-size:10px!important;padding:0 8px!important}
+html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;font-size:var(--c6-t15)!important;padding:0 12px!important}
 html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:none}
 html.c6 #tPanel #tpIn .tp[data-a="reset"]{grid-area:r}
 html.c6 #tPanel #tpIn .tp[data-a="quit"]{grid-area:q}
 /* REPRENDRE : l'or, la seule décision (pleine largeur, 64 px, debout) */
-html.c6 #tPanel #tpIn>.tp.go{grid-area:g;position:relative;bottom:auto;z-index:auto;margin:0;min-height:64px;padding:0 16px;font-size:24px;
+html.c6 #tPanel #tpIn>.tp.go{grid-area:g;position:relative;bottom:auto;z-index:auto;margin:0;min-height:64px;padding:0 16px;font-family:var(--pix);font-size:24px;line-height:1;font-weight:400;letter-spacing:0;text-transform:none;
   color:var(--c6-orE);background:var(--c6-or);outline:0;
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 var(--c6-t) 0 0 var(--c6-orT),0 var(--c6-t) 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
 html.c6 #tPanel #tpIn>.tp.go:is(:active,.appui){transform:translateY(var(--c6-t));
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
 html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:3;color:var(--c6-orE)}
+html.c6 #tPanel #tpIn>.tp.go .tpL{letter-spacing:0}
 html.c6 #tPanel #tpIn .tp:not(.go):not(.ligne):focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
 /* l'entrée : le voile fond (200 ms), les blocs montent de 8 px en cascade de 30 ms ; la sortie = le voile qui s'efface (le panneau ne glisse plus) */
 html.c6 #tPanel.open #tpIn>*,html.c6 #tPanel.open #tpIn .tpRow>.tp{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:90ms}
@@ -8156,7 +8248,11 @@ html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motio
   html.c6 #tPanel #tpIn .tpResume .mStat{align-items:flex-end}
   html.c6 #tPanel #tpIn>.tpPanel{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:48px;grid-auto-flow:row;column-gap:16px}  /* 4 lignes (sans voix) = 2 × 2 ; 5 = 2 + 2 + 1 */
   html.c6 #tPanel #tpIn .tpRow>.tp{padding:0 16px!important}
-  html.c6 #tPanel #tpIn>.tp.go{min-height:48px;min-width:192px;padding:0 24px;font-size:16px}
+  html.c6 #tPanel #tpIn>.tp.go{min-width:192px;padding:0 24px}
+}
+/* la décision tombe à 48 / 16 seulement sous 400 px de haut (accord §2-1) : à 844 × 390 et 667 × 375 ; au-dessus elle reste 64 / 24 */
+@media (orientation:landscape) and (max-height:400px){
+  html.c6 #tPanel #tpIn>.tp.go{min-height:48px;font-size:16px}
   html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:2}
 }
 /* grand téléphone couché : de la place pour les icônes des deux touches */
@@ -8166,8 +8262,9 @@ html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motio
 /* couché étroit (iPhone 7/8) : comme les réglages — écarts à 8, sélecteurs en 8 px (« POUCE HAUT » + « PLONGE » tiennent sur 246 px) */
 @media (orientation:landscape) and (max-width:700px){
   html.c6 #tPanel #tpIn .tp.ligne{gap:8px;padding:0 8px}
+  html.c6 #tPanel #tpIn .tp.ligne,html.c6 #tPanel #tpIn .tp.ligne .tpL{font-size:13px;line-height:18px}
   html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:8px}
-  html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
+  html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:64px;padding:0 6px}
 }
 /* TOUS LES REGLAGES (2026-10-14, demande de Sacha) : une ligne « lien » sous les réglages rapides (même peau, chevron ▶ à droite) qui ouvre l'écran
    complet #mSet par-dessus la pause. Pleine largeur dans la grille couchée ; hors charte 6 la ligne n'existe pas. */
