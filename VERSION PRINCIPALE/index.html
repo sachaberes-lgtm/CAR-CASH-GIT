@@ -11828,16 +11828,50 @@ function genPark(rnd){
      · une BRILLANCE D'HORIZON (fresnel) à la couleur du brouillard : la route luit vers le lointain, elle se lit ;
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
+const BETON={col:0xa39c8e,t:[1,1,1],lift0:.012,lift:.13,amb:.22,sheen:0,mouille:.24,ville:1,espace:1}; /* (2026-10-14, passe graphismes) LE BÉTON BRUT, ses réglages : col = le gris minéral de la matière · t = teinte globale · lift0/lift = la clarté de niveau (neutre, × LVL.route) · amb = la part de l'air du lieu (la brume) dans cette clarté · sheen = brillance d'horizon À SEC (0 : mat) · mouille = ce que la pluie fonce · ville/espace = teinte par monde — voir routeTick, dbgBeton */
 const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},uVil:{value:0},uEcl:{value:0},
   uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)},uJadeR:{value:0},uHalf:{value:14},uJStyle:{value:1}}; // (v14) uJStyle : 0 émeraude · 1 NUAGE · 2 PLANCHES (voir jadeRouteStyle) // (v9) uJadeR : la route EN JADE (les PICS DE JADE seulement, LVL.jade) // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
-let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
+/* ================= LE BÉTON BRUT (2026-10-14, passe graphismes) — Sacha : « retravaille la texture de la route pour que ça soit un beau béton bien brut et bien, bien mat » =====
+   GRATUIT pour la puce : la MÊME texture 256² (même lecture, même shader), REPEINTE en béton — granulat serré, laitance et coulures en paliers nets, micro-fissures, bullage,
+   et les JOINTS DE DALLE sur les bords de la tuile. ASPH_K 1,7 → .57 : une tuile = une dalle de 7 m (la route de 56 m = 8 dalles pile, un joint sous la ligne centrale). */
+function betonPeint(N){ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N de BÉTON BRUT qui se raccorde sur ses 4 bords — une tuile = UNE DALLE de 7 m (voir ASPH_K) ; rejoué tel quel par gfx/banc/route-beton/apercu.cjs
+  const d=new Uint8ClampedArray(N*N*4);let sd=20261014;
+  const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const grille=function(px,py){const g=new Float32Array(px*py);for(let i=0;i<g.length;i++)g[i]=r();return {g:g,px:px,py:py};}; // bruit de valeur BOUCLÉ
+  const lit=function(G,u,v){const x=u*G.px,y=v*G.py,xi=Math.floor(x),yi=Math.floor(y);let fx=x-xi,fy=y-yi;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);
+    const x0=xi%G.px,x1=(xi+1)%G.px,y0=(yi%G.py)*G.px,y1=((yi+1)%G.py)*G.px,g=G.g;
+    return (g[y0+x0]*(1-fx)+g[y0+x1]*fx)*(1-fy)+(g[y1+x0]*(1-fx)+g[y1+x1]*fx)*fy;};
+  // LA LAITANCE (nuages de ciment, 3 échelles) et LES COULURES (étirées dans le sens de la route : elles ne scintillent pas quand on file), en PALIERS nets (pas un flou de photo)
+  const A=grille(3,3),B=grille(7,7),C=grille(15,15),S1=grille(34,2),S2=grille(90,4),S3=grille(18,1),W=grille(2,2),V=new Float32Array(N*N);let mn=9,mx=-9;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const u=(x+.5)/N,v=(y+.5)/N,
+      w=.60*(.50*lit(A,u,v)+.32*lit(B,u,v)+.18*lit(C,u,v))+.40*(.45*lit(S1,u,v)+.20*lit(S2,u,v)+.35*lit(S3,u,v));
+    V[y*N+x]=w;if(w<mn)mn=w;if(w>mx)mx=w;}
+  let mV=0;for(let i=0;i<V.length;i++){const w=Math.round((V[i]-mn)/(mx-mn)*7)/7;V[i]=w;mV+=w;}mV/=V.length; // 8 paliers
+  // LES MICRO-FISSURES (marches au hasard, un texel de large, qui bifurquent) et LE BULLAGE (trous d'air en grappes)
+  const F=new Float32Array(N*N),pose=function(x,y,a){x=((Math.floor(x)%N)+N)%N;y=((Math.floor(y)%N)+N)%N;const k=y*N+x;if(a>F[k])F[k]=a;};
+  const fis=[];for(let f=0;f<3;f++)fis.push([r()*N,r()*N,r()*6.283,50+r()*90,.55+r()*.4]);
+  while(fis.length){const f=fis.pop();let x=f[0],y=f[1],th=f[2];const len=f[3],a=f[4];
+    for(let s=0;s<len;s++){th+=(r()-.5)*.55;if(r()<.03)th+=(r()-.5)*2.;x+=Math.cos(th);y+=Math.sin(th);
+      pose(x,y,a*Math.min(1,s/8,(len-s)/8)*(.7+.3*r()));if(len>60&&r()<.012)fis.push([x,y,th+(r()<.5?1:-1)*(.6+r()*.7),18+r()*len*.4,a*.8]);}}
+  for(let c=0;c<12;c++){const cx=r()*N,cy=r()*N,n=3+Math.floor(r()*8),R0=4+r()*16;
+    for(let i=0;i<n;i++){const an=r()*6.283,q=r()*R0;pose(cx+Math.cos(an)*q,cy+Math.sin(an)*q,.4+r()*.5);}}
+  // LES JOINTS DE DALLE, sur les bords de la tuile (ils se raccordent avec la tuile voisine) : le joint EN LONG (franc : il file vers l'horizon sans jamais clignoter)
+  // et le joint EN TRAVERS (plus discret : c'est lui qui défile) ; une arête claire d'un côté (le chanfrein prend la lumière), la salissure qui s'accumule autour
+  const JL=.36,JT=.22,jd=function(p){return Math.min(p,N-1-p);}; // p : distance (texels) au bord ; joint = 2 texels à cheval sur le raccord
+  for(let i=0;i<N*N;i++){const x=i%N,y=(i-x)/N,o=i*4,u=(x+.5)/N,v=(y+.5)/N;
+    let g=(r()-.5)*.20;const q=r();if(q<.045)g+=.10+r()*.10;else if(q<.075)g-=.20; // LE GRANULAT : grain serré, granulats clairs, petits trous
+    let b=1+g+(V[i]-mV)*.30-F[i]*.34;
+    const dx=jd(x),dy=jd(y);
+    b*=1-.07*Math.max(Math.max(0,1-dx/9),Math.max(0,1-dy/9)*.7);                 // la salissure autour des joints
+    if(x===1||x===N-2)b+=.05;if(y===1||y===N-2)b+=.03;                           // l'arête du chanfrein
+    if(dx<1)b*=1-JL;else if(dy<1)b*=1-JT;                                        // le joint (2 texels ≈ 5,5 cm)
+    const t=lit(W,u,v)-.5,k=204*b;                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
+    d[o]=k*(1+t*.035);d[o+1]=k;d[o+2]=k*(1-t*.05);d[o+3]=255;}
+  return d;
+} // fin betonPeint
+let ASPH_TEX=null;const ASPH_K=.57; // (2026-10-14, passe graphismes) une tuile = une DALLE de 7 m (4 ÷ .57) — (vague 2) c'était 1,7 : la finesse du grain d'asphalte
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
-  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
-  let sd=1337;const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
-  for(let i=0;i<N*N;i++){let v=208+(r()-.5)*44;          // le grain fin, autour de 0,8
-    if(r()<.035)v+=30+r()*30;                                // les granulats clairs : ce sont eux qui scintillent
-    if(r()<.02)v-=45;                                        // les petits trous sombres
-    v=Math.max(140,Math.min(255,v));d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255;}
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N);im.data.set(betonPeint(N));
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
   t.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
@@ -11880,8 +11914,8 @@ function roadMat(){
      Et le grain est lu 1,7 fois plus FIN (`ASPH_K`) : à 1,6 cm le texel, de près il faisait des pâtés sous le nez de la caisse ; les
      mipmaps et l'anisotropie tiennent le lointain. Les flaques et les impacts de pluie (vUv) gardent leur échelle. */
   const face=BITUME.face,sauts=BITUME.sauts; // (tour 2) figés à la construction : la matière et la géométrie de la piste vont ensemble (voir BITUME)
-  const m=new THREE.MeshPhongMaterial({color:0x322e40,side:face?THREE.FrontSide:THREE.DoubleSide,vertexColors:true,map:asphTex(),
-    shininess:30,specular:0x16141e,envMap:envTex,reflectivity:.03}); // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
+  const m=new THREE.MeshPhongMaterial({color:BETON.col,side:face?THREE.FrontSide:THREE.DoubleSide,vertexColors:true,map:asphTex(),
+    shininess:30,specular:0x000000,envMap:envTex,reflectivity:0}); /* (2026-10-14, passe graphismes) LE BÉTON EST MAT : gris minéral (c'était l'indigo 0x322e40), lobe spéculaire à ZÉRO (0x16141e), plus de mélange du cube (.03) — la lumière s'y pose en diffus pur ; la pluie garde son eau (BITUME_MOUILLE a son propre reflet) */ // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
@@ -12054,7 +12088,7 @@ const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
   '  st+=bmCol(h2)*step(.45,h2)*exp(-f2*f2*6.)*.55;',
   '  st*=smoothstep(.8,.15,abs(R.y))*smoothstep(3.,22.,dz)*uVil9;',                                   /* (2026-09-30, Sacha : « dans l orage on voit le reflet de la ville dans les flaques, c est pas normal, il n y a pas de ville ») : les enseignes ne se reflètent que s il y a une VILLE (LVL.ville, au fondu du portail) */                                            // ni le zénith ni le fond de l abîme (la route de la ville DESCEND : ses reflets rasants plongent sous l horizon, et les tours y sont aussi) ; pas sous le nez
   '  vec4 ec=textureCube(envMap,vec3(flipEnvMap*R.x,R.yz),1.5);ec=envMapTexelToLinear(ec);',              // le ciel de la ville, un peu flou
-  '  float wet=uWet*(.45+.55*P);',
+  '  float wet=uWet*(.24+.76*P);', /* (2026-10-14, passe graphismes) béton mouillé : .45/.55 → .24/.76 — les FLAQUES font miroir, hors d'elles le béton reste peu brillant */
   '  col*=1.-uWet*.2*P;',                                                                                  // la flaque fonce (⚠ pas le reste : l étalonnage de la pluie ÉCRASE les sombres — 10 % de moins et le bitume proche devenait noir)
   '  vec3 refl=(ec.rgb*.7+uSheenCol*.55+st*(.9+1.7*P)*film)*F*wet;',
   '  refl+=(uSheenCol+st*.5+vec3(.04,.05,.07))*ring*uWet*.3;',
@@ -12121,9 +12155,9 @@ function trancheMat(){
   m.customProgramCacheKey=function(){return 'trancheV2';};
   return m;
 }
-const ROUTE_JOUR=[.86,.94,.86]; /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
+const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
 const GLACE={k:1,nuages:.45,espace:.5,jade:.55,crypto:.5}; // (v11) l'émeraude est polie comme une pierre taillée — (v12) « beaucoup plus brillante » : .5 → .8 // (v9) le jade est POLI : il renvoie le ciel en rasant
-const ROUTE_JADE=[.95,1.04,.86]; // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
+const ROUTE_JADE=[1,1,.96]; /* (2026-10-14, passe graphismes) béton : un rien plus chaud aux PICS DE JADE (c'était [.95,1.04,.86] × la base violette) */ // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
@@ -12133,7 +12167,14 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   {const j9=Math.max(LVL.mer,LVL.crypto||0)*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
+  {const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=b.lift0+b.lift*LVL.route,a9=b.amb,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
+    m9=b.t,e9=(1+(b.ville-1)*LVL.ville)*(1+(b.espace-1)*LVL.espace)*(1-b.mouille*w9);
+   ROAD_U.uLift.value.setRGB(k*(1-a9+a9*f.r/fm),k*(1-a9+a9*f.g/fm),k*(1-a9+a9*f.b/fm)); // la clarté de niveau en gris MINÉRAL (plus de violet), à peine teintée par l'air du lieu
+   ROAD_U.uTeinte.value.r*=m9[0]*e9;ROAD_U.uTeinte.value.g*=m9[1]*e9;ROAD_U.uTeinte.value.b*=m9[2]*e9; // le béton mouillé FONCE (la pluie), chaque monde sa teinte
+   ROAD_U.uSheen.value*=Math.min(1,w9+js9+b.sheen); // MAT à sec : la brillance d'horizon ne vit que sous la pluie (et sur les routes de jade de Léo)
+   if(js9<.5)ROAD_U.uGlace.value*=js9;} // … et plus de « bitume glacé » : le béton sec ne renvoie pas le ciel (les routes de jade polies gardent le leur)
 }
+window.dbgBeton=function(o){if(o){for(const k in o){if(k==='col'){BETON.col=o.col;for(const m of trackMeshes)if(m.isMesh&&m.material&&m.material.userData&&m.material.userData.bitume)m.material.color.setHex(o.col);}else if(k==='jour'||k==='jade'){const A=k==='jour'?ROUTE_JOUR:ROUTE_JADE;A[0]=o[k][0];A[1]=o[k][1];A[2]=o[k][2];}else BETON[k]=o[k];}routeTick();if(paused&&POST_ON&&composer)composer.render();}return {BETON:BETON,jour:ROUTE_JOUR,jade:ROUTE_JADE,lift:ROAD_U.uLift.value.toArray(),teinte:ROAD_U.uTeinte.value.toArray(),sheen:ROAD_U.uSheen.value,glace:ROAD_U.uGlace.value,wet:ROAD_U.uWet.value};}; // banc (2026-10-14, passe graphismes) : le béton retouché à chaud
 /* LES MATIÈRES D'UNE PISTE MEURENT APRÈS LA SUIVANTE (2026-09-26, passe perf, lot 4). MESURÉ à chaque portail et à chaque « rejouer » :
    6 shaders RECOMPILÉS (bitume, bandes, nappes…) — 40 à 160 ms d'image figée, pire sur iPhone. Libérer une matière relâche son programme ;
    s'il n'a plus d'autre utilisateur, three le DÉTRUIT, et la piste neuve (mêmes réglages, donc même programme) doit le recompiler. Les
