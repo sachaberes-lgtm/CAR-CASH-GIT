@@ -8,6 +8,8 @@ défaut chez une autre session → une ligne à elle + PILOTAGE ; FIGURES/COMBOS
 ## Poussé sur main aujourd'hui
 - v386 : carnets POP remis à zéro une fois · record borné 1e30 · miroir natif lu si la sauvegarde locale est illisible · LA RAIE remboursée
   2,5 M$ + toast (REQUIN/COMÈTE : euros seulement, rien à rendre ; ⚠ qui a ouvert main entre ~14 h et 16 h 50 a perdu LA RAIE sans trace).
+- v403 : éclairs ≤ 3 flashs/s (orage : plus de vacillation à 11 Hz, éclair en fondu ; voile de beat : 0,34 s de temps mort) —
+  relevé preuve-flashs.cjs · L'ÉTERNELLE = « JOUE 100 PARTIES » (ex.runs, parties passées comptées) · loup-garou éteint par foretVide.
 - v398 : SECONDE CHANCE — plus de débit si un volet est déjà en route (payé, resté sur l'écran de mort, ligne du Top 10 retirée).
 - Preuves node : passation/preuves/preuve-{carnets-pop,raie,miroir-illisible,sauvegarde}.cjs `<corrigé> [ancien]` ; bouchons SANS_CARRIERE et
   CHANCE/chanceBase ajoutés (nouveaux globaux dans la zone `const SAVE={`…`if(BALADE)` que les preuves exécutent).
@@ -22,8 +24,7 @@ Debout 390×844 ET couché 844×390 : accueil → JOUER (2,2-3,1 s) → vol → 
    #overlay (aucun preventDefault, touch-action auto) — il faut juste confirmer au doigt que la liste défile.
 2. ⌂ / REJOUER touchés dans les toutes premières ms de l'écran de mort sont ignorés (garde d'entrée) : un 2e toucher passe. Voulu a priori.
 3. Cibles < 44 px au garage : OFFRES ÉPHÉMÈRES (38 debout, 34 couché), onglets INVENTAIRE · MISSIONS · BOUTIQUE couché (40). Zone INTERFACE.
-4. FORÊT NOIRE (FORET injoignable, signalé à PILOTAGE) : `foretVide` ne remet pas `FORET.loup.on/roc` → le loup-garou peut réapparaître
-   quelques secondes à l'ancienne place au portail suivant. Correctif : `FORET.loup.on=false;FORET.loup.roc=null;` dans foretVide.
+4. (corrigé v403) loup-garou de la FORÊT.
 5. Saccades / lenteur iPhone : zone OPTIMISATION (relevé ?perf=1 livré).
 
 ## Garde de main — relu, RAS sauf ci-dessus
