@@ -44,8 +44,11 @@ const EDITION='mobile';
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
    dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
 if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
-/* (2026-10-14, session INTERFACE) LA CHARTE 6 — ENCRE · BLANC · OR : toutes ses règles commencent par html.c6 ; ?ui=5 = l'ancienne interface, pour comparer (voir <style id="charte6">) */
-if(!/[?&]ui=5\b/.test(location.search))document.documentElement.classList.add('c6');
+/* (2026-10-14, session INTERFACE) LA CHARTE 6 — ENCRE · BLANC · OR : toutes ses règles commencent par html.c6 (voir <style id="charte6">).
+   (2026-10-14 16 h 50, PILOTAGE — verdict de Sacha : « j'aime pas du tout ce délire en noir et blanc », « c'était très clair qu'on avait
+   une charte graphique avec une police pixel », « ne modifie pas le logo ») : la charte 6 est ÉTEINTE par défaut, l'interface pixel
+   d'avant revient telle quelle ; ?ui=6 la rallume pour comparer. */
+if(/[?&]ui=6\b/.test(location.search))document.documentElement.classList.add('c6');
 /* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'ancienne édition Poki
    vaut désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
    et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
