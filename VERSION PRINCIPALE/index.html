@@ -1551,12 +1551,14 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   @keyframes pwrPuls{from{opacity:.5}to{opacity:1}}
   #flash9{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 62%,transparent 28%,var(--ff) 100%)}
   #flash9.on{animation:flash9 .5s ease-out}
+  #flash9.on2{animation:flash9b .5s ease-out} /* (2026-10-14, OPTIMISATION) la jumelle : alterner on/on2 relance l'animation sans forcer de mise en page */
   /* (2026-10-05, Léo : « rends plus smooth la transition entre deux niveaux, avec le portail ») LE VOILE DU PASSAGE : posé UNE image avant
      que le niveau suivant se construise (portailPasse → portPasseNiveau), il couvre le gel de la construction et la coupe de caméra, puis
      s'ouvre en 0,5 s sur le nouveau monde. Cœur blanc, rose du portail, bords violets. */
   #portV{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;
     background:radial-gradient(circle at 50% 56%,rgba(255,246,255,1) 0,rgba(255,150,232,.97) 26%,rgba(255,79,216,.96) 48%,rgba(84,26,150,.98) 100%)}
   @keyframes flash9{0%{opacity:1}100%{opacity:0}}
+  @keyframes flash9b{0%{opacity:1}100%{opacity:0}}
   /* LES POUVOIRS ACTIFS : de vraies pastilles lumineuses, plus un chiffre en 9 px */
   #pwrChip{font-size:12px!important;margin-bottom:10px!important;text-shadow:none!important}
   #pwrChip span{display:inline-block;margin:0 4px;padding:6px 10px;background:#0b0730;box-shadow:inset 0 0 0 2px currentColor,0 0 14px currentColor;
@@ -42145,7 +42147,11 @@ function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pou
   if(REDUCED_MOTION){const n=performance.now();if(n-(flashEcran._t||-1e9)<1000)return;flashEcran._t=n;
     col=String(col).replace(/rgba?\(([^,]+),([^,]+),([^,)]+)(?:,([^)]+))?\)/,function(m,r,g,b,a){return 'rgba('+r+','+g+','+b+','+Math.min(.4,a==null||!isFinite(+a)?1:+a)+')';});}
   let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
-  e.style.setProperty('--ff',col);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  /* (2026-10-14, OPTIMISATION — profil d'une course : 36 ms de « mise en page forcée » en 8 s de NITROOO, une toutes les 0,62 s) relancer
+     l'animation en ALTERNANT deux animations identiques (flash9 / flash9b) au lieu de `void offsetWidth` : même coup de couleur, à la même
+     image, sans recalcul synchrone de toute la page. */
+  e.style.setProperty('--ff',col);if(e._vu)return;e._vu=1;Promise.resolve().then(function(){e._vu=0;}); // deux appels dans la même tâche = UNE relance (comme avant)
+  const a9=e.classList.contains('on');e.classList.remove(a9?'on':'on2');e.classList.add(a9?'on2':'on');
 }
 /* ===== (vague 3, 2026-09-27) LE VERDICT DE POSE SUR TÉLÉPHONE — user : « rajoute les textes monster et tout » =====
    `trickMsg` écrit dans #trickBox, que l'ÉCRAN NU masque : sur téléphone, MONSTRE / DOUBLE / TRIPLE MONSTRE, MÉTÉORE, SNAKE LOOP ne se
