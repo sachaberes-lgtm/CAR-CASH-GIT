@@ -7880,6 +7880,56 @@ html.c6.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{margin:auto auto 1px
 </style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* ===== P1 · LA BOUTIQUE (2026-10-14, charte 6) : navigation et état, pas une refonte — la scène 3D de Léo ne bouge pas ===== */
+/* 1. ◀ carré en haut à gauche (BRIEF §0 bis 5), à la place du RETOUR large du bas (#gShopBas, masqué en boutique : sa touche vit dans le JS, bqRetourC6) ;
+   l'en-tête BOUTIQUE se décale d'une touche (48 + 8) pour lui laisser sa place */
+html.c6 #gBqRet{display:none}
+html.c6 #garage.modeShop #gBqRet{display:flex;position:absolute;left:calc(var(--sL,0px) + 16px);top:calc(var(--sT,0px) + 4px);z-index:3;pointer-events:auto}
+html.c6 #gBq #gBqTete{left:calc(var(--sL,0px) + 72px);right:calc(var(--sR,0px) + 16px);top:calc(var(--sT,0px) + 6px);min-height:44px;align-items:center}
+html.c6 #gBqTete .bqT1 b{font-size:16px;letter-spacing:0}
+html.c6 #gBqTete .bqTl{gap:12px}
+html.c6 #gBqTete .bqTl .bqArg{padding:8px 10px;margin-top:0;align-self:center}
+html.c6 #gBqTete .bqTl .bqArg b,html.c6 #gBqTete .bqArg{font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:0}
+html.bqIndus.c6 body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{display:none!important}
+html.bqIndus.c6 body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{grid-column:1/-1}
+/* 2. le bouton d'action : une plaque de 48 px, en police système (aucun texte sous 11 px), qui dit son état AVANT le toucher */
+html.bqIndus.c6 body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{position:relative;overflow:hidden;height:48px;min-height:48px;font-family:var(--sans);font-size:15px;font-weight:800;letter-spacing:.5px;gap:10px}
+html.c6 #gBqBtn span,html.c6 #gBqBtn b{font-family:var(--sans);font-weight:800;font-size:15px;letter-spacing:.5px}
+html.bqIndus.c6 body #garage #gAct>#gBqBtn:is([data-e="choix"],[data-e="manque"]){background:#eef0f3;color:#4a525d;box-shadow:inset 0 0 0 2px #c9ccd4;cursor:default;translate:none}
+html.c6 #gBqBtn .bqJ{position:absolute;left:0;right:0;bottom:0;height:6px;background:#d5d8df}
+html.c6 #gBqBtn .bqJ::before{content:'';display:block;height:100%;width:calc(var(--v,0) * 100%);min-width:4px;background:#14171c}
+/* 3. les textes de la boutique : police système, 11 px au minimum (les noms passent sur 2 lignes, les prix ne se coupent jamais) */
+html.c6 #gBqPan .bqOng button{font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:0;min-height:48px}
+html.c6 #gBqPan.cote .bqOng button{min-height:44px}
+html.c6 #gBqPan .bqOng button i,html.c6 #gBqPan .bqOng button.on i{font-family:var(--sans);font-size:12px;font-weight:800}
+html.c6 #gBqPan .bqMenu button{font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:0;min-height:48px}
+html.c6 #gBqPan .bqMenu button i:not(.pxi){font-family:var(--sans);font-size:12px;font-weight:800}
+html.c6 #gBqPan .bqK .bqKn{font-family:var(--sans);font-size:12px;font-weight:800;line-height:14px;letter-spacing:0;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:28px;padding:6px 7px 0}
+html.c6 #gBqPan .bqK .bqKp{font-family:var(--sans);font-size:13px;font-weight:800;letter-spacing:0;white-space:nowrap;font-variant-numeric:tabular-nums;padding:4px 7px 8px}
+html.c6 #gBqPan .bqK .bqKl{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.5px;padding:3px 6px}
+html.c6 #gBqPan .bqK .bqKph{height:56px}
+html.c6 #gBqPan.grille .bqK .bqKph,html.c6 #gBqPan.grille .bqK.off .bqKph{height:56px}
+html.c6 #gBqPan.grille.cote .bqK .bqKph,html.c6 #gBqPan.grille.cote .bqK.off .bqKph{height:48px}
+html.c6 #gBqNom .bqRar,html.c6 #gBqNom .bqLim{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.5px}
+html.c6 #gBqNom .bqNom{font-size:12px;letter-spacing:0}
+/* 4. « CETTE SEMAINE » : des cartes ENTIÈRES (le JS cale la hauteur sur n cartes : bqColonneCale), feuilletées au doigt — plus de défilé qui les coupe */
+html.c6 #gBqUne .bqUt b,html.c6 #gBqUne .bqUt em{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:0;white-space:nowrap}
+html.c6 #gBqUne.vert .bqUt b,html.c6 #gBqUne.vert .bqUt em{letter-spacing:0}
+html.c6 #gBqUne.vert .bqUv{overflow-x:hidden;overflow-y:auto;-webkit-mask:none;mask:none;touch-action:pan-y;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain}
+html.c6 #gBqUne.vert .bqUv::-webkit-scrollbar{display:none}
+html.c6 #gBqUne.vert .bqUr{animation:none;gap:8px;padding:0;width:auto}
+html.c6 #gBqUne.vert .bqU{flex:none;scroll-snap-align:start}
+html.c6 #gBqUne .bqUf,html.c6 #gBqUne.vert .bqUf{height:40px}
+html.c6 #gBqUne .bqUn{font-family:var(--sans);font-size:12px;font-weight:800;line-height:14px;letter-spacing:0;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:28px;padding:4px 6px 0}
+html.c6 #gBqUne .bqUp{font-family:var(--sans);font-size:12px;font-weight:800;letter-spacing:0;padding:3px 6px 6px}
+html.c6 #gBqUne .bqUl{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:0;padding:2px 4px}
+/* petit iPhone debout (375 × 667) : cartes compactes et le chrono sous silence, pour que DEUX cartes entières tiennent dans la colonne */
+@media (orientation:portrait) and (max-height:720px){
+  html.c6 #gBqUne .bqUf,html.c6 #gBqUne.vert .bqUf{height:32px}
+  html.c6 #gBqUne .bqUn{font-size:11px;line-height:12px;min-height:24px;padding:3px 6px 0}
+  html.c6 #gBqUne .bqUp{font-size:12px;line-height:14px;padding:2px 6px 4px}
+  html.c6 #gBqUne .bqUt em{display:none}
+}
 </style>
 <style id="c6-hud">
 /* CHARTE 6 · le HUD de course, les commandes tactiles, les annonces — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -43361,7 +43411,7 @@ function bqPorte(L){const V=L.filter(function(i){return !carOwned(i);}).concat(L
 setInterval(function(){try{if(!garageOn)return;const c=document.querySelector('#gStrip .fnCarr');if(!c||!c.offsetParent)return;const S=c.querySelectorAll('.fpS1'),P=c.querySelectorAll('.fpDots u');if(S.length<2)return;
   let i=-1;S.forEach(function(e,j){if(e.classList.contains('on'))i=j;});const n=(i+1)%S.length;if(i>=0){S[i].classList.remove('on');S[i].classList.add('sort');setTimeout(function(){S[i].classList.remove('sort');},500);if(P[i])P[i].classList.remove('on');}
   S[n].classList.add('on');if(P[n])P[n].classList.add('on');}catch(e){}},2600); // (2026-10-12) le défilé des offres
-function gOffresPage(){window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
+function gOffresPage(){if(bqC6()){GBQ.ong='off';GBQ.rk='';if(GMODE.m!=='shop')gModeVa('shop');return;} /* (2026-10-14, charte 6) plus d'écran rose : l'onglet OFFRES */ window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
 function bqCourant(){if(GBQ.figK&&GBQ.panOn&&(GBQ.cat==='figure'))return GBQ.figK;if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   if(gEl)gEl.classList.toggle('shopJour',!GMODE.paye);
@@ -43417,7 +43467,7 @@ function gModeVa(m){
     if(m==='shop'){gGarageReplie();return;} /* (2026-10-14) le garage REPLIÉ, plus l'inventaire */ // (2026-10-12, Léo : « BOUTIQUE devient RETOUR quand on appuie dessus ») RETOUR : l'INVENTAIRE (la vue d'arrivée), les cinq touches
     if(m==='inv'){if(GATL.on){gAtelier(false);gGarageReplie();}else gAtelier(true);return;} /* (2026-10-14) RETOUR de l'inventaire : le garage REPLIÉ */ // (2026-10-12, Léo) INVENTAIRE ferme l'atelier ; la même touche, devenue ◀ RETOUR, le rouvre
     return;}
-  GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
+  GBQ.deAcc=0;GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
@@ -45773,7 +45823,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
       +'<button data-o="off" role="tab">'+sansAcc(TR('OFFRES'))+'<i class="n2"></i></button></div>'
       +'<div class="bqMenu" role="menu">'+BQ_CATS.map(function(c){return '<button data-c="'+c[0]+'" role="menuitem">'+pxi(c[2])+'<span>'+sansAcc(TR(c[1]))+'</span><i></i></button>';}).join('')+'</div>'
       +'<div class="bqRail"></div></div>';
-  gEl.insertBefore(ui,gEl.firstChild);
+  gEl.insertBefore(ui,gEl.firstChild);bqRetourC6(ui);
   {const ga=document.getElementById('gAct');if(ga&&!document.getElementById('gBqBtn')){const bt=document.createElement('div');bt.id='gBqBtn';bt.setAttribute('role','button');bt.tabIndex=0;ga.appendChild(bt);
     bt.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(bt);bqAction();});}}
   const pan=ui.querySelector('#gBqPan'),ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
@@ -45800,7 +45850,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
      if(oc)oc.textContent=sansAcc(TR(C9[1]));if(oi)oi.className='pxi pxi-'+C9[2]+' bqOi';if(n1)n1.textContent=bqListe(cat).length;if(n2)n2.textContent=E.length;}
     pan.querySelectorAll('.bqMenu button').forEach(function(b){const c=b.getAttribute('data-c');b.classList.toggle('on',c===cat);const n=b.querySelector('i');if(n)n.textContent=bqListe(c).length;});
     rail.classList.toggle('off',ong==='off');rail.classList.toggle('habs',ong!=='off'&&cat!=='voiture');rail.scrollTop=0;rail.scrollLeft=0;
-    rail.innerHTML=L.map(function(k,n){return bqCarteHtml(k,n,ong==='off');}).join('');bqPhotos(rail);}
+    rail.innerHTML=L.map(function(k,n){return bqCarteHtml(k,n,ong==='off');}).join('');bqPhotos(rail);if(ong==='off')bqOffreAuto(E);}
   // CETTE SEMAINE : la colonne qui défile
   const S=bqSemaine().l,une=document.getElementById('gBqUne'),ur=une.querySelector('.bqUr'),uk=S.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
   if(GBQ.uk!==uk){GBQ.uk=uk;GBQ.vu='';
@@ -45808,7 +45858,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
         nom=vo?TR(CARS[n].name):TR(o.d.n),pr=vo?(CAR_UNLOCK[n]||{}).p:o.d.p,px=a?sansAcc(TR('À TOI')):pxi('piece')+fmtC(pr||0);
       return '<div class="bqU" data-k="'+k+'" role="button" style="--rc:'+ri.c+'" aria-label="'+String(nom).replace(/"/g,'')+'"><span class="bqUf">'+(vo?'<span class="bqUph" data-ph="'+n+'"></span>':bqFigHab(k))+'</span>'
         +'<span class="bqUn">'+sansAcc(String(nom))+'</span><span class="bqUp'+(a?' acq':'')+'">'+String(px)+'</span></div>';}).join('');
-    ur.innerHTML=h+h;ur.style.setProperty('--n',S.length);bqPhotos(ur);}
+    ur.innerHTML=bqC6()?h:h+h;ur.style.setProperty('--n',S.length);bqPhotos(ur);}
   {const t=une.querySelector('.bqUt em i:not(.pxi)'),r=bqHebdoReste();if(t&&t.textContent!==r)t.textContent=r;}
   bqBoutonMaj();
   /* CE QU'ON REGARDE (2026-10-12, Léo : « le nom de la voiture et la rareté au-dessus de la voiture ; en dessous, les différents skins —
@@ -45831,7 +45881,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left='14px';pan.style.right='14px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');
       une.style.bottom=(H-(bas-10-ph)+10)+'px';}
     else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');une.style.bottom='12px';}
-    garLibre._r=null;}
+    garLibre._r=null;bqColonneCale(une);}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
    sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
    GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
@@ -45849,7 +45899,37 @@ function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai
   try{gShopJour();}catch(e){}GBQ.ck='';}
 /* LE BOUTON QUI CHANGE (#gBqBtn, à droite de RETOUR) : ACHETER (+ le prix) · ÉQUIPER · DÉSÉQUIPER (un habillage équipé, sauf celui d'origine) ·
    ÉQUIPÉE (la caisse que tu as) · À GAGNER (défi : il le dit) — il remplace ACHETER de la console en boutique */
+/* (2026-10-14, charte 6, ticket boutique P1) LE BOUTON SUIT L'ONGLET ET DIT L'ÉTAT AVANT LE TOUCHER :
+   · OFFRES sans offre choisie (la caisse regardée n'en est pas une) : « CHOISIS UNE OFFRE », inactif — plus jamais « ACHETER $ 50 k » d'une caisse oubliée ;
+   · caisse / habillage / figure à pièces trop chère : « IL TE MANQUE $ 49,6 k » + mini-jauge (la banque / le prix), inactif — plus de toast sombre APRÈS le toucher. */
+function bqC6(){return document.documentElement.classList.contains('c6');}
+function bqEtatC6(k){if(!bqC6())return null;
+  if(GBQ.panOn&&GBQ.ong==='off'&&!(k[0]==='v'&&bqEphemeres().l.indexOf(+k.slice(2))>=0))return {e:'choix',t:'CHOISIS UNE OFFRE'};
+  let prix=0;
+  if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{};if(!(carUnlockedVrai(i)||(SAVE.d.equipped|0)===i)&&u.k!=='premium'&&u.p)prix=u.p;}
+  else{const o=bqCos(k),d=o&&o.d;if(d&&d.p){if(o.cat==='figure'){if(!figPossede(d.id))prix=d.p;}else if(!shopOwned(o.cat,d.id))prix=d.p;}}
+  if(prix&&bank()<prix)return {e:'manque',t:'IL TE MANQUE',p:fmtC(prix-bank()),j:Math.max(0,Math.min(1,bank()/prix))};
+  return null;}
+/* OFFRES ouvertes : la 1re offre est déjà posée sur le plateau (l'aperçu 3D ne montre plus la dernière caisse touchée) */
+function bqOffreAuto(E){if(!bqC6()||!E.length)return;if(GAR.go||ecranWipe._on){GBQ.rk='';return;} /* sous le voile : on refait la liste à l'image suivante */ if(E.indexOf(garageI)<0)try{bqEssaie('v:'+E[0]);}catch(e){}}
+/* LE ◀ DE LA BOUTIQUE (BRIEF §0 bis 5) : carré, en haut à gauche, comme partout — il fait ce que faisait RETOUR (#gShopBas, masqué sous c6) */
+function bqRetourC6(ui){if(!bqC6()||document.getElementById('gBqRet'))return;ui.classList.add('c6Clair');
+  const r=document.createElement('div');r.id='gBqRet';r.className='pbtn pbCarre c6Ret';r.setAttribute('role','button');r.tabIndex=0;r.setAttribute('aria-label',sansAcc(TR('RETOUR')));r.innerHTML=pxi('gauche');ui.appendChild(r);
+  r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(r);uiClic('retour');
+    if(GBQ.deAcc){GBQ.deAcc=0;ecranWipe(function(){gGarageReplie();GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);try{garBqAmbiance(false);bqSonCoupe(.4);}catch(e){}GBQ.lueur=0;try{SHOP.prev=null;buildCar(CARS[equippedCar()]);}catch(e){}if(started&&gameOver)accueilRetour();garMode('menu');});return;} /* (vu au banc, deux fois) la boutique 3D ne se défait que hors du menu : sous le voile on la range d'un coup (la recette du départ en course, GAR.go), TA caisse remise sur le plateau (l offre essayée y restait, comme closeGarage), puis l accueil */ /* (2026-10-14, vérif P1) venu du CADEAU de l'accueil : ◀ ramène à l'ACCUEIL d'un coup (plus de détour par le garage replié) ; venu du garage, ◀ y revient (ligne suivante) */
+    gModeVa('shop');});}
+/* LA COLONNE « CETTE SEMAINE » ne montre que des cartes ENTIÈRES : sa hauteur = n cartes + écarts (elle se feuillette au doigt, plus de défilé qui coupe) */
+function bqColonneCale(une){if(!bqC6())return;const uv=une.querySelector('.bqUv'),c=une.querySelector('.bqU');if(!uv||!c)return;uv.style.flex='';uv.style.height='';
+  const dispo=uv.getBoundingClientRect().height,pas=c.getBoundingClientRect().height+8;if(dispo<20||pas<30)return;
+  const n=Math.max(1,Math.floor((dispo+8)/pas));uv.style.flex='none';uv.style.height=(n*pas-8)+'px';}
+/* la caisse regardée → la boutique, onglet OFFRES : le cadeau de l'accueil (plus d'écran #mShop néon sous c6) */
+function bqVaOffres(deAcc){if(ecranWipe._on)return;
+  if(started&&gameOver&&!garageOn){ecranWipe(function(){accueilRetour();try{window.__mGo('home');}catch(e){}});return;}
+  ecranWipe(function(){GBQ.ong='off';GBQ.rk='';
+    if(!garageOn){openGarage();gModeVa('shop');}else if(GMODE.m!=='shop'||gEl.classList.contains('menu')){garMode('boutique');gModeVa('shop');} /* (2026-10-14, vérif P1) GMODE.m reste « shop » quand ◀/HOME ramène à l'accueil depuis la boutique : sans le test « menu », le 2e cadeau ne faisait rien */
+    GBQ.deAcc=deAcc?1:0;});}
 function bqEtat(){const k=bqCourant();if(!k)return null;
+  {const c6=bqEtatC6(k);if(c6)return c6;} // (2026-10-14, charte 6, boutique P1) OFFRES sans choix · pas assez d'argent : voir bqEtatC6
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
     if(eq)return {e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
     if(u.k==='premium')return {e:'achat',t:'ACHETER',p:eurTxt(u.eur)};if(u.p)return {e:'achat',t:'ACHETER',p:fmtC(u.p)};return {e:'defi',t:'À GAGNER'};}
@@ -45859,6 +45939,7 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.p)return {e:'achat',t:'ACHETER',p:fmtC(d.p)};return {e:'defi',t:'À GAGNER'};}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
+  if(s.e==='choix'||s.e==='manque'){if(bt)gSecoue(bt);uiClic('refus');return;} // (2026-10-14, charte 6) l'état se lit AVANT le toucher : ni toast, ni achat
   if(s.e==='achat'&&k.indexOf('figure:')===0){figAchete(k.slice(7),bt);return;} // (2026-10-14) acheter une FIGURE
   if(s.e==='achat'){const b=$('gBuy');if(b)b.click();return;}
   if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
@@ -45883,9 +45964,10 @@ function garFigTick(dt){const L9=GFIG.lect;if(!L9||!L9.occupe())return;L9.tick(M
   carGroup.position.y+=lev;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
   VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
   VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
-function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
-  bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):'')):'';}
+function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
+  bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
+try{Object.assign(I18N,{'CHOISIS UNE OFFRE':'PICK AN OFFER'});}catch(e){} // (2026-10-14, charte 6, boutique P1)
 function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
 function garBqIndus(dt,ay,t9){
@@ -48408,7 +48490,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'&&garageOn&&!gEl.classList.contains('menu')){hap(8); // (2026-10-10) les OFFRES vivent dans la boutique du garage : ACHETER + le prix en € ouvre la fenêtre d'achat ICI, sur la caisse affichée
     let src=document.querySelector('#gStrip .fnC[data-fn="v:'+garageI+'"]')||document.querySelector('#gStrip .gT[data-car="'+garageI+'"]');if(!src)src=e.currentTarget;src.setAttribute('data-car',garageI);
     try{shopPop(src);return;}catch(er){}}
-  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8); // LÉGENDAIRE : direction la BOUTIQUE
+  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8);if(bqC6()){bqVaOffres();return;} /* (2026-10-14, charte 6) l'onglet OFFRES, pas l'ancien écran */ // LÉGENDAIRE : direction la BOUTIQUE
     // (2026-09-28) la boutique s'ouvre AU LEVER du voile (`apres`) : le clic simulé sur le bouton de l'accueil partait PENDANT le
     // fondu, et son propre ecranWipe était ignoré (garde `_on`) — ou en faisait un second. Pas dans `fn` : l'observateur de l'overlay
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
@@ -52087,6 +52169,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='misVoir'){ const c9=carnet(misEtat().n).r; // la récompense des MISSIONS, sur la vraie caisse, au garage (sa fiche porte ses trois défis)
       window.__mRetour=PROF[mCur]?mCur:null; // (2026-09-29) le RETOUR de l'atelier ramène aux MISSIONS
       ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
+    else if(a==='shop'&&bqC6()){ bqVaOffres(1); } // (2026-10-14, charte 6) le cadeau de l'accueil = la boutique, onglet OFFRES (UN seul écran OFFRES ; l'ancien #mShop reste pour ?ui=5)
     else if(a==='shop'){ ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
