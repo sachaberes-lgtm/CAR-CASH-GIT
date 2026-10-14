@@ -1,5 +1,27 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF (2026-10-15, Léo : « sur iPhone, en portrait, des parties de l'écran se répétaient, un peu les pixels », photo à l'ORBITE en vol, NITROOO)
+- LA CAUSE (mesurée, même image rendue deux fois, zoom ×4-6) : le flou de vitesse du TÉLÉPHONE (`ACES_N` 6 prises, décalées par le bruit
+  entrelacé `jt`) laissait loin de la caisse une TRAME RÉGULIÈRE (damier d'un pixel sur deux, diagonales : la lune « hachurée »), absente
+  sans le flou. Le bruit entrelacé est fait pour être lissé d'une image à l'autre (TAA), ce que le jeu ne fait pas ; en NETTE la 3D est
+  à ×1,5 sur un écran ×3 : chaque pixel de la trame = 2 pixels d'écran, et elle scintille. L'ordi a 8 prises fixes : pas ce chemin.
+- ÉCARTÉ PAR MESURE (bancs Chrome iPhone ET WebKit) : tailles des cibles de rendu (1 075 images contrôlées : toujours égales au tampon de
+  dessin, sauf l'arrondi sous-pixel des DPR fractionnaires), barre d'adresse ±80 px, rotation, DPR 0,85-3, crans QL, ciel en deux temps,
+  bloom, FXAA, cibles 8 bits, précision des shaders (aucun mediump).
+- LE CORRECTIF (`FLOU_MIPS`, téléphone + WebGL2 ; `?flou=ancien` = l'ancien chemin) : chaque prise lit l'image PRÉ-FLOUTÉE à la taille de
+  son intervalle + ½ niveau (mipmaps de la cible de la scène générés seulement quand le flou joue : `flouMips`, dans `acesPass.render`,
+  filtre rendu ensuite), plus de décalage (image stable, ni grain ni copies — essais au banc : un bruit sans motif laissait du grain, sans
+  pré-flou les sourcils de la lune se dédoublaient), et une prise hors de l'image se replie en MIROIR (le pixel du bord ne se répète plus,
+  ~5 % de chaque bord au boost). Le disque de la caisse : écart 0 au pixel (niveau 0 sous ~0,7 texel). 0 programme en course ; puce du Mac
+  2,2 contre 2,5 ms/image (bruit). Planche `CAR CAHS V3/photos-gameplay/pixels-repetes-avant-apres.png`.
+- AU PASSAGE (bug voisin) : `eauPTick` plantait à chaque image après la 1re gerbe de la mer du Soleil de jade (« dr is not defined » : un
+  `//` de la passe mobile avait avalé ses déclarations) — gouttes empilées sans fin, ronds, couronnes et sillage figés, objectif mouillé
+  jamais affiché. Rendu ; vérifié : la lentille mouille à la sortie et sèche en ~3,5 s.
+- BANC WEBKIT (le moteur de l'iPhone sur le Mac, sans réglage à changer) : un WKWebView hors de vue piloté par fichiers (Objective-C,
+  `clang -fobjc-arc banc.m -framework Cocoa -framework WebKit` ; Swift refuse : SDK ≠ compilateur), fausse identité de téléphone
+  (matchMedia, maxTouchPoints, écran), dsf 3 privé, occlusion coupée ; fenêtre transparente SOUS le fond d'écran (hors écran, rAF tombe à
+  ~7 i/s). Code dans le scratchpad de la session, décrit en mémoire (`banc-webkit`).
+
 ## LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes les voitures et tous les trucs débloquables — c'est caché »)
 RÉGLAGES › tout en bas, sous EFFACER : ENTRER UN CODE (`data-m="code"`, la feuille `modale` avec un champ). `codeCousin(t)` : « cousin » ou
 « cousin 1.61 » (accents, majuscules, espaces et points ignorés) → `SAVE.d.cousin=1` (gardé par `san`, parti avec EFFACER MA PROGRESSION, voyage
