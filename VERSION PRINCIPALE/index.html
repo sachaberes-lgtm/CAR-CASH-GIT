@@ -8812,13 +8812,13 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>';
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':k.v?'':'retour');try{c.blur();}catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
 let toastT=0;
-function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
-  try{if(SONV2){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
+  try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
 function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
   return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
@@ -28785,7 +28785,7 @@ function coinSerie(p){
   if(n<4||c!==n)return;
   flowAdd(3+n*.4,'style','n');
   popTexte(TR('SÉRIE COMPLÈTE')+' ×'+n,'#ffd75e',0);
-  try{if(SONV2)sfx('piece.serie');else{chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
+  try{if(SONV2)sfx('piece.serie',{vol:4});else{ /* (2026-10-14, session SON) +4 comme la pièce : la SÉRIE COMPLÈTE (−31) sonnait sous une pièce seule (−30) */chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
 }
 /* (v4, Sacha : « quand on passe en frénésie après avoir POSÉ UNE FIGURE — l'atterrissage est la condition pour déclencher la frénésie,
    en plus du score de flow — ça doit déclencher la voix TRIPLE MONSTRE et l'écriture TRIPLE MONSTER »). LA JAUGE PLEINE ARME (frenArme :
@@ -28860,7 +28860,7 @@ function frenCash(g,pos){
   if(m){const k=FX3.k=!FX3.k;m.classList.remove(k?'cj1':'cj2');m.classList.add(k?'cj2':'cj1'); // deux animations jumelles : relance sans remise en page
     if(n-FX3.bT>400){FX3.bT=n;try{pixBurst(m,4);}catch(e){}}}
   if(pos)try{fx3Tag(pos);}catch(e){}
-  if(SONV2)sfx('frenesie.cash'); // (console de son) l'argent qui tombe EN FRÉNÉSIE, par-dessus le son de la pièce : trois micro-pièces qui montent (le ×3) — recette dans atelier-son/recettes.js (bloc FRENCASH) ; au plus toutes les 90 ms
+  if(SONV2)sfx('frenesie.cash',{vol:4}); /* (2026-10-14, session SON) +4 comme la pièce : conçu 3 dB SOUS elle, il était passé 7 dB sous (−37 contre −30) — le ×3 ne s'entendait plus */ // (console de son) l'argent qui tombe EN FRÉNÉSIE, par-dessus le son de la pièce : trois micro-pièces qui montent (le ×3) — recette dans atelier-son/recettes.js (bloc FRENCASH) ; au plus toutes les 90 ms
 }
 function fx3Tag(pos){ // le « ×3 » qui jaillit de la pièce : l'étiquette la plus ancienne du bassin est recyclée, projetée là où l'argent est né
   if(!FX3.pool){FX3.pool=[];for(let j=0;j<5;j++){const e=document.createElement('i');e.className='fx3';e.setAttribute('aria-hidden','true');document.body.appendChild(e);FX3.pool.push({e:e,k:false});}}
@@ -29813,8 +29813,8 @@ function shopPopEl(){
     if(b.classList.contains('off'))return;
     uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
     shopPaye(i).then(function(){
-      shopDonne(i);el.classList.remove('attend');uiClic('ok');hap([12,40,12,40,30]);try{pixBurst(b,18);}catch(_){}
-      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'));
+      shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
+      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
     },function(){ // pas encore branché : on le DIT, dans la fenêtre, et rien n'est donné
       el.classList.remove('attend');el.classList.add('refus');uiClic('refus');hap([10,40,10]);
       const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('BIENTÔT DISPONIBLE'));
@@ -33576,7 +33576,7 @@ function musicLieuVoulu(){
    en réclame un autre que celui qui joue. */
 function musicSuitLieu(){
   if(musicMode!=='run')return;
-  if(jadeMusOn()){musicLieu=null;if(musicOn)stopMusic();return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick)
+  if(jadeMusOn()){musicLieu=null;if(musicOn){if(VOL_LOCKED&&!musWaTient())stopMusic();else MUSJ.f0=performance.now();}return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick) — (2026-10-14, session SON) la radio lui CÈDE en 0,3 s (musicTick) au lieu d'un pause() net sous le portail ; volume verrouillé (iPhone avant iOS 17) : rien à ramper, coupure comme avant
   const v=musicLieuVoulu();
   if(v===musicLieu&&(musicOn||!SND.music||FRENM.sw))return; // (2026-10-13) …et en en sortant, la radio qu'elle avait fait taire repart
   musicLieu=v;
@@ -33632,7 +33632,7 @@ const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cach
    poses, figures « qu'on n'entend pas »). Là où le volume est verrouillé, les effets gardent donc leur plein : le rapport musique / effets
    retrouve à peu près celui de l'ordi. Même sonde que `VOL_LOCKED` (déclarée plus bas, illisible ici avant sa ligne). */
 const SON_VOL_VERROU=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
-function sfxVol(){return VOL.sfx*(SON_VOL_VERROU?1:SFX_SOUS_MUS);}
+function sfxVol(){return VOL.sfx*((SON_VOL_VERROU&&!musWaTient())?1:SFX_SOUS_MUS);} // (2026-10-14, session SON) musique branchée en WebAudio (MUS_WA) : elle est mixée comme à l'ordi, les effets reprennent leur −3 dB
 function musVol(){return musicBaseVol*VOL.mus*musTrim();} // le niveau accordé × le curseur, en un seul endroit — (2026-10-14, session SON) × la sonie du morceau
 /* (2026-10-14, session SON) LES MORCEAUX À LA MÊME SONIE. Mesuré (BS.1770, fichiers d'assets/audio/music, `son/notes/sonie-fichiers.tsv`) :
    de −12,4 LUFS (VITESSE) à −16,0 (NOITE) en plein spectre, et de −13,6 à −20,4 « haut-parleur » (passe-haut 200 Hz : ce que rend un
@@ -33666,6 +33666,103 @@ musTrim._s=null;musTrim._g=1;
    ET UN FILET : la musique sait si elle DEVRAIT jouer (`musicVoulue`). Le premier toucher libère le lecteur ; chaque
    toucher suivant la relance si elle s'est tue (refus, interruption, appel, retour d'arrière-plan). */
 let musicVoulue=false,musicEnAttente=false,musicVolCible=1,musicVolCour=1,musicAnaEl=null;
+/* (2026-10-14, session SON) LA MUSIQUE REPASSE PAR WEBAUDIO — MAIS SEULEMENT LÀ OÙ L'ON TIENT LE RISQUE (Sacha : « le curseur MUSIQUE doit
+   marcher sur iPhone »). Sur iPhone `el.volume` est en lecture seule : la musique y sortait à 100 % de son fichier partout (ciel, garage,
+   course), le curseur MUSIQUE ne faisait rien, ni fondu ni table de sonie. Brancher l'élément dans le graphe (createMediaElementSource →
+   un gain) rend tout ce mixage. ⚠ L'HISTOIRE (« LA MUSIQUE v4 ») : en septembre ce chemin rendait la musique MUETTE — bouton silencieux
+   (catégorie « ambient »), contexte né suspendu, lecture refusée hors geste. D'où les quatre gardes :
+   · allumé PAR DÉFAUT seulement si le volume est verrouillé (`SON_VOL_VERROU`, la sonde de `VOL_LOCKED`) ET si `navigator.audioSession`
+     existe (iOS 17+ : `musicSession` y pose 'playback' quand la musique joue — le bouton silencieux ne coupe plus le WebAudio ; il est
+     reposé AVANT le branchement et à chaque `musicJoue`) ET si l'analyseur sait lire des flottants (sinon pas de chien de garde : pas d'essai).
+     Ailleurs (ordi, Android, iOS < 17) : éteint, le chemin <audio> d'avant au bit près ;
+   · forçable : `?muswa=1` / `?muswa=0` dans l'adresse, ou `localStorage.cc_muswa='1'|'0'` (l'appli de test, sans recompiler) — le
+     forçage ne passe jamais outre le volume verrouillé ;
+   · le branchement se fait DANS UN GESTE (fin du bus de `initAudio`, ou `musicDeverrouille`) : le contexte peut y être relancé ;
+   · LE CHIEN DE GARDE (`musWaGarde`, 2×/s) : 2,5 s où l'élément joue vraiment (pas en pause, pas muet, son temps avance, contexte qui
+     tourne, volume voulu > .05) et où le graphe reçoit un zéro EXACT → `localStorage.cc_muswa_ko='1'`, on débranche, l'élément capturé
+     quitte la page et un neuf (non capturé) le remplace, au même endroit du morceau — retour DÉFINITIF au chemin <audio>.
+   `MUS_WA.br` = branché ; tout ce qui change ailleurs est gardé par `musWaTient()` (faux tant que rien n'est branché). Console : dbgMusWa(). */
+const MUS_WA_ON='auto'; // 'auto' = la règle ci-dessus · true / false = forcé dans le code (le volume verrouillé reste exigé)
+var MUS_WA=(function(){
+  let f=MUS_WA_ON,ko=false,aS=false,flt=false;
+  try{aS=!!(navigator.audioSession&&'type' in navigator.audioSession);}catch(e){}
+  try{flt=typeof AnalyserNode!=='undefined'&&!!AnalyserNode.prototype.getFloatTimeDomainData;}catch(e){}
+  try{const m=/[?&]muswa=([01])/.exec(location.search);if(m)f=m[1]==='1';else if(localStorage.cc_muswa==='1')f=true;else if(localStorage.cc_muswa==='0')f=false;}catch(e){}
+  try{ko=localStorage.cc_muswa_ko==='1';}catch(e){}
+  if(f==='auto')f=aS;
+  return {on:!!(SON_VOL_VERROU&&f&&flt&&!ko),ko:ko,force:f,sess:aS,cmpOn:true,rythme:true,MAX:1.41,
+    br:false,el:null,src:null,g:null,cmp:null,e:null,an:null,buf:null,rms:-1,muet:0,tChk:0,tPrec:-1,vu:false,pq:''};})();
+/* MAX 1,41 (+3 dB) : la table de sonie (`MUS_SONIE`) monte jusqu'à +3 dB ; à l'ordi `el.volume` plafonne à 1 et l'écrête — c'est une limite
+   de l'élément, pas une intention. Le limiteur −1 dBFS commun et le compresseur doux tiennent les crêtes (le compresseur ne sort jamais
+   au-dessus de −4,6 dBFS en régime : banc `son/banc/muswa/compresseur.cjs`). */
+function musWaTient(){return !!(MUS_WA&&MUS_WA.br);} // (déclarée en fonction, `MUS_WA` en var : sfxVol peut la lire sans zone morte)
+function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musique (appel, Siri, iOS « interrupted ») — au toucher, avant de relancer l'élément
+  if(!musWaTient()||!AC||AC.state==='running'||paused||document.hidden||window.CC_PUB||window.CC_MUET)return;
+  try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
+}
+function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
+  if(!musWaTient()||!AC||!MASTER)return;
+  try{const p=MASTER._limIn&&MASTER._limIn.gain;if(p){const t=AC.currentTime;p.cancelScheduledValues(t);p.setTargetAtTime(SND.sfx?.937:0,t,.015);}}catch(e){}
+  try{if(paused||document.hidden||window.CC_PUB||window.CC_MUET){if(AC.state==='running')AC.suspend();}else musWaReveil();}catch(e){} // en pause / caché / pub : la musique est déjà en pause, le contexte peut dormir
+}
+function musWaBranche(){
+  const W=MUS_WA;
+  if(!W.on||W.br||!AC||!MASTER||!musicEl)return;
+  try{musicSession();}catch(e){} // 'playback' AVANT : le bouton silencieux ne doit pas couper ce qu'on branche
+  try{
+    W.el=musicEl;W.src=AC.createMediaElementSource(musicEl);
+    W.g=AC.createGain();W.g.gain.value=(musicEl.paused||musicEl.muted)?0:1; // branchée en pleine lecture, elle sortait à 100 % du fichier : on part de là, musicTick la ramène au mixage
+    W.an=AC.createAnalyser();W.an.fftSize=256;W.an.smoothingTimeConstant=.55;W.buf=new Float32Array(W.an.fftSize); // le chien de garde (et le rythme du décor) écoutent AVANT le gain : on juge l'élément, pas le curseur
+    W.src.connect(W.g);W.src.connect(W.an);
+    let d=W.g;
+    /* LE COMPRESSEUR DOUX (−24 dB, 2,5:1, genou 10, 20 ms / 0,4 s) : avec son rattrapage automatique (+6,9 dB, noyau Chrome/WebKit),
+       les CREUX des morceaux (sous −24 dBFS) remontent de 6,9 dB, un passage plein (enveloppe vers −8 dBFS) reste à l'unité, les crêtes
+       reculent — sur un haut-parleur de téléphone, les intros et les ponts ne disparaissent plus. `MUS_WA.cmpOn=false` = sans. */
+    if(W.cmpOn){W.cmp=AC.createDynamicsCompressor();W.cmp.threshold.value=-24;W.cmp.ratio.value=2.5;W.cmp.knee.value=10;W.cmp.attack.value=.02;W.cmp.release.value=.4;W.g.connect(W.cmp);d=W.cmp;}
+    /* Elle rejoint le LIMITEUR commun (−1 dBFS) avec la même compensation que `MASTER._limIn` (.937), mais À CÔTÉ de lui : c'est l'entrée
+       `_limIn` que le bouton SON ferme (effets + voix), la musique ne doit jamais se taire parce qu'on a coupé les effets. Jamais MASTER._vol. */
+    W.e=AC.createGain();W.e.gain.value=.937;d.connect(W.e);W.e.connect(MASTER._lim||AC.destination);
+    W.br=true;
+  }catch(e){console.warn('musique WebAudio : branchement refusé',e);if(W.src)musWaCondamne('branchement');else W.on=false;return;}
+  if(W.rythme&&!musicAna){musicAna=W.an;musicData=new Uint8Array(W.an.frequencyBinCount);} // (bonus) le décor bat sur la VRAIE musique, plus sur le métronome (iPhone n'a pas captureStream)
+  musWaSon();try{volApply();}catch(e){} // les effets retrouvent leur −3 dB sous la musique, comme à l'ordi (voir sfxVol)
+}
+function musWaCondamne(pq){ // retour DÉFINITIF au chemin <audio> (la prochaine ouverture de l'appli ne réessaiera pas)
+  const W=MUS_WA,el=W.el;W.pq=pq;W.ko=true;
+  try{localStorage.cc_muswa_ko='1';}catch(e){}
+  console.warn('musique WebAudio condamnée ('+pq+') : retour au chemin <audio>');
+  for(const n of [W.src,W.g,W.cmp,W.e,W.an])if(n)try{n.disconnect();}catch(e){}
+  if(musicAna&&musicAna===W.an){musicAna=null;musicData=null;}
+  W.br=false;W.on=false;
+  try{if(AC&&MASTER&&MASTER._limIn){const p=MASTER._limIn.gain,t=AC.currentTime;p.cancelScheduledValues(t);p.setValueAtTime(.937,t);p._s9=undefined;}}catch(e){} // le bouton SON reprend son chemin d'avant…
+  try{if(AC&&!SND.sfx&&AC.state==='running')AC.suspend();}catch(e){}                                                                      // …(contexte suspendu = effets coupés)
+  try{volApply();}catch(e){}
+  if(!el||el!==musicEl)return;
+  // l'élément est capturé pour toujours par le graphe : on en pose un neuf, au même endroit du morceau ; il repart tout de suite si iOS veut bien, sinon au prochain toucher
+  const s=el.src,t=el.currentTime||0,lp=el.loop;
+  try{el.pause();}catch(e){}try{el.remove();}catch(e){}
+  musicEl=null;musicOn=false;const n=musicElGet();n.loop=lp;
+  if(s){n.src=s;if(t>0)n.addEventListener('loadedmetadata',function(){try{n.currentTime=t;}catch(e){}},{once:true});}
+  if(musicVoulue){musicEnAttente=true;try{musicJoue();}catch(e){}}
+}
+function musWaGarde(){ // 2 fois par seconde au plus, zéro allocation (tampon créé au branchement)
+  const W=MUS_WA;if(!W.br||!W.an)return;
+  const now=performance.now();if(now-W.tChk<500)return;
+  const dtc=W.tChk?Math.min(1,(now-W.tChk)/1000):0;W.tChk=now;
+  const el=musicEl;
+  if(!el||el!==W.el||el.paused||el.muted||document.hidden||!AC||AC.state!=='running'||!(musicVolCour>.05)){W.tPrec=-1;return;}
+  const ct=el.currentTime,av=W.tPrec>=0&&ct>W.tPrec+.05;W.tPrec=ct;if(!av)return; // un élément qui charge (le temps n'avance pas) n'est pas un élément muet
+  try{W.an.getFloatTimeDomainData(W.buf);}catch(e){return;}
+  let q=0;const b=W.buf;for(let i=0;i<b.length;i++)q+=b[i]*b[i];W.rms=Math.sqrt(q/b.length);
+  if(W.rms>=1e-7){W.muet=0;W.vu=true;return;} // un vrai son remet le compte à zéro : les silences de tête des morceaux ne s'additionnent jamais
+  W.muet+=dtc;if(W.muet>=2.5)musWaCondamne('silence');
+}
+window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la condamnation (au prochain lancement)
+  if(k==='raz'){try{delete localStorage.cc_muswa_ko;}catch(e){}return 'cc_muswa_ko effacé : relancer l\'appli';}
+  const W=MUS_WA;let lim=null;try{lim=MASTER&&MASTER._limIn?+MASTER._limIn.gain.value.toFixed(3):null;}catch(e){}
+  return {on:W.on,force:W.force,session:W.sess,verrou:SON_VOL_VERROU,ko:W.ko,pq:W.pq,branche:W.br,gain:W.g?+W.g.gain.value.toFixed(3):null,voulu:+musicVolCour.toFixed(3),
+    rms:W.rms<0?null:+W.rms.toExponential(2),muet:+W.muet.toFixed(2),entendu:W.vu,ctx:AC?AC.state:null,limIn:lim,
+    el:musicEl?{pause:musicEl.paused,muet:musicEl.muted,t:+(musicEl.currentTime||0).toFixed(2)}:null,rythme:!!(musicAna&&musicAna===W.an)};};
 /* (2026-10-14, Léo : « la musique se lance seulement quand j'appuie sur le mode garage ; quand on est — et quand on revient — dans le menu
    ciel, un bruit de chute libre doux ») LE LOBBY SE TAIT AU CIEL : `MUS_TAIT` (posé par musicTick en mode menu : le ciel de LA CHUTE ou
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
@@ -33703,6 +33800,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
   if(document.hidden&&musicJoue._vu){musicEnAttente=true;return;}
   const el=musicElGet();musicSession();
   try{el.volume=Math.max(0,Math.min(1,musicVolCour));}catch(e){}
+  if(musWaTient()){musWaReveil();try{const p9=MUS_WA.g.gain,t9=AC.currentTime;p9.cancelScheduledValues(t9);p9.setValueAtTime(Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),t9);p9._s9=undefined;}catch(e){}} // (2026-10-14, session SON) branchée : le contexte d'abord, et le gain au niveau voulu AVANT de jouer (un fondu d'entrée part de 0, pas du niveau d'avant la pause)
   if(el.muted)el.muted=false; // (2026-10-05) on VEUT la musique : jamais muette (le déverrouillage peut l'avoir laissée muette, voir musicDeverrouille)
   const p=el.play();
   if(p&&p.catch)p.catch(function(){musicOn=false;musicEnAttente=true;});
@@ -33710,6 +33808,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
 function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) : le 1er libère le lecteur, les suivants relancent si besoin
   musicJoue._vu=1; // un toucher : la page est à l'écran (voir la garde de musicJoue)
   const el=musicElGet();musicSession();
+  if(MUS_WA.on){try{musWaBranche();musWaReveil();}catch(e){}} // (2026-10-14, session SON) dans le geste : brancher la musique au graphe, relancer un contexte « interrupted » (appel, Siri) avant l'élément
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
     if(!el.src)el.src=MUSIC.menu||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
     if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
@@ -33808,9 +33907,10 @@ function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e)
    voiture booste, pour tous les niveaux ») : le son de transition `depart.envol` (1,55 s de montée AVANT la musique) est RETIRÉ — la
    musique n'attend plus rien. NE PAS remettre de son ni de délai entre le départ et la musique.
    ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
+const MUSJ={f0:0,ms:300}; // (2026-10-14, session SON) la radio cède l'antenne à GLISSE (entrée au SOLEIL DE JADE par un portail) : l'instant où son fondu de sortie a commencé, 0 = pas de fondu
 const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
 function musicStartRun(depart){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course
-  DEPMUS.f0=-1;DEPMUS.sort=0;
+  DEPMUS.f0=-1;DEPMUS.sort=0;MUSJ.f0=0;
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
@@ -33850,7 +33950,7 @@ function musicNext(){
 }
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   musicMode='none';musicVoulue=false;
-  DEPMUS.f0=-1; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
+  DEPMUS.f0=-1;MUSJ.f0=0; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
   const el=musicEl;
   /* (2026-09-30) LA BANDE N'A PLUS QU'UN FIL : l'intervalle du tape-stop (~0,6 s) n'était jamais rangé — un REJOUER rapide (uiGarde
@@ -33864,6 +33964,7 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
   try{el.preservesPitch=false;el.webkitPreservesPitch=false;}catch(e){} // (2026-09-26) sans ça, le navigateur GARDE la hauteur : pas de chute de bande
   musicStop._iv=setInterval(function(){r-=.08;v*=.84;
     try{el.playbackRate=Math.max(.12,r);el.volume=Math.max(0,Math.min(1,v));}catch(e){}
+    if(musWaTient()&&el===MUS_WA.el)try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,v)),AC.currentTime,.02);}catch(e){} // (2026-10-14, session SON) branchée : le fondu du tape-stop passe par le gain
     if(r<=.12){clearInterval(musicStop._iv);musicStop._iv=0;try{el.pause();}catch(e){}musicBandeNette(el);musicOn=false;}},55);
 }
 function musicBandeNette(el){if(el)try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}} // la bande à SA vitesse et SA hauteur
@@ -34121,13 +34222,19 @@ function musicTick(dt,mvt){
       d'un <audio> y est verrouillé — la musique y joue au même niveau partout, comme avant.) */
    const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9;MUS_TAIT=tait9;
    if(ciel9){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant
-   if(tait9){musicVolCible=0;if(!musicTick._pz&&(VOL_LOCKED||musicVolCour<.012)){musicTick._pz=true;musicPause(true);}}
+   if(tait9){musicVolCible=0;if(!musicTick._pz&&((VOL_LOCKED&&!musWaTient())||musicVolCour<.012)){ /* (2026-10-14, session SON) branchée en WebAudio, l'iPhone fait comme l'ordi : un fondu, puis la pause */musicTick._pz=true;musicPause(true);}}
    else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
    musicTick._bq=bq9;}
+  if(MUSJ.f0){ /* (2026-10-14, session SON) la radio s'efface avant de se taire (voir musicSuitLieu) : rampe linéaire sur MUSJ.ms, puis pause */
+    const k8=(performance.now()-MUSJ.f0)/MUSJ.ms;
+    if(musicMode!=='run'||!jadeMusOn()||!musicOn){MUSJ.f0=0;}
+    else if(k8>=1){MUSJ.f0=0;stopMusic();}
+    else{musicVolCible*=1-k8;musicVolCour=Math.min(musicVolCour,musicVolCible);}}
   if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
     if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
   if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
-    if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
+    if(musWaTient()){try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),AC.currentTime,.03);}catch(e){}try{musWaGarde();}catch(e){}} // (2026-10-14, session SON) branchée : le volume passe par le gain du graphe (curseur, ciel, fondus, sonie) — et le chien de garde écoute
+    else if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
   musChorusEnv+=(boostAmt-musChorusEnv)*Math.min(1,dt*6);
@@ -34591,6 +34698,16 @@ let engPre=null,engPost=null,engEq=null,engFmt=null,engTickG=null,engTickO=null,
 let MASTER=null,BUSOUT=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null,
     skF1=null,skF2=null,skLfo=null,skD1=null,skD2=null,jcFb=null,jcDep=null,jetDist=null,jrG=null,jrF=null,jrDep=null;
 let engLvl=-1,engGear=1,engRpm=0,engShiftT=0,engWasUp=false,nA=0,duckT=0;const LANCEE={a:[0,0,0]}; /* (2026-10-07) les paliers d'élan déjà sonnés (voir « LA LANCÉE S'ENTEND ») */
+/* (2026-10-14, session SON) LE VOL QUI MONTE : `SVOL.t` = secondes VÉCUES du vol en cours (jamais rendues par un bump ni par la mer,
+   contrairement à fallTR), `SVOL.k` = la TENSION 0 → 1, lissée par dt (même courbe à 30, 60, 120 i/s : banc son/banc/vol/tension.cjs).
+   Elle monte avec la durée du vol (~2,5 s) et un peu avec les figures (ECH), ouvre le vent et fait chanter le moteur en vol ; à la
+   pose elle retombe en ~0,2 s : c'est la RÉSOLUTION, le verdict claque sur un mix qui se relâche. Remis à zéro par startFall (t),
+   respawn / newTrack / resetGame (t et k). */
+const SVOL={t:0,k:0};
+/* (2026-10-14, session SON) LA TURBULENCE DU JET, TIRÉE À INTERVALLE FIXE : le hasard de jrG / jetLowG était retiré À CHAQUE IMAGE —
+   l'écart dépassait toujours la garde de `stt` (setTargetAtTime à chaque image) et le grain allait deux fois plus vite à 120 Hz.
+   On retire `r` (×.84-1.16) et `l` (×.7-1.3) toutes les 90 ms (horloge par dt) ; entre deux, la consigne ne bouge pas. */
+const JETN={t:0,r:1,l:1};
 /* ================= LES 30 VOIX — UNE PAR MOTEUR (2026-08-05) =================
    ⚠ C'ÉTAIT LE PLUS GROS MANQUE DU JEU (noté tel quel dans la passation). Les 30 paliers se
    partageaient les 24 timbres de `ENGINES` — des voix de CARROSSERIE — par une règle de trois :
@@ -35052,6 +35169,7 @@ function initAudio(){
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
   {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;}MASTER._lim.connect(AC.destination);
   // (la bande-son ne passe plus par ce graphe : voir « LA MUSIQUE v4 »)
+  if(MUS_WA.on)try{musWaBranche();}catch(e){} // (2026-10-14, session SON) …sauf là où MUS_WA l'y rebranche : ici, dans le geste qui crée le contexte, avant que le morceau ne s'entende
   // MOTEUR v2 : 2 oscillateurs à onde harmonique (le timbre de la caisse) désaccordés de 7 cents
   // + sub sinus à f/2 (la poitrine) + souffle d'admission → SATURATION (grain) → filtre (brillance)
   osc=AC.createOscillator();osc2=AC.createOscillator();
@@ -35377,7 +35495,7 @@ function blip(){
     // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
     // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
     try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-3,t:.03});}catch(e){}
-    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
+    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:4});return;} // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -35493,7 +35611,7 @@ window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un
   if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
   return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
 function flowSnd(lv){
-  if(SONV2){if(lv>=4)sfx('frenesie.entre');else if(lv>0)sfx('flow.'+lv);return;} // (console) le palier 4 = la FRÉNÉSIE qui part
+  if(SONV2){if(lv>=4)sfx('frenesie.entre');else if(lv>0)sfx('flow.'+lv,{vol:2});return;} /* (2026-10-14, session SON) flow.1-3 +2 : un palier de flow (−30/−29/−28) sonnait au niveau d'une pièce (−30, son +4) ; frenesie.entre (−23) reste devant */ // (console) le palier 4 = la FRÉNÉSIE qui part
   if(!AC||!(lv>0))return;
   const I=FLOW_ACC[lv]; // (même tonalité que les pièces : mi · fa# · sol# · si)
   chimeNote(noteP(I[0],1),0,.08,.22);chimeNote(noteP(I[1],1),.06,.07,.24);chimeNote(noteP(I[2],1),.12,.07,.3);
@@ -36179,7 +36297,7 @@ function sndRefresh(){
   sndBtnEl.innerHTML=pxi(SND.sfx?'son':'muet')+' <span class="blabel">'+TR('SON')+'</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile ; TR() sinon le libellé revient au français à chaque bascule, même en anglais
   voxBtnEl.innerHTML=pxi('voix')+' <span class="blabel">'+TR('VOIX')+'</span>';voxBtnEl.classList.toggle('off',!SND.voice);
   if(musBtnEl){musBtnEl.innerHTML=pxi('musique')+' <span class="blabel">'+TR('MUS')+'</span>';musBtnEl.classList.toggle('off',!SND.music);} // ⚠ plus de « LVL 1 » (radio à morceau unique par niveau supprimée) : ce libellé est RECONSTRUIT à chaque bascule
-  try{if(AC){if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
+  try{if(AC){if(musWaTient())musWaSon();else if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} /* (2026-10-14, session SON) musique branchée : SON ne suspend plus le contexte, il ferme l'entrée des effets (musWaSon) */ // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
   if(!SND.voice)annStop();
   if(!SND.sfx){deathStop();fxStop();if(ANN.playing&&ANN.playing.els[0]&&!(ANN.playing.els[0] instanceof HTMLMediaElement))annStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
@@ -37330,6 +37448,7 @@ function setBestChip(){
 }
 function commitName(){
   if(pendingScore==null)return;
+  try{uiClic('');}catch(e){} // (2026-10-14, session SON) VALIDER son nom (bouton ou Entrée) était muet : l'appui principal, comme tout « valider »
   var nm=(nameInput.value||'').trim().toUpperCase().replace(/\s+/g,' ').slice(0,8);
   if(!nm)nm='???';
   SAVE.d.pseudo=nm;
@@ -37753,7 +37872,7 @@ function chaineEncaisse(){
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
     if(g>=300)try{pixBurst(avE('avVal'),Math.min(14,4+Math.round(g/250)));}catch(e){} // (2026-09-26) la chaîne tombe DANS le compteur : il éclabousse
     if(g>=500)flashEcran('rgba(177,75,255,.5)');
-    hap(CHA.x>=4?[12,30,24]:12);try{if(SONV2)sfx(g>=2000?'aura.encaisse3':g>=600?'aura.encaisse2':'aura.encaisse1');else{chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);
+    hap(CHA.x>=4?[12,30,24]:12);try{if(SONV2)sfx(g>=2000?'aura.encaisse3':g>=600?'aura.encaisse2':'aura.encaisse1',{vol:2});else{ /* (2026-10-14, session SON) +2 : l'encaissement (−30/−28/−26) était conçu 4 dB au-dessus de la pièce ; depuis son +4 le petit encaissement sonnait AU NIVEAU d'une pièce (−30) */chimeNote(noteP(Math.min(9,CHA.x+2),1),0,.18,.22);if(CHA.x>=4)sparkle(.1,.08);
       // (2026-09-26, audit son) une chaîne ×10 à 3 000 sonnait comme un +45 : l'accord s'étoffe avec la somme
       if(g>=600)chimeNote(noteP(Math.min(10,CHA.x+4),1),.07,.14,.26);
       if(g>=2000){chimeNote(noteP(Math.min(10,CHA.x+6),1),.14,.14,.34);sparkle(.14,.1);}}}catch(e){} /* (console) aura.encaisse1/2/3 */
@@ -38410,6 +38529,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
     dolHudAtt=0;dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
+  SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
   for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
@@ -39203,7 +39323,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
+  ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
@@ -39452,7 +39572,7 @@ function tryLand(dt){
   if(landLoss>.2&&impact>=4.5)dropChip(2); // (2026-10-09) la tôle qui part = une pose DURE : un grand vol posé en douceur (PARFAIT) ne se casse plus
   if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
   if(window.__poseJ)window.__poseJ.push({h:+hOff.toFixed(2),hAvant:+prevH.toFixed(2),lat:+latX9.toFixed(2),vN:+vN.toFixed(1),vT:+fallVel.dot(T[bestI]).toFixed(1),face:sideL,t:+fallT.toFixed(2),vA:+vA.toFixed(1),psi:+psi.toFixed(2)}); /* (banc) le journal des poses */
-  prevTvalid=false;mode='drive';
+  prevTvalid=false;mode='drive';duckT=Math.max(duckT,.2*SVOL.k); /* (2026-10-14, session SON) LA RÉSOLUTION : la pose d'un vol tendu creuse les chaînes continues ~80 ms (dk ≥ .9, duckT retombe à 2,6/s) — le verdict (pose.parfait, choc) claque dans ce creux, puis la tension retombe en ~0,2 s (SVOL.k hors du vol) */
   /* LA POSE SANS SAUT (2026-10-01, Sacha : « il y a des bugs quand on essaye de se poser sur la route » — MESURÉ au banc des poses,
      da/pose-banc.js, 144 lâchers à 1/60 s) : la pose est DÉCLARÉE dès que la caisse passe sous 3 m de la dalle (la fenêtre élargie), et la
      conduite la posait SUR le bitume à l'image suivante — elle descendait de 2,1 à 2,6 m EN UNE IMAGE (le monde sautait à l'écran, 0,12 à
@@ -39659,6 +39779,7 @@ function traceTick(actif){
     a.needsUpdate=true;}
 }
 function newTrack(){
+  SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
   for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
@@ -39712,7 +39833,20 @@ window.dbgPortail=function(d){if(!started||gameOver||PARK.on)return 'pas de cour
 // console : dbgSaut() → franchit le portail tout de suite (niveau suivant), comme le vrai portail le fait
 window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course en cours';
   runStats.zones++;SURV.pBase+=survPortS();newTrack();return window.dbgNiveau(); }; // (2026-09-30) comme le vrai portail : en vol, au moins l'entrée de l'ovule
+/* (2026-10-14, session SON) CE QUI SONNE ENCORE DE LA MORT QUAND ON REJOUE. L'explosion dure 3,35 s, la fanfare du record 1,87 s, le
+   « compte » de l'écran de fin 1,1 s : un REJOUER pressé (le volet noir ne dure que 0,35 s) les laissait finir PAR-DESSUS le logo, le
+   whoomp et le réacteur du départ de la partie suivante (ils sont dans le bus des effets, `stopJeu` ne les connaît que pour la pause).
+   `resetGame` les éteint (CCSON.stop : rampe de 10 ms, jamais net) et annule ce qui était programmé en avance, UNIQUEMENT si l'on sort d'un
+   écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
+const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
+  'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+function finSonsCoupe(){
+  if(!SONV2||!window.CCSON)return;
+  try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
+}
 function resetGame(){
+  if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
+  SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
   PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
   try{nitroooVide();}catch(e){} // (2026-09-29) NITROOO et le dragon ne débordent plus sur la partie suivante
@@ -41411,7 +41545,7 @@ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU H
    tait), son intensité = les 5 PALIERS DE MUSIQUE du simulateur (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), son volume
    = le curseur MUSIQUE (VOL.mus, .62 = le niveau du module), l'interrupteur MUSIQUE le coupe. Le module se charge dès le démarrage ; le
    1er toucher d'une course le relance une fois (Safari ne réveille un contexte audio que dans un geste). */
-const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null};
+const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null,tS:0}; // tS : l'arrêt différé (fondu) de GLISSE, voir jadeMusTick
 /* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
    au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
    au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
@@ -41429,15 +41563,17 @@ function jadeMusOn(){return (JADE_JEU||!!(LVL.cur&&LVL.cur.sansFin))&&!!LVL.cur&
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
 function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))({basses:JMUS_BASSES,sortie:JMUS_SORTIE});}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
-function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&!paused&&!document.hidden;}
+function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&!paused&&!document.hidden&&!(mode==='boom'&&!SANDBOX&&!TUTO.on);} // (2026-10-14, session SON) …et PAS pendant l'explosion : la radio meurt à l'image du crash (musicStop(true) dans explode), GLISSE jouait encore 1,8 s de boule de feu jusqu'à endGame — puis se coupait net
 function jadeMusGeste(){const i=jadeMusInst();if(!i||!SND.music)return;try{if(i.playing)i.stop();i.start();i.setVolume(0);JMUS.vol=-1;JMUS.P=0;}catch(e){}} // réveillé dans le geste, muet jusqu'à la course
 function jadeMusTick(){
   if(!JMUS.mod){if(JADE_PLAY||JADE_JEU||SF.on)jadeMusCharge();return;}
   const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
-  if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
+  if(v){if(JMUS.tS){clearTimeout(JMUS.tS);JMUS.tS=0;}try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
       const P=1+(engTier>=5)+(engTier>=10)+(engTier>=15)+(engTier>=20);/* (2026-10-14, passe perf mobile) le même compte, sans tableau + fermeture + filtre par image */if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
       const vo=VOL.mus/.62*JMUS_NIV*(1-.55*JEAU.k); /* (2026-10-13) sous l'eau, la musique s'étouffe */if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
-  else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
+  else if(i.playing&&!JMUS.tS){ /* (2026-10-14, session SON) ELLE S'ÉTEINT EN FONDU. `stop()` du module = `ctx.suspend()` : le contexte se fige sur le son en cours (un claquement net, à la pause, à la mort, au portail, en quittant l'appli). Le volume du module descend d'abord (constante ,1 s : ~-30 dB en 0,35 s), le contexte s'endort une fois muet ; si la course la réclame entre-temps (reprise de pause rapide), `v` annule l'arrêt et le volume remonte tout seul. */
+    try{i.setVolume(0);JMUS.vol=0;}catch(e){}
+    JMUS.tS=setTimeout(function(){JMUS.tS=0;try{if(JMUS.inst&&JMUS.inst.playing&&!jadeMusVeut()){JMUS.inst.stop();JMUS.P=0;JMUS.vol=-1;}}catch(e){}},480);}}
 // (2026-10-12, Léo : « on entend parfois la musique, et il y a des coupures ») le 1er toucher de la course la REDÉMARRAIT (stop + start : coupure,
 // le morceau repartait du début) — désormais chaque toucher se contente de RÉVEILLER son contexte s'il dort (Safari ne réveille que dans un geste)
 function jadeMusReveil(){if(!JMUS.inst||!jadeMusVeut())return;try{if(JMUS.inst.wake)JMUS.inst.wake();}catch(e){}}
@@ -43456,12 +43592,13 @@ function playViaGarage(tuto){
   if(garageOn){if(tuto)tutoArme();garageLaunch();return;}
   ecranWipe(function(){if(tuto)tutoArme();openGarage(true);},function(){garageLaunch();});
 }
+let GSON9=false; // (2026-10-14, session SON) vrai quand une ACTION sonore (équiper, bascule de la caisse, carte, geste de l'atelier) vient de jouer dans CE geste : le clic « nav » se tait alors (il ne reste que la vibration) — remis à faux au début de chaque geste de vignette
 function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
-  uiClic('nav'); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
+  hap(8); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse (2026-09-26, charte règle 8) — (2026-10-14, session SON) l'oreille l'entend par l'ACTION (carte / bascule), plus par un tick nav EN PLUS ; le tick ne reste que là où rien d'autre ne sonne
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
-    shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte');else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
-  if(!garageOn||!GAR.root||GAR.sw){garageShow(garageVoisin(garageI,d));return;}
+    shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
+  if(!garageOn||!GAR.root||GAR.sw){uiClic('nav');garageShow(garageVoisin(garageI,d));return;}
   GAR.sw={t:0,fait:false,to:garageVoisin(garageI,d)};
   try{if(SONV2)sfx('garage.bascule');else{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){} /* (console de son) LA BASCULE, calée sur le retourneur de 1,06 s */
 }
@@ -43755,9 +43892,10 @@ function bqPhotos(st){
 try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gModeVa('tous');return;}
   const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('nav');gOffresPage();return;} // (2026-10-10) la PORTE DES OFFRES : l'écran rose (page OFFRES)
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
-  if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const k=t.getAttribute('data-fn');
+  if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);GSON9=false;const k=t.getAttribute('data-fn');
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
-  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2)sfx('ui.carte');}catch(er){}}
+  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2&&!GSON9){sfx('ui.carte',{vol:-3});GSON9=true;}}catch(er){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
+  if(GSON9)hap(8);else uiClic('nav'); /* (2026-10-14, session SON) l'action (équiper, bascule, carte) a sonné : le tick se tait — sinon nav + équipe + carte sur UNE vignette */
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const v=bqReste();document.querySelectorAll('#gRar .fnT i:not(.pxi),#gStrip .fpTim i:not(.pxi)').forEach(function(t){if(t.textContent!==v)t.textContent=v;});}catch(e){}},1000);
@@ -46133,7 +46271,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     pan.classList.remove('menu');if(o!==GBQ.ong){GBQ.ong=o;GBQ.rk='';}});
   ui.querySelector('.bqMenu').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
     uiPop(b);uiClic('onglet');pan.classList.remove('menu');GBQ.cat=b.getAttribute('data-c');GBQ.ong='cat';GBQ.rk='';});
-  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);uiClic('nav');pan.classList.remove('menu');bqEssaie(t.getAttribute('data-k'));};};
+  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));ui.querySelector('.bqUr').addEventListener('click',essaie('.bqU'));
   return ui;}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
@@ -46214,7 +46352,7 @@ function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('g
   if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
   if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);bqOutil(o.cat,'retire',o.d,function(){if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{gShopJour();}catch(e){}});try{hap(6);}catch(e){}return;}
   if(s.e==='defi'){if(bt)gSecoue(bt);uiClic('refus');if(k[0]==='v')toast(pxi('verrou')+' '+String(carUnlockText(+k.slice(2))).replace(/</g,'&lt;'));return;}
-  try{hap(6);}catch(e){}}
+  try{uiClic('nav');}catch(e){}}
 /* LES FIGURES AU SHOP ET À L'INVENTAIRE (2026-10-14) — possédées : SAVE.d.figs ; achetées en pièces (la banque) ; toucher = la caisse la fait */
 function figAchat(i){const d=COSM.figure[i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};if(figPossede(d.id))return {ok:false,raison:'deja-possedee'};
   if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
@@ -46224,10 +46362,10 @@ const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);
 function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))return false;
   if(bank()<f.p){if(bt)gSecoue(bt);uiClic('refus');toast(pxi('piece')+' '+sansAcc(TR('IL MANQUE'))+' '+fmtC(f.p-bank()));return false;}
   SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(id);SAVE.flush();
-  try{if(SONV2)sfx('ui.achat');}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id);return true;}
+  try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
 const GFIG={lect:null,t:0,D:0};
 function garFigEssai(id){const f=window.FIG&&FIG.par[id];if(!f)return;if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
-  try{if(SONV2)sfx('fig.vrille',{st:2});}catch(e){}}
+  try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}
 function garFigTick(dt){const L9=GFIG.lect;if(!L9||!L9.occupe())return;L9.tick(Math.min(dt,.05));GFIG.t+=Math.min(dt,.05);
   const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,lev=1.5*Math.sin(Math.PI*x); // elle saute du plateau, tourne, se repose
   carGroup.position.y+=lev;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
@@ -46426,7 +46564,7 @@ function bqGesteCoul(cat,d){if(!d)return BQ_OR;
   if(cat==='trainee'){if(d.rainbow)return null;if(d.rgb){const m9=Math.max(1,...d.rgb);return d.rgb.map(function(x){return x/m9;});}return [1,.45,.12];}
   const h=d.c!=null?d.c:(d.grad?d.grad[0]:null);if(h==null)return BQ_OR;const c=new THREE.Color(h);return [c.r,c.g,c.b];}
 function bqGeste(k,d){bqGesteBatit();BQG.a=k;BQG.t=0;BQG.f=0;BQG.col=bqGesteCoul(k,d);BQG.th0=Math.random()*Math.PI*2;
-  if(k==='aile')GBQ.gFlash=1;try{if(SONV2)sfx(k==='voiture'?'ui.feuille':'ui.carte');}catch(e){}}
+  if(k==='aile')GBQ.gFlash=1;try{if(SONV2)sfx(k==='voiture'?'ui.feuille':'ui.carte',k==='voiture'?undefined:{vol:-3});}catch(e){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
 function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r;
   const vis=!!(GBQ.grp&&GBQ.grp.visible);if(!vis){m.visible=false;B.lame.visible=false;B.n=0;B.a=null;GBQ.hop=0;return;}m.visible=true;
   const hm=bqDessous(),bb=hm.bb,q=carGroup.quaternion,sc=carGroup.scale,p0=carGroup.position,v1=B.v1,v2=B.v2;
@@ -46514,7 +46652,7 @@ function garBqOutilBatit(){if(BQT.g)return BQT.g;garBqBrasBatit();bqGesteBatit()
 function bqOutil(k,mode,d,apply){const T=BQT.task;if(T&&!T.fait&&T.apply){T.fait=true;try{T.apply();}catch(e){}}
   if(!(GBQ.on&&GBQ.grp&&GBQ.grp.visible)){BQT.task=null;if(apply)apply();return;}
   garBqOutilBatit();BQT.task={k:k,mode:mode||'essai',d:d,apply:apply||null,fait:!apply,t:0,col:bqGesteCoul(k,d)||[1,.4,.8],f:0};
-  try{if(SONV2)sfx('ui.feuille');}catch(e){}}
+  try{if(SONV2){sfx('ui.feuille');GSON9=true;}}catch(e){}}
 const BQT_T={monte:.24,va:.32,touche:.15,retour:.22,plie:.32,rentre:.26}; // la pièce est posée à 0,71 s du toucher
 function bqOutilDuree(T){return T.k==='aile'?(T.mode==='essai'?.75:T.mode==='retire'?.55:.6):T.k==='peinture'?(T.mode==='serre'?.6:1.0):(T.mode==='serre'?.5:.5);}
 function bqOutilTick(dt,t9,ay){const T=BQT.task;
@@ -47509,7 +47647,7 @@ function gvNivs(on,sec){
       h+='<div class="gnP">'+pxi('droite')+'<b>'+sansAcc(TR('A BATTRE'))+' : '+nx.n+' · '+sansAcc(TR(nx.t))+'</b>'+(reste>0?'<i>+'+reste+' '+sansAcc(TR('A DECOUVRIR'))+'</i>':'')+'</div>';}
     else h+='<div class="gnP">'+pxi('etoile')+'<b>'+sansAcc(TR('TOUT EST TERMINE'))+'</b></div>';
     el.innerHTML=h;el.scrollTop=0;el.classList.remove('sortant');void el.offsetWidth;feuilleOuvre(el,'on');
-    if(v)v.setAttribute('aria-expanded','true');try{if(SONV2)sfx('ui.feuille');}catch(e){}
+    if(v)v.setAttribute('aria-expanded','true'); /* (2026-10-14, session SON) feuilleOuvre sonne DÉJÀ ui.feuille : le 2e appel faisait sonner le tiroir deux fois */
   }else{if(!el.classList.contains('on'))return;if(v)v.setAttribute('aria-expanded','false');
     if(sec){el.classList.remove('on','sortant');return;}feuilleFerme(el,'on');}
 }
@@ -47750,9 +47888,9 @@ function invFerme(sec){
 function invEquipe(i,el){
   if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;
   if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f)garFigEssai(f.id);hap(8);return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau
-  if(cat==='voiture'){if(i===equippedCar()){hap(8);return;}if(!carUnlocked(i))return;
+  if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i))return;
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
-  else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){hap(8);return;}if(!shopEquip(cat,i))return;
+  else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){uiClic('nav');return;}if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
     SHOP.prev=null;buildCar(CARS[equippedCar()]);GAR.pressT=GAR.PRESS_D;}     // l'habillage se pose sur la caisse (elle accuse le coup)
   try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(er){}hap(10);
   try{if(cat==='peinture'){const d9=COSM.peinture[i]||{},c9=d9.c!=null?d9.c:(d9.grad?d9.grad[1]:0xff7a3a);ATL.c=new THREE.Color(c9);}atlConstruit(cat);}catch(er){} // (même soir) LES OUTILS construisent l'objet
@@ -48403,7 +48541,7 @@ function atlVise(e){if(GAR.go||!garAtelierLibre()||e.button>0)return false;
   const B=atlBoutonEcran();return !!B&&Math.hypot(e.clientX-B.x,e.clientY-B.y)<B.r;}
 function atlPresse(){ // le bouton est enfoncé : l'inventaire s'ouvre (ou se ferme)
   ATL.press=1;hap([12,24,10]);
-  try{if(SONV2)sfx('ui.equipe');else chimeNote(520,0,.06,.12);}catch(e){}
+  try{uiClic(INV.on?'retour':'nav');}catch(e){} // (2026-10-14, session SON) ouvrir / fermer l'inventaire = nav / retour, comme le COFFRE et le ✕ (c'était ui.equipe : « équiper » pour ouvrir un tiroir)
   if(INV.on)invFerme();else invOuvre();
 }
 function atlConstruit(cat){ATL.cons=1.1;ATL.cat=cat;ATL.t=0;}
@@ -48718,12 +48856,12 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
   const b=e.currentTarget;if(b.classList.contains('arme')&&e.isTrusted)return; // (2026-09-29) le 2e tap d'un double-tap sur ACHETER n'équipe pas la caisse
   if(b.getAttribute('aria-disabled')==='true'){
     const vt=SHOP.tab==='voiture',ferme=vt?!carUnlocked(garageI):!shopOwned(SHOP.tab,COSM[SHOP.tab][SHOP.i[SHOP.tab]].id);
-    if(!ferme){hap(8);return;}                               // ÉQUIPÉE : un simple accusé (sinon on rejouait la fanfare et réécrivait la sauvegarde)
+    if(!ferme){uiClic('nav');return;}                               // ÉQUIPÉE : un simple accusé — (2026-10-14, session SON) un tick, plus muet : tout bouton répond (sinon on rejouait la fanfare et réécrivait la sauvegarde)
     gSecoue(b);uiClic('refus');
     if(vt)toast(pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;')); // boutique : les défis sont déjà listés sur la fiche
     return;}
   uiPop(b);
-  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];if(shopEquip(c9,i9)){shopShow(c9,i9);uiClic();try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){}}return;}
+  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];if(shopEquip(c9,i9)){shopShow(c9,i9);hap(8);try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){}}return;} /* (2026-10-14, session SON) équiper un habillage = ui.equipe SEUL (avant : appui principal PUIS equipe — la caisse, elle, n'avait que equipe) */
   if(!carUnlocked(garageI))return;                          // pas encore débloquée (condition propre à CETTE caisse)
   SAVE.d.equipped=garageI;SAVE.flush();
   level=garageI;levelCash=0;                                // la caisse choisie devient la caisse de départ — ⚠ plus de levelCash pré-rempli : il offrait un magot de départ égal au seuil de la caisse (la tirelire à 320 000 d'anciennes sessions venait de là)
@@ -48740,21 +48878,21 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
   if(t.classList.contains('gMys')){uiClic('refus');toast(pxi('horloge')+' '+sansAcc(TR(t.getAttribute('aria-label')))+' — '+sansAcc(TR('BIENTÔT')));return;} // (2026-10-10) une rareté à venir
-  uiClic('nav');
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture')return;const eq9=garEquipeHabit(SHOP.tab,j);
-    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2)sfx('ui.carte');else chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+  GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}const eq9=garEquipeHabit(SHOP.tab,j);
+    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
 function garEquipeCaisse(i){const eq=SAVE.d.equipped|0;if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
-  if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2)sfx('ui.equipe');}catch(e){}}return true;}
+  if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 function garEquipeHabit(cat,j){const d=COSM[cat]&&COSM[cat][j];if(!d||!shopOwned(cat,d.id))return false;
-  if(shopEqD(cat)!==d&&shopEquip(cat,j)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}try{if(SONV2)sfx('ui.equipe');}catch(e){}}return true;}
+  if(shopEqD(cat)!==d&&shopEquip(cat,j)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
 function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
   if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
-  GAR.sw={t:0,fait:false,to:i};try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
+  GAR.sw={t:0,fait:false,to:i};GSON9=true;try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'&&garageOn&&!gEl.classList.contains('menu')){hap(8); // (2026-10-10) les OFFRES vivent dans la boutique du garage : ACHETER + le prix en € ouvre la fenêtre d'achat ICI, sur la caisse affichée
     let src=document.querySelector('#gStrip .fnC[data-fn="v:'+garageI+'"]')||document.querySelector('#gStrip .gT[data-car="'+garageI+'"]');if(!src)src=e.currentTarget;src.setAttribute('data-car',garageI);
@@ -48765,12 +48903,12 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
     ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('shop');});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
-    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
+    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque),true);}return;} /* (2026-10-14, session SON) toast muet : le refus a déjà dit « non » (avant : refus + erreur, deux non-non identiques) */
     garEquipeHabit(c9,i9);shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI !')); /* (2026-10-11) acheté = équipé */
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){}return;} /* (console de son) le tiroir-caisse, puis le TAMPON quand il s'abat (14 % de 1,9 s) — en mouvement réduit c'est un toast (ui.ok) */
   const r=carBuy(garageI);
   if(!r.ok){
-    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
+    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque),true);} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
   garEquipeCaisse(garageI); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
@@ -49403,7 +49541,7 @@ function ajTick(dt){
     AJ.el.style.setProperty('--ajI',FLOW_CEL[cur]);AJ.vols.style.setProperty('--ajI',FLOW_CEL[cur]);}
   if(rev!==AJ.rev){AJ.rev=rev;AJ.el.classList.toggle('revele',rev);
     if(rev&&!AJ.dit&&running&&!gameOver&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0){AJ.dit=true;try{popTexte(sansAcc(TR('MOYENNE BATTUE')),FLOW_CEL[3],2);}catch(e){}hap([10,30,14]);
-      try{typeof sfx==='function'&&sfx('aura.moyenne');}catch(e){}}} // (console de son) aura.moyenne — à sonoriser
+      try{typeof sfx==='function'&&!sfx('aura.moyenne')&&sfx('victoire',{vol:-4});}catch(e){}}} // (console de son) aura.moyenne — à sonoriser — (2026-10-14, session SON) pas encore cuit : la MOYENNE BATTUE sonnait muette ; en attendant, le stab qui monte de la VICTOIRE (une victoire sur soi), 4 dB sous sa fiche : au rang d'une récompense, pas d'un grand moment
   if(recB!==AJ.recB){AJ.recB=recB;AJ.el.classList.toggle('record',recB);}
   // (2026-10-12, passe qualité) le libellé et le chiffre ne se REFABRIQUENT que si ce qu'ils disent change (TR + majPix + toLocaleString
   // tournaient à chaque image pour une valeur qui bouge au plus une fois par seconde : des chaînes jetées au ramasse-miettes en pleine course)
@@ -50876,6 +51014,10 @@ function loop(now){
       if(duckT>0)duckT=Math.max(0,duckT-dt*2.6); // les gros événements creusent le mix, puis il respire
       const dk=(1-.5*duckT)*(ANN.duck?ANN_DUCK:1);
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
+      /* (2026-10-14, session SON) LA TENSION DU VOL (voir SVOL) : en l'air elle vise 85 % à 2,5 s de vol + 6 % par geste (30 % au plus),
+         plafonnée à 1, et y monte en douceur (taux 2,6/s) ; hors du vol elle retombe (taux 5/s ≈ 0,2 s). Rien d'aléatoire : du lisse. */
+      if(mode==='fall'){SVOL.t+=dt;const kT9=Math.min(1,.85*Math.min(1,SVOL.t/2.5)+Math.min(.3,ECH*.06));SVOL.k+=(kT9-SVOL.k)*(1-Math.exp(-dt*2.6));}
+      else if(SVOL.k>0)SVOL.k=SVOL.k<.002?0:SVOL.k*Math.exp(-dt*5);
       if(osc&&gainN&&mode==='drive'){
         // LE BRUIT DU MOTEUR, C'EST LE MOTEUR — jamais la caisse (règle posée par le user, 2026-08-03).
         // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetTier ci-dessous), mais la
@@ -50950,13 +51092,19 @@ function loop(now){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
         // ralenti pour que la reprise ne reparte pas d'un régime fantôme aigu
         if(mode==='fall'&&!nitroOn){ // (2026-09-25) ROUES LIBRES : le moteur s'emballe doucement en vol (il était figé et muet), rupteur par le LFO déjà branché
-          const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],T0=AC.currentTime;
-          engRpm+=(.9-engRpm)*Math.min(1,dt*2.2);
+          const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],T0=AC.currentTime,k9=SVOL.k;
+          /* (2026-10-14, session SON) LE MOTEUR CHANTE AVEC LA TENSION : la roue libre vise .85 → .98 du régime (jamais au-delà du
+             plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
+             le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
+          engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
           const f0=(e0.i+engRpm*e0.r)*.62;
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
-          stt(gainN.gain,.013*e0.vol*dk,T0,.08);
-          stt(engLfo.frequency,9,T0,.05);stt(engLfoG.gain,.009*e0.vol*dk,T0,.08);
+          /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
+             et son plancher en vol passe de .013 à .02 — toujours SOUS le moteur au sol à la vitesse d'un décollage (ev ≈ .032×vol sur
+             ordi, .045 sur iPhone ; ici ≤ .027×vol, tension comprise). Le battement suit la même pente (il s'ajoute au gain). */
+          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk,T0,.18);
+          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk,T0,.18);
         }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
@@ -50974,8 +51122,8 @@ function loop(now){
            qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
         {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
                raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
-         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
-        stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)+340*SVOL.k),AC.currentTime,.15); // (2026-10-14, session SON) +340 Hz × la tension du vol : le vent S'AIGUISE à mesure que le vol dure (et son gain +.016×k au-dessus, sous le plafond .075) ; à la pose k retombe en ~0,2 s — le vent se relâche au lieu de couper // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
@@ -51006,13 +51154,14 @@ function loop(now){
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
         const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE:0;
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
-        stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
+        JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
+        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
         // à un fond — tout le caractère vient du rumble brown + des pops bruns
         stt(jetG.gain,nOn9&&air9?.01*dk:0,AC.currentTime,.06);
-        stt(jetLowG.gain,TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*(.7+.6*Math.random())*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
+        stt(jetLowG.gain,TEL_NATIF?0:(nOn9?(air9?.08:.05):0)*JETN.l*dk,AC.currentTime,.07); // téléphone : un grave à 150 Hz inaudible qui ne faisait que pousser le compresseur
         stt(jetOscG.gain,nOn9&&!air9?.003:0,AC.currentTime,.09); // pointe de turbine au sol
         stt(jcFb.gain,.12,AC.currentTime,.1);stt(jcDep.gain,.0002,AC.currentTime,.12); // peigne+flanger au repos (ils chuintaient)
         if(nOn9){
@@ -51020,7 +51169,7 @@ function loop(now){
           stt(jetOsc.frequency,900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
-          if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
+          if(Math.random()<dt*(air9?(TEL_NATIF?4:9):(TEL_NATIF?6:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops, plus hauts (audibles) — (2026-10-14, session SON) 10 → 6/s au sol et 9 → 4/s en l'air sur iPhone : chaque pop alloue 4 nœuds WebAudio, la cadence était un coût CPU ; le timbre ne change pas
           if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
         if(nOn9&&air9&&!loop._jetWas&&NFX.ign<.5){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé) — (vague 3) seulement quand on DÉCOLLE nitro tenue : un allumage frais a déjà son WHOOMP (nitroAllume)
@@ -51693,7 +51842,7 @@ function togglePause(){ if(!started||gameOver)return;
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
-    else{busPlein();if(SND.sfx)AC.resume();} } }catch(e){}
+    else{busPlein();if(SND.sfx||musWaTient())AC.resume();} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
   if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
@@ -51720,7 +51869,7 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
-  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){}
+  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
@@ -52064,7 +52213,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else {carrIci();resetGame();} };
         if(q9||mode==='boom'||pkPasse(f9))f9(); }); } // (POKI) RECOMMENCER passe par la pause pub, le panneau reste ouvert (jeu en pause) pendant qu'elle passe // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
-    uiClic(a==='close'?'retour':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
+    uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
   if(pan)pan.addEventListener('click',panTapHandler);
@@ -52117,7 +52266,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- iOS : le contexte audio ne démarre QUE sur un geste — on le relance tant qu'il dort ----
   // Il peut être 'suspended' (politique navigateur) MAIS AUSSI 'interrupted' — l'état d'après un
   // appel, Siri ou une alarme. Ne tester que 'suspended' laissait le jeu muet pour toute la partie.
-  function audioKick(){ try{ if(AC&&SND.sfx&&!paused&&AC.state!=='running')AC.resume(); }catch(e){} }
+  function audioKick(){ try{ if(AC&&(SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); }catch(e){} } // (2026-10-14, session SON) musique branchée : un contexte « interrupted » se relance même SON coupé
   addEventListener('touchend',audioKick,{passive:true});
   addEventListener('touchstart',audioKick,{passive:true}); // au plus tôt : dès que le doigt se pose
   // ---- retour dans l'appli : l'écran se rendormirait, l'audio resterait suspendu ----
@@ -52174,7 +52323,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      à la place de l'écran), mTap('back') et Échap le lisent. Ouvert depuis l'accueil, #mSet ne passe pas par ici : son ◀ ramène toujours à l'accueil. */
   function setPauseOuvre(){
     if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
-    window.__setPause=true;uiClic('nav');
+    window.__setPause=true; // (2026-10-14, session SON) plus de uiClic('nav') ici : panTapHandler sonne déjà « nav » pour TOUS LES REGLAGES (c'était nav PUIS appui principal)
     document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
     overlay.setAttribute('data-ecran','set'); // AVANT l'affichage : mGo force un reflow avant de le poser, et le fond (transition d'opacité de ::before) partait de l'accueil (transparent) → la pause se lisait derrière les réglages
     TCTL.ov=true;overlay.style.display='flex';
@@ -52347,7 +52496,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     return 'nav';
   }
   function mTap(a,el){
-    if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
+    if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&cryptoPlayOk()){ const go9=function(){goImmersive();cryptoJouer();}; // (2026-10-13) ?niveau=crypto : le JOUER lance CRYPTOCITY
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
@@ -52418,7 +52567,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='code'){ /* LE CODE COUSIN (2026-10-14, Léo) — voir codeCousin */
       modale({titre:'ENTRER UN CODE',texte:'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(!r.v)return;
-        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'));try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
+        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
@@ -52720,7 +52869,7 @@ let pkDeja=false; // une partie a déjà été jouée dans cette session : la pa
 function pkMuet(on){
   window.CC_PUB=!!on; // lu par le <head> : AudioContext.resume, media.play et le clavier refusés tant qu'il est vrai
   try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); pkMuet._m=!!(musicEl&&!musicEl.paused); if(pkMuet._m)musicEl.pause(); }
-    else{ if(AC&&SND.sfx&&!paused&&AC.state!=='running')AC.resume(); if(pkMuet._m){pkMuet._m=false;musicJoue();} } }catch(e){}
+    else{ if(AC&&(SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); if(pkMuet._m){pkMuet._m=false;musicJoue();} } }catch(e){}
 }
 function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub passe d'abord, et f() suivra
   if(!POKI||!pkDeja||pkPasse._dedans)return true;
@@ -52734,7 +52883,7 @@ function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub 
 function pkSilence(on){ // (CrazyGames) leur réglage « son coupé » passe avant les nôtres : même coupure qu'une pub, le clavier en moins
   window.CC_MUET=!!on;
   try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); if(musicEl&&!musicEl.paused){pkSilence._m=true;musicEl.pause();} }
-    else{ if(AC&&SND.sfx&&!paused&&!window.CC_PUB&&AC.state!=='running')AC.resume(); if(pkSilence._m&&!window.CC_PUB){pkSilence._m=false;musicJoue();} } }catch(e){}
+    else{ if(AC&&(SND.sfx||musWaTient())&&!paused&&!window.CC_PUB&&AC.state!=='running')AC.resume(); if(pkSilence._m&&!window.CC_PUB){pkSilence._m=false;musicJoue();} } }catch(e){}
 }
 if(POKI){
   if(!FACILE_OK){SAVE.d.facile=0;} // (CrazyGames) pas de mode facile : le choix du 1er JOUER ne se pose plus, l'interrupteur est masqué (html.sansFacile)
@@ -52759,7 +52908,7 @@ if(POKI){
         if(ok9){location.reload();return;}SAVE.natif=0;}
       SAVE.portail=1;SAVE.flush();}).catch(function(){SAVE.portail=1;});});}catch(e){}
   // pas d'intro à toucher (voir le splash) : le contexte audio naît au PREMIER geste, et se réveille aux suivants
-  const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
+  const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
   ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,g9,{capture:true,passive:true});});
   setInterval(function(){const p=pk();if(!p)return;const on=started&&!gameOver&&!paused&&!window.CC_PUB;if(on)pkDeja=true;p.jeu(on);},250);
   // l'ACCUEIL : la porte des MISSIONS devient la porte du GARAGE (même place, à côté du ⚙), avec la pastille des caisses à portée (voir <style id="poki">)
