@@ -46778,6 +46778,8 @@ if(TITRE_V2){
   // MATIN : sa propre signature (or pâle bas, horizon pêche clair, brume rosée), léger — avant, identique au midi
   T2('matin',{ciel:{m:[.40,.64,.86],h:[.92,.80,.68],s:[.62,.46,.28],mo:[.50,.60,.82],mh:[1,.94,.86]},
     amb:{jHor:[.92,.80,.68],fog:[.88,.80,.78],sunC:[1,.90,.76],sat:1.14,con:1.14},P:{amb:.75,sol:.7,sk:2.1},v:['40,84,150',.24,.44,'40,84,150',.5]});
+  // APRÈS-MIDI : mer de nuages crème chaud au lieu de lavande, bleu un peu plus profond en haut, sat 1,15
+  T2('aprem',{ciel:{z:[.12,.32,.68],m:[.40,.62,.86],mo:[.74,.70,.72]},amb:{sat:1.15,con:1.15},P:{mzO:[.74,.70,.72,.25],amb:.75,sol:.7,sk:2.1,cjA:1.1,cjF:1.6},v:['40,70,120',.24,.42,'40,70,120',.5]});
 }
 function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);if(!on)return T;
   U.uTZen.value.fromArray(T.z);U.uTMid.value.fromArray(T.m);U.uTHor.value.fromArray(T.h);U.uTSol.value.fromArray(T.s);
