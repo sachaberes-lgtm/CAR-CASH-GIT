@@ -40009,6 +40009,7 @@ function portailPasse(){
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='paris'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){parisFinale();return;} // (2026-10-14, chasse aux bugs) PARIS 10 — MINUIT n'avait pas de fin non plus : lvlChoisir plafonne au dernier niveau, le portail le rejouait à l'infini (comme PLUTON le 28/09)
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='espace'&&LVL.cur.carr.i===9){espaceFinale();return;} // (2026-09-28) PLUTON n'avait pas de fin : le portail le rejouait à l'infini
   if(TUTO.on&&!CARR.actif&&!PARK.on){SURV.pBase+=sP;newTrack();return;} // (2026-09-28) l'auto-école ne s'échappe pas par le portail (le débutant qui n'osait pas sauter finissait la leçon dans la VILLE) : la piste d'apprentissage repart // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
+  evtPortail(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : premier au portail devant le banquier = la prime ; devant la caisse-nuage = « TU L'AS DOUBLEE »
   if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)/vitMult()); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie) — (2026-09-30) ÷ vitMult : le vol porte la vitesse réelle
     /* (2026-09-28, Sacha : « quand on coupe la route pour rejoindre le portail plus vite, ça doit quand même rapporter du machiavélisme »)
        LE RACCOURCI VERS LE PORTAIL : on n'atterrit pas, donc tryLand ne le voyait jamais. Même mesure qu'à la pose — la piste qu'il
@@ -40639,6 +40640,7 @@ function finSonsCoupe(){
 }
 function resetGame(){
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
+  evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
   VEQ.dReq=false;VEQ.dDn=0; // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
@@ -40843,6 +40845,7 @@ function start(){
   // d'être posée. Les REJOUERS ne l'ont jamais vu : `resetGame()` appelle déjà `respawn()`. `start()`
   // est le seul chemin de la PREMIÈRE partie et ne passait par aucun des deux.
   respawn();
+  evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la 1re partie de la session, avant campDebut
   campDebut(); // (2026-09-27) la 1re partie de la session roule sur la piste du MENU (pas de newTrack) : la campagne s'arme ici aussi
   recInit(); // (2026-09-26) le RECORD À BATTRE dès la 1re partie de la session — seul `resetGame()` le posait, le crochet manquait au premier départ
   // ⚠ BUG AUDIO CORRIGÉ (2026-09-05) : `initAudio()` n'a AUCUN garde interne — elle CRÉE un
@@ -41966,14 +41969,16 @@ const GH=(function(){ // le fantôme : SA caisse, SON ruban — créés à l'ini
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
   g.visible=false;scene.add(g);
   return {g:g,roues:roues,tr:mkTrail(),on:false,s:0,lat:0,v:0,momT:0,yaw:0,air:false,ft:0,tf:1,pa:new THREE.Vector3(),pb:new THREE.Vector3(),vy0:0,sb:0,
-    cut:0,prise:0,pris:false,fini:false,accr:false,line:null,tmpL:null,noteT:0,latP:0};
+    cut:0,prise:0,pris:false,fini:false,accr:false,line:null,tmpL:null,noteT:0,latP:0,evt:false}; // evt : (2026-10-14, GAMEPLAY) elle court pour un ÉVÉNEMENT RARE (evtDemarre), pas pour le niveau 10
 })();
 function campChauffe(){ // compile la caisse-nuage et une voiture de police AU MENU (renderer.compile ne voit que ce qui est visible)
   if(campChauffe.fait)return;campChauffe.fait=true;
   const v=GH.g.visible;GH.g.visible=true;GH.g.position.copy(camera.position).add(CV1.set(0,0,-8).applyQuaternion(camera.quaternion));GH.g.updateMatrixWorld(true);
   let pc=null;try{pc=mkPolice(0);pc.g.visible=true;pc.g.position.copy(GH.g.position);pc.g.updateMatrixWorld(true);}catch(e){}
   let vch=null;try{vch=villeChauffePrep();}catch(e){} // (2026-09-27) et tout ce que la VILLE dessinera
+  let mt9=null;if(EVT_ON)try{moutonMats();mt9=[new THREE.Mesh(MOUTON_TETE.geo,MOUTON_TETE.mat),new THREE.Mesh(MOUTON_TETE.geo,MOUTON_MAT)];for(const o of mt9){o.position.copy(GH.g.position);scene.add(o);o.updateMatrixWorld(true);}}catch(e){} // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : les moutons d'une 1re zone naissent au départ, sans chauffe de portail
   try{renderer.compile(scene,camera);}catch(e){}
+  if(mt9)for(const o of mt9)scene.remove(o);
   if(vch)try{villeChauffeFin(vch);}catch(e){}
   GH.g.visible=v;
   if(pc){scene.remove(pc.g);pc.g.traverse(o=>{if(o.userData&&o.userData.sol){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();}});}
@@ -41991,7 +41996,7 @@ function fantomeLigne(){ // LA LIGNE GRAVÉE : la corde de chaque virage, lissé
     for(let i=i0;i<=i1;i++){const u=THREE.MathUtils.smoothstep(i,i0,i0+(i1-i0)*.6);Bl[i]+=(c.side*(ROAD_HALF-3)-Bl[i])*u;}}
 }
 function fantomePrepare(){
-  const on=CAMP.n===10&&!PARK.on;GH.on=on;GH.g.visible=on;GH.tr.init=false;GH.tr.m.visible=false;
+  GH.evt=false;const on=CAMP.n===10&&!PARK.on;GH.on=on;GH.g.visible=on;GH.tr.init=false;GH.tr.m.visible=false;
   if(!on)return;
   fantomeLigne();
   GH.s=Math.min(L-60,180);GH.lat=GH.line[ghIdx(GH.s)];GH.latP=GH.lat;GH.v=Math.max(26,Math.abs(vA));GH.momT=0;GH.air=false;GH.cut=0;GH.yaw=0;
@@ -42068,11 +42073,12 @@ function fantomeTick(dt){
     if(!GH.accr){GH.accr=true;popTexte('ACCROCHE !','#ffe7a8',2);hap(12);if(SONV2)sfx('fantome.accroche');}
     GH.prise+=dt;GH.noteT-=dt;
     if(GH.noteT<=0){GH.noteT=.2;try{if(SONV2)sfx('fantome.prise',{st:sonPd(Math.min(9,Math.floor(GH.prise*6)))});else chimeNote(noteP(Math.min(7,Math.floor(GH.prise*6)),1),0,.07,.2);}catch(e){}} // un carillon qui MONTE : le compteur, on l'entend
-    if(GH.prise>=1){fantomePris();return;}
+    if(GH.prise>=1){if(GH.evt)evtCnPris();else fantomePris();return;} // (2026-10-14, GAMEPLAY) l'ÉVÉNEMENT RARE paie sa prime : la caisse reste le trophée de la carrière
   }else{GH.prise=Math.max(0,GH.prise-dt*1.5);if(GH.prise<=0)GH.accr=false;}
   // la route finit, le portail est fermé : c'est perdu — (2026-09-30) et si tu es DEVANT elle, on te dit pourquoi (« ELLE T'A SEMÉ » tombait
   // sur qui l'avait doublée : on la gagne dans son sillage, pas en la battant)
   if(CAMP.portFerme&&mode==='drive'&&s>L-70){fantomeSeme(sP>GH.s+18);return;}
+  if(GH.evt&&GH.s-sP>EVT_FUITE){fantomeSeme(false);return;} // (2026-10-14, GAMEPLAY) ÉVÉNEMENT RARE : 600 m d'avance, elle s'est enfuie — on ne la poursuit pas une minute dans le vide
   /* (2026-09-30) LA PLAQUE, comme le banquier du niveau 20 : la caisse-nuage n'avait AUCUN repère — ni où elle est, ni ce que vaut le
      sillage. Dans sa bulle : SILLAGE et la prise qui monte (1 s tenue = elle est à toi). Sinon : elle mène de X m (cyan), ou elle est
      derrière et ELLE REVIENT (son aspiration la ramène dans ta roue : c'est là qu'on la cueille). */
@@ -42101,6 +42107,7 @@ function fantomeSeme(devant){ // elle a franchi le portail la première — ou l
   if(GH.fini||GH.pris)return;GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);vChip('');
   flashEcran('rgba(255,120,190,.5)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
   slam(devant?"TU L'AS DOUBLEE":"ELLE T'A SEME",devant?'IL FALLAIT LA SUIVRE':'','#ff9ee6','#ff5e7a',38,3);
+  if(GH.evt){evtFin('rate');return;} // (2026-10-14, GAMEPLAY) l'ÉVÉNEMENT RARE perdu ne coûte rien : la partie continue
   CAMP.finT=1.6;CAMP.cause=devant?'devant':'seme';
 }
 function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
@@ -42148,6 +42155,7 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
   if(started&&!gameOver&&runStats.zones>0&&(CAMP.n===5||SURV.chasse||CAMP.n===14||SURV.camp))survStart(); // on ENTRE dans la poursuite ou la meute (ou on en sort) en pleine partie
   campFx(0,0,0,0);
   villeDebut();
+  evtZone(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : la partie armée pose le sien sur la 1re zone qui a sa map
 }
 function campStop(){debCache();fumeVide();tirsVide();eclVide();campFx(0,0,0,0);if(GH.on){GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);}villeStop();}
 /* LA ROUTE QUI TE RATTRAPE — LES DEUX PAIEMENTS (Sacha : « un virage bien pris paie PLUS qu'une chute rattrapée »).
@@ -42247,9 +42255,11 @@ function moutonsPose(cr){ // dans campNuages (buildClouds) : un mouton (ou un tr
      dit « mouton » d'un coup d'œil. Elle suit la ouate (enfant du groupe : la dérive au vent, l'éclatement) et disparaît dès qu'il éclate.
    `?sens=0` : les moutons d'avant (ouate du ciel, sans tête). */
 var MOUTON_MAT=null,MOUTON_TETE=null; // var : updateClouds les lit (hissés, nuls avant le 1er mouton)
-function moutonTete(c,F){
+function moutonMats(){ // (2026-10-14, GAMEPLAY) la laine et la tête, créées une fois — campChauffe les compile au menu pour LES ÉVÉNEMENTS RARES (la 1re zone d'une partie naît sans la chauffe du portail)
   if(!MOUTON_MAT){MOUTON_MAT=CLOUD_MAT.clone();MOUTON_MAT.color=CLOUD_MAT.color;MOUTON_MAT.specular=CLOUD_MAT.specular;MOUTON_MAT.onBeforeCompile=nuageShader;MOUTON_MAT.customProgramCacheKey=CLOUD_MAT.customProgramCacheKey;MOUTON_MAT.emissive=new THREE.Color(0xfff0e2);MOUTON_MAT.emissiveIntensity=.6;MOUTON_MAT.opacity=.9;
-    MOUTON_TETE={geo:new THREE.SphereGeometry(1,10,8),mat:new THREE.MeshBasicMaterial({color:0x1c1a21})} /* sans éclairage : éclairée, le ciel chaud du matin la rendait gris lavande (vu au banc) — il faut un vrai point SOMBRE */;}
+    MOUTON_TETE={geo:new THREE.SphereGeometry(1,10,8),mat:new THREE.MeshBasicMaterial({color:0x1c1a21})} /* sans éclairage : éclairée, le ciel chaud du matin la rendait gris lavande (vu au banc) — il faut un vrai point SOMBRE */;}}
+function moutonTete(c,F){
+  moutonMats();
   c.mesh.material=MOUTON_MAT;c.mesh.userData.mm=MOUTON_MAT;
   const r=c.r,g=new THREE.Group(),q=cldV1;
   q.copy(F.t).multiplyScalar(-r*.9).addScaledVector(F.n,1.15-(MOUTON_H-c.ry));g.position.copy(q); // à l'avant du dos, au ras de la laine (le centre du groupe est à MOUTON_H − ry du bitume)
@@ -42259,14 +42269,15 @@ function moutonTete(c,F){
   c.g.add(g);c.tete=g;
 }
 function campMoutonLibre(){ // le SAUT NITRO est offert au pied d'un mouton (veqSaut)
-  if(mode!=='drive'||CAMP.n!==4||!campMoutonsOn())return false;
-  const M=CAMP.moutons;for(let i=0;i<M.length;i++){const m=M[i],d=m.s-s;if(!m.fait&&d>8&&d<170)return true;}
+  if(mode!=='drive')return false;
+  const M=(CAMP.n===4&&campMoutonsOn())?CAMP.moutons:evtMoutons();if(!M)return false; // (2026-10-14, GAMEPLAY) …et au pied des moutons d'un ÉVÉNEMENT RARE
+  for(let i=0;i<M.length;i++){const m=M[i],d=m.s-s;if(!m.fait&&d>8&&d<170)return true;}
   return false;
 }
-function campMoutonsTick(dt){
-  const M=CAMP.moutons;if(!M.length)return;
+function campMoutonsTick(dt,M,st,ev){ // (2026-10-14, GAMEPLAY) M, st, ev : le troupeau, son compteur, « c'est un ÉVÉNEMENT RARE » (evtTick) — sans eux, le niveau 4 comme avant
+  M=M||CAMP.moutons;st=st||CAMP;if(!M.length)return;
   const sp=vPos(),cp=carGroup.position;let nx=null,n9=0,der=0;
-  if(CAMP.mtBee>0)CAMP.mtBee-=dt;
+  if(st.mtBee>0)st.mtBee-=dt;
   for(let i=0;i<M.length;i++){const m=M[i];if(m.s>der)der=m.s;
     if(!m.fait&&sp>m.s-60){
       let passe=true; // passé = la caisse a dépassé TOUS les moutons de ce repère, le long de la route (ils dérivent de ±4 m au vent)
@@ -42280,22 +42291,22 @@ function campMoutonsTick(dt){
         if(dx*m.t.x+dy*m.t.y+dz*m.t.z<c.r+1.5)passe=false;}
       if(sp>m.s+60)passe=true; // un replacement, un portail : on ne reste pas accroché à un mouton laissé derrière
       if(passe){m.fait=true;
-        if(m.dans){CAMP.mtBee=1.4;} // pris de face : le mouton a éclaté tout seul (le banc défoncé) — la plaque bêle
-        else if(m.dessus){CAMP.mtOk++;const k=CAMP.mtOk;
+        if(m.dans){st.mtBee=1.4;} // pris de face : le mouton a éclaté tout seul (le banc défoncé) — la plaque bêle
+        else if(m.dessus){st.mtOk++;const k=st.mtOk;
           try{if(SONV2)sfx('pad.neon',{st:sonPd(k-1)});else chimeNote(noteP(Math.min(7,k-1),1),0,.09,.2);}catch(e){}
           try{sparkBurst(sparkGold,cp,10,9);}catch(e){}hap([10,20,14]);flowAdd(6,'style','p');
           try{chaineAura('SAUTE-MOUTON',30,'mouton',false,SONV2);}catch(e){}
-          if(k===M.length){ // le troupeau entier
+          if(k===M.length&&!ev){ // le troupeau entier (l'événement rare paie le sien : evtMoutonsFin)
             slam("BERGER D'OR !",k+' / '+k,'#ffd75e','#9fe8ff',38,2,14);vPaie(30,10);nitroPct(.5,'campagne');flowAdd(15,'style','p');hap([14,30,14,30,40]);
             try{chaineAura("BERGER D'OR",120,'berger',true,SONV2);if(SONV2)sfx('victoire');}catch(e){}}}}}
     if(m.fait)n9++;else if(!nx||m.s<nx.s)nx=m;}
   const d=nx?nx.s-sp:1e9;
-  if(mode==='fall'&&d<220)CAMP.mtVu=1; // il a trouvé le saut : l'aide se tait
-  const dm=d<420?Math.max(0,Math.round(d/10)):999,bee=CAMP.mtBee>0?1:0,aide=!CAMP.mtOk&&!CAMP.mtVu&&d<320?1:0;
-  const cle=(sp>der+160||(!n9&&d>600))?0:1+((((CAMP.mtOk*16+n9)*1000+dm)*2+bee)*2+aide);
-  if(cle===CAMP.mtCle)return;CAMP.mtCle=cle;
+  if(mode==='fall'&&d<220)st.mtVu=1; // il a trouvé le saut : l'aide se tait
+  const dm=d<420?Math.max(0,Math.round(d/10)):999,bee=st.mtBee>0?1:0,aide=!st.mtOk&&!st.mtVu&&d<320?1:0;
+  const cle=(sp>der+160||(!n9&&d>600))?0:1+((((st.mtOk*16+n9)*1000+dm)*2+bee)*2+aide);
+  if(cle===st.mtCle)return;st.mtCle=cle;
   if(!cle){vChip('');return;}
-  vChip(TR('MOUTONS')+' '+CAMP.mtOk+' / '+M.length,bee?TR('BEEE !'):aide?TR('DOUBLE-TAP NITRO'):dm<999?TR('DANS')+' '+dm*10+' M':'',CAMP.mtOk===n9?'#ffd75e':'#9fe8ff',!!bee);
+  vChip(TR('MOUTONS')+' '+st.mtOk+' / '+M.length,bee?TR('BEEE !'):aide?TR('DOUBLE-TAP NITRO'):dm<999?TR('DANS')+' '+dm*10+' M':'',st.mtOk===n9?'#ffd75e':'#9fe8ff',!!bee);
 }
 window.dbgMoutons=function(){return {on:campMoutonsOn(),ok:CAMP.mtOk,n:CAMP.moutons.length,libre:campMoutonLibre(),s:Math.round(vPos()),
   moutons:CAMP.moutons.map(function(m){const c=m.cl[0];frameAt(m.s,GF);return {s:Math.round(m.s),nb:m.cl.length,r:c?+c.r.toFixed(1):0,ry:c?+c.ry.toFixed(2):0,
@@ -42443,7 +42454,7 @@ function villeN(){return CAMP.n>10?CAMP.n-10:0;}          // 1..10 dans la campa
 function campMeute(){return campN()===14&&!PARK.on;}
 function vPos(){return mode==='fall'?lastNearS:s;}         // où l'on en est le long du ruban, même en vol
 function vKmh(){return (mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)*vitMult())*3.6*SPD;} // (2026-09-30) au sol, la VRAIE vitesse d'avance (× vitMult : NITROOO, VITESSE ×2 — celle du compteur, speedKmh) : tenir NITROOO devant un radar ne changeait rien
-function vPaie(k,n){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;livre('$:ville',g);try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}frenCash(g,carGroup.position);return g;} // (×3) en frénésie, le butin de la ville se voit aussi
+function vPaie(k,n,src){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;livre(src||'$:ville',g);/* (2026-10-14, GAMEPLAY) src : la ligne du grand livre — LES ÉVÉNEMENTS RARES versent sous '$:evt' */try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}frenCash(g,carGroup.position);return g;} // (×3) en frénésie, le butin de la ville se voit aussi
 function vPose(o,sv,lt,h,fy){ // poser un objet sur la route (repère b, n, t), face fy
   frameAt(sv,VF);fy=fy||1;
   o.position.copy(VF.p).addScaledVector(VF.b,lt).addScaledVector(VF.n,fy>0?h:-THICK-h);
@@ -43133,7 +43144,7 @@ const VBQ=(function(){
     const r=new THREE.Sprite(feM);r.scale.set(.62,.62,1);r.position.set(sx*.66,.7,-2.18);g.add(r);}
   const eti=vEtiquette('BANQUIER','#ffd75e');eti.position.set(0,3.6,0);g.add(eti);
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.scale.setScalar(1.25);g.visible=false;scene.add(g); // ×1,25 : à 20 m devant, en portrait, il faisait une pépite
-  return {g:g,eti:eti,roues:roues,tr:mkTrail(),on:false,s:0,lat:0,latP:0,v:0,momT:0,yaw:0,fini:false,line:null,tmp:null,cd:0,mene:false};
+  return {g:g,eti:eti,roues:roues,tr:mkTrail(),on:false,s:0,lat:0,latP:0,v:0,momT:0,yaw:0,fini:false,line:null,tmp:null,cd:0,mene:false,evt:false}; // evt : (2026-10-14, GAMEPLAY) il court pour un ÉVÉNEMENT RARE (evtDemarre)
 })();
 function banquierLigne(){ // SA ligne : la corde de chaque virage, lissée sur ±60 m (la même que la caisse-nuage, sans les coupes)
   if(!VBQ.line||VBQ.line.length!==NP){VBQ.line=new Float32Array(NP);VBQ.tmp=new Float32Array(NP);}
@@ -43144,7 +43155,7 @@ function banquierLigne(){ // SA ligne : la corde de chaque virage, lissée sur �
   Bl.set(A);
 }
 function banquierPrepare(){
-  const on=CAMP.n===20&&!PARK.on;VBQ.on=on;VBQ.g.visible=on;VBQ.tr.init=false;VBQ.tr.m.visible=false;
+  VBQ.evt=false;const on=CAMP.n===20&&!PARK.on;VBQ.on=on;VBQ.g.visible=on;VBQ.tr.init=false;VBQ.tr.m.visible=false;
   if(!on)return;
   banquierLigne();
   VBQ.s=Math.min(L-60,60);VBQ.lat=VBQ.latP=VBQ.line[ghIdx(VBQ.s)];VBQ.v=Math.max(26,Math.abs(vA));VBQ.momT=0;VBQ.yaw=0;VBQ.fini=false;VBQ.cd=0;VBQ.mene=false;
@@ -43180,14 +43191,14 @@ function banquierTick(dt,sp){
   VBQ.yaw+=(Math.atan2(VBQ.lat-VBQ.latP,Math.max(.01,ds))-VBQ.yaw)*Math.min(1,dt*8);VBQ.latP=VBQ.lat;
   // le coup d'épaule : on se touche, on s'écarte — personne ne meurt, personne ne triche
   VBQ.cd=Math.max(0,VBQ.cd-dt);
-  if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
+  if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;if(VBQ.evt)lat=THREE.MathUtils.clamp(lat,-(ROAD_HALF-1.6),ROAD_HALF-1.6);/* (2026-10-14, GAMEPLAY) ÉVÉNEMENT RARE : son épaule ne te sort jamais de la route (le banquier tient sa ligne jusqu'à 2,5 m du bord, +2,8 m te mettait dans le vide) */vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
   const mene=VBQ.mene?gp<3:gp<-3;if(mene!==VBQ.mene){ /* (débogage son 2026-09-29) hystérésis de 3 m : au coude à coude, TU MÈNES / IL REPASSE ne s'alternent plus deux fois par seconde */
  VBQ.mene=mene;if(mene){try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{if(SONV2)sfx('rival.passe');}} /* (2026-09-30) plus de « TU MÈNES ! / IL REPASSE DEVANT » au milieu : la plaque (1ER / 2E) le dit déjà — le son reste */
   if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
     VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
     flashEcran('rgba(255,200,90,.55)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
     slam('LE BANQUIER A GAGNE','','#ffd75e','#ff5e7a',38,3);
-    CAMP.finT=1.6;CAMP.cause='banquier';vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
+    if(VBQ.evt)evtFin('rate');else{CAMP.finT=1.6;CAMP.cause='banquier';} /* (2026-10-14, GAMEPLAY) l'ÉVÉNEMENT RARE perdu ne finit pas la partie */vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
   banquierPose(dt);
   const e=Math.round(Math.abs(gp)/5)*5;
   if(gp>0)vChip(TR('2E'),TR('IL MENE DE')+' '+e+' M','#9fe8ff');else vChip(TR('1ER'),TR('TU MENES DE')+' '+e+' M','#ffd75e');
@@ -43314,6 +43325,194 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
   "COUP D'EPAULE":'SHOULDER BUMP','LE BANQUIER A GAGNE':'THE BANKER WON',"LE BANQUIER T'A BATTU":'THE BANKER BEAT YOU','LE LINGOT EST A TOI':'THE GOLD BAR IS YOURS',
   'VILLE TERMINEE':'CITY COMPLETE','LE LINGOT':'THE GOLD BAR',
   'Le banquier l\'avait mis au coffre. Tu l\'as gagné à la course : 999,9 millièmes de pure arrogance.':'The banker kept it in the vault. You won it in a race: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+/* ============================================================================
+   LES ÉVÉNEMENTS RARES (2026-10-14, GAMEPLAY — Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse
+   de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN
+   par partie), annoncés CLAIREMENT, jamais mortels de façon injuste, avec une RÉCOMPENSE. Interrupteur ?evt=0. »)
+   ----------------------------------------------------------------------------
+   Rien n'est réécrit : les trois morceaux de la campagne tournent TELS QUELS (fantomeTick, banquierTick, campMoutonsTick, leur plaque
+   vChip) ; seul ce qui les FINISSAIT change de main quand ils viennent d'ici (`GH.evt`, `VBQ.evt`, l'argument `ev` du troupeau). En
+   campagne, perdre la course finissait la partie (CAMP.finT → campEchec) et la gagner donnait la caisse ; ici, perdre ne coûte RIEN (on
+   roule, on n'a pas la prime) et gagner paie la PRIME — la caisse-nuage et le lingot restent les trophées de la carrière.
+   · QUAND : le tirage se fait au départ de la partie (evtPartie) — 4 parties sur 10 sont « armées » (EVT_P) ; celle-là verra son
+     événement dans la PREMIÈRE zone qui a sa map : MER DE NUAGES → les MOUTONS (hors orage, une fois sur deux) ou la CAISSE-NUAGE, LA
+     VILLE → le BANQUIER ; les PICS DE JADE et l'ORBITE n'en ont pas (rien n'y aurait de sens). Jamais avant 20 s de course (EVT_T0),
+     jamais à l'auto-école, en balade, au bac à sable, au parc, au Survivant, en carrière ni en campagne : la partie classique seule (SF).
+     Une fois parti, il ne revient plus de la partie (EVT.fait), réussi ou raté. Une partie qui meurt avant le point de l'événement ne
+     l'a pas vu : avec des zones de 3 à 4 minutes, ~1 partie sur 3 en voit un (les parties de 2-3 zones presque toutes celles qui sont
+     armées, les toutes premières parties d'un débutant rarement).
+     Le hasard : Math.random, HORS de la génération (le tirage de la partie, celui de la zone) — `rnd` n'est jamais touché ; les boules
+     des moutons ont leur propre mulberry32. La piste, ses pièces, ses nuages sont ceux d'avant au mètre près.
+   · OÙ : les MOUTONS sur le 1er bout de route DROIT et PLAT trouvé après 30 % de la zone (cinq repères à ~250 m × lvPiste l'un de
+     l'autre, loin des bancs, des modules et des filets), posés à la naissance de la zone, sous le voile du portail (mkCloud : rien n'est
+     alloué en course) ; la CAISSE-NUAGE se condense 170 m devant toi entre 30 et 55 % de la zone ; le BANQUIER déboule de 70 m DERRIÈRE
+     toi, 4 km avant le portail (EVT_COURSE) — la course au portail de la campagne, à la même échelle (≈ 40 s).
+   · ANNONCÉ : la bannière de niveau (#lvlBan, son couloir hautPasse, verrouillée 3 s) — le NOM en gros, la consigne en or dessous —, puis
+     la plaque de la campagne qui suit la course : « MOUTONS 2 / 5 · DANS 180 M », « ELLE MENE DE 85 M », « 1ER · TU MENES DE 40 M ».
+   · JAMAIS MORTEL : un mouton pris de face éclate (BEEE !), la caisse-nuage ne touche personne, le coup d'épaule du banquier ne te pousse
+     plus hors de la route ; perdre = « ELLE T'A SEME » / « LE BANQUIER A GAGNE », et la partie continue.
+   · LA PRIME : un événement réussi paie ce que paie un PORTAIL (EVT_PRIME = 120 × denom, par vPaie : × FLOW, × frénésie, ligne '$:evt'
+     du grand livre) + EVT_AURA d'aura ; les moutons au prorata des repères sautés (BERGER D'OR pour le troupeau entier) ; la caisse-nuage
+     rend 60 % de nitro.
+   · CONSOLE : dbgEvt() = l'état · dbgEvt('moutons'|'caisse'|'banquier') = le forcer TOUT DE SUITE sur la zone en cours (les moutons
+     exigent la mer de nuages) · dbgEvt('arme') = armer la partie et poser l'événement de la zone en cours comme à la naissance d'une zone.
+   ========================================================================== */
+const EVT_ON=!/[?&]evt=0\b/.test(location.search),EVT_P=.4,EVT_T0=20,EVT_PRIME=120,EVT_AURA=200,EVT_FUITE=600,EVT_COURSE=4000;
+const EVT_MT=[[0],[11],[-12],[0],[-15,0,15]]; // les cinq repères du troupeau : au milieu, décalé, de l'autre côté, au milieu, puis TROIS en travers (l'escalade du niveau 4)
+const EVT={arme:false,fait:false,nom:'',etat:0,ici:false,fini:false,res:'',s0:0,sMax:0,tRun:0,t0:0,paye:0,mt:[],mtOk:0,mtBee:0,mtCle:-1,mtVu:0}; // etat : 0 rien · 1 posé (il attend son point) · 2 parti · 3 la zone l'a emporté
+function evtPartie(){ // une partie neuve (resetGame, start) : SON tirage — aucun appel au hasard quand ?evt=0
+  EVT.fait=false;EVT.nom='';EVT.etat=0;EVT.ici=false;EVT.fini=false;EVT.res='';EVT.tRun=0;EVT.paye=0;EVT.mt.length=0;
+  EVT.arme=EVT_ON&&Math.random()<EVT_P;
+}
+function evtLieuOk(){ // la partie CLASSIQUE seule : ni école, ni balade, ni bac à sable, ni parc, ni Survivant, ni carrière, ni campagne
+  const c=LVL.cur;
+  return !!(SF.on&&c&&c.sansFin&&started&&!gameOver&&!TUTO.on&&!BALADE&&!JADE_JEU&&!SANDBOX&&!PARK.on&&!CARR.actif&&!CAMP.n&&!SURV.on&&!SURV.armed);
+}
+function evtMoutons(){return EVT.etat===2&&EVT.nom==='moutons'&&!EVT.fini?EVT.mt:null;} // le troupeau qui offre son saut (campMoutonLibre)
+function evtZone(){ // campDebut : une zone commence — l'événement de la zone d'avant s'est éteint avec elle (fantomePrepare, banquierPrepare, disposeClouds)
+  if(EVT.etat)EVT.etat=EVT.fait?3:0; // posé mais jamais parti (mort, portail) : une autre zone le reprendra
+  EVT.mt.length=0;EVT.mtOk=0;EVT.mtBee=0;EVT.mtCle=-1;EVT.mtVu=0;
+  if(!EVT_ON||!EVT.arme||EVT.fait||!evtLieuOk())return;
+  const c=LVL.cur,ca=c.carte||c.id;
+  if(ca==='ville')evtPrepare('banquier',false);
+  else if(ca==='nuages'){if(!(c.id==='nuages'&&Math.random()<.5&&evtPrepare('moutons',false)))evtPrepare('caisse',false);} // (les moutons ne trouvent pas toujours leur ligne droite : la caisse-nuage prend la place)
+}
+function evtPrepare(nom,ici){ // pose l'événement sur la zone en cours — ici : tout de suite, là où l'on est (dbgEvt)
+  const sp=vPos();let s0,sM;
+  if(nom==='moutons'){const S=evtMoutonsPose(ici?sp+450:L*.3);if(!S)return false;s0=S-650;sM=L;} // annoncé 650 m avant le 1er mouton (la plaque prend le relais à 600 m)
+  else if(nom==='caisse'){s0=ici?sp:L*(.3+Math.random()*.25);sM=Math.min(L-1500,s0+1500);}
+  else{s0=ici?sp:Math.max(L*.3,L-EVT_COURSE);sM=L-(ici?600:2500);}
+  if(sM<=s0&&!ici)return false;
+  EVT.nom=nom;EVT.etat=1;EVT.ici=!!ici;EVT.s0=s0;EVT.sMax=Math.max(sM,s0+200);EVT.fini=false;EVT.res='';
+  return true;
+}
+function evtMoutonsPose(a0){ // le troupeau sur la route d'une zone de NUAGES — rend l'abscisse du 1er mouton, 0 s'il n'y a pas la place
+  if(!lvlNuageOk({onRoad:true,camp:true}))return 0; // la ville, la jade, l'orbite n'ont pas un nuage : mkCloud n'y poserait rien
+  const D=Math.max(240,250*lvPiste()),n=EVT_MT.length,fin=L-900,bancs=[];
+  for(const c of CLOUDS)if(c.onRoad&&!c.mouton){let bi=0,bd=1e18;for(let i=0;i<NP;i+=4){const d2=pts[i].distanceToSquared(c.c);if(d2<bd){bd=d2;bi=i;}}bancs.push(bi/(NP-1)*L,c.r);}
+  const ok=function(sv){
+    if(sv<200||sv>fin)return false;
+    for(const q of [-140,-60,0,70])if(bancCourbe(sv+q)>1/260)return false; // DROIT : on le voit venir de loin, on retombe dans l'axe
+    if(Math.abs(T[ghIdx(sv)].y)>.12)return false;                           // PLAT : le saut nitro (≈ 3,8 m) passe la crête (2,6 m) comme au niveau 4
+    for(let j=0;j<bancs.length;j+=2)if(Math.abs(sv-bancs[j])<bancs[j+1]+90)return false; // pas dans un banc : on doit VOIR le mouton
+    for(const m of MODS)if(sv>m.s0-40&&sv<m.s1+40)return false;
+    for(const f of FILETS)if(sv>f.sC0-80&&sv<f.sN1+40)return false;
+    return true;};
+  for(let a=Math.max(200,a0);a<Math.min(fin,a0+L*.45);a+=40){
+    if(!ok(a))continue;
+    const S=[a];let p=a;
+    while(S.length<n){let t=-1;for(let q=p+D;q<p+D*2.2&&q<fin;q+=20)if(ok(q)){t=q;break;}if(t<0)break;S.push(t);p=t;}
+    if(S.length<n)continue;
+    const cr=mulberry32((Math.random()*1e9)|0); // les boules des moutons : LEUR flux (le ciel de la zone est déjà tiré, la piste aussi)
+    for(let k=0;k<n;k++){const lats=EVT_MT[k],r=lats.length>1?MOUTON_RT:MOUTON_R;
+      frameAt(S[k],GF);
+      const m={s:S[k],cl:[],t:GF.t.clone(),fait:false,dans:false,dessus:false};
+      for(const lt of lats){const nC=CLOUDS.length; // la recette de moutonsPose : couché, seul le dos dépasse du bitume
+        mkCloud(cldV1.copy(GF.p).addScaledVector(GF.b,lt),r,{onRoad:true,camp:true},cr);
+        if(CLOUDS.length>nC){const c=CLOUDS[CLOUDS.length-1],up=MOUTON_H-c.ry;
+          c.g.position.addScaledVector(GF.n,up);c.c.addScaledVector(GF.n,up);c.camp=true;c.mouton=true;m.cl.push(c);if(SENS)try{moutonTete(c,GF);}catch(e){}}}
+      if(m.cl.length)EVT.mt.push(m);}
+    return EVT.mt.length?S[0]:0;}
+  return 0;
+}
+function evtAnnonce(titre,pr){ // LA BANNIÈRE DE NIVEAU, prêtée : le NOM en gros (les lettres tombent), la consigne en or — son couloir, son verrou de lecture
+  hautPasse(function(){
+    const b=document.getElementById('lvlBan'),n9=document.getElementById('lvlNum'),nm9=document.getElementById('lvlNom');if(!b||!n9||!nm9)return;
+    n9.style.display=''; // (lvlMontre le remet comme LVL_BAN le veut à la prochaine bannière de niveau)
+    n9.innerHTML=Array.from(TR(titre)).map(function(c,i){return '<i style="animation-delay:'+(i*45)+'ms">'+(c===' '?'&nbsp;':c)+'</i>';}).join('');
+    nm9.textContent='';const e9=document.createElement('em');e9.textContent=TR(pr);nm9.appendChild(e9);
+    b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},LVL_BAN.msPr);
+    try{if(SONV2)sfx('ui.banniere');}catch(e){}hap([12,30,12]);
+  },LVL_BAN.msPr,'lvl',2,{min:LVL_BAN.verrou,ferme:1});
+}
+function evtTick(dt){ // la boucle, juste après campTick — rien quand ?evt=0
+  if(!EVT_ON||!started||gameOver)return;
+  EVT.tRun+=dt;
+  if(EVT.etat===1){const sp=vPos();
+    if(sp>EVT.sMax||!evtLieuOk()){EVT.etat=0;EVT.nom='';return;} // passé sans pouvoir partir (sous la dalle, en vol…) : une autre zone le reprendra
+    if(sp<EVT.s0||(EVT.tRun<EVT_T0&&!EVT.ici))return;
+    if(EVT.nom!=='moutons'&&!(mode==='drive'&&side>0&&!introD))return; // la caisse-nuage et le banquier roulent sur le DESSUS : on part de là
+    evtDemarre();return;}
+  if(EVT.etat!==2)return;
+  if(EVT.nom==='moutons'){campMoutonsTick(dt,EVT.mt,EVT,true);if(!EVT.fini){let n9=0;for(const m of EVT.mt)if(m.fait)n9++;if(n9===EVT.mt.length)evtMoutonsFin();}}
+  else if(EVT.nom==='caisse'){
+    if(CAMP.pvOk&&dt>0){CAMP.vel.subVectors(carGroup.position,CAMP.pv).divideScalar(dt);if(CAMP.vel.lengthSq()>2.5e5)CAMP.vel.set(0,0,0);}CAMP.pv.copy(carGroup.position);CAMP.pvOk=true; // la ouate du sillage suit la caisse (fumeTick le fait en campagne)
+    fantomeTick(dt);campFx(0,0,0,GH.on&&!GH.pris&&!GH.fini?Math.min(1,GH.prise)*.9:0);}
+  else if(EVT.nom==='banquier')banquierTick(dt,vPos());
+}
+function evtDemarre(){ // l'événement SURGIT
+  EVT.etat=2;EVT.fait=true;EVT.fini=false;EVT.res='';EVT.t0=EVT.tRun;
+  const sp=vPos();
+  if(EVT.nom==='caisse'){ // elle se condense 170 m devant, dans une bouffée de ouate, à TA vitesse — puis ses équations, ton moteur, +10 % en pointe (GH_K)
+    GH.evt=true;GH.on=true;GH.g.visible=true;GH.tr.init=false;
+    fantomeLigne();
+    GH.s=Math.min(L-60,sp+170);GH.lat=GH.latP=GH.line[ghIdx(GH.s)];GH.v=Math.max(26,Math.abs(vA));GH.momT=Math.min(4.3,momT);GH.air=false;GH.cut=0;GH.yaw=0;
+    GH.prise=0;GH.pris=false;GH.fini=false;GH.accr=false;GH.noteT=0;
+    fantomePose(0);try{shatterCloud(GH.g.position,1.2);}catch(e){}
+    evtAnnonce('CAISSE-NUAGE','ACCROCHE SON SILLAGE');}
+  else if(EVT.nom==='banquier'){ // il déboule de 70 m DERRIÈRE, à ta vitesse : son aspiration et ses 7 % le feront passer — la course au portail commence
+    VBQ.evt=true;VBQ.on=true;VBQ.tr.init=false;
+    banquierLigne();
+    VBQ.s=Math.max(0,sp-70);VBQ.lat=VBQ.latP=VBQ.line[ghIdx(VBQ.s)];VBQ.v=Math.max(26,Math.abs(vA));VBQ.momT=Math.min(4.3,momT);VBQ.yaw=0;VBQ.fini=false;VBQ.cd=0;VBQ.mene=true;
+    banquierPose(0);
+    evtAnnonce('LE BANQUIER','PREMIER AU PORTAIL');}
+  else evtAnnonce('LES MOUTONS','SAUTE-LES !');
+}
+function evtFin(res){EVT.fini=true;EVT.res=res;} // perdu : rien n'est dû, rien n'est retiré — la partie continue
+function evtPortail(){ // portailPasse : franchir le portail pendant la course
+  if(EVT.etat!==2||EVT.fini)return;
+  if(EVT.nom==='banquier'&&VBQ.on&&!VBQ.fini)evtBqGagne();
+  else if(EVT.nom==='caisse'&&GH.on&&!GH.pris&&!GH.fini)fantomeSeme(vPos()>GH.s+18); // devant elle au portail : « TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE »
+}
+function evtBqGagne(){ // le portail franchi AVANT le banquier
+  VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);vChip('');
+  const g=vPaie(EVT_PRIME,12,'$:evt');EVT.paye+=g;
+  try{chaineAura('BANQUIER BATTU',EVT_AURA,'evt',true,SONV2);}catch(e){}flowAdd(20,'risque');
+  try{if(SONV2)sfx('victoire');else fanfare();}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([30,40,30,40,90]);
+  slam('BANQUIER BATTU !','+'+fmtC(g),'#ffd75e','#9fe8ff',40,3,26);
+  evtFin('gagne');
+}
+function evtCnPris(){ // ACCROCHÉE : la caisse-nuage se rend — l'argent, l'aura, la nitro (la caisse elle-même reste le trophée de la carrière)
+  GH.pris=true;GH.prise=1;vChip('');
+  CV1.copy(GH.g.position);GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);
+  try{shatterCloud(CV1,1.5);shatterCloud(carGroup.position,1.1);}catch(e){}
+  sparkBurst(sparkGold,CV1,40,18);flashEcran('rgba(255,236,200,.75)');
+  try{if(SONV2)sfx('victoire');else fanfare();}catch(e){}hap([30,40,30,40,90]);
+  const g=vPaie(EVT_PRIME,12,'$:evt');EVT.paye+=g;
+  slam('ATTRAPEE !',TR('LA CAISSE-NUAGE')+' +'+fmtC(g),'#ffe7a8','#ff9ee6',40,3,26);
+  try{chaineAura('LA CAISSE-NUAGE',EVT_AURA,'evt',true,SONV2);}catch(e){}
+  flowAdd(30,'risque');nitroPct(.6,'evt');
+  evtFin('gagne');
+}
+function evtMoutonsFin(){ // le dernier repère passé : la prime au prorata des sauts (chaque saut a déjà sonné, compté et payé son aura dans campMoutonsTick)
+  const k=EVT.mtOk,N=EVT.mt.length;
+  if(!k){evtFin('rate');return;} // tout le troupeau éclaté : la plaque a bêlé, rien n'est dû
+  const g=vPaie(EVT_PRIME*k/N,k===N?12:6,'$:evt');EVT.paye+=g;
+  if(k===N){slam("BERGER D'OR !",'+'+fmtC(g),'#ffd75e','#9fe8ff',38,3,14);nitroPct(.5,'evt');flowAdd(15,'style','p');hap([14,30,14,30,40]);
+    try{chaineAura("BERGER D'OR",120,'berger',true,SONV2);if(SONV2)sfx('victoire');}catch(e){}}
+  else slam(TR('MOUTONS')+' '+k+' / '+N,'+'+fmtC(g),'#ffd75e','#9fe8ff',34,1);
+  evtFin(k===N?'gagne':'partiel');
+}
+function evtEtat(){const sp=vPos(),o={on:EVT_ON,arme:EVT.arme,fait:EVT.fait,nom:EVT.nom,etat:['rien','pose','en cours','fini'][EVT.etat],res:EVT.res,fini:EVT.fini,
+  s:Math.round(sp),L:Math.round(L),s0:Math.round(EVT.s0),sMax:Math.round(EVT.sMax),tRun:+EVT.tRun.toFixed(1),paye:Math.round(EVT.paye),denom:Math.round(denom()),
+  plaque:VC.chip,carte:LVL.cur?(LVL.cur.carte||LVL.cur.id):null,lieuOk:evtLieuOk(),mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};
+  if(EVT.nom==='moutons')o.moutons={ok:EVT.mtOk,n:EVT.mt.length,libre:campMoutonLibre(),liste:EVT.mt.map(function(m){return {s:Math.round(m.s),d:Math.round(m.s-sp),nb:m.cl.length,fait:m.fait,dans:m.dans,dessus:m.dessus};})};
+  if(EVT.nom==='caisse')o.caisse={on:GH.on,ecart:Math.round(GH.s-sp),lat:+GH.lat.toFixed(1),kmh:Math.round(GH.v*SPD*3.6),prise:+GH.prise.toFixed(2),pris:GH.pris,fini:GH.fini,vis:GH.g.visible};
+  if(EVT.nom==='banquier')o.banquier={on:VBQ.on,ecart:Math.round(VBQ.s-sp),lat:+VBQ.lat.toFixed(1),kmh:Math.round(VBQ.v*SPD*3.6),fini:VBQ.fini,vis:VBQ.g.visible};
+  return o;}
+window.dbgEvt=function(a){ // dbgEvt() l'état · dbgEvt('moutons'|'caisse'|'banquier') le forcer ICI · dbgEvt('arme') armer la partie et poser celui de la zone
+  if(!a)return evtEtat();
+  if(!EVT_ON)return 'evt=0 : les evenements rares sont eteints';
+  if(!started||gameOver)return 'pas de course';
+  if(a==='arme'){EVT.arme=true;EVT.fait=false;EVT.etat=0;evtZone();return evtEtat();}
+  const nom={moutons:'moutons',mouton:'moutons',caisse:'caisse','caisse-nuage':'caisse',nuage:'caisse',banquier:'banquier',lingot:'banquier'}[a];
+  if(!nom)return ['moutons','caisse','banquier','arme'];
+  if(EVT.etat===2&&!EVT.fini)return 'un evenement est deja en cours';
+  EVT.fait=false;EVT.arme=true;EVT.mt.length=0;EVT.mtOk=0;EVT.mtBee=0;EVT.mtCle=-1;EVT.mtVu=0;
+  if(!evtPrepare(nom,true))return 'impossible ici (les moutons vivent dans la MER DE NUAGES, sur une route droite)';
+  return evtEtat();};
+Object.assign(I18N,{'LE BANQUIER':'THE BANKER','PREMIER AU PORTAIL':'FIRST TO THE PORTAL','CAISSE-NUAGE':'CLOUD CAR','ACCROCHE SON SILLAGE':'CATCH HER SLIPSTREAM',
+  'LES MOUTONS':'THE SHEEP','SAUTE-LES !':'JUMP THEM!','BANQUIER BATTU !':'BANKER BEATEN!','BANQUIER BATTU':'BANKER BEATEN','ATTRAPEE !':'CAUGHT!'}); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES
 window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
   const sp=vPos();
   return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
@@ -52252,6 +52451,7 @@ function loop(now){
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
     debTick(dt); // (2026-09-28) L'ORBITE : la pluie de débris (tous les niveaux dans l'espace, hors parc)
     campTick(dt); // (2026-09-27) LA CAMPAGNE NUAGES : tirs et fumée (5), raccourcis (6/10), orage (9), caisse-nuage (10)
+    evtTick(dt); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le banquier, la caisse-nuage, les moutons — par surprise, une fois par partie au plus
     if(!CAMP.n&&!PARK.on&&LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))orageTick(dt); /* (2026-10-13) + l'ORAGE du mode classique, sur la ville et la jade */ // (2026-09-29) L'ORAGE du mode principal : les éclairs du niveau 9 (ECL) — l'éclair RÉVÈLE : il ouvre la brume (CAMP_FOG), le tonnerre suit ; remis à zéro à chaque piste par campDebut
     { // (perf, lot 4) la jauge de style : écrite seulement quand elle change (classe au changement d'état, largeur au pour-mille)
      const cl9=fever>0?'fever':feverArmed?'armed':'',w9=(Math.round((fever>0?Math.min(1,fever/10)*100:styleM)*10)/10)+'%';
