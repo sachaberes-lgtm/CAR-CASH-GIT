@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* CAR CASH — prépare les images sources de @capacitor/assets (dossier assets/), puis `npx capacitor-assets generate --ios`
+/* CASH CAR — prépare les images sources de @capacitor/assets (dossier assets/), puis `npx capacitor-assets generate --ios`
    en tire l'icône de l'app et l'écran de lancement (npm run icones fait les deux).
    · assets/icon-only.png  (1024 × 1024, SANS transparence — Apple refuse une icône avec un canal alpha) : rendu de
      ressources/icon.svg, le mot-symbole pixel CASH CAR, aplati sur le fond nuit du jeu ;

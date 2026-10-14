@@ -2,7 +2,7 @@ import UIKit
 import WebKit
 import Capacitor
 
-/// CAR CASH — le contrôleur de l'app (posé par SceneDelegate à la place de CAPBridgeViewController).
+/// CASH CAR — le contrôleur de l'app (posé par SceneDelegate à la place de CAPBridgeViewController).
 /// Le jeu web occupe tout l'écran : barre d'état cachée (Info.plist UIStatusBarHidden + les plugins StatusBar et SystemBars),
 /// indicateur d'accueil qui s'efface (SystemBars), gestes du bord de l'écran différés (les pouces jouent près des bords :
 /// le volant en bas à gauche, la NITRO en bas à droite), ni défilement, ni rebond, ni zoom.

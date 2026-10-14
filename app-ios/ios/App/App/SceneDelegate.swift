@@ -8,7 +8,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = JeuViewController() // CAR CASH : le contrôleur du jeu plein écran (JeuViewController.swift)
+        window?.rootViewController = JeuViewController() // CASH CAR : le contrôleur du jeu plein écran (JeuViewController.swift)
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
