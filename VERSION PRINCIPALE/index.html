@@ -14959,16 +14959,23 @@ function foretSol(){
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
         if(d2<D[k]){D[k]=d2;YN[k]=p.y;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;}}}
   const H=new Float32Array(N),PR=new Float32Array(N),FD=new Float32Array(N),sd9=FORET.graine*.001;
+  /* (2026-10-14, session PERF) LE BRUIT EN DEUX MOITIÉS. Le terme a = sin(x·.0123+s)·sin(z·.0107−.7s) de forBruit ne dépend que de la
+     colonne OU de la rangée : ses sinus sont lus dans des tables (une par échelle), calculés avec EXACTEMENT les mêmes opérandes que
+     forBruit (x9 = x·e, puis x9·.0123+s) — mêmes flottants au bit ; b et c (mêlés x et z) restent calculés. ~2 sinus sur 4 de moins par appel. */
+  const BE=[[1,sd9],[.43,sd9+3],[.31,sd9+7],[3.1,sd9+1],[1.7,sd9+5],[2.3,sd9+9]],BX=BE.map(()=>new Float64Array(nx)),BZ=BE.map(()=>new Float64Array(nz));
+  for(let e=0;e<BE.length;e++){const m=BE[e][0],s=BE[e][1];for(let i=0;i<nx;i++){const x=x0+i*C,x9=m===1?x:x*m;BX[e][i]=Math.sin(x9*.0123+s);}
+    for(let j=0;j<nz;j++){const z=z0+j*C,z9=m===1?z:z*m;BZ[e][j]=Math.sin(z9*.0107-s*.7);}}
+  const fB=(e,i,j,x,z)=>{const s=BE[e][1],a=BX[e][i]*BZ[e][j],b=Math.sin(x*.031+z*.027+s*2.1)*.5,c=Math.sin(x*.0047-z*.0051+s*.3);return (a+b+c)/2.5;}; // = forBruit(x,z,s), x et z déjà mis à l'échelle
   for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys;
     if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);}else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);YN[k]=ys;}
     D[k]=d;
-    if(d>MARG+150){H[k]=ys+48+38*forBruit(x*.31,z*.31,sd9+7);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : la colline seule (rien d'autre ne lit si loin)
-    const n1=forBruit(x,z,sd9),n2=forBruit(x*.43,z*.43,sd9+3),D0=74+15*n1,W9=48+22*n2;
+    if(d>MARG+150){H[k]=ys+48+38*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : la colline seule (rien d'autre ne lit si loin)
+    const n1=fB(0,i,j,x,z),n2=fB(1,i,j,x*.43,z*.43),D0=74+15*n1,W9=48+22*n2;
     let h=ys-D0+(D0+W9)*Math.pow(THREE.MathUtils.smoothstep(d,45,430),1.25);
-    h+=38*forBruit(x*.31,z*.31,sd9+7)*THREE.MathUtils.smoothstep(d,420,900)+4.5*forBruit(x*3.1,z*3.1,sd9+1);
+    h+=38*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,420,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
     H[k]=h;
-    const pr=d<175?THREE.MathUtils.smoothstep(forBruit(x*1.7,z*1.7,sd9+5),.05,.42)*(1-THREE.MathUtils.smoothstep(d,120,175)):0;PR[k]=pr;
-    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+40?.32:d<160?.42:d<620?.86:.62)+.18*forBruit(x*2.3,z*2.3,sd9+9)-pr*.9));}
+    const pr=d<175?THREE.MathUtils.smoothstep(fB(4,i,j,x*1.7,z*1.7),.05,.42)*(1-THREE.MathUtils.smoothstep(d,120,175)):0;PR[k]=pr;
+    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+40?.32:d<160?.42:d<620?.86:.62)+.18*fB(5,i,j,x*2.3,z*2.3)-pr*.9));}
   return FORET.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,pr:PR,f:FD,can:new Float32Array(N).fill(-1e9),MARG:MARG};
 }
 function solBil(A,x,z){const S=FORET.sol;if(!S)return 0;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx;
@@ -14985,16 +14992,16 @@ function foretSolMesh(root){
     const i1=Math.min(S.nx-1,ci+CH),j1=Math.min(S.nz-1,cj+CH),w=i1-ci+1,hh=j1-cj+1;let ok=false;
     for(let j=cj;j<=j1&&!ok;j+=2)for(let i=ci;i<=i1;i+=2)if(S.d[i+j*S.nx]<S.MARG){ok=true;break;}
     if(!ok)continue;
-    const P=new Float32Array(w*hh*3),Nm=new Float32Array(w*hh*3),A=new Float32Array(w*hh*4),I=[];
+    const P=new Float32Array(w*hh*3),Nm=new Float32Array(w*hh*3),A=new Float32Array(w*hh*4),I=new Uint32Array(6*(w-1)*(hh-1));let nI=0,mI=0;
     for(let j=0;j<hh;j++)for(let i=0;i<w;i++){const gi=ci+i,gj=cj+j,k=gi+gj*S.nx,q=i+j*w;
       P[q*3]=S.x0+gi*S.C;P[q*3+1]=S.h[k];P[q*3+2]=S.z0+gj*S.C;
       const hl=S.h[Math.max(0,gi-1)+gj*S.nx],hr=S.h[Math.min(S.nx-1,gi+1)+gj*S.nx],hd=S.h[gi+Math.max(0,gj-1)*S.nx],hu=S.h[gi+Math.min(S.nz-1,gj+1)*S.nx];
       let nx9=hl-hr,ny9=2*S.C,nz9=hd-hu;const l=Math.hypot(nx9,ny9,nz9);Nm[q*3]=nx9/l;Nm[q*3+1]=ny9/l;Nm[q*3+2]=nz9/l;
       A[q*4]=S.d[k];A[q*4+1]=S.pr[k];A[q*4+2]=S.f[k];A[q*4+3]=0;}
-    for(let j=0;j<hh-1;j++)for(let i=0;i<w-1;i++){const k=(ci+i)+(cj+j)*S.nx;if(S.d[k]>S.MARG+120&&S.d[k+1+S.nx]>S.MARG+120)continue;const a=i+j*w;I.push(a,a+w,a+1,a+1,a+w,a+w+1);}
-    if(!I.length)continue;
+    for(let j=0;j<hh-1;j++)for(let i=0;i<w-1;i++){const k=(ci+i)+(cj+j)*S.nx;if(S.d[k]>S.MARG+120&&S.d[k+1+S.nx]>S.MARG+120)continue;const a=i+j*w;I[nI]=a;I[nI+1]=a+w;I[nI+2]=a+1;I[nI+3]=a+1;I[nI+4]=a+w;I[nI+5]=a+w+1;nI+=6;if(a+w+1>mI)mI=a+w+1;}
+    if(!nI)continue;
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(Nm,3));g.setAttribute('aS',new THREE.BufferAttribute(A,4));
-    g.setIndex(I);g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.name='forêt sol';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);out.push(m);tri+=I.length/3;}
+    g.setIndex(new THREE.BufferAttribute(mI>65535?I.slice(0,nI):new Uint16Array(I.subarray(0,nI)),1));g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.name='forêt sol';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);out.push(m);tri+=nI/3;} // (PERF) l'index écrit en place, pas en push : même type que setIndex(tableau) aurait choisi
   FORET.n.sol=tri;FORET.solM=out;return out;} // (foretTick éteint les morceaux au-delà de la brume : le plan lointain de la caméra est à 9,8 km)
 /* LE TORRENT : il serpente au fond, décalé de la route (on le voit, il n'est pas caché sous la dalle) */
 function foretTorrent(root,fr){
