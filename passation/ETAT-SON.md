@@ -26,6 +26,9 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
   rate ×0,8→1,25 selon k), 'fin' (stop + fig.slide.fin), 'paye' (fig.slide.paye, n = aura). Chien de garde : sans tick 0,35 s, la boucle se
   coupe (pause, appli cachée) ; le tick suivant la relance. Banque ?v=24. Banc `banc-slide.cjs`. Le vrai chemin (dbgSlide('force',kmh)) se
   teste quand le code de GENERAL (boutique-pop) est sur main.
+- LE FINAL SPIN (machine d'IDEE) a ses sons : spin.levier (spinAppui), spin.cran (un cran par symbole : le cliquetis ralentit seul),
+  spin.arret (tchonk + note 0/4/7 par rouleau), spin.piece (compteur du gain), spin.gain (petit / brelan), spin.jackpot. Plus d'emprunt
+  (ui.compteur, arret.tic, argent.*, piece.recolte, fig.jackpot, pluie.billets). Banque ?v=25. Banc `banc-spin.cjs` (dbgSpin(3,'jackpot')).
 - Avant : sons cuits singe/atchoum/aura, matières de figures v2, banque sans le BOUCLIER, ciel iPhone sans MUS_WA muet, sourdine atelier.
 - Bancs : musique iPhone 17/17, jade 7/7 (J7 « KO » = critère trop strict, curseur au pas de 5), sons des figures 7/7, toutes fumées OK.
 - RIEN N'A ÉTÉ ÉCOUTÉ : tout est vérifié par cuisson, mesure LUFS et banc. L'oreille de Sacha au banc d'écoute `sons.html`.
