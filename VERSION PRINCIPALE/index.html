@@ -9114,6 +9114,13 @@ html:not(.c6) #gMis #gmHead small,html:not(.c6) #gMis #gmHead em{font-size:var(-
 html:not(.c6) #gMis .gmC,html:not(.c6) #gMis .gmC *:not(u):not(em):not(.gmChk):not(.gmChk *):not(.obFig):not(.obFig *){font-size:var(--f1);letter-spacing:0;line-height:1.4}
 html:not(.c6) #gMis .gmC{padding:10px 10px 10px}
 html:not(.c6) #gMis #gmFils path.lead.r{display:none}
+/* COUCHÉ (844 x 390) : l'en-tête se resserre (260 px) — le script (gmPlace) lit sa largeur pour poser les trois cartes à sa droite : plus larges (~165 px), texte à 10 px, qui passe à la ligne sans déborder ni chevaucher */
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #gMis #gmHead{width:260px;max-width:260px}
+  html:not(.c6) #gMis #gmHead :is(small,em){display:block;overflow-wrap:break-word}
+  html:not(.c6) #gMis .gmC{overflow:hidden;white-space:normal;overflow-wrap:break-word;word-break:normal;padding:8px 9px}
+  html:not(.c6) #gMis .gmC .gmX{overflow-wrap:break-word}
+  html:not(.c6) #gMis .gmC .gmP b,html:not(.c6) #gMis .gmC .gmNext{white-space:normal}}
 </style>
 <style id="ux8-mouvement">
 /* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
