@@ -39381,7 +39381,7 @@ function tryLand(dt){
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
-     if(SENS&&SCOUP.vp)try{const p9=SCOUP.vp,n9=performance.now();SCOUP.vp=0;if(n9-SCOUP.vt<1200&&n9-(hap._t||-1e9)>=70)hap(p9);}catch(e){} // (2026-10-14, accord) la vibration du VERDICT, gardée depuis la déclaration : elle tombe avec les roues (et se tait si une autre vient de partir)
+     if(SENS&&SCOUP.vp)try{const p9=SCOUP.vp,n9=performance.now();SCOUP.vp=0;if(n9-SCOUP.vt<1200&&(n9-(hap._t||-1e9)>=70||(hap._k||0)<(p9>40?3:2)))hap(p9);}catch(e){} // (2026-10-14, accord) la vibration du VERDICT, gardée depuis la déclaration : elle tombe avec les roues (et se tait si une autre, aussi forte, vient de partir)
      engRpm*=.6;charge9=1;if(imp9>2)pneuMord(Math.min(1,imp9/10));}; // la gomme MORD : le moteur reprend en charge, et ça piaille
    if(hR9>.25){hopY=hR9;hopV=(sd9>0?vN9:-vN9)*SPD;POSE_F=touche9;}else{hopY=0;hopV=0;POSE_F=null;if(sd9>0&&hR9<0)levreY=Math.max(-.6,hR9);touche9();}} /* posée SOUS le niveau du bitume (lèvre, plan percé) : elle remonte sa marche en ~0,15 s (levreY) au lieu d'y sauter */
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
