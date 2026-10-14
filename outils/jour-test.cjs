@@ -205,6 +205,17 @@ const jr=(Y,M,D)=>Y+'-'+String(M).padStart(2,'0')+'-'+String(D).padStart(2,'0');
  m=monde();m.H.now=new Date(1970,0,2).getTime();e=m.cadeauEtat();t('horloge en 1970 : pas de cadeau',!e.pret&&!e.actif&&m.cadeauOuvre()===false);
  m=monde();e=m.cadeauEtat();t('cadeauEtat : la forme du contrat {pret, dansMs, jour} (+ actif, serie, valeur)',['pret','dansMs','jour','actif','serie','valeur'].every(k=>k in e)&&typeof e.dansMs==='number'&&typeof e.pret==='boolean'&&typeof e.jour==='boolean',e);
  // le quotidien dans le contrat
+ // la SERIE lisible (ordre de Sacha 14/10, via GAMEPLAY : jour 1, 2, 3…, remise a zero si on saute un jour) : cadeauEtat().serie = le nombre de jours d'affilee
+ {let mm=monde();let ee=mm.cadeauEtat();t('cadeauEtat.serie : jamais joué → 0 (un nombre)',ee.serie===0&&typeof ee.serie==='number',ee);
+  const S=(d,n,auj)=>{const x=monde({jour:{d:d,n:n}});if(auj)x.jour(auj[0],auj[1],auj[2]);return x.cadeauEtat();};
+  t('cadeauEtat.serie : joué hier (série 3) → 3, le ×2 est à prendre (la partie du jour fera le jour 4)',S('2026-10-13',3).serie===3&&S('2026-10-13',3).jour===true);
+  t('cadeauEtat.serie : joué aujourd\'hui (série 4) → 4, le ×2 est pris',S('2026-10-14',4).serie===4&&S('2026-10-14',4).jour===false);
+  t('cadeauEtat.serie : un jour sauté → 0 (remise à zéro), le ×2 revient',S('2026-10-12',6).serie===0&&S('2026-10-12',6).jour===true);
+  t('cadeauEtat.serie : ?jour=0 → 0 (le jeu d\'avant)',monde({search:'?jour=0',jour:{d:'2026-10-13',n:3}}).cadeauEtat().serie===0);
+  mm=monde({bank:0});const suite=[];for(let j=0;j<9;j++){mm.jour(2026,10,14+j);mm.partie();mm.jourCommit();suite.push(mm.cadeauEtat().serie);}
+  t('la série au fil de 9 jours de suite : 1 2 3 4 5 6 7 8 9',suite.join(' ')==='1 2 3 4 5 6 7 8 9',suite);
+  mm.jour(2026,10,25);t('…un jour sauté (le 25 après le 22) : retombe à 0 avant la partie',mm.cadeauEtat().serie===0,mm.cadeauEtat());
+  mm.partie();mm.jourCommit();t('…et la partie du jour la remet à 1',mm.cadeauEtat().serie===1);}
  m=monde({jour:{d:'2026-10-13',n:2}});e=m.cadeauEtat();t('cadeauEtat.jour : ×2 dispo, série vivante 2',e.jour&&e.serie===2,e);
  m=monde({jour:{d:'2026-10-14',n:2}});e=m.cadeauEtat();t('cadeauEtat.jour : ×2 déjà pris → faux',!e.jour&&e.serie===2,e);
  m=monde({jour:{d:'2026-10-14',n:2}});e=m.cadeauEtat();

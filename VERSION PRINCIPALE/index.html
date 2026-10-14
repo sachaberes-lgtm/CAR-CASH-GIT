@@ -38569,7 +38569,7 @@ const SAVE={
     c.eco=3;
     if(d.bq&&typeof d.bq==='object'&&isFinite(+d.bq.j)&&Array.isArray(d.bq.l))c.bq={j:Math.round(+d.bq.j),l:d.bq.l.filter(function(x){return typeof x==='string';}).slice(0,12).map(function(x){return x.slice(0,32);})}; // (2026-10-10) LA BOUTIQUE DU JOUR : la vitrine tirée ce jour-là
     /* (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR ET LE CADEAU : une date illisible repart de zéro, la série est bornée ; un cadeau « dans le futur » (horloge reculée, code importé) est ramené à maintenant — il ne bloquerait pas le suivant des mois */
-    c.jour={d:'',n:0};if(d.jour&&typeof d.jour==='object'){const nj=jourNum(d.jour.d);if(nj===nj){c.jour.d=String(d.jour.d);c.jour.n=Math.max(0,Math.min(JOUR.max,Math.round(+d.jour.n)||0));}}
+    c.jour={d:'',n:0};if(typeof jourNum==='function'&&typeof JOUR==='object'&&d.jour&&typeof d.jour==='object'){/* (2026-10-14, GAMEPLAY) le test de typeof : les preuves de sauvegarde (passation/preuves) n'exécutent que la zone SAVE, hors du bloc JOUR — sans lui elles jetaient « jourNum is not defined » */const nj=jourNum(d.jour.d);if(nj===nj){c.jour.d=String(d.jour.d);c.jour.n=Math.max(0,Math.min(JOUR.max,Math.round(+d.jour.n)||0));}}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
     return c;
   },
