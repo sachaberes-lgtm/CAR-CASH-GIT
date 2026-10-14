@@ -9825,7 +9825,6 @@ const SUN_PERP=new THREE.Vector3().crossVectors(SUN_DIR,new THREE.Vector3(0,1,0)
 const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart'in window)||navigator.maxTouchPoints>0;
 const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(screen.width,screen.height)<600); // (2026-10-01) l'ÉCRAN, pas la fenêtre — même test que la colonne du <head>
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
-const IS_TOUCH=FORCE_TEL||TACTILE_NATIF;
 const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
@@ -9920,8 +9919,6 @@ function toileRend(cv){try{if(cv&&cv.getContext)cv.width=cv.height=0;}catch(e){}
 function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onUpdate;
   tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)){toileRend(t.image);MEM_TOILES.n++;}};return tex;}
 const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0),rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
-function palNote(n,pourquoi){ // ce que la COURSE a appris : retenu pour les prochains démarrages (le palier courant ne change pas en vol : la plupart des budgets se prennent à la construction)
-  try{n=Math.max(0,Math.min(2,n|0));localStorage.setItem('cashcarPalier',JSON.stringify({v:1,n:n,src:'mesure',pourquoi:String(pourquoi||'').slice(0,80),t:Date.now()}));PAL.appris={n:n,src:'mesure'};}catch(e){}}
 function palPuce(gl9){ // (après la création du contexte) la puce graphique, là où le navigateur la dit (Android) : une puce d'entrée de gamme rabat le palier
   try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;
     if(PAL.src==='?palier'||PAL.src==='appris en course'||!IS_MOBILE||FORCE_TEL)return;
@@ -10629,9 +10626,6 @@ let OILS=[];
 const oilGeo=new THREE.CircleGeometry(1,22);
 const oilMat=new THREE.MeshPhongMaterial({color:0x121419,shininess:320,specular:0xc79cff,envMap:null,transparent:true,opacity:.92,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}); // la flaque boit le néon violet
 const oilRimMat=new THREE.MeshBasicMaterial({color:0x4a3a72,transparent:true,opacity:.4,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}); // (2026-09-26) flaque et liseré à 4-5 cm du bitume : décalés en profondeur, sinon ils se mordaient au loin
-/* (2026-09-30, revue GAMEPLAY) `cloudTexs` — cinq toiles 512×256 peintes au pinceau gaussien À CHAQUE LANCEMENT (0,5 à 2,7 s de calcul sur le
-   fil principal) — est RETIRÉ avec les nuages d'horizon qui étaient ses seuls utilisateurs (voir la fin de buildTrack). */
-const CLOUD_TINTS=[0xfff4ea,0xffefe2,0xfff8f1];
 // ---------- NUAGES VIVANTS : bancs volumétriques traversables (impostors en grappes) ----------
 // Technique billboard-impostor (Harris, GDC 2002) : chaque nuage = grappe de bouffées montées sur
 // RESSORT. On les FEND en passant — elles giclent, tourbillonnent, puis reprennent leur place.
@@ -15759,7 +15753,6 @@ function rocNoise2(sd){return function(a,b){const i=Math.floor(a),j=Math.floor(b
   const u=fa*fa*(3-2*fa),w=fb*fb*(3-2*fb);return (h(i,j)*(1-u)+h(i+1,j)*u)*(1-w)+(h(i,j+1)*(1-u)+h(i+1,j+1)*u)*w;};}
 function voxG(nx,ny,nz){return {nx:nx,ny:ny,nz:nz,d:new Uint8Array(nx*ny*nz)};}
 function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[x+G.nx*(z+G.nz*y)];}
-function voxSet(G,x,y,z,m){if(x>=0&&y>=0&&z>=0&&x<G.nx&&y<G.ny&&z<G.nz)G.d[x+G.nx*(z+G.nz*y)]=m;}
 /* LE MAILLAGE GLOUTON — pour chaque axe et chaque sens, plan par plan : un masque des faces (matière + ombre des 4 coins), puis les plus
    grands rectangles identiques. Sortie : position (en cubes), normale, aM (matière), aAO (0 = coin enfoui, 1 = à l'air). */
 /* (2026-10-13, passe perf « le JOUER qui gèle ») MÊME maillage, au bit près (banc test-vox : grilles au hasard avec cases fantômes, les
@@ -16569,40 +16562,6 @@ function* jadeBatit(seed,cle){
    · PLANCHES : une RAMBARDE en bois laqué rouge (poteaux tous les 6 m, deux lisses), et des LANTERNES rouges qui luisent tous les ~42 m,
      accrochées au bout d'un bras au-dessus de la route, d'un côté puis de l'autre. Aucune collision (décor). */
 const JROUTE={style:(function(){const m=/[?&]route=(nuage|planches|emeraude|rondins|pieces|normale)\b/.exec(location.search);return m?{emeraude:0,nuage:1,planches:2,rondins:3,pieces:4,normale:5}[m[1]]:5;})()}; // (2026-10-13, Léo : « remets la route normale comme d'hab ») la ROUTE DU JEU par défaut (bitume, rails, ligne) — les pièces restent au ?route=pieces et à la touche R // (v17, Léo : « on roule sur des pièces d'or ») les PIÈCES D'OR par défaut // (v16, « une vibe Chihiro, des troncs d'arbres collés ») les RONDINS par défaut // (v15, Léo : « planche en bois ») le CHEMIN DE PLANCHES par défaut ; nuage et émeraude restent (touche R, ?route=)
-function jadeBoite(P,N,C,c,ax,ay,az,hx,hy,hz,col){ // une boîte orientée (axes unitaires, demi-tailles), 36 sommets, normales plates
-  const F=[[ax,ay,az,hx,hy,hz],[ax.clone().negate(),ay,az.clone().negate(),hx,hy,hz],[az,ay,ax.clone().negate(),hz,hy,hx],[az.clone().negate(),ay,ax,hz,hy,hx],[ay,az,ax,hy,hz,hx],[ay.clone().negate(),az.clone().negate(),ax,hy,hz,hx]];
-  const QA=[[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]],QB=[[-1,-1],[1,1],[1,-1],[-1,-1],[-1,1],[1,1]],X9=new THREE.Vector3();
-  for(const f of F){const n=f[0],u=f[1],v=f[2],q=X9.copy(v).cross(u).dot(n)>0?QA:QB; // (le sens des faces : vers l extérieur, quel que soit le repère)
-    for(const k of q){P.push(c.x+n.x*f[3]+u.x*f[4]*k[1]+v.x*f[5]*k[0],c.y+n.y*f[3]+u.y*f[4]*k[1]+v.y*f[5]*k[0],c.z+n.z*f[3]+u.z*f[4]*k[1]+v.z*f[5]*k[0]);N.push(n.x,n.y,n.z);C.push(col[0],col[1],col[2]);}}}
-function jadeRouteDeco(root,jr){
-  const pas=d=>Math.max(1,Math.round(d/(L/(NP-1)))),V=new THREE.Vector3(),T9=new THREE.Vector3(),B9=new THREE.Vector3(),N9=new THREE.Vector3();
-  const geo=(P,N,C)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();return g;};
-  const rep=i=>{T9.copy(T[i]).normalize();B9.copy(B[i]).normalize();N9.copy(Nn[i]).normalize();};
-  // ---- LE NUAGE ----
-  {const P=[],N=[],C=[];
-   for(let i=0;i<NP;i+=pas(3.2)){rep(i);const p=pts[i];
-     for(const sd of [-1,1])for(let k=0;k<3;k++){const sz=1+jr()*1.6,lat=ROAD_HALF+(k===2?-.4+jr()*1.2:-.6+jr()*3),h=k===2?-1.6-jr()*2.6:-1.2+jr()*2.6,al=(jr()-.5)*2.6;
-       V.copy(p).addScaledVector(B9,sd*lat).addScaledVector(N9,h).addScaledVector(T9,al);const w=.90+jr()*.08;
-       jadeBoite(P,N,C,V,T9,N9,B9,sz*.5,sz*.5,sz*.5,[w,w+.01,w+.04]);}}
-   const m=new THREE.Mesh(geo(P,N,C),new THREE.MeshLambertMaterial({vertexColors:true,emissive:0x3a4048}));m.userData.jeter=true;m.frustumCulled=false;root.add(m);JADE.decoNuage=m;}
-  // ---- LES PLANCHES : la rambarde, les lanternes ----
-  {const P=[],N=[],C=[],LP=[],LN=[],LC=[],laque=[.42,.06,.045],sombre=[.10,.06,.04],or=[.70,.50,.18];let prev=[null,null],nL=0;
-   for(let i=0;i<NP;i+=pas(6)){rep(i);const p=pts[i];
-     for(let si=0;si<2;si++){const sd=si?1:-1;V.copy(p).addScaledVector(B9,sd*(ROAD_HALF+.4));const base=V.clone();
-       jadeBoite(P,N,C,V.clone().addScaledVector(N9,1.15),T9,N9,B9,.24,1.15,.24,laque);                           // le POTEAU
-       jadeBoite(P,N,C,V.clone().addScaledVector(N9,2.38),T9,N9,B9,.32,.08,.32,sombre);                         // son chapeau
-       if(prev[si]){const a=prev[si],d=base.clone().sub(a),ln=d.length();if(ln>.5&&ln<20){const ax=d.normalize();
-         for(const hy of [2.0,1.05]){const c=a.clone().add(base).multiplyScalar(.5).addScaledVector(N9,hy);jadeBoite(P,N,C,c,ax,N9,ax.clone().cross(N9).normalize(),ln*.5,.09,.11,laque);}}} // les deux LISSES
-       prev[si]=base;}
-     if(i%pas(42)<pas(6)){nL++;const sd=nL%2?1:-1;V.copy(p).addScaledVector(B9,sd*(ROAD_HALF+.4)); // une LANTERNE (au-dessus du bord, d'un côté puis de l'autre)
-       jadeBoite(P,N,C,V.clone().addScaledVector(N9,3.6),T9,N9,B9,.30,3.6,.30,laque);
-       jadeBoite(P,N,C,V.clone().addScaledVector(N9,7.0).addScaledVector(B9,-sd*1.3),T9,N9,B9,.16,.16,1.5,sombre);
-       const lc=V.clone().addScaledVector(N9,5.55).addScaledVector(B9,-sd*2.5);
-       jadeBoite(LP,LN,LC,lc,T9,N9,B9,.62,.85,.62,[1,.34,.14]);
-       jadeBoite(P,N,C,lc.clone().addScaledVector(N9,.95),T9,N9,B9,.45,.10,.45,or);jadeBoite(P,N,C,lc.clone().addScaledVector(N9,-.95),T9,N9,B9,.45,.10,.45,or);}}
-   const g=new THREE.Group(),m=new THREE.Mesh(geo(P,N,C),new THREE.MeshLambertMaterial({vertexColors:true})),l=new THREE.Mesh(geo(LP,LN,LC),new THREE.MeshBasicMaterial({vertexColors:true}));
-   m.userData.jeter=true;l.userData.jeter=true;m.frustumCulled=l.frustumCulled=false;g.add(m,l);root.add(g);JADE.decoPlanches=g;}
-}
 function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface (uJStyle), les bords en volume, les rails, la lueur, les flancs, la ligne
   JROUTE.style=k;ROAD_U.uJStyle.value=k;
   /* (2026-10-12, Léo : « enlève les bords de la route et les trucs en bois asiatiques ») plus aucun bord en volume (planches laquées et lanternes,
@@ -16621,22 +16580,6 @@ function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface
 window.dbgEffondre=function(){return {montagnes:JCH.L.length,tombees:JCH.L.filter(function(c){return c.t0;}).length,finies:JCH.L.filter(function(c){return c.fin;}).length,ecume:JCH.sp.length,sChute:JCH.L.length?Math.round(Math.min.apply(null,JCH.L.map(function(c){return c.sN;}))):null,L:Math.round(L)};};
 window.dbgRoute=function(k){return jadeRouteStyle(k==null?(JROUTE.style+1)%6:k);};
 addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!JADE.root)return;const k=JROUTE.style===5?4:JROUTE.style===4?3:JROUTE.style===3?2:JROUTE.style===2?1:JROUTE.style===1?0:5;const nm=jadeRouteStyle(k);try{slam('ROUTE '+nm,'',null,null,null,2);}catch(e9){}}); // (v17) la touche R : pièces → rondins → planches → nuage → émeraude
-/* (v14, Léo : « crée un début et une fin du niveau, moyen, ni trop court ni trop long ») LES DEUX PORTIQUES — le 牌坊 des entrées de
-   temple, en cubes d'un mètre : deux piliers laqués rouges sur leurs socles de pierre (hors de la route), deux linteaux, une plaque d'or au
-   milieu, un toit de tuiles débordant aux coins RELEVÉS, l'or au faîte. Le DÉPART à 120 m, l'ARRIVÉE à 140 m du bout (avant le portail). */
-function jadeArcheGeo(){
-  const hw=Math.round(ROAD_HALF)+6,W=2*hw+16,H=37,D=10,G=voxG(W,H,D),xL=8,xR=W-9,box=(x0,x1,y0,y1,z0,z1,m)=>{for(let y=y0;y<y1;y++)for(let z=z0;z<z1;z++)for(let x=x0;x<x1;x++)voxSet(G,x,y,z,m);};
-  for(const xc of [xL,xR]){box(xc-3,xc+4,0,3,1,9,JM.pierre);box(xc-1,xc+2,3,27,3,7,JM.laque);box(xc-2,xc+3,3,5,2,8,JM.pierre);}
-  box(xL-3,xR+4,19,21,3,7,JM.laque);box(xL-3,xR+4,21,22,3,7,JM.or);                                  // le linteau bas, son filet d'or
-  box(Math.floor(W/2)-7,Math.floor(W/2)+7,22,26,3,7,JM.or);box(Math.floor(W/2)-6,Math.floor(W/2)+6,23,25,2,8,JM.tuile); // la PLAQUE
-  box(xL-5,xR+6,26,28,2,8,JM.laque);                                                                // le linteau haut
-  box(xL-8,xR+9,28,29,0,10,JM.tuile);box(xL-7,xR+8,29,30,1,9,JM.tuile);box(xL-5,xR+6,30,31,2,8,JM.tuile);box(xL-3,xR+4,31,33,3,7,JM.tuile); // le TOIT en gradins
-  for(const xe of [xL-8,xR+8]){box(xe,xe+1,29,31,0,10,JM.tuile);}box(xL-8,xL-7,31,32,0,10,JM.tuile);box(xR+8,xR+9,31,32,0,10,JM.tuile); // les coins RELEVÉS
-  box(xL-4,xL-2,33,36,4,6,JM.or);box(xR+3,xR+5,33,36,4,6,JM.or);                                    // l or au faîte
-  return {g:voxMesh(G),W:W,D:D};}
-function jadeArches(root,M9){const A=jadeArcheGeo(),pl=(sA)=>{const i=Math.max(1,Math.min(NP-2,Math.round(sA/L*(NP-1)))),p=pts[i],t=new THREE.Vector3(T[i].x,0,T[i].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x);
-    const o=p.clone().addScaledVector(b,-A.W/2).addScaledVector(t,A.D/2);o.y=p.y-.5;jadeMonument(root,A.g.clone(),jadeRepere(o,b,t,1),.55,M9);};
-  pl(120);pl(L-140);JADE.depart=120;}
 /* (v14, Léo : « à la fin du niveau, des montagnes qui commencent à chuter, autour ») L'EFFONDREMENT — après le repère « chute » (les ~2 derniers
    km), les montagnes à moins de 900 m de la route tombent, l'une après l'autre, ~700 m avant que la caisse arrive à leur hauteur : elles
    TREMBLENT (0,9 s), puis basculent autour de leur pointe et tombent (8-15 m/s²) jusqu'à la mer, où elles soulèvent une gerbe de CUBES
@@ -17136,48 +17079,6 @@ function jadeFinale(){if(JADE.fini){if(s>L-6)s=L-6;return;}JADE.fini=true;jadeAn
   setTimeout(function(){if(!started||gameOver||mode==='boom')return;try{ecranWipe(jadeRedemarre);}catch(e){jadeRedemarre();}},2800);}
 function jadeRedemarre(){if(!started||gameOver||mode==='boom')return; // (2026-10-12, passe qualité) JOUER lance le SOLEIL DE JADE : une caisse qui EXPLOSE (ou une partie finie) dans les 2,8 s après l'ARRIVÉE était remise en 'drive' au départ — ressuscitée sous l'écran de fin
   s=0;lat=0;psi=0;prevTvalid=false;mode='drive';vA=0;jadeChuteRaz();JADE.fini=false;JADE.t0=performance.now();} // (v17, « enlève les intros ») plus de « DÉPART » : on repart, c'est tout
-/* (v16, Léo : « évite les clichés en mode Chine, le but c'est une vibe CHIHIRO ; le sol, fais-le moins scolaire… même des bouts de bois
-   empilés, des TRONCS D'ARBRES collés à eux-mêmes ») LA ROUTE DE RONDINS — ses bords en vrais volumes : chaque rondin qui DÉPASSE du bord
-   (60 % d'entre eux, de 0,4 à 2,8 m, des prismes à 6 pans d'écorce, la coupe aux cernes clairs au bout), et des PILES de bois de loin en loin
-   (trois troncs couchés le long du bord, deux dessous, un dessus). Découpés en tronçons de ~800 m (chacun sa sphère : le champ les trie). */
-function jadeTronc(P,N,C,a,b,r,cE,cB){ // un tronc à 6 pans de a à b (rayon r) : l'écorce cE (nuancée par pan), les deux coupes en cernes (centre cB, bord plus clair)
-  const ax=b.clone().sub(a).normalize(),u=new THREE.Vector3(0,1,0);if(Math.abs(ax.dot(u))>.9)u.set(1,0,0);const v1=u.clone().cross(ax).normalize(),v2=ax.clone().cross(v1).normalize(),K=6,ring=[];
-  for(let k=0;k<K;k++){const an=k/K*6.2832+.26;ring.push(v1.clone().multiplyScalar(Math.cos(an)*r).addScaledVector(v2,Math.sin(an)*r));}
-  const tri=(p,q,w,n,c1,c2,c3)=>{P.push(p.x,p.y,p.z,q.x,q.y,q.z,w.x,w.y,w.z);for(let i=0;i<3;i++)N.push(n.x,n.y,n.z);C.push(c1[0],c1[1],c1[2],c2[0],c2[1],c2[2],c3[0],c3[1],c3[2]);};
-  const X=new THREE.Vector3();
-  for(let k=0;k<K;k++){const r0=ring[k],r1=ring[(k+1)%K],n=r0.clone().add(r1).normalize(),f=.8+.4*((k*7919)%11)/11,ce=[cE[0]*f,cE[1]*f,cE[2]*f];
-    const p0=a.clone().add(r0),p1=a.clone().add(r1),q0=b.clone().add(r0),q1=b.clone().add(r1);
-    X.copy(p1).sub(p0).cross(X.copy(q0).sub(p0));if(X.dot(n)<0){tri(p0,q0,p1,n,ce,ce,ce);tri(p1,q0,q1,n,ce,ce,ce);}else{tri(p0,p1,q0,n,ce,ce,ce);tri(p1,q1,q0,n,ce,ce,ce);}}
-  const cR=[cB[0]*1.45,cB[1]*1.45,cB[2]*1.45];
-  for(const e of [[a,ax.clone().negate()],[b,ax]]){const c0=e[0],n=e[1];
-    for(let k=0;k<K;k++){const p1=c0.clone().add(ring[k]),p2=c0.clone().add(ring[(k+1)%K]);X.copy(p1).sub(c0).cross(X.clone().copy(p2).sub(c0));
-      if(X.dot(n)>0)tri(c0,p1,p2,n,cB,cR,cR);else tri(c0,p2,p1,n,cB,cR,cR);}}}
-function jadeRondinsDeco(root,jr){
-  const pas=d=>Math.max(1,Math.round(d/(L/(NP-1)))),geoDe=(P,N,C)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();return g;};
-  const mat=new THREE.MeshLambertMaterial({vertexColors:true}),grp=new THREE.Group();let P=[],N=[],C=[],s0=0;
-  const vide=()=>{if(P.length){const m=new THREE.Mesh(geoDe(P,N,C),mat);m.userData.jeter=true;grp.add(m);}P=[];N=[];C=[];};
-  const B9=new THREE.Vector3(),N9=new THREE.Vector3(),T9=new THREE.Vector3(),eco=()=>{const t=jr();return [.16+t*.10,.11+t*.07,.07+t*.04];},cou=[.30,.21,.12];
-  let acc=0;const dl=.82;
-  for(let i=1;i<NP;i++){acc+=pts[i].distanceTo(pts[i-1]);if(acc<dl)continue;acc=0;
-    T9.copy(T[i]).normalize();B9.copy(B[i]).normalize();N9.copy(Nn[i]).normalize();const p=pts[i];
-    for(const sd of [-1,1]){if(jr()>.62)continue;const r=.32+jr()*.2,ln=.4+Math.pow(jr(),1.6)*2.4,dz=(jr()-.5)*.25;
-      const a=p.clone().addScaledVector(B9,sd*(ROAD_HALF-.3)).addScaledVector(N9,-r*.55).addScaledVector(T9,dz),b=a.clone().addScaledVector(B9,sd*ln).addScaledVector(N9,(jr()-.5)*.25);
-      jadeTronc(P,N,C,a,b,r,eco(),cou);}
-    if(jr()<.012){const sd=jr()<.5?-1:1,ln=5+jr()*5,r=.45+jr()*.2,o=ROAD_HALF+1.2+jr()*1.5; // une PILE de bois
-      for(const k of [[-1,0],[1,0],[0,1]]){const a=p.clone().addScaledVector(B9,sd*(o+k[0]*r*1.02)).addScaledVector(N9,r*.6+k[1]*r*1.7).addScaledVector(T9,-ln/2+(jr()-.5)*.6),b=a.clone().addScaledVector(T9,ln+(jr()-.5)*.8);
-        jadeTronc(P,N,C,a,b,r,eco(),cou);}}
-    if(i/(NP-1)*L-s0>800){vide();s0=i/(NP-1)*L;}}
-  vide();root.add(grp);JADE.decoRondins=grp;}
-/* LES DEUX ARCHES DE TRONCS (départ, arrivée) — plus de portique chinois : deux grands troncs bruts plantés de chaque côté, un tronc couché en
-   travers au-dessus, un plus petit dessous, de la mousse (des nuances vertes sur l'écorce) */
-function jadeArchesRondins(root){const P=[],N=[],C=[],up=new THREE.Vector3(0,1,0),mo=[.11,.16,.07],ec=[.20,.14,.09],cou=[.30,.21,.12];
-  for(const sA of [120,L-140]){const i=Math.max(1,Math.min(NP-2,Math.round(sA/L*(NP-1)))),p=pts[i],t=new THREE.Vector3(T[i].x,0,T[i].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),w=ROAD_HALF+3.5;
-    for(const sd of [-1,1]){const a=p.clone().addScaledVector(b,sd*w);a.y-=6;jadeTronc(P,N,C,a,a.clone().add(new THREE.Vector3(0,34,0)).addScaledVector(b,-sd*.8),1.5,ec,cou);
-      jadeTronc(P,N,C,a.clone().add(new THREE.Vector3(0,9,0)),a.clone().add(new THREE.Vector3(0,16,0)).addScaledVector(b,sd*1.2),1.62,mo,cou);}
-    const g=p.clone().addScaledVector(b,-w-4.5),d=p.clone().addScaledVector(b,w+4.5);g.y+=25.5;d.y+=24.8;jadeTronc(P,N,C,g,d,1.25,ec,cou);
-    const g2=p.clone().addScaledVector(b,-w+.5),d2=p.clone().addScaledVector(b,w-.5);g2.y+=20.2;d2.y+=20.6;jadeTronc(P,N,C,g2,d2,.8,mo,cou);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true}));m.userData.jeter=true;root.add(m);JADE.depart=120;}
 /* (12/10 soir, Léo : « le bord de la route n'est pas juste tout lisse : ce sont les PIÈCES qui DÉPASSENT ») LES PIÈCES DU BORD — de vraies
    pièces d'argent à trou carré (disque à 14 pans + tranche, la texture de la pièce avec son trou percé : alphaTest), posées tous les ~1,6 m sur
    chaque bord, à cheval sur l'arête (la moitié dehors), chacune sa taille, son angle, un peu penchée, une sur quatre avec une autre posée de
@@ -17437,37 +17338,6 @@ const JADE_ESPRITS=(function(){const N=TEL_NATIF?900:2400,S=700,P=new Float32Arr
       '  gl_PointSize=uPx*(1.9+aS*3.2)*min(8.,340./max(d,1.));gl_Position=projectionMatrix*mv;}'].join('\n'),
     fragmentShader:['uniform float uK;varying float vA;varying vec3 vC;void main(){float r=length(gl_PointCoord-.5)*2.;float a=(exp(-r*r*4.5)+.35*exp(-r*r*40.))*vA*uK;gl_FragColor=vec4(vC*a*1.25,a);}'].join('\n')});
   const pt=new THREE.Points(g,m);pt.frustumCulled=false;pt.renderOrder=6;pt.visible=false;scene.add(pt);return pt;})();
-/* ---- LES NUAGES EN VOLUTES (v8, Léo : « en haut, des ciels, avec des nuages style asiatique ; le ciel suit la colorimétrie ; si ça peut
-   donner de la force aux nuages ») — les 祥云 des rouleaux et des broderies : des LOBES ronds posés sur une base plate, chacun roulé en
-   SPIRALE, une QUEUE effilée qui s'enroule au bout, un contour d'encre jade, un dégradé crème → jade pâle, un reflet sur le haut des lobes.
-   Seize dessins sur une planche (4 × 4, cuite une fois), posés en GRAND (400-1 100 m) loin autour de la route et au-dessus d'elle, face à la
-   caméra ; la perspective aérienne les fond dans la brume du loin, la teinte suit le ciel du niveau (`uTeinte`, posée par jadeTick). ---- */
-/* (v9, Léo : « les nuages plus transparents, moins autocollants, plus 3D ») — plus de dessin cerné d'encre : chaque volute est une FORME
-   EN RELIEF, une carte de hauteur faite de boules (les lobes, la base en coussins aplatis, la queue en tube qui s'effile et s'enroule au
-   bout), les SPIRALES creusées dans les lobes ; le shader en tire la normale et l'éclaire avec le soleil de la map (ombre jade-bleue
-   dessous, lumière dessus, le contre-jour qui traverse les bords minces) ; l'opacité suit l'ÉPAISSEUR (bords presque transparents, cœur
-   laiteux). R = hauteur, V = spirale, A = couverture (bord adouci). Une texture de données (pas de canvas : aucune perte au bord). */
-function jadeNuagesTex(){const CW=512,CH=256,W=CW*4,H=CH*4,HS=90,D=new Uint8Array(W*H*4),rg=mulberry32(0x5A1E),hb=new Float32Array(CW*CH),best=new Int8Array(CW*CH);
-  for(let k=0;k<16;k++){const x0=(k%4)*CW,y0=((k/4)|0)*CH;hb.fill(0);best.fill(-1);
-    const nL=3+((rg()*3)|0),yb=CH*.68,L9=[];let x=44+rg()*20;
-    for(let i=0;i<nL;i++){const mid=1-Math.abs(i-(nL-1)/2)/((nL-1)/2+.5),r=30+mid*36+rg()*12;if(i)x+=.80*(r+L9[i-1].r);else x+=r;L9.push({x:x,y:yb-r*.78-mid*8+rg()*6,r:r,a0:Math.PI*(.35+rg()*.3),tours:1.5+rg()*.4});}
-    const xl=L9[0].x-L9[0].r*.55,xr=L9[nL-1].x+L9[nL-1].r*.45,tipx=Math.min(CW-34,xr+90+rg()*70),tipy=yb-40-rg()*30,B=[];
-    for(let xx=xl;xx<=xr;xx+=9)B.push([xx,yb-10+rg()*3,19+rg()*5,.55]);                                     // la BASE en coussins
-    for(let t=0;t<=1.001;t+=.035){const u=1-t,px=u*u*u*(xr-12)+3*u*u*t*(xr+30)+3*u*t*t*(tipx-30)+t*t*t*tipx,py=u*u*u*(yb-14)+3*u*u*t*(yb-16)+3*u*t*t*(tipy+30)+t*t*t*tipy;
-      B.push([px,py,19*(1-t)+5,.85]);}                                                                             // la QUEUE, un tube qui s'effile
-    for(let t=0;t<=1.001;t+=.05){const a=-Math.PI*.6+t*Math.PI*2.2,r=14*(1-t*.7);B.push([tipx-12+Math.cos(a)*r,tipy+12+Math.sin(a)*r,5.5*(1-t*.45),1]);} // …qui s'enroule
-    const pose=(cx,cy,r,fy,li)=>{const ry=r*fy,xa=Math.max(0,Math.floor(cx-r)),xb=Math.min(CW-1,Math.ceil(cx+r)),ya=Math.max(0,Math.floor(cy-ry)),yb9=Math.min(CH-1,Math.ceil(cy+ry));
-      for(let py=ya;py<=yb9;py++)for(let px=xa;px<=xb;px++){const dx=(px-cx)/r,dy=(py-cy)/ry,d2=dx*dx+dy*dy;if(d2>=1)continue;const hh=Math.sqrt(1-d2)*ry,q=px+CW*py;if(hh>hb[q]){hb[q]=hh;best[q]=li;}}};
-    for(const b9 of B)pose(b9[0],b9[1],b9[2],b9[3],-1);
-    L9.forEach(function(l,i){pose(l.x,l.y,l.r,1,i);});
-    const flip=rg()<.5;
-    for(let py=0;py<CH;py++)for(let px=0;px<CW;px++){const q=px+CW*py;let h=hb[q],g=0;
-      if(best[q]>=0){const l=L9[best[q]],dx=px-l.x,dy=py-l.y,rho=Math.hypot(dx,dy),th=Math.atan2(dy/.92,dx);let dm=1e9; // la SPIRALE creusée
-        for(let kk=-1;kk<=2;kk++){const t=((th-l.a0)/(2*Math.PI)+kk)/l.tours;if(t<0||t>1)continue;dm=Math.min(dm,Math.abs(rho-l.r*(.72-.58*t)));}
-        g=Math.max(0,1-dm/3.4);h=Math.max(0,h-g*l.r*.09);}
-      const X=flip?CW-1-px:px,o=((H-1-(y0+py))*W+x0+X)*4;
-      D[o]=Math.min(255,Math.round(h/HS*255));D[o+1]=Math.round(g*255);D[o+3]=Math.min(255,Math.round(hb[q]/3*255));}}
-  const t=new THREE.DataTexture(D,W,H,THREE.RGBAFormat);t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.needsUpdate=true;return t;}
 const JADE_C9=new THREE.Color();
 const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,
   uniforms:{uTex:{value:null},uTime:JADE_U.uTime,uTeinte:{value:new THREE.Color(1,1,1)},uFogC:{value:new THREE.Color(.8,.86,.88)},uSunD:JADE_U.uSunDir,uSunC:JADE_U.uSunC},
@@ -17645,14 +17515,6 @@ function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
   catch(e){console.warn('jadeChauffeNiveau',e);}
   finally{if(g)scene.remove(g);for(const v of vu)v[0].visible=v[1];
     try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}} }
-function jadeChauffe(){ // une instance de chaque matière, compilée hors écran (la balade arrive directement dans la map : c'est surtout un filet)
-  try{const M9=jadeMats(),g=new THREE.Group(),G=voxG(1,1,1);G.d[0]=1;const bx=voxMesh(G);
-    const b1=bx.clone();b1.setAttribute('aJ',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i1=new THREE.InstancedMesh(b1,M9.vr,1);i1.setMatrixAt(0,new THREE.Matrix4());g.add(i1);
-    {const i0=new THREE.InstancedMesh(b1,M9.vrO,1);i0.setMatrixAt(0,new THREE.Matrix4());g.add(i0);const b4=bx.clone();b4.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b4.attributes.position.count*4),4));g.add(new THREE.Mesh(b4,M9.vrOM));} // (v17) le loin opaque
-    const b2=bx.clone();b2.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b2.attributes.position.count*4),4));g.add(new THREE.Mesh(b2,M9.vrM));
-    const pl=new THREE.PlaneGeometry(1,1);pl.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i3=new THREE.InstancedMesh(pl,JADE_BRUME_M,1);i3.setMatrixAt(0,new THREE.Matrix4());g.add(i3);
-    g.traverse(function(o){o.frustumCulled=false;});scene.add(g);const pe9=jadePeau();jadeBullesIm();eauPIm();eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});eauBIm();const sl9=sillonMesh();sl9.visible=true;pe9.visible=true;renderer.compile(scene,camera);pe9.visible=false;sl9.visible=false;for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}scene.remove(g);}catch(e){console.warn('jadeChauffe',e);} // (2026-10-13) la peau de la mer et les bulles aussi
-}
 window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : les nuages en volutes on/off
   if(v!==undefined&&v!==null){FIN.on=!!v&&!TEL_NATIF;if(!FIN.on){FIN.dans.clear();for(const FF of FIN.fam)if(FF)FF.im.visible=FF.im2.visible=FF.im3.visible=false;}JADE.sig=0;}
   if(nu!==undefined&&JADE.root)for(const o of JADE.root.children)if(o.material===JADE_NUAGE_M)o.visible=!!nu;
@@ -18179,7 +18041,6 @@ function frameAt(s,out){
   out.b.crossVectors(out.n,out.t);
 }
 const F={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
-const FH={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 const padGeo=new THREE.PlaneGeometry(5.5,9);
 /* (2026-09-26, passe perf) LES PLAQUES TURBO ne se redessinent plus à chaque image (8 tracés Canvas2D avec `shadowBlur` par image,
    renvoyés au GPU). (2026-09-26, vague 2 « L'ENCRE ET L'OR ») … et elles deviennent de L'OR. Elles tiraient leur couleur au hasard
@@ -18259,7 +18120,6 @@ const rampStripGeo=new THREE.PlaneGeometry(ROAD_HALF0*2-2,64); // tapis de chevr
 const rampLipGeo=new THREE.BoxGeometry(ROAD_HALF0*2-2,.55,5);  // LA LÈVRE : franche, on la sent claquer
 const rampLipMat=new THREE.MeshLambertMaterial({color:0xffb028,emissive:0x6a3400}); // braise chaude : jamais confondue avec un dos d'âne
 const landRingGeo=new THREE.RingGeometry(8.5,11.5,32);       // anneau de visée sur la route d'arrivée (taillé sur ROAD_HALF0=14)
-let sOffset=0;
 
 // ---------- VOITURES & ÉCONOMIE ----------
 // 15 caisses, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
@@ -22450,7 +22310,6 @@ const NYAN={on:false,tete:null,pattes:[],queue:[],feux:[],roues:[],rf:'',rPas:1,
 const NY_GATEAU=(function(){const L=['BBBBBBBBBBBBBBBBBBBBBB','BCCCCCCCCCCCCCCCCCCCCB','BCCCCCCCCCCCCCCCCCCCCB','BCCCPPPPPPPPPPPPPPCCCB']; // (v2) coins CARRÉS : un caisson de voiture, plus une galette — le glaçage garde ses coins arrondis
   for(let i=0;i<9;i++)L.push('BCCPPPPPPPPPPPPPPPPCCB');
   return L.concat(L.slice(0,4).reverse());})(); // vu du DESSUS : une rangée par i (−8 … 8), une colonne par k (0 = l'arrière … 21 = l'avant)
-const NY_SUCRE=[[-4,5],[-5,11],[-2,8],[-3,14],[0,4],[-1,12],[1,9],[1,16],[3,6],[2,13],[4,10],[5,15]]; // les éclats de sucre (i, k)
 const NY_TETE=[ // de FACE, rangée du haut d'abord (j = 14 − rangée) — W : l'éclat de l'œil (en haut à gauche, comme l'image), R : la joue
  '.BB.........BB.',
  '.BGB.......BGB.',
@@ -29203,11 +29062,6 @@ const pickGeoY=(function(){
    couchant ni au bronze la nuit. ⚠ Émissif BLANC et pas « teinté or » : l'or multiplié par une texture d'or, c'est de l'orange. */
 const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x808080,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:1.05,
   shininess:90,specular:0xfff0b0,flatShading:true});
-// NITRO : sphère bleu électrique translucide avec cœur lumineux
-const nitroGeo=new THREE.SphereGeometry(.8,18,14);
-const nitroMat=new THREE.MeshPhongMaterial({color:0x1e7bff,emissive:0x1246ff,emissiveIntensity:.55,shininess:260,specular:0xcfeaff,envMap:envTex,reflectivity:.55,transparent:true,opacity:.5,depthWrite:false});
-const nitroCoreGeo=new THREE.SphereGeometry(.34,12,10);
-const nitroCoreMat=new THREE.MeshBasicMaterial({color:0xaee4ff});
 // ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
 // Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
 // Géométries et matériaux PARTAGÉS (créés une fois) — un fruit ne coûte que 2-3 meshes.
