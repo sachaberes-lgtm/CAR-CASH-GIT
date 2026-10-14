@@ -3,6 +3,57 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FIGURES v2 — LA PHYSIQUE, TROIS EMPLACEMENTS, LE NITRO D'ASPHALT (2026-10-14, Sacha : « refonte totale du système de figures : il faut qu'on puisse équiper jusqu'à 3 figures différentes, mais c'est surtout la physique qui pourrait être exceptionnelle et super fun, et quand on est dans les airs la voiture garde l'inertie de son mouvement » · « inspiration Asphalt 8, où les figures dans les airs rapportent du nitro, et de l'aura en cumulant les figures comme un jeu de BMX — front flip, spin ×2… — et gagner de l'aura si tu te poses » · « que le double-tap n'exécute pas juste une animation mais que ça donne une impulsion : le front flip, une sorte de petite explosion au niveau des roues arrière pour propulser l'arrière de la voiture vers l'avant, et la figure d'après, un spin, doit s'additionner à l'impulsion du front flip, de manière fun, réaliste et jouissive »)
+Le moteur : **`FIG.Corps`** dans `figures.js` (v2). Le jeu : le bloc « LES FIGURES v2 — LA PHYSIQUE » juste avant `// TREMPLIN HÉROS` (`FIGV2`, `FX2`,
+`fig*`), le style `<style id="figuresV2">` (après `passeMobile`), les boutons `#tFig` dans `#touchCtl`. `?fig=ancien` / `dbgFig('ancien')` = les figures de Léo
+(le lecteur animé `FIG.Lecteur`, tiré au hasard) au chiffre près.
+- **LE CORPS** : la caisse a une assiette `q` (par rapport au vol) et une vitesse de rotation `w` (rad/s, dans son repère). Une figure = une EXPLOSION en un
+  point de la caisse (`boums` : sous les roues ARRIÈRE pour le salto avant, sous les roues avant pour le salto arrière, sous un flanc pour le tonneau, un
+  coup de côté devant et derrière pour la toupie) qui AJOUTE un vecteur à `w` en 0,08 s. Deux figures s'ADDITIONNENT : un spin pendant un salto penche
+  l'axe de rotation (la caisse part en vrille penchée, que personne n'a dessinée). Entre deux explosions rien ne la freine : l'INERTIE ; les équations
+  d'Euler (inerties d'une caisse : tangage 1 · lacet 1,12 · roulis 0,46) la font précesser quand deux rotations se mêlent (`gyro` .12 : on le sent,
+  sans chaos). Le doigt TENU sur le bouton = poussée continue (`aHold` 12 rad/s², plafond 22) : la toupie accélère, ×2, ×3…
+- **LA PRISE ET LE PLANTÉ** : les tours prévus faits (82 %) et plus rien de tenu, la caisse CONTINUE dans son sens jusqu'à l'endroit le plus proche
+  devant elle (jamais de marche arrière, sauf si le sol arrive avant — alors elle revient : sauver sa peau), freine (`aCtl` 85 rad/s²) et s'y PLANTE
+  avec un rebond (ressort ω 13, ~7°). Calée (deux explosions qui s'annulent), annulée sur son axe, ou emmêlée au-delà de 2,2 fois sa durée : elle se
+  replace sans payer. Plus le temps (le budget = le viseur, ou la PARABOLE le long de la normale de la route tant qu'on s'en éloigne — `figBudget`) :
+  on lâche tout et on se replace.
+- **L'INERTIE AU DÉCOLLAGE** (`figMemo` à chaque image de conduite, `figDepart` dans `startFall`) : la caisse emporte son écart à la trajectoire et sa
+  rotation de route mesurée entre ses deux dernières images (le lacet du virage, la crête qui fait plonger le nez, la route qui vrille), moins la
+  rotation du vol lui-même ; l'air (`aero` ω 3,2 ζ .36) la range en se balançant (MESURÉ : 1,5 rad/s de lacet + 17° → 27° au plus à 0,3 s, −8° de
+  retour, rangée à ~2 s). Un DRIFT qui décolle part en **TOUPIE DE DRIFT** (le flat spin d'Asphalt 8, `FIG.auto.derive`) si le vol dure assez (0,95 s).
+  La sortie par le BORD garde la bascule de Léo (VEQ). L'assiette lissée de Léo (`VEQ.qb`) part de celle du vol : l'écart n'est compté qu'une fois.
+- **TROIS EMPLACEMENTS** (`SAVE.d.figEq`, `san` le garde ; `figEquipees` / `figEquipe` / `figRetire` / `figEqToast`) : l'inventaire du garage (onglet
+  FIGURES) — toucher une figure l'équipe ou la retire (jamais la dernière), sa tuile porte le NUMÉRO de son emplacement ; la boutique dit ÉQUIPER /
+  DÉSÉQUIPER (1/3…) ; une figure achetée s'équipe d'office ; pleins, la plus ancienne laisse sa place. Jamais choisis : le TONNEAU + les deux dernières
+  achetées.
+- **EN VOL, TROIS BOUTONS** (`#tFig`, `figHud` / `figHudMaj`, au clavier 1 · 2 · 3) : n'existent qu'en vol (`body.figVol`) ; couché à gauche de NITRO,
+  debout au-dessus ; plaques penchées de la charte, liseré couleur aura, pictogramme du geste (flèche tournante : telle quelle = salto avant, miroir =
+  arrière, aplatie = toupie, pincée = tonneau, penchée = combiné), nom court (`c`/`ce` dans `BASE`), numéro. Tenu = s'embrase ; refus (trop tard) =
+  rouge qui tremble. Le double-tap NITRO joue l'emplacement SUIVANT ; au sol, le SAUT NITRO et sa figure (lancée une image plus tard, quand le viseur
+  a mesuré le vol : une route qui plonge reprenait la caisse en 0,1 s). Toupies et tonneaux partent du côté où l'on braque. Le coup de réacteur du
+  1er appui d'un double-tap est RENDU (vitesse et nitro — la règle des FIGURES LIBRES de GAMEPLAY) ; le saut nitro ne vibre qu'une fois.
+- **LES EXPLOSIONS** (`figBoum`, `figJet`) : flammes et cœur blanc à l'opposé de la poussée, anneau de souffle perpendiculaire, gerbe d'or, secousse,
+  `turbo.super`/`turbo.mini` ; une poussée vers le haut donne un COUP DE REIN (+2,4 de vitesse verticale : un peu de vol en plus, jamais vers le bas).
+  Tenue : le jet brûle aux mêmes points et `nitrooo.palier` monte d'un degré toutes les 0,28 s.
+- **LA PAIE** (`figPaye`) : une figure PLANTÉE entre dans la chaîne d'aura sous son nom et ses tours (« TOUPIE 360 ×2 » : aura × 2,25, ×3 : × 3,5) et
+  rend du NITRO tout de suite (`NITRO2.figAir` : ,22 + ,12 par tour de plus, × ,8 par figure déjà payée dans le vol). Posée à moins de 20° et presque
+  arrêtée : elle compte. **LA CHUTE** (BMX) : posée à plus de 52° ou en tournant encore à plus de 9 rad/s (le bouton tenu jusqu'au sol) — FIGURE RATÉE,
+  le flow tombe ET les figures de ce vol quittent la chaîne (`figChute`). La pose garde ses règles (verdict, nitro de pose, PARFAIT).
+- **Corrigé en passant** : une ligne de banc avalée par un `//` au milieu de `tryLand` (`FLOW.poseA`, piège n° 1).
+- **La boîte à figures** (`boite-figures.html`) joue le MÊME `FIG.Corps` : explosions en boules orange au point qui pousse, ENCHAÎNER ×3 = trois
+  explosions à 0,22 s d'écart qui s'additionnent, le saut dure le temps que tout se plante. L'essai au garage (`garFigEssai`) aussi.
+- **MESURÉ** — banc Node du corps (`banc-corps.js`, 14 scènes, 60 et 30 i/s identiques) : salto plantée à 0,75 s (rebond 7°) ; salto + toupie à 0,3 s :
+  les deux plantées à 1,13 s ; toupie tenue 0,9 s : ×3 ; deux saltos opposés : se replacent sans payer ; trois empilées : plantées à 1,35 s. Bancs du
+  JEU (Chrome sans fenêtre, son coupé, boucle pas à pas, 844 × 390 puis 390 × 844, souris sur les vrais boutons) : saut nitro → SALTO AVANT planté (+90,
+  nitro +0,23) ; cumul salto + toupie → 2 plantées (150 d'aura, nitro 1,65 → 2,28) ; toupie tenue 0,8 s → 20 rad/s, « ×3 » ; tenue jusqu'au sol →
+  CHUTE, figures du vol retirées ; inventaire : défaut TONNEAU + 2 dernières, retirer / jamais la dernière, numéros sur les tuiles ; 0 erreur.
+- **À trancher par Sacha** : la chute qui retire les figures du vol (choix BMX, défaut OUI) ; le nitro tout de suite à chaque figure plantée (OUI) ; les
+  boutons seulement en vol (OUI). **À savoir** : `origin/assemblage` porte LES FIGURES LIBRES de GAMEPLAY (même demande, plus tôt dans la nuit) : au
+  portage, v2 par défaut, `?fig=libre` les rend, `?fig=script` / `?fig=ancien` = Léo.
+- Console : `dbgFig()` (emplacements, mode du corps, écart, `w`, figures en cours et leurs tours, hérité, payées, chutes, points du vol, budget),
+  `dbgFig('lance',s)`, `dbgFig('equipe',id)`, `dbgFig('phy')` (les réglages, modifiables à chaud), `dbgFig('ancien'|'neuf')`.
+
 ## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
 **Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
 l'équilibrage, son nom et sa description en français ET en anglais, un pictogramme pixel (`ico`, grilles `tr_*` / `ai_*` dans `PXI_G`).
