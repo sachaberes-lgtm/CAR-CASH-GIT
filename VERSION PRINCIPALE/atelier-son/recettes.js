@@ -568,6 +568,34 @@ D('fig.monde',{fam:'figures',dur:.9,st:1,key:1,db:-1,max:3,cd:.04,v:9,pre:1,base
     else if(o.v===7){bulle(b,R,0,f*.5,f*.25,.25,.34,0);bruit(b,{c:'n',t0:0,a:.01,d:.3,v:.4,ft:'lp',f:700,f1:250,g:.3,q:.7},R);P(.5,.12,.4,.45,0);} /* PLONGEON : on coule, la note grave */
     else{swish(b,R,0,.45,600,2400,.26,-.7,.7,.9);P(1,.08,.4,.3,-.2);P(1.5,.18,.36,.4,.2);} /* SURF : la vague qui passe, la quinte qui glisse dessus */
   }});
+/* (2026-10-14, session SON — le son par figure, étape 3) LES BATTEMENTS EN VOL. SHIMMY et CHANDELLE n'ont pas de TOUR (un ressort qui bat,
+   pas une rotation) : aucun tic ne les accompagnait en vol. Le shimmy a un « wik » à chaque aller-retour (le jeu alterne gauche / droite),
+   la chandelle un « ça se cabre » au sommet de sa bosse. */
+D('fig.battement',{fam:'figures',dur:.4,st:1,key:1,db:-1,max:4,cd:.03,v:2,pre:1,bases:[0,12],dit:'un BATTEMENT en vol : 0 SHIMMY (le « wik » de chaque aller-retour) · 1 CHANDELLE (ça se cabre, au sommet)',
+  r:function(b,R,o){const f=nE(12+o.base);
+    if(o.v===0){pluck(b,R,f,0,.42,.14,1.2);bruit(b,{c:'b',t0:0,a:.002,d:.05,v:.22,ft:'bp',f:3200,f1:1800,g:.05,q:1.6},R);}
+    else{osc(b,{f:f*.75,f1:f,g:.15,gc:.6,w:'tri',t0:0,a:.008,h:.06,d:.14,v:.2});swish(b,R,0,.2,700,2600,.14,0,0,1.2);pluck(b,R,f,.13,.36,.3,.9);}
+  }});
+/* LES EXPLOSIONS DE FIGURE ont leur son. Elles empruntaient turbo.mini / turbo.super au DRIFT : la même bouffée pour deux gestes qui
+   n'ont rien à voir. Ici, une charge qui claque (la poussée qui fait tourner la caisse) : 0 petite, 1 grosse. Pas de note : c'est un choc. */
+D('fig.explose',{fam:'figures',bus:'fx',dur:.8,st:1,db:0,max:3,cd:.05,v:2,pre:1,dit:'l’EXPLOSION qui lance une figure : 0 petite · 1 grosse (plus le son du drift)',
+  r:function(b,R,o){const g=o.v?1:.6;
+    clic(b,{t0:0,f:3800,d:.004,v:.45*g},R);bruit(b,{c:'b',t0:0,a:.001,d:.09+.08*o.v,v:.55*g,ft:'bp',f:1600,f1:450,g:.12,q:.8},R);
+    bruit(b,{c:'n',t0:0,a:.002,d:.18+.14*o.v,v:.5*g,ft:'lp',f:900,f1:300,g:.2,q:.7},R);grave(b,o,0,130,55,.1,.18+.1*o.v,.55*g);
+    crepite(b,R,.01,.18+.2*o.v,4+8*o.v,.25*g,700,3200);if(o.v)swish(b,R,.02,.35,2600,500,.18,-.6,.6,1);
+  }});
+/* LE GAP a son son : le saut par-dessus le vide (le souffle qui traverse) et le pont qui se construit sous la caisse (l'arpège qui monte).
+   Le DOUBLE GAP le fait deux fois, et finit sur un accord. */
+D('fig.gap',{fam:'figures',dur:1.6,st:1,key:1,db:+1,max:1,cd:.3,v:2,pre:1,bases:[0,12],dit:'GAP FRANCHI (0) · DOUBLE GAP (1) : le souffle du vide traversé + l’arpège du pont',
+  r:function(b,R,o){const s=o.base,f=nE(12+s);swish(b,R,0,.5,500,3200,.24,-.8,.8,.9);
+    [0,4,7,12].forEach(function(st,i){pluck(b,R,nE(12+s+st),.08+i*.06,.4,.4,1,i%2?.4:-.4);});
+    if(o.v){[12,16,19,24].forEach(function(st,i){pluck(b,R,nE(12+s+st),.36+i*.05,.36,.4,1,i%2?-.4:.4);});stab(b,R,[s+12,s+19,s+24],.6,.08,.5,.32,1);scintille(b,R,.6,.5,8,.08,38,48);}
+    else cloche(b,{f:f*2,r:[1,2,2.76],m:[1,.3,.15],d:[.6,.2,.1],t0:.3,v:.18},R);
+  }});
+/* LA POSE ORDINAIRE a son petit son : un « tock » franc et une clochette brève. Elle n'avait que le choc des roues — la PARFAITE claque
+   (pose.parfait), la DIVINE ouvre le ciel (pose.divin) ; celle-ci reste en dessous : propre, rien de plus. */
+D('pose.nette',{fam:'pose',dur:.45,key:1,db:-3,max:1,cd:.2,pre:1,dit:'la POSE ordinaire (ni parfaite, ni lourde) : un tock et une clochette, sous la PARFAITE',
+  r:function(b,R,o){clic(b,{t0:0,f:3000,d:.004,v:.25},R);marimba(b,R,nE(19),0,.3,.18);cloche(b,{f:nE(31),r:[1,2.76],m:[1,.15],d:[.25,.08],t0:.01,v:.12},R);}});
 D('pose.lourde',{fam:'pose',bus:'fx',dur:.9,db:+2,max:1,cd:.2,grp:'r',prio:2,dit:'POSÉ LOURD : la tôle qui encaisse — craquement + ressorts en butée + grave sale',
   r:function(b,R,o){coup(b,R,o,0,1,1400,90,40,.4);tole(b,R,.005,190,.3,.5);tole(b,R,.04,135,.22,.4);
     bruit(b,{c:'r',t0:0,a:.002,d:.25,v:.4,ft:'bp',f:900,q:1.5,am:[38,.8]},R);osc(b,{f:98,f1:92,g:.3,w:'saw',t0:.02,a:.01,d:.4,v:.08,flt:['lp',600,300,.3]});}});
