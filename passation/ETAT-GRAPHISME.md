@@ -3,12 +3,19 @@
 Branche `gfx-integration` (worktree `C:/Users/sacha/Documents/GitHub/CCG-gfx-integration`). Je pousse moi-même sur main (protocole PILOTAGE : fumée → cc-push.lock → merge → syntaxe + garde → push → recopie Downloads → « POUSSÉ »).
 La passation longue (règles, plafonds de la charte, outils dbg) reste `passation/GRAPHISME.md`.
 
-## ⭐ MISSION PRINCIPALE (Sacha, 17 h 30) : L'IDENTITÉ CAR CASH — « une vraie connexion entre chaque map »
-- (0) FAIT, commité (126d4b7), PAS poussé : la VILLE AU NÉON (ambiance `pluie`) retrouve son rose d'avant (`villeRose()`, `?sans=villerose` : ambiance, bords roses, enseignes magenta/cyan). Avant/après : `passation/graphisme-ville-rose.jpg`. Attend le feu vert de PILOTAGE, puis push (fumée).
-- (1) FAIT : le mur des maps, `passation/graphisme-mur-des-maps.jpg` (5 maps × heure signature + midi, debout, mesures L*/chroma du ciel et de la route). Banc : `mur.cjs` du scratchpad (PAIRS, FMT, QX, NOM).
-- (2) FAIT : la bible `passation/DA-CARCASH.md` (trio NÉON ROSE / OR / LAQUE BLEU NUIT + un accent par map, règles de lumière, invariants, interdits, ordre d'application). PROPOSITION envoyée à PILOTAGE : attendre la validation de Sacha.
-- (4) À FAIRE après validation : application map par map, planche avant/après chacune → villes de jour, nuages de jour, jade, forêt, orbite.
-- Chiffres de toutes les ambiances (valeurs effectives, node) : scratchpad `amb/ambiances.md` (scripts amb.js / tab.js). Diagnostic de la ville rose : causes = étalonnage pluie (l. « ÉTALONNAGE · LA VILLE »), NEONVILLE_V5, BORDS_V2, couche DA.
+## ⭐ MISSION PRINCIPALE : LA BIBLE CAR CASH (`passation/DA-CARCASH.md`, VALIDÉE par Sacha) — état au 14/10, 20 h 15
+- Le trio NÉON ROSE / OR / LAQUE BLEU NUIT + la SIGNATURE DE ROUTE commune : `routeSig()` (bords et nappe roses, ligne centrale or, accent rose) + `SIG_V`
+  (un interrupteur par map). Contre-jour rose (`kickC`) sur toutes les maps passées à la bible.
+- POUSSÉ (8ce8520f) : ville au néon rose (`?sans=villerose`), villes de jour (`?sans=villejour`), CANYON DES GÉANTS sur main (fusionné avec forêt, banquise et volcan ; `?sans=canyon2`).
+  Planches : `passation/graphisme-ville-rose.jpg`, `graphisme-villes-jour.jpg`, `graphisme-canyon.jpg`.
+- COMMITÉ sur gfx-integration, fumée en cours puis push : nuages de jour (`?sans=nuagesjour`, copies de course nuagesMatinCC/nuagesMidiCC : le menu ne bouge pas),
+  jade (`?sans=jade2`, soir et forme de Léo intacts), forêt (`?sans=foret2`), orbite (`?sans=orbite3`, expo +15 %), banquise et volcan (`?sans=banquise2` / `volcan2`).
+  Planche nuages : `passation/graphisme-nuages-jour.jpg` ; jade/forêt/orbite : banc `shots/jfo/` du scratchpad (mur.cjs).
+- RESTE, dans l'ordre : (1) ciel du CANYON encore crème (son ciel propre `canyonCiel` : brume du fond `cyF` / horizon `cyH` à travailler) ; (2) A/B propre d'ORBITE2 et
+  d'orbite3 ; (3) cumulus de nuit/pluie (worktree CCG-gfx-cumulus, non committé, captures `cumulus/shots2/`) ; (4) lune du titre la nuit (hors cadre) ; (5) MONTAGNE
+  et toute nouvelle map : leur passer routeSig + kick rose + les plafonds de la bible.
+- Pièges vus : `</style>` collé dans un commentaire (fusion boutique-pop) = CSS affiché en texte ; les fusions de maps se percutent toujours aux mêmes endroits
+  (ctrl, build*, SF_NIV, SF_CARTES, chauffe, musique, CAUSES, accC) : garder tous les côtés (script `resout_volcan.py` du scratchpad) ; motif du cache dans sw.js.
 
 ## Poussé sur main (18d585e, cache v384)
 - AURORE sobre = 1re image de l'auto-école (`?sans=aurore2`) : route L* 63 sable → 41-43 gris, ciel bleu pâle, horizon b* +22 → +12.
