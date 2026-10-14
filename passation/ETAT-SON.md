@@ -1,4 +1,4 @@
-# ÉTAT — SON (14/10, ~18 h 30, PC de Sacha) — passation avant de vider le fil
+# ÉTAT — SON (14/10, ~20 h 30, PC de Sacha) — passation avant de vider le fil
 Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions de Léo, tests) — toujours valable.
 
 ## OÙ
@@ -8,26 +8,20 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
   C:\Users\sacha\cc-push.lock` (+ owner.txt) → fetch + merge origin/main → `node passation/preuves/syntaxe.cjs "VERSION PRINCIPALE/index.html"`
   + `sh garde-burnout.sh` + `sh garde-charte.sh` → sw.js cache +1 → `git push origin son-integration:main` → `git archive HEAD | tar -x -C
   "/c/Users/sacha/Downloads/CAR-CASH-GIT-main/CAR-CASH-GIT-main"` → rendre le verrou → « POUSSÉ » à PILOTAGE.
-- Banc : `C:\Users\sacha\cc-banc\lib.cjs` (file, 2 créneaux, Chrome muet). Crochets : `dbgMusAp()` (+ jade/jmus), `dbgMusRetour(h)`.
+- Banc : `cc-banc\lib.cjs` (file, 2 créneaux, Chrome muet). Crochets : `dbgMusAp()` (+ jade/jmus/jap), `dbgMusRetour(h)`, `dbgSonJoue(id,o)`.
+  Mes bancs (scratchpad SON) : banc-musique-iphone, banc-jade-apercu, banc-son-figures(2). La file du banc attend 15 à 35 min le soir.
 
-## FAIT LE 14/10 SUR LE PC (sur main)
-- Curseur MUSIQUE : 1,4 s d'aperçu au relâcher (`musApercu`, bloc `MUSAP`). Sons cuits singe/atchoum/aura + matières de figures v2.
-  Banque sans le BOUCLIER. POSE DIVINE une quinte plus haut. Ciel iPhone sans MUS_WA muet ; sourdine de l'atelier (`bqAtelierSourdine`).
-- LA MUSIQUE REVIENT (Sacha, 17 h 30) : au lancement et au retour d'arrière-plan, visite (`SAVE.d.vu`, posée au départ en arrière-plan)
-  à plus de `MUS_RETOUR_H`=24 h ET MUSIQUE coupée ou à 0 → ON au volume d'usine (`SAVE.def().vol.mus`), une fois par retour. EFFETS et
-  VOIX intacts. Bouton MUSIQUE = `musBascule()` (même chemin). Test : `?retour=1` (25 h au lancement) ; `dbgMusRetour(26)` (retour).
-
-## BANC MUSIQUE « iPHONE » (Chromium, UA iPhone, sortie muette, vrai play()) — `banc-musique-iphone.cjs` (scratchpad SON)
-- 17/17 OK (14/10 18 h) : lancement après 30 h → MUSIQUE ON à 62 %, EFFETS/VOIX intacts · moteur audio null → running au 1er toucher ·
-  verrouillage simulé au menu : la musique se tait, contexte suspendu, déverrouillage : reprise seule + running · MUSIQUE coupée, caché → visible
-  quelques s : rien · retour 26 h : rallumée, le menu rejoue sans toucher · curseur 20 % suit, 0 % = silence, EFFETS 80 % inchangés ·
-  en course (radio) : verrouillage = pause + musique arrêtée, déverrouillage = reste en pause · curseur en PAUSE : aperçu ~1,4 s puis se
-  rendort, à 0 rien · REPRENDRE : la radio repart, running · 0 erreur JS. Carte JADE non tirée ce passage-là (JOUER = carte au hasard).
-- WebKit de Playwright : absent du PC, non téléchargé sans l'accord de Sacha (il ne simulerait ni le Silencieux ni le volume verrouillé).
-- CORRIGÉ (19 h, PILOTAGE : « c'est un bug ») : au SOLEIL DE JADE, le curseur MUSIQUE en PAUSE joue l'aperçu par GLISSE V2 (`JMUS.ap`
-  ouvre `jadeMusVeut` 1,4 s, relance dans le geste, fondu de fin). Banc `banc-jade-apercu.cjs` (lance la jade par `dbgNiveauJade`) : GLISSE joue en course, s'éteint au verrouillage,
-  aperçu à 40 % en pause puis se rendort, rien à 0, REPRENDRE la relance ; 0 erreur JS. (J7 noté KO par un critère trop strict : le curseur
-  va par pas de 5, 62 → 60 %, GLISSE repart bien à 60/62.)
+## FAIT LE 14/10 SUR LE PC (tout est sur main 541c6f30)
+- Curseur MUSIQUE : 1,4 s d'aperçu au relâcher (`musApercu`) — radio, ET au SOLEIL DE JADE par GLISSE V2 (`JMUS.ap` ouvre `jadeMusVeut`).
+- LA MUSIQUE REVIENT : au lancement / retour d'arrière-plan, visite (`SAVE.d.vu`) à plus de `MUS_RETOUR_H`=24 h ET MUSIQUE coupée ou à 0
+  → ON au volume d'usine, une fois par retour ; EFFETS/VOIX intacts ; `musBascule()` = le bouton. Test `?retour=1`, `dbgMusRetour(26)`.
+- SON PAR FIGURE : `fig.signe` (12 figures du catalogue, `FIG_SIGNE`) · `fig.monde` (9 figures banquise/eau, `FIG_MONDE`) · combos de
+  GENERAL : `sonCombo(cle,neuf)` = 3 `combo.frappe` (T verre, P bois, S tambour, M métal) + `combo.sceau` (pur, mélangé, PST GYROSCOPE,
+  MMM CHAOS), figSnd tait le maillon des `fig_combo_*`, `ui.debloque` à t:.6 · `pose.divin` (tchak + chœur + cloches + or). Banque ?v=22.
+- Avant : sons cuits singe/atchoum/aura, matières de figures v2, banque sans le BOUCLIER, ciel iPhone sans MUS_WA muet, sourdine atelier.
+- Bancs : musique iPhone 17/17, jade 7/7 (J7 « KO » = critère trop strict, curseur au pas de 5), sons des figures 7/7, toutes fumées OK.
+- RIEN N'A ÉTÉ ÉCOUTÉ : tout est vérifié par cuisson, mesure LUFS et banc. L'oreille de Sacha au banc d'écoute `sons.html`.
+- WebKit de Playwright absent du PC : non téléchargé sans l'accord de Sacha.
 
 ## À VÉRIFIER SUR UN VRAI IPHONE (rien de ceci ne se simule sur PC)
 - Bouton Silencieux : MUSIQUE ON = session 'playback' → la musique joue malgré le Silencieux (règle de toujours) ; coupée = 'ambient'.
@@ -35,15 +29,19 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
 - Vrai verrouillage puis déverrouillage : la musique reprend-elle seule, ou au 1er toucher seulement (musicJoue réessaie) ?
 - AudioContext « interrupted » (appel, Siri, alarme) : les effets reviennent-ils au 1er toucher (resume au touchend) ?
 - Curseur MUSIQUE sans MUS_WA : volume <audio> verrouillé → curseur sans effet audible, aperçu volontairement muet (VOL_LOCKED).
-- Curseur MUSIQUE avec MUS_WA : l'aperçu s'entend-il au bon volume, et 0 = silence ?
+- Curseur MUSIQUE avec MUS_WA, et au SOLEIL DE JADE : l'aperçu s'entend-il au bon volume, et 0 = silence ?
 - Appli tuée en arrière-plan : `SAVE.d.vu` survit-il (miroir Preferences) → retour à 24 h+ = musique ON ?
 
 ## SUITE
-1. Plus de test demandé à Sacha (14/10 : « fais-le toi-même ») : ce qui exige un iPhone attend un iPhone, liste ci-dessus.
+1. Son par figure, ce qui RESTE : SHIMMY/CHANDELLE muets EN VOL (pas de tic, mv vide) ; explosions de figure = turbo.super partagé avec
+   le drift ; GAP/DOUBLE GAP sans son ; pose ordinaire = choc seul ; figures inventées par le joueur = maillon.
 2. À l'oreille : niveau des matières de tour (vol −8 dans figPose) ; figJet et `echSt()` toutes les 0,28 s pendant le tenu.
 3. Relire les sons des écrans d'INTERFACE à chaque SHA envoyé (un geste = un son). Idées à PROPOSER : habillages POP / DOGE muets.
 
 ## PIÈGES
+- Merge en CONFLIT sur sons-banque.js (une autre session a cuit) : `checkout --theirs` puis recuire SES ids
+  (`node atelier-son/cuire.js "^(fig\.signe|combo\.|pose\.divin|fig\.monde)"` : un id absent est recuit) ; ?v = celui de main + 1.
+- Le banc sert le dossier EN DIRECT : préparer l'étape suivante dans un 2e worktree pendant qu'un banc tourne.
 - `//` en milieu de ligne avale la suite → `/* */`. Sous Windows, python écrit en CRLF : `newline='\n'`.
 - Banc coupé (timeout, TaskStop) : verrou ET ticket peuvent rester → owner.txt + processus mort vérifiés avant de les rendre.
-- Faux verrouillage au banc : `new Event('visibilitychange',{bubbles:true})` — sans bulle, les gestionnaires posés sur window (pause, flush) n'entendent rien.
+- Faux verrouillage au banc : `new Event('visibilitychange',{bubbles:true})` — sans bulle, les gestionnaires posés sur window n'entendent rien.
