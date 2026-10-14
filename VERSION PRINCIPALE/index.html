@@ -8650,6 +8650,21 @@ html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) tran
   html:not(.c6) #mSet .c6Corps>.c6Pied{grid-column:1/-1;margin-top:20px}
 }
 
+/* ===== 4. L'ÉCRAN DE FIN — OFFRES · REGLAGES partent ; une seule plaque d'or ; textes lisibles ; la place de la SECONDE CHANCE ===== */
+html:not(.c6) #mDead>.mRow{display:none}
+html:not(.c6) #mDead .mOver{white-space:normal;overflow-wrap:anywhere;min-width:0}
+html:not(.c6) #mDead .hCard small,html:not(.c6) #mDead .hAura>span,html:not(.c6) #mDead .hCard em,html:not(.c6) #mDead .hNx,html:not(.c6) #mDead .hMotN i,
+html:not(.c6) #mDead .mCause,html:not(.c6) #mDead .mNew,html:not(.c6) #mDead .mCashL span,html:not(.c6) #mDead .mCashL small,html:not(.c6) #mDead .mCashL em.mCashRec,
+html:not(.c6) #mDead .obHd,html:not(.c6) #mDead .obFt,html:not(.c6) #mDead .obShop{font-size:var(--f1)}
+html:not(.c6) #mDead .mStat span{font-size:var(--f1);letter-spacing:0;line-height:1.4;text-align:center;white-space:normal}
+html:not(.c6) #mDead .mFin>.pbCarre{flex:none;width:56px;min-width:56px;min-height:56px;padding:0}
+html:not(.c6) #mDead #mChance{order:2;margin:14px 0 0;width:100%;min-height:52px;font-size:var(--f1)}
+html:not(.c6) #mDead #mChance[hidden]{display:none}
+@media (orientation:landscape) and (max-height:540px){
+  html:not(.c6) #mDead .mOver{font-size:var(--f5);line-height:1.3;letter-spacing:1px}
+  html:not(.c6) #mDead #mChance{grid-area:row;margin:10px 0 0}
+}
+
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -8948,6 +8963,7 @@ html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) tran
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
            reste la seule plaque d'or et la plus large ; la maison est une touche de laque, à gauche, jamais sous le pouce du rejeu. -->
       <!-- (2026-10-14, charte 6) la maison = une touche carrée 48 × 48, icône seule (le mot HOME est parti : BRIEF §4, « plus de bouton HOME en mot ») -->
+      <div class="pbtn pb-cyan" id="mChance" role="button" tabindex="0" hidden data-fr="SECONDE CHANCE">SECONDE CHANCE</div><!-- (2026-10-14, UX 8) la place de la SECONDE CHANCE (session GENERAL : `typeof chanceEtat==='function'&&chanceEtat().ok` la montre, toucher = chanceJoue()) — masquée, secondaire, jamais l'or -->
       <div class="mFin"><div class="pbtn pbCarre mMenu" data-m="menu" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
       <!-- (2026-09-30, Léo : « un bouton HOME qui remplacera tous les boutons GARAGE ou MENU ») la tuile GARAGE est partie : HOME, au-dessus,
            mène au garage (c'est l'accueil) — elle ne faisait plus que la même chose -->
