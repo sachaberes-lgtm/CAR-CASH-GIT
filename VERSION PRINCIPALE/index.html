@@ -9159,6 +9159,12 @@ html:not(.c6) #mCadeau[hidden]{display:none}
 html:not(.c6) #mCadeau .pxi{--pxs:2;color:var(--neoA)}
 html:not(.c6) #mCadeau.attend{min-height:24px;background:none;box-shadow:none;pointer-events:none;color:var(--tx3);font-size:var(--f0)}
 html:not(.c6) #mCadeau.attend .pxi{color:var(--tx3)}
+html:not(.c6) #mCadeau span{white-space:normal;text-align:center;line-height:1.6}
+html:not(.c6) #mCadeau{padding:4px 12px}
+/* l'accueil en GRILLE (ux8, .acc2) : debout, dans l'espace libre juste AU-DESSUS de MISSIONS (rang 3) ; couché, au-dessus de MISSIONS il n'y a que 14 px
+   (le logo est juste au-dessus) : la ligne passe SOUS JOUER, dans la marge du bas (rang 9) — toujours dans le tiers bas, jamais sur le logo */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:3;grid-column:1/-1;align-self:end;margin:0 0 8px}
+@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:9;grid-column:2/-1;align-self:start;margin:8px 0 0}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
