@@ -52582,13 +52582,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   /* ================= LA NAVIGATION 7 (2026-10-14, session INTERFACE — Sacha : « là c'est trop éparpillé partout ; beaucoup plus simple
      d'accéder à tous les trucs, clair pour les enfants, pour tout le monde ») =================
-     UNE barre d'onglets fixe en bas de tous les écrans de menu : ACCUEIL · GARAGE · DÉFIS · BOUTIQUE (la carrière est retirée du jeu).
+     UNE barre d'onglets fixe en bas de tous les écrans de menu : ACCUEIL · GARAGE · MISSIONS · BOUTIQUE (la carrière est retirée du jeu).
      Les quatre sont des MODES de l'atelier (#garage) : le menu, la collection, les missions, la boutique — changer d'onglet = changer de
      mode sous le rideau, jamais d'écrans empilés ni de ◀ qui fait trois choses selon d'où l'on vient. En haut à droite, l'ARGENT et l'AURA
      (#n7Bank), les mêmes partout. La barre ne vit que là où l'on choisit : ni en course, ni à la fin, ni dans les réglages, ni sous l'œil.
      Les écrans lui parlent par un événement (`n7:va` {onglet, cat}) ; elle parle à la boutique par `n7:bq` {cat}. `?nav=0` la coupe. */
   const N7=document.documentElement.classList.contains('nav7')&&document.documentElement.classList.contains('c6');
-  const N7_ONG=[['home','maison','ACCUEIL','HOME'],['garage','voiture','GARAGE','GARAGE'],['defis','cible','DÉFIS','MISSIONS'],['shop','panier','BOUTIQUE','SHOP']];
+  const N7_ONG=[['home','maison','ACCUEIL','HOME'],['garage','voiture','GARAGE','GARAGE'],['defis','cible','MISSIONS','MISSIONS'],['shop','panier','BOUTIQUE','SHOP']];
   let n7Bar=null,n7Bank=null;
   function n7Ou(){ /* l'onglet où l'on est ('' = hors des menus de l'atelier) */
     if(!garageOn||!gEl||(started&&!gameOver))return '';
@@ -52606,6 +52606,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     n7Bar.setAttribute('aria-label',LANG==='en'?'Menu':'Menu');}
   function n7Cat(cat){try{document.dispatchEvent(new CustomEvent('n7:bq',{detail:{cat:cat}}));}catch(e){}}
   function n7Va(dest,cat,el){
+    if(dest==='missions')dest='defis'; /* (14 h 10, Sacha : l'onglet s'appelle MISSIONS ; les DÉFIS sont les défis secrets de la palette) */
     if(!N7||!garageOn||!gEl||GAR.go||ecranWipe._on||(started&&!gameOver))return;
     if(el){uiPop(el);uiClic('onglet');}
     const ici=n7Ou();
