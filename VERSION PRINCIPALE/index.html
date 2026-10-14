@@ -46734,7 +46734,11 @@ const BQSON={n:null,off:0,acc:0,tP:0,atelier:false},BQSON_VOL=1;
    glitch (`ui.volet`) et la musique qui s'efface. En boutique, ces deux boucles plongent à −45 dB (0,35 s) ; au retour à l'atelier, le néon
    remonte et le feu reprend le niveau que lui donne garFeu. La nappe de la boutique arrive après le glitch (montée plus lente). */
 function bqAtelierSourdine(on){
-  if(BQSON.atelier===on)return;BQSON.atelier=on;
+  /* (2026-10-14, session SON, relevé par GENERAL) la sourdine suit aussi les boucles qui NAISSENT en boutique : SON coupé à l'entrée (ou
+     banque pas prête), le néon et le feu n'existaient pas encore ; la boucle principale les crée ensuite (toutes les 800 ms) et ils
+     repartaient à plein dans la salle blanche — le « bruit louche » revenait en rallumant SON. On réapplique dès que l'une d'elles change. */
+  const a9=openGarage._amb||null,f9=openGarage._feu||null;
+  if(BQSON.atelier===on&&BQSON.amb9===a9&&BQSON.feu9===f9)return;BQSON.atelier=on;BQSON.amb9=a9;BQSON.feu9=f9;
   try{if(openGarage._amb)openGarage._amb.gain(on?-45:0,on?.12:.25);}catch(e){}
   try{if(openGarage._feu){if(on)openGarage._feu.gain(-45,.12);else if(GAR.porte)GAR.porte.db=null;else openGarage._feu.gain(0,.25);}}catch(e){}
 }
