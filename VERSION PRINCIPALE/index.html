@@ -9090,6 +9090,10 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
   html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:4}
   html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{grid-column:2/-1}
   html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){gap:4px!important}}
+/* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'ACCUEIL — les missions restent au garage, le cadeau dans MISSIONS) */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
+html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
+@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 14px 0 0 56px 8px 58px minmax(0,1fr)}}
 </style>
 <style id="ux8-garage">
 /* ===== UX 8 · LE GARAGE ET LA BOUTIQUE — un seul cadre de boutons (voir « LE CADRE COMMUN » dans le script, ux8Bati/ux8Tick) =====
@@ -9481,8 +9485,8 @@ html:not(.c6) #mCadeau span{white-space:normal;text-align:center;line-height:1.6
 html:not(.c6) #mCadeau{padding:4px 12px}
 /* l'accueil en GRILLE (ux8, .acc2) : debout, dans l'espace libre juste AU-DESSUS de MISSIONS (rang 3) ; couché, au-dessus de MISSIONS il n'y a que 14 px
    (le logo est juste au-dessus) : la ligne passe SOUS JOUER, dans la marge du bas (rang 9) — toujours dans le tiers bas, jamais sur le logo */
-html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:3;grid-column:1/-1;align-self:end;margin:0 0 8px}
-@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:9;grid-column:2/-1;align-self:start;margin:8px 0 0}}
+html:not(.c6) #gmHead #mCadeau{grid-column:1/-1;width:100%;box-sizing:border-box;margin:10px 0 0;pointer-events:auto} /* (14/10 ~21 h) le cadeau en tête de l'écran MISSIONS, sous le titre ; il n'est plus à l'accueil */
+html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -42361,8 +42365,8 @@ function cadeauOuvre(){ // LE CONTRAT : s'il y a un cadeau prêt, le verse (banq
 window.cadeauEtat=cadeauEtat;window.cadeauOuvre=cadeauOuvre;window.jourTexte=jourTexte; /* le contrat avec la session INTERFACE : mêmes noms au niveau de la fenêtre */
 /* (2026-10-14, GAMEPLAY) LA LIGNE DU CADEAU sur l'accueil : lit cadeauEtat() chaque seconde (et seulement quand l'accueil est affiché), écrit le DOM
    seulement si le texte change ; toucher = cadeauOuvre(). Pas prêt : « PROCHAIN CADEAU DANS 3 H 12 » (et « ×2 SUR TA 1RE PARTIE » si le jour est là). */
-function cadeauLigne(){const el=document.getElementById('mCadeau'),h=document.getElementById('mHome');if(!el||!h)return;
-  if(!h.classList.contains('on')||typeof cadeauEtat!=='function'){if(!el.hidden)el.hidden=true;return;}
+function cadeauLigne(){const el=document.getElementById('mCadeau'),h=document.getElementById('garage');if(!el||!h)return; /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'accueil) le cadeau vit EN TÊTE de l'écran MISSIONS : il ne se montre que MISSIONS ouvert */
+  if(!(h.classList.contains('on')&&h.classList.contains('missions'))||typeof cadeauEtat!=='function'){if(!el.hidden)el.hidden=true;return;}
   let e;try{e=cadeauEtat();}catch(x){return;}if(!e){el.hidden=true;return;}
   let t;if(e.pret)t=TR('CADEAU PRÊT · TOUCHE');else{const m=Math.max(0,Math.ceil((+e.dansMs||0)/60000)),hh=Math.floor(m/60),mm=m%60;
     t=TR('PROCHAIN CADEAU DANS')+' '+(hh?hh+' H '+String(mm).padStart(2,'0'):mm+' MIN');if(e.jour)t=TR('×2 SUR TA 1RE PARTIE')+' · '+t;}
@@ -42372,6 +42376,7 @@ function cadeauLigne(){const el=document.getElementById('mCadeau'),h=document.ge
 try{const el=document.getElementById('mCadeau');if(el)el.addEventListener('click',function(ev){ev.stopPropagation();let e;try{e=cadeauEtat();}catch(x){return;}
   if(!e||!e.pret)return;try{uiClic('');}catch(x){}try{hap([10,30,10]);}catch(x){}try{Promise.resolve(cadeauOuvre()).then(cadeauLigne,cadeauLigne);}catch(x){}});
   setInterval(cadeauLigne,1000);}catch(e){}
+;(function(){const c=document.getElementById('mCadeau'),hd=document.getElementById('gmHead');if(c&&hd)hd.appendChild(c);})(); /* le cadeau en tête de MISSIONS (le clic de GAMEPLAY suit le nœud) */
 try{Object.assign(I18N,{'CADEAU PRÊT · TOUCHE':'GIFT READY · TAP','PROCHAIN CADEAU DANS':'NEXT GIFT IN','×2 SUR TA 1RE PARTIE':'×2 ON YOUR 1ST RUN','SÉRIE':'STREAK','JOURS':'DAYS'});}catch(e){}
 Object.assign(I18N,{'CADEAU':'GIFT','Série {n} jours':'{n}-day streak','×2 sur ta 1re partie du jour':'×2 on your 1st run of the day','×2 sur ta 1re partie':'×2 on your 1st run','Prochain ×2 demain':'Next ×2 tomorrow','×2 du jour':'×2 of the day','Série {n}':'Streak {n}'});
 window.dbgJour=function(a){ // (banc) l'état du quotidien. 'demain' = le jour d'après · 'saute' = un jour sauté (+2) · 'hier' = −1 (fuseau) · 'recule' = l'horloge recule de 2 jours · 'auj' = décalage remis à 0 · 'raz' = jour et série effacés · 'compte' = la partie en cours a tenu tMin secondes
@@ -42380,7 +42385,8 @@ window.dbgJour=function(a){ // (banc) l'état du quotidien. 'demain' = le jour d
   const au=jourAuj(),e=jourEtat(au);
   return {actif:JOUR.on,auj:au,decalage:JOUR.dec,sauvegarde:{d:SAVE.d.jour.d,n:SAVE.d.jour.n},dispo:e.dispo,serie:e.n,serieSuivante:e.suiv,recale:e.recale,primeSuivante:e.dispo?jourPrime(e.suiv):0,
     partie:{k:JOUR.k,ecod:JOUR.e,appliquee:ECOD.k,comptee:JOUR.cmp,depart:JOUR.dep,versee:JOUR.fin},ligne:jourTexte(),cadeau:cadeauEtat()};
-};
+}
+;
 window.dbgCadeau=function(a){ // (banc) l'état du cadeau. 'pret' = il est prêt (même avant la fin de l'auto-école) · 'attente' = on vient de l'ouvrir · 'recule' = le dernier cadeau est dans le futur (horloge reculée) · 'ouvre' = l'ouvrir
   if(a==='pret'){SAVE.d.cad.t=0;CADO.force=true;}else if(a==='attente')SAVE.d.cad.t=Date.now();else if(a==='recule')SAVE.d.cad.t=Date.now()+864e5;
   if(a==='ouvre')return cadeauOuvre();
