@@ -19227,6 +19227,18 @@ Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daS
 Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],sunI:2.05,hemiG:[.22,.32,.55],fillC:[.3,.5,.9],kickC:[.7,.72,.8],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.012,.014,.024],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#1c2a54'],[.58,'#3a4e86'],[.66,'#0b1024'],[1,'#020208']],eS1:[215,230,255,.4],eS2:[130,160,240,.26]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
 Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunC:[1,.82,.66],sunI:1.6,sunTint:[1,.55,.36],hemiG:[.2,.28,.5],fillC:[.32,.42,.82],kickC:[.8,.56,.5],bloomS:.46,bloomT:.95,vigK:.3,vigC:[.014,.012,.022],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#2c2c52'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS1:[255,170,120,.42],eS2:[120,130,220,.24]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre
 Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphismes · hasard-beaute) ESPACE SOIR : béton gris-taupe au lieu de chocolat (clé [1,.82,.66] → [1,.9,.8]) ; vu au vrai tirage
+/* (2026-10-14, passe graphismes · orbite2) LE REBOND VIENT DE LA PLANÈTE. Le dessous de l'hémisphère (hemiG), le remplissage (fillC), la bande .58 du reflet
+   (env) et le 2e liseré (eS2) restaient BLEU TERRE sur les quatre couples, même sous Mars, Jupiter et Saturne : la caisse et la route recevaient la lumière
+   d'une planète qui n'est pas là. → Terre bleu-gris, Mars rouille sombre, Jupiter ambre, Saturne or pâle. Et la route était un gris uniforme (2 à 5 L* entre
+   le côté soleil et le côté ombre) : clé plus forte, ciel et remplissage plus bas, pour un vrai modelé. Les satellites (Saturne) lisaient la MÊME ambiance
+   que Mars : ils ont la leur (espaceSat, copie d'espace, branchée sur SF_CARTES après la ligne PLANETES). `?sans=orbite2` = l'image d'avant. */
+const ORBITE2_V=!/[?&]sans=([^&]*,)?orbite2(,|&|$)/.test(location.search);
+if(ORBITE2_V){
+ BIOMES.espaceSat=bioMet(BIOMES.espace,{nm:'ORBITE · SATELLITES',sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.34,.3,.22],fillC:[.62,.56,.42],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2a3e'],[.58,'#8a7c5a'],[.66,'#0b1024'],[1,'#020208']],eS2:[230,210,160,.24]}); // SATURNE : or pâle
+ Object.assign(BIOMES.espaceMatin,{sunI:2.1,hemiI:.4,fillI:.3,hemiG:[.22,.3,.46],fillC:[.36,.5,.8]}); // TERRE : bleu-gris (un cran moins saturé)
+ Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.34,.19,.12],fillC:[.64,.4,.28],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS2:[215,150,120,.24]}); // MARS : rouille sombre
+ Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.36,.27,.16],fillC:[.6,.48,.34],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
+}
 // (fin EN ORBITE)
 //
 //
@@ -19417,6 +19429,7 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'},
   saturne:{teinte:0x6c5e4a,atmo:0xf0dca0,limbe:0xe8d090,rim:.3,peint:'saturne'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
 if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);SF_CARTES.espace.m.satellites.astre=Object.assign({echelle:1.35},PLANETES.saturne);} // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
+if(PLANETES_ON&&ORBITE2_V)SF_CARTES.espace.m.satellites.bio='espaceSat'; // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
    Il se dessine JUSTE AVANT le globe (renderOrder 20,5 < 21), sans écrire la profondeur : le globe, sur le plan lointain, le recouvre là où il passe derrière lui, et la route
