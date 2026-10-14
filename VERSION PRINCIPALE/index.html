@@ -7633,47 +7633,66 @@ html:not(.c6) #mSet .c6Ver{font-family:var(--sans);font-size:12px;color:var(--tx
 <style id="c6-carriere-missions">
 /* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
 
-/* ====== LA CARRIÈRE #carr (2026-10-14, charte 6) ====================================================================
-   Markup posé par carrVueC6 : .c6Tete.plein (◀ + titre, colle en haut) · .cmCorps (la grille de cartes, SEULE zone qui défile : #carr) · .c6Bas (colle en bas :
-   JOUER, l'unique or). Carte = encre, filet blanc 2 px, tranche noire 4 px ; fait = coche · en cours = face blanche · verrouillé = cadenas, atténué. */
+/* ====== LA CARRIÈRE #carr (2026-10-14, charte 6 · passe iPhone) =====================================================
+   Markup posé par carrVueC6 : .c6Tete.plein (◀ + titre, colle en haut) · .cmCorps (SEULE zone qui défile : #carr) · .c6Bas (colle en bas : JOUER, l'unique or).
+   MONDES = cartes pleine largeur : le CIEL du monde (la photo de maps-ciel/img pour SKY HIGH et VILLE, un ciel à bandes dures pour PARIS et ESPACE), son nom
+   (pixel 16 px), son état (EN COURS / FINI / NOUVEAU, texte système 13 px) et sa jauge. Debout : une carte par rangée, la photo à gauche ; les rangées se
+   partagent la hauteur (l'écran est rempli). Couché : quatre cartes en colonnes, la photo en haut. NIVEAUX : même carte, une par rangée debout (jamais de case
+   seule sur sa ligne), cinq colonnes couché. Fait = coche · en cours = filet d'or de 4 px · verrouillé = cadenas + la condition. */
 html.c6 #carr{padding:0;background:var(--c6-e0);overflow-y:auto}
 html.c6 #carr .carrIn{display:flex;flex-direction:column;width:100%;max-width:none;min-height:100%;margin:0}
 html.c6 #carr .carrIn>.c6Tete{position:sticky;top:0;animation:none}
-html.c6 #carr .cmCorps{flex:1 0 auto;box-sizing:border-box;padding:8px calc(var(--sR) + 16px) 16px calc(var(--sL) + 16px)}
+html.c6 #carr .cmCorps{flex:1 0 auto;box-sizing:border-box;display:flex;flex-direction:column;padding:8px calc(var(--sR) + 16px) 16px calc(var(--sL) + 16px)}
 html.c6 #carr .c6Bas{position:sticky;bottom:0;z-index:20;flex:none;box-sizing:border-box;display:flex;justify-content:flex-end;animation:none;
   padding:8px calc(var(--sR) + 16px) calc(var(--sB) + 8px) calc(var(--sL) + 16px);background:var(--c6-e0)}
-html.c6 #carr .cmJouer{min-width:192px;justify-content:center}
-html.c6 #carr .cmGrille{display:grid;gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
-html.c6 #carr .cmCarte{position:relative;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:96px;padding:12px;cursor:pointer;
-  font-family:var(--pix);font-weight:400;font-style:normal;letter-spacing:0;text-shadow:none;color:var(--c6-b0);background:var(--c6-e1);
+html.c6 #carr .cmJouer{min-width:192px;justify-content:center;font-size:16px;white-space:nowrap}
+html.c6 #carr .cmGrille{flex:1 0 auto;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+html.c6 #carr .cmMondes{grid-auto-rows:minmax(100px,1fr)}
+html.c6 #carr .cmNivs{grid-auto-rows:minmax(76px,1fr);gap:8px}
+html.c6 #carr .cmNiv .cmTxt{gap:4px;padding:8px 14px}
+html.c6 #carr .cmCarte{position:relative;box-sizing:border-box;display:flex;flex-direction:row;min-width:0;min-height:0;overflow:hidden;cursor:pointer;
+  font-family:var(--sans);font-weight:700;font-style:normal;letter-spacing:0;text-shadow:none;color:var(--c6-b0);background:var(--c6-e1);
   box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000;-webkit-tap-highlight-color:transparent;
   transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
 html.c6 #carr .cmCarte:active{transform:translateY(4px);box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000}
 html.c6 #carr .cmCarte:focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
-html.c6 #carr .cmCarte.choisi{box-shadow:inset 0 0 0 4px var(--c6-b0),0 4px 0 0 #000}
-html.c6 #carr .cmCarte .pxi{--pxs:2;color:currentColor;filter:none}
-html.c6 #carr .cmHaut{display:flex;align-items:center;gap:8px}
-html.c6 #carr .cmHaut .pxi-coche,html.c6 #carr .cmNum .pxi-coche{margin-left:auto}
-html.c6 #carr .cmNom{display:block;font-size:12px;line-height:16px;white-space:normal;overflow-wrap:normal;word-break:normal;color:inherit}
-html.c6 #carr .cmFrac{display:block;font-size:8px;line-height:8px;color:var(--c6-g1)}
-html.c6 #carr .cmCarte .c6Jauge{margin-top:auto}
-html.c6 #carr .cmNum{display:flex;align-items:center;gap:8px;font-size:16px;line-height:16px;font-weight:400;color:inherit}
-html.c6 #carr .cmNiv .cmNom{font-size:8px;line-height:12px}
+html.c6 #carr .cmCarte .pxi{--pxs:2;color:currentColor;filter:none;flex:none}
+/* le ciel : une image (ou des bandes dures) qui remplit sa moitié de carte ; le filet blanc de 2 px la cerne */
+html.c6 #carr .cmVign{display:block;flex:0 0 42%;min-width:0;background-color:var(--c6-e2);background-size:cover;background-position:center;background-repeat:no-repeat;
+  box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #carr .cmNiv .cmVign{flex:0 0 34%}
+html.c6 #carr .cmTxt{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:12px 16px 12px 14px}
+html.c6 #carr .cmNom{display:block;min-width:0;color:inherit}
+html.c6 #carr .cmMonde .cmNom{font-family:var(--pix);font-weight:400;font-size:16px;line-height:20px;white-space:nowrap}
+html.c6 #carr .cmNiv .cmNom{font-size:13px;line-height:16px;font-weight:700;overflow-wrap:normal;word-break:normal;hyphens:none}
 html.c6 #carr .cmNiv .cmNom i.nw{white-space:nowrap;font-style:normal}
-/* en cours : la face blanche, texte d'encre */
-html.c6 #carr .cmCarte.cours{color:var(--c6-e0);background:var(--c6-b0)}
-html.c6 #carr .cmCarte.cours .cmFrac{color:var(--c6-e4)}
-html.c6 #carr .cmCarte.cours .c6Jauge{background:linear-gradient(90deg,var(--c6-e0) 0,var(--c6-e0) calc(var(--v,0)*100%),#c9ccd4 calc(var(--v,0)*100%))}
-/* verrouillé : cadenas, atténué, filet sourd */
-html.c6 #carr .cmCarte.verr{opacity:.5;cursor:default;box-shadow:inset 0 0 0 2px var(--c6-e4),0 4px 0 0 #000}
+html.c6 #carr .cmNum{display:flex;align-items:center;gap:8px;font-family:var(--pix);font-weight:400;font-size:16px;line-height:16px;color:inherit}
+html.c6 #carr .cmEtat{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;line-height:16px;font-weight:700;text-transform:uppercase;color:var(--c6-g1)}
+html.c6 #carr .cmEtat u{display:flex;align-items:center;gap:6px;text-decoration:none;min-width:0}
+html.c6 #carr .cmEtat em{font-style:normal;color:var(--c6-b0);white-space:nowrap}
+html.c6 #carr .cmCarte .c6Jauge{margin-top:2px}
+html.c6 #carr .cmNiv .cmEtat{justify-content:flex-start;text-transform:none}
+/* fait : la coche en blanc */
+html.c6 #carr .cmCarte.fait .cmEtat u{color:var(--c6-b0)}
+/* en cours : le filet d'or de 4 px (la décision de l'écran) et l'état en or */
+html.c6 #carr .cmCarte.cours{box-shadow:inset 0 0 0 4px var(--c6-or),0 4px 0 0 #000}
+html.c6 #carr .cmCarte.cours:active{box-shadow:inset 0 0 0 4px var(--c6-or),0 0 0 0 #000}
+html.c6 #carr .cmCarte.cours .cmEtat u{color:var(--c6-or)}
+html.c6 #carr .cmCarte.cours .c6Jauge{--jc:var(--c6-or)}
+html.c6 #carr .cmCarte.choisi:not(.cours){box-shadow:inset 0 0 0 4px var(--c6-b0),0 4px 0 0 #000}
+/* verrouillé : image éteinte, texte atténué, filet sourd */
+html.c6 #carr .cmCarte.verr{cursor:default;box-shadow:inset 0 0 0 2px var(--c6-e4),0 4px 0 0 #000}
+html.c6 #carr .cmCarte.verr .cmVign{opacity:.35;box-shadow:inset 0 0 0 2px var(--c6-e4)}
+html.c6 #carr .cmCarte.verr .cmNom,html.c6 #carr .cmCarte.verr .cmNum{color:var(--c6-g2)}
+html.c6 #carr .cmCarte.verr .cmEtat u{color:var(--c6-g1)}
+/* couché : quatre mondes en colonnes (photo en haut), cinq niveaux par rangée */
 @media (orientation:landscape) and (max-height:540px){
-  html.c6 #carr .cmMondes{grid-template-columns:repeat(4,minmax(0,1fr))}
-  html.c6 #carr .cmNivs{grid-template-columns:repeat(5,minmax(0,1fr))}
-}
-@media (orientation:landscape) and (max-width:700px){
-  html.c6 #carr .cmCarte{padding:8px}
-  html.c6 #carr .cmNom{font-size:10px;line-height:12px}
-  html.c6 #carr .cmNiv .cmNom{font-size:8px}
+  html.c6 #carr .cmMondes{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:minmax(150px,1fr)}
+  html.c6 #carr .cmNivs{grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:minmax(150px,1fr)}
+  html.c6 #carr .cmCarte{flex-direction:column}
+  html.c6 #carr .cmVign,html.c6 #carr .cmNiv .cmVign{flex:1 1 0;min-height:40px}
+  html.c6 #carr .cmTxt,html.c6 #carr .cmNiv .cmTxt{flex:0 0 auto;justify-content:flex-start;gap:6px;padding:10px 8px 12px}
+  html.c6 #carr .cmMonde .cmNom{font-size:16px}
 }
 @media (orientation:portrait){html.c6 #carr .cmJouer{width:100%}}
 
@@ -20546,25 +20565,42 @@ function carrVueC6(bi,el){
   const sel=PLAY_CARR&&HUB?carrSel():null,mondes=bi==null,f=mondes?0:carrFait(bi);
   const ret=mondes?(HUB&&garageOn&&!(started&&!gameOver)?'maison':'fermer'):'biomes';
   const L=LANG==='en'?['Level ',' locked']:LANG==='zh'?['关卡 ',' 未解锁']:['Niveau ',' verrouillé'];
+  /* (2026-10-14, passe iPhone) les mots d'état, en texte système (accents gardés : ce n'est pas la police pixel) ; fr · en · zh */
+  const E=LANG==='en'?{fini:'Done',cours:'In progress',afin:'To finish',nouv:'New',fait:'Done',cond:'Finish level '}
+    :LANG==='zh'?{fini:'已完成',cours:'进行中',afin:'待完成',nouv:'新',fait:'已完成',cond:'先完成关卡 '}
+    :{fini:'Fini',cours:'En cours',afin:'À finir',nouv:'Nouveau',fait:'Fait',cond:'Termine le niveau '};
+  /* le CIEL d'une carte : la vraie photo de maps-ciel/img (SKY HIGH 1-5 = sh1-5, VILLE 1-5 = v1-5 : celles du jeu), sinon un ciel à BANDES DURES (PARIS : la nuit sur l'horizon ambré ;
+     ESPACE : le noir, le limbe de la planète du niveau) — pas de dégradé fondu, la charte 6 le refuse */
+  const ciel=function(b,i){const B=CARRIERE[b],N=B.niveaux[Math.min(i,B.niveaux.length-1)],pre=B.id==='nuages'?'sh':B.id==='ville'?'v':'';
+    if(pre)return 'background-image:url(maps-ciel/img/'+pre+(Math.min(i,B.niveaux.length-1)+1)+'-volant.jpg)';
+    const hx=function(c){return '#'+(c|0).toString(16).padStart(6,'0');};
+    if(N.astre)return 'background-image:linear-gradient('+'#04050c 0 58%,'+hx(N.astre.atmo)+' 58% 64%,'+hx(N.astre.teinte)+' 64%)';
+    return 'background-image:repeating-linear-gradient(90deg,#04041a 0 7%,transparent 7% 29%),repeating-linear-gradient(90deg,transparent 0 10%,#04041a 10% 19%,transparent 19% 33%),linear-gradient(#0a0a24 0 46%,#2a1a5e 46% 66%,#7a3a8e 66% 82%,#ff9a5c 82%);background-size:100% 30%,100% 16%,100% 100%;background-position:bottom,bottom,center;background-repeat:no-repeat';};
   let h='<div class="carrIn"><div class="c6Tete plein"><div class="pbtn pbCarre c6Ret" data-c="'+ret+'" role="button" tabindex="0" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</div><b class="c6Titre">'+TR(mondes?'CARRIERE':CARRIERE[bi].nm)+'</b></div><div class="cmCorps">';
   let go;
   if(mondes){
     const cs=carrSel();go={b:cs.b,i:cs.i};
     h+='<div class="cmGrille cmMondes">';
     CARRIERE.forEach(function(B,k){const fk=carrFait(k),n=B.niveaux.length,fini=fk>=n,cours=k===go.b;
-      h+='<div class="cmCarte cmMonde'+(fini?' fait':'')+(cours?' cours':'')+(sel&&sel.b===k?' choisi':'')+'" data-c="biome" data-b="'+k+'" data-id="'+B.id+'" role="button" tabindex="0" aria-label="'+TR(B.nm)+'">'
-        +'<span class="cmHaut">'+pxi(B.ic)+(fini?pxi('coche'):'')+'</span><b class="cmNom">'+TR(B.nm)+'</b><span class="cmFrac">'+fk+' / '+n+'</span>'
-        +'<i class="c6Jauge" style="--v:'+(fk/n).toFixed(3)+'"></i></div>';});
+      const etat=fini?E.fini:cours&&fk>0?E.cours:cours?E.nouv:fk>0?E.afin:E.nouv;
+      h+='<div class="cmCarte cmMonde'+(fini?' fait':'')+(cours?' cours':'')+(sel&&sel.b===k?' choisi':'')+'" data-c="biome" data-b="'+k+'" data-id="'+B.id+'" role="button" tabindex="0" aria-label="'+TR(B.nm)+' '+fk+' / '+n+'">'
+        +'<i class="cmVign" style="'+ciel(k,fini?n-1:fk)+'"></i><div class="cmTxt"><b class="cmNom">'+TR(B.nm)+'</b>'
+        +'<span class="cmEtat"><u>'+(fini?pxi('coche'):'')+etat+'</u><em>'+fk+' / '+n+'</em></span>'
+        +'<i class="c6Jauge" style="--v:'+(fk/n).toFixed(3)+'"></i></div></div>';});
     h+='</div>';
   }else{
     go={b:bi,i:Math.min(CARRIERE[bi].niveaux.length-1,f)};
     h+='<div class="cmGrille cmNivs">';
-    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f,fait=i<f,cours=i===f;
+    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||cousin()||i<=f,fait=i<f,cours=i===f;
+      const etat=fait?pxi('coche')+E.fait:cours?E.cours:ok?E.afin:pxi('verrou')+E.cond+(f+1);
       h+='<div class="cmCarte cmNiv'+(fait?' fait':'')+(cours?' cours':'')+(ok?'':' verr')+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" tabindex="0" aria-label="'+L[0]+(i+1)+(ok?'':L[1])+'">'
-        +'<b class="cmNum">'+(ok?'':pxi('verrou'))+String(i+1).padStart(2,'0')+(fait?pxi('coche'):'')+'</b><span class="cmNom">'+insec(TR(N.nm))+'</span></div>';});
+        +'<i class="cmVign" style="'+ciel(bi,i)+'"></i><div class="cmTxt"><b class="cmNum">'+String(i+1).padStart(2,'0')+'</b><span class="cmNom">'+insec(TR(N.nm))+'</span>'
+        +'<span class="cmEtat"><u>'+etat+'</u></span></div></div>';});
     h+='</div>';
   }
-  h+='</div><div class="c6Bas"><div class="pbtn pb-gold big cmJouer" data-c="niveau" data-b="'+go.b+'" data-i="'+go.i+'" role="button" tabindex="0" aria-label="'+TR('JOUER')+'"><span>'+TR('JOUER')+'</span></div></div>';
+  /* JOUER dit ce qu'il lance : « JOUER · SKY HIGH 3 » */
+  const pl=TR('JOUER')+' · '+TR(CARRIERE[go.b].nm)+' '+(go.i+1);
+  h+='</div><div class="c6Bas"><div class="pbtn pb-gold big cmJouer" data-c="niveau" data-b="'+go.b+'" data-i="'+go.i+'" role="button" tabindex="0" aria-label="'+pl+'"><span>'+pl+'</span></div></div>';
   uiGarde();
   if(el.classList.contains('on')&&!el.classList.contains('sortant'))el.setAttribute('data-sens',mondes?'retour':'avant');else el.removeAttribute('data-sens');
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
