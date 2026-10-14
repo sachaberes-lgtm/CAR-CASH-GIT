@@ -1262,6 +1262,59 @@ D('foret.nuitAmb',{fam:'foret',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'la FO
     O.filtre(b,'lp',1200,.7);O.boucle(b,.6);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN FORET>>> */
+/* <<<BANQUISE>>> */
+(function(G){
+'use strict';
+/* LES VOIX DE LA BANQUISE (2026-10-14, Sacha : « on peut faire des traces dans la poudreuse en frôlant le sol… glisser de manière ultra
+   stylée sur les lacs gelés et les pics de glace »). Joués par banqVolFx / banqTouche / banqPlouf / banqSons (index.html). Aucune voix.
+   · `banq.glisse` — LA GLISSE SUR LA GLACE (boucle) : le chuintement des patins (bruit rose en bande 1,4-2 kHz, haché par la glace),
+     le grondement de la caisse sur le lac, des cristaux qui crépitent. Le jeu en règle le gain et la vitesse sur l'élan.
+   · `banq.poudre` — LA POUDREUSE (boucle) : le souffle rond de la neige qui gicle (bruit brun et rose, sous 1,2 kHz), des bouffées.
+   · `banq.plouf` — l'entrée dans la poudreuse : un « POUF » sourd, la neige qui retombe en pluie fine.
+   · `banq.craque` — la glace touchée : le CLAC, puis le « PIOU » dispersif des lacs gelés (l'onde qui file dans la plaque : un sifflement
+     qui descend très vite), un écho grave.
+   · `banq.chant` — LE CHANT DES LACS GELÉS (la nuit, au loin) : de longs « piouuu » qui roulent sous la plaque, l'écho de la vallée.
+   · `banq.vent` — LE VENT DE LA MONTAGNE (boucle, bas) : le souffle grave, un sifflement d'arête qui monte et descend.
+   ⚠ Rien d'aigu en continu au-dessus de ~2 kHz : la leçon du « son parasite » des nuages (2026-10-08). */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic;
+// le « PIOU » d'une plaque de glace : l'onde de flexion est DISPERSIVE (les aigus arrivent d'abord) — un sifflement qui tombe en exponentielle
+function piou(b,t0,f0,f1,dur,v,pan){osc(b,{f:f0,f1:f1,g:dur,gc:.45,t0:t0,a:.002,h:dur*.15,d:dur*.85,v:v,pan:pan});osc(b,{f:f0*1.5,f1:f1*1.2,g:dur*.7,gc:.45,t0:t0+.004,a:.002,d:dur*.5,v:v*.3,pan:pan});}
+D('banq.glisse',{fam:'banquise',dur:3.4,st:1,db:-6,max:1,cd:.3,dit:'LA GLISSE SUR LA GLACE (boucle) : le chuintement des patins, le grondement du lac, des cristaux qui crépitent',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.001,h:3.4,d:.001,v:.34,ft:'bp',f:1650,q:.9,am:[13,.45],pan:-.15},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:3.4,d:.001,v:.22,ft:'bp',f:1150,q:1.1,am:[7.3,.5],pan:.2},R);
+    bruit(b,{c:'n',t0:0,a:.001,h:3.4,d:.001,v:.30,ft:'lp',f:160,am:[2.1,.35]},R);                 // le lac qui gronde sous la caisse
+    for(let k=0;k<44;k++)clic(b,{t0:R()*3.3,f:1900+R()*900,d:.004,v:.05+R()*.06,pan:R()*1.4-.7},R); // les cristaux
+    O.filtre(b,'lp',2600,.7);O.boucle(b,.4);}});
+D('banq.poudre',{fam:'banquise',dur:3.4,st:1,db:-5,max:1,cd:.3,dit:'LA POUDREUSE (boucle) : le souffle rond de la neige qui gicle, des bouffées',
+  r:function(b,R){bruit(b,{c:'n',t0:0,a:.001,h:3.4,d:.001,v:.55,ft:'lp',f:520,am:[5.2,.45],pan:-.2},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:3.4,d:.001,v:.22,ft:'bp',f:850,q:.7,am:[3.1,.6],pan:.25},R);
+    for(let k=0;k<9;k++){const t=R()*3.1;bruit(b,{c:'r',t0:t,a:.04,d:.35,v:.18,ft:'bp',f:600+R()*500,q:.8,pan:R()*1.2-.6},R);}
+    O.filtre(b,'lp',1300,.7);O.boucle(b,.4);}});
+D('banq.plouf',{fam:'banquise',dur:1.2,st:1,v:2,db:-3,max:2,cd:.15,dit:'L’ENTRÉE DANS LA POUDREUSE : un « POUF » sourd, la neige qui retombe en pluie fine',
+  r:function(b,R,o){osc(b,{f:o.v?78:66,f1:38,g:.25,t0:0,a:.004,d:.32,v:.55});
+    bruit(b,{c:'n',t0:0,a:.004,d:.45,v:.7,ft:'lp',f:900,f1:300,g:.4},R);
+    bruit(b,{c:'r',t0:.01,a:.01,d:.5,v:.25,ft:'bp',f:1300,q:.7},R);
+    bruit(b,{c:'r',t0:.18,a:.08,h:.1,d:.6,v:.06,ft:'bp',f:2000,q:.9,am:[23,.6]},R);               // la pluie de neige qui retombe
+    O.versStereo(b,.5,R);}});
+D('banq.craque',{fam:'banquise',dur:1.6,st:1,v:3,db:-3,max:2,cd:.12,dit:'LA GLACE TOUCHÉE : le CLAC, puis le « PIOU » dispersif des lacs gelés, un écho grave',
+  r:function(b,R,o){const p=R()*.6-.3;
+    clic(b,{t0:0,f:3200,d:.006,v:.55,pan:p},R);bruit(b,{c:'b',t0:0,a:.0006,d:.07,v:.32,ft:'bp',f:2400,q:1.2,pan:p},R);
+    for(let k=0;k<3+o.v;k++)clic(b,{t0:.01+R()*.09,f:2200+R()*1600,d:.004,v:.18,pan:p},R);
+    piou(b,.02,2300+o.v*300,260,.42+.1*o.v,.20,p);piou(b,.12+R()*.1,1700,190,.5,.10,-p);
+    osc(b,{f:55,f1:40,g:.4,t0:0,a:.003,d:.45,v:.35});
+    O.echo(b,.19,.28,1,true);O.versStereo(b,.4,R);}});
+D('banq.chant',{fam:'banquise',bus:'amb',dur:3.6,st:1,v:3,db:-4,max:1,cd:2,dit:'LE CHANT DES LACS GELÉS (la nuit, au loin) : de longs « piouuu » qui roulent sous la plaque, l’écho de la vallée',
+  r:function(b,R,o){const p=R()*1.4-.7;let t=0;const n=2+o.v;
+    for(let k=0;k<n;k++){piou(b,t,1400+R()*900,150+R()*80,.7+R()*.5,.14,p+(R()-.5)*.3);t+=.25+R()*.55;}
+    osc(b,{f:48,f1:36,g:1,t0:.05,a:.05,d:1.2,v:.18});
+    O.filtre(b,'lp',3000,.7);O.echo(b,.33,.4,1,true);O.echo(b,.71,.22,1,true);O.versStereo(b,.6,R);}});
+D('banq.vent',{fam:'banquise',bus:'amb',dur:9,st:1,db:-12,max:1,cd:1,dit:'LE VENT DE LA MONTAGNE (boucle, bas) : le souffle grave, un sifflement d’arête qui monte et descend',
+  r:function(b,R){bruit(b,{c:'n',t0:0,a:.001,h:9,d:.001,v:.42,ft:'lp',f:300,am:[.11,.55],pan:-.25},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.06,ft:'bp',f:520,f1:760,g:9,q:6,am:[.13,.75],pan:.35},R);   // le sifflement d'arête
+    bruit(b,{c:'r',t0:0,a:.001,h:9,d:.001,v:.05,ft:'bp',f:880,f1:610,g:9,q:6,am:[.07,.8],pan:-.4},R);
+    O.filtre(b,'lp',1400,.7);O.boucle(b,.6);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN BANQUISE>>> */
 /* <<<VOLCAN>>> */
 (function(G){
 'use strict';
