@@ -8039,7 +8039,7 @@ html.c6 #overlay #mDead .hMot>:is(small,em,.hMotN){grid-column:2;justify-self:st
 html.c6 #overlay #mDead .hMot>:is(em,.hMotN){margin-top:4px}
 html.c6 #overlay #mDead .hMot .hMotCv{grid-column:1;grid-row:1/span 3;position:static;inset:auto;display:block;width:96px;height:64px;max-width:none;min-height:0;aspect-ratio:auto;margin:0;object-fit:contain;filter:none;animation:none;transform:none}
 html.c6 #overlay #mDead .hMot .hMotN{display:block;font-size:var(--c6-t15);line-height:var(--c6-lh15);font-weight:var(--c6-wf);color:var(--c6-b0);white-space:normal}
-html.c6 #overlay #mDead .hMotN i{font-style:normal;font-size:var(--c6-t13);color:var(--c6-g2);white-space:nowrap}
+html.c6 #overlay #mDead .hMotN i{display:block;font-style:normal;font-size:var(--c6-t13);line-height:16px;letter-spacing:var(--c6-cap);color:var(--c6-g2);white-space:nowrap}   /* (2026-10-14, vu au banc) le palier sur SA ligne, sans le « · » : un nom long (4 EN LIGNE TURBO) le renvoyait à la ligne derrière un point orphelin */
 html.c6 #overlay #mDead .hMot .hNx.hPres{grid-column:1/-1;display:block;margin-top:8px;padding-left:8px;color:var(--c6-b0);text-wrap:balance}   /* « ENCORE 2 PIÈCES POUR 4 EN LIGNE » : une phrase, pleine largeur */
 html.c6 #overlay #mDead .hMot.sans3d{padding:12px 16px}
 html.c6 #overlay #mDead .hMot.sans3d>*{grid-column:1/-1}
@@ -8051,7 +8051,10 @@ html.c6 #overlay #mDead .mStat{display:flex;flex-direction:column;align-items:ce
 html.c6 #overlay #mDead .mStat::before{content:none}
 html.c6 #overlay #mDead .mStat b,html.c6 #overlay #mDead .mStat.mFren b{font-size:16px;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none}
 html.c6 #overlay #mDead .mStat.mFren.zero b{color:var(--c6-g2);text-shadow:none}
-html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{color:var(--c6-g1);white-space:normal;text-wrap:balance}   /* « MULTI MAX » passe sur deux lignes plutôt que déborder de son quart */
+html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{color:var(--c6-g1);white-space:normal;text-wrap:balance}
+/* (2026-10-14, accord n° 28, vu au banc) la bande a quatre quarts de ~80 px (375 debout) : à 800 et .04em « MULTI MAX » passait sur deux
+   lignes (il tenait sur une à 700 / .02em) — ses légendes gardent la graisse 800 mais pas la chasse ajoutée (comme des chiffres). */
+html.c6 #overlay #mDead .mStat span{letter-spacing:0}   /* « MULTI MAX » passe sur deux lignes plutôt que déborder de son quart */
 /* 5 — LE DÉFI / L'OBJET : une carte d'encre (elle se touche : le chevron le dit) */
 html.c6 #overlay #mDead .mNew{order:6}
 html.c6 #overlay #mDead .mObj{order:7;display:flex;flex-direction:column;justify-content:center;gap:8px;width:auto;min-height:0;margin:16px 0 0;padding:12px 16px;text-align:left;
@@ -52026,7 +52029,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            score (ou RECORD ! quand il vient de tomber). */
         if(h&&c6f){const bA=Math.max(SAVE.d.auraMax||0,au),mot9=!tq9&&(eN||pr); /* (2026-10-14, charte 6, règles de 6 h) PLUS DE CARTES VIDES : l'AURA = une carte compacte (le chiffre ; « MEILLEUR » seulement s'il diffère ; rien à 0) ; le MOTEUR seulement quand il y a quelque chose à dire — un moteur NOUVEAU (avec sa 3D) ou le « presque » (sans 3D) ; « RECORD ! » seulement contre un record précédent (recM) ; la phrase du presque se lit d'une traite (plus de flèche qui la coupe en deux) */
           h.innerHTML=(au>0?'<div class="hCard hAura"><small>'+TR('AURA')+'</small>'+(recA&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')+'<b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'+(bA>au?'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(bA)+'</span></div>':'')+'</div>':'')
-            +(mot9?'<div class="hCard hMot hMot3'+(eN?'':' sans3d')+'" style="--ec:'+hx+'">'+(eN?'<canvas class="hMotCv" width="480" height="321"></canvas>':'')+'<small>'+TR(eN?'NOUVEAU MOTEUR':'MOTEUR')+'</small>'+(recM&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')+'<div class="hMotN">'+TR(E.n)+' <i>· '+TR('PALIER')+' '+(engTier+1)+'</i></div>'+(pr?'<div class="hNx hPres">'+presqueTxt(mq)+' '+TR(nx.n)+'</div>':'')+'</div>':'');
+            +(mot9?'<div class="hCard hMot hMot3'+(eN?'':' sans3d')+'" style="--ec:'+hx+'">'+(eN?'<canvas class="hMotCv" width="480" height="321"></canvas>':'')+'<small>'+TR(eN?'NOUVEAU MOTEUR':'MOTEUR')+'</small>'+(recM&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')+'<div class="hMotN">'+TR(E.n)+' <i>'+TR('PALIER')+' '+(engTier+1)+'</i></div>'+(pr?'<div class="hNx hPres">'+presqueTxt(mq)+' '+TR(nx.n)+'</div>':'')+'</div>':'');
           h.classList.toggle('vide',!(au>0)&&!mot9);}
         if(h){if(!c6f)h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
