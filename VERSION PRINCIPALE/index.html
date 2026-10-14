@@ -9960,7 +9960,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
-  uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
+  uJour:{value:0},uMerLoin:{value:/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?16000:8000}, /* (2026-10-14, passe graphismes · ciel2) la mer lointaine — là où son bruit s'étire en traînées — fond deux fois plus tôt dans la brume : un dégradé propre à l'horizon (titre et chute posent le leur) */uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},
   uCanyon:{value:0},uCyF:{value:0},uCyZ:{value:new THREE.Vector3(.1,.25,.6)},uCyM:{value:new THREE.Vector3(.35,.45,.7)},uCyH:{value:new THREE.Vector3(.8,.7,.6)},uCyS:{value:new THREE.Vector3(1,.8,.6)},uCyB:{value:new THREE.Vector3(.8,.5,.6)},uCyC:{value:new THREE.Vector3(1,.9,.85)},uCyD:{value:new THREE.Vector3(.45,.45,.55)},uCyR:{value:new THREE.Vector3(.5,.45,.5)},uCyK:{value:new THREE.Vector4(0,0,0,0)},uCyN:{value:new THREE.Vector4(0,1,1,0)}, // (2026-10-14) LE CANYON DES GÉANTS : son ciel (voir COUCHES.canyon) — uCanyon 0 ailleurs
@@ -10726,7 +10726,7 @@ const skyDome=(function(){
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '  cielJour(col,y,sd);', // (2026-09-30) le jour d altitude : la lueur du soleil sur l horizon
-      '  cielMotif(col,vDir,y,sd);', // NUAGES : le ciel pommelé (voir motif)
+      (/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?'  cielMotif(col,vDir,y,sd);':''), // NUAGES : le ciel pommelé (voir motif) — (2026-10-14, Sacha : « cette texture dans les nuages est toujours assez bof » ; le pommelé avait déjà été rejeté : « une grille dans un ciel = papier peint ») RETIRÉ : la sonde en vol l'a pris sur le fait (rangées de taches en quinconce sur tout le haut du cadre). `?sans=ciel2` le rend
       '  cielSoleil(col,sd);',
       '  if(uTi.x>.001)cielTitre(col,vDir,y,sd);', // (titre v4) le ciel de l écran titre
       '  if(uParis>.001)parisCiel(col,vDir,y,sd);', // PARIS AU SOL : le ciel de l heure
@@ -10750,7 +10750,7 @@ const skyDome=(function(){
     basN:[LECT_TR,
       'void main(){',
       '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);',
-      '  cielMer(col,y,sd);cielJour(col,y,sd);cielMotif(col,vDir,y,sd);cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);',
+      '  cielMer(col,y,sd);cielJour(col,y,sd);'+(/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?'cielMotif(col,vDir,y,sd);':'')+'cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);', // (ciel2) la passe basse aussi : plus de pommelé
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
       '  gl_FragColor=vec4(col+vec3(cielTrame()*uBasTr),1.);}'],
@@ -22040,7 +22040,7 @@ const CARS=[
  // pas : on le GAGNE en battant le banquier au portail du niveau 10 (voir banquierTick). Ajouté en dernier : aucun index ne bouge.
  {name:'LE LINGOT',shape:'lingot',color:0xffc33a,accent:0x3a2400,maxKmh:380,accel:42,turn:2.9,h:1.5,w:2.1,l:4.3,spoiler:0,rar:'defi',
   fx:{jet:0xffd75e,core:0xffffff,trail:[1.35,1.02,.36],light:0xffd27a},
-  desc:'Le banquier l\'avait mis au coffre. Tu viens de le sortir : 999,9 millièmes de pure arrogance.'},
+  desc:'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.'},
  // (2026-10-02) L'ORIGAMI — Sacha, photo du pick-up d'inox : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et parfaite ».
  // Le pick-up plié dans une feuille d'acier, sans son nom ni son logo (comme toute la gamme). Cotes réelles : 5,68 × 2,03 × 1,79 m.
  // Ajoutée EN DERNIER : aucun index de sauvegarde ne bouge. Son sillage est un courant froid (elle est électrique).
@@ -22398,7 +22398,7 @@ Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO
 Object.assign(I18N,{'LES NUAGES CACHENT LES VIRAGES':'CLOUDS HIDE THE TURNS','LES TOURS NE PARDONNENT PAS':'TOWERS SHOW NO MERCY'}); // (2026-09-30) les promesses des NUAGES et de la VILLE
 Object.assign(I18N,{'MINUIT EN VILLE':'MIDNIGHT CITY','PLEINS PHARES':'HIGH BEAMS','LES FACADES SONT DES MURS':'THE FACADES ARE WALLS'});
 Object.assign(I18N,{'CANYON DES GÉANTS':'CANYON OF GIANTS','LES PAROIS NE PARDONNENT PAS':'THE WALLS NEVER FORGIVE','ENCASTRE DANS LA PAROI':'SMASHED INTO THE CLIFF','AU FOND DU CANYON':'AT THE BOTTOM OF THE CANYON','A LA RIVIERE !':'INTO THE RIVER!'}); // (2026-10-14) LE CANYON DES GÉANTS
-Object.assign(I18N,{'PLUIE DE SATELLITES':'SATELLITE STORM','ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'}); // (2026-09-30) le 6e niveau
+Object.assign(I18N,{'ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'}); // (2026-09-30) le 6e niveau
 Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'THE ROAD HIDES: LIGHTNING SHOWS IT'}); // (2026-09-29) le 4e niveau
 Object.assign(I18N,{'VIRAGE A FOND':'FULL THROTTLE TURN','RATTRAPE':'CAUGHT','RATTRAPE !':'CAUGHT!'}); // (2026-09-29) LA ROUTE QUI TE RATTRAPE
 Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
@@ -23721,7 +23721,8 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   {id:'espace',nm:'EN ORBITE',            bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12}, // (2026-09-27) route .9 → .38 : le SOLEIL de l'orbite éclaire désormais la route (lumière rasante de côté, voir orbiteLumiere) — la clarté ajoutée n'a plus à tout porter. Avant (vague 2) : (2026-09-26, vague 2) route .2 → .9 : la route (#050212 sur du noir) DISPARAISSAIT — MESURÉ : sous le contraste dur de l'orbite (1,28) tout ce qui sort de l'ACES sous ~.11 tombe au noir, .4 ne suffisait pas (#000008) ; à .9 le ruban se lit, encre indigo #0f0737 sur le vide
   {id:'orage', nm:'L\'ORAGE',               bio:['tempete'],             planete:0,   espace:0,pluie:1,cielMusical:false,route:.22,sheen:.16,pr:'LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE'}, // (2026-09-29, Sacha) le 4e : les NUAGES sous l'ORAGE — le niveau DUR (voir « L'ORAGE » : tempete, bancs, plafond, éclairs)
   {id:'ville', nm:'MINUIT EN VILLE',      bio:['nuitNoire'],           planete:0,   espace:0,pluie:.55,cielMusical:true,route:.42,sheen:.2,nuit:1,pr:'PLEINS PHARES'}, // (2026-09-30, Sacha) le 5e : la VILLE plus tard, après l'orage — très sombre, des PHARES PUISSANTS (id 'ville' : toute la ville suit ; `nuit` ne change que la lumière — voir « MINUIT EN VILLE »)
-  {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard)
+  /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») le 6e niveau sort du cycle — l'ORBITE reste, sans satellites sur la route :
+  {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard) */
 ];
 /* ============================================================================
    LE MODE CLASSIQUE AU HASARD (2026-10-13, Sacha : « il faut que les biomes soient aléatoires — montagne chinoise, nuages, ville… — et
@@ -23775,7 +23776,7 @@ const SF_CARTES={
      d'orageTick dans le panache). `mt` : le nom de la météo dit au portail. Voir « LE ROYAUME DE FEU » (genVolcan, buildVolcan, VLC_MET). */
   volcan:{nm:'LE ROYAUME DE FEU',base:'volcan',m:{matin:{bio:'volcanMatin'},midi:{bio:'volcanMidi'},soir:{bio:'volcanSoir',p:1.4},nuit:{bio:'volcanNuit',nuit:1,pr:'LA LAVE EST LA SEULE LUMIERE'},
     pluie:{bio:'volcanCendre',mt:'CENDRES',sheen:.1,pr:'PLUIE DE CENDRES'},orage:{bio:'volcanOrage',orage:1,mt:'ORAGE VOLCANIQUE',pr:'ORAGE VOLCANIQUE'}}},
-  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'},satellites:{niv:'satellites',p:.5}}}, // ni nuages, ni pluie, ni orage (Sacha)
+  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},midi:{bio:'canyonMidi'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
     pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{})
 };
@@ -23792,9 +23793,9 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars'},
   jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'},
   saturne:{teinte:0x6c5e4a,atmo:0xf0dca0,limbe:0xe8d090,rim:.3,peint:'saturne'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
-if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);SF_CARTES.espace.m.satellites.astre=Object.assign({echelle:1.35},PLANETES.saturne);} // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
+if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);} /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de variante satellites (Saturne) */ // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
 if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
-if(PLANETES_ON&&ORBITE2_V)SF_CARTES.espace.m.satellites.bio='espaceSat'; // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
+/* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») */ // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
    Il se dessine JUSTE AVANT le globe (renderOrder 20,5 < 21), sans écrire la profondeur : le globe, sur le plan lointain, le recouvre là où il passe derrière lui, et la route
@@ -48417,7 +48418,7 @@ function banquierLigne(){ // SA ligne : la corde de chaque virage, lissée sur �
   Bl.set(A);
 }
 function banquierPrepare(){
-  VBQ.evt=false;const on=CAMP.n===20&&!PARK.on;VBQ.on=on;VBQ.g.visible=on;VBQ.tr.init=false;VBQ.tr.m.visible=false;
+  const on=CAMP.n===20&&!PARK.on;VBQ.on=on;VBQ.g.visible=on;VBQ.tr.init=false;VBQ.tr.m.visible=false;
   if(!on)return;
   banquierLigne();
   VBQ.s=Math.min(L-60,60);VBQ.lat=VBQ.latP=VBQ.line[ghIdx(VBQ.s)];VBQ.v=Math.max(26,Math.abs(vA));VBQ.momT=0;VBQ.yaw=0;VBQ.fini=false;VBQ.cd=0;VBQ.mene=false;
@@ -48453,14 +48454,14 @@ function banquierTick(dt,sp){
   VBQ.yaw+=(Math.atan2(VBQ.lat-VBQ.latP,Math.max(.01,ds))-VBQ.yaw)*Math.min(1,dt*8);VBQ.latP=VBQ.lat;
   // le coup d'épaule : on se touche, on s'écarte — personne ne meurt, personne ne triche
   VBQ.cd=Math.max(0,VBQ.cd-dt);
-  if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;if(VBQ.evt)lat=THREE.MathUtils.clamp(lat,-(ROAD_HALF-1.6),ROAD_HALF-1.6);/* (2026-10-14, GAMEPLAY) ÉVÉNEMENT RARE : son épaule ne te sort jamais de la route (le banquier tient sa ligne jusqu'à 2,5 m du bord, +2,8 m te mettait dans le vide) */vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
+  if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
   const mene=VBQ.mene?gp<3:gp<-3;if(mene!==VBQ.mene){ /* (débogage son 2026-09-29) hystérésis de 3 m : au coude à coude, TU MÈNES / IL REPASSE ne s'alternent plus deux fois par seconde */
  VBQ.mene=mene;if(mene){try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{if(SONV2)sfx('rival.passe');}} /* (2026-09-30) plus de « TU MÈNES ! / IL REPASSE DEVANT » au milieu : la plaque (1ER / 2E) le dit déjà — le son reste */
   if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
     VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
     flashEcran('rgba(255,200,90,.55)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
     slam('LE BANQUIER A GAGNE','','#ffd75e','#ff5e7a',38,3);
-    if(VBQ.evt)evtFin('rate');else{CAMP.finT=1.6;CAMP.cause='banquier';} /* (2026-10-14, GAMEPLAY) l'ÉVÉNEMENT RARE perdu ne finit pas la partie */vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
+    CAMP.finT=1.6;CAMP.cause='banquier';vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
   banquierPose(dt);
   const e=Math.round(Math.abs(gp)/5)*5;
   if(gp>0)vChip(TR('2E'),TR('IL MENE DE')+' '+e+' M','#9fe8ff');else vChip(TR('1ER'),TR('TU MENES DE')+' '+e+' M','#ffd75e');
@@ -48586,7 +48587,7 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
   '1ER':'1ST','2E':'2ND','LE BANQUIER A':'BANKER AHEAD BY','TU MENES DE':'YOU LEAD BY','TU MENES !':'YOU LEAD!','IL REPASSE DEVANT':"HE'S BACK IN FRONT",
   "COUP D'EPAULE":'SHOULDER BUMP','LE BANQUIER A GAGNE':'THE BANKER WON',"LE BANQUIER T'A BATTU":'THE BANKER BEAT YOU','LE LINGOT EST A TOI':'THE GOLD BAR IS YOURS',
   'VILLE TERMINEE':'CITY COMPLETE','LE LINGOT':'THE GOLD BAR',
-  'Le banquier l\'avait mis au coffre. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'The banker kept it in the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+  'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'It slept at the back of the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
 /* ============================================================================
    LES ÉVÉNEMENTS RARES (2026-10-14, GAMEPLAY — Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse
    de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN
@@ -48638,17 +48639,15 @@ function evtZone(){ // campDebut : une zone commence — l'événement de la zon
   EVT.mt.length=0;EVT.mtOk=0;EVT.mtBee=0;EVT.mtCle=-1;EVT.mtVu=0;
   if(!EVT_ON||!EVT.arme||EVT.fait||!evtLieuOk())return;
   const c=LVL.cur,ca=c.carte||c.id;
-  if(ca==='ville')evtPrepare('banquier',false);
-  else if(ca==='nuages'){if(!(c.id==='nuages'&&Math.random()<.5&&evtPrepare('moutons',false)))evtPrepare('caisse',false);} // (les moutons ne trouvent pas toujours leur ligne droite : la caisse-nuage prend la place)
+  /* (2026-10-14, Sacha : « c'est quoi ces conneries de BANQUIER BATTU, enlève ça ») l'événement du BANQUIER est RETIRÉ : la VILLE n'en pose plus aucun (les moutons et la caisse-nuage gardent leur chance, inchangée, sur la mer de nuages) */ if(ca==='nuages'){if(!(c.id==='nuages'&&Math.random()<.5&&evtPrepare('moutons',false)))evtPrepare('caisse',false);} // (les moutons ne trouvent pas toujours leur ligne droite : la caisse-nuage prend la place)
 }
 function evtPrepare(nom,ici){ // pose l'événement sur la zone en cours — ici : tout de suite, là où l'on est (dbgEvt)
   const sp=vPos();let s0,sM;
   if(nom==='moutons'){const S=evtMoutonsPose(ici?sp+450:L*.3);if(!S)return false;s0=S-650;sM=L;} // annoncé 650 m avant le 1er mouton (la plaque prend le relais à 600 m)
   else if(nom==='caisse'){s0=ici?sp:L*(.3+Math.random()*.25);sM=Math.min(L-1500,s0+1500);}
-  else{s0=ici?sp:Math.max(L*.3,L-EVT_COURSE);sM=L-(ici?600:2500);}
+  else return false; // (2026-10-14) plus de banquier
   if(sM<=s0&&!ici)return false;
   if(nom==='caisse'){CAMP.coupes.length=0;CAMP.bancs.length=0;fantomeLigne();} /* les coupes et les bancs d'une campagne jouée AVANT dans la session n'ont rien à faire ici : sa ligne est la corde nue ; gravée dès la naissance de la zone (rien d'alloué en course) */
-  else if(nom==='banquier')banquierLigne();
   EVT.nom=nom;EVT.etat=1;EVT.ici=!!ici;EVT.s0=s0;EVT.sMax=Math.max(sM,s0+200);EVT.fini=false;EVT.res='';
   return true;
 }
@@ -48707,7 +48706,6 @@ function evtTick(dt){ // la boucle, juste après campTick — rien quand ?evt=0
   else if(EVT.nom==='caisse'){
     if(CAMP.pvOk&&dt>0){CAMP.vel.subVectors(carGroup.position,CAMP.pv).divideScalar(dt);if(CAMP.vel.lengthSq()>2.5e5)CAMP.vel.set(0,0,0);}CAMP.pv.copy(carGroup.position);CAMP.pvOk=true; // la ouate du sillage suit la caisse (fumeTick le fait en campagne)
     fantomeTick(dt);campFx(0,0,0,GH.on&&!GH.pris&&!GH.fini?Math.min(1,GH.prise)*.9:0);}
-  else if(EVT.nom==='banquier')banquierTick(dt,vPos());
 }
 function evtDemarre(){ // l'événement SURGIT
   EVT.etat=2;EVT.fait=true;EVT.fini=false;EVT.res='';EVT.t0=EVT.tRun;
@@ -48719,27 +48717,12 @@ function evtDemarre(){ // l'événement SURGIT
     GH.prise=0;GH.pris=false;GH.fini=false;GH.accr=false;GH.noteT=0;
     fantomePose(0);try{shatterCloud(GH.g.position,1.2);}catch(e){}
     evtAnnonce('CAISSE-NUAGE','ACCROCHE SON SILLAGE');}
-  else if(EVT.nom==='banquier'){ // il déboule de 70 m DERRIÈRE, à ta vitesse : son aspiration et ses 7 % le feront passer — la course au portail commence
-    VBQ.evt=true;VBQ.on=true;VBQ.tr.init=false;
-    banquierLigne();
-    VBQ.s=Math.max(0,sp-70);VBQ.lat=VBQ.latP=VBQ.line[ghIdx(VBQ.s)];VBQ.v=Math.max(26,Math.abs(vA));VBQ.momT=Math.min(4.3,momT);VBQ.yaw=0;VBQ.fini=false;VBQ.cd=0;VBQ.mene=true;
-    banquierPose(0);
-    evtAnnonce('LE BANQUIER','PREMIER AU PORTAIL');}
   else evtAnnonce('LES MOUTONS','SAUTE-LES !');
 }
-function evtFin(res){EVT.fini=true;EVT.res=res;EVT.finT=2.6;if(GH.evt)GH.on=false;if(VBQ.evt)VBQ.on=false;campFx(0,0,0,0);} // perdu : rien n'est dû, rien n'est retiré — la partie continue (la caisse-nuage et le banquier sont rangés, le halo d'écran éteint)
+function evtFin(res){EVT.fini=true;EVT.res=res;EVT.finT=2.6;if(GH.evt)GH.on=false;campFx(0,0,0,0);} // perdu : rien n'est dû, rien n'est retiré — la partie continue (la caisse-nuage et le banquier sont rangés, le halo d'écran éteint)
 function evtPortail(){ // portailPasse : franchir le portail pendant la course
   if(EVT.etat!==2||EVT.fini)return;
-  if(EVT.nom==='banquier'&&VBQ.on&&!VBQ.fini)evtBqGagne();
-  else if(EVT.nom==='caisse'&&GH.on&&!GH.pris&&!GH.fini){GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);vChip('');evtFin('rate');} // le portail l'emporte : sans bruit, il parle déjà
-}
-function evtBqGagne(){ // le portail franchi AVANT le banquier
-  VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);vChip('');
-  const g=vPaie(EVT_PRIME,12,'$:evt');EVT.paye+=g;
-  try{chaineAura('BANQUIER BATTU',EVT_AURA,'evt',true,SONV2);}catch(e){}flowAdd(20,'risque');
-  try{if(SONV2)sfx('victoire');else fanfare();}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([30,40,30,40,90]);
-  slam('BANQUIER BATTU !','+'+fmtC(g),'#ffd75e','#9fe8ff',40,3,26);
-  evtFin('gagne');
+  if(EVT.nom==='caisse'&&GH.on&&!GH.pris&&!GH.fini){GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);vChip('');evtFin('rate');} // le portail l'emporte : sans bruit, il parle déjà
 }
 function evtCnPris(){ // ACCROCHÉE : la caisse-nuage se rend — l'argent, l'aura, la nitro (la caisse elle-même reste le trophée de la carrière)
   GH.pris=true;GH.prise=1;vChip('');
@@ -48767,7 +48750,6 @@ function evtEtat(){const sp=vPos(),o={on:EVT_ON,arme:EVT.arme,fait:EVT.fait,nom:
   plaque:VC.chip,carte:LVL.cur?(LVL.cur.carte||LVL.cur.id):null,lieuOk:evtLieuOk(),mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};
   if(EVT.nom==='moutons')o.moutons={ok:EVT.mtOk,n:EVT.mt.length,libre:campMoutonLibre(),liste:EVT.mt.map(function(m){return {s:Math.round(m.s),d:Math.round(m.s-sp),nb:m.cl.length,fait:m.fait,dans:m.dans,dessus:m.dessus};})};
   if(EVT.nom==='caisse')o.caisse={on:GH.on,ecart:Math.round(GH.s-sp),lat:+GH.lat.toFixed(1),kmh:Math.round(GH.v*SPD*3.6),prise:+GH.prise.toFixed(2),pris:GH.pris,fini:GH.fini,vis:GH.g.visible};
-  if(EVT.nom==='banquier')o.banquier={on:VBQ.on,ecart:Math.round(VBQ.s-sp),lat:+VBQ.lat.toFixed(1),kmh:Math.round(VBQ.v*SPD*3.6),fini:VBQ.fini,vis:VBQ.g.visible};
   return o;}
 window.dbgEvt=function(a){ // dbgEvt() l'état · dbgEvt('moutons'|'caisse'|'banquier') le forcer ICI · dbgEvt('arme') armer la partie et poser celui de la zone
   if(!a)return evtEtat();
@@ -48775,14 +48757,14 @@ window.dbgEvt=function(a){ // dbgEvt() l'état · dbgEvt('moutons'|'caisse'|'ban
   if(!started||gameOver)return 'pas de course';
   if(!evtLieuOk())return 'hors partie classique (auto-ecole, balade, bac a sable, parc, survivant, carriere, campagne, jade, ?classique=cycle)';
   if(a==='arme'){EVT.arme=true;EVT.fait=false;EVT.etat=0;evtZone();return evtEtat();}
-  const nom={moutons:'moutons',mouton:'moutons',caisse:'caisse','caisse-nuage':'caisse',nuage:'caisse',banquier:'banquier',lingot:'banquier'}[a];
-  if(!nom)return ['moutons','caisse','banquier','arme'];
+  const nom={moutons:'moutons',mouton:'moutons',caisse:'caisse','caisse-nuage':'caisse',nuage:'caisse'}[a];
+  if(!nom)return ['moutons','caisse','arme'];
   if(EVT.etat===2&&!EVT.fini)return 'un evenement est deja en cours';
   EVT.fait=false;EVT.arme=true;EVT.mt.length=0;EVT.mtOk=0;EVT.mtBee=0;EVT.mtCle=-1;EVT.mtVu=0;
   if(!evtPrepare(nom,true))return 'impossible ici (les moutons vivent dans la MER DE NUAGES, sur une route droite)';
   return evtEtat();};
-Object.assign(I18N,{'LE BANQUIER':'THE BANKER','PREMIER AU PORTAIL':'FIRST TO THE PORTAL','CAISSE-NUAGE':'CLOUD CAR','ACCROCHE SON SILLAGE':'CATCH HER SLIPSTREAM',
-  'LES MOUTONS':'THE SHEEP','SAUTE-LES !':'JUMP THEM!','BANQUIER BATTU !':'BANKER BEATEN!','BANQUIER BATTU':'BANKER BEATEN','ATTRAPEE !':'CAUGHT!'}); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES
+Object.assign(I18N,{'CAISSE-NUAGE':'CLOUD CAR','ACCROCHE SON SILLAGE':'CATCH HER SLIPSTREAM',
+  'LES MOUTONS':'THE SHEEP','SAUTE-LES !':'JUMP THEM!','ATTRAPEE !':'CAUGHT!'}); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES
 window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
   const sp=vPos();
   return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
