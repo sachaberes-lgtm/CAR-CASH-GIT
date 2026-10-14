@@ -7621,6 +7621,135 @@ html.c6 body #tSteerHint{--tc:#fff;letter-spacing:0!important;white-space:nowrap
 </style>
 <style id="c6-pause-fin">
 /* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* =====================================================================================================================
+   LA FIN DE PARTIE (#mDead) — UNE HIÉRARCHIE AU LIEU DE SEPT BOÎTES (2026-10-14, charte 6)
+   Sacha : « l'argent doit être mis plus en avant ». On lit de haut en bas : 1) le VERDICT (16 px ; « NOUVEAU RECORD ! » n'est
+   écrit QUE là, sinon la cause en gris dessous) · 2) LE HÉROS : l'argent gagné, 32 px, vert, SANS cadre, le compte dessous ·
+   3) AURA et MOTEUR, deux cartes d'encre JUMELLES (légende, valeur, sous-ligne) · 4) UNE bande de petits chiffres, sans boîte ·
+   5) le défi (une carte d'encre). En bas, toujours à l'écran : la maison 48 × 48 + REJOUER (l'or, la seule décision).
+   OFFRES et RÉGLAGES quittent l'écran (ils sont à l'accueil). Le DOM reste À PLAT (le script y range #nameEntry après .mFin et
+   la cascade d'entrée de c6-transitions compte les enfants directs) : debout = une colonne (flex + order), couché = une grille
+   de deux colonnes sur les MÊMES lignes (le haut de AURA/MOTEUR = le haut du défi, leur bas = le bas de REJOUER).
+   ⚠ Le préfixe `html.c6 #overlay #mDead` (deux id) domine les ~270 anciennes règles (charte4, uxPasse : au plus un id) sans !important ;
+   les rares !important répondent à un !important ancien ou à un style posé EN LIGNE par le script (couleur du titre, display de la cause).
+   Les corps qui dépendent d'une longueur (--n le montant / l'aura, --nb REJOUER) se calculent en crans 32·24·16 / 24·16·12 :
+   pas d'unité de conteneur (iPhone 7 = iOS 15), et jamais un corps hors de la gamme.
+   ===================================================================================================================== */
+html:not(.c6) .hNxC6{display:none}  /* seule règle hors html.c6 : l'ancienne interface (?ui=5) garde son badge RECORD ! seul, sans la sous-ligne ajoutée pour les cartes jumelles */
+html.c6 #overlay #mDead{gap:0;padding:calc(var(--sT) + 16px) calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);font-family:var(--pix);text-align:center}
+html.c6 #overlay #mDead.on{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+html.c6 #overlay #mDead>*{order:0;grid-area:auto;align-self:auto;transform:none}
+/* l'entrée : la cascade de la charte (30 ms), dans l'ordre où on lit — plus les délais de 250 à 660 ms ni les glissés de côté */
+html.c6 #overlay #mDead.on>*{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:0ms}
+html.c6 #overlay #mDead.on>.mCashL{animation-delay:30ms}
+html.c6 #overlay #mDead.on>.mHero{animation-delay:60ms}
+html.c6 #overlay #mDead.on>.mStats{animation-delay:90ms}
+html.c6 #overlay #mDead.on>:is(.mObj,.mFin){animation-delay:120ms}
+html.c6 #overlay #mDead .mHero>.hCard,html.c6 #overlay #mDead .mFin>*{animation:none!important}   /* (répond aux !important de charte4 : le reflet k4Lingot en boucle sur l'or, les cartes distribuées) */
+/* 1 — LE VERDICT */
+html.c6 #overlay #mDead .mOver{order:1;margin:0;font-size:16px;line-height:24px;letter-spacing:0;color:var(--c6-b0)!important;text-shadow:none;text-wrap:balance}
+html.c6 #overlay #mDead .mCause{order:2;display:block!important;margin:4px 0 0;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2)!important;text-shadow:none;text-wrap:balance}
+html.c6 #overlay #mDead .mCause:empty,html.c6 #overlay #mDead.c6Rec .mCause{display:none!important}
+/* 2 — LE HÉROS : l'argent, seul, en grand — plus de cadre vert, plus de dégradé, plus de coin coupé, plus de légende espacée */
+html.c6 #overlay #mDead .mCashL{order:3;position:static;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-wrap:nowrap;gap:8px;margin:16px 0 0;padding:8px 0;
+  background:none;clip-path:none;box-shadow:none;letter-spacing:0;container-type:normal}
+html.c6 #overlay #mDead .mCashL::before,html.c6 #overlay #mDead .mCashL::after{content:none}
+html.c6 #overlay #mDead .mCashL>span,html.c6 #overlay #mDead .mCashL>em{display:none}
+html.c6 #overlay #mDead .mCashL>b{order:0;font-size:calc(32px - 8px*clamp(0,var(--n,6) - 8,1) - 8px*clamp(0,var(--n,6) - 10,1));line-height:1;letter-spacing:0;word-spacing:-.5em;white-space:nowrap;
+  color:var(--c6-cash);text-shadow:none;transform:none}
+html.c6 #overlay #mDead .mCashL>small{order:1;font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2)}
+/* 3 — AURA · MOTEUR : deux cartes JUMELLES — la légende en haut, la valeur au milieu, la sous-ligne en bas */
+html.c6 #overlay #mDead .mHero{order:4;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;width:auto;min-height:176px;margin:16px 0 0}
+html.c6 #overlay #mDead .hCard{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:0;padding:12px 8px;container-type:normal;text-align:center}
+html.c6 #overlay #mDead .hCard::before,html.c6 #overlay #mDead .hCard::after{content:none}
+html.c6 #overlay #mDead .hCard>*{margin:0}
+html.c6 #overlay #mDead .hCard>small{flex:none;font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2);white-space:nowrap}
+html.c6 #overlay #mDead .hCard>em{display:none}                                   /* « RECORD ! » : une fois, dans le titre */
+html.c6 #overlay #mDead .hCard.hAura>b{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-height:0;white-space:nowrap;line-height:1;letter-spacing:0;
+  font-size:calc(24px - 8px*clamp(0,var(--n,3) - 6,1) - 4px*clamp(0,var(--n,3) - 9,1));color:var(--c6-aura);text-shadow:none}
+html.c6 #overlay #mDead .hCard.hAura>b.zero{color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .hNx{flex:none;display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:4px 8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 #overlay #mDead .hNx>span{white-space:nowrap;color:var(--c6-g1)}
+html.c6 #overlay #mDead .hNx .pxi{color:currentColor}
+html.c6 #overlay #mDead .hMot .hNx.hPres>span{color:var(--c6-b0)}                 /* « à 3 pièces du V6 » : ce qui donne envie de relancer se lit en blanc (l'or reste à REJOUER) */
+html.c6 #overlay #mDead .hMot3 .hMotCv{flex:1 1 0;display:block;width:100%;max-width:176px;min-height:0;height:auto;aspect-ratio:auto;margin:0;object-fit:contain;filter:none;animation:none}
+html.c6 #overlay #mDead .hMotN{flex:none;display:flex;align-items:baseline;justify-content:center;gap:8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+html.c6 #overlay #mDead .hMotN i{font-style:normal;font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+/* 4 — LA BANDE : quatre petits chiffres, sans boîte ni filet — elle se lit, elle ne pèse pas */
+html.c6 #overlay #mDead .mStats{order:5;display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-content:center;align-items:start;gap:0;box-sizing:border-box;width:auto;min-width:0;margin:16px 0 0;padding:0 8px;
+  background:none;clip-path:none;box-shadow:none}
+html.c6 #overlay #mDead .mStat{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;min-width:0;min-height:0;padding:0;background:none;box-shadow:none}
+html.c6 #overlay #mDead .mStat::before{content:none}
+html.c6 #overlay #mDead .mStat b,html.c6 #overlay #mDead .mStat.mFren b{font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
+html.c6 #overlay #mDead .mStat.mFren.zero b{color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2);white-space:nowrap}
+/* 5 — LE DÉFI / L'OBJET GAGNÉ : une carte d'encre (elle se touche : le chevron le dit), sa jauge, sa prime en vert */
+html.c6 #overlay #mDead .mNew{order:5}
+html.c6 #overlay #mDead .mObj{order:6;display:flex;flex-direction:column;justify-content:center;gap:8px;width:auto;min-height:0;margin:16px 0 0;padding:12px 16px;text-align:left;
+  background:var(--c6-e1);clip-path:none;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e3);filter:none}
+html.c6 #overlay #mDead .mObj:empty{display:none}
+html.c6 #overlay #mDead .mObj.aFig{padding-right:108px}
+html.c6 #overlay #mDead .mObj:is(:active,.appui){filter:none;background:var(--c6-e2)}
+html.c6 #overlay #mDead .mObj .obHd{gap:8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .mObj .obHd .pxi{--pxs:1;color:currentColor}
+html.c6 #overlay #mDead .mObj .mMisPips{gap:4px;margin-left:auto}
+html.c6 #overlay #mDead .mObj .mMisPips u{width:8px;height:8px;background:var(--c6-e3);box-shadow:none}
+html.c6 #overlay #mDead .mObj .mMisPips u.ok{background:var(--c6-cash);box-shadow:none}
+html.c6 #overlay #mDead .mObj .obBig{font-size:12px;line-height:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+html.c6 #overlay #mDead .mObj .obBig .obCat{font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 #overlay #mDead .mObj .obBar{height:8px;margin:2px;transform:none;background:var(--c6-e3);box-shadow:0 0 0 2px #000}
+html.c6 #overlay #mDead .mObj .obBar i{background:var(--c6-b0);box-shadow:none}
+html.c6 #overlay #mDead .mObj .obBar.ok i{background:var(--c6-cash);box-shadow:none}
+html.c6 #overlay #mDead .mObj .obFt{gap:4px 8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .mObj .obFt>span:first-child{color:var(--c6-g1)}
+html.c6 #overlay #mDead .mObj .obFt .pxi{--pxs:1;color:var(--c6-b0)}
+html.c6 #overlay #mDead .mObj .obPrime{color:var(--c6-cash)}
+html.c6 #overlay #mDead .mObj .obGain{color:var(--rc,var(--c6-b0));text-shadow:none}   /* la couleur de rareté de l'objet : du sens, sans halo */
+html.c6 #overlay #mDead .mObj:is(.rec,.pret) .obFt>span:first-child{color:var(--c6-cash)}
+/* LE RESSORT, puis LES DEUX TOUCHES : la maison (carrée, icône seule) et REJOUER (l'or, sur tout le reste) */
+html.c6 #overlay #mDead .mEsp{order:7;flex:1 0 16px;max-height:none;min-height:16px}
+html.c6 #overlay #mDead .mFin{order:8;display:flex;align-items:flex-end;gap:8px;width:auto;margin:0;padding:0 0 var(--c6-t)}   /* (le bas de la rangée = le bas de l'épaisseur des touches) */
+html.c6 #overlay #mDead .mFin>.mMenu{flex:none;flex-direction:row;gap:0;width:48px;min-width:48px;height:48px;min-height:48px;padding:0;font-size:12px}
+html.c6 #overlay #mDead .mFin>.mMenu .pxi{--pxs:2;color:currentColor}
+html.c6 #overlay #mDead .mFin>.mMenu>span{display:none}
+html.c6 #overlay #mDead .mFin>[data-m="replay"]{flex:1 1 0;min-width:0;width:auto;min-height:64px;margin:0;padding:0 8px;container-type:normal}
+html.c6 #overlay #mDead .mFin>[data-m="replay"]>span{font-size:calc(24px - 8px*clamp(0,var(--nb,7) - 7,1));line-height:1;letter-spacing:0;white-space:nowrap}
+html.c6 #overlay #mDead>.mRow{display:none}                                       /* OFFRES · RÉGLAGES : à l'accueil, pas ici (le script ne les lit pas) */
+html.c6 #overlay #mDead #nameEntry{order:9;grid-column:1/-1;grid-area:auto}
+/* DEBOUT, grand écran (≥ 760 px de haut) : on a la place — les blocs respirent (24 px), les jumelles prennent de la hauteur ; REJOUER reste en bas, sous le pouce */
+@media (orientation:portrait) and (min-height:760px){
+  html.c6 #overlay #mDead .mCashL{margin-top:24px;padding:16px 0}
+  html.c6 #overlay #mDead .mHero{min-height:216px;margin-top:24px}
+  html.c6 #overlay #mDead .mStats,html.c6 #overlay #mDead .mObj{margin-top:24px}
+  html.c6 #overlay #mDead .mObj{padding:16px}
+}
+/* DEBOUT, écran très court : le contenu défile SOUS les deux touches, qui restent collées en bas sur un fond d'encre */
+@media (orientation:portrait) and (max-height:620px){
+  html.c6 #overlay #mDead .mHero{min-height:144px}
+  html.c6 #overlay #mDead .mFin{position:sticky;bottom:0;z-index:2;margin:0 -16px calc(-1*(var(--sB) + 16px));padding:8px 16px calc(var(--sB) + 16px + var(--c6-t));background:var(--c6-e0)}
+}
+/* COUCHÉ : deux colonnes sur la même grille (gouttière 16 px). À gauche le verdict, l'argent, les jumelles ; à droite la bande,
+   le défi, les touches. Les lignes sont COMMUNES : la bande tient la hauteur du verdict + de l'argent, le défi commence où
+   commencent les jumelles, REJOUER finit où elles finissent. L'écran prend exactement la hauteur visible : rien ne défile. */
+@media (orientation:landscape){
+  html.c6 #overlay #mDead.on{display:grid;flex:1 1 0%;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto;column-gap:16px;row-gap:0;
+    align-content:stretch;justify-content:stretch;grid-template-areas:"over stats" "cause stats" "cash stats" "hero obj" "hero fin"}
+  html.c6 #overlay #mDead .mOver{grid-area:over}
+  html.c6 #overlay #mDead .mCause{grid-area:cause}
+  html.c6 #overlay #mDead .mCashL{grid-area:cash;margin:8px 0 16px}
+  html.c6 #overlay #mDead .mHero{grid-area:hero;min-height:0;margin:0}
+  html.c6 #overlay #mDead .mStats{grid-area:stats;margin:0 0 16px}
+  html.c6 #overlay #mDead .mObj{grid-area:obj;margin:0 0 16px;padding:8px 12px;overflow:hidden}
+  html.c6 #overlay #mDead .mObj.aFig{padding-right:108px}
+  html.c6 #overlay #mDead .mFin{grid-area:fin}
+  html.c6 #overlay #mDead .mEsp,html.c6 #overlay #mDead .mNew{display:none!important}
+  html.c6 #overlay #mDead #nameEntry{grid-area:auto;grid-column:1/-1}
+}
+/* COUCHÉ ÉTROIT (iPhone 7 : 667 px) : une carte jumelle n'a plus que 13 lettres de large — l'aura descend d'un cran plus tôt ; la bande se serre */
+@media (orientation:landscape) and (max-width:720px){
+  html.c6 #overlay #mDead .hCard.hAura>b{font-size:calc(24px - 8px*clamp(0,var(--n,3) - 4,1) - 4px*clamp(0,var(--n,3) - 6,1))}
+  html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{width:min-content;white-space:normal;line-height:12px;text-align:center}   /* « MULTI MAX » + « KM/H MAX » + NIVEAU + FRENESIE = 248 px pour 247 : les légendes de deux mots passent sur deux lignes, toutes pareil */
+}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -7941,7 +8070,8 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
       <div class="mEsp" aria-hidden="true"></div>
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
            reste la seule plaque d'or et la plus large ; la maison est une touche de laque, à gauche, jamais sous le pouce du rejeu. -->
-      <div class="mFin"><div class="pbtn mMenu" data-m="menu" role="button" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
+      <!-- (2026-10-14, charte 6) la maison = une touche carrée 48 × 48, icône seule (le mot HOME est parti : BRIEF §4, « plus de bouton HOME en mot ») -->
+      <div class="mFin"><div class="pbtn pbCarre mMenu" data-m="menu" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
       <!-- (2026-09-30, Léo : « un bouton HOME qui remplacera tous les boutons GARAGE ou MENU ») la tuile GARAGE est partie : HOME, au-dessus,
            mène au garage (c'est l'accueil) — elle ne faisait plus que la même chose -->
       <div class="mRow">
@@ -52466,6 +52596,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
          feu:'CRIBLE PAR LA POLICE',facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',sol:'ECRASE SUR LE PAVE',seme:"LA CAISSE-NUAGE T'A SEME",devant:"TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace')?'#ffe7a8':'';}}
       if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'){ot.textContent=TR(mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINE');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('c6Rec',ot.textContent===TR('NOUVEAU RECORD !'));} // (2026-10-14, charte 6) UNE hiérarchie : le record se dit dans le titre et nulle part ailleurs ; sinon la cause passe sous le titre (#mCause) — la feuille c6-pause-fin lit cette classe
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
@@ -52487,8 +52618,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            plus de « + » (qui se lisait « ajouté à un total »), plus de total de carrière, plus de rang ni de jauge ; dessous, le meilleur
            score (ou RECORD ! quand il vient de tomber). */
         if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
-            +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>'
-          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
+            +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
+          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR(document.documentElement.classList.contains('c6')?'MOTEUR':'MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec"><span>'+TR('RECORD')+'</span><span>'+TR('PALIER')+' '+(ea+1)+'</span></div>':'' /* (29/09, DEBUGGING) deux morceaux insécables : le chiffre ne tombe plus seul à la ligne */)+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
@@ -52498,7 +52629,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       }
       $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
         // (v3) la plus longue FRÉNÉSIE de la partie — .rec quand elle a battu le record (le style : session UI)
-        +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+TR(rc?'RECORD':'FRENESIE')+'</span></div>';})();
+        +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+(document.documentElement.classList.contains('c6')?TR('FRENESIE'):TR(rc?'RECORD':'FRENESIE'))+'</span></div>';})(); // (2026-10-14, charte 6) le chiffre garde sa légende : « RECORD » à sa place le laissait sans nom (et l'écrivait une 4e fois)
       objRender($t('mObj'));
     }else if(mCur==='shop'){
       if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
