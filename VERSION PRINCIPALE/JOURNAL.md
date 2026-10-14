@@ -3,6 +3,32 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE FINAL SPIN — LA MACHINE À SOUS DE FIN DE PARTIE, VERSION 1 (2026-10-14, Sacha au quiz de 14 h 50 : « le final spin [de Jetpack Joyride] est une bonne inspi, fais la même machine exactement, mais travaille-la très bien avec la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque partie »)
+Session IDEE. Tout vit dans le bloc `SPIN` (juste après `mkPower`) et dans `<style id="finalSpin">` ; `?spin=0` éteint tout.
+- **Les jetons** (`spinPose`, à la fin de `spawnPickups`) : au plus un par zone, avec une chance `SPIN.pZone` = 0,28, plafond `SPIN.max` = 3 par
+  partie (`SPIN.pose`, remis à zéro par `resetGame`) — souvent aucun. Tirés par `Math.random`, jamais par `rnd` : la piste ne bouge pas.
+  Jamais à 60 m d'un cristal, jamais au-dessus d'un trou, ni à l'auto-école, au parc, au bac à sable, au Survivant, en campagne. Une pièce d'or
+  DEBOUT qui tourne, cerclée, son halo, l'étiquette « JETON SPIN » (couronne pixel) — matières sur les recettes exactes des cristaux de pouvoir
+  (même programme, même `customProgramCacheKey` d'étiquette : rien ne compile en course ; `chauffeDivers` monte sa texture au menu).
+  Miroir des deux faces : prendre l'un retire son jumeau (`spinPrend`).
+- **Ramassé = gardé** : `SAVE.d.spinJ` (9 au plus, gardé par `san`). Un jeton ne se perd jamais (REJOUER trop tôt, appli tuée).
+- **La machine** (#spinM) s'ouvre sur l'écran de fin (`#mDead.on`) 1,1 s après lui, quand l'offre de SECONDE CHANCE est retombée
+  (`chanceAttend()` de GENERAL) : mort → seconde chance éventuelle → machine. Un guetteur à 5 Hz (`setInterval`) décide. Un tirage par jeton :
+  TIRER (l'unique or ; CONTINUER quand il n'en reste plus). Les rouleaux reculent d'un cran (l'élan), filent à 19 symboles/s, puis chacun file
+  jusqu'à ce que son symbole soit à 6-7,5 crans et se pose en ~1,3 s (easeOutBack raccordée à la vitesse, dépassement ~4 %), jamais avant son
+  voisin de gauche + 0,3 s ; le 3e traîne (`tease`) quand les deux premiers sont pareils. 28 ampoules chassent autour de la machine (plus vite
+  pendant le tirage, en fou pendant le suspense), clignotent or/magenta au gain ; la ligne de gain est un néon magenta qui passe à l'or.
+- **Le résultat est tiré AVANT** (`spinTire`, `SPIN.proba` : jackpot 2,5 %, brelan 14 %, paire 38 %, sinon rien). Gains en ARGENT DU JEU
+  (`SPIN.gains`) : rien 25 $ · paire 150 $ · brelan 600 / 900 / 1 100 / 1 500 $ (pièce, gemme, flamme, étoile) · JACKPOT (trois couronnes)
+  5 000 $ — espérance ≈ 320 $ le jeton. **À caler par GAMEPLAY** (les quatre constantes en tête du bloc). Versé au compte tout de suite
+  (`SAVE.flush`), l'écran de fin relit (`mFill`). Le jackpot : flash or, 46 éclats (pièces et liasses vertes), vibration longue,
+  `fig.jackpot` + `pluie.billets` ; brelan : 14 éclats. Sons : `arret.tic` à chaque pose, `ui.compteur` au défilement et au compteur,
+  `argent.palier` / `argent.gros` / `piece.recolte`, `pwr.autre` au ramassage — **à juger par SON** (aucun son neuf n'a été cuit).
+- Au clavier, Entrée / Espace tirent (écouteur en capture : Entrée ne relance plus une partie derrière la machine ; `#spinM.on` ajouté
+  aux gardes d'Entrée).
+- **Banc** : `dbgSpin(n,'jackpot'|'brelan'|'paire'|'rien')` (n jetons, prochain tirage imposé) · `dbgJeton(d)` (un jeton d mètres devant).
+- **Pas fait en v1** (la proposition de PILOTAGE) : la nitro de départ et la peinture rare comme gains ; un levier à tirer au doigt.
+
 ## LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 : « façon Subway Surfers », contre de l'argent du jeu — barème de GAMEPLAY, plaque d'INTERFACE)
 À la mort, UNE fois par partie, l'écran de fin propose de CONTINUER (bloc `CHANCE`, juste avant `finSonsCoupe`). Payé sur le COMPTE,
 jamais en euros ni en pub. **Prix** = k × l'encaissé de la partie (`money − START_CASH`), avec k = 0,6 jusqu'à 3 min (GAMEPLAY, relevé de 0,5), puis +0,05 par
