@@ -36668,6 +36668,20 @@ function sensBoomRebond(d,vn){
   sfx('debris.tole',{vol:Math.max(-12,Math.min(0,-11+vn*.7))});
   if(SENS_BOOM.n<=2&&boomT>.35)sensHap(10,1);
 }
+/* (2026-10-14, sensations) LA PLUIE DE BRAISES REBONDIT. Les braises orange et jaunes retombent en arc (acc 13 / 16) mais passaient
+   À TRAVERS la dalle : elles s'éteignaient sous la route. Sur le plan de BOOM_SOL (mort au sol seulement, dans la largeur de la route),
+   elles sautillent — 45 % du choc rendu, 30 % de frottement — et meurent en dansant sur le bitume. ≤ 100 cases, zéro allocation ;
+   une réserve endormie ne coûte rien. Le rebond ne dépend pas du pas : il se déclenche au contact, la gravité reste à updatePool. */
+function sensBoomBraises(P){
+  if(!P||P.dort)return;
+  const p=P.pos,v=P.vel,L=P.life,S=BOOM_SOL,nx=S.n.x,ny=S.n.y,nz=S.n.z,ox=S.p.x,oy=S.p.y,oz=S.p.z,bx=S.b.x,by=S.b.y,bz=S.b.z;
+  for(let i=0,j=0;i<P.n;i++,j+=3){if(!(L[i]>0))continue;
+    const dx=p[j]-ox,dy=p[j+1]-oy,dz=p[j+2]-oz,h=dx*nx+dy*ny+dz*nz;if(h>=.06||h<-1.5)continue;
+    const vn=v[j]*nx+v[j+1]*ny+v[j+2]*nz;if(vn>=0||Math.abs(dx*bx+dy*by+dz*bz)>ROAD_HALF)continue;
+    const r=.06-h,w=-.45*vn; // remise sur la dalle · la vitesse de rebond
+    p[j]+=nx*r;p[j+1]+=ny*r;p[j+2]+=nz*r;
+    v[j]=(v[j]-nx*vn)*.7+nx*w;v[j+1]=(v[j+1]-ny*vn)*.7+ny*w;v[j+2]=(v[j+2]-nz*vn)*.7+nz*w;}
+}
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
 /* ================= LA CAMÉRA DE ROUTE S'ADAPTE (vague 3, 2026-09-27) =================
    Sacha : « quand on est à l'envers de l'autre côté de la route, et que du coup on a l'impression que ça monte beaucoup, il faut que
@@ -50692,6 +50706,7 @@ function loop(now){
         if(!d.part&&d.m.material)d.m.material.emissiveIntensity=Math.max(0,.6-boomT*.45);
       }
       // (vague 2) anneaux et cœur : animés par updateBoomArt (créés une fois)
+      if(SENS&&BOOM_SOL.ok)try{sensBoomBraises(boomEmbO);sensBoomBraises(boomEmbY);}catch(e){} // (2026-10-14, sensations) la pluie de braises REBONDIT sur le bitume
       if(boomLight)boomLight.intensity=Math.max(0,4.5-boomT*3);
       /* (vague 2) LE CADRAGE DE L'EXPLOSION : la secousse s'AJOUTAIT à la position d'une image sur l'autre — une marche au hasard de
          5 à 10 m en 1,8 s : la caméra partait n'importe où, passait parfois AU-DESSUS du foyer et le monde se retournait.
