@@ -32,12 +32,16 @@ const SRC=path.join(__dirname,'VERSION PRINCIPALE'),DST=path.join(__dirname,NOM)
 const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js', // à la racine du jeu
   // (2026-10-12, passe qualité) les OUTILS LOCAUX de Léo : chacun a son serveur.py — deux fichiers du même nom cassaient l'édition À PLAT
   // (CrazyGames : « deux fichiers serveur.py »), et Poki/itch embarquaient 4 Mo d'outils et trois serveurs Python
-  'maps-ciel','maps-ciel.html','simulateur','simulateur.html','salle-blanche','salle-blanche.html','boite-dauphins.html','boite-singe.html']);
+  'maps-ciel','maps-ciel.html','simulateur','simulateur.html','salle-blanche','salle-blanche.html','boite-dauphins.html','boite-singe.html',
+  // (2026-10-14, pôle SON) LA BIBLIOTHÈQUE DES SONS : une page pour Léo (en ligne sur Vercel), pas le jeu — ~55 Mo, et des dizaines de p1.m4a,
+  // intro.m4a… homonymes qui casseraient l'édition À PLAT
+  'bibliotheque.html','musique-paliers.js','musique-moteur.json']);
 // (2026-10-08) ciel-n1 RESTE : depuis le 7/10 l'AUTO-ÉCOLE (la 1re partie d'un joueur neuf) la joue (musicLieuVoulu, piste 'tuto') —
 // retirée, la toute première partie d'un portail tournait sans musique (404 « fichier illisible », vu au banc Playgama)
 const SAUTE_REL=new Set([2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 2 à 5 de la CARRIÈRE (nuages…
   .concat(['assets/audio/music/ville'])                 // …et le dossier ENTIER de la ville : NÉON COMPLÈTE 1-10, que la carrière seule joue (musicLieuVoulu)
-  .concat(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3'])); // les VOIX (dossier entier pour l'annonceur)
+  .concat(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3']) // les VOIX (dossier entier pour l'annonceur)
+  .concat(['boucles','depart','direct','paliers','lobby-chris','petites-musiques','inspi-generateur','ciel/ciel-donnees.js'].map(d=>'assets/audio/music/'+d))); // (2026-10-14) la bibliothèque des sons : rien que le jeu lise
 function copie(de,vers,rel){
   fs.mkdirSync(vers,{recursive:true});
   for(const n of fs.readdirSync(de)){

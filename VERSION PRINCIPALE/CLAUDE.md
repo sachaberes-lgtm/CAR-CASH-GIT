@@ -1,5 +1,23 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` (2026-10-14, pôle SON ; Léo : « un seul dossier de travail, le main »)
+La page « Sons CASH CAR » de la branche musique (13-14/10), ramenée sur le main : EN LIGNE à **/jouer/bibliotheque.html**, et en local
+avec son serveur `python3 atelier-son/serveur-moteur.py 9141` (depuis VERSION PRINCIPALE). Le jeu n'en charge RIEN.
+- Onglets : GÉNÉRATEUR (TRENTE MOTEURS v6.0 hybride, en direct) · POUCE BLEU (les musiques du générateur que Léo a aimées, rejouées par
+  LEUR version : `assets/audio/music/direct/musique-trente-v3-1…v6-0.js`) · SUIVENT LE MOTEUR (morceaux à paliers figés `paliers/rendus/`,
+  couches, phrases, modules en direct GLISSE / GLISSE v2 / French Touch) · NIVEAUX (le CIEL et la VILLE DU JEU : mêmes fichiers) · LOBBY
+  CHRIS (les originaux sans le filtre d'atelier) · ANCIENS · PETITS SONS. Les choix de Léo (noms, suppressions, 👍, avis du générateur)
+  = `musique-moteur.json` — SES données : ne pas l'écraser en test.
+- SANS SERVEUR (en ligne) la page n'envoie RIEN : elle lit l'en-tête `X-Serveur-Moteur` (posé par serveur-moteur.py) ; sans lui, pas de
+  POST (noms, goûts), pas d'onglet INSPIRATIONS, les retouches d'un visiteur restent dans son navigateur (`PREF_SIG`), modules importés
+  sans `?v=` (sinon le service worker du jeu gardait une copie par PLAY).
+- ⚠ HORS DU MAIN (public) : les sons d'artistes réels — inspirations (`inspi-generateur/`, gitignoré), IN DA BACK / BOR / NOTHING LIKE U,
+  OG GINOBILI (labo). Ils vivent sur la branche locale `musique-2026-10` (CAR CAHS V3). Les sons que Léo a supprimés ne sont pas copiés
+  (sauf `boucles/nuages--phrases.m4a`, un spécimen du séquenceur de phrases). `ciel/ciel-donnees.js` décrit les fichiers CIEL du JEU (40 mesures).
+- Exclue des portails (`poki-construire.js` : SAUTE / SAUTE_REL), publiée sur Vercel (~55 Mo, hors du précache de sw.js).
+- Banc muet (scratchpad du pôle SON) : vrais clics, mesure au bus de la page (PALIERS −27 dB, COUCHES −24, PHRASES −25, TRENTE −31 ;
+  GLISSE v2 sort directement sur la destination à −10 dB : il ignore le curseur Volume, comme sur la branche).
+
 ## LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes les voitures et tous les trucs débloquables — c'est caché »)
 RÉGLAGES › tout en bas, sous EFFACER : ENTRER UN CODE (`data-m="code"`, la feuille `modale` avec un champ). `codeCousin(t)` : « cousin » ou
 « cousin 1.61 » (accents, majuscules, espaces et points ignorés) → `SAVE.d.cousin=1` (gardé par `san`, parti avec EFFACER MA PROGRESSION, voyage
