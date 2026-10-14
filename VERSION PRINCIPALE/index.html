@@ -10327,6 +10327,9 @@ const skyDome=(function(){
       '  for(int k=-1;k<=1;k++){float i2=mod(id+float(k),N),r1=cyh(i2+s),r2=cyh(i2*1.37+s*2.1),r3=cyh(i2*2.71+s*4.3);if(r3<.30)continue;',
       '    float c=float(k)+.5+(r2-.5)*.5,w=.12+.30*r1,dx=abs(u-id-c),top=(.010+.020*r3)*(1.-.28*fl),cap=step(.55,r2)*smoothstep(w*.55,w*.42,dx)*top*.55;',
       '    float m=smoothstep(w,w-.02,dx)*(1.-smoothstep(top+cap-.0012,top+cap+.0012,y))*step(-.03,y);if(m>o.x)o=vec2(m,fl);}}return o;}',
+      /* (2026-10-14, passe graphismes · cysoleil) LE CIEL CRÈME DU CANYON : le masque du DISQUE SOLAIRE était inversé (`ds=1.-smoothstep(…,sd)` vaut 1 PARTOUT sauf près du soleil) —
+         tout le ciel prenait la couleur du disque (crème ×uCyN.z, jusqu'à ×4) et l'ACES l'écrasait en blanc crème, au matin, à midi comme au soir (sonde : masquer le dôme
+         = noir, ses uniformes étaient justes). `ds=smoothstep(…)` : 1 sur le disque, 0 ailleurs. `?sans=cysoleil` = l'ancien calcul. */
       'vec3 canyonCiel(vec3 d){d=normalize(d);float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=dot(d,uSunDir),sdp=max(sd,0.);',
       '  vec3 c=mix(uCyH,uCyM,smoothstep(0.,.20,yy));c=mix(c,uCyZ,smoothstep(.12,.85,yy));',
       '  c+=uCyS*(pow(sdp,6.)*.30+pow(sdp,40.)*.40)*(1.-.8*uCyN.w);',
@@ -10338,7 +10341,7 @@ const skyDome=(function(){
       '    vec3 cc=mix(uCyD,uCyC,clamp(li*.7+.6*(n-.5)+pow(sdp,4.)*.5,0.,1.));c=mix(c,cc,cov*.92);c=mix(c,mix(uCyC,c,.35),ci);}',
       '  if(uCyN.w>.001){float t=900./max(y,.02);vec2 p=d.xz*t+uCam.xz+vec2(uTime*9.,uTime*3.);float n=vfbm(p/700.+.6*vec2(vn(p/1300.),vn(p/1300.+4.)));',
       '    vec3 pl=mix(uCyD,uCyC,smoothstep(.3,.8,n))+vec3(.75,.78,.95)*uCyF*(.5+.8*smoothstep(.4,.8,n));c=mix(c,pl,uCyN.w*smoothstep(-.02,.06,y));}',
-      '  {float ds=1.-smoothstep(.99955-.00035*uCyN.y,.99975-.00035*uCyN.y,sd);c=mix(c,mix(vec3(1.,.97,.9),vec3(.92,.94,1.),uCyK.w)*uCyN.z*(1.+1.2*(1.-uCyK.w)),ds*(1.-uCyN.w*.92));',
+      (/[?&]sans=([^&]*,)?cysoleil(,|&|$)/.test(location.search)?'  {float ds=1.-smoothstep(':'  {float ds=smoothstep(')+'.99955-.00035*uCyN.y,.99975-.00035*uCyN.y,sd);c=mix(c,mix(vec3(1.,.97,.9),vec3(.92,.94,1.),uCyK.w)*uCyN.z*(1.+1.2*(1.-uCyK.w)),ds*(1.-uCyN.w*.92));',
       '   if(uCyK.w>.5&&ds>0.){vec3 e1=normalize(cross(uSunDir,vec3(0.,1.,0.)));vec2 q=vec2(dot(d,e1),d.y-uSunDir.y)*90.;c-=vec3(.10,.09,.07)*smoothstep(.45,.7,vn(q*3.+2.))*ds;}}',
       '  if(uCyK.z>.001&&y>-.02){vec3 G=normalize(vec3(.42,.55,.72));float b=dot(d,G),mw=exp(-b*b/.022)*smoothstep(-.02,.15,y);vec2 q=vec2(atan(d.z,d.x)*3.,b*14.);',
       '    mw*=(.55+.6*smoothstep(.35,.75,vfbm(q*5.1)))*(1.-.75*smoothstep(.45,.65,vfbm(q*2.3+1.3))*exp(-b*b/.006));c+=vec3(.55,.58,.75)*mw*.12*uCyK.z;}',
