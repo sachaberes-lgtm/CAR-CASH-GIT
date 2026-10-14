@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA SECONDE CHANCE COÛTE TOUTE LA PARTIE (2026-10-14 soir, Sacha : « le bouton continuer malgré la mort doit coûter au joueur la même somme que ce qu'il a gagné durant la partie »)
+`chanceOuvre` : `CHANCE.prix = max(CHANCE.plancher, round(money − START_CASH))`, soit 100 % de l'encaissé, au dollar près. Le barème
+de GAMEPLAY (k 0,6 → 0,8) et l'arrondi à deux chiffres (`chanceJoli`) sont retirés. Le plancher de 300 $ ne joue que pour une partie
+qui n'a presque rien rapporté (sinon la reprise serait gratuite). Le moteur perd toujours un palier. Comptabilité inchangée : la 1re
+fin verse la partie, la reprise la reprend en entier, la fin suivante ne verse que ce qui a été gagné depuis. La plaque d'INTERFACE
+lit `chanceEtat().prix` : elle affiche le nouveau prix sans rien changer de son côté. Banc : mort à 1 000 $ gagnés → CONTINUER coûte 1 000 $.
+
 ## LE ROYAUME DE FEU — LES BANCS DE FUMÉE + LA CONSTRUCTION EN TRANCHES (2026-10-14 au soir, session VOLCAN — Sacha, relayé par PILOTAGE : « plus de particules de FUMÉE dans la map volcan : il faut que le CHALLENGE vienne de la DIFFICULTÉ À VOIR » · règle commune : « construction en tranches < 60 ms »)
 - LES BANCS DE FUMÉE (`VOLCAN.bancs`, posés par buildVolcan dans leur propre flux de hasard) : des nappes de 220-480 m (× √(vPalier/78)) et des
   FENÊTRES dégagées de 300-650 m ; 8 à 10 bancs par niveau, 25-40 % de la piste (mesuré, Node, 9 graines × 3 paliers). JAMAIS sur l'élan d'un
@@ -181,6 +188,11 @@ LA BANQUISE (section suivante) devient LE GLACIER / THE GLACIER partout où le n
 - LA CONSTRUCTION : la piste est plus longue (10 km) ; Node, graine chaude : ~78 ms ordinateur, ~30 ms palier ancien (la cible de PILOTAGE
   est 60 ms) ; la toute première construction d'une session reste ~170 ms (JIT à froid). Le contrôle de dégagement des cristaux rejette d'abord
   les points de route trop loin (rejet rapide).
+- ALIGNÉ SUR LA RÈGLE DE GAMEPLAY (`passation/RACCOURCIS.md`, banc `cc-banc/raccourcis.cjs --depuis` sur des traces bâties en Node avec
+  `genBanq` : `trace-node.cjs` du scratchpad MONTAGNE) : rayons × `rayonPalier()/63` quand il existe (sinon `lvPiste`) ; chaque épingle en DEUX
+  quarts de tour enchaînés (l'intervalle grandit avec le palier) ; 4 S sur 10 SERRÉS ; lignes droites fixes (≤ 80 m hors cassure) ; un virage
+  avant l'arrivée. MESURÉ, 4 graines par palier : palier 0 et 10 → 40/40 ✓ ; paliers 20 et 27 → 36/40 (seul « virages par km » manque :
+  2,1-2,5 pour 2,5 — en fin de partie les rayons tenables grandissent plus vite que les virages ne se resserrent).
 - Console : `dbgBanq('raccourci',{n,f,v})` (la caisse sort par le bord aval de la spirale n, à la fraction f du tour) puis `dbgBanq('etat').s`
   (le gain) ; `dbgBanq('spirale',{n,h,d,a})` (la photo d'ensemble, en pause).
 
