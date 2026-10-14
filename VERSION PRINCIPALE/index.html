@@ -29417,12 +29417,15 @@ let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (n
    (plein), ce que la partie vient d'y verser (qui se remplit sous les yeux), et ce qu'il manque. */
 function objRender(el){
   if(!el)return;
+  /* (2026-10-14, navigation 7) la carte parle comme l'onglet MISSIONS : la consigne avec ses accents (police système) et, comme sur
+     l'onglet, ce que la mission rapporte en vert juste après elle ; ?nav=0 garde la carte d'avant */
+  const N7=defisN7(),T7=N7?n7Tx:TR;
   if(MIS_REC){const r=MIS_REC;
     el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
     // (2026-09-28, console de son) CARNET BOUCLÉ — la récompense la plus rare : la carte arrive à 490 ms, UNE fois par mort
     if(TCTL.mortT&&objRender._c!==TCTL.mortT){objRender._c=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none')sfx('ui.carnet');}catch(e){}},REDUCED_MOTION?0:490);}
-    el.innerHTML='<div class="obHd"><span>'+pxi('cadeau')+' '+TR('DÉFIS RÉUSSIS !')+'</span></div>'
-      +'<div class="obBig">'+r.nom+'</div><div class="obFt"><span>'+TR(r.car!=null?'EST À TOI — VA LA VOIR':r.cat?'EST À TOI — ESSAIE-LA':'VERSÉS AU COMPTE')+'</span>'+pxi('droite')+'</div>';
+    el.innerHTML='<div class="obHd"><span>'+pxi('cadeau')+' '+T7('MISSIONS RÉUSSIES !')+'</span></div>'
+      +'<div class="obBig">'+r.nom+'</div><div class="obFt"><span>'+T7(r.car!=null?'EST À TOI — VA LA VOIR':r.cat?'EST À TOI — ESSAIE-LA':'VERSÉS AU COMPTE')+'</span>'+pxi('droite')+'</div>';
     return;}
   /* (2026-09-28, Sacha : « à la place de "tu peux te l'offrir", un bouton qui montre l'accès aux missions, avec la mission où tu as le
      plus avancé durant la partie ») LA PORTE DES MISSIONS. Le défi que CETTE partie a le plus approché (celui qu'elle vient de relever
@@ -29437,10 +29440,10 @@ function objRender(el){
     el.innerHTML='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
       +'<div class="obBig obGain">'+g.nom+'</div><div class="obFt"><span>3 / 3</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';return;}
   const m=c.m[bi],nf=MIS_NEW.indexOf(bi)>=0,v=nf?m.v:Math.min(m.v,misVal(m.k)),w=nf?100:misPart(m,v)*100;
-  el.innerHTML='<div class="obHd"><span>'+pxi(nf?'coche':'cible')+' '+TR(nf?'DÉFI RÉUSSI !':'MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
-    +'<div class="obBig">'+misTxt(m)+'</div>'
+  el.innerHTML='<div class="obHd"><span>'+pxi(nf?'coche':'cible')+' '+(nf?T7('MISSION RÉUSSIE !'):TR('MISSIONS'))+'</span><b class="mMisPips">'+pips+'</b></div>'
+    +(N7?'<div class="obBig">'+misTxt(m,true)+' <b class="obPrime">+'+fmtC(m.p)+'</b></div>':'<div class="obBig">'+misTxt(m)+'</div>')
     +'<div class="obBar'+(nf?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
-    +'<div class="obFt"><span>'+(nf?'<em class="obPrime">+'+fmtC(m.p)+'</em>':TR('CETTE PARTIE')+' · '+misProgV(m,v))+'</span>'
+    +'<div class="obFt"><span>'+(nf&&!N7?'<em class="obPrime">+'+fmtC(m.p)+'</em>':T7('CETTE PARTIE')+' · '+misProgV(m,v))+'</span>'
     +'<span class="obGain"><b>'+g.nom+'</b>'+pxi('droite')+'</span></div>'; // le nom dans son <b> : s'il faut l'abréger, c'est sa FIN qui s'efface (« LE CO… »), pas son début
   const gi=el.querySelector('.obBar i');
   // la partie REMPLIT la jauge : de zéro à ce qu'elle a fait (après l'entrée de l'écran, pour qu'on la voie monter)
