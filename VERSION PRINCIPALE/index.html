@@ -8617,7 +8617,6 @@ html.sansFacile [data-m="facile"]{display:none!important}
       <div id="gReglage" class="pbtn pbCarre" role="button" tabindex="0" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
       <div id="gMisAncre"><div id="gMisBtn" class="pbtn" role="button" tabindex="0" aria-label="Missions"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="mMisPips" id="gMisPips" aria-hidden="true"><u></u><u></u><u></u></b></div></div>
       <div id="gMenuBas">
-        <div class="pbtn gVerrou" role="button" tabindex="0" aria-label="Bientôt"><i class="pxi pxi-verrou" aria-hidden="true"></i><span data-fr="BIENTOT">BIENTOT</span></div>
         <div class="pbtn gLevel" role="button" tabindex="0" aria-label="Niveau"><span class="glN" id="glN">NIVEAU 1</span><span class="glM" id="glM"></span></div>
         <div class="pbtn pb-mag gBoutique" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></div>
       </div>
@@ -30333,10 +30332,10 @@ function shopRender(){
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
   for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i))continue; // (2026-10-06) une caisse RETIRÉE quitte aussi la vitrine
     const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
-    if(u.une&&!hU){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
-      hU='<div class="shUneCadre"><div class="shRuban">'+TR('OFFRE DE LANCEMENT')+'</div><b class="shRemise">-50%</b><div class="shPhoto big">'+img+'</div>'
+    if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
+      hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
         +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b><span>'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span></div>'
-        +'<div class="shUneBas"><s>'+eurTxt('9,99 €')+'</s><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'verrou')+TR(a?'À TOI':'BIENTÔT')+'</span></div></div>';
+        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
       une.setAttribute('data-car',i);continue;}
     hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
       +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):eurTxt(u.eur))+'</span></div>';
@@ -30352,7 +30351,7 @@ function shopRender(){
    promesse tenue quand Apple a encaissé, et alors seulement `shopDonne(i)` pose la caisse. Tant qu'elle n'est pas branchée, ACHETER
    le DIT dans la fenêtre (« BIENTÔT DISPONIBLE ») et ne donne jamais rien. Déjà à toi : ÉQUIPER (l'atelier s'ouvre sur elle). */
 Object.assign(I18N,{"ÉQUIPER":"EQUIP","Achat unique, via ton compte App Store. À toi pour toujours.":"One-time purchase through your App Store account. Yours forever.",
-  "Elle t'attend à l'atelier.":"It's waiting for you in the garage.","Les achats ouvriront à la sortie sur l'App Store.":"Purchases open when the game launches on the App Store."});
+  "Elle t'attend à l'atelier.":"It's waiting for you in the garage.","Les achats ouvriront à la sortie sur l'App Store.":"Purchases open when the game launches on the App Store.","INDISPONIBLE":"UNAVAILABLE","L'achat est indisponible pour le moment.":"Buying is unavailable right now."});
 const SPOP={el:null,src:null,i:-1,t:0};
 function shopPaye(i){return Promise.reject(new Error('storekit'));} // `i` = l'index d'une caisse OU 'palette' (PALETTE_PACK.produit) — (2026-10-14, palette) puis palDonne() ; ⚠ LA porte de StoreKit : tenir la promesse QUAND Apple a encaissé — jamais avant
 function shopDonne(i){ // la caisse payée en vrai argent : posée dans `owned`, sans toucher à la banque du jeu
@@ -30381,8 +30380,8 @@ function shopPopEl(){
       try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
     },function(){ // pas encore branché : on le DIT, dans la fenêtre, et rien n'est donné
       el.classList.remove('attend');el.classList.add('refus');uiClic('refus');hap([10,40,10]);
-      const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('BIENTÔT DISPONIBLE'));
-      const n=el.querySelector('.spNote');if(n)n.textContent=TR("Les achats ouvriront à la sortie sur l'App Store.");
+      const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('INDISPONIBLE'));
+      const n=el.querySelector('.spNote');if(n)n.textContent=TR("L'achat est indisponible pour le moment.");
     });
   });
   // Échap : c'est la fenêtre qui se ferme — pas l'écran de la boutique (écouteur en CAPTURE, avant celui de la coque)
@@ -30397,12 +30396,12 @@ function shopPop(src){
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
   el.innerHTML='<div class="spCarte '+rar+'" data-car="'+i+'">'
-    +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+(une&&!a?'<b class="shRemise spRemise">-50%</b>':'')
+    +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+''
     +'<div class="shPhoto big">'+(ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>')+'</div>'
     +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'
     +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
     +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
-       :'<div class="spPrix">'+(une?'<s>'+eurTxt('9,99 €')+'</s>':'')+'<em>'+eurTxt(u.eur)+'</em></div>')
+       :'<div class="spPrix">'+'<em>'+eurTxt(u.eur)+'</em></div>')
     +'<div class="spBtns"><div class="pbtn pb-gold spOui" role="button" data-sp="oui">'+pxi(a?'coche':'panier')+'<span>'+sansAcc(TR(a?'ÉQUIPER':'ACHETER'))+'</span></div>'
     +'<div class="pbtn pb-cyan spNon" role="button" data-sp="non">'+pxi('gauche')+'<span>'+TR('ANNULER')+'</span></div></div>'
     +'<small class="spNote">'+TR(a?"Elle t'attend à l'atelier.":"Achat unique, via ton compte App Store. À toi pour toujours.")+'</small></div>';
@@ -30856,7 +30855,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
     case 'kmh':   return [ 'ATTEINDRE ','REACH '][L]+v+[ ' KM/H  (record : ',' KM/H  (best: '][L]+cur+')';
     case 'surv':  return [ 'GAGNER UNE PARTIE EN MODE SURVIVANT','WIN A RUN IN SURVIVOR MODE'][L];
     case 'prem':  return [ 'CAISSE PREMIUM — offerte pour l\'instant','PREMIUM CAR — free for now'][L];
-    case 'bientot':return [ 'DEFI A VENIR','CHALLENGE COMING SOON'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
+    case 'bientot':return [ 'INTROUVABLE','NOT AVAILABLE'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
     case 'pubs':  return [ 'REGARDE '+v+' PUBS  ('+Math.min(cur,v)+' / '+v+')','WATCH '+v+' ADS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-06) L'ÉTERNELLE
   }
   return '';
@@ -43458,7 +43457,7 @@ function affichesMaj(){
       pix(selNom,9,'#b9b2e6',146);                                                   // le classement de CE niveau (à venir)
       [['1','#ffd75e'],['2','#d8dde8'],['3','#e0955a']].forEach((r,i)=>{const y=180+i*30;pix(r[0]+'.  ? ? ?  - - -',11,r[1],y);});
       x.save();x.translate(w/2,284);x.rotate(-.1);x.strokeStyle='#ff5e7a';x.lineWidth=3;x.strokeRect(-98,-19,196,30);
-      x.font="9px 'Press Start 2P',monospace";x.fillStyle='#ff5e7a';x.fillText(P('BIENTOT EN LIGNE'),0,1);x.restore();
+      x.font="9px 'Press Start 2P',monospace";x.fillStyle='#ff5e7a';x.fillText(P('SOIS LE 1ER'),0,1);x.restore();
     }
     a.tx.needsUpdate=true;
   }
@@ -43472,7 +43471,7 @@ function affichesMaj(){
    traduites par applyLangDOM) qui lisaient « Accueil », « Boutique »... en français. */
 try{Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD|RECORDS','SANS FIN':'ENDLESS','AURA RECORD':'BEST AURA',
   'STATUT':'STATUS','TERMINE':'CLEARED','A TERMINER':'TO CLEAR','VERROUILLE':'LOCKED','MEILLEURE PARTIE':'BEST RUN','AURA MAX':'MAX AURA',
-  'PALIER MOTEUR':'ENGINE TIER','VITESSE MAX':'TOP SPEED','BIENTOT EN LIGNE':'COMING SOON','TES RECORDS : BIENTOT EN DETAIL':'YOUR RECORDS: DETAILS SOON',
+  'PALIER MOTEUR':'ENGINE TIER','VITESSE MAX':'TOP SPEED','BIENTOT EN LIGNE':'COMING SOON','SOIS LE 1ER':'BE FIRST','TES RECORDS : BIENTOT EN DETAIL':'YOUR RECORDS: DETAILS SOON',
   'CLASSEMENT MONDIAL : BIENTOT EN LIGNE':'WORLD RANKING: COMING SOON',
   'Accueil':'Home','Boutique':'Shop','Bientôt':'Coming soon','Niveau':'Level','Compte et aura':'Account and aura','Les niveaux':'Levels',
   'Niveaux accomplis':'Levels cleared','Inventaire':'Inventory','Tenir le téléphone couché':'Hold the phone sideways','Tenir le téléphone debout':'Hold the phone upright'});}catch(e){}
@@ -44565,7 +44564,7 @@ function gStripModeVoitures(){
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
-    if(m==='tous'&&!document.documentElement.classList.contains('c6'))st.insertAdjacentHTML('beforeend',gMystere()); // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
+     // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
@@ -47052,7 +47051,7 @@ function bqEphemeres(){const w=bqSem();if(GBQ.eph&&GBQ.eph.w===w)return GBQ.eph;
   /* (2026-10-13, Léo : « la Nyan Cat n'est plus dans le shop ») L'OFFRE DE LANCEMENT (`une:1` dans CAR_UNLOCK : le CHAT POP-TART) reste
      TOUJOURS en tête des offres ; le tirage de la semaine ne fait tourner que les trois autres places (avant, les quatre étaient tirées
      au hasard et elle sortait de la boutique certaines semaines). */
-  const P=bqPayantes(),U=P.filter(function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une;}),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.filter(function(i){return U.indexOf(i)<0;});
+  const P=bqPayantes(),U=P.filter(function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une&&!carOwned(i);}),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.filter(function(i){return U.indexOf(i)<0;});
   for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}
   return GBQ.eph={w:w,l:U.concat(L).slice(0,4)};}
 function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; // (2026-10-12, Léo : « des objets hebdomadaires ») trois habillages tirés sur le numéro de la semaine
@@ -47080,7 +47079,7 @@ function bqCarteHtml(k,n,lim){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+fmtC(d.p);c='pc';}else{px=sansAcc(TR('DÉFI'));c='defi';}
   return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
-    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
+    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
     +'<span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';}
 function bqPhotos(el){el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}});});}
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
@@ -47135,7 +47134,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   /* CE QU'ON REGARDE (2026-10-12, Léo : « le nom de la voiture et la rareté au-dessus de la voiture ; en dessous, les différents skins —
      coloris — de la voiture, pareil pour les ailes et les traînées ; pour l'instant ORIGINAL partout ») : #gBqNom suit la caisse (projeté au-
      dessus d'elle chaque image) ; #gBqSkins, sous elle, liste les COLORIS de l'objet (bqSkins) — une peinture n'en a pas : c'est un coloris. */
-  const i=garageI,cur=bqCourant(),lim=cur[0]==='v'&&E.indexOf(i)>=0,te=document.getElementById('gBqTete'),nm=document.getElementById('gBqNom'),sk=document.getElementById('gBqSkins');
+  const i=garageI,cur=bqCourant(),lim=cur[0]==='v'&&E.indexOf(i)>=0&&!(CAR_UNLOCK[i]&&CAR_UNLOCK[i].une),te=document.getElementById('gBqTete'),nm=document.getElementById('gBqNom'),sk=document.getElementById('gBqSkins');
   if(GBQ.vu!==cur){GBQ.vu=cur;let ri,nom;
     if(cur[0]==='v'){ri=rarInfo(carRar(i));nom=TR(CARS[i].name);}else{const o=bqCos(cur);ri=rarInfo(cosmRar(o.cat,o.d));nom=o.d?TR(o.d.n):'';}
     nm.style.setProperty('--rc',ri.c);nm.classList.toggle('lim',lim);
@@ -49714,7 +49713,6 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
    else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 DEFIS D'ABORD"));}});}
  clicM(document.querySelector('#gMenuBas .gBoutique'),function(){uiClic('nav');ecranWipe(function(){garMode('boutique');});}); // la BOUTIQUE : l'atelier et ses vitrines
  clicM(document.querySelector('#gMenuBas .gLevel'),function(){uiClic('nav');carrVue(GAR.lvlW||0);});            // le NIVEAU : la carrière, sur le monde en cours
- clicM(document.querySelector('#gMenuBas .gVerrou'),function(){uiClic('refus');toast(pxi('verrou')+' '+TR('BIENTÔT DISPONIBLE'));}); // verrouillé pour l'instant
 }
 
 function gSecoue(b){b.classList.remove('secoue');void b.offsetWidth;b.classList.add('secoue');hap([8,40,8]);} // le NON du garage : ça bouge, ça vibre, et un toast dit pourquoi
@@ -53465,7 +53463,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='shop'&&bqC6()){ bqVaOffres(1); } // (2026-10-14, charte 6) le cadeau de l'accueil = la boutique, onglet OFFRES (UN seul écran OFFRES ; l'ancien #mShop reste pour ?ui=5)
     else if(a==='shop'){ ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
-    else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
+    else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('INDISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
     else if(a==='shopRestore'){ toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER')); } // LA BOUTIQUE : le même atelier 3D, onglet PEINTURE — on essaie sur la vraie caisse
     else if(a==='voirRec'&&MIS_REC){ const r=MIS_REC; ecranWipe(function(){ openGarage(); if(r.car!=null){shopTab('voiture');garageShow(r.car);setTimeout(function(){const be=$('gEquip');if(be&&garageOn&&be.offsetParent)pixBurst(be,12);},520);} else if(r.cat){shopTab(r.cat);shopShow(r.cat,COSM[r.cat].findIndex(x=>x.id===r.id));} }); }
     else if(a==='buyGoal'){ const g9=objectif(); ecranWipe(function(){ openGarage(); if(g9){ if(g9.car!=null){shopTab('voiture');garageShow(g9.car);} else {shopTab(g9.cat);shopShow(g9.cat,g9.i);} } }); }
