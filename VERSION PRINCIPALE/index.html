@@ -42146,6 +42146,7 @@ function traficTick(dt,sp){
   VTR.klaxT=Math.max(0,VTR.klaxT-dt);
   const moi=mode==='drive'&&VC.gel<=0,fc=mode==='fall'?1:side,o=VTR.o,o2=VTR.o2,ph=(CITY.uT.value*2.4)%1<.5;
   let n=0,nb=0,proche=1e9,bou=null;
+  const pas9=Math.max(60,Math.abs(vA)*SPD*vitMult()*dt*1.5); // (2026-10-14, chasse aux bugs, preuve à 1/30) le plus long trajet d'UNE image (×1,5 de marge) : la garde de saut et le couloir du test suivent la vitesse — fixes (60 m, −90 m), ils coupaient le balayage aux derniers moteurs sous NITROOO
   for(const c of VTR.cars){
     if(c.mort)continue;
     if(c.fly>0){ // LA TOUPIE : elle vole dans le monde, puis disparaît
@@ -42161,15 +42162,15 @@ function traficTick(dt,sp){
     if(c.u<1){c.u=Math.min(1,c.u+dt/1.3);const u=c.u*c.u*(3-2*c.u);c.lat=VTR_F[c.f0]+(VTR_F[c.f1]-VTR_F[c.f0])*u;}
     else if(c.bl>0){c.bl-=dt;if(c.bl<=0){c.f0=c.lane;c.lane=c.f1;c.u=0;}}
     else{c.ch-=dt;if(c.ch<=0){c.ch=5+Math.random()*10;const nf=c.lane+(Math.random()<.5?-1:1);if(nf>=0&&nf<8&&traficLibre(nf,c.s,c)){c.f1=nf;c.bl=1.1;}}}
-    const ds=c.s-sp;if(ds<-90||ds>540)continue; // hors du couloir : ni test, ni dessin
+    const ds=c.s-sp;if(ds<-30-pas9||ds>540)continue; // hors du couloir : ni test, ni dessin (−90 m, plus loin seulement quand une image avance de plus de 60 m)
     const T9=VTR_T[c.ty];
     if(moi){ // le choc et le FRÔLÉ (le trafic existe en miroir sous la dalle : même test sur les deux faces)
       const dl=Math.abs(side*lat-c.lat),dS=s-c.s;
       // (2026-10-14, chasse aux bugs) BALAYAGE, comme balEcart : le choc se testait en UN point par image — sous NITROOO ×2,6 et à 20-25 i/s (dt plafonné à ,05)
       // l'écart caisse-voiture avance de 10-15 m par image, plus que la fenêtre d'une petite voiture (9,8 m) : on la TRAVERSAIT sans ACCROCHAGE ni frôlé.
       // Si la fenêtre entière est sautée entre deux images (d0 → dS), on juge l'écart latéral au moment du croisement. Sinon : l'ancien test, inchangé.
-      const W9=T9[3]+2.1,d0=c.d0,l0=c.l0,l1=side*lat-c.lat,saut9=d0<-W9&&dS>W9&&dS-d0<60,dlB=saut9?Math.abs(l0+(l1-l0)*(-d0/(dS-d0))):dl;c.d0=dS;c.l0=l1;
-      if((Math.abs(dS)<W9||saut9)&&dlB<T9[4]+1.15){traficChoc(c,dlB);continue;}
+      const W9=T9[3]+2.1,d0=c.d0,l0=c.l0,l1=side*lat-c.lat,saut9=d0<0&&dS>=0&&dS-d0<pas9,dlB=saut9?Math.abs(l0+(l1-l0)*(-d0/(dS-d0))):dl;c.d0=dS;c.l0=l1; // (preuve à 1/30) saut9 = le MILIEU de la voiture franchi pendant l'image (plus seulement la fenêtre entière sautée) : de biais, une image tombée dans la fenêtre mais à côté laissait passer
+      if((Math.abs(dS)<W9&&dl<T9[4]+1.15)||(saut9&&dlB<T9[4]+1.15)){traficChoc(c,dlB);continue;}
       if(saut9)c.dm=Math.min(c.dm,dlB-T9[4]-1.15);
       if(Math.abs(dS)<T9[3]+2.6)c.dm=Math.min(c.dm,dl-T9[4]-1.15);
       if(!c.fr&&dS>T9[3]+2.6){c.fr=true;if(c.dm<1.5&&Math.abs(vA)-c.v>25){frameAt(c.s,VF);VTR.du.mesh.position.copy(VF.p).addScaledVector(VF.b,c.lat);VTR.froN++;frole(VTR.du,1.6+Math.max(0,c.dm)*1.3,1);}}
