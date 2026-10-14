@@ -14944,7 +14944,7 @@ function fbJupe(K,y,r,h,nb,o){
    de la couronne}. lod 0 = de près (touffes bosselées, écorce à côtes) · 1 = à mi-distance · 2 = au loin (une masse, quelques triangles).
    Les couleurs sont des ALBÉDOS (l'étalonnage du jeu passe après) ; la teinte par arbre, l'automne des érables, la nuit : dans le shader. */
 const FC={hetre:[.12,.235,.07],chene:[.085,.175,.055],bouleau:[.18,.28,.08],epicea:[.032,.085,.055],sapin:[.036,.096,.074],pin:[.075,.145,.06],
-  eHetre:[.36,.36,.335],eChene:[.31,.26,.21],eBouleau:[.86,.85,.81],eEpicea:[.32,.21,.16],ePin:[.56,.31,.19]};
+  eHetre:[.36,.36,.335],eChene:[.31,.26,.21],eBouleau:[.86,.85,.81],eEpicea:[.32,.21,.16],ePin:[.56,.31,.19],eSeq:[.38,.16,.10],seq:[.07,.165,.075]};
 const FOR_ESP={
   hetre:function(K,lod,rg){const H=28,cy=19,cr=8.6,o={ytop:H,rg:rg};
     fbTube(K,[[0,0,0],[.15,5,.1],[.1,10,-.15],[-.1,13.5,0]],[.62,.48,.40,.30],lod?5:8,{col:FC.eHetre,ec:1,mousse:.6,ytop:H,rg:rg,rug:lod?0:.03});
@@ -15001,6 +15001,19 @@ const FOR_ESP_N=['hetre','chene','bouleau','epicea','sapin','pin'];
 function fgRacines(K,n,r0,rg,col,ec,lod,ytop){for(let k=0;k<n;k++){const an=k/n*6.283+rg()*.4,x=Math.cos(an),z=Math.sin(an),L9=r0*(1.7+rg()*.8);
   fbTube(K,[[x*r0*.55,r0*.9,z*r0*.55],[x*r0*1.05,r0*.35,z*r0*1.05],[x*L9,-1.5,z*L9]],[r0*.42,r0*.30,r0*.10],lod?5:8,{col:col,ec:ec,mousse:1,ytop:ytop,rg:rg,rug:lod?0:.05,aoK:-.2});}}
 const FOR_GEANTS={
+  /* (2026-10-14 soir, Sacha : « BEAUCOUP plus d'arbres, BEAUCOUP plus grands, un peu comme la ville ») LE SÉQUOIA-TOUR : un fût droit et
+     cannelé, rouge, sans une branche sur les deux premiers tiers — la route passe ENTRE les troncs comme entre des immeubles — puis une
+     couronne étroite en étages de touffes, tout là-haut. 320 m au gabarit, ×0,9-1,8 à la pose : de 290 à 570 m. */
+  sequoia:function(K,lod,rg){const H=320,C=[],S=[],col=FC.eSeq,cc=[0,262,0];
+    const tr=[[0,0,0],[0,36,0],[.6,100,0],[0,170,.5],[-.5,236,0],[0,290,0],[0,H-3,0]],rr=[17,13.4,11.6,9.8,7.6,4.4,.6];
+    fbTube(K,tr,rr,lod?9:18,{col:col,ec:1,mousse:.5,ytop:H,rg:rg,rug:lod?.05:.16});
+    for(let i=0;i<tr.length-2;i++)C.push([tr[i][0],tr[i][1],tr[i][2],tr[i+1][0],tr[i+1][1],tr[i+1][2],rr[i+1]*1.04]);
+    fgRacines(K,lod?6:10,17,rg,col,1,lod,H);
+    const et=lod?5:8;for(let e=0;e<et;e++){const t=e/(et-1),y=184+t*(H-198),R9=(1-t)*30+5,nb=Math.max(2,Math.round((lod?3:5)*(1-t*.6)));
+      for(let k=0;k<nb;k++){const an=k/nb*6.283+e*1.1+rg()*.5,c=[Math.cos(an)*R9,y+rg()*8,Math.sin(an)*R9],r=(1-t)*13+7+rg()*3;
+        fbTouffe(K,c,r*(lod?1.2:1),lod?1:(t<.3?2:1),{rg:rg,cc:cc,cr:40,col:FC.seq,ytop:H,sq:.7});
+        if(k%2===0)S.push([c[0]*.7,c[1],c[2]*.7,r*.7]);}}
+    return {h:H,cr:40,cy:262,cb:178,C:C,S:S};},
   chene:function(K,lod,rg){const H=168,C=[],S=[],col=FC.eChene,cc=[0,140,0];
     const tr=[[0,0,0],[2,30,1],[-1,62,3],[3,92,0],[1,112,-2]],rr=[12.5,9,7.4,6.2,4.6];
     fbTube(K,tr,rr,lod?8:16,{col:col,ec:2,mousse:1,ytop:H,rg:rg,rug:lod?.02:.08});
@@ -15056,7 +15069,7 @@ const FOR_GEANTS={
     for(let k=0;k<(lod?2:4);k++){const an=rg()*6.283,r9=rg()*14,c=[Math.cos(an)*r9,128+rg()*12,Math.sin(an)*r9],r=14+rg()*4;
       fbTouffe(K,c,r,lod?1:2,{rg:rg,cc:cc,cr:42,col:[.08,.15,.05],ytop:H,sq:.7});S.push([c[0],c[1],c[2],r*.78]);}
     return {h:H,cr:42,cy:135,C:C,S:S,face:[fc[0],fy,fc[2]]};}};
-const FOR_GEANTS_N=['chene','hetre','epicea','ancien'];
+const FOR_GEANTS_N=['chene','hetre','epicea','ancien','sequoia'];
 /* LE LOIN (au-delà de la bande moyenne) : la couronne seule — une boule bosselée pour les feuillus, un cône à deux pentes pour les conifères */
 const FOR_LOIN={hetre:[19.5,8.8,.85],chene:[15.5,10.5,.62],bouleau:[16,4.8,1.5],pin:[24.5,6.4,.55]};
 function foretLoin(k,K,rg){const H=k==='epicea'?37:33,o=FOR_LOIN[k];
@@ -15511,7 +15524,7 @@ function foretArche(root,fr,M){const Q=FORET.Q;if(!Q||!Q.arche)return null;
   FORET.zonesNu.push([o[0],o[2],60]);FORET.zonesNu.push([A[0],A[2],45]);FORET.zonesNu.push([B9[0],B9[2],45]);
   return {C:C,LI:LI,c:new THREE.Vector3(o[0],top,o[2])};}
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la forêt) ---------------- */
-const FOR_GEANT_RR={chene:7.4,hetre:6.6,epicea:5.6,ancien:11}; // le rayon du tronc à hauteur de route (gabarit nominal, visage compris)
+const FOR_GEANT_RR={chene:7.4,hetre:6.6,epicea:5.6,ancien:11,sequoia:14}; // le rayon du tronc à hauteur de route (gabarit nominal, visage compris)
 function forLot(items){ // trie les exemplaires par QUARTIER : chaque quartier = une plage contiguë (le tri par champ ne recopie que ce qu'il faut)
   items.sort(function(a,b){return a.q-b.q;});const n=items.length,o={n:n,M:new Float32Array(n*16),J:new Float32Array(n*4),rK:[],rA:[],rB:[]};
   let a=0;for(let i=0;i<n;i++){o.M.set(items[i].m,i*16);o.J.set(items[i].j,i*4);if(i===n-1||items[i+1].q!==items[i].q){o.rK.push(items[i].q);o.rA.push(a);o.rB.push(i+1);a=i+1;}}
@@ -15555,13 +15568,13 @@ function buildForet(seed){
     for(const k of meta.C||[]){const a=tr(k[0],k[1],k[2]),b=tr(k[3],k[4],k[5]);COL.push({g:1,a:a,b:b,r:k[6]*sxz});}
     for(const k of meta.S||[]){const a=tr(k[0],k[1],k[2]);COL.push({g:0,a:a,r:k[3]*rr});}};
   // ---- 1. LES GÉANTS : à la corde de chaque virage, puis en quinconce le long des droites ----
-  const GE=[],ge=FOR_GEANTS_N;
+  const GE=[],ge=FOR_GEANTS_N.filter(function(k){return k!=='sequoia';}); // (les séquoias ont leur passe à eux, plus bas)
   const geant=(i,sg,lat,sp)=>{const p=pts[i],l9=lat9(i),x=p.x+l9[0]*sg*lat,z=p.z+l9[1]*sg*lat,base=solH(x,z)-3,meta=PT.geant[sp][0].m;
-    const sy=THREE.MathUtils.clamp((p.y-base+20)/95,.66,1.8),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RR[sp]*sxz,cr=meta.cr*sxz;
+    const sy=sp==='sequoia'?THREE.MathUtils.clamp((p.y-base+190+fr()*130)/meta.h,.9,1.8):THREE.MathUtils.clamp((p.y-base+20)/95,.66,1.8),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RR[sp]*sxz,cr=meta.cr*sxz;
     if(lat<ROAD_HALF+rT+6)return false;
     for(const g of GE)if(Math.hypot(g.x-x,g.z-z)<(g.cr+cr)*.72)return false;
     let ok=true;proches(x,z,cr+ROAD_HALF+12,function(j){if(!ok)return;const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);
-      if(dh<rT+ROAD_HALF+4.5)ok=false;else if(dh<cr*.95+ROAD_HALF+4&&q.y>base+95*sy-16)ok=false;});
+      if(dh<rT+ROAD_HALF+4.5)ok=false;else if(dh<cr*.95+ROAD_HALF+4&&q.y>base+(meta.cb||95)*sy-16)ok=false;});
     if(!ok)return false;
     const ry=sp==='ancien'?Math.atan2(p.x-x,p.z-z):fr()*6.2832;
     GE.push({x:x,z:z,y:base,sp:sp,sy:sy,sxz:sxz,ry:ry,cr:cr,rT:rT,top:base+meta.h*sy,i:i});zone(x,z,rT+9);return true;};
@@ -15576,6 +15589,11 @@ function buildForet(seed){
      if(fr()<.5){const i2=Math.min(NP-1,k[0]+Math.round((55+fr()*45)/ds));geant(i2,-sg,ROAD_HALF+10+fr()*16+FOR_GEANT_RR.chene,ge[(fr()*ge.length)|0]);}}} // …et parfois, à la sortie, de l'autre côté
   {let sd=fr()<.5?-1:1;for(let s9=280;s9<L-200;s9+=95+fr()*70){const i=Math.round(s9/ds);let pres=false;for(const g of GE){const d=Math.hypot(g.x-pts[i].x,g.z-pts[i].z);if(d<85){pres=true;break;}}
     if(pres)continue;sd=-sd;const sp=ge[(fr()*ge.length)|0];geant(i,sd,ROAD_HALF+6+FOR_GEANT_RR[sp]*1.05+fr()*22,sp);}}
+  /* LES SÉQUOIAS-TOURS (2026-10-14 soir) : une COLONNADE le long de toute la descente — un fût tous les 55-95 m, d'un côté puis de
+     l'autre, au ras du bord (la route serpente entre les troncs), et un second rang plus loin qui ferme la vallée comme des immeubles. */
+  {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=55+fr()*40){const i=Math.round(s9/ds);sd=-sd;
+     geant(i,sd,ROAD_HALF+FOR_GEANT_RR.sequoia*1.3+4+fr()*26,'sequoia');}
+   for(let s9=340;s9<L-200;s9+=95+fr()*70)for(const sg of [-1,1])if(fr()<.8)geant(Math.round(s9/ds),sg,ROAD_HALF+70+fr()*120,'sequoia');}
   FORET.geants=GE;
   // ---- 2. LES ROCHERS DU LOUP (les aiguilles de grès qui dominent la canopée) ----
   const RO=[];{let sd=fr()<.5?-1:1;for(let s9=520+fr()*200;s9<L-450;s9+=520+fr()*320){const i=Math.round(s9/ds),l9=lat9(i);sd=-sd;
@@ -15618,7 +15636,7 @@ function buildForet(seed){
       else{const H9=sp==='epicea'?37:33,r9=sp==='epicea'?6.6:6;LOINC.push({q:q,m:mat(x,y+3*s,z,ry,r9*sxz*g9,(H9-2.5)*s,r9*sxz*g9),j:[fr(),al[0],al[1],al[2]]});}}}ext(q,x,y,y+me.h*s,z,me.cr*sxz);canTampon(x,z,me.cr*sxz,y+me.h*s-2.5);nArb++;}}
   FORET.n.arbres=nArb;
   // les géants entrent dans les familles (même tri), et leurs collisions dans la liste
-  const GES={};for(const k of ge)GES[k]=[];
+  const GES={};for(const k of FOR_GEANTS_N)GES[k]=[];
   for(const g of GE){const q=qDe(g.x,g.z),meta=PT.geant[g.sp][0].m;GES[g.sp].push({q:q,m:mat(g.x,g.y,g.z,g.ry,g.sxz,g.sy,g.sxz),j:[fr(),(fr()*2-1)*.4,0,0]});
     ext(q,g.x,g.y,g.top,g.z,g.cr);colPose(meta,g.x,g.y,g.z,g.ry,g.sxz,g.sy);} // (pas de tampon de canopée : la case de 26 m déborderait sur la route — les gélules et sphères suffisent)
   // les rochers : une famille aussi
@@ -15650,7 +15668,7 @@ function buildForet(seed){
   const PRES=PAL_B9('foretPres',0); // palier ancien : le détail MOYEN de près aussi (une famille par essence au lieu de deux)
   for(const k of FOR_ESP_N){const lot=forLot(ESP[k]);if(PRES){const F=forFamille(root,PT.esp[k][1].g,M.arb,lot,0,1,'aI');if(F)F.nom=k+'1';}else for(let l=0;l<2;l++){const F=forFamille(root,PT.esp[k][l].g,M.arb,lot,BANDE[l][0],BANDE[l][1],'aI');if(F)F.nom=k+l;}}
   {const F1=forFamille(root,PT.boule.g,M.arb,forLot(LOINF),2,2,'aI'),F2=forFamille(root,PT.cone.g,M.arb,forLot(LOINC),2,2,'aI');if(F1)F1.nom='loin-feuillus';if(F2)F2.nom='loin-coniferes';}
-  for(const k of ge){const lot=forLot(GES[k]);if(PAL_B9('foretGeantFin',1)){const F1=forFamille(root,PT.geant[k][0].g,M.arb,lot,0,1,'aI'),F2=forFamille(root,PT.geant[k][1].g,M.arb,lot,2,2,'aI');if(F1)F1.nom='G'+k+'0';if(F2)F2.nom='G'+k+'1';}
+  for(const k of FOR_GEANTS_N){const lot=forLot(GES[k]);if(PAL_B9('foretGeantFin',1)){const F1=forFamille(root,PT.geant[k][0].g,M.arb,lot,0,1,'aI'),F2=forFamille(root,PT.geant[k][1].g,M.arb,lot,2,2,'aI');if(F1)F1.nom='G'+k+'0';if(F2)F2.nom='G'+k+'1';}
     else{const F=forFamille(root,PT.geant[k][1].g,M.arb,lot,0,2,'aI');if(F)F.nom='G'+k+'1';}} // palier ancien : un seul détail pour les géants
   {const lot=forLot(ROI);const gR=FORET.geoRoc||(FORET.geoRoc=foretRocherGeo());const F=forFamille(root,gR,M.arb,lot,0,2,'aI');if(F)F.nom='rochers';}
   if(PAL_B9('foretChampi',1)){const lot=forLot(CHI);const gC=FORET.geoChi||(FORET.geoChi=foretChampiGeo());const F=forFamille(root,gC,M.arb,lot,0,1,'aI');if(F)F.nom='amanites';}
