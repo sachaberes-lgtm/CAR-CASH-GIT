@@ -49642,6 +49642,34 @@ window.dbgCout=function(on){ // (banc) — voir COUT
   return {on:COUT.on,image:COUT.der,gpu:st(COUT.gpu),cpu:st(COUT.cpu),chrono:!!COUT.ext,geo:m.geometries,tex:m.textures,progs:(renderer.info.programs||[]).length,
     toile:[cv.width,cv.height],px:cv.width*cv.height,dpr:+curDPR.toFixed(2),post:POST_ON,passes:pa,bloom:bloomPass?(bloomPass.enabled?[bloomPass.renderTargetsHorizontal[0].width,bloomPass.renderTargetsHorizontal[0].height]:0):null,
     ombre:renderer.shadowMap.enabled?sun.shadow.mapSize.x:0,ql:QL.k,vhd:VHD.on,qualite:typeof SAVE!=='undefined'&&SAVE.d?SAVE.d.q:null};};
+/* (2026-10-14, passe perf mobile) LE NIVEAU DERRIÈRE L'ÉCRAN DE MORT, UNE IMAGE SUR N. Mesuré sur iPhone 7 émulé : pendant l'écran de fin le jeu
+   dessinait encore ~286 appels et ~1 000 000 de triangles par image — le niveau entier, ombres et passes plein écran comprises — sous les cartes
+   ET sous le voile du téléphone (`body.touch #overlay[data-ecran="dead"]::before`, opacité .9) : il ne reste que 10 % d'une image où plus rien
+   ne se joue (endGame arrive APRÈS l'explosion, la simulation et la caméra sont arrêtées ; seuls le ciel, les nuages, l'eau dérivent). Un
+   téléphone qui chauffe là rame à la partie suivante. `mortImg` = on ne redessine la scène 3D qu'une image sur N : ANCIEN 4, MOYEN 2, RÉCENT 1
+   (chaque image, comme avant). Les autres images, RIEN n'est dessiné dans la toile : le navigateur garde l'image affichée (pas de dessin, pas
+   de nouvelle présentation). On espace le DESSIN seulement : simulation d'ambiance, sons, cartes et carte MOTEUR (son tampon à elle) continuent.
+   ⚠ les gardes : (1) seulement l'écran « dead » du téléphone, 1,5 s après son arrivée (le voile et les cartes sont posés) — accueil, atelier,
+   étal, REJOUER remettent le compteur à zéro : leur 1re image est dessinée tout de suite ; (2) une toile redimensionnée (rotation) est VIDÉE
+   par le navigateur : on redessine aussitôt ; (3) la sonde de qualité veut une vraie image ; (4) l'échelle de qualité (QL) ne conclut rien d'un
+   écran où trois images sur quatre ne coûtent rien : son horloge `dprT` est tenue (elle repartait sinon en netteté, à payer au départ suivant).
+   `dbgMortImg()` lit l'état ; `dbgMortImg(n)` force N sur le palier courant (banc). */
+PAL.B.mortImg=[4,2,1];
+const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false};
+function mortSaute(dt){
+  const N=PAL.b('mortImg',1)|0;
+  if(N<=1)return false;
+  if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
+  MORT_IMG.t+=dt;
+  if(MORT_IMG.t<1.5)return false;
+  MORT_IMG.on=true;if(dprT<2.2)dprT=2.2;
+  const c=renderer.domElement;
+  if(c.width!==MORT_IMG.w||c.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c.width;MORT_IMG.h=c.height;MORT_IMG.i=0;return false;}
+  MORT_IMG.i=(MORT_IMG.i+1)%N;
+  if(MORT_IMG.i===0)return false;
+  MORT_IMG.n++;return true;
+}
+window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);MORT_IMG.i=0;}return {N:PAL.b('mortImg',1),actif:MORT_IMG.on,depuis:+MORT_IMG.t.toFixed(2),sautees:MORT_IMG.n,ecran:overlay.getAttribute('data-ecran'),tel:TCTL.on};}; // (banc)
 function loop(now){
   requestAnimationFrame(loop);
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
@@ -51391,9 +51419,11 @@ function loop(now){
   try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);} // (2026-10-13) CRYPTOCITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   if(GRUE.L.length||JADE.root)grueTick(dt); // …et les vols de grues // (Paris) le scintillement et le phare
+  const mortS9=mortSaute(dt); // (2026-10-14, passe perf mobile) écran de mort, paliers ANCIEN et MOYEN : la scène n'est redessinée qu'une image sur N (voir mortSaute)
+  if(mortS9){}else
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
-  try{homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
+  try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
   if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
