@@ -7531,6 +7531,10 @@ html.c6 #mSet .c6Col:first-child>:nth-child(-n+2){order:1}
 html.c6 #mSet .c6Col>.oJeu{order:2}
 html.c6 #mSet .c6Col>.oSauv{order:3}
 html.c6 #mSet .c6Pied{order:4}
+/* (2026-10-14, passe fin/transitions, backlog P2) ENTRER UN CODE (Léo : « tout en bas ») est posé dans le DOM APRÈS le pied, hors des colonnes :
+   sans ordre il montait EN TÊTE de la liste debout (ordre 0, avant AUDIO) et tombait couché SOUS la version, seul à gauche. Il rejoint la fin
+   de la liste, sous RESTAURER UN CODE (la sauvegarde, dernier groupe debout), juste au-dessus d'EFFACER. Le DOM ne bouge pas (?ui=5 intact). */
+html.c6 #mSet .mCode{order:3}
 /* les groupes : plus de plaque autour, des lignes séparées de 8 px */
 html.c6 #mSet .mPanel{display:flex;flex-direction:column;gap:8px;padding:0;overflow:visible;background:none;box-shadow:none;clip-path:none}
 html.c6 #mSet .mPanel::before,html.c6 #mSet .mPanel::after{content:none}
@@ -7570,6 +7574,11 @@ html.c6 #mSet .c6Ver{display:block;font:600 13px/16px var(--c6-sys);letter-spaci
   html.c6 #mSet .c6Col>.mSec:first-child{margin-top:0}
   html.c6 #mSet .c6Col>*{order:0}
   html.c6 #mSet .c6Pied{grid-column:1/-1;order:0}
+  /* couché : le code se range dans la colonne de gauche sous RESTAURER UN CODE ; la colonne JEU couvre les deux rangées ; le pied en 3e */
+  html.c6 #mSet .c6Col:first-child{grid-column:1;grid-row:1}
+  html.c6 #mSet .c6Col+.c6Col{grid-column:2;grid-row:1/span 2}
+  html.c6 #mSet .mCode{grid-column:1;grid-row:2;margin-top:8px}
+  html.c6 #mSet .c6Pied{grid-row:3}
 }
 /* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » (20 lettres) ne tient pas à 15 : libellé de ligne à 13 (plancher de lecture), le chevron cède sa place */
 @media (orientation:landscape) and (max-width:700px){
