@@ -10900,8 +10900,24 @@ const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0
    l'échelle descendait jusqu'à DPR_MIN 0,5 — un pixel 3D pour six pixels d'écran sur un iPhone. Désormais DEUX planchers par réglage :
    le NET (où l'on s'arrête en régime normal) et le BAS (qu'on ne franchit JAMAIS, même effondré) — NETTE 1,25 / 1,0 · RAPIDE 0,85 / 0,7.
    Sous 1,0 en NETTE, le joueur a choisi la netteté : on garde l'image, quitte à perdre des images par seconde. */
+/* NETTE PAR PALIER (2026-10-14, passe perf mobile — GRAPHISME : « l'iPhone tourne en RAPIDE par défaut, DPR 1 : flou sur un Retina »).
+   Le départ d'une course se fait AU PLAFOND (qlDepart ≤ 5 = les crans invisibles : qlDpr rend `cap`) ; pl/bas ne sont que les PLANCHERS.
+   Pixels dessinés en course = largeur × hauteur (points CSS) × curDPR² ; au départ curDPR = DPR_CAP = min(densité, RAPIDE 1 · NETTE 1,5).
+   NETTE d'avant sur un iPhone 7 (667×375 pt) : 1,5 → 563 000 px, 2,25 × RAPIDE, au-dessus du budget de l'ANCIEN (vhdPx 0,45 M) avant même
+   la première image. Par palier [ANCIEN, MOYEN, RÉCENT] (3e colonne = avant, identique) :
+     · dprNetCap : le PLAFOND en NETTE — ANCIEN 1,25 (iPhone 7 : 391 000 px · 8 Plus / X : 476 000 ≈ le budget 0,45 M) ; MOYEN 1,35
+       (iPhone 11 : 676 000 px · XS : 555 000 · SE 2 : 456 000) ;
+     · dprNet / dprNetBas : le plancher NET (régime normal) et le plancher BAS (effondrement) — ANCIEN 1,0 / 0,85 (iPhone 7 : 250 000 px
+       = le départ RAPIDE / 181 000 = le plancher net RAPIDE) ; MOYEN 1,15 / 0,9 (iPhone 11 : 491 000 / 300 000) ;
+     · qNetDefaut : 1 = une sauvegarde qui n'a JAMAIS choisi (SAVE.d.qChoisi absent ou 0) part en NETTE sur ce palier. Tout à 0 tant que
+       Sacha n'a pas tranché : RAPIDE reste le défaut partout. RAPIDE n'est touché par AUCUNE de ces lignes. `dbgNette()` décrit. */
+PAL.B.dprNetCap=[1.25,1.35,1.5];PAL.B.dprNet=[1,1.15,1.25];PAL.B.dprNetBas=[.85,.9,1];PAL.B.qNetDefaut=[0,0,0];
+/* (2026-10-14, passe perf mobile) ⚠ `typeof SAVE` NE PROTÈGE PAS d'un `const` encore en zone morte : au chargement, le départ au bon cran
+   (`qlPose(qlDepart)`, plus bas) levait « Cannot access 'SAVE' before initialization », avalé par son try — les paliers 0-1 ne partaient
+   jamais à leur cran (MOYEN au cran 0 au lieu de 2, ANCIEN au 4 de qlMin au lieu de 5). Avant la sauvegarde = RAPIDE. Palier 2 : inchangé. */
+function qlNet(){try{return !!(SAVE.d&&SAVE.d.q==='net');}catch(e){return false;}}
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
-  const cap=DPR_CAP,net=(typeof SAVE!=='undefined'&&SAVE.d&&SAVE.d.q==='net'),pl=Math.min(cap,net?1.25:.85),bas=Math.min(pl,Math.max(DPR_MIN,net?1:.7)),
+  const cap=DPR_CAP,net=qlNet(),pl=Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
         nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
   return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
 function qlDpr(k,b){ // la résolution que vaut le cran k
@@ -10919,6 +10935,10 @@ function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('ql
   QUAL_MED=k>0;QUAL_LOW=!!bloomPass&&!bloomPass.enabled&&!REDUCED_MOTION;return k;}
 function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine résolution tout de suite (les crans invisibles restent, l'échelle redescendra si besoin)
   QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;QL.essai=null;QL.plafT=0;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
+window.dbgNette=function(){ const b=qlBornes(),pt=innerWidth*innerHeight,S9=(typeof SAVE!=='undefined'&&SAVE.d)||{}; // (2026-10-14, passe perf mobile) banc : la définition et ce qu'elle coûte en pixels — voir NETTE PAR PALIER
+  return {palier:PAL.n,q:S9.q,choisi:S9.qChoisi|0,netDefaut:PAL.b('qNetDefaut',0),dpr:+devicePixelRatio.toFixed(2),cap:+DPR_CAP.toFixed(2),pl:+b.pl.toFixed(2),bas:+b.bas.toFixed(2),
+    curDPR:+curDPR.toFixed(2),cran:QL.k,kNet:b.kNet,kBas:b.kBas,vhd:VHD.on,px:Math.round(pt*curDPR*curDPR),pxCap:Math.round(pt*b.cap*b.cap),pxPl:Math.round(pt*b.pl*b.pl),pxBas:Math.round(pt*b.bas*b.bas),
+    budgets:{dprNetCap:PAL.B.dprNetCap,dprNet:PAL.B.dprNet,dprNetBas:PAL.B.dprNetBas,qNetDefaut:PAL.B.qNetDefaut}};};
 /* L'ACCUEIL EN HAUTE DÉFINITION — VHD (2026-09-28, Sacha : « est-ce que tu peux pousser les graphismes au max, juste pour l'écran
    d'accueil »). Toute l'échelle QL est taillée pour la COURSE (60 i/s sous la pluie de particules, à 1 400 km/h) ; la vitrine, elle,
    c'est une caisse arrêtée sur une route, sous un ciel — une AFFICHE. Tant que l'accueil est à l'écran (vitrine qui tourne : ni
@@ -35822,7 +35842,7 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:'fast',sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable
+    tctl:'stick',q:(PAL.b('qNetDefaut',0)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
     // progression DANS une partie (il repart à zéro), la voiture est la progression ENTRE les parties.
@@ -35868,6 +35888,10 @@ const SAVE={
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
     c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
+    /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
+       d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
+       suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&d.q==='net'))?1:0;if(!c.qChoisi)c.q=PAL.b('qNetDefaut',0)?'net':'fast';
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
@@ -51874,7 +51898,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // comme sur l'ordi en `?tel=1`. À 0,66 un iPhone rendait l'image sur ~260 px de large : c'était LA pixellisation.
   // Le plafond peut monter sans risque parce que la résolution adaptative redescend si le GPU peine — et
   // qu'elle sait maintenant REMONTER (voir la boucle).
-  function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:1.5);
+  function applyQ(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
     qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
   // logique : son, voix, musique, Survivant et Parc ont des EFFETS DE BORD (suspend du contexte
@@ -51940,7 +51964,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=false;
       document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
+    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
     else if(a==='volh'){ volhBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
@@ -52289,7 +52313,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); mFill(); }
+    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q!=='net'); mFill(); }
     else if(a==='exp'){ const c9=SAVE.export();
       modale({titre:'MA SAUVEGARDE',texte:'Garde ce code : il restaure toute ta progression.',champ:c9,lecture:true,
         boutons:[{l:'COPIER',ic:'copier',cls:'pb-gold',v:1},{l:'FERMER',v:0}]}).then(function(r){
@@ -52423,7 +52447,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='snd'){dClic(sndBtnEl);dPanSync();}
     else if(a==='vox'){dClic(voxBtnEl);dPanSync();}
     else if(a==='mus'){dClic(musBtnEl);dPanSync();}
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ9(SAVE.d.q!=='net'); dPanSync(); }
+    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q!=='net'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'){ dPanOpen(false); if(started){carrIci();resetGame();} } // (2026-09-28) carrIci : la carrière repart du niveau en cours
@@ -52432,7 +52456,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
   // mobile — hors de portée ici (portée de bloc). Se rebrancher sur le MÊME état (`DPR_CAP`/
   // `curDPR`/`applyDPR`), pas une copie qui diverge.
-  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:1.5); qlReprise(); } // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
+  function applyQ9(fast){ DPR_CAP=Math.min(devicePixelRatio,fast?1:PAL.b('dprNetCap',1.5)); qlReprise(); } // (2026-10-14, passe perf mobile) même plafond par palier (l'ordi = palier 2 : inchangé ; ?palier=0 au banc le suit) // mêmes crans que le téléphone (2026-09-24) : RAPIDE ne descend plus sous la résolution d'origine du desktop
   // ⚙/⏸ + le déclencheur `body.play` : le MÊME tick que le mobile (140 ms, zéro écriture DOM si
   // rien n'a changé) — mais SANS le gel « téléphone couché » ni `mGo()`, qui n'ont aucun sens ici.
   function dSyncJeu(){
