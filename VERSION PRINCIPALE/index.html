@@ -8980,7 +8980,7 @@ const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » 
    des petits détails : conduite, vol, animation, bumps, collisions, explosions, quand tu vas dans l'eau… que ce soit jouissif sur mobile »)
    UN interrupteur pour tout ce que la passe ajoute : `?sens=0` dans l'adresse rend le jeu d'AVANT (à comparer côte à côte, ou à couper
    d'un coup si un détail gêne). Rien de ce qui est gardé par SENS ne touche la physique, les vitesses ni l'économie : du ressenti seul. */
-var SENS=!/[?&]sens=0/.test(location.search);
+var SENS=!/[?&]sens=0/.test(location.search); var SENSG=SENS; /* le même drapeau sous un nom que rien ne masque : le bloc tactile a un `const SENS` local (l interface), qui le cachait → « Cannot access SENS before initialization », le jeu ne démarrait plus */
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',function(e){if(e.matches)document.documentElement.setAttribute('data-reduced-motion','1');else document.documentElement.removeAttribute('data-reduced-motion');});}catch(e){} // (2026-09-29) le réglage d'iOS change en cours de partie : les règles qui ne lisent que l'attribut suivent
 const renderer=new THREE.WebGLRenderer({antialias:!IS_MOBILE&&!IS_LOW_END,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
@@ -52077,7 +52077,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
   // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
   // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
-  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENS?VOLANT_PX:54,LOCKV=44,LOCKU=SENS?38:44,PIQ_K=SENS?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
+  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENSG?VOLANT_PX:54,LOCKV=44,LOCKU=SENSG?38:44,PIQ_K=SENSG?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
   /* (2026-10-14, passe SENSATIONS — Sacha : « sur mobile le joystick n'est pas assez sensible, améliore un petit peu la sensibilité »)
      UN PETIT PEU, sur toute la chaîne du pouce, sans toucher à ce que la caisse SAIT faire (plafonds de lacet et de tangage, VOL_TAU : inchangés) :
      · braquage plein à 46 px au lieu de 54 (−15 % de course : le même geste braque ~18 % de plus) ; la zone morte reste 6 % (2,8 px au lieu de 3,2) ;
