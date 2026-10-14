@@ -118,8 +118,8 @@
     c=tq[1];if(Math.abs(c)>=.3){L.push({p:[0,-.2,.9],f:[c>0?1:-1,0,0],k:k*Math.abs(c)*.7});L.push({p:[0,-.2,-.9],f:[c>0?-1:1,0,0],k:k*Math.abs(c)*.7});}
     return L;}
   function Corps(){this.q=[0,0,0,1];this.w=[0,0,0];this.figs=[];this.evts=[];this.mode='aero';this.budget=Infinity;this.poseK=0;this.n=0;this.der=null;
-    this.r={n:[1,0,0],phi:0};this.tPrise=0;}
-  Corps.prototype.vide=function(){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;this.w[0]=this.w[1]=this.w[2]=0;this.figs.length=0;this.evts.length=0;this.mode='aero';this.tPrise=0;};
+    this.r={n:[1,0,0],phi:0};this.tPrise=0;this.urgent=0;this.cale=0;}
+  Corps.prototype.vide=function(){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;this.w[0]=this.w[1]=this.w[2]=0;this.figs.length=0;this.evts.length=0;this.mode='aero';this.tPrise=0;this.urgent=0;this.cale=0;}; // (relevé par DEBUGING) le redressement et la cale ne passent pas au vol suivant
   // l'élan HÉRITÉ de la route au décollage : l'assiette d'écart `q0` (bornée) et la rotation `w0` (bornée, rad/s, repère caisse)
   Corps.prototype.herite=function(q0,w0){
     var q=this.q;q[0]=q0[0];q[1]=q0[1];q[2]=q0[2];q[3]=q0[3];if(q[3]<0){q[0]=-q[0];q[1]=-q[1];q[2]=-q[2];q[3]=-q[3];}
