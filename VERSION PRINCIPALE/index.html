@@ -44777,7 +44777,8 @@ window.dbgHeure=function(h){ // (dev) forcer une heure du titre : dbgHeure('gold
 const CHUTE_TAP={p:new THREE.Vector3(),v:new THREE.Vector3(),Q:new THREE.Quaternion(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
   ray:new THREE.Raycaster(),nd:new THREE.Vector2(),a:new THREE.Vector3(),b:new THREE.Vector3(),o:new THREE.Vector3(),n9:new THREE.Vector3(),
   cR:new THREE.Vector3(),cU:new THREE.Vector3(),pT:new THREE.Vector3(),col:new THREE.Color(),fl:null,flT:9,flS:1,
-  V:7.5,W:5,WMAX:16,CHAOS:5,K:12,C:2.4,KR:16,CR:1.9,WL:3,TR:.011,TT:.012,PMAX:7,PL:5.5,
+  V:10,W:6.5,WMAX:20,CHAOS:6,HS:.07,hs:0, /* (2026-10-14, Léo : « augmente l'impact des coups ») poussée ×1,33, pivot ×1,3 ; HS = l'ARRÊT SUR IMAGE au contact (s) */
+  K:12,C:2.4,KR:16,CR:1.9,WL:3,TR:.011,TT:.012,PMAX:7,PL:5.5,
   n:0,combo:0,cT:-9,sh:0,deb:null,debM:null,tient:null};
 window.dbgTape=function(k){const T=CHUTE_TAP; // (dev) l'état du coup — dbgTape('coup') : un coup au centre de la caisse (banc)
   if(k==='coup'){const r=renderer.domElement.getBoundingClientRect(),q=(CHUTE.ctr||carGroup.position).clone().project(camera);
@@ -44811,7 +44812,7 @@ function chuteTape(e){ // TAPÉE : le coup
   T.a.subVectors(h.point,c).cross(d).multiplyScalar(T.W*mu);T.w.add(T.a);                  // le pivot : r × F
   T.w.x+=(Math.random()-.5)*T.CHAOS*mu;T.w.y+=(Math.random()-.5)*T.CHAOS*mu;T.w.z+=(Math.random()-.5)*T.CHAOS*mu; // le chaos
   if(T.w.length()>T.WMAX)T.w.setLength(T.WMAX);
-  T.sh=Math.min(1.6,T.sh+.55*mu);                                                         // la caméra encaisse
+  T.sh=Math.min(2.3,T.sh+.85*mu);T.hs=T.HS*(T.combo>=3?1.35:1);                          // la caméra encaisse (14/10 : plus fort) — et l'arrêt sur image : la caisse fige 70 ms au contact, puis part
   // la normale de la face touchée (dans le monde), pour faire gicler étincelles et morceaux
   const n=T.n9;if(h.face)n.copy(h.face.normal).transformDirection(h.object.matrixWorld);else n.copy(d).negate();if(n.dot(d)>0)n.negate();
   if(!T.fl&&RICH.texEt){T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:RICH.texEt,transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);} // (2026-10-08) l'éclat d'impact : une ÉTOILE nette (la boule floue faisait « naïf »)
@@ -44819,20 +44820,20 @@ function chuteTape(e){ // TAPÉE : le coup
     g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,240,200,.85)');g.addColorStop(1,'rgba(255,210,140,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
     T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);}
-  T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1+.4*(mu-1);T.fl.visible=true;T.fl.material.rotation=Math.random()*3;T.n++;
+  T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1.45+.55*(mu-1);T.fl.visible=true;T.fl.material.rotation=Math.random()*3;T.n++;
   const P=h.point;richCoup(P,n,d,mu,T.combo); // (2026-10-08) LES ÉTINCELLES v2 et LA PLUIE DE RICHESSE (voir ce bloc) — les gerbes sparkGold/dust d'avant, « brutes, naïves », sont retirées
   chuteDebris();const sp=CARS[garageI]||CARS[0];                                         // LES MORCEAUX DE TÔLE, à ses couleurs
   {const M9=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,G9=h.object.geometry,ca=G9&&G9.attributes&&G9.attributes.color; // la couleur de la PIÈCE touchée (sa couleur de sommet × sa matière)
    if(M9&&M9.color)T.debM[0].color.copy(M9.color);else T.debM[0].color.setHex(sp.color!=null?sp.color:0xff5a2a);
    if(ca&&h.face&&M9&&M9.vertexColors){const i9=h.face.a;T.col.setRGB(ca.getX(i9),ca.getY(i9),ca.getZ(i9));T.debM[0].color.multiply(T.col);}
    T.debM[1].color.setHex(sp.accent!=null?sp.accent:0xdddddd);}
-  const nd=Math.min(T.deb.length,Math.round(2+1.6*mu));
-  for(let i=0;i<nd;i++){const D=T.deb[T.di];T.di=(T.di+1)%T.deb.length;const sp9=3+Math.random()*5*mu,m=D.m;
+  const nd=Math.min(T.deb.length,Math.round(3+2*mu));
+  for(let i=0;i<nd;i++){const D=T.deb[T.di];T.di=(T.di+1)%T.deb.length;const sp9=4+Math.random()*6*mu,m=D.m;
     m.position.copy(P).addScaledVector(n,.05);D.v.set(n.x*sp9+(Math.random()-.5)*5,n.y*sp9+(Math.random()-.5)*5+1.5,n.z*sp9+(Math.random()-.5)*5);
     D.w.set((Math.random()-.5)*16,(Math.random()-.5)*16,(Math.random()-.5)*16);m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);
     const k9=.5+Math.random()*.8;D.s.set(.34*k9,.05+.05*Math.random(),.24*k9);m.scale.copy(D.s);D.t=0;D.vie=1.3+Math.random()*.9;m.visible=true;}
-  try{if(SONV2){sfx('pose.choc',{vol:-2+3*Math.min(1,mu-1)});sfx('debris.tole',{vol:2,t:.03});if(T.combo>=3)sfx('pose.lourde',{vol:-4,t:.02});}else{chimeNote(340,0,.05,.10);noiseBurst(.18,.08,900);}}catch(_){} /* la tôle qui encaisse — de plus en plus lourd */
-  try{hap(T.combo>=3?[30,20,40]:[22,15,18]);}catch(_){}
+  try{if(SONV2){sfx('pose.choc',{vol:1+3*Math.min(1,mu-1)});sfx('debris.tole',{vol:3,t:.03});if(T.combo>=2)sfx('pose.lourde',{vol:-2+2*Math.min(1,(T.combo-2)/3),t:.02});}else{chimeNote(340,0,.05,.10);noiseBurst(.18,.08,900);}}catch(_){} /* la tôle qui encaisse — de plus en plus lourd */
+  try{hap(T.combo>=3?[40,20,55]:[32,14,26]);}catch(_){}
   return true;
 }
 function chutePrend(e){ // le doigt se pose : SUR la caisse, il la tient (sinon : la vue, comme avant)
@@ -44856,7 +44857,7 @@ function chuteLache(){ // le doigt se lève après un glissé : BALANCÉE — el
   if(T.w.length()>4)try{if(SONV2)sfx('debris.tole',{vol:-6,rate:.8});hap(10);}catch(_){}
 }
 function chuteTapeTick(dt,C,up,sc){ // les deux ressorts, l'éclat, les morceaux, les étincelles ; la caisse tourne autour de son CENTRE (C), pas de son origine
-  const T=CHUTE_TAP,k=Math.min(dt,.05),H=T.tient,tient=!!(H&&H.drag);CHUTE.ctr=C;
+  const T=CHUTE_TAP,H=T.tient,tient=!!(H&&H.drag);CHUTE.ctr=C;let k=Math.min(dt,.05);if(T.hs>0){T.hs-=dt;k*=.06;} // (14/10) l'ARRÊT SUR IMAGE : 70 ms presque figée, puis le coup part
   if(tient){T.v.addScaledVector(T.a.subVectors(T.p,T.pT),-T.K*1.8*k).multiplyScalar(Math.exp(-T.C*2*k));}   // tenue : elle suit le doigt, en ressort
   else T.v.addScaledVector(T.p,-T.K*k).multiplyScalar(Math.exp(-T.C*k));
   T.p.addScaledVector(T.v,k);if(T.p.length()>T.PMAX)T.p.setLength(T.PMAX);
@@ -44944,11 +44945,15 @@ const RICH_T={
   crane:{kd:.6,fl:0,s:[.24,.29],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
 const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:6,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
+/* (2026-10-14, Léo : « diminue la quantité d'objets déversés lors des coups, garde la variété ; vise quelque chose d'addictif qui joue avec le
+   besoin d'effort et de récompense ») LES GERBES MAIGRISSENT (≈ ÷2,5 : petit 1-2, bon 3-5, gros 6-9, jackpot 14-19 ; les répliques aussi), les
+   MÉLANGES ne bougent pas (la variété reste) — et L'EFFORT DÉCIDE DE LA TAILLE : un coup isolé paie surtout PETIT (le jackpot n'y tombe
+   presque jamais), la RAFALE (le combo) fait monter gros et jackpot (voir richTire). La rareté rend le gros lot lisible : il se MÉRITE. */
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
-  petit:  {n:[3,6],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4,montre:1}},
-  bon:    {n:[7,11], fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3}},
-  gros:   {n:[12,18],fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:12,rubis:8,emeraude:8,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3}},
-  jackpot:{n:[26,36],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:16,rubis:10,emeraude:10,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3}}};
+  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4,montre:1}},
+  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3}},
+  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:12,rubis:8,emeraude:8,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3}},
+  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:16,rubis:10,emeraude:10,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3}}};
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -45324,7 +45329,7 @@ function richTire(mu,combo){
   let p=.36+.07*(combo-1)+(R.chance>0?.18:0);if(R.chance>0)R.chance--;  // ~1 sur 2 AU FINAL (Fiorillo 2003 : base .36 + le filet des 3 coups secs + le trèfle ≈ .5 mesuré) ; l'effort (le combo) et le trèfle font monter
   if(R.sec>=3)p=1;                                                      // pas d'extinction : la 4e fois, ça paie
   if(Math.random()>=p){R.sec++;return Math.random()<.38?'presque':'rien';}
-  R.sec=0;const e=Math.min(1,(combo-1)/5),w=[.68-.34*e,.24+.12*e,.065+.12*e,.015+.06*e];// l'effort fait aussi monter la TAILLE
+  R.sec=0;const e=Math.min(1,(combo-1)/4),w=[.80-.48*e,.17+.17*e,.028+.20*e,.002+.11*e];// l'effort fait monter la TAILLE (14/10 : plus fort — un coup seul : petit 80 % · jackpot 0,2 % ; en rafale de 5 : petit 32 % · gros 23 % · jackpot 11 %)
   let r=Math.random()*(w[0]+w[1]+w[2]+w[3]);const k=['petit','bon','gros','jackpot'];for(let i=0;i<4;i++){if(r<w[i])return k[i];r-=w[i];}return 'petit';
 }
 function richPioche(W){let s=0;for(const k in W)s+=W[k];let r=Math.random()*s;for(const k in W){if(r<W[k])return k;r-=W[k];}return 'billet';}
@@ -45446,7 +45451,7 @@ const RICH_C=[0,0,0];
 // ---- LE COUP (appelé par chuteTape) ----
 function richCoup(P,n,d,mu,combo){
   if(!RICH.pret)return;const heat=Math.min(1,(combo-1)/4);                    // l'anticipation : le combo CHAUFFE les étincelles
-  richEtincelles(P,n,d,Math.round(18+10*mu),heat);
+  richEtincelles(P,n,d,Math.round(28+14*mu),heat); // (14/10) l'impact : plus d'étincelles (ce ne sont pas des objets)
   const r=richTire(mu,combo);RICH.last=r;
   if(r==='rien')return;
   const P9=P.clone(),n9=n.clone(),d9=d.clone();
@@ -45465,8 +45470,8 @@ function richCoup(P,n,d,mu,combo){
       else{sfx('fig.jackpot');sfx('pluie.billets',{t:.25,vol:-3});}}
     if(r==='jackpot'){CHUTE_TAP.sh=Math.min(1.8,CHUTE_TAP.sh+.8);try{hap([20,30,20,30,60]);}catch(e){}}else if(r==='gros'){try{hap([16,24,30]);}catch(e){}}
     if(r==='jackpot'||r==='gros')setTimeout(function(){try{if(!CHUTE.on)return; // (2026-10-10) LA RÉPLIQUE : la caisse en recrache une poignée (pièces surtout), un temps après
-      richEtincelles(P9,n9,d9,r==='jackpot'?12:7,1);const m9=r==='jackpot'?7+Math.floor(Math.random()*4):3+Math.floor(Math.random()*3);
-      for(let i=0;i<m9;i++)richLance(['piece2','piece1','piece50','piece2','piece1','billet','or'][Math.floor(Math.random()*7)],P9,n9,d9,Math.random()*.1,.8);
+      richEtincelles(P9,n9,d9,r==='jackpot'?12:7,1);const m9=r==='jackpot'?4+Math.floor(Math.random()*2):1+Math.floor(Math.random()*2);
+      for(let i=0;i<m9;i++)richLance(['piece2','piece1','piece50','piece2','piece1','billet','or'][Math.floor(Math.random()*7)],P9,n9,d9,Math.random()*.1,.8); /* (14/10) la réplique, plus maigre aussi */
       if(SONV2)sfx('piece.recolte',{vol:-6});}catch(e){}},r==='jackpot'?430:340);
   }catch(e){}},80);
 }
@@ -45881,7 +45886,7 @@ function chuteRender(dt){
   {const k=G?1-Math.min(1,u/.5):1,ce9=Math.max(.5,Math.cos(el9));camera.rotateOnWorldAxis(AXIS_Y,Math.atan(nx*tH)/ce9*k);camera.rotateX(-Math.atan(Cd.ny*tV)*k);}   // la caisse glisse dans la zone libre
   if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
   if(CHUTE_TAP.sh>0){const k9=CHUTE_TAP.sh;camera.position.x+=(Math.random()-.5)*.5*k9;camera.position.y+=(Math.random()-.5)*.5*k9;camera.position.z+=(Math.random()-.5)*.5*k9;camera.rotateZ((Math.random()-.5)*.06*k9); // (LA CAISSE AU DOIGT v2) le coup secoue la caméra…
-    camera.fov=fov0-5*Math.min(1,k9);camera.updateProjectionMatrix();} // …et la fait cogner d'un coup de zoom (la ligne du champ, plus haut, le rend à l'image suivante)
+    camera.fov=fov0-9*Math.min(1,k9);camera.updateProjectionMatrix();} // (14/10) le coup de zoom ×1,8 // …et la fait cogner d'un coup de zoom (la ligne du champ, plus haut, le rend à l'image suivante)
   camera.updateMatrixWorld();
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
   if(P.studio){chuteStudio(Ck,up,P);}else{trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) LE MODELÉ DE LA CAISSE (voir chuteStudio) ; P.studio = 0 : l'éclairage d'avant
