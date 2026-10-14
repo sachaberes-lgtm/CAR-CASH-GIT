@@ -7949,10 +7949,10 @@ html.c6 body #gMenuBas .gVerrou,html.c6 body #gStrip>.gT.gMys{display:none!impor
    l'en-tête BOUTIQUE se décale d'une touche (48 + 8) pour lui laisser sa place */
 html.c6 #gBqRet{display:none}
 html.c6 #garage.modeShop #gBqRet{display:flex;position:absolute;left:calc(var(--sL,0px) + 16px);top:calc(var(--sT,0px) + 4px);z-index:3;pointer-events:auto}
-html.c6 #gBq #gBqTete{left:calc(var(--sL,0px) + 72px);right:calc(var(--sR,0px) + 16px);top:calc(var(--sT,0px) + 14px)}
+html.c6 #gBq #gBqTete{left:calc(var(--sL,0px) + 72px);right:calc(var(--sR,0px) + 16px);top:calc(var(--sT,0px) + 6px);min-height:44px;align-items:center}
 html.c6 #gBqTete .bqT1 b{font-size:16px;letter-spacing:0}
 html.c6 #gBqTete .bqTl{gap:12px}
-html.c6 #gBqTete .bqTl .bqArg{padding:8px 10px;margin-top:-6px}
+html.c6 #gBqTete .bqTl .bqArg{padding:8px 10px;margin-top:0;align-self:center}
 html.c6 #gBqTete .bqTl .bqArg b,html.c6 #gBqTete .bqArg{font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:0}
 html.bqIndus.c6 body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{display:none!important}
 html.bqIndus.c6 body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{grid-column:1/-1}
@@ -48440,7 +48440,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'&&garageOn&&!gEl.classList.contains('menu')){hap(8); // (2026-10-10) les OFFRES vivent dans la boutique du garage : ACHETER + le prix en € ouvre la fenêtre d'achat ICI, sur la caisse affichée
     let src=document.querySelector('#gStrip .fnC[data-fn="v:'+garageI+'"]')||document.querySelector('#gStrip .gT[data-car="'+garageI+'"]');if(!src)src=e.currentTarget;src.setAttribute('data-car',garageI);
     try{shopPop(src);return;}catch(er){}}
-  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8); // LÉGENDAIRE : direction la BOUTIQUE
+  if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8);if(bqC6()&&!POKI){bqVaOffres();return;} /* (2026-10-14, charte 6) l'onglet OFFRES, pas l'ancien écran */ // LÉGENDAIRE : direction la BOUTIQUE
     // (2026-09-28) la boutique s'ouvre AU LEVER du voile (`apres`) : le clic simulé sur le bouton de l'accueil partait PENDANT le
     // fondu, et son propre ecranWipe était ignoré (garde `_on`) — ou en faisait un second. Pas dans `fn` : l'observateur de l'overlay
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
