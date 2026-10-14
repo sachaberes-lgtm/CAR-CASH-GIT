@@ -15427,7 +15427,7 @@ function foretVide(){
   for(const F of FORET.fam){const g=F.im.geometry;for(const k in g.attributes)if(k!==F.attr)g.deleteAttribute(k);g.setIndex(null);g.dispose();F.im.dispose();}
   FORET.fam=[];FORET.quart=null;FORET.sig=0;FORET.geants=[];FORET.gcol=null;FORET.arche=[];FORET.chaum=[];FORET.rocs=[];FORET.sol=null;FORET.solM=null;
   if(FORET.root){FORET.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});FORET.root=null;}
-  if(FORET.loup)FORET.loup.t=0;
+  if(FORET.loup){FORET.loup.t=0;FORET.loup.on=false;FORET.loup.roc=null;} // (2026-10-14, chasse aux bugs) un portail pendant un hurlement laissait `on` et le rocher de l'ANCIENNE piste : à la forêt suivante le loup-garou y réapparaissait jusqu'à 7,4 s
 }
 function buildForet(seed){
   foretVide();
@@ -31932,7 +31932,7 @@ const CAR_UNLOCK=[
   {p:1600000}, // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {k:'bientot',v:1}, // LA RAIE — (2026-10-06) DÉFI à définir (était épique, 2,5 M)
-  {k:'pubs',v:100}, // L'ÉTERNELLE — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
+  {k:'runs',v:100}, // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'9,99 €',rar:'leg'}, // LE BLINDÉ NOIR (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
@@ -32025,7 +32025,7 @@ const RARETES=[
    contrats 1-3 RARE · 6-7 EXOTIQUE · 8-9 ÉPIQUE ; rang d'aura MYTHE (POSTER 84) LÉGENDAIRE ; les cinq niveaux des NUAGES ÉPIQUE, ceux de la
    VILLE LÉGENDAIRE ; 100 pubs ÉPIQUE ; défi encore à définir (REQUIN, COMÈTE, LA RAIE) EXOTIQUE. */
 function rarDefi(u){if(u.k==='carnet')return u.v>=8?'epique':u.v>=6?'exotique':'rare';if(u.k==='aura')return u.v>=6?'legendaire':'epique';
-  if(u.k==='carrN'||u.k==='pubs')return 'epique';if(u.k==='carrV')return 'legendaire';return 'exotique';}
+  if(u.k==='carrN'||u.k==='pubs'||u.k==='runs')return 'epique';if(u.k==='carrV')return 'legendaire';return 'exotique';}
 function carRar(i){const c=CARS[i];if(c&&c.rar&&c.rar!=='defi')return c.rar;const u=CAR_UNLOCK[i];
   if(!u)return 'commun';if(u.k==='premium')return 'legendaire';if(u.k)return rarDefi(u);return u.p>=1e6?'epique':u.p>=20e3?'rare':'commun';}
 function carOrdre(i){const c9=CARS[i];if(c9&&c9.ordre!=null)return c9.ordre;return carPrixOrdre(i);} // DANS UNE FAMILLE : un rang posé à la main (la salle
@@ -34234,6 +34234,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
     case 'prem':  return [ 'CAISSE PREMIUM — offerte pour l\'instant','PREMIUM CAR — free for now'][L];
     case 'bientot':return [ 'INTROUVABLE','NOT AVAILABLE'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
     case 'pubs':  return [ 'REGARDE '+v+' PUBS  ('+Math.min(cur,v)+' / '+v+')','WATCH '+v+' ADS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-06) L'ÉTERNELLE
+    case 'runs':  return [ 'JOUE '+v+' PARTIES  ('+Math.min(cur,v)+' / '+v+')','PLAY '+v+' RUNS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-14) L'ÉTERNELLE : 100 parties jouées (police pixel : pas d'accent)
   }
   return '';
 }
@@ -38256,6 +38257,7 @@ function musicTick(dt,mvt){
      GRAIN. Attaque quasi instantanée (dt*24), retombée franche (dt*11). */
   MUSIC_HI+=(hiT-MUSIC_HI)*Math.min(1,dt*(hiT>MUSIC_HI?24:11));
   MUSIC_PULSE+=(target-MUSIC_PULSE)*Math.min(1,dt*8);        // énergie : montée/descente douce
+  musicTick._bc=Math.max(0,(musicTick._bc||0)-dt);if(beat>.05){if(musicTick._bc>0)beat=0;else musicTick._bc=.34;} // (2026-10-14, chasse aux bugs · WCAG 2.3.1) 0,34 s de temps mort entre deux montées : au plus ~3 flashs/s pour le voile de beat, le ciel, le bloom et les rails (un morceau dense en faisait 8-10)
   MUSIC_BEAT=Math.max(0,MUSIC_BEAT-dt*3.4);if(beat>MUSIC_BEAT)MUSIC_BEAT=Math.min(1,beat); // beat : attaque nette, chute rapide
   musicTick._onset=beat; // la nouveauté de basse brute part telle quelle au métronome du fond (voir <<<FOND>>>)
   // ---- LE MOUVEMENT OUVRE LE SON : rouler = musique dans les oreilles, s'arrêter = filtre feutré + volume qui baisse ----
@@ -40253,6 +40255,7 @@ const SAVE={
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(Array.isArray(d.figs))c.figs=[...new Set(['tonneau'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées (le TONNEAU, offert)
+    if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,3); // (2026-10-14, LES FIGURES v2) les TROIS emplacements
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0; /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
@@ -40950,7 +40953,7 @@ function veqPose(bI,sd){ // la caisse se pose (tryLand, lèvre) : ce qui reste d
     rx=VEQ.eu.x;ry=VEQ.eu.y;rz=VEQ.eu.z;}
   let corps=false;
   if(FIGV2.on&&FX2.corps){const C=FX2.corps,j=C.pose(); /* (2026-10-14, LES FIGURES v2) près de l'endroit, les figures finies comptent ; à plus de 52°, CHUTE */
-    for(let i=0;i<j.payees.length;i++)figPaye(j.payees[i]);if(j.ratee)VEQ.rate=true;
+    for(let i=0;i<j.payees.length;i++)figPaye(j.payees[i]);if(j.ratee)VEQ.rate=true;FX2.trio=[]; /* (COMBOS À TROIS) la pose ferme le vol : un trio entamé ne passe pas au vol suivant */
     corps=j.ecart>.002;if(corps){VEQ.qd.set(C.q[0],C.q[1],C.q[2],C.q[3]);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');rx+=VEQ.eu.x;ry+=VEQ.eu.y;rz+=VEQ.eu.z;}
     FX2.wPose=C.w[2];C.vide();}
   const L9=VEQ.lect,enCours=!!(L9&&L9.occupe());
@@ -41197,7 +41200,7 @@ function figEquipe(id){if(!window.FIG||!FIG.par[id]||!figPossede(id))return null
 function figRetire(id){const E=figEquipees().slice(),i=E.indexOf(id);if(i<0||E.length<=1)return false;E.splice(i,1);SAVE.d.figEq=E;SAVE.flush();FX2.cle='';return true;}
 function figMemo(dt){FX2.qm1.copy(FX2.qm0);FX2.qm0.copy(carGroup.quaternion);FX2.dm=dt;FX2.memo=FX2.memoN;FX2.memoN=true;} // (conduite, chaque image) l'assiette des deux dernières images
 function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;if(!C)return;
-  C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
+  C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
   if(!FIGV2.on||bord||!VEQ.on){FX2.memo=false;return;} // le BORD garde la bascule de Léo (VEQ)
   tmp.copy(fallVel).normalize();FX2.m4.makeBasis(FLY_R,FLY_U,tmp);FX2.qf.setFromRotationMatrix(FX2.m4);
   FX2.qr.copy(FX2.qf).invert().multiply(carGroup.quaternion); // l'écart de la caisse à sa trajectoire : elle l'EMPORTE
@@ -41282,7 +41285,8 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const sens=Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
-  const r=C.lance(f,sens,D,{tient:!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;FX2.n++;VEQ.n++;
+  const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
+  const r=C.lance(f,sens,D,{tient:!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;FX2.n++;VEQ.n++;
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
@@ -41291,12 +41295,53 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   if(sautN){try{if(SONV2)sfx('turbo.mini',{vol:-6});}catch(e){}}else figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);figBtFx(s,'boum');
   return r;}
 function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');}
+/* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
+   de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
+   ferme un TRIO (1-2-3, puis 4-5-6…). Son NOM dépend des AXES des trois figures, dans n'importe quel ordre : T le tonneau (l'axe de la
+   caisse), P la toupie (l'axe vertical), S le salto (l'axe des roues), M le mixte (deux axes, un axe penché, un battement). Cela donne
+   20 familles (COMBO_NOMS) : on les découvre avec ses trois emplacements, et chaque figure achetée en ouvre d'autres.
+   · LA PRIME : de l'AURA = la moitié des trois figures. ×1,5 pour LE GYROSCOPE (les trois axes purs), +25 % par enchaînement PILE
+     (la figure suivante lancée pendant la PRISE de la précédente : `r.bm`, posé par figLance), ×2 à la 1re fois. Elle entre dans la
+     chaîne comme une figure (FX2.pts) : une pose ratée (figChute) l'emporte avec les autres. Plus un peu de nitro, comme une figure.
+   · LE CARNET : `SAVE.d.combos` {famille: nombre}. Une famille neuve → bandeau « NOUVEAU COMBO » avec le compte « n / 20 ».
+   `?combo=0` les éteint. `dbgCombo()` : le carnet, le trio en cours. */
+const COMBO_ON=!/[?&]combo=0\b/.test(location.search);
+const COMBO_NOMS={TTT:['LA PERCEUSE','THE DRILL'],PPP:['LE TOURBILLON','THE WHIRLWIND'],SSS:['LA GRANDE ROUE','THE FERRIS WHEEL'],MMM:['LE GRAND CHAOS','TOTAL CHAOS'],
+  PTT:['LE TAILLE-CRAYON','THE SHARPENER'],STT:['LA CENTRIFUGEUSE','THE CENTRIFUGE'],MTT:['LE MIXEUR','THE BLENDER'],
+  PPT:['LA TOUPIE FOLLE','THE MAD TOP'],PPS:['LE MOULINET','THE PINWHEEL'],MPP:['LE DERVICHE','THE DERVISH'],
+  PSS:['LA MACHINE A LAVER','THE WASHER'],SST:['LA ROUE DU HAMSTER','THE HAMSTER WHEEL'],MSS:['LE CASCADEUR','THE STUNTMAN'],
+  MMT:['LA TORNADE','THE TORNADO'],MMP:['LA BOULE DISCO','THE DISCO BALL'],MMS:['LE CRASH-TEST','THE CRASH TEST'],
+  PST:['LE GYROSCOPE','THE GYROSCOPE'],MPT:['LE SATELLITE','THE SATELLITE'],MST:['LE BOOMERANG','THE BOOMERANG'],MPS:['LE KAMIKAZE','THE KAMIKAZE']};
+const COMBO_K={part:.5,gyro:1.5,pile:.25,neuf:2,nitro:.15};
+function comboAxe(f){const m=f&&f.m||[];if(m.length!==1||!m[0].t)return 'M';const a=m[0].a;
+  if(a[2]&&!a[0]&&!a[1])return 'T';if(a[1]&&!a[0]&&!a[2])return 'P';if(a[0]&&!a[1]&&!a[2])return 'S';return 'M';}
+function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou à la pose)
+  if(!COMBO_ON||!r||!r.f||r.douce)return;const T=FX2.trio||(FX2.trio=[]); // (GAMEPLAY) jamais les figures AUTOMATIQUES (saut nitro, toupie de drift) : un saut nitro ne doit pas suffire
+  T.push({ax:comboAxe(r.f),aura:Math.round(r.f.aura||60),bm:!!r.bm});
+  if(T.length<3)return;
+  const tr=T.splice(0,3),cle=tr.map(function(x){return x.ax;}).sort().join(''),nm=COMBO_NOMS[cle];if(!nm)return;
+  const D=SAVE.d.combos||(SAVE.d.combos={}),neuf=!D[cle];D[cle]=Math.min(1e6,(D[cle]|0)+1);SAVE.mark();
+  const pile=(tr[1].bm?1:0)+(tr[2].bm?1:0),K=COMBO_K,en=LANG==='en';
+  const aura=Math.round((tr[0].aura+tr[1].aura+tr[2].aura)*K.part*(cle==='PST'?K.gyro:1)*(1+K.pile*pile)*(neuf?K.neuf:1));
+  const txt=(en?nm[1]:nm[0])+(pile?(en?' · ON BEAT':' · PILE')+(pile>1?' ×2':''):'');
+  FX2.aura=aura;const c0=CHA.pts;
+  addTrick('fig_combo_'+cle,txt,Math.round(aura/16),3); // (dans la chaîne comme une figure : sa famille s'use à la redite, ×0,7)
+  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.combos=(FX2.combos|0)+1;
+  try{nitroGain(K.nitro,'figair');}catch(e){}
+  hap([14,30,14,30,40]);
+  try{sonCombo(cle,neuf);}catch(e){} // (SON) la signature sonore du combo : livrée par la session SON — muet tant qu'elle n'existe pas
+  if(neuf){const n=Object.keys(D).filter(function(k){return COMBO_NOMS[k];}).length;
+    try{misBanniere(en?'NEW COMBO':'NOUVEAU COMBO',(en?nm[1]:nm[0])+' · '+n+' / 20','+'+aura,'etoile');}catch(e){}
+    try{if(SONV2)sfx('ui.debloque',{t:.6});}catch(e){}} // (SON) après le sceau de sonCombo, pas par-dessus
+}catch(e){}}
+window.dbgCombo=function(k){if(k==='raz'){SAVE.d.combos={};SAVE.mark();}return {on:COMBO_ON,carnet:Object.assign({},SAVE.d.combos||{}),trio:(FX2.trio||[]).map(function(x){return x.ax;}).join(''),faits:FX2.combos|0};};
 function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),aura=Math.round((f.aura||60)*(reps>1?1+(reps-1)*1.25:1));
   FX2.aura=aura;const c0=CHA.pts;
   addTrick('fig_'+f.id,FIG.nomReps(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1); // le nom français : TR le traduit (« TOUPIE 360 ×2 »)
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;
   const k=NITRO2.figAir;nitroGain((k.base+k.rep*(reps-1))*Math.pow(k.k,FX2.nPay),'figair');FX2.nPay++; // ASPHALT 8 : la figure plantée remplit le NITRO, tout de suite
-  hap([10,22,10]);}
+  hap([10,22,10]);
+  comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
 function figChute(){if(FX2.pts>0&&CHA.n>0){CHA.pts=Math.max(0,CHA.pts-FX2.pts);chaHud(true,false);}FX2.pts=0;FX2.chutes++;} // posée en plein tour : les figures du vol quittent la chaîne (BMX)
 function figIco(f){let m=null;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null&&(!m||Math.abs(f.m[i].t)>Math.abs(m.t)))m=f.m[i];
   if(!m)return 'fgBa';let n=0;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null)n++;if(n>1)return 'fgCo';
@@ -45672,7 +45717,7 @@ function eclFrappe(){
 }
 function eclEcrit(){
   const P=ECL.pos,C=ECL.col,cam=camera.position,on=ECL.vie>0;let n=0;
-  if(on){const fl=ECL.vie>.2?1:(Math.sin(ECL.vie*90)>0?.85:.25); // il claque, puis vacille
+  if(on){const fl=ECL.vie>.2?1:.2+.8*(ECL.vie/.2); /* (2026-10-14, WCAG 2.3.1) fondu continu : l'alternance à 14 Hz faisait 3 flashs en 0,2 s */ // il claque, puis vacille
     for(let j=0;j<ECL.seg.length&&n<ECL.N;j+=3,n++){const a=ECL.P[ECL.seg[j]],b=ECL.P[ECL.seg[j+1]],w=ECL.seg[j+2],o=n*12;
       CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
       P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
@@ -45687,7 +45732,7 @@ function orageTick(dt){
   if(ECL.vie>0)ECL.vie-=dt;
   ECL.k=Math.max(0,ECL.k-dt*1.9);
   const e=ECL.k*ECL.k;
-  CAMP_FLASH=.8*e*(ECL.vie>0&&Math.sin(ECL.vie*70)<-.6?.55:1); // le ciel s'allume (et vacille avec l'éclair)
+  CAMP_FLASH=.8*e; /* (2026-10-14, chasse aux bugs · WCAG 2.3.1) plus de vacillation à 11 Hz pendant la vie de l'éclair (plage des crises d'épilepsie, motif de refus Apple) : UN flash qui s'éteint en douceur */ // le ciel s'allume (et vacille avec l'éclair)
   CAMP_FOG=1900*e;                                            // …et le brouillard recule : la route, le portail se montrent
   eclEcrit();
   if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
@@ -46454,7 +46499,7 @@ function foudreTick(dt,sp){
     if(VFOU.tele<=0)foudreFrappe();}
   if(ECL.vie>0)ECL.vie-=dt;
   ECL.k=Math.max(0,ECL.k-dt*1.9);const e=ECL.k*ECL.k;
-  CAMP_FLASH=.8*e*(ECL.vie>0&&Math.sin(ECL.vie*70)<-.6?.55:1);CAMP_FOG=1900*e;
+  CAMP_FLASH=.8*e; /* (2026-10-14, chasse aux bugs · WCAG 2.3.1) plus de vacillation à 11 Hz pendant la vie de l'éclair (plage des crises d'épilepsie, motif de refus Apple) : UN flash qui s'éteint en douceur */CAMP_FOG=1900*e;
   eclEcrit();
   if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
   if(cel)vChip(TR('CELLULE D\'ORAGE')+' '+(ci+1)+'/'+VZ.cellules.length,TR('LIS LE CERCLE'),'#b58cff');else vChip('');
@@ -48477,10 +48522,7 @@ function gShopPaye(bar,st){const L=bqPayantes(),kb='fp:'+L.length+':'+LANG;
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
     st.innerHTML=L.map(function(i,n){return bqCarte('v:'+i,n<2,true);}).join('');bqPhotos(st);}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
-function bqPhotos(st){
-  st.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
-    photoFile(i,function(url){const ph=el.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});
-  st.querySelectorAll('.fpPh i[data-ph],.fpSlPh[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
+/* bqPhotos : UNE seule déclaration, plus bas (après bqCarteHtml) — voir LES PHOTOS DES DEUX BOUTIQUES */
 try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gModeVa('tous');return;}
   const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('nav');gOffresPage();return;} // (2026-10-10) la PORTE DES OFFRES : l'écran rose (page OFFRES)
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
@@ -50892,7 +50934,14 @@ function bqCarteHtml(k,n,lim){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:
   return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
     +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
     +'<span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';}
-function bqPhotos(el){el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}});});}
+/* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
+   plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
+   celle de la boutique de Léo (`[data-ph]`) ; la seconde, hissée, écrasait la première — les cartes du bandeau restaient sans photo. Une
+   seule fonction fait les deux (le `[data-ph]` couvre aussi `.fpPh i` et `.fpSlPh` de l'ancienne). */
+function bqPhotos(el){
+  el.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(c){const i=+c.getAttribute('data-fn').slice(2);
+    photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});
+  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}});});}
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
   ui.innerHTML='<div id="gBqTete"><div class="bqT1"><div class="bqTl"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div></div>'
@@ -53985,27 +54034,28 @@ function pickupsTick(dt){
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;
-    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow;RAM.q.copy(p.mesh.position); // (2026-10-14, chasse aux bugs) l'objet AVANT l'attraction de l'image (ramD)
-    if(p.hk>0){if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
+    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow; // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
+    if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
       if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
       if(p.face!==fV9&&!p.air)continue;                         // (passe qualité) pas le jumeau de l'autre face…
       if(!p.air){const tw=pickups[i9+p.face];if(tw&&tw.face===-p.face&&tw.s===p.s&&tw.lat===p.lat&&(tw.taken||tw.hk>0))continue;} // …ni celui dont le jumeau est pris ou en route (voir LE JUMEAU)
       // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est déjà difficile — sans coup de pouce on
       // ne les attrape jamais. (v3) sous L'AIMANT, la sphère de MAG_R m.
-      const d9=p.mesh.position.distanceTo(carGroup.position);
+      RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
       if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:11+mag*3)>=(gros9?MAG_R:11+mag*3))continue; // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
       p.hk=1e-4;p.hkD=d9;RAM.n[6]++; // ACCROCHÉ
     }else if(gros9){ // (v3) L'AIMANT AU SOL : la sphère
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
       if(p.face!==fV9&&!p.air)continue; // (passe qualité) TA face seulement
-      const d9=p.mesh.position.distanceTo(carGroup.position);
+      RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
       if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));}
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
       if(ds9>22+(RAM.bal?Math.abs(s-sA9)+sg9:0))continue; // (2026-10-14, chasse aux bugs) + le trajet balayé : sans lui, à 30 i/s et grande vitesse, la pièce sortait du couloir avant d'être testée
       if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
+      RAM.q.copy(p.mesh.position);
       // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
       // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
       if(ds9<15+mag*2&&Math.abs(p.lat-side*lat)<9+mag*2) // (2026-09-26) plus de `level` ici : c'est l'index de la caisse (66), l'aimant faisait 33 m sur les dernières // portée LATÉRALE de l'aimant à pièces (route large)
@@ -55941,7 +55991,7 @@ function loop(now){
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
         stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
-        for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)stt(n9.gain,0,AC.currentTime,.12);
+        {const G9=loop._gn||(loop._gn=[0,0,0,0,0]);G9[0]=transG;G9[1]=diffG;G9[2]=ovrG;G9[3]=engTickG;G9[4]=pinkG;for(let i9=0;i9<5;i9++){const n9=G9[i9];if(n9)stt(n9.gain,0,AC.currentTime,.12);}}
         charge9+=(0-charge9)*Math.min(1,dt*4);ovr9+=(0-ovr9)*Math.min(1,dt*4);
       }
       if(windG){
@@ -56115,7 +56165,7 @@ function loop(now){
     // puis mise à jour à CHAQUE image (le minuteur au dixième, la jauge en continu, le clignotement de la fin)
     // (pouvoirs v2) les plaques naissent de la fiche (PWR_DEFS : px, plq) dans l'ordre fixe PWR_ORDRE — (2026-09-28) pendant l'auto-école,
     // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
-    const pwL=[];for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9];pwL.push([k9,pwrT(k9),d9.px,d9.plq]);} // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
+    const pwL=loop._pwL||(loop._pwL=[]);let nPw=0;for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9],r9=pwL[nPw]||(pwL[nPw]=[0,0,0,0]);r9[0]=k9;r9[1]=pwrT(k9);r9[2]=d9.px;r9[3]=d9.plq;nPw++;}pwL.length=nPw; /* (OPTIMISATION) la liste et ses rangs sont gardés d'une image à l'autre (plus d'allocation par image) */ // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
     for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
     if(pch!==loop._pch){loop._pch=pch;
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
