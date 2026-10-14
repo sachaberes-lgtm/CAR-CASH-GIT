@@ -36649,6 +36649,25 @@ function sensBoomElan(){
   V.multiplyScalar(Math.min(12,l*.22)/l);
   for(const d of debris){if(!d||!d.v)continue;d.v.addScaledVector(V,d.part?1:.5);debrisLoin(d.v);}
 }
+/* (2026-10-14, sensations) LE REBOND SE SENT. Roue, capot, éclats rebondissaient sur la dalle en silence, tous pareils (×.55 partout).
+   · une ROUE (clone d'un moyeu : userData.R) est en caoutchouc : elle garde son élan le long de la route (×.83 au lieu de ×.55),
+     saute un peu plus haut et TOURNE à la vitesse où elle file — elle s'en va en rebondissant au lieu de tomber comme une plaque ;
+   · toute pièce qui tape à plus de 3 m/s crache quelques étincelles qui COURENT au ras du bitume (sparkGold, 2 à 5) ;
+   · les vraies pièces font cliqueter la tôle (debris.tole, dosé au choc) et les deux premières donnent un tap léger dans la main —
+     après le motif de la mort (boomT > .35 s), par le limiteur commun. Dix rebonds comptés par mort, pas un de plus. */
+function sensBoomRebond(d,vn){
+  if(boomT<SENS_BOOM.t0)SENS_BOOM.n=0;SENS_BOOM.t0=boomT; // une mort neuve : le compte repart (boomT est reparti de 0)
+  const N=BOOM_SOL.n,V=d.v,k=V.dot(N),p=d.m.position,roue=!!(d.part&&d.m.userData&&d.m.userData.R>0);
+  if(roue){V.addScaledVector(N,-k).multiplyScalar(1.5).addScaledVector(N,k*1.6); // le long de la dalle ×1,5 · vers le haut ×1,6
+    d.rx=(d.rx<0?-1:1)*Math.min(18,V.length()/Math.max(.2,d.m.userData.R));d.ry*=.4;}
+  if(SENS_BOOM.n>=10)return;SENS_BOOM.n++;
+  const ne=Math.min(5,2+(vn*.25|0));
+  for(let i=0;i<ne;i++){const h=1+Math.random()*2.5; // elles décollent à peine de la dalle (le long de SA normale : vrai aussi sous la route)
+    spawnP(sparkGold,p.x,p.y,p.z,V.x*.7+N.x*h+(Math.random()-.5)*7,V.y*.2+N.y*h,V.z*.7+N.z*h+(Math.random()-.5)*7,.22+Math.random()*.2);}
+  if(!d.part)return;
+  sfx('debris.tole',{vol:Math.max(-12,Math.min(0,-11+vn*.7))});
+  if(SENS_BOOM.n<=2&&boomT>.35)sensHap(10,1);
+}
 const FVISEE={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // le point de la route que la caméra regarde (route v2)
 /* ================= LA CAMÉRA DE ROUTE S'ADAPTE (vague 3, 2026-09-27) =================
    Sacha : « quand on est à l'envers de l'autre côté de la route, et que du coup on a l'impression que ça monte beaucoup, il faut que
@@ -50664,8 +50683,10 @@ function loop(now){
       for(const d of debris){
         d.v.y-=22*dt;
         d.m.position.addScaledVector(d.v,dt);
+        const sv9=SENS&&BOOM_SOL.ok?d.v.dot(BOOM_SOL.n):0; // (2026-10-14, sensations) la vitesse d'arrivée sur la dalle, AVANT le rebond
         if(BOOM_SOL.ok){tmp3.subVectors(d.m.position,BOOM_SOL.p);const h9=tmp3.dot(BOOM_SOL.n),vn9=d.v.dot(BOOM_SOL.n); // (2026-09-28) roue, capot, éclats REBONDISSENT sur la route
           if(h9<.15&&vn9<0&&h9>-2.5&&Math.abs(tmp3.dot(BOOM_SOL.b))<ROAD_HALF){d.m.position.addScaledVector(BOOM_SOL.n,.15-h9);d.v.addScaledVector(BOOM_SOL.n,-1.4*vn9).multiplyScalar(.55);d.rx*=.7;d.ry*=.7;}}
+        if(sv9<-3&&d.v.dot(BOOM_SOL.n)>0)try{sensBoomRebond(d,-sv9);}catch(e){} // (2026-10-14, sensations) elle vient de REBONDIR : ça s'entend, ça se voit, la roue repart
         if(boomT<1.2&&Math.random()<.55)spawnP(boomEmbO,d.m.position.x,d.m.position.y,d.m.position.z,d.v.x*.12,d.v.y*.12,d.v.z*.12,.3+Math.random()*.3); // (2026-09-26) chaque éclat TRAÎNE ses braises
         d.m.rotation.x+=d.rx*dt;d.m.rotation.y+=d.ry*dt;d.m.visible=d.m.position.distanceToSquared(camera.position)>(d.hid||11.5); // (vague 2) à moins de 3,4 m (+ sa taille) de l'objectif, un éclat n'est plus qu'un aplat : masqué
         if(!d.part&&d.m.material)d.m.material.emissiveIntensity=Math.max(0,.6-boomT*.45);
