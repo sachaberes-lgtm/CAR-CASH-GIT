@@ -52216,7 +52216,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(d.x<r.left||d.x>r.right||d.y<r.top||d.y>r.bottom)continue;
         stDown(d.id,d.x,d.y);return; }
     };
-    addEventListener('visibilitychange',function(){ if(document.hidden){stDoigts=[];stIntrus=[];} }); // l'appli passe derrière : des levers peuvent se perdre, la liste repart vide
+    addEventListener('visibilitychange',function(){ if(document.hidden){stDoigts=[];stIntrus=[];if(TCTL.act&&TCTL.id!=='souris')stUp();} }); // l'appli passe derrière : des levers peuvent se perdre — la liste repart vide et le volant se rend
     document.addEventListener('cc:jeu',stAdopte); // la course part (JOUER, REJOUER) : le pouce qui attendait sur le verre prend le volant tout de suite
     addEventListener('touchstart',function(e){
       if(TCTL.act&&TCTL.id!=='souris'){ let tient=false; // le volant est tenu par un doigt toujours posé : ceux qui arrivent sont des intrus, pour toute leur vie
