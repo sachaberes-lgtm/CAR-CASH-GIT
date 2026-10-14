@@ -8346,13 +8346,13 @@ html.c6 #tPanel #tpIn .tp.ligne b.valeur::after{content:none}
 html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
 /* les TOUCHES de la partie (RECOMMENCER, QUITTER) : la touche du socle, 48 px, rien de rouge (une fenêtre demande confirmation) */
 html.c6 #tPanel #tpIn .tp:not(.ligne){box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin:0;padding:0 16px;
-  font-family:var(--c6-sys);font-size:15px;line-height:20px;font-weight:800;letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
+  font-family:var(--c6-sys);font-size:var(--c6-t15);line-height:var(--c6-lh15);font-weight:800;letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
   background:var(--c6-e1);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000;
   transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear}
 html.c6 #tPanel #tpIn .tp:not(.ligne):is(:active,.appui){transform:translateY(var(--c6-t));
   box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 0 0 0 #000}
 html.c6 #tPanel #tpIn .tp:not(.ligne)>.pxi{--pxs:2;margin:0;color:currentColor}
-html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:inherit;letter-spacing:inherit;color:inherit}
+html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:inherit;letter-spacing:var(--c6-cap);color:inherit}
 html.c6 #tPanel #tpIn .tp.rouge{color:var(--c6-b0)}
 html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;padding:0 12px!important}
 html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:none}
