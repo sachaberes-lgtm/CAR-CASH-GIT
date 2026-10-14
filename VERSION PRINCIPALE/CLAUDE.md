@@ -1,5 +1,12 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes les voitures et tous les trucs débloquables — c'est caché »)
+RÉGLAGES › tout en bas, sous EFFACER : ENTRER UN CODE (`data-m="code"`, la feuille `modale` avec un champ). `codeCousin(t)` : « cousin » ou
+« cousin 1.61 » (accents, majuscules, espaces et points ignorés) → `SAVE.d.cousin=1` (gardé par `san`, parti avec EFFACER MA PROGRESSION, voyage
+dans COPIER / RESTAURER). `cousin()` ouvre, sur CET appareil : toutes les caisses (`carUnlockedVrai` : en vente, en €, à défi), tous les habillages
+(`shopOwned`), toutes les FIGURES (`figPossede`, `veqFigsAMoi`), toute la carrière. L'argent, l'aura et les records ne bougent pas. Code inconnu :
+« CODE INCONNU ». ⚠ App Store (règle 2.3.1) : une fonction cachée doit être signalée dans les notes de review.
+
 ## LE DOGE v2 (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
 La v1 (gros voxels, un kart) : « nul » — pas une vraie voiture, pas assez Doge, trop cubique et cheap — et « les textes à ajouter en trail carrément ».
 La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devant, tout en `nyLaque`), main plus fine :

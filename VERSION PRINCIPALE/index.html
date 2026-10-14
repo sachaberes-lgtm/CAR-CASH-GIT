@@ -7657,6 +7657,7 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
           <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
         </div>
         <div class="pbtn pb-red wide mWipe" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
+        <div class="mPanel mCode"><div class="mLigne lien" data-m="code"><i class="pxi pxi-verrou" aria-hidden="true"></i><span class="tpL">ENTRER UN CODE</span></div></div><!-- (2026-10-14, Léo) le CODE (voir « LE CODE COUSIN ») -->
         <p class="ccVer" id="mvVer"></p>
       </div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
@@ -17481,7 +17482,7 @@ Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "�
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
 Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
 try{if(window.FIG)FIG.liste.forEach(function(f){if(f.en&&f.en!==f.n)I18N[f.n]=f.en;});}catch(e){} // (2026-10-14) les noms des FIGURES (figures.js) en anglais
-Object.assign(I18N,{'FIGURE RATEE !':'BOTCHED TRICK!','FIGURES':'TRICKS','FIGURE':'TRICK','ACQUISE':'OWNED','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
+Object.assign(I18N,{'ENTRER UN CODE':'ENTER A CODE','TOUT EST DÉBLOQUÉ !':'EVERYTHING UNLOCKED!','CODE INCONNU':'UNKNOWN CODE','FIGURE RATEE !':'BOTCHED TRICK!','FIGURES':'TRICKS','FIGURE':'TRICK','ACQUISE':'OWNED','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
 Object.assign(I18N_ZH,{'FIGURE RATEE !':'特技失败！','FIGURES':'特技','AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
@@ -19564,7 +19565,7 @@ function carrVue(bi){
         +'<div class="carrPied"><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div><span class="carrGo">'+pxi('droite')+' '+TR('NIVEAU')+' '+(nx+1)+'</span>'+(ch?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div></div>'; /* (2026-10-07, Sacha : « mauvaise police, pas besoin d'autant de texte ») plus de description : le nom, la progression, le niveau à jouer */}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
-    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
+    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||cousin()||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
       h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv'+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':LANG==='zh'?'关卡 ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':LANG==='zh'?' 未解锁':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span>'+(sel&&sel.b===bi&&sel.i===i?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
     h+='</div>';
   }
@@ -19619,7 +19620,7 @@ function carrSelPose(bi,i){const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;cons
 function carrSel(){ // {b,i} : le niveau que lancent les PLAY
   if(!SAVE.d.tuto&&!SANDBOX&&CARRIERE[0].niveaux[0].piste==='tuto')return {b:0,i:0};
   const s=SAVE.d.carrSel,b=s?CARRIERE.findIndex(function(B){return B.id===s.id;}):-1;
-  if(b>=0&&CARRIERE[b].niveaux[s.i]&&(TEST_CARRIERE||s.i<=carrFait(b)))return {b:b,i:s.i};
+  if(b>=0&&CARRIERE[b].niveaux[s.i]&&(TEST_CARRIERE||cousin()||s.i<=carrFait(b)))return {b:b,i:s.i};
   return {b:0,i:Math.min(CARRIERE[0].niveaux.length-1,carrFait(0))};}
 function carrJouer(){ // le PLAY de l'accueil et du garage
   if(pendingScore!=null)return; // un nom en cours de saisie (comme playViaGarage)
@@ -28474,6 +28475,13 @@ function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&
 const RAR_LOGO={commun:'rond',rare:'gemme',exotique:'palmier',epique:'flamme',legendaire:'couronne',mythique:'dragon',infini:'infini',defi:'cible'}; // (2026-10-10, Léo : « trouve les pictogrammes adaptés pour que les gens comprennent exactement ce que c'est ») COMMUNE un simple rond · RARE la gemme · LÉGENDAIRE la couronne · MYTHIQUE le dragon · INFINI le signe ∞ (la roue et la cible étaient le même dessin) // (2026-10-09, Léo : « enlève les nombres de voitures dans chaque rareté, fais des logotypes ») — DÉFI : la cible des missions
 function rarInfo(r){return RARETES.find(function(x){return x.id===r;})||RARETES[0];}
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
+/* LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes
+   les voitures et tous les trucs débloquables ») : RÉGLAGES › ENTRER UN CODE. « cousin » (ou « cousin 1.61 ») pose `SAVE.d.cousin` — et sur
+   CET appareil tout est À TOI : les caisses (carUnlockedVrai : en vente, en €, à défi), les habillages (shopOwned), les FIGURES (figPossede),
+   tous les niveaux de la carrière. Rien n'est écrit ailleurs (l'argent, l'aura et les records ne bougent pas) ; EFFACER MA PROGRESSION l'enlève. */
+function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(k!=='cousin'&&k!=='cousin161')return false;SAVE.d.cousin=1;SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}return true;}
+function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE peut ne pas exister encore : le tout premier buildCar tourne avant lui)
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
@@ -28484,6 +28492,7 @@ function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i)
    « déjà à toi », le testeur ne voyait jamais la boucle achat → caisse que vivra le joueur. */
 function carUnlockedVrai(i){
   if(carRetiree(i))return false; // (2026-10-02) retirée : ni à toi, ni à gagner
+  if(cousin())return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;
@@ -30066,7 +30075,8 @@ function figDesc(f){const tx=function(m){const n=['x','y','z'].filter(function(c
 COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f),fig:1};});
 const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
-function shopOwned(cat,id){if(cat==='figure')return figPossede(id);const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
+function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
+const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(!d.p&&!d.mis)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;}
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
@@ -36500,7 +36510,7 @@ const SAVE={
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
     if(Array.isArray(d.figs))c.figs=[...new Set(['tonneau'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées (le TONNEAU, offert)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0; /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0; /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
@@ -37148,7 +37158,7 @@ function veqSaut(){ // LE SAUT NITRO : le booster plaque la route, la caisse dé
   try{if(SONV2)sfx('nitro.plein',{vol:-6});}catch(e){}
   VEQ.n++;return true;
 }
-function veqFigsAMoi(){const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tonneau'];}
+function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){return f.id;});const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tonneau'];}
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
   const L9=VEQ.lect;if(!L9||!window.FIG||L9.occupe()>=3)return false;
   const f=FIG.tire(veqFigsAMoi(),L9.der);
@@ -46827,7 +46837,8 @@ function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('g
 function figAchat(i){const d=COSM.figure[i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};if(figPossede(d.id))return {ok:false,raison:'deja-possedee'};
   if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
   SAVE.d.bank=bank()-d.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(d.id);SAVE.flush();return {ok:true,paye:d.p};}
-function figPossede(id){const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);}
+function figPossede(id){if(cousin())return !!(window.FIG&&FIG.par[id]); // (2026-10-14) LE CODE COUSIN : toutes les figures
+const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);}
 function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))return false;
   if(bank()<f.p){if(bt)gSecoue(bt);uiClic('refus');toast(pxi('piece')+' '+sansAcc(TR('IL MANQUE'))+' '+fmtC(f.p-bank()));return false;}
   SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(id);SAVE.flush();
@@ -52796,6 +52807,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(!r.v)return;
         if(SAVE.import(r.texte.trim())){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);}
         else toast(pxi('croix')+' '+TR('CODE INVALIDE')); }); }
+    else if(a==='code'){ /* LE CODE COUSIN (2026-10-14, Léo) — voir codeCousin */
+      modale({titre:'ENTRER UN CODE',texte:'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
+        if(!r.v)return;
+        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'));try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
+        else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
