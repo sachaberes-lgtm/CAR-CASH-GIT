@@ -19,8 +19,10 @@ Charte 6 noir et blanc REJETÉE (`?ui=6` seulement) ; police pixel ; LOGO intouc
 onglet MISSIONS (« défi » = défis secrets de la palette) ; carrière et MODE FACILE retirés ; aucune fausse urgence.
 
 ## La suite, par priorité
-1. Le JOUER : `playViaGarage → resetGame → newTrack` SYNCHRONE dans le geste (93 + 65 ms d'à-coup, PERF) → voile peint, 2 rAF, puis le
-   build, `chauffeRendu` sous le voile ; crochets de PERF `cc:portail` / `cc:construction` (debut/fin/chauffe).
+1. Le JOUER : mesuré au banc (`cc-banc\jouer.cjs`, accueil ET garage) — la construction (390-640 ms au PC) tombe DÉJÀ sous le balayage pixel doré
+   d'`ecranWipe` : aucune image de jeu figée. Seul défaut restant : le voile couvert est IMMOBILE pendant la construction → idée : faire
+   apparaître le motif animé par le compositeur du portail (`#portV`) sous le balayage tant que `cc:construction` 'chauffe' n'est pas passé.
+   La branche `ux8-g` (voile dans `garageRender`/`chuteRender`, fin du départ 3D de Léo) n'est PAS poussée : chemin jamais atteint au banc.
 2. LA PALETTE (40 couleurs, couche de GRAPHISME sur main) dans l'onglet PEINTURE de la boutique : `SPEC-PALETTE.md` (ui7/integ, passation/interface-nav7).
 3. Boutique debout : le « 1.61 » 3D de la salle blanche passe derrière le nom de la caisse.
 4. Le cadeau de l'accueil : c'est GAMEPLAY qui pose sa ligne (`cadeauEtat`/`cadeauOuvre`), au-dessus de MISSIONS, icône pièce.
