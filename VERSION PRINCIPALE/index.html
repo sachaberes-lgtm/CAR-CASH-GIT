@@ -37759,6 +37759,10 @@ function juiceScreenTick(dt){
   }
   juiceCx.globalAlpha=1;
 }
+// (2026-10-14, session SON) L'ÉCHELLE DES FRUITS : le i-ème fruit de la rafale, en demi-tons — 0, 2, 4, 7 puis aller-retour 4-7 (+7 au plus :
+// le splotch reste un fruit, pas une voix de souris ; la rafale, bases [0], reste sous l'octave même tonalité comprise)
+const SON_FRUIT_ST=[0,2,4,7];
+function sonFruitSt(i){i=Math.max(0,i|0);return i<4?SON_FRUIT_ST[i]:SON_FRUIT_ST[2+(i&1)];}
 function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouche (console de son)
   fruitRafT=FRUIT_FENETRE;fruitRaf++;
   const r=Math.min(6,fruitRaf);
@@ -37768,7 +37772,7 @@ function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouch
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
   juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
-  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:1+Math.min(5,r-1)*.025});if(r>=3)sfx('fruit.rafale');}else crunchSfx(r); /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
+  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12)});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3)});}else crunchSfx(r); // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
     chaineAura('RAFALE ×'+fruitRaf,15+r*6,'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
