@@ -56113,13 +56113,11 @@ function pickupsTick(dt){
         // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
         // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
         addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);try{piece1Plus();}catch(e){} /* (2026-10-14) le « +1 » à côté de la caisse */
-        /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT DANS LA MAIN. Chaque pièce a son tic à peine perceptible (ligne suivante) ; la 5e,
-           la 10e, la 15e — celles où la salve d'aura tombe et où `piece.recolte` sonne — n'avaient rien de plus. Elles prennent un tic NET
-           (moyen), DOUBLE à partir de la 15e d'affilée, et la caisse se soulève d'un rien (≈ 1 → 2 cm : elle s'allège). Un seul coup par
-           pièce : le petit tic de la ligne suivante est sauté SI celui-ci a passé le limiteur — jamais deux, jamais de bourdon (au plus
-           une récolte toutes les 5 pièces). */
-        if(SENS&&combo%5===0)try{const h9=SCOUP.ht,k9=Math.min(4,combo/5);sensHap(k9>=3?[10,28,14]:14,2);if(SCOUP.ht!==h9)hap._pc=SCOUP.ht;if(!REDUCED_MOTION)sensCoup(0,0,.15+.07*k9);}catch(e){}
-        {const n9=performance.now();if(n9-(hap._pc||0)>70){hap._pc=n9;hap(5);}} // la pièce : un tic à peine perceptible (bridé : une ligne de pièces ne doit pas bourdonner)
+        /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT. La 5e, la 10e, la 15e — celles où la salve d'aura tombe et où
+           `piece.recolte` sonne — soulèvent la caisse d'un rien (≈ 1 → 2 cm : elle s'allège).
+           (2026-10-15, Sacha : « enlève les vibrations à chaque fois qu'on ramasse des pièces ») LA PIÈCE NE VIBRE PLUS : ni le tic de
+           chaque pièce, ni le tic net de la récolte. Le son et le soulèvement restent ; le téléphone ne vibre que pour ce qui compte. */
+        if(SENS&&combo%5===0&&!REDUCED_MOTION)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
         const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
         const g=denom()*2.2*mult*(fever>0?2:1)*flowMult(); // × le FLOW
         money+=g;levelCash+=g;livre('$:piece',g);blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
