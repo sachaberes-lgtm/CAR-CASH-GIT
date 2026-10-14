@@ -7616,8 +7616,8 @@ html.c6 #carr .carrIn{display:flex;flex-direction:column;width:100%;max-width:no
 html.c6 #carr .carrIn>.c6Tete{position:sticky;top:0;animation:none}
 html.c6 #carr .cmCorps{flex:1 0 auto;box-sizing:border-box;display:flex;flex-direction:column;padding:8px calc(var(--sR) + 16px) 16px calc(var(--sL) + 16px)}
 html.c6 #carr .c6Bas{position:sticky;bottom:0;z-index:20;flex:none;box-sizing:border-box;display:flex;justify-content:flex-end;animation:none;
-  padding:8px calc(var(--sR) + 16px) calc(var(--sB) + 8px) calc(var(--sL) + 16px);background:var(--c6-e0)}
-html.c6 #carr .cmJouer{min-width:192px;justify-content:center;font-size:16px;white-space:nowrap}
+  padding:8px calc(var(--sR) + 16px) calc(var(--sB) + 20px) calc(var(--sL) + 16px);background:var(--c6-e0)}   /* (accord n° 46) la face de JOUER à sB+20, sa tranche à sB+16 */
+html.c6 #carr .cmJouer{min-width:192px;justify-content:center;white-space:nowrap}   /* (accord n° 34) le corps 16 vient de la recette .pb-gold.long du socle (plus de règle locale) */
 html.c6 #carr .cmGrille{flex:1 0 auto;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
 html.c6 #carr .cmMondes{grid-auto-rows:minmax(92px,1fr)}  /* (2026-10-14, vérif P1) 92 et pas 100 : à 375×667, 4 × 100 + 3 × 12 = 436 px pour ~427 de place entre l'en-tête et JOUER — la 4e carte (ESPACE) passait sous la barre ; le contenu d'une carte en demande ~88 */
 html.c6 #carr .cmNivs{grid-auto-rows:minmax(76px,1fr);gap:8px}
@@ -7689,7 +7689,7 @@ html.c6 #gMis #gmHead b{font-weight:400;font-size:16px;line-height:16px;letter-s
 html.c6 #gMis #gmHead #gmSous{display:none}
 html.c6 #gMis #gmHead #gmAide{grid-column:1/-1;font-family:var(--sans);font-size:13px;line-height:18px;font-weight:500;letter-spacing:0;color:var(--c6-b0);text-shadow:0 1px 0 #000}
 @media (orientation:landscape) and (max-height:540px){html.c6 #gMis #gmHead{width:200px}}
-html.c6 #gMis #gmBas{left:calc(var(--sL) + 16px);right:calc(var(--sR) + 16px);bottom:calc(var(--sB) + 16px);transform:none;width:auto;justify-content:flex-end;gap:8px}
+html.c6 #gMis #gmBas{left:calc(var(--sL) + 16px);right:calc(var(--sR) + 16px);bottom:calc(var(--sB) + 20px);transform:none;width:auto;justify-content:flex-end;gap:8px}
 @media (orientation:landscape) and (max-height:540px){html.c6 #gMis #gmBas{left:auto}}
 html.c6 #gMis #gmBas .gmHome{display:none}
 html.c6 #gMis #gmBas .gmJouer{flex:1 1 auto;min-width:192px;max-width:none;justify-content:center}
@@ -7697,9 +7697,9 @@ html.c6 #gMis #gmBas .gmJouer{flex:1 1 auto;min-width:192px;max-width:none;justi
 html.c6 #gMis #gmBas .gmJouer .mChev{display:none}
 /* les cartes */
 html.c6 #gMis .gmC{--bc:var(--c6-b0);padding:12px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);background:var(--c6-e1);animation:none;
-  box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000}
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000;transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear}   /* (accord n° 40) */
 html.c6 #gMis .gmC::before,html.c6 #gMis .gmC::after{content:none}
-html.c6 #gMis .gmC:active{translate:0 4px;box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000}
+html.c6 #gMis .gmC:active{transform:translateY(4px);box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000}
 html.c6 #gMis .gmC.d:hover{box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000}
 html.c6 #gMis .gmC.flash{animation:none}
 html.c6 #gMis .gmT{gap:8px;margin-bottom:8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g1)}
@@ -8137,10 +8137,10 @@ html.c6 body #coach,html.c6 body #coach:not(.bravo){display:grid!important;box-s
   background:var(--c6-e1)!important;filter:none;
   box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important;
   font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
-html.c6 body #coach.bravo{background:#1c6b37!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6 body #coach.bravo{background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-cash),0 4px 0 0 #000!important}   /* (2026-10-14, accord n° 62) bravo = la grammaire du toast « coché » : encre, filet et mots verts (plus de vert plein #1c6b37) */
 html.c6 body #coach .coTop,html.c6 body #coach .coRow,html.c6 body #coach .coTx{display:contents}
 html.c6 body #coach .coIco{grid-area:1/1;--pxs:2;align-self:center;color:var(--c6-or)}
-html.c6 body #coach .coTx b{grid-area:1/2;display:block;margin:0;font:800 15px/18px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:.5px;
+html.c6 body #coach .coTx b{grid-area:1/2;display:block;margin:0;font:800 15px/18px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);
   text-transform:uppercase;color:var(--c6-or);text-shadow:none!important;filter:none!important;-webkit-text-fill-color:currentColor;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.c6 body #coach .coGeste{grid-area:1/3;position:relative;height:18px;margin:0;overflow:hidden}
@@ -8152,21 +8152,21 @@ html.c6 body #coach .g-glisse::before{animation-name:c6CoGlisse!important}
 html.c6 body #coach .g-bord::before{animation-name:c6CoBord!important}
 html.c6 body #coach .g-nitro::before{animation-name:c6CoAppui!important}
 html.c6 body #coach .coSkip{grid-area:1/4;justify-self:end;align-self:center;min-width:44px;min-height:44px;margin:-14px -8px -14px 0;padding:0 8px;
-  font:800 12px/1 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:.5px;color:var(--c6-g1);text-transform:uppercase}
-html.c6 body #coach .coSkip.sur{color:#ff6b7d}
+  font:800 13px/1 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);color:var(--c6-g1);text-transform:uppercase}
+html.c6 body #coach .coSkip.sur{color:var(--c6-rouge)}
 html.c6 body #coach .coTx span{grid-area:2/1/3/5;margin:0;font:600 13px/17px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:0;color:var(--c6-b0)}
 html.c6 body #coach .coPips{grid-area:3/1/4/3;display:flex;gap:3px;margin:3px 0 0;align-self:center}
 html.c6 body #coach .coPips i{flex:1;height:4px;background:var(--c6-e3);box-shadow:none}
 html.c6 body #coach .coPips i.ok{background:var(--c6-b0)}
 html.c6 body #coach .coPips i.on{background:var(--c6-or)}
-html.c6 body #coach.bravo .coPips i{background:#0e3a1d}html.c6 body #coach.bravo .coPips i.ok,html.c6 body #coach.bravo .coPips i.on{background:var(--c6-b0)}
-html.c6 body #coach .coN{grid-area:3/3/4/5;justify-self:end;margin:3px 0 0;font:700 11px/14px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:.3px;
+html.c6 body #coach.bravo .coPips i{background:var(--c6-e3)}html.c6 body #coach.bravo .coPips i.ok,html.c6 body #coach.bravo .coPips i.on{background:var(--c6-cash)}
+html.c6 body #coach .coN{grid-area:3/3/4/5;justify-self:end;margin:3px 0 0;font:800 13px/16px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);
   text-transform:uppercase;white-space:nowrap;color:var(--c6-g1)}
 html.c6 body #coach.passe .coN{color:var(--c6-or)}
 /* le raté : le message prend la place du titre (ligne 1), en rouge, lisible ; la phrase reste dessous */
-html.c6 body #coach.rate .coN{grid-area:1/1/2/4;margin:0;justify-self:start;font-weight:800;font-size:13px;color:#ff6b7d;white-space:normal}
+html.c6 body #coach.rate .coN{grid-area:1/1/2/4;margin:0;justify-self:start;font-weight:800;font-size:13px;color:var(--c6-rouge);white-space:normal}
 html.c6 body #coach.rate .coIco,html.c6 body #coach.rate .coTx b,html.c6 body #coach.rate .coGeste{display:none}
-html.c6 body #coach.bravo .coTx b,html.c6 body #coach.bravo .coIco,html.c6 body #coach.bravo .coN{color:var(--c6-b0);text-shadow:none}
+html.c6 body #coach.bravo .coTx b,html.c6 body #coach.bravo .coIco,html.c6 body #coach.bravo .coN{color:var(--c6-cash);text-shadow:none}
 /* COUCHÉ (moins de 540 px de haut) : 12 % de 390 = 46 px. Une carte large : ligne 1 = icône · TITRE · « AUTO-ÉCOLE · 1/5 » · pouce · PASSER,
    ligne 2 = la phrase ; la jauge devient un filet de 4 px au bas de la carte. Posée sous le HUD, au-dessus de l'horizon : la route et la caisse restent libres. */
 @media (orientation:landscape) and (max-height:540px){
@@ -8182,6 +8182,9 @@ html.c6 body #coach.bravo .coTx b,html.c6 body #coach.bravo .coIco,html.c6 body 
   html.c6 body #coach.rate .coN{grid-area:1/1/2/5}
 }
 @media (prefers-reduced-motion:reduce){html.c6 body #coach .coGeste::before{animation:none!important}}
+/* (2026-10-14, accord n° 36 et 42) le ⏸ : 48 × 48 dit ici (l'ancienne 1197 posait 50 × 50 !important ; 2541 le ramenait déjà à 48) ; seul bouton de la course : retour au toucher 90 ms linear comme partout (plus le 140 ms et sa courbe) */
+html.c6 body #tGear{width:var(--c6-h)!important;height:var(--c6-h)!important}
+html.c6 body.touch #tGear{transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,opacity var(--c6-pose) linear,visibility 0s!important}
 /* (2026-10-14, vérif P1) la plaque de POUVOIR pendant l'auto-école : c'est hudColonne (JS, top en ligne !important) qui la place — elle commence désormais sous la carte du coach. */
 </style>
 <style id="c6-pause-fin">
@@ -20671,7 +20674,7 @@ function carrVueC6(bi,el){
   }
   /* JOUER dit ce qu'il lance : « JOUER · SKY HIGH 3 » */
   const pl=TR('JOUER')+' · '+TR(CARRIERE[go.b].nm)+' '+(go.i+1);
-  h+='</div><div class="c6Bas"><div class="pbtn pb-gold big cmJouer" data-c="niveau" data-b="'+go.b+'" data-i="'+go.i+'" role="button" tabindex="0" aria-label="'+pl+'"><span>'+pl+'</span></div></div>';
+  h+='</div><div class="c6Bas"><div class="pbtn pb-gold long cmJouer" data-c="niveau" data-b="'+go.b+'" data-i="'+go.i+'" role="button" tabindex="0" aria-label="'+pl+'"><span>'+pl+'</span></div></div>';
   uiGarde();
   if(el.classList.contains('on')&&!el.classList.contains('sortant'))el.setAttribute('data-sens',mondes?'retour':'avant');else el.removeAttribute('data-sens');
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
