@@ -16210,7 +16210,7 @@ const VLC_MET={
   matin:{el:11,lue:.85,lav:1,  cen:.10,bra:.30,fum:.80,fumC:[.62,.52,.58],bru:.62,bC:[.88,.50,.50],gey:1,  eru:1,  phare:.05,sons:'jour'},
   midi: {el:58,lue:.62,lav:.9, cen:.06,bra:.18,fum:.85,fumC:[.64,.58,.54],bru:.38,bC:[.82,.68,.48],gey:1,  eru:1,  phare:0,  sons:'jour'},
   soir: {el:5, lue:1.05,lav:1.08,cen:.22,bra:.6,fum:.92,fumC:[.40,.19,.15],bru:.6, bC:[1,.38,.16], gey:1.1,eru:1.1,phare:.4, sons:'soir'},
-  nuit: {el:34,lue:1.45,lav:1.25,cen:.22,bra:1, fum:1,  fumC:[.16,.08,.08],bru:.75,bC:[.36,.07,.03],gey:1.2,eru:1.3,phare:1,  sons:'nuit'},
+  nuit: {el:34,lue:1.9,lav:1.75,cen:.22,bra:1, fum:1,  fumC:[.16,.08,.08],bru:.75,bC:[.36,.07,.03],gey:1.2,eru:1.3,phare:1,  sons:'nuit'},
   pluie:{el:48,lue:1.15,lav:1.12,cen:1,  bra:.45,fum:1, fumC:[.30,.26,.24],bru:1,  bC:[.44,.35,.29],gey:.9, eru:1,  phare:.6, sons:'cendre'},
   orage:{el:48,lue:1.25,lav:1.18,cen:.55,bra:.85,fum:1, fumC:[.14,.10,.12],bru:.9, bC:[.22,.10,.10],gey:1.1,eru:1.6,phare:.9, sons:'orage'}};
 const VLC_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
@@ -16367,7 +16367,7 @@ const VLC_SOL_VS=['attribute vec4 aS;varying vec3 vW,vN;varying vec4 vS;','#incl
 const VLC_SOL_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN;varying vec4 vS;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec2 q=vW.xz;',
   '  float n1=fn2(q*.021),n2=fn2(q*.09),n3=fn2(q*.43),ht=clamp(vS.y,0.,1.),ab=vS.z,loin=smoothstep(260.,800.,dist);',
-  '  vec3 alb=mix(vec3(.032,.027,.027),vec3(.088,.072,.066),n2*(.7+.3*n3));',                                  // le BASALTE
+  '  vec3 alb=mix(vec3(.048,.040,.040),vec3(.12,.10,.092),n2*(.7+.3*n3));',                                  // le BASALTE
   '  float plat=smoothstep(.70,.94,N.y);',
   '  alb=mix(alb,mix(vec3(.15,.135,.125),vec3(.25,.22,.20),n1),plat*smoothstep(.30,.68,n1+.12*n3));',         // la CENDRE se pose sur le plat
   '  alb=mix(alb,vec3(.22,.075,.04)*(.7+.6*n3),smoothstep(.56,.8,n2)*(1.-plat)*.75);',                        // l'OXYDE des pentes
@@ -16378,6 +16378,7 @@ const VLC_SOL_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN;varying vec4 vS;','#inclu
   '  float bas=smoothstep(50.,0.,ab)*(.5+.5*(1.-N.y));',
   '  col+=alb*vec3(1.,.30,.07)*uLue*(bas*2.4+ht*1.2);',                                                        // la LAVE éclaire la roche par en dessous
   '  col+=alb*(vPhare(vW,N)+vErupt(vW,N)*3.+uFlash*vec3(.8,.82,1.)*1.3);',
+  '  col+=uSky*alb*1.6*pow(1.-max(dot(N,V),0.),3.);',                                                        // le liseré froid du ciel (deux températures)
   '  col=mix(col,uBruC,vBrume(vW,dist));',
   '  float fi=abs(fn2(q*.11+vec2(3.1,7.7))-.5)+abs(fn2(q*.29)-.5)*.5,fis=smoothstep(.05,0.,fi)*clamp(ht*1.3+smoothstep(26.,0.,ab)*.7,0.,1.);', // les FISSURES qui couvent
   '  vec3 feu=mix(vec3(.85,.09,.01),vec3(1.,.55,.08),fn2(q*.7+uTime*.2));',
@@ -16400,7 +16401,7 @@ const VLC_LAVE_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW;varying vec4 vV;','#include
   '  vec3 cr=vec3(.030,.018,.016)*(.7+.6*c2),R=reflect(-V,vec3(0.,1.,0.));',
   '  vec3 col=cr*(uSky*.55+uGnd*.3+uFlash*1.2+vPhare(vW,vec3(0.,1.,0.)))+uSunC*pow(max(dot(R,uSunDir),0.),40.)*.12*cro;',
   '  col=mix(col,uBruC,vBrume(vW,dist)*.6);',
-  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.62);','  #else','  col+=em;','  #endif', // la lave PERCE le brouillard
+  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.45);','  #else','  col+=em;','  #endif', // la lave PERCE le brouillard
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LA ROCHE TAILLÉE (aiguilles, orgues, hornitos, l'arche) : le maillage de l'atelier des arbres (aA = partie, occlusion, hasard, hauteur
    relative ; aC = albédo) ; aI = (hasard, —, pied dans la lave, —). Parties : 0 basalte · 1 OBSIDIENNE (verre noir, veines de feu) ·
@@ -16438,12 +16439,12 @@ const VLC_FUM_VS=['attribute vec4 aC,aP;uniform float uTime;uniform vec2 uVent;v
   '  vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
 const VLC_FUM_FS=[FG_BRUIT,'uniform vec3 uFumC,uSunC,uSky,fogColor;uniform float uFum,uErupt,uErupt2,uLue,fogNear,fogFar;varying vec2 vUv;varying float vU,vA,vD,vK;',
   'void main(){vec2 q=vUv-.5;float r=length(q);float n=fn2(vUv*3.1+vec2(vU*9.,vK*13.))*.62+fn2(vUv*7.3-vec2(vU*6.,0.))*.38;',
-  '  float a=smoothstep(.5,.12,r+(n-.5)*.38)*vA*uFum*.82;if(a<.004)discard;',
+  '  float a=smoothstep(.5,.10,r+(n-.5)*.34)*vA*uFum;if(a<.004)discard;',
   '  float er=vK<.5?uErupt:vK<1.5?uErupt2:0.,bas=1.-smoothstep(0.,.32,vU);',
   '  vec3 c=uFumC*(uSky*.6+uSunC*.32*(.55+.9*clamp(q.y+.5,0.,1.)))*(.7+.6*n);',
   '  c+=vec3(1.,.30,.07)*(bas*(.18+er*1.6)*uLue+er*.18*(1.-vU));',
   '  if(vK>2.5)c=uFumC*(uSky*.5+uSunC*.22*clamp(q.y+.5,0.,1.))*(.75+.5*n)+vec3(1.,.28,.06)*uLue*.07*clamp(.5-q.y,0.,1.);', // le plafond : le dessous rougeoie
-  '  c=mix(c,fogColor,smoothstep(fogNear,fogFar*1.8,vD)*.85);',
+  '  c=mix(c,fogColor,smoothstep(fogNear,fogFar*3.,vD)*.55);',
   '  gl_FragColor=vec4(c,a);}'].join('\n');
 /* LES BRAISES (uK 0 : elles montent, vacillent, orange) et LA CENDRE (uK 1 : des flocons gris qui tombent) — une boîte qui suit la caisse */
 const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK;uniform vec3 uBoxC;varying vec3 vC;varying float vA;',
@@ -16569,7 +16570,7 @@ function vlcArche(root,fr,COL){const Q=VOLCAN.Q;if(!Q||!Q.arche)return null;
 /* LES PANACHES : une colonne par volcan (le grand, le second, ceux du loin), des bouffées qui montent sans fin */
 function vlcPanaches(root,fr){const nF=PAL_B9('volcanFumee',80),C9=[],P9=[];
   const col=(c,K,kind,H,s0,s1,n)=>{for(let k=0;k<n;k++){C9.push(c.x,K.yP-K.cr*.3,c.z,H);P9.push(k/n+fr()*.6/n,s0*(.8+fr()*.4),s1*(.75+fr()*.5),kind);}};
-  col(VOLCAN.C,VOLCAN.K,0,1500,70,520,nF);if(VOLCAN.C2)col(VOLCAN.C2,VOLCAN.K2,1,1150,55,400,Math.round(nF*.6));
+  col(VOLCAN.C,VOLCAN.K,0,1500,110,760,nF);if(VOLCAN.C2)col(VOLCAN.C2,VOLCAN.K2,1,1150,90,600,Math.round(nF*.6));
   for(const l of VOLCAN.loin)col(l.c,l.K,2,950,60,330,Math.round(nF*.25));
   {const n=TEL_NATIF?6:14;for(let k=0;k<n;k++){const i=Math.round(fr()*(NP-1)),an=fr()*6.283,r=300+fr()*1500,sz=700+fr()*450; // le PLAFOND DE CENDRE
     C9.push(pts[i].x+Math.sin(an)*r,pts[i].y+620+fr()*320,pts[i].z+Math.cos(an)*r,0);P9.push(fr(),sz,sz,3);}}
@@ -22102,11 +22103,11 @@ BIOMES.volcanMidi=bioMet(BIOMES.midi,{nm:'VOLCAN · MIDI',jour:1,jZen:[.06,.20,.
   expo:.97,sat:1.02,con:1.2,rtK:.8,wb:[1,1,1],sh:[0,.006,.03],hi:[.012,.006,-.006],vigK:.22,vigC:[.03,.04,.08],bloomS:.46,bloomT:.92,
   env:[[0,'#2f62b8'],[.3,'#6c8cc0'],[.48,'#e8cfa0'],[.58,'#fff0d0'],[.66,'#3a2418'],[1,'#120a08']],eS1:[255,248,230,.46],eS2:[150,190,240,.3]});
 BIOMES.volcanSoir=bioMet(BIOMES.nuagesSoir,{nm:'VOLCAN · SOIR',jour:1,jZen:[.10,.025,.09],jMid:[.55,.08,.06],jHor:[1,.30,.07],jSol:[1,.40,.10],sunTint:[1,.45,.20],sunHalo:1.1,stars:.08,moon:0,city:0,
-  fog:[.50,.11,.05],fogN:100,fogF:2500,fogCj:[1,.42,.16],fogIn:[.86,.32,.20],hemiS:[.46,.34,.62],hemiG:[.42,.10,.04],hemiI:.6,sunC:[1,.50,.24],sunI:1.6,fillC:[.70,.20,.06],fillI:.26,kickC:[1,.16,.50],kickI:.2,
+  fog:[.50,.11,.06],fogN:160,fogF:3000,fogCj:[1,.42,.16],fogIn:[.86,.32,.20],hemiS:[.46,.34,.62],hemiG:[.42,.10,.04],hemiI:.6,sunC:[1,.50,.24],sunI:1.6,fillC:[.70,.20,.06],fillI:.26,kickC:[1,.16,.50],kickI:.2,
   expo:.93,sat:1.07,con:1.22,rtK:.86,wb:[1,1,1],sh:[0,.002,.02],hi:[.02,.006,-.01],vigK:.3,vigC:[.04,.025,.08],bloomS:.55,bloomT:.88,
   env:[[0,'#2a0818'],[.3,'#7a1a1a'],[.48,'#ff6a2a'],[.58,'#ffb060'],[.66,'#3a0c06'],[1,'#120404']],eS1:[255,150,90,.5],eS2:[200,80,90,.3]});
-BIOMES.volcanNuit=bioMet(BIOMES.nuagesNuit,{nm:'VOLCAN · NUIT',jour:1,jZen:[.008,.004,.022],jMid:[.03,.01,.04],jHor:[.17,.035,.02],jSol:[0,0,0],sunTint:[.6,.6,.9],sunHalo:0,stars:.45,moon:.35,city:0,
-  fog:[.10,.026,.02],fogN:60,fogF:2100,fogCj:[.42,.11,.05],fogIn:[.32,.09,.07],hemiS:[.24,.17,.34],hemiG:[.34,.08,.03],hemiI:.55,sunC:[.55,.52,.78],sunI:.5,fillC:[.80,.22,.06],fillI:.34,kickC:[1,.14,.55],kickI:.24,
+BIOMES.volcanNuit=bioMet(BIOMES.nuagesNuit,{nm:'VOLCAN · NUIT',jour:1,jZen:[.010,.006,.032],jMid:[.04,.014,.06],jHor:[.22,.045,.03],jSol:[0,0,0],sunTint:[.6,.6,.9],sunHalo:0,stars:.45,moon:.35,city:0,
+  fog:[.12,.03,.04],fogN:260,fogF:3200,fogCj:[.46,.12,.06],fogIn:[.34,.10,.09],hemiS:[.32,.24,.48],hemiG:[.40,.10,.04],hemiI:.72,sunC:[.55,.52,.78],sunI:.5,fillC:[.80,.22,.06],fillI:.34,kickC:[1,.14,.55],kickI:.24,
   expo:.95,sat:.95,con:1.18,rtK:1,wb:[1,1,1],sh:[0,.004,.02],hi:[0,0,0],daSh:.3,vigK:.42,vigC:[.01,.012,.04],bloomS:.6,bloomT:.85,
   env:[[0,'#040208'],[.3,'#140810'],[.48,'#3a1010'],[.58,'#6a1c0c'],[.66,'#200604'],[1,'#0a0202']],eS1:[255,140,80,.4],eS2:[120,80,140,.25]});
 BIOMES.volcanCendre=bioMet(BIOMES.nuagesPluie,{nm:'VOLCAN · CENDRES',jour:1,jZen:[.10,.085,.08],jMid:[.20,.16,.14],jHor:[.38,.27,.20],jSol:[0,0,0],sunTint:[.9,.75,.6],sunHalo:.1,stars:0,moon:0,city:0,
