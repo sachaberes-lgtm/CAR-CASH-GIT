@@ -7786,6 +7786,12 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage :is(#gCard>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gJouer,#gAct>#gEquip,#gStrip>.gT){transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear!important}
 html.c6 body #garage #gTabs>.gTab{transition:background-color var(--c6-vite) linear,color var(--c6-vite) linear!important}
 html.c6 body #garage.atelierInv #gTabs>.gTab:not(.on):is(:active,.appui){background:var(--c6-e2)!important}
+/* (accord n° 24) ≤ 380 px DEBOUT : INVENTAIRE en pixel 16 (160 px) + ◀ + deux comptes empilés ne tiennent pas dans 343 px — mesuré au banc, le titre touchait
+   les comptes d'un joueur riche. Les comptes perdent leur icône (le « $ » et le violet disent déjà lequel est lequel) et se serrent ; au hub aussi (même en-tête). */
+@media (orientation:portrait) and (max-width:380px){
+  html.c6 body #garage>#gC6Tete .c6Sou{min-width:88px;gap:8px;padding:0 8px;justify-content:flex-end}
+  html.c6 body #garage>#gC6Tete .c6Sou .pxi{display:none}
+}
 /* (accord n° 49) LES MARGES SANS COMPENSATION : la plaque du bas (#gBottom de l'ancienne feuille : 12 px de marge intérieure, posée à sR+14 couché et à
    10 px de chaque bord debout) se pose elle-même sur la marge de la charte, sans marge intérieure de côté — #gAct n'a plus de marges négatives (−10 / −6)
    pour retomber sur 16 + zone sûre. Debout : sa largeur = l'écran − 2 × 16 − les zones sûres (la vieille max-width 560 la centre sur tablette). */
@@ -7894,10 +7900,10 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gVide{grid-col
 }
 /* (2026-10-14, ordre de Sacha) plus AUCUN surnom / nom de rang d'aura à l'écran (« DIVINITE DU CIEL »…) ni sa jauge : seulement le chiffre, en violet. Les nœuds restent (le script les écrit). */
 html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{display:none!important}
-/* DEBOUT : la fiche sous l'en-tête à deux étages ; INVENTAIRE (10 lettres) passe à 12 px pour ne pas toucher les comptes */
+/* DEBOUT : la fiche sous l'en-tête à deux étages. (accord n° 24) Le titre INVENTAIRE reste au pixel 16 du socle (plus de pixel 12) : sur 375 px ce sont les comptes qui
+   se serrent (voir plus bas, « ≤ 380 px »). */
 @media (orientation:portrait){
   html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
-  html.c6 body #garage.atelierInv>#gC6Tete>#gC6TitreInv{font-size:12px}
 }
 /* (2026-10-14, vu au banc) COUCHÉ : la fiche s'arrête 8 px AVANT la plaque (à 48 % elle passait dessous de 24 px à 844 et de 36 px à 667 : un nom long y aurait disparu).
    Sous 700 px de large il reste ~150 px au nom : il passe à 12 px sur des lignes de 16 (12 lettres × 12 = 144 : « TOUT-TERRAIN » tient sans être coupé). */
