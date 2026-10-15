@@ -3,6 +3,100 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## ZEPPELIN D'OR II, 2e JET — LA MACHINE DE 1983 PREND LA MAIN (2026-10-15, pôle SON › nouveaux sons ; Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → reformulé, « les deux » : la basse new wave grave-aigu en croches balancées ET le boum-tchak de fond)
+- Jusqu'au 9e moteur rien ne change (le gramophone, la même mélodie). Au 10e (étape `nw` de `TRIO.zeppelin2`) : tout devient DROIT (l'étape met
+  `swing` et `swing8` à 0 — pas() lit désormais le balancement dans `M.etP`), la batterie se SYNCOPE (grosse caisse 1 · « et » de 2 · 3 · « et » de 3,
+  caisse claire en réverbe coupée, charleys droits), la basse new wave martèle la fondamentale en croches droites (l'octave seulement en fin de
+  mesure), la contrebasse se tait, le piano plaque en 3-3-2. 17e : la contrebasse revient en contre-chant pincé sur les contretemps (`m_retour`,
+  à la place du stride). 21e : roulements de grosse caisse en fin de mesure (`kickD`). 23e : la basse devient un riff de doubles croches
+  (fondamentale, octave, quinte). III et l'original : inchangés.
+- MESURÉ (salle, 122 BPM fixe) : montée +19,6 dB, attaques ~6 → 41/s, brillance +235 Hz (l'original +391), boue 7,5 %, sous-grave 2,5 %,
+  0 fausse note sur 390, voix ≤ 49, 0 erreur ; bancs Chrome et WebKit (vrais clics, vrai toucher) : les trois ZEPPELIN jouent, 0 erreur.
+
+## ZEPPELIN D'OR II ET III — L'INTENSITÉ SANS LE TEMPO (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « garde juste Zeppelin d'Or, j'aime beaucoup, ça fait un peu parisien, donc garde la structure ; à partir de 10, que ça commence à aller un peu plus vite, mais pas juste le tempo, parce que c'est nul quand ça devient juste plus aigu et plus rapide : un truc d'intensité · mélanger le côté old school avec un ou deux instruments new wave : new wave, future, raw · laisse Zeppelin d'Or et fais aussi un troisième »)
+- Reformulé avant d'agir (« comprendre Léo ») : ZEPPELIN D'OR tel quel + II (même structure, l'intensité dès le 10e, deux instruments new
+  wave) + III (même style, l'intensité seulement) ; CARNAVAL D'OR et LE CASSE : « retire-les » → hors de la bibliothèque (leur code reste
+  dans musique-trente-trio.js).
+- CE QUI FAISAIT « PLUS AIGU ET PLUS RAPIDE » dans l'original (mesuré) : le tempo 122 → 130 (monte + rampe du 15 au 30), le morceau qui MONTE
+  D'UN TON au 26e (`modul`), la brillance +391 Hz. II et III : `tempoFixe` + `monte` 0 (122 BPM du 1er au 30e), plus de `modul`.
+- LA VITESSE QU'ON SENT vient des motifs qui se resserrent : `C.etapes` (marche écrite → motifs ; regleElements les fond dans `M.etP`, que lit
+  pas() ; les cuivres et les voix hachées aussi), le 10e moteur est un GRAND moment (`C.grands` : la montée, puis l'arrivée).
+  · III (l'orchestre d'époque seul) : 10e « ça accélère » (la contrebasse marche, charleys en doubles croches) · 14e le piano en stride, la grosse
+    caisse galope · 17e la contrebasse en croches (boogie) · 21e la batterie pousse (`kickD`/`snareD`, contretemps, roulements) · 23e le piano
+    en pompe de croches (manouche) · 25e les cuivres et les voix en rafales.
+  · II (+ new wave, 1983 sous 1925) : 10e LA BASSE NEW WAVE (élément `nw`, voix `nwb` : deux scies et un carré, filtre qui claque, saturée,
+    racine-octave en croches sous la contrebasse restée en oom-pah ; la caisse claire passe en réverbe coupée des années 80, `gateDe`) ·
+    14e L'ARPÈGE ANALOGIQUE en doubles croches (l'arpège en scie pincée ; la partie B reste à la clarinette) · 17e le stride · 21e la batterie
+    pousse · 23e la basse new wave en doubles croches (future) · 25e le son se durcit (raw).
+  Même numéro (1999) : même mélodie, mêmes grilles, même forme que l'original (vérifié), le même gramophone jusqu'au 12e.
+- MESURÉ (salle, banc Chrome muet, moteurs 1 → 30 ; « attaques » = notes et coups joués par seconde, compteur `_voix.attaques`) :
+  · original : 122 → 130 BPM, brillance +391 Hz, attaques ~6 → 34/s, montée +16,3 dB ;
+  · II : 122 BPM fixe, brillance +60 Hz, attaques ~7 → 44/s, montée +23,2 dB, centre au 30e 448 Hz, présence 3,1 %, boue 5,5 % ;
+  · III : 122 BPM fixe, brillance +85 Hz, attaques ~5 → 40/s, montée +26,7 dB, centre au 30e 497 Hz, présence 1,9 %, boue 3,8 % ;
+  · 0 fausse note (295 et 205 notes vérifiées), voix simultanées ≤ 54 (plafond 64), aucune sautée, 0 erreur.
+- ⚠ PIÈGE vécu : un `//` collé au milieu d'une ligne (planifie) avalait `activation = a` — la musique restait au 1er moteur, sans erreur.
+  Vu au banc (moteur bloqué à 1), corrigé avant de livrer ; même chose dans tempo(). Commentaire au milieu = `/* */`.
+- BANCS (vrais clics) : Chrome — les trois ZEPPELIN, + jusqu'au 30e, le lecteur nomme chaque étape, 0 erreur ; WebKit (faux iPhone, vrai toucher
+  exigé) : les trois jouent au 1er toucher (0,4-0,5 s), 0 erreur. Bibliothèque : l'onglet Nouveaux = ZEPPELIN D'OR, II, III.
+
+## LES POTS ENCASTRÉS (TOUTES LES VOITURES) + LE TOIT DE LA HONTE (2026-10-15, pôle CAISSES — Léo : « le pot d'échappement de la honte est un peu bizarre et mal. Il devrait être encastré, puis passer à travers une encoche qui a été faite exprès, un peu comme les vraies voitures » · « fais pareil pour toutes les voitures (seulement pot échappement) » · « remets le plafond comme avant » → « le toit d'avant, mais posé dessus »)
+- RENSEIGNÉ : sur une vraie voiture, le pare-chocs (ou la jupe) est percé d'une ouverture à la forme de la sortie, plus grande (le jeu :
+  le pot vibre et chauffe), souvent bordée d'un jonc ; l'embout y est centré, à fleur ou dépassant d'un ou deux centimètres ; une sortie
+  sous la jupe s'arrête à sa ligne.
+- LA RÈGLE (`echEncastre`, appelée par `echappement` ; `echTole`, `echTaille`, la pièce `ECHP.encoche`, les réglages `ECH_ENC`) : pour
+  chaque bouche qui sort par l'ARRIÈRE, un rayon tiré de l'arrière trouve la tôle à sa hauteur ; si elle l'entoure (6 rayons sur 8 en
+  anneau), l'embout est recalé à 1,6 cm devant elle et une ENCOCHE posée (poche noire CREUSE — les âmes, lueurs et aubes du fond restent
+  visibles —, 1,2 cm de jeu, jonc sombre de 1,4 cm ; `jeu`/`jonc` réglables par pièce ; deux encoches qui se touchent n'en font qu'une,
+  rectangulaire). Une bouche SOUS la caisse (ou plus grosse que la tôle qu'elle perce) : pas d'encoche, l'embout s'arrête à 3 cm derrière
+  la ligne du pare-chocs au-dessus d'elle. Les flammes suivent. `enc:0` : la fiche garde ses pots (LA SILENCIEUSE).
+- Le DIFFUSEUR commun (`A.split`) est désormais posé AVANT le pot dans buildCar : il dépasse de 8 cm derrière le pare-chocs et, posé après,
+  cachait le bas des encoches. Les pots « canoniques » des gabarits sans fiche (deux boîtes chromées de 22 cm qui pendaient 31 cm derrière)
+  deviennent deux tubes de 7 cm encastrés dans le diffuseur. LE DOGE (pot dessiné dans son gabarit) : ses sorties d'or s'arrêtent à 3 cm
+  derrière sa plaque (elles dépassaient de 25 cm).
+- LA HONTE : deux pots rouillés de 5-6 cm, chacun dans son encoche percée dans le diffuseur, entre ses ailettes (avant : un tuyau tordu qui
+  traversait le pare-chocs sans trou et pendait, ficelé, et un bout de tube qui flottait). SON TOIT : la petite dalle d'avant la v456
+  (lisse, l'accent, sa pente de ,09), POSÉE À PLAT : le dessus de la vitre prend la pente du toit (ses côtés restent ceux d'avant). Le
+  grand toit patiné de la v456 s'en va ; le capot et le reste de la patine restent.
+- MESURÉ (banc muet, rendus isolés figés AVANT | APRÈS de l'arrière des 77 voitures) : 42 voitures en jeu voient leur pot changer ;
+  inchangés : sorties latérales (LE CAÏD, ATCHOUM), cheminées, collecteurs, réacteurs, LA SILENCIEUSE, LA MERCURE, LA FOURNAISE, LA
+  DÉFERLANTE (déjà à fleur) ; les 77 se montent sans erreur ; 0 programme compilé en course (couché, debout) ; course sans erreur.
+  Planche : `photos-gameplay/pots-encastres-toit-honte-avant-apres.jpg` (dossier CAR CAHS V3). Bancs (scratchpad) : `dbgNyIsole`,
+  `dbgNyArriere`, `dbgNyPots`, `dbgNyTole` dans une copie instrumentée.
+
+## LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « on veut retoucher le nitro ainsi que la flamme du moteur quand la voiture avance ; c'est un peu fade, on n'arrive pas trop à distinguer le nitro du moteur » · « pas trop régulier, comme un moteur d'une voiture qui avance : la personne ne doit pas voir une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique, en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, mais sa grandeur, en moins gros »)
+- ⚠ LOOK, pas encore validé : branche `visuel-flammes`, planches `photos-gameplay/flammes-moteur-nitro-avant-apres.png` et
+  `flammes-moteur-qui-vit.png`. `?flamme=ancien` rend la plume d'avant, au caractère près (A/B sur téléphone).
+- MESURÉ AVANT : moteur et nitro étaient la MÊME plume (JETS : 0,35 m au filage → 3,15 m au nitro, plus blanche), battue par des
+  sinus fixes (`fl9`, `f9`) qui ne savaient rien de la voiture.
+- LE MOTEUR (`FLM`, `flmPas`) : la plume lisse suit un MOTEUR SIMULÉ, celui que l'oreille entend — la table `ENG_SND` du palier
+  (rapports `gr`, cadence `fHz`, irrégularité `fJit`, crépitements `crk`) et les seuils de la boîte du son (recopiés, LUS seulement :
+  le son n'est pas touché ; le calcul ne dépend pas de l'audio, il tourne son coupé). Bouffées à la cadence du régime, intervalle et
+  force tirés à chaque bouffée (± fJit), ratés rares ; une houle lente et un tremblé par pot (Ornstein-Uhlenbeck : jamais périodiques) ;
+  la CHARGE lue dans l'accélération réelle ; au PASSAGE DE RAPPORT l'allumage coupé ~0,12 s (flamme ×0,3) puis le carburant qui SAUTE
+  (pop gras, plus fort aux derniers rapports) ; au PIED LEVÉ (drift, touche S) la flamme tombe et l'échappement pétarade au hasard ;
+  EN VOL le RUPTEUR (~11 coupures/s, chaque demi-période et chaque force tirées, des coups qui traînent) ; à la POSE un coup de feu ;
+  la couleur suit la chaleur (rouge-orangé stabilisé → orange en charge → jaune-blanc dans un pop).
+  Mesuré (série image par image, banc debout) : départ 0,29 ↔ 1,68 (coupures et pops visibles), croisière 0,59-0,93, pied levé 0,13
+  avec pops, vol en rafales de 2 à 11 images. « Alternance » image à image en croisière : 0,74 avec des bouffées seules (elles battaient
+  une image sur deux à ~37 bouffées/s vues à 60 i/s) → 0,69 avec l'intervalle tiré + le tremblé (0,67 = du pur hasard).
+- LE NITRO (`NFEU`, `nfeuPas`, `nfeuNait`, `nfeuEtincelle`, `nfeuCoup` à l'allumage, `nfeuFin` à l'extinction, `nfeuCoupe` au
+  replacement et à l'explosion) : un FEU DE PIXELS — des cubes instanciés avec EXACTEMENT les matières des cubes de l'arc-en-ciel (donc
+  de la porte) : 0 programme en plus (182 → 182 en course, debout, couché, cadre de l'ordi, 1 pot / 2 / 4). Nés dans la bouche du pot,
+  ils vieillissent blanc → jaune → orange → vermillon → rouge → braise → FUMÉE grise (le burn-out) ; le cœur du jet reste chaud, les
+  bords refroidissent plus tôt ; un cube sur huit est une POCHE CHAUDE ; ils sautent de case en case (grille de 6 cm dans le repère de
+  la flamme) ; des LANGUES tournent autour de l'axe, des COUPS de feu tombent au hasard (~1/s), des étincelles giclent dans le monde.
+  Réserve bleue = feu bleu, nitro infinie = feu violet (palettes `NFEU_PAL`). La plume lisse n'est plus que la TORCHE blanche dans
+  la bouche du pot (×0,38). Les boules rondes de l'échappement (`flames`) tombent à une par pot au nitro.
+  ⚠ LA CAMÉRA COMMANDE LA FORME (mesuré, `dbgFlamme('proj')`) : debout, la poursuite regarde la poupe presque d'au-dessus, à 3,6-4 m
+  des pots (les pots à −0,6 de la hauteur d'écran). Un feu qui MONTE fonce dans l'objectif (un mur rouge au bas de l'écran), un feu
+  qui s'ÉLARGIT barre tout le bas : il file donc à plat, pas plus large que la caisse (1,3-2 m), et ses cubes gardent leur taille À
+  L'ÉCRAN (la règle des gros pixels de la fumée du burn-out) ; en vol la caméra recule (~21 m) et le feu grossit (`N.kd`). L'orange
+  de la porte (1,75 · ,78 · ,14) sortait JAUNE après l'ACES : la palette tient le vert bas. ~200-350 cubes, 0,02-0,06 ms par image.
+- Crochets : `dbgFlamme()` (régime, rapport, charge, lâcher, chaleur, pops, longueurs, feu), `dbgFlamme('nfeu',0|1)`,
+  `dbgFlamme('proj')` (où tombent les cubes). Bancs : `~/Downloads/CAR-bancs` (fl*.py : rafales, pellicules centrées sur les pots,
+  séries image par image enregistrées dans la page).
+- À trancher par Léo : la taille du feu debout (il occupe le bas de l'écran sous les pots), la fumée grise, garder ou non le sillage
+  lisse de Sacha à côté du feu de pixels (il est gardé), la signature de couleur des caisses au nitro (le feu est classique pour toutes).
 ## LES TROIS NOUVEAUX — ZEPPELIN D'OR, CARNAVAL D'OR, LE CASSE (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y »)
 - CE QUE SES 👍 ONT EN COMMUN (les 21 du générateur, `musique-moteur.json` › gen) : 17 en mineur, 10 en néon / lo-fi, piano ou harpe + 808 dans les
   deux tiers, 110-123 BPM, la signature « moteur » six fois. Les trois nouveaux en sortent : chacun son univers, son groove, sa production.
