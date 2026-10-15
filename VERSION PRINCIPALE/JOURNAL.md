@@ -18,6 +18,12 @@
   ~5 % de chaque bord au boost). Le disque de la caisse : écart 0 au pixel (niveau 0 sous ~0,7 texel). 0 programme en course ; puce du Mac
   2,2 contre 2,5 ms/image (bruit). Indépendant de la courbe des noirs (`COURBE_V2` : V2 dérivé de V1, mes lignes n'y touchent pas).
   Planche `CAR CAHS V3/photos-gameplay/pixels-repetes-avant-apres.png`.
+- AVEC LE FLOU V2 DE SACHA (`FLOU_V2`, 14/10 : force et tracé — bords seulement, moitié moins fort ; `?sans=flou`) : gardé tel quel. Il
+  change OÙ et COMBIEN ça file, pas la façon de prendre les échantillons : la trame restait, sur les bords. Les deux se composent (ses
+  lignes `amt`/`buv` remplacées, mon `lodF` lit son `amt`). REMESURÉ après la fusion de main v448 (ORBITE et ses nébuleuses, debout
+  NETTE ×1,5, NITROOO en vol) : grain haute fréquence des blocs de bord 3,19 → 0,67, 2,01 → 0,91, 1,74 → 0,39 ; disque de la caisse
+  écart 0 ; 180 → 180 programmes en course debout, couché et dans le cadre de l'ordi ; mer du jade (4 plongeons, ~410 gouttes) sans
+  erreur. Planche `photos-gameplay/pixels-repetes-avant-apres-v448.png`.
 - `eauPTick` (la mer du jade, même « // qui avale ») avait été trouvé ici aussi ; la chasse aux bugs l'avait déjà réparé sur main : sa
   version est gardée.
 - BANC WEBKIT (le moteur de l'iPhone sur le Mac, sans réglage à changer) : un WKWebView hors de vue piloté par fichiers (Objective-C,
