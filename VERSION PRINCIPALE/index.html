@@ -56959,8 +56959,20 @@ $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)r
   if(t.classList.contains('gMys')){uiClic('refus');toast(pxi('horloge')+' '+sansAcc(TR(t.getAttribute('aria-label')))+' — '+sansAcc(TR('BIENTÔT')));return;} // (2026-10-10) une rareté à venir
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'&&gFigTouche(j)){hap(8);return;} /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */const eq9=garEquipeHabit(SHOP.tab,j);
-    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+/* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
+   t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite ») : en INVENTAIRE, une vignette à toi touchée (elle s'équipe)
+   ouvre l'onglet d'après — VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES ; FIGURES est le bout de la chaîne (on y range trois figures,
+   il n'y a pas de « suivant »). Le temps de VOIR son choix sur la caisse : la bascule du plateau d'abord (~1 s pour une caisse), puis un
+   battement ; un habillage, ,55 s. Un onglet touché à la main, une autre vignette, la console quittée : l'enchaînement s'annule de lui-même.
+   uiGarde : la bande change sous le doigt, un second toucher trop vite équiperait la peinture qu'on n'a pas encore vue. */
+function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(gModeM()!=='inv')return;const k=SHOP_CATS.indexOf(cat);if(k<0||k>=SHOP_CATS.length-1)return;
+  let n=0,vu=0;const va=function(){gInvSuite.t=0;if(!garageOn||GAR.go||gModeM()!=='inv'||SHOP.tab!==cat)return;
+    if(GAR.sw){vu=1;if(++n<40)gInvSuite.t=setTimeout(va,100);return;} // la caisse finit de se poser sur le plateau
+    if(vu===1){vu=2;gInvSuite.t=setTimeout(va,220);return;}
+    const nx=SHOP_CATS[k+1],b=document.querySelector('#gTabs .gTab[data-tab="'+nx+'"]');try{uiGarde(350);}catch(e){}if(b)uiPop(b);uiClic('onglet');shopTab(nx);};
+  gInvSuite.t=setTimeout(va,cat==='voiture'?250:550);}
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
