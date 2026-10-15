@@ -27710,9 +27710,25 @@ const NFEU_PAL={f:[[2.3,1.75,1],[2.1,.95,.2],[1.75,.42,.06],[1.3,.2,.035],[.9,.0
      trajectoire (une glisse, un drift : le feu part du côté où l'air le pousse). En vol, le feu détaché de Sacha (genre 3) garde sa règle.
    Le DRAGON garde NFEU_PAL / NFEU_SEUIL / NFEU_TAILLE (7 nuances). `?nfeu=colle` coupe aussi la part fluide au sol. */
 const NFEU_B10=[.06,.14,.24,.35,.47,.59,.71,.82,.9],NFEU_T10=[.88,.96,1,1,1,.96,.9,.82,.72,.6];
-const NFEU_P10={f:[[2.4,2.15,1.6],[2.3,1.75,.95],[2.2,1.35,.45],[2.05,.98,.2],[1.85,.66,.1],[1.62,.42,.06],[1.38,.25,.04],[1.08,.13,.03],[.6,.06,.025],[.2,.17,.17]],
+/* (2026-10-15, Sacha : « le feu du nitro est trop rouge ou trop bleu par rapport aux couleurs de la barre de nitro ») LES TEINTES DE LA BARRE,
+   sur les 10 nuances du feu affiné (nombre de nuances, seuils, tailles, jet, feu du MOTEUR `m` : rien ne bouge). La passe finale des courses
+   (ACES qui garde la chroma — vivid 1 —, saturation 1,3 à 1,6, contraste 1,2 à 1,4) pousse à fond tout canal déjà dominant : MESURÉ sur les
+   pixels pleins du feu, l'ancienne palette sortait ROUGE (#f15309 → #ec1c18 → #e8171b), BLEU-INDIGO (#1131f4 → #2317f4 → #331aef) et MAGENTA
+   (#ac12f2). Chaque nuance est ici MESURÉE À L'ENVERS DANS LE JEU (banc « teinte », 2026-10-16) : course figée, tout le feu peint d'une seule
+   valeur, couleur moyenne de ses pixels PLEINS relue après la passe finale (pas ceux que le flou de vitesse mêle au bitume : leur bleu-gris
+   faisait jaunir les cœurs), puis une descente (Newton amorti, en Lab) — UNE valeur pour QUATRE ambiances à la fois (nuages midi et nuit,
+   ville au soir, glacier midi), plafonnée à 3, vérifiée sur une autre image. Écart Lab moyen, avant → après : feu 21-34 → 3-11, réserve 30-69 →
+   4-13, infinie 19-57 → 3-13. Couleurs visées, rapportées au blanc du bas d'écran (~,88) — feu : #fff0d0 → --nL #ffd58f → #ffc070 → #ffa449 →
+   --nP #ff8d2e → #ff8020 → --nS #ff7415 → #d85a0c → --nO #ad4200 ; réserve : #eef2ff → --bL #b5c4ff → #93a8fc → #7088fa → --bP #4a68f0 → #3a56dc
+   → --bS #2a44c8 → #1f3398 → --bO #16247a ; infinie : #fbf3ff → --vL #f1dcff → #d6a6ff → #c38aff → --vP #b06bff → #9d54ff → --vS #8a3dff →
+   #6526c6 → --vO #3e1287. La fumée (10e nuance) reste celle de Léo. `?sans=teinte` = le feu d'avant. */
+const NFEU_P10_AVANT={f:[[2.4,2.15,1.6],[2.3,1.75,.95],[2.2,1.35,.45],[2.05,.98,.2],[1.85,.66,.1],[1.62,.42,.06],[1.38,.25,.04],[1.08,.13,.03],[.6,.06,.025],[.2,.17,.17]],
   b:[[1.8,2,2.45],[1.1,1.5,2.4],[.65,1.1,2.3],[.4,.75,2.15],[.28,.48,2],[.24,.28,1.75],[.26,.16,1.45],[.3,.08,1.05],[.16,.04,.55],[.17,.17,.22]],
-  v:[[2.25,1.9,2.45],[2.1,1.3,2.35],[1.9,.85,2.25],[1.6,.5,2.05],[1.35,.3,1.9],[1.1,.18,1.65],[.95,.12,1.45],[.7,.08,1.1],[.32,.04,.52],[.2,.16,.22]],
+  v:[[2.25,1.9,2.45],[2.1,1.3,2.35],[1.9,.85,2.25],[1.6,.5,2.05],[1.35,.3,1.9],[1.1,.18,1.65],[.95,.12,1.45],[.7,.08,1.1],[.32,.04,.52],[.2,.16,.22]]};
+const NFEU_TEINTE=!/[?&]sans=([^&]*,)?teinte(,|&|$)/.test(location.search);
+const NFEU_P10={f:NFEU_TEINTE?[[2.95,2.87,2.58],[2.3,2.03,1.51],[1.91,1.53,.99],[1.82,1.25,.68],[1.55,.88,.49],[1.99,1.06,.52],[1.7,.78,.4],[.43,.27,.14],[.32,.2,.12],[.2,.17,.17]]:NFEU_P10_AVANT.f,
+  b:NFEU_TEINTE?[[2.63,2.67,2.67],[1.89,2.02,2.37],[.67,.74,1],[.48,.54,.8],[.35,.4,.66],[.28,.32,.51],[.22,.23,.38],[.16,.15,.22],[.12,.11,.15],[.17,.17,.22]]:NFEU_P10_AVANT.b,
+  v:NFEU_TEINTE?[[2.81,2.78,2.78],[2.85,2.72,2.92],[1.68,1.4,1.92],[1.05,.79,1.34],[.79,.58,1.07],[.94,.61,1.53],[.57,.36,.86],[.28,.21,.38],[.13,.087,.16],[.2,.16,.22]]:NFEU_P10_AVANT.v,
   m:[[1.5,1.75,2.5],[2.2,1.95,1.5],[2.3,1.55,.6],[2.15,1.05,.22],[1.95,.78,.12],[1.85,.6,.08],[1.62,.42,.06],[1.3,.24,.04],[.7,.1,.03],[.2,.17,.17]]}; // m : le feu du MOTEUR — un pied BLEUTÉ, comme un vrai échappement, puis l'orange (qui tient : un retour de flamme est orange, pas rouge)
 const NFEU_FIN={taille:.73,taux:1.7,pas:0},NFEU_SOL={det:.45,vent:.9};
 /* (2026-10-15, Léo : « ce qui manque, c'est la physique de la vitesse : là on dirait du slime ; ça devrait avoir l'air PROPULSÉ, plus dynamique, mais
