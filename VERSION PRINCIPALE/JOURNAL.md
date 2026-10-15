@@ -3,6 +3,23 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
+- Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
+  (`ECLATS`, `eclaPas`, `eclaNait`, `eclaCoupe` ; ⚠ `ECL` est déjà le nom de l'éclair de l'ORAGE). Des bipyramides à trois pans, une
+  lumière par face (la facette se lit), la matière des cubes (arc-en-ciel, porte, nitro) : 0 programme de plus (182 → 182, debout et couché).
+- Menée par le moteur simulé (`FLM`) : une BOUFFÉE toutes les 1/4,5 à 1/12 s selon le régime, chaque intervalle tiré (×0,45-1,55), de 2 à
+  ~6 éclats selon la charge ; les POPS (passage de rapport, pied levé, pose, rupteur en vol) lâchent une gerbe grasse et plus chaude ;
+  au pied levé les bouffées se taisent ; en vol elles suivent le rupteur. Un éclat file le long de SA vitesse, tourne sur lui-même, se
+  CASSE en deux à mi-vie (un sur trois), refroidit blanc-jaune → orange → rouge. Au nitro : rien (le feu de pixels prend la main) ; au
+  pad turbo, la plume d'or revient.
+- MESURÉ : debout, la caméra presque à la verticale ne voit que 0,5 à 1 m derrière les pots → les éclats JAILLISSENT sur place (2,2-4 m/s,
+  en couronne autour de la bouche, 30 à 60 cm) ; à 8 m/s ils sortaient de l'écran dès leur naissance (`dbgFlamme('eproj')`). Taille à
+  l'écran constante (la règle du nitro). ~15-60 éclats vivants.
+- ⚠ PIÈGE n° 1, vécu : un `//` mis en milieu de ligne avalait `instanceMatrix.needsUpdate=true` — les éclats étaient dessinés 60 fois par
+  seconde mais à leur place d'origine (version du tampon restée à 0) : invisibles. Trouvé en traçant `renderBufferDirect`.
+- `?eclats=0` = la goutte d'avant (A/B sur téléphone) ; `dbgFlamme('ecl',0|1)`. Planche `photos-gameplay/moteur-eclats-avant-apres.png`.
+- À trancher par Léo : la taille et la densité des éclats (réduites d'un quart pour que le nitro reste LE gros moment), leur couleur.
+
 ## LA MAP DES NUAGES SANS HAUT NI BAS (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, il doit y avoir les nuages ou sinon le ciel partout, rien d'autre ; pour faire ça il faut aussi changer la génération de la route pour qu'elle se torde, se plie et tout, qu'il n'y ait plus de haut et de bas »)
 - PORTÉE : `hautOn()` = la MER DE NUAGES (toutes ses météos, l'orage compris) EN COURSE. Le ciel et la piste du menu, l'auto-école, la
   campagne, le parc : inchangés. `?sans=haut` rend la map d'avant.
