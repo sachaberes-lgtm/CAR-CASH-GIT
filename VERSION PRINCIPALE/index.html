@@ -3009,7 +3009,14 @@ html.misS #gmHead small{line-height:1.6}
 .glV{display:flex;align-items:center;gap:8px;padding:9px 2px;font-size:var(--f0);line-height:1.4;letter-spacing:.5px;color:#8a84b8;border-top:1px solid rgba(143,132,200,.2)}
 .glV span{flex:1;min-width:0}.glV b{font-weight:400;color:#5f9a74;white-space:nowrap}
 .glV.j{color:var(--rc)}.glV.j .pxi{--pxs:1;flex:none}.glV.j small{color:#6f6a99;white-space:nowrap}
-#gmHead small:empty{display:none}
+#gmHead small:empty,#gmHead em:empty{display:none}
+@media (orientation:portrait){html.misS #gmHead{right:calc(var(--sR) + var(--gut));max-width:none}}
+#gmListe.land{bottom:0;background:none;box-shadow:none;padding:0;overflow:visible;pointer-events:none;animation:none}
+#gmListe.land>.glA,#gmListe.land>.glB{position:absolute;box-sizing:border-box;padding:12px 12px 10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;
+  background:linear-gradient(180deg,#0b1e39,#060e21);box-shadow:inset 0 0 0 1px rgba(95,240,255,.32),0 0 28px rgba(95,240,255,.10);animation:gmIn .45s var(--ease) backwards .15s}
+#gmListe.land>.glA::-webkit-scrollbar,#gmListe.land>.glB::-webkit-scrollbar{display:none}
+#gmListe.land.vu>.glA,#gmListe.land.vu>.glB{animation:none}
+#gmListe.land>.glB>.glSec.r:first-child{margin-top:2px}
 @media (orientation:landscape) and (max-height:540px){.glM{min-height:50px;padding:8px 10px}.glRec{min-height:56px;padding:8px 10px}#gmListe .glSec.r,#gmListe .glSec.n{margin-top:12px}}
 @media (prefers-reduced-motion:reduce){#gmListe,.glM,.glRec{animation:none!important}}
 @media (orientation:portrait) and (max-width:760px){html.misS .gmC{padding:7px 8px 8px}html.misS .gmC .gmX{font-size:8px}html.misS .gmT b{font-size:7px}}
@@ -56259,7 +56266,7 @@ function gmRenderS(vu){ // (2026-10-15, Sacha : « refonte du système de missio
   if(s.f>=0&&s.ok[s.f])s.f=-1;
   const ord=[0,1,2].sort(function(a,b){return s.w[a]-s.w[b];});
   const tj=ord.every(function(i){return s.w[i]<=jal;}); // les trois mènent au jalon : l'étoile ne distinguerait rien
-  let h='<div class="glSec">'+pxi('cible')+'<span>'+TR('EN COURS')+'</span></div>';
+  let h='<div class="glA"><div class="glSec">'+pxi('cible')+'<span>'+TR('EN COURS')+'</span></div>';
   ord.forEach(function(i,r){const m=misM(s,i),ok=!!s.ok[i],f=s.f===i,b=Math.min(m.v,s.best[i]||0),nv=mort&&MIS_NEW.indexOf(i)>=0,j=!tj&&s.w[i]<=jal;
     h+='<div class="glM'+(ok?' ok':'')+(f?' f':'')+'" data-s="'+i+'" role="button" tabindex="0" aria-pressed="'+f+'" style="--i:'+r+'">'
       +'<span class="gmChk"><i></i></span>'
@@ -56267,47 +56274,32 @@ function gmRenderS(vu){ // (2026-10-15, Sacha : « refonte du système de missio
       +'<small>'+(ok?TR('REUSSI'):(f?TR('SUIVIE')+' · ':'')+(b>0?TR('MEILLEUR ESSAI')+' '+misProgV(m,b):TR('PAS ENCORE TENTEE')))+'</small></div>'
       +'<div class="glPr">'+(nv?'<i class="glNv">'+TR('NOUVELLE')+'</i>':'')+'<b>+'+fmtC(m.p)+'</b>'+(j?'<i class="glJ" aria-hidden="true">'+pxi('etoile')+'</i>':'')+'</div></div>';});
   const rs=misReste(s);
-  h+='<div class="glSec r">'+pxi('etoile')+'<span>'+TR('PROCHAINE RECOMPENSE')+'</span></div>'
+  h+='</div><div class="glB"><div class="glSec r">'+pxi('etoile')+'<span>'+TR('PROCHAINE RECOMPENSE')+'</span></div>'
     +'<div class="glRec'+(g.voir?' voir':'')+'" style="--rc:'+g.col+';--i:3"'+(g.voir?' role="button" tabindex="0"':'')+'>'+misGainFig(g)
     +'<div class="glTx"><b>'+sansAcc(g.nom)+'</b><small>'+sansAcc(g.fam||'')+'</small><em>'+(rs>1?TR('ENCORE {n} MISSIONS').replace('{n}',rs):rs===1?TR('ENCORE 1 MISSION'):TR('REUSSI'))+'</em></div>'
     +(g.voir?'<div class="glPr">'+pxi('droite')+'</div>':'')+'</div>';
   h+='<div class="glSec n">'+pxi('verrou')+'<span>'+TR('A VENIR')+'</span></div><div class="glVen">';
   for(let g2=hi+1;g2<=hi+4;g2++){const m=misG(g2);h+='<div class="glV"><span>'+misTxt(m)+'</span><b>+'+fmtC(m.p)+'</b></div>';
     if(g2%3===2){const gg=misGain(carnet((g2-2)/3));h+='<div class="glV j" style="--rc:'+gg.col+'">'+pxi('etoile')+'<span>'+sansAcc(gg.nom)+'</span><small>'+sansAcc(gg.fam||'')+'</small></div>';}}
-  h+='</div>';
+  h+='</div></div>';
   el.innerHTML='<div id="gmListe"'+(vu?' class="vu"':'')+'>'+h+'</div>';
   sv.innerHTML='';GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
   const sous=$('gmSous');if(sous)sous.textContent=TR('CHAQUE MISSION EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(misM(s,s.f)):TR('TOUCHE UNE MISSION POUR LA SUIVRE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?'':TR('TOUCHE UNE MISSION POUR LA SUIVRE'); // la mission suivie se voit déjà : sa ligne est en or
+  try{gmPlaceL(VP.w,VP.h);}catch(e){} // tout de suite : pas une image dans la mauvaise mise en page
 }
-function gmPlaceL(W,H){ // le panneau tient entre le titre et JOUER (debout), ou dans la colonne de JOUER, au-dessus de lui (couché)
+function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché : DEUX — les missions dans la colonne de JOUER, au-dessus de lui ; la récompense et la suite à gauche, sous le titre
   const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
-  const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16;
-  let l,r,tp;
-  if(land){l=rb&&rb.width?rb.left:Math.max(g0+(rh?rh.width:0)+16,W*.5);r=rb&&rb.width?W-rb.right:g0;tp=rh&&rh.height?rh.top:12;}
-  else{l=g0;r=g0;tp=(rh&&rh.height?rh.bottom:60)+10;}
-  L.style.left=l.toFixed(0)+'px';L.style.right=r.toFixed(0)+'px';L.style.top=tp.toFixed(0)+'px';L.style.maxHeight=Math.max(120,bt-12-tp).toFixed(0)+'px';
-}
-/* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
-   s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
-   « ENSUITE » sortaient de l'écran. Désormais l'œil LIT une liste et la scène MONTRE où vit chaque défi : les TROIS DÉFIS en une rangée
-   de cases égales (debout : sous le titre ; couché : à droite du titre), la RÉCOMPENSE en bas (debout : au-dessus des boutons ; couché :
-   à gauche d'eux) avec « ENSUITE » dedans ; chaque carte est reliée à son meuble par un FILET fin, la constellation des points reste,
-   discrète. Les cases ne se recalculent que si l'écran change (taille, textes) : chaque image ne fait que suivre les points. */
-function gmPlace(W,H){
-  const C=GMIS.cards,Q=GMIS.Q||(GMIS.Q=[]),hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),gp=8,land=W>H*1.25;
-  const g0=rh&&rh.width?rh.left:16;
-  const top=land?(rh&&rh.height?rh.top:12):(rh&&rh.height?rh.bottom+12:64);
-  const xL=land?(rh&&rh.width?rh.right+16:W*.42):g0,xR=W-g0;
-  const cw=Math.floor(Math.min(land?200:180,(xR-xL-2*gp)/3));
-  for(let k=0;k<3&&k<C.length;k++){C[k].style.width=cw+'px';C[k].style.minHeight='';}
-  let hM=0;for(let k=0;k<3&&k<C.length;k++)hM=Math.max(hM,C[k].offsetHeight);
-  for(let k=0;k<3&&k<C.length;k++){C[k].style.minHeight=hM+'px';Q[k]=[xL+k*(cw+gp),top,cw,hM];}
-  const r=C[3];if(r){const bl=rb&&rb.width?rb.left:W,bt=rb&&rb.height?rb.top:H-14,bb=rb&&rb.height?rb.bottom:H-14;
-    const rw=Math.floor(land?Math.min(440,bl-g0-14):W-2*g0);r.style.width=rw+'px';const rhh=r.offsetHeight;
-    const hb=document.documentElement.classList.contains('hubOn')&&$('gHub')?$('gHub').getBoundingClientRect():null; // (2026-10-06) LE HUB, couché : la barre tient le bas à gauche
-    Q[3]=[g0,land?(hb&&hb.height?Math.min(bb,hb.top-12):bb)-rhh:bt-12-rhh,rw,rhh];}
-  for(let k=0;k<C.length;k++)if(Q[k])C[k].style.transform='translate('+Q[k][0].toFixed(1)+'px,'+Q[k][1].toFixed(1)+'px)';
+  const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
+  L.classList.toggle('land',land);
+  if(land){const tp=rh&&rh.height?rh.top:12,l=rb&&rb.width?rb.left:W*.5,r=rb&&rb.width?W-rb.right:g0,bB=H-(rb&&rb.height?H-rb.bottom:14);
+    L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
+    if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}
+    if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=px(g0);Bk.style.width=px(Math.max(200,Math.min(420,l-g0-16)));Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bB-t2));}
+    return;}
+  [A,Bk].forEach(function(e){if(e)e.style.left=e.style.right=e.style.top=e.style.width=e.style.maxHeight='';});
+  const tp=(rh&&rh.height?rh.bottom:60)+10;
+  L.style.left=px(g0);L.style.right=px(g0);L.style.top=px(tp);L.style.maxHeight=px(Math.max(120,bt-12-tp));
 }
 function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale si l'écran change ; les hologrammes suivent l'orientation
   {const W=VP.w,H=VP.h,now=performance.now();
@@ -56360,6 +56352,10 @@ function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) :
   if(!e._on){e.classList.add('on');e._on=1;}
   e.classList.toggle('ok',ok);
 }
+window.dbgMisFile=function(){const s=misEtat(),o=JSON.stringify(s); /* (2026-10-15) banc de la FILE : deux fins de partie simulées sur une copie, l'état est rendu tel quel */
+  try{s.n=0;s.w=[0,1,2];s.ok=[1,1,0];s.best=[0,0,0];s.f=1;const r1=misFin(),a={w:s.w.slice(),n:s.n,f:s.f,r:r1};
+    s.ok=[0,0,1];const r2=misFin();return {a:a,b:{w:s.w.slice(),n:s.n,r:r2&&r2.nom,pips:misPips(s),reste:misReste(s)}};}
+  finally{SAVE.d.mis=JSON.parse(o);}};
 window.dbgMissions=function(f){if(f!=null){misEtat().f=f;SAVE.flush();}if(garageOn&&!GAR.go&&(f!=null||!gEl.classList.contains('missions')))garMode('missions'); /* (ne reconstruit pas l'écran à chaque lecture) */return {mk:+GMIS.mk.toFixed(2),f:misEtat().f,cartes:GMIS.cards?GMIS.cards.length:0};};
 function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
   if((started&&!gameOver)||pendingScore!=null)return;               // une course tourne, ou un nom se saisit
