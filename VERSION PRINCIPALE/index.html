@@ -41031,9 +41031,14 @@ var PBJ_ON=!/[?&]musique=niveaux\b/.test(location.search); // (en var : jadeMusO
    (moteur 1) à ~−12 dB (moteur 30) — LA GRANDE MONTÉE de Léo, gardée (jamais de régleur de niveau). −4 dB : au niveau de la radio vers le
    moteur 10, 5 dB au-dessus au 30e (≈ −16), sans couvrir les effets. */
 const PBJ_NIV=.39;
-function pbjActif(){return PBJ_ON&&!!window.POUCE_JEU&&musWaTient()&&!!AC&&!!MASTER&&!!MASTER._lim;}
+let PBJ_KO=0; // (15/10) le morceau n'a pas pu partir (réseau, fichier, liste vide) : cette course passe à la RADIO — chaque JOUER réessaie
+function pbjActif(){return PBJ_ON&&!PBJ_KO&&!!window.POUCE_JEU&&musWaTient()&&!!AC&&!!MASTER&&!!MASTER._lim;}
 function pbjCourse(){return pbjActif()&&window.POUCE_JEU.joue();}
-function pbjDepart(vite,meme){if(!pbjActif()||!SND.music)return;try{POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme});}catch(e){}}
+function pbjDepart(vite,meme){if(!vite&&!meme)PBJ_KO=0;if(!pbjActif()||!SND.music)return; // (sans argument = un JOUER : on réessaie)
+  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme});
+    if(p&&p.then)p.then(function(E){const f=POUCE_JEU.phase;if(E||(f!=='erreur'&&f!=='vide'))return; // (annulé par un autre départ ou une fin : rien)
+      PBJ_KO=1;console.warn('Pouce bleu : '+(POUCE_JEU.err||'liste vide')+' — la radio prend la course');
+      if(musicMode==='run'&&running&&!gameOver)try{musicStartRun(false);}catch(e){}});}catch(e){}}
 let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
 window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE},POUCE_JEU.etat()):null;};
 function musicStartRun(depart,reprise){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course · reprise : la seconde chance (la course continue)

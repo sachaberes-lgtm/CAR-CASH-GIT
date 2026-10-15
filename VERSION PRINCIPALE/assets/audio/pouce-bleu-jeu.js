@@ -67,7 +67,7 @@
   async function joueurHtml(ac, dest, E) {
     const fr = document.createElement('iframe'); fr.src = E.f; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true');
     fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1'; document.body.appendChild(fr);
-    await new Promise((ok, ko) => { fr.onload = ok; fr.onerror = ko; });
+    try { await new Promise((ok, ko) => { fr.onload = ok; fr.onerror = ko; });
     const prete = new Proxy(ac, { get(t, k) { if (k === 'destination') return dest; if (k === 'close' || k === 'suspend') return () => Promise.resolve();
       const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; } });
     fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
@@ -76,6 +76,7 @@
     vit(0); bt.click();
     const bpm = (fr.contentWindow.MORCEAU && fr.contentWindow.MORCEAU.bpm) || 120;
     return { regle(m) { vit((m - 1) / 29); }, stop() { try { if (/stop/i.test(bt.textContent)) bt.click(); } catch (e) {} fr.remove(); }, bpm: () => bpm };
+    } catch (e) { fr.remove(); throw e; }   // (la page n'est pas venue : l'iframe ne reste pas)
   }
 
   // ---------------------------------------------------------------- la chaîne : filtre de l'intro → niveau → bus des basses → la sortie du jeu
@@ -91,11 +92,11 @@
   /* LE DÉPART (le JOUER) : le morceau tiré démarre au moteur 1, derrière le filtre fermé ; l'intro l'ouvre sur 2 mesures de SON tempo (2-4 s) */
   PB.depart = async function (ac, sortie, opt) {
     opt = opt || {}; PB.fin(false);
-    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac;
+    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null;
     try {
       await PB.charge(); if (jeton !== PB.n) return null;
       const E = (opt.meme && PB.dernier) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;   // (la seconde chance : le MÊME morceau repart)
-      const ch = chaine(ac, sortie); if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); }
+      ch = chaine(ac, sortie); if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); }
       const J = await (E.type === 'genv' ? joueurGen : E.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, E);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
@@ -103,7 +104,7 @@
       ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(320, t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T);
       if (opt.vite) PB.course();
       return E;
-    } catch (e) { PB.err = String(e && e.message || e); PB.phase = 'erreur'; return null; }
+    } catch (e) { PB.err = String(e && e.message || e); if (jeton === PB.n) PB.phase = 'erreur'; if (ch) try { ch.e.disconnect(); } catch (x) {} return null; }   // (le jeu rend alors la course à la radio)
   };
   /* LA COURSE : l'intro finit (au plus vite si elle n'a pas fini), le morceau joue au moteur 1 et suit le moteur */
   PB.course = function () {

@@ -28,6 +28,8 @@
 - SEULEMENT là où la musique passe par WebAudio (`pbjActif()` : `musWaTient()` — ordi, Android, iPhone iOS 17+) ; Safari sur Mac et l'iPhone
   sans audioSession gardent les musiques des niveaux. Si le chien de garde condamne le WebAudio pendant le piqué (le défaut de WebKit, la source de
   l'élément qui rend des zéros), le morceau s'efface et la RADIO prend la course (`musicStartRun`, `musWaCondamne`) — jamais les deux (banc WebKit).
+  Si le morceau ne PART pas (réseau, fichier absent, liste vide : `PBJ_KO`), la radio aussi — jamais une course muette (banc : les modules du
+  générateur bloqués → la radio dès le piqué, puis les musiques des niveaux) ; chaque JOUER réessaie.
 - BANCS (muets) : partie complète ciel → garage → PLAY → 3 niveaux par 2 portails → mort → fin → REJOUER, couché, debout et dans le cadre de l'ordi,
   Chrome ET WebKit (`?muswa=1`, l'élément muet pour que le chien de garde ne juge pas la source) : intro qui s'ouvre, le même morceau d'un niveau à
   l'autre (nuages → volcan → forêt, jade → canyon → ville, canyon → espace → volcan…), un autre au REJOUER, 0 erreur.
