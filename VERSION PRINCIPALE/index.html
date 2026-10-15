@@ -9302,23 +9302,21 @@ html:not(.c6) #mDead #mChance .chT,html:not(.c6) #mDead #mChance .chP{position:r
 html:not(.c6) #mDead #mChance.chOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
 html:not(.c6) #mDead #mChance .chBar{position:absolute;left:0;right:0;bottom:0;height:4px;background:currentColor;opacity:.7;transform-origin:0 50%;pointer-events:none}
 html:not(.c6) #mDead #mChance.chOn .chBar{animation:u8ChBar var(--chD,5500ms) linear forwards}
-/* (v2, capture de Sacha : « c'est n'importe quoi ») PENDANT L'OFFRE la seconde chance a SA place : une bande d'encre OPAQUE qui monte du bas et
-   tient le tiers bas (#mChanceFond), CONTINUER · prix en or + la barre du vrai temps qui reste, puis NON MERCI en VRAI bouton secondaire ;
-   ⌂ et REJOUER sont MASQUÉS (plus grisés) et reviennent à la fin de l'offre ou au refus. Rien ne chevauche plus les stats ni la mission. */
-html:not(.c6) #mDead #mChanceNon{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 16px;font-size:var(--f1);letter-spacing:1px}
-html:not(.c6) #mDead :is(#mChanceNon,#mChanceFond)[hidden]{display:none}
-html:not(.c6) body.chOffre #mDead .mFin{visibility:hidden}
-html:not(.c6) #mDead #mChanceFond{position:fixed;left:0;right:0;bottom:0;z-index:5;height:calc(var(--sB) + 156px);pointer-events:auto;
-  background:linear-gradient(180deg,rgba(7,5,15,0) 0,rgba(7,5,15,.97) 28px,#07050f 100%);animation:u8ChFond var(--t-slow) var(--ease) both}
-html:not(.c6) body.chOffre #mDead :is(#mChance,#mChanceNon):not([hidden]){position:fixed;z-index:6;left:0;right:0;margin:0 auto;
-  width:min(560px,calc(100% - 32px - var(--sL) - var(--sR)))}
-html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){bottom:calc(var(--sB) + 76px);min-height:64px}
-html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){bottom:calc(var(--sB) + 16px);animation:u8ChMonte var(--t-slow) var(--ease) both}
-@keyframes u8ChFond{from{opacity:0}to{opacity:1}}
+/* (v3, 15/10, Sacha : « le bouton CONTINUER passe devant les autres ») la v2 posait une bande FIXE au bas de l'écran, par-dessus la colonne :
+   elle recouvrait les tuiles OFFRES · RÉGLAGES et le bas des cartes. Pendant l'offre, la seconde chance prend la place EXACTE de ⌂ · REJOUER,
+   DANS le flux : CONTINUER · prix là où était REJOUER (le pouce n'a pas à chercher), NON MERCI juste au-dessus en secondaire. Rien ne flotte,
+   rien ne passe devant ; ⌂ · REJOUER reviennent à la fin de l'offre ou au refus. */
+html:not(.c6) #mDead #mChanceNon{order:3;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:14px 0 0;padding:0 16px;font-size:var(--f1);letter-spacing:1px}
+html:not(.c6) #mDead :is(#mChanceNon,#mChanceFond)[hidden],html:not(.c6) #mDead #mChanceFond{display:none}
+html:not(.c6) body.chOffre #mDead .mFin{display:none}
+html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){order:4;margin:10px 0 0;min-height:64px}
+html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte var(--t-slow) var(--ease) both}
 @media (orientation:landscape) and (max-height:540px){
-  html:not(.c6) #mDead #mChanceFond{height:calc(var(--sB) + 128px)}
-  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){bottom:calc(var(--sB) + 64px);min-height:52px}
-  html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){bottom:calc(var(--sB) + 10px);min-height:44px}}
+  /* couché : la rangée OFFRES · RÉGLAGES s'efface le temps de l'offre, NON MERCI prend sa case, CONTINUER l'ancre de REJOUER (en bas à droite) */
+  html:not(.c6) body.chOffre #mDead>.mRow{display:none}
+  html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){grid-area:row;margin:0;min-height:44px}
+  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);
+    width:min(368px,44vw);margin:0;min-height:58px}}
 @keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
 @keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
