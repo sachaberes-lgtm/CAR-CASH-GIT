@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS D'ANIMAUX DANS LE JEU (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus trop sa place et ça prend trop de place sur le jeu — profites-en pour enlever tout ce qui peut être volumineux et inutile : dragon, animaux figures ; on va les replacer par map »)
+- Choix confirmés par Léo (questionnaire) : les dauphins ET la figure d'aura LE DAUPHIN ; le serpent néon ; le dragon de feu de NITROOO.
+  Sacha les avait COUPÉS le matin (drapeaux `SANS_DAUPHIN`/`SANS_SNAKE`/`SANS_DRAGON`) : ils sont désormais ARRACHÉS — créatures, figure
+  du dauphin (dolTick/dolStart/dolFin/dolPose/dolKill, aura de la nage au ras, DAUPH, #dolHud et son CSS), serpent (`updateSerpent`), dragon
+  (`DRG`, `DFEU`, `dragonTick`, sa chauffe au menu), et les SINGES DE LA COURSE (3 sauts en 5 s : `singeJeu`, `singeSaut`), qui tournaient
+  encore. `?dauphin=1` et `?dragon=1` n'existent plus. La figure SNAKE LOOP et NITROOO restent derrière les drapeaux de Sacha.
+- Ce qui revient par map est gardé hors du jeu : `creatures/dauphin.js` (le modèle du dauphin en vitrail et ses chorés), `creatures/vitrail.js`,
+  `creatures/singe.js` (ses poses : queue, mains, course) — non chargés par index.html ; `boite-dauphins.html` / `boite-singe.html` les lisent.
+  `crV1`/`crV2` et `triNoir()` vivaient dans le bloc des dauphins : remis à part (la comète de NITROOO et le jus s'en servent).
+- MESURÉ : index.html 6 554 → 6 349 Ko (script principal 5,53 → 5,32 Mo), 3 programmes de moins au menu (174 contre 177), syntaxe vérifiée
+  au jsc ; au banc (GPU) : départ par PLAY, sauts, grand vol, explosion, nouvelle partie, et avec `?nitrooo=1&snake=1` : 0 erreur.
+- ⚠ BANC : `dbgCampagne(n)` FIGE le main actuel (la carrière est coupée) — partir par le vrai bouton PLAY. Chrome sans fenêtre 155 rend en
+  logiciel par défaut (98 % de processeur, tout se fige) : le lancer avec `--enable-gpu --use-angle=metal`.
+
 ## LES FIGURES EN DEUX FAMILLES : VERS L'AVANT · SUR LES CÔTÉS (2026-10-15, Sacha : « pour le système de figure : il faut séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; par exemple les figures tonneau doivent aller vers la droite ou la gauche, elles ont besoin d'être orientées par la direction, alors que salto avant a juste besoin d'aller vers l'avant ; donc dans la boutique classe toutes les figures selon ces deux catégories »)
 - **La famille est déclarée** dans `figures.js` (`cat:'avant'|'cote'` sur chaque ligne de `BASE`, ?v=5) et lue par `FIG.cat(f)`. La règle, qui
   range aussi les figures générées de la boîte blanche (sans `cat`) : AVANT = tout se passe sur l'axe des roues (x) — rien à choisir, ni gauche

@@ -105,9 +105,9 @@ const garde=()=>{try{localStorage.setItem('boiteSinge',JSON.stringify(ST));}catc
 /* 1. LIRE LE JEU */
 let JEU=null,BLOC='',LU='',ERR='',VER=0;
 async function lireBloc(){
-  const r=await fetch('index.html?singe='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('index.html : '+r.status);
-  const L=(await r.text()).split('\n'),pr=(a,b)=>{let i0=-1,i1=-1;for(let i=0;i<L.length;i++){if(i0<0&&L[i].startsWith(a))i0=i;else if(i0>=0&&L[i].startsWith(b)){i1=i;break;}}
-    if(i0<0||i1<0)throw new Error('bloc introuvable dans index.html : '+a);return L.slice(i0,i1+1).join('\n');};
+  const tx=[];for(const f of ['creatures/vitrail.js','creatures/singe.js']){const r=await fetch(f+'?singe='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(f+' : '+r.status);tx.push(await r.text());} // (2026-10-15) le singe et le vitrail ont quitté index.html
+  const L=tx.join('\n').split('\n'),pr=(a,b)=>{let i0=-1,i1=-1;for(let i=0;i<L.length;i++){if(i0<0&&L[i].startsWith(a))i0=i;else if(i0>=0&&L[i].startsWith(b)){i1=i;break;}}
+    if(i0<0||i1<0)throw new Error('bloc introuvable dans creatures/ : '+a);return L.slice(i0,i1+1).join('\n');};
   return pr('/* <<<VITRAIL>>>','/* <<<FIN VITRAIL>>>')+'\n'+pr('/* <<<SINGE>>>','/* <<<FIN SINGE>>>');
 }
 const executer=bloc=>new Function('THREE',bloc+'\nreturn {singeNouveau,singeAnime,singeTape,SINGE_F,SINGE_FM:typeof SINGE_FM!=="undefined"?SINGE_FM:null,SINGE_FC:typeof SINGE_FC!=="undefined"?SINGE_FC:null,singeCourt:typeof singeCourt!=="undefined"?singeCourt:null};')(THREE);
@@ -211,7 +211,7 @@ let signe='',signeBoite=null;
 async function veille(){
   try{const rb=await fetch('boite-singe.html?v='+Date.now(),{method:'HEAD',cache:'no-store'}),sb=(rb.headers.get('last-modified')||'')+'|'+(rb.headers.get('content-length')||'');
     if(signeBoite===null)signeBoite=sb;else if(sb!==signeBoite){location.reload();return;}}catch(e){}
-  try{const r=await fetch('index.html?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'}),s=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');
+  try{const r=await fetch('creatures/singe.js?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'}),s=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');
     if(s!==signe){signe=s;const bloc=await lireBloc();if(bloc!==BLOC){try{monter(bloc);ERR='';LU=heure();annonce('Nouveau singe · '+LU);}catch(e){ERR='erreur : '+e.message+' — on garde le précédent';annonce('Erreur dans le singe',true);}etat();}}}catch(e){}
   setTimeout(veille,900);}
 function taille(){const w=innerWidth,h=innerHeight,pr=Math.min(devicePixelRatio||1,2);renderer.setPixelRatio(pr);renderer.setSize(w,h,false);
@@ -240,7 +240,7 @@ function boucle(now){
   requestAnimationFrame(boucle);}
 (async()=>{
   try{const bloc=await lireBloc();monter(bloc);LU=heure();
-    const r=await fetch('index.html?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'});signe=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');}
+    const r=await fetch('creatures/singe.js?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'});signe=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');}
   catch(e){const c=$('charge');c.classList.add('erreur');c.innerHTML='La boîte n\'a pas pu lire le jeu.<br>'+e.message;return;}
   $('charge').classList.add('fini');caisse.visible=false;
   taille();peindre();recadre(0);etat();requestAnimationFrame(boucle);setTimeout(veille,900);
