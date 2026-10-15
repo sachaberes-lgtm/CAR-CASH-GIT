@@ -26980,11 +26980,14 @@ function flmPas(dt,speedKmh){ // speedKmh : celle de la boucle (le compteur)
   F.pop=Math.min(1,hot);F.glow=(.7+.3*Math.min(1.4,F.L[0]))*(1+.9*F.pop);
   return F;}
 const NFEU_N=900,NFEU_PAS=.06,NFEU_SEUIL=[.08,.24,.46,.66,.8,.9],NFEU_TAILLE=[.9,.98,1,1,.9,.74,.6];
-/* la palette est pensée APRÈS la courbe ACES de la passe finale : elle écrase le rouge plus que le vert au-delà de 1 — l'orange de la porte
-   (1,75 · ,78 · ,14) y sortait JAUNE (mesuré sur la capture). Ici le vert est tenu bas : l'orange reste orange, le rouge rouge. */
-const NFEU_PAL={f:[[2.3,1.75,1],[2.1,.95,.2],[1.75,.42,.06],[1.3,.2,.035],[.9,.09,.025],[.42,.04,.02],[.2,.17,.17]], // feu : blanc chaud → … → FUMÉE (gris sombre, la fumée du burn-out)
-  b:[[1.7,1.95,2.4],[.6,1.05,2.3],[.26,.42,2.1],[.22,.16,1.6],[.3,.07,1.05],[.16,.04,.5],[.17,.17,.22]],                 // réserve bleue
-  v:[[2.2,1.7,2.4],[1.8,.7,2.2],[1.3,.25,1.95],[.95,.12,1.45],[.6,.06,1],[.28,.03,.48],[.2,.16,.22]]};                 // nitro infinie
+/* (2026-10-15, Sacha : « trop rouge ou trop bleu par rapport aux couleurs de la barre de nitro ») LES TEINTES DE LA BARRE. L'ancienne palette,
+   passée dans la chaîne de sortie (ACES + vivid + contraste + saturation 1,4 de l'ambiance d'init), sortait #ff1700 → #ff0000 (rouge PUR) et
+   #031bff → #3000ff (bleu PUR) : la saturation pousse à fond tout canal déjà dominant. Chaque étage est ici CALCULÉ À L'ENVERS depuis la
+   couleur qu'on veut lire à l'écran (simulation de la passe, valeurs plafonnées à 3) — feu : #fff0d0 · #ffb35c (le bout lumineux de la barre)
+   · #ff8d2e · #ff7415 · #d85a0c · #ad4200 ; réserve : #e6ecff · #b5c4ff · #7088fa · #4a68f0 · #2a44c8 · #16247a ; infinie : --vL · --vP · --vS · --vO. */
+const NFEU_PAL={f:[[2.83,2.96,2.62],[1.74,1.45,.97],[1.85,1.28,.74],[1.26,.77,.42],[.66,.41,.25],[.52,.32,.15],[.2,.17,.17]], // feu : blanc chaud → orange de la barre → braise → FUMÉE (gris sombre, la fumée du burn-out)
+  b:[[2.52,2.75,2.78],[1.47,1.66,1.94],[.62,.72,1.05],[.56,.71,1.29],[.26,.32,.54],[.19,.23,.35],[.17,.17,.22]],                 // réserve bleue
+  v:[[3,2.95,3.1],[2.32,2.33,2.48],[.99,.76,1.32],[.84,.54,1.37],[.6,.38,1.2],[.29,.03,.43],[.2,.16,.22]]};                     // nitro infinie (violet de la barre)
 const NFEU=(function(){
   const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
   for(let i=0;i<ps.count;i++){const ny=nm.getY(i),nz=nm.getZ(i),v=ny>.5?1:ny<-.5?.42:nz<-.5?.6:nz>.5?.5:.78;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;} // l'ombrage de la porte, face par face
