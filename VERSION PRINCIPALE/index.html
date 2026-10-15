@@ -2008,6 +2008,17 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   @media (prefers-reduced-motion:reduce){#campChip.alerte{animation:none;box-shadow:inset 0 0 0 2px var(--neoR)}}
   body.dead #campChip,body.hTp:not(#ccH) #campChip,body.touch:not(.play) #campChip{visibility:hidden}
 </style>
+<style id="comboVol">/* (2026-10-15) LE COMBO DU VOL : on le LIT (haut d'écran), on ne le touche pas — texte plein, une couleur, la courbe unique */
+  #figCombo{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 17%);z-index:39;pointer-events:none;transform:translate(-50%,0);
+    width:min(92vw,560px);text-align:center;font-family:var(--pix);letter-spacing:1px;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+  #figCombo.on{opacity:1}
+  #figCombo>div:first-child{font-size:11px;line-height:1.5;color:var(--texte);text-shadow:0 2px 0 var(--auraOmbre)}
+  #figCombo>div:last-child{margin-top:6px;font-size:26px;color:var(--or);text-shadow:0 3px 0 var(--orF),0 0 14px var(--or)}
+  #figCombo.paye>div:last-child{color:var(--or)}
+  #figCombo.perdu>div:first-child{font-size:16px;color:var(--rougeCv);text-shadow:0 3px 0 var(--auraOmbre)}
+  :root{--rougeCv:#ff5e7a}
+  body.ebOn #figCombo{visibility:hidden}
+</style>
 </head>
 <body>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
@@ -9853,7 +9864,7 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:3;grid-column:1/
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=3"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="figures.js?v=4"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -42763,11 +42774,14 @@ function veqCamera(dt){ // au sol : la caméra s'enfonce sous le choc de la pose
 function veqNitK(){return VEQ.sautF===flightId?VEQ_K.sautNit:1;} // la pose d'un SAUT NITRO rend moins de nitro
 function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'actionne quand j'appuie deux fois rapidement sur le booster ») : deux appuis BREFS
    sur NITRO — le 1er de moins de 240 ms, le 2e moins de 320 ms après le 1er. Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
-  if(bas&&FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);} // (2026-10-14, Sacha : « 1 seul tap permet de redresser la voiture ») un appui sur NITRO pendant une figure : la caisse se remet face à la route (FIG.Corps.redresse)
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
-  if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;}else VEQ.dDn=n;
+  if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;}
+  else{VEQ.dDn=n;if(FIGV2.on&&mode==='fall')FX2.redP=n;} /* (2026-10-14, Sacha : « 1 seul tap permet de redresser la voiture ») — (2026-10-15, L'IMPULSION) le redressement ATTEND
+     que la fenêtre du double-tap se ferme (figRedP, 330 ms) : avant, le 1er appui d'un double-tap redressait la figure qu'on voulait EMPILER */
 }
+function figRedP(){if(!FX2.redP||performance.now()-FX2.redP<330)return;FX2.redP=0; // un appui SEUL sur NITRO pendant une figure : la caisse se remet face à la route (FIG.Corps.redresse)
+  if(FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);}}
 function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte()))return false; // (2026-10-14) fermé pendant l'auto-école… sauf à son étape FIGURE
   let ok=false;if(mode==='drive')ok=veqSaut();else if(mode==='fall')ok=veqFigure();
@@ -42895,7 +42909,8 @@ window.dbgFigL=function(a,gx,hy){if(a==="tap")return figLibreTap(gx||0,hy||0);
   return {libre:FLK.on,actif:FL.actif,w:[+FL.w.x.toFixed(2),+FL.w.y.toFixed(2),+FL.w.z.toFixed(2)],ecartDeg:Math.round(figLibreAngle()*57.3),demi:FL.dem.slice(),nitro:+FL.nit.toFixed(3),cum:FL.cum.slice(),cumN:+FL.cumN.toFixed(3),cumT:FL.cumT||0,cause:mortCause,taps:FL.taps,eta:+(CAMV.eta<90?CAMV.eta:99).toFixed(2),pose:FL.pose||null,rate:VEQ.rate,mode:mode};};
 function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){return f.id;});const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tonneau'];}
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
-  if(FIGV2.on)return !!figLance(FX2.cyc,{dispo:dispo,double:dispo==null}); // (2026-10-14, LES FIGURES v2) l'emplacement SUIVANT, en vraie physique (double : le double-tap en vol)
+  if(FIGV2.on){if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
+    return !!figLance(FX2.cyc,{dispo:dispo,double:dispo==null});} // (2026-10-14, LES FIGURES v2) l'emplacement SUIVANT, en vraie physique (le saut nitro ; ?impu=0 : aussi le double-tap en vol)
   if(FLK.on)return figLibreTap(); // (2026-10-14, Sacha) les FIGURES LIBRES : un coup de reins sur l'axe du pouce, pas une animation tirée au sort
   const L9=VEQ.lect;if(!L9||!window.FIG||L9.occupe()>=3)return false;
   const f=FIG.tire(veqFigsAMoi(),L9.der);
@@ -42955,7 +42970,7 @@ window.dbgVol=function(a){
    `?fig=ancien` (ou `dbgFig('ancien')`) rend les figures de Léo (le lecteur animé, au hasard parmi celles qu'on possède). Console : `dbgFig()`. */
 const FIGV2={on:!/[?&]fig=(ancien|script|libre)\b/.test(location.search)}; // ?fig=libre : les FIGURES LIBRES de GAMEPLAY (nuit du 14/10) · ?fig=script / ?fig=ancien : le lecteur de Léo
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
-  cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
+  cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
   qf:new THREE.Quaternion(),qr:new THREE.Quaternion(),qd:new THREE.Quaternion(),m4:new THREE.Matrix4(),v:new THREE.Vector3(),d:new THREE.Vector3(),
   n:0,payees:0,chutes:0,vis:null,cle:'',wPose:0,jetS:0,herite:null,img:0,att:null,redresse:0};
 function figEquipees(){if(!window.FIG)return ['tonneau'];
@@ -42969,7 +42984,7 @@ function figEquipe(id){if(!window.FIG||!FIG.par[id]||!figPossede(id))return null
 function figRetire(id){const E=figEquipees().slice(),i=E.indexOf(id);if(i<0||E.length<=1)return false;E.splice(i,1);SAVE.d.figEq=E;SAVE.flush();FX2.cle='';return true;}
 function figMemo(dt){FX2.qm1.copy(FX2.qm0);FX2.qm0.copy(carGroup.quaternion);FX2.dm=dt;FX2.memo=FX2.memoN;FX2.memoN=true;} // (conduite, chaque image) l'assiette des deux dernières images
 function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;if(!C)return;
-  C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
+  C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.redP=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
   if(!FIGV2.on||bord||!VEQ.on){FX2.memo=false;return;} // le BORD garde la bascule de Léo (VEQ)
   tmp.copy(fallVel).normalize();FX2.m4.makeBasis(FLY_R,FLY_U,tmp);FX2.qf.setFromRotationMatrix(FX2.m4);
   FX2.qr.copy(FX2.qf).invert().multiply(carGroup.quaternion); // l'écart de la caisse à sa trajectoire : elle l'EMPORTE
@@ -43047,17 +43062,21 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
 function figTutoOk(){return !TUTO.on||(typeof tutoFigOuverte==='function'&&!!tutoFigOuverte());}
 function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)return null;
   if(!started||gameOver||paused||introD||!figTutoOk()||mode!=='fall')return null;
-  const E=figEquipees();if(!E.length)return null;s=(s|0)%E.length;const f=FIG.par[E[s]];if(!f)return null;
+  const E=figEquipees();let f;if(o.f){f=o.f;s=-1;}else{if(!E.length)return null;s=(s|0)%E.length;f=FIG.par[E[s]];}if(!f)return null; // o.f : une figure hors emplacement (L'IMPULSION du double-tap) — s = −1, aucun bouton
   if(o.dispo!=null)o.douce=true; // la figure du SAUT NITRO part toute seule : le joueur ne l'a pas risquée (pas finie = pas payée, jamais une CHUTE)
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
-  if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};FX2.cyc=(s+1)%E.length;return {attente:true};}
+  if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%E.length;return {attente:true};}
   const bud=o.dispo!=null?o.dispo:figBudget(),D=Math.min(f.D,(bud-.3)/.85);
-  if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
-  const sens=Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
+  let enC=null;if(o.empile&&Math.abs(steer)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length&&!r9.douce){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant qu'elle roule : on CONTINUE son tonneau (alterner l'éteindrait)
+  const sens=Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
-  const r=C.lance(f,sens,D,{tient:!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;FX2.n++;VEQ.n++;
+  let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length&&!r9.douce){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour
+  if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/.85);if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);}
+  else{if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
+    r=C.lance(f,sens,D,{tient:s>=0&&!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;}
+  if(s>=0){FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;}FX2.n++;VEQ.n++;
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
@@ -43109,11 +43128,54 @@ window.dbgCombo=function(k){if(k==='raz'){SAVE.d.combos={};SAVE.mark();}return {
 function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),aura=Math.round((f.aura||60)*(reps>1?1+(reps-1)*1.25:1));
   FX2.aura=aura;const c0=CHA.pts;
   addTrick('fig_'+f.id,FIG.nomReps(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1); // le nom français : TR le traduit (« TOUPIE 360 ×2 »)
-  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;
+  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;figCvNote(f,reps); // (2026-10-15) LE COMBO DU VOL
   const k=NITRO2.figAir;nitroGain((k.base+k.rep*(reps-1))*Math.pow(k.k,FX2.nPay),'figair');FX2.nPay++; // ASPHALT 8 : la figure plantée remplit le NITRO, tout de suite
   hap([10,22,10]);
   comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
-function figChute(){if(FX2.pts>0&&CHA.n>0){CHA.pts=Math.max(0,CHA.pts-FX2.pts);chaHud(true,false);}FX2.pts=0;FX2.chutes++;} // posée en plein tour : les figures du vol quittent la chaîne (BMX)
+function figChute(){if(FX2.pts>0&&CHA.n>0){CHA.pts=Math.max(0,CHA.pts-FX2.pts);chaHud(true,false);}FX2.pts=0;FX2.chutes++; // posée en plein tour : les figures du vol quittent la chaîne (BMX)
+  if(FX2.cv.n>0)figCvFin(false,0);}
+/* ===== L'IMPULSION + LE COMBO DU VOL (2026-10-15, Sacha : « refonte du système de figure : quand on fait une figure, le double-tap sur le
+   nitro doit générer une sorte d'IMPULSION d'un côté de la voiture ; puis pour faire des figures, s'inspirer des jeux de BMX ou d'Asphalt 8
+   pour pouvoir CUMULER plusieurs figures et faire des cumulés »).
+   · L'IMPULSION (`figImpulsion`) : en vol, le double-tap NITRO ne joue plus « l'emplacement suivant » — il fait exploser UN FLANC de la caisse
+     (le point d'explosion du tonneau, `FIG.boums`) : pouce à gauche, le flanc droit saute et elle roule vers la gauche ; à droite, l'inverse ;
+     pouce au neutre, elle continue le tonneau en cours (à l'arrêt : un flanc, puis l'autre au vol suivant). Re-double-tap dans le MÊME sens pendant qu'elle roule : la poussée S'AJOUTE (`Corps.empile`) —
+     TONNEAU ×2, ×3, ×4 (`IMPU.max`). Dans l'autre sens, l'explosion freine celle d'avant (la physique, pas une règle). Les trois boutons
+     de figure restent : ce sont eux qui ajoutent une TOUPIE, un SALTO… par-dessus le tonneau — la caisse part en vrille composée.
+     Un appui SEUL sur NITRO redresse toujours (après la fenêtre du double-tap : `figRedP`).
+   · LE COMBO DU VOL (`FX2.cv`, `#figCombo`) — le BMX : chaque figure PLANTÉE du vol s'ajoute à la ligne (« TONNEAU×2 + TOUPIE + AVANT ») et
+     fait monter le × : +0,5 par figure DIFFÉRENTE, +0,25 pour une redite (`IMPU.xVar`/`xRep`, plafond `xMax`) — varier paie, marteler la même
+     ne paie presque pas. À la POSE propre, le combo s'ENCAISSE : la chaîne reçoit l'aura des figures du vol × (le × − 1), sous « COMBO ×2,5 ».
+     Posée en plein tour (CHUTE) : « COMBO PERDU », tout s'envole (figChute). Le nitro à chaque figure plantée (Asphalt 8) ne change pas.
+   `?impu=0` : le double-tap en vol rejoue l'emplacement suivant (les FIGURES v2 du 14/10). Console : `dbgImpu()`. */
+const IMPU={on:!/[?&]impu=0\b/.test(location.search),max:4,xVar:.5,xRep:.25,xMax:4};
+function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
+function figCvX(){const c=FX2.cv;return c.n?Math.min(IMPU.xMax,1+IMPU.xVar*(c.dist-1)+IMPU.xRep*(c.n-c.dist)):1;}
+function figCvTxtX(x){return '×'+String(Math.round(x*100)/100).replace('.',LANG==='en'?'.':',');}
+function figCvNote(f,reps){if(!f)return;const c=FX2.cv;c.n++;if(!c.ids[f.id]){c.ids[f.id]=1;c.dist++;}
+  c.noms.push(sansAcc(FIG.nomReps(f,reps,LANG==='en'?'en':'fr')));c.cle=''; // (le maillon sonne déjà : addTrick → trickPop, et figPaye vibre)
+  if(c.n>=2)fovPunch=Math.max(fovPunch,3+Math.min(4,figCvX()));}
+function figCvRaz(){const c=FX2.cv;c.n=0;c.dist=0;c.ids={};c.noms.length=0;c.cle='';}
+function figComboEncaisse(){const c=FX2.cv;if(c.n<2||!(FX2.pts>0)){figCvRaz();return;} // (à la pose propre) le combo du vol s'encaisse
+  const x=figCvX(),bonus=Math.round(FX2.pts*(x-1));let p=0;
+  if(bonus>0)try{p=chaineAura('COMBO '+figCvTxtX(x),bonus,'combovol',true,false);}catch(e){}
+  hap([14,30,14,30,40]);figCvFin(true,p);}
+function figCvFin(ok,p){const c=FX2.cv,el=figCvEl();if(el){
+    el.firstChild.textContent=ok?c.noms.slice(-4).join(' + '):(LANG==='en'?'COMBO LOST':'COMBO PERDU');
+    el.lastChild.textContent=ok?'+'+fmtAura(p):'';el.className='on '+(ok?'paye':'perdu');c.finT=performance.now();}
+  figCvRaz();c.cle='fin';}
+function figCvEl(){let e=document.getElementById('figCombo');
+  if(!e){e=document.createElement('div');e.id='figCombo';e.setAttribute('aria-hidden','true');e.appendChild(document.createElement('div'));e.appendChild(document.createElement('div'));document.body.appendChild(e);}
+  return e;}
+function figCvHud(vol){const c=FX2.cv;
+  if(c.cle==='fin'){if(performance.now()-c.finT<1300)return;c.cle='';const e=figCvEl();e.className='';return;}
+  const v=vol&&c.n>0,cle=v?c.n+'|'+LANG:'';if(cle===c.cle)return;c.cle=cle;const e=document.getElementById('figCombo');
+  if(!v){if(e)e.className='';return;}
+  const el=figCvEl(),n=c.noms.length;el.firstChild.textContent=(n>4?'… ':'')+c.noms.slice(-4).join(' + ');
+  el.lastChild.textContent=c.n>=2?figCvTxtX(figCvX()):'';el.className='on';}
+window.dbgImpu=function(a){if(a==='tap')return figImpulsion();if(a==='combo')return figComboEncaisse();
+  const C=FX2.corps;return {on:IMPU.on,mode:mode,combo:{n:FX2.cv.n,dist:FX2.cv.dist,x:figCvX(),noms:FX2.cv.noms.slice()},ptsVol:FX2.pts,
+    figs:C?C.figs.map(function(r){return r.f.id+(r.s>0?'+':'-')+' tours '+(r.mv[0]?r.mv[0].tours:0)+(r.paye?' payée':r.fini?' finie':'');}):null};};
 function figIco(f){let m=null;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null&&(!m||Math.abs(f.m[i].t)>Math.abs(m.t)))m=f.m[i];
   if(!m)return 'fgBa';let n=0;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null)n++;if(n>1)return 'fgCo';
   const a=m.a;if(Math.abs(a[0])>.9)return m.t>0?'fgAv':'fgAr';if(Math.abs(a[1])>.9)return 'fgTo';if(Math.abs(a[2])>.9)return 'fgTn';return 'fgCo';}
@@ -43124,7 +43186,7 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   FX2.bts=[].slice.call(el.children);FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;}
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
-  const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();
+  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();figCvHud(v);
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v)figHudMaj();}
   if(v&&FX2.bts)for(let i=0;i<FX2.bts.length;i++){const r=FX2.slots[i],on=!!(r&&r.tient&&!r.paye);if(FX2.btOn[i]!==on){FX2.btOn[i]=on;FX2.bts[i].classList.toggle('on',on);}}}
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
@@ -45967,6 +46029,7 @@ function tryLand(dt){
      DÉCLENCHE la frénésie (FLOW.lv lu avant). Après le « tchak » de la pose (t .15). */
   if(FLOW.lv===4&&!poseRatee&&!PARK.on&&fallT>.4&&SONV2)sfx('frenesie.pose',{t:.15});
   if(VEQ.rate&&FIGV2.on)figChute(); // (2026-10-14, LES FIGURES v2) la CHUTE : comme au BMX, les figures de ce vol ne sont pas gagnées
+  else if(FIGV2.on)figComboEncaisse(); // (2026-10-15) …et posée propre, LE COMBO DU VOL s'encaisse
   if(poseRatee)flowCasse(poseAng>90,VEQ.rate?'FIGURE RATEE !':null); // (v4) la pose est jugée (chaîne encaissée, raccourci compté) : ENSUITE le flow tombe
   else if(FREN.arme&&FLOW.lv<4&&(chain>0||trkBigA||(rc9&&FLOW2.decl.racc)))frenDeclenche(); // (v4) jauge pleine + FIGURE POSÉE : la FRÉNÉSIE part, ici, au contact · (loi 20) en VILLE, le RACCOURCI posé aussi
   chainHud.style.opacity=0;
