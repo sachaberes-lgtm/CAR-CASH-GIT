@@ -114,6 +114,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   AVANT, ↓ en ARRIÈRE, ◄► sur un CÔTÉ (la figure part du côté du pouce, `o.dx`) ; une figure à deux sens (rodéo…) peut tenir l'avant ET
   l'arrière, le geste oriente son salto ; équiper remplace celle de CET emplacement ; un emplacement vide : son geste ne fait RIEN
   (`o.strict`, sauf l'auto-école) ; la boutique les range en trois sections, une carte par direction (`bqFigRail`, `bqFigSec`, `data-dir`, `bqFigDir`).
+  L'ÉLAN (15/10 soir, `FIG.PHY.elan`, `?elan=0` = avant) : une figure = un COUP, l'air freine la rotation (`r.c`, `kT`, `cov`), une figure suivante
+  s'y ajoute, la fin est un RETOUR souple (`ret`, mode `retour`) ; la prise forte n'est plus qu'un filet (sol proche, tap qui redresse) ; le jeu
+  dose une figure sur le vol avec `figKT()`.
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain ; ← → tonneau, ↑ salto arrière, ↓ salto avant, au sol `veqSaut(fo)`).
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
