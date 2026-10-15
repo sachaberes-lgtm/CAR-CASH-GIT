@@ -15478,78 +15478,138 @@ const FOR_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Col
 const FOR_LUNE=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme (cielLune) : la forêt pose la sienne au même endroit
 try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[900,1250,1650],foretMarge:[1700,2200,2800],foretSolC:[32,28,26],foretB0:[150,180,200],foretB1:[400,480,540],
   foretGeantFin:[0,1,1],foretFleurs:[2.2,1.6,1.1],foretPlantes:[8,6,4.2],foretRayons:[46,36,28],foretBrume:[70,55,42],foretYeux:[50,70,90],foretPap:[50,100,150],
-  foretLuc:[300,560,900],foretFollets:[8,11,14],foretTex:[.5,.75,1],foretLierre:[0,1,1],foretChampi:[0,1,1],foretSolCh:[999,64,64],foretPres:[1,0,0]});}catch(e){}
-/* ---------------- LA ROUTE : LE SLALOM QUI DESCEND ---------------- */
+  foretFutaie:[1.45,1.15,1],foretLuc:[300,560,900],foretFollets:[8,11,14],foretTex:[.5,.75,1],foretLierre:[0,1,1],foretChampi:[0,1,1],foretSolCh:[999,64,64],foretPres:[1,0,0]});}catch(e){}
+/* ---------------- LA ROUTE v3 : LA PELOTE — LA FORÊT OÙ L'ON SE PERD ----------------
+   (2026-10-15, Sacha : « le concept de la forêt, ça va être de SE PERDRE. Soit tu suis la route — plein de virages, vers le bas, vers le
+   haut — et tu es sûr d'arriver un jour ; soit tu prends des raccourcis, mais tu ne sais pas si ce sont des bons raccourcis » · « comme dans
+   la ville : la route allait en dessus, en dessous ; je prenais la route d'en bas et je ne savais pas si je gagnais du terrain ou si je
+   revenais sur mes pas » · « que la route soit emmêlée, qu'elle aille vers le haut, vers le bas, pas que descendre ou que monter »)
+   LE PLAN (`forPelote`) : la route traverse une enfilade de 3 (ou 4) NŒUDS, des quartiers de forêt d'~450 m de rayon (× l'échelle du palier)
+   où elle trace une ÉTOILE — 4 ou 5 pointes visitées en sautant d'un bord à l'autre (135-155° à chaque pointe, comme on dessine un
+   pentagramme), en slalom, parfois une BOUCLE à une pointe : chaque branche recoupe les précédentes. Entre deux nœuds, une LIAISON de
+   virages ; la ligne des nœuds louvoie (±70°) et la forêt s'étale sur des kilomètres. L'ARCHE est à mi-course, sur une droite.
+   LE RELIEF : chaque nœud a le sien — il DESCEND (la route d'en dessous est DEVANT : sauter, c'est un raccourci), il MONTE (elle est DERRIÈRE :
+   sauter, c'est revenir en arrière), ou il fait LA VAGUE (descend puis remonte : les deux). Un grain par-dessus (bosses, une branche sur cinq
+   à contre-pente). Au total on descend un peu ; jamais une majorité de nœuds qui montent.
+   LES CROISEMENTS : partout où la route repasse sur elle-même (à moins de 78 m en plan, 250 m de route au moins entre les deux), les deux
+   dalles sont écartées d'AU MOINS 32 m en hauteur (`DY`) : des bosses gaussiennes relèvent la route du dessus et creusent celle du dessous.
+   Le sens d'un croisement ambigu (< 8 m) est tiré au sort, 6 fois sur 10 un raccourci ; un croisement qui résiste change de sens.
+   MESURÉ (banc raccourcis, palier 0, 12 graines) : 9-15 km, 11-27 croisements, 1-4 raccourcis RENTABLES/km et 0-2,5 PIÈGES/km (pose propre
+   ≥ 300 m en arrière), 4,3-5,2 virages/km, 0 croisement dangereux, 0 virage infranchissable ; construite en ~25 ms (8 essais au pire).
+   Tout à l'échelle du palier (rayons × rayonPalier()/63) ; un seul `rnd` consommé (le flux propre `gr`), le meilleur des essais gagne (`note`). */
 function genForet(rnd){
-  /* (2026-10-14 soir, v2 — Sacha : « le but du jeu, c'est les RACCOURCIS » · « un jeu de COURSE, pas de balade » ; règle commune :
-     passation/RACCOURCIS.md, banc cc-banc/raccourcis.cjs) LA DESCENTE AUX BOUCLES. Des virages SERRÉS qui s'enchaînent (rayon 80-230 m,
-     jamais de droite de plus de 330 m), et six BOUCLES À FILET : la route plonge dans un grand tour (360°) autour d'un SÉQUOIA-TOUR et
-     ressort SOUS l'entrée de la boucle, 44 m à l'EXTÉRIEUR du virage, dans le même sens, ~60 m plus bas. Au début de la boucle, on sort
-     par le bord extérieur : on tombe sur la route d'en dessous, droit devant — un tour entier de gagné (~1 km). Rater, c'est le vide. */
-  const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
-  let P=new THREE.Vector3(0,0,0),phi=0;
-  const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
-  const droite=(l,nn)=>{nn=nn||Math.max(2,Math.round(l/80));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);push();}};
-  const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
-    for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}};
-  const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
-  const LV=Math.min(4.4,typeof lvPiste==='function'?lvPiste():1),LIM=72*Math.PI/180;
-  /* L'ÉCHELLE DU PALIER (RACCOURCIS.md, Sacha : « plus la vitesse est élevée, plus les virages doivent être larges ») : les rayons × rayonPalier()/63
-     (63 m au palier 0 → 172 m au 27), les longueurs de saut × vPalier()/70 — en attendant ces deux fonctions, la même pente tirée de lvPiste. */
-  const vP9=70+(LV-1)*100; // = vPalier() : lvPiste en est l'image exacte (lvPiste = 1 + (vPalier − 70)/100)
+  GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
+  const LV=Math.min(4.4,typeof lvPiste==='function'?lvPiste():1),vP9=70+(LV-1)*100;
   let kR=(40+.3*vP9)/63,kV=vP9/70;try{if(typeof rayonPalier==='function')kR=rayonPalier()/63;if(typeof vPalier==='function')kV=vPalier()/70;}catch(e){}
   kR=Math.max(1,Math.min(2.8,kR||1));kV=Math.max(1,Math.min(3.2,kV||1));
-  const slalom=len=>{let sg=rnd()<.5?-1:1,n=0,fait=0;
-    while(fait<len){
-      if(rnd()<.84)sg=-sg;                                                   // le plus souvent on change de côté : c'est un SLALOM
-      let a=50+rnd()*55,R=(95+rnd()*105)*kR;
-      if(rnd()<.32){R=(76+rnd()*26)*kR;a=30+rnd()*24;}                     // le SERRÉ : volant à fond
-      const lib=(LIM-sg*phi)*57.2958;if(lib<20){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
-      arc(sg*a,R);fait+=R*a/57.2958;n++;
-      if(rnd()<.25){const l=(30+rnd()*80)*kV;droite(l);fait+=l;}                 // l'ENCHAÎNEMENT : jamais plus de 130 m entre deux virages…
-      if(n%6===5){const l=(160+rnd()*110)*kV;droite(l);fait+=l;}}               // …sauf la RESPIRATION, où l'on voit loin dans la descente (≤ 270 m)
-    };
-  // LA BOUCLE À FILET : demi-tour de rayon R, puis demi-tour de rayon R+dR — la route revient au cap d'entrée, 2·dR à l'extérieur
-  const BO=[];
-  const boucle=()=>{const sg=phi>0?-1:phi<0?1:(rnd()<.5?-1:1),R=(72+rnd()*24)*kR,dR=66; // (le côté qui ramène vers l'axe de la vallée)
-    droite((90+rnd()*40)*kV,2);                                              // l'APPROCHE : la boucle et sa route d'en dessous se voient venir
-    const i0=ctrl.length-1,c=P.clone().addScaledVector(new THREE.Vector3(Math.cos(phi),0,-Math.sin(phi)),sg*R),ph0=phi;ici('boucle'+BO.length);
-    arc(sg*180,R);droite(45,1);arc(sg*180,R+dR);phi=ph0;                                   // (le cap revient, à 2π près : on le replie pour le limiteur du slalom)
-    const i1=ctrl.length-1;droite((205+rnd()*30)*kV,3);                           // la ROUTE D'EN DESSOUS, droit devant, sous l'entrée de la boucle
-    BO.push({i0:i0,i1:i1,c:c,R:R,sg:sg,e:ctrl[i0],g:Math.max(.045,Math.min(.075,48/(Math.PI*(2*R+dR))))});MODMARK.push({i0:i0,i1:i1});};
-  push();ici('depart');droite(300,4);
-  const NB=6;
-  for(let b=0;b<NB;b++){
-    slalom((280+rnd()*130)*(.85+.15*LV));
-    if(b===3){ // L'ARCHE, une fois, entre la 3e et la 4e boucle, dans l'axe de la vallée
-      {const a=-phi*57.2958*.8;if(Math.abs(a)>5)arc(a,Math.min(230,200*kR));}
-      droite(50,1);ici('arche0');droite(100,2);ici('arche');droite(100,2);ici('arche1');droite(40,1);slalom(150+rnd()*80);}
-    boucle();}
-  slalom(200+rnd()*100);
-  droite(220,3);ici('fin');droite(120,2);
-  /* LE RELIEF : TOUJOURS EN DESCENTE. La pente ondule entre 7 et 13 % (le flanc de la montagne) ; deux ou trois PLONGEONS (replat de 140 m puis 20-23 % sur 190 m :
-     la cassure fait décoller la caisse lancée), jamais dans une boucle ; dans les BOUCLES la pente qui donne ~50 m de chute sur le tour (4-7 % : la route d'en
-     dessous passe sous l'entrée de la boucle avec de la marge, et le sol de la vallée reste sous la dalle du bas) ; les 300 premiers mètres
-     en douceur ; l'arche sur un replat à 5 %. Intégrée tous les 10 m : aucun point ne remonte. */
-  let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
-  const Ltot=acc,ph1=rnd()*6.283,ph2=rnd()*6.283;
-  const sDe=v=>{let bi=0,bd=1e18;for(let k=0;k<ctrl.length;k++){const d=(ctrl[k].x-v.x)**2+(ctrl[k].z-v.z)**2;if(d<bd){bd=d;bi=k;}}return sOf[bi];};
-  const sA=Q.arche?sDe(Q.arche.p):-1e9,plg=[],BS=BO.map(function(o){return [sOf[o.i0],sOf[o.i1],o.g];});
-  const dansB=(s9,m)=>BS.some(function(b){return s9>b[0]-m&&s9<b[1]+m;});
-  {const n=2+((rnd()*2)|0);for(let k=0;k<n;k++){const s0=900+(Ltot-2300)*(k+.25+rnd()*.5)/n;if(Math.abs(s0-sA)>520&&s0<Ltot-900&&!dansB(s0,260)&&!dansB(s0+190,120))plg.push(s0);}}
-  const pente=s9=>{let g=.098+.02*Math.sin(s9/950*6.283+ph1)+.01*Math.sin(s9/380*6.283+ph2); // (2026-10-15, LE FLANC) 7,5 % → ~10 % : on DESCEND la montagne
-    for(const s0 of plg){const u=s9-s0;if(u>-140&&u<0)g=Math.min(g,.025);else if(u>=0&&u<190)g=.20+.03*Math.sin(u/190*Math.PI);}
-    for(const b of BS)if(s9>=b[0]&&s9<=b[1])g=b[2]; // ~50 m de chute sur le tour, à toutes les échelles
-    if(s9<300)g=.03+(g-.03)*THREE.MathUtils.smoothstep(s9,180,300);
-    if(Math.abs(s9-sA)<300)g=.05;
-    return Math.max(.035,g);};
-  let y=0;ctrl[0].y=0;
-  for(let k=1;k<ctrl.length;k++){const a=sOf[k-1],b=sOf[k],n=Math.max(1,Math.ceil((b-a)/10));for(let j=0;j<n;j++){const s9=a+(b-a)*(j+.5)/n;y-=pente(s9)*(b-a)/n;}ctrl[k].y=y;}
-  for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=(ctrl[j].x-o.p.x)**2+(ctrl[j].z-o.p.z)**2;if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
-  for(const o of BO)o.c.y=ctrl[o.i1].y;
-  FORET.Q=Q;FORET.plg=plg;FORET.boucles=BO;
-  return ctrl;
-}
+  const gr=mulberry32((rnd()*4294967296)>>>0);let best=null,ne=0;
+  for(let e=0;e<8;e++){const r=forPelote(gr,kR,kV);ne++;if(!best||r.note<best.note)best=r;if(r.note<1)break;}
+  FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.pel={dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L)};
+  return best.ctrl;}
+function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent les rayons : à haute vitesse le nœud grandit en entier, sans s'étirer en lignes droites)
+  const rM=63*kR,v9=70*kV,LT=9600*(.55+.45*kR),RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DY=32;
+  // ---- LA TORTUE : le plan (x, z), l'abscisse s, et un relevé fin tous les ~10 m pour les croisements ----
+  let x=0,z=0,phi=0,s=0,cib=null;const C=[[0,0]],SC=[0],D=[0,0,0],ZO=[],Q={},BO=[],NO=[];
+  const pas=(nx,nz)=>{const dh=Math.hypot(nx-x,nz-z),n=Math.max(1,Math.ceil(dh/10));for(let j=1;j<=n;j++)D.push(x+(nx-x)*j/n,z+(nz-z)*j/n,s+dh*j/n);s+=dh;x=nx;z=nz;C.push([x,z]);SC.push(s);};
+  const droite=l=>{const n=Math.max(1,Math.round(l/30));for(let k=0;k<n;k++)pas(x+Math.sin(phi)*l/n,z+Math.cos(phi)*l/n);};
+  const arc=(aDeg,R,R2,ond)=>{if(R2==null)R2=R;const n=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),st=aDeg*Math.PI/180/n,o9=rnd()*6.283;
+    for(let k=0;k<n;k++){let r=R+(R2-R)*(k+.5)/n;if(ond)r=Math.max(rM*1.18,r*(1+ond*Math.sin((k+.5)/n*9.4+o9)));const ch=2*r*Math.sin(Math.abs(st)/2);phi+=st/2;const nx=x+Math.sin(phi)*ch,nz=z+Math.cos(phi)*ch;phi+=st/2;pas(nx,nz);}};
+  const wrap=a=>{while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
+  const rel=()=>cib?wrap(Math.atan2(cib[0]-x,cib[1]-z)-phi):0,dist=()=>cib?Math.hypot(cib[0]-x,cib[1]-z):0; // l'angle (signé) et la distance vers la cible
+  const ici=k=>{Q[k]={x:x,z:z,phi:phi,s:s};};
+  const zone=(g,f)=>{const s0=s;f();ZO.push([s0,s,g]);};
+  let sgV=rnd()<.5?-1:1;
+  // LES VIRAGES : 38-80° (un sur trois SERRÉ), vers la cible quand elle n'est pas devant, sinon en slalom ; une respiration de 40-110 m une fois sur trois
+  const virages=n=>{for(let k=0;k<n;k++){const r9=rel(),fort=Math.abs(r9)>.5;
+    sgV=fort?(r9>0?1:-1):-sgV;let a=38+rnd()*42,R=rM*(1.3+rnd()*1.3);
+    if(rnd()<.32){R=rM*(1.15+rnd()*.2);a=30+rnd()*30;}
+    if(fort){a=Math.max(30,Math.min(110,Math.abs(r9)*57.3*(.6+rnd()*.5)));if(Math.abs(r9)>2)R=rM*(1.6+rnd()*1.2);} // demi-tour : un GRAND virage, pas une épingle
+    else if(rnd()<.4)a*=.6;
+    arc(sgV*a,R,R*(.8+rnd()*.4),.12);if(rnd()<.3)droite((40+rnd()*70)*kV);}};
+  // ALLER VERS une cible : hors de l'axe, UN virage qui s'y aligne (rayon à la mesure de la distance) ; dans l'axe, un S (deux virages
+  // opposés de 22-48°, parfois une respiration) — on avance en slalom, jamais en zigzag sur place
+  const vers=(c,ra)=>{cib=c;for(let k=0;k<12&&dist()>ra;k++){const r9=rel(),d=dist();
+    if(Math.abs(r9)>.35){const R=Math.max(rM*1.25,Math.min(rM*2.3,d*.26));arc((r9>0?1:-1)*Math.abs(r9)*57.3*(.85+rnd()*.2),R,R*(.85+rnd()*.3),.1);}
+    else{const a=22+rnd()*26,R=rM*(1.25+rnd()*1.2),sg=rnd()<.5?-1:1;arc(sg*a,R,null,.1);arc(-sg*a*(.8+rnd()*.5),R*(.9+rnd()*.3),null,.1);if(rnd()<.3)droite((40+rnd()*60)*kV);}}};
+  // LA BOUCLE : un tour complet (la sortie au-dessus ou en dessous de l'entrée) — le FILET (360°, le rayon qui s'ouvre : la sortie court
+  // à côté de l'entrée, ~70 m à l'extérieur) ou le NOEUD (300-330° ou 390-430° : la sortie recoupe l'entrée en biais)
+  const boucle=()=>{const r9=rel(),sg=Math.abs(r9)>.3?(r9>0?1:-1):(rnd()<.5?-1:1),R=rM*(1.45+rnd()*.5);
+    if(rnd()<.62){droite((50+rnd()*40)*kV);const e={x:x,z:z,phi:phi,s:s};arc(sg*360,R,R+30+rnd()*15,.1);BO.push({e:e,sg:sg,R:R});droite((60+rnd()*50)*kV);}
+    else{droite((30+rnd()*40)*kV);const e={x:x,z:z,phi:phi,s:s};const a=rnd()<.5?300+rnd()*30:390+rnd()*40;arc(sg*a,R,R*(.85+rnd()*.35),.15);BO.push({e:e,sg:sg,R:R});}};
+  const pente=(lo,hi)=>lo+rnd()*(hi-lo);
+  /* ---- LE DESSIN : LES NŒUDS ----
+     La route traverse une enfilade de NŒUDS — des quartiers de forêt (~600 m de large × l'échelle) où elle trace une ÉTOILE : 4 ou 5 pointes
+     visitées en sautant d'un bord à l'autre (135-155° de rotation à chaque pointe, comme on dessine un pentagramme), en slalom, parfois une
+     boucle à une pointe — chaque branche recoupe les précédentes. Entre deux nœuds, une LIAISON de virages ; la ligne des nœuds ondule à
+     travers une forêt de plusieurs kilomètres. CHAQUE NŒUD A SON RELIEF : il DESCEND (sauter sur la route d'en dessous = un raccourci), il
+     MONTE (sauter = revenir en arrière), ou il fait LA VAGUE (descend puis remonte : les deux à la fois). Vu d'en haut, rien ne les distingue. */
+  const nN=3+(kR>1.6&&rnd()<.35?1:0),RHO=225*kR;let ca=0,cN=[0,RHO+380];
+  const TY=[rnd()<.7?'desc':'vague'],SAC=['desc','monte','vague','desc','monte','vague','desc'];for(let n=1;n<nN;n++)TY.push(SAC.splice(rnd()*SAC.length|0,1)[0]);
+  if(!TY.some(t=>t!=='desc'))TY[nN-1]='vague';{let nm=0;for(let n=0;n<nN;n++)if(TY[n]==='monte'&&++nm>Math.ceil((nN-1)/2))TY[n]='desc';} // au moins un nœud qui remonte, jamais une majorité qui MONTE
+  ici('depart');zone(-.02,()=>droite(300*Math.sqrt(kV)));
+  for(let n=0;n<nN;n++){
+    if(n){ca=Math.max(-1.25,Math.min(1.25,ca+(rnd()<.5?-1:1)*(.5+rnd()*.6)));const e9=2*RHO+(260+rnd()*380)*kR;cN=[cN[0]+Math.sin(ca)*e9,cN[1]+Math.cos(ca)*e9];} // (la ligne des nœuds louvoie : la forêt s'étale sur des kilomètres)
+    const ty=TY[n],th9=Math.atan2(x-cN[0],z-cN[1]);
+    zone(-pente(.03,.05),()=>vers([cN[0]+Math.sin(th9)*RHO*.9,cN[1]+Math.cos(th9)*RHO*.9],110*kR)); // la LIAISON jusqu'au bord du nœud
+    const m=4+(rnd()<.3?1:0),sr=rnd()<.5?-1:1,th0=Math.atan2(x-cN[0],z-cN[1]),jB=rnd()<.55?1+(rnd()*(m-1)|0):-1,s0=s;
+    for(let j=1;j<=m;j++){const th=th0+sr*j*(135+rnd()*20)*Math.PI/180,r=RHO*(.62+rnd()*.38),c=[cN[0]+Math.sin(th)*r,cN[1]+Math.cos(th)*r];
+      let g=ty==='desc'?-pente(.06,.08):ty==='monte'?pente(.045,.06):(j<=m/2?-pente(.07,.09):pente(.05,.065));
+      g+=(rnd()-.5)*.05;if(rnd()<.2)g=-Math.sign(g)*pente(.02,.04); // le GRAIN du relief : des bosses, et une branche sur cinq à contre-pente
+      zone(g,()=>{vers(c,110*kR);if(j===jB)boucle();});}
+    NO.push({c:cN,t:ty,s0:s0,s1:s});
+    if(n===(nN>>1)){zone(-.03,()=>{const c9=[cN[0]+Math.sin(ca)*(RHO+700),cN[1]+Math.cos(ca)*(RHO+700)];cib=c9;const a9=rel()*57.3;if(Math.abs(a9)>5)arc(a9,Math.max(rM*2.4,220));
+      droite(50);ici('arche0');droite(100);ici('arche');droite(100);ici('arche1');droite(40);});} // L'ARCHE, une fois, à mi-course, sur une droite
+  }
+  zone(-.03,()=>{cib=[cN[0]+Math.sin(ca)*(RHO+900),cN[1]+Math.cos(ca)*(RHO+900)];vers(cib,500*kR);for(let k=0;k<3&&Math.abs(rel())>.25;k++)arc((rel()>0?1:-1)*Math.min(70,Math.abs(rel())*57.3),Math.max(rM*2,200));});
+  zone(-.02,()=>{droite(180);ici('fin');droite(100);});
+  // ---- LE RELIEF : la pente de chaque tronçon, intégrée tous les 10 m ----
+  const L=s,nY=Math.ceil(L/10)+2,GY=new Float64Array(nY);
+  for(const o of ZO){const a=Math.floor(o[0]/10),b=Math.min(nY-1,Math.ceil(o[1]/10));for(let k=a;k<=b;k++)GY[k]=o[2];}
+  for(let k=0;k<30&&k<nY;k++)GY[k]=Math.max(GY[k],-.02-.004*k); // le sas du portail en douceur
+  const Y=new Float64Array(nY);for(let k=1;k<nY;k++)Y[k]=Y[k-1]+(GY[k-1]+GY[k])*5;
+  // le LISSAGE des crêtes et des creux : la caisse ne décolle pas d'une simple cassure de pente (κ·v² ≤ ~1,3 g)
+  const lisse=(sig)=>{const r=Math.ceil(sig*2.5/10),w=[];let sw=0;for(let k=-r;k<=r;k++){const v=Math.exp(-(k*10)*(k*10)/(2*sig*sig));w.push(v);sw+=v;}
+    const T9=Float64Array.from(Y);for(let k=0;k<nY;k++){let a=0,ww=0;for(let j=-r;j<=r;j++){const q=Math.max(0,Math.min(nY-1,k+j));a+=T9[q]*w[j+r];ww+=w[j+r];}Y[k]=a/ww;}};
+  const SIG=Math.max(22,.17*v9*v9/(1.3*15.84)/2.5);lisse(SIG);
+  // ---- LES CROISEMENTS : les paires du relevé fin à moins de 78 m en plan, 250 m de route au moins entre les deux ----
+  const nD=D.length/3,CG=80,H=new Map(),cle=(a,b)=>a*100003+b;
+  for(let i=0;i<nD;i++){const k=cle(Math.floor(D[3*i]/CG),Math.floor(D[3*i+1]/CG));let a=H.get(k);if(!a)H.set(k,a=[]);a.push(i);}
+  const PR=[],DC=2*RH+22;
+  for(let i=0;i<nD;i+=2){const cx=Math.floor(D[3*i]/CG),cz=Math.floor(D[3*i+1]/CG);
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const L9=H.get(cle(cx+a,cz+b));if(!L9)continue;
+      for(const j of L9){if(D[3*j+2]-D[3*i+2]<250)continue;const d=Math.hypot(D[3*i]-D[3*j],D[3*i+1]-D[3*j+1]);if(d<DC)PR.push([i,j,d]);}}}
+  // regroupement : les paires tombent dans des cases (i/6, j/6) — une case garde sa paire la plus serrée ; des cases voisines = UN croisement
+  const CA=new Map();for(const p of PR){const k=Math.floor(p[0]/6)*1e5+Math.floor(p[1]/6),o=CA.get(k);if(!o||p[2]<o[2])CA.set(k,p);}
+  const vu=new Set(),CR=[];
+  for(const [k0] of CA){if(vu.has(k0))continue;const pile=[k0],mem=[];vu.add(k0);
+    while(pile.length){const k=pile.pop();mem.push(CA.get(k));const a0=Math.floor(k/1e5),b0=k-a0*1e5;
+      for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const q=(a0+a)*1e5+b0+b;if(CA.has(q)&&!vu.has(q)){vu.add(q);pile.push(q);}}}
+    CR.push(mem);}
+  const yA=i=>{const f=D[3*i+2]/10,k=Math.min(nY-2,Math.floor(f)),w=f-k;return Y[k]*(1-w)+Y[k+1]*w;};
+  // le SENS de chaque croisement : celui que le relief lui donne ; s'il hésite (< 8 m), tiré au sort — 6 fois sur 10 la route d'en dessous est
+  // DEVANT (un raccourci), 4 fois DERRIÈRE (un piège)
+  const SGN=CR.map(mem=>{let m=0;for(const p of mem)m+=yA(p[0])-yA(p[1]);m/=mem.length;return Math.abs(m)>8?Math.sign(m):(rnd()<.6?1:-1);});
+  // la RÉSOLUTION : des bosses gaussiennes (σ = 200 m × kR, 12 m au plus par passe) relèvent la route du dessus et creusent celle du dessous, jusqu'à DY
+  const SB=200*kR,rB=Math.ceil(SB*2.6/10),WB=[];for(let k=-rB;k<=rB;k++)WB.push(Math.exp(-(k*10)*(k*10)/(2*SB*SB)));
+  const bosse=(s9,h)=>{const c=Math.round(s9/10);for(let k=-rB;k<=rB;k++){const q=c+k;if(q>=0&&q<nY)Y[q]+=h*WB[k+rB];}};
+  const VI=new Float64Array(CR.length),BA=new Uint8Array(CR.length);
+  for(let it=0;it<70;it++){let pire=0;
+    for(let c=0;c<CR.length;c++){const sg=SGN[c];let vm=0,pm=null;for(const p of CR[c]){const v=DY+1-sg*(yA(p[0])-yA(p[1]));if(v>vm){vm=v;pm=p;}}
+      VI[c]=vm;if(pm){pire=Math.max(pire,vm);const h=Math.min(12,vm*.5);bosse(D[3*pm[0]+2],sg*h);bosse(D[3*pm[1]+2],-sg*h);}}
+    if(pire<.5)break;
+    if(it===30)for(let c=0;c<CR.length;c++)if(VI[c]>14&&!BA[c]){SGN[c]=-SGN[c];BA[c]=1;}} // un croisement qui résiste : l'autre route passe dessus
+  // ---- LA NOTE : croisements encore trop serrés, pentes hors bornes (descente > 15 %, montée > 12 % sur 40 m), pelote trop lâche ----
+  let note=0,dyMin=1e9;
+  for(let c=0;c<CR.length;c++){for(const p of CR[c]){const dy=Math.abs(yA(p[0])-yA(p[1]));if(dy<dyMin)dyMin=dy;if(dy<DY-1)note+=(DY-1-dy)*.5;}}
+  for(let k=4;k<nY;k++){const g=(Y[k]-Y[k-4])/40;if(g<-.15)note+=(-.15-g)*40;if(g>.12)note+=(g-.12)*40;}
+  const nKm=CR.length/(L/1000);if(nKm<1.1)note+=(1.1-nKm)*8;
+  // ---- LES POINTS DE CONTRÔLE ----
+  const yS=s9=>{const f=s9/10,k=Math.max(0,Math.min(nY-2,Math.floor(f))),w=f-k;return Y[k]*(1-w)+Y[k+1]*w;};
+  const ctrl=C.map((c,k)=>new THREE.Vector3(c[0],yS(SC[k]),c[1]));
+  for(const k in Q){const o=Q[k];Q[k]={p:new THREE.Vector3(o.x,yS(o.s),o.z),phi:o.phi,s:o.s};}
+  const BO9=BO.map(o=>({e:new THREE.Vector3(o.e.x,yS(o.e.s),o.e.z),sg:o.sg,R:o.R}));
+  let dsM=0;for(const m of CR)for(const p of m)dsM=Math.max(dsM,D[3*p[1]+2]-D[3*p[0]+2]);
+  return {dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO};}
 /* ---------------- L'ATELIER DES ARBRES : un petit maillage indexé (position, normale, aA, aC, aB) ----------------
    aA = (partie, occlusion, hasard, hauteur relative) · aC = la couleur de base · aB = (écorce, mousse).
    Parties : 0 écorce · 1 feuilles · 2 aiguilles · 3 peint (chaumière, champignon) · 4 fenêtre (luit la nuit) · 5 VISAGE (luit la nuit)
@@ -16059,41 +16119,36 @@ function foretMats(){if(FORET.mats)return FORET.mats;const U=FOR_U,F=THREE.Unifo
   M.loup=new THREE.SpriteMaterial({map:forLoupTex(),transparent:true,depthWrite:false,fog:true,opacity:0,alphaTest:.02});M.loup.dispose=function(){};
   M.halo=new THREE.SpriteMaterial({map:lampTex,color:0xcfe6ff,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,opacity:0});M.halo.dispose=function(){};
   return FORET.mats=M;}
-/* ---------------- LE RELIEF : LA VALLÉE QUI SUIT LA ROUTE ----------------
-   Une grille (24 m) : pour chaque case, la distance à la route (d), la hauteur de la route LISSÉE autour (gaussienne de 180 m : pas de
-   marche entre deux tronçons du slalom), puis le profil — le fond 60-90 m sous la route, des flancs qui montent jusqu'à ~50 m AU-DESSUS
-   d'elle à 430 m, des collines au-delà ; des prairies (pr) et la densité de forêt (f) en bruit lent. Au-delà de 650 m de la route, d et la
-   hauteur viennent d'une grille grossière (96 m) floutée : la forêt lointaine roule doucement, sous le brouillard. */
+/* ---------------- LE RELIEF : LE FOND DE LA FORÊT, SOUS LA ROUTE LA PLUS BASSE ----------------
+   (2026-10-15, LA PELOTE) La route repasse sur elle-même à plusieurs hauteurs : le sol ne suit plus « la route la plus proche » (la hauteur
+   moyenne des routes voisines aurait mis le fond AU-DESSUS de la route du dessous). Il suit l'ENVELOPPE BASSE des routes : en chaque case,
+   le minimum, sur les points de route à moins de 520 m, de (hauteur de la route + la remontée `mont(d)` : 24 % jusqu'à 650 m, 5 % au-delà) —
+   un cône renversé sous chaque tronçon ; le fond est 120-145 m sous cette enveloppe. Sous la route la plus basse : ~130 m de vide jusqu'au
+   sol, les cimes juste sous la dalle ; sous une route haute, le gouffre. En s'éloignant de la pelote, la forêt remonte en collines tout
+   autour (on roule au fond d'une cuvette boisée, la forêt ferme l'horizon). Au-delà de 520 m, une grille grossière (×4) prend le relais.
+   Deux grilles de plus servent aux arbres : `yn`, la route la plus BASSE à moins de 150 m (le plafond des arbres du bord) et `yb`, la plus
+   basse à moins de 280 m (l'AIR LIBRE entre les étages de la pelote : aucun arbre ordinaire n'y monte — seuls les géants traversent les
+   étages, et c'est entre leurs troncs qu'on saute d'une route à l'autre). Zéro rnd() consommé. */
 function forBruit(x,z,s){const a=Math.sin(x*.0123+s)*Math.sin(z*.0107-s*.7),b=Math.sin(x*.031+z*.027+s*2.1)*.5,c=Math.sin(x*.0047-z*.0051+s*.3);return (a+b+c)/2.5;}
 function foretSol(){
-  /* (2026-10-15, Sacha : « la map de la forêt doit être beaucoup plus vaste, la forêt et l'espace laissé au joueur plus grands ; la route
-     doit aller vers le bas comme si on était sur le FLANC D'UNE MONTAGNE et qu'on s'enfonçait dans la forêt ») LE VERSANT. Fini la vallée
-     symétrique (deux flancs qui remontaient à +48 m dès 430 m de chaque côté : un couloir) : le relief penche EN TRAVERS de la descente.
-     Côté AMONT (`FORET.amont`), la montagne monte au-dessus de la route et sa forêt la domine ; côté AVAL, elle tombe et l'on voit la forêt
-     s'étendre loin en contrebas. Le plancher sous la route part à ~135 m sous la dalle au départ (on roule au-dessus des cimes, la vue
-     est grande ouverte) et remonte à ~80 m à l'arrivée : la route S'ENFONCE dans la forêt. La pente du versant (GF) se mesure le long de
-     la perpendiculaire à l'axe GLOBAL de la descente (départ → arrivée), par rapport à la route la plus proche — moyenne gaussienne, comme
-     la hauteur : le versant penche toujours du même côté du monde, sans marche d'un lacet à l'autre. Zéro rnd() consommé. */
-  const C=PAL_B9('foretSolC',24),MARG=PAL_B9('foretMarge',2800),R1=560,GF=.24;
+  const C=PAL_B9('foretSolC',24),MARG=PAL_B9('foretMarge',2800),R1=520,mont=d=>d<650?.24*d:156+.05*(d-650);
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  {const p0=pts[0],p1=pts[NP-1];let ax=p1.x-p0.x,az=p1.z-p0.z;const al=Math.hypot(ax,az)||1,sA=(FORET.graine&1)?1:-1;FORET.amont=[-az/al*sA,ax/al*sA];} // le côté AMONT, tiré de la graine
-  const ux=FORET.amont[0],uz=FORET.amont[1],sI=1/Math.max(1,NP-1);
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),WS=new Float32Array(N),YS=new Float32Array(N),US=new Float32Array(N),SS=new Float32Array(N);
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e12),HM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(1e5),YB=new Float32Array(N).fill(1e5);
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
-  // la grille grossière : distance, hauteur, position en travers (u) et avancement (s) de la route la plus proche — floutés
-  const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz),GY=new Float32Array(gx*gz),GU=new Float32Array(gx*gz),GS=new Float32Array(gx*gz);
-  for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18,bk=0;for(let k=0;k<RS.length;k+=2){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd){bd=d;bk=RS[k];}}
-    const q=pts[bk],o=i+j*gx;GD[o]=Math.sqrt(bd);GY[o]=q.y;GU[o]=q.x*ux+q.z*uz;GS[o]=bk*sI;}
-  for(const A of [GY,GU,GS])for(let it=0;it<5;it++){const T9=A.slice();for(let j=1;j<gz-1;j++)for(let i=1;i<gx-1;i++){let s9=0;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++)s9+=T9[i+a+(j+b)*gx];A[i+j*gx]=s9/9;}}
+  // la grille grossière : distance à la route et enveloppe basse, sur un point de route sur trois — floutée
+  const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz),GH=new Float32Array(gx*gz);
+  for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18,bh=1e9;for(let k=0;k<RS.length;k+=3){const p=pts[RS[k]],d2=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d2<bd)bd=d2;const h=p.y+mont(Math.sqrt(d2));if(h<bh)bh=h;}
+    const o=i+j*gx;GD[o]=Math.sqrt(bd);GH[o]=bh;}
+  for(let it=0;it<3;it++){const T9=GH.slice();for(let j=1;j<gz-1;j++)for(let i=1;i<gx-1;i++){let s9=0;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++)s9+=T9[i+a+(j+b)*gx];GH[i+j*gx]=Math.min(T9[i+j*gx],s9/9);}} // (le flou ne remonte jamais l'enveloppe)
   const gBil=(A,x,z)=>{const fx=Math.max(0,Math.min(gx-1.001,(x-x0)/CG)),fz=Math.max(0,Math.min(gz-1.001,(z-z0)/CG)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*gx;
     return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+gx]*(1-u)+A[k+gx+1]*u)*v;};
-  // le tampon fin, autour de chaque point de route (≤ 560 m) : distance exacte et moyennes gaussiennes de la hauteur, du u et du s
-  const rC=Math.ceil(R1/C),iR=1/(R1*R1); // noyau (1 − d²/R²)³ : la gaussienne de ~180 m, sans exponentielle
-  for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),pu=p.x*ux+p.z*uz,ps=ri*sI;
+  // le tampon fin, autour de chaque point de route (≤ 520 m) : la distance exacte, l'enveloppe basse, les deux plafonds des arbres
+  const rC=Math.ceil(R1/C),R2=R1*R1,N2=150*150,B2=280*280;
+  for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
-      for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;US[k]+=w*pu;SS[k]+=w*ps;}}}
+      for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R2)continue;const k=i+j*nx;
+        if(d2<D[k])D[k]=d2;const h=p.y+.24*Math.sqrt(d2);if(h<HM[k])HM[k]=h;if(d2<B2&&p.y<YB[k]){YB[k]=p.y;if(d2<N2&&p.y<YN[k])YN[k]=p.y;}}}}
   const H=new Float32Array(N),PR=new Float32Array(N),FD=new Float32Array(N),sd9=FORET.graine*.001;
   /* (2026-10-14, session PERF) LE BRUIT EN DEUX MOITIÉS. Le terme a = sin(x·.0123+s)·sin(z·.0107−.7s) de forBruit ne dépend que de la
      colonne OU de la rangée : ses sinus sont lus dans des tables (une par échelle), calculés avec EXACTEMENT les mêmes opérandes que
@@ -16102,19 +16157,16 @@ function foretSol(){
   for(let e=0;e<BE.length;e++){const m=BE[e][0],s=BE[e][1];for(let i=0;i<nx;i++){const x=x0+i*C,x9=m===1?x:x*m;BX[e][i]=Math.sin(x9*.0123+s);}
     for(let j=0;j<nz;j++){const z=z0+j*C,z9=m===1?z:z*m;BZ[e][j]=Math.sin(z9*.0107-s*.7);}}
   const fB=(e,i,j,x,z)=>{const s=BE[e][1],a=BX[e][i]*BZ[e][j],b=Math.sin(x*.031+z*.027+s*2.1)*.5,c=Math.sin(x*.0047-z*.0051+s*.3);return (a+b+c)/2.5;}; // = forBruit(x,z,s), x et z déjà mis à l'échelle
-  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys,ur,sf;
-    if(D[k]<1e8){d=Math.sqrt(D[k]);const w0=.02,iw=1/(WS[k]+w0);ys=(YS[k]+gBil(GY,x,z)*w0)*iw;ur=(US[k]+gBil(GU,x,z)*w0)*iw;sf=(SS[k]+gBil(GS,x,z)*w0)*iw;}
-    else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);ur=gBil(GU,x,z);sf=gBil(GS,x,z);YN[k]=ys;}
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,hb;
+    if(D[k]<1e11){d=Math.sqrt(D[k]);hb=HM[k];if(d>R1-160){const w=THREE.MathUtils.smoothstep(d,R1-160,R1);hb=Math.min(hb,hb*(1-w)+gBil(GH,x,z)*w);}}
+    else{d=Math.max(R1,gBil(GD,x,z));hb=gBil(GH,x,z);}
     D[k]=d;
-    const fl=GF*Math.max(-1900,Math.min(2300,x*ux+z*uz-ur)); // LE VERSANT : + en amont (la montagne au-dessus), − en aval (la forêt en contrebas)
-    if(d>MARG+150){H[k]=ys+20+fl+52*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : le versant seul (rien d'autre ne lit si loin)
-    const n1=fB(0,i,j,x,z),n2=fB(1,i,j,x*.43,z*.43),D0=135-55*sf+15*n1,W9=20+18*n2; // le plancher remonte vers l'arrivée : on s'enfonce
-    let h=ys-D0+(D0+W9+fl)*Math.pow(THREE.MathUtils.smoothstep(d,50,700),1.2);
-    h+=52*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,420,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
-    H[k]=h;
+    const n1=fB(0,i,j,x,z),D0=132+13*n1; // la PROFONDEUR sous l'enveloppe : 120-145 m
+    if(d>MARG+150){H[k]=hb-D0+52*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : les collines seules (rien d'autre ne lit si loin)
+    H[k]=hb-D0+40*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,380,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
     const pr=d<220?THREE.MathUtils.smoothstep(fB(4,i,j,x*1.7,z*1.7),.05,.42)*(1-THREE.MathUtils.smoothstep(d,160,220)):0;PR[k]=pr;
-    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+60?.2:d<220?.38:d<620?.86:.62)+.18*fB(5,i,j,x*2.3,z*2.3)-pr*.9));} // (le FLANC) l'air autour de la route : plus de place pour voler
-  return FORET.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,pr:PR,f:FD,can:new Float32Array(N).fill(-1e9),MARG:MARG};
+    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+60?.25:d<280?.45:d<700?.86:.62)+.18*fB(5,i,j,x*2.3,z*2.3)-pr*.9));}
+  return FORET.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yb:YB,pr:PR,f:FD,can:new Float32Array(N).fill(-1e9),MARG:MARG};
 }
 function solBil(A,x,z){const S=FORET.sol;if(!S)return 0;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx;
   return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+n]*(1-u)+A[k+n+1]*u)*v;}
@@ -16194,6 +16246,12 @@ function foretArche(root,fr,M){const Q=FORET.Q;if(!Q||!Q.arche)return null;
   const cp=[],rad=[],n=26,ph=fr()*6.28;
   for(let k=0;k<=n;k++){const u=k/n,x=A[0]+(B9[0]-A[0])*u,z=A[2]+(B9[2]-A[2])*u,yl=A[1]+(B9[1]-A[1])*u,arc=Math.sin(u*Math.PI);
     cp.push([x+Math.sin(u*9+ph)*3,yl+(top-(A[1]+B9[1])/2)*Math.pow(arc,.62)+Math.sin(u*13+ph)*1.2,z+Math.cos(u*7+ph)*3]);rad.push((10.5-4.2*arc+(k===0?3:0))*(1+.14*Math.sin(k*1.9+ph)+.07*Math.sin(k*4.3+ph*2)));}
+  // (2026-10-15, LA PELOTE) l'arche enjambe SA route — et aucune autre : si un autre étage de la pelote passe dans son tronc, pas d'arche
+  {const ds9=L/(NP-1),j0=ia-Math.round(300/ds9),j1=ia+Math.round(300/ds9);
+   for(let j=0;j<NP;j+=3){if(j>j0&&j<j1)continue;const q=pts[j];
+     for(let k=0;k<n;k++){const a9=cp[k],b9=cp[k+1],r9=Math.max(rad[k],rad[k+1]);if(q.y<Math.min(a9[1],b9[1])-r9-10||q.y>Math.max(a9[1],b9[1])+r9+10)continue;
+       const ex=b9[0]-a9[0],ez=b9[2]-a9[2],l2=ex*ex+ez*ez||1,u=Math.max(0,Math.min(1,((q.x-a9[0])*ex+(q.z-a9[2])*ez)/l2));
+       if(Math.hypot(q.x-a9[0]-ex*u,q.z-a9[2]-ez*u)<r9+ROAD_HALF+5)return null;}}}
   const o=[cp[n>>1][0],0,cp[n>>1][2]];
   for(const q of cp){q[0]-=o[0];q[2]-=o[2];}
   fbTube(K,cp,rad,18,{col:[.27,.22,.17],ec:2,mousse:.75,ytop:1e4,rg:fr,rug:.13,fixe:1,aoK:.6});
@@ -16213,6 +16271,7 @@ function foretArche(root,fr,M){const Q=FORET.Q;if(!Q||!Q.arche)return null;
   return {C:C,LI:LI,c:new THREE.Vector3(o[0],top,o[2])};}
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la forêt) ---------------- */
 const FOR_GEANT_RR={chene:7.4,hetre:6.6,epicea:5.6,ancien:11,sequoia:14}; // le rayon du tronc à hauteur de route (gabarit nominal, visage compris)
+const FOR_GEANT_RB={chene:10.8,hetre:8.2,epicea:6.6,ancien:13,sequoia:14.6}; // (2026-10-15, LA PELOTE) le rayon du fût PRUDENT : à 85 % du pied — la route d'en dessous passe là où le tronc est plus épais
 function forLot(items){ // trie les exemplaires par QUARTIER : chaque quartier = une plage contiguë (le tri par champ ne recopie que ce qu'il faut)
   items.sort(function(a,b){return a.q-b.q;});const n=items.length,o={n:n,M:new Float32Array(n*16),J:new Float32Array(n*4),rK:[],rA:[],rB:[]};
   let a=0;for(let i=0;i<n;i++){o.M.set(items[i].m,i*16);o.J.set(items[i].j,i*4);if(i===n-1||items[i+1].q!==items[i].q){o.rK.push(items[i].q);o.rA.push(a);o.rB.push(i+1);a=i+1;}}
@@ -16255,17 +16314,24 @@ function buildForet(seed){
   const colPose=(meta,x,y,z,ry,sxz,sy)=>{const c=Math.cos(ry),s=Math.sin(ry),tr=(px,py,pz)=>[x+(px*c+pz*s)*sxz,y+py*sy,z+(-px*s+pz*c)*sxz],rr=Math.max(sxz,sy*.6);
     for(const k of meta.C||[]){const a=tr(k[0],k[1],k[2]),b=tr(k[3],k[4],k[5]);COL.push({g:1,a:a,b:b,r:k[6]*sxz});}
     for(const k of meta.S||[]){const a=tr(k[0],k[1],k[2]);COL.push({g:0,a:a,r:k[3]*rr});}};
-  // ---- 1. LES GÉANTS : à la corde de chaque virage, puis en quinconce le long des droites ----
-  const GE=[],ge=FOR_GEANTS_N.filter(function(k){return k!=='sequoia';}); // (les séquoias ont leur passe à eux, plus bas)
-  const geant=(i,sg,lat,sp)=>{const p=pts[i],l9=lat9(i),x=p.x+l9[0]*sg*lat,z=p.z+l9[1]*sg*lat,base=solH(x,z)-3,meta=PT.geant[sp][0].m;
-    const sy=sp==='sequoia'?THREE.MathUtils.clamp((p.y-base+190+fr()*130)/meta.h,.9,1.8):THREE.MathUtils.clamp((p.y-base+20)/95,.66,1.8),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RR[sp]*sxz,cr=meta.cr*sxz;
-    if(lat<ROAD_HALF+rT+6)return false;
-    for(const g of GE)if(Math.hypot(g.x-x,g.z-z)<(g.cr+cr)*.72)return false;
-    let ok=true;proches(x,z,cr+ROAD_HALF+12,function(j){if(!ok)return;const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);
-      if(dh<rT+ROAD_HALF+4.5)ok=false;else if(dh<cr*.95+ROAD_HALF+4&&q.y>base+(meta.cb||95)*sy-16)ok=false;});
+  // ---- 1. LES GÉANTS : à la corde de chaque virage, en quinconce le long des droites, au cœur des boucles, en colonnade, et LA FUTAIE ----
+  /* (2026-10-15, LA PELOTE — Sacha : « des arbres beaucoup, beaucoup plus hauts, beaucoup plus grands » · « qu'on puisse passer entre les
+     arbres pour changer de route ») Un géant pose son pied au fond et ouvre sa couronne AU-DESSUS DE LA ROUTE LA PLUS HAUTE à sa portée
+     (24-60 m au-dessus ; 45-195 m pour un séquoia) : sous une pelote à trois étages, un chêne monte à 400-500 m, un séquoia à 700. Son tronc
+     (`FOR_GEANT_RB` : le rayon du fût sous la couronne, prudent) reste à 5 m au moins du bord de TOUTES les routes, à toutes les hauteurs. */
+  const GE=[],ge=FOR_GEANTS_N.filter(function(k){return k!=='sequoia';}); // (les séquoias ont leurs passes à eux)
+  const geantXZ=(x,z,sp)=>{const meta=PT.geant[sp][0].m,base=solH(x,z)-3,cb=sp==='sequoia'?(meta.cb||178):(meta.cb||95),R9=meta.cr*2.2+ROAD_HALF+14;
+    let yH=-1e9,dM=1e9,iM=-1;proches(x,z,R9,function(j){const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);if(dh<R9&&q.y>yH)yH=q.y;if(dh<dM){dM=dh;iM=j;}});
+    if(iM<0){const yb9=solBil(S.yb,x,z);yH=yb9<1e4?yb9:base+120;} // (aucune route à portée de couronne : la plus basse des environs sert de repère)
+    const sy=THREE.MathUtils.clamp((yH-base+(sp==='sequoia'?45+fr()*150:24+fr()*36))/cb,sp==='sequoia'?.9:.7,4.4),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
+    if(base+cb*sy-16<yH)return false; // (la couronne plafonnée passerait dans une route)
+    for(const g of GE){const d=Math.hypot(g.x-x,g.z-z);if(d<Math.max((g.rT+rT)*2.4+25,(g.cr+cr)*.5))return false;}
+    let ok=true;proches(x,z,rT+ROAD_HALF+6,function(j){if(!ok)return;const q=pts[j];if(Math.hypot(q.x-x,q.z-z)<rT+ROAD_HALF+5)ok=false;});
     if(!ok)return false;
-    const ry=sp==='ancien'?Math.atan2(p.x-x,p.z-z):fr()*6.2832;
-    GE.push({x:x,z:z,y:base,sp:sp,sy:sy,sxz:sxz,ry:ry,cr:cr,rT:rT,top:base+meta.h*sy,i:i});zone(x,z,rT+9);return true;};
+    if(iM<0){let bd=1e18;for(let j=0;j<NP;j+=8){const q=pts[j],d2=(q.x-x)*(q.x-x)+(q.z-z)*(q.z-z);if(d2<bd){bd=d2;iM=j;}}}
+    const q=pts[iM],ry=sp==='ancien'?Math.atan2(q.x-x,q.z-z):fr()*6.2832;
+    GE.push({x:x,z:z,y:base,sp:sp,sy:sy,sxz:sxz,ry:ry,cr:cr,rT:rT,top:base+meta.h*sy,i:iM});zone(x,z,rT+9);return true;};
+  const geant=(i,sg,lat,sp)=>{const p=pts[i],l9=lat9(i);return geantXZ(p.x+l9[0]*sg*lat,p.z+l9[1]*sg*lat,sp);};
   {const st=Math.max(1,Math.round(6/ds)),K9=[];
    for(let i=st;i<NP-st;i+=st){const a=T[i-st],b=T[i+st],th=Math.atan2(a.x*b.z-a.z*b.x,a.x*b.x+a.z*b.z);K9.push([i,th/(2*st*ds)]);} // la courbure signée (rad/m)
    const sm=K9.map(function(k,j){let s9=0,n9=0;for(let d=-4;d<=4;d++){const o=K9[j+d];if(o){s9+=o[1];n9++;}}return [k[0],s9/n9];});
@@ -16273,17 +16339,22 @@ function buildForet(seed){
    for(let j=1;j<sm.length-1;j++){const k=sm[j],a=Math.abs(k[1]);if(a<1/1100||a<Math.abs(sm[j-1][1])||a<Math.abs(sm[j+1][1]))continue;
      const sK=k[0]*ds;if(sK-der<110||sK<260||sK>L-180)continue;
      const sg=k[1]>0?1:-1,sp=ge[(fr()*ge.length)|0]; // le côté INTÉRIEUR du virage (θ<0 : le cap tourne vers −latéral)
-     if(geant(k[0],sg,ROAD_HALF+5+FOR_GEANT_RR[sp]*1.05+fr()*7,sp)||geant(k[0],sg,ROAD_HALF+16+FOR_GEANT_RR[sp]*1.15+fr()*10,ge[(fr()*ge.length)|0]))der=sK; // à la CORDE
-     if(fr()<.5){const i2=Math.min(NP-1,k[0]+Math.round((55+fr()*45)/ds));geant(i2,-sg,ROAD_HALF+10+fr()*16+FOR_GEANT_RR.chene,ge[(fr()*ge.length)|0]);}}} // …et parfois, à la sortie, de l'autre côté
+     if(geant(k[0],sg,ROAD_HALF+8+FOR_GEANT_RB[sp]*1.5+fr()*10,sp)||geant(k[0],sg,ROAD_HALF+22+FOR_GEANT_RB[sp]*1.6+fr()*14,ge[(fr()*ge.length)|0]))der=sK; // à la CORDE
+     if(fr()<.5){const i2=Math.min(NP-1,k[0]+Math.round((55+fr()*45)/ds));geant(i2,-sg,ROAD_HALF+14+fr()*18+FOR_GEANT_RB.chene*1.6,ge[(fr()*ge.length)|0]);}}} // …et parfois, à la sortie, de l'autre côté
   {let sd=fr()<.5?-1:1;for(let s9=280;s9<L-200;s9+=95+fr()*70){const i=Math.round(s9/ds);let pres=false;for(const g of GE){const d=Math.hypot(g.x-pts[i].x,g.z-pts[i].z);if(d<85){pres=true;break;}}
-    if(pres)continue;sd=-sd;const sp=ge[(fr()*ge.length)|0];geant(i,sd,ROAD_HALF+6+FOR_GEANT_RR[sp]*1.05+fr()*22,sp);}}
-  /* LES SÉQUOIAS-TOURS (2026-10-14 soir) : une COLONNADE le long de toute la descente — un fût tous les 55-95 m, d'un côté puis de
-     l'autre, au ras du bord (la route serpente entre les troncs), et un second rang plus loin qui ferme la vallée comme des immeubles. */
+    if(pres)continue;sd=-sd;const sp=ge[(fr()*ge.length)|0];geant(i,sd,ROAD_HALF+10+FOR_GEANT_RB[sp]*1.5+fr()*22,sp);}}
   for(const o of FORET.boucles||[]){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(o.e);if(d<bd){bd=d;bi=i;}}
     geant(bi,-o.sg,o.R,'sequoia');} // LE SÉQUOIA DE LA BOUCLE : au centre du premier demi-tour, la route tourne autour de lui
-  {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=55+fr()*40){const i=Math.round(s9/ds);sd=-sd;
-     geant(i,sd,ROAD_HALF+FOR_GEANT_RR.sequoia*1.3+16+fr()*34,'sequoia');} // (le FLANC) la colonnade s'écarte : de l'air entre les fûts et la route
-   for(let s9=340;s9<L-200;s9+=95+fr()*70)for(const sg of [-1,1])if(fr()<.8)geant(Math.round(s9/ds),sg,ROAD_HALF+120+fr()*200,'sequoia');}
+  /* LES SÉQUOIAS-TOURS (2026-10-14 soir) : une COLONNADE le long de la route — un fût tous les 70-115 m, d'un côté puis de l'autre, au ras
+     du bord (la route serpente entre les troncs). */
+  {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=70+fr()*45){const i=Math.round(s9/ds);sd=-sd;
+     geant(i,sd,ROAD_HALF+FOR_GEANT_RB.sequoia*1.6+16+fr()*34,'sequoia');}}
+  /* LA FUTAIE (2026-10-15, LA PELOTE) : partout à moins de 360 m d'une route, un géant tous les ~95 m (une grille décalée) — séquoias,
+     chênes, hêtres, épicéas, vieux chênes ; la pelote serpente entre des troncs de 20 à 50 m de diamètre, et l'air entre ses étages
+     n'appartient qu'à eux : c'est entre ces fûts qu'on saute d'une route à l'autre. (`foretFutaie` : l'écart de la grille par palier) */
+  {const PF=95*PAL_B9('foretFutaie',1);let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(let i=0;i<NP;i+=8){const p=pts[i];if(p.x<bx0)bx0=p.x;if(p.x>bx1)bx1=p.x;if(p.z<bz0)bz0=p.z;if(p.z>bz1)bz1=p.z;}
+   for(let gx=bx0-360;gx<bx1+360;gx+=PF)for(let gz=bz0-360;gz<bz1+360;gz+=PF){const x=gx+(fr()-.5)*PF*.8,z=gz+(fr()-.5)*PF*.8,d=solBil(S.d,x,z),r=fr();
+     if(d>360||d<ROAD_HALF+24)continue;geantXZ(x,z,r<.42?'sequoia':ge[(fr()*ge.length)|0]);}}
   FORET.geants=GE;
   // ---- 2. LES ROCHERS DU LOUP (les aiguilles de grès qui dominent la canopée) ----
   const RO=[];{let sd=fr()<.5?-1:1;for(let s9=520+fr()*200;s9<L-450;s9+=520+fr()*320){const i=Math.round(s9/ds),l9=lat9(i);sd=-sd;
@@ -16303,7 +16374,9 @@ function buildForet(seed){
        FORET.chaum.push(m);zone(x,z,30);canTampon(x,z,22,y+18);break;}}}
   // ---- 5. LA FORÊT ----
   const ESP={},LOINF=[],LOINC=[];for(const k of FOR_ESP_N)ESP[k]=[];
-  const cell=15/Math.sqrt(Math.min(1,MOB*1.25)),Rt=PAL_B9('foretRayon',1650),metaE={};for(const k of FOR_ESP_N)metaE[k]=PT.esp[k][0].m;
+  /* (2026-10-15, LA PELOTE — « des arbres beaucoup plus grands ») la forêt ordinaire à l'échelle ×2,1 (des hêtres de 60 m, des épicéas de 80) :
+     une case 2× plus large, 4× moins d'arbres pour le même couvert — et autant de triangles en moins. */
+  const FE=2.1,cell=15*2/Math.sqrt(Math.min(1,MOB*1.25)),Rt=PAL_B9('foretRayon',1650),metaE={};for(const k of FOR_ESP_N)metaE[k]=PT.esp[k][0].m;
   const choix=(d,r)=>{if(d<175)return r<.30?'hetre':r<.52?'bouleau':r<.70?'chene':r<.82?'epicea':r<.92?'pin':'sapin';
     if(d<620)return r<.40?'epicea':r<.58?'sapin':r<.82?'hetre':r<.90?'pin':r<.95?'chene':'bouleau';
     return r<.48?'epicea':r<.68?'sapin':r<.94?'hetre':'pin';};
@@ -16313,11 +16386,11 @@ function buildForet(seed){
    for(let e9=0;e9<nn;e9++){
     const x=S.x0+(ci+fr())*S.C,z=S.z0+(cj+fr())*S.C,d=solBil(S.d,x,z);if(d>Rt)continue;
     const f=solBil(S.f,x,z)*(d>620?MOB*.7:MOB*.5+.5)*(d>1150?.55:1);if(fr()>f)continue; // (le FLANC) au-delà de 1150 m, moins d'arbres mais plus hauts : la même masse de forêt
-    const sp=choix(d,fr()),me=metaE[sp];let s=(.78+fr()*.5)*(d>1150?1.22:1),sxz=s*(.85+fr()*.3);
-    if(d<ROAD_HALF+12)continue;
+    const sp=choix(d,fr()),me=metaE[sp];let s=(.78+fr()*.5)*(d>1150?1.22:1)*FE,sxz=s*(.85+fr()*.3);
+    if(d<ROAD_HALF+20)continue;
     if(nu(x,z,me.cr*sxz*.5))continue;
     const y=solH(x,z)-.4;
-    if(d<me.cr*sxz+ROAD_HALF+14){const lim=solBil(S.yn,x,z)-32;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.48)continue;sxz=Math.min(sxz,s*1.15);}}
+    {const yb9=solBil(S.yb,x,z);if(yb9<1e4){const lim=yb9-30;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.6)continue;sxz=Math.min(sxz,s*1.15);}}} // (LA PELOTE) jamais dans l'air libre des étages : 30 m sous la route la plus BASSE à moins de 280 m
     const ry=fr()*6.2832,q=qDe(x,z),tint=sp==='hetre'&&fr()<.04?2:(fr()*2-1)*.6;
     ESP[sp].push({q:q,m:mat(x,y,z,ry,sxz,s,sxz),j:[fr(),tint,0,0]});
     {const fc=FC[sp],k9=tint>1.5?[1.35,1.12,.7]:[1+tint*.16,1+tint*.06,1-tint*.18],al=[fc[0]*k9[0]*.78,fc[1]*k9[1]*.78,fc[2]*k9[2]*.78],lo=FOR_LOIN[sp];
@@ -16559,6 +16632,7 @@ function foretChauffe(){
 /* ---------------- LA CONSOLE ---------------- */
 window.dbgForet=function(k,o){
   if(k==='meteo'){foretMeteo(o||'nuit',.01);return FORET.met;}
+  if(k==='heurt'&&o){FOR_V2.set(o[0],o[1],o[2]);return FORET.root?foretHeurt(FOR_V2):'';} // (la PELOTE, banc des sauts) ce point de l'air tue-t-il ?
   if(k==='loup'){if(FORET.loup)FORET.loup.t=0;return FORET.rocs.length+' rochers';}
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);foretTick(0);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
@@ -16576,7 +16650,7 @@ window.dbgForet=function(k,o){
     for(let i=0;i<NP;i+=st){const p=pts[i],t=T[i],m=p.y-solH(p.x,p.z);if(m<pire){pire=m;ou=i;}if(m<20)n20++;P9.push([+p.x.toFixed(1),+p.y.toFixed(1),+p.z.toFixed(1),+t.x.toFixed(3),+t.z.toFixed(3)]);}
     return {amont:FORET.amont,L:Math.round(L),pts:P9,marge:{min:Math.round(pire),s:Math.round(ou*L/(NP-1)),sous20:n20},n:FORET.n,ms:FORET.ms,msSol:FORET.msSol};}
   const tri=FORET.fam.reduce(function(a,F){return a+F.tri*F.im.count;},0),parFam={};for(const F of FORET.fam)if(F.im.count)parFam[F.nom||'?']=[F.im.count,Math.round(F.tri*F.im.count/1000)+'k'];
-  return {on:!!FORET.root,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
+  return {on:!!FORET.root,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,pel:FORET.pel,noeuds:(FORET.noeuds||[]).map(function(o){return [Math.round(o.c[0]),Math.round(o.c[1]),o.t];}),tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
     tri9:{ms:FT.n?+(FT.ms/FT.n).toFixed(3):0,maj:FT.up},cur:FORET.cur&&{hante:+FORET.cur.hante.toFixed(2),pap:+FORET.cur.pap.toFixed(2),ray:+FORET.cur.ray.toFixed(2)},
     loup:FORET.loup&&{t:+FORET.loup.t.toFixed(1),on:FORET.loup.on},geants:FORET.geants.length,col:FORET.gcol&&FORET.gcol.n,parFam:parFam};};
 function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='function')?PAL.b(k,d):d;}catch(e){return d;}} // les paliers d'optimisation (PAL), s'ils existent
