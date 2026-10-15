@@ -26,6 +26,9 @@ rm -rf .vercel-static/jouer/simulateur.html .vercel-static/jouer/simulateur
 # (2026-10-12, passe qualité) les autres outils LOCAUX de Léo (servis par python en local, serveurs qui écrivent sur le disque) :
 # la salle blanche, la boîte à dauphins, la boîte du singe — et aucun script Python ne part en ligne
 rm -rf .vercel-static/jouer/salle-blanche.html .vercel-static/jouer/salle-blanche .vercel-static/jouer/boite-dauphins.html .vercel-static/jouer/boite-singe.html
+# (2026-10-15, Léo) LE RÉPERTOIRE DES MAPS (repertoire-maps/ : la page, ses photos, son banc) reste un outil LOCAL — en ligne, il changerait
+# l empreinte du jeu publié (tous les joueurs rechargés)
+rm -rf .vercel-static/jouer/repertoire-maps
 find .vercel-static/jouer -name '*.py' -delete
 # (2026-10-14, pôle SON) L'ATELIER DE LA MUSIQUE reste un outil LOCAL (Léo : « pour toi ») : la page musique-moteur.html (elle fige les
 # morceaux par le serveur de la page) et les sources des morceaux à paliers (paliers/*.html). La BIBLIOTHÈQUE, elle, est publiée.
