@@ -3,6 +3,30 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : Crypto City, une ville imaginaire avec de grands immeubles qui reflètent — des vitrés, des dorés, des argentés, des métalliques et des blancs ; hyper moderne, le futur, pas forcément moche ; explosif : la période bullrun, l'apogée de la ville, pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »)
+- LA BASE : la CRYPTOCITY de Léo (13/10, section « CRYPTOCITY — LA VILLE EN BULL RUN » plus bas) avait été retirée le 14/10 (`0ac875d`,
+  « on supprime tout ce qui n'est pas là » : elle n'était pas dans le tirage). Elle est REVENUE (le retrait défait sur le main d'aujourd'hui :
+  24 morceaux reposés tels quels, 11 refaits à la main sur la ville qui a changé depuis — néons v5, grues, `uPied9`) : taureaux, bougies,
+  pièces ₿ géantes (JACKPOT), diamants, dirigeables à écran, lune ₿, fusées TO THE MOON, feux d'artifice, le NOUVEL ATH, la pluie d'argent
+  à 50 % en fond, les pièces de la route frappées du ₿, le bitume glacé (`LVL.crypto`, `GLACE.crypto`), l'accent vert profit 0x35ff9e.
+- UNE MAP DU TIRAGE : `SF_CARTES.crypto` (« CRYPTO CITY », base `NIV_CRYPTO`, `SF_NIV.crypto`). QUATRE TEMPS, jamais de pluie ni d'orage
+  (c'est l'apogée) : MATIN (`BIOMES.cryptoMatin`, aube rose et or), MIDI (`bullrun`, le ciel de Léo + l'étalonnage du 14/10, poids 1,3),
+  SOIR (`cryptoSoir`, tout l'or s'allume, poids 1,2), NUIT (`cryptoNuit`, nuit:1 → phares ; « LA VILLE NE DORT JAMAIS »). Plus de JOUER à
+  part : `CRYPTO_JEU`, `cryptoJouer`, `cryptoPlayOk` sont partis ; `?niveau=crypto` = `?carte=crypto` ; `dbgNiveauCrypto(meteo)` impose
+  la map puis `classiqueJouer()`. Vignette du garage (`gvVignette('crypto')`, `GV_TEINTE.crypto` or).
+- LES FAÇADES EN CINQ MATIÈRES (`CRYPTO_VERRE`, programme `toursCrypto2`) — le même seuil dans le shader (`s3`) et pour la structure
+  (couleur d'instance, buildVoxCity) : 26 % VERRE bleu-vert · 18 % OR (renvoie la lumière du ciel) · 20 % ARGENT (miroir : garde le bleu,
+  Fresnel +60 %) · 16 % MÉTAL brossé (lames verticales, reflet brouillé, éclat du soleil en traînée large) · 20 % BLANC (résille de
+  céramique autour de baies étroites). Parapets : menthe / or / blanc chaud. LA NUIT, les bureaux restent allumés (`uNuit9` =
+  `CRYPTO.uNuit`, suit `LVL.nuit` dans cryptoTick).
+- LES RÉCLAMES : 32 écrans au lieu de 16 (atlas 2048 × 1024, 8 × 4, programme `pubsCrypto2`) — ajoutés NFT, SATOSHI, WEB3, DEFI, AIRDROP,
+  STAKE, WHALE, FOMO, DOGE, DAO, GAS 0, AI, MINING, LFG, SER, 1 BTC = 1 BTC ; traduits par `pubLangue`.
+- MESURÉ (banc Playwright + Chromium logiciel, 844 × 390, muet, `?carte=crypto&meteo=…`, pilote `dbgAuto`) : midi, soir, nuit lancés par
+  le JOUER du tirage, `__loopErr` nul, `dbgCrypto('progs')` vide, aucune erreur de page (seul le 404 connu de dark-triad.mp3). Ville bâtie :
+  1 425 tours, 3 913 volumes, 66 réclames, 2 taureaux, 59 bougies, 12 pièces, 8 diamants, 3 dirigeables, en 48 ms.
+  Les neuf maps du tirage : nuages, ville, jade, foret, banquise, volcan, crypto, espace, canyon.
+- À TRANCHER (Sacha, Léo) : la part de chaque matière ; la pluie d'argent en fond (.5) ; le nom (CRYPTO CITY / CRYPTOCITY de Léo).
+
 ## LE GLACIER v2 — LA PENTE, LA ROUTE NUE, LE VERGLAS ET ICE SKATE (2026-10-15, Sacha : « dans la map neige il faut vraiment que ce soit une montagne qui dévale, pas vraiment plat comme ça ; pas besoin de mettre les mêmes modules que dans les nuages ; rajoute une belle traîne dans la neige quand la voiture passe dedans ; et une animation et une figure ICE SKATE qui rapporte de l'aura quand on glisse sur la glace, la voiture doit un peu partir sur le côté »)
 - LA PENTE (`genBanq`) : départ 8 %, couloirs 19-28 % (cassure 36 %), jambes des lacets 7,5 %, chute d'un tour 66-78 m, plancher 5 %.
   Banc Node (`raccourcis-node`, 4 graines) : dénivelé ~700 → ~1 170 m sur 9 km, 13-14 zones de raccourci, chute moyenne ~95 m, gain
