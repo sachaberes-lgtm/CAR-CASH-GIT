@@ -10268,7 +10268,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 <script src="figures.js?v=9"></script>
 <script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=1"></script><script src="creatures/dauphin.js?v=1"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
-<script src="assets/audio/pouce-bleu-jeu.js?v=2"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="assets/audio/pouce-bleu-jeu.js?v=3"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -40560,6 +40560,11 @@ function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e)
    ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
 const MUSJ={f0:0,ms:300}; // (2026-10-14, session SON) la radio cède l'antenne à GLISSE (entrée au SOLEIL DE JADE par un portail) : l'instant où son fondu de sortie a commencé, 0 = pas de fondu
 const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
+/* (2026-10-15 soir, Léo : « quand je vais dans les réglages et que je gère la musique, ça fait bugger la musique du jeu ») MUSIQUE RALLUMÉE PENDANT
+   LA PAUSE : la musique de course ATTEND LA REPRISE. Mesuré au banc (iPhone simulé) : couper puis rallumer MUSIQUE dans la pause relançait Pouce
+   bleu TOUT DE SUITE — le générateur réveille le contexte audio (ctx.resume) — et un AUTRE morceau jouait par-dessus le jeu figé, à −15 dB. Désormais
+   `att` est posé par musBascule et musicTick relance le MÊME morceau dès que la pause se lève (reprise : meme). Effacé au départ et à la fin. */
+const MUSREP={att:false};
 /* (2026-10-15, pôle SON ; Léo, choix cochés) POUCE BLEU EN COURSE — À CHAQUE PLAY, UN morceau de Pouce bleu (la bibliothèque) tiré au hasard
    joue TOUTE la course en suivant le moteur (1 → 30), sans doublon d'une course à l'autre (assets/audio/pouce-bleu-jeu.js, `POUCE_JEU`). Il entre
    au JOUER : son INTRO (le morceau au moteur 1, derrière un filtre qui s'ouvre sur 2 mesures de son tempo) couvre le piqué pendant que le lobby
@@ -40590,7 +40595,7 @@ function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;}pbjLance(vi
 let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
 window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE},POUCE_JEU.etat()):null;};
 function musicStartRun(depart,reprise){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course · reprise : la seconde chance (la course continue)
-  DEPMUS.f0=-1;DEPMUS.sort=0;MUSJ.f0=0;
+  MUSREP.att=false;DEPMUS.f0=-1;DEPMUS.sort=0;MUSJ.f0=0;
   if(SND.music&&pbjRegne()){ // POUCE BLEU : le morceau tiré au JOUER passe de l'intro à la course (sinon il part tout de suite, intro courte)
     musicMode='run';NIVEAU_FX=0;musicLieu=null;stopMusic();
     if(POUCE_JEU.joue())POUCE_JEU.course();else pbjDepart(true,!!reprise);
@@ -40639,7 +40644,7 @@ function musicNext(){
 }
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   try{if(window.POUCE_JEU)POUCE_JEU.fin(!!tape);}catch(e){} // (15/10) Pouce bleu s'éteint (la mort : un fondu court)
-  musicMode='none';musicVoulue=false;
+  musicMode='none';musicVoulue=false;MUSREP.att=false;
   DEPMUS.f0=-1;MUSJ.f0=0; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
   const el=musicEl;
@@ -40862,6 +40867,7 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0;
   if(musicOn&&musicAna){
@@ -43330,7 +43336,7 @@ sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.s
 voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;SAVE.d.vox=SND.voice;SAVE.flush();sndRefresh();});
 function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh(); // (2026-10-14, session SON) LA bascule MUSIQUE : le bouton et le retour d'une longue absence (musRetour) passent par elle
   musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend
-  if(SND.music){ if(started&&running&&!gameOver)musicStartRun(); else musicMenu(); } // rallumée : relance selon le contexte
+  if(SND.music){ if(started&&running&&!gameOver){if(paused&&pbjRegne())MUSREP.att=true;else musicStartRun(false,true);} else musicMenu(); } // rallumée : relance selon le contexte — (2026-10-15) en course c'est le MÊME morceau qui revient (reprise), et dans la pause il attend la reprise (MUSREP)
   else musicStop(false); // éteinte : coupe net
 }
 if(musBtnEl)musBtnEl.addEventListener('click',function(e){e.stopPropagation();musBascule();});
@@ -53184,6 +53190,7 @@ function chuteDouxCoupe(d){const n=CHDOUX.n;if(!n||!AC)return;
   clearTimeout(CHDOUX.off);CHDOUX.off=setTimeout(function(){if(CHDOUX.n!==n)return;try{n.s1.stop();n.s2.stop();n.g.disconnect();}catch(e){}CHDOUX.n=null;},d*1000+400);}
 window.dbgChuteDoux=function(){return {ciel:!!CHUTE.on,garage:!!garageOn,tait:MUS_TAIT,douxOn:!!CHDOUX.n,douxGain:CHDOUX.n?+CHDOUX.n.g.gain.value.toFixed(4):0,musique:musicEl?{pause:musicEl.paused,vol:+musicEl.volume.toFixed(3),src:(musicEl.src||'').split('/').pop(),t:+musicEl.currentTime.toFixed(2)}:null,mode:musicMode};}; // (dev) le ciel muet, la chute douce, le lobby au garage
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
+  MUSAP.t=0; /* (2026-10-15) les RÉGLAGES (écran opaque, la musique au niveau du garage) refermés moins de 1,4 s après un relâcher du curseur : l'extrait levait encore MUS_CIEL au ciel — la musique restait forte une seconde puis retombait d'un coup */
   if(!CHUTE.lc)CHUTE.lc=new THREE.Color();CHUTE.lc.copy(carLight.color);CHUTE_TAP.p.set(0,0,0);CHUTE_TAP.v.set(0,0,0);CHUTE_TAP.Q.identity();CHUTE_TAP.w.set(0,0,0);CHUTE_TAP.tient=null;CHUTE_TAP.sh=0;
   CHUTE.on=true;CHUTE.t=0;CHUTE.sndT=0;TITRE_HF.tc=0;CHUTE.bioPas=-1;CHUTE.bioT=null; /* (2026-10-07) sndT et tc vivaient sur l'horloge d'AVANT (CHUTE.t repart de 0) : le vent restait muet et l'heure périmée jusqu'à 20 s */
   document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone(),skyU.uMzT.value.clone(),skyU.uMzO.value.clone(),skyU.uMzH.value.clone(),skyU.uMerLoin.value];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0;CHUTE.tk=0; // (2026-09-30) l'orbite repart du plan de face — (LE TOUR SANS FIN) et le tour lent s'y engage en douceur
