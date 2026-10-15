@@ -15,6 +15,8 @@
   police n'a pas de gras) ; `--sans` et `--c6-sys` pointent désormais sur le pixel ; chaque texture refaite en pixel à ~62 % du corps (même
   largeur de mot). La bannière et la fiche du garage passent par `majPix` (`misTxt(m)`, `TR(d.d)`). Le billet volant, la pluie de monnaies
   et le logo du fourgon, peints AU CHARGEMENT, sont redessinés quand la police arrive (`apresPolice`) ; la police est préchargée (`<link rel=preload>`).
+- LA PLUIE DE MONNAIES passe de 15 à 5 symboles ($ € ¥ £ ¢) : mesuré au banc, la police pixel n'a ni ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ ni φ — ils
+  tombaient dans une police de secours.
 - POUR NE PLUS JAMAIS LE REDIRE, deux filets : `<style id="policeUnique">` (dernier bloc de style) met `var(--pix)!important` sur tout élément,
   pseudo-élément et `::placeholder` ; `UNE_POLICE` (premier script du body) réécrit tout `ctx.font` qui n'est pas Press Start 2P. `garde-charte.sh`
   (d) refuse une version sans ces deux filets. Seule exception nommée : le φ du « 1.61φ » (`#spPhi`, logo ; la police pixel n'a pas de φ).

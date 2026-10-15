@@ -2013,7 +2013,15 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
 </head>
 <body>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
-     ⚠ IL EST DANS SON PROPRE <script>
+     ⚠ IL EST DANS SON PROPRE <script>, ET C'EST TOUT L'INTÉRÊT. Le capteur d'erreur du jeu vit DANS
+     le grand script : si celui-ci meurt au PARSING (une accolade de travers, une syntaxe que le
+     navigateur du joueur ne connaît pas), pas une ligne ne s'exécute — capteur compris — et le
+     joueur reçoit un rectangle noir sans un mot. Ici, on est déjà chargé quand le jeu se présente.
+     ⚠ ET IL A UN CHIEN DE GARDE, pas seulement un capteur : la panne la plus fréquente d'un fichier
+     autonome n'est pas une exception bruyante, c'est un démarrage qui n'arrive jamais (WebGL refusé,
+     mémoire, un navigateur qui bloque une API en file://). Aucune erreur n'est levée dans ce cas —
+     il n'y a qu'un silence. Le chien de garde transforme ce silence en diagnostic lisible. -->
+<script>
 /* UNE SEULE POLICE (2026-10-15, Sacha : « chaque texte du jeu doit avoir la bonne police […] il faut pas que je te le répète ») —
    LE FILET DES CANVAS. Les textes DESSINÉS (billets, carte bancaire, montre et pièces de la boutique, « wow » du DOGE…) échappent au
    CSS. Toute police de canvas qui n'est pas Press Start 2P est réécrite ici en Press Start 2P, à 62 % du corps demandé (la chasse pixel
@@ -2028,14 +2036,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     D.set.call(this,r);}});}catch(e){}})();
 function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('16px "Press Start 2P"'))F.load('16px "Press Start 2P"').then(f).catch(function(){});}catch(e){}}
 </script>
-<script>, ET C'EST TOUT L'INTÉRÊT. Le capteur d'erreur du jeu vit DANS
-     le grand script : si celui-ci meurt au PARSING (une accolade de travers, une syntaxe que le
-     navigateur du joueur ne connaît pas), pas une ligne ne s'exécute — capteur compris — et le
-     joueur reçoit un rectangle noir sans un mot. Ici, on est déjà chargé quand le jeu se présente.
-     ⚠ ET IL A UN CHIEN DE GARDE, pas seulement un capteur : la panne la plus fréquente d'un fichier
-     autonome n'est pas une exception bruyante, c'est un démarrage qui n'arrive jamais (WebGL refusé,
-     mémoire, un navigateur qui bloque une API en file://). Aucune erreur n'est levée dans ce cas —
-     il n'y a qu'un silence. Le chien de garde transforme ce silence en diagnostic lisible. -->
 <script>
 (function(){
   var vu=false;
@@ -40944,7 +40944,7 @@ window.dbgPart=function(a,k,v){
    fête — en 15 couleurs pastel. Désormais : UN atlas cuit une fois (15 glyphes en OR de l'argent — clair en haut, ombre en bas — cerclés
    d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
-const CURR=['$','€','¥','£','₹','₩','₽','฿','₺','₪','₫','₴','₦','₱','¢'];
+const CURR=['$','€','¥','£','¢']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
