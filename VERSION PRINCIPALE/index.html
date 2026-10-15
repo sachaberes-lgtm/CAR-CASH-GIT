@@ -10082,7 +10082,8 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=4"></script><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="figures.js?v=4"></script>
+<script src="assets/audio/musique-bus.js?v=3"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -18165,9 +18166,10 @@ window.dbgBanq=function(k,o){
    le long du volcan, des lacs de lave et tout ; il faut une ambiance et des couleurs bien travaillées ») =======================
    Une planète de feu à l'échelle de CASH CAR. Le gameplay est celui de toujours (la route, les sauts, les pièces) : le volcan est un DÉCOR
    qui vit, et la lave TUE (on y tombe = 'lave', on s'écrase sur la roche = 'roche').
-   · LA ROUTE v3 (`genVolcan` → `vlcTrace`, 15/10 — Sacha : « plat, des virages difficiles à voir, une BALADE ») : PLATE, en quatre
-     tableaux — le LAC de lave ouverte (`VOLCAN.lac`), le tour du pied du GRAND VOLCAN (`VOLCAN.K`), l'ARCHE puis LES FUMERONS (des virages
-     serrés cachés chacun dans un banc de fumée), l'ARRIVÉE face au second volcan (`VOLCAN.K2`). Plus de boucle ni de raccourci ici.
+   · LA ROUTE v4 (`genVolcan` → `vlcTrace`, 15/10 — Sacha : « pas toute plate, qu'elle s'emmêle, qu'on visite la map et qu'on prenne des
+     raccourcis ») : elle DESCEND en ondulant, de l'épaule du grand volcan au lac — la CORNICHE autour du GRAND VOLCAN (`VOLCAN.K`), l'ARCHE,
+     LES FUMERONS (virages serrés cachés dans la fumée), LE LAC de lave ouverte (`VOLCAN.lac`), l'ARRIVÉE face au second volcan (`VOLCAN.K2`) ;
+     quatre BOUCLES À RACCOURCI (`VOLCAN.sauts`) la font repasser sous elle-même. Sous la route haute, une ARÊTE de basalte (volcanSol).
    · LE RELIEF (`volcanSol`) : une grille de 26 m — la MER DE LAVE plate (`ySea`, 72 m sous le point le plus bas de la route) semée d'îles et
      de MESAS, les deux CÔNES qui en sortent (ravines, lèvre, cratère), coupés par le COULOIR de la dalle la plus basse (là où la route
      repasse sous elle-même) ; au-delà de la grille, la mer continue jusqu'à l'horizon (`vlcMerLoin`).
@@ -18212,21 +18214,22 @@ try{Object.assign(PAL.B,{volcanSolC:[34,30,26],volcanMarge:[1500,1900,2300],volc
    où la pente passe à la hauteur y). K = {yP sommet, yB pied, rc rayon du cratère, cr sa profondeur, Rb rayon du pied, ex la courbure}. */
 function vlcConeY(K,r){if(r<K.rc){const u=r/K.rc;return K.yP-K.cr*(1-u*u);}const u=Math.min(1,(r-K.rc)/(K.Rb-K.rc));return K.yB+(K.yP-K.yB)*Math.pow(1-u,K.ex);}
 function vlcConeR(K,y){const f=Math.max(0,Math.min(1,(y-K.yB)/(K.yP-K.yB)));return K.rc+(1-Math.pow(f,1/K.ex))*(K.Rb-K.rc);}
-/* ---------------- LA ROUTE v3 : LA BALADE DE FEU (2026-10-15, Sacha : « le terrain peut rester plat, avec juste des virages difficiles à voir
-   à cause de la visibilité ; ça doit plus être pensé comme une BALADE : on va d'abord au-dessus d'un lac de lave, puis on passe à côté d'un
-   volcan, et tout ») ----------------
-   Une route PLATE (y = 0 de bout en bout : ni boucle, ni raccourci, ni plongeon — la règle RACCOURCIS ne s'applique plus ici, ordre de Sacha)
-   qui raconte un voyage en quatre tableaux :
-   1 · LE LAC (`VOLCAN.lac`) : de la rive, on file à 48 m au-dessus d'un grand lac de lave OUVERTE — de longues courbes, rien que la lave et
-       les aiguilles qui en sortent (volcanSol y efface îles et mesas) ;
-   2 · LE VOLCAN : la route fait le tour du pied du grand volcan (`VOLCAN.K`) — un grand arc de 100-120° à `Rv` du cratère, au-dessus de la lave ;
-       le cône monte à 160 m de la route, raide, jusqu'à 550 m plus haut ;
-   3 · L'ARCHE puis LES FUMERONS : une ligne droite sous l'arche, puis 5-6 virages SERRÉS (60-100°), chacun caché dans un BANC DE FUMÉE
-       (`Q.tours` → buildVolcan) : on entre dans la fumée sur du droit, le virage arrive dedans, les néons du bord guident ; entre deux bancs,
-       une fenêtre dégagée ;
-   4 · L'ARRIVÉE : le second volcan (`VOLCAN.K2`) droit devant le portail.
-   Le cap reste à ±64° de l'axe : la route avance toujours, elle ne peut pas se recroiser (contrôle `conflits` gardé, 6 essais, flux de hasard
-   PROPRE : un seul tirage `rnd` consommé). Les rayons suivent le palier (rM = 40 + 0,3·vw : sous rM, infranchissable). */
+/* ---------------- LA ROUTE v4 : LA DESCENTE EMMÊLÉE (2026-10-15, Sacha : « la route ne doit pas être toute plate, mais doit quand même pouvoir
+   s'emmêler, nous faire VISITER la map, permettre au joueur de s'amuser et de prendre des RACCOURCIS ») ----------------
+   La balade de la v3 garde ses tableaux, mais on les VISITE EN DESCENDANT, de l'épaule du grand volcan jusqu'au lac de lave :
+   0 · LE DÉPART, haut, et une première boucle (B0) ;
+   1 · LE VOLCAN : la CORNICHE fait le tour du pied du grand volcan (`VOLCAN.K`, arc de 100-120° à `Rv` du cratère) en DESCENDANT (6 %) — le
+       cône monte à côté de la caisse ; puis une boucle (B1) ;
+   2 · L'ARCHE puis LES FUMERONS : des virages serrés cachés chacun dans un banc de fumée (`Q.tours`), coupés en deux groupes par une boucle (B2)
+       posée dans une FENÊTRE dégagée (un raccourci se voit avant de sauter) ;
+   3 · LA PLONGÉE sur le lac (B3), puis LE LAC (`VOLCAN.lac`) : de longues courbes qui ondulent à ~50 m au-dessus de la lave ouverte ;
+   4 · L'ARRIVÉE face au second volcan (`VOLCAN.K2`).
+   LE RELIEF (`pente`) : la route DESCEND (≈ 5 % de moyenne) mais en ONDULANT — deux houles (600 m et 230 m) qui creusent des bosses, des creux
+   et de courtes remontées : jamais plat, jamais un mur. LES BOUCLES (`VOLCAN.sauts`, la mécanique éprouvée de la v2) : une ligne d'ÉLAN, l'entrée
+   qui PLONGE (16 % sur 120 m), un tour COMPLET (le second demi-cercle plus large) qui descend de 36-44 m, et la SORTIE qui file dans l'axe de
+   l'élan, 22-30 m à côté et ~40 m plus bas. LE RACCOURCI : au bout de l'élan, ne pas tourner — filer TOUT DROIT et retomber sur la sortie.
+   Le cap reste à ±62° de l'axe (la route avance, les boucles s'emmêlent sur place) ; contrôle `conflits` (moins de 32 m d'air sous un croisement),
+   6 essais dans un flux de hasard PROPRE (un seul tirage `rnd`). Les rayons suivent le palier (rM = 40 + 0,3·vw : sous rM, infranchissable). */
 function genVolcan(rnd){
   GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);
@@ -18235,58 +18238,76 @@ function genVolcan(rnd){
   for(const k of ['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac'])VOLCAN[k]=best[k];
   return best.ctrl;}
 function vlcTrace(rnd,LV){
-  const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[],y=0;
-  const Rs=()=>rM*(1.32+rnd()*.25),Rl=()=>Math.max(rM*2.2,260)+rnd()*160; // SERRÉ (les fumerons) · LONG (le lac)
-  let P=new THREE.Vector3(0,0,0),phi=0,s=0;
+  const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[];
+  const Rs=()=>rM*(1.30+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,240);return a+rnd()*(b-a);},Rl=()=>Math.max(rM*2.2,240)+rnd()*120;
+  /* LA PENTE (positive = on descend) : la houle (deux sinus) autour de 5 %, 6 % sur la corniche du volcan, 1,5 % ± 2 sur le lac, 1 % à l'arrivée ;
+     les boucles ont la leur (gL l'entrée qui plonge, gF le tour) ; les 280 premiers mètres en douceur (le portail) */
+  const ph1=rnd()*6.283,ph2=rnd()*6.283;let gF=null,gL=null,mode=0;
+  const pente=s9=>{if(gL&&s9>=gL.s0&&s9<gL.s0+gL.l)return gL.a;if(gF!=null)return gF;
+    let g=mode===1?.06+.012*Math.sin(s9/300*6.283+ph2):mode===2?.015+.022*Math.sin(s9/420*6.283+ph1):mode===3?.01:.044+.06*Math.sin(s9/560*6.283+ph1)+.03*Math.sin(s9/210*6.283+ph2);
+    if(s9<280)g=.02+(g-.02)*THREE.MathUtils.smoothstep(s9,160,280);
+    return Math.max(-.06,Math.min(.13,g));};
+  let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
-    for(let j=0;j<n;j++)DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);s+=dh;P.set(nx,y,nz);push();};
+    for(let j=0;j<n;j++){y-=pente(s+dh*(j+.5)/n)*dh/n;DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);}s+=dh;P.set(nx,y,nz);push();};
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi,s:s};};
   const droite=l=>{const nn=Math.max(2,Math.round(l/25));for(let k=0;k<nn;k++)avance(P.x+Math.sin(phi)*l/nn,P.z+Math.cos(phi)*l/nn);};
   const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<nn;k++){phi+=st/2;const nx=P.x+Math.sin(phi)*ch,nz=P.z+Math.cos(phi)*ch;phi+=st/2;avance(nx,nz);}};
   const wrap=a=>{while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
-  const LIM=64,tourne=(aDeg,R)=>{const rel=wrap(phi)*57.2958;let a=aDeg;if(rel+a>LIM)a=LIM-rel;if(rel+a<-LIM)a=-LIM-rel;if(Math.abs(a)>2)arc(a,R);return a;}; // le cap borné : la route avance toujours
+  const LIM=62,tourne=(aDeg,R)=>{const rel=wrap(phi)*57.2958;let a=aDeg;if(rel+a>LIM)a=LIM-rel;if(rel+a<-LIM)a=-LIM-rel;if(Math.abs(a)>2)arc(a,R);return a;}; // le cap borné : la route avance toujours
   const vers=(cible,R)=>{const a=wrap(cible*Math.PI/180-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
-  push();ici('depart');droite(260*KV);
-  // 1 · LE LAC : de grandes courbes posées sur la lave
-  const sL0=s;let sg=rnd()<.5?-1:1;droite(140*KV);
-  for(let k=0;k<3;k++){sg=-sg;tourne(sg*(24+rnd()*22),Rl());droite((110+rnd()*130)*KV);}
-  const sL1=s;
-  // 2 · LE VOLCAN : on se place de biais (le cap à ∓ la moitié de l'arc), puis le grand arc de la corniche autour du cratère
-  const hv=rnd()<.5?-1:1,Rv=Math.max(560,rM*3.2)+rnd()*120,aV=100+rnd()*20;
-  droite(90*KV);vers(-hv*aV/2,Math.max(rM*1.9,210));droite(100*KV);
-  const pV=P.clone(),phV=phi;ici('vlc0');arc(hv*aV,Rv);ici('vlc1');const sSp=s;
+  let sg=rnd()<.5?-1:1;
+  // LES VIRAGES (règle RACCOURCIS : un virage compte sous 250 m de rayon) : 25-47°, un sur trois SERRÉ, une respiration de 40-100 m trois fois sur dix
+  const virages=n=>{for(let k=0;k<n;k++){const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>25?(rel>0?-1:1):-sg;tourne(sg*(KV>1.3?22+rnd()*14:25+rnd()*22),rnd()<.33?Rs():Rn());if(rnd()<.3)droite(40+rnd()*60);}};
+  // UNE BOUCLE À RACCOURCI (la v2, éprouvée au banc 10/10) : l'élan dans l'axe, l'entrée qui plonge, le tour complet, la sortie à côté de l'élan et plus bas
+  const sauts=[],hand=rnd()<.5?-1:1;
+  const boucle=b=>{{const a=wrap((rnd()-.5)*.6-phi)*57.2958;if(Math.abs(a)>3)arc(a,Math.max(220,rM*2)+rnd()*60);}
+    droite(140*KV);
+    const tb=(b%2?1:-1)*hand,R1=rM*(1.25+rnd()*.25),Dx=22+rnd()*8,R2=R1+Dx/2,len=Math.PI*(R1+R2),drop=36+rnd()*8,yE=y,pE=P.clone(),phE=phi,sE=s;
+    const lP=120*KV;gL={s0:s,l:lP,a:.16};gF=Math.max(.02,(drop-.16*lP)/Math.max(50,len-lP));arc(tb*180,R1);arc(tb*180,R2);gF=null;gL=null;
+    sauts.push({e:pE,phi:phE,sE:sE,sS:s,yE:yE,yS:y,D:Dx,tb:tb,R1:R1});ici('b'+b);
+    droite(Math.max(250,vw*2.4)+rnd()*40);sg=rnd()<.5?-1:1;arc(sg*(18+rnd()*8),Rn());}; // la sortie se prolonge par un virage doux : à 1,25 × la vitesse du palier on se pose encore dans l'axe
+  // 0 · LE DÉPART, et la première boucle
+  push();ici('depart');droite(240*KV);virages(2+Math.round((KV-1)*6));boucle(0);
+  // 1 · LE VOLCAN : on se place de biais, puis la corniche descend autour du cratère
+  const hv=rnd()<.5?-1:1,Rv=Math.max(560,rM*3.2)+rnd()*120,aV=90+rnd()*20;
+  droite(60*KV);vers(-hv*aV/2,Math.max(rM*1.9,210));droite(60*KV);
+  const pV=P.clone(),phV=phi,yV0=y;ici('vlc0');mode=1;arc(hv*aV,Rv);mode=0;ici('vlc1');const sSp=s,yV1=y;
   const C=new THREE.Vector3(pV.x+hv*Rv*Math.cos(phV),0,pV.z-hv*Rv*Math.sin(phV)); // le centre de l'arc = le cratère
-  // 3 · L'ARCHE, puis LES FUMERONS : des virages serrés, chacun dans son banc (le droit d'avant = l'entrée dans la fumée)
-  droite(120*KV);ici('arche0');droite(110*KV);ici('arche');droite(110*KV);ici('arche1');
-  const tours=[],nT=5+(rnd()<.5?1:0);
-  for(let k=0;k<nT;k++){droite((260+rnd()*100)*KV);const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>12?(rel>0?-1:1):(rnd()<.5?-1:1);
-    const s0=s,a=tourne(sg*(62+rnd()*38),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});}
+  virages(1+Math.round((KV-1)*4));boucle(1);
+  // 2 · L'ARCHE, puis LES FUMERONS (deux groupes, une boucle entre eux dans la fenêtre dégagée)
+  virages(1);droite(60*KV);ici('arche0');droite(90*KV);ici('arche');droite(90*KV);ici('arche1');
+  const tours=[],fumerons=n=>{for(let k=0;k<n;k++){droite((140+rnd()*80)*KV);const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>12?(rel>0?-1:1):(rnd()<.5?-1:1);
+    const s0=s,a=tourne(sg*(60+rnd()*35),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});}};
+  fumerons(2+(rnd()<.5?1:0));virages(1);boucle(2);virages(1);fumerons(2);
   Q.tours=tours;
-  // 4 · L'ARRIVÉE : deux courbes douces, la ligne du portail
-  droite(240*KV);for(let k=0;k<2;k++){sg=-sg;tourne(sg*(20+rnd()*15),Rl());droite(90*KV);}
-  droite(140*KV);ici('fin');droite(120*KV);
-  // LE CONTRÔLE DES CROISEMENTS (points tous les 10 m, casiers de 40 m) : la route est plate, tout passage à moins de 70 m d'un autre tronçon est un CONFLIT
-  let conflits=0;{const G=new Map(),n=DN.length/4,cle=(x,z)=>Math.floor(x/40)+','+Math.floor(z/40),vu=new Set();
+  // 3 · LA PLONGÉE sur le lac, puis LE LAC : de grandes courbes qui ondulent au-dessus de la lave
+  virages(1);boucle(3);
+  mode=2;const sL0=s;droite(80*KV);for(let k=0;k<3;k++){const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>20?(rel>0?-1:1):-sg;tourne(sg*(26+rnd()*20),Rl());droite((50+rnd()*70)*KV);}
+  const sL1=s;
+  // 4 · L'ARRIVÉE
+  mode=3;virages(2);droite(100*KV);ici('fin');droite(120*KV);
+  // LE CONTRÔLE DES CROISEMENTS (points tous les 10 m, casiers de 40 m) : un passage à moins de 70 m d'un autre tronçon = un croisement ;
+  // avec moins de 32 m d'air entre les deux dalles = un CONFLIT
+  let conflits=0,croise=0;{const G=new Map(),n=DN.length/4,cle=(x,z)=>Math.floor(x/40)+','+Math.floor(z/40),vu=new Set();
     for(let i=0;i<n;i++){const k=cle(DN[i*4],DN[i*4+2]);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(i);}
-    for(let i=0;i<n;i+=2){const x=DN[i*4],z=DN[i*4+2],si=DN[i*4+3],bx=Math.floor(x/40),bz=Math.floor(z/40);
+    for(let i=0;i<n;i+=2){const x=DN[i*4],yy=DN[i*4+1],z=DN[i*4+2],si=DN[i*4+3],bx=Math.floor(x/40),bz=Math.floor(z/40);
       for(let a9=-2;a9<=2;a9++)for(let b9=-2;b9<=2;b9++){const L9=G.get((bx+a9)+','+(bz+b9));if(!L9)continue;
-        for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;if(Math.hypot(DN[j*4]-x,DN[j*4+2]-z)>2*RH+14)continue;
-          const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);conflits++;}}}}
+        for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
+          const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
   // LE LAC : le cercle qui couvre la traversée (centre = barycentre, rayon = le point le plus loin + 220 m)
   let lac=null;{let sx=0,sz=0,n=0;for(let i=0;i<DN.length;i+=4)if(DN[i+3]>=sL0&&DN[i+3]<=sL1){sx+=DN[i];sz+=DN[i+2];n++;}
     if(n){const cx=sx/n,cz=sz/n;let r=0;for(let i=0;i<DN.length;i+=4)if(DN[i+3]>=sL0&&DN[i+3]<=sL1)r=Math.max(r,Math.hypot(DN[i]-cx,DN[i+2]-cz));lac={x:cx,z:cz,r:r+220};}}
-  // LA LAVE, 48 m sous la route ; LE GRAND VOLCAN : 550-630 m au-dessus de la lave, raide, son pied plonge dans la lave 160 m AVANT la route (on le
-  // longe sans le toucher : le flanc monte à côté de la caisse, le cratère au-dessus de l'épaule) ;
-  // LE SECOND devant la fin, sa rive à ~250 m du portail
-  const ySea=y-48;
-  const cone=(yP,rc,cr,ex,rMer)=>{const yB=ySea-380,f=Math.pow((ySea-yB)/(yP-yB),1/ex);return {yP:yP,yB:yB,rc:rc,cr:cr,ex:ex,Rb:rc+(rMer-rc)/Math.max(.05,1-f)};};
-  const K=cone(y+500+rnd()*80,150,70,1.3,Rv-160);
+  // LA LAVE, 48 m sous le point le plus bas de la route (le lac, l'arrivée) ; LE GRAND VOLCAN : 500-580 m au-dessus de la corniche, son pied plonge
+  // dans la lave 160 m AVANT la route (on le longe sans le toucher) ; LE SECOND devant la fin, sa rive à ~250 m du portail
+  let yMin=1e9;for(const p of ctrl)yMin=Math.min(yMin,p.y);const ySea=yMin-48;
+  const cone=(yP,rc,cr,ex,rMer,yR)=>{const yB=ySea-380,f=Math.pow(((yR==null?ySea:yR)-yB)/(yP-yB),1/ex);return {yP:yP,yB:yB,rc:rc,cr:cr,ex:ex,Rb:rc+(rMer-rc)/Math.max(.05,1-f)};};
+  const yV=(yV0+yV1)/2,K=cone(yV+500+rnd()*80,150,70,1.3,Rv-160,yV); // (le flanc passe à hauteur de la corniche 160 m avant elle : plus bas, il s'étale sous la route)
   const fin=Q.fin,K2=cone(fin.p.y+260+rnd()*120,130,65,1.35,900),C2=new THREE.Vector3(fin.p.x+Math.sin(fin.phi)*1150,0,fin.p.z+Math.cos(fin.phi)*1150);
-  // l'arc que longe la route, vu du cratère (les coulées y descendent : elles passent SOUS la corniche)
   const a0=Math.atan2(pV.x-C.x,pV.z-C.z),a1=a0+wrap(Math.atan2(Q.vlc1.p.x-C.x,Q.vlc1.p.z-C.z)-a0);
-  return {ctrl:ctrl,K:K,C:C,K2:K2,C2:C2,Q:Q,plg:[],sauts:[],sSp:sSp,ySea:ySea,conflits:conflits,croise:0,th0:Math.min(a0,a1),th1:Math.max(a0,a1),lac:lac};
+  return {ctrl:ctrl,K:K,C:C,K2:K2,C2:C2,Q:Q,plg:[],sauts:sauts,sSp:sSp,ySea:ySea,conflits:conflits,croise:croise,th0:Math.min(a0,a1),th1:Math.max(a0,a1),lac:lac};
 }
 /* ---------------- LE RELIEF : LA MER DE LAVE, LES CÔNES, LE COULOIR DE LA ROUTE ----------------
    Une grille (26 m) : la distance à la route (d), la hauteur de la route la plus proche (yn) et la PLUS BASSE à moins de 120 m (ym : là où la
@@ -18329,6 +18350,7 @@ function volcanSol(){
     const n1=vlcB(x/380,z/380,sd9,3),n4=vlcB(x/1500,z/1500,sd9+11,2);
     let h=yS-10+24*n1-26*ss(n4,.1,.6)+30*vlcB(x/700,z/700,sd9+7,3)*ss(d,300,900)+5*vlcB(x/70,z/70,sd9+1,2); // la MER, ses îles
     h+=78*ss(vlcB(x/900,z/900,sd9+17,3),.30,.52)*ss(d,150,320);                                                          // les MESAS
+    if(ym<1e8&&ym>yS+90){const k9=Math.max(.45,(ym-yS-35)/(R1-40));h=Math.max(h,ym-55-k9*Math.max(0,d-40)+18*vlcB(x/160,z/160,sd9+29,2)+10*vlcB(x/55,z/55,sd9+31,2));} // (v4) L'ARÊTE : la route haute descend sur une échine de basalte qui plonge jusqu'à la lave avant 340 m (jamais de route qui flotte à 400 m)
     if(VOLCAN.lac){const lc=VOLCAN.lac,dl=Math.hypot(x-lc.x,z-lc.z)/lc.r+.12*vlcB(x/320,z/320,sd9+23,2);if(dl<1.2)h=yS-14+(h-yS+14)*ss(dl,.8,1.2);} // (v3) LE LAC : ni île ni mesa, la lave ouverte jusqu'à la rive
     h=Math.max(h,cone(K,VC,x,z));if(VC2)h=Math.max(h,cone(K2,VC2,x,z));
     h=Math.min(h,ym-16+Math.max(0,d-ROAD_HALF-10)*1.2);                                                                       // jamais sous la dalle (la plus basse)
@@ -40540,8 +40562,12 @@ function musVol(){return musicBaseVol*VOL.mus*musTrim();} // le niveau accordé 
    le passage d'un niveau à l'autre faisait sauter la musique. Correction en dB, moitié plein spectre / moitié haut-parleur, bornée à ±3 dB,
    appliquée au volume de l'élément (ordi, Android ; sur iPhone le volume est verrouillé : rien ne change). Les fichiers ne sont PAS
    réencodés (ce sont les morceaux de Léo). Un morceau absent de la table = 0 dB. */
-const MUS_SONIE={'noite-de-velocidade':3,'swag-cash-car-2':3,'glassy-plucks':2.6,'addictive-loop':2.1,'lvl1-neon':.9,'lvl2-cash-car-vitesse':0,
-  'ciel-complet':.9,'ciel-n1':-.4,'ciel-n2':-.6,'ciel-n3':1.5,'ciel-n4':.4,'ciel-n5':1.5,'ville-n1':-.5,'ville-n2':-.6,'ville-n3':1,'ville-n4':1.2,'ville-n5':.9,
+/* (2026-10-15, pôle SON) REMESURÉE APRÈS LE RÉGLAGE DES BASSES (musique-bus.js) : le très grave calmé baisse la sonie plein spectre de 0,3 à
+   2,3 LU selon le morceau (le haut-parleur : 0) — même règle, moitié / moitié : chaque morceau réglé gagne la moitié de ce qu'il a perdu
+   (NOITE, SWAG, GLASSY et ADDICTIVE restent bornés à +3 dB). Valeurs d'avant : noite 3 · swag 3 · glassy 2,6 · addictive 2,1 · lvl1 ,9 ·
+   lvl2 0 · ciel-complet ,9 · ciel-n1 −,4 · n2 −,6 · n3 1,5 · n4 ,4 · n5 1,5 · ville-n3 1 · n4 1,2 · n5 ,9. Sans MUS_WA (iPhone < iOS 17), rien ne change. */
+const MUS_SONIE={'noite-de-velocidade':3,'swag-cash-car-2':3,'glassy-plucks':3,'addictive-loop':3,'lvl1-neon':1.1,'lvl2-cash-car-vitesse':.5,
+  'ciel-complet':1.3,'ciel-n1':-.2,'ciel-n2':-.4,'ciel-n3':2.4,'ciel-n4':.6,'ciel-n5':2.2,'ville-n1':-.5,'ville-n2':-.6,'ville-n3':1.4,'ville-n4':1.6,'ville-n5':1.1,
   'chris-siffleur':-1.3,'chris-polaroid':-.7,'chris-dimanche':-.6,'chris-matin':-.4,'chris-nuit':-.3,'chris-ciel':-.2};
 function musTrim(){const n9=performance.now();if(n9-musTrim._t<400)return musTrim._g;musTrim._t=n9; /* (2026-10-14, session SON) relire `src` (une chaîne neuve à chaque lecture) deux fois par image allouait : on ne la relit que 2,5 fois par seconde */
   const s9=musicEl&&musicEl.src||'';if(s9===musTrim._s)return musTrim._g;musTrim._s=s9;let d9=0;
@@ -40584,15 +40610,27 @@ const MUSAP={t:0,joue:false,rev:false}; // (2026-10-14, session SON) l'extrait d
      tourne, volume voulu > .05) et où le graphe reçoit un zéro EXACT → `localStorage.cc_muswa_ko='1'`, on débranche, l'élément capturé
      quitte la page et un neuf (non capturé) le remplace, au même endroit du morceau — retour DÉFINITIF au chemin <audio>.
    `MUS_WA.br` = branché ; tout ce qui change ailleurs est gardé par `musWaTient()` (faux tant que rien n'est branché). Console : dbgMusWa(). */
-const MUS_WA_ON='auto'; // 'auto' = la règle ci-dessus · true / false = forcé dans le code (le volume verrouillé reste exigé)
+/* (2026-10-15, pôle SON ; Léo dit oui aux BASSES RÉGLÉES dans le jeu) MUS_WA PARTOUT OÙ L'ON TIENT LE RISQUE : le réglage des basses
+   (musique-bus.js) ne peut passer que par le graphe — la règle 'auto' allume donc MUS_WA aussi sur ORDI et ANDROID (volume libre ; ce qui
+   rendait la musique muette en septembre était propre à l'iPhone : bouton silencieux, contexte né suspendu, lecture refusée hors geste). Volume
+   libre : l'ÉLÉMENT reste à 1 et le gain du graphe fait tout (curseur, fondus, sonie — sinon le volume compterait deux fois). Le compresseur
+   doux, fait pour les haut-parleurs de téléphone, seulement sur les appareils tactiles. L'iPhone SANS audioSession (iOS < 17) reste sur le
+   chemin <audio> (le bouton silencieux y couperait le WebAudio sans que le chien de garde l'entende) ; SAFARI SUR MAC aussi (voir `wk` : la
+   source se taisait au banc WebKit). Le chien de garde reste le filet. */
+const MUS_WA_ON='auto'; // 'auto' = la règle ci-dessus · true / false = forcé dans le code
+const BASSES_BRUT=/[?&]basses=brut/.test(location.search); // (2026-10-15) `?basses=brut` : la musique sans le réglage des basses (musique-bus.js), pour comparer
 var MUS_WA=(function(){
   let f=MUS_WA_ON,ko=false,aS=false,flt=false;
   try{aS=!!(navigator.audioSession&&'type' in navigator.audioSession);}catch(e){}
   try{flt=typeof AnalyserNode!=='undefined'&&!!AnalyserNode.prototype.getFloatTimeDomainData;}catch(e){}
   try{const m=/[?&]muswa=([01])/.exec(location.search);if(m)f=m[1]==='1';else if(localStorage.cc_muswa==='1')f=true;else if(localStorage.cc_muswa==='0')f=false;}catch(e){}
   try{ko=localStorage.cc_muswa_ko==='1';}catch(e){}
-  if(f==='auto')f=aS;
-  return {on:!!(SON_VOL_VERROU&&f&&flt&&!ko),ko:ko,force:f,sess:aS,cmpOn:true,rythme:true,MAX:1.41,
+  let wk=false;try{const u=navigator.userAgent||'';wk=/AppleWebKit/.test(u)&&!/Chrome\/|Chromium|Edg\/|Android/.test(u);}catch(e){} // le moteur de Safari (Mac, et tout navigateur d'iPhone)
+  if(f==='auto')f=SON_VOL_VERROU?aS:!wk; /* (2026-10-15) volume verrouillé (iPhone) : avec audioSession seulement (iOS 17+, comme avant) ; volume libre :
+     PARTOUT SAUF le moteur de Safari — au banc WebKit, la musique branchée s'y TAISAIT au bout de 8 à 15 s (l'élément jouait, la source rendait des
+     zéros, sans aucun appel), le chien de garde la condamnait et elle ne repartait qu'au toucher suivant : Safari sur Mac reste sur l'<audio>. */
+  let tac=false;try{tac=matchMedia('(pointer:coarse)').matches;}catch(e){}
+  return {on:!!(f&&flt&&!ko),ko:ko,force:f,sess:aS,cmpOn:SON_VOL_VERROU||tac,rythme:true,MAX:1.41,bus:null, // (15/10) le compresseur doux (fait pour les haut-parleurs de téléphone) : sur les appareils tactiles seulement
     br:false,el:null,src:null,g:null,cmp:null,e:null,an:null,buf:null,rms:-1,muet:0,tChk:0,tPrec:-1,vu:false,pq:''};})();
 /* MAX 1,41 (+3 dB) : la table de sonie (`MUS_SONIE`) monte jusqu'à +3 dB ; à l'ordi `el.volume` plafonne à 1 et l'écrête — c'est une limite
    de l'élément, pas une intention. Le limiteur −1 dBFS commun et le compresseur doux tiennent les crêtes (le compresseur ne sort jamais
@@ -40613,14 +40651,20 @@ function musWaBranche(){
   try{musicSession();}catch(e){} // 'playback' AVANT : le bouton silencieux ne doit pas couper ce qu'on branche
   try{
     W.el=musicEl;W.src=AC.createMediaElementSource(musicEl);
-    W.g=AC.createGain();W.g.gain.value=(musicEl.paused||musicEl.muted)?0:1; // branchée en pleine lecture, elle sortait à 100 % du fichier : on part de là, musicTick la ramène au mixage
+    W.g=AC.createGain();W.g.gain.value=(musicEl.paused||musicEl.muted)?0:(VOL_LOCKED?1:Math.max(0,Math.min(W.MAX,musicVolCour))); // branchée en pleine lecture, elle sortait à 100 % du fichier (iPhone) : on part de là, musicTick la ramène au mixage
+    try{if(!VOL_LOCKED)musicEl.volume=1;}catch(e){} // (2026-10-15) volume libre (ordi, Android) : l'élément reste à 1, le gain du graphe fait tout (sinon le volume compterait deux fois)
     W.an=AC.createAnalyser();W.an.fftSize=256;W.an.smoothingTimeConstant=.55;W.buf=new Float32Array(W.an.fftSize); // le chien de garde (et le rythme du décor) écoutent AVANT le gain : on juge l'élément, pas le curseur
     W.src.connect(W.g);W.src.connect(W.an);
     let d=W.g;
+    /* (2026-10-15, pôle SON ; Léo : « j'aime beaucoup la basse, mais des basses agréables pour un jeu qui dure — ça fatigue dans les écouteurs ;
+       régule, ne rien enlever ») LE BUS DES BASSES (assets/audio/musique-bus.js, le même que la bibliothèque) : le très grave tenu de chaque
+       morceau calmé (plateau sous 65 Hz, cloche à 110 Hz si besoin ; rien au-dessus de ~120 Hz : le punch et ce qu'en rend un téléphone
+       restent) ; en course, le creux de −2 dB vers 280 Hz (la place du moteur) ; le recul sous les signaux (SIG_RECUL). `?basses=brut` = sans. */
+    if(window.MUSBUS){W.bus=MUSBUS.cree(AC);W.bus.brut(BASSES_BRUT);W.bus.piste(musicEl.src);d.connect(W.bus.entree);d=W.bus.sortie;}
     /* LE COMPRESSEUR DOUX (−24 dB, 2,5:1, genou 10, 20 ms / 0,4 s) : avec son rattrapage automatique (+6,9 dB, noyau Chrome/WebKit),
        les CREUX des morceaux (sous −24 dBFS) remontent de 6,9 dB, un passage plein (enveloppe vers −8 dBFS) reste à l'unité, les crêtes
        reculent — sur un haut-parleur de téléphone, les intros et les ponts ne disparaissent plus. `MUS_WA.cmpOn=false` = sans. */
-    if(W.cmpOn){W.cmp=AC.createDynamicsCompressor();W.cmp.threshold.value=-24;W.cmp.ratio.value=2.5;W.cmp.knee.value=10;W.cmp.attack.value=.02;W.cmp.release.value=.4;W.g.connect(W.cmp);d=W.cmp;}
+    if(W.cmpOn){W.cmp=AC.createDynamicsCompressor();W.cmp.threshold.value=-24;W.cmp.ratio.value=2.5;W.cmp.knee.value=10;W.cmp.attack.value=.02;W.cmp.release.value=.4;d.connect(W.cmp);d=W.cmp;}
     /* Elle rejoint le LIMITEUR commun (−1 dBFS) avec la même compensation que `MASTER._limIn` (.937), mais À CÔTÉ de lui : c'est l'entrée
        `_limIn` que le bouton SON ferme (effets + voix), la musique ne doit jamais se taire parce qu'on a coupé les effets. Jamais MASTER._vol. */
     W.e=AC.createGain();W.e.gain.value=.937;d.connect(W.e);W.e.connect(MASTER._lim||AC.destination);
@@ -40633,7 +40677,8 @@ function musWaCondamne(pq){ // retour DÉFINITIF au chemin <audio> (la prochaine
   const W=MUS_WA,el=W.el;W.pq=pq;W.ko=true;
   try{localStorage.cc_muswa_ko='1';}catch(e){}
   console.warn('musique WebAudio condamnée ('+pq+') : retour au chemin <audio>');
-  for(const n of [W.src,W.g,W.cmp,W.e,W.an])if(n)try{n.disconnect();}catch(e){}
+  for(const n of [W.src,W.g,W.cmp,W.e,W.an,W.bus&&W.bus.sortie])if(n)try{n.disconnect();}catch(e){}
+  try{if(JMUS.ac9){if(JMUS.inst)JMUS.inst.stop();JMUS.inst=null;JMUS.ac9=false;if(JMUS.bus)JMUS.bus.sortie.disconnect();JMUS.bus=null;}}catch(e){} // (15/10) GLISSE quitte le contexte du jeu : la prochaine reprend le sien
   if(musicAna&&musicAna===W.an){musicAna=null;musicData=null;}
   W.br=false;W.on=false;
   try{if(AC&&MASTER&&MASTER._limIn){const p=MASTER._limIn.gain,t=AC.currentTime;p.cancelScheduledValues(t);p.setValueAtTime(.937,t);p._s9=undefined;}}catch(e){} // le bouton SON reprend son chemin d'avant…
@@ -40661,10 +40706,11 @@ function musWaGarde(){ // 2 fois par seconde au plus, zéro allocation (tampon c
 }
 window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la condamnation (au prochain lancement)
   if(k==='raz'){try{delete localStorage.cc_muswa_ko;}catch(e){}return 'cc_muswa_ko effacé : relancer l\'appli';}
+  if(k==='recul'){musRecul();return 'recul';} // (15/10) le recul sous les signaux, à la main (banc)
   const W=MUS_WA;let lim=null;try{lim=MASTER&&MASTER._limIn?+MASTER._limIn.gain.value.toFixed(3):null;}catch(e){}
   return {on:W.on,force:W.force,session:W.sess,verrou:SON_VOL_VERROU,ko:W.ko,pq:W.pq,branche:W.br,gain:W.g?+W.g.gain.value.toFixed(3):null,voulu:+musicVolCour.toFixed(3),
-    rms:W.rms<0?null:+W.rms.toExponential(2),muet:+W.muet.toFixed(2),entendu:W.vu,ctx:AC?AC.state:null,limIn:lim,
-    el:musicEl?{pause:musicEl.paused,muet:musicEl.muted,t:+(musicEl.currentTime||0).toFixed(2)}:null,rythme:!!(musicAna&&musicAna===W.an)};};
+    rms:W.rms<0?null:+W.rms.toExponential(2),muet:+W.muet.toFixed(2),entendu:W.vu,ctx:AC?AC.state:null,limIn:lim,bus:W.bus?W.bus.etat():null,glisse:JMUS.bus?JMUS.bus.etat():null,
+    el:musicEl?{pause:musicEl.paused,muet:musicEl.muted,t:+(musicEl.currentTime||0).toFixed(2),v:+musicEl.volume.toFixed(2)}:null,rythme:!!(musicAna&&musicAna===W.an)};};
 /* (2026-10-14, Léo : « la musique se lance seulement quand j'appuie sur le mode garage ; quand on est — et quand on revient — dans le menu
    ciel, un bruit de chute libre doux ») LE LOBBY SE TAIT AU CIEL : `MUS_TAIT` (posé par musicTick en mode menu : le ciel de LA CHUTE ou
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
@@ -40701,7 +40747,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
      elle jouait écran verrouillé jusqu'au retour. On la met en attente : le retour visible la relance (ci-dessous). */
   if(document.hidden&&musicJoue._vu){musicEnAttente=true;return;}
   const el=musicElGet();musicSession();
-  try{el.volume=Math.max(0,Math.min(1,musicVolCour));}catch(e){}
+  try{el.volume=(musWaTient()&&!VOL_LOCKED)?1:Math.max(0,Math.min(1,musicVolCour));}catch(e){} // (15/10) branchée : l'élément à 1, le gain du graphe règle
   if(musWaTient()){musWaReveil();try{const p9=MUS_WA.g.gain,t9=AC.currentTime;p9.cancelScheduledValues(t9);p9.setValueAtTime(Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),t9);p9._s9=undefined;}catch(e){}} // (2026-10-14, session SON) branchée : le contexte d'abord, et le gain au niveau voulu AVANT de jouer (un fondu d'entrée part de 0, pas du niveau d'avant la pause)
   if(el.muted)el.muted=false; // (2026-10-05) on VEUT la musique : jamais muette (le déverrouillage peut l'avoir laissée muette, voir musicDeverrouille)
   const p=el.play();
@@ -40791,6 +40837,7 @@ function playMusic(url,opt){opt=opt||{};
   const meme=el.src===abs;
   el.loop=opt.loop!==false;
   if(!meme)el.src=url;                                       // on CHANGE de source : jamais d'élément neuf (il serait verrouillé)
+  if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.piste(url); // (2026-10-15) les basses de CE morceau (musique-bus.js)
   else if(!opt.garde){try{el.currentTime=0;}catch(e){}}      // même morceau : du début… sauf s'il faut le GARDER (menu → partie)
   if(musicStop._iv){clearInterval(musicStop._iv);musicStop._iv=0;} // (2026-09-30) un tape-stop encore en cours ne rattrape plus le morceau qu'on relance (REJOUER rapide)
   musicBandeNette(el); // …et la bande repart à SA vitesse et SA hauteur (le tape-stop coupé en route la laissait sans `preservesPitch`)
@@ -40865,7 +40912,7 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
   let r=Math.min(1,el.playbackRate||1),v=musicVolCour; // (la frénésie a pu laisser la bande surmultipliée, ou déjà à demi étranglée : on part de là)
   try{el.preservesPitch=false;el.webkitPreservesPitch=false;}catch(e){} // (2026-09-26) sans ça, le navigateur GARDE la hauteur : pas de chute de bande
   musicStop._iv=setInterval(function(){r-=.08;v*=.84;
-    try{el.playbackRate=Math.max(.12,r);el.volume=Math.max(0,Math.min(1,v));}catch(e){}
+    try{el.playbackRate=Math.max(.12,r);if(!(musWaTient()&&el===MUS_WA.el))el.volume=Math.max(0,Math.min(1,v));}catch(e){}
     if(musWaTient()&&el===MUS_WA.el)try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,v)),AC.currentTime,.02);}catch(e){} // (2026-10-14, session SON) branchée : le fondu du tape-stop passe par le gain
     if(r<=.12){clearInterval(musicStop._iv);musicStop._iv=0;try{el.pause();}catch(e){}musicBandeNette(el);musicOn=false;}},55);
 }
@@ -41153,7 +41200,9 @@ function musicTick(dt,mvt){
       if(MUSAP.rev){MUSAP.rev=false;try{if(window.__setPause&&AC&&AC.state==='running')AC.suspend();}catch(e){}}} // (seulement réglages ouverts : jamais pendant le compte 3-2-1, qui réveille le contexte pour ses bips)
     else{musicVolCible=c9*Math.max(0,Math.min(1,(1400-r9)/250,r9/350));musicVolCour=musicVolCible;}}
   if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
-    if(musWaTient()){try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),AC.currentTime,.03);}catch(e){}try{musWaGarde();}catch(e){}} // (2026-10-14, session SON) branchée : le volume passe par le gain du graphe (curseur, ciel, fondus, sonie) — et le chien de garde écoute
+    if(musWaTient()){try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),AC.currentTime,.03);}catch(e){}try{musWaGarde();}catch(e){}
+      if(!VOL_LOCKED&&musicEl&&musicEl.volume!==1)try{musicEl.volume=1;}catch(e){} // (15/10) volume libre : l'élément reste à 1 (le graphe règle)
+      if(MUS_WA.bus)MUS_WA.bus.course(musicMode==='run'&&running&&!gameOver);} // (15/10) en course, la musique laisse sa place au moteur (−2 dB vers 280 Hz) // (2026-10-14, session SON) branchée : le volume passe par le gain du graphe (curseur, ciel, fondus, sonie) — et le chien de garde écoute
     else if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
@@ -41908,6 +41957,11 @@ var SONV2=false,ECH=0; // `var` et non `let` (débogage 2026-09-29) : lu partout
 const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le PLAFOND du degré (débogage 2026-09-29 : SANS FAUTE ×22 montait à ×10) // les appelants passent un COMPTE : on le convertit en degré
 /* LE MIX S'ÉCARTE sous les grands moments (duckT : moteur, vent, flamme reculent jusqu'à −6 dB puis reviennent) — les anciennes fanfares le
    faisaient, leurs remplaçants aussi. La valeur = la profondeur du creux (voir `dk` dans la boucle). */
+/* (2026-10-15, pôle SON, l'audit) LE RECUL SOUS LES SIGNAUX : mesurés dans LEUR bande contre la musique de niveau, ces signaux passaient à
+   ±2 dB d'elle, ou dessous (la panne sèche de nitro est dans le grave de la basse, le portail proche 6 à 9 dB sous elle) — la musique recule
+   de −3 dB pendant 0,4 s quand l'un d'eux part (musique-bus.js : `recul`). Seulement là où la musique passe par WebAudio (MUS_WA). */
+const SIG_RECUL={'nitro.sec':1,'piece.serie':1,'piece.recolte':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
+function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(JMUS.bus)JMUS.bus.recul(-3,.4);}catch(e){}}
 const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
   'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.x':.25,'pwr.triple':.35,
@@ -41920,7 +41974,7 @@ const SON_ECH_AR=[8,7,6,5,6,7,8,9];
 function sonPdAR(i){i=Math.max(0,i|0);return sonPd(i<=9?i:SON_ECH_AR[(i-10)%SON_ECH_AR.length]);}
 function sfx(id,o){
   if(!SONV2||!sfxOk()||document.hidden)return null;
-  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);return h;}catch(e){return null;}
+  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
@@ -49408,7 +49462,7 @@ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU H
    tait), son intensité = les 5 PALIERS DE MUSIQUE du simulateur (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), son volume
    = le curseur MUSIQUE (VOL.mus, .62 = le niveau du module), l'interrupteur MUSIQUE le coupe. Le module se charge dès le démarrage ; le
    1er toucher d'une course le relance une fois (Safari ne réveille un contexte audio que dans un geste). */
-const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null,tS:0,ap:0}; // tS : l'arrêt différé (fondu) de GLISSE, voir jadeMusTick · ap : la fin de l'extrait du curseur MUSIQUE en pause (musApercu)
+const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null,tS:0,ap:0,ac9:false,bus:null}; // tS : l'arrêt différé (fondu) de GLISSE, voir jadeMusTick · ap : la fin de l'extrait du curseur MUSIQUE en pause (musApercu)
 /* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
    au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
    au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
@@ -49425,7 +49479,17 @@ const JMUS_BASSES=0,JMUS_SORTIE=1; // (5e passe) comme le simulateur — la sort
 function jadeMusOn(){return (JADE_JEU||!!(LVL.cur&&LVL.cur.sansFin))&&!!LVL.cur&&LVL.cur.id==='jade';} // (2026-10-13) la jade du mode classique joue GLISSE V2 elle aussi
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
-function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))({basses:JMUS_BASSES,sortie:JMUS_SORTIE});}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
+/* (2026-10-15, pôle SON) GLISSE DANS LE CONTEXTE DU JEU : là où la musique passe par WebAudio (MUS_WA), GLISSE reçoit le contexte du jeu, PRÊTÉ
+   (un Proxy : sa « destination » est SON bus des basses — 85 % de son énergie sous 60 Hz, le plus lourd de tout, voir musique-bus.js — puis le
+   limiteur commun ; son stop(), qui suspendait SON contexte, ne suspend pas celui du jeu : il ne fait plus qu'arrêter son horloge). Ailleurs
+   (iPhone < iOS 17, MUS_WA condamnée), son propre contexte, comme avant. */
+function jadeMusPrete(){
+  if(!musWaTient()||!window.MUSBUS||!AC||!MASTER||!MASTER._lim)return null;
+  const b=MUSBUS.cree(AC),e9=AC.createGain();e9.gain.value=.937;b.brut(BASSES_BRUT);b.piste('musique-glisse');b.course(true); /* (GLISSE ne joue qu'en course) */b.sortie.connect(e9);e9.connect(MASTER._lim);JMUS.bus=b;
+  return new Proxy(AC,{get:function(t,k){if(k==='destination')return b.entree;if(k==='suspend'||k==='close')return function(){return Promise.resolve();};
+    const v=Reflect.get(t,k,t);return typeof v==='function'?v.bind(t):v;}});}
+function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{const px=jadeMusPrete(),o9={basses:JMUS_BASSES,sortie:JMUS_SORTIE};if(px)o9.audioContext=px;
+  JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))(o9);JMUS.ac9=!!px;}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
 function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&(!paused||JMUS.ap>performance.now())&&!document.hidden&&!(mode==='boom'&&!SANDBOX&&!TUTO.on);} // (2026-10-14, session SON) …et PAS pendant l'explosion : la radio meurt à l'image du crash (musicStop(true) dans explode), GLISSE jouait encore 1,8 s de boule de feu jusqu'à endGame — puis se coupait net
 function jadeMusGeste(){const i=jadeMusInst();if(!i||!SND.music)return;try{if(i.playing)i.stop();i.start();i.setVolume(0);JMUS.vol=-1;JMUS.P=0;}catch(e){}} // réveillé dans le geste, muet jusqu'à la course
 function jadeMusTick(){
@@ -52316,11 +52380,16 @@ function gStripHabits(cat,i){
 // « un bouton play séparé des achats de voitures » (demande du user, après que le bouton JOUER du
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
+/* (2026-10-15, Léo : « augmente le bruit ambiant du garage ») L'AIR DE L'ATELIER (`garage.ambiance` : le bourdon des néons, le tube qui grésille,
+   la ville au loin) monte d'un cran net : +6 dB sur son niveau de la banque (−12). MESURÉ, bande par bande : il était 4 à 13 dB SOUS la porte en
+   feu (`garage.feu`, inchangée) — on ne l'entendait presque pas ; désormais à son niveau dans le grave et le médium (le grésillement reste
+   un peu dessous). Le compresseur des effets tient le total (+0,3 dB en sortie) : c'est l'équilibre qui change, pas le volume du garage. */
+const GAR_AMB_DB=6;
 function openGarage(quiet){
   try{if(UX8G){GMODE.m='inv';GMODE.paye=false;GMODE.fam=null;GATL.on=false;gConsoleCache(false);}else{GMODE.m='tout';GMODE.paye=false;GMODE.fam=null;gConsoleCache(true);}gVueSeule(false);}catch(e){} /* (UX 8) le garage s'ouvre sur « ce que j'ai » : onglets + cartes (l'atelier fermé n'est plus obligatoire) */ /* (2026-10-14, Léo : « l'inventaire, arrête de le faire apparaître sans qu'on y touche ») le garage s'ouvre REPLIÉ : les touches seules, la caisse a la place ; l'inventaire ne s'ouvre qu'à INVENTAIRE */ // (2026-10-12, Léo, le soir : « mets directement l'inventaire dès qu'on arrive dans le garage ») le garage s'ouvre sur l'INVENTAIRE (voir gGarageInv) — avant : (2026-10-12, Léo : « quand on appuie GARAGE, juste les 5 boutons en bas, pas la marge, la voiture encadrée ; seulement quand j'appuie INVENTAIRE s'affiche l'inventaire — pareil pour la BOUTIQUE ») le garage s'ouvre REPLIÉ, aucun mode allumé : INVENTAIRE ou BOUTIQUE déplient leur panneau (gModeVa) // (2026-10-09) la console à trois modes repart dépliée — (2026-10-10) et l'œil rouvert ; (même soir, Léo : « quand j'arrive direct dans le garage, ça montre l'ancien truc avec les raretés, enlève ça ») elle s'ouvre sur l'INVENTAIRE, plus sur la vue par familles (TOUT)
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
-  try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
+  try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true,vol:GAR_AMB_DB});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
   try{if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){} // (2026-09-29) …et la porte BRÛLE : le rideau de flammes gronde et crépite (il monte pendant le lâcher, voir garFeu)
   garageOn=true;gEl.classList.add('on');gEl.classList.toggle('quiet',!!quiet);overlay.style.display='none';document.body.classList.add('inGarage');
   try{carrPlayMaj();}catch(e){} // (2026-10-07) la map que lance JOUER, à jour (progression, auto-école) — « LE NIVEAU DES PLAY »
@@ -53805,7 +53874,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   MENUV.bio=false;bioApply(BIOMES.atelier);paintEnvAtelier();                    // l'atelier reprend sa lumière et son reflet
   if(CHUTE.av){if(acesPass&&CHUTE.av.e!=null)acesPass.uniforms.uExposure.value=CHUTE.av.e;if(scene.fog&&CHUTE.av.n!=null){scene.fog.color.copy(CHUTE.av.c);scene.fog.near=CHUTE.av.n;scene.fog.far=CHUTE.av.f;}} // (2026-09-30) …et son exposition, sa brume
   if(GAR.root)GAR.root.visible=true;
-  try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){}
+  try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true,vol:GAR_AMB_DB});if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){}
 }
 function chuteLance(){ // JOUER, depuis le ciel : elle pique
   CHUTE_TAP.tient=null; // (la caisse au doigt v2) un doigt qui la tenait la lâche
@@ -58178,7 +58247,7 @@ function loop(now){
     if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
     else if(!v9&&loop._vide){loop._vide.stop(.5);loop._vide=null;}
     /* (2026-10-08, Léo : « au départ de la première map, un son parasite — enlève ») : plus d'ambiance de la MER DE NUAGES en course (souffle, rafales, harpe éolienne : elle passait 11 à 26 dB au-dessus de la musique du ciel). Code et échantillons retirés au nettoyage du 14/10. */
-    if(garageOn&&!(CHUTE&&CHUTE.on)&&(!openGarage._amb||!openGarage._feu)&&now>(loop._garT||0)){loop._garT=now+800;if(!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});if(!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});} // (débogage 2026-09-29) une ambiance ratée au premier essai est retentée — (2026-10-12, passe qualité) le FEU aussi : SON rallumé dans l'atelier, il restait muet jusqu'à la visite suivante
+    if(garageOn&&!(CHUTE&&CHUTE.on)&&(!openGarage._amb||!openGarage._feu)&&now>(loop._garT||0)){loop._garT=now+800;if(!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true,vol:GAR_AMB_DB});if(!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});} // (débogage 2026-09-29) une ambiance ratée au premier essai est retentée — (2026-10-12, passe qualité) le FEU aussi : SON rallumé dans l'atelier, il restait muet jusqu'à la visite suivante
     else if(!garageOn&&openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}
   }
   // (2026-09-26, user : « enlève tous les modes ralentis du jeu ») : plus de slow-mo (atterrissage, gros air, bullet-time, reprise de
