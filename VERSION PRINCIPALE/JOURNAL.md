@@ -3,6 +3,86 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ACCUEIL AUX COULEURS DU LOGO : GARAGE ROSE, OFFRES CYAN, RÉGLAGES OR (2026-10-16, Sacha : « dans l'écran d'accueil garage, offre et réglages doivent être de couleur rose, bleu et jaune », puis « comme les bandes sous le logo CAR CASH »)
+- Les trois tuiles de l'accueil (`.mHubPorte`, `.mOffres`, `.mGear` dans `#mHome.acc2`) prennent, de gauche à droite, les trois couleurs du trait
+  néon sous le logo (`--livree` / `#mHome .mTitle::after`) : `--neoM` rose, `--neoC` cyan, `--au2` or. Avant : GARAGE cyan, OFFRES rose, RÉGLAGES cyan.
+- Trois lignes à la fin du bloc d'accueil de `<style id="ux8-menus">`, sous `html:not(.c6)` : elles ne posent que `--nc` (liseré gauche, lueur
+  intérieure, pictogramme). Le dessin des plaques, les libellés blancs, le badge NEW et le logo ne bougent pas ; la charte 6 (`?ui=6`) n'est pas touchée.
+- Vérifié au banc (cc-banc/accueil.cjs, debout 390×844 et couché 844×390) : les trois couleurs suivent l'ordre des bandes ; fumée OK (couché + debout,
+  0 erreur JS) ; `garde-burnout.sh` et `garde-charte.sh` OK. Cache cashcar-v539.
+
+## LA RÉGIE ADSENSE — LES VRAIES PUBS DU SITE (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ; dis-moi ce que je dois créer comme compte et quels identifiants te donner »)
+La pub récompensée de Google (« H5 Games Ads », l'Ad Placement API) est branchée derrière CONTINUER ▶ PUB (LA PUB QUI RESSUSCITE, juste en
+dessous). Elle reste ÉTEINTE tant que l'identifiant d'éditeur de Sacha n'est pas posé : en ligne, rien ne change d'ici là (la pub maison).
+- **Le chargeur** (`<head>`, bloc « LA RÉGIE ADSENSE », juste après celui du cadre de l'ordi) : `var CC_ADSENSE=''` (« ca-pub-… » à poser, LE
+  SEUL endroit) et `CC_ADSENSE_SITES=['car-cash-git.vercel.app']`. Il charge `adsbygoogle.js?client=…` et pose `adBreak`/`adConfig` (la cale de
+  Google) seulement en http(s), sur un site de la liste, jamais avec `window.Capacitor` (l'app iPhone), jamais dans la page-cadre de l'ordi :
+  Google veut le code DANS le document du jeu, donc dans l'iframe de la colonne (elle a déjà `allow="autoplay"`). `?pubtest=1` = le MODE TEST
+  de Google (`data-adbreak-test="on"`) partout, même sans identifiant : de fausses pubs, aucune requête de pub.
+- **Le côté jeu** (`ADS`, « LA RÉGIE ADSENSE, CÔTÉ JEU ») pose `CC_PUB_PREPARE` et `CC_PUB_RECOMPENSE`, que LA PUB QUI RESSUSCITE appelle :
+  à l'OUVERTURE de l'offre (`chanceOuvre` → `pubPrepare`), `adBreak({type:'reward'})` ; Google rappelle `beforeReward(showAdFn)` s'il a une
+  pub ; au TOUCHER de CONTINUER ▶ PUB, `showAdFn()` part dans le geste même ; `adViewed` → reprise, `adDismissed` → pas de reprise (l'écran de
+  fin, REJOUER). Rien de prêt (pas de pub, plafond, bloqueur…) → `null` → la pub maison de 5 s. `adConfig` : `preloadAdBreaks:'on'` et `sound`
+  (on/off d'après les réglages SON + MUSIQUE, relu à chaque offre). Le jeu ne se tait (`pubSilence`) que si une vraie pub part. Filet : 150 s.
+- **Le service worker** ne touche plus aux requêtes d'un AUTRE domaine (`sw.js`) : son cache-first aurait figé le script de Google et ses pubs
+  jusqu'au prochain numéro de CACHE. Le jeu ne charge rien d'autre hors du site.
+- **`/ads.txt`** : `vercel-build.sh` l'écrit à la racine du site (`google.com, pub-…, DIRECT, f08c47fec0942fa0`) à partir de `CC_ADSENSE` ;
+  identifiant vide = pas de fichier.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, `?pubtest=1`) : COUCHÉ, DEBOUT et dans le CADRE DE L'ORDI à la souris → au toucher, la pub
+  test de Google (« Rewarded ad example », « Reward in 6 seconds », la croix) ; vue jusqu'au bout → `breakStatus` `viewed` → reprise, 3 · 2 · 1 ;
+  fermée trop tôt (« Close Ad? You will lose your reward ») → `dismissed` → pas de reprise, l'écran de fin avec REJOUER ; compte inchangé
+  (7 200 $). SANS `?pubtest=1` et sans identifiant : 0 requête vers Google, la pub maison comme avant. 0 erreur (seul le 404 connu de
+  `dark-triad.mp3`). Banc : `dbgPub().ads` → {on, test, pret, etat (le dernier breakStatus), n, prete}.
+- **`vercel.app` est sur la liste publique des suffixes** (publicsuffix.org) : AdSense accepte `car-cash-git.vercel.app` comme un site à part
+  entière, pas besoin d'acheter un domaine.
+- **À FAIRE PAR SACHA** (personne ne peut le faire à sa place : son identité, son compte de paiement) : 1) créer le compte AdSense
+  (adsense.google.com, avec son compte Google), site `car-cash-git.vercel.app` ; 2) DONNER l'identifiant d'éditeur `ca-pub-` + 16 chiffres
+  (Compte › Infos du compte) → on le pose dans `CC_ADSENSE`, on met à jour la page de CONFIDENTIALITÉ du site (cookies publicitaires de
+  Google, seulement pour le site — l'app iPhone reste sans pub) et on publie ; 3) dans AdSense, « Valider » le site (ads.txt / code) et
+  demander l'examen ; 4) activer le message de consentement RGPD (Confidentialité et messages › Europe), obligatoire en Europe ; 5) laisser
+  les ANNONCES AUTOMATIQUES ÉTEINTES (elles poseraient des bannières sur le jeu) ; 6) une fois le compte approuvé, faire la demande H5 Games
+  Ads (adsense.google.com/start/h5-beta, sur dossier, non garanti). Tant que H5 n'est pas accordé, Google n'a pas de pub : la pub maison joue.
+- **Reste à trancher** : faire compter les pubs VRAIMENT vues pour L'ÉTERNELLE (« REGARDE 100 PUBS », `SAVE.d.ex.pubs`, plus rien ne le
+  remplit depuis le retrait du kit Poki) ; la pub maison quand Google n'a rien (gratuite au bout de 5 s) ou pas de reprise du tout.
+
+## LE BUMP REVIENT SUR LA ROUTE TORDUE DES NUAGES (2026-10-15 soir, Sacha : « fais revenir le BUMP sur la route tordue des nuages, sans toucher au reste, et mesure-le au banc avant de pousser »)
+- LA CAUSE (mesurée, même graine, même carte) : sur la route SANS HAUT NI BAS la dalle est couchée, sur la tranche, à l'envers, mais la caisse
+  sortie par le bord tombait selon le bas du MONDE — elle ne s'enfonçait pas sous le niveau de SA dalle et ne pouvait plus en cogner la
+  tranche ; et l'équilibre du vol (`veqNiveau`) redressait son haut vers le ciel du monde : sur une dalle couchée, le volant ne la ramenait
+  plus vers la route. 0 BUMP sur 20 sorties, contre 3 sur la même piste remise droite (`?sans=haut`).
+- LE CORRECTIF (`TBORD`, route tordue + sortie par le BORD seulement) : le temps de la bascule (1,1 s au plus) et après chaque BUMP, la
+  gravité, le plané nitro et l'équilibre du vol sont ceux de la ROUTE quittée (−Nn × face de départ) ; le BUMP renvoie vers le ciel de la
+  route et réarme la fenêtre (DOUBLE BUMP possible). À plus de 20 m du bord, ou la fenêtre passée, le vol reprend la gravité du monde.
+  Route droite (TORD éteint) : aucune ligne ne change de chemin.
+- MESURÉ (banc `bump.cjs`, carte nuages midi, graines 4242 et 777, vA 70/130, braquage vers la route 200/450 ms après la sortie, 40 essais
+  par version) : essais avec BUMP 2 → 6, BUMP au total 2 → 14 (dont un MEGA BUMP ×7), caisses rattrapées (lèvre ou posée, dessus ou
+  dessous) 15 → 21, perdues ou encore en l'air au bout de 4 s 10 → 5. Fumée commune OK.
+
+## L'IMPACT EN MINIATURE — LE COUP D'ÉPAULE CONTRE UNE PAROI (2026-10-15 soir, Sacha, après le recensement des obstacles : « oui : fais le point 1 tel que décrit (étoile + éclats + étincelles au premier contact, sans boule ni cratère), puis banc, poussée et recopie »)
+- LE RECENSEMENT (« on s'en servira pour tous les obstacles du jeu ») : tout ce qui TUE en percutant passe déjà par L'IMPACT (chaîne de vol
+  des sept cartes, mur mortel de `parisMur` via `impMur`). Les PLOTS et les PORTES (`boomMini`) ne sont plus posés depuis le 14/10
+  (`PLOTS_ON=false`, « enlève les cônes de chantier ») ; les SATELLITES de l'orbite (`satHard`, `explode('sat')` sans IMPACT) ne vivent plus
+  que dans PLUTON, en carrière coupée ; pas d'épaves ; la police ne touche jamais la caisse. Dos d'âne, pads, flaques, moutons, galet du
+  glacier, bump de bord ne sont pas des chocs. Restait UN obstacle vivant : la paroi qu'on tape SANS mourir.
+- LE COUP D'ÉPAULE : `parisMur` sous le seuil mortel (angle ≤ 30° ou < 200 km/h) — les couloirs des Étroits, le TUNNEL et la MINE du
+  canyon (`cyCouloirIci`), les façades de Paris (qui dort). Avant : une étincelle toutes les 90 ms et « FROTTE ! ». Désormais, au PREMIER
+  contact seulement (≥ 0,35 s de JEU sans toucher, `IMPM.clk` : la pause ne compte pas ; en frottant, rien de plus qu'avant),
+  `impMini(out,a,kmh,into)` : l'ÉTOILE de choc de L'IMPACT (même texture en pixels) posée SUR la ligne de la paroi au coin avant du flanc,
+  collée à la caisse, qui pousse (0,07 s, jusqu'à 2,8 m) puis ÉCLATE (0,15 s, jusqu'à 5,8 m) ; 3 à 5 ÉCLATS de roche calcinée (même forme,
+  mêmes matières, un sur trois en braise) qui gardent ~90 % de l'élan de la caisse — posés sur place, ils sortaient du cadre en une image —
+  et dont un sur deux retape la paroi et rebondit ; une GERBE de 18 à 42 étincelles qui gicle du mur. Taille `k` selon l'angle et la vitesse.
+  NI cratère, NI coup (la caisse ne s'arrête pas), NI négatif, NI boule, NI ralenti.
+- SA PROPRE RÉSERVE (`IMPM` : 2 étoiles, 10 éclats, deux matières clonées de `IMP_ECL`) — jamais celle de la mort, qui peut tomber un instant
+  après — née au chargement, chauffée à sa première image ; `impMiniTick` dans la boucle à côté d'`impTick`, `impMiniFin` dans clearBoom.
+- MESURÉ au banc (`cc-banc/impact-mini.cjs`, canyon, couché 844 × 390, son coupé) : à 284, 837 et 1 389 km/h, le choc part (2 à 8 images
+  après le braquage dans la paroi), **185 → 185 programmes GPU** (aucun compilé au choc), la caisse reste en conduite ; un frottement tenu
+  60 images ne donne qu'UN choc. Première version jugée sur planche : étoile de 0,8 m posée à 0,7 m du centre = lue SUR LE TOIT, presque
+  invisible — d'où la taille ×2,5 et la pose sur la ligne de la paroi. La mort contre la paroi (`impact.cjs canyon`) est inchangée
+  (cratère, négatif, 186 → 186 programmes).
+- Console : `dbgImpactMini()` (chocs, dernier choc a/kmh/into/k, étoiles, éclats, programmes, couloirs du canyon) ;
+  `dbgImpactMini('force',±1)` (une miniature tout de suite contre ce flanc) ; `dbgImpactMini('seuil',x)` (poussée minimale, 1,2).
+- Pas de son ajouté (le crissement du contact reste) : à proposer si Sacha veut un « tchac » au choc.
+
 ## PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : « toute la mécanique météore », jeu web ET ROBLOX)
 - Même recette que SNAKE LOOP et NITROOO : COUPÉ, pas arraché. Un interrupteur en tête du fichier, `SANS_METEORE` (vrai par défaut ;
   `?meteore=1` le rend).
