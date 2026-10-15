@@ -79,6 +79,109 @@ puis le LÂCHER, le vent, le logo) → course sans erreur ; `garde-burnout.sh` e
   lueur, RETOUR en 10 px sans ombre, ombre douce ; appuyé, il s'enfonce et grise. Droit, comme ACHETER / ÉQUIPER. Charte 6 inchangée (`#gBqRet`).
 - Vérifié : menu → GARAGE → BOUTIQUE → FIGURES → RETOUR → JOUER, course lancée sans erreur (`__loopErr` nul), couché, debout et dans le cadre.
 
+## LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE (2026-10-16, Sacha : « lance une grosse session d'amélioration pour les ailes. Retravaille les ailes, fais-leur des petites animations. Par exemple, les ailes X-Wing, quand tu boostes, elles doivent s'ouvrir comme dans le vrai jeu Star Wars. Les ailes de dragon, elles doivent battre, celles de pigeon et tout. Essaye de donner du détail pour chaque. Prends-les une par une et apporte-leur du soin. Fais le max à chaque fois, qu'elles donnent toute envie d'acheter »)
+- ⚠ **LE BUG QUI FIGEAIT LES AILES POP** : la soudure des pièces immobiles (`caisseSoude` → `fusGroupe`, passe perf du 27/09) descendait dans
+  les sous-groupes du pivot et y aspirait les pièces par matière — les groupes ANIMÉS se vidaient. MESURÉ (`dbgAiles`) : les AILES EN X n'avaient
+  plus que 4 maillages soudés dans le pivot (les deux plans l'un sur l'autre, jamais ouverts), les os du DRAGON restaient figés sous une
+  membrane qui battait seule, le MONARQUE, le PIGEON, la FÉE ne battaient plus. Désormais ce qui bouge porte `userData.bouge` (`ailB`) : un
+  groupe animé se soude dans SON repère (`fusGroupe` récursif), une pièce animée reste seule. `dbgAiles(id)` → 0 groupe vidé sur les 14.
+- **UNE horloge, UN état pour les deux côtés** (`AILV`, tenu par `ailvTick` juste avant `blingTick`) : chaque côté tirait son temps au hasard,
+  la gauche et la droite battaient à contretemps. `AILV.n` = le BOOST (nitro tenue en vol, lissé : monte en ~0,1 s, retombe en ~0,4 s),
+  `AILV.vir` = le virage, `AILV.mon` = on monte (+) / on plonge (−) (de `fallVel.y`). Les ailes ne réagissent qu'en vol (au sol elles restent
+  rentrées, règle du 13/10).
+- **LA VITRINE** (garage et boutique, ailes ouvertes) : toutes les 7,5 s un boost de 2,6 s et un virage qui va et vient — l'acheteur voit les
+  ailes en X s'ouvrir, le dragon donner ses grands coups, les rouages s'emballer.
+- **LA PHOTO** (cartes AILES de la boutique et de l'inventaire) : `ailvPose` (appelée par `photoAiles`) joue 1,5 s du geste, boost tenu, avant
+  le déclic ; chaque aile a sa pose de photo (ailes déployées, vues d'en haut). Les effets (`userData.fx` : jets, traînées, essaims) ne comptent
+  pas dans le cadrage ; les traînées des PANNEAUX ne sont pas photographiées.
+- **Les outils communs** : `ailBat` (un battement vrai : la poussée vers le bas prend 42 % du cycle), `ailCoupe` (une membrane coupée au
+  POIGNET : le bras et la MAIN battent en vague, la main en retard), `ailForme(…, bx)` (la boîte des UV : une aile coupée garde UNE texture),
+  `ailQuad`, `ailPointe` (griffes, épines), `ailRz`/`ailRy`, `ailEtincelles` (un ESSAIM de cubes de lumière en `InstancedMesh` : UNE passe de
+  dessin, rien d'alloué en vol ; `grow` = la vapeur gonfle, `tw` = la poussière scintille).
+- **Une par une** (les bâtisseurs de `AILES_POP` ; PANNEAUX, PLUMES D'ANGE et CHAUVE-SOURIS y entrent, les HÉLICES restent dans `buildCar`) :
+  · PANNEAUX (offertes) : vrai profil en flèche, SAUMON relevé à la couleur de la caisse, AILERON qui suit le virage, feux de position (rouge à
+    gauche, vert à droite) et éclat blanc qui flashe deux fois ; au boost, deux traînées de condensation fines aux saumons.
+  · HÉLICES : chaque rotor dans son groupe — il penche le nez au boost, un disque de flou dit le régime, l'anneau de lumière du carénage
+    s'allume ; `propSpin` s'emballe au boost (+40 rad/s). Le gabarit `requin` (A.wings 'props') en profite.
+  · PLUMES D'ANGE : de vraies plumes peintes (rachis, barbes, pointe dorée) en trois rangs sur bras + main ; battement lent, éventail qui
+    s'ouvre à la descente, liseré d'or ; au boost elles s'embrasent et sèment de la POUSSIÈRE D'OR.
+  · CHAUVE-SOURIS : membrane veinée de violet (veines qui luisent) sur quatre doigts, coupée au poignet ; bat vite et de TRAVERS (rythme qui
+    hésite, embardées), la main se replie à la remontée ; au boost, en flèche : le piqué.
+  · PIGEON : couvertures, deux barres noires, cou IRISÉ qui passe du vert au violet ; la main bat en retard, les doigts s'écartent quand il
+    plane ; DEUX CLAPS au-dessus du dos quand il sort les ailes ; bat trop vite puis plane (toujours battant quand il monte ou boost).
+  · AVION EN PAPIER : cahier gribouillé (étoile au crayon, cœur au stylo rouge, spirale bleue, petite voiture, rond de café) ; le pan du
+    dehors CLAQUE au vent autour du pli (fort au boost), un VOLET plié au bord de fuite suit la montée et le virage.
+  · MONARQUE : le vrai dessin peint (cellules orange, nervures noires, bord noir à deux rangs de points blancs, apex taché) ; l'aile arrière
+    bat un rien en retard ; il bat… PLANE ailes en V… rebat ; les écailles accrochent la lumière à chaque coup.
+  · 8-BIT : animé IMAGE PAR IMAGE comme un sprite — l'aile se plie en ESCALIER (un cran de pixel par colonne) : monte, à plat, descend ;
+    au boost, les couleurs de l'étoile d'invincibilité ; des pixels d'étincelle s'allument au bout.
+  · BARON ROUGE : toile entoilée peinte (nervures cousues, pièce rapiécée, taches d'huile), AILERONS au virage, L'ÉCHARPE DU PILOTE nouée au
+    mât (sept pans en chaîne) qui claque au vent, fort au boost ; la toile vibre sous la poussée.
+  · ENGRENAGES : l'ORNITHOPTÈRE — la grande roue tourne, son maneton tire une BIELLE qui fait battre l'aile (le battement EST le rouage), la voile
+    se gonfle ; au boost la machine s'emballe, l'aiguille du MANOMÈTRE grimpe, la cheminée crache sa VAPEUR (cubes qui gonflent).
+  · AILES EN X (la demande de Sacha) : EN CROISIÈRE les deux plans de chaque côté sont l'un sur l'autre ; au BOOST la mécanique se déverrouille
+    (0,08 s), les plans s'écartent en X d'un coup sec (un ressort : petit rebond) et se VERROUILLENT en position d'attaque (un frisson) ; les
+    canons s'arment (pointes rouges qui battent), les quatre tuyères chauffent à blanc et crachent un jet de lumière ; on relâche : ils se
+    referment 0,45 s plus tard. Plaques peintes (panneaux, rivets, bandes rouges de l'escadron, suie, éraflures), cache-flamme, entrée d'air.
+  · FÉE : voiles en ailes de fée (pointe effilée, queue d'hirondelle), couleurs franches ; l'avant et l'arrière battent en OPPOSITION, un voile
+    FANTÔME dit le flou du bourdonnement, la POUSSIÈRE DE FÉE scintille et tombe (une pluie au boost).
+  · DRAGON : bras et MAIN articulés au poignet (membrane coupée là), quatre doigts griffus, épines, griffe du pouce ; grands coups lents qui font
+    une vague ; la lave rougeoie au bas du coup ; au boost les coups redoublent, la lave flambe, des BRAISES s'arrachent du bord de fuite.
+  · PHÉNIX : bras + main, rémiges qui vacillent comme des flammes, ÉTINCELLES qui montent des pointes ; au boost les plumes s'ouvrent en grand.
+- **Les descriptions disent le geste** (COSM.aile `d`, FR + EN dans un `Object.assign(I18N, …)` daté ; les anciennes clés restent).
+- **Rien ne naît au premier envol** : les ailes de la caisse équipée, cachées au sol, échappaient à la chauffe du menu (un objet caché n'y est
+  pas compilé). MESURÉ en course (`dbgProgs().n`), au 1er déploiement de la session : AILES EN X +2 programmes, DRAGON, FÉE, 8-BIT, ENGRENAGES,
+  AVION EN PAPIER +1. Nouvelle étape de `chauffeDivers` : les pivots montrés le temps d'un `chauffeRendu([carGroup])`. Après : ailes en X
+  équipées au chargement → 0 au déploiement, 0 au boost ; aile d'origine : 0 / 0.
+- **Coût** : 1 à 17 maillages par côté (phénix 17, contre ~30 avant : ses plumes avaient chacune leur matière) ; les essaims ≤ 28 cubes, une
+  passe chacun. Les gestes ne tournent que si l'aile est sortie (`wingT` > 0,02).
+- **BANC** (navigateur du panneau, son coupé par la sauvegarde) : les 14 se bâtissent sans erreur, 0 groupe vidé ; photos de boutique des 14 ;
+  planche en COURSE (mer de nuages, midi) de chaque aile au repos puis au boost (`dbgAilesForce({ouvre:1,n:0|1})` + `dbgAilesVue`) ; vrai vol
+  (`dbgDauphin` + pilote `dbgAuto(1,0,{vol:true,nit:2})`) : les ailes en X s'ouvrent à la nitro, couché ET debout ; garage : la vitrine boost
+  toutes les 7,5 s ; menu → JOUER → course sans erreur dans le cadre de l'ordi, couché et debout ; `garde-burnout.sh` et `garde-charte.sh` OK.
+- **Crochets** : `dbgAiles(id)` (porter une aile, compter ce qui bouge), `dbgAilesForce({n, vir, mon, ouvre})` (forcer le boost, le virage, la
+  montée ; `ouvre:1` = dépliées même en roulant ; `dbgAilesForce()` rend la main), `dbgAilesVue(az, d, h)` (une image en pause, cadrée dans le
+  repère de la CAISSE : 0 = derrière), `dbgAile(id)` (la photo de boutique).
+- **FUSION avec « LES TRAÎNÉES ET LES AILES QU'ON VEUT »** (l'autre session, 15/10 soir, poussée pendant ce chantier) : sa TAILLE par aile
+  (`AILE_K`, posée au pivot) se garde telle quelle — les gestes vivent DANS le pivot ; ses matières relevées sont portées dans les ailes
+  vivantes (halo du phénix, voiles de la fée, le filet de NÉON des panneaux — au bord d'attaque et sur l'aileron, qu'il suit) ; ses plumes
+  d'ange en boîtes sont remplacées par les vraies plumes. `?ailes=avant` rend ses tailles et matières d'avant, pas les gestes.
+- **À trancher par Sacha** : (1) au SOL les ailes restent rentrées (règle du 13/10, les barres à travers les vitres) — les ailes en X ne
+  s'ouvrent donc qu'au boost EN VOL ; les déplier aussi au boost sur la route serait une règle neuve. (2) Aucun SON n'a été ajouté (le « clac »
+  des ailes en X, le battement du dragon…) : la banque de sons se recuit en entier, d'autres sessions y travaillent — à faire dans une session SON.
+## LES PEINTURES PAR RARETÉ, EN EUROS, ET ONZE MOTIFS ÉPIQUES (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les dégradés de plusieurs couleurs, ça doit être rare, pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique et classe-les dans l'ordre de rareté dans le truc de peinture » · « génère une dizaine de peintures épiques avec des motifs ; couleur pleine : commun ; dégradée : rare ; avec des motifs : épique ; légendaire on verra après, pour l'instant pas de légendaire ; communes 1 €, rares 3 €, épiques 5 € »)
+- LA RÈGLE (`peintRegle`, bloc « LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS » juste après la palette) : un MOTIF = ÉPIQUE · un DÉGRADÉ
+  (`grad`) ou l'OR (`g:'o'`) = RARE · une couleur pleine (laque, mat, métallisé, nacre, chrome, laqué noir) = COMMUNE. La rareté est écrite sur
+  chaque peinture au chargement (`d.r`). Résultat sur les 68 : 40 communes, 17 rares, 11 épiques — plus aucune peinture exotique, légendaire ni
+  mythique. ⚠ « Enlève la mythique » a été lu POUR LES PEINTURES : `RARETES` n'a pas bougé, les caisses, ailes et traînées mythiques le restent.
+  Le CHROME MIROIR est une couleur pleine → commune (la règle ; l'or seul a été nommé).
+- LE PRIX EN EUROS (`PEINT_EUR` → `d.eur`) : 1 € · 3 € · 5 €. Le prix en pièces (`p`) des peintures est retiré ; celles déjà achetées restent à toi
+  (`shopOwned` lit `own`). En vente en € : 38 communes (les 8 d'origine et POP + les 30 de la palette), 6 rares, les 11 motifs. Se gagnent toujours,
+  sans prix : l'OR MASSIF et le SUPER GUERRIER (carnets), les 10 SECRÈTES (leur défi, ou le pack). D'ORIGINE reste offerte.
+  L'ACHAT passe par la MÊME porte que les caisses en € : `habPaye(cat,i)` → `shopPaye('peinture:'+id)` → `habDonne` (possédée + équipée, le
+  tampon « À TOI ! »). ACHETER de la boutique (`bqEtat`, `bqAction`) et de la console (`#gBuy`, `shopShow`) disent le prix en €.
+  ⚠ À TRANCHER (Sacha) : StoreKit n'étant pas branché, ACHETER le DIT (« L'achat est indisponible pour le moment. ») et ne donne rien — sur le
+  site, plus aucune peinture ne s'achète (comme les caisses en €). Le produit App Store de chaque peinture reste à créer (`cashcar.peinture.<id>`,
+  55 produits). Le PACK PALETTE (`PALETTE_PACK`, 0,99 € les 40, jamais montré dans l'interface) ne colle plus avec 1 € la couleur.
+- L'ORDRE (`peintOrdre`) : le rayon PEINTURES de la boutique (`bqListe`) et la bande de la console (`gStripHabits`) vont de la COMMUNE à l'ÉPIQUE
+  (D'ORIGINE en tête ; dans une rareté, l'ordre du catalogue). L'inventaire garde son ordre (la plus rare d'abord).
+- LES ONZE MOTIFS (`MOTIFS`) : LÉOPARD, TIGRE, ZÈBRE, VACHE, FLOWER POWER, CAMOUFLAGE, DAMIER, PEAU DE DRAGON (écailles), COCCINELLE, GALAXIE, PLEIN AUX AS.
+  Chacun est une toile de 512 px dessinée une fois (`motToile`/`motTex`), qui se raccorde sur ses quatre bords (`motTore` : chaque forme posée avec
+  ses huit voisines ; rayures et écailles à fréquences entières). Elle se pose sur la tôle en PROJECTION TRIPLANAIRE dans le repère de la caisse
+  (`motGreffe`, `MOT_GLSL`) : côtés, toit, nez et poupe prennent chacun leur plan, retourné pour se lire à l'endroit de l'extérieur (le « $ » des
+  deux côtés) ; le motif colle à la tôle quand la caisse roule. `s` = répétitions par mètre, `c` = la teinte de fond (outils de l'atelier, replis).
+  · Le kit coule la tôle peinte dans son PROPRE tampon (`peintPal` → clé `pm:<id>`, `lpMat('pm:…')` = la laque + la greffe) : les accents, le verre,
+    les feux gardent leurs couleurs ; le fondu vertical et l'ombre cuite restent (la tôle est blanche, le motif la colore). Les relevés des pots
+    (`echRetire`, `CAR_POTS`) traitent `pm:…` comme la tôle.
+  · Un gabarit hors kit : sa matière de carrosserie (bodyM) blanche, greffée après `rimify`. Un gabarit qui CLONE la tôle (l'ÉPAVE : `K.body.clone()`)
+    perdait la greffe (la caisse sortait blanche) : la fin de `buildCar` greffe toute matière marquée `userData.mot` qui ne l'est pas (`MOT_FAIT`).
+  · `customProgramCacheKey` = 'motif|' + la source de la greffe d'origine : un programme de plus quand on porte un motif, le motif vit dans un uniform.
+  · Les PASTILLES des listes (boutique, console, inventaire, vitrine, missions) montrent le motif (`motFond` : la toile en 128 px, zoomée ×2).
+- VU au navigateur intégré (boutique sur LA DOLORÈS et L'ÉPAVE, course couché et debout, cadre de l'ordi) : à la 1re échelle le léopard faisait
+  des grains, les « $ » ne se lisaient pas, les écailles et les fleurs étaient minuscules → les motifs ~1,6 × plus grands ; « ÉCAILLES DE DRAGON » (18 lettres) était coupé dans l'en-tête de la boutique → PEAU DE DRAGON ; le DAMIER virait au gris
+  sur les pans en biais (deux plans fondus, normale ^6) → ^12. En course, tigre, galaxie et damier se lisent de la caméra de poursuite.
+- Essayer : `dbgHab('peinture','tigre')` (porté à l'essai, aussi en course). `?peintures=avant` = les raretés, les prix et l'ordre d'avant, sans motifs.
+
 ## LES TRAÎNÉES ET LES AILES QU'ON VEUT (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables, pareil pour les ailes »)
 - VU AVANT (banc `habits.js` : les 17 traînées portées tour à tour, nitro tenue, mer de nuages de midi — une planche de 16 photos) : derrière la
   caisse on ne voyait presque que le FEU DE PIXELS du nitro, orange / bleu / violet selon la jauge, quelle que soit la traînée ; MENTHE, ROSE, OR

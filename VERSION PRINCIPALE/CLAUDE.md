@@ -152,7 +152,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
-  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`,
+  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose`),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
   moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`) et son jet propulsé (`NFEU_JET`), hors nitro le
   même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
@@ -314,9 +314,14 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
   `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
   au carnet n (une ligne dans `CARNETS` dont `r` le donne, et `pk` = son prix sur Poki), `r` = la rareté écrite ; `n` et `d` dans `I18N`.
-- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'` (satiné, chrome, or, laqué noir), ou `grad:[bas,milieu,haut]`.
+- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'|'k'|'n'` (satiné, chrome, or, laqué noir, métallisé, nacre), ou `grad:[bas,milieu,haut]`,
+  ou `mot:'<id>'` (un MOTIF : sa toile dans `MOTIFS`). Depuis le 16/10, ni `p` ni `r` : la rareté et le prix EN EUROS se déduisent
+  (`peintRegle`, `PEINT_EUR`) — couleur pleine = commune 1 € · dégradé ou or = rare 3 € · motif = épique 5 € (achat : `habPaye`).
 - Aile : `ico`/`col` (pictogramme `PXI_G` et sa couleur) ; son DESSIN = un bâtisseur dans `AILES_POP` (pivot, côté, W9, L9, H9, y0),
-  contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT`).
+  contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT` et `AILV` :
+  `n` le boost, `vir`, `mon`, `photo` la pose de la carte). ⚠ Tout groupe ou pièce qui BOUGE passe par `ailB(o)`, sinon `caisseSoude` le vide
+  (« LES AILES VIVANTES » au journal) ; un effet hors cadrage photo porte `userData.fx`. Vérifier : `dbgAiles(id)` (0 groupe vidé),
+  `dbgAilesForce({ouvre:1,n:1})` + `dbgAilesVue(az,d,h)` (en course, au boost), `dbgAile(id)` (la photo).
 - Traînée : `rgb` = la couleur du ruban ; un EFFET = `pop:'nom'` + un émetteur dans `TRX_EMET` (quads instanciés, planche
   `trxPlanche`), `rubOff:1` s'il remplace le ruban. ⚠ Ce qui doit se voir en course garde ~0,86-0,9 de l'élan (`trxVit`).
 - Essayer : `dbgHab(cat,id)` (porté à l'essai), `dbgTrx('nom')` (forcée en course). Banc : photos garage + course, muet.
@@ -441,6 +446,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
 **Caisses, boutique, habillages**
+- « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
@@ -601,7 +607,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
-  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`,
+  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose`),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`.
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
@@ -752,9 +758,14 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
   `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
   au carnet n (une ligne dans `CARNETS` dont `r` le donne, et `pk` = son prix sur Poki), `r` = la rareté écrite ; `n` et `d` dans `I18N`.
-- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'` (satiné, chrome, or, laqué noir), ou `grad:[bas,milieu,haut]`.
+- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'|'k'|'n'` (satiné, chrome, or, laqué noir, métallisé, nacre), ou `grad:[bas,milieu,haut]`,
+  ou `mot:'<id>'` (un MOTIF : sa toile dans `MOTIFS`). Depuis le 16/10, ni `p` ni `r` : la rareté et le prix EN EUROS se déduisent
+  (`peintRegle`, `PEINT_EUR`) — couleur pleine = commune 1 € · dégradé ou or = rare 3 € · motif = épique 5 € (achat : `habPaye`).
 - Aile : `ico`/`col` (pictogramme `PXI_G` et sa couleur) ; son DESSIN = un bâtisseur dans `AILES_POP` (pivot, côté, W9, L9, H9, y0),
-  contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT`).
+  contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT` et `AILV` :
+  `n` le boost, `vir`, `mon`, `photo` la pose de la carte). ⚠ Tout groupe ou pièce qui BOUGE passe par `ailB(o)`, sinon `caisseSoude` le vide
+  (« LES AILES VIVANTES » au journal) ; un effet hors cadrage photo porte `userData.fx`. Vérifier : `dbgAiles(id)` (0 groupe vidé),
+  `dbgAilesForce({ouvre:1,n:1})` + `dbgAilesVue(az,d,h)` (en course, au boost), `dbgAile(id)` (la photo).
 - Traînée : `rgb` = la couleur du ruban ; un EFFET = `pop:'nom'` + un émetteur dans `TRX_EMET` (quads instanciés, planche
   `trxPlanche`), `rubOff:1` s'il remplace le ruban. ⚠ Ce qui doit se voir en course garde ~0,86-0,9 de l'élan (`trxVit`).
 - Essayer : `dbgHab(cat,id)` (porté à l'essai), `dbgTrx('nom')` (forcée en course). Banc : photos garage + course, muet.
@@ -866,6 +877,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
 **Caisses, boutique, habillages**
+- « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
