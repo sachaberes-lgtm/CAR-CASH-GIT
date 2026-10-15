@@ -3,6 +3,73 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE (2026-10-16, Sacha : « lance une grosse session d'amélioration pour les ailes. Retravaille les ailes, fais-leur des petites animations. Par exemple, les ailes X-Wing, quand tu boostes, elles doivent s'ouvrir comme dans le vrai jeu Star Wars. Les ailes de dragon, elles doivent battre, celles de pigeon et tout. Essaye de donner du détail pour chaque. Prends-les une par une et apporte-leur du soin. Fais le max à chaque fois, qu'elles donnent toute envie d'acheter »)
+- ⚠ **LE BUG QUI FIGEAIT LES AILES POP** : la soudure des pièces immobiles (`caisseSoude` → `fusGroupe`, passe perf du 27/09) descendait dans
+  les sous-groupes du pivot et y aspirait les pièces par matière — les groupes ANIMÉS se vidaient. MESURÉ (`dbgAiles`) : les AILES EN X n'avaient
+  plus que 4 maillages soudés dans le pivot (les deux plans l'un sur l'autre, jamais ouverts), les os du DRAGON restaient figés sous une
+  membrane qui battait seule, le MONARQUE, le PIGEON, la FÉE ne battaient plus. Désormais ce qui bouge porte `userData.bouge` (`ailB`) : un
+  groupe animé se soude dans SON repère (`fusGroupe` récursif), une pièce animée reste seule. `dbgAiles(id)` → 0 groupe vidé sur les 14.
+- **UNE horloge, UN état pour les deux côtés** (`AILV`, tenu par `ailvTick` juste avant `blingTick`) : chaque côté tirait son temps au hasard,
+  la gauche et la droite battaient à contretemps. `AILV.n` = le BOOST (nitro tenue en vol, lissé : monte en ~0,1 s, retombe en ~0,4 s),
+  `AILV.vir` = le virage, `AILV.mon` = on monte (+) / on plonge (−) (de `fallVel.y`). Les ailes ne réagissent qu'en vol (au sol elles restent
+  rentrées, règle du 13/10).
+- **LA VITRINE** (garage et boutique, ailes ouvertes) : toutes les 7,5 s un boost de 2,6 s et un virage qui va et vient — l'acheteur voit les
+  ailes en X s'ouvrir, le dragon donner ses grands coups, les rouages s'emballer.
+- **LA PHOTO** (cartes AILES de la boutique et de l'inventaire) : `ailvPose` (appelée par `photoAiles`) joue 1,5 s du geste, boost tenu, avant
+  le déclic ; chaque aile a sa pose de photo (ailes déployées, vues d'en haut). Les effets (`userData.fx` : jets, traînées, essaims) ne comptent
+  pas dans le cadrage ; les traînées des PANNEAUX ne sont pas photographiées.
+- **Les outils communs** : `ailBat` (un battement vrai : la poussée vers le bas prend 42 % du cycle), `ailCoupe` (une membrane coupée au
+  POIGNET : le bras et la MAIN battent en vague, la main en retard), `ailForme(…, bx)` (la boîte des UV : une aile coupée garde UNE texture),
+  `ailQuad`, `ailPointe` (griffes, épines), `ailRz`/`ailRy`, `ailEtincelles` (un ESSAIM de cubes de lumière en `InstancedMesh` : UNE passe de
+  dessin, rien d'alloué en vol ; `grow` = la vapeur gonfle, `tw` = la poussière scintille).
+- **Une par une** (les bâtisseurs de `AILES_POP` ; PANNEAUX, PLUMES D'ANGE et CHAUVE-SOURIS y entrent, les HÉLICES restent dans `buildCar`) :
+  · PANNEAUX (offertes) : vrai profil en flèche, SAUMON relevé à la couleur de la caisse, AILERON qui suit le virage, feux de position (rouge à
+    gauche, vert à droite) et éclat blanc qui flashe deux fois ; au boost, deux traînées de condensation fines aux saumons.
+  · HÉLICES : chaque rotor dans son groupe — il penche le nez au boost, un disque de flou dit le régime, l'anneau de lumière du carénage
+    s'allume ; `propSpin` s'emballe au boost (+40 rad/s). Le gabarit `requin` (A.wings 'props') en profite.
+  · PLUMES D'ANGE : de vraies plumes peintes (rachis, barbes, pointe dorée) en trois rangs sur bras + main ; battement lent, éventail qui
+    s'ouvre à la descente, liseré d'or ; au boost elles s'embrasent et sèment de la POUSSIÈRE D'OR.
+  · CHAUVE-SOURIS : membrane veinée de violet (veines qui luisent) sur quatre doigts, coupée au poignet ; bat vite et de TRAVERS (rythme qui
+    hésite, embardées), la main se replie à la remontée ; au boost, en flèche : le piqué.
+  · PIGEON : couvertures, deux barres noires, cou IRISÉ qui passe du vert au violet ; la main bat en retard, les doigts s'écartent quand il
+    plane ; DEUX CLAPS au-dessus du dos quand il sort les ailes ; bat trop vite puis plane (toujours battant quand il monte ou boost).
+  · AVION EN PAPIER : cahier gribouillé (étoile au crayon, cœur au stylo rouge, spirale bleue, petite voiture, rond de café) ; le pan du
+    dehors CLAQUE au vent autour du pli (fort au boost), un VOLET plié au bord de fuite suit la montée et le virage.
+  · MONARQUE : le vrai dessin peint (cellules orange, nervures noires, bord noir à deux rangs de points blancs, apex taché) ; l'aile arrière
+    bat un rien en retard ; il bat… PLANE ailes en V… rebat ; les écailles accrochent la lumière à chaque coup.
+  · 8-BIT : animé IMAGE PAR IMAGE comme un sprite — l'aile se plie en ESCALIER (un cran de pixel par colonne) : monte, à plat, descend ;
+    au boost, les couleurs de l'étoile d'invincibilité ; des pixels d'étincelle s'allument au bout.
+  · BARON ROUGE : toile entoilée peinte (nervures cousues, pièce rapiécée, taches d'huile), AILERONS au virage, L'ÉCHARPE DU PILOTE nouée au
+    mât (sept pans en chaîne) qui claque au vent, fort au boost ; la toile vibre sous la poussée.
+  · ENGRENAGES : l'ORNITHOPTÈRE — la grande roue tourne, son maneton tire une BIELLE qui fait battre l'aile (le battement EST le rouage), la voile
+    se gonfle ; au boost la machine s'emballe, l'aiguille du MANOMÈTRE grimpe, la cheminée crache sa VAPEUR (cubes qui gonflent).
+  · AILES EN X (la demande de Sacha) : EN CROISIÈRE les deux plans de chaque côté sont l'un sur l'autre ; au BOOST la mécanique se déverrouille
+    (0,08 s), les plans s'écartent en X d'un coup sec (un ressort : petit rebond) et se VERROUILLENT en position d'attaque (un frisson) ; les
+    canons s'arment (pointes rouges qui battent), les quatre tuyères chauffent à blanc et crachent un jet de lumière ; on relâche : ils se
+    referment 0,45 s plus tard. Plaques peintes (panneaux, rivets, bandes rouges de l'escadron, suie, éraflures), cache-flamme, entrée d'air.
+  · FÉE : voiles en ailes de fée (pointe effilée, queue d'hirondelle), couleurs franches ; l'avant et l'arrière battent en OPPOSITION, un voile
+    FANTÔME dit le flou du bourdonnement, la POUSSIÈRE DE FÉE scintille et tombe (une pluie au boost).
+  · DRAGON : bras et MAIN articulés au poignet (membrane coupée là), quatre doigts griffus, épines, griffe du pouce ; grands coups lents qui font
+    une vague ; la lave rougeoie au bas du coup ; au boost les coups redoublent, la lave flambe, des BRAISES s'arrachent du bord de fuite.
+  · PHÉNIX : bras + main, rémiges qui vacillent comme des flammes, ÉTINCELLES qui montent des pointes ; au boost les plumes s'ouvrent en grand.
+- **Les descriptions disent le geste** (COSM.aile `d`, FR + EN dans un `Object.assign(I18N, …)` daté ; les anciennes clés restent).
+- **Rien ne naît au premier envol** : les ailes de la caisse équipée, cachées au sol, échappaient à la chauffe du menu (un objet caché n'y est
+  pas compilé). MESURÉ en course (`dbgProgs().n`), au 1er déploiement de la session : AILES EN X +2 programmes, DRAGON, FÉE, 8-BIT, ENGRENAGES,
+  AVION EN PAPIER +1. Nouvelle étape de `chauffeDivers` : les pivots montrés le temps d'un `chauffeRendu([carGroup])`. Après : ailes en X
+  équipées au chargement → 0 au déploiement, 0 au boost ; aile d'origine : 0 / 0.
+- **Coût** : 1 à 17 maillages par côté (phénix 17, contre ~30 avant : ses plumes avaient chacune leur matière) ; les essaims ≤ 28 cubes, une
+  passe chacun. Les gestes ne tournent que si l'aile est sortie (`wingT` > 0,02).
+- **BANC** (navigateur du panneau, son coupé par la sauvegarde) : les 14 se bâtissent sans erreur, 0 groupe vidé ; photos de boutique des 14 ;
+  planche en COURSE (mer de nuages, midi) de chaque aile au repos puis au boost (`dbgAilesForce({ouvre:1,n:0|1})` + `dbgAilesVue`) ; vrai vol
+  (`dbgDauphin` + pilote `dbgAuto(1,0,{vol:true,nit:2})`) : les ailes en X s'ouvrent à la nitro, couché ET debout ; garage : la vitrine boost
+  toutes les 7,5 s ; menu → JOUER → course sans erreur dans le cadre de l'ordi, couché et debout ; `garde-burnout.sh` et `garde-charte.sh` OK.
+- **Crochets** : `dbgAiles(id)` (porter une aile, compter ce qui bouge), `dbgAilesForce({n, vir, mon, ouvre})` (forcer le boost, le virage, la
+  montée ; `ouvre:1` = dépliées même en roulant ; `dbgAilesForce()` rend la main), `dbgAilesVue(az, d, h)` (une image en pause, cadrée dans le
+  repère de la CAISSE : 0 = derrière), `dbgAile(id)` (la photo de boutique).
+- **À trancher par Sacha** : (1) au SOL les ailes restent rentrées (règle du 13/10, les barres à travers les vitres) — les ailes en X ne
+  s'ouvrent donc qu'au boost EN VOL ; les déplier aussi au boost sur la route serait une règle neuve. (2) Aucun SON n'a été ajouté (le « clac »
+  des ailes en X, le battement du dragon…) : la banque de sons se recuit en entier, d'autres sessions y travaillent — à faire dans une session SON.
+
 ## LE FEU DU NITRO AUX COULEURS DE LA BARRE, SUR LE FEU AFFINÉ (2026-10-16, Sacha, 15/10 13 h : « le feu du nitro est trop rouge ou trop bleu par rapport aux couleurs de la barre de nitro »)
 - Refait sur `NFEU_P10` (les 10 nuances du feu affiné de Léo) : la correction du 15/10 (branche `nitro-teinte`, f241b066) changeait `NFEU_PAL`, qui
   ne colore plus que le dragon (coupé) — retirée de la file du train le 15/10 à 23 h 08. Seules `f` (feu), `b` (réserve bleue) et `v` (infinie)

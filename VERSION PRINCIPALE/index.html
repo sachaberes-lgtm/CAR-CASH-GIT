@@ -32853,7 +32853,9 @@ function caisseSoude(){
 }
 function fusGroupe(root,exclus){ // soude par matière les pièces d'un groupe, dans SON repère (sous-groupes immobiles compris)
   const lots=new Map(),vus=[];
-  const va=(nd,M)=>{for(const c of nd.children){if(exclus.has(c))continue;c.updateMatrix();const m=new THREE.Matrix4().multiplyMatrices(M,c.matrix);
+  const va=(nd,M)=>{for(const c of nd.children){if(exclus.has(c))continue;
+    if(c.userData.bouge){if(c.isGroup)fusGroupe(c,exclus);continue;} /* (2026-10-16, LES AILES VIVANTES) CE QUI BOUGE garde ses pièces : un groupe animé (ailes en X, bras du dragon…) se soude dans SON repère, une pièce animée reste seule — avant, ses pièces partaient dans le pivot et le geste animait un groupe vide */
+    c.updateMatrix();const m=new THREE.Matrix4().multiplyMatrices(M,c.matrix);
     if(c.isMesh){if(!fusSoudable(c))continue;const k=fusCle(c);let L=lots.get(k);if(!L)lots.set(k,L=[]);L.push([c.geometry,m,c]);}
     else if(c.isGroup&&c.visible&&c.type==='Group'){vus.push(c);va(c,m);}}};
   va(root,new THREE.Matrix4());
@@ -32913,67 +32915,204 @@ function facetteCaisse(){
 }
 window.dbgFacette=function(on){if(on!=null){FACETTE.on=!!on;try{buildCar(CARS[level]);}catch(e){return e.message;}}return FACETTE.on;};
 /* ============================================================================
-   LES AILES POP (2026-10-14, même demande que LES TRAÎNÉES POP) — dix paires, chacune son DESSIN, sa matière et son GESTE.
+   LES AILES — quatorze paires, chacune son DESSIN, sa matière et son GESTE (2026-10-14 : LES AILES POP · 2026-10-16 : LES AILES VIVANTES).
    ----------------------------------------------------------------------------
    Elles se posent sur les pivots des mini-ailes (`carWingL/R` : rentrées dans le flanc au sol, dépliées en vol par `wingT`, ouvertes au
-   garage dans l'onglet AILES). Un bâtisseur par style, appelé par buildCar : (pivot, côté ±1, largeur, longueur, hauteur, bas de caisse).
-   Repère du pivot : x = vers l'EXTÉRIEUR (× côté), z = vers l'AVANT, y = le toit. Les contours se donnent À PLAT (x dehors, y = vers
-   l'ARRIÈRE) et passent par `ailForme`, qui les couche et les met en miroir du côté droit.
-   Ce qui BOUGE (battements, plans qui s'écartent en X, rouages, plumes de feu) s'inscrit dans `BLING.anim` (vidé à chaque buildCar,
-   appelé chaque image au menu, au garage et en course) et lit `wingT` : repliée, une aile ne bat pas.
-   Les textures peintes sont cuites UNE fois (`AIL_TX`) : buildCar libère les matières de l'ancienne caisse, pas leurs textures.
+   garage dans l'onglet AILES). Un bâtisseur par style, appelé par buildCar : (pivot, côté ±1, largeur, longueur, hauteur, bas de caisse,
+   matières de la caisse). Repère du pivot : x = vers l'EXTÉRIEUR (× côté), z = vers l'AVANT, y = le toit. Les contours se donnent À PLAT
+   (x dehors, y = vers l'ARRIÈRE) et passent par `ailForme`, qui les couche et les met en miroir du côté droit (`bx` = la boîte des UV :
+   une aile coupée en deux garde UNE texture).
+   Ce qui BOUGE s'inscrit dans `BLING.anim` par `ailAnime` (vidé à chaque buildCar, appelé chaque image au menu, au garage et en course) et
+   porte `userData.bouge` (`ailB`). Les textures peintes sont cuites UNE fois (`AIL_TX`) : buildCar libère les matières, pas les textures.
+
+   LES AILES VIVANTES (2026-10-16, Sacha : « retravaille les ailes, fais-leur des petites animations. Par exemple, les ailes X-Wing, quand tu
+   boostes, elles doivent s'ouvrir comme dans le vrai jeu Star Wars. Les ailes de dragon, elles doivent battre, celles de pigeon et tout.
+   Essaye de donner du détail pour chaque, prends-les une par une et apporte-leur du soin. Fais le max, qu'elles donnent toute envie d'acheter »)
+   · ⚠ CE QUI DEVAIT BOUGER NE BOUGEAIT PAS : la soudure (`caisseSoude` → `fusGroupe`, passe perf du 27/09) aspirait les pièces des groupes
+     animés dans le pivot — les AILES EN X ne s'ouvraient jamais (leurs deux plans soudés l'un sur l'autre), les os du DRAGON restaient figés
+     sous une membrane qui battait seule, le MONARQUE et le PIGEON ne battaient plus. Ce qui porte `userData.bouge` est respecté : un groupe
+     animé se soude dans SON repère, une pièce animée reste seule (voir fusGroupe). `dbgAiles(id)` compte ce qui bouge.
+   · UNE horloge et UN état pour les deux côtés (`AILV`, tenu par `ailvTick`) : chaque côté tirait son temps au hasard, la gauche et la
+     droite battaient à contretemps. AILV.n = le BOOST (nitro tenue en vol, lissé) · AILV.vir = le virage · AILV.mon = on monte (+) / plonge (−).
+   · LA VITRINE (garage, ailes ouvertes) : toutes les 7,5 s un boost de 2,6 s et un virage qui va et vient — l'acheteur VOIT le geste.
+   · LA PHOTO (boutique, inventaire) : `ailvPose` joue 1,5 s du geste, boost tenu, avant le déclic (les ailes en X y sont ouvertes) ; les
+     effets (`userData.fx` : jets, traînées, essaims) n'entrent pas dans le cadrage.
+   · Des ARTICULATIONS (`ailCoupe` coupe une membrane au poignet ; la main bat en retard sur le bras : le battement fait une VAGUE), un
+     battement vrai (`ailBat` : la poussée vers le bas rapide, la remontée lente) et des ESSAIMS de cubes de lumière (`ailEtincelles` :
+     braises, étincelles, poussière, vapeur — une passe de dessin par aile, rien d'alloué en vol).
    ========================================================================== */
 var AILES_POP=null;const AIL_TX={};
+var AILV={t:0,n:0,vir:0,mon:0,vitr:0,photo:0,force:null};
+function ailvTick(dt){if(!carWingL)return;AILV.t+=dt; // une fois par image, avant blingTick
+  const vol=mode==='fall'&&!garageOn,vitr=garageOn&&wingT>.3;AILV.vitr=vitr?1:0;
+  let nT=vol&&nitroOn?1:0,vT=vol?steer:0,mT=vol?Math.max(-1,Math.min(1,fallVel.y*.09)):0;
+  if(vitr){const c=AILV.t%7.5;nT=c>3.2&&c<5.8?1:0;vT=.75*Math.sin(AILV.t*.85);mT=.4*Math.sin(AILV.t*.5);} // LA VITRINE : le boost, le virage, la montée
+  const F=AILV.force;if(F){if(F.n!=null)nT=F.n;if(F.vir!=null)vT=F.vir;if(F.mon!=null)mT=F.mon;} // (banc) dbgAilesForce
+  AILV.n+=(nT-AILV.n)*Math.min(1,dt*(nT>AILV.n?9:2.6));AILV.vir+=(vT-AILV.vir)*Math.min(1,dt*5);AILV.mon+=(mT-AILV.mon)*Math.min(1,dt*2.5);}
+function ailvPose(){ // LA PHOTO : 1,5 s du geste, boost tenu, ailes dépliées — puis tout revient comme avant
+  if(!BLING.anim.length)return;const s=[AILV.t,AILV.n,AILV.vir,AILV.mon,AILV.photo],w9=wingT;
+  AILV.photo=1;AILV.n=1;AILV.vir=0;AILV.mon=.3;wingT=1;
+  try{for(let k=0;k<45;k++){AILV.t+=1/30;for(const f of BLING.anim)f(1/30);}}catch(e){}
+  wingT=w9;AILV.t=s[0];AILV.n=s[1];AILV.vir=s[2];AILV.mon=s[3];AILV.photo=s[4];}
 function ailTex(nom,f,w,h){if(AIL_TX[nom])return AIL_TX[nom];const cv=document.createElement('canvas');cv.width=w||256;cv.height=h||256;f(cv.getContext('2d'),cv.width,cv.height);
   const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return AIL_TX[nom]=t;}
-function ailUV(g){const uv=g.attributes.uv;if(!uv)return g;let a=1e9,b=1e9,c=-1e9,d=-1e9; // les UV d'un contour = ses coordonnées : on les ramène à 0..1 sur sa boîte
-  for(let i=0;i<uv.count;i++){const u=uv.getX(i),v=uv.getY(i);if(u<a)a=u;if(v<b)b=v;if(u>c)c=u;if(v>d)d=v;}
+function ailUV(g,bx){const uv=g.attributes.uv;if(!uv)return g;let a=1e9,b=1e9,c=-1e9,d=-1e9; // les UV d'un contour = ses coordonnées : on les ramène à 0..1 sur sa boîte (ou sur `bx`)
+  if(bx){a=bx[0];b=bx[1];c=bx[2];d=bx[3];}else for(let i=0;i<uv.count;i++){const u=uv.getX(i),v=uv.getY(i);if(u<a)a=u;if(v<b)b=v;if(u>c)c=u;if(v>d)d=v;}
   for(let i=0;i<uv.count;i++)uv.setXY(i,(uv.getX(i)-a)/((c-a)||1),(uv.getY(i)-b)/((d-b)||1));return g;}
-function ailForme(sh,sd,ep){ // un contour (Shape, ou liste [x dehors, y arrière]) → la plaque couchée, en miroir à droite ; `ep` = son épaisseur
+function ailForme(sh,sd,ep,bx){ // un contour (Shape, ou liste [x dehors, y arrière]) → la plaque couchée, en miroir à droite ; `ep` = son épaisseur ; `bx` = la boîte des UV
   if(Array.isArray(sh)){const s=new THREE.Shape();s.moveTo(sh[0][0],sh[0][1]);for(let i=1;i<sh.length;i++)s.lineTo(sh[i][0],sh[i][1]);sh=s;}
   const g=ep?new THREE.ExtrudeGeometry(sh,{depth:ep,bevelEnabled:false,curveSegments:10}):new THREE.ShapeGeometry(sh,10);
-  ailUV(g);g.rotateX(-Math.PI/2);if(ep)g.translate(0,-ep/2,0);if(sd<0)g.scale(-1,1,1);g.computeVertexNormals();return g;}
+  ailUV(g,bx);g.rotateX(-Math.PI/2);if(ep)g.translate(0,-ep/2,0);if(sd<0)g.scale(-1,1,1);g.computeVertexNormals();return g;}
 function ailMat(o){return new THREE.MeshPhongMaterial(Object.assign({side:THREE.DoubleSide,shininess:40,specular:0x444444},o));}
 function ailTige(par,mat,r,a,b,r2){const d=new THREE.Vector3().subVectors(b,a),l=d.length(),m=new THREE.Mesh(new THREE.CylinderGeometry(r2==null?r:r2,r,l,6),mat); // une tige de a à b (r au pied, r2 en tête)
   m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());par.add(m);return m;}
-function ailAnime(f){if(typeof BLING!=='object'||!BLING||!BLING.anim)return;let t=Math.random()*10;BLING.anim.push(function(dt){t+=dt||0;f(t,wingT);});}
+function ailPointe(par,mat,r,h,p,d){const u=d.clone().normalize(),m=new THREE.Mesh(new THREE.ConeGeometry(r,h,6),mat); // une griffe, une épine : la base en p, la pointe vers d
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),u);m.position.copy(p).addScaledVector(u,h/2);par.add(m);return m;}
+function ailB(o){o.userData.bouge=1;return o;} // ÇA BOUGE : la soudure le laisse à sa place (voir fusGroupe)
+function ailBat(p){p-=Math.floor(p);return p<.42?Math.cos(p/.42*Math.PI):-Math.cos((p-.42)/.58*Math.PI);} // 1 = en haut, −1 = en bas : la poussée (la descente) prend 42 % du cycle
+function ailQuad(L,a,c,b,n){for(let i=1;i<=n;i++){const u=i/n,v=1-u;L.push([v*v*a[0]+2*v*u*c[0]+u*u*b[0],v*v*a[1]+2*v*u*c[1]+u*u*b[1]]);}return L;} // une courbe → des points (a exclu)
+function ailCoupe(P,xc,cote){ // un contour coupé par la droite x = xc : cote > 0 garde x ≥ xc (la MAIN), cote < 0 garde x ≤ xc (le BRAS)
+  const o=[],n=P.length,de=function(p){return cote>0?p[0]>=xc-1e-9:p[0]<=xc+1e-9;},pu=function(p){const q=o[o.length-1];if(!q||Math.abs(q[0]-p[0])+Math.abs(q[1]-p[1])>1e-6)o.push(p);};
+  for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n],ia=de(a),ib=de(b);if(ia)pu(a);
+    if(ia!==ib){const k=(xc-a[0])/(b[0]-a[0]);pu([xc,a[1]+(b[1]-a[1])*k]);}}
+  if(o.length>2&&Math.abs(o[0][0]-o[o.length-1][0])+Math.abs(o[0][1]-o[o.length-1][1])<1e-6)o.pop();return o;}
+function ailRz(v,a){const c=Math.cos(a),s=Math.sin(a),x=v.x*c-v.y*s;v.y=v.x*s+v.y*c;v.x=x;return v;} // un point tourné comme un groupe (rotation.z, puis .y)
+function ailRy(v,a){const c=Math.cos(a),s=Math.sin(a),x=v.x*c+v.z*s;v.z=-v.x*s+v.z*c;v.x=x;return v;}
+function ailAnime(f){if(typeof BLING!=='object'||!BLING||!BLING.anim)return; // (le temps est COMMUN aux deux côtés : AILV.t)
+  BLING.anim.push(function(dt){if(wingT<.02&&!AILV.photo)return;f(AILV.t,wingT,Math.min(dt||0,.05));});}
+function ailEtincelles(par,n,taille,col,o){ // un ESSAIM de cubes de lumière : `pousse(x,y,z, vx,vy,vz, vie, taille)` en fait naître un, `pas(dt, g, frein)` les fait vivre
+  o=o||{};const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:o.op||1,blending:o.normal?THREE.NormalBlending:THREE.AdditiveBlending,depthWrite:false}),
+    im=new THREE.InstancedMesh(new THREE.BoxGeometry(taille,taille,taille),mat,n);im.frustumCulled=false;im.userData.bouge=1;im.userData.fx=1;par.add(im);
+  const P=[],Z=new THREE.Matrix4().makeScale(0,0,0),m4=new THREE.Matrix4(),q=new THREE.Quaternion(),eu=new THREE.Euler(),v=new THREE.Vector3(),sc=new THREE.Vector3();let j=0,vif=0;
+  for(let i=0;i<n;i++){P.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,a:1,l:1,s:0,r:0});im.setMatrixAt(i,Z);}
+  return {im:im,mat:mat,
+    pousse:function(x,y,z,vx,vy,vz,l,s){const p=P[j];j=(j+1)%n;p.x=x;p.y=y;p.z=z;p.vx=vx;p.vy=vy;p.vz=vz;p.a=0;p.l=l;p.s=s;p.r=Math.random()*6.28;vif=1;},
+    pas:function(dt,g,fr){if(!vif)return;let nv=0;const f=Math.exp(-(fr||1.5)*dt);
+      for(let i=0;i<n;i++){const p=P[i];if(p.a>=p.l)continue;p.a+=dt;if(p.a>=p.l){im.setMatrixAt(i,Z);continue;}nv++;
+        p.vx*=f;p.vy=p.vy*f+(g||0)*dt;p.vz*=f;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
+        const u=p.a/p.l;let s=o.grow?p.s*(.35+u)*(1-u*u*u):p.s*(1-u);if(o.tw)s*=.55+.45*Math.sin(p.a*26+p.r*3); // la vapeur GONFLE, la poussière de fée SCINTILLE
+        eu.set(p.r+p.a*4,p.r*1.3+p.a*3,0);q.setFromEuler(eu);m4.compose(v.set(p.x,p.y,p.z),q,sc.set(s,s,s));im.setMatrixAt(i,m4);}
+      im.instanceMatrix.needsUpdate=true;if(!nv)vif=0;}};}
 AILES_POP={
-  xwing:function(piv,sd,W9){ // AILES EN X — deux plans par côté, canon au bout, réacteur à l'emplanture ; dépliés, ils s'écartent en X
-    const S=W9*.98,coque=ailMat({color:0xe8e4da,shininess:70,specular:0x8a8a8a}),rouge=ailMat({color:0xc42a22,shininess:50}),
-      gris=ailMat({color:0x4a4f58,shininess:90,specular:0x999999}),feu=new THREE.MeshBasicMaterial({color:new THREE.Color(2.2,.75,.4),side:THREE.DoubleSide});
-    const plans=[];
-    for(const sg of [1,-1]){const g=new THREE.Group();g.position.y=sg*.035;piv.add(g);plans.push([g,sg]);
+  panneaux:function(piv,sd,W9,L9,H9,y0,M){ // PANNEAUX (offertes) — les planches d'origine en vrai profil : flèche, SAUMON relevé à la couleur de la caisse,
+    // un AILERON qui suit le virage (un côté monte, l'autre descend), les FEUX DE POSITION d'un avion (rouge à gauche, vert à droite) et
+    // l'éclat blanc qui clignote deux fois ; au boost, deux TRAÎNÉES DE CONDENSATION sortent des saumons
+    const S=W9*.92,C=L9*.32,acc=M.acc,body=M.body;
+    piv.add(new THREE.Mesh(ailForme([[0,-C*.48],[S*.8,-C*.4],[S,-C*.3],[S,C*.08],[S*.96,C*.12],[S*.42,C*.12],[S*.42,C*.36],[0,C*.36]],sd,.05),acc));
+    const ai=ailB(new THREE.Group());ai.position.set(sd*S*.69,0,-C*.12);piv.add(ai); // l'aileron, sur sa charnière
+    const ap=new THREE.Mesh(new THREE.BoxGeometry(S*.5,.03,C*.22),body);ap.position.z=-C*.11;ai.add(ap);
+    const wl=new THREE.Group();wl.position.set(sd*S,0,0);wl.rotation.z=-sd*.2;piv.add(wl);  // le saumon, penché vers le dehors
+    const sw=new THREE.Shape();sw.moveTo(-C*.3,0);sw.lineTo(C*.08,0);sw.lineTo(C*.02,.24);sw.lineTo(-C*.16,.26);sw.lineTo(-C*.3,0);
+    const gw=new THREE.ExtrudeGeometry(sw,{depth:.035,bevelEnabled:false});gw.rotateY(Math.PI/2);gw.translate(-.0175,0,0);gw.computeVertexNormals();wl.add(new THREE.Mesh(gw,body));
+    const nav=new THREE.Mesh(new THREE.BoxGeometry(.05,.05,.07),new THREE.MeshBasicMaterial({color:sd>0?new THREE.Color(2.4,.28,.22):new THREE.Color(.3,2.2,.7)}));nav.position.set(0,.25,C*.14);wl.add(nav);
+    const st=ailB(new THREE.Mesh(new THREE.BoxGeometry(.045,.045,.045),new THREE.MeshBasicMaterial({color:new THREE.Color(3,3,3)})));st.position.set(0,.27,-C*.03);wl.add(st);
+    const gt=new THREE.CylinderGeometry(.03,.006,1,6,1,true);gt.translate(0,-.5,0);gt.rotateX(Math.PI/2); // la traînée : de 0 à −1 en z, qui s'efface vers la queue
+    {const ps=gt.attributes.position,cl=new Float32Array(ps.count*3);for(let i=0;i<ps.count;i++){const k=Math.pow(1+ps.getZ(i),2.2)*.8;cl[i*3]=cl[i*3+1]=cl[i*3+2]=k;}gt.setAttribute('color',new THREE.BufferAttribute(cl,3));}
+    const trM=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    const tr=ailB(new THREE.Mesh(gt,trM));tr.userData.fx=1;tr.position.set(sd*(S+.05),.25,-C*.05);tr.scale.z=.001;piv.add(tr);
+    ailAnime(function(t,e){ai.rotation.x=(.55*AILV.vir*sd-.15*AILV.mon)*e;
+      const s=t%1.4;st.scale.setScalar(s<.05||(s>.16&&s<.21)?1:.001);                       // l'éclat : deux flashs, comme un avion de ligne
+      const k=AILV.n;tr.visible=!AILV.photo;tr.scale.z=.001+2.8*k;trM.opacity=.3*k;});}, // (la traînée est un effet de VOL : pas sur la photo)
+  xwing:function(piv,sd,W9){ // AILES EN X — EN CROISIÈRE les deux plans sont l'un sur l'autre ; dès qu'on BOOSTE, la mécanique se déverrouille (un temps),
+    // ils s'écartent en X d'un coup sec, rebondissent et se VERROUILLENT en position d'attaque (un frisson) ; les canons s'arment (pointes
+    // rouges qui battent), les quatre réacteurs rugissent (tuyères chauffées à blanc et jet de lumière). On relâche : ils se referment, après un temps.
+    const S=W9*.98,tex=ailTex('xwing',function(x,w,h){x.fillStyle='#d6d2c6';x.fillRect(0,0,w,h);
+        for(let i=0;i<700;i++){x.fillStyle='rgba(90,84,72,'+(Math.random()*.1)+')';x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*4,1);} // la patine
+        x.strokeStyle='rgba(80,76,68,.85)';x.lineWidth=1.5;for(const u of [.2,.45,.68,.86]){x.beginPath();x.moveTo(u*w,0);x.lineTo(u*w,h);x.stroke();} // les panneaux
+        for(const v of [.28,.86]){x.beginPath();x.moveTo(0,v*h);x.lineTo(w,v*h);x.stroke();}
+        x.fillStyle='rgba(70,68,62,.55)';for(let u=.03;u<1;u+=.04){x.fillRect(u*w,.28*h-1,1.6,1.6);x.fillRect(u*w,.86*h-1,1.6,1.6);} // les rivets
+        x.fillStyle='#b01d16';x.fillRect(0,.42*h,.6*w,.1*h);x.fillRect(0,.6*h,.46*w,.1*h);                       // les BANDES ROUGES de l'escadron
+        x.fillStyle='rgba(150,30,25,.9)';x.fillRect(.78*w,.12*h,.07*w,.07*h);x.fillRect(.78*w,.22*h,.07*w,.07*h);        // deux trappes
+        let g=x.createLinearGradient(0,0,0,.35*h);g.addColorStop(0,'rgba(30,24,20,.45)');g.addColorStop(1,'rgba(30,24,20,0)');x.fillStyle=g;x.fillRect(0,0,.28*w,.35*h); // la suie du réacteur
+        g=x.createLinearGradient(w,0,.8*w,0);g.addColorStop(0,'rgba(30,24,20,.5)');g.addColorStop(1,'rgba(30,24,20,0)');x.fillStyle=g;x.fillRect(.8*w,0,.2*w,h); // celle du canon
+        x.strokeStyle='rgba(60,55,50,.35)';for(let i=0;i<14;i++){const a=Math.random()*w,b=Math.random()*h;x.beginPath();x.moveTo(a,b);x.lineTo(a+6+Math.random()*16,b+(Math.random()-.5)*4);x.stroke();} // les éraflures
+      },256,128),
+      coque=ailMat({map:tex,shininess:45,specular:0x555555}),gris=ailMat({color:0x4a4f58,shininess:90,specular:0x999999}),sombre=ailMat({color:0x17191d,shininess:20}),
+      feu=new THREE.MeshBasicMaterial({color:new THREE.Color(2.4,.62,.5),side:THREE.DoubleSide}),arme=new THREE.MeshBasicMaterial({color:new THREE.Color(.5,.06,.05)}),
+      jetM=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    const gj=new THREE.ConeGeometry(.1,1,10,1,true);gj.translate(0,.5,0);gj.rotateX(-Math.PI/2); // le jet : sa base sur la tuyère, sa pointe vers l'arrière, qui s'efface
+    {const ps=gj.attributes.position,cl=new Float32Array(ps.count*3);for(let i=0;i<ps.count;i++){const k=Math.pow(Math.max(0,1+ps.getZ(i)),1.5);cl[i*3]=1.6*k;cl[i*3+1]=.5*k;cl[i*3+2]=.45*k;}gj.setAttribute('color',new THREE.BufferAttribute(cl,3));}
+    const plans=[],jets=[];
+    for(const sg of [1,-1]){const g=ailB(new THREE.Group());g.position.y=sg*.035;piv.add(g);plans.push([g,sg]);
       g.add(new THREE.Mesh(ailForme([[0,-.42],[S,-.12],[S,.2],[S*.62,.36],[0,.48]],sd,.045),coque));
-      for(const q of [[.45,.55,-.04],[.38,.4,.13]]){const b=new THREE.Mesh(new THREE.BoxGeometry(S*q[1],.012,.08),rouge);b.position.set(sd*S*q[0],.029,q[2]);g.add(b);} // les bandes rouges
-      const cn=new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,1.3,8),gris);cn.rotation.x=Math.PI/2;cn.position.set(sd*S,0,.2);g.add(cn);   // le CANON
-      const cb=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.45,8),gris);cb.rotation.x=Math.PI/2;cb.position.set(sd*S,0,-.08);g.add(cb);
-      const re=new THREE.Mesh(new THREE.CylinderGeometry(.13,.15,.95,12),gris);re.rotation.x=Math.PI/2;re.position.set(sd*.24,sg*.06,.05);g.add(re); // le RÉACTEUR
-      const fe=new THREE.Mesh(new THREE.CircleGeometry(.11,14),feu);fe.position.set(sd*.24,sg*.06,-.431);fe.rotation.y=Math.PI;g.add(fe);}
-    ailAnime(function(t,e){const x=Math.max(0,Math.min(1,(e-.45)/.55)),a=.03+.27*x*x*(3-2*x); // « verrouillez les ailes en position d'attaque »
-      for(const q of plans)q[0].rotation.z=sd*q[1]*a;
-      feu.color.setRGB(2.2,.75,.4).multiplyScalar(.75+.25*Math.sin(t*31)+(nitroOn?.5:0));});}, // les tuyères battent, et flambent à la nitro
-  baron:function(piv,sd,W9){ // BARON ROUGE — un biplan : deux plans de toile rouge, des nervures crème, des mâts de bois et des haubans en croix
-    const S=W9*1.02,toile=ailMat({color:0xb5181c,shininess:18,specular:0x2a1010}),cote=ailMat({color:0xead8b8,shininess:8}),bois=ailMat({color:0x5a3a1e,shininess:20}),fil=ailMat({color:0x1d1d1d,shininess:60});
-    const plan=function(y,k){const m=new THREE.Mesh(ailForme([[0,-.36],[S*.9*k,-.36],[S*k,-.27],[S*k,.27],[S*.9*k,.36],[0,.36]],sd,.06),toile);m.position.y=y;piv.add(m);
-      for(let i=1;i<=6;i++){const n=new THREE.Mesh(new THREE.BoxGeometry(.03,.012,.7),cote);n.position.set(sd*S*k*i/6.5,y+.036,0);piv.add(n);}};
-    plan(.38,1);plan(-.02,.94);
+      const cn=new THREE.Mesh(new THREE.CylinderGeometry(.026,.026,1.3,8),gris);cn.rotation.x=Math.PI/2;cn.position.set(sd*S,0,.2);g.add(cn);    // le CANON : le fût,
+      const cb=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.45,8),gris);cb.rotation.x=Math.PI/2;cb.position.set(sd*S,0,-.08);g.add(cb);  // le manchon,
+      const cf=new THREE.Mesh(new THREE.CylinderGeometry(.044,.044,.15,8),sombre);cf.rotation.x=Math.PI/2;cf.position.set(sd*S,0,.86);g.add(cf); // le cache-flamme
+      const pt=new THREE.Mesh(new THREE.CylinderGeometry(.016,.03,.07,8),arme);pt.rotation.x=Math.PI/2;pt.position.set(sd*S,0,.965);g.add(pt);   // et la pointe qui s'ARME
+      const re=new THREE.Mesh(new THREE.CylinderGeometry(.13,.15,.95,12),gris);re.rotation.x=Math.PI/2;re.position.set(sd*.24,sg*.06,.05);g.add(re); // le RÉACTEUR :
+      const ea=new THREE.Mesh(new THREE.CircleGeometry(.108,14),sombre);ea.position.set(sd*.24,sg*.06,.527);g.add(ea);                                // l'entrée d'air,
+      const lv=new THREE.Mesh(new THREE.TorusGeometry(.12,.02,6,16),gris);lv.position.set(sd*.24,sg*.06,.53);g.add(lv);                              // sa lèvre,
+      const fe=new THREE.Mesh(new THREE.CircleGeometry(.11,14),feu);fe.position.set(sd*.24,sg*.06,-.431);fe.rotation.y=Math.PI;g.add(fe);         // la tuyère
+      const jt=ailB(new THREE.Mesh(gj,jetM));jt.userData.fx=1;jt.position.set(sd*.24,sg*.06,-.44);jt.scale.z=.25;g.add(jt);jets.push(jt);}        // et son jet
+    let x=0,v=0,veut=0,tv=9,cib=0,clac=0;
+    ailAnime(function(t,e,dt){const n=AILV.n;
+      if(n>.55&&!veut){veut=1;tv=0;}else if(n<.2&&veut){veut=0;tv=0;}tv+=dt;
+      if(veut&&tv>.08)cib=1;else if(!veut&&tv>.45)cib=0;                                    // la mécanique : un temps pour s'ouvrir, un temps avant de se refermer
+      const x0=x;v+=((cib-x)*170-v*13)*dt;x=Math.max(-.08,Math.min(1.2,x+v*dt));           // le ressort : sec, avec un petit rebond
+      if(x0<.97&&x>=.97&&cib)clac=1;clac=Math.max(0,clac-dt*6);                             // le VERROU : un frisson quand les plans arrivent
+      const a=(.015+.29*x+clac*.03*Math.sin(t*95))*e;for(const q of plans)q[0].rotation.z=sd*q[1]*a;
+      const ar=Math.max(0,Math.min(1,x));arme.color.setRGB(.5+2.3*ar*(.7+.3*Math.sin(t*14)),.06+.3*ar,.05+.22*ar); // les canons armés
+      const k=.72+.14*Math.sin(t*31)+1.1*n;feu.color.setRGB(2.4*k,.62*k,.5*k);
+      const L=.25+1.3*n+.07*Math.sin(t*40);for(const j of jets)j.scale.z=L;jetM.opacity=.22+.6*n;});},
+  baron:function(piv,sd,W9){ // BARON ROUGE — un biplan de toile rouge entoilée (nervures, coutures, une pièce rapiécée, des taches d'huile), des mâts de bois,
+    // des haubans en croix, les AILERONS qui suivent le virage et L'ÉCHARPE DU PILOTE nouée au mât, qui claque au vent (fort au boost)
+    const S=W9*1.02,tex=ailTex('baron',function(x,w,h){x.fillStyle='#b5181c';x.fillRect(0,0,w,h);
+        for(let i=0;i<900;i++){x.fillStyle='rgba('+(Math.random()<.5?'60,0,0':'255,90,80')+','+(Math.random()*.06)+')';x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*3,1);} // le lin enduit
+        for(let i=1;i<7;i++){const u=i/6.5*w;x.fillStyle='rgba(255,120,110,.28)';x.fillRect(u-3,0,6,h);x.fillStyle='rgba(80,0,0,.5)';for(let y=2;y<h;y+=5)x.fillRect(u-.5,y,1,2);} // les bandes des nervures, cousues
+        x.fillStyle='rgba(60,0,0,.35)';x.fillRect(0,0,w,.1*h);x.fillRect(0,.9*h,w,.1*h);                         // les bords d'attaque et de fuite
+        x.fillStyle='#c62a2c';x.fillRect(.62*w,.38*h,.12*w,.2*h);x.strokeStyle='rgba(240,220,190,.7)';x.setLineDash([2,2]);x.strokeRect(.62*w,.38*h,.12*w,.2*h);x.setLineDash([]); // la pièce rapiécée
+        for(let i=0;i<6;i++){x.fillStyle='rgba(40,20,5,'+(.12+Math.random()*.15)+')';x.beginPath();x.arc(.05*w+Math.random()*.2*w,.2*h+Math.random()*.6*h,3+Math.random()*7,0,Math.PI*2);x.fill();} // l'huile de ricin
+      },256,128),
+      toile=ailMat({map:tex,shininess:18,specular:0x2a1010}),cote=ailMat({color:0xead8b8,shininess:8}),bois=ailMat({color:0x5a3a1e,shininess:20}),fil=ailMat({color:0x1d1d1d,shininess:60}),
+      soie=ailMat({color:0xf4ecd8,shininess:50,specular:0x666666});
+    const plan=function(y,k,P,ec){const m=new THREE.Mesh(ailForme(P,sd,.06),toile);m.position.y=y;piv.add(m);
+      for(let i=1;i<=6;i++){const c9=ec&&i>=4,n=new THREE.Mesh(new THREE.BoxGeometry(.03,.012,c9?.55:.7),cote);n.position.set(sd*S*k*i/6.5,y+.036,c9?.075:0);piv.add(n);}}; // (les nervures s'arrêtent avant l'aileron)
+    plan(.38,1,[[0,-.36],[S*.9,-.36],[S,-.27],[S,.12],[S*.97,.2],[S*.55,.2],[S*.55,.36],[0,.36]],1);          // le plan du haut, échancré pour ses ailerons
+    plan(-.02,.94,[[0,-.36],[S*.85,-.36],[S*.94,-.27],[S*.94,.27],[S*.85,.36],[0,.36]]);
+    const ai=ailB(new THREE.Group());ai.position.set(sd*S*.76,.38,-.2);piv.add(ai);                       // l'aileron, sur sa charnière
+    const am=new THREE.Mesh(new THREE.BoxGeometry(S*.42,.045,.16),toile);am.position.z=-.08;ai.add(am);
     const A=new THREE.Vector3(),B=new THREE.Vector3();
     for(const fx of [.5,.9])for(const fz of [-.24,.24])ailTige(piv,bois,.024,A.set(sd*S*fx,-.02,fz),B.set(sd*S*fx,.38,fz)); // les mâts
     for(const fz of [-.24,.24]){ailTige(piv,fil,.006,A.set(sd*S*.5,-.02,fz),B.set(sd*S*.9,.38,fz));ailTige(piv,fil,.006,A.set(sd*S*.5,.38,fz),B.set(sd*S*.9,-.02,fz));} // les haubans
-    ailAnime(function(t,e){piv.rotation.x=nitroOn?Math.sin(t*26)*.012*e:0;});}, // la toile vibre sous la poussée
-  monarque:function(piv,sd,W9){ // MONARQUE — deux lobes de papillon : le bord NOIR, l'orange rentré, les nervures, les points blancs ; ils BATTENT
-    const K=W9*.58,noir=ailMat({color:0x120d10,shininess:30,specular:0x332233}),
-      oran=ailMat({color:0xff7a12,emissive:0x5a1c00,emissiveIntensity:.6,shininess:30}),blanc=new THREE.MeshBasicMaterial({color:0xfff6e8,side:THREE.DoubleSide});
-    const g=new THREE.Group();piv.add(g);const A=new THREE.Vector3(),B=new THREE.Vector3();
-    const lobe=function(P,r0,yo){const R=r0*K,Q=P.map(function(p){return [p[0]*K,p[1]*K];}),I=Q.map(function(p){return [p[0]*.84,R+(p[1]-R)*.84];});
-      const n=new THREE.Mesh(ailForme(Q,sd),noir);n.position.y=yo;g.add(n);const o=new THREE.Mesh(ailForme(I,sd),oran);o.position.y=yo+.012;g.add(o);
-      for(let i=1;i<I.length-1;i++)ailTige(g,noir,.011,A.set(0,yo+.02,-R),B.set(sd*I[i][0]*.97,yo+.02,-(R+(I[i][1]-R)*.97))); // les nervures
-      for(let i=0;i<Q.length-1;i++){const a=Q[i],b=Q[i+1];if(a[0]<.05*K&&b[0]<.05*K)continue;const mx=(a[0]+b[0])*.5,my=(a[1]+b[1])*.5; // les points blancs du bord
-        const d=new THREE.Mesh(new THREE.CircleGeometry(.028,8),blanc);d.rotation.x=-Math.PI/2;d.position.set(sd*mx*.92,yo+.02,-(R+(my-R)*.92));g.add(d);}};
-    lobe([[0,-.05],[.3,-.32],[.75,-.5],[1.2,-.52],[1.5,-.4],[1.55,-.15],[1.3,.12],[.8,.22],[.3,.22],[0,.18]],.06,0);
-    lobe([[0,.18],[.45,.2],[.85,.35],[1.05,.6],[.95,.9],[.62,1.05],[.3,.95],[.1,.7],[0,.45]],.3,-.008);
-    ailAnime(function(t,e){g.rotation.z=sd*(.08+.55*(.5+.5*Math.sin(t*5.5)))*e;});},
-  dragon:function(piv,sd,W9){ // DRAGON — l'avant-bras, quatre doigts, une membrane festonnée veinée de LAVE ; elles battent lentement
+    const nd=new THREE.Mesh(new THREE.SphereGeometry(.04,6,4),soie);nd.position.set(sd*S*.9,.3,.24);piv.add(nd); // le nœud
+    const ech=[],Le=.15;let par=piv;                                                                       // L'ÉCHARPE : sept pans en chaîne
+    for(let i=0;i<7;i++){const g=ailB(new THREE.Group());if(i)g.position.z=-Le;else g.position.set(sd*S*.9,.3,.24);par.add(g);
+      const ge=new THREE.PlaneGeometry(Le,.1*(1-i*.06));ge.translate(Le/2,0,0);ge.rotateY(Math.PI/2);g.add(new THREE.Mesh(ge,soie));ech.push(g);par=g;}
+    ailAnime(function(t,e){const n=AILV.n;piv.rotation.x=n*Math.sin(t*26)*.012*e;                       // la toile vibre sous la poussée
+      ai.rotation.x=.5*AILV.vir*sd*e;
+      const w=11+9*n,am9=(.32+.4*n)*e;ech[0].rotation.x=-.18*(1-.6*n)*e;
+      for(let i=0;i<ech.length;i++){ech[i].rotation.y=am9*(.3+.09*i)*Math.sin(t*w-i*.9);if(i)ech[i].rotation.x=am9*.35*Math.sin(t*w*.7-i*.7+1);}});},
+  monarque:function(piv,sd,W9){ // MONARQUE — le vrai dessin : cellules orange, nervures noires, bord noir semé de DEUX rangs de points blancs, l'apex noir taché ;
+    // l'aile de devant et celle de derrière battent ensemble (l'arrière un rien en retard), la pointe avance à la descente ; le papillon bat…
+    // puis PLANE ailes relevées en V, et rebat ; les écailles accrochent la lumière à chaque coup
+    const K=W9*.58,g=ailB(new THREE.Group()),h=ailB(new THREE.Group());piv.add(g);piv.add(h);
+    const lisse=function(P){const s=new THREE.Shape();s.moveTo(P[0][0]*K,P[0][1]*K);s.splineThru(P.slice(1).concat([P[0]]).map(function(p){return new THREE.Vector2(p[0]*K,p[1]*K);}));return s;};
+    const aile=function(nom,P,R,apex,yo,par){const sh=lisse(P),pts=sh.getPoints(8),bx=[1e9,1e9,-1e9,-1e9];
+      for(const p of pts){bx[0]=Math.min(bx[0],p.x);bx[1]=Math.min(bx[1],p.y);bx[2]=Math.max(bx[2],p.x);bx[3]=Math.max(bx[3],p.y);}
+      const tex=ailTex(nom,function(x,w,h){const X=function(px,py){return [(px-bx[0])/(bx[2]-bx[0])*w,(1-(py-bx[1])/(bx[3]-bx[1]))*h];},Rk=R*K,
+          ins=function(p,k){return [p.x*k,Rk+(p.y-Rk)*k];},chemin=function(k){x.beginPath();pts.forEach(function(p,i){const q=ins(p,k),c=X(q[0],q[1]);if(i)x.lineTo(c[0],c[1]);else x.moveTo(c[0],c[1]);});x.closePath();};
+        x.fillStyle='#120b0c';x.fillRect(0,0,w,h);
+        const o=X(0,Rk),gr=x.createRadialGradient(o[0],o[1],4,o[0],o[1],w*.9);gr.addColorStop(0,'#b63e06');gr.addColorStop(.45,'#e8620c');gr.addColorStop(1,'#f88a1e');
+        chemin(.82);x.fillStyle=gr;x.fill();                                                                    // les cellules ORANGE
+        x.strokeStyle='#120b0c';x.lineCap='round';x.lineWidth=w*.024;
+        for(let i=Math.round(pts.length*.08);i<pts.length*.92;i+=Math.round(pts.length/8)){const q=ins(pts[i],.86),c=X(q[0],q[1]);x.beginPath();x.moveTo(o[0],o[1]);x.quadraticCurveTo((o[0]+c[0])*.5+w*.03,(o[1]+c[1])*.5,c[0],c[1]);x.stroke();} // les nervures
+        x.lineWidth=w*.016;chemin(.42);x.stroke();                                                             // la cellule discale
+        for(const r of [[.93,.017],[.88,.011]])for(let i=0;i<pts.length;i+=2){const q=ins(pts[i],r[0]),c=X(q[0],q[1]);if(q[0]<.06*K)continue;
+          x.fillStyle='#fff6e6';x.beginPath();x.arc(c[0],c[1],w*r[1],0,Math.PI*2);x.fill();}                  // DEUX rangs de points blancs dans le bord noir
+        if(apex){let m=pts[0];for(const p of pts)if(p.x>m.x)m=p;for(let i=0;i<5;i++){const q=ins(m,.78-i*.06),c=X(q[0],q[1]-(i-2)*.05*K);x.fillStyle=i%2?'#ffd29a':'#fff6e6';
+          x.beginPath();x.arc(c[0],c[1],w*.024,0,Math.PI*2);x.fill();}}},256,256);                            // les taches de l'apex
+      const m=new THREE.Mesh(ailForme(sh,sd,0,[bx[0],bx[1],bx[2],bx[3]]),mat(tex));m.position.y=yo;par.add(m);return m;};
+    const MT=[],mat=function(tex){const m=ailMat({map:tex,emissiveMap:tex,emissive:0xc04a00,emissiveIntensity:.55,shininess:24,specular:0x221a1a});MT.push(m);return m;};
+    aile('monarqueA',[[0,-.05],[.3,-.32],[.75,-.5],[1.2,-.52],[1.5,-.4],[1.55,-.15],[1.3,.12],[.8,.22],[.3,.22],[0,.18]],.06,1,0,g);
+    aile('monarqueP',[[0,.18],[.45,.2],[.85,.35],[1.05,.6],[.95,.9],[.62,1.05],[.3,.95],[.1,.7],[0,.45]],.3,0,-.008,h);
+    let ph=0;
+    ailAnime(function(t,e,dt){const n=AILV.n,c=(t*.37)%1,pl=n<.3&&!AILV.photo&&c>.76?Math.min(1,(c-.76)/.05,(1-c)/.05):0; // de temps en temps il PLANE
+      ph+=dt*(2.3+1.9*n+.5*Math.max(0,AILV.mon))*(1-pl);const P=AILV.photo,b=P?-.3:ailBat(ph),bh=P?-.25:ailBat(ph-.06);
+      g.rotation.z=sd*((.42+.56*b)*(1-pl)+.5*pl)*e;h.rotation.z=sd*((.42+.56*bh)*(1-pl)+.46*pl)*e;
+      g.rotation.y=sd*.1*b*e;const em=.45+.3*Math.max(0,-b)+.35*n;for(const m of MT)m.emissiveIntensity=em;});},
+  dragon:function(piv,sd,W9){ // DRAGON — l'avant-bras et la MAIN articulés au poignet (la membrane est coupée là) : la main bat en retard sur le bras, l'aile
+    // fait une vague ; quatre doigts griffus, des épines, la griffe du pouce ; les veines de LAVE rougeoient au bas de chaque coup ; au boost les coups
+    // redoublent, la lave flambe et des BRAISES s'arrachent du bord de fuite
     const S=W9*1.22,Sy=S*.62,Y0=-.35,Y1=1, // le contour en unités (x de 0 à 1, y de Y0 à Y1) : la texture se dessine dans la même boîte
       C=function(X,Y,w,h){return [X*w,(1-(Y-Y0)/(Y1-Y0))*h];},
       TIP=[[1,-.18],[.93,.52],[.68,.92],[.36,1]],CR=[[.78,.12],[.66,.5],[.47,.68],[.22,.64]],W=[.5,-.35];
@@ -32989,46 +33128,93 @@ AILES_POP={
       veines(x,w,h,'rgba(20,3,4,.85)',5);},256,256);
     const lum=ailTex('dragonL',function(x,w,h){x.fillStyle='#000';x.fillRect(0,0,w,h);x.shadowColor='#ff4a00';x.shadowBlur=10;veines(x,w,h,'#ff7a1a',2.6); // les veines de LAVE (carte d'émission)
       x.shadowBlur=14;trace(x,w,h);x.strokeStyle='#ff5a10';x.lineWidth=5;x.stroke();},256,256);                                                     // et le bord qui couve
-    const mem=ailMat({map:tex,emissiveMap:lum,emissive:0xff5a14,emissiveIntensity:.9,shininess:25,specular:0x332222}),
+    const mem=ailMat({color:0x9c8a8a,map:tex,emissiveMap:lum,emissive:0xff5a14,emissiveIntensity:.9,shininess:25,specular:0x332222}),
       os=ailMat({color:0x2a1d1f,shininess:50,specular:0x554444}),ivoire=ailMat({color:0xe9dcc2,shininess:60});
-    const g=new THREE.Group();piv.add(g);
-    const s=new THREE.Shape(),P=function(p){return [p[0]*S,p[1]*Sy];};let a=P([0,-.12]);s.moveTo(a[0],a[1]);a=P(W);s.lineTo(a[0],a[1]);a=P(TIP[0]);s.lineTo(a[0],a[1]);
-    for(let i=1;i<4;i++){const c=P(CR[i-1]),p=P(TIP[i]);s.quadraticCurveTo(c[0],c[1],p[0],p[1]);}{const c=P(CR[3]),p=P([0,.6]);s.quadraticCurveTo(c[0],c[1],p[0],p[1]);}s.closePath();
-    g.add(new THREE.Mesh(ailForme(s,sd),mem));
-    const V=function(p,y){return new THREE.Vector3(sd*p[0]*S,y||.02,-p[1]*Sy);},wr=V(W);
-    ailTige(g,os,.06,V([0,-.12]),wr,.042);                                        // l'avant-bras
-    for(let i=0;i<4;i++)ailTige(g,os,.034,wr,V(TIP[i]),.012);                    // les quatre doigts
-    for(const f of [.25,.5,.75]){const c=new THREE.Mesh(new THREE.ConeGeometry(.032,.15,6),os);c.position.copy(V([W[0]*f,-.12+(W[1]+.12)*f],.07));g.add(c);} // les épines du bras
-    const gr=new THREE.Mesh(new THREE.ConeGeometry(.05,.26,6),ivoire);gr.rotation.x=Math.PI/2;gr.position.copy(wr).add(new THREE.Vector3(0,.03,.14));g.add(gr); // la GRIFFE du poignet
-    ailAnime(function(t,e){g.rotation.z=sd*(-.06+.4*(.5+.5*Math.sin(t*2.4)))*e;mem.emissiveIntensity=.6+.3*Math.sin(t*3.1)+(nitroOn?.7:0);});},
-  phenix:function(piv,sd,W9){ // PHÉNIX — neuf plumes de feu en éventail (du rouge à l'emplanture au blanc chauffé au bout) + leur halo ; elles dansent
-    const S=W9*1.15,g=new THREE.Group();piv.add(g);const pl=[];
-    const plume=function(len,w,k,y,dim){const s=new THREE.Shape();s.moveTo(0,0);s.quadraticCurveTo(len*.45,-w,len,0);s.quadraticCurveTo(len*.45,w*.7,0,0);
+    const PU=[[0,-.12],W,TIP[0]];for(let i=1;i<4;i++)ailQuad(PU,TIP[i-1],CR[i-1],TIP[i],8);ailQuad(PU,TIP[3],CR[3],[0,.6],8);
+    const PP=PU.map(function(p){return [p[0]*S,p[1]*Sy];}),bx=[0,Y0*Sy,S,Y1*Sy],xc=W[0]*S;
+    const bras=ailB(new THREE.Group()),main=ailB(new THREE.Group());piv.add(bras);main.position.x=sd*xc;bras.add(main);
+    bras.add(new THREE.Mesh(ailForme(ailCoupe(PP,xc,-1),sd,0,bx),mem));                                     // la membrane du BRAS
+    const gm=ailForme(ailCoupe(PP,xc,1),sd,0,bx);gm.translate(-sd*xc,0,0);main.add(new THREE.Mesh(gm,mem)); // celle de la MAIN, sur sa charnière
+    const V=function(p,y){return new THREE.Vector3(sd*p[0]*S,y||.02,-p[1]*Sy);},Vm=function(p,y){return V(p,y).setX(sd*(p[0]*S-xc));},wr=V(W);
+    ailTige(bras,os,.06,V([0,-.12]),wr,.042);                                                               // l'avant-bras
+    const kn=new THREE.Mesh(new THREE.SphereGeometry(.06,6,5),os);kn.position.copy(wr);bras.add(kn);       // le poignet
+    for(const f of [.25,.5,.75])ailPointe(bras,os,.032,.15,V([W[0]*f,-.12+(W[1]+.12)*f],.04),new THREE.Vector3(0,1,.35)); // les épines du bras
+    ailPointe(bras,ivoire,.05,.26,wr.clone().add(new THREE.Vector3(0,.03,.02)),new THREE.Vector3(sd*.15,.25,1));        // la GRIFFE du pouce
+    const w0=Vm(W),TP=[];
+    for(let i=0;i<4;i++){const tp=Vm(TIP[i]);ailTige(main,os,.034,w0,tp,.012);TP.push(tp);                 // les quatre doigts…
+      ailPointe(main,ivoire,.022,.13,tp,tp.clone().sub(w0));}                                               // …et leurs griffes
+    for(const f of [.35,.7])ailPointe(main,os,.024,.11,w0.clone().lerp(TP[0],f).setY(.04),new THREE.Vector3(0,1,.3)); // les épines du bord d'attaque
+    const fx=ailEtincelles(piv,18,.07,new THREE.Color(2.6,.9,.25)),T=new THREE.Vector3();
+    let ph=0,acc=0;
+    ailAnime(function(t,e,dt){const n=AILV.n;ph+=dt*(.72+.5*n+.2*Math.max(0,AILV.mon));
+      const P=AILV.photo,b=P?0:ailBat(ph),bl=P?.12:ailBat(ph-.11);
+      bras.rotation.z=sd*(.1+.42*b)*e;main.rotation.z=sd*(.55*(bl-b)+.06)*e;                           // le BRAS donne le coup, la MAIN suit en retard
+      mem.emissiveIntensity=.5+.18*(1-b)+1.1*n+.1*Math.sin(t*3.1);                                        // la lave rougeoie au bas du coup, flambe au boost
+      acc+=dt*(1+24*n);while(acc>=1){acc-=1;const i=1+((Math.random()*3)|0);T.copy(w0).lerp(TP[i],.45+Math.random()*.55); // les BRAISES, du bord de fuite
+        ailRz(T,main.rotation.z);T.x+=sd*xc;ailRz(T,bras.rotation.z);
+        fx.pousse(T.x,T.y,T.z,sd*(Math.random()-.3)*.8,.8+Math.random()*1.8,-1.2-Math.random()*2,.6+Math.random()*.7,.5+Math.random()*.6);}
+      fx.pas(dt,1.6,1.2);});},
+  phenix:function(piv,sd,W9){ // PHÉNIX — des plumes de feu (du rouge à l'emplanture au blanc chauffé au bout) sur un BRAS et une MAIN qui battent en vague ;
+    // chaque rémige vacille comme une flamme et un essaim d'ÉTINCELLES monte des pointes — au boost les plumes s'ouvrent en grand et le feu redouble
+    const S=W9*1.15,xc=S*.4,bras=ailB(new THREE.Group()),main=ailB(new THREE.Group());piv.add(bras);main.position.x=sd*xc;bras.add(main);
+    const vc=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),
+      halo=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.32,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    const plume=function(par,len,w,dim,x,y,z,ang,bouge){const s=new THREE.Shape();s.moveTo(0,0);s.quadraticCurveTo(len*.45,-w,len,0);s.quadraticCurveTo(len*.45,w*.7,0,0);
       const ge=ailForme(s,sd),ps=ge.attributes.position,cl=new Float32Array(ps.count*3);
       for(let i=0;i<ps.count;i++){const u=Math.min(1,Math.abs(ps.getX(i))/len),o=i*3;let r,gg,b;
         if(u<.35){const f=u/.35;r=1+.6*f;gg=.12+.43*f;b=.02+.03*f;}else if(u<.75){const f=(u-.35)/.4;r=1.6+.3*f;gg=.55+.7*f;b=.05+.2*f;}else{const f=(u-.75)/.25;r=1.9+.3*f;gg=1.25+.75*f;b=.25+1.05*f;}
         cl[o]=r*dim;cl[o+1]=gg*dim;cl[o+2]=b*dim;}
       ge.setAttribute('color',new THREE.BufferAttribute(cl,3));
-      const f=new THREE.Group();f.position.y=y;g.add(f);f.add(new THREE.Mesh(ge,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide})));
-      const h=new THREE.Mesh(ge,halo);h.scale.set(1.06,1,1.9);h.position.y=-.01;f.add(h);pl.push([f,k]);return f;};
-    const halo=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.32,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
-    for(let k=0;k<9;k++)plume(S*(1-k*.055),.27*S/2.3,-.32+k*.17,0,1);        // les rémiges (larges : fines, elles se lisaient en baguettes)
-    for(let k=0;k<6;k++)plume(S*.48,.24*S/2.3,-.25+k*.22,.012,.8);           // les couvertures, plus sombres
-    ailAnime(function(t,e){g.rotation.z=sd*(.12+.22*(.5+.5*Math.sin(t*3.2)))*e;halo.opacity=.25+.12*Math.sin(t*17);
-      for(let i=0;i<pl.length;i++){const f=pl[i][0];f.rotation.y=sd*(pl[i][1]+.035*Math.sin(t*7+i));f.scale.x=1+.07*Math.sin(t*12+i*1.9)+(nitroOn?.08:0);}});},
-  fee:function(piv,sd,W9,L9,H9,y0){ // FÉE — quatre voiles irisés (deux par côté) qui naissent du TOIT et BOURDONNENT
+      const f=new THREE.Group();if(bouge)ailB(f);f.position.set(x,y,z);f.rotation.y=sd*ang;par.add(f);f.add(new THREE.Mesh(ge,vc));
+      const hm=new THREE.Mesh(ge,halo);hm.scale.set(1.06,1,1.9);hm.position.y=-.01;f.add(hm);return f;};
+    for(let k=0;k<6;k++)plume(bras,S*.48,.24*S/2.3,.8,0,.012,0,-.25+k*.22);                              // les couvertures, plus sombres
+    for(let k=0;k<5;k++)plume(bras,S*.5,.22*S/2.3,.9,sd*S*(.06+k*.075),-.004,-.05,1.25-k*.08);              // les secondaires, le long du bras
+    const pr=[],pr0=[],PL=[];
+    for(let k=0;k<7;k++){const L=S*(.7-k*.03),a=-.3+k*.19;pr.push(plume(main,L,.27*S/2.3,1,0,-.002*k,.04-k*.025,a,1));pr0.push(a);PL.push(L);} // les RÉMIGES, sur la main
+    const fx=ailEtincelles(piv,28,.055,new THREE.Color(2.6,1.7,.55)),T=new THREE.Vector3();
+    let ph=0,acc=0;
+    ailAnime(function(t,e,dt){const n=AILV.n;ph+=dt*(.8+.55*n);const P=AILV.photo,b=P?.4:ailBat(ph),bl=P?.66:ailBat(ph-.1);
+      bras.rotation.z=sd*(.14+.3*b)*e;main.rotation.z=sd*(.45*(bl-b)+.05)*e;halo.opacity=.25+.12*Math.sin(t*17)+.15*n;
+      for(let i=0;i<pr.length;i++){const f=pr[i];f.rotation.y=sd*(pr0[i]*(1+.35*n)+.035*Math.sin(t*7+i));f.scale.x=1+.07*Math.sin(t*12+i*1.9)+.1*n;}
+      acc+=dt*(6+34*n);while(acc>=1){acc-=1;const i=(Math.random()*pr.length)|0,a=pr[i].rotation.y*sd,L=PL[i]*(.8+Math.random()*.25); // les ÉTINCELLES, des pointes
+        T.set(sd*L*Math.cos(a),0,pr[i].position.z-L*Math.sin(a));ailRz(T,main.rotation.z);T.x+=sd*xc;ailRz(T,bras.rotation.z);
+        fx.pousse(T.x,T.y,T.z,sd*(Math.random()-.4)*.6,1+Math.random()*2,-.8-Math.random()*1.6,.5+Math.random()*.7,.5+Math.random()*.7);}
+      fx.pas(dt,2.2,1.4);});},
+  fee:function(piv,sd,W9,L9,H9,y0){ // FÉE — quatre voiles irisés qui naissent du TOIT, en ailes de fée (pointe effilée devant, queue d'hirondelle derrière) ;
+    // l'avant et l'arrière battent en OPPOSITION, comme une libellule, un voile FANTÔME dit le flou du bourdonnement ; une POUSSIÈRE DE FÉE
+    // scintille et tombe des pointes (une pluie au boost) ; les couleurs tournent
     piv.position.y=y0+H9*.92;
-    const K=W9*.62,tex=ailTex('fee',function(x,w,h){x.save();x.beginPath();x.ellipse(w/2,h/2,w/2-2,h/2-2,0,0,Math.PI*2);x.clip();
-        const g=x.createLinearGradient(0,0,w,0);g.addColorStop(0,'#bff6ff');g.addColorStop(.45,'#e6c8ff');g.addColorStop(.8,'#ffc2e6');g.addColorStop(1,'#fff3c4');x.fillStyle=g;x.fillRect(0,0,w,h);
-        x.strokeStyle='rgba(255,255,255,.85)';x.lineWidth=2.2;x.beginPath();x.moveTo(4,h/2);x.quadraticCurveTo(w*.5,h*.38,w-6,h*.46);x.stroke(); // la nervure maîtresse
-        x.lineWidth=1.1;for(let i=1;i<9;i++){const u=i/9;x.beginPath();x.moveTo(w*u*.95,h*(.42+.02*u));x.quadraticCurveTo(w*(u+.04),h*.2,w*(u+.08),h*.04);x.stroke();
-          x.beginPath();x.moveTo(w*u*.95,h*.46);x.quadraticCurveTo(w*(u+.04),h*.78,w*(u+.08),h*.96);x.stroke();}
-        x.restore();x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=3;x.beginPath();x.ellipse(w/2,h/2,w/2-3,h/2-3,0,0,Math.PI*2);x.stroke();},256,128);
-    const mat=ailMat({map:tex,transparent:true,opacity:.72,depthWrite:false,shininess:120,specular:0xffffff,emissive:0x334455,emissiveIntensity:.6,envMap:envTex,reflectivity:.3,combine:THREE.MixOperation});
-    const vo=[];for(const q of [[1.55,.42,.18,.42],[1.05,.34,.75,.2]]){const s=new THREE.Shape();s.absellipse(q[0]*K/2,0,q[0]*K/2,q[1]*K/2,0,Math.PI*2,false,0);
-      const gr=new THREE.Group();piv.add(gr);const m=new THREE.Mesh(ailForme(s,sd),mat);m.rotation.y=sd*q[2];gr.add(m);vo.push([gr,q[3]]);}
-    ailAnime(function(t,e){for(let i=0;i<vo.length;i++)vo[i][0].rotation.z=sd*(vo[i][1]+.2*Math.sin(t*36+i*1.7))*e;mat.emissive.setHSL((t*.08)%1,.7,.22);});},
-  rouages:function(piv,sd,W9){ // ENGRENAGES — l'aile de l'inventeur : longeron de laiton, nervures, voile de toile, deux roues dentées qui tournent
+    const K=W9*.62,mats=[],fant=[];
+    const voile=function(nom,sh,rotY,base,ph){const pts=sh.getPoints(10),bx=[1e9,1e9,-1e9,-1e9];for(const p of pts){bx[0]=Math.min(bx[0],p.x);bx[1]=Math.min(bx[1],p.y);bx[2]=Math.max(bx[2],p.x);bx[3]=Math.max(bx[3],p.y);}
+      const tex=ailTex(nom,function(x,w,h){const X=function(p){return [(p.x-bx[0])/(bx[2]-bx[0])*w,(1-(p.y-bx[1])/(bx[3]-bx[1]))*h];},ch=function(){x.beginPath();pts.forEach(function(p,i){const c=X(p);if(i)x.lineTo(c[0],c[1]);else x.moveTo(c[0],c[1]);});x.closePath();};
+        x.save();ch();x.clip();const g=x.createLinearGradient(0,0,w,h*.3);g.addColorStop(0,'#7fe8ff');g.addColorStop(.4,'#c79bff');g.addColorStop(.75,'#ff8fd0');g.addColorStop(1,'#ffe48a');x.fillStyle=g;x.fillRect(0,0,w,h);
+        x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=2.4;const o=X({x:0,y:0});x.beginPath();x.moveTo(o[0],o[1]);x.quadraticCurveTo(w*.5,h*.42,w*.96,h*.5);x.stroke(); // la nervure maîtresse
+        x.lineWidth=1.1;for(let i=1;i<11;i++){const u=i/11;x.beginPath();x.moveTo(w*u*.95,h*(.44+.04*u));x.quadraticCurveTo(w*(u+.05),h*.18,w*(u+.1),0);x.stroke();
+          x.beginPath();x.moveTo(w*u*.95,h*(.5+.02*u));x.quadraticCurveTo(w*(u+.05),h*.8,w*(u+.1),h);x.stroke();}
+        for(let i=0;i<40;i++){x.fillStyle='rgba(255,255,255,'+(.3+Math.random()*.6)+')';x.fillRect(Math.random()*w,Math.random()*h,1.5,1.5);} // les paillettes
+        x.restore();x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=3;ch();x.stroke();},256,128);
+      const mat=ailMat({map:tex,transparent:true,opacity:.74,depthWrite:false,shininess:120,specular:0xffffff,emissive:0x334455,emissiveIntensity:.6,envMap:envTex,reflectivity:.18,combine:THREE.MixOperation}),
+        mf=ailMat({map:tex,transparent:true,opacity:.2,depthWrite:false,shininess:60,emissive:0x334455,emissiveIntensity:.8});mats.push(mat);fant.push(mf);
+      const ge=ailForme(sh,sd,0,[bx[0],bx[1],bx[2],bx[3]]);
+      const gr=ailB(new THREE.Group());piv.add(gr);const m=new THREE.Mesh(ge,mat);m.rotation.y=sd*rotY;gr.add(m);
+      const gf=ailB(new THREE.Group());piv.add(gf);const mf9=new THREE.Mesh(ge,mf);mf9.rotation.y=sd*rotY;gf.add(mf9); // le FANTÔME, à l'autre bout du battement
+      let tp={x:0,y:0};for(const p of pts)if(p.x>tp.x)tp=p;const tip=ailRy(new THREE.Vector3(sd*tp.x,0,-tp.y),sd*rotY);
+      return {g:gr,f:gf,b:base,ph:ph,tip:tip};};
+    const L1=1.6*K,W1=.44*K,s1=new THREE.Shape();s1.moveTo(0,0);s1.bezierCurveTo(.25*L1,-.5*W1,.8*L1,-.62*W1,L1,-.32*W1);s1.bezierCurveTo(1.05*L1,-.05*W1,.75*L1,.42*W1,.4*L1,.36*W1);s1.quadraticCurveTo(.12*L1,.3*W1,0,0);
+    const L2=1.1*K,W2=.5*K,s2=new THREE.Shape();s2.moveTo(0,0);s2.bezierCurveTo(.2*L2,-.3*W2,.75*L2,-.45*W2,.92*L2,-.15*W2);s2.bezierCurveTo(1.04*L2,.1*W2,.98*L2,.55*W2,.8*L2,.85*W2);
+    s2.quadraticCurveTo(.62*L2,.42*W2,.32*L2,.38*W2);s2.quadraticCurveTo(.1*L2,.3*W2,0,0);
+    const V=[voile('feeA',s1,.18,.42,0),voile('feeP',s2,.75,.2,Math.PI)];
+    const fx=ailEtincelles(piv,26,.035,new THREE.Color(1.7,1.45,2.1),{tw:1}),T=new THREE.Vector3();
+    let acc=0;
+    ailAnime(function(t,e,dt){const n=AILV.n,w=38+22*n,am=(.22+.1*n),P=AILV.photo;
+      for(const v of V){const s=P?.6:Math.sin(t*w+v.ph);v.g.rotation.z=sd*(v.b+am*s)*e;v.f.rotation.z=sd*(v.b-am*s)*e;}
+      for(let i=0;i<mats.length;i++){mats[i].emissive.setHSL((t*.08+i*.15)%1,.85,.18+.1*n);fant[i].emissive.copy(mats[i].emissive);}
+      acc+=dt*(5+30*n);while(acc>=1){acc-=1;const v=V[Math.random()<.65?0:1];T.copy(v.tip).multiplyScalar(.45+Math.random()*.55);ailRz(T,v.g.rotation.z); // la POUSSIÈRE DE FÉE
+        fx.pousse(T.x,T.y,T.z,sd*(Math.random()-.5)*.4,-.15-Math.random()*.4,-.4-Math.random()*.9,1+Math.random()*.9,.6+Math.random()*.8);}
+      fx.pas(dt,-.5,.9);});},
+  rouages:function(piv,sd,W9){ // ENGRENAGES — l'ORNITHOPTÈRE de Léonard : la grande roue dentée tourne, son MANETON tire une BIELLE qui fait battre l'aile
+    // (le battement EST le mouvement des rouages) ; la voile se gonfle à chaque coup ; au boost la machine s'emballe, l'aiguille du MANOMÈTRE
+    // grimpe et la chaudière crache sa VAPEUR
     const S=W9*1.05,laiton=ailMat({color:0xc8902e,shininess:95,specular:0xffe2a0,envMap:envTex,reflectivity:.28,combine:THREE.MixOperation}),cuivre=ailMat({color:0xa0522d,shininess:70,specular:0xffc090});
     const voile=ailMat({shininess:6,specular:0x111111,map:ailTex('voile',function(x,w,h){const g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,'#efe2bf');g.addColorStop(1,'#d9c393');x.fillStyle=g;x.fillRect(0,0,w,h);
       for(let i=0;i<900;i++){x.fillStyle='rgba(120,90,40,'+(Math.random()*.08)+')';x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1);} // la fibre
@@ -33036,52 +33222,178 @@ AILES_POP={
       x.setLineDash([]);x.strokeStyle='rgba(90,60,25,.35)';x.lineWidth=1;for(let i=0;i<14;i++){x.beginPath();x.arc(w*.3,h*.5,20+i*9,-.6,.9);x.stroke();} // le croquis, au crayon
       x.strokeStyle='rgba(100,70,30,.8)';x.lineWidth=4;x.strokeRect(2,2,w-4,h-4);})});
     const A=new THREE.Vector3(),B=new THREE.Vector3(),bord=[[0,-.04],[S,-.04],[S*.97,.3],[S*.72,.52],[S*.45,.66],[S*.18,.7],[0,.62]];
-    const v=new THREE.Mesh(ailForme(bord,sd),voile);v.position.y=-.012;piv.add(v);
-    ailTige(piv,laiton,.045,A.set(0,0,.04),B.set(sd*S,0,.04),.03);                                         // le longeron
-    for(let i=2;i<6;i++)ailTige(piv,laiton,.018,A.set(sd*bord[i][0]*.55,0,.04),B.set(sd*bord[i][0],0,-bord[i][1])); // les nervures
-    for(let i=1;i<7;i++){const r=new THREE.Mesh(new THREE.SphereGeometry(.028,6,4),cuivre);r.position.set(sd*S*i/7,.035,.04);piv.add(r);} // les rivets
+    const ail=ailB(new THREE.Group());piv.add(ail);                                                          // L'AILE qui bat : voile, longeron, nervures, rivets
+    const v=ailB(new THREE.Mesh(ailForme(bord,sd),voile));v.position.y=-.012;ail.add(v);
+    ailTige(ail,laiton,.045,A.set(0,0,.04),B.set(sd*S,0,.04),.03);                                         // le longeron
+    for(let i=2;i<6;i++)ailTige(ail,laiton,.018,A.set(sd*bord[i][0]*.55,0,.04),B.set(sd*bord[i][0],0,-bord[i][1])); // les nervures
+    for(let i=1;i<7;i++){const r=new THREE.Mesh(new THREE.SphereGeometry(.028,6,4),cuivre);r.position.set(sd*S*i/7,.035,.04);ail.add(r);} // les rivets
     const roue=function(r,n){const s=new THREE.Shape(),N=n*4;for(let i=0;i<=N;i++){const a=i/N*Math.PI*2,rr=(i%4<2)?r:r*.82;if(i)s.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);else s.moveTo(rr,0);}
       for(let i=0;i<4;i++){const h=new THREE.Path(),a=i*Math.PI/2+.4;h.absarc(Math.cos(a)*r*.5,Math.sin(a)*r*.5,r*.17,0,Math.PI*2,true);s.holes.push(h);}
-      const ge=new THREE.ExtrudeGeometry(s,{depth:.05,bevelEnabled:false,curveSegments:6});ge.rotateX(-Math.PI/2);ge.translate(0,-.025,0);return new THREE.Mesh(ge,laiton);};
-    const g1=roue(.32,12),g2=roue(.2,8);g1.position.set(sd*.42,.06,-.14);g2.position.set(sd*(.42+.32+.2-.05),.06,-.14);piv.add(g1);piv.add(g2);
-    const ch=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,.42,12),cuivre);ch.rotation.z=Math.PI/2;ch.position.set(sd*.2,.12,.26);piv.add(ch); // la chaudière
-    ailAnime(function(t,e){const a=t*(.6+2.6*e)*sd;g1.rotation.y=a;g2.rotation.y=-a*1.6+.2;v.scale.z=1+.03*Math.sin(t*8)*e;});},
-  pixel:function(piv,sd,W9){ // 8-BIT — des ailes d'ange en VOXELS (un cube par pixel), qui battent PAR À-COUPS
+      const ge=new THREE.ExtrudeGeometry(s,{depth:.05,bevelEnabled:false,curveSegments:6});ge.rotateX(-Math.PI/2);ge.translate(0,-.025,0);return ailB(new THREE.Mesh(ge,laiton));};
+    const g1=roue(.32,12),g2=roue(.2,8),G1=new THREE.Vector3(sd*.42,.06,-.14);g1.position.copy(G1);g2.position.set(sd*(.42+.32+.2-.05),.06,-.14);piv.add(g1);piv.add(g2);
+    const mt=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.09,8),cuivre);mt.position.set(.2,.06,0);g1.add(mt);                  // le MANETON, sur la grande roue
+    const bi=ailB(new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,1,6),laiton));piv.add(bi);                                    // la BIELLE
+    const ch=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,.42,12),cuivre);ch.rotation.z=Math.PI/2;ch.position.set(sd*.2,.12,.26);piv.add(ch); // la chaudière,
+    const che=new THREE.Mesh(new THREE.CylinderGeometry(.032,.04,.16,8),laiton);che.position.set(sd*.08,.3,.26);piv.add(che);                     // sa cheminée,
+    const ca=new THREE.Mesh(new THREE.CircleGeometry(.065,16),ailMat({color:0xf2ead8,shininess:30}));ca.rotation.x=-Math.PI/2;ca.position.set(sd*.3,.232,.26);piv.add(ca); // son MANOMÈTRE
+    const ce=new THREE.Mesh(new THREE.TorusGeometry(.068,.012,4,16),laiton);ce.rotation.x=Math.PI/2;ce.position.copy(ca.position);piv.add(ce);
+    const ai=ailB(new THREE.Group());ai.position.copy(ca.position).add(new THREE.Vector3(0,.006,0));piv.add(ai);
+    const ag=new THREE.Mesh(new THREE.BoxGeometry(.008,.004,.055),ailMat({color:0xc0201a,shininess:20}));ag.position.z=.022;ai.add(ag);
+    const vap=ailEtincelles(piv,16,.07,new THREE.Color(.92,.92,.95),{normal:1,op:.55,grow:1}),Y=new THREE.Vector3(0,1,0),P1=new THREE.Vector3(),P2=new THREE.Vector3(),Q=new THREE.Quaternion();
+    let cr=0,acc=0;
+    ailAnime(function(t,e,dt){const n=AILV.n;cr+=dt*(1.8+5.5*n)*e;                                        // la manivelle
+      g1.rotation.y=cr*sd;g2.rotation.y=-cr*1.5*sd+.2;
+      const P=AILV.photo,a=sd*(.1+.22*(P?.5:Math.sin(cr)))*e;ail.rotation.z=a;v.scale.z=1+.05*Math.cos(cr)*e;      // l'aile bat AU RYTHME de la roue
+      P1.set(.2*Math.cos(cr*sd),.11,-.2*Math.sin(cr*sd)).add(G1);P2.set(sd*S*.55,0,.04);ailRz(P2,a);              // la bielle : du maneton au longeron
+      bi.position.copy(P1).add(P2).multiplyScalar(.5);P2.sub(P1);bi.scale.y=P2.length();bi.quaternion.setFromUnitVectors(Y,P2.normalize());
+      ai.rotation.y=-(-1.1+2.3*n+(n>.5?.06*Math.sin(t*40):0));                                                    // l'aiguille grimpe
+      acc+=dt*(1.2+14*n);while(acc>=1){acc-=1;vap.pousse(sd*.08+(Math.random()-.5)*.03,.4,.26,(Math.random()-.5)*.3,.7+Math.random()*.6,-.5-Math.random()*.8,.8+Math.random()*.6,.6+Math.random()*.6);}
+      vap.pas(dt,.4,1.8);});},
+  pixel:function(piv,sd,W9){ // 8-BIT — des ailes d'ange en VOXELS animées IMAGE PAR IMAGE, comme un sprite : à chaque image l'aile se plie en ESCALIER
+    // (un cran de pixel par colonne), monte, s'aplatit, descend ; au boost elles clignotent de toutes les couleurs (l'étoile d'invincibilité)
+    // et des pixels d'étincelle s'allument au bout
     const M=['GGGGGGGGGG..','WWWWWWWWWWWG','WWWWWWWWWWW.','BWWWWWWWWW..','BBWWWWWWWW..','.BWWWBWWWB..','.BBWW.BWW...','..BW..BW....','..B...B.....'],
-      c=W9*.075,P={G:0xffd75e,W:0xf2f6ff,B:0x9cc2ff};let n=0;for(const r of M)for(const ch of r)if(P[ch])n++;
-    const im=new THREE.InstancedMesh(new THREE.BoxGeometry(c*.96,c*.55,c*.96),ailMat({shininess:30,specular:0x555555,side:THREE.FrontSide}),n);
-    im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(n*3),3);im.frustumCulled=false;
-    const g=new THREE.Group();piv.add(g);g.add(im);const m4=new THREE.Matrix4(),col=new THREE.Color();let i=0;
-    M.forEach(function(r,y){for(let k=0;k<r.length;k++){const ch=r[k];if(!P[ch])continue;
-      m4.makeTranslation(sd*(k+.5)*c,ch==='G'?.012:0,.35+.5*c-y*c);im.setMatrixAt(i,m4);col.setHex(P[ch]);im.instanceColor.setXYZ(i,col.r,col.g,col.b);i++;}});
-    im.instanceMatrix.needsUpdate=true;
-    ailAnime(function(t,e){g.rotation.z=sd*[0,.2,.36,.2][((t*7)|0)%4]*e;});},
-  pigeon:function(piv,sd,W9){ // PIGEON — couvertures grises, DEUX BARRES NOIRES, reflet vert-violet à l'emplanture, rémiges sombres ; il bat vite… puis plane
-    const S=W9*.95,g=new THREE.Group();piv.add(g);
-    const gris=ailMat({color:0xaab0ba,shininess:25,specular:0x333333}),fonce=ailMat({color:0x4d525c,shininess:20}),sombre=ailMat({color:0x2c2f36,shininess:20}),
-      noir=ailMat({color:0x1b1c21,shininess:20}),sec=ailMat({color:0x8f95a0,shininess:20}),reflet=ailMat({color:0x3d5c4c,shininess:110,specular:0xb36bff});
-    g.add(new THREE.Mesh(ailForme([[0,-.2],[S*.3,-.26],[S*.58,-.22],[S*.64,.08],[S*.5,.36],[S*.25,.44],[0,.42]],sd,.03),gris)); // les couvertures
-    for(const z of [.17,.3]){const b=new THREE.Mesh(new THREE.BoxGeometry(S*.38,.012,.055),noir);b.position.set(sd*S*.3,.022,-z);g.add(b);}
+      c=W9*.075,P0={G:[1,.84,.37],W:[.95,.965,1],B:[.61,.76,1]},cel=[];
+    M.forEach(function(r,y){for(let k=0;k<r.length;k++)if(P0[r[k]])cel.push([k,y,r[k]]);});
+    const n=cel.length,NE=4,im=new THREE.InstancedMesh(new THREE.BoxGeometry(c*.96,c*.55,c*.96),ailMat({shininess:30,specular:0x555555,side:THREE.FrontSide}),n+NE);
+    im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array((n+NE)*3),3);im.frustumCulled=false;ailB(im);
+    const g=ailB(new THREE.Group());piv.add(g);g.add(im);const m4=new THREE.Matrix4(),Z=new THREE.Matrix4().makeScale(0,0,0),col=new THREE.Color(),c2=new THREE.Color();
+    const IM=[{r:.34,b:.5},{r:.2,b:.2},{r:.02,b:-.25},{r:.2,b:.2}];                                          // les quatre images du battement
+    const EC=[];for(let i=0;i<NE;i++){EC.push({a:1,l:.3,k:0,y:0});im.setMatrixAt(n+i,Z);im.instanceColor.setXYZ(n+i,1,1,.85);}
+    const pose=function(fi,arc,fr){const F=IM[fi];g.rotation.z=sd*F.r*wingT;
+      for(let i=0;i<n;i++){const C=cel[i],k=C[0],y=C[1],b=P0[C[2]];
+        m4.makeTranslation(sd*(k+.5)*c,(C[2]==='G'?.012:0)+Math.round(k*F.b)*c*.55,.35+.5*c-y*c);im.setMatrixAt(i,m4);
+        if(arc<.05)col.setRGB(b[0],b[1],b[2]);else{col.setHSL((fr*.17+k*.07+y*.05)%1,.95,.6);col.lerp(c2.setRGB(b[0],b[1],b[2]),1-arc);}
+        im.instanceColor.setXYZ(i,col.r,col.g,col.b);}
+      im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;};
+    pose(1,0,0);
+    let ph=0,fr0=-1,arc0=0,acc=0;
+    ailAnime(function(t,e,dt){const arc=AILV.photo?0:AILV.n;ph+=dt*(7+5*arc);const fr=Math.floor(ph),fi=AILV.photo?0:fr%4;
+      if(fr!==fr0||(arc>.05)!==(arc0>.05)){pose(fi,arc,fr);fr0=fr;}arc0=arc;g.rotation.z=sd*IM[fi].r*e;
+      acc+=dt*(2+12*arc);while(acc>=1){acc-=1;const E=EC[(Math.random()*NE)|0];if(E.a<E.l)continue;E.a=0;E.k=6+Math.random()*6;E.y=Math.random()*5;} // une étincelle-pixel s'allume
+      for(let i=0;i<NE;i++){const E=EC[i];if(E.a>=E.l)continue;E.a+=dt;if(E.a>=E.l){im.setMatrixAt(n+i,Z);continue;}const s=Math.sin(E.a/E.l*Math.PI);
+        m4.makeScale(s,s*1.6,s);m4.setPosition(sd*(E.k+.5)*c,c*.9+Math.round(E.k*IM[fi].b)*c*.55,.35+.5*c-E.y*c);im.setMatrixAt(n+i,m4);}
+      im.instanceMatrix.needsUpdate=true;});},
+  pigeon:function(piv,sd,W9){ // PIGEON — couvertures grises, DEUX BARRES NOIRES, cou IRISÉ qui passe du vert au violet ; la MAIN (les rémiges) bat en retard
+    // sur le bras et s'ouvre en doigts quand il plane ; il CLAQUE des ailes en sortant (deux claps au-dessus du dos), bat trop vite… puis plane
+    // (toujours battant quand il monte ou boost)
+    const S=W9*.95,g=ailB(new THREE.Group()),h=ailB(new THREE.Group());piv.add(g);h.position.x=sd*S*.5;g.add(h);
+    const gris=ailMat({color:0x9aa1ac,shininess:18,specular:0x222222}),fonce=ailMat({color:0x454a54,shininess:14,specular:0x222222}),sombre=ailMat({color:0x272a31,shininess:14,specular:0x222222}),
+      noir=ailMat({color:0x1b1c21,shininess:20}),sec=ailMat({color:0x7d838e,shininess:14,specular:0x222222}),reflet=ailMat({color:0x3d5c4c,shininess:110,specular:0xb36bff});
+    g.add(new THREE.Mesh(ailForme([[0,-.2],[S*.3,-.26],[S*.52,-.24],[S*.56,.06],[S*.48,.34],[S*.25,.44],[0,.42]],sd,.03),gris)); // les couvertures
+    for(const z of [.17,.3]){const b=new THREE.Mesh(new THREE.BoxGeometry(S*.38,.012,.055),noir);b.position.set(sd*S*.3,.022,-z);g.add(b);}     // les DEUX BARRES
     const rf=new THREE.Mesh(ailForme([[0,-.18],[S*.16,-.2],[S*.18,.1],[0,.14]],sd,.034),reflet);rf.position.y=.004;g.add(rf);
-    const plume=function(len,w,mat,x,z,a){const s=new THREE.Shape();s.moveTo(0,-w*.5);s.lineTo(len*.8,-w*.5);s.quadraticCurveTo(len,-w*.3,len,0);s.quadraticCurveTo(len*.98,w*.5,len*.75,w*.5);s.lineTo(0,w*.5);s.closePath();
-      const m=new THREE.Mesh(ailForme(s,sd,.018),mat);m.position.set(sd*x,-.008,-z);m.rotation.y=sd*a;g.add(m);};
-    for(let k=0;k<7;k++)plume(S*(.55-k*.03),.13,k%2?sombre:fonce,S*.5,.02+k*.03,-.15+k*.12); // les primaires
-    for(let k=0;k<5;k++)plume(S*.36,.13,sec,S*(.08+k*.1),.34,1.35);                       // les secondaires
-    ailAnime(function(t,e){const c=t%2.4,ph=c<1.5?Math.min(1,c/.2,(1.5-c)/.2):0;g.rotation.z=sd*(.1+ph*(.38*(.5+.5*Math.sin(t*17))-.02))*e;});},
-  origami:function(piv,sd,W9){ // AVION EN PAPIER — une feuille à grands carreaux, pliée : le pan du dehors relevé le long du pli
-    const S=W9*1.1,Sy=S*.62,g=new THREE.Group();piv.add(g);
+    const plume=function(par,len,w,mat,x,z,a,bouge){const s=new THREE.Shape();s.moveTo(0,-w*.5);s.lineTo(len*.8,-w*.5);s.quadraticCurveTo(len,-w*.3,len,0);s.quadraticCurveTo(len*.98,w*.5,len*.75,w*.5);s.lineTo(0,w*.5);s.closePath();
+      const m=new THREE.Mesh(ailForme(s,sd,.018),mat);m.position.set(sd*x,-.008,-z);m.rotation.y=sd*a;if(bouge)ailB(m);par.add(m);return m;};
+    const pr=[],pr0=[];for(let k=0;k<7;k++){pr.push(plume(h,S*(.55-k*.03),.18,k%2?sombre:fonce,0,.02+k*.03,-.15+k*.12,1));pr0.push(-.15+k*.12);} // les primaires, sur la main
+    for(let k=0;k<5;k++)plume(g,S*.36,.13,sec,S*(.08+k*.1),.34,1.35);                                                      // les secondaires
+    let ph=0,clap=0,w0=0,cy=0;
+    ailAnime(function(t,e,dt){const n=AILV.n,P=AILV.photo;
+      if(e>.85&&w0<=.85&&!P)clap=.62;w0=e;cy=(cy+dt)%2.4;                                                   // il vient de sortir les ailes : CLAP CLAP
+      const bat=P||n>.3||AILV.mon>.25||cy<1.4;let a,hr,fan;
+      if(clap>0){clap-=dt;const s=Math.abs(Math.sin(Math.max(0,clap)/.62*Math.PI*2));a=.15+.95*s;hr=.2*s;fan=.15;}   // deux claps : les ailes se touchent au-dessus du dos
+      else if(P){a=.14;hr=.06;fan=.4;}                                                                    // la photo : à plat, les doigts écartés
+      else if(bat){ph+=dt*(6.5+3*n);const b=ailBat(ph);a=.1+.42*b;hr=.5*(ailBat(ph-.08)-b)+.04;fan=.25-.15*b;}
+      else{a=.16+.03*Math.sin(t*3);hr=-.04;fan=.65;}                                                        // il PLANE : ailes en V, les doigts écartés
+      g.rotation.z+=(sd*a*e-g.rotation.z)*Math.min(1,dt*(bat||clap>0?40:7));h.rotation.z=sd*hr*e;
+      for(let i=0;i<pr.length;i++)pr[i].rotation.y=sd*(pr0[i]+fan*(i-3)*.08);
+      const ir=.5+.5*Math.sin(t*1.3);reflet.color.setHSL(.38+.4*ir,.42,.3);reflet.specular.setHSL(.78-.4*ir,.8,.6);});}, // le cou irisé : vert ↔ violet
+  origami:function(piv,sd,W9){ // AVION EN PAPIER — une feuille à grands carreaux GRIBOUILLÉE (étoile, cœur, spirale, une petite voiture au crayon, un rond de café) ;
+    // le pan du dehors CLAQUE au vent autour du pli (fort au boost), le volet plié du bord de fuite suit la montée et le virage
+    const S=W9*1.1,Sy=S*.62,g=ailB(new THREE.Group());piv.add(g);
     const P=function(X,Y){return new THREE.Vector3(sd*X*S,0,-Y*Sy);},A=P(0,-.85),B=P(1,.42),C=P(0,.55),M=P(.45,.4915);
-    const u=new THREE.Vector3().subVectors(M,A).normalize(),q=new THREE.Quaternion().setFromAxisAngle(u,.42),B2=B.clone().sub(A).applyQuaternion(q);
-    if(B2.y<0)B2.copy(B).sub(A).applyQuaternion(q.setFromAxisAngle(u,-.42));B2.add(A);
-    const pos=[A.x,A.y,A.z,M.x,M.y,M.z,C.x,C.y,C.z,A.x,A.y,A.z,B2.x,B2.y,B2.z,M.x,M.y,M.z],uv=[0,0,.45,.95,0,1,0,0,1,.9,.45,.95];
-    const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));ge.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));ge.computeVertexNormals();
-    const papier=ailMat({shininess:6,specular:0x222222,flatShading:true,map:ailTex('seyes',function(x,w,h){x.fillStyle='#fbfaf5';x.fillRect(0,0,w,h);
-      for(let y=0;y<h;y+=8){x.fillStyle=y%32===0?'#8fb6e6':'#c4dbf3';x.fillRect(0,y,w,1);}              // le cahier à grands carreaux
-      for(let xx=32;xx<w;xx+=32){x.fillStyle='#c4dbf3';x.fillRect(xx,0,1,h);}x.fillStyle='#e88a9a';x.fillRect(40,0,2,h);})}); // et sa marge rouge
-    g.add(new THREE.Mesh(ge,papier));
-    ailTige(g,ailMat({color:0xc9c2b2,shininess:4}),.006,A.clone().setY(.004),M.clone().setY(.004)); // le pli
-    ailAnime(function(t,e){g.rotation.x=Math.sin(t*23)*.025*e*(nitroOn?1.6:1);});} // la feuille frémit au vent
+    const u=new THREE.Vector3().subVectors(M,A).normalize();let sg=1;{const b=B.clone().sub(A).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(u,.42));if(b.y<0)sg=-1;} // le pan doit MONTER
+    const papier=ailMat({shininess:6,specular:0x222222,flatShading:true,map:ailTex('seyesG',function(x,w,h){x.fillStyle='#fbfaf5';x.fillRect(0,0,w,h);
+      for(let y=0;y<h;y+=8){x.fillStyle=y%32===0?'#8fb6e6':'#c4dbf3';x.fillRect(0,y,w,1);}                 // le cahier à grands carreaux
+      for(let xx=32;xx<w;xx+=32){x.fillStyle='#c4dbf3';x.fillRect(xx,0,1,h);}x.fillStyle='#e88a9a';x.fillRect(40,0,2,h); // et sa marge rouge
+      x.lineCap='round';x.lineJoin='round';
+      x.strokeStyle='rgba(120,90,50,.28)';x.lineWidth=3;x.beginPath();x.arc(.2*w,.16*h,.07*w,0,Math.PI*1.8);x.stroke();  // le rond de café
+      x.strokeStyle='#6d6d78';x.lineWidth=2;x.beginPath();for(let i=0;i<=10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?.022*w:.055*w;const px=.14*w+Math.cos(a)*r,py=.4*h+Math.sin(a)*r;if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke(); // l'étoile au crayon
+      x.strokeStyle='#d8344a';x.lineWidth=2.4;x.beginPath();const hx=.62*w,hy=.17*h,hs=.03*w;x.moveTo(hx,hy+hs);x.bezierCurveTo(hx-2.2*hs,hy-.4*hs,hx-.9*hs,hy-1.9*hs,hx,hy-.6*hs);x.bezierCurveTo(hx+.9*hs,hy-1.9*hs,hx+2.2*hs,hy-.4*hs,hx,hy+hs);x.stroke(); // le cœur au stylo
+      x.strokeStyle='#3456b0';x.lineWidth=1.8;x.beginPath();for(let i=0;i<60;i++){const a=i*.35,r=.0012*w*i;const px=.06*w+Math.cos(a)*r,py=.72*h+Math.sin(a)*r;if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke(); // la spirale
+      x.strokeStyle='#55555f';x.lineWidth=1.8;const cx=.72*w,cy=.13*h;x.strokeRect(cx-14,cy-6,28,7);x.beginPath();x.moveTo(cx-8,cy-6);x.lineTo(cx-4,cy-12);x.lineTo(cx+6,cy-12);x.lineTo(cx+9,cy-6);x.stroke(); // la petite voiture
+      x.beginPath();x.arc(cx-8,cy+2,3.5,0,Math.PI*2);x.stroke();x.beginPath();x.arc(cx+8,cy+2,3.5,0,Math.PI*2);x.stroke();
+      x.beginPath();x.moveTo(cx-24,cy-3);x.lineTo(cx-17,cy-3);x.moveTo(cx-26,cy+1);x.lineTo(cx-18,cy+1);x.stroke();})});              // et sa vitesse
+    const tri=function(pts,uv){const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));ge.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));ge.computeVertexNormals();return ge;};
+    g.add(new THREE.Mesh(tri([A.x,A.y,A.z,M.x,M.y,M.z,C.x,C.y,C.z],[0,0,.45,.95,0,1]),papier));                          // le pan de dedans
+    const pan=ailB(new THREE.Group());pan.position.copy(A);g.add(pan);const b=B.clone().sub(A),m=M.clone().sub(A);       // le pan du DEHORS, sur le pli
+    pan.add(new THREE.Mesh(tri([0,0,0,b.x,b.y,b.z,m.x,m.y,m.z],[0,0,1,.9,.45,.95]),papier));
+    ailTige(g,ailMat({color:0xc9c2b2,shininess:4}),.006,A.clone().setY(.004),M.clone().setY(.004));        // le pli
+    const F1=C.clone().lerp(M,.2),F2=C.clone().lerp(M,.65),ax=F2.clone().sub(F1).normalize(),d=new THREE.Vector3(0,0,-.17*Sy),f2=F2.clone().sub(F1); // le VOLET plié
+    const vo=ailB(new THREE.Group());vo.position.copy(F1);g.add(vo);
+    vo.add(new THREE.Mesh(tri([0,0,0,f2.x,f2.y,f2.z,f2.x+d.x,f2.y+d.y,f2.z+d.z,0,0,0,f2.x+d.x,f2.y+d.y,f2.z+d.z,d.x,d.y,d.z],[.08,.97,.32,.96,.32,1,.08,.97,.32,1,.08,1]),papier));
+    ailAnime(function(t,e){const n=AILV.n,P=AILV.photo,fl=P?0:(.04+.16*n)*Math.sin(t*(18+14*n)+.6*Math.sin(t*7))*e; // le pan CLAQUE au vent
+      pan.quaternion.setFromAxisAngle(u,sg*(.42+fl));vo.quaternion.setFromAxisAngle(ax,(.35+.35*AILV.mon+.35*AILV.vir*sd)*e);
+      g.rotation.x=Math.sin(t*23)*.012*e*(1+n);});},
+  plumes:function(piv,sd,W9){ // PLUMES D'ANGE — de VRAIES plumes (rachis, barbes, pointe dorée) en trois rangs, sur un bras et une MAIN : elles battent lentement,
+    // la main en retard, et s'ouvrent en éventail à chaque descente ; un liseré d'or court le long du bras ; au boost elles s'embrasent d'or et
+    // sèment de la POUSSIÈRE D'OR
+    const S=W9*1.18,xc=S*.42,bras=ailB(new THREE.Group()),main=ailB(new THREE.Group());piv.add(bras);main.position.x=sd*xc;bras.add(main);
+    const tex=ailTex('plumeAnge',function(x,w,h){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#e9e6f2');g.addColorStop(.5,'#ffffff');g.addColorStop(1,'#ece8f4');x.fillStyle=g;x.fillRect(0,0,w,h);
+        x.strokeStyle='rgba(170,165,195,.45)';x.lineWidth=1;for(let i=0;i<46;i++){const u=i/46*w;x.beginPath();x.moveTo(u,h*.5);x.lineTo(u+w*.07,0);x.moveTo(u,h*.5);x.lineTo(u+w*.07,h);x.stroke();} // les barbes
+        const o=x.createLinearGradient(w*.62,0,w,0);o.addColorStop(0,'rgba(255,215,94,0)');o.addColorStop(.5,'rgba(255,205,80,.85)');o.addColorStop(1,'#ffb020');x.fillStyle=o;x.fillRect(w*.62,0,w*.38,h); // la pointe dorée
+        x.strokeStyle='#e7d6a8';x.lineWidth=3;x.beginPath();x.moveTo(0,h*.5);x.quadraticCurveTo(w*.5,h*.44,w,h*.5);x.stroke();},256,64); // le rachis
+    const plM=ailMat({map:tex,emissiveMap:tex,emissive:0xffe2a8,emissiveIntensity:.14,shininess:30,specular:0x9a9a9a}),orM=ailMat({color:0xffd75e,emissive:0xffb020,emissiveIntensity:.5,shininess:120,specular:0xffffff});
+    const plume=function(par,len,w,x,y,z,ang,bouge){const s=new THREE.Shape();s.moveTo(0,-w*.22);s.quadraticCurveTo(len*.5,-w*.62,len*.94,-w*.2);s.quadraticCurveTo(len*1.02,0,len*.92,w*.3);
+      s.quadraticCurveTo(len*.45,w*.62,0,w*.22);s.lineTo(0,-w*.22);const m=new THREE.Mesh(ailForme(s,sd),plM);m.position.set(sd*x,y,-z);m.rotation.y=sd*ang;if(bouge)ailB(m);par.add(m);return m;};
+    for(let k=0;k<6;k++)plume(bras,S*.55,.22,S*(.02+k*.075),-.012,.02,1.25-k*.05);                          // les secondaires
+    for(let k=0;k<5;k++)plume(bras,S*.3,.17,S*(.03+k*.085),0,-.04,1.0);                                    // les couvertures
+    for(let k=0;k<5;k++)plume(bras,S*.22,.15,S*(.05+k*.08),.01,-.12,.8);
+    const pr=[],pr0=[],PL=[];for(let k=0;k<6;k++){const L=S*(.72-k*.05);pr.push(plume(main,L,.22,0,-.005*k,-.05+k*.03,-.15+k*.16,1));pr0.push(-.15+k*.16);PL.push(L);} // les RÉMIGES
+    ailTige(bras,orM,.03,new THREE.Vector3(0,.02,.15),new THREE.Vector3(sd*xc,.02,.12),.022);              // le liseré d'or
+    const fx=ailEtincelles(piv,20,.045,new THREE.Color(2.2,1.85,1),{tw:1}),T=new THREE.Vector3();
+    let ph=0,acc=0;
+    ailAnime(function(t,e,dt){const n=AILV.n;ph+=dt*(.7+.5*n+.2*Math.max(0,AILV.mon));const P=AILV.photo,b=P?.3:ailBat(ph),bl=P?.55:ailBat(ph-.1);
+      bras.rotation.z=sd*(.12+.36*b)*e;main.rotation.z=sd*(.5*(bl-b)+.04)*e;const fan=.85-.2*b+.25*n;   // l'éventail s'ouvre à la descente
+      for(let i=0;i<pr.length;i++)pr[i].rotation.y=sd*(-.15+(pr0[i]+.15)*fan);
+      plM.emissiveIntensity=.1+.06*(1-b)+.22*n;orM.emissiveIntensity=.5+.8*n;
+      acc+=dt*(1.5+18*n);while(acc>=1){acc-=1;const i=(Math.random()*pr.length)|0,a=pr[i].rotation.y*sd,L=PL[i]*(.75+Math.random()*.3); // la POUSSIÈRE D'OR
+        T.set(sd*L*Math.cos(a),0,pr[i].position.z-L*Math.sin(a));ailRz(T,main.rotation.z);T.x+=sd*xc;ailRz(T,bras.rotation.z);
+        fx.pousse(T.x,T.y,T.z,sd*(Math.random()-.5)*.3,-.1+Math.random()*.4,-.5-Math.random()*1,1+Math.random()*.8,.6+Math.random()*.7);}
+      fx.pas(dt,-.3,1);});},
+  chauve:function(piv,sd,W9){ // CHAUVE-SOURIS — une membrane veinée de violet tendue entre quatre doigts d'os, coupée au poignet : elle bat VITE et de
+    // TRAVERS (le rythme hésite, la caisse fait des embardées), la main se REPLIE à chaque remontée ; au boost, ailes en flèche : le PIQUÉ
+    const Wd=W9*1.15,bx=[0,-.22,Wd,.84],xc=.5*Wd;
+    const PU=[[0,-.12],[.5,-.22],[1,.02]];ailQuad(PU,[1,.02],[.84,.28],[.86,.55],6);ailQuad(PU,[.86,.55],[.68,.5],[.62,.78],6);ailQuad(PU,[.62,.78],[.46,.6],[.34,.84],6);ailQuad(PU,[.34,.84],[.16,.56],[0,.62],6);
+    const PP=PU.map(function(p){return [p[0]*Wd,p[1]];}),FT=[[1,.02],[.86,.55],[.62,.78],[.34,.84]],Wr=[.5,-.22];
+    const C=function(p,w,h){return [p[0]*w,(1-(p[1]-bx[1])/(bx[3]-bx[1]))*h];};
+    const veines=function(x,w,h,col,lw){const o=C(Wr,w,h);x.strokeStyle=col;x.lineWidth=lw;x.lineCap='round';
+      for(const f of FT){const q=C(f,w,h);for(const k of [.35,.65]){const a=[o[0]+(q[0]-o[0])*k,o[1]+(q[1]-o[1])*k];x.beginPath();x.moveTo(a[0],a[1]);x.quadraticCurveTo(a[0]-8,a[1]+h*.12,a[0]-w*.06,a[1]+h*.25);x.stroke();}}
+      for(let i=0;i<5;i++){const y=h*(.35+i*.12);x.beginPath();x.moveTo(0,y);x.quadraticCurveTo(w*.25,y-12,w*.45,y+6);x.stroke();}};
+    const tex=ailTex('chauveP',function(x,w,h){const o=C(Wr,w,h),g=x.createRadialGradient(o[0],o[1],8,o[0],o[1],w);g.addColorStop(0,'#12071a');g.addColorStop(.6,'#2a0e3a');g.addColorStop(1,'#43195a');
+      x.fillStyle=g;x.fillRect(0,0,w,h);for(let i=0;i<200;i++){x.fillStyle='rgba(0,0,0,'+(Math.random()*.2)+')';x.beginPath();x.arc(Math.random()*w,Math.random()*h,1+Math.random()*3,0,Math.PI*2);x.fill();}
+      veines(x,w,h,'rgba(15,5,20,.8)',3);},256,256);
+    const lum=ailTex('chauveL',function(x,w,h){x.fillStyle='#000';x.fillRect(0,0,w,h);x.shadowColor='#b040ff';x.shadowBlur=8;veines(x,w,h,'#9a3ad0',1.6);},256,256); // les veines qui luisent
+    const mb=ailMat({map:tex,emissiveMap:lum,emissive:0xb050e0,emissiveIntensity:.6,shininess:30,specular:0x663366}),os=ailMat({color:0x14101a,shininess:60,specular:0x444444}),gr=ailMat({color:0xcfc3b0,shininess:60});
+    const bras=ailB(new THREE.Group()),main=ailB(new THREE.Group());piv.add(bras);main.position.x=sd*xc;bras.add(main);
+    bras.add(new THREE.Mesh(ailForme(ailCoupe(PP,xc,-1),sd,0,bx),mb));
+    const gm=ailForme(ailCoupe(PP,xc,1),sd,0,bx);gm.translate(-sd*xc,0,0);main.add(new THREE.Mesh(gm,mb));
+    const V=function(p){return new THREE.Vector3(sd*p[0]*Wd,.02,-p[1]);},Vm=function(p){return V(p).setX(sd*(p[0]*Wd-xc));};
+    ailTige(bras,os,.045,V([0,-.12]),V(Wr),.035);ailTige(bras,os,.022,V(Wr),V(FT[3]),.008);               // le bras, le 5e doigt
+    for(let i=0;i<3;i++)ailTige(main,os,.026,Vm(Wr),Vm(FT[i]),.008);                                       // les doigts de la main
+    ailPointe(bras,gr,.03,.14,V(Wr).add(new THREE.Vector3(0,.02,0)),new THREE.Vector3(sd*.2,.3,1));        // la griffe du pouce
+    let ph=0;
+    ailAnime(function(t,e,dt){const n=AILV.n;ph+=dt*(3+1.8*n)*(1+.18*Math.sin(t*1.7)+.1*Math.sin(t*4.3));   // le vol de la chauve-souris : rapide et de TRAVERS
+      const P=AILV.photo,b=P?.25:ailBat(ph),bl=P?.55:ailBat(ph-.13);
+      bras.rotation.z=sd*(.08+.44*b)*e;main.rotation.z=sd*(.85*(bl-b)+.05)*e;                           // à la remontée, la main se REPLIE
+      bras.rotation.y=sd*.4*n*e;bras.rotation.x=.06*Math.sin(t*9.3)*e;mb.emissiveIntensity=.5+.6*n;});}   // au boost : en flèche, le piqué
 };
+/* (2026-10-16, LES AILES VIVANTES) les descriptions disent le GESTE (les anciennes restent traduites) */
+Object.assign(I18N,{
+  "Deux planches de planeur, un aileron qui suit tes virages, des feux de position. Au boost, elles tirent deux traînées blanches.":"Two glider boards, an aileron that follows your turns, navigation lights. When you boost, they pull two white contrails.",
+  "Quatre rotors qui s'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l'air.":"Four rotors that rev up when you boost and dip their noses to charge. It doesn't fly any better, but it sure moves some air.",
+  "De vraies plumes blanches et dorées qui battent lentement et s'ouvrent en éventail. Au boost, elles sèment de la poussière d'or.":"Real white-and-gold feathers that beat slowly and fan open. When you boost, they scatter gold dust.",
+  "Membranes veinées de violet, doigts d'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.":"Purple-veined membranes, bony fingers. They flap fast and crooked, and sweep back when you boost. For night flights.",
+  "Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.":"Gray, two black bars, a green-purple neck. It claps its wings on takeoff, flaps too fast and glides without knowing why.",
+  "Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c'est toi qui pilotes.":"A sheet of school paper full of doodles, a folded flap. The fold snaps in the wind when you boost: you're the pilot.",
+  "Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu'à 900 à l'heure.":"Orange and black, veins and white dots, like the real thing. They flap, glide, flap again. Up to 900 km/h.",
+  "Des ailes d'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l'étoile.":"Angel wings in chunky pixels, animated frame by frame. When you boost, they flash every color, just like with the star.",
+  "Toile rouge, haubans, ailerons, et l'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.":"Red canvas, bracing wires, ailerons, and the pilot's scarf snapping in the wind. A dog on his doghouse still dreams about it.",
+  "Les rouages font battre l'aile, la chaudière crache sa vapeur au boost. Léonard l'avait dessinée, toi tu la pilotes.":"The gears make the wing beat, the boiler puffs steam when you boost. Leonardo drew it; you fly it.",
+  "Repliées en croisière, elles s'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d'attaque.":"Folded while cruising, they split into an X the moment you boost, engines roaring. Lock wings in attack position.",
+  "Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d'y croire. Et d'un plein de nitro.":"Four shimmering veils that buzz and scatter fairy dust. You just have to believe. And have a full tank of nitro.",
+  "Membranes veinées de lave, griffes, grands coups d'aile. Au boost, la lave flambe et crache des braises.":"Lava-veined membranes, claws, mighty wingbeats. When you boost, the lava flares and spits embers.",
+  "Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.":"Feathers of fire that beat and scatter sparks. You blow up? You rise from your ashes. Next run."});
 function buildCar(spec){
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
   // et ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
@@ -33195,48 +33507,35 @@ function buildCar(spec){
   const aD=cosmSur('aile'),wSt=A.wings==='none'?'none':((aD&&aD.id!=='panneaux')?aD.id:(A.wings==='props'?'helices':'panneaux'));
   if(wSt!=='none'){
     const props=wSt==='helices';
-    const wGeo=wSt==='panneaux'?new THREE.BoxGeometry(W9*.92,.05,L9*.32):null;
     for(const sd of [1,-1]){
       const piv=new THREE.Group();
       piv.position.set(sd*W9*.36,y0+H9*(props?.44:.55),-L9*.14);
       if(props){
+        /* (2026-10-16, LES AILES VIVANTES) chaque rotor dans SON groupe : il penche le nez au boost (un drone qui fonce), un disque de flou
+           dit le régime, l'anneau de lumière de son carénage s'allume */
+        const flouM=new THREE.MeshBasicMaterial({color:0xdfe8ff,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}),
+          ledM=new THREE.MeshBasicMaterial({color:new THREE.Color(.3,1.1,2.2)}),rots=[];
         for(const fz of [1,-1]){ // deux bras par côté = les quatre hélices de la planche de référence
           const brasG=new THREE.BoxGeometry(W9*.62,.055,.10);
           const bras=new THREE.Mesh(brasG,accM);bras.position.set(sd*W9*.44,0,fz*L9*.20);piv.add(bras);
           const moy=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.09,8),darkM);
           moy.position.set(sd*W9*.78,.05,fz*L9*.20);piv.add(moy);
+          const rg=ailB(new THREE.Group());rg.position.set(sd*W9*.78,.09,fz*L9*.20);piv.add(rg);rots.push(rg);
           const rot=new THREE.Mesh(new THREE.TorusGeometry(.26,.022,6,16),chromeM); // le carénage d'hélice
-          rot.rotation.x=Math.PI/2;rot.position.set(sd*W9*.78,.09,fz*L9*.20);piv.add(rot);
+          rot.rotation.x=Math.PI/2;rg.add(rot);
+          const led=new THREE.Mesh(new THREE.TorusGeometry(.245,.009,4,24),ledM);led.rotation.x=Math.PI/2;led.position.y=-.014;rg.add(led); // son anneau de lumière
+          const fl=new THREE.Mesh(new THREE.CircleGeometry(.25,20),flouM);fl.rotation.x=-Math.PI/2;fl.position.y=.006;fl.userData.fx=1;rg.add(fl); // le disque de flou
           for(const pa of [0,1]){ // deux pales par hélice — recensées pour que la boucle les fasse tourner
             const p9=new THREE.Mesh(new THREE.BoxGeometry(.52,.016,.085),accM);
-            p9.position.set(sd*W9*.78,.09,fz*L9*.20);p9.rotation.y=pa*Math.PI/2;piv.add(p9);
+            p9.rotation.y=pa*Math.PI/2;rg.add(p9);
             carProps.push({m:p9,b:pa*Math.PI/2});}
         }
-      }else if(wSt==='plumes'){
-        // PLUMES D'ANGE : six rémiges en éventail, de la plus longue (devant) à la plus courte, pointe dorée
-        const plM=new THREE.MeshPhongMaterial({color:0xfbf8f0,emissive:0xfff4e0,emissiveIntensity:.35,shininess:40,specular:0xffffff});
-        const plO=new THREE.MeshPhongMaterial({color:0xffd75e,emissive:0xffb020,emissiveIntensity:.5,shininess:120,specular:0xffffff});
-        for(let k=0;k<6;k++){const ln=W9*(1.18-k*.13),f=new THREE.Group();f.rotation.y=sd*(k*.19-.05);
-          const r=new THREE.Mesh(new THREE.BoxGeometry(ln,.05,.26),plM);r.position.set(sd*ln/2,-k*.012,0);f.add(r);
-          const pt=new THREE.Mesh(new THREE.BoxGeometry(ln*.22,.055,.20),plO);pt.position.set(sd*ln*.9,-k*.012,0);f.add(pt);
-          piv.add(f);}
-        const cv=new THREE.Mesh(new THREE.BoxGeometry(W9*.42,.08,.46),plM);cv.position.set(sd*W9*.2,.03,-.05);piv.add(cv);
-      }else if(wSt==='chauve'){
-        // CHAUVE-SOURIS : une membrane festonnée tendue entre des doigts d'os
-        const mbM=new THREE.MeshPhongMaterial({color:0x2a0f35,emissive:0x5a0f5c,emissiveIntensity:.45,shininess:30,specular:0x663366,side:THREE.DoubleSide});
-        const osM=new THREE.MeshPhongMaterial({color:0x14101a,shininess:60,specular:0x444444});
-        const Wd=W9*1.15,sh=new THREE.Shape();
-        sh.moveTo(0,-.12);sh.lineTo(Wd*.55,-.22);sh.lineTo(Wd,.02);                       // bord d'attaque (y = vers l'ARRIÈRE)
-        for(const [x,y] of [[Wd*.92,.42],[Wd*.76,.30],[Wd*.66,.70],[Wd*.48,.46],[Wd*.36,.86],[Wd*.18,.56],[0,.62]])sh.lineTo(x,y);
-        const mg=new THREE.ShapeGeometry(sh);mg.rotateX(-Math.PI/2);if(sd<0)mg.scale(-1,1,1);
-        const mb=new THREE.Mesh(mg,mbM);piv.add(mb);
-        for(const [x,z] of [[Wd,.02],[Wd*.66,.70],[Wd*.36,.86]]){const ln=Math.hypot(x,z),o=new THREE.Mesh(new THREE.BoxGeometry(ln,.05,.05),osM);
-          o.position.set(sd*x/2,.02,-z/2);o.rotation.y=sd*Math.atan2(z,x);piv.add(o);}
-        const brs=new THREE.Mesh(new THREE.BoxGeometry(Wd*.56,.07,.07),osM);brs.position.set(sd*Wd*.28,.03,.17);piv.add(brs);
+        ailAnime(function(t,e){const n=AILV.n,r=3.5+e*36+n*40;flouM.opacity=Math.max(0,Math.min(.36,(r-12)/95)); // le régime (voir propSpin)
+          for(const rg of rots)rg.rotation.x=.3*n*e;ledM.color.setRGB(.3+1.8*n,1.1+.7*n,2.2);});
       }else if(AILES_POP&&AILES_POP[wSt]){
-        AILES_POP[wSt](piv,sd,W9,L9,H9,y0); // (2026-10-14) LES AILES POP (voir AILES_POP)
-      }else{
-        const wing=new THREE.Mesh(wGeo,accM);wing.position.set(sd*W9*.5,0,0);piv.add(wing);
+        AILES_POP[wSt](piv,sd,W9,L9,H9,y0,{acc:accM,body:bodyM}); // (2026-10-14) LES AILES POP · (2026-10-16) LES AILES VIVANTES : PANNEAUX, PLUMES D'ANGE et CHAUVE-SOURIS aussi (voir AILES_POP)
+      }else{ // repli : la planche d'origine (AILES_POP n'est pas encore posé au tout premier buildCar)
+        const wing=new THREE.Mesh(new THREE.BoxGeometry(W9*.92,.05,L9*.32),accM);wing.position.set(sd*W9*.5,0,0);piv.add(wing);
         const tip=new THREE.Mesh(new THREE.BoxGeometry(W9*.28,.04,L9*.14),bodyM);
         tip.position.set(sd*W9*.92,.06,-L9*.08);tip.rotation.x=.2;piv.add(tip);
       }
@@ -33711,6 +34010,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
   function(){try{volcanChauffe();}catch(e){console.warn('volcanChauffe',e);}}, // (2026-10-14) LE ROYAUME DE FEU : roche, lave, aiguilles, panaches, geysers, braises, cendre, bombes, halos — compilés au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
+  function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
@@ -36190,7 +36490,8 @@ const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.2
 const PHOTO_AILE={el:1,az:.15}; // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
 /* LA PHOTO D'UNE AILE (2026-10-15, Sacha : « pour les ailes il n'y a pas de photo, c'est pas bien ») : la caisse équipée, l'aile essayée,
    DÉPLOYÉE comme en vol (pleine envergure, léger dièdre), vue de trois quarts en plongée — même studio, même pellicule que les caisses */
-function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}}
+function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
+  try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
 function aileFile(id,cb){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j}]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
@@ -36221,13 +36522,13 @@ function carPhoto(i,cb,aile){
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
-    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
+    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
       if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
     if(bx.isEmpty())bx.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1.3,2));
     const EL9=aile?PHOTO_AILE.el:PHOTO_EL,AZ9=aile?PHOTO_AILE.az:PHOTO_AZ,cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
     const C8=[];for(let k=0;k<8;k++)C8.push(new THREE.Vector3(k&1?bx.max.x:bx.min.x,k&2?bx.max.y:bx.min.y,k&4?bx.max.z:bx.min.z));
     let D=bx.getSize(new THREE.Vector3()).length()*2.4,tg=ctr.clone(),ymin=0;const v9=new THREE.Vector3();
-    let PTS=C8;if(aile){PTS=[];carGroup.traverse(function(o){const pa=o.isMesh&&o.geometry&&o.geometry.attributes.position;if(!pa)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;} // une AILE : le cadre se cale sur la vraie silhouette (des sommets), pas sur les coins de sa boîte — les ailes ne la remplissent pas, la caisse sortait à moitié de la taille
+    let PTS=C8;if(aile){PTS=[];carGroup.traverse(function(o){const pa=o.isMesh&&o.geometry&&o.geometry.attributes.position;if(!pa||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;} // une AILE : le cadre se cale sur la vraie silhouette (des sommets), pas sur les coins de sa boîte — les ailes ne la remplissent pas, la caisse sortait à moitié de la taille
       const st=Math.max(1,Math.floor(pa.count/400));for(let q=0;q<pa.count;q+=st)PTS.push(new THREE.Vector3().fromBufferAttribute(pa,q).applyMatrix4(o.matrixWorld));});if(!PTS.length)PTS=C8;}
     for(let it=0;it<4;it++){ // le cadrage : la caisse remplit le cadre (86 % de large, 70 % de haut au plus), un peu haute (la place du reflet)
       cam.position.copy(tg).addScaledVector(dir,D);cam.lookAt(tg);cam.updateMatrixWorld();cam.updateProjectionMatrix();
@@ -36276,6 +36577,18 @@ function carPhoto(i,cb,aile){
   if(cb&&!asy)cb(url);
   return url;
 }
+window.dbgAiles=function(id){ /* (banc, 2026-10-16, LES AILES VIVANTES) porter une aile et compter ce qui BOUGE : groupes animés, pièces animées, groupes VIDÉS (la soudure ne doit en vider aucun) */
+  if(id)window.dbgHab('aile',id);const L=[];
+  for(const w of [carWingL,carWingR]){if(!w)continue;let gb=0,pb=0,vides=0,maillages=0;w.traverse(function(o){if(o.isMesh)maillages++;if(o!==w&&o.userData.bouge){if(o.isGroup){gb++;if(!o.children.length)vides++;}else pb++;}});L.push({enfants:w.children.length,maillages:maillages,groupes:gb,pieces:pb,vides:vides});}
+  return {aile:id||null,cotes:L,anim:BLING.anim.length,AILV:{t:+AILV.t.toFixed(2),n:+AILV.n.toFixed(2),vir:+AILV.vir.toFixed(2),mon:+AILV.mon.toFixed(2),vitr:AILV.vitr},wingT:+wingT.toFixed(2)};};
+window.dbgAilesVue=function(az,d,h){ /* (banc) MODE PHOTO dans le repère de la CAISSE : az = 0 derrière elle, ±π/2 de côté, π devant ; d = distance, h = hauteur — en pause, une image (les ailes continuent de vivre : la rappeler) */
+  if(started&&!gameOver&&!paused)togglePause();carGroup.updateMatrixWorld(true);
+  const p=new THREE.Vector3().setFromMatrixPosition(carGroup.matrixWorld),q=new THREE.Quaternion().setFromRotationMatrix(carGroup.matrixWorld),
+    o=new THREE.Vector3(Math.sin(az||0)*(d||7),h==null?2.2:h,-Math.cos(az||0)*(d||7)).applyQuaternion(q),up=new THREE.Vector3(0,1,0).applyQuaternion(q);
+  camera.position.copy(p).add(o);camera.up.copy(up);camera.lookAt(p.x+up.x*.8,p.y+up.y*.8,p.z+up.z*.8);camera.updateMatrixWorld();camera.up.set(0,1,0);
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';};
+window.dbgAilesForce=function(o){AILV.force=o||null;return AILV.force;}; // (banc) forcer l'état des ailes : {n:1} = le boost tenu, {vir:±1}, {mon:±1}, {ouvre:1} = dépliées même en roulant ; dbgAilesForce() rend la main
 window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
   const u=carPhoto(c,null,{k:k,j:j});return {url:u,box:PHOTO.ms&&PHOTO.ms.box,ailes:PHOTO.ms&&PHOTO.ms.ailes,caisse:CARS[c].name,reglage:Object.assign({},PHOTO_AILE)};};
 window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
@@ -36505,21 +36818,21 @@ const COSM={
     {id:'holo',     n:'HOLOGRAMME',        p:300000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
     {id:'guerrier', n:'SUPER GUERRIER',    mis:12,pk:350000,r:'mythique',grad:[0xff8a00,0xffd23a,0xfff4a8],g:'o',d:'Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.'}],
   aile:[
-    {id:'panneaux',n:'PANNEAUX',          p:0,     d:'Deux planches de planeur qui sortent des flancs. Sobre.'},
-    {id:'helices', n:'HÉLICES',           p:3000,  d:'Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
-    {id:'plumes',  n:'PLUMES D\'ANGE',    p:12000, d:'Blanches, en éventail. Le ciel te prend pour un des siens.'},
-    {id:'chauve',  n:'CHAUVE-SOURIS',     p:25000, d:'Membranes noires et doigts d\'os. Pour les vols de nuit.'},
+    {id:'panneaux',n:'PANNEAUX',          p:0,     d:'Deux planches de planeur, un aileron qui suit tes virages, des feux de position. Au boost, elles tirent deux traînées blanches.'},
+    {id:'helices', n:'HÉLICES',           p:3000,  d:'Quatre rotors qui s\'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
+    {id:'plumes',  n:'PLUMES D\'ANGE',    p:12000, d:'De vraies plumes blanches et dorées qui battent lentement et s\'ouvrent en éventail. Au boost, elles sèment de la poussière d\'or.'},
+    {id:'chauve',  n:'CHAUVE-SOURIS',     p:25000, d:'Membranes veinées de violet, doigts d\'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.'},
     // (2026-10-14) LES AILES POP (voir AILES_POP) — `ico`/`col` : le pictogramme de la vignette et sa couleur
-    {id:'pigeon',   n:'PIGEON',            p:6000,  r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un reflet vert au cou. Le roi des toits bat des ailes trop vite et ne sait pas pourquoi.'},
-    {id:'origami',  n:'AVION EN PAPIER',   p:9000,  r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux, trois plis, zéro aérodynamique. Ça plane quand même : c\'est toi qui pilotes.'},
-    {id:'monarque', n:'MONARQUE',          p:12000, r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Des ailes de papillon orange et noir qui battent en plein vol. Délicates. Jusqu\'à 900 à l\'heure.'},
-    {id:'pixel',    n:'8-BIT',             p:25000, r:'exotique',  ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, qui battent par à-coups. La console de ton grand frère approuve.'},
-    {id:'baron',    n:'BARON ROUGE',       p:38000, r:'exotique',  ico:'ai_baron',  col:'#ff4a4e',d:'Deux plans de toile rouge, des haubans, une odeur d\'huile de ricin. Un chien sur sa niche en rêve encore.'},
-    {id:'rouages',  n:'ENGRENAGES',        p:100000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Du laiton, de la toile et des rouages qui tournent. Léonard l\'avait dessinée, toi tu la pilotes.'},
-    {id:'xwing',    n:'AILES EN X',        p:120000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Quatre plans qui s\'écartent en X une fois dépliés. Verrouillez les ailes en position d\'attaque.'},
-    {id:'fee',      n:'FÉE',               p:160000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent. Il suffit d\'y croire. Et d\'un plein de nitro.'},
-    {id:'dragon',   n:'DRAGON',            p:450000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffe au poignet. Elles battent lentement : la puissance n\'a pas besoin de se presser.'},
-    {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'mythique',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui ne s\'éteignent jamais. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
+    {id:'pigeon',   n:'PIGEON',            p:6000,  r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
+    {id:'origami',  n:'AVION EN PAPIER',   p:9000,  r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
+    {id:'monarque', n:'MONARQUE',          p:12000, r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
+    {id:'pixel',    n:'8-BIT',             p:25000, r:'exotique',  ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
+    {id:'baron',    n:'BARON ROUGE',       p:38000, r:'exotique',  ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
+    {id:'rouages',  n:'ENGRENAGES',        p:100000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
+    {id:'xwing',    n:'AILES EN X',        p:120000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
+    {id:'fee',      n:'FÉE',               p:160000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
+    {id:'dragon',   n:'DRAGON',            p:450000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
+    {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'mythique',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
   trainee:[
     {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
     {id:'menthe',  n:'MENTHE',            p:2000,  rgb:[.30,1.30,.92],d:'Un sillage vert d\'eau qui sent le propre.'},
@@ -57919,6 +58232,7 @@ function loop(now){
   }
   if(PERF_MON)perfMonTick(now,rawMs);
   lvlStep(dt);routeTick(); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
+  ailvTick(dt); // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
   blingTick(dt); // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
@@ -59142,7 +59456,7 @@ function loop(now){
     // LES HÉLICES DU REQUIN : elles brassent doucement au sol et s'emballent en vol (`wingT` est
     // déjà le taux de déploiement des bras — une seule variable pilote la sortie ET le régime).
     if(carProps.length){
-      propSpin+=dt*(3.5+wingT*36);
+      propSpin+=dt*(3.5+wingT*36+AILV.n*40); /* (2026-10-16) et s'emballent au boost (AILV.n) */
       for(const p9 of carProps)p9.m.rotation.y=p9.b+propSpin;
     }
     // L'AILERON DORSAL SORT AVEC LES BRAS : couché dans le dos au sol, dressé en vol. Même `wingT`,
@@ -59535,7 +59849,7 @@ function loop(now){
   // mouvement 0..1 : le filtre suit la VITESSE en parallèle — on ralentit, le son se referme progressivement (plein vers ~65 % vmax)
   const musMvt=(running&&!gameOver)?Math.max(0,Math.min(1,(speedKmh/Math.max(1,vmaxShow()))/0.65)):0;
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
-  if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile'))))?1:0; // boutique, onglet AILES : on les montre ouvertes
+  if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile')))||!!(AILV.force&&AILV.force.ouvre))?1:0; /* (banc) dbgAilesForce({ouvre:1}) : dépliées en roulant */ // boutique, onglet AILES : on les montre ouvertes
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
     const sc=.05+.95*wingT;carWingL.scale.x=sc;carWingR.scale.x=sc; // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
     carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;  // léger dièdre de planeur une fois sorties
