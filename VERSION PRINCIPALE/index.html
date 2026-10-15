@@ -842,6 +842,14 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   /* ------- INTRO STUDIO 1.61 : accumulation → FISSION ------- */
   #splash{position:fixed;inset:0;background:radial-gradient(900px 600px at 50% 46%,#191024,#000 75%);z-index:80;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .7s;overflow:hidden}
   #fxCv{position:absolute;inset:0;width:100%;height:100%}
+  /* (2026-10-15, Sacha : « améliore l'écran de chargement CAR CASH ») LE CŒUR QUI BAT PENDANT LE CHARGEMENT : tant que le jeu se construit, le
+     script est occupé et la poussière d'or (canvas) reste FIGÉE — l'écran avait l'air planté. Ce halo or-rose respire en CSS pur, sur
+     transform/opacity : le compositeur l'anime même quand le script est pris. Il suit le voile jusqu'à son effacement (.spVoile). */
+  #splash::before,.spVoile::before{content:'';position:absolute;left:50%;top:50%;width:130vmax;height:130vmax;margin:-65vmax 0 0 -65vmax;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,196,90,.17),rgba(255,62,200,.07) 42%,rgba(25,16,36,0) 72%);
+    animation:spHalo 3.2s var(--ease,ease-in-out) infinite alternate;will-change:transform,opacity}
+  @keyframes spHalo{from{opacity:.5;transform:scale(.86)}to{opacity:1;transform:scale(1.05)}}
+  @media (prefers-reduced-motion:reduce){#splash::before,.spVoile::before{animation:none;opacity:.8}}
   #spStage{position:relative;text-align:center;z-index:2}
   /* ---- LA MARQUE φ : LA SUITE DE FIBONACCI QUI DONNE SON NOM AU STUDIO ----------------------
      « 1.61 », c'est le nombre d'or. Le mettre en chiffres sans jamais montrer d'où il vient, c'était
@@ -47992,7 +48000,13 @@ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU H
   JADE_JEU=false;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
   const t=SF.force?sfImpose(SF.der):(SF.prochain||sfTire(SF.der));SF.prochain=null;SF.tirage=[t];SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait
   if(t.carte==='jade')jadeMusGeste(); // GLISSE V2 naît dans le geste (Safari)
-  ecranWipe(function(){runStats.zones=0;rebuildMenuScene();if(!garageOn)openGarage(true);try{jadeGabarits();}catch(e){}},function(){garageLaunch();});return t;} // jadeGabarits : taillés une fois par session, sous le voile (≈ 0,7 s de moins au 1er portail vers la jade)
+  const sous9=function(){runStats.zones=0;rebuildMenuScene();try{jadeGabarits();}catch(e){}};
+  /* (2026-10-15, Sacha : « améliore l'animation du lancement ») MESURÉ (film du JOUER, accueil debout) : la caisse est DÉJÀ dans le ciel du
+     menu, et le JOUER passait d'abord par le balayage pixel (≈ 0,45 s d'écran sombre) pour rebâtir la piste… puis rouvrait le MÊME ciel
+     et lançait le piqué. Depuis le ciel, elle pique tout de suite : la piste tirée se bâtit sous le NUAGE BLANC de la fin du piqué
+     (`CHUTE.sous`, juste avant start/resetGame — le voile tient jusqu'à la 1re image rendue). Ailleurs (atelier, boutique) : le balayage. */
+  if(garageOn&&CHUTE.on&&!CHUTE.go){CHUTE.sous=sous9;garageLaunch();if(CHUTE.go)return t;CHUTE.sous=null;}
+  ecranWipe(function(){sous9();if(!garageOn)openGarage(true);},function(){garageLaunch();});return t;} // jadeGabarits : taillés une fois par session, sous le voile (≈ 0,7 s de moins au 1er portail vers la jade)
 /* LA MUSIQUE DU SOLEIL DE JADE (JMUS) — GLISSE V2, le module de Léo, joué en direct (son propre contexte audio) : la radio du jeu se tait
    sur ce niveau (musicPlayCurrent / musicNext / frenMus), le module joue tant que la course tourne (pause, mort, menu, appli cachée : il se
    tait), son intensité = les 5 PALIERS DE MUSIQUE du simulateur (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), son volume
@@ -52357,13 +52371,13 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
   if(!CHUTE.w)chuteMonte();
   if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;gEl.classList.add('ciel'); /* (niveau 1 v2) le bandeau du bas prend l'azur profond du ciel (voir #garage.menu.ciel::after) */
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){} // l'atelier se tait : là-haut, c'est le vent
-  if(CHUTE.entree){const v=chuteVoileEl();v.style.transition='none';v.style.opacity='1';void v.offsetWidth;v.style.transition='opacity .45s ease-out';v.style.opacity='0';} // revenu de la boutique : on sort de l'atelier PAR un nuage
+  if(CHUTE.entree){const v=chuteVoileEl();v.style.transition='none';v.style.transform='none';v.style.opacity='1';void v.offsetWidth;v.style.transition='opacity .45s ease-out';v.style.opacity='0';} // revenu de la boutique : on sort de l'atelier PAR un nuage
   CHUTE.entree=1;
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
   if(CHUTE.corps){carBody.position.set(0,0,0);carBody.rotation.set(0,0,0);CHUTE.corps=false;} // (LA CHUTE LIBRE RÉALISTE) la carrosserie se repose sur ses ressorts
-  CHUTE.on=false;CHUTE.go=null;titreCiel(false);gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
+  CHUTE.on=false;CHUTE.go=null;CHUTE.sous=null;titreCiel(false);gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
   try{chuteDouxCoupe(ferme?.5:.35);}catch(e){} // (2026-10-14) …la douce aussi
   trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) le studio du titre rend l'ambiance (il la baisse sur la caisse), puis la lumière du rebond (à 0 partout ailleurs) et la couleur de la lampe de caisse
@@ -52442,8 +52456,12 @@ function chuteRender(dt){
     ro=(P.gite||0)+cl*K.ra*chuteBr2(t*.23,2)+cl*.04*Math.sin(t*1.45+1.7*chuteBr(t*.17,5))*(.4+.6*raf)+vib*K.tr*1.3*(.3+.7*raf)*chuteBr(t*12.7,22);}
   else{pi=P.pitch+.06*Math.sin(t*.9)+.03*Math.sin(t*2.3);ro=(P.gite||0)+P.roule*Math.sin(t*.53)+.07*Math.sin(t*1.7);} // (cl 0) le balancement d'avant
   if(G){G.t+=dt;u=Math.min(1,G.t/1.75);const e=u*u*(3-2*u);
-    pi+=(1.3-pi)*Math.min(1,u/.3);ro*=1-e;                                         // le nez PLONGE
-    dy=-Math.pow(u,2.3)*150;fwd=Math.pow(u,2)*25;}                                 // elle accélère vers la route
+    /* (2026-10-15, Sacha : « améliore l'animation du lancement ») L'ÉLAN AVANT LE PIQUÉ : le nez plongeait en ligne droite dès la 1re image
+       (rampe linéaire, partie à pleine vitesse). Maintenant elle PREND SON ÉLAN — le nez se cabre et la caisse se soulève (~0,25 s, an9),
+       puis bascule en piqué sur une courbe sans à-coup (smootherstep, d9) : on lit le geste avant qu'il parte. */
+    const an9=Math.sin(Math.min(1,u/.16)*Math.PI),k9=Math.min(1,Math.max(0,(u-.06)/.34)),d9=k9*k9*k9*(k9*(k9*6-15)+10);
+    pi+=(1.3-pi)*d9-.22*an9*(1-d9);ro*=1-e;                                        // le nez PLONGE
+    dy=-Math.pow(u,2.3)*150+1.4*an9*(1-u);fwd=Math.pow(u,2)*25;}                   // elle accélère vers la route
   const f=CHUTE.f.copy(CHUTE.fh).multiplyScalar(Math.cos(pi));f.y=-Math.sin(pi);f.normalize();
   const C=CHUTE.v3.copy(CHUTE.C).addScaledVector(CHUTE.fh,fwd);C.y+=dy; // L'ANCRE de la caméra : lisse (la caméra la vise)
   const Ck=CHUTE.ck||(CHUTE.ck=new THREE.Vector3());Ck.copy(C);           // LA CAISSE : elle flotte autour de l'ancre (LA CHUTE LIBRE RÉALISTE)
@@ -52463,7 +52481,7 @@ function chuteRender(dt){
     const rs9=vib*(.35+.65*raf);carBody.position.set(0,K.det*cl+K.ressort*rs9*chuteBr(t*3.4,31),0);carBody.rotation.set(K.cass*rs9*chuteBr(t*2.7,32),0,K.cass*1.2*rs9*chuteBr(t*3.1,33));CHUTE.corps=true;}
   else{for(const w of wheels)w.rotation.x+=dt*(7+u*30);for(const e of ESSIEUX)e.rotation.x+=dt*(7+u*30);if(CHUTE.corps){carBody.position.set(0,0,0);carBody.rotation.set(0,0,0);CHUTE.corps=false;}} // les roues tournent dans le vide
   // LA CAMÉRA : dans l'axe de la route, un peu au-dessus, la caisse dans la place libre (menuCadre)
-  const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44+26*u*u:44;
+  const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44-5*Math.sin(Math.min(1,u/.16)*Math.PI)+30*u*u:44; /* (2026-10-15) pendant l'élan le champ se resserre un instant, puis il s'ouvre en grand avec la vitesse : le coup de zoom du départ */
   const nx=Cd.nx+(camera.aspect<1?-.07:0); // debout « un peu à gauche » (Sacha) — à −0,16 la caisse plongeante du titre v3 (vue de trois-quarts dessus) touchait le bord gauche de l'écran (31 px, banc cadrage.mjs) : −0,07 la garde un rien à gauche du milieu
   if(Math.abs(camera.fov-fov0)>.01){camera.fov=fov0;camera.updateProjectionMatrix();}
   /* ⚠ (titre v3) LE DÉCENTREMENT DE L'ATELIER : le garage décale l'objectif (`setViewOffset`) pour sa mise en page et ne le rendait pas en
@@ -52502,7 +52520,7 @@ function chuteRender(dt){
   /* (titre v3) L'HORIZON DROIT : le décadrage tournait autour de l'axe de la caméra, déjà penchée vers le bas — l'horizon basculait de 10°.
      Il tourne autour de la VERTICALE DU MONDE (÷ cos de la plongée : la caisse garde sa place à l'écran). */
   {const k=G?1-Math.min(1,u/.5):1,ce9=Math.max(.5,Math.cos(el9));camera.rotateOnWorldAxis(AXIS_Y,Math.atan(nx*tH)/ce9*k);camera.rotateX(-Math.atan(Cd.ny*tV)*k);}   // la caisse glisse dans la zone libre
-  if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
+  if(G&&u>.2&&vib>0){const a=(u-.2)*.9,tg=G.t;camera.position.x+=.07*a*chuteBr(tg*19,60);camera.position.y+=.07*a*chuteBr(tg*17,61);camera.rotateZ(.014*a*chuteBr(tg*6,62));} // l'air qui cogne — (2026-10-15) un tremblement LISSE qui monte (le tirage au hasard par image grésillait), et la vue qui roule un peu ; rien sous « Réduire les animations »
   if(CHUTE_TAP.sh>0){const k9=CHUTE_TAP.sh;camera.position.x+=(Math.random()-.5)*.5*k9;camera.position.y+=(Math.random()-.5)*.5*k9;camera.position.z+=(Math.random()-.5)*.5*k9;camera.rotateZ((Math.random()-.5)*.06*k9); // (LA CAISSE AU DOIGT v2) le coup secoue la caméra…
     camera.fov=fov0-9*Math.min(1,k9);camera.updateProjectionMatrix();} // (14/10) le coup de zoom ×1,8 // …et la fait cogner d'un coup de zoom (la ligne du champ, plus haut, le rend à l'image suivante)
   camera.updateMatrixWorld();
@@ -52553,12 +52571,17 @@ function chuteRender(dt){
     if(AC&&windG&&whG){try{CHUTE.vent=true;stt(windG.gain,.05+.05*u,AC.currentTime,.3);stt(windF.frequency,900+2400*u,AC.currentTime,.3);stt(whG.gain,.02+.05*u,AC.currentTime,.3);}catch(e){}}}
   // JOUER : le banc de nuage traversé (voile blanc), puis la course sous le voile
   if(G){if(!G.voile&&u>.74){G.voile=true;try{sfx('nuage.entre');}catch(e){}}
-    const v=chuteVoileEl();v.style.transition='none';v.style.opacity=String(Math.max(0,Math.min(1,(u-.74)/.2)));
+    /* (2026-10-15) LE NUAGE QU'ON TRAVERSE : le voile montait en rampe droite, plat ; il arrive maintenant en courbe douce et EN APPROCHE
+       (il grossit vers nous, ×1,25 → 1), puis il se DÉCHIRE autour de la caisse (s'ouvre ×1,6 en s'effaçant) — transform/opacity seulement. */
+    const v=chuteVoileEl();v.style.transition='none';{const w9=Math.max(0,Math.min(1,(u-.72)/.22)),s9=w9*w9*(3-2*w9);v.style.opacity=String(s9);v.style.transform='scale('+(1.25-.25*s9).toFixed(3)+')';}
     if(u>=1){
+      if(CHUTE.sous){const f9=CHUTE.sous;CHUTE.sous=null;try{f9();}catch(e){console.warn('chute: piste sous le voile',e);}} // (2026-10-15) la piste tirée par JOUER se bâtit ICI, sous le nuage blanc (voir classiqueJouer)
       const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
       closeGarage();
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
-      setTimeout(function(){v.style.transition='opacity .5s ease-out';v.style.opacity='0';},60); // le nuage se déchire SUR la piste
+      /* le nuage se déchire SUR la piste — (2026-10-15) après la 1re image de la course RENDUE (deux rAF, au lieu d'un minuteur de 60 ms qui
+         pouvait découvrir une image pas encore dessinée), en s'ouvrant vers nous */
+      requestAnimationFrame(function(){requestAnimationFrame(function(){v.style.transition='opacity .6s var(--ease,cubic-bezier(.32,.72,0,1)),transform .6s var(--ease,cubic-bezier(.32,.72,0,1))';v.style.opacity='0';v.style.transform='scale(1.6)';});});
     }}
 }
 /* LE GARAGE SOBRE (2026-09-29, Léo : « le point de vue est bizarre, on dirait un effet loupe ; je veux un garage plus sobre, la voiture au
@@ -58431,9 +58454,13 @@ renderLeaders(-1);
   const SYMS=[['$','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['€','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
   function beat(k){ // battement de cœur du logo : pulsation + micro-flash + onde
     if(done)return;
-    num.style.transform='scale('+(1+.13*k)+')';fl9.style.opacity=(.10*k);
+    /* (2026-10-15) le battement faisait pulser « 1.61 »… encore INVISIBLE à ce moment-là (il ne se lève qu'après la fission, depuis l'ordre
+       inversé) : les trois coups ne se voyaient pas. C'est CASH CAR, à l'écran, qui bat — `scale` (propriété à part : la pente skewX du
+       logo reste intacte), un coup sec puis le retour, de plus en plus fort jusqu'à l'explosion. */
+    try{if(ttl.animate&&document.documentElement.getAttribute('data-reduced-motion')!=='1')ttl.animate([{scale:'1'},{scale:String(1+.06*k),offset:.22},{scale:'1'}],{duration:340,easing:'cubic-bezier(.32,.72,0,1)'});}catch(e){}
+    fl9.style.opacity=(.10*k);
     RG.push({r:30,v:900+k*300,w:3,a:.5,col:'255,214,110'});
-    T9(function(){if(done)return;num.style.transform='';fl9.style.opacity=0;},130);
+    T9(function(){if(done)return;fl9.style.opacity=0;},130);
   }
   function fission(){ // TOUT explose EN MÊME TEMPS : cœurs, trèfles, dollars, crânes…
     if(done)return;
@@ -58700,6 +58727,7 @@ renderLeaders(-1);
     // ⚠ `pointer-events:none` (le CSS d'origine avait `cursor:pointer`, pour le double-clic « passer »
     // — mais ce clic n'a plus de sens ICI, `hide()` a déjà tourné) : sans lui, le voile invisible
     // continuait à AVALER les clics sur le garage fraîchement révélé pendant tout son fondu.
+    sp9.classList.add('spVoile'); /* (2026-10-15) le halo qui respire reste sur le voile jusqu'à son effacement (il tenait à l'id) */
     sp9.id='';
     sp9.style.cssText='position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;pointer-events:none;background:radial-gradient(900px 600px at 50% 46%,#191024,#000 75%);transition:opacity .7s;overflow:hidden;opacity:1';
     // ⚠ LE GARAGE ÉTAIT MUET (2026-09-05) : `chimeNote`/`noiseBurst` (chime de changement de caisse,
