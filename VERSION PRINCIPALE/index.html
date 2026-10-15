@@ -9189,13 +9189,14 @@ html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas
 /* UX 8 · LA PARTIE : pause, fenêtres de confirmation, réglages, fin de partie, missions — même règle (ergonomie et soin, charte v4/v5, html:not(.c6)). */
 /* ===== 1. LA PAUSE — REPRENDRE est l'or (en bas, sous le pouce) ; SON et MUSIQUE seuls en jeu ; le reste derrière « TOUS LES REGLAGES » ; QUITTER isolé, en contour ===== */
 html:not(.c6) #tPanel #tpIn>.tpH[data-g="run"]{display:none}
-html:not(.c6) #tPanel #tpIn>.tpRow{display:contents}
+/* (2026-10-15) LA PARTIE redevient UNE rangée : RECOMMENCER | QUITTER côte à côte, à hauteur fixe, posés au-dessus du lingot.
+   ⚠ La rangée était dissoute (display:contents) alors que `.tpRow .tp` garde son flex:1 — dans la colonne, ce flex:1 devenait de la
+   HAUTEUR : les deux plaques gonflaient à 112-152 px, avalaient tout le vide et poussaient REPRENDRE sous le bord de l'écran. */
+html:not(.c6) #tPanel #tpIn>.tpRow{order:4;display:flex;gap:12px;margin-top:auto;padding-top:12px}
 html:not(.c6) #tPanel #tpIn>.tpResume{order:1;margin-top:4px}
 html:not(.c6) #tPanel #tpIn>.tpHR{order:2;margin-top:12px}
 html:not(.c6) #tPanel #tpIn>.tpPanel{order:3}
-html:not(.c6) #tPanel #tpIn .tp[data-a="reset"]{order:4;margin-top:8px;min-height:52px}
-html:not(.c6) #tPanel #tpIn .tp[data-a="quit"]{order:5}
-html:not(.c6) #tPanel #tpIn>.tp.go{order:6;margin-top:auto}
+html:not(.c6) #tPanel #tpIn>.tp.go{order:6;margin-top:8px}
 html:not(.c6) #tPanel .tpH,html:not(.c6) #tPanel .tpResume .mStat span{font-size:var(--f1)} /* étiquettes 8 px -> 10 px */
 html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="q"],html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="volh"]{display:none} /* IMAGE et POUCE HAUT : dans les réglages complets */
 html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]{display:flex;min-height:58px}
@@ -9203,13 +9204,13 @@ html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]::after{content:'';flex:none;width
 html:not(.c6) #tPanel #tpIn .tp.rouge{--nc:var(--neoR);min-height:48px;margin:0 0 16px;background:transparent;text-shadow:none;
   box-shadow:inset 0 0 0 2px var(--neoR)}
 html:not(.c6) #tPanel #tpIn .tp.rouge:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+html:not(.c6) #tPanel #tpIn>.tpRow>.tp{flex:1 1 0;min-height:52px;margin:0} /* les deux plaques de LA PARTIE : même largeur, même hauteur */
 @media (orientation:landscape) and (max-height:540px){
   html:not(.c6) #tPanel #tpIn>.tpH:nth-child(1){grid-column:1;grid-row:1}
   html:not(.c6) #tPanel #tpIn>.tpResume{grid-column:1;grid-row:2;margin:8px 0 0}
   html:not(.c6) #tPanel #tpIn>.tpHR{display:none}
   html:not(.c6) #tPanel #tpIn>.tpPanel{grid-column:2;grid-row:1/span 2;align-self:start}
-  html:not(.c6) #tPanel #tpIn .tp[data-a="reset"]{grid-column:2;grid-row:3;margin:0}
-  html:not(.c6) #tPanel #tpIn .tp[data-a="quit"]{grid-column:2;grid-row:4;margin:0}
+  html:not(.c6) #tPanel #tpIn>.tpRow{grid-column:2;grid-row:3;align-self:start;margin:4px 0 0;padding:0}
   html:not(.c6) #tPanel #tpIn>.tp.go{grid-column:1;grid-row:3/span 3;align-self:end;margin:0 0 6px}
 }
 /* ===== 1 bis. RÉGLAGES OUVERTS DEPUIS LA PAUSE — la page passe AU-DESSUS (l'overlay est à z-index 5, le panneau de pause à 9 : sans ceci les deux se lisaient l'un à travers l'autre) ===== */
@@ -17555,11 +17556,9 @@ window.dbgBanq=function(k,o){
    le long du volcan, des lacs de lave et tout ; il faut une ambiance et des couleurs bien travaillées ») =======================
    Une planète de feu à l'échelle de CASH CAR. Le gameplay est celui de toujours (la route, les sauts, les pièces) : le volcan est un DÉCOR
    qui vit, et la lave TUE (on y tombe = 'lave', on s'écrase sur la roche = 'roche').
-   · LA ROUTE v2 (`genVolcan` → `vlcTrace`, 14/10 au soir — la règle RACCOURCIS de GAMEPLAY) : elle part de la LÈVRE DU CRATÈRE du grand
-     volcan (`VOLCAN.K`, dans le dos du départ), plonge, et DESCEND vers la MER DE LAVE par des enchaînements de virages et 5 BOUCLES de
-     raccourci (4 au-delà du palier 10) : on file tout droit au bout de l'élan, la route se dérobe, et l'on retombe sur la sortie de la
-     boucle, 40 m plus bas — ~600 m de gagnés. Tout est à l'échelle du palier moteur (rayons et portées). Le second volcan (`VOLCAN.K2`) se
-     dresse devant l'arrivée. Mesuré au banc RACCOURCIS (hors ligne) : palier 0 → les dix cibles sur cinq graines.
+   · LA ROUTE v3 (`genVolcan` → `vlcTrace`, 15/10 — Sacha : « plat, des virages difficiles à voir, une BALADE ») : PLATE, en quatre
+     tableaux — le LAC de lave ouverte (`VOLCAN.lac`), le tour du pied du GRAND VOLCAN (`VOLCAN.K`), l'ARCHE puis LES FUMERONS (des virages
+     serrés cachés chacun dans un banc de fumée), l'ARRIVÉE face au second volcan (`VOLCAN.K2`). Plus de boucle ni de raccourci ici.
    · LE RELIEF (`volcanSol`) : une grille de 26 m — la MER DE LAVE plate (`ySea`, 72 m sous le point le plus bas de la route) semée d'îles et
      de MESAS, les deux CÔNES qui en sortent (ravines, lèvre, cratère), coupés par le COULOIR de la dalle la plus basse (là où la route
      repasse sous elle-même) ; au-delà de la grille, la mer continue jusqu'à l'horizon (`vlcMerLoin`).
@@ -17604,80 +17603,81 @@ try{Object.assign(PAL.B,{volcanSolC:[34,30,26],volcanMarge:[1500,1900,2300],volc
    où la pente passe à la hauteur y). K = {yP sommet, yB pied, rc rayon du cratère, cr sa profondeur, Rb rayon du pied, ex la courbure}. */
 function vlcConeY(K,r){if(r<K.rc){const u=r/K.rc;return K.yP-K.cr*(1-u*u);}const u=Math.min(1,(r-K.rc)/(K.Rb-K.rc));return K.yB+(K.yP-K.yB)*Math.pow(1-u,K.ex);}
 function vlcConeR(K,y){const f=Math.max(0,Math.min(1,(y-K.yB)/(K.yP-K.yB)));return K.rc+(1-Math.pow(f,1/K.ex))*(K.Rb-K.rc);}
-/* ---------------- LA ROUTE v2 : DU CRATÈRE À LA MER DE LAVE, PAR LES BOUCLES DE RACCOURCI (2026-10-14, Sacha, relayé par PILOTAGE :
-   « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus bas ; les maps doivent DESCENDRE » ·
-   « c'est un jeu de COURSE, pas de balade : plus de virages et tout ») ----------------
-   La route part de la LÈVRE DU CRATÈRE (le grand volcan dans le dos), plonge (LE SAUT DU CRATÈRE, `plg`), puis descend vers la MER DE LAVE
-   par des enchaînements de virages (R 80-235 m × √échelle, 30-65°, un sur quatre serré ; aucune droite de plus de 400 m) et des BOUCLES : une ligne d'ÉLAN (140 m), un
-   tour COMPLET (deux demi-cercles, le second plus large) qui descend de 46-58 m, puis la SORTIE (260-340 m) qui file DANS L'AXE de l'élan,
-   à côté de lui (entraxe 40-46 m, côté EXTÉRIEUR du tour : elle passe en partie sous le début de la boucle, ~40 m plus bas) et plus bas. LE RACCOURCI : au bout de
-   l'élan, ne pas tourner — filer TOUT DROIT par le bord extérieur et retomber sur la sortie (~500-700 m de gagné, la caisse se pose dans l'axe). Le second demi-cercle repasse aussi SOUS
-   la ligne d'élan (≥ 38 m d'air) : un second point de coupe. 5 boucles (4 au-delà de l'échelle 1,8), sens alternés (`VOLCAN.sauts`).
-   Contrôle (`vlcTrace` → `conflits`) : aucun tronçon ne repasse à moins de 70 m d'un autre avec moins de 32 m d'air ; sinon un autre tracé
-   (6 essais, dans un flux de hasard PROPRE : un seul tirage `rnd` consommé). Le cap reste à ±62° de l'axe : on s'éloigne du volcan. */
+/* ---------------- LA ROUTE v3 : LA BALADE DE FEU (2026-10-15, Sacha : « le terrain peut rester plat, avec juste des virages difficiles à voir
+   à cause de la visibilité ; ça doit plus être pensé comme une BALADE : on va d'abord au-dessus d'un lac de lave, puis on passe à côté d'un
+   volcan, et tout ») ----------------
+   Une route PLATE (y = 0 de bout en bout : ni boucle, ni raccourci, ni plongeon — la règle RACCOURCIS ne s'applique plus ici, ordre de Sacha)
+   qui raconte un voyage en quatre tableaux :
+   1 · LE LAC (`VOLCAN.lac`) : de la rive, on file à 48 m au-dessus d'un grand lac de lave OUVERTE — de longues courbes, rien que la lave et
+       les aiguilles qui en sortent (volcanSol y efface îles et mesas) ;
+   2 · LE VOLCAN : la route fait le tour du pied du grand volcan (`VOLCAN.K`) — un grand arc de 100-120° à `Rv` du cratère, au-dessus de la lave ;
+       le cône monte à 160 m de la route, raide, jusqu'à 550 m plus haut ;
+   3 · L'ARCHE puis LES FUMERONS : une ligne droite sous l'arche, puis 5-6 virages SERRÉS (60-100°), chacun caché dans un BANC DE FUMÉE
+       (`Q.tours` → buildVolcan) : on entre dans la fumée sur du droit, le virage arrive dedans, les néons du bord guident ; entre deux bancs,
+       une fenêtre dégagée ;
+   4 · L'ARRIVÉE : le second volcan (`VOLCAN.K2`) droit devant le portail.
+   Le cap reste à ±64° de l'axe : la route avance toujours, elle ne peut pas se recroiser (contrôle `conflits` gardé, 6 essais, flux de hasard
+   PROPRE : un seul tirage `rnd` consommé). Les rayons suivent le palier (rM = 40 + 0,3·vw : sous rM, infranchissable). */
 function genVolcan(rnd){
   GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);
   let best=null;
   for(let e=0;e<6;e++){const r=vlcTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
-  for(const k of ['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1'])VOLCAN[k]=best[k];
+  for(const k of ['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac'])VOLCAN[k]=best[k];
   return best.ctrl;}
 function vlcTrace(rnd,LV){
-  /* L'ÉCHELLE DU PALIER (règle RACCOURCIS, Sacha : « plus la vitesse du palier est élevée, plus les virages doivent être larges ») : la vitesse du
-     palier vw (le calcul de lvPiste, à rebours) et son rayon mini rM = 40 + 0,3·vw (sous rM : infranchissable). Les virages SERRÉS entre 1 et 1,4 rM,
-     les autres entre 1,55 rM et 240 m (au-delà de 250 m, ce n'est plus un virage) ; les élans et lignes droites × √(vw/78) ; la SORTIE d'une boucle
-     mesure la portée du saut (vw × 2,5 s) : à toutes les vitesses on se pose dessus. */
-  const Rs=()=>rM*(1.26+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,240);return a+rnd()*(b-a);};
-  const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,plg=[],ph1=rnd()*6.283,DN=[];let gF=null;
-  /* LA PENTE (positive = on descend) : 5-9 % dans les virages, la boucle à sa propre pente (gF : 46-58 m sur le tour), le saut du cratère
-     (un replat de 140 m puis 15-17 % sur 190 m), les 280 premiers mètres en douceur (le portail). Jamais une remontée. */
-  let gL=null; // l'ENTRÉE d'une boucle plonge (16 % sur 120 m) : la route se dérobe sous la caisse lancée tout droit, qui passe au-dessus du bord
-  const pente=s9=>{if(gL&&s9>=gL.s0&&s9<gL.s0+gL.l)return gL.a;if(gF!=null)return gF;let g=.07+.018*Math.sin(s9/650*6.283+ph1);
-    for(const s0 of plg){const u=s9-s0;if(u>-140&&u<0)g=Math.min(g,.025);else if(u>=0&&u<190)g=.15+.02*Math.sin(u/190*Math.PI);}
-    if(s9<280)g=.03+(g-.03)*THREE.MathUtils.smoothstep(s9,160,280);
-    return Math.max(.035,g);};
-  let P=new THREE.Vector3(0,0,0),phi=0,s=0,y=0;
+  const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DN=[],y=0;
+  const Rs=()=>rM*(1.32+rnd()*.25),Rl=()=>Math.max(rM*2.2,260)+rnd()*160; // SERRÉ (les fumerons) · LONG (le lac)
+  let P=new THREE.Vector3(0,0,0),phi=0,s=0;
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
-    for(let j=0;j<n;j++){y-=pente(s+dh*(j+.5)/n)*dh/n;DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);}s+=dh;P.set(nx,y,nz);push();};
+    for(let j=0;j<n;j++)DN.push(x0+(nx-x0)*(j+1)/n,y,z0+(nz-z0)*(j+1)/n,s+dh*(j+1)/n);s+=dh;P.set(nx,y,nz);push();};
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi,s:s};};
-  const droite=l=>{const nn=Math.max(2,Math.round(l/25)); /* des points tous les 25 m : la spline ne se tord plus à l'entrée d'une boucle */for(let k=0;k<nn;k++)avance(P.x+Math.sin(phi)*l/nn,P.z+Math.cos(phi)*l/nn);};
+  const droite=l=>{const nn=Math.max(2,Math.round(l/25));for(let k=0;k<nn;k++)avance(P.x+Math.sin(phi)*l/nn,P.z+Math.cos(phi)*l/nn);};
   const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<nn;k++){phi+=st/2;const nx=P.x+Math.sin(phi)*ch,nz=P.z+Math.cos(phi)*ch;phi+=st/2;avance(nx,nz);}};
   const wrap=a=>{while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
-  push();ici('depart');plg.push(300*KV);droite(290*KV);                                  // LE SAUT DU CRATÈRE : la lèvre à 300 m
-  const LIM=62*Math.PI/180,sauts=[],hand=rnd()<.5?-1:1;let sg=rnd()<.5?-1:1;
-  // LES VIRAGES (règle RACCOURCIS de GAMEPLAY : un virage compte sous 250 m de rayon, un SERRÉ sous 120 m) : R 95-235 m × √échelle, et un
-  // virage sur quatre SERRÉ (R 80-112 m) ; ils s'enchaînent sans ligne droite (une respiration de 40-100 m, trois fois sur dix)
-  const virages=n=>{for(let k=0;k<n;k++){sg=-sg;let a=KV>1.3?22+rnd()*14:25+rnd()*22;const R=rnd()<.3?Rs():Rn(),rel=wrap(phi),lib=(LIM-sg*rel)*57.2958;
-      if(lib<15){sg=-sg;a=Math.min(a,(LIM-sg*rel)*57.2958);}else a=Math.min(a,lib);arc(sg*a,R);if(rnd()<.3)droite(40+rnd()*60);}};
-  const nB=LV<1.8?5:4;
-  for(let b=0;b<nB;b++){
-    virages((b?4:3)+Math.round((KV-1)*9));
-    if(b===1){droite(100*KV);ici('arche0');droite(110*KV);ici('arche');droite(110*KV);ici('arche1');virages(1);} // L'ARCHE, entre deux boucles (une droite de 340 m : jamais plus de 400)
-    {const a=wrap((rnd()-.5)*.6-phi)*57.2958;if(Math.abs(a)>3)arc(a,Math.max(220,rM*2)+rnd()*60);}   // l'élan se prend dans l'axe de la descente
-    droite(140*KV);
-    const tb=(b%2?1:-1)*hand,R1=rM*(1.25+rnd()*.25),Dx=22+rnd()*8,R2=R1+Dx/2,len=Math.PI*(R1+R2),drop=36+rnd()*8,yE=y,pE=P.clone(),phE=phi,sE=s;
-    const lP=120*KV;gL={s0:s,l:lP,a:.16};gF=Math.max(.02,(drop-.16*lP)/Math.max(50,len-lP));arc(tb*180,R1);arc(tb*180,R2);gF=null;gL=null;
-    sauts.push({e:pE,phi:phE,sE:sE,sS:s,yE:yE,yS:y,D:Dx,tb:tb,R1:R1});ici('b'+b);
-    droite(Math.max(250,vw*2.4)+rnd()*40);sg=rnd()<.5?-1:1;arc(sg*(18+rnd()*8),Rn());} // la sortie se prolonge par un virage doux (18-26°) : à 1,25 × la vitesse du palier on se pose encore dans l'axe
-  virages(3+Math.round((KV-1)*4));droite(220*KV);ici('fin');droite(120*KV);
-  // LE CONTRÔLE DES CROISEMENTS (points tous les 10 m, casiers de 40 m) : un passage à moins de 70 m d'un autre tronçon = un croisement ;
-  // avec moins de 32 m d'air entre les deux dalles = un CONFLIT (on ne passe pas dessous, on ne coupe pas proprement)
-  let conflits=0,croise=0;{const G=new Map(),n=DN.length/4,cle=(x,z)=>Math.floor(x/40)+','+Math.floor(z/40),vu=new Set();
+  const LIM=64,tourne=(aDeg,R)=>{const rel=wrap(phi)*57.2958;let a=aDeg;if(rel+a>LIM)a=LIM-rel;if(rel+a<-LIM)a=-LIM-rel;if(Math.abs(a)>2)arc(a,R);return a;}; // le cap borné : la route avance toujours
+  const vers=(cible,R)=>{const a=wrap(cible*Math.PI/180-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
+  push();ici('depart');droite(260*KV);
+  // 1 · LE LAC : de grandes courbes posées sur la lave
+  const sL0=s;let sg=rnd()<.5?-1:1;droite(140*KV);
+  for(let k=0;k<3;k++){sg=-sg;tourne(sg*(24+rnd()*22),Rl());droite((110+rnd()*130)*KV);}
+  const sL1=s;
+  // 2 · LE VOLCAN : on se place de biais (le cap à ∓ la moitié de l'arc), puis le grand arc de la corniche autour du cratère
+  const hv=rnd()<.5?-1:1,Rv=Math.max(560,rM*3.2)+rnd()*120,aV=100+rnd()*20;
+  droite(90*KV);vers(-hv*aV/2,Math.max(rM*1.9,210));droite(100*KV);
+  const pV=P.clone(),phV=phi;ici('vlc0');arc(hv*aV,Rv);ici('vlc1');const sSp=s;
+  const C=new THREE.Vector3(pV.x+hv*Rv*Math.cos(phV),0,pV.z-hv*Rv*Math.sin(phV)); // le centre de l'arc = le cratère
+  // 3 · L'ARCHE, puis LES FUMERONS : des virages serrés, chacun dans son banc (le droit d'avant = l'entrée dans la fumée)
+  droite(120*KV);ici('arche0');droite(110*KV);ici('arche');droite(110*KV);ici('arche1');
+  const tours=[],nT=5+(rnd()<.5?1:0);
+  for(let k=0;k<nT;k++){droite((260+rnd()*100)*KV);const rel=wrap(phi)*57.2958;sg=Math.abs(rel)>12?(rel>0?-1:1):(rnd()<.5?-1:1);
+    const s0=s,a=tourne(sg*(62+rnd()*38),Rs());tours.push({s0:s0,s1:s,a:Math.round(a)});}
+  Q.tours=tours;
+  // 4 · L'ARRIVÉE : deux courbes douces, la ligne du portail
+  droite(240*KV);for(let k=0;k<2;k++){sg=-sg;tourne(sg*(20+rnd()*15),Rl());droite(90*KV);}
+  droite(140*KV);ici('fin');droite(120*KV);
+  // LE CONTRÔLE DES CROISEMENTS (points tous les 10 m, casiers de 40 m) : la route est plate, tout passage à moins de 70 m d'un autre tronçon est un CONFLIT
+  let conflits=0;{const G=new Map(),n=DN.length/4,cle=(x,z)=>Math.floor(x/40)+','+Math.floor(z/40),vu=new Set();
     for(let i=0;i<n;i++){const k=cle(DN[i*4],DN[i*4+2]);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(i);}
-    for(let i=0;i<n;i+=2){const x=DN[i*4],yy=DN[i*4+1],z=DN[i*4+2],si=DN[i*4+3],bx=Math.floor(x/40),bz=Math.floor(z/40);
+    for(let i=0;i<n;i+=2){const x=DN[i*4],z=DN[i*4+2],si=DN[i*4+3],bx=Math.floor(x/40),bz=Math.floor(z/40);
       for(let a9=-2;a9<=2;a9++)for(let b9=-2;b9<=2;b9++){const L9=G.get((bx+a9)+','+(bz+b9));if(!L9)continue;
-        for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
-          const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
-  // LA MER DE LAVE : plate, 72 m sous le point le plus bas de la route ; LE GRAND VOLCAN dans le dos du départ (la route part de sa lèvre),
-  // son pied plonge dans la mer à 1,5-1,9 km ; LE SECOND devant la fin, sa rive à ~250 m du portail
-  let yMin=1e9;for(const p of ctrl)yMin=Math.min(yMin,p.y);const ySea=yMin-72;
+        for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;if(Math.hypot(DN[j*4]-x,DN[j*4+2]-z)>2*RH+14)continue;
+          const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);conflits++;}}}}
+  // LE LAC : le cercle qui couvre la traversée (centre = barycentre, rayon = le point le plus loin + 220 m)
+  let lac=null;{let sx=0,sz=0,n=0;for(let i=0;i<DN.length;i+=4)if(DN[i+3]>=sL0&&DN[i+3]<=sL1){sx+=DN[i];sz+=DN[i+2];n++;}
+    if(n){const cx=sx/n,cz=sz/n;let r=0;for(let i=0;i<DN.length;i+=4)if(DN[i+3]>=sL0&&DN[i+3]<=sL1)r=Math.max(r,Math.hypot(DN[i]-cx,DN[i+2]-cz));lac={x:cx,z:cz,r:r+220};}}
+  // LA LAVE, 48 m sous la route ; LE GRAND VOLCAN : 550-630 m au-dessus de la lave, raide, son pied plonge dans la lave 160 m AVANT la route (on le
+  // longe sans le toucher : le flanc monte à côté de la caisse, le cratère au-dessus de l'épaule) ;
+  // LE SECOND devant la fin, sa rive à ~250 m du portail
+  const ySea=y-48;
   const cone=(yP,rc,cr,ex,rMer)=>{const yB=ySea-380,f=Math.pow((ySea-yB)/(yP-yB),1/ex);return {yP:yP,yB:yB,rc:rc,cr:cr,ex:ex,Rb:rc+(rMer-rc)/Math.max(.05,1-f)};};
-  const K=cone(18,150,70,1.3,1500+rnd()*400),C=new THREE.Vector3(0,0,-(K.rc+70));
+  const K=cone(y+500+rnd()*80,150,70,1.3,Rv-160);
   const fin=Q.fin,K2=cone(fin.p.y+260+rnd()*120,130,65,1.35,900),C2=new THREE.Vector3(fin.p.x+Math.sin(fin.phi)*1150,0,fin.p.z+Math.cos(fin.phi)*1150);
-  const thR=Math.atan2(ctrl[Math.min(ctrl.length-1,10)].x-C.x,ctrl[Math.min(ctrl.length-1,10)].z-C.z);
-  return {ctrl:ctrl,K:K,C:C,K2:K2,C2:C2,Q:Q,plg:plg,sauts:sauts,sSp:sauts.length>1?sauts[1].sS:s*.5,ySea:ySea,conflits:conflits,croise:croise,th0:thR-.7,th1:thR+.7};
+  // l'arc que longe la route, vu du cratère (les coulées y descendent : elles passent SOUS la corniche)
+  const a0=Math.atan2(pV.x-C.x,pV.z-C.z),a1=a0+wrap(Math.atan2(Q.vlc1.p.x-C.x,Q.vlc1.p.z-C.z)-a0);
+  return {ctrl:ctrl,K:K,C:C,K2:K2,C2:C2,Q:Q,plg:[],sauts:[],sSp:sSp,ySea:ySea,conflits:conflits,croise:0,th0:Math.min(a0,a1),th1:Math.max(a0,a1),lac:lac};
 }
 /* ---------------- LE RELIEF : LA MER DE LAVE, LES CÔNES, LE COULOIR DE LA ROUTE ----------------
    Une grille (26 m) : la distance à la route (d), la hauteur de la route la plus proche (yn) et la PLUS BASSE à moins de 120 m (ym : là où la
@@ -17720,6 +17720,7 @@ function volcanSol(){
     const n1=vlcB(x/380,z/380,sd9,3),n4=vlcB(x/1500,z/1500,sd9+11,2);
     let h=yS-10+24*n1-26*ss(n4,.1,.6)+30*vlcB(x/700,z/700,sd9+7,3)*ss(d,300,900)+5*vlcB(x/70,z/70,sd9+1,2); // la MER, ses îles
     h+=78*ss(vlcB(x/900,z/900,sd9+17,3),.30,.52)*ss(d,150,320);                                                          // les MESAS
+    if(VOLCAN.lac){const lc=VOLCAN.lac,dl=Math.hypot(x-lc.x,z-lc.z)/lc.r+.12*vlcB(x/320,z/320,sd9+23,2);if(dl<1.2)h=yS-14+(h-yS+14)*ss(dl,.8,1.2);} // (v3) LE LAC : ni île ni mesa, la lave ouverte jusqu'à la rive
     h=Math.max(h,cone(K,VC,x,z));if(VC2)h=Math.max(h,cone(K2,VC2,x,z));
     h=Math.min(h,ym-16+Math.max(0,d-ROAD_HALF-10)*1.2);                                                                       // jamais sous la dalle (la plus basse)
     H[k]=h;let yl=yS;
@@ -17841,7 +17842,7 @@ const VLC_FUM_FS=[FG_BRUIT,'uniform vec3 uFumC,uSunC,uSky,fogColor;uniform float
   '  vec3 c=uFumC*(uSky*.6+uSunC*.32*(.55+.9*clamp(q.y+.5,0.,1.)))*(.7+.6*n);',
   '  c+=vec3(1.,.30,.07)*(bas*(.18+er*1.6)*uLue+er*.18*(1.-vU));',
   '  if(vK>2.5)c=uFumC*(uSky*.5+uSunC*.22*clamp(q.y+.5,0.,1.))*(.75+.5*n)+vec3(1.,.28,.06)*uLue*.07*clamp(.5-q.y,0.,1.);', // le plafond : le dessous rougeoie
-  '  if(vK>3.5){c=vec3(.075,.03,.07)*(uSky*.9+uSunC*.25)*(.7+.6*n)+vec3(1.,.30,.07)*uLue*(.10+.22*clamp(.5-q.y,0.,1.))*(.6+.4*n);a*=1.15*smoothstep(25.,85.,vD);}', // un BANC : noir-violet, le ventre rougi par la lave ; il s'efface près de l'objectif (la brume prend le relais)
+  '  if(vK>3.5){c=fogColor*(.82+.36*n)+vec3(1.,.30,.07)*uLue*(.05+.10*clamp(.5-q.y,0.,1.))*(.6+.4*n);a*=.8*smoothstep(35.,130.,vD);}', // un BANC : (v3) LA COULEUR DE LA BRUME, le ventre à peine rougi (les cartes noir-violet tachaient l'image en plaques) ; il s'efface loin devant l'objectif, la brume prend le relais
   '  c=mix(c,fogColor,smoothstep(fogNear,fogFar*3.,vD)*.55);',
   '  gl_FragColor=vec4(c,a);}'].join('\n');
 /* LES BRAISES (uK 0 : elles montent, vacillent, orange) et LA CENDRE (uK 1 : des flocons gris qui tombent) — une boîte qui suit la caisse */
@@ -18027,12 +18028,13 @@ function buildVolcan(seed){
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);VOLCAN.root=root;trackMeshes.push(root);
   const S=volcanSol(),COL=[];VOLCAN.morc=new Map();VOLCAN.solM=[];VOLCAN.n.sol=0;VOLCAN.n.lave=0;VOLCAN.file=[];VOLCAN.fi=0;VOLCAN.msFile=0;
   vlcMerLoin(root);
-  /* LES BANCS DE FUMÉE (14/10, Sacha : « plus de fumée dans la map volcan : le CHALLENGE vient de la DIFFICULTÉ À VOIR ») : des nappes de 220-480 m
-     (× √(vw/78)) et des FENÊTRES dégagées de 300-650 m ; jamais sur l'élan d'un raccourci ni là où l'on se pose, ni au départ, ni au portail.
+  /* LES BANCS DE FUMÉE (14/10, Sacha : « plus de fumée dans la map volcan : le CHALLENGE vient de la DIFFICULTÉ À VOIR ») ; jamais au départ ni au portail.
      Dedans, volcanTick referme la brume (FUMEE_K) ; leurs bouffées se dessinent avec le panache (vlcPanaches, genre 4). */
   {const R=mulberry32((seed^0xF0E1A)>>>0),vwF=70+100*((typeof lvPiste==='function'?lvPiste():1)-1),kv=Math.sqrt(Math.max(1,vwF/78)),B=[];
-   const evite=(a,b)=>{if(a<380||b>L-320)return true;for(const S of VOLCAN.sauts||[]){if(b>S.sE-260&&a<S.sE+140)return true;if(b>S.sS-20&&a<S.sS+420)return true;}return false;};
-   for(let s9=420+R()*200;s9<L-400;){let l=(220+R()*260)*kv;if(evite(s9,s9+l))l=Math.max(160,l*.55);if(!evite(s9,s9+l)){B.push({s0:s9,s1:s9+l,k:.8+R()*.2});s9+=l+(300+R()*350)*kv;}else s9+=40;} // (un banc qui ne rentre pas : plus court, puis plus loin)
+   /* (v3, 15/10 — la balade) UN BANC PAR VIRAGE DES FUMERONS (`Q.tours`) : il commence 120-160 m AVANT le virage (on y entre sur du droit) et
+      le couvre jusqu'à 40-60 m après sa sortie ; entre deux bancs, une fenêtre dégagée. Le lac et le volcan restent DÉGAGÉS : c'est le paysage. */
+   for(const t of (VOLCAN.Q&&VOLCAN.Q.tours)||[]){const s0=Math.max(380,t.s0-(120+R()*40)*kv),s1=Math.min(L-320,t.s1+(40+R()*20)*kv);if(s1-s0<80)continue;
+     const pr=B[B.length-1];if(pr&&s0<pr.s1+60)pr.s1=s1;else B.push({s0:s0,s1:s1,k:.9+R()*.1});}
    VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;}
   /* 0. TOUT DE SUITE : les rangées et les morceaux du départ (ce que la caméra voit au portail) ; 1. EN TRANCHES : les autres rangées, du plus
      proche au plus loin — la mer lointaine tient la place en attendant */
@@ -18153,10 +18155,15 @@ function vlcFx(){const fx=VOLCAN.fx;if(fx.bra)return fx;const M=volcanMats(),R=m
   {const n=36,g=new THREE.BufferGeometry(),P=new Float32Array(n*3).fill(-1e5);g.setAttribute('position',new THREE.BufferAttribute(P,3));
    fx.bombes=new THREE.Points(g,M.bombe);fx.bombes.name='volcan bombes';fx.bombes.frustumCulled=false;fx.bombes.matrixAutoUpdate=false;fx.bombes.visible=false;fx.bombes.renderOrder=9;scene.add(fx.bombes);
    fx.bL=[];for(let k=0;k<n;k++)fx.bL.push({on:false,t:0,Tf:1,S:new THREE.Vector3(),v:new THREE.Vector3(),E:new THREE.Vector3()});}
+  /* (v3, 15/10 — Sacha : « un voile de visibilité mal géré ») LA CLOCHE DE FUMÉE : une sphère retournée qui suit la caméra, au rayon de la brume
+     (fog.far), de la couleur de la brume. Sans elle, dans un banc, le SOL disparaissait à 250 m mais le CIEL restait grand ouvert (le dôme ne
+     prend pas le brouillard) : un mur rouge à l'horizon sous un ciel de carte postale, au lieu d'être DANS la fumée. Avec elle, tout se ferme pareil. */
+  fx.cloche=new THREE.Mesh(new THREE.SphereGeometry(1,24,12),new THREE.MeshBasicMaterial({color:0x000000,side:THREE.BackSide,transparent:true,depthWrite:false,fog:false,opacity:0}));
+  fx.cloche.visible=false;fx.cloche.frustumCulled=false;fx.cloche.renderOrder=1;fx.cloche.name='volcan cloche de fumee';scene.add(fx.cloche);
   fx.halos=[];for(let k=0;k<4;k++){const h=new THREE.Sprite(M.halo[k]);h.visible=false;h.renderOrder=2;h.frustumCulled=false;scene.add(h);fx.halos.push(h);}
   fx.ecl=[];for(let k=0;k<6;k++){const m9=M.halo[4].clone();m9.dispose=function(){};const h=new THREE.Sprite(m9);h.visible=false;h.renderOrder=9;h.frustumCulled=false;scene.add(h);fx.ecl.push({sp:h,age:9});}
   return fx;}
-function vlcFxCache(){const fx=VOLCAN.fx;if(!fx.bra||!fx.on)return;fx.on=false;fx.bra.visible=fx.cen.visible=fx.bombes.visible=false;for(const h of fx.halos)h.visible=false;for(const e of fx.ecl)e.sp.visible=false;
+function vlcFxCache(){const fx=VOLCAN.fx;if(!fx.bra||!fx.on)return;fx.on=false;fx.bra.visible=fx.cen.visible=fx.bombes.visible=fx.cloche.visible=false;for(const h of fx.halos)h.visible=false;for(const e of fx.ecl)e.sp.visible=false;
   VLC_U.uErupt.value=VLC_U.uErupt2.value=0;VOLCAN.fu=0;FUMEE_K=0;if(VOLCAN.amb){try{VOLCAN.amb.stop(.8);}catch(e){}VOLCAN.amb=null;}}
 const VLC_V=new THREE.Vector3(),VLC_V2=new THREE.Vector3();
 /* L'ÉRUPTION : le cratère s'embrase (uErupt : la lumière sur les flancs, le pied du panache, la fontaine), puis les BOMBES partent vers
@@ -18214,6 +18221,7 @@ function volcanTick(dt){
    VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=c.fuF||250;if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
    U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6);}
   fx.bra.visible=U.uBra.value>.01;fx.cen.visible=U.uCen.value>.01;
+  {const k=FUMEE_K,cl=fx.cloche;cl.visible=k>.01&&!!scene.fog;if(cl.visible){cl.position.copy(camera.position);cl.scale.setScalar(Math.min(3000,scene.fog.far*.97));cl.material.color.copy(scene.fog.color);cl.material.opacity=Math.min(1,k*1.1);cl.updateMatrix();cl.updateMatrixWorld();}}
   if(VOLCAN.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of VOLCAN.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   vlcEruptTick(dt,c,vit);
   U.uLav.value=c.lav*(1+(U.uErupt.value+U.uErupt2.value)*.25);
@@ -18259,10 +18267,10 @@ function volcanChauffe(){
    g.setAttribute('aC',new THREE.InstancedBufferAttribute(new Float32Array(4),4));g.setAttribute('aP',new THREE.InstancedBufferAttribute(new Float32Array([.5,1,1,0]),4));g.instanceCount=1;L9.push(new THREE.Mesh(g,M.fum));}
   {const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0],3));g.setAttribute('aR',new THREE.Float32BufferAttribute([.5,.5,.5,.5],4));g.setAttribute('aG',new THREE.Float32BufferAttribute([8,0,30,4],4));L9.push(new THREE.Points(g,M.gey));}
   for(const o of L9)o.frustumCulled=false;
-  const vus=[[fx.bra,fx.bra.visible],[fx.cen,fx.cen.visible],[fx.bombes,fx.bombes.visible]].concat(fx.halos.map(h=>[h,h.visible]),fx.ecl.map(e=>[e.sp,e.sp.visible]));
+  const vus=[[fx.bra,fx.bra.visible],[fx.cen,fx.cen.visible],[fx.bombes,fx.bombes.visible],[fx.cloche,fx.cloche.visible]].concat(fx.halos.map(h=>[h,h.visible]),fx.ecl.map(e=>[e.sp,e.sp.visible]));
   for(const v of vus)v[0].visible=true;
   const g=new THREE.Group();for(const o of L9)g.add(o);scene.add(g);
-  try{chauffeRendu([g,fx.bra,fx.cen,fx.bombes].concat(fx.halos,fx.ecl.map(e=>e.sp)));}finally{scene.remove(g);for(const v of vus)v[0].visible=v[1];}
+  try{chauffeRendu([g,fx.bra,fx.cen,fx.bombes,fx.cloche].concat(fx.halos,fx.ecl.map(e=>e.sp)));}finally{scene.remove(g);for(const v of vus)v[0].visible=v[1];}
 }
 /* ---------------- LA CONSOLE ---------------- */
 window.dbgVolcan=function(k,o){
@@ -46153,7 +46161,7 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
    on repart d'où l'on est tombé (`respawn` : la dernière route sûre) avec le MOTEUR, la zone et le compteur de la partie ; la chaîne d'aura,
    le flow et les pouvoirs sont partis avec l'explosion, une part des gains avec le prix, et le MOTEUR perd un palier (CHANCE.moteurPerte :
    la caisse a explosé) — la mort reste une vraie sanction.
-   · LE PRIX — ⚠ REMPLACÉ le 14/10 soir par Sacha : 100 % de l'encaissé de la partie (voir chanceOuvre). Avant (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
+   · LE PRIX — ⚠ REMPLACÉ le 15/10 par Sacha : autant de $ que de PIÈCES ramassées pendant la partie (RUNX.coins, voir chanceOuvre). Le 14/10 soir : 100 % de l'encaissé de la partie. Avant (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
      triplait son revenu par minute), puis +0,05 par minute, plafond 0,8 ; CHANCE.plancher au moins, arrondi à deux chiffres (2 437 → 2 400). Le moteur perdu casse la pente de
      l'argent (≈ T^2,1 : continuer une longue partie vaut bien plus que d'en recommencer une). Il se paie sur le COMPTE — qui contient déjà la partie, commitExploits vient de la verser. Jamais
      proposée si le compte ne couvre pas le prix, ni sur une partie de moins de CHANCE.tMin secondes (on ne vend rien à qui a raté le 1er virage).
@@ -46177,7 +46185,7 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
   const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
   CHANCE.gratuit=false;
   if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(!bon&&(RUNX.t||0)<CHANCE.tMin))return;
-  CHANCE.prix=bon?0:Math.max(CHANCE.plancher,Math.round(Math.max(0,money-START_CASH)));CHANCE.gratuit=bon; /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
+  CHANCE.prix=bon?0:Math.max(1,RUNX.coins|0);CHANCE.gratuit=bon; /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
@@ -48337,6 +48345,7 @@ function foudreTick(dt,sp){
 // l'impact laisse le CRATÈRE de la figure MÉTÉORE en version légère. TOUCHÉ = −40 % de vitesse, du flow perdu, la gerbe te
 // soulève (gravité lunaire : ça plane) ; ESQUIVÉ de près = aura, un peu de nitro, et la série fait monter la mise. Sous la dalle : à l'abri.
 // La pluie se durcit vers le portail (≈ 3,4 s entre deux chutes au départ, 1,9 s à la fin) ; le couloir d'un tremplin est épargné.
+const DEB_ON=/[?&]debris=1/.test(location.search); /* (2026-10-15, Sacha : « enlève la pluie de satellites dans l'espace ») la pluie de débris s'éteint — l'orbite garde ses Starlink dans le décor ; `?debris=1` la rallume */
 const DEB_T=1.5,DEB_R=7.5; // DEB_T : le préavis — le temps de LIRE la cible et de braquer, au pouce ; en dessous c'est une loterie
 const DEB=(function(){
   const cvT=function(w,h,f){const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);return new THREE.CanvasTexture(cv);};
@@ -48409,7 +48418,7 @@ function debFrappe(){
 function debK(){const c=LVL.cur;return c&&c.carr&&c.id==='espace'?1-.045*Math.min(9,c.carr.i|0):1;}
 function debTick(dt){
   const D=DEB;
-  if(!(gK()<1)||!started||TUTO.on){if(D.on)debCache();return;} // seulement en orbite (gK : l'espace, hors parc)
+  if(!DEB_ON||!(gK()<1)||!started||TUTO.on){if(D.on)debCache();return;} // seulement en orbite (gK : l'espace, hors parc)
   if(!D.on){
     if(mode==='drive'&&side>0&&!introD){D.prochain-=dt;
       if(D.prochain<=0){const prog=THREE.MathUtils.clamp(s/L,0,1),ok=debArme();
