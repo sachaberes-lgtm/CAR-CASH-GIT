@@ -3,6 +3,14 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ACCUEIL AUX COULEURS DU LOGO : GARAGE ROSE, OFFRES CYAN, RÉGLAGES OR (2026-10-16, Sacha : « dans l'écran d'accueil garage, offre et réglages doivent être de couleur rose, bleu et jaune », puis « comme les bandes sous le logo CAR CASH »)
+- Les trois tuiles de l'accueil (`.mHubPorte`, `.mOffres`, `.mGear` dans `#mHome.acc2`) prennent, de gauche à droite, les trois couleurs du trait
+  néon sous le logo (`--livree` / `#mHome .mTitle::after`) : `--neoM` rose, `--neoC` cyan, `--au2` or. Avant : GARAGE cyan, OFFRES rose, RÉGLAGES cyan.
+- Trois lignes à la fin du bloc d'accueil de `<style id="ux8-menus">`, sous `html:not(.c6)` : elles ne posent que `--nc` (liseré gauche, lueur
+  intérieure, pictogramme). Le dessin des plaques, les libellés blancs, le badge NEW et le logo ne bougent pas ; la charte 6 (`?ui=6`) n'est pas touchée.
+- Vérifié au banc (cc-banc/accueil.cjs, debout 390×844 et couché 844×390) : les trois couleurs suivent l'ordre des bandes ; fumée OK (couché + debout,
+  0 erreur JS) ; `garde-burnout.sh` et `garde-charte.sh` OK. Cache cashcar-v539.
+
 ## LA RÉGIE ADSENSE — LES VRAIES PUBS DU SITE (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ; dis-moi ce que je dois créer comme compte et quels identifiants te donner »)
 La pub récompensée de Google (« H5 Games Ads », l'Ad Placement API) est branchée derrière CONTINUER ▶ PUB (LA PUB QUI RESSUSCITE, juste en
 dessous). Elle reste ÉTEINTE tant que l'identifiant d'éditeur de Sacha n'est pas posé : en ligne, rien ne change d'ici là (la pub maison).
