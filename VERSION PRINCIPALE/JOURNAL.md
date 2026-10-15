@@ -62,7 +62,7 @@
   haut-parleur, les sons de figure perdent 2 à 4 dB (le départ 7,8 avant, 3,0 après ; la figure plantée 3,8 ; le sceau 3,4).
 - LA BANQUE : 39 sons recuits (`node atelier-son/cuire.js '^(id|id…)$'`, la liste exacte), 126 tampons ; 5,97 → 5,75 Mo (des sons plus courts) ;
   `moteur.cylindre` perd sa base 24 ; l'ÉTALON d'origine remis (ré-encodé, sa crête tombait au même échantillon : 30,00 ms) ;
-  `mesures.txt` mis à jour pour ces sons. `sons-banque.js?v=26`, `sw.js` v530. Écoute : `sons.html` (les vrais sons, un par un).
+  `mesures.txt` mis à jour pour ces sons. `sons-banque.js?v=26`, `sw.js` v533. Écoute : `sons.html` (les vrais sons, un par un).
   ⚠ La cuisson demande ffmpeg (ici `ffmpeg-static`, hors du dépôt).
 - BANCS (muets, Chrome sans fenêtre, `dbgClassique('nuages','midi')` juste avant JOUER — `?carte=` est consommé par le menu —, l'ancienne version = `origin/main` servie à côté) : `banc-mix`
   (analyseurs sur les quatre bus de la console : niveau pondéré A, part d'énergie par bande), `mesure-sons` (chaque recette : sonie
@@ -70,6 +70,45 @@
 - À ÉCOUTER par Sacha et Léo (au casque ET au haut-parleur du téléphone) : le niveau de la pièce (−5 dB : Léo l'avait montée de +4 le 12/10
   parce qu'il ne l'entendait pas sous GLISSE — si elle se perd, `blip` vol +2) ; le DOUM des figures ; les fruits −4.
   Les anciennes recettes : git, avant ce commit.
+
+## LA PUB QUI RESSUSCITE (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour recuicité »)
+La SECONDE CHANCE ne coûte plus d'argent : CONTINUER lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout.
+- **La plaque** de l'écran de mort dit `CONTINUER ▶ PUB` (l'icône `lecture`, plus de prix) ; avec un BON de la machine à sous, `CONTINUER GRATUIT`
+  (pas de pub). Tout le reste de l'offre est inchangé : une fois par partie, pas sous 20 s de jeu, 5,5 s pour décider, NON MERCI, le moteur perd un
+  palier, 3 s de bouclier. Le « −prix » sous le « 3 » de la reprise est parti.
+- **Le code** (bloc « LA PUB QUI RESSUSCITE », juste au-dessus de `CHANCE`) : `chanceOuvre` met `CHANCE.prix=0` ; `chanceEtat` ne lit plus le
+  compte ; `chanceJoue` arrête la fenêtre de 5,5 s, pose `CHANCE.pub` (la plaque s'efface, le FINAL SPIN attend : `chanceAttend`) et appelle
+  `pubRecompense('seconde-chance', fin)` ; vue → `chancePrend` (l'ancienne moitié de chanceJoue, SANS débit) → volet → `chanceRepart(bon)`.
+  Pas vue → l'écran de fin reprend la main (REJOUER), l'offre est perdue.
+- **Il n'y a AUCUNE régie de pub dans le jeu** (le kit Poki/CrazyGames est parti avec l'édition POKI, lot 3 du nettoyage ; l'app iPhone déclare
+  « aucune pub, aucune donnée collectée » à Apple). D'où deux chemins dans `pubRecompense` :
+  · **une régie branchée** : la page ou l'app qui en a une pose AVANT le jeu `window.CC_PUB_RECOMPENSE=function(nom){return Promise}` —
+    `true` = vue (reprise), `false` = fermée avant la fin (pas de reprise), rien ou une erreur = aucune pub à montrer (la pub maison prend le
+    relais). Le jeu se tait pendant (`pubSilence` : la musique en pause, l'AudioContext suspendu, puis rendus).
+  · **la pub maison** (`pubMaison`, `#pubR`, `<style id="pubRecompense">`) : 5 s (`PUBR.d`) plein écran, une caisse de la BOUTIQUE qu'on n'a pas
+    encore et qu'on peut acheter à l'argent du jeu (`pubCaisse`, jamais une caisse en euros), sa photo, son nom dans la couleur de sa rareté, son
+    prix ; l'étiquette PUB, le compte ROND, la barre du temps ; rien ne se touche (le clavier non plus) ; le temps ne court qu'écran allumé ;
+    elle ne s'efface qu'une fois le volet de la reprise posé (z-index 260 : sous `#wipe`, au-dessus de la machine à sous).
+- **Mesuré au banc** (Chrome sans fenêtre, muet ; partie de 40 s, 1 800 $ gagnés, compte 7 200 $) : COUCHÉ 844 × 390, DEBOUT 390 × 844 et dans le
+  CADRE DE L'ORDI à la souris → plaque `CONTINUER PUB`, la pub maison 5 s, reprise, 3 · 2 · 1, course qui roule ; compte 7 200 → 7 200 (avant :
+  débité de 1 800). Régie qui dit oui → reprise sans pub maison ; régie qui dit non → pas de reprise, écran de fin avec REJOUER ; régie sans pub →
+  pub maison puis reprise ; BON → reprise immédiate « GRATUIT », sans pub. 0 erreur (seul le 404 connu de `dark-triad.mp3`), `__loopErr` vide.
+- **Bancs** : `dbgPub()` (l'état) · `dbgPub('fin')` (la pub maison finit tout de suite) · `dbgPub(n)` (elle dure n s) ; `?pub=0` = pas de pub,
+  reprise immédiate ; `dbgChance(…)` inchangé.
+- **À trancher par Sacha** : une VRAIE régie. Sur le web : Google AdSense (jeux H5, `adBreak` type `reward`) ou un portail (Poki, CrazyGames) ;
+  dans l'app iPhone : AdMob (plugin Capacitor, branche `ios-capacitor`) — ce qui change les réponses « confidentialité » de l'App Store
+  (identifiant publicitaire, fenêtre de suivi ATT). Il faut un compte de régie et ses identifiants ; le jeu n'a qu'à poser `CC_PUB_RECOMPENSE`.
+  Et la durée de la pub maison (5 s), tant qu'aucune régie n'est branchée.
+
+## LES ROUTES PLUS ÉPAISSES : 2,6 → 3,9 m (2026-10-15 soir, Sacha : « augmente de 50 % l'épaisseur des routes pour avoir plus de surface pour bump », puis « il y a plus le bump sur le bord de la route j'ai l'impression, et augmente un peu l'épaisseur des routes »)
+- `THICK` 2,6 → 3,9 m (les deux endroits : la déclaration et la remise à chaque `buildTrack` ; la JADE garde sa dalle de 0,30). Commit de la
+  session EPAISSEUR (12 h 43), resté dans la file du train qui ne roulait plus : repris tel quel et poussé seul. Tout ce qui se pose sous la
+  route se cale déjà sur `THICK` (pièces et plots de la face du dessous, terrains du canyon, de la forêt, du glacier, lustres, caméra).
+- MESURÉ au banc (`bump.cjs`, scratchpad de la session BUMP DE BORD : caisse à 2 m du bord, poussée dehors, on braque vers la route
+  200/400/650 ms après la sortie ; même graine, même carte, 29 essais) : le BUMP n'avait PAS disparu de la physique — 7 sorties sur 29 en
+  donnent un, avant comme après. Il naît entre 0,5 et 2,2 m sous le bitume : les 1,3 m de tranche ajoutés servent aux arrivées par le bas
+  (un saut qui revient sous la route), pas à la sortie de bord ordinaire. La lèvre ramenée de 2 m à 1,2 m n'y change rien non plus (même banc).
+- ⚠ Piège de banc : un port déjà servi par une autre session (8791) donne SA copie du jeu — `curl` le fichier servi avant de mesurer.
 
 ## L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE (2026-10-15 soir, Sacha : « quand on se prend un mur, un immeuble, un canyon, un glacier, une montagne chinoise, il faut que ça soit la même animation, comme ça tu peux la travailler à fond ; qu'il soit presque fun de s'écraser ; reprends le design de l'explosion de l'airtime et mets-le partout »)
 - ⚠ REMPLACE la matière par obstacle de l'après-midi (section suivante) : plus de `BOOM_MAT` bois/roche/glace/lave/eau/métal, plus de
