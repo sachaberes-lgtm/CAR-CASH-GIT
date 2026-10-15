@@ -180,6 +180,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
   vit sur la branche `garde/carriere`. Les missions restent.
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
+- Plus de SNAKE LOOP, de DAUPHIN, de NITROOO ni de DRAGON (15/10, Sacha) : `SANS_SNAKE` / `SANS_DAUPHIN` / `SANS_NITROOO` / `SANS_DRAGON`,
+  coupés pas arrachés — ni figure, ni gain, ni créature 3D (rien dans la scène, rien de compilé). Le nitro ordinaire reste.
+  `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (avec `?nitrooo=1`) les rendent pour comparer.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 
@@ -586,6 +589,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
+- Plus de SNAKE LOOP, de DAUPHIN, de NITROOO ni de DRAGON (15/10, Sacha) : `SANS_SNAKE` / `SANS_DAUPHIN` / `SANS_NITROOO` / `SANS_DRAGON`,
+  coupés pas arrachés — ni figure, ni gain, ni créature 3D (rien dans la scène, rien de compilé). Le nitro ordinaire reste.
+  `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (avec `?nitrooo=1`) les rendent pour comparer.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 

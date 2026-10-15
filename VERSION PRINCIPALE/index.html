@@ -75,6 +75,16 @@ if(SANS_CARRIERE)document.documentElement.classList.add('sansCarr');
    (un joueur en FACILE joue désormais en NORMAL, sans rien perdre — argent, caisses, records). `?facile=1` le rend, pour le tester. */
 const SANS_FACILE=!/[?&]facile=1\b/.test(location.search);
 if(SANS_FACILE)document.documentElement.classList.add('sansFacile');
+/* PLUS DE SNAKE LOOP, DE DAUPHIN, DE NITROOO NI DE DRAGON (2026-10-15, Sacha : « supprime du main le snake loop, le dauphin, le nitrooo
+   et les animations 3D qui leur sont attribuées, enlève aussi le dragon chinois de flamme ») : même recette que la carrière — COUPÉS,
+   pas arrachés. Aucune de ces figures ne se détecte plus, ne paie plus (aura, flow, chaîne, verdict, son) et leurs créatures 3D (le
+   serpent néon, l'escorte des dauphins, la comète de NITROOO, le dragon de papier en feu de pixels) ne sont plus ajoutées à la scène :
+   rien ne se compile, rien ne tourne par image. Le nitro ordinaire (réservoir, feu de pixels NFEU, plumes, sillages) ne bouge pas.
+   Pour les rendre, chacune : `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (le dragon naît de NITROOO : il lui faut les deux). */
+const SANS_SNAKE=!/[?&]snake=1\b/.test(location.search);
+const SANS_DAUPHIN=!/[?&]dauphin=1\b/.test(location.search);
+const SANS_NITROOO=!/[?&]nitrooo=1\b/.test(location.search);
+const SANS_DRAGON=SANS_NITROOO||!/[?&]dragon=1\b/.test(location.search);
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
@@ -10104,7 +10114,8 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
 </div>
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=4"></script>
-<script src="assets/audio/musique-bus.js?v=3"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
+<script src="assets/audio/pouce-bleu-jeu.js?v=1"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -33733,7 +33744,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
-  function(){if(!DRG.m)dragonInit();const L9=[DRG.m,DRG.tm,DRG.bouche,DFEU.m,DFEU.h].concat(DRG.yeux);DFEU.m.count=DFEU.h.count=1;for(const o of L9)o.visible=true;chauffeRendu(L9);for(const o of L9)o.visible=false;DFEU.m.count=DFEU.h.count=0; /* (2026-10-15) + le FEU DE PIXELS du dragon : ses tampons d'instances montés au menu */ // (2026-10-14, passe perf mobile) LE DRAGON DE NITROOO naissait au 1er NITROOO, en pleine course : ses maillages, ses feuilles peintes envoyées à la puce et l'état de pipeline du programme des rubans en mélange NORMAL (jamais dessiné ainsi avant) — ~20-60 ms d'image figée sur iPhone 7, pile au moment fort. Bâti caché au menu et dessiné une fois hors écran (sommets à zéro : rien ne se voit)
+  function(){if(SANS_DRAGON)return;if(!DRG.m)dragonInit();const L9=[DRG.m,DRG.tm,DRG.bouche,DFEU.m,DFEU.h].concat(DRG.yeux);DFEU.m.count=DFEU.h.count=1;for(const o of L9)o.visible=true;chauffeRendu(L9);for(const o of L9)o.visible=false;DFEU.m.count=DFEU.h.count=0; /* (2026-10-15) + le FEU DE PIXELS du dragon : ses tampons d'instances montés au menu */ // (2026-10-14, passe perf mobile) LE DRAGON DE NITROOO naissait au 1er NITROOO, en pleine course : ses maillages, ses feuilles peintes envoyées à la puce et l'état de pipeline du programme des rubans en mélange NORMAL (jamais dessiné ainsi avant) — ~20-60 ms d'image figée sur iPhone 7, pile au moment fort. Bâti caché au menu et dessiné une fois hors écran (sommets à zéro : rien ne se voit)
     for(const t9 of [DRG_TEX_V,DRG_PF_V,DRG_TEX_N,DRG_PF_N].concat(DRG_OEIL_V,DRG_OEIL_N))renderer.initTexture(t9);}, // …et ses feuilles VIOLETTES (nitro infinie) et NOIRES (dark triad), échangées en course
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
@@ -39812,7 +39823,8 @@ function dolCubes(src,h){
    L'ONDE (`uScan`) : une bande de lumière qui parcourt le corps du rostre à la queue (≈ 2 s, l'horloge de la nage) — elle allume le cœur,
    les arêtes des écailles et la peau à son passage. Chaque couche est réglable dans la boîte (carte « Structure »). */
 const DOL_COQUE={on:true,coeur:true};
-const DOL_GEO=DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX):mkDolphinGeo(),DOL_GEO_L=DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX_L):DOL_GEO,DOL_GEO_S=DOL_VOX>0?mkDolphinGeo():null; // la coque : le dauphin lisse // ~24 800 et ~8 000 triangles
+const DOL_NU=typeof SANS_DAUPHIN!=='undefined'&&SANS_DAUPHIN; // (2026-10-15, Sacha) dauphin coupé : rien à bâtir (typeof : la boîte à dauphins exécute ce bloc sans l'interrupteur)
+const DOL_GEO=DOL_NU?null:DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX):mkDolphinGeo(),DOL_GEO_L=DOL_NU?null:DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX_L):DOL_GEO,DOL_GEO_S=DOL_NU?null:DOL_VOX>0?mkDolphinGeo():null; // la coque : le dauphin lisse // ~24 800 et ~8 000 triangles
 // LES ÉTOILES du sillage : quatre branches fines + deux petites en biais, cœur doux (texture des particules)
 const DOL_ETOILE=(function(){const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
   const coeur=c.createRadialGradient(32,32,0,32,32,11);coeur.addColorStop(0,'rgba(255,255,255,1)');coeur.addColorStop(.35,'rgba(255,255,255,.5)');coeur.addColorStop(1,'rgba(255,255,255,0)');
@@ -39964,9 +39976,9 @@ function dolChorePose(C,i,b,p,k,W,dir,o,R,xr,ku,hx){ // ku : l'unité des écart
   const vx=x1-x0,vz=z1-z0,vy=Math.cos(p*Math.PI)*amp*Math.PI,hz=Math.max(.05,Math.hypot(vx,vz));o.hz=hz;
   o.yaw=Math.atan2(-vz,vx);o.pitch=Math.atan2(vy,hz*.8);o.yaw+=.22*Math.max(0,arc)*Math.cos(o.yaw);
   const cp=Math.cos(o.pitch);o.nx=cp*Math.cos(o.yaw);o.ny=Math.sin(o.pitch);o.nz=-cp*Math.sin(o.yaw);return o;}
-const dolphinRig=new THREE.Group();dolphinRig.visible=false;scene.add(dolphinRig);
+const dolphinRig=new THREE.Group();dolphinRig.visible=false;if(!SANS_DAUPHIN)scene.add(dolphinRig); // SANS_DAUPHIN : hors scène, jamais compilé
 const dolPod=new THREE.Group();dolphinRig.add(dolPod); // la « scène de Léo », posée devant la caisse
-const dolphins=DOL_BANC.map((b,i)=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=i*1.7;d.userData.roll=i*2.3;d.userData.up=false;d.userData.vr=0;dolPod.add(d);return d;});
+const dolphins=SANS_DAUPHIN?[]:DOL_BANC.map((b,i)=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=i*1.7;d.userData.roll=i*2.3;d.userData.up=false;d.userData.vr=0;dolPod.add(d);return d;});
 // le sillage d'étincelles (rose) et les gerbes d'eau — particules v2 rattachées au BANC (repère local) : fondu de vie, taille propre
 const dolTrail=makePool(200,.32,0xffe6fb,.9,false,{a:[.05,.65,1,.2],v:.5,pr:[3,7,24,0]}),dolSplash=makePool(480/* (v6) 320 → 480 : au ras les gerbes doublent */,.5,0xd6faff,.95,false,{a:[.03,.5,1.1,.5],v:.7,pr:[3,7,30,0]}); // pr : le garde-objectif (fondu à 3-7 m, 24-30 px au plus) — un banc qui frôle la caméra ne fait plus de grosses taches
 for(const p of [dolTrail,dolSplash]){p.mesh.material.blending=THREE.AdditiveBlending;p.mesh.material.map=p===dolTrail?DOL_ETOILE:sparkTex; /* (2026-10-09) le sillage en ÉTOILES */dolPod.add(p.mesh);
@@ -40032,6 +40044,7 @@ function dolEscorte(r){ // l'escorte se forme : deux dauphins, un de chaque côt
       vs:Math.abs(r.vs),p:-.05-.45*i,up:false,vr:0,fin:null,parti:false};}
 }
 function updateDolphins(dt,photo){
+  if(SANS_DAUPHIN)return; // (2026-10-15, Sacha) plus de dauphins
   if(paused&&!photo)return; // (2026-09-29) la PAUSE fige le banc : il nageait (et s'usait) derrière le panneau — `photo` : le pas à pas de dbgDolView
   // la VITESSE MOYENNE de la caisse (lissée ~1 s), tenue à chaque image : c'est sur elle que nagent les dauphins
   if(dt>0){DOLA.v1.subVectors(carGroup.position,DOLA.p0).multiplyScalar(1/dt);if(DOLA.ok&&DOLA.v1.lengthSq()<4e6)DOLA.vel.lerp(DOLA.v1,Math.min(1,dt*1.2));DOLA.ok=true;}DOLA.p0.copy(carGroup.position);
@@ -40512,7 +40525,7 @@ snGeo.setAttribute('color',new THREE.BufferAttribute(snCol,3));
 snGeo.setIndex(snIdx);
 const serpMat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:95,specular:0xffffff,emissive:0x1a0836,emissiveIntensity:1});
 const serpGlowMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.3,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false});
-const serpentRig=new THREE.Group();scene.add(serpentRig);
+const serpentRig=new THREE.Group();if(!SANS_SNAKE)scene.add(serpentRig); // SANS_SNAKE : jamais dans la scène, jamais compilé
 const serpent=new THREE.Group();
 serpent.add(new THREE.Mesh(snGeo,serpMat));
 {const gl=new THREE.Mesh(snGeo,serpGlowMat);gl.scale.setScalar(1.13);serpent.add(gl);}
@@ -40675,6 +40688,7 @@ function musicLieuVoulu(){
    en réclame un autre que celui qui joue. */
 function musicSuitLieu(){
   if(musicMode!=='run')return;
+  if(pbjCourse()){musicLieu=null;return;} // (15/10) POUCE BLEU continue aux portails : pas de raccord
   if(jadeMusOn()){musicLieu=null;if(musicOn){if(VOL_LOCKED&&!musWaTient())stopMusic();else MUSJ.f0=performance.now();}return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick) — (2026-10-14, session SON) la radio lui CÈDE en 0,3 s (musicTick) au lieu d'un pause() net sous le portail ; volume verrouillé (iPhone avant iOS 17) : rien à ramper, coupure comme avant
   const v=musicLieuVoulu();
   if(v===musicLieu&&(musicOn||!SND.music||FRENM.sw))return; // (2026-10-13) …et en en sortant, la radio qu'elle avait fait taire repart
@@ -40878,6 +40892,8 @@ function musWaCondamne(pq){ // retour DÉFINITIF au chemin <audio> (la prochaine
   try{if(JMUS.ac9){if(JMUS.inst)JMUS.inst.stop();JMUS.inst=null;JMUS.ac9=false;if(JMUS.bus)JMUS.bus.sortie.disconnect();JMUS.bus=null;}}catch(e){} // (15/10) GLISSE quitte le contexte du jeu : la prochaine reprend le sien
   if(musicAna&&musicAna===W.an){musicAna=null;musicData=null;}
   W.br=false;W.on=false;
+  try{if(window.POUCE_JEU&&POUCE_JEU.phase!=='repos'){const c9=POUCE_JEU.phase==='course';POUCE_JEU.fin(true); /* (15/10) POUCE BLEU ne vit que sur le WebAudio : il s'efface ; en pleine course, la radio reprend (après le nouvel élément) */
+    if(c9&&musicMode==='run'&&running&&!gameOver)setTimeout(function(){try{musicStartRun(false);}catch(e){}},0);}}catch(e){}
   try{if(AC&&MASTER&&MASTER._limIn){const p=MASTER._limIn.gain,t=AC.currentTime;p.cancelScheduledValues(t);p.setValueAtTime(.937,t);p._s9=undefined;}}catch(e){} // le bouton SON reprend son chemin d'avant…
   try{if(AC&&!SND.sfx&&AC.state==='running')AC.suspend();}catch(e){}                                                                      // …(contexte suspendu = effets coupés)
   try{volApply();}catch(e){}
@@ -41055,8 +41071,38 @@ function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e)
    ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
 const MUSJ={f0:0,ms:300}; // (2026-10-14, session SON) la radio cède l'antenne à GLISSE (entrée au SOLEIL DE JADE par un portail) : l'instant où son fondu de sortie a commencé, 0 = pas de fondu
 const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
-function musicStartRun(depart){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course
+/* (2026-10-15, pôle SON ; Léo, choix cochés) POUCE BLEU EN COURSE — À CHAQUE PLAY, UN morceau de Pouce bleu (la bibliothèque) tiré au hasard
+   joue TOUTE la course en suivant le moteur (1 → 30), sans doublon d'une course à l'autre (assets/audio/pouce-bleu-jeu.js, `POUCE_JEU`). Il entre
+   au JOUER : son INTRO (le morceau au moteur 1, derrière un filtre qui s'ouvre sur 2 mesures de son tempo) couvre le piqué pendant que le lobby
+   s'efface ; il CONTINUE aux portails (plus de raccord) ; il s'éteint à la mort (fondu court) et à la fin. Les musiques des niveaux (MUSIC_LIEU,
+   la radio, GLISSE au SOLEIL DE JADE) ne jouent plus en course : `?musique=niveaux` les rend. Seulement là où la musique passe par WebAudio
+   (MUS_WA : ordi, Android, iPhone iOS 17+) ; ailleurs (Safari sur Mac, iPhone < iOS 17) et si le morceau ne part pas, les musiques des niveaux.
+   La frénésie ne change pas. Console : dbgPouce(). */
+var PBJ_ON=!/[?&]musique=niveaux\b/.test(location.search); // (en var : jadeMusOn peut la lire avant cette ligne, sans zone morte)
+/* LE NIVEAU (mesuré en course, musique seule, à la sortie du jeu) : la radio tient −21 dB ; les musiques du générateur MONTENT de ~−24 dB
+   (moteur 1) à ~−12 dB (moteur 30) — LA GRANDE MONTÉE de Léo, gardée (jamais de régleur de niveau). −4 dB : au niveau de la radio vers le
+   moteur 10, 5 dB au-dessus au 30e (≈ −16), sans couvrir les effets. */
+const PBJ_NIV=.39;
+let PBJ_KO=0; // (15/10) le morceau n'a pas pu partir (réseau, fichier, liste vide) : cette course passe à la RADIO — chaque JOUER réessaie
+function pbjActif(){return PBJ_ON&&!PBJ_KO&&!!window.POUCE_JEU&&musWaTient()&&!!AC&&!!MASTER&&!!MASTER._lim;}
+function pbjCourse(){return pbjActif()&&window.POUCE_JEU.joue();}
+function pbjDepart(vite,meme){if(!vite&&!meme)PBJ_KO=0;if(!pbjActif()||!SND.music)return; // (sans argument = un JOUER : on réessaie)
+  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme});
+    if(p&&p.then)p.then(function(E){const f=POUCE_JEU.phase;if(E||(f!=='erreur'&&f!=='vide'))return; // (annulé par un autre départ ou une fin : rien)
+      PBJ_KO=1;console.warn('Pouce bleu : '+(POUCE_JEU.err||'liste vide')+' — la radio prend la course');
+      if(musicMode==='run'&&running&&!gameOver)try{musicStartRun(false);}catch(e){}});}catch(e){}}
+let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
+window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE},POUCE_JEU.etat()):null;};
+function musicStartRun(depart,reprise){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course · reprise : la seconde chance (la course continue)
   DEPMUS.f0=-1;DEPMUS.sort=0;MUSJ.f0=0;
+  if(SND.music&&pbjActif()){ // POUCE BLEU : le morceau tiré au JOUER passe de l'intro à la course (sinon il part tout de suite, intro courte)
+    musicMode='run';NIVEAU_FX=0;musicLieu=null;stopMusic();
+    if(POUCE_JEU.joue())POUCE_JEU.course();else pbjDepart(true,!!reprise);
+    LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
+    BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
+    try{lvlBlast();}catch(e){}
+    return;}
+  if(window.POUCE_JEU&&POUCE_JEU.phase!=='repos')try{POUCE_JEU.fin(true);}catch(e){} /* (15/10, banc WebKit) le WebAudio est tombé pendant le piqué : le morceau tiré s'efface, la radio prend la course (jamais les deux) */
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
@@ -41078,6 +41124,7 @@ function musicMenu(){
   playMusic(musicMenuUrl()||musicPremier(),{loop:true,volume:0,garde:true});
 }
 function musicPlayCurrent(){
+  if(musicMode==='run'&&pbjCourse()){stopMusic();return;} // (15/10) POUCE BLEU a l'antenne
   if(musicMode==='run'&&jadeMusOn()){stopMusic();return;} // (2026-10-12) le SOLEIL DE JADE a SA musique (JMUS) : la radio se tait
   const ouv=musicMode==='run'&&!!musicLieu;
   const url=musicMode==='menu'?(musicMenuUrl()||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
@@ -41086,7 +41133,7 @@ function musicPlayCurrent(){
 }
 /* ---- L'ENCHAÎNEMENT RADIO : un morceau se termine → un AUTRE au hasard, sans fanfare. ---- */
 function musicNext(){
-  if(musicMode!=='run'||jadeMusOn())return;
+  if(musicMode!=='run'||jadeMusOn()||pbjCourse())return;
   musicCur=musicPickNext(musicCur);
   NIVEAU_FX=2.6;
   BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
@@ -41095,6 +41142,7 @@ function musicNext(){
   try{lvlBlast();}catch(e){}
 }
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
+  try{if(window.POUCE_JEU)POUCE_JEU.fin(!!tape);}catch(e){} // (15/10) Pouce bleu s'éteint (la mort : un fondu court)
   musicMode='none';musicVoulue=false;
   DEPMUS.f0=-1;MUSJ.f0=0; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
@@ -41358,6 +41406,9 @@ function musicTick(dt,mvt){
   // v4 : le VOLUME de l'élément fait tout (iOS l'ignore — le son y joue à plein, c'est le bouton du téléphone qui règle)
   try{distTick(dt);}catch(e){}
   if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
+  if(window.POUCE_JEU&&POUCE_JEU.joue()){ /* (15/10) POUCE BLEU : son niveau = celui qu'aurait la radio (le curseur, le souffle du mouvement, l'annonceur), le moteur du jeu le pilote ; la musique coupée l'éteint */
+    if(!SND.music||!pbjActif())POUCE_JEU.fin(false); /* (15/10) le WebAudio ne tient plus (chien de garde) : le morceau s'efface (musWaCondamne rend la course à la radio) */
+    else{POUCE_JEU.niveau(VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62)*mDuck);if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||engTier+1);musicVolCible=0;}}}
   else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
     if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
@@ -42158,7 +42209,7 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le
    ±2 dB d'elle, ou dessous (la panne sèche de nitro est dans le grave de la basse, le portail proche 6 à 9 dB sous elle) — la musique recule
    de −3 dB pendant 0,4 s quand l'un d'eux part (musique-bus.js : `recul`). Seulement là où la musique passe par WebAudio (MUS_WA). */
 const SIG_RECUL={'nitro.sec':1,'piece.serie':1,'piece.recolte':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
-function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(JMUS.bus)JMUS.bus.recul(-3,.4);}catch(e){}}
+function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(JMUS.bus)JMUS.bus.recul(-3,.4);if(window.POUCE_JEU)POUCE_JEU.recul();}catch(e){}}
 const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
   'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.x':.25,'pwr.triple':.35,
@@ -46627,6 +46678,7 @@ const NTR_BOOST=.1,NTR_BOOST_MAX=1.6,NTR_T=2; // (2026-09-29, nuit, Sacha : « �
 function vitMult(){return Math.min(1+NTR_BOOST_MAX,(pwrSpdT>0?2:1)*(1+NTR.boost));}
 const ntrShellM=jetMat(0xff3a0c,0xfff6d0,0xffffff,.9,1.25,.7),ntrCoreM=jetMat(0xffc050,0xffffff,0xffffff,1,.75,1.1); // (banc) blanc à la racine, corps ROUGE-orange : la caisse orange ne s'y noie plus
 function nitroooPart(){ // le geste est ARMÉ (loop, branche 'drive') : la caisse s'embrase
+  if(SANS_NITROOO)return; // (2026-10-15, Sacha) NITROOO coupé : ni comète, ni boost, ni dragon
   if(NTR.on){NTR.kc=1;return;} // (2026-09-29) DÉJÀ en cours (une AIR NITROOO qui se pose, et l'inverse) : elle CONTINUE — paliers, boost et dragon ne repartent pas de zéro
   NTR.on=true;NTR.t=0;NTR.kc=1;NTR.pal=0;
   flashEcran('rgba(255,120,30,.85)');fovPunch=Math.max(fovPunch,9);shake=Math.max(shake,.35);hap([18,30,24,30,40]);
@@ -46734,7 +46786,7 @@ function nitroooTick(dt){
    devient un LAMPION : papier vermillon MAT à peine ombré vers les bords, PLIS d'accordéon (une arête claire, son ombre — ils s'étirent
    quand le vent tend le corps : voir la tuile dans dragonTick), ÉCAILLES de papier découpé (festons pleins, or et paille alternés,
    l'ombre de la feuille du dessus), grain du papier, et sur les deux bords une FRANGE claire découpée en dents. */
-const DRG_TEX=(function(){
+const DRG_TEX=SANS_DRAGON?null:(function(){
   const W=128,H=256,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   const g=c.createLinearGradient(0,0,W,0);
   g.addColorStop(0,'#8a1210');g.addColorStop(.22,'#c8201a');g.addColorStop(.5,'#ec3a2c');g.addColorStop(.78,'#c8201a');g.addColorStop(1,'#8a1210');
@@ -46756,7 +46808,7 @@ const DRG_TEX=(function(){
     if(y===0){c.beginPath();c.moveTo(W,0);c.lineTo(W-12,0);c.lineTo(W,4);c.closePath();c.fill();}}
   c.globalCompositeOperation='source-over';
   const t=new THREE.CanvasTexture(cv);t.wrapT=THREE.RepeatWrapping;return t;})();
-const DRG_FEU=(function(){ // le FEU : un profil de flamme (bords éteints, cœur blanc), alpha compris — le long, des langues qui s'effilochent
+const DRG_FEU=SANS_DRAGON?null:(function(){ // le FEU : un profil de flamme (bords éteints, cœur blanc), alpha compris — le long, des langues qui s'effilochent
   const W=64,H=64,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   const g=c.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.25,'rgba(120,120,120,.55)');g.addColorStop(.5,'rgba(255,255,255,1)');
   g.addColorStop(.75,'rgba(120,120,120,.55)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,W,H);
@@ -46802,7 +46854,7 @@ function drgNoir(src){ // (dragon v7) DARK TRIAD : le canevas repeint en papier 
 /* LA TÊTE EN PAPIER (dragon v7) : le feu peint devient du papier MÂCHÉ — les mêmes bandes (liseré sombre, rouge, orange, cœur de paille),
    mais MATES, FROISSÉES (des facettes claires et sombres), marquées de plis, et les bords DÉCOUPÉS en frange au lieu d'être mordus de
    langues. Les bois, les sourcils, les nageoires et les BANDEROLES prennent la même feuille. */
-const DRG_PF=(function(){
+const DRG_PF=SANS_DRAGON?null:(function(){
   const W=64,H=64,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   const g=c.createLinearGradient(0,0,W,0);
   g.addColorStop(0,'#7a0c0e');g.addColorStop(.1,'#8e1210');g.addColorStop(.22,'#c8201a');g.addColorStop(.36,'#ee4a22');
@@ -46827,14 +46879,14 @@ function drgOeil(gauche){ // un ŒIL de dragon, en cases : l'amande bridée (le 
   c.fillStyle='#14000a';c.beginPath();c.ellipse(1,0,2.4,6.4,0,0,6.3);c.fill();c.fillStyle='#ffffff';c.fillRect(-7,-4,3,2);
   const im=c.getImageData(0,0,W,H),d=im.data;for(let i=3;i<d.length;i+=4)d[i]=d[i]>100?255:0;c.putImageData(im,0,0); // des cases FRANCHES
   return cv;}
-const DRG_OEIL=[drgOeil(false),drgOeil(true)].map(function(cv){const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;return t;}); // [droit, gauche]
+const DRG_OEIL=SANS_DRAGON?[]:[drgOeil(false),drgOeil(true)].map(function(cv){const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;return t;}); // [droit, gauche]
 const DRG_OEIL_V=DRG_OEIL.map(function(t0){const t=new THREE.CanvasTexture(drgViolet(t0.image));t.magFilter=THREE.NearestFilter;return t;});
-const DRG_TEX_V=(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_TEX.image));t.wrapT=THREE.RepeatWrapping;return t;})();
-const DRG_PF_V=(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_PF.image));t.wrapT=THREE.RepeatWrapping;return t;})();
+const DRG_TEX_V=SANS_DRAGON?null:(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_TEX.image));t.wrapT=THREE.RepeatWrapping;return t;})();
+const DRG_PF_V=SANS_DRAGON?null:(function(){const t=new THREE.CanvasTexture(drgViolet(DRG_PF.image));t.wrapT=THREE.RepeatWrapping;return t;})();
 /* (dragon v7, Sacha : « en dark triad le dragon, les dauphins et le snake doivent être noirs ») les feuilles NOIRES de la frénésie */
 const DRG_OEIL_N=DRG_OEIL.map(function(t0){const t=new THREE.CanvasTexture(drgNoir(t0.image));t.magFilter=THREE.NearestFilter;return t;});
-const DRG_TEX_N=(function(){const t=new THREE.CanvasTexture(drgNoir(DRG_TEX.image));t.wrapT=THREE.RepeatWrapping;return t;})();
-const DRG_PF_N=(function(){const t=new THREE.CanvasTexture(drgNoir(DRG_PF.image));t.wrapT=THREE.RepeatWrapping;return t;})();
+const DRG_TEX_N=SANS_DRAGON?null:(function(){const t=new THREE.CanvasTexture(drgNoir(DRG_TEX.image));t.wrapT=THREE.RepeatWrapping;return t;})();
+const DRG_PF_N=SANS_DRAGON?null:(function(){const t=new THREE.CanvasTexture(drgNoir(DRG_PF.image));t.wrapT=THREE.RepeatWrapping;return t;})();
 function triNoir(){return FLOW.lv===4&&!PARK.on;} // la DARK TRIAD tourne : dragon, dauphins et serpent passent au noir
 const DRG_STR={corps:72,pat0:5,pat1:5,pat2:5,pat3:5,                                                          // le CORPS peint (écailles)
   sourG:6,sourD:6,corG:10,corD:10,oreG:6,oreD:6,banG:16,banD:16,rub0:14,rub1:14,rub2:14,andG:5,andD:5,                                                               // la TÊTE : sourcils et bois de feu peint
@@ -47019,7 +47071,7 @@ const DFEU=(function(){
   A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(DFEU_N*3),3);
   A.instanceMatrix.setUsage(THREE.DynamicDrawUsage);A.instanceColor.setUsage(THREE.DynamicDrawUsage);
   B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor;
-  A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;A.visible=B.visible=false;A.renderOrder=7;B.renderOrder=8;scene.add(A);scene.add(B);
+  A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;A.visible=B.visible=false;A.renderOrder=7;B.renderOrder=8;if(!SANS_DRAGON){scene.add(A);scene.add(B);} // SANS_DRAGON : hors scène
   return {m:A,h:B,P:new Float32Array(DFEU_N*12),n:0,S:new Float32Array(240*5),sN:0,acc:new Float32Array(24),T:0,dp:6,kd:1,pas:.08,tl:.2,q:1,pal:null,ms:0,
     o:new THREE.Vector3(),d:new THREE.Vector3(),w:new THREE.Vector3(),tP:new THREE.Vector3(),tT:new THREE.Vector3(0,0,-1),tL:new THREE.Vector3(1,0,0),lx:0,ly:0,lz:0,corps:false,
     on:FLM_ON&&!/[?&]dragon=ancien\b/.test(location.search)};
@@ -47101,6 +47153,7 @@ function dfeuPas(dt,vif){ // la vie des cubes et leur écriture ; vif=false : le
   D.m.count=D.h.count=ni;D.m.visible=D.h.visible=ni>0;if(ni){D.m.instanceMatrix.needsUpdate=true;D.m.instanceColor.needsUpdate=true;}
   D.ms=D.ms*.95+(performance.now()-t0)*.05;}
 function dragonTick(dt){
+  if(SANS_DRAGON)return; // (2026-10-15, Sacha) le dragon chinois de flamme est coupé (les crochets dbgDragon aussi)
   const vis=NTR.k;
   if(vis<.02){if(DFEU.n)dfeuPas(dt,false);if(DRG.m&&DRG.m.visible)dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;DRG.tt=0;DRG.st=0;DRG.tr=0;return;}
   if(!DRG.m)dragonInit();
@@ -47617,7 +47670,7 @@ function tryLand(dt){
   if(bd>1600)return false;
   // SNAKE LOOP v2 : passer SOUS la route pendant le vol — côté OPPOSÉ à la face de départ, dans la
   // largeur de la dalle — puis reposer la caisse sur la face de DÉPART (validé à l'atterrissage).
-  if(!fallUnder&&Math.abs(latOff)<ROAD_HALF&&(fallStartSide>0?hOff<-THICK-1:hOff>1))fallUnder=true;
+  if(!SANS_SNAKE&&!fallUnder&&Math.abs(latOff)<ROAD_HALF&&(fallStartSide>0?hOff<-THICK-1:hOff>1))fallUnder=true; // SANS_SNAKE : plus de SNAKE LOOP
   const vN=fallVel.dot(Nn[bestI]);
   // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP.
   // Demi-jauge d'airtime rendue + du STYLE + le feedback (message, son, secousse).
@@ -47789,7 +47842,7 @@ function tryLand(dt){
     rollover=0; // (2026-09-29, passe qualité) plus de REPORT : il date de la mallette d'argent — les figures ne paient plus qu'en aura, et le report fabriquait une FAUSSE figure au vol suivant (verdict, voix, mission « figures » comptée sur une simple chute)
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{if(SONV2){/* (console) pose ratée : flowCasse ; cratère à la pose : il couvre la tôle */if(!poseRatee&&!(performance.now()-(CRAT.tSon||-1e9)<400))sfx('pose.lourde');}else{clank9(0,190,.12);clank9(.05,135,.09);}}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
-    const snaked=fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
+    const snaked=!SANS_SNAKE&&fallUnder&&sideL===fallStartSide; // SNAKE LOOP v2 : passé SOUS la route, reposé face de départ
     if(snaked){chainVal+=14;chainMult+=.5;serpShow=2.6;flowAdd(15,'risque','m');chaineAura('SNAKE LOOP',320,'snake',false,true);} // (2026-09-28, Sacha : « il doit rapporter plus d'aura ») +320 — il n'en versait AUCUNE en propre // (v5) passer SOUS la route : MACHIAVEL // la figure paye sa part + LE SERPENT néon se love autour de la caisse
     // GAP FRANCHI : le vol vient d'une CATAPULTE et il a vraiment traversé — le grand geste de la zone se paye
     const gapOk=gapArmed>0&&fallT>.9;
@@ -48107,7 +48160,7 @@ function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on re
   if(typeof ecranWipe==='function')ecranWipe(go);else go();
   return true;
 }
-function chanceRepart(P){ // sous le volet : la course reprend où elle s'est arrêtée
+function chanceRepart(P){ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
   if(!started||!gameOver)return;
   try{finSonsCoupe();}catch(e){}
   mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';
@@ -48120,7 +48173,7 @@ function chanceRepart(P){ // sous le volet : la course reprend où elle s'est ar
   if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage (niveau 10) et le banquier (niveau 20) : ils reviennent
   if(VBQ.on&&!VBQ.fini)VBQ.g.visible=true;
   if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
-  musicStartRun(true);
+  musicStartRun(true,true);
   CHANCE.inv=CHANCE.invD;
   try{flashEcran('rgba(255,255,255,.35)');}catch(e){}
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // les commandes reviennent À L'INSTANT
@@ -49923,7 +49976,7 @@ const JMUS_NIV=1,NIT_GRONDE=.3,JMUS_TON=1; // JMUS_NIV ,4 → ,3 (2e passe : « 
    le sub (808, nappes) : 10 dB SOUS les effets du jeu (−22) sur haut-parleur. À sa sortie : −6 dB sous 160 Hz, +6 dB de niveau → −26 sur
    haut-parleur (4 dB derrière les effets), le grave à peine changé. */
 const JMUS_BASSES=0,JMUS_SORTIE=1; // (5e passe) comme le simulateur — la sortie reste réglable ici
-function jadeMusOn(){return (JADE_JEU||!!(LVL.cur&&LVL.cur.sansFin))&&!!LVL.cur&&LVL.cur.id==='jade';} // (2026-10-13) la jade du mode classique joue GLISSE V2 elle aussi
+function jadeMusOn(){return (JADE_JEU||!!(LVL.cur&&LVL.cur.sansFin))&&!!LVL.cur&&LVL.cur.id==='jade'&&!pbjCourse();} // (15/10) Pouce bleu en course : GLISSE se tait // (2026-10-13) la jade du mode classique joue GLISSE V2 elle aussi
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
 /* (2026-10-15, pôle SON) GLISSE DANS LE CONTEXTE DU JEU : là où la musique passe par WebAudio (MUS_WA), GLISSE reçoit le contexte du jeu, PRÊTÉ
@@ -52135,6 +52188,7 @@ function garageLaunch(){
   const pre=(Math.abs(dv)>.12||Math.abs(garagePitch-.2)>.1||mk0||Math.abs(vd0)>.02||wd0>.02)?{t:0,D:Math.max(mk0?.8:0,(wd0>.02?.55:.25)+.28*Math.max(Math.abs(dv),Math.abs(dr)*.5,Math.abs(vd0))),v0:dv,g0:garageAng,gd:dr,p0:garagePitch,mk0:mk0,vd0:vd0}:null;
   GAR.go={t:0,pre:pre,p0:pre?null:camera.position.clone(),lx0:-Math.sin(garCamA())*1.5,lz0:-Math.cos(garCamA())*1.5,voile:false,quiet:gEl.classList.contains('quiet'),r0:dr}; // r0 : où le plateau l'avait tournée
   gEl.classList.add('launching');document.body.classList.remove('garMenuH'); // dès qu'on PART, la vitrine s'efface — qu'on l'ait parcourue ou pas
+  pbjDepart(); // (15/10) POUCE BLEU : le morceau de la course entre pendant le piqué (son intro)
   if(!pre)garLacherSon();
 }
 function garLacherSon(){try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22,420);chimeNote(196,0,.5,.16);}}catch(e){}} /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli ; après LE RETOUR AU FEU s'il y en a un */
@@ -54327,6 +54381,7 @@ function chuteLance(){ // JOUER, depuis le ciel : elle pique
   CHUTE_TAP.tient=null; // (la caisse au doigt v2) un doigt qui la tenait la lâche
   CHUTE.go=GAR.go={t:0,chute:true,son:false,voile:false};
   gEl.classList.add('launching');document.body.classList.remove('garMenuH');
+  pbjDepart(); // (15/10) POUCE BLEU : le morceau de la course entre pendant le piqué (son intro)
   garLacherSon();
 }
 /* LA CHUTE LIBRE RÉALISTE (2026-10-08, Léo : « la voiture doit avoir davantage un effet de chute libre réaliste »). MESURÉ avant (film de
@@ -58905,7 +58960,7 @@ function loop(now){
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
       {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);} /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
       // PURE SPEED → NITROOO (2026-09-29) : 2 s (NTR_T) de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
-      if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ /* (2026-10-08, Léo : « au début, un bruit assourdissant, du bruit puis de l'aigu ») pendant l'ÉLAN du départ, la vitesse pure ne compte toujours pas : depuis 4cb8f85 le boost tenu dès le départ lançait NITROOO à ~1,9 s (le mur d'air + le cuivre qui monte de `vitesse.pure`) */
+      if(!SANS_NITROOO&&nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ /* (SANS_NITROOO : plus de NITROOO) (2026-10-08, Léo : « au début, un bruit assourdissant, du bruit puis de l'aigu ») pendant l'ÉLAN du départ, la vitesse pure ne compte toujours pas : depuis 4cb8f85 le boost tenu dès le départ lançait NITROOO à ~1,9 s (le mur d'air + le cuivre qui monte de `vitesse.pure`) */
         pureT+=dt;
         if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);/* (2026-10-12, Léo : « encore le bruit parasite », 2e fois après le 08/10 : « du bruit, puis de l'aigu, avec le boost ») `vitesse.pure` (le mur d'air + le cuivre qui monte) ne SONNE plus : boost tenu dès le départ, il partait ~2 s après l'élan puis toutes les 2 s — NITROOO garde son texte, son flash et ses paliers */ // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
           chaineAura('NITROOO',120,'pure',false,SONV2);}pureNext=pureT+2;nitroooPart();
@@ -59351,7 +59406,7 @@ function loop(now){
       /* AIR NITROOO (2026-09-29, Sacha : « nitrooo avec la comète marche aussi dans les airs, mais s'appelle AIR NITROOO ») : le nitro tenu
          NTR_T s D'AFFILÉE en vol (temps réel, comme au sol) → la figure (une fois par vol, tier 1 : 6 de flow — GAMEPLAY vient de recaler la frénésie —, après MÉTÉORE qui compte le
          nitro cumulé à 1,2 s), la caisse s'embrase (nitroooPart) et la poussée du réacteur prend le même +10 %/s (NTR.boost, plus bas). */
-      if(nitroOn&&!PARK.on){NTR.airT+=dt;if(NTR.airT>=NTR_T&&!NTR.airFig){NTR.airFig=true;addTrick('airnitro','AIR NITROOO !',10,1);if(!NTR.on)nitroooPart();}}
+      if(!SANS_NITROOO&&nitroOn&&!PARK.on){NTR.airT+=dt;if(NTR.airT>=NTR_T&&!NTR.airFig){NTR.airFig=true;addTrick('airnitro','AIR NITROOO !',10,1);if(!NTR.on)nitroooPart();}}
       else NTR.airT=0;
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
@@ -59463,9 +59518,9 @@ function loop(now){
          // (2026-09-29, Sacha : « le dauphin ne doit pas se déclencher sur les côtés ») il faut être AU-DESSUS ou EN DESSOUS de la route,
          // dans sa largeur, à 3 m du bord au moins : voler à côté de la dalle, ou quitter la route par le côté (on décolle AU bord, et le
          // dauphin partait à la 1re image), ne compte plus — le « sur les côtés » du 28/09 est retiré
-         dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curTOff)<DOL_TMAX&&Math.abs(curLatOff)<=ROAD_HALF-3&&hF<DOL_HMAX),hF);}
+         if(!SANS_DAUPHIN)dolTick(dt,DAUPH.force!==null?DAUPH.force:(curNear&&Math.abs(curTOff)<DOL_TMAX&&Math.abs(curLatOff)<=ROAD_HALF-3&&hF<DOL_HMAX),hF);}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
-          if(Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){
+          if(!SANS_DAUPHIN&&Math.abs(curLatOff)<ROAD_HALF&&curHOff>2.2&&curHOff<12){ // SANS_DAUPHIN : coupé avec la figure
             // ---- LE DAUPHIN : nager au ras de la dalle. Plus on frôle, plus ça paye ----
             // Précision et danger immédiat : le gain grimpe au CARRÉ de la proximité, s'effondre dès
             // qu'on s'écarte, et s'arrête net si on touche (la chaîne se cashe à l'atterrissage).
@@ -60148,7 +60203,7 @@ function loop(now){
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
     dolHudTick(dt); // l'étiquette DAUPHIN : filet de sortie de vol + total figé qui s'efface
     fruitRafTick(dt);  // …et celle de la rafale de fruits
-    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);orbFxTick(dt);nitroooTick(dt);dragonTick(dt);} // (2026-09-29) + LE DRAGON DE FEU de NITROOO (lit NTR) // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
+    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);orbFxTick(dt);if(!SANS_NITROOO)nitroooTick(dt);if(!SANS_DRAGON)dragonTick(dt);} // (2026-09-29) + LE DRAGON DE FEU de NITROOO (lit NTR) // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
        le CHIFFRE (« combien j'ai »), la JAUGE (« où je vais » — le rang suivant), le MAX (« quoi
        battre »). Sans la troisième, il n'y a aucune raison de vouloir monter. */
@@ -60407,9 +60462,9 @@ function loop(now){
      mortSaute est remontée ici depuis le rendu (rien entre les deux ne touche ce qu'elle lit : écran, toile, dprT, sonde). Palier RÉCENT :
      mortS9 toujours faux, dtA9 = dt — rien ne change. */
   let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
-  if(!mortS9)try{updateDolphins(dtA9);}catch(e){loopWarn(4,'dauphins',e);}
+  if(!SANS_DAUPHIN&&!mortS9)try{updateDolphins(dtA9);}catch(e){loopWarn(4,'dauphins',e);}
   try{singeJeu(dt);}catch(e){loopWarn(64,'singe',e);} // (2026-10-11) LES SINGES EN COURSE (3 sauts en 5 s)
-  try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
+  if(!SANS_SNAKE)try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
