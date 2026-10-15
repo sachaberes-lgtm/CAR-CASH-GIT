@@ -9697,6 +9697,34 @@ html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte 
   html:not(.c6) #mDead .mFin{position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);width:min(368px,44vw);margin:0}
 }
 </style>
+<style id="pubRecompense">
+/* LA PUB QUI RESSUSCITE (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») — la plaque dit CONTINUER ▶ PUB
+   (plus de prix), et l'écran de la PUB MAISON (#pubR, voir pubMaison) : l'encre plein écran ; on LIT en haut — l'étiquette PUB (droite, coins
+   coupés) et le compte ROND (une jauge) ; la caisse de la boutique au milieu, son nom dans la couleur de sa rareté ; la barre du temps au bas.
+   Rien ne se touche. Sous le volet (#wipe 300), au-dessus de la machine à sous (250) et des fenêtres (95). */
+html:not(.c6) #mDead #mChance .chP{display:inline-flex;align-items:center;gap:7px}
+html:not(.c6) #mDead #mChance .chP .pxi{--pxs:1.5}
+#pubR{position:fixed;inset:0;z-index:260;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-sizing:border-box;
+  padding:calc(var(--sT) + 64px) calc(var(--sR) + 16px) calc(var(--sB) + 40px) calc(var(--sL) + 16px);
+  background:radial-gradient(ellipse at 50% 52%,var(--k3),var(--k0) 74%);color:var(--tx);font-family:var(--pix);text-align:center;
+  opacity:0;transition:opacity var(--t-fast) var(--ease);touch-action:none;user-select:none;-webkit-user-select:none}
+#pubR.on{opacity:1}
+#pubR[hidden]{display:none}
+#pubR .prTag{position:absolute;top:calc(var(--sT) + 16px);left:calc(var(--sL) + 16px);padding:8px 10px 7px;background:var(--neoM);color:var(--txO);
+  font-style:normal;font-size:var(--f1);letter-spacing:2px;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+#pubR .prRond{position:absolute;top:calc(var(--sT) + 10px);right:calc(var(--sR) + 16px);width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;background:conic-gradient(var(--au2) calc(var(--pr,0) * 360deg),var(--k4) 0)}
+#pubR .prRond::before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--k1)}
+#pubR .prRond b{position:relative;font-weight:400;font-size:var(--f3);color:var(--au1)}
+#pubR .prImg{display:block;height:min(38vh,170px);width:auto;max-width:86vw;object-fit:contain;filter:drop-shadow(0 10px 16px rgba(0,0,0,.6))}
+#pubR .prImg:not([src]){visibility:hidden}
+#pubR .prNom{font-weight:400;font-size:var(--f5);line-height:1.4;letter-spacing:1px;color:var(--rc,var(--au1));text-shadow:0 3px 0 var(--k0)}
+#pubR .prSous{font-size:var(--f1);letter-spacing:1px;color:var(--cash)}
+#pubR .prPied{position:absolute;left:16px;right:16px;bottom:calc(var(--sB) + 18px);font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+#pubR .prBar{position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--neoM);transform-origin:0 50%;transform:scaleX(var(--pr,0))}
+@media (orientation:landscape) and (max-height:540px){#pubR{gap:8px;padding-top:calc(var(--sT) + 22px)}#pubR .prImg{height:42vh}}
+@media (prefers-reduced-motion:reduce){#pubR{transition:none}}
+</style>
 <style id="ux8-mouvement">
 /* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
 /* le balayage : le canvas remplace l'ancien rideau (::before) tant que #wipe porte .ux8Wipe (posé par ecranWipe, hors réduire-les-animations) */
@@ -46889,8 +46917,65 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+/* LA PUB QUI RESSUSCITE (2026-10-15, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») — CONTINUER ne coûte plus
+   rien : il lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout. Le jeu n'a AUCUNE régie aujourd'hui (le kit
+   des portails est parti avec l'édition POKI, l'app iPhone déclare « aucune pub » à Apple), d'où deux chemins :
+   · UNE RÉGIE BRANCHÉE — la page ou l'app qui en a une (AdMob dans l'app iPhone, AdSense H5 sur le web…) pose, avant le jeu,
+     `window.CC_PUB_RECOMPENSE = function(nom){ return une Promise }` : vrai = vue jusqu'au bout (on reprend), faux = fermée avant la fin
+     (pas de reprise), rien / une erreur = aucune pub à montrer (la pub maison prend le relais). Le jeu se tait pendant (pubSilence).
+   · LA PUB MAISON — sinon : PUBR.d secondes plein écran (#pubR, <style id="pubRecompense">) qui montrent une caisse de la boutique qu'on
+     n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
+     l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
+const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(location.search)};
+Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD'});
+function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
+  if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
+  else{if(AC&&AC.state==='suspended')AC.resume();if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
+function pubRecompense(nom,fin){
+  if(PUBR.on)return false;
+  PUBR.on=true;let fait=false;
+  const fini=function(vue){if(fait)return;fait=true;PUBR.on=false;try{fin(!!vue);}catch(e){console.warn('pub',e);}};
+  if(PUBR.sans){setTimeout(function(){fini(true);},0);return true;}
+  const regie=window.CC_PUB_RECOMPENSE;
+  if(typeof regie==='function'){
+    pubSilence(true);let p=null;try{p=regie(nom);}catch(e){p=null;}
+    Promise.resolve(p).then(function(v){pubSilence(false);if(v===true||v===false)fini(v);else pubMaison(fini);},function(){pubSilence(false);pubMaison(fini);});
+    return true;}
+  pubMaison(fini);return true;
+}
+function pubCaisse(){ // la caisse de la réclame : une qu'on peut ACHETER à l'argent du jeu et qu'on n'a pas encore (jamais une caisse en euros)
+  const L=[],T=[];for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carEuros(i))continue;T.push(i);const u=CAR_UNLOCK[i];if(u&&u.p>0&&!carOwned(i))L.push(i);}
+  const P=L.length?L:T;return P.length?P[(Math.random()*P.length)|0]:0;}
+function pubMaison(fini){
+  let el=PUBR.el;
+  if(!el){el=PUBR.el=document.createElement('div');el.id='pubR';el.hidden=true;el.setAttribute('role','dialog');
+    el.innerHTML='<i class="prTag" data-fr="PUB">'+TR('PUB')+'</i><span class="prRond" aria-hidden="true"><b></b></span><img class="prImg" alt=""><b class="prNom"></b>'+
+      '<span class="prSous"></span><span class="prPied" data-fr="TA COURSE REPREND APRÈS LA PUB">'+TR('TA COURSE REPREND APRÈS LA PUB')+'</span><i class="prBar" aria-hidden="true"></i>';
+    for(const ev of ['pointerdown','pointerup','touchstart','touchend','click'])el.addEventListener(ev,function(e){e.stopPropagation();if(e.cancelable&&ev!=='pointerdown'&&ev!=='pointerup')e.preventDefault();},{passive:false}); // rien ne traverse vers l'écran de fin
+    document.body.appendChild(el);}
+  const i=pubCaisse(),c=CARS[i]||{},u=CAR_UNLOCK[i],img=el.querySelector('.prImg');
+  img.removeAttribute('src');
+  el.querySelector('.prNom').textContent=c.name?TR(c.name):'CASH CAR';
+  try{el.style.setProperty('--rc',rarInfo(carRar(i)).c);}catch(e){}
+  el.querySelector('.prSous').textContent=TR('EN BOUTIQUE')+(u&&u.p>0&&!carOwned(i)?' · '+fmtC(u.p):'');
+  el.setAttribute('aria-label',TR('PUB'));
+  try{carPhoto(i,function(s9){if(s9&&PUBR.on)img.src=s9;});}catch(e){}
+  el.style.setProperty('--pr','0');el.hidden=false;void el.offsetWidth;el.classList.add('on');
+  PUBR.t=0;let t0=performance.now(),vu=-1;const rond=el.querySelector('.prRond b');
+  clearInterval(PUBR.tm);
+  PUBR.tm=setInterval(function(){const now=performance.now();if(!document.hidden)PUBR.t+=Math.min(.25,(now-t0)/1000);t0=now; // l'arrière-plan arrête la pub (elle ne se « regarde » pas écran éteint)
+    const r=Math.min(1,PUBR.t/PUBR.d),n=Math.max(0,Math.ceil(PUBR.d-PUBR.t));el.style.setProperty('--pr',r.toFixed(3));
+    if(n!==vu){vu=n;rond.textContent=String(n);}
+    if(r>=1){clearInterval(PUBR.tm);fini(true); // la reprise lance son volet TOUT DE SUITE : la pub ne s'efface qu'une fois l'écran couvert (jamais un éclair de l'écran de fin)
+      setTimeout(function(){el.classList.remove('on');el.hidden=true;},ecranWipe._on?160:0);}},50);
+}
+addEventListener('keydown',function(e){if(PUBR.on&&PUBR.el&&!PUBR.el.hidden){e.stopPropagation();e.preventDefault();}},true); // pendant la pub maison, le clavier ne touche pas l'écran de fin dessous
+window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s
+  if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
+  return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
-   ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER contre de l'ARGENT DU JEU — jamais d'euros, jamais de pub :
+   ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
+   RESSUSCITE, juste au-dessus) ; avant, contre de l'ARGENT DU JEU (jamais d'euros) :
    on repart d'où l'on est tombé (`respawn` : la dernière route sûre) avec le MOTEUR, la zone et le compteur de la partie ; la chaîne d'aura,
    le flow et les pouvoirs sont partis avec l'explosion, une part des gains avec le prix, et le MOTEUR perd un palier (CHANCE.moteurPerte :
    la caisse a explosé) — la mort reste une vraie sanction.
@@ -46909,43 +46994,53 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
 const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
-  offre:false,used:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
+  offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
-function chanceRaz(){clearTimeout(CHANCE.tm);CHANCE.gratuit=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
+function chanceRaz(){clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
   clearTimeout(CHANCE.tm);CHANCE.offre=false;
   const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
   CHANCE.gratuit=false;
   if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(!bon&&(RUNX.t||0)<CHANCE.tMin))return;
-  CHANCE.prix=bon?0:Math.max(1,Math.round(commitExploits._vire||0));CHANCE.gratuit=bon; /* (2026-10-15 soir, Sacha : « le bouton continuer quand on meurt doit couter au joueur tout ce qu'il a gagne dans la partie ») le prix = TOUT l'encaissé de la partie (commitExploits._vire, ce que endGame vient de verser), au dollar près ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
+  CHANCE.prix=0;CHANCE.gratuit=bon; /* (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») plus de PRIX : la reprise se gagne en regardant une pub (chanceJoue → pubRecompense) ; le bon de la machine à sous s'en passe. Avant : */ /* le prix = bon?0:Math.max(1,Math.round(commitExploits._vire||0)) — (2026-10-15 soir, Sacha : « le bouton continuer quand on meurt doit couter au joueur tout ce qu'il a gagne dans la partie ») le prix = TOUT l'encaissé de la partie (commitExploits._vire, ce que endGame vient de verser), au dollar près ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
   chanceSignal();
 }
 function chanceEtat(){
-  const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&bank()>=CHANCE.prix);
+  const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour); /* (15/10 soir) plus de `bank()>=CHANCE.prix` : la pub ne demande rien au compte */
   return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
-function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on repart sous le volet
+function chanceJoue(){ // le toucher de la plaque : (15/10 soir) la PUB d'abord (pubRecompense) — la reprise, sous le volet, quand elle a été vue
   if(!chanceEtat().ok)return false;
   if(ecranWipe._on)return false; // (2026-10-14, chasse aux bugs) un volet déjà en route (REJOUER, ⌂ touchés juste avant) n'appellerait jamais la reprise (ecranWipe sort sans `go`) : on paierait pour rester sur l'écran de mort, offre éteinte et ligne du Top 10 retirée — on ne débite rien
-  const P=CHANCE.prix;
+  clearTimeout(CHANCE.tm);CHANCE.offre=false; // la fenêtre de 5,5 s s'arrête : la pub prend le temps qu'il lui faut
+  try{goImmersive();}catch(e){} // (le plein écran veut le geste : ici, pas au bout de la pub)
+  if(CHANCE.gratuit){chancePrend();return true;} // le BON de la machine à sous : pas de pub
+  CHANCE.pub=true;chanceSignal(); // la plaque s'efface ; le FINAL SPIN attend la fin de la pub (chanceAttend)
+  uiClic('');hap(8);
+  const lance=pubRecompense('seconde-chance',function(vue){CHANCE.pub=false;
+    if(vue&&started&&gameOver&&!garageOn&&!CHANCE.used&&!ecranWipe._on)chancePrend();else chanceSignal();}); // pub fermée avant la fin : pas de reprise, l'écran de fin reprend la main
+  if(!lance){CHANCE.pub=false;chanceSignal();return false;}
+  return true;
+}
+function chancePrend(){ // la reprise est GAGNÉE (pub vue jusqu'au bout, ou bon) : on la sert, on repart sous le volet
   clearTimeout(CHANCE.tm);CHANCE.used=true;CHANCE.offre=false;
-  if(CHANCE.gratuit)SAVE.d.chanceG=Math.max(0,(SAVE.d.chanceG|0)-1); /* le bon sert */ else SAVE.d.bank=Math.max(0,bank()-P);
+  const bon=!!CHANCE.gratuit;
+  if(bon)SAVE.d.chanceG=Math.max(0,(SAVE.d.chanceG|0)-1); /* le bon sert */ /* (15/10 soir) plus de débit : avant, `else SAVE.d.bank=Math.max(0,bank()-P)` */
   CHANCE.m0=money;CHANCE.rs={tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0};
   if(CHANCE.lb!=null){const i9=leaders.findIndex(function(e){return e.s===CHANCE.lb;});if(i9>=0)leaders.splice(i9,1);} // la ligne de la 1re fin part : la fin suivante posera le score de toute la partie
   saveLeaders(); // (flush : le paiement et le Top 10 partent ensemble sur le disque)
   RUNX.verse=null;MIS_REC=null;
-  try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(e){}hap([12,40,12,40,30]);
+  try{if(SONV2)sfx(bon?'ui.achat':'ui.ok');else uiClic('');}catch(e){}hap([12,40,12,40,30]);
   chanceSignal();
-  const go=function(){chanceRepart(P);};
-  try{goImmersive();}catch(e){}
+  const go=function(){chanceRepart(bon);};
   if(typeof ecranWipe==='function')ecranWipe(go);else go();
   return true;
 }
-function chanceRepart(P){ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
+function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
   if(!started||!gameOver)return;
   try{finSonsCoupe();}catch(e){}
   mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';
@@ -46967,7 +47062,7 @@ function chanceRepart(P){ // sous le volet : la course reprend où elle s'est ar
     if(!started||gameOver){if(s9)s9.classList.remove('compte','on');return;}
     if(paused){CHANCE.tm=setTimeout(pas,200);return;} // la pause pendant le compte : il attend
     if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2)sfx('ui.go');}catch(e){}return;}
-    slam(String(n),n===3?(P>0?'−'+fmtC(P):(LANG==='en'?'FREE':'GRATUIT')):'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
+    slam(String(n),n===3&&bon?(LANG==='en'?'FREE':'GRATUIT'):'','#ffd75e','#ff7ad5',64,9); /* (15/10 soir) plus de « −prix » sous le 3 : la pub a payé */{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
     try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6);
     n--;CHANCE.tm=setTimeout(pas,500);};
   CHANCE.tm=setTimeout(pas,120);
@@ -46985,7 +47080,7 @@ function chanceProtege(cause){ // explode, pendant le bouclier
   return true; // un choc : ignoré
 }
 function chanceRefuse(){if(!CHANCE.offre)return false;clearTimeout(CHANCE.tm);CHANCE.offre=false;chanceSignal();return true;} // l'offre se ferme tout de suite (un geste ailleurs, la machine à sous d'IDEE qui veut sa place)
-function chanceAttend(){return !!(CHANCE.offre&&!CHANCE.used&&performance.now()<CHANCE.fin&&chanceEtat().ok);} // vrai tant que l'offre est à l'écran : ce qui vient APRÈS la mort (le FINAL SPIN) attend qu'elle tombe — l'événement cc:chance le dit
+function chanceAttend(){return !!(CHANCE.pub||PUBR.on)||!!(CHANCE.offre&&!CHANCE.used&&performance.now()<CHANCE.fin&&chanceEtat().ok);} // vrai tant que l'offre est à l'écran : ce qui vient APRÈS la mort (le FINAL SPIN) attend qu'elle tombe — l'événement cc:chance le dit
 window.chanceEtat=chanceEtat;window.chanceJoue=chanceJoue;window.chanceRefuse=chanceRefuse;window.chanceAttend=chanceAttend; // (l'écran de mort, IDEE et les bancs les appellent hors de l'IIFE)
 window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose · ('joue') prend l'offre · ('t',s) vieillit la partie · ('$',n) n $ encaissés · ('choc') un choc
   if(k==='mort'&&started&&!gameOver&&mode!=='boom')explode('vide');
@@ -60515,7 +60610,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const fond=document.createElement('div');fond.id='mChanceFond';fond.hidden=true;fond.setAttribute('aria-hidden','true');el.parentNode.insertBefore(fond,el);
     let vu=false;
     const maj=function(){let e=null;try{e=chanceEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
-      if(ok){el.querySelector('.chP').textContent=fmtC(e.prix);
+      if(ok){const p9=e.gratuit?(LANG==='en'?'FREE':'GRATUIT'):pxi('lecture')+'<span>'+TR('PUB')+'</span>';if(el._p9!==p9){el._p9=p9;el.querySelector('.chP').innerHTML=p9;}  /* (15/10 soir, Sacha : « au lieu de payer il faut regarder une pub ») CONTINUER ▶ PUB, plus de prix */
         if(!vu){vu=true;el.style.setProperty('--chD',Math.max(300,e.reste||5500)+'ms');el.classList.remove('chOn');void el.offsetWidth;el.classList.add('chOn');}}
       else vu=false;
       el.hidden=!ok;non.hidden=!ok;fond.hidden=!ok;el.classList.toggle('pb-gold',ok);el.classList.toggle('pb-cyan',!ok);document.body.classList.toggle('chOffre',ok);};

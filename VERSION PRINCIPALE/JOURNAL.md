@@ -3,6 +3,35 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PUB QUI RESSUSCITE (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour recuicité »)
+La SECONDE CHANCE ne coûte plus d'argent : CONTINUER lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout.
+- **La plaque** de l'écran de mort dit `CONTINUER ▶ PUB` (l'icône `lecture`, plus de prix) ; avec un BON de la machine à sous, `CONTINUER GRATUIT`
+  (pas de pub). Tout le reste de l'offre est inchangé : une fois par partie, pas sous 20 s de jeu, 5,5 s pour décider, NON MERCI, le moteur perd un
+  palier, 3 s de bouclier. Le « −prix » sous le « 3 » de la reprise est parti.
+- **Le code** (bloc « LA PUB QUI RESSUSCITE », juste au-dessus de `CHANCE`) : `chanceOuvre` met `CHANCE.prix=0` ; `chanceEtat` ne lit plus le
+  compte ; `chanceJoue` arrête la fenêtre de 5,5 s, pose `CHANCE.pub` (la plaque s'efface, le FINAL SPIN attend : `chanceAttend`) et appelle
+  `pubRecompense('seconde-chance', fin)` ; vue → `chancePrend` (l'ancienne moitié de chanceJoue, SANS débit) → volet → `chanceRepart(bon)`.
+  Pas vue → l'écran de fin reprend la main (REJOUER), l'offre est perdue.
+- **Il n'y a AUCUNE régie de pub dans le jeu** (le kit Poki/CrazyGames est parti avec l'édition POKI, lot 3 du nettoyage ; l'app iPhone déclare
+  « aucune pub, aucune donnée collectée » à Apple). D'où deux chemins dans `pubRecompense` :
+  · **une régie branchée** : la page ou l'app qui en a une pose AVANT le jeu `window.CC_PUB_RECOMPENSE=function(nom){return Promise}` —
+    `true` = vue (reprise), `false` = fermée avant la fin (pas de reprise), rien ou une erreur = aucune pub à montrer (la pub maison prend le
+    relais). Le jeu se tait pendant (`pubSilence` : la musique en pause, l'AudioContext suspendu, puis rendus).
+  · **la pub maison** (`pubMaison`, `#pubR`, `<style id="pubRecompense">`) : 5 s (`PUBR.d`) plein écran, une caisse de la BOUTIQUE qu'on n'a pas
+    encore et qu'on peut acheter à l'argent du jeu (`pubCaisse`, jamais une caisse en euros), sa photo, son nom dans la couleur de sa rareté, son
+    prix ; l'étiquette PUB, le compte ROND, la barre du temps ; rien ne se touche (le clavier non plus) ; le temps ne court qu'écran allumé ;
+    elle ne s'efface qu'une fois le volet de la reprise posé (z-index 260 : sous `#wipe`, au-dessus de la machine à sous).
+- **Mesuré au banc** (Chrome sans fenêtre, muet ; partie de 40 s, 1 800 $ gagnés, compte 7 200 $) : COUCHÉ 844 × 390, DEBOUT 390 × 844 et dans le
+  CADRE DE L'ORDI à la souris → plaque `CONTINUER PUB`, la pub maison 5 s, reprise, 3 · 2 · 1, course qui roule ; compte 7 200 → 7 200 (avant :
+  débité de 1 800). Régie qui dit oui → reprise sans pub maison ; régie qui dit non → pas de reprise, écran de fin avec REJOUER ; régie sans pub →
+  pub maison puis reprise ; BON → reprise immédiate « GRATUIT », sans pub. 0 erreur (seul le 404 connu de `dark-triad.mp3`), `__loopErr` vide.
+- **Bancs** : `dbgPub()` (l'état) · `dbgPub('fin')` (la pub maison finit tout de suite) · `dbgPub(n)` (elle dure n s) ; `?pub=0` = pas de pub,
+  reprise immédiate ; `dbgChance(…)` inchangé.
+- **À trancher par Sacha** : une VRAIE régie. Sur le web : Google AdSense (jeux H5, `adBreak` type `reward`) ou un portail (Poki, CrazyGames) ;
+  dans l'app iPhone : AdMob (plugin Capacitor, branche `ios-capacitor`) — ce qui change les réponses « confidentialité » de l'App Store
+  (identifiant publicitaire, fenêtre de suivi ATT). Il faut un compte de régie et ses identifiants ; le jeu n'a qu'à poser `CC_PUB_RECOMPENSE`.
+  Et la durée de la pub maison (5 s), tant qu'aucune régie n'est branchée.
+
 ## LES ROUTES PLUS ÉPAISSES : 2,6 → 3,9 m (2026-10-15 soir, Sacha : « augmente de 50 % l'épaisseur des routes pour avoir plus de surface pour bump », puis « il y a plus le bump sur le bord de la route j'ai l'impression, et augmente un peu l'épaisseur des routes »)
 - `THICK` 2,6 → 3,9 m (les deux endroits : la déclaration et la remise à chaque `buildTrack` ; la JADE garde sa dalle de 0,30). Commit de la
   session EPAISSEUR (12 h 43), resté dans la file du train qui ne roulait plus : repris tel quel et poussé seul. Tout ce qui se pose sous la
