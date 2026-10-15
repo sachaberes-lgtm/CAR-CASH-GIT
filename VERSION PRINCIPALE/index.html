@@ -89,6 +89,12 @@ if(SANS_FACILE)document.documentElement.classList.add('sansFacile');
    jeu : les boîtes et ce qui reviendra par map — les singes du SOLEIL DE JADE). Tout le reste : l'historique git (85470fb4 et avant). */
 const SANS_SNAKE=!/[?&]snake=1\b/.test(location.search);
 const SANS_NITROOO=!/[?&]nitrooo=1\b/.test(location.search);
+/* PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : toute la mécanique météore, jeu web ET ROBLOX) :
+   même recette que la carrière — COUPÉ, pas arraché. Plus de figure MÉTÉORE en vol (nitro tenue 1,2 s), plus de verdict METEOR /
+   MEGA METEOR à la pose (mot, voix, son, rang), plus de CRATÈRE ni d'« IMPACT METEORE » quand on pique dans la dalle en nitro, et ses
+   maillages ne se préparent plus au menu. La pose garde ses verdicts MONSTRE / DOUBLE / TRIPLE ; le cratère léger des DÉBRIS de
+   l'orbite (`?debris=1`) ne bouge pas. Pour le rendre : `?meteore=1`. */
+const SANS_METEORE=!/[?&]meteore=1\b/.test(location.search);
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
@@ -184,6 +190,31 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
       if(/^(Space|Arrow|Shift|Escape|Enter)/.test(e.code))e.preventDefault();donne();});});
   });
 })();
+</script>
+<script>
+/* LA RÉGIE ADSENSE (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le chargeur de
+   l'Ad Placement API de Google (« H5 Games Ads »), côté page ; le côté jeu (adBreak de type reward → la SECONDE CHANCE) est le bloc
+   « LA RÉGIE ADSENSE, CÔTÉ JEU », juste au-dessus de LA PUB QUI RESSUSCITE.
+   · CC_ADSENSE = l'identifiant d'éditeur AdSense de Sacha (« ca-pub-… », sur adsense.google.com › Compte › Infos du compte). VIDE = AUCUNE
+     régie : la pub maison de 5 s. C'est le SEUL endroit où le poser : vercel-build.sh en tire aussi /ads.txt à la racine du site.
+   · Seulement sur le SITE (CC_ADSENSE_SITES, en http/https) : jamais dans l'app iPhone (Capacitor, capacitor://), jamais dans une copie
+     locale (localhost, JOUER.bat), jamais dans la page-cadre de l'ordi — Google veut le code DANS le document du jeu, donc dans l'iframe de
+     la colonne (qui a déjà allow="autoplay").
+   · `?pubtest=1` : le MODE TEST de Google (data-adbreak-test="on") partout, même sans identifiant — de fausses pubs, aucune requête de pub
+     envoyée, une fois sur deux « pas de pub prête » (la pub maison prend le relais). Pour les bancs et pour voir le parcours. */
+var CC_ADSENSE='',CC_ADSENSE_SITES=['car-cash-git.vercel.app'];
+(function(){try{
+  var test=/[?&]pubtest=1\b/.test(location.search);
+  if(window.CC_COLONNE||window.Capacitor||!/^https?:$/.test(location.protocol))return;
+  if(!test&&!(/^ca-pub-\d{10,20}$/.test(CC_ADSENSE)&&CC_ADSENSE_SITES.indexOf(location.hostname)>=0))return;
+  var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';
+  if(test)s.setAttribute('data-adbreak-test','on');
+  s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+(CC_ADSENSE||'ca-pub-0000000000000000');
+  window.adsbygoogle=window.adsbygoogle||[];
+  window.adBreak=window.adConfig=function(o){window.adsbygoogle.push(o);};
+  window.CC_ADS={test:test,client:CC_ADSENSE||'test'};
+  document.head.appendChild(s);
+}catch(e){}})();
 </script>
 <style>
 /* LA PAGE-CADRE : la nuit du jeu, l'écran du téléphone au centre, rien d'autre (tout le reste du document dort, masqué) — la
@@ -4514,6 +4545,14 @@ html body #mDead .mCashL>b{order:1;line-height:1;letter-spacing:2px;font-size:mi
 html body #mDead .mCashL>b{word-spacing:-.55em} /* (2026-09-30, revue des écrans) l'espace de la police pixel est une case PLEINE : au corps du héros, « $ 9 » s'écartait d'un doigt ; resserré, « $ 128,4 k » gagne aussi de la place */
 html body #mDead .mCashL>small{order:2;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 html body #mDead .mCashL>small:empty{display:none}
+/* (2026-10-15, audit des écrans) LA LIGNE DU COMPTE TIENT DANS SA PLAQUE : « COMPTE : $ 2 303 400 · ×2 DU JOUR » ne tient pas sur les ~27 cases
+   de la plaque — elle se coupait en plein « ×2 DU | JOUR », calée à gauche, sans interligne (la police pixel remplit tout son corps : deux
+   lignes se TOUCHENT) et la seconde mordait le bas de la plaque. Le quotidien (.mJour) passe sur SA ligne, centrée ; l'interligne 1.5 aère
+   toute ligne repliée ; l'espace resserré comme celui du héros (une case PLEINE de la police pixel) fait tenir « ×2 OF THE DAY · STREAK 3 +$40 »
+   ou une série à deux chiffres sur une ligne, et « COMPTE : $ 2 303 400 » sur une seule même sur un petit téléphone couché. */
+html body #mDead .mCashL>small{max-width:100%;line-height:1.5;text-align:center;text-wrap:balance;word-spacing:-.4em}
+html body #mDead .mCashL>small>.mJour{display:block;font-style:normal}
+html body #mDead .mCashL>small>.mJour>u{display:none}
 /* la carte AURA : le score, et le meilleur dessous */
 html body #mDead .hAura>b{font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))}
 html body #mDead .hCard.hAura{container-type:inline-size}
@@ -4532,6 +4571,7 @@ html body #mDead>.mObj{order:-2}
     grid-template-areas:"over obj" "cash obj" "hero stats" "hero row" "hero rej";grid-template-rows:auto auto 1fr auto auto}
   html body #mDead .mOver{grid-area:over;align-self:start;margin:0}
   html body #mDead .mCashL{grid-area:cash;align-self:start;margin:0;padding:12px 12px 10px;gap:7px}
+  html body #mDead .mCashL:has(>small>.mJour){padding:9px 12px 8px;gap:4px} /* (2026-10-15) la ligne du quotidien se paie sur les marges de la plaque, pas sur les cartes du dessous : la colonne de gauche n'a pas un pixel à perdre (la MOTEUR touche déjà la ⌂) */
   html body #mDead .mHero{grid-area:hero;align-self:stretch;margin:0}
   html body #mDead .mHero>.hCard{justify-content:center}
   html body #mDead .hCard{min-height:0;padding:10px 10px 10px;gap:5px}
@@ -9364,6 +9404,12 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
 html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
 @media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 34px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo */
+/* (2026-10-16, Sacha : « dans l'écran d'accueil GARAGE, OFFRE et RÉGLAGES doivent être de couleur rose, bleu et jaune — comme les bandes sous le logo CAR CASH »)
+   LES TROIS TUILES AUX COULEURS DE LA LIVRÉE : dans l'ordre des trois bandes du trait néon sous le logo (rose · cyan · or, `--livree`), de gauche à droite.
+   Tout passe par `--nc` (liseré, lueur intérieure, pictogramme) : le dessin des plaques ne bouge pas, le libellé reste blanc. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{--nc:var(--neoM)}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{--nc:var(--neoC)}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{--nc:var(--au2)}
 </style>
 <style id="ux8-garage">
 /* ===== UX 8 · LE GARAGE ET LA BOUTIQUE — un seul cadre de boutons (voir « LE CADRE COMMUN » dans le script, ux8Bati/ux8Tick) =====
@@ -20752,6 +20798,7 @@ function parisMur(dt,cause){ // LES FAÇADES SONT DES MURS : un CHOC par contact
   SLD.mur=.12; // (SLIDE) la façade frotte : la figure le sait
   const va=Math.abs(vA),a=Math.asin(Math.min(1,into/Math.max(1,va))),kmh=va*3.6*SPD,now=performance.now();
   if(a>.52&&kmh>200){impMur(out);explode(cause||'facade');return;} // (2026-10-15) L'IMPACT : la paroi est le bord de la route
+  try{impMini(out,a,kmh,into);}catch(e){} // (2026-10-15 soir) L'IMPACT EN MINIATURE : le coup d'épaule, au premier contact (voir IMPM)
   psi=-psi*.3;yawR=0;slipB=0;vL=0;
   const choc=now-(PARIS.chocT||0)>220;if(choc)PARIS.chocT=now;       // (mesuré : perdre à CHAQUE image faisait tomber de 151 à 20 km/h en 3 s)
   vA*=choc?1-Math.min(.3,.03+a*.9):1-.3*(dt||.016);
@@ -27706,9 +27753,25 @@ const NFEU_PAL={f:[[2.3,1.75,1],[2.1,.95,.2],[1.75,.42,.06],[1.3,.2,.035],[.9,.0
      trajectoire (une glisse, un drift : le feu part du côté où l'air le pousse). En vol, le feu détaché de Sacha (genre 3) garde sa règle.
    Le DRAGON garde NFEU_PAL / NFEU_SEUIL / NFEU_TAILLE (7 nuances). `?nfeu=colle` coupe aussi la part fluide au sol. */
 const NFEU_B10=[.06,.14,.24,.35,.47,.59,.71,.82,.9],NFEU_T10=[.88,.96,1,1,1,.96,.9,.82,.72,.6];
-const NFEU_P10={f:[[2.4,2.15,1.6],[2.3,1.75,.95],[2.2,1.35,.45],[2.05,.98,.2],[1.85,.66,.1],[1.62,.42,.06],[1.38,.25,.04],[1.08,.13,.03],[.6,.06,.025],[.2,.17,.17]],
+/* (2026-10-15, Sacha : « le feu du nitro est trop rouge ou trop bleu par rapport aux couleurs de la barre de nitro ») LES TEINTES DE LA BARRE,
+   sur les 10 nuances du feu affiné (nombre de nuances, seuils, tailles, jet, feu du MOTEUR `m` : rien ne bouge). La passe finale des courses
+   (ACES qui garde la chroma — vivid 1 —, saturation 1,3 à 1,6, contraste 1,2 à 1,4) pousse à fond tout canal déjà dominant : MESURÉ sur les
+   pixels pleins du feu, l'ancienne palette sortait ROUGE (#f15309 → #ec1c18 → #e8171b), BLEU-INDIGO (#1131f4 → #2317f4 → #331aef) et MAGENTA
+   (#ac12f2). Chaque nuance est ici MESURÉE À L'ENVERS DANS LE JEU (banc « teinte », 2026-10-16) : course figée, tout le feu peint d'une seule
+   valeur, couleur moyenne de ses pixels PLEINS relue après la passe finale (pas ceux que le flou de vitesse mêle au bitume : leur bleu-gris
+   faisait jaunir les cœurs), puis une descente (Newton amorti, en Lab) — UNE valeur pour QUATRE ambiances à la fois (nuages midi et nuit,
+   ville au soir, glacier midi), plafonnée à 3, vérifiée sur une autre image. Écart Lab moyen, avant → après : feu 21-34 → 3-11, réserve 30-69 →
+   4-13, infinie 19-57 → 3-13. Couleurs visées, rapportées au blanc du bas d'écran (~,88) — feu : #fff0d0 → --nL #ffd58f → #ffc070 → #ffa449 →
+   --nP #ff8d2e → #ff8020 → --nS #ff7415 → #d85a0c → --nO #ad4200 ; réserve : #eef2ff → --bL #b5c4ff → #93a8fc → #7088fa → --bP #4a68f0 → #3a56dc
+   → --bS #2a44c8 → #1f3398 → --bO #16247a ; infinie : #fbf3ff → --vL #f1dcff → #d6a6ff → #c38aff → --vP #b06bff → #9d54ff → --vS #8a3dff →
+   #6526c6 → --vO #3e1287. La fumée (10e nuance) reste celle de Léo. `?sans=teinte` = le feu d'avant. */
+const NFEU_P10_AVANT={f:[[2.4,2.15,1.6],[2.3,1.75,.95],[2.2,1.35,.45],[2.05,.98,.2],[1.85,.66,.1],[1.62,.42,.06],[1.38,.25,.04],[1.08,.13,.03],[.6,.06,.025],[.2,.17,.17]],
   b:[[1.8,2,2.45],[1.1,1.5,2.4],[.65,1.1,2.3],[.4,.75,2.15],[.28,.48,2],[.24,.28,1.75],[.26,.16,1.45],[.3,.08,1.05],[.16,.04,.55],[.17,.17,.22]],
-  v:[[2.25,1.9,2.45],[2.1,1.3,2.35],[1.9,.85,2.25],[1.6,.5,2.05],[1.35,.3,1.9],[1.1,.18,1.65],[.95,.12,1.45],[.7,.08,1.1],[.32,.04,.52],[.2,.16,.22]],
+  v:[[2.25,1.9,2.45],[2.1,1.3,2.35],[1.9,.85,2.25],[1.6,.5,2.05],[1.35,.3,1.9],[1.1,.18,1.65],[.95,.12,1.45],[.7,.08,1.1],[.32,.04,.52],[.2,.16,.22]]};
+const NFEU_TEINTE=!/[?&]sans=([^&]*,)?teinte(,|&|$)/.test(location.search);
+const NFEU_P10={f:NFEU_TEINTE?[[2.95,2.87,2.58],[2.3,2.03,1.51],[1.91,1.53,.99],[1.82,1.25,.68],[1.55,.88,.49],[1.99,1.06,.52],[1.7,.78,.4],[.43,.27,.14],[.32,.2,.12],[.2,.17,.17]]:NFEU_P10_AVANT.f,
+  b:NFEU_TEINTE?[[2.63,2.67,2.67],[1.89,2.02,2.37],[.67,.74,1],[.48,.54,.8],[.35,.4,.66],[.28,.32,.51],[.22,.23,.38],[.16,.15,.22],[.12,.11,.15],[.17,.17,.22]]:NFEU_P10_AVANT.b,
+  v:NFEU_TEINTE?[[2.81,2.78,2.78],[2.85,2.72,2.92],[1.68,1.4,1.92],[1.05,.79,1.34],[.79,.58,1.07],[.94,.61,1.53],[.57,.36,.86],[.28,.21,.38],[.13,.087,.16],[.2,.16,.22]]:NFEU_P10_AVANT.v,
   m:[[1.5,1.75,2.5],[2.2,1.95,1.5],[2.3,1.55,.6],[2.15,1.05,.22],[1.95,.78,.12],[1.85,.6,.08],[1.62,.42,.06],[1.3,.24,.04],[.7,.1,.03],[.2,.17,.17]]}; // m : le feu du MOTEUR — un pied BLEUTÉ, comme un vrai échappement, puis l'orange (qui tient : un retour de flamme est orange, pas rouge)
 const NFEU_FIN={taille:.73,taux:1.7,pas:0},NFEU_SOL={det:.45,vent:.9};
 /* (2026-10-15, Léo : « ce qui manque, c'est la physique de la vitesse : là on dirait du slime ; ça devrait avoir l'air PROPULSÉ, plus dynamique, mais
@@ -33644,7 +33707,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(SANS_CARRIERE)return;try{parisChauffe();}catch(e){console.warn('parisChauffe',e);}}, /* (2026-10-14) sans carrière, Paris ne se joue plus : rien à compiler */ // (2026-09-30) PARIS : ses matières compilées au menu (16 programmes de moins au portail)
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
   function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
-  function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
+  function(){if(!SANS_METEORE||DEB_ON){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);}for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();},
   function(){try{plaChauffe();}catch(e){console.warn('plaChauffe',e);}}, // (2026-10-13) la pluie d'argent : ses matières compilées au menu
   function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
@@ -39230,6 +39293,75 @@ function impFin(){ // le ménage (clearBoom, ou neuf secondes après) — rien n
   impNegFin();
 }
 function impNegFin(){if(IMP.neg){IMP.neg=false;renderer.domElement.style.filter='';}} // l'étalonnage `body>canvas` reprend la main
+/* (2026-10-15 soir) L'IMPACT EN MINIATURE — Sacha : « fais le point 1 : étoile + éclats + étincelles au premier contact, sans boule ni
+   cratère ». Ce qu'on percute SANS mourir — le coup d'épaule contre la paroi des couloirs du canyon (les Étroits, le tunnel, la mine) et
+   les façades de Paris : tout ce qui passe par parisMur sous le seuil mortel — reprend L'IMPACT en petit, au PREMIER contact seulement
+   (ensuite on frotte : les étincelles d'avant, rien de plus) : l'ÉTOILE de choc (la même texture en pixels) qui pousse au flanc puis
+   éclate, quelques ÉCLATS de roche calcinée (la même forme, les mêmes matières, un sur trois en braise) qui sautent de la paroi — la moitié
+   y retape et rebondit —, une GERBE d'étincelles. Plus le choc est franc (angle, vitesse), plus c'est gros. NI cratère, NI coup (la caisse
+   ne s'arrête pas), NI négatif, NI boule, NI ralenti : rien n'explose, on frotte. Tout ce qui saute garde l'élan de la caisse (posé sur
+   place, un éclat sortait du cadre en une image à 500 km/h) et l'étoile reste collée au flanc. SA PROPRE RÉSERVE (2 étoiles, 10 éclats) :
+   jamais celle de la mort, qui peut tomber un instant après. Mêmes types de matériaux que L'IMPACT, chauffés à leur première image : aucun
+   programme GPU neuf au choc. Console : dbgImpactMini(). */
+const IMPM={E:[],L:[],ei:0,li:0,clk:0,tC:-1e9,n:0,der:null,K:{dt:.35,into:1.2}, // clk : l'horloge de JEU (la pause la gèle)
+  N:new THREE.Vector3(),fw:new THREE.Vector3(),up:new THREE.Vector3(),s:new THREE.Vector3(),v:new THREE.Vector3(),
+  m:IMP_ECL.m.map(function(m){return m.clone();})}; // ses matières à elle (la braise de la mort s'éteint pendant le plan) : même programme
+for(let i=0;i<2;i++){const e=new THREE.Sprite(new THREE.SpriteMaterial({map:IMP_ETOILE_TEX,transparent:true,depthTest:false,depthWrite:false,fog:false})),u={on:false,t:0,k:1,o:new THREE.Vector3()};
+  e.renderOrder=12;e.frustumCulled=false;e.position.set(0,-1e5,0);e.userData=u;scene.add(e);
+  e.onAfterRender=function(){if(!u.on)e.visible=false;e.onAfterRender=function(){};}; // CHAUFFE : dessinée une fois, puis rangée
+  IMPM.E.push(e);}
+for(let i=0;i<10;i++){const m=new THREE.Mesh(IMP_ECL.geo,IMPM.m[i%3===0?1:0]),c={m:m,v:new THREE.Vector3(),s:new THREE.Vector3(1,1,1),p:new THREE.Vector3(),n:new THREE.Vector3(),rx:0,ry:0,t:0,life:0,on:false};
+  m.frustumCulled=false;m.position.set(0,-1e5,0);scene.add(m);
+  m.onAfterRender=function(){if(!c.on)m.visible=false;m.onAfterRender=function(){};};
+  IMPM.L.push(c);}
+function impMini(out,a,kmh,into){ // parisMur, sous le seuil mortel, à chaque image de contact : l'étoile ne part qu'au PREMIER (≥ 0,35 s de jeu sans toucher)
+  const neuf=IMPM.clk-IMPM.tC>IMPM.K.dt;IMPM.tC=IMPM.clk;
+  if(!neuf||!(into>IMPM.K.into)||mode!=='drive')return false;
+  const sp=CARS[level]||CARS[0],N=IMPM.N.copy(F.b).multiplyScalar(-out).normalize(),fw=IMPM.fw.copy(F.t).multiplyScalar(driveDir),up=IMPM.up.copy(F.n),V=IMPM.v.copy(PT_U.uVc.value);
+  const k=THREE.MathUtils.clamp(.45+.55*a/.52,.45,1)*(.8+.2*Math.min(1,kmh/700)); // le choc franc (angle) et la vitesse
+  const S=IMPM.s.copy(carGroup.position).addScaledVector(N,-(sp.w*.5+.1)).addScaledVector(fw,(sp.l||4.4)*.42).addScaledVector(up,.8); // le coin AVANT du flanc, contre la paroi
+  IMPM.n++;IMPM.der={a:+a.toFixed(3),kmh:Math.round(kmh),into:+into.toFixed(1),k:+k.toFixed(2)};
+  const e=IMPM.E[IMPM.ei],u=e.userData;IMPM.ei=(IMPM.ei+1)%IMPM.E.length; // L'ÉTOILE, collée au flanc (elle suit la caisse)
+  u.on=true;u.t=0;u.k=k;u.o.copy(S).sub(carGroup.position); // SUR la ligne de la paroi : la moitié de l'étoile déborde du flanc (plus en dedans, elle se lisait sur le toit)
+  e.position.copy(carGroup.position).add(u.o);e.material.rotation=Math.random()*6.28;e.material.opacity=1;e.scale.setScalar(.6*k);e.visible=true;
+  const nE=3+Math.round(2*(k-.45)/.55); // LES ÉCLATS : 3 à 5
+  for(let i=0;i<nE;i++){const c=IMPM.L[IMPM.li],m=c.m;IMPM.li=(IMPM.li+1)%IMPM.L.length;const an=Math.random()*6.283,r=Math.random()*.5,sp9=(3+Math.random()*6)*(.8+.4*k);
+    c.p.copy(S);c.n.copy(N); // SA paroi : le plan tangent au point de contact (un couloir tourne : chacun garde le sien)
+    m.position.copy(S).addScaledVector(fw,Math.cos(an)*r).addScaledVector(up,Math.sin(an)*r).addScaledVector(N,.3);
+    c.v.copy(V).multiplyScalar(.86+Math.random()*.1) // l'élan de la caisse, un peu moins : ils glissent vers l'arrière sous nos yeux
+      .addScaledVector(N,i&1?-(2+Math.random()*3):sp9).addScaledVector(fw,(Math.random()-.5)*6).addScaledVector(up,2+Math.random()*5); // un sur deux retape la paroi
+    const k9=(.7+Math.random()*.6)*(.8+.3*k);c.s.set(k9*(.7+Math.random()*.6),k9*(.6+Math.random()*.5),k9*(.7+Math.random()*.6));m.scale.copy(c.s);
+    m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);c.rx=(Math.random()-.5)*14;c.ry=(Math.random()-.5)*14;
+    c.t=0;c.life=.7+Math.random()*.5;c.on=true;m.visible=true;}
+  const nS=18+Math.round(24*k); // LA GERBE qui gicle de la paroi
+  for(let i=0;i<nS;i++){const s9=6+Math.random()*12,u9=(Math.random()-.5)*10,w9=Math.random()*7;
+    spawnP(sparkGold,S.x+N.x*.25,S.y+N.y*.25,S.z+N.z*.25,V.x*.8+N.x*s9+fw.x*u9+up.x*w9,V.y*.8+N.y*s9+fw.y*u9+up.y*w9,V.z*.8+N.z*s9+fw.z*u9+up.z*w9,.22+Math.random()*.3);}
+  return true;
+}
+function impMiniTick(dt){ // chaque image (porte de simulation de la boucle) : l'étoile qui pousse puis éclate, les éclats qui volent
+  IMPM.clk+=dt;
+  for(const e of IMPM.E){const u=e.userData;if(!u.on)continue;u.t+=dt;const t=u.t,k=u.k;
+    e.position.copy(carGroup.position).add(u.o);
+    if(t<.07){const g=1-Math.pow(1-t/.07,2);e.scale.setScalar((.6+2.2*g)*k);} // elle pousse au flanc (2,8 m au choc franc : la moitié de celle de la mort)
+    else{const w=(t-.07)/.15;if(w>=1){u.on=false;e.visible=false;continue;}e.scale.setScalar((2.8+3*(1-(1-w)*(1-w)))*k);e.material.opacity=1-w*w;} // puis ÉCLATE
+    e.material.rotation+=dt*.9;}
+  for(const c of IMPM.L){if(!c.on)continue;c.t+=dt;if(c.t>c.life){c.on=false;c.m.visible=false;continue;}
+    const m=c.m,P=m.position,N=c.n;c.v.y-=22*dt;P.addScaledVector(c.v,dt);
+    const h=(P.x-c.p.x)*N.x+(P.y-c.p.y)*N.y+(P.z-c.p.z)*N.z,vn=c.v.dot(N);
+    if(h<.15&&h>-3&&vn<0){P.addScaledVector(N,.15-h);c.v.addScaledVector(N,-1.45*vn);} // il retape la paroi et REBONDIT (l'élan le long du mur reste : la caisse file)
+    m.rotation.x+=c.rx*dt;m.rotation.y+=c.ry*dt;m.scale.copy(c.s).multiplyScalar(Math.min(1,(c.life-c.t)/.25)); // se replie en fin de vie
+    m.visible=P.distanceToSquared(camera.position)>6;
+    if(m.material===IMPM.m[1]&&c.t<.6&&Math.random()<.35)spawnP(boomEmbO,P.x,P.y,P.z,c.v.x*.9,c.v.y*.9,c.v.z*.9,.2+Math.random()*.2);}
+}
+function impMiniFin(){IMPM.tC=-1e9;for(const e of IMPM.E){e.userData.on=false;e.visible=false;}for(const c of IMPM.L){c.on=false;c.m.visible=false;}} // le ménage (clearBoom)
+/* console : dbgImpactMini() → l'état (chocs, dernier choc a/kmh/into/k, étoiles, éclats en vol, programmes GPU, couloirs du canyon) ;
+   dbgImpactMini('force',out) → une miniature tout de suite contre le flanc out (±1) ; dbgImpactMini('seuil',x) → into minimal (1,2) */
+window.dbgImpactMini=function(k,a){
+  if(k==='force'&&started&&mode==='drive'){IMPM.tC=-1e9;impMini(a<0?-1:1,.3,Math.abs(vA)*3.6*SPD,9);}
+  if(k==='seuil'&&a!=null)IMPM.K.into=+a;
+  return {chocs:IMPM.n,der:IMPM.der,etoiles:IMPM.E.map(function(e){return e.userData.on?+e.scale.x.toFixed(2):0;}),eclats:IMPM.L.filter(function(c){return c.on;}).length,
+    eclatsVus:IMPM.L.filter(function(c){return c.on&&c.m.visible;}).length,seuil:IMPM.K.into,programmes:renderer.info.programs?renderer.info.programs.length:null,
+    couloirs:CY.on?{etroits:CY.cou,tunnel:CY.tun?[CY.tun[0]]:null,mine:CY.mineT?CY.mine:null}:null,s:+s.toFixed(1),lat:+lat.toFixed(2),demi:ROAD_HALF,mode:mode};};
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
   if(PARIS.sol)return parisHeurt;if(FORET.root)return foretHeurt;if(VOLCAN.root)return volcanHeurt;if(BANQ.root)return banqDans;
   if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(CITY.col)return villeHeurt;return null;}
@@ -39846,7 +39978,7 @@ function clearBoom(){
   clearBoomArt(); // volutes, dards, cœur et ondes de la boule de feu — (vague 2) RANGÉS, pas libérés : ils servent à la mort suivante
   boomOnde.userData.t=-1;boomOnde.visible=false; // (particules) l'onde au sol s'éteint avec le reste
   if(boomLight){boomLight.intensity=0;boomLight.distance=30;boomLight.color.setHex(0xffd06a);boomLight=null;} // rendue à la pose, JAMAIS retirée de la scène
-  impFin(); // (2026-10-15) L'IMPACT : le cratère, l'étoile, les éclats rangés (et la caisse rendue à sa forme si on quitte pendant le coup)
+  impFin();impMiniFin(); // (2026-10-15) L'IMPACT : le cratère, l'étoile, les éclats rangés (et la caisse rendue à sa forme si on quitte pendant le coup)
   boomT=-1;carGroup.visible=true;flashEl.style.background='#ff2020';
 }
 // étincelles de collecte / d'impact
@@ -43850,6 +43982,14 @@ let airRoll=0; // vrille visuelle en vol
    vite ; si l'on braque à temps, le pneu raccroche la LÈVRE au lieu d'aller cogner la tranche ; et la caméra glisse au lieu de sauter.
    `bascOn` = ce vol vient d'une sortie par le bord, `bascDir` = sens de la vrille (+1 = celui de toujours), `levreY` = la marche que la
    caisse remonte en raccrochant (décroît). */
+/* LE BORD DE LA ROUTE TORDUE (2026-10-15 soir, Sacha : « fais revenir le BUMP sur la route tordue des nuages, sans toucher au reste »).
+   Sur la route SANS HAUT NI BAS (TORD) la dalle est couchée, sur la tranche, à l'envers — et la caisse sortie par le bord tombait selon le
+   bas du MONDE : elle ne s'enfonçait jamais sous le niveau de SA dalle, donc ne pouvait plus en cogner la tranche (MESURÉ, même graine :
+   0 BUMP sur 20 sorties, contre 3 sur la même piste remise droite par ?sans=haut). Ici, le temps de la BASCULE (1,1 s au plus) et après
+   chaque BUMP, la gravité est celle de la ROUTE quittée (−Nn × face de départ) : la caisse s'enfonce sous la dalle comme sur une route
+   droite, la lèvre raccroche, la tranche cogne, et le BUMP renvoie vers le ciel de LA ROUTE (pas vers celui du monde). Au-delà (ou à plus de
+   20 m du bord), le vol reprend la gravité du monde. Route droite (TORD éteint) : rien ne change. `TBORD.t` = le temps qu'il reste. */
+const TBORD={t:0,on:false,u:new THREE.Vector3()};
 let bascOn=false,bascDir=1,levreY=0,bascT=0; /* bascT (1/10, soir) : le temps VÉCU depuis la sortie par le bord — `fallT` est rendu par les bumps, il réarmait la bascule en plein vol */
 const BUMP_VY=16; /* (2026-10-01) la vitesse verticale rendue par un BUMP (voir tryLand) */
 const BUMP_VAL=5; /* (2026-10-15 soir, Sacha) ce que le 1er BUMP d'un vol verse à la chaîne, comme une figure (le RICOCHET sur l'eau : 5) — puis ×0,6 par rebond */
@@ -43924,7 +44064,8 @@ function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'ef
   return VEQ.u=Math.sign(steer)*Math.max(0,Math.abs(steer)-Math.abs(VEQ.l0)*g);
 }
 function veqNiveau(dt,dir){ // L'ÉQUILIBRE : le haut du vol se redresse vers la verticale, autour de la trajectoire `dir`
-  const sg=FLY_U.y>=0?1:-1;VEQ.tv.set(0,sg,0).addScaledVector(dir,-sg*dir.y);
+  const U9=TBORD.on?TBORD.u:null,sg=(U9?FLY_U.dot(U9):FLY_U.y)>=0?1:-1; // (LE BORD DE LA ROUTE TORDUE) au bord, l'équilibre se fait sur le ciel de LA ROUTE : le volant reste dans le plan de la dalle, on peut revenir cogner sa tranche
+  if(U9)VEQ.tv.copy(U9).multiplyScalar(sg).addScaledVector(dir,-sg*U9.dot(dir));else VEQ.tv.set(0,sg,0).addScaledVector(dir,-sg*dir.y);
   const L=VEQ.tv.length();if(L<.15)return; // trajectoire presque verticale : pas d'horizon à retrouver
   VEQ.tv.multiplyScalar(1/L);
   const e=Math.atan2(VEQ.tc.crossVectors(FLY_U,VEQ.tv).dot(dir),THREE.MathUtils.clamp(FLY_U.dot(VEQ.tv),-1,1));
@@ -46518,6 +46659,8 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
+  TBORD.t=bord&&TORD.on?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule
+  if(TBORD.t>0){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));curLatOff=lat;curHOff=side<0?-THICK:0;} // le radar part du bord quitté (sinon, à la 1re image, il parle encore du vol d'avant)
   if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
   veqDepart(bord,impU,roll0,carGroup.quaternion); // (2026-10-14) LE VOL ÉQUILIBRÉ : verrou du volant, ressorts de la caisse
   figDepart(bord); // (2026-10-14) LES FIGURES v2 : la caisse EMPORTE son élan de rotation (voir LES FIGURES v2)
@@ -46658,7 +46801,8 @@ function tryLand(dt){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
     fallVel.multiplyScalar(.78);
-    fallVel.y=Math.max(fallVel.y+2.4,BUMP_VY*Math.sqrt(gK())); /* (2026-10-01, LA POSE) la tranche RENVOIE la caisse vers le ciel — POUR DE BON : le +2,4 d'origine (calé sur une autre échelle de vitesse) ne valait plus que 4 cm de montée et s'AJOUTAIT à la chute — un BUMP était une condamnation (relevé par GRAPHISME, MESURÉ au banc : « BUMP (h −0,95) puis tombée », à chaque fois). La vitesse verticale REPART à BUMP_VY : ~1,9 m de montée (gravité monde 15,8 m/s²), ~1 s en l'air — une caisse qui a cogné la tranche à moins de 1,3 m sous le bitume remonte AU-DESSUS de la route et peut revenir s'y poser (le volant commande le vol) ; plus bas, elle reste dessous. √gK : même hauteur en gravité lunaire. */
+    if(TBORD.on){const vu9=fallVel.dot(TBORD.u);fallVel.addScaledVector(TBORD.u,Math.max(vu9+2.4,BUMP_VY*Math.sqrt(gK()))-vu9);TBORD.t=1.1;} /* (LE BORD DE LA ROUTE TORDUE) vers le ciel de LA ROUTE, et sa gravité se réarme : le DOUBLE BUMP reste possible */
+    else fallVel.y=Math.max(fallVel.y+2.4,BUMP_VY*Math.sqrt(gK())); /* (2026-10-01, LA POSE) la tranche RENVOIE la caisse vers le ciel — POUR DE BON : le +2,4 d'origine (calé sur une autre échelle de vitesse) ne valait plus que 4 cm de montée et s'AJOUTAIT à la chute — un BUMP était une condamnation (relevé par GRAPHISME, MESURÉ au banc : « BUMP (h −0,95) puis tombée », à chaque fois). La vitesse verticale REPART à BUMP_VY : ~1,9 m de montée (gravité monde 15,8 m/s²), ~1 s en l'air — une caisse qui a cogné la tranche à moins de 1,3 m sous le bitume remonte AU-DESSUS de la route et peut revenir s'y poser (le volant commande le vol) ; plus bas, elle reste dessous. √gK : même hauteur en gravité lunaire. */
     // (bord v2) la caisse est remise CONTRE la tranche (sa demi-largeur), là où elle la touche : avant, elle était téléportée à 1,8 m du bord
     // ET recalée sur le point de piste le plus proche (jusqu'à 1,6 m le long du ruban) — un saut d'image, pas un choc
     fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
@@ -46709,7 +46853,7 @@ function tryLand(dt){
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
-  {const v29=fallVel.lengthSq();if(nitroOn&&v29>36&&2*vN*vN>v29)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){}}
+  {const v29=fallVel.lengthSq();if(!SANS_METEORE&&nitroOn&&v29>36&&2*vN*vN>v29)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){}} // SANS_METEORE : plus de cratère
   const impact=Math.abs(vN);
   /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
      l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de
@@ -46823,10 +46967,10 @@ function tryLand(dt){
       const q=qG; // (vague 3) la valeur du GESTE, pas celle du dollar (voir qG)
       let vKey=q>=140?'m3':(q>=45?'m2':'m1');
       let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
-      if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
+      if(!SANS_METEORE&&nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée (SANS_METEORE : coupé)
       if(snaked){vKey='snakeLoop';vTier=3;vPrio=5;}                               // passé dessous, reposé côté départ
       if(gapOk){vTier=3;vPrio=Math.max(vPrio,5);if(q<45)vKey='m2';}               // traverser le vide mérite au moins le DOUBLE MONSTRE
-      if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
+      if(!SANS_METEORE&&nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime (SANS_METEORE : coupé)
       const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
       trickMsg(gTxt+vTxt,vTier); // (2026-09-29) plus de « +$ » : la figure paie en aura (la chaîne le dit)
       // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
@@ -47047,9 +47191,43 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+/* LA RÉGIE ADSENSE, CÔTÉ JEU (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le
+   chargeur du <head> (« LA RÉGIE ADSENSE » : CC_ADSENSE, ?pubtest=1) a posé adBreak/adConfig ; on en fait la régie de LA PUB QUI RESSUSCITE.
+   Le parcours de Google pour une pub RÉCOMPENSÉE : on DEMANDE une pub quand l'offre s'ouvre (adBreak type 'reward', depuis chanceOuvre :
+   CC_PUB_PREPARE) ; Google rappelle beforeReward(showAdFn) SEULEMENT s'il en a une ; la plaque CONTINUER ▶ PUB est l'invitation, son toucher
+   appelle showAdFn() DANS le geste (CC_PUB_RECOMPENSE) → adViewed = reprise, adDismissed = pas de reprise. Pas de pub prête au toucher (rien
+   en stock, plafond de fréquence, bloqueur, mode test « pas chargée »…) → null → la pub maison de 5 s. adConfig dit à Google si le jeu a du
+   son (`sound`, relu à chaque offre) et précharge (`preloadAdBreaks`, une seule fois). Une pub qui ne rend jamais la main : 150 s, puis
+   « pas vue ». Banc : dbgPub().ads (on, pret, etat = le dernier breakStatus de Google, n, prete). */
+const ADS={on:!!(window.CC_ADS&&typeof window.adBreak==='function'&&typeof window.CC_PUB_RECOMPENSE!=='function'),pret:false,b:null,etat:'',n:0};
+function adsSon(){return (SAVE.d.sfx||SAVE.d.mus)?'on':'off';}
+if(ADS.on){
+  try{adConfig({preloadAdBreaks:'on',sound:adsSon(),onReady:function(){ADS.pret=true;}});}catch(e){ADS.on=false;}
+  window.CC_PUB_PREPARE=function(nom){
+    if(ADS.b&&ADS.b.res)return; // une pub de Google est à l'écran : on n'en demande pas une autre
+    const b={show:null,res:null,tm:0};ADS.b=b;ADS.n++;
+    const fin=function(v){clearTimeout(b.tm);b.show=null;const r=b.res;b.res=null;if(r)r(v);};
+    try{adConfig({sound:adsSon()});}catch(e){}
+    try{adBreak({type:'reward',name:nom,
+      beforeReward:function(showAdFn){if(ADS.b===b)b.show=showAdFn;},
+      adDismissed:function(){fin(false);},
+      adViewed:function(){fin(true);},
+      adBreakDone:function(info){ADS.etat=String(info&&info.breakStatus||'');fin(ADS.etat==='viewed'?true:ADS.etat==='dismissed'?false:null);}});}
+    catch(e){ADS.etat='erreur';}
+  };
+  window.CC_PUB_RECOMPENSE=function(nom){
+    const b=ADS.b;if(!b||!b.show)return null; // rien de prêt : la pub maison
+    const f=b.show;b.show=null;
+    const p=new Promise(function(res){b.res=res;});
+    b.tm=setTimeout(function(){const r=b.res;b.res=null;if(r)r(false);},150000);
+    try{f();}catch(e){clearTimeout(b.tm);const r=b.res;b.res=null;if(r)r(null);}
+    return p;
+  };
+}
 /* LA PUB QUI RESSUSCITE (2026-10-15, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») — CONTINUER ne coûte plus
-   rien : il lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout. Le jeu n'a AUCUNE régie aujourd'hui (le kit
-   des portails est parti avec l'édition POKI, l'app iPhone déclare « aucune pub » à Apple), d'où deux chemins :
+   rien : il lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout. Le jeu n'avait AUCUNE régie (le kit
+   des portails est parti avec l'édition POKI, l'app iPhone déclare « aucune pub » à Apple) ; depuis le 15/10 soir, AdSense sur le SITE
+   (« LA RÉGIE ADSENSE », juste au-dessus) — deux chemins :
    · UNE RÉGIE BRANCHÉE — la page ou l'app qui en a une (AdMob dans l'app iPhone, AdSense H5 sur le web…) pose, avant le jeu,
      `window.CC_PUB_RECOMPENSE = function(nom){ return une Promise }` : vrai = vue jusqu'au bout (on reprend), faux = fermée avant la fin
      (pas de reprise), rien / une erreur = aucune pub à montrer (la pub maison prend le relais). Le jeu se tait pendant (pubSilence).
@@ -47068,11 +47246,15 @@ function pubRecompense(nom,fin){
   if(PUBR.sans){setTimeout(function(){fini(true);},0);return true;}
   const regie=window.CC_PUB_RECOMPENSE;
   if(typeof regie==='function'){
-    pubSilence(true);let p=null;try{p=regie(nom);}catch(e){p=null;}
-    Promise.resolve(p).then(function(v){pubSilence(false);if(v===true||v===false)fini(v);else pubMaison(fini);},function(){pubSilence(false);pubMaison(fini);});
+    let p=null;try{p=regie(nom);}catch(e){p=null;}
+    if(p&&typeof p.then==='function'){pubSilence(true); // (15/10 soir, régie AdSense) on ne se tait que si la régie montre VRAIMENT une pub (une promesse) : « rien de prêt » rend null tout de suite
+      p.then(function(v){pubSilence(false);if(v===true||v===false)fini(v);else pubMaison(fini);},function(){pubSilence(false);pubMaison(fini);});}
+    else if(p===true||p===false)fini(p);
+    else pubMaison(fini);
     return true;}
   pubMaison(fini);return true;
 }
+function pubPrepare(nom){try{if(!PUBR.sans&&typeof window.CC_PUB_PREPARE==='function')window.CC_PUB_PREPARE(nom);}catch(e){}} // une offre de pub s'OUVRE (la plaque va paraître) : la régie peut aller chercher sa pub
 function pubCaisse(){ // la caisse de la réclame : une qu'on peut ACHETER à l'argent du jeu et qu'on n'a pas encore (jamais une caisse en euros)
   const L=[],T=[];for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carEuros(i))continue;T.push(i);const u=CAR_UNLOCK[i];if(u&&u.p>0&&!carOwned(i))L.push(i);}
   const P=L.length?L:T;return P.length?P[(Math.random()*P.length)|0]:0;}
@@ -47102,7 +47284,8 @@ function pubMaison(fini){
 addEventListener('keydown',function(e){if(PUBR.on&&PUBR.el&&!PUBR.el.hidden){e.stopPropagation();e.preventDefault();}},true); // pendant la pub maison, le clavier ne touche pas l'écran de fin dessous
 window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s
   if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
-  return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub};};
+  return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub,
+    ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)}};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
    ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
    RESSUSCITE, juste au-dessus) ; avant, contre de l'ARGENT DU JEU (jamais d'euros) :
@@ -47136,6 +47319,7 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
   CHANCE.prix=0;CHANCE.gratuit=bon; /* (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») plus de PRIX : la reprise se gagne en regardant une pub (chanceJoue → pubRecompense) ; le bon de la machine à sous s'en passe. Avant : */ /* le prix = bon?0:Math.max(1,Math.round(commitExploits._vire||0)) — (2026-10-15 soir, Sacha : « le bouton continuer quand on meurt doit couter au joueur tout ce qu'il a gagne dans la partie ») le prix = TOUT l'encaissé de la partie (commitExploits._vire, ce que endGame vient de verser), au dollar près ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
+  if(!bon)pubPrepare('seconde-chance'); // (15/10 soir) la régie (AdSense) va chercher sa pub pendant que la plaque monte
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
   chanceSignal();
 }
@@ -56906,8 +57090,20 @@ $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)r
   if(t.classList.contains('gMys')){uiClic('refus');toast(pxi('horloge')+' '+sansAcc(TR(t.getAttribute('aria-label')))+' — '+sansAcc(TR('BIENTÔT')));return;} // (2026-10-10) une rareté à venir
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'&&gFigTouche(j)){hap(8);return;} /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */const eq9=garEquipeHabit(SHOP.tab,j);
-    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+/* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
+   t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite ») : en INVENTAIRE, une vignette à toi touchée (elle s'équipe)
+   ouvre l'onglet d'après — VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES ; FIGURES est le bout de la chaîne (on y range trois figures,
+   il n'y a pas de « suivant »). Le temps de VOIR son choix sur la caisse : la bascule du plateau d'abord (~1 s pour une caisse), puis un
+   battement ; un habillage, ,55 s. Un onglet touché à la main, une autre vignette, la console quittée : l'enchaînement s'annule de lui-même.
+   uiGarde : la bande change sous le doigt, un second toucher trop vite équiperait la peinture qu'on n'a pas encore vue. */
+function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(gModeM()!=='inv')return;const k=SHOP_CATS.indexOf(cat);if(k<0||k>=SHOP_CATS.length-1)return;
+  let n=0,vu=0;const va=function(){gInvSuite.t=0;if(!garageOn||GAR.go||gModeM()!=='inv'||SHOP.tab!==cat)return;
+    if(GAR.sw){vu=1;if(++n<40)gInvSuite.t=setTimeout(va,100);return;} // la caisse finit de se poser sur le plateau
+    if(vu===1){vu=2;gInvSuite.t=setTimeout(va,220);return;}
+    const nx=SHOP_CATS[k+1],b=document.querySelector('#gTabs .gTab[data-tab="'+nx+'"]');try{uiGarde(350);}catch(e){}if(b)uiPop(b);uiClic('onglet');shopTab(nx);};
+  gInvSuite.t=setTimeout(va,cat==='voiture'?250:550);}
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
@@ -58506,7 +58702,9 @@ function loop(now){
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
       const gB9=bascOn?Math.min(1,bascT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
-      fallVel.y-=FALL_G*gK()*gB9*dtF; // gK : gravité LUNAIRE en orbite (÷2)
+      {const i9=tryLand._bi;if(TBORD.t>0&&(!TORD.on||Math.abs(curLatOff)>ROAD_HALF+20||Math.abs(curHOff)>20))TBORD.t=0; // (LE BORD DE LA ROUTE TORDUE) loin du bord : la gravité du monde reprend
+       TBORD.on=TBORD.t>0&&i9>=0&&!!Nn[i9]; // le bas de LA ROUTE, pas celui du monde
+       if(TBORD.on){TBORD.u.copy(Nn[i9]).multiplyScalar(fallStartSide).normalize();TBORD.t-=dtF;fallVel.addScaledVector(TBORD.u,-FALL_G*gK()*gB9*dtF);}else fallVel.y-=FALL_G*gK()*gB9*dtF;} // gK : gravité LUNAIRE en orbite (÷2)
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
       // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
       // (FLY_U) : il mord à toutes les assiettes, piqué à pic compris, et il ne redresse plus rien.
@@ -58519,7 +58717,7 @@ function loop(now){
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
-        fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF; // (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
+        if(TBORD.on)fallVel.addScaledVector(TBORD.u,FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF);else fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF; // (LE BORD DE LA ROUTE TORDUE : il plane contre la gravité de la route) (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
         /* (2026-09-26, user : « le boost nitro aérien doit VRAIMENT donner une impulsion, indépendamment de la vitesse de départ, qui s'y
            additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
@@ -58605,7 +58803,7 @@ function loop(now){
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — '+TR('ESSOREUSE COSMIQUE !!'),3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
-        if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
+        if(!SANS_METEORE&&!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);} // SANS_METEORE : plus de figure MÉTÉORE
         if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair',false,SONV2);if(SONV2)sfx('fig.bigair',{st:echSt()});flowAdd(6,'risque');}          // (aura v2) le temps passé EN L'AIR se paie
         if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre',false,SONV2);if(SONV2)sfx('fig.monstre',{st:echSt()});flowAdd(10,'risque');}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
@@ -58820,6 +59018,7 @@ function loop(now){
     updatePool(dust,dt,2);
     villeImpactTick(dt); // (passe graphismes) le cratère de la façade percutée, ses morceaux, sa fumée
     try{impTick(dt);}catch(e){loopWarn(4194304,'impact',e);} // (2026-10-15) L'IMPACT : le cratère, l'étoile, les éclats, le feu qui couve
+    try{impMiniTick(dt);}catch(e){loopWarn(4194304,'impact mini',e);} // (2026-10-15 soir) L'IMPACT EN MINIATURE (le coup d'épaule contre une paroi)
     updateStreaks(dt);
     updatePool(flames,dt,1);
     updatePool(flameCore,dt,1);
@@ -60547,7 +60746,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
-       if(t9)t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank())+jourFinTexte(); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
+       if(t9){const j9=jourFinTexte();t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank()); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
+        if(j9){const i9=t9.appendChild(document.createElement('i'));i9.className='mJour';i9.appendChild(document.createElement('u')).textContent=' · ';i9.append(j9.replace(/^ · /,''));}} /* (2026-10-15) …mais sur SA ligne (.mJour) : le texte reste « COMPTE : $ N · ×2 DU JOUR », le « · » est seulement masqué */
        mCount(c9,v9,!prem9);}
       const ot=$t('mOverT');
       // (2026-09-26, audit UX) LES RECORDS NE SE CONTREDISENT PLUS : le jeu criait « RECORD BATTU » sur l'AURA en course, et
