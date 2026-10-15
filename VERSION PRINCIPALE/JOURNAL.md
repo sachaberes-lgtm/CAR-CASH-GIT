@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE FEU DU NITRO AUX COULEURS DE LA BARRE, SUR LE FEU AFFINÉ (2026-10-16, Sacha, 15/10 13 h : « le feu du nitro est trop rouge ou trop bleu par rapport aux couleurs de la barre de nitro »)
+- Refait sur `NFEU_P10` (les 10 nuances du feu affiné de Léo) : la correction du 15/10 (branche `nitro-teinte`, f241b066) changeait `NFEU_PAL`, qui
+  ne colore plus que le dragon (coupé) — retirée de la file du train le 15/10 à 23 h 08. Seules `f` (feu), `b` (réserve bleue) et `v` (infinie)
+  changent ; `m` (feu du MOTEUR, Léo), le nombre de nuances, les seuils, les tailles, le jet propulsé et la fumée ne bougent pas.
+  `NFEU_P10_AVANT` garde la palette de Léo : `?sans=teinte` la rend.
+- MESURÉ, pas deviné : la chaîne réelle des courses n'est pas celle de l'init (couche DA : vivid 1, exposition ~1,06, saturation 1,3-1,6). Sur les
+  pixels pleins du feu, l'ancienne palette sortait ROUGE (#f15309 → #ec1c18), BLEU-INDIGO (#1131f4 → #2317f4) et MAGENTA (#ac12f2).
+- MÉTHODE (banc « teinte », scratchpad 369fb18c…/teinte, notes dans le dossier de la session) : course figée, tout le feu peint d'une seule valeur,
+  pixels PLEINS relus après la passe finale (`gl.readPixels` juste après `composer.render()`, masque par différence feu vert / feu magenta), Newton
+  amorti en Lab, UNE valeur pour 4 ambiances à la fois (nuages midi et nuit, ville au soir, glacier midi — bascule instantanée `bioApply` +
+  exposition), plafond 3. ⚠ Ne pas mesurer la MOYENNE de tous les pixels du feu : la traîne, mêlée au bitume bleu-gris par le flou de vitesse,
+  fait ajouter du jaune aux cœurs (les cœurs bleu et violet sortaient jaune pâle près de la caméra).
+- Écart Lab moyen avant → après, vérifié sur trois images : feu 21-37 → 3-13, réserve 29-69 → 3-17, infinie 17-59 → 3-17. En vol : orange
+  #fe5107 (35 % de pixels rouge pur) → #fe8914 (la barre : #ff8d2e), bleu #223aff → #6b88f0, violet #9803ff → #824cfe. Fumée OK (couché +
+  debout, 0 erreur JS). Cache cashcar-v541.
+
 ## L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite »)
 - En INVENTAIRE (`gModeM()==='inv'`, l'atelier fermé), toucher une vignette À TOI (elle s'équipe : `garEquipeCaisse` / `garEquipeHabit`
   rendent vrai) ouvre l'onglet d'après : VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES (`gInvSuite(cat)`, juste sous le gestionnaire de
