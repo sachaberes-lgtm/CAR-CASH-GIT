@@ -2009,7 +2009,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   body.dead #campChip,body.hTp:not(#ccH) #campChip,body.touch:not(.play) #campChip{visibility:hidden}
 </style>
 <style id="comboVol">/* (2026-10-15) LE COMBO DU VOL : on le LIT (haut d'écran), on ne le touche pas — texte plein, une couleur, la courbe unique */
-  #figCombo{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 17%);z-index:39;pointer-events:none;transform:translate(-50%,0);
+  #figCombo{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 29%);z-index:39;pointer-events:none;transform:translate(-50%,0);
     width:min(92vw,560px);text-align:center;font-family:var(--pix);letter-spacing:1px;opacity:0;transition:opacity var(--t-fast) var(--ease)}
   #figCombo.on{opacity:1}
   #figCombo>div:first-child{font-size:11px;line-height:1.5;color:var(--texte);text-shadow:0 2px 0 var(--auraOmbre)}
@@ -43069,11 +43069,11 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%E.length;return {attente:true};}
   const bud=o.dispo!=null?o.dispo:figBudget(),D=Math.min(f.D,(bud-.3)/.85);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
-  let enC=null;if(o.empile&&Math.abs(steer)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length&&!r9.douce){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant qu'elle roule : on CONTINUE son tonneau (alterner l'éteindrait)
+  let enC=null;if(Math.abs(steer)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant que la même figure tourne (même le tonneau AUTOMATIQUE du saut nitro) : on CONTINUE dans son sens — alterner l'ÉTEIGNAIT (MESURÉ au banc : tonneau ×3 annulé par le bouton TONNEAU)
   const sens=Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
-  let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length&&!r9.douce){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour
-  if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/.85);if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);}
+  let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour (sur le tonneau du saut nitro aussi : le joueur le reprend en main, il n'est plus « automatique »)
+  if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/.85);if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);r.douce=false;}
   else{if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
     r=C.lance(f,sens,D,{tient:s>=0&&!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;}
   if(s>=0){FX2.slots[s]=r;FX2.cyc=(s+1)%E.length;}FX2.n++;VEQ.n++;
@@ -43155,7 +43155,7 @@ function figCvTxtX(x){return '×'+String(Math.round(x*100)/100).replace('.',LANG
 function figCvNote(f,reps){if(!f)return;const c=FX2.cv;c.n++;if(!c.ids[f.id]){c.ids[f.id]=1;c.dist++;}
   c.noms.push(sansAcc(FIG.nomReps(f,reps,LANG==='en'?'en':'fr')));c.cle=''; // (le maillon sonne déjà : addTrick → trickPop, et figPaye vibre)
   if(c.n>=2)fovPunch=Math.max(fovPunch,3+Math.min(4,figCvX()));}
-function figCvRaz(){const c=FX2.cv;c.n=0;c.dist=0;c.ids={};c.noms.length=0;c.cle='';}
+function figCvRaz(){const c=FX2.cv;c.n=0;c.dist=0;c.ids={};c.noms.length=0;c.cle='raz';} // (≠ '' : le HUD repasse et s'éteint — MESURÉ au banc, il restait affiché après la pose)
 function figComboEncaisse(){const c=FX2.cv;if(c.n<2||!(FX2.pts>0)){figCvRaz();return;} // (à la pose propre) le combo du vol s'encaisse
   const x=figCvX(),bonus=Math.round(FX2.pts*(x-1));let p=0;
   if(bonus>0)try{p=chaineAura('COMBO '+figCvTxtX(x),bonus,'combovol',true,false);}catch(e){}
@@ -43173,8 +43173,9 @@ function figCvHud(vol){const c=FX2.cv;
   if(!v){if(e)e.className='';return;}
   const el=figCvEl(),n=c.noms.length;el.firstChild.textContent=(n>4?'… ':'')+c.noms.slice(-4).join(' + ');
   el.lastChild.textContent=c.n>=2?figCvTxtX(figCvX()):'';el.className='on';}
-window.dbgImpu=function(a){if(a==='tap')return figImpulsion();if(a==='combo')return figComboEncaisse();
-  const C=FX2.corps;return {on:IMPU.on,mode:mode,combo:{n:FX2.cv.n,dist:FX2.cv.dist,x:figCvX(),noms:FX2.cv.noms.slice()},ptsVol:FX2.pts,
+window.dbgImpu=function(a,n){if(a==='tap'){const r=figImpulsion();return r?(r.attente?'attente':'ok'):'refus';}if(a==='slot'){const r=figLance(n|0,{});return r?(r.attente?'attente':'ok'):'refus';}
+  const C=FX2.corps,e=document.getElementById('figCombo');return {on:IMPU.on,mode:mode,go:gameOver,intro:!!introD,eta:+(+CAMV.eta).toFixed(2),combo:{n:FX2.cv.n,dist:FX2.cv.dist,x:figCvX(),noms:FX2.cv.noms.slice()},ptsVol:FX2.pts,
+    hud:e?e.className+' : '+e.textContent:'',chaine:CHA.liste.slice(),chutes:FX2.chutes,
     figs:C?C.figs.map(function(r){return r.f.id+(r.s>0?'+':'-')+' tours '+(r.mv[0]?r.mv[0].tours:0)+(r.paye?' payée':r.fini?' finie':'');}):null};};
 function figIco(f){let m=null;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null&&(!m||Math.abs(f.m[i].t)>Math.abs(m.t)))m=f.m[i];
   if(!m)return 'fgBa';let n=0;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null)n++;if(n>1)return 'fgCo';
