@@ -101,9 +101,13 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Boucle et états** : `loop` (son try/catch avale les erreurs : `window.__loopErr`), `start`, `resetGame`, `endGame`,
   `explode(cause)`, `mode` = 'drive' | 'fall' | 'boom', `togglePause`, `repriseCompte`, `CHANCE` (la seconde chance : la reprise
   n'appelle ni `runxReset` ni `resetGame`, elle décale les bases de commitExploits — `chanceBase`).
+- **La mort** : `explode` (comptes, musique) → `boomDetone` (la boule DESSINÉE de l'airtime : `spawnBoomArt`, `VOLU`/`DARD`, `BOOM_ONDES`,
+  pièces de la caisse) → `BOOM_CAM` (le plan de la mort) → `endGame`. Contre une PAROI, L'IMPACT passe avant : `impPrep(test,cause,marge)`
+  trouve le contact et la normale, `IMP`/`impCoupTick` (0,11 s : la caisse s'écrase, étoile, négatif), puis le cratère `IMP_CRAT`, les
+  éclats `IMP_ECL`, les répliques (`impTick`). La même animation pour TOUS les obstacles (Sacha, 15/10).
 - **Conduite** : `TCTL` (volant tactile et souris), `keys`, `steer`, `yawR`, `lacetMax`, `driftYaw`, `momT`, `SPD` (vitesse globale),
   `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `fovFit`.
-- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G`, `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
+- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G` (= 33 × `GRAV_K` 1,3 depuis le 15/10 : LE bouton de la gravité, `?grav=1` = avant), `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Figures v2** (la physique) : `FIG.Corps`/`FIG.PHY` (figures.js), `FIGV2`/`FX2`, `figLance` (une explosion), `figPose` (chaque image de vol),
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
@@ -294,6 +298,10 @@ se voient que là), la course (`dbgEquipe(i)`), le garage du jeu (la salle blanc
 ⚠ Jamais retirer ni insérer une ligne au milieu de `CARS`/`CAR_UNLOCK` : la sauvegarde désigne les caisses par leur INDEX.
 Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 
+**Ajouter un obstacle qui tue** (« L'IMPACT » au journal) : son test `xxxHeurt(p)` PUR (vrai dans l'obstacle), puis dans la chaîne de vol
+`impPrep(xxxHeurt,cause,marge);explode(cause);` — `marge` = de combien le test déborde de la vraie paroi. Rien d'autre : la même animation
+partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImpact()` puis `dbgImpactEtat()`.
+
 **Ajouter un habillage** (le 14/10 : « LES HABILLAGES POP » au journal)
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
   `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
@@ -398,6 +406,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
 
 **Conduite, vol, caméra**
+- « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps
 - « LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP » (14/10) · « LE DERNIER TOUR DES COMMANDES AVANT LE VERROU » (09/10)
 - « EN VOL, POUCE EN HAUT = LA CAISSE MONTE » (10/10) · « LA POSE DÉBOGUÉE » (01/10) · « LA PHYSIQUE DU BORD v2 » (01/10)
 - « LE VOL À LA VITESSE D'ÉJECTION » (30/09) · « LA CAMÉRA HÉROS » (30/09) · « LA VITESSE QU'ON SENT » (07/10)
@@ -554,7 +563,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `explode(cause)`, `mode` = 'drive' | 'fall' | 'boom', `togglePause`, `repriseCompte`.
 - **Conduite** : `TCTL` (volant tactile et souris), `keys`, `steer`, `yawR`, `lacetMax`, `driftYaw`, `momT`, `SPD` (vitesse globale),
   `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `fovFit`.
-- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G`, `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
+- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G` (= 33 × `GRAV_K` 1,3 depuis le 15/10 : LE bouton de la gravité, `?grav=1` = avant), `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_CRYPTO`, `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
@@ -720,6 +729,10 @@ se voient que là), la course (`dbgEquipe(i)`), le garage du jeu (la salle blanc
 ⚠ Jamais retirer ni insérer une ligne au milieu de `CARS`/`CAR_UNLOCK` : la sauvegarde désigne les caisses par leur INDEX.
 Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 
+**Ajouter un obstacle qui tue** (« L'IMPACT » au journal) : son test `xxxHeurt(p)` PUR (vrai dans l'obstacle), puis dans la chaîne de vol
+`impPrep(xxxHeurt,cause,marge);explode(cause);` — `marge` = de combien le test déborde de la vraie paroi. Rien d'autre : la même animation
+partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImpact()` puis `dbgImpactEtat()`.
+
 **Ajouter un habillage** (le 14/10 : « LES HABILLAGES POP » au journal)
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
   `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
@@ -815,6 +828,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
 
 **Conduite, vol, caméra**
+- « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps
 - « LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP » (14/10) · « LE DERNIER TOUR DES COMMANDES AVANT LE VERROU » (09/10)
 - « EN VOL, POUCE EN HAUT = LA CAISSE MONTE » (10/10) · « LA POSE DÉBOGUÉE » (01/10) · « LA PHYSIQUE DU BORD v2 » (01/10)
 - « LE VOL À LA VITESSE D'ÉJECTION » (30/09) · « LA CAMÉRA HÉROS » (30/09) · « LA VITESSE QU'ON SENT » (07/10)
