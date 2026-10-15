@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE BUMP EST UNE FIGURE QUI S'ADDITIONNE (2026-10-15 soir, Sacha : « bump doit compter comme une figure additionnable comme les autres »)
+- AVANT : le BUMP (la caisse qui cogne la tranche de la dalle et rebondit) était une figure GRATUITE (`addTrick(…, free=true)`) : il
+  s'écrivait, rendait la demi-jauge d'airtime, du nitro et du style, mais n'entrait NI dans la mallette (`chainVal`) NI dans le
+  multiplicateur (`chainMult`) — un vol avec seulement des BUMPS ne rapportait rien à la pose.
+- MAINTENANT : il entre dans la CHAÎNE comme les autres figures. Le 1er BUMP d'un vol verse `BUMP_VAL` = 5 (comme le RICOCHET sur l'eau),
+  le multiplicateur monte (+0,5 puis +0,15), le BRAQUAGE se prolonge, le FLOW « risque » monte, l'échelle des paliers se crie, le défi
+  secret LAMPADAIRE le compte. La redite s'use comme une figure refaite : ×0,6 par rebond du même vol (5 · 3 · 1,8 · 1,1…) — longer la
+  tranche à l'infini ne verse pas plus de 12,5 par vol : l'exploit fermé en septembre reste fermé. Le nom garde son compte (DOUBLE BUMP,
+  TRIPLE BUMP…), sans « ×n » ajouté (`raw`). Le paramètre `free` d'`addTrick` reste, plus personne ne s'en sert.
+- MESURÉ (banc pas à pas : la caisse sortie par le bord, renvoyée contre la tranche sous la lèvre, Chrome du Mac couché) : après le BUMP,
+  la chaîne affiche « CHAÎNE ×1,5 · +5 » (avant : ×1 · +0) ; posée ensuite sur la route, elle est encaissée (+3). Aucune erreur, couché,
+  debout et dans le cadre.
+- Le changement est parti dans le commit de LA PHOTO D'UNE FIGURE (même dossier de travail, cache v535).
+- À trancher par Sacha : la valeur (`BUMP_VAL` 5) et la décote par rebond (×0,6).
+
 ## LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE (2026-10-15 soir, Sacha : « mais bien des illustrations pour chaque figure, dans la boutique »)
 - AVANT : les 16 cartes du rayon FIGURES (13 figures, trois à deux sens) montraient TOUTES le même pictogramme (`pxi('rotation')` de
   `bqFigHab`), à moitié sous l'étiquette de rareté — quand les caisses et les ailes ont leur photo de studio.
