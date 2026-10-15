@@ -25,6 +25,27 @@
 
 **À trancher par Sacha** : les COMBOS À TROIS gardent leurs 20 familles, mais avec deux emplacements celles qui demandent trois AXES différents (LE GYROSCOPE…) ne se font plus qu'avec la toupie de drift ou la figure du saut nitro en renfort.
 
+## LE DRAGON EN FEU DE PIXELS (2026-10-15, Sacha : « fais le dragon chinois NITROOO avec les mêmes effets de particule que les flammes de nitro, fais ça bien »)
+- Tout le FEU du dragon passe dans la matière du nitro (`NFEU`, le feu de pixels du 15/10) : `DFEU` = un InstancedMesh à part (1 800 cubes ;
+  le feu des pots garde ses 900) sur la MÊME géométrie et le MÊME halo, matière clonée (`transparent` n'entre pas dans la clé de programme
+  de three r128) — mêmes seuils d'âge blanc → jaune → orange → vermillon → rouge → braise → suie, mêmes tailles, poches chaudes, bord
+  dentelé, cases, taille tenue à l'écran ; palettes feu / violet (nitro infinie) de `NFEU_PAL` (la branche nitro-teinte s'y appliquera
+  d'elle-même) + `DFEU_PAL_N`, du sang au noir pour la dark triad (le cube est opaque : il sait faire du noir).
+- Chaque flamme est un petit JET de nitro : crinière (6 jets de la nuque, vers le HAUT et le DEHORS), flammèches du crâne, crête du dos en
+  dents qui défilent, frange autour du papier (née orange), queue (3 jets en éventail), souffle de la gueule (en vol + la gerbe de chaque
+  rugissement), cubes aspirés vers la tête pendant la formation, moustaches et barbe en TRAITS de cubes posés image par image le long de
+  leur courbe (`dfeuTrait`), braises du corps / du virage / de la pose dans le monde. Trois repères : TÊTE (kR·kU·hF), CORPS (le long de
+  l'échine, prolongé au-delà de la queue), MONDE. La grille des cases est celle de la tête.
+- Se taisent : les rubans additifs (`DRG.m.material[2].visible=false`) et les boules rondes (flames/flameCore/embers) du dragon. Restent :
+  crâne peint, corps de papier, bois, banderoles, yeux, et les stades de la session « évolution prolongée » (fusionnés ici, à sa demande).
+- BANC (`scratchpad/drg/dfeu*.cjs`, Puppeteer, portrait 390×844) : 0 programme lié en course, 0 erreur, 400 à 620 cubes au dragon adulte,
+  0,2-0,3 ms par image. Trois corrections au banc : (1) la crinière qui filait vers l'arrière faisait un MUR de gros cubes au bas de l'écran
+  → jets vers le haut et le dehors, vent plus doux, fondu AVANT l'objectif ; (2) ce fondu, proportionnel à la distance caméra, effaçait
+  tout le corps en vol (caméra à 16 m) → borné 3 à 6 m, comme les rubans d'avant ; (3) opaques, les cubes de la crête passaient DERRIÈRE
+  le papier qui les recouvrait → dessinés après lui (renderOrder 7/8).
+- `?dragon=ancien` = les rubans et les boules d'avant ; `dbgDragon('pix',0|1)` bascule en course ; bancs : `dbgDragon('tt',s)` avance
+  l'horloge des stades (l'adulte sans 24 s à ×2,6), `dbgDragon('nitrooo')` embrase NITROOO sans le geste.
+
 ## L'AIR DU GARAGE PLUS PRÉSENT (2026-10-15 soir, pôle SON ; Léo : « augmente le bruit ambiant du garage »)
 - `garage.ambiance` (le bourdon des néons, le tube qui grésille, la ville au loin) : +6 dB à son départ (`GAR_AMB_DB`, l'option `vol` de sfx — la
   banque n'est pas recuite). MESURÉ bande par bande : il était 4 à 13 dB SOUS la porte en feu (`garage.feu`, inchangée), presque inaudible ;
