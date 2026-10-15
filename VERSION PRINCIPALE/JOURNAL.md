@@ -3,6 +3,28 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA FORÊT OÙ L'ON SE PERD — LA PELOTE (2026-10-15 soir, session « Refonte map forêt » — Sacha : « refonte totale de la map forêt. Dans la ville, la route allait en dessus, en dessous : je m'étais perdu, je prenais la route d'en bas sans savoir si c'était un raccourci ou si je revenais sur mes pas. On fait pareil : le concept de la forêt, c'est de SE PERDRE. Soit tu suis la route — plein de virages, vers le bas, vers le haut — et tu es sûr d'arriver un jour ; soit tu prends des raccourcis sans savoir s'ils sont bons. Des arbres beaucoup, beaucoup plus hauts et plus grands, une map beaucoup plus vaste, qu'on puisse passer entre les arbres pour changer de route, la route un peu emmêlée — pas que descendre ou que monter »)
+- LE TRACÉ (`genForet` → `forPelote`, remplace le slalom à boucles) : 3 NŒUDS (4 parfois aux paliers hauts) — des quartiers de ~450 m de rayon où la
+  route trace une ÉTOILE (4-5 pointes, 135-155° à chaque pointe, en slalom, une boucle parfois) et se recoupe ; des LIAISONS de virages entre eux ; la
+  ligne des nœuds louvoie (±70°) : 3-4 km de forêt d'un bout à l'autre. L'ARCHE à mi-course, sur une droite (elle ne se pose pas si un autre étage
+  passe dans son tronc). Un seul `rnd` consommé, 8 essais au plus, ~20 ms.
+- LE RELIEF : chaque nœud DESCEND (la route d'en dessous est devant : un raccourci), MONTE (elle est derrière : un piège) ou fait LA VAGUE ; toujours
+  au moins un nœud qui monte, jamais une majorité ; un grain par-dessus (bosses, une branche sur cinq à contre-pente). Aux croisements, ≥ 32 m entre
+  les dalles (bosses gaussiennes : l'étage du dessus monte, celui du dessous se creuse). La règle « les maps descendent ≥ 4 % » est LEVÉE pour la forêt
+  (Sacha : « pas que descendre ») : 1,4-3,8 % de descente moyenne, 10-39 % de la longueur en montée.
+- LE SOL (`foretSol`) : sous l'enveloppe BASSE de la pelote (min de hauteur de route + 24 % de la distance), ~130 m sous la route la plus basse ;
+  collines tout autour. `yb` (la route la plus basse à < 280 m) plafonne la forêt ordinaire : l'air entre les étages est libre, seuls les géants
+  le traversent. Le VERSANT du FLANC (v473, `FORET.amont`) n'existe plus.
+- LES ARBRES : les géants posent le pied au fond et ouvrent leur couronne au-dessus de la route la plus HAUTE à leur portée (`geantXZ`, sy jusqu'à
+  4,4 : des chênes de 400-500 m, des séquoias de 700) ; le fût (`FOR_GEANT_RB`, le rayon prudent) à 5 m du bord de TOUTES les routes ; LA FUTAIE : un
+  géant tous les ~95 m à moins de 360 m d'une route (`foretFutaie` [1,45 · 1,15 · 1] par palier) ; la forêt ordinaire ×2,1 (des hêtres de 60 m, des
+  épicéas de 80), 4× moins d'exemplaires pour le même couvert.
+- MESURÉ — banc raccourcis (`passation/foret-pelote/`, palier 0, 12 graines) : 9,3-14,6 km, 13-30 croisements, 0 DANGEREUX, raccourcis rentables
+  1,3-4,0/km, PIÈGES (pose propre ≥ 300 m en arrière) 0,2-2,4/km, 3,9-5,5 virages/km, 0 infranchissable ; paliers 10 et 20 : idem (0 dangereux).
+  Dans le jeu (banc commun, `sauts.cjs`, 3 forêts, les sauts rejoués AVEC les arbres) : raccourcis 7 → 7, 16 → 12, 9 → 9 — on passe entre les
+  troncs ; un quart des trajectoires finit dans un arbre (celles qui plongent dans la forêt). Construction 140-220 ms au PC (avant : 271-333),
+  216-266 géants, 0 erreur JS ; photos : un nœud vu du ciel, le passage sous un étage, les troncs autour de la route.
+- À VÉRIFIER SUR UN VRAI IPHONE : la fluidité dans un nœud vu d'en haut (beaucoup de géants dans le champ ; la futaie s'espace ×1,45 au palier ancien).
 ## LES DAUPHINS DE LA MER DE JADE + L'ATELIER DES SINGES (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise » · « soleil jade singe va sur main et dauphins aussi »)
 - Seulement dans la MER des PICS DE JADE (là où l'on plonge et ressort). Bloc « LES DAUPHINS DE LA MER DE JADE » (après `dbgJadeSinges`), `jdmTick`
   dans la boucle après `jsgTick`, un appel `jdmJailli` au JAILLISSEMENT de `jadeEauVol`. Du DÉCOR : ni aura, ni collision, pas de figure.
