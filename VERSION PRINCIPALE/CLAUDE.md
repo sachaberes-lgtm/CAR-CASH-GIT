@@ -230,6 +230,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Ni emoji ni glyphe système dans l'interface : icônes pixel `pxi('nom')` (grilles `PXI_G`).
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
 - Chaque appui répond : visuel + `uiClic(rôle)` + `hap(p)` (jamais `navigator.vibrate` en direct).
+  Un bouton oublié est rattrapé par le FILET (`uiFiletRole` : il sonne si rien n'a sonné) ; `data-muet` s'en passe. Dans la pause aussi (`pauseSon`).
 - Tout texte affiché passe par `TR('TEXTE FR')` avec son entrée `I18N` (§6).
 - Couché ET debout : l'ordi montre le téléphone couché ; chaque écran se vérifie dans les deux sens.
 
@@ -339,6 +340,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 **Ajouter un son**
 - La recette dans `atelier-son/recettes.js` → `node atelier-son/cuire.js <filtre>` (réécrit `sons-banque.js`) →
   `sons-banque.js?v=` +1 dans index.html et `sw.js` +1. Dans le jeu : `sfx('famille.nom',{vol,st,pan})`.
+- Sans ffmpeg (le Mac de Sacha) : `PCM=1 node atelier-son/cuire.js <son>` — rangé en WAV 24 kHz (`pcm:1`), pour un son ou deux seulement.
 - Avec repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (`typeof sfx` est toujours vrai).
 - On ne peut pas écouter : on MESURE (sonie, spectre) et Sacha ou Léo jugent dans `sons.html`. Jamais de voix.
 - Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie
@@ -669,6 +671,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Ni emoji ni glyphe système dans l'interface : icônes pixel `pxi('nom')` (grilles `PXI_G`).
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
 - Chaque appui répond : visuel + `uiClic(rôle)` + `hap(p)` (jamais `navigator.vibrate` en direct).
+  Un bouton oublié est rattrapé par le FILET (`uiFiletRole` : il sonne si rien n'a sonné) ; `data-muet` s'en passe. Dans la pause aussi (`pauseSon`).
 - Tout texte affiché passe par `TR('TEXTE FR')` avec son entrée `I18N` (§6).
 - Couché ET debout : l'ordi montre le téléphone couché ; chaque écran se vérifie dans les deux sens.
 
@@ -770,6 +773,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 **Ajouter un son**
 - La recette dans `atelier-son/recettes.js` → `node atelier-son/cuire.js <filtre>` (réécrit `sons-banque.js`) →
   `sons-banque.js?v=` +1 dans index.html et `sw.js` +1. Dans le jeu : `sfx('famille.nom',{vol,st,pan})`.
+- Sans ffmpeg (le Mac de Sacha) : `PCM=1 node atelier-son/cuire.js <son>` — rangé en WAV 24 kHz (`pcm:1`), pour un son ou deux seulement.
 - Avec repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (`typeof sfx` est toujours vrai).
 - On ne peut pas écouter : on MESURE (sonie, spectre) et Sacha ou Léo jugent dans `sons.html`. Jamais de voix.
 - Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie

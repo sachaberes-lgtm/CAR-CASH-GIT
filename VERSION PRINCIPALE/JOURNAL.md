@@ -3,6 +3,60 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## CHAQUE BOUTON A SON SON, CHAQUE CURSEUR SON CRAN, ET JOUER FAIT VROMBIR UN V8 (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus dans l'interface, chaque curseur ; le bouton jouer doit avoir un bruit de moteur »)
+
+**JOUER = UN MOTEUR (`ui.jouer`).** JOUER de l'accueil et REJOUER de l'écran de mort (`mRole9` → `'jouer'`), JOUER du garage (`garJouer`)
+appellent `uiClic('jouer')` (avant : l'appui d'or `ui.tap`). La recette est dans `atelier-son/recettes.js` (bloc MOTEUR, l'outil `v8`) : un
+V8 calculé EXPLOSION PAR EXPLOSION — le régime suit une petite mécanique (les gaz le tirent vers 6 400 tr/min en 70 ms, le frein moteur le
+ramène au ralenti de 850 en 250 ms), rpm/15 explosions par seconde, l'ordre d'allumage du vilebrequin croisé les rend inégales (`MOTIF` :
+le glouglou du ralenti), le pot (résonances 130 et 420 Hz, passe-bas qui s'ouvre avec les gaz), la saturation de la tôle, l'admission
+aspirée, les retours de flamme au lever de pied. La scène, 1,35 s : la clé (deux crans) · le DÉMARREUR, trois compressions (50-220 ms) · il
+PREND (220 ms) · VROUUM (270-450 ms, ≈ 6 000 tr/min) · la retombée qui pète dans le pot · le ralenti qui s'efface. La vibration suit :
+`hap([8,230,30])` (la clé, puis le coup de gaz dans le pouce). Bus `fx`, db +2 (sa crête au niveau du LÂCHER). `uiClicId` : une vieille
+banque en cache, sans le moteur, rend l'appui d'or.
+- MESURÉ (fenêtres de 50 ms ; « tél. » = passe-haut 200 Hz, ce que rend un iPhone) : démarreur −29 dB (tél. −33) · coup de gaz −18 (tél. −19)
+  · ralenti −33 (tél. −45) ; 66 % de l'énergie au-dessus de 200 Hz. Deux retouches en route : le démarreur était inaudible au téléphone
+  (−45, ×3 sur ses médiums) ; la saturation écrasait l'écart coup de gaz / ralenti à 5 dB — un VOLUME qui suit la pédale, posé APRÈS
+  elle, le rend à 15 dB.
+- Avec le LÂCHER (inchangé, `garage.lacher`, qui part 100-270 ms après au banc) : pendant le coup de gaz `ui.jouer` passe 10 dB au-dessus de
+  lui (18 au téléphone), puis le LÂCHER (son bourdon qui monte, le souffle, le coup sourd du voile) prend le relais : on démarre, puis on part.
+
+**LA CUISSON SANS FFMPEG (`PCM=1`).** Le Mac de Sacha n'a pas d'encodeur MP3 (celui de CapCut plante). `PCM=1 node atelier-son/cuire.js ui.jouer`
+range les sons RECUITS en WAV 16 bits à 24 kHz (65 Ko ; la banque passe de 5,96 à 6,05 Mo) ; PCM=1 exige un filtre (toute la banque en WAV
+ferait ~40 Mo), reprend l'étalon de la banque existante, ne cuit que les sons demandés. Leur fiche porte `pcm:1` : `sfx.js` (v6) prend leur
+attaque à la tête exacte (30 ms − 1,5), pas sur l'étalon MP3 (au banc, Chrome : 28,5 ms dans les deux cas). Vérifié : un seul tampon ajouté,
+aucun autre ne bouge. Une cuisson suivante AVEC ffmpeg le repasse en MP3 d'elle-même. `FFMPEG=/chemin` : un autre encodeur.
+`sons-banque.js?v=28`, `sfx.js?v=6`.
+
+**LE FILET DES BOUTONS MUETS (`uiFiletRole`, `UI_SON`, `dbgFilet()`).** Les 94 `uiClic` sont posés à la main : un bouton oublié restait muet.
+Un écouteur en capture prend tout clic d'un vrai doigt ; l'appui traité (setTimeout 0), si AUCUN son n'est parti depuis le contact (`UI_SON.t`,
+posé par `uiClic` et par tout `sfx` sauf le micro-tic `ui.appui` et les boucles), il joue le clic du bouton, son rôle deviné : interrupteur
+(on/off d'après l'état neuf), onglet, retour/fermer, refus (`aria-disabled`, `.off`), l'or, sinon nav ; la vibration vient avec. Un bouton
+qui sonne déjà par son action (équiper, la carte, la bascule) n'est pas doublé — la règle GSON9 de la session SON tient. Hors du filet : la
+course (volant, nitro), le canvas (la caisse qu'on tapote a sa tôle), les champs de texte, les curseurs, `.arme`, `data-muet`.
+- BANC (accueil, réglages, garage, œil, inventaire et ses cinq onglets, boutique et ses rayons, cartes ACHAT et AILES, missions, pause) :
+  chaque appui sonne ; le filet n'a eu à rattraper que l'écran d'ouverture (`#splash`, « toucher pour jouer ») — il est là pour les boutons
+  oubliés et pour ceux qui viendront. Un tap dans le vide (le ciel, le canvas) ne joue rien.
+
+**LE CRAN DE TOUS LES CURSEURS (`uiCranG`).** Seuls les six curseurs de volume (`.volS`) parlaient ; les autres (le présentoir des fruits,
+le cadrage de la boutique) glissaient en silence. Même `ui.curseur` pour tous, à chaque dixième de leur course (la hauteur suit la valeur).
+Au banc : `stBoost` glissé de 0,1 à 1,7 → trois crans.
+
+**LE CLIC DANS LA PAUSE (`pauseSon`, `pauseSonDort`, `busPlein.n`).** VU au banc : dans le panneau ⏸ et dans les réglages ouverts depuis la
+pause, tout était MUET — la pause ferme la sortie (`BUSOUT` à 0) puis endort le contexte, et `uiClic` attendait la reprise. Un son `ui.*` joué
+pendant la pause réveille le contexte le temps de sonner : les bus rec, fx et amb de la console se ferment (des boucles d'ambiance y tournent
+encore), la sortie s'ouvre, le son part ; 0,45 s après le dernier tout se rendort comme la pause l'avait laissé. Si la partie reprend entre-temps
+(REPRENDRE et son 3-2-1 passent par `busPlein`, désormais compté), elle garde la sortie ; l'extrait du curseur MUSIQUE (`MUSAP`) garde son
+contexte. `?pauseson=0` : la pause d'avant.
+- BANC : RECOMMENCER → `ui.modale` + `ui.danger` (avant : muet) · le curseur EFFETS glissé → trois crans (avant : rien) · REPRENDRE → la
+  feuille, 3-2-1, PARTEZ, la partie repart ; les bus rendus à leurs niveaux (ui 0,562 · rec 1 · fx 1,122 · amb 0,631) ; les sons du jeu
+  repartent après la reprise (pièces, débris).
+
+**Vérifié** : Chrome sans fenêtre et MUET (`--mute-audio`), dans le cadre de l'ordi couché (844 × 390) et DEBOUT : menu → JOUER (le moteur,
+puis le LÂCHER, le vent, le logo) → course sans erreur ; `garde-burnout.sh` et `garde-charte.sh` OK ; syntaxe des cinq blocs.
+**À juger par Sacha ou Léo** : écouter `ui.jouer` dans `sons.html` (famille interface) — V8 grave ou un quatre-cylindres plus aigu, la durée
+(1,35 s), le niveau face au LÂCHER.
+
 ## LA MUSIQUE JUSQU'À LA BOUTIQUE, LES TROIS FIGURES EN BLANC, UN RETOUR QUI SE LIT (2026-10-16, Sacha : « il faut que la musique puisse suivre le joueur du garage à la boutique » · « dans la boutique, quand on arrive dans les figures, le truc des hexagones que tu avais mis dans l'inventaire, faut que tu le remettes, version adaptée » · « tout en haut, les hexagones comme tu avais mis, mais en blanc ; le bouton retour en bas au milieu est toujours bizarrement fait, rends-le plus clair »)
 - **LA MUSIQUE SUIT** (`BQ_MUSIQUE`, près de `MENU_MUS`). MESURÉ avant (`dbgMusique()`) : au garage le morceau du ciel joue, en boutique
   `paused:true`, `tait:true` — depuis le 13/10 (Léo : « le sound design est terrifiant, change ou enlève ») `musicTick` faisait taire le lobby

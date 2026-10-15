@@ -1314,6 +1314,48 @@ D('moteur.palier',{fam:'machine',dur:2.4,st:1,key:1,db:+4,max:1,cd:1,grp:'r',pri
     T.crepite(b,R,I+.4,.5,10,.3,300,1200);                                                             // il crache
     [12,16,19,24].forEach(function(st,i){const d=i===3?1.1:.45;cloche(b,{f:nE(st),r:[1,2.76],m:[1,.35],d:[d,d*.5],t0:I+.03+i*.082,v:.3*(i===3?1.2:1)},R);}); // la fanfare de palier qui MONTE
     T.scintille(b,R,I+.25,.8,10,.1);}});
+/* LE BRUIT DE MOTEUR DE JOUER (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus […] le bouton jouer doit avoir un
+   bruit de moteur ») — `ui.jouer`, à l'appui de JOUER et de REJOUER (uiClic('jouer')). Un VRAI moteur, pas une dent de scie qui glisse comme
+   les démarreurs d'avant : un V8 calculé explosion par explosion (`v8`).
+   · le RÉGIME suit une petite mécanique : les gaz (0-1) le tirent vers 6 400 tr/min (constante 70 ms : la montée est raide), le frein
+     moteur le ramène au ralenti de 850 (250 ms : la retombée est lente) — la courbe se calcule, on ne la dessine pas ;
+   · chaque EXPLOSION est une impulsion — 8 cylindres en 4 temps = rpm/15 par seconde : 57 au ralenti, 420 en haut ; l'ordre d'allumage du
+     V8 à vilebrequin croisé les rend INÉGALES (le motif de huit, `MOTIF`) : c'est le glouglou du ralenti, qui hésite un peu (plus de hasard) ;
+   · l'impulsion passe dans le POT : deux résonances (130 et 420 Hz), un passe-bas qui s'ouvre avec les gaz et le régime (sourd au ralenti,
+     rageur en haut), une saturation (la tôle qui vibre : les harmoniques 200 Hz-2 kHz que rend un haut-parleur de téléphone) ;
+   · l'ADMISSION, un souffle rose aspiré (1,5-3 kHz), suit les gaz et le régime ; pied levé au-dessus de 2 500 tr/min : des RETOURS DE FLAMME.
+   La scène (1,35 s) : la clé (0) · le DÉMARREUR, trois compressions (50-220 ms) · le moteur PREND (220 ms) · le COUP DE GAZ, VROUUM
+   (270-450 ms, ≈ 6 000 tr/min) · la retombée qui pète dans le pot · le ralenti qui glougloute et s'efface (le départ prend le relais). */
+function v8(b,R,o){ // o : {t0, fin, rpm0, gaz(t) → 0..1, v} — le moteur dans SA toile (mono), saturé, puis versé dans b ; rend les instants des retours de flamme
+  const sr=b.sr,te=O.Toile(sr,b.dur,false),X=te.L,i0=Math.round(o.t0*sr),i1=Math.min(b.n,Math.round(o.fin*sr)),bqC=O.bqC,run=O.bqRun;
+  const RAL=850,MAXR=6400,MOTIF=[1,.74,.94,.68,.97,.8,.88,.71];
+  const r1=O.Bq(),r2=O.Bq(),pb=O.Bq(),ad=O.Bq();r1.c=bqC('bp',130,1.3,sr);r2.c=bqC('bp',420,2,sr);
+  let rpm=o.rpm0||300,ph=.999,cyl=0,gz=0,gv=0,A=0,j=1e9,W=1,tau=1,p0=0,p1=0,p2=0,dp=-1;const pops=[],VO=new Float32Array(b.n);
+  const kp=1-Math.exp(-1/(sr*.012)),kv=1-Math.exp(-1/(sr*.06));
+  for(let i=i0;i<i1;i++){const t=i/sr;
+    gz+=(o.gaz(t)-gz)*kp;gv+=(gz-gv)*kv;VO[i]=.36+.64*gv; // la pédale (12 ms) · le VOLUME qui la suit, posé APRÈS la saturation (60 ms) : sinon elle écrase l'écart entre le coup de gaz et le ralenti (mesuré : 5 dB au lieu de 12)
+    const cib=RAL+(MAXR-RAL)*gz;rpm+=(cib-rpm)*(1-Math.exp(-(cib>rpm?14:4)/sr));
+    const ff=rpm/15;ph+=ff/sr;
+    if(ph>=1){ph-=1;const ral=Math.max(0,1-(rpm-RAL)/1800);ph+=(R()-.5)*.08*ral; // une EXPLOSION
+      A=MOTIF[cyl&7]*(.86+.28*R())*(.26+.74*Math.min(1,gz*1.6));cyl++;j=0;
+      const per=sr/ff;W=Math.max(2,Math.min(per*.55,.0028*sr));tau=Math.max(1,Math.min(per*.18,.0011*sr));
+      if(gz<.08&&rpm>2500&&t-dp>.035&&pops.length<5&&R()<.09){pops.push(t);dp=t;}} // pied levé, haut dans les tours : ça pète dans le pot
+    let x=0;if(j<W){x=A*(.7*Math.sin(Math.PI*j/W)+.6*Math.exp(-j/tau));j++;}
+    if((i&15)===0){pb.c=bqC('lp',620+3400*gz*(.35+.65*rpm/MAXR)+600*rpm/MAXR,.9,sr);ad.c=bqC('bp',1500+1500*rpm/MAXR,1.1,sr);}
+    const w=R()*2-1;p0=.99765*p0+w*.099046;p1=.963*p1+w*.2965164;p2=.57*p2+w*1.0526913;
+    X[i]=run(pb,run(r1,x)*1.1+run(r2,x)*.55+x*.35)+run(ad,(p0+p1+p2+w*.1848)*.2)*.16*gz*(.3+.7*rpm/MAXR);}
+  O.sature(te,2.4);for(let i=i0;i<i1;i++)X[i]*=VO[i]; // la tôle vibre
+  const f0=Math.round((o.fin-.3)*sr);for(let i=f0;i<i1;i++)X[i]*=.5+.5*Math.cos(Math.PI*(i-f0)/(i1-f0)); // il s'efface : le départ prend le relais
+  G.CCSON_GRAVE.mixe(b,te,o.v==null?1:o.v,0);
+  return pops;
+}
+D('ui.jouer',{fam:'interface',bus:'fx',dur:1.35,db:+2,max:1,cd:.6,dit:'JOUER : le moteur — la clé, le démarreur (trois compressions), il PREND, le coup de gaz VROUUM, la retombée qui pète dans le pot, le ralenti qui glougloute',
+  r:function(b,R,o){
+    clic(b,{t0:0,f:3400,d:.004,v:.5},R);T.tole(b,R,.004,2600,.12,.05);clic(b,{t0:.032,f:2200,d:.005,v:.45},R); // la clé : deux crans
+    for(const t of [.05,.115,.178]){bruit(b,{c:'n',t0:t,a:.004,d:.07,v:.55,ft:'lp',f:520,q:.8},R);bruit(b,{c:'r',t0:t,a:.003,d:.05,v:.9,ft:'bp',f:780,q:1.2},R);osc(b,{f:62,f1:48,g:.05,t0:t,a:.004,d:.06,v:.22});osc(b,{f:186,f1:144,g:.05,w:'tri',t0:t,a:.003,d:.05,v:.4});} // trois COMPRESSIONS : le vilebrequin passe le point mort haut
+    osc(b,{f:150,f1:178,g:.17,w:'saw',t0:.04,a:.012,h:.15,d:.04,v:.4,vib:[16,.06],flt:['bp',1100,1400,.17,2.2]}); // le pignon du démarreur qui chante
+    const pops=v8(b,R,{t0:.22,fin:1.35,rpm0:300,v:1,gaz:function(t){return t<.27?.55:t<.45?1:t<.48?1-(t-.45)/.03:0;}});
+    for(const t of pops){bruit(b,{c:'n',t0:t,a:.0005,d:.02+R()*.03,v:.5+R()*.35,ft:'lp',f:900+R()*900,q:.7},R);osc(b,{f:85,f1:50,g:.03,t0:t,a:.001,d:.045,v:.22});clic(b,{t0:t,f:1800,d:.003,v:.18},R);}}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN MOTEUR>>> */
 

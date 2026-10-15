@@ -10462,9 +10462,9 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=27"></script>
+<script defer src="sons-banque.js?v=28"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
-<script defer src="sfx.js?v=5"></script>
+<script defer src="sfx.js?v=6"></script>
 <script>
 (function(){
 'use strict';
@@ -42311,9 +42311,36 @@ function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);}
    maintenant du degré 0 au 5e (+12, l'octave), puis va et vient en haut de l'octave (degrés 4-3-4-5 : +9 +7 +9 +12). L'ancienne : 8-7-6-5-6-7-8-9 après le 9e. */
 const SON_ECH_AR=[4,3,4,5];
 function sonPdAR(i){i=Math.max(0,i|0);return sonPd(i<=5?i:SON_ECH_AR[(i-6)%SON_ECH_AR.length]);}
+var UI_SON={t:-1e9,pd:-1e9}; // (2026-10-16) le FILET DES BOUTONS MUETS (voir uiFiletRole) : l'heure du dernier son tenté (t) et du dernier contact (pd)
+/* LE CLIC DANS LA PAUSE (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus dans l'interface, chaque curseur »).
+   VU au banc : dans le panneau ⏸ (RECOMMENCER, SON, MUSIQUE, TOUS LES RÉGLAGES…) et dans les réglages ouverts depuis la pause, TOUT était
+   MUET — la pause ferme la sortie (BUSOUT à 0) puis endort le contexte (togglePause), et uiClic attendait la reprise (700 ms au plus : le
+   plus souvent, rien ; les crans des curseurs, eux, ne passaient jamais). Un son d'INTERFACE (`ui.*`) joué pendant la pause réveille
+   maintenant le contexte le temps de sonner (`pauseSon`) : les trois autres bus de la console se ferment (rec, fx, amb — des boucles
+   d'ambiance y tournent encore), la sortie s'ouvre, le son part ; 0,45 s après le dernier, tout se rendort comme la pause l'avait
+   laissé. Les boucles du moteur, du vent, du nitro sont déjà à zéro (togglePause), la musique est en pause. Si la partie reprend
+   entre-temps (REPRENDRE et son compte 3-2-1 passent par busPlein, compté dans `busPlein.n`), elle garde la sortie ; l'extrait du
+   curseur MUSIQUE (MUSAP) garde son contexte. `?pauseson=0` : la pause d'avant (muette). */
+const PSON={n:0,sav:null,bp:0},PSON_ON=!/[?&]pauseson=0\b/.test(location.search);
+function pauseSonDort(){return !!(PSON_ON&&paused&&SONV2&&SND.sfx&&AC&&BUSOUT&&!document.hidden&&(AC.state!=='running'||BUSOUT.gain.value<.5));}
+function pauseSonFin(n){if(n!==PSON.n)return;const C=window.CCSON;
+  const rend=function(){if(n!==PSON.n||!PSON.sav)return;for(const k in PSON.sav){const g=C.bus(k);if(g)g.gain.value=PSON.sav[k];}PSON.sav=null;};
+  try{if(!paused||(busPlein.n|0)!==PSON.bp||document.hidden){rend();return;} // la partie (ou son compte 3-2-1) a repris la sortie : elle est à elle
+    BUSOUT.gain.setTargetAtTime(0,AC.currentTime,.012);
+    setTimeout(function(){if(n!==PSON.n)return;try{if(paused&&(busPlein.n|0)===PSON.bp&&!(MUSAP.t>performance.now())&&AC.state==='running')AC.suspend();}catch(e){}rend();},90);
+  }catch(e){rend();}}
+function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=performance.now();
+  try{if(!PSON.sav){PSON.sav={};for(const k of ['rec','fx','amb']){const g=C.bus(k);if(g){PSON.sav[k]=g.gain.value;g.gain.value=0;}}PSON.bp=busPlein.n|0;}
+    clearTimeout(togglePause._t); // la mise en sommeil programmée par la pause attendra la fin du clic
+    const t=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t);BUSOUT.gain.setValueAtTime(1,t);
+    const joue=function(){try{if(paused&&SND.sfx)C.play(id,o);}catch(e){}setTimeout(function(){pauseSonFin(n);},450);};
+    if(AC.state!=='running'){const p=AC.resume();if(p&&p.then)p.then(joue,function(){pauseSonFin(n);});else joue();}else joue();
+  }catch(e){pauseSonFin(n);}
+  return null;}
 function sfx(id,o){
+  if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
-  try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
+  try{if(UI_SON&&id!=='ui.appui'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
@@ -43975,7 +44002,7 @@ function hap(p){
   try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
-const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger'}; // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
+const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger',jouer:'ui.jouer'}; /* (2026-10-16, Sacha : « le bouton jouer doit avoir un bruit de moteur ») jouer : le V8 de JOUER / REJOUER (atelier-son, `ui.jouer`) */ // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
 /* (2026-10-14, session SON) LES APPUIS RAPPROCHÉS CHANTENT : un appui seul garde sa note ; des appuis à moins de 0,6 s l'un de l'autre montent
    doucement la pentatonique du morceau (degrés 0-1-2-3 puis 2-3-2-3…), 0,6 à 1,2 s la tiennent, au-delà de 1,2 s sans appui elle repart d'en bas.
    « retour » redescend d'un degré. Seulement les fiches key:1 (tap, nav, onglet, retour : dans la tonalité, jamais faux). +7 au plus (bases [0]). */
@@ -43983,10 +44010,56 @@ const SON_UI={i:0,t:-9},SON_UI_MEL={'ui.tap':1,'ui.nav':1,'ui.onglet':1,'ui.reto
 function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
   if(g>1.2)SON_UI.i=0;else if(id==='ui.retour')SON_UI.i=Math.max(0,(SON_UI.i<4?SON_UI.i:2+(SON_UI.i&1))-1);else if(g<.6&&++SON_UI.i>5)SON_UI.i=4;
   const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
-function uiClic(k){ try{ const id9=UI_CLIC[typeof k==='string'?k:'']||'ui.tap',st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:undefined);else chimeNote(1480,0,.045,.05);}; // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
+function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return id==='ui.jouer'&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?'ui.tap':id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
+function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:undefined);else chimeNote(1480,0,.045,.05);}; // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
+  else if(SND.sfx&&paused&&SONV2&&PSON_ON)f9(); /* (2026-10-16) LE CLIC DANS LA PAUSE : il sonne tout de suite (sfx → pauseSon réveille le contexte le temps du clic) — l'attente ci-dessous reste pour ?pauseson=0 */
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),j9=uiClic._att=(uiClic._att|0)+1,w9=function(){if(j9!==uiClic._att)return;if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (2026-10-14, session SON — relevé par DEBUGGING) UNE seule attente à la fois : la ligne QUITTER puis sa confirmation ouvraient chacune la leur, la sortie de pause les relâchait dans la même image (le son de danger doublé, 14-27 ms d'écart) ; la nouvelle remplace l'ancienne */ /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
-  }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
+  }catch(e){} hap(k==='jouer'?[8,230,30]:8); } /* (2026-10-16) JOUER : le tic de la clé, puis le coup de gaz dans le pouce (≈ 250 ms, avec le VROUUM) */ // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
+/* LE FILET DES BOUTONS MUETS (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus dans l'interface, chaque curseur »).
+   Les 94 uiClic sont posés à la main, bouton par bouton : ceux qu'on avait oubliés restaient muets. Le filet écoute tout clic d'un VRAI doigt
+   (isTrusted), en capture : il retient le bouton touché puis, l'appui traité (setTimeout 0 : après tous les gestionnaires), si AUCUN son n'est
+   parti depuis le contact (`UI_SON.t` : uiClic et tout sfx, sauf le micro-tic `ui.appui` et les boucles), il joue le clic du bouton — son rôle
+   deviné (`uiFiletRole`) : interrupteur (on/off selon l'état neuf), onglet, retour/fermer, refus (verrouillé : aria-disabled, `.off`), l'or
+   (ui.tap), sinon nav ; la vibration vient avec (uiClic). Un bouton qui sonne déjà par son action (équiper, acheter, la carte qui se retourne)
+   n'est pas doublé : la règle de la session SON (GSON9) tient. Hors du filet : la course (volant, nitro), le canvas (la caisse qu'on tapote a
+   sa tôle), les champs de texte, les curseurs (leur cran, plus bas), un bouton `.arme` (la touche qui attend, voulue muette), `data-muet`.
+   `dbgFilet()` : combien de clics le filet a joués, et sur quoi. */
+const UI_BTN_SEL='button,a[href],[role="button"],[role="tab"],[role="switch"],[role="menuitem"],[role="option"],[role="checkbox"],[data-m],[data-a],[data-c],[data-go],input[type="checkbox"],input[type="radio"],select,summary,label,'+APPUI_SEL;
+function uiFiletRole(el){
+  if(el.getAttribute('aria-disabled')==='true'||el.classList.contains('off'))return 'refus';
+  const ty=(el.type||'').toLowerCase(),ro=el.getAttribute('role')||'';
+  if(ty==='checkbox'||ty==='radio'||ro==='switch'||ro==='checkbox')return (el.checked||el.getAttribute('aria-checked')==='true')?'on':'off';
+  if(el.hasAttribute('aria-pressed'))return el.getAttribute('aria-pressed')==='true'?'on':'off';
+  const nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
+  if(ro==='tab'||/onglet|\btab|gtab|ivtab/.test(nom))return 'onglet';
+  if(/close|ferme|retour|back|annul|croix|quitter/.test(nom))return 'retour';
+  if(/pb-gold/.test(nom))return '';
+  return 'nav';
+}
+addEventListener('pointerdown',function(){UI_SON.pd=performance.now();},{capture:true,passive:true});
+addEventListener('click',function(e){
+  if(!e.isTrusted||performance.now()<(uiGarde.t||0))return; // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
+  let el=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);
+  for(let n=0;el&&n<8&&el!==document.body&&el!==document.documentElement;n++,el=el.parentElement){
+    if(el.tagName==='CANVAS'||el.hasAttribute('data-muet'))return;
+    if(el.matches(UI_BTN_SEL))break;
+    try{if(getComputedStyle(el).cursor==='pointer')break;}catch(x){}}
+  if(!el||el===document.body||el===document.documentElement||!el.matches)return;
+  if(el.tagName==='LABEL'&&el.control)el=el.control; // l'étiquette d'une case : c'est la case qui bascule (son clic à elle suit, il sonnera on/off)
+  if(el.closest('#tNitroZone,#tSteer,#touchCtl,#tNitro,#tLeft,#tRight,[data-muet]')||el.classList.contains('arme'))return;
+  if(el.matches('input[type="range"],input[type="text"],input[type="search"],input[type="number"],input[type="email"],input:not([type]),textarea'))return;
+  const t0=performance.now(),d0=t0-UI_SON.pd<1500?UI_SON.pd-30:t0-60; // depuis le CONTACT (un bouton qui agit au pointerdown a déjà sonné) ; au clavier, les 60 dernières ms
+  setTimeout(function(){if(UI_SON.t>=d0)return;UI_SON.n=(UI_SON.n|0)+1;UI_SON.der=(el.id?'#'+el.id:el.tagName.toLowerCase()+(typeof el.className==='string'&&el.className?'.'+el.className.trim().split(/\s+/).join('.'):''));uiClic(uiFiletRole(el));},0);
+},true);
+/* LE CRAN DE TOUS LES CURSEURS (2026-10-16, même demande) : seuls les six curseurs de volume parlaient (`.volS`, câblés plus bas : ui.curseur à
+   chaque dizaine de %) ; les autres (le présentoir des fruits, le cadrage de la boutique…) glissaient en silence. Même cran pour tous, à chaque
+   dixième de leur course franchi (la hauteur suit la valeur, −10 à +8 demi-tons) — un tap qui fait sauter le curseur sonne aussi. */
+function uiCranG(el){const lo=+el.min||0,hi=el.max===''?100:+el.max;return Math.floor(Math.max(0,Math.min(.999,((+el.value)-lo)/((hi-lo)||1)))*10);}
+addEventListener('pointerdown',function(e){const el=e.target;if(el&&el.type==='range'&&!el.classList.contains('volS'))try{el._cranG=uiCranG(el);}catch(x){}},{capture:true,passive:true});
+addEventListener('input',function(e){const el=e.target;if(!el||el.type!=='range'||el.classList.contains('volS'))return;
+  try{const c9=uiCranG(el);if(el._cranG==null)el._cranG=c9;else if(c9!==el._cranG){el._cranG=c9;sfx('ui.curseur',{st:(c9-5)*2});}}catch(x){}},true);
+window.dbgFilet=function(){return{joues:UI_SON.n|0,dernier:UI_SON.der||null,son:Math.round(UI_SON.t),contact:Math.round(UI_SON.pd)};};
 window.dbgSens=function(l,n,p){if(l!=null||n!=null||p!=null)sensCoup(l||0,n||0,p||0);return{on:SENS,volant:VOLANT_PX,lissage:TCTL.doigt?VOL_LIS_D:VOL_LIS,tangage:+SCOUP.p.toFixed(3),roulis:+carRoll9.toFixed(3),pompe:+susY.toFixed(3)};}; // (2026-10-14, sensations) banc : dbgSens() = l'état · dbgSens(versLat,nez,pompe) = un coup dans la carrosserie
 window.dbgTouch=function(){return{relais:TCTL.nHer||0,coupes:TCTL.nAnn||0,on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),dy:+(TCTL.dy||0).toFixed(1),seuil:+(driftEnCours?DRIFT_PX:Math.max(DRIFT_PX,TCTL.dyS)).toFixed(1),arc:TCTL.ar<0?null:+TCTL.ar.toFixed(1),exces:+(TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0):0).toFixed(1),drift:driftEnCours,play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas) — `seuil` : les px vers le bas qu'il faut dépasser pour entrer (ou rester) en drift · `arc` : la descente de l'arc du pouce à la butée droite, lue aux glissés · `exces` : ce que le bout de l'arc descend en plus, retiré à la butée
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
@@ -55891,7 +55964,7 @@ function garJouer(e){
   if(e)e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on||pendingScore!=null)return;
   invFerme(true);invHoldFin();
-  const el=$('gJouer');uiPop(el);uiClic();try{pixBurst(el,16);}catch(x){}
+  const el=$('gJouer');uiPop(el);uiClic('jouer');try{pixBurst(el,16);}catch(x){} // (2026-10-16) le bruit de MOTEUR
   const part=function(){
     if(!garageOn||GAR.go)return;
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
@@ -60509,7 +60582,7 @@ renderLeaders(-1);
 })();
 /* ============ MOBILE / TACTILE / PAUSE / PWA — ajout non intrusif (rien de la physique n'est réécrit) ============ */
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
-function busPlein(){clearTimeout(togglePause._t);if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
+function busPlein(){busPlein.n=(busPlein.n|0)+1;clearTimeout(togglePause._t); /* (2026-10-16) compté : LE CLIC DANS LA PAUSE (pauseSon) sait que la partie a repris la sortie */if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
 function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
@@ -61251,9 +61324,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     }
   }catch(e){} }
   /* (2026-09-28, console de son) LE RÔLE DU CLIC DE LA COQUE. Le clic part AVANT la bascule (voir mTap) : un interrupteur annonce donc
-     l'état qu'il VA prendre. JOUER / REJOUER gardent l'appui principal (or) ; SON sonne après sa propre bascule (plus bas). */
+     l'état qu'il VA prendre. JOUER / REJOUER font le bruit de MOTEUR (2026-10-16, avant : l'appui principal, or) ; SON sonne après sa propre bascule (plus bas). */
   function mRole9(a){
-    if(a==='play'||a==='replay')return '';
+    if(a==='play'||a==='replay')return 'jouer'; // (2026-10-16, Sacha) le bruit de MOTEUR (ui.jouer)
     if(a==='back'||a==='menu')return 'retour';
     if(a==='mus')return SND.music?'off':'on';
     if(a==='vox')return SND.voice?'off':'on';
