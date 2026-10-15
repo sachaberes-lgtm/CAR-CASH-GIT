@@ -3,6 +3,34 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES ET LES AILES QU'ON VEUT (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables, pareil pour les ailes »)
+- VU AVANT (banc `habits.js` : les 17 traînées portées tour à tour, nitro tenue, mer de nuages de midi — une planche de 16 photos) : derrière la
+  caisse on ne voyait presque que le FEU DE PIXELS du nitro, orange / bleu / violet selon la jauge, quelle que soit la traînée ; MENTHE, ROSE, OR
+  n'étaient qu'un filet de ruban, et SAKURA, ANNEAUX, BILLETS, BLOCS… rien. Trois causes :
+  1. la règle du 7 au 14/10 ÉTEIGNAIT les traînées en réserve bleue et en nitro infinie (« deux messages ») — or tenir la nitro vide la jauge en
+     ~2 s : la traînée achetée disparaissait pendant qu'on boostait ;
+  2. le feu de pixels gardait sa couleur, et c'est le plus gros objet derrière la caisse ;
+  3. de la caméra de poursuite, un pétale de 10-16 cm, un anneau de 21 cm, un billet de 30 cm faisaient 2 à 4 pixels.
+- LES TRAÎNÉES TOUJOURS LÀ (`TRAINEE_SIGNAL` faux ; `trSig9` dans la boucle) : une traînée de la BOUTIQUE (`FX_EFF`) joue à toute nitro — réserve et
+  infini compris — : effets POP (`trxStep`), WOW, ARC-EN-CIEL, et la couleur de son ruban. Les caisses à signature (le chat sans traînée achetée)
+  gardent la règle d'avant. La réserve reste dite par la jauge et par le feu (ci-dessous).
+- LE FEU À LA COULEUR DE LA TRAÎNÉE (`nfeuPalTrainee`, `NFEU_TR`) : avec une traînée achetée, le feu de pixels prend dix nuances tirées de SA couleur
+  (`FX_EFF.teinte` : son `rgb`, sinon sa couleur de boutique `col`) — cœur chauffé à blanc, couleur pleine, braise, fumée — ; en réserve / à l'infini
+  il tire vers le bleu / le violet (le cœur 8 %, la braise et la fumée 30 %). Le feu du MOTEUR (hors nitro) ne change pas.
+- LES OBJETS QU'ON VOIT (`TRX_GROS`, `TRX_DENSE`, en course seulement — le garage ne bouge pas) : objets (pétales, anneaux, billets, blocs,
+  pastilles) ×2,3, lueurs (code, étincelles) ×1,6, flammes au sol ×1,2 (avant : ×1,35 pour tout) ; pétales ×1,6, billets, anneaux, blocs ×1,4-1,5.
+- VU APRÈS (mêmes bancs) : chaque traînée a son identité derrière la caisse — feu menthe, rose, or, magenta (WOW), vert et code (MATRICE), cyan et
+  blocs, jaune et le fantôme (GLOUTON), arc-en-ciel… — et ses objets se lisent : l'anneau d'or, les billets verts marqués $, les pièces qui tournent.
+- LES AILES (`AILE_K`, `AILE_K_ON`) — VU sur les photos de la boutique (`ailes.js` : `dbgAile` pour les 14) : le PIGEON minuscule, la FÉE grise et
+  pâle, le PHÉNIX (la mythique !) deux baguettes, les HÉLICES maigres, les PANNEAUX (l'aile offerte) deux planches mates. Chaque aile a sa TAILLE
+  (posée au pivot y/z, multipliée dans le déploiement `scale.x` et dans `photoAiles`) : PHÉNIX ×1,7, PIGEON ×1,5, FÉE ×1,45, HÉLICES ×1,3,
+  MONARQUE ×1,25, PLUMES ×1,2, les autres ×1,05-1,15 ; et les matières des plus faibles : deux filets de NÉON sur les PANNEAUX (la teinte d'accent
+  de la caisse poussée à fond, cyan si elle est grise), la lumière d'ange et l'or des PLUMES (émissif .35 → .6, .5 → 1), des voiles IRISÉS pour la
+  FÉE (dégradé cyan → lilas → rose → or, opacité .88, émissif 1,15), le halo du PHÉNIX (.25 → .4).
+- `?trainee=signal` = les traînées d'avant (règle, feu, tailles) ; `?ailes=avant` = les ailes d'avant. Bancs : `habits.js`, `ailes.js`, `ailevol.js`.
+- ⚠ Main a recalé entre-temps les couleurs du feu (`NFEU_P10`, « le feu du nitro aux couleurs de la barre ») : la teinte d'une traînée achetée passe
+  par-dessus (voir la fusion).
+
 ## LES NUAGES SANS COUTURES, LE CIEL ET LES COULEURS DE PLEIN JOUR (2026-10-15 soir, Sacha : « les nuages sont encore buggés et le ciel est toujours assez mal géré ; les couleurs en plein jour sont mal gérées »)
 - MESURÉ AVANT (photos de course, banc muet ; `pix.py` = la couleur moyenne d'un carré de l'image) :
   · le BÉTON de jour sortait BLEU-VIOLET — mer de nuages midi #5b5fb4 (saturation .37), matin #6d5eb1, forêt midi #516ad5 (.61), canyon midi #9f9cf4 (.80) ;
