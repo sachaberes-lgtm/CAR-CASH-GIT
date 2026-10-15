@@ -12386,7 +12386,7 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
    AVANT chaque `buildTrack` (voir `LARGEUR`). Tout ce qui la lit le fait à l'exécution (collisions, bords,
    pickups, bots, viseur) — sauf trois géométries PARTAGÉES bâties une fois (dos d'âne, tapis et lèvre
    du tremplin) : elles sont taillées sur `ROAD_HALF0` et chaque mesh se met à l'échelle en X. */
-const ROAD_HALF0=14;let THICK=3.9,JADE_LEVE=0; // (2026-10-15, Sacha : « augmente de 50 % l'épaisseur des routes pour avoir plus de surface pour bump ») 2,6 → 3,9 m — (2026-10-12) THICK devient un let : le SOLEIL DE JADE roule sur une dalle de DEUX PIÈCES d'épaisseur (buildTrack) — // (2026-09-25 soir) la route avait été divisée par 2 (14 → 7, « réduis de moitié la largeur ») puis REDOUBLÉE à la demande (« double la largeur des routes ») : retour à 14. LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne change toute la route
+const ROAD_HALF0=14,THICK_ROUTE=5.2;let THICK=THICK_ROUTE,JADE_LEVE=0; // (2026-10-15 soir, Sacha : « augmente l'épaisseur de la route ») 3,9 → 5,2 m (le double des 2,6 d'origine) — (2026-10-15, Sacha : « augmente de 50 % l'épaisseur des routes pour avoir plus de surface pour bump ») 2,6 → 3,9 m — (2026-10-12) THICK devient un let : le SOLEIL DE JADE roule sur une dalle de DEUX PIÈCES d'épaisseur (buildTrack) — // (2026-09-25 soir) la route avait été divisée par 2 (14 → 7, « réduis de moitié la largeur ») puis REDOUBLÉE à la demande (« double la largeur des routes ») : retour à 14. LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne change toute la route
 let ROAD_HALF=ROAD_HALF0*2.0;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 /* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
@@ -15193,7 +15193,7 @@ function buildTrack(seed){
   /* (2026-10-12 soir, Léo : « tu as du mal à enlever la barre lisse : fais la route plus fine, sur deux pièces ») aux PICS DE JADE la dalle n'a
      que DEUX PIÈCES d'épaisseur (30 cm au lieu de 2,6 m) : la tranche lisse disparaît presque derrière les pièces du bord ; la caisse est posée
      12 cm plus haut sur la route en pièces (JADE_LEVE : sur le plan, elle avait l'air enfoncée dans les pièces). Partout ailleurs : 2,6 m. */
-  {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:3.9;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15 */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
+  {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:THICK_ROUTE;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   let ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?genForet(rnd):(LVL.cur&&LVL.cur.piste==='volcan')?genVolcan(rnd):(LVL.cur&&LVL.cur.piste==='canyon')?genCanyon(rnd):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   TORD.on=false;TORD.N=null;if(hautOn()){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTord(ctrl,seed|0);ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;} // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord)
@@ -15681,6 +15681,7 @@ function buildTrack(seed){
      haute à midi, rasante le soir, la LUNE la nuit) ; les PHARES de la caisse éclairent troncs, fleurs et sol devant elle (`uPhare`).
    Console : `dbgForet()` (comptes, temps de construction), `dbgForet('vue',{p,c})`, `dbgForet('loup')`, `dbgForet('meteo','nuit')`.
    Lancer : `?carte=foret&meteo=nuit` (le 1er niveau du JOUER), ou `dbgClassique('foret','soir')` puis `dbgSaut()`. */
+const FORET_FLEURS_BORD=/[?&]fleurs=1\b/.test(location.search); // (2026-10-15 soir, Sacha : « enlever les fleurs au bord de la route dans la forêt ») plus de fleurs le long des deux bords (les plantes du fond et le lierre restent) — `?fleurs=1` les rend
 const NIV_FORET={id:'foret',nm:'LA FORÊT NOIRE',bio:['foretMidi'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'foret',pr:'SLALOME ENTRE LES GEANTS'};
 /* (2026-10-15, Sacha : « certains éléments manquent de cohérence entre eux, couleurs, formes, textures ; travaille sur toutes les maps les textures
    des éléments de décor, sans que ça prenne trop d'espace sur l'iPhone ») LA MATIÈRE COMMUNE : le décor du jeu parle en APLATS PROPRES et en
@@ -16647,7 +16648,7 @@ function buildForet(seed){
    for(let i=Math.round(45/ds);i<NP-Math.round(30/ds);i+=pf)for(const sd of [-1,1]){if(fr()<.2){fr();fr();fr();continue;}
      const p=pts[i],b=B[i],n=Nn[i],t=tire(fr()),h=(t===0?3.1:t===5?2.3:2.0)*(.85+fr()*.55),lat=sd*(ROAD_HALF-.9-fr()*1.4);
      V3.copy(p).addScaledVector(b,lat).addScaledVector(n,.03);const q=qDe(V3.x,V3.z);
-     FLE.push({q:q,m:pose(V3,n,b,fr()*6.28,[]),j:[t,h*.55,h,fr()]});ext(q,V3.x,V3.y-1,V3.y+h,V3.z,2);}
+     const m9=pose(V3,n,b,fr()*6.28,[]),j9=[t,h*.55,h,fr()];if(FORET_FLEURS_BORD){FLE.push({q:q,m:m9,j:j9});ext(q,V3.x,V3.y-1,V3.y+h,V3.z,2);}} /* (2026-10-15 soir, Sacha : « enlever les fleurs au bord de la route dans la forêt ») les tirages restent les mêmes (le reste de la forêt ne bouge pas), seule la pose saute */
    for(let i=Math.round(30/ds);i<NP-Math.round(20/ds);i+=pl)for(const sd of [-1,1]){if(fr()<.25)continue;const p=pts[i],b=B[i],n=Nn[i],lg=3+fr()*6;
      V3.copy(p).addScaledVector(b,sd*(ROAD_HALF+.15)).addScaledVector(n,-.2);const q=qDe(V3.x,V3.z);
      LIE.push({q:q,m:pose(V3,n,T[i],fr()*.6-.3,[]),j:[6,2.6+fr()*1.8,lg,fr()]});ext(q,V3.x,V3.y-lg-THICK,V3.y,V3.z,4);}
@@ -49862,6 +49863,7 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
    · CONSOLE : dbgEvt() = l'état · dbgEvt('moutons'|'caisse'|'banquier') = le forcer TOUT DE SUITE sur la zone en cours (les moutons
      exigent la mer de nuages) · dbgEvt('arme') = armer la partie et poser l'événement de la zone en cours comme à la naissance d'une zone.
    ========================================================================== */
+const EVT_MOUTONS=/[?&]moutons=1\b/.test(location.search); // (2026-10-15 soir, Sacha : « enlève ça ») l'événement SAUTE LES MOUTONS ne sort plus (voir evtZone)
 const EVT_ON=!/[?&]evt=0\b/.test(location.search),EVT_P=.75,EVT_T0=20,EVT_PRIME=120,EVT_AURA=200,EVT_FUITE=600,EVT_COURSE=4000;
 const EVT_MT=[[0],[11],[-12],[0],[-15,0,15]]; // les cinq repères du troupeau : au milieu, décalé, de l'autre côté, au milieu, puis TROIS en travers (l'escalade du niveau 4)
 const EVT={arme:false,fait:false,nom:'',etat:0,ici:false,fini:false,res:'',s0:0,sMax:0,tRun:0,t0:0,finT:0,paye:0,mt:[],mtOk:0,mtBee:0,mtCle:-1,mtVu:0}; // etat : 0 rien · 1 posé (il attend son point) · 2 parti · 3 la zone l'a emporté
@@ -49879,7 +49881,7 @@ function evtZone(){ // campDebut : une zone commence — l'événement de la zon
   EVT.mt.length=0;EVT.mtOk=0;EVT.mtBee=0;EVT.mtCle=-1;EVT.mtVu=0;
   if(!EVT_ON||!EVT.arme||EVT.fait||!evtLieuOk())return;
   const c=LVL.cur,ca=c.carte||c.id;
-  /* (2026-10-14, Sacha : « c'est quoi ces conneries de BANQUIER BATTU, enlève ça ») l'événement du BANQUIER est RETIRÉ : la VILLE n'en pose plus aucun (les moutons et la caisse-nuage gardent leur chance, inchangée, sur la mer de nuages) */ if(ca==='nuages'){if(!(c.id==='nuages'&&Math.random()<.5&&evtPrepare('moutons',false)))evtPrepare('caisse',false);} // (les moutons ne trouvent pas toujours leur ligne droite : la caisse-nuage prend la place)
+  /* (2026-10-14, Sacha : « c'est quoi ces conneries de BANQUIER BATTU, enlève ça ») l'événement du BANQUIER est RETIRÉ : la VILLE n'en pose plus aucun (les moutons et la caisse-nuage gardent leur chance, inchangée, sur la mer de nuages) */ if(ca==='nuages'){if(!(EVT_MOUTONS&&c.id==='nuages'&&Math.random()<.5&&evtPrepare('moutons',false)))evtPrepare('caisse',false);} /* (2026-10-15 soir, Sacha : « j'ai eu un message : saute les moutons, enlève ça ») plus de SAUTE-MOUTON par surprise : la mer de nuages ne tire plus que la caisse-nuage — EVT_MOUTONS, ?moutons=1 le rend */ // (les moutons ne trouvent pas toujours leur ligne droite : la caisse-nuage prend la place)
 }
 function evtPrepare(nom,ici){ // pose l'événement sur la zone en cours — ici : tout de suite, là où l'on est (dbgEvt)
   const sp=vPos();let s0,sM;
@@ -51534,7 +51536,9 @@ function garAtelierTick(dt,ay){
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
    ouvre la BOUTIQUE. Visible replié (#garage.consoleCachee) et en INVENTAIRE (.modeInv, la vue d arrivée : sous l inventaire, au-dessus des touches). */
-try{if(gEl){const gb=document.getElementById('gBottom'),ga=document.getElementById('gAct');if(gb&&ga&&!document.getElementById('gRappel')){
+/* (2026-10-15 soir, Sacha : « enlève offre éphémère du garage ») le bandeau n'est plus posé : GAR_RAPPEL, `?rappel=1` le rend (la boutique garde ses offres) */
+const GAR_RAPPEL=/[?&]rappel=1\b/.test(location.search);
+try{if(gEl&&GAR_RAPPEL){const gb=document.getElementById('gBottom'),ga=document.getElementById('gAct');if(gb&&ga&&!document.getElementById('gRappel')){
   const r=document.createElement('div');r.id='gRappel';r.className='pbtn';r.setAttribute('role','button');r.setAttribute('aria-label',sansAcc(TR('OFFRES ÉPHÉMÈRES')));
   r.innerHTML=pxi('cadeau')+'<span data-fr="OFFRES ÉPHÉMÈRES">'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><b class="grT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b>'+pxi('droite');
   gb.insertBefore(r,ga);

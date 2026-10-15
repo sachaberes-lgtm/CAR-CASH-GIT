@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## QUATRE RETOUCHES : LES FLEURS DU BORD, LES MOUTONS, L'OFFRE ÉPHÉMÈRE DU GARAGE, LA ROUTE À 5,2 m (2026-10-15 soir, Sacha : « enlever les fleurs au bord de la route dans la forêt » · « j'ai eu un message : les moutons saute les, enlève ça » · « enlève offre éphémère du garage » · « augmente l'épaisseur de la route »)
+- LA FORÊT SANS FLEURS AU BORD : `FORET_FLEURS_BORD` (faux ; `?fleurs=1` les rend). Dans `buildForet`, la boucle des fleurs du bord tire
+  TOUJOURS ses nombres (`fr()`), seule la pose saute : le reste de la forêt (plantes du fond, lierre, rayons…) ne bouge pas d'un mètre.
+  MESURÉ (`dbgForet().n`, midi) : il reste 6 002 « fleurs » — les plantes des prairies du fond, loin de la route ; le lierre (6 767) reste.
+- PLUS DE « SAUTE LES MOUTONS » : c'était un ÉVÉNEMENT RARE de la mer de nuages (`evtZone` : une fois sur deux les moutons, sinon la
+  caisse-nuage). `EVT_MOUTONS` (faux ; `?moutons=1` le rend) : la mer de nuages ne tire plus que la caisse-nuage. `dbgEvt('moutons')`
+  force encore le troupeau pour le regarder. Le niveau 4 de la campagne (`MOUTONS_ON`) n'est pas touché : la carrière est coupée.
+- LE GARAGE SANS « OFFRES ÉPHÉMÈRES » : le bandeau `#gRappel` (au-dessus d'INVENTAIRE · MISSIONS · BOUTIQUE) n'est plus posé —
+  `GAR_RAPPEL` (faux ; `?rappel=1` le rend). La boutique garde ses offres. `garAplomb` savait déjà vivre sans lui.
+- LA ROUTE À 5,2 m : `THICK_ROUTE` = 5,2 (le double des 2,6 d'origine ; 3,9 depuis midi) — la déclaration ET la remise de `buildTrack`
+  lisent la même constante ; la JADE garde sa dalle de 0,30. Tout ce qui se pose sous la route se cale déjà sur `THICK`.
+- Vérifié au banc (Chrome sans fenêtre, muet) : forêt midi (bords nus), garage (plus de bandeau), course sans erreur.
+
 ## LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES (2026-10-15 soir, Sacha : « il y a trop plein de petits sons aigus quand on roule, avec des pièces, tout ça ; les pièces, tu peux les faire un peu moins fort, un petit tintement, un petit tchic, un petit tchic grave ; pas plein de ding-ding-ding-ding ; et rajoute tout un sound design pour les figures, avec des sons plus graves, genre doum, doum ; faut qu'on profite de la musique, que tu balances le son entre la musique et les bruitages, que les figures fassent plus de bruit que quand tu ramasses une pièce ; plus de sons graves et discrets — applique-toi bien pour les figures »)
 - MESURÉ AVANT (banc `banc-son` : une course muette au pilote, chaque `CCSON.play` relevé) : en 40 s de route, 119 pièces (3 par seconde,
   la note montait de mi5 à mi7 — 659 Hz → 2,6 kHz — et sonnait 0,45 s), 30 CYLINDRES (chaque moteur neuf égrène jusqu'à 16 cloches qui
