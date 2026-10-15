@@ -27083,8 +27083,83 @@ const ECHP=(()=>{
       E.put('C',new THREE.TorusGeometry(r*1.25,.006,3,8),x,y+.04,z+.3);E.box('C',.006,.18,.006,x,y+.13,z+.3);
       return [[e[0],e[1]+.02,e[2]]];},
   };
+  // L'ENCOCHE (voir LES POTS ENCASTRÉS) : la poche noire percée dans le pare-chocs, à la forme de l'embout plus le jeu, et son jonc sombre
+  P.encoche=(E,o)=>{const J=Object.assign({},ECH_ENC,o.jeu?{jeu:o.jeu}:{},o.jonc?{jonc:o.jonc}:{}),ex=o.rx+J.jeu,ey=o.ry+J.jeu,zp=o.z-.004+J.poche/2;   // la poche est CREUSE : ses parois et un fond, loin
+    if(o.f==='o'){E.put('k',new THREE.CylinderGeometry(1,1,1,20,1,true),o.x,o.y,zp,PI/2,0,0,ex,J.poche,ey);E.put('k',new THREE.CircleGeometry(1,20),o.x,o.y,o.z-.004+J.poche,0,0,0,ex,ey,1);
+      E.put('f',new THREE.RingGeometry(1,1+J.jonc/Math.min(ex,ey),20),o.x,o.y,o.z-.006,0,0,0,ex,ey,1);}
+    else{const j=J.jonc,e=.006;E.box('k',2*ex,e,J.poche,o.x,o.y+ey-e/2,zp);E.box('k',2*ex,e,J.poche,o.x,o.y-ey+e/2,zp);
+      E.box('k',e,2*ey,J.poche,o.x-ex+e/2,o.y,zp);E.box('k',e,2*ey,J.poche,o.x+ex-e/2,o.y,zp);E.box('k',2*ex,2*ey,e,o.x,o.y,o.z-.004+J.poche);
+      E.box('f',2*ex+2*j,j,.006,o.x,o.y+ey+j/2,o.z-.006);E.box('f',2*ex+2*j,j,.006,o.x,o.y-ey-j/2,o.z-.006);
+      E.box('f',j,2*ey,.006,o.x-ex-j/2,o.y,o.z-.006);E.box('f',j,2*ey,.006,o.x+ex+j/2,o.y,o.z-.006);}
+    return [];};
   P.ovale=(E,o)=>P.rond(E,Object.assign({sx:1.45,sy:.72},o));
   return P;})();
+/* LES POTS ENCASTRÉS (2026-10-15, Léo : « le pot d'échappement de la honte est un peu bizarre et mal. Il devrait être encastré, puis
+   passer à travers une encoche qui a été faite exprès, un peu comme les vraies voitures » · « fais pareil pour toutes les voitures
+   (seulement pot échappement) »). Sur une vraie voiture, le pare-chocs est percé d'une OUVERTURE à la forme de la sortie, un peu plus
+   grande (le jeu : le pot vibre et chauffe), souvent bordée d'un jonc ; l'embout y est centré, à fleur ou dépassant d'un ou deux
+   centimètres. Ici, pour chaque bouche qui sort par l'ARRIÈRE (rond, ovale, rect, fente, ouïes, turbine, cloche, cristal, gueule,
+   pixel, triangle, nuage) : un rayon tiré de l'arrière trouve la tôle à la hauteur de la bouche (la caisse vient d'être montée, le pot
+   pas encore) ; si elle est là, à moins de 70 cm, et qu'elle entoure la bouche (6 rayons sur 8 en anneau), l'embout est recalé à
+   1,6 cm devant elle et une ENCOCHE est posée : une poche noire CREUSE à la forme de l'embout + 1,2 cm de jeu (ses parois et un fond à
+   14 cm : ce qui est dessiné au fond des sorties — âmes, lueurs, aubes — reste visible) et un jonc sombre de 1,4 cm. Deux encoches d'une même pièce qui se touchent n'en font qu'une (rectangulaire). Une bouche qui sort SOUS la caisse (ou plus
+   grosse que la tôle qu'elle perce) n'a pas d'encoche, comme sur les vraies : son embout s'arrête à 3 cm derrière la ligne du pare-chocs
+   au-dessus d'elle, il ne pend plus derrière la voiture. Les sorties latérales, les cheminées et les collecteurs ne bougent pas. `enc:0`
+   sur une fiche : ses pots restent tels quels (LA SILENCIEUSE : son silencieux est son dessin). Les flammes suivent (elles naissent aux
+   bouches). */
+const ECH_ENC={jeu:.012,jonc:.014,dep:.016,poche:.14,portee:.7};
+function echTaille(t,o){ // le demi-gabarit d'un embout vu de l'arrière : [forme, demi-largeur, demi-hauteur] — null : la pièce ne sort pas par l'arrière
+  const r=(o.r||.05)*(o.ev||1);
+  switch(t){
+    case 'rond':return ['o',r*(o.sx||1),r*(o.sy||1)];
+    case 'ovale':return ['o',r*(o.sx||1.45),r*(o.sy||.72)];
+    case 'gueule':return ['o',r*1.3,r*1.3];
+    case 'turbine':return ['o',o.r*1.14,o.r*1.14];
+    case 'cloche':return ['o',o.r,o.r];
+    case 'cristal':return ['o',o.r*1.16,o.r*1.16];
+    case 'nuage':return ['o',o.r*1.6,o.r*1.6];
+    case 'rect':return ['r',(o.w||.16)/2,(o.h||.07)/2];
+    case 'fente':return ['r',(o.w+.03)/2,(o.h+.03)/2];
+    case 'ouies':return ['r',(o.w+.02)/2,o.pas+(o.h+.02)/2];
+    case 'pixel':return ['r',o.a/2+.01,o.a/2];
+    case 'triangle':return ['r',o.w/2,o.h/2];
+  }
+  return null;}
+const ECH_RC={rc:null,v:new THREE.Vector3(),d:new THREE.Vector3(),q:new THREE.Quaternion(),m:[]};
+function echTole(x,y){ // la tôle derrière (x, y), repère caisse : le z du premier pan touché en venant de l'arrière, ou null
+  const T=ECH_RC;T.v.set(x,y,-60);carGroup.localToWorld(T.v);T.rc.set(T.v,T.d);const h=T.rc.intersectObjects(T.m,false)[0];
+  return h?carGroup.worldToLocal(h.point).z:null;}
+function echEncastre(P){
+  const T=ECH_RC,J=ECH_ENC;T.rc=T.rc||new THREE.Raycaster();carGroup.updateMatrixWorld(true);carGroup.getWorldQuaternion(T.q);T.d.set(0,0,1).applyQuaternion(T.q);
+  T.m.length=0;carGroup.traverse(o=>{if(!o.isMesh||(o.userData&&o.userData.sol))return;for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible)return;
+    const mt=Array.isArray(o.material)?o.material[0]:o.material;if(mt&&(mt.transparent||mt.blending===THREE.AdditiveBlending))return;T.m.push(o);});
+  const out=[],N=[];
+  for(const pc of P){
+    if(pc.t==='plaque'){const z=echTole(pc.x||0,pc.y);out.push(z!=null&&z-pc.z<J.portee&&z-pc.z>-.3?Object.assign({},pc,{z:z-.004}):pc);continue;}
+    if(!pc.pts){out.push(pc);continue;}
+    const q2=pc.pts.map(q=>q.slice()),G=[];
+    const pres=(z,z0)=>z!=null&&z-z0<=J.portee&&z-z0>=-.4;                          // une tôle à portée de la bouche
+    pc.pts.forEach((q,i)=>{const tl=echTaille(pc.t,Object.assign({},pc,q[3]||{}));if(!tl)return;
+      const z=echTole(q[0],q[1]);let n=0;
+      if(pres(z,q[2])){const e9=(pc.jeu||J.jeu)+(pc.jonc||J.jonc)+.01,ax=tl[1]+e9,ay=tl[2]+e9; // l'anneau : la tôle entoure-t-elle la bouche ?
+        for(let a=0;a<8;a++){const zz=echTole(q[0]+Math.cos(a*Math.PI/4)*ax,q[1]+Math.sin(a*Math.PI/4)*ay);if(zz!=null&&Math.abs(zz-z)<.12)n++;}}
+      if(n>=6){G.push({i:i,f:tl[0],x:q[0],y:q[1],z:z,rx:tl[1],ry:tl[2],jeu:pc.jeu,jonc:pc.jonc});return;}
+      // SOUS LA CAISSE (ou plus grosse que la tôle qu'elle perce) : pas d'encoche, mais l'embout s'arrête à 3 cm derrière la ligne du
+      // pare-chocs au-dessus de lui — il ne pend plus derrière la voiture
+      let zs=pres(z,q[2])?z:null;for(let k=1;k<=12&&zs==null;k++){const zz=echTole(q[0],q[1]+k*.03);if(pres(zz,q[2]))zs=zz;}
+      if(zs!=null&&q[2]<zs-.03)q2[i][2]=zs-.03;});
+    // les encoches qui se touchent n'en font qu'une : un rectangle autour des deux, la face au plus en arrière des deux
+    const grp=G.map(g=>[g]);
+    for(let a=0;a<grp.length;a++)for(let b=a+1;b<grp.length;b++){const A9=grp[a],B9=grp[b];if(!A9.length||!B9.length)continue;
+      const tou=A9.some(g=>B9.some(h=>Math.abs(g.x-h.x)<g.rx+h.rx+2*(J.jeu+J.jonc)+.01&&Math.abs(g.y-h.y)<g.ry+h.ry+2*(J.jeu+J.jonc)+.01));
+      if(tou){A9.push(...B9);B9.length=0;b=a;}}
+    for(const L9 of grp){if(!L9.length)continue;const z=Math.min(...L9.map(g=>g.z));for(const g of L9)q2[g.i][2]=z-J.dep;
+      if(L9.length===1){const g=L9[0];N.push({f:g.f,x:g.x,y:g.y,z:z,rx:g.rx,ry:g.ry,jeu:g.jeu,jonc:g.jonc});continue;}
+      const x0=Math.min(...L9.map(g=>g.x-g.rx)),x1=Math.max(...L9.map(g=>g.x+g.rx)),y0=Math.min(...L9.map(g=>g.y-g.ry)),y1=Math.max(...L9.map(g=>g.y+g.ry));
+      N.push({f:'r',x:(x0+x1)/2,y:(y0+y1)/2,z:z,rx:(x1-x0)/2,ry:(y1-y0)/2,jeu:L9[0].jeu,jonc:L9[0].jonc});}
+    out.push(Object.assign({},pc,{pts:q2}));}
+  for(const n of N)out.push(Object.assign({t:'encoche',bouche:0},n));
+  return out;}
 /* ÔTER L'ANCIEN EMBOUT : `gs` = les géométries d'un kit ({famille: BufferGeometry} non indexées), `prims` = ses pièces simples */
 function echRetire(gs,prims,shape){
   const F=ECH_POTS[shape];if(!F||F.garde)return gs;
@@ -27107,25 +27182,27 @@ function echRetire(gs,prims,shape){
   return gs;}
 /* DESSINER LE NOUVEAU POT, et déclarer ses bouches (la flamme naît là) */
 function echappement(K,shape,A){
-  const F=ECH_POTS[shape];if(!F||!F.p)return;
+  let F=ECH_POTS[shape];
+  if(!F&&A.pipes!==0){const W=K.W,L=K.L,y=A.split?K.y0+K.H*.06:K.y0+.08;F={p:[{t:'rond',r:.035,k:'c',len:.34,jeu:.008,jonc:.008,pts:[[W*.22,y,-L/2-.31],[-W*.22,y,-L/2-.31]]}]};} // (2026-10-15) les deux pots « canoniques » des gabarits sans fiche (des boîtes chromées de 22 cm qui pendaient 31 cm derrière) : deux vrais tubes de 7 cm, ENCASTRÉS dans le diffuseur (ou la tôle)
+  if(!F||!F.p)return;
   if(F.vieux){const g=K.add(new THREE.Group()),car=g.parent;car.remove(g);   // les gabarits d'avant le kit : leurs canons sont des maillages à part
     for(const o of car.children.slice()){const p=o.geometry&&o.geometry.parameters;
       if(o.isMesh&&o.geometry.type==='CylinderGeometry'&&Math.abs(o.rotation.x-Math.PI/2)<.05&&o.position.y<.6&&o.position.z<-K.L/2+.6&&Math.max(p.radiusTop,p.radiusBottom)<=.2)car.remove(o);}}
   if(!F.p)return;
   const E=K.kit(ECH_PAL),M=[];E.ech=1;                            // (le kit du pot ne passe pas par echRetire)
-  for(const pc of F.p){const f=ECHP[pc.t];if(f){const m9=f(E,pc);if(pc.bouche!==0)for(const m of m9)M.push(m);}}
+  for(const pc of (F.enc===0?F.p:echEncastre(F.p))){const f=ECHP[pc.t];if(f){const m9=f(E,pc);if(pc.bouche!==0)for(const m of m9)M.push(m);}} // (2026-10-15) LES POTS ENCASTRÉS
   K.commit(E);
   A.pipes=0;                                                       // plus de cylindres « canoniques » (les gabarits d'avant le kit)
   if(F.bouches!==0&&M.length)A.pots=M.slice(0,4);                 // 4 bouches au plus portent une flamme (voir les tuyères de buildCar)
 }
 const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
- epave:{p:[{t:'epave',r:0.05,pt:[0.4,0.38,-2.3398]},{t:'rond',k:'r',kb:'R',r:0.048,len:0.1,bague:0,pts:[[-0.42,0.4,-2.37]]}]},
+ epave:{p:[{t:'rond',k:'r',kb:'R',r:0.031,len:0.45,jeu:.007,jonc:.008,pts:[[0.3,0.3955,-2.4]]},{t:'rond',k:'r',kb:'R',r:0.027,len:0.45,bague:0,jeu:.007,jonc:.008,pts:[[-0.3,0.3955,-2.4]]}]}, // (2026-10-15, Léo : « il devrait être encastré, puis passer à travers une encoche ») deux pots ROUILLÉS de 5-6 cm (pas tout à fait pareils), chacun dans son encoche percée dans le DIFFUSEUR, entre ses ailettes — avant : un tuyau tordu qui traversait le pare-chocs sans trou et pendait, ficelé, et un bout de tube qui flottait derrière
  eldorado:{p:[{t:'ovale',r:0.06,sx:1.7,sy:0.62,k:'c',dbl:1,pts:[[0.68,0.4,-3.08],[-0.68,0.4,-3.08]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur le pare-chocs reculé de Léo (face à z -3,06) : bouches de -3,06 à -3,08, elles dépassent de 2 cm au lieu d'affleurer (z-fighting chrome)
  a_chargeur:{p:[{t:'rect',w:0.24,h:0.075,k:'c',e:0.015,pts:[[0.56,0.33,-2.58],[-0.56,0.33,-2.58]]}]},
  a_defieur:{p:[{t:'rond',r:0.068,k:'c',ev:1.06,pts:[[0.62,0.33,-2.584],[-0.62,0.33,-2.584]]}]},
  b_bavaroise:{p:[{t:'rond',r:0.038,k:'a',dbl:1,pts:[[0.28,0.27,-2.39],[0.38,0.27,-2.39]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur la poupe de Léo : son bouclier recule à z -2,29 (bouches de -2,26 à -2,39, elles dépassent de 10 cm comme avant)
  caid:{p:[{t:'lateral',r:0.045,len:0.3,k:'c',pts:[[0.99,0.4,-0.66],[0.99,0.4,-0.8],[-0.99,0.4,-0.66],[-0.99,0.4,-0.8]]}]},
- c_silencieuse:{p:[{t:'rond',r:0.11,sx:1.6,sy:0.72,len:0.6,k:'a',ame:0,bague:0,bouche:0,pts:[[0,0.24,-2.535]]},{t:'rond',r:0.03,k:'c',len:0.1,pts:[[0,0.24,-2.605]]}]},
+ c_silencieuse:{enc:0,p:[{t:'rond',r:0.11,sx:1.6,sy:0.72,len:0.6,k:'a',ame:0,bague:0,bouche:0,pts:[[0,0.24,-2.535]]},{t:'rond',r:0.03,k:'c',len:0.1,pts:[[0,0.24,-2.605]]}]},
  d_samourai:{p:[{t:'rond',r:0.078,k:'b',kb:'v',ev:1.1,dbl:1,k2:'x',pts:[[0.42,0.28,-2.44]]}]},
  d_vette:{p:[{t:'rond',r:0.044,k:'c',dbl:1,pts:[[-0.24,0.3,-2.32],[-0.09,0.3,-2.32],[0.09,0.3,-2.32],[0.24,0.3,-2.32]]}]},
  e_anglaise:{p:[{t:'ovale',r:0.05,sx:1.9,sy:0.6,k:'c',dbl:1,pts:[[0.55,0.33,-2.44],[-0.55,0.33,-2.44]]}]},
@@ -27735,14 +27812,18 @@ const SHAPES={
     U(W,H*.62,L,bV,0,y0+H*.31,0,{seed:1,dent:.007,rouille:.10}).rotation.z=.03;
     U(W*.94,H*.272,L*.34,bV,0,y0+H*.64,L*.30,{seed:2,dent:.012,rouille:.08,cell:.3}).rotation.set(.16,0,-.06); // le capot froissé (×,8 de haut, comme avant)
     U(W*.94,H*.36,L*.26,bV,0,y0+H*.65,-L*.34,{seed:3,dent:.008,rouille:.16,cell:.3}).rotation.x=-.09;
-    /* (2026-10-15, Léo : « un plafond moins buggé : l'orange se mélange bizarrement à la vitre ») LE TOIT POSÉ SUR LA VITRE. Le dessus de la
-       boîte de verre était à la hauteur du MILIEU de la dalle du toit, et les deux penchaient en sens contraire (−,04 / +,09) : le toit
-       s'enfonçait d'un côté dans le verre, le verre perçait le toit de l'autre, et autour du toit une bande de verre plat. Désormais la
-       vitre garde sa pente (−,04 : la cabine de travers, et son verre renvoie le même ciel qu'avant), le toit PENCHE AVEC ELLE, déborde
-       du verre de 4 cm sur les côtés et de 8 cm devant et derrière, et le dessus du verre est noyé dans l'épaisseur du toit (1 cm) :
-       plus aucune face ne se bat. */
-    const RT=-.04,gl=B(W*.78,H*.62,L*.40,K.glass,0,y0+H*.93,-L*.05);gl.rotation.z=RT;
-    {const of=H*.31+.0125;U(W*.82,.045,L*.44,aV,-Math.sin(RT)*of,gl.position.y+Math.cos(RT)*of,gl.position.z,{seed:4,dent:.004,rouille:.18,c:.008}).rotation.z=RT;}
+    /* (2026-10-15, Léo : « un plafond moins buggé : l'orange se mélange bizarrement à la vitre », puis, la v456 vue : « remets le plafond
+       comme avant » — « le toit d'avant, mais posé dessus ») LE TOIT D'AVANT, POSÉ SUR LA VITRE. Le dessus de la boîte de verre était à la
+       hauteur du MILIEU de la dalle du toit, et les deux penchaient en sens contraire (−,04 / +,09) : le toit s'enfonçait d'un côté dans
+       le verre, le verre le perçait de l'autre. La v456 l'avait remplacé par un grand toit patiné qui couvrait la vitre ; c'est de nouveau
+       la petite dalle d'origine (lisse, l'accent, sa pente de ,09), POSÉE À PLAT sur la vitre : c'est le dessus du verre qui prend la pente
+       du toit (ses côtés restent ceux d'avant, la cabine s'écrase de 10 cm d'un côté — une épave), et la dalle repose dessus à 1 mm.
+       Plus aucune face ne se bat, et elle ne flotte pas (posée sur un seul bord, elle avait l'air de planer). */
+    const RT=-.04,RR=.09,gl=B(W*.78,H*.62,L*.40,K.glass,0,y0+H*.93,-L*.05);gl.rotation.z=RT;
+    {const pa=gl.geometry.attributes.position,k=Math.tan(RR-RT);for(let i=0;i<pa.count;i++)if(pa.getY(i)>0)pa.setY(i,pa.getY(i)+k*pa.getX(i)); // le dessus du verre, cisaillé
+     pa.needsUpdate=true;gl.geometry.computeVertexNormals();gl.geometry.computeBoundingBox();gl.geometry.computeBoundingSphere();
+     const t=H*.06,hT=H*.31,c=t/2+.001;
+     const roof=B(W*.72,H*.10,L*.34,K.acc,-hT*Math.sin(RT)-c*Math.sin(RR),gl.position.y+hT*Math.cos(RT)+c*Math.cos(RR),-L*.05);roof.rotation.z=RR;roof.scale.y=.6;}
     for(const sd of [-1,1]){
       const mir=B(.09,.09,.16,sd<0?K.rust:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
@@ -31171,7 +31252,7 @@ Object.assign(SHAPES,{
     // ---- 1. LE CHÂSSIS : une plaque sombre sous la tête, deux essieux, deux sorties d'or sous la nuque ----
     {const P=lpKit(pal);P.box('D',1.0,.12,1.10,0,.40,-.30);                                  // (la plaque recule : la langue pend devant, rien ne la coupe)
      P.cyl('k',.07,1.60,10,0,R,ZR,'x');
-     P.sym(sd=>{P.cyl('o',.075,.30,14,sd*.24,.42,-.95,'z');P.cyl('k',.055,.31,14,sd*.24,.42,-.955,'z');});
+     P.sym(sd=>{P.cyl('o',.075,.30,14,sd*.24,.42,-.73,'z');P.cyl('k',.055,.31,14,sd*.24,.42,-.735,'z');}); // (2026-10-15, Léo : les pots « encastrés… comme les vraies voitures », sur toutes) elles dépassaient de 25 cm derrière la plaque : elles s'arrêtent à 3 cm (voir LES POTS ENCASTRÉS)
      const gs=P.done();for(const k in gs)mesh(gs[k],g);}
     // ---- 2. LA GROSSE TÊTE ----
     if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTeteObtient(); // (OPTIMISATION) celle de l'OUVRIER DU DOGE si elle est prête
@@ -31283,7 +31364,7 @@ Object.assign(SHAPES,{
     anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.32,1.1,1.05],tl:[.30,.70,-.90],lamps:0,halos:0,wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.42,-1.11],[-.24,.42,-1.11]],
+    return {hl:[.32,1.1,1.05],tl:[.30,.70,-.90],lamps:0,halos:0,wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.42,-.89],[-.24,.42,-.89]],
             lpw:{R:R,w:.34,style:'rayons',n:5,jante:0xffc42e,accent:0xffc42e,pneu:0x141118}};   // (« un peu plus jaune le truc au milieu du pneu »)
   }
 });
@@ -32225,6 +32306,11 @@ function buildCar(spec){
   // UNE CAISSE DU KIT LOW-POLY NE PREND AUCUN ACCESSOIRE COMMUN : ni feux-boîtes, ni pots, ni lame,
   // ni aileron générique — tout ce qui se voit est posé par son gabarit.
   if(A.lpw)Object.assign(A,{lamps:0,pipes:0,sp:0,split:0,doors:0,slats:0});
+  if(A.split){ // lame avant + diffuseur arrière à ailettes — (2026-10-15) posés AVANT le pot : son encastrement doit les voir (le diffuseur dépasse de 8 cm derrière le pare-chocs ; posé après, il cachait le bas des encoches)
+    box(W9*.96,.05,.3,darkM,0,y0+H9*.04,L9/2+.12);
+    box(W9*.86,.09,.26,darkM,0,y0+H9*.06,-L9/2-.10);
+    for(const fx of [-1,0,1])box(.03,.13,.24,darkM,fx*W9*.26,y0+H9*.10,-L9/2-.10);
+  }
   echappement(K,shape,A); // (2026-10-10) LE POT de la caisse, dessiné pour elle (voir « LES POTS D'ÉCHAPPEMENT ») — il déclare ses bouches
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
   carGroup.userData.capot=[0,y0+H9*.78,L9*.28]; // (2026-09-28) le CAPOT, en repère caisse : c'est là que le nouveau moteur RENTRE (voir engBigSuit)
@@ -32445,11 +32531,6 @@ function buildCar(spec){
       for(const zz of [L9*.07,-L9*.17])box(.012,H9*.5,.03,seamM,sd*(W9/2+.005),y0+H9*.45,zz);
       box(.03,.035,.16,wreck?rustM:chromeM,sd*(W9/2+.02),y0+H9*.66,L9*.01);
     }
-  }
-  if(A.split){ // lame avant + diffuseur arrière à ailettes
-    box(W9*.96,.05,.3,darkM,0,y0+H9*.04,L9/2+.12);
-    box(W9*.86,.09,.26,darkM,0,y0+H9*.06,-L9/2-.10);
-    for(const fx of [-1,0,1])box(.03,.13,.24,darkM,fx*W9*.26,y0+H9*.10,-L9/2-.10);
   }
   if(A.slats)for(const gy of [-1,1])box(W9*.5,.02,.02,chromeM,0,y0+H9*.42+gy*.045,L9/2+.145);
   // PRESQUE NUIT : phares allumés (halo chaud élargi) + feux arrière braise — sauf le gabarit qui n'en veut pas (`halos:0`, le chat)
