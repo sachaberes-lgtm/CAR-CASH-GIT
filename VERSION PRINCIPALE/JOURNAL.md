@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## BOUTIQUE : LE LANCER, UN TOUT PETIT PEU MOINS DE FRICTION (2026-10-15 au soir, pôle CAISSES — Léo : « quand la personne fait tourner la voiture et lâche son doigt, en fonction de la force, la voiture va tourner un peu ; mais il doit y avoir un peu de friction, un tout petit peu moins que là » → choisi : « un peu moins de friction »)
+- `BQ_GLISSE` (0,65 → 0,8) dans `bqLance` : la distance planifiée D = 2 tours × tanh(BQ_GLISSE v / 2 tours) ; la durée de base 1,3 → 1,45 s.
+  Même courbe (elle part à la vitesse du doigt, s'arrête en douceur), même plafond (2 tours), même attrape. Le garage ne change pas.
+- MESURÉ (banc muet, vrais touchers, mêmes vitesses de doigt) : doux 3 rad/s 0,30 → 0,37 tour (+23 %), arrêt 1,61 → 1,98 s ; moyen 7 rad/s
+  0,69 → 0,83 (+21 %), 1,56 → 1,88 s ; fort 12 rad/s 1,11 → 1,29 (+16 %), 1,63 → 1,84 s ; pareil debout ; à la souris (cadre) jusqu'à
+  1,83 tour. Partie lancée (couché, debout, cadre). Courbe : `photos-gameplay/boutique-lancer-friction-avant-apres.png`.
+- Piège de banc : un lancer qui PART sur une étiquette de l'interface (un SPAN au bord gauche, couché) n'est pas un lancer de la boutique —
+  c'est le doigt du garage qui tourne la caisse, sans élan planifié. Partir sur le canevas.
+
 ## LA MAP DES NUAGES SANS HAUT NI BAS (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, il doit y avoir les nuages ou sinon le ciel partout, rien d'autre ; pour faire ça il faut aussi changer la génération de la route pour qu'elle se torde, se plie et tout, qu'il n'y ait plus de haut et de bas »)
 - PORTÉE : `hautOn()` = la MER DE NUAGES (toutes ses météos, l'orage compris) EN COURSE. Le ciel et la piste du menu, l'auto-école, la
   campagne, le parc : inchangés. `?sans=haut` rend la map d'avant.

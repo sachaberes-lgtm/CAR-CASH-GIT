@@ -54340,13 +54340,15 @@ function bqPoseLache(m){GBQ.pose=false;if(m==='caisse'||m==='sort')GBQ.platK=1;i
 /* LE LANCER DOSÉ (2026-10-15, Léo : la voiture lancée au doigt doit tourner un peu plus — « satisfaisant », mais « c'est pas non plus
    l'espace »). Avant, l'élan s'éteignait en exp(−2,4 t) : la moitié de la vitesse perdue en 0,29 s — elle freinait sec puis traînait — et
    sans plafond (un lancer de 4 000 px/s faisait 2,8 tours). Au lâcher (bqLance), la vitesse du doigt v (rad/s, la même qu'avant) devient un
-   ÉLAN PLANIFIÉ : une distance D = 2 tours × tanh(0,65 v / 2 tours) — ~0,4 tour pour un petit lancer, ~1,3 pour un moyen, jamais 2 —, une
-   durée qui grandit avec elle (1,3 s → 1,9 s), et la courbe v (1 − t/T)^(q−1) : elle part EXACTEMENT à la vitesse du doigt (aucun à-coup au
+   ÉLAN PLANIFIÉ : une distance D = 2 tours × tanh(0,8 v / 2 tours) — ~0,5 tour pour un petit lancer, ~1,5 pour un moyen, jamais 2 —, une
+   durée qui grandit avec elle (1,45 s → 2,05 s ; avant le 15/10 au soir : 0,65 et 1,3 s, Léo en voulait « un tout petit peu moins de
+   friction »), et la courbe v (1 − t/T)^(q−1) : elle part EXACTEMENT à la vitesse du doigt (aucun à-coup au
    lâcher), ralentit comme par frottement et s'arrête en douceur (q ≥ 2,5 : la décélération s'éteint avec elle). Pas de rebond. Un doigt
    posé pendant qu'elle tourne l'ATTRAPE net (GBQ.lan à null), et ce toucher-là ne la remet pas en vitrine. Doigt arrêté avant le lâcher
    (90 ms) : pas d'élan, comme avant. */
+const BQ_GLISSE=.8; // (2026-10-15, Léo : « un tout petit peu moins de friction que là ») 0,65 → 0,8 : le même lancer va ~20 % plus loin (+23 % petit, +14 % moyen), ~0,2 s de plus
 function bqLance(v){GBQ.lan=null;const a=Math.abs(v);if(a<.05){GBQ.yawV=0;return;}
-  const DM=4*Math.PI,D=DM*Math.tanh(.65*a/DM),T0=1.3+.6*D/DM,q=Math.max(2.5,T0*a/D);GBQ.lan={y0:GBQ.yaw,D:Math.sign(v)*D,T:q*D/a,q:q,t:0};}
+  const DM=4*Math.PI,D=DM*Math.tanh(BQ_GLISSE*a/DM),T0=1.45+.6*D/DM,q=Math.max(2.5,T0*a/D);GBQ.lan={y0:GBQ.yaw,D:Math.sign(v)*D,T:q*D/a,q:q,t:0};}
 function bqLanceTick(dt){const L=GBQ.lan;L.t+=dt;const u=Math.min(1,L.t/L.T),r=Math.pow(1-u,L.q-1);
   GBQ.yaw=L.y0+L.D*(1-r*(1-u));GBQ.yawV=L.D*L.q*r/L.T;if(u>=1){GBQ.lan=null;GBQ.yawV=0;}}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
