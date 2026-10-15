@@ -10012,10 +10012,17 @@ const JADE_EAU_GLSL='const float JMS=4.;float jMerH(vec2 c){vec2 p=c*JMS;float r
    qui ne recolorent plus qu'un quart de l'image ; (B) le plafond de nuages de la ville sous pluie/orage perd son lilas fixe (+.06,.02,.06) et son
    éclair lilas. Que des couleurs et des constantes. `?sans=neon` (ou `…,neon,…`) = l'image d'avant. */
 const NEON_V=!/[?&]sans=([^&]*,)?neon(,|&|$)/.test(location.search);
+/* (2026-10-15, Sacha : « rajoute de la couleur dans l'espace — nébuleuses, voie lactée, étoiles, du violet, du bleu — mais que ça reste beau,
+   réaliste et spatial, juste un ciel un peu moins vide ») LE CIEL DE L'ORBITE N'EST PLUS UN TROU NOIR : une VOIE LACTÉE en écharpe (bleutée, cœur
+   chaud, rubans de poussière sombre), deux NÉBULEUSES (violette et bleue, magenta où elles se croisent) et une POUSSIÈRE D'ÉTOILES fines qui
+   se resserre dans la bande. Tout reste BAS en intensité : le noir domine, la couleur se devine — la route et la caisse gardent la lecture.
+   Fixe dans le ciel (direction monde), nul hors de l'orbite (× uSpace). `?sans=nebuleuses` = le noir complet d'avant. */
+const NEB_V=!/[?&]sans=([^&]*,)?nebuleuses(,|&|$)/.test(location.search);
 const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,.47,.50)}, // (2026-10-13) SOUS LA MER du SOLEIL DE JADE (voir jadeSousTick)
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
+  uNeb:{value:NEB_V?1:0}, // (2026-10-15) LES NÉBULEUSES de l'orbite (× uSpace) : 0 = le noir complet d'avant
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
   /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
@@ -10060,7 +10067,7 @@ const skyDome=(function(){
   const TETE=[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
-      'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
+      'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
       'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
@@ -10742,6 +10749,42 @@ const skyDome=(function(){
       '  st*=.55+.45*sin(uTime*(1.2+h*2.6)+h*44.);',
       '  col+=mix(vec3(.80,.88,1.),vec3(1.,.86,.70),step(.8,fract(h*3.31)))*st*mix(smoothstep(.10,.42,y),1.,uSpace)*(1.-smoothstep(.25,.8,sd))*.9*uStars*(1.+uSpace*.5)*(1.+uPulse*1.3);}}', // elles descendent plus bas : le haut du cadre est habité — MINUIT les multiplie, l aube les éteint ; elles palpitent au beat
     ],
+    espace:[
+      /* (2026-10-15) LE CIEL PROFOND DE L ORBITE — une couche LISSE (passe à demi-résolution) : la VOIE LACTÉE et les NÉBULEUSES.
+         Un plan galactique incliné (ES : sa normale) coupe le ciel en diagonale ; la bande s élargit et se réchauffe vers le CENTRE
+         galactique, un ruban de poussière la fend en son milieu. Les nébuleuses sont deux bruits lents, seuillés : des nappes, pas un
+         voile partout — le noir doit rester majoritaire. QUATRE bruits par pixel (les filaments relisent celui du ruban de poussière), à quart de résolution. Bruit de VALEUR 3D sur la direction : zéro couture, zéro pôle. */
+      'float esH(vec3 p){p=fract(p*.1031);p+=dot(p,p.zyx+31.32);return fract((p.x+p.y)*p.z);}',
+      'float esN(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
+      '  return mix(mix(mix(esH(i),esH(i+vec3(1.,0.,0.)),f.x),mix(esH(i+vec3(0.,1.,0.)),esH(i+vec3(1.,1.,0.)),f.x),f.y),',
+      '             mix(mix(esH(i+vec3(0.,0.,1.)),esH(i+vec3(1.,0.,1.)),f.x),mix(esH(i+vec3(0.,1.,1.)),esH(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}',
+      'float esF(vec3 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*esN(p);p=p*2.03+vec3(1.7,9.2,4.1);a*=.5;}return s;}',
+      'void cielEspace(inout vec3 col){',
+      '  vec3 d=vDir,g=normalize(vec3(.78,.38,-.50));float b=dot(d,g);',
+      '  vec3 cC=normalize(vec3(-.30,.55,-.78));cC=normalize(cC-g*dot(cC,g));float cen=max(dot(d,cC),0.);', // le centre galactique, dans le plan
+      '  float w=esF(d*2.6+vec3(3.,1.,7.)),ln=esF(d*7.+vec3(11.,4.,2.));',
+      '  float bw=.11+.07*w+.10*cen*cen*cen,band=exp(-b*b/(bw*bw));',
+      '  float dust=smoothstep(.44,.70,ln)*exp(-b*b/(bw*bw*.22));', // le ruban sombre au milieu de la bande
+      '  float glow=band*(.30+.70*w*w*1.6)*(.40+.60*cen*cen)*(1.-.78*dust);',
+      '  vec3 mw=mix(vec3(.34,.40,.70),vec3(1.,.82,.66),cen*cen*cen*cen*band);', // bleutée, cœur chaud
+      '  float n1=esF(d*1.7+vec3(5.,2.,9.)),n2=esF(d*2.3+vec3(13.,7.,1.)),fl=ln;',
+      '  float pv=smoothstep(.46,.78,n1),pb=smoothstep(.48,.80,n2);',
+      '  vec3 neb=vec3(.44,.14,.70)*pv*(.45+.9*fl)+vec3(.10,.26,.80)*pb*(.45+.9*(1.-fl))+vec3(.70,.12,.50)*pv*pb*1.3;',
+      '  col+=(mw*glow*.58+neb*.26*(1.-.55*dust))*uSpace*uNeb;}',
+    ],
+    pous:[
+      /* (2026-10-15) LA POUSSIÈRE D ÉTOILES de l orbite — passe NETTE (des points au pixel). 180 cellules par tour : des étoiles d un
+         pixel, bleues, blanches ou mauves, rares hors de la voie lactée et serrées dedans. */
+      'void cielPoussiere(inout vec3 col,float y,float az){',
+      '  float b=dot(vDir,normalize(vec3(.78,.38,-.50))),band=exp(-b*b*36.);',
+      '  vec2 sg=vec2(az*28.6479,y*60.),sid=floor(sg),sfr=fract(sg);float h=hash21(sid+71.3);',
+      '  if(h<.935-.16*band)return;',
+      '  vec2 stp=vec2(fract(h*23.7),fract(h*41.3))*.7+.15;',
+      '  float sr=length(vec2((sfr.x-stp.x)*.0349*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)*.01667));',
+      '  float st=1.-smoothstep(0.,.0016,sr),k=fract(h*5.13);',
+      '  vec3 c=k<.4?vec3(.66,.76,1.):k<.75?vec3(1.,.96,.92):vec3(.86,.62,1.);',
+      '  col+=c*st*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}',
+    ],
     lune:[
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
       'void cielLune(inout vec3 col){',
@@ -10805,6 +10848,7 @@ const skyDome=(function(){
       '    gl_FragColor=vec4(cv,1.);return;}',
       '  float y=vDir.y;',
       '  vec3 col=cielFond(y);',
+      '  if(uSpace*uNeb>.001)cielEspace(col);', // (2026-10-15) ORBITE : voie lactée et nébuleuses
       '  float sd=max(dot(vDir,uSunDir),0.);',      // couchant : halo rosé large, couronne corail, coeur incandescent (tamisé)
       '  cielMer(col,y,sd);', // NUAGES : la mer de nuages sous l horizon (voir merNuages)
       '  cielJour(col,y,sd);', // (2026-09-30) le jour d altitude : la lueur du soleil sur l horizon
@@ -10817,6 +10861,7 @@ const skyDome=(function(){
       '  if(gOn)cielGuirlande(col,y,az,sd);',
       '  if(uLvl>.001&&uVille<.999)cielNiveau(col,y,az,sd);',
       '  if(sOn)cielEtoiles(col,y,az,sd);',
+      '  if(uSpace*uNeb>.001)cielPoussiere(col,y,atan(vDir.x,-vDir.z));', // (2026-10-15) ORBITE : la poussière d étoiles
       '  cielLune(col);',
       '  cielVoile(col,y);',
       '  if(uLvl>.001&&uVille<.999)cielOnde(col,y,az);',
@@ -10831,7 +10876,7 @@ const skyDome=(function(){
        d'un niveau que la trame de la passe nette ne ferait que redessiner — on arrondit donc au hasard, juste. En demi-flottant : 0. */
     basN:[LECT_TR,
       'void main(){',
-      '  float y=vDir.y;vec3 col=cielFond(y);float sd=max(dot(vDir,uSunDir),0.);',
+      '  float y=vDir.y;vec3 col=cielFond(y);if(uSpace*uNeb>.001)cielEspace(col);float sd=max(dot(vDir,uSunDir),0.);', // (2026-10-15) + l espace profond
       '  cielMer(col,y,sd);cielJour(col,y,sd);'+(/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?'cielMotif(col,vDir,y,sd);':'')+'cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);', // (ciel2) la passe basse aussi : plus de pommelé
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
@@ -10841,6 +10886,7 @@ const skyDome=(function(){
       'void main(){',
       '  vec3 col=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);',
       '  if(cielSOn(y,sd))cielEtoiles(col,y,atan(vDir.x,-vDir.z),sd);',
+      '  if(uSpace*uNeb>.001)cielPoussiere(col,y,atan(vDir.x,-vDir.z));', // (2026-10-15) la poussière d étoiles
       '  cielLune(col);',
       '  col+=vec3(cielTrame());gl_FragColor=vec4(col,1.);}'],
     // PASSE LISSE — VILLE sous la pluie : le plafond, la brume du bas et la lueur des quartiers
@@ -10859,7 +10905,7 @@ const skyDome=(function(){
   const src=function(){return [].concat.apply([],arguments).join('\n');},K=COUCHES;
   // (2026-09-26, vague 2 — audit GPU) gl_Position.z = w : le dôme se pose sur le PLAN LOINTAIN (profondeur 1,0) — voir renderOrder plus bas
   const mk=(fs,lisse)=>new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,depthTest:!lisse,vertexShader:VS,fragmentShader:fs});
-  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.motif,K.mer,K.jour,K.soleil,K.titre,K.paris,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
+  const mat=mk(src(TETE,VILLE,VILLE_CIEL,MER,K.fond,K.motif,K.mer,K.jour,K.soleil,K.titre,K.paris,K.jade,K.canyon,K.gon,K.son,K.guirl,K.niveau,K.etoiles,K.espace,K.pous,K.lune,K.voile,K.onde,K.trame,MAIN.plein));
   /* LE CIEL SE PEINT EN DERNIER (2026-09-26, vague 2 — audit GPU). Il était dessiné en PREMIER (renderOrder −9, sans écrire la
      profondeur) : chaque pixel de l'écran payait le shader le plus lourd du jeu (mer de nuages, ville, étoiles, fond musical)… puis
      la route, la caisse, les nuages le recouvraient. Posé sur le plan lointain (z = w dans le vertex) et dessiné APRÈS tous les
@@ -10869,8 +10915,8 @@ const skyDome=(function(){
   const m=new THREE.Mesh(new THREE.SphereGeometry(4300,48,28),mat);
   const F_BAS=.5,FPK_BAS=1; // la passe lisse : ½ de la résolution en largeur et en hauteur (¼ des pixels) · l'anticrénelage de la mer y compte des pixels d'ÉCRAN (1)
   m.userData.ciel={plein:mat,f:F_BAS,
-    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.motif,K.mer,K.jour,K.soleil,K.titre,K.paris,K.gon,K.guirl,K.voile,K.trame,MAIN.basN),true),
-    netN:mk(src(TETE,K.son,K.etoiles,K.lune,K.trame,MAIN.netN)),
+    basN:mk(src('#define MER_FPK '+FPK_BAS.toFixed(4),TETE,VILLE,MER,K.fond,K.motif,K.mer,K.jour,K.soleil,K.titre,K.paris,K.gon,K.guirl,K.voile,K.espace,K.trame,MAIN.basN),true),
+    netN:mk(src(TETE,K.son,K.etoiles,K.pous,K.lune,K.trame,MAIN.netN)),
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV)),
     cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy))}; // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
@@ -23872,6 +23918,7 @@ if(ORBITE2_V){
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · orbite3) L'ORBITE REJOINT LA FAMILLE : exposition remontée (~0,73 → ~0,84 effective, les autres maps sont
    à ~1) pour que la caisse et la route sortent du noir, contre-jour ROSE, et la signature de route (bords roses, ligne or) sur le vide. `?sans=orbite3`. */
 if(SIG_V.orbite)for(const k of ['espaceMatin','espace','espaceSoir','espaceSat'])if(BIOMES[k])Object.assign(BIOMES[k],{expo:+(BIOMES[k].expo*1.15).toFixed(3),kickC:[1,.38,.66],kickI:.18,rtK:.72}); /* rtK .72 : A/B au même instant, le béton de l'orbite était à L* 52-72 (cible 32-45) */
+if(NEB_V)for(const k of ['espaceMatin','espace','espaceSoir','espaceSat'])if(BIOMES[k])BIOMES[k].stars=.8; // (2026-10-15) LES NÉBULEUSES : les étoiles se rallument (elles étaient à 0, « noir complet »)
 // (fin EN ORBITE)
 //
 //
@@ -32700,6 +32747,11 @@ window.dbgView=function(a,d,h){ // MODE PHOTO : force la pause, cadre la caisse 
   camera.position.set(p.x+Math.sin(a)*(d||9),p.y+(h==null?2.4:h),p.z+Math.cos(a)*(d||9));
   camera.lookAt(p.x,p.y+.7,p.z);camera.updateMatrixWorld();
   RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse); // (2026-09-26, vague 2) le liseré suit la caméra de la PHOTO (il gardait celle de la poursuite)
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+};
+window.dbgCiel=function(a,e){ // (dev, 2026-10-15) PHOTO DU CIEL : en pause, l'œil au-dessus de la caisse regarde l'azimut a (rad) à l'élévation e (rad), re-rend UNE frame
+  window.dbgView(0,9,2.4);const p=carGroup.position;camera.position.set(p.x,p.y+3,p.z);
+  camera.lookAt(p.x+Math.sin(a)*Math.cos(e)*100,p.y+3+Math.sin(e)*100,p.z+Math.cos(a)*Math.cos(e)*100);camera.updateMatrixWorld();
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
 };
 // ombre portée sous la voiture
