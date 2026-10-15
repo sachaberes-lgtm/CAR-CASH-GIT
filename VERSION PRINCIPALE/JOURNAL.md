@@ -3,6 +3,35 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE (2026-10-15 soir, Sacha : « quand on se prend un mur, un immeuble, un canyon, un glacier, une montagne chinoise, il faut que ça soit la même animation, comme ça tu peux la travailler à fond ; qu'il soit presque fun de s'écraser ; reprends le design de l'explosion de l'airtime et mets-le partout »)
+- ⚠ REMPLACE la matière par obstacle de l'après-midi (section suivante) : plus de `BOOM_MAT` bois/roche/glace/lave/eau/métal, plus de
+  `BOOM_CAUSE`/`boomEclats`. `BOOM_MAT` ne garde que `feu` (toutes les morts) et `plot` (la miniature `boomMini`, gardée).
+- LE PROBLÈME : chaque carte teste ses obstacles à sa façon (boîtes des tours, voxels du jade, cartes de hauteur du canyon et du glacier,
+  capsules de la forêt et du volcan) et aucune ne disait OÙ ni dans QUEL SENS on avait tapé. La boule naissait dans le mur, à moitié cachée
+  par lui ; la ville avait son cratère à elle (`villeImpact`, plus appelé), le jade son craquement (`sensBoomRoc`), le reste rien.
+- `impPrep(test,cause,marge)`, appelé juste avant `explode` dans la chaîne de vol : recule sur la trajectoire jusqu'à ressortir de
+  l'obstacle (le POINT DE CONTACT, au centimètre par dichotomie), tâte l'obstacle autour dans 26 directions × 2 rayons (la NORMALE),
+  la force à faire face à la caisse. `marge` = de combien le test déborde de la vraie paroi (tours .9, forêt/volcan 1.1, jade 1.1,
+  canyon 1, glacier .3 via `banqDans` — banqHeurt n'est PAS pur, on passe par `banqSurf`). En conduite, un mur latéral (couloirs du
+  canyon, façades de Paris) passe par `impMur(out)` : la paroi est le bord de la route.
+- LA SÉQUENCE (`IMP`, même code partout) : LE COUP, 0,11 s (`impCoupPart`/`impCoupTick`) — la caisse plaquée nez contre la paroi
+  s'ÉCRASE dans l'axe du choc (×0,6, les deux autres axes ×1,13 ; à plat ventre elle s'aplatit sur ses roues), l'ÉTOILE de choc en pixels
+  (`IMP_ETOILE`, 11 pointes, blanc · or · feu · encre) jaillit, l'image passe en NÉGATIF 48 ms (`IMP.INVERSE`, un éclair blanc si
+  « Réduire les animations »), la caméra encaisse (plonge de 0,6 m, champ −9 %), `pose.choc` +6 dB + `impact.immeuble`, la musique se
+  coupe. Le temps ne ralentit PAS (verdict du 26/09) : la détonation attend juste la fin du coup. PUIS LA DÉTONATION (`boomDetone`, la
+  2e moitié de l'ancien `explode`) : la boule de l'airtime née 1,5 m devant la paroi, qui s'y ÉCRASE (`spawnBoomArt(…, nW)` : couronne
+  étalée dans le plan du mur, fuite le long de la paroi puis montée, dards hors du mur), l'onde de choc SUR le mur (`boomOnde`, rayon 24),
+  les pièces de la caisse et 14 éclats de roche calcinée (`IMP_ECL`) qui REBONDISSENT sur la paroi (`impRebond`, plan tangent), une gerbe
+  qui gicle puis dégouline le long du mur. LE CRATÈRE (`IMP_CRAT`, un quad, shader en pixels — 56 de bord à bord) : trou noir où couve
+  le brasier, lèvre chauffée à blanc qui refroidit (or → rouge → suie), onze lézardes qui courent en 0,13 s et rougeoient, suie étirée
+  vers le haut, liseré d'encre des volutes ; deux RÉPLIQUES (mini-boules dessinées qui ressortent du trou, 0,34 et 0,78 s), flammes,
+  braises et fumée qui couvent (`impTick`). Liquides (rivière, Seine, lave) : tout sauf le cratère et les éclats.
+- La caméra de la mort (`BOOM_CAM`) borne son recul avec le test de l'obstacle percuté (avant : les tours seulement).
+- COÛT : un quad, un sprite, 14 éclats (une géométrie, deux matières) nés au chargement et dessinés une fois (chauffe) ; zéro lumière ;
+  zéro allocation à la mort. Pools de la boule : 34 volutes, 22 dards (les répliques ont leurs cases).
+- NOUVEL OBSTACLE = `impPrep(sonTest,cause,marge);explode(cause);`. BANC : `dbgImpact(d,v,el)` lance la caisse en vol sur l'obstacle
+  le plus proche (même chemin que le jeu), `dbgImpactEtat()` dit contact, paroi, normale, axe écrasé.
+
 ## L'EXPLOSION D'OBSTACLE (2026-10-15, Sacha : « retravaille les textures d'explosion quand tu te prends un obstacle, vraiment stylé mais adaptable à tous les obstacles du jeu ; reprends la texture d'explosion air time qui est bien »)
 - La boule DESSINÉE de la mort en vol (volutes `VOLU` + dards `DARD`, `spawnBoomArt`) sert désormais à TOUS les obstacles, avec la MATIÈRE
   de l'obstacle : table `BOOM_MAT` (bois · roche · glace · lave · eau · metal · plot · feu = l'airtime, inchangée) et `BOOM_CAUSE`
