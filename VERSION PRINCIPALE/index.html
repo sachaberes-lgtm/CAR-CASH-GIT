@@ -2970,6 +2970,61 @@ html.misS .gmC.r small{margin-top:3px}
 html.misS .gmNext{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(143,132,200,.35);font-size:7px;letter-spacing:1px;color:#b9b2e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.misS .gmNext .pxi{--pxs:1;color:#8f84c8}
 html.misS #gmHead small{line-height:1.6}
+/* L'ÉCRAN MISSIONS EN LISTE (2026-10-15, Sacha : « plus de petits groupes de trois, l'interface la plus claire possible, toujours dans
+   l'écran caméra de surveillance du garage ») — un seul panneau opaque, posé sur la vue caméra (sa trame et son balayage restent autour) :
+   EN COURS · PROCHAINE RÉCOMPENSE · À VENIR. Les crochets de viseur aux coins du panneau, c'est la caméra qui cadre la liste. */
+#gmListe{position:absolute;left:16px;right:16px;top:120px;max-height:60vh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;box-sizing:border-box;
+  padding:12px 12px 10px;background:linear-gradient(180deg,#0b1e39,#060e21);box-shadow:inset 0 0 0 1px rgba(95,240,255,.32),0 0 28px rgba(95,240,255,.10);
+  animation:gmIn .45s var(--ease) backwards .15s}
+#gmListe::-webkit-scrollbar{display:none}
+#gmListe.vu{animation:none}
+#gmListe .glSec{display:flex;align-items:center;gap:8px;margin:2px 2px 9px;font-size:var(--f0);line-height:1.4;letter-spacing:1px;color:#5ff0ff}
+#gmListe .glSec .pxi{--pxs:1;flex:none}#gmListe .glSec span{white-space:nowrap}
+#gmListe .glSec em{margin-left:auto;font-style:normal;color:#6f93a6;text-align:right}
+#gmListe .glSec.r{color:#ffd75e;margin-top:16px}
+#gmListe .glSec.n{color:#b9b2e6;margin-top:16px}
+.glM{display:flex;align-items:center;gap:11px;min-height:58px;box-sizing:border-box;padding:10px 11px;margin-bottom:6px;cursor:pointer;--bc:#5ff0ff;
+  background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.22);transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease);
+  animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i,0)*70ms + 260ms)}
+.glM:active{transform:translateY(2px)}
+.glM .gmChk{width:16px;height:16px}.glM .gmChk i{width:8px;height:8px}
+.glTx{flex:1;min-width:0}
+.glTx b{display:block;font-weight:400;font-size:var(--f1);line-height:1.4;letter-spacing:.5px;color:#fff}
+.glM u{display:block;height:5px;margin:7px 0 6px;background:#030914;box-shadow:0 0 0 1px rgba(95,240,255,.22)}
+.glM u em{display:block;height:100%;background:var(--bc);box-shadow:0 0 8px var(--bc)}
+.glTx small{display:block;font-size:var(--f0);line-height:1.4;letter-spacing:.5px;color:#8fb8c8}
+.glPr{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.glPr b{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap}
+.glJ{font-style:normal;line-height:0}.glJ .pxi{--pxs:1;color:#ffd75e}
+.glNv{font-style:normal;font-size:var(--f0);line-height:1;padding:3px 5px;background:#ff3ec8;color:#fff;letter-spacing:.5px}
+.glM.f{--bc:#ffd75e;background:#2b240c;box-shadow:inset 0 0 0 2px #ffd75e}
+.glM.f .gmChk i{background:#ffd75e;box-shadow:0 0 6px #ffd75e}.glM.f small{color:#ffd75e}
+.glM.ok{--bc:#5ee37a;cursor:default}.glM.ok .gmChk i{background:#5ee37a}.glM.ok small{color:#5ee37a}
+.glM.flash{animation:gmFlash .5s var(--ease)}
+#gmListe.vu .glM{animation:none}#gmListe.vu .glM.flash{animation:gmFlash .5s var(--ease)}
+.glRec{display:flex;align-items:center;gap:12px;min-height:66px;box-sizing:border-box;padding:10px 11px;background:#221d0b;box-shadow:inset 0 0 0 1px rgba(255,215,94,.45);
+  animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i,0)*70ms + 260ms);transition:transform var(--t-fast) var(--ease)}
+#gmListe.vu .glRec{animation:none}
+.glRec.voir{cursor:pointer}.glRec.voir:active{transform:translateY(2px)}
+.glRec .obFig{position:relative;right:auto;top:auto;margin:0;flex:none;width:80px;height:46px;display:flex}
+.glRec .obFig img{width:100%;height:100%;object-fit:contain}
+.glRec .glTx b{color:var(--rc)}
+.glRec .glPr .pxi{--pxs:2;color:#ffd75e}
+.glRec .glTx em{display:block;margin-top:6px;font-style:normal;font-size:var(--f0);line-height:1.4;letter-spacing:.5px;color:#ffd75e}
+.glVen{margin:0 2px}
+.glV{display:flex;align-items:center;gap:8px;padding:9px 2px;font-size:var(--f0);line-height:1.4;letter-spacing:.5px;color:#8a84b8;border-top:1px solid rgba(143,132,200,.2)}
+.glV span{flex:1;min-width:0}.glV b{font-weight:400;color:#5f9a74;white-space:nowrap}
+.glV.j{color:var(--rc)}.glV.j .pxi{--pxs:1;flex:none}.glV.j small{color:#6f6a99;white-space:nowrap}
+#gmHead small:empty,#gmHead em:empty{display:none}
+@media (orientation:portrait){html.misS #gmHead{right:calc(var(--sR) + var(--gut));max-width:none}}
+#gmListe.land{bottom:0;background:none;box-shadow:none;padding:0;overflow:visible;pointer-events:none;animation:none}
+#gmListe.land>.glA,#gmListe.land>.glB{position:absolute;box-sizing:border-box;padding:12px 12px 10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;
+  background:linear-gradient(180deg,#0b1e39,#060e21);box-shadow:inset 0 0 0 1px rgba(95,240,255,.32),0 0 28px rgba(95,240,255,.10);animation:gmIn .45s var(--ease) backwards .15s}
+#gmListe.land>.glA::-webkit-scrollbar,#gmListe.land>.glB::-webkit-scrollbar{display:none}
+#gmListe.land.vu>.glA,#gmListe.land.vu>.glB{animation:none}
+#gmListe.land>.glB>.glSec.r:first-child{margin-top:2px}
+@media (orientation:landscape) and (max-height:540px){.glM{min-height:50px;padding:8px 10px}.glRec{min-height:56px;padding:8px 10px}#gmListe .glSec.r,#gmListe .glSec.n{margin-top:12px}}
+@media (prefers-reduced-motion:reduce){#gmListe,.glM,.glRec{animation:none!important}}
 @media (orientation:portrait) and (max-width:760px){html.misS .gmC{padding:7px 8px 8px}html.misS .gmC .gmX{font-size:8px}html.misS .gmT b{font-size:7px}}
 @keyframes gmBalaye{to{top:122%}}
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
@@ -23074,6 +23129,8 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
 Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'}); // (2026-10-12) la JAUGE D'AURA
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE MISSIONS",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
+  "EN COURS":"ACTIVE","PROCHAINE RECOMPENSE":"NEXT REWARD","A VENIR":"COMING UP","NOUVELLE":"NEW","SUIVIE":"TRACKED","PAS ENCORE TENTEE":"NOT TRIED YET",
+  "ENCORE {n} MISSIONS":"{n} MORE MISSIONS","ENCORE 1 MISSION":"1 MORE MISSION","TOUCHE UNE MISSION POUR LA SUIVRE":"TAP A MISSION TO TRACK IT", /* (2026-10-15) l'écran MISSIONS en liste */
   "CHAQUE DEFI EN UNE PARTIE":"EACH MISSION IN ONE RUN","CHAQUE MISSION EN UNE PARTIE":"EACH MISSION IN ONE RUN","TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE":"TAP A MISSION TO TRACK IT","LES 3 MISSIONS D'ABORD":"FINISH THE 3 MISSIONS FIRST","SUIVI":"TRACKING","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"TAP A CHALLENGE TO TRACK IT","LES 3 DEFIS D'ABORD":"FINISH THE 3 CHALLENGES FIRST"}); // (2026-09-30) l'écran MISSIONS de l'atelier // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
 Object.assign(I18N,{"LES DEFIS · CHACUN EN UNE PARTIE":"MISSIONS · EACH IN ONE RUN","A GAGNER":"TO WIN","ENSUITE":"NEXT","VOIR":"VIEW","RELEVÉ":"DONE","À TENTER":"NOT TRIED YET","CETTE PARTIE":"THIS RUN","DÉFI RÉUSSI !":"CHALLENGE DONE!","BONUS":"BONUS"}); // (2026-09-28, soir) MISSIONS v2 et la porte de l'écran de mort
 // (2026-09-29, relecture de sortie) les 50 fiches du garage : noms et punchlines en anglais
@@ -35196,7 +35253,7 @@ function nitroGain(q,src){
   if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
 function runxReset(){flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le relèvement du début se décide ICI, une fois par partie (voir ECOD) */jourMaj(); /* (2026-10-14, GAMEPLAY) …et le ×2 du jour juste après : ECOD.k = le MAX des deux, jamais le produit (voir JOUR) */RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
-RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
+RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;MIS_NEWG.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
   try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;chanceRaz();} /* (2026-10-14) une partie neuve, une SECONDE CHANCE neuve */ // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
@@ -35295,10 +35352,24 @@ function misProg(m){ // « 18 / 25 » — l'avancement DANS la partie en cours (
   if(m.k==='zones')return misProgV(m,c); // (2026-09-30) la zone en cours, en %
   return Math.floor(c)+' / '+m.v;
 }
-function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)s.best=[0,0,0];if(!misEtat._pop){misEtat._pop=1;try{popCarnets(s);}catch(e){}}return s;}
+function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)s.best=[0,0,0];if(!misEtat._pop){misEtat._pop=1;try{popCarnets(s);}catch(e){}}misFile(s);return s;}
+/* LA FILE DES MISSIONS (2026-10-15, Sacha : « ne fais plus des petits groupes de trois missions »). Plus de carnet qu'on relève EN BLOC :
+   les missions forment UNE route, numérotées g = 3 × carnet + rang (les CARNETS restent la réserve de contenu, rien n'est réécrit).
+   Trois sont OUVERTES à la fois — les trois premières pas encore relevées — dans trois cases `s.w` (leurs numéros) ; `s.ok`/`s.best`/`s.f`
+   gardent leur sens, mais par CASE. Une mission relevée garde sa case jusqu'à la fin de la partie (même règle qu'avant : jamais une
+   mission neuve avec les compteurs d'une partie entamée), puis la case prend la mission suivante de la route. Les récompenses sont des
+   JALONS : celle du carnet c tombe quand toutes les missions jusqu'à 3c+2 sont relevées — dans l'ordre, donc `s.n` (jalons franchis)
+   garde le sens que lui prêtent les caisses à gagner (carStat 'carnet'). Ancienne sauvegarde : w = [3n, 3n+1, 3n+2], ok/best tels quels. */
+function misFile(s){const w=s.w,n3=3*(s.n|0);
+  if(!Array.isArray(w)||w.length!==3||w.some(function(x,i){return !(x>=n3&&x===Math.floor(x))||w.indexOf(x)!==i;})||Math.floor(Math.min(w[0],w[1],w[2])/3)!==(s.n|0))s.w=[n3,n3+1,n3+2];}
+function misG(g){return carnet(Math.floor(g/3)).m[g%3];}        // la mission n° g de la route
+function misM(s,i){return misG(s.w[i]);}                          // la mission de la case i
+function misFait(s,g){const i=s.w.indexOf(g);return i>=0?!!s.ok[i]:g<Math.max(s.w[0],s.w[1],s.w[2]);} // relevée ? (sous la case la plus haute, tout ce qui n'est pas en case l'est)
+function misPips(s){return [0,1,2].map(function(k){return misFait(s,3*s.n+k);});} // les trois crans vers le PROCHAIN JALON (les pastilles des boutons MISSIONS)
+function misReste(s){let r=0;for(let g=3*s.n;g<3*s.n+3;g++)if(!misFait(s,g))r++;return r;} // combien de missions avant le prochain jalon
 /* (2026-10-14) LES CARNETS POP (10 à 12) sont arrivés APRÈS la suite sans fin : un joueur déjà au-delà les a relevés avec d'autres défis —
    on lui remet leur habillage, une fois (sinon il ne pourrait plus jamais l'avoir). */
-function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;}SAVE.mark();} /* (2026-10-14, chasse aux bugs) un joueur AU carnet 10-12 au moment de la mise à jour gardait les coches et meilleurs essais du carnet de la suite sans fin qui occupait cette place : le carnet POP s'ouvrait avec des défis cochés qu'il n'avait pas faits. Remis à zéro UNE fois (`pop`, gardé par san) */
+function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;s.w=null;}SAVE.mark();} /* (2026-10-14, chasse aux bugs) un joueur AU carnet 10-12 au moment de la mise à jour gardait les coches et meilleurs essais du carnet de la suite sans fin qui occupait cette place : le carnet POP s'ouvrait avec des défis cochés qu'il n'avait pas faits. Remis à zéro UNE fois (`pop`, gardé par san) */
   const o=SAVE.d.shop&&SAVE.d.shop.own;if(!o)return;let n=0;for(let i=9;i<CARNETS.length;i++){const r=CARNETS[i].r;
   if(s.n>i&&r.cat){const k=r.cat+':'+r.id;if(o.indexOf(k)<0){o.push(k);n++;}}}if(n)SAVE.mark();}
 /* LES DÉFIS SUR LA FICHE (2026-09-25, user : « les missions ne doivent pas être aussi visibles — dans le garage, certaines
@@ -35307,13 +35378,14 @@ function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0
    la suivante attend que la précédente soit gagnée. `n` = numéro du carnet (1 = LA BULLE). */
 function defisHtml(n){
   const s=misEtat(),Lg=LANG==='en'?1:0;
-  if(s.n+1<n){const prev=carnet(n-2);
+  if(3*(n-1)>Math.max(s.w[0],s.w[1],s.w[2])){const prev=carnet(n-2); // (2026-10-15, la file) aucune de ses missions n'est encore ouverte
     return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 MISSIONS — APRES ','WON BY COMPLETING 3 MISSIONS — AFTER '][Lg]+misRecompense(prev);}
   const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 MISSIONS (CHACUNE EN UNE PARTIE)','WON BY COMPLETING 3 MISSIONS (EACH IN ONE RUN)'][Lg]+'</span>';
   // (2026-09-25) juste après une partie, chaque défi ouvert dit où l'on s'est arrêté (« 21 / 25 ») : la meilleure raison de relancer.
   // ⚠ !MIS_REC : si le carnet vient de se refermer à cette mort, RUNX porte les scores d'une partie qui ne compte plus pour le suivant
   const apres=started&&gameOver&&!SANDBOX&&!PARK.on&&!MIS_REC&&n===s.n+1;
-  c.m.forEach(function(m,i){const ok=!!s.ok[i];h+='<span class="gDf'+(ok?' ok':'')+'"><i>'+(ok?pxi('coche'):'')+'</i>'+majPix(misTxt(m))+(apres&&!ok?'<em>'+misProg(m)+'</em>':'')+'</span>';});
+  c.m.forEach(function(m,i){const g=3*(n-1)+i,ok=misFait(s,g),k=s.w.indexOf(g),en=apres&&!ok&&k>=0&&MIS_NEW.indexOf(k)<0; // (la file) l'avancement de la partie : seulement pour une mission qui était déjà ouverte pendant elle
+    h+='<span class="gDf'+(ok?' ok':'')+'"><i>'+(ok?pxi('coche'):'')+'</i>'+majPix(misTxt(m))+(en?'<em>'+misProg(m)+'</em>':'')+'</span>';});
   return h;
 }
 function misRecompense(c){ // ce que le carnet débloque, en clair
@@ -35322,18 +35394,18 @@ function misRecompense(c){ // ce que le carnet débloque, en clair
   if(r.cat){const d=COSM[r.cat].find(x=>x.id===r.id);return d?TR(d.n):'';}
   return fmtC(r.cash||0);
 }
-let misT=0;const MIS_NEW=[]; // missions réussies PENDANT cette partie (l'écran de mort les rejoue)
+let misT=0;const MIS_NEW=[],MIS_NEWG=[]; // missions réussies PENDANT cette partie (l'écran de mort les rejoue)
 function misOn(){return started&&!gameOver&&!SANDBOX&&!PARK.on;}
 function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIRECT, pas à la fin
   if(!misOn()){if(misTick._f!==0){misTick._f=0;try{misFocusMaj();}catch(e){}}return;} // (2026-09-30) la mission suivie s'éteint hors course
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
   misT-=dt;if(misT>0)return;misT=.25;
   if(TUTO.on||(MIS0.on&&RUNX.t-MIS0.t<20)){misTick._f=1;try{misFocusMaj();}catch(e){}return;} // (2026-10-14, gameplay) rien ne se coche pendant la leçon, ni dans les 20 premières secondes de la course qui suit le permis (MIS0)
-  const s=misEtat(),c=carnet(s.n);
-  for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
+  const s=misEtat();
+  for(let i=0;i<3;i++){if(s.ok[i])continue;const m=misM(s,i),v9=misVal(m.k);
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
     if(v9>=m.v){
-      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);
+      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);MIS_NEWG.push(s.w[i]); // (la file) la case ET le numéro : à la fin de la partie la case aura pris la mission suivante
       misBanniere('MISSION RÉUSSIE',misTxt(m,true),'+'+fmtC(m.p),'coche');
       try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
@@ -35343,13 +35415,16 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
 /* LE CARNET SE FERME À LA FIN DE LA PARTIE, jamais en vol : sinon le carnet suivant s'ouvrirait avec les
    compteurs d'une partie déjà bien entamée, et ses missions tomberaient toutes seules — gagnées sans
    avoir été lues. Rend la récompense (pour l'écran de mort) ou null. */
-function misFin(){
-  const s=misEtat();if(!(s.ok[0]&&s.ok[1]&&s.ok[2]))return null;
-  const c=carnet(s.n),r=c.r;
-  if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
-  if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);bankMaxMaj();}
-  const out={n:s.n+1,nom:misRecompense(c),car:r.car,cat:r.cat,id:r.id};
-  s.n++;s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;SAVE.flush(); // (2026-09-30) carnet neuf : plus de mission suivie
+function misFin(){ // (2026-10-15, la file) chaque case relevée prend la mission suivante de la route ; les jalons franchis versent leur récompense
+  const s=misEtat();if(!(s.ok[0]||s.ok[1]||s.ok[2]))return null;
+  let hi=Math.max(s.w[0],s.w[1],s.w[2]);
+  for(let i=0;i<3;i++)if(s.ok[i]){s.w[i]=++hi;s.ok[i]=0;s.best[i]=0;if(s.f===i)s.f=-1;} // une mission neuve : plus suivie, meilleur essai à zéro
+  const n2=Math.floor(Math.min(s.w[0],s.w[1],s.w[2])/3);let out=null;
+  while(s.n<n2){const c=carnet(s.n),r=c.r; // (une partie peut en franchir deux : chacun verse la sienne, l'écran de mort montre la dernière)
+    if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
+    if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);bankMaxMaj();}
+    out={n:s.n+1,nom:misRecompense(c),car:r.car,cat:r.cat,id:r.id};s.n++;}
+  SAVE.flush();
   return out;
 }
 // LA BANNIÈRE DE CONTRAT : descend du haut de l'écran, 2,4 s — le jeu continue dessous
@@ -35486,15 +35561,15 @@ function objRender(el){
      plus avancé durant la partie ») LA PORTE DES MISSIONS. Le défi que CETTE partie a le plus approché (celui qu'elle vient de relever
      passe devant), sa jauge qui se remplit de la partie sous les yeux, et au bout ce qu'il rapporte — l'objet, dans la couleur de sa
      famille. Touchée : l'écran MISSIONS. (L'ancien objectif d'achat — la prochaine caisse à s'offrir — vit au garage et sur sa pastille.) */
-  const s=misEtat(),c=carnet(s.n),g=misGain(c);let bi=-1,bp=-1;
-  for(let i=0;i<3;i++){const nf=MIS_NEW.indexOf(i)>=0;if(s.ok[i]&&!nf)continue;
-    const p=nf?2:misPart(c.m[i],misVal(c.m[i].k));if(p>bp){bp=p;bi=i;}}
+  const s=misEtat(),c=carnet(s.n),g=misGain(c);let bm=null,bp=-1,nf=false; /* (2026-10-15, la file) la mission relevée par CETTE partie passe devant ; sinon la case ouverte pendant elle qu'elle a le plus approchée (une case remplie à la fin de la partie porte déjà la mission suivante : on l'ignore) */
+  if(MIS_NEWG.length){bm=misG(MIS_NEWG[MIS_NEWG.length-1]);nf=true;}
+  else for(let i=0;i<3;i++){if(s.ok[i]||MIS_NEW.indexOf(i)>=0)continue;const m9=misM(s,i),p=misPart(m9,misVal(m9.k));if(p>bp){bp=p;bm=m9;}}
   el.className='mObj misPorte';el.setAttribute('data-m','mis');el.style.setProperty('--rc',g.col);
-  let pips='';for(let i=0;i<3;i++)pips+='<u'+(s.ok[i]?' class="ok"':'')+'></u>';
-  if(bi<0){ // les trois déjà relevés : le carnet se ferme à la fin de la partie (MIS_REC) — filet
+  const pp9=misPips(s);let pips='';for(let i=0;i<3;i++)pips+='<u'+(pp9[i]?' class="ok"':'')+'></u>';
+  if(!bm){ // filet : rien à montrer
     el.innerHTML='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
-      +'<div class="obBig obGain">'+g.nom+'</div><div class="obFt"><span>3 / 3</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';return;}
-  const m=c.m[bi],nf=MIS_NEW.indexOf(bi)>=0,v=nf?m.v:Math.min(m.v,misVal(m.k)),w=nf?100:misPart(m,v)*100;
+      +'<div class="obBig obGain">'+g.nom+'</div><div class="obFt"><span>'+(3-misReste(s))+' / 3</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';return;}
+  const m=bm,v=nf?m.v:Math.min(m.v,misVal(m.k)),w=nf?100:misPart(m,v)*100;
   el.innerHTML='<div class="obHd"><span>'+pxi(nf?'coche':'cible')+' '+TR(nf?'MISSION RÉUSSIE !':'MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
     +'<div class="obBig">'+misTxt(m)+'</div>'
     +'<div class="obBar'+(nf?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
@@ -35531,15 +35606,15 @@ function misGain(c){ // l'OBJET d'un carnet : son nom, la couleur de sa famille,
 }
 function misGainFig(g){return g.car!=null?objFig({car:g.car}):g.cat?objFig({cat:g.cat,i:g.i}):'<i class="obFig misCash">'+pxi('piece')+'</i>';}
 function misRender(){
-  const s=misEtat(),c=carnet(s.n),g=misGain(c),fait=s.ok.reduce(function(a,b){return a+(b?1:0);},0);
+  const s=misEtat(),c=carnet(s.n),g=misGain(c),fait=3-misReste(s);
   const tab=$('misTab');
   if(tab){let h='<div class="misDefs">';
-    c.m.forEach(function(m,i){const ok=!!s.ok[i],b=s.best[i]||0;
+    [0,1,2].map(function(i){return misM(s,i);}).forEach(function(m,i){const ok=!!s.ok[i],b=s.best[i]||0;
       h+='<div class="misDef'+(ok?' ok':'')+'"><div class="misL">'+(ok?pxi('coche'):'<i class="misN">'+(i+1)+'</i>')+'<span>'+misTxt(m)+'</span></div>'
         +'<div class="misBar"><u data-p="'+(ok?1:misPart(m,b)).toFixed(3)+'"></u></div>'
         +'<div class="misP"><span>'+(ok?TR('RELEVÉ'):b>0?misProgV(m,b):TR('À TENTER'))+'</span><b>+'+fmtC(m.p)+'</b></div></div>';});
     h+='</div>';
-    let j='';for(let i=0;i<3;i++)j+='<i'+(s.ok[i]?' class="ok"':'')+'><u data-p="'+(s.ok[i]?1:misPart(c.m[i],s.best[i])).toFixed(3)+'"></u></i>';
+    let j='';for(let i=0;i<3;i++)j+='<i'+(s.ok[i]?' class="ok"':'')+'><u data-p="'+(s.ok[i]?1:misPart(misM(s,i),s.best[i])).toFixed(3)+'"></u></i>';
     h+='<div class="misCol"><div class="misPrix'+(g.voir?' voir':'')+(fait===3?' plein':'')+'"'+(g.voir?' data-m="misVoir" role="button"':'')+' style="--rc:'+g.col+'">'
       +'<small>'+TR('A GAGNER')+'</small>'+misGainFig(g)+'<b class="misNom">'+g.nom+'</b><span class="misFam">'+g.fam+'</span>'
       +'<div class="misJauge" aria-hidden="true">'+j+'</div><span class="misCpt"><b>'+fait+'</b> / 3</span>'
@@ -42858,7 +42933,7 @@ const SAVE={
     if(d.mis&&typeof d.mis==='object'){c.mis.n=Math.max(0,Math.min(999,Math.round(+d.mis.n)||0));
       if(Array.isArray(d.mis.ok))c.mis.ok=[0,1,2].map(i=>d.mis.ok[i]?1:0);
       if(Array.isArray(d.mis.best))c.mis.best=[0,1,2].map(i=>Math.max(0,Math.min(1e30,+d.mis.best[i]||0)));
-      c.mis.f=[0,1,2].indexOf(d.mis.f)>=0?d.mis.f:-1;if(d.mis.pop)c.mis.pop=1;} // (2026-10-14, chasse aux bugs) `pop` : la remise à zéro des carnets POP est faite (voir popCarnets) // (2026-09-30) la mission SUIVIE (cochée à l'écran MISSIONS du garage), -1 = aucune // (2026-09-28) le meilleur essai de chaque défi (la jauge de l'écran MISSIONS)
+      c.mis.f=[0,1,2].indexOf(d.mis.f)>=0?d.mis.f:-1;if(Array.isArray(d.mis.w)&&d.mis.w.length===3)c.mis.w=d.mis.w.map(x=>Math.max(0,Math.min(99999,Math.round(+x)||0))); /* (2026-10-15) la file : misFile la vérifie et la reconstruit si elle ment */ if(d.mis.pop)c.mis.pop=1;} // (2026-10-14, chasse aux bugs) `pop` : la remise à zéro des carnets POP est faite (voir popCarnets) // (2026-09-30) la mission SUIVIE (cochée à l'écran MISSIONS du garage), -1 = aucune // (2026-09-28) le meilleur essai de chaque défi (la jauge de l'écran MISSIONS)
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
@@ -51247,7 +51322,7 @@ function garageShow(i){
 /* LA BARRE DES FAMILLES + LA BANDE DE VIGNETTES. La barre ne se réécrit que si la famille ou les comptes changent ; la bande
    se reconstruit au changement de famille et ne fait sinon que déplacer la sélection (et se recentrer dessus). Les photos
    viennent du studio (`carPhoto`), UNE par image au plus (`photoFile`) : ouvrir une famille de 16 ne gèle pas le garage. */
-function gDefiEt(n){try{const s=misEtat();if(n!==s.n+1)return '';return pxi('cible')+' '+s.ok.reduce(function(a,b){return a+(b?1:0);},0)+' / 3';}catch(e){return '';}} // la vignette de la caisse que les MISSIONS en cours font gagner
+function gDefiEt(n){try{const s=misEtat();if(n!==s.n+1)return '';return pxi('cible')+' '+(3-misReste(s))+' / 3';}catch(e){return '';}} // la vignette de la caisse que les MISSIONS en cours font gagner
 function garageFamilles(r){
   const md=gModeM();if(md==='shop'){gShopJour();return;} /* (2026-10-10) la BOUTIQUE est devenue LA BOUTIQUE DU JOUR (gShopJour) */if(md==='inv'||md==='tous'){gStripModeVoitures();return;} // (2026-10-10) SEE ALL ITEMS (`tous`) : la page de l'inventaire, tout ce qui s'achète — (2026-10-09) INVENTAIRE : voir « LA CONSOLE À TROIS MODES » — la BOUTIQUE garde les familles (Léo : « remets les raretés dans la boutique »)
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}bar.classList.remove('gModeBar');
@@ -51260,7 +51335,7 @@ function garageFamilles(r){
       return '<button class="gR'+(x.id===r?' on':'')+(shop&&!v?' vide':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" aria-label="'+nm9+' '+lb+'" title="'+nm9+'" style="--rc:'+x.c+'"><span class="gRn">'+nm9+'</span>'+pxi(RAR_LOGO[x.id]||'etoile')+'</button>';}).join('');} // (2026-10-09) le LOGO de la famille, plus de compte
   {const ro=bar.querySelector('.gR.on');if(ro&&bar._on!==r){bar._on=r;const x=ro.offsetLeft-(bar.clientWidth-ro.offsetWidth)/2;try{bar.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){bar.scrollLeft=x;}}} // la famille active vient se montrer
   const L=shop?rarListe(r).filter(gAVendre):rarListe(r),ri=rarInfo(r),own=L.filter(carUnlockedVrai).length; // (charte v4) posséder une caisse de plus REFAIT la bande (elle gardait son cadenas après l'achat) — (2026-10-09) en BOUTIQUE, celles à vendre seulement
-  const mk9=(function(){try{const s=misEtat();return s.n+':'+s.ok.join('');}catch(e){return '';}})(); // (2026-09-29) les défis relevés changent la vignette de la caisse en jeu
+  const mk9=(function(){try{const s=misEtat();return s.n+':'+s.w.join(',')+':'+s.ok.join('');}catch(e){return '';}})(); // (2026-09-29) les défis relevés changent la vignette de la caisse en jeu
   if(st._r!==r||st._n!==L.length||st._eq!==eq||st._o!==own||st._m!==mk9||st._md!==md){st._r=r;st._n=L.length;st._eq=eq;st._o=own;st._m=mk9;st._md=md;
     const lu9={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1}[r]||.5, // (2026-10-07, Léo) LA LUEUR de la famille : plus elle est rare, plus elle brille — les crans de l'inventaire (INV_LUEUR)
       lg9=';--rg:'+invRgba(ri.c,.22+.28*lu9)+';--rg2:'+invRgba(ri.c,.55+.4*lu9); // en rgba, pas de color-mix (les vieux iPhone, voir hudDA §7)
@@ -51326,7 +51401,7 @@ function gStripModeVoitures(){
   const m=GMODE.m,eq=SAVE.d.equipped|0,L=gModeListeVoitures(m);
   const lbl=L.length;
   const kb='mode:'+m+':'+lbl+':'+LANG;if(bar._k!==kb){bar._k=kb;bar._on=null;gModeTete(bar,m,lbl);}
-  const mk9=(function(){try{const s9=misEtat();return s9.n+':'+s9.ok.join('');}catch(e){return '';}})();
+  const mk9=(function(){try{const s9=misEtat();return s9.n+':'+s9.w.join(',')+':'+s9.ok.join('');}catch(e){return '';}})();
   const k='mode:'+m+':'+L.join(',')+':'+eq+':'+mk9;
   if(st._r!==k){st._r=k;st._n=-1;
     if(!L.length)st.innerHTML='<div class="gVide">'+sansAcc(TR(m==='inv'?'RIEN ICI':'TOUT EST A TOI'))+'</div>';
@@ -55233,7 +55308,7 @@ function hubSync(){ // appelée à chaque image de l'atelier (garageRender) et �
   if(GTN&&GTN.el)GTN.el.classList.toggle('on',t==='atl'&&!cache); // (2026-10-09) LA JAUGE : dans l'atelier seulement
   {const hm=document.getElementById('gHomeMini');if(hm){hm.classList.toggle('on',t==='atl'&&!cache);try{gHomePlace(true);}catch(e){}}} // (2026-10-09) le PETIT HOME aussi
   if(t!==t0)el.querySelectorAll('.ghT').forEach(function(b){const on=b.getAttribute('data-h')===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});
-  if(t&&!t0)try{const s9=misEtat();el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});}catch(e){}}
+  if(t&&!t0)try{const s9=misEtat();const p9=misPips(s9);el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});}catch(e){}}
 function hubVa(t,b){ // changer d'onglet : la feuille CARRIÈRE se pose par-dessus l'atelier (qui reste ouvert dessous), les deux autres sont des modes de l'atelier
   const cur=hubCtx();if(!cur||GAR.go||ecranWipe._on)return;
   if(b)uiPop(b);uiClic('onglet');
@@ -55443,7 +55518,7 @@ function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGN
     if(!SF.prochain)SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);const t=SF.prochain,cle=t.meteo==='orage'&&t.carte==='nuages'?'orage':t.meteo==='nuit'&&t.carte==='ville'?'villeN':t.meteo==='satellites'?'espaceH':t.carte;
     el9.querySelector('.gvN').textContent='1';el9.querySelector('.gvT').textContent=sansAcc(TR(SF_CARTES[t.carte].nm));el9.querySelector('.gvD').textContent=sansAcc(TR(SF_METEOS[t.meteo]));
     el9.style.setProperty('--lc',GV_TEINTE[t.carte]||'#5ee6ff');try{el9.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}
-    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!s9.ok[k]);});}catch(e){}
+    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}
     return;}}
   const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
     el.querySelector('.gvN').textContent=tuto?'P':'1';
@@ -55452,7 +55527,7 @@ function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGN
     el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));
     try{el.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}}
   gvNivs(false,true);
-  const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!s9.ok[k]);});}catch(e){}
+  const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}
 }
 /* LE TIROIR DES NIVEAUX ACCOMPLIS (`#gvNivs`) : la vignette touchée l'ouvre, retouchée (ou un tap ailleurs, Échap, HOME, SHOP, JOUER) le
    referme. Dedans : les niveaux TERMINÉS (coche), puis le prochain à battre et ce qui reste à découvrir — ou, s'il n'y en a aucun, la phrase qui
@@ -56446,7 +56521,7 @@ function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, l
   GAR.lvlW=w;const n=Math.min(CARRIERE[w].niveaux.length,carrFait(w)+1);
   const gn=$('glN');if(gn)gn.textContent=TR('NIVEAU')+' '+n;
   const gm=$('glM');if(gm)gm.textContent=sansAcc(TR(CARRIERE[w].nm));
-  const pp=$('gMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});
+  const pp=$('gMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});
 }
 function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il soit à l'écran
   const an=$('gMisAncre');if(!an||!GAR.misPos)return;
@@ -56509,7 +56584,7 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
   if(s.f>=0&&s.ok[s.f])s.f=-1;
   GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
-    if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
+    if(a.k==='d'){const m=misM(s,a.i),ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
       cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
       in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
     else if(a.k==='r'){cls=pt='r';
@@ -56555,51 +56630,56 @@ function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à
 }
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
-function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir MENU_SACHA // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
+function gmRenderS(vu){ // (2026-10-15, Sacha : « refonte du système de mission, plus de petits groupes de trois, l'interface la plus claire possible, toujours dans l'écran caméra de surveillance du garage ») — vu : l'écran est déjà là (une mission cochée) : les lignes ne rejouent pas leur entrée
+  /* UN SEUL PANNEAU, qui se lit de haut en bas comme une liste de courses : EN COURS (les trois missions ouvertes, dans l'ordre de la
+     route — chacune sa jauge, son meilleur essai, sa prime ; une étoile sur celles qui mènent au prochain jalon) → PROCHAINE RÉCOMPENSE
+     (l'objet, dans la couleur de sa famille, et combien de missions il reste) → À VENIR (les missions suivantes, et les jalons d'après).
+     Plus de cartes épinglées sur les meubles ni de fils : la caméra de surveillance reste (trame, balayage, hologrammes 3D), elle
+     n'est plus qu'un fond. Toucher une mission ouverte la SUIT (en course, #misFocus), la retoucher la lâche. */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el||!sv)return;
-  const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
+  const s=misEtat(),g=misGain(carnet(s.n)),mort=started&&gameOver,jal=3*s.n+2,hi=Math.max(s.w[0],s.w[1],s.w[2]);
   if(s.f>=0&&s.ok[s.f])s.f=-1;
-  GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
-    if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
-      cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
-    else{const gN=misGain(carnet(s.n+1));cls=pt='r';
-      in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'
-        +'<div class="gmRw">'+misGainFig(g)+'<div><div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small></div></div>'
-        +'<div class="gmNext">'+pxi('verrou')+' '+TR('ENSUITE')+' · '+sansAcc(gN.nom)+'</div>';}
-    h+='<i class="gmPt '+pt+'"></i><div class="gmC '+cls+(vu?' vu':'')+'" data-k="'+k+'" style="--i:'+k+'" role="button">'+in9+'</div>';});
-  el.innerHTML=h;
-  let p9='';for(let i=0;i<GMIS.ancres.length-1;i++)p9+='<path class="ch'+(i===GMIS.ancres.length-2?' r':'')+'"/>';
-  for(let i=0;i<GMIS.ancres.length;i++)p9+='<path class="lead'+(GMIS.ancres[i].k==='d'&&s.f===GMIS.ancres[i].i?' f':GMIS.ancres[i].k==='r'?' r':'')+'"/>';
-  sv.innerHTML=p9;
-  GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
-  GMIS.paths=[].slice.call(sv.querySelectorAll('path'));
-  GMIS.last=null;GMIS.lw=0; // les cases se recalculent (nouvelles cartes, nouveaux textes)
-  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE MISSION EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
+  const ord=[0,1,2].sort(function(a,b){return s.w[a]-s.w[b];});
+  const tj=ord.every(function(i){return s.w[i]<=jal;}); // les trois mènent au jalon : l'étoile ne distinguerait rien
+  let h='<div class="glA"><div class="glSec">'+pxi('cible')+'<span>'+TR('EN COURS')+'</span></div>';
+  ord.forEach(function(i,r){const m=misM(s,i),ok=!!s.ok[i],f=s.f===i,b=Math.min(m.v,s.best[i]||0),nv=mort&&MIS_NEW.indexOf(i)>=0,j=!tj&&s.w[i]<=jal;
+    h+='<div class="glM'+(ok?' ok':'')+(f?' f':'')+'" data-s="'+i+'" role="button" tabindex="0" aria-pressed="'+f+'" style="--i:'+r+'">'
+      +'<span class="gmChk"><i></i></span>'
+      +'<div class="glTx"><b>'+misTxt(m)+'</b><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u>'
+      +'<small>'+(ok?TR('REUSSI'):(f?TR('SUIVIE')+' · ':'')+(b>0?TR('MEILLEUR ESSAI')+' '+misProgV(m,b):TR('PAS ENCORE TENTEE')))+'</small></div>'
+      +'<div class="glPr">'+(nv?'<i class="glNv">'+TR('NOUVELLE')+'</i>':'')+'<b>+'+fmtC(m.p)+'</b>'+(j?'<i class="glJ" aria-hidden="true">'+pxi('etoile')+'</i>':'')+'</div></div>';});
+  const rs=misReste(s);
+  h+='</div><div class="glB"><div class="glSec r">'+pxi('etoile')+'<span>'+TR('PROCHAINE RECOMPENSE')+'</span></div>'
+    +'<div class="glRec'+(g.voir?' voir':'')+'" style="--rc:'+g.col+';--i:3"'+(g.voir?' role="button" tabindex="0"':'')+'>'+misGainFig(g)
+    +'<div class="glTx"><b>'+sansAcc(g.nom)+'</b><small>'+sansAcc(g.fam||'')+'</small><em>'+(rs>1?TR('ENCORE {n} MISSIONS').replace('{n}',rs):rs===1?TR('ENCORE 1 MISSION'):TR('REUSSI'))+'</em></div>'
+    +(g.voir?'<div class="glPr">'+pxi('droite')+'</div>':'')+'</div>';
+  h+='<div class="glSec n">'+pxi('verrou')+'<span>'+TR('A VENIR')+'</span></div><div class="glVen">';
+  for(let g2=hi+1;g2<=hi+4;g2++){const m=misG(g2);h+='<div class="glV"><span>'+misTxt(m)+'</span><b>+'+fmtC(m.p)+'</b></div>';
+    if(g2%3===2){const gg=misGain(carnet((g2-2)/3));h+='<div class="glV j" style="--rc:'+gg.col+'">'+pxi('etoile')+'<span>'+sansAcc(gg.nom)+'</span><small>'+sansAcc(gg.fam||'')+'</small></div>';}}
+  h+='</div></div>';
+  el.innerHTML='<div id="gmListe"'+(vu?' class="vu"':'')+'>'+h+'</div>';
+  sv.innerHTML='';GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
+  const sous=$('gmSous');if(sous)sous.textContent=TR('CHAQUE MISSION EN UNE PARTIE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?'':TR('TOUCHE UNE MISSION POUR LA SUIVRE'); // la mission suivie se voit déjà : sa ligne est en or
+  try{gmPlaceL(VP.w,VP.h);}catch(e){} // tout de suite : pas une image dans la mauvaise mise en page
 }
-/* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
-   s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
-   « ENSUITE » sortaient de l'écran. Désormais l'œil LIT une liste et la scène MONTRE où vit chaque défi : les TROIS DÉFIS en une rangée
-   de cases égales (debout : sous le titre ; couché : à droite du titre), la RÉCOMPENSE en bas (debout : au-dessus des boutons ; couché :
-   à gauche d'eux) avec « ENSUITE » dedans ; chaque carte est reliée à son meuble par un FILET fin, la constellation des points reste,
-   discrète. Les cases ne se recalculent que si l'écran change (taille, textes) : chaque image ne fait que suivre les points. */
-function gmPlace(W,H){
-  const C=GMIS.cards,Q=GMIS.Q||(GMIS.Q=[]),hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),gp=8,land=W>H*1.25;
-  const g0=rh&&rh.width?rh.left:16;
-  const top=land?(rh&&rh.height?rh.top:12):(rh&&rh.height?rh.bottom+12:64);
-  const xL=land?(rh&&rh.width?rh.right+16:W*.42):g0,xR=W-g0;
-  const cw=Math.floor(Math.min(land?200:180,(xR-xL-2*gp)/3));
-  for(let k=0;k<3&&k<C.length;k++){C[k].style.width=cw+'px';C[k].style.minHeight='';}
-  let hM=0;for(let k=0;k<3&&k<C.length;k++)hM=Math.max(hM,C[k].offsetHeight);
-  for(let k=0;k<3&&k<C.length;k++){C[k].style.minHeight=hM+'px';Q[k]=[xL+k*(cw+gp),top,cw,hM];}
-  const r=C[3];if(r){const bl=rb&&rb.width?rb.left:W,bt=rb&&rb.height?rb.top:H-14,bb=rb&&rb.height?rb.bottom:H-14;
-    const rw=Math.floor(land?Math.min(440,bl-g0-14):W-2*g0);r.style.width=rw+'px';const rhh=r.offsetHeight;
-    const hb=document.documentElement.classList.contains('hubOn')&&$('gHub')?$('gHub').getBoundingClientRect():null; // (2026-10-06) LE HUB, couché : la barre tient le bas à gauche
-    Q[3]=[g0,land?(hb&&hb.height?Math.min(bb,hb.top-12):bb)-rhh:bt-12-rhh,rw,rhh];}
-  for(let k=0;k<C.length;k++)if(Q[k])C[k].style.transform='translate('+Q[k][0].toFixed(1)+'px,'+Q[k][1].toFixed(1)+'px)';
+function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché : DEUX — les missions dans la colonne de JOUER, au-dessus de lui ; la récompense et la suite à gauche, sous le titre
+  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
+  const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
+  L.classList.toggle('land',land);
+  if(land){const tp=rh&&rh.height?rh.top:12,l=rb&&rb.width?rb.left:W*.5,r=rb&&rb.width?W-rb.right:g0,bB=H-(rb&&rb.height?H-rb.bottom:14);
+    L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
+    if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}
+    if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=px(g0);Bk.style.width=px(Math.max(200,Math.min(420,l-g0-16)));Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bB-t2));}
+    return;}
+  [A,Bk].forEach(function(e){if(e)e.style.left=e.style.right=e.style.top=e.style.width=e.style.maxHeight='';});
+  const tp=(rh&&rh.height?rh.bottom:60)+10;
+  L.style.left=px(g0);L.style.right=px(g0);L.style.top=px(tp);L.style.maxHeight=px(Math.max(120,bt-12-tp));
 }
-function gmSuitS(){ // chaque image : les points sur leurs meubles, les filets des cartes, la constellation (les cartes, elles, ne bougent pas)
+function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale si l'écran change ; les hologrammes suivent l'orientation
+  {const W=VP.w,H=VP.h,now=performance.now();
+   if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlaceL(W,H);}
+   const land=W>H*1.25;if(GMIS.land!==land){GMIS.land=land;gmHoloPlace(land);}}
   if(!GMIS.cards||!GMIS.cards.length)return;
   const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]);
   const now=performance.now();
@@ -56637,7 +56717,7 @@ function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) :
   const s=misEtat(),f=s.f,e=misFocusEl();
   if(!misOn()){if(f>=0&&s.ok[f]){s.f=-1;SAVE.mark();}if(e._on){e.classList.remove('on','ok');e._on=0;}e._okT=0;return;}
   if(f<0){if(e._on){e.classList.remove('on','ok');e._on=0;}return;}
-  const m=carnet(s.n).m[f];if(!m)return;const ok=!!s.ok[f];
+  const m=misM(s,f);if(!m)return;const ok=!!s.ok[f];
   if(ok&&!e._okT)e._okT=performance.now();
   if(ok&&performance.now()-e._okT>3200){if(e._on){e.classList.remove('on','ok');e._on=0;}return;}
   const t9=misTxt(m),p9=ok?TR('REUSSI'):misProg(m),w9=Math.round(100*(ok?1:misPart(m,misVal(m.k))))+'%';
@@ -56647,6 +56727,10 @@ function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) :
   if(!e._on){e.classList.add('on');e._on=1;}
   e.classList.toggle('ok',ok);
 }
+window.dbgMisFile=function(){const s=misEtat(),o=JSON.stringify(s); /* (2026-10-15) banc de la FILE : deux fins de partie simulées sur une copie, l'état est rendu tel quel */
+  try{s.n=0;s.w=[0,1,2];s.ok=[1,1,0];s.best=[0,0,0];s.f=1;const r1=misFin(),a={w:s.w.slice(),n:s.n,f:s.f,r:r1};
+    s.ok=[0,0,1];const r2=misFin();return {a:a,b:{w:s.w.slice(),n:s.n,r:r2&&r2.nom,pips:misPips(s),reste:misReste(s)}};}
+  finally{SAVE.d.mis=JSON.parse(o);}};
 window.dbgMissions=function(f){if(f!=null){misEtat().f=f;SAVE.flush();}if(garageOn&&!GAR.go&&(f!=null||!gEl.classList.contains('missions')))garMode('missions'); /* (ne reconstruit pas l'écran à chaque lecture) */return {mk:+GMIS.mk.toFixed(2),f:misEtat().f,cartes:GMIS.cards?GMIS.cards.length:0};};
 function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
   if((started&&!gameOver)||pendingScore!=null)return;               // une course tourne, ou un nom se saisit
@@ -56662,12 +56746,18 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
  clicM(document.querySelector('#gmHead .c6Ret'),function(){uiClic('retour');garMisRetour();}); // (2026-10-14, charte 6) le ◀ de l'en-tête = HOME (masqué sous c6)             // HOME : le menu (ou la VITRINE, si on en vient)
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
+   const l9=e.target.closest&&e.target.closest('.glM,.glRec'),s9=misEtat(); // (2026-10-15) le panneau MISSIONS en liste
+   if(l9&&l9.classList.contains('glM')){const i=+l9.getAttribute('data-s');if(s9.ok[i]){uiClic('refus');return;}
+     s9.f=s9.f===i?-1:i;SAVE.flush();uiClic(s9.f>=0?'on':'off');hap(10);gmRenderS(true);const l2=document.querySelector('#gmListe .glM[data-s="'+i+'"]');if(l2)l2.classList.add('flash');return;}
+   if(l9){const g=misGain(carnet(s9.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
+     ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});return;}
    const c9=e.target.closest&&e.target.closest('.gmC');if(!c9)return;const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
    if(a.k==='d'){if(s.ok[a.i]){uiClic('refus');return;}s.f=s.f===a.i?-1:a.i;SAVE.flush();uiClic(s.f>=0?'on':'off');hap(10);gmRender(true);
      const c2=GMIS.cards[GMIS.ancres.indexOf(a)];if(c2)c2.classList.add('flash');}
    else if(a.k==='r'){const g=misGain(carnet(s.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
      ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});}
-   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});}
+   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});
+   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.glM,.glRec')){e.preventDefault();e.stopPropagation();e.target.click();}});}
  clicM(document.querySelector('#gMenuBas .gBoutique'),function(){uiClic('nav');ecranWipe(function(){garMode('boutique');});}); // la BOUTIQUE : l'atelier et ses vitrines
  clicM(document.querySelector('#gMenuBas .gLevel'),function(){uiClic('nav');carrVue(GAR.lvlW||0);});            // le NIVEAU : la carrière, sur le monde en cours
 }
@@ -60298,7 +60388,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(sous==null)return;let b=el.querySelector(':scope>.c6aS');if(!b){b=document.createElement('small');b.className='c6aS';el.appendChild(b);}
       b.textContent=sous;b.classList.toggle('or',!!or);};
     let niv='';try{niv=carrPlayNom();}catch(e){}
-    const ms=misEtat(),ok9=(ms.ok||[]).filter(Boolean).length,n9=(ms.ok||[0,0,0]).length;
+    const ms=misEtat(),ok9=3-misReste(ms),n9=3; // (2026-10-15, la file) vers le prochain jalon
     const ci=Math.min(CARS.length-1,Math.max(0,level|0)),nm=CARS[ci]&&CARS[ci].name||'';
     let px=Infinity,pe='';for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||carOwned(i))continue;const v=parseFloat(String(u.eur).replace(',','.'));if(v<px){px=v;pe=u.eur;}}
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
@@ -60380,7 +60470,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     }else if(mCur==='home'){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
         if(r9){MIS_REC=r9;misBanniere('MISSIONS RÉUSSIES !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
-      {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
+      {const pp=$t('mMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});} // la porte MISSIONS : une case allumée par défi relevé
       soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop'),c6=document.documentElement.classList.contains('c6'); // (2026-10-14, charte 6) la pastille = un carré d'or SANS chiffre ni mot (« 39 » ne disait rien)
