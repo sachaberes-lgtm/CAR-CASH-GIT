@@ -42,6 +42,22 @@
 - BANCS (vrais clics) : Chrome muet — l'onglet Nouveaux, chaque son, + jusqu'au 30e : le son sort en 0,3-0,6 s, le lecteur nomme chaque étape,
   0 erreur ; WebKit (le moteur de Safari, faux iPhone, son exigeant un vrai toucher) : les trois jouent dès le 1er toucher (0,4 s), 0 erreur.
 - À JUGER PAR LÉO À L'OREILLE (rien n'est dans le jeu) : s'il en aime un, le pouce ; ses notes ✎ diront quoi retoucher.
+## LE GLACIER v2 — LA PENTE, LA ROUTE NUE, LE VERGLAS ET ICE SKATE (2026-10-15, Sacha : « dans la map neige il faut vraiment que ce soit une montagne qui dévale, pas vraiment plat comme ça ; pas besoin de mettre les mêmes modules que dans les nuages ; rajoute une belle traîne dans la neige quand la voiture passe dedans ; et une animation et une figure ICE SKATE qui rapporte de l'aura quand on glisse sur la glace, la voiture doit un peu partir sur le côté »)
+- LA PENTE (`genBanq`) : départ 8 %, couloirs 19-28 % (cassure 36 %), jambes des lacets 7,5 %, chute d'un tour 66-78 m, plancher 5 %.
+  Banc Node (`raccourcis-node`, 4 graines) : dénivelé ~700 → ~1 170 m sur 9 km, 13-14 zones de raccourci, chute moyenne ~95 m, gain
+  moyen ~1,27 km. Plus raide (82-94 m par tour, jambes à 10 %) : +70 m de dénivelé seulement et un raccourci sur cinq de moins, écarté.
+- LA ROUTE NUE (`BANQ9` dans buildTrack, comme `JADE9`) : ni pad d'or, ni flaque, ni plot ; la LIGNE PARFAITE n'y pose que ses fruits.
+  Aucun tirage `rnd` déplacé (les filtres tombent après les tirages).
+- LE VERGLAS (`bkVerglasPose`, `BANQ.verg`, matière `BK_VG_FS`) : des plaques de glace noire SUR la route (80-150 m, dans les courbes,
+  toutes les 0,6-1 km, deux faces, jamais sur une cassure ; flux aléatoire à part `seed^0x1CE5`). Dessus (`banqVerglas`, boucle de
+  conduite après les flaques) : le volant mord à `BK_VG.grip` (.42), la caisse PART SUR LE CÔTÉ (`v.sd`, ≤ .30 rad/s de cap), la
+  carrosserie se met en crabe et ondule comme un patineur (`BKV.yaw`, posé après le power-slide), givre des roues arrière, rayures de patins.
+- LA FIGURE ICE SKATE (`bkSkate`) : sur le verglas OU en glissant sur un lac / un pic (elle remplace PATINOIRE) — l'aura monte
+  (6 + 24 × vitesse/vmax par seconde : ~80-100 par plaque, au banc ~450 avec 22 + 130 — trop face aux ~40 d une figure) dans `#iceHud` (« ICE SKATE +X », cyan, sous SLIDE, qui bat à chaque dizaine) ; payée à la sortie
+  dans la chaîne (famille 'iceskate', brut) après 0,4 s de glisse ; perdue à l'explosion, au replacement, quand la montagne ramène.
+- LA TRAÎNE DANS LA POUDREUSE : la tranchée v2 (plus large, fond bleu plus profond, deux ornières crantées, bourrelets qui scintillent,
+  110 s de vie au lieu de 70), une gerbe plus fournie et un VOILE de poudre lente qui reste en suspens derrière la caisse.
+- Console : `dbgBanq('verglas')`, `dbgBanq('verglas',{n,v})` (la caisse 40 m avant la plaque n, à v km/h).
 
 ## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
 - ⚠ ANNULÉ le même jour (v458) — Léo : « reviens avant, j'avais pas vu que tu l'avais déjà faite unique » : la v456 avait déjà une roue arrière gauche UNIQUE (au kit, rouillée et voilée). index.html = celui de la v456 (167de9de) ; ce qui suit n'est plus en jeu.
@@ -146,6 +162,29 @@
   sur chaque nouvel instantané (`ecartDe` / `ecartPose`). « Copier mes choix » (en ligne, quand il y a un écart) le met dans le presse-papiers :
   `CHOIX BIBLIOTHÈQUE {…}` ; collé dans la discussion → `python3 atelier-son/choix_colle.py <texte>` le rejoue sur musique-moteur.json (sans risque
   deux fois). Sur l'ordi avec le serveur (127.0.0.1:9200), rien ne change : chaque choix va tout de suite dans musique-moteur.json.
+
+## LES NOTES DE LÉO, À LA LETTRE (2026-10-15 après-midi, pôle SON ; Léo : « juste respecte les consignes »)
+- LA LEÇON : une V2 À CÔTÉ seulement quand sa note la demande (FLAMME DE TONNERRE « faire une V2 à côté », NÉNUPHARS VELOURS « tenter une V2 ») ;
+  sinon la retouche se joue SUR la musique (`direct: true` dans `assets/audio/music/direct/retouches-bleu.js` : sa ligne, son nom, sa note ;
+  `S.retouche` dans la bibliothèque, l'idée dans la ligne et la consigne au survol). Et aucune note laissée de côté.
+- RETOUCHÉES SUR ELLES-MÊMES : CAVALE ULTRA (l'arpège sci-fi AJOUTÉ au 15e, coupe-bas 380 Hz) · COBRA ULTRA (les MÊMES instruments affinés :
+  `CLAV_FIN` = le clavinet d'origine sans le passe-bande nasal, mesuré note à note contre l'original ; le talkbox velours ; nappe et accords hachés
+  adoucis par `tim`) · MIRAGE DE VITESSE (« direct dessus, surtout le début ») · LUNE DE JADE (hirajoshi + koto néon, sans son octave basse) ·
+  RUBIS ULTRA (congas et bongos, ride, cloche, espace — le steel drum GARDÉ : le vibraphone et les échos bouchaient le médium, mesuré) · SAUVER MAMAN.
+- LES TROIS v6 (rejouées justes depuis le matin) : CRISTAL D'ARGENT (une trap qui ÉVOLUE : l'intro mélodique seule, le beat qui tombe, roulements
+  et triolets de charleys, contre-chant, cloche, chœur, relances) · MIRAGE ULTRA (« complexifie » : `grillesNeuves` — do m9, la♭ maj7, mi♭ maj7,
+  si♭ 7sus au lieu d'un seul accord, menés par le `menes` du générateur et la liste `Mx.accords` refaite ; arpège en cloche FM, contre-chant au
+  violon, tierces, accords hachés) · TURBO DE NÉON (« plus mainstream, rendu original » : la grosse caisse sur chaque temps, la caisse sur 2 et 4,
+  la grille la m – fa – do – sol, la mélodie dès le 4e moteur, la pompe ; la guitare grattée et la réverbe à ressort gardées ; `motif()` fige
+  `pat` ET `patL`, sinon le générateur retire une variante).
+- PISTON DE LUXE (underground, « des voix improvisées par toi ») : la cowbell de la phonk en mélodie, `VOIX_IMPRO` en contre-chant dès le 6e
+  moteur (chaque hauteur a SA syllabe « â o ou è é eu », la note qui glisse en entrant, une sur trois qui retombe, filtrée cassette), 808 saturée,
+  vinyle. Son pack d'instruments viendra EN PLUS. GRÉSIL NOVA (« plus ressemblant à Age of Illusion, t'aider du pack ») attend le pack.
+- Les aides : `ordreNeuf` (une tête imposée, le reste dans l'ordre, 'final' au 30e) ; `insere` garde désormais le 'final' au 30e (RUBIS le perdait).
+- MESURÉ (banc muet, 12 retouches contre leur original, moteurs 1 / 15 / 30) : 30 éléments chacune, 0 doublon, 0 erreur ; niveaux à ±2 dB ;
+  la boue (200-500 Hz) comparable à l'original aux bruits de mesure près (fenêtres de 2 à 4 s) — les excès nets (arpège de CAVALE, clavinet
+  de COBRA, koto de LUNE DE JADE, vibraphone et échos de RUBIS) corrigés ; MIRAGE ULTRA et MIRAGE DE VITESSE restent 3 à 6 points plus chargés au
+  30e moteur (plus d'éléments : c'est la consigne). Pouce bleu : 30 / 30 sons en vrais clics, Chrome ET WebKit.
 
 ## LES NOTES DE LÉO APPLIQUÉES — LES V2 DE POUCE BLEU, AURA EN 30 PALIERS, PENTHOUSE V2 (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version »)
 Ses 17 notes de la bibliothèque (`PREF.notes` de musique-moteur.json), appliquées sans toucher aux originaux :
