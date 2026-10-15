@@ -7891,6 +7891,10 @@ html:not(.c6) #mSet .c6Titre{font-family:var(--pix);font-weight:400;font-size:va
 html:not(.c6) #mSet :is(.c6Corps,.c6Col){display:flex;flex-direction:column;width:100%}
 html:not(.c6) #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:12px;margin:22px 0 0}
 html:not(.c6) #mSet .c6Ver{font-family:var(--pix);font-size:var(--f0);color:var(--tx3)}
+/* (2026-10-15, Sacha : « le RETOUR en bas à gauche sur tous les écrans ») la sortie est le dock du bas ; le ◀ du haut reste à la charte 6 */
+html:not(.c6) #mSet .c6Tete>.c6Ret{display:none}
+html.c6 #mSet>.mDock{display:none}
+html:not(.c6):not(.ux8g) #gMis #gmHead .c6Ret{display:none}   /* le ◀ MORT des missions (.pbtn passait outre [hidden], #gmHead lui ôtait le toucher) */
 </style>
 <style id="c6-carriere-missions">
 /* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -9882,7 +9886,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
         <div id="gmNoeuds"></div>
         <div id="gmHead"><div class="pbtn pbCarre c6Ret" role="button" tabindex="0" aria-label="Retour" hidden><i class="pxi pxi-gauche" aria-hidden="true"></i></div><b data-fr="MISSIONS">MISSIONS</b><small id="gmSous"></small><em id="gmAide"></em></div>
         <div id="gmBas">
-          <div class="pbtn gmHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></div>
+          <div class="pbtn gmHome" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i><span data-fr="RETOUR">RETOUR</span></div><!-- (2026-10-15, Sacha) elle ramène d'où l'on vient (garMisRetour) : son nom le dit, comme le RETOUR de l'inventaire et de la boutique -->
           <div class="pbtn pb-gold big gmJouer" role="button" tabindex="0" aria-label="Jouer"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></div>
         </div>
       </div>
@@ -10226,6 +10230,9 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
           <span class="c6Ver" id="mvVer"></span>
         </div>
       </div>
+      <!-- (2026-10-15, Sacha : « le RETOUR en bas à gauche sur tous les écrans ») la sortie des RÉGLAGES redescend sous le pouce, dans le
+           même dock que OFFRES et MODES ; le ◀ de l'en-tête ne vit plus qu'en charte 6 (?ui=6). Même data-m : le routeur ne voit rien. -->
+      <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
   </div>
 </div>
