@@ -957,7 +957,7 @@ main.onglets:not(.pouces)>section.vue{margin-top:22px}
   const main = document.querySelector('main.page'); let secs = [...main.querySelectorAll(':scope>section')];
   const slug = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const AIDE = { gChr: 'Les musiques de lobby dans l’esprit de Chris (C418), chacune son monde — et le SIFFLEUR. De 1 à 2 minutes et demie.',
-    gMenu: 'Ce que le jeu joue au menu : le CIEL (l’écran titre, très discret, sans batterie) et le GARAGE (le léger filtre d’atelier compris). Une de chaque, tirée au hasard à chaque lancement.' };
+    gMenu: 'Ce que le jeu joue au menu : UN morceau du CIEL tiré au lancement, le même au ciel (très discret, derrière le vent) et au garage (un peu plus fort). Les trois du GARAGE (le léger filtre d’atelier compris) ne jouent plus dans le jeu : ils restent ici.' };
   secs.forEach(s => { const h = s.querySelector('h2'); s.dataset.nom = (h && h.firstChild ? h.firstChild.textContent : s.id).trim(); s.dataset.cle = slug(s.dataset.nom);
     const l = s.querySelector('.liste,.grille'); if (l && AIDE[l.id] && !s.querySelector('.aide')) { const p = document.createElement('p'); p.className = 'aide'; p.textContent = AIDE[l.id]; h.after(p); } });
   const nav = document.createElement('nav'); nav.id = 'onglets'; nav.innerHTML = '<div class="in"></div>'; main.querySelector('.outils').after(nav);
