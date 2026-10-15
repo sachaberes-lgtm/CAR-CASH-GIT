@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE HUD ALLÉGÉ (2026-10-15, Sacha : « supprime des éléments d'HUD un peu inutiles, je trouve qu'il y a trop d'info affichée et que ça nuit à l'expérience »)
+- RELEVÉ au banc en course (`hudtour.cjs` du scratchpad de la session : route, vol, route 6 s plus tard, pouvoir ramassé ; debout 390 × 844 et couché
+  844 × 390, inventaire DOM de tout ce qui est visible) : le coin haut-gauche empilait TROIS barres (boost, jauge d'aura « MOY 400 », flow), DEUX
+  lectures de l'aura (la jauge et le compteur « 609 AURA ») et la liste de chaque figure de la chaîne ; des « +N » d'aura traversaient l'écran.
+- RETIRÉ (détail dans `<style id="hudAllege">`, juste avant `#splash`) : (1) la JAUGE D'AURA de Léo (12/10) et ses « +N » volants — Sacha a tranché
+  (« oui, retire-la ») ; code gardé, `?jauge=1` la rend (`JAUGE_AURA`, la classe `html.sansJauge`, `ajGain` muet, plus de « MOYENNE BATTUE ») ;
+  les éclairs de NITRO qui volent vers la barre de boost restent (même couche `#ajVols`, même boucle `ajTick`) ; (2) la liste des figures sous la
+  chaîne (`#avList`) ; (3) le « $×1 » du flow au palier 0 ; (4) le nom du pouvoir au centre (`slam` dans `pwrPrend`) — sa plaque le dit.
+- PLACES : le flow monte à la place de la jauge, l'aura d'autant ; mesuré, l'écart flow → aura est celui d'avant (21 px debout, 17 couché).
+  `#auraV2` est rétréci par `zoom` : ses pas CSS (+76 debout, +72 couché) ne sont pas ceux de l'écran.
+- GARDÉ (à rayer par numéro si Sacha le veut) : barre de boost + vitesse, flow, ⏸, argent, compteur d'aura + chaîne, chrono de vol, plaques de pouvoir,
+  carte moteur (NOUVEAU MOTEUR / SOMMET), rappel de figure, bouton NITRO, « GLISSE POUR TOURNER » (s'efface au premier braquage), « BOOST »,
+  « +1 » des pièces, bannières de mission, DAUPHIN.
+
 ## LA ROUTE DES NUAGES EN GRAND (2026-10-15, Sacha : « la génération de la map dans les nuages est beaucoup trop tordue ; je voulais ça mais sur des proportions beaucoup plus vastes, genre des grands virages où la route se tord, pas aussi tire-bouchonnée »)
 - Suite de « LA MAP DES NUAGES SANS HAUT NI BAS » (plus bas) : même idée, la route se tord dans tous les sens, mais EN GRAND. Le tire-bouchon venait
   de deux choses mesurées : des vrilles trop fréquentes et trop rapides (36-40 par zone, 1,35 tour complet PAR KILOMÈTRE, roulis jusqu'à 144°/s),

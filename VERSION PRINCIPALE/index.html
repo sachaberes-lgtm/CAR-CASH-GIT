@@ -9622,6 +9622,26 @@ html:not(.c6) #mCadeau{padding:4px 12px}
 html:not(.c6) #gmHead #mCadeau{grid-column:1/-1;width:100%;box-sizing:border-box;margin:10px 0 0;pointer-events:auto} /* (14/10 ~21 h) le cadeau en tête de l'écran MISSIONS, sous le titre ; il n'est plus à l'accueil */
 html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
 </style>
+<style id="hudAllege">
+/* LE HUD ALLÉGÉ (2026-10-15, Sacha : « supprime des éléments d'HUD un peu inutiles, je trouve qu'il y a trop d'info affichée et que ça nuit
+   à l'expérience »). Relevé au banc en course, debout (390 × 844) et couché (844 × 390) : le coin haut-gauche empilait TROIS barres (boost,
+   aura, flow), DEUX lectures de l'aura et la liste de chaque figure. Retirés (Sacha a tranché pour la jauge de Léo) :
+   1. LA JAUGE D'AURA « MOY 400 » (`#ajCourse`, Léo, 12/10) et les « +N » d'aura qui volaient vers elle à travers l'écran : doublon du
+      compteur « 609 AURA ». Code gardé : `?jauge=1` la rend (`JAUGE_AURA`). Le FLOW remonte à sa place, l'AURA d'autant (mesuré :
+      16 px à l'écran debout, 17 couché ; `#auraV2` est rétréci par `zoom`, d'où des pas CSS plus grands — l'écart flow → aura ne change pas). Les éclairs de NITRO qui volent vers la barre de boost (même couche `#ajVols`) restent.
+   2. LA LISTE DES FIGURES sous la chaîne (« VIRAGE SERRE +45 / TONNEAU +50 ») : la chaîne garde son total, son × et sa barre.
+   3. Le « $×1 » du FLOW au palier 0 : il ne dit rien tant que le flow ne multiplie pas ; il revient dès le palier 1.
+   4. (dans le script, `pwrPrend`) le NOM DU POUVOIR au centre de l'écran : sa plaque, à droite, le dit déjà. */
+html.sansJauge #ajCourse{display:none!important}
+html.sansJauge body.touch #flowHud{top:calc(var(--hudH) + 53px)!important}
+html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
+@media (orientation:landscape) and (max-height:540px){
+  html.sansJauge body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
+  html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 72px)!important}
+}
+html body #avList{display:none!important}
+html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -38266,7 +38286,7 @@ function pwrPrend(k,pos){
   /* (2026-09-29, Sacha : « pas de texte quand on ramasse un pouvoir, juste le nom du pouvoir, mais plus petit ») : plus de sous-titre
      (« L'OR VIENT À TOI »…), plus de « +6 S » ni de « DOUBLE POUVOIR ! » — le NOM, de sa couleur, 40 → 26 */
   if(!reprise){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
-  slam(d.gros,'',d.tint,d.c2,26,2);
+  /* (2026-10-15, Sacha : « trop d'info affichée ») plus de NOM au centre non plus : la plaque du pouvoir, à droite, le dit (voir <style id="hudAllege">) */
   if(!SONV2)boostSnd();pwrPrisSnd(k); // (console) chaque pouvoir a sa signature entière : plus le souffle d'un pad dessous
  shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
   sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
@@ -58109,6 +58129,10 @@ window.dbgNitro3=function(a,b){
    ===================================================================================================================================== */
 const AJ={el:null,seg:null,cel:null,lS:null,lB:null,vols:null,pool:[],moy:0,rec:0,moyT:0,vis:0,vv:0,envol:0,acc:0,accT:0,accCh:false,
   enVol:0,fs:[-1,-1,-1,-1],cur:-1,rev:false,recB:false,fx:0,w:0,wT:0,dit:false,txt:'',lbl:'',run0:-1,v3:null};
+/* (2026-10-15, Sacha : « trop d'info affichée ») la jauge est MASQUÉE par défaut — voir <style id="hudAllege"> ; `?jauge=1` la rend.
+   Sans elle : plus d'aura qui vole, plus de « MOYENNE BATTUE » au centre. La boucle (ajTick) tourne toujours : elle porte aussi les vols de NITRO. */
+const JAUGE_AURA=/[?&]jauge=1\b/.test(location.search);
+if(!JAUGE_AURA)document.documentElement.classList.add('sansJauge');
 function ajMoy(){const r=(SAVE.d.ex&&SAVE.d.ex.runs)|0,a=SAVE.d.aura||0;return r>0?Math.max(100,a/r):400;}
 function ajMonte(){
   if(AJ.el)return true;if(!document.getElementById('nitroBar'))return false;
@@ -58127,7 +58151,7 @@ function ajSource(ch){
   return [VP.w*.5,VP.h*.55];
 }
 function ajGain(n,ch){
-  if(!(n>0)||!AJ.el)return;
+  if(!(n>0)||!AJ.el||!JAUGE_AURA)return;
   if(REDUCED_MOTION||document.hidden||!document.body.classList.contains('play'))return; // pas de vol : l'image suivante recale la jauge sur auraRun
   AJ.acc+=n;if(ch)AJ.accCh=true;
   if(ch||n>=150)ajLance(); // une chaîne qu'on encaisse, un gros gain : il part tout de suite
@@ -58264,7 +58288,7 @@ function ajTick(dt){
   if(cur!==AJ.cur){if(AJ.cur>=0)AJ.cel[AJ.cur].classList.remove('cur');AJ.cel[cur].classList.add('cur');AJ.cur=cur;
     AJ.el.style.setProperty('--ajI',FLOW_CEL[cur]);AJ.vols.style.setProperty('--ajI',FLOW_CEL[cur]);}
   if(rev!==AJ.rev){AJ.rev=rev;AJ.el.classList.toggle('revele',rev);
-    if(rev&&!AJ.dit&&running&&!gameOver&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0){AJ.dit=true;try{popTexte(sansAcc(TR('MOYENNE BATTUE')),FLOW_CEL[3],2);}catch(e){}hap([10,30,14]);
+    if(rev&&!AJ.dit&&JAUGE_AURA&&running&&!gameOver&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0){AJ.dit=true;try{popTexte(sansAcc(TR('MOYENNE BATTUE')),FLOW_CEL[3],2);}catch(e){}hap([10,30,14]);
       try{typeof sfx==='function'&&!sfx('aura.moyenne')&&sfx('victoire',{vol:-4});}catch(e){}}} // (console de son) aura.moyenne — (2026-10-14, session SON) cuit le 14/10 : la MOYENNE BATTUE, trois notes de marimba qui montent, 3 dB sous la victoire. Le repli sur victoire n'est plus qu'un filet
   if(recB!==AJ.recB){AJ.recB=recB;AJ.el.classList.toggle('record',recB);}
   // (2026-10-12, passe qualité) le libellé et le chiffre ne se REFABRIQUENT que si ce qu'ils disent change (TR + majPix + toLocaleString
