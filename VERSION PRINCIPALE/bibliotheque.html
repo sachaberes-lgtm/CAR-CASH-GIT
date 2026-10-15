@@ -209,7 +209,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
     <p class="aide">Tes morceaux préférés de la bibliothèque (glisse un son sur l'onglet pour l'y ranger), puis les musiques du générateur que tu as aimées (👍), chacune rejouée par la version qui l'a faite — leur moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier). Le crayon ✎ ajoute une note sur n'importe quel son.</p>
     <div class="liste" id="gBleu"></div></section>
   <section id="secNeuf"><h2>Nouveaux <span id="nNeuf"></span></h2>
-    <p class="aide">Trois musiques neuves, chacune son univers, au niveau de tes 👍 : elles suivent le moteur en 30 paliers. Le moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier).</p>
+    <p class="aide">ZEPPELIN D’OR et ses deux suites (II : avec deux instruments new wave · III : l’orchestre d’époque seul), qui suivent le moteur en 30 paliers. Le moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier).</p>
     <div class="liste" id="gNeuf"></div></section>
   <section id="secIns"><h2>Inspirations <span id="nIns"></span></h2>
     <p class="aide">Les sons qui te donnent une idée pour le générateur. Dépose-les ici et écris ce qui te plaît dedans : je m'en sers pour le faire évoluer.</p>
@@ -290,9 +290,11 @@ ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIER
 // (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai
 // déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y ») : trois morceaux ÉCRITS, rejoués par
 // assets/audio/music/direct/musique-trente-trio.js (le générateur v6-0 figé + leurs instruments, `O.style`) ; le moteur à la main, comme Pouce bleu
+// (2026-10-15, Léo : « garde juste Zeppelin d'Or, j'aime beaucoup… laisse Zeppelin d'Or et fais aussi un troisième » — CARNAVAL D'OR et LE CASSE
+// retirés de la page, leur code reste dans musique-trente-trio.js) : le premier tel quel, II (new wave) et III (old school), même numéro, même mélodie
 [['zeppelin', 1999, 'ZEPPELIN D’OR', 'électro swing · clarinette, trompette bouchée, contrebasse qui marche, piano en pompe, la house dessous · le gramophone qui s’ouvre, le champagne · la mineur, 122 → 127 BPM'],
- ['carnaval', 1555, 'CARNAVAL D’OR', 'batucada électronique · l’école de samba entre rang par rang : agogô, ganzá, surdos, tamborins, cavaquinho, trompettes, la foule · la cuíca qui rit · sol dorien, 104 → 110 BPM'],
- ['casse', 1925, 'LE CASSE', 'trip-hop de braquage · clavecin, Rhodes, contrebasse, thérémine, la ligne espion · le coffre-fort, puis la poursuite en double tempo · mi mineur, 87 → 89 BPM']]
+ ['zeppelin2', 1999, 'ZEPPELIN D’OR II', 'la même structure ; au 10e la machine de 1983 prend la main : tout devient droit, la batterie se syncope, la basse new wave martèle en croches, le piano plaque en 3-3-2 · l’arpège analogique (14e), la contrebasse qui répond (17e) · le tempo et la tonalité ne montent pas · la mineur, 122 BPM'],
+ ['zeppelin3', 1999, 'ZEPPELIN D’OR III', 'la même structure, rien que l’orchestre d’époque : dès le 10e, la contrebasse marche puis passe en croches, le piano en stride puis en pompe de croches, les cuivres en rafales — le tempo et la tonalité ne montent plus · la mineur, 122 BPM']]
   .forEach(([st, n, titre, style]) => ajoute({ id: 'neuf-' + st, sec: 'neuf', type: 'genv', titre, style, n, W: { clarte: .85 }, v: 'trio', da: 'trio', o9: { style: st } }));
 ajoute({ id: 'dir-glisse-v2', sec: 'moteur', type: 'js', titre: 'GLISSE v2', style: 'Module en direct · Pics de jade', nb: 5, f: 'assets/audio/music/direct/musique-glisse-v2.js' });
 ajoute({ id: 'dir-glisse', sec: 'moteur', type: 'js', titre: 'GLISSE', style: 'Module en direct (1re version)', nb: 5, f: 'assets/audio/music/direct/musique-glisse.js' });
