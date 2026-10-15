@@ -6470,6 +6470,103 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>em:em
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 200px)}}
 @media (prefers-reduced-motion:reduce){html body #garage.atelierInv #gAct>#gvCof,html body #garage.atelierInv #gStrip.gModeInv{animation:none}}
+/* ===== L'INVENTAIRE EN PICTOGRAMMES, ILLUSTRÉ, ET SES TROIS FIGURES (2026-10-15, Sacha : « en haut, voitures, peintures, ailes, traînées,
+   figures, c'est mis de manière très brouillonne : simplifie avec les pictogrammes » · « les traînées, les ailes et les figures, il n'y a
+   pas les images » · « dans l'onglet FIGURES, un bouton stylé : le nitro, trois cases en hexagone avec les figures sélectionnées, joystick
+   haut, bas, côté ») — le script : ILLU_COS / ILLU_FIG / illuFig, et le sélecteur gFigSelMaj / gFigTouche.
+   · LES ONGLETS : cinq mots de largeurs inégales serrés dans la réglette deviennent cinq PICTOGRAMMES à parts égales, 44 px de haut (la
+     cible du pouce, charte n° 5), redressés (la réglette penche, un pixel penché bave) ; le mot reste pour le lecteur d'écran (masqué, pas
+     retiré). L'onglet choisi : pictogramme blanc, lueur magenta, le trait dessous de la réglette d'avant. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs{gap:4px;padding:3px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{flex:1 1 0;height:44px;padding:0;justify-content:center}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab .pxi{display:block;--pxs:3;margin:0;color:rgba(154,144,200,.85);transform:skewX(var(--skI));transition:color var(--t-fast) var(--ease)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab.on .pxi{color:#fff;filter:drop-shadow(0 0 6px rgba(255,62,200,.85))}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab::after{top:0;bottom:0}
+/* · LES VIGNETTES ILLUSTRÉES (.ill : ailes, traînées, figures) : le dessin en grand en haut (36 px : des cases de 4 px, ou de 3 px pour un
+     anneau de figure), le nom dessous sur deux lignes au plus ; la coche monte au coin haut (elle mordait sur le nom). */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill{height:76px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill .gIc{top:6px;--pxs:4;margin-left:-18px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>b{top:auto;bottom:5px;left:5px;right:5px;white-space:normal;line-height:1.4;max-height:2.8em;overflow:hidden;text-overflow:clip;text-align:center;color:var(--tx)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>em{top:4px;bottom:auto;right:4px;padding:3px 4px 2px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>.gIc{display:none}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>img{left:-6%;top:-10%;width:112%}
+/* une FIGURE dessinée (partout où illuFig la pose) : l'anneau 12 × 12 en cases de 3 px, la caisse 9 × 9 en cases de 2 px au milieu */
+.fgIl{position:relative;display:block;width:36px;height:36px;color:var(--fc,#ffd75e)}
+.gT .fgIl.gIc{position:absolute;left:50%;top:6px;margin-left:-18px}
+.fgIl>.pxi{position:absolute;margin:0}
+.fgIl>.fgAn{left:0;top:0;--pxs:4;color:var(--fc,#ffd75e)}
+.fgIl>.fgAn.mir{transform:scaleX(-1)}
+.fgIl>.fgCv{left:9px;top:9px;--pxs:2;color:#eef3ff;transform-origin:var(--fgO,50% 60%);filter:drop-shadow(0 1px 0 rgba(7,5,15,.7))}
+/* la figure JOUE (la vignette choisie, les cases du sélecteur) : un geste, puis une pause — 3,2 s la boucle, la courbe unique de la charte */
+:is(#gStrip .gT.on,#gFigSel .fsHex) .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#gFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
+#gFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+@keyframes fgSalto{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
+@keyframes fgSalto2{0%,12%{transform:rotate(0) rotateX(0)}72%,100%{transform:rotate(calc(var(--sg,1) * 720deg)) rotateX(360deg)}}
+@keyframes fgRoll{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
+@keyframes fgRoll2{0%,12%{transform:rotate(0)}72%,100%{transform:rotate(calc(var(--sg,1) * 720deg))}}
+@keyframes fgSpin{0%,18%{transform:rotateY(0)}62%,100%{transform:rotateY(calc(var(--sg,1) * 360deg))}}
+@keyframes fgSpin2{0%,12%{transform:rotateY(0)}72%,100%{transform:rotateY(calc(var(--sg,1) * 720deg))}}
+@keyframes fgWhip{0%,18%{transform:rotateY(0)}62%,100%{transform:rotateY(calc(var(--sg,1) * 360deg))}}
+@keyframes fgChand{0%,18%,86%,100%{transform:rotate(0)}42%,62%{transform:rotate(calc(var(--sg,1) * 38deg))}}
+@keyframes fgShim{0%,18%,82%,100%{transform:rotateY(0) rotate(0)}30%,54%{transform:rotateY(35deg) rotate(6deg)}42%,66%{transform:rotateY(-35deg) rotate(-6deg)}}
+@keyframes fgPenche{0%,18%{transform:rotate3d(1,-1,0,0deg)}62%,100%{transform:rotate3d(1,-1,0,calc(var(--sg,1) * 360deg))}}
+@keyframes fgRodeo{0%,18%{transform:rotateY(0) rotate(0)}62%,100%{transform:rotateY(360deg) rotate(calc(var(--sg,1) * 360deg))}}
+@keyframes fgTire{0%,18%{transform:rotate(0) rotateX(0)}62%,100%{transform:rotate(360deg) rotateX(calc(var(--sg,1) * 360deg))}}
+@media (prefers-reduced-motion:reduce){.fgIl>.fgCv{animation:none!important}}
+html[data-reduced-motion] .fgIl>.fgCv{animation:none!important}
+/* ses DIRECTIONS, au coin haut droit de la vignette : ↑ avant · ↓ arrière · ◄► côté ; allumée = elle est équipée là */
+.gT .fgDir{position:absolute;right:5px;top:5px;display:flex;gap:2px;text-decoration:none;transform:skewX(var(--skI))}
+.gT .fgDir>i{display:block;padding:2px;background:rgba(7,5,15,.72);box-shadow:inset 0 0 0 1px rgba(154,144,200,.35);color:rgba(154,144,200,.85)}
+.gT .fgDir>i .pxi{--pxs:1;display:block;margin:0}
+.gT .fgDir>i.on{background:var(--neoC);box-shadow:0 0 8px rgba(94,230,255,.7);color:#07050f}
+#gStrip .gT.horsDir{opacity:.3;filter:saturate(.3)}
+/* · LE SÉLECTEUR DES TROIS FIGURES (#gFigSel) : l'éclair du NITRO et son « ×2 » (le double-tap), puis trois cases hexagonales — la figure
+     équipée qui tourne dedans, le JOYSTICK de sa direction sur le coin, son nom dessous. Une case touchée s'ARME (elle bat, les autres
+     s'effacent, la grille n'allume plus que ce qui y va). Masqué hors de l'onglet FIGURES de l'inventaire. */
+#gFigSel{display:none}
+html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{display:flex}
+#gFigSel{position:relative;align-items:flex-end;gap:4px;margin:4px 12px 2px;padding:10px 6px 6px 4px;background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));
+  box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
+#gFigSel .fsNitro{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:3px;width:44px}
+#gFigSel .fsBolt{display:block;width:34px;height:48px;filter:drop-shadow(0 0 8px rgba(255,141,46,.45))}
+#gFigSel .fsNitro b{font-weight:400;font-size:var(--f1);line-height:1;color:var(--au1);text-shadow:0 2px 0 var(--txO)}
+#gFigSel .fsHex{position:relative;flex:1 1 0;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:0;background:none;cursor:pointer;
+  font-family:var(--pix);color:var(--tx2);-webkit-tap-highlight-color:transparent;transition:opacity var(--t-fast) var(--ease),translate var(--t-fast) var(--ease)}
+#gFigSel .fsHex:active{translate:0 2px}
+#gFigSel .fsCase{position:relative;display:block;width:60px;height:52px;background:var(--fc);opacity:.95;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+  transition:background var(--t-fast) var(--ease)}
+#gFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#231a44,#0b0818 75%);
+  clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+#gFigSel .fsQ{font-weight:400;font-size:var(--f3);color:#6c6390}
+#gFigSel .fsJoy{position:absolute;left:calc(50% - 42px);top:-6px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;color:#fff;
+  background:radial-gradient(circle at 40% 35%,#4a3f7a,#1c1638 70%);box-shadow:inset 0 0 0 2px var(--fc);
+  clip-path:polygon(7px 0,17px 0,24px 7px,24px 17px,17px 24px,7px 24px,0 17px,0 7px);font-style:normal}
+#gFigSel .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
+#gFigSel .fsNom{display:block;max-width:100%;min-height:2.6em;max-height:2.6em;overflow:hidden;white-space:normal;text-align:center;font-weight:400;font-size:var(--f0);line-height:1.3;color:var(--tx)}
+#gFigSel .fsHex.vide .fsCase{background:rgba(154,144,200,.32)}
+#gFigSel .fsHex.vide .fsNom{color:#6c6390}
+#gFigSel.arme .fsHex:not(.on){opacity:.42}
+#gFigSel .fsHex.on .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#gFigSel .fsHex.on .fsNom{color:#fff}
+#gFigSel .fsHex.flash .fsCase{animation:fsFlash .6s var(--ease)}
+@keyframes fsBat{from{filter:drop-shadow(0 0 0 #fff)}to{filter:drop-shadow(0 0 6px #fff) brightness(1.15)}}
+@keyframes fsFlash{0%{background:#fff;filter:brightness(1.6)}100%{filter:none}}
+@media (prefers-reduced-motion:reduce){#gFigSel .fsHex.on .fsCase,#gFigSel .fsHex.flash .fsCase{animation:none}}
+/* LA HAUTEUR : les vignettes illustrées sont plus hautes (76 px contre 68) — la grille est plafonnée à trois rangées pour que le panneau
+   ne monte pas sur la caisse (MESURÉ au banc, 390 × 844 : sans plafond, les onglets passaient de 392 à 295 px du haut) ; sous le sélecteur
+   des figures, une rangée et demie (la moitié coupée dit qu'on peut faire défiler) */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(256px,31vh)}
+html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(150px,19vh)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv:not(.menu):not(.vitrine):not(.figTab) #gStrip.gModeInv{max-height:calc(100vh - 200px)}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 280px)}
+  /* couché, la colonne n'a pas la place de l'intertitre ET du sélecteur (MESURÉ, 844 × 390 : les onglets sortaient à −25 px) : l'onglet dit
+     déjà FIGURES, l'intertitre « INVENTAIRE » s'efface ; le nom tient sur une ligne (les cases sont plus larges) */
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gRar{display:none!important}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{margin-top:6px;padding-top:8px}
+  #gFigSel .fsNom{min-height:0;white-space:nowrap;text-overflow:ellipsis}}
 /* LA BOUTIQUE INDUSTRIELLE (essai, voir garBqIndus) — le GLITCH, l'EN-TÊTE, les ÉTIQUETTES et leurs FILS */
 #gGlitch{position:fixed;inset:0;z-index:59;pointer-events:none;opacity:0;overflow:hidden}
 #gGlitch.go{animation:gGlitchO .72s linear forwards}
@@ -10202,6 +10299,28 @@ Object.assign(PXI_G,{ // (2026-10-14) LES TRAÎNÉES ET LES AILES POP : un picto
   ai_pixel:'.......##|.....####|...######|.########|#########|.#######.|..##.##..|...#..#..|.........',
   ai_pigeon:'.........|#.......#|##.....##|.##...##.|..#####..|...###...|....#....|.........|.........',
   ai_origami:'........#|......###|....####.|..######.|#######..|..##.#...|....##...|....#....|.........'});
+Object.assign(PXI_G,{ // (2026-10-15, Sacha : « les traînées, les ailes et les figures, il n'y a pas les images » — L'INVENTAIRE ILLUSTRÉ, voir ILLU_COS / ILLU_FIG)
+  // les quatre ailes et les six traînées d'origine, qui n'avaient pas de dessin ; la caisse vue de DOS (le tonneau tourne autour de son axe long) ;
+  // les ANNEAUX des figures (12 × 12 : la caisse, en calque, se pose au milieu) — rond = salto ou tonneau, à plat = toupie, penché = vrille sur deux axes
+  ai_panneaux:'.........|.........|...###...|..#...#..|#########|#########|..#####..|..#...#..|.........',
+  ai_helices:'#.#...#.#|.#.....#.|#.#...#.#|...###...|..#####..|...###...|#.#...#.#|.#.....#.|#.#...#.#',
+  ai_plumes:'#.......#|##.....##|#.#...#.#|##.#.#.##|#.##.##.#|.###.###.|..##.##..|...#.#...|.........',
+  ai_chauve:'.........|#.......#|##.....##|###.#.###|#########|#.##.##.#|#..#.#..#|.........|.........',
+  tr_nitro:'.........|......##.|..#######|.########|#########|.########|..#######|......##.|.........',
+  tr_menthe:'......###|....#####|...####.#|..####.##|.####.###|.###.####|.#.#####.|#.#####..|#........',
+  tr_rose:'.........|.##...##.|#..#.#..#|#...#...#|#.......#|.#.....#.|..#...#..|...#.#...|....#....',
+  tr_or:'....#....|...###...|....#....|.#.....#.|###.#.###|.#.###.#.|....#....|..#...#..|.........',
+  tr_arc:'.........|..#####..|.#######.|##.....##|#..###..#|#.#...#.#|#.#...#.#|.........|.........',
+  tr_wow:'#.......#|##.....##|#########|#.##.##.#|#########|##..#..##|.#.###.#.|..#####..|.........',
+  cv_dos:'.........|..#####..|.#.....#.|.#######.|#########|#.##.##.#|#########|##.....##|##.....##',
+  fg_rond:'....####....|..##....#...|.#.....#####|.#......###.|#........#..|#...........|#..........#|#..........#|.#........#.|.#........#.|..##....##..|....####....',
+  fg_rond2:'....####....|..##....#...|.#.....#####|.#......###.|#........#..|#...........|...........#|..#........#|.###......#.|#####.....#.|...#....##..|....####....',
+  fg_arc:'...####.....|.......##...|.........#..|..........#.|..........#.|..........#.|.........###|..........#.|............|............|............|............',
+  fg_ovale:'............|.......####.|.....##....#|...##.....##|..#.......#.|.#..........|#..........#|#.........#.|.#......##..|..######....|............|............',
+  fg_danse:'............|............|.#........#.|#..........#|#.#......#.#|#..........#|#..........#|#.#......#.#|#..........#|.#........#.|............|............',
+  fg_plat:'............|............|............|............|............|...######...|.##......##.|#..........#|#..........#|.##....#..#.|...######...|.......#....',
+  fg_plat2:'............|............|............|............|.#..........|.#.######...|###......##.|#..........#|#..........#|.##....#..#.|...######...|.......#....',
+  fg_demi:'............|............|............|............|............|...###......|.##.........|#...........|#...........|.##..#......|...####.....|.....#......'});
 (function(){
   let css='',vars='';
   for(const k in PXI_G){
@@ -51097,7 +51216,7 @@ function shopTab(tab){
   SHOP.tab=tab;
   document.querySelectorAll('#gTabs .gTab').forEach(function(b){const on=b.getAttribute('data-tab')===tab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
   const gt=$('gTitle');if(gt)gt.textContent=TR('GARAGE'); // la personnalisation fait partie du GARAGE (la BOUTIQUE, c'est le vrai argent)
-  if(gEl)gEl.classList.toggle('shopMode',tab!=='voiture');
+  if(gEl){gEl.classList.toggle('shopMode',tab!=='voiture');gEl.classList.toggle('figTab',tab==='figure');}if(tab!=='figure'&&window.GFS)GFS.arme=-1; // (2026-10-15) figTab : le sélecteur des trois figures (#gFigSel) au-dessus de la grille
   if(GAR_TAB_ANG[tab]!=null)garTourneVers(GAR_TAB_ANG[tab]); // TRAÎNÉES : la caméra passe derrière la caisse (trois-quarts arrière) — on regarde ce qui SORT des tuyères ; (2026-10-11) en TOURNANT, et chaque onglet a son angle
   if(tab==='voiture'){SHOP.prev=null;{const bar=$('gRar');if(bar)bar._k=null;}garageShow(garageI);try{gModeCale();}catch(e){}return;}
   SHOP.filtre='tout'; // chaque catégorie s'ouvre sur TOUT
@@ -51154,6 +51273,74 @@ function gTampon(t){const c=$('gCard');if(!c)return;if(REDUCED_MOTION){toast(pxi
   {const e=$('gEclat');if(e){e.style.setProperty('--rc',getComputedStyle(c).getPropertyValue('--rc')||'#ffd75e');e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}} // et un éclair de SA couleur derrière la caisse
   clearTimeout(gTampon._t);gTampon._t=setTimeout(function(){c.classList.remove('tampon');},2000);} // l'achat se FÊTE : le tampon d'or « À TOI ! »
 function gPrixHtml(peut,prix){return '<span>'+TR(peut?'ACHETER':'IL MANQUE')+'</span><b class="gPrix">'+fmtC(peut?prix:prix-bank())+'</b>';}
+/* L'INVENTAIRE ILLUSTRÉ (2026-10-15, Sacha : « les peintures, ça va, mais les traînées, les ailes et les figures, il n'y a pas les images —
+   il n'y a qu'à mettre une illustration ») : chaque objet de la console a SON dessin, plus un pictogramme commun à toute la famille.
+   · les AILES et les TRAÎNÉES d'origine (les POP ont déjà le leur : `ico`/`col`) : un pictogramme et une couleur chacune (ILLU_COS) ; la nitro
+     et l'arc-en-ciel sont peints d'un dégradé À TRAVERS le masque du pictogramme (illuPx) ;
+   · une AILE passe en PHOTO dès que `aileFile` existe (la caisse équipée qui la porte, la photo de la boutique) — d'ici là, son pictogramme ;
+   · une FIGURE = la caisse vue sous l'axe de son mouvement — de PROFIL pour un salto, une chandelle, une toupie ; de DOS pour un tonneau — au
+     milieu de son ANNEAU (rond = salto ou tonneau, à plat = toupie, penché = deux axes, deux pointes = 720), dans la couleur de sa rareté
+     (ILLU_FIG, illuFig). Le sens se lit : salto avant dans le sens des aiguilles, arrière à l'envers (l'anneau en miroir). La vignette choisie
+     et les cases du sélecteur JOUENT la figure : la caisse du calque tourne (`--fgA` = le geste, `--sg` = le sens).
+   ⚠ `ILLU_FIG` connaît les 13 figures de figures.js : une figure ajoutée sans sa ligne prend l'anneau du salto (rien ne casse, elle ressemble au salto). */
+const ILLU_COS={aile:{panneaux:['ai_panneaux','#e0b56a'],helices:['ai_helices','#9fe8ff'],plumes:['ai_plumes','#ffffff'],chauve:['ai_chauve','#a98bd8']},
+  trainee:{nitro:['tr_nitro','linear-gradient(90deg,#d8400c,#ff8a24 50%,#fff1c2)'],menthe:['tr_menthe'],rose:['tr_rose'],or:['tr_or'],wow:['tr_wow','#e8b04a'],
+    arcenciel:['tr_arc','radial-gradient(circle at 50% 80%,#9b5bff 0 24%,#3bb4ff 24% 38%,#3bff6a 38% 52%,#ffe23a 52% 66%,#ff9b1a 66% 80%,#ff3b3b 80%)']}};
+const ILLU_FIG={tailwhip:['fg_demi',0,'voiture','fgWhip'],tonneau:['fg_rond',0,'cv_dos','fgRoll'],toupie:['fg_plat',0,'voiture','fgSpin'],shimmy:['fg_danse',0,'voiture','fgShim'],
+  chandelle:['fg_arc',1,'voiture','fgChand'],saltoa:['fg_rond',1,'voiture','fgSalto'],saltov:['fg_rond',0,'voiture','fgSalto'],double:['fg_rond2',0,'cv_dos','fgRoll2'],
+  tirebouchon:['fg_ovale',1,'cv_dos','fgTire'],helico:['fg_plat2',0,'voiture','fgSpin2'],penche:['fg_ovale',0,'voiture','fgPenche'],rodeo:['fg_ovale',1,'voiture','fgRodeo'],
+  cosmique:['fg_rond2',1,'voiture','fgSalto2']}; // [anneau, miroir (1 = à l'envers), vue de la caisse, geste joué]
+try{Object.assign(I18N,{'FIGURES ÉQUIPÉES':'EQUIPPED TRICKS','VIDE':'EMPTY'});}catch(e){}
+function illuTr(d){if(d.ico)return {ic:d.ico,c:d.col||'#ffb040'};const I=ILLU_COS.trainee[d.id];if(!I)return null;
+  return {ic:I[0],c:I[1]||(d.rgb?'rgb('+d.rgb.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')':'#ff8a24')};}
+function illuAile(d){if(d.ico)return {ic:d.ico,c:d.col||'#dff6ff'};const I=ILLU_COS.aile[d.id];return I?{ic:I[0],c:I[1]}:{ic:'aile',c:'#dff6ff'};}
+function illuPx(o,cl,eteint){return '<i class="pxi pxi-'+o.ic+(cl?' '+cl:'')+'" style="'+(eteint?'color:#6c6390':(/gradient/.test(o.c)?'background:'+o.c:'color:'+o.c))+'" aria-hidden="true"></i>';}
+/* la figure `id` en dessin : son anneau + la caisse (calque) ; `av` = jouée vers l'AVANT — une figure à deux sens (rodéo, tire-bouchon,
+   cosmique) tourne alors à l'endroit, comme la caisse la fait dans cet emplacement (FIG.oriente) */
+function illuFig(id,c,av,cl){const I=ILLU_FIG[id]||['fg_rond',0,'voiture','fgSalto'],f=window.FIG&&FIG.par[id];let m=I[1];
+  if(av&&f&&FIG.dirs&&FIG.dirs(f).length>1)m=1-m;
+  return '<i class="fgIl'+(cl?' '+cl:'')+'" style="--fc:'+c+';--sg:'+(m?-1:1)+';--fgA:'+I[3]+(I[3]==='fgWhip'?';--fgO:88% 62%':I[3]==='fgChand'?';--fgO:22% 88%':'')+'" aria-hidden="true"><i class="pxi pxi-'+I[0]+' fgAn'+(m?' mir':'')+'"></i><i class="pxi pxi-'+I[2]+' fgCv"></i></i>';}
+/* LES TROIS FIGURES ÉQUIPÉES, AU-DESSUS DE LA GRILLE (2026-10-15, Sacha : « dans l'onglet FIGURES, un bouton un peu stylé : le truc du NITRO
+   et trois cases en forme d'hexagone, avec les figures sélectionnées et les flèches du joystick — haut, bas, côté — pour qu'on puisse
+   sélectionner les trois figures qu'on veut ; au-dessus des figures ») — #gFigSel, montré par le CSS en INVENTAIRE (atelierInv), onglet
+   FIGURES seulement (`figTab`). À gauche l'ÉCLAIR du bouton NITRO (sa grille NX3_G, sa palette) et « ×2 » : le double-tap ; puis les trois
+   emplacements dans l'ordre du jeu (FIG_FAM : ↑ avant, ↓ arrière, ◄► côté), chacun sa case hexagonale, sa figure qui tourne, son joystick.
+   · toucher une CASE l'ARME (elle bat ; la grille éteint les figures qui n'y vont pas) ; retouchée, elle se désarme ;
+   · toucher une FIGURE l'équipe (gFigTouche) : dans la case armée si elle y va, sinon dans sa direction (figEquipe : une par direction, celle
+     qui y était laisse sa place) ; la case qui la reçoit s'allume, la caisse du plateau fait la figure dans ce sens.
+   Une direction sans figure : la case dit VIDE (son geste, en vol, ne fait rien). */
+var GFS={arme:-1,flash:-1,k:''};
+function gFigNitroSvg(){if(gFigNitroSvg._s)return gFigNitroSvg._s;
+  const G=NX3_G,P=NX3_PAL.or,w=G[0].length,h=G.length,on=function(x,y){return y>=0&&y<h&&x>=0&&x<w&&G[y][x]==='#';},
+    ep=function(x,y){return !on(x,y)&&(on(x,y-1)||on(x,y-2));},plein=function(x,y){return on(x,y)||ep(x,y);},cs=function(x,y){return 'M'+(x+1)+' '+(y+1)+'h1v1h-1z';};
+  let O='',E='',F='',B='';
+  for(let y=-1;y<=h+2;y++)for(let x=-1;x<=w;x++){
+    if(on(x,y)){if(!on(x,y-1)||!on(x-1,y))B+=cs(x,y);else F+=cs(x,y);}   // le biseau clair sur l'arête haute-gauche, le plein dessous
+    else if(ep(x,y))E+=cs(x,y);                                          // l'ÉPAISSEUR : deux cases sous l'éclair, comme le vrai bouton
+    else{let v=false;for(let j=-1;j<=1&&!v;j++)for(let i=-1;i<=1;i++)if(plein(x+i,y+j)){v=true;break;}if(v)O+=cs(x,y);}} // le contour d'encre
+  return gFigNitroSvg._s='<svg class="fsBolt" viewBox="0 0 '+(w+2)+' '+(h+4)+'" shape-rendering="crispEdges" aria-hidden="true"><path fill="'+P[7]+'" d="'+O+'"/><path fill="'+P[4]+'" d="'+E+'"/><path fill="'+P[1]+'" d="'+F+'"/><path fill="'+P[0]+'" d="'+B+'"/></svg>';}
+function gFigSelEl(){let el=document.getElementById('gFigSel');if(el)return el;const st=document.getElementById('gStrip');if(!st||!st.parentNode)return null;
+  el=document.createElement('div');el.id='gFigSel';el.setAttribute('role','group');
+  el.innerHTML='<div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'
+    +FIG_FAM.map(function(F,k){return '<button type="button" class="fsHex" data-k="'+k+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(F[2])+'</i><b class="fsNom"></b></button>';}).join('');
+  st.parentNode.insertBefore(el,st);
+  el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fsHex');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;
+    const k=+b.getAttribute('data-k');uiPop(b);uiClic('onglet');hap(6);GFS.arme=GFS.arme===k?-1:k;GFS.k='';gFigSelMaj();gFigGrilleArme();});
+  return el;}
+function gFigSelMaj(){const el=gFigSelEl();if(!el||!window.FIG)return;const S=figSlots(),k=S.join(',')+':'+GFS.arme+':'+GFS.flash+':'+LANG;if(GFS.k===k)return;GFS.k=k;
+  el.setAttribute('aria-label',sansAcc(TR('FIGURES ÉQUIPÉES')));el.classList.toggle('arme',GFS.arme>=0);
+  el.querySelectorAll('.fsHex').forEach(function(b){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],c=f?rarInfo(cosmRar('figure',f)).c:'#6c6390',nm=f?sansAcc(TR(f.n)):sansAcc(TR('VIDE'));
+    b.style.setProperty('--fc',c);b.classList.toggle('vide',!f);b.classList.toggle('on',GFS.arme===s);b.setAttribute('aria-pressed',GFS.arme===s);
+    b.querySelector('.fsIn').innerHTML=f?illuFig(id,c,s===0):'<b class="fsQ">?</b>';
+    b.querySelector('.fsNom').textContent=nm;b.setAttribute('aria-label',sansAcc(TR(FIG_FAM[s][0]))+' : '+nm);
+    if(GFS.flash===s){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}});
+  GFS.flash=-1;}
+function gFigGrilleArme(){const st=document.getElementById('gStrip'),a=GFS.arme;if(!st)return;
+  st.querySelectorAll('.gT.c-figure[data-cos]').forEach(function(el){const d=COSM.figure[+el.getAttribute('data-cos')];el.classList.toggle('horsDir',a>=0&&!!d&&figPeut(d.id).indexOf(a)<0);});}
+function gFigTouche(j){const d=COSM.figure&&COSM.figure[j];if(!FIGV2.on||!d||!figPossede(d.id))return false; // pas à toi : la console l'ESSAIE (comme avant)
+  const P=figPeut(d.id),k=GFS.arme>=0&&P.indexOf(GFS.arme)>=0?GFS.arme:null;
+  figEqToast(d.id,k);const s=k!=null?k:figSlots().indexOf(d.id);
+  GFS.arme=-1;GFS.flash=s;GFS.k='';GSON9=true;shopShow('figure',j);try{garFigEssai(d.id,s);}catch(e){}return true;}
 /* LA BANDE DES HABILLAGES : jusqu'ici on ne feuilletait peintures, ailes et traînées qu'aux flèches, à l'aveugle. Désormais la
    même bande de vignettes que les caisses montre TOUTE la gamme d'un coup d'œil — le nuancier de la laque (chrome, or et
    mat ont leur matière), l'aile, le ruban de la traînée — avec le prix, le cadenas (à gagner) ou la coche (à toi). */
@@ -51161,7 +51348,7 @@ function gStripHabits(cat,i){
   if(gModeM()==='shop'){gShopJour();return;} // (2026-10-10) LA BOUTIQUE DU JOUR mêle caisses et habillages : une seule vitrine
   const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],md=gModeM(),fi=md==='inv'?'moi':md==='shop'?'achat':md==='tous'?'prix':(SHOP.filtre||'tout'); // (2026-10-09) INVENTAIRE = à moi, BOUTIQUE = à acheter
   try{gModeBoutons();}catch(e){}
-  const k='cos:'+md+':'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id;
+  const k='cos:'+md+':'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id+(cat==='figure'&&window.FIG?':'+figSlots().join(','):''); // (L'INVENTAIRE ILLUSTRÉ) une figure équipée ailleurs refait la bande
   const garde=function(d){const a=shopOwned(cat,d.id);return fi==='tout'||(fi==='prix'?!!d.p:fi==='moi'?a:(!a&&!!d.p));}; // (2026-10-10) SEE ALL ITEMS : tout ce qui a un prix, à toi ou pas // À ACHETER = en vente et pas à toi (les défis se gagnent)
   if(bar&&bar._k!==k&&md!=='tout'){bar._k=k;bar._on=null;let n9=0;for(const d of L)if(garde(d))n9++;gModeTete(bar,md,n9);} // (2026-10-09) en mode, la barre dit le MODE
   else if(bar&&bar._k!==k){bar._k=k;bar._on=null;bar.classList.remove('gModeBar'); // la barre des familles devient celle des FILTRES (même touche, même place)
@@ -51170,18 +51357,22 @@ function gStripHabits(cat,i){
       return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'"><span class="gRn">'+sansAcc(TR(f[1]))+'</span><b>'+nb(f[0])+'</b></button>';}).join('');}
   if(st._r!==k){st._r=k;st._n=-1;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-    st.innerHTML=L.map(function(d,j){const a=shopOwned(cat,d.id),eqd=shopEqD(cat)===d;
-      let fig='';
+    const S9=cat==='figure'&&window.FIG?figSlots():null; // (LES FIGURES v2) équipée = dans un des trois emplacements
+    st.innerHTML=L.map(function(d,j){const a=shopOwned(cat,d.id),eqd=S9&&FIGV2.on?S9.indexOf(d.id)>=0:shopEqD(cat)===d;
+      let fig='',ill=false;
       if(cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;
         fig='<i class="gSwc'+(d.grad?'':cosmSwCl(d))+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
-      else if(cat==='trainee'&&d.ico)fig='<i class="pxi pxi-'+d.ico+' gIc" style="color:'+(a?d.col:'#6c6390')+'"></i>'; // (2026-10-14) une traînée POP : son pictogramme et son nom, comme les ailes
+      else if(cat==='trainee'&&illuTr(d)){fig=illuPx(illuTr(d),'gIc',!a);ill=true;} // (2026-10-14) une traînée POP : son pictogramme et son nom, comme les ailes — (L'INVENTAIRE ILLUSTRÉ) celles d'origine aussi
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
-      else if(cat==='figure')fig='<i class="pxi pxi-rotation gIc" style="color:'+(a?rarInfo(cosmRar(cat,d)).c:'#6c6390')+'"></i>'; // (2026-10-14) une FIGURE
-      else fig='<i class="pxi pxi-'+(d.ico||'aile')+' gIc" style="color:'+(a?(d.col||'#dff6ff'):'#6c6390')+'"></i>'; // (2026-10-14) les ailes POP ont leur pictogramme
-      const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('DÉFI'))); // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
+      else if(cat==='figure'){fig=illuFig(d.id,a?rarInfo(cosmRar(cat,d)).c:'#6c6390',false,'gIc')+(S9?'<s class="fgDir">'+figPeut(d.id).map(function(k9){return '<i'+(S9[k9]===d.id?' class="on"':'')+'>'+pxi(FIG_FAM[k9][2])+'</i>';}).join('')+'</s>':'');ill=true;} // (2026-10-14) une FIGURE — (L'INVENTAIRE ILLUSTRÉ) son anneau, sa caisse, et ses directions (allumée = équipée là)
+      else{fig=illuPx(illuAile(d),'gIc',!a);ill=true;} // (2026-10-14) les ailes POP ont leur pictogramme — (L'INVENTAIRE ILLUSTRÉ) celles d'origine aussi
+      const et=a?(eqd||S9?'':pxi('coche')):(d.p?fmtC(d.p):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('DÉFI'))); // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
-      return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'||d.ico?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
+      return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
+    if(cat==='aile'&&typeof aileFile==='function')st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{aileFile(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
+      if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');});}catch(e){console.warn('aileFile',e);}});}
+  if(cat==='figure')try{gFigSelMaj();gFigGrilleArme();}catch(e){console.warn('figSel',e);} // (LES TROIS FIGURES ÉQUIPÉES) le sélecteur au-dessus de la grille // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
@@ -56144,7 +56335,7 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
   if(t.classList.contains('gMys')){uiClic('refus');toast(pxi('horloge')+' '+sansAcc(TR(t.getAttribute('aria-label')))+' — '+sansAcc(TR('BIENTÔT')));return;} // (2026-10-10) une rareté à venir
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}const eq9=garEquipeHabit(SHOP.tab,j);
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'&&gFigTouche(j)){hap(8);return;} /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */const eq9=garEquipeHabit(SHOP.tab,j);
     if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
   const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse

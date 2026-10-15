@@ -122,6 +122,25 @@
   caisse 0 équipée, JOUER → course sans erreur ni « gabarit inconnu ». Fumée commune OK (couché + debout, 0 erreur JS).
 - Cache `cashcar-v520`.
 
+## L'INVENTAIRE EN PICTOGRAMMES, ILLUSTRÉ, ET SES TROIS FIGURES (2026-10-15 soir, Sacha : « en haut, voitures, peintures, ailes, traînées, figures, c'est très brouillon : simplifie avec les pictogrammes » · « les traînées, les ailes et les figures, il n'y a pas les images » · « dans l'onglet FIGURES, un bouton stylé : le nitro et trois cases en hexagone avec les figures sélectionnées, joystick haut, bas, côté, au-dessus des figures »)
+- LES ONGLETS de l'inventaire (`#garage.atelierInv #gTabs`) : cinq PICTOGRAMMES à parts égales, 44 px, redressés (la réglette penche) ; le mot
+  reste pour le lecteur d'écran. Seulement dans l'INVENTAIRE (la console des autres modes ne bouge pas).
+- UNE IMAGE PAR OBJET (`ILLU_COS`, `ILLU_FIG`, `illuTr`/`illuAile`/`illuPx`/`illuFig`, pictogrammes `ai_*`/`tr_*`/`cv_dos`/`fg_*` dans `PXI_G`) :
+  · les 4 ailes et les 6 traînées d'origine ont leur pictogramme (planche qui traverse la caisse, hélices, plumes, chauve-souris ; jet de nitro, feuille de menthe,
+    cœur néon, poudre d'or, arc-en-ciel, tête de doge) — nitro et arc-en-ciel peints d'un dégradé à travers le masque ; les POP gardent le leur ;
+  · une AILE passe en PHOTO dès que `aileFile` existe (la photo de la boutique, session « pictogrammes d'items en boutique ») : rien à
+    rebrancher, la vignette le teste à chaque construction ;
+  · une FIGURE = la caisse vue sous l'axe de son mouvement (PROFIL : salto, chandelle, toupie ; DOS : tonneau) dans son ANNEAU (rond, à plat,
+    penché, deux pointes = 720), à la couleur de sa rareté ; le sens se lit (salto avant dans le sens des aiguilles, arrière en miroir). La
+    vignette choisie et les cases du sélecteur JOUENT la figure en boucle (3,2 s, `--ease`, coupé en « réduire les animations »). Au coin haut
+    droit, ses DIRECTIONS (↑ ↓ ◄►), allumée = équipée là.
+- LE SÉLECTEUR DES TROIS FIGURES (`#gFigSel`, `GFS`, `gFigSelMaj`, `gFigTouche`), au-dessus de la grille, onglet FIGURES de l'inventaire
+  seulement (`figTab`) : l'ÉCLAIR du bouton NITRO (sa grille `NX3_G`, sa palette) et « ×2 » (le double-tap), puis trois cases HEXAGONALES dans
+  l'ordre du jeu (`FIG_FAM` : ↑ avant, ↓ arrière, ◄► côté) — la figure qui tourne, le joystick de sa direction, son nom ; VIDE si rien.
+  · toucher une FIGURE l'équipe (avant, le toucher dans la console n'équipait PAS les emplacements : seule la boutique le faisait) — dans sa
+    direction, ou dans la case ARMÉE si elle y va ; la case qui la reçoit s'allume, la caisse du plateau fait la figure dans ce sens ;
+  · toucher une CASE l'arme (elle bat, la grille éteint les figures qui n'y vont pas) ; retouchée ou en quittant l'onglet, elle se désarme.
+- Ajouter une figure : sa ligne dans `ILLU_FIG` (sinon l'anneau du salto) — noté au GUIDE.
 ## UNE SEULE POLICE, PARTOUT (2026-10-15 soir ; Sacha : « la notification des défis n'a pas la même police que le reste du jeu […] chaque écran,
 ## chaque truc, c'est pareil quand on tape le code cousin […] il faut pas que je te le répète »)
 - LA CAUSE : une trentaine de règles écrites en police SYSTÈME (`var(--sans)`, `-apple-system`, `Segoe UI`, Avenir condensée…), choisies une

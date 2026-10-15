@@ -308,7 +308,8 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - Une ligne dans `BASE` de `figures.js` : `{id, n, en, c, ce, p, D, aura, m:[{a:[x,y,z],t:n}]}` ou `{a, b:amplitude, k:battements}` — `c`/`ce` = le
   nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
   (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
-  au shop et à l'inventaire (`COSM.figure`), s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
+  au shop et à l'inventaire (`COSM.figure`) — son DESSIN dans les vignettes et le sélecteur des trois figures : une ligne dans `ILLU_FIG`
+  (index.html : anneau, sens, vue de la caisse, geste joué ; sans elle, l'anneau du salto) —, s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
   `['avant','arriere']` (un salto + autre chose : le geste choisit le sens du salto) ; sans `dir`, `FIG.dirs` la range par la règle de
   figures.js (que l'axe des roues → son sens ; aucun mouvement sur x → côté ; les deux → avant et arrière). `figures.js?v=` +1 dans index.html ET boite-figures.html,
   `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
