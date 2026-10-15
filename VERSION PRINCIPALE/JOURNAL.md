@@ -48,6 +48,45 @@
   RECORD, éteint sur place sans chevaucher « NOUVEAU SOMMET » ; 0 chute, 0 erreur.
 - Hooks : `dbgFigDir(x,y)` (le geste, la figure, son sens), `dbgFig('phy')` (les réglages, à chaud : `eps`, `finE`, `aUp`, `aDn`, `aFin`,
   `stickAng`), `?elan=0`.
+## LA CAISSE-NUAGE N'A PLUS DE SILLAGE VISIBLE (2026-10-15 soir, Sacha : « l'événement chasse-nuage, quand j'approche le nuage, son sillage, je sais pas ce que c'est, supprime-le, c'est nul »)
+- Retirés, dans la campagne (niveau 10) comme dans l'événement rare : le RUBAN d'or rose derrière elle (`fantomePose` : `GH.tr` reste éteint), la OUATE
+  (`cloudBits`) qui filait autour de toi dans son aspiration, et le HALO d'or au bord de l'écran quand on la tient (`campFx` 4e calque à 0). La plaque
+  SILLAGE était déjà partie (9c94fdf7).
+- Le JEU ne change pas : l'aspiration tire toujours (+9 m/s² × proximité), la bulle de 18 m, « ACCROCHE ! », le carillon qui monte et la prise en 1 s
+  restent. Banc (debout 390 × 844, `dbgEvt('caisse')`, la caisse collée 1,8 s) : ruban jamais visible, halo à 0, « ATTRAPÉE ! », zéro erreur.
+## LES PRIMES DE MISSION RAMENÉES À LA PARTIE (2026-10-15 soir, Sacha : « j'ai lancé 3 parties, je suis déjà à 96 000 $, c'est trop — il faut équilibrer »)
+- LA CAUSE, lue dans sa sauvegarde localhost : 96 036 $ en banque, rien d'acheté, **6 carnets de missions finis = 76 800 $ de primes**
+  (plus le permis, 500). Les pièces n'en faisaient que ~19 000 sur 27 parties. Les primes montaient ×10 à ×50 d'un carnet à l'autre
+  (300 → 80 000 $ la mission) quand une partie ne rapporte que ~500 à 3 000 $ ; et depuis LA FILE (v467, même jour) les missions faciles
+  des carnets suivants tombent sans attendre la difficile, donc elles arrivaient en rafale. Sur sa dernière partie : +16 900 $, dont 14 000
+  de trois missions (2 000 + 4 000 + 8 000).
+- LE CORRECTIF (`CARNETS`, aucun prix ni gain de course changé) : une mission vaut ~1/3 à 1 partie du joueur qui la remplit, +15 à 25 % par
+  carnet — carnet 3 : 700 · 700 · 800 ; 4 : 800 · 800 · 1 000 ; 5 : 1 000 ×3 ; 6 : 1 200 · 1 200 · 1 400 ; 7 : 1 500 · 1 500 · 1 800 ;
+  8 : 1 800 · 1 800 · 2 200 ; 9 : 2 200 · 2 200 · 2 600 ; POP 10-12 : 2 600 → 4 000. Les carnets 1-2 (300-600 $) sont INCHANGÉS : le
+  salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie. La suite sans fin repart dans leur pas (`carnetBrut` 40 000 →
+  3 200 : 4 000, 4 800, 5 600… la mission, jalon ×2). Total des 6 premiers carnets : 76 800 → 14 400 $ ; des 12 écrits : 904 800 → 60 700 $.
+- LE CADEAU (toutes les 6 h) PLAFONNÉ à 2 500 $ (`CADO.max`) : il vaut 8 % du record d'une partie, et une vieille sauvegarde garde un record
+  de l'ANCIENNE échelle (8,6e16 chez Sacha) : son prochain cadeau lui aurait versé ~7e15 $.
+- Ce qui est déjà en banque reste en banque (rien n'est repris à une sauvegarde).
+
+## LE TAIL WHIP (2026-10-15 soir, Léo par le MANAGER : « la première figure : un TAIL WHIP » · « push-les, ils sont bien » ; choix coché : en GLISSER, ← → = tail whip) — pôle TECHNIQUE
+- LA FIGURE (`figures.js` ?v=8, `FIG.par.tailwhip`, 1re de `BASE`) : un tour à plat (axe vertical, `D` ,62, aura 50), mais le NEZ reste en
+  place et c'est la POUPE qui fait le tour — `piv` ,92 = le point fixe, en part de la demi-longueur, vers le nez. `figPose` le lit (`FX2.pivK`,
+  lissé ×14/s) et fait tourner la caisse autour de ce point (le milieu se décale, `FX2.pivD`). Une seule explosion, sur le flanc de la poupe
+  (la queue fouette ; `Corps.lance` et `Corps.empile`). Son matériau sonore = celui de la toupie (`FIG_SIGNE.tailwhip` 1).
+- EN GLISSER, EN L'AIR : ← → = le TAIL WHIP de ce côté (`figGFig`, il remplace le 360) ; glissé à GAUCHE → la POUPE part à gauche (sens −1,
+  `figGOpts`), à droite → à droite. La flèche dit « TAIL WHIP ». AU SOL rien ne change (← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE), ↑ ↓ en l'air
+  non plus (saltos). L'astuce du 1er vol dit « ◄► un tail whip ».
+- OFFERT ET ÉQUIPÉ : `figPossede('tailwhip')` toujours vrai ; une sauvegarde neuve = `figs:['tailwhip']` ; l'emplacement CÔTÉ vide prend le
+  tail whip (`figSlots`). Le TONNEAU passe en BOUTIQUE à 1 500 pièces. LES SAUVEGARDES D'AVANT LE GARDENT : il est déjà dans leur liste `figs`
+  (il y était offert d'office), et une sauvegarde d'avant les figures qui a déjà joué (sans liste) le reçoit ; `SAVE.d.figT0` = 1 marque ce
+  tonneau OFFERT, pour que `ecoDebutAchat` ne le compte pas comme un achat. En 2 TAPS, rien ne change pour elles (le côté garde le tonneau) ;
+  un débutant en 2 TAPS a le tail whip sur le côté, la poupe du côté du pouce (`figLance`, `f.piv`).
+- Banc (Chrome muet, vrais glissés sur NITRO, debout 390 × 844 et couché 844 × 390, sauvegarde neuve et sauvegarde d'avant ; `dbgGlisse('save')`,
+  `dbgGlisse('nez')`) : spam NITRO ×10 = 0 figure ; ← au sol = SLIDE 360 (reste au sol) ; en vol ← → = TAIL WHIP, la poupe part du côté
+  du glissé, le NEZ bouge de 0,5-1,2 m (la trajectoire elle-même) quand la POUPE balaie 5,3-6,6 m — aux saltos, nez et poupe bougent pareil
+  (3,6 m) ; ↑ ↓ = saltos ; 2 TAPS côté = tail whip (neuve) / tonneau (d'avant) ; 0 exception.
+
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
   souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,

@@ -10116,7 +10116,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=8"></script>
+<script src="figures.js?v=9"></script>
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=2"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -23248,8 +23248,8 @@ function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain*ECOD
 const ECO_ANCIEN=/[?&]eco=ancien\b/.test(location.search); // `?eco=ancien` : ECOD.k reste à 1, l'économie d'avant au dollar près
 const ECOD={coup:1.5,k:1,raison:'depart'}; // coup : LE réglage · k : ce que la partie en cours applique · raison : pourquoi (actif · achat · assez · cousin · ancien · erreur)
 function ecoDebutPrix(){let m=1e30;for(const x of COSM.peinture)if(x.p>0&&x.p<m&&!x.sec&&!x.mis&&!x.retire&&!x.eur)m=x.p;return m;} // la peinture la moins chère EN VENTE, LUE sur COSM : si les prix changent, le seuil suit — (GAMEPLAY, relecture) ni les couleurs SECRÈTES (gagnées par un DÉFI ou le pack), ni celles d'un carnet, ni les retirées, ni celles en euros
-function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TONNEAU est offert), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
-  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.length>1)return true;
+function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TAIL WHIP est offert ; le TONNEAU l'était avant le 15/10), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
+  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
   const o=d.shop&&d.shop.own;if(o)for(let i=0;i<o.length;i++){const a=String(o[i]).split(':'),l=COSM[a[0]],x=l&&l.find(function(y){return y.id===a[1];});if(x&&x.p>0)return true;}
   return false;
 }
@@ -35857,23 +35857,29 @@ function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
 }
 /* LES CARNETS ÉCRITS À LA MAIN. L'ordre enseigne le jeu : 1) les gestes de base (pièces, fruits, encaisser),
    2) le vol (figures, pose parfaite, vitesse), 3) la maîtrise (changer de niveau, franchir un gap, gros
-   magot), 4-5) l'endurance et le style. Les seuils sont calés sur le pilote automatique (`dbgAuto`). */
+   magot), 4-5) l'endurance et le style. Les seuils sont calés sur le pilote automatique (`dbgAuto`).
+   (2026-10-15, Sacha : « j'ai lancé 3 parties, je suis déjà à 96 000 $, c'est trop — il faut équilibrer ») LES PRIMES DE MISSION SUIVENT
+   LA PARTIE, PLUS L'INFLATION. Sa sauvegarde le disait : sur 96 036 $ en banque, ~77 000 venaient des primes (6 carnets finis), pas des
+   pièces. Elles montaient ×10 à ×50 (300 → 80 000 $ la mission) quand une partie, elle, ne rapporte que ~500 à 3 000 $ ; et depuis LA FILE
+   (même jour) les missions faciles des carnets suivants tombent sans attendre la difficile, donc ces primes arrivaient en rafale. Désormais
+   une mission vaut ~1/3 à 1 partie du joueur qui la remplit : 700 → 4 000 $, +15 à 25 % par carnet. Carnets 1-2 (300-600) INCHANGÉS : c'est
+   le salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie. Total des 6 premiers carnets : 76 800 → 14 400 $. */
 const CARNETS=[
   {r:{car:6},m:[{k:'coins',v:25,p:300},{k:'fruits',v:4,p:300},{k:'cash',v:1000,p:400}]},
   {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'nitro',v:10,p:600},{k:'kmh',v:672,p:600}]}, /* (2026-10-07, Sacha : « enlève les défis pose parfaite ») UNE POSE PARFAITE → 10 s de nitro (même prime) */ // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
-  {r:{car:8},m:[{k:'zones',v:1,p:1500},{k:GAP_ON?'gaps':'chain',v:GAP_ON?1:3,p:1500},{k:'cash',v:20000,p:2000}]}, // (2026-09-26) sans catapultes (GAP_ON), un gap est IMPOSSIBLE : le contrat bloquait toute la suite
-  {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:4000},{k:'tricks',v:8,p:4000},{k:'cash',v:100000,p:5000}]},
-  {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:8000},{k:'chain',v:4,p:8000},{k:'coins',v:80,p:8000}]}, /* (2026-10-04, Sacha : « enlève la mission 3 pose parfaite ») le DÉFI 3 de ce carnet était « 3 POSES PARFAITES » : 80 pièces en une partie à la place (même prime) */
+  {r:{car:8},m:[{k:'zones',v:1,p:700},{k:GAP_ON?'gaps':'chain',v:GAP_ON?1:3,p:700},{k:'cash',v:20000,p:800}]}, // (2026-09-26) sans catapultes (GAP_ON), un gap est IMPOSSIBLE : le contrat bloquait toute la suite
+  {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:800},{k:'tricks',v:8,p:800},{k:'cash',v:100000,p:1000}]},
+  {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:1000},{k:'chain',v:4,p:1000},{k:'coins',v:80,p:1000}]}, /* (2026-10-04, Sacha : « enlève la mission 3 pose parfaite ») le DÉFI 3 de ce carnet était « 3 POSES PARFAITES » : 80 pièces en une partie à la place (même prime) */
 /* ===== LES CARNETS DES 50 — DÉBUT ===== */
-  {r:{car:65},m:[{k:'tricks',v:10,p:10000},{k:'coins',v:120,p:10000},{k:'zones',v:2,p:12000}]},
-  {r:{car:63},m:[{k:'survie',v:180,p:15000},{k:'kmh',v:900,p:15000},{k:'chain',v:6,p:18000}]}, /* (2026-10-07) 5 POSES PARFAITES → tiens 3 min */
-  {r:{car:64},m:[{k:'zones',v:3,p:25000},{k:'fruits',v:12,p:25000},{k:'cash',v:500000,p:30000}]},
-  {r:{car:62},m:[{k:'tricks',v:20,p:40000},{k:'nitro',v:45,p:40000},{k:'zones',v:4,p:50000}]}, /* (2026-10-07) 10 POSES PARFAITES → 45 s de nitro */
+  {r:{car:65},m:[{k:'tricks',v:10,p:1200},{k:'coins',v:120,p:1200},{k:'zones',v:2,p:1400}]},
+  {r:{car:63},m:[{k:'survie',v:180,p:1500},{k:'kmh',v:900,p:1500},{k:'chain',v:6,p:1800}]}, /* (2026-10-07) 5 POSES PARFAITES → tiens 3 min */
+  {r:{car:64},m:[{k:'zones',v:3,p:1800},{k:'fruits',v:12,p:1800},{k:'cash',v:500000,p:2200}]},
+  {r:{car:62},m:[{k:'tricks',v:20,p:2200},{k:'nitro',v:45,p:2200},{k:'zones',v:4,p:2600}]}, /* (2026-10-07) 10 POSES PARFAITES → 45 s de nitro */
 /* ===== LES CARNETS DES 50 — FIN ===== */
 /* (2026-10-14) LES CARNETS POP : trois habillages MYTHIQUES qui ne s'achètent pas — ils se méritent (les primes : un cran au-dessus du carnet 9) */
-  {r:{cat:'aile',id:'phenix'},m:[{k:'survie',v:240,p:50000},{k:'chain',v:7,p:50000},{k:'coins',v:150,p:60000}]},
-  {r:{cat:'trainee',id:'foudre'},m:[{k:'zones',v:5,p:60000},{k:'tricks',v:25,p:60000},{k:'nitro',v:55,p:70000}]},
-  {r:{cat:'peinture',id:'guerrier'},m:[{k:'kmh',v:1100,p:70000},{k:'fruits',v:20,p:70000},{k:'cash',v:500000,p:80000}]},
+  {r:{cat:'aile',id:'phenix'},m:[{k:'survie',v:240,p:2600},{k:'chain',v:7,p:2600},{k:'coins',v:150,p:3000}]},
+  {r:{cat:'trainee',id:'foudre'},m:[{k:'zones',v:5,p:3000},{k:'tricks',v:25,p:3000},{k:'nitro',v:55,p:3500}]},
+  {r:{cat:'peinture',id:'guerrier'},m:[{k:'kmh',v:1100,p:3500},{k:'fruits',v:20,p:3500},{k:'cash',v:500000,p:4000}]},
 ];
 /* (vague 3, 2026-09-27) LES CONTRATS À LA NOUVELLE ÉCHELLE — convertis À LA LECTURE (les carnets 6-9 sont régénérés par
    gamme/integrer.js : on n'y touche pas à la main). Primes × ECO3.prime ; seuils « ENCAISSE X » ramenés sur ce que rapporte
@@ -35896,7 +35902,7 @@ function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, ti
      d'atteinte bloque toute la suite pour toujours. Chaque seuil plafonne sur ce qu'une TRÈS bonne partie fait (chaîne 8, parfaites 10,
      figures 30, 7 min, 60 s de nitro, 300 pièces, 60 fruits : 2,4 min de LIGNE PARFAITE à un fruit toutes les 2,4 s, ~5 min à moitié
      prise — sous le plafond de survie) ; passé le plafond, c'est la PRIME qui continue de monter (+25 %/carnet, sans plafond). */
-  const l=n-CARNETS.length+1,pr=ecoRond(40000*ECO3.prime*(1+.25*l)) /* (2026-10-14) 5000 → 40000 : la suite sans fin prend la relève des carnets POP au lieu de payer 10× moins */,M=Math.min,POOL=[ // (vague 3) +25 % de la prime de base par carnet (c'était ×1,5)
+  const l=n-CARNETS.length+1,pr=ecoRond(3200*ECO3.prime*(1+.25*l)) /* (2026-10-14) 5000 → 40000 : la suite sans fin prend la relève des carnets POP · (2026-10-15, équilibrage) 40000 → 3200 : les carnets POP paient désormais 2 600-4 000, la suite continue dans leur pas (4 000, 4 800, 5 600… et le jalon ×2) */,M=Math.min,POOL=[ // (vague 3) +25 % de la prime de base par carnet (c'était ×1,5)
     {k:'coins',v:M(300,60+20*l)},{k:'fruits',v:M(60,10+3*l)},{k:'cash',v:ecoRond(ecoCash(100000)*M(4,1+.3*l))},{k:'tricks',v:M(30,8+3*l)}, // (vague 3) seuil d'argent : une BONNE partie +30 % par carnet, plafond ×4 (c'était ×2,2 par carnet : 440 k dès le 1er, impossible)
     {k:'perfect',v:M(10,3+l)},{k:'kmh',v:M(1200,680+48*l)},{k:'zones',v:M(6,2+(l>>1))},{k:'gaps',v:M(6,1+l)},
     {k:'survie',v:M(420,150+30*l)},{k:'chain',v:M(8,4+l)},{k:'nitro',v:M(60,20+5*l)}].filter(function(x){return GAP_ON||x.k!=='gaps';}); // jamais de mission impossible
@@ -41347,7 +41353,7 @@ function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vo
 }
 /* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE : la variante de `fig.signe` (atelier-son/recettes.js) de chaque figure du catalogue
    (figures.js). Une figure inventée par le joueur, ou une figure automatique (la toupie de drift), garde le maillon. */
-const FIG_SIGNE={tonneau:0,toupie:1,shimmy:2,chandelle:3,saltoa:4,saltov:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
+const FIG_SIGNE={tailwhip:1,tonneau:0,toupie:1,shimmy:2,chandelle:3,saltoa:4,saltov:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
 const FIG_MONDE={bk_trp:0,bk_glace:1,bk_pou:2,bk_trace:3,bk_pat:4,bk_der:5,ricochet:6,plongeon:7,surf:8}; // (étape 2) les figures de LA BANQUISE et de l'eau : variantes de `fig.monde`
 /* (2026-10-14, session SON ; les combos : GENERAL, comboNote) LA SIGNATURE DES COMBOS. La clé = les trois AXES triés (T tonneau, P toupie,
    S salto, M mixte). Trois FRAPPES (une matière par axe, dans l'ordre de la clé) qui montent la pentatonique du vol, puis le SCEAU : pur
@@ -42446,7 +42452,7 @@ const SND={sfx:true,voice:true,music:true,vib:true};
    Interrupteurs : ?jour=0 (ni ×2, ni série, ni prime : le jeu d'avant au dollar près) · ?cadeau=0. Sauvegarde : SAVE.d.jour={d,n} (dernier jour compté, série à cette date) · SAVE.d.cad={t} (dernier cadeau ouvert, en ms). Crochets : dbgJour(), dbgCadeau().
    Contrat avec l'accueil (INTERFACE), aussi sur window : cadeauEtat() → {pret, dansMs, jour} (PUR, appelable chaque seconde ; + actif · serie · valeur) · cadeauOuvre() → false si rien n'est prêt, sinon verse et rend une promesse du montant (événement document 'cc:cadeau', .valeur = le montant) · jourTexte() → la phrase du quotidien. C'est elle qui dessine la ligne : ce bloc ne pose AUCUN élément d'accueil. */
 const JOUR={on:!/[?&]jour=0\b/.test(location.search),x2:2,prime:[0,25,40,55,70,85,100],tMin:15,max:9999,k:1,e:1,cmp:false,dep:'',fin:null,dec:0}; // x2 · prime[] : par jour de série (sa longueur = le plafond) · tMin : secondes de course pour qu'une partie COMPTE · max : borne de la série · k : le multiplicateur de la partie en cours (e : celui d'ECOD seul) · cmp/dep : la partie compte, sa date de DÉPART · fin : ce que la dernière fin de partie a versé · dec : décalage des bancs, en jours
-const CADO={on:!/[?&]cadeau=0\b/.test(location.search),periode:216e5,min:25,pc:.08,force:false}; // periode : 6 h en ms · min : le plancher en $ · pc : la part du meilleur gain d'une partie · force : le banc (dbgCadeau) passe outre l'auto-école
+const CADO={on:!/[?&]cadeau=0\b/.test(location.search),periode:216e5,min:25,pc:.08,max:2500,force:false}; // periode : 6 h en ms · min : le plancher en $ · pc : la part du meilleur gain d'une partie · force : le banc (dbgCadeau) passe outre l'auto-école
 function jourAuj(){ // la date LOCALE de l'appareil, 'AAAA-MM-JJ' ; '' si l'horloge est illisible ou absurde (le jour est alors ignoré, rien ne plante)
   const t=new Date();if(JOUR.dec)t.setDate(t.getDate()+JOUR.dec);
   const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
@@ -42508,7 +42514,7 @@ function jourTexte(){ // la phrase du quotidien, déjà traduite ('' = rien à d
 }
 function cadeauValeur(){ // ce que le prochain cadeau donnera : la plus grande de deux choses, un plancher et une part de TON meilleur gain — il grandit avec le joueur, jamais plus qu'un dixième d'une bonne partie
   let b=0;try{b=SAVE.d.best||0;}catch(x){}
-  return Math.max(CADO.min,ecoRond(CADO.pc*b));
+  return Math.min(CADO.max,Math.max(CADO.min,ecoRond(CADO.pc*b))); /* (2026-10-15, équilibrage) max : 2 500 $ (une très bonne partie à ~30 k donne déjà ~2 400) — un record de l'ANCIENNE échelle (8,6e16 dans la sauvegarde de Sacha) offrait 7e15 $ toutes les 6 h */
 }
 function cadeauHorlogeOk(nw){return nw>=1.6e12&&nw<4.2e12;} // 2020 → 2100 : une horloge absurde (NaN, 1970) ne donne ni ne bloque rien
 function cadeauRecale(){ // la SEULE écriture de l'horloge du cadeau (cadeauEtat, lui, ne touche à rien) : un dernier cadeau « dans le futur » (montre reculée) repart de MAINTENANT ; appelée une fois par partie (jourMaj) — et san() fait pareil au chargement
@@ -42602,7 +42608,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tonneau'], figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip'], figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
@@ -42677,7 +42683,9 @@ const SAVE={
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
-    if(Array.isArray(d.figs))c.figs=[...new Set(['tonneau'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées (le TONNEAU, offert)
+    if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
+    else if((+d.best>0)||(+d.bank>0)||(+d.aura>0))c.figs=['tailwhip','tonneau']; // une sauvegarde d'avant les figures (sans liste) qui a déjà joué : elle avait le tonneau, elle le garde
+    c.figT0=(d.figT0===1||(d.figT0===undefined&&c.figs.indexOf('tonneau')>=0))?1:0; // figT0 : ce tonneau-là était OFFERT (sauvegarde d'avant le tail whip) — pas un achat (ecoDebutAchat)
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
@@ -43563,7 +43571,7 @@ function figLibrePose(){ // à la pose (veqPose) : rend [écart en rad, x, y, z]
 }
 window.dbgFigL=function(a,gx,hy){if(a==="tap")return figLibreTap(gx||0,hy||0);
   return {libre:FLK.on,actif:FL.actif,w:[+FL.w.x.toFixed(2),+FL.w.y.toFixed(2),+FL.w.z.toFixed(2)],ecartDeg:Math.round(figLibreAngle()*57.3),demi:FL.dem.slice(),nitro:+FL.nit.toFixed(3),cum:FL.cum.slice(),cumN:+FL.cumN.toFixed(3),cumT:FL.cumT||0,cause:mortCause,taps:FL.taps,eta:+(CAMV.eta<90?CAMV.eta:99).toFixed(2),pose:FL.pose||null,rate:VEQ.rate,mode:mode};};
-function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){return f.id;});const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tonneau'];}
+function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){return f.id;});const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tailwhip'];}
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
   if(FIGV2.on){if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
     if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
@@ -43597,7 +43605,7 @@ window.dbgVol=function(a){
   if(a==='ancien'||a==='neuf'){VEQ.on=a==='neuf';return VEQ.on?'vol équilibré':'vol d’avant';}
   if(a==='double')return veqDouble();
   if(a==='tout'){SAVE.d.figs=FIG.liste.map(function(f){return f.id;});SAVE.flush();return SAVE.d.figs;} // (banc) toutes les figures
-  if(a==='rien'){SAVE.d.figs=['tonneau'];SAVE.flush();return SAVE.d.figs;}
+  if(a==='rien'){SAVE.d.figs=['tailwhip'];SAVE.d.figT0=0;SAVE.flush();return SAVE.d.figs;}
   return {on:VEQ.on,mode:mode,u:+VEQ.u.toFixed(3),steer:+steer.toFixed(3),verrou:+VEQ.l0.toFixed(3),lT:+VEQ.lT.toFixed(2),
     lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),pose:+VEQ.pose.toFixed(2),ext:+VEQ.ext.toFixed(3),
     haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),figures_en_cours:VEQ.lect?VEQ.lect.actifs.map(function(a){return a.f.id+' '+a.t.toFixed(2)+'/'+a.D.toFixed(2);}).concat(VEQ.lect.file.map(function(a){return '+'+a.f.id;})):null,aMoi:veqFigsAMoi(),
@@ -43643,7 +43651,7 @@ const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,nul
    choisit alors le sens de son salto (`FIG.oriente`). Équiper prend la place de celle de CET emplacement, jamais d'un autre.
    `SAVE.d.figEq3` = les trois id, à leur place ('' = vide) ; une sauvegarde d'avant (`figEq`, deux id) se range d'elle-même : chaque figure
    dans la 1re direction libre qu'elle accepte. Un emplacement vide se remplit avec la dernière figure possédée qui y va (une qui n'est pas
-   déjà ailleurs d'abord) ; le côté a toujours au moins le TONNEAU (offert).
+   déjà ailleurs d'abord) ; le côté a toujours au moins le TONNEAU (offert) — depuis le 15/10, le TAIL WHIP.
    Un emplacement vide : son geste ne fait RIEN (le refus, `o.strict`) — Sacha : « le tonneau est typiquement une figure latérale ». Deux
    exceptions, qui ne sont pas le geste du joueur : l'étape FIGURE de l'auto-école (« tape 2 fois NITRO », pouce au repos — un débutant n'a
    que le tonneau, la leçon serait bloquée) et la figure AUTOMATIQUE du saut nitro au sol : elles prennent un emplacement qui existe. */
@@ -43657,12 +43665,12 @@ function figPeut(id){const f=window.FIG&&FIG.par[id];if(!f||!FIG.dirs)return [2]
 function figRange(S,L,reuse){for(let passe=0;passe<(reuse?3:2);passe++)for(let k=0;k<FIG_NB;k++)if(S[k]==null)
   for(let i=0;i<L.length;i++){const P=figPeut(L[i]);if(P.indexOf(k)>=0&&(passe===2||(S.indexOf(L[i])<0&&(passe===1||P.length===1)))){S[k]=L[i];break;}}
   return S;}
-function figSlots(){if(!window.FIG)return [null,null,'tonneau'];
+function figSlots(){if(!window.FIG)return [null,null,'tailwhip'];
   const own=function(id){return !!FIG.par[id]&&figPossede(id);},S=[null,null,null],E3=SAVE.d.figEq3;
   if(Array.isArray(E3)){for(let k=0;k<FIG_NB;k++){const id=E3[k];if(id&&own(id)&&figPeut(id).indexOf(k)>=0)S[k]=id;}}
   else if(Array.isArray(SAVE.d.figEq))figRange(S,SAVE.d.figEq.filter(own).reverse(),false); // une sauvegarde d'avant les trois directions
   if(S[0]==null||S[1]==null||S[2]==null){figRange(S,(cousin()?FIG.liste.map(function(f){return f.id;}):(Array.isArray(SAVE.d.figs)?SAVE.d.figs.slice():[])).filter(own).reverse(),true);
-    if(S[2]==null)S[2]='tonneau';}
+    if(S[2]==null)S[2]='tailwhip';} // (2026-10-15) le côté a toujours au moins le TAIL WHIP (offert)
   return S;}
 function figEquipees(){return figSlots().filter(function(id,i,S){return id&&S.indexOf(id)===i;});} // les figures équipées (une fois chacune), l'avant d'abord
 /* équiper `id` dans l'emplacement k (0-2) ; sans k (l'inventaire) : le 1er qu'elle accepte et qui ne l'a pas déjà, un vide d'abord */
@@ -43740,10 +43748,11 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
       try{if(SONV2)sfx('fig.battement',{var:ch9?1:0,vol:-8,st:sonPdAR(ECH+(nb&1)),pan:ch9?0:(nb&1?.5:-.5)});}catch(e){}hap(5);}}
     if(!r.paye&&r.mv.length){let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j]; // CHAQUE TOUR SE SENT : le souffle qui tourne, un tic dans la main (tenue, le rythme accélère)
       const n9=Math.floor(Math.max(0,mm.th)/6.2832+.08);if(n9>(r.tourDit|0)){r.tourDit=n9;try{if(SONV2&&!sfx(figMat(mm.a),{vol:-8,st:echSt()}))sfx('fig.vrille',{vol:-12});}catch(e){} /* (session SON) repli : l'ancien tic tant que la banque n'a pas les trois matières */hap(6);if(n9>=2)sparkBurst(sparkGold,carGroup.position,6,7);}}}
-  {const gl9=figGlisseOn(),b9=gl9?64:FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(gl9?'Depuis NITRO, glisse puis lâche : ◄► un 360, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128)
-  const q=C.q;if(q[3]<.9999995){const hc=(CARS[level].h||1.3)*.5;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
+  {const gl9=figGlisseOn(),b9=gl9?64:FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(gl9?'Depuis NITRO, glisse puis lâche : ◄► un tail whip, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128)
+  {let pv9=0;for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(!r.paye&&r.f&&r.f.piv){pv9=r.f.piv;break;}}FX2.pivK=(FX2.pivK||0)+(pv9-(FX2.pivK||0))*Math.min(1,dt*14);} // (2026-10-15) LE TAIL WHIP : le point fixe glisse du milieu vers le NEZ
+  const q=C.q;if(q[3]<.9999995){const hc=(CARS[level].h||1.3)*.5,zp=(FX2.pivK||0)*(CARS[level].l||4.4)*.5;VEQ.pv.set(0,hc,zp).applyQuaternion(carGroup.quaternion);
     VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
-    VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
+    VEQ.pv2.set(0,hc,zp).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);FX2.pivD=VEQ.pv.distanceTo(VEQ.pv2);}else FX2.pivD=0; // pivD (banc) : de combien le milieu s'écarte pour garder le nez en place
   for(let i=0;i<fin.length;i++)figPaye(fin[i]);
 }
 /* L'AUTO-ÉCOLE : les figures y sont fermées, SAUF à l'étape FIGURE — la leçon (GENERAL) l'ouvre par `tutoFigOuverte()` (nom convenu, ne pas renommer) */
@@ -43759,14 +43768,14 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=o.dx!=null&&Math.abs(o.dx)>=.3?o.dx:steer; // (2026-10-15, les deux familles) le geste de CÔTÉ donne le pouce LUI-MÊME (figDirSlot) : la figure part de ce côté, sans attendre que le volant lissé l'ait rejoint
   let enC=null;if(o.sens==null&&Math.abs(st9)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant que la même figure tourne (même le tonneau AUTOMATIQUE du saut nitro) : on CONTINUE dans son sens — alterner l'ÉTEIGNAIT (MESURÉ au banc : tonneau ×3 annulé par le bouton TONNEAU)
-  const sens=o.sens!=null?o.sens:Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1)):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche) — o.sens : le GLISSER de Léo l'impose
+  const sens=o.sens!=null?o.sens:Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // (2026-10-15) f.piv, le TAIL WHIP : la POUPE part du côté du pouce (comme au GLISSER) // du côté où l'on braque (steer > 0 = à gauche) — o.sens : le GLISSER de Léo l'impose
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
   let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour (sur le tonneau du saut nitro aussi : le joueur le reprend en main, il n'est plus « automatique »)
   if(r){const el9=FIG.PHY&&FIG.PHY.elan,D2=el9?Math.min(f.D*1.35+Math.max(0,r.D-r.t),(bud-.35)*.72):figDose(f,bud-C.reste());if(r.mv[0].tours>=IMPU.max||D2<Math.max(.32,f.D*.5)){figRefus(s);return null;} /* (le coup net) le tour EMPILÉ se dose sur ce qui reste à CETTE figure (D2 = le temps pour TOUT finir) — MESURÉ : réserver le temps des autres figures refusait le DOUBLE SALTO du saut nitro */C.empile(r,D2);r.douce=false;}
   else{if(C.occupe()>=3||D<Math.max(.32,f.D*.5)){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement ») — (le coup net) jamais en moins de 0,32 s : le coup serait un flou
     r=C.lance(f,sens,D,{tient:s>=0&&!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;}
   if(s>=0){FX2.slots[s]=r;FX2.cyc=(s+1)%FIG_NB;}FX2.n++;VEQ.n++;
-  {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':(ax===2?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // (HUD v4) la flèche du geste : ▲ ▼, ou le CÔTÉ où elle part (tonneau : sens −1 = à gauche ; toupie, hélico : +1 = à gauche)
+  {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} /* (le TAIL WHIP : la flèche montre le côté où part la POUPE, celui du pouce) */ // (HUD v4) la flèche du geste : ▲ ▼, ou le CÔTÉ où elle part (tonneau : sens −1 = à gauche ; toupie, hélico : +1 = à gauche)
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
@@ -43874,9 +43883,9 @@ function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();fig
 function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
 figGClasse();
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
-function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?F.toupie:d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat
+function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
-  return {f:f,sens:d==='l'?1:d==='r'?-1:1,empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens)
+  return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
 function figGNom(d){if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
 function figGJoue(d){ // (la boucle) le glissé lâché
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte())){GLI.refus++;return false;}
@@ -43896,7 +43905,10 @@ function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche
   el.style.transform='translate('+Math.round(px)+'px,'+Math.round(py)+'px) translate(-50%,-50%)';}
 window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'glisse':'tap';figGClasse();return SAVE.d.figG;}
   if(a==='l'||a==='r'||a==='u'||a==='d')return figGJoue(a);
-  return {mode:figGlisseOn()?'glisser':'2 taps',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
+  if(a==='save')return {figs:SAVE.d.figs,figT0:SAVE.d.figT0,achat:ecoDebutAchat(),slots:figSlots(),tonneau:figPossede('tonneau'),tailwhip:figPossede('tailwhip'),prix:window.FIG&&FIG.par.tonneau?FIG.par.tonneau.p:null}; // (banc, TAIL WHIP) ce que la sauvegarde possède
+  if(a==='nez'){const L=(CARS[level].l||4.4)*.5,n9=new THREE.Vector3(0,.5,L*.92),p9=new THREE.Vector3(0,.5,-L*.9);carGroup.localToWorld(n9);carGroup.localToWorld(p9); // (banc, TAIL WHIP) le nez, la poupe et le milieu dans le monde
+    return [n9.toArray(),p9.toArray(),carGroup.position.toArray(),fallPos.toArray()].map(function(v){return v.map(function(x){return +x.toFixed(3);});});}
+  return {mode:figGlisseOn()?'glisser':'2 taps',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
 /* ===== LES FIGURES AU SOL (2026-10-15, 2e passe — Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air,
    seulement lorsque le joueur fait FLÈCHE AVANT pendant le trick ; faites sur le sol, la voiture reste au sol tant qu'il ne pousse pas vers
    l'avant ; d'autres, comme le SLIDE 360, se font au sol et restent au sol » ; choix cochés : flèche avant = le JOYSTICK poussé vers l'avant,
@@ -44068,7 +44080,7 @@ function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on »
   addEventListener('keydown',function(e){const s=K[e.code];if(s==null||e.repeat)return;tient(s,'k'+s);});
   addEventListener('keyup',function(e){const s=K[e.code];if(s!=null)lache('k'+s);});
 })();
-try{Object.assign(I18N,{'Depuis NITRO, glisse puis lâche : ◄► un 360, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':'From NITRO, slide then release: ◄► a 360, ▲ ▼ a flip. On the ground, push the joystick forward to jump.'});}catch(e){} // (2026-10-15) l'astuce du GLISSER (bit 64 de SAVE.d.ast — libre ; ⚠ san() plafonne ast à 255 : jamais de bit 256)
+try{Object.assign(I18N,{'Depuis NITRO, glisse puis lâche : ◄► un tail whip, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':'From NITRO, slide then release: ◄► a tail whip, ▲ ▼ a flip. On the ground, push the joystick forward to jump.'});}catch(e){} // (2026-10-15) l'astuce du GLISSER (bit 64 de SAVE.d.ast — libre ; ⚠ san() plafonne ast à 255 : jamais de bit 256)
 try{Object.assign(I18N,{'COMBO':'COMBO','RECORD':'RECORD'});}catch(e){} // (HUD des figures v4)
 try{Object.assign(I18N,{'COMBO PERDU':'COMBO LOST','En vol, tape 2 fois NITRO : pouce en AVANT = figure 1, sur le CÔTÉ = figure 2.':'In the air, double-tap NITRO: thumb FORWARD = trick 1, to the SIDE = trick 2.','En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'In the air, double-tap NITRO: thumb FORWARD, BACK or to the SIDE — each gesture has its trick.'});}catch(e){} // (2026-10-15) HUD des figures v3 + le choix au joystick
 try{Object.assign(I18N,{'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !':'In the air, tap a TRICK: it blasts and spins the car. Hold for one more turn!','TOUPIE DE DRIFT':'DRIFT SPIN','EMPLACEMENTS':'SLOTS','ÉQUIPÉE':'EQUIPPED','REMPLACE':'REPLACES','RETIRÉE':'REMOVED',
@@ -47967,9 +47979,9 @@ function fantomePose(dt){ // la caisse-nuage dans le monde : au sol sur sa ligne
   }
   const rv=GH.v*SPD*dt/.36;for(const w of GH.roues)w.rotation.x+=rv;
   g.visible=Math.abs(GH.s-s)<1100||GH.air;
-  // SON RUBAN : un fil d'or rose depuis la poupe (on la suit à la trace, même quand elle est loin)
-  CV1.set(0,.75,-2.1).applyQuaternion(g.quaternion).add(g.position);
-  trailStep(GH.tr,CV1.x,CV1.y,CV1.z,1.25,1.02,.86,GH.fini?0:.85,3.2);
+  /* (2026-10-15, Sacha : « son sillage, je sais pas ce que c'est, supprime-le, c'est nul ») plus de ruban d'or rose derrière la
+     caisse-nuage — il reste éteint (trailStep à 0 le cache) */
+  trailStep(GH.tr,0,0,0,0,0,0,0);
 }
 function fantomeTick(dt){
   if(!GH.on||GH.pris||GH.fini){if(GH.on&&GH.fini)GH.g.visible=false;return;}
@@ -48004,9 +48016,7 @@ function fantomeTick(dt){
   const d=CV1.distanceTo(carGroup.position),sP=mode==='fall'?lastNearS:s;
   const derriere=GH.air||mode==='fall'?true:(sP<=GH.s+2);
   if(d<46&&derriere&&mode==='drive'&&!GH.air){ // L'ASPIRATION : dans son sillage, l'air te tire (et la ouate file autour de toi)
-    const k=1-d/46;vA+=9*k*dt;
-    if(Math.random()<dt*26*k){CV2.set((Math.random()-.5)*6,.8+Math.random()*2.2,2+Math.random()*6).applyQuaternion(carGroup.quaternion).add(carGroup.position);
-      spawnP(cloudBits,CV2.x,CV2.y,CV2.z,CAMP.vel.x*.7,CAMP.vel.y*.7+.5,CAMP.vel.z*.7,.45);}}
+    const k=1-d/46;vA+=9*k*dt;} // (2026-10-15, Sacha) plus de ouate qui file autour de toi dans son sillage : l'aspiration tire toujours, sans rien montrer
   if(d<18){
     if(!GH.accr){GH.accr=true;popTexte('ACCROCHE !','#ffe7a8',2);hap(12);if(SONV2)sfx('fantome.accroche');}
     GH.prise+=dt;GH.noteT-=dt;
@@ -48265,7 +48275,7 @@ function campTick(dt){
   // les halos de l'écran
   let r=0,b=0;
   if(SURV.chasse&&CAMP.proche<150){const k=(1-CAMP.proche/150)*.85,ph=SURV.ph<.5;r=ph?k:k*.2;b=ph?k*.2:k;}
-  campFx(r,b,CAMP.feuT*(.55+.25*Math.sin(performance.now()*.03)),GH.on&&!GH.pris?Math.min(1,GH.prise)*.9:0);
+  campFx(r,b,CAMP.feuT*(.55+.25*Math.sin(performance.now()*.03)),0); // (2026-10-15, Sacha) le halo d'or du sillage de la caisse-nuage est retiré
 }
 for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'LOW GRAVITY: JUMPS LAST TWICE AS LONG','LA ROUTE EST A TOI':'THE ROAD IS YOURS','TRAVERSE LE NUAGE':'PIERCE THE CLOUD','PASSE LES PORTES':'THREAD THE GATES',
   'SEME LA POLICE':'LOSE THE COPS','ET SI TU COUPAIS ?':'WHAT IF YOU CUT ACROSS?','DANSE AVEC LE RELIEF':'DANCE WITH THE HILLS','LE CIEL MENT':'THE SKY IS LYING',
@@ -49399,7 +49409,7 @@ function evtTick(dt){ // la boucle, juste après campTick — rien quand ?evt=0
   if(EVT.nom==='moutons'){campMoutonsTick(dt,EVT.mt,EVT,true);if(!EVT.fini){let n9=0;for(const m of EVT.mt)if(m.fait)n9++;if(n9===EVT.mt.length)evtMoutonsFin();}}
   else if(EVT.nom==='caisse'){
     if(CAMP.pvOk&&dt>0){CAMP.vel.subVectors(carGroup.position,CAMP.pv).divideScalar(dt);if(CAMP.vel.lengthSq()>2.5e5)CAMP.vel.set(0,0,0);}CAMP.pv.copy(carGroup.position);CAMP.pvOk=true; // la ouate du sillage suit la caisse (fumeTick le fait en campagne)
-    fantomeTick(dt);campFx(0,0,0,GH.on&&!GH.pris&&!GH.fini?Math.min(1,GH.prise)*.9:0);}
+    fantomeTick(dt);} // (2026-10-15, Sacha) plus de halo d'or au bord de l'écran
 }
 function evtDemarre(){ // l'événement SURGIT
   EVT.etat=2;EVT.fait=true;EVT.fini=false;EVT.res='';EVT.t0=EVT.tRun;
@@ -53481,12 +53491,12 @@ function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('g
 /* LES FIGURES AU SHOP ET À L'INVENTAIRE (2026-10-14) — possédées : SAVE.d.figs ; achetées en pièces (la banque) ; toucher = la caisse la fait */
 function figAchat(i){const d=COSM.figure[i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};if(figPossede(d.id))return {ok:false,raison:'deja-possedee'};
   if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
-  SAVE.d.bank=bank()-d.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(d.id);SAVE.flush();return {ok:true,paye:d.p};}
+  SAVE.d.bank=bank()-d.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tailwhip'];SAVE.d.figs.push(d.id);SAVE.flush();return {ok:true,paye:d.p};}
 function figPossede(id){if(cousin())return !!(window.FIG&&FIG.par[id]); // (2026-10-14) LE CODE COUSIN : toutes les figures
-const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);}
+const L=SAVE.d.figs;return id==='tailwhip'||(Array.isArray(L)&&L.indexOf(id)>=0);} // (2026-10-15) le TAIL WHIP offert d'office ; le tonneau des anciennes sauvegardes reste dans leur liste
 function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))return false;
   if(bank()<f.p){if(bt)gSecoue(bt);uiClic('refus');toast(pxi('piece')+' '+sansAcc(TR('IL MANQUE'))+' '+fmtC(f.p-bank()));return false;}
-  SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(id);SAVE.flush();
+  SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tailwhip'];SAVE.d.figs.push(id);SAVE.flush();
   const c9=bqFigDir(id);if(FIGV2.on)try{figEquipe(id,c9);}catch(e){} // (LES FIGURES v2) achetée = ÉQUIPÉE — (2026-10-15) dans la direction de la carte touchée, à la place de celle qui y était
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id,c9);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
 const GFIG={lect:null,t:0,D:0,corps:null};
