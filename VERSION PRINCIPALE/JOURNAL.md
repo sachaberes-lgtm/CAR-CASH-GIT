@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+
+## LE RÉGLAGE FIGURES : 2 TAPS OU GLISSER (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, à l'endroit où ça devrait être : la figure se fait grâce à une glisse vers un sens puis lâchée, du bouton nitro, nitro toujours présent »)
+- RÉGLAGES › JEU › FIGURES (`#mvFigG`, `data-m="figg"`) : 2 TAPS (d'origine, rien ne change) ⇄ GLISSER — `SAVE.d.figG` ('tap' · 'glisse',
+  désinfecté dans `san`), écrit par `figGBascule` seul. La ligne existe aussi dans la pause (`data-a="figg"`) mais reste cachée hors charte 6,
+  comme IMAGE et POUCE HAUT (TOUS LES REGLAGES y mène).
+- GLISSER (bloc « LA FIGURE AU GLISSÉ », `GLI`) : le pouce sur NITRO (le boost part et tient), glisse ≥ `GLI.seuil` 38 px, LÂCHE → la figure du
+  SENS (choix de Léo « le côté / l'axe ») : ← → TONNEAU de ce côté (empilé ×2, ×3 si on recommence pendant qu'elle roule), ↑ SALTO ARRIÈRE,
+  ↓ SALTO AVANT — offerts à tous, comme le tonneau de l'impulsion ; AU SOL le SAUT NITRO avec la figure du sens (`veqSaut(fo)`, choix de Léo).
+  `figLance` accepte `o.sens` (sens imposé). Revenu au point d'appui = rien. `#figGl` (une plaque : flèche + nom) dit pendant le glissé ce qui
+  partira. Taper NITRO = booster seulement (le double-tap et le redressement à un tap du BOUTON coupés) ; le clavier garde le double-tap ;
+  le rappel `#fhLeg` se tait (`body.figGlisse`). L'auto-école suit le réglage (consigne et main `glisseN`).
+- Banc (Chrome muet, vrais touchers et souris) : GLISSER — spam NITRO ×10 au sol = 0 saut ; glissé ← au sol = saut + tonneau ; en vol ← ↑ → ↓ =
+  tonneau, salto arrière, tonneau, salto avant ; aller-retour et dérive de 20 px = rien ; double-tap au doigt = rien. 2 TAPS — glissés = rien,
+  double-tap au sol = saut, en vol = figure (comme le main). 0 exception, debout et couché. Console : `dbgGlisse()`, `dbgGlisse('l'|'r'|'u'|'d')`.
+- ⚠ En GLISSER, les figures ÉQUIPÉES (les 2 emplacements du joystick de Sacha) ne partent plus au doigt : seuls tonneau et saltos — à revoir si Léo le veut.
+
 ## DEBOUT, LE DRAGON NE TRAVERSE PLUS L'OBJECTIF (2026-10-15, Sacha : « sur la version mobile verticale le dragon passe à travers la caméra et on peut voir à l'intérieur de son corps en transparence »)
 - `DRG_PRES` + `dragonPres(m,coque)` : les matières du dragon (corps de papier, traits peints, feu additif, CRÂNE) reçoivent un fondu par
   PIXEL entre l'objectif et la caisse — la règle de la comète (`NTR_PRES`, mêmes chiffres : rien à ,42 × la profondeur de la caisse, entier

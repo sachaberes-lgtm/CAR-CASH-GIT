@@ -8984,6 +8984,7 @@ html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16p
 #figGl.on{display:flex}
 #figGl .pxi{--pxs:2;background:var(--or,#ffd75e)}
 body.dead #figGl,body:not(.play) #figGl{display:none}
+html body.figGlisse #fhLeg{display:none!important} /* en GLISSER, le rappel du double-tap au joystick se tait */
 @keyframes ecMDouble{0%,100%{transform:translateY(-10px);opacity:.4}10%,22%{transform:none;opacity:1}14%,28%{transform:translateY(5px) scale(.88);opacity:1}34%{transform:none;opacity:1}}
 @keyframes ecMOnde2{0%,12%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(.6)}26%{opacity:1;transform:scale(.6)}50%{opacity:0;transform:scale(3.4)}51%,100%{opacity:0}}
 body.hTp:not(#ccH) #ecMain,html.balade #ecMain,body.dead #ecMain{display:none}
@@ -44646,12 +44647,15 @@ function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;re
      (offerts à tous, comme le tonneau de l'impulsion). AU SOL : le SAUT NITRO, avec la figure du sens (Léo : « comme le double-tap »).
    · Revenu près du point d'appui avant de lâcher = rien (on a changé d'avis). Pendant le glissé, `#figGl` dit la figure qui partira.
    · Le double-tap et le redressement à un tap du BOUTON sont coupés (taper NITRO = booster, rien d'autre) ; le CLAVIER garde son double-tap
-     (une touche ne glisse pas) ; les trois boutons de figure du vol restent.
+     (une touche ne glisse pas, LE CHOIX AU JOYSTICK de Sacha y vit). Le rappel « ↑ 1 · ◄► 2 » (`#fhLeg`, celui du double-tap) se tait en
+     GLISSER (`body.figGlisse`) : il dirait un geste qui ne marche plus au doigt.
    Lu aux événements (doigt, souris du cadre de l'ordi), joué par la boucle (`GLI.req`, comme `VEQ.dReq`). Console : `dbgGlisse()`,
    `dbgGlisse('l'|'r'|'u'|'d')` (un glissé sans doigt), `dbgGlisse('on'|'off')`. */
 const GLI={seuil:38,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,vu:null,el:null};
 function figGlisseOn(){return !!(SAVE.d&&SAVE.d.figG==='glisse');}
-function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();}
+function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();figGClasse();}
+function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
+figGClasse();
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
 function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?F.tonneau:d==='u'?F.saltoa:F.saltov):null;}
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
@@ -44672,7 +44676,7 @@ function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche
   const k=d==='l'||d==='r'?1:0,sx=d==='l'?-1:d==='r'?1:0,sy=d==='u'?-1:d==='d'?1:0,W=VP.w||innerWidth,H=VP.h||innerHeight;
   const px=Math.max(70,Math.min(W-70,GLI.x0+sx*86)),py=Math.max(40,Math.min(H-40,GLI.y0+sy*86-(k?44:0)));
   el.style.transform='translate('+Math.round(px)+'px,'+Math.round(py)+'px) translate(-50%,-50%)';}
-window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'glisse':'tap';return SAVE.d.figG;}
+window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'glisse':'tap';figGClasse();return SAVE.d.figG;}
   if(a==='l'||a==='r'||a==='u'||a==='d')return figGJoue(a);
   return {mode:figGlisseOn()?'glisser':'2 taps',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n};};
 function figCvX(){const c=FX2.cv;return c.n?Math.min(IMPU.xMax,1+IMPU.xVar*(c.dist-1)+IMPU.xRep*(c.n-c.dist)):1;}
