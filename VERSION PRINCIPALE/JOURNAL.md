@@ -3,6 +3,46 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FIGURES EN DEUX FAMILLES : VERS L'AVANT · SUR LES CÔTÉS (2026-10-15, Sacha : « pour le système de figure : il faut séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; par exemple les figures tonneau doivent aller vers la droite ou la gauche, elles ont besoin d'être orientées par la direction, alors que salto avant a juste besoin d'aller vers l'avant ; donc dans la boutique classe toutes les figures selon ces deux catégories »)
+- **La famille est déclarée** dans `figures.js` (`cat:'avant'|'cote'` sur chaque ligne de `BASE`, ?v=5) et lue par `FIG.cat(f)`. La règle, qui
+  range aussi les figures générées de la boîte blanche (sans `cat`) : AVANT = tout se passe sur l'axe des roues (x) — rien à choisir, ni gauche
+  ni droite ; CÔTÉ = au moins un mouvement a un côté. C'est exactement la frontière du miroir de `Corps.lance` (un mouvement pur sur x garde son
+  sens, tout le reste se tire en miroir). Résultat : **VERS L'AVANT** = CHANDELLE, SALTO ARRIÈRE, SALTO AVANT (3) ; **SUR LES CÔTÉS** = TONNEAU,
+  TOUPIE 360, SHIMMY, DOUBLE TONNEAU, TIRE-BOUCHON, HÉLICO 720, VRILLE PENCHÉE, RODÉO, SALTO COSMIQUE (9 — les trois composées contiennent un
+  tonneau ou une toupie, elles ont donc un côté à choisir).
+- **Un emplacement par famille** (`figFam`, `figSlots`, `FIG_FAM`) : l'emplacement 1 (pouce en AVANT au double-tap NITRO) ne prend qu'une
+  figure avant, le 2 (pouce sur un CÔTÉ) qu'une figure de côté. ÉQUIPER (boutique ou inventaire) ou ACHETER remplace celle de SA famille, jamais
+  l'autre ; plus de DÉSÉQUIPER (une par famille, toujours). `SAVE.d.figEq` garde sa forme : la plus récente de chaque famille compte (une vieille
+  sauvegarde à deux tonneaux garde le dernier) ; une famille vide se remplit avec la dernière figure possédée de cette famille ; le côté a
+  toujours au moins le TONNEAU offert. **Sans aucune figure avant (un débutant), le pouce en avant ne fait RIEN** (le refus : `o.strict`,
+  `figRefus`) — Sacha, en voyant un 1er jet qui jouait le tonneau en repli : « bah non justement, tonneau est typiquement une figure
+  latérale ». Deux exceptions, qui ne sont pas le geste du joueur : l'étape FIGURE de l'auto-école (« tape 2 fois NITRO », pouce au repos ; un
+  débutant n'a que le tonneau, la leçon serait bloquée — `strict:!TUTO.on`) et la figure AUTOMATIQUE du saut nitro au sol.
+- **La figure de côté part du côté du pouce** : `figDirSlot` garde le pouce (`FDIR.x`) et `figLance` le reçoit (`o.dx`) au lieu du volant lissé.
+- **La boutique** (celle de Léo, `#gBqPan`) : `bqListe('figure')` range VERS L'AVANT puis SUR LES CÔTÉS (dans chaque famille, l'ordre du
+  catalogue) ; un intertitre `.bqSec` (`bqFigSec`) ouvre chaque famille — pictogramme ↑ / ◄► (ceux du rappel `#fhLeg`), le nom, et à droite en
+  petit le geste (POUCE EN AVANT · POUCE À GAUCHE OU À DROITE). Ce n'est pas une carte : ni clic, ni compte, ni miroir UX 8 (qui ne lit que
+  `.bqK`). L'inventaire range ses figures dans le même ordre ; le toast d'équipement dit la famille au lieu d'un numéro d'emplacement ; la
+  fiche (`figDesc`) dit le geste (« elle part au hasard parmi tes figures » n'était plus vrai depuis le matin). Anglais : FORWARD · SIDEWAYS.
+- Le rappel en vol `#fhLeg` et les anciens boutons (`?figdir=0`) sont rangés par EMPLACEMENT (↑ cyan = avant, ◄► magenta = côté) ; sans
+  figure avant, seul ◄► s'affiche, et un geste refusé ne secoue que SON emplacement. `dbgFig().slots` = [avant, côté] ; `dbgFigDir(x,y)` dit
+  la figure partie et son sens (le n° affiché est celui du GESTE).
+- MESURÉ au banc commun (cc-banc, muet ; debout 390 × 844, étroit 320 × 640, couché 844 × 390) :
+  · une vieille sauvegarde `figEq:['tonneau','helico']` + SALTO AVANT possédé → `slots` = saltov, helico ; ordre de la boutique =
+    [VERS L'AVANT] chandelle saltoa saltov [SUR LES CÔTÉS] tonneau toupie shimmy double tirebouchon helico penche rodeo cosmique ;
+    hélico équipée → ÉQUIPÉE ; tonneau → ÉQUIPER → slots saltov, tonneau, toast « TONNEAU · SUR LES CÔTÉS · REMPLACE HÉLICO 720 » ;
+    salto arrière → ACHETER $ 6 000 → slots saltoa, tonneau ;
+  · en vol (`dbgFigDir`) : pouce en avant → SALTO AVANT (emplacement 1) ; pouce à gauche → HÉLICO sens + ; à droite → HÉLICO sens − ;
+    débutant (que le tonneau), DANS LE MÊME VOL : pouce en avant → refus, pouce à gauche → TONNEAU ; rappel = ◄► TONNEAU seul ;
+  · l'intertitre : 1er jet rogné de 12 px en haut (scrollTop 14 : l'aimant de défilement l'attrapait pendant le glissé d'entrée des cartes)
+    → entrée en fondu seulement (`@keyframes bqSec`) → scrollTop 2, intertitre au bord de la grille ; le geste (« POUCE A GAUCHE OU A
+    DROITE ») passe entier à la ligne à 390 comme à 320 ;
+  · zéro erreur JS sur toutes les passes.
+- Vu en passant, PAS touché (la boutique de Léo) : l'onglet PEINTURES a le même rognage (scrollTop 14, la 1re rangée coupée de 12 px) —
+  il existait avant ; même cause (le glissé `bqK` sous `scroll-snap`).
+- À trancher par Sacha : il n'y a que TROIS figures avant contre neuf de côté (et aucune offerte) — en ajouter (un salto avant ×2, un
+  « wheelie » qui tourne…) se propose avant d'être fait.
+
 ## LE JOUER DU GARAGE RETROUVE SES TROIS CHEVRONS (2026-10-15, Sacha : « rajoute le bouton jouer dans le garage avec les 3 flèches animées qu'il y avait dans une ancienne version, il était bien »)
 - Le bouton était là, ses chevrons aussi (`#gJouer .mChev`, animation `k4Chev` : trois flèches qui s'allument l'une après l'autre) — mais la
   règle du 30/09 (« sous 230 px, les chevrons se taisent », faite quand la BOUTIQUE partageait la barre) les cachait : MESURÉ, le lingot de la

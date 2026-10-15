@@ -109,7 +109,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
   les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo. Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
   double-tap NITRO (`FDIR`/`figDirSlot` : avant = 1, côté = 2 ; `?figdir=0` rend les boutons), le HUD des figures `#fh` (`fhLance`/`fhPlante`/
-  `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO.
+  `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO. Depuis le 15/10 soir : DEUX FAMILLES (`FIG.cat` dans figures.js,
+  `figFam`/`figSlots`/`FIG_FAM`) — l'emplacement 1 = une figure AVANT (saltos, chandelle), le 2 = une figure de CÔTÉ (tonneau, toupie… elle part
+  du côté du pouce, `o.dx`) ; équiper remplace celle de SA famille ; sans figure avant, le pouce en avant ne fait RIEN (`o.strict`, sauf
+  l'auto-école) ; la boutique les range en deux sections (`bqFigSec`, `.bqSec`).
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
@@ -279,7 +282,8 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - Une ligne dans `BASE` de `figures.js` : `{id, n, en, c, ce, p, D, aura, m:[{a:[x,y,z],t:n}]}` ou `{a, b:amplitude, k:battements}` — `c`/`ce` = le
   nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
   (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
-  au shop et à l'inventaire (`COSM.figure`), s'équipe dans un des trois emplacements. `figures.js?v=` +1 dans index.html ET boite-figures.html,
+  au shop et à l'inventaire (`COSM.figure`), s'équipe dans l'emplacement de SA FAMILLE : `cat:'avant'` (tout sur l'axe des roues x — rien à
+  choisir) ou `cat:'cote'` (au moins un mouvement a un côté : il part du côté du pouce) ; sans `cat`, `FIG.cat` la range par cette règle. `figures.js?v=` +1 dans index.html ET boite-figures.html,
   `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
 - Une figure DÉTECTÉE en vol (vrille, dauphin…) : `addTrick(id,txt,…)` → `chaineAura(nom,base,famille)`.
 
