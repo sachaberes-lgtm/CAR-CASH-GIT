@@ -1493,12 +1493,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #slideHud{position:fixed;left:50%;top:max(22vh,calc(env(safe-area-inset-top,0px) + 150px));transform:translateX(-50%);z-index:7;pointer-events:none;
     font:14px/1 var(--pix);color:#ffd75e;text-shadow:0 2px 0 #3a1a00;opacity:0;transition:opacity .12s}
   body:not(.play) #slideHud{display:none}
-  /* (2026-10-15) ICE SKATE : la glisse sur la glace du GLACIER — même place que SLIDE, un cran plus bas, la couleur de la glace */
-  #iceHud{position:fixed;left:50%;top:max(calc(22vh + 22px),calc(env(safe-area-inset-top,0px) + 172px));transform:translateX(-50%) scale(1);z-index:7;pointer-events:none;
-    font:14px/1 var(--pix);color:#9fe8ff;text-shadow:0 2px 0 #062a4a;opacity:0;transition:opacity .12s,transform .12s}
-  #iceHud.on{opacity:1}
-  #iceHud.pas{transform:translateX(-50%) scale(1.18)}
-  body:not(.play) #iceHud{display:none}
   @media (prefers-reduced-motion:reduce){#dolHud.on{animation:none}#dolHud.fige .dAura{transform:none}}
   /* ---- L'AURA v2 — LA CHAÎNE (2026-09-26) : le compteur TOUJOURS visible, et la chaîne en cours dessous — points, multiplicateur,
      temps restant, et les trois derniers gestes AVEC leurs points. À GAUCHE, sous la pastille FLOW : à droite vit le chrono de vol. ---- */
@@ -6525,6 +6519,10 @@ body.gGlitchOn>canvas{animation:gCvJit .5s steps(5,end)}
 @keyframes gCvJit{0%{translate:0 0}20%{translate:-4px 0}40%{translate:5px 1px}60%{translate:-2px -1px}80%{translate:3px 0}100%{translate:0 0}}
 @media (prefers-reduced-motion:reduce){#gGlitch.go i,body.gGlitchOn>canvas{animation:none}}
 #gBq{display:none}
+#gBqVoile{position:fixed;inset:0;z-index:58;pointer-events:none;opacity:0;background:#f3f4f6;transition:opacity var(--t-slow) var(--ease)} /* (2026-10-15) le voile de la bascule garage ⇄ boutique : il monte vite, il se lève lentement */
+#gBqVoile.nuit{background:#0b0d16}
+#gBqVoile.on{opacity:1;transition:opacity var(--t-fast) linear}
+@media (prefers-reduced-motion:reduce){#gBqVoile,#gBqVoile.on{transition:none}}
 html.bqIndus body #garage.bqBlanc #gBq{display:block;position:absolute;inset:0;pointer-events:none;z-index:6} /* la page de vente : après la lueur */
 html.bqIndus body #garage #gTop{visibility:hidden!important} /* (la place reste : la console est calée en flex sous elle) */
 html.bqIndus #gTourne{display:none!important}
@@ -6972,6 +6970,11 @@ html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine):not(.shopRet):not
   html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas){height:44px!important;min-height:44px!important}
   html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gJouer),
   html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gShopBas{height:56px!important;min-height:56px!important}}
+/* LA BARRE DU GARAGE D'APLOMB (2026-10-15 après-midi, Sacha, capture couchée : « les boutons sont toujours pas très bien placés ») :
+   la rangée du bas avait deux hauteurs (ACCUEIL et l'œil à 54, la BOUTIQUE à 56 : la règle des 54 gagnait par sa spécificité) — une seule
+   hauteur, plus de marche. La pente des plaques, elle, se recale dans le script (garAplomb) : un seul axe pour toute la pile. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gJouer,#gAct>#gEquip.achat,#gAct:has(>#gEquip.achat)>#gShopBas){height:56px!important;min-height:56px!important}}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
@@ -17256,7 +17259,7 @@ window.dbgCanyon=function(k,a,b,c){
      image les couleurs de bioApply ; les PHARES de la caisse éclairent neige, glace et stalactites (`bPhare`).
    Console : `dbgBanq()` (comptes, temps), `dbgBanq('meteo','nuit')`, `dbgBanq('vue',{p,c,fov})`, `dbgBanq('pic'|'lac',{d,h})`,
    `dbgBanq('poudre'|'glace',{h,v})` (la caisse lâchée au-dessus de la poudreuse ou d'un lac). Lancer : `?carte=banquise&meteo=nuit`. */
-const NIV_BANQ={id:'banquise',nm:'LE GLACIER',bio:['banqMidi'],planete:0,espace:0,pluie:0,cielMusical:false,route:.34,sheen:.16,piste:'banquise',pr:'SAUTE AU LACET D EN DESSOUS'};
+const NIV_BANQ={id:'banquise',nm:'LE GLACIER',bio:['banqMidi'],planete:0,espace:0,pluie:0,cielMusical:false,route:.34,sheen:.16,piste:'banquise',pr:'TOUTE LA ROUTE EST VERGLACEE'};
 const BANQ={root:null,file:[],fi:0,Q:null,cas:[],sol:null,solM:null,pics:[],picG:null,lacs:[],lacG:null,met:'midi',cur:null,de:null,to:null,k:1,dur:1,ms:0,msSol:0,n:{},fx:{},mats:null,graine:0,
   sur:0,glisse:false,pou:false,heurt:'',mort:'',dNow:9,tNow:0,nS:new THREE.Vector3(0,1,0),drift:0,gT:0,pT:0,fT:0,lent:0,figs:{},son:{t:4},yRaz:true,boucles:{}};
 // LES MÉTÉOS DE LA BANQUISE — el : hauteur de la lumière (°) · spark : la neige qui scintille · dd : la poussière de diamant · neige : la neige
@@ -17285,24 +17288,19 @@ const BK_PH={prof:2.4,kN:16,flot:2.3,H:1.4,kT:.10,kTp:.75,vPl:70,lift:1.15,nyMin
 try{Object.assign(PAL.B,{banqSolC:[40,36,34],banqMarge:[1300,1500,1700],banqPics:[.55,.8,1],banqStal:[.45,.75,1],banqFlo:[700,1400,2400],banqDD:[160,300,500],
   banqPoudre:[260,400,520],banqTrace:[500,800,1100],banqLoin:[.5,.75,1]});}catch(e){}
 function PAL_BK(k,d){return PAL_B9(k,d);}
-/* ---------------- LA ROUTE : LA FACE DU GLACIER, EN LACETS QUI SE SUPERPOSENT ----------------
-   (2026-10-14, 20 h 40, Sacha : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme si on la descendait, comme dans STEEP » ;
-   la règle des nouvelles maps : le but = les RACCOURCIS — la route repasse SOUS elle-même plus bas, on coupe en sortant par le bord pour
-   retomber sur la portion d'en dessous ; tout descend ; une course, pas une balade.)
-   ⚠ En course, la caisse repart TOUJOURS dans le sens de la route (tryLand : driveDir = 1) : retomber sur une épingle prise à l'envers est
-   une pose ratée. Les lacets du glacier sont donc des SPIRALES OVALES qui descendent : deux épingles qui tournent dans le MÊME sens par tour,
-   et chaque tour passe 45-55 m SOUS le précédent, DÉCALÉ de `BK_LAC_D` (36 m) vers l'aval — on sort par le bord AVAL (partout : les droites
-   du haut, celles du bas, les épingles), on tombe d'un tour, on retombe au milieu de la dalle d'en dessous, DANS LE MÊME SENS, et l'on a
-   gagné un tour entier (~1 km). Entre les spirales, des COULOIRS en S qui plongent (10-15 %) et leur CASSURE. Le départ au sommet,
-   l'arrivée en bas : aucun point ne remonte. Les rayons suivent l'échelle du moteur (`lvPiste`). `BANQ.spi` : les spirales (pour les bancs). */
-const BK_LAC_D=36;
-/* (2026-10-15, Sacha : « dans la map neige il faut vraiment que ce soit une montagne qui dévale, pas vraiment plat comme ça ») LA PENTE ×2 :
-   départ 8 %, couloirs 19-28 % (cassure 36 %), jambes des lacets 7,5 %, chute d'un tour 66-78 m (au lieu de 46-56) — le dénivelé passe
-   de ~700 m à ~1,2 km sur les mêmes 9 km (13 % de moyenne) ; plancher de pente 5 %. Banc Node (raccourcis-node, 4 graines) : 13-14 zones de
-   raccourci, chute moyenne ~95 m, gain moyen ~1,27 km. Plus raide encore (chute 82-94 m/tour, jambes 10 %) : +70 m de dénivelé seulement,
-   et un raccourci sur cinq de moins — écarté. */
+/* ---------------- LA ROUTE : LA DESCENTE DU GLACIER ----------------
+   (2026-10-15, Sacha : « fais une map qui descend beaucoup plus, mais sans module bizarre : la route doit juste faire une descente normale
+   avec des virages et tout, mais toute la route doit être verglacée ; fais la route un peu plus large ».)
+   Les SPIRALES superposées, leurs chicanes et les CASSURES (le replat puis le mur à 36 %) sont parties : la route DÉVALE la ligne de pente
+   en grands virages enchaînés — gauche, droite, parfois deux du même côté, de 30 à 110° — entre deux droites où l'on voit loin. La pente
+   ne remonte jamais : 17 à 28 % (≈ 22 % de moyenne, ~1,9 km de dénivelé sur ~9 km — l'ancienne en faisait 1,2). Le cap reste à moins de
+   75° de la pente : la route ne se recroise pas. Toute la route est VERGLACÉE (bkVerglasPose) : les rayons gardent la marge du verglas
+   (le volant ne mord qu'à BK_VG.grip) — 115 m × l'échelle du palier au plus serré, soit 1,8 × le rayon tenable sur le sec.
+   La largeur : `BK_LARG` × ROAD_HALF0 (2,0 partout ailleurs). `BANQ.cas` et `BANQ.spi` restent (vides) pour les bancs. */
+const BK_LAC_D=36,BK_LARG=2.4;
 function genBanq(rnd){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
+  ROAD_HALF=ROAD_HALF0*BK_LARG; // (2026-10-15, Sacha : « fais la route un peu plus large ») 56 → 67 m
   let P=new THREE.Vector3(0,0,0),phi=0,sC=0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
   const segs=[],note=(l,g,ty)=>{segs.push([sC,sC+l,g,ty||0]);sC+=l;};                       // le profil, tronçon par tronçon : [s0, s1, pente, type]
@@ -17312,28 +17310,17 @@ function genBanq(rnd){
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
   const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),cas=[],spi=[];
   const KR=typeof rayonPalier==='function'?Math.max(1,rayonPalier()/63):LV; // (GAMEPLAY, RACCOURCIS.md) les rayons suivent le rayon tenable du palier (rayonPalier/63) ; sans lui, l'échelle du moteur
-  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,(100+rnd()*40)*KR,.15);}; // se remettre dans la pente (phi = 0 : la ligne de pente, +z) — ⚠ l'angle ENROULÉ : après une spirale le cap a tourné de 720°, et l'écart brut faisait faire des tours complets
-  // LE COULOIR : des S qui plongent dans la ligne de pente, une CASSURE (140 m à 2 % puis 200 m à 25 %) — on y décolle
-  const couloir=n0=>{let sg=rnd()<.5?-1:1;const n=Math.round(n0*Math.sqrt(KR)); // (palier élevé : des S plus nombreux et plus courts — les virages par km tiennent)
-    for(let k=0;k<n;k++){sg=-sg;const a=(40+rnd()*35)/Math.sqrt(KR),R=(rnd()<.4?82+rnd()*12:110+rnd()*90)*KR; // 4 sur 10 SERRÉS (1,3-1,5 × le rayon tenable)
-      const lib=(70*Math.PI/180-sg*phi)*57.2958;A(sg*Math.min(a,Math.max(20,lib)),R,.19+rnd()*.07);
-      if(k===((n/2)|0)){cap(0);D(130,.05);cas.push(sC);D(220,.36,2);}else D(30+rnd()*50,.22+rnd()*.06);}
-    cap(0);};
-  // LA SPIRALE : laps tours ; jambe A (en travers de la pente) → épingle R1 vers l'aval → jambe B → épingle R2 = R1 − D/2 vers l'amont :
-  // le tour suivant revient sous la jambe A, décalé de D vers l'aval. La pente règle la chute d'un tour (45-55 m).
-  const spirale=laps=>{const s=rnd()<.5?1:-1,R1=Math.max(84,(84+rnd()*10)*KR),R2=R1-BK_LAC_D/2,Lg=90+rnd()*50,Rc=120*KR,EP=Math.min(90,24*KR*KR),F=4*Rc*Math.sin(14*Math.PI/180),chu=66+rnd()*12;
-    const lJ=Lg+F,gL=.075,gH=Math.max(.04,(chu-2*lJ*gL)/(Math.PI*(R1+R2)+2*EP));
-    cap(s*Math.PI/2);const o={s0:sC,laps:laps,R1:R1,Lg:lJ,lt:2*lJ+Math.PI*(R1+R2)+2*EP,chu:2*lJ*gL+(Math.PI*(R1+R2)+2*EP)*gH,sens:s};
-    for(let k=0;k<laps;k++){D(Lg*.5,gL,1);A(-s*14,Rc,gL,1);A(s*28,Rc,gL,1);A(-s*14,Rc,gL,1);D(Lg*.5,gL,1); // la CHICANE du milieu (gauche-droite-gauche : elle revient sur sa ligne, les tours restent superposés)
-      A(-s*90,R1,gH,1);D(EP,gH,1);A(-s*90,R1,gH,1);D(lJ,gL,1);A(-s*90,R2,gH,1);D(EP,gH,1);A(-s*90,R2,gH,1);} // chaque épingle en DEUX quarts de tour enchaînés (le décalage des tours ne dépend que de R1 − R2)
-    D(Lg*.5,gL,1);A(-s*14,Rc,gL,1);A(s*28,Rc,gL,1);A(-s*14,Rc,gL,1);D(Lg*.5,gL,1);A(-s*90,R1+60*KR,.15,1);o.s1=sC;spi.push(o);cap(0);}; // la SORTIE : la jambe du dessus une dernière fois, puis un quart de tour plus large que les épingles (il passe dehors) et l'on replonge
-  push();ici('depart');D(300,.08);
-  couloir(3);
-  spirale(2);
-  couloir(3+((rnd()*2)|0));
-  spirale(2);
-  couloir(2);
-  A((rnd()<.5?-1:1)*(35+rnd()*20),(120+rnd()*60)*KR,.16);D(160,.13);ici('fin');D(120,.06); // l'arrivée : un dernier virage (sinon la cassure et la ligne d'arrivée faisaient 680 m de droite)
+  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,(140+rnd()*40)*KR,.18);}; // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
+  const LIB=75*Math.PI/180,LEN=8600*Math.min(1.25,Math.sqrt(KR));
+  push();ici('depart');D(260,.10);
+  let sg=rnd()<.5?-1:1;
+  while(sC<LEN){
+    if(rnd()<.78)sg=-sg;                                                                    // le plus souvent on change de côté ; parfois deux virages du même
+    const big=rnd()<.3,a=big?70+rnd()*40:30+rnd()*40,R=(big?160+rnd()*120:115+rnd()*130)*KR;
+    let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}               // le cap reste dans la pente : la route ne se recroise jamais
+    A(sg*Math.min(a,lib),R,.17+rnd()*.09);
+    D(50+rnd()*140,.19+rnd()*.09);}
+  cap(0);D(160,.14);ici('fin');D(120,.06);                                                 // l'arrivée : dans la pente, puis le replat de la ligne
   /* LE PROFIL : la pente de chaque tronçon (positive = on descend), lue sur la longueur de la polyligne, adoucie aux raccords (moyenne glissante
      de 60 m) ; les 300 premiers mètres en douceur. Intégrée tous les 10 m : aucun point ne remonte. */
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
@@ -17886,35 +17873,26 @@ function banqRamene(){
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
   respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
   try{popTexte(sansAcc(TR('LA MONTAGNE TE RAMENE')),'#9fe8ff',2);}catch(e){}try{if(SONV2)sfx('air.regain');}catch(e){}}
-/* ---------------- LE VERGLAS ET LA FIGURE ICE SKATE (2026-10-15, Sacha : « rajoute une animation et une figure ICE SKATE qui rapporte de
-   l'aura quand on glisse sur la glace ; la voiture doit un peu partir sur le côté ») ----------------
-   Le glacier n'avait de glace que SOUS la route (lacs, pics : il fallait tomber pour la trouver). Désormais la route elle-même GÈLE par
-   plaques de 80 à 150 m, posées de préférence dans les COURBES (là où la glisse se voit), toutes les 0,6 à 1 km, sur les deux faces, jamais
-   sur une cassure. Flux aléatoire à PART (graine ^ 0x1CE5) : la piste et le décor ne bougent pas d'un tirage.
+/* ---------------- LE VERGLAS (2026-10-15) ----------------
+   D'abord des plaques de 80-150 m dans les courbes ; puis (même jour, Sacha : « toute la route doit être verglacée », « enlève la figure
+   ICE SKATE ») UNE seule plaque, du départ à l'arrivée, sur les deux faces. Flux aléatoire à PART (graine ^ 0x1CE5).
    · DESSUS (`banqVerglas`, la boucle de conduite, après les flaques) : le volant ne mord plus qu'à BK_VG.grip, la caisse PART SUR LE CÔTÉ
-     (`v.sd`, jusqu'à BK_VG.der rad/s de cap à pleine vitesse : on contre-braque), la carrosserie se met en CRABE et ondule comme un
-     patineur (`BKV.yaw`, appliqué après le power-slide), les roues jettent du givre et rayent la glace (traces type 1).
-   · LA FIGURE ICE SKATE (`bkSkate`, chaque image dans banqTick) : sur le verglas OU en glissant hors piste sur un lac ou un pic (elle remplace
-     l'ancienne PATINOIRE), l'aura MONTE (BK_VG.base + BK_VG.v × vitesse/vmax, par seconde) dans l'étiquette « ICE SKATE +X » (#iceHud, en
-     haut, qui bat à chaque dizaine) ; à la sortie (BK_VG.lache s sans glace) elle est payée dans la chaîne d'aura (famille 'iceskate', brut)
-     si l'on a glissé au moins BK_VG.tMin s. Explosion, replacement, montagne qui ramène : perdue (bkSkateRaz).
-   Console : dbgBanq('verglas') (les plaques, l'état), dbgBanq('verglas',{n,v}) pose la caisse 40 m avant la plaque n (à v km/h). */
-const BK_VG={grip:.42,der:.30,base:6,v:24,tMin:.4,lache:.2,kmhMin:30};
+     — vers l'EXTÉRIEUR du virage (lu sur `routeLacet`), et elle flotte un peu dans les droites — jusqu'à BK_VG.der rad/s de cap à pleine
+     vitesse : on contre-braque. La carrosserie se met en CRABE et ondule comme un patineur (`BKV.yaw`, appliqué après le power-slide), les
+     roues jettent du givre et rayent la glace (traces type 1).
+   · La figure ICE SKATE n'existe plus (`bkSkateRaz` reste, inerte, là où on l'appelait).
+   Console : dbgBanq('verglas') (l'état), dbgBanq('verglas',{s,v}) pose la caisse au mètre s (à v km/h). */
+const BK_VG={grip:.68,der:.16,base:6,v:24,tMin:.4,lache:.2,kmhMin:30}; // (2026-10-15) toute la route gèle : le volant mord à 68 % (42 % sur les anciennes plaques), la dérive .30 → .16 (au banc, .62/.20 : le pilote sortait à 455 km/h après 1 km)
 const BKV={sur:false,v:null,yaw:0,ph:0,t:0,aura:0,hors:0,k:0,etiq:null,dix:0,eg:0};
-function bkVerglasPose(root,seed){
+function bkVerglasPose(root,seed){ // (2026-10-15, Sacha : « toute la route doit être verglacée ») UNE plaque, du départ à l'arrivée
   BANQ.verg=[];const vr=mulberry32((seed^0x1CE5)>>>0),ds=L/(NP-1);
-  for(let s0=520+vr()*300;s0<L-360;){
-    let best=s0,bc=2;for(let d=0;d<=260;d+=20){const i=Math.min(NP-1,Math.round((s0+d)/ds)),j=Math.min(NP-1,i+Math.round(40/ds)),c=T[i].x*T[j].x+T[i].z*T[j].z;if(c<bc){bc=c;best=s0+d;}} // la courbe la plus franche
-    const len=80+vr()*70,a=Math.max(300,best-len*.4),b=Math.min(L-250,a+len),sd=vr()<.5?-1:1;let ok=b-a>50;
-    for(const c of BANQ.cas)if(a<c+260&&b>c-40)ok=false;                                                      // jamais sur une cassure : on y décolle
-    if(ok)BANQ.verg.push({s0:a,s1:b,sd:sd});
-    s0=Math.max(s0,b)+520+vr()*420;}
+  BANQ.verg.push({s0:-1e9,s1:1e9,a:40,b:Math.max(80,L-40),sd:1});
   if(!BANQ.verg.length)return;
   const P=[],N=[],A=[],I=[],COL=[-1,-.5,0,.5,1],W=ROAD_HALF-.35;let n=0;
-  for(const v of BANQ.verg){const sdg=vr()*10;
-    for(const fy of [1,-1]){const nk=Math.max(2,Math.ceil((v.s1-v.s0)/2.5));
-      for(let k=0;k<=nk;k++){const s9=v.s0+(v.s1-v.s0)*k/nk;frameAt(s9,F);
-        for(const c of COL){const l=c*W,o=fy>0?.06:-THICK-.06;P.push(F.p.x+F.b.x*l+F.n.x*o,F.p.y+F.b.y*l+F.n.y*o,F.p.z+F.b.z*l+F.n.z*o);N.push(F.n.x*fy,F.n.y*fy,F.n.z*fy);A.push(c,k/nk,sdg,0);}
+  for(const v of BANQ.verg){const sdg=vr()*10,va=v.a,vb=v.b;
+    for(const fy of [1,-1]){const nk=Math.max(2,Math.ceil((vb-va)/3.5));
+      for(let k=0;k<=nk;k++){const s9=va+(vb-va)*k/nk,d0=s9-va,d1=vb-s9,tv=d0<d1?Math.min(.5,d0/200):1-Math.min(.5,d1/200);frameAt(s9,F); // (le long : les bouts fondent sur ~30 m, pas sur 15 % de 9 km)
+        for(const c of COL){const l=c*W,o=fy>0?.06:-THICK-.06;P.push(F.p.x+F.b.x*l+F.n.x*o,F.p.y+F.b.y*l+F.n.y*o,F.p.z+F.b.z*l+F.n.z*o);N.push(F.n.x*fy,F.n.y*fy,F.n.z*fy);A.push(c,tv,sdg,0);}
         if(k>0){const r0=n+(k-1)*5,r1=n+k*5;for(let q=0;q<4;q++){if(fy>0)I.push(r0+q,r1+q,r0+q+1,r0+q+1,r1+q,r1+q+1);else I.push(r0+q,r0+q+1,r1+q,r0+q+1,r1+q+1,r1+q);}}}
       n+=(nk+1)*5;}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
@@ -17922,36 +17900,23 @@ function bkVerglasPose(root,seed){
   const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='banquise verglas';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);BANQ.n.verglas=BANQ.verg.length;}
 function banqVerglas(dt){ // la boucle de conduite, chaque image, après les flaques
   let v=null;
-  if(mode==='drive'&&BANQ.verg&&BANQ.verg.length&&banqOk()&&hopY<=.05&&!introD&&Math.abs(lat)<ROAD_HALF)for(const o of BANQ.verg)if(s>o.s0&&s<o.s1){v=o;break;}
+  if(mode==='drive'&&BANQ.verg&&BANQ.verg.length&&banqOk()&&hopY<=.05&&!introD&&Math.abs(lat)<ROAD_HALF)for(const o of BANQ.verg)if(s>o.s0&&s<o.s1){v=o;break;} // (toute la route : une plaque sans bornes)
   BKV.sur=!!v;BKV.v=v;
   const kmh=Math.abs(vA)*3.6*SPD,kv=Math.min(1,kmh/Math.max(60,vmaxShow()));
   let tg=0;
   if(v){
-    psi=THREE.MathUtils.clamp(psi+v.sd*BK_VG.der*kv*dt,-1.1,1.1);                                              // ELLE PART SUR LE CÔTÉ
-    BKV.ph+=dt*(2.6+2.2*kv);tg=v.sd*.32*kv+THREE.MathUtils.clamp(steer,-1,1)*.20+Math.sin(BKV.ph)*.14*kv;      // le crabe + la foulée du patineur
-    driftT=Math.max(driftT,.25);
+    BKV.ph+=dt*(2.6+2.2*kv);
+    const dr=THREE.MathUtils.clamp(-routeLacet*2.5,-1,1),sd=THREE.MathUtils.clamp(dr*.85+Math.sin(BKV.ph*.23)*.30,-1,1); // (toute la route) elle part vers l'EXTÉRIEUR du virage, et flotte un peu dans les droites
+    psi=THREE.MathUtils.clamp(psi+sd*BK_VG.der*kv*dt,-1.1,1.1);                                                 // ELLE PART SUR LE CÔTÉ
+    tg=sd*.32*kv+THREE.MathUtils.clamp(steer,-1,1)*.20+Math.sin(BKV.ph)*.14*kv;                                  // le crabe + la foulée du patineur
+    if(Math.abs(dr)>.35)driftT=Math.max(driftT,.25);                                                             // la gomme ne chante que dans les virages
     // le GIVRE des roues arrière, et les RAYURES des patins sur la glace (face du dessus)
     const fx=BANQ.fx;if(fx.givre&&kmh>20){BKV.eg+=dt*(18+34*kv);const w=CARS[level].w*.45,l=CARS[level].l*.4;
       while(BKV.eg>=1){BKV.eg-=1;const sg=Math.random()<.5?-1:1;DRIFT_V.set(sg*w,.12,-l);carGroup.localToWorld(DRIFT_V);
         spawnP(fx.givre,DRIFT_V.x,DRIFT_V.y,DRIFT_V.z,(Math.random()-.5)*7,1.5+Math.random()*4.5,(Math.random()-.5)*7,.3+Math.random()*.45);}}
     if(side>0){const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1)))),t=T[i],hl=Math.hypot(t.x,t.z)||1,cp=carGroup.position;bkTrace(cp.x,cp.z,t.x/hl,t.z/hl,1,.5,1.3,cp.y);}}
   BKV.yaw+=(tg-BKV.yaw)*Math.min(1,dt*(v?4.5:3));if(!v&&Math.abs(BKV.yaw)<.002)BKV.yaw=0;}
-function bkSkateEtiq(){let e=BKV.etiq;if(!e){e=BKV.etiq=document.createElement('div');e.id='iceHud';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}return e;}
-function bkSkateRaz(){BKV.t=0;BKV.hors=0;BKV.aura=0;BKV.dix=0;if(BKV.etiq)BKV.etiq.classList.remove('on','pas');}
-function bkSkate(dt){
-  if(paused)return;
-  if(gameOver||mode==='boom'||!started){if(BKV.t>0)bkSkateRaz();return;}
-  const vol=mode==='fall'&&BANQ.glisse,sol=mode==='drive'&&BKV.sur;
-  const kmh=(vol?Math.hypot(fallVel.x,fallVel.y,fallVel.z):Math.abs(vA))*3.6*SPD;
-  if((vol||sol)&&kmh>BK_VG.kmhMin){
-    BKV.hors=0;BKV.t+=dt;const k=BKV.k=Math.min(1.3,kmh/Math.max(1,vmaxShow()));BKV.aura+=(BK_VG.base+BK_VG.v*k)*dt;
-    if(BKV.t>=BK_VG.tMin){const e=bkSkateEtiq(),a=Math.round(BKV.aura),d=Math.floor(a/10);e.textContent='ICE SKATE +'+a;e.classList.add('on');
-      if(d!==BKV.dix){BKV.dix=d;e.classList.add('pas');setTimeout(function(){e.classList.remove('pas');},90);}}
-    return;}
-  if(BKV.t<=0)return;
-  BKV.hors+=dt;if(BKV.hors<BK_VG.lache)return;
-  const n=Math.round(BKV.aura),ok=BKV.t>=BK_VG.tMin&&n>0;bkSkateRaz();
-  if(ok){try{chaineAura('ICE SKATE',n,'iceskate',true,false);}catch(e){}try{sonSlide('paye',n);}catch(e){}hap([8,20,8]);}}
+function bkSkateRaz(){BKV.t=0;BKV.hors=0;BKV.aura=0;BKV.dix=0;} // (2026-10-15, Sacha : « enlève la figure ICE SKATE ») la figure est partie ; ses remises à zéro restent, inertes
 /* ---------------- LES TRACES : un anneau de quads (4 sommets chacun : aucun pont entre deux traces) ---------------- */
 const BK_TR={N:1100,i:0,mesh:null,pos:null,at:null,on:false,lx:0,lz:0,lpx:0,lpz:0,lw:1,ty:0,lo:1e9,hi:-1};
 function bkTraceMesh(){if(BK_TR.mesh)return BK_TR.mesh;const N=PAL_BK('banqTrace',1100);BK_TR.N=N;
@@ -18044,7 +18009,6 @@ function banqTick(dt){
   if(mode==='fall'&&vit&&started&&!gameOver)banqVolFx(dt);
   else{if(BANQ.sur||BANQ.glisse||BANQ.pou){BANQ.sur=0;BANQ.glisse=false;BANQ.pou=false;}if(!BKV.sur)bkTraceCoupe();bkBoucle('banq.glisse',false);bkBoucle('banq.poudre',false);}
   bkTraceEnvoi();
-  bkSkate(dt); // (2026-10-15) LA FIGURE ICE SKATE
   // LA CAMÉRA NE PASSE JAMAIS SOUS LA NEIGE (en rasant la poudre, elle suivait la trajectoire jusque dedans : écran blanc)
   if(mode==='fall'||mode==='boom'){const cp=camera.position,S=banqSurf(cp.x,cp.z);if(S.ok&&cp.y<S.h+2.4){cp.y=S.h+2.4;camera.lookAt(carGroup.position);camera.updateMatrixWorld();}}
   banqSons(dt,c);
@@ -18104,8 +18068,8 @@ function banqChauffe(){
 }
 /* ---------------- LA CONSOLE ---------------- */
 window.dbgBanq=function(k,o){
-  if(k==='verglas'){const V9=(BANQ.verg||[]).map(function(v){return [Math.round(v.s0),Math.round(v.s1),v.sd];});
-    if(o&&o.n!=null&&BANQ.verg&&BANQ.verg[o.n]){safeS=BANQ.verg[o.n].s0-32;respawn();graceT=0;if(o.v)vA=o.v/(3.6*SPD);}
+  if(k==='verglas'){const V9=(BANQ.verg||[]).map(function(v){return [Math.round(v.a),Math.round(v.b)];});
+    if(o&&(o.s!=null||o.n!=null)){safeS=o.s!=null?o.s:600+(o.n|0)*800;respawn();graceT=0;if(o.v)vA=o.v/(3.6*SPD);}
     return {plaques:V9,sur:BKV.sur,yaw:+BKV.yaw.toFixed(3),t:+BKV.t.toFixed(2),aura:Math.round(BKV.aura),s:Math.round(s),lat:+lat.toFixed(2),psi:+psi.toFixed(3),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode};}
   if(k==='meteo'){banqMeteo(o||'nuit',.01);return BANQ.met;}
   if(k==='phys'&&o){Object.assign(BK_PH,o);return BK_PH;}
@@ -51886,6 +51850,22 @@ try{if(gEl){const gb=document.getElementById('gBottom'),ga=document.getElementBy
   gb.insertBefore(r,ga);
   r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(r);uiClic('nav');gModeVa('shop');});
   setInterval(function(){if(!garageOn||!r.offsetParent)return;const t=r.querySelector('.grT i:not(.pxi)');const v=bqReste();if(t&&t.textContent!==v)t.textContent=v;},1000);}}}catch(e){}
+/* LA PILE D'APLOMB (2026-10-15 après-midi, Sacha : « les boutons sont toujours pas très bien placés ») : chaque plaque penche de --sk
+   autour de SON centre — trois rangées de hauteurs différentes (bandeau 34, portes 44, barre 56) donnaient trois bords gauches décalés,
+   une pile en escalier. On penche toutes les plaques autour du MÊME axe (le milieu de la pile) : les bords tombent sur une seule ligne
+   oblique, comme une seule plaque découpée. Le bandeau OFFRES ÉPHÉMÈRES prend aussi la largeur exacte de la grille. 4 Hz, garage ouvert. */
+function garAplomb(){try{if(!garageOn)return;const ga=document.getElementById('gAct'),gr=document.getElementById('gRappel');if(!ga||!ga.offsetParent)return;
+  const hy=function(e){let t=0;for(let n=e;n;n=n.offsetParent)t+=n.offsetTop;return t;},hx=function(e){let t=0;for(let n=e;n;n=n.offsetParent)t+=n.offsetLeft;return t;};
+  const L=[];for(const e of ga.querySelectorAll(':scope>*,:scope>#gRang1>*'))if(e.offsetParent&&e.offsetHeight>0)L.push(e);
+  if(gr){if(gr.offsetParent&&gr.offsetHeight>0){const d=hx(ga)-hx(gr),dw=(hx(gr)+gr.offsetWidth)-(hx(ga)+ga.offsetWidth);
+    if(Math.abs(d)<24&&Math.abs(dw)<24){const ml=(parseFloat(gr.style.marginLeft)||0)+d,mr=(parseFloat(gr.style.marginRight)||0)+dw;
+      if(Math.abs(d)>.5||Math.abs(dw)>.5){gr.style.marginLeft=ml+'px';gr.style.marginRight=mr+'px';}}L.push(gr);}}
+  if(!L.length)return;let t0=1e9,t1=-1e9;const T=L.map(function(e){const t=hy(e);t0=Math.min(t0,t);t1=Math.max(t1,t+e.offsetHeight);return t;});
+  const m=(t0+t1)/2;L.forEach(function(e,k){const o='50% '+(m-T[k]).toFixed(1)+'px';if(e.style.transformOrigin!==o)e.style.transformOrigin=o;});
+  /* la pile penche d'un bloc : le haut part à droite, le bas à gauche, de la moitié de sa hauteur × la pente — on la rentre d'autant, moins 10 px de jeu (debout, la barre du bas touchait le bord ; tout le retrait rognait ACCUEIL) */
+  const gb=ga.parentNode,ap=Math.max(0,Math.round(Math.tan(11*Math.PI/180)*(t1-t0)/2)-10);if(gb&&gb._apl!==ap){const cs=getComputedStyle(gb),a0=gb._apl||0;
+    gb.style.paddingLeft=(parseFloat(cs.paddingLeft)-a0+ap)+'px';gb.style.paddingRight=(parseFloat(cs.paddingRight)-a0+ap)+'px';gb._apl=ap;}}catch(e){}}
+setInterval(garAplomb,250);
 /* LE RETOUR DE LA BOUTIQUE (2026-10-12, Léo : « le bouton BOUTIQUE devient RETOUR quand on appuie dessus, et enlève tous les autres —
    accessibles grâce à la flèche RETOUR, bien placée ; le but : laisser plus de place à la boutique ») : en BOUTIQUE (et SEE ALL ITEMS), la
    touche devient ◀ RETOUR (gModeBoutons), HOME · INVENTAIRE · l'œil · JOUER s'effacent ; ACHETER reste à côté quand il y a un achat.
@@ -54113,6 +54093,12 @@ function bqSonCoupe(d){const n=BQSON.n;if(!n||!AC)return;
 window.dbgBqSon=function(){return {on:!!BQSON.n,gain:BQSON.n?+BQSON.n.g.gain.value.toFixed(4):0,acc:BQSON.acc,veut:!!(typeof GBQ!=='undefined'&&GBQ.veut)};}; // (dev)
 function garBqAmbiance(on){garLibre._r=null; // (v3) au BASCULEMENT (pic de la lueur) : la lumière, et les voiles d'encre du garage retirés (#garage.bqBlanc)
   if(gEl)gEl.classList.toggle('bqBlanc',on);try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
+function bqVoile(v){let w=document.getElementById('gBqVoile'); // LE VOILE de la bascule garage ⇄ boutique (voir garBqIndus) : v=true blanc, false nuit, null = il se lève
+  if(!w){w=document.createElement('div');w.id='gBqVoile';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
+  clearTimeout(bqVoile._t);
+  if(v===null){requestAnimationFrame(function(){requestAnimationFrame(function(){w.classList.remove('on');});});bqVoile._t=setTimeout(function(){w.className='';},REDUCED_MOTION?60:700);return;} // deux images : l'écran neuf est peint avant qu'il se découvre
+  w.className=v?'blanc':'nuit';void w.offsetWidth;w.classList.add('on');
+  bqVoile._t=setTimeout(function(){if(!GBQ.bascule){GBQ.bascule=true;GBQ.on=GBQ.veut;bqClasses(GBQ.veut);try{garBqAmbiance(GBQ.veut);}catch(e){}}w.classList.remove('on');},900);} // filet : jamais de voile collé ni d'interface à moitié basculée (onglet caché, garage quitté en plein geste) // filet : jamais de voile collé (onglet caché, garage fermé en plein geste)
 function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
 /* LA LUEUR DERRIÈRE LA CAISSE (v3) : un disque blanc tourné vers la caméra, posé DERRIÈRE la caisse (elle reste devant : il est caché par
    elle), qui grandit jusqu'à couvrir le garage ; une nappe blanche s'étale au sol depuis sous elle. Deux objets de la scène (hors de
@@ -54399,14 +54385,20 @@ function garBqIndus(dt,ay,t9){
      geste lance garGlitch (0,72 s de bandes et de tressauts), le décor BASCULE dessous à son pic (0,16 s) ; la caisse décolle aussitôt
      (plus de petit coup, ni de lueur blanche, ni d'éclat). Au retour, pareil, à l'envers. */
   try{bqSon(dt,veut&&!GAR.go);}catch(e){} // (2026-10-14) la boutique a sa voix (voir LE SON DE LA BOUTIQUE)
-  if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;bqClasses(veut);
+  /* (2026-10-15, Sacha : « la transition entre le garage et la boutique est pas smooth ») vu au banc : au toucher, l'interface du garage
+     disparaissait d'un coup et les touches BLANCHES de la boutique se posaient sur l'atelier noir ; 0,16 s plus tard le décor passait au blanc
+     d'une image à l'autre (bioApply ne fond pas) et la page de vente sautait en place. Désormais LE VOILE (bqVoile) monte en 0,16 s — blanc
+     vers la boutique, nuit vers l'atelier —, les DEUX bascules (l'interface : bqClasses, le décor : garBqAmbiance) tombent ENSEMBLE sous lui,
+     puis il se lève en --t-slow sur l'écran déjà en place. Le glitch de Léo reste par-dessus. */
+  if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;const dedans=!GAR.go&&garageOn&&!!gEl&&!['menu','missions','quiet','launching'].some(function(c){return gEl.classList.contains(c);});
+    GBQ.v0=performance.now();if(dedans&&(veut||avant))bqVoile(veut);else{bqClasses(veut);GBQ.v0=0;} /* on sort du garage (HOME, missions, départ) : la bascule d'avant, d'un coup, sous le volet de l'écran */
     if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}if(!GAR.go&&(veut||avant))garGlitch();}
   GBQ.t+=dt;
   if(GBQ.pose){if(!veut||GAR.go)bqPoseLache('sort');else if(garageI!==GBQ.poseI)bqPoseLache('caisse');else if((GBQ.ong||'cat')!==GBQ.poseO||(GBQ.cat||'voiture')!==GBQ.poseC)bqPoseLache();} // (2026-10-15) LA POSE TENUE : une autre caisse, un autre onglet, la sortie → le plateau
   GBQ.platK=GBQ.pose?0:Math.min(1,GBQ.platK+dt/.9);
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
   GBQ.lueur=0;
-  if(!GBQ.bascule&&GBQ.t>.16){GBQ.bascule=true;GBQ.on=veut;garBqAmbiance(veut);}
+  if(!GBQ.bascule&&GBQ.t>.16&&performance.now()-(GBQ.v0||0)>150){ /* (2026-10-15) 150 ms RÉELLES : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);}
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
   try{garBqLueur(ay);garBqGloire(dt,t9);}catch(e){}
   const on=GBQ.on;
@@ -54771,8 +54763,14 @@ window.dbgSonde=(function(ql){return function(x0,y0,x1,y1,st){if(arguments.lengt
     const lp=carGroup.worldToLocal(h.point.clone()),k=g+':'+col;out[k]=out[k]||{n:0,p:[]};out[k].n++;if(out[k].p.length<5)out[k].p.push([x,y,+lp.x.toFixed(2),+lp.y.toFixed(2),+lp.z.toFixed(2)]);}
   return out;};})(window.dbgSonde);
 window.dbgBqVoir=function(i){if(!GBQ.on)return 'boutique fermée';bqEssaie('v:'+(i|0));return CARS[i|0]&&CARS[i|0].name;}; // (banc) pose la caisse i sur le plateau de la boutique
+/* LE DOIGT SUR LA SCÈNE (2026-10-15, bug : un lancer parti juste à droite de la bande « CETTE SEMAINE » ne lançait pas la caisse — la bande
+   prend le doigt jusque dans son blanc, et c'était le doigt du GARAGE, sans élan planifié, qui la tournait). Pour la boutique, la scène c'est
+   le canevas ET ce que la page de vente pose dessus sans être un bouton : le titre, l'argent, le nom, le blanc entre les cartes de la bande.
+   Les vrais boutons (cartes, onglets, coloris, liens) gardent leur clic ; le panneau des voitures garde son doigt (il défile). */
+function bqScene(t){if(t===renderer.domElement)return true;if(!t||!t.closest||!t.closest('#gBq'))return false;
+  return !t.closest('#gBqPan,button,a,input,select,textarea,[role=button],[role=tab],.bqU,.bqK');}
 (function(){
-  addEventListener('pointerdown',function(e){if(!GBQ.on||!garageOn||GAR.go||e.target!==renderer.domElement)return;if(GBQ.drag)return;
+  addEventListener('pointerdown',function(e){if(!GBQ.on||!garageOn||GAR.go||!bqScene(e.target))return;if(GBQ.drag)return;
     const t0=performance.now();GBQ.drag={id:e.pointerId,x:e.clientX,y:e.clientY,t:t0,k:bqPrise(e),x0:e.clientX,y0:e.clientY,t0:t0,loin:false,attrape:!!GBQ.lan||Math.abs(GBQ.yawV)>.3};GBQ.lan=null;GBQ.yawV=0;GBQ.pitV=0;GBQ.rolV=0;e.stopPropagation();},true);
   addEventListener('pointermove',function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();
     if(!d.loin&&Math.hypot(e.clientX-d.x0,e.clientY-d.y0)>8){d.loin=true;bqPoseTient();} // (2026-10-15) LA POSE TENUE : elle a glissé → posée à la main
@@ -55519,8 +55517,8 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
        conducteurs d'or), puis JOUER dans sa plaque. */
     try{Object.assign(I18N,{'REGLAGES':'SETTINGS'});if(!ge.querySelector('span'))ge.insertAdjacentHTML('beforeend','<span data-fr="REGLAGES">'+TR('REGLAGES')+'</span>');}catch(e){} /* (UX 8) le mot sous le pictogramme : un enfant lit, il ne devine pas */
     ou.insertBefore(ge,gar);if(!SANS_CARRIERE)ou.appendChild(ca); /* (2026-10-14, Sacha) sans carrière : pas de carte — MISSIONS prend sa place (<style id="sansCarriere">) */
-    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Boutique');
-      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="BOUTIQUE">'+TR('BOUTIQUE')+'</span>'; /* (2026-10-15, Sacha : « offre doit s'appeler boutique ») */if(bd)sh.appendChild(bd);ou.appendChild(sh);}
+    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Offres');
+      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="OFFRES">'+TR('OFFRES')+'</span>'; /* (2026-10-15 matin, Sacha : « offre doit s'appeler boutique » ; même jour, après-midi : « dans l'écran d'accueil change le bouton boutique pour un bouton offre ») */if(bd)sh.appendChild(bd);ou.appendChild(sh);}
     mi.classList.add('mMisBarre');
     const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(mi);bas.appendChild(pl);
     }
@@ -57141,7 +57139,8 @@ $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarge
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#ux8,#gC6Tete,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return; /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#ux8,#gC6Tete,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return;
+  if(GBQ.on&&e.target.closest&&e.target.closest('#gBq'))return; /* (2026-10-15) en boutique, la page de vente n'est jamais un glissé du garage : ses boutons gardent leur clic, le reste est la scène de la boutique (bqScene) */ /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
@@ -60633,7 +60632,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
     pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9+' '+T('FAITES','DONE'),ok9>=n9);
     pose('.mHubPorte',T('GARAGE','GARAGE'),LANG==='fr'?nm:TR(nm));
-    pose('.mOffres',T('BOUTIQUE','SHOP'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
+    pose('.mOffres',T('OFFRES','OFFERS'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
     pose('.mGear',T('RÉGLAGES','SETTINGS'));}
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
