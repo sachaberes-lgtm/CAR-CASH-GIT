@@ -3,6 +3,249 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
+- ⚠ ANNULÉ le même jour (v458) — Léo : « reviens avant, j'avais pas vu que tu l'avais déjà faite unique » : la v456 avait déjà une roue arrière gauche UNIQUE (au kit, rouillée et voilée). index.html = celui de la v456 (167de9de) ; ce qui suit n'est plus en jeu.
+- La roue arrière gauche (`wi===2` dans la branche `rouesEpave` de buildCar) redevient celle de la v455, code recopié tel quel : pneu
+  cylindre `darkM`, disque `rustM` et ses cinq rayons, moyeu, voile `rotation.y=.16`. Les trois autres roues au kit (`roueEpave`, qui perd sa
+  variante rouillée), la carcasse patinée et le toit corrigé restent ceux de la v456.
+- MESURÉ par des RENDUS ISOLÉS FIGÉS (banc : la caisse seule dans une scène à fond uni, lumière fixe, roues à l'arrêt, caméra dans son repère —
+  deux rendus de la même version : 0 pixel d'écart) : la roue cassée = celle de la v455 (0 pixel, écart max 0) ; v456 → après : sur six vues,
+  toutes les différences tombent dans l'empreinte calculée de la roue arrière gauche, la vue où elle est cachée ne change pas d'un pixel ;
+  les 77 caisses : seule LA HONTE change ; 0 programme compilé en course ; triangles 5 192 → 4 416 ; dessins 18 → 20.
+  Planche : `photos-gameplay/honte-roue-cassee-avant-apres.png` (dossier CAR CAHS V3).
+- LA LEÇON (Léo) : un changement de LOOK attend son oui avant le main, et les SINGULARITÉS d'une caisse (une pièce cassée, une asymétrie) se
+  gardent sauf ordre contraire.
+
+## LA HONTE, UN CRAN PLUS BELLE (2026-10-15, pôle CAISSES — Léo : « un tout petit plus de détail au niveau de la brillance et de la texture de sa carcasse ; si tu y arrives, plus de définition ; des roues refaites, plus réalistes ; un plafond moins buggé : l'orange se mélange bizarrement à la vitre »)
+- LE TOIT (la cause) : dans `SHAPES.epave`, le dessus de la boîte de VITRE était à la hauteur du MILIEU de la dalle du toit, et les deux
+  penchaient en sens contraire (−,04 / +,09) : le toit s'enfonçait d'un côté dans le verre, le verre le perçait de l'autre, une bande de
+  verre plat autour. Désormais la vitre garde sa pente, le toit PENCHE AVEC ELLE, la couvre (4 cm de débord sur les côtés, 8 cm devant et
+  derrière) et le dessus du verre est noyé dans son épaisseur (1 cm).
+- LA CARCASSE (`boiteUsee`) : les mêmes boîtes aux mêmes places, mais chanfreinées (3 cm : le reflet court sur l'arête, plus claire — la
+  laque usée), leurs grandes faces cabossées par facettes (des creux de quelques millimètres, jamais une bosse), une couleur par facette
+  multipliée par la peinture : marbrure, crasse du bas, rouille (plus fréquente en bas), poussière sur ce qui regarde le ciel. Tôle et accent
+  dans un clone à couleurs de sommets (`vertexColors`, même liseré `rimify(…,null)`), laque un peu plus brillante (30 / 0x8e8e8e / ,07).
+  Toujours en FACETTES (non indexé, une normale par face). Peinture de la boutique : suivie (clone après la peinture).
+- LES ROUES (`roueEpave`, `A.rouesEpave` dans buildCar — sans les accessoires que `lpw` retirerait) : au kit, en facettes — pneu au flanc
+  bombé, épaule, deux sillons, 16 sculptures en quinconce, cordon de flanc ; jante en tôle emboutie percée de 6 trous, 5 écrous. L'arrière
+  gauche reste rouillée et voilée (rotation.y ,16), comme avant.
+- MESURÉ (banc muet, course en pause, garage, boutique, couché et debout) : triangles 1 426 → 5 192 (la gamme : médiane 3 500, LE CAÏD
+  4 748, le chat 10 360) ; appels de dessin 17 → 18 ; programmes compilés EN COURSE : 0 (2 de plus au menu : la tôle à couleurs, la famille
+  mat/satiné du kit) ; les 77 caisses montées avant/après : seule LA HONTE change ; menu → JOUER → course sans erreur, couché et debout.
+  Planche : `photos-gameplay/honte-avant-apres.png` (dossier CAR CAHS V3).
+
+## LE LANCER DOSÉ EN BOUTIQUE (2026-10-15, pôle CAISSES — Léo : la voiture lancée au doigt doit tourner un peu plus, satisfaisant, mais « c'est pas non plus l'espace »)
+- AVANT : au lâcher, la vitesse du doigt s'éteignait en exp(−2,4 t) — la moitié perdue en 0,29 s (elle freinait sec), puis une longue traîne,
+  et aucun plafond (un lancer de 4 000 px/s : 2,8 tours).
+- APRÈS (`bqLance` au lâcher, `bqLanceTick` à chaque image, `GBQ.lan`) : un ÉLAN PLANIFIÉ. Distance D = 2 tours × tanh(0,65 v / 2 tours) ;
+  durée qui grandit avec elle (1,3 → 1,9 s) ; courbe v·(1 − t/T)^(q−1), q ≥ 2,5 : elle part exactement à la vitesse du doigt, ralentit
+  comme par frottement et s'arrête en douceur, sans rebond. Lâchée, elle garde sa pose (LA POSE TENUE). Un doigt posé pendant qu'elle tourne
+  l'attrape net (`GBQ.lan` à null) et ce toucher-là ne la remet pas en vitrine (`attrape`). Doigt arrêté avant le lâcher (90 ms) : pas
+  d'élan, comme avant.
+- MESURÉ (banc muet, vrais touchers partant SUR la caisse, couché et debout, vitesse du doigt mesurée dans la page) — tours après le
+  lâcher, AVANT → APRÈS : 300 px/s 0,20 → 0,31 · 540 px/s 0,36 → 0,55 · 710 px/s 0,52 → 0,76 · 1 480 px/s 1,08 → 1,35 · 2 650 px/s
+  1,78 → 1,71 · 4 150 px/s 2,76 → 1,84. Fin visible (< 10°/s) : AVANT 1,2-2,3 s, APRÈS 1,2-1,5 s. Attrapé en plein élan : 0,0000 rad
+  ensuite ; glissé lent arrêté : 0,0000 rad. Planche : `photos-gameplay/boutique-lancer-avant-apres.png` (dossier CAR CAHS V3).
+- ⚠ Banc : un lancer qui part sur la bande « cette semaine » (`bqUr`) n'est pas un lancer de la caisse — c'est le PLATEAU du garage qui suit
+  le doigt (`GAR.platW`, élan exp(−1,2 t)) ; le faire partir sur la caisse. Et chaque toucher CDP met ~45 ms : pour un vrai lancer, peu de
+  grands pas. `dbgBqIndus().lan` = [D, T, q] du lancer en cours.
+
+## CHAT POP-TART — LE TRAIT NOIR AU-DESSUS DES ROUES AVANT (2026-10-15, pôle CAISSES — Léo : un trait noir « glitché » au-dessus des roues avant de la Nyan Cat)
+- LA CAUSE (vue au banc, puis MESURÉE par des rayons sur la vraie caisse) : le haut des PATTES — leur bord noir — traversait l'aile. La
+  face extérieure d'une patte (x ,92) sort de la peau dès y ,46 à l'avant (pas de hanche `ha` : l'épaule de l'aile rentre), ,48-,51 à
+  l'arrière ; or la patte montait à ,49 au repos et ,54 au cran « en haut » de sa bielle (nyanTick, ±NY_PATTE). Le trait apparaissait et
+  disparaissait avec la roue : le « glitch ». Pattes cachées (`dbgNyCache` au banc) : plus de trait. Ce n'était ni un combat de faces, ni
+  la coque du trait noir, ni l'ombre.
+- LE CORRECTIF (gabarit `poptart`, « 5. LES PATTES », et nyanTick) : chaque patte a TROIS images (6, 5, 4 cases de haut, `userData.im`),
+  une par cran de hauteur ; nyanTick montre celle du cran. Son haut reste toujours à ,4465 — là où il était au cran « en bas », caché sous
+  l'aile (le dessous de l'arche est à ,39-,43 ; la peau à ,46 au plus bas) — et seul le bas suit la roue. Les cases gardent les couleurs
+  de la patte entière : ce qu'on voit de la patte sous l'arche ne change pas.
+- MESURÉ (banc muet ; course, garage et boutique ; couché et debout) : haut des quatre pattes aux trois crans AVANT ,4465 / ,494 / ,5415 →
+  APRÈS ,4465 partout ; en course, 40 relevés au trot et au sprint, l'image montrée = celle du cran (0 écart) ; les 77 caisses de la gamme
+  montées avant/après : seules les pièces du chat changent ; 0 erreur. Planche : `photos-gameplay/nyan-trait-aile-avant-apres.png`
+  (dossier CAR CAHS V3).
+
+## LA POSE TENUE EN BOUTIQUE (2026-10-15, pôle CAISSES — Léo : « boutique : toucher la voiture fait bouger la voiture comme actuellement, mais laisse la voiture dans sa position souhaitée ; et lorsqu'on rappuie sur la voiture, elle se replace et la plateforme se remet à faire tourner la voiture »)
+- Le doigt sur la scène tourne et penche la caisse COMME AVANT (même prise `bqPrise`, mêmes coefficients, même élan de lacet). Dès qu'il a
+  GLISSÉ de plus de 8 px, elle est POSÉE À LA MAIN (`GBQ.pose`, `bqPoseTient`) : le plateau s'arrête net et, lâchée, elle GARDE sa pose — plus
+  de ressort de tangage ni de roulis ; son élan de lacet s'éteint comme avant (exp(−2,4 t)).
+- Un TOUCHER BREF SUR elle (moins de 8 px et de 0,3 s ; le rayon touche une pièce PLEINE : `bqPrise` → `sur`, filtré par `bqPlein` — ni halo
+  additif, ni lueur presque transparente, ni parent caché) : `bqPoseLache()` — tangage et roulis reviennent par le ressort d'avant (~2 s), le
+  plateau repart en 0,9 s adouci (`GBQ.platK`, qui multiplie l'avance de `garageAng` dans garageRender). À côté d'elle, ou quand elle tourne
+  déjà : rien. Le toucher qui la remet sonne `uiClic('nav')` + `hap(6)`.
+- Retour au plateau aussi quand : une autre caisse (vignette, flèches — `garageI` change sous le rideau de l'échange : à plat d'un coup), un
+  autre onglet ou une autre catégorie (en douceur), la sortie de la boutique ou JOUER (`platK` à 1 d'un coup), la fermeture du garage.
+- Seule la boutique passe par là (GBQ) : le doigt du garage et de l'inventaire n'a pas changé.
+- MESURÉ au banc muet, vrais touchers (couché 844 × 390, debout 588 × 900) et souris dans le cadre de l'ordi (couché ET portrait) : lacet sur
+  les 3 s après un glissé lâché à l'arrêt AVANT −26° (le plateau l'emporte, tangage −19° → −1°) · APRÈS 0,000 rad (tangage −19° gardé) ;
+  toucher à côté : 0,000 ; toucher sur elle : tangage −0,42 → −0,01 rad en 3 s, plateau à 0,15 rad/s dès 1 s ; autre caisse / OFFRES / RETOUR :
+  plateau repris ; boutique → garage → JOUER → course : OK ; 0 erreur (hors le 404 connu de dark-triad.mp3).
+  Planche : `photos-gameplay/boutique-pose-avant-apres.png` (dossier CAR CAHS V3). Banc : `dbgBqIndus()` donne désormais `pose`, `platK`,
+  `ang`, `cap`/`capV` (le cap de la caisse, dans le monde et vu de la caméra) et `ecr` (son centre à l'écran).
+
+## LA BIBLIOTHÈQUE : LES SONS MUETS RÉPARÉS + LA CORBEILLE DE POUCE BLEU (2026-10-15, pôle SON ; Léo : « je n'arrive pas à écouter certains sons dans la bibliothèque ; permets-moi de supprimer tous les sons des pouces bleus, on en a 36 maintenant »)
+- LE BANC : les 64 sons + les 29 musiques de Pouce bleu, un VRAI clic chacun, sur la page EN LIGNE, dans Chrome (muet, autoplay réel) ET dans le
+  banc WebKit (le moteur de Safari, faux iPhone, `mediaTypesRequiringUserActionForPlayback = All` : le son exige un vrai toucher, comme sur iPhone ;
+  un clic NSEvent dans la vue). Un crochet posé avant la page (et dans ses iframes) fait sortir chaque AudioContext par un analyseur puis un gain nul.
+- DEUX SONS NE SORTAIENT PAS :
+  · AURA · 30 PALIERS — 404 en ligne partout : `vercel-build.sh` efface `assets/audio/music/paliers/*.html` (les sources d'atelier). La page vit
+    désormais dans `assets/audio/music/direct/aura-30.html`, comme MOTEUR FRENCH TOUCH. ⚠ Une page en direct de la bibliothèque ne va JAMAIS dans `paliers/`.
+  · MOTEUR FRENCH TOUCH (et AURA · 30) sur iPhone — le contexte de la page naissait APRÈS le chargement de l'iframe, hors du toucher : SUSPENDU, muet.
+    LE CONTEXTE PRÊTÉ (`LECTEURS.html`) : `AudioContext` de l'iframe → un Proxy du contexte de la bibliothèque (réveillé au toucher) ; sa sortie
+    passe par `maitre` (le curseur Volume marche), son STOP (close / suspend) ne touche pas notre contexte.
+  · + `navigator.audioSession.type = 'playback'` (iOS 17+) à chaque lecture : le bouton SILENCIEUX coupait tout le WebAudio de la page.
+  Après : 93 / 93 dans Chrome et dans WebKit (un 1er toucher sur AURA · 30 ou sur une musique du générateur compris), 0 erreur.
+- À SAVOIR (pas un défaut) : au moteur 1, les musiques du générateur de Pouce bleu sortent à −24…−38 dB (les autres sons : −13…−22 dB) — c'est
+  LA GRANDE MONTÉE (+19 dB du 1er au 30e moteur, la règle 1 des bases : jamais de régleur de niveau) ; on monte avec + ou les flèches.
+- LA CORBEILLE DE POUCE BLEU (`retireDeBleu`) : sur chaque son de Pouce bleu, un toucher, la bulle « … retiré de Pouce bleu · Annuler » 6 s
+  (`annonce(msg, defaire)`, la même bulle que la corbeille des autres sons). Une musique du générateur perd son 👍 (`avis = 0`, comme le pouce) ;
+  un morceau que Léo y avait glissé retourne dans sa catégorie (`place`) ; ce qui n'existe que là (une V2, AURA · 30, PENTHOUSE · V2) va dans
+  `suppr`. Une V2 vit sans son original (retirer l'original laisse sa V2).
+- QUE ÇA TIENNE EN LIGNE : le navigateur ne garde plus une copie entière des choix (elle tombait à chaque nouvel instantané publié : les retouches
+  du téléphone disparaissaient) mais L'ÉCART à l'instantané (`biblioEcart` : noms, notes, rangements, suppr, pouces, avis, catégories), rejoué
+  sur chaque nouvel instantané (`ecartDe` / `ecartPose`). « Copier mes choix » (en ligne, quand il y a un écart) le met dans le presse-papiers :
+  `CHOIX BIBLIOTHÈQUE {…}` ; collé dans la discussion → `python3 atelier-son/choix_colle.py <texte>` le rejoue sur musique-moteur.json (sans risque
+  deux fois). Sur l'ordi avec le serveur (127.0.0.1:9200), rien ne change : chaque choix va tout de suite dans musique-moteur.json.
+
+## LES NOTES DE LÉO APPLIQUÉES — LES V2 DE POUCE BLEU, AURA EN 30 PALIERS, PENTHOUSE V2 (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version »)
+Ses 17 notes de la bibliothèque (`PREF.notes` de musique-moteur.json), appliquées sans toucher aux originaux :
+- LE CROCHET DES RETOUCHES, dans les 6 versions du générateur qui ont des musiques 👍 (`musique-trente-v3-1/3/4/7/10`, `v6-0`) :
+  · `start(n, W, O)` : `O.retouche(Mx, outils)` agit juste après `compose` (`retoucheMx`, qui refait `Mx.rang`) ;
+  · `O.voix[nom]` / `O.acc[nom]` remplacent un instrument (premières lignes de `voixDe` / `accordDe`) ;
+  · `O.style` force la couleur enregistrée (v6) ; `_compose(n, W, O)` pour le banc.
+  Sans `O`, rien ne change : les plans de toutes les musiques 👍 ont été comparés avant / après, identiques.
+- ⚠ BUG TROUVÉ : en v6, la couleur hybride (`choixHybride`) dépend de la mémoire des parties (`HISTO`). Rejouée dans Pouce bleu, une musique 👍
+  en devenait une AUTRE (CRISTAL D'ARGENT sortait MOTEUR DE PLATINE, MIRAGE ULTRA → GRÉSIL DE TONNERRE, TURBO DE NÉON → FLAMME D'OPALE).
+  La bibliothèque passe désormais `O.style` = le style de l'avis, et `choixHybride(W, n)` le rend en tirant les MÊMES nombres que le tirage
+  d'origine (la suite de la composition est donc exacte). MESURÉ : les 21 musiques 👍 retombent sur leur titre, leur mélodie et leur clavier.
+  Les notes de Léo sur ces trois-là portaient sur la mauvaise musique : à réécouter avant toute V2.
+- `assets/audio/music/direct/retouches-bleu.js` (module) : `V2` (8 retouches) et `RENOMS` (MIRAGE, FIRE PRIME, NÉNUPHARS VELOURS, SAUVER MAMAN).
+  Les noms n'entrent PAS dans musique-moteur.json : ils sont dans le code, et un nom donné par Léo passe devant. Raison : un onglet resté
+  ouvert réécrit tout le fichier ; un onglet chargé avant ses notes aurait pu les effacer.
+  Les V2, chacune posée sous son original, en retrait, sans pouce à elle :
+  · CAVALE ULTRA (v3-1) : un arpège sci-fi au 15e moteur (`ARP_SF` à la place de `pluck`, ordre retouché) ;
+  · COBRA ULTRA (v3-3) : le Rhodes à la place du clavinet, un talkbox velours ;
+  · FLAMME DE TONNERRE (v3-3) : le VERRE CHANTANT, un nouveau timbre aigu ;
+  · MIRAGE DE VITESSE (v3-4) : le début refait (nappe et arpège d'abord), scie, Rhodes, violon, cuivres repoussés ;
+  · NÉNUPHARS VELOURS (v3-7) : flûte, gouttes de verre, basse qui roule, −7 % de tempo ;
+  · LUNE DE JADE (v3-7) : la gamme de la mélodie en hirajoshi (`A.gamme` de chaque accord), le KOTO NÉON ;
+  · RUBIS ULTRA (v3-10) : congas, échos, cloche, harmonie plus tôt, vibraphone ;
+  · SAUVER MAMAN (v3-10) : la harpe de verre devient une CLOCHE DE VERRE (`acc.keys`).
+  MESURÉ (banc muet, vrais clics) : les 8 jouent aux moteurs 1, 15 et 30, à ±3 dB de l'original (MIRAGE et NÉNUPHARS 3-4 dB plus doux), 0 erreur.
+- AURA · 30 PALIERS (`assets/audio/music/direct/aura-30.html`, en direct, `#play` / `#speed`, rangé dans Pouce bleu) : le même morceau,
+  `p` devient le moteur. Les tableaux par palier sont étirés sur 30 moteurs (`PAL(m) = 1 + (m − 1) / 4`, le filtre en géométrique). Les 8 marches
+  restent aux moteurs 1, 5 … 29, chaque élément entre à SON moteur (`QUAND`), et `jouer` borne désormais `p` à 30 au lieu de 8.
+  MESURÉ (rendu hors ligne) : aux moteurs 1, 5 … 29, le même niveau que les paliers d'origine, à 0,2 dB près. L'AURA en 8 paliers reste à côté.
+- PENTHOUSE · V2 (`atelier-son/penthouse_v2.py` → `paliers/rendus/penthouse-v2/`, fiche dans `rendus/index.js`, rangée d'office dans Pouce bleu
+  par `PLACE_DEF`) : la même composition et les mêmes 8 paliers, TOUS les instruments remplacés :
+  · chœur « ah », piano feutré, vibraphone, boîte à musique, flûtes (cordes pincées en staccato), saxophone ;
+  · verres qui trinquent, cors, basse ronde qui glisse ;
+  · grosse caisse sèche, claquements de doigts, shaker.
+  Chaque instrument neuf est calé sur la sonie de l'ancien (`cale`). MESURÉ : centre de gravité 200-560 Hz (jamais clinquant) ; boue 200-500 Hz
+  de 5,7 à 9,4 % (P2 31,7 %, l'original 26 %), après trois passes (le « oh » du chœur à 450 Hz, les flûtes trop graves, le grognement de la basse).
+- EN ATTENTE : PISTON DE LUXE et GRÉSIL NOVA (le pack d'instruments promis par Léo) ; CRISTAL D'ARGENT, MIRAGE ULTRA et TURBO DE NÉON (à réécouter :
+  leurs notes visaient la mauvaise musique).
+- Bancs (scratchpad du pôle SON) : `verif.py` (21 musiques 👍 : titre, mélodie, clavier), `v2plans.py`, `v2jeu.py` / `origjeu.py` (niveaux),
+  `aura30rend.py` (rendu hors ligne), `final.py`.
+
+## LA MUSIQUE DU CIEL ET DU GARAGE (2026-10-14 soir, Léo : « le ciel et le garage devraient aussi avoir une musique légère — l'inspi des Lobby Chris, les instruments, mais calme ; musique ciel très discrète, garage aussi, différentes ambiances ; plusieurs propositions, direct sur le main, et dans la librairie »)
+- Au MENU, le CIEL (LA CHUTE, l'écran titre) et le GARAGE ont chacun SA musique : `MENU_MUS` (juste après `MUSIC`), une de chaque tirée au
+  hasard à chaque lancement (`MENU_MUS.tire`), `musicMenuUrl()` = celle du lieu (CHUTE.on → ciel, sinon garage). Elle remplace `MUSIC.menu`
+  (le lobby Chris) dans musicDeverrouille, musicMenu, musicPlayCurrent et le retour au ciel. `MENU_MUS.on=false` = le lobby Chris partout, comme avant.
+- CIEL (sans batterie, basse ronde, longue réverbe) : NUAGES LENTS (60, ré lydien) · HAUTE ALTITUDE (66, si♭) · APESANTEUR (56, fa lydien, un pouls).
+  GARAGE (le léger filtre d'atelier cuit dedans, comme les Chris) : ATELIER (84, sol) · HUILE DE MINUIT (76, la m, lo-fi) · CLÉ DE 12 (92, la, bossa).
+  Fichiers `assets/audio/music/lobby/ciel-*.m4a` / `garage-*.m4a` (1 min 50 à 3 min, bouclés sans couture par boucle_aac), faits par
+  `atelier-son/ciel_garage.py` (le moteur des Lobby Chris, `lobby_chris.compose/mixe`) ; fiche `lobby/menu-donnees.js` (la bibliothèque la lit :
+  onglet « Ciel et garage »). `SON_TON` a leurs six tonalités EN TÊTE (la clé 'ciel' attraperait 'ciel-nuages').
+- LA BASCULE (musicTick, mode menu, hors boutique) : on change de lieu → la musique d'avant s'efface (~0,4 s), celle du lieu repart du début
+  en fondu (iPhone, volume verrouillé : franche). Les niveaux ne changent pas : ciel à MUS_CIEL (mesuré .03-.05), garage .31, la boutique se tait.
+  Vérifié au banc muet (vrais clics) : téléphone couché, cadre de l'ordi, debout — ciel → garage → boutique (pause, bqSon) → retour → ciel → JOUER
+  (le lobby s'efface au piqué, la course part), 0 erreur. `dbgMusique().menu` = le tirage et ce que le lieu veut.
+
+## LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` (2026-10-14, pôle SON ; Léo : « un seul dossier de travail, le main »)
+La page « Sons CASH CAR » de la branche musique (13-14/10), ramenée sur le main : EN LIGNE à **/jouer/bibliotheque.html**, et en local
+avec son serveur `python3 atelier-son/serveur-moteur.py 9141` (depuis VERSION PRINCIPALE). Le jeu n'en charge RIEN.
+- Onglets : GÉNÉRATEUR (TRENTE MOTEURS v6.0 hybride, en direct) · POUCE BLEU (les musiques du générateur que Léo a aimées, rejouées par
+  LEUR version : `assets/audio/music/direct/musique-trente-v3-1…v6-0.js`) · SUIVENT LE MOTEUR (morceaux à paliers figés `paliers/rendus/`,
+  couches, phrases, modules en direct GLISSE / GLISSE v2 / French Touch) · NIVEAUX (le CIEL et la VILLE DU JEU : mêmes fichiers) · LOBBY
+  CHRIS (les originaux sans le filtre d'atelier) · ANCIENS · PETITS SONS. Les choix de Léo (noms, suppressions, 👍, avis du générateur)
+  = `musique-moteur.json` — SES données : ne pas l'écraser en test.
+- SANS SERVEUR (en ligne) la page n'envoie RIEN : elle lit l'en-tête `X-Serveur-Moteur` (posé par serveur-moteur.py) ; sans lui, pas de
+  POST (noms, goûts), pas d'onglet INSPIRATIONS, les retouches d'un visiteur restent dans son navigateur (`PREF_SIG`), modules importés
+  sans `?v=` (sinon le service worker du jeu gardait une copie par PLAY).
+- ⚠ HORS DU MAIN (public) : les sons d'artistes réels — inspirations (`inspi-generateur/`, gitignoré), IN DA BACK / BOR / NOTHING LIKE U,
+  OG GINOBILI (labo). Ils vivent sur la branche locale `musique-2026-10` (CAR CAHS V3). Les sons que Léo a supprimés ne sont pas copiés
+  (sauf `boucles/nuages--phrases.m4a`, un spécimen du séquenceur de phrases). `ciel/ciel-donnees.js` décrit les fichiers CIEL du JEU (40 mesures).
+- Publiée sur Vercel (~55 Mo, hors du précache de sw.js). (Les portails / poki-construire.js ont été retirés du main le 15/10 par Sacha.)
+- LES NOTES (même soir, Léo : « permets-moi d'ajouter des notes permanentes sur les sons ») : un crayon ✎ sur chaque son → `PREF.notes`
+  (id → texte) dans musique-moteur.json (gardé par serveur-moteur.py) ; en ligne, sur l'appareil.
+- POUCE BLEU accueille aussi des sons de la bibliothèque (glissés sur l'onglet, `PREF.place` → 'bleu') : AURA, NÉON NOIR, NUIT DE VELOURS,
+  PENTHOUSE, GLISSE FUSION y sont rangés ; là, ils se pilotent À LA MAIN, moteur 1 à 30 (`aLaMain`), le son inchangé (8 étapes figées
+  sur 30 moteurs). ⚠ Léo voulait « 30 paliers comme les autres » : 30 étapes DIFFÉRENTES = réécrire l'arrangement → refusé (« si ça
+  risque d'être moins bien, arrête-toi »). Ne pas le faire sans une écoute A/B validée par lui.
+- L'ATELIER ET LES CAHIERS DU SON (Léo : « pour toi » — préviens-le quand tu y reviens, il ne sait pas exactement ce que c'est) :
+  `musique-moteur.html` (fige les morceaux à paliers par le serveur de la page), sources `assets/audio/music/paliers/*.html`, scripts
+  `atelier-son/` (paliers_figes.py, salle-repetition.js, vrais_instruments.py, lobby_chris.py, lobby_main.py, boucle_aac.py, ciel.py…),
+  cahiers `atelier-son/CAHIER-MUSIQUE.md`, `MUSIQUE-PASSATION.md`, `CONSIGNE-MUSIQUE-PALIERS.md`, `CULTURE-MUSICALE.md`. Copiés de CAR CAHS V3
+  le 14/10 (non relancés ici ; python : venv numpy/scipy). Jamais en ligne (vercel-build.sh).
+- (15/10, fusion du main v448) Sacha a retiré du jeu les fichiers « jamais joués » (990b4ce5) : NOCTURNAL GROOVE et VILLE 6-10 n'existent plus
+  → `RETIRES_DU_MAIN` (bibliotheque.html) les cache (62 sons visibles, tous lisibles). Pour les rendre à Léo : remettre les fichiers ET ôter les ids.
+- Banc muet (scratchpad du pôle SON) : vrais clics, mesure au bus de la page (PALIERS −27 dB, COUCHES −24, PHRASES −25, TRENTE −31 ;
+  GLISSE v2 sort directement sur la destination à −10 dB : il ignore le curseur Volume, comme sur la branche).
+## LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF (2026-10-15, pôle TECHNIQUE — Léo : « sur iPhone, en portrait, des parties de l'écran se répétaient, un peu les pixels », photo à l'ORBITE en vol, NITROOO)
+- LA CAUSE (mesurée, même image rendue deux fois, zoom ×4-6) : le flou de vitesse du TÉLÉPHONE (`ACES_N` 6 prises, décalées par le bruit
+  entrelacé `jt`) laissait loin de la caisse une TRAME RÉGULIÈRE (damier d'un pixel sur deux, diagonales : la lune « hachurée »), absente
+  sans le flou. Le bruit entrelacé est fait pour être lissé d'une image à l'autre (TAA), ce que le jeu ne fait pas ; en NETTE la 3D est
+  à ×1,5 sur un écran ×3 : chaque pixel de la trame = 2 pixels d'écran, et elle scintille. L'ordi a 8 prises fixes : pas ce chemin.
+- ÉCARTÉ PAR MESURE (bancs Chrome iPhone ET WebKit) : tailles des cibles de rendu (1 075 images contrôlées : toujours égales au tampon de
+  dessin, sauf l'arrondi sous-pixel des DPR fractionnaires), barre d'adresse ±80 px, rotation, DPR 0,85-3, crans QL, ciel en deux temps,
+  bloom, FXAA, cibles 8 bits, précision des shaders (aucun mediump).
+- LE CORRECTIF (`FLOU_MIPS`, téléphone + WebGL2 ; `?flou=ancien` = l'ancien chemin) : chaque prise lit l'image PRÉ-FLOUTÉE à la taille de
+  son intervalle + ½ niveau (mipmaps de la cible de la scène générés seulement quand le flou joue : `flouMips`, dans `acesPass.render`,
+  filtre rendu ensuite), plus de décalage (image stable, ni grain ni copies — essais au banc : un bruit sans motif laissait du grain, sans
+  pré-flou les sourcils de la lune se dédoublaient), et une prise hors de l'image se replie en MIROIR (le pixel du bord ne se répète plus,
+  ~5 % de chaque bord au boost). Le disque de la caisse : écart 0 au pixel (niveau 0 sous ~0,7 texel). 0 programme en course ; puce du Mac
+  2,2 contre 2,5 ms/image (bruit). Indépendant de la courbe des noirs (`COURBE_V2` : V2 dérivé de V1, mes lignes n'y touchent pas).
+  Planche `CAR CAHS V3/photos-gameplay/pixels-repetes-avant-apres.png`.
+- AVEC LE FLOU V2 DE SACHA (`FLOU_V2`, 14/10 : force et tracé — bords seulement, moitié moins fort ; `?sans=flou`) : gardé tel quel. Il
+  change OÙ et COMBIEN ça file, pas la façon de prendre les échantillons : la trame restait, sur les bords. Les deux se composent (ses
+  lignes `amt`/`buv` remplacées, mon `lodF` lit son `amt`). REMESURÉ après la fusion de main v448 (ORBITE et ses nébuleuses, debout
+  NETTE ×1,5, NITROOO en vol) : grain haute fréquence des blocs de bord 3,19 → 0,67, 2,01 → 0,91, 1,74 → 0,39 ; disque de la caisse
+  écart 0 ; 180 → 180 programmes en course debout, couché et dans le cadre de l'ordi ; mer du jade (4 plongeons, ~410 gouttes) sans
+  erreur. Planche `photos-gameplay/pixels-repetes-avant-apres-v448.png`.
+- `eauPTick` (la mer du jade, même « // qui avale ») avait été trouvé ici aussi ; la chasse aux bugs l'avait déjà réparé sur main : sa
+  version est gardée.
+- BANC WEBKIT (le moteur de l'iPhone sur le Mac, sans réglage à changer) : un WKWebView hors de vue piloté par fichiers (Objective-C,
+  `clang -fobjc-arc banc.m -framework Cocoa -framework WebKit` ; Swift refuse : SDK ≠ compilateur), fausse identité de téléphone
+  (matchMedia, maxTouchPoints, écran), dsf 3 privé, occlusion coupée ; fenêtre transparente SOUS le fond d'écran (hors écran, rAF tombe à
+  ~7 i/s). Outils dans `~/Downloads/CAR-bancs` (Mac de Léo), mémoire `banc-webkit`.
+
+## LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION, TUNNEL D'ARRIVÉE, ROCHE LISIBLE (2026-10-14 soir, session CANYON — Sacha : « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus bas » · « c'est un jeu de COURSE, pas de balade » · « plus la vitesse du palier est élevée, plus les virages doivent être larges » · « resserre juste les parties COULOIR » · « le portail d'arrivée doit être DANS UN TUNNEL » · sur les parois : « ce n'est pas joli »)
+- LES RACCOURCIS (`genCanyon` v2, `boucle`) : huit TROMBONES qui descendent — l'approche (~220 m, la zone de saut), un demi-tour R1, le
+  retour, un demi-tour SERRÉ R2 = R1 − e/2, la SORTIE. Elle court parallèle à l'approche, ~94 m d'axe à axe (~35 m de vide entre les bords),
+  55 à 90 m plus bas (2,6 à 3,4 s de vol, règle RACCOURCIS de GAMEPLAY), puis passe SOUS le premier demi-tour et s'incurve à peine : on sort
+  par le bord de l'approche, on retombe dessus. MESURÉ (banc processeur, 5 graines, paliers 1 et 1,7) : 8 raccourcis, gain ~0,8-1,1 km chacun,
+  croisements à 55-90 m de hauteur libre, règle d'or tenue (0 point de route dans la roche, marge mini 41-52 m). Les boucles alternent de côté
+  (la piste ne dérive pas) ; le cap est ramené après chaque tour (`phi-=sg·2π` — sans ça le recentrage refaisait un tour complet).
+  `CY.rac` / `dbgCanyon('raccourcis')` : haut, bas, gain, dh, écart latéral, côté. La taille fine prenait déjà le MINIMUM des deux bras :
+  le croisement se creuse tout seul (une gorge secondaire qui enjambe la principale).
+- COURSE : virages de 85-190 m (× l'élargissement du palier), gauche-droite enchaînés, presque plus de droites (≤ 400 m partout).
+  LES RAYONS SUIVENT LE PALIER : `RMIN` = `rayonPalier()` (40 + 0,3 × la croisière du palier, la règle de GAMEPLAY — le vrai plafond du joueur)
+  × 1,08, plancher de TOUS les arcs ; repli sur la même formule tant que `rayonPalier` n'est pas sur main.
+- LE COULOIR DE PRÉCISION (les Étroits, six S serrés) : deux BANDES de grès (`cyCouloir`/`cyBandes`, la matière du relief, ses strates, son
+  ombre) à 3,5 m des bords, du fond de la fente jusqu'au relief de derrière (lissé). AU VOLANT : le MUR DE PARIS (`parisMur(dt,'paroi')`, par
+  `cyCouloirIci()`) — un choc par contact selon l'angle, puis on frotte (étincelles, « FROTTE ! ») ; de face au-delà de 200 km/h on s'encastre
+  (« ENCASTRÉ DANS LA PAROI »). EN VOL : `cyCouloirHeurt`. Le relief seul ne savait pas : sa taille fine de 12 m étale un mur vertical en
+  coulures (c'était les « traînées » de la capture de Sacha).
+- LE TUNNEL D'ARRIVÉE (`CY_TUN`, `cyGalerie`) : les 460 derniers mètres s'engouffrent dans la falaise — une FAÇADE de grès (jusqu'au haut des
+  parois) percée d'une bouche en fer à cheval cerclée de néon rose, la GALERIE (les murs du couloir + une voûte en demi-ellipse, sommet 104 m
+  au-dessus de la route, au-dessus de l'ovule du portail), en roche SOMBRE (`cyRocheSombre`, la matière simple des arbres : aucun programme
+  neuf) éclairée de néons (deux filets rose au pied des murs, un filet or sous la clé). On y frotte comme au couloir ; voûte dure en vol.
+- LA ROCHE LISIBLE : les rais de lumière retirés (des lames bleu-blanc étalées sur la paroi), bruits déroulés le long du mur dès les pentes
+  moyennes, strates moins gondolées (34 m), litage fin horizontal, vernis en larges taches discrètes, grain fin près de la route (< 220 m),
+  l'ombre de la roche qui tire au VIOLET (la bible).
+- À trancher / à faire : le banc `raccourcis.cjs` de GAMEPLAY attend son crochet `dbgTrace` (pas encore sur main) — à repasser dès qu'il y est
+  (cible 0,6 raccourci/km : le canyon en a ~0,35, couloir et tunnel compris) ; les six météos à revoir avec la nouvelle roche.
 ## LA SECONDE CHANCE COÛTE TOUTE LA PARTIE (2026-10-14 soir, Sacha : « le bouton continuer malgré la mort doit coûter au joueur la même somme que ce qu'il a gagné durant la partie »)
 `chanceOuvre` : `CHANCE.prix = max(CHANCE.plancher, round(money − START_CASH))`, soit 100 % de l'encaissé, au dollar près. Le barème
 de GAMEPLAY (k 0,6 → 0,8) et l'arrondi à deux chiffres (`chanceJoli`) sont retirés. Le plancher de 300 $ ne joue que pour une partie
