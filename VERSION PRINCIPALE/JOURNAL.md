@@ -36,6 +36,30 @@
   Planche : `photos-gameplay/boutique-pose-avant-apres.png` (dossier CAR CAHS V3). Banc : `dbgBqIndus()` donne désormais `pose`, `platK`,
   `ang`, `cap`/`capV` (le cap de la caisse, dans le monde et vu de la caméra) et `ecr` (son centre à l'écran).
 
+## LA BIBLIOTHÈQUE : LES SONS MUETS RÉPARÉS + LA CORBEILLE DE POUCE BLEU (2026-10-15, pôle SON ; Léo : « je n'arrive pas à écouter certains sons dans la bibliothèque ; permets-moi de supprimer tous les sons des pouces bleus, on en a 36 maintenant »)
+- LE BANC : les 64 sons + les 29 musiques de Pouce bleu, un VRAI clic chacun, sur la page EN LIGNE, dans Chrome (muet, autoplay réel) ET dans le
+  banc WebKit (le moteur de Safari, faux iPhone, `mediaTypesRequiringUserActionForPlayback = All` : le son exige un vrai toucher, comme sur iPhone ;
+  un clic NSEvent dans la vue). Un crochet posé avant la page (et dans ses iframes) fait sortir chaque AudioContext par un analyseur puis un gain nul.
+- DEUX SONS NE SORTAIENT PAS :
+  · AURA · 30 PALIERS — 404 en ligne partout : `vercel-build.sh` efface `assets/audio/music/paliers/*.html` (les sources d'atelier). La page vit
+    désormais dans `assets/audio/music/direct/aura-30.html`, comme MOTEUR FRENCH TOUCH. ⚠ Une page en direct de la bibliothèque ne va JAMAIS dans `paliers/`.
+  · MOTEUR FRENCH TOUCH (et AURA · 30) sur iPhone — le contexte de la page naissait APRÈS le chargement de l'iframe, hors du toucher : SUSPENDU, muet.
+    LE CONTEXTE PRÊTÉ (`LECTEURS.html`) : `AudioContext` de l'iframe → un Proxy du contexte de la bibliothèque (réveillé au toucher) ; sa sortie
+    passe par `maitre` (le curseur Volume marche), son STOP (close / suspend) ne touche pas notre contexte.
+  · + `navigator.audioSession.type = 'playback'` (iOS 17+) à chaque lecture : le bouton SILENCIEUX coupait tout le WebAudio de la page.
+  Après : 93 / 93 dans Chrome et dans WebKit (un 1er toucher sur AURA · 30 ou sur une musique du générateur compris), 0 erreur.
+- À SAVOIR (pas un défaut) : au moteur 1, les musiques du générateur de Pouce bleu sortent à −24…−38 dB (les autres sons : −13…−22 dB) — c'est
+  LA GRANDE MONTÉE (+19 dB du 1er au 30e moteur, la règle 1 des bases : jamais de régleur de niveau) ; on monte avec + ou les flèches.
+- LA CORBEILLE DE POUCE BLEU (`retireDeBleu`) : sur chaque son de Pouce bleu, un toucher, la bulle « … retiré de Pouce bleu · Annuler » 6 s
+  (`annonce(msg, defaire)`, la même bulle que la corbeille des autres sons). Une musique du générateur perd son 👍 (`avis = 0`, comme le pouce) ;
+  un morceau que Léo y avait glissé retourne dans sa catégorie (`place`) ; ce qui n'existe que là (une V2, AURA · 30, PENTHOUSE · V2) va dans
+  `suppr`. Une V2 vit sans son original (retirer l'original laisse sa V2).
+- QUE ÇA TIENNE EN LIGNE : le navigateur ne garde plus une copie entière des choix (elle tombait à chaque nouvel instantané publié : les retouches
+  du téléphone disparaissaient) mais L'ÉCART à l'instantané (`biblioEcart` : noms, notes, rangements, suppr, pouces, avis, catégories), rejoué
+  sur chaque nouvel instantané (`ecartDe` / `ecartPose`). « Copier mes choix » (en ligne, quand il y a un écart) le met dans le presse-papiers :
+  `CHOIX BIBLIOTHÈQUE {…}` ; collé dans la discussion → `python3 atelier-son/choix_colle.py <texte>` le rejoue sur musique-moteur.json (sans risque
+  deux fois). Sur l'ordi avec le serveur (127.0.0.1:9200), rien ne change : chaque choix va tout de suite dans musique-moteur.json.
+
 ## LES NOTES DE LÉO APPLIQUÉES — LES V2 DE POUCE BLEU, AURA EN 30 PALIERS, PENTHOUSE V2 (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version »)
 Ses 17 notes de la bibliothèque (`PREF.notes` de musique-moteur.json), appliquées sans toucher aux originaux :
 - LE CROCHET DES RETOUCHES, dans les 6 versions du générateur qui ont des musiques 👍 (`musique-trente-v3-1/3/4/7/10`, `v6-0`) :
@@ -61,7 +85,7 @@ Ses 17 notes de la bibliothèque (`PREF.notes` de musique-moteur.json), appliqu�
   · RUBIS ULTRA (v3-10) : congas, échos, cloche, harmonie plus tôt, vibraphone ;
   · SAUVER MAMAN (v3-10) : la harpe de verre devient une CLOCHE DE VERRE (`acc.keys`).
   MESURÉ (banc muet, vrais clics) : les 8 jouent aux moteurs 1, 15 et 30, à ±3 dB de l'original (MIRAGE et NÉNUPHARS 3-4 dB plus doux), 0 erreur.
-- AURA · 30 PALIERS (`assets/audio/music/paliers/aura-30.html`, en direct, `#play` / `#speed`, rangé dans Pouce bleu) : le même morceau,
+- AURA · 30 PALIERS (`assets/audio/music/direct/aura-30.html`, en direct, `#play` / `#speed`, rangé dans Pouce bleu) : le même morceau,
   `p` devient le moteur. Les tableaux par palier sont étirés sur 30 moteurs (`PAL(m) = 1 + (m − 1) / 4`, le filtre en géométrique). Les 8 marches
   restent aux moteurs 1, 5 … 29, chaque élément entre à SON moteur (`QUAND`), et `jouer` borne désormais `p` à 30 au lieu de 8.
   MESURÉ (rendu hors ligne) : aux moteurs 1, 5 … 29, le même niveau que les paliers d'origine, à 0,2 dB près. L'AURA en 8 paliers reste à côté.
