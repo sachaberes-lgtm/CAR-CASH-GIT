@@ -1041,7 +1041,12 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     colorbass: 3, punk: 3, metal: 3, surf: 3, rock: 3, balkan: 3 };
   const accord9 = (a, b) => { const ea = ENER[a] == null ? 2 : ENER[a], eb = ENER[b] == null ? 2 : ENER[b], de = Math.abs(ea - eb), ba = (COULEURS[a].bpm[0] + COULEURS[a].bpm[1]) / 2, bb = (COULEURS[b].bpm[0] + COULEURS[b].bpm[1]) / 2;
     const d = Math.min(...[.5, 1, 2].map(k => Math.abs(Math.log2(ba * k / bb)))); return [1, .6, .2, .05][de] * (d < .25 ? 1 : d < .45 ? .45 : .15); };
-  function choixHybride(W) {   // (v5.0) le CORPS et l'ÂME : jamais un parent des trois dernières musiques, deux familles différentes (presque toujours)
+  function choixHybride(W, n9) {
+    // (2026-10-15, pôle SON) LA COULEUR ENREGISTRÉE : l'hybride dépend de la mémoire des parties (HISTO) — rejouée sans elle, une musique 👍 en devenait
+    // une AUTRE (CRISTAL D'ARGENT sortait MOTEUR DE PLATINE). O.style rend celle de l'avis, en tirant les mêmes nombres que le tirage d'origine.
+    const F9 = OPT && OPT.n === n9 && typeof OPT.style === 'string' && /^hyb:([a-z0-9]+)\+([a-z0-9]+)\+([ab])(\+w)?$/.exec(OPT.style);
+    if (F9 && COULEURS[F9[1]] && COULEURS[F9[2]]) { const a = F9[1], b = F9[2]; T(); if (a === b) { T(); return hybrideDe(a, a, 'a', false); }
+      T(); T(); T(); if (!COULEURS[a].dub && !!COULEURS[b].dub) T(); return hybrideDe(a, b, F9[3], !!F9[4]); }   // (v5.0) le CORPS et l'ÂME : jamais un parent des trois dernières musiques, deux familles différentes (presque toujours)
     const ids = DA_STYLES.hybride, recents = (HISTO.couleur || []).slice(0, 3).flatMap(x => String(x).startsWith('hyb:') ? x.slice(4).split('+').slice(0, 2) : [x]);
     const wc = W.couleur ? adoucit(W.couleur) : {}, poids = (k, ex) => (recents.includes(k) || k === ex ? 0 : 1) * (wc[k] != null ? wc[k] : 1);
     const wA = {}; ids.forEach(k => wA[k] = poids(k)); const a = tpw(ids, wA);
@@ -1136,7 +1141,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   const adoucit = o => { const r = {}; for (const k in o) r[k] = o[k] > 1 ? Math.sqrt(o[k]) : o[k]; return r; };   // les goûts penchent, ils n'enferment pas
   function compose(n, W) {
     W = W || GOUTS || {}; T = graine(n);
-    const ids9 = DA_STYLES[da] || COUL_IDS, cid = da === 'hybride' ? choixHybride(W) : tpw(ids9, W.couleur ? adoucit(W.couleur) : null), C = COULEURS[cid], modeN = tpw(C.modes, (o9 => { if (C.modeW) for (const k in C.modeW) o9[k] = (o9[k] == null ? 1 : o9[k]) * C.modeW[k]; return o9; })(W.mode ? pese(W.mode, .35) : {})), ton = Math.floor(T() * 12);
+    const ids9 = DA_STYLES[da] || COUL_IDS, cid = da === 'hybride' ? choixHybride(W, n) : tpw(ids9, W.couleur ? adoucit(W.couleur) : null), C = COULEURS[cid], modeN = tpw(C.modes, (o9 => { if (C.modeW) for (const k in C.modeW) o9[k] = (o9[k] == null ? 1 : o9[k]) * C.modeW[k]; return o9; })(W.mode ? pese(W.mode, .35) : {})), ton = Math.floor(T() * 12);
     const Mx = { n, cid, C, modeN, ton, W, phr: 0, sec: 'A', swing: C.swing };
     const src = C.grilles[modeN].slice(), wv = W.vamp != null ? W.vamp : 1; const g3 = [];
     for (let k = 0; k < 3 && src.length; k++) { const x = tpw(src, { v: wv }, x9 => estVamp(x9) ? 'v' : 'n'); src.splice(src.indexOf(x), 1); g3.push(x); }
@@ -1410,7 +1415,8 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       [['sine', 1, f, -.25], ['triangle', .25, f * 2, .25]].forEach(([ty, v, ff, x]) => { const o = osc(c, ty, ff), m = c.createGain(); m.gain.value = v; vg.connect(o.detune); o.connect(m); m.connect(panne(c, x, g)); o.start(0); });
       bruit(c, 0, 'bandpass', f * 3, 2, .02, 1.6, .1, g); }],
   };
-  function voixDe(nom, Tm) {   // [durée, hauteurs de référence, fabrique(c, f), canaux] — ou { ks: true, … } pour les cordes pincées — ou { vrai } (un vrai instrument)
+  function voixDe(nom, Tm) {
+    if (OPT && OPT.voix && OPT.voix[nom]) { const v9 = OPT.voix[nom](OUTILS(), Tm); if (v9) return v9; }   // (15/10) une V2 remplace la voix   // [durée, hauteurs de référence, fabrique(c, f), canaux] — ou { ks: true, … } pour les cordes pincées — ou { vrai } (un vrai instrument)
     const vr = x => typeof x === 'string' && x[0] === '@' ? { vrai: x.slice(1) } : null;
     if (nom === 'basse' && vr(Tm.basse)) return vr(Tm.basse); if (nom === 'lead' && vr(Tm.lead)) return vr(Tm.lead);
     if (nom === 'contre' && vr(Tm.contre)) return vr(Tm.contre); if (nom === 'pluck' && vr(Tm.pluck)) return vr(Tm.pluck);
@@ -1517,7 +1523,8 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
         g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.6, .002); g.gain.exponentialRampToValueAtTime(.0001, .55); fl.connect(g); g.connect(panne(c, x, dest));
         [osc(c, 'square', f, dt), osc(c, 'sawtooth', f, dt + 3)].forEach(o => { o.connect(fl); o.start(0); }); }); }],
   };
-  function accordDe(inst, Tm) {   // [durée, fréquence d'échantillonnage, fabrique(c, f, sortie)] — ou 'ks' (la harpe de verre) — ou { vrai } (de vrais instruments)
+  function accordDe(inst, Tm) {
+    if (OPT && OPT.acc && OPT.acc[inst]) { const a9 = OPT.acc[inst](OUTILS(), Tm); if (a9) return a9; }   // (15/10) une V2 remplace l'accord   // [durée, fréquence d'échantillonnage, fabrique(c, f, sortie)] — ou 'ks' (la harpe de verre) — ou { vrai } (de vrais instruments)
     const va = x => typeof x === 'string' && x[0] === '@' ? x.slice(1) : null;
     if (inst === 'keys' && va(Tm.keys)) return { vrai: [va(Tm.keys)], strum: va(Tm.keys) === 'harpe' ? .014 : .006, dur: 2.4 };
     if (inst === 'pad' && va(Tm.pad)) return { vrai: [va(Tm.pad)], strum: 0, dur: 2.6 };
@@ -2023,7 +2030,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     MEMO_CATS.forEach(k => { HISTO[k] = [v[k]].concat(HISTO[k].filter((x, j) => j < (k === 'couleur' ? 4 : 2))); }); }
   function prepare(n, W) {
     if (n == null) { n = 1000 + Math.floor(R() * 9000); W = oublie(W || GOUTS || {}); }
-    const Mx = compose(n, W), p = fabriqueBanque(Mx).then(b => ({ M: Mx, b })); prepa = { M: Mx, p }; return p; }
+    const Mx = compose(n, W); retoucheMx(Mx); const p = fabriqueBanque(Mx).then(b => ({ M: Mx, b })); prepa = { M: Mx, p }; return p; }
   async function demarre(n, W) {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (!chaineOk) chaine();
@@ -2039,8 +2046,17 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     nextTime = ctx.currentTime + .08; clearInterval(timer); timer = setInterval(horloge, 50); horloge();
   }
 
+  // (2026-10-15, pôle SON) LES RETOUCHES (bibliothèque › Pouce bleu, les V2 des notes de Léo) : start(n, W, O) — O.retouche(Mx, outils) après compose,
+  // O.voix[nom](outils, Tm) / O.acc[nom](outils, Tm) remplacent une voix ou un accord ; O.style force la couleur enregistrée (v6). Sans O : rien ne change.
+  let OPT = null;
+  const OUTILS = Mx9 => ({ rng: graine(((Mx9 && Mx9.n) | 0) * 31 + 7), tp, tpw, tr, R, graine, CATALOGUE, osc, envG, vib, bruit, OUT, courbe, metal, panne, ks, mtof, GAMMES,
+    phrase: typeof phrase === 'function' ? phrase : null, menes: typeof menes === 'function' ? menes : null,
+    NOM_LEAD: typeof NOM_LEAD !== 'undefined' ? NOM_LEAD : null, NOM_KEYS: typeof NOM_KEYS !== 'undefined' ? NOM_KEYS : null, NOM_PLUCK: typeof NOM_PLUCK !== 'undefined' ? NOM_PLUCK : null });
+  function retoucheMx(Mx) { if (!OPT || OPT.n !== Mx.n || typeof OPT.retouche !== 'function') return;
+    try { OPT.retouche(Mx, OUTILS(Mx)); Mx.rang = {}; CATALOGUE.forEach(id => Mx.rang[id] = 0); Mx.ordre.forEach((id, k) => Mx.rang[id] = k + 1); }
+    catch (e) { erreurs++; derniere = 'retouche : ' + String(e && e.message || e); } }
   const api = {
-    start(n, W) { if (playing) return; playing = true; demarre(n, W); },
+    start(n, W, O) { if (playing) return; playing = true; OPT = O ? Object.assign({}, O, { n }) : null; demarre(n, W); },
     stop() { playing = false; demande = null; suivant = null; prepa = null; clearInterval(timer); timer = 0; vinylStop();
       if (master) { const t = ctx.currentTime; for (const id in bus) if (id !== 'fx') { bus[id].gain.cancelScheduledValues(t); bus[id].gain.setTargetAtTime(0, t, .05); } } },
     nouvelle(n, W) { if (!playing || !M) return; let p; try { p = prepare(n, W); } catch (e) { erreurs++; derniere = String(e && e.message || e); prepa = null; return; } p.then(r => { if (playing && prepa && prepa.p === p) suivant = r; }).catch(e => { erreurs++; derniere = String(e && e.message || e); if (prepa && prepa.p === p) prepa = null; }); },
@@ -2066,7 +2082,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       gouts: M.W }; },
     get banqueMs() { return banque ? banque.ms : null; }, get banqueToutMs() { return banque ? banque.suiteMs || null : null; },
     get _bus() { return bus; }, get _banque() { return banque; }, get _verif() { return VERIF; }, get _chaine() { return { sol, hpM, clair, master, revOut, lim, step }; }, get _voix() { return { actives, pic: picVoix, sautes, erreurs, derniere }; },
-    _compose: (n, W) => { const Mx = compose(n, W); return { socle: Mx.socle, rang: Mx.rang, sig: Mx.sig, sig2: Mx.sig2, idee: Mx.idee, style: Mx.cid, ton: Mx.tonNom, ordre: Mx.ordre, titre: Mx.titre, bpm: [Mx.bpm0, Mx.bpm1], keys: Mx.tim.keys, lead: Mx.tim.lead, basse: Mx.tim.basse, pad: Mx.tim.pad, pluck: Mx.tim.pluck, contre: Mx.tim.contre,
+    _compose: (n, W, O) => { if (O) OPT = Object.assign({}, O, { n }); const Mx = compose(n, W); retoucheMx(Mx); return { socle: Mx.socle, rang: Mx.rang, sig: Mx.sig, sig2: Mx.sig2, idee: Mx.idee, style: Mx.cid, ton: Mx.tonNom, ordre: Mx.ordre, titre: Mx.titre, bpm: [Mx.bpm0, Mx.bpm1], keys: Mx.tim.keys, lead: Mx.tim.lead, basse: Mx.tim.basse, pad: Mx.tim.pad, pluck: Mx.tim.pluck, contre: Mx.tim.contre,
       cordes: Mx.tim.cordes, snare: Mx.kit.snare, riser: Mx.kit.riser, kt: Mx.kit.kt, kickT: Mx.kit.kickT, hatT: Mx.kit.hatT, pluck: Mx.tim.pluck, cuivres: Mx.tim.cuivres, retouche: Mx.retouche, transf: Mx.transf, kitV: Mx.kitV, univers: Mx.univers, famille: Mx.famille, heros: Mx.heros, rangs: { lead: Mx.rang.lead, kick: Mx.rang.kick, clarte: Mx.rang.clarte, double: Mx.rang.double, modul: Mx.rang.modul }, phrase: [Mx.phF, Mx.phFB], forme: Mx.forme, modeN: Mx.modeN,
       grilles: Mx.grilles.map(g => g.map(A => A.nom + ' ' + A.v.join('.'))), theme: Mx.motifs[0] }; },
     _suite: (k, W) => { const h0 = JSON.stringify(HISTO), out = [];   // (banc) k musiques neuves d'affilée, avec la mémoire, sans les jouer

@@ -346,7 +346,7 @@ async function prefLit() {
 }
 function prefEcrit() { try { localStorage.setItem('musiqueMoteurPref', JSON.stringify(Object.assign({ sig: PREF_SIG }, PREF))); } catch (e) {}
   if (SERVEUR) fetch('musique-moteur.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(PREF) }).catch(() => {}); }
-const nomDe = S => PREF.noms[S.id] || S.titre, retire = S => PREF.suppr.indexOf(S.id) >= 0, aime = S => PREF.pouces.indexOf(S.id) >= 0;
+const nomDe = S => PREF.noms[S.id] || (RETOUCHES && RETOUCHES.RENOMS && RETOUCHES.RENOMS[S.id]) || S.titre, retire = S => PREF.suppr.indexOf(S.id) >= 0, aime = S => PREF.pouces.indexOf(S.id) >= 0;
 function majPouces() { const n = CAT.filter(S => aime(S) && !retire(S)).length; $('nPouce').textContent = n ? '(' + n + ')' : ''; $('filtre').classList.toggle('on', FILTRE); }
 
 // ================================================================ LES NOTES DE LÉO (14/10 : « permets-moi d'ajouter des notes permanentes sur les sons »)
@@ -536,7 +536,9 @@ const LECTEURS = {
 LECTEURS.unique = LECTEURS.boucle;
 LECTEURS.genv = async S => {   // une musique 👍 du générateur, rejouée par SA version
   const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: maitre, renouvelle: 0, da: S.da || 'cashcar' });
-  inst.setTier(1, 30); inst.start(S.n, S.W || undefined); let cur = 1;
+  const O = {}; if (/^hyb:/.test(String(S.e && S.e.style || ''))) O.style = S.e.style;   // (15/10) la couleur de l'avis : sans elle, une musique v6 en devenait une autre
+  if (S.v2) { O.retouche = S.v2.retouche; O.voix = S.v2.voix; O.acc = S.v2.acc; }
+  inst.setTier(1, 30); inst.start(S.n, S.W || undefined, O); let cur = 1;
   return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); } }, arret() { try { inst.stop(); } catch (e) {} }, palier: () => cur - 1,
     info: () => inst.nomElement ? '+ ' + inst.nomElement(inst.tier) : '', inst };
 };
@@ -547,15 +549,22 @@ const GEN_VERSIONS = [['2026-10-14T00:16:50', 'v3-1'], ['2026-10-14T01:01:05', '
 function versionDe(e) { if (e.v) return e.v; const t = String(e.date || ''); for (const [lim, v] of GEN_VERSIONS) if (t < lim) return v; return 'v3-9'; }
 function fichierVersion(v) { return v && v !== 'actuelle' ? 'assets/audio/music/direct/musique-trente-' + v + '.js' : GEN_F; }
 const BLEUS = new Map();
+// (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version ») LES V2 : `assets/audio/music/direct/retouches-bleu.js`
+// — chaque V2 est la même musique, retouchée selon la note de Léo, posée juste SOUS son original (qui ne change pas) ; RENOMS = ses « renommer ».
+let RETOUCHES = null;
 function dessineBleus() {
   const L = $('gBleu'); if (!L) return; L.querySelectorAll(':scope>.genv').forEach(x => x.remove());   // (les sons de la bibliothèque rangés ici restent)
-  const B = (PREF.gen || []).filter(e => e.avis > 0).map(e => { const k = e.n + '|' + e.titre; let S = BLEUS.get(k);
-    if (!S) { S = { id: 'bleu-' + e.n, sec: 'bleu', type: 'genv', titre: e.titre, style: (e.nom || e.style || '') + ' · n° ' + e.n, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e }; BLEUS.set(k, S); } return S; });
+  const B = (PREF.gen || []).filter(e => e.avis > 0).flatMap(e => { const k = e.n + '|' + e.titre; let S = BLEUS.get(k);
+    if (!S) { S = { id: 'bleu-' + e.n, sec: 'bleu', type: 'genv', titre: e.titre, style: (e.nom || e.style || '') + ' · n° ' + e.n, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e }; BLEUS.set(k, S); }
+    const v2 = (RETOUCHES && RETOUCHES.V2 || []).filter(d => d.base === e.n).map(d => { let S2 = BLEUS.get(d.id);
+      if (!S2) { S2 = { id: d.id, sec: 'bleu', type: 'genv', titre: d.titre, style: 'V2 · ' + d.idee, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e, v2: d }; BLEUS.set(d.id, S2); } return S2; });
+    return [S, ...v2]; });
   B.forEach(S => { const el = document.createElement('div'); el.className = 'ligne genv'; S.el = el;
     el.innerHTML = '<button class="play" aria-label="Écouter">' + PLAY + '</button><div class="txt"><div class="nom"></div><div class="meta"></div><div class="etat"></div></div>' +
       '<button class="noteB" aria-label="Note">' + NOTE_SVG + '</button><button class="pouce on" aria-label="Retirer le pouce" title="Retirer le pouce"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button>';
-    el.querySelector('.nom').textContent = S.titre; el.querySelector('.meta').textContent = S.style + ' · version ' + (S.v === 'actuelle' ? 'actuelle' : S.v.replace('v', '').replace('-', '.'));
-    el.querySelector('.pouce').onclick = ev => { ev.stopPropagation(); if (J.S === S) stop(); S.e.avis = 0; prefEcrit(); goutsMaj(true); dessineBleus(); };
+    el.querySelector('.nom').textContent = nomDe(S); el.querySelector('.meta').textContent = S.style + ' · version ' + (S.v === 'actuelle' ? 'actuelle' : S.v.replace('v', '').replace('-', '.'));
+    if (S.v2) { el.classList.add('v2'); el.querySelector('.pouce').remove(); }   // (une V2 n'a pas son propre pouce : c'est celui de l'original)
+    else el.querySelector('.pouce').onclick = ev => { ev.stopPropagation(); if (J.S === S) stop(); S.e.avis = 0; prefEcrit(); goutsMaj(true); dessineBleus(); };
     el.onclick = () => joue(S); noteBranche(el, S);
     if (J.S === S) { el.classList.add('joue'); el.querySelector('.play').innerHTML = STOP; }
     L.appendChild(el); });
@@ -827,13 +836,14 @@ $('secIns').addEventListener('drop', e => { const f = [...(e.dataTransfer && e.d
 
 window.BIBLIO = { gen: G, etat: () => ({ gen: { on: G.on, mot: G.mot, reel: G.inst && G.inst.tier, tirage: G.inst && G.inst.tirage }, sons: CAT.length, moteur: CAT.filter(S => S.sec === 'moteur').map(S => S.titre + ' · ' + (S.nb || 'continu')), joue: J.S && J.S.titre, moteurN: J.mot + 1, palier: palierDuMoteur() + 1 }), joue: id => joue(CAT.find(S => S.id === id)), stop };
 const mesuresLit = () => fetch('assets/audio/music/direct/gouts-mesures.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => { G.mesures = d; }).catch(() => {});
-Promise.all([prefLit().then(inspiLit), mesuresLit()]).then(() => { dessine(); goutsMaj(true); });   // (inspiLit attend prefLit : c'est lui qui sait s'il y a un serveur)
+Promise.all([prefLit().then(inspiLit), mesuresLit()]).then(() => import(new URL('assets/audio/music/direct/retouches-bleu.js' + frais(), location.href).href).then(m => { RETOUCHES = m; }, () => {})).then(() => { dessine(); goutsMaj(true); });   // (inspiLit attend prefLit : c'est lui qui sait s'il y a un serveur)
 </script>
 <!-- LES ONGLETS (14/10, Léo : « j'arrive pas à me retrouver, rends ça plus lisible ») : une section à la fois au lieu d'une liste de
      cent sons. La barre est bâtie depuis les <section> de la page (une section ajoutée a son onglet toute seule) ; l'onglet choisi est
      retenu (ce navigateur) et s'ouvre aussi par l'adresse (#lobby-chris…). « 👍 Mes pouces » montre les sons aimés de TOUTES les sections.
      Bloc à part, posé après le script de la page : il ne touche ni au catalogue ni à dessine(). -->
 <style>
+.ligne.genv.v2{margin-left:18px;border-left:3px solid var(--tx3)}
 #onglets{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--fond) 88%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--fil)}
 #onglets{margin:18px -16px 0}
 #onglets .in{padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px}
