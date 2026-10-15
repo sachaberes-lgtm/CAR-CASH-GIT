@@ -3,6 +3,23 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES DE LUMIÈRE — ELLES PARTENT DES FEUX ARRIÈRE (2026-10-15, Sacha : « améliore les traînées de la voiture, qui doivent maintenant partir des feux arrière — on va dire que c'est des traînées de lumière ; qu'elles matchent avec les nouvelles particules de nitro, bien reconnaissables et cool, c'est un produit à vendre ; adapte cette règle de lumière au feu arrière de toutes les voitures »)
+- LES FEUX DE CHAQUE CAISSE (`CAR_FEUX`, `CAR_FEUX_SRC`, relevé dans `buildCar` juste avant les tuyères) : les pièces `l` ROUGES du kit
+  (`lpKit` garde désormais la couleur de palette de chaque pièce, champ `c`) à moins de 90 cm de la poupe, un point par côté (les plus en
+  arrière) ; un seul côté relevé = symétrisé ; une rampe d'un seul tenant = ses deux bouts (±38 % de sa largeur) ; un feu central = un seul
+  trait (plus large, `SIL.un`). Rien de relevé : la place des feux du gabarit (`A.tl`). Les HALOS des feux (`HALO.t`) se posent sur les feux
+  relevés. Crochet : `dbgFeux()` (source, points, état des sillages).
+- LES TRAÎNÉES (`LUMT`, bloc « TRAÎNÉES DE LUMIÈRE » de la boucle) : les sillages `SILS` naissent dans les FEUX, plus dans les pots (le feu
+  de pixels `NFEU` garde les pots). Elles VIVENT dès qu'on roule (>12 km/h, en vol aussi) : un trait rouge de pose longue (`k` .58, 46 m,
+  72 % de la largeur du nitro), qui s'embrase au frein (`kF`, rouge plus vif `rF`). Au nitro elles prennent l'énergie du feu : 100 m, tête chauffée à
+  blanc, pouls, et elles crachent des CUBES du feu de pixels (`nfeuGicle`, à la palette courante de `NFEU` — bleu en réserve, violet en
+  infinie ; repli : les braises rondes si `NFEU` est coupé). La lumière est enregistrée au passage : le morceau de nitro file derrière,
+  brillant, puis la queue l'avale (`tr.lg` redescend à `rDn` 30 m/s). En refroidissant, la teinte garde sa famille (orange → braise, bleu →
+  bleu nuit, rouge → rouge sang) : plus de virage magenta. Les couleurs de nitro, de réserve, d'infinie et les signatures de caisse
+  (`fx.trail`, boutique) sont inchangées ; la plume des pots se couche sur la traînée de SON côté. Chat pop-tart / traînées arc-en-ciel :
+  la lumière se tait au nitro (l'arc-en-ciel EST la traînée), comme avant.
+- Inchangé : pas de lampe au sol (refus du 26/09), coupe au plan caméra et fondus près de l'objectif (v6), la meute garde ses rubans bleus.
+
 ## ZEPPELIN D'OR II, 2e JET — LA MACHINE DE 1983 PREND LA MAIN (2026-10-15, pôle SON › nouveaux sons ; Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → reformulé, « les deux » : la basse new wave grave-aigu en croches balancées ET le boum-tchak de fond)
 - Jusqu'au 9e moteur rien ne change (le gramophone, la même mélodie). Au 10e (étape `nw` de `TRIO.zeppelin2`) : tout devient DROIT (l'étape met
   `swing` et `swing8` à 0 — pas() lit désormais le balancement dans `M.etP`), la batterie se SYNCOPE (grosse caisse 1 · « et » de 2 · 3 · « et » de 3,
