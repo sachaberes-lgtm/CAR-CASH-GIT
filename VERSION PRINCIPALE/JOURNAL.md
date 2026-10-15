@@ -3,6 +3,42 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FIGURES PAR DIRECTION : AVANT · ARRIÈRE · CÔTÉS (2026-10-15 soir, Sacha : « en vrai mets aussi une catégorie de figure en mode flèche vers l'arrière pour les saltos arrière ou certaines figures qui peuvent être faites vers l'arrière ; une même figure doit avoir marqué à quelle direction elle peut aller, par exemple tonneau c'est que les côtés mais rodéo ça peut être mis à l'avant ou à l'arrière » → question posée, réponse : « 3, une par geste »)
+- Suite directe des DEUX FAMILLES (section suivante), qu'elle remplace : la famille `cat` devient `dir` (les DIRECTIONS d'une figure), et
+  « 2 figures à la fois » (Sacha, le matin) devient **3, une par geste** (`FIG_NB`=3) — c'est lui qui l'a choisi, la question posée disait
+  bien qu'on revenait sur le matin.
+- **figures.js ?v=6** : `dir` sur chaque ligne de `BASE`, `FIG.dirs(f)` (la règle range une figure générée : que l'axe des roues → son sens ;
+  aucun mouvement sur x → côté ; un salto ET autre chose → avant ET arrière), `FIG.oriente(f,'avant'|'arriere')` = la même figure, son salto
+  nez en bas ou nez en haut (une copie gardée par figure et par sens : le jeu compare les figures par identité). Résultat : **AVANT** = SALTO
+  AVANT, TIRE-BOUCHON, RODÉO, SALTO COSMIQUE · **ARRIÈRE** = CHANDELLE (un wheelie : le nez se lève), SALTO ARRIÈRE, TIRE-BOUCHON, RODÉO,
+  SALTO COSMIQUE · **CÔTÉS** = TONNEAU, TOUPIE 360, SHIMMY, DOUBLE TONNEAU, HÉLICO 720, VRILLE PENCHÉE. Changer une figure de direction =
+  sa ligne `dir` (rien d'autre).
+- **Trois emplacements** (`FIG_DIR`, `figPeut`, `figSlots`, `figRange`, `figEquipe(id,k)`) : ↑ pouce en AVANT (0), ↓ pouce en ARRIÈRE (1),
+  ◄► pouce sur un CÔTÉ (2) au double-tap NITRO (`figDirSlot` ; au repos = avant, comme avant). Une figure ne va que là où elle accepte ; le
+  rodéo peut tenir l'avant ET l'arrière (rodéo avant = toupie + salto avant, rodéo arrière = toupie + salto arrière). `SAVE.d.figEq3` = les
+  trois id à leur place ('' = vide, désinfecté dans `san`) ; `figEq` reste écrit (deux id) pour une vieille copie. Rangement automatique d'un
+  emplacement vide (`figRange`, la plus récente d'abord) : une figure à UN sens, puis une à deux sens pas déjà ailleurs, puis n'importe laquelle
+  qui y va — MESURÉ au banc Node : rangé dans l'ordre, avec SALTO AVANT + RODÉO, le rodéo prenait les deux places et le salto disparaissait.
+  Une vieille sauvegarde (`figEq`, deux id) se range de la même façon. Un emplacement vide : son geste ne fait rien (`o.strict`), sauf à
+  l'auto-école et pour la figure automatique du saut nitro.
+- **La boutique** : trois sections VERS L'AVANT · VERS L'ARRIÈRE · SUR LES CÔTÉS (↑ · ↓ · ◄►) ; une figure à deux sens a une carte dans
+  chacune (`bqFigRail`, `data-dir` sur la carte) ; toucher une carte = la caisse fait la figure DANS CE SENS (`garFigEssai(id,c)`) ; ÉQUIPER /
+  ACHETER la met dans l'emplacement de cette carte (`bqFigDir`, `GBQ.figDir`) ; le compte de l'onglet reste 12 (une figure = une fois).
+  L'inventaire range par direction et porte, sur une figure équipée, le pictogramme de chaque geste qui la joue (↑ ↓ ◄►) ; le toucher l'équipe
+  dans la 1re direction libre qui ne l'a pas déjà. La fiche (`figDesc`) dit le ou les gestes. Anglais : FORWARD · BACKWARD · SIDEWAYS.
+- **En vol** : le rappel `#fhLeg` passe à trois (↑ cyan, ↓ vert `--fhVert`, ◄► magenta ; la figure automatique reste or) et, debout aussi, en
+  COLONNE au-dessus de NITRO (trois en rangée ~285 px passaient sur l'anneau du volant). Les anciens boutons (`?figdir=0`) et le clavier
+  (1 · 2 · 3) suivent. L'astuce du 1er vol dit les trois gestes (bit 128 : ceux qui ont lu l'ancienne la relisent une fois).
+- Le GLISSER de Léo (réglage FIGURES) n'est pas touché : il joue ses figures fixes (← → tonneau, ↑ salto arrière, ↓ salto avant).
+- MESURÉ — banc Node des emplacements (le vrai `figSlots`/`figEquipe` extraits d'index.html, sur le vrai figures.js) : débutant → [—, —,
+  TONNEAU] ; SALTO AVANT + RODÉO → [SALTO AVANT, RODÉO, TONNEAU] ; vieille `figEq` [tonneau, hélico] + salto avant → [SALTO AVANT, —, HÉLICO] ;
+  le tonneau demandé à l'avant → refusé, il va de côté ; une `figEq3` abîmée (salto avant rangé de côté) se répare d'elle-même.
+  Banc du jeu (cc-banc, muet, 390 × 844) : boutique = [VERS L'AVANT] salto avant, tire-bouchon, rodéo, cosmique [VERS L'ARRIÈRE] chandelle,
+  salto arrière, tire-bouchon, rodéo, cosmique [SUR LES CÔTÉS] tonneau, toupie, shimmy, double, hélico, vrille penchée ; onglet = 12 ; rodéo
+  touché dans VERS L'ARRIÈRE → ÉQUIPER → [salto avant, RODÉO, hélico], toast « RODÉO · VERS L'ARRIÈRE · REMPLACE SALTO ARRIÈRE » ; le cadre
+  `.sel` suit la carte touchée (1er jet : il restait sur l'autre carte du rodéo — `GBQ.vu` ne comptait pas la direction). En vol : ↑ SALTO
+  AVANT, ↓ RODÉO orienté arrière, ← HÉLICO +, → HÉLICO − ; débutant, même vol : ↓ refusé, ← TONNEAU ; rappel ↑ AVANT · ↓ RODÉO · ◄► HÉLICO.
+  Zéro erreur JS.
 ## PLUS D'ANIMAUX DANS LE JEU (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus trop sa place et ça prend trop de place sur le jeu — profites-en pour enlever tout ce qui peut être volumineux et inutile : dragon, animaux figures ; on va les replacer par map »)
 - Choix confirmés par Léo (questionnaire) : les dauphins ET la figure d'aura LE DAUPHIN ; le serpent néon ; le dragon de feu de NITROOO.
   Sacha les avait COUPÉS le matin (drapeaux `SANS_DAUPHIN`/`SANS_SNAKE`/`SANS_DRAGON`) : ils sont désormais ARRACHÉS — créatures, figure
@@ -124,7 +160,7 @@
 - Il CONTINUE aux portails (`musicSuitLieu` ne raccorde plus), la seconde chance repart sur le MÊME morceau (`musicStartRun(true,true)` →
   `PB.depart(…,{meme})`), la mort l'éteint en 0,35 s, la fin en 0,9 s ; REJOUER en tire un autre. La radio, les musiques de lieu (`MUSIC_LIEU`) et
   GLISSE au Soleil de jade se taisent pendant qu'il joue (`pbjCourse()` dans `musicPlayCurrent`, `musicNext`, `musicSuitLieu`, `jadeMusOn`).
-  La frénésie ne change pas. `?musique=niveaux` = les musiques des niveaux comme avant (`PBJ_ON`).
+  `?musique=niveaux` = les musiques des niveaux comme avant (`PBJ_ON`).
 - Le NIVEAU (`PBJ_NIV` .39, × le curseur MUSIQUE, × le souffle du mouvement et l'annonceur comme la radio) — mesuré en course, musique seule, à la
   sortie du jeu : la radio tient −21 dB ; le générateur monte de ≈ −24 dB (moteur 1) à −22 (10), −16 (20), −14 (30) : LA GRANDE MONTÉE de Léo
   gardée ; NÉON NOIR (paliers) −19 ; AURA · 30 (page) −22 → −19.
@@ -133,14 +169,28 @@
   énergie sous 60 Hz ; la cloche à 110 Hz pour les huit qui pèsent entre 60 et 150 Hz, NÉON NOIR −5 dB de plateau.
 - LE COÛT (Chrome, processeur ralenti ×4 comme un iPhone moyen) : fil principal en course 48 % avec CRISTAL D'ARGENT, 42 % avec NÉON NOIR, 50 %
   avec la radio — la différence se perd dans le bruit du rendu ; préparation du morceau 0,2 à 0,4 s pendant le piqué. En direct, aucun fichier à figer.
-- SEULEMENT là où la musique passe par WebAudio (`pbjActif()` : `musWaTient()` — ordi, Android, iPhone iOS 17+) ; Safari sur Mac et l'iPhone
-  sans audioSession gardent les musiques des niveaux. Si le chien de garde condamne le WebAudio pendant le piqué (le défaut de WebKit, la source de
-  l'élément qui rend des zéros), le morceau s'efface et la RADIO prend la course (`musicStartRun`, `musWaCondamne`) — jamais les deux (banc WebKit).
-  Si le morceau ne PART pas (réseau, fichier absent, liste vide : `PBJ_KO`), la radio aussi — jamais une course muette (banc : les modules du
-  générateur bloqués → la radio dès le piqué, puis les musiques des niveaux) ; chaque JOUER réessaie.
+- EN COURSE, SEULEMENT POUCE BLEU (15/10 soir, Léo, confirmé : « aucune autre musique pendant une course ») :
+  `pbjRegne()` tient l'antenne de la course — `musicPlayCurrent`, `musicNext`, `musicSuitLieu` et `jadeMusOn` (GLISSE) se taisent.
+  DEUX EXCEPTIONS (Léo, le soir : « non, la frénésie doit rester — on bossera son sound design ailleurs » · « remets le premier son du test, le
+  premier son dans le ciel pour ceux qui jouent pour la première fois ») : LA FRÉNÉSIE comme avant (`frenMus`) — quand SON morceau joue (THE DARK
+  TRIAD, `FRENM.sw` ; le fichier n'est pas encore livré), Pouce bleu s'efface en ~0,3 s et revient à la fin (`musicTick`, `frenMusRetour` ne relance
+  plus la radio) ; L'AUTO-ÉCOLE (`pbjTuto()` : `TUTO.on` ou la piste 'tuto') garde CIEL · NIVEAU 1, du piqué au permis ; au portail d'après,
+  `musicSuitLieu` coupe CIEL 1 et Pouce bleu entre. Banc : un faux THE DARK TRIAD posé le temps du banc (retiré) → le morceau joue, Pouce bleu à 0,
+  puis il remonte à la fin de la frénésie, sans radio ; un nouveau joueur → CIEL 1 pendant toute la leçon, Pouce bleu après le portail. PARTOUT : le morceau est du WebAudio pur, il ne dépend plus de MUS_WA (Safari sur Mac, appareils où le chien de
+  garde a condamné l'<audio> branché, iPhone sans audioSession). `musGraphe()` : dès que Pouce bleu peut jouer, le bouton SON ne suspend plus le
+  contexte, il ferme l'entrée des effets (`musWaSon`, comme avec MUS_WA) — au lancement (`initAudio`), au bouton, à la pause, au retour
+  d'arrière-plan, au toucher (`audioKick`). Un morceau qui ne part pas (réseau, fichier) → un AUTRE est tiré (3 essais, `PBJ_ESSAI`) ; après, la course
+  reste sans musique (`PBJ_KO`), chaque JOUER réessaie. La radio ne remplace plus jamais Pouce bleu. Le ciel, le garage et la boutique gardent la leur.
+  ⚠ iPhone sous iOS 16 et moins : le bouton silencieux coupe le WebAudio, donc Pouce bleu (et les effets) — l'<audio> des niveaux y passait.
+- MIRAGE ULTRA : Léo l'a laissé à la corbeille de Pouce bleu (son 👍 retiré, réversible) ; la retouche de son entrée est JETÉE (jamais commitée).
+  `EN_ATTENTE` est vide : le tirage suit Pouce bleu tel que Léo le range.
 - BANCS (muets) : partie complète ciel → garage → PLAY → 3 niveaux par 2 portails → mort → fin → REJOUER, couché, debout et dans le cadre de l'ordi,
-  Chrome ET WebKit (`?muswa=1`, l'élément muet pour que le chien de garde ne juge pas la source) : intro qui s'ouvre, le même morceau d'un niveau à
-  l'autre (nuages → volcan → forêt, jade → canyon → ville, canyon → espace → volcan…), un autre au REJOUER, 0 erreur.
+  Chrome ET WebKit (`?muswa=1`) : intro qui s'ouvre, le même morceau d'un niveau à l'autre (nuages → volcan → forêt, jade → canyon → ville,
+  canyon → espace → volcan…), un autre au REJOUER, 0 erreur. Et : sans MUS_WA
+  (`?muswa=0`) avec SON coupé en course (effets fermés, contexte éveillé, la musique seule à −28 dB) ; WebKit où le chien de garde condamne
+  l'<audio> pendant le piqué (le morceau tient toute la course) ; les modules du générateur bloqués (un morceau à paliers est tiré à la place).
+  ⚠ Piège de banc : la sauvegarde posée dans le JEU déjà ouvert est écrasée par lui en partant (son flush) — les premiers bancs Chrome tombaient
+  donc sur l'AUTO-ÉCOLE. La poser depuis une autre page de la même origine (icon.svg), puis ouvrir le jeu. Tout a été repassé ainsi.
 - Console : `dbgPouce()` (l'état : phase, titre, moteur, filtre, niveau, bus) · `dbgPouce('moteur', m)` (impose le palier, 0 = celui du jeu) ·
   `?pouce=<numéro|id>` force un morceau. Reste à écouter par Léo sur iPhone : la musique en WebAudio y tient-elle au-delà de 15 s (le défaut de WebKit) ?
 

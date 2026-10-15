@@ -2,7 +2,7 @@
    hasard joue toute la course, en suivant le moteur » · « une intro par morceau, qui part de la musique du ciel / garage et entre dans le morceau »).
    · LA LISTE = Pouce bleu tel que Léo l'a rangé dans la bibliothèque (musique-moteur.json : les musiques du générateur qu'il a aimées et pas retirées,
      les morceaux qu'il y a glissés, AURA · 30 PALIERS rangé d'office) — la même règle que bibliotheque.html (dessine / dessineBleus) ; EN_ATTENTE :
-     ceux qui n'entrent pas encore au tirage (MIRAGE ULTRA, tant que Léo n'a pas validé la retouche de son entrée).
+     ceux qui n'entreraient pas encore au tirage (vide aujourd'hui).
    · LE TIRAGE : au hasard, sans doublon d'une course à l'autre tant qu'il en reste (localStorage `pbjVus`) ; `?pouce=<n° ou id>` en impose un (banc).
    · TROIS LECTEURS, comme la bibliothèque : le GÉNÉRATEUR (sa version, son n°, ses goûts du moment, sa retouche `direct` de retouches-bleu.js),
      les PALIERS FIGÉS (PalLecteur de musique-paliers.js, chargés à la demande : le palier joué et ses voisins), la PAGE EN DIRECT (AURA · 30, dans
@@ -14,7 +14,7 @@
 (function (W) {
   'use strict';
   const D = 'assets/audio/music/';
-  const EN_ATTENTE = { 'bleu-6200': 'MIRAGE ULTRA : la retouche de son entrée attend le oui de Léo' };
+  const EN_ATTENTE = {};   // (15/10 soir) MIRAGE ULTRA n'y est plus : Léo l'a laissé à la corbeille (sa retouche d'entrée jetée) — le tirage suit Pouce bleu, rien de plus
   const DEFAUT = ['pal-aura-30'];   // rangés d'office dans Pouce bleu par la bibliothèque (sec 'bleu')
   const GEN_VERSIONS = [['2026-10-14T00:16:50', 'v3-1'], ['2026-10-14T01:01:05', 'v3-3'], ['2026-10-14T01:46:19', 'v3-4'], ['2026-10-14T03:05:00', 'v3-7']];   // = bibliotheque.html
   const versionDe = e => { if (e.v) return e.v; const t = String(e.date || ''); for (const [l, v] of GEN_VERSIONS) if (t < l) return v; return 'v3-9'; };
