@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES STALACTITES QUI SE BRISENT (2026-10-15 soir, Sacha : « retravaille les stalactites sous la route de montagne, faut qu'ils se brisent de manière satisfaisante quand on les traverse, avec un son de bris de verre »)
+- AVANT : les glaçons sous la dalle du GLACIER (buildBanq § 5 : le long des deux bords + les LUSTRES sous le milieu) étaient fondus dans les
+  morceaux de 300 m de la banquise — un pur décor, la caisse passait au travers sans rien.
+- CHAQUE GLAÇON EST NOTÉ (`glacon` → `K.G`, puis `stalNote` quand son morceau est bâti) : base, pointe, rayon, longueur, ses 15 sommets dans
+  la toile du morceau ; rangé dans une grille de 24 m (`STAL.g`, vidée par `banqVide`). MESURÉ : 2 624 à 2 695 glaçons sur une piste.
+- `stalTick` (banqTick, chaque image, hors pause) → `stalTouche(P,V)` : le centre de la caisse contre le segment base → pointe de chaque
+  glaçon des 9 cases autour (rayon 1,5 m + le sien, plus fin vers la pointe). Traversé → `stalBris` :
+  · le glaçon DISPARAÎT (ses sommets ramenés sur sa pointe ; une seule remontée par morceau et par image : `STAL.maj`) ;
+  · des ÉCLATS DE VERRE qui tournoient et retombent (`STAL_ECL` : 72 tétraèdres étirés en UN InstancedMesh de cristal translucide, Phong
+    à facettes, recyclés ; dessiné une fois au chargement : programme compilé au menu), lancés avec ~30-50 % de l'élan de la caisse, 5 à 16
+    selon la taille ; + la poudre (`fx.poudre`) et les étincelles cyan (`fx.eclat`) de la banquise ;
+  · le son neuf `banq.bris` (−30 : le CRAC, l'éclatement en éclats de verre qui tintent et retombent, un petit doum dessous ; 3 variantes),
+    70 ms au moins entre deux, plus fort et plus grave pour un gros glaçon, panoramiqué du côté du choc ; une secousse, un coup dans la main.
+  Rien ne tue : on les traverse (en vol sous la route, ou en roulant sur la face du dessous : ils sautent les uns après les autres).
+- Au passage : la ligne de `fx.eclat` (banqFx) avait un commentaire en `//` qui AVALAIT sa suite (`drag`, `acc`, le nom) — piège n° 1 ; rendu.
+- Banc (`staltest.js`, glacier midi, son allumé) : 7 glaçons brisés, 2 sons (la règle des 70 ms), la photo sous la dalle montre les éclats.
+  `dbgStal('test')` : à 0,8 m d'un glaçon il casse, à 3,5 m rien (sauf un voisin du même lustre). Console : `dbgStal()`, `dbgStal('bris',n)`.
+
 ## LES FIGURES LANCÉES EN ROULANT — LE SAUT À LA TAILLE DE LA FIGURE (2026-10-15 soir, Sacha : « le salto avant ne marche pas quand on le lance en roulant sur la route ; vérifie que chaque figure est lançable en roulant sans être dans les airs »)
 - MESURÉ AVANT (banc `figstat.js` : double-tap au sol par le crochet neuf `dbgSautFig(x,y)` = le double-tap NITRO avec le joystick en x, y ;
   mer de nuages, salto avant / salto arrière / tonneau dans les trois emplacements) : sur du plat le SAUT NITRO donne ~1 s de vol et la
