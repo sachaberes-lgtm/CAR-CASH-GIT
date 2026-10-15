@@ -185,6 +185,31 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
   });
 })();
 </script>
+<script>
+/* LA RÉGIE ADSENSE (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le chargeur de
+   l'Ad Placement API de Google (« H5 Games Ads »), côté page ; le côté jeu (adBreak de type reward → la SECONDE CHANCE) est le bloc
+   « LA RÉGIE ADSENSE, CÔTÉ JEU », juste au-dessus de LA PUB QUI RESSUSCITE.
+   · CC_ADSENSE = l'identifiant d'éditeur AdSense de Sacha (« ca-pub-… », sur adsense.google.com › Compte › Infos du compte). VIDE = AUCUNE
+     régie : la pub maison de 5 s. C'est le SEUL endroit où le poser : vercel-build.sh en tire aussi /ads.txt à la racine du site.
+   · Seulement sur le SITE (CC_ADSENSE_SITES, en http/https) : jamais dans l'app iPhone (Capacitor, capacitor://), jamais dans une copie
+     locale (localhost, JOUER.bat), jamais dans la page-cadre de l'ordi — Google veut le code DANS le document du jeu, donc dans l'iframe de
+     la colonne (qui a déjà allow="autoplay").
+   · `?pubtest=1` : le MODE TEST de Google (data-adbreak-test="on") partout, même sans identifiant — de fausses pubs, aucune requête de pub
+     envoyée, une fois sur deux « pas de pub prête » (la pub maison prend le relais). Pour les bancs et pour voir le parcours. */
+var CC_ADSENSE='',CC_ADSENSE_SITES=['car-cash-git.vercel.app'];
+(function(){try{
+  var test=/[?&]pubtest=1\b/.test(location.search);
+  if(window.CC_COLONNE||window.Capacitor||!/^https?:$/.test(location.protocol))return;
+  if(!test&&!(/^ca-pub-\d{10,20}$/.test(CC_ADSENSE)&&CC_ADSENSE_SITES.indexOf(location.hostname)>=0))return;
+  var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';
+  if(test)s.setAttribute('data-adbreak-test','on');
+  s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+(CC_ADSENSE||'ca-pub-0000000000000000');
+  window.adsbygoogle=window.adsbygoogle||[];
+  window.adBreak=window.adConfig=function(o){window.adsbygoogle.push(o);};
+  window.CC_ADS={test:test,client:CC_ADSENSE||'test'};
+  document.head.appendChild(s);
+}catch(e){}})();
+</script>
 <style>
 /* LA PAGE-CADRE : la nuit du jeu, l'écran du téléphone au centre, rien d'autre (tout le reste du document dort, masqué) — la
    taille du cadre (844 × 390 couché, 390 × 844 debout) est posée par le script, à côté de son zoom */
@@ -46942,9 +46967,43 @@ window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course 
    écran de fin (`gameOver`) : les sons du départ qui précèdent resetGame (JOUER depuis le garage) ne sont jamais touchés. */
 const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort.arret','mort.air','mort.police','mort.feu','mort.foudre',
   'mort.enseigne','mort.compteFin','ui.debloque','ui.record','caisse.debloquee','aura.encaisse1','aura.encaisse2','aura.encaisse3'];
+/* LA RÉGIE ADSENSE, CÔTÉ JEU (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ») — le
+   chargeur du <head> (« LA RÉGIE ADSENSE » : CC_ADSENSE, ?pubtest=1) a posé adBreak/adConfig ; on en fait la régie de LA PUB QUI RESSUSCITE.
+   Le parcours de Google pour une pub RÉCOMPENSÉE : on DEMANDE une pub quand l'offre s'ouvre (adBreak type 'reward', depuis chanceOuvre :
+   CC_PUB_PREPARE) ; Google rappelle beforeReward(showAdFn) SEULEMENT s'il en a une ; la plaque CONTINUER ▶ PUB est l'invitation, son toucher
+   appelle showAdFn() DANS le geste (CC_PUB_RECOMPENSE) → adViewed = reprise, adDismissed = pas de reprise. Pas de pub prête au toucher (rien
+   en stock, plafond de fréquence, bloqueur, mode test « pas chargée »…) → null → la pub maison de 5 s. adConfig dit à Google si le jeu a du
+   son (`sound`, relu à chaque offre) et précharge (`preloadAdBreaks`, une seule fois). Une pub qui ne rend jamais la main : 150 s, puis
+   « pas vue ». Banc : dbgPub().ads (on, pret, etat = le dernier breakStatus de Google, n, prete). */
+const ADS={on:!!(window.CC_ADS&&typeof window.adBreak==='function'&&typeof window.CC_PUB_RECOMPENSE!=='function'),pret:false,b:null,etat:'',n:0};
+function adsSon(){return (SAVE.d.sfx||SAVE.d.mus)?'on':'off';}
+if(ADS.on){
+  try{adConfig({preloadAdBreaks:'on',sound:adsSon(),onReady:function(){ADS.pret=true;}});}catch(e){ADS.on=false;}
+  window.CC_PUB_PREPARE=function(nom){
+    if(ADS.b&&ADS.b.res)return; // une pub de Google est à l'écran : on n'en demande pas une autre
+    const b={show:null,res:null,tm:0};ADS.b=b;ADS.n++;
+    const fin=function(v){clearTimeout(b.tm);b.show=null;const r=b.res;b.res=null;if(r)r(v);};
+    try{adConfig({sound:adsSon()});}catch(e){}
+    try{adBreak({type:'reward',name:nom,
+      beforeReward:function(showAdFn){if(ADS.b===b)b.show=showAdFn;},
+      adDismissed:function(){fin(false);},
+      adViewed:function(){fin(true);},
+      adBreakDone:function(info){ADS.etat=String(info&&info.breakStatus||'');fin(ADS.etat==='viewed'?true:ADS.etat==='dismissed'?false:null);}});}
+    catch(e){ADS.etat='erreur';}
+  };
+  window.CC_PUB_RECOMPENSE=function(nom){
+    const b=ADS.b;if(!b||!b.show)return null; // rien de prêt : la pub maison
+    const f=b.show;b.show=null;
+    const p=new Promise(function(res){b.res=res;});
+    b.tm=setTimeout(function(){const r=b.res;b.res=null;if(r)r(false);},150000);
+    try{f();}catch(e){clearTimeout(b.tm);const r=b.res;b.res=null;if(r)r(null);}
+    return p;
+  };
+}
 /* LA PUB QUI RESSUSCITE (2026-10-15, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») — CONTINUER ne coûte plus
-   rien : il lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout. Le jeu n'a AUCUNE régie aujourd'hui (le kit
-   des portails est parti avec l'édition POKI, l'app iPhone déclare « aucune pub » à Apple), d'où deux chemins :
+   rien : il lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout. Le jeu n'avait AUCUNE régie (le kit
+   des portails est parti avec l'édition POKI, l'app iPhone déclare « aucune pub » à Apple) ; depuis le 15/10 soir, AdSense sur le SITE
+   (« LA RÉGIE ADSENSE », juste au-dessus) — deux chemins :
    · UNE RÉGIE BRANCHÉE — la page ou l'app qui en a une (AdMob dans l'app iPhone, AdSense H5 sur le web…) pose, avant le jeu,
      `window.CC_PUB_RECOMPENSE = function(nom){ return une Promise }` : vrai = vue jusqu'au bout (on reprend), faux = fermée avant la fin
      (pas de reprise), rien / une erreur = aucune pub à montrer (la pub maison prend le relais). Le jeu se tait pendant (pubSilence).
@@ -46963,11 +47022,15 @@ function pubRecompense(nom,fin){
   if(PUBR.sans){setTimeout(function(){fini(true);},0);return true;}
   const regie=window.CC_PUB_RECOMPENSE;
   if(typeof regie==='function'){
-    pubSilence(true);let p=null;try{p=regie(nom);}catch(e){p=null;}
-    Promise.resolve(p).then(function(v){pubSilence(false);if(v===true||v===false)fini(v);else pubMaison(fini);},function(){pubSilence(false);pubMaison(fini);});
+    let p=null;try{p=regie(nom);}catch(e){p=null;}
+    if(p&&typeof p.then==='function'){pubSilence(true); // (15/10 soir, régie AdSense) on ne se tait que si la régie montre VRAIMENT une pub (une promesse) : « rien de prêt » rend null tout de suite
+      p.then(function(v){pubSilence(false);if(v===true||v===false)fini(v);else pubMaison(fini);},function(){pubSilence(false);pubMaison(fini);});}
+    else if(p===true||p===false)fini(p);
+    else pubMaison(fini);
     return true;}
   pubMaison(fini);return true;
 }
+function pubPrepare(nom){try{if(!PUBR.sans&&typeof window.CC_PUB_PREPARE==='function')window.CC_PUB_PREPARE(nom);}catch(e){}} // une offre de pub s'OUVRE (la plaque va paraître) : la régie peut aller chercher sa pub
 function pubCaisse(){ // la caisse de la réclame : une qu'on peut ACHETER à l'argent du jeu et qu'on n'a pas encore (jamais une caisse en euros)
   const L=[],T=[];for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carEuros(i))continue;T.push(i);const u=CAR_UNLOCK[i];if(u&&u.p>0&&!carOwned(i))L.push(i);}
   const P=L.length?L:T;return P.length?P[(Math.random()*P.length)|0]:0;}
@@ -46997,7 +47060,8 @@ function pubMaison(fini){
 addEventListener('keydown',function(e){if(PUBR.on&&PUBR.el&&!PUBR.el.hidden){e.stopPropagation();e.preventDefault();}},true); // pendant la pub maison, le clavier ne touche pas l'écran de fin dessous
 window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison finit tout de suite · (n) elle dure n s
   if(k==='fin'&&PUBR.on)PUBR.t=PUBR.d;else if(+k>0)PUBR.d=+k;
-  return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub};};
+  return {on:PUBR.on,d:PUBR.d,t:+PUBR.t.toFixed(2),regie:typeof window.CC_PUB_RECOMPENSE==='function',maison:!!(PUBR.el&&!PUBR.el.hidden),chance:!!CHANCE.pub,
+    ads:{on:ADS.on,test:!!(window.CC_ADS&&window.CC_ADS.test),pret:ADS.pret,etat:ADS.etat,n:ADS.n,prete:!!(ADS.b&&ADS.b.show)}};};
 /* LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 — « façon Subway Surfers » ; le principe vient du CŒUR À LA MORT de l'édition
    ROBLOX). À la mort, l'écran de fin propose UNE fois par partie de CONTINUER — ⚠ depuis le 15/10 soir contre une PUB (voir LA PUB QUI
    RESSUSCITE, juste au-dessus) ; avant, contre de l'ARGENT DU JEU (jamais d'euros) :
@@ -47031,6 +47095,7 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
   CHANCE.prix=0;CHANCE.gratuit=bon; /* (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») plus de PRIX : la reprise se gagne en regardant une pub (chanceJoue → pubRecompense) ; le bon de la machine à sous s'en passe. Avant : */ /* le prix = bon?0:Math.max(1,Math.round(commitExploits._vire||0)) — (2026-10-15 soir, Sacha : « le bouton continuer quand on meurt doit couter au joueur tout ce qu'il a gagne dans la partie ») le prix = TOUT l'encaissé de la partie (commitExploits._vire, ce que endGame vient de verser), au dollar près ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
+  if(!bon)pubPrepare('seconde-chance'); // (15/10 soir) la régie (AdSense) va chercher sa pub pendant que la plaque monte
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
   chanceSignal();
 }

@@ -102,6 +102,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `explode(cause)`, `mode` = 'drive' | 'fall' | 'boom', `togglePause`, `repriseCompte`, `CHANCE` (la seconde chance : la reprise
   n'appelle ni `runxReset` ni `resetGame`, elle décale les bases de commitExploits — `chanceBase`). Depuis le 15/10 soir elle se gagne par une
   PUB, plus avec de l'argent : `pubRecompense(nom,fin)`/`PUBR` ; une régie se branche par `window.CC_PUB_RECOMPENSE`, sinon la pub maison `#pubR`.
+  Sur le SITE, la régie est AdSense (`CC_ADSENSE` dans le `<head>`, vide = éteinte ; `ADS`, `CC_PUB_PREPARE` ; `?pubtest=1` = le mode test de Google).
 - **La mort** : `explode` (comptes, musique) → `boomDetone` (la boule DESSINÉE de l'airtime : `spawnBoomArt`, `VOLU`/`DARD`, `BOOM_ONDES`,
   pièces de la caisse) → `BOOM_CAM` (le plan de la mort) → `endGame`. Contre une PAROI, L'IMPACT passe avant : `impPrep(test,cause,marge)`
   trouve le contact et la normale, `IMP`/`impCoupTick` (0,11 s : la caisse s'écrase, étoile, négatif), puis le cratère `IMP_CRAT`, les
@@ -403,7 +404,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « L'ÉDITION POKI » (04/10) · « LA MÊME VERSION POUR TOUT LE MONDE — LA MISE À JOUR TOUTE SEULE » (01/10)
 - « LE MENU = LE GARAGE + LES BOUTONS DE SACHA » (30/09) · « JOUER = LE MODE CLASSIQUE » (08/10) · « L'iPHONE PAR DÉFAUT SUR L'ORDI » (06/10)
 - « PLUS AUCUNE VOIX » (07/10) · « LE CODE COUSIN » (14/10) · « PLUS DE CARRIÈRE + PLUS DE MODE FACILE » (14/10)
-- « LA SECONDE CHANCE » (14/10) · « LA PUB QUI RESSUSCITE » (15/10 soir, la seconde chance contre une pub) · « LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 » (14/10) · « L'AUTO-ÉCOLE v2 » (14/10)
+- « LA SECONDE CHANCE » (14/10) · « LA PUB QUI RESSUSCITE » (15/10 soir, la seconde chance contre une pub) · « LA RÉGIE ADSENSE — LES VRAIES PUBS DU SITE » (15/10 soir) · « LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 » (14/10) · « L'AUTO-ÉCOLE v2 » (14/10)
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 **Débogage, perf, bancs**

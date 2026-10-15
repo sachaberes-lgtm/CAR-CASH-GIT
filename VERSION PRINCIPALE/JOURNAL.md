@@ -3,6 +3,40 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA RÉGIE ADSENSE — LES VRAIES PUBS DU SITE (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ; dis-moi ce que je dois créer comme compte et quels identifiants te donner »)
+La pub récompensée de Google (« H5 Games Ads », l'Ad Placement API) est branchée derrière CONTINUER ▶ PUB (LA PUB QUI RESSUSCITE, juste en
+dessous). Elle reste ÉTEINTE tant que l'identifiant d'éditeur de Sacha n'est pas posé : en ligne, rien ne change d'ici là (la pub maison).
+- **Le chargeur** (`<head>`, bloc « LA RÉGIE ADSENSE », juste après celui du cadre de l'ordi) : `var CC_ADSENSE=''` (« ca-pub-… » à poser, LE
+  SEUL endroit) et `CC_ADSENSE_SITES=['car-cash-git.vercel.app']`. Il charge `adsbygoogle.js?client=…` et pose `adBreak`/`adConfig` (la cale de
+  Google) seulement en http(s), sur un site de la liste, jamais avec `window.Capacitor` (l'app iPhone), jamais dans la page-cadre de l'ordi :
+  Google veut le code DANS le document du jeu, donc dans l'iframe de la colonne (elle a déjà `allow="autoplay"`). `?pubtest=1` = le MODE TEST
+  de Google (`data-adbreak-test="on"`) partout, même sans identifiant : de fausses pubs, aucune requête de pub.
+- **Le côté jeu** (`ADS`, « LA RÉGIE ADSENSE, CÔTÉ JEU ») pose `CC_PUB_PREPARE` et `CC_PUB_RECOMPENSE`, que LA PUB QUI RESSUSCITE appelle :
+  à l'OUVERTURE de l'offre (`chanceOuvre` → `pubPrepare`), `adBreak({type:'reward'})` ; Google rappelle `beforeReward(showAdFn)` s'il a une
+  pub ; au TOUCHER de CONTINUER ▶ PUB, `showAdFn()` part dans le geste même ; `adViewed` → reprise, `adDismissed` → pas de reprise (l'écran de
+  fin, REJOUER). Rien de prêt (pas de pub, plafond, bloqueur…) → `null` → la pub maison de 5 s. `adConfig` : `preloadAdBreaks:'on'` et `sound`
+  (on/off d'après les réglages SON + MUSIQUE, relu à chaque offre). Le jeu ne se tait (`pubSilence`) que si une vraie pub part. Filet : 150 s.
+- **Le service worker** ne touche plus aux requêtes d'un AUTRE domaine (`sw.js`) : son cache-first aurait figé le script de Google et ses pubs
+  jusqu'au prochain numéro de CACHE. Le jeu ne charge rien d'autre hors du site.
+- **`/ads.txt`** : `vercel-build.sh` l'écrit à la racine du site (`google.com, pub-…, DIRECT, f08c47fec0942fa0`) à partir de `CC_ADSENSE` ;
+  identifiant vide = pas de fichier.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, `?pubtest=1`) : COUCHÉ, DEBOUT et dans le CADRE DE L'ORDI à la souris → au toucher, la pub
+  test de Google (« Rewarded ad example », « Reward in 6 seconds », la croix) ; vue jusqu'au bout → `breakStatus` `viewed` → reprise, 3 · 2 · 1 ;
+  fermée trop tôt (« Close Ad? You will lose your reward ») → `dismissed` → pas de reprise, l'écran de fin avec REJOUER ; compte inchangé
+  (7 200 $). SANS `?pubtest=1` et sans identifiant : 0 requête vers Google, la pub maison comme avant. 0 erreur (seul le 404 connu de
+  `dark-triad.mp3`). Banc : `dbgPub().ads` → {on, test, pret, etat (le dernier breakStatus), n, prete}.
+- **`vercel.app` est sur la liste publique des suffixes** (publicsuffix.org) : AdSense accepte `car-cash-git.vercel.app` comme un site à part
+  entière, pas besoin d'acheter un domaine.
+- **À FAIRE PAR SACHA** (personne ne peut le faire à sa place : son identité, son compte de paiement) : 1) créer le compte AdSense
+  (adsense.google.com, avec son compte Google), site `car-cash-git.vercel.app` ; 2) DONNER l'identifiant d'éditeur `ca-pub-` + 16 chiffres
+  (Compte › Infos du compte) → on le pose dans `CC_ADSENSE`, on met à jour la page de CONFIDENTIALITÉ du site (cookies publicitaires de
+  Google, seulement pour le site — l'app iPhone reste sans pub) et on publie ; 3) dans AdSense, « Valider » le site (ads.txt / code) et
+  demander l'examen ; 4) activer le message de consentement RGPD (Confidentialité et messages › Europe), obligatoire en Europe ; 5) laisser
+  les ANNONCES AUTOMATIQUES ÉTEINTES (elles poseraient des bannières sur le jeu) ; 6) une fois le compte approuvé, faire la demande H5 Games
+  Ads (adsense.google.com/start/h5-beta, sur dossier, non garanti). Tant que H5 n'est pas accordé, Google n'a pas de pub : la pub maison joue.
+- **Reste à trancher** : faire compter les pubs VRAIMENT vues pour L'ÉTERNELLE (« REGARDE 100 PUBS », `SAVE.d.ex.pubs`, plus rien ne le
+  remplit depuis le retrait du kit Poki) ; la pub maison quand Google n'a rien (gratuite au bout de 5 s) ou pas de reprise du tout.
+
 ## LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES (2026-10-15 soir, Sacha : « il y a trop plein de petits sons aigus quand on roule, avec des pièces, tout ça ; les pièces, tu peux les faire un peu moins fort, un petit tintement, un petit tchic, un petit tchic grave ; pas plein de ding-ding-ding-ding ; et rajoute tout un sound design pour les figures, avec des sons plus graves, genre doum, doum ; faut qu'on profite de la musique, que tu balances le son entre la musique et les bruitages, que les figures fassent plus de bruit que quand tu ramasses une pièce ; plus de sons graves et discrets — applique-toi bien pour les figures »)
 - MESURÉ AVANT (banc `banc-son` : une course muette au pilote, chaque `CCSON.play` relevé) : en 40 s de route, 119 pièces (3 par seconde,
   la note montait de mi5 à mi7 — 659 Hz → 2,6 kHz — et sonnait 0,45 s), 30 CYLINDRES (chaque moteur neuf égrène jusqu'à 16 cloches qui
