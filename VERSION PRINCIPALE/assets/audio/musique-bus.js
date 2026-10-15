@@ -17,8 +17,12 @@
    2. (LA NITRO QUI COLORE LA MUSIQUE — essayée le 15/10 dans la bibliothèque, RETIRÉE à l'écoute, Léo : « enlève nitro musique augmentée ».
       Son code est dans l'historique git, commit f1e89131 ; on ne la réintègre pas.)
 
+   3. (le jeu, 15/10, l'audit du pôle SON) LE CREUX DE COURSE : en course, −2 dB vers 280 Hz (Q 1) — le moteur du jeu y vit (mesuré : 48 % de
+      son énergie entre 250 et 500 Hz, pic à 283 Hz) ; la musique lui laisse sa place, le grave de la basse ne bouge pas. Lissé (~0,3 s).
+   4. (le jeu) LE RECUL SOUS LES SIGNAUX : quand un signal du jeu risque d'être couvert (panne sèche de nitro, série de pièces, flow perdu…),
+      la musique recule de −3 dB pendant 0,4 s (attaque 30 ms, retour en ~0,4 s), puis revient.
    Emploi : const b = MUSBUS.cree(ac) ; source → b.entree ; b.sortie → la suite (destination, limiteur) ; b.piste(url ou clé) ;
-   b.brut(vrai/faux) = l'interrupteur (le jeu : `?basses=brut`) ; b.etat(). */
+   b.brut(vrai/faux) = l'interrupteur (le jeu : `?basses=brut`) ; b.course(vrai/faux) ; b.recul(dB, durée) ; b.etat(). */
 (function (W) {
   'use strict';
   var PRESETS = {   // dB · mesurés le 15/10 (atelier : part d'énergie sous 60 / 150 Hz du fichier entier ; les sons en direct, joués au banc) — absent = rien ne change
@@ -35,7 +39,7 @@
     'boucles/neon-drive.m4a': { sub: -3, bas: -2 }, 'boucles/pluie-neon.m4a': { sub: -2, bas: -2 }, 'dark-triad': { bas: -2 }, 'boucles/caisse-enregistreuse': { sub: -1.5, bas: -2 },
     'boucles/garage-lofi': { sub: -3.5, bas: -2 }, 'boucles/hypervitesse': { bas: -1 }, 'french-touch': { bas: -2 }
   };
-  var MB = { PRESETS: PRESETS, FORCE: 1 };
+  var MB = { PRESETS: PRESETS, FORCE: 1, CREUX: -2 };
 
   MB.presetDe = function (u) {   // une adresse (ou une clé) → son réglage
     var s = String(u || ''); for (var k in PRESETS) if (s.indexOf(k) >= 0) return { cle: k, sub: PRESETS[k].sub || 0, bas: PRESETS[k].bas || 0 };
@@ -45,14 +49,16 @@
   function vers(p, v, t, tau) { try { if (p.cancelAndHoldAtTime) p.cancelAndHoldAtTime(t); else { p.cancelScheduledValues(t); p.setValueAtTime(p.value, t); } p.setTargetAtTime(v, t, tau); } catch (e) { try { p.value = v; } catch (e2) {} } }
 
   MB.cree = function (ac) {
-    var e = ac.createGain(), hp = bq(ac, 'highpass', 22, .7), sub = bq(ac, 'lowshelf', 65, null, 0), bas = bq(ac, 'peaking', 110, .9, 0), s = ac.createGain();
-    e.connect(hp); hp.connect(sub); sub.connect(bas); bas.connect(s);
-    var B = { entree: e, sortie: s, cle: '', estBrut: false, p: { cle: '', sub: 0, bas: 0 } };
+    var e = ac.createGain(), hp = bq(ac, 'highpass', 22, .7), sub = bq(ac, 'lowshelf', 65, null, 0), bas = bq(ac, 'peaking', 110, .9, 0), cr = bq(ac, 'peaking', 280, 1, 0), rc = ac.createGain(), s = ac.createGain();
+    e.connect(hp); hp.connect(sub); sub.connect(bas); bas.connect(cr); cr.connect(rc); rc.connect(s);
+    var B = { entree: e, sortie: s, cle: '', estBrut: false, enCourse: false, p: { cle: '', sub: 0, bas: 0 } };
     function pose(tau) { var t = ac.currentTime, f = B.estBrut ? 0 : MB.FORCE; vers(sub.gain, B.p.sub * f, t, tau); vers(bas.gain, B.p.bas * f, t, tau); }
     B.piste = function (u) { B.p = MB.presetDe(u); B.cle = B.p.cle; pose(.05); return B.p; };
     B.brut = function (b) { B.estBrut = !!b; pose(.08); };
     B.force = function (f) { MB.FORCE = Math.max(0, Math.min(1.5, +f || 0)); pose(.08); };
-    B.etat = function () { return { cle: B.cle, brut: B.estBrut, force: MB.FORCE, sub: +sub.gain.value.toFixed(2), bas: +bas.gain.value.toFixed(2) }; };
+    B.course = function (on) { on = !!on; if (on === B.enCourse) return; B.enCourse = on; vers(cr.gain, on ? MB.CREUX : 0, ac.currentTime, .1); };
+    B.recul = function (db, d) { B.nRecul = (B.nRecul || 0) + 1; var t = ac.currentTime; vers(rc.gain, Math.pow(10, (db || -3) / 20), t, .01); try { rc.gain.setTargetAtTime(1, t + (d || .4), .13); } catch (x) {} };
+    B.etat = function () { return { cle: B.cle, brut: B.estBrut, force: MB.FORCE, sub: +sub.gain.value.toFixed(2), bas: +bas.gain.value.toFixed(2), course: B.enCourse, creux: +cr.gain.value.toFixed(2), recul: +rc.gain.value.toFixed(2), nRecul: B.nRecul || 0 }; };
     return B;
   };
   W.MUSBUS = MB;

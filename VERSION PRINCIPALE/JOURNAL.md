@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES BASSES RÉGLÉES DANS LE JEU (2026-10-15 soir, pôle SON ; Léo dit oui aux basses réglées — pas de nitro sur la musique)
+- `assets/audio/musique-bus.js` (le MÊME que la bibliothèque) est chargé par le jeu et posé dans le graphe de la musique (`musWaBranche` :
+  élément → gain → BUS → compresseur doux → limiteur). Chaque morceau reçoit son réglage à `playMusic` (`MUS_WA.bus.piste`). `?basses=brut` = sans.
+- MUS_WA PLUS LARGE (la règle 'auto') : volume libre (ordi, Android) → partout SAUF le moteur de Safari ; volume verrouillé (iPhone) → avec
+  audioSession seulement (iOS 17+, comme avant). Volume libre : l'ÉLÉMENT reste à 1 et le gain du graphe fait tout (avant, sur iPhone, le
+  volume de l'élément était verrouillé : le code n'y touchait pas — sur ordi il aurait compté deux fois, et un fondu parti de 0 laissait
+  l'élément muet). Le compresseur doux seulement sur les appareils tactiles.
+- ⚠ SAFARI : au banc WebKit, la musique branchée se TAISAIT au bout de 8 à 15 s (l'élément joue, son temps avance, la source rend des zéros,
+  sans aucun appel), le chien de garde la condamnait et elle ne repartait qu'au toucher suivant. Safari sur Mac reste donc sur l'<audio>.
+  L'iPhone iOS 17+ est sur ce chemin DEPUIS LE 14/10 (MUS_WA) : à vérifier sur un vrai iPhone (`dbgMusWa()` : ko, pq = 'silence' ?).
+- EN COURSE, LE CREUX : −2 dB vers 280 Hz (Q 1), là où vit le moteur (48 % de son énergie entre 250 et 500 Hz, pic à 283 Hz).
+- LE RECUL SOUS LES SIGNAUX (`SIG_RECUL` : nitro.sec, piece.serie, piece.recolte, flow.perdu, aura.perdue, portail.proche, alerte.dernier) :
+  la musique −3 dB pendant 0,4 s (attaque 30 ms), à leur départ dans `sfx()`. `dbgMusWa('recul')` le déclenche à la main.
+- GLISSE (le SOLEIL DE JADE) : là où MUS_WA est branchée, elle reçoit le contexte du jeu PRÊTÉ (Proxy : sa destination = SON bus, −7 dB de sub ;
+  son stop(), qui suspendait SON contexte, ne suspend pas celui du jeu) ; condamnée → elle reprend le sien.
+- MUS_SONIE remesurée : chaque morceau réglé regagne la moitié de la sonie perdue (0,3 à 2,3 LU), bornée à +3 dB (les valeurs d'avant en commentaire).
+- MESURÉ : coût du bus 2,7 ms par seconde de son (0,27 % d'un cœur). Banc muet Chrome, couché / debout / cadre de l'ordi : ciel → garage →
+  PLAY → course → fin (la bande qui tombe) → REJOUER ×2 (3 courses : CIEL 1, ADDICTIVE, GLASSY, NÉON CASH CAR, CIEL · LES 5…, chacune son réglage
+  et le creux), le SOLEIL DE JADE (GLISSE entendue, −14 dB en sortie), `?basses=brut`, le recul ; WebKit couché / debout sur l'<audio> : tout joue.
+  0 erreur. (`dbgCampagne` bloque la page au banc, avec ou sans MUS_WA : rien à voir ; l'explosion forcée est absorbée par la seconde chance.)
+
 ## LE BUS DE LA MUSIQUE : LES BASSES RÉGULÉES (2026-10-15, pôle SON, chantier A — DANS LA BIBLIOTHÈQUE, le jeu après l'écoute de Léo)
 - ⚠ LA NITRO QUI COLORAIT LA MUSIQUE (décrite plus bas) est RETIRÉE après l'écoute — Léo : « enlève nitro musique augmentée ». Ni dans la
   bibliothèque ni dans le jeu ; son code reste dans l'historique git (commit f1e89131), on ne la réintègre pas.
