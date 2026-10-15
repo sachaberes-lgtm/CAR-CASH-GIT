@@ -3,6 +3,100 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FIGURES EN DEUX FAMILLES : VERS L'AVANT · SUR LES CÔTÉS (2026-10-15, Sacha : « pour le système de figure : il faut séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; par exemple les figures tonneau doivent aller vers la droite ou la gauche, elles ont besoin d'être orientées par la direction, alors que salto avant a juste besoin d'aller vers l'avant ; donc dans la boutique classe toutes les figures selon ces deux catégories »)
+- **La famille est déclarée** dans `figures.js` (`cat:'avant'|'cote'` sur chaque ligne de `BASE`, ?v=5) et lue par `FIG.cat(f)`. La règle, qui
+  range aussi les figures générées de la boîte blanche (sans `cat`) : AVANT = tout se passe sur l'axe des roues (x) — rien à choisir, ni gauche
+  ni droite ; CÔTÉ = au moins un mouvement a un côté. C'est exactement la frontière du miroir de `Corps.lance` (un mouvement pur sur x garde son
+  sens, tout le reste se tire en miroir). Résultat : **VERS L'AVANT** = CHANDELLE, SALTO ARRIÈRE, SALTO AVANT (3) ; **SUR LES CÔTÉS** = TONNEAU,
+  TOUPIE 360, SHIMMY, DOUBLE TONNEAU, TIRE-BOUCHON, HÉLICO 720, VRILLE PENCHÉE, RODÉO, SALTO COSMIQUE (9 — les trois composées contiennent un
+  tonneau ou une toupie, elles ont donc un côté à choisir).
+- **Un emplacement par famille** (`figFam`, `figSlots`, `FIG_FAM`) : l'emplacement 1 (pouce en AVANT au double-tap NITRO) ne prend qu'une
+  figure avant, le 2 (pouce sur un CÔTÉ) qu'une figure de côté. ÉQUIPER (boutique ou inventaire) ou ACHETER remplace celle de SA famille, jamais
+  l'autre ; plus de DÉSÉQUIPER (une par famille, toujours). `SAVE.d.figEq` garde sa forme : la plus récente de chaque famille compte (une vieille
+  sauvegarde à deux tonneaux garde le dernier) ; une famille vide se remplit avec la dernière figure possédée de cette famille ; le côté a
+  toujours au moins le TONNEAU offert. **Sans aucune figure avant (un débutant), le pouce en avant ne fait RIEN** (le refus : `o.strict`,
+  `figRefus`) — Sacha, en voyant un 1er jet qui jouait le tonneau en repli : « bah non justement, tonneau est typiquement une figure
+  latérale ». Deux exceptions, qui ne sont pas le geste du joueur : l'étape FIGURE de l'auto-école (« tape 2 fois NITRO », pouce au repos ; un
+  débutant n'a que le tonneau, la leçon serait bloquée — `strict:!TUTO.on`) et la figure AUTOMATIQUE du saut nitro au sol.
+- **La figure de côté part du côté du pouce** : `figDirSlot` garde le pouce (`FDIR.x`) et `figLance` le reçoit (`o.dx`) au lieu du volant lissé.
+- **La boutique** (celle de Léo, `#gBqPan`) : `bqListe('figure')` range VERS L'AVANT puis SUR LES CÔTÉS (dans chaque famille, l'ordre du
+  catalogue) ; un intertitre `.bqSec` (`bqFigSec`) ouvre chaque famille — pictogramme ↑ / ◄► (ceux du rappel `#fhLeg`), le nom, et à droite en
+  petit le geste (POUCE EN AVANT · POUCE À GAUCHE OU À DROITE). Ce n'est pas une carte : ni clic, ni compte, ni miroir UX 8 (qui ne lit que
+  `.bqK`). L'inventaire range ses figures dans le même ordre ; le toast d'équipement dit la famille au lieu d'un numéro d'emplacement ; la
+  fiche (`figDesc`) dit le geste (« elle part au hasard parmi tes figures » n'était plus vrai depuis le matin). Anglais : FORWARD · SIDEWAYS.
+- Le rappel en vol `#fhLeg` et les anciens boutons (`?figdir=0`) sont rangés par EMPLACEMENT (↑ cyan = avant, ◄► magenta = côté) ; sans
+  figure avant, seul ◄► s'affiche, et un geste refusé ne secoue que SON emplacement. `dbgFig().slots` = [avant, côté] ; `dbgFigDir(x,y)` dit
+  la figure partie et son sens (le n° affiché est celui du GESTE).
+- MESURÉ au banc commun (cc-banc, muet ; debout 390 × 844, étroit 320 × 640, couché 844 × 390) :
+  · une vieille sauvegarde `figEq:['tonneau','helico']` + SALTO AVANT possédé → `slots` = saltov, helico ; ordre de la boutique =
+    [VERS L'AVANT] chandelle saltoa saltov [SUR LES CÔTÉS] tonneau toupie shimmy double tirebouchon helico penche rodeo cosmique ;
+    hélico équipée → ÉQUIPÉE ; tonneau → ÉQUIPER → slots saltov, tonneau, toast « TONNEAU · SUR LES CÔTÉS · REMPLACE HÉLICO 720 » ;
+    salto arrière → ACHETER $ 6 000 → slots saltoa, tonneau ;
+  · en vol (`dbgFigDir`) : pouce en avant → SALTO AVANT (emplacement 1) ; pouce à gauche → HÉLICO sens + ; à droite → HÉLICO sens − ;
+    débutant (que le tonneau), DANS LE MÊME VOL : pouce en avant → refus, pouce à gauche → TONNEAU ; rappel = ◄► TONNEAU seul ;
+  · l'intertitre : 1er jet rogné de 12 px en haut (scrollTop 14 : l'aimant de défilement l'attrapait pendant le glissé d'entrée des cartes)
+    → entrée en fondu seulement (`@keyframes bqSec`) → scrollTop 2, intertitre au bord de la grille ; le geste (« POUCE A GAUCHE OU A
+    DROITE ») passe entier à la ligne à 390 comme à 320 ;
+  · zéro erreur JS sur toutes les passes.
+- Vu en passant, PAS touché (la boutique de Léo) : l'onglet PEINTURES a le même rognage (scrollTop 14, la 1re rangée coupée de 12 px) —
+  il existait avant ; même cause (le glissé `bqK` sous `scroll-snap`).
+- À trancher par Sacha : il n'y a que TROIS figures avant contre neuf de côté (et aucune offerte) — en ajouter (un salto avant ×2, un
+  « wheelie » qui tourne…) se propose avant d'être fait.
+## LA MATIÈRE COMMUNE DES DÉCORS — CANYON, FORÊT, JADE (2026-10-15, session TEXTURES — Sacha : « petite session d'amélioration des textures des biomes : j'ai fait plusieurs biomes plus ou moins bien finis, ils sont générés en aléatoire et tout, mais je trouve que certains éléments manquent de cohérence entre eux — couleurs, formes, textures ; travaille sur toutes les maps les textures des éléments de décor, sans que ça prenne trop d'espace sur l'iPhone »)
+- LE MUR DES 8 MAPS (midi, interface masquée, caméra levée) : le décor parle en APLATS PROPRES et dégradés doux (ville, nuages, pics du
+  glacier, volcan). Trois matières faisaient bande à part : les strates RAYÉES du canyon (des lits de 2 à 7 m en magenta/lavande qui
+  dessinaient des traits), la prairie FLUO de la forêt (vert-jaune sans bleu, poussé par la couche POP), la roche GRISE et granuleuse du jade.
+- L'inventaire : presque tout le décor est CALCULÉ dans les shaders (glacier 0 octet de texture, volcan 70 Ko, canyon 0,5 Mo de bruits,
+  forêt ~3,4 Mo, jade ~2,8 Mo). La retouche reste donc en NOMBRES dans les shaders : **zéro image ajoutée, zéro octet de mémoire graphique en plus**.
+- `MATIERE_V` (déclaré juste avant `FORET`) — `?sans=matiere` = la matière d'avant :
+  · CANYON (`cyStrates`, `CY_FS`) : un lit mince fait au moins 4 px de la colonne (≥ 9 m) ; la colonne est relue à 3,7 m/px au lieu de 2,3
+    (bandes 1,6× plus larges). Le tirage `r()` de `cyStrates` est inchangé (même nombre d'appels) ; `cyStrates` n'est pas recopiée dans
+    le travailleur du canyon.
+  · FORÊT (`FOR_SOL_FS`) : mousse et prairie reçoivent du BLEU à clarté égale, la prairie ondule en grandes plaques (`×(.84+.32·n1)`).
+    MESURÉ (pixels verts du bas de l'image, midi, caméra levée) : saturation moyenne 0,91 → 0,65, teinte 0,27 → 0,32 (du jaune-vert vers le vert).
+  · JADE (`JADE_VR_FS`) : la roche `roc` passe du gris neutre (.52,.52,.49)/(.39,.39,.37) à une pierre teintée de jade de même clarté
+    (.45,.55,.51)/(.33,.41,.39) ; son grain fin (`rg`) ramené de ±.15 à ±.07.
+- PAS TOUCHÉ, exprès : le VERGLAS du glacier (le carrelage d'hexagones lumineux sur la route) — posé le matin même par la session Glacier,
+  c'est un signal de jeu ; à trancher par Sacha s'il le trouve trop « carrelage ». La ville, les nuages, le volcan, l'orbite : déjà cohérents.
+- Banc : `mur.cjs` (scratchpad TEXTURES) — `?carte=X&meteo=Y`, JOUER, 7 s de course, interface masquée, `dbgView` large et haut ;
+  planches avant/après midi + soir. Aucune erreur JS sur les 8 maps.
+## LE GLACIER — LA GLACE GLISSE VRAIMENT (2026-10-15 soir, Sacha : « la glace ne glisse pas assez dans la map montagne, il faut rajouter une animation et des particules de glace »)
+- Le défaut : le verglas ne faisait que rogner le volant (68 %) et pousser un peu vers l'extérieur. Le cap restait la trajectoire, donc la
+  caisse tournait moins, elle ne GLISSAIT pas (le même défaut que le drift de conduite abandonné en juillet).
+- LA VRAIE GLISSE (`BKV.gl`, bloc LE VERGLAS) : sur la glace, le pouce tourne le NEZ (volant à 92 %) et la TRAJECTOIRE ne le rejoint qu'en
+  `BK_VG.tau` = 0,38 s à pleine vitesse (0,15 s à l'arrêt), ÷spdMult comme VOL_TAU. Dans un virage, la caisse file en CRABE vers l'extérieur
+  (jusqu'à ~29°, `glMax`), le nez dans la courbe : il faut braquer TÔT. La boucle lit `psi-slipB-BKV.gl` sur ses deux lignes d'avance (vL, s),
+  donc le décollage part aussi dans le sens de la trajectoire ; `gl` remis à zéro au décollage, au replacement et hors du glacier.
+- L'ANIMATION : le crabe réel grossi de 80 % à l'image, +16° au plus (la physique reste jouable, l'image glisse) + la QUEUE QUI CHASSE (onde lente qui grandit avec la glisse) ; un craquement de
+  glace (`banq.craque`) et un petit `hap(8)` quand elle décroche (une fois par glissade) ; la boucle `banq.glisse` chante tant qu'elle glisse.
+- LES PARTICULES : `fx.eclat` (700 éclats ÉTIRÉS, jetés du côté où la caisse glisse — surtout par les roues qui mènent, les roues avant s'y
+  mettent en pleine glisse) et `fx.brume` (220 bouffées de givre qui gonflent en s'effaçant derrière). Les deux héritent de la vitesse de la
+  caisse (`PT_U.uVc`) : une gerbe qui suit, plus un pointillé semé sur place. La rayure de glace s'élargit avec l'angle. L'ancien givre semé
+  par les roues sur le verglas est remplacé (le givre reste pour les lacs et pics en vol).
+- Console : `dbgBanq('verglas')` donne `gl` (rad) et `gk` (glisse ressentie 0-1). Banc : `gg-banc.cjs` (scratchpad de la session 487dcfbe).
+
+## PLUS DE SNAKE LOOP, DE DAUPHIN, DE NITROOO NI DE DRAGON (2026-10-15, Sacha : « supprime du main le snake loop, le dauphin, le nitrooo et les animations 3D qui leur sont attribuées, enlève aussi le dragon chinois de flamme »)
+- Même recette que la carrière et le mode facile : COUPÉS, pas arrachés. Quatre interrupteurs en tête du fichier, à côté de `SANS_FACILE` :
+  `SANS_SNAKE`, `SANS_DAUPHIN`, `SANS_NITROOO`, `SANS_DRAGON` (vrais par défaut ; `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` les
+  rendent, le dragon demande aussi `?nitrooo=1` puisqu'il naît de NITROOO).
+- SNAKE LOOP : `tryLand` ne note plus le passage sous la route (`fallUnder` reste faux → pas de `snaked`, ni aura 320, ni chaîne, ni
+  flow, ni verdict, ni son) ; le serpent néon (`serpentRig`) n'entre plus dans la scène et `updateSerpent` ne tourne plus.
+- DAUPHIN : `dolTick` n'est plus appelé en vol (ni départ, ni figure, ni aura, ni flow, ni #dolHud), le rase-dalle (l'argent de chaîne
+  au ras) est coupé avec lui ; les géométries du banc ne se voxélisent plus au chargement (`DOL_NU`, en `typeof` : la boîte à dauphins
+  exécute ce bloc sans l'interrupteur et garde ses dauphins), `dolphins=[]`, `dolphinRig` hors scène, `updateDolphins` muet.
+  `dolFin`/`dolPose`/`dolKill` restent appelés : ils sortent d'eux-mêmes (`dolKill` cache aussi le singe — on n'y touche pas).
+- NITROOO : le geste ne s'arme plus au sol (bloc « PURE SPEED → NITROOO » de la boucle) ni en vol (AIR NITROOO) ; `nitroooPart` sort
+  d'entrée, `nitroooTick` ne tourne plus : `NTR.on`/`NTR.k`/`NTR.boost` restent à 0, donc `vitMult()` ne garde que VITESSE ×2 et la
+  comète n'est jamais bâtie (elle l'était au 1er embrasement). Le nitro ordinaire (réservoir, `NFEU`, plumes, sillages) ne bouge pas.
+  Le son `nitrooo.palier` reste dans la banque : les figures du double-tap (`figJet`) s'en servent.
+- DRAGON : plus construit ni compilé à la chauffe du menu (l'étape de `chauffeDivers` sort), ses feuilles peintes (`DRG_TEX`/`_FEU`/`_PF`/
+  `_OEIL` et leurs versions violettes et noires) ne se peignent plus au chargement, son feu de pixels `DFEU` n'entre pas dans la scène,
+  `dragonTick` sort d'entrée (les crochets `dbgDragon` aussi). `triNoir()` reste : la dark triad s'en sert ailleurs.
+- MESURÉ (banc A/B, la même partie debout 390×844, muet — défaut contre `?snake=1&dauphin=1&nitrooo=1&dragon=1`) : au menu 1 142 objets
+  dessinables au lieu de 1 182 et 178 programmes au lieu de 183 (`dauphin5`/`5c`/`5h` et `drgPres` ne sont plus compilés) ; dauphin
+  forcé au décollage : actif AVEC, rien SANS ; 7 s de nitro tenue : comète (intensité 1, boost +22 %) et dragon AVEC, rien SANS ;
+  0 erreur, `__loopErr` nul des deux côtés. Fumée commune OK couché + debout.
+- Les missions ne demandaient aucune de ces figures (les contrats « chaîne » comptent toutes les figures) : rien n'est devenu impossible.
 
 ## POUCE BLEU EN COURSE + UNE INTRO PAR MORCEAU (2026-10-15 soir, pôle SON ; Léo, choix cochés : « à chaque PLAY, un morceau de Pouce bleu au hasard qui suit le moteur — tu peux les push sur le main »)
 - À chaque PLAY (garage `garageLaunch`, ciel `chuteLance`), UN morceau rangé dans Pouce bleu (la bibliothèque) est tiré au hasard et joue TOUTE la
