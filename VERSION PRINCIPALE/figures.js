@@ -143,6 +143,14 @@
     for(var b=0;b<r.boums.length;b++)this.evts.push(r.boums[b]);
     this.figs.push(r);this.n++;this.der=f.id;return r;};
   Corps.prototype.tiens=function(r,on){if(r)r.tient=!!on&&!r.paye;};
+  /* EMPILER (2026-10-15, Sacha : « le double-tap NITRO doit générer une IMPULSION d'un côté de la voiture… cumuler plusieurs figures comme au BMX
+     ou dans Asphalt 8 ») : une explosion de plus sur la MÊME figure, dans le même sens, encore en train de tourner — un tour de plus prévu
+     (TONNEAU → TONNEAU ×2 → ×3…), la poussée S'AJOUTE à ce qui tourne. Une seule figure qui compte ses tours, pas deux qui se les volent. */
+  Corps.prototype.empile=function(r,D){if(!r||r.paye||!r.mv.length)return null;D=Math.max(.3,D||r.f.D);
+    var m=r.mv[0],sp=6.2832/D*PHY.kImp;m.tours+=1;r.D+=D;r.fini=false;r.force=false;r.rate=false;
+    r.imp[0]=m.a[0]*m.d*sp;r.imp[1]=m.a[1]*m.d*sp;r.imp[2]=m.a[2]*m.d*sp;r.impT=PHY.tImp;
+    var b=boums([r.imp[0]/sp,r.imp[1]/sp,r.imp[2]/sp],Math.min(1.6,sp/11));for(var i=0;i<b.length;i++)this.evts.push(b[i]);
+    this.n++;return r;};
   /* LE REDRESSEMENT (2026-10-14, Sacha : « quand on a fait une figure stylée et qu'on veut se restabiliser face à la route : 1 seul tap permet de
      redresser la voiture ») : tout ce qui tourne passe à la PRISE, tout de suite, avec un freinage deux fois plus fort (`urgent`) — la caisse
      revient à l'endroit, face à son vol. Une figure faite aux trois quarts ou plus paie quand même ; coupée avant, elle ne paie pas — jamais une chute. */
