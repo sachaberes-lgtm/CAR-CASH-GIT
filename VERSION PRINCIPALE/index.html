@@ -14487,6 +14487,8 @@ const VILLE_ROSE_V=!/[?&]sans=([^&]*,)?villerose(,|&|$)/.test(location.search);
    l'orage et le soir ne bougent pas) : tours en verre bleu / acier / béton clair / quelques sombres (par la position de la tour : le tirage `vr` ne bouge pas),
    GRUES rouges et jaunes sur des toits, enseignes jaunes, plus de voile violet au pied des tours, ciel azur → pêche pâle. `?sans=metropole` = la ville d'avant. */
 const METRO_V=!/[?&]sans=([^&]*,)?metropole(,|&|$)/.test(location.search);
+const VIVES_V=!/[?&]sans=([^&]*,)?vives(,|&|$)/.test(location.search); // (2026-10-15, Sacha : « les maps sont un peu trop ternes et grises, sature un peu plus ») `?sans=vives` = avant
+if(VIVES_V){BETON.t=[.86,.93,1.2];BETON.amb=.4;} // (vives) le béton n'est plus gris mort : un bleu d'ardoise franc, qui prend davantage la couleur de l'air du lieu (rose au soir, azur à midi) — chiffres de la COUCHE POP
 function metroJour(){const c=typeof LVL!=='undefined'&&LVL.cur;return METRO_V&&!!c&&c.id==='ville'&&!!c.bio&&(c.bio[0]==='villeMatin'||c.bio[0]==='villeMidi');}
 function metroH(x,z){const v=Math.sin(x*12.9898+z*78.233)*43758.5453;return v-Math.floor(v);} // un hasard FIXÉ par la position (ne consomme pas `vr`)
 const PLAFROSE_V=!/[?&]sans=([^&]*,)?plafrose(,|&|$)/.test(location.search); // (2026-10-15, passe graphismes · plafrose) le plafond de nuages de la ville la nuit : lilas et éclair violet (uRose) au lieu du gris neutre de la passe néon-résiduel
@@ -22043,9 +22045,11 @@ function buildVoxCity(seed,accC){
   const col=new THREE.Color(),colT=new Float32Array(genre.length*3),colN=new Float32Array(neonC.length*3);
   for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i]; // (le tirage `vr` dans le MÊME ordre qu'avant : chaque tour garde sa teinte)
     if(MJ9&&g===0){const h9=metroH(tqC[i*3],tqC[i*3+2]); // (metropole) la tour choisit sa matière par sa position (ses retraits ont le même centre : la même matière)
-      if(h9<.42)col.setRGB(.06*t9,.17*t9,.38*t9);          // le MUR-RIDEAU de verre bleu
-      else if(h9<.66)col.setRGB(.33*t9,.36*t9,.40*t9);     // l'ACIER brossé
-      else if(h9<.88)col.setRGB(.50*t9,.51*t9,.52*t9);     // le BÉTON clair
+      if(h9<(VIVES_V?.34:.42))col.setRGB(.06*t9,.17*t9,.38*t9);          // le MUR-RIDEAU de verre bleu
+      else if(VIVES_V&&h9<.45)col.setRGB(.62*t9,.09*t9,.07*t9); // (2026-10-15, Sacha : « du rouge, du jaune, une ville VIVANTE ») la tour ROUGE brique-laque
+      else if(VIVES_V&&h9<.54)col.setRGB(.86*t9,.62*t9,.08*t9); // la tour JAUNE taxi
+      else if(h9<(VIVES_V?.70:.66))col.setRGB(.33*t9,.36*t9,.40*t9);     // l'ACIER brossé
+      else if(h9<(VIVES_V?.85:.88))col.setRGB(.50*t9,.51*t9,.52*t9);     // le BÉTON clair
       else col.setRGB(.09*t9,.10*t9,.13*t9);}              // quelques tours SOMBRES
     else if(g===3)col.setRGB(.80,.10,.07);                 // (metropole) la grue ROUGE
     else if(g===4)col.setRGB(1,.78,.10);                   // (metropole) le JAUNE de chantier
@@ -24045,6 +24049,7 @@ const CUMNUIT_V=!/[?&]sans=([^&]*,)?cumnuit(,|&|$)/.test(location.search);
 if(CUMNUIT_V)Object.assign(BIOMES.nuagesNuit,{nuLav:[.10,.16,.32],nuR:[-.05,.55,.5,1],nuK:[1,1.8,.7,1]}); // (2026-10-14, passe graphismes · cumnuit) NUIT : cumulus à DÉGRADÉ — sommet touché par la lune, ventre bleu encre. Avant : ombre lavande figée [.72,.78,.97] (aussi claire que la face éclairée = aplat) ; après : ombre bleu encre [.10,.16,.32], frontière d'ombre resserrée (-.25/.5 → -.05/.55) et clarté d'ombre .64 → .5, lune ×1,8 sur les faces éclairées, lisière de contre-jour .7
 if(CUMNUIT_V)Object.assign(BIOMES.nuagesPluie,{nuLav:[.40,.46,.56],nuR:[-.1,.55,.5,1],nuK:[.92,.85,.6,1],nuA:[.86,.87,.9],volSun:[.95,1.0,1.1]}); // (2026-10-14, passe graphismes · cumnuit) PLUIE : cumulus gris perle → ardoise, plus laiteux. Avant : albédo 1, ombre lavande .64, soleil 1,15-1,32 (blancs lumineux) ; après : albédo ×(.86,.87,.9) et ×.92, ombre ardoise [.40,.46,.56] à .5, clé diffuse .95-1,1 ×.85, lisière .6
 if(CUMNUIT_V)Object.assign(BIOMES.tempete,{nuLav:[.14,.19,.30],nuR:[-.05,.5,.5,1],nuK:[1,1.5,.5,1]}); // (2026-10-14, passe graphismes · cumnuit) ORAGE : cumulus ardoise sombre à ventre noir-bleu. Avant : ombre lavande .64 (ventre presque aussi clair que le dessus) ; après : ombre ardoise-encre [.14,.19,.30] à .5, éclair/clé ×1,5 sur les faces éclairées pour garder un sommet lisible, lisière .5
+if(VIVES_V)Object.assign(BIOMES.tempete,{sat:1.24,jZen:[.02,.018,.08],jMid:[.05,.034,.13],jHor:[.15,.08,.24],fog:[.17,.16,.33],fogIn:[.3,.28,.48],fogCj:[.32,.24,.46],hemiS:[.42,.40,.62],kickC:[.62,.42,1],kickI:.3,volSky:[.24,.2,.44],nuLav:[.2,.16,.42],mzH:[.11,.09,.26,.8],mzO:[.035,.025,.085,.8],nuA:[.58,.56,.78]}); // (2026-10-15, Sacha : « l'orage de la mer de nuages, beaucoup trop gris ») l'ardoise vire à l'ORAGE ÉLECTRIQUE : ciel indigo-violet, brume violette, ventres pourpres, kick violet néon · `?sans=vives` = l'ardoise
 /* (2026-10-14, Sacha : « trop gris, trop triste ; rajoute des couleurs pures, bleu ou violet, une ambiance CLAIR DE LUNE » — passe graphismes · clairdelune) LA MER DE
    NUAGES DE NUIT = CLAIR DE LUNE (la bible : la nuit = bleu et violet PURS, jamais gris). Ciel bleu profond saturé → indigo → horizon violet (linéaire), étoiles et lune
    plus fortes ; mer de nuages bleu nuit LUMINEUSE ; cumulus aux sommets argent-bleu (la lune) et aux ventres VIOLETS ; lumière : lune bleutée, remplissage violet,
@@ -24165,6 +24170,19 @@ if(NEB_V)for(const k of ['espaceMatin','espace','espaceSoir','espaceSat'])if(BIO
 //    Les ambiances qui ont LEUR vigC/con/wb (jade*, espace*, nuages*, ville*…) ne bougent que par DA : leur réglage appartient aux équipes par map.
 //  · Les bords d'écran des BONUS (#pwrFx) : dosés à 40 % par `PWR_BORD_K` (grep), à côté de PWR_DEFS.
 // (fin COUCHE COMMUNE)
+/* (2026-10-15, Sacha : « toutes les maps sont trop ternes et grises — un style plus POP, des couleurs plus FRANCHES ») LA COUCHE POP, après toutes les
+   retouches par map : chaque ambiance prend ×1,12 de saturation (plafond 1,45) et un cran de contraste ; avec DA.sat 1,08 → 1,17 la couleur monte d'~20 %.
+   Plus, là où Sacha l'a montré : le SOIR des nuages (ciel violet → rose → orange franc, sommets pêche vif, ombres roses), l'ORAGE (voir plus haut), la
+   métropole de jour (tours rouges et jaunes). `?sans=vives` = l'image d'avant. */
+if(VIVES_V){for(const k in BIOMES){const b=BIOMES[k];if(!b||typeof b!=='object')continue;b.sat=Math.min(1.5,(b.sat==null?1:b.sat)*1.18);if(typeof b.con==='number')b.con=Math.min(1.34,b.con+.04);}
+ Object.assign(BIOMES.nuagesSoir,{jZen:[.16,.12,.50],jMid:[.66,.34,.60],jHor:[1,.54,.28],jSol:[1,.48,.2],fog:[.98,.70,.62],fogCj:[1,.66,.42],mzH:[1,.62,.40,.85],mzO:[.24,.10,.26,.8],nuLav:[.95,.50,.86],volSky:[.62,.42,.78],volSun:[2.8,1.6,1.75],hemiS:[.78,.62,.92],hemiG:[.62,.40,.46]});
+ /* (Sacha : « la pluie et les nuages ternissent le jeu : plus de BLEU ») LES TEMPS GRIS VIRENT AU BLEU : ciel, brume, ombres et lumière d'ambiance glissent
+    vers un bleu franc (r ×.78, g ×.94, b ×1,22), +8 % de saturation et un cran d'exposition. La ville rose (pluie/orage) garde son néon. */
+ for(const k of ['nuagesPluie','jadePluie','jadeOrage','foretPluie','foretOrage','canyonOrage','tempete'])if(BIOMES[k]){const b=BIOMES[k];
+  for(const f of ['jZen','jMid','jHor','fog','fogIn','fogCj','hemiS','hemiG','fillC','sunC','volSun','volSky','volGnd','nuLav','mzH','mzO'])if(Array.isArray(b[f])&&b[f].length>=3){ // la clarté reste, la TEINTE devient un bleu franc (à 62 %)
+   const v=b[f]=b[f].slice(),L=.3*v[0]+.59*v[1]+.11*v[2];v[0]+=(L*.62-v[0])*.62;v[1]+=(L*.92-v[1])*.62;v[2]=Math.min(2.4,v[2]+(L*1.55-v[2])*.62);}
+  b.sat=Math.min(1.5,b.sat*1.08);if(typeof b.expo==='number')b.expo*=1.06;}
+ Object.assign(BIOMES.tempete,{expo:(BIOMES.tempete.expo||1)*1.1,hemiI:.62,sunI:.6,volSun:[.8,.62,1.25],sunC:[.62,.56,.95],fillC:[.36,.42,.95]});}
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
@@ -24182,7 +24200,7 @@ function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = comp
    (expo 1.06 gardée). Multipliée par des ambiances déjà poussées elle donnait jusqu'à sat 1,63 / con 1,48 : cobalt criard, orange « Cheetos »,
    noirs bouchés, coins recolorés (Sacha : « trop IA »). → sat 1.08, con 1.06, split sarcelle/or divisé par 2, vignette de TOUTES les ambiances
    à 60 %. Choisi à l'œil sur 5 ambiances (shots/etal-commun/planche-essais-DA.png). Le reste se règle PAR AMBIANCE (plafonds de la charte). */
-const DA={on:1,expo:1.06,sat:1.08,con:1.06,vivid:1,wbN:1,sh:[-.013,.022,-.003],hi:[.01,.019,-.021],vigK:.6};
+const DA={on:1,expo:1.06,sat:VIVES_V?1.17:1.08,con:1.06,vivid:1,wbN:1,sh:[-.013,.022,-.003],hi:[.01,.019,-.021],vigK:.6};
 if(COURBE_V2)DA.sat*=1.12; // (2026-10-14, courbe-noirs) la saturation du grade figé du téléphone repliée ICI (1,08 × 1,12 = 1,2096) : un seul endroit
 function daPose(U,c){
   // par ambiance (champs lerpés comme les autres) : daCon / daExpo / daWbN — les niveaux SOMBRES (tempête, minuit) prennent moins de
