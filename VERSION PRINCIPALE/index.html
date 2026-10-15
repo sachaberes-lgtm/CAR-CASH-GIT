@@ -46794,7 +46794,7 @@ function tryLand(dt){
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
    psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
-  {const vm9=vitMult();vA=fallVel.dot(T[bestI])/vm9;vL=fallVel.dot(B[bestI])*.4*sideL/vm9;} // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
+  {const vm9=vitMult(),vT9=fallVel.dot(T[bestI])/vm9,vB9=fallVel.dot(B[bestI])/vm9;vA=vT9>0?Math.hypot(vT9,vB9):vT9;vL=vB9*.4*sideL;} /* (2026-10-15, Sacha : « quand on arrive sur la route en volant avec un certain angle on est ralenti d'un coup, on ne peut pas la couper ») LA COUPE GARDE SON ÉLAN : au sol vA est la vitesse le long du CAP (on avance de vA·cos psi, on dérive de vA·sin psi), et le cap posé juste au-dessus EST la direction du vol — vA = toute la vitesse à plat, plus sa seule part dans l'axe : le cosinus de l'angle était compté DEUX fois (45° → la moitié de l'avance envolée, 60° → les trois quarts). À contresens, inchangé. */ // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
@@ -47004,7 +47004,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
-  vA=vTan*.94;vL=0; // le choc de la lèvre coûte 6 %
+  vA=(vTan>0?Math.hypot(vTan,vLat):vTan)*.94;vL=0; // le choc de la lèvre coûte 6 % · (2026-10-15) toute la vitesse à plat, comme à la pose : le cap EST la trajectoire
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
   mode='drive';prevTvalid=false;bascOn=false;
