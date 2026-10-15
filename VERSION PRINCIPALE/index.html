@@ -43415,7 +43415,14 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDow
 addEventListener('keyup',e=>{if((e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight')&&keys[e.code])veqDoigt(false);keys[e.code]=false;});
 addEventListener('keydown',e=>{if(!e.repeat&&(e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight'))veqDoigt(true);},true); // (2026-10-14) LE TONNEAU : le double-tap NITRO au clavier (en capture : avant le gestionnaire du jeu)
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;try{document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on').forEach(e=>e.classList.remove('on'));}catch(e){}}); // alt-tab : aucune touche ne reste coincée — (passe qualité) ni ENFONCÉE à l'écran (l'éclair restait appuyé)
-const GRAV=9.8*.55,FALL_G=33,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
+/* LA CAISSE PLUS LOURDE (2026-10-15, Sacha : « augmente la gravité pour la voiture, c'est dérangeant : quand on fait une figure sur la
+   route la voiture ne se pose pas — applique-le à la physique globale ») — GRAV_K est LE bouton de la gravité, et il n'y en a qu'un :
+   FALL_G le porte, donc TOUT ce qui le lit suit d'un bloc (la chute, le vol plané à la nitro qui en reprend 60-75 %, le viseur, la durée
+   de la figure du saut nitro, le vol équilibré, la mer de Jade, les filets et la coupe du fantôme tracés au générateur) ; la meute et les
+   dos d'âne, qui tombaient à 26 écrit en dur, le prennent aussi. La pente de la route (GRAV) n'y est PAS : elle règle l'élan, pas le vol.
+   ×1,3 : le saut nitro (21) dure 0,98 s au lieu de 1,27 et monte 23 % moins haut. `?grav=1` rend l'ancienne gravité, `?grav=1.5` pour essayer. */
+const GRAV_K=(function(){try{const v=parseFloat(new URLSearchParams(location.search).get('grav'));return v>0&&v<4?v:1.3;}catch(e){return 1.3;}})();
+const GRAV=9.8*.55,FALL_G=33*GRAV_K,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 /* LA GRAVITÉ DE L'ORBITE (2026-09-28, portée de la lignée car-crash) — l'orbite était un décor : mêmes sauts, même jauge qu'aux nuages.
    En ESPACE (niveau EN ORBITE et toute la carrière ESPACE) la gravité est DIVISÉE PAR DEUX : `gK()` est lu par TOUS les intégrateurs
    de chute (joueur, vol plané à la nitro, viseur, meute, dos d'âne, plots qui valsent) ; la jauge d'airtime passe de 6 à 10,2 s
@@ -47751,7 +47758,7 @@ function survTick(dt){
     if(SURV.chasse&&b.totD>pTot-9){b.totD=pTot-9;b.v=Math.min(b.v,Math.max(0,Math.abs(vA)));} // (2026-09-27) la POURSUITE reste DERRIÈRE : jamais un dépassement, jamais un flic devant ou à côté
     // ============ VOL & BORD : mêmes règles — la roue sort, la caisse décolle ============
     if(b.air){
-      b.vy-=26*gK()*dt;b.airH+=b.vy*dt; // la meute subit la même gravité (lunaire en orbite)
+      b.vy-=26*GRAV_K*gK()*dt;b.airH+=b.vy*dt; // la meute subit la même gravité (lunaire en orbite)
       b.spin+=b.spinV*dt;b.spinV*=Math.max(0,1-dt*.5);
       if(b.airH<=0){ // la retombée
         b.air=false;b.airH=0;b.vy=0;b.spin=0;b.spinV=0;b.jumpCD=1+Math.random()*1.6;
@@ -57952,7 +57959,7 @@ function loop(now){
         }
       }
       if(hopY>0||hopV!==0){
-        hopY+=hopV*dt;hopV-=26*gK()*dt;
+        hopY+=hopV*dt;hopV-=26*GRAV_K*gK()*dt;
         if(hopY<=0){hopY=0;hopV=0;squashT=Math.max(squashT,.15);if(introD)smashPig();if(POSE_F){const f9=POSE_F;POSE_F=null;try{f9();}catch(e){}}} // SPLAT. — (2026-10-01) et le CONTACT d'une pose (gerbe, choc, gomme)
       }
       /* (2026-10-14, sensations) LA RETOMBÉE D'UN PETIT SAUT. Un dos d'âne, un replacement : la caisse retombait et se tassait (squashT),
