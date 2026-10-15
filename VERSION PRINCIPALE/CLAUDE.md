@@ -114,9 +114,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   AVANT, ↓ en ARRIÈRE, ◄► sur un CÔTÉ (la figure part du côté du pouce, `o.dx`) ; une figure à deux sens (rodéo…) peut tenir l'avant ET
   l'arrière, le geste oriente son salto ; équiper remplace celle de CET emplacement ; un emplacement vide : son geste ne fait RIEN
   (`o.strict`, sauf l'auto-école) ; la boutique les range en trois sections, une carte par direction (`bqFigRail`, `bqFigSec`, `data-dir`, `bqFigDir`).
-  L'ÉLAN (15/10 soir, `FIG.PHY.elan`, `?elan=0` = avant) : une figure = un COUP, l'air freine la rotation (`r.c`, `kT`, `cov`), une figure suivante
-  s'y ajoute, la fin est un RETOUR souple (`ret`, mode `retour`) ; la prise forte n'est plus qu'un filet (sol proche, tap qui redresse) ; le jeu
-  dose une figure sur le vol avec `figKT()`.
+  LE COUP NET (15/10 soir, `FIG.PHY.elan`, `?elan=0` = la prise d'avant) : une figure = un COUP à 2 × la vitesse moyenne puis un FREIN RÉGULIER
+  (`m.acc`) qui l'arrête pile après ses tours (+`eps`, planté) ; durée dosée sur le vol (`figDose`) ; deux rotations = un axe penché en tours
+  entiers ; une contraire annule, deux qui se contrarient : la dernière mène ; la fin d'un mélange CONTINUE et ralentit jusqu'à l'endroit
+  (`finVise`, `aF` figé) ; la prise forte = filet. Le SAUT NITRO prend la figure de la direction tenue. HUD des figures v4 : `figNom` (DOUBLE…,
+  TOUPIE 720), flèche du geste (`r.flD`), pastilles + COMBO + RECORD (`SAVE.d.figRec`), extinction sur place, rappel `.arme` (`fhArme`).
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
@@ -204,7 +206,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aller voir ; magenta = boutique ; rouge = danger. La rareté se dit par sa couleur (`RARETES`).
 - On LIT en haut, on TOUCHE en bas ; cibles de 44 px ; bords via les safe areas `--sT`/`--sB`/`--sL`/`--sR` ; une seule courbe
   `--ease`, deux durées `--t-fast`/`--t-slow`.
-- Une police : Press Start 2P (locale, `--pix`). Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
+- UNE SEULE POLICE, PARTOUT : Press Start 2P (locale, `--pix`) — aucun texte du jeu dans une autre police, écran, bannière, champ de saisie
+  ou texture (Sacha, 15/10 : « il faut pas que je te le répète »). Deux FILETS la garantissent : `<style id="policeUnique">` (tout élément,
+  tout champ, en `var(--pix)!important`) et `UNE_POLICE` (tout `ctx.font` de canvas réécrit en pixel, à 62 % du corps, sans gras) ;
+  `apresPolice(f)` redessine une texture peinte avant que la police soit chargée ; `garde-charte.sh` refuse une version sans eux. Un texte
+  long : `--f1` (10 px), interligne 1,6-1,7, graisse 400 ; une note : `--f0`. Seule exception, nommée : le φ de `#spPhi` (logo).
+  Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
   `majPix`) ou `sansAcc`.
 - Ni emoji ni glyphe système dans l'interface : icônes pixel `pxi('nom')` (grilles `PXI_G`).
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
@@ -617,7 +624,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aller voir ; magenta = boutique ; rouge = danger. La rareté se dit par sa couleur (`RARETES`).
 - On LIT en haut, on TOUCHE en bas ; cibles de 44 px ; bords via les safe areas `--sT`/`--sB`/`--sL`/`--sR` ; une seule courbe
   `--ease`, deux durées `--t-fast`/`--t-slow`.
-- Une police : Press Start 2P (locale, `--pix`). Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
+- UNE SEULE POLICE, PARTOUT : Press Start 2P (locale, `--pix`) — aucun texte du jeu dans une autre police, écran, bannière, champ de saisie
+  ou texture (Sacha, 15/10 : « il faut pas que je te le répète »). Deux FILETS la garantissent : `<style id="policeUnique">` (tout élément,
+  tout champ, en `var(--pix)!important`) et `UNE_POLICE` (tout `ctx.font` de canvas réécrit en pixel, à 62 % du corps, sans gras) ;
+  `apresPolice(f)` redessine une texture peinte avant que la police soit chargée ; `garde-charte.sh` refuse une version sans eux. Un texte
+  long : `--f1` (10 px), interligne 1,6-1,7, graisse 400 ; une note : `--f0`. Seule exception, nommée : le φ de `#spPhi` (logo).
+  Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
   `majPix`) ou `sansAcc`.
 - Ni emoji ni glyphe système dans l'interface : icônes pixel `pxi('nom')` (grilles `PXI_G`).
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
