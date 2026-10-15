@@ -15,27 +15,45 @@
 (function(){
   'use strict';
   var BASE=[
-    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:0,     D:.6,  aura:50,  cat:'cote', m:[{a:[0,0,1],t:1}]},
-    {id:'toupie',     n:'TOUPIE 360',     en:'FLAT 360',      c:'TOUPIE',  ce:'SPIN',    p:2500,  D:.6,  aura:60,  cat:'cote', m:[{a:[0,1,0],t:1}]},
-    {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:2000,  D:.6,  aura:40,  cat:'cote', m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
-    {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:3500,  D:.8,  aura:45,  cat:'avant', m:[{a:[1,0,0],b:-.17,k:1}]},
-    {id:'saltoa',     n:'SALTO ARRIERE',  en:'BACKFLIP',      c:'ARRIERE', ce:'BACK',    p:6000,  D:.7,  aura:90,  cat:'avant', m:[{a:[1,0,0],t:-1}]},
-    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:6000,  D:.7,  aura:90,  cat:'avant', m:[{a:[1,0,0],t:1}]},
-    {id:'double',     n:'DOUBLE TONNEAU', en:'DOUBLE ROLL',   c:'DOUBLE',  ce:'ROLL×2',  p:9000,  D:.8,  aura:110, cat:'cote', m:[{a:[0,0,1],t:2}]},
-    {id:'tirebouchon',n:'TIRE-BOUCHON',   en:'CORKSCREW',     c:'BOUCHON', ce:'CORK',    p:14000, D:.8,  aura:130, cat:'cote', m:[{a:[1,0,0],t:-1},{a:[0,0,1],t:1}]},
-    {id:'helico',     n:'HELICO 720',     en:'HELI 720',      c:'HELICO',  ce:'HELI',    p:18000, D:.85, aura:140, cat:'cote', m:[{a:[0,1,0],t:2}]},
-    {id:'penche',     n:'VRILLE PENCHEE', en:'OFF-AXIS SPIN', c:'PENCHEE', ce:'OFFAXIS', p:22000, D:.75, aura:120, cat:'cote', m:[{a:[.7071,.7071,0],t:1}]},
-    {id:'rodeo',      n:'RODEO',          en:'RODEO',         c:'RODEO',   ce:'RODEO',   p:30000, D:.9,  aura:160, cat:'cote', m:[{a:[0,1,0],t:1},{a:[1,0,0],t:-1}]},
-    {id:'cosmique',   n:'SALTO COSMIQUE', en:'COSMIC FLIP',   c:'COSMIQ',  ce:'COSMIC',  p:50000, D:1,   aura:220, cat:'cote', m:[{a:[1,0,0],t:-2},{a:[0,0,1],t:1}]}];
+    /* (2026-10-15, pôle TECHNIQUE — Léo par le MANAGER : « la première figure : un TAIL WHIP » ; en GLISSER, ← → en l'air) LE TAIL WHIP : l'ARRIÈRE
+       fait le tour autour de l'axe vertical, le NEZ reste en place (`piv` : le point fixe, en part de la demi-longueur vers le nez — le jeu y
+       fixe la rotation) ; une seule explosion, sur le flanc de la POUPE (la queue fouette). Offert d'office ; le TONNEAU s'achète (1 500). */
+    {id:'tailwhip',   n:'TAIL WHIP',      en:'TAIL WHIP',     c:'WHIP',    ce:'WHIP',    p:0,     D:.62, aura:50,  dir:['cote'], m:[{a:[0,1,0],t:1}],piv:.92},
+    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:1500,  D:.6,  aura:50,  dir:['cote'], m:[{a:[0,0,1],t:1}]},
+    {id:'toupie',     n:'TOUPIE 360',     en:'FLAT 360',      c:'TOUPIE',  ce:'SPIN',    p:2500,  D:.6,  aura:60,  dir:['cote'], m:[{a:[0,1,0],t:1}]},
+    {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:2000,  D:.6,  aura:40,  dir:['cote'], m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
+    {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:3500,  D:.8,  aura:45,  dir:['arriere'], m:[{a:[1,0,0],b:-.17,k:1}]},
+    {id:'saltoa',     n:'SALTO ARRIERE',  en:'BACKFLIP',      c:'ARRIERE', ce:'BACK',    p:6000,  D:.7,  aura:90,  dir:['arriere'], m:[{a:[1,0,0],t:-1}]},
+    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:6000,  D:.7,  aura:90,  dir:['avant'], m:[{a:[1,0,0],t:1}]},
+    {id:'double',     n:'DOUBLE TONNEAU', en:'DOUBLE ROLL',   c:'DOUBLE',  ce:'ROLL×2',  p:9000,  D:.8,  aura:110, dir:['cote'], m:[{a:[0,0,1],t:2}]},
+    {id:'tirebouchon',n:'TIRE-BOUCHON',   en:'CORKSCREW',     c:'BOUCHON', ce:'CORK',    p:14000, D:.8,  aura:130, dir:['avant','arriere'], m:[{a:[1,0,0],t:-1},{a:[0,0,1],t:1}]},
+    {id:'helico',     n:'HELICO 720',     en:'HELI 720',      c:'HELICO',  ce:'HELI',    p:18000, D:.85, aura:140, dir:['cote'], m:[{a:[0,1,0],t:2}]},
+    {id:'penche',     n:'VRILLE PENCHEE', en:'OFF-AXIS SPIN', c:'PENCHEE', ce:'OFFAXIS', p:22000, D:.75, aura:120, dir:['cote'], m:[{a:[.7071,.7071,0],t:1}]},
+    {id:'rodeo',      n:'RODEO',          en:'RODEO',         c:'RODEO',   ce:'RODEO',   p:30000, D:.9,  aura:160, dir:['avant','arriere'], m:[{a:[0,1,0],t:1},{a:[1,0,0],t:-1}]},
+    {id:'cosmique',   n:'SALTO COSMIQUE', en:'COSMIC FLIP',   c:'COSMIQ',  ce:'COSMIC',  p:50000, D:1,   aura:220, dir:['avant','arriere'], m:[{a:[1,0,0],t:-2},{a:[0,0,1],t:1}]}];
   /* (2026-10-14, LES FIGURES v2) `c` / `ce` : le nom COURT du bouton de vol (8 lettres au plus, police pixel). Une figure générée prend le 1er mot de son nom. */
-  /* LES DEUX FAMILLES (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant : les tonneaux
-     doivent aller vers la droite ou la gauche, orientés par la direction, alors que le salto avant a juste besoin d'aller vers l'avant »).
-     `cat` : 'avant' = tout se passe sur l'axe des roues (saltos, chandelle) — rien à choisir, ni gauche ni droite ; 'cote' = au moins un
-     mouvement a un CÔTÉ (tonneau, toupie, vrille penchée, shimmy, et les figures composées qui en contiennent un) : il part du côté du pouce.
-     C'est la même frontière que le miroir de `quat`/`Corps.lance` (un mouvement pur sur x garde son sens, tout le reste se tire en miroir).
-     Une figure générée n'a pas de `cat` : la règle la range. */
-  function cat(f){if(!f)return 'cote';if(f.cat==='avant'||f.cat==='cote')return f.cat;
-    for(var i=0;i<f.m.length;i++){var a=f.m[i].a;if(a[1]!==0||a[2]!==0)return 'cote';}return 'avant';}
+  /* LES DIRECTIONS D'UNE FIGURE (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant : les
+     tonneaux doivent aller vers la droite ou la gauche, orientés par la direction, alors que le salto avant a juste besoin d'aller vers
+     l'avant » · puis « mets aussi une catégorie vers l'ARRIÈRE pour les saltos arrière ou certaines figures qui peuvent être faites vers
+     l'arrière ; une même figure doit avoir marqué à quelle direction elle peut aller : le tonneau, c'est que les côtés, mais le rodéo peut
+     être mis à l'avant ou à l'arrière »). `dir` = les gestes qui la jouent, parmi 'avant' (pouce en avant), 'arriere' (pouce en arrière),
+     'cote' (pouce à gauche ou à droite : elle part de ce côté). La règle, qui range aussi une figure générée (sans `dir`) :
+     · que l'axe des roues (x : saltos, chandelle) → le sens du mouvement : 'avant' (le nez plonge) ou 'arriere' (le nez se lève) ;
+     · aucun mouvement sur x (tonneau, toupie, vrille penchée, shimmy) → 'cote' ;
+     · un salto ET autre chose (rodéo, tire-bouchon, cosmique) → 'avant' ET 'arriere' : le geste choisit le sens du salto (`oriente`).
+     C'est la frontière du miroir de `quat`/`Corps.lance` : un mouvement pur sur x garde son sens, tout le reste se tire en miroir. */
+  var DIRS=['avant','arriere','cote'];
+  function dirs(f){if(!f)return ['cote'];
+    if(Array.isArray(f.dir)){var L=f.dir.filter(function(d){return DIRS.indexOf(d)>=0;});if(L.length)return L;}
+    var x=0,autre=false;for(var i=0;i<f.m.length;i++){var o=f.m[i],a=o.a;if(a[0]!==0&&a[1]===0&&a[2]===0){var v=o.t!=null?o.t:o.b;x=x||(v>0?1:-1);}else autre=true;}
+    return !x?['cote']:autre?['avant','arriere']:[x>0?'avant':'arriere'];}
+  /* la figure JOUÉE dans une direction : en 'avant', ses mouvements sur l'axe des roues tournent nez en bas ; en 'arriere', nez en haut ; de
+     côté, elle reste telle quelle (son côté vient du pouce). Une copie par figure et par sens, gardée : le jeu compare les figures par identité. */
+  var ORI={};
+  function oriente(f,d){if(!f||(d!=='avant'&&d!=='arriere'))return f;var k=f.id+'|'+d;if(ORI[k]&&ORI[k].src===f)return ORI[k];var g=d==='avant'?1:-1,m=[];
+    for(var i=0;i<f.m.length;i++){var o=f.m[i],a=o.a,c={a:a.slice()};if(o.t!=null)c.t=o.t;else{c.b=o.b;c.k=o.k;}
+      if(a[0]!==0&&a[1]===0&&a[2]===0){if(c.t!=null)c.t=Math.abs(c.t)*g;else c.b=Math.abs(c.b)*g;}m.push(c);}
+    var r={};for(var p in f)if(Object.prototype.hasOwnProperty.call(f,p))r[p]=f[p];r.m=m;r.sens=d;r.src=f;return (ORI[k]=r);}
   var CLE_PERSO='cashcarFigPerso';
   function valide(f){
     if(!f||typeof f!=='object'||!/^[a-z0-9_]{2,24}$/.test(f.id)||typeof f.n!=='string'||!Array.isArray(f.m)||!f.m.length||f.m.length>3)return false;
@@ -62,7 +80,7 @@
     return o;}
   // tirer une figure au hasard parmi celles qu'on POSSÈDE — jamais deux fois la même d'affilée si on en a plusieurs
   function tire(possedees,derniere,alea){alea=alea||Math.random;var L=(possedees||[]).filter(function(id){return !!PAR[id];});
-    if(!L.length)L=['tonneau'];if(L.length>1&&derniere)L=L.filter(function(id){return id!==derniere;});return PAR[L[Math.floor(alea()*L.length)]]||PAR.tonneau;}
+    if(!L.length)L=['tailwhip'];if(L.length>1&&derniere)L=L.filter(function(id){return id!==derniere;});return PAR[L[Math.floor(alea()*L.length)]]||PAR.tailwhip;}
   /* LE LECTEUR : les figures en cours (`actifs`) et celles qui attendent (`file`). La suivante part quand la dernière lancée passe CHEV (70 %) :
      les deux rotations se composent — l'une ralentit pendant que l'autre prend son élan, la caisse ne s'arrête jamais entre deux figures. */
   var CHEV=.7;
@@ -106,7 +124,21 @@
      Une figure ne paie qu'une fois PLANTÉE (ou posée à moins de `ok` de l'endroit) : `tick` rend les figures plantées, avec leur nombre de
      tours (`reps`). Les points d'explosion (`evts`) sont lus par le jeu pour les flammes, le son, la secousse. */
   var PHY={I:[1,1.12,.46],gyro:.12,tImp:.08,kImp:1.08,aHold:12,wMax:22,aCtl:85,wE:1.7,wMin:4.5,
-    pd:{w:13,z:.42},aero:{w:3.2,z:.36},fin:.82,ok:.35,wPose:9,drag:.05,sub:1/120,w0max:3,q0max:.9};
+    pd:{w:13,z:.42},aero:{w:3.2,z:.36},fin:.82,ok:.35,wPose:9,drag:.05,sub:1/120,w0max:3,q0max:.9,
+    elan:true,kT:1.1,cAir:2.6,cov:.97,ret:{w:5.5,z:.65},retT:.25};
+  /* L'ÉLAN (2026-10-15 soir, Sacha : « retravaille un peu la physique : là, on dirait une animation — quand tu fais la figure, la voiture se
+     redresse très vite et retourne très vite à un axe parfaitement droit, alors qu'il faudrait que ça agisse plus comme une sorte d'impulsion
+     qui donne un élan à la voiture dans un sens, et si tu fais l'autre figure en même temps, ça modifie cette impulsion »). MESURÉ avant
+     (banc-corps) : la caisse tournait à vitesse CONSTANTE (tonneau 11,3 rad/s), puis passait de 11 à 1 rad/s en 0,1 s et rebondissait sur
+     l'axe (la PRISE à 85 rad/s² + le planté raide) ; après deux figures, la prise la faisait tourner à vitesse FIXE jusqu'à l'endroit.
+     Avec `elan` (défaut ; `?elan=0` dans le jeu = avant) :
+     · le COUP : l'explosion lance la rotation fort, et l'AIR la freine en continu (`cAir` par seconde, exponentiel) — la caisse file, puis
+       GLISSE et ralentit d'elle-même ; le coup est dosé pour que la glissade fasse ses tours (`cov` = 97 % : elle arrive presque à l'endroit,
+       lentement) et atteigne `fin` en `kT` × D (`r.c`) — un vol court (D raccourci par le jeu) : l'air freine plus fort, le coup est plus sec ;
+     · une figure lancée pendant qu'une autre glisse S'AJOUTE à ce qui tourne encore : l'axe se penche, la caisse part en vrille composée ;
+     · la fin : plus de freinage sec — un RETOUR souple vers l'endroit (`ret`, ω 6,5, amorti .6), qui reprend la caisse là où sa glissade
+       l'a laissée ; elle paie quand elle y est (comme le planté) ;
+     · la PRISE forte ne sert plus que de FILET : le sol arrive (le budget du viseur), le tap qui redresse, deux coups qui s'annulent. */
   var AUTO={derive:{id:'derive',n:'TOUPIE DE DRIFT',en:'DRIFT SPIN',p:0,D:.85,aura:70,m:[{a:[0,1,0],t:1}],auto:1}};
   function vNorm(a){var l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}
   function vDot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
@@ -138,16 +170,17 @@
      tourne plus vite). o.tient : le doigt est encore sur le bouton (poussée continue) · o.vise : la vitesse visée est un TOTAL (la toupie de
      drift reprend l'élan qu'a déjà la caisse au lieu de s'y ajouter). */
   Corps.prototype.lance=function(f,sens,D,o){o=o||{};D=Math.max(.3,D||f.D);sens=sens||1;
-    var r={f:f,s:sens,D:D,t:0,mv:[],imp:[0,0,0],impT:PHY.tImp,tient:!!o.tient,tenu:0,fini:false,paye:false,reps:0,osc:null,boums:[],force:false,douce:!!o.douce},tq=[0,0,0]; // douce : une figure AUTOMATIQUE (celle du saut nitro, la toupie de drift) — le joueur ne l'a pas risquée : pas finie = pas payée, jamais une CHUTE
+    var r={f:f,s:sens,D:D,t:0,mv:[],imp:[0,0,0],impT:PHY.tImp,tient:!!o.tient,tenu:0,fini:false,paye:false,reps:0,osc:null,boums:[],force:false,douce:!!o.douce,
+      c:PHY.elan?-Math.log(1-PHY.fin/PHY.cov)/(PHY.kT*D):0},tq=[0,0,0]; // (L'ÉLAN) c : le frein de l'air sur CETTE figure — la glissade atteint `fin` en kT × D (plus court si le vol l'est) // douce : une figure AUTOMATIQUE (celle du saut nitro, la toupie de drift) — le joueur ne l'a pas risquée : pas finie = pas payée, jamais une CHUTE
     for(var i=0;i<f.m.length;i++){var m=f.m[i],a=vNorm(m.a);
-      if(m.t!=null){var d=(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)?(m.t>0?1:-1):(m.t>0?1:-1)*sens,tours=Math.abs(m.t),sp=6.2832*tours/D*PHY.kImp;
+      if(m.t!=null){var d=(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)?(m.t>0?1:-1):(m.t>0?1:-1)*sens,tours=Math.abs(m.t),sp=PHY.elan?6.2832*tours*r.c*PHY.cov:6.2832*tours/D*PHY.kImp; // (L'ÉLAN) la glissade freinée fait ses tours : coup = tours × 2π × frein
         if(o.vise)sp=Math.max(0,sp-vDot(this.w,a)*d);
         r.mv.push({a:a,d:d,tours:tours,th:0});for(var j=0;j<3;j++){r.imp[j]+=a[j]*d*sp;tq[j]+=a[j]*d*sp;}}
       else{ // un BATTEMENT (shimmy, chandelle) : un ressort qui bat — l'impulsion le lance, sa raideur le fait battre k fois en D
         var amp=m.b*6.2832*(m.k>1?sens:1),wo=m.k>1?6.2832*m.k/D:1.7*Math.PI/D,zo=m.k>1?.06:.5,rz=Math.sqrt(1-zo*zo),
           v0=amp*wo/Math.exp(-zo/rz*Math.atan2(rz,zo)); // la vitesse qui porte le ressort amorti JUSTE à l'amplitude voulue (le 1er sommet)
         r.osc={w:wo,z:zo};for(var j2=0;j2<3;j2++){r.imp[j2]+=a[j2]*v0;tq[j2]+=a[j2]*v0;}}}
-    var mag=Math.hypot(tq[0],tq[1],tq[2]);if(mag>1e-6)r.boums=boums([tq[0]/mag,tq[1]/mag,tq[2]/mag],Math.min(1.6,mag/11));
+    var mag=Math.hypot(tq[0],tq[1],tq[2]);if(mag>1e-6)r.boums=f.piv?[{p:[0,-.2,-.9],f:[tq[1]>0?-1:1,0,0],k:Math.min(1.6,mag/11)*1.15}]:boums([tq[0]/mag,tq[1]/mag,tq[2]/mag],Math.min(1.6,mag/11)); // (TAIL WHIP) la poupe seule est fouettée
     for(var b=0;b<r.boums.length;b++)this.evts.push(r.boums[b]);
     this.figs.push(r);this.n++;this.der=f.id;return r;};
   Corps.prototype.tiens=function(r,on){if(r)r.tient=!!on&&!r.paye;};
@@ -155,9 +188,9 @@
      ou dans Asphalt 8 ») : une explosion de plus sur la MÊME figure, dans le même sens, encore en train de tourner — un tour de plus prévu
      (TONNEAU → TONNEAU ×2 → ×3…), la poussée S'AJOUTE à ce qui tourne. Une seule figure qui compte ses tours, pas deux qui se les volent. */
   Corps.prototype.empile=function(r,D){if(!r||r.paye||!r.mv.length)return null;D=Math.max(.3,D||r.f.D);
-    var m=r.mv[0],sp=6.2832/D*PHY.kImp;m.tours+=1;r.D+=D;r.fini=false;r.force=false;r.rate=false;
+    var m=r.mv[0],sp=PHY.elan?6.2832*(r.c||PHY.cAir)*PHY.cov:6.2832/D*PHY.kImp;m.tours+=1;r.D+=D;r.fini=false;r.force=false;r.rate=false;
     r.imp[0]=m.a[0]*m.d*sp;r.imp[1]=m.a[1]*m.d*sp;r.imp[2]=m.a[2]*m.d*sp;r.impT=PHY.tImp;
-    var b=boums([r.imp[0]/sp,r.imp[1]/sp,r.imp[2]/sp],Math.min(1.6,sp/11));for(var i=0;i<b.length;i++)this.evts.push(b[i]);
+    var b=r.f.piv?[{p:[0,-.2,-.9],f:[r.imp[1]>0?-1:1,0,0],k:Math.min(1.6,sp/11)*1.15}]:boums([r.imp[0]/sp,r.imp[1]/sp,r.imp[2]/sp],Math.min(1.6,sp/11));for(var i=0;i<b.length;i++)this.evts.push(b[i]); // (TAIL WHIP) un tour de plus : la poupe refouette
     this.n++;return r;};
   /* LE REDRESSEMENT (2026-10-14, Sacha : « quand on a fait une figure stylée et qu'on veut se restabiliser face à la route : 1 seul tap permet de
      redresser la voiture ») : tout ce qui tourne passe à la PRISE, tout de suite, avec un freinage deux fois plus fort (`urgent`) — la caisse
@@ -173,8 +206,11 @@
     for(i=0;i<this.figs.length;i++){r=this.figs[i];if(r.paye||!(r.impT>0))continue;var u=r.impT/PHY.tImp;W[0]+=r.imp[0]*u;W[1]+=r.imp[1]*u;W[2]+=r.imp[2]*u;}
     for(i=0;i<this.figs.length;i++){r=this.figs[i];if(r.paye)continue;any=true;
       if(r.osc&&!r.mv.length){t=Math.max(t,r.D-r.t);continue;}
-      for(var j=0;j<r.mv.length;j++){var m=r.mv[j],rem=Math.max(0,m.tours*6.2832*PHY.fin-m.th),v=Math.max(1.5,Math.abs(vDot(W,m.a)));t=Math.max(t,rem/v+(r.tient?.35:0));}}
-    return any?t+Math.hypot(W[0],W[1],W[2])/PHY.aCtl+.14:0;};
+      if(PHY.elan&&r.fini)continue; // (L'ÉLAN) finie : il ne lui reste que le retour (compté en bas)
+      for(var j=0;j<r.mv.length;j++){var m=r.mv[j],rem=Math.max(0,m.tours*6.2832*PHY.fin-m.th),v=Math.max(1.5,Math.abs(vDot(W,m.a))),ti=rem/v;
+        if(PHY.elan&&rem>0){var c=r.c||PHY.cAir,va=vDot(W,m.a)*m.d;ti=va*.97>rem*c?-Math.log(1-rem*c/va)/c:.2;} // (L'ÉLAN) la glissade freinée : x(t) = v/c·(1 − e^(−ct)) ; trop peu d'élan pour finir : elle s'arrêtera là (pas plus de temps à réserver)
+        t=Math.max(t,ti+(r.tient?.35:0));}}
+    return any?t+(PHY.elan?PHY.retT:Math.hypot(W[0],W[1],W[2])/PHY.aCtl+.14):0;};
   Corps.prototype.ecart=function(){return 2*Math.acos(Math.min(1,Math.abs(this.q[3])));};
   Corps.prototype.tick=function(dt){var fin=[];if(!(dt>0))return fin;var n=Math.max(1,Math.ceil(dt/PHY.sub)),h=dt/n;for(var k=0;k<n;k++)this.pas(h,fin);return fin;};
   Corps.prototype.pas=function(h,fin){
@@ -187,25 +223,32 @@
     var gx=(I[1]-I[2])/I[0]*w[1]*w[2],gy=(I[2]-I[0])/I[1]*w[2]*w[0],gz=(I[0]-I[1])/I[2]*w[0]*w[1],kg=P.gyro*h;
     w[0]+=gx*kg;w[1]+=gy*kg;w[2]+=gz*kg;
     // 3. QUI COMMANDE : une figure qui tourne encore (libre), une figure finie à planter (prise), ou personne (l'air la range)
-    var tourne=false,aPlanter=false,osc=null,tient=false;
+    var tourne=false,aPlanter=false,osc=null,tient=false,prog=0;
     for(i=0;i<F.length;i++){r=F[i];if(r.paye)continue;
       if(r.osc&&r.t<r.D)osc=r.osc;
       if(!r.mv.length)continue;
       if(r.tient)tient=true;
-      if(!r.fini){var ok=true,mort=false;for(j=0;j<r.mv.length;j++){m=r.mv[j];if(m.th<m.tours*6.2832*P.fin){ok=false;
+      if(!r.fini){var ok=true,mort=false;for(j=0;j<r.mv.length;j++){m=r.mv[j];prog=Math.max(prog,m.th/(m.tours*6.2832));if(m.th<m.tours*6.2832*P.fin){ok=false;
           // ANNULÉE : une explosion contraire a éteint la rotation sur SON axe (un tonneau à gauche sur un tonneau à droite) — elle ne finira jamais, même si
           // la caisse tourne encore sur un autre : au bout de 0,35 s, elle sort du compte (et ne paie pas)
-          if(r.impT<=0&&!r.tient&&Math.abs(vDot(w,m.a))<1.2){m.cale=(m.cale||0)+h;if(m.cale>.35)mort=true;}else m.cale=0;}}
+          if(r.impT<=0&&!r.tient&&Math.abs(vDot(w,m.a))<1.2&&!(P.elan&&m.th>m.tours*6.2832*.45)){m.cale=(m.cale||0)+h;if(m.cale>.35)mort=true;}else m.cale=0;
+          // (L'ÉLAN) À BOUT DE SOUFFLE : ce qui reste d'élan sur SON axe (v/c, la glissade) ne la mènera plus au bout (deux coups mêlés, un coup contraire) :
+          // elle s'arrête là, le retour souple prend la caisse (MESURÉ au banc-corps : sinon elle flottait 0,8 s à l'envers, presque immobile)
+          if(P.elan&&r.impT<=0&&!r.tient){var vv=vDot(w,m.a)*m.d,cc=r.c||P.cAir,rr=(m.tours*6.2832*P.fin-m.th)*cc/Math.max(1e-6,vv); // la part de la glissade restante qu'il lui faudrait
+            if(vv<=0||rr>=.97||r.t-Math.log(1-rr)/cc>P.kT*r.D*1.3+.15)mort=true;}}} // (la traîne : finir au-delà de 1,3 fois sa durée prévue — elle s'arrête là)
         if(ok&&!r.tient)r.fini=true;else if(mort||(!r.tient&&r.t>r.D*2.2+.4)){r.fini=true;r.force=true;}} // (trois rotations empilées qui se mêlent : passé 2,2 fois sa durée, on se replace — elle paie si l'essentiel est fait)
       if(!r.fini||r.tient)tourne=true;else aPlanter=true;}
     // plus le temps de finir (le viseur dit quand on touche) : on lâche tout et on se replace — ce qui n'a pas fini ne comptera pas
     // CALÉE : deux explosions qui s'annulent (un salto avant puis un salto arrière) laissent la caisse presque immobile, n'importe où — l'air ne
     // finira pas la figure à sa place : au bout de 0,2 s, on se replace (rien ne paie)
-    var sp0=Math.hypot(w[0],w[1],w[2]);this.cale=tourne&&!tient&&sp0<2.5?(this.cale||0)+h:0;
-    if(tourne&&!tient&&(this.cale>.2||this.budget<this.reste()+.05)){for(i=0;i<F.length;i++){r=F[i];if(!r.paye&&r.mv.length&&!r.fini){r.fini=true;r.force=true;}}tourne=false;aPlanter=true;}
+    var sp0=Math.hypot(w[0],w[1],w[2]),force9=false;this.cale=tourne&&!tient&&sp0<2.5&&!(P.elan&&prog>.45)?(this.cale||0)+h:0;
+    if(tourne&&!tient&&(this.cale>.2||this.budget<this.reste()+.05)){for(i=0;i<F.length;i++){r=F[i];if(!r.paye&&r.mv.length&&!r.fini){r.fini=true;r.force=true;}}tourne=false;aPlanter=true;force9=!(this.cale>.2);}
     var sp=Math.hypot(w[0],w[1],w[2]),R=this.r;
     if(this.urgent>0&&!tourne&&!aPlanter&&this.ecart()>.3)aPlanter=true; // (le redressement) même une caisse qui ne fait que se balancer se remet tout de suite
-    if(tourne){this.mode='libre';var dk=1-P.drag*h;w[0]*=dk;w[1]*=dk;w[2]*=dk;}
+    var doux=P.elan&&!force9&&!(this.urgent>0)&&!(this.budget<P.retT)&&this.mode!=='prise'; // (L'ÉLAN) la fin en douceur — sauf le filet : sol proche, redressement (deux coups qui s'annulent : le retour souple aussi)
+    if(tourne){this.mode='libre';var cD=P.drag;if(P.elan){cD=0;for(i=F.length-1;i>=0;i--){r=F[i];if(!r.paye&&!r.fini&&r.mv.length&&r.c){cD=r.c;break;}}cD=cD||P.cAir;} // (L'ÉLAN) l'air freine au rythme de la DERNIÈRE figure lancée : c'est elle qui donne l'élan (au plus nerveux, la précédente n'arrivait qu'à 85 % de son tour)
+      var dk=P.elan?Math.exp(-cD*h):1-P.drag*h;w[0]*=dk;w[1]*=dk;w[2]*=dk;}
+    else if(aPlanter&&doux&&this.mode!=='plante')this.mode='retour';
     else if(aPlanter&&this.mode!=='plante'){this.mode='prise';this.tPrise+=h;
       retour(this.q,R);var nf0=R.n[0],nf1=R.n[1],nf2=R.n[2],pf=R.phi,dn=w[0]*nf0+w[1]*nf1+w[2]*nf2;
       if(dn<0&&sp>.5&&pf>.5&&!(this.urgent>0)&&!(this.budget<(6.2832-pf)/sp+.1&&this.budget>pf/Math.max(sp,P.wMin))) /* (le redressement : le plus court chemin, tout de suite) */
@@ -214,9 +257,9 @@
       else{var tg=Math.sqrt(P.wE*P.wE+2*P.aCtl*pf),cap=Math.max(sp,P.wMin);if(tg>cap)tg=cap;
         var e0=nf0*tg-w[0],e1=nf1*tg-w[1],e2=nf2*tg-w[2],em=Math.hypot(e0,e1,e2),lim=P.aCtl*1.6*h*(this.budget<.5||this.urgent>0?2:1);if(em>lim){e0*=lim/em;e1*=lim/em;e2*=lim/em;}
         w[0]+=e0;w[1]+=e1;w[2]+=e2;}}
-    if(!tourne&&(this.mode==='plante'||!aPlanter)){ // LE RESSORT : le planté (raide, un rebond) ou l'air (mou : l'élan hérité se voit, puis se range)
-      if(!aPlanter&&this.mode!=='aero'&&this.mode!=='plante')this.mode='aero'; // le planté va au bout de son rebond (il ne repasse pas au ressort mou en pleine course)
-      var pr=this.mode==='plante'?P.pd:osc||P.aero,wn=pr.w*(this.mode==='aero'&&!osc?1+2.5*this.poseK:1),z=pr.z+(this.mode==='aero'&&!osc?.4*this.poseK:0);
+    if(!tourne&&(this.mode==='plante'||this.mode==='retour'||!aPlanter)){ // LE RESSORT : le planté (raide, un rebond), le RETOUR de l'élan (souple) ou l'air (mou : l'élan hérité se voit, puis se range)
+      if(!aPlanter&&this.mode!=='aero'&&this.mode!=='plante'&&this.mode!=='retour')this.mode='aero'; // le planté / le retour vont au bout de leur course (ils ne repassent pas au ressort mou en pleine course)
+      var pr=this.mode==='plante'?P.pd:this.mode==='retour'?P.ret:osc||P.aero,wn=pr.w*(this.mode==='aero'&&!osc?1+2.5*this.poseK:1),z=pr.z+(this.mode==='aero'&&!osc?.4*this.poseK:0);
       retour(this.q,R);var kp=wn*wn*R.phi,kd=2*z*wn;
       w[0]+=(kp*R.n[0]-kd*w[0])*h;w[1]+=(kp*R.n[1]-kd*w[1])*h;w[2]+=(kp*R.n[2]-kd*w[2])*h;}
     if(this.urgent>0)this.urgent-=h;
@@ -227,10 +270,10 @@
     // 6. PLANTÉE : à l'endroit, presque immobile — les figures finies paient (leurs tours comptés), les battements à la fin de leur durée
     var ang=this.ecart();
     for(i=F.length-1;i>=0;i--){r=F[i];if(r.paye)continue;
-      if(r.mv.length){if(r.fini&&this.mode==='plante'&&ang<.12&&sp<2.5)this.paye(r,fin);}
+      if(r.mv.length){if(r.fini&&(this.mode==='plante'||this.mode==='retour')&&ang<.12&&sp<2.5)this.paye(r,fin);}
       else if(r.t>=r.D){this.paye(r,fin);}}
     for(i=F.length-1;i>=0;i--)if(F[i].paye&&F[i].t>F[i].D*.5)F.splice(i,1);
-    if(this.mode==='plante'&&ang<.012&&sp<.1){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;w[0]=w[1]=w[2]=0;this.mode='aero';this.tPrise=0;}
+    if((this.mode==='plante'||this.mode==='retour')&&ang<.012&&sp<.1){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;w[0]=w[1]=w[2]=0;this.mode='aero';this.tPrise=0;}
   };
   // une figure qui paie : ses tours comptés sur son axe principal (×2 si on a tenu pour un tour de plus) — une figure FORCÉE (plus le temps) ne paie que si elle a fait l'essentiel
   Corps.prototype.paye=function(r,fin){r.paye=true;r.tient=false;
@@ -267,7 +310,7 @@
     try{localStorage.setItem(CLE_PERSO,JSON.stringify(L.slice(-40)));}catch(e){return false;}rebatit();return true;}
   function retire(id){var L=perso().filter(function(x){return x.id!==id;});try{localStorage.setItem(CLE_PERSO,JSON.stringify(L));}catch(e){}rebatit();}
   var FIG={liste:[],par:{},quat:quat,tire:tire,Lecteur:Lecteur,genere:genere,ajoute:ajoute,retire:retire,rebatit:rebatit,valide:valide,CHEV:CHEV,CLE_PERSO:CLE_PERSO,
-    Corps:Corps,PHY:PHY,auto:AUTO,boums:boums,nomReps:function(f,r,l){return nomReps(f,r,l);},cat:cat,
+    Corps:Corps,PHY:PHY,auto:AUTO,boums:boums,nomReps:function(f,r,l){return nomReps(f,r,l);},dirs:dirs,oriente:oriente,DIRS:DIRS,
     nom:function(f,lang){return lang==='en'&&f.en?f.en:f.n;}};
   window.FIG=FIG;rebatit();
 })();

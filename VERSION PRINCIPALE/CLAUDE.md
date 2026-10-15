@@ -109,12 +109,17 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
   les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo. Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
   double-tap NITRO (`FDIR`/`figDirSlot` : avant = 1, côté = 2 ; `?figdir=0` rend les boutons), le HUD des figures `#fh` (`fhLance`/`fhPlante`/
-  `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO. Depuis le 15/10 soir : DEUX FAMILLES (`FIG.cat` dans figures.js,
-  `figFam`/`figSlots`/`FIG_FAM`) — l'emplacement 1 = une figure AVANT (saltos, chandelle), le 2 = une figure de CÔTÉ (tonneau, toupie… elle part
-  du côté du pouce, `o.dx`) ; équiper remplace celle de SA famille ; sans figure avant, le pouce en avant ne fait RIEN (`o.strict`, sauf
-  l'auto-école) ; la boutique les range en deux sections (`bqFigSec`, `.bqSec`).
+  `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO. Depuis le 15/10 soir : TROIS DIRECTIONS, TROIS EMPLACEMENTS
+  (`FIG_NB`=3 ; `FIG.dirs`/`FIG.oriente` dans figures.js ; `FIG_DIR`/`FIG_FAM`/`figPeut`/`figSlots`/`figRange`, `SAVE.d.figEq3`) — ↑ pouce en
+  AVANT, ↓ en ARRIÈRE, ◄► sur un CÔTÉ (la figure part du côté du pouce, `o.dx`) ; une figure à deux sens (rodéo…) peut tenir l'avant ET
+  l'arrière, le geste oriente son salto ; équiper remplace celle de CET emplacement ; un emplacement vide : son geste ne fait RIEN
+  (`o.strict`, sauf l'auto-école) ; la boutique les range en trois sections, une carte par direction (`bqFigRail`, `bqFigSec`, `data-dir`, `bqFigDir`).
+  L'ÉLAN (15/10 soir, `FIG.PHY.elan`, `?elan=0` = avant) : une figure = un COUP, l'air freine la rotation (`r.c`, `kT`, `cov`), une figure suivante
+  s'y ajoute, la fin est un RETOUR souple (`ret`, mode `retour`) ; la prise forte n'est plus qu'un filet (sol proche, tap qui redresse) ; le jeu
+  dose une figure sur le vol avec `figKT()`.
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
-  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain ; ← → tonneau, ↑ salto arrière, ↓ salto avant, au sol `veqSaut(fo)`).
+  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
+  `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
@@ -136,10 +141,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
-  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`, dragon `DRG`,
-  dauphins `DAUPH`/`dolTick`, pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
-  moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`), hors nitro le même feu en
-  minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens), le jet propulsé (`NFEU_JET`), le dragon en feu de pixels `DFEU`/`dfeuPas` (`?dragon=ancien`, `dbgDragon('pix',0|1)`).
+  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`,
+  pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
+  moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`) et son jet propulsé (`NFEU_JET`), hors nitro le
+  même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
+  les éclats `ECLATS`).
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
@@ -183,11 +189,15 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
   vit sur la branche `garde/carriere`. Les missions restent.
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
-- Plus de SNAKE LOOP, de DAUPHIN, de NITROOO ni de DRAGON (15/10, Sacha) : `SANS_SNAKE` / `SANS_DAUPHIN` / `SANS_NITROOO` / `SANS_DRAGON`,
-  coupés pas arrachés — ni figure, ni gain, ni créature 3D (rien dans la scène, rien de compilé). Le nitro ordinaire reste.
-  `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (avec `?nitrooo=1`) les rendent pour comparer.
+- Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
+- PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
+  serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
+  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (non chargés par le jeu ; lus
+  par les boîtes). Les animaux reviendront PAR MAP (d'abord des singes de décor au SOLEIL DE JADE). Le reste : git (85470fb4 et avant).
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
+- HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
+  liste des figures sous la chaîne, plus de « $×1 » au palier 0 du flow, plus de nom du pouvoir au centre. On ne les rallume pas sans lui.
 
 **Interface (charte v4/v5 — pour tout écran neuf ou retouché ; de vieilles règles CSS y dérogent encore)**
 - PENCHÉ (`--sk`) = je touche · DROIT à coins coupés = je lis · ROND = une jauge.
@@ -253,7 +263,7 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 
 **Les outils de Léo** (locaux, retirés du site par `vercel-build.sh` et des portails par `poki-construire.js`) : `simulateur.html`
 (`python3 simulateur/serveur.py 9101`), `maps-ciel.html` (`python3 maps-ciel/serveur.py 9019`), `salle-blanche.html`,
-`boite-dauphins.html`, `boite-singe.html`. `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
+`boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
 
 ---
 
@@ -287,8 +297,9 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - Une ligne dans `BASE` de `figures.js` : `{id, n, en, c, ce, p, D, aura, m:[{a:[x,y,z],t:n}]}` ou `{a, b:amplitude, k:battements}` — `c`/`ce` = le
   nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
   (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
-  au shop et à l'inventaire (`COSM.figure`), s'équipe dans l'emplacement de SA FAMILLE : `cat:'avant'` (tout sur l'axe des roues x — rien à
-  choisir) ou `cat:'cote'` (au moins un mouvement a un côté : il part du côté du pouce) ; sans `cat`, `FIG.cat` la range par cette règle. `figures.js?v=` +1 dans index.html ET boite-figures.html,
+  au shop et à l'inventaire (`COSM.figure`), s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
+  `['avant','arriere']` (un salto + autre chose : le geste choisit le sens du salto) ; sans `dir`, `FIG.dirs` la range par la règle de
+  figures.js (que l'axe des roues → son sens ; aucun mouvement sur x → côté ; les deux → avant et arrière). `figures.js?v=` +1 dans index.html ET boite-figures.html,
   `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
 - Une figure DÉTECTÉE en vol (vrille, dauphin…) : `addTrick(id,txt,…)` → `chaineAura(nom,base,famille)`.
 
@@ -403,8 +414,8 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « LA VITRINE DU GARAGE » (04/10) · « LES LUEURS DE LA BOUTIQUE » (07/10) · « LA FENÊTRE D'ACHAT » (01/10)
 - « LE JET PROPULSÉ, LE MOTEUR QUI CRÉPITE DANS TOUS LES SENS, LE VRAI POT DE LA HONTE » (15/10 soir) — `NFEU_JET`, `NFEU_MINI` (`va`, `r`, `crq`), `ECHP.reel`, `ECH_PAL.h`
 - « LE FEU AFFINÉ — 10 NUANCES, PIXELS PLUS FINS, FLUIDE AU VENT… » (15/10 soir) — `NFEU_P10`, `NFEU_FIN`, `NFEU_SOL`
-- « LE MOTEUR EN MINI FEU DE PIXELS » (15/10) — `NFEU_MINI`, `?moteur=goutte` (remplace « LE MOTEUR EN ÉCLATS ») · « LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS » (15/10) — `FLM`, `NFEU`, `?flamme=ancien`
-- « LE DRAGON EN FEU DE PIXELS » (15/10) — `DFEU`, `?dragon=ancien`
+- « LE MOTEUR EN MINI FEU DE PIXELS » (15/10) — `NFEU_MINI`, `?moteur=goutte` (remplace « LE MOTEUR EN ÉCLATS », `ECLATS` retiré) · « LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS » (15/10) — `FLM`, `NFEU`, `?flamme=ancien`
+- « LE DRAGON EN FEU DE PIXELS » (15/10) — RETIRÉ du jeu le même jour (Léo)
 - « LE SILLAGE DE NITRO v5 » (29/09) · « LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR » (01/10) · « LA PLUIE DE RICHESSE » (08/10)
 
 **Garage, menus, écrans**
@@ -553,8 +564,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
-  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`, dragon `DRG`,
-  dauphins `DAUPH`/`dolTick`, pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`.
+  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`,
+  pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`.
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
@@ -595,9 +606,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
-- Plus de SNAKE LOOP, de DAUPHIN, de NITROOO ni de DRAGON (15/10, Sacha) : `SANS_SNAKE` / `SANS_DAUPHIN` / `SANS_NITROOO` / `SANS_DRAGON`,
-  coupés pas arrachés — ni figure, ni gain, ni créature 3D (rien dans la scène, rien de compilé). Le nitro ordinaire reste.
-  `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (avec `?nitrooo=1`) les rendent pour comparer.
+- Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
+- PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
+  serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
+  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (non chargés par le jeu ; lus
+  par les boîtes). Les animaux reviendront PAR MAP (d'abord des singes de décor au SOLEIL DE JADE). Le reste : git (85470fb4 et avant).
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 
@@ -665,7 +678,7 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 
 **Les outils de Léo** (locaux, retirés du site par `vercel-build.sh` et des portails par `poki-construire.js`) : `simulateur.html`
 (`python3 simulateur/serveur.py 9101`), `maps-ciel.html` (`python3 maps-ciel/serveur.py 9019`), `salle-blanche.html`,
-`boite-dauphins.html`, `boite-singe.html`. `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
+`boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
 
 ---
 

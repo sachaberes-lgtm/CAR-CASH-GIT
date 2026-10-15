@@ -49,6 +49,157 @@
 - `?moteur=goutte` : la goutte lisse (le moteur simulé sans feu). Même matière : 0 programme (182 → 182, debout et couché), 0 erreur.
   Planche `photos-gameplay/moteur-mini-feu-avant-apres.png`.
 - ⚠ Le site en ligne était BLOQUÉ (quota Vercel, « rate limited ») : Léo voyait encore la goutte de la v482 — les éclats n'ont jamais été en ligne.
+
+## LE TAIL WHIP (2026-10-15 soir, Léo par le MANAGER : « la première figure : un TAIL WHIP » · « push-les, ils sont bien » ; choix coché : en GLISSER, ← → = tail whip) — pôle TECHNIQUE
+- LA FIGURE (`figures.js` ?v=8, `FIG.par.tailwhip`, 1re de `BASE`) : un tour à plat (axe vertical, `D` ,62, aura 50), mais le NEZ reste en
+  place et c'est la POUPE qui fait le tour — `piv` ,92 = le point fixe, en part de la demi-longueur, vers le nez. `figPose` le lit (`FX2.pivK`,
+  lissé ×14/s) et fait tourner la caisse autour de ce point (le milieu se décale, `FX2.pivD`). Une seule explosion, sur le flanc de la poupe
+  (la queue fouette ; `Corps.lance` et `Corps.empile`). Son matériau sonore = celui de la toupie (`FIG_SIGNE.tailwhip` 1).
+- EN GLISSER, EN L'AIR : ← → = le TAIL WHIP de ce côté (`figGFig`, il remplace le 360) ; glissé à GAUCHE → la POUPE part à gauche (sens −1,
+  `figGOpts`), à droite → à droite. La flèche dit « TAIL WHIP ». AU SOL rien ne change (← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE), ↑ ↓ en l'air
+  non plus (saltos). L'astuce du 1er vol dit « ◄► un tail whip ».
+- OFFERT ET ÉQUIPÉ : `figPossede('tailwhip')` toujours vrai ; une sauvegarde neuve = `figs:['tailwhip']` ; l'emplacement CÔTÉ vide prend le
+  tail whip (`figSlots`). Le TONNEAU passe en BOUTIQUE à 1 500 pièces. LES SAUVEGARDES D'AVANT LE GARDENT : il est déjà dans leur liste `figs`
+  (il y était offert d'office), et une sauvegarde d'avant les figures qui a déjà joué (sans liste) le reçoit ; `SAVE.d.figT0` = 1 marque ce
+  tonneau OFFERT, pour que `ecoDebutAchat` ne le compte pas comme un achat. En 2 TAPS, rien ne change pour elles (le côté garde le tonneau) ;
+  un débutant en 2 TAPS a le tail whip sur le côté, la poupe du côté du pouce (`figLance`, `f.piv`).
+- Banc (Chrome muet, vrais glissés sur NITRO, debout 390 × 844 et couché 844 × 390, sauvegarde neuve et sauvegarde d'avant ; `dbgGlisse('save')`,
+  `dbgGlisse('nez')`) : spam NITRO ×10 = 0 figure ; ← au sol = SLIDE 360 (reste au sol) ; en vol ← → = TAIL WHIP, la poupe part du côté
+  du glissé, le NEZ bouge de 0,5-1,2 m (la trajectoire elle-même) quand la POUPE balaie 5,3-6,6 m — aux saltos, nez et poupe bougent pareil
+  (3,6 m) ; ↑ ↓ = saltos ; 2 TAPS côté = tail whip (neuve) / tonneau (d'avant) ; 0 exception.
+
+## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
+- La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
+  souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,
+  et `retouches-bleu.js`) est REFUSÉ (« Failed to fetch dynamically imported module ») → le morceau ne part pas, 3 essais, et la course reste muette (en
+  course, seulement Pouce bleu : plus de radio de repli). En ligne (Vercel sert le bon type), rien de tout ça : la v509 en ligne joue (banc).
+- Le correctif (`assets/audio/pouce-bleu-jeu.js`, `importe`) : si `import()` échoue, le texte du module est relu (`fetch`) et lancé depuis un Blob
+  `text/javascript`, `import.meta.url` y redevenant la vraie adresse du module (ses sons `vrais/` à côté). `pouce-bleu-jeu.js?v=2`.
+- Banc : un serveur qui répond `text/plain` pour les .js (`serveur_windows.py`) → AVANT : `pouce erreur`, course muette ; APRÈS : CRISTAL D'ARGENT (générateur)
+  part au piqué et tient 3 niveaux, Chrome ET WebKit ; serveur normal : inchangé (Chrome, cadre de l'ordi).
+- À trancher par Sacha (pas fait) : JOUER.bat pourrait forcer le bon type (`mimetypes.add_type('text/javascript','.js')`) — GLISSE (`musique-glisse-v2.js`) a
+  le même `import()`, mais il ne joue plus en course.
+## LA BOUTIQUE S'OUVRE EN HAUT (2026-10-15 soir, défaut vu par la session du rangement des figures : « en ouvrant un onglet, la grille s'ouvre défilée de 14 px : la 1re rangée de cartes est rognée de 12 px en haut »)
+- LA CAUSE (mesurée) : `garBqPanneau` remplit `#gBqPan .bqRail` d'un coup (`innerHTML`) pendant que les cartes `.bqK` entrent en glissant de
+  12 px (`@keyframes bqK`, `translate:0 12px`) ; l'aimant de défilement (`scroll-snap-type:y proximity`, `scroll-snap-align:start` sur les
+  cartes) se recale sur la 1re carte EN PLEIN GLISSÉ, puis y reste quand elle se pose (un `translate` ne relance pas l'aimant). Le défaut était
+  là avant le rangement des figures : il vient de l'entrée des cartes de la boutique de Léo. FIGURES s'en sortait déjà (son intertitre
+  `.bqSec` entre en fondu seulement).
+- LE CORRECTIF, sans toucher au dessin de Léo (cartes, glissé, délais, aimant inchangés) : le rail prend la classe `.entre`
+  (`scroll-snap-type:none!important`) au moment où il est rempli ; `bqAimant(rail)` la retire quand la 1re rangée est posée (rangée lue par
+  `offsetTop`, délai = .25 s + `--i` de sa dernière carte × 45 ms + .38 s de glissé + 80 ms ; `GBQ.aimT`, relancé à chaque remplissage).
+  L'aimant revenu se cale sur la 1re carte posée : `scrollTop` 2 (le `padding` haut du rail), comme FIGURES.
+- MESURÉ au banc commun (`cc-banc/lib.cjs`, banc `bq-rail.cjs` de la session, garage → BOUTIQUE → chaque onglet, mesures à 0,3 s, 1 s et 2,5 s),
+  debout 390 × 844 et couché 844 × 390 : AVANT, PEINTURES · AILES · TRAÎNÉES `scrollTop` 14, 1re carte à 476 pour un rail à 488 (couché : 65
+  pour 77), et le retour sur PEINTURES après avoir défilé idem ; APRÈS, les 5 onglets (VOITURES, PEINTURES, AILES, TRAÎNÉES, FIGURES) et le
+  retour : `scrollTop` 2, 1re carte (ou intertitre) au bord du rail (488/488, couché 77/77), classe `.entre` bien retirée, 0 erreur.
+
+## FIGURES › GLISSER, 2e PASSE : LES FIGURES AU SOL (2026-10-15, Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air seulement lorsque le joueur fait flèche avant pendant le trick ; faites sur le sol, la voiture reste au sol ; d'autres, comme le slide 360, restent au sol ; une figure peut aussi se faire en maintenant le boost avec un geste brusque ; droite ou bas pas forcément sur le boost »)
+- Choix cochés par Léo : « flèche avant » = le JOYSTICK (pouce gauche) poussé vers l'avant pendant la figure ; au sol, sans lui, la figure se
+  fait AU SOL ; ← → = SLIDE 360 au sol et 360 en l'air ; → ↓ peuvent partir de n'importe où (moitié droite de l'écran).
+- AU SOL (`GSOL`, bloc « LES FIGURES AU SOL ») : ← → SLIDE 360 (un tour à plat autour de la normale de la dalle, gomme qui fume, ne décolle
+  jamais, « SLIDE 360 » +70) · ↑ WHEELIE (nez levé, pivot essieu arrière) · ↓ STOPPIE (cul levé, pivot essieu avant) = l'amorce du salto ;
+  joystick avant (`TCTL.sv` > ,35, ou ↑/W fraîchement appuyé) pendant les 4/5 de l'amorce → `veqSaut(fo)` : saut nitro + le salto de ce sens.
+  Sinon le nez claque (`sensCoup`) et c'est payé « WHEELIE » / « STOPPIE » +40. `gsolPose(F)` tourne carGroup autour du pivot APRÈS sa pose sur
+  la route (la physique ne voit rien) ; jamais sous la dalle ; une à la fois.
+- EN L'AIR : ← → = le 360 (`FIG.par.toupie`, pouce à gauche → sens +1), ↑ ↓ les saltos. Le tonneau n'a plus de geste en GLISSER.
+- LE COUP SEC (`GLI.coup` 90 ms de 12 px à seuil + 8 px) : la figure part sans lâcher NITRO (le boost continue), une par appui.
+- → ↓ DE PARTOUT : un glissé né sur la moitié DROITE, hors boutons (`gliLibre`), fait → et ↓ (← ↑ n'y font rien) ; doigt et souris.
+- Banc (Chrome muet, vrais touchers, debout et couché, après fusion du main v510) : spam = 0 saut ; ← ↑ ↓ au sol restent au sol ; ↑ + joystick
+  avant = saut + salto arrière ; coup sec = figure avant le lâcher, rien de plus au lâcher ; → ↓ de partout OK, ← refusé ; en vol 360 / saltos ;
+  0 exception. 2 TAPS : inchangé (le double-tap pouce au neutre ne fait rien chez un débutant : c'est l'emplacement AVANT vide de Sacha, idem sur le main).
+
+## L'ÉLAN : UNE FIGURE EST UN COUP, PLUS UNE ANIMATION (2026-10-15 soir, Sacha : « retravaille un peu la physique : là, on dirait une animation — quand tu fais la figure, la voiture se redresse très vite et retourne très vite à un axe parfaitement droit, alors qu'il faudrait que ça agisse plus comme une sorte d'impulsion qui donne un élan à la voiture dans un sens, et si tu fais l'autre figure en même temps, ça modifie cette impulsion ; par exemple tu peux faire un tonneau, et pendant que le tonneau se finit… »)
+- MESURÉ AVANT (banc Node du corps, `banc-corps.cjs`, le vrai `figures.js`) : la caisse tournait à vitesse CONSTANTE (tonneau 11,3 rad/s,
+  salto 9,7), puis passait de 11 à 1 rad/s en 0,1 s (la PRISE à 85 rad/s²) et rebondissait sur l'axe (le planté, ressort ω 13) ; après deux
+  figures mêlées, la prise la faisait tourner à vitesse FIXE (4,5 ou 11,5 rad/s) jusqu'à l'endroit. C'était l'« animation ».
+- **L'ÉLAN** (`FIG.PHY.elan`, défaut ; **`?elan=0` = la physique d'avant**) dans `FIG.Corps` (figures.js ?v=7) :
+  · LE COUP : l'explosion lance la rotation fort, puis l'AIR la freine en continu (exponentiel) — la caisse file, GLISSE et ralentit d'elle-même.
+    Le coup est dosé pour que la glissade fasse ses tours : elle atteindrait 97 % (`cov`) et passe `fin` (82 %) en `kT` × D (`kT` 1,1 ; le frein
+    `r.c` = −ln(1 − fin/cov) / (kT·D) : un vol court → D raccourci par le jeu → frein plus fort, coup plus sec) ;
+  · UNE FIGURE PENDANT QU'UNE AUTRE GLISSE S'Y AJOUTE : l'air freine au rythme de la DERNIÈRE lancée (au rythme de la plus nerveuse, la
+    précédente n'arrivait qu'à 85 % de son tour, en traînant) ; l'axe se penche, la caisse part en vrille mêlée ;
+  · À BOUT DE SOUFFLE : quand l'élan qui reste sur son axe ne la mènera plus au bout (coup contraire, deux coups mêlés) ou qu'elle finirait
+    au-delà de 1,3 × sa durée, la figure s'arrête là (elle paiera si elle a fait 70 % — `paye`) ; MESURÉ : sans ça la caisse flottait 0,8 s à
+    l'envers, presque immobile ;
+  · LA FIN : plus de freinage sec — un RETOUR souple vers l'endroit (`ret` ω 5,5, amorti .65) qui reprend la caisse là où la glissade l'a
+    laissée ; elle paie à l'endroit, comme le planté (mode `retour`) ;
+  · LA PRISE FORTE n'est plus qu'un FILET : le sol arrive (le budget du viseur), le tap NITRO qui redresse.
+  · Le jeu dose une figure sur le vol qui reste avec `figKT()` (la glissade + le retour : kT + .35 au lieu de .85) ; l'essai au garage dure
+    d'autant (`garFigEssai`) ; la boîte à figures prolonge déjà son saut sur `reste()`.
+- MESURÉ APRÈS — banc du corps : tonneau 15 → 11 → 8 → 6 → 4,6 → 3,5 rad/s (0,1 → 0,6 s), retour, payé à 1,1 s, rangé à 1,75 s ; tonneau puis
+  salto à 0,4 s : deux coups, glissade mêlée, retour à 1,2 s, les deux payées à 1,73 s ; salto avant + salto arrière : retour souple dès 0,2 s,
+  rien ne paie ; vol de 1 s / 0,8 s : le tonneau paie (0,92 / 0,75 s), le filet ne sert que les 2-3 derniers dixièmes. Banc du JEU (cc-banc,
+  390 × 844, muet) : tonneau seul payé (16 → 3 rad/s en 0,7 s, à l'endroit à 1,3 s) ; tonneau puis salto 0,35 s après → les deux payées +
+  COMBO ×1,5 ; rodéo arrière payé ; 0 chute, 0 erreur.
+- Hors de cette demande, rappelé par Sacha en passant : l'HÉLICO 720 est bien une figure de CÔTÉ, le SALTO COSMIQUE avant ET arrière
+  (section précédente) — rien à changer.
+- À juger par Sacha en jouant : la vigueur du coup (`kT`), la longueur de la glissade et la mollesse du retour (`ret`) — `dbgFig('phy')` les
+  montre et les change à chaud.
+## LE HUD ALLÉGÉ (2026-10-15, Sacha : « supprime des éléments d'HUD un peu inutiles, je trouve qu'il y a trop d'info affichée et que ça nuit à l'expérience »)
+- RELEVÉ au banc en course (`hudtour.cjs` du scratchpad de la session : route, vol, route 6 s plus tard, pouvoir ramassé ; debout 390 × 844 et couché
+  844 × 390, inventaire DOM de tout ce qui est visible) : le coin haut-gauche empilait TROIS barres (boost, jauge d'aura « MOY 400 », flow), DEUX
+  lectures de l'aura (la jauge et le compteur « 609 AURA ») et la liste de chaque figure de la chaîne ; des « +N » d'aura traversaient l'écran.
+- RETIRÉ (détail dans `<style id="hudAllege">`, juste avant `#splash`) : (1) la JAUGE D'AURA de Léo (12/10) et ses « +N » volants — Sacha a tranché
+  (« oui, retire-la ») ; code gardé, `?jauge=1` la rend (`JAUGE_AURA`, la classe `html.sansJauge`, `ajGain` muet, plus de « MOYENNE BATTUE ») ;
+  les éclairs de NITRO qui volent vers la barre de boost restent (même couche `#ajVols`, même boucle `ajTick`) ; (2) la liste des figures sous la
+  chaîne (`#avList`) ; (3) le « $×1 » du flow au palier 0 ; (4) le nom du pouvoir au centre (`slam` dans `pwrPrend`) — sa plaque le dit.
+- PLACES : le flow monte à la place de la jauge, l'aura d'autant ; mesuré, l'écart flow → aura est celui d'avant (21 px debout, 17 couché).
+  `#auraV2` est rétréci par `zoom` : ses pas CSS (+76 debout, +72 couché) ne sont pas ceux de l'écran.
+- GARDÉ (à rayer par numéro si Sacha le veut) : barre de boost + vitesse, flow, ⏸, argent, compteur d'aura + chaîne, chrono de vol, plaques de pouvoir,
+  carte moteur (NOUVEAU MOTEUR / SOMMET), rappel de figure, bouton NITRO, « GLISSE POUR TOURNER » (s'efface au premier braquage), « BOOST »,
+  « +1 » des pièces, bannières de mission, DAUPHIN.
+
+## LES FIGURES PAR DIRECTION : AVANT · ARRIÈRE · CÔTÉS (2026-10-15 soir, Sacha : « en vrai mets aussi une catégorie de figure en mode flèche vers l'arrière pour les saltos arrière ou certaines figures qui peuvent être faites vers l'arrière ; une même figure doit avoir marqué à quelle direction elle peut aller, par exemple tonneau c'est que les côtés mais rodéo ça peut être mis à l'avant ou à l'arrière » → question posée, réponse : « 3, une par geste »)
+- Suite directe des DEUX FAMILLES (section suivante), qu'elle remplace : la famille `cat` devient `dir` (les DIRECTIONS d'une figure), et
+  « 2 figures à la fois » (Sacha, le matin) devient **3, une par geste** (`FIG_NB`=3) — c'est lui qui l'a choisi, la question posée disait
+  bien qu'on revenait sur le matin.
+- **figures.js ?v=6** : `dir` sur chaque ligne de `BASE`, `FIG.dirs(f)` (la règle range une figure générée : que l'axe des roues → son sens ;
+  aucun mouvement sur x → côté ; un salto ET autre chose → avant ET arrière), `FIG.oriente(f,'avant'|'arriere')` = la même figure, son salto
+  nez en bas ou nez en haut (une copie gardée par figure et par sens : le jeu compare les figures par identité). Résultat : **AVANT** = SALTO
+  AVANT, TIRE-BOUCHON, RODÉO, SALTO COSMIQUE · **ARRIÈRE** = CHANDELLE (un wheelie : le nez se lève), SALTO ARRIÈRE, TIRE-BOUCHON, RODÉO,
+  SALTO COSMIQUE · **CÔTÉS** = TONNEAU, TOUPIE 360, SHIMMY, DOUBLE TONNEAU, HÉLICO 720, VRILLE PENCHÉE. Changer une figure de direction =
+  sa ligne `dir` (rien d'autre).
+- **Trois emplacements** (`FIG_DIR`, `figPeut`, `figSlots`, `figRange`, `figEquipe(id,k)`) : ↑ pouce en AVANT (0), ↓ pouce en ARRIÈRE (1),
+  ◄► pouce sur un CÔTÉ (2) au double-tap NITRO (`figDirSlot` ; au repos = avant, comme avant). Une figure ne va que là où elle accepte ; le
+  rodéo peut tenir l'avant ET l'arrière (rodéo avant = toupie + salto avant, rodéo arrière = toupie + salto arrière). `SAVE.d.figEq3` = les
+  trois id à leur place ('' = vide, désinfecté dans `san`) ; `figEq` reste écrit (deux id) pour une vieille copie. Rangement automatique d'un
+  emplacement vide (`figRange`, la plus récente d'abord) : une figure à UN sens, puis une à deux sens pas déjà ailleurs, puis n'importe laquelle
+  qui y va — MESURÉ au banc Node : rangé dans l'ordre, avec SALTO AVANT + RODÉO, le rodéo prenait les deux places et le salto disparaissait.
+  Une vieille sauvegarde (`figEq`, deux id) se range de la même façon. Un emplacement vide : son geste ne fait rien (`o.strict`), sauf à
+  l'auto-école et pour la figure automatique du saut nitro.
+- **La boutique** : trois sections VERS L'AVANT · VERS L'ARRIÈRE · SUR LES CÔTÉS (↑ · ↓ · ◄►) ; une figure à deux sens a une carte dans
+  chacune (`bqFigRail`, `data-dir` sur la carte) ; toucher une carte = la caisse fait la figure DANS CE SENS (`garFigEssai(id,c)`) ; ÉQUIPER /
+  ACHETER la met dans l'emplacement de cette carte (`bqFigDir`, `GBQ.figDir`) ; le compte de l'onglet reste 12 (une figure = une fois).
+  L'inventaire range par direction et porte, sur une figure équipée, le pictogramme de chaque geste qui la joue (↑ ↓ ◄►) ; le toucher l'équipe
+  dans la 1re direction libre qui ne l'a pas déjà. La fiche (`figDesc`) dit le ou les gestes. Anglais : FORWARD · BACKWARD · SIDEWAYS.
+- **En vol** : le rappel `#fhLeg` passe à trois (↑ cyan, ↓ vert `--fhVert`, ◄► magenta ; la figure automatique reste or) et, debout aussi, en
+  COLONNE au-dessus de NITRO (trois en rangée ~285 px passaient sur l'anneau du volant). Les anciens boutons (`?figdir=0`) et le clavier
+  (1 · 2 · 3) suivent. L'astuce du 1er vol dit les trois gestes (bit 128 : ceux qui ont lu l'ancienne la relisent une fois).
+- Le GLISSER de Léo (réglage FIGURES) n'est pas touché : il joue ses figures fixes (← → tonneau, ↑ salto arrière, ↓ salto avant).
+- MESURÉ — banc Node des emplacements (le vrai `figSlots`/`figEquipe` extraits d'index.html, sur le vrai figures.js) : débutant → [—, —,
+  TONNEAU] ; SALTO AVANT + RODÉO → [SALTO AVANT, RODÉO, TONNEAU] ; vieille `figEq` [tonneau, hélico] + salto avant → [SALTO AVANT, —, HÉLICO] ;
+  le tonneau demandé à l'avant → refusé, il va de côté ; une `figEq3` abîmée (salto avant rangé de côté) se répare d'elle-même.
+  Banc du jeu (cc-banc, muet, 390 × 844) : boutique = [VERS L'AVANT] salto avant, tire-bouchon, rodéo, cosmique [VERS L'ARRIÈRE] chandelle,
+  salto arrière, tire-bouchon, rodéo, cosmique [SUR LES CÔTÉS] tonneau, toupie, shimmy, double, hélico, vrille penchée ; onglet = 12 ; rodéo
+  touché dans VERS L'ARRIÈRE → ÉQUIPER → [salto avant, RODÉO, hélico], toast « RODÉO · VERS L'ARRIÈRE · REMPLACE SALTO ARRIÈRE » ; le cadre
+  `.sel` suit la carte touchée (1er jet : il restait sur l'autre carte du rodéo — `GBQ.vu` ne comptait pas la direction). En vol : ↑ SALTO
+  AVANT, ↓ RODÉO orienté arrière, ← HÉLICO +, → HÉLICO − ; débutant, même vol : ↓ refusé, ← TONNEAU ; rappel ↑ AVANT · ↓ RODÉO · ◄► HÉLICO.
+  Zéro erreur JS.
+## PLUS D'ANIMAUX DANS LE JEU (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus trop sa place et ça prend trop de place sur le jeu — profites-en pour enlever tout ce qui peut être volumineux et inutile : dragon, animaux figures ; on va les replacer par map »)
+- Choix confirmés par Léo (questionnaire) : les dauphins ET la figure d'aura LE DAUPHIN ; le serpent néon ; le dragon de feu de NITROOO.
+  Sacha les avait COUPÉS le matin (drapeaux `SANS_DAUPHIN`/`SANS_SNAKE`/`SANS_DRAGON`) : ils sont désormais ARRACHÉS — créatures, figure
+  du dauphin (dolTick/dolStart/dolFin/dolPose/dolKill, aura de la nage au ras, DAUPH, #dolHud et son CSS), serpent (`updateSerpent`), dragon
+  (`DRG`, `DFEU`, `dragonTick`, sa chauffe au menu), et les SINGES DE LA COURSE (3 sauts en 5 s : `singeJeu`, `singeSaut`), qui tournaient
+  encore. `?dauphin=1` et `?dragon=1` n'existent plus. La figure SNAKE LOOP et NITROOO restent derrière les drapeaux de Sacha.
+- Ce qui revient par map est gardé hors du jeu : `creatures/dauphin.js` (le modèle du dauphin en vitrail et ses chorés), `creatures/vitrail.js`,
+  `creatures/singe.js` (ses poses : queue, mains, course) — non chargés par index.html ; `boite-dauphins.html` / `boite-singe.html` les lisent.
+  `crV1`/`crV2` et `triNoir()` vivaient dans le bloc des dauphins : remis à part (la comète de NITROOO et le jus s'en servent).
+- MESURÉ : index.html 6 554 → 6 349 Ko (script principal 5,53 → 5,32 Mo), 3 programmes de moins au menu (174 contre 177), syntaxe vérifiée
+  au jsc ; au banc (GPU) : départ par PLAY, sauts, grand vol, explosion, nouvelle partie, et avec `?nitrooo=1&snake=1` : 0 erreur.
+- ⚠ BANC : `dbgCampagne(n)` FIGE le main actuel (la carrière est coupée) — partir par le vrai bouton PLAY. Chrome sans fenêtre 155 rend en
+  logiciel par défaut (98 % de processeur, tout se fige) : le lancer avec `--enable-gpu --use-angle=metal`.
+
 ## LES FIGURES EN DEUX FAMILLES : VERS L'AVANT · SUR LES CÔTÉS (2026-10-15, Sacha : « pour le système de figure : il faut séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; par exemple les figures tonneau doivent aller vers la droite ou la gauche, elles ont besoin d'être orientées par la direction, alors que salto avant a juste besoin d'aller vers l'avant ; donc dans la boutique classe toutes les figures selon ces deux catégories »)
 - **La famille est déclarée** dans `figures.js` (`cat:'avant'|'cote'` sur chaque ligne de `BASE`, ?v=5) et lue par `FIG.cat(f)`. La règle, qui
   range aussi les figures générées de la boîte blanche (sans `cat`) : AVANT = tout se passe sur l'axe des roues (x) — rien à choisir, ni gauche
@@ -156,7 +307,7 @@
 - Il CONTINUE aux portails (`musicSuitLieu` ne raccorde plus), la seconde chance repart sur le MÊME morceau (`musicStartRun(true,true)` →
   `PB.depart(…,{meme})`), la mort l'éteint en 0,35 s, la fin en 0,9 s ; REJOUER en tire un autre. La radio, les musiques de lieu (`MUSIC_LIEU`) et
   GLISSE au Soleil de jade se taisent pendant qu'il joue (`pbjCourse()` dans `musicPlayCurrent`, `musicNext`, `musicSuitLieu`, `jadeMusOn`).
-  La frénésie ne change pas. `?musique=niveaux` = les musiques des niveaux comme avant (`PBJ_ON`).
+  `?musique=niveaux` = les musiques des niveaux comme avant (`PBJ_ON`).
 - Le NIVEAU (`PBJ_NIV` .39, × le curseur MUSIQUE, × le souffle du mouvement et l'annonceur comme la radio) — mesuré en course, musique seule, à la
   sortie du jeu : la radio tient −21 dB ; le générateur monte de ≈ −24 dB (moteur 1) à −22 (10), −16 (20), −14 (30) : LA GRANDE MONTÉE de Léo
   gardée ; NÉON NOIR (paliers) −19 ; AURA · 30 (page) −22 → −19.
@@ -165,14 +316,28 @@
   énergie sous 60 Hz ; la cloche à 110 Hz pour les huit qui pèsent entre 60 et 150 Hz, NÉON NOIR −5 dB de plateau.
 - LE COÛT (Chrome, processeur ralenti ×4 comme un iPhone moyen) : fil principal en course 48 % avec CRISTAL D'ARGENT, 42 % avec NÉON NOIR, 50 %
   avec la radio — la différence se perd dans le bruit du rendu ; préparation du morceau 0,2 à 0,4 s pendant le piqué. En direct, aucun fichier à figer.
-- SEULEMENT là où la musique passe par WebAudio (`pbjActif()` : `musWaTient()` — ordi, Android, iPhone iOS 17+) ; Safari sur Mac et l'iPhone
-  sans audioSession gardent les musiques des niveaux. Si le chien de garde condamne le WebAudio pendant le piqué (le défaut de WebKit, la source de
-  l'élément qui rend des zéros), le morceau s'efface et la RADIO prend la course (`musicStartRun`, `musWaCondamne`) — jamais les deux (banc WebKit).
-  Si le morceau ne PART pas (réseau, fichier absent, liste vide : `PBJ_KO`), la radio aussi — jamais une course muette (banc : les modules du
-  générateur bloqués → la radio dès le piqué, puis les musiques des niveaux) ; chaque JOUER réessaie.
+- EN COURSE, SEULEMENT POUCE BLEU (15/10 soir, Léo, confirmé : « aucune autre musique pendant une course ») :
+  `pbjRegne()` tient l'antenne de la course — `musicPlayCurrent`, `musicNext`, `musicSuitLieu` et `jadeMusOn` (GLISSE) se taisent.
+  DEUX EXCEPTIONS (Léo, le soir : « non, la frénésie doit rester — on bossera son sound design ailleurs » · « remets le premier son du test, le
+  premier son dans le ciel pour ceux qui jouent pour la première fois ») : LA FRÉNÉSIE comme avant (`frenMus`) — quand SON morceau joue (THE DARK
+  TRIAD, `FRENM.sw` ; le fichier n'est pas encore livré), Pouce bleu s'efface en ~0,3 s et revient à la fin (`musicTick`, `frenMusRetour` ne relance
+  plus la radio) ; L'AUTO-ÉCOLE (`pbjTuto()` : `TUTO.on` ou la piste 'tuto') garde CIEL · NIVEAU 1, du piqué au permis ; au portail d'après,
+  `musicSuitLieu` coupe CIEL 1 et Pouce bleu entre. Banc : un faux THE DARK TRIAD posé le temps du banc (retiré) → le morceau joue, Pouce bleu à 0,
+  puis il remonte à la fin de la frénésie, sans radio ; un nouveau joueur → CIEL 1 pendant toute la leçon, Pouce bleu après le portail. PARTOUT : le morceau est du WebAudio pur, il ne dépend plus de MUS_WA (Safari sur Mac, appareils où le chien de
+  garde a condamné l'<audio> branché, iPhone sans audioSession). `musGraphe()` : dès que Pouce bleu peut jouer, le bouton SON ne suspend plus le
+  contexte, il ferme l'entrée des effets (`musWaSon`, comme avec MUS_WA) — au lancement (`initAudio`), au bouton, à la pause, au retour
+  d'arrière-plan, au toucher (`audioKick`). Un morceau qui ne part pas (réseau, fichier) → un AUTRE est tiré (3 essais, `PBJ_ESSAI`) ; après, la course
+  reste sans musique (`PBJ_KO`), chaque JOUER réessaie. La radio ne remplace plus jamais Pouce bleu. Le ciel, le garage et la boutique gardent la leur.
+  ⚠ iPhone sous iOS 16 et moins : le bouton silencieux coupe le WebAudio, donc Pouce bleu (et les effets) — l'<audio> des niveaux y passait.
+- MIRAGE ULTRA : Léo l'a laissé à la corbeille de Pouce bleu (son 👍 retiré, réversible) ; la retouche de son entrée est JETÉE (jamais commitée).
+  `EN_ATTENTE` est vide : le tirage suit Pouce bleu tel que Léo le range.
 - BANCS (muets) : partie complète ciel → garage → PLAY → 3 niveaux par 2 portails → mort → fin → REJOUER, couché, debout et dans le cadre de l'ordi,
-  Chrome ET WebKit (`?muswa=1`, l'élément muet pour que le chien de garde ne juge pas la source) : intro qui s'ouvre, le même morceau d'un niveau à
-  l'autre (nuages → volcan → forêt, jade → canyon → ville, canyon → espace → volcan…), un autre au REJOUER, 0 erreur.
+  Chrome ET WebKit (`?muswa=1`) : intro qui s'ouvre, le même morceau d'un niveau à l'autre (nuages → volcan → forêt, jade → canyon → ville,
+  canyon → espace → volcan…), un autre au REJOUER, 0 erreur. Et : sans MUS_WA
+  (`?muswa=0`) avec SON coupé en course (effets fermés, contexte éveillé, la musique seule à −28 dB) ; WebKit où le chien de garde condamne
+  l'<audio> pendant le piqué (le morceau tient toute la course) ; les modules du générateur bloqués (un morceau à paliers est tiré à la place).
+  ⚠ Piège de banc : la sauvegarde posée dans le JEU déjà ouvert est écrasée par lui en partant (son flush) — les premiers bancs Chrome tombaient
+  donc sur l'AUTO-ÉCOLE. La poser depuis une autre page de la même origine (icon.svg), puis ouvrir le jeu. Tout a été repassé ainsi.
 - Console : `dbgPouce()` (l'état : phase, titre, moteur, filtre, niveau, bus) · `dbgPouce('moteur', m)` (impose le palier, 0 = celui du jeu) ·
   `?pouce=<numéro|id>` force un morceau. Reste à écouter par Léo sur iPhone : la musique en WebAudio y tient-elle au-delà de 15 s (le défaut de WebKit) ?
 

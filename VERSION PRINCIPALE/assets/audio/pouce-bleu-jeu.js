@@ -2,7 +2,7 @@
    hasard joue toute la course, en suivant le moteur » · « une intro par morceau, qui part de la musique du ciel / garage et entre dans le morceau »).
    · LA LISTE = Pouce bleu tel que Léo l'a rangé dans la bibliothèque (musique-moteur.json : les musiques du générateur qu'il a aimées et pas retirées,
      les morceaux qu'il y a glissés, AURA · 30 PALIERS rangé d'office) — la même règle que bibliotheque.html (dessine / dessineBleus) ; EN_ATTENTE :
-     ceux qui n'entrent pas encore au tirage (MIRAGE ULTRA, tant que Léo n'a pas validé la retouche de son entrée).
+     ceux qui n'entreraient pas encore au tirage (vide aujourd'hui).
    · LE TIRAGE : au hasard, sans doublon d'une course à l'autre tant qu'il en reste (localStorage `pbjVus`) ; `?pouce=<n° ou id>` en impose un (banc).
    · TROIS LECTEURS, comme la bibliothèque : le GÉNÉRATEUR (sa version, son n°, ses goûts du moment, sa retouche `direct` de retouches-bleu.js),
      les PALIERS FIGÉS (PalLecteur de musique-paliers.js, chargés à la demande : le palier joué et ses voisins), la PAGE EN DIRECT (AURA · 30, dans
@@ -14,18 +14,27 @@
 (function (W) {
   'use strict';
   const D = 'assets/audio/music/';
-  const EN_ATTENTE = { 'bleu-6200': 'MIRAGE ULTRA : la retouche de son entrée attend le oui de Léo' };
+  const EN_ATTENTE = {};   // (15/10 soir) MIRAGE ULTRA n'y est plus : Léo l'a laissé à la corbeille (sa retouche d'entrée jetée) — le tirage suit Pouce bleu, rien de plus
   const DEFAUT = ['pal-aura-30'];   // rangés d'office dans Pouce bleu par la bibliothèque (sec 'bleu')
   const GEN_VERSIONS = [['2026-10-14T00:16:50', 'v3-1'], ['2026-10-14T01:01:05', 'v3-3'], ['2026-10-14T01:46:19', 'v3-4'], ['2026-10-14T03:05:00', 'v3-7']];   // = bibliotheque.html
   const versionDe = e => { if (e.v) return e.v; const t = String(e.date || ''); for (const [l, v] of GEN_VERSIONS) if (t < l) return v; return 'v3-9'; };
   const url = f => new URL(f, location.href).href;
   const script = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  /* (15/10 soir ; Léo : « Sacha entendait mais n'entend plus la musique ») LE SERVEUR DE JOUER.bat (`python -m http.server` sous Windows) sert les
+     .js en text/plain quand le registre le dit : import() les refuse (« Failed to fetch dynamically imported module ») et la course restait MUETTE.
+     Repli : le texte du module, relu et lancé depuis un Blob (les modules du générateur n'importent rien eux-mêmes ; import.meta.url y redevient
+     leur vraie adresse). Banc : un serveur
+     qui répond text/plain → le morceau du générateur part. */
+  const importe = async u => { try { return await import(u); } catch (e) {
+    const r = await fetch(u); if (!r.ok) throw e;
+    const b = URL.createObjectURL(new Blob([(await r.text()).split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));   // (son adresse reste la vraie : ses sons « vrais/ » à côté)
+    try { return await import(b); } finally { URL.revokeObjectURL(b); } } };
   const PB = { liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
 
   PB.charge = async function () {   // la liste de Pouce bleu (une fois)
     if (PB.liste) return PB.liste;
     const P = await (await fetch('musique-moteur.json', { cache: 'no-cache' })).json();
-    let R = null; try { R = await import(url(D + 'direct/retouches-bleu.js')); } catch (e) {}
+    let R = null; try { R = await importe(url(D + 'direct/retouches-bleu.js')); } catch (e) {}
     if (!W.PALIERS_RENDUS) try { await script(D + 'paliers/rendus/index.js'); } catch (e) {}
     const suppr = new Set(P.suppr || []), place = P.place || {}, noms = P.noms || {}, RN = (R && R.RENOMS) || {}, V2 = (R && R.V2) || [], L = [], vu = new Set();
     (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (!(e.avis > 0) || suppr.has(id) || EN_ATTENTE[id] || vu.has(k)) return; vu.add(k);
@@ -49,7 +58,7 @@
   // ---------------------------------------------------------------- les trois lecteurs (chacun : { regle(m 1..30), stop(), bpm() })
   async function joueurGen(ac, dest, E) {
     const f = E.v === 'actuelle' ? 'direct/musique-trente.js' : 'direct/musique-trente-' + E.v + '.js';
-    const mod = await import(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: dest, renouvelle: 0, da: E.da });
+    const mod = await importe(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: dest, renouvelle: 0, da: E.da });
     const O = {}; if (/^hyb:/.test(E.style)) O.style = E.style;   // (la couleur de l'avis : sans elle, une musique v6 en devenait une autre)
     if (E.ret) { O.retouche = E.ret.retouche; O.voix = E.ret.voix; O.acc = E.ret.acc; }
     inst.setTier(1, 30); inst.start(E.n, E.W || undefined, O); let cur = 1;
