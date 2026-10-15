@@ -264,7 +264,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   }
 
   // ================================================================ LES ÉLÉMENTS
-  const NOMS = { pad: 'la nappe s’ouvre', keys: 'les accords prennent le rythme', basse: 'la basse se met à groover', kick: 'le beat tombe', hat: 'les charleys prennent le rythme', snare: 'la caisse claire claque', lead: 'la mélodie en entier',
+  const NOMS = { nw: 'la basse new wave', pad: 'la nappe s’ouvre', keys: 'les accords prennent le rythme', basse: 'la basse se met à groover', kick: 'le beat tombe', hat: 'les charleys prennent le rythme', snare: 'la caisse claire claque', lead: 'la mélodie en entier',
     arp: 'l’arpège', perc: 'les percussions', pompe: 'la pompe', contre: 'le contre-chant', basse2: 'la basse qui amène les accords', hatO: 'le charley ouvert',
     cordes: 'les cordes', clarte: 'la clarté (le filtre s’ouvre)', cloche: 'la cloche', stab: 'les accords hachés', fant: 'les fantômes de caisse', octave: 'la mélodie doublée',
     choeur: 'le chœur', sub: 'la sous-basse', roll: 'les roulements', echo: 'les échos', harmo: 'les tierces', ride: 'la ride', toms: 'les toms', cuivres: 'les cuivres',
@@ -276,13 +276,13 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   const CATALOGUE = Object.keys(NOMS);
   const CALME = ['kick', 'hat', 'basse', 'keys', 'pad', 'lead'];   // (v6.0) le cœur du groupe, présent en version calme avant sa marche
   const GRANDS = new Set(['kick', 'clarte', 'double', 'modul', 'final', 'wob', 'growl']);
-  const GROOVE = new Set(['kick', 'snare', 'fant', 'hat', 'roll', 'hatO', 'perc', 'ride', 'toms', 'tribu', 'wob', 'growl', 'basse', 'basse2', 'sub']);   // ce que le VOL retire
-  const VOL = { pad: .3, keys: .34, basse: .5, kick: .95, hat: .22, snare: .6, lead: .4, arp: .2, perc: .22, contre: .2, basse2: .5, hatO: .14, cordes: .2, cloche: .2,
+  const GROOVE = new Set(['nw', 'kick', 'snare', 'fant', 'hat', 'roll', 'hatO', 'perc', 'ride', 'toms', 'tribu', 'wob', 'growl', 'basse', 'basse2', 'sub']);   // ce que le VOL retire
+  const VOL = { nw: .36, pad: .3, keys: .34, basse: .5, kick: .95, hat: .22, snare: .6, lead: .4, arp: .2, perc: .22, contre: .2, basse2: .5, hatO: .14, cordes: .2, cloche: .2,
     stab: .24, fant: .22, octave: .17, choeur: .17, sub: .3, roll: .15, harmo: .17, ride: .09, toms: .34, cuivres: .2, vinyl: .1, tribu: .3, foule: .3, wob: .34, growl: .3, sig: .32, sig2: .28, fx: .55 };
   const PAN = { tribu: .12, foule: -.08, sig2: .2, hat: -.25, hatO: .25, perc: .3, cloche: -.3, contre: -.22, harmo: .22, ride: -.18, toms: .1, arp: .12 };
   const REV = { tribu: .14, foule: .38, sig: .3, sig2: .32, pad: .32, keys: .2, lead: .28, contre: .32, cordes: .42, choeur: .5, cloche: .45, arp: .18, snare: .14, harmo: .3, octave: .25, cuivres: .22, toms: .14, perc: .12, fx: .3 };
   const HP = { basse2: 150, foule: 140, pad: 150, keys: 140, lead: 180, arp: 200, contre: 180, cordes: 160, cloche: 300, stab: 160, octave: 180, choeur: 160, harmo: 160, cuivres: 140, fx: 60, wob: 160, growl: 140 };   // le coupe-bas : le grave à la basse
-  const POMPE = ['pad', 'keys', 'cordes', 'choeur', 'stab', 'arp', 'basse', 'wob', 'growl'];
+  const POMPE = ['pad', 'keys', 'cordes', 'choeur', 'stab', 'arp', 'basse', 'wob', 'growl', 'nw'];
 
   // ================================================================ LES STYLES (un par partie)
   // pat : 16 pas par mesure (X fort · x · o léger · H/L conga aiguë/grave) — plusieurs variantes, changées en route
@@ -1109,7 +1109,40 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       ordre: ['vinyl!', 'arp', 'keys', 'basse', 'kick', 'snare', 'sig', 'lead', 'hat', 'i_filtre', 'cordes', 'clarte', 'contre', 'i_basse', 'fant', 'echo', 'i_frappe', 'i_keys', 'double', 'sig2',
         'roll', 'toms', 'i_relance', 'hatO', 'i_tambours', 'modul', 'i_pulse', 'i_large', 'i_monte', 'final!'],
       vrais: { pluck: { '@clavecin': 1 }, basse: { '@contrebasse': 1 }, contre: { '@trompetteSourd': 1 }, cordes: { '@cordes': 1 }, kit: {} }, transf: { keys: { tape: 20 } } } };
-  for (const id in TRIO) { const o = TRIO[id]; COULEURS[id] = o; VRAIS_STYLE[id] = o.vrais || {}; UNIVERS[id] = { u: { acoustique: 1 }, f: { [id === 'zeppelin' ? 'swing' : id]: 1 } };
+  // ZEPPELIN D'OR II et III (2026-10-15, Léo : « garde juste Zeppelin d'Or, j'aime beaucoup, ça fait un peu parisien, donc garde la structure ;
+  // à partir de 10, que ça commence à aller un peu plus vite, mais pas juste le tempo — c'est nul quand ça devient juste plus aigu et plus
+  // rapide : un truc d'intensité · mélanger le côté old school avec un ou deux instruments new wave : new wave, future, raw · laisse Zeppelin
+  // d'Or et fais aussi un troisième où tu respectes juste le truc de rapidité, sur ce style-là, une musique qui évolue mieux »).
+  // Les deux gardent TOUT du premier jusqu'au 9e moteur (même numéro : même mélodie, mêmes grilles, même gramophone) ; puis :
+  //   · le tempo ne monte plus (`tempoFixe`, `monte` 0) et la tonalité non plus (plus de `modul` : « plus aigu ») ;
+  //   · la VITESSE QU'ON SENT vient des motifs qui se resserrent, une étape par moteur choisi (`etapes`, lues par regleElements → M.etP) ;
+  //   · le 10e moteur est un GRAND moment (la montée avant, `grands`).
+  const Z1 = TRIO.zeppelin, Z_KD = 'X...X..xX...X..x', Z_SD = '....X..o....X.xo', Z_HD = 'xoxXxoxXxoxXxoxX';
+  const Z_PAT = Object.assign({}, Z1.pat, { hatD: Z_HD, kickD: Z_KD, snareD: Z_SD });
+  const Z_STRIDE = { keys: [[0, 1], [4, 2], [8, 1], [12, 2]], kick: 'X...X..xX...X..x' };   // le piano en stride, la grosse caisse qui galope
+  // III — rien que l'orchestre des années folles : la contrebasse marche, puis passe en croches ; le piano en stride, puis en pompe de croches ;
+  // les cuivres et les voix en rafales ; la batterie qui pousse
+  TRIO.zeppelin3 = Object.assign({}, Z1, { nom: 'ZEPPELIN D’OR III', titre: 'ZEPPELIN D’OR III', dit: 'électro swing (les années folles × la house) — l’intensité dès le 10e moteur', monte: [0, 0], tempoFixe: true, grands: ['m_vite'], pat: Z_PAT,
+    ordre: ['vinyl!', 'keys', 'basse', 'lead', 'hat', 'sig', 'i_filtre', 'snare', 'kick', 'm_vite', 'cuivres', 'clarte', 'hatO', 'm_stride', 'contre', 'choeur', 'm_boogie', 'i_frappe', 'fant', 'sig2',
+      'double', 'cordes', 'm_pompe8', 'harmo', 'm_rafales', 'i_relance', 'i_tambours', 'i_pulse', 'i_monte', 'final!'],
+    etapes: { m_vite: { hat: 'xoxoxoxoxoxoxoxo', basse: [[0, 0, 3], [4, 't', 3], [8, 7, 3], [12, 12, 3]] }, m_stride: Z_STRIDE,
+      m_boogie: { basse: [[0, 0, 2], [2, 't', 2], [4, 7, 2], [6, 12, 2], [8, 7, 2], [10, 't', 2], [12, 0, 2], [14, 7, 2]] },
+      m_pompe8: { keys: [[0, 1], [2, 1], [4, 1], [6, 1], [8, 1], [10, 1], [12, 1], [14, 1]] },
+      m_rafales: { cuiv: [[[0, 1], [2, 1], [3, 1], [6, 2], [10, 1], [11, 1]], [[0, 1], [3, 1], [6, 1], [8, 1], [10, 1], [12, 1], [14, 2]]], chop: [[[0, 1], [2, 1], [3, 1], [6, 1]], [[8, 1], [10, 1], [11, 1], [13, 1], [14, 1]]] } },
+    noms: Object.assign({}, Z1.noms, { m_vite: 'ÇA ACCÉLÈRE : la contrebasse marche, les charleys en doubles croches', m_stride: 'le piano passe au stride, la grosse caisse galope',
+      m_boogie: 'la contrebasse en croches (boogie)', double: 'la batterie pousse (contretemps, roulements)', m_pompe8: 'le piano en pompe de croches (manouche)', m_rafales: 'les cuivres et les voix en rafales' }) });
+  // II — le même orchestre, et DEUX instruments new wave en contraste (1983 sous 1925 : « new wave, future, raw ») : la BASSE NEW WAVE en croches
+  // (racine-octave, deux scies saturées) qui entre au 10e sous la contrebasse restée en oom-pah, l'ARPÈGE ANALOGIQUE en doubles croches (14e) ;
+  // la caisse claire passe en réverbe coupée des années 80 avec la basse ; au 23e la basse en doubles croches, au 25e le son se durcit (raw)
+  TRIO.zeppelin2 = Object.assign({}, Z1, { nom: 'ZEPPELIN D’OR II', titre: 'ZEPPELIN D’OR II', dit: 'électro swing × new wave (1925 sur un moteur de 1983)', monte: [0, 0], tempoFixe: true, grands: ['nw'], gateDe: 'nw',
+    pluckT: ['scie'], voixB: ['lead'], vrais: Object.assign({}, Z1.vrais, { pluck: {} }), pat: Object.assign({}, Z_PAT, { arp: ['up16'] }),
+    ordre: ['vinyl!', 'keys', 'basse', 'lead', 'hat', 'sig', 'i_filtre', 'snare', 'kick', 'nw', 'cuivres', 'clarte', 'hatO', 'arp', 'contre', 'choeur', 'm_stride', 'i_frappe', 'fant', 'sig2',
+      'double', 'cordes', 'm_nw2', 'harmo', 'i_sature', 'i_relance', 'i_tambours', 'i_pulse', 'i_monte', 'final!'],
+    etapes: { nw: { hat: 'xoxoxoxoxoxoxoxo', nw: [[0, 0], [2, 12], [4, 0], [6, 12], [8, 0], [10, 12], [12, 0], [14, 12]], nwLen: 1.6 }, m_stride: Z_STRIDE,
+      m_nw2: { nw: [[0, 0], [1, 0], [2, 12], [3, 0], [4, 0], [5, 0], [6, 12], [7, 0], [8, 0], [9, 0], [10, 12], [11, 0], [12, 0], [13, 0], [14, 12], [15, 0]], nwLen: .85 } },
+    noms: Object.assign({}, Z1.noms, { nw: 'LA BASSE NEW WAVE : un moteur de 1983 sous l’orchestre de 1925 (les charleys en doubles)', arp: 'l’arpège analogique en doubles croches (new wave)',
+      m_stride: 'le piano passe au stride, la grosse caisse galope', double: 'la batterie pousse (contretemps, roulements)', m_nw2: 'la basse new wave en doubles croches (future)', i_sature: 'le son se durcit (raw)' }) });
+  for (const id in TRIO) { const o = TRIO[id]; COULEURS[id] = o; VRAIS_STYLE[id] = o.vrais || {}; UNIVERS[id] = { u: { acoustique: 1 }, f: { [/^zeppelin/.test(id) ? 'swing' : id]: 1 } };
     TRANSF_STYLE[id] = o.transf || {}; SIG_POIDS[id] = { [o.sig]: 1 }; FAMG[id] = id; }
   DA_STYLES.trio = Object.keys(TRIO);
   // L'HYBRIDE : le CORPS de A (rythme, tempo, basse, forme, l'ordre où les choses entrent), l'ÂME de B (accords, instruments, mélodies),
@@ -1620,6 +1653,12 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     if (nom === 'sirene') return [2.2, [72], (c, f) => { const g = envG(c, .25, 1.8, .35, .4); [['sine', 1, f], ['triangle', .2, f * 2]].forEach(([ty, v, ff]) => { const o = osc(c, ty, ff), m = c.createGain(); m.gain.value = v; o.connect(m); m.connect(g); o.start(0); }); }, 1];
     if (nom === 'cloche') return [2.2, [72, 84], (c, f) => { const g = c.createGain(); g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.4, .002); g.gain.exponentialRampToValueAtTime(.0001, 2.1); g.connect(OUT(c));
       [[1, 1, -.3], [Tm.cr, .35, .3], [Tm.cr * 1.96, .1, 0]].forEach(([r, v, x]) => { const o = osc(c, 'sine', f * r), m = c.createGain(); m.gain.value = v; o.connect(m); m.connect(panne(c, x, g)); o.start(0); }); }, 2];
+    // (ZEPPELIN II) LA BASSE NEW WAVE (1983 : Depeche Mode, New Order) : deux scies et un carré, le filtre qui claque et se referme, sèche et
+    // courte, un grain saturé (le « raw ») — jamais d'octave du dessous (le grave agréable)
+    if (nom === 'nwb') return [.45, [36, 48, 60], (c, f) => { const g = c.createGain(), fl = c.createBiquadFilter(), ws = c.createWaveShaper(); ws.curve = courbe(2.2); fl.type = 'lowpass'; fl.Q.value = 6;
+      fl.frequency.setValueAtTime(Math.min(4200, f * 22), 0); fl.frequency.exponentialRampToValueAtTime(Math.max(260, f * 3), .13);
+      g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.7, .003); g.gain.exponentialRampToValueAtTime(.25, .16); g.gain.exponentialRampToValueAtTime(.0001, .4); fl.connect(ws); ws.connect(g); g.connect(OUT(c));
+      [[osc(c, 'sawtooth', f, -7), .5], [osc(c, 'sawtooth', f, 7), .5], [osc(c, 'square', f), .3]].forEach(([o, v]) => { const m = c.createGain(); m.gain.value = v; o.connect(m); m.connect(fl); o.start(0); }); }, 1];
     // (trio) L'AGOGÔ : une cloche de fer forgé frappée — la note, ses partiels de cloche (2,4 · 3,9), qui s'éteignent vite, le coup de baguette
     if (nom === 'agogo') return [.6, [64, 76], (c, f) => { const g = c.createGain(); g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.55, .0015); g.gain.exponentialRampToValueAtTime(.0001, .55); g.connect(OUT(c));
       [[1, 1, .5, -.15], [2.4, .32, .16, .15], [3.9, .1, .06, 0]].forEach(([r, v, d, x]) => { const o = osc(c, 'sine', f * r), m = c.createGain(); m.gain.setValueAtTime(v, 0); m.gain.exponentialRampToValueAtTime(.0001, d); o.connect(m); m.connect(panne(c, x, g)); o.start(0); });
@@ -1701,7 +1740,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     return null;
   }
   const notesAcc = (inst, A, Mx) => { const up = Mx ? Mx.up : 12; return inst === 'cordes' ? A.v.slice(1).map(m => m + up) : inst === 'stab' ? A.v.map(m => m + up) : inst === 'cuivres' ? A.v.slice(1) : A.v; };
-  const BESOIN = { kick: ['s:kick'], snare: ['s:snare'], fant: ['s:snare'], hat: ['s:hat'], roll: ['s:hat'], hatO: ['s:hatO'], tribu: ['s:tomH', 's:tomL'], foule: ['v:foule', 's:hey'], wob: ['v:wob'], growl: ['v:growl'], perc: ['s:shaker', 's:percH', 's:percL'], ride: ['s:ride'],
+  const BESOIN = { nw: ['v:nwb'], kick: ['s:kick'], snare: ['s:snare'], fant: ['s:snare'], hat: ['s:hat'], roll: ['s:hat'], hatO: ['s:hatO'], tribu: ['s:tomH', 's:tomL'], foule: ['v:foule', 's:hey'], wob: ['v:wob'], growl: ['v:growl'], perc: ['s:shaker', 's:percH', 's:percL'], ride: ['s:ride'],
     toms: ['s:tomH', 's:tomL'], vinyl: ['s:vinyl'], basse: ['v:basse'], basse2: ['v:basse'], sub: ['v:sub'], lead: ['v:lead', 'v:pluck', 'v:cloche'], octave: ['v:lead'], harmo: ['v:lead'],
     contre: ['v:contre'], arp: ['v:pluck'], cloche: ['v:cloche'], pad: ['a:pad'], keys: ['a:keys'], stab: ['a:stab'], cordes: ['a:cordes'], choeur: ['a:choeur'], cuivres: ['a:cuivres'],
     _base: ['s:crash', 's:impact', 's:riser', 's:snare', 's:hat', 's:tomH', 's:tomL', 's:percH', 's:percL', 'v:pluck', 'v:b808'] };
@@ -1748,7 +1787,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   let ctx = audioContext, sortie = destination;
   let master, hpM, clair, sat, comp, lim, revIn, revOut, dIn, dlyL, dlyR, pompeBus, bus = {}, sol = {}, gIn = {}, chaineOk = false, wobIn = null, wobF = null, wowD, wowG, flutG, dSat, dWow, gateG = null, boueF = {};
   let gramoF = null, rHpG = null, revC = null, revCle = '', dFb = null, agc = null, agcA = null, agcEma = null, agcN = 0; const IRS = {}, agcBuf = new Float32Array(2048);
-  const LARGES = new Set(['pad', 'keys', 'cordes', 'choeur']), BOUE = { pad: -3.5, keys: -3.5, cordes: -3.5, choeur: -3.5, stab: -3.5, cuivres: -3.5, basse2: -5, contre: -3.5, octave: -4, harmo: -3, basse: -2, lead: -1.5, wob: -5, growl: -3.5 };
+  const LARGES = new Set(['pad', 'keys', 'cordes', 'choeur']), BOUE = { nw: -2.5, pad: -3.5, keys: -3.5, cordes: -3.5, choeur: -3.5, stab: -3.5, cuivres: -3.5, basse2: -5, contre: -3.5, octave: -4, harmo: -3, basse: -2, lead: -1.5, wob: -5, growl: -3.5 };
   const AGC_ON = false;   // (v3.10 : éteint — il aplatissait la montée des moteurs, ce que Léo aimait le plus)
   function agcTick() {   // LE NIVEAU HARMONISÉ : lent, figé pendant le vol, la respiration, le crash
     if (!AGC_ON || !agc || !M || !playing || JEU.vol || JEU.volPas >= 0 || JEU.crashEnCours || M.resp) return; agcA.getFloatTimeDomainData(agcBuf);
@@ -1814,7 +1853,8 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   let actives = 0, sautes = 0, picVoix = 0, erreurs = 0, derniere = '';
   const texture = dest => { for (const id of TEXTURES) if (bus[id] === dest) return true; return false; };
   const libre = dest => { if (actives >= VOIX_MAX && texture(dest)) { sautes++; return false; } return true; };
-  const suit = s => { actives++; if (actives > picVoix) picVoix = actives; s.onended = () => { actives--; }; };
+  let attaques = 0;   // (banc) les notes et les coups joués : la densité, la vitesse qu'on sent
+  const suit = s => { actives++; attaques++; if (actives > picVoix) picVoix = actives; s.onended = () => { actives--; }; };
   function son(nom, t, v, dest, dur, buf, rate) { let b = buf || (banque && banque.sons[nom]); if (Array.isArray(b)) b = b.length ? b[Math.floor(R() * b.length)] : null;
     if (!b || !dest || !libre(dest)) return; const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = b; suit(s);
     const bd = b.duration / (rate || 1); if (rate) s.playbackRate.value = rate;
@@ -1876,6 +1916,11 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     const E = rampeE(); frappe.hat = (frappe.hat || 0) + .5 * E; frappe.snare = (frappe.snare || 0) + 1.2 * E; frappe.kick = (frappe.kick || 0) + 1.4 * E; frappe.fant = (frappe.fant || 0) + 1 * E;
     frappe.basse = (frappe.basse || 0) + 1 * E + (M.C.basseDb || 0);
     if (M.C.dB) for (const k in M.C.dB) frappe[k] = (frappe[k] || 0) + M.C.dB[k];   // (trio) le mix écrit de chaque morceau (la caixa en texture, le ganzá discret)
+    // (ZEPPELIN II / III) LES ÉTAPES (Léo : « à partir de 10, que ça aille un peu plus vite, mais pas juste le tempo — c'est nul quand ça devient
+    // juste plus aigu et plus rapide : un truc d'intensité ») : la vitesse qu'on SENT vient des motifs qui se resserrent (la basse en croches,
+    // les charleys en doubles, le piano en stride puis en pompe de croches, les cuivres en rafales), le tempo et la tonalité ne bougent plus
+    if (M.C.etapes) { const E9 = Object.assign({}, M.pat); M.ordre.forEach(id => { if (M.C.etapes[id] && a(id)) Object.assign(E9, M.C.etapes[id]); }); M.etP = E9; }
+    if (M.C.gateDe && gateG) gateG.gain.setTargetAtTime(a(M.C.gateDe) ? .7 : (M.C.gate || 0) * .9, t, .3);   // (ZEPPELIN II) la caisse claire des années 80 (réverbe coupée)
     if (M.C.dub) { const P9 = { hat: 3.5, hatO: 3, snare: 3, roll: 2, fant: 2, sub: -3, kick: -1 }; for (const k in P9) frappe[k] = (frappe[k] || 0) + P9[k]; }   // (salle, dubstep : la caisse claire qui claque, le sous-grave qui ne noie pas)
     { const D9 = -10 * (1 - clamp((tier - 1) / 17, 0, 1)); for (const id in VOL) if (id !== 'fx') frappe[id] = (frappe[id] || 0) + D9; }   // (v3.10 : le début un peu plus loin — la montée, mesurée en salle) frappe.sub = (frappe.sub || 0) + (M.C.basseDb || 0);   // la rampe pousse le GRAVE
     const gb = gainBase(); if (!JEU.crashEnCours && Math.abs(gb - (M._gb || 0)) > 1e-4) { M._gb = gb; master.gain.setTargetAtTime(gb, t + .01, .4); }
@@ -2008,7 +2053,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   }
   const FREN_PAT = { kick: 'X......x..x..x..', snare: '........X.......', hat: 'xxx.x.xxxxx.x.xx' };
   function pas(s, t) {
-    const i = s % 16, bar = Math.floor(s / 16), b8 = bar % 8, P = M.pat, rg = M.rang, C = M.C, fl = JEU.flow;
+    const i = s % 16, bar = Math.floor(s / 16), b8 = bar % 8, P = M.etP || M.pat, rg = M.rang, C = M.C, fl = JEU.flow;
     const h = () => (R() - .5) * .008, tt = t + (i % 2 ? M.swing * SD : 0) + (C.swing8 ? C.swing8 * SD * [0, .33, .67, .33][i % 4] : 0), E = rampeE();   // (trio) swing8 : les croches balancées (ZEPPELIN)   // E : la rampe du 15 au 30
     // LE VOL : à la croche la batterie et la basse se retirent, le grave se coupe, la réverbe s'ouvre ; LA POSE : tout retombe sur le temps
     if (s === JEU.volPas) { for (const id in sol) { sol[id].gain.cancelScheduledValues(t); sol[id].gain.setTargetAtTime(.04, t, .03); }
@@ -2094,6 +2139,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       for (let m = cb - 2; m <= cb + 2; m++) if (m !== cb && A.gamme.includes(pc(m)) && Math.abs(m - cb) < bs) { bs = Math.abs(m - cb); best = m; }
       if (best != null) note('basse', b808 && best - 12 >= 30 ? best - 12 : best, tt, SD * 1.8, .7, bus.basse2, null, A); }
     if ((has('basse2') || has('i_basseOct')) && (i === 7 || i === 15) && !b808 && B.r === A.r) note('basse', A.basse + 12, tt, SD * .9, .55, bus.basse2, null, A);
+    if (has('nw') && P.nw && !fren) P.nw.forEach(([st, iv]) => { if (st === i) note('nwb', A.basse + ivDe(iv, A), tt, SD * (P.nwLen || 1.6), .85, bus.nw, null, A); });   // (ZEPPELIN II) la basse new wave
     if (cal('basse') && (i === 0 || i === 8)) { let m = A.basse; if (b808) { m -= 12; if (m < 30) m += 12; } note('basse', m, tt, SD * 7.4, .55, bus.basse, null, A); }   // (v6.0) la basse tient ses notes
     if (cal('sub') && i === 0) note('sub', A.basse - 12 >= 28 ? A.basse - 12 : A.basse, t, MES * .95, .5, bus.sub, null, A);
     if (has('sub') && i === 0 && (!b808 || b8 % 4 === 0)) note('sub', A.basse - 12 >= 28 ? A.basse - 12 : A.basse, t, MES * (b808 ? 1.9 : .95), .8, bus.sub, null, A);
@@ -2106,9 +2152,10 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     if (has('i_pulse') && i % 4 === 2) { const sb = has('stab') ? 'stab' : 'keys'; accordJoue(sb, A, tt, SD * 1.1, .38 + .15 * E, bus[sb]); }   // la pulsation des contretemps
     if (has('stab')) P.stab.forEach(([st, len]) => { if (st === i) accordJoue('stab', A, tt + h(), SD * len * 1.4, .7, bus.stab); });
     if (has('cordes') && i === 0) accordJoue('cordes', A, t, MES * .98, .8, bus.cordes);
-    if (has('choeur')) { if (C.pat.chop) C.pat.chop[bar % C.pat.chop.length].forEach(([st, len]) => { if (st === i) accordJoue('choeur', A, tt + h(), SD * len * 1.3, .75, bus.choeur); });   // le chœur haché (2-step)
+    const chop9 = P.chop || C.pat.chop, cuiv9 = P.cuiv || C.pat.cuiv;   // (les étapes peuvent les resserrer)
+    if (has('choeur')) { if (chop9) chop9[bar % chop9.length].forEach(([st, len]) => { if (st === i) accordJoue('choeur', A, tt + h(), SD * len * 1.3, .75, bus.choeur); });   // le chœur haché (2-step)
       else if (i === 0) accordJoue('choeur', A, t, MES * .98, .8, bus.choeur); }
-    if (has('cuivres') && C.pat.cuiv) C.pat.cuiv[bar % C.pat.cuiv.length].forEach(([st, len]) => { if (st === i) accordJoue('cuivres', A, tt + h(), SD * len, st === 0 ? .8 : .66, bus.cuivres); });   // les cuivres de l'eurobeat
+    if (has('cuivres') && cuiv9) cuiv9[bar % cuiv9.length].forEach(([st, len]) => { if (st === i) accordJoue('cuivres', A, tt + h(), SD * len, st === 0 ? .8 : .66, bus.cuivres); });   // les cuivres de l'eurobeat
     else if (has('cuivres') && ((i === 0 && (bar % 2 === 0 || has('final'))) || (i === 10 && has('final')))) accordJoue('cuivres', A, t, SD * (i === 0 ? 4 : 2), .75, bus.cuivres);
     // LA MÉLODIE (la phrase ; la partie B la confie à la corde pincée ; le flow l'orne d'une appoggiature ; la nitro la monte d'une octave)
     const mp = !fren ? meloPas[b8 * 16 + i] : null, vx = M.voixMel === 'haut' ? 'lead' : M.voixMel, vm = vx !== 'lead' && banque.voix[vx] && banque.voix[vx].length ? vx : 'lead';
@@ -2145,12 +2192,12 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   }
 
   // ================================================================ L'HORLOGE
-  function tempo() { const c = (M.bpm0 + (M.bpm1 - M.bpm0) * (tier - 1) / 29) * (JEU.fren ? 1.04 : 1) * (1 + .02 * rampeE()); if (Math.abs(c - BPM) < .01) return;
+  function tempo() { const c = (M.bpm0 + (M.bpm1 - M.bpm0) * (tier - 1) / 29) * (JEU.fren ? 1.04 : 1) * (1 + (M.C.tempoFixe ? 0 : .02) * rampeE()); if (Math.abs(c - BPM) < .01) return;   // (ZEPPELIN II / III : tempoFixe)
     BPM += clamp(c - BPM, -1.5, 1.5); SD = 60 / BPM / 4; MES = 16 * SD; dlyL.delayTime.setTargetAtTime(SD * (M.C.dly || 3), nextTime, .1); dlyR.delayTime.setTargetAtTime(SD * (M.C.dly || 3), nextTime, .1); }
   const entrants = (a, b) => M ? M.ordre.filter(id => M.rang[id] > a && M.rang[id] <= b) : [];   // ce qui entre entre les moteurs a (exclu) et b
   const nomMoteur = k => !M ? '' : entrants(k - 1, k).map(id => nomEl(M, id)).join(' + ') || 'la musique s’intensifie';
   function planifie() { let a = (Math.floor(step / 16) + 1) * 16; if (a - step < 4) a += 16;
-    grand = cible > tier && entrants(tier, cible).some(id => GRANDS.has(id)); if (grand && a - step < 16) a += 16; activation = a;
+    grand = cible > tier && entrants(tier, cible).some(id => GRANDS.has(id) || (M.C.grands && M.C.grands.includes(id)));   /* (ZEPPELIN II / III : `grands`) */ if (grand && a - step < 16) a += 16; activation = a;
     if (grand && M.C.dub && entrants(tier, cible).some(id => id === 'wob' || id === 'growl')) { M.build = 'dub'; (M.journal = M.journal || []).push('GRAND:drop'); }   // LE DROP
     else if (grand) { M.build = rp(['montee', 'trou', 'filtre'].filter(x => x !== M.buildDer && x !== M.transDer[0])); M.buildDer = M.build; (M.journal = M.journal || []).push('GRAND:' + M.build); }   // trois façons de monter, jamais deux fois la même
     else { const nx = entrants(tier, tier + 1)[0]; M.trans = choisitTrans(cible < tier || (nx && nx.startsWith('i_'))); } }
@@ -2251,7 +2298,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       traits: { style: M.cid, couleur: M.cid, sig: M.sig, de: null, genes: [], mode: M.modeN, keys: M.tim.keys, lead: M.tim.lead, basse: M.tim.basse, vamp: M.vamp, phrase: M.phF, theme: M.motifs[0].map(x => x.slice()) },
       gouts: M.W }; },
     get banqueMs() { return banque ? banque.ms : null; }, get banqueToutMs() { return banque ? banque.suiteMs || null : null; },
-    get _bus() { return bus; }, get _banque() { return banque; }, get _verif() { return VERIF; }, get _chaine() { return { sol, hpM, clair, master, revOut, lim, step }; }, get _voix() { return { actives, pic: picVoix, sautes, erreurs, derniere }; },
+    get _bus() { return bus; }, get _banque() { return banque; }, get _verif() { return VERIF; }, get _chaine() { return { sol, hpM, clair, master, revOut, lim, step }; }, get _voix() { return { actives, pic: picVoix, sautes, erreurs, derniere, attaques }; },
     _compose: (n, W, O) => { if (O) OPT = Object.assign({}, O, { n }); const Mx = compose(n, W); retoucheMx(Mx); return { socle: Mx.socle, rang: Mx.rang, sig: Mx.sig, sig2: Mx.sig2, idee: Mx.idee, style: Mx.cid, ton: Mx.tonNom, ordre: Mx.ordre, titre: Mx.titre, bpm: [Mx.bpm0, Mx.bpm1], keys: Mx.tim.keys, lead: Mx.tim.lead, basse: Mx.tim.basse, pad: Mx.tim.pad, pluck: Mx.tim.pluck, contre: Mx.tim.contre,
       cordes: Mx.tim.cordes, snare: Mx.kit.snare, riser: Mx.kit.riser, kt: Mx.kit.kt, kickT: Mx.kit.kickT, hatT: Mx.kit.hatT, pluck: Mx.tim.pluck, cuivres: Mx.tim.cuivres, retouche: Mx.retouche, transf: Mx.transf, kitV: Mx.kitV, univers: Mx.univers, famille: Mx.famille, heros: Mx.heros, rangs: { lead: Mx.rang.lead, kick: Mx.rang.kick, clarte: Mx.rang.clarte, double: Mx.rang.double, modul: Mx.rang.modul }, phrase: [Mx.phF, Mx.phFB], forme: Mx.forme, modeN: Mx.modeN,
       grilles: Mx.grilles.map(g => g.map(A => A.nom + ' ' + A.v.join('.'))), theme: Mx.motifs[0] }; },
