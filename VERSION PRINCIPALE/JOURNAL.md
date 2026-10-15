@@ -212,6 +212,9 @@
     direction, ou dans la case ARMÉE si elle y va ; la case qui la reçoit s'allume, la caisse du plateau fait la figure dans ce sens ;
   · toucher une CASE l'arme (elle bat, la grille éteint les figures qui n'y vont pas) ; retouchée ou en quittant l'onglet, elle se désarme.
 - Ajouter une figure : sa ligne dans `ILLU_FIG` (sinon l'anneau du salto) — noté au GUIDE.
+- (même soir, v528) les PHOTOS D'AILES de la boutique (`aileFile`, v525) sont arrivées : les 14 vignettes passent en photo, le nom posé sur un
+  fondu d'encre. COUCHÉ, les onglets de 44 px sortaient par le haut sur VOITURES (−22 px, MESURÉ) : 34 px de dessin (44 de touche), la grille
+  rend 20 px — onglets à 6 px du haut (VOITURES) et 11 px (FIGURES).
 ## UNE SEULE POLICE, PARTOUT (2026-10-15 soir ; Sacha : « la notification des défis n'a pas la même police que le reste du jeu […] chaque écran,
 ## chaque truc, c'est pareil quand on tape le code cousin […] il faut pas que je te le répète »)
 - LA CAUSE : une trentaine de règles écrites en police SYSTÈME (`var(--sans)`, `-apple-system`, `Segoe UI`, Avenir condensée…), choisies une

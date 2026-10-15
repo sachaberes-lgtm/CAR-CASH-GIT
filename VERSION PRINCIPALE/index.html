@@ -6491,6 +6491,7 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>b
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>em{top:4px;bottom:auto;right:4px;padding:3px 4px 2px}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>.gIc{display:none}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>img{left:-6%;top:-10%;width:112%}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>b{left:0;right:0;bottom:0;padding:12px 4px 5px;background:linear-gradient(180deg,rgba(7,5,15,0),rgba(7,5,15,.88) 55%)} /* le nom posé sur la photo : un fondu d'encre dessous, il se lisait mal sur la tôle orange */
 /* une FIGURE dessinée (partout où illuFig la pose) : l'anneau 12 × 12 en cases de 3 px, la caisse 9 × 9 en cases de 2 px au milieu */
 .fgIl{position:relative;display:block;width:36px;height:36px;color:var(--fc,#ffd75e)}
 .gT .fgIl.gIc{position:absolute;left:50%;top:6px;margin-left:-18px}
@@ -6560,7 +6561,11 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{display:fl
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(256px,31vh)}
 html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(150px,19vh)}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage.atelierInv:not(.menu):not(.vitrine):not(.figTab) #gStrip.gModeInv{max-height:calc(100vh - 200px)}
+  html body #garage.atelierInv:not(.menu):not(.vitrine):not(.figTab) #gStrip.gModeInv{max-height:calc(100vh - 220px)}
+  /* (même soir) couché, les onglets de 44 px sortaient par le haut sur VOITURES (MESURÉ, 844 × 390 : le haut de la rangée à −22 px) : le dessin
+     redescend à 34 px, la zone de touche garde ses 44 (::after), la grille rend 20 px */
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{height:34px}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab::after{top:-5px;bottom:-5px}
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 280px)}
   /* couché, la colonne n'a pas la place de l'intertitre ET du sélecteur (MESURÉ, 844 × 390 : les onglets sortaient à −25 px) : l'onglet dit
      déjà FIGURES, l'intertitre « INVENTAIRE » s'efface ; le nom tient sur une ligne (les cases sont plus larges) */
