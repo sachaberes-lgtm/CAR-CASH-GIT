@@ -192,6 +192,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (avec `?nitrooo=1`) les rendent pour comparer.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
+- HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
+  liste des figures sous la chaîne, plus de « $×1 » au palier 0 du flow, plus de nom du pouvoir au centre. On ne les rallume pas sans lui.
 
 **Interface (charte v4/v5 — pour tout écran neuf ou retouché ; de vieilles règles CSS y dérogent encore)**
 - PENCHÉ (`--sk`) = je touche · DROIT à coins coupés = je lis · ROND = une jauge.

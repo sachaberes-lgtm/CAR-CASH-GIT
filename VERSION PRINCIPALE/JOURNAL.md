@@ -30,6 +30,19 @@
   (section précédente) — rien à changer.
 - À juger par Sacha en jouant : la vigueur du coup (`kT`), la longueur de la glissade et la mollesse du retour (`ret`) — `dbgFig('phy')` les
   montre et les change à chaud.
+## LE HUD ALLÉGÉ (2026-10-15, Sacha : « supprime des éléments d'HUD un peu inutiles, je trouve qu'il y a trop d'info affichée et que ça nuit à l'expérience »)
+- RELEVÉ au banc en course (`hudtour.cjs` du scratchpad de la session : route, vol, route 6 s plus tard, pouvoir ramassé ; debout 390 × 844 et couché
+  844 × 390, inventaire DOM de tout ce qui est visible) : le coin haut-gauche empilait TROIS barres (boost, jauge d'aura « MOY 400 », flow), DEUX
+  lectures de l'aura (la jauge et le compteur « 609 AURA ») et la liste de chaque figure de la chaîne ; des « +N » d'aura traversaient l'écran.
+- RETIRÉ (détail dans `<style id="hudAllege">`, juste avant `#splash`) : (1) la JAUGE D'AURA de Léo (12/10) et ses « +N » volants — Sacha a tranché
+  (« oui, retire-la ») ; code gardé, `?jauge=1` la rend (`JAUGE_AURA`, la classe `html.sansJauge`, `ajGain` muet, plus de « MOYENNE BATTUE ») ;
+  les éclairs de NITRO qui volent vers la barre de boost restent (même couche `#ajVols`, même boucle `ajTick`) ; (2) la liste des figures sous la
+  chaîne (`#avList`) ; (3) le « $×1 » du flow au palier 0 ; (4) le nom du pouvoir au centre (`slam` dans `pwrPrend`) — sa plaque le dit.
+- PLACES : le flow monte à la place de la jauge, l'aura d'autant ; mesuré, l'écart flow → aura est celui d'avant (21 px debout, 17 couché).
+  `#auraV2` est rétréci par `zoom` : ses pas CSS (+76 debout, +72 couché) ne sont pas ceux de l'écran.
+- GARDÉ (à rayer par numéro si Sacha le veut) : barre de boost + vitesse, flow, ⏸, argent, compteur d'aura + chaîne, chrono de vol, plaques de pouvoir,
+  carte moteur (NOUVEAU MOTEUR / SOMMET), rappel de figure, bouton NITRO, « GLISSE POUR TOURNER » (s'efface au premier braquage), « BOOST »,
+  « +1 » des pièces, bannières de mission, DAUPHIN.
 
 ## LES FIGURES PAR DIRECTION : AVANT · ARRIÈRE · CÔTÉS (2026-10-15 soir, Sacha : « en vrai mets aussi une catégorie de figure en mode flèche vers l'arrière pour les saltos arrière ou certaines figures qui peuvent être faites vers l'arrière ; une même figure doit avoir marqué à quelle direction elle peut aller, par exemple tonneau c'est que les côtés mais rodéo ça peut être mis à l'avant ou à l'arrière » → question posée, réponse : « 3, une par geste »)
 - Suite directe des DEUX FAMILLES (section suivante), qu'elle remplace : la famille `cat` devient `dir` (les DIRECTIONS d'une figure), et
