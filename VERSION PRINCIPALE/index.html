@@ -16294,6 +16294,8 @@ function buildCanyon(seed){
     const zS=v('zS'),zA=v('zA'),zH=v('zH');S.zS[i]=zS;S.zA[i]=zA;S.zH[i]=zH;S.V[i]=v('V');S.st[i]=v('st');S.aw[i]=v('aw')*K;
     S.wF[i]=(v('wF')*(1-zS)*K+v('wF')*zS*(1+.45*(K-1)))*(1+(.16*Math.sin(s9/530+ph[0])+.08*Math.sin(s9/173+ph[1]))*(1-zS));
     S.H[i]=v('H')*K6*(1+.12*Math.sin(s9/910+ph[2]));S.D[i]=v('D')*K4;S.as[i]=.24*Math.sin(s9/760+ph[3])*(1-zS)*(1-.5*zA);
+    if(CY_SERRE){const b9=CY_SERRE.pied,ex=Math.max(0,S.wF[i]-b9)*CY_SERRE.k/Math.sqrt(K); // (2026-10-15, Sacha : « les parois doivent être plus proches encore de la route ») LE CANYON SERRÉ : le pied des parois à 30 m de l'axe (2 m du bord), seul l'EXCÈS se garde au quart — et il ne gonfle plus avec le palier (les rayons, eux, si)
+      S.as[i]*=ex/Math.max(1,b9+ex);S.wF[i]=b9+ex;S.aw[i]*=.3;} // les alcôves (le bruit qui recule la roche) : 9 m au lieu de 30
     S.wR[i]=Math.min(S.wF[i]-5,(16+9*Math.sin(s9/310+ph[4]))*K*(1-zS)+(S.wF[i]-5)*zS);S.wW[i]=Math.max(10,S.H[i]*S.st[i]);}
   // ---- 3. LA RIVIÈRE : jamais plus haut qu'en amont, en vasques et en cascades ----
   {let mn=1e9,Lp=null,p0=0;const stepH=22*K;
@@ -16712,6 +16714,7 @@ function cyRais(S,sQ){const e0=sQ.etroit0,e1=sQ.etroit1;if(e0==null||e1==null)re
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeBoundingSphere();
   const m=new THREE.Mesh(g,CY_RAI_M);m.userData.jeter=1;m.renderOrder=8;m.matrixAutoUpdate=false;m.updateMatrix();return m;}
 const CY_COU={g:3.5,T:14};
+const CY_SERRE=/[?&]sans=([^&]*,)?cyserre(,|&|$)/.test(location.search)?null:{pied:30,k:.22}; // le canyon serré (buildCanyon) — `?sans=cyserre` = les parois d'avant
 const CY_TUN={l:460,vh:34,ap:104,fw:520,fh:520};  // longueur, hauteur des murs droits, sommet de la voûte (au-dessus de la route), façade (demi-largeur, hauteur)
 function cyCouloirIci(){return CY.on&&((!!CY.cou&&s>=CY.cou[0]&&s<=CY.cou[1])||(!!CY.tun&&s>=CY.tun[0]));}
 function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?cyBandes(CY.tun,true):null;}
