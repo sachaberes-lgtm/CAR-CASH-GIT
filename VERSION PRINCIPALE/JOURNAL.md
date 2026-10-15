@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER — LA GLACE GLISSE VRAIMENT (2026-10-15 soir, Sacha : « la glace ne glisse pas assez dans la map montagne, il faut rajouter une animation et des particules de glace »)
+- Le défaut : le verglas ne faisait que rogner le volant (68 %) et pousser un peu vers l'extérieur. Le cap restait la trajectoire, donc la
+  caisse tournait moins, elle ne GLISSAIT pas (le même défaut que le drift de conduite abandonné en juillet).
+- LA VRAIE GLISSE (`BKV.gl`, bloc LE VERGLAS) : sur la glace, le pouce tourne le NEZ (volant à 92 %) et la TRAJECTOIRE ne le rejoint qu'en
+  `BK_VG.tau` = 0,38 s à pleine vitesse (0,15 s à l'arrêt), ÷spdMult comme VOL_TAU. Dans un virage, la caisse file en CRABE vers l'extérieur
+  (jusqu'à ~29°, `glMax`), le nez dans la courbe : il faut braquer TÔT. La boucle lit `psi-slipB-BKV.gl` sur ses deux lignes d'avance (vL, s),
+  donc le décollage part aussi dans le sens de la trajectoire ; `gl` remis à zéro au décollage, au replacement et hors du glacier.
+- L'ANIMATION : le crabe réel grossi de 80 % à l'image, +16° au plus (la physique reste jouable, l'image glisse) + la QUEUE QUI CHASSE (onde lente qui grandit avec la glisse) ; un craquement de
+  glace (`banq.craque`) et un petit `hap(8)` quand elle décroche (une fois par glissade) ; la boucle `banq.glisse` chante tant qu'elle glisse.
+- LES PARTICULES : `fx.eclat` (700 éclats ÉTIRÉS, jetés du côté où la caisse glisse — surtout par les roues qui mènent, les roues avant s'y
+  mettent en pleine glisse) et `fx.brume` (220 bouffées de givre qui gonflent en s'effaçant derrière). Les deux héritent de la vitesse de la
+  caisse (`PT_U.uVc`) : une gerbe qui suit, plus un pointillé semé sur place. La rayure de glace s'élargit avec l'angle. L'ancien givre semé
+  par les roues sur le verglas est remplacé (le givre reste pour les lacs et pics en vol).
+- Console : `dbgBanq('verglas')` donne `gl` (rad) et `gk` (glisse ressentie 0-1). Banc : `gg-banc.cjs` (scratchpad de la session 487dcfbe).
+
 ## LE JOUER DU GARAGE RETROUVE SES TROIS CHEVRONS (2026-10-15, Sacha : « rajoute le bouton jouer dans le garage avec les 3 flèches animées qu'il y avait dans une ancienne version, il était bien »)
 - Le bouton était là, ses chevrons aussi (`#gJouer .mChev`, animation `k4Chev` : trois flèches qui s'allument l'une après l'autre) — mais la
   règle du 30/09 (« sous 230 px, les chevrons se taisent », faite quand la BOUTIQUE partageait la barre) les cachait : MESURÉ, le lingot de la
