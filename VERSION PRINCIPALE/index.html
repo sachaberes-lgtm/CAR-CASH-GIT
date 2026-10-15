@@ -10098,6 +10098,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </div>
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=7"></script>
+<script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=1"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=2"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -39646,6 +39647,104 @@ function sparkBurst(pool,pos,n,sp){
 }
 const crV1=new THREE.Vector3(),crV2=new THREE.Vector3(); // (2026-10-15) deux vecteurs de travail partagés (ils vivaient avec les dauphins)
 function triNoir(){return FLOW.lv===4&&!PARK.on;} // la DARK TRIAD tourne (la comète de NITROOO passe au sang)
+/* LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on
+   peut les voir dire bonjour ; on les voit quelques fois, de manière random comme la map, sur la route, en train de courir ou de manger une
+   mangue, ou penchés sur le bord de la route et sur les montagnes — qu'on en voie quelques fois seulement, mais qu'on les voie quand même »).
+   Du DÉCOR (aucune collision, aucun gain) : à chaque course sur les PICS DE JADE, QUATRE rencontres tirées au hasard le long de la piste
+   (`JSG_N`), une de chaque : sur une MONTAGNE proche de la route, un grand singe debout qui dit COUCOU · sur la ROUTE, un singe assis qui
+   MANGE UNE MANGUE (il regarde passer la caisse) · sur la ROUTE, un singe qui COURT dans le sens de la course (la caisse le double) · AU BORD
+   de la route, un singe assis sur l'arête, les jambes dans le vide, qui fait coucou. Chacun naît devant la caisse, assez loin pour qu'on le
+   voie venir (`JSG_AV`), de l'autre côté de la route qu'elle, et repart dès qu'elle l'a laissé derrière. La forme vient de `creatures/singe.js`
+   (les poses articulées) et de `creatures/vitrail.js` ; les quatre formes sont bâties AU MENU, tranche par tranche (≤ 5 ms par image), puis
+   compilées une fois hors écran : en course, rien ne se construit ni ne se compile. Console : `dbgJadeSinges()` (le plan, la rencontre en
+   cours), `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` (une rencontre, tout de suite). */
+const JSG_N=4,JSG_AV={bonjour:240,mangue:170,course:150,bord:170},JSG_ECH={bonjour:11,mangue:8.5,course:7.5,bord:8.5}; // (mesuré au banc) à 6 m de haut, ils restaient cachés derrière la caisse jusqu'à 40 m : des singes GÉANTS, du décor de dessin animé
+const JSG_VIT={uSat:.62,uClair:.78,uLueur:.55,uEcart:.94,uCoqA0:.28}; // le vitrail EN COURSE (l'étalonnage du jeu sature ×1,4 : sans ça, un singe brun sort orange)
+const JSG={S:{},node:new THREE.Group(),fab:null,pret:false,chaud:false,cle:null,plan:[],cur:null,t:0,
+  F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),
+  m:new THREE.Matrix4(),cib:new THREE.Vector3(),vel:new THREE.Vector3(),p0:new THREE.Vector3()};
+JSG.node.visible=false;scene.add(JSG.node);
+function jsgActif(){return !!(started&&!gameOver&&JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!TUTO.on);}
+function jsgCache(){if(JSG.cur){JSG.cur.o.nd.visible=false;JSG.cur=null;}JSG.node.visible=false;}
+function jsgS(){ // où est la caisse sur la piste (au sol : s ; en vol : la dalle la plus proche) — null sans route sous elle
+  if(mode==='drive')return s;const P=carGroup.position,bi=dalleProche(P.x,P.y,P.z,2,1e9,tryLand._bi);if(bi<0||bi>=NP)return null;
+  return bi/(NP-1)*L+JSG.v1.subVectors(P,pts[bi]).dot(T[bi]);}
+function jsgPlan(){ // QUATRE rencontres sur la piste, une de chaque, dans un ordre tiré au hasard
+  const ty=['bonjour','mangue','course','bord'];for(let i=ty.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;const x=ty[i];ty[i]=ty[j];ty[j]=x;}
+  JSG.plan=[];for(let k=0;k<JSG_N;k++)JSG.plan.push({s:L*(.1+k*.21+Math.random()*.07),type:ty[k%ty.length],fait:false});
+}
+function jsgPose(o,p,y,z,ech){ // pose le singe : position p, son haut y, son regard z (unitaires)
+  const x=JSG.v3.crossVectors(y,z).normalize(),z2=JSG.v2.crossVectors(x,y);JSG.m.makeBasis(x,y,z2);
+  o.nd.quaternion.setFromRotationMatrix(JSG.m);o.nd.position.copy(p);o.nd.scale.setScalar(ech);o.nd.updateMatrixWorld(true);}
+function jsgMontagne(sp){ // une montagne près de la route, devant : son sommet sous le niveau de la route (on le voit d'en haut), le singe dessus
+  const C=JADE.col;if(!C)return null;const i0=Math.max(0,Math.min(NP-1,Math.round(sp/L*(NP-1)))),r0=pts[i0],mort=C.mort||new Set(),chute=new Set();
+  for(const c of JCH.L)if(c&&c.pi!=null)chute.add(c.pi);
+  let best=-1,bd=1e9;
+  C.P.forEach(function(q,k){if(mort.has(k)||chute.has(k))return;const d=Math.hypot(q[0]-r0.x,q[1]-r0.z),h=q[4]-r0.y;if(d<ROAD_HALF+q[2]+20||d>280)return;
+    if(h<-150||h>50)return; // MESURÉ : les montagnes au bord de la route la dépassent de 70 à 230 m — leur sommet est invisible d'en bas ; on prend un sommet de 150 m sous la route à 50 m au-dessus
+    const sc=Math.abs(h-10)*.5+Math.abs(d-130)*.4;if(sc<bd){bd=sc;best=k;}});
+  if(best<0)return null;const q=C.P[best];
+  let bx=q[0],bz=q[1],by=-1e9;
+  for(const o of [[0,0],[.25,0],[-.25,0],[0,.25],[0,-.25],[.18,.18],[-.18,-.18],[.18,-.18],[-.18,.18]]){const x=q[0]+o[0]*q[2],z=q[1]+o[1]*q[2];
+    for(let y=q[4]+2;y>q[4]-30;y-=.5)if(jadePilierDans(q,x,y,z)){if(y>by){by=y;bx=x;bz=z;}break;}}
+  if(by<-1e8)return null;return {p:new THREE.Vector3(bx,by+.5,bz),q:q};
+}
+function jsgLance(R,type){ // la rencontre naît devant la caisse
+  const o=JSG.S[type];if(!o)return false;const dir=driveDir||1,sp=R+dir*JSG_AV[type];if(sp<30||sp>L-80)return false;
+  const F=JSG.F;frameAt(sp,F);const cote=Math.random()<.5?1:-1,sl=-Math.sign(lat||cote)||cote; // de l'AUTRE côté de la route que la caisse
+  const E={type,o,s:sp,t:0,ech:JSG_ECH[type],vs:0,lat:0,cote:sl};
+  if(type==='bonjour'){const M=jsgMontagne(sp);if(!M)return false;E.p=M.p;E.n=new THREE.Vector3(0,1,0);
+    const i0=Math.max(0,Math.min(NP-1,Math.round(sp/L*(NP-1))));E.vers=pts[i0].clone();}
+  else if(type==='bord')E.lat=sl*(ROAD_HALF-.25);
+  else E.lat=sl*Math.max(ROAD_HALF*.5,ROAD_HALF-6); // (mesuré) à mi-largeur, dans un virage, il tombait pile derrière la caisse à l'écran : près du bord
+  if(type==='course'){const vt=JSG.vel.dot(F.t)*dir;E.vs=Math.max(8,.5*Math.max(20,vt));}
+  JSG.cur=E;JSG.node.visible=true;o.nd.visible=true;o.S.e.t=0;
+  try{if(typeof sfx==='function')sfx('singe.coucou');}catch(e){} // (son à faire : nom posé)
+  return true;
+}
+function jsgTick(dt){
+  // LA FABRIQUE : les quatre formes, tranche par tranche (≤ 5 ms par image), puis UNE compilation hors écran au menu
+  if(typeof singePoseForme!=='function')return; // (creatures/singe.js absent : pas de singes)
+  if(!JSG.pret){if(!JSG.fab)JSG.fab=(function*(){for(const n of ['bonjour','mangue','bord'])yield* vitrailPrepare(singePoseForme(n));yield* vitrailPrepare(SINGE_FC);})();
+    const t0=performance.now();let r;do{r=JSG.fab.next();}while(!r.done&&performance.now()-t0<5);
+    if(r.done){JSG.pret=true;for(const n of ['bonjour','mangue','bord','course']){const S=singeNouveau('singeJade',n),nd=new THREE.Group();
+      for(const k in JSG_VIT)S.U[k].value=JSG_VIT[k];nd.add(S.grp);nd.visible=false;JSG.node.add(nd);JSG.S[n]={S,nd};}}
+    return;}
+  if(!JSG.chaud){if(started&&!gameOver&&JSG.cur)return;JSG.chaud=true; // (au menu d'habitude ; une course partie trop tôt la fait ici, une fois, sans singe à l'écran)
+   JSG.node.visible=true;for(const n in JSG.S)JSG.S[n].nd.visible=true;
+    try{chauffeRendu([JSG.node]);}catch(e){}for(const n in JSG.S)JSG.S[n].nd.visible=false;JSG.node.visible=false;return;}
+  if(paused)return;
+  if(dt>0){JSG.v1.subVectors(carGroup.position,JSG.p0).multiplyScalar(1/dt);if(JSG.v1.lengthSq()<4e6)JSG.vel.lerp(JSG.v1,Math.min(1,dt*1.5));}JSG.p0.copy(carGroup.position);
+  if(!jsgActif()){if(JSG.cur)jsgCache();if(!started||gameOver)JSG.cle=null;return;}
+  if(JSG.cle!==JADE.root||JSG.rs!==runStats){JSG.cle=JADE.root;JSG.rs=runStats;jsgCache();jsgPlan();} // une nouvelle vallée, ou une nouvelle partie : un nouveau plan
+  const R=jsgS();if(R==null)return;
+  if(!JSG.cur&&mode!=='boom'){for(const P of JSG.plan){if(P.fait)continue;if(R>=P.s-JSG_AV[P.type]){P.fait=true;if(Math.abs(R-P.s)<JSG_AV[P.type]+120)jsgLance(R,P.type);}break;}}
+  const E=JSG.cur;if(!E)return;
+  E.t+=dt;const o=E.o,S=o.S,F=JSG.F,dir=driveDir||1;
+  if(E.type==='course')E.s+=dir*E.vs*dt;
+  const der=(R-E.s)*dir; // de combien la caisse l'a dépassé
+  if(der>70||E.t>16||mode==='boom'){jsgCache();return;}
+  if(E.type==='bonjour'){const z=JSG.v2.subVectors(E.vers,E.p);z.y=0;if(z.lengthSq()<1)z.set(0,0,1);z.normalize();
+    const zc=JSG.cib.subVectors(carGroup.position,E.p);zc.y=0;if(zc.lengthSq()>1){zc.normalize();z.lerp(zc,.5).normalize();} // tourné vers la route, et un peu vers la caisse
+    jsgPose(o,E.p,E.n,z,E.ech);}
+  else{frameAt(Math.max(0,Math.min(L-.01,E.s)),F);const p=JSG.v1.copy(F.p).addScaledVector(F.b,E.lat);
+    const z=E.type==='mangue'?JSG.v2.copy(F.t).multiplyScalar(-dir):E.type==='course'?JSG.v2.copy(F.t).multiplyScalar(dir):JSG.v2.copy(F.b).multiplyScalar(E.cote);
+    jsgPose(o,p,F.n,z,E.ech);}
+  // l'apparition : il GRANDIT en 0,4 s (et rapetisse en partant)
+  const k=Math.min(1,E.t/.4)*(der>40?Math.max(0,1-(der-40)/30):1);o.nd.scale.setScalar(E.ech*Math.max(.01,k));
+  S.U.uNoir.value=triNoir()?1:0;S.U.uLum.value.copy(F.n.lengthSq()>.5&&E.type!=='bonjour'?F.n:JSG.v3.set(0,1,0));camera.getWorldDirection(JSG.v3);S.U.uLum.value.addScaledVector(JSG.v3,-.4).normalize();
+  const cible=o.nd.worldToLocal(JSG.cib.copy(carGroup.position));
+  if(E.type==='course')singeCourt(S,dt,0,0,cible);else singeAnimePose(S,dt,cible);
+}
+window.dbgJadeSinges=function(t){ // dbgJadeSinges() : le plan · dbgJadeSinges('bonjour'|'mangue'|'course'|'bord') : une rencontre tout de suite
+  if(t==='gel'){paused=!paused;return paused;} // (banc) fige / relance la course sans le panneau de pause — pour photographier
+  if(t==='montagnes'){const C=JADE.col,R=jsgS();if(!C||R==null)return null;const r0=pts[Math.max(0,Math.min(NP-1,Math.round((R+240)/L*(NP-1))))],o=[]; // (banc) les montagnes autour du point de la route 240 m devant : [distance, à la route, sommet − route, rayon]
+    C.P.forEach(function(q){const d=Math.hypot(q[0]-r0.x,q[1]-r0.z);if(d<500)o.push([Math.round(d),Math.round(q[8]),Math.round(q[4]-r0.y),Math.round(q[2])]);});o.sort(function(a,b){return a[0]-b[0];});return o.slice(0,30);}
+  if(t){if(!jsgActif())return 'il faut rouler au SOLEIL DE JADE';jsgCache();const R=jsgS();if(R==null)return 'pas de route sous la caisse';return jsgLance(R,t)?'lancé : '+t:'pas de place (montagne introuvable, ou fin de piste)';}
+  const v=new THREE.Vector3();const E=JSG.cur;
+  return {pret:JSG.pret,chaud:JSG.chaud,actif:jsgActif(),demiRoute:+ROAD_HALF.toFixed(1),lat:+lat.toFixed(1),plan:JSG.plan.map(p=>({type:p.type,s:Math.round(p.s),fait:p.fait})),L:Math.round(L),
+    cur:E?{type:E.type,t:+E.t.toFixed(1),s:Math.round(E.s),vu:E.o.nd.visible&&JSG.node.visible,ech:+E.o.nd.scale.x.toFixed(2),pos:E.o.nd.position.toArray().map(Math.round),caisse:carGroup.position.toArray().map(Math.round),ecran:E.o.nd.getWorldPosition(v).project(camera).toArray().map(a=>+a.toFixed(2)),dist:Math.round(E.o.nd.getWorldPosition(v).distanceTo(camera.position))}:null};
+};
 /* ============================================================================
    SYSTÈME MUSICAL — bande-son + analyse temps réel qui fait PULSER le ciel.
    La musique passe par le bus WebAudio (donc mixée/limitée avec tout le reste),
@@ -58768,6 +58867,7 @@ function loop(now){
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);} // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
   if(!mortS9)try{foretTick(dtA9);}catch(e){window.__foretErr=e;loopWarn(131072,'forêt',e);} // (2026-10-14) LA FORÊT NOIRE : lumière, météo, papillons, feux follets, le loup-garou, les voix du bois
   if(!mortS9)try{volcanTick(dtA9);}catch(e){window.__volcanErr=e;loopWarn(131072,'volcan',e);} // (2026-10-14) LE ROYAUME DE FEU : lumière, météo, éruptions, bombes, braises, cendre, les voix du volcan
   if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent

@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on peut les voir dire bonjour ; sur la route, en train de courir ou de manger une mangue, ou penchés sur le bord de la route — qu'on en voie quelques fois seulement, mais qu'on les voie quand même ») — PROTOTYPE, branche singes-jade (pas sur le main : le LOOK attend le oui de Léo)
+- Du DÉCOR, sur la seule map PICS DE JADE (choix de Léo au questionnaire) : `jsgTick` (bloc « LES SINGES DU SOLEIL DE JADE », après `triNoir`).
+  Quatre rencontres par course (`JSG_N`), une de chaque, à des places tirées au hasard (`jsgPlan`) : COUCOU sur une montagne proche de la route
+  (`jsgMontagne` : sommet de 150 m sous la route à 50 m au-dessus — MESURÉ, celles du bord la dépassent de 70 à 230 m, sommet invisible), MANGUE
+  et COURSE sur la route près du bord (à mi-largeur, dans un virage, le singe tombait pile derrière la caisse à l'écran), AU BORD (assis sur
+  l'arête, jambes dans le vide). Chacun naît `JSG_AV` m devant, de l'autre côté de la route que la caisse, grandit en 0,4 s, repart quand elle
+  l'a laissé derrière. Tailles `JSG_ECH` : des singes GÉANTS (×8,5 à ×11 : à ×4,6 ils restaient cachés derrière la caisse jusqu'à 40 m).
+- Les POSES ARTICULÉES (`creatures/singe.js` : `SG_ART`, `SG_SEG`, `SG_POSES` bonjour · mangue · bord, `singePoseForme`, `singeAnimePose`) : le singe
+  debout découpé en 11 pièces rigides (bras et jambes en deux segments : coudes et genoux), une pose = des directions de segments ; la mangue
+  est un volume de la main droite (joue rouge côté visage, feuille). Trois os par pose (tête · avant-bras qui fait coucou / mangue à la bouche ·
+  queue ou jambes qui balancent). La boîte à singe les montre (Coucou · Mangue · Au bord).
+- Le jeu charge `creatures/vitrail.js` + `creatures/singe.js` (balises après figures.js) ; les quatre formes sont bâties AU MENU en tranches puis
+  compilées hors écran (une course partie trop tôt les compile une fois, sans singe à l'écran). Son posé : `sfx('singe.coucou')` (à faire).
+- Banc : `?carte=jade` ne suffit pas (le menu le consomme) → `dbgClassique('jade','midi')` juste avant le vrai clic sur PLAY ; `dbgAuto(1,0)`
+  AVANT le départ (sinon la caisse file au 1er virage dans la mer) ; `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` lance une rencontre,
+  `dbgJadeSinges('gel')` fige la course sans le panneau (photos), `dbgJadeSinges('montagnes')` liste les montagnes autour de la route.
 
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit

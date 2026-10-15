@@ -47,6 +47,7 @@ function sgColQ(q,X,Y,Z,o){let r=q[1]; // la couleur du volume q au point (X,Y,Z
     else if(r==='four'&&q[2]===0&&Z>.06&&(X/.19)**2+((Y-.33)/.3)**2<1)r='ventre';
     else if(r==='four'&&Z<-.06)r='dos';
     else if(r==='queue')r=Y<-.6?'dos':'four';
+    else if(r==='mangue'&&Z-q[4][2]>.025)r='mangueR'; /* (15/10) la joue rouge de la mangue, côté visage */
     o[0]=SG_RGB[r][0];o[1]=SG_RGB[r][1];o[2]=SG_RGB[r][2];}
 function sgOs(X,Y,Z,o){sgDebout(X,Y,Z);const q=SG_P[sgProche()],b=q[2];o[0]=o[1]=o[2]=0; // les os (repère DEBOUT) : 0 la tête · 1 le bras +x · 2 le bras −x
     if(b===1)o[0]=1;else if(b===0&&q[1]==='four'&&Y>.6&&Math.abs(X)<.16)o[0]=Math.max(0,Math.min(1,(Y-.62)/.16));
@@ -64,6 +65,9 @@ function singeForme(mode){const Q=mode!=='mains',ux=x=>Q?-x:x,uy=y=>Q?SG_YA-y:SG
 const SINGE_F=singeForme('queue'),SINGE_FM=singeForme('mains');
 const SG_QI=new THREE.Quaternion();
 function singeNouveau(cle,mode){ // un singe : son groupe (accroché en 0,0,0), ses réglages, son état — mode 'queue' (défaut) ou 'mains' — ou 'course' (à quatre pattes, les pieds en 0,0,0)
+  if(SG_POSES[mode]){const F=singePoseForme(mode),U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}});
+    U.uP0.value.copy(F.piv[0]);U.uP1.value.copy(F.piv[1]);U.uP2.value.copy(F.piv[2]);
+    return {grp:vitrailObjet(F,U,cle||'singe'),U,F,mode,e:{t:0,ph:0,k:Math.random()*6.28,hy:0,hp:0,m4:new THREE.Matrix4(),eu:new THREE.Euler()}};}
   if(mode==='course'){const F=SINGE_FC,U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}});
     U.uP0.value.copy(F.cou);U.uP1.value.copy(F.epaules);U.uP2.value.copy(F.hanches);
     return {grp:vitrailObjet(F,U,cle||'singe'),U,F,mode:'course',e:{t:0,ph:0,k:Math.random()*6.28,hy:0,hp:0,m4:new THREE.Matrix4(),eu:new THREE.Euler()}};}
@@ -155,5 +159,76 @@ function singeCourt(S,dt,air,vh,cible){ // LE GALOP · air : 0 au sol → 1 en p
   if(cible){const lk=Math.pow(Math.max(0,Math.sin(e.t*1.1+e.k*2)),6);fy+=(Math.max(-1.1,Math.min(1.1,Math.atan2(cible.x-F.cou.x,cible.z-F.cou.z)))-fy)*lk;}
   const a9=Math.min(1,dt*7);e.hy+=(fy-e.hy)*a9;e.hp+=(fp-e.hp)*a9;
   U.uM0.value.setFromMatrix4(e.m4.makeRotationFromEuler(e.eu.set(e.hp,e.hy,0,'YXZ')));
+}
+/* LES POSES ARTICULÉES (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on peut
+   les voir dire bonjour ; sur la route, en train de courir ou de manger une mangue ; ou penchés sur le bord de la route »). Le singe debout est
+   découpé en ONZE pièces rigides — corps, tête, bras (haut / avant-bras + main), jambes (cuisse / tibia + pied), queue — et une POSE ne dit
+   que : le tangage du corps, la tête, la DIRECTION de chaque segment (épaule → coude → main, hanche → genou → pied), la queue. Chaque pièce est
+   le volume debout déplacé d'un bloc : couleurs, visage, sourire intacts. Trois OS par pose (la recette vitrail en a trois) : chaque pose dit
+   quelles pièces suivent quel os, et autour de quel pivot. Repère : le sol en y = 0 (`appui` : les pièces qui touchent le sol), le museau en +z. */
+const SG_ART=[0,0,1,1,1,1,1,1,1,1, 2,3,3, 4,5,5, 6,7,7, 8,9,9, 10,10,10,10,10]; // la pièce de chaque volume de SG_P
+const SG_SEG={ // les segments du singe DEBOUT : épaule → coude → centre de la main ; hanche → genou → centre du pied
+  bD:[[.22,.6,.02],[.56,.84,.08],[.5,1.29,.13]],bG:[[-.22,.6,.02],[-.56,.84,.08],[-.5,1.29,.13]],
+  jD:[[.13,.02,.04],[.3,-.12,.13],[.2,-.36,.2]],jG:[[-.13,.02,.04],[-.3,-.12,.13],[-.2,-.36,.2]]};
+const SG_MANGUE=[['e','mangue',3,.015,[.48,1.42,.17],[.12,.095,.1]],['e','feuille',3,.01,[.5,1.53,.17],[.06,.022,.035]]]; // dans la main droite (pièce 3)
+{const C2={mangue:0xffa526,mangueR:0xf0502a,feuille:0x4fae3e};for(const k in C2){const c=new THREE.Color(C2[k]);SG_RGB[k]=[c.r,c.g,c.b];}}
+const SG_POSES={ // les poses du décor (directions dans le repère de la pose : x à droite du singe, y en haut, z devant lui)
+  bonjour:{corps:.04,bD:[[1,.3,.18],[.06,1,.16]],bG:[[.25,-1,.08],[.05,-1,.3]],jD:[[.32,-.95,.1],[.04,-1,.12]],jG:[[-.32,-.95,.1],[-.04,-1,.12]],
+    queue:[2,0],appui:[7,9],os:[[1],[3],[10]],piv:['cou','coudeD','queue']},
+  mangue:{corps:-.05,tete:[.2,0,0],bD:[[.4,-.2,.9],[-.8,.45,-.36]],bG:[[-.4,-.2,.9],[.8,.45,-.36]],jD:[[.35,0,.95],[.08,-.75,.6]],jG:[[-.35,0,.95],[-.08,-.75,.6]],
+    queue:[1.45,.5],mangue:true,appui:[0,7,9],os:[[1],[3,5],[10]],piv:['cou','coudes','queue']},
+  bord:{corps:.32,tete:[-.15,0,0],bD:[[.75,.5,.42],[.1,1,.18]],bG:[[-.45,-.82,.3],[-.08,-1,.12]],jD:[[.12,-.1,1],[0,-1,.15]],jG:[[-.12,-.1,1],[0,-1,.15]],
+    queue:[.55,0],appui:[0],os:[[1],[3],[7,9]],piv:['cou','coudeD','genoux']}};
+function singePoseForme(nom){ // la forme d'une pose de SG_POSES (bâtie une fois par pose, à la demande)
+  const P=SG_POSES[nom];if(P.F)return P.F;
+  const V=a=>new THREE.Vector3(a[0],a[1],a[2]),qq=new THREE.Quaternion(),
+    rot=(x,y,z,o)=>new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(x,y,z,o||'YXZ')),
+    vise=(de,vers)=>new THREE.Matrix4().makeRotationFromQuaternion(qq.setFromUnitVectors(de.clone().normalize(),vers.clone().normalize()));
+  const K=new Array(11),pv=V([0,.08,0]),Rt=rot(P.corps||0,0,0),parT=p=>p.clone().sub(pv).applyMatrix4(Rt).add(pv);
+  K[0]={A:pv.clone(),B:pv.clone(),R:Rt};
+  {const A=V([0,.72,0]),h=P.tete||[0,0,0];K[1]={A,B:parT(A),R:Rt.clone().multiply(rot(h[0],h[1],h[2]))};}
+  const J={};
+  const membre=(seg,d,k,n)=>{const S0=V(seg[0]),S1=V(seg[1]),S2=V(seg[2]),B0=parT(S0),d1=V(d[0]).normalize(),d2=V(d[1]).normalize();
+    K[k]={A:S0,B:B0,R:vise(S1.clone().sub(S0),d1)};const B1=B0.clone().addScaledVector(d1,S1.distanceTo(S0));
+    K[k+1]={A:S1,B:B1,R:vise(S2.clone().sub(S1),d2)};J[n+'0']=B0;J[n+'1']=B1;};
+  membre(SG_SEG.bD,P.bD,2,'bD');membre(SG_SEG.bG,P.bG,4,'bG');membre(SG_SEG.jD,P.jD,6,'jD');membre(SG_SEG.jG,P.jG,8,'jG');
+  {const A=V([0,.02,-.16]),q=P.queue||[0,0];K[10]={A,B:parT(A),R:Rt.clone().multiply(rot(q[0],q[1],0,'XYZ'))};}
+  const PR=P.mangue?SG_P.concat(SG_MANGUE):SG_P,PT=P.mangue?SG_ART.concat([3,3]):SG_ART;
+  const ou=(k,c)=>V(c).sub(K[k].A).applyMatrix4(K[k].R).add(K[k].B),rayon=q=>q[0]==='e'?Math.max(q[5][0],q[5][1],q[5][2]):Math.max(q[6],q[7]);
+  let sol=1e9;for(let i=0;i<PR.length;i++){const q=PR[i],k=PT[i];if(P.appui&&P.appui.indexOf(k)<0)continue;
+    for(const c of q[0]==='e'?[q[4]]:[q[4],q[5]])sol=Math.min(sol,ou(k,c).y-rayon(q));}
+  for(const k of K){k.B.y-=sol;k.e=new THREE.Matrix3().setFromMatrix4(k.R).transpose().elements;}for(const n in J)J[n].y-=sol;
+  const mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(let i=0;i<PR.length;i++){const q=PR[i],r=rayon(q);for(const c of q[0]==='e'?[q[4]]:[q[4],q[5]]){const v=ou(PT[i],c);
+    for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],v.getComponent(a)-r-.08);mx[a]=Math.max(mx[a],v.getComponent(a)+r+.08);}}}
+  const D=new Float32Array(PR.length),PK=new Float32Array(33);
+  const champ=(x,y,z)=>{for(let k=0;k<11;k++){const c=K[k],e=c.e,dx=x-c.B.x,dy=y-c.B.y,dz=z-c.B.z;
+      PK[k*3]=c.A.x+e[0]*dx+e[3]*dy+e[6]*dz;PK[k*3+1]=c.A.y+e[1]*dx+e[4]*dy+e[7]*dz;PK[k*3+2]=c.A.z+e[2]*dx+e[5]*dy+e[8]*dz;}
+    let d=1e9;for(let i=0;i<PR.length;i++){const q=PR[i],k=PT[i]*3,di=sgPrim(q,PK[k],PK[k+1],PK[k+2]);D[i]=di;
+      if(i===0)d=di;else{const w=q[3];if(w<=0)d=Math.min(d,di);else{const hh=Math.max(w-Math.abs(d-di),0)/w;d=Math.min(d,di)-hh*hh*w*.25;}}}
+    return d;};
+  const proche=()=>{let b=0;for(let i=1;i<PR.length;i++)if(D[i]<D[b])b=i;return b;};
+  const piv={cou:K[1].B.clone(),queue:K[10].B.clone(),coudeD:J.bD1,coudeG:J.bG1,coudes:J.bD1.clone().add(J.bG1).multiplyScalar(.5),
+    genoux:J.jD1.clone().add(J.jG1).multiplyScalar(.5),hanches:J.jD0.clone().add(J.jG0).multiplyScalar(.5),epaules:J.bD0.clone().add(J.bG0).multiplyScalar(.5)};
+  const y0=mn[1],y1=mx[1];
+  P.F={mode:nom,min:mn,max:mx,hs:.036,h:.042,sdf:champ,
+    col:(x,y,z,o)=>{champ(x,y,z);const i=proche(),k=PT[i]*3;sgColQ(PR[i],PK[k],PK[k+1],PK[k+2],o);},
+    os:(x,y,z,o)=>{champ(x,y,z);const k=PT[proche()];o[0]=o[1]=o[2]=0;for(let b=0;b<3;b++)if(P.os[b].indexOf(k)>=0)o[b]=1;},
+    s:(x,y,z)=>Math.max(0,Math.min(1,(y1-y)/(y1-y0))),cou:piv.cou,piv:P.piv.map(n=>piv[n]),J:piv,
+    centre:new THREE.Vector3(0,(mn[1]+mx[1])*.5,(mn[2]+mx[2])*.5)};
+  return P.F;
+}
+function singeAnimePose(S,dt,cible){ // les poses du décor : la tête suit la cible (la caisse, dans son repère), et chacune son geste
+  const e=S.e,U=S.U,F=S.F;e.t+=dt;U.uT.value=e.t;const t=e.t+e.k;
+  let fy=.25*Math.sin(t*.7),fp=.08*Math.sin(t*1.1);
+  if(cible){const dx=cible.x-F.cou.x,dy=cible.y-F.cou.y,dz=cible.z-F.cou.z;fy=Math.max(-1.25,Math.min(1.25,Math.atan2(dx,dz)));fp=Math.max(-.6,Math.min(.5,-Math.atan2(dy,Math.hypot(dx,dz))));}
+  if(S.mode==='mangue'){const m9=Math.pow(Math.max(0,Math.sin(t*2.1)),2);fp=fp*.4+.25*m9+.04*Math.sin(t*15)*m9;} // il CROQUE : la tête descend vers la mangue
+  const a9=Math.min(1,dt*6);e.hy+=(fy-e.hy)*a9;e.hp+=(fp-e.hp)*a9;
+  U.uM0.value.setFromMatrix4(e.m4.makeRotationFromEuler(e.eu.set(e.hp,e.hy,0,'YXZ')));
+  if(S.mode==='bonjour'||S.mode==='bord'){const w=(S.mode==='bonjour'?.6:.45)*Math.sin(t*(S.mode==='bonjour'?7.5:5.5));U.uM1.value.setFromMatrix4(e.m4.makeRotationZ(w));} // COUCOU : l'avant-bras balaie de côté
+  else if(S.mode==='mangue'){const m9=Math.pow(Math.max(0,Math.sin(t*2.1)),2);U.uM1.value.setFromMatrix4(e.m4.makeRotationX(-.35+.5*m9));} // la mangue monte à la bouche, et redescend
+  if(S.mode==='bord')U.uM2.value.setFromMatrix4(e.m4.makeRotationX(.4*Math.sin(t*2.6))); // les jambes BALANCENT dans le vide
+  else U.uM2.value.setFromMatrix4(e.m4.makeRotationY(.35*Math.sin(t*1.3))); // la queue
+  S.grp.position.y=S.mode==='bonjour'?.03*Math.abs(Math.sin(t*3.75)):0;
 }
 /* <<<FIN SINGE>>> */
