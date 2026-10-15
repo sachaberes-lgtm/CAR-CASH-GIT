@@ -15,27 +15,41 @@
 (function(){
   'use strict';
   var BASE=[
-    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:0,     D:.6,  aura:50,  cat:'cote', m:[{a:[0,0,1],t:1}]},
-    {id:'toupie',     n:'TOUPIE 360',     en:'FLAT 360',      c:'TOUPIE',  ce:'SPIN',    p:2500,  D:.6,  aura:60,  cat:'cote', m:[{a:[0,1,0],t:1}]},
-    {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:2000,  D:.6,  aura:40,  cat:'cote', m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
-    {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:3500,  D:.8,  aura:45,  cat:'avant', m:[{a:[1,0,0],b:-.17,k:1}]},
-    {id:'saltoa',     n:'SALTO ARRIERE',  en:'BACKFLIP',      c:'ARRIERE', ce:'BACK',    p:6000,  D:.7,  aura:90,  cat:'avant', m:[{a:[1,0,0],t:-1}]},
-    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:6000,  D:.7,  aura:90,  cat:'avant', m:[{a:[1,0,0],t:1}]},
-    {id:'double',     n:'DOUBLE TONNEAU', en:'DOUBLE ROLL',   c:'DOUBLE',  ce:'ROLL×2',  p:9000,  D:.8,  aura:110, cat:'cote', m:[{a:[0,0,1],t:2}]},
-    {id:'tirebouchon',n:'TIRE-BOUCHON',   en:'CORKSCREW',     c:'BOUCHON', ce:'CORK',    p:14000, D:.8,  aura:130, cat:'cote', m:[{a:[1,0,0],t:-1},{a:[0,0,1],t:1}]},
-    {id:'helico',     n:'HELICO 720',     en:'HELI 720',      c:'HELICO',  ce:'HELI',    p:18000, D:.85, aura:140, cat:'cote', m:[{a:[0,1,0],t:2}]},
-    {id:'penche',     n:'VRILLE PENCHEE', en:'OFF-AXIS SPIN', c:'PENCHEE', ce:'OFFAXIS', p:22000, D:.75, aura:120, cat:'cote', m:[{a:[.7071,.7071,0],t:1}]},
-    {id:'rodeo',      n:'RODEO',          en:'RODEO',         c:'RODEO',   ce:'RODEO',   p:30000, D:.9,  aura:160, cat:'cote', m:[{a:[0,1,0],t:1},{a:[1,0,0],t:-1}]},
-    {id:'cosmique',   n:'SALTO COSMIQUE', en:'COSMIC FLIP',   c:'COSMIQ',  ce:'COSMIC',  p:50000, D:1,   aura:220, cat:'cote', m:[{a:[1,0,0],t:-2},{a:[0,0,1],t:1}]}];
+    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:0,     D:.6,  aura:50,  dir:['cote'], m:[{a:[0,0,1],t:1}]},
+    {id:'toupie',     n:'TOUPIE 360',     en:'FLAT 360',      c:'TOUPIE',  ce:'SPIN',    p:2500,  D:.6,  aura:60,  dir:['cote'], m:[{a:[0,1,0],t:1}]},
+    {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:2000,  D:.6,  aura:40,  dir:['cote'], m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
+    {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:3500,  D:.8,  aura:45,  dir:['arriere'], m:[{a:[1,0,0],b:-.17,k:1}]},
+    {id:'saltoa',     n:'SALTO ARRIERE',  en:'BACKFLIP',      c:'ARRIERE', ce:'BACK',    p:6000,  D:.7,  aura:90,  dir:['arriere'], m:[{a:[1,0,0],t:-1}]},
+    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:6000,  D:.7,  aura:90,  dir:['avant'], m:[{a:[1,0,0],t:1}]},
+    {id:'double',     n:'DOUBLE TONNEAU', en:'DOUBLE ROLL',   c:'DOUBLE',  ce:'ROLL×2',  p:9000,  D:.8,  aura:110, dir:['cote'], m:[{a:[0,0,1],t:2}]},
+    {id:'tirebouchon',n:'TIRE-BOUCHON',   en:'CORKSCREW',     c:'BOUCHON', ce:'CORK',    p:14000, D:.8,  aura:130, dir:['avant','arriere'], m:[{a:[1,0,0],t:-1},{a:[0,0,1],t:1}]},
+    {id:'helico',     n:'HELICO 720',     en:'HELI 720',      c:'HELICO',  ce:'HELI',    p:18000, D:.85, aura:140, dir:['cote'], m:[{a:[0,1,0],t:2}]},
+    {id:'penche',     n:'VRILLE PENCHEE', en:'OFF-AXIS SPIN', c:'PENCHEE', ce:'OFFAXIS', p:22000, D:.75, aura:120, dir:['cote'], m:[{a:[.7071,.7071,0],t:1}]},
+    {id:'rodeo',      n:'RODEO',          en:'RODEO',         c:'RODEO',   ce:'RODEO',   p:30000, D:.9,  aura:160, dir:['avant','arriere'], m:[{a:[0,1,0],t:1},{a:[1,0,0],t:-1}]},
+    {id:'cosmique',   n:'SALTO COSMIQUE', en:'COSMIC FLIP',   c:'COSMIQ',  ce:'COSMIC',  p:50000, D:1,   aura:220, dir:['avant','arriere'], m:[{a:[1,0,0],t:-2},{a:[0,0,1],t:1}]}];
   /* (2026-10-14, LES FIGURES v2) `c` / `ce` : le nom COURT du bouton de vol (8 lettres au plus, police pixel). Une figure générée prend le 1er mot de son nom. */
-  /* LES DEUX FAMILLES (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant : les tonneaux
-     doivent aller vers la droite ou la gauche, orientés par la direction, alors que le salto avant a juste besoin d'aller vers l'avant »).
-     `cat` : 'avant' = tout se passe sur l'axe des roues (saltos, chandelle) — rien à choisir, ni gauche ni droite ; 'cote' = au moins un
-     mouvement a un CÔTÉ (tonneau, toupie, vrille penchée, shimmy, et les figures composées qui en contiennent un) : il part du côté du pouce.
-     C'est la même frontière que le miroir de `quat`/`Corps.lance` (un mouvement pur sur x garde son sens, tout le reste se tire en miroir).
-     Une figure générée n'a pas de `cat` : la règle la range. */
-  function cat(f){if(!f)return 'cote';if(f.cat==='avant'||f.cat==='cote')return f.cat;
-    for(var i=0;i<f.m.length;i++){var a=f.m[i].a;if(a[1]!==0||a[2]!==0)return 'cote';}return 'avant';}
+  /* LES DIRECTIONS D'UNE FIGURE (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant : les
+     tonneaux doivent aller vers la droite ou la gauche, orientés par la direction, alors que le salto avant a juste besoin d'aller vers
+     l'avant » · puis « mets aussi une catégorie vers l'ARRIÈRE pour les saltos arrière ou certaines figures qui peuvent être faites vers
+     l'arrière ; une même figure doit avoir marqué à quelle direction elle peut aller : le tonneau, c'est que les côtés, mais le rodéo peut
+     être mis à l'avant ou à l'arrière »). `dir` = les gestes qui la jouent, parmi 'avant' (pouce en avant), 'arriere' (pouce en arrière),
+     'cote' (pouce à gauche ou à droite : elle part de ce côté). La règle, qui range aussi une figure générée (sans `dir`) :
+     · que l'axe des roues (x : saltos, chandelle) → le sens du mouvement : 'avant' (le nez plonge) ou 'arriere' (le nez se lève) ;
+     · aucun mouvement sur x (tonneau, toupie, vrille penchée, shimmy) → 'cote' ;
+     · un salto ET autre chose (rodéo, tire-bouchon, cosmique) → 'avant' ET 'arriere' : le geste choisit le sens du salto (`oriente`).
+     C'est la frontière du miroir de `quat`/`Corps.lance` : un mouvement pur sur x garde son sens, tout le reste se tire en miroir. */
+  var DIRS=['avant','arriere','cote'];
+  function dirs(f){if(!f)return ['cote'];
+    if(Array.isArray(f.dir)){var L=f.dir.filter(function(d){return DIRS.indexOf(d)>=0;});if(L.length)return L;}
+    var x=0,autre=false;for(var i=0;i<f.m.length;i++){var o=f.m[i],a=o.a;if(a[0]!==0&&a[1]===0&&a[2]===0){var v=o.t!=null?o.t:o.b;x=x||(v>0?1:-1);}else autre=true;}
+    return !x?['cote']:autre?['avant','arriere']:[x>0?'avant':'arriere'];}
+  /* la figure JOUÉE dans une direction : en 'avant', ses mouvements sur l'axe des roues tournent nez en bas ; en 'arriere', nez en haut ; de
+     côté, elle reste telle quelle (son côté vient du pouce). Une copie par figure et par sens, gardée : le jeu compare les figures par identité. */
+  var ORI={};
+  function oriente(f,d){if(!f||(d!=='avant'&&d!=='arriere'))return f;var k=f.id+'|'+d;if(ORI[k]&&ORI[k].src===f)return ORI[k];var g=d==='avant'?1:-1,m=[];
+    for(var i=0;i<f.m.length;i++){var o=f.m[i],a=o.a,c={a:a.slice()};if(o.t!=null)c.t=o.t;else{c.b=o.b;c.k=o.k;}
+      if(a[0]!==0&&a[1]===0&&a[2]===0){if(c.t!=null)c.t=Math.abs(c.t)*g;else c.b=Math.abs(c.b)*g;}m.push(c);}
+    var r={};for(var p in f)if(Object.prototype.hasOwnProperty.call(f,p))r[p]=f[p];r.m=m;r.sens=d;r.src=f;return (ORI[k]=r);}
   var CLE_PERSO='cashcarFigPerso';
   function valide(f){
     if(!f||typeof f!=='object'||!/^[a-z0-9_]{2,24}$/.test(f.id)||typeof f.n!=='string'||!Array.isArray(f.m)||!f.m.length||f.m.length>3)return false;
@@ -267,7 +281,7 @@
     try{localStorage.setItem(CLE_PERSO,JSON.stringify(L.slice(-40)));}catch(e){return false;}rebatit();return true;}
   function retire(id){var L=perso().filter(function(x){return x.id!==id;});try{localStorage.setItem(CLE_PERSO,JSON.stringify(L));}catch(e){}rebatit();}
   var FIG={liste:[],par:{},quat:quat,tire:tire,Lecteur:Lecteur,genere:genere,ajoute:ajoute,retire:retire,rebatit:rebatit,valide:valide,CHEV:CHEV,CLE_PERSO:CLE_PERSO,
-    Corps:Corps,PHY:PHY,auto:AUTO,boums:boums,nomReps:function(f,r,l){return nomReps(f,r,l);},cat:cat,
+    Corps:Corps,PHY:PHY,auto:AUTO,boums:boums,nomReps:function(f,r,l){return nomReps(f,r,l);},dirs:dirs,oriente:oriente,DIRS:DIRS,
     nom:function(f,lang){return lang==='en'&&f.en?f.en:f.n;}};
   window.FIG=FIG;rebatit();
 })();
