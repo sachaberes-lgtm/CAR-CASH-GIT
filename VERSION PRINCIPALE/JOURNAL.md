@@ -110,7 +110,7 @@
 - Il CONTINUE aux portails (`musicSuitLieu` ne raccorde plus), la seconde chance repart sur le MÊME morceau (`musicStartRun(true,true)` →
   `PB.depart(…,{meme})`), la mort l'éteint en 0,35 s, la fin en 0,9 s ; REJOUER en tire un autre. La radio, les musiques de lieu (`MUSIC_LIEU`) et
   GLISSE au Soleil de jade se taisent pendant qu'il joue (`pbjCourse()` dans `musicPlayCurrent`, `musicNext`, `musicSuitLieu`, `jadeMusOn`).
-  La frénésie garde le morceau en cours. `?musique=niveaux` = les musiques des niveaux comme avant (`PBJ_ON`).
+  `?musique=niveaux` = les musiques des niveaux comme avant (`PBJ_ON`).
 - Le NIVEAU (`PBJ_NIV` .39, × le curseur MUSIQUE, × le souffle du mouvement et l'annonceur comme la radio) — mesuré en course, musique seule, à la
   sortie du jeu : la radio tient −21 dB ; le générateur monte de ≈ −24 dB (moteur 1) à −22 (10), −16 (20), −14 (30) : LA GRANDE MONTÉE de Léo
   gardée ; NÉON NOIR (paliers) −19 ; AURA · 30 (page) −22 → −19.
@@ -119,9 +119,14 @@
   énergie sous 60 Hz ; la cloche à 110 Hz pour les huit qui pèsent entre 60 et 150 Hz, NÉON NOIR −5 dB de plateau.
 - LE COÛT (Chrome, processeur ralenti ×4 comme un iPhone moyen) : fil principal en course 48 % avec CRISTAL D'ARGENT, 42 % avec NÉON NOIR, 50 %
   avec la radio — la différence se perd dans le bruit du rendu ; préparation du morceau 0,2 à 0,4 s pendant le piqué. En direct, aucun fichier à figer.
-- EN COURSE, SEULEMENT POUCE BLEU (15/10 soir, Léo, confirmé : « aucune autre musique pendant une course ; en frénésie, garde le morceau en cours ») :
-  `pbjRegne()` tient l'antenne de la course — `musicPlayCurrent`, `musicNext`, `musicSuitLieu`, `jadeMusOn` (GLISSE) et `frenMus` (THE DARK TRIAD, la
-  radio qui s'emballe) se taisent. PARTOUT : le morceau est du WebAudio pur, il ne dépend plus de MUS_WA (Safari sur Mac, appareils où le chien de
+- EN COURSE, SEULEMENT POUCE BLEU (15/10 soir, Léo, confirmé : « aucune autre musique pendant une course ») :
+  `pbjRegne()` tient l'antenne de la course — `musicPlayCurrent`, `musicNext`, `musicSuitLieu` et `jadeMusOn` (GLISSE) se taisent.
+  DEUX EXCEPTIONS (Léo, le soir : « non, la frénésie doit rester — on bossera son sound design ailleurs » · « remets le premier son du test, le
+  premier son dans le ciel pour ceux qui jouent pour la première fois ») : LA FRÉNÉSIE comme avant (`frenMus`) — quand SON morceau joue (THE DARK
+  TRIAD, `FRENM.sw` ; le fichier n'est pas encore livré), Pouce bleu s'efface en ~0,3 s et revient à la fin (`musicTick`, `frenMusRetour` ne relance
+  plus la radio) ; L'AUTO-ÉCOLE (`pbjTuto()` : `TUTO.on` ou la piste 'tuto') garde CIEL · NIVEAU 1, du piqué au permis ; au portail d'après,
+  `musicSuitLieu` coupe CIEL 1 et Pouce bleu entre. Banc : un faux THE DARK TRIAD posé le temps du banc (retiré) → le morceau joue, Pouce bleu à 0,
+  puis il remonte à la fin de la frénésie, sans radio ; un nouveau joueur → CIEL 1 pendant toute la leçon, Pouce bleu après le portail. PARTOUT : le morceau est du WebAudio pur, il ne dépend plus de MUS_WA (Safari sur Mac, appareils où le chien de
   garde a condamné l'<audio> branché, iPhone sans audioSession). `musGraphe()` : dès que Pouce bleu peut jouer, le bouton SON ne suspend plus le
   contexte, il ferme l'entrée des effets (`musWaSon`, comme avec MUS_WA) — au lancement (`initAudio`), au bouton, à la pause, au retour
   d'arrière-plan, au toucher (`audioKick`). Un morceau qui ne part pas (réseau, fichier) → un AUTRE est tiré (3 essais, `PBJ_ESSAI`) ; après, la course
@@ -131,9 +136,11 @@
   `EN_ATTENTE` est vide : le tirage suit Pouce bleu tel que Léo le range.
 - BANCS (muets) : partie complète ciel → garage → PLAY → 3 niveaux par 2 portails → mort → fin → REJOUER, couché, debout et dans le cadre de l'ordi,
   Chrome ET WebKit (`?muswa=1`) : intro qui s'ouvre, le même morceau d'un niveau à l'autre (nuages → volcan → forêt, jade → canyon → ville,
-  canyon → espace → volcan…), un autre au REJOUER, 0 erreur. Et : la FRÉNÉSIE (le morceau continue, la radio reste en pause) ; sans MUS_WA
+  canyon → espace → volcan…), un autre au REJOUER, 0 erreur. Et : sans MUS_WA
   (`?muswa=0`) avec SON coupé en course (effets fermés, contexte éveillé, la musique seule à −28 dB) ; WebKit où le chien de garde condamne
   l'<audio> pendant le piqué (le morceau tient toute la course) ; les modules du générateur bloqués (un morceau à paliers est tiré à la place).
+  ⚠ Piège de banc : la sauvegarde posée dans le JEU déjà ouvert est écrasée par lui en partant (son flush) — les premiers bancs Chrome tombaient
+  donc sur l'AUTO-ÉCOLE. La poser depuis une autre page de la même origine (icon.svg), puis ouvrir le jeu. Tout a été repassé ainsi.
 - Console : `dbgPouce()` (l'état : phase, titre, moteur, filtre, niveau, bus) · `dbgPouce('moteur', m)` (impose le palier, 0 = celui du jeu) ·
   `?pouce=<numéro|id>` force un morceau. Reste à écouter par Léo sur iPhone : la musique en WebAudio y tient-elle au-delà de 15 s (le défaut de WebKit) ?
 
