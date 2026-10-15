@@ -47029,13 +47029,13 @@ function portPasseNiveau(){
    (dernière image de vol : détecte le décollage), `eta` (secondes avant la réception prédite, posé par le viseur, 99 = rien en vue) ·
    `zoom`/`zp` = le COUP DE ZOOM d'une pose PARFAITE (lu par la caméra au sol) · `s0` = la taille de la caisse à l'écran au décollage
    (le « bras » de la caméra de vol l'y garde) · `off` = vecteur de travail du bras. `look/hang/side/soon` ne servent plus. */
-const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0,s0:.2};
+const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0,s0:.2,vtg:0};
 function volR(){const sp=CARS[level]||CARS[0];return .5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6);} // la sphère englobante de la caisse (roues et aileron compris)
 function volTaille(d,fov){return volR()/(Math.max(.5,d)*Math.tan(fov*Math.PI/360));} // sa taille à l'écran : part de la demi-hauteur
 window.dbgCamVol=function(){try{const b=new THREE.Box3().setFromObject(carGroup),v=new THREE.Vector3();let x0=9,x1=-9,y0=9,y1=-9;
   for(let i=0;i<8;i++){v.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).project(camera);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
   const c=carGroup.position.clone().project(camera),r=landMark.visible?landMark.position.clone().project(camera):null;
-  return {mode,fallT:+(+fallT).toFixed(2),d:+camera.position.distanceTo(carGroup.position).toFixed(1),fov:+camera.fov.toFixed(1),
+  return {mode,fallT:+(+fallT).toFixed(2),d:+camera.position.distanceTo(carGroup.position).toFixed(1),fov:+camera.fov.toFixed(1),vertigo:+CAMV.vtg.toFixed(2),
     taille:+volTaille(camera.position.distanceTo(carGroup.position),camera.fov).toFixed(3),ecart:r?+(Math.hypot(r.x-c.x,r.y-c.y)/Math.max(.01,volTaille(camera.position.distanceTo(carGroup.position),camera.fov))).toFixed(2):null,caisse:[+c.x.toFixed(2),+c.y.toFixed(2)],anneau:r?[+r.x.toFixed(2),+r.y.toFixed(2),r.z<1]:null};}catch(e){return e.message;}};
 /* LA POSE PARFAITE SE VOIT (2026-09-28, Sacha) : en plus du gel d'image (hitT) et du « tchak », un COUP DE ZOOM — le champ se resserre
    sec à l'impact et se relâche en 0,5 s — et une COURONNE DORÉE qui éclate depuis les bords de l'écran (le centre reste net : on voit la
@@ -59141,7 +59141,7 @@ function loop(now){
          Gardés de l'après-midi : les secousses calmes (sinus, vent ×.42), la remise à zéro du coup de zoom PARFAIT au décollage, et les
          CHOCS en vol (bump, nuage, catapulte) — mais en petit déplacement de la caméra, plus en coup dans le REGARD (il décadrait la visée). */
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      {const n9=performance.now();if(n9-(CAMV.t||0)>150){CAMV.zoom=0;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
+      {const n9=performance.now();if(n9-(CAMV.t||0)>150){CAMV.zoom=0;CAMV.vtg=0;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
       tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
       /* (bord v2) LE SUIVI SANS À-COUP : l'ancien `camera.position.lerp(cible)` suivait une cible qui file — à la 1re image de vol la caméra
          passait d'un coup de « roule AVEC la caisse » (conduite : écart lissé) à « reste presque sur place » : la caisse s'échappait. On
@@ -59175,7 +59175,12 @@ function loop(now){
       // (2026-09-26) la NITRO se VOIT en l'air : le champ s'ouvre sous la poussée (comme au sol) et le coup de réacteur de l'allumage
       // (`fovPunch`) claque ici aussi — avant, il n'était lu qu'au sol et partait en retard, à l'atterrissage
       fovPunch=Math.max(0,fovPunch-dt*18);
-      const fovAir=fovPor(76-bigAir*22+fovPunch*FOVP_K+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air)
+      /* LE VERTIGO DU PLONGEON (2026-10-15, Sacha : « un effet de caméra pour le fun et la sensation de vitesse de l'air time »). Dans la
+         DESCENTE, le champ s'ouvre avec la vitesse de chute (jusqu'à +20°) — et comme le BRAS ci-dessus garde la caisse à sa taille du
+         décollage, la caméra se RAPPROCHE d'elle-même : la caisse ne bouge pas, le décor s'étire, la route d'en bas file vers soi (le
+         « vertigo » des films). Aucun angle ne change : la visée du 28/09 reste intacte. Montée et sommet : rien. Dans l'eau : rien. */
+      CAMV.vtg+=((JEAU.dans?0:THREE.MathUtils.smoothstep(-fallVel.y,12,70))-CAMV.vtg)*Math.min(1,dt*5);
+      const fovAir=fovPor(76-bigAir*22+CAMV.vtg*20*FOVP_K+fovPunch*FOVP_K+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air) — et se rouvre dans le plongeon (le vertigo)
       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
       camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,0); // (CAM_HEROS) en vol le décentrement s'efface en douceur
       // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
