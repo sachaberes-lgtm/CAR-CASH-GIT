@@ -6411,6 +6411,22 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gAct>#gvCof .pxi{--pxs:2}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;grid-auto-flow:row;
   gap:8px;height:auto;max-height:min(300px,36vh);padding:4px 12px 12px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;animation:atGrille .4s var(--ease) both}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT{width:auto!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important;scroll-snap-align:start}
+/* L'INVENTAIRE RANGÉ (2026-10-15, Sacha, capture : « l'inventaire est mal géré ») — deux défauts mesurés au banc :
+   · les CINQ onglets (FIGURES est arrivé après coup) se partageaient la réglette à parts égales, 2 px de marge : « VOITURESPEINTURE »,
+     « TRAINEESFIGURES » se touchaient (73 px de mot dans 72 px d'onglet). Chacun prend désormais la largeur de SON mot, 6 px d'air entre deux,
+     un corps de moins debout (39 lettres de pixel dans ~360 px) ;
+   · la carte choisie (.on : penchée ET levée de 6 px, halo de 24 px) débordait d'une grille qui coupe à 4 px du haut — la carte du coin
+     haut-droit sortait du cadre, rognée. Dans la grille elle ne se lève plus (le liseré et le halo suffisent à la désigner), et la grille
+     garde la place de la pente (-11° sur ~70 px = 7 px de chaque côté) et du halo. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs{gap:6px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{flex:1 1 auto;padding:0 4px}
+@media (max-width:430px){html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{font-size:calc(var(--f0) + 1px)}}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{padding:10px 14px 14px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.on{transform:skewX(var(--sk))}
+/* · la BANDE NOIRE (l'étiquette em, 84 % d'opacité sur toute la largeur) barrait chaque voiture à mi-hauteur en couché, pour n'y dire
+     qu'une coche — dans l'inventaire, tout est à toi : l'étiquette se resserre en pastille au coin bas-droit, la photo respire. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>em{left:auto;top:auto;bottom:3px;height:auto;padding:3px 6px 2px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>em:empty{display:none}
 @keyframes atGrille{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 200px)}}
