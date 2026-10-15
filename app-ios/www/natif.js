@@ -160,7 +160,7 @@
      reprend la main : 60, et sa cadence automatique s'il manque encore de marge. */
   /* Et au « critique » (3, mesuré : le processeur ralenti ~10 fois, 20-30 ms de calcul par image même calé à 30), le cran de qualité le
      plus bas en plus : plus de passe d'ombre ni de halo, beaucoup moins d'appels de dessin. On redescend par paliers en refroidissant. */
-  if(E&&E.addListener){var niv=0; // 0 : le jeu décide · 1 : calé à 30 · 2 : calé à 30 + qualité au plus bas
+  if(E&&E.addListener&&!(BANC&&window.__ccAppareil.ab)){var niv=0; // (le banc A/B mesure le jeu brut : pas de gouverneur) // 0 : le jeu décide · 1 : calé à 30 · 2 : calé à 30 + qualité au plus bas
     var thermique=function(r){if(!r||typeof window.dbgCadence!=='function')return;var v=r.thermique>=3?2:r.thermique>=2?1:0;if(v===niv)return;
       try{if(v>=1&&niv===0)window.dbgCadence(30);if(v===0)window.dbgCadence(0);
         if(v===2&&typeof window.dbgQual==='function'){var b=window.dbgQual();window.dbgQual(b.kMax);}
@@ -213,9 +213,9 @@
       var L=Object.keys(T).map(function(k){return [k,T[k]];}).sort(function(x,y){return y[1].n*Math.max(1,y[1].r)-x[1].n*Math.max(1,x[1].r);}).slice(0,14);
       bl('inventaire des transparents :',L.map(function(e){return e[0]+' ×'+e[1].n+(e[1].inst?' (inst '+e[1].inst+')':'')+' r'+e[1].r;}).join(' · '));};
     var mesure=function(){
-      g(function(){dbgCout(1);});
+      g(function(){dbgCout(1);if(window.__ccAppareil.ab)dbgCadence(60);}); // A/B : cadence figée à 60, rien d'autre ne bouge
       bl('palier',JSON.stringify(g(function(){var p=dbgPalier();return {n:p.n,src:p.src};},null)),'carte',JSON.stringify(g(function(){return dbgClassique().niveau;},null)));
-      var t0=performance.now(),der=t0,tLog=t0,n=0,s20=0,s34=0,s50=0,pire=0,ei=-1,tE=0,EM={n:0,s20:0,dur:0,calls:0,tris:0,k:0},RES=[],DIS=!!window.__ccAppareil.dissection,FEN={w:-1},FENS=[],CADON=false;
+      var t0=performance.now(),der=t0,tLog=t0,n=0,s20=0,s34=0,s50=0,pire=0,ei=-1,tE=0,EM={n:0,s20:0,dur:0,calls:0,tris:0,k:0},RES=[],DIS=!!window.__ccAppareil.dissection,FEN={w:-1},FENS=[],CADON=false,AB=window.__ccAppareil.ab||'',abK=-1,ABS={A:{n:0,dur:0,s34:0,s50:0,k:0},B:{n:0,dur:0,s34:0,s50:0,k:0}},abSt=null;
       var cloture=function(){var E=ET[ei];if(E[3])g(E[3]);var r=[E[0],EM.dur?Math.round(EM.n*1000/EM.dur):0,EM.n?Math.round(100*EM.s20/EM.n):0,EM.k?Math.round(EM.calls/EM.k):0,EM.k?Math.round(EM.tris/EM.k/1000):0];
         RES.push(r);bl('ÉTAPE',r[0],'→',r[1]+' i/s',r[2]+'% en retard',r[3]+' appels',r[4]+'k tri');};
       (function f(now){var dt=now-der;der=now;n++;
@@ -232,9 +232,19 @@
             'dpr:'+pf.dpr,'cran:'+co.ql,'appels:'+(co.image?co.image.calls:'?'),'tri:'+(co.image?Math.round(co.image.tris/1000)+'k':'?'),'chaleur:'+(TH.thermique!=null?TH.thermique:'?')+(TH.eco?' ÉCO':''),
             g(function(){return dbgClassique().niveau.carte;},'?'),d.gameOver?'MORT':'');
           n=s20=s34=s50=pire=0;tLog=now;}
+        /* L'A/B DES FILTRES DU HUD (2026-10-15, demande de la session Chrome DevTools : à grande vitesse, les contours d'encre en
+           drop-shadow d'une quarantaine de textes du HUD, re-filtrés à chaque image) : après 15 s, 10 phases de 5 s, A = le jeu tel quel,
+           B = tous les `filter` CSS coupés (hors toile 3D) ; bilan A contre B. */
+        if(AB==='filtres'&&t>=15){var k=Math.floor((t-15)/5);
+          if(k!==abK){abK=k;if(!abSt){abSt=document.createElement('style');abSt.textContent='body *:not(canvas),body *::before,body *::after{filter:none!important}';}
+            var B9=k%2===1;if(B9&&!abSt.parentNode)document.head.appendChild(abSt);if(!B9&&abSt.parentNode)abSt.remove();bl('A/B phase',k,B9?'B sans filtres':'A normal');}
+          var q=ABS[k%2===1?'B':'A'];if(t-15-k*5>=1){q.n++;q.dur+=dt;if(dt>34)q.s34++;if(dt>50)q.s50++;}}
         if(!DIS){var w=Math.floor(t/30);if(w!==FEN.w){if(FEN.w>=0&&FEN.n)FENS.push(FEN.w*30+'-'+(FEN.w*30+30)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);FEN={w:w,n:0,dur:0,s34:0,s50:0,cal:0,ch:FEN.ch};}
           FEN.n++;FEN.dur+=dt;if(dt>34)FEN.s34++;if(dt>50)FEN.s50++;if(CADON)FEN.cal++;FEN.ch=TH.thermique!=null?TH.thermique:'?';}
-        if(t<(DIS?15+8*ET.length+1:180))requestAnimationFrame(f);
+        if(t<(DIS?15+8*ET.length+1:AB?65:180))requestAnimationFrame(f);
+        else if(AB){if(abSt&&abSt.parentNode)abSt.remove();g(function(){dbgAuto(0);dbgCout(0);});
+          var r=function(q){return q.dur?Math.round(q.n*1000/q.dur)+' i/s, '+(q.s34*1000/q.dur).toFixed(1)+' images > 34 ms par s, '+q.s50+' > 50 ms':'-';};
+          bl('BILAN A/B FILTRES','A normal : '+r(ABS.A),'|| B sans filtres : '+r(ABS.B),'|| chaleur '+(TH.thermique!=null?TH.thermique:'?'));bl('FIN');}
         else if(!DIS){if(FEN.n)FENS.push(FEN.w*30+'-'+Math.round(t)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);
           g(function(){dbgAuto(0);dbgCout(0);});bl('BILAN ENDURANCE',FENS.join(' || '));bl('FIN');}
         else{cloture();montre();g(function(){dbgAuto(0);dbgCout(0);dbgNet(0);dbgPin(false);});

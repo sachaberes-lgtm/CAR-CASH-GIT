@@ -19,7 +19,7 @@ class JeuViewController: CAPBridgeViewController {
         let palier = (JeuViewController.bancPalier ?? JeuViewController.palier(modele)).map(String.init) ?? "null"
         webView?.configuration.userContentController.addUserScript(WKUserScript(
             source: "window.__ccAppareil={modele:'\(modele)',palier:\(palier),banc:\(JeuViewController.banc),carte:'\(JeuViewController.bancCarte)',"
-                + "dissection:\(JeuViewController.banc && ProcessInfo.processInfo.arguments.contains("-ccDissection"))};",
+                + "dissection:\(JeuViewController.banc && ProcessInfo.processInfo.arguments.contains("-ccDissection")),ab:'\(JeuViewController.bancAB)'};",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
         if let defile = webView?.scrollView {
@@ -46,6 +46,12 @@ class JeuViewController: CAPBridgeViewController {
     static let bancCarte: String = {
         let a = ProcessInfo.processInfo.arguments
         guard banc, let i = a.firstIndex(of: "-ccCarte"), i + 1 < a.count, a[i + 1].allSatisfy({ $0.isLetter }) else { return "" }
+        return a[i + 1]
+    }()
+    /// `-ccAB filtres` (avec -ccBanc) : un A/B toutes les 5 s (natif.js, partie 9) — ici, les filtres CSS du HUD coupés ou non.
+    static let bancAB: String = {
+        let a = ProcessInfo.processInfo.arguments
+        guard banc, let i = a.firstIndex(of: "-ccAB"), i + 1 < a.count, a[i + 1].allSatisfy({ $0.isLetter }) else { return "" }
         return a[i + 1]
     }()
     /// `-ccPalier 1` (avec -ccBanc) : mesurer un autre palier que celui du modèle.
