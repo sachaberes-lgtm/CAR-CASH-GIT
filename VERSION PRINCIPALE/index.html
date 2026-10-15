@@ -15145,8 +15145,8 @@ function buildTrack(seed){
      alternent le long des droites. C'est le slalom : on passe entre eux. En vol, un tronc ou une couronne TUE (`foretHeurt` → 'arbre').
    · LA FORÊT (`FOR_ESP`) : épicéas et sapins (les pentes noires de la Forêt-Noire), hêtres, chênes, bouleaux, pins sylvestres, et des
      érables d'or çà et là ; trois niveaux de détail, triés par QUARTIERS de 150 m (`foretTri`, la recette de jadeTri). Le relief
-     (`FORET.sol`) : un torrent au fond, 70 m sous la route, des clairières fleuries, des flancs qui montent jusqu'à 60 m AU-DESSUS de la
-     route à 350 m — la vallée. Tomber dans les arbres ou au fond TUE ('arbre', 'sousbois').
+     (`FORET.sol`, 2026-10-15) : LE FLANC D'UNE MONTAGNE — un versant qui monte d'un côté et tombe de l'autre, le plancher 135 m sous la
+     route au départ puis 80 m à l'arrivée (on s'enfonce dans la forêt), un torrent au fond, des clairières fleuries. Tomber dans les arbres ou au fond TUE ('arbre', 'sousbois').
    · LE JOUR : rayons de soleil entre les géants (`FOR_RAYONS`), fleurs le long des deux bords (digitales, coquelicots, marguerites,
      boutons d'or, jacinthes, fougères) qui s'écartent quand la caisse les frôle, lierre qui pend sous la dalle, PAPILLONS (`FOR_PAP`),
      pollen dans la lumière, oiseaux et pic-vert.
@@ -15184,7 +15184,7 @@ const FOR_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Col
 /* LES BUDGETS PAR PALIER (PAL : [ANCIEN, MOYEN, RÉCENT] — la 3e colonne est le rendu de référence) : densité et portée de la forêt, détail des
    géants, pas des fleurs, des plantes du fond, des rayons et de la brume, papillons, lucioles, feux follets, yeux, taille des toiles. */
 const FOR_LUNE=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme (cielLune) : la forêt pose la sienne au même endroit
-try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[700,900,1150],foretMarge:[1300,1600,2100],foretSolC:[32,28,26],foretB0:[150,180,200],foretB1:[400,480,540],
+try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[900,1250,1650],foretMarge:[1700,2200,2800],foretSolC:[32,28,26],foretB0:[150,180,200],foretB1:[400,480,540],
   foretGeantFin:[0,1,1],foretFleurs:[2.2,1.6,1.1],foretPlantes:[8,6,4.2],foretRayons:[46,36,28],foretBrume:[70,55,42],foretYeux:[50,70,90],foretPap:[50,100,150],
   foretLuc:[300,560,900],foretFollets:[8,11,14],foretTex:[.5,.75,1],foretLierre:[0,1,1],foretChampi:[0,1,1],foretSolCh:[999,64,64],foretPres:[1,0,0]});}catch(e){}
 /* ---------------- LA ROUTE : LE SLALOM QUI DESCEND ---------------- */
@@ -15235,7 +15235,7 @@ function genForet(rnd){
     boucle();}
   slalom(200+rnd()*100);
   droite(220,3);ici('fin');droite(120,2);
-  /* LE RELIEF : TOUJOURS EN DESCENTE. La pente ondule entre 5 et 10 % ; deux ou trois PLONGEONS (replat de 140 m puis 17-20 % sur 190 m :
+  /* LE RELIEF : TOUJOURS EN DESCENTE. La pente ondule entre 7 et 13 % (le flanc de la montagne) ; deux ou trois PLONGEONS (replat de 140 m puis 20-23 % sur 190 m :
      la cassure fait décoller la caisse lancée), jamais dans une boucle ; dans les BOUCLES la pente qui donne ~50 m de chute sur le tour (4-7 % : la route d'en
      dessous passe sous l'entrée de la boucle avec de la marge, et le sol de la vallée reste sous la dalle du bas) ; les 300 premiers mètres
      en douceur ; l'arche sur un replat à 5 %. Intégrée tous les 10 m : aucun point ne remonte. */
@@ -15245,8 +15245,8 @@ function genForet(rnd){
   const sA=Q.arche?sDe(Q.arche.p):-1e9,plg=[],BS=BO.map(function(o){return [sOf[o.i0],sOf[o.i1],o.g];});
   const dansB=(s9,m)=>BS.some(function(b){return s9>b[0]-m&&s9<b[1]+m;});
   {const n=2+((rnd()*2)|0);for(let k=0;k<n;k++){const s0=900+(Ltot-2300)*(k+.25+rnd()*.5)/n;if(Math.abs(s0-sA)>520&&s0<Ltot-900&&!dansB(s0,260)&&!dansB(s0+190,120))plg.push(s0);}}
-  const pente=s9=>{let g=.075+.018*Math.sin(s9/950*6.283+ph1)+.008*Math.sin(s9/380*6.283+ph2);
-    for(const s0 of plg){const u=s9-s0;if(u>-140&&u<0)g=Math.min(g,.025);else if(u>=0&&u<190)g=.175+.025*Math.sin(u/190*Math.PI);}
+  const pente=s9=>{let g=.098+.02*Math.sin(s9/950*6.283+ph1)+.01*Math.sin(s9/380*6.283+ph2); // (2026-10-15, LE FLANC) 7,5 % → ~10 % : on DESCEND la montagne
+    for(const s0 of plg){const u=s9-s0;if(u>-140&&u<0)g=Math.min(g,.025);else if(u>=0&&u<190)g=.20+.03*Math.sin(u/190*Math.PI);}
     for(const b of BS)if(s9>=b[0]&&s9<=b[1])g=b[2]; // ~50 m de chute sur le tour, à toutes les échelles
     if(s9<300)g=.03+(g-.03)*THREE.MathUtils.smoothstep(s9,180,300);
     if(Math.abs(s9-sA)<300)g=.05;
@@ -15774,23 +15774,34 @@ function foretMats(){if(FORET.mats)return FORET.mats;const U=FOR_U,F=THREE.Unifo
    hauteur viennent d'une grille grossière (96 m) floutée : la forêt lointaine roule doucement, sous le brouillard. */
 function forBruit(x,z,s){const a=Math.sin(x*.0123+s)*Math.sin(z*.0107-s*.7),b=Math.sin(x*.031+z*.027+s*2.1)*.5,c=Math.sin(x*.0047-z*.0051+s*.3);return (a+b+c)/2.5;}
 function foretSol(){
-  const C=PAL_B9('foretSolC',24),MARG=PAL_B9('foretMarge',2450),R1=560;
+  /* (2026-10-15, Sacha : « la map de la forêt doit être beaucoup plus vaste, la forêt et l'espace laissé au joueur plus grands ; la route
+     doit aller vers le bas comme si on était sur le FLANC D'UNE MONTAGNE et qu'on s'enfonçait dans la forêt ») LE VERSANT. Fini la vallée
+     symétrique (deux flancs qui remontaient à +48 m dès 430 m de chaque côté : un couloir) : le relief penche EN TRAVERS de la descente.
+     Côté AMONT (`FORET.amont`), la montagne monte au-dessus de la route et sa forêt la domine ; côté AVAL, elle tombe et l'on voit la forêt
+     s'étendre loin en contrebas. Le plancher sous la route part à ~135 m sous la dalle au départ (on roule au-dessus des cimes, la vue
+     est grande ouverte) et remonte à ~80 m à l'arrivée : la route S'ENFONCE dans la forêt. La pente du versant (GF) se mesure le long de
+     la perpendiculaire à l'axe GLOBAL de la descente (départ → arrivée), par rapport à la route la plus proche — moyenne gaussienne, comme
+     la hauteur : le versant penche toujours du même côté du monde, sans marche d'un lacet à l'autre. Zéro rnd() consommé. */
+  const C=PAL_B9('foretSolC',24),MARG=PAL_B9('foretMarge',2800),R1=560,GF=.24;
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),WS=new Float32Array(N),YS=new Float32Array(N);
+  {const p0=pts[0],p1=pts[NP-1];let ax=p1.x-p0.x,az=p1.z-p0.z;const al=Math.hypot(ax,az)||1,sA=(FORET.graine&1)?1:-1;FORET.amont=[-az/al*sA,ax/al*sA];} // le côté AMONT, tiré de la graine
+  const ux=FORET.amont[0],uz=FORET.amont[1],sI=1/Math.max(1,NP-1);
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),YN=new Float32Array(N),WS=new Float32Array(N),YS=new Float32Array(N),US=new Float32Array(N),SS=new Float32Array(N);
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
-  // la grille grossière : distance et hauteur de la route la plus proche, floutée
-  const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz),GY=new Float32Array(gx*gz);
-  for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18,by=0;for(let k=0;k<RS.length;k+=2){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd){bd=d;by=p.y;}}GD[i+j*gx]=Math.sqrt(bd);GY[i+j*gx]=by;}
-  for(let it=0;it<5;it++){const T9=GY.slice();for(let j=1;j<gz-1;j++)for(let i=1;i<gx-1;i++){let s9=0;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++)s9+=T9[i+a+(j+b)*gx];GY[i+j*gx]=s9/9;}}
+  // la grille grossière : distance, hauteur, position en travers (u) et avancement (s) de la route la plus proche — floutés
+  const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz),GY=new Float32Array(gx*gz),GU=new Float32Array(gx*gz),GS=new Float32Array(gx*gz);
+  for(let j=0;j<gz;j++)for(let i=0;i<gx;i++){const x=x0+i*CG,z=z0+j*CG;let bd=1e18,bk=0;for(let k=0;k<RS.length;k+=2){const p=pts[RS[k]],d=(p.x-x)*(p.x-x)+(p.z-z)*(p.z-z);if(d<bd){bd=d;bk=RS[k];}}
+    const q=pts[bk],o=i+j*gx;GD[o]=Math.sqrt(bd);GY[o]=q.y;GU[o]=q.x*ux+q.z*uz;GS[o]=bk*sI;}
+  for(const A of [GY,GU,GS])for(let it=0;it<5;it++){const T9=A.slice();for(let j=1;j<gz-1;j++)for(let i=1;i<gx-1;i++){let s9=0;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++)s9+=T9[i+a+(j+b)*gx];A[i+j*gx]=s9/9;}}
   const gBil=(A,x,z)=>{const fx=Math.max(0,Math.min(gx-1.001,(x-x0)/CG)),fz=Math.max(0,Math.min(gz-1.001,(z-z0)/CG)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*gx;
     return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+gx]*(1-u)+A[k+gx+1]*u)*v;};
-  // le tampon fin, autour de chaque point de route (≤ 650 m) : distance exacte et moyenne gaussienne de la hauteur
+  // le tampon fin, autour de chaque point de route (≤ 560 m) : distance exacte et moyennes gaussiennes de la hauteur, du u et du s
   const rC=Math.ceil(R1/C),iR=1/(R1*R1); // noyau (1 − d²/R²)³ : la gaussienne de ~180 m, sans exponentielle
-  for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
+  for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),pu=p.x*ux+p.z*uz,ps=ri*sI;
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;}}}
+        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;US[k]+=w*pu;SS[k]+=w*ps;}}}
   const H=new Float32Array(N),PR=new Float32Array(N),FD=new Float32Array(N),sd9=FORET.graine*.001;
   /* (2026-10-14, session PERF) LE BRUIT EN DEUX MOITIÉS. Le terme a = sin(x·.0123+s)·sin(z·.0107−.7s) de forBruit ne dépend que de la
      colonne OU de la rangée : ses sinus sont lus dans des tables (une par échelle), calculés avec EXACTEMENT les mêmes opérandes que
@@ -15799,16 +15810,18 @@ function foretSol(){
   for(let e=0;e<BE.length;e++){const m=BE[e][0],s=BE[e][1];for(let i=0;i<nx;i++){const x=x0+i*C,x9=m===1?x:x*m;BX[e][i]=Math.sin(x9*.0123+s);}
     for(let j=0;j<nz;j++){const z=z0+j*C,z9=m===1?z:z*m;BZ[e][j]=Math.sin(z9*.0107-s*.7);}}
   const fB=(e,i,j,x,z)=>{const s=BE[e][1],a=BX[e][i]*BZ[e][j],b=Math.sin(x*.031+z*.027+s*2.1)*.5,c=Math.sin(x*.0047-z*.0051+s*.3);return (a+b+c)/2.5;}; // = forBruit(x,z,s), x et z déjà mis à l'échelle
-  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys;
-    if(D[k]<1e8){d=Math.sqrt(D[k]);const yc=gBil(GY,x,z),w0=.02;ys=(YS[k]+yc*w0)/(WS[k]+w0);}else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);YN[k]=ys;}
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=i+j*nx,x=x0+i*C,z=z0+j*C;let d,ys,ur,sf;
+    if(D[k]<1e8){d=Math.sqrt(D[k]);const w0=.02,iw=1/(WS[k]+w0);ys=(YS[k]+gBil(GY,x,z)*w0)*iw;ur=(US[k]+gBil(GU,x,z)*w0)*iw;sf=(SS[k]+gBil(GS,x,z)*w0)*iw;}
+    else{d=Math.max(R1,gBil(GD,x,z));ys=gBil(GY,x,z);ur=gBil(GU,x,z);sf=gBil(GS,x,z);YN[k]=ys;}
     D[k]=d;
-    if(d>MARG+150){H[k]=ys+48+38*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : la colline seule (rien d'autre ne lit si loin)
-    const n1=fB(0,i,j,x,z),n2=fB(1,i,j,x*.43,z*.43),D0=74+15*n1,W9=48+22*n2;
-    let h=ys-D0+(D0+W9)*Math.pow(THREE.MathUtils.smoothstep(d,45,430),1.25);
-    h+=38*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,420,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
+    const fl=GF*Math.max(-1900,Math.min(2300,x*ux+z*uz-ur)); // LE VERSANT : + en amont (la montagne au-dessus), − en aval (la forêt en contrebas)
+    if(d>MARG+150){H[k]=ys+20+fl+52*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : le versant seul (rien d'autre ne lit si loin)
+    const n1=fB(0,i,j,x,z),n2=fB(1,i,j,x*.43,z*.43),D0=135-55*sf+15*n1,W9=20+18*n2; // le plancher remonte vers l'arrivée : on s'enfonce
+    let h=ys-D0+(D0+W9+fl)*Math.pow(THREE.MathUtils.smoothstep(d,50,700),1.2);
+    h+=52*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,420,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
     H[k]=h;
-    const pr=d<175?THREE.MathUtils.smoothstep(fB(4,i,j,x*1.7,z*1.7),.05,.42)*(1-THREE.MathUtils.smoothstep(d,120,175)):0;PR[k]=pr;
-    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+40?.32:d<160?.42:d<620?.86:.62)+.18*fB(5,i,j,x*2.3,z*2.3)-pr*.9));}
+    const pr=d<220?THREE.MathUtils.smoothstep(fB(4,i,j,x*1.7,z*1.7),.05,.42)*(1-THREE.MathUtils.smoothstep(d,160,220)):0;PR[k]=pr;
+    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+60?.2:d<220?.38:d<620?.86:.62)+.18*fB(5,i,j,x*2.3,z*2.3)-pr*.9));} // (le FLANC) l'air autour de la route : plus de place pour voler
   return FORET.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,pr:PR,f:FD,can:new Float32Array(N).fill(-1e9),MARG:MARG};
 }
 function solBil(A,x,z){const S=FORET.sol;if(!S)return 0;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx;
@@ -15977,8 +15990,8 @@ function buildForet(seed){
   for(const o of FORET.boucles||[]){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(o.e);if(d<bd){bd=d;bi=i;}}
     geant(bi,-o.sg,o.R,'sequoia');} // LE SÉQUOIA DE LA BOUCLE : au centre du premier demi-tour, la route tourne autour de lui
   {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=55+fr()*40){const i=Math.round(s9/ds);sd=-sd;
-     geant(i,sd,ROAD_HALF+FOR_GEANT_RR.sequoia*1.3+4+fr()*26,'sequoia');}
-   for(let s9=340;s9<L-200;s9+=95+fr()*70)for(const sg of [-1,1])if(fr()<.8)geant(Math.round(s9/ds),sg,ROAD_HALF+70+fr()*120,'sequoia');}
+     geant(i,sd,ROAD_HALF+FOR_GEANT_RR.sequoia*1.3+16+fr()*34,'sequoia');} // (le FLANC) la colonnade s'écarte : de l'air entre les fûts et la route
+   for(let s9=340;s9<L-200;s9+=95+fr()*70)for(const sg of [-1,1])if(fr()<.8)geant(Math.round(s9/ds),sg,ROAD_HALF+120+fr()*200,'sequoia');}
   FORET.geants=GE;
   // ---- 2. LES ROCHERS DU LOUP (les aiguilles de grès qui dominent la canopée) ----
   const RO=[];{let sd=fr()<.5?-1:1;for(let s9=520+fr()*200;s9<L-450;s9+=520+fr()*320){const i=Math.round(s9/ds),l9=lat9(i);sd=-sd;
@@ -16007,9 +16020,9 @@ function buildForet(seed){
   for(let cj=0;cj<S.nz-1;cj++)for(let ci=0;ci<S.nx-1;ci++){if(S.d[ci+cj*S.nx]>Rt+S.C*1.5)continue;let nn=Math.floor(nC);if(fr()<nC-nn)nn++;
    for(let e9=0;e9<nn;e9++){
     const x=S.x0+(ci+fr())*S.C,z=S.z0+(cj+fr())*S.C,d=solBil(S.d,x,z);if(d>Rt)continue;
-    const f=solBil(S.f,x,z)*(d>620?MOB*.7:MOB*.5+.5);if(fr()>f)continue;
-    const sp=choix(d,fr()),me=metaE[sp];let s=.78+fr()*.5,sxz=s*(.85+fr()*.3);
-    if(d<ROAD_HALF+5)continue;
+    const f=solBil(S.f,x,z)*(d>620?MOB*.7:MOB*.5+.5)*(d>1150?.55:1);if(fr()>f)continue; // (le FLANC) au-delà de 1150 m, moins d'arbres mais plus hauts : la même masse de forêt
+    const sp=choix(d,fr()),me=metaE[sp];let s=(.78+fr()*.5)*(d>1150?1.22:1),sxz=s*(.85+fr()*.3);
+    if(d<ROAD_HALF+12)continue;
     if(nu(x,z,me.cr*sxz*.5))continue;
     const y=solH(x,z)-.4;
     if(d<me.cr*sxz+ROAD_HALF+14){const lim=solBil(S.yn,x,z)-32;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.48)continue;sxz=Math.min(sxz,s*1.15);}}
@@ -16267,6 +16280,9 @@ window.dbgForet=function(k,o){
   if(k==='toiles'){foretMats();const o9={};for(const n of ['fl','ai','lu','lg']){const t=FORET.tex[n],im=t&&t.image;o9[n]=im&&im.width?im.toDataURL('image/png'):null;}return o9;}
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
   if(k==='coupe'){for(const F of FORET.fam)F.coupe=!!o;FORET.sig=0;return 'familles '+(o?'coupées':'rendues');}
+  if(k==='flanc'){if(!FORET.sol)return null;const st=Math.max(1,Math.round(20/(L/(NP-1)))),P9=[];let pire=1e9,ou=0,n20=0; // (le FLANC) le tracé échantillonné + la marge route/sol (la route n'est jamais sous le versant)
+    for(let i=0;i<NP;i+=st){const p=pts[i],t=T[i],m=p.y-solH(p.x,p.z);if(m<pire){pire=m;ou=i;}if(m<20)n20++;P9.push([+p.x.toFixed(1),+p.y.toFixed(1),+p.z.toFixed(1),+t.x.toFixed(3),+t.z.toFixed(3)]);}
+    return {amont:FORET.amont,L:Math.round(L),pts:P9,marge:{min:Math.round(pire),s:Math.round(ou*L/(NP-1)),sous20:n20},n:FORET.n,ms:FORET.ms,msSol:FORET.msSol};}
   const tri=FORET.fam.reduce(function(a,F){return a+F.tri*F.im.count;},0),parFam={};for(const F of FORET.fam)if(F.im.count)parFam[F.nom||'?']=[F.im.count,Math.round(F.tri*F.im.count/1000)+'k'];
   return {on:!!FORET.root,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
     tri9:{ms:FT.n?+(FT.ms/FT.n).toFixed(3):0,maj:FT.up},cur:FORET.cur&&{hante:+FORET.cur.hante.toFixed(2),pap:+FORET.cur.pap.toFixed(2),ray:+FORET.cur.ray.toFixed(2)},
@@ -23913,15 +23929,15 @@ if(SIG_V.canyon){
    La lumière de la forêt elle-même (hauteur du soleil, rayons, brume du fond, papillons, hantise) est dans FOR_MET ; ici : le ciel, l'air, les
    lumières de la caisse. La nuit, la lune du dôme s'éteint (moon:0) : la forêt pose la sienne, pleine et énorme (foretLuneTick). */
 BIOMES.foretMatin=bioMet(BIOMES.matin,{nm:'FORÊT · MATIN',jour:1,jZen:[.11,.35,.72],jMid:[.38,.55,.72],jHor:[.83,.72,.52],jSol:[.62,.40,.20],sunTint:[1,.88,.68],sunHalo:.8,stars:0,moon:0,city:0,
-  fog:[.80,.73,.55],fogN:90,fogF:1800,fogCj:[.95,.86,.66],fogIn:[.86,.88,.80],hemiS:[.62,.72,.92],hemiG:[.30,.36,.22],hemiI:.75,sunC:[1,.88,.68],sunI:1.45,fillC:[.45,.56,.80],fillI:.22,kickC:[1,.85,.65],kickI:.08,
+  fog:[.80,.73,.55],fogN:90,fogF:2300,fogCj:[.95,.86,.66],fogIn:[.86,.88,.80],hemiS:[.62,.72,.92],hemiG:[.30,.36,.22],hemiI:.75,sunC:[1,.88,.68],sunI:1.45,fillC:[.45,.56,.80],fillI:.22,kickC:[1,.85,.65],kickI:.08,
   expo:.97,sat:1.0,con:1.16,rtK:.75,wb:[1,1,1],sh:[0,.008,.03],hi:[.012,.006,-.008],vigK:.22,vigC:[.03,.045,.05],bloomS:.42,bloomT:.93,
   env:[[0,'#5E9FDD'],[.3,'#9CC4D6'],[.48,'#E8DCC0'],[.58,'#F2E6CC'],[.66,'#6E7A5A'],[1,'#2E3A26']],eS1:[255,236,200,.44],eS2:[170,210,235,.28]});
 BIOMES.foretMidi=bioMet(BIOMES.midi,{nm:'FORÊT · MIDI',jour:1,jZen:[.05,.28,.74],jMid:[.21,.48,.82],jHor:[.62,.81,.93],jSol:[.30,.28,.20],sunTint:[1,.97,.90],sunHalo:.55,stars:0,moon:0,city:0,
-  fog:[.60,.77,.84],fogN:140,fogF:2100,fogCj:[.92,.93,.86],fogIn:[.86,.92,.90],hemiS:[.68,.80,.98],hemiG:[.32,.42,.22],hemiI:.78,sunC:[1,.98,.92],sunI:1.6,fillC:[.48,.64,.90],fillI:.2,kickC:[1,.94,.82],kickI:.06,
+  fog:[.60,.77,.84],fogN:140,fogF:2700,fogCj:[.92,.93,.86],fogIn:[.86,.92,.90],hemiS:[.68,.80,.98],hemiG:[.32,.42,.22],hemiI:.78,sunC:[1,.98,.92],sunI:1.6,fillC:[.48,.64,.90],fillI:.2,kickC:[1,.94,.82],kickI:.06,
   expo:.98,sat:1.02,con:1.18,rtK:.85,wb:[1,1,1],sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,bloomT:.95,
   env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#D8ECF2'],[.58,'#FFFFFF'],[.66,'#6E8A5E'],[1,'#2A3A24']],eS1:[255,255,248,.46],eS2:[150,205,250,.3]});
 BIOMES.foretSoir=bioMet(BIOMES.nuagesSoir,{nm:'FORÊT · SOIR',jour:1,jZen:[.10,.115,.39],jMid:[.46,.30,.32],jHor:[1,.49,.25],jSol:[1,.50,.20],sunTint:[1,.62,.38],sunHalo:1,stars:.15,moon:0,city:0,
-  fog:[.92,.50,.28],fogN:100,fogF:1700,fogCj:[1,.72,.48],fogIn:[1,.88,.78],hemiS:[.52,.50,.70],hemiG:[.30,.24,.16],hemiI:.55,sunC:[1,.68,.42],sunI:1.7,fillC:[.42,.40,.66],fillI:.2,kickC:[1,.6,.35],kickI:.12,
+  fog:[.92,.50,.28],fogN:100,fogF:2200,fogCj:[1,.72,.48],fogIn:[1,.88,.78],hemiS:[.52,.50,.70],hemiG:[.30,.24,.16],hemiI:.55,sunC:[1,.68,.42],sunI:1.7,fillC:[.42,.40,.66],fillI:.2,kickC:[1,.6,.35],kickI:.12,
   expo:.94,sat:1.05,con:1.2,rtK:.9,wb:[1,1,1],sh:[0,.004,.02],hi:[.02,.008,-.01],vigK:.26,vigC:[.06,.04,.05],bloomS:.46,bloomT:.92,
   env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#5A4A3A'],[1,'#2A2018']],eS1:[255,190,130,.5],eS2:[150,140,210,.28]});
 BIOMES.foretNuit=bioMet(BIOMES.nuagesNuit,{nm:'FORÊT · NUIT',jour:1,jZen:[.006,.010,.040],jMid:[.010,.018,.060],jHor:[.03,.05,.09],jSol:[0,0,0],sunTint:[.6,.7,1],sunHalo:0,stars:1.1,moon:0,city:0,
