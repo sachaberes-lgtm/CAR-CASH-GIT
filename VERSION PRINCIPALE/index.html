@@ -6692,6 +6692,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan .bqK{position:relative;flex:none;width:106px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);scroll-snap-align:start;cursor:pointer;font-family:var(--pix);
   animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(.25s + var(--i) * 45ms);transition:translate .15s,box-shadow .15s}
 @keyframes bqK{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+/* (2026-10-15) L'AIMANT COUPÉ PENDANT L'ENTRÉE (voir bqAimant) : la grille ne s'ouvre plus défilée de 14 px */
+#gBqPan .bqRail.entre{scroll-snap-type:none!important}
 #gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--rc)}
 #gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
 #gBqPan .bqK .bqKph img{width:118%;max-width:none}
@@ -55129,6 +55131,14 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));ui.querySelector('.bqUr').addEventListener('click',essaie('.bqU'));
   return ui;}
+/* L'AIMANT COUPÉ PENDANT L'ENTRÉE (2026-10-15, session du rangement des figures : « en ouvrant un onglet, la grille s'ouvre défilée de 14 px ») :
+   les cartes entrent en glissant de 12 px (bqK) et l'aimant de défilement (scroll-snap) les attrapait EN PLEIN GLISSÉ — la grille restait
+   collée à leur position de départ, la 1re rangée rognée de 12 px en haut (MESURÉ : scrollTop 14 sur PEINTURES, AILES, TRAÎNÉES, debout comme
+   couché). Le dessin de Léo ne bouge pas : l'aimant est coupé (.entre) le temps que la 1re rangée se pose, puis il revient. */
+function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.bqK');let j=0;
+  if(K.length){const y0=K[0].offsetTop;while(j+1<K.length&&K[j+1].offsetTop===y0)j++;}
+  const d=K.length?(parseFloat(K[j].style.getPropertyValue('--i'))||j):0; /* bqK : délai .25 s + --i × 45 ms, puis .38 s de glissé */
+  GBQ.aimT=setTimeout(function(){rail.classList.remove('entre');},250+d*45+380+80);}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
@@ -55142,8 +55152,8 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     {const oc=pan.querySelector('.bqOc'),oi=pan.querySelector('.bqOi'),n1=pan.querySelector('.bqOng .n1'),n2=pan.querySelector('.bqOng .n2');
      if(oc)oc.textContent=sansAcc(TR(C9[1]));if(oi)oi.className='pxi pxi-'+C9[2]+' bqOi';if(n1)n1.textContent=bqListe(cat).length;if(n2)n2.textContent=E.length;}
     pan.querySelectorAll('.bqMenu button').forEach(function(b){const c=b.getAttribute('data-c');b.classList.toggle('on',c===cat);const n=b.querySelector('i');if(n)n.textContent=bqListe(c).length;});
-    rail.classList.toggle('off',ong==='off');rail.classList.toggle('habs',ong!=='off'&&cat!=='voiture');rail.scrollTop=0;rail.scrollLeft=0;
-    rail.innerHTML=(ong!=='off'&&cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):L.map(function(k,n){return bqCarteHtml(k,n,ong==='off');})).join(''); /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);if(ong==='off')bqOffreAuto(E);}
+    rail.classList.toggle('off',ong==='off');rail.classList.toggle('habs',ong!=='off'&&cat!=='voiture');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0;
+    rail.innerHTML=(ong!=='off'&&cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):L.map(function(k,n){return bqCarteHtml(k,n,ong==='off');})).join(''); /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);if(ong==='off')bqOffreAuto(E);}
   // CETTE SEMAINE : la colonne qui défile
   const S=bqSemaine().l,une=document.getElementById('gBqUne'),ur=une.querySelector('.bqUr'),uk=S.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
   if(GBQ.uk!==uk){GBQ.uk=uk;GBQ.vu='';

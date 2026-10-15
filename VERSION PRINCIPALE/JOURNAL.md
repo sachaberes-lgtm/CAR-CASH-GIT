@@ -15,6 +15,20 @@
   part au piqué et tient 3 niveaux, Chrome ET WebKit ; serveur normal : inchangé (Chrome, cadre de l'ordi).
 - À trancher par Sacha (pas fait) : JOUER.bat pourrait forcer le bon type (`mimetypes.add_type('text/javascript','.js')`) — GLISSE (`musique-glisse-v2.js`) a
   le même `import()`, mais il ne joue plus en course.
+## LA BOUTIQUE S'OUVRE EN HAUT (2026-10-15 soir, défaut vu par la session du rangement des figures : « en ouvrant un onglet, la grille s'ouvre défilée de 14 px : la 1re rangée de cartes est rognée de 12 px en haut »)
+- LA CAUSE (mesurée) : `garBqPanneau` remplit `#gBqPan .bqRail` d'un coup (`innerHTML`) pendant que les cartes `.bqK` entrent en glissant de
+  12 px (`@keyframes bqK`, `translate:0 12px`) ; l'aimant de défilement (`scroll-snap-type:y proximity`, `scroll-snap-align:start` sur les
+  cartes) se recale sur la 1re carte EN PLEIN GLISSÉ, puis y reste quand elle se pose (un `translate` ne relance pas l'aimant). Le défaut était
+  là avant le rangement des figures : il vient de l'entrée des cartes de la boutique de Léo. FIGURES s'en sortait déjà (son intertitre
+  `.bqSec` entre en fondu seulement).
+- LE CORRECTIF, sans toucher au dessin de Léo (cartes, glissé, délais, aimant inchangés) : le rail prend la classe `.entre`
+  (`scroll-snap-type:none!important`) au moment où il est rempli ; `bqAimant(rail)` la retire quand la 1re rangée est posée (rangée lue par
+  `offsetTop`, délai = .25 s + `--i` de sa dernière carte × 45 ms + .38 s de glissé + 80 ms ; `GBQ.aimT`, relancé à chaque remplissage).
+  L'aimant revenu se cale sur la 1re carte posée : `scrollTop` 2 (le `padding` haut du rail), comme FIGURES.
+- MESURÉ au banc commun (`cc-banc/lib.cjs`, banc `bq-rail.cjs` de la session, garage → BOUTIQUE → chaque onglet, mesures à 0,3 s, 1 s et 2,5 s),
+  debout 390 × 844 et couché 844 × 390 : AVANT, PEINTURES · AILES · TRAÎNÉES `scrollTop` 14, 1re carte à 476 pour un rail à 488 (couché : 65
+  pour 77), et le retour sur PEINTURES après avoir défilé idem ; APRÈS, les 5 onglets (VOITURES, PEINTURES, AILES, TRAÎNÉES, FIGURES) et le
+  retour : `scrollTop` 2, 1re carte (ou intertitre) au bord du rail (488/488, couché 77/77), classe `.entre` bien retirée, 0 erreur.
 
 ## FIGURES › GLISSER, 2e PASSE : LES FIGURES AU SOL (2026-10-15, Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air seulement lorsque le joueur fait flèche avant pendant le trick ; faites sur le sol, la voiture reste au sol ; d'autres, comme le slide 360, restent au sol ; une figure peut aussi se faire en maintenant le boost avec un geste brusque ; droite ou bas pas forcément sur le boost »)
 - Choix cochés par Léo : « flèche avant » = le JOYSTICK (pouce gauche) poussé vers l'avant pendant la figure ; au sol, sans lui, la figure se
