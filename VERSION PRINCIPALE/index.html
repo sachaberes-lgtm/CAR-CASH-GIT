@@ -15422,17 +15422,18 @@ function buildTrack(seed){
    travaillant bien une variété d'arbres jolie et magnifique ; regarde que toutes les heures et les météos sont bien comprises » · « il
    faut que ce soit magnifique du premier coup ») =======================
    La Forêt-Noire des frères Grimm, à l'échelle de CASH CAR : le ruban de route file dans une VALLÉE boisée, à mi-hauteur des arbres
-   (un « Baumwipfelpfad », le sentier des cimes), et il DESCEND tout le temps.
-   · LA ROUTE (`genForet`) : un slalom — des virages qui s'enchaînent dans les deux sens (R 190-360 m × l'échelle du moteur, des chicanes),
-     des respirations où l'on voit loin dans la descente, une ligne droite pour l'ARCHE ; la pente ne remonte JAMAIS (3,5 à 12 %), et deux
-     ou trois PLONGEONS (un replat puis 17-20 % : la caisse décolle) — `FORET.plg`.
-   · LES GÉANTS (`FOR_GEANTS`) : à la corde de CHAQUE virage un arbre de conte (chêne, hêtre, épicéa, vieux chêne au visage), le pied
-     70 m sous la route, le tronc qui passe à 7-15 m du bord, la couronne 25 m au moins au-dessus de la dalle ; d'autres géants
-     alternent le long des droites. C'est le slalom : on passe entre eux. En vol, un tronc ou une couronne TUE (`foretHeurt` → 'arbre').
-   · LA FORÊT (`FOR_ESP`) : épicéas et sapins (les pentes noires de la Forêt-Noire), hêtres, chênes, bouleaux, pins sylvestres, et des
-     érables d'or çà et là ; trois niveaux de détail, triés par QUARTIERS de 150 m (`foretTri`, la recette de jadeTri). Le relief
-     (`FORET.sol`, 2026-10-15) : LE FLANC D'UNE MONTAGNE — un versant qui monte d'un côté et tombe de l'autre, le plancher 135 m sous la
-     route au départ puis 80 m à l'arrivée (on s'enfonce dans la forêt), un torrent au fond, des clairières fleuries. Tomber dans les arbres ou au fond TUE ('arbre', 'sousbois').
+   (un « Baumwipfelpfad », le sentier des cimes) — depuis le 2026-10-15, une PELOTE : il monte, descend et repasse sur lui-même.
+   · LA ROUTE (`genForet` → `forPelote`, 2026-10-15 : LA PELOTE — « le concept, c'est de SE PERDRE ») : une enfilade de NŒUDS où la route
+     trace une étoile et repasse au-dessus et en dessous d'elle-même (≥ 32 m entre deux étages), qui DESCENDENT, MONTENT ou font la vague —
+     sauter sur la route d'en dessous, c'est un raccourci… ou un retour en arrière. Voir l'en-tête de `genForet`.
+   · LES GÉANTS (`FOR_GEANTS`) : à la corde des virages, au cœur des boucles, en colonnade, et LA FUTAIE (un géant tous les ~95 m à moins de
+     360 m d'une route) ; chacun pose son pied au fond et ouvre sa couronne au-dessus de la route la plus HAUTE à sa portée (un chêne de
+     400-500 m sous trois étages, un séquoia de 700) ; le fût reste à 5 m du bord de toutes les routes. En vol, un tronc ou une couronne
+     TUE (`foretHeurt` → 'arbre') : on saute d'un étage à l'autre ENTRE les fûts.
+   · LA FORÊT (`FOR_ESP`) : épicéas et sapins, hêtres, chênes, bouleaux, pins sylvestres, et des érables d'or çà et là, à l'échelle ×2,1
+     (2026-10-15) ; trois niveaux de détail, triés par QUARTIERS de 150 m (`foretTri`, la recette de jadeTri). LE RELIEF (`foretSol`) : le
+     fond de la forêt sous l'enveloppe BASSE de la pelote (~130 m sous la route la plus basse), qui remonte en collines tout autour ; aucun
+     arbre ordinaire ne monte dans l'air libre entre les étages (`yb`). Tomber dans les arbres ou au fond TUE ('arbre', 'sousbois').
    · LE JOUR : rayons de soleil entre les géants (`FOR_RAYONS`), fleurs le long des deux bords (digitales, coquelicots, marguerites,
      boutons d'or, jacinthes, fougères) qui s'écartent quand la caisse les frôle, lierre qui pend sous la dalle, PAPILLONS (`FOR_PAP`),
      pollen dans la lumière, oiseaux et pic-vert.
@@ -15545,7 +15546,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
      MONTE (sauter = revenir en arrière), ou il fait LA VAGUE (descend puis remonte : les deux à la fois). Vu d'en haut, rien ne les distingue. */
   const nN=3+(kR>1.6&&rnd()<.35?1:0),RHO=225*kR;let ca=0,cN=[0,RHO+380];
   const TY=[rnd()<.7?'desc':'vague'],SAC=['desc','monte','vague','desc','monte','vague','desc'];for(let n=1;n<nN;n++)TY.push(SAC.splice(rnd()*SAC.length|0,1)[0]);
-  if(!TY.some(t=>t!=='desc'))TY[nN-1]='vague';{let nm=0;for(let n=0;n<nN;n++)if(TY[n]==='monte'&&++nm>Math.ceil((nN-1)/2))TY[n]='desc';} // au moins un nœud qui remonte, jamais une majorité qui MONTE
+  if(!TY.includes('monte'))TY[1+(rnd()*(nN-1)|0)]='monte';{let nm=0;for(let n=0;n<nN;n++)if(TY[n]==='monte'&&++nm>Math.ceil((nN-1)/2))TY[n]='desc';} // TOUJOURS un nœud qui MONTE (le doute : la route d'en dessous peut être derrière), jamais une majorité
   ici('depart');zone(-.02,()=>droite(300*Math.sqrt(kV)));
   for(let n=0;n<nN;n++){
     if(n){ca=Math.max(-1.25,Math.min(1.25,ca+(rnd()<.5?-1:1)*(.5+rnd()*.6)));const e9=2*RHO+(260+rnd()*380)*kR;cN=[cN[0]+Math.sin(ca)*e9,cN[1]+Math.cos(ca)*e9];} // (la ligne des nœuds louvoie : la forêt s'étale sur des kilomètres)

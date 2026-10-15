@@ -1,0 +1,3 @@
+const r=JSON.parse(require('fs').readFileSync(process.argv[2],'utf8'));const M=r.mesures||[r];
+for(const m of M){const v=Object.fromEntries(m.verdict.filter(x=>!x.ok).map(x=>[x.k,+(+x.valeur).toFixed(2)]));
+console.log('g'+m.meta.graine,'L',Math.round(m.profil.L),'| racc',m.raccourcis.rentables,(m.raccourcis.rentablesKm).toFixed(2)+'/km gros',m.raccourcis.gros,'max',Math.round(m.raccourcis.meilleurGain),'| pièges',m.raccourcis.pieges,(m.raccourcis.piegesKm).toFixed(2)+'/km | crois',m.croisements.nb,'dang',m.croisements.dangereux,'| vir/km',m.course.viragesKm.toFixed(2),'montée%',m.profil.partMontee.toFixed(0),'pente',m.profil.penteMoy.toFixed(1),'| ✗',JSON.stringify(v));}
