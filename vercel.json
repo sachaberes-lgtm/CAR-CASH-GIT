@@ -3,6 +3,12 @@
   "framework": null,
   "buildCommand": "sh vercel-build.sh",
   "outputDirectory": ".vercel-static",
+  "git": {
+    "deploymentEnabled": {
+      "**": false,
+      "main": true
+    }
+  },
   "redirects": [
     {
       "source": "/",
