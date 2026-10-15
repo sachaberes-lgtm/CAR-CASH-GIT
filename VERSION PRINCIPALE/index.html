@@ -13673,6 +13673,15 @@ const SANS_LOOPING=true;
    `?sans=haut` rend la map d'avant. Crochet : `dbgHaut()` (roulis, normales, contrôle sans vrille).
    ========================================================================== */
 const SANS_HAUT=!/[?&]sans=([^&]*,)?haut(,|&|$)/.test(location.search);
+/* EN GRAND (2026-10-15, Sacha, le jour même : « beaucoup trop tordu — je voulais ça mais sur des proportions beaucoup plus vastes, de grands
+   virages où la route se tord, pas aussi tire-bouchonné »). Le tire-bouchon venait du roulis TROP RAPIDE sur des virages TROP SERRÉS : une
+   vrille de demi-tour en 2-3 s sur des rayons de 100-300 m enroule la route en hélice. Deux leviers :
+   · TORD_AMP, LE ZOOM : sur cette route genCtrl tire une zone TORD_AMP fois plus courte, puis l'agrandit TORD_AMP fois autour du départ —
+     le même dessin, les mêmes pentes, mais chaque virage, chaque bosse, chaque épingle TORD_AMP fois plus ample (la zone garde sa longueur ;
+     possible parce que les tremplins sont coupés, GAP_ON : aucune géométrie de saut calée sur la physique à ne pas agrandir) ;
+   · les vrilles s'étirent : un quart de tour en ~4-6 s, un demi en ~6-9 s, le tour complet rare (~11 s), et de longues tenues entre deux ;
+     le redressement avant le portail prend 3 s au lieu de 1,3 (et agit jusque dans les montées raides). */
+const TORD_AMP=2.4;
 const TORD={on:false,N:null,info:null};
 function hautOn(){const c=LVL.cur;return SANS_HAUT&&!PARK.on&&!!c&&(c.id==='nuages'||c.id==='orage')&&!c.camp&&!c.sansNuages&&!c.piste&&(started||SF.pret);}
 function hautPente(){return TORD.on?0:1;}
@@ -13696,17 +13705,17 @@ function pisteTord(ctrl,seed,sansVrille){
      sautent avec la vraie gravité : celui dont la lèvre n'est pas revenue à plat (route trop raide pour se redresser) est refermé. Le DÉPART,
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
   const rg=mulberry32((seed^0x70D5E11A)>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
-  const s0=Math.max(500,3*vC),fin=Lc-Math.max(450,2.5*vC);
+  const s0=Math.max(500,3*vC),fin=Lc-Math.max(1200*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
   const near0=function(v){let bi=0,bd=1e18;for(let i=0;i<n1;i++){const e=P[i].distanceToSquared(v);if(e<bd){bd=e;bi=i;}}return bi;};
-  const zones=GAPMARK.filter(function(g){return g.p&&g.h1;}).map(function(g){return {g:g,i:near0(g.p),a:near0(g.p)*h-Math.max(300,2*vC),b:near0(g.h1)*h+Math.max(200,1.5*vC)};}).sort(function(x,y){return x.a-y.a;});
+  const zones=GAPMARK.filter(function(g){return g.p&&g.h1;}).map(function(g){return {g:g,i:near0(g.p),a:near0(g.p)*h-Math.max(600,6*vC),b:near0(g.h1)*h+Math.max(200,1.5*vC)};}).sort(function(x,y){return x.a-y.a;});
   let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
   while(!sansVrille&&s<fin-120){
     let z=null;for(const z9 of zones)if(z9.b>s){z=z9;break;}
     const room=z?z.a-s:1e9;
     if(room<120){const s1=Math.max(s,z.b);seg.push({s0:s,s1:s1,r0:rho,r1:rho});s=s1;continue;} // le trou : on tient le plan (le rappel fait le reste)
     const r=rg();let len,amt=0;
-    if(r<.42)len=Math.max(200,vC*(1.8+rg()*2.7)); // une tenue : la dalle reste où elle est (couchée, retournée…) — de quoi respirer entre deux vrilles
-    else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.35?Math.PI/2:k<.85?Math.PI:TOUR);len=Math.max(150,vC*(2+rg()*1.2)*Math.pow(Math.abs(amt)/Math.PI,.75));}
+    if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
+    else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
     const veut=len;len=Math.min(len,fin-s,room);if(len<60)break;
     if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant un trou ou le portail : on tient, on ne la serre pas
     seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;}
@@ -13714,7 +13723,7 @@ function pisteTord(ctrl,seed,sansVrille){
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);for(const z of zones)mk(z.a,z.b);}
   // 3) LE CHEMIN REFAIT : chaque pas d'origine (corde, rotation de la tangente, roulis) relu dans le repère d'origine, rejoué dans le nouveau
-  const T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
+  const Y9=new THREE.Vector3(0,1,0),T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
   const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;
   for(let i=0;i<K;i++){
     Bo.crossVectors(Nv[i],Tv[i]);B2.crossVectors(N2,T2);
@@ -13724,9 +13733,12 @@ function pisteTord(ctrl,seed,sansVrille){
       c9.set(0,0,0).addScaledVector(N2,an).addScaledVector(B2,ab).addScaledVector(T2,at).normalize();q.setFromAxisAngle(c9,Math.atan2(sn,cs));T2.applyQuaternion(q);N2.applyQuaternion(q);}
     T2.normalize();N2.addScaledVector(T2,-N2.dot(T2)).normalize();
     const rN=rhoAt((i+1)*h);let rl=om[i]+(rN-rhoP);rhoP=rN;
-    if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.7){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers »
-      const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(1.3*vC))*h*(1-ty/.7);rl=THREE.MathUtils.clamp(th,-mx,mx);}}} /* au plus un demi-tour en 1,3 s de croisière */
+    if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers » — (EN GRAND) et jusque dans les montées raides (.7 → .95) : un rappel plus doux doit pouvoir agir partout
+      const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(3*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);}}} /* au plus un demi-tour en 3 s de croisière (EN GRAND ; c'était 1,3 s : un coup de vrille sec avant chaque trou) */
     rMax=Math.max(rMax,Math.abs(rl)/h);N2.applyAxisAngle(T2,rl);
+    if(droit[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
+      dans les tronçons droits elle revient DOUCEMENT à celle de la piste d'origine (≤ un quart de tour en 8 s de croisière : une bosse de ~400 m de rayon, pas un coude) */
+      const pm=Math.PI/(16*vC)*h,a=THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(Tv[i+1].y,-1,1))-Math.asin(THREE.MathUtils.clamp(T2.y,-1,1)),-pm,pm);T2.applyAxisAngle(ax,a).normalize();N2.applyAxisAngle(ax,a);}}
     N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(N2.clone());}
   let fermes=0;
   if(!sansVrille)for(const z of zones)if(NN[z.i].y<.85){const k=GAPMARK.indexOf(z.g);if(k>=0){GAPMARK.splice(k,1);fermes++;}} // une lèvre pas revenue à plat : le trou se referme
@@ -14093,7 +14105,8 @@ function genCtrl(rnd,startPos,startPhi){
   const W=((ESPON?AR.wv.map(function(v,k){return v*ESP_ROUTE.w[k];}):AR.w)).map(v=>v*(0.35+rnd()*1.7)); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`)
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
-  const LEN=14400*(1+Math.min(1.5,(LV-1)*.55)); // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
+  const AMP=hautOn()?TORD_AMP:1; // (2026-10-15) LA ROUTE SANS HAUT NI BAS EN GRAND : la zone est tirée AMP fois plus courte, puis tout est agrandi AMP fois (voir TORD_AMP)
+  const LEN=14400*(1+Math.min(1.5,(LV-1)*.55))/AMP; // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
   // ---- LE VIRAGE À FILET (voir FILET) : NUAGES seulement ; son hasard a SON générateur (un seul tirage de `rnd`, et seulement ici) ----
   FILETMARK.length=0;MODMARK.length=0;
   const FILON=FILET.on&&typeof LVL!=='undefined'&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!LVL.cur.piste&&!(typeof PARK!=='undefined'&&PARK.on);
@@ -14280,6 +14293,8 @@ function genCtrl(rnd,startPos,startPhi){
   lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
   if(ESPON)adoucirPentes(ctrl,ESP_ROUTE.pente); // (2026-09-30) l'ESPACE en houle : les pentes raides comprimées (AVANT les lissages)
   adoucirCretes(ctrl,LOOPI,ESPON?ESP_ROUTE.cretes:1);    // plus de crête AVEUGLE (voir la fonction) — en ESPACE, arrondies 2,5× plus
+  if(AMP!==1){const o=ctrl[0].clone(),vu=new Set(),zoom=function(v){if(v&&v.isVector3&&!vu.has(v)){vu.add(v);v.sub(o).multiplyScalar(AMP).add(o);}}; // LE ZOOM, autour du départ : mêmes formes, mêmes pentes, AMP fois plus grandes
+    for(const c of ctrl)zoom(c);for(const g of GAPMARK)for(const k in g)zoom(g[k]);for(const f of FILETMARK)for(const k in f)zoom(f[k]);}
   return ctrl;
 }
 /* ---- LES CRÊTES AVEUGLES (2026-09-25, user : « on va vers le haut puis la route descend, donc on ne voit pas

@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA ROUTE DES NUAGES EN GRAND (2026-10-15, Sacha : « la génération de la map dans les nuages est beaucoup trop tordue ; je voulais ça mais sur des proportions beaucoup plus vastes, genre des grands virages où la route se tord, pas aussi tire-bouchonnée »)
+- Suite de « LA MAP DES NUAGES SANS HAUT NI BAS » (plus bas) : même idée, la route se tord dans tous les sens, mais EN GRAND. Le tire-bouchon venait
+  de deux choses mesurées : des vrilles trop fréquentes et trop rapides (36-40 par zone, 1,35 tour complet PAR KILOMÈTRE, roulis jusqu'à 144°/s),
+  enroulées sur des virages serrés (rayon médian 263 m, 56 % de la piste sous 300 m de rayon).
+- LE ZOOM (`TORD_AMP` = 2,4) : sur cette route, genCtrl tire une zone 2,4 fois plus courte puis l'AGRANDIT 2,4 fois autour du départ — même dessin,
+  mêmes pentes, mais chaque virage, chaque bosse, chaque épingle 2,4 fois plus ample ; la zone garde sa longueur. Possible parce que les tremplins
+  sont coupés (`GAP_ON=false`) : aucune géométrie de saut calée sur la physique. Les autres maps (et `?sans=haut`) ne bougent pas.
+- LES VRILLES s'étirent (`pisteTord`) : quart de tour ~4-6 s, demi-tour ~6-9 s, tour complet rare (~11 s), tenues de 4-9 s entre deux.
+- L'ARRIVÉE : le redressement commence avant le grand virage de fin agrandi (`fin`), prend 3 s au lieu de 1,3 et agit jusque dans les montées raides ;
+  et dans ces tronçons droits la PENTE revient doucement à celle de la piste d'origine (mesuré : sans ça, le portail arrivait au bout d'un piqué de 50-60°).
+  Mesuré sur 18 pistes (paliers 0, 6, 12) : portail à 0-1° de roulis, pente −30° = la ligne d'ARRIVÉE de genCtrl.
+- MESURÉ (banc `dbgTrace` sur les vraies pistes, palier 0, avant → après) : 1,35 → 0,4-0,6 tour/km (0,2-0,25 au palier 12) ; roulis max 144 → 60°/s ; rayon médian 263 → ~570 m ;
+  part sous 300 m de rayon 56 → ~15 % ; sous 150 m 17 → 0 %. Toujours ~30 % de la route à l'envers et ~40 % sur la tranche : sans haut ni bas, en grand.
+
 ## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
 - Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
   (`ECLATS`, `eclaPas`, `eclaNait`, `eclaCoupe` ; ⚠ `ECL` est déjà le nom de l'éclair de l'ORAGE). Des bipyramides à trois pans, une
