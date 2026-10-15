@@ -206,6 +206,126 @@
   lisent la même constante ; la JADE garde sa dalle de 0,30. Tout ce qui se pose sous la route se cale déjà sur `THICK`.
 - Vérifié au banc (Chrome sans fenêtre, muet) : forêt midi (bords nus), garage (plus de bandeau), course sans erreur.
 
+## LE FEU DU NITRO AUX COULEURS DE LA BARRE, SUR LE FEU AFFINÉ (2026-10-16, Sacha, 15/10 13 h : « le feu du nitro est trop rouge ou trop bleu par rapport aux couleurs de la barre de nitro »)
+- Refait sur `NFEU_P10` (les 10 nuances du feu affiné de Léo) : la correction du 15/10 (branche `nitro-teinte`, f241b066) changeait `NFEU_PAL`, qui
+  ne colore plus que le dragon (coupé) — retirée de la file du train le 15/10 à 23 h 08. Seules `f` (feu), `b` (réserve bleue) et `v` (infinie)
+  changent ; `m` (feu du MOTEUR, Léo), le nombre de nuances, les seuils, les tailles, le jet propulsé et la fumée ne bougent pas.
+  `NFEU_P10_AVANT` garde la palette de Léo : `?sans=teinte` la rend.
+- MESURÉ, pas deviné : la chaîne réelle des courses n'est pas celle de l'init (couche DA : vivid 1, exposition ~1,06, saturation 1,3-1,6). Sur les
+  pixels pleins du feu, l'ancienne palette sortait ROUGE (#f15309 → #ec1c18), BLEU-INDIGO (#1131f4 → #2317f4) et MAGENTA (#ac12f2).
+- MÉTHODE (banc « teinte », scratchpad 369fb18c…/teinte, notes dans le dossier de la session) : course figée, tout le feu peint d'une seule valeur,
+  pixels PLEINS relus après la passe finale (`gl.readPixels` juste après `composer.render()`, masque par différence feu vert / feu magenta), Newton
+  amorti en Lab, UNE valeur pour 4 ambiances à la fois (nuages midi et nuit, ville au soir, glacier midi — bascule instantanée `bioApply` +
+  exposition), plafond 3. ⚠ Ne pas mesurer la MOYENNE de tous les pixels du feu : la traîne, mêlée au bitume bleu-gris par le flou de vitesse,
+  fait ajouter du jaune aux cœurs (les cœurs bleu et violet sortaient jaune pâle près de la caméra).
+- Écart Lab moyen avant → après, vérifié sur trois images : feu 21-37 → 3-13, réserve 29-69 → 3-17, infinie 17-59 → 3-17. En vol : orange
+  #fe5107 (35 % de pixels rouge pur) → #fe8914 (la barre : #ff8d2e), bleu #223aff → #6b88f0, violet #9803ff → #824cfe. Fumée OK (couché +
+  debout, 0 erreur JS). Cache cashcar-v541.
+
+## L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite »)
+- En INVENTAIRE (`gModeM()==='inv'`, l'atelier fermé), toucher une vignette À TOI (elle s'équipe : `garEquipeCaisse` / `garEquipeHabit`
+  rendent vrai) ouvre l'onglet d'après : VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES (`gInvSuite(cat)`, juste sous le gestionnaire de
+  `#gStrip`). FIGURES est le bout de la chaîne : on y range trois figures, pas de « suivant ». La BOUTIQUE n'enchaîne pas.
+- Le temps de VOIR son choix : une caisse attend la fin de la bascule du plateau (`GAR.sw`, ~1,1 s) puis 220 ms — changer d'onglet pendant
+  la bascule laissait `garageShow` réécrire le nom de la caisse sur la fiche de la peinture ; la caisse déjà équipée, 250 ms ; un habillage, 550 ms.
+- S'annule de lui-même : un onglet touché à la main, une autre vignette (le minuteur repart), la console quittée, la caisse qui sort (`GAR.go`).
+  `uiGarde(350)` au changement : la bande change sous le doigt, un second toucher trop rapide aurait équipé une peinture pas encore vue.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, iPhone debout et couché) : caisse touchée → PEINTURE à ~1,5 s (bascule comprise) sur la
+  peinture équipée ; peinture → AILES, aile → TRAÎNÉES, traînée → FIGURES à ~0,6 s, chaque choix bien enregistré ; onglet TRAÎNÉES touché à la
+  main pendant l'attente → on reste sur TRAÎNÉES. 0 erreur.
+
+## L'ACCUEIL AUX COULEURS DU LOGO : GARAGE ROSE, OFFRES CYAN, RÉGLAGES OR (2026-10-16, Sacha : « dans l'écran d'accueil garage, offre et réglages doivent être de couleur rose, bleu et jaune », puis « comme les bandes sous le logo CAR CASH »)
+- Les trois tuiles de l'accueil (`.mHubPorte`, `.mOffres`, `.mGear` dans `#mHome.acc2`) prennent, de gauche à droite, les trois couleurs du trait
+  néon sous le logo (`--livree` / `#mHome .mTitle::after`) : `--neoM` rose, `--neoC` cyan, `--au2` or. Avant : GARAGE cyan, OFFRES rose, RÉGLAGES cyan.
+- Trois lignes à la fin du bloc d'accueil de `<style id="ux8-menus">`, sous `html:not(.c6)` : elles ne posent que `--nc` (liseré gauche, lueur
+  intérieure, pictogramme). Le dessin des plaques, les libellés blancs, le badge NEW et le logo ne bougent pas ; la charte 6 (`?ui=6`) n'est pas touchée.
+- Vérifié au banc (cc-banc/accueil.cjs, debout 390×844 et couché 844×390) : les trois couleurs suivent l'ordre des bandes ; fumée OK (couché + debout,
+  0 erreur JS) ; `garde-burnout.sh` et `garde-charte.sh` OK. Cache cashcar-v539.
+
+## LA RÉGIE ADSENSE — LES VRAIES PUBS DU SITE (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense (jeux H5) ; dis-moi ce que je dois créer comme compte et quels identifiants te donner »)
+La pub récompensée de Google (« H5 Games Ads », l'Ad Placement API) est branchée derrière CONTINUER ▶ PUB (LA PUB QUI RESSUSCITE, juste en
+dessous). Elle reste ÉTEINTE tant que l'identifiant d'éditeur de Sacha n'est pas posé : en ligne, rien ne change d'ici là (la pub maison).
+- **Le chargeur** (`<head>`, bloc « LA RÉGIE ADSENSE », juste après celui du cadre de l'ordi) : `var CC_ADSENSE=''` (« ca-pub-… » à poser, LE
+  SEUL endroit) et `CC_ADSENSE_SITES=['car-cash-git.vercel.app']`. Il charge `adsbygoogle.js?client=…` et pose `adBreak`/`adConfig` (la cale de
+  Google) seulement en http(s), sur un site de la liste, jamais avec `window.Capacitor` (l'app iPhone), jamais dans la page-cadre de l'ordi :
+  Google veut le code DANS le document du jeu, donc dans l'iframe de la colonne (elle a déjà `allow="autoplay"`). `?pubtest=1` = le MODE TEST
+  de Google (`data-adbreak-test="on"`) partout, même sans identifiant : de fausses pubs, aucune requête de pub.
+- **Le côté jeu** (`ADS`, « LA RÉGIE ADSENSE, CÔTÉ JEU ») pose `CC_PUB_PREPARE` et `CC_PUB_RECOMPENSE`, que LA PUB QUI RESSUSCITE appelle :
+  à l'OUVERTURE de l'offre (`chanceOuvre` → `pubPrepare`), `adBreak({type:'reward'})` ; Google rappelle `beforeReward(showAdFn)` s'il a une
+  pub ; au TOUCHER de CONTINUER ▶ PUB, `showAdFn()` part dans le geste même ; `adViewed` → reprise, `adDismissed` → pas de reprise (l'écran de
+  fin, REJOUER). Rien de prêt (pas de pub, plafond, bloqueur…) → `null` → la pub maison de 5 s. `adConfig` : `preloadAdBreaks:'on'` et `sound`
+  (on/off d'après les réglages SON + MUSIQUE, relu à chaque offre). Le jeu ne se tait (`pubSilence`) que si une vraie pub part. Filet : 150 s.
+- **Le service worker** ne touche plus aux requêtes d'un AUTRE domaine (`sw.js`) : son cache-first aurait figé le script de Google et ses pubs
+  jusqu'au prochain numéro de CACHE. Le jeu ne charge rien d'autre hors du site.
+- **`/ads.txt`** : `vercel-build.sh` l'écrit à la racine du site (`google.com, pub-…, DIRECT, f08c47fec0942fa0`) à partir de `CC_ADSENSE` ;
+  identifiant vide = pas de fichier.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, `?pubtest=1`) : COUCHÉ, DEBOUT et dans le CADRE DE L'ORDI à la souris → au toucher, la pub
+  test de Google (« Rewarded ad example », « Reward in 6 seconds », la croix) ; vue jusqu'au bout → `breakStatus` `viewed` → reprise, 3 · 2 · 1 ;
+  fermée trop tôt (« Close Ad? You will lose your reward ») → `dismissed` → pas de reprise, l'écran de fin avec REJOUER ; compte inchangé
+  (7 200 $). SANS `?pubtest=1` et sans identifiant : 0 requête vers Google, la pub maison comme avant. 0 erreur (seul le 404 connu de
+  `dark-triad.mp3`). Banc : `dbgPub().ads` → {on, test, pret, etat (le dernier breakStatus), n, prete}.
+- **`vercel.app` est sur la liste publique des suffixes** (publicsuffix.org) : AdSense accepte `car-cash-git.vercel.app` comme un site à part
+  entière, pas besoin d'acheter un domaine.
+- **À FAIRE PAR SACHA** (personne ne peut le faire à sa place : son identité, son compte de paiement) : 1) créer le compte AdSense
+  (adsense.google.com, avec son compte Google), site `car-cash-git.vercel.app` ; 2) DONNER l'identifiant d'éditeur `ca-pub-` + 16 chiffres
+  (Compte › Infos du compte) → on le pose dans `CC_ADSENSE`, on met à jour la page de CONFIDENTIALITÉ du site (cookies publicitaires de
+  Google, seulement pour le site — l'app iPhone reste sans pub) et on publie ; 3) dans AdSense, « Valider » le site (ads.txt / code) et
+  demander l'examen ; 4) activer le message de consentement RGPD (Confidentialité et messages › Europe), obligatoire en Europe ; 5) laisser
+  les ANNONCES AUTOMATIQUES ÉTEINTES (elles poseraient des bannières sur le jeu) ; 6) une fois le compte approuvé, faire la demande H5 Games
+  Ads (adsense.google.com/start/h5-beta, sur dossier, non garanti). Tant que H5 n'est pas accordé, Google n'a pas de pub : la pub maison joue.
+- **Reste à trancher** : faire compter les pubs VRAIMENT vues pour L'ÉTERNELLE (« REGARDE 100 PUBS », `SAVE.d.ex.pubs`, plus rien ne le
+  remplit depuis le retrait du kit Poki) ; la pub maison quand Google n'a rien (gratuite au bout de 5 s) ou pas de reprise du tout.
+
+## LE BUMP REVIENT SUR LA ROUTE TORDUE DES NUAGES (2026-10-15 soir, Sacha : « fais revenir le BUMP sur la route tordue des nuages, sans toucher au reste, et mesure-le au banc avant de pousser »)
+- LA CAUSE (mesurée, même graine, même carte) : sur la route SANS HAUT NI BAS la dalle est couchée, sur la tranche, à l'envers, mais la caisse
+  sortie par le bord tombait selon le bas du MONDE — elle ne s'enfonçait pas sous le niveau de SA dalle et ne pouvait plus en cogner la
+  tranche ; et l'équilibre du vol (`veqNiveau`) redressait son haut vers le ciel du monde : sur une dalle couchée, le volant ne la ramenait
+  plus vers la route. 0 BUMP sur 20 sorties, contre 3 sur la même piste remise droite (`?sans=haut`).
+- LE CORRECTIF (`TBORD`, route tordue + sortie par le BORD seulement) : le temps de la bascule (1,1 s au plus) et après chaque BUMP, la
+  gravité, le plané nitro et l'équilibre du vol sont ceux de la ROUTE quittée (−Nn × face de départ) ; le BUMP renvoie vers le ciel de la
+  route et réarme la fenêtre (DOUBLE BUMP possible). À plus de 20 m du bord, ou la fenêtre passée, le vol reprend la gravité du monde.
+  Route droite (TORD éteint) : aucune ligne ne change de chemin.
+- MESURÉ (banc `bump.cjs`, carte nuages midi, graines 4242 et 777, vA 70/130, braquage vers la route 200/450 ms après la sortie, 40 essais
+  par version) : essais avec BUMP 2 → 6, BUMP au total 2 → 14 (dont un MEGA BUMP ×7), caisses rattrapées (lèvre ou posée, dessus ou
+  dessous) 15 → 21, perdues ou encore en l'air au bout de 4 s 10 → 5. Fumée commune OK.
+
+## L'IMPACT EN MINIATURE — LE COUP D'ÉPAULE CONTRE UNE PAROI (2026-10-15 soir, Sacha, après le recensement des obstacles : « oui : fais le point 1 tel que décrit (étoile + éclats + étincelles au premier contact, sans boule ni cratère), puis banc, poussée et recopie »)
+- LE RECENSEMENT (« on s'en servira pour tous les obstacles du jeu ») : tout ce qui TUE en percutant passe déjà par L'IMPACT (chaîne de vol
+  des sept cartes, mur mortel de `parisMur` via `impMur`). Les PLOTS et les PORTES (`boomMini`) ne sont plus posés depuis le 14/10
+  (`PLOTS_ON=false`, « enlève les cônes de chantier ») ; les SATELLITES de l'orbite (`satHard`, `explode('sat')` sans IMPACT) ne vivent plus
+  que dans PLUTON, en carrière coupée ; pas d'épaves ; la police ne touche jamais la caisse. Dos d'âne, pads, flaques, moutons, galet du
+  glacier, bump de bord ne sont pas des chocs. Restait UN obstacle vivant : la paroi qu'on tape SANS mourir.
+- LE COUP D'ÉPAULE : `parisMur` sous le seuil mortel (angle ≤ 30° ou < 200 km/h) — les couloirs des Étroits, le TUNNEL et la MINE du
+  canyon (`cyCouloirIci`), les façades de Paris (qui dort). Avant : une étincelle toutes les 90 ms et « FROTTE ! ». Désormais, au PREMIER
+  contact seulement (≥ 0,35 s de JEU sans toucher, `IMPM.clk` : la pause ne compte pas ; en frottant, rien de plus qu'avant),
+  `impMini(out,a,kmh,into)` : l'ÉTOILE de choc de L'IMPACT (même texture en pixels) posée SUR la ligne de la paroi au coin avant du flanc,
+  collée à la caisse, qui pousse (0,07 s, jusqu'à 2,8 m) puis ÉCLATE (0,15 s, jusqu'à 5,8 m) ; 3 à 5 ÉCLATS de roche calcinée (même forme,
+  mêmes matières, un sur trois en braise) qui gardent ~90 % de l'élan de la caisse — posés sur place, ils sortaient du cadre en une image —
+  et dont un sur deux retape la paroi et rebondit ; une GERBE de 18 à 42 étincelles qui gicle du mur. Taille `k` selon l'angle et la vitesse.
+  NI cratère, NI coup (la caisse ne s'arrête pas), NI négatif, NI boule, NI ralenti.
+- SA PROPRE RÉSERVE (`IMPM` : 2 étoiles, 10 éclats, deux matières clonées de `IMP_ECL`) — jamais celle de la mort, qui peut tomber un instant
+  après — née au chargement, chauffée à sa première image ; `impMiniTick` dans la boucle à côté d'`impTick`, `impMiniFin` dans clearBoom.
+- MESURÉ au banc (`cc-banc/impact-mini.cjs`, canyon, couché 844 × 390, son coupé) : à 284, 837 et 1 389 km/h, le choc part (2 à 8 images
+  après le braquage dans la paroi), **185 → 185 programmes GPU** (aucun compilé au choc), la caisse reste en conduite ; un frottement tenu
+  60 images ne donne qu'UN choc. Première version jugée sur planche : étoile de 0,8 m posée à 0,7 m du centre = lue SUR LE TOIT, presque
+  invisible — d'où la taille ×2,5 et la pose sur la ligne de la paroi. La mort contre la paroi (`impact.cjs canyon`) est inchangée
+  (cratère, négatif, 186 → 186 programmes).
+- Console : `dbgImpactMini()` (chocs, dernier choc a/kmh/into/k, étoiles, éclats, programmes, couloirs du canyon) ;
+  `dbgImpactMini('force',±1)` (une miniature tout de suite contre ce flanc) ; `dbgImpactMini('seuil',x)` (poussée minimale, 1,2).
+- Pas de son ajouté (le crissement du contact reste) : à proposer si Sacha veut un « tchac » au choc.
+
+## PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : « toute la mécanique météore », jeu web ET ROBLOX)
+- Même recette que SNAKE LOOP et NITROOO : COUPÉ, pas arraché. Un interrupteur en tête du fichier, `SANS_METEORE` (vrai par défaut ;
+  `?meteore=1` le rend).
+- Ce qui ne se déclenche plus : la figure MÉTÉORE en vol (nitro tenue 1,2 s : `addTrick('meteo')`, donc ni aura de 100, ni chaîne, ni
+  son `fig.meteore`) ; les verdicts METEOR et MEGA METEOR de `tryLand` (`vKey` 'meteor' / 'megaMeteor' : ni mot, ni voix, ni son
+  `verdict.meteor` / `verdict.mega`, ni rang) — la pose garde MONSTRE / DOUBLE / TRIPLE ; le CRATÈRE de la pose en piqué nitro
+  (`cratere` non léger : onde, braises, secousse, flash orange, son `cratere`, « IMPACT METEORE »).
+- `chauffeDivers` ne prépare plus les trois cratères ni leurs deux textures au menu, sauf si la pluie de DÉBRIS est rallumée
+  (`DEB_ON`, `?debris=1`) : elle seule creuse encore le cratère LÉGER (`cratere(…,true)`), qui ne bouge pas. `cratTick` sort d'entrée.
+- Restent écrits, sans effet : `nitroAirT`, `trkMeteor`, les entrées METEOR de `ANN_LIB` / `VERD_DEF` / `I18N`, les sons de la banque.
+- ROBLOX : `Config.METEORE_ACTIF = false` (le rallumer = `true`), lu par `Pilote.client.luau` (figure, verdicts, sons, `meteore` du
+  signal `pose` → plus de `cratere()` dans `Effets.luau`). `CashCar.rbxlx` reconstruit (`node ROBLOX/construire.js`).
 ## LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES (2026-10-15 soir, Sacha : « il y a trop plein de petits sons aigus quand on roule, avec des pièces, tout ça ; les pièces, tu peux les faire un peu moins fort, un petit tintement, un petit tchic, un petit tchic grave ; pas plein de ding-ding-ding-ding ; et rajoute tout un sound design pour les figures, avec des sons plus graves, genre doum, doum ; faut qu'on profite de la musique, que tu balances le son entre la musique et les bruitages, que les figures fassent plus de bruit que quand tu ramasses une pièce ; plus de sons graves et discrets — applique-toi bien pour les figures »)
 - MESURÉ AVANT (banc `banc-son` : une course muette au pilote, chaque `CCSON.play` relevé) : en 40 s de route, 119 pièces (3 par seconde,
   la note montait de mi5 à mi7 — 659 Hz → 2,6 kHz — et sonnait 0,45 s), 30 CYLINDRES (chaque moteur neuf égrène jusqu'à 16 cloches qui
