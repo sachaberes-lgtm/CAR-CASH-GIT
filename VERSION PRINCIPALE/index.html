@@ -10285,7 +10285,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=25"></script>
+<script defer src="sons-banque.js?v=26"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
@@ -35222,7 +35222,7 @@ function coinSerie(p){
   if(n<4||c!==n)return;
   flowAdd(3+n*.4,'style','n');
   popTexte(TR('SÉRIE COMPLÈTE')+' ×'+n,'#ffd75e',0);
-  try{if(SONV2)sfx('piece.serie',{vol:4});else{ /* (2026-10-14, session SON) +4 comme la pièce : la SÉRIE COMPLÈTE (−31) sonnait sous une pièce seule (−30) */chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
+  try{if(SONV2)sfx('piece.serie',{vol:1});else{ /* (2026-10-14, session SON) +4 comme la pièce : la SÉRIE COMPLÈTE (−31) sonnait sous une pièce seule (−30) — (2026-10-15) la pièce v2 sort à −35 : la série +1 = −32, toujours au-dessus */chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
 }
 /* (v4, Sacha : « quand on passe en frénésie après avoir POSÉ UNE FIGURE — l'atterrissage est la condition pour déclencher la frénésie,
    en plus du score de flow — ça doit déclencher la voix TRIPLE MONSTRE et l'écriture TRIPLE MONSTER »). LA JAUGE PLEINE ARME (frenArme :
@@ -36981,7 +36981,9 @@ function engBig(E,tier,ru){
   if(ru)engRuban(ru);
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
   // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
-  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPd(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},250+i*50);
+  /* (2026-10-15, Sacha : « plein de ding-ding-ding ») sonPdAR et non plus sonPd : un moteur de 16 cylindres montait de quatre octaves (mi5 → mi9,
+     5 kHz) ; la gamme tient dans l'octave (montée puis va-et-vient) et le cylindre est un « toum » de piston grave (recettes.js) */
+  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPdAR(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},250+i*50);
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare,{vol:-8});}catch(e){}},SONV2?2150:1200); /* (2026-10-12) −8 dB : les cuivres du début de course */ /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
@@ -41712,18 +41714,26 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le
 /* (2026-10-15, pôle SON, l'audit) LE RECUL SOUS LES SIGNAUX : mesurés dans LEUR bande contre la musique de niveau, ces signaux passaient à
    ±2 dB d'elle, ou dessous (la panne sèche de nitro est dans le grave de la basse, le portail proche 6 à 9 dB sous elle) — la musique recule
    de −3 dB pendant 0,4 s quand l'un d'eux part (musique-bus.js : `recul`). Seulement là où la musique passe par WebAudio (MUS_WA). */
-const SIG_RECUL={'nitro.sec':1,'piece.serie':1,'piece.recolte':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
+/* (2026-10-15, Sacha : « faut qu'on profite de la musique ») LA RÉCOLTE ET LA SÉRIE NE FONT PLUS RECULER LA MUSIQUE : la récolte part toutes
+   les 5 pièces — MESURÉ au banc, 22 fois en 40 s : la musique pompait de −3 dB toutes les 1,8 s pendant qu'on ramassait. Elles sont devenues
+   des sons graves et discrets (la pièce v2) : elles n'ont plus à passer DEVANT la musique. */
+const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
 function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(JMUS.bus)JMUS.bus.recul(-3,.4);if(window.POUCE_JEU)POUCE_JEU.recul();}catch(e){}}
 const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
   'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.x':.25,'pwr.triple':.35,
+  // (2026-10-15, Sacha : « que les figures fassent plus de bruit ») le DOUM des figures écarte le moteur et le vent un instant (pas la musique)
+  'fig.explose':.12,'fig.signe':.18,'combo.sceau':.35,'pose.parfait':.15,'pose.divin':.25,
   // (2026-10-14, session SON) les grands moments qui n'écartaient pas le mix alors qu'ils sonnent aussi fort que ceux du dessus (audit oreille-neuve §6) : chaque id vérifié dans la banque et appelé
   'aura.x5':.2,'aura.x8':.3,'fig.snake':.3,'fig.essoreuse':.25,'fig.dauphinRoyal':.3,'pwr.double':.25,'frenesie.record':.4,'verdict.1':.15,'argent.gros':.15};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
 // (2026-10-14, session SON) passé le 9e degré (+21, le plafond des bases [0,12]), une gamme du vol ne se FIGE plus sur sa note : elle redescend
 // et remonte l'octave haute (degrés 8-7-6-5-6-7-8-9 : +19 +16 +14 +12 +14 +16 +19 +21) — jamais plus haut qu'avant
-const SON_ECH_AR=[8,7,6,5,6,7,8,9];
-function sonPdAR(i){i=Math.max(0,i|0);return sonPd(i<=9?i:SON_ECH_AR[(i-10)%SON_ECH_AR.length]);}
+/* (2026-10-15, Sacha : « trop de petits sons aigus… plus de sons graves et discrets ») LA GAMME DU VOL TIENT DANS UNE OCTAVE : elle montait
+   jusqu'au 9e degré (+21 demi-tons : la 8e figure d'un vol, le 10e frôlé sonnaient presque deux octaves au-dessus de leur note). Elle monte
+   maintenant du degré 0 au 5e (+12, l'octave), puis va et vient en haut de l'octave (degrés 4-3-4-5 : +9 +7 +9 +12). L'ancienne : 8-7-6-5-6-7-8-9 après le 9e. */
+const SON_ECH_AR=[4,3,4,5];
+function sonPdAR(i){i=Math.max(0,i|0);return sonPd(i<=5?i:SON_ECH_AR[(i-6)%SON_ECH_AR.length]);}
 function sfx(id,o){
   if(!SONV2||!sfxOk()||document.hidden)return null;
   try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
@@ -41770,9 +41780,12 @@ const FIG_MONDE={bk_trp:0,bk_glace:1,bk_pou:2,bk_trace:3,bk_pat:4,bk_der:5,ricoc
 const COMBO_AXE={T:0,P:1,S:2,M:3};
 function sonCombo(cle,neuf){
   if(!SONV2||typeof cle!=='string'||cle.length!==3)return;
-  const b=Math.min(4,ECH|0),pur=cle[0]===cle[1]&&cle[1]===cle[2];
-  for(let i=0;i<3;i++)sfx('combo.frappe',{var:COMBO_AXE[cle[i]]|0,st:sonPd(b+2*i),t:i*.085});
-  sfx('combo.sceau',{var:cle==='PST'?2:cle==='MMM'?3:pur?0:1,st:sonPd(b+5),t:.27,vol:neuf?2:0});
+  /* (2026-10-15, Sacha : « genre doum, doum ») DOUM, DOUM, DOUM… BOUM : trois tambours graves qui montent (fa#, si, mi : degrés 1-3-5,
+     110 ms d'écart — on les compte) puis le sceau qui RETOMBE sur la tonique grave. Avant : 85 ms, une gamme qui partait du degré du vol
+     (jusqu'au 9e, +21) et un sceau au-dessus. */
+  const b=1,pur=cle[0]===cle[1]&&cle[1]===cle[2];
+  for(let i=0;i<3;i++)sfx('combo.frappe',{var:COMBO_AXE[cle[i]]|0,st:sonPd(b+2*i),t:i*.11});
+  sfx('combo.sceau',{var:cle==='PST'?2:cle==='MMM'?3:pur?0:1,st:0,t:.36,vol:neuf?2:0});
 }
 window.dbgSonJoue=function(id,o){ // (banc) joue un son de la banque par le vrai lecteur : vrai = une voix est partie · dbgSonJoue('combo','PST') = sonCombo
   if(id==='combo'){sonCombo(o,true);return true;}if(id==='figSnd'){figSnd(o);return true;}
@@ -42301,12 +42314,17 @@ const SON_P_AR=[21,19,16,14,12,14,16,19,21,24];
 const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660/990/1320)
 function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
 const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
+/* (2026-10-15, Sacha : « quand on roule, plein de ding-ding-ding-ding, c'est insupportable ; les pièces un peu moins fort, un petit tchic
+   grave ») LA LIGNE DE PIÈCES TIENT DANS UNE OCTAVE : elle montait de deux octaves (GAMME_P, jusqu'à +24 : mi7, 2,6 kHz) puis restait en
+   haut. Elle monte maintenant de mi4 à mi5 (SON_PG : six pièces), puis va et vient en haut de l'octave (SON_PG_AR) ; la pièce elle-même est
+   le « tchic » grave de la banque (recettes.js, LA PIÈCE v2) et sonne 5 dB plus bas (vol 0, la RÉCOLTE aussi). GAMME_P reste aux anciens sons de repli. */
+const SON_PG=[0,2,4,7,9,12],SON_PG_AR=[9,7,9,12];
 function blip(){
-  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1),st9=k9<GAMME_P.length?GAMME_P[k9]:SON_P_AR[(k9-GAMME_P.length)%SON_P_AR.length];
+  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1),st9=k9<SON_PG.length?SON_PG[k9]:SON_PG_AR[(k9-SON_PG.length)%SON_PG_AR.length];
     // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
     // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
-    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-3,t:.03});}catch(e){}
-    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:4});return;} // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
+    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-7,t:.03});}catch(e){} /* (2026-10-15) −7 : toujours 7 dB sous la pièce */
+    if(sfx('piece',{st:st9,vol:0}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient — (2026-10-15, Sacha : « les pièces, un peu moins fort ») vol 0 : −35 en sortie (−30 avant), sous les figures (−32 à −25) */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:0});return;} // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -44160,9 +44178,9 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
   for(let i=0;i<C.evts.length;i++)figBoum(C.evts[i]);C.evts.length=0;
   for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(r.tient&&!r.paye)figJet(r,dt);
     if(!r.paye&&!r.mv.length&&r.osc&&r.t<r.D){const nb=Math.floor(r.t*r.osc.w/Math.PI);if(nb>(r.batDit|0)){r.batDit=nb;const ch9=r.osc.z>.3; /* (2026-10-14, session SON — étape 3) LES BATTEMENTS SE SENTENT : SHIMMY (un « wik » par aller-retour, gauche / droite) et CHANDELLE (au sommet) n'ont pas de tour, donc pas de tic — fig.battement, sur l'échelle du vol sans la consommer */
-      try{if(SONV2)sfx('fig.battement',{var:ch9?1:0,vol:-8,st:sonPdAR(ECH+(nb&1)),pan:ch9?0:(nb&1?.5:-.5)});}catch(e){}hap(5);}}
+      try{if(SONV2)sfx('fig.battement',{var:ch9?1:0,vol:-4,st:sonPdAR(ECH+(nb&1)),pan:ch9?0:(nb&1?.5:-.5)});}catch(e){}hap(5);}} /* (2026-10-15) −8 → −4 : le « wom » grave sort à −34, juste au-dessus d'une pièce */
     if(!r.paye&&r.mv.length){let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j]; // CHAQUE TOUR SE SENT : le souffle qui tourne, un tic dans la main (tenue, le rythme accélère)
-      const n9=Math.floor(Math.max(0,mm.th)/6.2832+.08);if(n9>(r.tourDit|0)){r.tourDit=n9;try{if(SONV2&&!sfx(figMat(mm.a),{vol:-8,st:echSt()}))sfx('fig.vrille',{vol:-12});}catch(e){} /* (session SON) repli : l'ancien tic tant que la banque n'a pas les trois matières */hap(6);if(n9>=2)sparkBurst(sparkGold,carGroup.position,6,7);}}}
+      const n9=Math.floor(Math.max(0,mm.th)/6.2832+.08);if(n9>(r.tourDit|0)){r.tourDit=n9;try{if(SONV2&&!sfx(figMat(mm.a),{vol:-2,st:echSt()}))sfx('fig.vrille',{vol:-6});}catch(e){} /* (session SON) repli : l'ancien tic tant que la banque n'a pas les trois matières — (2026-10-15, Sacha : « que les figures fassent plus de bruit que quand tu ramasses une pièce ») −8 → −2 : un tour sortait à −39, 9 dB SOUS une pièce ; le DOUM d'un tour sort à −32, 3 dB au-dessus */hap(6);if(n9>=2)sparkBurst(sparkGold,carGroup.position,6,7);}}}
   {const gl9=figGlisseOn(),b9=gl9?64:FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(gl9?'Depuis NITRO, glisse puis lâche : ◄► un tail whip, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128)
   {let pv9=0;for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(!r.paye&&r.f&&r.f.piv){pv9=r.f.piv;break;}}FX2.pivK=(FX2.pivK||0)+(pv9-(FX2.pivK||0))*Math.min(1,dt*14);} // (2026-10-15) LE TAIL WHIP : le point fixe glisse du milieu vers le NEZ
   const q=C.q;if(q[3]<.9999995){const hc=(CARS[level].h||1.3)*.5,zp=(FX2.pivK||0)*(CARS[level].l||4.4)*.5;VEQ.pv.set(0,hc,zp).applyQuaternion(carGroup.quaternion);
@@ -45252,7 +45270,7 @@ function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, 
   const lb9=sansAcc(TR(nom));CHA.liste.unshift(lb9+' +'+p);if(CHA.liste.length>2)CHA.liste.length=2; // (vague 2, H4) 2 lignes, la dernière en or : la mémoire de la chaîne, pas une 3e voix
   chaHud(true,CHA.x>x0);
   if(TCTL.on&&!CHA.sansPop)popTexte(lb9+' +'+p,CHA.x>x0?'#ff9ee6':'#ffd75e',0); // au-dessus de la caisse : le geste ET ce qu'il rapporte — (v5) sauf à la pose du dauphin : son récapitulatif parle seul
-  if(!muet&&!(SONV2&&CHA.x>x0&&(CHA.x===5||CHA.x===8||CHA.x===10)))try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPd(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba)
+  if(!muet&&!(SONV2&&CHA.x>x0&&(CHA.x===5||CHA.x===8||CHA.x===10)))try{if(SONV2){if(mode==='fall')sfx('fig.maillon',{st:echSt()});else sfx('aura.geste',{st:sonPdAR(CHA.x)});}else chimeNote(noteP(Math.min(7,CHA.x),1),0,.10,.16);}catch(e){} // (console) en l'air, le geste prend l'échelle du vol ; au sol, la gamme de l'aura (marimba) — (2026-10-15) sonPdAR : ×10 jouait +24 (deux octaves), l'octave suffit
   return p;
 }
 /* HUD v3 : LA GRANDE ANNONCE qui claque au centre haut (BOOST, pouvoirs, paliers du ×) — une seule à la fois, la dernière gagne */
@@ -45808,7 +45826,7 @@ function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouch
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
   juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
-  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12)});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3)});}else crunchSfx(r); // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
+  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12),vol:nom==='PASTÈQUE'?0:-4});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3),vol:-3});}else crunchSfx(r); /* (2026-10-15, Sacha : « équilibre mieux, que les figures fassent plus de bruit que ce qu'on ramasse ») un fruit sortait à −28, au-dessus d'une figure : −4 (−32), la rafale −3 ; la PASTÈQUE (le graal) garde son niveau */ // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
     chaineAura('RAFALE ×'+fruitRaf,15+r*6,'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */

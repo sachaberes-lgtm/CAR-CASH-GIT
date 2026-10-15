@@ -334,6 +334,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   `sons-banque.js?v=` +1 dans index.html et `sw.js` +1. Dans le jeu : `sfx('famille.nom',{vol,st,pan})`.
 - Avec repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (`typeof sfx` est toujours vrai).
 - On ne peut pas écouter : on MESURE (sonie, spectre) et Sacha ou Léo jugent dans `sons.html`. Jamais de voix.
+- Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie
+  entre 150 et 500 Hz, sinon il n'existe pas au haut-parleur d'un téléphone (mesurer la sonie après un passe-haut 200 Hz : perte ≤ 5 dB).
+  Les sons FRÉQUENTS de la route restent bas et brefs (la pièce : −35, « LES SONS GRAVES ET DISCRETS » au journal) ; les figures passent au-dessus.
 - Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `musicLieuVoulu`
   (ou `MUSIC_LOBBY` pour le lobby).
 
@@ -452,6 +455,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 
 **Son et musique**
+- « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
 - « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html
@@ -760,6 +764,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   `sons-banque.js?v=` +1 dans index.html et `sw.js` +1. Dans le jeu : `sfx('famille.nom',{vol,st,pan})`.
 - Avec repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (`typeof sfx` est toujours vrai).
 - On ne peut pas écouter : on MESURE (sonie, spectre) et Sacha ou Léo jugent dans `sons.html`. Jamais de voix.
+- Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie
+  entre 150 et 500 Hz, sinon il n'existe pas au haut-parleur d'un téléphone (mesurer la sonie après un passe-haut 200 Hz : perte ≤ 5 dB).
+  Les sons FRÉQUENTS de la route restent bas et brefs (la pièce : −35, « LES SONS GRAVES ET DISCRETS » au journal) ; les figures passent au-dessus.
 - Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `musicLieuVoulu`
   (ou `MUSIC_LOBBY` pour le lobby).
 
@@ -866,6 +873,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 
 **Son et musique**
+- « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
 - « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html
