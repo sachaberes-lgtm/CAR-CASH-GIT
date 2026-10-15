@@ -17,6 +17,43 @@
   carte moteur (NOUVEAU MOTEUR / SOMMET), rappel de figure, bouton NITRO, « GLISSE POUR TOURNER » (s'efface au premier braquage), « BOOST »,
   « +1 » des pièces, bannières de mission, DAUPHIN.
 
+## LES FIGURES PAR DIRECTION : AVANT · ARRIÈRE · CÔTÉS (2026-10-15 soir, Sacha : « en vrai mets aussi une catégorie de figure en mode flèche vers l'arrière pour les saltos arrière ou certaines figures qui peuvent être faites vers l'arrière ; une même figure doit avoir marqué à quelle direction elle peut aller, par exemple tonneau c'est que les côtés mais rodéo ça peut être mis à l'avant ou à l'arrière » → question posée, réponse : « 3, une par geste »)
+- Suite directe des DEUX FAMILLES (section suivante), qu'elle remplace : la famille `cat` devient `dir` (les DIRECTIONS d'une figure), et
+  « 2 figures à la fois » (Sacha, le matin) devient **3, une par geste** (`FIG_NB`=3) — c'est lui qui l'a choisi, la question posée disait
+  bien qu'on revenait sur le matin.
+- **figures.js ?v=6** : `dir` sur chaque ligne de `BASE`, `FIG.dirs(f)` (la règle range une figure générée : que l'axe des roues → son sens ;
+  aucun mouvement sur x → côté ; un salto ET autre chose → avant ET arrière), `FIG.oriente(f,'avant'|'arriere')` = la même figure, son salto
+  nez en bas ou nez en haut (une copie gardée par figure et par sens : le jeu compare les figures par identité). Résultat : **AVANT** = SALTO
+  AVANT, TIRE-BOUCHON, RODÉO, SALTO COSMIQUE · **ARRIÈRE** = CHANDELLE (un wheelie : le nez se lève), SALTO ARRIÈRE, TIRE-BOUCHON, RODÉO,
+  SALTO COSMIQUE · **CÔTÉS** = TONNEAU, TOUPIE 360, SHIMMY, DOUBLE TONNEAU, HÉLICO 720, VRILLE PENCHÉE. Changer une figure de direction =
+  sa ligne `dir` (rien d'autre).
+- **Trois emplacements** (`FIG_DIR`, `figPeut`, `figSlots`, `figRange`, `figEquipe(id,k)`) : ↑ pouce en AVANT (0), ↓ pouce en ARRIÈRE (1),
+  ◄► pouce sur un CÔTÉ (2) au double-tap NITRO (`figDirSlot` ; au repos = avant, comme avant). Une figure ne va que là où elle accepte ; le
+  rodéo peut tenir l'avant ET l'arrière (rodéo avant = toupie + salto avant, rodéo arrière = toupie + salto arrière). `SAVE.d.figEq3` = les
+  trois id à leur place ('' = vide, désinfecté dans `san`) ; `figEq` reste écrit (deux id) pour une vieille copie. Rangement automatique d'un
+  emplacement vide (`figRange`, la plus récente d'abord) : une figure à UN sens, puis une à deux sens pas déjà ailleurs, puis n'importe laquelle
+  qui y va — MESURÉ au banc Node : rangé dans l'ordre, avec SALTO AVANT + RODÉO, le rodéo prenait les deux places et le salto disparaissait.
+  Une vieille sauvegarde (`figEq`, deux id) se range de la même façon. Un emplacement vide : son geste ne fait rien (`o.strict`), sauf à
+  l'auto-école et pour la figure automatique du saut nitro.
+- **La boutique** : trois sections VERS L'AVANT · VERS L'ARRIÈRE · SUR LES CÔTÉS (↑ · ↓ · ◄►) ; une figure à deux sens a une carte dans
+  chacune (`bqFigRail`, `data-dir` sur la carte) ; toucher une carte = la caisse fait la figure DANS CE SENS (`garFigEssai(id,c)`) ; ÉQUIPER /
+  ACHETER la met dans l'emplacement de cette carte (`bqFigDir`, `GBQ.figDir`) ; le compte de l'onglet reste 12 (une figure = une fois).
+  L'inventaire range par direction et porte, sur une figure équipée, le pictogramme de chaque geste qui la joue (↑ ↓ ◄►) ; le toucher l'équipe
+  dans la 1re direction libre qui ne l'a pas déjà. La fiche (`figDesc`) dit le ou les gestes. Anglais : FORWARD · BACKWARD · SIDEWAYS.
+- **En vol** : le rappel `#fhLeg` passe à trois (↑ cyan, ↓ vert `--fhVert`, ◄► magenta ; la figure automatique reste or) et, debout aussi, en
+  COLONNE au-dessus de NITRO (trois en rangée ~285 px passaient sur l'anneau du volant). Les anciens boutons (`?figdir=0`) et le clavier
+  (1 · 2 · 3) suivent. L'astuce du 1er vol dit les trois gestes (bit 128 : ceux qui ont lu l'ancienne la relisent une fois).
+- Le GLISSER de Léo (réglage FIGURES) n'est pas touché : il joue ses figures fixes (← → tonneau, ↑ salto arrière, ↓ salto avant).
+- MESURÉ — banc Node des emplacements (le vrai `figSlots`/`figEquipe` extraits d'index.html, sur le vrai figures.js) : débutant → [—, —,
+  TONNEAU] ; SALTO AVANT + RODÉO → [SALTO AVANT, RODÉO, TONNEAU] ; vieille `figEq` [tonneau, hélico] + salto avant → [SALTO AVANT, —, HÉLICO] ;
+  le tonneau demandé à l'avant → refusé, il va de côté ; une `figEq3` abîmée (salto avant rangé de côté) se répare d'elle-même.
+  Banc du jeu (cc-banc, muet, 390 × 844) : boutique = [VERS L'AVANT] salto avant, tire-bouchon, rodéo, cosmique [VERS L'ARRIÈRE] chandelle,
+  salto arrière, tire-bouchon, rodéo, cosmique [SUR LES CÔTÉS] tonneau, toupie, shimmy, double, hélico, vrille penchée ; onglet = 12 ; rodéo
+  touché dans VERS L'ARRIÈRE → ÉQUIPER → [salto avant, RODÉO, hélico], toast « RODÉO · VERS L'ARRIÈRE · REMPLACE SALTO ARRIÈRE » ; le cadre
+  `.sel` suit la carte touchée (1er jet : il restait sur l'autre carte du rodéo — `GBQ.vu` ne comptait pas la direction). En vol : ↑ SALTO
+  AVANT, ↓ RODÉO orienté arrière, ← HÉLICO +, → HÉLICO − ; débutant, même vol : ↓ refusé, ← TONNEAU ; rappel ↑ AVANT · ↓ RODÉO · ◄► HÉLICO.
+  Zéro erreur JS.
+
 ## LES FIGURES EN DEUX FAMILLES : VERS L'AVANT · SUR LES CÔTÉS (2026-10-15, Sacha : « pour le système de figure : il faut séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; par exemple les figures tonneau doivent aller vers la droite ou la gauche, elles ont besoin d'être orientées par la direction, alors que salto avant a juste besoin d'aller vers l'avant ; donc dans la boutique classe toutes les figures selon ces deux catégories »)
 - **La famille est déclarée** dans `figures.js` (`cat:'avant'|'cote'` sur chaque ligne de `BASE`, ?v=5) et lue par `FIG.cat(f)`. La règle, qui
   range aussi les figures générées de la boîte blanche (sans `cat`) : AVANT = tout se passe sur l'axe des roues (x) — rien à choisir, ni gauche

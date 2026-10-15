@@ -8825,7 +8825,8 @@ body.fhOn #lvlBan{visibility:hidden} /* une voix en haut : la figure passe devan
 html body.touch.play.figVol.figDir #tFig{display:none!important}
 html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;align-items:flex-end;gap:6px;position:fixed;z-index:3;pointer-events:none;
   right:calc(var(--hudD) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 14px);bottom:calc(var(--sB) + 16px)}
-@media (orientation:portrait){html body.touch.play.figVol.figDir #fhLeg{flex-direction:row;right:calc(var(--hudD) + 8px);bottom:calc(var(--sB) + 16px + var(--nxH,29) * var(--nxC,3.6px) + 14px)}}
+/* (2026-10-15 soir, les trois directions) debout aussi en COLONNE au-dessus de NITRO : ↑ · ↓ · ◄► dans l'ordre des gestes — trois en rangée (~285 px) passaient sur l'anneau du volant */
+@media (orientation:portrait){html body.touch.play.figVol.figDir #fhLeg{flex-direction:column;align-items:flex-end;right:calc(var(--hudD) + 8px);bottom:calc(var(--sB) + 16px + var(--nxH,29) * var(--nxC,3.6px) + 14px)}}
 .fhL{--fc:var(--fh1);display:flex;align-items:center;gap:7px;padding:7px 10px 6px 8px;background:var(--fhE);font-family:var(--pix);font-size:var(--f0,8px);
   letter-spacing:1px;line-height:1;color:var(--fc);white-space:nowrap;clip-path:var(--fhCoupe);
   box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 1px color-mix(in srgb,var(--fc) 45%,transparent),inset 0 3px 0 rgba(255,255,255,.10)}
@@ -10144,7 +10145,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=5"></script>
+<script src="figures.js?v=6"></script>
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=1"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -36678,9 +36679,11 @@ function figDesc(f,lg){const en=lg==='en'||lg==='zh'; // (2026-10-14, textes) BI
   const tx=function(m,i){const n=['x','y','z'].filter(function(c,j){return Math.abs(m.a[j])>.1;}),q=Q[n.length>1?'p':n[0]],T=Math.abs(m.t);
     if(en)return m.t!=null?(T>1?T+' '+q+'s':(i?'one ':'One ')+q):(i?'a ':'A ')+q+' wobble';
     return m.t!=null?(T>1?T+' tours en '+q:(i?'un':'Un')+' tour en '+q):(i?'un':'Un')+' balancement en '+q;};
-  const av=window.FIG&&FIG.cat&&FIG.cat(f)==='avant'; // (2026-10-15, les deux familles) la fiche dit le GESTE (le hasard parmi tes figures n'existe plus depuis le 15/10)
-  return f.m.map(tx).join(' + ')+(en?(av?'. Thumb FORWARD + double-tap NITRO.':'. Thumb to a SIDE + double-tap NITRO: it goes that way.')
-                                    :(av?'. Pouce en AVANT + double-tape NITRO.':'. Pouce sur un CÔTÉ + double-tape NITRO : elle part de ce côté.'));}
+  const D=window.FIG&&FIG.dirs?FIG.dirs(f):['cote']; // (2026-10-15, les directions) la fiche dit le GESTE (le hasard parmi tes figures n'existe plus depuis le 15/10)
+  if(D.indexOf('cote')>=0)return f.m.map(tx).join(' + ')+(en?'. Thumb to a SIDE + double-tap NITRO: it goes that way.':'. Pouce sur un CÔTÉ + double-tape NITRO : elle part de ce côté.');
+  const av=D.indexOf('avant')>=0,ar=D.indexOf('arriere')>=0;
+  return f.m.map(tx).join(' + ')+(en?'. Thumb '+(av&&ar?'FORWARD or BACK':av?'FORWARD':'BACK')+' + double-tap NITRO'+(av&&ar?': the flip goes that way.':'.')
+                                    :'. Pouce '+(av&&ar?'en AVANT ou en ARRIÈRE':av?'en AVANT':'en ARRIÈRE')+' + double-tape NITRO'+(av&&ar?' : le salto part dans ce sens.':'.'));}
 COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f,'fr'),fig:1};});
 const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
@@ -43643,6 +43646,7 @@ const SAVE={
     if(Array.isArray(d.figs))c.figs=[...new Set(['tonneau'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées (le TONNEAU, offert)
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
+    if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
@@ -44587,32 +44591,47 @@ window.dbgVol=function(a){
      pose : posée en plein tour (> 52°), c'est la CHUTE — les figures de ce vol quittent la chaîne (`figChute`) et le flow tombe.
    `?fig=ancien` (ou `dbgFig('ancien')`) rend les figures de Léo (le lecteur animé, au hasard parmi celles qu'on possède). Console : `dbgFig()`. */
 const FIGV2={on:!/[?&]fig=(ancien|script|libre)\b/.test(location.search)}; // ?fig=libre : les FIGURES LIBRES de GAMEPLAY (nuit du 14/10) · ?fig=script / ?fig=ancien : le lecteur de Léo
-const FIG_NB=2; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 ») — les EMPLACEMENTS : l'avant (1) et le côté (2) du joystick
+const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
   cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
   qf:new THREE.Quaternion(),qr:new THREE.Quaternion(),qd:new THREE.Quaternion(),m4:new THREE.Matrix4(),v:new THREE.Vector3(),d:new THREE.Vector3(),
   n:0,payees:0,chutes:0,vis:null,cle:'',wPose:0,jetS:0,herite:null,img:0,att:null,redresse:0};
-/* UN EMPLACEMENT PAR FAMILLE (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; dans la
-   boutique, classe toutes les figures selon ces deux catégories »). La famille vient de figures.js (`FIG.cat`) : 'avant' (saltos, chandelle —
-   pouce en AVANT) → l'emplacement 1 ; 'cote' (tonneau, toupie… — pouce sur un CÔTÉ, elle part de ce côté) → le 2. Équiper une figure prend la
-   place de celle de SA famille, jamais de l'autre : plus de tonneau sur le geste avant ni de salto sur le geste de côté. `SAVE.d.figEq` garde
-   sa forme (deux id au plus) ; la plus récente de chaque famille compte (une vieille sauvegarde à deux tonneaux garde le dernier). Une
-   famille vide se remplit d'elle-même avec la dernière figure possédée de cette famille ; le côté a toujours au moins le TONNEAU (offert).
-   Sans aucune figure AVANT, le geste avant ne fait RIEN (le refus, `o.strict`) — Sacha : « le tonneau est typiquement une figure latérale ».
-   Deux exceptions, qui ne sont pas le geste du joueur : l'étape FIGURE de l'auto-école (« tape 2 fois NITRO », pouce au repos — un débutant
-   n'a que le tonneau, la leçon serait bloquée) et la figure AUTOMATIQUE du saut nitro au sol : elles prennent l'emplacement qui existe. */
-function figFam(id){const f=window.FIG&&FIG.par[id];return f&&FIG.cat&&FIG.cat(f)==='avant'?0:1;} // l'emplacement de sa famille : 0 = avant, 1 = côté
-const FIG_FAM=[['VERS L\'AVANT','POUCE EN AVANT','haut'],['SUR LES CÔTÉS','POUCE À GAUCHE OU À DROITE','fleches']]; // le nom de chaque famille, le geste qui la joue, son pictogramme (ceux du rappel #fhLeg)
-function figSlots(){if(!window.FIG)return [null,'tonneau'];
-  const own=function(id){return !!FIG.par[id]&&figPossede(id);},S=[null,null],E=Array.isArray(SAVE.d.figEq)?SAVE.d.figEq:[];
-  for(let i=E.length-1;i>=0;i--){const id=E[i];if(own(id)&&S[figFam(id)]==null)S[figFam(id)]=id;}
-  if(S[0]==null||S[1]==null){const L=(cousin()?FIG.liste.map(function(f){return f.id;}):(Array.isArray(SAVE.d.figs)?SAVE.d.figs:[])).filter(own);
-    for(let i=L.length-1;i>=0;i--)if(S[figFam(L[i])]==null)S[figFam(L[i])]=L[i];
-    if(S[1]==null)S[1]='tonneau';}
+/* UN EMPLACEMENT PAR DIRECTION (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; dans
+   la boutique, classe toutes les figures selon ces deux catégories » · puis « mets aussi une catégorie vers l'ARRIÈRE ; une même figure doit
+   avoir marqué à quelle direction elle peut aller : le tonneau, c'est que les côtés, mais le rodéo peut être mis à l'avant ou à l'arrière »
+   · « 3, une par geste »). Les directions d'une figure viennent de figures.js (`FIG.dirs`) ; trois emplacements, un par geste du double-tap
+   NITRO : ↑ pouce en AVANT (0), ↓ pouce en ARRIÈRE (1), ◄► pouce sur un CÔTÉ (2, elle part de ce côté). Une figure ne va que dans un
+   emplacement qu'elle accepte (`figPeut`) ; une figure à deux sens (rodéo, tire-bouchon, cosmique) peut tenir l'avant ET l'arrière — le geste
+   choisit alors le sens de son salto (`FIG.oriente`). Équiper prend la place de celle de CET emplacement, jamais d'un autre.
+   `SAVE.d.figEq3` = les trois id, à leur place ('' = vide) ; une sauvegarde d'avant (`figEq`, deux id) se range d'elle-même : chaque figure
+   dans la 1re direction libre qu'elle accepte. Un emplacement vide se remplit avec la dernière figure possédée qui y va (une qui n'est pas
+   déjà ailleurs d'abord) ; le côté a toujours au moins le TONNEAU (offert).
+   Un emplacement vide : son geste ne fait RIEN (le refus, `o.strict`) — Sacha : « le tonneau est typiquement une figure latérale ». Deux
+   exceptions, qui ne sont pas le geste du joueur : l'étape FIGURE de l'auto-école (« tape 2 fois NITRO », pouce au repos — un débutant n'a
+   que le tonneau, la leçon serait bloquée) et la figure AUTOMATIQUE du saut nitro au sol : elles prennent un emplacement qui existe. */
+const FIG_DIR=['avant','arriere','cote'];
+const FIG_FAM=[["VERS L'AVANT",'POUCE EN AVANT','haut'],["VERS L'ARRIÈRE",'POUCE EN ARRIÈRE','bas'],['SUR LES CÔTÉS','POUCE À GAUCHE OU À DROITE','fleches']]; // le nom de chaque direction, le geste qui la joue, son pictogramme (ceux du rappel #fhLeg)
+function figPeut(id){const f=window.FIG&&FIG.par[id];if(!f||!FIG.dirs)return [2]; // les emplacements que la figure accepte (0 avant · 1 arrière · 2 côté)
+  return FIG.dirs(f).map(function(d){return FIG_DIR.indexOf(d);}).filter(function(i){return i>=0;});}
+/* ranger les figures L (de la plus récente à la plus ancienne) dans les emplacements VIDES de S : d'abord celles à UN sens, puis celles à deux
+   sens qui ne sont pas déjà ailleurs, puis (reuse) n'importe laquelle qui y va — avec SALTO AVANT + RODÉO, le salto devant, le rodéo derrière
+   (MESURÉ au banc Node : rangé dans l'ordre, le rodéo prenait les deux places et le salto disparaissait) */
+function figRange(S,L,reuse){for(let passe=0;passe<(reuse?3:2);passe++)for(let k=0;k<FIG_NB;k++)if(S[k]==null)
+  for(let i=0;i<L.length;i++){const P=figPeut(L[i]);if(P.indexOf(k)>=0&&(passe===2||(S.indexOf(L[i])<0&&(passe===1||P.length===1)))){S[k]=L[i];break;}}
   return S;}
-function figEquipees(){return figSlots().filter(Boolean);} // les figures équipées, l'avant d'abord
-function figEquipe(id){if(!window.FIG||!FIG.par[id]||!figPossede(id))return null;const S=figSlots(),k=figFam(id);if(S[k]===id)return {deja:true,slot:k};
-  const parti=S[k];S[k]=id;SAVE.d.figEq=S.filter(Boolean);SAVE.flush();FX2.cle='';return {parti:parti,slot:k};}
+function figSlots(){if(!window.FIG)return [null,null,'tonneau'];
+  const own=function(id){return !!FIG.par[id]&&figPossede(id);},S=[null,null,null],E3=SAVE.d.figEq3;
+  if(Array.isArray(E3)){for(let k=0;k<FIG_NB;k++){const id=E3[k];if(id&&own(id)&&figPeut(id).indexOf(k)>=0)S[k]=id;}}
+  else if(Array.isArray(SAVE.d.figEq))figRange(S,SAVE.d.figEq.filter(own).reverse(),false); // une sauvegarde d'avant les trois directions
+  if(S[0]==null||S[1]==null||S[2]==null){figRange(S,(cousin()?FIG.liste.map(function(f){return f.id;}):(Array.isArray(SAVE.d.figs)?SAVE.d.figs.slice():[])).filter(own).reverse(),true);
+    if(S[2]==null)S[2]='tonneau';}
+  return S;}
+function figEquipees(){return figSlots().filter(function(id,i,S){return id&&S.indexOf(id)===i;});} // les figures équipées (une fois chacune), l'avant d'abord
+/* équiper `id` dans l'emplacement k (0-2) ; sans k (l'inventaire) : le 1er qu'elle accepte et qui ne l'a pas déjà, un vide d'abord */
+function figEquipe(id,k){if(!window.FIG||!FIG.par[id]||!figPossede(id))return null;const S=figSlots(),P=figPeut(id);
+  if(k==null||P.indexOf(k)<0){k=null;for(let j=0;j<P.length&&k==null;j++)if(S[P[j]]==null)k=P[j];for(let j=0;j<P.length&&k==null;j++)if(S[P[j]]!==id)k=P[j];if(k==null)return {deja:true,slot:P[0]};}
+  if(S[k]===id)return {deja:true,slot:k};
+  const parti=S[k];S[k]=id;SAVE.d.figEq3=S.map(function(x){return x||'';});SAVE.d.figEq=figEquipees().slice(0,2);SAVE.flush();FX2.cle='';return {parti:parti,slot:k};}
 function figMemo(dt){FX2.qm1.copy(FX2.qm0);FX2.qm0.copy(carGroup.quaternion);FX2.dm=dt;FX2.memo=FX2.memoN;FX2.memoN=true;} // (conduite, chaque image) l'assiette des deux dernières images
 function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;if(!C)return;
   C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.redP=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
@@ -44683,7 +44702,7 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
       try{if(SONV2)sfx('fig.battement',{var:ch9?1:0,vol:-8,st:sonPdAR(ECH+(nb&1)),pan:ch9?0:(nb&1?.5:-.5)});}catch(e){}hap(5);}}
     if(!r.paye&&r.mv.length){let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j]; // CHAQUE TOUR SE SENT : le souffle qui tourne, un tic dans la main (tenue, le rythme accélère)
       const n9=Math.floor(Math.max(0,mm.th)/6.2832+.08);if(n9>(r.tourDit|0)){r.tourDit=n9;try{if(SONV2&&!sfx(figMat(mm.a),{vol:-8,st:echSt()}))sfx('fig.vrille',{vol:-12});}catch(e){} /* (session SON) repli : l'ancien tic tant que la banque n'a pas les trois matières */hap(6);if(n9>=2)sparkBurst(sparkGold,carGroup.position,6,7);}}}
-  {const b9=FDIR.on?64:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT = figure 1, sur le CÔTÉ = figure 2.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent
+  {const b9=FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128)
   const q=C.q;if(q[3]<.9999995){const hc=(CARS[level].h||1.3)*.5;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
     VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
     VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
@@ -44693,7 +44712,7 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
 function figTutoOk(){return !TUTO.on||(typeof tutoFigOuverte==='function'&&!!tutoFigOuverte());}
 function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)return null;
   if(!started||gameOver||paused||introD||!figTutoOk()||mode!=='fall')return null;
-  const S=figSlots();let f;if(o.f){f=o.f;s=-1;}else{s=Math.abs(s|0)%FIG_NB;if(!S[s]){if(o.strict){figRefus(s);return null;}s=1-s;}if(!S[s])return null;f=FIG.par[S[s]];}if(!f)return null; // o.f : une figure hors emplacement (L'IMPULSION du double-tap) — s = −1, aucun bouton · (2026-10-15, les deux familles) s = l'EMPLACEMENT (0 avant, 1 côté) ; vide : le GESTE (o.strict) est refusé — jamais un tonneau au pouce en avant —, le reste prend l'autre (voir figSlots)
+  const S=figSlots();let f;if(o.f){f=o.f;s=-1;}else{s=Math.abs(s|0)%FIG_NB;if(!S[s]){if(o.strict){figRefus(s);return null;}for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;}if(!S[s])return null;f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);}if(!f)return null; // o.f : une figure hors emplacement (L'IMPULSION du double-tap) — s = −1, aucun bouton · (2026-10-15, les directions) s = l'EMPLACEMENT (0 avant, 1 arrière, 2 côté) ; vide : le GESTE (o.strict) est refusé — jamais un tonneau au pouce en avant —, le reste prend un emplacement qui existe (voir figSlots) ; à l'avant / à l'arrière, la figure est ORIENTÉE (son salto dans ce sens : le rodéo avant ≠ le rodéo arrière)
   if(o.dispo!=null)o.douce=true; // la figure du SAUT NITRO part toute seule : le joueur ne l'a pas risquée (pas finie = pas payée, jamais une CHUTE)
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
@@ -44793,8 +44812,8 @@ function figDirSlot(){let x,y;
   if(FDIR.force){x=FDIR.force[0];y=FDIR.force[1];}
   else if(TCTL.act){x=TCTL.st;y=TCTL.sv;}
   else{x=(keys.KeyA||keys.KeyQ||keys.ArrowLeft?1:0)-(keys.KeyD||keys.ArrowRight?1:0);y=(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0);}
-  FDIR.x=x;return Math.abs(x)>=.3&&Math.abs(x)>=Math.abs(y)*.85?1:0;} // FDIR.x : le pouce lui-même, que figLance lit pour le côté (o.dx)
-window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot(),r=figLance(s,{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on});return r?(r.attente?'attente':'ok emplacement '+(s+1)+' '+r.f.id+(r.s>0?'+':'-')):'refus';}finally{FDIR.force=null;}};
+  FDIR.x=x;if(Math.abs(x)>=.3&&Math.abs(x)>=Math.abs(y)*.85)return 2;return y<=-.3?1:0;} // FDIR.x : le pouce lui-même, que figLance lit pour le côté (o.dx) — (2026-10-15 soir, la direction ARRIÈRE) ◄► = 2 · pouce vers le BAS = 1 (arrière) · vers le haut ou au repos = 0 (avant)
+window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot(),r=figLance(s,{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on});return r?(r.attente?'attente':'ok geste '+(s+1)+' '+r.f.id+(r.f.sens?' '+r.f.sens:'')+(r.s>0?'+':'-')):'refus';}finally{FDIR.force=null;}};
 function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
 /* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
    être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
@@ -44855,7 +44874,7 @@ function figCvFin(ok){fhFin(ok);figCvRaz();} // (HUD des figures v3) la pose : e
    · `fhTick` (chaque image, depuis figHud : les minuteries, AUCUNE écriture DOM tant que rien ne change) · `fhLegMaj`/`fhLegFx` (le rappel).
    Plus de texte au-dessus de la caisse pour une figure (CHA.sansPop dans figPaye) : ce HUD le dit, en mieux. */
 const FH={el:null,nom:null,b:null,cs:null,x:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null};
-const FH_COUL=['var(--fh1)','var(--fh2)','var(--fh0)']; // l'emplacement 1 (l'avant) · le 2 (le côté) · la figure que la caisse fait SEULE
+const FH_COUL=['var(--fh1)','var(--fhVert)','var(--fh2)','var(--fh0)']; // l'emplacement 1 (l'avant, cyan) · le 2 (l'arrière, vert — 2026-10-15 soir) · le 3 (le côté, magenta) · la figure que la caisse fait SEULE (or)
 const FH_N=[26,22]; // le corps du nom (px) : couché · debout — plafonné par la largeur (police pixel : 1 em par lettre)
 function fhEase(){if(!FH.ease){try{FH.ease=getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();}catch(e){}FH.ease=FH.ease||'ease-out';}return FH.ease;}
 function fhAnime(el,k,ms,o){if(!el||!el.animate)return null;if(REDUCED_MOTION&&!(o&&o.rm))return null; // « Réduire les animations » (iOS) : l'état final s'affiche, sans le mouvement
@@ -44878,11 +44897,11 @@ function fhChip(t,c){fhEl();const i=document.createElement('i');i.className='fhC
 function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x;fhEl();
   FH.x.textContent=x?figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
-function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?2:s>=0?Math.min(1,s):2;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
+function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
   const n=r.mv&&r.mv[0]?r.mv[0].tours|0:1;fhNom(FIG.nomReps(r.f,Math.max(1,n),LANG==='en'?'en':'fr'),FH_COUL[c],'in');FH.nomT=performance.now()+1900;
   if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
   if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps){if(!f||!window.FIG)return;const c=FH_COUL[r&&r.fhc!=null?r.fhc:2],t=FIG.nomReps(f,reps,LANG==='en'?'en':'fr'); // (figPaye) plantée : elle claque et tombe dans la ligne
+function fhPlante(r,f,reps){if(!f||!window.FIG)return;const c=FH_COUL[r&&r.fhc!=null?r.fhc:3],t=FIG.nomReps(f,reps,LANG==='en'?'en':'fr'); // (figPaye) plantée : elle claque et tombe dans la ligne
   if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
   fhNom(t,c,'pl');fhChip(t,c);fhXMaj();FH.nomT=performance.now()+1000;
   try{pixBurst(FH.b,Math.min(12,6+2*FX2.cv.n));}catch(e){}}
@@ -44906,7 +44925,7 @@ function fhTick(vol){if(!FH.vu)return;const n=performance.now(); // (chaque imag
   if(FH.nomT&&n>FH.nomT){FH.nomT=0;FH.nom.classList.remove('on');} // le nom s'éteint ; la ligne du combo reste tant qu'on vole
   if(!FH.nomT&&!FH.cs.firstChild)fhRaz();}
 function fhLegMaj(){const el=document.getElementById('fhLeg');if(!el||!window.FIG)return;const S=figSlots(),cle=S.join(',')+'|'+LANG;if(FH.legCle===cle)return;FH.legCle=cle; // (en vol) ↑ figure 1 · ◄► figure 2
-  const I=['haut','fleches']; // (2026-10-15, les deux familles) chaque figure avec le geste et la couleur de SON emplacement ; pas encore de figure avant : seul ◄► s'affiche (le tonneau ne part que de côté)
+  const I=['haut','bas','fleches']; // (2026-10-15, les directions) chaque figure avec le geste et la couleur de SON emplacement ; un emplacement vide ne s'affiche pas (le tonneau ne part que de côté)
   el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b>'+fhNet(figCourt(f))+'</b></div>';}).join('');
   FH.legs=[];[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
 function fhLegFx(s,ko){const b=FH.legs&&FH.legs[s];if(!b||s<0)return;
@@ -44922,7 +44941,7 @@ function figIco(f){let m=null;for(let i=0;i<f.m.length;i++)if(f.m[i].t!=null&&(!
   const a=m.a;if(Math.abs(a[0])>.9)return m.t>0?'fgAv':'fgAr';if(Math.abs(a[1])>.9)return 'fgTo';if(Math.abs(a[2])>.9)return 'fgTn';return 'fgCo';}
 function figCourt(f){const c=LANG==='en'?(f.ce||f.en||f.n):(f.c||f.n);return String(c).split(' ')[0].slice(0,8);}
 function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FIG)return;const S=figSlots(),cle=S.join(',')+'|'+LANG;if(FX2.cle===cle)return;FX2.cle=cle;
-  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="tFigB" data-s="'+i+'" role="button" aria-label="'+sansAcc(TR(f.n)).replace(/"/g,'')+'">'
+  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=i<2&&FIG.oriente?FIG.oriente(FIG.par[id],FIG_DIR[i]):FIG.par[id];return '<div class="tFigB" data-s="'+i+'" role="button" aria-label="'+sansAcc(TR(f.n)).replace(/"/g,'')+'">'
     +'<i class="pxi pxi-rotation '+figIco(f)+'" aria-hidden="true"></i><b>'+sansAcc(figCourt(f)).replace(/[<>&"]/g,'')+'</b><u>'+(i+1)+'</u></div>';}).join('');
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
@@ -44939,11 +44958,11 @@ function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on »
   el.addEventListener('touchend',fin,{passive:false});el.addEventListener('touchcancel',fin,{passive:false});
   el.addEventListener('mousedown',function(e){const bt=e.target.closest&&e.target.closest('.tFigB');if(!bt)return;e.preventDefault();e.stopPropagation();tient(+bt.getAttribute('data-s'),'souris');});
   addEventListener('mouseup',function(){lache('souris');});
-  const K={Digit1:0,Digit2:1,Numpad1:0,Numpad2:1}; /* (2026-10-15) deux emplacements */
+  const K={Digit1:0,Digit2:1,Digit3:2,Numpad1:0,Numpad2:1,Numpad3:2}; /* (2026-10-15 soir) trois emplacements : avant · arrière · côté */
   addEventListener('keydown',function(e){const s=K[e.code];if(s==null||e.repeat)return;tient(s,'k'+s);});
   addEventListener('keyup',function(e){const s=K[e.code];if(s!=null)lache('k'+s);});
 })();
-try{Object.assign(I18N,{'COMBO PERDU':'COMBO LOST','En vol, tape 2 fois NITRO : pouce en AVANT = figure 1, sur le CÔTÉ = figure 2.':'In the air, double-tap NITRO: thumb FORWARD = trick 1, to the SIDE = trick 2.'});}catch(e){} // (2026-10-15) HUD des figures v3 + le choix au joystick
+try{Object.assign(I18N,{'COMBO PERDU':'COMBO LOST','En vol, tape 2 fois NITRO : pouce en AVANT = figure 1, sur le CÔTÉ = figure 2.':'In the air, double-tap NITRO: thumb FORWARD = trick 1, to the SIDE = trick 2.','En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'In the air, double-tap NITRO: thumb FORWARD, BACK or to the SIDE — each gesture has its trick.'});}catch(e){} // (2026-10-15) HUD des figures v3 + le choix au joystick
 try{Object.assign(I18N,{'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !':'In the air, tap a TRICK: it blasts and spins the car. Hold for one more turn!','TOUPIE DE DRIFT':'DRIFT SPIN','EMPLACEMENTS':'SLOTS','ÉQUIPÉE':'EQUIPPED','REMPLACE':'REPLACES','RETIRÉE':'REMOVED',
   'IL EN FAUT UNE':'KEEP AT LEAST ONE','EMPLACEMENT':'SLOT'});}catch(e){}
 window.dbgFig=function(a,b){
@@ -55015,18 +55034,21 @@ function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sans
    · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, le 2e les OFFRES ;
    · la colonne de gauche, qui défile : CETTE SEMAINE — trois caisses et trois habillages tirés sur la semaine (bqSemaine). */
 const BQ_CATS=[['voiture','VOITURES','voiture'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee'],['figure','FIGURES','rotation']]; // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
-/* LES FIGURES EN DEUX FAMILLES (2026-10-15, Sacha : « dans la boutique classe toutes les figures selon ces deux catégories ») : VERS L'AVANT
-   (pouce en avant : saltos, chandelle), puis SUR LES CÔTÉS (pouce à gauche ou à droite : tonneau, toupie… elle part de ce côté). Dans chaque
-   famille, l'ordre du catalogue (du moins cher au plus cher). Un intertitre `.bqSec` (bqFigSec) ouvre chaque famille dans la grille : ce n'est
-   pas une carte — ni clic, ni compte. La famille vient de figures.js (FIG.cat, via figFam). */
-function bqFigSec(k,prev){if(k.indexOf('figure:')!==0)return '';const c=figFam(k.slice(7));if(prev&&prev.indexOf('figure:')===0&&figFam(prev.slice(7))===c)return '';
-  const F=FIG_FAM[c];return '<div class="bqSec" data-fam="'+c+'">'+pxi(F[2])+'<b>'+sansAcc(TR(F[0]))+'</b><em>'+sansAcc(TR(F[1]))+'</em></div>';}
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f,j){return [figFam(f.id),j,f.id];}).sort(function(a,b){return (a[0]-b[0])||(a[1]-b[1]);}).map(function(x){return 'figure:'+x[2];}):[];return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
-function bqCarteHtml(k,n,lim){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);
+/* LES FIGURES PAR DIRECTION (2026-10-15, Sacha : « dans la boutique classe toutes les figures selon ces deux catégories » · puis « mets aussi
+   une catégorie vers l'ARRIÈRE ; une même figure doit avoir marqué à quelle direction elle peut aller ») : VERS L'AVANT (pouce en avant), VERS
+   L'ARRIÈRE (pouce en arrière), SUR LES CÔTÉS (pouce à gauche ou à droite : elle part de ce côté). Une figure à deux sens (rodéo, tire-bouchon,
+   cosmique) a sa carte dans CHACUNE de ses sections : la carte porte sa direction (`data-dir`), ÉQUIPER la met dans CET emplacement (bqFigDir).
+   Dans chaque section, l'ordre du catalogue (du moins cher au plus cher). Un intertitre `.bqSec` (bqFigSec) ouvre chaque section : ce n'est
+   pas une carte — ni clic, ni compte (le compte de l'onglet reste celui des figures, une fois chacune : bqListe). */
+function bqFigSec(c){const F=FIG_FAM[c];return '<div class="bqSec" data-fam="'+c+'">'+pxi(F[2])+'<b>'+sansAcc(TR(F[0]))+'</b><em>'+sansAcc(TR(F[1]))+'</em></div>';}
+function bqFigRail(){const R=[];if(!window.FIG)return R;for(let c=0;c<FIG_NB;c++)FIG.liste.forEach(function(f){if(figPeut(f.id).indexOf(c)>=0)R.push({k:'figure:'+f.id,c:c});});return R;}
+function bqFigDir(id){const P=figPeut(id);return GBQ.figDir!=null&&P.indexOf(GBQ.figDir)>=0?GBQ.figDir:P[0];} // la direction de la carte touchée (sinon la 1re de la figure)
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';}
   if(bqPxLg(px))c+=' lg';
-  return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
+  return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
     +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
     +'<span class="bqKr">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';} /* (clarté 14/10) la RARETÉ s'écrit sur la carte */
 /* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
@@ -55058,7 +55080,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     pan.classList.remove('menu');if(o!==GBQ.ong){GBQ.ong=o;GBQ.rk='';}});
   ui.querySelector('.bqMenu').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
     uiPop(b);uiClic('onglet');pan.classList.remove('menu');GBQ.cat=b.getAttribute('data-c');GBQ.ong='cat';GBQ.rk='';});
-  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
+  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));ui.querySelector('.bqUr').addEventListener('click',essaie('.bqU'));
   return ui;}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
@@ -55075,7 +55097,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
      if(oc)oc.textContent=sansAcc(TR(C9[1]));if(oi)oi.className='pxi pxi-'+C9[2]+' bqOi';if(n1)n1.textContent=bqListe(cat).length;if(n2)n2.textContent=E.length;}
     pan.querySelectorAll('.bqMenu button').forEach(function(b){const c=b.getAttribute('data-c');b.classList.toggle('on',c===cat);const n=b.querySelector('i');if(n)n.textContent=bqListe(c).length;});
     rail.classList.toggle('off',ong==='off');rail.classList.toggle('habs',ong!=='off'&&cat!=='voiture');rail.scrollTop=0;rail.scrollLeft=0;
-    rail.innerHTML=L.map(function(k,n){return (ong!=='off'?bqFigSec(k,L[n-1]):'')+bqCarteHtml(k,n,ong==='off');}).join(''); /* (2026-10-15) les figures : un intertitre par famille */bqPhotos(rail);if(ong==='off')bqOffreAuto(E);}
+    rail.innerHTML=(ong!=='off'&&cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):L.map(function(k,n){return bqCarteHtml(k,n,ong==='off');})).join(''); /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);if(ong==='off')bqOffreAuto(E);}
   // CETTE SEMAINE : la colonne qui défile
   const S=bqSemaine().l,une=document.getElementById('gBqUne'),ur=une.querySelector('.bqUr'),uk=S.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
   if(GBQ.uk!==uk){GBQ.uk=uk;GBQ.vu='';
@@ -55093,12 +55115,13 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
      coloris — de la voiture, pareil pour les ailes et les traînées ; pour l'instant ORIGINAL partout ») : #gBqNom suit la caisse (projeté au-
      dessus d'elle chaque image) ; #gBqSkins, sous elle, liste les COLORIS de l'objet (bqSkins) — une peinture n'en a pas : c'est un coloris. */
   const i=garageI,cur=bqCourant(),lim=cur[0]==='v'&&E.indexOf(i)>=0&&!(CAR_UNLOCK[i]&&CAR_UNLOCK[i].une),te=document.getElementById('gBqTete'),nm=document.getElementById('gBqNom'),sk=document.getElementById('gBqSkins');
-  if(GBQ.vu!==cur){GBQ.vu=cur;let ri,nom;
+  const vu9=cur+(String(cur).indexOf('figure:')===0&&GBQ.figDir!=null?'@'+GBQ.figDir:''); // (2026-10-15) une figure à deux sens a deux cartes : la direction touchée fait partie de ce qu'on regarde (le cadre .sel suit la bonne)
+  if(GBQ.vu!==vu9){GBQ.vu=vu9;let ri,nom;
     if(cur[0]==='v'){ri=rarInfo(carRar(i));nom=TR(CARS[i].name);}else{const o=bqCos(cur);ri=rarInfo(cosmRar(o.cat,o.d));nom=o.d?TR(o.d.n):'';}
     nm.style.setProperty('--rc',ri.c);nm.classList.toggle('lim',lim);
     nm.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));nm.querySelector('.bqNom').textContent=sansAcc(String(nom));
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
-    rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});
+    rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
     ur.querySelectorAll('.bqU').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});}
   {const t=nm.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : la colonne de la semaine à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)
@@ -55120,7 +55143,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
 }
 function bqSkins(k){if(!k)return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris
   return [{id:'original',n:'ORIGINAL',c:'linear-gradient(135deg,#fff,#d9dde3)'}];} // (2026-10-12) aucun skin n'est encore dessiné : chaque voiture, aile, traînée a son ORIGINAL
-function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai(k.slice(7));try{gShopJour();}catch(e){}GBQ.ck='';return;}GBQ.figK=null; // (2026-10-14) une FIGURE : la caisse la fait sur le plateau
+function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai(k.slice(7),bqFigDir(k.slice(7)));try{gShopJour();}catch(e){}GBQ.ck='';return;}GBQ.figK=null; // (2026-10-14) une FIGURE : la caisse la fait sur le plateau
   // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){SHOP.i[o.cat]=j; /* (2026-10-14, UX 8) la clé COURANTE se pose AU TOUCHER : le geste du bras ne pose la pièce qu'à 0,71 s, et ACHETER/ÉQUIPER agissait sur l'objet d'AVANT */ bqOutil(o.cat,'essai',o.d,function(){shopShow(o.cat,j);try{gShopJour();}catch(e){}});}} // (2026-10-13) LES BRAS D'ATELIER posent la pièce (voir bqOutil)
@@ -55164,14 +55187,14 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   const o=bqCos(k),d=o.d;if(!d)return null;
   if(o.cat==='figure'){if(!figPossede(d.id))return {e:'achat',t:'ACHETER',p:bqPxT(d.p)}; // (2026-10-14) une figure : on l'a, ou on l'achète
     if(!FIGV2.on)return {e:'eq',t:'ACQUISE'};
-    return figEquipee(d.id)<0?{e:'figeq',t:'ÉQUIPER'}:{e:'eq',t:'ÉQUIPÉE'};} // (2026-10-15, les deux familles) une figure par famille : on en change en ÉQUIPANT une autre de la même famille, on ne la retire plus
+    return figSlots()[bqFigDir(d.id)]===d.id?{e:'eq',t:'ÉQUIPÉE'}:{e:'figeq',t:'ÉQUIPER'};} // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
   if(s.e==='choix'||s.e==='manque'){if(bt)gSecoue(bt);uiClic('refus');return;} // (2026-10-14, charte 6) l'état se lit AVANT le toucher : ni toast, ni achat
   if(s.e==='achat'&&k.indexOf('figure:')===0){figAchete(k.slice(7),bt);return;} // (2026-10-14) acheter une FIGURE
-  if(s.e==='figeq'||s.e==='figdes'){figEqToast(k.slice(7),s.e==='figeq');GBQ.rk='';try{gShopJour();}catch(e){}try{garFigEssai(k.slice(7));}catch(e){}hap(8);return;} // (LES FIGURES v2) un emplacement
+  if(s.e==='figeq'||s.e==='figdes'){const id9=k.slice(7),c9=bqFigDir(id9);figEqToast(id9,c9);GBQ.rk='';try{gShopJour();}catch(e){}try{garFigEssai(id9,c9);}catch(e){}hap(8);return;} // (LES FIGURES v2) un emplacement
   if(s.e==='achat'){const b=$('gBuy');if(b)b.click();return;}
   if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
   if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);bqOutil(o.cat,'retire',o.d,function(){if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{gShopJour();}catch(e){}});try{hap(6);}catch(e){}return;}
@@ -55186,16 +55209,16 @@ const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);
 function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))return false;
   if(bank()<f.p){if(bt)gSecoue(bt);uiClic('refus');toast(pxi('piece')+' '+sansAcc(TR('IL MANQUE'))+' '+fmtC(f.p-bank()));return false;}
   SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(id);SAVE.flush();
-  if(FIGV2.on)try{if(figEquipee(id)<0)figEquipe(id);}catch(e){} // (LES FIGURES v2) achetée = ÉQUIPÉE — (2026-10-15) à la place de celle de SA famille
-  try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
+  const c9=bqFigDir(id);if(FIGV2.on)try{figEquipe(id,c9);}catch(e){} // (LES FIGURES v2) achetée = ÉQUIPÉE — (2026-10-15) dans la direction de la carte touchée, à la place de celle qui y était
+  try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id,c9);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
 const GFIG={lect:null,t:0,D:0,corps:null};
 /* (2026-10-14, LES FIGURES v2) un emplacement pris ou rendu, et ce qu'on en dit */
-function figEqToast(id,met){const f=window.FIG&&FIG.par[id];if(!f)return;const F=FIG_FAM[figFam(id)],fam=pxi(F[2])+' '+sansAcc(TR(F[0])); // (2026-10-15, les deux familles) le toast dit la FAMILLE (le geste), plus un numéro d'emplacement
-  if(met){const r=figEquipe(id);if(!r)return;try{if(SONV2)sfx('ui.equipe');}catch(e){}
-    toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+fam+(r.parti&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):''));}
-  else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà équipée : une par famille, toujours — on en change en touchant une autre de la même famille
-function figEquipee(id){return figEquipees().indexOf(id);} // son emplacement (0-2), −1 sinon
-function garFigEssai(id){const f=window.FIG&&FIG.par[id];if(!f)return;
+function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=figEquipe(id,c);if(!r)return;const F=FIG_FAM[r.slot],fam=pxi(F[2])+' '+sansAcc(TR(F[0])); // (2026-10-15, les directions) équiper dans la direction c (sans c : la 1re libre, voir figEquipe) ; le toast dit la DIRECTION (le geste)
+  if(!r.deja){try{if(SONV2)sfx('ui.equipe');}catch(e){}
+    toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+fam+(r.parti&&r.parti!==id&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):''));}
+  else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
+function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
+function garFigEssai(id,c){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]); // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
   if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2+.45;
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
@@ -55213,7 +55236,7 @@ function garFigTick(dt){
   VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
-try{Object.assign(I18N,{"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
+try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
 try{Object.assign(I18N,{'CHOISIS UNE OFFRE':'PICK AN OFFER'});}catch(e){} // (2026-10-14, charte 6, boutique P1)
 function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
@@ -56838,7 +56861,7 @@ if(d.mis)return d.mis>=8?'epique':d.mis>=6?'exotique':'rare';if(!d.p)return 'com
 function invListe(cat){
   if(cat==='voiture'){const eq=equippedCar(),L=[];for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&(i===eq||carUnlockedVrai(i)))L.push({cat:cat,i:i,r:carRar(i),eq:i===eq});
     return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||(carOrdre(b.i)-carOrdre(a.i));});}
-  if(cat==='figure'){const L=[];if(window.FIG)FIG.liste.forEach(function(f,j){if(figPossede(f.id))L.push({cat:cat,i:j,d:f,r:cosmRar(cat,f),eq:!FIGV2.on||figEquipee(f.id)>=0});}); /* (LES FIGURES v2) équipée = dans un des trois emplacements */return L.sort(function(a,b){return (figFam(a.d.id)-figFam(b.d.id))||(INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});} /* (2026-10-15) rangées par FAMILLE, comme à la boutique : l'avant (1) puis les côtés (2) */ // (2026-10-14) toutes JOUENT (le double-tap tire au hasard parmi elles)
+  if(cat==='figure'){const L=[];if(window.FIG)FIG.liste.forEach(function(f,j){if(figPossede(f.id))L.push({cat:cat,i:j,d:f,r:cosmRar(cat,f),eq:!FIGV2.on||figEquipee(f.id)>=0});}); /* (LES FIGURES v2) équipée = dans un des trois emplacements */return L.sort(function(a,b){return (figPeut(a.d.id)[0]-figPeut(b.d.id)[0])||(INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});} /* (2026-10-15) rangées par DIRECTION, comme à la boutique : l'avant, l'arrière, les côtés */ // (2026-10-14) toutes JOUENT (le double-tap tire au hasard parmi elles)
   const e=shopEqD(cat),L=[];COSM[cat].forEach(function(d,j){if(shopOwned(cat,d.id))L.push({cat:cat,i:j,d:d,r:cosmRar(cat,d),eq:e===d});});
   return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});
 }
@@ -56848,7 +56871,7 @@ function invRender(){
   document.querySelectorAll('#gInv .ivTab').forEach(function(b){const c=b.getAttribute('data-c'),on=c===INV.cat,n=invListe(c).length;tot+=n;
     b.classList.toggle('on',on);b.setAttribute('aria-selected',on);const em=b.querySelector('em');if(em&&em.textContent!==String(n))em.textContent=n;});
   const ic=$('ivCompte');if(ic)ic.textContent=tot+' '+TR(tot>1?'OBJETS':'OBJET');
-  const L=invListe(INV.cat),k=INV.cat+':'+L.map(function(o){return o.i;}).join(',')+':'+LANG+(INV.cat==='peinture'?':'+equippedCar():'')+(INV.cat==='figure'?':'+figEquipees().join(','):'');
+  const L=invListe(INV.cat),k=INV.cat+':'+L.map(function(o){return o.i;}).join(',')+':'+LANG+(INV.cat==='peinture'?':'+equippedCar():'')+(INV.cat==='figure'?':'+figSlots().join(','):'');
   if(g._k!==k){g._k=k;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
     g.innerHTML=L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
@@ -56859,7 +56882,7 @@ function invRender(){
         else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
       const nmA=sansAcc(String(nm)).replace(/"/g,'');
-      return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+(o.cat==='figure'&&FIGV2.on&&o.eq?'<em class="ivNum">'+(figEquipee(o.d.id)+1)+'</em>':pxi('coche'))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
+      return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+(o.cat==='figure'&&FIGV2.on&&o.eq?figSlots().map(function(x,i9){return x===o.d.id?pxi(FIG_FAM[i9][2]):'';}).join(''):pxi('coche'))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
     if(INV.cat==='voiture')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT').forEach(function(el){if(!el.querySelector('.ivPh'))return;const i=+el.getAttribute('data-i');
       photoFile(i,function(url){const v=el.querySelector('.ivPh');if(!v||!el.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);});});},420); // les photos manquantes APRÈS l'entrée du tiroir (une photo = deux caisses rebâties : pas pendant qu'il glisse)
   }
@@ -56883,7 +56906,7 @@ function invFerme(sec){
 }
 function invEquipe(i,el){
   if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;
-  if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f){if(FIGV2.on)figEqToast(f.id,figEquipee(f.id)<0);garFigEssai(f.id);}hap(8);invRender();return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau — (LES FIGURES v2) et elle prend (ou rend) son emplacement
+  if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f){if(FIGV2.on)figEqToast(f.id);garFigEssai(f.id,figEquipee(f.id));}hap(8);invRender();return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau — (LES FIGURES v2) et elle prend (ou rend) son emplacement
   if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i))return;
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
   else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){uiClic('nav');return;}if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
