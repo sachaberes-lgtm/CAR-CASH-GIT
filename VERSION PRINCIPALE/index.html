@@ -27408,7 +27408,7 @@ function flmPas(dt,speedKmh){ // speedKmh : celle de la boucle (le compteur)
   F.pop=Math.min(1,hot);F.glow=(.7+.3*Math.min(1.4,F.L[0]))*(1+.9*F.pop);
   return F;}
 const MOTEUR_MINI=FLM_ON&&!/[?&]moteur=goutte\b/.test(location.search); // (2026-10-15) la flamme du MOTEUR = ce feu-ci, en MINUSCULE (voir NFEU_MINI) ; ?moteur=goutte : la goutte lisse
-const NFEU_MINI={t:.5,va:4.6,l:.34,vie:.85,taux:260,pas:.4,et:.3,bleu:.05,crq:.07}; // (crépitant) taille, VITESSE PROPRE (m/s : le moteur ne suit pas le jet du nitro, 13-26 m/s, sinon des aiguilles), écart, vie, débit (cubes/s/pot, × la bouffée du moteur), grille, étirement, pied bleu, CRÉPITEMENT (part des bouffées qui claquent) — en part du nitro
+const NFEU_MINI={t:.42,va:2.6,r:2.1,vie:.85,taux:260,pas:.4,et:0,bleu:.05,crq:.07}; /* (15/10 soir, Léo : « reste sur les petits crépitements, mais que ça aille plus DANS TOUS LES SENS, un peu comme les cristaux de flammes d'avant, mais avec les petits cubes ») va : la poussée dans l'axe, plus faible · r : la GERBE — chaque cube part dans une direction tirée tout autour de l'axe, à 0,7-2,6 m/s (×1,7 aux bouffées qui claquent), comme les éclats · et 0 : des cubes, pas des traits */ // (crépitant) taille, VITESSE PROPRE (m/s : le moteur ne suit pas le jet du nitro, 13-26 m/s, sinon des aiguilles), écart, vie, débit (cubes/s/pot, × la bouffée du moteur), grille, étirement, pied bleu, CRÉPITEMENT (part des bouffées qui claquent) — en part du nitro
 const NFEU_N=1600,NFEU_PAS=.06,NFEU_SEUIL=[.08,.24,.46,.66,.8,.9],NFEU_TAILLE=[.9,.98,1,1,.9,.74,.6];
 /* la palette est pensée APRÈS la courbe ACES de la passe finale : elle écrase le rouge plus que le vert au-delà de 1 — l'orange de la porte
    (1,75 · ,78 · ,14) y sortait JAUNE (mesuré sur la capture). Ici le vert est tenu bas : l'orange reste orange, le rouge rouge. */
@@ -27466,10 +27466,10 @@ function nfeuRot(qx,qy,qz,qw,vx,vy,vz,o){const tx=2*(qy*vz-qz*vy),ty=2*(qz*vx-qx
 function nfeuNp(){return Math.min(4,CAR_POTS.length,JETS.shells.length);}
 function nfeuNait(i,b,gros,suie,mi){ // une flamme-cube dans la bouche du pot i ; layout : s u v · vs vu vv · âge vie taille graine pot genre (0 nitro · 2 étincelle · 3 MOTEUR, en minuscule)
   const N=NFEU;if(N.n>=NFEU_N)return;const o=N.n*12,P=N.P,M9=NFEU_MINI;N.n++;
-  const a=Math.random()<.62?N.tg[i]+flmGauss()*.75:Math.random()*6.2832,r0=(.05+.07*Math.random())*(mi?.5:1),vr=(.6+.8*Math.random())*(1+.45*b)*(gros?2.4:1)*(1+.5*(N.kd-1))*(mi?M9.l:1)*(gros?1:NFEU_JET.serre),ca=Math.cos(a),sa=Math.sin(a);
+  const a=!mi&&Math.random()<.62?N.tg[i]+flmGauss()*.75:Math.random()*6.2832,r0=(.05+.07*Math.random())*(mi?.5:1),vr=mi?M9.r*(.35+.9*Math.random())*(gros?1.7:1)*(1+.5*(N.kd-1)):(.6+.8*Math.random())*(1+.45*b)*(gros?2.4:1)*(1+.5*(N.kd-1))*(gros?1:NFEU_JET.serre),ca=Math.cos(a),sa=Math.sin(a); // mi : la GERBE du moteur (dans tous les sens)
   const pt=CAR_POTS[i],sd9=!pt?0:pt.x>.06?1:pt.x<-.06?-1:(Math.random()<.5?-1:1); // le pot de droite crache à droite, celui de gauche à gauche (un pot central : des deux côtés)
   P[o]=Math.random()*.12;P[o+1]=ca*r0;P[o+2]=sa*r0;
-  P[o+3]=(mi?M9.va*(1+.45*(N.kd-1)):N.vs)*(.75+.5*Math.random())*(gros?1.1:suie?.6:1);P[o+4]=ca*vr+sd9*(.3+.7*Math.random())*(mi?M9.l:1);P[o+5]=sa*vr+(gros?0:.2+.5*Math.random())*(mi?M9.l:1); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
+  P[o+3]=(mi?M9.va*(1+.45*(N.kd-1)):N.vs)*(.75+.5*Math.random())*(gros?1.1:suie?.6:1);P[o+4]=ca*vr+(mi?0:sd9*(.3+.7*Math.random()));P[o+5]=sa*vr+(mi?.15*Math.random():gros?0:.2+.5*Math.random()); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
   P[o+6]=0;P[o+7]=(.22+.2*Math.random()+.07*b)*(gros?1.35:1)*(mi?M9.vie:1)*NFEU_JET.vie;P[o+8]=(.13+.07*Math.random())*(1+.25*b)*(gros?1.3:1)*N.kd*(mi?M9.t:1)*NFEU_FIN.taille;
   P[o+9]=(suie?Math.random()*.4:Math.random())+(mi?2:0);P[o+10]=i;P[o+11]=0; // mi : la GRAINE +2 marque le feu du MOTEUR (le genre 3 est le feu DÉTACHÉ en vol, celui de Sacha)
   {const q=carGroup.quaternion,q4=o/3;N.Q[q4]=q.x;N.Q[q4+1]=q.y;N.Q[q4+2]=q.z;N.Q[q4+3]=q.w;if(N.libre&&mode==='fall')P[o+11]=3;}} // l'assiette de sa NAISSANCE, toujours (le feu fluide au sol la lit aussi) ; né en vol : DÉTACHÉ

@@ -139,7 +139,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`, dragon `DRG`,
   dauphins `DAUPH`/`dolTick`, pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
   moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`), hors nitro le même feu en
-  minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte`), le dragon en feu de pixels `DFEU`/`dfeuPas` (`?dragon=ancien`, `dbgDragon('pix',0|1)`).
+  minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens), le jet propulsé (`NFEU_JET`), le dragon en feu de pixels `DFEU`/`dfeuPas` (`?dragon=ancien`, `dbgDragon('pix',0|1)`).
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
@@ -401,6 +401,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
 - « LA GAMME RESSERRÉE — LA FICHE DES VOITURES » (06-07/10) · « SIX COMMUNES RETIRÉES » (02/10)
 - « LA VITRINE DU GARAGE » (04/10) · « LES LUEURS DE LA BOUTIQUE » (07/10) · « LA FENÊTRE D'ACHAT » (01/10)
+- « LE JET PROPULSÉ, LE MOTEUR QUI CRÉPITE DANS TOUS LES SENS, LE VRAI POT DE LA HONTE » (15/10 soir) — `NFEU_JET`, `NFEU_MINI` (`va`, `r`, `crq`), `ECHP.reel`, `ECH_PAL.h`
 - « LE FEU AFFINÉ — 10 NUANCES, PIXELS PLUS FINS, FLUIDE AU VENT… » (15/10 soir) — `NFEU_P10`, `NFEU_FIN`, `NFEU_SOL`
 - « LE MOTEUR EN MINI FEU DE PIXELS » (15/10) — `NFEU_MINI`, `?moteur=goutte` (remplace « LE MOTEUR EN ÉCLATS ») · « LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS » (15/10) — `FLM`, `NFEU`, `?flamme=ancien`
 - « LE DRAGON EN FEU DE PIXELS » (15/10) — `DFEU`, `?dragon=ancien`

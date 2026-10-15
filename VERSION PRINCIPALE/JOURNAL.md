@@ -3,6 +3,28 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE JET PROPULSÉ, LE MOTEUR QUI CRÉPITE DANS TOUS LES SENS, LE VRAI POT DE LA HONTE (2026-10-15 soir, pôle TECHNIQUE — Léo : « encore pas ça ; ce qui manque, c'est la physique de la vitesse : là on dirait du slime, ça devrait avoir l'air propulsé, plus dynamique, mais smooth » · « les flammes du moteur plus crépitantes et réelles » · « un pot d'échappement plus réaliste à LA HONTE, ça ne devrait sortir que d'un pot, métallique, côté gauche ; et toutes les voitures qui ont un pot aussi peu bien fait » · puis, devant le moteur : « reste sur les petits crépitements, mais que ça aille plus dans tous les sens, comme les cristaux de flammes d'avant, mais avec les petits cubes » ; « push main direct, envoie les photos »)
+- LE NITRO PROPULSÉ (`NFEU_JET`) : le feu SORT du pot à 13-26 m/s (avant 3,2-7 : la vitesse d'un slime), freine fort (`frein` 3,2/s : le gaz
+  s'étale), vit moins longtemps (×,72) ; serré à la sortie (`serre` ,7), il ne tourbillonne qu'en vieillissant ; chaque cube s'ÉTIRE le long du
+  jet tant qu'il file (`etire`, plafond `etMax` : une traînée de vitesse qui redevient un pixel en ralentissant) ; plus de grille (le mouvement
+  est lisse) ; le cœur blanc-jaune tient plus loin de la tuyère (`chaud` ,06, la postcombustion). Au sol il traîne moins (`NFEU_SOL.det` ,45) et
+  le vent de la trajectoire le couche plus franchement (`vent` ,9).
+- LE MOTEUR QUI CRÉPITE (`NFEU_MINI`) : sa propre vitesse (`va` 2,6 m/s, il ne suit plus le jet du nitro), et une GERBE — chaque petit cube
+  part dans une direction tirée TOUT AUTOUR de l'axe (`r` : 0,7-2,6 m/s, ×1,7 aux bouffées qui claquent), comme les éclats d'avant mais en
+  cubes (`et` 0 : pas de traits ; `t` ,42) ; un pied bleu très court à la bouche puis jaune → orange (palette `NFEU_P10.m`, l'orange tient : un
+  retour de flamme est orange, pas rouge). LE CRÉPITEMENT : chaque bouffée du moteur simulé crache sa petite rafale (`p.pz`/`p.pa`, posés
+  par `flmPas`), une bouffée sur ~14 CLAQUE (`crq` ,07, plus souvent sur un moteur qui crépite : `crk` de la table du SON, lue seulement) —
+  une petite boule et une étincelle ; chaque POP garde sa boule de feu et ses étincelles.
+- LE VRAI POT (`ECHP.reel`) : un tube d'acier conique avec sa bague de soudure, une collerette, l'embout chanfreiné ROUSSI puis BLEUI par la
+  chaleur (`ECH_PAL.h`, l'acier bleui), l'intérieur noir à deux étages, une seconde bague vers l'arrière, le tuyau qui remonte sous la caisse et
+  son étrier ; `echTaille` le perce dans le pare-chocs. LA HONTE (`ECH_POTS.epave`) : UN SEUL pot, en acier, à GAUCHE (x 0,55 : la gauche de
+  l'écran vue de derrière, sous le feu arrière) — la flamme et le nitro ne sortent plus que de lui. Le même pot RÉEL remplace le pot
+  par défaut de toutes les caisses qui n'en dessinent pas (`echappement`, deux pots à ±22 % de la largeur), et les tubes trop minces du
+  CORBILLARD, de la FÉLINE, de la PIZZA, de la PUCE et du COMBI.
+- Banc (Chrome muet, debout 390 × 844, caméra de poursuite, LA HONTE · LA MERCURE · LE COMBI ; vues figées de la poupe sur la VILLE) : 0
+  exception, programmes stables (178-181, aucun nouveau shader : les cubes gardent le programme de l'arc-en-ciel), feu ≤ 0,5 ms.
+  Planche : `photos-gameplay/feu-propulse-pot-avant-apres.png`.
+
 ## LE FEU AFFINÉ — 10 NUANCES, PIXELS PLUS FINS, FLUIDE AU VENT ET AU MOUVEMENT (2026-10-15 soir, pôle TECHNIQUE — Léo : « le feu du moteur fait un peu cristaux, essaie de faire mieux, et le nitro pas mal, essaie d'affiner le travail » ; puis, sur le mini-feu : « c'est très bien, approfondis le tout, rends-le bien fluide, accordé au vent, au mouvement » ; nitro : « pixels plus fins, plus de nuances, fais comme tu le sens »)
 - (« Cristaux » = les ÉCLATS taillés du main ; le mini-feu, il ne l'avait pas encore vu.)
 - 10 NUANCES (`NFEU_P10`, `NFEU_B10`, `NFEU_T10`) au lieu de 7 — blanc chaud, jaune pâle, jaune d'or, or orangé, orange, orange profond,
