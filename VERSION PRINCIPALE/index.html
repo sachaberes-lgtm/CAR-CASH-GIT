@@ -19669,7 +19669,13 @@ const PLA_BEGIN=
   'vec3 n9=normalize(R9*normal),v9=normalize(cameraPosition-w9);if(dot(n9,v9)<0.)n9=-n9;'+
   'float l9=dot(n9,uSunD9);'+
   '\n#ifdef PIECE9\nvLit9=uAmb9*mix(.55,1.,n9.y*.5+.5)+uGnd9*.25+uSunC9*max(l9,0.);vec3 h9=normalize(uSunD9+v9);vSpec9=uSunC9*(pow(max(dot(n9,h9),0.),70.)*3.2+pow(max(dot(n9,h9),0.),8.)*.25);\n'+
-  '#else\nvLit9=uAmb9*mix(.6,1.,n9.y*.5+.5)+uGnd9*.2+uSunC9*(max(l9,0.)+max(-l9,0.)*.35);vec3 h9=normalize(uSunD9+v9);vSpec9=uSunC9*pow(max(dot(n9,h9),0.),24.)*.22;\n#endif\n';
+  '#else\nvLit9=uAmb9*mix(.6,1.,n9.y*.5+.5)+uGnd9*.2+uSunC9*(max(l9,0.)+max(-l9,0.)*.35);vec3 h9=normalize(uSunD9+v9);vSpec9=uSunC9*pow(max(dot(n9,h9),0.),24.)*.22;\n#endif\n'+
+  /* (2026-10-15, Sacha : « les particules d'argent, de crypto, en mode confettis m'apparaissent en NOIR ») LE PLANCHER DE LUMIÈRE. La pluie
+     ne vivait QUE de la lumière de la scène : de nuit (ville × nuit, mesuré au banc) soleil et ciel tombent presque à zéro, billets, pièces ₿/Ξ
+     et confettis sortaient en silhouettes NOIRES — et Léo, qui la voyait de jour, en couleurs. Comme les pièces de la route (pickMat ÉMET),
+     ce qui rapporte garde sa couleur : on ajoute le BLANC qui manque pour que la lumière reçue ne descende jamais sous .8 de luminance.
+     De jour (soleil + ciel bien au-dessus), rien ne change. */
+  '{float lu9=dot(vLit9,vec3(.299,.587,.114));vLit9+=vec3(max(0.,.8-lu9));}\n';
 const PLA_UV=
   '#ifdef USE_UV\n#ifdef PIECE9\nvUv.y=vUv.y*.5+.5-.5*step(.5,aR.w);\n#else\n{float c9=aR.w;vUv=(vUv+vec2(mod(c9,4.),2.-floor(c9/4.)))/vec2(4.,3.);}\n#endif\n#endif\n';
 function plaMat(piece){
