@@ -1,0 +1,27 @@
+/* LE RÉPERTOIRE DES MAPS (2026-10-15, Léo : « on va ensuite créer plein d'autres maps ; crée-moi un répertoire avec toutes les maps
+   déjà aléatoires qu'on a, avec les titres et une photo représentative »).
+   = les maps que le JOUER tire au hasard (SF_CARTES d'index.html, « LE MODE CLASSIQUE AU HASARD ») : une MAP × une MÉTÉO par portail.
+   · `id`        = la clé de SF_CARTES (c'est elle qu'on passe au jeu : index.html?carte=<id>&meteo=<météo>)
+   · `nom`       = le nom que le jeu affiche (SF_CARTES[id].nm)
+   · `couverture`= la météo dont la photo représente la map
+   · `meteos`    = [clé de météo, ce qu'on écrit sous la vignette] — dans l'ordre de SF_CARTES[id].m (EN ORBITE : la planète de chaque heure)
+   Photos : img/<id>-<météo>.jpg, prises dans le VRAI jeu (1120 × 630, caméra de course, HUD masqué) par banc/photos.py.
+   AJOUTER UNE MAP : l'ajouter à SF_CARTES dans le jeu, puis une ligne ici, puis `python3 banc/photos.py <id>` (voir banc/photos.py). */
+window.REPERTOIRE = [
+  { id: 'nuages',   nom: 'MER DE NUAGES',     couverture: 'matin',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+  { id: 'ville',    nom: 'LA VILLE',          couverture: 'pluie',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+  { id: 'jade',     nom: 'PICS DE JADE',      couverture: 'matin',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+  { id: 'foret',    nom: 'LA FORÊT NOIRE',    couverture: 'soir',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+  { id: 'banquise', nom: 'LE GLACIER',        couverture: 'nuit',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['neige', 'NEIGE'], ['blizzard', 'BLIZZARD']] },
+  { id: 'volcan',   nom: 'LE ROYAUME DE FEU', couverture: 'soir',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'CENDRES'], ['orage', 'ORAGE']] },
+  { id: 'espace',   nom: 'EN ORBITE',         couverture: 'matin',
+    meteos: [['matin', 'TERRE'], ['midi', 'MARS'], ['soir', 'JUPITER']] },
+  { id: 'canyon',   nom: 'CANYON DES GÉANTS', couverture: 'matin',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
+];

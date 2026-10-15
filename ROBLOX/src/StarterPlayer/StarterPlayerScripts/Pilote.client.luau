@@ -1175,13 +1175,13 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?, gar
 			elseif qG >= 45 then
 				mot, c, taille = tr("DOUBLE MONSTRE", "DOUBLE MONSTER"), "#ff3ec8", 34
 			end
-			if nitroOn and V.nitroAirT > 1 then mot, c, taille, pr = tr("METEORE", "METEOR"), "#ff7a24", 40, 2 end -- l'impact en pleine poussée
+			if Config.METEORE_ACTIF and nitroOn and V.nitroAirT > 1 then mot, c, taille, pr = tr("METEORE", "METEOR"), "#ff7a24", 40, 2 end -- l'impact en pleine poussée
 			if serpent then mot, c, taille, pr = "SNAKE LOOP", "#b58cff", 40, 2 end
-			if nitroOn and V.nitroAirT > 5 then mot, c, taille, pr = tr("MEGA METEORE", "MEGA METEOR"), "#ff7a24", 44, 3 end -- 5 s de réacteur : l'ultime
+			if Config.METEORE_ACTIF and nitroOn and V.nitroAirT > 5 then mot, c, taille, pr = tr("MEGA METEORE", "MEGA METEOR"), "#ff7a24", 44, 3 end -- 5 s de réacteur : l'ultime
 			HudScore.slam(mot, nil, c, nil, taille, pr)
 			-- (rewardSfx, L27525) le verdict résout la gamme du vol : chaque rang a sa signature
-			if nitroOn and V.nitroAirT > 5 then Sons.vrai("verdictMega") elseif serpent then Sons.vrai("figSnake")
-			elseif nitroOn and V.nitroAirT > 1 then Sons.vrai("verdictMeteor") elseif qG >= 140 then Sons.vrai("verdict3")
+			if Config.METEORE_ACTIF and nitroOn and V.nitroAirT > 5 then Sons.vrai("verdictMega") elseif serpent then Sons.vrai("figSnake")
+			elseif Config.METEORE_ACTIF and nitroOn and V.nitroAirT > 1 then Sons.vrai("verdictMeteor") elseif qG >= 140 then Sons.vrai("verdict3")
 			elseif qG >= 45 then Sons.vrai("verdict2") end
 		end
 		if g >= 1.5 then Hud.pop(tr("PARFAIT !", "PERFECT!"), Hud.C.or_, 24, 2) end
@@ -1255,8 +1255,8 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?, gar
 	G.poseAffiche(garde) -- (avant le signal : les effets de la pose partent de la caisse à sa place)
 	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste,
 		q = qG, paye = paye, serpent = serpent, ratee = ratee,
-		-- le MÉTÉORE (L29912) : la nitro tenue jusqu'au contact, en piqué à plus de 45°
-		meteore = nitroOn and fallVel:Dot(fallVel) > 36 and 2 * vN * vN > fallVel:Dot(fallVel) })
+		-- le MÉTÉORE (L29912) : la nitro tenue jusqu'au contact, en piqué à plus de 45° (Config.METEORE_ACTIF : éteint)
+		meteore = Config.METEORE_ACTIF and nitroOn and fallVel:Dot(fallVel) > 36 and 2 * vN * vN > fallVel:Dot(fallVel) })
 	mode = "drive"
 	Score.ETAT.mode = "drive"
 	graceT = 0.15
@@ -2989,7 +2989,7 @@ function G.etapeAir(dt: number)
 		V.fallVH0 = math.max(V.fallVH0, horiz(fallVel))
 		V.nitroAirT += dt
 		V.nitroAirTenue += dt
-		if V.nitroAirT > 1.2 and not vus.meteo and not intro then figure("meteo", tr("METEORE", "METEOR"), 8, 2) end
+		if Config.METEORE_ACTIF and V.nitroAirT > 1.2 and not vus.meteo and not intro then figure("meteo", tr("METEORE", "METEOR"), 8, 2) end
 		if V.nitroAirTenue >= NTR_T and not vus.airnitro and not intro then
 			figure("airnitro", "AIR NITROOO", 10, 1)
 			nitroooPart()

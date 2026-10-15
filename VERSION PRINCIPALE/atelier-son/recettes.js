@@ -345,13 +345,24 @@ D('ui.carte',{fam:'interface',bus:'rec',dur:.9,key:1,db:-4,max:1,cd:.3,st:1,dit:
    Anatomie : le CONTACT (clic 6 kHz, 2 ms) + la FONDAMENTALE (sinus, 0,45 s) + l'OCTAVE vitrée +
    la douzième + un mode inharmonique à ×5,43 (c'est lui qui dit « métal » et pas « verre ») + un
    petit corps une octave sous (sans lui la pièce est un sifflet). */
-D('piece',{fam:'argent',dur:.55,key:1,db:-4,max:6,cd:.018,v:2,rj:.003,vj:.6,pre:1,bases:[0,12],dit:'une pièce : la note de la gamme du combo (st)',
-  r:function(b,R,o){const f=nE(12+o.base);clic(b,{t0:0,f:6500,d:.002,v:.22},R);
-    cloche(b,{f:f,r:[1,2,3.01,5.43],m:[1,.42,.2,.12],d:[.45,.2,.09,.05],t0:0,v:.5,jit:.003},R);
-    osc(b,{f:f*.5,w:'tri',t0:0,a:.001,d:.07,v:.07});}});
-D('piece.recolte',{fam:'argent',dur:.8,key:1,db:-5,max:2,cd:.1,st:1,dit:'la RÉCOLTE (toutes les 5 pièces) : quinte-octave en cascade + poussière',
-  r:function(b,R){[24,31,36].forEach(function(st,i){cloche(b,{f:nE(st),r:[1,2,3.01],m:[1,.35,.12],d:[.5,.2,.08],t0:i*.045,v:.3,pan:(i-1)*.4},R);});
-    bruit(b,{c:'b',t0:.03,a:.01,d:.3,v:.08,ft:'hp',f:7500,pan:-.5,pan1:.5},R);}});
+/* LA PIÈCE v2 — LE PETIT « TCHIC » GRAVE (2026-10-15, Sacha : « il y a trop plein de petits sons aigus quand on roule, avec des pièces ;
+   les pièces, tu peux les faire un peu moins fort, un petit tintement, un petit tchic, un petit tchic grave ; pas plein de ding-ding-ding »).
+   MESURÉ au banc (40 s de course) : 119 pièces, 3 par seconde, dont la note montait de mi5 à mi7 (659 Hz → 2,6 kHz) et sonnait 0,45 s.
+   Ici une octave SOUS l'ancienne (mi4, 330 Hz ; le jeu plafonne la gamme du combo à l'octave : GAMME_P), une matière de vraie pièce de
+   monnaie (modes 2,32 · 4,25 : la pièce, pas le verre) éteinte en 0,13 s — un tintement qui ne traîne pas, trois fois par seconde sans
+   faire sonnerie. Le « tch » est un souffle bref à 2,4 kHz (le contact était à 6,5 kHz), le corps une octave dessous. Plus bas de 5 dB
+   dans le jeu (blip : vol 0 au lieu de +4). L'ancienne recette : git, avant ce commit. */
+D('piece',{fam:'argent',dur:.32,key:1,db:-5,max:6,cd:.018,v:2,rj:.004,vj:.8,pre:1,bases:[0,12],dit:'une pièce : un petit « tchic » grave, la note de la gamme du combo (st)',
+  r:function(b,R,o){const f=nE(o.base);
+    bruit(b,{c:'b',t0:0,a:.0006,d:.022,v:.32,ft:'bp',f:2400,q:1.3},R);clic(b,{t0:0,f:3200,d:.0015,v:.1},R);
+    cloche(b,{f:f,r:[1,2.32,4.25,6.1],m:[1,.32,.14,.05],d:[.13,.06,.03,.02],t0:.002,v:.5,jit:.004},R);
+    osc(b,{f:f*.5,w:'tri',t0:0,a:.001,d:.06,v:.16});}});
+/* (2026-10-15) LA RÉCOLTE (toutes les 5 pièces) : la cascade mi6-si6-mi7 et sa poussière à 7,5 kHz devient deux pièces graves qui tombent
+   dans la poche (mi4, si4) et le petit poids de la poche — « tchk-tchk ». */
+D('piece.recolte',{fam:'argent',dur:.4,key:1,db:-6,max:2,cd:.1,st:1,dit:'la RÉCOLTE (toutes les 5 pièces) : deux pièces graves qui tombent dans la poche — « tchk-tchk » + le petit poids',
+  r:function(b,R){[[0,0,-.25],[7,.05,.25]].forEach(function(n){bruit(b,{c:'b',t0:n[1],a:.0006,d:.02,v:.26,ft:'bp',f:2100,q:1.2,pan:n[2]},R);
+      cloche(b,{f:nE(n[0]),r:[1,2.32,4.25],m:[1,.3,.12],d:[.16,.07,.03],t0:n[1]+.002,v:.42,pan:n[2],jit:.004},R);});
+    osc(b,{f:150,f1:95,g:.06,t0:.05,a:.002,d:.1,v:.3});bruit(b,{c:'n',t0:.05,a:.002,d:.06,v:.3,ft:'lp',f:500},R);}});
 })(typeof window!=='undefined'?window:globalThis);
 
 /* <<<PALETTE>>> */
@@ -429,42 +440,83 @@ function bulle(b,R,t0,f0,f1,d,v,pan){osc(b,{f:f0,f1:f1,g:d*.8,gc:.5,t0:t0,a:.001
 /* le COUP — impact : prise + corps de bruit + grave */
 function coup(b,R,o,t0,v,fc,f0,f1,dg){clic(b,{t0:t0,f:1800,d:.012,v:v*.5},R);bruit(b,{c:'r',t0:t0,a:.001,d:.16,v:v*.6,ft:'lp',f:fc||900,q:.7},R);grave(b,o,t0,f0||110,f1||48,.12,dg||.28,v*.8);}
 
+/* ================== LE GRAVE QUI CLAQUE (2026-10-15, Sacha : « trop de petits sons aigus quand on roule, plein de ding-ding-ding ;
+   plus de sons graves et discrets ; pour les figures, des sons plus graves, genre doum, doum — applique-toi bien pour les figures »)
+   ⚠ MESURÉ AVANT (mesure-sons, haut-parleur = passe-haut 200 Hz, ce que rend un iPhone) : l'explosion qui lance une figure avait 94 % de
+   son énergie sous 150 Hz et sortait 8 dB plus bas au haut-parleur qu'au casque (le choc de pose : 10 dB) — le « doum » n'existait qu'au
+   casque. Les trois outils ci-dessous gardent le grave AUDIBLE au téléphone : le DOUM est saturé dans sa propre toile (la saturation
+   fabrique les harmoniques 2 à 5, 110-450 Hz, que le haut-parleur rend ; l'oreille reconstruit la fondamentale absente), la BASSE vit à
+   150-600 Hz, le WOUOM est un souffle brun. Exportés (`G.CCSON_GRAVE`) pour les blocs MOTEUR et FRÉNÉSIE. */
+function mixe(b,t,g,pan){const a=((pan||0)+1)*Math.PI/4,gl=Math.cos(a)*g,gr=Math.sin(a)*g; // une toile MONO versée dans b (centrée = −3 dB par côté, comme osc)
+  for(let i=0;i<b.n&&i<t.n;i++){const x=t.L[i];if(b.R){b.L[i]+=x*gl;b.R[i]+=x*gr;}else b.L[i]+=x*g;}}
+/* le DOUM — la grosse caisse, en trois étages, saturés ensemble (sat) puis adoucis (passe-bas lp) :
+   · le SOUS : un sinus qui TOMBE (f0×2,4 → f0 en ~60 ms : le « d » ; puis f0 → f1 : le « oum ») — le poids, au casque ;
+   · le CORPS : un ton 5× plus haut sur la même chute (≈ 470 → 210 Hz), court — le « tom » que le haut-parleur d'un téléphone rend ;
+     + un carré filtré (ses harmoniques impaires) et un bruit brun ;
+   · le TOC à 1-1,5 kHz qui le dessine — sans lui, un grave est une bouillie.
+   MESURÉ (essai-doum, passe-haut 200 Hz) : le sous seul perdait 12 dB au téléphone (77 % sous 150 Hz) ; avec le corps, 3,4 dB (46 %). */
+function doum(b,R,t0,v,f0,f1,d,o){o=o||{};const t=Toile(b.sr,b.dur,false);
+  osc(t,{f:f0*2.4,f1:f1,g:d*.7,gc:.28,t0:t0,a:.0012,d:d*.65,v:.3});
+  osc(t,{f:f0*6.5,f1:f1*5,g:d*.5,gc:.4,t0:t0,a:.001,d:d*.35,v:.9});
+  osc(t,{f:f0*2.4,f1:f1,g:d*.7,gc:.28,w:'sq',pw:.5,t0:t0,a:.0012,d:d*.55,v:.3,flt:['lp',1100,420,d*.5,.8,.5]});
+  bruit(t,{c:'n',t0:t0,a:.001,d:o.corps||.09,v:.5,ft:'lp',f:o.fc||450,q:.7},R);
+  O.sature(t,o.sat||2.2);filtre(t,'lp',o.lp||1500,.7);mixe(b,t,v,o.pan);
+  if(o.toc!==0)clic(b,{t0:t0,f:o.toc||1200,d:.005,v:v*(o.vt||.3),ft:'bp',pan:o.pan},R);}
+/* le WOUOM — l'air qui passe, dans le grave : un souffle brun dont le passe-bas s'ouvre (lo → hi) puis se referme, qui peut traverser
+   la stéréo (p0 → p1). C'est le « wouom » d'un objet lourd qui tourne près de l'oreille, pas le « fffit » aigu d'avant. */
+function wouom(b,R,t0,d,lo,hi,v,p0,p1,am){p0=p0||0;p1=p1==null?p0:p1;
+  bruit(b,{c:'n',t0:t0,a:d*.42,d:d*.5,v:v,ft:'lp',f:lo,f1:hi,g:d*.42,gc:.8,q:1.2,pan:p0,pan1:p1,am:am},R);
+  bruit(b,{c:'r',t0:t0+d*.36,a:.02,d:d*.5,v:v*.45,ft:'lp',f:hi,f1:lo,g:d*.5,gc:.7,q:.9,pan:p1,am:am},R);}
+/* la BASSE — la note des figures, une octave sous l'ancienne (mi4) : deux dents de scie désaccordées dans un passe-bas qui part ouvert
+   et se referme (le « bwom »), le sinus une octave sous (le poids) et un triangle sur la note (qu'elle reste lisible au téléphone). */
+function basse(b,R,f,t0,v,d,pan,ouv){ouv=ouv==null?1:ouv;
+  for(const dt of [-.005,.005])osc(b,{f:f*(1+dt),w:'saw',t0:t0,a:.003,d:d,v:v*.3,pan:(pan||0)+dt*40,flt:['lp',380+1100*ouv,240,d*.5,1.1,.45]});
+  osc(b,{f:f*.5,w:'sin',t0:t0,a:.004,d:d*.8,v:v*.42,pan:pan||0});osc(b,{f:f,w:'tri',t0:t0,a:.002,d:d*.55,v:v*.2,pan:pan||0});}
+G.CCSON_GRAVE={mixe:mixe,doum:doum,wouom:wouom,basse:basse};
+
 /* ================================ LE VOL ET LES FIGURES (le STYLE : synthé néon) ================
    ⚠ UNE SEULE GAMME PAR VOL. Avant, cinq compteurs indépendants tiraient chacun la hauteur de SON côté (chaîne de vol,
    × d'aura, échelle d'argent, combo de pièces, palier de flow) : la « gamme qui monte » zigzaguait. Désormais le jeu
    tient UN compteur par vol (`ECH`, remis à zéro au décollage) et chaque figure prend le degré suivant de la
    pentatonique (`st`). La POSE résout la gamme sur la tonique : tension pendant le vol, résolution à l'atterrissage.
    Chaque figure garde sa MATIÈRE à elle par-dessus la note — on la reconnaît sans regarder. */
-D('fig.maillon',{fam:'figures',dur:.6,key:1,db:-1,max:3,cd:.04,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un maillon de chaîne en vol (la note monte à chaque figure : st)',
-  r:function(b,R,o){pluck(b,R,nE(12+o.base),0,.55,.45,1);clic(b,{t0:0,f:4000,d:.004,v:.15},R);}});
-D('fig.vrille',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un demi-tour de vrille : le souffle TOURNE autour de la caisse + la note',
-  r:function(b,R,o){const s=o.v?1:-1;swish(b,R,0,.28,700,3600,.35,-.85*s,.85*s,1.4);pluck(b,R,nE(12+o.base),.03,.5,.4,1,.2*s);}});
+/* (2026-10-15, Sacha : « des sons plus graves, genre doum, doum ») LES FIGURES PASSENT DANS LE GRAVE. Toutes leurs notes jouaient de mi5 à
+   ré#7 (659 Hz – 2,5 kHz, la gamme du vol montant de près de deux octaves) avec des souffles jusqu'à 3,6 kHz : la même zone que les pièces, qu'elles
+   couvraient sans se distinguer. Leur note descend d'une octave (mi4, 330 Hz : `nE(0)`) et la gamme du vol tient dans l'octave (sonPdAR), leur matière devient un
+   souffle brun (`wouom`), une basse (`basse`) et le coup sourd (`doum`) ; la gamme du vol reste (st), elle monte du grave vers le médium.
+   Les anciennes recettes : git, avant ce commit. */
+D('fig.maillon',{fam:'figures',dur:.5,key:1,db:0,max:3,cd:.04,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un maillon de chaîne en vol (la note monte à chaque figure : st) : un « bom » de basse pincée',
+  r:function(b,R,o){const f=nE(o.base);doum(b,R,0,.35,90,60,.16,{toc:900,vt:.12});basse(b,R,f,0,.5,.32,0,.6);corde(b,{f:f,t0:0,d:.35,v:.2,br:.45},R);}});
+D('fig.vrille',{fam:'figures',dur:.6,st:1,key:1,db:0,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un demi-tour de vrille : le souffle grave TOURNE autour de la caisse + la basse',
+  r:function(b,R,o){const s=o.v?1:-1,f=nE(o.base);wouom(b,R,0,.32,140,900,.6,-.8*s,.8*s);basse(b,R,f,.04,.42,.32,.2*s,.5);}});
 /* (2026-10-14, session SON) Les trois MATIÈRES DE TOUR des FIGURES v2 : la caisse tourne en vraie physique, le jeu joue UN son
    par tour complet et choisit la matière d'après l'AXE. Même famille que la vrille (souffle + note accordée, st = degré de la
    gamme du vol), mais on les reconnaît les yeux fermés : le TONNEAU s'enroule d'une oreille à l'autre (espace), la TOUPIE
    hache à plat (modulation), le SALTO plonge dans le grave et passe par-dessus la tête (filtre). Courts, un par tour : doux. */
-D('fig.tonneau',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TONNEAU (axe de roulis) : l’air s’enroule d’une oreille à l’autre + la note claire',
-  r:function(b,R,o){const s=o.v?1:-1;swish(b,R,0,.3,900,3000,.3,-.9*s,.9*s,1.5);swish(b,R,.17,.26,3000,1100,.24,.9*s,0,1.3);
-    pluck(b,R,nE(12+o.base),.04,.46,.36,1,.1*s);}});
-D('fig.toupie',{fam:'figures',dur:.5,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TOUPIE (axe de lacet) : un frrrt qui tournoie à plat, haché comme une pale + la note mate',
-  r:function(b,R,o){const s=o.v?1:-1;bruit(b,{c:'r',t0:0,a:.07,d:.3,v:.5,ft:'bp',f:1500,f1:1000,g:.3,gc:.8,q:1.9,pan:-.35*s,pan1:.35*s,am:[26,.8]},R);
-    osc(b,{f:nE(12+o.base)*.5,w:'tri',t0:0,a:.01,d:.2,v:.12,pan:0});
-    pluck(b,R,nE(12+o.base),.03,.42,.26,.55,.15*s);}});
-D('fig.salto',{fam:'figures',dur:.6,st:1,key:1,db:-1,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de SALTO (axe de tangage) : un wouomp vertical dans le grave, l’air passe par-dessus la tête + la note',
-  r:function(b,R,o){grave(b,o,0,150,70,.22,.3,.5);
-    bruit(b,{c:'n',t0:0,a:.14,d:.12,v:.7,ft:'lp',f:350,f1:2800,g:.14,gc:.8,q:.8},R);bruit(b,{c:'n',t0:.13,a:.01,d:.3,v:.55,ft:'lp',f:2800,f1:300,g:.3,gc:.8,q:.8},R);
-    pluck(b,R,nE(12+o.base),.07,.44,.4,.8);}});
-D('fig.essoreuse',{fam:'figures',dur:1.3,st:1,key:1,db:+3,max:1,cd:.3,grp:'r',prio:3,dit:'720° et plus — ESSOREUSE COSMIQUE : tourbillon + accord de cuivres + coup',
-  r:function(b,R,o){for(let k=0;k<3;k++)swish(b,R,k*.09,.3,600+k*400,4200,.3,k%2?.9:-.9,k%2?-.9:.9,1.4);
-    stab(b,R,[12,19,24,28],.12,.12,.6,.16,1.2);grave(b,o,.12,90,40,.2,.4,.6);scintille(b,R,.15,.6,10,.1);}});
-D('fig.meteore',{fam:'figures',dur:1,st:1,key:1,db:0,max:1,cd:.3,bases:[0,12],grp:'r',prio:2,dit:'MÉTÉORE (nitro tenue en l’air) : la flamme qui rugit + crépitements + la note',
-  r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};bruit(b,{c:'n',t0:0,a:.03,h:.05,d:.5,v:.7,ft:'lp',f:400,f1:2600,g:.2,q:.7},R);crepite(b,R,.02,.6,16,.35,500,2600);
-    pluck(b,R,nE(12),.04,.45,.5,1.2);grave(b,o,0,80,45,.3,.4,.5);}});
-D('fig.bigair',{fam:'figures',dur:1.1,st:1,key:1,db:0,max:1,cd:.3,bases:[0,12],grp:'r',prio:2,dit:'BIG AIR (1,8 s en l’air) : l’air qui se creuse + la note qui plane',
-  r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};swish(b,R,0,.5,300,1800,.3,-.3,.3,.9);nappe(b,R,[12+o.base,19+o.base],0,.12,.1,.7,.07,2600);cloche(b,{f:nE(24),r:[1,2,3],m:[1,.3,.1],d:[.9,.4,.15],t0:.08,v:.3},R);}});
-D('fig.monstre',{fam:'figures',dur:1.6,st:1,key:1,db:+2,max:1,cd:.3,bases:[0,12],grp:'r',prio:3,dit:'AIR MONSTRE (3,4 s) : la nappe s’ouvre, le grave tombe, la cloche sonne haut',
-  r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};swish(b,R,0,.7,200,2400,.35,-.6,.6,.8);nappe(b,R,[o.base,7+o.base,12+o.base,16+o.base],0,.18,.2,1.1,.1,1800);grave(b,o,.05,70,38,.4,.8,.55);
-    cloche(b,{f:nE(31),r:[1,2,2.76,5.4],m:[1,.35,.2,.06],d:[1.3,.6,.3,.1],t0:.12,v:.28},R);scintille(b,R,.2,.9,8,.08);}});
+/* (2026-10-15) UN TOUR = UN « DOUM » : chaque tour complet sonne un coup sourd accordé (son corps à 200-470 Hz, son sous-grave à 40-80 Hz) et le
+   souffle de SON axe — le TONNEAU passe d'une oreille à l'autre, la TOUPIE est hachée à plat comme une pale, le SALTO passe par-dessus
+   la tête (le passe-bas s'ouvre puis se referme). Le jeu les joue maintenant 5 dB au-dessus d'une pièce (figPose), et non plus 9 dessous. */
+D('fig.tonneau',{fam:'figures',dur:.6,st:1,key:1,db:0,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TONNEAU (axe de roulis) : le souffle grave s’enroule d’une oreille à l’autre + le « doum » accordé',
+  r:function(b,R,o){const s=o.v?1:-1,f=nE(o.base);wouom(b,R,0,.34,160,1100,.55,-.9*s,.9*s);
+    doum(b,R,.03,.42,f*.25,f*.18,.22,{toc:1000,vt:.12,pan:.15*s});basse(b,R,f,.03,.34,.3,.1*s,.5);}});
+D('fig.toupie',{fam:'figures',dur:.5,st:1,key:1,db:0,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de TOUPIE (axe de lacet) : un « vrrrom » grave haché à plat comme une pale + le « doum » accordé',
+  r:function(b,R,o){const s=o.v?1:-1,f=nE(o.base);bruit(b,{c:'n',t0:0,a:.06,d:.3,v:.7,ft:'lp',f:700,f1:380,g:.3,gc:.8,q:1.4,pan:-.35*s,pan1:.35*s,am:[19,.85]},R);
+    doum(b,R,.02,.4,f*.25,f*.18,.2,{toc:850,vt:.12});basse(b,R,f,.02,.32,.24,.15*s,.35);}});
+D('fig.salto',{fam:'figures',dur:.6,st:1,key:1,db:0,max:3,cd:.05,v:2,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un tour de SALTO (axe de tangage) : le « wouom » vertical qui passe par-dessus la tête + le « DOUM » accordé',
+  r:function(b,R,o){const f=nE(o.base);wouom(b,R,0,.36,120,1300,.62,0,0);
+    doum(b,R,.1,.5,f*.25,f*.165,.26,{toc:1100,vt:.14});basse(b,R,f,.1,.36,.34,0,.6);}});
+D('fig.essoreuse',{fam:'figures',dur:1.3,st:1,key:1,db:+3,max:1,cd:.3,grp:'r',prio:3,dit:'720° et plus — ESSOREUSE COSMIQUE : tourbillon grave + cuivres graves + le grand DOUM',
+  r:function(b,R,o){for(let k=0;k<3;k++)wouom(b,R,k*.08,.34,140+k*60,1200,.42,k%2?.9:-.9,k%2?-.9:.9);
+    doum(b,R,.12,.95,62,36,.5,{sat:2.6,toc:1100,vt:.22});stab(b,R,[-12,-5,0,4],.12,.12,.6,.18,.7);basse(b,R,nE(0),.12,.5,.6,0,.8);}});
+D('fig.meteore',{fam:'figures',dur:1,st:1,key:1,db:0,max:1,cd:.3,bases:[0,12],grp:'r',prio:2,dit:'MÉTÉORE (nitro tenue en l’air) : la flamme qui rugit + crépitements sourds + la basse',
+  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.03,h:.05,d:.5,v:.7,ft:'lp',f:300,f1:1400,g:.2,q:.7},R);crepite(b,R,.02,.6,14,.32,300,1300);
+    basse(b,R,nE(o.base),.04,.5,.5,0,.8);doum(b,R,0,.6,70,40,.4,{toc:900});}});
+D('fig.bigair',{fam:'figures',dur:1.1,st:1,key:1,db:0,max:1,cd:.3,bases:[0,12],grp:'r',prio:2,dit:'BIG AIR (1,8 s en l’air) : l’air qui se creuse + la note qui plane, dans le médium',
+  r:function(b,R,o){wouom(b,R,0,.55,120,1000,.5,-.3,.3);nappe(b,R,[o.base-12,o.base-5],0,.12,.1,.7,.09,1300);
+    cloche(b,{f:nE(o.base),r:[1,2,3],m:[1,.25,.08],d:[.9,.35,.12],t0:.08,v:.3},R);doum(b,R,.04,.35,70,46,.3,{toc:0});}});
+D('fig.monstre',{fam:'figures',dur:1.6,st:1,key:1,db:+2,max:1,cd:.3,bases:[0,12],grp:'r',prio:3,dit:'AIR MONSTRE (3,4 s) : la nappe grave s’ouvre, le DOUM tombe, une cloche ronde',
+  r:function(b,R,o){wouom(b,R,0,.75,100,1100,.5,-.6,.6);nappe(b,R,[o.base-12,o.base-5,o.base,o.base+4],0,.18,.2,1.1,.11,1200);
+    doum(b,R,.05,.8,56,32,.6,{sat:2.4,toc:900});cloche(b,{f:nE(7+o.base),r:[1,2,2.76],m:[1,.3,.12],d:[1.2,.5,.2],t0:.12,v:.26},R);}});
 D('fig.dauphin',{fam:'figures',dur:.9,st:1,key:1,db:0,max:2,cd:.2,bases:[0,12],grp:'r',prio:2,dit:'LE DAUPHIN : bloup + éclaboussure + le cri stylisé du dauphin',
   r:function(b,R,o){const nE=function(st){return 329.6276*Math.pow(2,(st+o.base)/12);};bulle(b,R,0,700,380,.09,.45);bruit(b,{c:'b',t0:.02,a:.004,d:.3,v:.25,ft:'bp',f:3200,q:.7},R);
     for(let k=0;k<3;k++)osc(b,{f:2400+k*300,f1:4200+k*200,g:.05,t0:.12+k*.07,a:.003,d:.06,v:.07,fm:{r:.5,i:.6,d:.05}});
@@ -486,7 +538,7 @@ D('singe.troupe',{fam:'figures',bus:'amb',dur:1.05,st:1,db:-6,max:1,cd:1,dit:'un
     for(let k=0;k<7;k++)haha(b,R,.42+k*.06+R()*.03,.33,R()*1.6-.8);
     for(let k=0;k<2;k++)osc(b,{f:1300+k*350,f1:2500+k*500,g:.14,w:'saw',t0:.3+k*.25,a:.012,h:.04,d:.16,v:.13,pan:k?.5:-.5,vib:[22,.03],fm:{r:1.5,i:1.2,d:.1},flt:['bp',2400,2800,.2,1.4]});}});
 D('fig.bump',{fam:'figures',dur:.7,key:1,db:0,max:2,cd:.06,pre:1,bases:[0,12],grp:'r',prio:1,dit:'BUMP : la dalle qui rebondit (ressort caoutchouc) + la note (st)',
-  r:function(b,R,o){osc(b,{f:220,f1:150,g:.25,t0:0,a:.002,d:.35,v:.4,vib:[22,.12]});clic(b,{t0:0,f:1500,d:.01,v:.3},R);pluck(b,R,nE(12+o.base),.02,.45,.4,.9);}});
+  r:function(b,R,o){osc(b,{f:220,f1:150,g:.25,t0:0,a:.002,d:.35,v:.4,vib:[22,.12]});clic(b,{t0:0,f:1500,d:.01,v:.3},R);pluck(b,R,nE(o.base),.02,.45,.4,.9);doum(b,R,0,.45,80,50,.2,{toc:0});}}); // (2026-10-15, Sacha : « plus de sons graves ») la note une octave plus bas, un doum sous le caoutchouc
 D('air.regain',{fam:'figures',dur:.4,key:1,db:-5,max:2,cd:.15,dit:'le chrono d’airtime se RECHARGE (nuage, bump) : un « whoop » qui remonte',
   r:function(b,R,o){osc(b,{f:nE(7),f1:nE(19),g:.12,gc:.6,w:'tri',t0:0,a:.005,d:.2,v:.3});swish(b,R,0,.2,1200,4200,.18);}});
 D('fig.snake',{fam:'figures',dur:1.4,st:1,key:1,db:+3,max:1,cd:.4,grp:'r',prio:4,dit:'SNAKE LOOP : le glissando serpent (plonge puis remonte) dans la gamme',
@@ -496,68 +548,85 @@ D('fig.snake',{fam:'figures',dur:1.4,st:1,key:1,db:+3,max:1,cd:.4,grp:'r',prio:4
 /* LES PALIERS DE L'ÉCHELLE D'ARGENT (×2 CHAUD · ×3 EN FEU · ×4,5 MILLIONNAIRE · ×6 JACKPOT) : plus des clochettes — un
    CUIVRE qui monte, un cran plus gros à chaque marche. Le jackpot a son propre son : la machine à sous qui crache. */
 D('fig.palier',{fam:'figures',dur:.9,st:1,key:1,db:+1,max:2,cd:.1,bases:[0,12],grp:'r',prio:2,dit:'palier de l’échelle ×2/×3/×4,5 : stab de cuivres qui monte (st)',
-  r:function(b,R,o){swish(b,R,0,.18,800,5000,.2);stab(b,R,[12+o.base,19+o.base,24+o.base],.06,.06,.4,.17,1.1);grave(b,o,.06,110,55,.12,.2,.35);}});
-D('fig.jackpot',{fam:'figures',dur:2.2,st:1,key:1,db:+6,max:1,cd:1,grp:'r',prio:5,dit:'×6 JACKPOT MAX : la machine à sous qui sonne + cascade de pièces + fanfare',
-  r:function(b,R,o){for(let k=0;k<8;k++)cloche(b,{f:nE(36),r:[1,2.76,5.4],m:[1,.4,.15],d:[.12,.06,.03],t0:k*.06,v:.22,pan:k%2?.4:-.4},R); // la sonnette qui s'affole
-    stab(b,R,[12,16,19,24],.5,.25,.9,.18,1.3);grave(b,o,.5,90,40,.3,.6,.6);pieces(b,R,.55,1.4,34,.22);scintille(b,R,.6,1.2,14,.1);}});
+  r:function(b,R,o){wouom(b,R,0,.2,200,1400,.35);stab(b,R,[o.base-12,o.base-5,o.base],.06,.06,.4,.2,.8);doum(b,R,.06,.6,72,44,.3,{toc:1000});}}); // (2026-10-15) deux octaves plus bas : le stab de cuivres en mi3-si3-mi4, le DOUM dessous
+/* (2026-10-15) le JACKPOT ×6 sans sonnette aiguë : la sonnette (mi7 ×8, 2,6 kHz) devient trois coups de gong grave qui montent (doum-doum-DOUM),
+   la fanfare descend d'une octave, la cascade de pièces est faite de pièces GRAVES (la même matière que la pièce v2). */
+D('fig.jackpot',{fam:'figures',dur:2.2,st:1,key:1,db:+6,max:1,cd:1,grp:'r',prio:5,dit:'×6 JACKPOT MAX : trois coups de gong graves (doum-doum-DOUM) + fanfare grave + cascade de pièces graves',
+  r:function(b,R,o){[[0,.6,-.3],[.14,.7,.3],[.3,1,0]].forEach(function(k,i){doum(b,R,k[0],k[1],66-i*4,40-i*3,.32+i*.12,{toc:1000,pan:k[2]});
+      cloche(b,{f:nE([0,4,7][i]),r:[1,2,2.76,5.4],m:[1,.5,.3,.1],d:[.9,.5,.25,.08],t0:k[0],v:.3,pan:k[2],jit:.003},R);});
+    stab(b,R,[0,4,7,12],.5,.25,.9,.2,.8);basse(b,R,nE(0),.5,.5,.8,0,.8);
+    for(let i=0;i<26;i++){const t=.55+Math.pow(R(),.8)*1.3,st=pd(5+Math.floor(R()*6))-12,p=R()*1.6-.8;bruit(b,{c:'b',t0:t,a:.0006,d:.016,v:.08,ft:'bp',f:2200,q:1.2,pan:p},R);
+      cloche(b,{f:nE(st),r:[1,2.32,4.25],m:[1,.3,.12],d:[.14,.06,.03],t0:t+.002,v:.12+R()*.1,pan:p,jit:.004},R);}}});
 
 /* ================================ LA POSE (le moment qui juge) ================================== */
 D('pose.choc',{fam:'pose',bus:'fx',dur:.45,db:0,max:2,cd:.05,v:2,pre:1,rj:.03,dit:'la caisse touche le bitume : pneus + suspension + caisse (volume selon l’impact)',
   r:function(b,R,o){coup(b,R,o,0,.8,700,120,52,.22);bruit(b,{c:'b',t0:.004,a:.003,d:.1,v:.18,ft:'bp',f:1500,f1:950,g:.1,q:6},R);
     for(let k=0;k<4;k++)clic(b,{t0:.03+R()*.12,f:3500+R()*2000,d:.003,v:.06},R);}});
-D('pose.parfait',{fam:'pose',dur:.9,key:1,db:+2,max:1,cd:.2,pre:1,dit:'PARFAIT : le « TCHAK » (claquement sec en trois éclats) + l’étincelle d’or',
-  r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'b',t0:k*.008,a:.0005,d:.025,v:.6-k*.12,ft:'bp',f:1800,q:.9},R);
-    clic(b,{t0:0,f:5000,d:.006,v:.4},R);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.2],d:[.6,.25,.12],t0:.01,v:.3},R);cloche(b,{f:nE(43),r:[1,2],m:[1,.2],d:[.4,.15],t0:.03,v:.14},R);
-    scintille(b,R,.02,.35,6,.1,36,46);}});
+/* (2026-10-15, Sacha : « plus de sons graves ») LA POSE PARFAITE ATTERRIT DANS LE GRAVE : elle sonnait à 97 % entre 2 et 5 kHz (deux cloches
+   mi7 / si7 et une poussière d'or jusqu'à 5 kHz : le son le plus aigu du vol). Le TCHAK reste (la famille), plus mat (1,4 kHz) ; dessous le
+   DOUM de la caisse qui se pose pile, et une cloche ronde deux octaves plus bas. */
+D('pose.parfait',{fam:'pose',dur:.9,key:1,db:+2,max:1,cd:.2,pre:1,dit:'PARFAIT : le « TCHAK » mat + le DOUM de la caisse qui se pose pile + une cloche ronde',
+  r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'b',t0:k*.008,a:.0005,d:.025,v:.5-k*.1,ft:'bp',f:1400,q:.9},R);
+    clic(b,{t0:0,f:2600,d:.004,v:.22},R);doum(b,R,0,.8,74,42,.34,{toc:0,sat:2.4});
+    cloche(b,{f:nE(12),r:[1,2,2.76],m:[1,.3,.15],d:[.7,.28,.12],t0:.01,v:.32},R);cloche(b,{f:nE(19),r:[1,2],m:[1,.2],d:[.45,.15],t0:.03,v:.14},R);}});
 /* (2026-10-14, session SON) LA POSE DIVINE A SA SIGNATURE : c'était le tchak de la PARFAITE joué une quinte plus haut. Le même tchak (on
    reconnaît la famille), puis le ciel s'ouvre — le chœur « aaah » (la couleur sacrée, réservée), deux cloches, une pluie d'or plus longue. */
-D('pose.divin',{fam:'pose',dur:1.8,st:1,key:1,db:+3,max:1,cd:.2,pre:1,dit:'DIVIN : le TCHAK de la PARFAITE, puis le ciel s’ouvre — chœur « aaah », cloches, pluie d’or',
-  r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'b',t0:k*.008,a:.0005,d:.025,v:.6-k*.12,ft:'bp',f:2200,q:.9},R);
-    clic(b,{t0:0,f:5500,d:.006,v:.4},R);cloche(b,{f:nE(43),r:[1,2,2.76],m:[1,.3,.2],d:[.9,.3,.14],t0:.01,v:.3},R);cloche(b,{f:nE(50),r:[1,2],m:[1,.2],d:[.6,.2],t0:.06,v:.16},R);
-    choeur(b,R,[19,23,26,31],.04,.18,.45,.9,.42);scintille(b,R,.05,1.1,14,.11,38,50);}});
-/* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE DU CATALOGUE. Payées, les douze sonnaient le même maillon : chacune a désormais sa
-   phrase, sur l'échelle du vol (la 1re note = le degré du maillon, st). Une variante par figure — l'ordre est celui de FIG_SIGNE dans le jeu. */
-D('fig.signe',{fam:'figures',dur:.9,st:1,key:1,db:-1,max:3,cd:.04,v:12,pre:1,bases:[0,12],dit:'la SIGNATURE d’une figure payée : 0 TONNEAU · 1 TOUPIE · 2 SHIMMY · 3 CHANDELLE · 4 SALTO ARRIÈRE · 5 SALTO AVANT · 6 DOUBLE TONNEAU · 7 TIRE-BOUCHON · 8 HÉLICO · 9 VRILLE PENCHÉE · 10 RODÉO · 11 SALTO COSMIQUE',
-  r:function(b,R,o){const f=nE(12+o.base),P=function(k,t,v,d,pan){pluck(b,R,f*k,t,v,d||.4,1,pan||0);};
-    clic(b,{t0:0,f:4000,d:.004,v:.14},R);
-    if(o.v===0){P(1,0,.5,.35,-.5);P(1.5,.07,.42,.4,.5);swish(b,R,0,.22,1200,3600,.14,-.8,.8,1.4);} /* TONNEAU : une quinte qui roule d'une oreille à l'autre */
-    else if(o.v===1){P(1,0,.5,.3,0);P(1,.06,.36,.3,0);bruit(b,{c:'r',t0:0,a:.01,d:.18,v:.28,ft:'bp',f:1300,q:2,am:[26,.85],pan:-.3,pan1:.3},R);} /* TOUPIE : la note frappée deux fois à plat, l'air haché */
-    else if(o.v===2){for(let k=0;k<4;k++)P(k%2?1.125:1,k*.045,.4-k*.05,.18,k%2?.6:-.6);} /* SHIMMY : un trille qui se dandine gauche-droite */
-    else if(o.v===3){osc(b,{f:f,f1:f*2,g:.22,gc:.6,w:'tri',t0:0,a:.01,h:.12,d:.2,v:.22});P(2,.2,.42,.45,0);} /* CHANDELLE : ça se cabre, la note monte et se pose en haut */
-    else if(o.v===4){grave(b,o,0,f*.25,f*.125,.18,.3,.4);P(1.5,0,.45,.3,0);P(1,.08,.48,.4,0);} /* SALTO ARRIÈRE : le wouomp, la quinte qui retombe */
-    else if(o.v===5){grave(b,o,0,f*.125,f*.25,.18,.3,.4);P(1,0,.45,.3,0);P(1.5,.08,.48,.4,0);} /* SALTO AVANT : le wouomp, la quinte qui monte */
-    else if(o.v===6){P(1,0,.46,.3,-.6);P(1.5,.06,.42,.3,.6);P(2,.12,.46,.45,-.3);swish(b,R,0,.3,1200,4200,.14,-.8,.8,1.4);} /* DOUBLE TONNEAU : deux roulés, l'arpège monte à l'octave */
-    else if(o.v===7){[1,1.25,1.5,2].forEach(function(k,i){P(k,i*.05,.42,.3,Math.sin(i*1.6)*.7);});} /* TIRE-BOUCHON : l'arpège en spirale */
-    else if(o.v===8){bruit(b,{c:'r',t0:0,a:.02,d:.35,v:.3,ft:'bp',f:900,q:1.6,am:[17,.9]},R);P(1,0,.44,.3,0);P(2,.1,.42,.4,0);} /* HÉLICO : les pales, la note qui saute l'octave */
-    else if(o.v===9){P(1,0,.44,.3,-.3);pluck(b,R,f*1.682,.07,.44,.45,.8,.3);osc(b,{f:f*1.682,w:'sin',t0:.07,a:.02,d:.35,v:.08,vib:[6,.012]});} /* VRILLE PENCHÉE : la sixte, de biais, qui ondule */
-    else if(o.v===10){corde(b,{f:f*.5,t0:0,d:.5,v:.5,br:.8},R);corde(b,{f:f*.75,t0:.09,d:.45,v:.42,br:.8},R);P(1,.18,.42,.35,0);} /* RODÉO : deux ruades de corde, puis la note */
-    else{cloche(b,{f:f*2,r:[1,2.76,5.4],m:[1,.3,.12],d:[.6,.2,.08],t0:0,v:.22},R);[1,1.5,2,3].forEach(function(k,i){P(k,i*.06,.38,.35,i%2?.5:-.5);});scintille(b,R,.05,.6,8,.08,38,48);} /* SALTO COSMIQUE : l'arpège qui file dans les étoiles */
+D('pose.divin',{fam:'pose',dur:1.8,st:1,key:1,db:+3,max:1,cd:.2,pre:1,dit:'DIVIN : le TCHAK de la PARFAITE et son DOUM, puis le ciel s’ouvre — chœur grave « aaah », cloches rondes, la basse',
+  r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'b',t0:k*.008,a:.0005,d:.025,v:.5-k*.1,ft:'bp',f:1600,q:.9},R); // (2026-10-15) deux octaves plus bas, avec le DOUM : voir pose.parfait
+    clic(b,{t0:0,f:2800,d:.004,v:.22},R);doum(b,R,0,.9,66,36,.5,{toc:0,sat:2.5});cloche(b,{f:nE(19),r:[1,2,2.76],m:[1,.3,.15],d:[1,.35,.14],t0:.01,v:.3},R);cloche(b,{f:nE(26),r:[1,2],m:[1,.2],d:[.6,.2],t0:.06,v:.14},R);
+    choeur(b,R,[-5,-1,2,7],.04,.18,.45,.9,.5);basse(b,R,nE(0),.04,.4,.9,0,.6);}});
+/* (2026-10-15, Sacha : « rajoute tout un sound design pour les figures, avec des sons plus graves, genre doum, doum ; que les figures fassent
+   plus de bruit que quand tu ramasses une pièce — applique-toi bien pour les figures ») LA SIGNATURE v2 : LE DOUM DE LA FIGURE PLANTÉE.
+   Chaque figure plantée frappe d'abord le même coup sourd (la famille : on sait sans regarder qu'une figure est payée), puis SA phrase,
+   jouée à la BASSE une octave sous l'ancienne (mi4 = 330 Hz, son sous-grave à 165 Hz ; la 1re note = le degré du maillon, st) avec la matière de son geste — le
+   souffle brun qui roule, qui hache ou qui passe par-dessus. Avant : des cordes pincées de mi5 à ré#7, 85 % entre 0,5 et 2 kHz, au
+   niveau d'une seule pièce. Une variante par figure — l'ordre est celui de FIG_SIGNE dans le jeu. */
+D('fig.signe',{fam:'figures',dur:1.1,st:1,key:1,db:+2,max:3,cd:.04,v:12,pre:1,bases:[0,12],dit:'la SIGNATURE d’une figure plantée : le DOUM, puis sa phrase à la basse — 0 TONNEAU · 1 TOUPIE · 2 SHIMMY · 3 CHANDELLE · 4 SALTO ARRIÈRE · 5 SALTO AVANT · 6 DOUBLE TONNEAU · 7 TIRE-BOUCHON · 8 HÉLICO · 9 VRILLE PENCHÉE · 10 RODÉO · 11 SALTO COSMIQUE',
+  r:function(b,R,o){const f=nE(o.base),B=function(k,t,v,d,pan,ouv){basse(b,R,f*k,t,v,d||.38,pan||0,ouv==null?.7:ouv);};
+    doum(b,R,0,.85,62,38,.42,{sat:2.4,toc:1100,vt:.18});
+    if(o.v===0){B(1,0,.5,.34,-.5);B(1.5,.08,.44,.42,.5);wouom(b,R,0,.3,160,1000,.4,-.8,.8);} /* TONNEAU : la quinte qui roule d'une oreille à l'autre */
+    else if(o.v===1){B(1,0,.5,.26,0,.5);B(1,.07,.4,.3,0,.4);bruit(b,{c:'n',t0:0,a:.01,d:.24,v:.5,ft:'lp',f:700,f1:380,g:.24,q:1.3,am:[19,.85],pan:-.3,pan1:.3},R);} /* TOUPIE : la note frappée deux fois à plat, le souffle haché */
+    else if(o.v===2){for(let k=0;k<4;k++)B(k%2?1.125:1,k*.05,.44-k*.05,.16,k%2?.6:-.6,.5);} /* SHIMMY : un trille grave qui se dandine gauche-droite */
+    else if(o.v===3){osc(b,{f:f,f1:f*2,g:.22,gc:.6,w:'tri',t0:0,a:.01,h:.12,d:.2,v:.3});B(2,.2,.46,.45,0,.8);} /* CHANDELLE : ça se cabre, la note monte d'une octave et se pose en haut */
+    else if(o.v===4){wouom(b,R,0,.3,130,1100,.45,0,0);B(1.5,0,.46,.3);B(1,.09,.52,.45);} /* SALTO ARRIÈRE : le wouom, la quinte qui RETOMBE */
+    else if(o.v===5){wouom(b,R,0,.3,130,1100,.45,0,0);B(1,0,.46,.3);B(1.5,.09,.52,.45);} /* SALTO AVANT : le wouom, la quinte qui MONTE */
+    else if(o.v===6){B(1,0,.46,.3,-.6);B(1.5,.07,.42,.3,.6);B(2,.14,.48,.45,-.3,.9);wouom(b,R,0,.36,160,1100,.4,-.8,.8);doum(b,R,.14,.5,70,42,.3,{toc:1000});} /* DOUBLE TONNEAU : deux roulés, le second DOUM, l'arpège monte à l'octave */
+    else if(o.v===7){[1,1.25,1.5,2].forEach(function(k,i){B(k,i*.055,.42,.3,Math.sin(i*1.6)*.7,.5+i*.12);});} /* TIRE-BOUCHON : l'arpège grave en spirale */
+    else if(o.v===8){bruit(b,{c:'r',t0:0,a:.02,d:.38,v:.4,ft:'lp',f:900,q:1.4,am:[17,.9]},R);B(1,0,.46,.3);B(2,.1,.44,.42,0,.8);} /* HÉLICO : les pales, la note qui saute l'octave */
+    else if(o.v===9){B(1,0,.46,.3,-.3);B(1.682,.07,.44,.45,.3,.6);osc(b,{f:f*1.682,w:'sin',t0:.07,a:.02,d:.4,v:.12,vib:[6,.012],pan:.3});} /* VRILLE PENCHÉE : la sixte, de biais, qui ondule */
+    else if(o.v===10){corde(b,{f:f*.5,t0:0,d:.5,v:.55,br:.7},R);corde(b,{f:f*.75,t0:.09,d:.45,v:.48,br:.7},R);doum(b,R,.09,.45,74,46,.24,{toc:900});B(1,.18,.46,.4);} /* RODÉO : deux ruades de corde grave (deux DOUM), puis la note */
+    else{doum(b,R,.12,.9,54,30,.6,{sat:2.6,toc:1000,vt:.2});cloche(b,{f:f,r:[1,2,2.76,5.4],m:[1,.5,.3,.1],d:[1.1,.6,.3,.1],t0:.12,v:.28},R);
+      [1,1.5,2,2.5].forEach(function(k,i){B(k,.12+i*.06,.38,.45,i%2?.5:-.5,.6+i*.1);});nappe(b,R,[o.base-12,o.base-5,o.base],.14,.15,.15,.7,.08,1100);} /* SALTO COSMIQUE : deux DOUM, le gong grave, l'arpège qui s'ouvre */
   }});
 /* (2026-10-14, session SON ; les combos : GENERAL) LES COMBOS À TROIS. Un combo = trois figures, sa clé = leurs trois AXES triés (T tonneau,
    P toupie, S salto, M mixte). Sa signature (sonCombo, dans le jeu) : trois FRAPPES — une matière par axe, dans l'ordre de la clé, qui montent
-   la pentatonique — puis le SCEAU. Vingt clés, vingt phrases : TTT tinte trois fois le verre, PST (LE GYROSCOPE) passe par les trois matières. */
-D('combo.frappe',{fam:'figures',dur:.5,st:1,key:1,db:0,max:6,cd:0,v:4,pre:1,bases:[0,12],dit:'une FRAPPE de combo (trois d’affilée) : 0 TONNEAU le verre qui roule · 1 TOUPIE le bois haché · 2 SALTO le tambour grave · 3 MIXTE le métal',
-  r:function(b,R,o){const f=nE(12+o.base);clic(b,{t0:0,f:4500,d:.003,v:.2},R);
-    if(o.v===0){cloche(b,{f:f,r:[1,2.01,3.98,5.2],m:[1,.45,.22,.1],d:[.38,.16,.08,.05],t0:0,v:.36},R);swish(b,R,0,.2,1800,4200,.16,-.8,.8,1.4);}
-    else if(o.v===1){marimba(b,R,f,0,.42,.26);bruit(b,{c:'r',t0:0,a:.004,d:.14,v:.3,ft:'bp',f:1400,q:2,am:[32,.85]},R);}
-    else if(o.v===2){grave(b,o,0,f*.25,f*.125,.08,.22,.55);pluck(b,R,f,0,.42,.3,.8);}
-    else{cloche(b,{f:f,r:[1,2.76,5.4,8.93],m:[1,.5,.25,.12],d:[.3,.14,.07,.04],t0:0,v:.32,jit:.004},R);osc(b,{f:f*.5,w:'saw',t0:0,a:.002,d:.16,v:.14,flt:['lp',3200,700,.1,1.2]});}
+   la pentatonique — puis le SCEAU. Vingt clés, vingt phrases : TTT tinte trois fois le verre, PST (LE GYROSCOPE) passe par les trois matières.
+   (2026-10-15, Sacha : « genre doum, doum ») DOUM, DOUM, DOUM… BOUM : chaque frappe est un TAMBOUR accordé (sa note une octave sous
+   l'ancienne note) avec la matière de son axe, en grave — le bol de verre, le bois, le fût, le métal — et le sceau est le grand coup
+   sourd sous un cuivre grave. Le jeu les espace un peu plus (sonCombo : 110 ms au lieu de 85) : on les compte. */
+D('combo.frappe',{fam:'figures',dur:.5,st:1,key:1,db:+2,max:6,cd:0,v:4,pre:1,bases:[0,12],dit:'une FRAPPE de combo (trois d’affilée) : un tambour grave accordé — 0 TONNEAU le bol qui roule · 1 TOUPIE le bois haché · 2 SALTO le fût profond · 3 MIXTE le métal',
+  r:function(b,R,o){const f=nE(o.base);
+    if(o.v===0){doum(b,R,0,.7,f*.25,f*.17,.24,{toc:1000,vt:.14});cloche(b,{f:f,r:[1,2.01,3.98],m:[1,.4,.15],d:[.32,.14,.06],t0:0,v:.3},R);wouom(b,R,0,.2,180,900,.3,-.7,.7);}
+    else if(o.v===1){doum(b,R,0,.65,f*.25,f*.18,.2,{toc:850,vt:.16});marimba(b,R,f,0,.38,.24);bruit(b,{c:'n',t0:0,a:.004,d:.14,v:.4,ft:'lp',f:700,q:1.4,am:[28,.85]},R);}
+    else if(o.v===2){doum(b,R,0,.9,f*.21,f*.14,.32,{toc:1100,vt:.16,sat:2.6});basse(b,R,f,0,.36,.3,0,.6);}
+    else{doum(b,R,0,.65,f*.25,f*.17,.22,{toc:1300,vt:.16});cloche(b,{f:f,r:[1,2.76,5.4],m:[1,.45,.15],d:[.28,.12,.05],t0:0,v:.26,jit:.004},R);osc(b,{f:f*.5,w:'saw',t0:0,a:.002,d:.16,v:.14,flt:['lp',1400,350,.1,1.2]});}
   }});
-D('combo.sceau',{fam:'figures',dur:1.3,st:1,key:1,db:+2,max:1,cd:.3,v:4,pre:1,bases:[0,12],dit:'le SCEAU du combo, après ses trois frappes : 0 PUR (trois fois le même axe) · 1 MÉLANGÉ · 2 LE GYROSCOPE (les trois axes, le roi) · 3 LE GRAND CHAOS',
-  r:function(b,R,o){const s=o.base;
-    if(o.v===0){stab(b,R,[s,s+7,s+12],0,.06,.55,.5,1);clic(b,{t0:0,f:5000,d:.004,v:.3},R);cloche(b,{f:nE(s+24),r:[1,2],m:[1,.2],d:[.5,.2],t0:.01,v:.16},R);}
-    else if(o.v===1){stab(b,R,[s,s+4,s+7,s+14],0,.06,.6,.45,.8);clic(b,{t0:0,f:4200,d:.004,v:.25},R);scintille(b,R,.03,.4,5,.08,36,46);}
-    else if(o.v===2){stab(b,R,[s,s+7,s+12,s+16],0,.1,.8,.5,1);choeur(b,R,[s+12,s+16,s+19],.02,.12,.35,.7,.35);
-      cloche(b,{f:nE(s+24),r:[1,2,2.76],m:[1,.3,.2],d:[.9,.35,.15],t0:.02,v:.2},R);scintille(b,R,.05,.8,10,.1,36,48);}
-    else{const t=Toile(b.sr,b.dur,!!b.R);stab(t,R,[s,s+6,s+11],0,.05,.5,.55,1);O.decime(t,6,3);
+D('combo.sceau',{fam:'figures',dur:1.4,st:1,key:1,db:+4,max:1,cd:.3,v:4,pre:1,bases:[0,12],dit:'le SCEAU du combo, après ses trois frappes : le grand BOUM sous un cuivre grave — 0 PUR (trois fois le même axe) · 1 MÉLANGÉ · 2 LE GYROSCOPE (les trois axes, le roi) · 3 LE GRAND CHAOS',
+  r:function(b,R,o){const s=o.base;doum(b,R,0,1,58,32,.62,{sat:2.6,toc:1000,vt:.22,corps:.14});
+    if(o.v===0){stab(b,R,[s-12,s-5,s],0,.06,.55,.5,.8);cloche(b,{f:nE(s),r:[1,2],m:[1,.2],d:[.55,.2],t0:.01,v:.18},R);}
+    else if(o.v===1){stab(b,R,[s-12,s-8,s-5,s+2],0,.06,.6,.45,.7);basse(b,R,nE(s),0,.4,.6,0,.7);}
+    else if(o.v===2){stab(b,R,[s-12,s-5,s,s+4],0,.1,.8,.5,.9);choeur(b,R,[s-5,s-1,s+2],.02,.12,.35,.7,.4);doum(b,R,.16,.6,66,40,.35,{toc:900});
+      cloche(b,{f:nE(s+7),r:[1,2,2.76],m:[1,.3,.15],d:[.9,.35,.15],t0:.02,v:.2},R);}
+    else{const t=Toile(b.sr,b.dur,!!b.R);stab(t,R,[s-12,s-6,s-1],0,.05,.5,.55,.8);O.decime(t,6,3);
       for(let i=0;i<b.n;i++){b.L[i]+=t.L[i];if(b.R)b.R[i]+=t.R[i];}
-      crepite(b,R,0,.45,14,.35,400,3000);clic(b,{t0:0,f:3000,d:.006,v:.35},R);}
+      crepite(b,R,0,.45,14,.35,200,1300);}
   }});
 /* (2026-10-14, session SON — le son par figure, étape 2) LES FIGURES DES MONDES. Celles de LA BANQUISE et de l'eau payaient le même maillon
    que tout le reste : chacune a sa phrase, dans la matière de son monde (la glace tinte et glisse, la poudreuse feutre, l'eau fait des bulles),
    sur l'échelle du vol (la note = le degré du maillon, st). Une variante par figure — l'ordre est celui de FIG_MONDE dans le jeu. */
-D('fig.monde',{fam:'figures',dur:.9,st:1,key:1,db:-1,max:3,cd:.04,v:9,pre:1,bases:[0,12],dit:'la SIGNATURE d’une figure de monde : 0 TREMPLIN DE GLACE · 1 GLISSE / SUR LE PIC · 2 POUDREUSE · 3 TRACE PARFAITE · 4 PATINOIRE · 5 DÉRAPAGE GLACE · 6 RICOCHET · 7 PLONGEON · 8 SURF',
-  r:function(b,R,o){const f=nE(12+o.base),P=function(k,t,v,d,pan){pluck(b,R,f*k,t,v,d||.4,1,pan||0);},G=function(k,t,v,d,pan){cloche(b,{f:f*k,r:[1,2.01,3.98],m:[1,.35,.15],d:[d||.5,.2,.08],t0:t,v:v,pan:pan||0},R);};
+D('fig.monde',{fam:'figures',dur:.9,st:1,key:1,db:+1,max:3,cd:.04,v:9,pre:1,bases:[0,12],dit:'la SIGNATURE d’une figure de monde : 0 TREMPLIN DE GLACE · 1 GLISSE / SUR LE PIC · 2 POUDREUSE · 3 TRACE PARFAITE · 4 PATINOIRE · 5 DÉRAPAGE GLACE · 6 RICOCHET · 7 PLONGEON · 8 SURF',
+  r:function(b,R,o){const f=nE(o.base),P=function(k,t,v,d,pan){pluck(b,R,f*k,t,v,d||.4,1,pan||0);},G=function(k,t,v,d,pan){cloche(b,{f:f*k,r:[1,2.01,3.98],m:[1,.35,.15],d:[d||.5,.2,.08],t0:t,v:v,pan:pan||0},R);};
+    doum(b,R,0,.7,62,38,.36,{toc:1000}); /* (2026-10-15, Sacha : « des sons plus graves, genre doum ») comme fig.signe : le DOUM de la figure payée, puis sa phrase une octave plus bas (mi4), db −1 → +1 */
     if(o.v===0){osc(b,{f:f,f1:f*2,g:.18,gc:.6,w:'sin',t0:0,a:.005,h:.1,d:.2,v:.18});G(2,.17,.32,.6,0);clic(b,{t0:.17,f:6000,d:.003,v:.2},R);} /* TREMPLIN DE GLACE : ça s'envole, et le verre tinte en haut */
     else if(o.v===1){osc(b,{f:f*1.5,f1:f,g:.3,gc:.5,w:'sin',t0:0,a:.01,h:.15,d:.25,v:.14,vib:[7,.006]});G(1,0,.3,.45,-.3);} /* GLISSE : la note qui glisse sur la glace */
     else if(o.v===2){bruit(b,{c:'r',t0:0,a:.03,d:.3,v:.32,ft:'lp',f:2200,f1:700,g:.3,q:.7,pan:-.4,pan1:.4},R);P(1,.04,.36,.35,0);} /* POUDREUSE : un souffle feutré, la note étouffée */
@@ -570,32 +639,35 @@ D('fig.monde',{fam:'figures',dur:.9,st:1,key:1,db:-1,max:3,cd:.04,v:9,pre:1,base
   }});
 /* (2026-10-14, session SON — le son par figure, étape 3) LES BATTEMENTS EN VOL. SHIMMY et CHANDELLE n'ont pas de TOUR (un ressort qui bat,
    pas une rotation) : aucun tic ne les accompagnait en vol. Le shimmy a un « wik » à chaque aller-retour (le jeu alterne gauche / droite),
-   la chandelle un « ça se cabre » au sommet de sa bosse. */
-D('fig.battement',{fam:'figures',dur:.4,st:1,key:1,db:-1,max:4,cd:.03,v:2,pre:1,bases:[0,12],dit:'un BATTEMENT en vol : 0 SHIMMY (le « wik » de chaque aller-retour) · 1 CHANDELLE (ça se cabre, au sommet)',
-  r:function(b,R,o){const f=nE(12+o.base);
-    if(o.v===0){pluck(b,R,f,0,.42,.14,1.2);bruit(b,{c:'b',t0:0,a:.002,d:.05,v:.22,ft:'bp',f:3200,f1:1800,g:.05,q:1.6},R);}
-    else{osc(b,{f:f*.75,f1:f,g:.15,gc:.6,w:'tri',t0:0,a:.008,h:.06,d:.14,v:.2});swish(b,R,0,.2,700,2600,.14,0,0,1.2);pluck(b,R,f,.13,.36,.3,.9);}
+   la chandelle un « ça se cabre » au sommet de sa bosse. (2026-10-15) Deux octaves plus bas : le « wik » devient un « wom » de basse. */
+D('fig.battement',{fam:'figures',dur:.4,st:1,key:1,db:0,max:4,cd:.03,v:2,pre:1,bases:[0,12],dit:'un BATTEMENT en vol : 0 SHIMMY (le « wom » grave de chaque aller-retour) · 1 CHANDELLE (ça se cabre, au sommet)',
+  r:function(b,R,o){const f=nE(o.base);
+    if(o.v===0){basse(b,R,f,0,.44,.16,0,.7);bruit(b,{c:'n',t0:0,a:.003,d:.07,v:.4,ft:'lp',f:900,f1:350,g:.07,q:1.2},R);doum(b,R,0,.25,90,60,.1,{toc:0});}
+    else{osc(b,{f:f*.75,f1:f,g:.15,gc:.6,w:'tri',t0:0,a:.008,h:.06,d:.14,v:.3});wouom(b,R,0,.22,140,900,.32,0,0);basse(b,R,f,.13,.4,.3,0,.7);}
   }});
 /* LES EXPLOSIONS DE FIGURE ont leur son. Elles empruntaient turbo.mini / turbo.super au DRIFT : la même bouffée pour deux gestes qui
-   n'ont rien à voir. Ici, une charge qui claque (la poussée qui fait tourner la caisse) : 0 petite, 1 grosse. Pas de note : c'est un choc. */
-D('fig.explose',{fam:'figures',bus:'fx',dur:.8,st:1,db:0,max:3,cd:.05,v:2,pre:1,dit:'l’EXPLOSION qui lance une figure : 0 petite · 1 grosse (plus le son du drift)',
-  r:function(b,R,o){const g=o.v?1:.6;
-    clic(b,{t0:0,f:3800,d:.004,v:.45*g},R);bruit(b,{c:'b',t0:0,a:.001,d:.09+.08*o.v,v:.55*g,ft:'bp',f:1600,f1:450,g:.12,q:.8},R);
-    bruit(b,{c:'n',t0:0,a:.002,d:.18+.14*o.v,v:.5*g,ft:'lp',f:900,f1:300,g:.2,q:.7},R);grave(b,o,0,130,55,.1,.18+.1*o.v,.55*g);
-    crepite(b,R,.01,.18+.2*o.v,4+8*o.v,.25*g,700,3200);if(o.v)swish(b,R,.02,.35,2600,500,.18,-.6,.6,1);
+   n'ont rien à voir. Ici, une charge qui claque (la poussée qui fait tourner la caisse) : 0 petite, 1 grosse. Pas de note : c'est un choc.
+   (2026-10-15, Sacha : « doum, doum ») LE DOUM DU DÉPART : son grave (94 % sous 150 Hz) ne passait pas le haut-parleur d'un téléphone
+   (−8 dB) et un clic à 3,8 kHz + des crépitements jusqu'à 3,2 kHz faisaient tout le bruit. Maintenant : le DOUM saturé (il s'entend au
+   téléphone), le souffle de la charge à 160-800 Hz, un toc à 1,2 kHz ; la grosse a un second coup (« ba-DOUM ») et ses braises sourdes. */
+D('fig.explose',{fam:'figures',bus:'fx',dur:.8,st:1,db:+4,max:3,cd:.05,v:2,pre:1,dit:'l’EXPLOSION qui lance une figure : le DOUM de la charge — 0 petite · 1 grosse (ba-DOUM)',
+  r:function(b,R,o){const g=o.v?1:.7;
+    doum(b,R,0,.9*g,o.v?62:72,o.v?34:42,.3+.18*o.v,{sat:2.4,toc:1200,vt:.2,corps:.1});
+    bruit(b,{c:'r',t0:0,a:.004,d:.2+.12*o.v,v:.4*g,ft:'bp',f:160,f1:800,g:.12,gc:.7,q:.9,pan:-.2,pan1:.2},R);
+    if(o.v){doum(b,R,.075,.7,56,32,.4,{sat:2.6,toc:0});crepite(b,R,.04,.3,8,.2,180,900);}
   }});
 /* LE GAP a son son : le saut par-dessus le vide (le souffle qui traverse) et le pont qui se construit sous la caisse (l'arpège qui monte).
-   Le DOUBLE GAP le fait deux fois, et finit sur un accord. */
-D('fig.gap',{fam:'figures',dur:1.6,st:1,key:1,db:+1,max:1,cd:.3,v:2,pre:1,bases:[0,12],dit:'GAP FRANCHI (0) · DOUBLE GAP (1) : le souffle du vide traversé + l’arpège du pont',
-  r:function(b,R,o){const s=o.base,f=nE(12+s);swish(b,R,0,.5,500,3200,.24,-.8,.8,.9);
-    [0,4,7,12].forEach(function(st,i){pluck(b,R,nE(12+s+st),.08+i*.06,.4,.4,1,i%2?.4:-.4);});
-    if(o.v){[12,16,19,24].forEach(function(st,i){pluck(b,R,nE(12+s+st),.36+i*.05,.36,.4,1,i%2?-.4:.4);});stab(b,R,[s+12,s+19,s+24],.6,.08,.5,.32,1);scintille(b,R,.6,.5,8,.08,38,48);}
-    else cloche(b,{f:f*2,r:[1,2,2.76],m:[1,.3,.15],d:[.6,.2,.1],t0:.3,v:.18},R);
+   Le DOUBLE GAP le fait deux fois, et finit sur un accord. (2026-10-15) Une octave et demie plus bas, posé sur un DOUM. */
+D('fig.gap',{fam:'figures',dur:1.6,st:1,key:1,db:+1,max:1,cd:.3,v:2,pre:1,bases:[0,12],dit:'GAP FRANCHI (0) · DOUBLE GAP (1) : le souffle grave du vide traversé + l’arpège du pont, à la basse',
+  r:function(b,R,o){const s=o.base,f=nE(s);wouom(b,R,0,.5,120,1100,.4,-.8,.8);doum(b,R,.06,.6,66,40,.36,{toc:1000});
+    [0,4,7,12].forEach(function(st,i){basse(b,R,nE(s+st),.08+i*.06,.4,.36,i%2?.4:-.4,.6);});
+    if(o.v){[12,16,19,24].forEach(function(st,i){basse(b,R,nE(s+st),.36+i*.05,.36,.36,i%2?-.4:.4,.7);});stab(b,R,[s-12,s-5,s],.6,.08,.5,.32,.8);doum(b,R,.6,.7,60,36,.4,{toc:1000});}
+    else cloche(b,{f:f,r:[1,2,2.76],m:[1,.3,.15],d:[.6,.2,.1],t0:.3,v:.2},R);
   }});
 /* LA POSE ORDINAIRE a son petit son : un « tock » franc et une clochette brève. Elle n'avait que le choc des roues — la PARFAITE claque
-   (pose.parfait), la DIVINE ouvre le ciel (pose.divin) ; celle-ci reste en dessous : propre, rien de plus. */
-D('pose.nette',{fam:'pose',dur:.45,key:1,db:-3,max:1,cd:.2,pre:1,dit:'la POSE ordinaire (ni parfaite, ni lourde) : un tock et une clochette, sous la PARFAITE',
-  r:function(b,R,o){clic(b,{t0:0,f:3000,d:.004,v:.25},R);marimba(b,R,nE(19),0,.3,.18);cloche(b,{f:nE(31),r:[1,2.76],m:[1,.15],d:[.25,.08],t0:.01,v:.12},R);}});
+   (pose.parfait), la DIVINE ouvre le ciel (pose.divin) ; celle-ci reste en dessous : propre, rien de plus. (2026-10-15) Une octave plus bas. */
+D('pose.nette',{fam:'pose',dur:.45,key:1,db:-3,max:1,cd:.2,pre:1,dit:'la POSE ordinaire (ni parfaite, ni lourde) : un tock grave et une clochette ronde, sous la PARFAITE',
+  r:function(b,R,o){clic(b,{t0:0,f:1800,d:.004,v:.2},R);marimba(b,R,nE(7),0,.32,.2);cloche(b,{f:nE(19),r:[1,2.76],m:[1,.15],d:[.25,.08],t0:.01,v:.12},R);doum(b,R,0,.3,90,58,.12,{toc:0});}});
 /* (2026-10-14, session SON ; la figure : GENERAL) LE SLIDE — le flanc qui frotte le bord de la route. Une BOUCLE de meulage (sonSlide la
    règle en direct : plus vite = plus fort et plus aigu, par handle.gain / handle.rate), une ATTAQUE au contact, une QUEUE au lâcher, et un
    « tchak » DOUX quand l'aura se paye. Rien de criard : les bandes de raclement restent sous 4 kHz, les étincelles sont des grains. */
@@ -613,8 +685,8 @@ D('fig.slide.fin',{fam:'figures',bus:'fx',dur:.8,st:1,db:-6,max:1,cd:.15,dit:'le
   r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.003,d:.35,v:.3,ft:'bp',f:2900,f1:900,g:.35,q:2.2},R);bruit(b,{c:'r',t0:0,a:.003,d:.3,v:.25,ft:'bp',f:1300,f1:500,g:.3,q:1.6},R);
     crepite(b,R,.02,.4,6,.16,2800,5800);}});
 D('fig.slide.paye',{fam:'figures',dur:.7,key:1,db:-2,max:1,cd:.2,pre:1,dit:'le SLIDE est payé : un tchak doux + une clochette (l’aura encaissée)',
-  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.0006,d:.03,v:.3,ft:'bp',f:1500,q:1},R);clic(b,{t0:0,f:3800,d:.004,v:.18},R);
-    cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.25,.12],d:[.45,.18,.08],t0:.012,v:.2},R);scintille(b,R,.03,.25,4,.06,36,44);}});
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.0006,d:.03,v:.3,ft:'bp',f:1500,q:1},R);clic(b,{t0:0,f:2400,d:.004,v:.16},R);
+    cloche(b,{f:nE(12),r:[1,2,2.76],m:[1,.25,.12],d:[.45,.18,.08],t0:.012,v:.24},R);doum(b,R,0,.35,84,52,.16,{toc:0});}}); // (2026-10-15) la clochette mi7 → mi5, sans poussière, un petit doum
 /* (2026-10-14, session SON ; la machine : IDEE) LE FINAL SPIN A SES SONS — une machine à sous d'ARCADE. Elle empruntait ceux du jeu
    (ui.compteur pour les rouleaux, arret.tic, argent.*, fig.jackpot) : ils disaient « menu » ou « course », pas « machine ». Ici, du
    MÉCANIQUE : le levier qui descend sur son cliquet et claque en butée, le cran de chaque symbole qui passe (le cliquetis ralentit
@@ -685,11 +757,14 @@ D('argent.gros',{fam:'argent',dur:1.8,v:3,key:1,db:+1,max:1,cd:.4,grp:'r',prio:3
     else{pieces(b,R,0,1.1,42,.28);chaChing(b,R,.02,.6);}}});
 D('argent.palier',{fam:'argent',dur:2.4,st:1,key:1,db:+5,max:1,cd:2,grp:'r',prio:5,dit:'« TU COMPTES EN MILLIONS » : ka-ching + chœur + douche de pièces',
   r:function(b,R,o){chaChing(b,R,0,1);choeur(b,R,[12,16,19,24],.1,.1,.4,1.4,.1);stab(b,R,[12,19,24],.1,.2,.9,.14,1.2);pieces(b,R,.15,1.8,44,.2);grave(b,o,.1,90,40,.3,.6,.5);}});
-D('piece.serie',{fam:'argent',dur:1,st:1,key:1,db:-1,max:1,cd:.3,dit:'SÉRIE COMPLÈTE (la dernière pièce du motif) : arpège de pièces qui grimpe + ding',
-  r:function(b,R,o){[12,16,19,24,28,31].forEach(function(st,i){cloche(b,{f:nE(st),r:[1,2,3.01,5.43],m:[1,.4,.18,.1],d:[.35,.15,.07,.04],t0:i*.035,v:.26,pan:(i/5-.5)*.8},R);});
-    cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.1],d:[.8,.3,.1],t0:.22,v:.3},R);}});
-D('billet.vole',{fam:'argent',dur:.12,st:1,key:1,db:-14,max:4,cd:.035,dit:'un billet volant arrive au compteur : froissé bref + tic',
-  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.002,d:.04,v:.4,ft:'bp',f:3600,q:1.2},R);osc(b,{f:nE(31),t0:.01,a:.001,d:.035,v:.3});}});
+/* (2026-10-15, Sacha : « pas plein de trucs aigus ») LA SÉRIE COMPLÈTE : l'arpège de six pièces de mi5 à mi7 + le ding de mi8 (2,6 kHz)
+   devient quatre pièces GRAVES qui montent (la matière de la pièce v2, mi4 → mi5), un petit « doum » de poche et une cloche ronde. */
+D('piece.serie',{fam:'argent',dur:.7,st:1,key:1,db:-3,max:1,cd:.3,dit:'SÉRIE COMPLÈTE (la dernière pièce du motif) : quatre pièces graves qui montent + un petit « doum » + une cloche ronde',
+  r:function(b,R,o){[0,4,7,12].forEach(function(st,i){const t=i*.045,p=(i/3-.5)*.7;bruit(b,{c:'b',t0:t,a:.0006,d:.018,v:.22,ft:'bp',f:2200,q:1.2,pan:p},R);
+      cloche(b,{f:nE(st),r:[1,2.32,4.25],m:[1,.3,.12],d:[.18,.07,.03],t0:t+.002,v:.36,pan:p,jit:.004},R);});
+    doum(b,R,.15,.4,120,70,.16,{toc:0});cloche(b,{f:nE(12),r:[1,2,2.76],m:[1,.25,.08],d:[.5,.2,.06],t0:.16,v:.26},R);}});
+D('billet.vole',{fam:'argent',dur:.12,st:1,key:1,db:-14,max:4,cd:.035,dit:'un billet volant arrive au compteur : froissé bref + tic (2026-10-15 : une octave et demie plus bas)',
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.002,d:.04,v:.4,ft:'bp',f:2200,q:1.2},R);osc(b,{f:nE(12),t0:.01,a:.001,d:.035,v:.3});}});
 D('pluie.billets',{fam:'argent',dur:2.8,st:1,key:1,db:0,max:1,cd:3,bus:'amb',dit:'IL PLEUT DES BILLETS : froissements qui tombent partout + pièces',
   r:function(b,R,o){for(let k=0;k<22;k++){const t=R()*2.3;bruit(b,{c:'b',t0:t,a:.02,d:.12+R()*.15,v:.12+R()*.1,ft:'bp',f:2500+R()*2500,q:1.5,am:[18+R()*20,.7],pan:R()*1.8-.9},R);}
     pieces(b,R,.1,2.4,18,.14);}});
@@ -701,8 +776,8 @@ D('mallette.chaude',{fam:'argent',dur:1.2,st:1,db:-2,max:1,cd:2,dit:'la mallette
 /* ================================ L'AURA, LE FLOW, LA TRIADE, LA FRÉNÉSIE ====================== */
 /* l'AURA au sol a SA matière : un marimba de synthèse (FM douce) — pas la cloche des figures, pas le métal de l'argent */
 function marimba(b,R,f,t0,v,d){osc(b,{f:f,t0:t0,a:.001,d:d||.35,v:v,fm:{r:4,i:1.2,d:.06}});osc(b,{f:f*4,t0:t0,a:.0008,d:.04,v:v*.15});clic(b,{t0:t0,f:3000,d:.003,v:v*.2},R);}
-D('aura.geste',{fam:'aura',dur:.45,key:1,db:-2,max:3,cd:.04,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un geste d’aura au sol (frôlé, rase-bord, virage…) : note de marimba (st = le × d’aura)',
-  r:function(b,R,o){marimba(b,R,nE(12+o.base),0,.55,.35);}});
+D('aura.geste',{fam:'aura',dur:.45,key:1,db:-3,max:3,cd:.04,pre:1,bases:[0,12],grp:'r',prio:1,dit:'un geste d’aura au sol (frôlé, rase-bord, virage…) : note de marimba (st = le × d’aura) — une octave plus bas depuis le 15/10',
+  r:function(b,R,o){marimba(b,R,nE(o.base),0,.55,.35);}}); // (2026-10-15, Sacha : « plus de sons graves et discrets ») mi4 au lieu de mi5, −1 dB
 D('aura.x5',{fam:'aura',dur:1.1,st:1,key:1,db:+2,max:1,cd:.5,grp:'r',prio:3,dit:'× d’aura ×5 EN FEU : la flamme prend + accord qui monte',
   r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.08,d:.5,v:.5,ft:'lp',f:300,f1:2200,g:.3},R);crepite(b,R,.05,.5,10,.25);[12,16,19].forEach(function(st,i){marimba(b,R,nE(st+12),.05+i*.05,.4,.5);});stab(b,R,[12,19],.18,.1,.5,.1,1);}});
 D('aura.x8',{fam:'aura',dur:1.4,st:1,key:1,db:+3,max:1,cd:.5,grp:'r',prio:4,dit:'×8 DÉMENT : plus haut, plus large, un coup de grave',
@@ -711,11 +786,11 @@ D('aura.x10',{fam:'aura',dur:2,st:1,key:1,db:+5,max:1,cd:1,grp:'r',prio:5,dit:'�
   r:function(b,R,o){swish(b,R,0,.4,300,6000,.35,-.8,.8);[12,16,19,24,28,31].forEach(function(st,i){marimba(b,R,nE(st+12),i*.04,.35,.6);});
     stab(b,R,[12,19,24,31],.26,.3,1,.16,1.4);choeur(b,R,[12,19,24],.26,.1,.3,1.2,.08);grave(b,o,.26,80,36,.3,.7,.6);scintille(b,R,.3,1.4,14,.1);}});
 D('aura.encaisse1',{fam:'aura',dur:.9,st:1,key:1,db:0,max:1,cd:.2,grp:'r',prio:2,dit:'la chaîne d’aura s’encaisse (petite) : deux notes qui se posent',
-  r:function(b,R,o){marimba(b,R,nE(19),0,.45,.5);marimba(b,R,nE(24),.07,.5,.6);scintille(b,R,.08,.3,4,.08);}});
+  r:function(b,R,o){marimba(b,R,nE(7),0,.45,.5);marimba(b,R,nE(12),.07,.5,.6);doum(b,R,.07,.3,90,58,.14,{toc:0});}}); // (2026-10-15, Sacha : « plus de sons graves ») les trois encaissements une octave plus bas, sans poussière d'or, posés sur un doum
 D('aura.encaisse2',{fam:'aura',dur:1.2,st:1,key:1,db:+2,max:1,cd:.2,grp:'r',prio:3,dit:'encaissement d’aura (moyen, ≥ 600) : trois notes + stab',
-  r:function(b,R,o){[19,24,28].forEach(function(st,i){marimba(b,R,nE(st),i*.06,.45,.55);});stab(b,R,[12,19,24],.14,.1,.5,.1,1);scintille(b,R,.15,.5,7,.1);}});
-D('aura.encaisse3',{fam:'aura',dur:1.6,st:1,key:1,db:+4,max:1,cd:.2,grp:'r',prio:4,dit:'gros encaissement d’aura (≥ 2000) : arpège + stab + grave + or',
-  r:function(b,R,o){[12,19,24,28,31].forEach(function(st,i){marimba(b,R,nE(st),i*.05,.42,.6);});stab(b,R,[12,19,24,28],.2,.2,.8,.14,1.3);grave(b,o,.2,90,40,.2,.4,.45);scintille(b,R,.22,1,12,.1);}});
+  r:function(b,R,o){[7,12,16].forEach(function(st,i){marimba(b,R,nE(st),i*.06,.45,.55);});stab(b,R,[0,7,12],.14,.1,.5,.12,.8);doum(b,R,.14,.45,80,48,.2,{toc:0});}});
+D('aura.encaisse3',{fam:'aura',dur:1.6,st:1,key:1,db:+4,max:1,cd:.2,grp:'r',prio:4,dit:'gros encaissement d’aura (≥ 2000) : arpège + stab + DOUM',
+  r:function(b,R,o){[0,7,12,16,19].forEach(function(st,i){marimba(b,R,nE(st),i*.05,.42,.6);});stab(b,R,[0,7,12,16],.2,.2,.8,.16,1);doum(b,R,.2,.7,66,38,.4,{toc:1000,sat:2.4});}});
 D('aura.record',{fam:'aura',dur:1.3,st:1,key:1,db:+3,max:1,cd:1,grp:'r',prio:4,dit:'record d’aura battu en course : « ta-DA » de marimba + cuivre',
   r:function(b,R,o){marimba(b,R,nE(19),0,.5,.3);marimba(b,R,nE(24),.1,.55,.8);stab(b,R,[12,19,24,28],.1,.15,.8,.14,1.3);scintille(b,R,.12,.8,10,.1);}});
 D('aura.moyenne',{fam:'aura',dur:.9,st:1,key:1,db:+1,max:1,cd:.5,grp:'r',prio:2,dit:'« moyenne battue » (2026-10-14, session SON) : trois notes de marimba qui montent, un accord court et une cloche — petite récompense, sous la victoire',
@@ -761,9 +836,9 @@ D('plus.vite',{fam:'flow',dur:.5,st:1,db:-2,max:1,cd:1.5,dit:'PLUS VITE ! : souf
 
 /* ================================ LA MACHINE : NITRO, POUVOIRS, TURBOS ========================= */
 D('nitro.plein',{fam:'machine',bus:'fx',dur:.6,st:1,key:1,db:-4,max:1,cd:.25,dit:'plein de nitro (fruit, portail, pose, bump) : le réservoir qui se remplit (glouglou qui monte + clic)',
-  r:function(b,R,o){for(let k=0;k<5;k++)bulle(b,R,k*.05,250+k*90,500+k*140,.05,.25);swish(b,R,0,.3,500,3500,.15);clic(b,{t0:.3,f:3000,d:.006,v:.3},R);osc(b,{f:nE(24),t0:.3,a:.001,d:.12,v:.2});}});
-D('nitro.pleine',{fam:'machine',dur:.7,st:1,key:1,db:-6,max:1,cd:2,dit:'la jauge de nitro est PLEINE : ding-ding + scintillement',
-  r:function(b,R,o){cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.3,.1],d:[.35,.15,.05],t0:0,v:.3},R);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.1],d:[.5,.2,.08],t0:.08,v:.3},R);scintille(b,R,.1,.4,5,.07);}});
+  r:function(b,R,o){for(let k=0;k<5;k++)bulle(b,R,k*.05,170+k*60,330+k*90,.06,.28);swish(b,R,0,.3,300,1600,.15);clic(b,{t0:.3,f:1600,d:.006,v:.26},R);osc(b,{f:nE(0),t0:.3,a:.001,d:.12,v:.22});}}); // (2026-10-15, Sacha : « graves et discrets ») le glouglou plus bas, le ding mi6 → mi4
+D('nitro.pleine',{fam:'machine',dur:.7,st:1,key:1,db:-6,max:1,cd:2,dit:'la jauge de nitro est PLEINE : dong-dong rond (2026-10-15 : deux octaves plus bas, sans scintillement)',
+  r:function(b,R,o){cloche(b,{f:nE(7),r:[1,2,2.76],m:[1,.3,.1],d:[.35,.15,.05],t0:0,v:.32},R);cloche(b,{f:nE(12),r:[1,2,2.76],m:[1,.3,.1],d:[.5,.2,.08],t0:.08,v:.32},R);}});
 D('nitro.sec',{fam:'machine',bus:'fx',dur:.7,db:-2,max:1,cd:1,dit:'panne SÈCHE de nitro (en vol : on perd le plané) : la flamme qui tousse et s’étrangle',
   r:function(b,R,o){for(let k=0;k<3;k++)bruit(b,{c:'n',t0:k*.13,a:.003,d:.08,v:.5-k*.12,ft:'lp',f:1200-k*300,q:.8},R);bruit(b,{c:'b',t0:.4,a:.01,d:.2,v:.2,ft:'bp',f:1800,f1:600,g:.2,q:1.5},R);osc(b,{f:180,f1:60,g:.4,w:'saw',t0:0,a:.01,d:.5,v:.06,flt:['lp',800,200,.4]});}});
 /* (2026-10-14, session SON) L'ATCHOUM — la panne sèche en éternuement : « a… » (une aspiration qui monte, souffle + sifflet nasal), un temps, puis « TCHOUM » (pop d'échappement,
@@ -772,8 +847,12 @@ D('caisse.atchoum',{fam:'machine',bus:'fx',dur:.6,db:-2,max:1,cd:1,dit:'panne S�
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.2,d:.05,v:.3,ft:'bp',f:500,f1:2600,g:.24,q:1.4},R);osc(b,{f:420,f1:1100,g:.24,t0:0,a:.2,d:.05,v:.1,vib:[18,.03]});
     bruit(b,{c:'b',t0:.31,a:.002,d:.1,v:.55,ft:'bp',f:1500,f1:500,g:.1,q:1},R);bruit(b,{c:'n',t0:.31,a:.003,d:.2,v:.5,ft:'lp',f:900,q:.7},R);
     osc(b,{f:320,f1:90,g:.2,w:'saw',t0:.31,a:.005,d:.24,v:.2,flt:['lp',1300,300,.2,.8]});clic(b,{t0:.31,f:3000,d:.01,v:.35},R);crepite(b,R,.4,.12,4,.2);}});
-D('nitro.vide',{fam:'machine',bus:'fx',dur:.12,db:-6,max:1,cd:.15,dit:'appui NITRO à vide : « tchk » de gâchette sèche',
-  r:function(b,R,o){clic(b,{t0:0,f:2500,d:.01,v:.6},R);clic(b,{t0:.035,f:1800,d:.008,v:.4},R);bruit(b,{c:'b',t0:.035,a:.002,d:.05,v:.15,ft:'bp',f:1200,q:2},R);}});
+/* (2026-10-15, Sacha : « trop de petits sons aigus ») LA GÂCHETTE À VIDE (et la figure refusée en vol, figRefus) : deux clics passe-HAUT à
+   2,5 kHz — 75 % de l'énergie au-dessus de 5 kHz (centre 9 kHz, mesuré) : le son le plus aigu de la course. Les mêmes deux clics en bande
+   à 1,5 kHz et 1 kHz, et le petit poids du chien qui retombe. */
+D('nitro.vide',{fam:'machine',bus:'fx',dur:.12,db:-6,max:1,cd:.15,dit:'appui NITRO à vide (et figure refusée) : « tchk » de gâchette sèche, mat',
+  r:function(b,R,o){clic(b,{t0:0,f:1500,d:.01,v:.6,ft:'bp'},R);clic(b,{t0:.035,f:1000,d:.008,v:.45,ft:'bp'},R);bruit(b,{c:'b',t0:.035,a:.002,d:.05,v:.15,ft:'bp',f:800,q:2},R);
+    O.osc(b,{f:150,f1:95,g:.03,t0:.035,a:.001,d:.04,v:.07});}});
 /* LES POUVOIRS ont chacun leur signature (avant : le souffle d'un pad + deux notes) */
 D('pwr.n',{fam:'machine',dur:1.2,st:1,key:1,db:+2,max:1,cd:.4,grp:'r',prio:3,dit:'pouvoir NITRO INFINIE : allumage de réacteur + deux notes de feu',
   r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.01,h:.1,d:.7,v:.7,ft:'lp',f:200,f1:3500,g:.25},R);crepite(b,R,.05,.8,18,.3,500,2500);grave(b,o,0,80,40,.2,.5,.6);
@@ -811,8 +890,8 @@ D('fronde',{fam:'machine',bus:'fx',dur:.9,st:1,key:1,db:+1,max:1,cd:.3,grp:'r',p
     grave(b,o,0,85,40,.12,.3,.5);}});
 D('vitesse.pure',{fam:'machine',bus:'fx',dur:1,st:1,key:1,db:+1,max:1,cd:.5,bases:[0,12],grp:'r',prio:2,dit:'PURE SPEED (et ses paliers : st) : le mur d’air + cuivre qui monte',
   r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.1,h:.1,d:.5,v:.4,ft:'bp',f:600,f1:3000,g:.4,q:.7},R);stab(b,R,[12+o.base,19+o.base],.08,.1,.5,.12,1.1);}});
-D('virage',{fam:'machine',bus:'fx',dur:.3,st:1,db:-6,max:2,cd:.15,dit:'VIRAGE SERRÉ : le pneu qui zippe',
-  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.01,d:.15,v:.35,ft:'bp',f:1800,f1:2400,g:.12,q:6},R);}});
+D('virage',{fam:'machine',bus:'fx',dur:.3,st:1,db:-9,max:2,cd:.15,dit:'VIRAGE SERRÉ : le pneu qui zippe — plus bas et plus large depuis le 15/10',
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.01,d:.15,v:.35,ft:'bp',f:900,f1:1250,g:.12,q:3},R);bruit(b,{c:'n',t0:0,a:.01,d:.12,v:.3,ft:'lp',f:400},R);}}); // (2026-10-15, Sacha : « trop de sons aigus ») le sifflet étroit de 1,8-2,4 kHz (Q 6) → 0,9-1,25 kHz (Q 3) + la gomme dessous, −3 dB
 D('arret.tic',{fam:'machine',bus:'fx',dur:.2,st:1,key:1,db:-3,max:2,cd:.08,dit:'ROULE OU CRÈVE (la caisse s’arrête) : tic d’horloge qui s’accélère (le jeu règle la cadence)',
   r:function(b,R,o){bois(b,R,0,1250,.6);osc(b,{f:nE(7),w:'sq',pw:.3,t0:0,a:.002,d:.05,v:.06,flt:['lp',2000,2000,1,.8]});}});
 
@@ -872,7 +951,7 @@ D('plot',{fam:'piste',bus:'fx',dur:.5,v:3,st:1,db:0,max:3,cd:.04,pre:1,rj:.05,di
 D('porte',{fam:'piste',bus:'fx',dur:.6,st:1,db:+2,max:1,cd:.2,dit:'PORTE touchée (N4) : craquement + buzzer « ERR » (plus lourd qu’un plot)',
   r:function(b,R,o){plastique(b,R,0,260,.7);bruit(b,{c:'b',t0:0,a:.001,d:.05,v:.4,ft:'hp',f:900},R);for(const f of [110,116])osc(b,{f:f,w:'sq',pw:.5,t0:.06,a:.004,h:.15,d:.1,v:.1,flt:['lp',1300,1300,1,.8]});}});
 D('frole',{fam:'piste',dur:.55,key:1,db:-2,max:3,cd:.06,pre:1,bases:[0,12],grp:'r',prio:1,dit:'FRÔLÉ / SLALOM : le souffle Doppler (l’objet PASSE) + le ting de la chaîne (st)',
-  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.05,d:.28,v:.5,ft:'bp',f:3200,f1:600,g:.3,gc:.6,q:2},R);cloche(b,{f:nE(19+o.base),r:[1,2,3],m:[1,.3,.1],d:[.35,.12,.05],t0:.03,v:.28},R);}});
+  r:function(b,R,o){bruit(b,{c:'r',t0:0,a:.05,d:.28,v:.5,ft:'bp',f:1800,f1:400,g:.3,gc:.6,q:1.6},R);cloche(b,{f:nE(7+o.base),r:[1,2,3],m:[1,.3,.1],d:[.35,.12,.05],t0:.03,v:.3},R);}}); // (2026-10-15) le souffle 3,2 kHz → 1,8 kHz, le ting une octave plus bas
 D('debris.tole',{fam:'piste',bus:'fx',dur:.3,v:2,db:-10,max:3,cd:.08,dit:'un bout de carrosserie se détache : cliquetis de tôle',
   r:function(b,R,o){for(let k=0;k<3;k++)tole(b,R,k*.05+R()*.03,1400+R()*1800,.12,.06);bruit(b,{c:'b',t0:0,a:.002,d:.08,v:.1,ft:'bp',f:4000,q:1},R);}});
 D('debris.esquive',{fam:'piste',dur:.4,key:1,db:-3,max:2,cd:.1,bases:[0,12],dit:'débris esquivé (ESPACE) : le ting qui monte, DANS la gamme (st)',
@@ -932,7 +1011,7 @@ D('fruit.pasteque',{fam:'fruits',dur:1.6,st:1,key:1,v:2,rj:.03,db:+5,max:1,cd:.3
     ecrase(b,R,.02,{t:1.9,f:.7,jus:2.4,v:.7,pan:-.15});ecrase(b,R,.05,{t:1.5,f:.78,jus:1.2,v:.35,pan:.2});
     stab(b,R,[12,19,24,28],.26,.2,.9,.12,1.2);cloche(b,{f:nE(36),r:[1,2,2.76],m:[1,.3,.1],d:[1.1,.4,.15],t0:.28,v:.2},R);scintille(b,R,.28,1,12,.1);}});
 D('fruit.rafale',{fam:'fruits',dur:.8,st:1,key:1,db:0,max:1,cd:.3,grp:'r',prio:2,dit:'RAFALE de fruits (3 et plus) : le mixeur qui s’emballe + trois notes',
-  r:function(b,R,o){osc(b,{f:180,f1:420,g:.4,w:'saw',t0:0,a:.02,h:.1,d:.2,v:.05,flt:['lp',1200,1200,1,.8]});[12,16,19].forEach(function(st,i){marimba(b,R,nE(st+12),.1+i*.06,.4,.4);});}});
+  r:function(b,R,o){osc(b,{f:180,f1:420,g:.4,w:'saw',t0:0,a:.02,h:.1,d:.2,v:.05,flt:['lp',1200,1200,1,.8]});[12,16,19].forEach(function(st,i){marimba(b,R,nE(st),.1+i*.06,.4,.4);});}}); // (2026-10-15, Sacha : « graves et discrets ») les trois notes une octave plus bas (mi5-sol#5-si5)
 
 /* ================================ LA MORT ===================================================== */
 D('explosion',{fam:'mort',bus:'fx',dur:3.4,st:1,v:2,db:+13,max:1,cd:.5,dit:'l’EXPLOSION : claquement, boule de feu, grave qui tombe, tôles, gravats, grondement',
@@ -1166,9 +1245,13 @@ D('raccourci',{fam:'piste',dur:1,st:1,key:1,db:+1,max:1,cd:.4,grp:'r',prio:3,dit
    gamme (`moteur.cylindre`, st = degré). */
 const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,T=G.CCSON_T;
 const nE=function(st){return 329.6276*Math.pow(2,st/12);};
-D('moteur.cylindre',{fam:'machine',dur:.3,key:1,db:-8,max:4,cd:0,bases:[0,12,24],dit:'un CYLINDRE du nouveau moteur s’allume : l’étincelle + la note qui monte (st, un degré par cylindre)',
-  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.0008,d:.03,v:.35,ft:'lp',f:1800},R);clic(b,{t0:0,f:3000,d:.004,v:.25},R);
-    cloche(b,{f:nE(12+o.base),r:[1,2,2.76],m:[1,.3,.12],d:[.22,.09,.04],t0:.002,v:.35},R);}});
+/* (2026-10-15, Sacha : « quand on roule, plein de ding-ding-ding-ding ») LE CYLINDRE QUI S'ALLUME = UN « TOUM » DE PISTON. MESURÉ au banc :
+   30 cylindres en 40 s de course, chaque moteur neuf égrenant jusqu'à 16 cloches qui montaient de mi5 à mi9 (5,3 kHz) toutes les 50 ms.
+   Maintenant un coup de piston sourd, accordé une octave et demie plus bas (si3), et le jeu garde la montée dans l'octave (engBig : sonPdAR). */
+D('moteur.cylindre',{fam:'machine',dur:.25,key:1,db:-8,max:4,cd:0,bases:[0,12],dit:'un CYLINDRE du nouveau moteur s’allume : le « toum » sourd du piston, accordé (st, un degré par cylindre)',
+  r:function(b,R,o){const f=nE(-5+o.base),t=O.Toile(b.sr,b.dur,false);
+    osc(t,{f:f*1.8,f1:f,g:.03,gc:.4,t0:0,a:.001,d:.12,v:.8});osc(t,{f:f*.5,t0:0,a:.002,d:.08,v:.4});bruit(t,{c:'n',t0:0,a:.0008,d:.035,v:.5,ft:'lp',f:600},R);
+    O.sature(t,2);O.filtre(t,'lp',1600,.7);for(let i=0;i<b.n;i++)b.L[i]+=t.L[i]*.7;clic(b,{t0:0,f:1500,d:.003,v:.12,ft:'bp'},R);}});
 D('moteur.palier',{fam:'machine',dur:2.4,st:1,key:1,db:+4,max:1,cd:1,grp:'r',prio:5,dit:'le NOUVEAU MOTEUR entre dans le capot : visseuse, plongée, clanks, IMPACT + démarreur + poussée + fanfare de palier (calé sur la carte)',
   r:function(b,R,o){
     let t=0,pas=.028;while(t<.34){T.tole(b,R,t,1400+R()*500,.06,.05);t+=pas;pas*=1.06;}                 // la visseuse qui décélère
@@ -1260,13 +1343,14 @@ D('frenesie.pose',{fam:'flow',bus:'fx',dur:.9,key:1,db:-3,max:1,cd:.5,rj:.004,di
      secondes paires les deux partent ensemble, la salve NITROOO ×n passe devant, le palier recule de 9 dB. */
 const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,T=G.CCSON_T;
 const nE=function(st){return 329.6276*Math.pow(2,st/12);};
-const TERCETS=[[24,28,31],[26,31,33],[28,31,36]]; // mi6 · fa#6 · sol#6 · si6 · do#7 · mi7 : la pentatonique, au-dessus de la pièce
-D('frenesie.cash',{fam:'argent',dur:.45,st:1,key:1,db:-7,max:2,cd:.09,v:3,rj:.004,vj:.5,dit:'un gain EN FRÉNÉSIE (par-dessus la pièce) : le ×3 — trois micro-pièces qui montent en 60 ms + poussière d’or',
+/* (2026-10-15, Sacha : « trop de petits sons aigus ») les tercets descendent de deux octaves (mi4-si4 au lieu de mi6-mi7), dans la matière
+   de la pièce v2 (modes 2,32 · 4,25, « tch » à 2,2 kHz au lieu du clic à 7 kHz), sans la poussière à 7,5 kHz : jusqu'à 11 par seconde. */
+const TERCETS=[[0,4,7],[2,7,9],[4,7,12]]; // mi4 · fa#4 · sol#4 · si4 · do#5 · mi5 : la pentatonique, autour de la pièce
+D('frenesie.cash',{fam:'argent',dur:.35,st:1,key:1,db:-8,max:2,cd:.09,v:3,rj:.004,vj:.5,dit:'un gain EN FRÉNÉSIE (par-dessus la pièce) : le ×3 — trois petites pièces graves qui montent en 60 ms',
   r:function(b,R,o){const N=TERCETS[o.v%3];
     N.forEach(function(st,i){const t=i*.028,p=(i-1)*.35;
-      clic(b,{t0:t,f:7000,d:.0015,v:.16+i*.04,pan:p},R);
-      cloche(b,{f:nE(st),r:[1,2,3.01,5.43],m:[1,.35,.14,.1],d:[.16+i*.06,.07,.04,.02],t0:t,v:.26+i*.06,pan:p,jit:.003},R);});
-    bruit(b,{c:'b',t0:.02,a:.004,d:.14,v:.05,ft:'hp',f:7500,pan:-.4,pan1:.4},R);}});
+      bruit(b,{c:'b',t0:t,a:.0006,d:.016,v:.14+i*.03,ft:'bp',f:2200,q:1.2,pan:p},R);
+      cloche(b,{f:nE(st),r:[1,2.32,4.25],m:[1,.3,.12],d:[.12+i*.04,.06,.03],t0:t+.002,v:.28+i*.06,pan:p,jit:.003},R);});}});
 D('nitrooo.palier',{fam:'machine',bus:'fx',dur:.8,st:1,key:1,db:-2,max:1,cd:.3,bases:[0,12],grp:'r',prio:1,dit:'un PALIER de NITROOO (chaque seconde tenue, st) : bouffée de feu + braises + ton de chauffe qui monte se poser sur la note + cloche',
   r:function(b,R,o){const B=o.base;
     bruit(b,{c:'n',t0:0,a:.03,h:.03,d:.35,v:.55,ft:'lp',f:250,f1:2200,g:.12,q:.7},R);   // la bouffée : le feu qui s'ouvre
