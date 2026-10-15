@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DRAGON EN FEU DE PIXELS (2026-10-15, Sacha : « fais le dragon chinois NITROOO avec les mêmes effets de particule que les flammes de nitro, fais ça bien »)
+- Tout le FEU du dragon passe dans la matière du nitro (`NFEU`, le feu de pixels du 15/10) : `DFEU` = un InstancedMesh à part (1 800 cubes ;
+  le feu des pots garde ses 900) sur la MÊME géométrie et le MÊME halo, matière clonée (`transparent` n'entre pas dans la clé de programme
+  de three r128) — mêmes seuils d'âge blanc → jaune → orange → vermillon → rouge → braise → suie, mêmes tailles, poches chaudes, bord
+  dentelé, cases, taille tenue à l'écran ; palettes feu / violet (nitro infinie) de `NFEU_PAL` (la branche nitro-teinte s'y appliquera
+  d'elle-même) + `DFEU_PAL_N`, du sang au noir pour la dark triad (le cube est opaque : il sait faire du noir).
+- Chaque flamme est un petit JET de nitro : crinière (6 jets de la nuque, vers le HAUT et le DEHORS), flammèches du crâne, crête du dos en
+  dents qui défilent, frange autour du papier (née orange), queue (3 jets en éventail), souffle de la gueule (en vol + la gerbe de chaque
+  rugissement), cubes aspirés vers la tête pendant la formation, moustaches et barbe en TRAITS de cubes posés image par image le long de
+  leur courbe (`dfeuTrait`), braises du corps / du virage / de la pose dans le monde. Trois repères : TÊTE (kR·kU·hF), CORPS (le long de
+  l'échine, prolongé au-delà de la queue), MONDE. La grille des cases est celle de la tête.
+- Se taisent : les rubans additifs (`DRG.m.material[2].visible=false`) et les boules rondes (flames/flameCore/embers) du dragon. Restent :
+  crâne peint, corps de papier, bois, banderoles, yeux, et les stades de la session « évolution prolongée » (fusionnés ici, à sa demande).
+- BANC (`scratchpad/drg/dfeu*.cjs`, Puppeteer, portrait 390×844) : 0 programme lié en course, 0 erreur, 400 à 620 cubes au dragon adulte,
+  0,2-0,3 ms par image. Trois corrections au banc : (1) la crinière qui filait vers l'arrière faisait un MUR de gros cubes au bas de l'écran
+  → jets vers le haut et le dehors, vent plus doux, fondu AVANT l'objectif ; (2) ce fondu, proportionnel à la distance caméra, effaçait
+  tout le corps en vol (caméra à 16 m) → borné 3 à 6 m, comme les rubans d'avant ; (3) opaques, les cubes de la crête passaient DERRIÈRE
+  le papier qui les recouvrait → dessinés après lui (renderOrder 7/8).
+- `?dragon=ancien` = les rubans et les boules d'avant ; `dbgDragon('pix',0|1)` bascule en course ; bancs : `dbgDragon('tt',s)` avance
+  l'horloge des stades (l'adulte sans 24 s à ×2,6), `dbgDragon('nitrooo')` embrase NITROOO sans le geste.
+
 ## ZEPPELIN D'OR II, 2e JET — LA MACHINE DE 1983 PREND LA MAIN (2026-10-15, pôle SON › nouveaux sons ; Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → reformulé, « les deux » : la basse new wave grave-aigu en croches balancées ET le boum-tchak de fond)
 - Jusqu'au 9e moteur rien ne change (le gramophone, la même mélodie). Au 10e (étape `nw` de `TRIO.zeppelin2`) : tout devient DROIT (l'étape met
   `swing` et `swing8` à 0 — pas() lit désormais le balancement dans `M.etP`), la batterie se SYNCOPE (grosse caisse 1 · « et » de 2 · 3 · « et » de 3,

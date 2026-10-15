@@ -27020,7 +27020,7 @@ function nfeuCoup(k){ // L'ALLUMAGE : une boule de feu par pot + une gerbe d'ét
 function nfeuFin(){ // L'EXTINCTION : la dernière bouffée, lente et sale (appelé par nitroEteint)
   if(!NFEU.on)return;const np=nfeuNp();
   for(let i=0;i<np;i++)for(let j=0;j<16;j++)nfeuNait(i,.3,false,true);}
-function nfeuCoupe(){const N=NFEU;N.n=0;N.k=0;N.pOk=false;N.m.count=N.h.count=0;N.m.visible=N.h.visible=false;} // replacement, explosion : rien ne reste figé
+function nfeuCoupe(){const N=NFEU;N.n=0;N.k=0;N.pOk=false;N.m.count=N.h.count=0;N.m.visible=N.h.visible=false;try{dfeuCoupe();}catch(e){}} /* (2026-10-15) + le feu de pixels du DRAGON (déclaré plus bas : le try couvre un appel trop tôt) */ // replacement, explosion : rien ne reste figé
 function nfeuPas(dt,on,bleu,inf,speedKmh){
   const N=NFEU;if(!N.on)return;
   const np=nfeuNp(),vise=on&&np>0&&mode!=='boom'?1:0;
@@ -33175,7 +33175,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
-  function(){if(!DRG.m)dragonInit();const L9=[DRG.m,DRG.tm,DRG.bouche].concat(DRG.yeux);for(const o of L9)o.visible=true;chauffeRendu(L9);for(const o of L9)o.visible=false; // (2026-10-14, passe perf mobile) LE DRAGON DE NITROOO naissait au 1er NITROOO, en pleine course : ses maillages, ses feuilles peintes envoyées à la puce et l'état de pipeline du programme des rubans en mélange NORMAL (jamais dessiné ainsi avant) — ~20-60 ms d'image figée sur iPhone 7, pile au moment fort. Bâti caché au menu et dessiné une fois hors écran (sommets à zéro : rien ne se voit)
+  function(){if(!DRG.m)dragonInit();const L9=[DRG.m,DRG.tm,DRG.bouche,DFEU.m,DFEU.h].concat(DRG.yeux);DFEU.m.count=DFEU.h.count=1;for(const o of L9)o.visible=true;chauffeRendu(L9);for(const o of L9)o.visible=false;DFEU.m.count=DFEU.h.count=0; /* (2026-10-15) + le FEU DE PIXELS du dragon : ses tampons d'instances montés au menu */ // (2026-10-14, passe perf mobile) LE DRAGON DE NITROOO naissait au 1er NITROOO, en pleine course : ses maillages, ses feuilles peintes envoyées à la puce et l'état de pipeline du programme des rubans en mélange NORMAL (jamais dessiné ainsi avant) — ~20-60 ms d'image figée sur iPhone 7, pile au moment fort. Bâti caché au menu et dessiné une fois hors écran (sommets à zéro : rien ne se voit)
     for(const t9 of [DRG_TEX_V,DRG_PF_V,DRG_TEX_N,DRG_PF_N].concat(DRG_OEIL_V,DRG_OEIL_N))renderer.initTexture(t9);}, // …et ses feuilles VIOLETTES (nitro infinie) et NOIRES (dark triad), échangées en course
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
@@ -46243,11 +46243,119 @@ function dragonEchine(u,out){ // un point du CORPS (u : 0 la nuque → 1 le bout
   return out;
 }
 function dragonCoul(i,c,k){DRG.CR[i]=c[0]*k;DRG.CG[i]=c[1]*k;DRG.CB[i]=c[2]*k;}
+/* LE DRAGON EN FEU DE PIXELS (2026-10-15, Sacha : « fais le dragon chinois NITROOO avec les mêmes effets de particules que les flammes de
+   nitro, fais ça bien »). Tout le FEU du dragon passe dans la matière du NITRO (`NFEU`) : des CUBES nés blancs dans leur bouche, qui
+   jaillissent et vieillissent blanc → jaune → orange → vermillon → rouge → braise → SUIE, sautent de case en case, avec les poches chaudes,
+   le bord dentelé, le halo additif là où ils s'entassent, la taille tenue à l'écran et le fondu près de l'objectif — les mêmes seuils, les
+   mêmes tailles, les mêmes palettes (feu, violet de la nitro infinie) ; plus une palette de SANG pour la dark triad (le cube est opaque :
+   il sait faire du noir, ce que l'additif ne savait pas — il se taisait).
+   Chaque flamme du dragon est un petit JET de nitro : la CRINIÈRE (six jets de la nuque vers l'arrière), les FLAMMÈCHES qui lèchent le
+   crâne, la CRÊTE (des dents de feu qui montent du dos et filent vers la queue), la FRANGE autour du corps, la QUEUE (trois jets en
+   éventail : l'échappement du dragon), le SOUFFLE de la gueule (en vol, et la gerbe du rugissement) ; pendant la FORMATION, des cubes
+   aspirés vers la tête qui se forme ; les MOUSTACHES et la BARBE sont des traits de cubes posés image par image le long de leur courbe
+   (ils fouettent comme avant) et qui fument ; les BRAISES du corps, du virage et de la pose giclent dans le monde avec l'élan de la caisse.
+   Les rubans additifs (DRG_FEU) et les boules rondes (flames/flameCore/embers) du dragon se taisent ; le crâne peint, le corps de papier,
+   les bois, les banderoles et les yeux restent : c'est la FORME, le feu l'habille.
+   Trois repères : la TÊTE (kR · kU · hF depuis la caisse — la crinière et le souffle suivent la tête), le CORPS (s le long de l'échine,
+   écart, hauteur — la crête reste sur le dos qui serpente ; au-delà du bout, le prolongement de la queue), le MONDE (les braises). La
+   grille des cases est celle de la TÊTE : tous les cubes sont alignés, comme les pixels d'un même écran.
+   Même géométrie et mêmes matières que NFEU (un InstancedMesh à part : le feu des pots garde ses 900 cubes) : 0 programme de plus.
+   `?dragon=ancien` = les rubans et les boules d'avant ; dbgDragon('pix',0|1) bascule en course. */
+const DFEU_N=1800,DFEU_PAL_N=[[1.9,.3,.24],[1.4,.1,.08],[.85,.03,.04],[.42,.01,.02],[.16,0,.01],[.05,0,0],[.025,.02,.025]]; // dark triad : sang → noir d'encre
+const DFEU=(function(){
+  const mA=NFEU.m.material.clone();mA.transparent=true; /* (banc) dessiné APRÈS le papier (renderOrder 7 > 6) : opaque, les cubes de la crête et de la frange passaient DERRIÈRE le
+     corps de papier (mélange normal, il ne s'inscrit pas dans la profondeur) et il les recouvrait — les rubans additifs d'avant passaient devant. Même programme (le mélange n'en fait pas partie) */
+  const A=new THREE.InstancedMesh(NFEU.m.geometry,mA,DFEU_N),B=new THREE.InstancedMesh(NFEU.h.geometry,NFEU.h.material,DFEU_N); // ⚠ la géométrie et le halo MÊMES du feu des pots
+  A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(DFEU_N*3),3);
+  A.instanceMatrix.setUsage(THREE.DynamicDrawUsage);A.instanceColor.setUsage(THREE.DynamicDrawUsage);
+  B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor;
+  A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;A.visible=B.visible=false;A.renderOrder=7;B.renderOrder=8;scene.add(A);scene.add(B);
+  return {m:A,h:B,P:new Float32Array(DFEU_N*12),n:0,S:new Float32Array(240*5),sN:0,acc:new Float32Array(24),T:0,dp:6,kd:1,pas:.08,tl:.2,q:1,pal:null,ms:0,
+    o:new THREE.Vector3(),d:new THREE.Vector3(),w:new THREE.Vector3(),tP:new THREE.Vector3(),tT:new THREE.Vector3(0,0,-1),tL:new THREE.Vector3(1,0,0),lx:0,ly:0,lz:0,corps:false,
+    on:FLM_ON&&!/[?&]dragon=ancien\b/.test(location.search)};
+})();
+function dfeuCoupe(){const D=DFEU;D.n=D.sN=0;D.m.count=D.h.count=0;D.m.visible=D.h.visible=false;} // fin de partie, replacement, explosion : rien ne reste figé
+function dfeuNait(k,x,y,z,vx,vy,vz,vie,tl,ch){ // un cube du dragon. k : 0 TÊTE (m, repère kR·kU·hF depuis la caisse) · 1 CORPS (s le long de l'échine, écart, hauteur) · 2 MONDE (braise) ; ch : avance de l'âge (0 = né blanc)
+  const D=DFEU;if(D.n>=DFEU_N)return;const o=D.n*12,P=D.P;D.n++;
+  P[o]=x;P[o+1]=y;P[o+2]=z;P[o+3]=vx;P[o+4]=vy;P[o+5]=vz;P[o+6]=0;P[o+7]=vie;P[o+8]=tl;P[o+9]=Math.random();P[o+10]=k;P[o+11]=ch||0;}
+function dfeuLoc(w){const D=DFEU,d=D.d.subVectors(w,D.o);D.lx=d.dot(DRG.kR);D.ly=d.dot(DRG.kU);D.lz=d.dot(DRG.hF);} // un point monde → le repère de la TÊTE
+function dfeuJet(w,dr,du,df,v,sp,vie,tl,ch){ // un cube né au point monde w, LANCÉ dans la direction (repère tête, normée) à ~v m/s, ouverture sp (m/s)
+  dfeuLoc(w);const D=DFEU,r=v*(.75+.5*Math.random());
+  dfeuNait(0,D.lx,D.ly,D.lz,dr*r+(Math.random()-.5)*sp,du*r+(Math.random()-.5)*sp,df*r+(Math.random()-.5)*sp,vie*(.8+.4*Math.random()),tl*(.75+.5*Math.random())*D.tl,ch);}
+function dfeuTaux(i,taux){const D=DFEU;D.acc[i]+=taux*D.q;const n=D.acc[i]|0;D.acc[i]-=n;return Math.min(n,40);} // combien de cubes naissent CETTE image (taux déjà multiplié par dt)
+function dfeuPose(w,tl,b){ // un cube POSÉ pour cette image seulement (moustaches, barbe) : chaleur b (0 blanc … 6 suie)
+  const D=DFEU;if(D.sN>=240)return;dfeuLoc(w);const o=D.sN*5,S=D.S;D.sN++;S[o]=D.lx;S[o+1]=D.ly;S[o+2]=D.lz;S[o+3]=tl*D.tl;S[o+4]=b;}
+function dfeuTrait(n,t0,t1,b0,b1,lg){ // un TRAIT de cubes le long de DRG.P[0..n-1] (la courbe d'un ruban qu'on vient de calculer) : un cube par case, taille t0 → t1, chaleur b0 → b1 ; lg : la part tracée (il pousse)
+  const P=DRG.P,D=DFEU,st=D.pas*1.35,T=D.T;let acc=0,u=0;
+  for(let i=1;i<n&&u<lg;i++){const a=P[i-1],b=P[i],l=a.distanceTo(b);if(l<1e-5)continue;
+    while(acc<l&&u<lg){const f=acc/l;u=(i-1+f)/(n-1);D.w.copy(a).lerp(b,f);
+      const h=Math.sin(u*41.3+T*17.1)*Math.sin(u*13.7-T*9.3),bb=Math.round(b0+(b1-b0)*u-(h>.55?1:0)+(h<-.7?1:0)); // le trait SCINTILLE : des cases plus chaudes, d'autres déjà rouges
+      if(!(u>.7&&h<-.5))dfeuPose(D.w,t0+(t1-t0)*u,Math.max(0,Math.min(6,bb))); // le bout s'effiloche
+      acc+=st;}
+    acc-=l;}}
+function dfeuCorpsPt(s,a,h,out){ // un point du CORPS (repère de l'échine) → monde ; au-delà du bout, le prolongement de la queue
+  const D=DFEU,Lb=Math.max(.01,DRG.Lb);
+  if(s>Lb)return out.copy(D.tP).addScaledVector(D.tT,s-Lb).addScaledVector(D.tL,a).addScaledVector(DRG.U,h);
+  dragonEchine(Math.max(0,s)/Lb,out);return out.addScaledVector(DRG.sl,a).addScaledVector(DRG.U,h);}
+function dfeuCadre(tri,inf){ // le repère et l'échelle du feu pour cette image (appelé par dragonTick, la tête posée)
+  const D=DFEU;D.o.copy(DRG.c);D.dp=Math.max(2,camera.position.distanceTo(DRG.c));
+  D.kd=Math.pow(Math.min(3,Math.max(1,D.dp/6)),.65); // la caméra RECULE (en vol) : le feu grossit, sinon il n'est plus que des points (comme celui des pots)
+  D.pas=NFEU_PAS*1.3*D.kd;D.tl=(.85+.3*Math.min(1,Math.max(0,DRG.Hs/DRG_ECH-.6)))*D.kd;
+  D.q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(IS_MOBILE?.8:1);
+  D.pal=tri?DFEU_PAL_N:inf?NFEU_PAL.v:NFEU_PAL.f;}
+function dfeuQueue(){ // le corps de cette image (appelé par dragonTick, l'échine calculée) : le bout de la queue, sa direction, sa latérale
+  const D=DFEU;D.corps=DRG.Lb>.25;
+  if(D.corps){dragonEchine(1,D.tP);dragonEchine(.96,D.w);D.tT.subVectors(D.tP,D.w);if(D.tT.lengthSq()<1e-6)D.tT.copy(DRG.hF).negate();D.tT.normalize();D.tL.crossVectors(D.tT,DRG.U);if(D.tL.lengthSq()<1e-6)D.tL.copy(DRG.hR);D.tL.normalize();}}
+function dfeuPas(dt,vif){ // la vie des cubes et leur écriture ; vif=false : le dragon s'est éteint, ses dernières flammes finissent (rien ne naît)
+  const D=DFEU,t0=performance.now();dt=Math.min(dt,.05);D.T+=dt;
+  if(!vif){D.sN=0;D.o.copy(carGroup.position);}
+  if(!D.n&&!D.sN){if(D.m.visible)D.m.visible=D.h.visible=false;return;}
+  const P=D.P,cam=camera.position,col=D.m.instanceColor.array,ar=D.m.instanceMatrix.array,pal=D.pal||NFEU_PAL.f,R=DRG.kR,U=DRG.kU,F=DRG.hF,o0=D.o,pas=D.pas,T=D.T,W=D.w;
+  const dp=D.dp,fA=Math.min(6,Math.max(3.2,dp*.8)),fB=Math.min(3,Math.max(1.6,dp*.42)),K=.9+.2*Math.min(1,NTR.k); /* LE PIXEL GARDE SA TAILLE À L'ÉCRAN (la règle du feu des pots) : rapportée à la distance de la CAISSE ; et il s'efface AVANT l'objectif (banc : à mi-distance, la crinière qui file vers la caméra faisait un MUR de gros cubes au bas de l'écran — on ne voyait plus la route) — mais BORNÉ (3 à 6 m, comme les rubans d'avant) : en vol la caméra recule à 16 m, un fondu proportionnel effaçait tout le corps */
+  const e0=R.x,e1=R.y,e2=R.z,e4=U.x,e5=U.y,e6=U.z,e8=F.x,e9=F.y,e10=F.z; // les cubes s'alignent sur la TÊTE
+  const wR=1.6+2*Math.min(1.7,DRG.vt); // le VENT de la course repousse le feu vers l'arrière de la tête (doux : derrière la tête, c'est la caméra)
+  let np=0,ni=0;
+  const ecrit=function(x,y,z,sz,b){ // un cube à l'écran : taille tenue, fondu près de l'objectif, la couleur de son âge
+    const dx=x-cam.x,dy=y-cam.y,dz=z-cam.z,d9=Math.sqrt(dx*dx+dy*dy+dz*dz);sz*=Math.min(1.25,Math.max(.3,d9/dp));if(d9<fA)sz*=Math.max(0,(d9-fB)/(fA-fB));
+    if(sz<.004||ni>=DFEU_N)return;
+    const m=ni*16;ar[m]=e0*sz;ar[m+1]=e1*sz;ar[m+2]=e2*sz;ar[m+3]=0;ar[m+4]=e4*sz;ar[m+5]=e5*sz;ar[m+6]=e6*sz;ar[m+7]=0;
+    ar[m+8]=e8*sz;ar[m+9]=e9*sz;ar[m+10]=e10*sz;ar[m+11]=0;ar[m+12]=x;ar[m+13]=y;ar[m+14]=z;ar[m+15]=1;
+    const c=pal[b];col[ni*3]=c[0]*K;col[ni*3+1]=c[1]*K;col[ni*3+2]=c[2]*K;ni++;};
+  const case9=function(w){ // de case en case : la grille de la TÊTE
+    const dx=w.x-o0.x,dy=w.y-o0.y,dz=w.z-o0.z,lx=Math.round((dx*R.x+dy*R.y+dz*R.z)/pas)*pas,ly=Math.round((dx*U.x+dy*U.y+dz*U.z)/pas)*pas,lz=Math.round((dx*F.x+dy*F.y+dz*F.z)/pas)*pas;
+    w.set(o0.x+R.x*lx+U.x*ly+F.x*lz,o0.y+R.y*lx+U.y*ly+F.y*lz,o0.z+R.z*lx+U.z*ly+F.z*lz);};
+  for(let j=0;j<D.n;j++){const o=j*12;
+    P[o+6]+=dt;const a=P[o+6]/P[o+7]+P[o+11];if(a>=1)continue; // morte : pas recopiée
+    const k=P[o+10],sd=P[o+9];let b,sz;
+    if(k===2){P[o+4]-=9*dt;P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;W.set(P[o],P[o+1],P[o+2]);b=a<.3?0:a<.65?1:2;sz=P[o+8]*(1-.5*a);} // une BRAISE : la gravité, pas de case (celles des pots non plus)
+    else{
+      if(k===1&&!D.corps&&vif)continue; // le corps s'est replié
+      const a9=a+(sd-.5)*.14; // un peu de hasard par cube : le bord dentelé
+      b=a9<NFEU_SEUIL[0]?0:a9<NFEU_SEUIL[1]?1:a9<NFEU_SEUIL[2]?2:a9<NFEU_SEUIL[3]?3:a9<NFEU_SEUIL[4]?4:a9<NFEU_SEUIL[5]?5:6;
+      if((b===5&&sd>.55)||(b===6&&sd>.3))continue; // la plupart s'éteignent avant : quelques braises sombres, et moins encore de cubes de SUIE
+      if(sd<.13&&b>0&&b<5)b-=b>2?2:1; // les POCHES CHAUDES
+      const dr=Math.exp(-1.4*dt);P[o+3]*=dr;P[o+4]*=dr;P[o+5]*=dr;
+      const s0=P[o]*1.3+P[o+2]*.7;
+      if(k===0){P[o+3]+=Math.sin(s0*2.7+sd*6.3+T*9.1)*4*dt;P[o+4]+=(Math.cos(s0*2.3+sd*5.1-T*7.7)*4+2)*dt;P[o+5]-=wR*dt; // le tourbillon, le feu qui monte, le vent
+        P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;
+        W.set(o0.x+R.x*P[o]+U.x*P[o+1]+F.x*P[o+2],o0.y+R.y*P[o]+U.y*P[o+1]+F.y*P[o+2],o0.z+R.z*P[o]+U.z*P[o+1]+F.z*P[o+2]);}
+      else{P[o+4]+=Math.sin(s0*2.7+sd*6.3+T*9.1)*4*dt;P[o+5]+=(Math.cos(s0*2.3+sd*5.1-T*7.7)*4+2)*dt;P[o+3]+=.4*wR*dt; // sur le dos : le vent pousse vers la QUEUE
+        P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;dfeuCorpsPt(P[o],P[o+1],P[o+2],W);}
+      case9(W);sz=P[o+8]*NFEU_TAILLE[b];}
+    if(np!==j)P.copyWithin(np*12,o,o+12);np++;
+    ecrit(W.x,W.y,W.z,sz,b);}
+  D.n=np;
+  for(let j=0;j<D.sN;j++){const o=j*5,S=D.S; // les traits POSÉS (moustaches, barbe) : sur la même grille
+    W.set(o0.x+R.x*S[o]+U.x*S[o+1]+F.x*S[o+2],o0.y+R.y*S[o]+U.y*S[o+1]+F.y*S[o+2],o0.z+R.z*S[o]+U.z*S[o+1]+F.z*S[o+2]);case9(W);ecrit(W.x,W.y,W.z,S[o+3]*NFEU_TAILLE[S[o+4]|0],S[o+4]|0);}
+  D.sN=0;
+  D.m.count=D.h.count=ni;D.m.visible=D.h.visible=ni>0;if(ni){D.m.instanceMatrix.needsUpdate=true;D.m.instanceColor.needsUpdate=true;}
+  D.ms=D.ms*.95+(performance.now()-t0)*.05;}
 function dragonTick(dt){
   const vis=NTR.k;
-  if(vis<.02){if(DRG.m&&DRG.m.visible)dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;DRG.tt=0;DRG.st=0;DRG.tr=0;return;}
+  if(vis<.02){if(DFEU.n)dfeuPas(dt,false);if(DRG.m&&DRG.m.visible)dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;DRG.tt=0;DRG.st=0;DRG.tr=0;return;}
   if(!DRG.m)dragonInit();
   DRG.m.visible=DRG.tm.visible=DRG.bouche.visible=true;for(const s9 of DRG.yeux)s9.visible=true;DRG.t+=dt;const t=DRG.t;
+  const PX=DFEU.on;DRG.m.material[2].visible=!PX; // (feu de pixels) les rubans ADDITIFS se taisent : crinière, flammèches, crête, halo, queue, moustaches et barbe sont en cubes
   DRG.em=Math.min(1,DRG.em+dt/.6); // il JAILLIT de la caisse
   DRG.tt+=dt;let st9=0;while(st9+1<DRG_STADES.length&&DRG.tt>=DRG_STADES[st9+1][0])st9++; // (stades) le cran atteint
   const foC=DRG_STADES[st9][1];DRG.fo+=(foC-DRG.fo)*(1-Math.exp(-dt*2.6)); // il POUSSE vers son cran en ~1 s, puis il y reste : un palier qu'on voit
@@ -46327,6 +46435,11 @@ function dragonTick(dt){
   DRG.m.material[1].opacity*=fC;
   MT(0,.2,0,DRG.hC);MT(0,.04,1.13,DRG.nez);
   const k4=function(i,x,y,z){K[i][0]=x;K[i][1]=y;K[i][2]=z;};
+  if(PX)dfeuCadre(tri,inf);
+  const langue=function(i,taux,vie,tl,ch,sp,kz,ku){ // (feu de pixels) une LANGUE = un petit jet de nitro : il naît à la racine de la courbe K0 → K3 et file vers son bout ; kz/ku : la part vers l'ARRIÈRE et vers le HAUT
+    const n=dfeuTaux(i,dt*taux);if(!n)return;
+    const dx=(K[3][0]-K[0][0])*TX,dy=(K[3][1]-K[0][1])*TY*ku,dz=(K[3][2]-K[0][2])*TZ*kz,L=Math.sqrt(dx*dx+dy*dy+dz*dz)||1,v=L/(vie*.8);
+    for(let j=0;j<n;j++){MT(K[0][0]+(Math.random()-.5)*.14,K[0][1]+(Math.random()-.5)*.14,K[0][2],DRG.a);dfeuJet(DRG.a,dx/L,dy/L,dz/L,v,v*sp,vie,tl,ch);}};
   const courbe=function(nom,wA,wB,cA,cB,additif,tuile,v0){ // un RUBAN le long de la courbe de Bézier K0 → K3 (coordonnées TÊTE) : demi-largeur wA → wB (m), couleur cA → cB
     const s=DRG.S[nom],n=s.n;
     for(let i=0;i<n;i++){const u=i/(n-1),a=(1-u)*(1-u)*(1-u),b=3*(1-u)*(1-u)*u,cc=3*(1-u)*u*u,d=u*u*u;
@@ -46375,17 +46488,21 @@ function dragonTick(dt){
   // la CRINIÈRE : six langues de feu qui partent de la nuque vers l'arrière et l'extérieur — plus longues avec la tenue
   {const ml=(.8+.4*gT)*(1+.35*AI)*(1+.4*CH)*(.85+.3*v1);for(let j=0;j<6;j++){const sg=j<3?-1:1,lv=j%3,bx=sg*.86,by=-.1+.35*lv,bz=-.95,on=function(u){return (.1+.1*VT)*u*Math.sin(DRG.phF*.85-u*5+j*1.7);}; /* (v7) au pas du VENT */ /* (v6) une ONDE qui court vers le bout, pas un tremblement */
     k4(0,bx,by,bz);k4(1,bx+sg*.2-VR*.12,by+.12+on(.33),bz-.3*ml);k4(2,bx+sg*.4-VR*.26,by+.25+on(.66),bz-.6*ml);k4(3,bx+sg*.55-VR*.42+on(1)*.6,by+.38+on(1),bz-.9*ml);
-    courbe('cri'+j,.5,.06,C9.H,C9.Q,true,1.6,-t*2.4);}}
+    courbe('cri'+j,.5,.06,C9.H,C9.Q,true,1.6,-t*2.4);
+    if(PX)langue(j,100*V*(.6+.6*gT)*(1+.5*CH)*(.85+.3*v1),.4,.24,0,.38,.42,1.6);}} // (feu de pixels) la crinière : six jets de la nuque, vers le HAUT et le DEHORS (vers l'arrière, ils fonçaient dans l'objectif)
   // les FLAMMÈCHES : six langues qui lèchent le crâne vers la nuque (sur l'arête et sur les joues) — la tête est EN FEU, plus avec la tenue
   {const lf=(.55+.55*gT)*(1+.25*AI)*(1+.5*CH);for(let j=0;j<6;j++){const sg=j%2?1:-1,rg=j>>1,bx=sg*[.18,.72,.9][rg],by=[.7,.5,0][rg],bz=[.35,-.05,.15][rg],w1=.1*Math.sin(t*13+j*2.1),w2=.12*Math.sin(t*9.7+j*1.3);
     k4(0,bx,by,bz);k4(1,bx+sg*.06+w1-VR*.05,by+.2*lf,bz-.25*lf);k4(2,bx+sg*.12+w2-VR*.1,by+.36*lf,bz-.5*lf);k4(3,bx+sg*.16+w1-VR*.16,by+.46*lf+w2,bz-.8*lf);
-    courbe('fla'+j,.26,.03,C9.H,C9.Q,true,1,-t*3.2);}}
+    courbe('fla'+j,.26,.03,C9.H,C9.Q,true,1,-t*3.2);
+    if(PX)langue(6+j,20*V*(.5+.6*gT)*(1+CH),.3,.17,.06,.3,.7,1.3);}} // (feu de pixels) les flammèches lèchent le crâne (à peine moins blanches : la tête reste lisible)
   // les MOUSTACHES : des flancs du museau, longues, elles fouettent le long de la tête
   {const mm=(1+.5*gT)*(1+.3*AI)*(.3+.7*fMo)*(.8+.35*Math.min(1.4,VT));for(const sg of [-1,1]){const on=function(u,f){return Math.sin(DRG.phF*.62-u*4.6+sg*1.3+f);}; /* (v7) au pas du VENT */ /* (v6) une onde qui COURT de la racine au bout : de la soie */
     k4(0,sg*.46,-.08,.9);k4(1,sg*(.85+.1*on(.33,0))-VR*.1,.02+.15*on(.33,1.6),.7);k4(2,sg*(1.25+.13*on(.66,0))-VR*.24,-.08+.14*on(.66,1.6),.15);k4(3,sg*(1.5+.17*on(1,0))-VR*.4,.15+.17*on(1,1.6),-.5*mm);
-    courbe(sg<0?'mousG':'mousD',.15*fMo,.04*fMo,C9.G,C9.C,true,1.2,-t*2);}}
+    courbe(sg<0?'mousG':'mousD',.15*fMo,.04*fMo,C9.G,C9.C,true,1.2,-t*2);
+    if(PX&&fMo>.02){dfeuTrait(DRG_STR.mousG,.17,.09,1,4,fMo); // (feu de pixels) la moustache : un TRAIT de cubes qui fouette, chaud à la racine, rouge au bout…
+      for(let j=0,n=dfeuTaux(sg<0?20:21,dt*16*V*fMo);j<n;j++)dfeuJet(P[2+((Math.random()*(DRG_STR.mousG-3))|0)],(Math.random()-.5)*.4,.55,-.8,2.2,1.6,.3,.12,.2);}}} // …et qui fume
   // la BARBE : trois langues sous le menton
-  for(let j=0;j<3;j++){const o=j-1,w=.06*Math.sin(t*9+j);k4(0,o*.12,-.78,.82);k4(1,o*.16+w,-.9,.7);k4(2,o*.2,-1,.55);k4(3,o*.25+w,-1.05,.36);courbe('bar'+j,.2*fMo,.04*fMo,C9.C,C9.Q,true,1,-t*2.6);}
+  for(let j=0;j<3;j++){const o=j-1,w=.06*Math.sin(t*9+j);k4(0,o*.12,-.78,.82);k4(1,o*.16+w,-.9,.7);k4(2,o*.2,-1,.55);k4(3,o*.25+w,-1.05,.36);courbe('bar'+j,.2*fMo,.04*fMo,C9.C,C9.Q,true,1,-t*2.6);if(PX&&fMo>.02)dfeuTrait(DRG_STR.bar0,.15,.08,2,5,fMo);} /* (feu de pixels) la barbe : trois traits de cubes */
   /* (v7, papier) LES BANDEROLES : deux larges bandes de papier nouées à la POINTE des bois. Elles filent derrière la tête en V (vers
      l'arrière, l'extérieur et le haut : de la poursuite on les voit monter de chaque côté, jamais devant la route), CLAQUENT plus vite
      et plus fort avec la vitesse, se TORDENT (leur largeur bat : on voit la tranche du papier), partent vers l'extérieur du virage, et
@@ -46407,6 +46524,7 @@ function dragonTick(dt){
   DRG.Aw*=1.3-.6*v1;DRG.Af=W*(.22+.85*VT)*DRG.raf;DRG.flm=1.5+.5*W+.5*v1;DRG.dev=.1*VR*Lb*v1;
   DRG.sag=(1-v1)*(1-v1)*(AI>.5?Lb*.12:Math.max(0,DRG.y0-W*.45)); /* (v6) tendu dans le virage, il NAGE en vol — et il y traîne un peu SOUS la trajectoire : entre la caméra et la caisse, un corps qui monte cachait la pose (banc) */
   if(corps)dragonEchineCalc();
+  if(PX)dfeuQueue();
   const uDe=function(cu){return cu/Math.max(.01,n9);};
   const prof=function(u){return .7+.3*THREE.MathUtils.smoothstep(u,0,.15)-.78*THREE.MathUtils.smoothstep(u,.55,1);}; // nuque, ventre plein, queue effilée
   const vide=function(nom){const n=DRG.S[nom].n;for(let i=0;i<n;i++){P[i].copy(DRG.N0);DRG.W[i]=0;dragonCoul(i,DRG.Z3,0);}dragonBande(nom,1);}; // (pas encore de corps : la bande est repliée, invisible)
@@ -46442,6 +46560,29 @@ function dragonTick(dt){
       dragonBande(nom,W*2.2,-DRG.phF*.04);}
   }else{vide('que0');vide('que1');vide('que2');vide('rub0');vide('rub1');vide('rub2');}
   const at=DRG.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;at.uv.needsUpdate=true;
+  if(PX){ /* (feu de pixels) LE CORPS EN FEU, les braises, le souffle : les cubes du nitro (voir DFEU) */
+    if(corps){const tW=(.14+.26*W)*DFEU.tl;
+      for(let j=0,n=dfeuTaux(14,dt*40*Lb*V);j<n;j++){const u=.04+.9*Math.random(),sc=(u*n9*3-t*.6)%1,saw=sc<0?sc+1:sc;if(Math.random()>.25+.75*saw)continue; // LA CRÊTE : des dents de feu qui montent du dos (trois par tronçon, elles défilent vers la queue)
+        const pu=prof(u);dfeuNait(1,u*Lb,(Math.random()-.5)*W*.3,W*1.02*pu,1.2+Math.random(),Math.random()-.5,(2+2.6*saw)*(.6+W)*(.8+.4*Math.random()),.28+.16*Math.random(),tW*pu*(.8+.5*saw),0);}
+      for(let j=0,n=dfeuTaux(15,dt*18*Lb*V);j<n;j++){const u=.02+.96*Math.random(),pu=prof(u),th=Math.random()*6.2832,ct=Math.cos(th),st=Math.sin(th),r9=W*1.05*pu; // LA FRANGE : le feu qui court autour du papier (née orange : elle borde, elle ne voile pas)
+        dfeuNait(1,u*Lb,ct*r9,st*r9,1,ct*1.6,st*1.6+.6,.22+.12*Math.random(),tW*.75*pu,.28);}
+      {const Lq=.8+1.6*gB;for(let k=0;k<3;k++){const o=k-1,nn=Math.sqrt(1+.3025*o*o); // LA QUEUE : trois jets en éventail au bout du corps — l'échappement du dragon
+        for(let j=0,n=dfeuTaux(16+k,dt*60*V*(.6+.8*gB));j<n;j++){const vie=.36+.14*Math.random(),v=Lq/(vie*.8)*(.8+.4*Math.random()),sp=.35*v;
+          dfeuNait(1,Lb,(Math.random()-.5)*.12,(Math.random()-.5)*.12,v/nn+(Math.random()-.5)*sp,.55*o*v/nn+(Math.random()-.5)*sp,(Math.random()-.5)*sp,vie,tW*(.9+.4*gB)*(.75+.5*Math.random()),0);}}}
+      for(let j=0,n=dfeuTaux(19,dt*45*V*(.5+gB));j<n;j++){dragonEchine(.04+Math.random()*.9,DRG.e); // les BRAISES qui se détachent du corps
+        dfeuNait(2,DRG.e.x,DRG.e.y,DRG.e.z,EXV.x*.85+(Math.random()-.5)*3,EXV.y*.85+1+Math.random()*2,EXV.z*.85+(Math.random()-.5)*3,.5+.4*Math.random(),(.06+.05*Math.random())*DFEU.tl,0);}}
+    if(Math.abs(VR)>.35&&mode==='drive'){const so=-Math.sign(VR); // LE VIRAGE ARRACHE des braises au flanc EXTÉRIEUR de la tête
+      for(let j=0,n=dfeuTaux(22,dt*60*(Math.abs(VR)-.3));j<n;j++){MT(so*1.02,-.55+Math.random()*.8,-.6+Math.random()*1.2,DRG.e);const v=5+Math.random()*7,u9=1+Math.random()*2;
+        dfeuNait(2,DRG.e.x,DRG.e.y,DRG.e.z,EXV.x*.9+DRG.kR.x*so*v+DRG.kU.x*u9,EXV.y*.9+DRG.kR.y*so*v+DRG.kU.y*u9,EXV.z*.9+DRG.kR.z*so*v+DRG.kU.z*u9,.35+.3*Math.random(),(.07+.05*Math.random())*DFEU.tl,0);}}
+    if(CH>.04)for(let j=0,n=dfeuTaux(13,dt*150*CH*V);j<n;j++){ // LES FLAMMES CONVERGENT : des cubes nés autour, aspirés vers la tête qui se forme
+      const u=Math.random()*6.2832,v=Math.acos(2*Math.random()-1),r9=1.5+.4*Math.random();MT(Math.sin(v)*Math.cos(u)*r9,Math.cos(v)*r9*.8,Math.sin(v)*Math.sin(u)*r9,DRG.e);
+      DRG.a.subVectors(DRG.hC,DRG.e).multiplyScalar(2.3);dfeuLoc(DRG.e);dfeuNait(0,DFEU.lx,DFEU.ly,DFEU.lz,DRG.a.dot(DRG.kR),DRG.a.dot(DRG.kU),DRG.a.dot(DRG.hF),.3+.2*Math.random(),(.15+.08*Math.random())*DFEU.tl,.12);}
+    if(DRG.impN){DRG.impN=0;for(let i=0;i<36;i++){const a=i/36*6.2832,ca=Math.cos(a),sa=Math.sin(a);MT(ca*.95,-.85,sa*.8,DRG.e);const v=6+Math.random()*8; // LA POSE : une couronne de braises au ras de la route
+      dfeuNait(2,DRG.e.x,DRG.e.y,DRG.e.z,EXV.x*.7+(DRG.kR.x*ca+DRG.hF.x*sa)*v+DRG.kU.x*2,EXV.y*.7+(DRG.kR.y*ca+DRG.hF.y*sa)*v+DRG.kU.y*2,EXV.z*.7+(DRG.kR.z*ca+DRG.hF.z*sa)*v+DRG.kU.z*2,.3+.25*Math.random(),(.08+.06*Math.random())*DFEU.tl,0);}}
+    {const nb=rugit?Math.round(70*DFEU.q):dfeuTaux(12,dt*(8*(.3+gT)+50*AI)*V); // LE SOUFFLE : en vol il crache, au rugissement la gerbe — un jet de nitro qui sort de la gueule
+     if(nb){MT(0,-.45,1.1,DRG.a);for(let i=0;i<nb;i++)dfeuJet(DRG.a,0,.06,1,rugit?17:12,rugit?6:4,.42,rugit?.27:.22,0);}}
+    dfeuPas(dt,true);
+  }else
   // LES BRAISES qui se détachent du corps, et LE SOUFFLE : la gueule crache (une gerbe au rugissement) — les réserves de particules du jeu
   if(!REDUCED_MOTION){
     if(corps){const n=Math.ceil(2*V*(.5+gB));for(let i=0;i<n;i++){dragonEchine(.04+Math.random()*.9,DRG.e);spawnP(embers,DRG.e.x,DRG.e.y,DRG.e.z,EXV.x*.85+(Math.random()-.5)*3,EXV.y*.85+1+Math.random()*2,EXV.z*.85+(Math.random()-.5)*3,.5+Math.random()*.4);}}
@@ -46459,6 +46600,9 @@ function dragonTick(dt){
       if(i<6)spawnP(flameCore,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+H9.x*v*.8,EXV.y+H9.y*v*.8+.5,EXV.z+H9.z*v*.8,.16+Math.random()*.08);}}}
 }
 window.dbgDragon=function(q){
+  if(q==='tt'){DRG.tt=+arguments[1]||0;return DRG.tt;} /* (banc) avance l'horloge des STADES : le dragon adulte sans tenir 24 s à ×2,6 */
+  if(q==='nitrooo'){if(!NTR.on&&mode==='drive')nitroooPart();return NTR.on;} /* (banc) embrase NITROOO sans le geste (la nitro tenue : dbgAuto(true,0,{nit:1})) */
+  if(q==='pix'){if(arguments[1]!=null){DFEU.on=!!+arguments[1];if(!DFEU.on)dfeuCoupe();}return {on:DFEU.on,cubes:DFEU.n,dessines:DFEU.m.count,ms:+DFEU.ms.toFixed(3),cam:+DFEU.dp.toFixed(1),case:+DFEU.pas.toFixed(3),taille:+DFEU.tl.toFixed(2)};} /* (feu de pixels) dbgDragon('pix',0) : les rubans et les boules d'avant (A/B) */
   if(q==='evo'){const T=+arguments[1]||30,o=[];for(let i=0;i<=T*30;i++){NTR.k=1;dragonTick(1/30);if(i%30===0)o.push([+DRG.tt.toFixed(1),DRG.st,+DRG.fo.toFixed(2),+DRG.nS.toFixed(2),+DRG.Hs.toFixed(2),+DRG.Lb.toFixed(1),DRG.ne]);}NTR.k=0;dragonTick(1/30);return o;} /* (banc, stades) l'évolution déroulée seconde par seconde : [s, stade, formation, tronçons, tête, corps, né] */
   if(q==='pres'){if(arguments[1]!=null)NTR_PRES.k=+arguments[1];return {de:NTR_PRES.de,a:NTR_PRES.a,k:NTR_PRES.k,por:+POR.toFixed(2),part:NTR.shell?+ntrShellM.uniforms.uPres.value.z.toFixed(2):null};} // (debout) dbgDragon('pres',0) : la comète d'avant, qui voilait l'écran (A/B)
   if(q==='tick'){if(DRG.m&&DRG.m.visible)dragonTick(1/60);return DRG.vu.slice();} // (banc, v6) en PAUSE photo : une image de dragon recalculée pour la caméra de la photo (les yeux dépendent de l'angle)
@@ -46470,7 +46614,7 @@ window.dbgDragon=function(q){
 function nitroooVide(){ // (2026-09-29, audit GAMEPLAY) une partie qui finit ou recommence : plus de boost, plus de plasma, plus de dragon
   NTR.on=false;NTR.t=NTR.boost=NTR.k=NTR.kc=0;NTR.pal=0;NTR.airT=0;NTR.airFig=false;
   if(NTR.shell){NTR.shell.visible=NTR.core.visible=NTR.halo.visible=NTR.halo2.visible=false;for(const m of NTR.langues)m.visible=false;}
-  dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;DRG.tt=0;DRG.st=0;DRG.tr=0;NTR.gT=0;
+  dragonCache();dfeuCoupe();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;DRG.tt=0;DRG.st=0;DRG.tr=0;NTR.gT=0;
 }
 function portailPasse(){
   if((BALADE||JADE_JEU)&&LVL.cur&&LVL.cur.id==='jade'&&JADE.root){jadeFinale();return;} // (v14) la balade de jade a une FIN : l'arrivée, puis le départ
