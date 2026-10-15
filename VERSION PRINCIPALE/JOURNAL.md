@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'EXPLOSION D'OBSTACLE (2026-10-15, Sacha : « retravaille les textures d'explosion quand tu te prends un obstacle, vraiment stylé mais adaptable à tous les obstacles du jeu ; reprends la texture d'explosion air time qui est bien »)
+- La boule DESSINÉE de la mort en vol (volutes `VOLU` + dards `DARD`, `spawnBoomArt`) sert désormais à TOUS les obstacles, avec la MATIÈRE
+  de l'obstacle : table `BOOM_MAT` (bois · roche · glace · lave · eau · metal · plot · feu = l'airtime, inchangée) et `BOOM_CAUSE`
+  (cause d'`explode` → matière : arbre/sousbois, roche/pic/paroi/canyon/facade/sol/tour, glace/poudreuse, lave, riviere/seine, sat/police).
+  Chaque matière donne la FUMÉE où retombent les volutes (`p.fu`), la teinte des DARDS (`s.da`), des ÉCLATS de l'obstacle qui ricochent
+  sur sa face (`boomEclats` : échardes + feuilles, cailloux, éclats de glace, plaques de tôle, scories — formes/matières créées UNE fois,
+  `part:true`, jamais jetées) et sa gerbe (poussière, eau, étincelles bleues, braises). Nouvelle cause d'obstacle = une ligne dans `BOOM_CAUSE`.
+- LA BOULE NAÎT DEVANT LA FACE : contre un obstacle, `boomPos` recule sur la trajectoire (≤ 3,2 m) et le foyer n'est plus poussé vers le
+  fond (`rc` .4 au lieu de 2,4) — collée au mur, la moitié des volutes passait derrière l'obstacle (z-test) : c'était l'explosion « plate ».
+- PLOT / PORTE percutés au sol : la même boule en MINIATURE (`boomMini`, puissance .3 / .42 pour une porte dure), sur les cases LIBRES
+  du pool (jamais celles d'une boule vivante), qui hérite de l'élan de la caisse puis décroche (`dr` 1,8, ~0,5 s). Pas d'ondes de choc.
+- Les dards ont désormais leur propre foyer (`ox/oy/oz`) au lieu de `boomPos`. Banc : `explo.cjs` (scratchpad de la session) — morts forcées
+  air / arbre / glace / lave / sat / roche + plot, captures à 120/380/800 ms.
+
 ## LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « on veut retoucher le nitro ainsi que la flamme du moteur quand la voiture avance ; c'est un peu fade, on n'arrive pas trop à distinguer le nitro du moteur » · « pas trop régulier, comme un moteur d'une voiture qui avance : la personne ne doit pas voir une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique, en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, mais sa grandeur, en moins gros »)
 - ⚠ LOOK, pas encore validé : branche `visuel-flammes`, planches `photos-gameplay/flammes-moteur-nitro-avant-apres.png` et
   `flammes-moteur-qui-vit.png`. `?flamme=ancien` rend la plume d'avant, au caractère près (A/B sur téléphone).
