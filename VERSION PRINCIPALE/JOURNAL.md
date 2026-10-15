@@ -19,6 +19,22 @@
   seconde mais à leur place d'origine (version du tampon restée à 0) : invisibles. Trouvé en traçant `renderBufferDirect`.
 - `?eclats=0` = la goutte d'avant (A/B sur téléphone) ; `dbgFlamme('ecl',0|1)`. Planche `photos-gameplay/moteur-eclats-avant-apres.png`.
 - À trancher par Léo : la taille et la densité des éclats (réduites d'un quart pour que le nitro reste LE gros moment), leur couleur.
+## LES TRAÎNÉES DE LUMIÈRE — ELLES PARTENT DES FEUX ARRIÈRE (2026-10-15, Sacha : « améliore les traînées de la voiture, qui doivent maintenant partir des feux arrière — on va dire que c'est des traînées de lumière ; qu'elles matchent avec les nouvelles particules de nitro, bien reconnaissables et cool, c'est un produit à vendre ; adapte cette règle de lumière au feu arrière de toutes les voitures »)
+- LES FEUX DE CHAQUE CAISSE (`CAR_FEUX`, `CAR_FEUX_SRC`, relevé dans `buildCar` juste avant les tuyères) : les pièces `l` ROUGES du kit
+  (`lpKit` garde désormais la couleur de palette de chaque pièce, champ `c`) à moins de 90 cm de la poupe, un point par côté (les plus en
+  arrière) ; un seul côté relevé = symétrisé ; une rampe d'un seul tenant = ses deux bouts (±38 % de sa largeur) ; un feu central = un seul
+  trait (plus large, `SIL.un`). Rien de relevé : la place des feux du gabarit (`A.tl`). Les HALOS des feux (`HALO.t`) se posent sur les feux
+  relevés. Crochet : `dbgFeux()` (source, points, état des sillages).
+- LES TRAÎNÉES (`LUMT`, bloc « TRAÎNÉES DE LUMIÈRE » de la boucle) : les sillages `SILS` naissent dans les FEUX, plus dans les pots (le feu
+  de pixels `NFEU` garde les pots). Elles VIVENT dès qu'on roule (>12 km/h, en vol aussi) : un trait rouge de pose longue (`k` .58, 46 m,
+  72 % de la largeur du nitro), qui s'embrase au frein (`kF`, rouge plus vif `rF`). Au nitro elles prennent l'énergie du feu : 100 m, tête chauffée à
+  blanc, pouls, et elles crachent des CUBES du feu de pixels (`nfeuGicle`, à la palette courante de `NFEU` — bleu en réserve, violet en
+  infinie ; repli : les braises rondes si `NFEU` est coupé). La lumière est enregistrée au passage : le morceau de nitro file derrière,
+  brillant, puis la queue l'avale (`tr.lg` redescend à `rDn` 30 m/s). En refroidissant, la teinte garde sa famille (orange → braise, bleu →
+  bleu nuit, rouge → rouge sang) : plus de virage magenta. Les couleurs de nitro, de réserve, d'infinie et les signatures de caisse
+  (`fx.trail`, boutique) sont inchangées ; la plume des pots se couche sur la traînée de SON côté. Chat pop-tart / traînées arc-en-ciel :
+  la lumière se tait au nitro (l'arc-en-ciel EST la traînée), comme avant.
+- Inchangé : pas de lampe au sol (refus du 26/09), coupe au plan caméra et fondus près de l'objectif (v6), la meute garde ses rubans bleus.
 ## LE GLACIER v3 — LA GRANDE DESCENTE VERGLACÉE, SANS ICE SKATE (2026-10-15, Sacha : « dans la map montagne, enlève la figure ICE SKATE ; fais une map qui descend beaucoup plus, mais sans module bizarre : la route doit juste faire une descente normale avec des virages et tout, mais toute la route doit être verglacée ; fais la route un peu plus large »)
 - **La route (`genBanq`)** : plus de spirales superposées, plus de chicanes, plus de CASSURES (`BANQ.cas` et `BANQ.spi` restent, vides). Une descente
   dans la ligne de pente en grands virages enchaînés (30-110°, le plus souvent en alternance), droites de 50-190 m, cap borné à 75° de la pente
