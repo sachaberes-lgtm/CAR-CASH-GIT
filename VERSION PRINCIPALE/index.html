@@ -38990,11 +38990,12 @@ for(const k in BOOM_MAT)BOOM_MAT[k].fuC=new THREE.Color(BOOM_MAT[k].fu);
    cachée par lui), la ville avait son cratère à elle, le jade son craquement, le reste rien. `impPrep(test)` le retrouve pour toutes —
    on recule sur la trajectoire jusqu'à ressortir de l'obstacle (le POINT DE CONTACT), on tâte l'obstacle autour de ce point dans 26
    directions (la NORMALE de la paroi) — puis la même séquence partout :
-     · LE COUP (0,11 s) — la caisse S'ÉCRASE contre la paroi (elle s'aplatit dans l'axe du choc, plaquée au mur), une ÉTOILE de choc en
-       pixels jaillit du point d'impact, l'image passe deux images en NÉGATIF (la case de BD), la paroi se FISSURE, la caméra encaisse
+     · LE COUP (0,13 s) — la caisse S'ÉCRASE contre la paroi (le nez au mur, c'est l'arrière qui vient s'écraser), une ÉTOILE de choc
+       en pixels pousse au nez puis éclate, le monde passe 48 ms en NÉGATIF (la case de BD), la paroi se FISSURE, la caméra encaisse
        (elle plonge d'un demi-mètre, le champ se resserre), le craquement part et la musique se coupe net. Le temps ne ralentit pas
        (verdict du 26/09) : la caisse est arrêtée par le mur, c'est tout.
-     · LA DÉTONATION — la boule DESSINÉE de l'airtime (volutes, dards, ondes), mais qui S'ÉCRASE contre la paroi (voir spawnBoomArt, `nW`) ;
+     · LA DÉTONATION — la boule DESSINÉE de l'airtime (volutes, dards, ondes), mais qui S'ÉCRASE contre la paroi (voir spawnBoomArt, `nW`),
+       filmée de TROIS-QUARTS (BOOM_CAM.TROIS_QUARTS : de face, on ne lisait pas le mur) ;
        l'onde de choc court SUR le mur ; les pièces de la caisse et des éclats de roche calcinée REBONDISSENT sur la paroi ; une gerbe
        d'étincelles en jaillit puis DÉGOULINE le long du mur.
      · LE CRATÈRE — un trou noir au bord chauffé à blanc qui refroidit (or → rouge → suie), onze lézardes rougeoyantes qui courent, une
@@ -39004,11 +39005,11 @@ for(const k in BOOM_MAT)BOOM_MAT[k].fuC=new THREE.Color(BOOM_MAT[k].fu);
    à compiler sur l'explosion) ; zéro lumière ; zéro allocation à la mort. Liquides (rivière, Seine, lave) : tout pareil sauf le cratère
    et les éclats — il n'y a rien à fissurer. `dbgImpact()` au banc : la caisse lancée sur l'obstacle le plus proche. */
 const IMP={frais:-1,on:false,coup:-1,COUP:.13,age:-1,rep:0,mou:false,test:null,v:0,R:4,ax:2,he:2,kE:1,
-  INVERSE:true, // l'image du coup en NÉGATIF (deux images) ; false = un éclair blanc
+  INVERSE:true,neg:false, // l'image du coup en NÉGATIF (48 ms, canvas 3D seul) ; false = un éclair blanc · neg : posé à l'instant
   c:new THREE.Vector3(),n:new THREE.Vector3(0,1,0),d:new THREE.Vector3(0,0,1),s:new THREE.Vector3(),q:new THREE.Vector3(),
   t1:new THREE.Vector3(1,0,0),t2:new THREE.Vector3(0,0,1),p0:new THREE.Vector3(),cam0:new THREE.Vector3(),sc0:new THREE.Vector3(1,1,1),fov0:60};
 const IMP_DIRS=[];for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++)if(x||y||z)IMP_DIRS.push(new THREE.Vector3(x,y,z).normalize());
-const IMP_Y=new THREE.Vector3(0,1,0),IMP_M4=new THREE.Matrix4();
+const IMP_Y=new THREE.Vector3(0,1,0),IMP_M4=new THREE.Matrix4(),IMP_NEG='invert(1) saturate(0.35) contrast(1.3)';
 /* LE POINT DE CONTACT ET LA NORMALE — juste avant explode. `test(p)` : vrai dans l'obstacle (celui de la carte : villeHeurt, jadeHeurt,
    canyonHeurt… — ils sont PURS ; celui du glacier ne l'est pas, on passe par sa surface, banqDans). `marge` : de combien ce test déborde
    de la vraie paroi (la caisse y compte pour un volume : 0,9 m pour les tours, 1,2 m pour les capsules de la forêt…) — le cratère se pose
@@ -39073,17 +39074,17 @@ const IMP_CRAT=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMater
     'float h1(float n){return fract(sin(n)*43758.5453);}',
     'void main(){',
     '  vec2 q=(floor((vUv*2.-1.)*28.)+.5)/28.;',
-    '  float r=length(q),a=atan(q.y,q.x),cool=exp(-uAge*.85),rev=clamp(uAge/.13,0.,1.);',
+    '  float r=length(q),a=atan(q.y,q.x),cool=exp(-uAge*.5),rev=clamp(uAge/.13,0.,1.);',
     '  float rh=.26+.05*sin(a*5.+uSeed)+.035*sin(a*9.-uSeed*1.7)+.02*sin(a*17.+uSeed*3.1),lip=rh+.075;',
     '  float up=q.y*(q.y>0.?mix(1.,.5,uEtire):mix(1.,1.25,uEtire)),ds=length(vec2(q.x*1.05,up))+.05*sin(a*7.+uSeed);',
-    '  vec4 c=vec4(.06,.035,.06,(1.-smoothstep(.3,.96,ds))*(1.-smoothstep(.84,.99,max(abs(q.x),abs(q.y))))*.85*rev);',
+    '  vec4 c=vec4(.06,.035,.06,(1.-smoothstep(.3,.9,ds))*(1.-smoothstep(.62,.97,r))*.85*rev);',
     '  float hot=-1.;',
     '  for(int i=0;i<11;i++){float fi=float(i),ai=fi/11.*6.2832+(h1(fi+uSeed)-.5)*.45,L=.5+.48*h1(fi*3.1+uSeed);',
     '    float aw=ai+.16*sin(r*13.+fi*2.3)+.07*sin(r*31.+fi),da=abs(mod(a-aw+3.1416,6.2832)-3.1416)*r,w=.032*(1.-r/L)+.009;',
     '    if(r<L*rev&&r>rh*.85&&da<w)hot=max(hot,1.-r/L);}',
     '  if(hot>=0.)c=vec4(mix(uInk,vec3(2.,.72,.18),smoothstep(.2,.85,hot)*(.3+.7*cool)),1.);',
     '  if(r>=lip&&r<lip+.035)c=vec4(uInk,1.);',
-    '  if(r>=rh&&r<lip){vec3 lc=mix(vec3(.85,.16,.05),vec3(2.3,2.,1.5),cool*cool);c=vec4(mix(vec3(.1,.05,.06),lc,.2+.8*cool),1.);}',
+    '  if(r>=rh&&r<lip){vec3 lc=mix(vec3(1.6,.55,.12),vec3(2.3,2.,1.5),cool*cool*cool);c=vec4(mix(vec3(.1,.05,.06),lc,.45+.55*cool),1.);}',
     '  if(r<rh){float f=1.-r/rh,fl=.72+.28*sin(uAge*17.+a*3.)*sin(uAge*11.-r*20.);',
     '    c=vec4(mix(vec3(.025,.01,.03),vec3(1.7,.55,.12)*fl,f*f*(.4+.6*min(1.,cool*1.4+.3))),1.);}',
     '  c.a*=uOp;if(c.a<.01)discard;',
@@ -39112,18 +39113,20 @@ function impCoupPart(){ // explode vient de trouver un impact frais : LE COUP �
   const up9=IMP.ax===1?e[4]*N.x+e[5]*N.y+e[6]*N.z:0;
   IMP.he=IMP.ax===2?(sp.l||4.4)*.5:IMP.ax===0?(sp.w||2)*.5:up9>0?0:1.3;
   IMP.sc0.copy(carGroup.scale);IMP.cam0.copy(camera.position);IMP.fov0=camera.fov;
-  IMP.R=Math.max(2.8,Math.min(5.6,2.8+IMP.v/30));IMP.kE=.85+Math.min(.5,IMP.v/160); // plus vite = plus gros trou, plus grosse étoile
+  IMP.R=Math.max(3.6,Math.min(5.8,3.2+IMP.v/28));IMP.kE=.85+Math.min(.5,IMP.v/160); // plus vite = plus gros trou, plus grosse étoile
   if(!IMP.mou){IMP_M4.makeBasis(IMP.t1,IMP.t2,N);IMP_CRAT.quaternion.setFromRotationMatrix(IMP_M4);
-    IMP_CRAT.position.copy(S).addScaledVector(N,.06);IMP_CRAT.scale.set(IMP.R,IMP.R,1);
+    IMP_CRAT.position.copy(S).addScaledVector(N,.28);IMP_CRAT.scale.set(IMP.R,IMP.R,1); // décollé de 28 cm : une paroi n'est jamais plane (voxels, cartes de hauteur, neige) — plus près, il s'enfonçait à moitié dedans ; de biais, l'écart ne se voit pas
     const U=IMP_CRAT.material.uniforms;U.uAge.value=0;U.uOp.value=0;U.uSeed.value=Math.random()*40;U.uEtire.value=1-Math.min(1,Math.abs(N.y)*1.1);IMP_CRAT.visible=true;}
   IMP_ETOILE.position.copy(S).addScaledVector(N,.35);IMP_ETOILE.material.rotation=Math.random()*6.28;IMP_ETOILE.material.opacity=1; // au NEZ, contre la paroi
   IMP_ETOILE.scale.setScalar(.7*IMP.kE);IMP_ETOILE.visible=true;
   try{if(!TUTO.on){sfx('pose.choc',{vol:6});sfx('impact.immeuble',{vol:IMP.mou?-8:0});}}catch(e){} // la tôle qui se plie + ce qui casse en face
   hap([38]);shake=Math.max(shake,1.6);
-  flashEl.style.transition='none';
-  if(IMP.INVERSE&&!REDUCED_MOTION){flashEl.style.background='#fff';flashEl.style.mixBlendMode='difference';flashEl.style.opacity=.92;}
-  else{flashEl.style.background='#fff6dc';flashEl.style.opacity=REDUCED_MOTION?.2:.5;}
-  setTimeout(function(){flashEl.style.opacity=0;flashEl.style.mixBlendMode='';},48);setTimeout(function(){if(IMP.coup<0)return;flashEl.style.transition='';},90);
+  // l'image du coup : le monde passe en NÉGATIF 48 ms (la case de BD) — sur le canvas 3D seul, le HUD reste lisible (le calque #flash en
+  // `mix-blend-mode` ne voyait pas le canvas : écran blanc) ; la règle d'étalonnage `body>canvas` reprend la main ensuite
+  // ⚠ un DRAPEAU, pas une comparaison de chaînes : le navigateur réécrit la valeur (« .35 » → « 0.35 ») et le négatif restait collé (banc)
+  if(IMP.INVERSE&&!REDUCED_MOTION){renderer.domElement.style.filter=IMP_NEG;IMP.neg=true;setTimeout(impNegFin,48);}
+  else{flashEl.style.transition='none';flashEl.style.background='#fff6dc';flashEl.style.opacity=REDUCED_MOTION?.2:.5;
+    setTimeout(function(){flashEl.style.opacity=0;},48);setTimeout(function(){if(IMP.coup<0)return;flashEl.style.transition='';},90);}
 }
 function impCoupTick(dt){ // vrai pendant le coup : la boucle de l'explosion attend
   if(IMP.coup<0)return false;
@@ -39138,10 +39141,10 @@ function impCoupTick(dt){ // vrai pendant le coup : la boucle de l'explosion att
 }
 function impDetone(){ // la boule vient de partir (boomDetone) : ce qui rebondit, ce qui saute de la paroi, l'onde sur le mur
   const N=IMP.n,S=IMP.s,T1=IMP.t1,T2=IMP.t2,R=IMP.R,kv=.8+Math.min(.6,IMP.v/150);
-  for(const d of debris){if(!d||!d.v)continue;const k=d.v.dot(N);if(k<0)d.v.addScaledVector(N,-1.6*k);d.v.addScaledVector(N,2+Math.random()*4);} // les pièces de la caisse ne rentrent pas dans le mur : elles en repartent
-  for(const e of IMP_ECL.L){const m=e.m,a=Math.random()*6.283,r=Math.sqrt(Math.random())*R*.6,sp=(5+Math.random()*10)*kv;
+  for(const d of debris){if(!d||!d.v)continue;const k=d.v.dot(N);d.v.addScaledVector(N,-k+1+Math.random()*2).addScaledVector(T2,1+Math.random()*3);} // les pièces de la caisse ne rentrent pas dans le mur : elles s'en décollent à peine et s'ÉTALENT le long de la paroi (renvoyées vers nous, un capot de 2 m passait en plaque plein cadre)
+  for(const e of IMP_ECL.L){const m=e.m,a=Math.random()*6.283,r=Math.sqrt(Math.random())*R*.6,sp=(3+Math.random()*7)*kv;
     m.position.copy(S).addScaledVector(T1,Math.cos(a)*r).addScaledVector(T2,Math.sin(a)*r).addScaledVector(N,.35);
-    e.v.copy(N).multiplyScalar(sp).addScaledVector(T1,Math.cos(a)*(2+Math.random()*6)).addScaledVector(T2,Math.sin(a)*(2+Math.random()*6));e.v.y+=2+Math.random()*6;
+    e.v.copy(N).multiplyScalar(sp).addScaledVector(T1,Math.cos(a)*(3+Math.random()*7)).addScaledVector(T2,Math.sin(a)*(3+Math.random()*7));e.v.y+=2+Math.random()*6;
     const k=.5+Math.random()*1.1;e.s.set(k*(.7+Math.random()*.6),k*(.6+Math.random()*.5),k*(.7+Math.random()*.6));m.scale.copy(e.s);
     m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);e.rx=(Math.random()-.5)*12;e.ry=(Math.random()-.5)*12;
     e.t=0;e.life=2.2+Math.random()*1.4;e.on=!IMP.mou;m.visible=!IMP.mou;}
@@ -39188,8 +39191,9 @@ function impFin(){ // le ménage (clearBoom, ou neuf secondes après) — rien n
   if(IMP.coup>=0){carGroup.scale.copy(IMP.sc0);camera.fov=IMP.fov0;camera.updateProjectionMatrix();}
   IMP.on=false;IMP.coup=-1;IMP.age=-1;IMP.frais=-1;IMP_CRAT.visible=false;IMP_ETOILE.visible=false;
   for(const e of IMP_ECL.L){e.on=false;e.m.visible=false;}
-  flashEl.style.mixBlendMode='';
+  impNegFin();
 }
+function impNegFin(){if(IMP.neg){IMP.neg=false;renderer.domElement.style.filter='';}} // l'étalonnage `body>canvas` reprend la main
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
   if(PARIS.sol)return parisHeurt;if(FORET.root)return foretHeurt;if(VOLCAN.root)return volcanHeurt;if(BANQ.root)return banqDans;
   if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(CITY.col)return villeHeurt;return null;}
@@ -39209,7 +39213,8 @@ window.dbgImpact=function(d,v,el){if(!started||gameOver||mode==='boom')return 'p
 window.dbgImpactEtat=function(){const f=function(v){return v.toArray().map(function(x){return +x.toFixed(2);});};
   return {on:IMP.on,coup:+IMP.coup.toFixed(3),age:+IMP.age.toFixed(2),cause:mortCause,mou:IMP.mou,v:+IMP.v.toFixed(1),R:+IMP.R.toFixed(2),axe:IMP.ax,
     contact:f(IMP.c),paroi:f(IMP.s),normale:f(IMP.n),cam:+camera.position.distanceTo(IMP.s).toFixed(1),test:IMP.test&&IMP.test.name,
-    cratere:{vis:IMP_CRAT.visible,op:+IMP_CRAT.material.uniforms.uOp.value.toFixed(2),ecran:f(IMP.q.copy(IMP.s).project(camera))}};};
+    cratere:{vis:IMP_CRAT.visible,op:+IMP_CRAT.material.uniforms.uOp.value.toFixed(2),ecran:f(IMP.q.copy(IMP.s).project(camera))},
+    programmes:renderer.info.programs?renderer.info.programs.length:null,filtre:renderer.domElement.style.filter};};
 window.dbgImpactNu=function(on){ // banc : la paroi SEULE (volutes, dards, fumée, feu cachés) — pour juger le cratère
   for(const o of [PAN_VOL.mesh,PAN_DARD.mesh,smokePool.mesh,boomPool.mesh,boomRed.mesh,boomYel.mesh,flames.mesh,dust.mesh])if(o&&o.material)o.material.visible=!on;return !!on;};
 /* L'ONDE AU SOL (2026-09-26) : un anneau À PLAT sur la route (ou sous la caisse en vol) qui file jusqu'à ~40 m en 0,75 s. Les tores

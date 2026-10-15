@@ -14,21 +14,32 @@
   la force à faire face à la caisse. `marge` = de combien le test déborde de la vraie paroi (tours .9, forêt/volcan 1.1, jade 1.1,
   canyon 1, glacier .3 via `banqDans` — banqHeurt n'est PAS pur, on passe par `banqSurf`). En conduite, un mur latéral (couloirs du
   canyon, façades de Paris) passe par `impMur(out)` : la paroi est le bord de la route.
-- LA SÉQUENCE (`IMP`, même code partout) : LE COUP, 0,11 s (`impCoupPart`/`impCoupTick`) — la caisse plaquée nez contre la paroi
-  s'ÉCRASE dans l'axe du choc (×0,6, les deux autres axes ×1,13 ; à plat ventre elle s'aplatit sur ses roues), l'ÉTOILE de choc en pixels
-  (`IMP_ETOILE`, 11 pointes, blanc · or · feu · encre) jaillit, l'image passe en NÉGATIF 48 ms (`IMP.INVERSE`, un éclair blanc si
-  « Réduire les animations »), la caméra encaisse (plonge de 0,6 m, champ −9 %), `pose.choc` +6 dB + `impact.immeuble`, la musique se
-  coupe. Le temps ne ralentit PAS (verdict du 26/09) : la détonation attend juste la fin du coup. PUIS LA DÉTONATION (`boomDetone`, la
-  2e moitié de l'ancien `explode`) : la boule de l'airtime née 1,5 m devant la paroi, qui s'y ÉCRASE (`spawnBoomArt(…, nW)` : couronne
-  étalée dans le plan du mur, fuite le long de la paroi puis montée, dards hors du mur), l'onde de choc SUR le mur (`boomOnde`, rayon 24),
-  les pièces de la caisse et 14 éclats de roche calcinée (`IMP_ECL`) qui REBONDISSENT sur la paroi (`impRebond`, plan tangent), une gerbe
-  qui gicle puis dégouline le long du mur. LE CRATÈRE (`IMP_CRAT`, un quad, shader en pixels — 56 de bord à bord) : trou noir où couve
-  le brasier, lèvre chauffée à blanc qui refroidit (or → rouge → suie), onze lézardes qui courent en 0,13 s et rougeoient, suie étirée
-  vers le haut, liseré d'encre des volutes ; deux RÉPLIQUES (mini-boules dessinées qui ressortent du trou, 0,34 et 0,78 s), flammes,
-  braises et fumée qui couvent (`impTick`). Liquides (rivière, Seine, lave) : tout sauf le cratère et les éclats.
-- La caméra de la mort (`BOOM_CAM`) borne son recul avec le test de l'obstacle percuté (avant : les tours seulement).
+- LA SÉQUENCE (`IMP`, même code partout) : LE COUP, 0,13 s (`impCoupPart`/`impCoupTick`) — la caisse, le nez contre la paroi,
+  s'ÉCRASE dans l'axe du choc (×0,6, les deux autres axes ×1,13 : c'est l'arrière qui vient s'écraser sur le mur ; à plat ventre elle
+  s'aplatit sur ses roues, sur le dos sur son toit), l'ÉTOILE de choc en pixels (`IMP_ETOILE`, 11 pointes, blanc · or · feu · encre, le
+  grain des volutes) pousse AU NEZ sans cacher la caisse puis ÉCLATE à la détonation, le monde passe 48 ms en NÉGATIF (filtre du canvas 3D
+  seul : `IMP_NEG`, le HUD reste lisible ; `IMP.INVERSE=false` → un éclair blanc, de toute façon adouci si « Réduire les animations »),
+  la caméra encaisse (plonge de 0,6 m, champ −9 %), `pose.choc` +6 dB + `impact.immeuble`, la musique se coupe net. Le temps ne ralentit
+  PAS (verdict du 26/09) : la détonation attend juste la fin du coup. PUIS LA DÉTONATION (`boomDetone`, la 2e moitié de l'ancien
+  `explode`) : la boule de l'airtime née 1,5 m devant la paroi et 0,8 m au-dessus du trou, qui s'y ÉCRASE (`spawnBoomArt(…, nW)` :
+  couronne étalée dans le plan du mur, le feu GRIMPE le long de la paroi et s'écrase vite vers le bas, dards hors du mur), l'onde de choc
+  SUR le mur (`boomOnde`, rayon 24), une gerbe qui gicle puis DÉGOULINE le long du mur, 14 éclats de roche calcinée (`IMP_ECL`, un sur trois
+  en braise) qui sautent du trou et rebondissent sur la paroi (`impRebond`, son plan tangent). Les pièces de la caisse s'en décollent à
+  peine et s'ÉTALENT le long du mur (renvoyées vers nous, un capot de 2 m passait en plaque plein cadre — mesuré au banc).
+  LE CRATÈRE (`IMP_CRAT`, un quad décollé de 28 cm — les parois ne sont jamais planes : voxels, cartes de hauteur, neige —, shader en
+  pixels, 56 de bord à bord, rayon 3,6 → 5,8 m selon la vitesse) : trou noir où couve le brasier, lèvre chauffée à blanc qui tient ORANGE
+  pendant tout le plan, onze lézardes qui courent en 0,13 s et rougeoient, suie ronde étirée vers le haut, liseré d'encre des volutes ;
+  deux RÉPLIQUES (mini-boules dessinées qui ressortent du trou, 0,34 et 0,78 s, `explosion.loin`), flammes, braises, fumée qui part du
+  HAUT du trou (le cratère reste à vue). Liquides (rivière, Seine, lave) : tout sauf le cratère et les éclats.
+- LE PLAN DE LA MORT (`BOOM_CAM`) : contre un MUR, il se met de TROIS-QUARTS (`TROIS_QUARTS` 40° de la normale, du côté où traînait la
+  poursuite, l'orbite referme l'angle) — de face, la boule n'était qu'un disque sur un fond uni, on ne lisait pas « je me suis écrasé
+  contre un mur » ; contre le SOL, le regard monte de `SITE_SOL` 14°. Le recul est borné par le test de l'obstacle percuté (avant : les
+  tours seulement).
 - COÛT : un quad, un sprite, 14 éclats (une géométrie, deux matières) nés au chargement et dessinés une fois (chauffe) ; zéro lumière ;
-  zéro allocation à la mort. Pools de la boule : 34 volutes, 22 dards (les répliques ont leurs cases).
+  zéro allocation à la mort ; MESURÉ au banc : aucun programme GPU compilé pendant l'explosion. Pools de la boule : 34 volutes, 22 dards
+  (les répliques ont leurs cases).
+- BANC (`impact.cjs`, scratchpad de la session) : ville, jade, canyon, glacier, forêt, volcan — la sonde trouve chaque fois contact et
+  normale (façade (1,0,0), pilier de jade, tronc géant, sol du canyon (0,31 ; 0,93), pente du glacier).
 - NOUVEL OBSTACLE = `impPrep(sonTest,cause,marge);explode(cause);`. BANC : `dbgImpact(d,v,el)` lance la caisse en vol sur l'obstacle
   le plus proche (même chemin que le jeu), `dbgImpactEtat()` dit contact, paroi, normale, axe écrasé.
 
