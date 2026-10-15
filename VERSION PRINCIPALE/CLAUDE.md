@@ -338,6 +338,8 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 20. **Les jugements de rendu** : la salle blanche grise les noirs (juger au garage du jeu) ; les mini-ailes repliées
     (`carWingL/R`) traversaient les vitres des caisses fines (visible en boutique seulement) ; en poursuite on voit surtout le
     DESSUS de la caisse.
+21. **Un défaut d'image vu sur iPhone ne se juge qu'au PIXEL** : à l'échelle de l'écran, la trame du flou de vitesse (15/10) était
+    invisible ; zoomer ×4 la MÊME image rendue avec et sans (`VARIANTES` du banc). Sur iPhone la 3D est agrandie ×2 (NETTE 1,5 sur ×3).
 
 ---
 
@@ -353,6 +355,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 **Débogage, perf, bancs**
+- « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
 - « LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE » (14/10) · « LA PASSE QUALITÉ AVANT SORTIE » (12/10)
 - « LA CAMPAGNE DE DEBUG AVANT PUBLICATION » (07/10) · « L'AUDIT AVANT PUBLICATION, ZONE GAMEPLAY » (07/10) · « LA PASSE DE SORTIE » (29/09)
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)

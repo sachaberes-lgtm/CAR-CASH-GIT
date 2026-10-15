@@ -11507,6 +11507,19 @@ const ACES_N=IS_MOBILE?6:8;   // flou radial du boost : 18 lectures de texture a
    WebGL1 (très vieux appareils) : `texelFetch`/`textureLod` n'y existent pas — mêmes calculs en `texture2D`, comme avant. */
 const W2_POST=!!(renderer.capabilities&&renderer.capabilities.isWebGL2);
 const TXL=(s,u)=>W2_POST?'textureLod('+s+','+u+',0.0)':'texture2D('+s+','+u+')'; // une lecture filtrée, sans dérivées quand on peut
+/* LE FLOU DE VITESSE SANS MOTIF (2026-10-15, Léo : « sur iPhone, des parties de l'écran se répétaient, un peu les pixels », photo à
+   l'ORBITE en vol, NITROOO). MESURÉ au banc (même image rendue deux fois, zoom ×6) : là où le flou file loin de la caisse, l'image portait
+   une TRAME RÉGULIÈRE — colonnes d'un pixel sur deux, diagonales — absente sans le flou. C'était le chemin du téléphone : 6 prises
+   décalées par le bruit entrelacé (fait pour être lissé d'une image à l'autre, ce que le jeu ne fait pas). Loin de la caisse les prises
+   sont espacées de dizaines de pixels : chaque pixel en tirait 6 échantillons au hasard du motif → la trame, qui scintille en 2-3 px
+   d'écran (la 3D en NETTE est à ×1,5 sur un écran ×3). L'ordi n'a pas ce chemin (8 prises fixes).
+   Désormais, téléphone et WebGL2 : chaque prise lit l'image PRÉ-FLOUTÉE à la taille de son intervalle + ½ niveau (mipmaps de la cible
+   de la scène, générés seulement quand le flou joue — `flouMips`) : les prises se fondent, plus besoin de décalage (essayé au banc, même
+   image : un bruit sans motif laissait du grain au bord de la lune, sans pré-flou les sourcils se dédoublaient en stries) ; une prise
+   qui sortirait de l'image se replie en MIROIR au lieu de répéter le pixel du bord (~5 % de chaque bord au boost). Image STABLE d'une
+   image à l'autre. Près de la caisse (intervalle sous ~0,7 texel) : lecture au niveau 0, image identique. Même nombre de lectures. `?flou=ancien` = le chemin d'avant (comparer sur le
+   téléphone). */
+const FLOU_MIPS=ACES_N<8&&W2_POST&&!/[?&]flou=ancien\b/.test(location.search);
 /* LA CAISSE RESTE NETTE (2026-09-30, niveau 1 v2) : où est la caisse à l'écran (uCtr, en coordonnées d'image 0-1), quelle taille y fait-elle
    (uSafe : le rayon de son disque net), et l'échelle qui ramène la distance à la caisse à celle d'avant (uRn : le coin le plus loin de la
    caisse compte comme le coin de l'image comptait depuis le milieu). Hors cadre (derrière la caméra) : le milieu, comme avant. */
@@ -11550,8 +11563,11 @@ const ACESShader={
     '    vec2 dc=vUv-uCtr; float rb=length(dc)*uRn, ms=smoothstep(uSafe,uSafe*2.2+.02,length(dc));',
     '    vec2 buv=uCtr+dc*(1.0+uSpeed*0.60*rb*rb*ms);',            // WARP AU BOOST : le monde S INCURVE FORT autour de la caisse (centre stable → jouable)
     '    float amt=uSpeed*(0.04+rb*rb*1.7)*ms; vec3 acc=vec3(0.0);', // r² : centre NET, filé TRÈS FRANC vers les bords
+    FLOU_MIPS?'    float lodF=max(log2(max(length(dc*amt*(0.62/'+ACES_N+'.0)/uRes),1e-4))+0.5,0.0);':'', // (FLOU SANS MOTIF) l intervalle entre deux prises, en texels → le niveau de mip qui le couvre, + ½ (les copies se fondent) ; 0 tant qu il tient sous ~0,7 texel : la caisse reste NETTE
+    FLOU_MIPS?'    float jt=0.5;': // (FLOU SANS MOTIF) plus de décalage : les prises pré-floutées se fondent, l image ne grésille plus d une image à l autre
     '    float jt=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715)))+uJit);', // grain ANIMÉ : moins de prises sans dessiner de copies (statique = saleté collée)
     '    for(int i=0;i<'+ACES_N+';i++){ float t='+(ACES_N<8?'(float(i)+jt)/'+ACES_N+'.0':'float(i)/7.0')+'; vec2 off=dc*amt*t*0.62;',
+    FLOU_MIPS?'      acc+=textureLod(tDiffuse,1.0-abs(1.0-abs(buv-off)),lodF).rgb; }': // (FLOU SANS MOTIF) la prise pré-floutée, repliée en miroir au bord
     '      acc+='+TXL('tDiffuse','buv-off')+'.rgb; }',        // (2026-09-26) UNE lecture par prise (il y en avait trois : 18 lectures par pixel au téléphone)
     '    x=acc/'+ACES_N+'.0; bu=buv-dc*amt*0.31;'+(IS_MOBILE?'':' bd=dc*amt*0.155;'), // le halo se lit au milieu de la traînée (PC : aux deux quarts, il FILE comme l'image ; téléphone : une lecture — mesuré invisible, 5 lectures de moins au boost)
     // L'ABERRATION CHROMATIQUE (2026-09-26, vague 2) — MESURÉ : au boost, chaque bord de nuage et chaque fenêtre de la ville s'ourlait
@@ -11653,6 +11669,15 @@ ACESShader.uniforms.uLens={value:null};ACESShader.uniforms.uLensK={value:0};ACES
  ACESShader.fragmentShader=fs.slice(0,k).replace('varying vec2 vUv;','varying vec2 vUv;uniform sampler2D uLens;uniform float uLensK;uniform vec2 uLensA;')+
    '\n  vec2 uvL=vUv;if(uLensK>0.001){vec2 ln9=texture2D(uLens,vUv).rg*2.-1.;if(dot(ln9,ln9)>.0004)uvL=clamp(vUv-ln9*uLensA*uLensK,vec2(.001),vec2(.999));}'+
    fs.slice(k).replace(/vUv/g,'uvL');}
+/* (FLOU SANS MOTIF) les mipmaps de la cible que l'ACES relit, le temps d'une passe : three la garde en filtre LINÉAIRE sans mips (aucun
+   coût ailleurs) ; quand le flou joue, on les génère et on passe en LINÉAIRE ENTRE MIPS pour cette seule lecture, puis on rend le filtre
+   d'origine (la passe est déjà émise : elle garde ses mips). Une cible neuve (retaillée) repart sans mips : la 1re image du flou les crée. */
+function flouMips(rd,rt,on){ try{
+  const p=rt&&rt.texture&&rd.properties.get(rt.texture),gl=rd.getContext();if(!p||!p.__webglTexture)return false;
+  rd.state.bindTexture(gl.TEXTURE_2D,p.__webglTexture);
+  if(on)gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,on?gl.LINEAR_MIPMAP_LINEAR:gl.LINEAR);return true;
+}catch(e){return false;} }
 /* (2026-10-14, courbe-noirs) LES DEUX PROGRAMMES DE LA PASSE FINALE : V1 = l'ancien, au caractère près ; V2 = la courbe de ton (voir COURBE_V2).
    Le V2 est DÉRIVÉ du V1 par trois remplacements : si l'un manque (quelqu'un a retouché ces lignes), V2 = V1 et la bascule ne fait rien. */
 const ACES_FS_V1=ACESShader.fragmentShader;
@@ -11809,14 +11834,15 @@ if(CAN_POST){ try{
    U9.uBc.value=bp9._cRT.texture; // setSize garde le même objet texture : posé une fois
    bp9.fuse=bp9.plie=!/[?&]bloom=ancien/.test(location.search); // `?bloom=ancien&perf=1` : les 13 passes d'origine, pour comparer SUR le téléphone
    bp9.plie2d=/[?&]bloom=plie2d/.test(location.search); // (tour 2, post) mips 3-4 séparables par défaut (voir PLIAGE) — `?bloom=plie2d` : le flou 2D du tour 1, pour comparer sur le téléphone
-   acesPass.render=function(){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
+   acesPass.render=function(rd,wb,rb){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
      if(COURBE_V2){ // (courbe-noirs) l'affine du grade (×1,0185 −.02425) replié dans la droite, puis le pied qui la raccorde à 0
        const k9=U9.uContrast.value*1.0185,b9=1.0185*(POST_PIVOT-POST_PIVOT*U9.uContrast.value)-.02425,x9=b9<0?-b9/k9:0,m9=POST_PIED;
        U9.uKC.value.set(k9,b9);U9.uTo.value.set(k9*(1-2/m9),x9>1e-5?k9/(m9*m9*x9):0,m9*x9,POST_FONDU);
      }else U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
-     return THREE.ShaderPass.prototype.render.apply(this,arguments);};}
+     const mip9=FLOU_MIPS&&U9.uSpeed.value>.004&&flouMips(rd,rb,true); // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
+     try{return THREE.ShaderPass.prototype.render.apply(this,arguments);}finally{if(mip9)flouMips(rd,rb,false);}};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
   if(GRADE_ACES||COURBE_V2)document.body.classList.add('post'); // le shader étalonne → le CSS se retire (si le post échoue, la classe n'est jamais posée : le filtre reste le repli)

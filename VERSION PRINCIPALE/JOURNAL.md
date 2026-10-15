@@ -47,6 +47,33 @@ avec son serveur `python3 atelier-son/serveur-moteur.py 9141` (depuis VERSION PR
   → `RETIRES_DU_MAIN` (bibliotheque.html) les cache (62 sons visibles, tous lisibles). Pour les rendre à Léo : remettre les fichiers ET ôter les ids.
 - Banc muet (scratchpad du pôle SON) : vrais clics, mesure au bus de la page (PALIERS −27 dB, COUCHES −24, PHRASES −25, TRENTE −31 ;
   GLISSE v2 sort directement sur la destination à −10 dB : il ignore le curseur Volume, comme sur la branche).
+## LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF (2026-10-15, pôle TECHNIQUE — Léo : « sur iPhone, en portrait, des parties de l'écran se répétaient, un peu les pixels », photo à l'ORBITE en vol, NITROOO)
+- LA CAUSE (mesurée, même image rendue deux fois, zoom ×4-6) : le flou de vitesse du TÉLÉPHONE (`ACES_N` 6 prises, décalées par le bruit
+  entrelacé `jt`) laissait loin de la caisse une TRAME RÉGULIÈRE (damier d'un pixel sur deux, diagonales : la lune « hachurée »), absente
+  sans le flou. Le bruit entrelacé est fait pour être lissé d'une image à l'autre (TAA), ce que le jeu ne fait pas ; en NETTE la 3D est
+  à ×1,5 sur un écran ×3 : chaque pixel de la trame = 2 pixels d'écran, et elle scintille. L'ordi a 8 prises fixes : pas ce chemin.
+- ÉCARTÉ PAR MESURE (bancs Chrome iPhone ET WebKit) : tailles des cibles de rendu (1 075 images contrôlées : toujours égales au tampon de
+  dessin, sauf l'arrondi sous-pixel des DPR fractionnaires), barre d'adresse ±80 px, rotation, DPR 0,85-3, crans QL, ciel en deux temps,
+  bloom, FXAA, cibles 8 bits, précision des shaders (aucun mediump).
+- LE CORRECTIF (`FLOU_MIPS`, téléphone + WebGL2 ; `?flou=ancien` = l'ancien chemin) : chaque prise lit l'image PRÉ-FLOUTÉE à la taille de
+  son intervalle + ½ niveau (mipmaps de la cible de la scène générés seulement quand le flou joue : `flouMips`, dans `acesPass.render`,
+  filtre rendu ensuite), plus de décalage (image stable, ni grain ni copies — essais au banc : un bruit sans motif laissait du grain, sans
+  pré-flou les sourcils de la lune se dédoublaient), et une prise hors de l'image se replie en MIROIR (le pixel du bord ne se répète plus,
+  ~5 % de chaque bord au boost). Le disque de la caisse : écart 0 au pixel (niveau 0 sous ~0,7 texel). 0 programme en course ; puce du Mac
+  2,2 contre 2,5 ms/image (bruit). Indépendant de la courbe des noirs (`COURBE_V2` : V2 dérivé de V1, mes lignes n'y touchent pas).
+  Planche `CAR CAHS V3/photos-gameplay/pixels-repetes-avant-apres.png`.
+- AVEC LE FLOU V2 DE SACHA (`FLOU_V2`, 14/10 : force et tracé — bords seulement, moitié moins fort ; `?sans=flou`) : gardé tel quel. Il
+  change OÙ et COMBIEN ça file, pas la façon de prendre les échantillons : la trame restait, sur les bords. Les deux se composent (ses
+  lignes `amt`/`buv` remplacées, mon `lodF` lit son `amt`). REMESURÉ après la fusion de main v448 (ORBITE et ses nébuleuses, debout
+  NETTE ×1,5, NITROOO en vol) : grain haute fréquence des blocs de bord 3,19 → 0,67, 2,01 → 0,91, 1,74 → 0,39 ; disque de la caisse
+  écart 0 ; 180 → 180 programmes en course debout, couché et dans le cadre de l'ordi ; mer du jade (4 plongeons, ~410 gouttes) sans
+  erreur. Planche `photos-gameplay/pixels-repetes-avant-apres-v448.png`.
+- `eauPTick` (la mer du jade, même « // qui avale ») avait été trouvé ici aussi ; la chasse aux bugs l'avait déjà réparé sur main : sa
+  version est gardée.
+- BANC WEBKIT (le moteur de l'iPhone sur le Mac, sans réglage à changer) : un WKWebView hors de vue piloté par fichiers (Objective-C,
+  `clang -fobjc-arc banc.m -framework Cocoa -framework WebKit` ; Swift refuse : SDK ≠ compilateur), fausse identité de téléphone
+  (matchMedia, maxTouchPoints, écran), dsf 3 privé, occlusion coupée ; fenêtre transparente SOUS le fond d'écran (hors écran, rAF tombe à
+  ~7 i/s). Outils dans `~/Downloads/CAR-bancs` (Mac de Léo), mémoire `banc-webkit`.
 
 ## LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION, TUNNEL D'ARRIVÉE, ROCHE LISIBLE (2026-10-14 soir, session CANYON — Sacha : « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus bas » · « c'est un jeu de COURSE, pas de balade » · « plus la vitesse du palier est élevée, plus les virages doivent être larges » · « resserre juste les parties COULOIR » · « le portail d'arrivée doit être DANS UN TUNNEL » · sur les parois : « ce n'est pas joli »)
 - LES RACCOURCIS (`genCanyon` v2, `boucle`) : huit TROMBONES qui descendent — l'approche (~220 m, la zone de saut), un demi-tour R1, le
