@@ -9311,23 +9311,21 @@ html:not(.c6) #mDead #mChance .chT,html:not(.c6) #mDead #mChance .chP{position:r
 html:not(.c6) #mDead #mChance.chOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
 html:not(.c6) #mDead #mChance .chBar{position:absolute;left:0;right:0;bottom:0;height:4px;background:currentColor;opacity:.7;transform-origin:0 50%;pointer-events:none}
 html:not(.c6) #mDead #mChance.chOn .chBar{animation:u8ChBar var(--chD,5500ms) linear forwards}
-/* (v2, capture de Sacha : « c'est n'importe quoi ») PENDANT L'OFFRE la seconde chance a SA place : une bande d'encre OPAQUE qui monte du bas et
-   tient le tiers bas (#mChanceFond), CONTINUER · prix en or + la barre du vrai temps qui reste, puis NON MERCI en VRAI bouton secondaire ;
-   ⌂ et REJOUER sont MASQUÉS (plus grisés) et reviennent à la fin de l'offre ou au refus. Rien ne chevauche plus les stats ni la mission. */
-html:not(.c6) #mDead #mChanceNon{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 16px;font-size:var(--f1);letter-spacing:1px}
-html:not(.c6) #mDead :is(#mChanceNon,#mChanceFond)[hidden]{display:none}
-html:not(.c6) body.chOffre #mDead .mFin{visibility:hidden}
-html:not(.c6) #mDead #mChanceFond{position:fixed;left:0;right:0;bottom:0;z-index:5;height:calc(var(--sB) + 156px);pointer-events:auto;
-  background:linear-gradient(180deg,rgba(7,5,15,0) 0,rgba(7,5,15,.97) 28px,#07050f 100%);animation:u8ChFond var(--t-slow) var(--ease) both}
-html:not(.c6) body.chOffre #mDead :is(#mChance,#mChanceNon):not([hidden]){position:fixed;z-index:6;left:0;right:0;margin:0 auto;
-  width:min(560px,calc(100% - 32px - var(--sL) - var(--sR)))}
-html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){bottom:calc(var(--sB) + 76px);min-height:64px}
-html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){bottom:calc(var(--sB) + 16px);animation:u8ChMonte var(--t-slow) var(--ease) both}
-@keyframes u8ChFond{from{opacity:0}to{opacity:1}}
+/* (v3, 15/10, Sacha : « le bouton CONTINUER passe devant les autres ») la v2 posait une bande FIXE au bas de l'écran, par-dessus la colonne :
+   elle recouvrait les tuiles OFFRES · RÉGLAGES et le bas des cartes. Pendant l'offre, la seconde chance prend la place EXACTE de ⌂ · REJOUER,
+   DANS le flux : CONTINUER · prix là où était REJOUER (le pouce n'a pas à chercher), NON MERCI juste au-dessus en secondaire. Rien ne flotte,
+   rien ne passe devant ; ⌂ · REJOUER reviennent à la fin de l'offre ou au refus. */
+html:not(.c6) #mDead #mChanceNon{order:3;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:14px 0 0;padding:0 16px;font-size:var(--f1);letter-spacing:1px}
+html:not(.c6) #mDead :is(#mChanceNon,#mChanceFond)[hidden],html:not(.c6) #mDead #mChanceFond{display:none}
+html:not(.c6) body.chOffre #mDead .mFin{display:none}
+html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){order:4;margin:10px 0 0;min-height:64px}
+html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){animation:u8ChMonte var(--t-slow) var(--ease) both}
 @media (orientation:landscape) and (max-height:540px){
-  html:not(.c6) #mDead #mChanceFond{height:calc(var(--sB) + 128px)}
-  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){bottom:calc(var(--sB) + 64px);min-height:52px}
-  html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){bottom:calc(var(--sB) + 10px);min-height:44px}}
+  /* couché : la rangée OFFRES · RÉGLAGES s'efface le temps de l'offre, NON MERCI prend sa case, CONTINUER l'ancre de REJOUER (en bas à droite) */
+  html:not(.c6) body.chOffre #mDead>.mRow{display:none}
+  html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){grid-area:row;margin:0;min-height:44px}
+  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){position:fixed;z-index:6;right:calc(var(--sR) + 24px);bottom:calc(var(--sB) + 8px);
+    width:min(368px,44vw);margin:0;min-height:58px}}
 @keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
 @keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
@@ -56145,13 +56143,11 @@ function pickupsTick(dt){
         // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
         // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
         addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);try{piece1Plus();}catch(e){} /* (2026-10-14) le « +1 » à côté de la caisse */
-        /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT DANS LA MAIN. Chaque pièce a son tic à peine perceptible (ligne suivante) ; la 5e,
-           la 10e, la 15e — celles où la salve d'aura tombe et où `piece.recolte` sonne — n'avaient rien de plus. Elles prennent un tic NET
-           (moyen), DOUBLE à partir de la 15e d'affilée, et la caisse se soulève d'un rien (≈ 1 → 2 cm : elle s'allège). Un seul coup par
-           pièce : le petit tic de la ligne suivante est sauté SI celui-ci a passé le limiteur — jamais deux, jamais de bourdon (au plus
-           une récolte toutes les 5 pièces). */
-        if(SENS&&combo%5===0)try{const h9=SCOUP.ht,k9=Math.min(4,combo/5);sensHap(k9>=3?[10,28,14]:14,2);if(SCOUP.ht!==h9)hap._pc=SCOUP.ht;if(!REDUCED_MOTION)sensCoup(0,0,.15+.07*k9);}catch(e){}
-        {const n9=performance.now();if(n9-(hap._pc||0)>70){hap._pc=n9;hap(5);}} // la pièce : un tic à peine perceptible (bridé : une ligne de pièces ne doit pas bourdonner)
+        /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT. La 5e, la 10e, la 15e — celles où la salve d'aura tombe et où
+           `piece.recolte` sonne — soulèvent la caisse d'un rien (≈ 1 → 2 cm : elle s'allège).
+           (2026-10-15, Sacha : « enlève les vibrations à chaque fois qu'on ramasse des pièces ») LA PIÈCE NE VIBRE PLUS : ni le tic de
+           chaque pièce, ni le tic net de la récolte. Le son et le soulèvement restent ; le téléphone ne vibre que pour ce qui compte. */
+        if(SENS&&combo%5===0&&!REDUCED_MOTION)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
         const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
         const g=denom()*2.2*mult*(fever>0?2:1)*flowMult(); // × le FLOW
         money+=g;levelCash+=g;livre('$:piece',g);blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
