@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## ZEPPELIN D'OR II, 2e JET — LA MACHINE DE 1983 PREND LA MAIN (2026-10-15, pôle SON › nouveaux sons ; Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → reformulé, « les deux » : la basse new wave grave-aigu en croches balancées ET le boum-tchak de fond)
+- Jusqu'au 9e moteur rien ne change (le gramophone, la même mélodie). Au 10e (étape `nw` de `TRIO.zeppelin2`) : tout devient DROIT (l'étape met
+  `swing` et `swing8` à 0 — pas() lit désormais le balancement dans `M.etP`), la batterie se SYNCOPE (grosse caisse 1 · « et » de 2 · 3 · « et » de 3,
+  caisse claire en réverbe coupée, charleys droits), la basse new wave martèle la fondamentale en croches droites (l'octave seulement en fin de
+  mesure), la contrebasse se tait, le piano plaque en 3-3-2. 17e : la contrebasse revient en contre-chant pincé sur les contretemps (`m_retour`,
+  à la place du stride). 21e : roulements de grosse caisse en fin de mesure (`kickD`). 23e : la basse devient un riff de doubles croches
+  (fondamentale, octave, quinte). III et l'original : inchangés.
+- MESURÉ (salle, 122 BPM fixe) : montée +19,6 dB, attaques ~6 → 41/s, brillance +235 Hz (l'original +391), boue 7,5 %, sous-grave 2,5 %,
+  0 fausse note sur 390, voix ≤ 49, 0 erreur ; bancs Chrome et WebKit (vrais clics, vrai toucher) : les trois ZEPPELIN jouent, 0 erreur.
+
 ## ZEPPELIN D'OR II ET III — L'INTENSITÉ SANS LE TEMPO (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « garde juste Zeppelin d'Or, j'aime beaucoup, ça fait un peu parisien, donc garde la structure ; à partir de 10, que ça commence à aller un peu plus vite, mais pas juste le tempo, parce que c'est nul quand ça devient juste plus aigu et plus rapide : un truc d'intensité · mélanger le côté old school avec un ou deux instruments new wave : new wave, future, raw · laisse Zeppelin d'Or et fais aussi un troisième »)
 - Reformulé avant d'agir (« comprendre Léo ») : ZEPPELIN D'OR tel quel + II (même structure, l'intensité dès le 10e, deux instruments new
   wave) + III (même style, l'intensité seulement) ; CARNAVAL D'OR et LE CASSE : « retire-les » → hors de la bibliothèque (leur code reste
