@@ -3,6 +3,28 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE SNAKE LOOP, DE DAUPHIN, DE NITROOO NI DE DRAGON (2026-10-15, Sacha : « supprime du main le snake loop, le dauphin, le nitrooo et les animations 3D qui leur sont attribuées, enlève aussi le dragon chinois de flamme »)
+- Même recette que la carrière et le mode facile : COUPÉS, pas arrachés. Quatre interrupteurs en tête du fichier, à côté de `SANS_FACILE` :
+  `SANS_SNAKE`, `SANS_DAUPHIN`, `SANS_NITROOO`, `SANS_DRAGON` (vrais par défaut ; `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` les
+  rendent, le dragon demande aussi `?nitrooo=1` puisqu'il naît de NITROOO).
+- SNAKE LOOP : `tryLand` ne note plus le passage sous la route (`fallUnder` reste faux → pas de `snaked`, ni aura 320, ni chaîne, ni
+  flow, ni verdict, ni son) ; le serpent néon (`serpentRig`) n'entre plus dans la scène et `updateSerpent` ne tourne plus.
+- DAUPHIN : `dolTick` n'est plus appelé en vol (ni départ, ni figure, ni aura, ni flow, ni #dolHud), le rase-dalle (l'argent de chaîne
+  au ras) est coupé avec lui ; les géométries du banc ne se voxélisent plus au chargement (`DOL_NU`, en `typeof` : la boîte à dauphins
+  exécute ce bloc sans l'interrupteur et garde ses dauphins), `dolphins=[]`, `dolphinRig` hors scène, `updateDolphins` muet.
+  `dolFin`/`dolPose`/`dolKill` restent appelés : ils sortent d'eux-mêmes (`dolKill` cache aussi le singe — on n'y touche pas).
+- NITROOO : le geste ne s'arme plus au sol (bloc « PURE SPEED → NITROOO » de la boucle) ni en vol (AIR NITROOO) ; `nitroooPart` sort
+  d'entrée, `nitroooTick` ne tourne plus : `NTR.on`/`NTR.k`/`NTR.boost` restent à 0, donc `vitMult()` ne garde que VITESSE ×2 et la
+  comète n'est jamais bâtie (elle l'était au 1er embrasement). Le nitro ordinaire (réservoir, `NFEU`, plumes, sillages) ne bouge pas.
+  Le son `nitrooo.palier` reste dans la banque : les figures du double-tap (`figJet`) s'en servent.
+- DRAGON : plus construit ni compilé à la chauffe du menu (l'étape de `chauffeDivers` sort), ses feuilles peintes (`DRG_TEX`/`_FEU`/`_PF`/
+  `_OEIL` et leurs versions violettes et noires) ne se peignent plus au chargement, son feu de pixels `DFEU` n'entre pas dans la scène,
+  `dragonTick` sort d'entrée (les crochets `dbgDragon` aussi). `triNoir()` reste : la dark triad s'en sert ailleurs.
+- MESURÉ (banc A/B, la même partie debout 390×844, muet — défaut contre `?snake=1&dauphin=1&nitrooo=1&dragon=1`) : au menu 1 142 objets
+  dessinables au lieu de 1 182 et 178 programmes au lieu de 183 (`dauphin5`/`5c`/`5h` et `drgPres` ne sont plus compilés) ; dauphin
+  forcé au décollage : actif AVEC, rien SANS ; 7 s de nitro tenue : comète (intensité 1, boost +22 %) et dragon AVEC, rien SANS ;
+  0 erreur, `__loopErr` nul des deux côtés. Fumée commune OK couché + debout.
+- Les missions ne demandaient aucune de ces figures (les contrats « chaîne » comptent toutes les figures) : rien n'est devenu impossible.
 
 ## POUCE BLEU EN COURSE + UNE INTRO PAR MORCEAU (2026-10-15 soir, pôle SON ; Léo, choix cochés : « à chaque PLAY, un morceau de Pouce bleu au hasard qui suit le moteur — tu peux les push sur le main »)
 - À chaque PLAY (garage `garageLaunch`, ciel `chuteLance`), UN morceau rangé dans Pouce bleu (la bibliothèque) est tiré au hasard et joue TOUTE la
