@@ -19,6 +19,39 @@
   seconde mais à leur place d'origine (version du tampon restée à 0) : invisibles. Trouvé en traçant `renderBufferDirect`.
 - `?eclats=0` = la goutte d'avant (A/B sur téléphone) ; `dbgFlamme('ecl',0|1)`. Planche `photos-gameplay/moteur-eclats-avant-apres.png`.
 - À trancher par Léo : la taille et la densité des éclats (réduites d'un quart pour que le nitro reste LE gros moment), leur couleur.
+## LE GLACIER v3 — LA GRANDE DESCENTE VERGLACÉE, SANS ICE SKATE (2026-10-15, Sacha : « dans la map montagne, enlève la figure ICE SKATE ; fais une map qui descend beaucoup plus, mais sans module bizarre : la route doit juste faire une descente normale avec des virages et tout, mais toute la route doit être verglacée ; fais la route un peu plus large »)
+- **La route (`genBanq`)** : plus de spirales superposées, plus de chicanes, plus de CASSURES (`BANQ.cas` et `BANQ.spi` restent, vides). Une descente
+  dans la ligne de pente en grands virages enchaînés (30-110°, le plus souvent en alternance), droites de 50-190 m, cap borné à 75° de la pente
+  (la route ne se recroise jamais). Pente 17-28 %. Banc Node (15 pistes, 3 paliers) : 9-12 km, **1,9-2,5 km de dénivelé** (21 % de moyenne ;
+  v2 : ~1,2 km), zéro remontée, jamais à moins de 450 m d'elle-même. ⚠ Les raccourcis du glacier disparaissent avec les spirales : demandé.
+- **Plus large** : `BK_LARG` = 2,4 × ROAD_HALF0 (67 m ; 56 ailleurs), posé dans genBanq.
+- **Toute la route verglacée** : UNE plaque (`bkVerglasPose`, bornes `a`/`b`, bouts fondus sur ~30 m). La dérive suit le virage (vers
+  l'EXTÉRIEUR, lu sur `routeLacet`) et flotte un peu dans les droites ; le volant mord à `BK_VG.grip` .68 (.42 sur les anciennes plaques),
+  dérive .16 (.30) — au banc, .62/.20 faisait sortir le pilote auto à 455 km/h après 1 km. Les rayons gardent la marge du verglas (115 m × palier au plus serré = 1,8 × le rayon tenable sur le sec).
+- **ICE SKATE retirée** (`bkSkate`, `#iceHud`) ; `bkSkateRaz` reste, inerte. DÉRAPAGE GLACE (hors piste, sur lacs et pics) est gardé.
+- Console : `dbgBanq('verglas',{s,v})` pose la caisse au mètre s.
+
+## BOUTIQUE : LE LANCER QUI PART D'UNE ÉTIQUETTE (2026-10-15 au soir, pôle CAISSES — bug trouvé au banc ; MANAGER : « en boutique, le doigt posé sur la caisse doit toujours donner le lancer de la boutique, quelle que soit l'étiquette dessous ; les vrais boutons gardent leur clic »)
+- LA CAUSE : la page de vente (`#gBq`) est posée sur la scène ; la bande « CETTE SEMAINE » (`.bqUv`, pointer-events:auto) prend le doigt
+  jusque dans son blanc (entre ses cartes, sur ses bords). Le doigt de la boutique n'écoutait que le canevas : un lancer parti de là
+  passait au DOIGT DU GARAGE, qui tournait la caisse à sa façon (sans élan planifié, sans pose). Pareil pour un glissé parti d'une carte ou
+  du panneau des voitures.
+- LA CORRECTION : `bqScene(t)` — la scène de la boutique, c'est le canevas ET ce que la page de vente pose dessus sans être un bouton (le
+  blanc de la bande, les titres, les étiquettes). Les vrais boutons (`button`, liens, `[role=button|tab]`, cartes `.bqU`/`.bqK`) gardent
+  leur clic ; le panneau des voitures (`#gBqPan`) garde son doigt (il défile). Et en boutique, le doigt du garage ignore `#gBq`.
+- MESURÉ (banc muet, vrais touchers ; couché, debout, cadre) : lancer parti du blanc de la bande — AVANT pas d'élan, le garage la tourne
+  de 0,14 tour ; APRÈS l'élan de la boutique (0,54 à 1,22 tour selon la force). Glisser parti d'une carte : AVANT 0,13 tour (garage),
+  APRÈS rien. Glisser dans le panneau : AVANT −0,18 tour, APRÈS rien. Toucher une carte, les onglets, RETOUR : inchangés. Le garage hors
+  boutique : inchangé. Partie lancée (couché, debout, cadre).
+
+## BOUTIQUE : LE LANCER, UN TOUT PETIT PEU MOINS DE FRICTION (2026-10-15 au soir, pôle CAISSES — Léo : « quand la personne fait tourner la voiture et lâche son doigt, en fonction de la force, la voiture va tourner un peu ; mais il doit y avoir un peu de friction, un tout petit peu moins que là » → choisi : « un peu moins de friction »)
+- `BQ_GLISSE` (0,65 → 0,8) dans `bqLance` : la distance planifiée D = 2 tours × tanh(BQ_GLISSE v / 2 tours) ; la durée de base 1,3 → 1,45 s.
+  Même courbe (elle part à la vitesse du doigt, s'arrête en douceur), même plafond (2 tours), même attrape. Le garage ne change pas.
+- MESURÉ (banc muet, vrais touchers, mêmes vitesses de doigt) : doux 3 rad/s 0,30 → 0,37 tour (+23 %), arrêt 1,61 → 1,98 s ; moyen 7 rad/s
+  0,69 → 0,83 (+21 %), 1,56 → 1,88 s ; fort 12 rad/s 1,11 → 1,29 (+16 %), 1,63 → 1,84 s ; pareil debout ; à la souris (cadre) jusqu'à
+  1,83 tour. Partie lancée (couché, debout, cadre). Courbe : `photos-gameplay/boutique-lancer-friction-avant-apres.png`.
+- Piège de banc : un lancer qui PART sur une étiquette de l'interface (un SPAN au bord gauche, couché) n'est pas un lancer de la boutique —
+  c'est le doigt du garage qui tourne la caisse, sans élan planifié. Partir sur le canevas.
 
 ## LA MAP DES NUAGES SANS HAUT NI BAS (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, il doit y avoir les nuages ou sinon le ciel partout, rien d'autre ; pour faire ça il faut aussi changer la génération de la route pour qu'elle se torde, se plie et tout, qu'il n'y ait plus de haut et de bas »)
 - PORTÉE : `hautOn()` = la MER DE NUAGES (toutes ses météos, l'orage compris) EN COURSE. Le ciel et la piste du menu, l'auto-école, la
