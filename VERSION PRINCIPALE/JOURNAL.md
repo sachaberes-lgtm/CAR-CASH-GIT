@@ -4,6 +4,22 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LES RAYONS DE LA BOUTIQUE + LA PHOTO DES AILES (2026-10-15 soir, Sacha : « enlève l'onglet CETTE SEMAINE avec toutes les voitures qui défilent ; à la place, les pictogrammes — voiture, peinture, aile, traînée, figure — qui sont pour l'instant dans une petite flèche ultra cachée, c'est nul » · « pour les ailes il n'y a pas de photo, c'est pas bien » · « OFFRE, remplace-le par ACHAT avec toutes les voitures payantes » · « enlève AILES et OFFRE en haut, un menu plus grand »)
+- LA COLONNE DE GAUCHE = LES RAYONS (`#gBqCats`, à la place de `#gBqUne` « CETTE SEMAINE ») : une ligne par rayon, pictogramme + nom
+  (VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES, `BQ_CATS`), le rayon ouvert en noir avec son liseré bleu, ACHAT a son panier bleu.
+  Toucher = le rayon s'ouvre dans la grille (`uiPop` + `uiClic('onglet')` + `hap(6)`). `bqRayons(el, place)` cale la hauteur des lignes
+  (44-52 px, l'écart se resserre d'abord) ; sans la place de six lignes de 44 px (petit téléphone) → deux colonnes de carrés, pictogramme seul.
+- PLUS DE BARRE AU-DESSUS DE LA GRILLE : ni « VOITURES ▾ » (et son menu caché `.bqMenu`), ni OFFRES — la grille prend leur place (+60 px de cartes).
+- TOUS LES RAYONS EN GRANDES CARTES, trois par rangée comme les voitures (plus de `.habs` à quatre : « D'ORIGINE » s'y coupait en « D'ORIGIN / E ») ;
+  la pastille de peinture et le ruban de traînée grandissent avec.
+- ACHAT (`bqAchat`) : TOUTES les caisses payantes (`bqPayantes`, plus seulement les quatre tirées sur la semaine), l'offre de lancement (`une`)
+  en tête puis du moins cher au plus cher ; plus d'étiquette LIMITÉE ni de compte à rebours sur le nom. Les anciens chemins vers OFFRES
+  (`GBQ.ong='off'` : le bouton BOUTIQUE de l'accueil, `bqVaOffres`, `gOffresPage`) ouvrent le rayon ACHAT.
+- LA PHOTO D'UNE AILE (`aileFile(id, cb)`, `carPhoto(i, cb, aile)`, `photoAiles`, `PHOTO_AILE`) : la caisse équipée porte l'aile, DÉPLOYÉE
+  comme en vol, même studio et même pellicule que les caisses, vue plus plongeante ; une caisse sans ailes (gabarit `none`) → la 1re de la gamme.
+  File `PHQ` partagée avec les caisses (une photo par image), cache de session `a:<aile>:<caisse>`. Les cartes AILES passent en grandes cartes
+  (trois par rangée, comme les voitures). Banc : `dbgAile(id, {el, az})` refait la photo et rend son cadrage.
+- L'étiquette de rareté longue (LÉGENDAIRE) ne se coupe plus dans sa carte (`.bqKr.lg`, un corps en dessous).
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
   souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,

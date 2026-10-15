@@ -127,9 +127,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
   low-poly `lpKit`/`lpMat`/`lpWheel`, tuyères `CAR_POTS`/`potMonde`, raretés `RARETES`/`carRar`/`rarListe`/`carOrdre`,
-  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto`.
+  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto` (et `aileFile` : la photo d'une aile, sur la caisse équipée).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
-  `FX_EFF`, `BQ_CATS`, `bqEphemeres` (les offres de la semaine), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
+  `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
+  (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
   `figAchat`/`figPossede`, `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
@@ -545,9 +546,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
   low-poly `lpKit`/`lpMat`/`lpWheel`, tuyères `CAR_POTS`/`potMonde`, raretés `RARETES`/`carRar`/`rarListe`/`carOrdre`,
-  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto`.
+  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto` (et `aileFile` : la photo d'une aile, sur la caisse équipée).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
-  `FX_EFF`, `BQ_CATS`, `bqEphemeres` (les offres de la semaine), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
+  `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
+  (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
   `figAchat`/`figPossede`, `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
