@@ -128,9 +128,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
-- **Effets** : sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
+- **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`, dragon `DRG`,
-  dauphins `DAUPH`/`dolTick`, pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`.
+  dauphins `DAUPH`/`dolTick`, pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
+  moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`), hors nitro les éclats du moteur
+  `ECLATS`/`eclaPas` (`?eclats=0`).
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
@@ -233,7 +235,7 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 **Crochets de console utiles** : `dbgState()` · `dbgAuto(1,lat,{vol,nit,saut})` (pilote) · `dbgStep(n,ms)` (la boucle à la main)
 · `dbgView(a,d,h)` (mode photo) · `dbgSaut()` (= NIVEAU suivant, pas un saut) · `dbgDauphin(…)` (s'envoler) ·
 `dbgClassique(carte,meteo)` · `dbgCampagne(n,monde)` · `dbgNiveauJade()`/`dbgNiveauCrypto()` · `dbgEquipe(i)`/`dbgCar(i)`/
-`dbgPhoto(i)`/`dbgBqVoir(i)` · `dbgSon(id)`/`dbgVu()` · `dbgLivre('ouvre')` · `dbgFren()` · `dbgVol()` · `dbgBurn()` ·
+`dbgPhoto(i)`/`dbgBqVoir(i)` · `dbgSon(id)`/`dbgVu()` · `dbgLivre('ouvre')` · `dbgFren()` · `dbgVol()` · `dbgBurn()` · `dbgFlamme()` ·
 `dbgQual()`/`dbgDPR()`/`dbgPerf()` · `dbgAppels(n)`/`dbgProgsListe()` (traquer une compilation en course) · `dbgMaj()` · `dbgPoki()`.
 
 **Adresses utiles** : `?perf=1` (moniteur) · `?banc=1` (le banc de perf à lancer sur un VRAI téléphone) · `?poki=1`, `?crazy=1` ·
@@ -338,6 +340,8 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 20. **Les jugements de rendu** : la salle blanche grise les noirs (juger au garage du jeu) ; les mini-ailes repliées
     (`carWingL/R`) traversaient les vitres des caisses fines (visible en boutique seulement) ; en poursuite on voit surtout le
     DESSUS de la caisse.
+21. **Un défaut d'image vu sur iPhone ne se juge qu'au PIXEL** : à l'échelle de l'écran, la trame du flou de vitesse (15/10) était
+    invisible ; zoomer ×4 la MÊME image rendue avec et sans (`VARIANTES` du banc). Sur iPhone la 3D est agrandie ×2 (NETTE 1,5 sur ×3).
 
 ---
 
@@ -353,6 +357,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 **Débogage, perf, bancs**
+- « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
 - « LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE » (14/10) · « LA PASSE QUALITÉ AVANT SORTIE » (12/10)
 - « LA CAMPAGNE DE DEBUG AVANT PUBLICATION » (07/10) · « L'AUDIT AVANT PUBLICATION, ZONE GAMEPLAY » (07/10) · « LA PASSE DE SORTIE » (29/09)
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
@@ -385,6 +390,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
 - « LA GAMME RESSERRÉE — LA FICHE DES VOITURES » (06-07/10) · « SIX COMMUNES RETIRÉES » (02/10)
 - « LA VITRINE DU GARAGE » (04/10) · « LES LUEURS DE LA BOUTIQUE » (07/10) · « LA FENÊTRE D'ACHAT » (01/10)
+- « LE MOTEUR EN ÉCLATS » (15/10) — `ECLATS`, `?eclats=0` · « LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS » (15/10) — `FLM`, `NFEU`, `?flamme=ancien`
 - « LE SILLAGE DE NITRO v5 » (29/09) · « LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR » (01/10) · « LA PLUIE DE RICHESSE » (08/10)
 
 **Garage, menus, écrans**
@@ -401,6 +407,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 **Son et musique**
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
+- « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html
 
 **Archives** : le bas du journal (« ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 », « ⚠ FUSION DU 2026-08-30 », puis « Le jeu »,
 « Architecture », « Conventions »…) décrit des lignées anciennes. Une section plus récente l'emporte toujours sur une plus ancienne.
@@ -531,7 +538,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
-- **Effets** : sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
+- **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`, dragon `DRG`,
   dauphins `DAUPH`/`dolTick`, pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`.
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
@@ -767,7 +774,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « LE FLOW v2 » (28/09) · « LA TRIADE v5 » et « LA TRIADE SIMPLIFIÉE » (28/09) · « LA FRÉNÉSIE ×3 » (29/09)
 
 **Niveaux et maps**
-- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « LE CANYON DES GÉANTS » (14/10)
+- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR, TUNNEL » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
@@ -794,6 +801,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 **Son et musique**
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
+- « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html
 
 **Archives** : le bas du journal (« ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 », « ⚠ FUSION DU 2026-08-30 », puis « Le jeu »,
 « Architecture », « Conventions »…) décrit des lignées anciennes. Une section plus récente l'emporte toujours sur une plus ancienne.

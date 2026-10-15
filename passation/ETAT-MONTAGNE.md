@@ -19,10 +19,11 @@ abrupts » ; (2) à 20 h 40 : « ça devrait s'appeler GLACIER et être une MONT
 - Gardé de la banquise : poudreuse (porte, trace, gerbe, mort > 2,4 m), glisse (lacs, pics, dérive), aurores, six temps, six sons, tranches.
 
 ## Reste
-1. CONSTRUCTION : navigateur 130 ms (neige 81, cristaux 29) avant l'allègement de la grille (34 m, marge 1,7 km) — cible 60 ms. Pistes :
+1. CONSTRUCTION (ARRÊTÉ le 14/10 à ~23 h 15 sur ordre de PILOTAGE : « la pré-construction de la semaine prochaine s'en chargera ») : navigateur 130 ms (neige 81, cristaux 29) avant l'allègement de la grille (34 m, marge 1,7 km) — cible 60 ms. Pistes :
    la neige lointaine en grille grossière À PART (la grille fine seulement < 1,1 km), la pose des cristaux en tâches (la grille de physique
    remplie au fil de l'eau), `vPalier`/`rayonPalier` de GAMEPLAY quand ils sont dans le jeu (les rayons suivent aujourd'hui `lvPiste`).
-2. Passer le banc de GAMEPLAY (`cc-banc/raccourcis.cjs banquise <graine> --palier N`) et s'y aligner (virages/km, serrés, droites ≤ 5 s).
+2. Banc de GAMEPLAY passé (`raccourcis.cjs --depuis` sur des traces Node, `trace-node.cjs` du scratchpad) : paliers 0 et 10 → 40/40 ;
+   paliers 20 et 27 → 36/40, seul « virages par km » manque (2,1-2,5 pour 2,5). À refaire AU NAVIGATEUR quand `dbgTrace` sera sur main.
 3. Revoir en image la gerbe de poudreuse (deux rideaux) ; le blizzard ressemble à la neige ; la montagne elle-même (la face, la vue
    immense façon Steep) peut monter d'un cran (flancs plus hauts côté amont, vallée qui s'ouvre côté aval).
 4. À trancher par Sacha : la musique (Léo), le dosage de la poudreuse (`BK_PH`).
