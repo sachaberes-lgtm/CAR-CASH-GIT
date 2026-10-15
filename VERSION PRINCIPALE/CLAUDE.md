@@ -313,7 +313,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
   `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
   au carnet n (une ligne dans `CARNETS` dont `r` le donne, et `pk` = son prix sur Poki), `r` = la rareté écrite ; `n` et `d` dans `I18N`.
-- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'` (satiné, chrome, or, laqué noir), ou `grad:[bas,milieu,haut]`.
+- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'|'k'|'n'` (satiné, chrome, or, laqué noir, métallisé, nacre), ou `grad:[bas,milieu,haut]`,
+  ou `mot:'<id>'` (un MOTIF : sa toile dans `MOTIFS`). Depuis le 16/10, ni `p` ni `r` : la rareté et le prix EN EUROS se déduisent
+  (`peintRegle`, `PEINT_EUR`) — couleur pleine = commune 1 € · dégradé ou or = rare 3 € · motif = épique 5 € (achat : `habPaye`).
 - Aile : `ico`/`col` (pictogramme `PXI_G` et sa couleur) ; son DESSIN = un bâtisseur dans `AILES_POP` (pivot, côté, W9, L9, H9, y0),
   contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT`).
 - Traînée : `rgb` = la couleur du ruban ; un EFFET = `pop:'nom'` + un émetteur dans `TRX_EMET` (quads instanciés, planche
@@ -749,7 +751,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
   `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
   au carnet n (une ligne dans `CARNETS` dont `r` le donne, et `pk` = son prix sur Poki), `r` = la rareté écrite ; `n` et `d` dans `I18N`.
-- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'` (satiné, chrome, or, laqué noir), ou `grad:[bas,milieu,haut]`.
+- Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'|'k'|'n'` (satiné, chrome, or, laqué noir, métallisé, nacre), ou `grad:[bas,milieu,haut]`,
+  ou `mot:'<id>'` (un MOTIF : sa toile dans `MOTIFS`). Depuis le 16/10, ni `p` ni `r` : la rareté et le prix EN EUROS se déduisent
+  (`peintRegle`, `PEINT_EUR`) — couleur pleine = commune 1 € · dégradé ou or = rare 3 € · motif = épique 5 € (achat : `habPaye`).
 - Aile : `ico`/`col` (pictogramme `PXI_G` et sa couleur) ; son DESSIN = un bâtisseur dans `AILES_POP` (pivot, côté, W9, L9, H9, y0),
   contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT`).
 - Traînée : `rgb` = la couleur du ruban ; un EFFET = `pop:'nom'` + un émetteur dans `TRX_EMET` (quads instanciés, planche

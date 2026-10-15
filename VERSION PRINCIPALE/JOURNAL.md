@@ -3,6 +3,39 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES PEINTURES PAR RARETÉ, EN EUROS, ET ONZE MOTIFS ÉPIQUES (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les dégradés de plusieurs couleurs, ça doit être rare, pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique et classe-les dans l'ordre de rareté dans le truc de peinture » · « génère une dizaine de peintures épiques avec des motifs ; couleur pleine : commun ; dégradée : rare ; avec des motifs : épique ; légendaire on verra après, pour l'instant pas de légendaire ; communes 1 €, rares 3 €, épiques 5 € »)
+- LA RÈGLE (`peintRegle`, bloc « LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS » juste après la palette) : un MOTIF = ÉPIQUE · un DÉGRADÉ
+  (`grad`) ou l'OR (`g:'o'`) = RARE · une couleur pleine (laque, mat, métallisé, nacre, chrome, laqué noir) = COMMUNE. La rareté est écrite sur
+  chaque peinture au chargement (`d.r`). Résultat sur les 68 : 40 communes, 17 rares, 11 épiques — plus aucune peinture exotique, légendaire ni
+  mythique. ⚠ « Enlève la mythique » a été lu POUR LES PEINTURES : `RARETES` n'a pas bougé, les caisses, ailes et traînées mythiques le restent.
+  Le CHROME MIROIR est une couleur pleine → commune (la règle ; l'or seul a été nommé).
+- LE PRIX EN EUROS (`PEINT_EUR` → `d.eur`) : 1 € · 3 € · 5 €. Le prix en pièces (`p`) des peintures est retiré ; celles déjà achetées restent à toi
+  (`shopOwned` lit `own`). En vente en € : 38 communes (les 8 d'origine et POP + les 30 de la palette), 6 rares, les 11 motifs. Se gagnent toujours,
+  sans prix : l'OR MASSIF et le SUPER GUERRIER (carnets), les 10 SECRÈTES (leur défi, ou le pack). D'ORIGINE reste offerte.
+  L'ACHAT passe par la MÊME porte que les caisses en € : `habPaye(cat,i)` → `shopPaye('peinture:'+id)` → `habDonne` (possédée + équipée, le
+  tampon « À TOI ! »). ACHETER de la boutique (`bqEtat`, `bqAction`) et de la console (`#gBuy`, `shopShow`) disent le prix en €.
+  ⚠ À TRANCHER (Sacha) : StoreKit n'étant pas branché, ACHETER le DIT (« L'achat est indisponible pour le moment. ») et ne donne rien — sur le
+  site, plus aucune peinture ne s'achète (comme les caisses en €). Le produit App Store de chaque peinture reste à créer (`cashcar.peinture.<id>`,
+  55 produits). Le PACK PALETTE (`PALETTE_PACK`, 0,99 € les 40, jamais montré dans l'interface) ne colle plus avec 1 € la couleur.
+- L'ORDRE (`peintOrdre`) : le rayon PEINTURES de la boutique (`bqListe`) et la bande de la console (`gStripHabits`) vont de la COMMUNE à l'ÉPIQUE
+  (D'ORIGINE en tête ; dans une rareté, l'ordre du catalogue). L'inventaire garde son ordre (la plus rare d'abord).
+- LES ONZE MOTIFS (`MOTIFS`) : LÉOPARD, TIGRE, ZÈBRE, VACHE, FLOWER POWER, CAMOUFLAGE, DAMIER, PEAU DE DRAGON (écailles), COCCINELLE, GALAXIE, PLEIN AUX AS.
+  Chacun est une toile de 512 px dessinée une fois (`motToile`/`motTex`), qui se raccorde sur ses quatre bords (`motTore` : chaque forme posée avec
+  ses huit voisines ; rayures et écailles à fréquences entières). Elle se pose sur la tôle en PROJECTION TRIPLANAIRE dans le repère de la caisse
+  (`motGreffe`, `MOT_GLSL`) : côtés, toit, nez et poupe prennent chacun leur plan, retourné pour se lire à l'endroit de l'extérieur (le « $ » des
+  deux côtés) ; le motif colle à la tôle quand la caisse roule. `s` = répétitions par mètre, `c` = la teinte de fond (outils de l'atelier, replis).
+  · Le kit coule la tôle peinte dans son PROPRE tampon (`peintPal` → clé `pm:<id>`, `lpMat('pm:…')` = la laque + la greffe) : les accents, le verre,
+    les feux gardent leurs couleurs ; le fondu vertical et l'ombre cuite restent (la tôle est blanche, le motif la colore). Les relevés des pots
+    (`echRetire`, `CAR_POTS`) traitent `pm:…` comme la tôle.
+  · Un gabarit hors kit : sa matière de carrosserie (bodyM) blanche, greffée après `rimify`. Un gabarit qui CLONE la tôle (l'ÉPAVE : `K.body.clone()`)
+    perdait la greffe (la caisse sortait blanche) : la fin de `buildCar` greffe toute matière marquée `userData.mot` qui ne l'est pas (`MOT_FAIT`).
+  · `customProgramCacheKey` = 'motif|' + la source de la greffe d'origine : un programme de plus quand on porte un motif, le motif vit dans un uniform.
+  · Les PASTILLES des listes (boutique, console, inventaire, vitrine, missions) montrent le motif (`motFond` : la toile en 128 px, zoomée ×2).
+- VU au navigateur intégré (boutique sur LA DOLORÈS et L'ÉPAVE, course couché et debout, cadre de l'ordi) : à la 1re échelle le léopard faisait
+  des grains, les « $ » ne se lisaient pas, les écailles et les fleurs étaient minuscules → les motifs ~1,6 × plus grands ; « ÉCAILLES DE DRAGON » (18 lettres) était coupé dans l'en-tête de la boutique → PEAU DE DRAGON ; le DAMIER virait au gris
+  sur les pans en biais (deux plans fondus, normale ^6) → ^12. En course, tigre, galaxie et damier se lisent de la caméra de poursuite.
+- Essayer : `dbgHab('peinture','tigre')` (porté à l'essai, aussi en course). `?peintures=avant` = les raretés, les prix et l'ordre d'avant, sans motifs.
+
 ## LES TRAÎNÉES ET LES AILES QU'ON VEUT (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables, pareil pour les ailes »)
 - VU AVANT (banc `habits.js` : les 17 traînées portées tour à tour, nitro tenue, mer de nuages de midi — une planche de 16 photos) : derrière la
   caisse on ne voyait presque que le FEU DE PIXELS du nitro, orange / bleu / violet selon la jauge, quelle que soit la traînée ; MENTHE, ROSE, OR
