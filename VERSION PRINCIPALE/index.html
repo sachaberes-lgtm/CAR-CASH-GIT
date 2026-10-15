@@ -33481,7 +33481,7 @@ window.dbgCam9=function(){return {camLean:+camLean.toFixed(3),camSwing:+camSwing
 const DBG_AUTO={on:false,lat:0,vol:false,nit:0,saut:0,imp:12,tS:0,l0:null,sg:1}; /* (2026-10-01) vol : il pilote aussi EN VOL (revient sur l'axe) · nit : 1 nitro tenue · 2 en vol seulement · 3 au sol seulement · saut : il décolle toutes les `saut` s de route (élan `imp`) — banc de LA LOI DU RÉSERVOIR */
 window.dbgMusique=function(){const e=musicEl;return {mode:musicMode,lieu:musicLieu&&musicLieu.titre,cur:musicCur,ctx:AC?AC.state:null,
   el:e?{src:(e.currentSrc||e.src).split('/').pop(),paused:e.paused,t:+e.currentTime.toFixed(2),ready:e.readyState,err:e.error&&e.error.code,vol:+musicVolCour.toFixed(2),voulue:musicVoulue,attente:musicEnAttente,analyse:!!musicAna,muted:e.muted}:null,son:SND.music,
-  menu:typeof MENU_MUS!=='undefined'?{on:MENU_MUS.on,ciel:MENU_MUS.tire.ciel.split('/').pop(),garage:MENU_MUS.tire.garage.split('/').pop(),veut:(musicMenuUrl()||'').split('/').pop(),tait:MUS_TAIT}:null};}; // (14/10) menu : la musique du CIEL et du GARAGE tirées, celle que le lieu veut
+  menu:typeof MENU_MUS!=='undefined'?{on:MENU_MUS.on,ciel:MENU_MUS.tire.ciel.split('/').pop(),veut:(musicMenuUrl()||'').split('/').pop(),tait:MUS_TAIT}:null};}; // (14/10) menu : la musique du CIEL et du GARAGE tirées, celle que le lieu veut
 window.dbgMoteur=function(){const E=ENGINE_TIERS[engTier+1];if(!E)return 'palier max';addCoins(Math.max(1,E.coins-coinsGot));return engTier+' · '+ENGINE_TIERS[engTier].n;}; // console : monter d'UN palier en course (la vraie scène : son, carte 3D, boîte) // console : la grande carte « NOUVEAU MOTEUR »
 window.dbgAuto=function(on,l,o){DBG_AUTO.on=!!on;o=o||{};DBG_AUTO.lat=o.latK!=null?o.latK*ROAD_HALF:(+l||0); /* latK : en part de la demi-route (,86 = le rase-bord) */DBG_AUTO.vol=!!o.vol;DBG_AUTO.nit=o.nit|0;DBG_AUTO.saut=+o.saut||0;DBG_AUTO.imp=o.imp==null?12:+o.imp;DBG_AUTO.sg=o.sg==null?1:+o.sg;DBG_AUTO.tS=0;DBG_AUTO.l0=null;return DBG_AUTO.on;};
 function dbgAutoVol(dt){ /* banc : en vol, le pilote de mesure ramène la caisse sur l'axe de la route (écart latéral du radar de tryLand, et sa dérive) */
@@ -40170,18 +40170,24 @@ const MUSIC_LOBBY=['matin','dimanche','nuit','polaroid','ciel','siffleur'].map(k
 const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; // avant : 'assets/audio/music/nocturnal-groove.mp3' · (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
 /* (2026-10-14, Léo : « le son de la boutique, c'est incroyable ; le ciel et le garage devraient aussi avoir une musique légère — l'inspi des
    Lobby Chris, mais calme ; le ciel très discret, le garage aussi, différentes ambiances ; plusieurs propositions, direct sur le main »)
-   LA MUSIQUE DU CIEL ET DU GARAGE : au menu, le CIEL (LA CHUTE, l'écran titre) et le GARAGE ont chacun SA musique, tirée au hasard à chaque
+   LA MUSIQUE DU CIEL ET DU GARAGE (⚠ 15/10 : depuis, UN SEUL morceau du ciel joue aux deux endroits — voir dessous) : au menu, le CIEL (LA CHUTE, l'écran titre) et le GARAGE ont chacun SA musique, tirée au hasard à chaque
    lancement parmi trois (atelier-son/ciel_garage.py, le moteur des Lobby Chris) : NUAGES LENTS · HAUTE ALTITUDE · APESANTEUR (sans batterie)
    et ATELIER · HUILE DE MINUIT · CLÉ DE 12 (le léger filtre d'atelier cuit dedans). Passer de l'un à l'autre : la musique d'avant s'efface,
    celle du lieu arrive en fondu (musicTick, mode menu ; iPhone, volume verrouillé : la bascule est franche). Les niveaux de volume ne changent
    pas (le ciel à MUS_CIEL, le garage au niveau du menu) ; la boutique garde son son. MENU_MUS.on=false = le lobby Chris partout, comme avant. */
-const MENU_MUS={on:true,ciel:['nuages','altitude','apesanteur'].map(k=>'assets/audio/music/lobby/ciel-'+k+'.m4a'),
-  garage:['atelier','huile','cle'].map(k=>'assets/audio/music/lobby/garage-'+k+'.m4a'),_abs:{}};
-MENU_MUS.tire={ciel:MENU_MUS.ciel[Math.floor(Math.random()*MENU_MUS.ciel.length)],garage:MENU_MUS.garage[Math.floor(Math.random()*MENU_MUS.garage.length)]};
+/* (2026-10-15, Léo : « les musiques du menu ciel doivent aussi être jouées dans le garage ; au garage c'est juste une version un peu plus forte,
+   quand même régulée, parce qu'on est au garage. Mais ça doit être la MÊME musique dans les deux, sinon c'est trop de musiques différentes »)
+   UN SEUL MORCEAU AU MENU : tiré au lancement parmi les trois du CIEL ; il joue au ciel et CONTINUE au garage — même lecture, aucune coupure
+   (musicMenuUrl rend la même adresse partout : la bascule ciel ↔ garage de musicTick ne se déclenche plus). Au garage il remonte au niveau du
+   menu par le fondu ordinaire (~0,5 s, musicVolCour), au ciel il redescend derrière le vent (MUS_CIEL). Les trois du GARAGE (ATELIER, HUILE DE
+   MINUIT, CLÉ DE 12) ne jouent plus dans le jeu : ils restent dans la bibliothèque (lobby/menu-donnees.js) et sur le disque. Basses : les trois
+   du ciel ont moins de 4 % de leur énergie sous 60 Hz (mesuré le 15/10) — rien à régler. */
+const MENU_MUS={on:true,ciel:['nuages','altitude','apesanteur'].map(k=>'assets/audio/music/lobby/ciel-'+k+'.m4a'),_abs:{}};
+MENU_MUS.tire={ciel:MENU_MUS.ciel[Math.floor(Math.random()*MENU_MUS.ciel.length)]};
 MENU_MUS.abs=function(u){return this._abs[u]||(this._abs[u]=(function(){try{return new URL(u,location.href).href;}catch(e){return u;}})());};
-function musicMenuUrl(){ // le morceau du menu, là où l'on est : le ciel de LA CHUTE ou le garage
+function musicMenuUrl(){ // le morceau du menu : le MÊME au ciel de LA CHUTE et au garage (15/10)
   if(!MENU_MUS.on)return MUSIC.menu;
-  return (typeof CHUTE!=='undefined'&&CHUTE.on)?MENU_MUS.tire.ciel:MENU_MUS.tire.garage;}
+  return MENU_MUS.tire.ciel;}
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
