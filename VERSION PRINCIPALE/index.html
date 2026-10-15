@@ -2970,6 +2970,61 @@ html.misS .gmC.r small{margin-top:3px}
 html.misS .gmNext{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(143,132,200,.35);font-size:7px;letter-spacing:1px;color:#b9b2e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.misS .gmNext .pxi{--pxs:1;color:#8f84c8}
 html.misS #gmHead small{line-height:1.6}
+/* L'ÉCRAN MISSIONS EN LISTE (2026-10-15, Sacha : « plus de petits groupes de trois, l'interface la plus claire possible, toujours dans
+   l'écran caméra de surveillance du garage ») — un seul panneau opaque, posé sur la vue caméra (sa trame et son balayage restent autour) :
+   EN COURS · PROCHAINE RÉCOMPENSE · À VENIR. Les crochets de viseur aux coins du panneau, c'est la caméra qui cadre la liste. */
+#gmListe{position:absolute;left:16px;right:16px;top:120px;max-height:60vh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;box-sizing:border-box;
+  padding:12px 12px 10px;background:linear-gradient(180deg,#0b1e39,#060e21);box-shadow:inset 0 0 0 1px rgba(95,240,255,.32),0 0 28px rgba(95,240,255,.10);
+  animation:gmIn .45s var(--ease) backwards .15s}
+#gmListe::-webkit-scrollbar{display:none}
+#gmListe.vu{animation:none}
+#gmListe .glSec{display:flex;align-items:center;gap:8px;margin:2px 2px 9px;font-size:var(--f0);line-height:1.4;letter-spacing:1px;color:#5ff0ff}
+#gmListe .glSec .pxi{--pxs:1;flex:none}#gmListe .glSec span{white-space:nowrap}
+#gmListe .glSec em{margin-left:auto;font-style:normal;color:#6f93a6;text-align:right}
+#gmListe .glSec.r{color:#ffd75e;margin-top:16px}
+#gmListe .glSec.n{color:#b9b2e6;margin-top:16px}
+.glM{display:flex;align-items:center;gap:11px;min-height:58px;box-sizing:border-box;padding:10px 11px;margin-bottom:6px;cursor:pointer;--bc:#5ff0ff;
+  background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.22);transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease);
+  animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i,0)*70ms + 260ms)}
+.glM:active{transform:translateY(2px)}
+.glM .gmChk{width:16px;height:16px}.glM .gmChk i{width:8px;height:8px}
+.glTx{flex:1;min-width:0}
+.glTx b{display:block;font-weight:400;font-size:var(--f1);line-height:1.4;letter-spacing:.5px;color:#fff}
+.glM u{display:block;height:5px;margin:7px 0 6px;background:#030914;box-shadow:0 0 0 1px rgba(95,240,255,.22)}
+.glM u em{display:block;height:100%;background:var(--bc);box-shadow:0 0 8px var(--bc)}
+.glTx small{display:block;font-size:var(--f0);line-height:1.4;letter-spacing:.5px;color:#8fb8c8}
+.glPr{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.glPr b{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap}
+.glJ{font-style:normal;line-height:0}.glJ .pxi{--pxs:1;color:#ffd75e}
+.glNv{font-style:normal;font-size:var(--f0);line-height:1;padding:3px 5px;background:#ff3ec8;color:#fff;letter-spacing:.5px}
+.glM.f{--bc:#ffd75e;background:#2b240c;box-shadow:inset 0 0 0 2px #ffd75e}
+.glM.f .gmChk i{background:#ffd75e;box-shadow:0 0 6px #ffd75e}.glM.f small{color:#ffd75e}
+.glM.ok{--bc:#5ee37a;cursor:default}.glM.ok .gmChk i{background:#5ee37a}.glM.ok small{color:#5ee37a}
+.glM.flash{animation:gmFlash .5s var(--ease)}
+#gmListe.vu .glM{animation:none}#gmListe.vu .glM.flash{animation:gmFlash .5s var(--ease)}
+.glRec{display:flex;align-items:center;gap:12px;min-height:66px;box-sizing:border-box;padding:10px 11px;background:#221d0b;box-shadow:inset 0 0 0 1px rgba(255,215,94,.45);
+  animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i,0)*70ms + 260ms);transition:transform var(--t-fast) var(--ease)}
+#gmListe.vu .glRec{animation:none}
+.glRec.voir{cursor:pointer}.glRec.voir:active{transform:translateY(2px)}
+.glRec .obFig{position:relative;right:auto;top:auto;margin:0;flex:none;width:80px;height:46px;display:flex}
+.glRec .obFig img{width:100%;height:100%;object-fit:contain}
+.glRec .glTx b{color:var(--rc)}
+.glRec .glPr .pxi{--pxs:2;color:#ffd75e}
+.glRec .glTx em{display:block;margin-top:6px;font-style:normal;font-size:var(--f0);line-height:1.4;letter-spacing:.5px;color:#ffd75e}
+.glVen{margin:0 2px}
+.glV{display:flex;align-items:center;gap:8px;padding:9px 2px;font-size:var(--f0);line-height:1.4;letter-spacing:.5px;color:#8a84b8;border-top:1px solid rgba(143,132,200,.2)}
+.glV span{flex:1;min-width:0}.glV b{font-weight:400;color:#5f9a74;white-space:nowrap}
+.glV.j{color:var(--rc)}.glV.j .pxi{--pxs:1;flex:none}.glV.j small{color:#6f6a99;white-space:nowrap}
+#gmHead small:empty,#gmHead em:empty{display:none}
+@media (orientation:portrait){html.misS #gmHead{right:calc(var(--sR) + var(--gut));max-width:none}}
+#gmListe.land{bottom:0;background:none;box-shadow:none;padding:0;overflow:visible;pointer-events:none;animation:none}
+#gmListe.land>.glA,#gmListe.land>.glB{position:absolute;box-sizing:border-box;padding:12px 12px 10px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto;
+  background:linear-gradient(180deg,#0b1e39,#060e21);box-shadow:inset 0 0 0 1px rgba(95,240,255,.32),0 0 28px rgba(95,240,255,.10);animation:gmIn .45s var(--ease) backwards .15s}
+#gmListe.land>.glA::-webkit-scrollbar,#gmListe.land>.glB::-webkit-scrollbar{display:none}
+#gmListe.land.vu>.glA,#gmListe.land.vu>.glB{animation:none}
+#gmListe.land>.glB>.glSec.r:first-child{margin-top:2px}
+@media (orientation:landscape) and (max-height:540px){.glM{min-height:50px;padding:8px 10px}.glRec{min-height:56px;padding:8px 10px}#gmListe .glSec.r,#gmListe .glSec.n{margin-top:12px}}
+@media (prefers-reduced-motion:reduce){#gmListe,.glM,.glRec{animation:none!important}}
 @media (orientation:portrait) and (max-width:760px){html.misS .gmC{padding:7px 8px 8px}html.misS .gmC .gmX{font-size:8px}html.misS .gmT b{font-size:7px}}
 @keyframes gmBalaye{to{top:122%}}
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
@@ -23074,6 +23129,8 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
 Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'}); // (2026-10-12) la JAUGE D'AURA
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE MISSIONS",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
+  "EN COURS":"ACTIVE","PROCHAINE RECOMPENSE":"NEXT REWARD","A VENIR":"COMING UP","NOUVELLE":"NEW","SUIVIE":"TRACKED","PAS ENCORE TENTEE":"NOT TRIED YET",
+  "ENCORE {n} MISSIONS":"{n} MORE MISSIONS","ENCORE 1 MISSION":"1 MORE MISSION","TOUCHE UNE MISSION POUR LA SUIVRE":"TAP A MISSION TO TRACK IT", /* (2026-10-15) l'écran MISSIONS en liste */
   "CHAQUE DEFI EN UNE PARTIE":"EACH MISSION IN ONE RUN","CHAQUE MISSION EN UNE PARTIE":"EACH MISSION IN ONE RUN","TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE":"TAP A MISSION TO TRACK IT","LES 3 MISSIONS D'ABORD":"FINISH THE 3 MISSIONS FIRST","SUIVI":"TRACKING","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"TAP A CHALLENGE TO TRACK IT","LES 3 DEFIS D'ABORD":"FINISH THE 3 CHALLENGES FIRST"}); // (2026-09-30) l'écran MISSIONS de l'atelier // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
 Object.assign(I18N,{"LES DEFIS · CHACUN EN UNE PARTIE":"MISSIONS · EACH IN ONE RUN","A GAGNER":"TO WIN","ENSUITE":"NEXT","VOIR":"VIEW","RELEVÉ":"DONE","À TENTER":"NOT TRIED YET","CETTE PARTIE":"THIS RUN","DÉFI RÉUSSI !":"CHALLENGE DONE!","BONUS":"BONUS"}); // (2026-09-28, soir) MISSIONS v2 et la porte de l'écran de mort
 // (2026-09-29, relecture de sortie) les 50 fiches du garage : noms et punchlines en anglais
@@ -26849,6 +26906,182 @@ const jetCoreM=jetMat(0xffe6b0,0xffffff,0xa9c0ff,1,.7,1.35);
 const jetGlowM=new THREE.SpriteMaterial({map:lampTex,color:0xff9040,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const JETS={shells:[],cores:[],glows:[],k:0}; // rempli par buildCar, animé chaque frame
 const JET_DIR=[0,1,2,3].map(function(){return new THREE.Vector3(0,0,-1);}),JET_NZ=new THREE.Vector3(0,0,-1),JET_Z=new THREE.Vector3(0,0,1),JET_V=new THREE.Vector3(),JET_QI=new THREE.Quaternion(),JET_QS=new THREE.Quaternion(); // (sillage v5) l'axe de chaque plume, dans le repère caisse
+/* ---- LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « le nitro et la flamme du moteur, c'est
+   un peu fade : on n'arrive pas à distinguer le nitro du moteur » · « pas trop régulier, comme le moteur d'une voiture qui avance : qu'on
+   ne voie pas une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique,
+   en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, sa grandeur,
+   en moins gros »). MESURÉ avant : moteur et nitro étaient la MÊME plume (0,35 m → 3,15 m au nitro), battue par des sinus fixes.
+   LE MOTEUR (`FLM`, `flmPas`) — la plume lisse des pots (JETS) suit un MOTEUR SIMULÉ, celui que l'oreille entend : la table `ENG_SND`
+   du palier (ses rapports `gr`, sa cadence `fHz`, son irrégularité `fJit`, ses crépitements `crk`) et les seuils de la boîte du son.
+   · la COMBUSTION : des bouffées à la cadence du moteur (qui monte avec le régime), chacune d'une force tirée au hasard (± fJit), un
+     raté de temps en temps ; une HOULE lente (Ornstein-Uhlenbeck : jamais périodique) ; chaque pot a ses bouffées à lui ;
+   · la CHARGE (lue dans l'accélération réelle, comme le son) : en reprise la flamme est longue et jaune, stabilisée elle est courte ;
+   · la BOÎTE : au passage de rapport l'allumage est coupé ~0,12 s — la flamme s'étouffe — puis le carburant non brûlé SAUTE (un pop
+     gras, plus fort aux derniers rapports) ;
+   · le LÂCHER (le drift lève le pied du gaz auto) : la flamme tombe, l'échappement pétarade au hasard, de plus en plus espacé ;
+   · EN VOL les roues tournent dans le vide : le moteur bat contre le RUPTEUR (~11 coupures/s, chaque demi-période tirée) + des pops ;
+   · la POSE : un coup de feu ; la COULEUR suit la chaleur (rouge-orangé au repos, orange en charge, jaune-blanc dans un pop).
+   LE NITRO (`NFEU`) — un FEU DE PIXELS qui sort des pots : des cubes (la matière des flammes de la porte et de l'arc-en-ciel : zéro
+   programme de plus), nés blancs dans la bouche du pot, qui jaillissent, s'ouvrent, montent, et vieillissent blanc → jaune → orange →
+   vermillon → rouge → braise → SUIE (des cubes sombres au bout : le pixel art du feu) ; ils sautent de case en case dans le repère de
+   la flamme ; des LANGUES tournent autour de l'axe (celles de la porte), des COUPS de feu tombent au hasard, des étincelles giclent dans
+   le monde. ~3,5 à 5 m derrière la caisse, ~1,3 m de large au bout. La plume lisse devient la TORCHE blanche dans la bouche du pot.
+   Réserve bleue = feu bleu, nitro infinie = feu violet (des SIGNAUX de jeu). `?flamme=ancien` = la plume d'avant ; `dbgFlamme()`. */
+const FLM_ON=!/[?&]flamme=ancien\b/.test(location.search);
+function flmGauss(){return (Math.random()+Math.random()+Math.random()-1.5)*1.41;} // une gaussienne réduite (à peu près), sans Math.log
+const FLM={tier:-1,g:1,shT:0,shift:0,rpm:0,sN0:-1,ch:.3,ov:0,thr0:0,limOn:true,limT:0,limA:1,surge:0,heat:.4,pop:0,glow:1,mode0:'drive',
+  P:[0,1,2,3].map(function(){return {ph:Math.random(),iv:1,env:1,tr:0,pop:0,popQ:0,popT:0};}),L:new Float32Array(4).fill(1),R:new Float32Array(4).fill(1),
+  cF:new THREE.Color(0xd8461a),cB:new THREE.Color(0xff8c30),cC:new THREE.Color(0xffcf6a),kF:new THREE.Color(0xffd29a),kC:new THREE.Color(0xffffff)};
+function flmPop(i,q){const p=FLM.P[i&3];if(q>p.pop)p.pop=q;} // un pop sur ce pot
+function flmPops(q,suite){for(let i=0;i<4;i++){const p=FLM.P[i];flmPop(i,q*(.75+.5*Math.random()));if(suite){p.popQ+=suite;p.popT=.04+.1*Math.random();}}} // tous les pots, et des pops qui suivent
+function flmPas(dt,speedKmh){ // speedKmh : celle de la boucle (le compteur)
+  const F=FLM,eng=ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0];
+  const hz0=eng.fHz||40,ji=eng.fJit==null?.3:eng.fJit,crk=eng.crk||0;
+  const spd=Math.abs(speedKmh),sN=Math.min(1.06,spd/Math.max(1,vCroisiere())),sol=mode==='drive',vol=mode==='fall';
+  const thr=sol&&gasOn&&!(AUTO_GAS&&(keys.KeyS||keys.ArrowDown||driftEnCours))?1:0; // la recette du son : le drift lève le pied du gaz auto
+  // LA BOÎTE (les seuils du son) ; un palier neuf reprend le rapport de la vitesse, sans cérémonie
+  if(F.tier!==engTier){F.tier=engTier;F.g=1;if(eng.gr>1)for(;F.g<eng.gr;F.g++){const l9=Math.pow((F.g-1)/eng.gr,1.3),h9=Math.pow(F.g/eng.gr,1.3)*1.05;if((sN-l9)/Math.max(.01,h9-l9)<=.99)break;}}
+  let tgt=sN;
+  if(eng.gr>1&&sol){const gn=eng.gr,lo=Math.pow((F.g-1)/gn,1.3),hi=Math.pow(F.g/gn,1.3)*1.05,pos=Math.min(1.05,Math.max(0,(sN-lo)/Math.max(.01,hi-lo)));
+    if(pos>.99&&F.g<gn&&thr&&F.shT<=0){F.g++;F.shT=.12;F.shift=.35+.65*F.g/gn;}
+    else if(F.g>1&&sN<lo*.95)F.g--;
+    tgt=Math.pow(Math.min(1,pos),.9);if(spd<8)tgt=thr*.72;}
+  if(F.shT>0){F.shT-=dt;tgt*=.66;if(F.shT<=0&&F.shift>0){flmPops(.5+.7*F.shift,F.shift>.8&&Math.random()<.6?1:0);F.shift=0;}} // la coupure finie : le carburant non brûlé SAUTE
+  if(vol)tgt=.86+.12*Math.random();
+  F.rpm+=(tgt-F.rpm)*Math.min(1,dt*(tgt>F.rpm?8:5.5));
+  // LA CHARGE et LE LÂCHER (la charge se lit dans l'accélération réelle, comme le son)
+  const dv=F.sN0<0?0:(sN-F.sN0)/Math.max(.001,dt);F.sN0=sN;
+  const cC=thr?Math.max(0,Math.min(1,.26+dv*2.6)):0,oC=(!thr&&sol&&F.rpm>.2)?Math.min(1,(F.rpm-.2)*2.4):0;
+  F.ch+=(cC-F.ch)*Math.min(1,dt*(cC>F.ch?9:3.4));F.ov+=(oC-F.ov)*Math.min(1,dt*(oC>F.ov?10:4.5));
+  if(sol&&F.thr0&&!thr&&F.rpm>.42&&crk>0)flmPops(.75,1+((Math.random()*3*crk)|0)); // le pied se lève : POP, pop-pop
+  else if(F.ov>.25&&crk>0&&Math.random()<dt*7*crk*F.ov*F.ov)flmPop((Math.random()*4)|0,.5+.5*Math.random()); // la traîne, au hasard
+  F.thr0=thr;
+  if(sol&&F.mode0==='fall')flmPops(.95,1);F.mode0=mode; // la POSE : le carburant secoué
+  F.surge+=-F.surge*dt/.35+.55*Math.sqrt(dt)*flmGauss(); // la HOULE (τ ,35 s)
+  for(let i=0;i<4;i++){const p=F.P[i];p.tr+=-p.tr*dt/.07+.6*Math.sqrt(dt)*flmGauss();} // le TREMBLÉ de chaque pot (τ 70 ms) : il casse le battement image sur deux
+  let limK=1;
+  if(vol&&!nitroOn){F.limT-=dt;if(F.limT<=0){F.limOn=!F.limOn;F.limT=(F.limOn?.05:.034)*(.45+1.1*Math.random())*(Math.random()<.15?2.2:1); // le RUPTEUR : chaque demi-période tirée, parfois un coup qui traîne
+      if(F.limOn)F.limA=.55+.65*Math.random();else if(Math.random()<.12+.4*crk)flmPop((Math.random()*4)|0,.55+.45*Math.random());}
+    limK=F.limOn?(F.limA||1):.16;}
+  // LA COMBUSTION, pot par pot
+  const hz=hz0*(.5+.7*F.rpm),dec=Math.exp(-dt*hz*.8),ld=sol?.62+.55*F.ch-.45*F.ov:vol?.85:.5; /* MESURÉ au banc : à ~37 bouffées/s vues à 60 images/s,
+     une extinction rapide faisait battre la flamme une image sur deux (un motif) — elle s'éteint donc plus lentement, et l'INTERVALLE entre deux
+     bouffées est tiré à chaque fois (± 40 %) : plus de battement régulier */
+  let hot=0;
+  for(let i=0;i<4;i++){const p=F.P[i];
+    p.ph+=dt*hz/p.iv;p.env*=dec;
+    while(p.ph>=1){p.ph-=1;p.iv=.6+.8*Math.random();let a=1+ji*.55*flmGauss();if(Math.random()<ji*.05)a=.12;else if(Math.random()<.05)a+=.45;p.env=Math.max(.1,a);} // une bouffée : son intervalle et sa force tirés (± fJit) ; un raté, ou une grosse, de temps en temps
+    if(p.popQ>0){p.popT-=dt;if(p.popT<=0){p.popQ--;p.popT=.05+.12*Math.random();flmPop(i,.45+.55*Math.random());}} // les pops qui suivent, égrenés
+    p.pop*=Math.exp(-dt*13); // un pop vit ~70 ms
+    F.L[i]=Math.max(.05,ld*(.8+.2*p.env)*(1+.3*F.surge+.55*p.tr)*limK*(F.shT>0?.3:1)+.6*p.pop);
+    F.R[i]=1+.9*p.pop+.12*(p.env-1);
+    if(p.pop>hot)hot=p.pop;}
+  F.heat+=((Math.min(1,.25+.55*F.ch+.25*F.rpm)*(1-.6*F.ov))-F.heat)*Math.min(1,dt*6);
+  F.pop=Math.min(1,hot);F.glow=(.7+.3*Math.min(1.4,F.L[0]))*(1+.9*F.pop);
+  return F;}
+const NFEU_N=900,NFEU_PAS=.06,NFEU_SEUIL=[.08,.24,.46,.66,.8,.9],NFEU_TAILLE=[.9,.98,1,1,.9,.74,.6];
+/* la palette est pensée APRÈS la courbe ACES de la passe finale : elle écrase le rouge plus que le vert au-delà de 1 — l'orange de la porte
+   (1,75 · ,78 · ,14) y sortait JAUNE (mesuré sur la capture). Ici le vert est tenu bas : l'orange reste orange, le rouge rouge. */
+const NFEU_PAL={f:[[2.3,1.75,1],[2.1,.95,.2],[1.75,.42,.06],[1.3,.2,.035],[.9,.09,.025],[.42,.04,.02],[.2,.17,.17]], // feu : blanc chaud → … → FUMÉE (gris sombre, la fumée du burn-out)
+  b:[[1.7,1.95,2.4],[.6,1.05,2.3],[.26,.42,2.1],[.22,.16,1.6],[.3,.07,1.05],[.16,.04,.5],[.17,.17,.22]],                 // réserve bleue
+  v:[[2.2,1.7,2.4],[1.8,.7,2.2],[1.3,.25,1.95],[.95,.12,1.45],[.6,.06,1],[.28,.03,.48],[.2,.16,.22]]};                 // nitro infinie
+const NFEU=(function(){
+  const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
+  for(let i=0;i<ps.count;i++){const ny=nm.getY(i),nz=nm.getZ(i),v=ny>.5?1:ny<-.5?.42:nz<-.5?.6:nz>.5?.5:.78;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;} // l'ombrage de la porte, face par face
+  bx.setAttribute('color',new THREE.BufferAttribute(cl,3));
+  const A=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false}),NFEU_N); // ⚠ les réglages EXACTS des cubes de l'arc-en-ciel : même programme
+  const B=new THREE.InstancedMesh(new THREE.BoxGeometry(1.5,1.5,1.5),new THREE.MeshBasicMaterial({fog:false,toneMapped:false,transparent:true,opacity:.06,
+    blending:THREE.AdditiveBlending,depthWrite:false}),NFEU_N); // le HALO : là où les cubes s'entassent, la lumière s'accumule
+  A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(NFEU_N*3),3);
+  A.instanceMatrix.setUsage(THREE.DynamicDrawUsage);A.instanceColor.setUsage(THREE.DynamicDrawUsage);
+  B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor;
+  A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;A.visible=B.visible=false;B.renderOrder=2;scene.add(A);scene.add(B);
+  const V=function(){return [0,1,2,3].map(function(){return new THREE.Vector3();});};
+  return {m:A,h:B,P:new Float32Array(NFEU_N*12),n:0,k:0,vs:9,T:0,acc:new Float32Array(4),ou:new Float32Array(4),tg:new Float32Array([0,2.1,4.2,1]),cp:new Float32Array(4),
+    pw:V(),D:V(),R:V(),U:V(),dp:4,kd:1,up:new THREE.Vector3(),M:new THREE.Matrix4(),pp:new THREE.Vector3(),pOk:false,v:new THREE.Vector3(),pal:null,ms:0,on:FLM_ON};
+})();
+function nfeuNp(){return Math.min(4,CAR_POTS.length,JETS.shells.length);}
+function nfeuNait(i,b,gros,suie){ // une flamme-cube dans la bouche du pot i ; layout : s u v · vs vu vv · âge vie taille graine pot genre
+  const N=NFEU;if(N.n>=NFEU_N)return;const o=N.n*12,P=N.P;N.n++;
+  const a=Math.random()<.62?N.tg[i]+flmGauss()*.75:Math.random()*6.2832,r0=.05+.07*Math.random(),vr=(.6+.8*Math.random())*(1+.45*b)*(gros?2.4:1)*(1+.5*(N.kd-1)),ca=Math.cos(a),sa=Math.sin(a);
+  const pt=CAR_POTS[i],sd9=!pt?0:pt.x>.06?1:pt.x<-.06?-1:(Math.random()<.5?-1:1); // le pot de droite crache à droite, celui de gauche à gauche (un pot central : des deux côtés)
+  P[o]=Math.random()*.12;P[o+1]=ca*r0;P[o+2]=sa*r0;
+  P[o+3]=N.vs*(.75+.5*Math.random())*(gros?1.1:suie?.6:1);P[o+4]=ca*vr+sd9*(.3+.7*Math.random());P[o+5]=sa*vr+(gros?0:.2+.5*Math.random()); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
+  P[o+6]=0;P[o+7]=(.22+.2*Math.random()+.07*b)*(gros?1.35:1);P[o+8]=(.13+.07*Math.random())*(1+.25*b)*(gros?1.3:1)*N.kd;
+  P[o+9]=suie?Math.random()*.4:Math.random();P[o+10]=i;P[o+11]=0;}
+function nfeuEtincelle(i){ // un petit cube qui gicle DANS LE MONDE (il garde l'élan de la caisse, retombe, refroidit)
+  const N=NFEU;if(N.n>=NFEU_N||!N.pOk)return;const o=N.n*12,P=N.P,w=N.pw[i],D=N.D[i],r=6+6*Math.random();N.n++;
+  P[o]=w.x;P[o+1]=w.y;P[o+2]=w.z;
+  P[o+3]=N.v.x-D.x*r+(Math.random()-.5)*3.2;P[o+4]=N.v.y-D.y*r+1.5+2.5*Math.random();P[o+5]=N.v.z-D.z*r+(Math.random()-.5)*3.2;
+  P[o+6]=0;P[o+7]=.3+.25*Math.random();P[o+8]=.06+.05*Math.random();P[o+9]=Math.random();P[o+10]=i;P[o+11]=2;}
+function nfeuCoup(k){ // L'ALLUMAGE : une boule de feu par pot + une gerbe d'étincelles (appelé par nitroAllume)
+  if(!NFEU.on)return;const np=nfeuNp();
+  for(let i=0;i<np;i++){for(let j=0,n=(30*k)|0;j<n;j++)nfeuNait(i,1.4,true,false);for(let j=0,n=(10*k)|0;j<n;j++)nfeuEtincelle(i);}}
+function nfeuFin(){ // L'EXTINCTION : la dernière bouffée, lente et sale (appelé par nitroEteint)
+  if(!NFEU.on)return;const np=nfeuNp();
+  for(let i=0;i<np;i++)for(let j=0;j<16;j++)nfeuNait(i,.3,false,true);}
+function nfeuCoupe(){const N=NFEU;N.n=0;N.k=0;N.pOk=false;N.m.count=N.h.count=0;N.m.visible=N.h.visible=false;} // replacement, explosion : rien ne reste figé
+function nfeuPas(dt,on,bleu,inf,speedKmh){
+  const N=NFEU;if(!N.on)return;
+  const np=nfeuNp(),vise=on&&np>0&&mode!=='boom'?1:0;
+  N.k+=(vise-N.k)*Math.min(1,dt*(vise>N.k?14:7));
+  if(!N.n&&N.k<.01){if(N.m.visible)N.m.visible=N.h.visible=false;N.pOk=false;return;}
+  const t0=performance.now();dt=Math.min(dt,.05);N.T+=dt;
+  const cp=carGroup.position;
+  if(N.pOk&&dt>0)N.v.subVectors(cp,N.pp).multiplyScalar(1/dt);else N.v.set(0,0,0);N.pp.copy(cp);N.pOk=true;
+  if(N.v.lengthSq()>4e4)N.v.set(0,0,0); // un replacement (téléport) n'est pas une vitesse
+  N.up.set(0,1,0).applyQuaternion(carGroup.quaternion);
+  for(let i=0;i<np;i++){potMonde(CAR_POTS[i],N.pw[i]);const D=N.D[i].copy(JET_DIR[i]).applyQuaternion(carGroup.quaternion).normalize();
+    const R=N.R[i].crossVectors(D,N.up);if(R.lengthSq()<1e-4)R.set(1,0,0);R.normalize();N.U[i].crossVectors(R,D).normalize();}
+  N.vs=Math.min(7,3.2+Math.abs(speedKmh)*.006); /* plus la caisse file, plus le vent étire le feu (1,3 à 2 m). MESURÉ (dbgFlamme('proj')) : debout, la caméra de poursuite
+     regarde la poupe presque d'AU-DESSUS (les pots à −0,6 de la hauteur d'écran, à 3,8 m) — un feu qui MONTE fonce dans l'objectif et fait un mur, un feu qui
+     s'ÉLARGIT barre tout le bas de l'écran : il file donc à plat sur la route, pas plus large que la caisse, et c'est sa matière qui le rend vénère */
+  N.pal=bleu?NFEU_PAL.b:inf?NFEU_PAL.v:NFEU_PAL.f;
+  N.dp=np?camera.position.distanceTo(N.pw[0]):4;N.kd=Math.pow(Math.min(3.2,Math.max(1,N.dp/3.8)),.75); // la caméra RECULE (en vol : ~21 m) : le feu grossit, sinon il n'est plus que trois points
+  N.vs*=1+.45*(N.kd-1);
+  if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1);
+    for(let i=0;i<np;i++){
+      N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss(); // le souffle de ce pot : jamais périodique
+      if(N.cp[i]>0)N.cp[i]-=dt;else if(Math.random()<dt*.9)N.cp[i]=.1+.12*Math.random(); // un COUP de feu, au hasard (~1 par seconde)
+      const b=Math.max(0,Math.min(1.6,.5+.7*N.ou[i]+(N.cp[i]>0?.9:0)));
+      N.tg[i]+=dt*(2.2+2.5*N.ou[i]); // la LANGUE tourne autour de l'axe, jamais au même pas
+      N.acc[i]+=dt*430*N.k*(.55+.75*b)*q/Math.sqrt(Math.max(1,np)/2);
+      while(N.acc[i]>=1){N.acc[i]-=1;nfeuNait(i,b,false,false);}
+      if(Math.random()<dt*22*N.k*q)nfeuEtincelle(i);}}
+  const P=N.P,cam=camera.position,col=N.m.instanceColor.array,ar=N.m.instanceMatrix.array,pal=N.pal;
+  const dp=N.dp,fA=dp*.6,fB=dp*.35; /* LE PIXEL GARDE SA TAILLE À L'ÉCRAN (la fumée du burn-out : des gros pixels « les MÊMES près ou loin ») :
+     la caméra de poursuite est HAUTE et PROCHE (3,6-4 m des pots, mesuré) ; un cube qui file vers elle grossissait jusqu'à faire un mur au bas
+     de l'écran. Sa taille suit donc sa distance à l'objectif, rapportée à celle des pots — et tout près, il s'efface */
+  N.M.makeRotationFromQuaternion(carGroup.quaternion);const e=N.M.elements; // les cubes s'alignent sur la caisse
+  const K=.92+.18*N.k;let n=0;
+  for(let j=0;j<N.n;j++){const o=j*12;
+    P[o+6]+=dt;const a=P[o+6]/P[o+7];if(a>=1)continue; // morte : pas recopiée
+    let x,y,z,b,sz;
+    if(P[o+11]===2){P[o+4]-=9*dt;P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;x=P[o];y=P[o+1];z=P[o+2];b=a<.3?0:a<.65?1:2;sz=P[o+8]*(1-.5*a);}
+    else{const i=P[o+10]|0,s=P[o],sd=P[o+9],dr=Math.exp(-1.1*dt);
+      const a9=a+.18*Math.min(1,Math.sqrt(P[o+1]*P[o+1]+P[o+2]*P[o+2])/.55)+(sd-.5)*.14; // le CŒUR du jet reste chaud, ses bords refroidissent plus tôt ; un peu de hasard par cube (le bord dentelé)
+      b=a9<NFEU_SEUIL[0]?0:a9<NFEU_SEUIL[1]?1:a9<NFEU_SEUIL[2]?2:a9<NFEU_SEUIL[3]?3:a9<NFEU_SEUIL[4]?4:a9<NFEU_SEUIL[5]?5:6;
+      if((b===5&&sd>.55)||(b===6&&sd>.3))continue;
+      if(sd<.13&&b>0&&b<5)b-=b>2?2:1; // des POCHES CHAUDES : un cube sur huit brûle plus jaune que ses voisins (le feu classique scintille) // la plupart s'éteignent avant : quelques braises sombres, et moins encore de cubes de FUMÉE finissent le feu
+      P[o+3]*=Math.exp(-1.6*dt);P[o+4]*=dr;P[o+5]*=dr;
+      P[o+4]+=Math.sin(s*2.7+sd*6.3+N.T*9.1)*4*dt;P[o+5]+=(Math.cos(s*2.3+sd*5.1-N.T*7.7)*4+2)*dt; // le tourbillon, et le feu monte un peu
+      P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;
+      const qs=Math.round(P[o]/NFEU_PAS)*NFEU_PAS,qu=Math.round(P[o+1]/NFEU_PAS)*NFEU_PAS,qv=Math.round(P[o+2]/NFEU_PAS)*NFEU_PAS; // de case en case
+      const w=N.pw[i],D=N.D[i],R=N.R[i],U=N.U[i];
+      x=w.x+D.x*qs+R.x*qu+U.x*qv;y=w.y+D.y*qs+R.y*qu+U.y*qv;z=w.z+D.z*qs+R.z*qu+U.z*qv;sz=P[o+8]*NFEU_TAILLE[b];}
+    const dx=x-cam.x,dy=y-cam.y,dz=z-cam.z,d9=Math.sqrt(dx*dx+dy*dy+dz*dz);sz*=Math.min(1.25,Math.max(.3,d9/dp));if(d9<fA)sz*=Math.max(0,(d9-fB)/(fA-fB));
+    if(n!==j)P.copyWithin(n*12,o,o+12);
+    const m=n*16;ar[m]=e[0]*sz;ar[m+1]=e[1]*sz;ar[m+2]=e[2]*sz;ar[m+3]=0;ar[m+4]=e[4]*sz;ar[m+5]=e[5]*sz;ar[m+6]=e[6]*sz;ar[m+7]=0;
+    ar[m+8]=e[8]*sz;ar[m+9]=e[9]*sz;ar[m+10]=e[10]*sz;ar[m+11]=0;ar[m+12]=x;ar[m+13]=y;ar[m+14]=z;ar[m+15]=1;
+    const c=pal[b];col[n*3]=c[0]*K;col[n*3+1]=c[1]*K;col[n*3+2]=c[2]*K;n++;}
+  N.n=n;N.m.count=N.h.count=n;N.m.visible=N.h.visible=n>0;if(n){N.m.instanceMatrix.needsUpdate=true;N.m.instanceColor.needsUpdate=true;}
+  N.ms=N.ms*.95+(performance.now()-t0)*.05;}
+window.dbgFlamme=function(o){ // (banc) l'état du moteur simulé et du feu ; dbgFlamme('nfeu',0|1) coupe / rend le feu de pixels
+  if(o==='nfeu'){NFEU.on=!!arguments[1];if(!NFEU.on)nfeuCoupe();return NFEU.on;}
+  if(o==='proj'){const ar=NFEU.m.instanceMatrix.array,v=new THREE.Vector3(),r=[];for(let j=0;j<NFEU.n;j++){const m=j*16;v.set(ar[m+12],ar[m+13],ar[m+14]);const d=v.distanceTo(camera.position),sz=Math.hypot(ar[m],ar[m+1],ar[m+2]);v.project(camera);r.push([+d.toFixed(2),+(v.y).toFixed(2),+sz.toFixed(2),NFEU.P[j*12+11]]);}
+    const w=new THREE.Vector3();potMonde(CAR_POTS[0],w);const dpot=w.distanceTo(camera.position);w.project(camera);return {dir:JET_DIR.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),pots:CAR_POTS.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),parPot:[0,1,2,3].map(function(i){let c=0;for(let j=0;j<NFEU.n;j++)if((NFEU.P[j*12+10]|0)===i&&NFEU.P[j*12+11]===0)c++;return c;}),pot:[+dpot.toFixed(2),+w.y.toFixed(2),+w.x.toFixed(3)],cam:camera.position.toArray().map(x=>+x.toFixed(1)),car:carGroup.position.toArray().map(x=>+x.toFixed(1)),cubes:r};} // (banc) où tombent les cubes : distance, hauteur à l'écran (−1 bas, +1 haut), taille
+  const F=FLM;return {on:FLM_ON,rpm:+F.rpm.toFixed(2),rapport:F.g,charge:+F.ch.toFixed(2),lacher:+F.ov.toFixed(2),chaleur:+F.heat.toFixed(2),pop:+F.pop.toFixed(2),
+    L:Array.from(F.L).map(function(x){return +x.toFixed(2);}),feu:{n:NFEU.n,k:+NFEU.k.toFixed(2),ms:+NFEU.ms.toFixed(3),pots:nfeuNp(),cam:+camera.position.distanceTo(NFEU.pw[0]).toFixed(2)}};};
 /* LES POTS DE LA CAISSE (2026-09-26, user : « pour chaque skin, les flammes des pots d'échappement et la traînée de nitro au bon
    endroit ») — MESURÉ : toutes les flammes, la traînée et la lueur sortaient d'une formule unique (±22 % de la largeur, 43 cm,
    au bout de la fiche), alors que 58 caisses sur 66 dessinent LEURS pots : d'un seul côté, au centre, par quatre, en turbine,
@@ -27193,8 +27426,83 @@ const ECHP=(()=>{
       E.put('C',new THREE.TorusGeometry(r*1.25,.006,3,8),x,y+.04,z+.3);E.box('C',.006,.18,.006,x,y+.13,z+.3);
       return [[e[0],e[1]+.02,e[2]]];},
   };
+  // L'ENCOCHE (voir LES POTS ENCASTRÉS) : la poche noire percée dans le pare-chocs, à la forme de l'embout plus le jeu, et son jonc sombre
+  P.encoche=(E,o)=>{const J=Object.assign({},ECH_ENC,o.jeu?{jeu:o.jeu}:{},o.jonc?{jonc:o.jonc}:{}),ex=o.rx+J.jeu,ey=o.ry+J.jeu,zp=o.z-.004+J.poche/2;   // la poche est CREUSE : ses parois et un fond, loin
+    if(o.f==='o'){E.put('k',new THREE.CylinderGeometry(1,1,1,20,1,true),o.x,o.y,zp,PI/2,0,0,ex,J.poche,ey);E.put('k',new THREE.CircleGeometry(1,20),o.x,o.y,o.z-.004+J.poche,0,0,0,ex,ey,1);
+      E.put('f',new THREE.RingGeometry(1,1+J.jonc/Math.min(ex,ey),20),o.x,o.y,o.z-.006,0,0,0,ex,ey,1);}
+    else{const j=J.jonc,e=.006;E.box('k',2*ex,e,J.poche,o.x,o.y+ey-e/2,zp);E.box('k',2*ex,e,J.poche,o.x,o.y-ey+e/2,zp);
+      E.box('k',e,2*ey,J.poche,o.x-ex+e/2,o.y,zp);E.box('k',e,2*ey,J.poche,o.x+ex-e/2,o.y,zp);E.box('k',2*ex,2*ey,e,o.x,o.y,o.z-.004+J.poche);
+      E.box('f',2*ex+2*j,j,.006,o.x,o.y+ey+j/2,o.z-.006);E.box('f',2*ex+2*j,j,.006,o.x,o.y-ey-j/2,o.z-.006);
+      E.box('f',j,2*ey,.006,o.x-ex-j/2,o.y,o.z-.006);E.box('f',j,2*ey,.006,o.x+ex+j/2,o.y,o.z-.006);}
+    return [];};
   P.ovale=(E,o)=>P.rond(E,Object.assign({sx:1.45,sy:.72},o));
   return P;})();
+/* LES POTS ENCASTRÉS (2026-10-15, Léo : « le pot d'échappement de la honte est un peu bizarre et mal. Il devrait être encastré, puis
+   passer à travers une encoche qui a été faite exprès, un peu comme les vraies voitures » · « fais pareil pour toutes les voitures
+   (seulement pot échappement) »). Sur une vraie voiture, le pare-chocs est percé d'une OUVERTURE à la forme de la sortie, un peu plus
+   grande (le jeu : le pot vibre et chauffe), souvent bordée d'un jonc ; l'embout y est centré, à fleur ou dépassant d'un ou deux
+   centimètres. Ici, pour chaque bouche qui sort par l'ARRIÈRE (rond, ovale, rect, fente, ouïes, turbine, cloche, cristal, gueule,
+   pixel, triangle, nuage) : un rayon tiré de l'arrière trouve la tôle à la hauteur de la bouche (la caisse vient d'être montée, le pot
+   pas encore) ; si elle est là, à moins de 70 cm, et qu'elle entoure la bouche (6 rayons sur 8 en anneau), l'embout est recalé à
+   1,6 cm devant elle et une ENCOCHE est posée : une poche noire CREUSE à la forme de l'embout + 1,2 cm de jeu (ses parois et un fond à
+   14 cm : ce qui est dessiné au fond des sorties — âmes, lueurs, aubes — reste visible) et un jonc sombre de 1,4 cm. Deux encoches d'une même pièce qui se touchent n'en font qu'une (rectangulaire). Une bouche qui sort SOUS la caisse (ou plus
+   grosse que la tôle qu'elle perce) n'a pas d'encoche, comme sur les vraies : son embout s'arrête à 3 cm derrière la ligne du pare-chocs
+   au-dessus d'elle, il ne pend plus derrière la voiture. Les sorties latérales, les cheminées et les collecteurs ne bougent pas. `enc:0`
+   sur une fiche : ses pots restent tels quels (LA SILENCIEUSE : son silencieux est son dessin). Les flammes suivent (elles naissent aux
+   bouches). */
+const ECH_ENC={jeu:.012,jonc:.014,dep:.016,poche:.14,portee:.7};
+function echTaille(t,o){ // le demi-gabarit d'un embout vu de l'arrière : [forme, demi-largeur, demi-hauteur] — null : la pièce ne sort pas par l'arrière
+  const r=(o.r||.05)*(o.ev||1);
+  switch(t){
+    case 'rond':return ['o',r*(o.sx||1),r*(o.sy||1)];
+    case 'ovale':return ['o',r*(o.sx||1.45),r*(o.sy||.72)];
+    case 'gueule':return ['o',r*1.3,r*1.3];
+    case 'turbine':return ['o',o.r*1.14,o.r*1.14];
+    case 'cloche':return ['o',o.r,o.r];
+    case 'cristal':return ['o',o.r*1.16,o.r*1.16];
+    case 'nuage':return ['o',o.r*1.6,o.r*1.6];
+    case 'rect':return ['r',(o.w||.16)/2,(o.h||.07)/2];
+    case 'fente':return ['r',(o.w+.03)/2,(o.h+.03)/2];
+    case 'ouies':return ['r',(o.w+.02)/2,o.pas+(o.h+.02)/2];
+    case 'pixel':return ['r',o.a/2+.01,o.a/2];
+    case 'triangle':return ['r',o.w/2,o.h/2];
+  }
+  return null;}
+const ECH_RC={rc:null,v:new THREE.Vector3(),d:new THREE.Vector3(),q:new THREE.Quaternion(),m:[]};
+function echTole(x,y){ // la tôle derrière (x, y), repère caisse : le z du premier pan touché en venant de l'arrière, ou null
+  const T=ECH_RC;T.v.set(x,y,-60);carGroup.localToWorld(T.v);T.rc.set(T.v,T.d);const h=T.rc.intersectObjects(T.m,false)[0];
+  return h?carGroup.worldToLocal(h.point).z:null;}
+function echEncastre(P){
+  const T=ECH_RC,J=ECH_ENC;T.rc=T.rc||new THREE.Raycaster();carGroup.updateMatrixWorld(true);carGroup.getWorldQuaternion(T.q);T.d.set(0,0,1).applyQuaternion(T.q);
+  T.m.length=0;carGroup.traverse(o=>{if(!o.isMesh||(o.userData&&o.userData.sol))return;for(let q=o;q&&q!==carGroup;q=q.parent)if(!q.visible)return;
+    const mt=Array.isArray(o.material)?o.material[0]:o.material;if(mt&&(mt.transparent||mt.blending===THREE.AdditiveBlending))return;T.m.push(o);});
+  const out=[],N=[];
+  for(const pc of P){
+    if(pc.t==='plaque'){const z=echTole(pc.x||0,pc.y);out.push(z!=null&&z-pc.z<J.portee&&z-pc.z>-.3?Object.assign({},pc,{z:z-.004}):pc);continue;}
+    if(!pc.pts){out.push(pc);continue;}
+    const q2=pc.pts.map(q=>q.slice()),G=[];
+    const pres=(z,z0)=>z!=null&&z-z0<=J.portee&&z-z0>=-.4;                          // une tôle à portée de la bouche
+    pc.pts.forEach((q,i)=>{const tl=echTaille(pc.t,Object.assign({},pc,q[3]||{}));if(!tl)return;
+      const z=echTole(q[0],q[1]);let n=0;
+      if(pres(z,q[2])){const e9=(pc.jeu||J.jeu)+(pc.jonc||J.jonc)+.01,ax=tl[1]+e9,ay=tl[2]+e9; // l'anneau : la tôle entoure-t-elle la bouche ?
+        for(let a=0;a<8;a++){const zz=echTole(q[0]+Math.cos(a*Math.PI/4)*ax,q[1]+Math.sin(a*Math.PI/4)*ay);if(zz!=null&&Math.abs(zz-z)<.12)n++;}}
+      if(n>=6){G.push({i:i,f:tl[0],x:q[0],y:q[1],z:z,rx:tl[1],ry:tl[2],jeu:pc.jeu,jonc:pc.jonc});return;}
+      // SOUS LA CAISSE (ou plus grosse que la tôle qu'elle perce) : pas d'encoche, mais l'embout s'arrête à 3 cm derrière la ligne du
+      // pare-chocs au-dessus de lui — il ne pend plus derrière la voiture
+      let zs=pres(z,q[2])?z:null;for(let k=1;k<=12&&zs==null;k++){const zz=echTole(q[0],q[1]+k*.03);if(pres(zz,q[2]))zs=zz;}
+      if(zs!=null&&q[2]<zs-.03)q2[i][2]=zs-.03;});
+    // les encoches qui se touchent n'en font qu'une : un rectangle autour des deux, la face au plus en arrière des deux
+    const grp=G.map(g=>[g]);
+    for(let a=0;a<grp.length;a++)for(let b=a+1;b<grp.length;b++){const A9=grp[a],B9=grp[b];if(!A9.length||!B9.length)continue;
+      const tou=A9.some(g=>B9.some(h=>Math.abs(g.x-h.x)<g.rx+h.rx+2*(J.jeu+J.jonc)+.01&&Math.abs(g.y-h.y)<g.ry+h.ry+2*(J.jeu+J.jonc)+.01));
+      if(tou){A9.push(...B9);B9.length=0;b=a;}}
+    for(const L9 of grp){if(!L9.length)continue;const z=Math.min(...L9.map(g=>g.z));for(const g of L9)q2[g.i][2]=z-J.dep;
+      if(L9.length===1){const g=L9[0];N.push({f:g.f,x:g.x,y:g.y,z:z,rx:g.rx,ry:g.ry,jeu:g.jeu,jonc:g.jonc});continue;}
+      const x0=Math.min(...L9.map(g=>g.x-g.rx)),x1=Math.max(...L9.map(g=>g.x+g.rx)),y0=Math.min(...L9.map(g=>g.y-g.ry)),y1=Math.max(...L9.map(g=>g.y+g.ry));
+      N.push({f:'r',x:(x0+x1)/2,y:(y0+y1)/2,z:z,rx:(x1-x0)/2,ry:(y1-y0)/2,jeu:L9[0].jeu,jonc:L9[0].jonc});}
+    out.push(Object.assign({},pc,{pts:q2}));}
+  for(const n of N)out.push(Object.assign({t:'encoche',bouche:0},n));
+  return out;}
 /* ÔTER L'ANCIEN EMBOUT : `gs` = les géométries d'un kit ({famille: BufferGeometry} non indexées), `prims` = ses pièces simples */
 function echRetire(gs,prims,shape){
   const F=ECH_POTS[shape];if(!F||F.garde)return gs;
@@ -27217,25 +27525,27 @@ function echRetire(gs,prims,shape){
   return gs;}
 /* DESSINER LE NOUVEAU POT, et déclarer ses bouches (la flamme naît là) */
 function echappement(K,shape,A){
-  const F=ECH_POTS[shape];if(!F||!F.p)return;
+  let F=ECH_POTS[shape];
+  if(!F&&A.pipes!==0){const W=K.W,L=K.L,y=A.split?K.y0+K.H*.06:K.y0+.08;F={p:[{t:'rond',r:.035,k:'c',len:.34,jeu:.008,jonc:.008,pts:[[W*.22,y,-L/2-.31],[-W*.22,y,-L/2-.31]]}]};} // (2026-10-15) les deux pots « canoniques » des gabarits sans fiche (des boîtes chromées de 22 cm qui pendaient 31 cm derrière) : deux vrais tubes de 7 cm, ENCASTRÉS dans le diffuseur (ou la tôle)
+  if(!F||!F.p)return;
   if(F.vieux){const g=K.add(new THREE.Group()),car=g.parent;car.remove(g);   // les gabarits d'avant le kit : leurs canons sont des maillages à part
     for(const o of car.children.slice()){const p=o.geometry&&o.geometry.parameters;
       if(o.isMesh&&o.geometry.type==='CylinderGeometry'&&Math.abs(o.rotation.x-Math.PI/2)<.05&&o.position.y<.6&&o.position.z<-K.L/2+.6&&Math.max(p.radiusTop,p.radiusBottom)<=.2)car.remove(o);}}
   if(!F.p)return;
   const E=K.kit(ECH_PAL),M=[];E.ech=1;                            // (le kit du pot ne passe pas par echRetire)
-  for(const pc of F.p){const f=ECHP[pc.t];if(f){const m9=f(E,pc);if(pc.bouche!==0)for(const m of m9)M.push(m);}}
+  for(const pc of (F.enc===0?F.p:echEncastre(F.p))){const f=ECHP[pc.t];if(f){const m9=f(E,pc);if(pc.bouche!==0)for(const m of m9)M.push(m);}} // (2026-10-15) LES POTS ENCASTRÉS
   K.commit(E);
   A.pipes=0;                                                       // plus de cylindres « canoniques » (les gabarits d'avant le kit)
   if(F.bouches!==0&&M.length)A.pots=M.slice(0,4);                 // 4 bouches au plus portent une flamme (voir les tuyères de buildCar)
 }
 const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
- epave:{p:[{t:'epave',r:0.05,pt:[0.4,0.38,-2.3398]},{t:'rond',k:'r',kb:'R',r:0.048,len:0.1,bague:0,pts:[[-0.42,0.4,-2.37]]}]},
+ epave:{p:[{t:'rond',k:'r',kb:'R',r:0.031,len:0.45,jeu:.007,jonc:.008,pts:[[0.3,0.3955,-2.4]]},{t:'rond',k:'r',kb:'R',r:0.027,len:0.45,bague:0,jeu:.007,jonc:.008,pts:[[-0.3,0.3955,-2.4]]}]}, // (2026-10-15, Léo : « il devrait être encastré, puis passer à travers une encoche ») deux pots ROUILLÉS de 5-6 cm (pas tout à fait pareils), chacun dans son encoche percée dans le DIFFUSEUR, entre ses ailettes — avant : un tuyau tordu qui traversait le pare-chocs sans trou et pendait, ficelé, et un bout de tube qui flottait derrière
  eldorado:{p:[{t:'ovale',r:0.06,sx:1.7,sy:0.62,k:'c',dbl:1,pts:[[0.68,0.4,-3.08],[-0.68,0.4,-3.08]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur le pare-chocs reculé de Léo (face à z -3,06) : bouches de -3,06 à -3,08, elles dépassent de 2 cm au lieu d'affleurer (z-fighting chrome)
  a_chargeur:{p:[{t:'rect',w:0.24,h:0.075,k:'c',e:0.015,pts:[[0.56,0.33,-2.58],[-0.56,0.33,-2.58]]}]},
  a_defieur:{p:[{t:'rond',r:0.068,k:'c',ev:1.06,pts:[[0.62,0.33,-2.584],[-0.62,0.33,-2.584]]}]},
  b_bavaroise:{p:[{t:'rond',r:0.038,k:'a',dbl:1,pts:[[0.28,0.27,-2.39],[0.38,0.27,-2.39]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur la poupe de Léo : son bouclier recule à z -2,29 (bouches de -2,26 à -2,39, elles dépassent de 10 cm comme avant)
  caid:{p:[{t:'lateral',r:0.045,len:0.3,k:'c',pts:[[0.99,0.4,-0.66],[0.99,0.4,-0.8],[-0.99,0.4,-0.66],[-0.99,0.4,-0.8]]}]},
- c_silencieuse:{p:[{t:'rond',r:0.11,sx:1.6,sy:0.72,len:0.6,k:'a',ame:0,bague:0,bouche:0,pts:[[0,0.24,-2.535]]},{t:'rond',r:0.03,k:'c',len:0.1,pts:[[0,0.24,-2.605]]}]},
+ c_silencieuse:{enc:0,p:[{t:'rond',r:0.11,sx:1.6,sy:0.72,len:0.6,k:'a',ame:0,bague:0,bouche:0,pts:[[0,0.24,-2.535]]},{t:'rond',r:0.03,k:'c',len:0.1,pts:[[0,0.24,-2.605]]}]},
  d_samourai:{p:[{t:'rond',r:0.078,k:'b',kb:'v',ev:1.1,dbl:1,k2:'x',pts:[[0.42,0.28,-2.44]]}]},
  d_vette:{p:[{t:'rond',r:0.044,k:'c',dbl:1,pts:[[-0.24,0.3,-2.32],[-0.09,0.3,-2.32],[0.09,0.3,-2.32],[0.24,0.3,-2.32]]}]},
  e_anglaise:{p:[{t:'ovale',r:0.05,sx:1.9,sy:0.6,k:'c',dbl:1,pts:[[0.55,0.33,-2.44],[-0.55,0.33,-2.44]]}]},
@@ -27845,14 +28155,18 @@ const SHAPES={
     U(W,H*.62,L,bV,0,y0+H*.31,0,{seed:1,dent:.007,rouille:.10}).rotation.z=.03;
     U(W*.94,H*.272,L*.34,bV,0,y0+H*.64,L*.30,{seed:2,dent:.012,rouille:.08,cell:.3}).rotation.set(.16,0,-.06); // le capot froissé (×,8 de haut, comme avant)
     U(W*.94,H*.36,L*.26,bV,0,y0+H*.65,-L*.34,{seed:3,dent:.008,rouille:.16,cell:.3}).rotation.x=-.09;
-    /* (2026-10-15, Léo : « un plafond moins buggé : l'orange se mélange bizarrement à la vitre ») LE TOIT POSÉ SUR LA VITRE. Le dessus de la
-       boîte de verre était à la hauteur du MILIEU de la dalle du toit, et les deux penchaient en sens contraire (−,04 / +,09) : le toit
-       s'enfonçait d'un côté dans le verre, le verre perçait le toit de l'autre, et autour du toit une bande de verre plat. Désormais la
-       vitre garde sa pente (−,04 : la cabine de travers, et son verre renvoie le même ciel qu'avant), le toit PENCHE AVEC ELLE, déborde
-       du verre de 4 cm sur les côtés et de 8 cm devant et derrière, et le dessus du verre est noyé dans l'épaisseur du toit (1 cm) :
-       plus aucune face ne se bat. */
-    const RT=-.04,gl=B(W*.78,H*.62,L*.40,K.glass,0,y0+H*.93,-L*.05);gl.rotation.z=RT;
-    {const of=H*.31+.0125;U(W*.82,.045,L*.44,aV,-Math.sin(RT)*of,gl.position.y+Math.cos(RT)*of,gl.position.z,{seed:4,dent:.004,rouille:.18,c:.008}).rotation.z=RT;}
+    /* (2026-10-15, Léo : « un plafond moins buggé : l'orange se mélange bizarrement à la vitre », puis, la v456 vue : « remets le plafond
+       comme avant » — « le toit d'avant, mais posé dessus ») LE TOIT D'AVANT, POSÉ SUR LA VITRE. Le dessus de la boîte de verre était à la
+       hauteur du MILIEU de la dalle du toit, et les deux penchaient en sens contraire (−,04 / +,09) : le toit s'enfonçait d'un côté dans
+       le verre, le verre le perçait de l'autre. La v456 l'avait remplacé par un grand toit patiné qui couvrait la vitre ; c'est de nouveau
+       la petite dalle d'origine (lisse, l'accent, sa pente de ,09), POSÉE À PLAT sur la vitre : c'est le dessus du verre qui prend la pente
+       du toit (ses côtés restent ceux d'avant, la cabine s'écrase de 10 cm d'un côté — une épave), et la dalle repose dessus à 1 mm.
+       Plus aucune face ne se bat, et elle ne flotte pas (posée sur un seul bord, elle avait l'air de planer). */
+    const RT=-.04,RR=.09,gl=B(W*.78,H*.62,L*.40,K.glass,0,y0+H*.93,-L*.05);gl.rotation.z=RT;
+    {const pa=gl.geometry.attributes.position,k=Math.tan(RR-RT);for(let i=0;i<pa.count;i++)if(pa.getY(i)>0)pa.setY(i,pa.getY(i)+k*pa.getX(i)); // le dessus du verre, cisaillé
+     pa.needsUpdate=true;gl.geometry.computeVertexNormals();gl.geometry.computeBoundingBox();gl.geometry.computeBoundingSphere();
+     const t=H*.06,hT=H*.31,c=t/2+.001;
+     const roof=B(W*.72,H*.10,L*.34,K.acc,-hT*Math.sin(RT)-c*Math.sin(RR),gl.position.y+hT*Math.cos(RT)+c*Math.cos(RR),-L*.05);roof.rotation.z=RR;roof.scale.y=.6;}
     for(const sd of [-1,1]){
       const mir=B(.09,.09,.16,sd<0?K.rust:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
@@ -31281,7 +31595,7 @@ Object.assign(SHAPES,{
     // ---- 1. LE CHÂSSIS : une plaque sombre sous la tête, deux essieux, deux sorties d'or sous la nuque ----
     {const P=lpKit(pal);P.box('D',1.0,.12,1.10,0,.40,-.30);                                  // (la plaque recule : la langue pend devant, rien ne la coupe)
      P.cyl('k',.07,1.60,10,0,R,ZR,'x');
-     P.sym(sd=>{P.cyl('o',.075,.30,14,sd*.24,.42,-.95,'z');P.cyl('k',.055,.31,14,sd*.24,.42,-.955,'z');});
+     P.sym(sd=>{P.cyl('o',.075,.30,14,sd*.24,.42,-.73,'z');P.cyl('k',.055,.31,14,sd*.24,.42,-.735,'z');}); // (2026-10-15, Léo : les pots « encastrés… comme les vraies voitures », sur toutes) elles dépassaient de 25 cm derrière la plaque : elles s'arrêtent à 3 cm (voir LES POTS ENCASTRÉS)
      const gs=P.done();for(const k in gs)mesh(gs[k],g);}
     // ---- 2. LA GROSSE TÊTE ----
     if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTeteObtient(); // (OPTIMISATION) celle de l'OUVRIER DU DOGE si elle est prête
@@ -31393,7 +31707,7 @@ Object.assign(SHAPES,{
     anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.32,1.1,1.05],tl:[.30,.70,-.90],lamps:0,halos:0,wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.42,-1.11],[-.24,.42,-1.11]],
+    return {hl:[.32,1.1,1.05],tl:[.30,.70,-.90],lamps:0,halos:0,wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.42,-.89],[-.24,.42,-.89]],
             lpw:{R:R,w:.34,style:'rayons',n:5,jante:0xffc42e,accent:0xffc42e,pneu:0x141118}};   // (« un peu plus jaune le truc au milieu du pneu »)
   }
 });
@@ -32335,6 +32649,11 @@ function buildCar(spec){
   // UNE CAISSE DU KIT LOW-POLY NE PREND AUCUN ACCESSOIRE COMMUN : ni feux-boîtes, ni pots, ni lame,
   // ni aileron générique — tout ce qui se voit est posé par son gabarit.
   if(A.lpw)Object.assign(A,{lamps:0,pipes:0,sp:0,split:0,doors:0,slats:0});
+  if(A.split){ // lame avant + diffuseur arrière à ailettes — (2026-10-15) posés AVANT le pot : son encastrement doit les voir (le diffuseur dépasse de 8 cm derrière le pare-chocs ; posé après, il cachait le bas des encoches)
+    box(W9*.96,.05,.3,darkM,0,y0+H9*.04,L9/2+.12);
+    box(W9*.86,.09,.26,darkM,0,y0+H9*.06,-L9/2-.10);
+    for(const fx of [-1,0,1])box(.03,.13,.24,darkM,fx*W9*.26,y0+H9*.10,-L9/2-.10);
+  }
   echappement(K,shape,A); // (2026-10-10) LE POT de la caisse, dessiné pour elle (voir « LES POTS D'ÉCHAPPEMENT ») — il déclare ses bouches
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
   carGroup.userData.capot=[0,y0+H9*.78,L9*.28]; // (2026-09-28) le CAPOT, en repère caisse : c'est là que le nouveau moteur RENTRE (voir engBigSuit)
@@ -32555,11 +32874,6 @@ function buildCar(spec){
       for(const zz of [L9*.07,-L9*.17])box(.012,H9*.5,.03,seamM,sd*(W9/2+.005),y0+H9*.45,zz);
       box(.03,.035,.16,wreck?rustM:chromeM,sd*(W9/2+.02),y0+H9*.66,L9*.01);
     }
-  }
-  if(A.split){ // lame avant + diffuseur arrière à ailettes
-    box(W9*.96,.05,.3,darkM,0,y0+H9*.04,L9/2+.12);
-    box(W9*.86,.09,.26,darkM,0,y0+H9*.06,-L9/2-.10);
-    for(const fx of [-1,0,1])box(.03,.13,.24,darkM,fx*W9*.26,y0+H9*.10,-L9/2-.10);
   }
   if(A.slats)for(const gy of [-1,1])box(W9*.5,.02,.02,chromeM,0,y0+H9*.42+gy*.045,L9/2+.145);
   // PRESQUE NUIT : phares allumés (halo chaud élargi) + feux arrière braise — sauf le gabarit qui n'en veut pas (`halos:0`, le chat)
@@ -34939,7 +35253,7 @@ function nitroGain(q,src){
   if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
 function runxReset(){flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le relèvement du début se décide ICI, une fois par partie (voir ECOD) */jourMaj(); /* (2026-10-14, GAMEPLAY) …et le ×2 du jour juste après : ECOD.k = le MAX des deux, jamais le produit (voir JOUR) */RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
-RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
+RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;MIS_NEWG.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
   try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;chanceRaz();} /* (2026-10-14) une partie neuve, une SECONDE CHANCE neuve */ // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
@@ -35038,10 +35352,24 @@ function misProg(m){ // « 18 / 25 » — l'avancement DANS la partie en cours (
   if(m.k==='zones')return misProgV(m,c); // (2026-09-30) la zone en cours, en %
   return Math.floor(c)+' / '+m.v;
 }
-function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)s.best=[0,0,0];if(!misEtat._pop){misEtat._pop=1;try{popCarnets(s);}catch(e){}}return s;}
+function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)s.best=[0,0,0];if(!misEtat._pop){misEtat._pop=1;try{popCarnets(s);}catch(e){}}misFile(s);return s;}
+/* LA FILE DES MISSIONS (2026-10-15, Sacha : « ne fais plus des petits groupes de trois missions »). Plus de carnet qu'on relève EN BLOC :
+   les missions forment UNE route, numérotées g = 3 × carnet + rang (les CARNETS restent la réserve de contenu, rien n'est réécrit).
+   Trois sont OUVERTES à la fois — les trois premières pas encore relevées — dans trois cases `s.w` (leurs numéros) ; `s.ok`/`s.best`/`s.f`
+   gardent leur sens, mais par CASE. Une mission relevée garde sa case jusqu'à la fin de la partie (même règle qu'avant : jamais une
+   mission neuve avec les compteurs d'une partie entamée), puis la case prend la mission suivante de la route. Les récompenses sont des
+   JALONS : celle du carnet c tombe quand toutes les missions jusqu'à 3c+2 sont relevées — dans l'ordre, donc `s.n` (jalons franchis)
+   garde le sens que lui prêtent les caisses à gagner (carStat 'carnet'). Ancienne sauvegarde : w = [3n, 3n+1, 3n+2], ok/best tels quels. */
+function misFile(s){const w=s.w,n3=3*(s.n|0);
+  if(!Array.isArray(w)||w.length!==3||w.some(function(x,i){return !(x>=n3&&x===Math.floor(x))||w.indexOf(x)!==i;})||Math.floor(Math.min(w[0],w[1],w[2])/3)!==(s.n|0))s.w=[n3,n3+1,n3+2];}
+function misG(g){return carnet(Math.floor(g/3)).m[g%3];}        // la mission n° g de la route
+function misM(s,i){return misG(s.w[i]);}                          // la mission de la case i
+function misFait(s,g){const i=s.w.indexOf(g);return i>=0?!!s.ok[i]:g<Math.max(s.w[0],s.w[1],s.w[2]);} // relevée ? (sous la case la plus haute, tout ce qui n'est pas en case l'est)
+function misPips(s){return [0,1,2].map(function(k){return misFait(s,3*s.n+k);});} // les trois crans vers le PROCHAIN JALON (les pastilles des boutons MISSIONS)
+function misReste(s){let r=0;for(let g=3*s.n;g<3*s.n+3;g++)if(!misFait(s,g))r++;return r;} // combien de missions avant le prochain jalon
 /* (2026-10-14) LES CARNETS POP (10 à 12) sont arrivés APRÈS la suite sans fin : un joueur déjà au-delà les a relevés avec d'autres défis —
    on lui remet leur habillage, une fois (sinon il ne pourrait plus jamais l'avoir). */
-function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;}SAVE.mark();} /* (2026-10-14, chasse aux bugs) un joueur AU carnet 10-12 au moment de la mise à jour gardait les coches et meilleurs essais du carnet de la suite sans fin qui occupait cette place : le carnet POP s'ouvrait avec des défis cochés qu'il n'avait pas faits. Remis à zéro UNE fois (`pop`, gardé par san) */
+function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;s.w=null;}SAVE.mark();} /* (2026-10-14, chasse aux bugs) un joueur AU carnet 10-12 au moment de la mise à jour gardait les coches et meilleurs essais du carnet de la suite sans fin qui occupait cette place : le carnet POP s'ouvrait avec des défis cochés qu'il n'avait pas faits. Remis à zéro UNE fois (`pop`, gardé par san) */
   const o=SAVE.d.shop&&SAVE.d.shop.own;if(!o)return;let n=0;for(let i=9;i<CARNETS.length;i++){const r=CARNETS[i].r;
   if(s.n>i&&r.cat){const k=r.cat+':'+r.id;if(o.indexOf(k)<0){o.push(k);n++;}}}if(n)SAVE.mark();}
 /* LES DÉFIS SUR LA FICHE (2026-09-25, user : « les missions ne doivent pas être aussi visibles — dans le garage, certaines
@@ -35050,13 +35378,14 @@ function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0
    la suivante attend que la précédente soit gagnée. `n` = numéro du carnet (1 = LA BULLE). */
 function defisHtml(n){
   const s=misEtat(),Lg=LANG==='en'?1:0;
-  if(s.n+1<n){const prev=carnet(n-2);
+  if(3*(n-1)>Math.max(s.w[0],s.w[1],s.w[2])){const prev=carnet(n-2); // (2026-10-15, la file) aucune de ses missions n'est encore ouverte
     return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 MISSIONS — APRES ','WON BY COMPLETING 3 MISSIONS — AFTER '][Lg]+misRecompense(prev);}
   const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 MISSIONS (CHACUNE EN UNE PARTIE)','WON BY COMPLETING 3 MISSIONS (EACH IN ONE RUN)'][Lg]+'</span>';
   // (2026-09-25) juste après une partie, chaque défi ouvert dit où l'on s'est arrêté (« 21 / 25 ») : la meilleure raison de relancer.
   // ⚠ !MIS_REC : si le carnet vient de se refermer à cette mort, RUNX porte les scores d'une partie qui ne compte plus pour le suivant
   const apres=started&&gameOver&&!SANDBOX&&!PARK.on&&!MIS_REC&&n===s.n+1;
-  c.m.forEach(function(m,i){const ok=!!s.ok[i];h+='<span class="gDf'+(ok?' ok':'')+'"><i>'+(ok?pxi('coche'):'')+'</i>'+majPix(misTxt(m))+(apres&&!ok?'<em>'+misProg(m)+'</em>':'')+'</span>';});
+  c.m.forEach(function(m,i){const g=3*(n-1)+i,ok=misFait(s,g),k=s.w.indexOf(g),en=apres&&!ok&&k>=0&&MIS_NEW.indexOf(k)<0; // (la file) l'avancement de la partie : seulement pour une mission qui était déjà ouverte pendant elle
+    h+='<span class="gDf'+(ok?' ok':'')+'"><i>'+(ok?pxi('coche'):'')+'</i>'+majPix(misTxt(m))+(en?'<em>'+misProg(m)+'</em>':'')+'</span>';});
   return h;
 }
 function misRecompense(c){ // ce que le carnet débloque, en clair
@@ -35065,18 +35394,18 @@ function misRecompense(c){ // ce que le carnet débloque, en clair
   if(r.cat){const d=COSM[r.cat].find(x=>x.id===r.id);return d?TR(d.n):'';}
   return fmtC(r.cash||0);
 }
-let misT=0;const MIS_NEW=[]; // missions réussies PENDANT cette partie (l'écran de mort les rejoue)
+let misT=0;const MIS_NEW=[],MIS_NEWG=[]; // missions réussies PENDANT cette partie (l'écran de mort les rejoue)
 function misOn(){return started&&!gameOver&&!SANDBOX&&!PARK.on;}
 function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIRECT, pas à la fin
   if(!misOn()){if(misTick._f!==0){misTick._f=0;try{misFocusMaj();}catch(e){}}return;} // (2026-09-30) la mission suivie s'éteint hors course
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
   misT-=dt;if(misT>0)return;misT=.25;
   if(TUTO.on||(MIS0.on&&RUNX.t-MIS0.t<20)){misTick._f=1;try{misFocusMaj();}catch(e){}return;} // (2026-10-14, gameplay) rien ne se coche pendant la leçon, ni dans les 20 premières secondes de la course qui suit le permis (MIS0)
-  const s=misEtat(),c=carnet(s.n);
-  for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
+  const s=misEtat();
+  for(let i=0;i<3;i++){if(s.ok[i])continue;const m=misM(s,i),v9=misVal(m.k);
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
     if(v9>=m.v){
-      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);
+      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);MIS_NEWG.push(s.w[i]); // (la file) la case ET le numéro : à la fin de la partie la case aura pris la mission suivante
       misBanniere('MISSION RÉUSSIE',misTxt(m,true),'+'+fmtC(m.p),'coche');
       try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
@@ -35086,13 +35415,16 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
 /* LE CARNET SE FERME À LA FIN DE LA PARTIE, jamais en vol : sinon le carnet suivant s'ouvrirait avec les
    compteurs d'une partie déjà bien entamée, et ses missions tomberaient toutes seules — gagnées sans
    avoir été lues. Rend la récompense (pour l'écran de mort) ou null. */
-function misFin(){
-  const s=misEtat();if(!(s.ok[0]&&s.ok[1]&&s.ok[2]))return null;
-  const c=carnet(s.n),r=c.r;
-  if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
-  if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);bankMaxMaj();}
-  const out={n:s.n+1,nom:misRecompense(c),car:r.car,cat:r.cat,id:r.id};
-  s.n++;s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;SAVE.flush(); // (2026-09-30) carnet neuf : plus de mission suivie
+function misFin(){ // (2026-10-15, la file) chaque case relevée prend la mission suivante de la route ; les jalons franchis versent leur récompense
+  const s=misEtat();if(!(s.ok[0]||s.ok[1]||s.ok[2]))return null;
+  let hi=Math.max(s.w[0],s.w[1],s.w[2]);
+  for(let i=0;i<3;i++)if(s.ok[i]){s.w[i]=++hi;s.ok[i]=0;s.best[i]=0;if(s.f===i)s.f=-1;} // une mission neuve : plus suivie, meilleur essai à zéro
+  const n2=Math.floor(Math.min(s.w[0],s.w[1],s.w[2])/3);let out=null;
+  while(s.n<n2){const c=carnet(s.n),r=c.r; // (une partie peut en franchir deux : chacun verse la sienne, l'écran de mort montre la dernière)
+    if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
+    if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);bankMaxMaj();}
+    out={n:s.n+1,nom:misRecompense(c),car:r.car,cat:r.cat,id:r.id};s.n++;}
+  SAVE.flush();
   return out;
 }
 // LA BANNIÈRE DE CONTRAT : descend du haut de l'écran, 2,4 s — le jeu continue dessous
@@ -35229,15 +35561,15 @@ function objRender(el){
      plus avancé durant la partie ») LA PORTE DES MISSIONS. Le défi que CETTE partie a le plus approché (celui qu'elle vient de relever
      passe devant), sa jauge qui se remplit de la partie sous les yeux, et au bout ce qu'il rapporte — l'objet, dans la couleur de sa
      famille. Touchée : l'écran MISSIONS. (L'ancien objectif d'achat — la prochaine caisse à s'offrir — vit au garage et sur sa pastille.) */
-  const s=misEtat(),c=carnet(s.n),g=misGain(c);let bi=-1,bp=-1;
-  for(let i=0;i<3;i++){const nf=MIS_NEW.indexOf(i)>=0;if(s.ok[i]&&!nf)continue;
-    const p=nf?2:misPart(c.m[i],misVal(c.m[i].k));if(p>bp){bp=p;bi=i;}}
+  const s=misEtat(),c=carnet(s.n),g=misGain(c);let bm=null,bp=-1,nf=false; /* (2026-10-15, la file) la mission relevée par CETTE partie passe devant ; sinon la case ouverte pendant elle qu'elle a le plus approchée (une case remplie à la fin de la partie porte déjà la mission suivante : on l'ignore) */
+  if(MIS_NEWG.length){bm=misG(MIS_NEWG[MIS_NEWG.length-1]);nf=true;}
+  else for(let i=0;i<3;i++){if(s.ok[i]||MIS_NEW.indexOf(i)>=0)continue;const m9=misM(s,i),p=misPart(m9,misVal(m9.k));if(p>bp){bp=p;bm=m9;}}
   el.className='mObj misPorte';el.setAttribute('data-m','mis');el.style.setProperty('--rc',g.col);
-  let pips='';for(let i=0;i<3;i++)pips+='<u'+(s.ok[i]?' class="ok"':'')+'></u>';
-  if(bi<0){ // les trois déjà relevés : le carnet se ferme à la fin de la partie (MIS_REC) — filet
+  const pp9=misPips(s);let pips='';for(let i=0;i<3;i++)pips+='<u'+(pp9[i]?' class="ok"':'')+'></u>';
+  if(!bm){ // filet : rien à montrer
     el.innerHTML='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
-      +'<div class="obBig obGain">'+g.nom+'</div><div class="obFt"><span>3 / 3</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';return;}
-  const m=c.m[bi],nf=MIS_NEW.indexOf(bi)>=0,v=nf?m.v:Math.min(m.v,misVal(m.k)),w=nf?100:misPart(m,v)*100;
+      +'<div class="obBig obGain">'+g.nom+'</div><div class="obFt"><span>'+(3-misReste(s))+' / 3</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';return;}
+  const m=bm,v=nf?m.v:Math.min(m.v,misVal(m.k)),w=nf?100:misPart(m,v)*100;
   el.innerHTML='<div class="obHd"><span>'+pxi(nf?'coche':'cible')+' '+TR(nf?'MISSION RÉUSSIE !':'MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
     +'<div class="obBig">'+misTxt(m)+'</div>'
     +'<div class="obBar'+(nf?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
@@ -35274,15 +35606,15 @@ function misGain(c){ // l'OBJET d'un carnet : son nom, la couleur de sa famille,
 }
 function misGainFig(g){return g.car!=null?objFig({car:g.car}):g.cat?objFig({cat:g.cat,i:g.i}):'<i class="obFig misCash">'+pxi('piece')+'</i>';}
 function misRender(){
-  const s=misEtat(),c=carnet(s.n),g=misGain(c),fait=s.ok.reduce(function(a,b){return a+(b?1:0);},0);
+  const s=misEtat(),c=carnet(s.n),g=misGain(c),fait=3-misReste(s);
   const tab=$('misTab');
   if(tab){let h='<div class="misDefs">';
-    c.m.forEach(function(m,i){const ok=!!s.ok[i],b=s.best[i]||0;
+    [0,1,2].map(function(i){return misM(s,i);}).forEach(function(m,i){const ok=!!s.ok[i],b=s.best[i]||0;
       h+='<div class="misDef'+(ok?' ok':'')+'"><div class="misL">'+(ok?pxi('coche'):'<i class="misN">'+(i+1)+'</i>')+'<span>'+misTxt(m)+'</span></div>'
         +'<div class="misBar"><u data-p="'+(ok?1:misPart(m,b)).toFixed(3)+'"></u></div>'
         +'<div class="misP"><span>'+(ok?TR('RELEVÉ'):b>0?misProgV(m,b):TR('À TENTER'))+'</span><b>+'+fmtC(m.p)+'</b></div></div>';});
     h+='</div>';
-    let j='';for(let i=0;i<3;i++)j+='<i'+(s.ok[i]?' class="ok"':'')+'><u data-p="'+(s.ok[i]?1:misPart(c.m[i],s.best[i])).toFixed(3)+'"></u></i>';
+    let j='';for(let i=0;i<3;i++)j+='<i'+(s.ok[i]?' class="ok"':'')+'><u data-p="'+(s.ok[i]?1:misPart(misM(s,i),s.best[i])).toFixed(3)+'"></u></i>';
     h+='<div class="misCol"><div class="misPrix'+(g.voir?' voir':'')+(fait===3?' plein':'')+'"'+(g.voir?' data-m="misVoir" role="button"':'')+' style="--rc:'+g.col+'">'
       +'<small>'+TR('A GAGNER')+'</small>'+misGainFig(g)+'<b class="misNom">'+g.nom+'</b><span class="misFam">'+g.fam+'</span>'
       +'<div class="misJauge" aria-hidden="true">'+j+'</div><span class="misCpt"><b>'+fait+'</b> / 3</span>'
@@ -42601,7 +42933,7 @@ const SAVE={
     if(d.mis&&typeof d.mis==='object'){c.mis.n=Math.max(0,Math.min(999,Math.round(+d.mis.n)||0));
       if(Array.isArray(d.mis.ok))c.mis.ok=[0,1,2].map(i=>d.mis.ok[i]?1:0);
       if(Array.isArray(d.mis.best))c.mis.best=[0,1,2].map(i=>Math.max(0,Math.min(1e30,+d.mis.best[i]||0)));
-      c.mis.f=[0,1,2].indexOf(d.mis.f)>=0?d.mis.f:-1;if(d.mis.pop)c.mis.pop=1;} // (2026-10-14, chasse aux bugs) `pop` : la remise à zéro des carnets POP est faite (voir popCarnets) // (2026-09-30) la mission SUIVIE (cochée à l'écran MISSIONS du garage), -1 = aucune // (2026-09-28) le meilleur essai de chaque défi (la jauge de l'écran MISSIONS)
+      c.mis.f=[0,1,2].indexOf(d.mis.f)>=0?d.mis.f:-1;if(Array.isArray(d.mis.w)&&d.mis.w.length===3)c.mis.w=d.mis.w.map(x=>Math.max(0,Math.min(99999,Math.round(+x)||0))); /* (2026-10-15) la file : misFile la vérifie et la reconstruit si elle ment */ if(d.mis.pop)c.mis.pop=1;} // (2026-10-14, chasse aux bugs) `pop` : la remise à zéro des carnets POP est faite (voir popCarnets) // (2026-09-30) la mission SUIVIE (cochée à l'écran MISSIONS du garage), -1 = aucune // (2026-09-28) le meilleur essai de chaque défi (la jauge de l'écran MISSIONS)
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
@@ -43933,6 +44265,7 @@ function nitroAllume(bleu,etage){ // LE COUP — au front montant de `nitroOn` (
   const k=(etage?.6:1)*(rep?.45:1);
   NFX.ign=1;NFX.ignK=k;NFX.off=0;NFX.ringT=0;NFX.ringK=k;NFX.air=mode==='fall';NFX_FIL.arme=true; // (la gerbe de filés : voir nfxFiles)
   NFX.col.setHex(bleu?NFX_C.b:NFX_C.n); // la teinte de l'onde et des bords est juste dès la première image
+  try{nfeuCoup(k);}catch(e){} // (2026-10-15) le feu de pixels : une boule de feu par pot
   fovPunch=Math.max(fovPunch,(NFX.air?8:7)*k);     // le champ S'OUVRE d'un coup (lu au sol comme en vol) — un COUP au-dessus de l'ouverture de la nitro (+15°), pas un second zoom : à 14 la caisse fondait de moitié
   hap(bleu?[8,16,8]:[14,26,10]);
   nitroWhoomp(k,bleu,NFX.air);
@@ -43946,6 +44279,7 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
     spawnP(flames,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(9+nfxR()*9)+(nfxR()-.5)*2.4,VC.y-hsF.y*9+nfxR()*1.4,VC.z-hsF.z*(9+nfxR()*9)+(nfxR()-.5)*2.4,.1+nfxR()*.08);
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
   try{crackle(.7);}catch(e){}
+  try{nfeuFin();}catch(e){} // (2026-10-15) le feu de pixels : la dernière bouffée, lente et sale
 }
 /* (2026-10-14, sensations · nitro) LA POUSSÉE SE SENT DANS LES RESSORTS. L'allumage avait tout (cabrage, onde, champ, vibration, whoomp) ;
    la COUPURE, elle, n'avait que du son et une langue de feu : la caisse accroupie (pitch9 −1,7°) se relevait en fondu, sans poids.
@@ -45427,7 +45761,7 @@ function respawn(){
   try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   try{bkSkateRaz();BKV.yaw=0;}catch(e){} // (ICE SKATE) la glisse aussi
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
-  for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
+  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   JEAU.dans=false;JEAU.wB=0; // (2026-10-13) replacé sur la route : plus sous l'eau — (2026-10-14, revue des idées de Léo) et plus redressé par elle : wB restait vers 1 en conduite, et au saut suivant la vrille et le vol équilibré étaient coupés 1-2 s
@@ -46712,7 +47046,7 @@ function newTrack0(){
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
-  for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
+  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
@@ -47043,7 +47377,7 @@ function endGame(){
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
   try{if(CARR.actif&&LVL.cur&&LVL.cur.carr)carrSelPose(LVL.cur.carr.b,LVL.cur.carr.i);}catch(e){} // (2026-10-07) …et les PLAY du menu aussi : « le dernier niveau de carrière auquel on a joué »
   try{campStop();}catch(e){} // (2026-09-27) tirs, fumée, éclairs, halos : rien ne reste figé derrière l'écran de fin
-  try{rainbowCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
+  try{rainbowCoupe();nfeuCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
@@ -50988,7 +51322,7 @@ function garageShow(i){
 /* LA BARRE DES FAMILLES + LA BANDE DE VIGNETTES. La barre ne se réécrit que si la famille ou les comptes changent ; la bande
    se reconstruit au changement de famille et ne fait sinon que déplacer la sélection (et se recentrer dessus). Les photos
    viennent du studio (`carPhoto`), UNE par image au plus (`photoFile`) : ouvrir une famille de 16 ne gèle pas le garage. */
-function gDefiEt(n){try{const s=misEtat();if(n!==s.n+1)return '';return pxi('cible')+' '+s.ok.reduce(function(a,b){return a+(b?1:0);},0)+' / 3';}catch(e){return '';}} // la vignette de la caisse que les MISSIONS en cours font gagner
+function gDefiEt(n){try{const s=misEtat();if(n!==s.n+1)return '';return pxi('cible')+' '+(3-misReste(s))+' / 3';}catch(e){return '';}} // la vignette de la caisse que les MISSIONS en cours font gagner
 function garageFamilles(r){
   const md=gModeM();if(md==='shop'){gShopJour();return;} /* (2026-10-10) la BOUTIQUE est devenue LA BOUTIQUE DU JOUR (gShopJour) */if(md==='inv'||md==='tous'){gStripModeVoitures();return;} // (2026-10-10) SEE ALL ITEMS (`tous`) : la page de l'inventaire, tout ce qui s'achète — (2026-10-09) INVENTAIRE : voir « LA CONSOLE À TROIS MODES » — la BOUTIQUE garde les familles (Léo : « remets les raretés dans la boutique »)
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}bar.classList.remove('gModeBar');
@@ -51001,7 +51335,7 @@ function garageFamilles(r){
       return '<button class="gR'+(x.id===r?' on':'')+(shop&&!v?' vide':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" aria-label="'+nm9+' '+lb+'" title="'+nm9+'" style="--rc:'+x.c+'"><span class="gRn">'+nm9+'</span>'+pxi(RAR_LOGO[x.id]||'etoile')+'</button>';}).join('');} // (2026-10-09) le LOGO de la famille, plus de compte
   {const ro=bar.querySelector('.gR.on');if(ro&&bar._on!==r){bar._on=r;const x=ro.offsetLeft-(bar.clientWidth-ro.offsetWidth)/2;try{bar.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){bar.scrollLeft=x;}}} // la famille active vient se montrer
   const L=shop?rarListe(r).filter(gAVendre):rarListe(r),ri=rarInfo(r),own=L.filter(carUnlockedVrai).length; // (charte v4) posséder une caisse de plus REFAIT la bande (elle gardait son cadenas après l'achat) — (2026-10-09) en BOUTIQUE, celles à vendre seulement
-  const mk9=(function(){try{const s=misEtat();return s.n+':'+s.ok.join('');}catch(e){return '';}})(); // (2026-09-29) les défis relevés changent la vignette de la caisse en jeu
+  const mk9=(function(){try{const s=misEtat();return s.n+':'+s.w.join(',')+':'+s.ok.join('');}catch(e){return '';}})(); // (2026-09-29) les défis relevés changent la vignette de la caisse en jeu
   if(st._r!==r||st._n!==L.length||st._eq!==eq||st._o!==own||st._m!==mk9||st._md!==md){st._r=r;st._n=L.length;st._eq=eq;st._o=own;st._m=mk9;st._md=md;
     const lu9={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1}[r]||.5, // (2026-10-07, Léo) LA LUEUR de la famille : plus elle est rare, plus elle brille — les crans de l'inventaire (INV_LUEUR)
       lg9=';--rg:'+invRgba(ri.c,.22+.28*lu9)+';--rg2:'+invRgba(ri.c,.55+.4*lu9); // en rgba, pas de color-mix (les vieux iPhone, voir hudDA §7)
@@ -51067,7 +51401,7 @@ function gStripModeVoitures(){
   const m=GMODE.m,eq=SAVE.d.equipped|0,L=gModeListeVoitures(m);
   const lbl=L.length;
   const kb='mode:'+m+':'+lbl+':'+LANG;if(bar._k!==kb){bar._k=kb;bar._on=null;gModeTete(bar,m,lbl);}
-  const mk9=(function(){try{const s9=misEtat();return s9.n+':'+s9.ok.join('');}catch(e){return '';}})();
+  const mk9=(function(){try{const s9=misEtat();return s9.n+':'+s9.w.join(',')+':'+s9.ok.join('');}catch(e){return '';}})();
   const k='mode:'+m+':'+L.join(',')+':'+eq+':'+mk9;
   if(st._r!==k){st._r=k;st._n=-1;
     if(!L.length)st.innerHTML='<div class="gVide">'+sansAcc(TR(m==='inv'?'RIEN ICI':'TOUT EST A TOI'))+'</div>';
@@ -54974,7 +55308,7 @@ function hubSync(){ // appelée à chaque image de l'atelier (garageRender) et �
   if(GTN&&GTN.el)GTN.el.classList.toggle('on',t==='atl'&&!cache); // (2026-10-09) LA JAUGE : dans l'atelier seulement
   {const hm=document.getElementById('gHomeMini');if(hm){hm.classList.toggle('on',t==='atl'&&!cache);try{gHomePlace(true);}catch(e){}}} // (2026-10-09) le PETIT HOME aussi
   if(t!==t0)el.querySelectorAll('.ghT').forEach(function(b){const on=b.getAttribute('data-h')===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});
-  if(t&&!t0)try{const s9=misEtat();el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});}catch(e){}}
+  if(t&&!t0)try{const s9=misEtat();const p9=misPips(s9);el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});}catch(e){}}
 function hubVa(t,b){ // changer d'onglet : la feuille CARRIÈRE se pose par-dessus l'atelier (qui reste ouvert dessous), les deux autres sont des modes de l'atelier
   const cur=hubCtx();if(!cur||GAR.go||ecranWipe._on)return;
   if(b)uiPop(b);uiClic('onglet');
@@ -55184,7 +55518,7 @@ function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGN
     if(!SF.prochain)SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);const t=SF.prochain,cle=t.meteo==='orage'&&t.carte==='nuages'?'orage':t.meteo==='nuit'&&t.carte==='ville'?'villeN':t.meteo==='satellites'?'espaceH':t.carte;
     el9.querySelector('.gvN').textContent='1';el9.querySelector('.gvT').textContent=sansAcc(TR(SF_CARTES[t.carte].nm));el9.querySelector('.gvD').textContent=sansAcc(TR(SF_METEOS[t.meteo]));
     el9.style.setProperty('--lc',GV_TEINTE[t.carte]||'#5ee6ff');try{el9.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}
-    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!s9.ok[k]);});}catch(e){}
+    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}
     return;}}
   const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
     el.querySelector('.gvN').textContent=tuto?'P':'1';
@@ -55193,7 +55527,7 @@ function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGN
     el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));
     try{el.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}}
   gvNivs(false,true);
-  const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!s9.ok[k]);});}catch(e){}
+  const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}
 }
 /* LE TIROIR DES NIVEAUX ACCOMPLIS (`#gvNivs`) : la vignette touchée l'ouvre, retouchée (ou un tap ailleurs, Échap, HOME, SHOP, JOUER) le
    referme. Dedans : les niveaux TERMINÉS (coche), puis le prochain à battre et ce qui reste à découvrir — ou, s'il n'y en a aucun, la phrase qui
@@ -56187,7 +56521,7 @@ function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, l
   GAR.lvlW=w;const n=Math.min(CARRIERE[w].niveaux.length,carrFait(w)+1);
   const gn=$('glN');if(gn)gn.textContent=TR('NIVEAU')+' '+n;
   const gm=$('glM');if(gm)gm.textContent=sansAcc(TR(CARRIERE[w].nm));
-  const pp=$('gMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});
+  const pp=$('gMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});
 }
 function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il soit à l'écran
   const an=$('gMisAncre');if(!an||!GAR.misPos)return;
@@ -56250,7 +56584,7 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
   if(s.f>=0&&s.ok[s.f])s.f=-1;
   GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
-    if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
+    if(a.k==='d'){const m=misM(s,a.i),ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
       cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
       in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
     else if(a.k==='r'){cls=pt='r';
@@ -56296,51 +56630,56 @@ function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à
 }
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
-function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir MENU_SACHA // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
+function gmRenderS(vu){ // (2026-10-15, Sacha : « refonte du système de mission, plus de petits groupes de trois, l'interface la plus claire possible, toujours dans l'écran caméra de surveillance du garage ») — vu : l'écran est déjà là (une mission cochée) : les lignes ne rejouent pas leur entrée
+  /* UN SEUL PANNEAU, qui se lit de haut en bas comme une liste de courses : EN COURS (les trois missions ouvertes, dans l'ordre de la
+     route — chacune sa jauge, son meilleur essai, sa prime ; une étoile sur celles qui mènent au prochain jalon) → PROCHAINE RÉCOMPENSE
+     (l'objet, dans la couleur de sa famille, et combien de missions il reste) → À VENIR (les missions suivantes, et les jalons d'après).
+     Plus de cartes épinglées sur les meubles ni de fils : la caméra de surveillance reste (trame, balayage, hologrammes 3D), elle
+     n'est plus qu'un fond. Toucher une mission ouverte la SUIT (en course, #misFocus), la retoucher la lâche. */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el||!sv)return;
-  const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
+  const s=misEtat(),g=misGain(carnet(s.n)),mort=started&&gameOver,jal=3*s.n+2,hi=Math.max(s.w[0],s.w[1],s.w[2]);
   if(s.f>=0&&s.ok[s.f])s.f=-1;
-  GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
-    if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
-      cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
-    else{const gN=misGain(carnet(s.n+1));cls=pt='r';
-      in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'
-        +'<div class="gmRw">'+misGainFig(g)+'<div><div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small></div></div>'
-        +'<div class="gmNext">'+pxi('verrou')+' '+TR('ENSUITE')+' · '+sansAcc(gN.nom)+'</div>';}
-    h+='<i class="gmPt '+pt+'"></i><div class="gmC '+cls+(vu?' vu':'')+'" data-k="'+k+'" style="--i:'+k+'" role="button">'+in9+'</div>';});
-  el.innerHTML=h;
-  let p9='';for(let i=0;i<GMIS.ancres.length-1;i++)p9+='<path class="ch'+(i===GMIS.ancres.length-2?' r':'')+'"/>';
-  for(let i=0;i<GMIS.ancres.length;i++)p9+='<path class="lead'+(GMIS.ancres[i].k==='d'&&s.f===GMIS.ancres[i].i?' f':GMIS.ancres[i].k==='r'?' r':'')+'"/>';
-  sv.innerHTML=p9;
-  GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
-  GMIS.paths=[].slice.call(sv.querySelectorAll('path'));
-  GMIS.last=null;GMIS.lw=0; // les cases se recalculent (nouvelles cartes, nouveaux textes)
-  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE MISSION EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
+  const ord=[0,1,2].sort(function(a,b){return s.w[a]-s.w[b];});
+  const tj=ord.every(function(i){return s.w[i]<=jal;}); // les trois mènent au jalon : l'étoile ne distinguerait rien
+  let h='<div class="glA"><div class="glSec">'+pxi('cible')+'<span>'+TR('EN COURS')+'</span></div>';
+  ord.forEach(function(i,r){const m=misM(s,i),ok=!!s.ok[i],f=s.f===i,b=Math.min(m.v,s.best[i]||0),nv=mort&&MIS_NEW.indexOf(i)>=0,j=!tj&&s.w[i]<=jal;
+    h+='<div class="glM'+(ok?' ok':'')+(f?' f':'')+'" data-s="'+i+'" role="button" tabindex="0" aria-pressed="'+f+'" style="--i:'+r+'">'
+      +'<span class="gmChk"><i></i></span>'
+      +'<div class="glTx"><b>'+misTxt(m)+'</b><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u>'
+      +'<small>'+(ok?TR('REUSSI'):(f?TR('SUIVIE')+' · ':'')+(b>0?TR('MEILLEUR ESSAI')+' '+misProgV(m,b):TR('PAS ENCORE TENTEE')))+'</small></div>'
+      +'<div class="glPr">'+(nv?'<i class="glNv">'+TR('NOUVELLE')+'</i>':'')+'<b>+'+fmtC(m.p)+'</b>'+(j?'<i class="glJ" aria-hidden="true">'+pxi('etoile')+'</i>':'')+'</div></div>';});
+  const rs=misReste(s);
+  h+='</div><div class="glB"><div class="glSec r">'+pxi('etoile')+'<span>'+TR('PROCHAINE RECOMPENSE')+'</span></div>'
+    +'<div class="glRec'+(g.voir?' voir':'')+'" style="--rc:'+g.col+';--i:3"'+(g.voir?' role="button" tabindex="0"':'')+'>'+misGainFig(g)
+    +'<div class="glTx"><b>'+sansAcc(g.nom)+'</b><small>'+sansAcc(g.fam||'')+'</small><em>'+(rs>1?TR('ENCORE {n} MISSIONS').replace('{n}',rs):rs===1?TR('ENCORE 1 MISSION'):TR('REUSSI'))+'</em></div>'
+    +(g.voir?'<div class="glPr">'+pxi('droite')+'</div>':'')+'</div>';
+  h+='<div class="glSec n">'+pxi('verrou')+'<span>'+TR('A VENIR')+'</span></div><div class="glVen">';
+  for(let g2=hi+1;g2<=hi+4;g2++){const m=misG(g2);h+='<div class="glV"><span>'+misTxt(m)+'</span><b>+'+fmtC(m.p)+'</b></div>';
+    if(g2%3===2){const gg=misGain(carnet((g2-2)/3));h+='<div class="glV j" style="--rc:'+gg.col+'">'+pxi('etoile')+'<span>'+sansAcc(gg.nom)+'</span><small>'+sansAcc(gg.fam||'')+'</small></div>';}}
+  h+='</div></div>';
+  el.innerHTML='<div id="gmListe"'+(vu?' class="vu"':'')+'>'+h+'</div>';
+  sv.innerHTML='';GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
+  const sous=$('gmSous');if(sous)sous.textContent=TR('CHAQUE MISSION EN UNE PARTIE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?'':TR('TOUCHE UNE MISSION POUR LA SUIVRE'); // la mission suivie se voit déjà : sa ligne est en or
+  try{gmPlaceL(VP.w,VP.h);}catch(e){} // tout de suite : pas une image dans la mauvaise mise en page
 }
-/* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
-   s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
-   « ENSUITE » sortaient de l'écran. Désormais l'œil LIT une liste et la scène MONTRE où vit chaque défi : les TROIS DÉFIS en une rangée
-   de cases égales (debout : sous le titre ; couché : à droite du titre), la RÉCOMPENSE en bas (debout : au-dessus des boutons ; couché :
-   à gauche d'eux) avec « ENSUITE » dedans ; chaque carte est reliée à son meuble par un FILET fin, la constellation des points reste,
-   discrète. Les cases ne se recalculent que si l'écran change (taille, textes) : chaque image ne fait que suivre les points. */
-function gmPlace(W,H){
-  const C=GMIS.cards,Q=GMIS.Q||(GMIS.Q=[]),hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),gp=8,land=W>H*1.25;
-  const g0=rh&&rh.width?rh.left:16;
-  const top=land?(rh&&rh.height?rh.top:12):(rh&&rh.height?rh.bottom+12:64);
-  const xL=land?(rh&&rh.width?rh.right+16:W*.42):g0,xR=W-g0;
-  const cw=Math.floor(Math.min(land?200:180,(xR-xL-2*gp)/3));
-  for(let k=0;k<3&&k<C.length;k++){C[k].style.width=cw+'px';C[k].style.minHeight='';}
-  let hM=0;for(let k=0;k<3&&k<C.length;k++)hM=Math.max(hM,C[k].offsetHeight);
-  for(let k=0;k<3&&k<C.length;k++){C[k].style.minHeight=hM+'px';Q[k]=[xL+k*(cw+gp),top,cw,hM];}
-  const r=C[3];if(r){const bl=rb&&rb.width?rb.left:W,bt=rb&&rb.height?rb.top:H-14,bb=rb&&rb.height?rb.bottom:H-14;
-    const rw=Math.floor(land?Math.min(440,bl-g0-14):W-2*g0);r.style.width=rw+'px';const rhh=r.offsetHeight;
-    const hb=document.documentElement.classList.contains('hubOn')&&$('gHub')?$('gHub').getBoundingClientRect():null; // (2026-10-06) LE HUB, couché : la barre tient le bas à gauche
-    Q[3]=[g0,land?(hb&&hb.height?Math.min(bb,hb.top-12):bb)-rhh:bt-12-rhh,rw,rhh];}
-  for(let k=0;k<C.length;k++)if(Q[k])C[k].style.transform='translate('+Q[k][0].toFixed(1)+'px,'+Q[k][1].toFixed(1)+'px)';
+function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché : DEUX — les missions dans la colonne de JOUER, au-dessus de lui ; la récompense et la suite à gauche, sous le titre
+  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
+  const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
+  L.classList.toggle('land',land);
+  if(land){const tp=rh&&rh.height?rh.top:12,l=rb&&rb.width?rb.left:W*.5,r=rb&&rb.width?W-rb.right:g0,bB=H-(rb&&rb.height?H-rb.bottom:14);
+    L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
+    if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}
+    if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=px(g0);Bk.style.width=px(Math.max(200,Math.min(420,l-g0-16)));Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bB-t2));}
+    return;}
+  [A,Bk].forEach(function(e){if(e)e.style.left=e.style.right=e.style.top=e.style.width=e.style.maxHeight='';});
+  const tp=(rh&&rh.height?rh.bottom:60)+10;
+  L.style.left=px(g0);L.style.right=px(g0);L.style.top=px(tp);L.style.maxHeight=px(Math.max(120,bt-12-tp));
 }
-function gmSuitS(){ // chaque image : les points sur leurs meubles, les filets des cartes, la constellation (les cartes, elles, ne bougent pas)
+function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale si l'écran change ; les hologrammes suivent l'orientation
+  {const W=VP.w,H=VP.h,now=performance.now();
+   if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlaceL(W,H);}
+   const land=W>H*1.25;if(GMIS.land!==land){GMIS.land=land;gmHoloPlace(land);}}
   if(!GMIS.cards||!GMIS.cards.length)return;
   const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]);
   const now=performance.now();
@@ -56378,7 +56717,7 @@ function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) :
   const s=misEtat(),f=s.f,e=misFocusEl();
   if(!misOn()){if(f>=0&&s.ok[f]){s.f=-1;SAVE.mark();}if(e._on){e.classList.remove('on','ok');e._on=0;}e._okT=0;return;}
   if(f<0){if(e._on){e.classList.remove('on','ok');e._on=0;}return;}
-  const m=carnet(s.n).m[f];if(!m)return;const ok=!!s.ok[f];
+  const m=misM(s,f);if(!m)return;const ok=!!s.ok[f];
   if(ok&&!e._okT)e._okT=performance.now();
   if(ok&&performance.now()-e._okT>3200){if(e._on){e.classList.remove('on','ok');e._on=0;}return;}
   const t9=misTxt(m),p9=ok?TR('REUSSI'):misProg(m),w9=Math.round(100*(ok?1:misPart(m,misVal(m.k))))+'%';
@@ -56388,6 +56727,10 @@ function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) :
   if(!e._on){e.classList.add('on');e._on=1;}
   e.classList.toggle('ok',ok);
 }
+window.dbgMisFile=function(){const s=misEtat(),o=JSON.stringify(s); /* (2026-10-15) banc de la FILE : deux fins de partie simulées sur une copie, l'état est rendu tel quel */
+  try{s.n=0;s.w=[0,1,2];s.ok=[1,1,0];s.best=[0,0,0];s.f=1;const r1=misFin(),a={w:s.w.slice(),n:s.n,f:s.f,r:r1};
+    s.ok=[0,0,1];const r2=misFin();return {a:a,b:{w:s.w.slice(),n:s.n,r:r2&&r2.nom,pips:misPips(s),reste:misReste(s)}};}
+  finally{SAVE.d.mis=JSON.parse(o);}};
 window.dbgMissions=function(f){if(f!=null){misEtat().f=f;SAVE.flush();}if(garageOn&&!GAR.go&&(f!=null||!gEl.classList.contains('missions')))garMode('missions'); /* (ne reconstruit pas l'écran à chaque lecture) */return {mk:+GMIS.mk.toFixed(2),f:misEtat().f,cartes:GMIS.cards?GMIS.cards.length:0};};
 function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
   if((started&&!gameOver)||pendingScore!=null)return;               // une course tourne, ou un nom se saisit
@@ -56403,12 +56746,18 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
  clicM(document.querySelector('#gmHead .c6Ret'),function(){uiClic('retour');garMisRetour();}); // (2026-10-14, charte 6) le ◀ de l'en-tête = HOME (masqué sous c6)             // HOME : le menu (ou la VITRINE, si on en vient)
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
+   const l9=e.target.closest&&e.target.closest('.glM,.glRec'),s9=misEtat(); // (2026-10-15) le panneau MISSIONS en liste
+   if(l9&&l9.classList.contains('glM')){const i=+l9.getAttribute('data-s');if(s9.ok[i]){uiClic('refus');return;}
+     s9.f=s9.f===i?-1:i;SAVE.flush();uiClic(s9.f>=0?'on':'off');hap(10);gmRenderS(true);const l2=document.querySelector('#gmListe .glM[data-s="'+i+'"]');if(l2)l2.classList.add('flash');return;}
+   if(l9){const g=misGain(carnet(s9.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
+     ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});return;}
    const c9=e.target.closest&&e.target.closest('.gmC');if(!c9)return;const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
    if(a.k==='d'){if(s.ok[a.i]){uiClic('refus');return;}s.f=s.f===a.i?-1:a.i;SAVE.flush();uiClic(s.f>=0?'on':'off');hap(10);gmRender(true);
      const c2=GMIS.cards[GMIS.ancres.indexOf(a)];if(c2)c2.classList.add('flash');}
    else if(a.k==='r'){const g=misGain(carnet(s.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
      ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});}
-   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});}
+   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});
+   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.glM,.glRec')){e.preventDefault();e.stopPropagation();e.target.click();}});}
  clicM(document.querySelector('#gMenuBas .gBoutique'),function(){uiClic('nav');ecranWipe(function(){garMode('boutique');});}); // la BOUTIQUE : l'atelier et ses vitrines
  clicM(document.querySelector('#gMenuBas .gLevel'),function(){uiClic('nav');carrVue(GAR.lvlW||0);});            // le NIVEAU : la carrière, sur le monde en cours
 }
@@ -57839,7 +58188,7 @@ function loop(now){
         flameCore.mesh.material.size=Math.min(.34,.14+Math.min(engTier,15)*.012)*(nitroOn?1.25:1);
         flames.mesh.material.color.set(nitroOn?(nitroBlue?0x5b7dff:pwrNitroT>0?NINF.jet:0xff7a24):0xff9030); // (vague 3) la bible : feu #ff7a24, réserve #5b7dff
         flameCore.mesh.material.color.set(nitroOn?(nitroBlue?0xd6e2ff:pwrNitroT>0?NINF.core:0xffe4bc):0xffe2a8); // le CŒUR blanchit (blanc chaud / blanc bleuté)
-        const fl=(up||nitroOn)?(nitroOn?5:2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0);
+        const fl=(up||nitroOn)?(nitroOn?(FLM_ON&&NFEU.on&&NFEU.k>.3?1:5):2)+Math.min(3,Math.floor(level/5)):(Math.abs(vF)>8?1:0); /* (2026-10-15) au nitro le FEU DE PIXELS remplace les boules rondes : une braise par pot suffit */
         // (2026-09-25) Les étincelles HÉRITENT de la vitesse de la caisse (EXV) : lâchées à −22 m/s en MONDE alors que la caisse file
         // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
         // quitte le pot à −22 m/s PAR RAPPORT À LA CAISSE : c'est la physique, et elles meurent avant d'atteindre la caméra.
@@ -58479,10 +58828,11 @@ function loop(now){
     const lanc9=mode==='drive'&&!nitroOn?THREE.MathUtils.clamp(momT/4.2,0,1):0;
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34+.22*lanc9*lanc9:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
+    const FM9=FLM_ON?flmPas(dt,speedKmh):null,nfK9=FLM_ON&&NFEU.on?NFEU.k:0; // (2026-10-15) LE MOTEUR QUI AVANCE (FLM) et le FEU DE PIXELS du nitro (NFEU) — voir près de JET_DIR
     if(JETS.shells.length){
-      const jOn=JETS.k>.05,fl9=.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
+      const jOn=JETS.k>.05,fl9=FM9?1:.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
       const iK9=NFX.ign*NFX.ignK; // (vague 3) le COUP d'allumage : la plume jaillit (+1,6 m, plus large) puis se pose
-      const jl=Math.max(.03,(.5+Math.min(engTier,15)*.035)*JETS.k*2.1*fl9*(1+NFX.len*.85)+iK9*1.6*Math.min(1,JETS.k)),jr=.09+.07*JETS.k+NFX.len*.05+iK9*.09; // (2026-09-26) la plume grandit avec le MOTEUR, plus avec l'index de la caisse — (vague 3) et s'ALLONGE à la nitro (×1,85 : 2 à 4 m, Asphalt) : vue à 45° par la poursuite, 2 m ne faisaient qu'un cornet
+      const jl=Math.max(.03,((.5+Math.min(engTier,15)*.035)*JETS.k*2.1*fl9*(1+NFX.len*.85)+iK9*1.6*Math.min(1,JETS.k))*(1-.62*nfK9)),jr=(.09+.07*JETS.k+NFX.len*.05+iK9*.09)*(1-.25*nfK9); /* (2026-10-15) au nitro la plume n'est plus que la TORCHE dans la bouche du pot : le feu de pixels porte la longueur */ // (2026-09-26) la plume grandit avec le MOTEUR, plus avec l'index de la caisse — (vague 3) et s'ALLONGE à la nitro (×1,85 : 2 à 4 m, Asphalt) : vue à 45° par la poursuite, 2 m ne faisaient qu'un cornet
       // LA SIGNATURE DE LA CAISSE EST UN EFFET DE **NITRO**, pas une peinture permanente (décision
       // du user, 2026-08-05). Au filage la plume reste l'orange commun à tout le monde ; c'est en
       // appuyant que la caisse montre ce qu'elle a dans le ventre — le vert acide, le rose de la
@@ -58493,13 +58843,15 @@ function loop(now){
       if(inf9){jetShellM.color.setHex(NINF.jet);jetCoreM.color.setHex(NINF.core);}else{
       jetShellM.color.setHex(nitroBlue?0x5b7dff:(fxOn&&FX9&&FX9.jet!=null?FX9.jet:(nitroOn?0xff7a24:(boost>0?0xffd75e:0xff8c30)))); // (vague 2) le pad turbo souffle OR : la poussée qui vient de l'argent — (vague 3) les teintes EXACTES de la bible : feu #ff7a24, réserve #5b7dff, or #ffd75e
       jetCoreM.color.setHex(nitroBlue?0xe2ebff:(fxOn&&FX9&&FX9.core!=null?FX9.core:(nitroOn?0xfff2da:0xffe6b0)));} // (vague 3) à la nitro le cœur brûle BLANC : les diamants de choc se lisent sur le corps orange
-      jetGlowM.color.copy(jetShellM.color).lerp(NFX.blanc,NFX.len*.45);jetGlowM.opacity=Math.min(1,JETS.k*.95*fl9+iK9*.5); // (vague 3) à la nitro la tuyère est chauffée à BLANC : le point le plus chaud de la flamme
+      if(FM9&&!inf9&&!nitroBlue&&!nitroOn&&!(boost>0)){jetShellM.color.copy(FM9.cF).lerp(FM9.cB,FM9.heat).lerp(FM9.cC,FM9.pop);jetCoreM.color.copy(FM9.kF).lerp(FM9.kC,FM9.pop);} // (2026-10-15) la couleur suit la CHALEUR : rouge-orangé stabilisé, orange en charge, jaune-blanc dans un pop
+      else if(nfK9>.02&&!inf9&&!nitroBlue)jetShellM.color.lerp(NFX.blanc,.35*nfK9); // (2026-10-15) au nitro, la torche chauffée à blanc
+      jetGlowM.color.copy(jetShellM.color).lerp(NFX.blanc,NFX.len*.45);jetGlowM.opacity=Math.min(1,JETS.k*.95*(FM9?FM9.glow:fl9)+iK9*.5); // (vague 3) à la nitro la tuyère est chauffée à BLANC : le point le plus chaud de la flamme
       JET_T.value=t; // (2026-09-28) la flamme vivante : son bruit coule avec le temps de jeu (figé en pause)
       jetCoreM.uniforms.uRac.value.setHex(nitroBlue?(NEON_V?0xc6d0e6:0xc9b8ff):inf9?NINF.rac:0x6f8cff); // la racine de brûleur : bleue sous le feu, lilas sous la réserve (et sous la nitro infinie)
       JET_QI.copy(carGroup.quaternion).invert();
       for(let i9=0;i9<JETS.shells.length;i9++){ // chaque pot VIT pour lui : sa longueur bat à son rythme (deux pots en phase = un décor)
-        const f9=.84+.16*Math.sin(t*31+i9*2.4)*Math.sin(t*13.7+i9*1.7),m9=JETS.shells[i9],c9=JETS.cores[i9];
-        m9.visible=jOn;m9.scale.set(jr*(1.1-.1*f9),jr*(1.1-.1*f9),jl*f9);
+        const f9=FM9?FM9.L[i9&3]:.84+.16*Math.sin(t*31+i9*2.4)*Math.sin(t*13.7+i9*1.7),m9=JETS.shells[i9],c9=JETS.cores[i9],rr9=FM9?FM9.R[i9&3]:1.1-.1*f9; // (2026-10-15) les bouffées du MOTEUR SIMULÉ, pot par pot (plus de sinus)
+        m9.visible=jOn;m9.scale.set(jr*rr9,jr*rr9,jl*f9);
         /* (sillage v5) LA FLAMME SUIT LA LIGNE : l'axe de la plume se couche vers les premiers mètres de SON sillage (ramenés dans le repère
            caisse), lissé, et jamais à plus de 70° de la poupe ; sans sillage (filage, repos), elle reprend l'axe de la caisse */
         const sl9=SILS[i9],dl9=JET_DIR[i9]||JET_DIR[0];
@@ -58508,10 +58860,11 @@ function loop(now){
         else JET_V.copy(JET_NZ);
         dl9.lerp(JET_V,Math.min(1,dt*16)).normalize();
         m9.quaternion.setFromUnitVectors(JET_NZ,dl9).multiply(JET_QS.setFromAxisAngle(JET_Z,t*7.3)); // (plume v2) l'enveloppe TOURNE sur son axe
-        if(c9){c9.visible=jOn;c9.scale.set(jr*.48,jr*.48,jl*.72*(.9+.1*f9));c9.quaternion.setFromUnitVectors(JET_NZ,dl9);}}
-      const g9=.2+.55*JETS.k*fl9+iK9*1.1+NFX.off*NFX.off*.35; // (vague 3) la tuyère FLASHE à l'allumage, hoquette à l'extinction
+        if(c9){c9.visible=jOn;c9.scale.set(jr*.48*(FM9?rr9:1),jr*.48*(FM9?rr9:1),jl*.72*(FM9?f9:.9+.1*f9));c9.quaternion.setFromUnitVectors(JET_NZ,dl9);}}
+      const g9=.2+.55*JETS.k*(FM9?FM9.glow:fl9)+iK9*1.1+NFX.off*NFX.off*.35; // (vague 3) la tuyère FLASHE à l'allumage, hoquette à l'extinction
       for(const s9 of JETS.glows){s9.visible=jOn;s9.scale.set(g9,g9,1);}
     }
+    if(FLM_ON)try{nfeuPas(dt,nitroOn&&!(NYAN.on&&!FX_EFF),nitroBlue,pwrNitroT>0&&!nitroBlue,speedKmh);}catch(e){loopWarn(1048576,'feu du nitro',e);} // (2026-10-15) LE NITRO EN FEU DE PIXELS
     // LE DÉPART EN ARC-EN-CIEL (2026-09-05) : les premières secondes de chaque run brillent d'une
     // teinte qui TOURNE — signature du LANCEMENT, pas de la caisse (elle n'efface donc RIEN de la
     // réserve bleue ni des signatures par caisse : elle s'applique APRÈS leur calcul, seulement
@@ -60035,7 +60388,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(sous==null)return;let b=el.querySelector(':scope>.c6aS');if(!b){b=document.createElement('small');b.className='c6aS';el.appendChild(b);}
       b.textContent=sous;b.classList.toggle('or',!!or);};
     let niv='';try{niv=carrPlayNom();}catch(e){}
-    const ms=misEtat(),ok9=(ms.ok||[]).filter(Boolean).length,n9=(ms.ok||[0,0,0]).length;
+    const ms=misEtat(),ok9=3-misReste(ms),n9=3; // (2026-10-15, la file) vers le prochain jalon
     const ci=Math.min(CARS.length-1,Math.max(0,level|0)),nm=CARS[ci]&&CARS[ci].name||'';
     let px=Infinity,pe='';for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||carOwned(i))continue;const v=parseFloat(String(u.eur).replace(',','.'));if(v<px){px=v;pe=u.eur;}}
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
@@ -60117,7 +60470,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     }else if(mCur==='home'){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
         if(r9){MIS_REC=r9;misBanniere('MISSIONS RÉUSSIES !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
-      {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
+      {const pp=$t('mMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});} // la porte MISSIONS : une case allumée par défi relevé
       soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop'),c6=document.documentElement.classList.contains('c6'); // (2026-10-14, charte 6) la pastille = un carré d'or SANS chiffre ni mot (« 39 » ne disait rien)
