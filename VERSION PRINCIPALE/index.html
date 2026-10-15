@@ -89,6 +89,12 @@ if(SANS_FACILE)document.documentElement.classList.add('sansFacile');
    jeu : les boîtes et ce qui reviendra par map — les singes du SOLEIL DE JADE). Tout le reste : l'historique git (85470fb4 et avant). */
 const SANS_SNAKE=!/[?&]snake=1\b/.test(location.search);
 const SANS_NITROOO=!/[?&]nitrooo=1\b/.test(location.search);
+/* PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : toute la mécanique météore, jeu web ET ROBLOX) :
+   même recette que la carrière — COUPÉ, pas arraché. Plus de figure MÉTÉORE en vol (nitro tenue 1,2 s), plus de verdict METEOR /
+   MEGA METEOR à la pose (mot, voix, son, rang), plus de CRATÈRE ni d'« IMPACT METEORE » quand on pique dans la dalle en nitro, et ses
+   maillages ne se préparent plus au menu. La pose garde ses verdicts MONSTRE / DOUBLE / TRIPLE ; le cratère léger des DÉBRIS de
+   l'orbite (`?debris=1`) ne bouge pas. Pour le rendre : `?meteore=1`. */
+const SANS_METEORE=!/[?&]meteore=1\b/.test(location.search);
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
@@ -33642,7 +33648,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(SANS_CARRIERE)return;try{parisChauffe();}catch(e){console.warn('parisChauffe',e);}}, /* (2026-10-14) sans carrière, Paris ne se joue plus : rien à compiler */ // (2026-09-30) PARIS : ses matières compilées au menu (16 programmes de moins au portail)
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
   function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
-  function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
+  function(){if(!SANS_METEORE||DEB_ON){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);}for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();},
   function(){try{plaChauffe();}catch(e){console.warn('plaChauffe',e);}}, // (2026-10-13) la pluie d'argent : ses matières compilées au menu
   function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
@@ -46604,7 +46610,7 @@ function tryLand(dt){
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
-  {const v29=fallVel.lengthSq();if(nitroOn&&v29>36&&2*vN*vN>v29)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){}}
+  {const v29=fallVel.lengthSq();if(!SANS_METEORE&&nitroOn&&v29>36&&2*vN*vN>v29)try{cratere(CRAT.pv.copy(fallPos),CRAT.nv.copy(Nn[bestI]).multiplyScalar(sideL));}catch(e){}} // SANS_METEORE : plus de cratère
   const impact=Math.abs(vN);
   /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
      l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de
@@ -46718,10 +46724,10 @@ function tryLand(dt){
       const q=qG; // (vague 3) la valeur du GESTE, pas celle du dollar (voir qG)
       let vKey=q>=140?'m3':(q>=45?'m2':'m1');
       let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
-      if(nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée
+      if(!SANS_METEORE&&nitroOn&&nitroAirT>1){vKey='meteor';vTier=Math.max(vTier,2);vPrio=4;}    // impact en pleine poussée (SANS_METEORE : coupé)
       if(snaked){vKey='snakeLoop';vTier=3;vPrio=5;}                               // passé dessous, reposé côté départ
       if(gapOk){vTier=3;vPrio=Math.max(vPrio,5);if(q<45)vKey='m2';}               // traverser le vide mérite au moins le DOUBLE MONSTRE
-      if(nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime
+      if(!SANS_METEORE&&nitroOn&&nitroAirT>5){vKey='megaMeteor';vTier=3;vPrio=6;}                // 5 s de réacteur : l'ultime (SANS_METEORE : coupé)
       const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
       trickMsg(gTxt+vTxt,vTier); // (2026-09-29) plus de « +$ » : la figure paie en aura (la chaîne le dit)
       // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
@@ -58496,7 +58502,7 @@ function loop(now){
         const halfs=Math.floor(Math.abs(yawAcc)/Math.PI); // vrilles : un cri par demi-tour de lacet
         if(halfs>spinHalf&&fallT>.45){spinHalf=halfs;
           addTrick('vrille',halfs===1?'180°':halfs===2?'VRILLE 360 — LAVE-LINGE !':halfs===3?'540° !!':(halfs*180)+'° — '+TR('ESSOREUSE COSMIQUE !!'),3.5*halfs,halfs>=4?3:(halfs>=2?2:false),true);}
-        if(!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);}
+        if(!SANS_METEORE&&!trkMeteor&&nitroOn&&nitroAirT>1.2){trkMeteor=true;addTrick('meteo','MÉTÉORE',8,2);} // SANS_METEORE : plus de figure MÉTÉORE
         if(!trkBigA&&fallTR>1.8){trkBigA=true;chaineAura('BIG AIR',50,'bigair',false,SONV2);if(SONV2)sfx('fig.bigair',{st:echSt()});flowAdd(6,'risque');}          // (aura v2) le temps passé EN L'AIR se paie
         if(!trkMonstre&&fallTR>3.4){trkMonstre=true;chaineAura('AIR MONSTRE',110,'monstre',false,SONV2);if(SONV2)sfx('fig.monstre',{st:echSt()});flowAdd(10,'risque');}
         if(curNear){ // radar de dalle (rempli par tryLand à la frame précédente)
