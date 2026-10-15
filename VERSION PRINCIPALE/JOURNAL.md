@@ -3,6 +3,45 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FIGURES LANCÉES EN ROULANT — LE SAUT À LA TAILLE DE LA FIGURE (2026-10-15 soir, Sacha : « le salto avant ne marche pas quand on le lance en roulant sur la route ; vérifie que chaque figure est lançable en roulant sans être dans les airs »)
+- MESURÉ AVANT (banc `figstat.js` : double-tap au sol par le crochet neuf `dbgSautFig(x,y)` = le double-tap NITRO avec le joystick en x, y ;
+  mer de nuages, salto avant / salto arrière / tonneau dans les trois emplacements) : sur du plat le SAUT NITRO donne ~1 s de vol et la
+  figure se plante ; mais quand la route REMONTE sous la caisse le vol ne dure que 0,24-0,40 s — le salto restait à 0,3-0,6 tour, posé
+  sans être payé (« ça ne marche pas »), le tonneau aussi. Échecs : salto arrière 2/6, tonneau 1/5, salto avant 1 sur la trace (0,59 tour
+  en 0,39 s). Et un double-tap fait pendant un petit rebond (dos d'âne, pose qui se tasse : `hopY`/`hopV`/`POSE_F`) était jeté sans un bruit.
+- LE SAUT À LA TAILLE DE LA FIGURE (`veqSaut`) : la figure qui partira est connue au décollage (`sautFigVisee` : celle du glissé, sinon
+  celle de la direction tenue) ; juste après `startFall`, `sautAllonge(f)` intègre la vraie trajectoire (la loi de la chute, comme le
+  viseur : `sautVolPredit`, pas de 1/30 s, `dalleProche`) contre la vraie route devant. Si la pose arrive avant `sautBesoin(f)` (de quoi
+  planter la figure à ~90 % de sa durée de catalogue, 1 s au moins), il ajoute juste la poussée qu'il faut le long de la normale de la
+  route au décollage (`SAUT_N`) : +3, 6, 9… 19 m/s au plus. Sur du plat rien ne change ; c'est la route qui remonte qui allonge le saut.
+- LE DOUBLE-TAP GARDÉ : pendant un rebond, la demande attend la fin du rebond (`VEQ.sautAtt`, 0,4 s au plus ; lue par la boucle à côté
+  de `VEQ.dReq`, remise à zéro avec elle).
+- MESURÉ APRÈS (mêmes bancs, `figfail.js` par map) : nuages 20/22 puis 8/8 (salto avant) · ville 7/7 et 4/5 · forêt 2/2 et 5/5 · volcan 8/8
+  et 5/5 · canyon 8/8 et 6/6 — l'échec restant de la ville : la figure n'est jamais partie (0 tour en 3 s de vol), pas un vol trop court.
+- `?saut=fixe` = le saut d'avant (21 m/s toujours). Crochets : `dbgSautFig(x,y)` (rend ok, mode, `allonge`, `dv`, `tPred`),
+  `dbgSautFig('cause')` (la cause de la dernière mort).
+- Le mode FIGURES › GLISSER (Léo) n'est pas changé : au sol ← → = SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, et le salto part en poussant le
+  joystick en avant pendant l'amorce (le saut qui part de là profite aussi du saut à la taille de la figure). À trancher par Sacha et
+  Léo si, en GLISSER, ↓ sur la route doit lancer directement le salto avant.
+
+## LES SONS DE LA MACHINE À SOUS (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous »)
+- Elle avait son levier, ses crans, ses arrêts, ses pièces, ses gains et son jackpot (session SON, 14/10) ; il lui manquait tout ce qui se
+  passe AUTOUR. Sept sons neufs (`atelier-son/recettes.js`, famille `spin`, pentatonique de mi, key:1) :
+  · `spin.ouvre` (−32) — elle S'ALLUME : le relais, le néon qui chauffe, les ampoules en chenillard (remplace `ui.banniere`, gardé en repli) ;
+  · `spin.jeton` (−31) — le jeton tinte sur la lèvre de la fente, roule dans la goulotte, tombe dans la caisse (`spinAppui`, +0,28 s : le vol du jeton) ;
+  · `spin.roule` (−39, BOUCLE) — le moteur des rouleaux : il démarre avec eux et RALENTIT avec eux (`spinMoteur` : gain −16 → −3 dB,
+    lecture ×0,7 → ×1,15 selon leur vitesse moyenne), se tait à la pose du 3e (`spinSonsStop`) ;
+  · `spin.cliquet` (−40) — un cran de métal tous les 14 % de la course quand on tire le levier au doigt ;
+  · `spin.tease` (−33) — le SUSPENSE : deux symboles pareils, le roulement qui accélère jusqu'au 3e rouleau (coupé à sa pose) ;
+  · `spin.presque` (−35) — deux pareils et le 3e à côté : un « wouin-wouin » doux, puis la consolation tout bas (−11, +0,75 s) ;
+  · `spin.ferme` (−36) — elle S'ÉTEINT quand on la ferme.
+- MESURÉ au banc (`spintest.js` : son allumé, Chrome muet, chaque `CCSON.play` relevé) : tirage forcé « paire » → levier, jeton, moteur
+  (boucle), 56 crans, arrêt, arrêt + suspense, arrêt, moteur coupé, presque + consolation + pièces ; forcé « jackpot » → … jackpot. Aucune erreur.
+- ⚠ LA CUISSON SANS FFMPEG (ce Mac n'en a pas) : un remplaçant `ffmpeg` (lamejs, le LAME en JS) qui écrit le MÊME en-tête que ffmpeg
+  (ID3 + trame Xing + étiquette Lavc : retard 576, bourrage de fin) — sans lui, Chrome coupait le début des sons de la banque mais pas
+  ceux de lamejs (34,5 ms de retard, MESURÉ). Avec : l'étalon sort au même échantillon que celui de ffmpeg dans Chrome (30,0 ms) ET dans
+  CoreAudio (48,0 ms, celui de Safari). Cuisson filtrée : seuls les sons neufs (et l'étalon) sont réécrits. `sons-banque.js?v=27`.
+
 ## LE BUMP EST UNE FIGURE QUI S'ADDITIONNE (2026-10-15 soir, Sacha : « bump doit compter comme une figure additionnable comme les autres »)
 - AVANT : le BUMP (la caisse qui cogne la tranche de la dalle et rebondit) était une figure GRATUITE (`addTrick(…, free=true)`) : il
   s'écrivait, rendait la demi-jauge d'airtime, du nitro et du style, mais n'entrait NI dans la mallette (`chainVal`) NI dans le

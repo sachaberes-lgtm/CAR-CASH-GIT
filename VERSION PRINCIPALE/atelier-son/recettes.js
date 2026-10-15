@@ -709,6 +709,56 @@ D('spin.jackpot',{fam:'spin',dur:3.2,st:1,key:1,db:+5,max:1,cd:1,pre:1,dit:'FINA
   r:function(b,R,o){for(let k=0;k<20;k++)cloche(b,{f:k%2?nE(31):nE(28),r:[1,2.76,5.4],m:[1,.3,.1],d:[.09,.05,.03],t0:k*.06,v:.2,pan:k%2?.4:-.4},R);
     stab(b,R,[0,4,7,12],.05,.12,.7,.42,1);stab(b,R,[7,12,16,19],.42,.12,.9,.42,1);
     pieces(b,R,.3,2.2,46,.3);scintille(b,R,.4,1.6,18,.09,36,50);grave(b,o,.05,110,55,.1,.4,.4);}});
+/* (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous ») LA MACHINE VIT ENTRE SES COUPS. Elle avait son levier, ses crans,
+   ses arrêts, ses pièces et ses gains ; il lui manquait tout ce qui se passe AUTOUR : elle s'ALLUME (le relais, le néon qui chauffe, les
+   ampoules en chenillard), le JETON tombe dans la fente et roule dans la goulotte, le MOTEUR des rouleaux ronronne tant qu'ils tournent
+   (une boucle que le jeu ralentit avec eux), le CLIQUET du levier tiré au doigt, le SUSPENSE quand deux symboles sont déjà pareils (le
+   roulement qui accélère), le PRESQUE quand le 3e tombe à côté, et elle S'ÉTEINT. Mécanique et tonale (pentatonique de mi, key:1). */
+D('spin.ouvre',{fam:'spin',dur:1.3,st:1,key:1,db:-2,max:1,cd:.5,pre:1,dit:'FINAL SPIN : la machine S’ALLUME — le relais claque, le néon bourdonne et chauffe, les ampoules s’allument en chenillard (une gamme qui monte)',
+  r:function(b,R,o){clic(b,{t0:0,f:2200,d:.006,v:.3},R);coup(b,R,o,0,.35,700,120,70,.2);
+    osc(b,{f:98,w:'saw',t0:.02,a:.25,h:.3,d:.5,v:.05,flt:['lp',300,1400,.5,.8],vib:[50,.004]});                       // le néon qui chauffe
+    wouom(b,R,.02,.6,180,900,.18,-.4,.4);
+    [0,4,7,9,12,16,19,21,24].forEach(function(st,i){const t=.12+i*.055,p=-.6+i*.15;clic(b,{t0:t,f:4200,d:.002,v:.08,pan:p},R);
+      cloche(b,{f:nE(12+st),r:[1,2.01,3.01],m:[1,.3,.1],d:[.3,.12,.06],t0:t,v:.16,pan:p},R);});
+    scintille(b,R,.55,.6,8,.06,36,48);}});
+D('spin.jeton',{fam:'spin',bus:'fx',dur:.9,st:1,db:-1,max:1,cd:.2,dit:'FINAL SPIN : le JETON tombe dans la fente — il tinte sur la lèvre, roule dans la goulotte, tombe dans la caisse',
+  r:function(b,R,o){cloche(b,{f:nE(14),r:[1,2.32,4.25,6.1],m:[1,.5,.25,.12],d:[.35,.18,.09,.05],t0:0,v:.3,jit:.006},R);clic(b,{t0:0,f:5200,d:.002,v:.25},R);
+    for(let k=0;k<6;k++){const t=.07+k*.05*(1+k*.18),p=.3-k*.08;clic(b,{t0:t,f:3600-k*250,d:.003,v:.16*(1-k*.1),pan:p},R);
+      cloche(b,{f:nE(21-k),r:[1,2.32,4.25],m:[1,.4,.2],d:[.06,.04,.02],t0:t,v:.07,pan:p},R);}
+    coup(b,R,o,.52,.4,800,140,70,.18);tole(b,R,.525,330,.08,.2);}});
+D('spin.roule',{fam:'spin',bus:'fx',dur:1.6,st:1,db:-9,max:1,cd:.1,dit:'FINAL SPIN : les ROULEAUX tournent (boucle) — le moteur ronronne, les bandes défilent (un frottement haché), la courroie siffle ; le jeu la ralentit avec eux',
+  r:function(b,R,o){bruit(b,{c:'n',t0:0,a:.001,h:1.6,d:.001,v:.5,ft:'lp',f:380,am:[25,.55]},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:1.6,d:.001,v:.14,ft:'bp',f:1250,q:2,am:[25,.7],pan:-.25},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:1.6,d:.001,v:.08,ft:'bp',f:2600,q:3,am:[12.5,.6],pan:.3},R);
+    osc(b,{f:110,w:'tri',t0:0,a:.001,h:1.6,d:.001,v:.08,vib:[2.5,.01]});osc(b,{f:220,w:'saw',t0:0,a:.001,h:1.6,d:.001,v:.03,flt:['lp',700,700,1,.7]});
+    O.boucle(b,.4);}});
+D('spin.cliquet',{fam:'spin',bus:'fx',dur:.12,db:-8,max:3,cd:.025,v:2,dit:'FINAL SPIN : le CLIQUET du levier tiré au doigt — un cran de métal à chaque palier de la course',
+  r:function(b,R,o){clic(b,{t0:0,f:o.v?3400:3000,d:.0025,v:.35},R);tole(b,R,0,o.v?1450:1300,.05,.05);bruit(b,{c:'b',t0:0,a:.0003,d:.012,v:.15,ft:'bp',f:2000,q:2},R);}});
+D('spin.tease',{fam:'spin',dur:2.6,st:1,key:1,db:-3,max:1,cd:.5,dit:'FINAL SPIN : le SUSPENSE — deux symboles pareils, le 3e rouleau tourne encore : un roulement qui accélère, une note qui monte, les ampoules qui s’affolent',
+  r:function(b,R,o){let t=0,k=0;while(t<2.3){const g=t/2.3;bruit(b,{c:'b',t0:t,a:.0008,d:.05,v:.1+.18*g,ft:'bp',f:2400,q:.9,pan:k%2?.25:-.25},R);clic(b,{t0:t,f:2800,d:.003,v:.06+.08*g},R);t+=.11-.075*g;k++;}
+    osc(b,{f:nE(-12),f1:nE(0),g:2.4,gc:.8,w:'saw',t0:0,a:.4,h:1.6,d:.5,v:.12,flt:['lp',400,2600,2.3,.9]});
+    osc(b,{f:nE(-5),f1:nE(7),g:2.4,gc:.8,w:'saw',t0:0,a:.4,h:1.6,d:.5,v:.08,flt:['lp',400,2600,2.3,.9],pan:.3});
+    for(let i=0;i<14;i++)cloche(b,{f:nE(24+[0,4,7][i%3]),r:[1,2.76],m:[1,.15],d:[.08,.04],t0:.3+i*.15,v:.035+.03*i/14,pan:i%2?.5:-.5},R);}});
+D('spin.presque',{fam:'spin',dur:1.1,key:1,db:-5,max:1,cd:.5,dit:'FINAL SPIN : PRESQUE ! — deux pareils et le 3e à côté : un « wouin-wouin » doux qui retombe (un regret, pas une moquerie)',
+  r:function(b,R,o){osc(b,{f:nE(7),f1:nE(4),g:.25,w:'sq',pw:.35,t0:0,a:.01,h:.12,d:.18,v:.12,flt:['lp',1600,900,.3,.8]});
+    osc(b,{f:nE(4),f1:nE(-1),g:.5,gc:1.4,w:'sq',pw:.35,t0:.32,a:.01,h:.2,d:.4,v:.13,flt:['lp',1500,500,.6,.8],vib:[6,.012]});
+    basse(b,R,nE(-12),.32,.25,.5,0,.4);}});
+D('spin.ferme',{fam:'spin',bus:'fx',dur:.8,db:-6,max:1,cd:.4,dit:'FINAL SPIN : la machine S’ÉTEINT — le relais retombe, le néon s’éteint (le bourdon qui descend), un dernier tic',
+  r:function(b,R,o){clic(b,{t0:0,f:1800,d:.006,v:.25},R);osc(b,{f:180,f1:55,g:.5,gc:1.5,w:'saw',t0:0,a:.005,d:.55,v:.08,flt:['lp',900,200,.5,.7]});
+    wouom(b,R,0,.5,700,160,.12,.3,-.3);clic(b,{t0:.6,f:3000,d:.002,v:.08},R);}});
+/* (2026-10-15 soir, Sacha : « les stalactites sous la route de montagne : qu'elles se brisent de manière satisfaisante quand on les traverse,
+   avec un son de bris de verre ») LA STALACTITE BRISÉE — le CRAC du choc, l'éclatement en éclats de VERRE (modes 1 · 1,97 · 3,04 · 4,7,
+   désaccordés : du verre, pas une cloche), leur pluie qui retombe, et un petit DOUM dessous (le poids, audible au téléphone). Trois variantes. */
+D('banq.bris',{fam:'banquise',bus:'fx',dur:1.4,st:1,v:3,db:0,max:3,cd:.04,dit:'LA STALACTITE BRISÉE : le CRAC du choc, l’éclatement en éclats de verre qui tintent et retombent en pluie, un petit « doum » grave dessous',
+  r:function(b,R,o){const p=R()*.5-.25;
+    clic(b,{t0:0,f:4200,d:.004,v:.6,pan:p},R);bruit(b,{c:'b',t0:0,a:.0005,d:.09,v:.45,ft:'hp',f:2600,pan:p},R);
+    bruit(b,{c:'b',t0:.004,a:.001,d:.22,v:.22,ft:'bp',f:5200,q:1.4,pan:-p},R);
+    doum(b,R,0,.28,120,70,.14,{toc:0,pan:p});
+    const n=26+o.v*6;for(let i=0;i<n;i++){const t=.008+Math.pow(R(),1.7)*.75,f=1800+R()*4200;
+      cloche(b,{f:f,r:[1,1.97,3.04,4.7],m:[1,.45,.25,.1],d:[.08+R()*.18,.06,.04,.02],t0:t,v:(.05+R()*.09)*(1-t*.7),pan:R()*1.8-.9,jit:.03},R);
+      if(R()<.4)clic(b,{t0:t,f:6000,d:.0015,v:.05,pan:R()*1.6-.8},R);}
+    bruit(b,{c:'b',t0:.25,a:.05,h:.15,d:.55,v:.05,ft:'hp',f:5500,am:[31,.7]},R);
+    O.echo(b,.09,.18,1,true);O.versStereo(b,.35,R);}});
 D('pose.lourde',{fam:'pose',bus:'fx',dur:.9,db:+2,max:1,cd:.2,grp:'r',prio:2,dit:'POSÉ LOURD : la tôle qui encaisse — craquement + ressorts en butée + grave sale',
   r:function(b,R,o){coup(b,R,o,0,1,1400,90,40,.4);tole(b,R,.005,190,.3,.5);tole(b,R,.04,135,.22,.4);
     bruit(b,{c:'r',t0:0,a:.002,d:.25,v:.4,ft:'bp',f:900,q:1.5,am:[38,.8]},R);osc(b,{f:98,f1:92,g:.3,w:'saw',t0:.02,a:.01,d:.4,v:.08,flt:['lp',600,300,.3]});}});

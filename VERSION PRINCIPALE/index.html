@@ -10321,7 +10321,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=26"></script>
+<script defer src="sons-banque.js?v=27"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
@@ -36409,7 +36409,7 @@ function shopRender(){
     const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
     if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
       hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b><span>'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span></div>'
+        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b></div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
         +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
       une.setAttribute('data-car',i);continue;}
     hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
@@ -38205,9 +38205,9 @@ function spinDom(){ // LA MACHINE, fabriquée une fois (au premier tirage de la 
   // LE LEVIER AU DOIGT : il suit le pouce (résistance qui monte), cliquette au cran, part au lâcher passé 55 % ; un simple toucher le tire d'un coup
   const lv=SPIN.lev,LV=SPIN.lv;
   lv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(SPIN.roule||LV.anim||(SAVE.d.spinJ|0)<=0)return;
-    LV.drag=true;LV.y0=e.clientY;LV.dy=0;LV.cran=false;try{lv.setPointerCapture(e.pointerId);}catch(_){}});
+    LV.drag=true;LV.y0=e.clientY;LV.dy=0;LV.cran=false;LV.cq=0;try{lv.setPointerCapture(e.pointerId);}catch(_){}});
   lv.addEventListener('pointermove',function(e){if(!LV.drag)return;LV.dy=e.clientY-LV.y0;const d=Math.max(0,LV.dy)/(SPIN.H*2.3);
-    const th=1-Math.exp(-d*2.2);levierPose(th);if(th>.55&&!LV.cran){LV.cran=true;hap(6);try{if(SONV2)sfx('spin.cran',{vol:-4});}catch(_){}}});
+    const th=1-Math.exp(-d*2.2);levierPose(th);{const q9=Math.floor(th/.14);if(q9>(LV.cq|0)){LV.cq=q9;try{if(SONV2)sfx('spin.cliquet',{vol:-2+q9});}catch(_){}}else if(q9<(LV.cq|0))LV.cq=q9;} /* (2026-10-15 soir) un cran de cliquet à chaque palier de la course */if(th>.55&&!LV.cran){LV.cran=true;hap(6);try{if(SONV2)sfx('spin.cran',{vol:-4});}catch(_){}}});
   const lache=function(e){if(!LV.drag)return;LV.drag=false;try{lv.releasePointerCapture(e.pointerId);}catch(_){}
     if(LV.dy<8&&LV.th<.12){spinTirer(false);return;} // un simple toucher
     if(LV.th>=.55)spinTirer(true);else levierRessort();};
@@ -38254,14 +38254,15 @@ function spinOuvre(){
   SPIN.el.classList.add('on');spinLabels();levierPose(0);
   SPIN.H=spinH();SPIN.el.style.setProperty('--spPx',(SPIN.H*.82).toFixed(0)+'px');spinPeint();
   requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
-  try{if(SONV2)sfx('ui.banniere');}catch(e){}hap(12);}
-function spinFerme(){if(!SPIN.el)return;SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
+  try{if(SONV2&&!sfx('spin.ouvre'))sfx('ui.banniere');}catch(e){}hap(12);} /* (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous ») elle S'ALLUME : relais, néon, ampoules en chenillard */
+function spinFerme(){if(!SPIN.el)return;if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
   setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{mFill();}catch(e){}}
 function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le levier a claqué, les rouleaux partent
   if(SPIN.roule)return;
   if((SAVE.d.spinJ|0)<=0){spinFerme();return;}
   hap(16);SAVE.d.spinJ=(SAVE.d.spinJ|0)-1;SAVE.flush();
   try{if(SONV2)sfx('spin.levier');else uiClic('');}catch(e){} /* (session SON) le levier a son clac mécanique */
+  try{if(SONV2)sfx('spin.jeton',{t:.28});}catch(e){} /* (2026-10-15 soir) le jeton tinte sur la lèvre de la fente, roule dans la goulotte */
   spinPlateau(true);spinLabels();
   spinLance(spinTire());}
 function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — positions en SYMBOLES, vitesse en symboles par seconde
@@ -38270,7 +38271,7 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
   /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans (9-11 pour le suspense), puis freine
      (easeOutBack raccordée à la vitesse : f'(0)=4) — jamais avant que son voisin de gauche ne soit posé depuis 0,3 s */
   const stop=[.95,1.4,tease?2.9:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false};});
-  let tic=0,prev=T0;
+  let tic=0,prev=T0;spinSonsStop();try{if(SONV2)SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){} /* (2026-10-15 soir) LE MOTEUR des rouleaux : une boucle qui suit leur vitesse (spinMoteur) */
   function pas(now){
     const t=(now-T0)/1000,dt=Math.min(.05,(now-prev)/1000);prev=now;let tous=true;
     for(let r=0;r<3;r++){const S=st[r];if(S.fin)continue;tous=false;
@@ -38286,13 +38287,17 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
         if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
         if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
           const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
-          if(r===1&&tease)SPIN.el.classList.add('tease');}}}
+          if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
+          if(r===2&&SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}}
     const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){}} /* (session SON) un cran par symbole : le cliquetis ralentit avec les rouleaux */
-    spinPeint();
+    spinPeint();spinMoteur(st,V,t);
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
-    else if(SPIN.ouvert){SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
-    else{spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
+    else if(SPIN.ouvert){spinSonsStop();SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
+    else{spinSonsStop();spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
   requestAnimationFrame(pas);}
+function spinSonsStop(){if(SPIN.mot){try{SPIN.mot.stop(.12);}catch(e){}SPIN.mot=null;}if(SPIN.tz){try{SPIN.tz.stop(.08);}catch(e){}SPIN.tz=null;}} // (2026-10-15 soir) les boucles de la machine se taisent (fin du tirage, fermeture)
+function spinMoteur(st,V,t){const h=SPIN.mot;if(!h)return;let k=0;for(let r=0;r<3;r++){const S=st[r];k+=S.fin?0:S.ph===0?S.v/V:Math.max(0,1-(t-S.ts)/Math.max(.05,S.D));} /* la vitesse moyenne des rouleaux (0-1) : le moteur monte avec l'élan, ralentit à chaque pose */
+  k/=3;if(Math.abs(k-(SPIN.motK||0))<.03)return;SPIN.motK=k;try{h.gain(-16+13*Math.min(1,k),.06);h.rate(.7+.45*Math.min(1,k),.06);}catch(e){}}
 function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau
   const L=R.lot;
   if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);SPIN.total+=L.cash;}
@@ -38310,7 +38315,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
       if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(L.cash);})(T0);}
   if(R.i>=0){SPIN.el.classList.add('gagne');if(jack)SPIN.el.classList.add('jackpot');
     setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne','jackpot');},jack?3200:1600);}
-  try{if(SONV2){if(jack)sfx('spin.jackpot');else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine */
+  try{if(SONV2){if(jack)sfx('spin.jackpot');else if(R.i<0&&R.s[0]===R.s[1]){sfx('spin.presque');sfx('spin.gain',{var:0,vol:-11,t:.75});}else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine — (2026-10-15 soir) deux pareils et le 3e à côté : le PRESQUE, puis la consolation tout bas */
   if(jack){hap([30,60,40,80,60,120,90]);spinFlash(3);spinPluie(46);spinExplose(40);}
   else if(gros){hap([20,40,30]);spinExplose(16);}
   else if(R.i>=0)hap(14);
@@ -44021,8 +44026,38 @@ function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; 
   if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
   return ok;
 }
+/* LES FIGURES LANCÉES EN ROULANT (2026-10-15 soir, Sacha : « le salto avant ne marche pas quand on le lance en roulant sur la route ;
+   vérifie que chaque figure est lançable en roulant, sans être dans les airs ») — MESURÉ au banc (double-tap au sol, `dbgSautFig`, mer de
+   nuages) : le saut nitro donne ~1 s de vol sur du plat, mais quand la route REMONTE sous la caisse il ne dure que 0,24-0,40 s — le salto
+   (avant comme arrière) restait à 0,3-0,6 tour, posé sans être payé ; le tonneau aussi (1 sur 5). Et un double-tap fait pendant un petit
+   rebond (dos d'âne, la pose qui se tasse : hopY/hopV/POSE_F) était jeté sans un bruit.
+   · LE SAUT À LA TAILLE DE LA FIGURE : quand une figure part avec le saut, `sautAllonge` intègre la VRAIE trajectoire (la loi de la chute,
+     comme le viseur) contre la VRAIE route devant (dalleProche) et, si la pose arrive avant `sautBesoin(f)` (de quoi planter la figure à sa
+     durée de catalogue : ≥ 1 s), ajoute juste ce qu'il faut de poussée le long de la normale (+19 m/s au plus : ~11 m de haut au lieu de 5).
+     Sur du plat rien ne change (le saut fait déjà son vol) ; c'est la route qui remonte qui allonge le saut.
+   · LE DOUBLE-TAP GARDÉ : pendant un rebond, la demande attend la fin du rebond (0,4 s au plus, `VEQ.sautAtt`) au lieu d'être perdue.
+   Banc : `dbgSautFig(x,y)` (un double-tap, le joystick en x, y), `dbgSautFig('cause')`. ?saut=fixe = le saut d'avant (21 m/s toujours). */
+const SAUT_FIXE=/[?&]saut=fixe\b/.test(location.search),SAUT_P=new THREE.Vector3(),SAUT_V=new THREE.Vector3(),SAUT_N=new THREE.Vector3(),SAUT_D=new THREE.Vector3();
+function sautBesoin(f){return f&&f.D?Math.max(1,.35+f.D*.9/.72):0;} // le vol qu'il faut à la figure pour être plantée à ~90 % de sa durée de catalogue (figDose : D = (vol − 0,35) × 0,72)
+function sautVolPredit(dv){ // la durée (s) du vol qui vient de partir, avec dv m/s de plus le long de la normale de la route au décollage — 2,4 = pas de pose en vue
+  SAUT_P.copy(fallPos);SAUT_V.copy(fallVel).addScaledVector(SAUT_N,dv);if(SAUT_V.y>70)SAUT_V.y=70;
+  const g=FALL_G*gK(),h=1/30;let gi=-1;
+  for(let k=1;k<=72;k++){SAUT_V.y-=g*h;SAUT_P.addScaledVector(SAUT_V,h*SPD);if(k<3)continue;
+    const bi=dalleProche(SAUT_P.x,SAUT_P.y,SAUT_P.z,8,400,gi);if(bi<0)continue;gi=bi-bi%8;
+    SAUT_D.subVectors(SAUT_P,pts[bi]);const hh=SAUT_D.dot(Nn[bi]),l=SAUT_D.dot(B[bi]);
+    if(Math.abs(l)<ROAD_HALF+1&&hh>-THICK-1&&hh<.35&&SAUT_V.dot(Nn[bi])<0)return k*h;}
+  return 2.4;}
+function sautAllonge(f){ // juste après startFall : le saut assez long pour planter `f`
+  const need=sautBesoin(f);if(!need||SAUT_FIXE)return 0;
+  const t0=sautVolPredit(0);VEQ.tPred=t0;if(t0>=need)return 0;
+  let dv=0;for(const d of [3,6,9,12,15,19]){dv=d;if(sautVolPredit(d)>=need)break;}
+  fallVel.addScaledVector(SAUT_N,dv);if(fallVel.y>70)fallVel.y=70;VEQ.allonge=(VEQ.allonge|0)+1;VEQ.dvDer=dv;return dv;}
+function sautFigVisee(fo){ // la figure qui partira avec ce saut (celle du glissé, sinon celle de la direction tenue)
+  if(!FIGV2.on||!window.FIG)return null;if(fo&&fo.f)return fo.f;
+  const S=figSlots();let k=FDIR.on?figDirSlot():0;if(!S[k]&&!(FDIR.on&&!TUTO.on))for(let j=1;j<FIG_NB&&!S[k];j++)k=(k+1)%FIG_NB;return S[k]?FIG.par[S[k]]:null;}
 function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle — `fo` (LA FIGURE AU GLISSÉ) : la figure du sens glissé au lieu de l'emplacement suivant
-  if(hopY>0||hopV!==0||POSE_F||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
+  if(hopY>0||hopV!==0||POSE_F){if(!fo&&mode==='drive'&&!(VEQ.sautAtt>0))VEQ.sautAtt=performance.now();return false;} // (2026-10-15 soir) un rebond : le double-tap ATTEND (veqSautAttente)
+  if(performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
   /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « saut nitro au double-tap sur la FACE CACHÉE : startFall(21) part vers le BAS, chute
      mortelle ») SOUS LA DALLE, la caisse est pendue à la route : la pousser « vers le haut de la caisse », c'est la lâcher dans le VIDE (et la
      pose d'après, quand il y en a une, sortait POSÉ LOURD ~10,5 : momentum ÷ 2, une faute, des zones Survivant et des singes semés sur du plat).
@@ -44032,8 +44067,10 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
   if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
   if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
   VEQ.sautT=performance.now();
-  const p9=carGroup.position.clone();
+  const p9=carGroup.position.clone();VEQ.sautAtt=0;
+  SAUT_N.copy(F.n);const fV9=sautFigVisee(fo); /* (2026-10-15 soir) la normale de la route au décollage et la figure qui partira */
   startFall(VEQ_K.saut,1);VEQ.sautF=flightId;VEQ.l0=0; // un saut VOULU : le volant tenu continue de tourner (pas de verrou), on reste sur sa route
+  try{sautAllonge(fV9);}catch(e){} /* (2026-10-15 soir, Sacha : « chaque figure lançable en roulant ») le saut assez long pour la planter, quand la route remonte */
   if(fo&&FIGV2.on)figLance(-1,Object.assign({dispo:2*VEQ_K.saut/(FALL_G*gK())-.15},fo));else // (2026-10-15) le glissé : la figure de SON sens
   veqFigure(2*VEQ_K.saut/(FALL_G*gK())-.15); // la figure part TOUTE SEULE, à la taille du saut
   for(let k=0;k<26;k++){const a=Math.random()*6.2832,r=Math.random()*1.2; // le souffle du booster contre la route
@@ -44435,7 +44472,7 @@ function figDirSlot(){let x,y;
 window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot(),r=figLance(s,{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on});return r?(r.attente?'attente':'ok geste '+(s+1)+' '+r.f.id+(r.f.sens?' '+r.f.sens:'')+(r.s>0?'+':'-')):'refus';}finally{FDIR.force=null;}};
 function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
 window.dbgSautFig=function(x,y){if(x==='cause')return {cause:mortCause,mode:mode,go:gameOver};FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);} /* (banc, 2026-10-15 soir) un double-tap NITRO, le joystick en (x : le côté, y : l'avant) — au sol : le SAUT NITRO et la figure de cette direction */
-  return {ok:!!r,mode:mode,hopY:+hopY.toFixed(2),hopV:+hopV.toFixed(2),pose:!!POSE_F,cd:Math.round(performance.now()-VEQ.sautT),nit:+(nitroR+nitroX).toFixed(2),slot:figDirSlot()};};
+  return {ok:!!r,mode:mode,hopY:+hopY.toFixed(2),hopV:+hopV.toFixed(2),pose:!!POSE_F,cd:Math.round(performance.now()-VEQ.sautT),nit:+(nitroR+nitroX).toFixed(2),slot:figDirSlot(),allonge:VEQ.allonge|0,dv:VEQ.dvDer||0,tPred:VEQ.tPred||0};};
 /* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
    être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
    RÉGLAGES › JEU › FIGURES (et la PAUSE) — 2 TAPS (le double-tap, d'origine) · GLISSER (`SAVE.d.figG`, écrit par `figGBascule` seul).
@@ -47227,7 +47264,7 @@ function resetGame(){
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
-  VEQ.dReq=false;VEQ.dDn=0;GLI.req=null;GLI.id=null;figGVoit(null);gsolCoupe(); // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
+  VEQ.dReq=false;VEQ.dDn=0;GLI.req=null;GLI.id=null;VEQ.sautAtt=0;figGVoit(null);gsolCoupe(); // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
@@ -47258,7 +47295,7 @@ function resetGame(){
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
-  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;gsolCoupe();if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
+  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe();if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0};runxReset();
@@ -55401,8 +55438,8 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
        conducteurs d'or), puis JOUER dans sa plaque. */
     try{Object.assign(I18N,{'REGLAGES':'SETTINGS'});if(!ge.querySelector('span'))ge.insertAdjacentHTML('beforeend','<span data-fr="REGLAGES">'+TR('REGLAGES')+'</span>');}catch(e){} /* (UX 8) le mot sous le pictogramme : un enfant lit, il ne devine pas */
     ou.insertBefore(ge,gar);if(!SANS_CARRIERE)ou.appendChild(ca); /* (2026-10-14, Sacha) sans carrière : pas de carte — MISSIONS prend sa place (<style id="sansCarriere">) */
-    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Offres');
-      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="OFFRES">'+TR('OFFRES')+'</span>'; /* (2026-10-15 matin, Sacha : « offre doit s'appeler boutique » ; même jour, après-midi : « dans l'écran d'accueil change le bouton boutique pour un bouton offre ») */if(bd)sh.appendChild(bd);ou.appendChild(sh);}
+    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Achat');
+      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="ACHAT">'+TR('ACHAT')+'</span>'; /* (2026-10-15 matin, Sacha : « offre doit s'appeler boutique » ; même jour, après-midi : « dans l'écran d'accueil change le bouton boutique pour un bouton offre » ; le soir : « dans l'écran d'accueil, l'offre doit maintenant s'appeler achat ») */if(bd)sh.appendChild(bd);ou.appendChild(sh);}
     mi.classList.add('mMisBarre');
     const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(mi);bas.appendChild(pl);
     }
@@ -57893,7 +57930,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<150)figGJoue(d9);}gsolTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<150)figGJoue(d9);}gsolTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
@@ -60533,7 +60570,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
     pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9+' '+T('FAITES','DONE'),ok9>=n9);
     pose('.mHubPorte',T('GARAGE','GARAGE'),LANG==='fr'?nm:TR(nm));
-    pose('.mOffres',T('OFFRES','OFFERS'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
+    pose('.mOffres',T('ACHAT','BUY'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
     pose('.mGear',T('RÉGLAGES','SETTINGS'));}
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
