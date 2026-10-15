@@ -1,6 +1,7 @@
 /* LE DAUPHIN — sorti d'index.html le 2026-10-15 (Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place
-   dans le jeu ») : le modèle du grand dauphin en VITRAIL (profil, cubes, peau, cœur, nage) et ses chorés ; la boîte à dauphins l'exécute avec THREE, triNoir, dolphins, dolTrail, dolSplash. Le JEU ne charge PAS ce fichier ; il vit pour la boîte et pour ce qui reviendra par map (les singes du SOLEIL DE JADE,
-   les dauphins plus tard). Il a besoin de THREE (vendor/three.min.js). */
+   dans le jeu ») — puis REVENU le jour même, par map (Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau du SOLEIL DE JADE ») :
+   le JEU charge ce fichier pour mkDauphin et le banc (index.html : « LES DAUPHINS DE LA MER DE JADE ») ; ⚠ un nom global d'ici ne doit pas exister dans index.html.
+   Le modèle du grand dauphin en VITRAIL (profil, cubes, peau, cœur, nage) et ses chorés ; la boîte à dauphins l'exécute à part (avec ses dolphins, dolTrail, dolSplash). Il a besoin de THREE. */
 /* ============================================================================
    CRÉATURES DE FIGURE — UN BANC DE 3 DAUPHINS (LE DAUPHIN) + 1 SERPENT (SNAKE LOOP)
    Procédurales, oniriques. Montées UNE fois, cachées, animées seulement pendant
@@ -8,7 +9,6 @@
    Chaque créature vit dans un « rig » calé sur la caisse (repère route : x=latéral,
    y=haut, z=avant), donc elle suit la piste sans recalcul de matrices lourd.
    ========================================================================== */
-const crV1=new THREE.Vector3(),crV2=new THREE.Vector3();
 /* ---- LE DAUPHIN DE LÉO (2026-09-26, user : « l'animation du dauphin n'est pas la vraie qui était dans la version de Léo, et on ne la
    voit pas assez ») ----
    Le jeu n'avait gardé que le CORPS de la recette : un tube sans nageoires, deux bêtes qui se croisaient en ciseaux. La vraie animation
