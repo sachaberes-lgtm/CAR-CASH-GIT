@@ -109,7 +109,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
   les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo. Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
   double-tap NITRO (`FDIR`/`figDirSlot` : avant = 1, côté = 2 ; `?figdir=0` rend les boutons), le HUD des figures `#fh` (`fhLance`/`fhPlante`/
-  `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO.
+  `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO. Depuis le 15/10 soir : DEUX FAMILLES (`FIG.cat` dans figures.js,
+  `figFam`/`figSlots`/`FIG_FAM`) — l'emplacement 1 = une figure AVANT (saltos, chandelle), le 2 = une figure de CÔTÉ (tonneau, toupie… elle part
+  du côté du pouce, `o.dx`) ; équiper remplace celle de SA famille ; sans figure avant, le pouce en avant ne fait RIEN (`o.strict`, sauf
+  l'auto-école) ; la boutique les range en deux sections (`bqFigSec`, `.bqSec`).
+  RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
+  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain ; ← → tonneau, ↑ salto arrière, ↓ salto avant, au sol `veqSaut(fo)`).
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
@@ -178,6 +183,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
   vit sur la branche `garde/carriere`. Les missions restent.
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
+- Plus de SNAKE LOOP, de DAUPHIN, de NITROOO ni de DRAGON (15/10, Sacha) : `SANS_SNAKE` / `SANS_DAUPHIN` / `SANS_NITROOO` / `SANS_DRAGON`,
+  coupés pas arrachés — ni figure, ni gain, ni créature 3D (rien dans la scène, rien de compilé). Le nitro ordinaire reste.
+  `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (avec `?nitrooo=1`) les rendent pour comparer.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 - HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
@@ -281,7 +289,8 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - Une ligne dans `BASE` de `figures.js` : `{id, n, en, c, ce, p, D, aura, m:[{a:[x,y,z],t:n}]}` ou `{a, b:amplitude, k:battements}` — `c`/`ce` = le
   nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
   (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
-  au shop et à l'inventaire (`COSM.figure`), s'équipe dans un des trois emplacements. `figures.js?v=` +1 dans index.html ET boite-figures.html,
+  au shop et à l'inventaire (`COSM.figure`), s'équipe dans l'emplacement de SA FAMILLE : `cat:'avant'` (tout sur l'axe des roues x — rien à
+  choisir) ou `cat:'cote'` (au moins un mouvement a un côté : il part du côté du pouce) ; sans `cat`, `FIG.cat` la range par cette règle. `figures.js?v=` +1 dans index.html ET boite-figures.html,
   `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
 - Une figure DÉTECTÉE en vol (vrille, dauphin…) : `addTrick(id,txt,…)` → `chaineAura(nom,base,famille)`.
 
@@ -586,6 +595,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
+- Plus de SNAKE LOOP, de DAUPHIN, de NITROOO ni de DRAGON (15/10, Sacha) : `SANS_SNAKE` / `SANS_DAUPHIN` / `SANS_NITROOO` / `SANS_DRAGON`,
+  coupés pas arrachés — ni figure, ni gain, ni créature 3D (rien dans la scène, rien de compilé). Le nitro ordinaire reste.
+  `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` (avec `?nitrooo=1`) les rendent pour comparer.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 
