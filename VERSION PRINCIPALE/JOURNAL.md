@@ -3,6 +3,32 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION, TUNNEL D'ARRIVÉE, ROCHE LISIBLE (2026-10-14 soir, session CANYON — Sacha : « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus bas » · « c'est un jeu de COURSE, pas de balade » · « plus la vitesse du palier est élevée, plus les virages doivent être larges » · « resserre juste les parties COULOIR » · « le portail d'arrivée doit être DANS UN TUNNEL » · sur les parois : « ce n'est pas joli »)
+- LES RACCOURCIS (`genCanyon` v2, `boucle`) : huit TROMBONES qui descendent — l'approche (~220 m, la zone de saut), un demi-tour R1, le
+  retour, un demi-tour SERRÉ R2 = R1 − e/2, la SORTIE. Elle court parallèle à l'approche, ~94 m d'axe à axe (~35 m de vide entre les bords),
+  55 à 90 m plus bas (2,6 à 3,4 s de vol, règle RACCOURCIS de GAMEPLAY), puis passe SOUS le premier demi-tour et s'incurve à peine : on sort
+  par le bord de l'approche, on retombe dessus. MESURÉ (banc processeur, 5 graines, paliers 1 et 1,7) : 8 raccourcis, gain ~0,8-1,1 km chacun,
+  croisements à 55-90 m de hauteur libre, règle d'or tenue (0 point de route dans la roche, marge mini 41-52 m). Les boucles alternent de côté
+  (la piste ne dérive pas) ; le cap est ramené après chaque tour (`phi-=sg·2π` — sans ça le recentrage refaisait un tour complet).
+  `CY.rac` / `dbgCanyon('raccourcis')` : haut, bas, gain, dh, écart latéral, côté. La taille fine prenait déjà le MINIMUM des deux bras :
+  le croisement se creuse tout seul (une gorge secondaire qui enjambe la principale).
+- COURSE : virages de 85-190 m (× l'élargissement du palier), gauche-droite enchaînés, presque plus de droites (≤ 400 m partout).
+  LES RAYONS SUIVENT LE PALIER : `RMIN` = `rayonPalier()` (40 + 0,3 × la croisière du palier, la règle de GAMEPLAY — le vrai plafond du joueur)
+  × 1,08, plancher de TOUS les arcs ; repli sur la même formule tant que `rayonPalier` n'est pas sur main.
+- LE COULOIR DE PRÉCISION (les Étroits, six S serrés) : deux BANDES de grès (`cyCouloir`/`cyBandes`, la matière du relief, ses strates, son
+  ombre) à 3,5 m des bords, du fond de la fente jusqu'au relief de derrière (lissé). AU VOLANT : le MUR DE PARIS (`parisMur(dt,'paroi')`, par
+  `cyCouloirIci()`) — un choc par contact selon l'angle, puis on frotte (étincelles, « FROTTE ! ») ; de face au-delà de 200 km/h on s'encastre
+  (« ENCASTRÉ DANS LA PAROI »). EN VOL : `cyCouloirHeurt`. Le relief seul ne savait pas : sa taille fine de 12 m étale un mur vertical en
+  coulures (c'était les « traînées » de la capture de Sacha).
+- LE TUNNEL D'ARRIVÉE (`CY_TUN`, `cyGalerie`) : les 460 derniers mètres s'engouffrent dans la falaise — une FAÇADE de grès (jusqu'au haut des
+  parois) percée d'une bouche en fer à cheval cerclée de néon rose, la GALERIE (les murs du couloir + une voûte en demi-ellipse, sommet 104 m
+  au-dessus de la route, au-dessus de l'ovule du portail), en roche SOMBRE (`cyRocheSombre`, la matière simple des arbres : aucun programme
+  neuf) éclairée de néons (deux filets rose au pied des murs, un filet or sous la clé). On y frotte comme au couloir ; voûte dure en vol.
+- LA ROCHE LISIBLE : les rais de lumière retirés (des lames bleu-blanc étalées sur la paroi), bruits déroulés le long du mur dès les pentes
+  moyennes, strates moins gondolées (34 m), litage fin horizontal, vernis en larges taches discrètes, grain fin près de la route (< 220 m),
+  l'ombre de la roche qui tire au VIOLET (la bible).
+- À trancher / à faire : le banc `raccourcis.cjs` de GAMEPLAY attend son crochet `dbgTrace` (pas encore sur main) — à repasser dès qu'il y est
+  (cible 0,6 raccourci/km : le canyon en a ~0,35, couloir et tunnel compris) ; les six météos à revoir avec la nouvelle roche.
 ## LA SECONDE CHANCE COÛTE TOUTE LA PARTIE (2026-10-14 soir, Sacha : « le bouton continuer malgré la mort doit coûter au joueur la même somme que ce qu'il a gagné durant la partie »)
 `chanceOuvre` : `CHANCE.prix = max(CHANCE.plancher, round(money − START_CASH))`, soit 100 % de l'encaissé, au dollar près. Le barème
 de GAMEPLAY (k 0,6 → 0,8) et l'arrondi à deux chiffres (`chanceJoli`) sont retirés. Le plancher de 300 $ ne joue que pour une partie
