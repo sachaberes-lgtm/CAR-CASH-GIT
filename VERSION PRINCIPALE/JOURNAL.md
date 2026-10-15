@@ -3,6 +3,41 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « on veut retoucher le nitro ainsi que la flamme du moteur quand la voiture avance ; c'est un peu fade, on n'arrive pas trop à distinguer le nitro du moteur » · « pas trop régulier, comme un moteur d'une voiture qui avance : la personne ne doit pas voir une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique, en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, mais sa grandeur, en moins gros »)
+- ⚠ LOOK, pas encore validé : branche `visuel-flammes`, planches `photos-gameplay/flammes-moteur-nitro-avant-apres.png` et
+  `flammes-moteur-qui-vit.png`. `?flamme=ancien` rend la plume d'avant, au caractère près (A/B sur téléphone).
+- MESURÉ AVANT : moteur et nitro étaient la MÊME plume (JETS : 0,35 m au filage → 3,15 m au nitro, plus blanche), battue par des
+  sinus fixes (`fl9`, `f9`) qui ne savaient rien de la voiture.
+- LE MOTEUR (`FLM`, `flmPas`) : la plume lisse suit un MOTEUR SIMULÉ, celui que l'oreille entend — la table `ENG_SND` du palier
+  (rapports `gr`, cadence `fHz`, irrégularité `fJit`, crépitements `crk`) et les seuils de la boîte du son (recopiés, LUS seulement :
+  le son n'est pas touché ; le calcul ne dépend pas de l'audio, il tourne son coupé). Bouffées à la cadence du régime, intervalle et
+  force tirés à chaque bouffée (± fJit), ratés rares ; une houle lente et un tremblé par pot (Ornstein-Uhlenbeck : jamais périodiques) ;
+  la CHARGE lue dans l'accélération réelle ; au PASSAGE DE RAPPORT l'allumage coupé ~0,12 s (flamme ×0,3) puis le carburant qui SAUTE
+  (pop gras, plus fort aux derniers rapports) ; au PIED LEVÉ (drift, touche S) la flamme tombe et l'échappement pétarade au hasard ;
+  EN VOL le RUPTEUR (~11 coupures/s, chaque demi-période et chaque force tirées, des coups qui traînent) ; à la POSE un coup de feu ;
+  la couleur suit la chaleur (rouge-orangé stabilisé → orange en charge → jaune-blanc dans un pop).
+  Mesuré (série image par image, banc debout) : départ 0,29 ↔ 1,68 (coupures et pops visibles), croisière 0,59-0,93, pied levé 0,13
+  avec pops, vol en rafales de 2 à 11 images. « Alternance » image à image en croisière : 0,74 avec des bouffées seules (elles battaient
+  une image sur deux à ~37 bouffées/s vues à 60 i/s) → 0,69 avec l'intervalle tiré + le tremblé (0,67 = du pur hasard).
+- LE NITRO (`NFEU`, `nfeuPas`, `nfeuNait`, `nfeuEtincelle`, `nfeuCoup` à l'allumage, `nfeuFin` à l'extinction, `nfeuCoupe` au
+  replacement et à l'explosion) : un FEU DE PIXELS — des cubes instanciés avec EXACTEMENT les matières des cubes de l'arc-en-ciel (donc
+  de la porte) : 0 programme en plus (182 → 182 en course, debout, couché, cadre de l'ordi, 1 pot / 2 / 4). Nés dans la bouche du pot,
+  ils vieillissent blanc → jaune → orange → vermillon → rouge → braise → FUMÉE grise (le burn-out) ; le cœur du jet reste chaud, les
+  bords refroidissent plus tôt ; un cube sur huit est une POCHE CHAUDE ; ils sautent de case en case (grille de 6 cm dans le repère de
+  la flamme) ; des LANGUES tournent autour de l'axe, des COUPS de feu tombent au hasard (~1/s), des étincelles giclent dans le monde.
+  Réserve bleue = feu bleu, nitro infinie = feu violet (palettes `NFEU_PAL`). La plume lisse n'est plus que la TORCHE blanche dans
+  la bouche du pot (×0,38). Les boules rondes de l'échappement (`flames`) tombent à une par pot au nitro.
+  ⚠ LA CAMÉRA COMMANDE LA FORME (mesuré, `dbgFlamme('proj')`) : debout, la poursuite regarde la poupe presque d'au-dessus, à 3,6-4 m
+  des pots (les pots à −0,6 de la hauteur d'écran). Un feu qui MONTE fonce dans l'objectif (un mur rouge au bas de l'écran), un feu
+  qui s'ÉLARGIT barre tout le bas : il file donc à plat, pas plus large que la caisse (1,3-2 m), et ses cubes gardent leur taille À
+  L'ÉCRAN (la règle des gros pixels de la fumée du burn-out) ; en vol la caméra recule (~21 m) et le feu grossit (`N.kd`). L'orange
+  de la porte (1,75 · ,78 · ,14) sortait JAUNE après l'ACES : la palette tient le vert bas. ~200-350 cubes, 0,02-0,06 ms par image.
+- Crochets : `dbgFlamme()` (régime, rapport, charge, lâcher, chaleur, pops, longueurs, feu), `dbgFlamme('nfeu',0|1)`,
+  `dbgFlamme('proj')` (où tombent les cubes). Bancs : `~/Downloads/CAR-bancs` (fl*.py : rafales, pellicules centrées sur les pots,
+  séries image par image enregistrées dans la page).
+- À trancher par Léo : la taille du feu debout (il occupe le bas de l'écran sous les pots), la fumée grise, garder ou non le sillage
+  lisse de Sacha à côté du feu de pixels (il est gardé), la signature de couleur des caisses au nitro (le feu est classique pour toutes).
+
 ## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
 - ⚠ ANNULÉ le même jour (v458) — Léo : « reviens avant, j'avais pas vu que tu l'avais déjà faite unique » : la v456 avait déjà une roue arrière gauche UNIQUE (au kit, rouillée et voilée). index.html = celui de la v456 (167de9de) ; ce qui suit n'est plus en jeu.
 - La roue arrière gauche (`wi===2` dans la branche `rouesEpave` de buildCar) redevient celle de la v455, code recopié tel quel : pneu
