@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## DEBOUT, LE DRAGON NE TRAVERSE PLUS L'OBJECTIF (2026-10-15, Sacha : « sur la version mobile verticale le dragon passe à travers la caméra et on peut voir à l'intérieur de son corps en transparence »)
+- `DRG_PRES` + `dragonPres(m,coque)` : les matières du dragon (corps de papier, traits peints, feu additif, CRÂNE) reçoivent un fondu par
+  PIXEL entre l'objectif et la caisse — la règle de la comète (`NTR_PRES`, mêmes chiffres : rien à ,42 × la profondeur de la caisse, entier
+  à ,86 ×), profondeur plafonnée à 6,5 m (en vol la caméra recule à 15 m et le corps adulte, sur la trajectoire, est TOUJOURS entre elle et
+  la caisse : sans plafond il s'effaçait en entier). ×POR : le paysage ne bouge pas (vérifié au banc : avant = après au grain près).
+- Debout, la COQUE du crâne tait ses faces du dedans (`gl_FrontFacing`) : la nuque est ouverte et la matière en double face — on voyait la
+  caisse ET l'intérieur de la tête à travers une coque translucide. La MÂCHOIRE était tournée vers le dedans : indices retournés.
+- Mesuré (banc portrait 390×844, A/B sur la MÊME image) : au sol la nuque et le haut du crâne voilaient la caisse, une banderole passait à
+  1,5 m de l'objectif ; en vol le corps adulte passait à 0,3 m. Après : la caisse se dégage, la tête reste devant, le corps s'efface avant
+  l'objectif. Programme `drgPres` compilé AU MENU (chauffe du dragon) : 0 programme neuf au 1er NITROOO.
+- Bancs : `dbgDragonPres(0|1)` (A/B), `dbgDragonPres('mesure')` (distances objectif → bandes / coque), `dbgDragonPres('photo','tmfc')`
+  (la même image avant | après, couches masquables : t crâne · m rubans · f feu de pixels · c comète).
+- Pas touché : la grande colonne de feu en cubes au bas de l'écran debout est le feu de NITRO de la caisse (`NFEU`), pas le dragon.
+
 ## LE DRAGON EN FEU DE PIXELS (2026-10-15, Sacha : « fais le dragon chinois NITROOO avec les mêmes effets de particule que les flammes de nitro, fais ça bien »)
 - Tout le FEU du dragon passe dans la matière du nitro (`NFEU`, le feu de pixels du 15/10) : `DFEU` = un InstancedMesh à part (1 800 cubes ;
   le feu des pots garde ses 900) sur la MÊME géométrie et le MÊME halo, matière clonée (`transparent` n'entre pas dans la clé de programme

@@ -46518,6 +46518,38 @@ const DRG={m:null,yeux:null,S:{},NP:0,pos:null,col:null,uv:null,roar:0,pal:-1,t:
   NOI:{H:[.15,.012,.022],B:[.1,.006,.014],Q:[.05,0,.006],C:[.11,.008,.016],G:[.2,.024,.032],A:[.03,0,.004],O:0xff1830,I:0xffc0c8}}; /* (v7) DARK TRIAD : un feu SOMBRE, rouge sang (l'additif ne sait pas faire du noir : il se tait — au banc, vus de la poursuite, la crinière, la crête et le halo s'empilent DEVANT la tête : à 40 % elle se lisait rouge) */ /* (nitro infinie : la couleur du corps et de la tête est dans DRG_TEX_V / DRG_PF_V) */
 for(let i=0;i<100;i++)DRG.P.push(new THREE.Vector3());
 for(let i=0;i<DRG.SPN;i++){DRG.SP.push(new THREE.Vector3());DRG.SL.push(new THREE.Vector3());}
+/* (2026-10-15, Sacha : « sur la version mobile verticale le dragon passe à travers la caméra et on peut voir à l'intérieur de son corps en
+   transparence ») DEBOUT, LE DRAGON NE TRAVERSE PLUS L'OBJECTIF. Deux règles, ×POR (le paysage ne bouge pas d'un pixel) :
+   · ENTRE L'OBJECTIF ET LA CAISSE IL S'EFFACE, PIXEL PAR PIXEL — la règle de la comète (`NTR_PRES`, mêmes chiffres) : rien à `de` × la
+     profondeur de la caisse, entier à `a` ×. Mesuré (banc portrait 390×844) : la nuque et le haut du crâne voilaient la caisse, une
+     banderole passait à 1,5 m de l'objectif (un disque rouge plein coin d'écran), et en vol le corps adulte (22 m, sur la trajectoire —
+     là où la caméra de vol se tient) passait à 0,3 m. En vol la caméra recule à 15 m : la profondeur est plafonnée à `cap`, sinon le
+     corps entier, qui est TOUJOURS entre elle et la caisse, s'effaçait. Les deux fondus d'avant restent (`dragonBande` amincit les
+     bandes, `fC` efface la tête ENTIÈRE quand l'objectif y entre) : aucun ne savait couper le seul morceau qui vient sur la caméra.
+   · LA COQUE DU CRÂNE NE MONTRE QUE SON DEHORS : la nuque est ouverte (la caisse est dedans) et la matière est en double face — tant que
+     la tête n'est pas opaque, on voyait À TRAVERS elle ses faces du dedans : un dragon en radiographie. Debout, elles se taisent. La
+     MÂCHOIRE était tournée vers le dedans : retournée (en double face ça ne changeait rien, sans ça elle disparaissait).
+   Une matière à part (`drgPres`), compilée au menu avec le reste du dragon (voir chauffe). Banc : `dbgDragonPres(0)` = comme avant. */
+const DRG_PRES={de:.42,a:.86,cap:6.5,k:1,uP:{value:new THREE.Vector3(0,1,0)},uD:{value:1},uD1:{value:1},v:new THREE.Vector3(),w:new THREE.Vector3()};
+function dragonPres(m,coque){ // la matière du dragon apprend le fondu d'objectif — et, pour la coque, à taire ses faces du dedans
+  m.onBeforeCompile=function(sh){sh.uniforms.uDrgP=DRG_PRES.uP;sh.uniforms.uDrgD=coque?DRG_PRES.uD:DRG_PRES.uD1;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vDrgZ;').replace('#include <project_vertex>','#include <project_vertex>\nvDrgZ=-mvPosition.z;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uDrgP;uniform float uDrgD;varying float vDrgZ;')
+      .replace('#include <map_fragment>','#include <map_fragment>\ndiffuseColor.a*=mix(1.,smoothstep(uDrgP.x,uDrgP.y,vDrgZ),uDrgP.z);if(!gl_FrontFacing)diffuseColor.a*=uDrgD;');};
+  m.customProgramCacheKey=function(){return 'drgPres';};
+}
+window.dbgDragonPres=function(k){
+  if(k==='mesure'){if(!DRG.m||!DRG.m.visible)return null;const c=camera.position,p=DRG.pos,o={};let mb=1e9,nb='',mt=1e9; // (banc) à quelle distance de l'objectif passent les bandes et la coque
+    for(const n in DRG.S){const S=DRG.S[n];let m=1e9;for(let i=0;i<S.n;i++){const j=(S.o+i)*6;for(const e of [0,3]){const d=Math.hypot(p[j+e]-c.x,p[j+e+1]-c.y,p[j+e+2]-c.z);if(d<m)m=d;}}if(m<mb){mb=m;nb=n;}if(m<2.5)o[n]=+m.toFixed(2);}
+    const tp=DRG.tm.geometry.attributes.position.array;for(let i=0;i<tp.length;i+=3)mt=Math.min(mt,Math.hypot(tp[i]-c.x,tp[i+1]-c.y,tp[i+2]-c.z));
+    return {coque:+mt.toFixed(2),bande:+mb.toFixed(2),nom:nb,proches:o,caisse:+c.distanceTo(carGroup.position).toFixed(2)};}
+  if(k==='photo'){const P9=DRG_PRES,r=[],cache=String(arguments[1]||''),L9=[]; // (banc) la MÊME image rendue deux fois : avant | après (le canevas 3D seul, sans l'interface) — `cache` : t crâne · m rubans · f feu de pixels · c comète
+    const tait=function(o){if(o&&o.visible){o.visible=false;L9.push(o);}};
+    if(cache.includes('t'))tait(DRG.tm);if(cache.includes('m'))tait(DRG.m);if(cache.includes('f')&&typeof DFEU!=='undefined'){tait(DFEU.m);tait(DFEU.h);}
+    if(cache.includes('c')&&NTR.shell){tait(NTR.shell);tait(NTR.core);tait(NTR.halo);tait(NTR.halo2);for(const m9 of NTR.langues)tait(m9);}
+    for(const k9 of [0,1]){P9.uP.value.z=POR*k9;P9.uD.value=1-POR*k9;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);r.push(renderer.domElement.toDataURL('image/jpeg',.85));}
+    P9.uP.value.z=POR*P9.k;P9.uD.value=1-POR*P9.k;for(const o of L9)o.visible=true;return r;}
+  if(k!=null)DRG_PRES.k=+k;return {k:DRG_PRES.k,por:+POR.toFixed(2),prog:(renderer.info.programs||[]).filter(function(p){return /drgPres/.test(p.cacheKey);}).length,proche:DRG_PRES.uP.value.toArray().map(function(v){return +v.toFixed(2);}),dedans:+DRG_PRES.uD.value.toFixed(2)};}; // (banc) dbgDragonPres(0) : le dragon d'avant, qui traversait l'objectif (A/B)
 function dragonInit(){ // bâti au 1er embrasement : UN maillage, TROIS matières du programme des rubans (corps peint, tête de feu peint, feu additif)
   let n=0;for(const k in DRG_STR){DRG.S[k]={o:n,n:DRG_STR[k]};n+=DRG_STR[k];}DRG.NP=n;
   const g=new THREE.BufferGeometry();DRG.pos=new Float32Array(n*6);DRG.col=new Float32Array(n*6);DRG.uv=new Float32Array(n*4);
@@ -46532,6 +46564,7 @@ function dragonInit(){ // bâti au 1er embrasement : UN maillage, TROIS matière
   const mP=new THREE.MeshBasicMaterial(Object.assign({map:DRG_TEX},o9)); // le CORPS peint : mélange normal
   const mH=new THREE.MeshBasicMaterial(Object.assign({map:DRG_PF},o9)); // la TÊTE de feu peint : même programme
   const mF=new THREE.MeshBasicMaterial(Object.assign({map:DRG_FEU,blending:THREE.AdditiveBlending},o9)); // le FEU
+  dragonPres(mP,false);dragonPres(mH,false);dragonPres(mF,false); // (debout) près de l'objectif, ils s'effacent — voir DRG_PRES
   DRG.m=new THREE.Mesh(g,[mP,mH,mF]);DRG.m.frustumCulled=false;DRG.m.renderOrder=6;DRG.m.visible=false;scene.add(DRG.m); // après la comète (5) : le feu peint par-dessus le plasma
   // les YEUX : une lueur (additive) et l'ŒIL peint en cases (mélange normal : il se lit sur le feu) — le programme des sprites, déjà compilé
   const mO=new THREE.SpriteMaterial({map:lampTex,color:0xffa030,transparent:true,opacity:0,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending});
@@ -46544,13 +46577,14 @@ function dragonTeteInit(){ // le CRÂNE facetté : ses sommets bougent à chaque
   const nR=DRG_CR.length,nJ=DRG_MC.length,nV=nR*7+1+nJ*5+12,idx=[];
   for(let s=0;s<nR-1;s++)for(let k=0;k<6;k++){const a=s*7+k,c=a+7;idx.push(a,c,a+1,a+1,c,c+1);}
   const cap=nR*7;for(let k=0;k<6;k++)idx.push((nR-1)*7+k,cap,(nR-1)*7+k+1);
-  const j0=cap+1;for(let s=0;s<nJ-1;s++)for(let k=0;k<4;k++){const a=j0+s*5+k,c=a+5;idx.push(a,c,a+1,a+1,c,c+1);}
+  const j0=cap+1;for(let s=0;s<nJ-1;s++)for(let k=0;k<4;k++){const a=j0+s*5+k,c=a+5;idx.push(a,a+1,c,a+1,c+1,c);} // (debout) ses faces tournées vers le DEHORS, comme le crâne — voir DRG_PRES
   const f0=j0+nJ*5;for(let i=0;i<12;i++)idx.push(f0+i); // les CROCS : quatre triangles
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(nV*3),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(nV*3),3));g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(nV*2),2));
   g.setIndex(idx);for(const a of ['position','color','uv'])g.attributes[a].setUsage(THREE.DynamicDrawUsage);
   DRG.tm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:DRG_PF,vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,fog:false})); // la matière des rubans peints : même programme
   DRG.tm.frustumCulled=false;DRG.tm.renderOrder=6;DRG.tm.visible=false;scene.add(DRG.tm);
+  dragonPres(DRG.tm.material,true); // (debout) la coque ne montre que son dehors — voir DRG_PRES
 }
 function dragonCache(){if(DRG.m){DRG.m.visible=DRG.tm.visible=DRG.bouche.visible=false;for(const s of DRG.yeux)s.visible=false;}}
 function dragonBande(nom,tuile,v0){ // écrit la bande `nom` à partir de DRG.P / DRG.W (demi-largeur) / DRG.CR,CG,CB — tournée vers la caméra, effacée près de l'objectif ; v0 fait DÉFILER la texture
@@ -46784,6 +46818,8 @@ function dragonTick(dt){
   const MT=function(x,y,z,o){const zz=Math.max(0,z+1)*.5;return o.copy(c).addScaledVector(DRG.kR,(x+sw*zz)*TX).addScaledVector(DRG.kU,.04+(y+1+nod*zz)*TY).addScaledVector(DRG.hF,Z0+z*TZ);}; /* (v6) le repère PENCHÉ dans le virage (kR/kU) */ // coordonnées TÊTE → monde
   // ⚠ la CAMÉRA DANS LA TÊTE (caméra de vol serrée, gros crâne au 10e palier) : on ne verrait que l'intérieur du feu — la tête s'efface quand l'objectif s'en approche
   let fC=1;{DRG.e.subVectors(camera.position,c);const x9=DRG.e.dot(DRG.hR)/TX,y9=(DRG.e.dot(DRG.hU)-.04)/TY-1,z9=(DRG.e.dot(DRG.hF)-Z0)/TZ,q9=x9*x9+y9*y9/1.44+z9*z9/1.32;fC=THREE.MathUtils.smoothstep(q9,1.05,2.1);}DRG.fC=fC;
+  {const P9=DRG_PRES,k9=POR*P9.k,cd=THREE.MathUtils.clamp(P9.v.subVectors(c,camera.position).dot(camera.getWorldDirection(P9.w)),1,P9.cap); // (debout) le fondu d'objectif suit la profondeur de la caisse, plafonnée — voir DRG_PRES
+   P9.uP.value.set(cd*P9.de,cd*P9.a,k9);P9.uD.value=1-k9;}
   DRG.m.material[1].opacity*=fC;
   MT(0,.2,0,DRG.hC);MT(0,.04,1.13,DRG.nez);
   const k4=function(i,x,y,z){K[i][0]=x;K[i][1]=y;K[i][2]=z;};
