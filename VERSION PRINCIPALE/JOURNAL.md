@@ -3,6 +3,28 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MUSIQUE JUSQU'À LA BOUTIQUE, LES TROIS FIGURES EN BLANC, UN RETOUR QUI SE LIT (2026-10-16, Sacha : « il faut que la musique puisse suivre le joueur du garage à la boutique » · « dans la boutique, quand on arrive dans les figures, le truc des hexagones que tu avais mis dans l'inventaire, faut que tu le remettes, version adaptée » · « tout en haut, les hexagones comme tu avais mis, mais en blanc ; le bouton retour en bas au milieu est toujours bizarrement fait, rends-le plus clair »)
+- **LA MUSIQUE SUIT** (`BQ_MUSIQUE`, près de `MENU_MUS`). MESURÉ avant (`dbgMusique()`) : au garage le morceau du ciel joue, en boutique
+  `paused:true`, `tait:true` — depuis le 13/10 (Léo : « le sound design est terrifiant, change ou enlève ») `musicTick` faisait taire le lobby
+  dès qu'on touchait BOUTIQUE (`bq9` → `MUS_TAIT`) et `bqSon` jouait la nappe de verre à sa place. Après : le MÊME morceau continue (mesuré
+  t = 9,96 → 11,54 → 13,55 s en boutique, jamais en pause, au niveau du garage), et au retour au garage, sans couture. `bqSon` : la nappe se tait
+  tant que la musique est allumée (deux fonds l'un sur l'autre), elle revient si le joueur a coupé la MUSIQUE ; la sourdine du néon et du feu de
+  l'atelier (`bqAtelierSourdine`) reste. **⚠ C'est un choix de Léo qui change** (sa boutique muette du 13/10) : il reste au choix, `?boutique=muette`.
+- **LES TROIS FIGURES ÉQUIPÉES EN HAUT DU RAYON FIGURES** (`bqFigSelEl`/`bqFigSelMaj`, `BQFS`, près de `bqFigRail` ; CSS `<style id="bqFigHex">`) :
+  le sélecteur de l'inventaire (`#gFigSel`, 15/10 : l'éclair du NITRO et « ×2 », trois hexagones ↑ avant · ↓ arrière · ◄► côté, la figure qui
+  tourne dedans, son nom dessous) redessiné pour la salle blanche : `#bqFigSel`, posé en tête de `#gBqPan` (classe `bqFigOn` sur l'onglet FIGURES),
+  au-dessus de la grille — il ne défile pas, on voit ce qu'on porte en feuilletant. Carte blanche, filet gris ; anneau à la couleur de la rareté
+  (foncé de 18 % : le gris des communes se perdait), cœur clair, caisse à l'ENCRE (blanche, elle disparaissait), l'anneau du sens foncé de 38 % ;
+  joystick en pastille blanche cerclée d'encre, flèche bleue (celle des intertitres). Toucher une case = toucher la carte de SA figure dans SA
+  direction (essai sur le plateau, ÉQUIPÉE, cadre `.sel`) et l'amener en vue, l'intertitre de la direction gardé s'il tient ; une case VIDE
+  amène l'intertitre. La figure qu'on regarde : anneau d'encre (comme `.sel`) ; ÉQUIPER fait flasher la case qui la reçoit. Banc (couché
+  844 × 390, debout 390 × 844, cadre de l'ordi 1280 × 800) : le sélecteur prend ~80 px, la grille garde une rangée et demie de cartes.
+- **LE RETOUR DU BAS** (`#gShopBas` en boutique, même bloc) : VU au banc, un texte d'encre de 8 px qui portait l'ombre sombre des boutons du
+  garage (`0 2px 0`, sur blanc : lettres dédoublées), une flèche de 9 px auréolée de magenta, un cadre noir mêlé d'une ombre grise floue (trois
+  passes empilées : `bqIndus`, `.modeOn`, `clarte-boutique`). Désormais une plaque blanche nette : cadre d'encre 2 px, ◀ bleu de 18 px sans
+  lueur, RETOUR en 10 px sans ombre, ombre douce ; appuyé, il s'enfonce et grise. Droit, comme ACHETER / ÉQUIPER. Charte 6 inchangée (`#gBqRet`).
+- Vérifié : menu → GARAGE → BOUTIQUE → FIGURES → RETOUR → JOUER, course lancée sans erreur (`__loopErr` nul), couché, debout et dans le cadre.
+
 ## LES TRAÎNÉES ET LES AILES QU'ON VEUT (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables, pareil pour les ailes »)
 - VU AVANT (banc `habits.js` : les 17 traînées portées tour à tour, nitro tenue, mer de nuages de midi — une planche de 16 photos) : derrière la
   caisse on ne voyait presque que le FEU DE PIXELS du nitro, orange / bleu / violet selon la jauge, quelle que soit la traînée ; MENTHE, ROSE, OR

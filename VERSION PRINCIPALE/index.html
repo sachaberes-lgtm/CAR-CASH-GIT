@@ -9919,6 +9919,55 @@ html[data-reduced-motion] #chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animati
 html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}
 @media (prefers-reduced-motion:reduce){#chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}#chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}}
 </style>
+<style id="bqFigHex">
+/* ===== LA BOUTIQUE : LES TROIS FIGURES EN BLANC + UN RETOUR QUI SE LIT (2026-10-16, Sacha : « quand on est dans l'onglet figure, tout en haut,
+   tu remets les hexagones comme tu avais mis, mais en blanc » · « le bouton retour en bas au milieu, il est toujours bizarrement fait : rends-le
+   plus clair ») — le script : bqFigSelEl / bqFigSelMaj (près de bqFigRail).
+   · #bqFigSel : la carte de la salle blanche (fond blanc, filet gris, droite : on LIT), l'éclair du NITRO et « ×2 » à gauche, puis les trois cases
+     hexagonales — l'anneau à la couleur de la rareté, le cœur clair comme la photo d'une carte, la caisse à l'ENCRE (blanche, elle disparaissait) ;
+     le joystick de la direction en pastille blanche cerclée d'encre, flèche bleue (le bleu des intertitres VERS L'AVANT…). La case de la figure
+     qu'on regarde prend l'anneau d'encre, comme la carte choisie (.sel). Vide : anneau gris, « ? », VIDE. */
+#bqFigSel{display:none}
+#gBqPan.bqFigOn #bqFigSel{display:flex;flex:none;align-items:flex-start;gap:4px;padding:11px 8px 7px 4px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);pointer-events:auto;font-family:var(--pix);animation:bqSec .38s var(--ease) both}
+#bqFigSel .fsNitro{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:3px;width:40px}
+#bqFigSel .fsBolt{display:block;width:26px;height:37px}
+#bqFigSel .fsNitro b{font-weight:400;font-size:9px;line-height:1;color:#14171c}
+#bqFigSel .fsHex{position:relative;flex:1 1 0;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:0;background:none;cursor:pointer;
+  font-family:var(--pix);-webkit-tap-highlight-color:transparent;transition:translate var(--t-fast) var(--ease)}
+#bqFigSel .fsHex:active{translate:0 2px}
+#bqFigSel .fsCase{position:relative;display:block;width:56px;height:48px;background:color-mix(in srgb,var(--fc) 82%,#14171c);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);transition:background var(--t-fast) var(--ease)}
+#bqFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbfcfd,#e9edf1);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+#bqFigSel .fgIl>.fgCv{color:#14171c;filter:none;animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#bqFigSel .fgIl>.fgAn{color:color-mix(in srgb,var(--fc) 62%,#14171c)} /* l'anneau du sens : foncé d'un cran, sinon l'or et le gris des communes se perdent dans le clair */
+#bqFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
+#bqFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#bqFigSel .fsQ{font-weight:400;font-size:14px;color:#a3abb5}
+#bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:#3d4bff;
+  box-shadow:inset 0 0 0 2px #14171c;clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal}
+#bqFigSel .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
+#bqFigSel .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:anywhere;text-align:center;font-weight:400;font-size:8px;line-height:10px;letter-spacing:0;color:#14171c}
+#bqFigSel .fsHex.vide .fsCase{background:#d3d8de}
+#bqFigSel .fsHex.vide .fsIn{background:#f4f6f8}
+#bqFigSel .fsHex.vide .fsNom{color:#8a929c}
+#bqFigSel .fsHex.on{translate:0 -2px}
+#bqFigSel .fsHex.on .fsCase{background:#14171c}
+#bqFigSel .fsHex.flash .fsCase{animation:bqFsFlash .6s var(--ease)}
+@keyframes bqFsFlash{0%{filter:brightness(1.8)}100%{filter:none}}
+@media (prefers-reduced-motion:reduce){#gBqPan.bqFigOn #bqFigSel,#bqFigSel .fsHex.flash .fsCase{animation:none}}
+html[data-reduced-motion] :is(#gBqPan.bqFigOn #bqFigSel,#bqFigSel .fsHex.flash .fsCase){animation:none}
+/* · LE RETOUR DU BAS (#gShopBas, au milieu en boutique) : VU au banc, un texte d'encre de 8 px qui portait encore l'ombre sombre des boutons du
+     garage (0 2px 0, sur du blanc : les lettres se dédoublaient), une flèche de 9 px auréolée de magenta et un cadre noir mêlé d'une ombre grise
+     floue (plusieurs passes empilées). Désormais une plaque blanche nette : cadre d'encre de 2 px, ◀ bleu de 18 px sans lueur, RETOUR en 10 px
+     sans ombre, une ombre douce dessous ; appuyé, il s'enfonce et grise. Droit, comme ACHETER et ÉQUIPER (le magasin de Léo est droit). */
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:10px!important;
+  width:auto!important;min-width:118px!important;height:44px!important;min-height:44px!important;padding:0 16px 0 12px!important;
+  background:#fff!important;background-image:none!important;outline:0!important;box-shadow:inset 0 0 0 2px #14171c,0 6px 16px rgba(20,23,28,.16)!important;
+  clip-path:none!important;filter:none!important;transform:none!important;translate:none!important;color:#14171c!important;text-shadow:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas::before,html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas::after{display:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:10px!important;line-height:1!important;letter-spacing:2px!important;font-style:normal!important;color:#14171c!important;text-shadow:none!important;transform:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{--pxs:2!important;margin:0!important;color:#3d4bff!important;filter:none!important;text-shadow:none!important;transform:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas:is(:active,.appui){translate:0 2px!important;background:#eef0f3!important;box-shadow:inset 0 0 0 2px #14171c,0 2px 6px rgba(20,23,28,.14)!important}
+</style>
 <style id="policeUnique">
 /* UNE SEULE POLICE (2026-10-15, Sacha : « c'est partout la même police ») — LE FILET CSS. Tout élément, tout pseudo-élément, tout champ
    (un <textarea>, un <input>, un <button> n'héritent PAS de la police de la page : c'est ainsi que le champ du CODE COUSIN tapait en
@@ -40754,6 +40803,13 @@ const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; //
 const MENU_MUS={on:true,ciel:['nuages','altitude','apesanteur'].map(k=>'assets/audio/music/lobby/ciel-'+k+'.m4a'),_abs:{}};
 MENU_MUS.tire={ciel:MENU_MUS.ciel[Math.floor(Math.random()*MENU_MUS.ciel.length)]};
 MENU_MUS.abs=function(u){return this._abs[u]||(this._abs[u]=(function(){try{return new URL(u,location.href).href;}catch(e){return u;}})());};
+/* LA MUSIQUE SUIT JUSQU'À LA BOUTIQUE (2026-10-16, Sacha : « il faut que la musique puisse suivre le joueur du garage à la boutique ») —
+   depuis le 13/10 (Léo : « le sound design est terrifiant, change ou enlève ») la boutique faisait TAIRE le lobby (fondu puis pause, voir
+   musicTick) et jouait à sa place sa nappe de verre (bqSon). MESURÉ au banc : au garage le morceau joue, en boutique `paused:true`. Désormais
+   le MÊME morceau continue, au même niveau qu'au garage, sans couture ; la nappe de la boutique s'efface tant que la musique est allumée (deux
+   fonds l'un sur l'autre) et revient si le joueur a coupé la musique. Le néon et le feu de l'atelier restent en sourdine. Le silence de Léo
+   reste au choix : `?boutique=muette`. */
+const BQ_MUSIQUE=!/[?&]boutique=muette\b/.test(location.search);
 function musicMenuUrl(){ // le morceau du menu : le MÊME au ciel de LA CHUTE et au garage (15/10)
   if(!MENU_MUS.on)return MUSIC.menu;
   return MENU_MUS.tire.ciel;}
@@ -41444,7 +41500,7 @@ function musicTick(dt,mvt){
   else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
     if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
-  {const bq9=musicMode==='menu'&&typeof GBQ!=='undefined'&&!!GBQ.veut; /* (2026-10-13, Léo, dans la boutique : « le sound design est terrifiant, change ou enlève ») LA BOUTIQUE SE TAIT : la musique du
+  {const bq9=!BQ_MUSIQUE&&musicMode==='menu'&&typeof GBQ!=='undefined'&&!!GBQ.veut; /* (2026-10-16, Sacha) la musique SUIT en boutique : ce silence ne vaut plus qu'avec ?boutique=muette (voir BQ_MUSIQUE) */ /* (2026-10-13, Léo, dans la boutique : « le sound design est terrifiant, change ou enlève ») LA BOUTIQUE SE TAIT : la musique du
      lobby s'efface en fondu dès qu'on touche BOUTIQUE et revient au retour (seuls les petits clics restent) ; sur iPhone (volume en lecture seule) elle se met en pause */
    /* (2026-10-14) LE CIEL (LA CHUTE, l'écran titre) : d'abord muet (« la musique se lance quand j'appuie sur le mode garage »), puis, le
       même soir (Léo : « le vent est fort ; joue la musique de fond derrière le vent, mais moins fort que dans le garage ») : la musique
@@ -54438,6 +54494,7 @@ function bqAtelierSourdine(on){
 const BQSON_ACC=[[52,59,66,68,73],[49,56,64,66,71]]; // E 6/9 (mi · si · fa# · sol# · do#) ↔ C#m7(11) (do# · sol# · mi · fa# · si) : chaque voix glisse d'un pas
 function bqSon(dt,on){
   bqAtelierSourdine(!!on);
+  if(on&&BQ_MUSIQUE&&SND.music)on=false; /* (2026-10-16, Sacha) la musique du garage a suivi : la nappe se tait (voir BQ_MUSIQUE) — l'atelier, lui, reste en sourdine */
   if(!on){if(BQSON.n&&!BQSON.off)bqSonCoupe(.6);return;}
   if(!AC||AC.state!=='running'||!SND.sfx)return;
   let n=BQSON.n;const now=AC.currentTime,ton=(sonTonSuit._t|0);
@@ -54544,6 +54601,36 @@ const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['pei
 function bqFigSec(c){const F=FIG_FAM[c];return '<div class="bqSec" data-fam="'+c+'">'+pxi(F[2])+'<b>'+sansAcc(TR(F[0]))+'</b><em>'+sansAcc(TR(F[1]))+'</em></div>';}
 function bqFigRail(){const R=[];if(!window.FIG)return R;for(let c=0;c<FIG_NB;c++)FIG.liste.forEach(function(f){if(figPeut(f.id).indexOf(c)>=0)R.push({k:'figure:'+f.id,c:c});});return R;}
 function bqFigDir(id){const P=figPeut(id);return GBQ.figDir!=null&&P.indexOf(GBQ.figDir)>=0?GBQ.figDir:P[0];} // la direction de la carte touchée (sinon la 1re de la figure)
+/* LES TROIS FIGURES ÉQUIPÉES, EN HAUT DU RAYON FIGURES (2026-10-16, Sacha : « dans la boutique, quand on arrive dans les figures, le truc des
+   hexagones que tu avais mis dans l'inventaire, faut que tu le remettes, version adaptée, dans la boutique » · « tout en haut, tu remets les
+   hexagones comme tu avais mis, mais en blanc ») — le sélecteur de l'inventaire (#gFigSel, voir gFigSelMaj : l'éclair du NITRO et « ×2 », puis
+   les trois cases hexagonales ↑ avant · ↓ arrière · ◄► côté, la figure équipée qui tourne dedans, son nom dessous) redessiné pour la salle
+   blanche : #bqFigSel, en haut du panneau, AU-DESSUS de la grille — il ne défile pas avec elle, on voit ce qu'on porte en feuilletant (son
+   dessin : <style id="bqFigHex">). Toucher une case = toucher la carte de SA figure dans SA direction (essayée sur le plateau, le bouton dit
+   ÉQUIPÉE) et l'amener en vue ; une case VIDE amène l'intertitre de sa direction. ÉQUIPER une figure (bqAction) fait flasher la case qui la
+   reçoit ; la case de la figure qu'on regarde prend l'anneau d'encre, comme la carte choisie. */
+const BQFS={k:'',S:null};
+function bqFigSelEl(pan){let el=document.getElementById('bqFigSel');if(el)return el;
+  el=document.createElement('div');el.id='bqFigSel';el.setAttribute('role','group');
+  el.innerHTML='<div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'
+    +FIG_FAM.map(function(F,k){return '<button type="button" class="fsHex" data-k="'+k+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(F[2])+'</i><b class="fsNom"></b></button>';}).join('');
+  pan.insertBefore(el,pan.firstChild);
+  el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fsHex');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;
+    const k=+b.getAttribute('data-k'),id=figSlots()[k],rail=pan.querySelector('.bqRail');uiPop(b);if(!rail)return;
+    const sec=rail.querySelector('.bqSec[data-fam="'+k+'"]'),ci=id?rail.querySelector('.bqK[data-k="figure:'+id+'"][data-dir="'+k+'"]'):sec;
+    if(ci){const r0=rail.getBoundingClientRect().top,rc=ci.getBoundingClientRect(),rs=sec&&sec.getBoundingClientRect(); // l'intertitre de la direction reste en vue si la carte tient dessous
+      const y=Math.max(0,rail.scrollTop+(rs&&rc.bottom-rs.top<=rail.clientHeight?rs.top-r0-2:rc.top-r0-6));try{rail.scrollTo({top:y,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e2){rail.scrollTop=y;}}
+    if(id&&ci)ci.click();else{uiClic('onglet');hap(6);}}); // la carte touchée fait le reste : l'essai, le son, le cadre .sel
+  return el;}
+function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan);
+  const S=figSlots(),cur=bqCourant(),k=S.join(',')+'|'+cur+'|'+GBQ.figDir+'|'+LANG;if(BQFS.k===k)return;BQFS.k=k;
+  const P=BQFS.S;BQFS.S=S.slice();el.setAttribute('aria-label',sansAcc(TR('FIGURES ÉQUIPÉES')));
+  el.querySelectorAll('.fsHex').forEach(function(b){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],c=f?rarInfo(cosmRar('figure',f)).c:'#d3d8de',nm=f?sansAcc(TR(f.n)):sansAcc(TR('VIDE'));
+    const vu=!!f&&cur==='figure:'+id&&(GBQ.figDir==null?bqFigDir(id)===s:GBQ.figDir===s),ik=(id||'')+c;
+    b.style.setProperty('--fc',c);b.classList.toggle('vide',!f);b.classList.toggle('on',vu);b.setAttribute('aria-pressed',vu);
+    if(b._ik!==ik){b._ik=ik;b.querySelector('.fsIn').innerHTML=f?illuFig(id,c,s===0):'<b class="fsQ">?</b>';} // réécrit seulement si la figure change : sa rotation ne repart pas à chaque carte touchée
+    b.querySelector('.fsNom').textContent=nm;b.setAttribute('aria-label',sansAcc(TR(FIG_FAM[s][0]))+' : '+nm);
+    if(P&&P[s]!==S[s]&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}});}
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
 function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
@@ -54602,7 +54689,9 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);}}});
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);}
+    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
+    pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
+  if(cat==='figure')try{bqFigSelMaj(pan,true);}catch(e){console.warn('bqFigSel',e);}
   /* (clarté 14/10) des cartes restaient blanches : la file du studio photo s'arrête hors garage / sous `quiet` et ne repart qu'à la photo suivante — on la relance, et on re-demande ce qui manque */
   if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}
   else if(!PHQ.q.length&&rail.querySelector('[data-ph]:empty,[data-pha]:not(.ok)'))bqPhotos(rail);
