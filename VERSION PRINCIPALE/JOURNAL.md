@@ -43,6 +43,8 @@ avec son serveur `python3 atelier-son/serveur-moteur.py 9141` (depuis VERSION PR
   `atelier-son/` (paliers_figes.py, salle-repetition.js, vrais_instruments.py, lobby_chris.py, lobby_main.py, boucle_aac.py, ciel.py…),
   cahiers `atelier-son/CAHIER-MUSIQUE.md`, `MUSIQUE-PASSATION.md`, `CONSIGNE-MUSIQUE-PALIERS.md`, `CULTURE-MUSICALE.md`. Copiés de CAR CAHS V3
   le 14/10 (non relancés ici ; python : venv numpy/scipy). Jamais en ligne (vercel-build.sh).
+- (15/10, fusion du main v448) Sacha a retiré du jeu les fichiers « jamais joués » (990b4ce5) : NOCTURNAL GROOVE et VILLE 6-10 n'existent plus
+  → `RETIRES_DU_MAIN` (bibliotheque.html) les cache (62 sons visibles, tous lisibles). Pour les rendre à Léo : remettre les fichiers ET ôter les ids.
 - Banc muet (scratchpad du pôle SON) : vrais clics, mesure au bus de la page (PALIERS −27 dB, COUCHES −24, PHRASES −25, TRENTE −31 ;
   GLISSE v2 sort directement sur la destination à −10 dB : il ignore le curseur Volume, comme sur la branche).
 

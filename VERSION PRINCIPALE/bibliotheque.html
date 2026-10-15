@@ -267,7 +267,10 @@ const fmtDur = d => d ? (d >= 60 ? Math.floor(d / 60) + ' min ' + String(Math.ro
 
 // ================================================================ LE CATALOGUE : toute la bibliothèque, chaque son une seule fois
 const CAT = [], VU = new Set();
-const ajoute = s => { const k = s.cle1 || sansV(s.f) || s.id; if (VU.has(k) || VU.has(s.id)) return; VU.add(k); VU.add(s.id); CAT.push(s); };
+/* (2026-10-15) RETIRÉS DU MAIN : Sacha a supprimé du jeu les fichiers « jamais joués » (commit 990b4ce5) — ces six-là n'existent plus en
+   ligne ; la bibliothèque ne les montre plus (une ligne qui ne joue pas). Ils restent dans l'historique git et sur la branche musique-2026-10. */
+const RETIRES_DU_MAIN = new Set(['a-nocturnal', 'ville-n6', 'ville-n7', 'ville-n8', 'ville-n9', 'ville-n10']);
+const ajoute = s => { if (RETIRES_DU_MAIN.has(s.id)) return; const k = s.cle1 || sansV(s.f) || s.id; if (VU.has(k) || VU.has(s.id)) return; VU.add(k); VU.add(s.id); CAT.push(s); };
 // — SUIVENT LE MOTEUR —
 // LE SYSTÈME GÉNÉRATIF À 30 PALIERS (13/10) : en tête — un instrument, un effet ou une matière de plus à chaque moteur
 ajoute({ id: 'dir-trente', sec: 'moteur', type: 'js', titre: 'TRENTE MOTEURS', style: 'Générée en direct · NÉON, VELOURS ou LUXE · accords menés, phrases question / réponse · suit l’intensité du jeu',
