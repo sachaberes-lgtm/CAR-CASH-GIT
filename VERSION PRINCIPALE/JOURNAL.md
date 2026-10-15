@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## BOUTIQUE : LE LANCER QUI PART D'UNE ÉTIQUETTE (2026-10-15 au soir, pôle CAISSES — bug trouvé au banc ; MANAGER : « en boutique, le doigt posé sur la caisse doit toujours donner le lancer de la boutique, quelle que soit l'étiquette dessous ; les vrais boutons gardent leur clic »)
+- LA CAUSE : la page de vente (`#gBq`) est posée sur la scène ; la bande « CETTE SEMAINE » (`.bqUv`, pointer-events:auto) prend le doigt
+  jusque dans son blanc (entre ses cartes, sur ses bords). Le doigt de la boutique n'écoutait que le canevas : un lancer parti de là
+  passait au DOIGT DU GARAGE, qui tournait la caisse à sa façon (sans élan planifié, sans pose). Pareil pour un glissé parti d'une carte ou
+  du panneau des voitures.
+- LA CORRECTION : `bqScene(t)` — la scène de la boutique, c'est le canevas ET ce que la page de vente pose dessus sans être un bouton (le
+  blanc de la bande, les titres, les étiquettes). Les vrais boutons (`button`, liens, `[role=button|tab]`, cartes `.bqU`/`.bqK`) gardent
+  leur clic ; le panneau des voitures (`#gBqPan`) garde son doigt (il défile). Et en boutique, le doigt du garage ignore `#gBq`.
+- MESURÉ (banc muet, vrais touchers ; couché, debout, cadre) : lancer parti du blanc de la bande — AVANT pas d'élan, le garage la tourne
+  de 0,14 tour ; APRÈS l'élan de la boutique (0,54 à 1,22 tour selon la force). Glisser parti d'une carte : AVANT 0,13 tour (garage),
+  APRÈS rien. Glisser dans le panneau : AVANT −0,18 tour, APRÈS rien. Toucher une carte, les onglets, RETOUR : inchangés. Le garage hors
+  boutique : inchangé. Partie lancée (couché, debout, cadre).
+
 ## BOUTIQUE : LE LANCER, UN TOUT PETIT PEU MOINS DE FRICTION (2026-10-15 au soir, pôle CAISSES — Léo : « quand la personne fait tourner la voiture et lâche son doigt, en fonction de la force, la voiture va tourner un peu ; mais il doit y avoir un peu de friction, un tout petit peu moins que là » → choisi : « un peu moins de friction »)
 - `BQ_GLISSE` (0,65 → 0,8) dans `bqLance` : la distance planifiée D = 2 tours × tanh(BQ_GLISSE v / 2 tours) ; la durée de base 1,3 → 1,45 s.
   Même courbe (elle part à la vitesse du doigt, s'arrête en douceur), même plafond (2 tours), même attrape. Le garage ne change pas.
