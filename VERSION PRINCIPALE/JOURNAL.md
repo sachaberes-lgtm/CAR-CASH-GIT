@@ -3,6 +3,46 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TROIS NOUVEAUX — ZEPPELIN D'OR, CARNAVAL D'OR, LE CASSE (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y »)
+- CE QUE SES 👍 ONT EN COMMUN (les 21 du générateur, `musique-moteur.json` › gen) : 17 en mineur, 10 en néon / lo-fi, piano ou harpe + 808 dans les
+  deux tiers, 110-123 BPM, la signature « moteur » six fois. Les trois nouveaux en sortent : chacun son univers, son groove, sa production.
+- `assets/audio/music/direct/musique-trente-trio.js` (VERSION 'trio') = le générateur v6-0 FIGÉ + trois morceaux ÉCRITS (`TRIO`) — `musique-trente.js`
+  (celui que le pôle SON fait évoluer) n'est pas touché. `C.fige` : l'ordre des 30 moteurs écrit à la main ; `C.sig`/`C.sig2` ; un seul timbre par
+  rôle (univers acoustique, une famille par morceau) ; le numéro ne choisit plus que la tonalité, le tempo exact, les grilles et les phrases.
+  `start(n, W, { style: 'zeppelin' | 'carnaval' | 'casse' })` ; sans O, la DA 'trio' en tire un.
+  · ZEPPELIN D'OR (n° 1999, la mineur, 122 → 127) — l'électro swing : clarinette, trompette bouchée, contrebasse oom-pah puis qui MARCHE, piano en
+    pompe puis en stride, cuivres hachés, voix hachées, cordes ; les grilles manouches (Am6 · Dm6 · E7 · Am6), les croches balancées (`swing8`).
+    LE GRAMOPHONE (`gramo`) : un coupe-bas sur toute la musique (260 Hz) + la clarté fermée (2,6 kHz) + le craquement : la house tombe DEDANS au
+    9e moteur, le pavillon s'ouvre au 12e (ou à la nitro). Signature : LE CHAMPAGNE (le bouchon toutes les 8 mesures, les bulles, les coupes
+    qui trinquent) ; puis les klaxons des années 20.
+  · CARNAVAL D'OR (n° 1555, sol dorien, 104 → 110) — la batucada électronique : l'école entre rang par rang — l'AGOGÔ dès le 1er moteur (accordé
+    sur la tonique et la quinte de la tonalité), le ganzá, LES SURDOS (3e), les tamborins (teleco-teco), le cavaquinho (partido alto), la basse
+    de samba qui anticipe, la caixa, les trompettes, les repiniques (vrais tambours ténor), la fanfare, la CUÍCA qui rit (14e), les trompettes en
+    tierces, le trombone, LA FOULE qui chante le thème (20e) ; l'appel du repinique avant les arrivées (transition `appel`).
+  · LE CASSE (n° 1925, mi mineur, 87 → 89) — le trip-hop de braquage : le vieux disque, le clavecin en ostinato (Teardrop), le Rhodes sur bande,
+    la contrebasse, LA LIGNE ESPION (Em · EmM7 · Em7 · Em6 : une voix qui descend d'un demi-ton par mesure), le breakbeat (vraie grosse caisse,
+    vieille caisse claire, vrais charleys), le thérémine, les cordes de cinéma, la trompette bouchée, les échos, le scratch en fin de phrase ;
+    LE COFFRE-FORT (la molette, puis le verrou qui cède sur la fondamentale) ; au 19e LA POURSUITE : la batterie en double tempo (drum & bass,
+    `kickD`/`snareD`), la sirène au loin.
+- Ajouté au moteur (dans ce fichier seulement) : accords `m6` et `mM7`, signatures `champagne`, `agogo`, `cuica`, `coffre`, sons `surdo`
+  (grosse caisse), `caixa`, `ganza`, tamborim (`percT`), `scratch`, `clic`, `bouchon`, voix `agogo`, `cuica`, `bulle`, `verrou`, transitions
+  `appel` et `scratch`, `C.dB` (le mix écrit), `C.gainDb` (le niveau du morceau), `C.noms` (chaque étape nommée dans le lecteur), `C.kitV`.
+- LE GRAVE AGRÉABLE (la règle du 15/10) : basses qui claquent puis s'éteignent (contrebasse, basse aux doigts), grosses caisses courtes (jamais
+  de « boum »), aucune sous-basse. Sous-grave (< 60 Hz) : 1,4 à 3,9 % (ses 👍 mesurés : 1,8 à 38,7 %, moyenne 14,9).
+- BIBLIOTHÈQUE : un onglet « Nouveaux » (`#nouveaux`, section `secNeuf`, `sec: 'neuf'`) juste après Pouce bleu ; les trois s'y jouent comme
+  Pouce bleu (type `genv`, `v: 'trio'`, `o9` = le morceau), le moteur À LA MAIN (− / +, flèches) ; pouce, note, corbeille comme les autres sons.
+- MESURÉ (salle de répétition, banc Chrome muet : moteurs 1 → 30 en 40 s, contre 9 de ses 👍 rejoués par leur version) :
+  · ses 👍 : montée +9 à +22 dB (moyenne +16,9), centre 160-696 Hz, boue 1,3-14,4 %, présence ≤ 2,7 % ;
+  · ZEPPELIN : montée +23,6 dB, centre 646 Hz, boue 8,5 %, présence 3,8 % — 1er jet à 868 Hz / 6,8 % (vraies mains, vrais charleys, trompette
+    bouchée) → mix écrit (`dB`) et +6 dB (`gainDb`) ; le gramophone à 420 Hz rendait le 1er moteur trop bas (−44,8 dB, ses 👍 −17 à −33) → 260 Hz ;
+  · CARNAVAL : montée +19,7 dB, centre 445 Hz, boue 8,4 %, présence 2,5 % ;
+  · LE CASSE : montée +17,2 dB, centre 541 Hz, boue 4,4 % — le thérémine vivait dans la boue (11,9 %) → monté d'une quarte (`reg` 68) ;
+  · fausses notes (VERIF) : 0 sur 191, 362 et 155 — le 1er jet de l'agogô et de la cuíca prenait mi4 / ré4 pour do (152 notes hors gamme) ;
+  · voix simultanées : pic 44-54 (plafond 64), aucune sautée, 0 erreur.
+- BANCS (vrais clics) : Chrome muet — l'onglet Nouveaux, chaque son, + jusqu'au 30e : le son sort en 0,3-0,6 s, le lecteur nomme chaque étape,
+  0 erreur ; WebKit (le moteur de Safari, faux iPhone, son exigeant un vrai toucher) : les trois jouent dès le 1er toucher (0,4 s), 0 erreur.
+- À JUGER PAR LÉO À L'OREILLE (rien n'est dans le jeu) : s'il en aime un, le pouce ; ses notes ✎ diront quoi retoucher.
+
 ## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
 - ⚠ ANNULÉ le même jour (v458) — Léo : « reviens avant, j'avais pas vu que tu l'avais déjà faite unique » : la v456 avait déjà une roue arrière gauche UNIQUE (au kit, rouillée et voilée). index.html = celui de la v456 (167de9de) ; ce qui suit n'est plus en jeu.
 - La roue arrière gauche (`wi===2` dans la branche `rouesEpave` de buildCar) redevient celle de la v455, code recopié tel quel : pneu
