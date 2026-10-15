@@ -3,6 +3,96 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « on veut retoucher le nitro ainsi que la flamme du moteur quand la voiture avance ; c'est un peu fade, on n'arrive pas trop à distinguer le nitro du moteur » · « pas trop régulier, comme un moteur d'une voiture qui avance : la personne ne doit pas voir une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique, en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, mais sa grandeur, en moins gros »)
+- ⚠ LOOK, pas encore validé : branche `visuel-flammes`, planches `photos-gameplay/flammes-moteur-nitro-avant-apres.png` et
+  `flammes-moteur-qui-vit.png`. `?flamme=ancien` rend la plume d'avant, au caractère près (A/B sur téléphone).
+- MESURÉ AVANT : moteur et nitro étaient la MÊME plume (JETS : 0,35 m au filage → 3,15 m au nitro, plus blanche), battue par des
+  sinus fixes (`fl9`, `f9`) qui ne savaient rien de la voiture.
+- LE MOTEUR (`FLM`, `flmPas`) : la plume lisse suit un MOTEUR SIMULÉ, celui que l'oreille entend — la table `ENG_SND` du palier
+  (rapports `gr`, cadence `fHz`, irrégularité `fJit`, crépitements `crk`) et les seuils de la boîte du son (recopiés, LUS seulement :
+  le son n'est pas touché ; le calcul ne dépend pas de l'audio, il tourne son coupé). Bouffées à la cadence du régime, intervalle et
+  force tirés à chaque bouffée (± fJit), ratés rares ; une houle lente et un tremblé par pot (Ornstein-Uhlenbeck : jamais périodiques) ;
+  la CHARGE lue dans l'accélération réelle ; au PASSAGE DE RAPPORT l'allumage coupé ~0,12 s (flamme ×0,3) puis le carburant qui SAUTE
+  (pop gras, plus fort aux derniers rapports) ; au PIED LEVÉ (drift, touche S) la flamme tombe et l'échappement pétarade au hasard ;
+  EN VOL le RUPTEUR (~11 coupures/s, chaque demi-période et chaque force tirées, des coups qui traînent) ; à la POSE un coup de feu ;
+  la couleur suit la chaleur (rouge-orangé stabilisé → orange en charge → jaune-blanc dans un pop).
+  Mesuré (série image par image, banc debout) : départ 0,29 ↔ 1,68 (coupures et pops visibles), croisière 0,59-0,93, pied levé 0,13
+  avec pops, vol en rafales de 2 à 11 images. « Alternance » image à image en croisière : 0,74 avec des bouffées seules (elles battaient
+  une image sur deux à ~37 bouffées/s vues à 60 i/s) → 0,69 avec l'intervalle tiré + le tremblé (0,67 = du pur hasard).
+- LE NITRO (`NFEU`, `nfeuPas`, `nfeuNait`, `nfeuEtincelle`, `nfeuCoup` à l'allumage, `nfeuFin` à l'extinction, `nfeuCoupe` au
+  replacement et à l'explosion) : un FEU DE PIXELS — des cubes instanciés avec EXACTEMENT les matières des cubes de l'arc-en-ciel (donc
+  de la porte) : 0 programme en plus (182 → 182 en course, debout, couché, cadre de l'ordi, 1 pot / 2 / 4). Nés dans la bouche du pot,
+  ils vieillissent blanc → jaune → orange → vermillon → rouge → braise → FUMÉE grise (le burn-out) ; le cœur du jet reste chaud, les
+  bords refroidissent plus tôt ; un cube sur huit est une POCHE CHAUDE ; ils sautent de case en case (grille de 6 cm dans le repère de
+  la flamme) ; des LANGUES tournent autour de l'axe, des COUPS de feu tombent au hasard (~1/s), des étincelles giclent dans le monde.
+  Réserve bleue = feu bleu, nitro infinie = feu violet (palettes `NFEU_PAL`). La plume lisse n'est plus que la TORCHE blanche dans
+  la bouche du pot (×0,38). Les boules rondes de l'échappement (`flames`) tombent à une par pot au nitro.
+  ⚠ LA CAMÉRA COMMANDE LA FORME (mesuré, `dbgFlamme('proj')`) : debout, la poursuite regarde la poupe presque d'au-dessus, à 3,6-4 m
+  des pots (les pots à −0,6 de la hauteur d'écran). Un feu qui MONTE fonce dans l'objectif (un mur rouge au bas de l'écran), un feu
+  qui s'ÉLARGIT barre tout le bas : il file donc à plat, pas plus large que la caisse (1,3-2 m), et ses cubes gardent leur taille À
+  L'ÉCRAN (la règle des gros pixels de la fumée du burn-out) ; en vol la caméra recule (~21 m) et le feu grossit (`N.kd`). L'orange
+  de la porte (1,75 · ,78 · ,14) sortait JAUNE après l'ACES : la palette tient le vert bas. ~200-350 cubes, 0,02-0,06 ms par image.
+- Crochets : `dbgFlamme()` (régime, rapport, charge, lâcher, chaleur, pops, longueurs, feu), `dbgFlamme('nfeu',0|1)`,
+  `dbgFlamme('proj')` (où tombent les cubes). Bancs : `~/Downloads/CAR-bancs` (fl*.py : rafales, pellicules centrées sur les pots,
+  séries image par image enregistrées dans la page).
+- À trancher par Léo : la taille du feu debout (il occupe le bas de l'écran sous les pots), la fumée grise, garder ou non le sillage
+  lisse de Sacha à côté du feu de pixels (il est gardé), la signature de couleur des caisses au nitro (le feu est classique pour toutes).
+## LES TROIS NOUVEAUX — ZEPPELIN D'OR, CARNAVAL D'OR, LE CASSE (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y »)
+- CE QUE SES 👍 ONT EN COMMUN (les 21 du générateur, `musique-moteur.json` › gen) : 17 en mineur, 10 en néon / lo-fi, piano ou harpe + 808 dans les
+  deux tiers, 110-123 BPM, la signature « moteur » six fois. Les trois nouveaux en sortent : chacun son univers, son groove, sa production.
+- `assets/audio/music/direct/musique-trente-trio.js` (VERSION 'trio') = le générateur v6-0 FIGÉ + trois morceaux ÉCRITS (`TRIO`) — `musique-trente.js`
+  (celui que le pôle SON fait évoluer) n'est pas touché. `C.fige` : l'ordre des 30 moteurs écrit à la main ; `C.sig`/`C.sig2` ; un seul timbre par
+  rôle (univers acoustique, une famille par morceau) ; le numéro ne choisit plus que la tonalité, le tempo exact, les grilles et les phrases.
+  `start(n, W, { style: 'zeppelin' | 'carnaval' | 'casse' })` ; sans O, la DA 'trio' en tire un.
+  · ZEPPELIN D'OR (n° 1999, la mineur, 122 → 127) — l'électro swing : clarinette, trompette bouchée, contrebasse oom-pah puis qui MARCHE, piano en
+    pompe puis en stride, cuivres hachés, voix hachées, cordes ; les grilles manouches (Am6 · Dm6 · E7 · Am6), les croches balancées (`swing8`).
+    LE GRAMOPHONE (`gramo`) : un coupe-bas sur toute la musique (260 Hz) + la clarté fermée (2,6 kHz) + le craquement : la house tombe DEDANS au
+    9e moteur, le pavillon s'ouvre au 12e (ou à la nitro). Signature : LE CHAMPAGNE (le bouchon toutes les 8 mesures, les bulles, les coupes
+    qui trinquent) ; puis les klaxons des années 20.
+  · CARNAVAL D'OR (n° 1555, sol dorien, 104 → 110) — la batucada électronique : l'école entre rang par rang — l'AGOGÔ dès le 1er moteur (accordé
+    sur la tonique et la quinte de la tonalité), le ganzá, LES SURDOS (3e), les tamborins (teleco-teco), le cavaquinho (partido alto), la basse
+    de samba qui anticipe, la caixa, les trompettes, les repiniques (vrais tambours ténor), la fanfare, la CUÍCA qui rit (14e), les trompettes en
+    tierces, le trombone, LA FOULE qui chante le thème (20e) ; l'appel du repinique avant les arrivées (transition `appel`).
+  · LE CASSE (n° 1925, mi mineur, 87 → 89) — le trip-hop de braquage : le vieux disque, le clavecin en ostinato (Teardrop), le Rhodes sur bande,
+    la contrebasse, LA LIGNE ESPION (Em · EmM7 · Em7 · Em6 : une voix qui descend d'un demi-ton par mesure), le breakbeat (vraie grosse caisse,
+    vieille caisse claire, vrais charleys), le thérémine, les cordes de cinéma, la trompette bouchée, les échos, le scratch en fin de phrase ;
+    LE COFFRE-FORT (la molette, puis le verrou qui cède sur la fondamentale) ; au 19e LA POURSUITE : la batterie en double tempo (drum & bass,
+    `kickD`/`snareD`), la sirène au loin.
+- Ajouté au moteur (dans ce fichier seulement) : accords `m6` et `mM7`, signatures `champagne`, `agogo`, `cuica`, `coffre`, sons `surdo`
+  (grosse caisse), `caixa`, `ganza`, tamborim (`percT`), `scratch`, `clic`, `bouchon`, voix `agogo`, `cuica`, `bulle`, `verrou`, transitions
+  `appel` et `scratch`, `C.dB` (le mix écrit), `C.gainDb` (le niveau du morceau), `C.noms` (chaque étape nommée dans le lecteur), `C.kitV`.
+- LE GRAVE AGRÉABLE (la règle du 15/10) : basses qui claquent puis s'éteignent (contrebasse, basse aux doigts), grosses caisses courtes (jamais
+  de « boum »), aucune sous-basse. Sous-grave (< 60 Hz) : 1,4 à 3,9 % (ses 👍 mesurés : 1,8 à 38,7 %, moyenne 14,9).
+- BIBLIOTHÈQUE : un onglet « Nouveaux » (`#nouveaux`, section `secNeuf`, `sec: 'neuf'`) juste après Pouce bleu ; les trois s'y jouent comme
+  Pouce bleu (type `genv`, `v: 'trio'`, `o9` = le morceau), le moteur À LA MAIN (− / +, flèches) ; pouce, note, corbeille comme les autres sons.
+- MESURÉ (salle de répétition, banc Chrome muet : moteurs 1 → 30 en 40 s, contre 9 de ses 👍 rejoués par leur version) :
+  · ses 👍 : montée +9 à +22 dB (moyenne +16,9), centre 160-696 Hz, boue 1,3-14,4 %, présence ≤ 2,7 % ;
+  · ZEPPELIN : montée +23,6 dB, centre 646 Hz, boue 8,5 %, présence 3,8 % — 1er jet à 868 Hz / 6,8 % (vraies mains, vrais charleys, trompette
+    bouchée) → mix écrit (`dB`) et +6 dB (`gainDb`) ; le gramophone à 420 Hz rendait le 1er moteur trop bas (−44,8 dB, ses 👍 −17 à −33) → 260 Hz ;
+  · CARNAVAL : montée +19,7 dB, centre 445 Hz, boue 8,4 %, présence 2,5 % ;
+  · LE CASSE : montée +17,2 dB, centre 541 Hz, boue 4,4 % — le thérémine vivait dans la boue (11,9 %) → monté d'une quarte (`reg` 68) ;
+  · fausses notes (VERIF) : 0 sur 191, 362 et 155 — le 1er jet de l'agogô et de la cuíca prenait mi4 / ré4 pour do (152 notes hors gamme) ;
+  · voix simultanées : pic 44-54 (plafond 64), aucune sautée, 0 erreur.
+- BANCS (vrais clics) : Chrome muet — l'onglet Nouveaux, chaque son, + jusqu'au 30e : le son sort en 0,3-0,6 s, le lecteur nomme chaque étape,
+  0 erreur ; WebKit (le moteur de Safari, faux iPhone, son exigeant un vrai toucher) : les trois jouent dès le 1er toucher (0,4 s), 0 erreur.
+- À JUGER PAR LÉO À L'OREILLE (rien n'est dans le jeu) : s'il en aime un, le pouce ; ses notes ✎ diront quoi retoucher.
+## LE GLACIER v2 — LA PENTE, LA ROUTE NUE, LE VERGLAS ET ICE SKATE (2026-10-15, Sacha : « dans la map neige il faut vraiment que ce soit une montagne qui dévale, pas vraiment plat comme ça ; pas besoin de mettre les mêmes modules que dans les nuages ; rajoute une belle traîne dans la neige quand la voiture passe dedans ; et une animation et une figure ICE SKATE qui rapporte de l'aura quand on glisse sur la glace, la voiture doit un peu partir sur le côté »)
+- LA PENTE (`genBanq`) : départ 8 %, couloirs 19-28 % (cassure 36 %), jambes des lacets 7,5 %, chute d'un tour 66-78 m, plancher 5 %.
+  Banc Node (`raccourcis-node`, 4 graines) : dénivelé ~700 → ~1 170 m sur 9 km, 13-14 zones de raccourci, chute moyenne ~95 m, gain
+  moyen ~1,27 km. Plus raide (82-94 m par tour, jambes à 10 %) : +70 m de dénivelé seulement et un raccourci sur cinq de moins, écarté.
+- LA ROUTE NUE (`BANQ9` dans buildTrack, comme `JADE9`) : ni pad d'or, ni flaque, ni plot ; la LIGNE PARFAITE n'y pose que ses fruits.
+  Aucun tirage `rnd` déplacé (les filtres tombent après les tirages).
+- LE VERGLAS (`bkVerglasPose`, `BANQ.verg`, matière `BK_VG_FS`) : des plaques de glace noire SUR la route (80-150 m, dans les courbes,
+  toutes les 0,6-1 km, deux faces, jamais sur une cassure ; flux aléatoire à part `seed^0x1CE5`). Dessus (`banqVerglas`, boucle de
+  conduite après les flaques) : le volant mord à `BK_VG.grip` (.42), la caisse PART SUR LE CÔTÉ (`v.sd`, ≤ .30 rad/s de cap), la
+  carrosserie se met en crabe et ondule comme un patineur (`BKV.yaw`, posé après le power-slide), givre des roues arrière, rayures de patins.
+- LA FIGURE ICE SKATE (`bkSkate`) : sur le verglas OU en glissant sur un lac / un pic (elle remplace PATINOIRE) — l'aura monte
+  (6 + 24 × vitesse/vmax par seconde : ~80-100 par plaque, au banc ~450 avec 22 + 130 — trop face aux ~40 d une figure) dans `#iceHud` (« ICE SKATE +X », cyan, sous SLIDE, qui bat à chaque dizaine) ; payée à la sortie
+  dans la chaîne (famille 'iceskate', brut) après 0,4 s de glisse ; perdue à l'explosion, au replacement, quand la montagne ramène.
+- LA TRAÎNE DANS LA POUDREUSE : la tranchée v2 (plus large, fond bleu plus profond, deux ornières crantées, bourrelets qui scintillent,
+  110 s de vie au lieu de 70), une gerbe plus fournie et un VOILE de poudre lente qui reste en suspens derrière la caisse.
+- Console : `dbgBanq('verglas')`, `dbgBanq('verglas',{n,v})` (la caisse 40 m avant la plaque n, à v km/h).
+
 ## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
 - ⚠ ANNULÉ le même jour (v458) — Léo : « reviens avant, j'avais pas vu que tu l'avais déjà faite unique » : la v456 avait déjà une roue arrière gauche UNIQUE (au kit, rouillée et voilée). index.html = celui de la v456 (167de9de) ; ce qui suit n'est plus en jeu.
 - La roue arrière gauche (`wi===2` dans la branche `rouesEpave` de buildCar) redevient celle de la v455, code recopié tel quel : pneu
@@ -106,6 +196,29 @@
   sur chaque nouvel instantané (`ecartDe` / `ecartPose`). « Copier mes choix » (en ligne, quand il y a un écart) le met dans le presse-papiers :
   `CHOIX BIBLIOTHÈQUE {…}` ; collé dans la discussion → `python3 atelier-son/choix_colle.py <texte>` le rejoue sur musique-moteur.json (sans risque
   deux fois). Sur l'ordi avec le serveur (127.0.0.1:9200), rien ne change : chaque choix va tout de suite dans musique-moteur.json.
+
+## LES NOTES DE LÉO, À LA LETTRE (2026-10-15 après-midi, pôle SON ; Léo : « juste respecte les consignes »)
+- LA LEÇON : une V2 À CÔTÉ seulement quand sa note la demande (FLAMME DE TONNERRE « faire une V2 à côté », NÉNUPHARS VELOURS « tenter une V2 ») ;
+  sinon la retouche se joue SUR la musique (`direct: true` dans `assets/audio/music/direct/retouches-bleu.js` : sa ligne, son nom, sa note ;
+  `S.retouche` dans la bibliothèque, l'idée dans la ligne et la consigne au survol). Et aucune note laissée de côté.
+- RETOUCHÉES SUR ELLES-MÊMES : CAVALE ULTRA (l'arpège sci-fi AJOUTÉ au 15e, coupe-bas 380 Hz) · COBRA ULTRA (les MÊMES instruments affinés :
+  `CLAV_FIN` = le clavinet d'origine sans le passe-bande nasal, mesuré note à note contre l'original ; le talkbox velours ; nappe et accords hachés
+  adoucis par `tim`) · MIRAGE DE VITESSE (« direct dessus, surtout le début ») · LUNE DE JADE (hirajoshi + koto néon, sans son octave basse) ·
+  RUBIS ULTRA (congas et bongos, ride, cloche, espace — le steel drum GARDÉ : le vibraphone et les échos bouchaient le médium, mesuré) · SAUVER MAMAN.
+- LES TROIS v6 (rejouées justes depuis le matin) : CRISTAL D'ARGENT (une trap qui ÉVOLUE : l'intro mélodique seule, le beat qui tombe, roulements
+  et triolets de charleys, contre-chant, cloche, chœur, relances) · MIRAGE ULTRA (« complexifie » : `grillesNeuves` — do m9, la♭ maj7, mi♭ maj7,
+  si♭ 7sus au lieu d'un seul accord, menés par le `menes` du générateur et la liste `Mx.accords` refaite ; arpège en cloche FM, contre-chant au
+  violon, tierces, accords hachés) · TURBO DE NÉON (« plus mainstream, rendu original » : la grosse caisse sur chaque temps, la caisse sur 2 et 4,
+  la grille la m – fa – do – sol, la mélodie dès le 4e moteur, la pompe ; la guitare grattée et la réverbe à ressort gardées ; `motif()` fige
+  `pat` ET `patL`, sinon le générateur retire une variante).
+- PISTON DE LUXE (underground, « des voix improvisées par toi ») : la cowbell de la phonk en mélodie, `VOIX_IMPRO` en contre-chant dès le 6e
+  moteur (chaque hauteur a SA syllabe « â o ou è é eu », la note qui glisse en entrant, une sur trois qui retombe, filtrée cassette), 808 saturée,
+  vinyle. Son pack d'instruments viendra EN PLUS. GRÉSIL NOVA (« plus ressemblant à Age of Illusion, t'aider du pack ») attend le pack.
+- Les aides : `ordreNeuf` (une tête imposée, le reste dans l'ordre, 'final' au 30e) ; `insere` garde désormais le 'final' au 30e (RUBIS le perdait).
+- MESURÉ (banc muet, 12 retouches contre leur original, moteurs 1 / 15 / 30) : 30 éléments chacune, 0 doublon, 0 erreur ; niveaux à ±2 dB ;
+  la boue (200-500 Hz) comparable à l'original aux bruits de mesure près (fenêtres de 2 à 4 s) — les excès nets (arpège de CAVALE, clavinet
+  de COBRA, koto de LUNE DE JADE, vibraphone et échos de RUBIS) corrigés ; MIRAGE ULTRA et MIRAGE DE VITESSE restent 3 à 6 points plus chargés au
+  30e moteur (plus d'éléments : c'est la consigne). Pouce bleu : 30 / 30 sons en vrais clics, Chrome ET WebKit.
 
 ## LES NOTES DE LÉO APPLIQUÉES — LES V2 DE POUCE BLEU, AURA EN 30 PALIERS, PENTHOUSE V2 (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version »)
 Ses 17 notes de la bibliothèque (`PREF.notes` de musique-moteur.json), appliquées sans toucher aux originaux :
