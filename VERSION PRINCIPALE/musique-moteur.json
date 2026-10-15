@@ -23722,7 +23722,7 @@
    "n": 7860,
    "titre": "VERTIGE DE TONNERRE",
    "nom": "ZEF · rave-rap sombre",
-   "avis": 1,
+   "avis": 0,
    "date": "2026-10-14T02:47",
    "style": "zef",
    "couleur": "zef",
@@ -44787,7 +44787,7 @@
    "n": 6319,
    "titre": "TURBO DE TONNERRE",
    "nom": "TRANCE × FOOTWORK · le rythme trance (supersaw, les mains en l’air), les couleurs footwork / juke de Chicago",
-   "avis": 1,
+   "avis": 0,
    "date": "2026-10-14T10:46",
    "style": "hyb:trance+footwork+a",
    "couleur": "hyb:trance+footwork+a",
@@ -46787,7 +46787,7 @@
    "n": 8301,
    "titre": "COURT-CIRCUIT DE SATIN",
    "nom": "ZEF × BALKAN · le rythme rave-rap sombre, les couleurs fanfare des Balkans",
-   "avis": 1,
+   "avis": 0,
    "date": "2026-10-14T10:47",
    "style": "hyb:zef+balkan+a",
    "couleur": "hyb:zef+balkan+a",
@@ -48869,6 +48869,20 @@
  "notes": {
   "pal-penthouse": "tenter avec des instruments different, remplacer completement",
   "pal-aura": "incroyabale juste transformer en 30 palier comme les autres",
-  "bleu-1540": "moins forte la basse ou remplace meme la como de la basse trop presence faut que ca reset agreable"
+  "bleu-1540": "ajoutes un arpege un peu cifi quii danse autour du lead qq part, ca dort trop au niv 15",
+  "bleu-2221": "appaufiner instruments un peu brut",
+  "bleu-4830": "instrument lead aigu  plus oriinal dans le timbre, faire une V2 a coté",
+  "bleu-3067": "embellir ca fait un peu cirque enfant ou alors jouer la dessus et appaufiner, direct dessus surtout le debut",
+  "bleu-9551": "renommer nenuphares velours, et tenter une V2 qui prend en compte ce changement de nom, (aucune idee personelle juste une invitation a design avec moi)",
+  "bleu-9664": "renommer \"mirage\"",
+  "bleu-3392": "plus jouer underground comme on voulait avec des voix improvisé par toi, son recherché (tes instruments sont pas mal  mais tu peux modifier ajouter replacer, refonter le son comme tu veux) je vais te donner un pack d'insturment en plus a utiliser intelligement",
+  "bleu-8154": "renommer FIRE PRIME",
+  "bleu-6167": "plus asiatique dans la melo, mais sinon ca va mais asiatique cyberpunk",
+  "bleu-8526": "plus ressemblant a age of illusion, t'aider du pack",
+  "bleu-8338": "plus d'assaisonement et de vie, originalité a retravailler, sinon pas mal la continuité de la boucle",
+  "bleu-3379": "\"SAUVER MAMAN\", retouche la cloche elle est un peu fade",
+  "bleu-5095": "stp mieux fait ta trap evolutive, dans la peau de prodmobeats",
+  "bleu-6200": "complexifie c un peu simple",
+  "bleu-5161": "plus main stream, rendu original"
  }
 }
