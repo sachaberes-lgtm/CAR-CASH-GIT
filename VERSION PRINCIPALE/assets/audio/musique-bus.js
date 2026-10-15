@@ -37,7 +37,11 @@
     'boucles/vapeur-nuages': { bas: -2 }, 'boucles/vapeur-orage': { bas: -2 }, 'boucles/vapeur-ciel': { bas: -2 }, 'boucles/niv-altitude.m4a': { sub: -2.5, bas: -2 },
     'boucles/niv-neon-noir.m4a': { sub: -1 }, 'boucles/niv-metro': { bas: -2 }, 'boucles/niv-satellite': { sub: -5, bas: -2 }, 'boucles/niv-monstre': { bas: -2 },
     'boucles/neon-drive.m4a': { sub: -3, bas: -2 }, 'boucles/pluie-neon.m4a': { sub: -2, bas: -2 }, 'dark-triad': { bas: -2 }, 'boucles/caisse-enregistreuse': { sub: -1.5, bas: -2 },
-    'boucles/garage-lofi': { sub: -3.5, bas: -2 }, 'boucles/hypervitesse': { bas: -1 }, 'french-touch': { bas: -2 }
+    'boucles/garage-lofi': { sub: -3.5, bas: -2 }, 'boucles/hypervitesse': { bas: -1 }, 'french-touch': { bas: -2 },
+    // POUCE BLEU EN COURSE (le jeu seulement : clés « jeu: » — dans la bibliothèque, Pouce bleu reste tel quel). Mesuré au banc (moteurs 10, 20, 30) :
+    // aucune musique du générateur ne passe 30 % sous 60 Hz ; celles qui pèsent entre 60 et 150 Hz, la cloche.
+    'jeu:bleu-1540': { bas: -2 }, 'jeu:bleu-9664': { bas: -2 }, 'jeu:bleu-3392': { bas: -2 }, 'jeu:bleu-8154': { bas: -2 }, 'jeu:bleu-8042': { bas: -2 },
+    'jeu:bleu-5095': { bas: -2 }, 'jeu:bleu-6167': { bas: -1 }, 'jeu:bleu-2221': { bas: -.5 }, 'jeu:pal-neon-noir': { sub: -5, bas: -2 }, 'jeu:pal-aura-30': { bas: -2 }
   };
   var MB = { PRESETS: PRESETS, FORCE: 1, CREUX: -2 };
 
