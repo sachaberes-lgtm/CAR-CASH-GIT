@@ -16396,7 +16396,7 @@ function cyBruits(){ if(CY.nz)return;
         v+=am*(A+(B9-A)*su+(C9-A)*sw+(A-B9-C9+D9)*su*sw);tt+=am;am*=.5;}
       nz[(y*N+x)*4+c]=Math.max(0,Math.min(255,Math.round(((v/tt-.5)*1.7+.5)*255)));}}
   const mk=(d,lin)=>{const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-    t.magFilter=t.minFilter=lin?THREE.LinearFilter:THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;};
+    t.magFilter=t.minFilter=lin?THREE.LinearFilter:THREE.NearestFilter;t.generateMipmaps=false;if(lin&&CY_LISSE){t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;}t.needsUpdate=true;return t;};
   CY.rnd=rd;CY.nz=nz;CY.tRnd=mk(rd,false);CY.tNz=mk(nz,true);
   CY.tStr=cyStrates();}
 function cyNz(u,v,c){ // le bruit `CY.nz` lu comme la puce (bilinéaire, répété) — u, v en tuiles (1 = 256 texels)
@@ -16417,7 +16417,7 @@ function cyStrates(){
     for(let k=0;k<t&&y<N;k++,y++){const v=1+(mas?.04*Math.sin(k/sub*3.1+r()*.6):.03*(r()-.5)),o=y*4;
       d[o]=Math.min(255,Math.round(L9[0]*v));d[o+1]=Math.min(255,Math.round(L9[1]*v));d[o+2]=Math.min(255,Math.round(L9[2]*v));d[o+3]=mas?255:0;}
     mas=mas?false:(r()<.55);} // après une falaise : un ou deux lits minces
-  const t=new THREE.DataTexture(d,1,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;
+  const t=new THREE.DataTexture(d,1,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;if(CY_LISSE){t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;}t.needsUpdate=true;
   return t;}
 /* ---- LE MONDE : appelé en fin de buildTrack (no-op hors du canyon) ---- */
 function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.grp.visible=false;}
@@ -16648,6 +16648,12 @@ function cyButtesH(x,z,o){const CS=760,c0x=Math.floor(x/CS),c0z=Math.floor(z/CS)
     const bb=d<.9?1:(d<1.05?1-.72*(d-.9)/.15:.28*Math.pow(Math.max(0,1-(d-1.05)/.85),2)),hh=bb*b.ht;
     if(hh>hb){hb=hh;o.rk=Math.max(o.rk,d<.86?.2:(d<1.12?1:.45));}}
   return hb;}
+/* (2026-10-15, Sacha : « retravaille les textures du canyon, des trucs plus lisses avec des couleurs plus saturées ») LA ROCHE LISSE :
+   le grain fin (5 m), le bruit de 31 m et le litage sombre tous les 2,4 m faisaient du SABLE à l'écran — ils sont ramenés à un souffle, la
+   variation passe au bruit large (170 m) ; les bruits et les strates ont leurs MIPMAPS (plus de scintillement au loin) ; la pierre et le
+   sable sont SATURÉS (×1,32 autour de la luminance), le maquis plus vert. Les hauteurs ne bougent pas (le sommet lit toujours le niveau 0).
+   `?sans=cylisse` = la roche d'avant. */
+const CY_LISSE=!/[?&]sans=([^&]*,)?cylisse(,|&|$)/.test(location.search);
 /* ---- LE TERRAIN À LA PUCE : la grille (G × G cases), ses instances (x0, z0, taille, niveau), sa matière ---- */
 const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;uniform vec4 uFD,uZD,uSD;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0;',
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_vertex>',
@@ -16673,7 +16679,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
   'void main(){float S=aN.z;vec2 gp=position.xz,p0=aN.xy+gp*(S/uG);',
   '  float mE=uR0*exp2(aN.w),mS=mE*.72,k=clamp((length(p0-uCam.xz)-mS)/(mE-mS),0.,1.);',
   '  vec2 x=aN.xy+(gp-fract(gp*.5)*2.*k)*(S/uG);',
-  '  vec4 A=cyHt(x);float fl=gF,pl=gP,vg=gV,fo=gO,e=S/uG*(1.+k);',
+  '  vec4 A=cyHt(x);float fl=gF,pl=gP,vg=gV,fo=gO,e=S/uG*(1.+k)*'+(CY_LISSE?'2.2':'1.')+';',
   '  float hx=cyHt(x+vec2(e,0.)).x,hz=cyHt(x+vec2(0.,e)).x;vN=normalize(vec3(A.x-hx,e,A.x-hz));vW=vec3(x.x,A.x,x.y);',
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-4.,hs+10.,A.x);}',
   '  vA=vec4(A.z,A.w,A.y,lit);vB=vec4(vg,fo,clamp((pl-A.x)/max(pl-fl,40.),0.,1.),fl);',
@@ -16684,17 +16690,17 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
   '  float uw=dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4)),wl=smoothstep(.10,.30,stp);vec4 n0=texture2D(uNZ,vW.xz/2600.),n1=mix(texture2D(uNZ,vW.xz/170.),texture2D(uNZ,vec2(uw,vW.y)/170.),wl),n2=mix(texture2D(uNZ,vW.xz/31.),texture2D(uNZ,vec2(uw,vW.y)/31.),wl),nv=texture2D(uNZ,vec2(uw/140.,vW.y/70.));', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées */
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
-  '  float sy=(vW.y+34.*(n0.r-.5)+4.*(n1.g-.5))/2.3;vec4 st=texture2D(uSTR,vec2(.5,sy/1024.));vec3 rc=st.rgb*st.rgb*(.92+.16*n2.b);rc=mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,.84);',
-  '  float lb=fract(vW.y*.42+n1.b*.6);rc*=1.-(.08+.12*st.a)*smoothstep(.80,1.,lb)*rk;', // le litage des grès, horizontal
+  '  float sy=(vW.y+34.*(n0.r-.5)+4.*(n1.g-.5))/2.3;vec4 st=texture2D(uSTR,vec2(.5,sy/1024.));'+(CY_LISSE?'vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32),0.);':'vec3 rc=st.rgb*st.rgb*(.92+.16*n2.b);rc=mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,.84);'),
+  '  float lb=fract(vW.y*.42+n1.b*.6);rc*=1.-'+(CY_LISSE?'(.025+.035*st.a)*smoothstep(.65,1.,lb)':'(.08+.12*st.a)*smoothstep(.80,1.,lb)')+'*rk;', // le litage des grès, horizontal
   '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.74,.62,.60),vr*.28);', // le VERNIS du désert
-  '  vec3 sab=vec3(.86,.58,.43)*(.9+.2*n2.r);float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
-  '  col=mix(col,vec3(.10,.12,.05),smoothstep(.70,.80,n2.a)*top*.7);', // le maquis sur les replats
-  '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*(.94+.1*sin(dot(vW.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
+  '  vec3 sab='+(CY_LISSE?'vec3(.95,.50,.29)*(.96+.08*n1.r)':'vec3(.86,.58,.43)*(.9+.2*n2.r)')+';float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
+  '  col=mix(col,'+(CY_LISSE?'vec3(.10,.19,.03),smoothstep(.64,.86,n1.a)*top*.55':'vec3(.10,.12,.05),smoothstep(.70,.80,n2.a)*top*.7')+');', // le maquis sur les replats
+  '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+(CY_LISSE?'.98+.03':'.94+.1')+'*sin(dot(vW.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
   '  col=mix(col,mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)*(1.-wat));', // la ripisylve
   '  col*=uRkT*(1.-.35*uWet*(1.-wat));',
   '  float ndl=max(dot(N,uSunD),0.);',
   '  vec3 Lc=uSunC*ndl*lit+mix(uGnd,uSky,N.y*.5+.5)*(1.-.5*dk)+uBnc*(1.-.65*lit)*(.35+.65*dk)*(.55+.45*stp)+uFillC*max(dot(N,uFillD),0.)*.6+(uSunC*.10+uSky*.22+uBnc*.18)*(.55+.45*stp);', /* le plancher : l'ombre d'un désert reste claire (ciel + rebond), jamais noire */
-  '  if(dist<220.){float gr=texture2D(uNZ,vec2(uw,vW.y)/5.3).g*wl+texture2D(uNZ,vW.xz/5.3).g*(1.-wl);col*=1.+(gr-.5)*.22*(1.-smoothstep(90.,220.,dist));}',
+  '  if(dist<220.){float gr=texture2D(uNZ,vec2(uw,vW.y)/5.3).g*wl+texture2D(uNZ,vW.xz/5.3).g*(1.-wl);col*=1.+(gr-.5)*'+(CY_LISSE?'.06':'.22')+'*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.80,.70,1.04),(1.-lit)*.55*rk);', // l'ombre de la roche tire au VIOLET (la bible)
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
@@ -16839,7 +16845,7 @@ const CY_MVS=['uniform sampler2D uTZ,uTS;uniform vec4 uZD,uSD;uniform vec2 uZN,u
   '  vA=vec4(0.,0.,1.,lit);vB=vec4(0.,0.,clamp((Z.r-wp.y)/max(Z.r-Z.g,40.),0.,1.),Z.g);',
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const CY_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uBnc;uniform float uWet;varying vec3 vW,vN,vCol;varying vec4 vA,vB;','#include <fog_pars_fragment>',
-  'void main(){vec3 N=normalize(vN);float ndl=max(dot(N,uSunD),0.)*.75+.25;vec3 c=vCol*vCol*(1.-.25*uWet);',
+  'void main(){vec3 N=normalize(vN);float ndl=max(dot(N,uSunD),0.)*.75+.25;vec3 c=vCol*vCol*(1.-.25*uWet);'+(CY_LISSE?'c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,1.3),0.);':''),
   '  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
 function cyMonuMats(){if(CY.mm)return CY.mm;const U=CY.mat.uniforms;
   const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_FS,fog:true});m.dispose=function(){};return m;};
