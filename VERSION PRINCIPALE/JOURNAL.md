@@ -3,6 +3,17 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE MOTEUR EN MINI FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo, devant la planche des éclats : « ce n'est pas très satisfaisant pour le moteur normal sans NITRO. Fais vraiment juste comme le NITRO, mais vraiment en minuscule. Ça doit être à ce point-là »)
+- Remplace « LE MOTEUR EN ÉCLATS » (les éclats facettés et leur code `ECLATS` sont RETIRÉS) : hors nitro, la flamme du moteur est le FEU DE
+  PIXELS DU NITRO (`NFEU`) en minuscule — `NFEU_MINI` (taille ×0,3, vitesse ×0,55, écart ×0,45, vie ×0,8, grille ×0,4, genre 3 dans `nfeuNait`),
+  un peu plus chaud (il garde son jaune et son orange) ; la goutte lisse reste cachée hors nitro (la lueur du pot reste).
+- Son débit suit le moteur simulé (`FLM`) : ~120 cubes/s par pot × la BOUFFÉE du moment (cadence, charge, houle), éteint au pied levé,
+  haché par le rupteur en vol ; chaque POP (passage de rapport, pied levé, pose) lâche une petite boule de feu. Ses langues tournent comme
+  celles du nitro. Au nitro, le grand feu reprend la main (`N.k`).
+- `?moteur=goutte` : la goutte lisse (le moteur simulé sans feu). Même matière : 0 programme (182 → 182, debout et couché), 0 erreur.
+  Planche `photos-gameplay/moteur-mini-feu-avant-apres.png`.
+- ⚠ Le site en ligne était BLOQUÉ (quota Vercel, « rate limited ») : Léo voyait encore la goutte de la v482 — les éclats n'ont jamais été en ligne.
+
 ## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
 - Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
   (`ECLATS`, `eclaPas`, `eclaNait`, `eclaCoupe` ; ⚠ `ECL` est déjà le nom de l'éclair de l'ORAGE). Des bipyramides à trois pans, une

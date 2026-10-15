@@ -27133,6 +27133,8 @@ function flmPas(dt,speedKmh){ // speedKmh : celle de la boucle (le compteur)
   F.heat+=((Math.min(1,.25+.55*F.ch+.25*F.rpm)*(1-.6*F.ov))-F.heat)*Math.min(1,dt*6);
   F.pop=Math.min(1,hot);F.glow=(.7+.3*Math.min(1.4,F.L[0]))*(1+.9*F.pop);
   return F;}
+const MOTEUR_MINI=FLM_ON&&!/[?&]moteur=goutte\b/.test(location.search); // (2026-10-15) la flamme du MOTEUR = ce feu-ci, en MINUSCULE (voir NFEU_MINI) ; ?moteur=goutte : la goutte lisse
+const NFEU_MINI={t:.3,v:.55,l:.45,vie:.8,taux:120,pas:.4}; // taille, vitesse, écart, vie, débit (cubes/s/pot, × la bouffée du moteur), grille — en part du nitro
 const NFEU_N=900,NFEU_PAS=.06,NFEU_SEUIL=[.08,.24,.46,.66,.8,.9],NFEU_TAILLE=[.9,.98,1,1,.9,.74,.6];
 /* la palette est pensée APRÈS la courbe ACES de la passe finale : elle écrase le rouge plus que le vert au-delà de 1 — l'orange de la porte
    (1,75 · ,78 · ,14) y sortait JAUNE (mesuré sur la capture). Ici le vert est tenu bas : l'orange reste orange, le rouge rouge. */
@@ -27152,17 +27154,17 @@ const NFEU=(function(){
   A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;A.visible=B.visible=false;B.renderOrder=2;scene.add(A);scene.add(B);
   const V=function(){return [0,1,2,3].map(function(){return new THREE.Vector3();});};
   return {m:A,h:B,P:new Float32Array(NFEU_N*12),n:0,k:0,vs:9,T:0,acc:new Float32Array(4),ou:new Float32Array(4),tg:new Float32Array([0,2.1,4.2,1]),cp:new Float32Array(4),
-    pw:V(),D:V(),R:V(),U:V(),dp:4,kd:1,up:new THREE.Vector3(),M:new THREE.Matrix4(),pp:new THREE.Vector3(),pOk:false,v:new THREE.Vector3(),pal:null,ms:0,on:FLM_ON};
+    pw:V(),D:V(),R:V(),U:V(),dp:4,kd:1,lp:new Float32Array(4),am:new Float32Array(4),up:new THREE.Vector3(),M:new THREE.Matrix4(),pp:new THREE.Vector3(),pOk:false,v:new THREE.Vector3(),pal:null,ms:0,on:FLM_ON};
 })();
 function nfeuNp(){return Math.min(4,CAR_POTS.length,JETS.shells.length);}
-function nfeuNait(i,b,gros,suie){ // une flamme-cube dans la bouche du pot i ; layout : s u v · vs vu vv · âge vie taille graine pot genre
-  const N=NFEU;if(N.n>=NFEU_N)return;const o=N.n*12,P=N.P;N.n++;
-  const a=Math.random()<.62?N.tg[i]+flmGauss()*.75:Math.random()*6.2832,r0=.05+.07*Math.random(),vr=(.6+.8*Math.random())*(1+.45*b)*(gros?2.4:1)*(1+.5*(N.kd-1)),ca=Math.cos(a),sa=Math.sin(a);
+function nfeuNait(i,b,gros,suie,mi){ // une flamme-cube dans la bouche du pot i ; layout : s u v · vs vu vv · âge vie taille graine pot genre (0 nitro · 2 étincelle · 3 MOTEUR, en minuscule)
+  const N=NFEU;if(N.n>=NFEU_N)return;const o=N.n*12,P=N.P,M9=NFEU_MINI;N.n++;
+  const a=Math.random()<.62?N.tg[i]+flmGauss()*.75:Math.random()*6.2832,r0=(.05+.07*Math.random())*(mi?.5:1),vr=(.6+.8*Math.random())*(1+.45*b)*(gros?2.4:1)*(1+.5*(N.kd-1))*(mi?M9.l:1),ca=Math.cos(a),sa=Math.sin(a);
   const pt=CAR_POTS[i],sd9=!pt?0:pt.x>.06?1:pt.x<-.06?-1:(Math.random()<.5?-1:1); // le pot de droite crache à droite, celui de gauche à gauche (un pot central : des deux côtés)
   P[o]=Math.random()*.12;P[o+1]=ca*r0;P[o+2]=sa*r0;
-  P[o+3]=N.vs*(.75+.5*Math.random())*(gros?1.1:suie?.6:1);P[o+4]=ca*vr+sd9*(.3+.7*Math.random());P[o+5]=sa*vr+(gros?0:.2+.5*Math.random()); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
-  P[o+6]=0;P[o+7]=(.22+.2*Math.random()+.07*b)*(gros?1.35:1);P[o+8]=(.13+.07*Math.random())*(1+.25*b)*(gros?1.3:1)*N.kd;
-  P[o+9]=suie?Math.random()*.4:Math.random();P[o+10]=i;P[o+11]=0;}
+  P[o+3]=N.vs*(.75+.5*Math.random())*(gros?1.1:suie?.6:1)*(mi?M9.v:1);P[o+4]=ca*vr+sd9*(.3+.7*Math.random())*(mi?M9.l:1);P[o+5]=sa*vr+(gros?0:.2+.5*Math.random())*(mi?M9.l:1); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
+  P[o+6]=0;P[o+7]=(.22+.2*Math.random()+.07*b)*(gros?1.35:1)*(mi?M9.vie:1);P[o+8]=(.13+.07*Math.random())*(1+.25*b)*(gros?1.3:1)*N.kd*(mi?M9.t:1);
+  P[o+9]=suie?Math.random()*.4:Math.random();P[o+10]=i;P[o+11]=mi?3:0;}
 function nfeuEtincelle(i){ // un petit cube qui gicle DANS LE MONDE (il garde l'élan de la caisse, retombe, refroidit)
   const N=NFEU;if(N.n>=NFEU_N||!N.pOk)return;const o=N.n*12,P=N.P,w=N.pw[i],D=N.D[i],r=6+6*Math.random();N.n++;
   P[o]=w.x;P[o+1]=w.y;P[o+2]=w.z;
@@ -27178,11 +27180,11 @@ function nfeuFin(){ // L'EXTINCTION : la dernière bouffée, lente et sale (appe
   if(!NFEU.on)return;const np=nfeuNp();
   for(let i=0;i<np;i++)for(let j=0;j<16;j++)nfeuNait(i,.3,false,true);}
 function nfeuCoupe(){const N=NFEU;N.n=0;N.k=0;N.pOk=false;N.m.count=N.h.count=0;N.m.visible=N.h.visible=false;} // replacement, explosion : rien ne reste figé
-function nfeuPas(dt,on,bleu,inf,speedKmh){
+function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) · mot : la flamme du MOTEUR doit se voir (hors nitro)
   const N=NFEU;if(!N.on)return;
   const np=nfeuNp(),vise=on&&np>0&&mode!=='boom'?1:0;
   N.k+=(vise-N.k)*Math.min(1,dt*(vise>N.k?14:7));
-  if(!N.n&&N.k<.01){if(N.m.visible)N.m.visible=N.h.visible=false;N.pOk=false;return;}
+  if(!N.n&&N.k<.01&&!mot){if(N.m.visible)N.m.visible=N.h.visible=false;N.pOk=false;return;}
   const t0=performance.now();dt=Math.min(dt,.05);N.T+=dt;
   const cp=carGroup.position;
   if(N.pOk&&dt>0)N.v.subVectors(cp,N.pp).multiplyScalar(1/dt);else N.v.set(0,0,0);N.pp.copy(cp);N.pOk=true;
@@ -27205,6 +27207,16 @@ function nfeuPas(dt,on,bleu,inf,speedKmh){
       N.acc[i]+=dt*430*N.k*(.55+.75*b)*q/Math.sqrt(Math.max(1,np)/2);
       while(N.acc[i]>=1){N.acc[i]-=1;nfeuNait(i,b,false,false);}
       if(Math.random()<dt*22*N.k*q)nfeuEtincelle(i);}}
+  /* (2026-10-15, Léo : « fais vraiment juste comme le NITRO, mais vraiment en minuscule ») LA FLAMME DU MOTEUR : le même feu de pixels, en
+     minuscule (NFEU_MINI) — son débit suit les BOUFFÉES du moteur simulé (FLM : la cadence, la charge, la houle, le rupteur en vol, le pied
+     levé qui l'éteint), et chaque POP (passage de rapport, pied levé, pose) lâche une petite boule de feu. */
+  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1),vol9=mode==='fall';
+    for(let i=0;i<np;i++){const p=F.P[i];
+      N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss();N.tg[i]+=dt*(2.2+2.5*N.ou[i]); // ses langues tournent comme celles du nitro
+      if(p.pop>N.lp[i]+.25){const n9=Math.round((5+9*p.pop)*q);for(let k=0;k<n9;k++)nfeuNait(i,1.2,true,false,true);} // un POP : une petite boule de feu
+      N.lp[i]=p.pop;
+      if(!(vol9&&!F.limOn))N.am[i]+=dt*NFEU_MINI.taux*Math.min(1.6,F.L[i])*(1-.8*F.ov)*q;
+      while(N.am[i]>=1){N.am[i]-=1;nfeuNait(i,.25+.5*F.ch,false,false,true);}}}
   const P=N.P,cam=camera.position,col=N.m.instanceColor.array,ar=N.m.instanceMatrix.array,pal=N.pal;
   const dp=N.dp,fA=dp*.6,fB=dp*.35; /* LE PIXEL GARDE SA TAILLE À L'ÉCRAN (la fumée du burn-out : des gros pixels « les MÊMES près ou loin ») :
      la caméra de poursuite est HAUTE et PROCHE (3,6-4 m des pots, mesuré) ; un cube qui file vers elle grossissait jusqu'à faire un mur au bas
@@ -27216,14 +27228,14 @@ function nfeuPas(dt,on,bleu,inf,speedKmh){
     let x,y,z,b,sz;
     if(P[o+11]===2){P[o+4]-=9*dt;P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;x=P[o];y=P[o+1];z=P[o+2];b=a<.3?0:a<.65?1:2;sz=P[o+8]*(1-.5*a);}
     else{const i=P[o+10]|0,s=P[o],sd=P[o+9],dr=Math.exp(-1.1*dt);
-      const a9=a+.18*Math.min(1,Math.sqrt(P[o+1]*P[o+1]+P[o+2]*P[o+2])/.55)+(sd-.5)*.14; // le CŒUR du jet reste chaud, ses bords refroidissent plus tôt ; un peu de hasard par cube (le bord dentelé)
+      const a9=a+.18*Math.min(1,Math.sqrt(P[o+1]*P[o+1]+P[o+2]*P[o+2])/.55)+(sd-.5)*.14-(P[o+11]===3?.14:0); /* le feu du MOTEUR vit moins : il garde plus longtemps son jaune et son orange */ // le CŒUR du jet reste chaud, ses bords refroidissent plus tôt ; un peu de hasard par cube (le bord dentelé)
       b=a9<NFEU_SEUIL[0]?0:a9<NFEU_SEUIL[1]?1:a9<NFEU_SEUIL[2]?2:a9<NFEU_SEUIL[3]?3:a9<NFEU_SEUIL[4]?4:a9<NFEU_SEUIL[5]?5:6;
       if((b===5&&sd>.55)||(b===6&&sd>.3))continue;
       if(sd<.13&&b>0&&b<5)b-=b>2?2:1; // des POCHES CHAUDES : un cube sur huit brûle plus jaune que ses voisins (le feu classique scintille) // la plupart s'éteignent avant : quelques braises sombres, et moins encore de cubes de FUMÉE finissent le feu
       P[o+3]*=Math.exp(-1.6*dt);P[o+4]*=dr;P[o+5]*=dr;
       P[o+4]+=Math.sin(s*2.7+sd*6.3+N.T*9.1)*4*dt;P[o+5]+=(Math.cos(s*2.3+sd*5.1-N.T*7.7)*4+2)*dt; // le tourbillon, et le feu monte un peu
       P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;
-      const qs=Math.round(P[o]/NFEU_PAS)*NFEU_PAS,qu=Math.round(P[o+1]/NFEU_PAS)*NFEU_PAS,qv=Math.round(P[o+2]/NFEU_PAS)*NFEU_PAS; // de case en case
+      const pa9=P[o+11]===3?NFEU_PAS*NFEU_MINI.pas:NFEU_PAS,qs=Math.round(P[o]/pa9)*pa9,qu=Math.round(P[o+1]/pa9)*pa9,qv=Math.round(P[o+2]/pa9)*pa9; // de case en case (le feu du moteur : une grille plus fine)
       const w=N.pw[i],D=N.D[i],R=N.R[i],U=N.U[i];
       x=w.x+D.x*qs+R.x*qu+U.x*qv;y=w.y+D.y*qs+R.y*qu+U.y*qv;z=w.z+D.z*qs+R.z*qu+U.z*qv;sz=P[o+8]*NFEU_TAILLE[b];}
     const dx=x-cam.x,dy=y-cam.y,dz=z-cam.z,d9=Math.sqrt(dx*dx+dy*dy+dz*dz);sz*=Math.min(1.25,Math.max(.3,d9/dp));if(d9<fA)sz*=Math.max(0,(d9-fB)/(fA-fB));
@@ -27233,99 +27245,12 @@ function nfeuPas(dt,on,bleu,inf,speedKmh){
     const c=pal[b];col[n*3]=c[0]*K;col[n*3+1]=c[1]*K;col[n*3+2]=c[2]*K;n++;}
   N.n=n;N.m.count=N.h.count=n;N.m.visible=N.h.visible=n>0;if(n){N.m.instanceMatrix.needsUpdate=true;N.m.instanceColor.needsUpdate=true;}
   N.ms=N.ms*.95+(performance.now()-t0)*.05;}
-/* ---- LES ÉCLATS DU MOTEUR (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur sans nitro plus déconstruite : là on dirait une
-   bougie, pas réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le
-   moteur de base, ça doit être stylé » → ÉCLATS FACETTÉS, son choix parmi trois). La goutte lisse (JETS) n'est plus qu'une LUEUR dans
-   la bouche du pot ; le feu sort par BOUFFÉES (`ECLATS`, `eclaPas`) : 4,5 à 12 par seconde selon le régime, chaque intervalle tiré
-   (×0,45-1,55), chacune de 1 à 6 éclats selon la charge — des bipyramides à trois pans, une lumière par face (la facette se lit),
-   qui filent le long de leur vitesse, tournent sur elles-mêmes, se CASSENT en deux à mi-vie (un sur trois) et refroidissent blanc-jaune
-   → orange → rouge. Les POPS du moteur simulé (passage de rapport, pied levé, pose, rupteur) lâchent une gerbe grasse et plus chaude ;
-   au pied levé les bouffées se taisent ; en vol elles suivent le rupteur. La même matière que les cubes (arc-en-ciel, porte, nitro) :
-   aucun programme de plus. Rien au nitro (le feu de pixels prend la main). `dbgFlamme('ecl',0|1)`. */
-const ECLA_N=260,ECLA_SEUIL=[.18,.42,.66,.86,.97];
-const ECLA_PAL=[[2.4,2,1.3],[2.2,1.25,.32],[1.95,.62,.1],[1.6,.32,.05],[1.2,.16,.04],[.75,.08,.03]]; // pensée après l'ACES (le vert tenu bas, voir NFEU_PAL)
-const ECLATS=(function(){
-  const T=[0,0,.62],B=[0,0,-.38],Q=[0,1,2].map(function(k){const a=k*2.0944+.5;return [Math.cos(a)*.32,Math.sin(a)*.32,.04];});
-  const pos=[],col=[];
-  function tri(a,b,c){ // une face, tournée vers l'extérieur (FrontSide : un DoubleSide serait un autre programme), et SA lumière
-    let u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]],n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
-    const m=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3-.08];
-    if(n[0]*m[0]+n[1]*m[1]+n[2]*m[2]<0){const t=b;b=c;c=t;n=[-n[0],-n[1],-n[2]];}
-    pos.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);
-    const l=Math.hypot(n[0],n[1],n[2])||1,d=Math.max(0,(n[0]*.35+n[1]*.8+n[2]*.48)/l),g=.62+.5*d;for(let i=0;i<3;i++)col.push(g,g,g);}
-  for(let k=0;k<3;k++){const e0=Q[k],e1=Q[(k+1)%3];tri(T,e0,e1);tri(B,e1,e0);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-  const gh=g.clone();gh.scale(1.8,1.8,1.4);
-  const A=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false}),ECLA_N); // ⚠ les réglages EXACTS des cubes : même programme
-  const H=new THREE.InstancedMesh(gh,new THREE.MeshBasicMaterial({fog:false,toneMapped:false,transparent:true,opacity:.11,blending:THREE.AdditiveBlending,depthWrite:false}),ECLA_N); // le halo de l'éclat
-  A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(ECLA_N*3),3);
-  A.instanceMatrix.setUsage(THREE.DynamicDrawUsage);A.instanceColor.setUsage(THREE.DynamicDrawUsage);
-  H.instanceMatrix=A.instanceMatrix;H.instanceColor=A.instanceColor;
-  A.count=H.count=0;A.frustumCulled=H.frustumCulled=false;A.visible=H.visible=false;H.renderOrder=2;scene.add(A);scene.add(H);
-  const V=function(){return [0,1,2,3].map(function(){return new THREE.Vector3();});};
-  return {m:A,h:H,P:new Float32Array(ECLA_N*15),n:0,on:FLM_ON&&!/[?&]eclats=0\b/.test(location.search), /* ?eclats=0 : la goutte d'avant */vs:8,kd:1,dp:4,pt:new Float32Array([.05,.11,.08,.14]),lp:new Float32Array(4),
-    pw:V(),D:V(),R:V(),U:V(),up:new THREE.Vector3(),a:new THREE.Vector3(),x:new THREE.Vector3(),y:new THREE.Vector3(),ms:0};
-})();
-function eclaNait(i,chaud,gros){ // layout : s u v · vs vu vv · âge vie taille graine pot · roulis tourne génération chaleur
-  const E=ECLATS;if(E.n>=ECLA_N)return;const o=E.n*15,P=E.P;E.n++;
-  const an=Math.random()*6.2832,cone=(.3+.55*Math.random())*(gros?1.5:1),vs=E.vs*(.7+.6*Math.random())*(gros?.85:1),vr=vs*cone;
-  P[o]=Math.random()*.08;P[o+1]=Math.cos(an)*.04;P[o+2]=Math.sin(an)*.04;
-  P[o+3]=vs;P[o+4]=Math.cos(an)*vr;P[o+5]=Math.sin(an)*vr+.5;
-  P[o+6]=0;P[o+7]=(.16+.16*Math.random())*(gros?1.4:1);P[o+8]=(.25+.16*Math.random())*(1+.4*chaud)*E.kd;P[o+9]=Math.random();P[o+10]=i;
-  P[o+11]=Math.random()*6.2832;P[o+12]=(Math.random()<.5?-1:1)*(8+18*Math.random());P[o+13]=0;P[o+14]=chaud;}
-function eclaCoupe(){const E=ECLATS;E.n=0;E.m.count=E.h.count=0;E.m.visible=E.h.visible=false;}
-function eclaPas(dt,F,on,speedKmh){
-  const E=ECLATS;if(!E.on||!F)return;
-  const np=Math.min(4,CAR_POTS.length,JETS.shells.length),vise=on&&np>0&&mode!=='boom';
-  if(!E.n&&!vise){if(E.m.visible)E.m.visible=E.h.visible=false;return;}
-  const t0=performance.now();dt=Math.min(dt,.05);
-  E.up.set(0,1,0).applyQuaternion(carGroup.quaternion);
-  for(let i=0;i<np;i++){potMonde(CAR_POTS[i],E.pw[i]);const D=E.D[i].copy(JET_DIR[i]).applyQuaternion(carGroup.quaternion).normalize();
-    const R=E.R[i].crossVectors(D,E.up);if(R.lengthSq()<1e-4)R.set(1,0,0);R.normalize();E.U[i].crossVectors(R,D).normalize();}
-  E.dp=np?camera.position.distanceTo(E.pw[0]):4;E.kd=Math.pow(Math.min(3.2,Math.max(1,E.dp/3.8)),.75);
-  E.vs=Math.min(4,2.2+Math.abs(speedKmh)*.002)*(1+.45*(E.kd-1)); /* MESURÉ (dbgFlamme('eproj')) : debout, la caméra presque à la verticale ne voit que 0,5 à 1 m derrière les pots —
-     à 8 m/s les éclats sortaient de l'écran dès leur naissance. Ils JAILLISSENT donc sur place, en couronne autour de la bouche (30 à 60 cm) */
-  if(vise){const vol=mode==='fall',q=(QUAL_LOW?.65:1)*(REDUCED_MOTION?.5:1);
-    for(let i=0;i<np;i++){const p=F.P[i];
-      if(p.pop>E.lp[i]+.25){const n=Math.round((4+7*p.pop)*q);for(let k=0;k<n;k++)eclaNait(i,Math.min(1,.4+.6*p.pop),true);} // un POP : une gerbe grasse, plus chaude
-      E.lp[i]=p.pop;
-      E.pt[i]-=dt;
-      if(E.pt[i]<=0){const hzP=(4.5+7.5*F.rpm)*(1-.75*F.ov);E.pt[i]=(.45+1.1*Math.random())/Math.max(1.5,hzP); // la BOUFFÉE suivante : intervalle tiré
-        if(!(vol&&!F.limOn)&&F.ov<.7){const n=Math.round((2+3*F.ch+1.5*F.rpm)*Math.min(1.6,F.L[i])*(.6+.8*Math.random())*q);
-          for(let k=0;k<n;k++)eclaNait(i,.15*F.ch,false);if(n)p.env=Math.max(p.env,1.15);}}}} // la lueur du pot s'éclaire avec la bouffée
-  const P=E.P,cam=camera.position,col=E.m.instanceColor.array,ar=E.m.instanceMatrix.array,dp=E.dp,fA=dp*.6,fB=dp*.35,a3=E.a,x=E.x,y=E.y;
-  let n=0;const n0=E.n;
-  for(let j=0;j<n0;j++){const o=j*15;
-    P[o+6]+=dt;const a=P[o+6]/P[o+7];if(a>=1)continue;
-    if(P[o+13]===0&&a>.42&&P[o+9]<.36&&E.n<ECLA_N){P[o+13]=1;P[o+8]*=.72; // L'ÉCLAT SE CASSE : un frère part de l'autre côté
-      const o2=E.n*15;E.n++;P.copyWithin(o2,o,o+15);P[o2+4]=-P[o+4]+(Math.random()-.5)*1.5;P[o2+5]=P[o+5]+(Math.random()-.5)*1.5;P[o2+12]=-P[o+12];P[o2+9]=.5+Math.random()*.5;}
-    P[o+3]*=Math.exp(-2.4*dt);const dr=Math.exp(-1.5*dt);P[o+4]*=dr;P[o+5]=P[o+5]*dr+1.2*dt;
-    P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;P[o+11]+=P[o+12]*dt;
-    const i=P[o+10]|0,w=E.pw[i],D=E.D[i],R=E.R[i],U=E.U[i],s=P[o],u=P[o+1],v=P[o+2];
-    const px=w.x+D.x*s+R.x*u+U.x*v,py=w.y+D.y*s+R.y*u+U.y*v,pz=w.z+D.z*s+R.z*u+U.z*v;
-    a3.copy(D).multiplyScalar(P[o+3]).addScaledVector(R,P[o+4]).addScaledVector(U,P[o+5]).normalize(); // l'éclat file le long de SA vitesse
-    x.crossVectors(a3,E.up);if(x.lengthSq()<1e-4)x.copy(R);x.normalize();y.crossVectors(a3,x);
-    const cr=Math.cos(P[o+11]),sr=Math.sin(P[o+11]);
-    const x0=x.x*cr+y.x*sr,x1=x.y*cr+y.y*sr,x2=x.z*cr+y.z*sr,y0=y.x*cr-x.x*sr,y1=y.y*cr-x.y*sr,y2=y.z*cr-x.z*sr; // il tourne sur lui-même
-    const dx=px-cam.x,dy=py-cam.y,dz=pz-cam.z,d9=Math.sqrt(dx*dx+dy*dy+dz*dz);let k9=Math.min(1.25,Math.max(.3,d9/dp));if(d9<fA)k9*=Math.max(0,(d9-fB)/(fA-fB)); // la taille à l'écran, comme les cubes du nitro
-    const sz=P[o+8]*k9,wd=sz*.6*(1-.45*a),ln=sz*(1.1-.4*a); /* (v3, mesuré : à 6 cm de large et rouge sombre, l'éclat ne se voyait plus) */
-    if(n!==j)P.copyWithin(n*15,o,o+15);
-    const m=n*16;ar[m]=x0*wd;ar[m+1]=x1*wd;ar[m+2]=x2*wd;ar[m+3]=0;ar[m+4]=y0*wd;ar[m+5]=y1*wd;ar[m+6]=y2*wd;ar[m+7]=0;
-    ar[m+8]=a3.x*ln;ar[m+9]=a3.y*ln;ar[m+10]=a3.z*ln;ar[m+11]=0;ar[m+12]=px;ar[m+13]=py;ar[m+14]=pz;ar[m+15]=1;
-    const ah=a-.18*P[o+14],b=ah<ECLA_SEUIL[0]?0:ah<ECLA_SEUIL[1]?1:ah<ECLA_SEUIL[2]?2:ah<ECLA_SEUIL[3]?3:ah<ECLA_SEUIL[4]?4:5,c=ECLA_PAL[b];
-    col[n*3]=c[0]*.95;col[n*3+1]=c[1]*.95;col[n*3+2]=c[2]*.95;n++;}
-  // les frères nés pendant la passe (au-delà de n0) : ils vivent dès l'image suivante — on les ramène derrière les survivants
-  const nW=n;if(E.n>n0){P.copyWithin(n*15,n0*15,E.n*15);n+=E.n-n0;}
-  E.n=n;E.m.count=E.h.count=nW;E.m.visible=E.h.visible=nW>0; /* seuls les éclats dont la matrice est écrite CETTE image sont dessinés (⚠ un commentaire « slash-slash » ici avalait le needsUpdate qui suit : les éclats restaient invisibles) */if(n){E.m.instanceMatrix.needsUpdate=true;E.m.instanceColor.needsUpdate=true;}
-  E.ms=E.ms*.95+(performance.now()-t0)*.05;}
 window.dbgFlamme=function(o){ // (banc) l'état du moteur simulé et du feu ; dbgFlamme('nfeu',0|1) coupe / rend le feu de pixels
   if(o==='nfeu'){NFEU.on=!!arguments[1];if(!NFEU.on)nfeuCoupe();return NFEU.on;}
-  if(o==='ecl'){ECLATS.on=!!arguments[1];if(!ECLATS.on)eclaCoupe();return ECLATS.on;}
-  if(o==='eproj'){const E=ECLATS,ar=E.m.instanceMatrix.array,v=new THREE.Vector3(),r=[];for(let j=0;j<E.m.count;j++){const m=j*16;v.set(ar[m+12],ar[m+13],ar[m+14]);const d=v.distanceTo(camera.position),sz=Math.hypot(ar[m+8],ar[m+9],ar[m+10]),w=Math.hypot(ar[m],ar[m+1],ar[m+2]);v.project(camera);r.push([+d.toFixed(2),+v.x.toFixed(2),+v.y.toFixed(2),+sz.toFixed(3),+w.toFixed(3)]);}return {n:E.n,count:E.m.count,vis:E.m.visible,dp:+E.dp.toFixed(2),vs:+E.vs.toFixed(1),scene:!!E.m.parent,hscene:!!E.h.parent,verts:E.m.geometry.attributes.position.count,col0:Array.from(E.m.instanceColor.array.slice(0,3)),layers:E.m.layers.mask,ro:E.m.renderOrder,r:r};} // (banc) où tombent les éclats
   if(o==='proj'){const ar=NFEU.m.instanceMatrix.array,v=new THREE.Vector3(),r=[];for(let j=0;j<NFEU.n;j++){const m=j*16;v.set(ar[m+12],ar[m+13],ar[m+14]);const d=v.distanceTo(camera.position),sz=Math.hypot(ar[m],ar[m+1],ar[m+2]);v.project(camera);r.push([+d.toFixed(2),+(v.y).toFixed(2),+sz.toFixed(2),NFEU.P[j*12+11]]);}
     const w=new THREE.Vector3();potMonde(CAR_POTS[0],w);const dpot=w.distanceTo(camera.position);w.project(camera);return {dir:JET_DIR.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),pots:CAR_POTS.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),parPot:[0,1,2,3].map(function(i){let c=0;for(let j=0;j<NFEU.n;j++)if((NFEU.P[j*12+10]|0)===i&&NFEU.P[j*12+11]===0)c++;return c;}),pot:[+dpot.toFixed(2),+w.y.toFixed(2),+w.x.toFixed(3)],cam:camera.position.toArray().map(x=>+x.toFixed(1)),car:carGroup.position.toArray().map(x=>+x.toFixed(1)),cubes:r};} // (banc) où tombent les cubes : distance, hauteur à l'écran (−1 bas, +1 haut), taille
   const F=FLM;return {on:FLM_ON,rpm:+F.rpm.toFixed(2),rapport:F.g,charge:+F.ch.toFixed(2),lacher:+F.ov.toFixed(2),chaleur:+F.heat.toFixed(2),pop:+F.pop.toFixed(2),
-    L:Array.from(F.L).map(function(x){return +x.toFixed(2);}),eclats:{n:ECLATS.n,ms:+ECLATS.ms.toFixed(3)},feu:{n:NFEU.n,k:+NFEU.k.toFixed(2),ms:+NFEU.ms.toFixed(3),pots:nfeuNp(),cam:+camera.position.distanceTo(NFEU.pw[0]).toFixed(2)}};};
+    L:Array.from(F.L).map(function(x){return +x.toFixed(2);}),mini:MOTEUR_MINI,feu:{n:NFEU.n,k:+NFEU.k.toFixed(2),ms:+NFEU.ms.toFixed(3),pots:nfeuNp(),cam:+camera.position.distanceTo(NFEU.pw[0]).toFixed(2)}};};
 /* LES POTS DE LA CAISSE (2026-09-26, user : « pour chaque skin, les flammes des pots d'échappement et la traînée de nitro au bon
    endroit ») — MESURÉ : toutes les flammes, la traînée et la lueur sortaient d'une formule unique (±22 % de la largeur, 43 cm,
    au bout de la fiche), alors que 58 caisses sur 66 dessinent LEURS pots : d'un seul côté, au centre, par quatre, en turbine,
@@ -46059,7 +45984,7 @@ function respawn(){
   try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   try{bkSkateRaz();BKV.yaw=0;}catch(e){} // (ICE SKATE) la glisse aussi
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
-  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe();eclaCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
+  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   JEAU.dans=false;JEAU.wB=0; // (2026-10-13) replacé sur la route : plus sous l'eau — (2026-10-14, revue des idées de Léo) et plus redressé par elle : wB restait vers 1 en conduite, et au saut suivant la vrille et le vol équilibré étaient coupés 1-2 s
@@ -47346,7 +47271,7 @@ function newTrack0(){
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
-  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe();eclaCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
+  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
@@ -47677,7 +47602,7 @@ function endGame(){
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
   try{if(CARR.actif&&LVL.cur&&LVL.cur.carr)carrSelPose(LVL.cur.carr.b,LVL.cur.carr.i);}catch(e){} // (2026-10-07) …et les PLAY du menu aussi : « le dernier niveau de carrière auquel on a joué »
   try{campStop();}catch(e){} // (2026-09-27) tirs, fumée, éclairs, halos : rien ne reste figé derrière l'écran de fin
-  try{rainbowCoupe();nfeuCoupe();eclaCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
+  try{rainbowCoupe();nfeuCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
@@ -59165,11 +59090,11 @@ function loop(now){
     const lanc9=mode==='drive'&&!nitroOn?THREE.MathUtils.clamp(momT/4.2,0,1):0;
     const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34+.22*lanc9*lanc9:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
-    const FM9=FLM_ON?flmPas(dt,speedKmh):null,nfK9=FLM_ON&&NFEU.on?NFEU.k:0,ecl9=!!FM9&&ECLATS.on&&!nitroOn&&!(boost>0)&&!(pwrNitroT>0); // ecl9 : hors nitro, la flamme EST les éclats (la goutte lisse se cache, la lueur du pot reste) // (2026-10-15) LE MOTEUR QUI AVANCE (FLM) et le FEU DE PIXELS du nitro (NFEU) — voir près de JET_DIR
+    const FM9=FLM_ON?flmPas(dt,speedKmh):null,nfK9=FLM_ON&&NFEU.on?NFEU.k:0,ecl9=!!FM9&&MOTEUR_MINI&&!nitroOn&&!(boost>0)&&!(pwrNitroT>0); // ecl9 : hors nitro, la flamme EST le feu de pixels en minuscule (la goutte lisse se cache, la lueur du pot reste) // (2026-10-15) LE MOTEUR QUI AVANCE (FLM) et le FEU DE PIXELS du nitro (NFEU) — voir près de JET_DIR
     if(JETS.shells.length){
       const jOn=JETS.k>.05,fl9=FM9?1:.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
       const iK9=NFX.ign*NFX.ignK; // (vague 3) le COUP d'allumage : la plume jaillit (+1,6 m, plus large) puis se pose
-      const jl=Math.max(.03,((.5+Math.min(engTier,15)*.035)*JETS.k*2.1*fl9*(1+NFX.len*.85)+iK9*1.6*Math.min(1,JETS.k))*(1-.62*nfK9)*(FM9&&ECLATS.on&&!nitroOn?.42:1)),jr=(.09+.07*JETS.k+NFX.len*.05+iK9*.09)*(1-.25*nfK9)*(FM9&&ECLATS.on&&!nitroOn?.75:1); /* (2026-10-15) au nitro la plume n'est plus que la TORCHE dans la bouche du pot : le feu de pixels porte la longueur */ // (2026-09-26) la plume grandit avec le MOTEUR, plus avec l'index de la caisse — (vague 3) et s'ALLONGE à la nitro (×1,85 : 2 à 4 m, Asphalt) : vue à 45° par la poursuite, 2 m ne faisaient qu'un cornet
+      const jl=Math.max(.03,((.5+Math.min(engTier,15)*.035)*JETS.k*2.1*fl9*(1+NFX.len*.85)+iK9*1.6*Math.min(1,JETS.k))*(1-.62*nfK9)),jr=(.09+.07*JETS.k+NFX.len*.05+iK9*.09)*(1-.25*nfK9); /* (2026-10-15) au nitro la plume n'est plus que la TORCHE dans la bouche du pot : le feu de pixels porte la longueur */ // (2026-09-26) la plume grandit avec le MOTEUR, plus avec l'index de la caisse — (vague 3) et s'ALLONGE à la nitro (×1,85 : 2 à 4 m, Asphalt) : vue à 45° par la poursuite, 2 m ne faisaient qu'un cornet
       // LA SIGNATURE DE LA CAISSE EST UN EFFET DE **NITRO**, pas une peinture permanente (décision
       // du user, 2026-08-05). Au filage la plume reste l'orange commun à tout le monde ; c'est en
       // appuyant que la caisse montre ce qu'elle a dans le ventre — le vert acide, le rose de la
@@ -59201,8 +59126,7 @@ function loop(now){
       const g9=.2+.55*JETS.k*(FM9?FM9.glow:fl9)+iK9*1.1+NFX.off*NFX.off*.35; // (vague 3) la tuyère FLASHE à l'allumage, hoquette à l'extinction
       for(const s9 of JETS.glows){s9.visible=jOn;s9.scale.set(g9,g9,1);}
     }
-    if(FLM_ON)try{nfeuPas(dt,nitroOn&&!(NYAN.on&&!FX_EFF),nitroBlue,pwrNitroT>0&&!nitroBlue,speedKmh);}catch(e){loopWarn(1048576,'feu du nitro',e);} // (2026-10-15) LE NITRO EN FEU DE PIXELS
-    if(FLM_ON)try{eclaPas(dt,FM9,!!FM9&&!nitroOn&&JETS.k>.05&&!(pwrNitroT>0),speedKmh);}catch(e){loopWarn(2097152,'éclats du moteur',e);} // (2026-10-15) LES ÉCLATS DU MOTEUR (sans nitro) — la goutte lisse n'est plus que la lueur du pot (×,42)
+    if(FLM_ON)try{nfeuPas(dt,nitroOn&&!(NYAN.on&&!FX_EFF),nitroBlue,pwrNitroT>0&&!nitroBlue,speedKmh,FM9,ecl9&&JETS.k>.05);}catch(e){loopWarn(1048576,'feu du nitro',e);} // (2026-10-15) LE NITRO EN FEU DE PIXELS
     // LE DÉPART EN ARC-EN-CIEL (2026-09-05) : les premières secondes de chaque run brillent d'une
     // teinte qui TOURNE — signature du LANCEMENT, pas de la caisse (elle n'efface donc RIEN de la
     // réserve bleue ni des signatures par caisse : elle s'applique APRÈS leur calcul, seulement
