@@ -46,8 +46,9 @@
 
 ## L'ACCUEIL : ACHAT, LA VITRINE SANS SA PHRASE, LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, l'offre doit maintenant s'appeler achat ; enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien » · « une sorte d'icône avec un doigt qui clignote sur la voiture la première fois, pour lui montrer qu'on peut cliquer sur la voiture ; rends-le un peu stylisé, accueillant pour la première connexion »)
 - LE BOUTON : la tuile cadeau de l'accueil (`.mOffres`, bâtie par le bloc « accueil du ciel ») dit ACHAT (anglais : BUY, l'entrée `ACHAT`
-  existante d'I18N) ; même mot dans `accC6` (charte 6). L'écran où elle mène (`#mShop`) garde son titre OFFRES (le nom donné par Léo le
-  10/10) : à trancher si on le renomme aussi.
+  existante d'I18N) ; même mot dans `accC6` (charte 6). L'écran où elle mène (`#mShop`, nommé OFFRES par Léo le 10/10) s'appelle
+  ACHAT lui aussi (Sacha, même soir : « renomme aussi le titre de la page OFFRES en ACHAT »). L'onglet OFFRES de la boutique du
+  garage (charte 6 / `?ux8g=1`, `UX8_TABS`) n'a pas bougé.
 - LA VITRINE (`shopRender`, l'offre à la une `.shUne`) : plus de phrase de la caisse sous son nom (la desc du CHAT POP-TART faisait trois
   lignes). La fenêtre d'achat (`shopPop`, `.spDesc`) la montre toujours.
 - LE DOIGT DE BIENVENUE (`<style id="accueilDoigt">`, `#chDoigt`, `CH_DOIGT` / `chuteDoigtTick` / `chuteDoigtFini`, juste après
