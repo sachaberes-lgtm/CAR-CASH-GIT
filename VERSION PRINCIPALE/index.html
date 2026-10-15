@@ -6964,6 +6964,12 @@ html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine):not(.shopRet):not
    hauteur, plus de marche. La pente des plaques, elle, se recale dans le script (garAplomb) : un seul axe pour toute la pile. */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gJouer,#gAct>#gEquip.achat,#gAct:has(>#gEquip.achat)>#gShopBas){height:56px!important;min-height:56px!important}}
+/* LE JOUER DU GARAGE RETROUVE SES TROIS CHEVRONS (2026-10-15, Sacha : « rajoute le bouton jouer dans le garage avec les 3 flèches animées
+   qu'il y avait dans une ancienne version, il était bien ») : la flèche qui file (.mChev, k4Chev — trois chevrons qui s'allument l'un après
+   l'autre) revient derrière le mot du ciel de Léo. Elle se taisait sous 230 px de lingot (règle du 30/09, quand la BOUTIQUE partageait la
+   barre) : dans la console le lingot a la rangée du milieu pour lui — sur un écran étroit (320), c'est le MOT qui se serre, plus les chevrons. */
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev{display:inline-flex!important;margin-left:2px}
+@container (max-width:185px){html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .lg{font-size:17px!important}} /* MESURÉ : mot 117 + chevrons 59 + écart 6 = 182 px ; à 390 de large le lingot en offre 210 (mot gardé à 21 px), à 320 il en offre 164 */
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
@@ -49759,6 +49765,11 @@ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU H
      et lançait le piqué. Depuis le ciel, elle pique tout de suite : la piste tirée se bâtit sous le NUAGE BLANC de la fin du piqué
      (`CHUTE.sous`, juste avant start/resetGame — le voile tient jusqu'à la 1re image rendue). Ailleurs (atelier, boutique) : le balayage. */
   if(garageOn&&CHUTE.on&&!CHUTE.go){CHUTE.sous=sous9;garageLaunch();if(CHUTE.go)return t;CHUTE.sous=null;}
+  /* (2026-10-15, Sacha : « une fois le bouton pressé dans le garage, il faut que tu retrouves l'animation où la voiture s'avance dans les
+     flammes ») DEPUIS L'ATELIER, même principe : le balayage d'abord (écran sombre + la piste rebâtie : ≈ 0,5 s au PC, bien plus sur
+     téléphone) passait AVANT le lâcher. Le LÂCHER part sur l'appui — la caisse roule dans le rideau de flammes — et la piste tirée se bâtit
+     sous le VOILE CHAUD de la fin (`GAR.sous`, juste avant start/resetGame, voir garageRender). La boutique et l'accueil gardent le balayage. */
+  if(garageOn&&!CHUTE.on&&!GAR.go&&GAR.root&&!GBQ.on&&!GBQ.veut&&gEl&&!gEl.classList.contains('menu')){GAR.sous=sous9;garageLaunch();if(GAR.go)return t;GAR.sous=null;}
   ecranWipe(function(){sous9();if(!garageOn)openGarage(true);},function(){garageLaunch();});return t;} // jadeGabarits : taillés une fois par session, sous le voile (≈ 0,7 s de moins au 1er portail vers la jade)
 /* LA MUSIQUE DU SOLEIL DE JADE (JMUS) — GLISSE V2, le module de Léo, joué en direct (son propre contexte audio) : la radio du jeu se tait
    sur ce niveau (musicPlayCurrent / musicNext / frenMus), le module joue tant que la course tourne (pause, mort, menu, appli cachée : il se
@@ -52734,7 +52745,7 @@ function closeGarage(){
   // ⚠ FERMER PENDANT UNE BASCULE : la caisse est alors écrasée à .001 et le scanner allumé. Sans ce
   // rattrapage on partait en course dans une caisse plate — un bug qui ne se voit qu'en fermant PILE
   // au mauvais moment, donc jamais en test et toujours chez le joueur.
-  GAR.sw=null;GAR.go=null;GAR.pressT=0;GAR.impactT=0;carGroup.scale.set(1,1,1);carGroup.rotation.set(0,0,0);
+  GAR.sw=null;GAR.go=null;GAR.sous=null;GAR.pressT=0;GAR.impactT=0;carGroup.scale.set(1,1,1);carGroup.rotation.set(0,0,0);
   if(GAR.impactMeshes)for(const m9 of GAR.impactMeshes)m9.visible=false;
   if(GAR.scan)GAR.scan.visible=false;
   if(GAR.root)GAR.root.visible=false;                                     // l'atelier s'éteint derrière toi
@@ -55617,6 +55628,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       // `start()` reste réservé au TOUT premier lancement (pas de run précédente à remettre à zéro,
       // `respawn()` du chargement de la page suffit) : `resetGame()` appelée trop tôt y attendrait un
       // `started` déjà vrai que rien n'a encore posé.
+      if(GAR.sous){const f9=GAR.sous;GAR.sous=null;try{f9();}catch(e){console.warn('lâcher : piste sous le voile',e);}} // (2026-10-15) la piste tirée par le JOUER de l'atelier se bâtit ICI, sous le voile chaud (voir classiqueJouer)
       const wasStarted=started;
       closeGarage();
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
