@@ -764,3 +764,18 @@ musique ciel très discrète et garage aussi, différentes ambiances, même regi
   Leçon de mixage : un chœur « oh » met son 1er formant à 450 Hz, en plein dans la boue. Des flûtes à la hauteur des cordes, ce sont des sinus purs dans les graves.
   Un grognement de basse à travers une saturation déborde jusqu'à 420 Hz. On mesure la boue (200-500 Hz) instrument par instrument avant de creuser au hasard.
 - En attente : le pack d'instruments de Léo (PISTON DE LUXE, GRÉSIL NOVA) ; réécoute des trois v6.
+
+## 15/10 après-midi — « juste respecte les consignes »
+- Une V2 seulement quand la note la demande ; sinon la retouche va SUR la musique (`direct`). Aucune note mise de côté (les trois v6 faites).
+- Affiner ≠ remplacer : COBRA garde son clavinet (CLAV_FIN, comparé note à note à l'original : même brillance, la boue en moins).
+- Mesuré : le vibraphone et les échos de la mélodie bouchent le médium (RUBIS) ; une octave basse carrée sous un koto aussi (LUNE DE JADE).
+- PISTON DE LUXE : cowbell + VOIX_IMPRO (une syllabe par hauteur = une voix qui improvise). GRÉSIL NOVA attend le pack de Léo.
+
+## 2026-10-15 — LES TROIS NOUVEAUX (pôle SON › trois nouveaux sons)
+- Léo : « trois nouveaux sons au niveau de mes 👍, une autre idée originale » → trois idées proposées, « les trois, vas-y ».
+- ZEPPELIN D'OR (électro swing, le gramophone qui s'ouvre, le champagne) · CARNAVAL D'OR (batucada électronique, l'agogô, la cuíca, la foule) ·
+  LE CASSE (trip-hop de braquage, la ligne espion, le coffre-fort, la poursuite en double tempo). Écrits sur le générateur v6-0 figé :
+  `assets/audio/music/direct/musique-trente-trio.js` ; bibliothèque › Nouveaux. Détail et mesures : JOURNAL.md, « LES TROIS NOUVEAUX ».
+- Leçons : un morceau ÉCRIT (l'ordre des 30 moteurs choisi, une signature qui raconte) garde la qualité du générateur et gagne une identité ;
+  mesurer contre SES 👍 avant de livrer (le 1er jet de ZEPPELIN était deux fois plus brillant que ses 👍, le thérémine du CASSE dans la boue) ;
+  une note « accordée sur la tonique » se calcule depuis do (`64 + pc(ton − 64)`), pas depuis mi.
