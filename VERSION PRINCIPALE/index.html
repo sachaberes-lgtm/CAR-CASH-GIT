@@ -7213,7 +7213,9 @@ html body.touch.play #ajCourse{animation:hmHaut .55s var(--ease) 1.25s both}
 /* l'aura qui arrive : la cellule en cours s'éclaire, la barre bat */
 #ajCourse .ajSeg>i.cur s::before{content:'';position:absolute;inset:0;background:#fff;opacity:0}
 #ajCourse.prend .ajSeg>i.cur s::before{animation:ajPrend .32s var(--ease)}
+#ajCourse.prend2 .ajSeg>i.cur s::before{animation:ajPrend2 .32s var(--ease)} /* (2026-10-15, perf-devtools) la jumelle : alterner prend/prend2 relance sans offsetWidth (voir jumelle) */
 @keyframes ajPrend{0%{opacity:.6}100%{opacity:0}}
+@keyframes ajPrend2{0%{opacity:.6}100%{opacity:0}}
 @keyframes ajBat{0%{scale:1 1.3}100%{scale:1 1}}
 /* le RECORD battu : le cadre à l'or */
 #ajCourse.record .ajSeg{box-shadow:inset 0 0 0 3px #ffc93a,0 3px 0 #7a4200,0 0 14px rgba(255,201,58,.55)}
@@ -7258,18 +7260,22 @@ html body.touch.play #ajVols{display:block;position:fixed;inset:0;z-index:31;poi
 /* l'arrivée : un anneau de pixels qui s'ouvre là où il tombe */
 #ajVols u{position:absolute;left:-11px;top:-11px;width:22px;height:22px;opacity:0;box-shadow:inset 0 0 0 3px var(--c,#fff);pointer-events:none}
 #ajVols u.on{animation:volImpact .34s steps(4) forwards}
+#ajVols u.on2{animation:volImpact2 .34s steps(4) forwards} /* (2026-10-15, perf-devtools) la jumelle (voir jumelle) */
 @keyframes volImpact{0%{opacity:1;scale:.35}100%{opacity:0;scale:1.7}}
+@keyframes volImpact2{0%{opacity:1;scale:.35}100%{opacity:0;scale:1.7}}
 /* la barre de boost PREND la nitro qui arrive : un éclat au bout du plein (seulement là — plus de flash sur toute la barre) */
 html body.touch #nitroBar>.nbPrend{position:absolute;top:-4px;bottom:-4px;left:calc(3px + var(--px,0) * (100% - 6px));width:34px;translate:-100% 0;z-index:4;
   pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(255,244,214,.95));transform-origin:100% 50%}
 html body.touch #nitroBar>.nbPrend.x{background:linear-gradient(90deg,transparent,rgba(225,232,255,.95))}
 html body.touch #nitroBar>.nbPrend.on{animation:nbPrendK .34s var(--ease)}
+html body.touch #nitroBar>.nbPrend.on2{animation:nbPrendK2 .34s var(--ease)} /* (2026-10-15, perf-devtools) la jumelle (voir jumelle) */
 html body.touch #nitroR,html body.touch #nitroX{transition:none!important}   /* le RESSORT de la boucle porte la largeur (la transition en crans le hachait) */
 @keyframes nbPrendK{0%{opacity:1;scale:1 1.4}100%{opacity:0;scale:1 1}}
+@keyframes nbPrendK2{0%{opacity:1;scale:1 1.4}100%{opacity:0;scale:1 1}}
 /* la pause passe devant : la jauge et ce qui vole se cachent comme le reste du HUD */
 body.hTp:not(#ccH) :is(#ajCourse,#ajVols){visibility:hidden}
 body.coOn :is(#ajCourse,#ajVols){visibility:hidden} /* (2026-10-12, passe qualité) l'auto-école garde le haut de l'écran pour elle, comme le flow et l'aura (voir body.coOn #flowHud) */
-@media (prefers-reduced-motion:reduce){#ajVols u.on,html body.touch #nitroBar>.nbPrend.on,#ajCourse .ajSeg::after,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#ajVols u.on,#ajVols u.on2,html body.touch #nitroBar>.nbPrend.on,html body.touch #nitroBar>.nbPrend.on2,#ajCourse .ajSeg::after,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
 /* ---- 4. (2026-10-12, Léo : « l'aura un peu plus courte, les km/h plus à droite encore, et le flow même taille ») : la jauge d'aura et le flow à
    80 % de la barre de boost (même longueur l'une que l'autre), leurs bouts juste après ; la VITESSE va se ranger contre le ⏸ (couché : son bord
    droit à 16 px du bouton ; debout : 8 px plus loin que la case). `--ajPad` = ce que la barre laisse à droite, debout. ---- */
@@ -42539,7 +42545,8 @@ function raseSnd(dt,kmh){
   const T=AC.currentTime;
   if(on){ RSN.g.gain.setTargetAtTime(Math.min(.22,.09+raseT*.12)*(TEL_NATIF?1.5:1),T,.03);RSN.lfo.frequency.setTargetAtTime(Math.min(60,18+kmh*.05),T,.05); // ⚠ la vitesse arrive en paramètre (speedKmh est locale à loop : ReferenceError avalée, le tic ne partait jamais) ; plafond 60 Hz : au-delà le hachage devient une note
     raseSnd._h=(raseSnd._h||0)-dt;if(raseSnd._h<=0){raseSnd._h=.16;hap(4);} }
-  else RSN.g.gain.setTargetAtTime(0,T,.04);
+  else if(raseSnd._on!==0)RSN.g.gain.setTargetAtTime(0,T,.04); // (2026-10-15, perf-devtools) la consigne 0 UNE fois, au décrochage — elle partait à CHAQUE image hors du bord (profil Chrome : 0,25-0,37 ms par image) ; la courbe exponentielle n'a pas de mémoire : même son
+  raseSnd._on=on?1:0;
 }
 /* LE FRÔLÉ S'ENTEND : un souffle Doppler (aigu à l'approche, grave en s'éloignant — l'objet PASSE à côté de nous) et un
    « ting » qui monte d'un ton par plot enchaîné. La chaîne d'un slalom se joue comme une gamme. */
@@ -57736,12 +57743,20 @@ function volgNitro(k,q){
   if(volgLance(k,q,ajSource(false),Math.min(1.5,.9+q*.6))){VOLG.n[k]+=q;return true;}
   return false;
 }
+/* (2026-10-15, perf-devtools — trace Chrome DevTools d'une course à pleine vitesse) RELANCER UNE ANIMATION SANS FORCER LA MISE EN PAGE.
+   À chaque gain qui touche sa jauge, l'anneau (volgImpact), l'éclat de la barre (nbPrend) et la cellule d'aura (volgArrive) se relançaient
+   par `void el.offsetWidth` : un recalcul synchrone des styles ET de la mise en page de tout le HUD, plusieurs fois par seconde à grande
+   vitesse (~0,35 ms par image sur le Mac, offsetWidth + recalculs forcés). On ALTERNE deux animations jumelles (même dessin, autre nom),
+   comme flashEcran : le nom change, le navigateur la relance à la même image, sans lecture forcée. Deux relances du même élément dans la
+   même tâche = UNE (elles partaient déjà à la même image). */
+function jumelle(el,a,b){if(el._jm)return;el._jm=1;Promise.resolve().then(function(){el._jm=0;});
+  const x=el.classList.contains(a);el.classList.remove(x?a:b);el.classList.add(x?b:a);}
 function volgImpact(x,y,c){const u=VOLG.imp.shift();if(!u)return;VOLG.imp.push(u);
-  u.style.translate=Math.round(x)+'px '+Math.round(y)+'px';u.style.setProperty('--c',c);u.classList.remove('on');void u.offsetWidth;u.classList.add('on');}
+  u.style.translate=Math.round(x)+'px '+Math.round(y)+'px';u.style.setProperty('--c',c);jumelle(u,'on','on2');}
 function nbPrend(k){ // la barre de boost PREND : un éclat au bout du plein
   if(!VOLG)return;
   if(!VOLG.nbP){const nb=document.getElementById('nitroBar');if(!nb)return;const p=document.createElement('i');p.className='nbPrend';p.setAttribute('aria-hidden','true');nb.appendChild(p);VOLG.nbP=p;}
-  const p=VOLG.nbP;p.style.setProperty('--px',(k==='x'?VOLG.fR+VOLG.fX:VOLG.fR).toFixed(3));p.className='nbPrend '+k;void p.offsetWidth;p.className='nbPrend on '+k;
+  const p=VOLG.nbP;p.style.setProperty('--px',(k==='x'?VOLG.fR+VOLG.fX:VOLG.fR).toFixed(3));p.classList.remove(k==='x'?'r':'x');p.classList.add(k);jumelle(p,'on','on2'); // (2026-10-15, perf-devtools) relancé sans offsetWidth : voir jumelle
 }
 function volgArrive(f,i,muet){
   VOLG.L.splice(i,1);f.el.style.opacity='0';VOLG.pool.push(f.el);
@@ -57749,7 +57764,7 @@ function volgArrive(f,i,muet){
   if(!muet){const now=performance.now();VOLG.ch=now-VOLG.chT<650?Math.min(VOLG_GAMME.length-1,VOLG.ch+1):0;VOLG.chT=now;a=1+.16*Math.min(VOLG.ch,4);
     } // (2026-10-12, Léo : « je ne l'entends plus accordé ; une pièce, je l'entends pas forcément ») le « plop » d'arrivée (ui.pop, sa gamme à lui) est RETIRÉ : il brouillait la mélodie des pièces — l'arrivée se VOIT (rebond, anneau)
   if(f.k==='a'){AJ.envol=Math.max(0,AJ.envol-f.q);AJ.enVol=Math.max(0,AJ.enVol-1);
-    if(!muet&&AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');volgBat(AJ.seg,a);volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
+    if(!muet&&AJ.el){jumelle(AJ.el,'prend','prend2');volgBat(AJ.seg,a);volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
   else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgBat(document.getElementById(f.k==='x'?'nitroX':'nitroR'),a);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
 }
 function volgVide(){for(let i=VOLG.L.length-1;i>=0;i--)volgArrive(VOLG.L[i],i,true);VOLG.n.r=VOLG.n.x=0;}
