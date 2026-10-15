@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MATIÈRE COMMUNE DES DÉCORS — CANYON, FORÊT, JADE (2026-10-15, session TEXTURES — Sacha : « petite session d'amélioration des textures des biomes : j'ai fait plusieurs biomes plus ou moins bien finis, ils sont générés en aléatoire et tout, mais je trouve que certains éléments manquent de cohérence entre eux — couleurs, formes, textures ; travaille sur toutes les maps les textures des éléments de décor, sans que ça prenne trop d'espace sur l'iPhone »)
+- LE MUR DES 8 MAPS (midi, interface masquée, caméra levée) : le décor parle en APLATS PROPRES et dégradés doux (ville, nuages, pics du
+  glacier, volcan). Trois matières faisaient bande à part : les strates RAYÉES du canyon (des lits de 2 à 7 m en magenta/lavande qui
+  dessinaient des traits), la prairie FLUO de la forêt (vert-jaune sans bleu, poussé par la couche POP), la roche GRISE et granuleuse du jade.
+- L'inventaire : presque tout le décor est CALCULÉ dans les shaders (glacier 0 octet de texture, volcan 70 Ko, canyon 0,5 Mo de bruits,
+  forêt ~3,4 Mo, jade ~2,8 Mo). La retouche reste donc en NOMBRES dans les shaders : **zéro image ajoutée, zéro octet de mémoire graphique en plus**.
+- `MATIERE_V` (déclaré juste avant `FORET`) — `?sans=matiere` = la matière d'avant :
+  · CANYON (`cyStrates`, `CY_FS`) : un lit mince fait au moins 4 px de la colonne (≥ 9 m) ; la colonne est relue à 3,7 m/px au lieu de 2,3
+    (bandes 1,6× plus larges). Le tirage `r()` de `cyStrates` est inchangé (même nombre d'appels) ; `cyStrates` n'est pas recopiée dans
+    le travailleur du canyon.
+  · FORÊT (`FOR_SOL_FS`) : mousse et prairie reçoivent du BLEU à clarté égale, la prairie ondule en grandes plaques (`×(.84+.32·n1)`).
+    MESURÉ (pixels verts du bas de l'image, midi, caméra levée) : saturation moyenne 0,91 → 0,65, teinte 0,27 → 0,32 (du jaune-vert vers le vert).
+  · JADE (`JADE_VR_FS`) : la roche `roc` passe du gris neutre (.52,.52,.49)/(.39,.39,.37) à une pierre teintée de jade de même clarté
+    (.45,.55,.51)/(.33,.41,.39) ; son grain fin (`rg`) ramené de ±.15 à ±.07.
+- PAS TOUCHÉ, exprès : le VERGLAS du glacier (le carrelage d'hexagones lumineux sur la route) — posé le matin même par la session Glacier,
+  c'est un signal de jeu ; à trancher par Sacha s'il le trouve trop « carrelage ». La ville, les nuages, le volcan, l'orbite : déjà cohérents.
+- Banc : `mur.cjs` (scratchpad TEXTURES) — `?carte=X&meteo=Y`, JOUER, 7 s de course, interface masquée, `dbgView` large et haut ;
+  planches avant/après midi + soir. Aucune erreur JS sur les 8 maps.
+
 ## PLUS DE SNAKE LOOP, DE DAUPHIN, DE NITROOO NI DE DRAGON (2026-10-15, Sacha : « supprime du main le snake loop, le dauphin, le nitrooo et les animations 3D qui leur sont attribuées, enlève aussi le dragon chinois de flamme »)
 - Même recette que la carrière et le mode facile : COUPÉS, pas arrachés. Quatre interrupteurs en tête du fichier, à côté de `SANS_FACILE` :
   `SANS_SNAKE`, `SANS_DAUPHIN`, `SANS_NITROOO`, `SANS_DRAGON` (vrais par défaut ; `?snake=1`, `?dauphin=1`, `?nitrooo=1`, `?dragon=1` les
