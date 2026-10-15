@@ -6673,6 +6673,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqCats.duo button{width:calc((100% - var(--cG,8px)) / 2);justify-content:center;padding:0}
 #gBqCats.duo button span{display:none}
 #gBqPan .bqK .bqKph[data-pha] img{width:100%}
+#gBqPan .bqK .bqKph[data-phf] img{width:100%;height:100%;object-fit:contain;object-position:50% 100%} /* (2026-10-15 soir) la photo-séquence d'une figure (figFile) : entière, le saut d'un bord à l'autre */
 #gBq #gBqPan .bqK.hab .bqKph .bqSw{width:42px;height:42px} /* les grandes cartes des habillages : la pastille de la peinture, le ruban de la traînée à leur taille */
 #gBq #gBqPan .bqK.hab .bqKph .bqRub{width:70%;height:12px}
 /* (2026-10-12) v4 : l'argent À CÔTÉ de BOUTIQUE ; le choix de la catégorie ; les habillages dans la grille */
@@ -36128,6 +36129,13 @@ const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.2
 const PHOTO_AILE={el:1,az:.15}; // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
 /* LA PHOTO D'UNE AILE (2026-10-15, Sacha : « pour les ailes il n'y a pas de photo, c'est pas bien ») : la caisse équipée, l'aile essayée,
    DÉPLOYÉE comme en vol (pleine envergure, léger dièdre), vue de trois quarts en plongée — même studio, même pellicule que les caisses */
+// le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
+function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
+  PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
+  const hemi=new THREE.HemisphereLight(0xdfe6ff,0x281a40,.62),key=new THREE.DirectionalLight(0xfff4e6,1.75),
+        rim=new THREE.DirectionalLight(0xff5ad0,1.35),rim2=new THREE.DirectionalLight(0x5ad8ff,.9),bas=new THREE.PointLight(0x8a5cff,.7,16);
+  key.position.set(-3,8,7);rim.position.set(7,3.5,-6);rim2.position.set(-7,2.5,-5);bas.position.set(0,-.4,3);
+  PHOTO.scene.add(hemi,key,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}}
 function aileFile(id,cb){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j}]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
@@ -36144,11 +36152,7 @@ function carPhoto(i,cb,aile){
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
   const T9=PHOTO.ms={i:i,t0:performance.now()};
   const W=PHOTO_W,H=PHOTO_H,SS=PHOTO_SS,RW=W*SS,RH=H*SS;
-  if(!PHOTO.rt){PHOTO.rt=new THREE.WebGLRenderTarget(RW,RH);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
-    const hemi=new THREE.HemisphereLight(0xdfe6ff,0x281a40,.62),key=new THREE.DirectionalLight(0xfff4e6,1.75),
-          rim=new THREE.DirectionalLight(0xff5ad0,1.35),rim2=new THREE.DirectionalLight(0x5ad8ff,.9),bas=new THREE.PointLight(0x8a5cff,.7,16);
-    key.position.set(-3,8,7);rim.position.set(7,3.5,-6);rim2.position.set(-7,2.5,-5);bas.position.set(0,-.4,3);
-    PHOTO.scene.add(hemi,key,rim,rim2,bas);PHOTO.key=key;}
+  photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin)
   let url=null,asy=false;
@@ -36214,6 +36218,102 @@ function carPhoto(i,cb,aile){
   if(cb&&!asy)cb(url);
   return url;
 }
+/* LA PHOTO D'UNE FIGURE (2026-10-15 soir, Sacha : « mais bien des illustrations pour chaque figure, dans la boutique ») — les cartes du rayon
+   FIGURES montraient toutes le même pictogramme (la flèche qui tourne), quand les caisses et les ailes ont leur photo. Désormais une
+   PHOTO-SÉQUENCE, comme en BMX : la caisse équipée, au même studio et sur la même pellicule que les caisses, posée plusieurs fois le long de son
+   saut (de gauche à droite, le nez devant), chaque pose tournée par la VRAIE figure (FIG.quat, dans le sens de sa carte : FIG.oriente) ; les
+   premières pâles, la dernière nette ; derrière, le saut tracé en pointillé de pixels, à la couleur de sa rareté.
+   · les poses tombent à ANGLES ÉGAUX (FIG.quat lisse le temps : on inverse le lissage) — un salto : 0°, 90°, 180°, 270°, 360° ; deux tours
+     (double tonneau, hélico 720, cosmique) : sept poses ; une figure sans tour (chandelle, shimmy) : son battement, de 10 à 90 % du geste ;
+   · le TAIL WHIP tourne autour du NEZ (`piv`), comme en vol ;
+   · une figure de CÔTÉ est photographiée telle quelle (le jeu la tire du côté du pouce) ; une figure à deux sens a une photo par carte.
+   File PHQ partagée avec les caisses (une photo par image), cache de session `f:<figure>:<sens>:<caisse>`. Banc : dbgFigPhoto(id, sens, o). */
+const PHOTO_FIG={w:600,h:240,el:.3,elPlat:.62,az:.07,pas:.8,haut:.45,bas:-.86,n:5,n2:7,large2:1.12}; // pas : l'écart des poses en longueurs de caisse (< 1 : elles se chevauchent, la caisse est plus grande) ; large2 : un saut un peu plus long pour sept poses ; elPlat : une figure À PLAT (toupie, tail whip, hélico : l'axe vertical seul) se photographie de plus haut, sinon de profil on ne la lit pas
+function figFile(id,dir,cb){if(!(window.FIG&&FIG.par[id]))return;const k='f:'+id+':'+dir+':'+equippedCar();
+  if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,fig:id,dir:dir}]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function figPhoto(o,cb){const ck=o.k;
+  if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
+  if(started&&!gameOver){if(cb)cb(null);return null;}
+  if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
+  const f0=window.FIG&&FIG.par[o.fig];if(!f0){if(cb)cb(null);return null;}
+  const f=FIG.oriente?FIG.oriente(f0,o.dir):f0,P=PHOTO_FIG,W=P.w,H=P.h,SS=PHOTO_SS,RW=W*SS,RH=H*SS,i=equippedCar(),T9=PHOTO.msF={fig:o.fig,dir:o.dir,t0:performance.now()};
+  photoStudio();if(!PHOTO.rtF){PHOTO.rtF=new THREE.WebGLRenderTarget(RW,RH);PHOTO.camF=new THREE.PerspectiveCamera(24,W/H,.1,900);}
+  const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
+  PHOTO.avant=carGroup.userData.lvl;
+  let url=null,asy=false;
+  try{
+    buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,0,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();
+    carGroup.updateMatrixWorld(true);
+    // la BOÎTE et un semis de SOMMETS de ce qu'on voit, au repos (repère de la caisse : le cadrage se cale sur la vraie silhouette de chaque pose)
+    const bx=new THREE.Box3(),b9=new THREE.Box3(),SOM=[];
+    carGroup.traverse(function(m){if(!m.isMesh||!m.geometry)return;for(let a=m;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
+      if(!m.geometry.boundingBox)m.geometry.computeBoundingBox();b9.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld);bx.union(b9);
+      const pa=m.geometry.attributes.position;if(!pa)return;const st=Math.max(1,Math.floor(pa.count/120));
+      for(let q=0;q<pa.count;q+=st)SOM.push(new THREE.Vector3().fromBufferAttribute(pa,q).applyMatrix4(m.matrixWorld));});
+    if(bx.isEmpty())bx.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1.3,2));
+    const ctr=bx.getCenter(new THREE.Vector3()),L=Math.max(1,bx.max.z-bx.min.z);
+    // LES POSES : le chemin (une parabole, de gauche à droite) et la rotation de la figure à chaque pose, autour du milieu — du nez pour le tail whip
+    let tours=0,plat=true;for(const m of f.m){if(m.t!=null)tours=Math.max(tours,Math.abs(m.t));if(Math.abs(m.a[1])<Math.max(Math.abs(m.a[0]),Math.abs(m.a[2]))+.01)plat=false;}
+    const N=tours>=2?P.n2:P.n,span=(P.n-1)*L*P.pas*(N>P.n?P.large2:1),haut=L*P.haut,pv=new THREE.Vector3(0,ctr.y,ctr.z+(f.piv||0)*L*.5),qa=[0,0,0,1],Q=[],arc=function(u,v){return v.set(0,haut*4*u*(1-u),(u-.5)*span).add(ctr);};
+    for(let k=0;k<N;k++){const u=k/(N-1),x=tours?.5-Math.sin(Math.asin(1-2*u)/3):.1+.8*u;FIG.quat(f,x,1,qa);
+      const q=new THREE.Quaternion(qa[0],qa[1],qa[2],qa[3]),c=new THREE.Vector3(0,haut*4*u*(1-u),(u-.5)*span);
+      c.add(pv).sub(pv.clone().applyQuaternion(q));Q.push([c,q]);}
+    T9.poses=N;
+    // LE CADRAGE : de profil, un peu plongeant, toutes les poses dans le cadre (92 % de large, 66 % de haut au plus), POSÉES EN BAS (`bas`) :
+    // l'étiquette de rareté couvre le haut de la carte, le sommet du saut passe dessous
+    const EL=plat?P.elPlat:P.el,cam=PHOTO.camF,dc=new THREE.Vector3(-Math.cos(EL)*Math.cos(P.az),Math.sin(EL),Math.cos(EL)*Math.sin(P.az)),PTS=[],v9=new THREE.Vector3();
+    for(const p of Q)for(const s of SOM)PTS.push(s.clone().applyQuaternion(p[1]).add(p[0]));
+    let D=span*3,tg=arc(.5,new THREE.Vector3());tg.y-=haut*.4;
+    for(let it=0;it<4;it++){
+      cam.position.copy(tg).addScaledVector(dc,D);cam.lookAt(tg);cam.updateMatrixWorld();cam.updateProjectionMatrix();
+      let x0=9,x1=-9,y0=9,y1=-9;for(const c of PTS){v9.copy(c).project(cam);x0=Math.min(x0,v9.x);x1=Math.max(x1,v9.x);y0=Math.min(y0,v9.y);y1=Math.max(y1,v9.y);}
+      D*=Math.max((x1-x0)/1.84,(y1-y0)/1.32);
+      const tV=Math.tan(cam.fov*Math.PI/360),tH=tV*cam.aspect,rt9=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0),up9=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,1);
+      tg.addScaledVector(rt9,(x0+x1)/2*tH*D).addScaledVector(up9,(y0-P.bas)*tV*D);}
+    cam.position.copy(tg).addScaledVector(dc,D);cam.lookAt(tg);cam.updateMatrixWorld();
+    // LES PRISES : une pose par rendu, posée sur les précédentes — la pellicule de carPhoto, puis l'opacité de la pose (la dernière nette)
+    const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
+    const buf=new Uint8Array(RW*RH*4),acc=new Float32Array(RW*RH*4);
+    try{for(let k=0;k<N;k++){carGroup.position.copy(Q[k][0]);carGroup.quaternion.copy(Q[k][1]);carGroup.updateMatrixWorld(true);
+      renderer.setRenderTarget(PHOTO.rtF);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,cam);
+      renderer.readRenderTargetPixels(PHOTO.rtF,0,0,RW,RH,buf);
+      const A=k===N-1?1:.42+.4*k/(N-1);
+      for(let y=0;y<RH;y++){const s0=(RH-1-y)*RW*4,d0=y*RW*4;for(let j=0;j<RW*4;j+=4){const al=buf[s0+j+3];if(!al)continue;
+        let r=buf[s0+j]/255,g=buf[s0+j+1]/255,bl=buf[s0+j+2]/255;const Lu=.2126*r+.7152*g+.0722*bl;
+        if(Lu>1e-4){let L2=Math.pow(Lu,1/1.22);if(L2>.82)L2=.82+(L2-.82)/(1+(L2-.82)*2.6);const q=L2/Lu;r*=q;g*=q;bl*=q;}
+        const l2=.2126*r+.7152*g+.0722*bl;r=Math.max(0,l2+(r-l2)*1.14);g=Math.max(0,l2+(g-l2)*1.14);bl=Math.max(0,l2+(bl-l2)*1.14);
+        const mx=Math.max(r,g,bl);if(mx>1){r/=mx;g/=mx;bl/=mx;}
+        const a=al/255*A,b=1-a,d=d0+j;acc[d]=r*a+acc[d]*b;acc[d+1]=g*a+acc[d+1]*b;acc[d+2]=bl*a+acc[d+2]*b;acc[d+3]=a+acc[d+3]*b;}}}}
+    finally{renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);}
+    T9.rendu=performance.now()-T9.t0;
+    const gros=document.createElement('canvas');gros.width=RW;gros.height=RH;const gx=gros.getContext('2d'),im=gx.createImageData(RW,RH),dd=im.data;
+    for(let d=0;d<dd.length;d+=4){const a=acc[d+3];if(a<=0)continue;dd[d]=acc[d]/a*255;dd[d+1]=acc[d+1]/a*255;dd[d+2]=acc[d+2]/a*255;dd[d+3]=a*255;}
+    gx.putImageData(im,0,0);
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
+    // LE SAUT en pointillé de pixels, derrière les poses : un carré tous les ~15 px de la photo, à la couleur de la rareté
+    {x.fillStyle=rarInfo(cosmRar('figure',f0)).c;x.globalAlpha=.7;let px=null,py=null,lu=0;const a9=new THREE.Vector3();
+     for(let s=0;s<=240;s++){arc(s/240,a9).project(cam);const X9=(a9.x*.5+.5)*W,Y9=(.5-a9.y*.5)*H;if(px!=null)lu+=Math.hypot(X9-px,Y9-py);px=X9;py=Y9;
+       if(s===0||lu>=15){lu=0;x.fillRect(Math.round(X9-3),Math.round(Y9-3),6,6);}}
+     x.globalAlpha=1;}
+    x.drawImage(gros,0,0,W,H);toileRend(gros);T9.montage=performance.now()-T9.t0;
+    if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
+      cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else PHOTO.cache[ck]=u;}
+        const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const fn of L9)try{fn(u);}catch(e){console.warn('photo figure',e);}},'image/png');}
+    else{url=cv.toDataURL('image/png');toileRend(cv);}
+  }catch(e){console.warn('photo figure',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
+  if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
+  {const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}
+  T9.total=performance.now()-T9.t0;
+  if(url)PHOTO.cache[ck]=url;
+  if(cb&&!asy)cb(url);
+  return url;
+}
+window.dbgFigPhoto=function(id,dir,o){if(o)Object.assign(PHOTO_FIG,o);if(!id){for(const k9 in PHOTO.cache)if(k9.indexOf('f:')===0)delete PHOTO.cache[k9];return 'photos des figures oubliees';} // (banc) la photo d'une figure, refaite (o : {el, elPlat, az, pas, haut, bas, n, n2} du studio) — rend la dataURL et les temps ; sans id : oublie toutes les photos de figures (la boutique les refait)
+  const k='f:'+id+':'+(dir||'cote')+':'+equippedCar();delete PHOTO.cache[k];
+  const u=figPhoto({k:k,fig:id,dir:dir||'cote'},null);const T=PHOTO.msF||{},r=function(v){return v==null?null:Math.round(v);};
+  return {url:u,poses:T.poses,msCaisse:r(T.caisse),msRendu:r(T.rendu),msMontage:r(T.montage),msTotal:r(T.total),reglage:Object.assign({},PHOTO_FIG)};};
 window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
   const u=carPhoto(c,null,{k:k,j:j});return {url:u,box:PHOTO.ms&&PHOTO.ms.box,ailes:PHOTO.ms&&PHOTO.ms.ailes,caisse:CARS[c].name,reglage:Object.assign({},PHOTO_AILE)};};
 window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
@@ -43752,6 +43852,7 @@ let airRoll=0; // vrille visuelle en vol
    caisse remonte en raccrochant (décroît). */
 let bascOn=false,bascDir=1,levreY=0,bascT=0; /* bascT (1/10, soir) : le temps VÉCU depuis la sortie par le bord — `fallT` est rendu par les bumps, il réarmait la bascule en plein vol */
 const BUMP_VY=16; /* (2026-10-01) la vitesse verticale rendue par un BUMP (voir tryLand) */
+const BUMP_VAL=5; /* (2026-10-15 soir, Sacha) ce que le 1er BUMP d'un vol verse à la chaîne, comme une figure (le RICOCHET sur l'eau : 5) — puis ×0,6 par rebond */
 const LEVRE_POSE=.45; /* (2026-10-01) la marche qu'un pneu monte à TOUTE pose au bord (voir levre9 dans tryLand) */
 const LEVRE_H=2; /* (1/10, soir : 1,2 → 2 m, pendant 1 s — la marge que donnait, par accident, la portée réarmée après un bump) */ // sous la surface, jusqu'où le pneu peut encore raccrocher la lèvre (plus bas : c'est la tranche qui cogne → BUMP)
 /* (2026-10-01, Sacha, le lendemain : « maintenant quand on s'expulse de la route à grande vitesse on MEURT sans raison, sans qu'on ait la
@@ -44333,6 +44434,8 @@ function figDirSlot(){let x,y;
   FDIR.x=x;if(Math.abs(x)>=.3&&Math.abs(x)>=Math.abs(y)*.85)return 2;return y<=-.3?1:0;} // FDIR.x : le pouce lui-même, que figLance lit pour le côté (o.dx) — (2026-10-15 soir, la direction ARRIÈRE) ◄► = 2 · pouce vers le BAS = 1 (arrière) · vers le haut ou au repos = 0 (avant)
 window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot(),r=figLance(s,{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on});return r?(r.attente?'attente':'ok geste '+(s+1)+' '+r.f.id+(r.f.sens?' '+r.f.sens:'')+(r.s>0?'+':'-')):'refus';}finally{FDIR.force=null;}};
 function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
+window.dbgSautFig=function(x,y){if(x==='cause')return {cause:mortCause,mode:mode,go:gameOver};FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);} /* (banc, 2026-10-15 soir) un double-tap NITRO, le joystick en (x : le côté, y : l'avant) — au sol : le SAUT NITRO et la figure de cette direction */
+  return {ok:!!r,mode:mode,hopY:+hopY.toFixed(2),hopV:+hopV.toFixed(2),pose:!!POSE_F,cd:Math.round(performance.now()-VEQ.sautT),nit:+(nitroR+nitroX).toFixed(2),slot:figDirSlot()};};
 /* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
    être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
    RÉGLAGES › JEU › FIGURES (et la PAUSE) — 2 TAPS (le double-tap, d'origine) · GLISSER (`SAVE.d.figG`, écrit par `figGBascule` seul).
@@ -45996,7 +46099,7 @@ function chainHudShow(){
   chainHud.style.opacity=1;
   chainHud.classList.remove('pulse');void chainHud.offsetWidth;chainHud.classList.add('pulse');
 }
-function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote. free : figure GRATUITE, zéro dollar (le bump) : feedback oui, argent non
+function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent déjà (vrilles, bumps) — pas de décote. free : figure GRATUITE, zéro dollar : feedback oui, argent non (plus personne depuis le 15/10 soir : le bump paie comme les autres)
   if(fever>0&&!free)fever=Math.min(18,fever+.8); // pendant le BRAQUAGE, chaque figure PROLONGE le plaisir (plafond 18 s) — sauf les gratuites
   const n=(chainSeen[id]=(chainSeen[id]||0)+1);
   /* L'AURA PASSE PAR LE COMBO, PAS PAR LA VALEUR DE LA FIGURE. Même les figures GRATUITES (le bump)
@@ -46513,8 +46616,9 @@ function tryLand(dt){
   const vN=fallVel.dot(Nn[bestI]);
   // FLANC de la dalle : la caisse COGNE la tranche et REBONDIT — c'est le BUMP.
   // Demi-jauge d'airtime rendue + du STYLE + le feedback (message, son, secousse).
-  // ZÉRO argent : le bump ne verse RIEN, ni direct ni via la chaîne (figure `free`) —
-  // longer la tranche à l'infini ne remplit plus la mallette (exploit fermé).
+  // (2026-10-15 soir, Sacha : « bump doit compter comme une figure additionnable comme les autres ») il ENTRE dans la chaîne :
+  // sa valeur s'ajoute à la mallette et il monte le multiplicateur, comme une figure. La redite s'use (×0,6 par rebond du même
+  // vol, comme une figure refaite) : longer la tranche à l'infini ne rapporte pas plus de 12,5 par vol (l'exploit reste fermé).
   const vB=fallVel.dot(B[bestI]);
   // ANTI-TUNNEL : où était la caisse à la frame d'avant, dans le repère de la dalle ?
   // À grande vitesse le pas d'une frame dépasse les fenêtres de contact — on teste la TRAVERSÉE.
@@ -46559,12 +46663,12 @@ function tryLand(dt){
     // ET recalée sur le point de piste le plus proche (jusqu'à 1,6 m le long du ruban) — un saut d'image, pas un choc
     fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
     sideCd=.35;bascOn=false; /* (1/10, soir) la tranche touchée : la bascule est finie */
-    // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
+    // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : une FIGURE de la chaîne (2026-10-15 soir : elle s'additionne aux autres) ----
     bounceN++;runStats.bumps++;secBord(); /* (DÉFIS SECRETS) FANTÔME : la tranche touchée */
     hap(24);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
-      0,Math.min(3,bounceN),true,true); // free=true : le bump NE PAYE PLUS (fini la machine à cash en longeant la tranche) — il rend l'airtime et le style, c'est tout
+      BUMP_VAL*Math.pow(.6,bounceN-1),Math.min(3,bounceN),true); // (2026-10-15 soir) plus `free` : il PAIE dans la chaîne (mallette + multiplicateur), la redite s'use ici (raw : le nom porte déjà le compte)
     bumpSfx(bounceN);
     thud(impB);if(!SONV2)noiseBurst(.14,.09,1100); // choc + froissement de tôle (console : pose.choc le porte)
     shake=Math.min(1.3,.3+impB*.03);
@@ -51625,7 +51729,7 @@ function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   if(GAR.sw||GAR.go){requestAnimationFrame(photoTour);return;}
   const it=PHQ.q.shift(),u=PHOTO.cache[it[0]];
-  if(u)it[1](u);else try{const a9=it[2];carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
+  if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.fig)figPhoto(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
   requestAnimationFrame(photoTour);
 }
 function gBankPaint(){const gb=$('gBank');
@@ -53945,7 +54049,7 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';}
   if(bqPxLg(px))c+=' lg';
   return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
-    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
+    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
     +'<span class="bqKr'+(sansAcc(TR(ri.n1)).length>8?' lg':'')+'">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';} /* (clarté 14/10) la RARETÉ s'écrit sur la carte */
 /* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
    plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
@@ -53955,7 +54059,8 @@ function bqPhotos(el){
   el.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(c){const i=+c.getAttribute('data-fn').slice(2);
     photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});
   el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}});});
-  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');});});} /* (2026-10-15) les AILES ont leur photo (aileFile) */
+  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');});}); /* (2026-10-15) les AILES ont leur photo (aileFile) */
+  el.querySelectorAll('[data-phf]:not(.ok)').forEach(function(x){const p=x.getAttribute('data-phf').split('|');figFile(p[0],p[1],function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');});});} /* (2026-10-15 soir) et les FIGURES leur photo-séquence (figFile), dans le sens de leur carte */
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
   ui.innerHTML='<div id="gBqTete"><div class="bqT1"><div class="bqTl"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqArg"><b id="gBqArg"></b></div></div>'

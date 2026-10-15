@@ -138,7 +138,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
   `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
-  `figAchat`/`figPossede`, `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
+  `figAchat`/`figPossede`, la photo-séquence d'une carte FIGURES `figFile`/`figPhoto` (studio commun `photoStudio`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
   `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, missions `CARNETS`/`misTick`.
@@ -322,7 +322,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
   (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
   au shop et à l'inventaire (`COSM.figure`) — son DESSIN dans les vignettes et le sélecteur des trois figures : une ligne dans `ILLU_FIG`
-  (index.html : anneau, sens, vue de la caisse, geste joué ; sans elle, l'anneau du salto) —, s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
+  (index.html : anneau, sens, vue de la caisse, geste joué ; sans elle, l'anneau du salto) ; en BOUTIQUE, sa PHOTO-SÉQUENCE se calcule seule de son mouvement (`figFile`, `dbgFigPhoto`) —, s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
   `['avant','arriere']` (un salto + autre chose : le geste choisit le sens du salto) ; sans `dir`, `FIG.dirs` la range par la règle de
   figures.js (que l'axe des roues → son sens ; aucun mouvement sur x → côté ; les deux → avant et arrière). `figures.js?v=` +1 dans index.html ET boite-figures.html,
   `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
@@ -436,6 +436,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
 **Caisses, boutique, habillages**
+- « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)

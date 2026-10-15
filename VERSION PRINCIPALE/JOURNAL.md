@@ -3,6 +3,32 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE (2026-10-15 soir, Sacha : « mais bien des illustrations pour chaque figure, dans la boutique »)
+- AVANT : les 16 cartes du rayon FIGURES (13 figures, trois à deux sens) montraient TOUTES le même pictogramme (`pxi('rotation')` de
+  `bqFigHab`), à moitié sous l'étiquette de rareté — quand les caisses et les ailes ont leur photo de studio.
+- MAINTENANT : une PHOTO-SÉQUENCE par carte, comme une séquence de BMX (`figFile(id, sens, cb)` → `figPhoto`) : la caisse ÉQUIPÉE, au même
+  studio et sur la même pellicule que les caisses (`photoStudio`, sorti de `carPhoto` ; même courbe de tons), posée le long de son saut, de
+  gauche à droite, le nez devant. Chaque pose est tournée par la VRAIE figure (`FIG.quat`, dans le sens de la carte : `FIG.oriente` — le rodéo
+  AVANT et le rodéo ARRIÈRE ont chacun leur photo). Les premières poses pâles (42 → 82 %), la dernière nette ; derrière, le saut en pointillé
+  de pixels à la couleur de la rareté.
+  · poses à ANGLES ÉGAUX : `FIG.quat` lisse le temps (smoothstep), on l'inverse — un salto : 0°, 90°, 180°, 270°, 360° ; deux tours (double
+    tonneau, hélico 720, cosmique) : sept poses, un saut 12 % plus long ; sans tour (chandelle, shimmy) : le battement, de 10 à 90 % du geste ;
+  · le TAIL WHIP tourne autour du NEZ (`piv`), comme en vol ;
+  · une figure À PLAT (l'axe vertical seul : toupie, tail whip, hélico) est vue de plus haut (`elPlat` 0,62 rad), les autres de profil (0,3) ;
+  · cadrage calculé sur un semis de sommets de chaque pose, la séquence POSÉE EN BAS de l'image (`bas`) : l'étiquette de rareté couvre le haut
+    de la carte, le sommet du saut passe dessous (vérifié couché, debout, et dans le cadre de l'ordi). Image 600 × 240 (rendue ×2), `object-fit:
+    contain` calé en bas (`.bqKph[data-phf] img`).
+- Branchement : la carte porte `data-phf="<figure>|<avant|arriere|cote>"` (`bqCarteHtml`), `bqPhotos` la remplit ; le pictogramme d'avant
+  reste en attendant. File `PHQ` partagée avec les caisses (une photo par image, `photoTour` aiguille sur `figPhoto` quand `it[2].fig`), cache
+  de session `f:<figure>:<sens>:<caisse>` (changer de caisse refait les photos). Jamais en course (`started && !gameOver` → rien).
+- MESURÉ (Chrome du Mac, 844 × 390 ×2) : 13 figures en ~40-100 ms chacune (la 1re ~200 ms : la cible de rendu se crée), dont ~30 ms de rendu et
+  de pellicule pour 5 poses ; 16/16 cartes remplies en ~2 s à l'ouverture du rayon. Menu → boutique → FIGURES → toucher RODÉO → JOUER → course :
+  aucune erreur (`__loopErr` nul), couché, debout et dans le cadre.
+- Banc : `dbgFigPhoto(id, sens, o)` refait une photo et rend dataURL + temps (`o` règle `PHOTO_FIG` : el, elPlat, az, pas, haut, bas, n, n2,
+  large2) ; `dbgFigPhoto()` sans id oublie toutes les photos de figures (la boutique les refait au prochain passage).
+- Une figure ajoutée à figures.js a sa photo SANS RIEN FAIRE (elle est calculée de son mouvement). L'inventaire garde ses anneaux (`ILLU_FIG`).
+- À trancher par Sacha : le nombre de poses (5 ; 7 pour deux tours) et leur chevauchement (`pas` 0,8 longueur de caisse).
+
 ## QUATRE RETOUCHES : LES FLEURS DU BORD, LES MOUTONS, L'OFFRE ÉPHÉMÈRE DU GARAGE, LA ROUTE À 5,2 m (2026-10-15 soir, Sacha : « enlever les fleurs au bord de la route dans la forêt » · « j'ai eu un message : les moutons saute les, enlève ça » · « enlève offre éphémère du garage » · « augmente l'épaisseur de la route »)
 - LA FORÊT SANS FLEURS AU BORD : `FORET_FLEURS_BORD` (faux ; `?fleurs=1` les rend). Dans `buildForet`, la boucle des fleurs du bord tire
   TOUJOURS ses nombres (`fr()`), seule la pose saute : le reste de la forêt (plantes du fond, lierre, rayons…) ne bouge pas d'un mètre.
