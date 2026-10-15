@@ -10577,6 +10577,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
   uJour:{value:0},uMerLoin:{value:/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?16000:8000}, /* (2026-10-14, passe graphismes · ciel2) la mer lointaine — là où son bruit s'étire en traînées — fond deux fois plus tôt dans la brume : un dégradé propre à l'horizon (titre et chute posent le leur) */uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
+  uSkySat:{value:1}, // (2026-10-15 soir) LA CHROMA DU CIEL DE JOUR (voir cielSat, routeTick) : 1 = telle quelle
   uSym:{value:0}, // (2026-10-15) LE CIEL SANS DESSOUS (map NUAGES) : 1 = la moitié basse du dôme est le reflet de la haute (voir TETE)
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},
@@ -10598,6 +10599,7 @@ const skyDome=(function(){
      ligne. À 0 (toutes les autres maps), mix(y,|y|,0) = y : l'image d'avant au bit près. */
   const TETE=[
       'varying vec3 vDirR;uniform float uSym;vec3 vDirS(){return vec3(vDirR.x,mix(vDirR.y,abs(vDirR.y),uSym),vDirR.z);}',
+      'uniform float uSkySat;vec3 cielSat(vec3 c){float l=dot(c,vec3(.2126,.7152,.0722));return max(mix(vec3(l),c,uSkySat),0.);}', // (2026-10-15 soir) la chroma du ciel de jour, plafonnée (voir routeTick)
       '#define vDir vDirS()',
       'uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
@@ -11402,7 +11404,7 @@ const skyDome=(function(){
       '  if(uVille>.001)col=mix(col,villeCiel(vDir,az,col),uVille);', // LE CIEL DE LA VILLE : plafond, skyline, abîme (voir villeCiel)
       '  if(uJade>.001)col=mix(col,jadeCiel(vDir),uJade);', // (le fondu d entrée/sortie de la map)
       '  if(uCanyon>.001)col=mix(col,canyonCiel(vDir),uCanyon);', // (2026-10-14) LE CANYON DES GÉANTS : son fondu
-      '  col+=vec3(cielTrame());', // dither
+      '  col=cielSat(col);col+=vec3(cielTrame());', // dither
       '  gl_FragColor=vec4(col,1.);',
       '}'],
     /* PASSE LISSE — NUAGES et ORBITE : dégradé, mer de nuages, soleil, guirlande, voile (tout ce qui varie lentement). Sa seule trame
@@ -11414,7 +11416,7 @@ const skyDome=(function(){
       '  cielMer(col,y,sd);cielJour(col,y,sd);'+(/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?'cielMotif(col,vDir,y,sd);':'')+'cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);', // (ciel2) la passe basse aussi : plus de pommelé
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
-      '  gl_FragColor=vec4(col+vec3(cielTrame()*uBasTr),1.);}'],
+      '  gl_FragColor=vec4(cielSat(col)+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — NUAGES et ORBITE : la passe lisse relue, + étoiles et lune (des bords au pixel), + la trame
     netN:[LECT,
       'void main(){',
@@ -11427,7 +11429,7 @@ const skyDome=(function(){
     basV:[LECT_TR,'void main(){gl_FragColor=vec4(villeLisse(vDir,vec3(0.))+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
-    cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
+    cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
       'void main(){',
       '  vec3 c=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;',
@@ -13290,6 +13292,14 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
 if(NUJOUR_V)N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
+/* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
+   LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
+   qui s'allège, le fondu près de l'objectif, le fondu d'une zone neuve) mais il ÉCRIT sa profondeur ; les nuages sont rangés en ~100 lots
+   (gabarit × finesse) triés du plus loin au plus près DANS chaque lot, mais pas d'un lot à l'autre — un nuage proche dessiné avant un nuage
+   lointain d'un autre lot le masquait, et le ciel passait par son bord. Depuis la map SANS HAUT NI BAS (des nuages tout autour, très près de la
+   route qui se tord), on ne voyait plus que ça. Le bord devient une TRAME ordonnée (Bayer 4 × 4) : chaque fragment est opaque ou jeté — l'ordre
+   de dessin ne compte plus. Les nuages en instances seulement (le nuage du titre garde son fondu). `?nuages=fondus` = avant. */
+const N8_TRAME=!/[?&]nuages=fondus\b/.test(location.search);
 function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
   const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k in N8_U)U[k]=N8_U[k];
   U.uSunC.value=sun.color;U.uSky.value=hemi.color;U.uGnd.value=hemi.groundColor;
@@ -13345,6 +13355,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
       '#ifdef NUAGE8_INST',
       '  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
+      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125)discard;a=1.;}']:[]), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */
       '#endif',
       ...(N8_VAP?['  if(e9>.01&&a<.02)discard;']:[]), /* (coton-blanc) un bord effiloché n écrit pas sa profondeur : le lobe de derrière le remplit */
       '  gl_FragColor=vec4(col,a);',
@@ -15116,6 +15127,18 @@ const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : 
 const GLACE={k:1,nuages:.45,espace:.5,jade:.55}; // (v11) l'émeraude est polie comme une pierre taillée — (v12) « beaucoup plus brillante » : .5 → .8 // (v9) le jade est POLI : il renvoie le ciel en rasant
 const ROUTE_JADE=[1,1,.96]; /* (2026-10-14, passe graphismes) béton : un rien plus chaud aux PICS DE JADE (c'était [.95,1.04,.86] × la base violette) */ // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
+/* LE BÉTON DE JOUR (2026-10-15 soir, Sacha : « les couleurs en plein jour sont mal gérées ») — MESURÉ sur les photos de course : en plein jour le
+   béton sortait BLEU-VIOLET — nuages midi #5b5fb4 (saturation .37), matin #6d5eb1, forêt midi #516ad5 (.61), canyon midi #9f9cf4 (.80) — et non gris.
+   La cause : la passe « vives » du même jour (Sacha : « les maps sont trop ternes, sature un peu plus ») a teinté le béton lui-même en ardoise bleue
+   (BETON.t .86/.93/1.2), lui a fait prendre 40 % de la couleur de l'air (BETON.amb .22 → .4), puis l'étalonnage sature ×1,18 de plus. De JOUR,
+   le béton revient vers une ardoise NEUTRE (ROUTE_JOUR_T) et ne prend plus que 15 % de l'air ; la nuit garde la passe « vives » telle quelle (et
+   l'orbite, et les routes de jade). ROUTE_NEUTRE = la part (0,85). `?beton=bleu` = avant. */
+const ROUTE_NEUTRE=/[?&]beton=bleu\b/.test(location.search)?0:.85,ROUTE_JOUR_T=[.95,1,.99],ROUTE_T9=[1,1,1];
+/* LE CIEL DE JOUR SANS BLEU ÉLECTRIQUE (même demande) — MESURÉ : le zénith de midi sortait SATURÉ À BLOC, le rouge à ZÉRO — forêt #0058fd, canyon
+   #0044f8 (saturation 1,00) : la passe « vives » (×1,18 sur chaque ambiance) poussait le bleu du ciel hors de l'écran. Le ciel de JOUR garde
+   sa teinte mais sa chroma est ramenée (`cielSat` à la fin des programmes du ciel : plein, passe lisse, canyon) ; la nuit, l'orbite et le ciel de
+   jade ne bougent pas. `?ciel=vif` = avant. */
+const CIEL_DESAT=/[?&]ciel=vif\b/.test(location.search)?0:.5;
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
@@ -15124,8 +15147,11 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   {const j9=Math.max(LVL.mer,0)*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
-  {let rk9=1;try{rk9=BIO.cur.rtK;if(rk9==null)rk9=1;}catch(e9){} /* (2026-10-14, passe graphismes · contrôle) CLARTÉ DU BÉTON PAR AMBIANCE : `rtK` (1 par défaut, voir BIO_ETAL0) multiplie la clarté de niveau ET la teinte — le béton de jour était à L* 50-60 (cible 32-45) */ const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=(b.lift0+b.lift*LVL.route)*rk9,a9=b.amb,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
-    m9=b.t,e9=rk9*(1+(b.ville-1)*LVL.ville)*(1+(b.espace-1)*LVL.espace)*(1-b.mouille*w9);
+  {let rk9=1;try{rk9=BIO.cur.rtK;if(rk9==null)rk9=1;}catch(e9){} /* (2026-10-14, passe graphismes · contrôle) CLARTÉ DU BÉTON PAR AMBIANCE : `rtK` (1 par défaut, voir BIO_ETAL0) multiplie la clarté de niveau ET la teinte — le béton de jour était à L* 50-60 (cible 32-45) */ const jr9=ROUTE_NEUTRE*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.espace||0))*(1-Math.min(1,LVL.jade||0)); /* (2026-10-15 soir) LE BÉTON DE JOUR (voir ROUTE_NEUTRE) */
+   for(let c9=0;c9<3;c9++)ROUTE_T9[c9]=BETON.t[c9]+(ROUTE_JOUR_T[c9]-BETON.t[c9])*jr9;
+   skyU.uSkySat.value=1-CIEL_DESAT*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.espace||0))*(1-Math.min(1,LVL.jade||0)); /* (2026-10-15 soir) LE CIEL DE JOUR SANS BLEU ÉLECTRIQUE (voir CIEL_DESAT) */
+   const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=(b.lift0+b.lift*LVL.route)*rk9,a9=b.amb+(.15-b.amb)*jr9,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
+    m9=ROUTE_T9,e9=rk9*(1+(b.ville-1)*LVL.ville)*(1+(b.espace-1)*LVL.espace)*(1-b.mouille*w9);
    ROAD_U.uLift.value.setRGB(k*(1-a9+a9*f.r/fm),k*(1-a9+a9*f.g/fm),k*(1-a9+a9*f.b/fm)); // la clarté de niveau en gris MINÉRAL (plus de violet), à peine teintée par l'air du lieu
    ROAD_U.uTeinte.value.r*=m9[0]*e9;ROAD_U.uTeinte.value.g*=m9[1]*e9;ROAD_U.uTeinte.value.b*=m9[2]*e9; // le béton mouillé FONCE (la pluie), chaque monde sa teinte
    ROAD_U.uSheen.value*=Math.min(1,w9+js9+b.sheen); // MAT à sec : la brillance d'horizon ne vit que sous la pluie (et sur les routes de jade de Léo)
@@ -25412,7 +25438,13 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'},
   saturne:{teinte:0x6c5e4a,atmo:0xf0dca0,limbe:0xe8d090,rim:.3,peint:'saturne'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
 if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);} /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de variante satellites (Saturne) */ // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
-if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
+if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
+/* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
+   Depuis LA MAP SANS HAUT NI BAS, le dôme est replié (uSym) et la caméra roule avec la route : l'horizon PÊCHE de la bible (jHor .95,.80,.64 à midi,
+   1,.74,.52 le matin), saturé par l'étalonnage jusqu'à #f8b571 (MESURÉ), devenait une bande orange qui barrait le ciel — en travers, en diagonale,
+   à la verticale quand la dalle se couche. À midi le lointain est une BRUME DE CIEL (bleu très pâle) ; le matin, une crème à peine dorée. Les
+   copies de course seulement (le menu garde matin/midi). `?ciel=peche` = avant. */
+if(SIG_V.nuagesjour&&!/[?&]ciel=peche\b/.test(location.search)){Object.assign(BIOMES.nuagesMidiCC,{jHor:[.80,.88,.98],jSol:[.80,.88,.98],fogCj:[.90,.92,.96]});Object.assign(BIOMES.nuagesMatinCC,{jHor:[.97,.91,.84],jSol:[.97,.91,.84],fogCj:[.98,.90,.82]});} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
 /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») */ // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.

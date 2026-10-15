@@ -3,6 +3,29 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NUAGES SANS COUTURES, LE CIEL ET LES COULEURS DE PLEIN JOUR (2026-10-15 soir, Sacha : « les nuages sont encore buggés et le ciel est toujours assez mal géré ; les couleurs en plein jour sont mal gérées »)
+- MESURÉ AVANT (photos de course, banc muet ; `pix.py` = la couleur moyenne d'un carré de l'image) :
+  · le BÉTON de jour sortait BLEU-VIOLET — mer de nuages midi #5b5fb4 (saturation .37), matin #6d5eb1, forêt midi #516ad5 (.61), canyon midi #9f9cf4 (.80) ;
+  · le ZÉNITH de midi saturé À BLOC, le rouge à zéro — forêt #0058fd, canyon #0044f8 (saturation 1,00) : un bleu électrique hors de l'écran ;
+  · la mer de nuages : une BANDE ORANGE (#f8b571) en travers du ciel de midi — en diagonale ou à la verticale quand la route se couche ;
+  · des LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent.
+- LA CAUSE du béton et du ciel : la passe « vives » du même jour (« les maps sont trop ternes, sature un peu plus ») — béton teinté ardoise bleue
+  (`BETON.t` .86/.93/1,2), 40 % de la couleur de l'air (`BETON.amb`), ×1,18 de saturation sur chaque ambiance — trop pour le plein jour.
+  · LE BÉTON DE JOUR (`routeTick`) : de jour, la teinte du béton revient vers une ardoise neutre (`ROUTE_JOUR_T`, part `ROUTE_NEUTRE` .85) et il ne
+    prend plus que 15 % de l'air ; la nuit, l'orbite et les routes de jade gardent tout. `?beton=bleu` = avant.
+  · LE CIEL DE JOUR (`uSkySat`, `cielSat` à la fin des programmes du ciel : plein, passe lisse, canyon) : la chroma du ciel ramenée de moitié de
+    jour (`CIEL_DESAT` .5) — la teinte reste ; nuit, orbite, jade intacts. `?ciel=vif` = avant.
+  · LA BANDE ORANGE : l'horizon PÊCHE de la bible (`nuagesMidiCC` jHor .95/.80/.64, `nuagesMatinCC` 1/.74/.52) n'a plus de sens sur un dôme replié
+    dont la caméra roule : à midi une BRUME DE CIEL (.80/.88/.98), le matin une crème à peine dorée (.97/.91/.84). Copies de course seulement (le
+    menu garde matin/midi). `?ciel=peche` = avant.
+- LES NUAGES : les bords d'un cumulus (la silhouette qui s'allège, le fondu près de l'objectif, le fondu d'une zone neuve) étaient À DEMI
+  transparents mais écrivaient leur profondeur ; les ~100 lots du coton (gabarit × finesse) sont triés du plus loin au plus près dans chaque lot,
+  pas d'un lot à l'autre — un nuage proche dessiné avant un lointain le masquait et le ciel passait par son bord. Le bord devient une TRAME
+  ordonnée (Bayer 4 × 4, `N8_TRAME` dans `nuage8Mat`, nuages en instances seulement) : chaque fragment est opaque ou jeté, l'ordre ne compte plus.
+  Le nuage du titre garde son fondu. `?nuages=fondus` = avant.
+- MESURÉ APRÈS : béton mer de nuages midi saturation .13-.17 (gris), canyon .14, forêt .30 (ardoise) ; zénith forêt #3c87ed, nuages #a4c5f0 ;
+  plus de bande orange ; rafale de 8 photos de la mer de nuages : plus de liseré bleu ni de trou. Soir (le couchant rose), nuit, titre : inchangés.
+
 ## LA ROUTE 66 — LE CANYON COMMENCE PAR UNE LONGUE LIGNE DROITE, UNE VIEILLE STATION-SERVICE ET SON PANNEAU (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite et une vieille station service et un panneau route 66 »)
 - LA LIGNE DROITE (`genCanyon`) : la vallée des Mitaines n'est plus une longue courbe (`large(340 m)`) mais une DROITE de 820 m × LL à peine
   en pente (−2,5 %). Les deux tirages `r()` de l'ancienne courbe sont faits quand même : la suite du canyon garde ses tirages. Les buttes
