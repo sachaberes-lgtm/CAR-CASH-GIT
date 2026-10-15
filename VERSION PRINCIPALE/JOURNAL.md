@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE LANCER DOSÉ EN BOUTIQUE (2026-10-15, pôle CAISSES — Léo : la voiture lancée au doigt doit tourner un peu plus, satisfaisant, mais « c'est pas non plus l'espace »)
+- AVANT : au lâcher, la vitesse du doigt s'éteignait en exp(−2,4 t) — la moitié perdue en 0,29 s (elle freinait sec), puis une longue traîne,
+  et aucun plafond (un lancer de 4 000 px/s : 2,8 tours).
+- APRÈS (`bqLance` au lâcher, `bqLanceTick` à chaque image, `GBQ.lan`) : un ÉLAN PLANIFIÉ. Distance D = 2 tours × tanh(0,65 v / 2 tours) ;
+  durée qui grandit avec elle (1,3 → 1,9 s) ; courbe v·(1 − t/T)^(q−1), q ≥ 2,5 : elle part exactement à la vitesse du doigt, ralentit
+  comme par frottement et s'arrête en douceur, sans rebond. Lâchée, elle garde sa pose (LA POSE TENUE). Un doigt posé pendant qu'elle tourne
+  l'attrape net (`GBQ.lan` à null) et ce toucher-là ne la remet pas en vitrine (`attrape`). Doigt arrêté avant le lâcher (90 ms) : pas
+  d'élan, comme avant.
+- MESURÉ (banc muet, vrais touchers partant SUR la caisse, couché et debout, vitesse du doigt mesurée dans la page) — tours après le
+  lâcher, AVANT → APRÈS : 300 px/s 0,20 → 0,31 · 540 px/s 0,36 → 0,55 · 710 px/s 0,52 → 0,76 · 1 480 px/s 1,08 → 1,35 · 2 650 px/s
+  1,78 → 1,71 · 4 150 px/s 2,76 → 1,84. Fin visible (< 10°/s) : AVANT 1,2-2,3 s, APRÈS 1,2-1,5 s. Attrapé en plein élan : 0,0000 rad
+  ensuite ; glissé lent arrêté : 0,0000 rad. Planche : `photos-gameplay/boutique-lancer-avant-apres.png` (dossier CAR CAHS V3).
+- ⚠ Banc : un lancer qui part sur la bande « cette semaine » (`bqUr`) n'est pas un lancer de la caisse — c'est le PLATEAU du garage qui suit
+  le doigt (`GAR.platW`, élan exp(−1,2 t)) ; le faire partir sur la caisse. Et chaque toucher CDP met ~45 ms : pour un vrai lancer, peu de
+  grands pas. `dbgBqIndus().lan` = [D, T, q] du lancer en cours.
+
 ## CHAT POP-TART — LE TRAIT NOIR AU-DESSUS DES ROUES AVANT (2026-10-15, pôle CAISSES — Léo : un trait noir « glitché » au-dessus des roues avant de la Nyan Cat)
 - LA CAUSE (vue au banc, puis MESURÉE par des rayons sur la vraie caisse) : le haut des PATTES — leur bord noir — traversait l'aile. La
   face extérieure d'une patte (x ,92) sort de la peau dès y ,46 à l'avant (pas de hanche `ha` : l'épaule de l'aile rentre), ,48-,51 à
