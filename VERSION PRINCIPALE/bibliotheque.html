@@ -609,7 +609,7 @@ LECTEURS.unique = LECTEURS.boucle;
 LECTEURS.genv = async S => {   // une musique 👍 du générateur, rejouée par SA version
   const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: maitre, renouvelle: 0, da: S.da || 'cashcar' });
   const O = {}; if (/^hyb:/.test(String(S.e && S.e.style || ''))) O.style = S.e.style;   // (15/10) la couleur de l'avis : sans elle, une musique v6 en devenait une autre
-  if (S.v2) { O.retouche = S.v2.retouche; O.voix = S.v2.voix; O.acc = S.v2.acc; }
+  const R9 = S.v2 || S.retouche; if (R9) { O.retouche = R9.retouche; O.voix = R9.voix; O.acc = R9.acc; }   // une V2, ou la retouche posée sur la musique elle-même
   inst.setTier(1, 30); inst.start(S.n, S.W || undefined, O); let cur = 1;
   return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); } }, arret() { try { inst.stop(); } catch (e) {} }, palier: () => cur - 1,
     info: () => inst.nomElement ? '+ ' + inst.nomElement(inst.tier) : '', inst };
@@ -621,8 +621,9 @@ const GEN_VERSIONS = [['2026-10-14T00:16:50', 'v3-1'], ['2026-10-14T01:01:05', '
 function versionDe(e) { if (e.v) return e.v; const t = String(e.date || ''); for (const [lim, v] of GEN_VERSIONS) if (t < lim) return v; return 'v3-9'; }
 function fichierVersion(v) { return v && v !== 'actuelle' ? 'assets/audio/music/direct/musique-trente-' + v + '.js' : GEN_F; }
 const BLEUS = new Map();
-// (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version ») LES V2 : `assets/audio/music/direct/retouches-bleu.js`
-// — chaque V2 est la même musique, retouchée selon la note de Léo, posée juste SOUS son original (qui ne change pas) ; RENOMS = ses « renommer ».
+// (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version », puis « juste respecte les consignes ») LES RETOUCHES :
+// `assets/audio/music/direct/retouches-bleu.js` — la plupart se jouent SUR la musique elle-même (`direct`) ; une V2 posée SOUS l'original
+// seulement quand sa note le demande ; RENOMS = ses « renommer ».
 let RETOUCHES = null;
 function dessineBleus() {
   const L = $('gBleu'); if (!L) return; L.querySelectorAll(':scope>.genv').forEach(x => x.remove());   // (les sons de la bibliothèque rangés ici restent)
@@ -630,8 +631,8 @@ function dessineBleus() {
   const B = (PREF.gen || []).flatMap(e => { const k = e.n + '|' + e.titre, L9 = [];
     if (e.avis > 0) { let S = BLEUS.get(k);
       if (!S) { S = { id: 'bleu-' + e.n, sec: 'bleu', type: 'genv', titre: e.titre, style: (e.nom || e.style || '') + ' · n° ' + e.n, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e }; BLEUS.set(k, S); }
-      S.e = e; L9.push(S); }
-    (RETOUCHES && RETOUCHES.V2 || []).filter(d => d.base === e.n && !retire(d)).forEach(d => { let S2 = BLEUS.get(d.id);
+      S.e = e; S.retouche = (RETOUCHES && RETOUCHES.V2 || []).find(d => d.base === e.n && d.direct) || null; L9.push(S); }   // (15/10, « respecte les consignes ») retouchée SUR elle-même
+    (RETOUCHES && RETOUCHES.V2 || []).filter(d => d.base === e.n && !d.direct && !retire(d)).forEach(d => { let S2 = BLEUS.get(d.id);
       if (!S2) { S2 = { id: d.id, sec: 'bleu', type: 'genv', titre: d.titre, style: 'V2 · ' + d.idee, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e, v2: d }; BLEUS.set(d.id, S2); }
       S2.e = e; S2.seule = !(e.avis > 0); L9.push(S2); });
     return L9; });
@@ -640,6 +641,7 @@ function dessineBleus() {
     el.innerHTML = '<button class="play" aria-label="Écouter">' + PLAY + '</button><div class="txt"><div class="nom"></div><div class="meta"></div><div class="etat"></div></div>' +
       '<button class="noteB" aria-label="Note">' + NOTE_SVG + '</button><button class="pouce on" aria-label="Retirer le pouce" title="Retirer le pouce"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button>' + POUB;
     el.querySelector('.nom').textContent = nomDe(S); el.querySelector('.meta').textContent = S.style + ' · version ' + (S.v === 'actuelle' ? 'actuelle' : S.v.replace('v', '').replace('-', '.'));
+    if (S.retouche) { el.querySelector('.meta').textContent += ' · retouchée : ' + S.retouche.idee; el.title = 'Ta note : « ' + S.retouche.note + ' »\nRetouchée : ' + S.retouche.idee; }
     if (S.v2) { if (!S.seule) el.classList.add('v2'); el.querySelector('.pouce').remove(); }   // (une V2 n'a pas son propre pouce : c'est celui de l'original)
     else el.querySelector('.pouce').onclick = ev => { ev.stopPropagation(); retireDeBleu(S); };
     el.querySelector('.poub').onclick = ev => { ev.stopPropagation(); retireDeBleu(S); };

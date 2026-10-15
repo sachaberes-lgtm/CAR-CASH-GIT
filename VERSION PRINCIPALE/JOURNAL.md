@@ -76,6 +76,29 @@
   `CHOIX BIBLIOTHÈQUE {…}` ; collé dans la discussion → `python3 atelier-son/choix_colle.py <texte>` le rejoue sur musique-moteur.json (sans risque
   deux fois). Sur l'ordi avec le serveur (127.0.0.1:9200), rien ne change : chaque choix va tout de suite dans musique-moteur.json.
 
+## LES NOTES DE LÉO, À LA LETTRE (2026-10-15 après-midi, pôle SON ; Léo : « juste respecte les consignes »)
+- LA LEÇON : une V2 À CÔTÉ seulement quand sa note la demande (FLAMME DE TONNERRE « faire une V2 à côté », NÉNUPHARS VELOURS « tenter une V2 ») ;
+  sinon la retouche se joue SUR la musique (`direct: true` dans `assets/audio/music/direct/retouches-bleu.js` : sa ligne, son nom, sa note ;
+  `S.retouche` dans la bibliothèque, l'idée dans la ligne et la consigne au survol). Et aucune note laissée de côté.
+- RETOUCHÉES SUR ELLES-MÊMES : CAVALE ULTRA (l'arpège sci-fi AJOUTÉ au 15e, coupe-bas 380 Hz) · COBRA ULTRA (les MÊMES instruments affinés :
+  `CLAV_FIN` = le clavinet d'origine sans le passe-bande nasal, mesuré note à note contre l'original ; le talkbox velours ; nappe et accords hachés
+  adoucis par `tim`) · MIRAGE DE VITESSE (« direct dessus, surtout le début ») · LUNE DE JADE (hirajoshi + koto néon, sans son octave basse) ·
+  RUBIS ULTRA (congas et bongos, ride, cloche, espace — le steel drum GARDÉ : le vibraphone et les échos bouchaient le médium, mesuré) · SAUVER MAMAN.
+- LES TROIS v6 (rejouées justes depuis le matin) : CRISTAL D'ARGENT (une trap qui ÉVOLUE : l'intro mélodique seule, le beat qui tombe, roulements
+  et triolets de charleys, contre-chant, cloche, chœur, relances) · MIRAGE ULTRA (« complexifie » : `grillesNeuves` — do m9, la♭ maj7, mi♭ maj7,
+  si♭ 7sus au lieu d'un seul accord, menés par le `menes` du générateur et la liste `Mx.accords` refaite ; arpège en cloche FM, contre-chant au
+  violon, tierces, accords hachés) · TURBO DE NÉON (« plus mainstream, rendu original » : la grosse caisse sur chaque temps, la caisse sur 2 et 4,
+  la grille la m – fa – do – sol, la mélodie dès le 4e moteur, la pompe ; la guitare grattée et la réverbe à ressort gardées ; `motif()` fige
+  `pat` ET `patL`, sinon le générateur retire une variante).
+- PISTON DE LUXE (underground, « des voix improvisées par toi ») : la cowbell de la phonk en mélodie, `VOIX_IMPRO` en contre-chant dès le 6e
+  moteur (chaque hauteur a SA syllabe « â o ou è é eu », la note qui glisse en entrant, une sur trois qui retombe, filtrée cassette), 808 saturée,
+  vinyle. Son pack d'instruments viendra EN PLUS. GRÉSIL NOVA (« plus ressemblant à Age of Illusion, t'aider du pack ») attend le pack.
+- Les aides : `ordreNeuf` (une tête imposée, le reste dans l'ordre, 'final' au 30e) ; `insere` garde désormais le 'final' au 30e (RUBIS le perdait).
+- MESURÉ (banc muet, 12 retouches contre leur original, moteurs 1 / 15 / 30) : 30 éléments chacune, 0 doublon, 0 erreur ; niveaux à ±2 dB ;
+  la boue (200-500 Hz) comparable à l'original aux bruits de mesure près (fenêtres de 2 à 4 s) — les excès nets (arpège de CAVALE, clavinet
+  de COBRA, koto de LUNE DE JADE, vibraphone et échos de RUBIS) corrigés ; MIRAGE ULTRA et MIRAGE DE VITESSE restent 3 à 6 points plus chargés au
+  30e moteur (plus d'éléments : c'est la consigne). Pouce bleu : 30 / 30 sons en vrais clics, Chrome ET WebKit.
+
 ## LES NOTES DE LÉO APPLIQUÉES — LES V2 DE POUCE BLEU, AURA EN 30 PALIERS, PENTHOUSE V2 (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version »)
 Ses 17 notes de la bibliothèque (`PREF.notes` de musique-moteur.json), appliquées sans toucher aux originaux :
 - LE CROCHET DES RETOUCHES, dans les 6 versions du générateur qui ont des musiques 👍 (`musique-trente-v3-1/3/4/7/10`, `v6-0`) :
