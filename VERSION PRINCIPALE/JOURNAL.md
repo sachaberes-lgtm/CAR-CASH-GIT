@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ROUTES PLUS ÉPAISSES : 2,6 → 3,9 m (2026-10-15 soir, Sacha : « augmente de 50 % l'épaisseur des routes pour avoir plus de surface pour bump », puis « il y a plus le bump sur le bord de la route j'ai l'impression, et augmente un peu l'épaisseur des routes »)
+- `THICK` 2,6 → 3,9 m (les deux endroits : la déclaration et la remise à chaque `buildTrack` ; la JADE garde sa dalle de 0,30). Commit de la
+  session EPAISSEUR (12 h 43), resté dans la file du train qui ne roulait plus : repris tel quel et poussé seul. Tout ce qui se pose sous la
+  route se cale déjà sur `THICK` (pièces et plots de la face du dessous, terrains du canyon, de la forêt, du glacier, lustres, caméra).
+- MESURÉ au banc (`bump.cjs`, scratchpad de la session BUMP DE BORD : caisse à 2 m du bord, poussée dehors, on braque vers la route
+  200/400/650 ms après la sortie ; même graine, même carte, 29 essais) : le BUMP n'avait PAS disparu de la physique — 7 sorties sur 29 en
+  donnent un, avant comme après. Il naît entre 0,5 et 2,2 m sous le bitume : les 1,3 m de tranche ajoutés servent aux arrivées par le bas
+  (un saut qui revient sous la route), pas à la sortie de bord ordinaire. La lèvre ramenée de 2 m à 1,2 m n'y change rien non plus (même banc).
+- ⚠ Piège de banc : un port déjà servi par une autre session (8791) donne SA copie du jeu — `curl` le fichier servi avant de mesurer.
+
 ## L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE (2026-10-15 soir, Sacha : « quand on se prend un mur, un immeuble, un canyon, un glacier, une montagne chinoise, il faut que ça soit la même animation, comme ça tu peux la travailler à fond ; qu'il soit presque fun de s'écraser ; reprends le design de l'explosion de l'airtime et mets-le partout »)
 - ⚠ REMPLACE la matière par obstacle de l'après-midi (section suivante) : plus de `BOOM_MAT` bois/roche/glace/lave/eau/métal, plus de
   `BOOM_CAUSE`/`boomEclats`. `BOOM_MAT` ne garde que `feu` (toutes les morts) et `plot` (la miniature `boomMini`, gardée).

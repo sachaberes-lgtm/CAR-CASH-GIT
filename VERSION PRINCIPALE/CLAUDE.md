@@ -107,7 +107,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   éclats `IMP_ECL`, les répliques (`impTick`). La même animation pour TOUS les obstacles (Sacha, 15/10).
 - **Conduite** : `TCTL` (volant tactile et souris), `keys`, `steer`, `yawR`, `lacetMax`, `driftYaw`, `momT`, `SPD` (vitesse globale),
   `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `fovFit`.
-- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G`, `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
+- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G` (= 33 × `GRAV_K` 1,3 depuis le 15/10 : LE bouton de la gravité, `?grav=1` = avant), `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Figures v2** (la physique) : `FIG.Corps`/`FIG.PHY` (figures.js), `FIGV2`/`FX2`, `figLance` (une explosion), `figPose` (chaque image de vol),
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
@@ -566,7 +566,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `explode(cause)`, `mode` = 'drive' | 'fall' | 'boom', `togglePause`, `repriseCompte`.
 - **Conduite** : `TCTL` (volant tactile et souris), `keys`, `steer`, `yawR`, `lacetMax`, `driftYaw`, `momT`, `SPD` (vitesse globale),
   `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `fovFit`.
-- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G`, `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
+- **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G` (= 33 × `GRAV_K` 1,3 depuis le 15/10 : LE bouton de la gravité, `?grav=1` = avant), `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_CRYPTO`, `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
