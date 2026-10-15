@@ -39658,6 +39658,7 @@ function triNoir(){return FLOW.lv===4&&!PARK.on;} // la DARK TRIAD tourne (la co
    (les poses articulées) et de `creatures/vitrail.js` ; les quatre formes sont bâties AU MENU, tranche par tranche (≤ 5 ms par image), puis
    compilées une fois hors écran : en course, rien ne se construit ni ne se compile. Console : `dbgJadeSinges()` (le plan, la rencontre en
    cours), `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` (une rencontre, tout de suite). */
+const JSG_ESSAI=/[?&]singesjade=1\b/.test(location.search);
 const JSG_N=4,JSG_AV={bonjour:240,mangue:170,course:150,bord:170},JSG_ECH={bonjour:11,mangue:8.5,course:7.5,bord:8.5}; // (mesuré au banc) à 6 m de haut, ils restaient cachés derrière la caisse jusqu'à 40 m : des singes GÉANTS, du décor de dessin animé
 const JSG_VIT={uSat:.62,uClair:.78,uLueur:.55,uEcart:.94,uCoqA0:.28}; // le vitrail EN COURSE (l'étalonnage du jeu sature ×1,4 : sans ça, un singe brun sort orange)
 const JSG={S:{},node:new THREE.Group(),fab:null,pret:false,chaud:false,cle:null,plan:[],cur:null,t:0,
@@ -39713,6 +39714,7 @@ function jsgTick(dt){
   if(!JSG.chaud){if(started&&!gameOver&&JSG.cur)return;JSG.chaud=true; // (au menu d'habitude ; une course partie trop tôt la fait ici, une fois, sans singe à l'écran)
    JSG.node.visible=true;for(const n in JSG.S)JSG.S[n].nd.visible=true;
     try{chauffeRendu([JSG.node]);}catch(e){}for(const n in JSG.S)JSG.S[n].nd.visible=false;JSG.node.visible=false;return;}
+  if(JSG_ESSAI&&(!started||gameOver)&&!SF.force)SF.force={carte:'jade',meteo:null}; // (prototype) `?singesjade=1` : chaque PLAY part au SOLEIL DE JADE, pour essayer les singes
   if(paused)return;
   if(dt>0){JSG.v1.subVectors(carGroup.position,JSG.p0).multiplyScalar(1/dt);if(JSG.v1.lengthSq()<4e6)JSG.vel.lerp(JSG.v1,Math.min(1,dt*1.5));}JSG.p0.copy(carGroup.position);
   if(!jsgActif()){if(JSG.cur)jsgCache();if(!started||gameOver)JSG.cle=null;return;}
