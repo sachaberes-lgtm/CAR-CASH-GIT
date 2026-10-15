@@ -1131,17 +1131,28 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       m_rafales: { cuiv: [[[0, 1], [2, 1], [3, 1], [6, 2], [10, 1], [11, 1]], [[0, 1], [3, 1], [6, 1], [8, 1], [10, 1], [12, 1], [14, 2]]], chop: [[[0, 1], [2, 1], [3, 1], [6, 1]], [[8, 1], [10, 1], [11, 1], [13, 1], [14, 1]]] } },
     noms: Object.assign({}, Z1.noms, { m_vite: 'ÇA ACCÉLÈRE : la contrebasse marche, les charleys en doubles croches', m_stride: 'le piano passe au stride, la grosse caisse galope',
       m_boogie: 'la contrebasse en croches (boogie)', double: 'la batterie pousse (contretemps, roulements)', m_pompe8: 'le piano en pompe de croches (manouche)', m_rafales: 'les cuivres et les voix en rafales' }) });
-  // II — le même orchestre, et DEUX instruments new wave en contraste (1983 sous 1925 : « new wave, future, raw ») : la BASSE NEW WAVE en croches
-  // (racine-octave, deux scies saturées) qui entre au 10e sous la contrebasse restée en oom-pah, l'ARPÈGE ANALOGIQUE en doubles croches (14e) ;
-  // la caisse claire passe en réverbe coupée des années 80 avec la basse ; au 23e la basse en doubles croches, au 25e le son se durcit (raw)
+  // II — le même orchestre, et DEUX instruments new wave en contraste (1983 sous 1925 : « new wave, future, raw ») : la BASSE NEW WAVE (10e) et
+  // l'ARPÈGE ANALOGIQUE en doubles croches (14e) ; la caisse claire en réverbe coupée des années 80, le son qui se durcit au 25e (raw).
+  // (2026-10-15, 2e jet — Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → « les deux » : la
+  // basse new wave qui alternait grave-aigu en croches balancées ET le boum-tchak de fond, contrebasse sur 1 et 3, piano et mains sur 2 et 4)
+  // AU 10e, LA MACHINE DE 1983 PREND LA MAIN : tout devient DROIT (plus de balancement : `swing`/`swing8` à 0 par l'étape), la batterie se
+  // SYNCOPE (grosse caisse sur 1, le « et » de 2, 3, le « et » de 3 — jamais le boum-tchak), la basse new wave martèle la fondamentale en croches
+  // droites (la poussée de The Cure, de Joy Division) et ne remonte à l'octave qu'en fin de mesure, la contrebasse se tait, le piano plaque ses
+  // accords en 3-3-2 (la syncope des années 80) ; au 17e la contrebasse revient en contre-chant pincé sur les contretemps (1925 répond à 1983) ;
+  // au 21e la batterie s'emballe (roulements de grosse caisse en fin de mesure, « Blue Monday ») ; au 23e la basse devient un riff de doubles
+  // croches qui bouge (fondamentale, octave, quinte : un motif, pas une alternance).
   TRIO.zeppelin2 = Object.assign({}, Z1, { nom: 'ZEPPELIN D’OR II', titre: 'ZEPPELIN D’OR II', dit: 'électro swing × new wave (1925 sur un moteur de 1983)', monte: [0, 0], tempoFixe: true, grands: ['nw'], gateDe: 'nw',
-    pluckT: ['scie'], voixB: ['lead'], vrais: Object.assign({}, Z1.vrais, { pluck: {} }), pat: Object.assign({}, Z_PAT, { arp: ['up16'] }),
-    ordre: ['vinyl!', 'keys', 'basse', 'lead', 'hat', 'sig', 'i_filtre', 'snare', 'kick', 'nw', 'cuivres', 'clarte', 'hatO', 'arp', 'contre', 'choeur', 'm_stride', 'i_frappe', 'fant', 'sig2',
+    pluckT: ['scie'], voixB: ['lead'], vrais: Object.assign({}, Z1.vrais, { pluck: {} }), pat: Object.assign({}, Z_PAT, { arp: ['up16'], kickD: 'X.....X.X.X...xx', snareD: '....X.......X.xo', hatD: 'xoxoXoxoxoxoXoxo' }),
+    ordre: ['vinyl!', 'keys', 'basse', 'lead', 'hat', 'sig', 'i_filtre', 'snare', 'kick', 'nw', 'cuivres', 'clarte', 'hatO', 'arp', 'contre', 'choeur', 'm_retour', 'i_frappe', 'fant', 'sig2',
       'double', 'cordes', 'm_nw2', 'harmo', 'i_sature', 'i_relance', 'i_tambours', 'i_pulse', 'i_monte', 'final!'],
-    etapes: { nw: { hat: 'xoxoxoxoxoxoxoxo', nw: [[0, 0], [2, 12], [4, 0], [6, 12], [8, 0], [10, 12], [12, 0], [14, 12]], nwLen: 1.6 }, m_stride: Z_STRIDE,
-      m_nw2: { nw: [[0, 0], [1, 0], [2, 12], [3, 0], [4, 0], [5, 0], [6, 12], [7, 0], [8, 0], [9, 0], [10, 12], [11, 0], [12, 0], [13, 0], [14, 12], [15, 0]], nwLen: .85 } },
-    noms: Object.assign({}, Z1.noms, { nw: 'LA BASSE NEW WAVE : un moteur de 1983 sous l’orchestre de 1925 (les charleys en doubles)', arp: 'l’arpège analogique en doubles croches (new wave)',
-      m_stride: 'le piano passe au stride, la grosse caisse galope', double: 'la batterie pousse (contretemps, roulements)', m_nw2: 'la basse new wave en doubles croches (future)', i_sature: 'le son se durcit (raw)' }) });
+    etapes: {
+      nw: { swing: 0, swing8: 0, kick: 'X.....X.X.X.....', snare: '....X.......X..o', hat: 'xoxoxoxoxoxoxoxo', hatO: '..............x.', fant: '..o.......o.....', basse: [],
+        keys: [[0, 2], [3, 2], [6, 2], [8, 2], [11, 2], [14, 2]], nw: [[0, 0], [2, 0], [4, 0], [6, 0], [8, 0], [10, 0], [12, 0], [14, 12]], nwLen: 1.7 },
+      m_retour: { basse: [[3, 12, 2], [6, 7, 2], [11, 12, 2], [14, 7, 1]] },
+      m_nw2: { nw: [[0, 0], [2, 0], [3, 0], [4, 12], [6, 0], [7, 0], [8, 0], [10, 0], [11, 7], [12, 0], [14, 12], [15, 7]], nwLen: .9 } },
+    noms: Object.assign({}, Z1.noms, { nw: 'LA MACHINE DE 1983 PREND LA MAIN : la basse new wave en croches droites, la batterie syncopée, le piano en 3-3-2 (plus de balancement)',
+      arp: 'l’arpège analogique en doubles croches (new wave)', m_retour: 'la contrebasse revient en contre-chant pincé (1925 répond à 1983)', double: 'la batterie s’emballe (roulements de grosse caisse)',
+      m_nw2: 'la basse new wave devient un riff de doubles croches (future)', i_sature: 'le son se durcit (raw)' }) });
   for (const id in TRIO) { const o = TRIO[id]; COULEURS[id] = o; VRAIS_STYLE[id] = o.vrais || {}; UNIVERS[id] = { u: { acoustique: 1 }, f: { [/^zeppelin/.test(id) ? 'swing' : id]: 1 } };
     TRANSF_STYLE[id] = o.transf || {}; SIG_POIDS[id] = { [o.sig]: 1 }; FAMG[id] = id; }
   DA_STYLES.trio = Object.keys(TRIO);
@@ -2054,7 +2065,8 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   const FREN_PAT = { kick: 'X......x..x..x..', snare: '........X.......', hat: 'xxx.x.xxxxx.x.xx' };
   function pas(s, t) {
     const i = s % 16, bar = Math.floor(s / 16), b8 = bar % 8, P = M.etP || M.pat, rg = M.rang, C = M.C, fl = JEU.flow;
-    const h = () => (R() - .5) * .008, tt = t + (i % 2 ? M.swing * SD : 0) + (C.swing8 ? C.swing8 * SD * [0, .33, .67, .33][i % 4] : 0), E = rampeE();   // (trio) swing8 : les croches balancées (ZEPPELIN)   // E : la rampe du 15 au 30
+    const sw9 = P.swing != null ? P.swing : M.swing, s89 = P.swing8 != null ? P.swing8 : C.swing8;   // (ZEPPELIN II : une étape peut redresser le balancement)
+    const h = () => (R() - .5) * .008, tt = t + (i % 2 ? sw9 * SD : 0) + (s89 ? s89 * SD * [0, .33, .67, .33][i % 4] : 0), E = rampeE();   // (trio) swing8 : les croches balancées (ZEPPELIN)   // E : la rampe du 15 au 30
     // LE VOL : à la croche la batterie et la basse se retirent, le grave se coupe, la réverbe s'ouvre ; LA POSE : tout retombe sur le temps
     if (s === JEU.volPas) { for (const id in sol) { sol[id].gain.cancelScheduledValues(t); sol[id].gain.setTargetAtTime(.04, t, .03); }
       hpM.frequency.cancelScheduledValues(t); hpM.frequency.setTargetAtTime(420, t, .25); revOut.gain.cancelScheduledValues(t); revOut.gain.setTargetAtTime((M.C.revB || .34) + .26, t, .4); }

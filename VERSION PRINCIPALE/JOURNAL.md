@@ -3,6 +3,108 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
+- Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
+  (`ECLATS`, `eclaPas`, `eclaNait`, `eclaCoupe` ; ⚠ `ECL` est déjà le nom de l'éclair de l'ORAGE). Des bipyramides à trois pans, une
+  lumière par face (la facette se lit), la matière des cubes (arc-en-ciel, porte, nitro) : 0 programme de plus (182 → 182, debout et couché).
+- Menée par le moteur simulé (`FLM`) : une BOUFFÉE toutes les 1/4,5 à 1/12 s selon le régime, chaque intervalle tiré (×0,45-1,55), de 2 à
+  ~6 éclats selon la charge ; les POPS (passage de rapport, pied levé, pose, rupteur en vol) lâchent une gerbe grasse et plus chaude ;
+  au pied levé les bouffées se taisent ; en vol elles suivent le rupteur. Un éclat file le long de SA vitesse, tourne sur lui-même, se
+  CASSE en deux à mi-vie (un sur trois), refroidit blanc-jaune → orange → rouge. Au nitro : rien (le feu de pixels prend la main) ; au
+  pad turbo, la plume d'or revient.
+- MESURÉ : debout, la caméra presque à la verticale ne voit que 0,5 à 1 m derrière les pots → les éclats JAILLISSENT sur place (2,2-4 m/s,
+  en couronne autour de la bouche, 30 à 60 cm) ; à 8 m/s ils sortaient de l'écran dès leur naissance (`dbgFlamme('eproj')`). Taille à
+  l'écran constante (la règle du nitro). ~15-60 éclats vivants.
+- ⚠ PIÈGE n° 1, vécu : un `//` mis en milieu de ligne avalait `instanceMatrix.needsUpdate=true` — les éclats étaient dessinés 60 fois par
+  seconde mais à leur place d'origine (version du tampon restée à 0) : invisibles. Trouvé en traçant `renderBufferDirect`.
+- `?eclats=0` = la goutte d'avant (A/B sur téléphone) ; `dbgFlamme('ecl',0|1)`. Planche `photos-gameplay/moteur-eclats-avant-apres.png`.
+- À trancher par Léo : la taille et la densité des éclats (réduites d'un quart pour que le nitro reste LE gros moment), leur couleur.
+## LES TRAÎNÉES DE LUMIÈRE — ELLES PARTENT DES FEUX ARRIÈRE (2026-10-15, Sacha : « améliore les traînées de la voiture, qui doivent maintenant partir des feux arrière — on va dire que c'est des traînées de lumière ; qu'elles matchent avec les nouvelles particules de nitro, bien reconnaissables et cool, c'est un produit à vendre ; adapte cette règle de lumière au feu arrière de toutes les voitures »)
+- LES FEUX DE CHAQUE CAISSE (`CAR_FEUX`, `CAR_FEUX_SRC`, relevé dans `buildCar` juste avant les tuyères) : les pièces `l` ROUGES du kit
+  (`lpKit` garde désormais la couleur de palette de chaque pièce, champ `c`) à moins de 90 cm de la poupe, un point par côté (les plus en
+  arrière) ; un seul côté relevé = symétrisé ; une rampe d'un seul tenant = ses deux bouts (±38 % de sa largeur) ; un feu central = un seul
+  trait (plus large, `SIL.un`). Rien de relevé : la place des feux du gabarit (`A.tl`). Les HALOS des feux (`HALO.t`) se posent sur les feux
+  relevés. Crochet : `dbgFeux()` (source, points, état des sillages).
+- LES TRAÎNÉES (`LUMT`, bloc « TRAÎNÉES DE LUMIÈRE » de la boucle) : les sillages `SILS` naissent dans les FEUX, plus dans les pots (le feu
+  de pixels `NFEU` garde les pots). Elles VIVENT dès qu'on roule (>12 km/h, en vol aussi) : un trait rouge de pose longue (`k` .58, 46 m,
+  72 % de la largeur du nitro), qui s'embrase au frein (`kF`, rouge plus vif `rF`). Au nitro elles prennent l'énergie du feu : 100 m, tête chauffée à
+  blanc, pouls, et elles crachent des CUBES du feu de pixels (`nfeuGicle`, à la palette courante de `NFEU` — bleu en réserve, violet en
+  infinie ; repli : les braises rondes si `NFEU` est coupé). La lumière est enregistrée au passage : le morceau de nitro file derrière,
+  brillant, puis la queue l'avale (`tr.lg` redescend à `rDn` 30 m/s). En refroidissant, la teinte garde sa famille (orange → braise, bleu →
+  bleu nuit, rouge → rouge sang) : plus de virage magenta. Les couleurs de nitro, de réserve, d'infinie et les signatures de caisse
+  (`fx.trail`, boutique) sont inchangées ; la plume des pots se couche sur la traînée de SON côté. Chat pop-tart / traînées arc-en-ciel :
+  la lumière se tait au nitro (l'arc-en-ciel EST la traînée), comme avant.
+- Inchangé : pas de lampe au sol (refus du 26/09), coupe au plan caméra et fondus près de l'objectif (v6), la meute garde ses rubans bleus.
+## LE GLACIER v3 — LA GRANDE DESCENTE VERGLACÉE, SANS ICE SKATE (2026-10-15, Sacha : « dans la map montagne, enlève la figure ICE SKATE ; fais une map qui descend beaucoup plus, mais sans module bizarre : la route doit juste faire une descente normale avec des virages et tout, mais toute la route doit être verglacée ; fais la route un peu plus large »)
+- **La route (`genBanq`)** : plus de spirales superposées, plus de chicanes, plus de CASSURES (`BANQ.cas` et `BANQ.spi` restent, vides). Une descente
+  dans la ligne de pente en grands virages enchaînés (30-110°, le plus souvent en alternance), droites de 50-190 m, cap borné à 75° de la pente
+  (la route ne se recroise jamais). Pente 17-28 %. Banc Node (15 pistes, 3 paliers) : 9-12 km, **1,9-2,5 km de dénivelé** (21 % de moyenne ;
+  v2 : ~1,2 km), zéro remontée, jamais à moins de 450 m d'elle-même. ⚠ Les raccourcis du glacier disparaissent avec les spirales : demandé.
+- **Plus large** : `BK_LARG` = 2,4 × ROAD_HALF0 (67 m ; 56 ailleurs), posé dans genBanq.
+- **Toute la route verglacée** : UNE plaque (`bkVerglasPose`, bornes `a`/`b`, bouts fondus sur ~30 m). La dérive suit le virage (vers
+  l'EXTÉRIEUR, lu sur `routeLacet`) et flotte un peu dans les droites ; le volant mord à `BK_VG.grip` .68 (.42 sur les anciennes plaques),
+  dérive .16 (.30) — au banc, .62/.20 faisait sortir le pilote auto à 455 km/h après 1 km. Les rayons gardent la marge du verglas (115 m × palier au plus serré = 1,8 × le rayon tenable sur le sec).
+- **ICE SKATE retirée** (`bkSkate`, `#iceHud`) ; `bkSkateRaz` reste, inerte. DÉRAPAGE GLACE (hors piste, sur lacs et pics) est gardé.
+- Console : `dbgBanq('verglas',{s,v})` pose la caisse au mètre s.
+
+## BOUTIQUE : LE LANCER QUI PART D'UNE ÉTIQUETTE (2026-10-15 au soir, pôle CAISSES — bug trouvé au banc ; MANAGER : « en boutique, le doigt posé sur la caisse doit toujours donner le lancer de la boutique, quelle que soit l'étiquette dessous ; les vrais boutons gardent leur clic »)
+- LA CAUSE : la page de vente (`#gBq`) est posée sur la scène ; la bande « CETTE SEMAINE » (`.bqUv`, pointer-events:auto) prend le doigt
+  jusque dans son blanc (entre ses cartes, sur ses bords). Le doigt de la boutique n'écoutait que le canevas : un lancer parti de là
+  passait au DOIGT DU GARAGE, qui tournait la caisse à sa façon (sans élan planifié, sans pose). Pareil pour un glissé parti d'une carte ou
+  du panneau des voitures.
+- LA CORRECTION : `bqScene(t)` — la scène de la boutique, c'est le canevas ET ce que la page de vente pose dessus sans être un bouton (le
+  blanc de la bande, les titres, les étiquettes). Les vrais boutons (`button`, liens, `[role=button|tab]`, cartes `.bqU`/`.bqK`) gardent
+  leur clic ; le panneau des voitures (`#gBqPan`) garde son doigt (il défile). Et en boutique, le doigt du garage ignore `#gBq`.
+- MESURÉ (banc muet, vrais touchers ; couché, debout, cadre) : lancer parti du blanc de la bande — AVANT pas d'élan, le garage la tourne
+  de 0,14 tour ; APRÈS l'élan de la boutique (0,54 à 1,22 tour selon la force). Glisser parti d'une carte : AVANT 0,13 tour (garage),
+  APRÈS rien. Glisser dans le panneau : AVANT −0,18 tour, APRÈS rien. Toucher une carte, les onglets, RETOUR : inchangés. Le garage hors
+  boutique : inchangé. Partie lancée (couché, debout, cadre).
+
+## BOUTIQUE : LE LANCER, UN TOUT PETIT PEU MOINS DE FRICTION (2026-10-15 au soir, pôle CAISSES — Léo : « quand la personne fait tourner la voiture et lâche son doigt, en fonction de la force, la voiture va tourner un peu ; mais il doit y avoir un peu de friction, un tout petit peu moins que là » → choisi : « un peu moins de friction »)
+- `BQ_GLISSE` (0,65 → 0,8) dans `bqLance` : la distance planifiée D = 2 tours × tanh(BQ_GLISSE v / 2 tours) ; la durée de base 1,3 → 1,45 s.
+  Même courbe (elle part à la vitesse du doigt, s'arrête en douceur), même plafond (2 tours), même attrape. Le garage ne change pas.
+- MESURÉ (banc muet, vrais touchers, mêmes vitesses de doigt) : doux 3 rad/s 0,30 → 0,37 tour (+23 %), arrêt 1,61 → 1,98 s ; moyen 7 rad/s
+  0,69 → 0,83 (+21 %), 1,56 → 1,88 s ; fort 12 rad/s 1,11 → 1,29 (+16 %), 1,63 → 1,84 s ; pareil debout ; à la souris (cadre) jusqu'à
+  1,83 tour. Partie lancée (couché, debout, cadre). Courbe : `photos-gameplay/boutique-lancer-friction-avant-apres.png`.
+- Piège de banc : un lancer qui PART sur une étiquette de l'interface (un SPAN au bord gauche, couché) n'est pas un lancer de la boutique —
+  c'est le doigt du garage qui tourne la caisse, sans élan planifié. Partir sur le canevas.
+
+## LA MAP DES NUAGES SANS HAUT NI BAS (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, il doit y avoir les nuages ou sinon le ciel partout, rien d'autre ; pour faire ça il faut aussi changer la génération de la route pour qu'elle se torde, se plie et tout, qu'il n'y ait plus de haut et de bas »)
+- PORTÉE : `hautOn()` = la MER DE NUAGES (toutes ses météos, l'orage compris) EN COURSE. Le ciel et la piste du menu, l'auto-école, la
+  campagne, le parc : inchangés. `?sans=haut` rend la map d'avant.
+- LA ROUTE (`pisteTord`, appelée par `buildTrack` juste après `genCtrl`) : on relève, tous les 6 m, ce que le pilote vit sur la piste de
+  genCtrl — le virage (rotation de la tangente dans le plan de la dalle), la bosse (dans le plan de la normale), le roulis du repère — puis on
+  REFAIT le chemin en y ajoutant des VRILLES (tenue · quart de tour · demi-tour · tour complet, lissées). Un virage pris sur une dalle couchée
+  devient une montée, sur une dalle retournée il part de l'autre côté : la route file dans tous les sens. Au volant : mêmes virages, mêmes
+  rayons, mêmes bosses. La normale de chaque point de contrôle (`TORD.N`) remplace, dans `buildTrack`, le transport + rappel vers le ciel.
+  Les vrilles ont leur propre flux (`graine ^ 0x70D5E11A`) : `rnd` est consommé comme avant.
+- TRONÇONS DROITS : l'approche et le saut de chaque TROU de genCtrl, et l'arrivée au portail, se redressent vers le CIEL DU MONDE (le rappel
+  de buildTrack, même depuis l'envers, au plus un demi-tour en 1,3 s de croisière). ⚠ Revenir au même angle de roulis ne suffit pas : après des
+  virages pris sur la tranche tout le repère a tourné (mesuré : portail à 45° du ciel). Un trou dont la lèvre n'est pas revenue à plat
+  (`Nn.y < 0,85`) est REFERMÉ. Les filets (« la route qui te rattrape ») ne se posent pas ici.
+- LA CONDUITE : la pente ne pousse ni ne retient plus sur cette route (`hautPente()` = 0, joueur et meute) ; l'aide « rails » des loopings
+  (`rails9`) y est coupée — la dalle couchée n'est pas un looping, ses virages se prennent au pouce. La caméra suivait déjà la normale de la
+  route (`camUp`) : le monde tourne avec la dalle. En VOL la gravité reste celle du monde ; sous la dalle à l'arrêt (< 7 m/s) on tombe, comme avant.
+- LE CIEL : `uSym` (fondu par `lvlStep`) replie la moitié basse du dôme sur la haute — plus d'abîme bleu sous la route, le même ciel (son
+  soleil a un reflet en bas). Une macro `#define vDir vDirS()` dans `TETE` le fait pour TOUTES les couches ; à 0, l'image d'avant au bit
+  près. LES NUAGES : en plus des couronnes du ciel de coton, LA SPHÈRE (56 cumulus tirés uniformément dans toutes les directions autour de
+  la route, à 420-1 920 m, dessous compris).
+- MESURÉ (banc Node de `pisteTord` sur pistes synthétiques, 4 graines) : contrôle sans vrille = piste d'origine à 0,0000 m ; ~20 vrilles par
+  zone de 11 km au palier de départ (une toutes les 5-8 s), 4-5 aux paliers rapides ; 20-35 % de la route à l'envers, 20-35 % sur la tranche ;
+  9-40 ms de calcul à la construction. Crochets : `dbgHaut()` (vrilles, tours, part à l'envers / sur la tranche, dénivelé, trous) et
+  `dbgHaut('controle')`.
+- À TRANCHER par Sacha : la dose de vrilles, le reflet du soleil en bas, et si l'orage (tordu lui aussi) doit garder son plafond.
+
+## ZEPPELIN D'OR II, 2e JET — LA MACHINE DE 1983 PREND LA MAIN (2026-10-15, pôle SON › nouveaux sons ; Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → reformulé, « les deux » : la basse new wave grave-aigu en croches balancées ET le boum-tchak de fond)
+- Jusqu'au 9e moteur rien ne change (le gramophone, la même mélodie). Au 10e (étape `nw` de `TRIO.zeppelin2`) : tout devient DROIT (l'étape met
+  `swing` et `swing8` à 0 — pas() lit désormais le balancement dans `M.etP`), la batterie se SYNCOPE (grosse caisse 1 · « et » de 2 · 3 · « et » de 3,
+  caisse claire en réverbe coupée, charleys droits), la basse new wave martèle la fondamentale en croches droites (l'octave seulement en fin de
+  mesure), la contrebasse se tait, le piano plaque en 3-3-2. 17e : la contrebasse revient en contre-chant pincé sur les contretemps (`m_retour`,
+  à la place du stride). 21e : roulements de grosse caisse en fin de mesure (`kickD`). 23e : la basse devient un riff de doubles croches
+  (fondamentale, octave, quinte). III et l'original : inchangés.
+- MESURÉ (salle, 122 BPM fixe) : montée +19,6 dB, attaques ~6 → 41/s, brillance +235 Hz (l'original +391), boue 7,5 %, sous-grave 2,5 %,
+  0 fausse note sur 390, voix ≤ 49, 0 erreur ; bancs Chrome et WebKit (vrais clics, vrai toucher) : les trois ZEPPELIN jouent, 0 erreur.
+
 ## ZEPPELIN D'OR II ET III — L'INTENSITÉ SANS LE TEMPO (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « garde juste Zeppelin d'Or, j'aime beaucoup, ça fait un peu parisien, donc garde la structure ; à partir de 10, que ça commence à aller un peu plus vite, mais pas juste le tempo, parce que c'est nul quand ça devient juste plus aigu et plus rapide : un truc d'intensité · mélanger le côté old school avec un ou deux instruments new wave : new wave, future, raw · laisse Zeppelin d'Or et fais aussi un troisième »)
 - Reformulé avant d'agir (« comprendre Léo ») : ZEPPELIN D'OR tel quel + II (même structure, l'intensité dès le 10e, deux instruments new
   wave) + III (même style, l'intensité seulement) ; CARNAVAL D'OR et LE CASSE : « retire-les » → hors de la bibliothèque (leur code reste
@@ -52,6 +154,22 @@
   DÉFERLANTE (déjà à fleur) ; les 77 se montent sans erreur ; 0 programme compilé en course (couché, debout) ; course sans erreur.
   Planche : `photos-gameplay/pots-encastres-toit-honte-avant-apres.jpg` (dossier CAR CAHS V3). Bancs (scratchpad) : `dbgNyIsole`,
   `dbgNyArriere`, `dbgNyPots`, `dbgNyTole` dans une copie instrumentée.
+- LES 6 ORIGINALES (même jour, Léo : « vraiment toutes, même les originales ») — branche `caisses-pots-originales`, LOOK en attente du oui :
+  · la règle sait où REGARDE une bouche (`echSortie` : sur le côté, de biais, vers l'arrière) ; `echRayon` tire dans le repère caisse le
+    long de cette sortie, et l'encoche se tourne vers elle (`ECHP.encoche`, option `d`). Un tube à peine biais (moins de 45° : PIZZA,
+    GROUPE B) se règle encore le long de z, comme dans la v468.
+  · LE CAÏD : ses quatre sorties latérales montent de 40 à 64 cm, dans le bas de caisse, chacune dans son encoche (avant : sous le flanc) ;
+    `ote` retire les deux que son gabarit dessinait en plus.
+  · ATCHOUM : sa sortie latérale remonte à 47 cm, dans une encoche du flanc (avant : un tube sous la caisse) ; `ote` retire l'ancien.
+  · LE MASTODONTE : chaque cheminée descend jusqu'au plateau (rayon vers le bas) et y entre par une encoche ronde tournée vers le ciel.
+  · LE HOT ROD : les huit collecteurs (gabarit + `ECHP.hotrod`) sortent du FLANC DU V8 : rapprochés de 9 cm, le pied 2 cm dans le bloc,
+    chacun par une lumière rectangulaire à jonc et FOND NOIR (la face du bloc n'est pas percée). Avant : à 10 cm du bloc, dans le vide.
+  · LE MUR DU SON : les deux tuyères arrière dans leur encoche (`force:1`) ; les réacteurs latéraux sont des nacelles, inchangés.
+  · LA SILENCIEUSE : le silencieux remonte de 24 à 44 cm, son cul ovale dans une encoche du panneau arrière, l'embout devant lui (pièce
+    `lie` : elle suit son recalage). Avant : il pendait dessous. Son `enc:0` est retiré.
+  · MESURÉ : 77 montages sans erreur ; maillage par maillage contre le main, SEULES ces 6 changent ; le feu (plume et feu de pixels) naît
+    aux nouvelles bouches (CAR_POTS = A.pots) ; 0 programme compilé en course (couché, debout, cadre). Planche :
+    `photos-gameplay/pots-encastres-originales-avant-apres.jpg`.
 
 ## LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « on veut retoucher le nitro ainsi que la flamme du moteur quand la voiture avance ; c'est un peu fade, on n'arrive pas trop à distinguer le nitro du moteur » · « pas trop régulier, comme un moteur d'une voiture qui avance : la personne ne doit pas voir une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique, en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, mais sa grandeur, en moins gros »)
 - ⚠ LOOK, pas encore validé : branche `visuel-flammes`, planches `photos-gameplay/flammes-moteur-nitro-avant-apres.png` et

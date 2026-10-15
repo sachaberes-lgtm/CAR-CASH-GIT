@@ -293,7 +293,7 @@ ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIER
 // (2026-10-15, Léo : « garde juste Zeppelin d'Or, j'aime beaucoup… laisse Zeppelin d'Or et fais aussi un troisième » — CARNAVAL D'OR et LE CASSE
 // retirés de la page, leur code reste dans musique-trente-trio.js) : le premier tel quel, II (new wave) et III (old school), même numéro, même mélodie
 [['zeppelin', 1999, 'ZEPPELIN D’OR', 'électro swing · clarinette, trompette bouchée, contrebasse qui marche, piano en pompe, la house dessous · le gramophone qui s’ouvre, le champagne · la mineur, 122 → 127 BPM'],
- ['zeppelin2', 1999, 'ZEPPELIN D’OR II', 'la même structure et deux instruments new wave en contraste : la basse de 1983 sous l’orchestre de 1925 (10e moteur), l’arpège analogique (14e) · dès le 10e, ça va plus vite sans que le tempo ni la tonalité montent · la mineur, 122 BPM'],
+ ['zeppelin2', 1999, 'ZEPPELIN D’OR II', 'la même structure ; au 10e la machine de 1983 prend la main : tout devient droit, la batterie se syncope, la basse new wave martèle en croches, le piano plaque en 3-3-2 · l’arpège analogique (14e), la contrebasse qui répond (17e) · le tempo et la tonalité ne montent pas · la mineur, 122 BPM'],
  ['zeppelin3', 1999, 'ZEPPELIN D’OR III', 'la même structure, rien que l’orchestre d’époque : dès le 10e, la contrebasse marche puis passe en croches, le piano en stride puis en pompe de croches, les cuivres en rafales — le tempo et la tonalité ne montent plus · la mineur, 122 BPM']]
   .forEach(([st, n, titre, style]) => ajoute({ id: 'neuf-' + st, sec: 'neuf', type: 'genv', titre, style, n, W: { clarte: .85 }, v: 'trio', da: 'trio', o9: { style: st } }));
 ajoute({ id: 'dir-glisse-v2', sec: 'moteur', type: 'js', titre: 'GLISSE v2', style: 'Module en direct · Pics de jade', nb: 5, f: 'assets/audio/music/direct/musique-glisse-v2.js' });
@@ -957,7 +957,7 @@ main.onglets:not(.pouces)>section.vue{margin-top:22px}
   const main = document.querySelector('main.page'); let secs = [...main.querySelectorAll(':scope>section')];
   const slug = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const AIDE = { gChr: 'Les musiques de lobby dans l’esprit de Chris (C418), chacune son monde — et le SIFFLEUR. De 1 à 2 minutes et demie.',
-    gMenu: 'Ce que le jeu joue au menu : le CIEL (l’écran titre, très discret, sans batterie) et le GARAGE (le léger filtre d’atelier compris). Une de chaque, tirée au hasard à chaque lancement.' };
+    gMenu: 'Ce que le jeu joue au menu : UN morceau du CIEL tiré au lancement, le même au ciel (très discret, derrière le vent) et au garage (un peu plus fort). Les trois du GARAGE (le léger filtre d’atelier compris) ne jouent plus dans le jeu : ils restent ici.' };
   secs.forEach(s => { const h = s.querySelector('h2'); s.dataset.nom = (h && h.firstChild ? h.firstChild.textContent : s.id).trim(); s.dataset.cle = slug(s.dataset.nom);
     const l = s.querySelector('.liste,.grille'); if (l && AIDE[l.id] && !s.querySelector('.aide')) { const p = document.createElement('p'); p.className = 'aide'; p.textContent = AIDE[l.id]; h.after(p); } });
   const nav = document.createElement('nav'); nav.id = 'onglets'; nav.innerHTML = '<div class="in"></div>'; main.querySelector('.outils').after(nav);

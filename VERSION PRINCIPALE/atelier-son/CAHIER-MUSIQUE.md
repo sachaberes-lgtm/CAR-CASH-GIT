@@ -786,3 +786,5 @@ musique ciel très discrète et garage aussi, différentes ambiances, même regi
 - Leçon (Léo : « c'est nul quand ça devient juste plus aigu et plus rapide ») : la vitesse qu'on sent = la DENSITÉ des motifs (basse en croches,
   charleys en doubles, piano en stride puis en croches, cuivres en rafales), pas les BPM ; et jamais de montée d'un ton pour « intensifier ».
   Mesurer les attaques par seconde, la brillance et les BPM moteur par moteur. Détail : JOURNAL.md, « ZEPPELIN D'OR II ET III ».
+- 2e jet du II (Léo : « le 1 2 1 2 est relou, pas new wave ») : la new wave est DROITE et SYNCOPÉE — au 10e le balancement s'arrête, grosse caisse et
+  piano en syncope (3-3-2), basse en croches sur la fondamentale ; jamais d'alternance grave-aigu ni de boum-tchak sous la new wave.
