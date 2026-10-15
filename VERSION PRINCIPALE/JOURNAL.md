@@ -3,6 +3,31 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'IMPACT EN MINIATURE — LE COUP D'ÉPAULE CONTRE UNE PAROI (2026-10-15 soir, Sacha, après le recensement des obstacles : « oui : fais le point 1 tel que décrit (étoile + éclats + étincelles au premier contact, sans boule ni cratère), puis banc, poussée et recopie »)
+- LE RECENSEMENT (« on s'en servira pour tous les obstacles du jeu ») : tout ce qui TUE en percutant passe déjà par L'IMPACT (chaîne de vol
+  des sept cartes, mur mortel de `parisMur` via `impMur`). Les PLOTS et les PORTES (`boomMini`) ne sont plus posés depuis le 14/10
+  (`PLOTS_ON=false`, « enlève les cônes de chantier ») ; les SATELLITES de l'orbite (`satHard`, `explode('sat')` sans IMPACT) ne vivent plus
+  que dans PLUTON, en carrière coupée ; pas d'épaves ; la police ne touche jamais la caisse. Dos d'âne, pads, flaques, moutons, galet du
+  glacier, bump de bord ne sont pas des chocs. Restait UN obstacle vivant : la paroi qu'on tape SANS mourir.
+- LE COUP D'ÉPAULE : `parisMur` sous le seuil mortel (angle ≤ 30° ou < 200 km/h) — les couloirs des Étroits, le TUNNEL et la MINE du
+  canyon (`cyCouloirIci`), les façades de Paris (qui dort). Avant : une étincelle toutes les 90 ms et « FROTTE ! ». Désormais, au PREMIER
+  contact seulement (≥ 0,35 s de JEU sans toucher, `IMPM.clk` : la pause ne compte pas ; en frottant, rien de plus qu'avant),
+  `impMini(out,a,kmh,into)` : l'ÉTOILE de choc de L'IMPACT (même texture en pixels) posée SUR la ligne de la paroi au coin avant du flanc,
+  collée à la caisse, qui pousse (0,07 s, jusqu'à 2,8 m) puis ÉCLATE (0,15 s, jusqu'à 5,8 m) ; 3 à 5 ÉCLATS de roche calcinée (même forme,
+  mêmes matières, un sur trois en braise) qui gardent ~90 % de l'élan de la caisse — posés sur place, ils sortaient du cadre en une image —
+  et dont un sur deux retape la paroi et rebondit ; une GERBE de 18 à 42 étincelles qui gicle du mur. Taille `k` selon l'angle et la vitesse.
+  NI cratère, NI coup (la caisse ne s'arrête pas), NI négatif, NI boule, NI ralenti.
+- SA PROPRE RÉSERVE (`IMPM` : 2 étoiles, 10 éclats, deux matières clonées de `IMP_ECL`) — jamais celle de la mort, qui peut tomber un instant
+  après — née au chargement, chauffée à sa première image ; `impMiniTick` dans la boucle à côté d'`impTick`, `impMiniFin` dans clearBoom.
+- MESURÉ au banc (`cc-banc/impact-mini.cjs`, canyon, couché 844 × 390, son coupé) : à 284, 837 et 1 389 km/h, le choc part (2 à 8 images
+  après le braquage dans la paroi), **185 → 185 programmes GPU** (aucun compilé au choc), la caisse reste en conduite ; un frottement tenu
+  60 images ne donne qu'UN choc. Première version jugée sur planche : étoile de 0,8 m posée à 0,7 m du centre = lue SUR LE TOIT, presque
+  invisible — d'où la taille ×2,5 et la pose sur la ligne de la paroi. La mort contre la paroi (`impact.cjs canyon`) est inchangée
+  (cratère, négatif, 186 → 186 programmes).
+- Console : `dbgImpactMini()` (chocs, dernier choc a/kmh/into/k, étoiles, éclats, programmes, couloirs du canyon) ;
+  `dbgImpactMini('force',±1)` (une miniature tout de suite contre ce flanc) ; `dbgImpactMini('seuil',x)` (poussée minimale, 1,2).
+- Pas de son ajouté (le crissement du contact reste) : à proposer si Sacha veut un « tchac » au choc.
+
 ## LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES (2026-10-15 soir, Sacha : « il y a trop plein de petits sons aigus quand on roule, avec des pièces, tout ça ; les pièces, tu peux les faire un peu moins fort, un petit tintement, un petit tchic, un petit tchic grave ; pas plein de ding-ding-ding-ding ; et rajoute tout un sound design pour les figures, avec des sons plus graves, genre doum, doum ; faut qu'on profite de la musique, que tu balances le son entre la musique et les bruitages, que les figures fassent plus de bruit que quand tu ramasses une pièce ; plus de sons graves et discrets — applique-toi bien pour les figures »)
 - MESURÉ AVANT (banc `banc-son` : une course muette au pilote, chaque `CCSON.play` relevé) : en 40 s de route, 119 pièces (3 par seconde,
   la note montait de mi5 à mi7 — 659 Hz → 2,6 kHz — et sonnait 0,45 s), 30 CYLINDRES (chaque moteur neuf égrène jusqu'à 16 cloches qui

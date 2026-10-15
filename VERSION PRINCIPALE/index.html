@@ -20750,6 +20750,7 @@ function parisMur(dt,cause){ // LES FAÇADES SONT DES MURS : un CHOC par contact
   SLD.mur=.12; // (SLIDE) la façade frotte : la figure le sait
   const va=Math.abs(vA),a=Math.asin(Math.min(1,into/Math.max(1,va))),kmh=va*3.6*SPD,now=performance.now();
   if(a>.52&&kmh>200){impMur(out);explode(cause||'facade');return;} // (2026-10-15) L'IMPACT : la paroi est le bord de la route
+  try{impMini(out,a,kmh,into);}catch(e){} // (2026-10-15 soir) L'IMPACT EN MINIATURE : le coup d'épaule, au premier contact (voir IMPM)
   psi=-psi*.3;yawR=0;slipB=0;vL=0;
   const choc=now-(PARIS.chocT||0)>220;if(choc)PARIS.chocT=now;       // (mesuré : perdre à CHAQUE image faisait tomber de 151 à 20 km/h en 3 s)
   vA*=choc?1-Math.min(.3,.03+a*.9):1-.3*(dt||.016);
@@ -39129,6 +39130,75 @@ function impFin(){ // le ménage (clearBoom, ou neuf secondes après) — rien n
   impNegFin();
 }
 function impNegFin(){if(IMP.neg){IMP.neg=false;renderer.domElement.style.filter='';}} // l'étalonnage `body>canvas` reprend la main
+/* (2026-10-15 soir) L'IMPACT EN MINIATURE — Sacha : « fais le point 1 : étoile + éclats + étincelles au premier contact, sans boule ni
+   cratère ». Ce qu'on percute SANS mourir — le coup d'épaule contre la paroi des couloirs du canyon (les Étroits, le tunnel, la mine) et
+   les façades de Paris : tout ce qui passe par parisMur sous le seuil mortel — reprend L'IMPACT en petit, au PREMIER contact seulement
+   (ensuite on frotte : les étincelles d'avant, rien de plus) : l'ÉTOILE de choc (la même texture en pixels) qui pousse au flanc puis
+   éclate, quelques ÉCLATS de roche calcinée (la même forme, les mêmes matières, un sur trois en braise) qui sautent de la paroi — la moitié
+   y retape et rebondit —, une GERBE d'étincelles. Plus le choc est franc (angle, vitesse), plus c'est gros. NI cratère, NI coup (la caisse
+   ne s'arrête pas), NI négatif, NI boule, NI ralenti : rien n'explose, on frotte. Tout ce qui saute garde l'élan de la caisse (posé sur
+   place, un éclat sortait du cadre en une image à 500 km/h) et l'étoile reste collée au flanc. SA PROPRE RÉSERVE (2 étoiles, 10 éclats) :
+   jamais celle de la mort, qui peut tomber un instant après. Mêmes types de matériaux que L'IMPACT, chauffés à leur première image : aucun
+   programme GPU neuf au choc. Console : dbgImpactMini(). */
+const IMPM={E:[],L:[],ei:0,li:0,clk:0,tC:-1e9,n:0,der:null,K:{dt:.35,into:1.2}, // clk : l'horloge de JEU (la pause la gèle)
+  N:new THREE.Vector3(),fw:new THREE.Vector3(),up:new THREE.Vector3(),s:new THREE.Vector3(),v:new THREE.Vector3(),
+  m:IMP_ECL.m.map(function(m){return m.clone();})}; // ses matières à elle (la braise de la mort s'éteint pendant le plan) : même programme
+for(let i=0;i<2;i++){const e=new THREE.Sprite(new THREE.SpriteMaterial({map:IMP_ETOILE_TEX,transparent:true,depthTest:false,depthWrite:false,fog:false})),u={on:false,t:0,k:1,o:new THREE.Vector3()};
+  e.renderOrder=12;e.frustumCulled=false;e.position.set(0,-1e5,0);e.userData=u;scene.add(e);
+  e.onAfterRender=function(){if(!u.on)e.visible=false;e.onAfterRender=function(){};}; // CHAUFFE : dessinée une fois, puis rangée
+  IMPM.E.push(e);}
+for(let i=0;i<10;i++){const m=new THREE.Mesh(IMP_ECL.geo,IMPM.m[i%3===0?1:0]),c={m:m,v:new THREE.Vector3(),s:new THREE.Vector3(1,1,1),p:new THREE.Vector3(),n:new THREE.Vector3(),rx:0,ry:0,t:0,life:0,on:false};
+  m.frustumCulled=false;m.position.set(0,-1e5,0);scene.add(m);
+  m.onAfterRender=function(){if(!c.on)m.visible=false;m.onAfterRender=function(){};};
+  IMPM.L.push(c);}
+function impMini(out,a,kmh,into){ // parisMur, sous le seuil mortel, à chaque image de contact : l'étoile ne part qu'au PREMIER (≥ 0,35 s de jeu sans toucher)
+  const neuf=IMPM.clk-IMPM.tC>IMPM.K.dt;IMPM.tC=IMPM.clk;
+  if(!neuf||!(into>IMPM.K.into)||mode!=='drive')return false;
+  const sp=CARS[level]||CARS[0],N=IMPM.N.copy(F.b).multiplyScalar(-out).normalize(),fw=IMPM.fw.copy(F.t).multiplyScalar(driveDir),up=IMPM.up.copy(F.n),V=IMPM.v.copy(PT_U.uVc.value);
+  const k=THREE.MathUtils.clamp(.45+.55*a/.52,.45,1)*(.8+.2*Math.min(1,kmh/700)); // le choc franc (angle) et la vitesse
+  const S=IMPM.s.copy(carGroup.position).addScaledVector(N,-(sp.w*.5+.1)).addScaledVector(fw,(sp.l||4.4)*.42).addScaledVector(up,.8); // le coin AVANT du flanc, contre la paroi
+  IMPM.n++;IMPM.der={a:+a.toFixed(3),kmh:Math.round(kmh),into:+into.toFixed(1),k:+k.toFixed(2)};
+  const e=IMPM.E[IMPM.ei],u=e.userData;IMPM.ei=(IMPM.ei+1)%IMPM.E.length; // L'ÉTOILE, collée au flanc (elle suit la caisse)
+  u.on=true;u.t=0;u.k=k;u.o.copy(S).sub(carGroup.position); // SUR la ligne de la paroi : la moitié de l'étoile déborde du flanc (plus en dedans, elle se lisait sur le toit)
+  e.position.copy(carGroup.position).add(u.o);e.material.rotation=Math.random()*6.28;e.material.opacity=1;e.scale.setScalar(.6*k);e.visible=true;
+  const nE=3+Math.round(2*(k-.45)/.55); // LES ÉCLATS : 3 à 5
+  for(let i=0;i<nE;i++){const c=IMPM.L[IMPM.li],m=c.m;IMPM.li=(IMPM.li+1)%IMPM.L.length;const an=Math.random()*6.283,r=Math.random()*.5,sp9=(3+Math.random()*6)*(.8+.4*k);
+    c.p.copy(S);c.n.copy(N); // SA paroi : le plan tangent au point de contact (un couloir tourne : chacun garde le sien)
+    m.position.copy(S).addScaledVector(fw,Math.cos(an)*r).addScaledVector(up,Math.sin(an)*r).addScaledVector(N,.3);
+    c.v.copy(V).multiplyScalar(.86+Math.random()*.1) // l'élan de la caisse, un peu moins : ils glissent vers l'arrière sous nos yeux
+      .addScaledVector(N,i&1?-(2+Math.random()*3):sp9).addScaledVector(fw,(Math.random()-.5)*6).addScaledVector(up,2+Math.random()*5); // un sur deux retape la paroi
+    const k9=(.7+Math.random()*.6)*(.8+.3*k);c.s.set(k9*(.7+Math.random()*.6),k9*(.6+Math.random()*.5),k9*(.7+Math.random()*.6));m.scale.copy(c.s);
+    m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);c.rx=(Math.random()-.5)*14;c.ry=(Math.random()-.5)*14;
+    c.t=0;c.life=.7+Math.random()*.5;c.on=true;m.visible=true;}
+  const nS=18+Math.round(24*k); // LA GERBE qui gicle de la paroi
+  for(let i=0;i<nS;i++){const s9=6+Math.random()*12,u9=(Math.random()-.5)*10,w9=Math.random()*7;
+    spawnP(sparkGold,S.x+N.x*.25,S.y+N.y*.25,S.z+N.z*.25,V.x*.8+N.x*s9+fw.x*u9+up.x*w9,V.y*.8+N.y*s9+fw.y*u9+up.y*w9,V.z*.8+N.z*s9+fw.z*u9+up.z*w9,.22+Math.random()*.3);}
+  return true;
+}
+function impMiniTick(dt){ // chaque image (porte de simulation de la boucle) : l'étoile qui pousse puis éclate, les éclats qui volent
+  IMPM.clk+=dt;
+  for(const e of IMPM.E){const u=e.userData;if(!u.on)continue;u.t+=dt;const t=u.t,k=u.k;
+    e.position.copy(carGroup.position).add(u.o);
+    if(t<.07){const g=1-Math.pow(1-t/.07,2);e.scale.setScalar((.6+2.2*g)*k);} // elle pousse au flanc (2,8 m au choc franc : la moitié de celle de la mort)
+    else{const w=(t-.07)/.15;if(w>=1){u.on=false;e.visible=false;continue;}e.scale.setScalar((2.8+3*(1-(1-w)*(1-w)))*k);e.material.opacity=1-w*w;} // puis ÉCLATE
+    e.material.rotation+=dt*.9;}
+  for(const c of IMPM.L){if(!c.on)continue;c.t+=dt;if(c.t>c.life){c.on=false;c.m.visible=false;continue;}
+    const m=c.m,P=m.position,N=c.n;c.v.y-=22*dt;P.addScaledVector(c.v,dt);
+    const h=(P.x-c.p.x)*N.x+(P.y-c.p.y)*N.y+(P.z-c.p.z)*N.z,vn=c.v.dot(N);
+    if(h<.15&&h>-3&&vn<0){P.addScaledVector(N,.15-h);c.v.addScaledVector(N,-1.45*vn);} // il retape la paroi et REBONDIT (l'élan le long du mur reste : la caisse file)
+    m.rotation.x+=c.rx*dt;m.rotation.y+=c.ry*dt;m.scale.copy(c.s).multiplyScalar(Math.min(1,(c.life-c.t)/.25)); // se replie en fin de vie
+    m.visible=P.distanceToSquared(camera.position)>6;
+    if(m.material===IMPM.m[1]&&c.t<.6&&Math.random()<.35)spawnP(boomEmbO,P.x,P.y,P.z,c.v.x*.9,c.v.y*.9,c.v.z*.9,.2+Math.random()*.2);}
+}
+function impMiniFin(){IMPM.tC=-1e9;for(const e of IMPM.E){e.userData.on=false;e.visible=false;}for(const c of IMPM.L){c.on=false;c.m.visible=false;}} // le ménage (clearBoom)
+/* console : dbgImpactMini() → l'état (chocs, dernier choc a/kmh/into/k, étoiles, éclats en vol, programmes GPU, couloirs du canyon) ;
+   dbgImpactMini('force',out) → une miniature tout de suite contre le flanc out (±1) ; dbgImpactMini('seuil',x) → into minimal (1,2) */
+window.dbgImpactMini=function(k,a){
+  if(k==='force'&&started&&mode==='drive'){IMPM.tC=-1e9;impMini(a<0?-1:1,.3,Math.abs(vA)*3.6*SPD,9);}
+  if(k==='seuil'&&a!=null)IMPM.K.into=+a;
+  return {chocs:IMPM.n,der:IMPM.der,etoiles:IMPM.E.map(function(e){return e.userData.on?+e.scale.x.toFixed(2):0;}),eclats:IMPM.L.filter(function(c){return c.on;}).length,
+    eclatsVus:IMPM.L.filter(function(c){return c.on&&c.m.visible;}).length,seuil:IMPM.K.into,programmes:renderer.info.programs?renderer.info.programs.length:null,
+    couloirs:CY.on?{etroits:CY.cou,tunnel:CY.tun?[CY.tun[0]]:null,mine:CY.mineT?CY.mine:null}:null,s:+s.toFixed(1),lat:+lat.toFixed(2),demi:ROAD_HALF,mode:mode};};
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
   if(PARIS.sol)return parisHeurt;if(FORET.root)return foretHeurt;if(VOLCAN.root)return volcanHeurt;if(BANQ.root)return banqDans;
   if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(CITY.col)return villeHeurt;return null;}
@@ -39745,7 +39815,7 @@ function clearBoom(){
   clearBoomArt(); // volutes, dards, cœur et ondes de la boule de feu — (vague 2) RANGÉS, pas libérés : ils servent à la mort suivante
   boomOnde.userData.t=-1;boomOnde.visible=false; // (particules) l'onde au sol s'éteint avec le reste
   if(boomLight){boomLight.intensity=0;boomLight.distance=30;boomLight.color.setHex(0xffd06a);boomLight=null;} // rendue à la pose, JAMAIS retirée de la scène
-  impFin(); // (2026-10-15) L'IMPACT : le cratère, l'étoile, les éclats rangés (et la caisse rendue à sa forme si on quitte pendant le coup)
+  impFin();impMiniFin(); // (2026-10-15) L'IMPACT : le cratère, l'étoile, les éclats rangés (et la caisse rendue à sa forme si on quitte pendant le coup)
   boomT=-1;carGroup.visible=true;flashEl.style.background='#ff2020';
 }
 // étincelles de collecte / d'impact
@@ -58711,6 +58781,7 @@ function loop(now){
     updatePool(dust,dt,2);
     villeImpactTick(dt); // (passe graphismes) le cratère de la façade percutée, ses morceaux, sa fumée
     try{impTick(dt);}catch(e){loopWarn(4194304,'impact',e);} // (2026-10-15) L'IMPACT : le cratère, l'étoile, les éclats, le feu qui couve
+    try{impMiniTick(dt);}catch(e){loopWarn(4194304,'impact mini',e);} // (2026-10-15 soir) L'IMPACT EN MINIATURE (le coup d'épaule contre une paroi)
     updateStreaks(dt);
     updatePool(flames,dt,1);
     updatePool(flameCore,dt,1);
