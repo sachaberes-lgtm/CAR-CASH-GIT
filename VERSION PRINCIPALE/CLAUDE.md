@@ -191,8 +191,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
 - PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
   serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
-  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (non chargés par le jeu ; lus
-  par les boîtes). Les animaux reviendront PAR MAP (d'abord des singes de décor au SOLEIL DE JADE). Le reste : git (85470fb4 et avant).
+  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (lus par les boîtes, et
+  chargés par le jeu depuis le retour PAR MAP). Le reste : git (85470fb4 et avant).
+- LES ANIMAUX PAR MAP (15/10, Léo : « soleil jade singe va sur main et dauphins aussi ») : au SOLEIL DE JADE seulement — les SINGES (décor :
+  coucou sur une montagne, mangue, course, assis au bord ; `jsgTick`) et les DAUPHINS DE LA MER (au bout de 5 s dans l'eau ils arrivent, jouent
+  devant la caisse, l'un vient faire coucou à la portière, et une fois sur deux ils SAUTENT AVEC ELLE quand elle jaillit ; `jdmTick`). Les formes
+  des singes se calculent dans un Worker (`creatures/atelier.js`). Détail : JOURNAL.md. Pas de figure LE DAUPHIN.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 - HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
@@ -606,8 +610,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
 - PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
   serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
-  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (non chargés par le jeu ; lus
-  par les boîtes). Les animaux reviendront PAR MAP (d'abord des singes de décor au SOLEIL DE JADE). Le reste : git (85470fb4 et avant).
+  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (lus par les boîtes, et
+  chargés par le jeu depuis le retour PAR MAP). Le reste : git (85470fb4 et avant).
+- LES ANIMAUX PAR MAP (15/10, Léo : « soleil jade singe va sur main et dauphins aussi ») : au SOLEIL DE JADE seulement — les SINGES (décor :
+  coucou sur une montagne, mangue, course, assis au bord ; `jsgTick`) et les DAUPHINS DE LA MER (au bout de 5 s dans l'eau ils arrivent, jouent
+  devant la caisse, l'un vient faire coucou à la portière, et une fois sur deux ils SAUTENT AVEC ELLE quand elle jaillit ; `jdmTick`). Les formes
+  des singes se calculent dans un Worker (`creatures/atelier.js`). Détail : JOURNAL.md. Pas de figure LE DAUPHIN.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 

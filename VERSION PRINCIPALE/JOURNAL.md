@@ -3,7 +3,26 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on peut les voir dire bonjour ; sur la route, en train de courir ou de manger une mangue, ou penchés sur le bord de la route — qu'on en voie quelques fois seulement, mais qu'on les voie quand même ») — PROTOTYPE, branche singes-jade (pas sur le main : le LOOK attend le oui de Léo)
+## LES DAUPHINS DE LA MER DE JADE + L'ATELIER DES SINGES (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise » · « soleil jade singe va sur main et dauphins aussi »)
+- Seulement dans la MER des PICS DE JADE (là où l'on plonge et ressort). Bloc « LES DAUPHINS DE LA MER DE JADE » (après `dbgJadeSinges`), `jdmTick`
+  dans la boucle après `jsgTick`, un appel `jdmJailli` au JAILLISSEMENT de `jadeEauVol`. Du DÉCOR : ni aura, ni collision, pas de figure.
+- Lu ainsi (à corriger s'il le dit autrement) : après `JDM_ATT` = 5 s CUMULÉES dans l'eau (le compte repart quand la caisse a retrouvé la route),
+  un banc de TROIS arrive de devant en bondissant ; ils jouent DEVANT la caisse, de part et d'autre (comme à l'étrave d'un bateau : MESURÉ, en
+  cercle autour d'elle ils étaient derrière la caméra ou hors du cadre portrait) ; toutes les 3-5 s l'un d'eux recule jusqu'à la portière et fait
+  sa VRILLE (le coucou, son `dauphin.banc` la 1re fois) ; quand elle flotte ou surfe, ils bondissent ; quand elle JAILLIT, une fois sur deux
+  (`JDM_SAUT`) ils sautent AVEC elle (élan plafonné : ~10 m, elle monte à 30-40) ; elle retrouve la route, explose ou part loin → ils plongent.
+- ⚠ Leur surface est `jadeSurfMoy` (la houle calmée où flotte la caisse) : la houle en cubes du décor (`jadeSurf`) varie de ±20 m d'une colonne à
+  l'autre — dessus, ils bondissaient à 30 m. Sous la peau de la mer on les devine comme la caisse ; sans elle, l'eau les coupe (`uSurf`).
+- Le modèle : le grand dauphin VITRAIL (`creatures/dauphin.js`, `mkDauphin`, désormais chargé par le jeu ; ~95 ms au chargement ; sa ligne
+  `crV1/crV2` retirée : elle doublait celle d'index.html). 3 programmes compilés AU MENU (`chauffeRendu`), 0 en course (MESURÉ debout et couché).
+- L'ATELIER DES SINGES (`creatures/atelier.js`, deux Workers) : les quatre formes VITRAIL coûtaient 3,5 s de calcul (MESURÉ) ; en tranches de
+  5 ms il fallait 8 à 13 s de menu, et un JOUER rapide les compilait EN COURSE (4 programmes, mesuré debout). Prêtes ~1,3 s après l'apparition
+  de PLAY ; sans Worker (file://, refus, erreur, 30 s de silence) le calcul en tranches reprend (testé : prêtes à 6 s).
+- Banc : `?singesjade=1` (chaque PLAY part au SOLEIL DE JADE) · `dbgAuto(1,0)` AVANT le départ · `dbgEau({h:30,vy:-45})` lâche la caisse dans la
+  mer · `dbgJadeDauphins()` l'état (où ils sont à l'écran) · `('viens')` · `('saut')` · `('plonge')` un vrai plongeon sauté avec eux ·
+  `('route')` la mer la ramène (le départ) · `('gel')`.
+
+## LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on peut les voir dire bonjour ; sur la route, en train de courir ou de manger une mangue, ou penchés sur le bord de la route — qu'on en voie quelques fois seulement, mais qu'on les voie quand même ») — validé par Léo (« soleil jade singe va sur main et dauphins aussi »)
 - Du DÉCOR, sur la seule map PICS DE JADE (choix de Léo au questionnaire) : `jsgTick` (bloc « LES SINGES DU SOLEIL DE JADE », après `triNoir`).
   Quatre rencontres par course (`JSG_N`), une de chaque, à des places tirées au hasard (`jsgPlan`) : COUCOU sur une montagne proche de la route
   (`jsgMontagne` : sommet de 150 m sous la route à 50 m au-dessus — MESURÉ, celles du bord la dépassent de 70 à 230 m, sommet invisible), MANGUE

@@ -10098,7 +10098,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </div>
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=7"></script>
-<script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=1"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
+<script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=1"></script><script src="creatures/dauphin.js?v=1"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=2"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -21523,6 +21523,7 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       const vr=Math.max(Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend*Math.pow(EAU.amorti,Math.max(0,JEAU.n-1))+4,Math.sqrt(2*g*EAU.profSaut*JEAU.prof/SPD));if(fallVel.y<vr)fallVel.y=vr; // l'élan du premier plongeon, ou celui de la profondeur — jamais plus
       {const h2=Math.hypot(fallVel.x,fallVel.z),hw=Math.max(h2,JEAU.hIn*(EAU.fun?1+Math.min(EAU.dauphMax,EAU.dauph*Math.max(0,JEAU.n-1)):EAU.hRend));if(h2>1){fallVel.x*=hw/h2;fallVel.z*=hw/h2;}else{fallVel.x=JEAU.cap.x*hw;fallVel.z=JEAU.cap.z*hw;}fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
       fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve
+      try{jdmJailli(fallVel.x*vmW,fallVel.y*vmW,fallVel.z*vmW);}catch(e){} // (2026-10-15, Léo) LES DAUPHINS DE LA MER sautent avec elle, une fois sur deux
       const k9=Math.min(1,fallVel.y/170);
       jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
       shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
@@ -39703,12 +39704,30 @@ function jsgLance(R,type){ // la rencontre naît devant la caisse
   try{if(typeof sfx==='function')sfx('singe.coucou');}catch(e){} // (son à faire : nom posé)
   return true;
 }
+/* L'ATELIER (creatures/atelier.js, un Worker) : MESURÉ, les quatre formes VITRAIL coûtent 3,5 s de calcul ; en tranches de 5 ms dans la page,
+   il fallait 8 à 13 s de menu — un JOUER rapide les finissait (et les compilait) en pleine course. Le Worker les calcule à côté et les rend
+   en tableaux transférés ; `jsgGeo` refait les géométries telles que vitrailPrepare les aurait faites. Sans Worker (file://, refus, erreur,
+   silence de 30 s) : retour au calcul en tranches d'avant, rien ne casse. */
+function jsgGeo(o){const g=new THREE.BufferGeometry();for(const k in o.a)g.setAttribute(k,new THREE.BufferAttribute(o.a[k][0],o.a[k][1])); // (normal et aN gardent leur tableau commun, comme dans vitrailLisseG)
+  g.setIndex(new THREE.BufferAttribute(o.i,1));g.boundingSphere=new THREE.Sphere(new THREE.Vector3(o.bs[0],o.bs[1],o.bs[2]),o.bs[3]);return g;}
+function jsgAtelierRepli(){const L9=JSG.atW||[];JSG.at=null;JSG.atW=null;for(const W of L9)try{W.terminate();}catch(e){}}
+function jsgAtelier(){JSG.at=null;try{if(typeof Worker!=='function'||location.protocol==='file:')return;
+  const lots=[['bonjour','mangue'],['bord','course']]; // DEUX ouvriers en parallèle (les téléphones ont plusieurs cœurs) : ~0,9 s par forme, deux formes chacun
+  let reste=lots.length;JSG.atW=[];JSG.at='calcule';JSG.atT=performance.now();
+  for(const lot of lots){const W=new Worker('creatures/atelier.js?v=1');JSG.atW.push(W);
+    W.onerror=function(ev){try{if(ev&&ev.preventDefault)ev.preventDefault();}catch(e){}if(JSG.atW&&JSG.atW.indexOf(W)>=0)jsgAtelierRepli();};
+    W.onmessage=function(e){if(!JSG.atW||JSG.atW.indexOf(W)<0)return;try{for(const o of e.data){const F=o.n==='course'?SINGE_FC:singePoseForme(o.n);if(!F._geo)F._geo={lisse:jsgGeo(o.lisse),ecailles:jsgGeo(o.ecailles)};}}catch(er){jsgAtelierRepli();return;}
+      try{W.terminate();}catch(e){}if(--reste===0){JSG.at='fini';JSG.atW=null;}};
+    W.postMessage({formes:lot});}}catch(e){jsgAtelierRepli();}}
 function jsgTick(dt){
   // LA FABRIQUE : les quatre formes, tranche par tranche (≤ 5 ms par image), puis UNE compilation hors écran au menu
   if(typeof singePoseForme!=='function')return; // (creatures/singe.js absent : pas de singes)
-  if(!JSG.pret){if(!JSG.fab)JSG.fab=(function*(){for(const n of ['bonjour','mangue','bord'])yield* vitrailPrepare(singePoseForme(n));yield* vitrailPrepare(SINGE_FC);})();
-    const t0=performance.now();let r;do{r=JSG.fab.next();}while(!r.done&&performance.now()-t0<5);
-    if(r.done){JSG.pret=true;for(const n of ['bonjour','mangue','bord','course']){const S=singeNouveau('singeJade',n),nd=new THREE.Group();
+  if(!JSG.pret){if(JSG.at===undefined)jsgAtelier(); // (2026-10-15) L'ATELIER d'abord : un Worker calcule les formes hors du fil du jeu
+    if(JSG.at&&JSG.at!=='fini'&&performance.now()-JSG.atT>30000)jsgAtelierRepli(); // muet depuis 30 s : le calcul en tranches reprend
+    let fini=JSG.at==='fini';
+    if(!fini&&!JSG.at){if(!JSG.fab)JSG.fab=(function*(){for(const n of ['bonjour','mangue','bord'])yield* vitrailPrepare(singePoseForme(n));yield* vitrailPrepare(SINGE_FC);})();
+      const t0=performance.now();let r;do{r=JSG.fab.next();}while(!r.done&&performance.now()-t0<5);fini=r.done;}
+    if(fini){JSG.pret=true;for(const n of ['bonjour','mangue','bord','course']){const S=singeNouveau('singeJade',n),nd=new THREE.Group();
       for(const k in JSG_VIT)S.U[k].value=JSG_VIT[k];nd.add(S.grp);nd.visible=false;JSG.node.add(nd);JSG.S[n]={S,nd};}}
     return;}
   if(!JSG.chaud){if(started&&!gameOver&&JSG.cur)return;JSG.chaud=true; // (au menu d'habitude ; une course partie trop tôt la fait ici, une fois, sans singe à l'écran)
@@ -39744,8 +39763,124 @@ window.dbgJadeSinges=function(t){ // dbgJadeSinges() : le plan · dbgJadeSinges(
     C.P.forEach(function(q){const d=Math.hypot(q[0]-r0.x,q[1]-r0.z);if(d<500)o.push([Math.round(d),Math.round(q[8]),Math.round(q[4]-r0.y),Math.round(q[2])]);});o.sort(function(a,b){return a[0]-b[0];});return o.slice(0,30);}
   if(t){if(!jsgActif())return 'il faut rouler au SOLEIL DE JADE';jsgCache();const R=jsgS();if(R==null)return 'pas de route sous la caisse';return jsgLance(R,t)?'lancé : '+t:'pas de place (montagne introuvable, ou fin de piste)';}
   const v=new THREE.Vector3();const E=JSG.cur;
-  return {pret:JSG.pret,chaud:JSG.chaud,actif:jsgActif(),demiRoute:+ROAD_HALF.toFixed(1),lat:+lat.toFixed(1),plan:JSG.plan.map(p=>({type:p.type,s:Math.round(p.s),fait:p.fait})),L:Math.round(L),
+  return {pret:JSG.pret,chaud:JSG.chaud,atelier:JSG.at==null?(JSG.at===null?'tranches':'-'):JSG.at,actif:jsgActif(),demiRoute:+ROAD_HALF.toFixed(1),lat:+lat.toFixed(1),plan:JSG.plan.map(p=>({type:p.type,s:Math.round(p.s),fait:p.fait})),L:Math.round(L),
     cur:E?{type:E.type,t:+E.t.toFixed(1),s:Math.round(E.s),vu:E.o.nd.visible&&JSG.node.visible,ech:+E.o.nd.scale.x.toFixed(2),pos:E.o.nd.position.toArray().map(Math.round),caisse:carGroup.position.toArray().map(Math.round),ecran:E.o.nd.getWorldPosition(v).project(camera).toArray().map(a=>+a.toFixed(2)),dist:Math.round(E.o.nd.getWorldPosition(v).distanceTo(camera.position))}:null};
+};
+/* LES DAUPHINS DE LA MER DE JADE (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et
+   sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise »). Seulement dans la MER des PICS DE JADE
+   (là où l'on plonge et ressort) : nulle part ailleurs, et la figure LE DAUPHIN ne revient pas. Du DÉCOR : ni aura, ni collision.
+   · L'ARRIVÉE : après JDM_ATT s passées DANS l'eau (cumulées : plonger, jaillir, replonger — le compte repart quand la caisse a retrouvé la
+     route), un banc de TROIS arrive de devant en bondissant à la surface, puis s'enroule autour de la caisse.
+   · LE JEU : sous l'eau ils tournent autour d'elle à sa profondeur (chacun son rayon, son sens, sa hauteur) ; le plus proche de l'objectif
+     fait une VRILLE de temps en temps (le coucou) ; quand elle flotte ou surfe, ils bondissent à côté d'elle.
+   · LE SAUT : quand la caisse JAILLIT (jadeEauVol → jdmJailli), une fois sur deux (JDM_SAUT) le banc saute AVEC elle — même course, un élan
+     plafonné (un dauphin ne rejoint pas la route), chacun avec son petit retard ; ils retombent dans une gerbe.
+   · LE DÉPART : la caisse retrouve la route (ou part trop loin) → ils plongent ; l'eau les cache.
+   Le modèle : le grand dauphin VITRAIL de creatures/dauphin.js (mkDauphin : écailles en cubes, coque, cœur — 3 programmes compilés AU MENU par
+   chauffeRendu, 0 en course), la nage dans son shader (uDol) ; l'eau le COUPE (uSurf) quand on le voit d'au-dessus sans la peau de la mer,
+   sinon on le devine sous la peau comme la caisse. Les gerbes et les bulles sont celles de la caisse (eauP, eauRide, jadeBullesJet).
+   ⚠ Leur surface est celle où FLOTTE la caisse (jadeSurfMoy : la houle calmée) — la houle en cubes du décor (jadeSurf) varie de ±20 m d'une
+   colonne à l'autre : sur elle, ils bondissaient à 30 m.
+   Console : dbgJadeDauphins() (l'état) · ('viens') tout de suite · ('saut') le prochain jaillissement est sauté avec eux · ('route') la mer
+   ramène la caisse (le départ) · ('gel') fige. */
+const JDM_ATT=5,JDM_SAUT=.5,JDM_ECH=1.6,JDM_G=16,JDM_SAUT_H=8; // attente dans l'eau (s) · chance de sauter avec la caisse · taille · gravité de leurs bonds (m/s²) · hauteur de leur saut avec la caisse (m, × la taille)
+const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],merT:0,routeT:0,on:false,part:0,t:0,vrT:2.5,force:false,salut:false,noir:-1,
+  cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),
+  X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
+JDM.node.visible=false;scene.add(JDM.node);
+function jdmActif(){return !!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
+function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
+  if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
+  for(let i=0;i<3;i++){const b=DOL_BANC[i]||DOL_BANC[0],d=mkDauphin();d.visible=false;d.frustumCulled=false;JDM.node.add(d);
+    JDM.D.push({d:d,b:b,p:new THREE.Vector3(),v:new THREE.Vector3(),X:new THREE.Vector3(1,0,0),F:[11,17,23][i],L:[-6.5,6,-1.5][i],h:[0,1.8,-1.6][i],
+      ph:i*1.7,roll:i*2.3,vr:-1,vrS:1,st:'nage',up:false,bondT:.6+i*.5,sautT:-1,arr:true,saut:false,cou:0,cs:1,vrF:false,vu:false});}
+  return true;}
+function jdmCache(){for(const E of JDM.D){E.d.visible=false;E.vu=false;}JDM.node.visible=false;JDM.on=false;JDM.part=0;}
+function jdmNoirMaj(){const n=triNoir()?1:0;if(n===JDM.noir)return;JDM.noir=n; // la dark triad : noirs, liseré rouge sang (comme avant)
+  DOL_U.uNoir.value=n;DOL_U.uRimA.value.setRGB(n?1:.55,n?.08:.9,n?.14:1);DOL_U.uRimB.value.setRGB(n?.75:1,n?0:.6,n?.08:.88);DOL_U.uEcC.value.setRGB(n?1:.75,n?.22:.97,n?.28:1);
+  for(const E of JDM.D){E.d.material.color.setHex(n?0x0e0d12:0xffffff);if(E.d.userData.coque)E.d.userData.coque.material.color.setHex(n?0x0e0d12:0xffffff);}}
+function jdmGerbe(x,sy,z,up,k){ // un dauphin perce la surface (up) ou y retombe : une ride et des gouttes
+  try{eauPIm();eauRide(x,sy,z,.1*k);const n=(up?22:16)*k|0;
+    for(let i=0;i<n;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=.5+Math.random()*1.2*k,vo=2+Math.random()*5*k;
+      eauP(x+c*r,sy+.3,z+s*r,c*vo,(up?7:5)+Math.random()*(up?9:6)*k,s*vo,.06+Math.random()*.14,.8+Math.random()*.7,sy,(Math.random()*3)|0);}}catch(e){}}
+function jdmViens(){ // L'ARRIVÉE : devant la caisse, dans le sens de sa course, à la surface
+  const C=carGroup.position,H=JDM.H,px=-H.z,pz=H.x;JDM.on=true;JDM.part=0;JDM.t=0;JDM.vrT=1.8;JDM.salut=false;JDM.node.visible=true;
+  JDM.D.forEach(function(E,i){const lt=(i-1)*7+(Math.random()-.5)*3,av=62+i*8;E.p.set(C.x+H.x*av+px*lt,0,C.z+H.z*av+pz*lt);E.p.y=jadeSurfMoy(E.p.x,E.p.z)-2;
+    E.v.copy(JDM.cv).multiplyScalar(.2);E.v.y=0;E.st='nage';E.arr=true;E.saut=false;E.cou=0;E.bondT=.15+i*.3;E.sautT=-1;E.vr=-1;E.up=false;});}
+function jdmJailli(vx,vy,vz){ // appelée par jadeEauVol au JAILLISSEMENT : la vitesse de la caisse (m/s du monde)
+  if(!JDM.on||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
+  JDM.D.forEach(function(E,i){E.sautT=.05+i*.13+Math.random()*.06;E.sV=[vx,vy,vz];});}
+function jdmTick(dt){
+  if(!JDM.pret){if(!jdmFabrique())return;JDM.pret=true;return;}
+  if(!JDM.chaud){if(started&&!gameOver&&jadeEauOk())return; // (au menu : les trois programmes se compilent hors écran, une fois)
+    JDM.chaud=true;JDM.node.visible=true;for(const E of JDM.D)E.d.visible=true;try{chauffeRendu([JDM.node]);}catch(e){}for(const E of JDM.D)E.d.visible=false;JDM.node.visible=false;return;}
+  if(paused)return;
+  const C=carGroup.position;
+  if(dt>0){JDM.v1.subVectors(C,JDM.c0).multiplyScalar(1/dt);if(JDM.v1.lengthSq()<9e6)JDM.cv.lerp(JDM.v1,Math.min(1,dt*6));}JDM.c0.copy(C);
+  {const h=Math.hypot(JDM.cv.x,JDM.cv.z);if(h>3)JDM.H.set(JDM.cv.x/h,0,JDM.cv.z/h);}
+  if(!jdmActif()){if(JDM.on||JDM.node.visible)jdmCache();JDM.merT=0;return;}
+  // le TEMPS DANS L'EAU : cumulé dans l'eau, remis à zéro quand la caisse a retrouvé la route
+  if(mode==='drive'){JDM.routeT+=dt;if(JDM.routeT>.6)JDM.merT=0;}else JDM.routeT=0;
+  if(JEAU.dans||JSOUS.sous)JDM.merT+=dt;
+  if(!JDM.on&&(JDM.merT>=JDM_ATT||JDM.viens)&&mode==='fall'){JDM.viens=false;jdmViens();}
+  if(!JDM.on)return;
+  JDM.t+=dt;
+  if(!JDM.part&&(JDM.routeT>.6||mode==='boom'||JDM.D[0].p.distanceToSquared(C)>260*260))JDM.part=.01; // LE DÉPART
+  if(JDM.part){JDM.part+=dt;if(JDM.part>2.6){jdmCache();return;}}
+  jdmNoirMaj();
+  const H=JDM.H,px=-H.z,pz=H.x,cvh=Math.hypot(JDM.cv.x,JDM.cv.z),syC=jadeSurfMoy(C.x,C.z),pres=Math.abs(C.y-syC)<3.5&&mode==='fall',
+    sousCam=JSOUS.uK>.5,cam=camera.position,tanH=Math.tan(camera.fov*Math.PI/360),gW=JDM_G;
+  DOL_U.uLum.value.set(0,1,0);camera.getWorldDirection(JDM.v2);DOL_U.uLum.value.addScaledVector(JDM.v2,-.4).normalize();DOL_U.uEcume.value=.2*JDM_ECH;
+  // LE COUCOU : l'un d'eux recule jusqu'à la portière, fait sa VRILLE (le ventre au soleil) et repart devant
+  JDM.vrT-=dt;if(JDM.vrT<=0&&!JDM.part){const L9=JDM.D.filter(function(E){return !(E.cou>0)&&!E.arr&&!E.saut;});
+    if(L9.length){const E=L9[(Math.random()*L9.length)|0];E.cou=2.2;E.vrF=false;E.cs=E.L?Math.sign(E.L):(Math.random()<.5?-1:1);JDM.vrT=3.2+Math.random()*2;
+      if(!JDM.salut){JDM.salut=true;try{if(SONV2)sfx('dauphin.banc');}catch(e){}}}else JDM.vrT=.5;}
+  for(let i=0;i<JDM.D.length;i++){const E=JDM.D[i],p=E.p,v=E.v,sy=jadeSurfMoy(p.x,p.z),k=JDM_ECH*E.b.scale,sc=JDM_ECH/1.5;
+    if(E.sautT>=0){E.sautT-=dt;if(E.sautT<0){ // LE SAUT AVEC LA CAISSE : un élan plafonné (il ne rejoint pas la route), sa course à elle
+      const dep=Math.min(5,Math.max(0,sy-p.y));v.y=Math.min(Math.max(E.sV[1],8),Math.sqrt(2*gW*(JDM_SAUT_H*k+dep)));v.x=E.sV[0]*.95;v.z=E.sV[2]*.95;E.st='bond';E.saut=true;E.arr=false;}}
+    // OÙ IL VA (LA FORMATION, comme à l'étrave d'un bateau) : devant la caisse, de part et d'autre, dans le champ de la caméra — ou, au COUCOU, contre sa portière
+    let f9,l9;
+    if(E.cou>0){E.cou-=dt;f9=1.5*sc;l9=E.cs*4.6*sc;if(E.vr<0&&E.cou<1.2&&!E.vrF){E.vr=0;E.vrS=E.cs;E.vrF=true;}}
+    else{f9=(E.F+3*Math.sin(JDM.t*.7+i*2))*sc;l9=(E.L+2.5*Math.sin(JDM.t*.9+i*1.3))*sc;}
+    if(E.saut){f9=(i-1)*3*sc;l9=(i===1?-1:1)*(5+i)*sc;} // en l'air avec elle : à ses côtés
+    const tx=C.x+H.x*f9+px*l9,tz=C.z+H.z*f9+pz*l9,dx=tx-p.x,dz=tz-p.z,dd=Math.hypot(dx,dz);if(E.arr&&dd<22)E.arr=false;
+    {const kp=E.arr?.35:(E.saut?1.2:2.2),dvx=JDM.cv.x*(E.arr?.25:1)+dx*kp,dvz=JDM.cv.z*(E.arr?.25:1)+dz*kp,e=Math.min(1,dt*(E.arr?2:4));
+      v.x+=(dvx-v.x)*e;v.z+=(dvz-v.z)*e;const vh=Math.hypot(v.x,v.z),vmax=Math.max(26,cvh*1.4+16);if(vh>vmax){v.x*=vmax/vh;v.z*=vmax/vh;}}
+    if(JDM.part){v.y+=(-9-v.y)*Math.min(1,dt*2);E.st='nage';E.saut=false;} // ils plongent et s'en vont
+    else if(E.st==='bond'){v.y-=gW*dt;if(p.y<sy-1.4&&v.y<0){E.st='nage';E.saut=false;}} // en l'air : la chute, rien d'autre
+    else{ // SOUS L'EAU : à la profondeur de la caisse, jamais au-dessus de la surface ; elle vole haut → ils l'attendent sous la surface
+      let ty=Math.min(C.y+E.h*.6+1.1*Math.sin(JDM.t*1.1+i*2),sy-1.6);if(C.y>syC+3)ty=sy-2.2;
+      v.y+=((ty-p.y)*2.5-v.y)*Math.min(1,dt*4);
+      E.bondT-=dt;if(E.bondT<=0&&p.y>sy-3.5&&(E.arr||pres||E.cou>0)){E.st='bond';v.y=Math.sqrt(2*gW*(E.arr?3.4:2.6+Math.random()*1.8)*k);E.bondT=E.arr?.9+Math.random()*.3:1+Math.random()*1.2;} // LES BONDS : en arrivant, et quand la caisse flotte ou surfe
+      else if(E.bondT<=0)E.bondT=.4;}
+    p.addScaledVector(v,dt);
+    if(p.y<sy-60)p.y=sy-60;
+    const up=p.y>sy;if(up!==E.up){E.up=up;if(Math.abs(v.y)>2&&p.distanceToSquared(cam)<220*220)jdmGerbe(p.x,sy,p.z,up,Math.min(1.3,.5+Math.abs(v.y)/25));}
+    if(!up&&JSOUS.sous&&Math.random()<dt*5)try{jadeBullesJet(p,1,.6*k);}catch(e){}
+    // LA POSE : le nez suit sa course, le dos vers le ciel, un léger roulis — et la vrille du coucou
+    const d=E.d,vl=v.length();if(vl>1)E.X.copy(v).multiplyScalar(1/vl);
+    const X=E.X,Y=JDM.Y.crossVectors(X,JDM.UP);if(Y.lengthSq()<1e-4)Y.set(0,0,1);Y.normalize();const Zb=JDM.Z.copy(Y);Y.crossVectors(Zb,X);
+    JDM.m.makeBasis(X,Y,Zb);d.quaternion.setFromRotationMatrix(JDM.m);
+    E.roll+=dt*1.3;let rv=Math.sin(E.roll)*.12;if(E.vr>=0){E.vr+=dt/.9;if(E.vr>=1)E.vr=-1;else rv+=E.vrS*6.2832*THREE.MathUtils.smoothstep(E.vr,0,1);}
+    d.quaternion.multiply(JDM.q.setFromAxisAngle(JDM.AX,rv));
+    d.position.copy(p);d.scale.setScalar(k);d.updateMatrixWorld(true);
+    const dc=Math.sqrt(p.distanceToSquared(cam))+.01,px9=DOL_L*k/dc*VP.h/(2*tanH),g9=px9>260?DOL_GEO:DOL_GEO_L;if(d.geometry!==g9)d.geometry=g9;
+    if(!d.visible){d.visible=true;E.vu=true;}
+    const hors=E.st==='bond'?Math.max(0,Math.min(1,(p.y-sy)/(3*k))):0;E.ph+=dt*(7.5+Math.min(8,vl/8));
+    const mu=d.material.userData;mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),E.ph,2.3,E.st==='bond'?.05:0);
+    if(sousCam)mu.uSurf.value.set(0,1,0,-1e9);else mu.uSurf.value.set(0,1,0,sy); // sous la peau de la mer on le devine ; sans elle, l'eau le coupe
+  }
+}
+window.dbgJadeDauphins=function(t){ // dbgJadeDauphins() : l'état · ('viens') · ('saut') · ('plonge') · ('route') · ('gel')
+  if(t==='gel'){paused=!paused;return paused;}
+  if(t==='viens'){if(!jdmActif())return 'il faut rouler au SOLEIL DE JADE';if(mode!=='fall')return 'il faut être dans la mer (dbgEau({h:30,vy:-40}))';JDM.viens=true;return 'ils arrivent';}
+  if(t==='saut'){JDM.force=true;return 'le prochain jaillissement est sauté avec eux';}
+  if(t==='plonge'){if(!jdmActif()||mode!=='fall')return 'pas dans la mer';JEAU.dans=false;JEAU.cd=0;JDM.force=true;dbgEau({h:40,vy:-120});return 'un vrai plongeon, et ils sautent avec elle à la sortie';} // (banc) le saut avec la caisse
+  if(t==='route'){if(!jdmActif()||mode!=='fall')return 'pas dans la mer';jadeEauRamene();return 'la mer la ramène sur la route';} // (banc) le départ du banc
+  const C=carGroup.position;
+  return {pret:JDM.pret,chaud:JDM.chaud,actif:jdmActif(),on:JDM.on,part:+JDM.part.toFixed(2),merT:+JDM.merT.toFixed(2),attente:JDM_ATT,
+    D:JDM.D.map(function(E){const q=E.p.clone().project(camera);return {st:E.st,vu:E.d.visible,dist:+E.p.distanceTo(C).toFixed(1),sousSurf:+(jadeSurfMoy(E.p.x,E.p.z)-E.p.y).toFixed(1),arr:E.arr,cou:+E.cou.toFixed(1),vr:+E.vr.toFixed(2),
+      ecran:q.z<1&&Math.abs(q.x)<1&&Math.abs(q.y)<1?[+q.x.toFixed(2),+q.y.toFixed(2)]:null};})};
 };
 /* ============================================================================
    SYSTÈME MUSICAL — bande-son + analyse temps réel qui fait PULSER le ciel.
@@ -58869,7 +59004,8 @@ function loop(now){
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
-  try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);} // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
+  try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
+  try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
   if(!mortS9)try{foretTick(dtA9);}catch(e){window.__foretErr=e;loopWarn(131072,'forêt',e);} // (2026-10-14) LA FORÊT NOIRE : lumière, météo, papillons, feux follets, le loup-garou, les voix du bois
   if(!mortS9)try{volcanTick(dtA9);}catch(e){window.__volcanErr=e;loopWarn(131072,'volcan',e);} // (2026-10-14) LE ROYAUME DE FEU : lumière, météo, éruptions, bombes, braises, cendre, les voix du volcan
   if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
