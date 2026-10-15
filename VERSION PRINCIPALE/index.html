@@ -38966,13 +38966,35 @@ function panPousse(o){
   const v=n>0||!o.chaud;if(o.mesh.visible!==v)o.mesh.visible=v;
 }
 const VOLU_N=26,VOLU=[],VOLU_ORD=[],DARD_N=16,DARD=[];
-for(let i=0;i<VOLU_N;i++){VOLU.push({on:false,t:0,life:1,x:0,y:0,z:0,vy:0,dx:0,dz:0,r0:1,r1:2,f:0,d2:0,cu:0});VOLU_ORD.push(null);}
-for(let i=0;i<DARD_N;i++)DARD.push({on:false,t:0,life:1,len:1,wid:1,rot:0,dx:0,dy:0,dz:0});
+for(let i=0;i<VOLU_N;i++){VOLU.push({on:false,t:0,life:1,x:0,y:0,z:0,vy:0,dx:0,dz:0,r0:1,r1:2,f:0,d2:0,cu:0,fu:null,dr:0});VOLU_ORD.push(null);}
+for(let i=0;i<DARD_N;i++)DARD.push({on:false,t:0,life:1,len:1,wid:1,rot:0,dx:0,dy:0,dz:0,ox:0,oy:0,oz:0,vx:0,vy:0,vz:0,dr:0,da:null});
 const PAN_VOL=mkPanneaux(VOLU_N,VOLU_TEX,2,2,false,0,3),PAN_DARD=mkPanneaux(DARD_N,boomSpikeTex,1,1,true,1,4);
 const BOOM_HOT=new THREE.Color(0xfff4d0),BOOM_OR=new THREE.Color(0xffc640),BOOM_MID=new THREE.Color(0xff7a24),BOOM_COLD=new THREE.Color(0xb3160c); // blanc brûlant → or → FEU → rouge
 const bpTmpC=new THREE.Color(),bvA=new THREE.Vector3();
 // LA FUMÉE : en fin de vie, la volute vire au CHARBON (le feu retombe en fumée noire) — ce contraste feu/suie fait « dessin »
 const BOOM_SMOKE=new THREE.Color(0x2e2428);
+/* (2026-10-15) L'EXPLOSION D'OBSTACLE — Sacha : « retravaille les textures d'explosion quand tu te prends un obstacle, vraiment stylé mais
+   adaptable à tous les obstacles du jeu ; reprends la texture d'explosion air time qui est bien ». La boule DESSINÉE (volutes + dards) est
+   celle de la mort en vol, pour tout le monde ; chaque OBSTACLE lui donne SA MATIÈRE : la teinte des dards, la fumée où retombent les
+   volutes (le bois fume brun, la glace part en poudre blanche, la lave en suie), des ÉCLATS arrachés à l'obstacle qui RICOCHENT sur sa
+   face, et sa gerbe (poussière, eau, étincelles bleues, braises). Et la boule naît DEVANT la face percutée, reculée sur la trajectoire :
+   collée au mur, la moitié des volutes passait DERRIÈRE l'obstacle (z-test) — c'est ce qui rendait l'explosion d'obstacle plate et ratée
+   à côté de celle de l'airtime, qui fleurit en plein ciel. Un plot ou une porte percutés au sol ont la même boule, en MINIATURE (`boomMini`).
+   fu = fumée de fin de vie · da = dards (rgb 0-1) · ec = couleurs des éclats · em = leur incandescence · fo = forme · po = la gerbe */
+const BOOM_MAT={
+  feu:  {fu:0x2e2428,da:[1,.816,.541]},
+  bois: {fu:0x3b2a1e,da:[1,.78,.42],ec:[0x6e4524,0x2f6b2a,0x8a5a2c],em:0,fo:'echarde',po:function(){return dust;}},
+  roche:{fu:0x5a4e48,da:[1,.8,.55],ec:[0x6b625a,0x857a70,0x4a423c],em:0,fo:'caillou',po:function(){return dust;}},
+  glace:{fu:0xcfe6f5,da:[.75,.92,1],ec:[0xbfe6ff,0xe8f7ff,0x8cc8ec],em:.25,fo:'eclat',po:function(){return spray;}},
+  lave: {fu:0x1a1012,da:[1,.6,.25],ec:[0xff5a1a,0x2a1a14,0xffa040],em:.9,fo:'caillou',po:function(){return boomEmbO;}},
+  eau:  {fu:0xd8ecf8,da:[.8,.93,1],po:function(){return spray;}},
+  metal:{fu:0x2a2c34,da:[.7,.9,1],ec:[0x9aa4b0,0x5c6470,0xd0d8e0],em:.15,fo:'plaque',po:function(){return sparkBlue;}},
+  plot: {fu:0x3a2620,da:[1,.7,.35],po:function(){return boomRed;}}
+};
+for(const k in BOOM_MAT)BOOM_MAT[k].fuC=new THREE.Color(BOOM_MAT[k].fu);
+const BOOM_CAUSE={arbre:'bois',sousbois:'bois',roche:'roche',pic:'roche',paroi:'roche',canyon:'roche',facade:'roche',sol:'roche',tour:'roche',
+  glace:'glace',poudreuse:'glace',lave:'lave',riviere:'eau',seine:'eau',sat:'metal',police:'metal'};
+const boomMatDe=function(cause){return BOOM_MAT[BOOM_CAUSE[cause]]||BOOM_MAT.feu;};
 /* L'ONDE AU SOL (2026-09-26) : un anneau À PLAT sur la route (ou sous la caisse en vol) qui file jusqu'à ~40 m en 0,75 s. Les tores
    face caméra disent « choc » ; celui-ci donne l'ÉCHELLE — il court sur le bitume et passe sous l'objectif. Un disque texturé créé au
    chargement et CHAUFFÉ au menu (visible, opacité 0, rangé dès sa première image dessinée) : son programme ne compile jamais sur l'explosion. */
@@ -39002,31 +39024,41 @@ const BOOM_ONDES=(function(){const geo=new THREE.CircleGeometry(1,48);
     m.frustumCulled=false;m.renderOrder=4;m.userData={t:-1,sp:q[1],dl:q[2],op:q[3]};scene.add(m);
     m.onAfterRender=function(){this.userData.chaud=true;if(this.userData.t<0)this.visible=false;delete this.onAfterRender;};
     return m;});})();
-function spawnBoomArt(pos,power){
-  // le FOYER DES VOLUTES, reculé dans l'axe du regard (à plat) : la caméra de poursuite est collée à la caisse
+function spawnBoomArt(pos,power,mat,mini,iv){
+  // (2026-10-15) `mat` = la matière de l'obstacle (BOOM_MAT : fumée, dards) ; `mini` = un plot, une porte — la même boule en petit, posée
+  // sur les cases LIBRES (la mort, elle, reprend tout) ; `iv` = l'élan hérité (la caisse file à 40 m/s : née immobile, la boule restait
+  // derrière avant même d'éclore) — il se perd vite (`dr`), la boule décroche de la caisse sur ~0,4 s
+  mat=mat||BOOM_MAT.feu;
+  const ivx=iv?iv.x*.9:0,ivy=iv?iv.y*.9:0,ivz=iv?iv.z*.9:0,dr=iv?1.8:0;
+  // le FOYER DES VOLUTES, reculé dans l'axe du regard (à plat) : la caméra de poursuite est collée à la caisse — contre un OBSTACLE,
+  // presque pas (le fond, c'est le mur : la boule y rentrerait)
   bvA.subVectors(pos,camera.position);bvA.y*=.3;const dl=bvA.length();if(dl>1e-3)bvA.multiplyScalar(1/dl);else bvA.set(0,0,1);
-  const cx=pos.x+bvA.x*2.4,cy=pos.y+bvA.y*2.4+.4,cz=pos.z+bvA.z*2.4;
+  const rc=mini?.6:mat===BOOM_MAT.feu?2.4:.4,cx=pos.x+bvA.x*rc,cy=pos.y+bvA.y*rc+(mini?.3:.4),cz=pos.z+bvA.z*rc;
   // VOLUTES : trois au cœur, une couronne autour, chacune avec son retard (l'explosion se DÉPLOIE)
   const n=Math.min(VOLU_N,Math.round(18*power));
-  for(let i=0;i<n;i++){
-    const p=VOLU[i],core=i<3,a=Math.random()*6.2832,el=(Math.random()-.3)*1.3,rr=core?Math.random()*.5:(.9+Math.random()*1.5)*power;
+  for(let i=0,c=0;i<VOLU_N&&c<n;i++){
+    const p=VOLU[i];if(mini&&p.on)continue; // une miniature ne vole JAMAIS la case d'une boule vivante
+    const core=c<3,a=Math.random()*6.2832,el=(Math.random()-.3)*1.3,rr=core?Math.random()*.5:(.9+Math.random()*1.5)*power;c++;
     let ox=Math.cos(a)*Math.cos(el)*rr,oz=Math.sin(a)*Math.cos(el)*rr;const k9=ox*bvA.x+oz*bvA.z;
     if(k9<0){ox-=2*k9*bvA.x;oz-=2*k9*bvA.z;} // la couronne s'ouvre sur les côtés et vers le fond, jamais vers l'objectif
-    p.x=cx+ox;p.y=cy+Math.sin(el)*rr*.6+(core?0:.7);p.z=cz+oz;
-    p.t=-(core?0:Math.random()*.14);p.life=1.05+Math.random()*.7;
+    p.x=cx+ox;p.y=cy+Math.sin(el)*rr*.6+(core?0:.7*power);p.z=cz+oz;
+    p.t=-(core?0:Math.random()*(mini?.07:.14));p.life=mini?.55+Math.random()*.3:1.05+Math.random()*.7;
     p.r0=(core?2:1.3+Math.random()*.6)*power;p.r1=(core?3.8:2.4+Math.random()*1)*power; // ~4-5 m de boule vue à ~11 m : ≈ 10 % de l'écran
-    p.vy=1.1+Math.random()*2.3;p.dx=(Math.random()-.5)*2;p.dz=(Math.random()-.5)*2;p.f=i&3;p.on=true;
+    p.vy=(1.1+Math.random()*2.3)*(mini?.6:1)+ivy;p.dx=(Math.random()-.5)*2+ivx;p.dz=(Math.random()-.5)*2+ivz;p.dr=dr;p.f=i&3;p.on=true;
     p.cu=core?-.04:(Math.random()-.5)*.18; // chaque lobe a SA chaleur : certains brûlent encore quand d'autres fument déjà
+    p.fu=mat.fuC; // …et retombe dans la fumée de SA matière
   }
   // DARDS : des traits qui jaillissent droit et s'éteignent vite — la VIOLENCE du dessin, sans couvrir l'image
   const ns=Math.min(DARD_N,Math.round(12*power));
-  for(let i=0;i<ns;i++){
-    const s=DARD[i],a=i/ns*6.2832+Math.random()*.4,el=(Math.random()-.3)*1.1;
+  for(let i=0,c=0;i<DARD_N&&c<ns;i++){
+    const s=DARD[i];if(mini&&s.on)continue;
+    const a=c/ns*6.2832+Math.random()*.4,el=(Math.random()-.3)*1.1;c++;
     s.dx=Math.cos(a)*Math.cos(el);s.dy=Math.sin(el)+.25;s.dz=Math.sin(a)*Math.cos(el);
     const l9=Math.hypot(s.dx,s.dy,s.dz)||1;s.dx/=l9;s.dy/=l9;s.dz/=l9;
-    s.rot=-a+Math.PI/2;s.t=0;s.life=.26+Math.random()*.2;s.len=(2.6+Math.random()*3)*power;s.wid=(.34+Math.random()*.34)*power;s.on=true;
+    s.rot=-a+Math.PI/2;s.t=0;s.life=(.26+Math.random()*.2)*(mini?.8:1);s.len=(2.6+Math.random()*3)*power;s.wid=(.34+Math.random()*.34)*Math.max(power,.5);s.on=true;
+    s.ox=pos.x;s.oy=pos.y;s.oz=pos.z;s.vx=ivx;s.vy=ivy;s.vz=ivz;s.dr=dr;s.da=mat.da; // chaque dard part de SON foyer (avant : tous de boomPos)
   }
-  for(const m of BOOM_ONDES){m.userData.t=0;m.position.copy(pos);}
+  if(!mini)for(const m of BOOM_ONDES){m.userData.t=0;m.position.copy(pos);}
 }
 function updateBoomArt(dt){
   if(paused)dt=0; // (vague 2) la pause fige la boule (elle continuait de gonfler derrière le panneau)
@@ -39036,6 +39068,7 @@ function updateBoomArt(dt){
   for(let i=0;i<VOLU_N;i++){const p=VOLU[i];if(!p.on)continue;
     p.t+=dt;if(p.t<0)continue;
     if(p.t>=p.life){p.on=false;continue;}
+    if(p.dr){const k9=Math.exp(-p.dr*dt);p.dx*=k9;p.dz*=k9;p.vy=p.vy*k9+.8*(1-k9);} // (2026-10-15) l'élan hérité se perd, la volute reprend sa montée
     p.y+=p.vy*dt;p.x+=p.dx*dt;p.z+=p.dz*dt;
     const ex=p.x-cp.x,ey=p.y-cp.y,ez=p.z-cp.z;p.d2=ex*ex+ey*ey+ez*ez;
     let j=n++;while(j>0&&VOLU_ORD[j-1].d2<p.d2){VOLU_ORD[j]=VOLU_ORD[j-1];j--;}VOLU_ORD[j]=p;
@@ -39047,7 +39080,7 @@ function updateBoomArt(dt){
    for(let k=0;k<n;k++){const p=VOLU_ORD[k],u=p.t/p.life,uc=Math.max(0,u+p.cu);
      const e=1-Math.pow(1-Math.min(1,u*4),3),r=(p.r0+(p.r1-p.r0)*e)*kD; // gonflement VIF (pleine taille à ~0,35 s) qui s'assagit
      bpTmpC.copy(BOOM_HOT).lerp(BOOM_OR,Math.min(1,uc*12)).lerp(BOOM_MID,Math.min(1,Math.max(0,(uc-.08)*7)))   // ça REFROIDIT…
-       .lerp(BOOM_COLD,Math.min(1,Math.max(0,(uc-.28)*2.6))).lerp(BOOM_SMOKE,Math.min(1,Math.max(0,(uc-.45)*2.8))); // …et retombe en CHARBON
+       .lerp(BOOM_COLD,Math.min(1,Math.max(0,(uc-.28)*2.6))).lerp(p.fu||BOOM_SMOKE,Math.min(1,Math.max(0,(uc-.45)*2.8))); // (2026-10-15) la fumée de SA matière // …et retombe en CHARBON
      const a=(u<.05?u/.05:1)*(1-sm(u,.62,1))*sm(Math.sqrt(p.d2),2.5,6); // garde-objectif : 2,5 → 6 m (à 3,5-8 m la boule, née à ~6,5 m de la poursuite, restait à 20 %)
      P[k*3]=p.x;P[k*3+1]=p.y;P[k*3+2]=p.z;
      S[k*4]=r;S[k*4+1]=r;S[k*4+2]=0;S[k*4+3]=0;
@@ -39055,13 +39088,15 @@ function updateBoomArt(dt){
      F[k*2]=p.f;F[k*2+1]=Math.max(0,1-uc/.3);}   // le cœur brûle le premier tiers de la vie
    PAN_VOL.cnt=n;panPousse(PAN_VOL);}
   // DARDS (additifs : pas de tri)
-  {const P=PAN_DARD.P,S=PAN_DARD.S,C=PAN_DARD.C,F=PAN_DARD.F,near=sm(boomPos.distanceTo(cp),2,5);let m=0;
+  {const P=PAN_DARD.P,S=PAN_DARD.S,C=PAN_DARD.C,F=PAN_DARD.F;let m=0;
    for(let i=0;i<DARD_N;i++){const s=DARD[i];if(!s.on)continue;
      s.t+=dt;const u=s.t/s.life;if(u>=1){s.on=false;continue;}
+     if(s.dr){const k9=Math.exp(-s.dr*dt);s.vx*=k9;s.vy*=k9;s.vz*=k9;s.ox+=s.vx*dt;s.oy+=s.vy*dt;s.oz+=s.vz*dt;} // (2026-10-15) le foyer d'une miniature file avec la caisse, puis décroche
+     const ex9=s.ox-cp.x,ey9=s.oy-cp.y,ez9=s.oz-cp.z,near=sm(Math.sqrt(ex9*ex9+ey9*ey9+ez9*ez9),2,5),da=s.da||BOOM_MAT.feu.da;
      const len=s.len*(1-Math.pow(1-u,2.2));
-     P[m*3]=boomPos.x+s.dx*len*.16;P[m*3+1]=boomPos.y+s.dy*len*.16;P[m*3+2]=boomPos.z+s.dz*len*.16;
+     P[m*3]=s.ox+s.dx*len*.16;P[m*3+1]=s.oy+s.dy*len*.16;P[m*3+2]=s.oz+s.dz*len*.16;
      S[m*4]=s.wid*(1-u*.45);S[m*4+1]=len;S[m*4+2]=s.rot;S[m*4+3]=1;
-     C[m*4]=1;C[m*4+1]=.816;C[m*4+2]=.541;C[m*4+3]=.95*Math.max(0,1-u*1.15)*near;
+     C[m*4]=da[0];C[m*4+1]=da[1];C[m*4+2]=da[2];C[m*4+3]=.95*Math.max(0,1-u*1.15)*near;
      F[m*2]=0;F[m*2+1]=0;m++;}
    PAN_DARD.cnt=m;panPousse(PAN_DARD);}
   // LES ONDES face caméra : des traits qui filent
@@ -39324,6 +39359,43 @@ let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GA
    l'AURA battue en course (CHA.recB), le MOTEUR (un palier jamais atteint avant cette partie). explode s'en sert pour ne pas se moquer
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
 function partieRecord(){try{return !SANDBOX&&((money>(RUNX.best0||0)&&money>START_CASH+.5)||!!CHA.recB||engTier>(RUNX.engAvant|0));}catch(e){return false;}}
+/* (2026-10-15) L'EXPLOSION D'OBSTACLE (voir BOOM_MAT) — les ÉCLATS DE L'OBSTACLE : des bouts de sa matière (échardes et feuilles, cailloux,
+   éclats de glace, plaques de tôle, scories de lave) qui RICOCHENT sur la face percutée — ils repartent vers la caméra et sur les côtés,
+   en tournoyant, petits (≤ 45 cm : jamais une plaque qui mange l'écran). Formes et matières nées à la première mort qui en a besoin,
+   puis GARDÉES (`part` : le ménage ne les jette pas) — zéro allocation de géométrie aux morts suivantes. + la GERBE de la matière. */
+const BOOM_FO={};
+function boomFormes(mat){
+  const k=mat.fo+'|'+mat.fu;if(BOOM_FO[k])return BOOM_FO[k];
+  const G={echarde:function(){return new THREE.BoxGeometry(.09,.09,.5);},caillou:function(){return new THREE.DodecahedronGeometry(.2,0);},
+    eclat:function(){return new THREE.TetrahedronGeometry(.24,0);},plaque:function(){return new THREE.BoxGeometry(.36,.04,.26);}};
+  const geo=(G[mat.fo]||G.caillou)();
+  const ms=mat.ec.map(function(c){return new THREE.MeshPhongMaterial({color:c,emissive:mat.em?c:0x000000,emissiveIntensity:mat.em||0,shininess:mat.fo==='plaque'||mat.fo==='eclat'?110:12,flatShading:true});});
+  if(mat.fo==='echarde')ms.push(new THREE.MeshPhongMaterial({color:0x3f8a2e,flatShading:true,side:THREE.DoubleSide})); // le bois perd aussi ses FEUILLES
+  return BOOM_FO[k]={geo:geo,ms:ms,feuille:mat.fo==='echarde'?new THREE.PlaneGeometry(.3,.22):null};
+}
+function boomEclats(mat,V){
+  const l=V.length(),nx=l>3?-V.x/l:0,ny=l>3?-V.y/l:0,nz=l>3?-V.z/l:0; // le rebond : à contre-sens de l'arrivée
+  if(mat.ec){const F=boomFormes(mat);
+    for(let k=0;k<12;k++){
+      const fe=F.feuille&&k%4===3,m=new THREE.Mesh(fe?F.feuille:F.geo,fe?F.ms[F.ms.length-1]:F.ms[k%mat.ec.length]);
+      const s=.7+Math.random()*.8;m.scale.setScalar(s);m.position.copy(boomPos);m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);
+      const u=4+Math.random()*9;
+      debris.push({m:m,v:new THREE.Vector3(nx*u+(Math.random()-.5)*14,ny*u*.5+5+Math.random()*8,nz*u+(Math.random()-.5)*14),
+        rx:(Math.random()-.5)*16,ry:(Math.random()-.5)*16,part:true,hid:14});
+      scene.add(m);
+    }}
+  const P=mat.po&&mat.po();
+  if(P)for(let k=0;k<28;k++){const u=3+Math.random()*10;
+    spawnP(P,boomPos.x+(Math.random()-.5)*1.5,boomPos.y+(Math.random()-.5)*1.2,boomPos.z+(Math.random()-.5)*1.5,
+      nx*u+(Math.random()-.5)*10,ny*u*.4+2+Math.random()*6,nz*u+(Math.random()-.5)*10,.5+Math.random()*.7);}
+}
+/* (2026-10-15) LE PLOT, LA PORTE PERCUTÉS : la même boule dessinée en MINIATURE (un tiers), qui file un instant avec la caisse puis
+   décroche — on voit l'obstacle sauter, pas trois étincelles. Une porte DURE pète plus gros. */
+function boomMini(pos,power,mat){try{spawnBoomArt(pos,power,mat||BOOM_MAT.plot,true,PT_U.uVc.value);}catch(e){}}
+// console : dbgExplo(cause) → la mort par cette cause (arbre, glace, lave, sat…) ; dbgExplo('plot'|'porte') → la miniature d'un plot percuté
+window.dbgExplo=function(c){const v=+PT_U.uVc.value.length().toFixed(1),m=mode;
+  if(c==='plot'||c==='porte')boomMini(carGroup.position.clone(),c==='porte'?.42:.3);else explode(c);
+  return {avant:m,v:v,matiere:c in BOOM_CAUSE?BOOM_CAUSE[c]:'feu',volutes:VOLU.filter(function(p){return p.on;}).length,dards:DARD.filter(function(p){return p.on;}).length,debris:debris.length};};
 function explode(cause){
   try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
@@ -39354,7 +39426,9 @@ function explode(cause){
   BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
   BOOM_SOL.ok=mode==='drive';if(BOOM_SOL.ok){frameAt(s,BOOM_SOL);BOOM_SOL.p.addScaledVector(BOOM_SOL.n,side<0?-THICK:0);BOOM_SOL.n.multiplyScalar(side);} // (2026-09-28) morte AU SOL : on garde le plan de la dalle
   mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
-  spawnBoomArt(boomPos,1); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
+  const bm9=boomMatDe(cause); // (2026-10-15) L'EXPLOSION D'OBSTACLE : la matière de ce qu'on a percuté (voir BOOM_MAT)
+  if(bm9!==BOOM_MAT.feu){const V9=PT_U.uVc.value,l9=V9.length();if(l9>3)boomPos.addScaledVector(V9,-Math.min(3.2,l9*.08)/l9);} // la boule naît DEVANT la face percutée, pas dedans
+  spawnBoomArt(boomPos,1,bm9); // LA BOULE DE FEU DESSINÉE : volutes en chou-fleur + dards
   boomOndePart(boomPos); // (2026-09-26) + l'onde qui court sur le bitume
   /* (2026-09-28) PENDANT L'AUTO-ÉCOLE, un crash n'est qu'un RATÉ (endGame replace la caisse) : ni la voix « EARLY DEAD » — qui se
      présentait là pour la toute 1re fois, à un joueur qui n'est même pas mort —, ni le son de mort. L'explosion et le « RATÉ » du coach suffisent. */
@@ -39400,6 +39474,7 @@ function explode(cause){
       rx:(Math.random()-.5)*14,ry:(Math.random()-.5)*14,own:1}); // own : géométrie et matière à lui — libérées au ménage
     scene.add(d);
   }
+  if(bm9!==BOOM_MAT.feu)try{boomEclats(bm9,PT_U.uVc.value);}catch(e){} // (2026-10-15) les éclats DE L'OBSTACLE ricochent sur sa face
   if(SENS)try{sensBoomElan();}catch(e){} // (2026-10-14, sensations) l'épave garde une part de l'élan de la caisse (voir sensBoomElan)
   if(SENS)try{sensBoomRoc();}catch(e){} // (2026-10-14, sensations) contre un PIC DE JADE : les pièces ricochent, la roche crache et craque
   // boule de feu dispersée, moins centrée : foyers décalés, 3 tons — (vague 2) des TRAITS, quatre fois moins : à 950 traits la gerbe
@@ -57421,6 +57496,7 @@ function loop(now){
           vA*=.985;shake=Math.max(shake,.14);hap(SENS&&c9.dur?16:10); // (2026-10-14, gameplay · accord) la PORTE dure : un COUP NET (16) à la place du tic — une seule vibration ; avant, le tic ET un motif [16,24,10] partaient à la même image
           if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
+          boomMini(c9.mesh.position,c9.dur?.42:.3); // (2026-10-15) …et il PÈTE : la boule de l'airtime en miniature (voir boomMini)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
           if(c9.dur){if(c9.pt)c9.pt.touche=true;vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-30) la porte touchée ne se compte pas propre (campPortesTick) · (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
           continue;
