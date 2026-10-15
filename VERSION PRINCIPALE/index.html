@@ -47920,9 +47920,9 @@ function fantomePose(dt){ // la caisse-nuage dans le monde : au sol sur sa ligne
   }
   const rv=GH.v*SPD*dt/.36;for(const w of GH.roues)w.rotation.x+=rv;
   g.visible=Math.abs(GH.s-s)<1100||GH.air;
-  // SON RUBAN : un fil d'or rose depuis la poupe (on la suit à la trace, même quand elle est loin)
-  CV1.set(0,.75,-2.1).applyQuaternion(g.quaternion).add(g.position);
-  trailStep(GH.tr,CV1.x,CV1.y,CV1.z,1.25,1.02,.86,GH.fini?0:.85,3.2);
+  /* (2026-10-15, Sacha : « son sillage, je sais pas ce que c'est, supprime-le, c'est nul ») plus de ruban d'or rose derrière la
+     caisse-nuage — il reste éteint (trailStep à 0 le cache) */
+  trailStep(GH.tr,0,0,0,0,0,0,0);
 }
 function fantomeTick(dt){
   if(!GH.on||GH.pris||GH.fini){if(GH.on&&GH.fini)GH.g.visible=false;return;}
@@ -47957,9 +47957,7 @@ function fantomeTick(dt){
   const d=CV1.distanceTo(carGroup.position),sP=mode==='fall'?lastNearS:s;
   const derriere=GH.air||mode==='fall'?true:(sP<=GH.s+2);
   if(d<46&&derriere&&mode==='drive'&&!GH.air){ // L'ASPIRATION : dans son sillage, l'air te tire (et la ouate file autour de toi)
-    const k=1-d/46;vA+=9*k*dt;
-    if(Math.random()<dt*26*k){CV2.set((Math.random()-.5)*6,.8+Math.random()*2.2,2+Math.random()*6).applyQuaternion(carGroup.quaternion).add(carGroup.position);
-      spawnP(cloudBits,CV2.x,CV2.y,CV2.z,CAMP.vel.x*.7,CAMP.vel.y*.7+.5,CAMP.vel.z*.7,.45);}}
+    const k=1-d/46;vA+=9*k*dt;} // (2026-10-15, Sacha) plus de ouate qui file autour de toi dans son sillage : l'aspiration tire toujours, sans rien montrer
   if(d<18){
     if(!GH.accr){GH.accr=true;popTexte('ACCROCHE !','#ffe7a8',2);hap(12);if(SONV2)sfx('fantome.accroche');}
     GH.prise+=dt;GH.noteT-=dt;
@@ -48218,7 +48216,7 @@ function campTick(dt){
   // les halos de l'écran
   let r=0,b=0;
   if(SURV.chasse&&CAMP.proche<150){const k=(1-CAMP.proche/150)*.85,ph=SURV.ph<.5;r=ph?k:k*.2;b=ph?k*.2:k;}
-  campFx(r,b,CAMP.feuT*(.55+.25*Math.sin(performance.now()*.03)),GH.on&&!GH.pris?Math.min(1,GH.prise)*.9:0);
+  campFx(r,b,CAMP.feuT*(.55+.25*Math.sin(performance.now()*.03)),0); // (2026-10-15, Sacha) le halo d'or du sillage de la caisse-nuage est retiré
 }
 for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'LOW GRAVITY: JUMPS LAST TWICE AS LONG','LA ROUTE EST A TOI':'THE ROAD IS YOURS','TRAVERSE LE NUAGE':'PIERCE THE CLOUD','PASSE LES PORTES':'THREAD THE GATES',
   'SEME LA POLICE':'LOSE THE COPS','ET SI TU COUPAIS ?':'WHAT IF YOU CUT ACROSS?','DANSE AVEC LE RELIEF':'DANCE WITH THE HILLS','LE CIEL MENT':'THE SKY IS LYING',
@@ -49352,7 +49350,7 @@ function evtTick(dt){ // la boucle, juste après campTick — rien quand ?evt=0
   if(EVT.nom==='moutons'){campMoutonsTick(dt,EVT.mt,EVT,true);if(!EVT.fini){let n9=0;for(const m of EVT.mt)if(m.fait)n9++;if(n9===EVT.mt.length)evtMoutonsFin();}}
   else if(EVT.nom==='caisse'){
     if(CAMP.pvOk&&dt>0){CAMP.vel.subVectors(carGroup.position,CAMP.pv).divideScalar(dt);if(CAMP.vel.lengthSq()>2.5e5)CAMP.vel.set(0,0,0);}CAMP.pv.copy(carGroup.position);CAMP.pvOk=true; // la ouate du sillage suit la caisse (fumeTick le fait en campagne)
-    fantomeTick(dt);campFx(0,0,0,GH.on&&!GH.pris&&!GH.fini?Math.min(1,GH.prise)*.9:0);}
+    fantomeTick(dt);} // (2026-10-15, Sacha) plus de halo d'or au bord de l'écran
 }
 function evtDemarre(){ // l'événement SURGIT
   EVT.etat=2;EVT.fait=true;EVT.fini=false;EVT.res='';EVT.t0=EVT.tRun;

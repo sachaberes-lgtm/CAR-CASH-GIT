@@ -4,6 +4,12 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LA CAISSE-NUAGE N'A PLUS DE SILLAGE VISIBLE (2026-10-15 soir, Sacha : « l'événement chasse-nuage, quand j'approche le nuage, son sillage, je sais pas ce que c'est, supprime-le, c'est nul »)
+- Retirés, dans la campagne (niveau 10) comme dans l'événement rare : le RUBAN d'or rose derrière elle (`fantomePose` : `GH.tr` reste éteint), la OUATE
+  (`cloudBits`) qui filait autour de toi dans son aspiration, et le HALO d'or au bord de l'écran quand on la tient (`campFx` 4e calque à 0). La plaque
+  SILLAGE était déjà partie (9c94fdf7).
+- Le JEU ne change pas : l'aspiration tire toujours (+9 m/s² × proximité), la bulle de 18 m, « ACCROCHE ! », le carillon qui monte et la prise en 1 s
+  restent. Banc (debout 390 × 844, `dbgEvt('caisse')`, la caisse collée 1,8 s) : ruban jamais visible, halo à 0, « ATTRAPÉE ! », zéro erreur.
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
   souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,
