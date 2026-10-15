@@ -341,7 +341,8 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       [['sine', 1, f, -.25], ['triangle', .25, f * 2, .25]].forEach(([ty, v, ff, x]) => { const o = osc(c, ty, ff), m = c.createGain(); m.gain.value = v; vg.connect(o.detune); o.connect(m); m.connect(panne(c, x, g)); o.start(0); });
       bruit(c, 0, 'bandpass', f * 3, 2, .02, 1.6, .1, g); }],
   };
-  function voixDe(nom, Tm) {   // [durée, hauteurs de référence, fabrique(c, f), canaux] — ou { ks: true, … } pour les cordes pincées
+  function voixDe(nom, Tm) {
+    if (OPT && OPT.voix && OPT.voix[nom]) { const v9 = OPT.voix[nom](OUTILS(), Tm); if (v9) return v9; }   // (15/10) une V2 remplace la voix   // [durée, hauteurs de référence, fabrique(c, f), canaux] — ou { ks: true, … } pour les cordes pincées
     if (nom === 'basse') return Tm.basse === '808' ? voixDe('b808', Tm) : [BASSES[Tm.basse][0], [36, 48, 60], BASSES[Tm.basse][1], 1];
     if (nom === 'sub') return [BASSES.sub[0], [36, 48], BASSES.sub[1], 1];
     if (nom === 'b808') return [Tm.d808 + .25, [36, 48], (c, f) => { const o = osc(c, 'sine', f), g = c.createGain(), ws = c.createWaveShaper(); ws.curve = courbe(2.2);
@@ -386,7 +387,8 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
         g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.6, .002); g.gain.exponentialRampToValueAtTime(.0001, .55); fl.connect(g); g.connect(panne(c, x, dest));
         [osc(c, 'square', f, dt), osc(c, 'sawtooth', f, dt + 3)].forEach(o => { o.connect(fl); o.start(0); }); }); }],
   };
-  function accordDe(inst, Tm) {   // [durée, fréquence d'échantillonnage, fabrique(c, f, sortie)] — ou 'ks' (la harpe de verre)
+  function accordDe(inst, Tm) {
+    if (OPT && OPT.acc && OPT.acc[inst]) { const a9 = OPT.acc[inst](OUTILS(), Tm); if (a9) return a9; }   // (15/10) une V2 remplace l'accord   // [durée, fréquence d'échantillonnage, fabrique(c, f, sortie)] — ou 'ks' (la harpe de verre)
     if (inst === 'keys') return Tm.keys === 'harpe' ? 'ks' : [KEYS[Tm.keys][0], 44100, KEYS[Tm.keys][1]];
     if (inst === 'pad') return [3.4, 24000, (c, f, dest) => { const g = envG(c, Tm.padAtt, 2.7, .6, .2, dest), fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = Tm.padFc; fl.Q.value = .5; fl.connect(g);
       [[-Tm.padLarge, -.8], [-Tm.padLarge / 3, -.3], [Tm.padLarge / 3, .3], [Tm.padLarge, .8]].forEach(([dt, x]) => { const o = osc(c, 'sawtooth', f, dt); o.connect(panne(c, x, fl)); o.start(0); });
@@ -747,7 +749,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
   }
   function prepare(n, W) {   // au hasard : une couleur différente de la précédente (autant que les goûts le permettent)
     if (n == null) { n = 1000 + Math.floor(R() * 9000); for (let k = 0; k < 20; k++) { T = graine(n); if (!HIST.includes(tpw(COUL_IDS, (W || GOUTS || {}).couleur))) break; n = 1000 + Math.floor(R() * 9000); } }
-    const Mx = compose(n, W), p = fabriqueBanque(Mx).then(b => ({ M: Mx, b })); prepa = { M: Mx, p }; return p; }
+    const Mx = compose(n, W); retoucheMx(Mx); const p = fabriqueBanque(Mx).then(b => ({ M: Mx, b })); prepa = { M: Mx, p }; return p; }
   async function demarre(n, W) {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (!chaineOk) chaine();
@@ -761,8 +763,17 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
     nextTime = ctx.currentTime + .08; clearInterval(timer); timer = setInterval(horloge, 50); horloge();
   }
 
+  // (2026-10-15, pôle SON) LES RETOUCHES (bibliothèque › Pouce bleu, les V2 des notes de Léo) : start(n, W, O) — O.retouche(Mx, outils) après compose,
+  // O.voix[nom](outils, Tm) / O.acc[nom](outils, Tm) remplacent une voix ou un accord ; O.style force la couleur enregistrée (v6). Sans O : rien ne change.
+  let OPT = null;
+  const OUTILS = Mx9 => ({ rng: graine(((Mx9 && Mx9.n) | 0) * 31 + 7), tp, tpw, tr, R, graine, CATALOGUE, osc, envG, vib, bruit, OUT, courbe, metal, panne, ks, mtof, GAMMES,
+    phrase: typeof phrase === 'function' ? phrase : null, menes: typeof menes === 'function' ? menes : null,
+    NOM_LEAD: typeof NOM_LEAD !== 'undefined' ? NOM_LEAD : null, NOM_KEYS: typeof NOM_KEYS !== 'undefined' ? NOM_KEYS : null, NOM_PLUCK: typeof NOM_PLUCK !== 'undefined' ? NOM_PLUCK : null });
+  function retoucheMx(Mx) { if (!OPT || OPT.n !== Mx.n || typeof OPT.retouche !== 'function') return;
+    try { OPT.retouche(Mx, OUTILS(Mx)); Mx.rang = {}; CATALOGUE.forEach(id => Mx.rang[id] = 0); Mx.ordre.forEach((id, k) => Mx.rang[id] = k + 1); }
+    catch (e) { erreurs++; derniere = 'retouche : ' + String(e && e.message || e); } }
   const api = {
-    start(n, W) { if (playing) return; playing = true; demarre(n, W); },
+    start(n, W, O) { if (playing) return; playing = true; OPT = O ? Object.assign({}, O, { n }) : null; demarre(n, W); },
     stop() { playing = false; demande = null; suivant = null; prepa = null; clearInterval(timer); timer = 0; vinylStop();
       if (master) { const t = ctx.currentTime; for (const id in bus) if (id !== 'fx') { bus[id].gain.cancelScheduledValues(t); bus[id].gain.setTargetAtTime(0, t, .05); } } },
     nouvelle(n, W) { if (!playing || !M) return; const p = prepare(n, W); p.then(r => { if (playing && prepa && prepa.p === p) suivant = r; }); },
@@ -784,7 +795,7 @@ export function createTrenteMusic({ volume = 1, audioContext = null, destination
       gouts: M.W }; },
     get banqueMs() { return banque ? banque.ms : null; }, get banqueToutMs() { return banque ? banque.suiteMs || null : null; },
     get _bus() { return bus; }, get _verif() { return VERIF; }, get _chaine() { return { sol, hpM, clair, master, revOut, step }; }, get _voix() { return { actives, pic: picVoix, sautes, erreurs, derniere }; },
-    _compose: (n, W) => { const Mx = compose(n, W); return { sig: Mx.sig, sig2: Mx.sig2, idee: Mx.idee, style: Mx.cid, ton: Mx.tonNom, ordre: Mx.ordre, titre: Mx.titre, bpm: [Mx.bpm0, Mx.bpm1], keys: Mx.tim.keys, lead: Mx.tim.lead,
+    _compose: (n, W, O) => { if (O) OPT = Object.assign({}, O, { n }); const Mx = compose(n, W); retoucheMx(Mx); return { sig: Mx.sig, sig2: Mx.sig2, idee: Mx.idee, style: Mx.cid, ton: Mx.tonNom, ordre: Mx.ordre, titre: Mx.titre, bpm: [Mx.bpm0, Mx.bpm1], keys: Mx.tim.keys, lead: Mx.tim.lead,
       grilles: Mx.grilles.map(g => g.map(A => A.nom + ' ' + A.v.join('.'))), theme: Mx.motifs[0] }; },
     wake() { if (ctx && playing && ctx.state !== 'running') ctx.resume(); },
   };

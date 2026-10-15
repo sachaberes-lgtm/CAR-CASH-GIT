@@ -21,6 +21,47 @@
   Planche : `photos-gameplay/boutique-pose-avant-apres.png` (dossier CAR CAHS V3). Banc : `dbgBqIndus()` donne désormais `pose`, `platK`,
   `ang`, `cap`/`capV` (le cap de la caisse, dans le monde et vu de la caméra) et `ecr` (son centre à l'écran).
 
+## LES NOTES DE LÉO APPLIQUÉES — LES V2 DE POUCE BLEU, AURA EN 30 PALIERS, PENTHOUSE V2 (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version »)
+Ses 17 notes de la bibliothèque (`PREF.notes` de musique-moteur.json), appliquées sans toucher aux originaux :
+- LE CROCHET DES RETOUCHES, dans les 6 versions du générateur qui ont des musiques 👍 (`musique-trente-v3-1/3/4/7/10`, `v6-0`) :
+  · `start(n, W, O)` : `O.retouche(Mx, outils)` agit juste après `compose` (`retoucheMx`, qui refait `Mx.rang`) ;
+  · `O.voix[nom]` / `O.acc[nom]` remplacent un instrument (premières lignes de `voixDe` / `accordDe`) ;
+  · `O.style` force la couleur enregistrée (v6) ; `_compose(n, W, O)` pour le banc.
+  Sans `O`, rien ne change : les plans de toutes les musiques 👍 ont été comparés avant / après, identiques.
+- ⚠ BUG TROUVÉ : en v6, la couleur hybride (`choixHybride`) dépend de la mémoire des parties (`HISTO`). Rejouée dans Pouce bleu, une musique 👍
+  en devenait une AUTRE (CRISTAL D'ARGENT sortait MOTEUR DE PLATINE, MIRAGE ULTRA → GRÉSIL DE TONNERRE, TURBO DE NÉON → FLAMME D'OPALE).
+  La bibliothèque passe désormais `O.style` = le style de l'avis, et `choixHybride(W, n)` le rend en tirant les MÊMES nombres que le tirage
+  d'origine (la suite de la composition est donc exacte). MESURÉ : les 21 musiques 👍 retombent sur leur titre, leur mélodie et leur clavier.
+  Les notes de Léo sur ces trois-là portaient sur la mauvaise musique : à réécouter avant toute V2.
+- `assets/audio/music/direct/retouches-bleu.js` (module) : `V2` (8 retouches) et `RENOMS` (MIRAGE, FIRE PRIME, NÉNUPHARS VELOURS, SAUVER MAMAN).
+  Les noms n'entrent PAS dans musique-moteur.json : ils sont dans le code, et un nom donné par Léo passe devant. Raison : un onglet resté
+  ouvert réécrit tout le fichier ; un onglet chargé avant ses notes aurait pu les effacer.
+  Les V2, chacune posée sous son original, en retrait, sans pouce à elle :
+  · CAVALE ULTRA (v3-1) : un arpège sci-fi au 15e moteur (`ARP_SF` à la place de `pluck`, ordre retouché) ;
+  · COBRA ULTRA (v3-3) : le Rhodes à la place du clavinet, un talkbox velours ;
+  · FLAMME DE TONNERRE (v3-3) : le VERRE CHANTANT, un nouveau timbre aigu ;
+  · MIRAGE DE VITESSE (v3-4) : le début refait (nappe et arpège d'abord), scie, Rhodes, violon, cuivres repoussés ;
+  · NÉNUPHARS VELOURS (v3-7) : flûte, gouttes de verre, basse qui roule, −7 % de tempo ;
+  · LUNE DE JADE (v3-7) : la gamme de la mélodie en hirajoshi (`A.gamme` de chaque accord), le KOTO NÉON ;
+  · RUBIS ULTRA (v3-10) : congas, échos, cloche, harmonie plus tôt, vibraphone ;
+  · SAUVER MAMAN (v3-10) : la harpe de verre devient une CLOCHE DE VERRE (`acc.keys`).
+  MESURÉ (banc muet, vrais clics) : les 8 jouent aux moteurs 1, 15 et 30, à ±3 dB de l'original (MIRAGE et NÉNUPHARS 3-4 dB plus doux), 0 erreur.
+- AURA · 30 PALIERS (`assets/audio/music/paliers/aura-30.html`, en direct, `#play` / `#speed`, rangé dans Pouce bleu) : le même morceau,
+  `p` devient le moteur. Les tableaux par palier sont étirés sur 30 moteurs (`PAL(m) = 1 + (m − 1) / 4`, le filtre en géométrique). Les 8 marches
+  restent aux moteurs 1, 5 … 29, chaque élément entre à SON moteur (`QUAND`), et `jouer` borne désormais `p` à 30 au lieu de 8.
+  MESURÉ (rendu hors ligne) : aux moteurs 1, 5 … 29, le même niveau que les paliers d'origine, à 0,2 dB près. L'AURA en 8 paliers reste à côté.
+- PENTHOUSE · V2 (`atelier-son/penthouse_v2.py` → `paliers/rendus/penthouse-v2/`, fiche dans `rendus/index.js`, rangée d'office dans Pouce bleu
+  par `PLACE_DEF`) : la même composition et les mêmes 8 paliers, TOUS les instruments remplacés :
+  · chœur « ah », piano feutré, vibraphone, boîte à musique, flûtes (cordes pincées en staccato), saxophone ;
+  · verres qui trinquent, cors, basse ronde qui glisse ;
+  · grosse caisse sèche, claquements de doigts, shaker.
+  Chaque instrument neuf est calé sur la sonie de l'ancien (`cale`). MESURÉ : centre de gravité 200-560 Hz (jamais clinquant) ; boue 200-500 Hz
+  de 5,7 à 9,4 % (P2 31,7 %, l'original 26 %), après trois passes (le « oh » du chœur à 450 Hz, les flûtes trop graves, le grognement de la basse).
+- EN ATTENTE : PISTON DE LUXE et GRÉSIL NOVA (le pack d'instruments promis par Léo) ; CRISTAL D'ARGENT, MIRAGE ULTRA et TURBO DE NÉON (à réécouter :
+  leurs notes visaient la mauvaise musique).
+- Bancs (scratchpad du pôle SON) : `verif.py` (21 musiques 👍 : titre, mélodie, clavier), `v2plans.py`, `v2jeu.py` / `origjeu.py` (niveaux),
+  `aura30rend.py` (rendu hors ligne), `final.py`.
+
 ## LA MUSIQUE DU CIEL ET DU GARAGE (2026-10-14 soir, Léo : « le ciel et le garage devraient aussi avoir une musique légère — l'inspi des Lobby Chris, les instruments, mais calme ; musique ciel très discrète, garage aussi, différentes ambiances ; plusieurs propositions, direct sur le main, et dans la librairie »)
 - Au MENU, le CIEL (LA CHUTE, l'écran titre) et le GARAGE ont chacun SA musique : `MENU_MUS` (juste après `MUSIC`), une de chaque tirée au
   hasard à chaque lancement (`MENU_MUS.tire`), `musicMenuUrl()` = celle du lieu (CHUTE.on → ciel, sinon garage). Elle remplace `MUSIC.menu`
