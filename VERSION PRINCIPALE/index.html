@@ -26364,7 +26364,8 @@ function nyanTick(dt){
   NYAN.pas=cle;NYAN.hb=hb;NYAN.allure=al;
   const Z=[1,0,-1,0],Y=[0,1,0,-1]; // le tour de la bielle, par crans : devant, en haut, derrière, en bas
   for(let i=0;i<NYAN.pattes.length;i++){const s9=(st[i]+((i===0||i===3)?0:2))&3,g=NYAN.pattes[i];
-    if(al==='frein')g.position.set(0,0,NY_PATTE*NY_K);else g.position.set(0,Y[s9]*NY_PATTE*NY_K,Z[s9]*NY_PATTE*NY_K);}
+    if(al==='frein')g.position.set(0,0,NY_PATTE*NY_K);else g.position.set(0,Y[s9]*NY_PATTE*NY_K,Z[s9]*NY_PATTE*NY_K);
+    const im=g.userData.im,h9=al==='frein'?1:Y[s9]+1;if(im)for(let j=0;j<im.length;j++)im[j].visible=j===h9;} // (2026-10-15) l'image du cran de hauteur : le haut de la patte reste sous l'aile (voir LES PATTES dans le gabarit poptart)
   if(NYAN.queue.length===2){const h=al==='sprint'||al==='vol'?1:al==='frein'?0:(al==='course')?(st[2]>>1)&1:(Math.floor(NYAN.bat/2)&1); // à l'arrêt elle bat doucement
     NYAN.queue[0].visible=!h;NYAN.queue[1].visible=!!h;}
   if(NYAN.feux.length===2){NYAN.feux[0].visible=!frein;NYAN.feux[1].visible=frein;}
@@ -28468,11 +28469,20 @@ const SHAPES={
     //    des roues) : chacune suit SA roue (voir nyanTick).
     //    (2026-10-08, avec les roues de 50 cm) 30 cm au lieu de 40 : elle descend de l'arche jusqu'au MOYEU et s'y accroche — le bas de la
     //    roue, sa jante et son enjoliveur, se voient dessous.
-    for(const zc of [.95,-.45])for(const sd of [-1,1]){const V=voxGrille(),U=NY_PATTE,NX=2,NY=6,NZ=4;
-      for(let x=0;x<NX;x++)for(let j=0;j<NY;j++)for(let k=0;k<NZ;k++){
-        const bx=x===0||x===NX-1,by=j===0||j===NY-1,bz=k===0||k===NZ-1;
-        V.set(x,j,k,((bx&&by)||(bx&&bz)||(by&&bz))?'B':'G');}
-      NYAN.pattes.push(pose(V,bloc(),0,U,[sd>0?NY_VOIE+.08:-NY_VOIE-.08-NX*U,.22,zc-NZ*U/2]));} // (2026-10-09) la voie de rallye (,78 = ,7 + ,08 avant)
+    /* (2026-10-15, Léo : un trait noir « glitché » au-dessus des roues avant) LE HAUT DE LA PATTE NE SORT PLUS DE L'AILE. Mesuré (rayons sur
+       la vraie caisse) : la face extérieure d'une patte (x ,92) sort de la peau dès y ,46 à l'avant (pas de hanche : l'épaule de l'aile
+       rentre), ,48-,51 à l'arrière ; or son haut montait à ,49 au repos et ,54 au cran « en haut » de la bielle — son bord noir traversait
+       l'aile, un trait qui apparaissait et disparaissait avec la roue. Désormais chaque patte a TROIS images (6, 5 puis 4 cases de haut), une
+       par cran de hauteur (en bas, au milieu, en haut : `userData.im`, choisie par nyanTick) : son haut reste où il était au cran « en bas »
+       (,4465, caché sous l'aile — le dessous de l'arche est à ,39-,43, la peau à ,46 au plus bas) et seul le bas suit la roue. Les cases
+       gardent les couleurs de la patte entière (le haut coupé, caché, n'a pas de cerne) : ce qu'on voit de la patte sous l'arche ne change pas. */
+    for(const zc of [.95,-.45])for(const sd of [-1,1]){const U=NY_PATTE,NX=2,NY=6,NZ=4,g=bloc(),im=[];
+      for(const n of [NY,NY-1,NY-2]){const V=voxGrille();
+        for(let x=0;x<NX;x++)for(let j=0;j<n;j++)for(let k=0;k<NZ;k++){
+          const bx=x===0||x===NX-1,by=j===0||j===NY-1,bz=k===0||k===NZ-1; // le cerne de la patte ENTIÈRE : coupée, elle ne gagne pas de bord noir sous l'arche
+          V.set(x,j,k,((bx&&by)||(bx&&bz)||(by&&bz))?'B':'G');}
+        const m=pose(V,new THREE.Group(),0,U,[sd>0?NY_VOIE+.08:-NY_VOIE-.08-NX*U,.22,zc-NZ*U/2]);m.visible=n===NY-1;g.add(m);im.push(m);} // (2026-10-09) la voie de rallye (,78 = ,7 + ,08 avant)
+      g.userData.im=im;NYAN.pattes.push(g);}
     // 6. LES ROUES PIXEL (2026-10-08, Léo : « fais les pixels plus propres et des plus belles roues », puis « plus de détails, les pixels
     //    plus petits, des pneus plus ronds »). Les roulettes de 7 × 7 TOURNAIENT : un disque en escalier à n'importe quel angle n'est plus
     //    un dessin, c'est un losange dentelé. Désormais une roue de 50 cm (elle remplit son passage) dessinée sur 21 × 21 cases de 2,4 cm

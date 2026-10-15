@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## CHAT POP-TART — LE TRAIT NOIR AU-DESSUS DES ROUES AVANT (2026-10-15, pôle CAISSES — Léo : un trait noir « glitché » au-dessus des roues avant de la Nyan Cat)
+- LA CAUSE (vue au banc, puis MESURÉE par des rayons sur la vraie caisse) : le haut des PATTES — leur bord noir — traversait l'aile. La
+  face extérieure d'une patte (x ,92) sort de la peau dès y ,46 à l'avant (pas de hanche `ha` : l'épaule de l'aile rentre), ,48-,51 à
+  l'arrière ; or la patte montait à ,49 au repos et ,54 au cran « en haut » de sa bielle (nyanTick, ±NY_PATTE). Le trait apparaissait et
+  disparaissait avec la roue : le « glitch ». Pattes cachées (`dbgNyCache` au banc) : plus de trait. Ce n'était ni un combat de faces, ni
+  la coque du trait noir, ni l'ombre.
+- LE CORRECTIF (gabarit `poptart`, « 5. LES PATTES », et nyanTick) : chaque patte a TROIS images (6, 5, 4 cases de haut, `userData.im`),
+  une par cran de hauteur ; nyanTick montre celle du cran. Son haut reste toujours à ,4465 — là où il était au cran « en bas », caché sous
+  l'aile (le dessous de l'arche est à ,39-,43 ; la peau à ,46 au plus bas) — et seul le bas suit la roue. Les cases gardent les couleurs
+  de la patte entière : ce qu'on voit de la patte sous l'arche ne change pas.
+- MESURÉ (banc muet ; course, garage et boutique ; couché et debout) : haut des quatre pattes aux trois crans AVANT ,4465 / ,494 / ,5415 →
+  APRÈS ,4465 partout ; en course, 40 relevés au trot et au sprint, l'image montrée = celle du cran (0 écart) ; les 77 caisses de la gamme
+  montées avant/après : seules les pièces du chat changent ; 0 erreur. Planche : `photos-gameplay/nyan-trait-aile-avant-apres.png`
+  (dossier CAR CAHS V3).
+
 ## LA POSE TENUE EN BOUTIQUE (2026-10-15, pôle CAISSES — Léo : « boutique : toucher la voiture fait bouger la voiture comme actuellement, mais laisse la voiture dans sa position souhaitée ; et lorsqu'on rappuie sur la voiture, elle se replace et la plateforme se remet à faire tourner la voiture »)
 - Le doigt sur la scène tourne et penche la caisse COMME AVANT (même prise `bqPrise`, mêmes coefficients, même élan de lacet). Dès qu'il a
   GLISSÉ de plus de 8 px, elle est POSÉE À LA MAIN (`GBQ.pose`, `bqPoseTient`) : le plateau s'arrête net et, lâchée, elle GARDE sa pose — plus
