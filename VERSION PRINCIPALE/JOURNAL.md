@@ -49,7 +49,118 @@
 - `?moteur=goutte` : la goutte lisse (le moteur simulé sans feu). Même matière : 0 programme (182 → 182, debout et couché), 0 erreur.
   Planche `photos-gameplay/moteur-mini-feu-avant-apres.png`.
 - ⚠ Le site en ligne était BLOQUÉ (quota Vercel, « rate limited ») : Léo voyait encore la goutte de la v482 — les éclats n'ont jamais été en ligne.
+## LES DAUPHINS DE LA MER DE JADE + L'ATELIER DES SINGES (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise » · « soleil jade singe va sur main et dauphins aussi »)
+- Seulement dans la MER des PICS DE JADE (là où l'on plonge et ressort). Bloc « LES DAUPHINS DE LA MER DE JADE » (après `dbgJadeSinges`), `jdmTick`
+  dans la boucle après `jsgTick`, un appel `jdmJailli` au JAILLISSEMENT de `jadeEauVol`. Du DÉCOR : ni aura, ni collision, pas de figure.
+- Lu ainsi (à corriger s'il le dit autrement) : après `JDM_ATT` = 5 s CUMULÉES dans l'eau (le compte repart quand la caisse a retrouvé la route),
+  un banc de TROIS arrive de devant en bondissant ; ils jouent DEVANT la caisse, de part et d'autre (comme à l'étrave d'un bateau : MESURÉ, en
+  cercle autour d'elle ils étaient derrière la caméra ou hors du cadre portrait) ; toutes les 3-5 s l'un d'eux recule jusqu'à la portière et fait
+  sa VRILLE (le coucou, son `dauphin.banc` la 1re fois) ; quand elle flotte ou surfe, ils bondissent ; quand elle JAILLIT, une fois sur deux
+  (`JDM_SAUT`) ils sautent AVEC elle (élan plafonné : ~10 m, elle monte à 30-40) ; elle retrouve la route, explose ou part loin → ils plongent.
+- ⚠ Leur surface est `jadeSurfMoy` (la houle calmée où flotte la caisse) : la houle en cubes du décor (`jadeSurf`) varie de ±20 m d'une colonne à
+  l'autre — dessus, ils bondissaient à 30 m. Sous la peau de la mer on les devine comme la caisse ; sans elle, l'eau les coupe (`uSurf`).
+- Le modèle : le grand dauphin VITRAIL (`creatures/dauphin.js`, `mkDauphin`, désormais chargé par le jeu ; ~95 ms au chargement ; sa ligne
+  `crV1/crV2` retirée : elle doublait celle d'index.html). 3 programmes compilés AU MENU (`chauffeRendu`), 0 en course (MESURÉ debout et couché).
+- L'ATELIER DES SINGES (`creatures/atelier.js`, deux Workers) : les quatre formes VITRAIL coûtaient 3,5 s de calcul (MESURÉ) ; en tranches de
+  5 ms il fallait 8 à 13 s de menu, et un JOUER rapide les compilait EN COURSE (4 programmes, mesuré debout). Prêtes ~1,3 s après l'apparition
+  de PLAY ; sans Worker (file://, refus, erreur, 30 s de silence) le calcul en tranches reprend (testé : prêtes à 6 s).
+- Banc : `?singesjade=1` (chaque PLAY part au SOLEIL DE JADE) · `dbgAuto(1,0)` AVANT le départ · `dbgEau({h:30,vy:-45})` lâche la caisse dans la
+  mer · `dbgJadeDauphins()` l'état (où ils sont à l'écran) · `('viens')` · `('saut')` · `('plonge')` un vrai plongeon sauté avec eux ·
+  `('route')` la mer la ramène (le départ) · `('gel')`.
 
+## LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on peut les voir dire bonjour ; sur la route, en train de courir ou de manger une mangue, ou penchés sur le bord de la route — qu'on en voie quelques fois seulement, mais qu'on les voie quand même ») — validé par Léo (« soleil jade singe va sur main et dauphins aussi »)
+- Du DÉCOR, sur la seule map PICS DE JADE (choix de Léo au questionnaire) : `jsgTick` (bloc « LES SINGES DU SOLEIL DE JADE », après `triNoir`).
+  Quatre rencontres par course (`JSG_N`), une de chaque, à des places tirées au hasard (`jsgPlan`) : COUCOU sur une montagne proche de la route
+  (`jsgMontagne` : sommet de 150 m sous la route à 50 m au-dessus — MESURÉ, celles du bord la dépassent de 70 à 230 m, sommet invisible), MANGUE
+  et COURSE sur la route près du bord (à mi-largeur, dans un virage, le singe tombait pile derrière la caisse à l'écran), AU BORD (assis sur
+  l'arête, jambes dans le vide). Chacun naît `JSG_AV` m devant, de l'autre côté de la route que la caisse, grandit en 0,4 s, repart quand elle
+  l'a laissé derrière. Tailles `JSG_ECH` : des singes GÉANTS (×8,5 à ×11 : à ×4,6 ils restaient cachés derrière la caisse jusqu'à 40 m).
+- Les POSES ARTICULÉES (`creatures/singe.js` : `SG_ART`, `SG_SEG`, `SG_POSES` bonjour · mangue · bord, `singePoseForme`, `singeAnimePose`) : le singe
+  debout découpé en 11 pièces rigides (bras et jambes en deux segments : coudes et genoux), une pose = des directions de segments ; la mangue
+  est un volume de la main droite (joue rouge côté visage, feuille). Trois os par pose (tête · avant-bras qui fait coucou / mangue à la bouche ·
+  queue ou jambes qui balancent). La boîte à singe les montre (Coucou · Mangue · Au bord).
+- Le jeu charge `creatures/vitrail.js` + `creatures/singe.js` (balises après figures.js) ; les quatre formes sont bâties AU MENU en tranches puis
+  compilées hors écran (une course partie trop tôt les compile une fois, sans singe à l'écran). Son posé : `sfx('singe.coucou')` (à faire).
+- Banc : `?carte=jade` ne suffit pas (le menu le consomme) → `dbgClassique('jade','midi')` juste avant le vrai clic sur PLAY ; `dbgAuto(1,0)`
+  AVANT le départ (sinon la caisse file au 1er virage dans la mer) ; `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` lance une rencontre,
+  `dbgJadeSinges('gel')` fige la course sans le panneau (photos), `dbgJadeSinges('montagnes')` liste les montagnes autour de la route.
+
+## LA DÉFERLANTE ET LA MERCURE RETIRÉES (2026-10-15, Sacha : « supprimer complètement du jeu la déferlante et la mercure, vu qu'elles ne respectent pas les règles du low-poly » — après hésitation, verdict final : « supprimez-les »)
+- Les deux épiques de Léo (LA DÉFERLANTE, 3,6 M ; LA MERCURE, 3,8 M) sortent de la gamme par la recette des caisses retirées : `retire:1`
+  dans leur fiche de `CARS`. Leur LIGNE RESTE (et celle de `CAR_UNLOCK`) : la sauvegarde désigne les caisses par leur index, LE DOGE et
+  toutes les suivantes gardent le leur. `carRetiree` les ôte de partout (boutique, garage, raretés, vitrine, équipement).
+- Qui en avait acheté une est REMBOURSÉ à son prix (le filtre des retirées dans `san`, une seule fois : elle sort de `owned`, `SAVE.remb`
+  le dit au menu) ; qui roulait avec repart en caisse 0.
+- Leurs GABARITS sont effacés (`SHAPES.deferlante` et `SHAPES.mercure` : 376 lignes, −43 Ko — le maillage en Surface Nets de la Mercure,
+  ses filets, son miroir `MERC_FS`, l'eau `EAU_VS`, l'écume en cubes de la Déferlante). Comme pour SA MAJESTÉ ou LA POSTIÈRE, si une fiche
+  retirée était quand même bâtie, `buildCar` replie sur `gt` avec un avertissement. Restent, inutilisées mais communes au kit : les options
+  `style:'tourbillon'`, `sansPneu` et `roueDeco` de `lpWheel` (rien à défaire). Les noms restent dans `I18N` (le message de remboursement).
+- BANC (muet, couché 844×390) : partie neuve → les deux fiches (index 74 et 75) ne sont plus citées ni au garage ni à la boutique ;
+  sauvegarde d'un acheteur (banque 1 000, `owned` 74 + 75, équipée en MERCURE) → banque 7 401 000 (= 1 000 + 3,6 M + 3,8 M), `owned` vidé,
+  caisse 0 équipée, JOUER → course sans erreur ni « gabarit inconnu ». Fumée commune OK (couché + debout, 0 erreur JS).
+- Cache `cashcar-v520`.
+
+## UNE SEULE POLICE, PARTOUT (2026-10-15 soir ; Sacha : « la notification des défis n'a pas la même police que le reste du jeu […] chaque écran,
+## chaque truc, c'est pareil quand on tape le code cousin […] il faut pas que je te le répète »)
+- LA CAUSE : une trentaine de règles écrites en police SYSTÈME (`var(--sans)`, `-apple-system`, `Segoe UI`, Avenir condensée…), choisies une
+  par une « pour la lisibilité » : la bannière MISSION RÉUSSIE (`#misBan .mbTx span`), le coach, la fenêtre (`#modX`) et son champ (`#modC`, en
+  monospace : le code cousin), la fiche du garage (`#gDesc`), le final spin (`.spDesc`/`.spNote`), les jauges de la vitrine (`.gvL`), le numéro
+  de version, l'écran « CASH CAR a calé »… Et 30 textures de canvas en Helvetica / Georgia / Courier / Comic Sans (billets, carte bancaire,
+  montre, pièces de la boutique, pluie de monnaies, « wow » du DOGE).
+- LE CORRECTIF : chaque règle refaite en pixel (`--f1` 10 px pour un texte, `--f0` 8 px pour une note, interligne 1,6-1,7, graisse 400 : la
+  police n'a pas de gras) ; `--sans` et `--c6-sys` pointent désormais sur le pixel ; chaque texture refaite en pixel à ~62 % du corps (même
+  largeur de mot). La bannière et la fiche du garage passent par `majPix` (`misTxt(m)`, `TR(d.d)`). Le billet volant, la pluie de monnaies
+  et le logo du fourgon, peints AU CHARGEMENT, sont redessinés quand la police arrive (`apresPolice`) ; la police est préchargée (`<link rel=preload>`).
+- LA PLUIE DE MONNAIES passe de 15 à 5 symboles ($ € ¥ £ ¢) : mesuré au banc, la police pixel n'a ni ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ ni φ — ils
+  tombaient dans une police de secours.
+- POUR NE PLUS JAMAIS LE REDIRE, deux filets : `<style id="policeUnique">` (dernier bloc de style) met `var(--pix)!important` sur tout élément,
+  pseudo-élément et `::placeholder` ; `UNE_POLICE` (premier script du body) réécrit tout `ctx.font` qui n'est pas Press Start 2P. `garde-charte.sh`
+  (d) refuse une version sans ces deux filets. Seule exception nommée : le φ du « 1.61φ » (`#spPhi`, logo ; la police pixel n'a pas de φ).
+
+## LES FIGURES SUPER FUN : LE COUP NET, LE SENS QUI SE VOIT, LE HUD v4 (2026-10-15 soir, Sacha : « ça marche un peu mais c'est imprécis et peu spectaculaire, fais dans le détail pour que les figures soient super fun » · « les figures doivent vraiment changer de sens selon le côté où tu les as mises : le rodéo vers l'avant ou l'arrière, l'hélico à gauche ou à droite, la rotation inversée » · « retravaille l'HUD des figures aussi, il faut que ce soit parfait : là c'est écrit en double ; des figures bien écrites, avec des moyens de rendre ça addictif » · « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance »)
+- RELEVÉ d'abord, au FILM : `film-fig.cjs` (la boucle du jeu figée — `requestAnimationFrame` détourné, pompé à la main — une capture par image
+  à 60 i/s : la 3D telle que le joueur la voit) et `hud-film.cjs` (captures en temps RÉEL : les minuteries du HUD suivent l'horloge). Trouvé :
+  en vrai vol (1,2 s) le filet de sécurité reprenait la main dès 0,2 s — le tonneau bouclé en 0,35 s à vitesse fixe, illisible, puis la caisse
+  à plat les deux tiers du saut ; le rodéo arrière coupé à 0,1 s ; au sol, la figure du SAUT NITRO partait « à tour de rôle » (`FX2.cyc`),
+  sans regarder la direction ; le HUD (voir v4 plus bas).
+- **LE COUP NET** (`FIG.Corps`, figures.js ?v=8, `PHY.elan`, `?elan=0` = la prise d'avant) :
+  · la DURÉE vient du vol (`figDose` : 72 % du vol qui reste moins la pose, au plus 1,35 × la durée du catalogue, jamais sous 0,32 s) ;
+  · le COUP : départ à 2 × la vitesse moyenne, puis un FREIN RÉGULIER (décélération constante, `m.acc`) qui l'arrête pile après ses tours + 5°
+    (`eps`) : elle dépasse un poil l'endroit et s'y PLANTE (le ressort du planté, un rebond) — finie à `finE` (98,5 %) ;
+  · une figure à DEUX rotations (rodéo, tire-bouchon, cosmique) = UNE rotation autour de l'axe penché qui les combine, en tours ENTIERS : elle
+    retombe pile à l'endroit (MESURÉ : menées chacune de son côté, elles laissaient la caisse à 148° — elles ne commutent pas) ; c'est le vrai
+    rodéo des riders, un salto désaxé ; orientée avant ou arrière, son salto change de sens (vérifié : tangage + / −) ;
+  · le coup VISE la vitesse de départ sur son axe (il renverse une rotation contraire, il complète une du même sens) ; une figure CONTRAIRE
+    sur le même axe ANNULE celle qui tourne ; deux figures qui se CONTRARIENT (axes à demi opposés : salto + rodéo arrière) — la dernière
+    prend la main, l'autre compte dès la moitié faite ; sur des axes de travers (tonneau + salto), chacune garde son frein (MESURÉ : la relayer
+    laissait 160° en fin de combo, contre 55°) ;
+  · LA FIN d'un mélange (`finVise`) : elle CONTINUE dans son sens et ralentit à décélération constante jusqu'à l'endroit (FIGÉE au début de la
+    fin — recalculée chaque image, elle gardait la vitesse : MESURÉ 9,2 rad/s constants), plus fort si le sol presse ; plus de vitesse fixe,
+    plus de balancier ; la prise forte n'est plus qu'un filet (sol trop proche, tap qui redresse) ;
+  · le temps qu'il reste (`reste`) = le plan de la figure (estimé sur la vitesse de son axe, il forçait la prise dès le départ en mélange) ;
+  · le compte des RÉPÉTITIONS se fait sur la figure de base (`r.base`) : un HÉLICO 720 qui fait ses deux tours = UN hélico, un tonneau empilé
+    au double-tap = DOUBLE TONNEAU (payé comme tel).
+- **LE SAUT NITRO suit la direction** (`veqFigure`) : la figure du double-tap au SOL est celle de la direction tenue à cet instant (▲ ou rien =
+  l'avant, ▼ = l'arrière, ◄► = le côté) ; rien dans cette direction : le saut part sans figure, sans bruit de refus (`o.muet`).
+- **LE SPECTACLE** sans ralenti (verdict du 26/09 : plus aucun ralenti — les gels d'image restent muets) : la plantée CLAQUE — un coup de zoom
+  sec (le même que la pose PARFAITE, en petit : `CAMV.zoom` .42), une secousse, une gerbe d'or ; le coup de départ garde son explosion.
+- **LE HUD DES FIGURES v4** (le récit est au-dessus de `figNom`) : le NOM une seule fois, bien écrit (`figNom` : DOUBLE TONNEAU, TOUPIE 720,
+  HÉLICO 1440, QUADRUPLE TONNEAU — plus de « ×2 », qui se confondait avec le × de la chaîne d'aura ; un HÉLICO 720 simple ne s'écrit plus
+  « HÉLICO 720 ×2 ») ; la FLÈCHE du geste devant (▲ ▼ ◄ ►, le côté où elle part) ; à la plantée le nom passe en OR et une PASTILLE muette
+  tombe dans la ligne (plus grosse pour une figure neuve dans le vol) ; « COMBO ×1,5 » ; le RECORD de combo (`SAVE.d.figRec`, désinfecté) bat
+  à côté du × dès qu'on le dépasse, gardé à la pose ; à la pose la ligne s'éteint SUR PLACE (`fhVole` retirée : elle traversait la carte
+  moteur — « SALTO AVANTNEAU ») ; le rappel #fhLeg écrit les vrais noms (« SALTO AVANT », plus « AVANT ») et le geste que vise le pouce
+  S'ALLUME (`fhArme`, `.arme`). Anglais : COMBO, RECORD, DOUBLE / TRIPLE / QUAD.
+- MESURÉ — banc du corps (`banc-corps.cjs`, au dosage du jeu) : tonneau sur 1,3 s de vol 18 → 3 rad/s, planté à 0,65 s ; salto 0,75 s ;
+  hélico 720 1,08 s ; rodéo avant / arrière 0,9 s (0° à la fin) ; tonneau + salto, tonneau + toupie, salto du saut + tonneau, salto du saut
+  + rodéo arrière : tous rangés à l'endroit entre 1,4 et 1,6 s, la fin en décélération continue ; vol de 0,9 s : planté à 0,57 s. Banc du
+  JEU (cc-banc, 390 × 844, muet ; films `film-fig.cjs` / `hud-film.cjs`) : re-taper EN AVANT sur le salto du saut nitro = « DOUBLE SALTO
+  AVANT », planté à 0,6 s (+203) — 1er jet : refusé 10 fois sur 10 (le tour empilé réservait le temps des autres figures : il se dose
+  désormais sur ce qui reste à CETTE figure, `D2`) ; saut de 0,96 s : tonneau planté, le salto en plus refusé (plus le temps — normal) ;
+  rodéo arrière en long vol : il mène, retour continu, à l'endroit à 1,6 s ; HUD : « ◄ TONNEAU », puis « SALTO AVANT » en or + COMBO ×1,5 +
+  RECORD, éteint sur place sans chevaucher « NOUVEAU SOMMET » ; 0 chute, 0 erreur.
+- Hooks : `dbgFigDir(x,y)` (le geste, la figure, son sens), `dbgFig('phy')` (les réglages, à chaud : `eps`, `finE`, `aUp`, `aDn`, `aFin`,
+  `stickAng`), `?elan=0`.
 ## LA CAISSE-NUAGE N'A PLUS DE SILLAGE VISIBLE (2026-10-15 soir, Sacha : « l'événement chasse-nuage, quand j'approche le nuage, son sillage, je sais pas ce que c'est, supprime-le, c'est nul »)
 - Retirés, dans la campagne (niveau 10) comme dans l'événement rare : le RUBAN d'or rose derrière elle (`fantomePose` : `GH.tr` reste éteint), la OUATE
   (`cloudBits`) qui filait autour de toi dans son aspiration, et le HALO d'or au bord de l'écran quand on la tient (`campFx` 4e calque à 0). La plaque
