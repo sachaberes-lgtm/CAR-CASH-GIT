@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE JOUER DU GARAGE RETROUVE SES TROIS CHEVRONS (2026-10-15, Sacha : « rajoute le bouton jouer dans le garage avec les 3 flèches animées qu'il y avait dans une ancienne version, il était bien »)
+- Le bouton était là, ses chevrons aussi (`#gJouer .mChev`, animation `k4Chev` : trois flèches qui s'allument l'une après l'autre) — mais la
+  règle du 30/09 (« sous 230 px, les chevrons se taisent », faite quand la BOUTIQUE partageait la barre) les cachait : MESURÉ, le lingot de la
+  console fait 230 px pile à 390 de large, 184 à 320. Les flèches avaient donc disparu de tous les téléphones.
+- Correctif : une règle CSS à la fin du bloc de la barre du garage — dans la console, les chevrons restent TOUJOURS allumés ; sous 185 px
+  de lingot (le 320), c'est le mot du ciel de Léo (`.lg`, gardé) qui passe de 21 à 17 px pour leur laisser la place ; à 390 il garde ses
+  21 px (mot 117 + chevrons 59 + écart 6 = 182 dans 210). Rien d'autre ne bouge (ACHETER → BOUTIQUE du matin intact : sur une caisse à
+  vendre, JOUER reste remplacé par la BOUTIQUE).
+- Banc : `garjouer.cjs` (scratchpad de la session) — 390×844, 320×640, 844×390 : chevrons visibles, dans le lingot, animés, zéro erreur.
+
 ## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
 - Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
   (`ECLATS`, `eclaPas`, `eclaNait`, `eclaCoupe` ; ⚠ `ECL` est déjà le nom de l'éclair de l'ORAGE). Des bipyramides à trois pans, une
