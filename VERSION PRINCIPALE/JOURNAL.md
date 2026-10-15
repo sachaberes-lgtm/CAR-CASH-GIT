@@ -24,6 +24,63 @@
 - `?dragon=ancien` = les rubans et les boules d'avant ; `dbgDragon('pix',0|1)` bascule en course ; bancs : `dbgDragon('tt',s)` avance
   l'horloge des stades (l'adulte sans 24 s à ×2,6), `dbgDragon('nitrooo')` embrase NITROOO sans le geste.
 
+## L'AIR DU GARAGE PLUS PRÉSENT (2026-10-15 soir, pôle SON ; Léo : « augmente le bruit ambiant du garage »)
+- `garage.ambiance` (le bourdon des néons, le tube qui grésille, la ville au loin) : +6 dB à son départ (`GAR_AMB_DB`, l'option `vol` de sfx — la
+  banque n'est pas recuite). MESURÉ bande par bande : il était 4 à 13 dB SOUS la porte en feu (`garage.feu`, inchangée), presque inaudible ;
+  désormais au niveau du feu dans le grave et le médium. Le compresseur des effets tient le total (+0,3 dB en sortie, au niveau de la musique
+  du garage, −26 dB) : c'est l'équilibre de la pièce qui change, pas son volume.
+
+## LES BASSES RÉGLÉES DANS LE JEU (2026-10-15 soir, pôle SON ; Léo dit oui aux basses réglées — pas de nitro sur la musique)
+- `assets/audio/musique-bus.js` (le MÊME que la bibliothèque) est chargé par le jeu et posé dans le graphe de la musique (`musWaBranche` :
+  élément → gain → BUS → compresseur doux → limiteur). Chaque morceau reçoit son réglage à `playMusic` (`MUS_WA.bus.piste`). `?basses=brut` = sans.
+- MUS_WA PLUS LARGE (la règle 'auto') : volume libre (ordi, Android) → partout SAUF le moteur de Safari ; volume verrouillé (iPhone) → avec
+  audioSession seulement (iOS 17+, comme avant). Volume libre : l'ÉLÉMENT reste à 1 et le gain du graphe fait tout (avant, sur iPhone, le
+  volume de l'élément était verrouillé : le code n'y touchait pas — sur ordi il aurait compté deux fois, et un fondu parti de 0 laissait
+  l'élément muet). Le compresseur doux seulement sur les appareils tactiles.
+- ⚠ SAFARI : au banc WebKit, la musique branchée se TAISAIT au bout de 8 à 15 s (l'élément joue, son temps avance, la source rend des zéros,
+  sans aucun appel), le chien de garde la condamnait et elle ne repartait qu'au toucher suivant. Safari sur Mac reste donc sur l'<audio>.
+  L'iPhone iOS 17+ est sur ce chemin DEPUIS LE 14/10 (MUS_WA) : à vérifier sur un vrai iPhone (`dbgMusWa()` : ko, pq = 'silence' ?).
+- EN COURSE, LE CREUX : −2 dB vers 280 Hz (Q 1), là où vit le moteur (48 % de son énergie entre 250 et 500 Hz, pic à 283 Hz).
+- LE RECUL SOUS LES SIGNAUX (`SIG_RECUL` : nitro.sec, piece.serie, piece.recolte, flow.perdu, aura.perdue, portail.proche, alerte.dernier) :
+  la musique −3 dB pendant 0,4 s (attaque 30 ms), à leur départ dans `sfx()`. `dbgMusWa('recul')` le déclenche à la main.
+- GLISSE (le SOLEIL DE JADE) : là où MUS_WA est branchée, elle reçoit le contexte du jeu PRÊTÉ (Proxy : sa destination = SON bus, −7 dB de sub ;
+  son stop(), qui suspendait SON contexte, ne suspend pas celui du jeu) ; condamnée → elle reprend le sien.
+- MUS_SONIE remesurée : chaque morceau réglé regagne la moitié de la sonie perdue (0,3 à 2,3 LU), bornée à +3 dB (les valeurs d'avant en commentaire).
+- MESURÉ : coût du bus 2,7 ms par seconde de son (0,27 % d'un cœur). Banc muet Chrome, couché / debout / cadre de l'ordi : ciel → garage →
+  PLAY → course → fin (la bande qui tombe) → REJOUER ×2 (3 courses : CIEL 1, ADDICTIVE, GLASSY, NÉON CASH CAR, CIEL · LES 5…, chacune son réglage
+  et le creux), le SOLEIL DE JADE (GLISSE entendue, −14 dB en sortie), `?basses=brut`, le recul ; WebKit couché / debout sur l'<audio> : tout joue.
+  0 erreur. (`dbgCampagne` bloque la page au banc, avec ou sans MUS_WA : rien à voir ; l'explosion forcée est absorbée par la seconde chance.)
+
+## LE BUS DE LA MUSIQUE : LES BASSES RÉGULÉES (2026-10-15, pôle SON, chantier A — DANS LA BIBLIOTHÈQUE, le jeu après l'écoute de Léo)
+- ⚠ LA NITRO QUI COLORAIT LA MUSIQUE (décrite plus bas) est RETIRÉE après l'écoute — Léo : « enlève nitro musique augmentée ». Ni dans la
+  bibliothèque ni dans le jeu ; son code reste dans l'historique git (commit f1e89131), on ne la réintègre pas.
+Léo : « j'aime beaucoup la basse, mais pour un jeu qui dure, des basses agréables : ça peut fatiguer dans les écouteurs. Régule les basses, ne rien
+enlever, tout bien mesurer » · « un bouton pour activer la nitro et voir comment elle amplifie la musique en général ; mais pas trop ».
+- `assets/audio/musique-bus.js` (`MUSBUS`) : UN réglage, pour la bibliothèque et — après l'écoute — pour le jeu. Par morceau (PRESETS, une clé =
+  un bout du nom du fichier) : un PLATEAU sous 65 Hz (le très grave tenu) et, si besoin, une CLOCHE à 110 Hz ; au-dessus de ~120 Hz rien ne
+  bouge (le clic du kick, les harmoniques de la basse : ce qu'en rend un téléphone). Bornes : −5 dB (−7 pour GLISSE) et −2 dB. `FORCE` règle tout.
+- MESURÉ (atelier : part d'énergie sous 60 / 150 Hz du fichier entier ; les sons en direct joués au banc) : les musiques de NIVEAU passaient 40 à
+  65 % de leur énergie sous 60 Hz (NOITE 73 %, GLISSE 85 %) ; lobby, ciel, garage < 12 % : rien. Après (rendu hors ligne par les vrais nœuds) :
+  −13 à −20 points de sub, 0 dB au haut-parleur de téléphone (coupe-bas 180 Hz), −0,4 à −2,3 LU en plein spectre.
+- (RETIRÉE) LA NITRO : nitro tenue = plateau grave +2,5 dB à 90 Hz, aigus +4 dB au-dessus de 3,5 kHz, côtés +35 %, 8 % de grain saturé en parallèle (coupé sous
+  250 Hz et au-dessus de 6,5 kHz). Monte en ~0,3 s, TIENT 0,35 s après le lâcher (les petits coups répétés ne clignotent pas), retombe en ~0,8 s ;
+  aucun paramètre sous sa valeur de repos. Mesuré : +0,6 à +2,3 LU perçus selon le morceau (plafond +3), +1,2 à +2,4 dB de largeur.
+- LA BIBLIOTHÈQUE : tout passe par le bus (`maitre` → `BUS.entree`) ; le bouton « Basses : réglées / brutes » (A/B, gardé par ce navigateur). GLISSE et les pages en direct reçoivent
+  le CONTEXTE PRÊTÉ (`contextePrete(dest)`) : ils sortaient droit sur `ac.destination`, à côté du volume et du bus.
+- POUR LE JEU (à faire après le oui de Léo) : la musique du jeu ne passe par WebAudio que sur iPhone iOS 17+ (MUS_WA) ; sur ordi et Android c'est
+  l'élément <audio> direct — brancher MUS_WA là aussi (le chien de garde existe) et passer le contexte du jeu à GLISSE (le SOLEIL DE JADE).
+
+## TOUT EN 30 PALIERS : SIFFLEUR · 30 ET CIEL · 30 (2026-10-15, pôle SON, chantier B ; Léo : « déconstruire les sons à 8 paliers en 30 paliers qui font évoluer le son »)
+- La méthode d'AURA · 30 : les 8 marches d'origine restent aux moteurs 1, 5 … 29 (VÉRIFIÉ : échantillon pour échantillon, écart 0), et entre deux
+  marches chaque élément du palier suivant entre à SON moteur (QUAND), ou monte d'un cran (sa piste à −7 dB, −3 dB, pleine). Les versions à 8
+  restent à côté, intactes. Seuls ces deux-là : les 6 autres morceaux à 8 paliers sont dans POUCE BLEU, gelé (Léo : « touche à rien »).
+- `atelier-son/siffleur_30.py` (28 éléments : la cabine, le Rhodes, la basse qui marche, les balais…, le drop du siffleur gardé au 13, le ton plus
+  haut au 22, un cran de plus au 30) et `atelier-son/ciel_30.py` (le compositeur de ciel.py, ses tests de niveau remplacés par un drapeau par élément,
+  même ordre des appels). `fige30` : la sonie monte d'un quart de palier par moteur ; AAC 128 kb/s (14 + 10 Mo).
+- La bibliothèque charge un morceau de plus de 8 paliers À LA DEMANDE (`LECTEURS.paliersLongs` : le palier joué et ses voisins ; 30 fichiers
+  décodés feraient ~300 Mo sur un iPhone). Banc : les sauts de moteur (5, 13, 22, 30, 12) arrivent à la mesure suivante (~3,6 s) ; 11/11 sons de
+  « Suivent le moteur » dans Chrome ET WebKit.
+- PAS DISCRETS (l'élément d'origine l'est déjà) : SIFFLEUR 16-17 (claps, shaker), 29 (le roulement), 30 ; CIEL 7, 19, 26-30 (cordes, arpège de verre).
 ## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
 - Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
   (`ECLATS`, `eclaPas`, `eclaNait`, `eclaCoupe` ; ⚠ `ECL` est déjà le nom de l'éclair de l'ORAGE). Des bipyramides à trois pans, une
