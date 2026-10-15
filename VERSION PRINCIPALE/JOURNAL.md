@@ -12,6 +12,13 @@
   21 px (mot 117 + chevrons 59 + écart 6 = 182 dans 210). Rien d'autre ne bouge (ACHETER → BOUTIQUE du matin intact : sur une caisse à
   vendre, JOUER reste remplacé par la BOUTIQUE).
 - Banc : `garjouer.cjs` (scratchpad de la session) — 390×844, 320×640, 844×390 : chevrons visibles, dans le lingot, animés, zéro erreur.
+- PUIS (même demande, Sacha : « une fois le bouton pressé dans le garage, il faut que tu retrouves l'animation où la voiture s'avance dans
+  les flammes ») : depuis le 13/10, le JOUER de l'atelier passait par `classiqueJouer()` → balayage pixel (écran sombre, la piste tirée
+  rebâtie dessous : ≈ 0,5 s au PC, bien plus sur téléphone) AVANT le lâcher. Désormais, depuis l'atelier (hors boutique et hors accueil),
+  LE LÂCHER part sur l'appui — retour au feu, la caisse roule et entre dans le rideau de flammes — et la piste tirée se bâtit sous le
+  voile chaud de la fin (`GAR.sous`, exécuté dans `garageRender` juste avant `closeGarage` + `start`/`resetGame` ; même principe que
+  `CHUTE.sous` pour le piqué du ciel). Refusé (lâcher impossible) = le balayage d'avant. `closeGarage` oublie un `GAR.sous` en attente.
+  Banc : `garfilm.cjs` (une image toutes les ~200 ms après l'appui), debout et couché.
 
 ## L'AIR DU GARAGE PLUS PRÉSENT (2026-10-15 soir, pôle SON ; Léo : « augmente le bruit ambiant du garage »)
 - `garage.ambiance` (le bourdon des néons, le tube qui grésille, la ville au loin) : +6 dB à son départ (`GAR_AMB_DB`, l'option `vol` de sfx — la
