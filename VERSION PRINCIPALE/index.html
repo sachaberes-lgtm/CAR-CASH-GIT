@@ -6614,6 +6614,25 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas :is(
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{color:#3d4bff!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{background:rgba(255,255,255,.92)!important;outline:0;box-shadow:0 0 0 1px #d6dbe0,0 8px 20px rgba(30,40,55,.1)!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{color:#14171c!important}
+/* (2026-10-15, Sacha) LA COLONNE DES CATÉGORIES, à la place de CETTE SEMAINE : un pictogramme par catégorie, la case active en noir */
+#gBqCats{position:absolute;display:none;flex-direction:column;gap:8px;pointer-events:auto}
+#gBq.pan #gBqCats{display:flex;animation:bqPan .5s var(--ease) .3s both}
+#gBqCats button{position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center;padding:0;border:0;cursor:pointer;background:#fff;color:#14171c;
+  box-shadow:0 0 0 1px #dde1e6,0 6px 16px rgba(30,40,55,.08);transition:background .15s,color .15s,translate .12s,box-shadow .15s}
+#gBqCats button .pxi{--pxs:2;color:currentColor}
+#gBqCats button.on{background:#14171c;color:#fff;box-shadow:0 8px 18px rgba(20,23,28,.22)}
+#gBqCats button.on::after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;background:#3d4bff}
+#gBqCats button:is(:active,.appui){translate:0 2px}
+@media (max-height:430px){#gBqCats{gap:6px}#gBqCats button{width:46px;height:46px}}
+/* (2026-10-15, Sacha : « redesign le bouton retour ») RETOUR : une plaque blanche à coins coupés, la flèche dans un carré bleu,
+   une épaisseur dure dessous qui s'écrase à l'appui — on la reconnaît d'un coup d'œil, et elle ne concurrence pas le bouton noir d'achat */
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{position:relative;height:48px!important;min-height:48px!important;padding:0 16px 0 6px!important;gap:18px!important;
+  background:#fff!important;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)!important;
+  box-shadow:inset 0 0 0 2px #14171c,inset 0 -4px 0 #c9ced6!important;transition:translate .12s,box-shadow .12s!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas::before{content:''!important;display:block!important;position:absolute;left:6px;top:6px;width:36px;height:34px;background:#3d4bff}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{--pxs:2!important;position:relative;margin:0 0 0 9px!important;color:#fff!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:10px!important;letter-spacing:2px!important;color:#14171c!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas:is(:active,.appui){translate:0 2px;box-shadow:inset 0 0 0 2px #14171c,inset 0 -1px 0 #c9ced6!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{outline:0;box-shadow:0 10px 24px rgba(20,23,28,.22)!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{background:#14171c!important;box-shadow:0 10px 24px rgba(20,23,28,.22)!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){color:#fff!important;text-shadow:none!important;transform:none!important}
@@ -52956,51 +52975,36 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
       +'</div></div>'
     +'<div id="gBqNom"><span class="bqRar"></span><span class="bqNom"></span><span class="bqLim">'+pxi('horloge')+'<em></em></span></div>'
     +'<div id="gBqSkins"><b>'+sansAcc(TR('COLORIS'))+'</b><div class="bqSk"></div></div>'
-    +'<div id="gBqUne"><div class="bqUt"><b>'+sansAcc(TR('CETTE SEMAINE'))+'</b><em>'+pxi('horloge')+'<i></i></em></div><div class="bqUv"><div class="bqUr"></div></div></div>'
-    +'<div id="gBqPan"><div class="bqOng" role="tablist"><button data-o="cat" class="on" role="tab"><i class="pxi bqOi"></i><span class="bqOc"></span><i class="n1"></i><u class="bqChev"></u></button>'
-      +'<button data-o="off" role="tab">'+sansAcc(TR('OFFRES'))+'<i class="n2"></i></button></div>'
-      +'<div class="bqMenu" role="menu">'+BQ_CATS.map(function(c){return '<button data-c="'+c[0]+'" role="menuitem">'+pxi(c[2])+'<span>'+sansAcc(TR(c[1]))+'</span><i></i></button>';}).join('')+'</div>'
-      +'<div class="bqRail"></div></div>';
+    /* (2026-10-15, Sacha : « enlève l'onglet CETTE SEMAINE, mets à la place les boutons qu'on voit quand on clique sur la flèche à côté de
+       VOITURES — traînée, peinture, aile — juste le pictogramme ; enlève l'onglet OFFRE ») : la colonne de gauche = les CATÉGORIES en
+       pictogrammes ; plus de barre d'onglets (ni VOITURES ▾ ni OFFRES) au-dessus de la grille */
+    +'<div id="gBqCats" role="tablist">'+BQ_CATS.map(function(c){return '<button data-c="'+c[0]+'" role="tab" aria-label="'+sansAcc(TR(c[1]))+'" title="'+sansAcc(TR(c[1]))+'">'+pxi(c[2])+'</button>';}).join('')+'</div>'
+    +'<div id="gBqPan"><div class="bqRail"></div></div>';
   gEl.insertBefore(ui,gEl.firstChild);bqRetourC6(ui);
   {const ga=document.getElementById('gAct');if(ga&&!document.getElementById('gBqBtn')){const bt=document.createElement('div');bt.id='gBqBtn';bt.setAttribute('role','button');bt.tabIndex=0;ga.appendChild(bt);
     bt.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(bt);bqAction();});}}
   const pan=ui.querySelector('#gBqPan'),ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
-  ui.querySelector('.bqOng').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
-    const o=b.getAttribute('data-o');uiPop(b);uiClic('onglet');
-    if(o==='cat'&&(GBQ.ong||'cat')==='cat'){pan.classList.toggle('menu');return;} // retouché : le choix de la catégorie
-    pan.classList.remove('menu');if(o!==GBQ.ong){GBQ.ong=o;GBQ.rk='';}});
-  ui.querySelector('.bqMenu').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
-    uiPop(b);uiClic('onglet');pan.classList.remove('menu');GBQ.cat=b.getAttribute('data-c');GBQ.ong='cat';GBQ.rk='';});
+  ui.querySelector('#gBqCats').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
+    uiPop(b);uiClic('onglet');hap(8);GBQ.cat=b.getAttribute('data-c');GBQ.ong='cat';GBQ.rk='';});
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
-  ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));ui.querySelector('.bqUr').addEventListener('click',essaie('.bqU'));
+  ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
   return ui;}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if(!voulu)return;
-  // LA BOUTIQUE : la catégorie choisie, ou les offres
-  const E=bqEphemeres().l,ong=GBQ.ong||'cat',cat=GBQ.cat||'voiture',L=ong==='off'?E.map(function(n){return 'v:'+n;}):bqListe(cat),rail=pan.querySelector('.bqRail');
+  // LA BOUTIQUE : la catégorie choisie (2026-10-15 : plus d'onglet OFFRES — un ancien chemin qui y menait retombe sur les VOITURES)
+  if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='voiture';}
+  const E=bqEphemeres().l,ong='cat',cat=GBQ.cat||'voiture',L=ong==='off'?E.map(function(n){return 'v:'+n;}):bqListe(cat),rail=pan.querySelector('.bqRail');
   const rk=ong+':'+cat+':'+L.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
-    pan.querySelectorAll('.bqOng button').forEach(function(b){const on=b.getAttribute('data-o')===ong;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
-    const C9=BQ_CATS.find(function(c){return c[0]===cat;})||BQ_CATS[0];
-    {const oc=pan.querySelector('.bqOc'),oi=pan.querySelector('.bqOi'),n1=pan.querySelector('.bqOng .n1'),n2=pan.querySelector('.bqOng .n2');
-     if(oc)oc.textContent=sansAcc(TR(C9[1]));if(oi)oi.className='pxi pxi-'+C9[2]+' bqOi';if(n1)n1.textContent=bqListe(cat).length;if(n2)n2.textContent=E.length;}
-    pan.querySelectorAll('.bqMenu button').forEach(function(b){const c=b.getAttribute('data-c');b.classList.toggle('on',c===cat);const n=b.querySelector('i');if(n)n.textContent=bqListe(c).length;});
+    ui.querySelectorAll('#gBqCats button').forEach(function(b){const on=b.getAttribute('data-c')===cat;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
     rail.classList.toggle('off',ong==='off');rail.classList.toggle('habs',ong!=='off'&&cat!=='voiture');rail.scrollTop=0;rail.scrollLeft=0;
     rail.innerHTML=L.map(function(k,n){return bqCarteHtml(k,n,ong==='off');}).join('');bqPhotos(rail);if(ong==='off')bqOffreAuto(E);}
-  // CETTE SEMAINE : la colonne qui défile
-  const S=bqSemaine().l,une=document.getElementById('gBqUne'),ur=une.querySelector('.bqUr'),uk=S.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
-  if(GBQ.uk!==uk){GBQ.uk=uk;GBQ.vu='';
-    const h=S.map(function(k){const vo=k[0]==='v',n=vo?+k.slice(2):-1,o=vo?null:bqCos(k),a=bqA(k),ri=rarInfo(vo?carRar(n):cosmRar(o.cat,o.d)),
-        nom=vo?TR(CARS[n].name):TR(o.d.n),pr=vo?(CAR_UNLOCK[n]||{}).p:o.d.p,px=a?sansAcc(TR('À TOI')):pxi('piece')+bqPxT(pr||0);
-      return '<div class="bqU" data-k="'+k+'" role="button" style="--rc:'+ri.c+'" aria-label="'+String(nom).replace(/"/g,'')+'"><span class="bqUf">'+(vo?'<span class="bqUph" data-ph="'+n+'"></span>':bqFigHab(k))+'</span>'
-        +'<span class="bqUrr">'+sansAcc(TR(ri.n1))+'</span><span class="bqUn">'+sansAcc(String(nom))+'</span><span class="bqUp'+(a?' acq':'')+(bqPxLg(px)?' lg':'')+'">'+String(px)+'</span></div>';}).join('');
-    ur.innerHTML=bqC6()?h:h+h;ur.style.setProperty('--n',S.length);bqPhotos(ur);}
+  const une=document.getElementById('gBqCats');
   /* (clarté 14/10) des cartes restaient blanches : la file du studio photo s'arrête hors garage / sous `quiet` et ne repart qu'à la photo suivante — on la relance, et on re-demande ce qui manque */
   if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}
-  else if(!PHQ.q.length&&(rail.querySelector('[data-ph]:empty')||ur.querySelector('[data-ph]:empty'))){bqPhotos(rail);bqPhotos(ur);}
-  {const t=une.querySelector('.bqUt em i:not(.pxi)'),r=bqHebdoReste();if(t&&t.textContent!==r)t.textContent=r;}
+  else if(!PHQ.q.length&&rail.querySelector('[data-ph]:empty')){bqPhotos(rail);}
   bqBoutonMaj();
   /* CE QU'ON REGARDE (2026-10-12, Léo : « le nom de la voiture et la rareté au-dessus de la voiture ; en dessous, les différents skins —
      coloris — de la voiture, pareil pour les ailes et les traînées ; pour l'instant ORIGINAL partout ») : #gBqNom suit la caisse (projeté au-
@@ -53012,17 +53016,16 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     nm.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));nm.querySelector('.bqNom').textContent=sansAcc(String(nom));
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});
-    ur.querySelectorAll('.bqU').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});}
+}
   {const t=nm.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
-  // LA PLACE : la colonne de la semaine à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)
+  // LA PLACE : la colonne des catégories à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)
   const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong+':'+Math.round(tr.bottom);
   if(GBQ.lay!==lay){GBQ.lay=lay;
-    const UW=Math.round(Math.min(110,W*.28)),top=tr.bottom+(cou?6:14);une.classList.add('vert');une.style.left=(cou?36:12)+'px';une.style.right='auto';une.style.width=UW+'px';une.style.top=top+'px';
-    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left='14px';pan.style.right='14px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');
-      une.style.bottom=(H-(bas-10-ph)+10)+'px';}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');une.style.bottom='12px';}
-    garLibre._r=null;bqColonneCale(une);}
+    const top=tr.bottom+(cou?6:14);une.style.left=(cou?36:12)+'px';une.style.top=top+'px';
+    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left='14px';pan.style.right='14px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');}
+    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');}
+    garLibre._r=null;}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
    sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
    GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
