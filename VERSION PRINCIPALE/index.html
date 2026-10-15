@@ -4514,6 +4514,14 @@ html body #mDead .mCashL>b{order:1;line-height:1;letter-spacing:2px;font-size:mi
 html body #mDead .mCashL>b{word-spacing:-.55em} /* (2026-09-30, revue des écrans) l'espace de la police pixel est une case PLEINE : au corps du héros, « $ 9 » s'écartait d'un doigt ; resserré, « $ 128,4 k » gagne aussi de la place */
 html body #mDead .mCashL>small{order:2;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 html body #mDead .mCashL>small:empty{display:none}
+/* (2026-10-15, audit des écrans) LA LIGNE DU COMPTE TIENT DANS SA PLAQUE : « COMPTE : $ 2 303 400 · ×2 DU JOUR » ne tient pas sur les ~27 cases
+   de la plaque — elle se coupait en plein « ×2 DU | JOUR », calée à gauche, sans interligne (la police pixel remplit tout son corps : deux
+   lignes se TOUCHENT) et la seconde mordait le bas de la plaque. Le quotidien (.mJour) passe sur SA ligne, centrée ; l'interligne 1.5 aère
+   toute ligne repliée ; l'espace resserré comme celui du héros (une case PLEINE de la police pixel) fait tenir « ×2 OF THE DAY · STREAK 3 +$40 »
+   ou une série à deux chiffres sur une ligne, et « COMPTE : $ 2 303 400 » sur une seule même sur un petit téléphone couché. */
+html body #mDead .mCashL>small{max-width:100%;line-height:1.5;text-align:center;text-wrap:balance;word-spacing:-.4em}
+html body #mDead .mCashL>small>.mJour{display:block;font-style:normal}
+html body #mDead .mCashL>small>.mJour>u{display:none}
 /* la carte AURA : le score, et le meilleur dessous */
 html body #mDead .hAura>b{font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))}
 html body #mDead .hCard.hAura{container-type:inline-size}
@@ -4532,6 +4540,7 @@ html body #mDead>.mObj{order:-2}
     grid-template-areas:"over obj" "cash obj" "hero stats" "hero row" "hero rej";grid-template-rows:auto auto 1fr auto auto}
   html body #mDead .mOver{grid-area:over;align-self:start;margin:0}
   html body #mDead .mCashL{grid-area:cash;align-self:start;margin:0;padding:12px 12px 10px;gap:7px}
+  html body #mDead .mCashL:has(>small>.mJour){padding:9px 12px 8px;gap:4px} /* (2026-10-15) la ligne du quotidien se paie sur les marges de la plaque, pas sur les cartes du dessous : la colonne de gauche n'a pas un pixel à perdre (la MOTEUR touche déjà la ⌂) */
   html body #mDead .mHero{grid-area:hero;align-self:stretch;margin:0}
   html body #mDead .mHero>.hCard{justify-content:center}
   html body #mDead .hCard{min-height:0;padding:10px 10px 10px;gap:5px}
@@ -60325,7 +60334,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
-       if(t9)t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank())+jourFinTexte(); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
+       if(t9){const j9=jourFinTexte();t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank()); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
+        if(j9){const i9=t9.appendChild(document.createElement('i'));i9.className='mJour';i9.appendChild(document.createElement('u')).textContent=' · ';i9.append(j9.replace(/^ · /,''));}} /* (2026-10-15) …mais sur SA ligne (.mJour) : le texte reste « COMPTE : $ N · ×2 DU JOUR », le « · » est seulement masqué */
        mCount(c9,v9,!prem9);}
       const ot=$t('mOverT');
       // (2026-09-26, audit UX) LES RECORDS NE SE CONTREDISENT PLUS : le jeu criait « RECORD BATTU » sur l'AURA en course, et
