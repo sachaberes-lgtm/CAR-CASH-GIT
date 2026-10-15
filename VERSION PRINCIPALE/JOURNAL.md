@@ -3,6 +3,23 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER v2 — LA PENTE, LA ROUTE NUE, LE VERGLAS ET ICE SKATE (2026-10-15, Sacha : « dans la map neige il faut vraiment que ce soit une montagne qui dévale, pas vraiment plat comme ça ; pas besoin de mettre les mêmes modules que dans les nuages ; rajoute une belle traîne dans la neige quand la voiture passe dedans ; et une animation et une figure ICE SKATE qui rapporte de l'aura quand on glisse sur la glace, la voiture doit un peu partir sur le côté »)
+- LA PENTE (`genBanq`) : départ 8 %, couloirs 19-28 % (cassure 36 %), jambes des lacets 7,5 %, chute d'un tour 66-78 m, plancher 5 %.
+  Banc Node (`raccourcis-node`, 4 graines) : dénivelé ~700 → ~1 170 m sur 9 km, 13-14 zones de raccourci, chute moyenne ~95 m, gain
+  moyen ~1,27 km. Plus raide (82-94 m par tour, jambes à 10 %) : +70 m de dénivelé seulement et un raccourci sur cinq de moins, écarté.
+- LA ROUTE NUE (`BANQ9` dans buildTrack, comme `JADE9`) : ni pad d'or, ni flaque, ni plot ; la LIGNE PARFAITE n'y pose que ses fruits.
+  Aucun tirage `rnd` déplacé (les filtres tombent après les tirages).
+- LE VERGLAS (`bkVerglasPose`, `BANQ.verg`, matière `BK_VG_FS`) : des plaques de glace noire SUR la route (80-150 m, dans les courbes,
+  toutes les 0,6-1 km, deux faces, jamais sur une cassure ; flux aléatoire à part `seed^0x1CE5`). Dessus (`banqVerglas`, boucle de
+  conduite après les flaques) : le volant mord à `BK_VG.grip` (.42), la caisse PART SUR LE CÔTÉ (`v.sd`, ≤ .30 rad/s de cap), la
+  carrosserie se met en crabe et ondule comme un patineur (`BKV.yaw`, posé après le power-slide), givre des roues arrière, rayures de patins.
+- LA FIGURE ICE SKATE (`bkSkate`) : sur le verglas OU en glissant sur un lac / un pic (elle remplace PATINOIRE) — l'aura monte
+  (6 + 24 × vitesse/vmax par seconde : ~80-100 par plaque, au banc ~450 avec 22 + 130 — trop face aux ~40 d une figure) dans `#iceHud` (« ICE SKATE +X », cyan, sous SLIDE, qui bat à chaque dizaine) ; payée à la sortie
+  dans la chaîne (famille 'iceskate', brut) après 0,4 s de glisse ; perdue à l'explosion, au replacement, quand la montagne ramène.
+- LA TRAÎNE DANS LA POUDREUSE : la tranchée v2 (plus large, fond bleu plus profond, deux ornières crantées, bourrelets qui scintillent,
+  110 s de vie au lieu de 70), une gerbe plus fournie et un VOILE de poudre lente qui reste en suspens derrière la caisse.
+- Console : `dbgBanq('verglas')`, `dbgBanq('verglas',{n,v})` (la caisse 40 m avant la plaque n, à v km/h).
+
 ## LA SECONDE CHANCE COÛTE TOUTE LA PARTIE (2026-10-14 soir, Sacha : « le bouton continuer malgré la mort doit coûter au joueur la même somme que ce qu'il a gagné durant la partie »)
 `chanceOuvre` : `CHANCE.prix = max(CHANCE.plancher, round(money − START_CASH))`, soit 100 % de l'encaissé, au dollar près. Le barème
 de GAMEPLAY (k 0,6 → 0,8) et l'arrondi à deux chiffres (`chanceJoli`) sont retirés. Le plancher de 300 $ ne joue que pour une partie
