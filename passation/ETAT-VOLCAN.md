@@ -20,3 +20,13 @@ de GAMEPLAY, `passation/RACCOURCIS.md`), virages à l'échelle du palier, constr
 2. Le banc GPU a vu la v2 AVANT les deux dernières retouches (bancs plus denses, virages en plus aux hauts paliers) : un passage `vbanc*.cjs` pour confirmer.
 3. À trancher par Sacha : le nom, la cadence des éruptions (15-29 s ÷ VLC_MET.eru), la densité des bancs (`VLC_MET.fu/fuF`, rythme dans buildVolcan) ; musique = Léo.
 4. Pour publier : LE TRAIN (merge, syntaxe, gardes, pas de sw.js, push de la branche, `echo "VOLCAN volcan" >> C:/Users/sacha/cc-train/file.txt`).
+
+## v4 (15/10, session VOLCAN4, branche `volcan4`) — LA DESCENTE EMMÊLÉE
+Sacha : « la route ne doit pas être toute plate mais doit pouvoir s'emmêler, nous faire visiter la map, s'amuser et prendre des raccourcis ».
+- `vlcTrace` v4 : la v3 (balade) gardée en tableaux mais en DESCENDANT (~5 % en houle, courtes remontées ~5 % de la longueur) : départ + boucle B0,
+  CORNICHE qui descend autour du grand volcan + B1, arche, fumerons (2 groupes, B2 entre eux dans la fenêtre), B3 qui plonge sur le LAC, arrivée.
+- 4 boucles à raccourci = la mécanique v2 (`VOLCAN.sauts`, couloirs sans décor déjà gérés par buildVolcan). Cône K calé sur la hauteur de la corniche.
+- `volcanSol` : L'ARÊTE — sous la route haute (> 90 m au-dessus de la lave), une échine de basalte qui plonge à la lave avant 340 m.
+- Banc RACCOURCIS hors ligne (scratchpad d9665cfc : `vtrace.cjs <index.html> <graine> <palier> <out.json>` puis `raccourcis.cjs volcan 1 --depuis=`) :
+  30 pistes (paliers 0/5/10/20/27 × 6 graines) : raccourcis rentables 0,7-4,9/km, 0 croisement dangereux, 0 infranchissable, pente ~5 %.
+  Restent sous la cible : virages/km (~2,1) et enchaînements (~0,8) — la balade (lac, corniche) assumée. L ≈ 10 km au palier 0 (v3 : 6,9).
