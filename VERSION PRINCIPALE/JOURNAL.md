@@ -19,6 +19,17 @@
   de l'ANCIENNE échelle (8,6e16 chez Sacha) : son prochain cadeau lui aurait versé ~7e15 $.
 - Ce qui est déjà en banque reste en banque (rien n'est repris à une sauvegarde).
 
+## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
+- La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
+  souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,
+  et `retouches-bleu.js`) est REFUSÉ (« Failed to fetch dynamically imported module ») → le morceau ne part pas, 3 essais, et la course reste muette (en
+  course, seulement Pouce bleu : plus de radio de repli). En ligne (Vercel sert le bon type), rien de tout ça : la v509 en ligne joue (banc).
+- Le correctif (`assets/audio/pouce-bleu-jeu.js`, `importe`) : si `import()` échoue, le texte du module est relu (`fetch`) et lancé depuis un Blob
+  `text/javascript`, `import.meta.url` y redevenant la vraie adresse du module (ses sons `vrais/` à côté). `pouce-bleu-jeu.js?v=2`.
+- Banc : un serveur qui répond `text/plain` pour les .js (`serveur_windows.py`) → AVANT : `pouce erreur`, course muette ; APRÈS : CRISTAL D'ARGENT (générateur)
+  part au piqué et tient 3 niveaux, Chrome ET WebKit ; serveur normal : inchangé (Chrome, cadre de l'ordi).
+- À trancher par Sacha (pas fait) : JOUER.bat pourrait forcer le bon type (`mimetypes.add_type('text/javascript','.js')`) — GLISSE (`musique-glisse-v2.js`) a
+  le même `import()`, mais il ne joue plus en course.
 ## LA BOUTIQUE S'OUVRE EN HAUT (2026-10-15 soir, défaut vu par la session du rangement des figures : « en ouvrant un onglet, la grille s'ouvre défilée de 14 px : la 1re rangée de cartes est rognée de 12 px en haut »)
 - LA CAUSE (mesurée) : `garBqPanneau` remplit `#gBqPan .bqRail` d'un coup (`innerHTML`) pendant que les cartes `.bqK` entrent en glissant de
   12 px (`@keyframes bqK`, `translate:0 12px`) ; l'aimant de défilement (`scroll-snap-type:y proximity`, `scroll-snap-align:start` sur les
@@ -126,6 +137,19 @@
   `.sel` suit la carte touchée (1er jet : il restait sur l'autre carte du rodéo — `GBQ.vu` ne comptait pas la direction). En vol : ↑ SALTO
   AVANT, ↓ RODÉO orienté arrière, ← HÉLICO +, → HÉLICO − ; débutant, même vol : ↓ refusé, ← TONNEAU ; rappel ↑ AVANT · ↓ RODÉO · ◄► HÉLICO.
   Zéro erreur JS.
+## PLUS D'ANIMAUX DANS LE JEU (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus trop sa place et ça prend trop de place sur le jeu — profites-en pour enlever tout ce qui peut être volumineux et inutile : dragon, animaux figures ; on va les replacer par map »)
+- Choix confirmés par Léo (questionnaire) : les dauphins ET la figure d'aura LE DAUPHIN ; le serpent néon ; le dragon de feu de NITROOO.
+  Sacha les avait COUPÉS le matin (drapeaux `SANS_DAUPHIN`/`SANS_SNAKE`/`SANS_DRAGON`) : ils sont désormais ARRACHÉS — créatures, figure
+  du dauphin (dolTick/dolStart/dolFin/dolPose/dolKill, aura de la nage au ras, DAUPH, #dolHud et son CSS), serpent (`updateSerpent`), dragon
+  (`DRG`, `DFEU`, `dragonTick`, sa chauffe au menu), et les SINGES DE LA COURSE (3 sauts en 5 s : `singeJeu`, `singeSaut`), qui tournaient
+  encore. `?dauphin=1` et `?dragon=1` n'existent plus. La figure SNAKE LOOP et NITROOO restent derrière les drapeaux de Sacha.
+- Ce qui revient par map est gardé hors du jeu : `creatures/dauphin.js` (le modèle du dauphin en vitrail et ses chorés), `creatures/vitrail.js`,
+  `creatures/singe.js` (ses poses : queue, mains, course) — non chargés par index.html ; `boite-dauphins.html` / `boite-singe.html` les lisent.
+  `crV1`/`crV2` et `triNoir()` vivaient dans le bloc des dauphins : remis à part (la comète de NITROOO et le jus s'en servent).
+- MESURÉ : index.html 6 554 → 6 349 Ko (script principal 5,53 → 5,32 Mo), 3 programmes de moins au menu (174 contre 177), syntaxe vérifiée
+  au jsc ; au banc (GPU) : départ par PLAY, sauts, grand vol, explosion, nouvelle partie, et avec `?nitrooo=1&snake=1` : 0 erreur.
+- ⚠ BANC : `dbgCampagne(n)` FIGE le main actuel (la carrière est coupée) — partir par le vrai bouton PLAY. Chrome sans fenêtre 155 rend en
+  logiciel par défaut (98 % de processeur, tout se fige) : le lancer avec `--enable-gpu --use-angle=metal`.
 
 ## LES FIGURES EN DEUX FAMILLES : VERS L'AVANT · SUR LES CÔTÉS (2026-10-15, Sacha : « pour le système de figure : il faut séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; par exemple les figures tonneau doivent aller vers la droite ou la gauche, elles ont besoin d'être orientées par la direction, alors que salto avant a juste besoin d'aller vers l'avant ; donc dans la boutique classe toutes les figures selon ces deux catégories »)
 - **La famille est déclarée** dans `figures.js` (`cat:'avant'|'cote'` sur chaque ligne de `BASE`, ?v=5) et lue par `FIG.cat(f)`. La règle, qui
