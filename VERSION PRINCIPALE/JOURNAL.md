@@ -4,6 +4,21 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## UNE SEULE POLICE, PARTOUT (2026-10-15 soir ; Sacha : « la notification des défis n'a pas la même police que le reste du jeu […] chaque écran,
+## chaque truc, c'est pareil quand on tape le code cousin […] il faut pas que je te le répète »)
+- LA CAUSE : une trentaine de règles écrites en police SYSTÈME (`var(--sans)`, `-apple-system`, `Segoe UI`, Avenir condensée…), choisies une
+  par une « pour la lisibilité » : la bannière MISSION RÉUSSIE (`#misBan .mbTx span`), le coach, la fenêtre (`#modX`) et son champ (`#modC`, en
+  monospace : le code cousin), la fiche du garage (`#gDesc`), le final spin (`.spDesc`/`.spNote`), les jauges de la vitrine (`.gvL`), le numéro
+  de version, l'écran « CASH CAR a calé »… Et 30 textures de canvas en Helvetica / Georgia / Courier / Comic Sans (billets, carte bancaire,
+  montre, pièces de la boutique, pluie de monnaies, « wow » du DOGE).
+- LE CORRECTIF : chaque règle refaite en pixel (`--f1` 10 px pour un texte, `--f0` 8 px pour une note, interligne 1,6-1,7, graisse 400 : la
+  police n'a pas de gras) ; `--sans` et `--c6-sys` pointent désormais sur le pixel ; chaque texture refaite en pixel à ~62 % du corps (même
+  largeur de mot). La bannière et la fiche du garage passent par `majPix` (`misTxt(m)`, `TR(d.d)`). Le billet volant, la pluie de monnaies
+  et le logo du fourgon, peints AU CHARGEMENT, sont redessinés quand la police arrive (`apresPolice`) ; la police est préchargée (`<link rel=preload>`).
+- POUR NE PLUS JAMAIS LE REDIRE, deux filets : `<style id="policeUnique">` (dernier bloc de style) met `var(--pix)!important` sur tout élément,
+  pseudo-élément et `::placeholder` ; `UNE_POLICE` (premier script du body) réécrit tout `ctx.font` qui n'est pas Press Start 2P. `garde-charte.sh`
+  (d) refuse une version sans ces deux filets. Seule exception nommée : le φ du « 1.61φ » (`#spPhi`, logo ; la police pixel n'a pas de φ).
+
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
   souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,

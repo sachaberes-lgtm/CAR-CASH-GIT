@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
@@ -192,7 +193,7 @@ html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
-html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
+html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:8px/1 var(--pix);letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
 html.colonne #tel{position:fixed;box-sizing:border-box;z-index:1;background:#050307;
@@ -205,7 +206,7 @@ html.colonne.couche #encoche::after{left:0;bottom:calc(-1*var(--or));background:
 html.colonne.debout #encoche::before{top:0;left:calc(-1*var(--or));background:radial-gradient(circle at 0 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 html.colonne.debout #encoche::after{top:0;right:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 /* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
-html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
+html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
 html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
@@ -227,7 +228,7 @@ html.labNuages #garage.menu.ciel::after{opacity:var(--labV2,1)}
 html.labNuages #overlay,html.labNuages #overlay *{pointer-events:none!important} /* ⚠ les [data-m] de l'accueil reprennent le doigt d'eux-mêmes : on les éteint UN PAR UN (sans ça, un JOUER invisible lançait la partie) */
 html.labNuages.labBoutons #overlay>*{opacity:1!important}
 html.labNuages #tSet,html.labNuages #tGear{display:none!important}
-#mSet p.ccVer{margin:14px 0 2px;text-align:center;font:600 11px/1.3 var(--sans,system-ui,sans-serif);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
+#mSet p.ccVer{margin:14px 0 2px;text-align:center;font:8px/1.6 var(--pix);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
   html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
   canvas{display:block}
@@ -336,7 +337,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   /* RÉGLAGES — carte sobre, verre dépoli, typo système (DA simple et efficace) */
   #settings{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
     background:rgba(6,8,18,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#f2f5fa}
+    font-family:var(--pix);color:#f2f5fa}
   #settings.on{display:flex}
   #setCard{width:min(460px,92vw);max-height:86vh;overflow-y:auto;background:rgba(22,24,34,.82);
     border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:22px 24px 24px;
@@ -756,13 +757,13 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     opacity:0;transition:opacity .5s ease-out,transform .8s cubic-bezier(.22,1.61,.36,1)}
   #launchGlow.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
   #overlay h2{font-family:var(--pix);font-size:11px;margin:14px 0 0;color:#00eaff;text-shadow:0 0 12px rgba(0,234,255,.7)}
-  #overlay p{max-width:640px;text-align:center;line-height:1.9;opacity:.92;font-size:15px;font-family:'Segoe UI',Arial,sans-serif}
+  #overlay p{max-width:640px;text-align:center;line-height:1.9;opacity:.92;font-size:10px;font-family:var(--pix)}
   #overlay .go{margin-top:22px;font-family:var(--pix);font-size:14px;color:#ffb000;animation:pulse 1.2s infinite;text-shadow:0 0 12px rgba(255,176,0,.7)}
   #finalScore{font-family:var(--pix);font-size:28px;margin:16px 0;display:none;
     background:linear-gradient(180deg,#fff6cf,#ffd75e 40%,#ff9d2e 78%,#a85e08);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 2px 0 #5c3600) drop-shadow(0 6px 12px rgba(0,0,0,.5))}
-  kbd{background:#1a1433;border:1px solid #00eaff;border-radius:3px;padding:2px 8px;font-size:12px;font-family:'Segoe UI',Arial,sans-serif}
+  kbd{background:#1a1433;border:1px solid #00eaff;border-radius:3px;padding:2px 8px;font-size:8px;font-family:var(--pix)}
   @keyframes pulse{50%{opacity:.4}}
   /* --- classement top 10 --- */
   /* le classement passe en second plan : on ouvre le jeu pour JOUER, pas pour lire un tableau */
@@ -778,7 +779,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   .lbName{flex:1;text-align:left;letter-spacing:2px}
   .lbScore{color:#62e062}
   .lbRow.hl .lbScore{color:#ffd75e}
-  .lbEmpty{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#8f84c8;text-align:center;padding:6px}
+  .lbEmpty{font-family:var(--pix);font-size:8px;color:#8f84c8;text-align:center;padding:6px}
 
   /* ------- ÉCRANS MODERNES (accueil / game over) ------- */
   /* le décor du menu : halo magenta, veine cyan rasante et trame de balayage — on est dans une borne,
@@ -846,7 +847,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #ctrlRow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:560px;margin:18px 0 4px}
   .kc{font-family:var(--pix);font-size:9px;letter-spacing:1px;color:#dfeeff;text-align:center;
     background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 13px 7px;line-height:1.1}
-  .kc i{display:block;font-style:normal;font-family:'Segoe UI',Arial,sans-serif;font-size:10px;color:#8fa4c4;letter-spacing:.5px;margin-top:5px;text-transform:lowercase}
+  .kc i{display:block;font-style:normal;font-family:var(--pix);font-size:8px;color:#8fa4c4;letter-spacing:.5px;margin-top:5px;text-transform:lowercase}
   /* le gros bouton doré devient une simple INVITE sous le logo : c'est le titre qu'on clique */
   #overlay .go{margin-top:12px;font-size:11px;letter-spacing:5px;color:#ffcf6a;background:none;
     border:none;padding:4px 10px;animation:pulse 1.8s infinite;cursor:pointer;
@@ -2012,7 +2013,22 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
 </head>
 <body>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
-     ⚠ IL EST DANS SON PROPRE <script>, ET C'EST TOUT L'INTÉRÊT. Le capteur d'erreur du jeu vit DANS
+     ⚠ IL EST DANS SON PROPRE <script>
+/* UNE SEULE POLICE (2026-10-15, Sacha : « chaque texte du jeu doit avoir la bonne police […] il faut pas que je te le répète ») —
+   LE FILET DES CANVAS. Les textes DESSINÉS (billets, carte bancaire, montre et pièces de la boutique, « wow » du DOGE…) échappent au
+   CSS. Toute police de canvas qui n'est pas Press Start 2P est réécrite ici en Press Start 2P, à 62 % du corps demandé (la chasse pixel
+   est ~1,6 fois plus large qu'une Helvetica : le mot garde sa largeur) et sans gras (la police n'en a pas : un gras se synthétise et bave).
+   Les textures écrites pour le pixel passent telles quelles. Une police qu'on écrit demain dans un canvas est donc pixel d'office.
+   apresPolice(f) : dessine tout de suite, puis REDESSINE quand la police est chargée — une texture peinte au chargement de la page
+   l'était sinon dans la police de secours. garde-charte.sh refuse une version sans ce filet ni le filet CSS (#policeUnique). */
+(function UNE_POLICE(){try{const P=CanvasRenderingContext2D.prototype,D=Object.getOwnPropertyDescriptor(P,'font');if(!D||!D.set)return;
+  const C=new Map();
+  Object.defineProperty(P,'font',{configurable:true,enumerable:D.enumerable,get:D.get,set:function(v){let r=C.get(v);
+    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P",monospace';}C.set(v,r);}
+    D.set.call(this,r);}});}catch(e){}})();
+function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('16px "Press Start 2P"'))F.load('16px "Press Start 2P"').then(f).catch(function(){});}catch(e){}}
+</script>
+<script>, ET C'EST TOUT L'INTÉRÊT. Le capteur d'erreur du jeu vit DANS
      le grand script : si celui-ci meurt au PARSING (une accolade de travers, une syntaxe que le
      navigateur du joueur ne connaît pas), pas une ligne ne s'exécute — capteur compris — et le
      joueur reçoit un rectangle noir sans un mot. Ici, on est déjà chargé quand le jeu se présente.
@@ -2044,10 +2060,10 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     var en=ccEn();
     var b=document.createElement('div');b.id='ccCrash';if(window.__ccLent){b.dataset.lent='1';window.__ccLent=0;} // (passe qualité) seul l'écran du chien de garde peut se retirer (voir garde)
     b.setAttribute('style','position:fixed;inset:0;z-index:99999;background:#07050f;color:#ffd75e;box-sizing:border-box;'+
-      'font:12px/1.6 ui-monospace,Menlo,monospace;padding:calc(var(--ccT,env(safe-area-inset-top,0px)) + 28px) 24px calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
-    b.innerHTML='<div style="font:600 20px/1.35 -apple-system,system-ui,sans-serif;color:#fff;margin-bottom:10px">'+(en?'CASH CAR hit a snag.':'CASH CAR a calé.')+'</div>'+
-      '<div style="font:500 15px/1.5 -apple-system,system-ui,sans-serif;color:#c9bdf0;margin-bottom:22px">'+(en?'Tap RESTART: your progress is saved.':'Touche RELANCER : ta progression est sauvegardée.')+'</div>'+
-      '<button id="ccRelance" style="display:block;width:100%;max-width:360px;min-height:56px;margin:0 0 28px;border:0;font:600 17px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);box-shadow:0 5px 0 #9c5200;cursor:pointer">'+(en?'RESTART':'RELANCER')+'</button>'+
+      'font:8px/1.8 var(--pix);padding:calc(var(--ccT,env(safe-area-inset-top,0px)) + 28px) 24px calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
+    b.innerHTML='<div style="font:14px/1.5 var(--pix);color:#fff;margin-bottom:10px">'+(en?'CASH CAR hit a snag.':'CASH CAR a calé.')+'</div>'+
+      '<div style="font:10px/1.7 var(--pix);color:#c9bdf0;margin-bottom:22px">'+(en?'Tap RESTART: your progress is saved.':'Touche RELANCER : ta progression est sauvegardée.')+'</div>'+
+      '<button id="ccRelance" style="display:block;width:100%;max-width:360px;min-height:56px;margin:0 0 28px;border:0;font:12px var(--pix);letter-spacing:1px;color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);box-shadow:0 5px 0 #9c5200;cursor:pointer">'+(en?'RESTART':'RELANCER')+'</button>'+
       '<div style="color:#ff5e7a;margin-bottom:6px">'+esc(titre)+(detail?'\n'+esc(detail):'')+'</div>'+
       '<div style="color:#6b6290;white-space:pre-wrap">'+esc(diag())+'</div>';
     (document.body||document.documentElement).appendChild(b);
@@ -2125,7 +2141,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   --cash:#7dff9b;--cashO:#05240f;--aura:#ff7ad5;
   /* le texte */
   --tx:#fff7ee;--tx2:#c9bdf0;--tx3:#8f84bd;--txO:#0a0616;
-  --sans:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+  --sans:'Press Start 2P',monospace; /* (2026-10-15, UNE SEULE POLICE) l'ancienne police système pointe sur le pixel : une règle oubliée tombe juste */
   /* LES CORPS — une gamme courte (--f2 garde son nom pour les règles historiques, il vaut le même 10 px que --f1) */
   --f0:8px;--f1:10px;--f2:10px;--f3:12px;--f4:14px;--f5:16px;--f6:20px;--f9:24px;--f7:28px;--f8:40px;
   /* les marges d'écran (safe areas comprises) */
@@ -2465,7 +2481,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
   transform:skewX(var(--sk));color:var(--neoV);background:#062414;box-shadow:0 0 0 1px #1f8a4b,0 0 12px rgba(94,227,122,.3)}
 .mMode.off .mmS{color:var(--tx3);background:var(--k0);box-shadow:0 0 0 1px var(--kl)}
 .mmP{color:var(--tx2);background:var(--k0);box-shadow:0 0 0 1px var(--kl2)}
-.mmD{font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2)}
+.mmD{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 
 /* ---------------------------------------------- RÉGLAGES ------------------------------------------------------------ */
 .mSet{display:flex;flex-direction:column;width:100%}
@@ -2503,7 +2519,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 .shPhoto .pxi{--pxs:6;color:var(--tx3)}
 .shUneTx{display:flex;flex-direction:column;gap:8px;text-align:left}
 .shUneTx b{font-family:var(--pix);font-weight:400;font-size:var(--f5);letter-spacing:1px;line-height:1.3;color:#fff;transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 14px rgba(255,199,42,.35)}
-.shUneTx span{font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2)}
+.shUneTx span{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 .shUneBas{display:flex;align-items:center;gap:12px;font-family:var(--pix)}
 .shUneBas s{font-size:var(--f2);color:var(--tx2);text-decoration-color:var(--neoM);text-decoration-thickness:2px}
 .shUneBas s{text-decoration:none;position:relative}.shUneBas s::after{content:'';position:absolute;left:-3px;right:-3px;top:calc(50% - 1px);height:2px;background:var(--neoM)} /* (2026-09-30, revue) le trait passe AU MILIEU des chiffres : le line-through de la police pixel tombait dessous, on lisait un souligné */
@@ -2606,9 +2622,9 @@ body.touch #tNitroZone{background:none!important;border:0!important;box-shadow:n
 #modale.on .modIn{animation:k4Feuille var(--t-slow) var(--ease) both}
 #modale.sortant .modIn{animation:k4FeuilleOut var(--t-fast) var(--ease) forwards}
 #modT{margin:0;font-family:var(--pix);font-weight:400;font-size:var(--f4);line-height:1.5;letter-spacing:1px;color:#fff;transform:skewX(var(--sk));text-shadow:0 2px 0 var(--txO),0 0 14px rgba(255,62,200,.5)}
-#modX{font-family:var(--sans);font-size:15px;line-height:1.5;font-weight:500;color:var(--tx2)}
+#modX{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 #modX:empty{display:none}
-#modC{box-sizing:border-box;width:100%;min-height:74px;padding:12px;border:0;border-radius:0;resize:none;outline:0;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;
+#modC{box-sizing:border-box;width:100%;min-height:74px;padding:12px;border:0;border-radius:0;resize:none;outline:0;font:var(--f1)/1.6 var(--pix);
   color:var(--au1);background:var(--k0);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--kl2);-webkit-user-select:text;user-select:text}
 .modB{display:flex;flex-direction:column;gap:18px;margin-top:10px}
 .modB .pbtn{width:100%;min-height:56px;padding:0 12px;font-size:var(--f2)}
@@ -2704,7 +2720,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 @keyframes k4Nom{0%{opacity:0;translate:-18px 0}100%{opacity:1;translate:0 0}}
 #gMeta{display:contents}
 #gSpd,#gDots,#gSw,#gBank,#gHint{display:none!important}
-#gDesc{flex:0 0 100%;max-width:340px;margin:12px 0 0;font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2);text-shadow:0 1px 2px #000;display:none}
+#gDesc{flex:0 0 100%;max-width:340px;margin:12px 0 0;font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2);text-shadow:0 1px 2px #000;display:none}
 #gCard.verrou #gDesc,#gCard.defis #gDesc{display:block}
 #gCard.verrou #gDesc{font-family:var(--pix);font-size:var(--f1);line-height:1.8;letter-spacing:1px;color:var(--tx2)}
 #gCard.verrou #gDesc .pxi{--pxs:1}
@@ -3078,9 +3094,9 @@ body:not(.play) #misFocus{display:none!important}
 #stall #gBottom{flex-direction:row;align-items:center;max-width:none}
 #stall #gCard{flex:1;display:block;margin:0;padding:14px;background:var(--k2);box-shadow:0 0 0 1px var(--kl)}
 #stall #stName{font-size:var(--f3);margin-bottom:10px}
-#stall .stRow{display:flex;justify-content:space-between;font-family:var(--sans);font-size:13px;margin:8px 0 2px}
+#stall .stRow{display:flex;justify-content:space-between;font-family:var(--pix);font-size:var(--f1);margin:8px 0 2px}
 #stall .stSlider{width:100%}
-#stall #stRare{font-family:var(--sans);font-size:12px;color:var(--tx2);margin-top:6px}
+#stall #stRare{font-family:var(--pix);font-size:var(--f0);color:var(--tx2);margin-top:6px}
 #stall .gNav{position:static;width:46px;min-height:52px}
 
 /* ============================================ L'ÉCRAN TITRE : l'invite ============================================= */
@@ -3319,7 +3335,7 @@ html body.touch #pwrChip .pw u{left:14px;right:10px;bottom:5px;height:3px}
 html body #misBan{padding:12px 14px 12px 16px;border:0;border-radius:0;background:var(--plaqueH);clip-path:var(--coupeHP);
   box-shadow:inset 4px 0 0 var(--mbC),inset 30px 0 26px -20px color-mix(in srgb,var(--mbC) 45%,transparent),var(--filetH)}
 html body #misBan .mbTx small{font-size:var(--f0);letter-spacing:2px;color:var(--mbC);text-shadow:none}
-html body #misBan .mbTx span{font-family:var(--sans);font-size:14px;line-height:1.35;font-weight:600;letter-spacing:0;color:var(--tx);text-shadow:none}
+html body #misBan .mbTx span{font-family:var(--pix);font-size:var(--f1);line-height:1.6;font-weight:400;letter-spacing:0;color:var(--tx);text-shadow:none}
 /* l'AUTO-ÉCOLE (c'était une carte de verre arrondie, la seule du jeu) */
 html body #coach,html body #coach:not(.bravo){border:0!important;border-radius:0!important;overflow:visible;padding:12px 14px 12px 18px;
   background:var(--plaqueH)!important;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
@@ -3329,7 +3345,7 @@ html body #coach.bravo{border:0!important;border-radius:0!important;
   box-shadow:inset 4px 0 0 var(--neoV),inset 0 0 0 2px rgba(94,227,122,.55),var(--filetH)!important}
 html body #coach.bravo .coTx b,html body #coach.bravo .coIco{color:var(--neoV);text-shadow:0 2px 0 var(--txO)}
 html body #coach .coTop,html body #coach .coSkip{color:var(--tx2)}
-html body #coach .coTx span{font-family:var(--sans);font-size:14px;line-height:1.35;font-weight:600;letter-spacing:0;color:var(--tx)}
+html body #coach .coTx span{font-family:var(--pix);font-size:var(--f1);line-height:1.6;font-weight:400;letter-spacing:0;color:var(--tx)}
 html body #coach .coPips i{background:var(--k0);box-shadow:0 0 0 1px var(--kl)}
 html body #coach .coPips i.ok{background:var(--neoV)}
 /* l'OBJECTIF DE CAMPAGNE (#campChip) : même plaque, filet à la couleur de l'objectif ; rangé dans la COLONNE DE DROITE, sous la
@@ -4934,7 +4950,7 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
 .spCarte .shPhoto img{width:108%}
 .spNom{font-family:var(--pix);font-weight:400;font-size:var(--f6);line-height:1.4;letter-spacing:1px;color:var(--tx);
   text-shadow:0 3px 0 var(--txO),0 0 16px rgba(255,62,200,.45)}
-.spDesc{font-family:var(--sans);font-size:15px;line-height:1.45;font-weight:500;color:var(--tx2)}
+.spDesc{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 .spPrix{display:flex;align-items:baseline;gap:14px;font-family:var(--pix);margin-top:2px}
 .spPrix s{position:relative;font-size:var(--f3);color:var(--tx3);text-decoration:none}
 .spPrix s::after{content:'';position:absolute;left:-3px;right:-3px;top:calc(50% - 1px);height:2px;background:var(--neoM)}
@@ -4947,7 +4963,7 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
 .spBtns .spOui{min-height:60px;font-size:var(--f4)}
 .spBtns .spNon{min-height:48px;font-size:var(--f1)}
 .spBtns .pbtn .pxi{--pxs:2}
-.spNote{min-height:2.8em;font-family:var(--sans);font-size:12px;line-height:1.4;font-weight:500;color:var(--tx3);text-align:center;text-wrap:balance} /* deux lignes réservées : la note qui change (« bientôt ») ne fait pas sauter la carte */
+.spNote{min-height:3.2em;font-family:var(--pix);font-size:var(--f0);line-height:1.6;font-weight:400;color:var(--tx3);text-align:center;text-wrap:balance} /* deux lignes réservées : la note qui change (« bientôt ») ne fait pas sauter la carte */
 /* ACHETER touché : la plaque s'éteint le temps de la réponse ; « bientôt » : la note le dit, en ambre */
 #shPop.attend .spOui{opacity:.7}
 #shPop.refus .spNote{color:var(--neoA)}
@@ -5797,19 +5813,19 @@ html body #garage.vitrine:not(.menu) #gVJ{position:fixed;z-index:2;top:calc(var(
 @keyframes gvJEntre{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
 /* (le voile du haut de la v4 est retiré : les jauges ont repris leurs cartes) */
 /* HOME · boulon : à leur place d'origine (top sT + 12, voir #gOutils plus haut) */
-.gvL{--gvF:"Avenir Next Condensed","Bahnschrift","Barlow Condensed","Roboto Condensed","Arial Narrow","DejaVu Sans Condensed","Helvetica Neue",Arial,sans-serif;
+.gvL{--gvF:var(--pix);
   position:relative;min-width:0;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;column-gap:8px;font-family:var(--gvF);font-stretch:condensed;
   padding:7px 11px 4px 13px;background:linear-gradient(180deg,rgba(24,17,52,.84),rgba(7,5,16,.88));
   box-shadow:inset 3px 0 0 var(--gc),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 0 18px -8px var(--gc),0 12px 24px -14px rgba(0,0,0,.85);
   clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)} /* la CARTE de la capture : laque sombre, coins coupés, filet de sa couleur à gauche */
 .gvA{--gc:#35ff86;--gh:#b4ffcf}
 .gvU{--gc:#c46bff;--gh:#ffc6f5}
-.gvK{font-style:italic;font-weight:800;font-size:11px;line-height:1;letter-spacing:2.4px;color:var(--gc);text-shadow:0 0 8px var(--gc),0 1px 0 #000,0 0 3px #000}
-.gvL b{font-style:italic;font-weight:800;font-size:18px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
+.gvK{font-style:normal;font-weight:400;font-size:8px;line-height:1;letter-spacing:2.4px;color:var(--gc);text-shadow:0 0 8px var(--gc),0 1px 0 #000,0 0 3px #000}
+.gvL b{font-style:normal;font-weight:400;font-size:12px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
   text-shadow:0 0 12px var(--gc),0 0 3px var(--gc),0 1px 0 #000,0 0 5px rgba(0,0,0,.9)}
-.gvL .gvR{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;font-weight:700;font-size:11px;line-height:1.2;letter-spacing:1.5px;
+.gvL .gvR{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:normal;font-weight:400;font-size:8px;line-height:1.4;letter-spacing:1px;
   color:var(--gh);text-shadow:0 1px 0 #000,0 0 3px rgba(0,0,0,.85),0 0 9px var(--gc)}
-.gvL .gvR em{font-style:italic;color:#fff;letter-spacing:.6px}
+.gvL .gvR em{font-style:normal;color:#fff;letter-spacing:.6px}
 .gvC{grid-column:1/-1;display:block;width:100%;height:20px;margin-top:1px}
 .gvL.sommet .gvR{color:#fff;animation:gvSommet 1.4s ease-in-out infinite}
 @keyframes gvSommet{50%{text-shadow:0 1px 0 #000,0 0 14px var(--gc),0 0 4px #fff}}
@@ -5831,7 +5847,7 @@ html body #garage.vitrine:not(.menu) #gAct>#gPerso[data-portee]::before{content:
   html body #garage.vitrine:not(.menu) #gVJ{left:auto;right:calc(var(--sR) + 16px);width:min(330px,40%)}
   .gvK{letter-spacing:1.8px}.gvL .gvR{letter-spacing:1.5px}.gvL{column-gap:8px}
   /* HOME · boulon : coin haut-gauche, comme debout */ /* (puis, Léo : « les jauges en haut ») : le coin haut-droit, HOME · ⚙ sont partis à gauche */
-  .gvL b{font-size:17px}
+  .gvL b{font-size:12px}
   html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 40px auto}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:40px;min-height:40px}
   html body #garage.vitrine:not(.menu) #gAct>#gvMis{height:26px;min-height:26px;margin-bottom:6px}
@@ -7324,7 +7340,7 @@ html.c6{
   --c6-y-bas:calc(var(--sB,0px) + 20px);--c6-pied:calc(var(--sB,0px) + 16px);
   --c6-e:8px;--c6-ev:12px;--c6-eg:16px;--c6-pad:12px;--c6-pad-p:16px;
   /* (accord) le TEXTE : deux familles, six corps, deux graisses */
-  --c6-sys:var(--sans,-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif);
+  --c6-sys:var(--pix);
   --c6-pixel:var(--pix);
   --c6-t11:11px;--c6-t13:13px;--c6-t15:15px;--c6-t16:16px;--c6-t24:24px;--c6-t32:32px;
   --c6-lh11:14px;--c6-lh13:18px;--c6-lh15:20px;--c6-lh16:24px;
@@ -7748,7 +7764,7 @@ html:not(.c6) #mSet .c6Tete{display:flex;align-items:center;gap:14px;margin:6px 
 html:not(.c6) #mSet .c6Titre{font-family:var(--pix);font-weight:400;font-size:var(--f9);color:#fff}
 html:not(.c6) #mSet :is(.c6Corps,.c6Col){display:flex;flex-direction:column;width:100%}
 html:not(.c6) #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:12px;margin:22px 0 0}
-html:not(.c6) #mSet .c6Ver{font-family:var(--sans);font-size:12px;color:var(--tx3)}
+html:not(.c6) #mSet .c6Ver{font-family:var(--pix);font-size:var(--f0);color:var(--tx3)}
 </style>
 <style id="c6-carriere-missions">
 /* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -8284,11 +8300,11 @@ html.c6 body #coach,html.c6 body #coach:not(.bravo){display:grid!important;box-s
   width:min(358px,calc(100vw - 32px));padding:9px 12px 9px;overflow:visible!important;border:0!important;border-radius:0!important;clip-path:none!important;
   background:var(--c6-e1)!important;filter:none;
   box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important;
-  font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+  font-family:var(--pix)}
 html.c6 body #coach.bravo{background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-cash),0 4px 0 0 #000!important}   /* (2026-10-14, accord n° 62) bravo = la grammaire du toast « coché » : encre, filet et mots verts (plus de vert plein #1c6b37) */
 html.c6 body #coach .coTop,html.c6 body #coach .coRow,html.c6 body #coach .coTx{display:contents}
 html.c6 body #coach .coIco{grid-area:1/1;--pxs:2;align-self:center;color:var(--c6-or)}
-html.c6 body #coach .coTx b{grid-area:1/2;display:block;margin:0;font:800 15px/18px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);
+html.c6 body #coach .coTx b{grid-area:1/2;display:block;margin:0;font:800 15px/18px var(--pix);letter-spacing:var(--c6-cap);
   text-transform:uppercase;color:var(--c6-or);text-shadow:none!important;filter:none!important;-webkit-text-fill-color:currentColor;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.c6 body #coach .coGeste{grid-area:1/3;position:relative;height:18px;margin:0;overflow:hidden}
@@ -8300,15 +8316,15 @@ html.c6 body #coach .g-glisse::before{animation-name:c6CoGlisse!important}
 html.c6 body #coach .g-bord::before{animation-name:c6CoBord!important}
 html.c6 body #coach .g-nitro::before{animation-name:c6CoAppui!important}
 html.c6 body #coach .coSkip{grid-area:1/4;justify-self:end;align-self:center;min-width:44px;min-height:44px;margin:-14px -8px -14px 0;padding:0 8px;
-  font:800 13px/1 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);color:var(--c6-g1);text-transform:uppercase}
+  font:800 13px/1 var(--pix);letter-spacing:var(--c6-cap);color:var(--c6-g1);text-transform:uppercase}
 html.c6 body #coach .coSkip.sur{color:var(--c6-rouge)}
-html.c6 body #coach .coTx span{grid-area:2/1/3/5;margin:0;font:600 13px/17px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:0;color:var(--c6-b0)}
+html.c6 body #coach .coTx span{grid-area:2/1/3/5;margin:0;font:600 13px/17px var(--pix);letter-spacing:0;color:var(--c6-b0)}
 html.c6 body #coach .coPips{grid-area:3/1/4/3;display:flex;gap:3px;margin:3px 0 0;align-self:center}
 html.c6 body #coach .coPips i{flex:1;height:4px;background:var(--c6-e3);box-shadow:none}
 html.c6 body #coach .coPips i.ok{background:var(--c6-b0)}
 html.c6 body #coach .coPips i.on{background:var(--c6-or)}
 html.c6 body #coach.bravo .coPips i{background:var(--c6-e3)}html.c6 body #coach.bravo .coPips i.ok,html.c6 body #coach.bravo .coPips i.on{background:var(--c6-cash)}
-html.c6 body #coach .coN{grid-area:3/3/4/5;justify-self:end;margin:3px 0 0;font:800 13px/16px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);
+html.c6 body #coach .coN{grid-area:3/3/4/5;justify-self:end;margin:3px 0 0;font:800 13px/16px var(--pix);letter-spacing:var(--c6-cap);
   text-transform:uppercase;white-space:nowrap;color:var(--c6-g1)}
 html.c6 body #coach.passe .coN{color:var(--c6-or)}
 /* le raté : le message prend la place du titre (ligne 1), en rouge, lisible ; la phrase reste dessous */
@@ -8845,7 +8861,7 @@ html body #coach.v2.bravo .ecT{color:#fff;text-shadow:0 3px 0 #0b5a24,0 0 18px r
 html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(var(--i) * 26ms)} /* la célébration : seul rebond de la carte */
 @keyframes ecHourra{from{opacity:0;transform:translateY(-14px) scale(1.8)}to{opacity:1;transform:none}}
 /* — LA LIGNE : courte, les mots à retenir surlignés — */
-html body #coach.v2 .ecD{grid-column:2;align-self:start;font:700 13.5px/1.3 var(--sans);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
+html body #coach.v2 .ecD{grid-column:2;align-self:start;font:var(--f1)/1.6 var(--pix);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
 html body #coach.v2 .ecD em{font-style:normal;color:#0a0616;background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 #7a4400;white-space:nowrap}
 html body #coach.v2 .ecD kbd{font:9px var(--pix);color:#0a0616;background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
 @keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
@@ -9632,6 +9648,16 @@ html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </style>
+<style id="policeUnique">
+/* UNE SEULE POLICE (2026-10-15, Sacha : « c'est partout la même police ») — LE FILET CSS. Tout élément, tout pseudo-élément, tout champ
+   (un <textarea>, un <input>, un <button> n'héritent PAS de la police de la page : c'est ainsi que le champ du CODE COUSIN tapait en
+   monospace système) prend Press Start 2P, quoi qu'écrive une règle plus haut ou un style en ligne. Les règles qui étaient en police
+   système ont été refaites en pixel (corps --f0/--f1, graisse 400). SEULE EXCEPTION, NOMMÉE : le φ du « 1.61φ » de l'écran d'ouverture
+   (#spPhi) — c'est le logo, et la police pixel n'a pas de φ. Les textes des canvas ont leur filet (UNE_POLICE, premier script du body). */
+*,*::before,*::after{font-family:var(--pix)!important}
+::placeholder{font-family:var(--pix)!important}
+#spPhi{font-family:"Times New Roman",Georgia,serif!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -10211,7 +10237,7 @@ function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF �
   return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
 addEventListener('error',function(e){try{document.title='ERR:'+e.message+' @'+e.lineno;}catch(_){}}); // capteur d'init (les erreurs top-level échappent à la console headless)
 if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt qu'un écran noir muet
-  document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:14px monospace;text-align:center;padding:20px;z-index:99">'+((function(){try{const l=localStorage.ccLang;return l?l!=='fr':!/^fr/i.test(navigator.language||'fr');}catch(e){return false;}})()?'CASH CAR couldn&#39;t load its 3D engine.<br>Check your internet connection, then reload the page.':'CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.')+'</div>'); // (2026-10-14, textes) bilingue
+  document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:10px var(--pix);text-align:center;padding:20px;z-index:99">'+((function(){try{const l=localStorage.ccLang;return l?l!=='fr':!/^fr/i.test(navigator.language||'fr');}catch(e){return false;}})()?'CASH CAR couldn&#39;t load its 3D engine.<br>Check your internet connection, then reload the page.':'CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.')+'</div>'); // (2026-10-14, textes) bilingue
   return;
 }
 // ---------- SCENE ----------
@@ -12559,7 +12585,7 @@ window.dbgQual=function(k){ if(k!=null){QL.force=true;qlPose(k);RESPIN=true;} co
    rien de développement à l'écran). Réécrit 4 fois par seconde, et seulement si le texte change. */
 const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.createElement('div');e.id='perfMon';
   e.style.cssText='position:fixed;left:calc(var(--sL) + 6px);top:calc(var(--sT) + 4px);z-index:2147483000;pointer-events:none;'+
-    'font:600 var(--f1)/1.35 var(--sans);color:var(--tx);background:var(--k1);padding:2px 5px;white-space:pre;max-width:70vw';
+    'font:var(--f0)/1.6 var(--pix);color:var(--tx);background:var(--k1);padding:2px 5px;white-space:pre;max-width:70vw';
   document.body.appendChild(e);return {el:e,t:0,pire:0,txt:''};})():null;
 /* (2026-10-14, session OPTIMISATION — Sacha : « la version mobile saccade, juste de quoi tester en bonne condition ») LE RELEVÉ DES À-COUPS :
    le moniteur ne disait que la dernière seconde. Il garde maintenant chaque image de plus de 50 ms depuis l'ouverture : combien (> 50,
@@ -19554,7 +19580,7 @@ function villeMatPub(){
 }
 function plaPicto(x,k,cx,cy,s,col){x.save();x.translate(cx,cy);x.fillStyle=x.strokeStyle=col;x.lineWidth=s*.12;x.lineJoin='round'; // (pluie d'argent v2) les symboles frappés sur le billet ₿ et les pièces Ξ
   const tri=function(px,py,r){x.beginPath();x.moveTo(px,py-r);x.lineTo(px+r,py+r*.8);x.lineTo(px-r,py+r*.8);x.closePath();x.fill();};
-  if(k==='btc'){x.beginPath();x.arc(0,0,s*.55,0,6.283);x.fill();x.fillStyle='#08130c';x.font='bold '+Math.round(s*.72)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('B',s*.03,s*.04);
+  if(k==='btc'){x.beginPath();x.arc(0,0,s*.55,0,6.283);x.fill();x.fillStyle='#08130c';x.font=Math.round(s*.6)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('B',s*.03,s*.04);
     x.fillRect(-s*.16,-s*.47,s*.08,s*.16);x.fillRect(s*.04,-s*.47,s*.08,s*.16);x.fillRect(-s*.16,s*.3,s*.08,s*.16);x.fillRect(s*.04,s*.3,s*.08,s*.16);}
   else if(k==='eth'){x.beginPath();x.moveTo(0,-s*.6);x.lineTo(s*.36,0);x.lineTo(0,s*.18);x.lineTo(-s*.36,0);x.closePath();x.fill();x.beginPath();x.moveTo(-s*.36,s*.1);x.lineTo(0,s*.3);x.lineTo(s*.36,s*.1);x.lineTo(0,s*.6);x.closePath();x.fill();}
   x.restore();}
@@ -19585,9 +19611,9 @@ function plaBilletBtc(){ // le billet ₿ : vert billet et or, un ₿ dans la ro
     x.strokeStyle='rgba(255,215,94,.6)';x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);
     for(let i=0;i<14;i++){x.strokeStyle='rgba(255,215,94,'+(.07+i*.014)+')';x.beginPath();x.arc(118,118,62-i*4,0,6.2832);x.stroke();}
     plaPicto(x,'btc',118,118,92,'#ffb347');
-    x.fillStyle='rgba(255,236,170,.9)';x.font='bold 54px Helvetica,Arial,sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('1',30,48);x.textAlign='right';x.fillText('1',w-30,h-44);
-    x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CASH CAR',w*.6,h*.42); /* (2026-10-14, revue des idées de Léo) le niveau CRYPTOCITY est retiré : le billet ₿ de la pluie d'argent, lui, pleut partout — il porte la marque du jeu */
-    x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(200,255,220,.6)';x.fillText('1 BITCOIN · TO THE MOON',w*.6,h*.56);
+    x.fillStyle='rgba(255,236,170,.9)';x.font='44px "Press Start 2P",monospace';x.textAlign='left';x.textBaseline='middle';x.fillText('1',30,48);x.textAlign='right';x.fillText('1',w-30,h-44);
+    x.font='14px "Press Start 2P",monospace';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CASH CAR',w*.6,h*.42); /* (2026-10-14, revue des idées de Léo) le niveau CRYPTOCITY est retiré : le billet ₿ de la pluie d'argent, lui, pleut partout — il porte la marque du jeu */
+    x.font='7px "Press Start 2P",monospace';x.fillStyle='rgba(200,255,220,.6)';x.fillText('1 BITCOIN · TO THE MOON',w*.6,h*.56);
     const Bd=x.createLinearGradient(w*.78,0,w*.86,0);Bd.addColorStop(0,'rgba(255,215,94,0)');Bd.addColorStop(.5,'rgba(255,230,140,.55)');Bd.addColorStop(1,'rgba(255,215,94,0)');x.fillStyle=Bd;x.fillRect(w*.78,0,w*.08,h);});
 }
 function plaTexPieces(){ // l'atlas des pièces : en haut la ₿ (la pièce de la pluie de richesse), en bas l'Ξ d'argent bleuté
@@ -20117,7 +20143,7 @@ function parisMoulin(p,yaw){ // LE MOULIN-ROUGE : la façade rouge, l'enseigne, 
   const g=parisGroupe(p.x,p.y,p.z,yaw),rg=parisMatNuit(0x9b1b1f,0xff2030,.15,.55,.9),so=parisMatNuit(0x5a0f14,0xff3040,.05,.2,.35);
   parisMesh(new THREE.BoxGeometry(30,12,16),rg,g,0,6,0);
   const cv=document.createElement('canvas');cv.width=512;cv.height=64;const x=cv.getContext('2d');x.fillStyle='#240306';x.fillRect(0,0,512,64);
-  x.font='bold 40px Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#ff2a2a';x.shadowBlur=14;x.fillStyle='#ffe0e0';x.fillText('MOULIN ROUGE',256,34);
+  x.font='26px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#ff2a2a';x.shadowBlur=14;x.fillStyle='#ffe0e0';x.fillText('MOULIN ROUGE',256,34);
   for(let i=0;i<40;i++){x.fillStyle='#ffd27a';x.beginPath();x.arc(8+i*12.6,6,2.4,0,7);x.arc(8+i*12.6,58,2.4,0,7);x.fill();}
   const tx=new THREE.CanvasTexture(cv),en=parisMatNuit(0xffffff,0x902020,.3,.8,1.2,{map:tx,emissiveMap:tx});
   const en1=parisMesh(new THREE.PlaneGeometry(26,3.2),en,g,0,8.3,-8.05);en1.rotation.y=Math.PI;       // l'enseigne, côté rue (−z)
@@ -26510,7 +26536,7 @@ var WOWT={sp:[],tx:null,acc:0,mi:0,der:-1,caisse:false,n:0,p0:null,vx:0,vy:0,vz:
 function wowTex(){if(WOWT.tx)return WOWT.tx;WOWT.tx=[];
   const MOTS=['wow','such speed','much fast','very nitro','so car','many coin','amaze','such drift','much aura','very vroom','excite','wow'],
         TEINTES=['#ff3ec8','#5ee6ff','#7dff5a','#ffe25a','#ff8a2a','#c07bff'];
-  MOTS.forEach(function(m9,n){const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='bold 64px "Comic Sans MS","Comic Sans","Chalkboard SE","Comic Neue",cursive';
+  MOTS.forEach(function(m9,n){const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='40px "Press Start 2P",monospace';
     x.font=F;const w=Math.ceil(x.measureText(m9).width)+28;cv.width=w;cv.height=96;x.font=F;x.textBaseline='middle';x.lineJoin='round';
     x.lineWidth=9;x.strokeStyle='#1c0430';x.strokeText(m9,14,50);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,14,50);
     const tx=new THREE.CanvasTexture(cv);tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;WOWT.tx.push({tx:tx,a:w/96});});
@@ -26650,9 +26676,9 @@ function trxPlanche(){
      rr(-W/2,-H/2,W,H,7);const g=x.createLinearGradient(0,-H/2,0,H/2);g.addColorStop(0,vs?'#52bd7c':'#5cc985');g.addColorStop(1,'#2b7f4d');x.fillStyle=g;x.fill();
      x.lineWidth=2;x.strokeStyle='#1d5c37';x.stroke();x.strokeStyle='rgba(220,255,228,.75)';x.lineWidth=1.6;x.strokeRect(-W/2+6,-H/2+6,W-12,H-12);
      x.textAlign='center';x.textBaseline='middle';x.fillStyle='#e8fdec';
-     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='bold 30px Arial,sans-serif';x.fillText('$',0,2);
-       x.fillStyle='#e8fdec';x.font='bold 11px Arial,sans-serif';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
-     else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='bold 12px Arial,sans-serif';x.fillText('CASH CAR',0,1);
+     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('$',0,2);
+       x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
+     else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('CASH CAR',0,1);
        x.beginPath();x.arc(-W/2+18,-H/2+17,6,0,Math.PI*2);x.moveTo(W/2-12,H/2-17);x.arc(W/2-18,H/2-17,6,0,Math.PI*2);x.fill();}
      x.restore();}}
   // 32-33 LA FLAMME EN PIXELS : deux images qui alternent, posées sur le bas de la case (la flamme se tient DEBOUT sur le bitume)
@@ -35887,7 +35913,7 @@ function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, ti
   return {r:{cash:pr*2},m:m};
 }
 function misDuree(s){s=Math.round(s);return s>=60?(Math.floor(s/60)+' MIN'+(s%60?' '+String(s%60).padStart(2,'0'):'')):s+' S';}
-function misTxt(m,brut){ // la mission en une ligne, dans la langue du joueur — `brut` : sans majPix (la bannière est en police SYSTÈME, elle garde ses accents)
+function misTxt(m,brut){ // la mission en une ligne, dans la langue du joueur — `brut` : sans majPix (2026-10-15 : plus personne ne l'appelle brut, la bannière est passée en PIXEL)
   const L=LANG==='en'?1:0,v=m.v,pl=v>1;
   let s;
   switch(m.k){
@@ -35968,7 +35994,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
     if(v9>=m.v){
       s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);MIS_NEWG.push(s.w[i]); // (la file) la case ET le numéro : à la fin de la partie la case aura pris la mission suivante
-      misBanniere('MISSION RÉUSSIE',misTxt(m,true),'+'+fmtC(m.p),'coche');
+      misBanniere('MISSION RÉUSSIE',misTxt(m),'+'+fmtC(m.p),'coche');
       try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
     }}
@@ -36327,7 +36353,7 @@ window.dbgEssaiObjets=function(){
     PHOTO.scene.remove(m);
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H);
     for(let y=0;y<H;y++){const s0=(H-1-y)*W*4;for(let k=0;k<W*4;k++){let v2=buf[s0+k];if((k&3)!==3)v2=Math.min(255,Math.pow(v2/255,1/1.3)*255);im.data[y*W*4+k]=v2;}}
-    x.putImageData(im,0,0);x.fillStyle='#fff';x.font='12px monospace';x.fillText(o[0],6,16);out.push(cv.toDataURL('image/png'));}
+    x.putImageData(im,0,0);x.fillStyle='#fff';x.font='8px "Press Start 2P",monospace';x.fillText(o[0],6,16);out.push(cv.toDataURL('image/png'));}
   carGroup.visible=vis;rt.dispose();renderer.setClearColor(0x000000,0);
   return {photos:out};
 };
@@ -40772,13 +40798,13 @@ window.dbgNitro=function(r,x){if(r==='bords'){NFX.dbgB=x;return 'bords ×'+x;} /
 // billets de dollars qui volettent
 const billNoteTex=(function(){
   const cv=document.createElement('canvas');cv.width=64;cv.height=32;
-  const c=cv.getContext('2d');
+  const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   // (vague 2 « L'ENCRE ET L'OR ») le billet porte le LISERÉ d'encre de tout ce qui rapporte, et ses chiffres sont en OR (plus de vert layette)
-  c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
+  apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
-  c.fillStyle='#ffd75e';c.font='bold 15px Arial';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('$',13,17);c.fillText('100',39,17);
-  return new THREE.CanvasTexture(cv);
+  c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
+  c.fillText('$',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
 const billNoteM=new THREE.MeshBasicMaterial({map:billNoteTex,side:THREE.DoubleSide});
@@ -40920,13 +40946,15 @@ window.dbgPart=function(a,k,v){
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
 const CURR=['$','€','¥','£','₹','₩','₽','฿','₺','₪','₫','₴','₦','₱','¢'];
 const MONN_TEX=(function(){
-  const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d');
-  c.textAlign='center';c.textBaseline='middle';c.font='bold 44px Georgia';c.lineJoin='round';
+  const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
+  apresPolice(function(){c.clearRect(0,0,S*4,S*4);
+  c.textAlign='center';c.textBaseline='middle';c.font='40px "Press Start 2P",monospace';c.lineJoin='round';
   for(let i=0;i<CURR.length;i++){const x=(i&3)*S+S/2,y=(i>>2)*S+S/2+2;
     c.lineWidth=7;c.strokeStyle='#1c0430';c.strokeText(CURR[i],x,y);                 // le liseré d'encre
     const g=c.createLinearGradient(0,y-20,0,y+20);g.addColorStop(0,'#fff3b0');g.addColorStop(.5,'#ffd75e');g.addColorStop(1,'#b8860b');
     c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          // l'or : clair #fff3b0 · or #ffd75e · ombre #b8860b
-  return new THREE.CanvasTexture(cv);
+  tx.needsUpdate=true;});
+  return tx;
 })();
 const MONN_N=600,MONN=mkPanneaux(MONN_N,MONN_TEX,4,4,false,1,2);
 const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Array(MONN_N),vx:new Float32Array(MONN_N),vy:new Float32Array(MONN_N),
@@ -48789,9 +48817,10 @@ const VFG=(function(){
     vit=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation}),
     chr=new THREE.MeshPhongMaterial({color:0xd8dce2,shininess:200,specular:0xffffff});
   const cv=document.createElement('canvas');cv.width=cv.height=64;
-  {const x=cv.getContext('2d');x.fillStyle='#1d2740';x.fillRect(0,0,64,64);x.fillStyle='#ffc33a';x.beginPath();x.arc(32,32,27,0,7);x.fill();
-   x.fillStyle='#1d2740';x.beginPath();x.arc(32,32,22,0,7);x.fill();x.fillStyle='#ffc33a';x.font='bold 34px monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',32,34);}
-  const logoM=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)});
+  const logoT=new THREE.CanvasTexture(cv);
+  apresPolice(function(){const x=cv.getContext('2d');x.fillStyle='#1d2740';x.fillRect(0,0,64,64);x.fillStyle='#ffc33a';x.beginPath();x.arc(32,32,27,0,7);x.fill();
+   x.fillStyle='#1d2740';x.beginPath();x.arc(32,32,22,0,7);x.fill();x.fillStyle='#ffc33a';x.font='28px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',32,34);logoT.needsUpdate=true;});
+  const logoM=new THREE.MeshBasicMaterial({map:logoT});
   const B=(w,h,d,m,x,y,z,par)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);(par||g).add(o);return o;};
   B(2.6,2.5,4.6,bleu,0,1.95,-.9);                                   // le coffre roulant
   B(2.5,1.7,1.9,bleu,0,1.55,2.35);                                  // la cabine, plus basse
@@ -51111,7 +51140,7 @@ function shopShow(cat,i){
   gNomEntre(TR(d.n));
   gLvlEl.textContent=(i+1)+' / '+L.length;gSpdEl.textContent='';
   {const pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(SHOP_LBL[cat]));pl.style.removeProperty('--rc');}} // (charte v4) la pastille dit la CATÉGORIE — la fiche garde ses trois étages
-  if(a||!d.mis)gDescEl.textContent=(d.fig&&window.FIG&&FIG.par[d.id])?figDesc(FIG.par[d.id],LANG):(LANG==='fr'?d.d:TR(d.d)); // (2026-10-14) une FIGURE se décrit dans la langue du joueur // (passe qualité) police système : TR (majPix) mangeait les accents
+  if(a||!d.mis)gDescEl.textContent=(d.fig&&window.FIG&&FIG.par[d.id])?figDesc(FIG.par[d.id],LANG):TR(d.d); // (2026-10-14) une FIGURE se décrit dans la langue du joueur // (2026-10-15, UNE SEULE POLICE) la fiche est en pixel : TR (majPix) retire l'accent des seuls mots en capitales
   else gDescEl.innerHTML=defisHtml(d.mis);
   $('gCard').classList.toggle('defis',!a&&!!d.mis);$('gCard').classList.remove('verrou');
   const sw=$('gSw');
@@ -52009,10 +52038,10 @@ function richFace(x,cx,cy,R,ext,int,face,val,H,rn){ // une face d'euro : le list
     x.fillStyle=H?'#cfcfcf':'rgba(60,42,12,.26)';for(let i=0;i<fe.length;i+=2){x.beginPath();x.arc(fe[i],fe[i+1],r*.036,0,6.2832);x.fill();} // le feuillage : le relief le dessine, la couleur à peine (en lumière décalée, il faisait des points blancs)
     frappe(function(){x.lineWidth=R*.03;x.beginPath();for(let i=0;i<=6;i++){const a=i/6*6.2832+Math.PI/6;x.lineTo(cx+Math.cos(a)*r*.82,cy+Math.sin(a)*r*.82);}x.stroke();
       x.fillRect(cx-r*.05,cy-r*.05,r*.1,r*.6);
-      x.font='bold '+Math.round(r*.32)+'px Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.fillText('R',cx-r*.5,cy+r*.35);x.fillText('F',cx+r*.5,cy+r*.35);},true);
+      x.font=Math.round(r*.26)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('R',cx-r*.5,cy+r*.35);x.fillText('F',cx+r*.5,cy+r*.35);},true);
   }else{ // le chiffre, frappé
-    frappe(function(){x.font='bold '+Math.round(r*(val.length>1?.8:1.05))+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,cy-r*.05);
-      x.font='bold '+Math.round(r*.2)+'px Helvetica,Arial,sans-serif';x.fillText(val.length>1?'EURO CENT':'EURO',cx,cy+r*.62);},true);
+    frappe(function(){x.font=Math.round(r*(val.length>1?.5:.8))+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,cy-r*.05);
+      x.font=Math.round(r*.12)+'px "Press Start 2P",monospace';x.fillText(val.length>1?'EURO CENT':'EURO',cx,cy+r*.62);},true);
   }
 }
 function richTranche(x,H,k,c){ // la TRANCHE (bande 246-256) : h = le relief le long du tour
@@ -52036,7 +52065,7 @@ function richTexBtc(){return richDuo(function(x,H){x.fillStyle=H?'#5c5c5c':'#c89
     x.lineWidth=R*.07;x.strokeStyle=H?'#ffffff':'rgba(255,248,222,.34)';x.beginPath();x.arc(cx,cy,R*.955,0,6.2832);x.stroke(); // le listel
     x.strokeStyle=H?'#d0d0d0':'rgba(90,55,10,.55)';x.lineWidth=3;for(let i=0;i<72;i++){const a=i/72*6.2832;x.beginPath();x.moveTo(cx+Math.cos(a)*R*.8,cy+Math.sin(a)*R*.8);x.lineTo(cx+Math.cos(a)*R*.89,cy+Math.sin(a)*R*.89);x.stroke();} // le crénelage
     if(H)x.fillStyle='#4c4c4c';else{const O=x.createRadialGradient(cx-25,cy-23,8,cx,cy,R*.79);O.addColorStop(0,'#ffb347');O.addColorStop(1,'#e2760c');x.fillStyle=O;}x.beginPath();x.arc(cx,cy,R*.79,0,6.2832);x.fill(); // l'émail (en creux)
-    x.save();x.translate(cx,cy);x.rotate(.24);x.fillStyle=H?'#e8e8e8':'#fff';x.font='bold '+Math.round(128*u)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('B',4*u,6*u);
+    x.save();x.translate(cx,cy);x.rotate(.24);x.fillStyle=H?'#e8e8e8':'#fff';x.font=Math.round(104*u)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('B',4*u,6*u);
     x.fillRect(-22*u,-72*u,11*u,26*u);x.fillRect(4*u,-72*u,11*u,26*u);x.fillRect(-22*u,46*u,11*u,26*u);x.fillRect(4*u,46*u,11*u,26*u);x.restore();} // ₿ : le B et ses deux barres
   richTranche(x,H,'btc','#e8b048');});}
 function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,0,4,4);});}
@@ -52058,10 +52087,10 @@ function richTexBillet(B){return richCv(512,236,function(x,w,h){
   x.strokeStyle=L(0,.10);x.lineWidth=1;for(let k=0;k<26;k++){x.beginPath();for(let i=0;i<=w;i+=6){x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));}x.stroke();} // la guilloche
   x.strokeStyle=L(.25,.35);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);
   for(let i=0;i<14;i++){x.strokeStyle=L(0,.07+i*.012);x.beginPath();x.ellipse(118,118,62-i*4,62-i*4,0,0,6.2832);x.stroke();} // la rosace
-  x.fillStyle=L(.55,.85);x.font='bold 60px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('$',118,120);
-  x.font='bold '+(B.v.length>2?46:54)+'px Helvetica,Arial,sans-serif';x.fillStyle=L(.65,.9);x.textAlign='left';x.fillText(B.v,30,48);x.textAlign='right';x.fillText(B.v,w-30,h-44);
-  x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle=L(.55,.8);x.fillText('CASH CAR',w*.6,h*.42);
-  x.font='11px Helvetica,Arial,sans-serif';x.fillStyle=L(.25,.5);x.fillText('BANQUE CENTRALE DU CIEL · '+B.m+' DOLLARS',w*.6,h*.56);
+  x.fillStyle=L(.55,.85);x.font='50px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',118,120);
+  x.font=(B.v.length>2?28:34)+'px "Press Start 2P",monospace';x.fillStyle=L(.65,.9);x.textAlign='left';x.fillText(B.v,30,48);x.textAlign='right';x.fillText(B.v,w-30,h-44);
+  x.font='14px "Press Start 2P",monospace';x.textAlign='center';x.fillStyle=L(.55,.8);x.fillText('CASH CAR',w*.6,h*.42);
+  x.font='7px "Press Start 2P",monospace';x.fillStyle=L(.25,.5);x.fillText('BANQUE CENTRALE DU CIEL · '+B.m+' DOLLARS',w*.6,h*.56);
   const Bd=x.createLinearGradient(w*.78,0,w*.86,0);Bd.addColorStop(0,L(.15,0));Bd.addColorStop(.5,L(.2,.55));Bd.addColorStop(1,L(.15,0));x.fillStyle=Bd;x.fillRect(w*.78,0,w*.08,h);}); // la bande holographique
 }
 function richTexTrefle(){return richCv(256,256,function(x){x.clearRect(0,0,256,256);
@@ -52116,12 +52145,12 @@ function richTexCarte(){return richCv(512,656,function(x){ // la carte NOIRE : r
     if(!dos){const cg=x.createLinearGradient(52,y0+112,116,y0+160);cg.addColorStop(0,'#fff0b5');cg.addColorStop(1,'#b8892c');x.fillStyle=cg;richRond(x,52,y0+110,66,50,9);x.fill(); // la puce
       x.strokeStyle='rgba(90,60,10,.7)';x.lineWidth=2;x.beginPath();x.moveTo(52,y0+135);x.lineTo(118,y0+135);x.moveTo(74,y0+110);x.lineTo(74,y0+160);x.moveTo(96,y0+110);x.lineTo(96,y0+160);x.stroke();
       x.strokeStyle='rgba(225,228,235,.75)';x.lineWidth=3;for(let k=0;k<3;k++){x.beginPath();x.arc(150,y0+135,10+k*9,-.7,.7);x.stroke();} // sans contact
-      x.font='bold 30px Helvetica,Arial,sans-serif';x.textBaseline='middle';x.fillStyle='#dfe2ea';x.fillText('CASH CAR',36,y0+58);
-      x.textAlign='right';x.font='bold 17px Helvetica,Arial,sans-serif';x.fillStyle='#a7adb8';x.fillText('BLACK',476,y0+58);x.textAlign='left';
-      x.font='bold 30px "Courier New",monospace';x.fillStyle='rgba(0,0,0,.8)';x.fillText('4000 1234 5678 9010',38,y0+218);x.fillStyle='#d9dce4';x.fillText('4000 1234 5678 9010',36,y0+215); // en RELIEF
-      x.font='15px Helvetica,Arial,sans-serif';x.fillStyle='#b9bec8';x.fillText('L. CASH',38,y0+272);x.fillText('12/99',250,y0+272);
+      x.font='19px "Press Start 2P",monospace';x.textBaseline='middle';x.fillStyle='#dfe2ea';x.fillText('CASH CAR',36,y0+58);
+      x.textAlign='right';x.font='11px "Press Start 2P",monospace';x.fillStyle='#a7adb8';x.fillText('BLACK',476,y0+58);x.textAlign='left';
+      x.font='18px "Press Start 2P",monospace';x.fillStyle='rgba(0,0,0,.8)';x.fillText('4000 1234 5678 9010',38,y0+218);x.fillStyle='#d9dce4';x.fillText('4000 1234 5678 9010',36,y0+215); // en RELIEF
+      x.font='9px "Press Start 2P",monospace';x.fillStyle='#b9bec8';x.fillText('L. CASH',38,y0+272);x.fillText('12/99',250,y0+272);
       x.globalAlpha=.9;x.fillStyle='#d9a63a';x.beginPath();x.arc(420,y0+266,24,0,6.2832);x.fill();x.fillStyle='#c9ccd4';x.beginPath();x.arc(450,y0+266,24,0,6.2832);x.fill();x.globalAlpha=1;}
-    else{x.fillStyle='#232328';x.fillRect(0,y0+30,512,58);x.fillStyle='#ddd8cb';x.fillRect(36,y0+120,300,40);x.font='bold 18px "Courier New",monospace';x.fillStyle='#444';x.fillText('777',300,y0+142);
+    else{x.fillStyle='#232328';x.fillRect(0,y0+30,512,58);x.fillStyle='#ddd8cb';x.fillRect(36,y0+120,300,40);x.font='11px "Press Start 2P",monospace';x.fillStyle='#444';x.fillText('777',300,y0+142);
       const H=x.createLinearGradient(380,0,470,0);H.addColorStop(0,'#ff9ad8');H.addColorStop(.5,'#8ffcff');H.addColorStop(1,'#fff08a');x.fillStyle=H;x.globalAlpha=.75;x.beginPath();x.arc(425,y0+250,34,0,6.2832);x.fill();x.globalAlpha=1;}};
   face(0,false);face(334,true);});}
 function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attributes.uv;
@@ -52130,7 +52159,7 @@ function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attribute
   g.clearGroups();return g;}
 function richTexLiasse(){const b=RICH.texBillet.image;return richCv(512,512,function(x){ // la LIASSE : le billet du dessus et sa BANDE ; les feuilles empilées sur la tranche
   x.drawImage(b,0,0,512,236);x.fillStyle='#efe6cf';x.fillRect(228,0,56,236);x.fillStyle='rgba(150,110,40,.6)';x.fillRect(228,0,3,236);x.fillRect(281,0,3,236);
-  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='bold 22px Helvetica,Arial,sans-serif';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('$ 10 000',0,0);x.restore();
+  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('$ 10 000',0,0);x.restore();
   for(let y=256;y<512;y+=4){x.fillStyle=(y/4)%2?'#cfe9e1':'#0c5a66';x.fillRect(0,y,512,4);}x.fillStyle='#efe6cf';x.fillRect(228,256,56,256);});}
 function richLiasseGeo(){const g=new THREE.BoxGeometry(1,.46,.12),uv=g.attributes.uv;
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -52183,8 +52212,8 @@ function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MON
   x.strokeStyle='rgba(255,255,255,.06)';x.lineWidth=1;for(let i=0;i<90;i++){const a=i/90*6.2832;x.beginPath();x.moveTo(c,c);x.lineTo(c+Math.cos(a)*110,c+Math.sin(a)*110);x.stroke();}
   for(let h=0;h<12;h++){const a=h/12*6.2832-Math.PI/2;x.save();x.translate(c+Math.cos(a)*88,c+Math.sin(a)*88);x.rotate(a+Math.PI/2);x.fillStyle='#ffdf8a'; // les index d'or
     if(h===0){x.beginPath();x.moveTo(-10,-10);x.lineTo(10,-10);x.lineTo(0,8);x.fill();}else if(h===3){}else x.fillRect(-4,-11,8,22);x.restore();}
-  x.fillStyle='#f4f0e6';x.fillRect(c+66,c-9,24,18);x.font='bold 15px Helvetica,Arial,sans-serif';x.fillStyle='#111';x.textAlign='center';x.textBaseline='middle';x.fillText('8',c+78,c+1); // le guichet de la date
-  x.font='bold 13px Helvetica,Arial,sans-serif';x.fillStyle='#ffe9b0';x.fillText('CASH CAR',c,c-42);x.font='9px Helvetica,Arial,sans-serif';x.fillText('AUTOMATIC',c,c+44);
+  x.fillStyle='#f4f0e6';x.fillRect(c+66,c-9,24,18);x.font='12px "Press Start 2P",monospace';x.fillStyle='#111';x.textAlign='center';x.textBaseline='middle';x.fillText('8',c+78,c+1); // le guichet de la date
+  x.font='8px "Press Start 2P",monospace';x.fillStyle='#ffe9b0';x.fillText('CASH CAR',c,c-42);x.font='6px "Press Start 2P",monospace';x.fillText('AUTOMATIC',c,c+44);
   const aig=function(a,l,w){x.save();x.translate(c,c);x.rotate(a);x.fillStyle='#ffe28f';x.beginPath();x.moveTo(-w,6);x.lineTo(0,-l);x.lineTo(w,6);x.fill();x.restore();};
   aig(-Math.PI/3,54,6);aig(Math.PI/3,82,4.5); // 10 h 10 (0 = midi, dans le sens des aiguilles)
   x.fillStyle='#ffe28f';x.beginPath();x.arc(c,c,7,0,6.2832);x.fill();
@@ -52215,8 +52244,8 @@ function richTexJeton(col,val){return richCv(512,288,function(x){ // un JETON : 
     x.fillStyle='#f4f1ea';for(let k=0;k<8;k++){x.save();x.translate(cx,128);x.rotate(k/8*6.2832);x.fillRect(-13,-127,26,26);x.restore();} // les plots blancs du bord
     x.fillStyle='rgba(255,255,255,.14)';x.beginPath();x.arc(cx,128,84,0,6.2832);x.fill();
     x.strokeStyle='#f4f1ea';x.lineWidth=4;x.setLineDash([10,8]);x.beginPath();x.arc(cx,128,80,0,6.2832);x.stroke();x.setLineDash([]);
-    x.fillStyle='#fff';x.font='bold '+(val.length>3?40:52)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,120);
-    x.font='bold 13px Helvetica,Arial,sans-serif';x.fillStyle='rgba(255,255,255,.85)';x.fillText('CASH CAR',cx,160);}
+    x.fillStyle='#fff';x.font=(val.length>3?22:28)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,120);
+    x.font='8px "Press Start 2P",monospace';x.fillStyle='rgba(255,255,255,.85)';x.fillText('CASH CAR',cx,160);}
   x.fillStyle='#f4f1ea';for(let k=0;k<8;k++)x.fillRect(k*64+25,260,14,28);});} // la tranche : les mêmes plots
 function richJetonGeo(){const g=new THREE.CylinderGeometry(1,1,.17,32,1),uv=g.attributes.uv; // Ø 39 mm × 3,3 mm
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -52968,11 +52997,11 @@ function bqPovPanneau(){if(!BQ_CADRAGE||bqPovPanneau._el)return;
   const el=document.createElement('div');el.id='bqCadrage';
   el.innerHTML='<b class="cT">CADRAGE · <span class="cS"></span><i class="cO">▾</i></b><div class="cC">'+R.map(function(r){return '<label><span>'+r[1]+'</span><input type="range" data-k="'+r[0]+'" min="'+r[2]+'" max="'+r[3]+'" step="'+r[4]+'"><em></em></label>';}).join('')+'<button type="button" class="cZ">ZÉRO</button></div>';
   document.body.appendChild(el);bqPovPanneau._el=el;
-  const st=document.createElement('style');st.textContent='#bqCadrage{position:fixed;z-index:2147483000;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);background:rgba(255,255,255,.95);color:#111;border:2px solid #111;box-shadow:0 3px 0 #111;font:600 10px/1.2 -apple-system,system-ui,sans-serif;padding:5px 7px;display:none;user-select:none;-webkit-user-select:none;touch-action:none}'+
+  const st=document.createElement('style');st.textContent='#bqCadrage{position:fixed;z-index:2147483000;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);background:rgba(255,255,255,.95);color:#111;border:2px solid #111;box-shadow:0 3px 0 #111;font:8px/1.4 var(--pix);padding:5px 7px;display:none;user-select:none;-webkit-user-select:none;touch-action:none}'+
     '@media (orientation:portrait){#bqCadrage{right:auto;left:50%;top:auto;translate:-50% 0;bottom:calc(env(safe-area-inset-bottom,0px) + 96px)}}'+ /* (sur la grille de la boutique : la caisse reste à découvert) */
     '#bqCadrage.on{display:block}#bqCadrage .cT{display:flex;gap:6px;align-items:center;cursor:pointer;font-size:11px;letter-spacing:.06em}#bqCadrage .cO{margin-left:auto;font-style:normal;padding:0 4px}'+
     '#bqCadrage.ferme .cC{display:none}#bqCadrage label{display:grid;grid-template-columns:56px 112px 34px;gap:5px;align-items:center;margin-top:3px}#bqCadrage input{width:112px;margin:0;touch-action:auto}#bqCadrage em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}'+
-    '#bqCadrage .cZ{margin-top:6px;font:700 10px -apple-system,system-ui,sans-serif;border:1.5px solid #111;background:#fff;padding:3px 8px;cursor:pointer}';document.head.appendChild(st);
+    '#bqCadrage .cZ{margin-top:6px;font:8px var(--pix);border:1.5px solid #111;background:#fff;padding:3px 8px;cursor:pointer}';document.head.appendChild(st);
   ['pointerdown','pointermove','pointerup','touchstart','touchmove','wheel','click'].forEach(function(t){el.addEventListener(t,function(e){e.stopPropagation();},{passive:true});});
   const lit=function(){const s=bqPovSens(),l=bqPovLu();return Object.assign({},BQ_POV_DEF,BQ_POV[s]||{},l[s]||{});};
   const garde=function(o){const l=bqPovLu();l[bqPovSens()]=o;try{localStorage.setItem('ccCadrageBq',JSON.stringify(l));}catch(e){}};
@@ -60178,7 +60207,7 @@ if(BANC_ON)(function(){
   const px4=new Uint8Array(4),gl9=renderer.getContext(),Z=ms=>new Promise(r=>setTimeout(r,ms));
   const box=document.createElement('div');box.id='bancBox';
   box.style.cssText='position:fixed;left:calc(var(--sL) + 6px);right:calc(var(--sR) + 6px);top:calc(var(--sT) + 4px);z-index:2147483001;'+
-    'font:600 11px/1.35 ui-monospace,Menlo,monospace;color:var(--tx);background:var(--k1);padding:4px 6px;white-space:pre;overflow:auto;max-height:92vh;pointer-events:auto';
+    'font:8px/1.6 var(--pix);color:var(--tx);background:var(--k1);padding:4px 6px;white-space:pre;overflow:auto;max-height:92vh;pointer-events:auto';
   box.textContent='BANC : ne touche à rien (~3 min)…';document.body.appendChild(box);
   const etat=t=>{box.textContent='BANC en cours — ne touche à rien\n'+t;};
   window.__bancSync=function(){ // appelé en fin d'image par la boucle : la puce finit, on relève
@@ -60247,7 +60276,7 @@ if(BANC_ON)(function(){
     for(const l of LIG)t+=l.padEnd(w)+COLS.map(c=>String(R[c][l]==null?'':R[c][l]).padStart(cw)).join('')+'\n';
     return t;};
   const bouton=(txt,fn)=>{const k=document.createElement('button');k.textContent=txt;
-    k.style.cssText='font:700 13px/1 var(--sans);min-height:44px;padding:0 16px;margin:8px 8px 0 0;border:0;background:var(--or);color:var(--k1);border-radius:0';
+    k.style.cssText='font:10px/1 var(--pix);min-height:44px;padding:0 16px;margin:8px 8px 0 0;border:0;background:var(--or);color:var(--k1);border-radius:0';
     k.onclick=function(e){e.stopPropagation();fn(k);};box.appendChild(k);return k;};
   const copier=(txt,k)=>{const non=()=>{k.textContent='FAIS UNE CAPTURE';};try{navigator.clipboard.writeText(txt).then(()=>{k.textContent='COPIÉ !';},non);}catch(e){non();}};
   (async ()=>{
