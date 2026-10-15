@@ -3,6 +3,47 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES DE LUMIÈRE — ELLES PARTENT DES FEUX ARRIÈRE (2026-10-15, Sacha : « améliore les traînées de la voiture, qui doivent maintenant partir des feux arrière — on va dire que c'est des traînées de lumière ; qu'elles matchent avec les nouvelles particules de nitro, bien reconnaissables et cool, c'est un produit à vendre ; adapte cette règle de lumière au feu arrière de toutes les voitures »)
+- LES FEUX DE CHAQUE CAISSE (`CAR_FEUX`, `CAR_FEUX_SRC`, relevé dans `buildCar` juste avant les tuyères) : les pièces `l` ROUGES du kit
+  (`lpKit` garde désormais la couleur de palette de chaque pièce, champ `c`) à moins de 90 cm de la poupe, un point par côté (les plus en
+  arrière) ; un seul côté relevé = symétrisé ; une rampe d'un seul tenant = ses deux bouts (±38 % de sa largeur) ; un feu central = un seul
+  trait (plus large, `SIL.un`). Rien de relevé : la place des feux du gabarit (`A.tl`). Les HALOS des feux (`HALO.t`) se posent sur les feux
+  relevés. Crochet : `dbgFeux()` (source, points, état des sillages).
+- LES TRAÎNÉES (`LUMT`, bloc « TRAÎNÉES DE LUMIÈRE » de la boucle) : les sillages `SILS` naissent dans les FEUX, plus dans les pots (le feu
+  de pixels `NFEU` garde les pots). Elles VIVENT dès qu'on roule (>12 km/h, en vol aussi) : un trait rouge de pose longue (`k` .58, 46 m,
+  72 % de la largeur du nitro), qui s'embrase au frein (`kF`, rouge plus vif `rF`). Au nitro elles prennent l'énergie du feu : 100 m, tête chauffée à
+  blanc, pouls, et elles crachent des CUBES du feu de pixels (`nfeuGicle`, à la palette courante de `NFEU` — bleu en réserve, violet en
+  infinie ; repli : les braises rondes si `NFEU` est coupé). La lumière est enregistrée au passage : le morceau de nitro file derrière,
+  brillant, puis la queue l'avale (`tr.lg` redescend à `rDn` 30 m/s). En refroidissant, la teinte garde sa famille (orange → braise, bleu →
+  bleu nuit, rouge → rouge sang) : plus de virage magenta. Les couleurs de nitro, de réserve, d'infinie et les signatures de caisse
+  (`fx.trail`, boutique) sont inchangées ; la plume des pots se couche sur la traînée de SON côté. Chat pop-tart / traînées arc-en-ciel :
+  la lumière se tait au nitro (l'arc-en-ciel EST la traînée), comme avant.
+- Inchangé : pas de lampe au sol (refus du 26/09), coupe au plan caméra et fondus près de l'objectif (v6), la meute garde ses rubans bleus.
+## LE GLACIER v3 — LA GRANDE DESCENTE VERGLACÉE, SANS ICE SKATE (2026-10-15, Sacha : « dans la map montagne, enlève la figure ICE SKATE ; fais une map qui descend beaucoup plus, mais sans module bizarre : la route doit juste faire une descente normale avec des virages et tout, mais toute la route doit être verglacée ; fais la route un peu plus large »)
+- **La route (`genBanq`)** : plus de spirales superposées, plus de chicanes, plus de CASSURES (`BANQ.cas` et `BANQ.spi` restent, vides). Une descente
+  dans la ligne de pente en grands virages enchaînés (30-110°, le plus souvent en alternance), droites de 50-190 m, cap borné à 75° de la pente
+  (la route ne se recroise jamais). Pente 17-28 %. Banc Node (15 pistes, 3 paliers) : 9-12 km, **1,9-2,5 km de dénivelé** (21 % de moyenne ;
+  v2 : ~1,2 km), zéro remontée, jamais à moins de 450 m d'elle-même. ⚠ Les raccourcis du glacier disparaissent avec les spirales : demandé.
+- **Plus large** : `BK_LARG` = 2,4 × ROAD_HALF0 (67 m ; 56 ailleurs), posé dans genBanq.
+- **Toute la route verglacée** : UNE plaque (`bkVerglasPose`, bornes `a`/`b`, bouts fondus sur ~30 m). La dérive suit le virage (vers
+  l'EXTÉRIEUR, lu sur `routeLacet`) et flotte un peu dans les droites ; le volant mord à `BK_VG.grip` .68 (.42 sur les anciennes plaques),
+  dérive .16 (.30) — au banc, .62/.20 faisait sortir le pilote auto à 455 km/h après 1 km. Les rayons gardent la marge du verglas (115 m × palier au plus serré = 1,8 × le rayon tenable sur le sec).
+- **ICE SKATE retirée** (`bkSkate`, `#iceHud`) ; `bkSkateRaz` reste, inerte. DÉRAPAGE GLACE (hors piste, sur lacs et pics) est gardé.
+- Console : `dbgBanq('verglas',{s,v})` pose la caisse au mètre s.
+
+## BOUTIQUE : LE LANCER QUI PART D'UNE ÉTIQUETTE (2026-10-15 au soir, pôle CAISSES — bug trouvé au banc ; MANAGER : « en boutique, le doigt posé sur la caisse doit toujours donner le lancer de la boutique, quelle que soit l'étiquette dessous ; les vrais boutons gardent leur clic »)
+- LA CAUSE : la page de vente (`#gBq`) est posée sur la scène ; la bande « CETTE SEMAINE » (`.bqUv`, pointer-events:auto) prend le doigt
+  jusque dans son blanc (entre ses cartes, sur ses bords). Le doigt de la boutique n'écoutait que le canevas : un lancer parti de là
+  passait au DOIGT DU GARAGE, qui tournait la caisse à sa façon (sans élan planifié, sans pose). Pareil pour un glissé parti d'une carte ou
+  du panneau des voitures.
+- LA CORRECTION : `bqScene(t)` — la scène de la boutique, c'est le canevas ET ce que la page de vente pose dessus sans être un bouton (le
+  blanc de la bande, les titres, les étiquettes). Les vrais boutons (`button`, liens, `[role=button|tab]`, cartes `.bqU`/`.bqK`) gardent
+  leur clic ; le panneau des voitures (`#gBqPan`) garde son doigt (il défile). Et en boutique, le doigt du garage ignore `#gBq`.
+- MESURÉ (banc muet, vrais touchers ; couché, debout, cadre) : lancer parti du blanc de la bande — AVANT pas d'élan, le garage la tourne
+  de 0,14 tour ; APRÈS l'élan de la boutique (0,54 à 1,22 tour selon la force). Glisser parti d'une carte : AVANT 0,13 tour (garage),
+  APRÈS rien. Glisser dans le panneau : AVANT −0,18 tour, APRÈS rien. Toucher une carte, les onglets, RETOUR : inchangés. Le garage hors
+  boutique : inchangé. Partie lancée (couché, debout, cadre).
+
 ## BOUTIQUE : LE LANCER, UN TOUT PETIT PEU MOINS DE FRICTION (2026-10-15 au soir, pôle CAISSES — Léo : « quand la personne fait tourner la voiture et lâche son doigt, en fonction de la force, la voiture va tourner un peu ; mais il doit y avoir un peu de friction, un tout petit peu moins que là » → choisi : « un peu moins de friction »)
 - `BQ_GLISSE` (0,65 → 0,8) dans `bqLance` : la distance planifiée D = 2 tours × tanh(BQ_GLISSE v / 2 tours) ; la durée de base 1,3 → 1,45 s.
   Même courbe (elle part à la vitesse du doigt, s'arrête en douceur), même plafond (2 tours), même attrape. Le garage ne change pas.
