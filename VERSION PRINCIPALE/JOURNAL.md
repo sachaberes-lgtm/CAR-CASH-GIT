@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE FEU AFFINÉ — 10 NUANCES, PIXELS PLUS FINS, FLUIDE AU VENT ET AU MOUVEMENT (2026-10-15 soir, pôle TECHNIQUE — Léo : « le feu du moteur fait un peu cristaux, essaie de faire mieux, et le nitro pas mal, essaie d'affiner le travail » ; puis, sur le mini-feu : « c'est très bien, approfondis le tout, rends-le bien fluide, accordé au vent, au mouvement » ; nitro : « pixels plus fins, plus de nuances, fais comme tu le sens »)
+- (« Cristaux » = les ÉCLATS taillés du main ; le mini-feu, il ne l'avait pas encore vu.)
+- 10 NUANCES (`NFEU_P10`, `NFEU_B10`, `NFEU_T10`) au lieu de 7 — blanc chaud, jaune pâle, jaune d'or, or orangé, orange, orange profond,
+  vermillon, rouge, braise, fumée — pour le feu, la réserve bleue et la nitro infinie ; chaque cube son éclat (± 8 %, de sa graine) ; les
+  étincelles passent par le jaune d'or et l'orange. Le DRAGON garde ses 7 nuances (NFEU_PAL / NFEU_SEUIL / NFEU_TAILLE, inchangés).
+- PIXELS PLUS FINS (`NFEU_FIN`) : cubes ×0,73, débit ×1,7 (réserve 900 → 1 600), grille ×0,6 — le feu glisse au lieu de sauter.
+- FLUIDE AU SOL (`NFEU_SOL`) : chaque cube garde jusqu'à 85 % de l'assiette de sa NAISSANCE (la part monte avec l'âge ; `Q` est désormais
+  posé pour tous par `nfeuNait`) — la flamme TRAÎNE et s'incurve dans les virages au lieu de pivoter d'un bloc — et se couche en fin de vie
+  dans le VENT de la trajectoire (glisse, drift). En vol, le feu DÉTACHÉ de Sacha (genre 3) garde sa règle ; `?nfeu=colle` coupe les deux.
+- LE MINI-FEU resserré (`NFEU_MINI` : écart ×0,28, débit 260, vie ×0,7, taille ×0,34) : un cœur doré dense au pot, une traîne rouge.
+- MESURÉ : 0 erreur, 0 programme compilé (177 → 177) debout, couché, nitro au sol et en vol ; ~540 cubes au nitro, 0,13 ms/image.
+  Planche `photos-gameplay/feu-affine-avant-apres.png` (avec un zigzag : la flamme qui traîne).
+- Pas touché : la plume d'OR des plaques turbo (la goutte lisse revient à la plaque — un choix de Sacha, « la poussée qui vient de l'argent »).
+
 ## LE MOTEUR EN MINI FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo, devant la planche des éclats : « ce n'est pas très satisfaisant pour le moteur normal sans NITRO. Fais vraiment juste comme le NITRO, mais vraiment en minuscule. Ça doit être à ce point-là »)
 - Remplace « LE MOTEUR EN ÉCLATS » (les éclats facettés et leur code `ECLATS` sont RETIRÉS) : hors nitro, la flamme du moteur est le FEU DE
   PIXELS DU NITRO (`NFEU`) en minuscule — `NFEU_MINI` (taille ×0,3, vitesse ×0,55, écart ×0,45, vie ×0,8, grille ×0,4 ; marqué par sa GRAINE +2 dans `nfeuNait` — le genre 3 est le feu DÉTACHÉ en vol de Sacha, que le mini-feu suit aussi),
