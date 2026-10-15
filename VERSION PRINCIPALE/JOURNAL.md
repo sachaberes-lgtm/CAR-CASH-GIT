@@ -62,6 +62,22 @@
   DÉFERLANTE (déjà à fleur) ; les 77 se montent sans erreur ; 0 programme compilé en course (couché, debout) ; course sans erreur.
   Planche : `photos-gameplay/pots-encastres-toit-honte-avant-apres.jpg` (dossier CAR CAHS V3). Bancs (scratchpad) : `dbgNyIsole`,
   `dbgNyArriere`, `dbgNyPots`, `dbgNyTole` dans une copie instrumentée.
+- LES 6 ORIGINALES (même jour, Léo : « vraiment toutes, même les originales ») — branche `caisses-pots-originales`, LOOK en attente du oui :
+  · la règle sait où REGARDE une bouche (`echSortie` : sur le côté, de biais, vers l'arrière) ; `echRayon` tire dans le repère caisse le
+    long de cette sortie, et l'encoche se tourne vers elle (`ECHP.encoche`, option `d`). Un tube à peine biais (moins de 45° : PIZZA,
+    GROUPE B) se règle encore le long de z, comme dans la v468.
+  · LE CAÏD : ses quatre sorties latérales montent de 40 à 64 cm, dans le bas de caisse, chacune dans son encoche (avant : sous le flanc) ;
+    `ote` retire les deux que son gabarit dessinait en plus.
+  · ATCHOUM : sa sortie latérale remonte à 47 cm, dans une encoche du flanc (avant : un tube sous la caisse) ; `ote` retire l'ancien.
+  · LE MASTODONTE : chaque cheminée descend jusqu'au plateau (rayon vers le bas) et y entre par une encoche ronde tournée vers le ciel.
+  · LE HOT ROD : les huit collecteurs (gabarit + `ECHP.hotrod`) sortent du FLANC DU V8 : rapprochés de 9 cm, le pied 2 cm dans le bloc,
+    chacun par une lumière rectangulaire à jonc et FOND NOIR (la face du bloc n'est pas percée). Avant : à 10 cm du bloc, dans le vide.
+  · LE MUR DU SON : les deux tuyères arrière dans leur encoche (`force:1`) ; les réacteurs latéraux sont des nacelles, inchangés.
+  · LA SILENCIEUSE : le silencieux remonte de 24 à 44 cm, son cul ovale dans une encoche du panneau arrière, l'embout devant lui (pièce
+    `lie` : elle suit son recalage). Avant : il pendait dessous. Son `enc:0` est retiré.
+  · MESURÉ : 77 montages sans erreur ; maillage par maillage contre le main, SEULES ces 6 changent ; le feu (plume et feu de pixels) naît
+    aux nouvelles bouches (CAR_POTS = A.pots) ; 0 programme compilé en course (couché, debout, cadre). Planche :
+    `photos-gameplay/pots-encastres-originales-avant-apres.jpg`.
 
 ## LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « on veut retoucher le nitro ainsi que la flamme du moteur quand la voiture avance ; c'est un peu fade, on n'arrive pas trop à distinguer le nitro du moteur » · « pas trop régulier, comme un moteur d'une voiture qui avance : la personne ne doit pas voir une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique, en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, mais sa grandeur, en moins gros »)
 - ⚠ LOOK, pas encore validé : branche `visuel-flammes`, planches `photos-gameplay/flammes-moteur-nitro-avant-apres.png` et
