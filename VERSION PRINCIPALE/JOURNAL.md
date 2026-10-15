@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
+- La roue arrière gauche (`wi===2` dans la branche `rouesEpave` de buildCar) redevient celle de la v455, code recopié tel quel : pneu
+  cylindre `darkM`, disque `rustM` et ses cinq rayons, moyeu, voile `rotation.y=.16`. Les trois autres roues au kit (`roueEpave`, qui perd sa
+  variante rouillée), la carcasse patinée et le toit corrigé restent ceux de la v456.
+- MESURÉ par des RENDUS ISOLÉS FIGÉS (banc : la caisse seule dans une scène à fond uni, lumière fixe, roues à l'arrêt, caméra dans son repère —
+  deux rendus de la même version : 0 pixel d'écart) : la roue cassée = celle de la v455 (0 pixel, écart max 0) ; v456 → après : sur six vues,
+  toutes les différences tombent dans l'empreinte calculée de la roue arrière gauche, la vue où elle est cachée ne change pas d'un pixel ;
+  les 77 caisses : seule LA HONTE change ; 0 programme compilé en course ; triangles 5 192 → 4 416 ; dessins 18 → 20.
+  Planche : `photos-gameplay/honte-roue-cassee-avant-apres.png` (dossier CAR CAHS V3).
+- LA LEÇON (Léo) : un changement de LOOK attend son oui avant le main, et les SINGULARITÉS d'une caisse (une pièce cassée, une asymétrie) se
+  gardent sauf ordre contraire.
+
 ## LA HONTE, UN CRAN PLUS BELLE (2026-10-15, pôle CAISSES — Léo : « un tout petit plus de détail au niveau de la brillance et de la texture de sa carcasse ; si tu y arrives, plus de définition ; des roues refaites, plus réalistes ; un plafond moins buggé : l'orange se mélange bizarrement à la vitre »)
 - LE TOIT (la cause) : dans `SHAPES.epave`, le dessus de la boîte de VITRE était à la hauteur du MILIEU de la dalle du toit, et les deux
   penchaient en sens contraire (−,04 / +,09) : le toit s'enfonçait d'un côté dans le verre, le verre le perçait de l'autre, une bande de
