@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+
+## FIGURES › GLISSER, 2e PASSE : LES FIGURES AU SOL (2026-10-15, Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air seulement lorsque le joueur fait flèche avant pendant le trick ; faites sur le sol, la voiture reste au sol ; d'autres, comme le slide 360, restent au sol ; une figure peut aussi se faire en maintenant le boost avec un geste brusque ; droite ou bas pas forcément sur le boost »)
+- Choix cochés par Léo : « flèche avant » = le JOYSTICK (pouce gauche) poussé vers l'avant pendant la figure ; au sol, sans lui, la figure se
+  fait AU SOL ; ← → = SLIDE 360 au sol et 360 en l'air ; → ↓ peuvent partir de n'importe où (moitié droite de l'écran).
+- AU SOL (`GSOL`, bloc « LES FIGURES AU SOL ») : ← → SLIDE 360 (un tour à plat autour de la normale de la dalle, gomme qui fume, ne décolle
+  jamais, « SLIDE 360 » +70) · ↑ WHEELIE (nez levé, pivot essieu arrière) · ↓ STOPPIE (cul levé, pivot essieu avant) = l'amorce du salto ;
+  joystick avant (`TCTL.sv` > ,35, ou ↑/W fraîchement appuyé) pendant les 4/5 de l'amorce → `veqSaut(fo)` : saut nitro + le salto de ce sens.
+  Sinon le nez claque (`sensCoup`) et c'est payé « WHEELIE » / « STOPPIE » +40. `gsolPose(F)` tourne carGroup autour du pivot APRÈS sa pose sur
+  la route (la physique ne voit rien) ; jamais sous la dalle ; une à la fois.
+- EN L'AIR : ← → = le 360 (`FIG.par.toupie`, pouce à gauche → sens +1), ↑ ↓ les saltos. Le tonneau n'a plus de geste en GLISSER.
+- LE COUP SEC (`GLI.coup` 90 ms de 12 px à seuil + 8 px) : la figure part sans lâcher NITRO (le boost continue), une par appui.
+- → ↓ DE PARTOUT : un glissé né sur la moitié DROITE, hors boutons (`gliLibre`), fait → et ↓ (← ↑ n'y font rien) ; doigt et souris.
+- Banc (Chrome muet, vrais touchers, debout et couché, après fusion du main v510) : spam = 0 saut ; ← ↑ ↓ au sol restent au sol ; ↑ + joystick
+  avant = saut + salto arrière ; coup sec = figure avant le lâcher, rien de plus au lâcher ; → ↓ de partout OK, ← refusé ; en vol 360 / saltos ;
+  0 exception. 2 TAPS : inchangé (le double-tap pouce au neutre ne fait rien chez un débutant : c'est l'emplacement AVANT vide de Sacha, idem sur le main).
+
 ## L'ÉLAN : UNE FIGURE EST UN COUP, PLUS UNE ANIMATION (2026-10-15 soir, Sacha : « retravaille un peu la physique : là, on dirait une animation — quand tu fais la figure, la voiture se redresse très vite et retourne très vite à un axe parfaitement droit, alors qu'il faudrait que ça agisse plus comme une sorte d'impulsion qui donne un élan à la voiture dans un sens, et si tu fais l'autre figure en même temps, ça modifie cette impulsion ; par exemple tu peux faire un tonneau, et pendant que le tonneau se finit… »)
 - MESURÉ AVANT (banc Node du corps, `banc-corps.cjs`, le vrai `figures.js`) : la caisse tournait à vitesse CONSTANTE (tonneau 11,3 rad/s,
   salto 9,7), puis passait de 11 à 1 rad/s en 0,1 s (la PRISE à 85 rad/s²) et rebondissait sur l'axe (le planté, ressort ω 13) ; après deux
