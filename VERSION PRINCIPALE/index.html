@@ -46124,6 +46124,7 @@ function dragonTick(dt){
       if(i<6)spawnP(flameCore,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+H9.x*v*.8,EXV.y+H9.y*v*.8+.5,EXV.z+H9.z*v*.8,.16+Math.random()*.08);}}}
 }
 window.dbgDragon=function(q){
+  if(q==='evo'){const T=+arguments[1]||30,o=[];for(let i=0;i<=T*30;i++){NTR.k=1;dragonTick(1/30);if(i%30===0)o.push([+DRG.tt.toFixed(1),DRG.st,+DRG.fo.toFixed(2),+DRG.nS.toFixed(2),+DRG.Hs.toFixed(2),+DRG.Lb.toFixed(1),DRG.ne]);}NTR.k=0;dragonTick(1/30);return o;} /* (banc, stades) l'évolution déroulée seconde par seconde : [s, stade, formation, tronçons, tête, corps, né] */
   if(q==='pres'){if(arguments[1]!=null)NTR_PRES.k=+arguments[1];return {de:NTR_PRES.de,a:NTR_PRES.a,k:NTR_PRES.k,por:+POR.toFixed(2),part:NTR.shell?+ntrShellM.uniforms.uPres.value.z.toFixed(2):null};} // (debout) dbgDragon('pres',0) : la comète d'avant, qui voilait l'écran (A/B)
   if(q==='tick'){if(DRG.m&&DRG.m.visible)dragonTick(1/60);return DRG.vu.slice();} // (banc, v6) en PAUSE photo : une image de dragon recalculée pour la caméra de la photo (les yeux dépendent de l'angle)
   if(q==='ecran'){if(!DRG.m||!DRG.m.visible)return null;const o={},pr=function(n,v){const d9=v.distanceTo(camera.position);DRG.pj.copy(v).project(camera);o[n]=[+DRG.pj.x.toFixed(2),+DRG.pj.y.toFixed(2),Math.round(d9)];};
