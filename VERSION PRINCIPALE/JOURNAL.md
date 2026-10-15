@@ -20,6 +20,63 @@
   `CHUTE.sous` pour le piqué du ciel). Refusé (lâcher impossible) = le balayage d'avant. `closeGarage` oublie un `GAR.sous` en attente.
   Banc : `garfilm.cjs` (une image toutes les ~200 ms après l'appui), debout et couché.
 
+## LA ROUTE DES NUAGES EN GRAND (2026-10-15, Sacha : « la génération de la map dans les nuages est beaucoup trop tordue ; je voulais ça mais sur des proportions beaucoup plus vastes, genre des grands virages où la route se tord, pas aussi tire-bouchonnée »)
+- Suite de « LA MAP DES NUAGES SANS HAUT NI BAS » (plus bas) : même idée, la route se tord dans tous les sens, mais EN GRAND. Le tire-bouchon venait
+  de deux choses mesurées : des vrilles trop fréquentes et trop rapides (36-40 par zone, 1,35 tour complet PAR KILOMÈTRE, roulis jusqu'à 144°/s),
+  enroulées sur des virages serrés (rayon médian 263 m, 56 % de la piste sous 300 m de rayon).
+- LE ZOOM (`TORD_AMP` = 2,4) : sur cette route, genCtrl tire une zone 2,4 fois plus courte puis l'AGRANDIT 2,4 fois autour du départ — même dessin,
+  mêmes pentes, mais chaque virage, chaque bosse, chaque épingle 2,4 fois plus ample ; la zone garde sa longueur. Possible parce que les tremplins
+  sont coupés (`GAP_ON=false`) : aucune géométrie de saut calée sur la physique. Les autres maps (et `?sans=haut`) ne bougent pas.
+- LES VRILLES s'étirent (`pisteTord`) : quart de tour ~4-6 s, demi-tour ~6-9 s, tour complet rare (~11 s), tenues de 4-9 s entre deux.
+- L'ARRIVÉE : le redressement commence avant le grand virage de fin agrandi (`fin`), prend 3 s au lieu de 1,3 et agit jusque dans les montées raides ;
+  et dans ces tronçons droits la PENTE revient doucement à celle de la piste d'origine (mesuré : sans ça, le portail arrivait au bout d'un piqué de 50-60°).
+  Mesuré sur 18 pistes (paliers 0, 6, 12) : portail à 0-1° de roulis, pente −30° = la ligne d'ARRIVÉE de genCtrl.
+- MESURÉ (banc `dbgTrace` sur les vraies pistes, palier 0, avant → après) : 1,35 → 0,4-0,6 tour/km (0,2-0,25 au palier 12) ; roulis max 144 → 60°/s ; rayon médian 263 → ~570 m ;
+  part sous 300 m de rayon 56 → ~15 % ; sous 150 m 17 → 0 %. Toujours ~30 % de la route à l'envers et ~40 % sur la tranche : sans haut ni bas, en grand.
+
+## LE HUD DES FIGURES v3 + DEUX EMPLACEMENTS + LE CHOIX AU JOYSTICK (2026-10-15, Sacha : « retravaille l'HUD pour le système de figure, il est buggé et trop discret ; enlève certaines des autres inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ; anime, mets de la couleur et tout pour les figures » · « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » · « quand le joystick est vers l'avant ça déclenche la figure 1, et quand il est sur les côtés la figure 2 » → choisi : DOUBLE-TAP NITRO + joystick, boutons retirés, un rappel qu'on lit)
+
+**Ce qui a changé**
+- **Deux emplacements** (`FIG_NB=2`) : `san()` garde 2 figures dans `figEq`, `figEquipees`/`figEquipe` (pleins, la plus ancienne cède), la boutique et le toast disent « x / 2 ». Une sauvegarde à 3 déséquipe la 3e (elle reste achetée, ré-équipable).
+- **Le choix au joystick** (`FDIR`, `figDirSlot`) : en vol, le double-tap NITRO lit le pouce gauche — sur un CÔTÉ (l'horizontale domine, |x| ≥ 0,3) = la figure 2, qui part de ce côté ; vers l'AVANT, au repos ou en arrière = la figure 1. Re-double-tap dans la même direction pendant qu'elle tourne = le tour S'EMPILE (×2…×4, comme l'impulsion de la veille). Au clavier : ← → = 2, sinon 1 ; les touches 1 · 2 jouent leur emplacement (le 3 est retiré). Le saut nitro garde sa figure automatique.
+- **Plus de boutons de figure** : `#tFig` est masqué (`body.figDir`). À leur place, à côté de NITRO, **le rappel** `#fhLeg` (on le lit, rien ne s'y touche) : ↑ + le nom court de la figure 1 (cyan) · ◄► + la figure 2 (magenta). La plaque flashe quand sa figure part, tremble en rouge quand c'est trop tard pour la planter.
+- **Le HUD des figures** `#fh` (bloc `<style id="figuresHud">`, JS `fhLance`/`fhPlante`/`fhFin`/`fhTick`) : la figure qui PART écrit son nom en grand en haut de l'écran, dans la couleur de son emplacement (cyan = avant, magenta = côté, or = celle que la caisse fait seule) — entrée qui claque (zoom + rotation + éclair). PLANTÉE : le nom flashe, des confettis pixel partent, une PASTILLE de sa couleur tombe dans la ligne du combo, et le × du combo grimpe en changeant de couleur (vert → or → orange → arc-en-ciel au ×4). À la POSE propre : la ligne flashe en or et s'ENVOLE vers la chaîne d'aura (où « COMBO ×N +X » s'écrit déjà). À la CHUTE : rouge, les pastilles tombent ; « COMBO PERDU » seulement s'il y avait un combo (une figure seule : « FIGURE RATÉE ! » le dit déjà sur la caisse). Animations par l'API Web Animations (`fhAnime`), aucune écriture DOM par image.
+- **L'ancienne ligne `#figCombo`** (et son bloc `comboVol`) est retirée.
+- **Textes au centre retirés** (ils répétaient le tableau de bord) : « +X AURA » à l'encaissement de la chaîne (le « +X » s'écrit à côté du compteur), « ×5 EN FEU / ×8 DÉMENT / ×10 MAX » (le × de la chaîne bat déjà), et « TONNEAU +120 » au-dessus de la caisse pour une figure ou un combo du vol (`CHA.sansPop`). Le son, le flash et la vibration de ces moments restent.
+- L'astuce du 1er vol dit le nouveau geste (bit 64 de `SAVE.d.ast` : ceux qui avaient lu l'ancienne la relisent).
+
+**Mesuré au banc** (`cc-banc/lib.cjs`, muet, 844 × 390 et 390 × 844, avant = main v487) :
+- AVANT (main v487, couché) : les trois boutons écrivaient « ARRIERETOUPIETONNEAU » (noms collés, plaques de 58 px) ; en vol, aucune ligne de combo à l'écran ; à la pose, `#figCombo` surgissait à 29 % (y 113, 560 px de large) « SALTO ARRIERE + SALTO ARRIERE ×2 / +58 » ; au milieu de l'écran, « ★ +100 AURA » (le compteur du dauphin).
+- APRÈS : `dbgFigDir(0,1)` → emplacement 1, `dbgFigDir(1,0)` → emplacement 2 ; le nom en grand à 19 % du haut couché (y 74) et 22 % debout (y 233) ; en vol la ligne « TOUPIE 360 · SALTO ARRIERE ×1,5 », puis « COMBO ×1,5 +75 » encaissé dans la chaîne à la pose ; le rappel à côté de NITRO (couché : colonne 106 × 68 ; debout : rangée 209 × 31 au-dessus de NITRO). 0 erreur JS sur 4 passages (couché ×3, debout ×1).
+- TROUVÉ en route : quand la caisse se rattrape à la LÈVRE de la route, `tryLand` sortait avant l'encaissement — le combo du vol disparaissait sans un mot. `levreRattrape` encaisse (ou perd, si la figure est ratée) le combo comme une pose sur la dalle. Et si le vol se termine par un autre chemin (portail, replacement), les pastilles s'envolent vers la chaîne au lieu de s'effacer d'un coup.
+- `body.fhOn` : tant que le HUD des figures parle, la bannière du niveau (« LA FORÊT NOIRE — ORAGE ») se tait — au banc elles étaient collées l'une sous l'autre.
+- Le « ★ +N AURA » du DAUPHIN ne s'écrit plus (ni sous la caisse en vol, ni sous son nom à la pose : `DOL_AURA_TXT`, `?dolaura=1` le rend) ; le nom DAUPHIN reste.
+
+**Crochets** : `?dolaura=1` (le compteur du dauphin) · `dbgFigDir(x,y)` (un double-tap en vol, pouce en x = côté, y = avant) · `dbgImpu()` rend `dir` et l'état de `#fh`. `?figdir=0` rend le 15/10 (boutons + impulsion de flanc).
+
+**À trancher par Sacha** : les COMBOS À TROIS gardent leurs 20 familles, mais avec deux emplacements celles qui demandent trois AXES différents (LE GYROSCOPE…) ne se font plus qu'avec la toupie de drift ou la figure du saut nitro en renfort.
+
+## LE DRAGON EN FEU DE PIXELS (2026-10-15, Sacha : « fais le dragon chinois NITROOO avec les mêmes effets de particule que les flammes de nitro, fais ça bien »)
+- Tout le FEU du dragon passe dans la matière du nitro (`NFEU`, le feu de pixels du 15/10) : `DFEU` = un InstancedMesh à part (1 800 cubes ;
+  le feu des pots garde ses 900) sur la MÊME géométrie et le MÊME halo, matière clonée (`transparent` n'entre pas dans la clé de programme
+  de three r128) — mêmes seuils d'âge blanc → jaune → orange → vermillon → rouge → braise → suie, mêmes tailles, poches chaudes, bord
+  dentelé, cases, taille tenue à l'écran ; palettes feu / violet (nitro infinie) de `NFEU_PAL` (la branche nitro-teinte s'y appliquera
+  d'elle-même) + `DFEU_PAL_N`, du sang au noir pour la dark triad (le cube est opaque : il sait faire du noir).
+- Chaque flamme est un petit JET de nitro : crinière (6 jets de la nuque, vers le HAUT et le DEHORS), flammèches du crâne, crête du dos en
+  dents qui défilent, frange autour du papier (née orange), queue (3 jets en éventail), souffle de la gueule (en vol + la gerbe de chaque
+  rugissement), cubes aspirés vers la tête pendant la formation, moustaches et barbe en TRAITS de cubes posés image par image le long de
+  leur courbe (`dfeuTrait`), braises du corps / du virage / de la pose dans le monde. Trois repères : TÊTE (kR·kU·hF), CORPS (le long de
+  l'échine, prolongé au-delà de la queue), MONDE. La grille des cases est celle de la tête.
+- Se taisent : les rubans additifs (`DRG.m.material[2].visible=false`) et les boules rondes (flames/flameCore/embers) du dragon. Restent :
+  crâne peint, corps de papier, bois, banderoles, yeux, et les stades de la session « évolution prolongée » (fusionnés ici, à sa demande).
+- BANC (`scratchpad/drg/dfeu*.cjs`, Puppeteer, portrait 390×844) : 0 programme lié en course, 0 erreur, 400 à 620 cubes au dragon adulte,
+  0,2-0,3 ms par image. Trois corrections au banc : (1) la crinière qui filait vers l'arrière faisait un MUR de gros cubes au bas de l'écran
+  → jets vers le haut et le dehors, vent plus doux, fondu AVANT l'objectif ; (2) ce fondu, proportionnel à la distance caméra, effaçait
+  tout le corps en vol (caméra à 16 m) → borné 3 à 6 m, comme les rubans d'avant ; (3) opaques, les cubes de la crête passaient DERRIÈRE
+  le papier qui les recouvrait → dessinés après lui (renderOrder 7/8).
+- `?dragon=ancien` = les rubans et les boules d'avant ; `dbgDragon('pix',0|1)` bascule en course ; bancs : `dbgDragon('tt',s)` avance
+  l'horloge des stades (l'adulte sans 24 s à ×2,6), `dbgDragon('nitrooo')` embrase NITROOO sans le geste.
+
 ## L'AIR DU GARAGE PLUS PRÉSENT (2026-10-15 soir, pôle SON ; Léo : « augmente le bruit ambiant du garage »)
 - `garage.ambiance` (le bourdon des néons, le tube qui grésille, la ville au loin) : +6 dB à son départ (`GAR_AMB_DB`, l'option `vol` de sfx — la
   banque n'est pas recuite). MESURÉ bande par bande : il était 4 à 13 dB SOUS la porte en feu (`garage.feu`, inchangée), presque inaudible ;
@@ -77,6 +134,7 @@ enlever, tout bien mesurer » · « un bouton pour activer la nitro et voir comm
   décodés feraient ~300 Mo sur un iPhone). Banc : les sauts de moteur (5, 13, 22, 30, 12) arrivent à la mesure suivante (~3,6 s) ; 11/11 sons de
   « Suivent le moteur » dans Chrome ET WebKit.
 - PAS DISCRETS (l'élément d'origine l'est déjà) : SIFFLEUR 16-17 (claps, shaker), 29 (le roulement), 30 ; CIEL 7, 19, 26-30 (cordes, arpège de verre).
+
 ## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
 - Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
   (`ECLATS`, `eclaPas`, `eclaNait`, `eclaCoupe` ; ⚠ `ECL` est déjà le nom de l'éclair de l'ORAGE). Des bipyramides à trois pans, une

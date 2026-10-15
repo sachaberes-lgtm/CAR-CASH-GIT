@@ -107,7 +107,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Figures v2** (la physique) : `FIG.Corps`/`FIG.PHY` (figures.js), `FIGV2`/`FX2`, `figLance` (une explosion), `figPose` (chaque image de vol),
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
-  les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo.
+  les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo. Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
+  double-tap NITRO (`FDIR`/`figDirSlot` : avant = 1, côté = 2 ; `?figdir=0` rend les boutons), le HUD des figures `#fh` (`fhLance`/`fhPlante`/
+  `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
@@ -132,7 +134,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`, dragon `DRG`,
   dauphins `DAUPH`/`dolTick`, pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
   moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`), hors nitro les éclats du moteur
-  `ECLATS`/`eclaPas` (`?eclats=0`).
+  `ECLATS`/`eclaPas` (`?eclats=0`), le dragon en feu de pixels `DFEU`/`dfeuPas` (`?dragon=ancien`, `dbgDragon('pix',0|1)`).
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
@@ -177,7 +179,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   vit sur la branche `garde/carriere`. Les missions restent.
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
-  le verdict) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
+  le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 
 **Interface (charte v4/v5 — pour tout écran neuf ou retouché ; de vieilles règles CSS y dérogent encore)**
 - PENCHÉ (`--sk`) = je touche · DROIT à coins coupés = je lis · ROND = une jauge.
@@ -391,6 +393,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « LA GAMME RESSERRÉE — LA FICHE DES VOITURES » (06-07/10) · « SIX COMMUNES RETIRÉES » (02/10)
 - « LA VITRINE DU GARAGE » (04/10) · « LES LUEURS DE LA BOUTIQUE » (07/10) · « LA FENÊTRE D'ACHAT » (01/10)
 - « LE MOTEUR EN ÉCLATS » (15/10) — `ECLATS`, `?eclats=0` · « LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS » (15/10) — `FLM`, `NFEU`, `?flamme=ancien`
+- « LE DRAGON EN FEU DE PIXELS » (15/10) — `DFEU`, `?dragon=ancien`
 - « LE SILLAGE DE NITRO v5 » (29/09) · « LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR » (01/10) · « LA PLUIE DE RICHESSE » (08/10)
 
 **Garage, menus, écrans**
