@@ -4,6 +4,7 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 ## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
+- ⚠ ANNULÉ le même jour (v458) — Léo : « reviens avant, j'avais pas vu que tu l'avais déjà faite unique » : la v456 avait déjà une roue arrière gauche UNIQUE (au kit, rouillée et voilée). index.html = celui de la v456 (167de9de) ; ce qui suit n'est plus en jeu.
 - La roue arrière gauche (`wi===2` dans la branche `rouesEpave` de buildCar) redevient celle de la v455, code recopié tel quel : pneu
   cylindre `darkM`, disque `rustM` et ses cinq rayons, moyeu, voile `rotation.y=.16`. Les trois autres roues au kit (`roueEpave`, qui perd sa
   variante rouillée), la carcasse patinée et le toit corrigé restent ceux de la v456.

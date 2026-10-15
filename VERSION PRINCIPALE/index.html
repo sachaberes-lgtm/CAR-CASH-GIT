@@ -27399,9 +27399,9 @@ function boiteUsee(w,h,d,o){o=o||{};
   g.computeVertexNormals();return g;} // non indexée : une normale par facette
 /* SES ROUES (même demande) : au kit, en facettes, comme celles de la gamme — mais une épave : un pneu au FLANC bombé, l'épaule, la bande et
    ses deux SILLONS, des SCULPTURES en quinconce, un cordon sur le flanc ; une JANTE EN TÔLE emboutie (la lèvre, le voile percé de six trous,
-   la cuvette), cinq ÉCROUS. La roue arrière gauche n'en est pas : c'est LA ROUE CASSÉE d'origine (voir buildCar, `rouesEpave`). */
-function roueEpave(R,w){const hw=w/2,fx=hw-.03,
-  K=lpKit({k:{g:'m',c:0x18191c},f:{g:'m',c:0x303136},j:{g:'s',c:0x24211e},t:{g:'m',c:0x08080a},e:{g:'s',c:0x6b655c}});
+   la cuvette), cinq ÉCROUS. `rouille` : la roue arrière gauche, voilée, en rouille (son caractère d'origine). */
+function roueEpave(R,w,rouille){const hw=w/2,fx=hw-.03,
+  K=lpKit({k:{g:'m',c:0x18191c},f:{g:'m',c:0x303136},j:{g:'s',c:rouille?0x6a3f22:0x24211e},t:{g:'m',c:0x08080a},e:{g:'s',c:rouille?0x5a3a20:0x6b655c}});
   K.lathe('k',[[R*.66,-hw],[R*.88,-hw],[R*.97,-hw*.78],[R,-hw*.5],[R,-hw*.2],[R*.97,-hw*.14],[R*.97,hw*.14],[R,hw*.2],[R,hw*.5],[R*.97,hw*.78],[R*.88,hw],[R*.66,hw]],16,0,0,0,'x');
   for(let i=0;i<16;i++){const a=(i+.5)/16*Math.PI*2;K.box('k',hw*.34,.02,.07,(i%2?1:-1)*hw*.36,Math.sin(a)*(R+.005),Math.cos(a)*(R+.005),Math.PI/2-a);} // les sculptures
   K.lathe('f',[[R*.79,hw+.003],[R*.84,hw+.003]],16,0,0,0,'x');                                   // le cordon du flanc
@@ -32328,22 +32328,13 @@ function buildCar(spec){
       carGroup.add(w);wheels.push(w);
     }
   }else if(A.rouesEpave){
-    // (2026-10-15) LA HONTE : trois roues au KIT (roueEpave), posées comme celles du kit (jante sur +X, miroir à gauche) — et LA ROUE CASSÉE
-    // (2026-10-15, Léo, après la v456 : « c'était mieux avant ; j'aimais bien le design un peu unique de la roue cassée ») : l'arrière
-    // gauche est REDEVENUE celle d'avant, au détail près (le pneu cylindre, le disque de rouille et ses cinq rayons, le moyeu, le voile ,16 —
-    // le code de la v455 recopié tel quel). Une singularité de la caisse : on la garde.
-    const R9=.40*A.wr,w9=.32*A.wr,gN=roueEpave(R9,w9);let wi=0;
-    for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){const w=new THREE.Group();
-      if(wi===2){const wG=new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),rimG=new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),
-          spokeG=new THREE.BoxGeometry(R9*1.05,R9*.9,.05),hubG=new THREE.CylinderGeometry(.075,.075,.37*A.wr,8);
-        w.add(new THREE.Mesh(wG,darkM));
-        w.add(new THREE.Mesh(rimG,rustM));
-        for(let sk9=0;sk9<5;sk9++){const spk=new THREE.Mesh(spokeG,rustM);
-          spk.rotation.y=sk9*Math.PI*2/5;w.add(spk);}
-        w.add(new THREE.Mesh(hubG,rustM));
-        w.rotation.z=Math.PI/2;w.userData.large=.32*A.wr;w.userData.R=R9;w.rotation.y=.16;}
-      else{for(const g in gN){const m=new THREE.Mesh(gN[g],lpMatC(g));m.userData.lp=1;w.add(m);}
-        w.scale.x=sxz[0]<0?-1:1;w.userData.large=w9;w.userData.R=R9;}
+    // (2026-10-15) LA HONTE : ses roues au KIT (roueEpave), posées comme celles du kit (jante sur +X, miroir à gauche), la gauche arrière
+    // toujours rouillée et VOILÉE (rotation.y ,16), comme les roues d'avant
+    const R9=.40*A.wr,w9=.32*A.wr,gN=roueEpave(R9,w9,0),gR=roueEpave(R9,w9,1);let wi=0;
+    for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){const w=new THREE.Group(),g9=wi===2?gR:gN;
+      for(const g in g9){const m=new THREE.Mesh(g9[g],lpMatC(g));m.userData.lp=1;w.add(m);}
+      w.scale.x=sxz[0]<0?-1:1;w.userData.large=w9;w.userData.R=R9;
+      if(wi===2)w.rotation.y=.16;
       w.position.set(sxz[0]*A.wx,R9+A.wy,sxz[1]*A.wz);carGroup.add(w);wheels.push(w);wi++;}
   }else{
     const R9=.40*A.wr,wG=new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),rimG=new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),
