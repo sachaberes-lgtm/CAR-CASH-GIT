@@ -3,6 +3,12 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'AIR DU GARAGE PLUS PRÉSENT (2026-10-15 soir, pôle SON ; Léo : « augmente le bruit ambiant du garage »)
+- `garage.ambiance` (le bourdon des néons, le tube qui grésille, la ville au loin) : +6 dB à son départ (`GAR_AMB_DB`, l'option `vol` de sfx — la
+  banque n'est pas recuite). MESURÉ bande par bande : il était 4 à 13 dB SOUS la porte en feu (`garage.feu`, inchangée), presque inaudible ;
+  désormais au niveau du feu dans le grave et le médium. Le compresseur des effets tient le total (+0,3 dB en sortie, au niveau de la musique
+  du garage, −26 dB) : c'est l'équilibre de la pièce qui change, pas son volume.
+
 ## LES BASSES RÉGLÉES DANS LE JEU (2026-10-15 soir, pôle SON ; Léo dit oui aux basses réglées — pas de nitro sur la musique)
 - `assets/audio/musique-bus.js` (le MÊME que la bibliothèque) est chargé par le jeu et posé dans le graphe de la musique (`musWaBranche` :
   élément → gain → BUS → compresseur doux → limiteur). Chaque morceau reçoit son réglage à `playMusic` (`MUS_WA.bus.piste`). `?basses=brut` = sans.
