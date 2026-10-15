@@ -46139,13 +46139,21 @@ const DRG_RK=[3,2,1,0,1,2,3],DRG_RS=[-1,-1,-1,0,1,1,1],DRG_U7=[0,.17,.33,.5,.67,
    langues sauvages) ; les flammes CONVERGENT (des braises aspirées vers la tête) et le CRÂNE se resserre hors du feu (1-3,5 s) ; les BOIS,
    sourcils, nageoires, moustaches et barbe POUSSENT (2-4,5 s) ; les YEUX S'OUVRENT (4-5 s) et il RUGIT : il est né ; le CORPS sort ensuite
    derrière lui, un tronçon par palier. Lâcher la nitro l'éteint : la prochaine NITROOO repart des flammes. */
-const DRG_FORME=6;
+const DRG_FORME=6; // (gardé pour les bancs : n'est plus lu par dragonTick — voir DRG_STADES)
 const DRG_ECH=.76; /* (2026-10-15, Sacha : « il prend trop de place au-dessus de la voiture, on ne voit plus la route ») LA TAILLE du dragon : crâne, corps, banderoles — un seul bouton */
+/* LES STADES (2026-10-15, Sacha : « le dragon doit mettre plus de temps à apparaître, plus de stades évolutifs et de paliers avant
+   d'atteindre sa forme finale »). Avant : formé en 6 s, adulte au 10e palier de boost (10 s). Désormais il a SA PROPRE horloge (`DRG.tt`,
+   les secondes de NITROOO tenue — la vitesse et ses paliers ne bougent pas) et il ÉVOLUE PAR CRANS, chacun marqué (gerbe de braises,
+   mini-rugissement, la tête qui gonfle d'un coup) :
+     0 FLAMMES · 1 BRAISES qui convergent · 2 CRÂNE flou · 3 CRÂNE net · 4 BOIS · 5 MOUSTACHES et gueule · 6 YEUX : il est NÉ (vrai rugissement)
+   puis le CORPS sort un tronçon à la fois (DRG_TRONC s chacun) jusqu'à 10 : la forme ADULTE vers DRG_ADULTE s. Lâcher la nitro l'éteint :
+   la prochaine NITROOO repart des flammes. [t (s), formation visée] */
+const DRG_STADES=[[0,0],[2,.14],[4,.27],[6,.4],[8,.54],[10,.7],[12,1]],DRG_TRONC=1.2,DRG_NTR=10,DRG_ADULTE=12+DRG_NTR*DRG_TRONC;
 const DRG_HN=220; // la TRAJECTOIRE : un point tous les 35 cm (77 m au moins, bien plus à pleine vitesse)
 const DRG={m:null,yeux:null,S:{},NP:0,pos:null,col:null,uv:null,roar:0,pal:-1,t:0,em:0,nS:0,neuf:0,
   tm:null,bouche:null,lS:0,nez:new THREE.Vector3(),vP:new THREE.Vector3(),vOk:false,vF:new THREE.Vector3(0,0,1),hF:new THREE.Vector3(0,0,1),hU:new THREE.Vector3(0,1,0),hR:new THREE.Vector3(1,0,0),cl:2,Us:new THREE.Vector3(0,1,0),
   vt:0,raf:1,phF:0,Af:0,flm:1.6,sag:0,dev:0,rl:new THREE.Vector3(),tG:[0,0,0],tD:[0,0,0], /* (v7, papier) le VENT relatif (0 à l'arrêt → ~1,7 au plafond de NITROOO), ses rafales, la phase du claquement, et ce qu'ils font au corps (voir dragonTick) */
-  fo:0,ne:0, /* (v6.1) la FORMATION : 0 = des flammes, 1 = le dragon (voir DRG_FORME) */
+  tt:0,st:0,tr:0,fo:0,ne:0, /* (v6.1) la FORMATION : 0 = des flammes, 1 = le dragon (voir DRG_FORME) */
   vir:0,air:0,imp:0,impN:0,envol:0,nodS:0,nodV:0,spd0:-1,ph:0,modeP:'drive',vPrev:new THREE.Vector3(0,0,1),kU:new THREE.Vector3(0,1,0),kR:new THREE.Vector3(1,0,0),oN:new THREE.Vector3(),vu:[1,1], /* (dragon v6) voir dragonTick */
   hx:new Float32Array(DRG_HN*3),hN:0,hI:0, // l'anneau des positions : hI = le plus récent (la caisse)
   SPN:40,SP:[],SL:[],Lb:0,dA:1,Wb:.5,Aw:.5,Av:.3,y0:.8,lam:4.5,Hs:1,
@@ -46237,11 +46245,13 @@ function dragonEchine(u,out){ // un point du CORPS (u : 0 la nuque → 1 le bout
 function dragonCoul(i,c,k){DRG.CR[i]=c[0]*k;DRG.CG[i]=c[1]*k;DRG.CB[i]=c[2]*k;}
 function dragonTick(dt){
   const vis=NTR.k;
-  if(vis<.02){if(DRG.m&&DRG.m.visible)dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;return;}
+  if(vis<.02){if(DRG.m&&DRG.m.visible)dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;DRG.tt=0;DRG.st=0;DRG.tr=0;return;}
   if(!DRG.m)dragonInit();
   DRG.m.visible=DRG.tm.visible=DRG.bouche.visible=true;for(const s9 of DRG.yeux)s9.visible=true;DRG.t+=dt;const t=DRG.t;
   DRG.em=Math.min(1,DRG.em+dt/.6); // il JAILLIT de la caisse
-  DRG.fo=Math.min(1,DRG.fo+dt/DRG_FORME); // (v6.1) et il se FORME, lentement (voir DRG_FORME)
+  DRG.tt+=dt;let st9=0;while(st9+1<DRG_STADES.length&&DRG.tt>=DRG_STADES[st9+1][0])st9++; // (stades) le cran atteint
+  const foC=DRG_STADES[st9][1];DRG.fo+=(foC-DRG.fo)*(1-Math.exp(-dt*2.6)); // il POUSSE vers son cran en ~1 s, puis il y reste : un palier qu'on voit
+  if(foC-DRG.fo<.004)DRG.fo=foC;
   const c=carGroup.position,q=carGroup.quaternion,sp=CARS[level];
   DRG.c.copy(c);DRG.cF.set(0,0,1).applyQuaternion(q);DRG.cR.set(1,0,0).applyQuaternion(q);DRG.cU.set(0,1,0).applyQuaternion(q);
   // LA TRAJECTOIRE (un PORTAIL, un téléport : le corps repart tout droit derrière) et le HAUT du corps : le haut de l'ÉCRAN lissé — sur la
@@ -46293,11 +46303,14 @@ function dragonTick(dt){
    const bk=.3*DRG.vir*(1-.4*DRG.air),cb=Math.cos(bk),sb=Math.sin(bk);
    DRG.kU.copy(DRG.hU).multiplyScalar(cb).addScaledVector(DRG.hR,sb);DRG.kR.copy(DRG.hR).multiplyScalar(cb).addScaledVector(DRG.hU,-sb);}
   // LES COMPARTIMENTS : AUCUN au déclenchement (la tête seule), UN DE PLUS À CHAQUE PALIER — lissé : le nouveau POUSSE à la queue
-  let rugit=false;if(NTR.pal!==DRG.pal){if(DRG.pal>=0&&NTR.pal>DRG.pal){DRG.roar=1;rugit=true;DRG.neuf=1;}DRG.pal=NTR.pal;} // un palier = un RUGISSEMENT
+  let rugit=false;
+  if(st9>DRG.st){DRG.st=st9;if(st9<DRG_STADES.length-1){DRG.roar=Math.max(DRG.roar,.55);rugit=true;try{hap(8);}catch(e){}}} // (stades) un CRAN de formation = une gerbe, un grondement
   if(!DRG.ne&&DRG.fo>=.86){DRG.ne=1;DRG.roar=1;rugit=true;} // (v6.1) les yeux viennent de s'ouvrir : il est NÉ, il rugit
+  {const tr9=DRG.ne?Math.min(DRG_NTR,Math.floor((DRG.tt-DRG_STADES[DRG_STADES.length-1][0])/DRG_TRONC)+1):0; // (stades) le corps : un tronçon tous les DRG_TRONC s après la naissance
+   if(tr9>DRG.tr){if(DRG.tr>0){DRG.roar=1;rugit=true;}DRG.neuf=1;DRG.tr=tr9;}} // un tronçon = un RUGISSEMENT (le 1er sort dans celui de la naissance)
   DRG.roar=Math.max(0,DRG.roar-dt*1.4);DRG.neuf=Math.max(0,DRG.neuf-dt*1.1);
-  DRG.nS+=(Math.max(0,NTR.pal)-DRG.nS)*Math.min(1,dt*2.4);
-  const n9=DRG.nS,gB=Math.min(1,n9/10),gT=NTR.gT,R9=DRG.roar>.82?(1-DRG.roar)/.18:DRG.roar/.82,em=DRG.em,V=vis*(1+.25*R9),VR=DRG.vir,AI=DRG.air,IM=DRG.imp,VT=DRG.vt,v1=Math.min(1,DRG.vt);
+  DRG.nS+=(DRG.tr-DRG.nS)*Math.min(1,dt*2.4);
+  const n9=DRG.nS,gB=Math.min(1,n9/DRG_NTR),gT=THREE.MathUtils.smoothstep(DRG.tt,0,DRG_ADULTE),R9=DRG.roar>.82?(1-DRG.roar)/.18:DRG.roar/.82,em=DRG.em,V=vis*(1+.25*R9),VR=DRG.vir,AI=DRG.air,IM=DRG.imp,VT=DRG.vt,v1=Math.min(1,DRG.vt);
   const FO=DRG.fo,rf=function(a,b){return THREE.MathUtils.smoothstep(FO,a,b);}, // (v6.1) chaque partie naît à SON heure de la formation
         fCr=rf(.2,.58),fTr=rf(.38,.75),fOe=rf(.68,.86),fMo=rf(.3,.7),fBo=rf(.3,.6),fCo=rf(.7,1),CH=1-rf(.15,.7); // crâne · bois et traits · yeux · moustaches · gueule · corps · le CHAOS du début
   const inf=pwrNitroT>0,tri=triNoir(),C9=tri?DRG.NOI:inf?DRG.VIO:DRG.FEU,P=DRG.P,K=DRG.K,W1=DRG.W1; /* (v7) la DARK TRIAD passe devant la nitro infinie : NOIR */
@@ -46446,17 +46459,18 @@ function dragonTick(dt){
       if(i<6)spawnP(flameCore,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+H9.x*v*.8,EXV.y+H9.y*v*.8+.5,EXV.z+H9.z*v*.8,.16+Math.random()*.08);}}}
 }
 window.dbgDragon=function(q){
+  if(q==='evo'){const T=+arguments[1]||30,o=[];for(let i=0;i<=T*30;i++){NTR.k=1;dragonTick(1/30);if(i%30===0)o.push([+DRG.tt.toFixed(1),DRG.st,+DRG.fo.toFixed(2),+DRG.nS.toFixed(2),+DRG.Hs.toFixed(2),+DRG.Lb.toFixed(1),DRG.ne]);}NTR.k=0;dragonTick(1/30);return o;} /* (banc, stades) l'évolution déroulée seconde par seconde : [s, stade, formation, tronçons, tête, corps, né] */
   if(q==='pres'){if(arguments[1]!=null)NTR_PRES.k=+arguments[1];return {de:NTR_PRES.de,a:NTR_PRES.a,k:NTR_PRES.k,por:+POR.toFixed(2),part:NTR.shell?+ntrShellM.uniforms.uPres.value.z.toFixed(2):null};} // (debout) dbgDragon('pres',0) : la comète d'avant, qui voilait l'écran (A/B)
   if(q==='tick'){if(DRG.m&&DRG.m.visible)dragonTick(1/60);return DRG.vu.slice();} // (banc, v6) en PAUSE photo : une image de dragon recalculée pour la caméra de la photo (les yeux dépendent de l'angle)
   if(q==='ecran'){if(!DRG.m||!DRG.m.visible)return null;const o={},pr=function(n,v){const d9=v.distanceTo(camera.position);DRG.pj.copy(v).project(camera);o[n]=[+DRG.pj.x.toFixed(2),+DRG.pj.y.toFixed(2),Math.round(d9)];};
     const mid=function(nom,der){const s=DRG.S[nom],o9=(s.o+(der?s.n-1:Math.floor(s.n/2)))*6,p=DRG.pos;return DRG.a.set((p[o9]+p[o9+3])/2,(p[o9+1]+p[o9+4])/2,(p[o9+2]+p[o9+5])/2);};
     pr('tete',DRG.hC);pr('oeil',DRG.yeux[1].position);pr('nez',DRG.nez);pr('corne',mid('corD',true));pr('corps',mid('corps',false));pr('queue',mid('corps',true));return o;}
-  return {visible:!!(DRG.m&&DRG.m.visible),palier:NTR.pal,troncons:+DRG.nS.toFixed(2),tenue:+NTR.gT.toFixed(2),tete:+DRG.Hs.toFixed(2),corps:+DRG.Lb.toFixed(1),histo:DRG.hN,
+  return {visible:!!(DRG.m&&DRG.m.visible),palier:NTR.pal,stade:DRG.st,evo:+DRG.tt.toFixed(1),troncons:+DRG.nS.toFixed(2),tenue:+NTR.gT.toFixed(2),tete:+DRG.Hs.toFixed(2),corps:+DRG.Lb.toFixed(1),histo:DRG.hN,
     boost:+NTR.boost.toFixed(2),vent:+DRG.vt.toFixed(2),noir:triNoir(),intensite:+NTR.k.toFixed(2),rugit:+DRG.roar.toFixed(2),points:DRG.NP,cap:DRG.hF.toArray().map(function(v){return +v.toFixed(3);}),nezc:DRG.cF.toArray().map(function(v){return +v.toFixed(2);}),pos:DRG.c.toArray().map(function(v){return +v.toFixed(1);}),camDedans:+(1-(DRG.fC==null?1:DRG.fC)).toFixed(2),opa:DRG.m?{crane:+DRG.tm.material.opacity.toFixed(2),traits:+DRG.m.material[1].opacity.toFixed(2),corps:+DRG.m.material[0].opacity.toFixed(2)}:null,vol:mode==='fall',forme:+DRG.fo.toFixed(2),yeux:DRG.vu.map(function(v){return +v.toFixed(2);}),virage:+DRG.vir.toFixed(2),air:+DRG.air.toFixed(2),ressort:+DRG.nodS.toFixed(3)};};
 function nitroooVide(){ // (2026-09-29, audit GAMEPLAY) une partie qui finit ou recommence : plus de boost, plus de plasma, plus de dragon
   NTR.on=false;NTR.t=NTR.boost=NTR.k=NTR.kc=0;NTR.pal=0;NTR.airT=0;NTR.airFig=false;
   if(NTR.shell){NTR.shell.visible=NTR.core.visible=NTR.halo.visible=NTR.halo2.visible=false;for(const m of NTR.langues)m.visible=false;}
-  dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;NTR.gT=0;
+  dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;DRG.tt=0;DRG.st=0;DRG.tr=0;NTR.gT=0;
 }
 function portailPasse(){
   if((BALADE||JADE_JEU)&&LVL.cur&&LVL.cur.id==='jade'&&JADE.root){jadeFinale();return;} // (v14) la balade de jade a une FIN : l'arrivée, puis le départ
