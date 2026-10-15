@@ -105,6 +105,19 @@ npm run essai -- "/chemin/vers/une/autre/VERSION PRINCIPALE"   # joue toute la f
   course ») prime toujours. En Debug, le bilan de 15 s dit « palier RÉCENT (modèle iPhone14,2 (app)) ».
 - **Mode Jeu d'iOS** : `LSApplicationCategoryType = public.app-category.racing-games` + `GCSupportsGameMode` — iOS 18+ donne la priorité
   au processeur et à la puce graphique pendant qu'on joue, et calme le reste du téléphone.
+- **Le gouverneur thermique** (15/10, mesuré sur l'iPhone 13 Pro : « ultra saccadé quand on va vite ») : à pleine vitesse la puce tourne à
+  fond, l'iPhone chauffe en 1-2 min et iOS bride processeur ET puce (le même calcul passe de 2 à 15-30 ms par image) — la course
+  s'effondrait de 60 à 15-30 images/s irrégulières. Le plugin natif `Eveil` suit `ProcessInfo.thermalState` ; `natif.js` (partie 10) :
+  « chaud » (2) → jeu calé à 30 images/s STABLES (sa cadence CAD), « critique » (3) → en plus le cran de qualité le plus bas ; revenu à
+  « normal/tiède », le jeu reprend la main. Et `preparer-www.js` autorise la cadence 30 calée au palier RÉCENT aussi (le jeu web la
+  réserve aux paliers 0 et 1) : 2 s d'images en retard → 30 régulières, retour à 60 dès que la marge revient.
+- **Le banc de mesure sur le vrai iPhone** (build Debug, rien ne change pour un joueur) :
+  `xcrun devicectl device process launch --console --terminate-existing --device <id> com.sachaberes.carcash -- -ccBanc` → une course
+  jouée toute seule (bac à sable, pilote, NITRO), 3 min d'endurance, une ligne « [banc] » toutes les 2 s (images/s, à-coups, vitesse,
+  calcul par image, appels, triangles, cadence, chaleur) et un bilan par 30 s. `-ccCarte volcan` force la carte, `-ccPalier 1` le
+  palier, `-ccDissection` éteint une famille d'objets à la fois (flou, transparents, additifs, particules, pixels ÷2, cran le plus bas).
+  Stockage web JETABLE : la vraie sauvegarde est lue, jamais écrite. ⚠ Mesurer téléphone FROID et débranché : la charge et les bancs à la
+  suite le mettent en « critique », où plus rien ne se mesure.
 - **L'écran reste allumé pendant qu'on joue** (plugin natif `Eveil` + `natif.js` partie 8) : un pouce posé sans bouger sur le volant ou
   la NITRO n'éteignait plus l'écran au bout de 30 s ; rendu à iOS après 3 minutes sans toucher ou en arrière-plan.
 

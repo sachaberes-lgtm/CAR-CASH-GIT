@@ -16,9 +16,10 @@ class JeuViewController: CAPBridgeViewController {
 
         // Le modèle exact de l'iPhone, dit au jeu AVANT son premier script (la page n'est chargée qu'après, dans viewDidLoad).
         let modele = JeuViewController.modele()
-        let palier = JeuViewController.palier(modele).map(String.init) ?? "null"
+        let palier = (JeuViewController.bancPalier ?? JeuViewController.palier(modele)).map(String.init) ?? "null"
         webView?.configuration.userContentController.addUserScript(WKUserScript(
-            source: "window.__ccAppareil={modele:'\(modele)',palier:\(palier)};",
+            source: "window.__ccAppareil={modele:'\(modele)',palier:\(palier),banc:\(JeuViewController.banc),carte:'\(JeuViewController.bancCarte)',"
+                + "dissection:\(JeuViewController.banc && ProcessInfo.processInfo.arguments.contains("-ccDissection"))};",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
         if let defile = webView?.scrollView {
@@ -35,6 +36,30 @@ class JeuViewController: CAPBridgeViewController {
 
     // L'indicateur d'accueil qui s'efface : réglé par capacitor.config.json (SystemBars.hidden, intégré à Capacitor 8).
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
+
+    /// LE BANC DE MESURE SUR LE VRAI IPHONE (2026-10-14, Sacha : « ultra saccadé quand on va vite »). Lancée avec l'argument `-ccBanc`
+    /// (`xcrun devicectl device process launch --console --device <id> com.sachaberes.carcash -ccBanc`, build Debug pour lire la
+    /// console), l'app joue une course toute seule et écrit ses mesures (natif.js, partie 9). Son stockage web est alors JETABLE : la
+    /// vraie sauvegarde est lue (Preferences) mais jamais écrite. Sans l'argument (toujours, pour un joueur) : rien ne change.
+    static let banc = ProcessInfo.processInfo.arguments.contains("-ccBanc")
+    /// `-ccCarte volcan` (avec -ccBanc) : la carte de la course mesurée (lettres seules, sinon ignorée).
+    static let bancCarte: String = {
+        let a = ProcessInfo.processInfo.arguments
+        guard banc, let i = a.firstIndex(of: "-ccCarte"), i + 1 < a.count, a[i + 1].allSatisfy({ $0.isLetter }) else { return "" }
+        return a[i + 1]
+    }()
+    /// `-ccPalier 1` (avec -ccBanc) : mesurer un autre palier que celui du modèle.
+    static let bancPalier: Int? = {
+        let a = ProcessInfo.processInfo.arguments
+        guard banc, let i = a.firstIndex(of: "-ccPalier"), i + 1 < a.count, let n = Int(a[i + 1]), (0...2).contains(n) else { return nil }
+        return n
+    }()
+
+    override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
+        let config = super.webViewConfiguration(for: instanceConfiguration)
+        if JeuViewController.banc { config.websiteDataStore = .nonPersistent() }
+        return config
+    }
 
     /// LE PALIER DE L'APPAREIL, SANS DEVINER (2026-10-14, passe « iPhone au max »). Le jeu choisit son palier graphique (PAL : 0 ancien ·
     /// 1 moyen · 2 récent) avec un petit banc du processeur, retenu 7 jours : couru téléphone chaud ou en mode économie d'énergie, il
@@ -62,7 +87,8 @@ class JeuViewController: CAPBridgeViewController {
 class Eveil: CAPPlugin, CAPBridgedPlugin {
     let identifier = "Eveil"
     let jsName = "Eveil"
-    let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name: "garde", returnType: CAPPluginReturnPromise)]
+    let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name: "garde", returnType: CAPPluginReturnPromise),
+                                            CAPPluginMethod(name: "etat", returnType: CAPPluginReturnPromise)]
 
     @objc func garde(_ call: CAPPluginCall) {
         let allume = call.getBool("on") ?? false
@@ -70,6 +96,29 @@ class Eveil: CAPPlugin, CAPBridgedPlugin {
             UIApplication.shared.isIdleTimerDisabled = allume
             call.resolve()
         }
+    }
+
+    /// LE GOUVERNEUR THERMIQUE (2026-10-15, mesuré sur l'iPhone 13 Pro de Sacha : « ultra saccadé quand on va vite »). L'état thermique
+    /// d'iOS (0 normal · 1 tiède · 2 chaud : iOS bride la puce · 3 critique) et le mode économie d'énergie : `etat()` à la demande, et
+    /// l'événement « thermique » à chaque changement — natif.js (partie 10) cale alors le jeu à 30 images/s stables.
+    private var observe = false
+
+    override public func load() {
+        guard !observe else { return }
+        observe = true
+        for nom in [ProcessInfo.thermalStateDidChangeNotification, Notification.Name.NSProcessInfoPowerStateDidChange] {
+            NotificationCenter.default.addObserver(forName: nom, object: nil, queue: .main) { [weak self] _ in
+                self?.notifyListeners("thermique", data: Eveil.mesure())
+            }
+        }
+    }
+
+    static func mesure() -> [String: Any] {
+        ["thermique": ProcessInfo.processInfo.thermalState.rawValue, "eco": ProcessInfo.processInfo.isLowPowerModeEnabled]
+    }
+
+    @objc func etat(_ call: CAPPluginCall) {
+        call.resolve(Eveil.mesure())
     }
 }
 

@@ -40,7 +40,9 @@ const JAMAIS=/\.py$|^\.DS_Store$|^Thumbs\.db$/;
 const SANS_LIVRER=new Set(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3']);
 fs.rmSync(WWW,{recursive:true,force:true});fs.mkdirSync(WWW,{recursive:true});
 let nFic=0,nOct=0;
-const copie=(a,b)=>{if(SANS_LIVRER.has(path.relative(SRC,a).split(path.sep).join('/')))return;const s=fs.statSync(a);
+/* (2026-10-15) PAS D'AUTRE PAGE QUE LE JEU : l'app n'ouvre que index.html. Les pages de travail rangées dans assets/ (l'atelier musique
+   `assets/audio/music/direct/*.html`, qui charge des polices Google en ligne) ne partent pas — sans ça, l'inventaire ci-dessous refusait. */
+const copie=(a,b)=>{const rel=path.relative(SRC,a).split(path.sep).join('/');if(SANS_LIVRER.has(rel)||(/\.html?$/i.test(rel)&&rel!=='index.html'))return;const s=fs.statSync(a);
   if(s.isDirectory()){fs.mkdirSync(b,{recursive:true});for(const n of fs.readdirSync(a))if(!JAMAIS.test(n))copie(path.join(a,n),path.join(b,n));}
   else{fs.copyFileSync(a,b);nFic++;nOct+=s.size;}};
 for(const n of GARDE){const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('manque '+n+' dans VERSION PRINCIPALE');copie(a,path.join(WWW,n));}
@@ -133,6 +135,15 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   '@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) repeat(2,minmax(0,173px))!important}\n'+
   '  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:3!important}}</style>\n</head>','page OFFRES');
 une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
+/* LA CADENCE STABLE AUSSI SUR LES IPHONE RÉCENTS (2026-10-15, mesuré sur l'iPhone 13 Pro de Sacha : « ultra saccadé quand on va vite »).
+   Le jeu réserve sa cadence 30 images/s calée (CAD) aux paliers ANCIEN et MOYEN ; au RÉCENT, une course qui manque de marge tombait de 60
+   à 40-55 images/s IRRÉGULIÈRES (jusqu'à 63 images en retard en 2 s), puis à 15-30 quand l'iPhone chauffe. Dans l'app, le palier RÉCENT
+   y a droit : plus d'un quart des images en retard pendant 2 s → 30 images/s régulières, retour à 60 dès que la marge revient (les règles
+   du jeu, inchangées : sa physique est prouvée exacte à 30). `cadenceMonte` à 0 comme au MOYEN : calé, l'échelle de qualité ne remplit
+   pas les 33 ms, elle laisse le jeu revenir à 60. natif.js (partie 10) y ajoute le calage dès qu'iOS dit « chaud ». */
+une("PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];",
+  "PAL.B.cadence30=[1,1,1];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,0]; /* (app iOS) la cadence stable au palier RÉCENT aussi */",
+  'cadence stable au palier RÉCENT');
 /* LE PALIER DE L'APPAREIL, SANS DEVINER (2026-10-14, passe « iPhone au max ») : l'app connaît le modèle exact de l'iPhone
    (JeuViewController.swift le pose dans `window.__ccAppareil` avant tout script) — il remplace le petit banc du processeur, qui, couru
    téléphone chaud ou en mode économie d'énergie, classait un iPhone récent « ancien » pour 7 jours. Rang : après `?palier` et après

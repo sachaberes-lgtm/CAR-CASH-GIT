@@ -92,8 +92,8 @@
         passage en arrière-plan ou au prochain lancement — jamais en pleine course.
      Rien n'est envoyé : la lecture de fichiers publics, sans identifiant. Hors ligne, ou si le dépôt ne répond pas, rien ne change. */
   var MAJ='https://raw.githubusercontent.com/sachaberes-lgtm/CAR-CASH-GIT/app-maj/'; // (preparer-www.js --maj <adresse> : un essai)
-  var U=P.CapacitorUpdater;
-  if(U){
+  var U=P.CapacitorUpdater,BANC=!!(window.__ccAppareil&&window.__ccAppareil.banc);
+  if(U&&!BANC){ // (le banc de mesure, partie 9 : pas de réseau, pas de mise à jour pendant qu'on mesure)
     var vSup=function(a,b){a=String(a||'0').split('.');b=String(b||'0').split('.'); // a ≥ b, numéro de version par numéro
       for(var i=0;i<Math.max(a.length,b.length);i++){var x=+a[i]||0,y=+b[i]||0;if(x!==y)return x>y;}return true;};
     var lire=function(u){var H=P.CapacitorHttp; // la requête native : ni CORS ni « contenu mixte » ; repli fetch
@@ -149,6 +149,106 @@
     ['touchstart','pointerdown','keydown'].forEach(function(t){addEventListener(t,touche,{capture:true,passive:true});});
     setInterval(function(){if(eveil&&Date.now()-dernier>180000)garde(false);},15000);
     document.addEventListener('visibilitychange',function(){if(document.hidden)garde(false);});
+  }
+
+  /* ---- 10. LE GOUVERNEUR THERMIQUE (2026-10-15, mesuré sur l'iPhone 13 Pro de Sacha : « ultra saccadé quand on va vite ») ----
+     Mesuré au banc : à pleine vitesse la puce graphique tourne à fond ; en une à deux minutes l'iPhone chauffe, iOS bride processeur ET
+     puce (le même calcul JavaScript passe de 2 à 15 ms par image) et la course s'effondre de 60 à 15-30 images/s irrégulières — alors
+     plus rien n'y fait, ni moitié moins de pixels ni le cran de qualité le plus bas. Dès qu'iOS dit « chaud » (2) ou « critique » (3), on
+     cale le jeu à 30 images/s STABLES (sa propre cadence CAD : la physique y est prouvée exacte, une image d'écran sur deux n'est pas
+     dessinée) : moitié moins de travail, le téléphone refroidit, l'image reste régulière. Revenu à « normal » ou « tiède » (0, 1), le jeu
+     reprend la main : 60, et sa cadence automatique s'il manque encore de marge. */
+  /* Et au « critique » (3, mesuré : le processeur ralenti ~10 fois, 20-30 ms de calcul par image même calé à 30), le cran de qualité le
+     plus bas en plus : plus de passe d'ombre ni de halo, beaucoup moins d'appels de dessin. On redescend par paliers en refroidissant. */
+  if(E&&E.addListener){var niv=0; // 0 : le jeu décide · 1 : calé à 30 · 2 : calé à 30 + qualité au plus bas
+    var thermique=function(r){if(!r||typeof window.dbgCadence!=='function')return;var v=r.thermique>=3?2:r.thermique>=2?1:0;if(v===niv)return;
+      try{if(v>=1&&niv===0)window.dbgCadence(30);if(v===0)window.dbgCadence(0);
+        if(v===2&&typeof window.dbgQual==='function'){var b=window.dbgQual();window.dbgQual(b.kMax);}
+        if(niv===2&&v<2&&typeof window.dbgPin==='function')window.dbgPin(false);
+        niv=v;dit('chaleur '+r.thermique+[' : le jeu reprend la main',' : jeu calé à 30 images/s',' : calé à 30 + qualité au plus bas'][v]);}catch(e){}};
+    try{E.addListener('thermique',thermique);}catch(e){}
+    var amorce=function(){if(!window.__gameReady)return setTimeout(amorce,1000);try{E.etat().then(thermique).catch(function(){});}catch(e){}};amorce();
+  }
+
+  /* ---- 9. LE BANC DE MESURE SUR LE VRAI IPHONE (2026-10-14, Sacha : « ultra saccadé quand on va vite ») ----
+     Seulement quand l'app est lancée avec `-ccBanc` (JeuViewController.swift pose __ccAppareil.banc et un stockage web JETABLE). Ici :
+     la sauvegarde native en LECTURE SEULE (le jeu la relit, n'y écrit rien), le relevé des à-coups du jeu allumé (?perf=1), puis une
+     course jouée toute seule — bac à sable (la caisse se replace au lieu de mourir), pilote automatique, NITRO tenue — et toutes les
+     2 s une ligne « [banc] » dans la console : images/s, images ratées (> 20, > 34, > 50 ms), pire image, vitesse, niveau, cran de
+     qualité, appels de dessin, triangles, et les à-coups nommés par le jeu (construction, programmes, textures). Durée : 150 s. */
+  if(BANC){
+    var bl=function(){try{console.log('[banc] '+[].slice.call(arguments).join(' '));}catch(e){}};
+    try{if(!/[?&]perf=1/.test(location.search))history.replaceState(null,'',location.pathname+(location.search?location.search+'&':'?')+'perf=1'+location.hash);}catch(e){}
+    var PR=P.Preferences;
+    if(PR){var lu={get:function(o){return PR.get(o);},keys:function(){return PR.keys();},
+        set:function(){return Promise.resolve();},remove:function(){return Promise.resolve();},clear:function(){return Promise.resolve();}};
+      try{C.Plugins.Preferences=lu;}catch(e){}
+      if(C.Plugins.Preferences!==lu){bl('ARRÊT : la sauvegarde native n\'a pas pu passer en lecture seule');return;}}
+    bl('prêt',location.href,JSON.stringify(window.__ccAppareil));
+    try{if(P.Eveil)P.Eveil.garde({on:true});}catch(e){} // le banc ne touche jamais l'écran : sans ça, le verrouillage automatique l'arrêterait en route
+    var g=function(f,d){try{return f();}catch(e){return d;}};
+    /* Les variables du jeu vivent dans sa fermeture : on ne lit QUE ses crochets publics (dbgPerf, dbgCout, dbgPalier, dbgState, dbgScene),
+       son moniteur (#perfMon, allumé par ?perf=1) et le compteur de vitesse du HUD (#nxVit). LA DISSECTION : après 15 s de mise en vitesse,
+       des étapes de 8 s (mesurées sur leurs 6 dernières) éteignent une famille à la fois — ce qui fait remonter les images/s est ce qui
+       étouffe la puce. `-ccCarte volcan` (argument de lancement) force la carte. */
+    var SC=function(){return g(function(){return dbgScene();},null);},CACHE=[];
+    var montre=function(){for(var i=0;i<CACHE.length;i++)CACHE[i].visible=true;CACHE=[];};
+    var mat=function(o){var m=o.material;return Array.isArray(m)?m[0]:m;};
+    var cacheSi=function(t){var s9=SC();if(!s9)return;s9.scene.traverse(function(o){if(o.visible&&(o.isMesh||o.isPoints||o.isSprite||o.isLine)&&o!==s9.car&&t(o)){o.visible=false;CACHE.push(o);}});};
+    var transp=function(o){var m=mat(o);return !!(m&&m.transparent);},additif=function(o){var m=mat(o);return !!(m&&m.blending===2);},
+        partic=function(o){return !!(o.isPoints||o.isSprite);};
+    var DPR0=0;
+    var ET=[['base',null,null,null],
+      ['sans flou de vitesse',null,function(){dbgNet(1);},function(){dbgNet(0);}],
+      ['sans objets transparents',transp,null,montre],
+      ['sans effets additifs',additif,null,montre],
+      ['sans particules',partic,null,montre],
+      ['pixels /2',null,function(){DPR0=dbgPerf().dpr;dbgDPR(+(DPR0*0.7071).toFixed(2));},function(){dbgDPR(DPR0);dbgPin(false);}],
+      ['cran de qualité le plus bas',null,function(){var b=dbgQual();dbgQual(b&&b.kMax!=null?b.kMax:9);},function(){dbgPin(false);}],
+      ['base (retour)',null,null,null]];
+    var inventaire=function(){var s9=SC();if(!s9)return;var T={};s9.scene.traverse(function(o){if(!o.visible||!(o.isMesh||o.isPoints||o.isSprite))return;var m=mat(o);if(!m||!(m.transparent||o.isPoints||o.isSprite))return;
+        var p=o,nm='';for(var k=0;k<4&&p&&!nm;k++){nm=p.name||'';p=p.parent;}nm=(nm||'?')+(o.isPoints?' [points]':o.isSprite?' [sprite]':'')+(m.blending===2?' [add]':'')+(m.depthWrite?'':' [sans z]');
+        if(!o.geometry.boundingSphere&&o.geometry.computeBoundingSphere)g(function(){o.geometry.computeBoundingSphere();});var r=o.geometry.boundingSphere?o.geometry.boundingSphere.radius*Math.max(o.scale.x,o.scale.y,o.scale.z):0;
+        var e=T[nm]||(T[nm]={n:0,r:0,inst:0});e.n++;e.r=Math.max(e.r,Math.round(r));if(o.isInstancedMesh)e.inst+=o.count;});
+      var L=Object.keys(T).map(function(k){return [k,T[k]];}).sort(function(x,y){return y[1].n*Math.max(1,y[1].r)-x[1].n*Math.max(1,x[1].r);}).slice(0,14);
+      bl('inventaire des transparents :',L.map(function(e){return e[0]+' ×'+e[1].n+(e[1].inst?' (inst '+e[1].inst+')':'')+' r'+e[1].r;}).join(' · '));};
+    var mesure=function(){
+      g(function(){dbgCout(1);});
+      bl('palier',JSON.stringify(g(function(){var p=dbgPalier();return {n:p.n,src:p.src};},null)),'carte',JSON.stringify(g(function(){return dbgClassique().niveau;},null)));
+      var t0=performance.now(),der=t0,tLog=t0,n=0,s20=0,s34=0,s50=0,pire=0,ei=-1,tE=0,EM={n:0,s20:0,dur:0,calls:0,tris:0,k:0},RES=[],DIS=!!window.__ccAppareil.dissection,FEN={w:-1},FENS=[],CADON=false;
+      var cloture=function(){var E=ET[ei];if(E[3])g(E[3]);var r=[E[0],EM.dur?Math.round(EM.n*1000/EM.dur):0,EM.n?Math.round(100*EM.s20/EM.n):0,EM.k?Math.round(EM.calls/EM.k):0,EM.k?Math.round(EM.tris/EM.k/1000):0];
+        RES.push(r);bl('ÉTAPE',r[0],'→',r[1]+' i/s',r[2]+'% en retard',r[3]+' appels',r[4]+'k tri');};
+      (function f(now){var dt=now-der;der=now;n++;
+        if(dt>20)s20++;if(dt>34)s34++;if(dt>50)s50++;if(dt>pire)pire=dt;
+        var t=(now-t0)/1000;
+        if(DIS&&t>=15){var ne=Math.min(ET.length-1,Math.floor((t-15)/8));
+          if(ne!==ei){if(ei>=0)cloture();ei=ne;tE=t;EM={n:0,s20:0,dur:0,calls:0,tris:0,k:0};var E2=ET[ei];if(E2[2])g(E2[2]);if(E2[1])cacheSi(E2[1]);if(ei===2)inventaire();bl('→',E2[0]);}
+          if(ET[ei][1]&&(n%30===0))cacheSi(ET[ei][1]); // les objets nés pendant l'étape
+          if(t-tE>=2){EM.n++;EM.dur+=dt;if(dt>20)EM.s20++;var cd=g(function(){return dbgCout().image;},null);if(cd){EM.calls+=cd.calls;EM.tris+=cd.tris;EM.k++;}}}
+        if(now-tLog>=2000){thermo();
+          var pf=g(function(){return dbgPerf();},{}),co=g(function(){return dbgCout();},{}),d=g(function(){return dbgState();},{});
+          var vit=g(function(){return document.querySelector('#nxVit b').textContent;},'?');CADON=g(function(){return dbgCadence().on;},false);
+          bl(Math.round(t)+'s',Math.round(n*1000/(now-tLog))+' i/s',CADON?'(calé 30)':'','>34ms:'+s34,'>50ms:'+s50,'pire:'+Math.round(pire),vit+' km/h','cpu:'+(co.cpu?co.cpu.p50+'/'+co.cpu.p90:'?'),
+            'dpr:'+pf.dpr,'cran:'+co.ql,'appels:'+(co.image?co.image.calls:'?'),'tri:'+(co.image?Math.round(co.image.tris/1000)+'k':'?'),'chaleur:'+(TH.thermique!=null?TH.thermique:'?')+(TH.eco?' ÉCO':''),
+            g(function(){return dbgClassique().niveau.carte;},'?'),d.gameOver?'MORT':'');
+          n=s20=s34=s50=pire=0;tLog=now;}
+        if(!DIS){var w=Math.floor(t/30);if(w!==FEN.w){if(FEN.w>=0&&FEN.n)FENS.push(FEN.w*30+'-'+(FEN.w*30+30)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);FEN={w:w,n:0,dur:0,s34:0,s50:0,cal:0,ch:FEN.ch};}
+          FEN.n++;FEN.dur+=dt;if(dt>34)FEN.s34++;if(dt>50)FEN.s50++;if(CADON)FEN.cal++;FEN.ch=TH.thermique!=null?TH.thermique:'?';}
+        if(t<(DIS?15+8*ET.length+1:180))requestAnimationFrame(f);
+        else if(!DIS){if(FEN.n)FENS.push(FEN.w*30+'-'+Math.round(t)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);
+          g(function(){dbgAuto(0);dbgCout(0);});bl('BILAN ENDURANCE',FENS.join(' || '));bl('FIN');}
+        else{cloture();montre();g(function(){dbgAuto(0);dbgCout(0);dbgNet(0);dbgPin(false);});
+          bl('BILAN',RES.map(function(r){return r[0]+' : '+r[1]+' i/s, '+r[2]+'% en retard, '+r[3]+' appels, '+r[4]+'k tri';}).join(' || '));bl('FIN');}
+      })(t0);};
+    var TH={},thermo=function(){try{if(P.Eveil&&P.Eveil.etat)P.Eveil.etat().then(function(r){TH=r||{};}).catch(function(){});}catch(e){}};
+    var etape=function(){
+      if(!window.__gameReady)return setTimeout(etape,500);
+      if(window.__intro==='attente'){bl('écran titre → départ');dispatchEvent(new KeyboardEvent('keydown',{key:' '}));return setTimeout(etape,1500);}
+      if(window.__intro)return setTimeout(etape,500);
+      var d=g(function(){return dbgState();},null);
+      if(!d||!d.started){if(window.__ccAppareil.carte)g(function(){dbgClassique(window.__ccAppareil.carte);});var b=document.querySelector('#mHome .mPlay');bl('JOUER',!!b,window.__ccAppareil.carte||'');if(b)b.click();return setTimeout(etape,4000);}
+      g(function(){dbgSable(1);dbgAuto(1,0,{nit:1});});bl('course : bac à sable + pilote + NITRO');mesure();};
+    setTimeout(etape,1500);
   }
 
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */
