@@ -27361,6 +27361,55 @@ function lpWheel(o){
   }
   return K.done();
 }
+/* LA HONTE, UN CRAN PLUS BELLE (2026-10-15, Léo : « un tout petit plus de détail au niveau de la brillance et de la texture de sa
+   carcasse ; si tu y arrives, plus de définition ; des roues refaites, plus réalistes »). Sa silhouette de boîtes ne bouge pas ; ses
+   tôles deviennent des BOÎTES USÉES (boiteUsee) : les arêtes CHANFREINÉES (une facette de 3 cm où court le reflet), les grandes faces
+   CABOSSÉES par facettes (des creux de quelques millimètres, rien ne dépasse), et une couleur PAR FACETTE, multipliée par la peinture —
+   la laque marbrée, la crasse du bas, des plaques de rouille (plus souvent en bas), la poussière sur ce qui regarde le ciel, l'arête usée
+   plus claire. Tout reste à facettes (normales par face : la DA poly). */
+function boiteUsee(w,h,d,o){o=o||{};
+  const H3=[w/2,h/2,d/2],c=Math.min(o.c==null?.03:o.c,w*.22,h*.22,d*.22),cs=o.cell||.34,de=o.dent||0,sd=o.seed||1,yc=o.yc||0,ru=o.rouille||0,P=[],C=[],
+    hh=(a,b,e)=>{const x=Math.sin(a*12.9898+b*78.233+e*37.719+sd*4.17)*43758.5453;return x-Math.floor(x);},
+    sm=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t);};
+  const coul=(yw,ny,arete,i,j,f)=>{let k=.95+.08*hh(j,i,f+7);              // la marbrure : la laque n'a plus le même ton partout
+    k*=.80+.20*sm((yw-.25)/.6);                                              // la crasse : le bas plus sombre
+    if(arete)return [k*1.13,k*1.09,k*1.03];                                  // l'arête usée : la laque est partie, le reflet y court
+    if(hh(i,j,f)<ru*(1.4-sm((yw-.3)/.7)))return [k*.68,k*.50,k*.38];         // la rouille, plus fréquente en bas
+    if(ny>.7)return [k*1.05,k*1.03,k*.98];                                   // la poussière, sur ce qui regarde le ciel
+    return [k,k,k];};
+  const tri=(a,b,e,k,dir)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=e[0]-a[0],vy=e[1]-a[1],vz=e[2]-a[2]; // tourné vers `dir` (le dehors)
+    if((uy*vz-uz*vy)*dir[0]+(uz*vx-ux*vz)*dir[1]+(ux*vy-uy*vx)*dir[2]<0){const t=b;b=e;e=t;}
+    P.push(a[0],a[1],a[2],b[0],b[1],b[2],e[0],e[1],e[2]);for(let n=0;n<3;n++)C.push(k[0],k[1],k[2]);};
+  const pt=(ax,va,u,uv,v,vv)=>{const p=[0,0,0];p[ax]=va;p[u]=uv;p[v]=vv;return p;};
+  // les six faces, rentrées de c, quadrillées en cases d'environ `cell`, les sommets intérieurs creusés (jamais le bord : il touche le chanfrein)
+  for(let ax=0;ax<3;ax++)for(const s of [-1,1]){const u=(ax+1)%3,v=(ax+2)%3,eu=H3[u]-c,ev=H3[v]-c,dir=[0,0,0];dir[ax]=s;
+    const dessous=ax===1&&s<0,nu=dessous?1:Math.max(1,Math.round(2*eu/cs)),nv=dessous?1:Math.max(1,Math.round(2*ev/cs)),f=ax*2+(s>0?1:0);
+    const V=(i,j)=>{const bord=i===0||j===0||i===nu||j===nv;return pt(ax,s*(H3[ax]-(bord?0:de*hh(i*7+f,j*3,f+1))),u,-eu+2*eu*i/nu,v,-ev+2*ev*j/nv);};
+    for(let i=0;i<nu;i++)for(let j=0;j<nv;j++){const a=V(i,j),b=V(i+1,j),e=V(i+1,j+1),g=V(i,j+1),k=dessous?[.55,.5,.47]:coul(yc+(a[1]+e[1])/2,ax===1?s:0,false,i,j,f);
+      tri(a,b,e,k,dir);tri(a,e,g,k,dir);}}
+  // les douze chanfreins et les huit coins
+  for(let a=0;a<3;a++)for(let b=a+1;b<3;b++){const t=3-a-b;for(const sa of [-1,1])for(const sb of [-1,1]){
+    const q=(ta,tb,tt)=>{const p=[0,0,0];p[a]=ta;p[b]=tb;p[t]=tt;return p;},dir=[0,0,0];dir[a]=sa;dir[b]=sb;
+    const A0=q(sa*H3[a],sb*(H3[b]-c),-H3[t]+c),A1=q(sa*H3[a],sb*(H3[b]-c),H3[t]-c),B0=q(sa*(H3[a]-c),sb*H3[b],-H3[t]+c),B1=q(sa*(H3[a]-c),sb*H3[b],H3[t]-c),
+      k=coul(yc+(A0[1]+B1[1])/2,(dir[1]||0)*.7,true,a*5+b,sa+sb*3,9);
+    tri(A0,A1,B1,k,dir);tri(A0,B1,B0,k,dir);}}
+  for(const sx of [-1,1])for(const sy of [-1,1])for(const sz of [-1,1]){const dir=[sx,sy,sz],k=coul(yc+sy*H3[1],sy*.6,true,sx,sz,11);
+    tri([sx*H3[0],sy*(H3[1]-c),sz*(H3[2]-c)],[sx*(H3[0]-c),sy*H3[1],sz*(H3[2]-c)],[sx*(H3[0]-c),sy*(H3[1]-c),sz*H3[2]],k,dir);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+  g.computeVertexNormals();return g;} // non indexée : une normale par facette
+/* SES ROUES (même demande) : au kit, en facettes, comme celles de la gamme — mais une épave : un pneu au FLANC bombé, l'épaule, la bande et
+   ses deux SILLONS, des SCULPTURES en quinconce, un cordon sur le flanc ; une JANTE EN TÔLE emboutie (la lèvre, le voile percé de six trous,
+   la cuvette), cinq ÉCROUS. `rouille` : la roue arrière gauche, voilée, en rouille (son caractère d'origine). */
+function roueEpave(R,w,rouille){const hw=w/2,fx=hw-.03,
+  K=lpKit({k:{g:'m',c:0x18191c},f:{g:'m',c:0x303136},j:{g:'s',c:rouille?0x6a3f22:0x24211e},t:{g:'m',c:0x08080a},e:{g:'s',c:rouille?0x5a3a20:0x6b655c}});
+  K.lathe('k',[[R*.66,-hw],[R*.88,-hw],[R*.97,-hw*.78],[R,-hw*.5],[R,-hw*.2],[R*.97,-hw*.14],[R*.97,hw*.14],[R,hw*.2],[R,hw*.5],[R*.97,hw*.78],[R*.88,hw],[R*.66,hw]],16,0,0,0,'x');
+  for(let i=0;i<16;i++){const a=(i+.5)/16*Math.PI*2;K.box('k',hw*.34,.02,.07,(i%2?1:-1)*hw*.36,Math.sin(a)*(R+.005),Math.cos(a)*(R+.005),Math.PI/2-a);} // les sculptures
+  K.lathe('f',[[R*.79,hw+.003],[R*.84,hw+.003]],16,0,0,0,'x');                                   // le cordon du flanc
+  K.lathe('j',[[R*.66,fx-.04],[R*.64,fx],[R*.56,fx+.006],[R*.50,fx-.01],[R*.27,fx-.01],[R*.20,fx+.012],[0,fx+.012]],14,0,0,0,'x'); // la jante emboutie
+  K.lathe('t',[[R*.64,-hw+.02],[R*.64,fx-.05],[0,fx-.05]],14,0,0,0,'x');                        // le fond : on ne voit pas au travers
+  for(let i=0;i<6;i++){const a=i/6*Math.PI*2;K.box('t',.01,R*.09,R*.13,fx-.009,Math.sin(a)*R*.385,Math.cos(a)*R*.385,-a);} // les trous du voile
+  for(let i=0;i<5;i++){const a=i/5*Math.PI*2+.3;K.cyl('e',.017,.03,6,fx+.022,Math.sin(a)*R*.15,Math.cos(a)*R*.15,'x');} // les écrous
+  return K.done();}
 /* ---- LES 6 SILHOUETTES (LA HONTE + LES CINQ, 2026-09-24) ---------------------------------------
    UNE ENTRÉE = UNE CAISSE. Chaque gabarit monte son corps avec la boîte à outils `K` et rend une
    FICHE D'ANCRAGES : où vont les phares, les feux, les roues, et quels accessoires communs il veut.
@@ -27673,14 +27722,26 @@ const SHAPES={
   // 1. L'ÉPAVE — tôle froissée, une roue voilée, un phare mort. Le point de départ de chaque run.
   epave(K){
     const {W,H,L,y0,box:B}=K;
-    B(W,H*.62,L,K.body,0,y0+H*.31).rotation.z=.03;
-    const hood=B(W*.94,H*.34,L*.34,K.body,0,y0+H*.64,L*.30);hood.rotation.set(.16,0,-.06);hood.scale.y=.8;
-    B(W*.94,H*.36,L*.26,K.body,0,y0+H*.65,-L*.34).rotation.x=-.09;
-    B(W*.78,H*.62,L*.40,K.glass,0,y0+H*.93,-L*.05).rotation.z=-.04;
-    const roof=B(W*.72,H*.10,L*.34,K.acc,0,y0+H*1.24,-L*.05);roof.rotation.z=.09;roof.scale.y=.6;
+    // (2026-10-15, Léo : « plus de détail au niveau de la brillance et de la texture de sa carcasse ») ses tôles : des BOÎTES USÉES (voir
+    // boiteUsee), dans la tôle et l'accent de la caisse avec une couleur par facette — et une laque usée qui brille un peu plus (un reflet
+    // plus net, qui court sur les chanfreins), toujours mate à côté de la gamme. Même programme pour les deux (le liseré de l'épave).
+    const bV=K.body.clone(),aV=K.acc.clone();for(const m of [bV,aV]){m.vertexColors=true;rimify(m,null);}
+    bV.shininess=30;bV.specular.setHex(0x8e8e8e);bV.reflectivity=.07;aV.shininess=26;aV.specular.setHex(0x9a9a9a);
+    const U=(w,h,d,m,x,y,z,o)=>{const ms=new THREE.Mesh(boiteUsee(w,h,d,Object.assign({yc:y},o)),m);ms.position.set(x,y,z);return K.add(ms);};
+    U(W,H*.62,L,bV,0,y0+H*.31,0,{seed:1,dent:.007,rouille:.10}).rotation.z=.03;
+    U(W*.94,H*.272,L*.34,bV,0,y0+H*.64,L*.30,{seed:2,dent:.012,rouille:.08,cell:.3}).rotation.set(.16,0,-.06); // le capot froissé (×,8 de haut, comme avant)
+    U(W*.94,H*.36,L*.26,bV,0,y0+H*.65,-L*.34,{seed:3,dent:.008,rouille:.16,cell:.3}).rotation.x=-.09;
+    /* (2026-10-15, Léo : « un plafond moins buggé : l'orange se mélange bizarrement à la vitre ») LE TOIT POSÉ SUR LA VITRE. Le dessus de la
+       boîte de verre était à la hauteur du MILIEU de la dalle du toit, et les deux penchaient en sens contraire (−,04 / +,09) : le toit
+       s'enfonçait d'un côté dans le verre, le verre perçait le toit de l'autre, et autour du toit une bande de verre plat. Désormais la
+       vitre garde sa pente (−,04 : la cabine de travers, et son verre renvoie le même ciel qu'avant), le toit PENCHE AVEC ELLE, déborde
+       du verre de 4 cm sur les côtés et de 8 cm devant et derrière, et le dessus du verre est noyé dans l'épaisseur du toit (1 cm) :
+       plus aucune face ne se bat. */
+    const RT=-.04,gl=B(W*.78,H*.62,L*.40,K.glass,0,y0+H*.93,-L*.05);gl.rotation.z=RT;
+    {const of=H*.31+.0125;U(W*.82,.045,L*.44,aV,-Math.sin(RT)*of,gl.position.y+Math.cos(RT)*of,gl.position.z,{seed:4,dent:.004,rouille:.18,c:.008}).rotation.z=RT;}
     for(const sd of [-1,1]){
       const mir=B(.09,.09,.16,sd<0?K.rust:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
-      B(.08,H*.25,L*.62,K.acc,sd*(W/2+.02),y0+H*.12,0);
+      U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
     }
     B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
     for(const fz of [1,-1]){const bp=B(W*1.02,H*.24,.18,K.dark,0,y0+H*.15,fz*(L/2+.06));
@@ -27688,7 +27749,7 @@ const SHAPES={
     for(const sp of [[.30,.50,.35,.50,.30],[-.42,.45,-.10,.40,.50],[.10,.68,-.42,.60,.25],[-.25,.30,.42,.35,.40]])
       B(W*sp[3],H*sp[4],.05,K.rust,sp[0]*W,y0+H*sp[1],sp[2]*L+(sp[2]>0?.03:-.03)); // plaques de rouille
     B(.04,H*.40,L*.35,K.rust,W/2+.05,y0+H*.45,L*.10);
-    return {doors:1};
+    return {doors:1,rouesEpave:1}; // (2026-10-15) ses roues au kit (voir roueEpave), sans perdre ses phares, ses pots ni ses portières (ce que `lpw` retirerait)
   },
   /* ============================================================================================
      LES CINQ — des voitures VRAIES, que l'argent a rendues célèbres, chacune réduite à ce qui la
@@ -32266,6 +32327,15 @@ function buildCar(spec){
       w.position.set(seule?0:sxz[0]*(sxz[1]>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz)); // `wxF` : la voie avant
       carGroup.add(w);wheels.push(w);
     }
+  }else if(A.rouesEpave){
+    // (2026-10-15) LA HONTE : ses roues au KIT (roueEpave), posées comme celles du kit (jante sur +X, miroir à gauche), la gauche arrière
+    // toujours rouillée et VOILÉE (rotation.y ,16), comme les roues d'avant
+    const R9=.40*A.wr,w9=.32*A.wr,gN=roueEpave(R9,w9,0),gR=roueEpave(R9,w9,1);let wi=0;
+    for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){const w=new THREE.Group(),g9=wi===2?gR:gN;
+      for(const g in g9){const m=new THREE.Mesh(g9[g],lpMatC(g));m.userData.lp=1;w.add(m);}
+      w.scale.x=sxz[0]<0?-1:1;w.userData.large=w9;w.userData.R=R9;
+      if(wi===2)w.rotation.y=.16;
+      w.position.set(sxz[0]*A.wx,R9+A.wy,sxz[1]*A.wz);carGroup.add(w);wheels.push(w);wi++;}
   }else{
     const R9=.40*A.wr,wG=new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),rimG=new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),
           spokeG=new THREE.BoxGeometry(R9*1.05,R9*.9,.05),hubG=new THREE.CylinderGeometry(.075,.075,.37*A.wr,8);

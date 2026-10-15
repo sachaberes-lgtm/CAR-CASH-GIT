@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA HONTE, UN CRAN PLUS BELLE (2026-10-15, pôle CAISSES — Léo : « un tout petit plus de détail au niveau de la brillance et de la texture de sa carcasse ; si tu y arrives, plus de définition ; des roues refaites, plus réalistes ; un plafond moins buggé : l'orange se mélange bizarrement à la vitre »)
+- LE TOIT (la cause) : dans `SHAPES.epave`, le dessus de la boîte de VITRE était à la hauteur du MILIEU de la dalle du toit, et les deux
+  penchaient en sens contraire (−,04 / +,09) : le toit s'enfonçait d'un côté dans le verre, le verre le perçait de l'autre, une bande de
+  verre plat autour. Désormais la vitre garde sa pente, le toit PENCHE AVEC ELLE, la couvre (4 cm de débord sur les côtés, 8 cm devant et
+  derrière) et le dessus du verre est noyé dans son épaisseur (1 cm).
+- LA CARCASSE (`boiteUsee`) : les mêmes boîtes aux mêmes places, mais chanfreinées (3 cm : le reflet court sur l'arête, plus claire — la
+  laque usée), leurs grandes faces cabossées par facettes (des creux de quelques millimètres, jamais une bosse), une couleur par facette
+  multipliée par la peinture : marbrure, crasse du bas, rouille (plus fréquente en bas), poussière sur ce qui regarde le ciel. Tôle et accent
+  dans un clone à couleurs de sommets (`vertexColors`, même liseré `rimify(…,null)`), laque un peu plus brillante (30 / 0x8e8e8e / ,07).
+  Toujours en FACETTES (non indexé, une normale par face). Peinture de la boutique : suivie (clone après la peinture).
+- LES ROUES (`roueEpave`, `A.rouesEpave` dans buildCar — sans les accessoires que `lpw` retirerait) : au kit, en facettes — pneu au flanc
+  bombé, épaule, deux sillons, 16 sculptures en quinconce, cordon de flanc ; jante en tôle emboutie percée de 6 trous, 5 écrous. L'arrière
+  gauche reste rouillée et voilée (rotation.y ,16), comme avant.
+- MESURÉ (banc muet, course en pause, garage, boutique, couché et debout) : triangles 1 426 → 5 192 (la gamme : médiane 3 500, LE CAÏD
+  4 748, le chat 10 360) ; appels de dessin 17 → 18 ; programmes compilés EN COURSE : 0 (2 de plus au menu : la tôle à couleurs, la famille
+  mat/satiné du kit) ; les 77 caisses montées avant/après : seule LA HONTE change ; menu → JOUER → course sans erreur, couché et debout.
+  Planche : `photos-gameplay/honte-avant-apres.png` (dossier CAR CAHS V3).
+
 ## LE LANCER DOSÉ EN BOUTIQUE (2026-10-15, pôle CAISSES — Léo : la voiture lancée au doigt doit tourner un peu plus, satisfaisant, mais « c'est pas non plus l'espace »)
 - AVANT : au lâcher, la vitesse du doigt s'éteignait en exp(−2,4 t) — la moitié perdue en 0,29 s (elle freinait sec), puis une longue traîne,
   et aucun plafond (un lancer de 4 000 px/s : 2,8 tours).
