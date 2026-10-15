@@ -9520,18 +9520,38 @@ html[data-reduced-motion="1"]:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortan
    Rien ne change dans le JS du portail (l'opacité .94 → 0 reste posée par portVoile / portVoileSort). */
 html:not(.c6) #portV{z-index:8;overflow:hidden;contain:strict;
   background:radial-gradient(120% 90% at 50% 58%,rgba(242,74,160,.55) 0,rgba(242,74,160,0) 55%),linear-gradient(180deg,#141d3a 0%,#0b0f24 60%,#07050f 100%)}
-html:not(.c6) #portV::before{content:"";position:absolute;left:-60px;top:-60px;width:calc(100% + 120px);height:calc(100% + 120px);will-change:transform;
-  background-image:linear-gradient(90deg,transparent 0 22px,rgba(255,215,94,.95) 22px 28px,transparent 28px),linear-gradient(0deg,transparent 0 22px,rgba(255,215,94,.95) 22px 28px,transparent 28px);
-  background-size:84px 56px,84px 56px;background-position:0 0,42px 28px;
-  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 18%,transparent 18% 36%,#000 36% 54%,transparent 54% 72%,#000 72% 90%,transparent 90%);
-  mask-image:linear-gradient(180deg,#000 0,#000 18%,transparent 18% 36%,#000 36% 54%,transparent 54% 72%,#000 72% 90%,transparent 90%);
-  opacity:.55;animation:u8PortPluie .6s steps(6) infinite}
-html:not(.c6) #portV::after{content:"";position:absolute;left:50%;top:56%;width:28px;height:28px;margin:-14px 0 0 -14px;background:#ffd75e;
-  box-shadow:0 0 0 6px #07050f,0 0 0 12px #ffd75e,0 0 0 18px #07050f,0 0 0 24px rgba(242,74,160,.9);will-change:transform;animation:u8PortCoeur .4s steps(4) infinite}
-@keyframes u8PortPluie{from{transform:translate3d(0,0,0)}to{transform:translate3d(-42px,56px,0)}} /* en paliers : ce qui bouge dans l'UI pixel bouge par crans entiers */
-@keyframes u8PortCoeur{0%{transform:scale(1)}50%{transform:scale(1.5)}100%{transform:scale(1)}}
-@media (prefers-reduced-motion:reduce){html:not(.c6) #portV::before,html:not(.c6) #portV::after{animation:none}}
-html[data-reduced-motion="1"]:not(.c6) #portV::before,html[data-reduced-motion="1"]:not(.c6) #portV::after{animation:none}
+/* (2026-10-15, Sacha : « au lieu du vieux temps de chargement, mets des feux de course : 3 feux rouges qui passent au vert, dans la même DA
+   que le logo CASH CAR ») LES FEUX DU DÉPART remplacent la pluie de pixels et le cœur qui bat. Un portique en OR EXTRUDÉ — le dégradé et
+   la profondeur brune de `.lg.gold`, coins coupés en octogone — porte trois lentilles en laque noire : rouge… rouge… rouge… VERT (150 ms
+   par feu, vert à 450 ms ; portVoileSort tient le voile jusqu'au vert, voir PORTV.t0). Tout s'allume en OPACITÉ seulement : le
+   compositeur joue la séquence même quand newTrack() bloque le script. Le vert lâche un éclair de contre-jour (::after) au moment du GO. */
+html:not(.c6) #portV::before{content:none}
+#portV .pfx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:clamp(10px,2.6vmin,18px);
+  padding:clamp(12px,3vmin,20px) clamp(14px,3.4vmin,24px);
+  background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)}
+#portV .pfxW{position:absolute;inset:0;z-index:1;filter:drop-shadow(0 7px 0 #4a2a00) drop-shadow(0 12px 18px rgba(0,0,0,.7))}
+#portV .pfx i{position:relative;display:block;width:clamp(44px,13vmin,78px);height:clamp(44px,13vmin,78px);background:#14080c;
+  box-shadow:inset 0 0 0 4px #4a2a00,inset 5px 5px 0 4px rgba(0,0,0,.55);
+  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)}
+#portV .pfx i::before,#portV .pfx i::after{content:"";position:absolute;inset:4px;opacity:0;will-change:opacity;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
+#portV .pfx i::before{background:radial-gradient(circle at 38% 34%,#fff4ec 0 12%,#ff6a52 30%,#ff3924 55%,#8a0d0d 100%)}
+#portV .pfx i::after{background:radial-gradient(circle at 38% 34%,#f4fff0 0 12%,#9cff8a 30%,#62e062 55%,#0f6a1c 100%)}
+#portV.go .pfx i:nth-child(1)::before{animation:pfR1 .5s linear both}
+#portV.go .pfx i:nth-child(2)::before{animation:pfR2 .5s linear both}
+#portV.go .pfx i:nth-child(3)::before{animation:pfR3 .5s linear both}
+#portV.go .pfx i::after{animation:pfV .5s linear both}
+@keyframes pfR1{0%,89.9%{opacity:1}90%,100%{opacity:0}}
+@keyframes pfR2{0%,29.9%{opacity:0}30%,89.9%{opacity:1}90%,100%{opacity:0}}
+@keyframes pfR3{0%,59.9%{opacity:0}60%,89.9%{opacity:1}90%,100%{opacity:0}}
+@keyframes pfV{0%,89.9%{opacity:0}90%,100%{opacity:1}}
+html:not(.c6) #portV::after{content:"";position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;
+  background:radial-gradient(circle,rgba(98,224,98,.55) 0,rgba(98,224,98,.18) 22%,rgba(98,224,98,0) 46%);box-shadow:none;opacity:0;will-change:opacity;animation:none}
+html:not(.c6) #portV.go::after{animation:pfV .5s linear both}
+@media (prefers-reduced-motion:reduce){#portV.go .pfx i::before{animation:none;opacity:0}#portV.go .pfx i::after,html:not(.c6) #portV.go::after{animation:none;opacity:1}}
+html[data-reduced-motion="1"] #portV.go .pfx i::before{animation:none;opacity:0}
+html[data-reduced-motion="1"] #portV.go .pfx i::after,html[data-reduced-motion="1"]:not(.c6) #portV.go::after{animation:none;opacity:1}
 </style>
 <style id="cadeauLigne">
 /* (2026-10-14, GAMEPLAY) LA LIGNE DU CADEAU — dessin convenu avec INTERFACE : laque de la charte 4, police pixel, l'icône PIÈCE (le cadeau est déjà
@@ -46519,11 +46539,13 @@ function portailPasse(){
    le voile tient ~0,28 s (la chauffe des programmes, CHAUFFE_R à +120 ms, tombe dessous) puis s'ouvre en 0,5 s. Pendant l'attente (1 à 2
    images) la caisse reste à la bouche du portail (s ≤ L − 2 : 32 m de marge, mais à 1 900 km/h une image en avale 9). En VOL, la
    construction reste immédiate (la chute continuerait) : le voile cache la coupe. Le temps du jeu, lui, ne ralentit JAMAIS (règle du 26/09). */
-const PORTV={el:null,att:0,n:0,tS:0};
+const PORTV={el:null,att:0,n:0,tS:0,t0:0};
 function portVoile(){
-  let e=PORTV.el;if(!e){e=document.createElement('div');e.id='portV';e.setAttribute('aria-hidden','true');document.body.appendChild(e);PORTV.el=e;}
-  clearTimeout(PORTV.tS);e.style.transition='none';e.style.opacity=REDUCED_MOTION?'.45':'.94';void e.offsetWidth;}
-function portVoileSort(ms){clearTimeout(PORTV.tS);PORTV.tS=setTimeout(function(){const e=PORTV.el;if(!e)return;
+  let e=PORTV.el;if(!e){e=document.createElement('div');e.id='portV';e.setAttribute('aria-hidden','true');
+    e.innerHTML='<div class="pfxW"><div class="pfx"><i></i><i></i><i></i></div></div>';document.body.appendChild(e);PORTV.el=e;} // les FEUX DU DÉPART (voir le CSS de #portV)
+  clearTimeout(PORTV.tS);e.style.transition='none';e.style.opacity=REDUCED_MOTION?'.45':'.94';e.classList.remove('go');void e.offsetWidth;e.classList.add('go');PORTV.t0=performance.now();}
+function portVoileSort(ms){ms=Math.max(ms,560-(performance.now()-(PORTV.t0||0))); // le voile ne s'ouvre qu'une fois le VERT allumé (450 ms) et vu un instant
+  clearTimeout(PORTV.tS);PORTV.tS=setTimeout(function(){const e=PORTV.el;if(!e)return;
   e.style.transition='opacity .5s cubic-bezier(.3,.6,.3,1)';e.style.opacity='0';},ms);}
 function portPasseNiveau(){
   portVoile();try{document.dispatchEvent(new Event('cc:portail'));}catch(e){} // (PERF) voir LES SIGNAUX DE CONSTRUCTION
