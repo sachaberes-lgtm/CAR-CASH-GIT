@@ -21,6 +21,89 @@
   pseudo-élément et `::placeholder` ; `UNE_POLICE` (premier script du body) réécrit tout `ctx.font` qui n'est pas Press Start 2P. `garde-charte.sh`
   (d) refuse une version sans ces deux filets. Seule exception nommée : le φ du « 1.61φ » (`#spPhi`, logo ; la police pixel n'a pas de φ).
 
+## LES FIGURES SUPER FUN : LE COUP NET, LE SENS QUI SE VOIT, LE HUD v4 (2026-10-15 soir, Sacha : « ça marche un peu mais c'est imprécis et peu spectaculaire, fais dans le détail pour que les figures soient super fun » · « les figures doivent vraiment changer de sens selon le côté où tu les as mises : le rodéo vers l'avant ou l'arrière, l'hélico à gauche ou à droite, la rotation inversée » · « retravaille l'HUD des figures aussi, il faut que ce soit parfait : là c'est écrit en double ; des figures bien écrites, avec des moyens de rendre ça addictif » · « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance »)
+- RELEVÉ d'abord, au FILM : `film-fig.cjs` (la boucle du jeu figée — `requestAnimationFrame` détourné, pompé à la main — une capture par image
+  à 60 i/s : la 3D telle que le joueur la voit) et `hud-film.cjs` (captures en temps RÉEL : les minuteries du HUD suivent l'horloge). Trouvé :
+  en vrai vol (1,2 s) le filet de sécurité reprenait la main dès 0,2 s — le tonneau bouclé en 0,35 s à vitesse fixe, illisible, puis la caisse
+  à plat les deux tiers du saut ; le rodéo arrière coupé à 0,1 s ; au sol, la figure du SAUT NITRO partait « à tour de rôle » (`FX2.cyc`),
+  sans regarder la direction ; le HUD (voir v4 plus bas).
+- **LE COUP NET** (`FIG.Corps`, figures.js ?v=8, `PHY.elan`, `?elan=0` = la prise d'avant) :
+  · la DURÉE vient du vol (`figDose` : 72 % du vol qui reste moins la pose, au plus 1,35 × la durée du catalogue, jamais sous 0,32 s) ;
+  · le COUP : départ à 2 × la vitesse moyenne, puis un FREIN RÉGULIER (décélération constante, `m.acc`) qui l'arrête pile après ses tours + 5°
+    (`eps`) : elle dépasse un poil l'endroit et s'y PLANTE (le ressort du planté, un rebond) — finie à `finE` (98,5 %) ;
+  · une figure à DEUX rotations (rodéo, tire-bouchon, cosmique) = UNE rotation autour de l'axe penché qui les combine, en tours ENTIERS : elle
+    retombe pile à l'endroit (MESURÉ : menées chacune de son côté, elles laissaient la caisse à 148° — elles ne commutent pas) ; c'est le vrai
+    rodéo des riders, un salto désaxé ; orientée avant ou arrière, son salto change de sens (vérifié : tangage + / −) ;
+  · le coup VISE la vitesse de départ sur son axe (il renverse une rotation contraire, il complète une du même sens) ; une figure CONTRAIRE
+    sur le même axe ANNULE celle qui tourne ; deux figures qui se CONTRARIENT (axes à demi opposés : salto + rodéo arrière) — la dernière
+    prend la main, l'autre compte dès la moitié faite ; sur des axes de travers (tonneau + salto), chacune garde son frein (MESURÉ : la relayer
+    laissait 160° en fin de combo, contre 55°) ;
+  · LA FIN d'un mélange (`finVise`) : elle CONTINUE dans son sens et ralentit à décélération constante jusqu'à l'endroit (FIGÉE au début de la
+    fin — recalculée chaque image, elle gardait la vitesse : MESURÉ 9,2 rad/s constants), plus fort si le sol presse ; plus de vitesse fixe,
+    plus de balancier ; la prise forte n'est plus qu'un filet (sol trop proche, tap qui redresse) ;
+  · le temps qu'il reste (`reste`) = le plan de la figure (estimé sur la vitesse de son axe, il forçait la prise dès le départ en mélange) ;
+  · le compte des RÉPÉTITIONS se fait sur la figure de base (`r.base`) : un HÉLICO 720 qui fait ses deux tours = UN hélico, un tonneau empilé
+    au double-tap = DOUBLE TONNEAU (payé comme tel).
+- **LE SAUT NITRO suit la direction** (`veqFigure`) : la figure du double-tap au SOL est celle de la direction tenue à cet instant (▲ ou rien =
+  l'avant, ▼ = l'arrière, ◄► = le côté) ; rien dans cette direction : le saut part sans figure, sans bruit de refus (`o.muet`).
+- **LE SPECTACLE** sans ralenti (verdict du 26/09 : plus aucun ralenti — les gels d'image restent muets) : la plantée CLAQUE — un coup de zoom
+  sec (le même que la pose PARFAITE, en petit : `CAMV.zoom` .42), une secousse, une gerbe d'or ; le coup de départ garde son explosion.
+- **LE HUD DES FIGURES v4** (le récit est au-dessus de `figNom`) : le NOM une seule fois, bien écrit (`figNom` : DOUBLE TONNEAU, TOUPIE 720,
+  HÉLICO 1440, QUADRUPLE TONNEAU — plus de « ×2 », qui se confondait avec le × de la chaîne d'aura ; un HÉLICO 720 simple ne s'écrit plus
+  « HÉLICO 720 ×2 ») ; la FLÈCHE du geste devant (▲ ▼ ◄ ►, le côté où elle part) ; à la plantée le nom passe en OR et une PASTILLE muette
+  tombe dans la ligne (plus grosse pour une figure neuve dans le vol) ; « COMBO ×1,5 » ; le RECORD de combo (`SAVE.d.figRec`, désinfecté) bat
+  à côté du × dès qu'on le dépasse, gardé à la pose ; à la pose la ligne s'éteint SUR PLACE (`fhVole` retirée : elle traversait la carte
+  moteur — « SALTO AVANTNEAU ») ; le rappel #fhLeg écrit les vrais noms (« SALTO AVANT », plus « AVANT ») et le geste que vise le pouce
+  S'ALLUME (`fhArme`, `.arme`). Anglais : COMBO, RECORD, DOUBLE / TRIPLE / QUAD.
+- MESURÉ — banc du corps (`banc-corps.cjs`, au dosage du jeu) : tonneau sur 1,3 s de vol 18 → 3 rad/s, planté à 0,65 s ; salto 0,75 s ;
+  hélico 720 1,08 s ; rodéo avant / arrière 0,9 s (0° à la fin) ; tonneau + salto, tonneau + toupie, salto du saut + tonneau, salto du saut
+  + rodéo arrière : tous rangés à l'endroit entre 1,4 et 1,6 s, la fin en décélération continue ; vol de 0,9 s : planté à 0,57 s. Banc du
+  JEU (cc-banc, 390 × 844, muet ; films `film-fig.cjs` / `hud-film.cjs`) : re-taper EN AVANT sur le salto du saut nitro = « DOUBLE SALTO
+  AVANT », planté à 0,6 s (+203) — 1er jet : refusé 10 fois sur 10 (le tour empilé réservait le temps des autres figures : il se dose
+  désormais sur ce qui reste à CETTE figure, `D2`) ; saut de 0,96 s : tonneau planté, le salto en plus refusé (plus le temps — normal) ;
+  rodéo arrière en long vol : il mène, retour continu, à l'endroit à 1,6 s ; HUD : « ◄ TONNEAU », puis « SALTO AVANT » en or + COMBO ×1,5 +
+  RECORD, éteint sur place sans chevaucher « NOUVEAU SOMMET » ; 0 chute, 0 erreur.
+- Hooks : `dbgFigDir(x,y)` (le geste, la figure, son sens), `dbgFig('phy')` (les réglages, à chaud : `eps`, `finE`, `aUp`, `aDn`, `aFin`,
+  `stickAng`), `?elan=0`.
+## LA CAISSE-NUAGE N'A PLUS DE SILLAGE VISIBLE (2026-10-15 soir, Sacha : « l'événement chasse-nuage, quand j'approche le nuage, son sillage, je sais pas ce que c'est, supprime-le, c'est nul »)
+- Retirés, dans la campagne (niveau 10) comme dans l'événement rare : le RUBAN d'or rose derrière elle (`fantomePose` : `GH.tr` reste éteint), la OUATE
+  (`cloudBits`) qui filait autour de toi dans son aspiration, et le HALO d'or au bord de l'écran quand on la tient (`campFx` 4e calque à 0). La plaque
+  SILLAGE était déjà partie (9c94fdf7).
+- Le JEU ne change pas : l'aspiration tire toujours (+9 m/s² × proximité), la bulle de 18 m, « ACCROCHE ! », le carillon qui monte et la prise en 1 s
+  restent. Banc (debout 390 × 844, `dbgEvt('caisse')`, la caisse collée 1,8 s) : ruban jamais visible, halo à 0, « ATTRAPÉE ! », zéro erreur.
+## LES PRIMES DE MISSION RAMENÉES À LA PARTIE (2026-10-15 soir, Sacha : « j'ai lancé 3 parties, je suis déjà à 96 000 $, c'est trop — il faut équilibrer »)
+- LA CAUSE, lue dans sa sauvegarde localhost : 96 036 $ en banque, rien d'acheté, **6 carnets de missions finis = 76 800 $ de primes**
+  (plus le permis, 500). Les pièces n'en faisaient que ~19 000 sur 27 parties. Les primes montaient ×10 à ×50 d'un carnet à l'autre
+  (300 → 80 000 $ la mission) quand une partie ne rapporte que ~500 à 3 000 $ ; et depuis LA FILE (v467, même jour) les missions faciles
+  des carnets suivants tombent sans attendre la difficile, donc elles arrivaient en rafale. Sur sa dernière partie : +16 900 $, dont 14 000
+  de trois missions (2 000 + 4 000 + 8 000).
+- LE CORRECTIF (`CARNETS`, aucun prix ni gain de course changé) : une mission vaut ~1/3 à 1 partie du joueur qui la remplit, +15 à 25 % par
+  carnet — carnet 3 : 700 · 700 · 800 ; 4 : 800 · 800 · 1 000 ; 5 : 1 000 ×3 ; 6 : 1 200 · 1 200 · 1 400 ; 7 : 1 500 · 1 500 · 1 800 ;
+  8 : 1 800 · 1 800 · 2 200 ; 9 : 2 200 · 2 200 · 2 600 ; POP 10-12 : 2 600 → 4 000. Les carnets 1-2 (300-600 $) sont INCHANGÉS : le
+  salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie. La suite sans fin repart dans leur pas (`carnetBrut` 40 000 →
+  3 200 : 4 000, 4 800, 5 600… la mission, jalon ×2). Total des 6 premiers carnets : 76 800 → 14 400 $ ; des 12 écrits : 904 800 → 60 700 $.
+- LE CADEAU (toutes les 6 h) PLAFONNÉ à 2 500 $ (`CADO.max`) : il vaut 8 % du record d'une partie, et une vieille sauvegarde garde un record
+  de l'ANCIENNE échelle (8,6e16 chez Sacha) : son prochain cadeau lui aurait versé ~7e15 $.
+- Ce qui est déjà en banque reste en banque (rien n'est repris à une sauvegarde).
+
+## LE TAIL WHIP (2026-10-15 soir, Léo par le MANAGER : « la première figure : un TAIL WHIP » · « push-les, ils sont bien » ; choix coché : en GLISSER, ← → = tail whip) — pôle TECHNIQUE
+- LA FIGURE (`figures.js` ?v=8, `FIG.par.tailwhip`, 1re de `BASE`) : un tour à plat (axe vertical, `D` ,62, aura 50), mais le NEZ reste en
+  place et c'est la POUPE qui fait le tour — `piv` ,92 = le point fixe, en part de la demi-longueur, vers le nez. `figPose` le lit (`FX2.pivK`,
+  lissé ×14/s) et fait tourner la caisse autour de ce point (le milieu se décale, `FX2.pivD`). Une seule explosion, sur le flanc de la poupe
+  (la queue fouette ; `Corps.lance` et `Corps.empile`). Son matériau sonore = celui de la toupie (`FIG_SIGNE.tailwhip` 1).
+- EN GLISSER, EN L'AIR : ← → = le TAIL WHIP de ce côté (`figGFig`, il remplace le 360) ; glissé à GAUCHE → la POUPE part à gauche (sens −1,
+  `figGOpts`), à droite → à droite. La flèche dit « TAIL WHIP ». AU SOL rien ne change (← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE), ↑ ↓ en l'air
+  non plus (saltos). L'astuce du 1er vol dit « ◄► un tail whip ».
+- OFFERT ET ÉQUIPÉ : `figPossede('tailwhip')` toujours vrai ; une sauvegarde neuve = `figs:['tailwhip']` ; l'emplacement CÔTÉ vide prend le
+  tail whip (`figSlots`). Le TONNEAU passe en BOUTIQUE à 1 500 pièces. LES SAUVEGARDES D'AVANT LE GARDENT : il est déjà dans leur liste `figs`
+  (il y était offert d'office), et une sauvegarde d'avant les figures qui a déjà joué (sans liste) le reçoit ; `SAVE.d.figT0` = 1 marque ce
+  tonneau OFFERT, pour que `ecoDebutAchat` ne le compte pas comme un achat. En 2 TAPS, rien ne change pour elles (le côté garde le tonneau) ;
+  un débutant en 2 TAPS a le tail whip sur le côté, la poupe du côté du pouce (`figLance`, `f.piv`).
+- Banc (Chrome muet, vrais glissés sur NITRO, debout 390 × 844 et couché 844 × 390, sauvegarde neuve et sauvegarde d'avant ; `dbgGlisse('save')`,
+  `dbgGlisse('nez')`) : spam NITRO ×10 = 0 figure ; ← au sol = SLIDE 360 (reste au sol) ; en vol ← → = TAIL WHIP, la poupe part du côté
+  du glissé, le NEZ bouge de 0,5-1,2 m (la trajectoire elle-même) quand la POUPE balaie 5,3-6,6 m — aux saltos, nez et poupe bougent pareil
+  (3,6 m) ; ↑ ↓ = saltos ; 2 TAPS côté = tail whip (neuve) / tonneau (d'avant) ; 0 exception.
+
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
   souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,
