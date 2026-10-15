@@ -21,6 +21,20 @@
   c'est un signal de jeu ; à trancher par Sacha s'il le trouve trop « carrelage ». La ville, les nuages, le volcan, l'orbite : déjà cohérents.
 - Banc : `mur.cjs` (scratchpad TEXTURES) — `?carte=X&meteo=Y`, JOUER, 7 s de course, interface masquée, `dbgView` large et haut ;
   planches avant/après midi + soir. Aucune erreur JS sur les 8 maps.
+## LE GLACIER — LA GLACE GLISSE VRAIMENT (2026-10-15 soir, Sacha : « la glace ne glisse pas assez dans la map montagne, il faut rajouter une animation et des particules de glace »)
+- Le défaut : le verglas ne faisait que rogner le volant (68 %) et pousser un peu vers l'extérieur. Le cap restait la trajectoire, donc la
+  caisse tournait moins, elle ne GLISSAIT pas (le même défaut que le drift de conduite abandonné en juillet).
+- LA VRAIE GLISSE (`BKV.gl`, bloc LE VERGLAS) : sur la glace, le pouce tourne le NEZ (volant à 92 %) et la TRAJECTOIRE ne le rejoint qu'en
+  `BK_VG.tau` = 0,38 s à pleine vitesse (0,15 s à l'arrêt), ÷spdMult comme VOL_TAU. Dans un virage, la caisse file en CRABE vers l'extérieur
+  (jusqu'à ~29°, `glMax`), le nez dans la courbe : il faut braquer TÔT. La boucle lit `psi-slipB-BKV.gl` sur ses deux lignes d'avance (vL, s),
+  donc le décollage part aussi dans le sens de la trajectoire ; `gl` remis à zéro au décollage, au replacement et hors du glacier.
+- L'ANIMATION : le crabe réel grossi de 80 % à l'image, +16° au plus (la physique reste jouable, l'image glisse) + la QUEUE QUI CHASSE (onde lente qui grandit avec la glisse) ; un craquement de
+  glace (`banq.craque`) et un petit `hap(8)` quand elle décroche (une fois par glissade) ; la boucle `banq.glisse` chante tant qu'elle glisse.
+- LES PARTICULES : `fx.eclat` (700 éclats ÉTIRÉS, jetés du côté où la caisse glisse — surtout par les roues qui mènent, les roues avant s'y
+  mettent en pleine glisse) et `fx.brume` (220 bouffées de givre qui gonflent en s'effaçant derrière). Les deux héritent de la vitesse de la
+  caisse (`PT_U.uVc`) : une gerbe qui suit, plus un pointillé semé sur place. La rayure de glace s'élargit avec l'angle. L'ancien givre semé
+  par les roues sur le verglas est remplacé (le givre reste pour les lacs et pics en vol).
+- Console : `dbgBanq('verglas')` donne `gl` (rad) et `gk` (glisse ressentie 0-1). Banc : `gg-banc.cjs` (scratchpad de la session 487dcfbe).
 
 ## PLUS DE SNAKE LOOP, DE DAUPHIN, DE NITROOO NI DE DRAGON (2026-10-15, Sacha : « supprime du main le snake loop, le dauphin, le nitrooo et les animations 3D qui leur sont attribuées, enlève aussi le dragon chinois de flamme »)
 - Même recette que la carrière et le mode facile : COUPÉS, pas arrachés. Quatre interrupteurs en tête du fichier, à côté de `SANS_FACILE` :
@@ -44,6 +58,38 @@
   forcé au décollage : actif AVEC, rien SANS ; 7 s de nitro tenue : comète (intensité 1, boost +22 %) et dragon AVEC, rien SANS ;
   0 erreur, `__loopErr` nul des deux côtés. Fumée commune OK couché + debout.
 - Les missions ne demandaient aucune de ces figures (les contrats « chaîne » comptent toutes les figures) : rien n'est devenu impossible.
+
+## POUCE BLEU EN COURSE + UNE INTRO PAR MORCEAU (2026-10-15 soir, pôle SON ; Léo, choix cochés : « à chaque PLAY, un morceau de Pouce bleu au hasard qui suit le moteur — tu peux les push sur le main »)
+- À chaque PLAY (garage `garageLaunch`, ciel `chuteLance`), UN morceau rangé dans Pouce bleu (la bibliothèque) est tiré au hasard et joue TOUTE la
+  course en suivant le moteur du jeu (`engTier` 0-29 → palier 1-30). Fichier neuf `assets/audio/pouce-bleu-jeu.js` (`window.POUCE_JEU`) : la liste
+  se construit comme l'onglet Pouce bleu de la bibliothèque, depuis `musique-moteur.json` (le générateur à pouce bleu sans les supprimés, dédoublonnés
+  par numéro et titre, titres = noms de Léo / `RENOMS` / titre ; les retouches V2 en direct de `retouches-bleu.js` ; les morceaux en paliers rangés
+  « bleu » ; AURA · 30 en page) — 20 morceaux aujourd'hui. Sans doublon d'une course à l'autre tant qu'il en reste (`localStorage.pbjVus`).
+  `EN_ATTENTE` les tient hors du tirage : MIRAGE ULTRA (bleu-6200) attend le oui de Léo sur la retouche de son entrée.
+- L'INTRO : le morceau part au moteur 1 derrière un passe-bas fermé (320 Hz) qui s'ouvre jusqu'à 18 kHz sur DEUX MESURES de son tempo (2 à 4 s)
+  pendant le piqué, pendant que le lobby s'efface (`DEPMUS`, inchangé) ; au départ de la course, `PB.course()` finit l'intro en 0,5 s au plus.
+- Il CONTINUE aux portails (`musicSuitLieu` ne raccorde plus), la seconde chance repart sur le MÊME morceau (`musicStartRun(true,true)` →
+  `PB.depart(…,{meme})`), la mort l'éteint en 0,35 s, la fin en 0,9 s ; REJOUER en tire un autre. La radio, les musiques de lieu (`MUSIC_LIEU`) et
+  GLISSE au Soleil de jade se taisent pendant qu'il joue (`pbjCourse()` dans `musicPlayCurrent`, `musicNext`, `musicSuitLieu`, `jadeMusOn`).
+  La frénésie ne change pas. `?musique=niveaux` = les musiques des niveaux comme avant (`PBJ_ON`).
+- Le NIVEAU (`PBJ_NIV` .39, × le curseur MUSIQUE, × le souffle du mouvement et l'annonceur comme la radio) — mesuré en course, musique seule, à la
+  sortie du jeu : la radio tient −21 dB ; le générateur monte de ≈ −24 dB (moteur 1) à −22 (10), −16 (20), −14 (30) : LA GRANDE MONTÉE de Léo
+  gardée ; NÉON NOIR (paliers) −19 ; AURA · 30 (page) −22 → −19.
+- Les BASSES RÉGLÉES s'appliquent à lui : le même bus (`MUSBUS`, clés `jeu:<id>` — dans la bibliothèque Pouce bleu reste tel quel), le creux de
+  course −2 dB à 280 Hz, le recul sous les signaux (`musRecul` → `POUCE_JEU.recul()`). Mesuré : aucun morceau du générateur ne passe 30 % de son
+  énergie sous 60 Hz ; la cloche à 110 Hz pour les huit qui pèsent entre 60 et 150 Hz, NÉON NOIR −5 dB de plateau.
+- LE COÛT (Chrome, processeur ralenti ×4 comme un iPhone moyen) : fil principal en course 48 % avec CRISTAL D'ARGENT, 42 % avec NÉON NOIR, 50 %
+  avec la radio — la différence se perd dans le bruit du rendu ; préparation du morceau 0,2 à 0,4 s pendant le piqué. En direct, aucun fichier à figer.
+- SEULEMENT là où la musique passe par WebAudio (`pbjActif()` : `musWaTient()` — ordi, Android, iPhone iOS 17+) ; Safari sur Mac et l'iPhone
+  sans audioSession gardent les musiques des niveaux. Si le chien de garde condamne le WebAudio pendant le piqué (le défaut de WebKit, la source de
+  l'élément qui rend des zéros), le morceau s'efface et la RADIO prend la course (`musicStartRun`, `musWaCondamne`) — jamais les deux (banc WebKit).
+  Si le morceau ne PART pas (réseau, fichier absent, liste vide : `PBJ_KO`), la radio aussi — jamais une course muette (banc : les modules du
+  générateur bloqués → la radio dès le piqué, puis les musiques des niveaux) ; chaque JOUER réessaie.
+- BANCS (muets) : partie complète ciel → garage → PLAY → 3 niveaux par 2 portails → mort → fin → REJOUER, couché, debout et dans le cadre de l'ordi,
+  Chrome ET WebKit (`?muswa=1`, l'élément muet pour que le chien de garde ne juge pas la source) : intro qui s'ouvre, le même morceau d'un niveau à
+  l'autre (nuages → volcan → forêt, jade → canyon → ville, canyon → espace → volcan…), un autre au REJOUER, 0 erreur.
+- Console : `dbgPouce()` (l'état : phase, titre, moteur, filtre, niveau, bus) · `dbgPouce('moteur', m)` (impose le palier, 0 = celui du jeu) ·
+  `?pouce=<numéro|id>` force un morceau. Reste à écouter par Léo sur iPhone : la musique en WebAudio y tient-elle au-delà de 15 s (le défaut de WebKit) ?
 
 ## LE RÉGLAGE FIGURES : 2 TAPS OU GLISSER (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, à l'endroit où ça devrait être : la figure se fait grâce à une glisse vers un sens puis lâchée, du bouton nitro, nitro toujours présent »)
 - RÉGLAGES › JEU › FIGURES (`#mvFigG`, `data-m="figg"`) : 2 TAPS (d'origine, rien ne change) ⇄ GLISSER — `SAVE.d.figG` ('tap' · 'glisse',
