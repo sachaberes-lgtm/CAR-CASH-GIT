@@ -118,11 +118,13 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   AVANT, ↓ en ARRIÈRE, ◄► sur un CÔTÉ (la figure part du côté du pouce, `o.dx`) ; une figure à deux sens (rodéo…) peut tenir l'avant ET
   l'arrière, le geste oriente son salto ; équiper remplace celle de CET emplacement ; un emplacement vide : son geste ne fait RIEN
   (`o.strict`, sauf l'auto-école) ; la boutique les range en trois sections, une carte par direction (`bqFigRail`, `bqFigSec`, `data-dir`, `bqFigDir`).
-  L'ÉLAN (15/10 soir, `FIG.PHY.elan`, `?elan=0` = avant) : une figure = un COUP, l'air freine la rotation (`r.c`, `kT`, `cov`), une figure suivante
-  s'y ajoute, la fin est un RETOUR souple (`ret`, mode `retour`) ; la prise forte n'est plus qu'un filet (sol proche, tap qui redresse) ; le jeu
-  dose une figure sur le vol avec `figKT()`.
+  LE COUP NET (15/10 soir, `FIG.PHY.elan`, `?elan=0` = la prise d'avant) : une figure = un COUP à 2 × la vitesse moyenne puis un FREIN RÉGULIER
+  (`m.acc`) qui l'arrête pile après ses tours (+`eps`, planté) ; durée dosée sur le vol (`figDose`) ; deux rotations = un axe penché en tours
+  entiers ; une contraire annule, deux qui se contrarient : la dernière mène ; la fin d'un mélange CONTINUE et ralentit jusqu'à l'endroit
+  (`finVise`, `aF` figé) ; la prise forte = filet. Le SAUT NITRO prend la figure de la direction tenue. HUD des figures v4 : `figNom` (DOUBLE…,
+  TOUPIE 720), flèche du geste (`r.flD`), pastilles + COMBO + RECORD (`SAVE.d.figRec`), extinction sur place, rappel `.arme` (`fhArme`).
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
-  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → 360, ↑ salto arrière, ↓ salto avant ; AU SOL
+  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`,
@@ -131,9 +133,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
   low-poly `lpKit`/`lpMat`/`lpWheel`, tuyères `CAR_POTS`/`potMonde`, raretés `RARETES`/`carRar`/`rarListe`/`carOrdre`,
-  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto`.
+  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto` (et `aileFile` : la photo d'une aile, sur la caisse équipée).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
-  `FX_EFF`, `BQ_CATS`, `bqEphemeres` (les offres de la semaine), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
+  `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
+  (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
   `figAchat`/`figPossede`, `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
@@ -147,8 +150,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES POP `AILES_POP`/`ailForme`/`ailAnime`,
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
-  moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`), hors nitro les éclats du moteur
-  `ECLATS`/`eclaPas` (`?eclats=0`).
+  moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`) et son jet propulsé (`NFEU_JET`), hors nitro le
+  même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
+  les éclats `ECLATS`).
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
@@ -195,8 +199,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
 - PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
   serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
-  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (non chargés par le jeu ; lus
-  par les boîtes). Les animaux reviendront PAR MAP (d'abord des singes de décor au SOLEIL DE JADE). Le reste : git (85470fb4 et avant).
+  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (lus par les boîtes, et
+  chargés par le jeu depuis le retour PAR MAP). Le reste : git (85470fb4 et avant).
+- LES ANIMAUX PAR MAP (15/10, Léo : « soleil jade singe va sur main et dauphins aussi ») : au SOLEIL DE JADE seulement — les SINGES (décor :
+  coucou sur une montagne, mangue, course, assis au bord ; `jsgTick`) et les DAUPHINS DE LA MER (au bout de 5 s dans l'eau ils arrivent, jouent
+  devant la caisse, l'un vient faire coucou à la portière, et une fois sur deux ils SAUTENT AVEC ELLE quand elle jaillit ; `jdmTick`). Les formes
+  des singes se calculent dans un Worker (`creatures/atelier.js`). Détail : JOURNAL.md. Pas de figure LE DAUPHIN.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 - HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
@@ -208,7 +216,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aller voir ; magenta = boutique ; rouge = danger. La rareté se dit par sa couleur (`RARETES`).
 - On LIT en haut, on TOUCHE en bas ; cibles de 44 px ; bords via les safe areas `--sT`/`--sB`/`--sL`/`--sR` ; une seule courbe
   `--ease`, deux durées `--t-fast`/`--t-slow`.
-- Une police : Press Start 2P (locale, `--pix`). Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
+- UNE SEULE POLICE, PARTOUT : Press Start 2P (locale, `--pix`) — aucun texte du jeu dans une autre police, écran, bannière, champ de saisie
+  ou texture (Sacha, 15/10 : « il faut pas que je te le répète »). Deux FILETS la garantissent : `<style id="policeUnique">` (tout élément,
+  tout champ, en `var(--pix)!important`) et `UNE_POLICE` (tout `ctx.font` de canvas réécrit en pixel, à 62 % du corps, sans gras) ;
+  `apresPolice(f)` redessine une texture peinte avant que la police soit chargée ; `garde-charte.sh` refuse une version sans eux. Un texte
+  long : `--f1` (10 px), interligne 1,6-1,7, graisse 400 ; une note : `--f0`. Seule exception, nommée : le φ de `#spPhi` (logo).
+  Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
   `majPix`) ou `sansAcc`.
 - Ni emoji ni glyphe système dans l'interface : icônes pixel `pxi('nom')` (grilles `PXI_G`).
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
@@ -304,7 +317,8 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Une ligne dans `BASE` de `figures.js` : `{id, n, en, c, ce, p, D, aura, m:[{a:[x,y,z],t:n}]}` ou `{a, b:amplitude, k:battements}` — `c`/`ce` = le
   nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
   (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
-  au shop et à l'inventaire (`COSM.figure`), s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
+  au shop et à l'inventaire (`COSM.figure`) — son DESSIN dans les vignettes et le sélecteur des trois figures : une ligne dans `ILLU_FIG`
+  (index.html : anneau, sens, vue de la caisse, geste joué ; sans elle, l'anneau du salto) —, s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
   `['avant','arriere']` (un salto + autre chose : le geste choisit le sens du salto) ; sans `dir`, `FIG.dirs` la range par la règle de
   figures.js (que l'axe des roues → son sens ; aucun mouvement sur x → côté ; les deux → avant et arrière). `figures.js?v=` +1 dans index.html ET boite-figures.html,
   `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
@@ -420,7 +434,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
 - « LA GAMME RESSERRÉE — LA FICHE DES VOITURES » (06-07/10) · « SIX COMMUNES RETIRÉES » (02/10)
 - « LA VITRINE DU GARAGE » (04/10) · « LES LUEURS DE LA BOUTIQUE » (07/10) · « LA FENÊTRE D'ACHAT » (01/10)
-- « LE MOTEUR EN ÉCLATS » (15/10) — `ECLATS`, `?eclats=0` · « LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS » (15/10) — `FLM`, `NFEU`, `?flamme=ancien`
+- « LE JET PROPULSÉ, LE MOTEUR QUI CRÉPITE DANS TOUS LES SENS, LE VRAI POT DE LA HONTE » (15/10 soir) — `NFEU_JET`, `NFEU_MINI` (`va`, `r`, `crq`), `ECHP.reel`, `ECH_PAL.h`
+- « LE FEU AFFINÉ — 10 NUANCES, PIXELS PLUS FINS, FLUIDE AU VENT… » (15/10 soir) — `NFEU_P10`, `NFEU_FIN`, `NFEU_SOL`
+- « LE MOTEUR EN MINI FEU DE PIXELS » (15/10) — `NFEU_MINI`, `?moteur=goutte` (remplace « LE MOTEUR EN ÉCLATS », `ECLATS` retiré) · « LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS » (15/10) — `FLM`, `NFEU`, `?flamme=ancien`
 - « LE DRAGON EN FEU DE PIXELS » (15/10) — RETIRÉ du jeu le même jour (Léo)
 - « LE SILLAGE DE NITRO v5 » (29/09) · « LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR » (01/10) · « LA PLUIE DE RICHESSE » (08/10)
 
@@ -556,9 +572,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
   low-poly `lpKit`/`lpMat`/`lpWheel`, tuyères `CAR_POTS`/`potMonde`, raretés `RARETES`/`carRar`/`rarListe`/`carOrdre`,
-  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto`.
+  `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto` (et `aileFile` : la photo d'une aile, sur la caisse équipée).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
-  `FX_EFF`, `BQ_CATS`, `bqEphemeres` (les offres de la semaine), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
+  `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
+  (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
   `figAchat`/`figPossede`, `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
@@ -615,8 +632,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
 - PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
   serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
-  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (non chargés par le jeu ; lus
-  par les boîtes). Les animaux reviendront PAR MAP (d'abord des singes de décor au SOLEIL DE JADE). Le reste : git (85470fb4 et avant).
+  recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (lus par les boîtes, et
+  chargés par le jeu depuis le retour PAR MAP). Le reste : git (85470fb4 et avant).
+- LES ANIMAUX PAR MAP (15/10, Léo : « soleil jade singe va sur main et dauphins aussi ») : au SOLEIL DE JADE seulement — les SINGES (décor :
+  coucou sur une montagne, mangue, course, assis au bord ; `jsgTick`) et les DAUPHINS DE LA MER (au bout de 5 s dans l'eau ils arrivent, jouent
+  devant la caisse, l'un vient faire coucou à la portière, et une fois sur deux ils SAUTENT AVEC ELLE quand elle jaillit ; `jdmTick`). Les formes
+  des singes se calculent dans un Worker (`creatures/atelier.js`). Détail : JOURNAL.md. Pas de figure LE DAUPHIN.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 
@@ -626,7 +647,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aller voir ; magenta = boutique ; rouge = danger. La rareté se dit par sa couleur (`RARETES`).
 - On LIT en haut, on TOUCHE en bas ; cibles de 44 px ; bords via les safe areas `--sT`/`--sB`/`--sL`/`--sR` ; une seule courbe
   `--ease`, deux durées `--t-fast`/`--t-slow`.
-- Une police : Press Start 2P (locale, `--pix`). Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
+- UNE SEULE POLICE, PARTOUT : Press Start 2P (locale, `--pix`) — aucun texte du jeu dans une autre police, écran, bannière, champ de saisie
+  ou texture (Sacha, 15/10 : « il faut pas que je te le répète »). Deux FILETS la garantissent : `<style id="policeUnique">` (tout élément,
+  tout champ, en `var(--pix)!important`) et `UNE_POLICE` (tout `ctx.font` de canvas réécrit en pixel, à 62 % du corps, sans gras) ;
+  `apresPolice(f)` redessine une texture peinte avant que la police soit chargée ; `garde-charte.sh` refuse une version sans eux. Un texte
+  long : `--f1` (10 px), interligne 1,6-1,7, graisse 400 ; une note : `--f0`. Seule exception, nommée : le φ de `#spPhi` (logo).
+  Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
   `majPix`) ou `sansAcc`.
 - Ni emoji ni glyphe système dans l'interface : icônes pixel `pxi('nom')` (grilles `PXI_G`).
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).

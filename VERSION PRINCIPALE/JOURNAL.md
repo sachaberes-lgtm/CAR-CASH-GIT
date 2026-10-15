@@ -56,6 +56,259 @@
   du pool (jamais celles d'une boule vivante), qui hérite de l'élan de la caisse puis décroche (`dr` 1,8, ~0,5 s). Pas d'ondes de choc.
 - Les dards ont désormais leur propre foyer (`ox/oy/oz`) au lieu de `boomPos`. Banc : `explo.cjs` (scratchpad de la session) — morts forcées
   air / arbre / glace / lave / sat / roche + plot, captures à 120/380/800 ms.
+## LA FORÊT OÙ L'ON SE PERD — LA PELOTE (2026-10-15 soir, session « Refonte map forêt » — Sacha : « refonte totale de la map forêt. Dans la ville, la route allait en dessus, en dessous : je m'étais perdu, je prenais la route d'en bas sans savoir si c'était un raccourci ou si je revenais sur mes pas. On fait pareil : le concept de la forêt, c'est de SE PERDRE. Soit tu suis la route — plein de virages, vers le bas, vers le haut — et tu es sûr d'arriver un jour ; soit tu prends des raccourcis sans savoir s'ils sont bons. Des arbres beaucoup, beaucoup plus hauts et plus grands, une map beaucoup plus vaste, qu'on puisse passer entre les arbres pour changer de route, la route un peu emmêlée — pas que descendre ou que monter »)
+- LE TRACÉ (`genForet` → `forPelote`, remplace le slalom à boucles) : 3 NŒUDS (4 parfois aux paliers hauts) — des quartiers de ~450 m de rayon où la
+  route trace une ÉTOILE (4-5 pointes, 135-155° à chaque pointe, en slalom, une boucle parfois) et se recoupe ; des LIAISONS de virages entre eux ; la
+  ligne des nœuds louvoie (±70°) : 3-4 km de forêt d'un bout à l'autre. L'ARCHE à mi-course, sur une droite (elle ne se pose pas si un autre étage
+  passe dans son tronc). Un seul `rnd` consommé, 8 essais au plus, ~20 ms.
+- LE RELIEF : chaque nœud DESCEND (la route d'en dessous est devant : un raccourci), MONTE (elle est derrière : un piège) ou fait LA VAGUE ; toujours
+  au moins un nœud qui monte, jamais une majorité ; un grain par-dessus (bosses, une branche sur cinq à contre-pente). Aux croisements, ≥ 32 m entre
+  les dalles (bosses gaussiennes : l'étage du dessus monte, celui du dessous se creuse). La règle « les maps descendent ≥ 4 % » est LEVÉE pour la forêt
+  (Sacha : « pas que descendre ») : 1,4-3,8 % de descente moyenne, 10-39 % de la longueur en montée.
+- LE SOL (`foretSol`) : sous l'enveloppe BASSE de la pelote (min de hauteur de route + 24 % de la distance), ~130 m sous la route la plus basse ;
+  collines tout autour. `yb` (la route la plus basse à < 280 m) plafonne la forêt ordinaire : l'air entre les étages est libre, seuls les géants
+  le traversent. Le VERSANT du FLANC (v473, `FORET.amont`) n'existe plus.
+- LES ARBRES : les géants posent le pied au fond et ouvrent leur couronne au-dessus de la route la plus HAUTE à leur portée (`geantXZ`, sy jusqu'à
+  4,4 : des chênes de 400-500 m, des séquoias de 700) ; le fût (`FOR_GEANT_RB`, le rayon prudent) à 5 m du bord de TOUTES les routes ; LA FUTAIE : un
+  géant tous les ~95 m à moins de 360 m d'une route (`foretFutaie` [1,45 · 1,15 · 1] par palier) ; la forêt ordinaire ×2,1 (des hêtres de 60 m, des
+  épicéas de 80), 4× moins d'exemplaires pour le même couvert.
+- MESURÉ — banc raccourcis (`passation/foret-pelote/`, palier 0, 12 graines) : 9,3-14,6 km, 13-30 croisements, 0 DANGEREUX, raccourcis rentables
+  1,3-4,0/km, PIÈGES (pose propre ≥ 300 m en arrière) 0,2-2,4/km, 3,9-5,5 virages/km, 0 infranchissable ; paliers 10 et 20 : idem (0 dangereux).
+  Dans le jeu (banc commun, `sauts.cjs`, 3 forêts, les sauts rejoués AVEC les arbres) : raccourcis 7 → 7, 16 → 12, 9 → 9 — on passe entre les
+  troncs ; un quart des trajectoires finit dans un arbre (celles qui plongent dans la forêt). Construction 140-220 ms au PC (avant : 271-333),
+  216-266 géants, 0 erreur JS ; photos : un nœud vu du ciel, le passage sous un étage, les troncs autour de la route.
+- À VÉRIFIER SUR UN VRAI IPHONE : la fluidité dans un nœud vu d'en haut (beaucoup de géants dans le champ ; la futaie s'espace ×1,45 au palier ancien).
+## LE JET PROPULSÉ, LE MOTEUR QUI CRÉPITE DANS TOUS LES SENS, LE VRAI POT DE LA HONTE (2026-10-15 soir, pôle TECHNIQUE — Léo : « encore pas ça ; ce qui manque, c'est la physique de la vitesse : là on dirait du slime, ça devrait avoir l'air propulsé, plus dynamique, mais smooth » · « les flammes du moteur plus crépitantes et réelles » · « un pot d'échappement plus réaliste à LA HONTE, ça ne devrait sortir que d'un pot, métallique, côté gauche ; et toutes les voitures qui ont un pot aussi peu bien fait » · puis, devant le moteur : « reste sur les petits crépitements, mais que ça aille plus dans tous les sens, comme les cristaux de flammes d'avant, mais avec les petits cubes » ; « push main direct, envoie les photos »)
+- LE NITRO PROPULSÉ (`NFEU_JET`) : le feu SORT du pot à 13-26 m/s (avant 3,2-7 : la vitesse d'un slime), freine fort (`frein` 3,2/s : le gaz
+  s'étale), vit moins longtemps (×,72) ; serré à la sortie (`serre` ,7), il ne tourbillonne qu'en vieillissant ; chaque cube s'ÉTIRE le long du
+  jet tant qu'il file (`etire`, plafond `etMax` : une traînée de vitesse qui redevient un pixel en ralentissant) ; plus de grille (le mouvement
+  est lisse) ; le cœur blanc-jaune tient plus loin de la tuyère (`chaud` ,06, la postcombustion). Au sol il traîne moins (`NFEU_SOL.det` ,45) et
+  le vent de la trajectoire le couche plus franchement (`vent` ,9).
+- LE MOTEUR QUI CRÉPITE (`NFEU_MINI`) : sa propre vitesse (`va` 2,6 m/s, il ne suit plus le jet du nitro), et une GERBE — chaque petit cube
+  part dans une direction tirée TOUT AUTOUR de l'axe (`r` : 0,7-2,6 m/s, ×1,7 aux bouffées qui claquent), comme les éclats d'avant mais en
+  cubes (`et` 0 : pas de traits ; `t` ,42) ; un pied bleu très court à la bouche puis jaune → orange (palette `NFEU_P10.m`, l'orange tient : un
+  retour de flamme est orange, pas rouge). LE CRÉPITEMENT : chaque bouffée du moteur simulé crache sa petite rafale (`p.pz`/`p.pa`, posés
+  par `flmPas`), une bouffée sur ~14 CLAQUE (`crq` ,07, plus souvent sur un moteur qui crépite : `crk` de la table du SON, lue seulement) —
+  une petite boule et une étincelle ; chaque POP garde sa boule de feu et ses étincelles.
+- LE VRAI POT (`ECHP.reel`) : un tube d'acier conique avec sa bague de soudure, une collerette, l'embout chanfreiné ROUSSI puis BLEUI par la
+  chaleur (`ECH_PAL.h`, l'acier bleui), l'intérieur noir à deux étages, une seconde bague vers l'arrière, le tuyau qui remonte sous la caisse et
+  son étrier ; `echTaille` le perce dans le pare-chocs. LA HONTE (`ECH_POTS.epave`) : UN SEUL pot, en acier, à GAUCHE (x 0,55 : la gauche de
+  l'écran vue de derrière, sous le feu arrière) — la flamme et le nitro ne sortent plus que de lui. Le même pot RÉEL remplace le pot
+  par défaut de toutes les caisses qui n'en dessinent pas (`echappement`, deux pots à ±22 % de la largeur), et les tubes trop minces du
+  CORBILLARD, de la FÉLINE, de la PIZZA, de la PUCE et du COMBI.
+- Banc (Chrome muet, debout 390 × 844, caméra de poursuite, LA HONTE · LA MERCURE · LE COMBI ; vues figées de la poupe sur la VILLE) : 0
+  exception, programmes stables (178-181, aucun nouveau shader : les cubes gardent le programme de l'arc-en-ciel), feu ≤ 0,5 ms.
+  Planche : `photos-gameplay/feu-propulse-pot-avant-apres.png`.
+
+## LE FEU AFFINÉ — 10 NUANCES, PIXELS PLUS FINS, FLUIDE AU VENT ET AU MOUVEMENT (2026-10-15 soir, pôle TECHNIQUE — Léo : « le feu du moteur fait un peu cristaux, essaie de faire mieux, et le nitro pas mal, essaie d'affiner le travail » ; puis, sur le mini-feu : « c'est très bien, approfondis le tout, rends-le bien fluide, accordé au vent, au mouvement » ; nitro : « pixels plus fins, plus de nuances, fais comme tu le sens »)
+- (« Cristaux » = les ÉCLATS taillés du main ; le mini-feu, il ne l'avait pas encore vu.)
+- 10 NUANCES (`NFEU_P10`, `NFEU_B10`, `NFEU_T10`) au lieu de 7 — blanc chaud, jaune pâle, jaune d'or, or orangé, orange, orange profond,
+  vermillon, rouge, braise, fumée — pour le feu, la réserve bleue et la nitro infinie ; chaque cube son éclat (± 8 %, de sa graine) ; les
+  étincelles passent par le jaune d'or et l'orange. Le DRAGON garde ses 7 nuances (NFEU_PAL / NFEU_SEUIL / NFEU_TAILLE, inchangés).
+- PIXELS PLUS FINS (`NFEU_FIN`) : cubes ×0,73, débit ×1,7 (réserve 900 → 1 600), grille ×0,6 — le feu glisse au lieu de sauter.
+- FLUIDE AU SOL (`NFEU_SOL`) : chaque cube garde jusqu'à 85 % de l'assiette de sa NAISSANCE (la part monte avec l'âge ; `Q` est désormais
+  posé pour tous par `nfeuNait`) — la flamme TRAÎNE et s'incurve dans les virages au lieu de pivoter d'un bloc — et se couche en fin de vie
+  dans le VENT de la trajectoire (glisse, drift). En vol, le feu DÉTACHÉ de Sacha (genre 3) garde sa règle ; `?nfeu=colle` coupe les deux.
+- LE MINI-FEU resserré (`NFEU_MINI` : écart ×0,28, débit 260, vie ×0,7, taille ×0,34) : un cœur doré dense au pot, une traîne rouge.
+- MESURÉ : 0 erreur, 0 programme compilé (177 → 177) debout, couché, nitro au sol et en vol ; ~540 cubes au nitro, 0,13 ms/image.
+  Planche `photos-gameplay/feu-affine-avant-apres.png` (avec un zigzag : la flamme qui traîne).
+- Pas touché : la plume d'OR des plaques turbo (la goutte lisse revient à la plaque — un choix de Sacha, « la poussée qui vient de l'argent »).
+
+## LE MOTEUR EN MINI FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo, devant la planche des éclats : « ce n'est pas très satisfaisant pour le moteur normal sans NITRO. Fais vraiment juste comme le NITRO, mais vraiment en minuscule. Ça doit être à ce point-là »)
+- Remplace « LE MOTEUR EN ÉCLATS » (les éclats facettés et leur code `ECLATS` sont RETIRÉS) : hors nitro, la flamme du moteur est le FEU DE
+  PIXELS DU NITRO (`NFEU`) en minuscule — `NFEU_MINI` (taille ×0,3, vitesse ×0,55, écart ×0,45, vie ×0,8, grille ×0,4 ; marqué par sa GRAINE +2 dans `nfeuNait` — le genre 3 est le feu DÉTACHÉ en vol de Sacha, que le mini-feu suit aussi),
+  un peu plus chaud (il garde son jaune et son orange) ; la goutte lisse reste cachée hors nitro (la lueur du pot reste).
+- Son débit suit le moteur simulé (`FLM`) : ~120 cubes/s par pot × la BOUFFÉE du moment (cadence, charge, houle), éteint au pied levé,
+  haché par le rupteur en vol ; chaque POP (passage de rapport, pied levé, pose) lâche une petite boule de feu. Ses langues tournent comme
+  celles du nitro. Au nitro, le grand feu reprend la main (`N.k`).
+- `?moteur=goutte` : la goutte lisse (le moteur simulé sans feu). Même matière : 0 programme (182 → 182, debout et couché), 0 erreur.
+  Planche `photos-gameplay/moteur-mini-feu-avant-apres.png`.
+- ⚠ Le site en ligne était BLOQUÉ (quota Vercel, « rate limited ») : Léo voyait encore la goutte de la v482 — les éclats n'ont jamais été en ligne.
+## LES DAUPHINS DE LA MER DE JADE + L'ATELIER DES SINGES (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise » · « soleil jade singe va sur main et dauphins aussi »)
+- Seulement dans la MER des PICS DE JADE (là où l'on plonge et ressort). Bloc « LES DAUPHINS DE LA MER DE JADE » (après `dbgJadeSinges`), `jdmTick`
+  dans la boucle après `jsgTick`, un appel `jdmJailli` au JAILLISSEMENT de `jadeEauVol`. Du DÉCOR : ni aura, ni collision, pas de figure.
+- Lu ainsi (à corriger s'il le dit autrement) : après `JDM_ATT` = 5 s CUMULÉES dans l'eau (le compte repart quand la caisse a retrouvé la route),
+  un banc de TROIS arrive de devant en bondissant ; ils jouent DEVANT la caisse, de part et d'autre (comme à l'étrave d'un bateau : MESURÉ, en
+  cercle autour d'elle ils étaient derrière la caméra ou hors du cadre portrait) ; toutes les 3-5 s l'un d'eux recule jusqu'à la portière et fait
+  sa VRILLE (le coucou, son `dauphin.banc` la 1re fois) ; quand elle flotte ou surfe, ils bondissent ; quand elle JAILLIT, une fois sur deux
+  (`JDM_SAUT`) ils sautent AVEC elle (élan plafonné : ~10 m, elle monte à 30-40) ; elle retrouve la route, explose ou part loin → ils plongent.
+- ⚠ Leur surface est `jadeSurfMoy` (la houle calmée où flotte la caisse) : la houle en cubes du décor (`jadeSurf`) varie de ±20 m d'une colonne à
+  l'autre — dessus, ils bondissaient à 30 m. Sous la peau de la mer on les devine comme la caisse ; sans elle, l'eau les coupe (`uSurf`).
+- Le modèle : le grand dauphin VITRAIL (`creatures/dauphin.js`, `mkDauphin`, désormais chargé par le jeu ; ~95 ms au chargement ; sa ligne
+  `crV1/crV2` retirée : elle doublait celle d'index.html). 3 programmes compilés AU MENU (`chauffeRendu`), 0 en course (MESURÉ debout et couché).
+- L'ATELIER DES SINGES (`creatures/atelier.js`, deux Workers) : les quatre formes VITRAIL coûtaient 3,5 s de calcul (MESURÉ) ; en tranches de
+  5 ms il fallait 8 à 13 s de menu, et un JOUER rapide les compilait EN COURSE (4 programmes, mesuré debout). Prêtes ~1,3 s après l'apparition
+  de PLAY ; sans Worker (file://, refus, erreur, 30 s de silence) le calcul en tranches reprend (testé : prêtes à 6 s).
+- Banc : `?singesjade=1` (chaque PLAY part au SOLEIL DE JADE) · `dbgAuto(1,0)` AVANT le départ · `dbgEau({h:30,vy:-45})` lâche la caisse dans la
+  mer · `dbgJadeDauphins()` l'état (où ils sont à l'écran) · `('viens')` · `('saut')` · `('plonge')` un vrai plongeon sauté avec eux ·
+  `('route')` la mer la ramène (le départ) · `('gel')`.
+
+## LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on peut les voir dire bonjour ; sur la route, en train de courir ou de manger une mangue, ou penchés sur le bord de la route — qu'on en voie quelques fois seulement, mais qu'on les voie quand même ») — validé par Léo (« soleil jade singe va sur main et dauphins aussi »)
+- Du DÉCOR, sur la seule map PICS DE JADE (choix de Léo au questionnaire) : `jsgTick` (bloc « LES SINGES DU SOLEIL DE JADE », après `triNoir`).
+  Quatre rencontres par course (`JSG_N`), une de chaque, à des places tirées au hasard (`jsgPlan`) : COUCOU sur une montagne proche de la route
+  (`jsgMontagne` : sommet de 150 m sous la route à 50 m au-dessus — MESURÉ, celles du bord la dépassent de 70 à 230 m, sommet invisible), MANGUE
+  et COURSE sur la route près du bord (à mi-largeur, dans un virage, le singe tombait pile derrière la caisse à l'écran), AU BORD (assis sur
+  l'arête, jambes dans le vide). Chacun naît `JSG_AV` m devant, de l'autre côté de la route que la caisse, grandit en 0,4 s, repart quand elle
+  l'a laissé derrière. Tailles `JSG_ECH` : des singes GÉANTS (×8,5 à ×11 : à ×4,6 ils restaient cachés derrière la caisse jusqu'à 40 m).
+- Les POSES ARTICULÉES (`creatures/singe.js` : `SG_ART`, `SG_SEG`, `SG_POSES` bonjour · mangue · bord, `singePoseForme`, `singeAnimePose`) : le singe
+  debout découpé en 11 pièces rigides (bras et jambes en deux segments : coudes et genoux), une pose = des directions de segments ; la mangue
+  est un volume de la main droite (joue rouge côté visage, feuille). Trois os par pose (tête · avant-bras qui fait coucou / mangue à la bouche ·
+  queue ou jambes qui balancent). La boîte à singe les montre (Coucou · Mangue · Au bord).
+- Le jeu charge `creatures/vitrail.js` + `creatures/singe.js` (balises après figures.js) ; les quatre formes sont bâties AU MENU en tranches puis
+  compilées hors écran (une course partie trop tôt les compile une fois, sans singe à l'écran). Son posé : `sfx('singe.coucou')` (à faire).
+- Banc : `?carte=jade` ne suffit pas (le menu le consomme) → `dbgClassique('jade','midi')` juste avant le vrai clic sur PLAY ; `dbgAuto(1,0)`
+  AVANT le départ (sinon la caisse file au 1er virage dans la mer) ; `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` lance une rencontre,
+  `dbgJadeSinges('gel')` fige la course sans le panneau (photos), `dbgJadeSinges('montagnes')` liste les montagnes autour de la route.
+
+## LES RAYONS DE LA BOUTIQUE + LA PHOTO DES AILES (2026-10-15 soir, Sacha : « enlève l'onglet CETTE SEMAINE avec toutes les voitures qui défilent ; à la place, les pictogrammes — voiture, peinture, aile, traînée, figure — qui sont pour l'instant dans une petite flèche ultra cachée, c'est nul » · « pour les ailes il n'y a pas de photo, c'est pas bien » · « OFFRE, remplace-le par ACHAT avec toutes les voitures payantes » · « enlève AILES et OFFRE en haut, un menu plus grand »)
+- LA COLONNE DE GAUCHE = LES RAYONS (`#gBqCats`, à la place de `#gBqUne` « CETTE SEMAINE ») : une ligne par rayon, pictogramme + nom
+  (VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES, `BQ_CATS`), le rayon ouvert en noir avec son liseré bleu, ACHAT a son panier bleu.
+  Toucher = le rayon s'ouvre dans la grille (`uiPop` + `uiClic('onglet')` + `hap(6)`). `bqRayons(el, place)` cale la hauteur des lignes
+  (44-52 px, l'écart se resserre d'abord) ; sans la place de six lignes de 44 px (petit téléphone) → deux colonnes de carrés, pictogramme seul.
+- PLUS DE BARRE AU-DESSUS DE LA GRILLE : ni « VOITURES ▾ » (et son menu caché `.bqMenu`), ni OFFRES — la grille prend leur place (+60 px de cartes).
+- TOUS LES RAYONS EN GRANDES CARTES, trois par rangée comme les voitures (plus de `.habs` à quatre : « D'ORIGINE » s'y coupait en « D'ORIGIN / E ») ;
+  la pastille de peinture et le ruban de traînée grandissent avec.
+- ACHAT (`bqAchat`) : TOUTES les caisses payantes (`bqPayantes`, plus seulement les quatre tirées sur la semaine), l'offre de lancement (`une`)
+  en tête puis du moins cher au plus cher ; plus d'étiquette LIMITÉE ni de compte à rebours sur le nom. Les anciens chemins vers OFFRES
+  (`GBQ.ong='off'` : le bouton BOUTIQUE de l'accueil, `bqVaOffres`, `gOffresPage`) ouvrent le rayon ACHAT.
+- LA PHOTO D'UNE AILE (`aileFile(id, cb)`, `carPhoto(i, cb, aile)`, `photoAiles`, `PHOTO_AILE`) : la caisse équipée porte l'aile, DÉPLOYÉE
+  comme en vol, même studio et même pellicule que les caisses, vue plus plongeante ; une caisse sans ailes (gabarit `none`) → la 1re de la gamme.
+  File `PHQ` partagée avec les caisses (une photo par image), cache de session `a:<aile>:<caisse>`. Les cartes AILES passent en grandes cartes
+  (trois par rangée, comme les voitures). Banc : `dbgAile(id, {el, az})` refait la photo et rend son cadrage.
+- L'étiquette de rareté longue (LÉGENDAIRE) ne se coupe plus dans sa carte (`.bqKr.lg`, un corps en dessous).
+## LA DÉFERLANTE ET LA MERCURE RETIRÉES (2026-10-15, Sacha : « supprimer complètement du jeu la déferlante et la mercure, vu qu'elles ne respectent pas les règles du low-poly » — après hésitation, verdict final : « supprimez-les »)
+- Les deux épiques de Léo (LA DÉFERLANTE, 3,6 M ; LA MERCURE, 3,8 M) sortent de la gamme par la recette des caisses retirées : `retire:1`
+  dans leur fiche de `CARS`. Leur LIGNE RESTE (et celle de `CAR_UNLOCK`) : la sauvegarde désigne les caisses par leur index, LE DOGE et
+  toutes les suivantes gardent le leur. `carRetiree` les ôte de partout (boutique, garage, raretés, vitrine, équipement).
+- Qui en avait acheté une est REMBOURSÉ à son prix (le filtre des retirées dans `san`, une seule fois : elle sort de `owned`, `SAVE.remb`
+  le dit au menu) ; qui roulait avec repart en caisse 0.
+- Leurs GABARITS sont effacés (`SHAPES.deferlante` et `SHAPES.mercure` : 376 lignes, −43 Ko — le maillage en Surface Nets de la Mercure,
+  ses filets, son miroir `MERC_FS`, l'eau `EAU_VS`, l'écume en cubes de la Déferlante). Comme pour SA MAJESTÉ ou LA POSTIÈRE, si une fiche
+  retirée était quand même bâtie, `buildCar` replie sur `gt` avec un avertissement. Restent, inutilisées mais communes au kit : les options
+  `style:'tourbillon'`, `sansPneu` et `roueDeco` de `lpWheel` (rien à défaire). Les noms restent dans `I18N` (le message de remboursement).
+- BANC (muet, couché 844×390) : partie neuve → les deux fiches (index 74 et 75) ne sont plus citées ni au garage ni à la boutique ;
+  sauvegarde d'un acheteur (banque 1 000, `owned` 74 + 75, équipée en MERCURE) → banque 7 401 000 (= 1 000 + 3,6 M + 3,8 M), `owned` vidé,
+  caisse 0 équipée, JOUER → course sans erreur ni « gabarit inconnu ». Fumée commune OK (couché + debout, 0 erreur JS).
+- Cache `cashcar-v520`.
+
+## L'INVENTAIRE EN PICTOGRAMMES, ILLUSTRÉ, ET SES TROIS FIGURES (2026-10-15 soir, Sacha : « en haut, voitures, peintures, ailes, traînées, figures, c'est très brouillon : simplifie avec les pictogrammes » · « les traînées, les ailes et les figures, il n'y a pas les images » · « dans l'onglet FIGURES, un bouton stylé : le nitro et trois cases en hexagone avec les figures sélectionnées, joystick haut, bas, côté, au-dessus des figures »)
+- LES ONGLETS de l'inventaire (`#garage.atelierInv #gTabs`) : cinq PICTOGRAMMES à parts égales, 44 px, redressés (la réglette penche) ; le mot
+  reste pour le lecteur d'écran. Seulement dans l'INVENTAIRE (la console des autres modes ne bouge pas).
+- UNE IMAGE PAR OBJET (`ILLU_COS`, `ILLU_FIG`, `illuTr`/`illuAile`/`illuPx`/`illuFig`, pictogrammes `ai_*`/`tr_*`/`cv_dos`/`fg_*` dans `PXI_G`) :
+  · les 4 ailes et les 6 traînées d'origine ont leur pictogramme (planche qui traverse la caisse, hélices, plumes, chauve-souris ; jet de nitro, feuille de menthe,
+    cœur néon, poudre d'or, arc-en-ciel, tête de doge) — nitro et arc-en-ciel peints d'un dégradé à travers le masque ; les POP gardent le leur ;
+  · une AILE passe en PHOTO dès que `aileFile` existe (la photo de la boutique, session « pictogrammes d'items en boutique ») : rien à
+    rebrancher, la vignette le teste à chaque construction ;
+  · une FIGURE = la caisse vue sous l'axe de son mouvement (PROFIL : salto, chandelle, toupie ; DOS : tonneau) dans son ANNEAU (rond, à plat,
+    penché, deux pointes = 720), à la couleur de sa rareté ; le sens se lit (salto avant dans le sens des aiguilles, arrière en miroir). La
+    vignette choisie et les cases du sélecteur JOUENT la figure en boucle (3,2 s, `--ease`, coupé en « réduire les animations »). Au coin haut
+    droit, ses DIRECTIONS (↑ ↓ ◄►), allumée = équipée là.
+- LE SÉLECTEUR DES TROIS FIGURES (`#gFigSel`, `GFS`, `gFigSelMaj`, `gFigTouche`), au-dessus de la grille, onglet FIGURES de l'inventaire
+  seulement (`figTab`) : l'ÉCLAIR du bouton NITRO (sa grille `NX3_G`, sa palette) et « ×2 » (le double-tap), puis trois cases HEXAGONALES dans
+  l'ordre du jeu (`FIG_FAM` : ↑ avant, ↓ arrière, ◄► côté) — la figure qui tourne, le joystick de sa direction, son nom ; VIDE si rien.
+  · toucher une FIGURE l'équipe (avant, le toucher dans la console n'équipait PAS les emplacements : seule la boutique le faisait) — dans sa
+    direction, ou dans la case ARMÉE si elle y va ; la case qui la reçoit s'allume, la caisse du plateau fait la figure dans ce sens ;
+  · toucher une CASE l'arme (elle bat, la grille éteint les figures qui n'y vont pas) ; retouchée ou en quittant l'onglet, elle se désarme.
+- Ajouter une figure : sa ligne dans `ILLU_FIG` (sinon l'anneau du salto) — noté au GUIDE.
+## UNE SEULE POLICE, PARTOUT (2026-10-15 soir ; Sacha : « la notification des défis n'a pas la même police que le reste du jeu […] chaque écran,
+## chaque truc, c'est pareil quand on tape le code cousin […] il faut pas que je te le répète »)
+- LA CAUSE : une trentaine de règles écrites en police SYSTÈME (`var(--sans)`, `-apple-system`, `Segoe UI`, Avenir condensée…), choisies une
+  par une « pour la lisibilité » : la bannière MISSION RÉUSSIE (`#misBan .mbTx span`), le coach, la fenêtre (`#modX`) et son champ (`#modC`, en
+  monospace : le code cousin), la fiche du garage (`#gDesc`), le final spin (`.spDesc`/`.spNote`), les jauges de la vitrine (`.gvL`), le numéro
+  de version, l'écran « CASH CAR a calé »… Et 30 textures de canvas en Helvetica / Georgia / Courier / Comic Sans (billets, carte bancaire,
+  montre, pièces de la boutique, pluie de monnaies, « wow » du DOGE).
+- LE CORRECTIF : chaque règle refaite en pixel (`--f1` 10 px pour un texte, `--f0` 8 px pour une note, interligne 1,6-1,7, graisse 400 : la
+  police n'a pas de gras) ; `--sans` et `--c6-sys` pointent désormais sur le pixel ; chaque texture refaite en pixel à ~62 % du corps (même
+  largeur de mot). La bannière et la fiche du garage passent par `majPix` (`misTxt(m)`, `TR(d.d)`). Le billet volant, la pluie de monnaies
+  et le logo du fourgon, peints AU CHARGEMENT, sont redessinés quand la police arrive (`apresPolice`) ; la police est préchargée (`<link rel=preload>`).
+- LA PLUIE DE MONNAIES passe de 15 à 5 symboles ($ € ¥ £ ¢) : mesuré au banc, la police pixel n'a ni ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ ni φ — ils
+  tombaient dans une police de secours.
+- POUR NE PLUS JAMAIS LE REDIRE, deux filets : `<style id="policeUnique">` (dernier bloc de style) met `var(--pix)!important` sur tout élément,
+  pseudo-élément et `::placeholder` ; `UNE_POLICE` (premier script du body) réécrit tout `ctx.font` qui n'est pas Press Start 2P. `garde-charte.sh`
+  (d) refuse une version sans ces deux filets. Seule exception nommée : le φ du « 1.61φ » (`#spPhi`, logo ; la police pixel n'a pas de φ).
+
+## LES FIGURES SUPER FUN : LE COUP NET, LE SENS QUI SE VOIT, LE HUD v4 (2026-10-15 soir, Sacha : « ça marche un peu mais c'est imprécis et peu spectaculaire, fais dans le détail pour que les figures soient super fun » · « les figures doivent vraiment changer de sens selon le côté où tu les as mises : le rodéo vers l'avant ou l'arrière, l'hélico à gauche ou à droite, la rotation inversée » · « retravaille l'HUD des figures aussi, il faut que ce soit parfait : là c'est écrit en double ; des figures bien écrites, avec des moyens de rendre ça addictif » · « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance »)
+- RELEVÉ d'abord, au FILM : `film-fig.cjs` (la boucle du jeu figée — `requestAnimationFrame` détourné, pompé à la main — une capture par image
+  à 60 i/s : la 3D telle que le joueur la voit) et `hud-film.cjs` (captures en temps RÉEL : les minuteries du HUD suivent l'horloge). Trouvé :
+  en vrai vol (1,2 s) le filet de sécurité reprenait la main dès 0,2 s — le tonneau bouclé en 0,35 s à vitesse fixe, illisible, puis la caisse
+  à plat les deux tiers du saut ; le rodéo arrière coupé à 0,1 s ; au sol, la figure du SAUT NITRO partait « à tour de rôle » (`FX2.cyc`),
+  sans regarder la direction ; le HUD (voir v4 plus bas).
+- **LE COUP NET** (`FIG.Corps`, figures.js ?v=8, `PHY.elan`, `?elan=0` = la prise d'avant) :
+  · la DURÉE vient du vol (`figDose` : 72 % du vol qui reste moins la pose, au plus 1,35 × la durée du catalogue, jamais sous 0,32 s) ;
+  · le COUP : départ à 2 × la vitesse moyenne, puis un FREIN RÉGULIER (décélération constante, `m.acc`) qui l'arrête pile après ses tours + 5°
+    (`eps`) : elle dépasse un poil l'endroit et s'y PLANTE (le ressort du planté, un rebond) — finie à `finE` (98,5 %) ;
+  · une figure à DEUX rotations (rodéo, tire-bouchon, cosmique) = UNE rotation autour de l'axe penché qui les combine, en tours ENTIERS : elle
+    retombe pile à l'endroit (MESURÉ : menées chacune de son côté, elles laissaient la caisse à 148° — elles ne commutent pas) ; c'est le vrai
+    rodéo des riders, un salto désaxé ; orientée avant ou arrière, son salto change de sens (vérifié : tangage + / −) ;
+  · le coup VISE la vitesse de départ sur son axe (il renverse une rotation contraire, il complète une du même sens) ; une figure CONTRAIRE
+    sur le même axe ANNULE celle qui tourne ; deux figures qui se CONTRARIENT (axes à demi opposés : salto + rodéo arrière) — la dernière
+    prend la main, l'autre compte dès la moitié faite ; sur des axes de travers (tonneau + salto), chacune garde son frein (MESURÉ : la relayer
+    laissait 160° en fin de combo, contre 55°) ;
+  · LA FIN d'un mélange (`finVise`) : elle CONTINUE dans son sens et ralentit à décélération constante jusqu'à l'endroit (FIGÉE au début de la
+    fin — recalculée chaque image, elle gardait la vitesse : MESURÉ 9,2 rad/s constants), plus fort si le sol presse ; plus de vitesse fixe,
+    plus de balancier ; la prise forte n'est plus qu'un filet (sol trop proche, tap qui redresse) ;
+  · le temps qu'il reste (`reste`) = le plan de la figure (estimé sur la vitesse de son axe, il forçait la prise dès le départ en mélange) ;
+  · le compte des RÉPÉTITIONS se fait sur la figure de base (`r.base`) : un HÉLICO 720 qui fait ses deux tours = UN hélico, un tonneau empilé
+    au double-tap = DOUBLE TONNEAU (payé comme tel).
+- **LE SAUT NITRO suit la direction** (`veqFigure`) : la figure du double-tap au SOL est celle de la direction tenue à cet instant (▲ ou rien =
+  l'avant, ▼ = l'arrière, ◄► = le côté) ; rien dans cette direction : le saut part sans figure, sans bruit de refus (`o.muet`).
+- **LE SPECTACLE** sans ralenti (verdict du 26/09 : plus aucun ralenti — les gels d'image restent muets) : la plantée CLAQUE — un coup de zoom
+  sec (le même que la pose PARFAITE, en petit : `CAMV.zoom` .42), une secousse, une gerbe d'or ; le coup de départ garde son explosion.
+- **LE HUD DES FIGURES v4** (le récit est au-dessus de `figNom`) : le NOM une seule fois, bien écrit (`figNom` : DOUBLE TONNEAU, TOUPIE 720,
+  HÉLICO 1440, QUADRUPLE TONNEAU — plus de « ×2 », qui se confondait avec le × de la chaîne d'aura ; un HÉLICO 720 simple ne s'écrit plus
+  « HÉLICO 720 ×2 ») ; la FLÈCHE du geste devant (▲ ▼ ◄ ►, le côté où elle part) ; à la plantée le nom passe en OR et une PASTILLE muette
+  tombe dans la ligne (plus grosse pour une figure neuve dans le vol) ; « COMBO ×1,5 » ; le RECORD de combo (`SAVE.d.figRec`, désinfecté) bat
+  à côté du × dès qu'on le dépasse, gardé à la pose ; à la pose la ligne s'éteint SUR PLACE (`fhVole` retirée : elle traversait la carte
+  moteur — « SALTO AVANTNEAU ») ; le rappel #fhLeg écrit les vrais noms (« SALTO AVANT », plus « AVANT ») et le geste que vise le pouce
+  S'ALLUME (`fhArme`, `.arme`). Anglais : COMBO, RECORD, DOUBLE / TRIPLE / QUAD.
+- MESURÉ — banc du corps (`banc-corps.cjs`, au dosage du jeu) : tonneau sur 1,3 s de vol 18 → 3 rad/s, planté à 0,65 s ; salto 0,75 s ;
+  hélico 720 1,08 s ; rodéo avant / arrière 0,9 s (0° à la fin) ; tonneau + salto, tonneau + toupie, salto du saut + tonneau, salto du saut
+  + rodéo arrière : tous rangés à l'endroit entre 1,4 et 1,6 s, la fin en décélération continue ; vol de 0,9 s : planté à 0,57 s. Banc du
+  JEU (cc-banc, 390 × 844, muet ; films `film-fig.cjs` / `hud-film.cjs`) : re-taper EN AVANT sur le salto du saut nitro = « DOUBLE SALTO
+  AVANT », planté à 0,6 s (+203) — 1er jet : refusé 10 fois sur 10 (le tour empilé réservait le temps des autres figures : il se dose
+  désormais sur ce qui reste à CETTE figure, `D2`) ; saut de 0,96 s : tonneau planté, le salto en plus refusé (plus le temps — normal) ;
+  rodéo arrière en long vol : il mène, retour continu, à l'endroit à 1,6 s ; HUD : « ◄ TONNEAU », puis « SALTO AVANT » en or + COMBO ×1,5 +
+  RECORD, éteint sur place sans chevaucher « NOUVEAU SOMMET » ; 0 chute, 0 erreur.
+- Hooks : `dbgFigDir(x,y)` (le geste, la figure, son sens), `dbgFig('phy')` (les réglages, à chaud : `eps`, `finE`, `aUp`, `aDn`, `aFin`,
+  `stickAng`), `?elan=0`.
+## LA CAISSE-NUAGE N'A PLUS DE SILLAGE VISIBLE (2026-10-15 soir, Sacha : « l'événement chasse-nuage, quand j'approche le nuage, son sillage, je sais pas ce que c'est, supprime-le, c'est nul »)
+- Retirés, dans la campagne (niveau 10) comme dans l'événement rare : le RUBAN d'or rose derrière elle (`fantomePose` : `GH.tr` reste éteint), la OUATE
+  (`cloudBits`) qui filait autour de toi dans son aspiration, et le HALO d'or au bord de l'écran quand on la tient (`campFx` 4e calque à 0). La plaque
+  SILLAGE était déjà partie (9c94fdf7).
+- Le JEU ne change pas : l'aspiration tire toujours (+9 m/s² × proximité), la bulle de 18 m, « ACCROCHE ! », le carillon qui monte et la prise en 1 s
+  restent. Banc (debout 390 × 844, `dbgEvt('caisse')`, la caisse collée 1,8 s) : ruban jamais visible, halo à 0, « ATTRAPÉE ! », zéro erreur.
+## LES PRIMES DE MISSION RAMENÉES À LA PARTIE (2026-10-15 soir, Sacha : « j'ai lancé 3 parties, je suis déjà à 96 000 $, c'est trop — il faut équilibrer »)
+- LA CAUSE, lue dans sa sauvegarde localhost : 96 036 $ en banque, rien d'acheté, **6 carnets de missions finis = 76 800 $ de primes**
+  (plus le permis, 500). Les pièces n'en faisaient que ~19 000 sur 27 parties. Les primes montaient ×10 à ×50 d'un carnet à l'autre
+  (300 → 80 000 $ la mission) quand une partie ne rapporte que ~500 à 3 000 $ ; et depuis LA FILE (v467, même jour) les missions faciles
+  des carnets suivants tombent sans attendre la difficile, donc elles arrivaient en rafale. Sur sa dernière partie : +16 900 $, dont 14 000
+  de trois missions (2 000 + 4 000 + 8 000).
+- LE CORRECTIF (`CARNETS`, aucun prix ni gain de course changé) : une mission vaut ~1/3 à 1 partie du joueur qui la remplit, +15 à 25 % par
+  carnet — carnet 3 : 700 · 700 · 800 ; 4 : 800 · 800 · 1 000 ; 5 : 1 000 ×3 ; 6 : 1 200 · 1 200 · 1 400 ; 7 : 1 500 · 1 500 · 1 800 ;
+  8 : 1 800 · 1 800 · 2 200 ; 9 : 2 200 · 2 200 · 2 600 ; POP 10-12 : 2 600 → 4 000. Les carnets 1-2 (300-600 $) sont INCHANGÉS : le
+  salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie. La suite sans fin repart dans leur pas (`carnetBrut` 40 000 →
+  3 200 : 4 000, 4 800, 5 600… la mission, jalon ×2). Total des 6 premiers carnets : 76 800 → 14 400 $ ; des 12 écrits : 904 800 → 60 700 $.
+- LE CADEAU (toutes les 6 h) PLAFONNÉ à 2 500 $ (`CADO.max`) : il vaut 8 % du record d'une partie, et une vieille sauvegarde garde un record
+  de l'ANCIENNE échelle (8,6e16 chez Sacha) : son prochain cadeau lui aurait versé ~7e15 $.
+- Ce qui est déjà en banque reste en banque (rien n'est repris à une sauvegarde).
+
+## LE TAIL WHIP (2026-10-15 soir, Léo par le MANAGER : « la première figure : un TAIL WHIP » · « push-les, ils sont bien » ; choix coché : en GLISSER, ← → = tail whip) — pôle TECHNIQUE
+- LA FIGURE (`figures.js` ?v=8, `FIG.par.tailwhip`, 1re de `BASE`) : un tour à plat (axe vertical, `D` ,62, aura 50), mais le NEZ reste en
+  place et c'est la POUPE qui fait le tour — `piv` ,92 = le point fixe, en part de la demi-longueur, vers le nez. `figPose` le lit (`FX2.pivK`,
+  lissé ×14/s) et fait tourner la caisse autour de ce point (le milieu se décale, `FX2.pivD`). Une seule explosion, sur le flanc de la poupe
+  (la queue fouette ; `Corps.lance` et `Corps.empile`). Son matériau sonore = celui de la toupie (`FIG_SIGNE.tailwhip` 1).
+- EN GLISSER, EN L'AIR : ← → = le TAIL WHIP de ce côté (`figGFig`, il remplace le 360) ; glissé à GAUCHE → la POUPE part à gauche (sens −1,
+  `figGOpts`), à droite → à droite. La flèche dit « TAIL WHIP ». AU SOL rien ne change (← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE), ↑ ↓ en l'air
+  non plus (saltos). L'astuce du 1er vol dit « ◄► un tail whip ».
+- OFFERT ET ÉQUIPÉ : `figPossede('tailwhip')` toujours vrai ; une sauvegarde neuve = `figs:['tailwhip']` ; l'emplacement CÔTÉ vide prend le
+  tail whip (`figSlots`). Le TONNEAU passe en BOUTIQUE à 1 500 pièces. LES SAUVEGARDES D'AVANT LE GARDENT : il est déjà dans leur liste `figs`
+  (il y était offert d'office), et une sauvegarde d'avant les figures qui a déjà joué (sans liste) le reçoit ; `SAVE.d.figT0` = 1 marque ce
+  tonneau OFFERT, pour que `ecoDebutAchat` ne le compte pas comme un achat. En 2 TAPS, rien ne change pour elles (le côté garde le tonneau) ;
+  un débutant en 2 TAPS a le tail whip sur le côté, la poupe du côté du pouce (`figLance`, `f.piv`).
+- Banc (Chrome muet, vrais glissés sur NITRO, debout 390 × 844 et couché 844 × 390, sauvegarde neuve et sauvegarde d'avant ; `dbgGlisse('save')`,
+  `dbgGlisse('nez')`) : spam NITRO ×10 = 0 figure ; ← au sol = SLIDE 360 (reste au sol) ; en vol ← → = TAIL WHIP, la poupe part du côté
+  du glissé, le NEZ bouge de 0,5-1,2 m (la trajectoire elle-même) quand la POUPE balaie 5,3-6,6 m — aux saltos, nez et poupe bougent pareil
+  (3,6 m) ; ↑ ↓ = saltos ; 2 TAPS côté = tail whip (neuve) / tonneau (d'avant) ; 0 exception.
 
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit

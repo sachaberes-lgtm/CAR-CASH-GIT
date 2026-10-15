@@ -43,3 +43,14 @@ et `planche-nuit.jpg` (avant les derniers correctifs : arche verte corrigée dep
 - Banc raccourcis (GAMEPLAY) au palier 0, 12 graines : raccourcis 0,9-1,5/km ✓, pente ~7 % ✓, 0 croisement dangereux ✓, droites ≤ 5 s ✓ (2 graines à 5,1-5,2),
   virages 2,5-3,0/km (1 graine à 2,43). Itérer SANS Chrome : `node gentrace.cjs <graines> t.json` (scratchpad opt/) puis `raccourcis.cjs foret 1 --depuis=t.json`.
 - Reste : construction ~315-350 ms (PC) — l'objectif < 60 ms passe par la pré-construction (passation/PLAN-PREBUILD.md).
+
+## 15/10 soir — v3 « LA PELOTE » : la forêt où l'on se perd (session « Refonte map forêt »)
+Sacha : « le concept de la forêt, c'est de SE PERDRE » (comme la ville : la route en dessus, en dessous, on ne sait pas si la route d'en bas
+est un raccourci ou un retour en arrière) · « des arbres beaucoup, beaucoup plus hauts et plus grands, une map beaucoup plus vaste » · « qu'on
+puisse passer entre les arbres pour changer de route » · « que la route soit emmêlée : vers le haut, vers le bas, pas que descendre ».
+- Tracé : `genForet` → `forPelote` (3-4 NŒUDS en étoile, chacun DESCEND / MONTE / fait LA VAGUE ; ≥ 32 m entre deux étages). Sol : `foretSol`
+  sous l'enveloppe BASSE de la pelote ; grilles `yn` / `yb` (route la plus basse à 150 / 280 m). Géants : `geantXZ` (couronne au-dessus de la route
+  la plus HAUTE à portée, `FOR_GEANT_RB`), LA FUTAIE (`foretFutaie`) ; forêt ordinaire ×2,1. Voir l'en-tête de `genForet` et le JOURNAL.
+- Outils : `passation/foret-pelote/` — `node trace.cjs 1,2,3 t.json --jeu <index.html> [--palier N]` puis `node racc2.cjs --depuis t.json --json > r.json`
+  et `node resume.cjs r.json` (raccourcis ET pièges), `python plan.py t.json png` (vue du ciel + profil), `node natif.cjs <palier> <index.html>`
+  (temps de génération), `sauts.cjs` / `vue.cjs` (au banc commun : les sauts rejoués avec les arbres, les photos).
