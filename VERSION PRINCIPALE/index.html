@@ -9189,13 +9189,14 @@ html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas
 /* UX 8 · LA PARTIE : pause, fenêtres de confirmation, réglages, fin de partie, missions — même règle (ergonomie et soin, charte v4/v5, html:not(.c6)). */
 /* ===== 1. LA PAUSE — REPRENDRE est l'or (en bas, sous le pouce) ; SON et MUSIQUE seuls en jeu ; le reste derrière « TOUS LES REGLAGES » ; QUITTER isolé, en contour ===== */
 html:not(.c6) #tPanel #tpIn>.tpH[data-g="run"]{display:none}
-html:not(.c6) #tPanel #tpIn>.tpRow{display:contents}
+/* (2026-10-15) LA PARTIE redevient UNE rangée : RECOMMENCER | QUITTER côte à côte, à hauteur fixe, posés au-dessus du lingot.
+   ⚠ La rangée était dissoute (display:contents) alors que `.tpRow .tp` garde son flex:1 — dans la colonne, ce flex:1 devenait de la
+   HAUTEUR : les deux plaques gonflaient à 112-152 px, avalaient tout le vide et poussaient REPRENDRE sous le bord de l'écran. */
+html:not(.c6) #tPanel #tpIn>.tpRow{order:4;display:flex;gap:12px;margin-top:auto;padding-top:12px}
 html:not(.c6) #tPanel #tpIn>.tpResume{order:1;margin-top:4px}
 html:not(.c6) #tPanel #tpIn>.tpHR{order:2;margin-top:12px}
 html:not(.c6) #tPanel #tpIn>.tpPanel{order:3}
-html:not(.c6) #tPanel #tpIn .tp[data-a="reset"]{order:4;margin-top:8px;min-height:52px}
-html:not(.c6) #tPanel #tpIn .tp[data-a="quit"]{order:5}
-html:not(.c6) #tPanel #tpIn>.tp.go{order:6;margin-top:auto}
+html:not(.c6) #tPanel #tpIn>.tp.go{order:6;margin-top:8px}
 html:not(.c6) #tPanel .tpH,html:not(.c6) #tPanel .tpResume .mStat span{font-size:var(--f1)} /* étiquettes 8 px -> 10 px */
 html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="q"],html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="volh"]{display:none} /* IMAGE et POUCE HAUT : dans les réglages complets */
 html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]{display:flex;min-height:58px}
@@ -9203,13 +9204,13 @@ html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]::after{content:'';flex:none;width
 html:not(.c6) #tPanel #tpIn .tp.rouge{--nc:var(--neoR);min-height:48px;margin:0 0 16px;background:transparent;text-shadow:none;
   box-shadow:inset 0 0 0 2px var(--neoR)}
 html:not(.c6) #tPanel #tpIn .tp.rouge:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+html:not(.c6) #tPanel #tpIn>.tpRow>.tp{flex:1 1 0;min-height:52px;margin:0} /* les deux plaques de LA PARTIE : même largeur, même hauteur */
 @media (orientation:landscape) and (max-height:540px){
   html:not(.c6) #tPanel #tpIn>.tpH:nth-child(1){grid-column:1;grid-row:1}
   html:not(.c6) #tPanel #tpIn>.tpResume{grid-column:1;grid-row:2;margin:8px 0 0}
   html:not(.c6) #tPanel #tpIn>.tpHR{display:none}
   html:not(.c6) #tPanel #tpIn>.tpPanel{grid-column:2;grid-row:1/span 2;align-self:start}
-  html:not(.c6) #tPanel #tpIn .tp[data-a="reset"]{grid-column:2;grid-row:3;margin:0}
-  html:not(.c6) #tPanel #tpIn .tp[data-a="quit"]{grid-column:2;grid-row:4;margin:0}
+  html:not(.c6) #tPanel #tpIn>.tpRow{grid-column:2;grid-row:3;align-self:start;margin:4px 0 0;padding:0}
   html:not(.c6) #tPanel #tpIn>.tp.go{grid-column:1;grid-row:3/span 3;align-self:end;margin:0 0 6px}
 }
 /* ===== 1 bis. RÉGLAGES OUVERTS DEPUIS LA PAUSE — la page passe AU-DESSUS (l'overlay est à z-index 5, le panneau de pause à 9 : sans ceci les deux se lisaient l'un à travers l'autre) ===== */
@@ -46160,7 +46161,7 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
    on repart d'où l'on est tombé (`respawn` : la dernière route sûre) avec le MOTEUR, la zone et le compteur de la partie ; la chaîne d'aura,
    le flow et les pouvoirs sont partis avec l'explosion, une part des gains avec le prix, et le MOTEUR perd un palier (CHANCE.moteurPerte :
    la caisse a explosé) — la mort reste une vraie sanction.
-   · LE PRIX — ⚠ REMPLACÉ le 14/10 soir par Sacha : 100 % de l'encaissé de la partie (voir chanceOuvre). Avant (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
+   · LE PRIX — ⚠ REMPLACÉ le 15/10 par Sacha : autant de $ que de PIÈCES ramassées pendant la partie (RUNX.coins, voir chanceOuvre). Le 14/10 soir : 100 % de l'encaissé de la partie. Avant (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
      triplait son revenu par minute), puis +0,05 par minute, plafond 0,8 ; CHANCE.plancher au moins, arrondi à deux chiffres (2 437 → 2 400). Le moteur perdu casse la pente de
      l'argent (≈ T^2,1 : continuer une longue partie vaut bien plus que d'en recommencer une). Il se paie sur le COMPTE — qui contient déjà la partie, commitExploits vient de la verser. Jamais
      proposée si le compte ne couvre pas le prix, ni sur une partie de moins de CHANCE.tMin secondes (on ne vend rien à qui a raté le 1er virage).
@@ -46184,7 +46185,7 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
   const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
   CHANCE.gratuit=false;
   if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(!bon&&(RUNX.t||0)<CHANCE.tMin))return;
-  CHANCE.prix=bon?0:Math.max(CHANCE.plancher,Math.round(Math.max(0,money-START_CASH)));CHANCE.gratuit=bon; /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
+  CHANCE.prix=bon?0:Math.max(1,RUNX.coins|0);CHANCE.gratuit=bon; /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
