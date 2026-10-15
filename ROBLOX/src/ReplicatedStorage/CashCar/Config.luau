@@ -24,6 +24,9 @@ Config.FACILE = { coeurs = 3, air = 10 / 6, bord = 5, virage = 0.8, cap = 1.6 }
 -- (Sacha, 01/10 : « mets que le mode normal ») — le mode FACILE reste écrit mais ÉTEINT : ni choix au premier lancement,
 -- ni réglage. Le rallumer = passer ceci à true, rien d'autre.
 Config.FACILE_ACTIF = false
+-- (Sacha, 15/10 : « enlève impact metorite de main ») — le MÉTÉORE reste écrit mais ÉTEINT, comme dans le jeu web (SANS_METEORE) :
+-- ni figure MÉTÉORE en vol, ni verdict METEOR / MEGA METEOR à la pose, ni cratère « IMPACT METEORE ». Le rallumer = passer ceci à true.
+Config.METEORE_ACTIF = false
 
 -- ── le moteur monte avec les pièces (ENGINE_TIERS, L20328) : { pièces, poussée, nom, réservoir de nitro (s) } ──
 Config.MOTEURS = {

@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : « toute la mécanique météore », jeu web ET ROBLOX)
+- Même recette que SNAKE LOOP et NITROOO : COUPÉ, pas arraché. Un interrupteur en tête du fichier, `SANS_METEORE` (vrai par défaut ;
+  `?meteore=1` le rend).
+- Ce qui ne se déclenche plus : la figure MÉTÉORE en vol (nitro tenue 1,2 s : `addTrick('meteo')`, donc ni aura de 100, ni chaîne, ni
+  son `fig.meteore`) ; les verdicts METEOR et MEGA METEOR de `tryLand` (`vKey` 'meteor' / 'megaMeteor' : ni mot, ni voix, ni son
+  `verdict.meteor` / `verdict.mega`, ni rang) — la pose garde MONSTRE / DOUBLE / TRIPLE ; le CRATÈRE de la pose en piqué nitro
+  (`cratere` non léger : onde, braises, secousse, flash orange, son `cratere`, « IMPACT METEORE »).
+- `chauffeDivers` ne prépare plus les trois cratères ni leurs deux textures au menu, sauf si la pluie de DÉBRIS est rallumée
+  (`DEB_ON`, `?debris=1`) : elle seule creuse encore le cratère LÉGER (`cratere(…,true)`), qui ne bouge pas. `cratTick` sort d'entrée.
+- Restent écrits, sans effet : `nitroAirT`, `trkMeteor`, les entrées METEOR de `ANN_LIB` / `VERD_DEF` / `I18N`, les sons de la banque.
+- ROBLOX : `Config.METEORE_ACTIF = false` (le rallumer = `true`), lu par `Pilote.client.luau` (figure, verdicts, sons, `meteore` du
+  signal `pose` → plus de `cratere()` dans `Effets.luau`). `CashCar.rbxlx` reconstruit (`node ROBLOX/construire.js`).
 ## LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES (2026-10-15 soir, Sacha : « il y a trop plein de petits sons aigus quand on roule, avec des pièces, tout ça ; les pièces, tu peux les faire un peu moins fort, un petit tintement, un petit tchic, un petit tchic grave ; pas plein de ding-ding-ding-ding ; et rajoute tout un sound design pour les figures, avec des sons plus graves, genre doum, doum ; faut qu'on profite de la musique, que tu balances le son entre la musique et les bruitages, que les figures fassent plus de bruit que quand tu ramasses une pièce ; plus de sons graves et discrets — applique-toi bien pour les figures »)
 - MESURÉ AVANT (banc `banc-son` : une course muette au pilote, chaque `CCSON.play` relevé) : en 40 s de route, 119 pièces (3 par seconde,
   la note montait de mi5 à mi7 — 659 Hz → 2,6 kHz — et sonnait 0,45 s), 30 CYLINDRES (chaque moteur neuf égrène jusqu'à 16 cloches qui
