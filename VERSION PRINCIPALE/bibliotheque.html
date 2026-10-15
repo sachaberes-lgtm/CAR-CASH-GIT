@@ -565,7 +565,8 @@ function bassesMaj() { const b = $('basses'); if (!b) return; b.textContent = BA
   b.title = BASSES_BRUT ? 'Les fichiers tels quels (touche pour régler les basses)' : 'Les basses réglées morceau par morceau (touche pour entendre le brut)'; }
 function nitroBus(on) { if (BUS) BUS.nitro(on); const b = $('lNitro'); if (b) b.classList.toggle('on', !!on); }
 function tampon(f) {
-  if (!BUF.has(f)) BUF.set(f, fetch(f).then(r => { if (!r.ok) throw new Error('fichier introuvable (' + sansV(f).split('/').pop() + ')'); return r.arrayBuffer(); })
+  // (15/10) un réseau qui hoquette (« Failed to fetch » vu au banc sous double charge) : un 2e essai, une demi-seconde après, avant d'abandonner
+  if (!BUF.has(f)) BUF.set(f, fetch(f).catch(() => new Promise(ok => setTimeout(ok, 500)).then(() => fetch(f))).then(r => { if (!r.ok) throw new Error('fichier introuvable (' + sansV(f).split('/').pop() + ')'); return r.arrayBuffer(); })
     .then(a => audio().decodeAudioData(a)).catch(e => { BUF.delete(f); throw e; }));
   return BUF.get(f);
 }
