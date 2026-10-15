@@ -41,7 +41,11 @@
   "d-cloche",
   "petit-kalimba",
   "petit-guitare",
-  "petit-funk"
+  "petit-funk",
+  "pal-penthouse-v2",
+  "neuf-zeppelin2",
+  "neuf-zeppelin3",
+  "neuf-zeppelin"
  ],
  "pouces": [
   "pal-aura",
@@ -48859,15 +48863,11 @@
  ],
  "paliers": {},
  "place": {
-  "pal-aura": "bleu",
   "pal-neon-noir": "bleu",
-  "pal-nuit-de-velours": "bleu",
-  "pal-penthouse": "bleu",
-  "pal-glisse-fusion": "bleu"
+  "pal-nuit-de-velours": "bleu"
  },
  "cats": [],
  "notes": {
-  "pal-penthouse": "tenter avec des instruments different, remplacer completement",
   "pal-aura": "incroyabale juste transformer en 30 palier comme les autres",
   "bleu-1540": "ajoutes un arpege un peu cifi quii danse autour du lead qq part, ca dort trop au niv 15",
   "bleu-2221": "appaufiner instruments un peu brut",
