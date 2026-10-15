@@ -4,6 +4,18 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
+- La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
+  souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,
+  et `retouches-bleu.js`) est REFUSÉ (« Failed to fetch dynamically imported module ») → le morceau ne part pas, 3 essais, et la course reste muette (en
+  course, seulement Pouce bleu : plus de radio de repli). En ligne (Vercel sert le bon type), rien de tout ça : la v509 en ligne joue (banc).
+- Le correctif (`assets/audio/pouce-bleu-jeu.js`, `importe`) : si `import()` échoue, le texte du module est relu (`fetch`) et lancé depuis un Blob
+  `text/javascript`, `import.meta.url` y redevenant la vraie adresse du module (ses sons `vrais/` à côté). `pouce-bleu-jeu.js?v=2`.
+- Banc : un serveur qui répond `text/plain` pour les .js (`serveur_windows.py`) → AVANT : `pouce erreur`, course muette ; APRÈS : CRISTAL D'ARGENT (générateur)
+  part au piqué et tient 3 niveaux, Chrome ET WebKit ; serveur normal : inchangé (Chrome, cadre de l'ordi).
+- À trancher par Sacha (pas fait) : JOUER.bat pourrait forcer le bon type (`mimetypes.add_type('text/javascript','.js')`) — GLISSE (`musique-glisse-v2.js`) a
+  le même `import()`, mais il ne joue plus en course.
+
 ## FIGURES › GLISSER, 2e PASSE : LES FIGURES AU SOL (2026-10-15, Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air seulement lorsque le joueur fait flèche avant pendant le trick ; faites sur le sol, la voiture reste au sol ; d'autres, comme le slide 360, restent au sol ; une figure peut aussi se faire en maintenant le boost avec un geste brusque ; droite ou bas pas forcément sur le boost »)
 - Choix cochés par Léo : « flèche avant » = le JOYSTICK (pouce gauche) poussé vers l'avant pendant la figure ; au sol, sans lui, la figure se
   fait AU SOL ; ← → = SLIDE 360 au sol et 360 en l'air ; → ↓ peuvent partir de n'importe où (moitié droite de l'écran).
