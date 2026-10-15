@@ -10157,6 +10157,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
   uJour:{value:0},uMerLoin:{value:/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?16000:8000}, /* (2026-10-14, passe graphismes · ciel2) la mer lointaine — là où son bruit s'étire en traînées — fond deux fois plus tôt dans la brume : un dégradé propre à l'horizon (titre et chute posent le leur) */uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
+  uSym:{value:0}, // (2026-10-15) LE CIEL SANS DESSOUS (map NUAGES) : 1 = la moitié basse du dôme est le reflet de la haute (voir TETE)
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},
   uCanyon:{value:0},uCyF:{value:0},uCyZ:{value:new THREE.Vector3(.1,.25,.6)},uCyM:{value:new THREE.Vector3(.35,.45,.7)},uCyH:{value:new THREE.Vector3(.8,.7,.6)},uCyS:{value:new THREE.Vector3(1,.8,.6)},uCyB:{value:new THREE.Vector3(.8,.5,.6)},uCyC:{value:new THREE.Vector3(1,.9,.85)},uCyD:{value:new THREE.Vector3(.45,.45,.55)},uCyR:{value:new THREE.Vector3(.5,.45,.5)},uCyK:{value:new THREE.Vector4(0,0,0,0)},uCyN:{value:new THREE.Vector4(0,1,1,0)}, // (2026-10-14) LE CANYON DES GÉANTS : son ciel (voir COUCHES.canyon) — uCanyon 0 ailleurs
@@ -10170,9 +10171,15 @@ const skyDome=(function(){
          NETTE, à pleine résolution, relit au pixel près de l'écran pour n'y ajouter que ce qui a des BORDS (étoiles, lune · lumières
          fines de l'abîme, skyline) et la trame.
      Aucune couche n'est écrite deux fois : chaque programme appelle LES MÊMES fonctions. */
-  const VS='varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}';
+  const VS='varying vec3 vDirR;void main(){vDirR=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}';
+  /* (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, les nuages ou le ciel partout, rien d'autre »)
+     LE CIEL SANS DESSOUS — `uSym` (0 → 1, fondu par lvlStep) replie la moitié basse du dôme sur la haute : sous la route, plus d'abîme ni de
+     mer, le MÊME ciel qu'au-dessus (son soleil a son reflet en bas). Toutes les couches lisent `vDir` : une macro le replie pour elles, en une
+     ligne. À 0 (toutes les autres maps), mix(y,|y|,0) = y : l'image d'avant au bit près. */
   const TETE=[
-      'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
+      'varying vec3 vDirR;uniform float uSym;vec3 vDirS(){return vec3(vDirR.x,mix(vDirR.y,abs(vDirR.y),uSym),vDirR.z);}',
+      '#define vDir vDirS()',
+      'uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
       'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
@@ -13028,6 +13035,10 @@ function buildCoton(cr){
     for(let k=0,K5=Math.round(80*NZ);k<K5;k++){ // (5) LE LOINTAIN : 1,2-2,6 km — l'horizon a ses nuages
       const i=strat(k,K5),p=pts[i],a=cr()*6.2832,d=1200+cr()*1400,r=cotonR(cr,120*GZ,560*GZ,1.4);
       cotonPose(p.x+Math.cos(a)*d,p.y-260+cr()*700,p.z+Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.loin),cr);}
+    if(TORD.on)for(let k=0;k<56;k++){ // (2026-10-15) LA SPHÈRE : sur la route SANS HAUT NI BAS, des nuages dans TOUTES les directions — sous la dalle comme au zénith,
+      // tirés uniformément sur la sphère autour de la route (plus de plafond ni de plancher : où que la route regarde, du ciel et de la ouate)
+      const i=strat(k,56),p=pts[i],u=cr()*2-1,a=cr()*6.2832,w=Math.sqrt(1-u*u),d=420+cr()*1500,r=cotonR(cr,70*GZ,320*GZ,1.5);
+      cotonPose(p.x+w*Math.cos(a)*d,p.y+u*d,p.z+w*Math.sin(a)*d,r,cotonKind(cr,COTON_POIDS.mil),cr);}
   }
   if(okG){ // (7) LES CATHÉDRALES (2026-09-29, Sacha : « encore plus beau et artistique, qu'on ressente la LIBERTÉ comme dans Dragons 1 ») :
     // de GRANDS CONGESTUS qui montent de l'abîme (base 220-340 m sous la route) et dominent la route de ~150-250 m, à 300-650 m de son
@@ -13564,6 +13575,103 @@ function pgpTick(dt,t){
    concerné (tirages `rnd` différents) ; la VILLE (déjà sans looping) et les niveaux dessinés de la campagne ne bougent pas.
    `false` = les loopings reviennent tels qu'avant. Le SNAKE LOOP (passer SOUS la route) est une figure, pas un looping : intact. */
 const SANS_LOOPING=true;
+/* ============================================================================
+   LA ROUTE SANS HAUT NI BAS (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, il doit y avoir les
+   nuages ou sinon le ciel partout, rien d'autre — pour faire ça il faut aussi changer la génération de la route pour qu'elle se torde, se
+   plie et tout, qu'il n'y ait plus de haut et de bas »)
+   ----------------------------------------------------------------------------
+   La piste de genCtrl est dessinée « à plat » : ses virages tournent autour de la verticale, ses bosses autour de l'horizontale, et la dalle
+   se redresse toujours vers le ciel (le rappel de buildTrack). Ici on la RÉ-ENROULE dans l'espace : on relève, pas à pas (6 m), ce que le
+   pilote VIT — de combien la route tourne dans le plan de la dalle (le virage), de combien elle monte sous les roues (la bosse), de combien
+   la dalle roule sur elle-même — puis on refait le chemin en ajoutant des VRILLES (quarts, demi-tours, tours complets). Un virage pris sur
+   une dalle couchée à 90° devient une montée, sur une dalle retournée il part de l'autre côté : la route file dans toutes les directions,
+   à l'endroit, sur la tranche, à l'envers. Ce qu'on sent au volant ne change pas — mêmes virages, mêmes rayons, mêmes bosses : sans vrille,
+   on retombe sur la piste d'origine au centimètre (c'est le contrôle de `dbgHaut()`).
+   · `hautOn()` : la map NUAGES (et son orage) en course seulement — le ciel du menu, l'auto-école, la campagne et le parc ne bougent pas.
+   · les vrilles ont leur PROPRE flux de hasard (graine ^ 0x70D5E11A) : le reste de la piste est tiré comme avant.
+   · départ et portail À L'ENDROIT (on tombe du ciel sur une route droite, on passe le portail debout) ; le reste, libre.
+   · sur cette route la pente ne pousse ni ne retient plus (`hautPente`) : sans haut ni bas, pas de descente. En vol la gravité reste.
+   · les filets (« la route qui te rattrape ») ne se posent pas ici : leur route d'en dessous n'est plus en dessous.
+   `?sans=haut` rend la map d'avant. Crochet : `dbgHaut()` (roulis, normales, contrôle sans vrille).
+   ========================================================================== */
+const SANS_HAUT=!/[?&]sans=([^&]*,)?haut(,|&|$)/.test(location.search);
+const TORD={on:false,N:null,info:null};
+function hautOn(){const c=LVL.cur;return SANS_HAUT&&!PARK.on&&!!c&&(c.id==='nuages'||c.id==='orage')&&!c.camp&&!c.sansNuages&&!c.piste&&(started||SF.pret);}
+function hautPente(){return TORD.on?0:1;}
+function pisteTord(ctrl,seed,sansVrille){
+  const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,ctrl.length*16);
+  const Lc=cv.getLength(),K=Math.max(16,Math.round(Lc/6)),P=cv.getSpacedPoints(K),n1=K+1,h=Lc/K;
+  // 1) LE REPÈRE D'ORIGINE, recette de buildTrack (transport parallèle + rappel vers le ciel) : `om` = le roulis que le rappel ajoute à chaque pas
+  const Tv=[],Nv=[],om=new Float32Array(n1);
+  for(let i=0;i<n1;i++)Tv.push(new THREE.Vector3().subVectors(P[Math.min(i+1,K)],P[Math.max(i-1,0)]).normalize());
+  const n=new THREE.Vector3(0,1,0),q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();n.addScaledVector(Tv[0],-n.dot(Tv[0])).normalize();
+  for(let i=0;i<n1;i++){Nv.push(n.clone());if(i>=K)break;
+    q.setFromUnitVectors(Tv[i],Tv[i+1]);n.applyQuaternion(q);n.addScaledVector(Tv[i+1],-n.dot(Tv[i+1])).normalize();
+    const t9=Tv[i+1],ty=Math.abs(t9.y);
+    if(ty<.7&&n.y>0){up.set(-t9.x*t9.y,1-t9.y*t9.y,-t9.z*t9.y);if(up.lengthSq()>1e-8){up.normalize();
+      const th=Math.atan2(c9.crossVectors(n,up).dot(t9),n.dot(up)),mx=.05*P[i+1].distanceTo(P[i])*(1-ty/.7),a=THREE.MathUtils.clamp(th,-mx,mx);
+      om[i]=a;n.applyAxisAngle(t9,a);n.addScaledVector(t9,-n.dot(t9)).normalize();}}}
+  // 2) LES VRILLES : le roulis voulu `rho(s)`, par segments lissés (smoothstep) — tenue, quart de tour, demi-tour, tour complet
+  /* LES TRONÇONS DROITS — l'approche et le saut de chaque TROU, l'arrivée au portail — ne suivent pas le plan : la dalle s'y redresse vers le
+     CIEL DU MONDE (le rappel de buildTrack, mais d'où qu'elle parte, même à l'envers). ⚠ Revenir au même angle de roulis ne suffit pas : après
+     des virages pris sur la tranche, tout le repère a tourné — seul un rappel vers la verticale remet la route à l'endroit. Les trous se
+     sautent avec la vraie gravité : celui dont la lèvre n'est pas revenue à plat (route trop raide pour se redresser) est refermé. Le DÉPART,
+     lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
+  const rg=mulberry32((seed^0x70D5E11A)>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
+  const s0=Math.max(500,3*vC),fin=Lc-Math.max(450,2.5*vC);
+  const near0=function(v){let bi=0,bd=1e18;for(let i=0;i<n1;i++){const e=P[i].distanceToSquared(v);if(e<bd){bd=e;bi=i;}}return bi;};
+  const zones=GAPMARK.filter(function(g){return g.p&&g.h1;}).map(function(g){return {g:g,i:near0(g.p),a:near0(g.p)*h-Math.max(300,2*vC),b:near0(g.h1)*h+Math.max(200,1.5*vC)};}).sort(function(x,y){return x.a-y.a;});
+  let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
+  while(!sansVrille&&s<fin-120){
+    let z=null;for(const z9 of zones)if(z9.b>s){z=z9;break;}
+    const room=z?z.a-s:1e9;
+    if(room<120){const s1=Math.max(s,z.b);seg.push({s0:s,s1:s1,r0:rho,r1:rho});s=s1;continue;} // le trou : on tient le plan (le rappel fait le reste)
+    const r=rg();let len,amt=0;
+    if(r<.42)len=Math.max(200,vC*(1.8+rg()*2.7)); // une tenue : la dalle reste où elle est (couchée, retournée…) — de quoi respirer entre deux vrilles
+    else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.35?Math.PI/2:k<.85?Math.PI:TOUR);len=Math.max(150,vC*(2+rg()*1.2)*Math.pow(Math.abs(amt)/Math.PI,.75));}
+    const veut=len;len=Math.min(len,fin-s,room);if(len<60)break;
+    if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant un trou ou le portail : on tient, on ne la serre pas
+    seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;}
+  const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
+  const droit=new Uint8Array(n1+1);
+  if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);for(const z of zones)mk(z.a,z.b);}
+  // 3) LE CHEMIN REFAIT : chaque pas d'origine (corde, rotation de la tangente, roulis) relu dans le repère d'origine, rejoué dans le nouveau
+  const T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
+  const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;
+  for(let i=0;i<K;i++){
+    Bo.crossVectors(Nv[i],Tv[i]);B2.crossVectors(N2,T2);
+    d.subVectors(P[i+1],P[i]);p.addScaledVector(T2,d.dot(Tv[i])).addScaledVector(N2,d.dot(Nv[i])).addScaledVector(B2,d.dot(Bo));Q.push(p.clone());
+    ax.crossVectors(Tv[i],Tv[i+1]);const sn=ax.length(),cs=Tv[i].dot(Tv[i+1]);
+    if(sn>1e-9){ax.multiplyScalar(1/sn);const an=ax.dot(Nv[i]),ab=ax.dot(Bo),at=ax.dot(Tv[i]);
+      c9.set(0,0,0).addScaledVector(N2,an).addScaledVector(B2,ab).addScaledVector(T2,at).normalize();q.setFromAxisAngle(c9,Math.atan2(sn,cs));T2.applyQuaternion(q);N2.applyQuaternion(q);}
+    T2.normalize();N2.addScaledVector(T2,-N2.dot(T2)).normalize();
+    const rN=rhoAt((i+1)*h);let rl=om[i]+(rN-rhoP);rhoP=rN;
+    if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.7){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers »
+      const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(1.3*vC))*h*(1-ty/.7);rl=THREE.MathUtils.clamp(th,-mx,mx);}}} /* au plus un demi-tour en 1,3 s de croisière */
+    rMax=Math.max(rMax,Math.abs(rl)/h);N2.applyAxisAngle(T2,rl);
+    N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(N2.clone());}
+  let fermes=0;
+  if(!sansVrille)for(const z of zones)if(NN[z.i].y<.85){const k=GAPMARK.indexOf(z.g);if(k>=0){GAPMARK.splice(k,1);fermes++;}} // une lèvre pas revenue à plat : le trou se referme
+  // 4) LES POINTS DE CONTRÔLE (un tous les ~18 m) et leur normale — buildTrack la reprend au lieu de transporter la sienne
+  const pas=3,out=[],outN=[];for(let i=0;i<n1;i+=pas){out.push(Q[i]);outN.push(NN[i]);}
+  if((n1-1)%pas){out.push(Q[n1-1]);outN.push(NN[n1-1]);}
+  // 5) LES REPÈRES de genCtrl : les trous (positions monde) suivent la route ; les modules (index de contrôle) se recalculent ; plus de filet
+  const near=function(v){let bi=0,bd=1e18;for(let i=0;i<n1;i++){const e=P[i].distanceToSquared(v);if(e<bd){bd=e;bi=i;}}return bi;};
+  const remap=function(v){if(!v)return v;const i=near(v);Bo.crossVectors(Nv[i],Tv[i]);B2.crossVectors(NN[i],TT[i]);d.subVectors(v,P[i]);
+    return new THREE.Vector3().copy(Q[i]).addScaledVector(TT[i],d.dot(Tv[i])).addScaledVector(NN[i],d.dot(Nv[i])).addScaledVector(B2,d.dot(Bo));};
+  if(sansVrille)return {ctrl:out,N:outN,ecart:Q[n1-1].distanceTo(P[n1-1]),ecartMax:Q.reduce(function(m,v,i){return Math.max(m,v.distanceTo(P[i]));},0)}; // (dbgHaut : le contrôle ne touche pas aux repères)
+  for(const g of GAPMARK){g.h0=remap(g.h0);g.h1=remap(g.h1);g.p=remap(g.p);}
+  {const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,ix=function(j){if(j>=nC)return out.length-1;const f=j/nC*dv,k=Math.min(dv-1,Math.floor(f));const sj=lg[k]+(lg[k+1]-lg[k])*(f-k);return Math.max(0,Math.min(out.length-1,Math.round(sj/h/pas)));};
+   for(const m of MODMARK){m.i0=ix(m.i0);m.i1=ix(m.i1);}}
+  FILETMARK.length=0;
+  TORD.info={L:Math.round(Lc),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,trousFermes:fermes,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
+    ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1]))};
+  return {ctrl:out,N:outN};
+}
+window.dbgHaut=function(k){ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : son relevé · dbgHaut('controle') = la piste refaite SANS vrille doit retomber sur l'originale
+  if(k==='controle'){if(!TORD.ctrl0)return 'pas de piste tordue en cours';const r=pisteTord(TORD.ctrl0,TORD.seed,true);return {ecartFin:+r.ecart.toFixed(3),ecartMax:+r.ecartMax.toFixed(3)};}
+  let dos=0,tranche=0,yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i++){const y=Nn[i].y;if(y<-.2)dos++;else if(y<.5)tranche++;yMin=Math.min(yMin,pts[i].y);yMax=Math.max(yMax,pts[i].y);}
+  return {on:TORD.on,sym:+skyU.uSym.value.toFixed(2),info:TORD.info,aLEnvers:+(dos/NP).toFixed(3),surLaTranche:+(tranche/NP).toFixed(3),denivele:Math.round(yMax-yMin),trous:HOLES.length};};
 /* ---- LA PISTE D'APPRENTISSAGE (2026-09-24, niveau 1 de la carrière) : dessinée à la MAIN, pas tirée ----
    « une route beaucoup plus simple où le joueur apprend à jouer et à utiliser sa nitro : des virages simples et
    grisants, un looping, des tout-droits qui laissent booster ». Chaque ligne droite est une INVITATION à la
@@ -14697,7 +14805,8 @@ function buildTrack(seed){
      12 cm plus haut sur la route en pièces (JADE_LEVE : sur le plan, elle avait l'air enfoncée dans les pièces). Partout ailleurs : 2,6 m. */
   {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:2.6;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
-  const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?genForet(rnd):(LVL.cur&&LVL.cur.piste==='volcan')?genVolcan(rnd):(LVL.cur&&LVL.cur.piste==='canyon')?genCanyon(rnd):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+  let ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?genForet(rnd):(LVL.cur&&LVL.cur.piste==='volcan')?genVolcan(rnd):(LVL.cur&&LVL.cur.piste==='canyon')?genCanyon(rnd):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+  TORD.on=false;TORD.N=null;if(hautOn()){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTord(ctrl,seed|0);ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;} // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord)
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
@@ -14737,7 +14846,13 @@ function buildTrack(seed){
      pouce à fond. Désormais la dalle se REDRESSE doucement (≤ 0,05 rad/m) partout où la route n'est ni raide (|T.y| < 0,7) ni à
      l'envers (le haut d'un looping n'est JAMAIS retourné) : 0,019 sortie/km, 1,2 % infaisable (le reste : le haut des loopings). */
   const q=new THREE.Quaternion(),upT9=new THREE.Vector3(),cT9=new THREE.Vector3(),RAPPEL9=.05;
-  for(let i=0;i<NP;i++){
+  /* (2026-10-15) LA ROUTE SANS HAUT NI BAS : la dalle ne se redresse plus vers le ciel — sa normale est celle que pisteTord a roulée, reprise
+     point de contrôle par point de contrôle (même paramètre que getSpacedPoints) puis remise d'équerre sur la tangente. */
+  if(TORD.N){const HN=TORD.N,nc=HN.length-1;
+    for(let i=0;i<NP;i++){const f=curve.getUtoTmapping(i/(NP-1))*nc,k=Math.min(nc-1,Math.floor(f)),w=f-k;
+      n.copy(HN[k]).multiplyScalar(1-w).addScaledVector(HN[k+1],w);n.addScaledVector(T[i],-n.dot(T[i]));if(n.lengthSq()<1e-10)n.copy(Nn[i-1]||HN[0]);n.normalize();
+      Nn.push(n.clone());B.push(new THREE.Vector3().crossVectors(n,T[i]));}}
+  else for(let i=0;i<NP;i++){
     Nn.push(n.clone());
     B.push(new THREE.Vector3().crossVectors(n,T[i]));
     if(i<NP-1){
@@ -24645,6 +24760,7 @@ function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète)
   const c=LVL.cur;
   LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'?1:0;LVL.nuitDe=LVL.nuit;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.canyonDe=LVL.canyon;LVL.canyonA=c&&c.id==='canyon'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage')&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
+  LVL.symDe=LVL.sym||0;LVL.symA=hautOn()?1:0; // (2026-10-15) LE CIEL SANS DESSOUS : la map NUAGES en course (voir hautOn, uSym)
   LVL.k=0;LVL.dur=dur||4;
   if(LVL.dur<=.05)lvlStep(1);
 }
@@ -24658,6 +24774,7 @@ function lvlStep(dt){
   LVL.route=LVL.routeDe+(LVL.routeA-LVL.routeDe)*e;LVL.sheen=LVL.sheenDe+(LVL.sheenA-LVL.sheenDe)*e;
   LVL.jade=LVL.jadeDe+(LVL.jadeA-LVL.jadeDe)*e;skyU.uJade.value=LVL.jade;LVL.canyon=LVL.canyonDe+(LVL.canyonA-LVL.canyonDe)*e;skyU.uCanyon.value=LVL.canyon;
   LVL.mer=LVL.merDe+(LVL.merA-LVL.merDe)*e;skyU.uMer.value=LVL.mer;
+  LVL.sym=(LVL.symDe||0)+((LVL.symA||0)-(LVL.symDe||0))*e;skyU.uSym.value=LVL.sym;
   skyU.uSpace.value=LVL.espace;
 }
 /* LA PLANÈTE DU NIVEAU. Hors orbite elle garde sa place de toujours (`PLANET_DIR`, fixe dans le monde).
@@ -47639,7 +47756,7 @@ function survTick(dt){
       const mx9=SURV.chasse&&pTot-b.totD>160?maxSp9/.94:maxSp9;
       if(!lift&&!brk)a9=acc9*(b.v<mx9?1:.55)*(b.padB>0?1.5:1)*momF;
       b.v+=a9*dt;
-      b.v+=-GRAV*T[bi].y*Math.cos(b.phi)*dt;               // la pente pousse ou retient, comme toi
+      b.v+=-GRAV*T[bi].y*hautPente()*Math.cos(b.phi)*dt;               // la pente pousse ou retient, comme toi
       b.v-=b.v*Math.abs(b.v)*(acc9/(mx9*mx9*5.8))*dt; // même traînée, même terminal
       b.v*=Math.max(0,1-.03*dt);
       if(!brk&&lift)b.v*=Math.max(0,1-.4*dt);              // pied levé = même frein moteur
@@ -57486,7 +57603,7 @@ function loop(now){
         // (piste v7) LE HAUT DES LOOPINGS : quand la dalle dépasse 60° d'inclinaison (mur, plafond), la caisse SUIT le ruban comme sur des
         // rails — le vrillage du ruban y fabrique un « virage » qui n'en est pas un (mesuré : 8 % des loopings infaisables pouce à fond,
         // 1 % hors de ces parties). Sur la route (dalle < 60°), l'aide reste à ZÉRO.
-        const nyR9=side<0?-F.n.y:F.n.y,rails9=THREE.MathUtils.clamp((.5-nyR9)/.3,0,1);
+        const nyR9=side<0?-F.n.y:F.n.y,rails9=TORD.on?0:THREE.MathUtils.clamp((.5-nyR9)/.3,0,1); /* (2026-10-15) sur la route SANS HAUT NI BAS la dalle couchée n'est pas un looping : ses virages sont de vrais virages (pisteTord), le pouce les prend */
         psi=THREE.MathUtils.clamp(psi-dyaw*(1-Math.max(ASSIST_VIRAGE,rails9,facOn()?FAC_VIRAGE:0)),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
       }
       prevTv.copy(F.t);prevTvalid=true;
@@ -57503,7 +57620,7 @@ function loop(now){
       vA+=a*dt;
       if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       else if(startBoostT>0)vA+=30*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // (2026-10-08) L'ÉLAN DU DÉPART : la poussée de la nitro, sans la nitro — de la vitesse, rien d'autre
-      vA+=-GRAV*F.t.y*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
+      vA+=-GRAV*F.t.y*hautPente()*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
       vA*=Math.max(0,1-.03*dt);
