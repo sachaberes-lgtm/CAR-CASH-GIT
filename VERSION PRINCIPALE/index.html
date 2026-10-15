@@ -27398,7 +27398,7 @@ function flmPas(dt,speedKmh){ // speedKmh : celle de la boucle (le compteur)
   let hot=0;
   for(let i=0;i<4;i++){const p=F.P[i];
     p.ph+=dt*hz/p.iv;p.env*=dec;
-    while(p.ph>=1){p.ph-=1;p.iv=.6+.8*Math.random();let a=1+ji*.55*flmGauss();if(Math.random()<ji*.05)a=.12;else if(Math.random()<.05)a+=.45;p.env=Math.max(.1,a);} // une bouffée : son intervalle et sa force tirés (± fJit) ; un raté, ou une grosse, de temps en temps
+    while(p.ph>=1){p.ph-=1;p.iv=.6+.8*Math.random();let a=1+ji*.55*flmGauss();if(Math.random()<ji*.05)a=.12;else if(Math.random()<.05)a+=.45;p.env=Math.max(.1,a);p.pz=Math.min(4,(p.pz|0)+1);p.pa=a;} // pz/pa : les bouffées de l'image (le feu du moteur crépite dessus) // une bouffée : son intervalle et sa force tirés (± fJit) ; un raté, ou une grosse, de temps en temps
     if(p.popQ>0){p.popT-=dt;if(p.popT<=0){p.popQ--;p.popT=.05+.12*Math.random();flmPop(i,.45+.55*Math.random());}} // les pops qui suivent, égrenés
     p.pop*=Math.exp(-dt*13); // un pop vit ~70 ms
     F.L[i]=Math.max(.05,ld*(.8+.2*p.env)*(1+.3*F.surge+.55*p.tr)*limK*(F.shT>0?.3:1)+.6*p.pop);
@@ -27408,7 +27408,7 @@ function flmPas(dt,speedKmh){ // speedKmh : celle de la boucle (le compteur)
   F.pop=Math.min(1,hot);F.glow=(.7+.3*Math.min(1.4,F.L[0]))*(1+.9*F.pop);
   return F;}
 const MOTEUR_MINI=FLM_ON&&!/[?&]moteur=goutte\b/.test(location.search); // (2026-10-15) la flamme du MOTEUR = ce feu-ci, en MINUSCULE (voir NFEU_MINI) ; ?moteur=goutte : la goutte lisse
-const NFEU_MINI={t:.34,v:.55,l:.28,vie:.7,taux:260,pas:.4}; // (affiné) plus serré et plus dense près du pot : une flamme, pas des confettis // taille, vitesse, écart, vie, débit (cubes/s/pot, × la bouffée du moteur), grille — en part du nitro
+const NFEU_MINI={t:.5,va:4.6,l:.34,vie:.85,taux:260,pas:.4,et:.3,bleu:.05,crq:.07}; // (crépitant) taille, VITESSE PROPRE (m/s : le moteur ne suit pas le jet du nitro, 13-26 m/s, sinon des aiguilles), écart, vie, débit (cubes/s/pot, × la bouffée du moteur), grille, étirement, pied bleu, CRÉPITEMENT (part des bouffées qui claquent) — en part du nitro
 const NFEU_N=1600,NFEU_PAS=.06,NFEU_SEUIL=[.08,.24,.46,.66,.8,.9],NFEU_TAILLE=[.9,.98,1,1,.9,.74,.6];
 /* la palette est pensée APRÈS la courbe ACES de la passe finale : elle écrase le rouge plus que le vert au-delà de 1 — l'orange de la porte
    (1,75 · ,78 · ,14) y sortait JAUNE (mesuré sur la capture). Ici le vert est tenu bas : l'orange reste orange, le rouge rouge. */
@@ -27427,8 +27427,15 @@ const NFEU_PAL={f:[[2.3,1.75,1],[2.1,.95,.2],[1.75,.42,.06],[1.3,.2,.035],[.9,.0
 const NFEU_B10=[.06,.14,.24,.35,.47,.59,.71,.82,.9],NFEU_T10=[.88,.96,1,1,1,.96,.9,.82,.72,.6];
 const NFEU_P10={f:[[2.4,2.15,1.6],[2.3,1.75,.95],[2.2,1.35,.45],[2.05,.98,.2],[1.85,.66,.1],[1.62,.42,.06],[1.38,.25,.04],[1.08,.13,.03],[.6,.06,.025],[.2,.17,.17]],
   b:[[1.8,2,2.45],[1.1,1.5,2.4],[.65,1.1,2.3],[.4,.75,2.15],[.28,.48,2],[.24,.28,1.75],[.26,.16,1.45],[.3,.08,1.05],[.16,.04,.55],[.17,.17,.22]],
-  v:[[2.25,1.9,2.45],[2.1,1.3,2.35],[1.9,.85,2.25],[1.6,.5,2.05],[1.35,.3,1.9],[1.1,.18,1.65],[.95,.12,1.45],[.7,.08,1.1],[.32,.04,.52],[.2,.16,.22]]};
-const NFEU_FIN={taille:.73,taux:1.7,pas:.6},NFEU_SOL={det:.85,vent:.6};
+  v:[[2.25,1.9,2.45],[2.1,1.3,2.35],[1.9,.85,2.25],[1.6,.5,2.05],[1.35,.3,1.9],[1.1,.18,1.65],[.95,.12,1.45],[.7,.08,1.1],[.32,.04,.52],[.2,.16,.22]],
+  m:[[1.5,1.75,2.5],[2.2,1.95,1.5],[2.3,1.55,.6],[2.15,1.05,.22],[1.95,.78,.12],[1.85,.6,.08],[1.62,.42,.06],[1.3,.24,.04],[.7,.1,.03],[.2,.17,.17]]}; // m : le feu du MOTEUR — un pied BLEUTÉ, comme un vrai échappement, puis l'orange (qui tient : un retour de flamme est orange, pas rouge)
+const NFEU_FIN={taille:.73,taux:1.7,pas:0},NFEU_SOL={det:.45,vent:.9};
+/* (2026-10-15, Léo : « ce qui manque, c'est la physique de la vitesse : là on dirait du slime ; ça devrait avoir l'air PROPULSÉ, plus dynamique, mais
+   smooth le mouvement ») LE JET PROPULSÉ (`NFEU_JET`) : le feu SORT du pot à 13-26 m/s (×3-4), freine fort (le gaz s'étale dans l'air), vit moins
+   longtemps ; serré à la sortie, il ne s'ouvre et ne tourbillonne qu'en vieillissant ; chaque cube s'ÉTIRE le long du jet tant qu'il file (une
+   traînée de vitesse qui redevient un pixel en ralentissant) ; plus de grille (le mouvement est lisse) ; au sol, il traîne moins (det ,45) et le
+   vent de la trajectoire le couche plus franchement (vent ,9). */
+const NFEU_JET={v0:13,vK:.025,vMax:26,frein:3.2,vie:.72,serre:.7,etire:.075,etMax:2.2,chaud:.06}; // chaud : le cœur blanc-jaune tient plus loin de la tuyère
 const NFEU=(function(){
   const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
   for(let i=0;i<ps.count;i++){const ny=nm.getY(i),nz=nm.getZ(i),v=ny>.5?1:ny<-.5?.42:nz<-.5?.6:nz>.5?.5:.78;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;} // l'ombrage de la porte, face par face
@@ -27459,18 +27466,18 @@ function nfeuRot(qx,qy,qz,qw,vx,vy,vz,o){const tx=2*(qy*vz-qz*vy),ty=2*(qz*vx-qx
 function nfeuNp(){return Math.min(4,CAR_POTS.length,JETS.shells.length);}
 function nfeuNait(i,b,gros,suie,mi){ // une flamme-cube dans la bouche du pot i ; layout : s u v · vs vu vv · âge vie taille graine pot genre (0 nitro · 2 étincelle · 3 MOTEUR, en minuscule)
   const N=NFEU;if(N.n>=NFEU_N)return;const o=N.n*12,P=N.P,M9=NFEU_MINI;N.n++;
-  const a=Math.random()<.62?N.tg[i]+flmGauss()*.75:Math.random()*6.2832,r0=(.05+.07*Math.random())*(mi?.5:1),vr=(.6+.8*Math.random())*(1+.45*b)*(gros?2.4:1)*(1+.5*(N.kd-1))*(mi?M9.l:1),ca=Math.cos(a),sa=Math.sin(a);
+  const a=Math.random()<.62?N.tg[i]+flmGauss()*.75:Math.random()*6.2832,r0=(.05+.07*Math.random())*(mi?.5:1),vr=(.6+.8*Math.random())*(1+.45*b)*(gros?2.4:1)*(1+.5*(N.kd-1))*(mi?M9.l:1)*(gros?1:NFEU_JET.serre),ca=Math.cos(a),sa=Math.sin(a);
   const pt=CAR_POTS[i],sd9=!pt?0:pt.x>.06?1:pt.x<-.06?-1:(Math.random()<.5?-1:1); // le pot de droite crache à droite, celui de gauche à gauche (un pot central : des deux côtés)
   P[o]=Math.random()*.12;P[o+1]=ca*r0;P[o+2]=sa*r0;
-  P[o+3]=N.vs*(.75+.5*Math.random())*(gros?1.1:suie?.6:1)*(mi?M9.v:1);P[o+4]=ca*vr+sd9*(.3+.7*Math.random())*(mi?M9.l:1);P[o+5]=sa*vr+(gros?0:.2+.5*Math.random())*(mi?M9.l:1); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
-  P[o+6]=0;P[o+7]=(.22+.2*Math.random()+.07*b)*(gros?1.35:1)*(mi?M9.vie:1);P[o+8]=(.13+.07*Math.random())*(1+.25*b)*(gros?1.3:1)*N.kd*(mi?M9.t:1)*NFEU_FIN.taille;
+  P[o+3]=(mi?M9.va*(1+.45*(N.kd-1)):N.vs)*(.75+.5*Math.random())*(gros?1.1:suie?.6:1);P[o+4]=ca*vr+sd9*(.3+.7*Math.random())*(mi?M9.l:1);P[o+5]=sa*vr+(gros?0:.2+.5*Math.random())*(mi?M9.l:1); // un peu vers l'extérieur, à peine vers le haut (voir N.vs)
+  P[o+6]=0;P[o+7]=(.22+.2*Math.random()+.07*b)*(gros?1.35:1)*(mi?M9.vie:1)*NFEU_JET.vie;P[o+8]=(.13+.07*Math.random())*(1+.25*b)*(gros?1.3:1)*N.kd*(mi?M9.t:1)*NFEU_FIN.taille;
   P[o+9]=(suie?Math.random()*.4:Math.random())+(mi?2:0);P[o+10]=i;P[o+11]=0; // mi : la GRAINE +2 marque le feu du MOTEUR (le genre 3 est le feu DÉTACHÉ en vol, celui de Sacha)
   {const q=carGroup.quaternion,q4=o/3;N.Q[q4]=q.x;N.Q[q4+1]=q.y;N.Q[q4+2]=q.z;N.Q[q4+3]=q.w;if(N.libre&&mode==='fall')P[o+11]=3;}} // l'assiette de sa NAISSANCE, toujours (le feu fluide au sol la lit aussi) ; né en vol : DÉTACHÉ
-function nfeuEtincelle(i){ // un petit cube qui gicle DANS LE MONDE (il garde l'élan de la caisse, retombe, refroidit)
-  const N=NFEU;if(N.n>=NFEU_N||!N.pOk)return;const o=N.n*12,P=N.P,w=N.pw[i],D=N.D[i],r=6+6*Math.random();N.n++;
+function nfeuEtincelle(i,k9){ // un petit cube qui gicle DANS LE MONDE (il garde l'élan de la caisse, retombe, refroidit) ; k9 : sa taille (le crépitement du moteur : ,4)
+  k9=k9||1;const N=NFEU;if(N.n>=NFEU_N||!N.pOk)return;const o=N.n*12,P=N.P,w=N.pw[i],D=N.D[i],r=(6+6*Math.random())*(k9<1?.6:1);N.n++;
   P[o]=w.x;P[o+1]=w.y;P[o+2]=w.z;
   P[o+3]=N.v.x-D.x*r+(Math.random()-.5)*3.2;P[o+4]=N.v.y-D.y*r+1.5+2.5*Math.random();P[o+5]=N.v.z-D.z*r+(Math.random()-.5)*3.2;
-  P[o+6]=0;P[o+7]=.3+.25*Math.random();P[o+8]=.06+.05*Math.random();P[o+9]=Math.random();P[o+10]=i;P[o+11]=2;}
+  P[o+6]=0;P[o+7]=(.3+.25*Math.random())*(k9<1?.7:1);P[o+8]=(.06+.05*Math.random())*k9;P[o+9]=Math.random();P[o+10]=i;P[o+11]=2;}
 function nfeuGicle(x,y,z,vx,vy,vz,s){ // (2026-10-15) un cube de feu craché par la TRAÎNÉE DE LUMIÈRE, n'importe où sur sa longueur
   const N=NFEU;if(!N.on||N.n>=NFEU_N-80)return false;const o=N.n*12,P=N.P;N.n++; // ⚠ on laisse 80 places : le feu des pots passe d'abord
   P[o]=x;P[o+1]=y;P[o+2]=z;P[o+3]=vx;P[o+4]=vy;P[o+5]=vz;P[o+6]=0;P[o+7]=.35+.35*Math.random();P[o+8]=s;P[o+9]=Math.random();P[o+10]=0;P[o+11]=2;return true;}
@@ -27493,7 +27500,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   N.up.set(0,1,0).applyQuaternion(carGroup.quaternion);
   for(let i=0;i<np;i++){potMonde(CAR_POTS[i],N.pw[i]);const D=N.D[i].copy(JET_DIR[i]).applyQuaternion(carGroup.quaternion).normalize();
     const R=N.R[i].crossVectors(D,N.up);if(R.lengthSq()<1e-4)R.set(1,0,0);R.normalize();N.U[i].crossVectors(R,D).normalize();}
-  N.vs=Math.min(7,3.2+Math.abs(speedKmh)*.006); /* plus la caisse file, plus le vent étire le feu (1,3 à 2 m). MESURÉ (dbgFlamme('proj')) : debout, la caméra de poursuite
+  N.vs=Math.min(NFEU_JET.vMax,NFEU_JET.v0+Math.abs(speedKmh)*NFEU_JET.vK); /* (le JET PROPULSÉ) — avant : 3,2 à 7 m/s, la vitesse d'un slime */ /* plus la caisse file, plus le vent étire le feu (1,3 à 2 m). MESURÉ (dbgFlamme('proj')) : debout, la caméra de poursuite
      regarde la poupe presque d'AU-DESSUS (les pots à −0,6 de la hauteur d'écran, à 3,8 m) — un feu qui MONTE fonce dans l'objectif et fait un mur, un feu qui
      s'ÉLARGIT barre tout le bas de l'écran : il file donc à plat sur la route, pas plus large que la caisse, et c'est sa matière qui le rend vénère */
   N.pal=bleu?NFEU_P10.b:inf?NFEU_P10.v:NFEU_P10.f;
@@ -27511,13 +27518,18 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   /* (2026-10-15, Léo : « fais vraiment juste comme le NITRO, mais vraiment en minuscule ») LA FLAMME DU MOTEUR : le même feu de pixels, en
      minuscule (NFEU_MINI) — son débit suit les BOUFFÉES du moteur simulé (FLM : la cadence, la charge, la houle, le rupteur en vol, le pied
      levé qui l'éteint), et chaque POP (passage de rapport, pied levé, pose) lâche une petite boule de feu. */
-  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1),vol9=mode==='fall';
+  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1),vol9=mode==='fall',crk9=(ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0]).crk||0; // crk9 : le crépitement du moteur (la table du SON, lue seulement)
     for(let i=0;i<np;i++){const p=F.P[i];
       N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss();N.tg[i]+=dt*(2.2+2.5*N.ou[i]); // ses langues tournent comme celles du nitro
-      if(p.pop>N.lp[i]+.25){const n9=Math.round((5+9*p.pop)*q);for(let k=0;k<n9;k++)nfeuNait(i,1.2,true,false,true);} // un POP : une petite boule de feu
+      if(p.pop>N.lp[i]+.25){const n9=Math.round((5+9*p.pop)*q);for(let k=0;k<n9;k++)nfeuNait(i,1.2,true,false,true);for(let k=0,ne=2+((Math.random()*4)|0);k<ne;k++)nfeuEtincelle(i,.42);} // un POP : une petite boule de feu, et ses étincelles qui CRÉPITENT
       N.lp[i]=p.pop;
-      if(!(vol9&&!F.limOn))N.am[i]+=dt*NFEU_MINI.taux*Math.min(1.6,F.L[i])*(1-.8*F.ov)*q;
-      while(N.am[i]>=1){N.am[i]-=1;nfeuNait(i,.25+.5*F.ch,false,false,true);}}}
+      const ou9=(1-.85*F.ov)*(vol9&&!F.limOn?0:1);
+      N.am[i]+=dt*NFEU_MINI.taux*.35*Math.min(1.6,F.L[i])*ou9*q; // un filet continu (le tiers)…
+      while(N.am[i]>=1){N.am[i]-=1;nfeuNait(i,.25+.5*F.ch,false,false,true);}
+      if(p.pz){const nb=p.pz;p.pz=0; /* …et LES BOUFFÉES : chacune crache sa petite rafale, au rythme tiré du moteur simulé — le feu CRÉPITE (une forte : une étincelle) */
+        for(let k=0;k<nb;k++){const n9=Math.round((1+2.2*(p.pa||1))*(.55+.7*F.ch)*ou9*q*Math.random()*2);for(let j9=0;j9<n9;j9++)nfeuNait(i,.3+.4*F.ch,false,false,true);
+          if((p.pa||1)>1.3&&Math.random()<.5*ou9)nfeuEtincelle(i,.4);
+          if(Math.random()<NFEU_MINI.crq*(1+crk9)*(.4+.6*ou9)){const n8=Math.round((3+4*Math.random())*q);for(let j9=0;j9<n8;j9++)nfeuNait(i,.9,true,false,true);if(Math.random()<.6)nfeuEtincelle(i,.35);}}}}} // LE CRÉPITEMENT : une bouffée sur ~14 CLAQUE (une petite boule et son éclat) — plus souvent sur un moteur qui crépite (crk du son)
   const P=N.P,cam=camera.position,col=N.m.instanceColor.array,ar=N.m.instanceMatrix.array,pal=N.pal;
   const dp=N.dp,fA=dp*.6,fB=dp*.35; /* LE PIXEL GARDE SA TAILLE À L'ÉCRAN (la fumée du burn-out : des gros pixels « les MÊMES près ou loin ») :
      la caméra de poursuite est HAUTE et PROCHE (3,6-4 m des pots, mesuré) ; un cube qui file vers elle grossissait jusqu'à faire un mur au bas
@@ -27532,14 +27544,14 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
     if(vol9&&P[o+11]===0)P[o+11]=3; // né au sol, encore vivant au décollage : il se détache à son tour (Q : l'assiette de sa naissance, posée par nfeuNait — le feu fluide du sol s'en servait déjà)
     if(P[o+11]===2){P[o+4]-=9*dt;P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;x=P[o];y=P[o+1];z=P[o+2];b=a<.3?1:a<.65?3:5;sz=P[o+8]*(1-.5*a);} /* les étincelles : jaune d'or → orange → orange profond (les 10 nuances) */
     else{const i=P[o+10]|0,s=P[o],mi9=P[o+9]>=2,sd=mi9?P[o+9]-2:P[o+9],dr=Math.exp(-1.1*dt); // mi9 : le feu du MOTEUR (graine +2)
-      const a9=a+.18*Math.min(1,Math.sqrt(P[o+1]*P[o+1]+P[o+2]*P[o+2])/.55)+(sd-.5)*.14-(mi9?.14:0); /* le feu du MOTEUR vit moins : il garde plus longtemps son jaune et son orange */ // le CŒUR du jet reste chaud, ses bords refroidissent plus tôt ; un peu de hasard par cube (le bord dentelé)
+      const a9=a+.18*Math.min(1,Math.sqrt(P[o+1]*P[o+1]+P[o+2]*P[o+2])/.55)+(sd-.5)*.14-(mi9?NFEU_MINI.bleu:NFEU_JET.chaud); /* le feu du MOTEUR : un pied bleu très court à la bouche, puis le jaune et l'orange ; le NITRO garde plus longtemps son cœur blanc-jaune (la postcombustion) */ // le CŒUR du jet reste chaud, ses bords refroidissent plus tôt ; un peu de hasard par cube (le bord dentelé)
       b=0;while(b<9&&a9>=NFEU_B10[b])b++; // les 10 NUANCES
       if((b===8&&sd>.55)||(b===9&&sd>.3))continue;
       if(sd<.13&&b>0&&b<8)b-=b>3?2:1; // des POCHES CHAUDES : un cube sur huit brûle plus jaune que ses voisins (le feu classique scintille) // la plupart s'éteignent avant : quelques braises sombres, et moins encore de cubes de FUMÉE finissent le feu
-      P[o+3]*=Math.exp(-1.6*dt);P[o+4]*=dr;P[o+5]*=dr;
-      P[o+4]+=Math.sin(s*2.7+sd*6.3+N.T*9.1)*4*dt;P[o+5]+=(Math.cos(s*2.3+sd*5.1-N.T*7.7)*4+2)*dt; // le tourbillon, et le feu monte un peu
+      P[o+3]*=Math.exp(-NFEU_JET.frein*dt);P[o+4]*=dr;P[o+5]*=dr;const tb9=4*Math.min(1,a*2.2); // (le JET) serré à la sortie, il ne tourbillonne qu'en vieillissant
+      P[o+4]+=Math.sin(s*2.7+sd*6.3+N.T*9.1)*tb9*dt;P[o+5]+=(Math.cos(s*2.3+sd*5.1-N.T*7.7)*tb9+2)*dt; // le tourbillon, et le feu monte un peu
       P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+5]*dt;
-      const pa9=(mi9?NFEU_PAS*NFEU_MINI.pas:NFEU_PAS)*NFEU_FIN.pas,qs=Math.round(P[o]/pa9)*pa9,qu=Math.round(P[o+1]/pa9)*pa9,qv=Math.round(P[o+2]/pa9)*pa9; // de case en case (le feu du moteur : une grille plus fine)
+      const pa9=(mi9?NFEU_PAS*NFEU_MINI.pas:NFEU_PAS)*NFEU_FIN.pas,qs=pa9?Math.round(P[o]/pa9)*pa9:P[o],qu=pa9?Math.round(P[o+1]/pa9)*pa9:P[o+1],qv=pa9?Math.round(P[o+2]/pa9)*pa9:P[o+2]; // (pas 0 : plus de grille, le mouvement est lisse) // de case en case (le feu du moteur : une grille plus fine)
       const w=N.pw[i],D=N.D[i],R=N.R[i],U=N.U[i];
       x=w.x+D.x*qs+R.x*qu+U.x*qv;y=w.y+D.y*qs+R.y*qu+U.y*qv;z=w.z+D.z*qs+R.z*qu+U.z*qv;sz=P[o+8]*NFEU_T10[b];
       if(P[o+11]===0&&N.libre){ /* FLUIDE AU SOL : une PART de l'assiette de naissance (jusqu'à NFEU_SOL.det, qui monte avec l'âge) — le feu traîne dans les virages —
@@ -27560,17 +27572,21 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
         const x2=bx+bx,y2=by+by,z2=bz+bz,xx=bx*x2,xy=bx*y2,xz=bx*z2,yy=by*y2,yz=by*z2,zz=bz*z2,wx=bw*x2,wy=bw*y2,wz=bw*z2; // et le cube garde l'orientation de sa naissance
         e0=1-(yy+zz);e1=xy+wz;e2=xz-wy;e4=xy-wz;e5=1-(xx+zz);e6=yz+wx;e8=xz+wy;e9=yz-wx;e10=1-(xx+yy);}}
     const dx=x-cam.x,dy=y-cam.y,dz=z-cam.z,d9=Math.sqrt(dx*dx+dy*dy+dz*dz);sz*=Math.min(1.25,Math.max(.3,d9/dp));if(d9<fA)sz*=Math.max(0,(d9-fB)/(fA-fB));
+    const g9=P[o+11]===2,mi8=!g9&&P[o+9]>=2,st9=g9?0:Math.min(NFEU_JET.etMax,P[o+3]*NFEU_JET.etire*(mi8?NFEU_MINI.et:1)); // (le JET) st9 : l'étirement le long du jet, tant que le cube file
     if(n!==j){P.copyWithin(n*12,o,o+12);Q.copyWithin(n*4,q4,q4+4);}
+    if(st9>.02){const Dj=N.D[P[n*12+10]|0],dx9=Dj.x,dy9=Dj.y,dz9=Dj.z; // chaque colonne c de la matrice devient c + st9·D·(D·c) : le cube s'allonge sur l'axe du jet, pas sur celui de la caisse
+      let t9=dx9*e0+dy9*e1+dz9*e2;e0+=st9*dx9*t9;e1+=st9*dy9*t9;e2+=st9*dz9*t9;t9=dx9*e4+dy9*e5+dz9*e6;e4+=st9*dx9*t9;e5+=st9*dy9*t9;e6+=st9*dz9*t9;
+      t9=dx9*e8+dy9*e9+dz9*e10;e8+=st9*dx9*t9;e9+=st9*dy9*t9;e10+=st9*dz9*t9;}
     const m=n*16;ar[m]=e0*sz;ar[m+1]=e1*sz;ar[m+2]=e2*sz;ar[m+3]=0;ar[m+4]=e4*sz;ar[m+5]=e5*sz;ar[m+6]=e6*sz;ar[m+7]=0;
     ar[m+8]=e8*sz;ar[m+9]=e9*sz;ar[m+10]=e10*sz;ar[m+11]=0;ar[m+12]=x;ar[m+13]=y;ar[m+14]=z;ar[m+15]=1;
-    const c=pal[b],kk=K*(.92+.16*((P[n!==j?n*12+9:o+9]*7.31)%1));col[n*3]=c[0]*kk;col[n*3+1]=c[1]*kk;col[n*3+2]=c[2]*kk;n++;} /* kk : chaque cube son éclat (± 8 %) */
+    const c=(mi8?NFEU_P10.m:pal)[b],kk=K*(.92+.16*((P[n!==j?n*12+9:o+9]*7.31)%1));col[n*3]=c[0]*kk;col[n*3+1]=c[1]*kk;col[n*3+2]=c[2]*kk;n++;} /* kk : chaque cube son éclat (± 8 %) */
   N.n=n;N.m.count=N.h.count=n;N.m.visible=N.h.visible=n>0;if(n){N.m.instanceMatrix.needsUpdate=true;N.m.instanceColor.needsUpdate=true;}
   N.ms=N.ms*.95+(performance.now()-t0)*.05;}
 window.dbgFlamme=function(o){ // (banc) l'état du moteur simulé et du feu ; dbgFlamme('nfeu',0|1) coupe / rend le feu de pixels
   if(o==='nfeu'){NFEU.on=!!arguments[1];if(!NFEU.on)nfeuCoupe();return NFEU.on;}
   if(o==='libre'){if(arguments.length>1)NFEU.libre=!!arguments[1];let c=0;for(let j=0;j<NFEU.n;j++)if(NFEU.P[j*12+11]===3)c++;return {libre:NFEU.libre,detaches:c,n:NFEU.n,mode:mode};} // (banc) le feu qui se détache en vol : 1 = détaché, 0 = collé à la caisse (l'ancien)
   if(o==='proj'){const ar=NFEU.m.instanceMatrix.array,v=new THREE.Vector3(),r=[];for(let j=0;j<NFEU.n;j++){const m=j*16;v.set(ar[m+12],ar[m+13],ar[m+14]);const d=v.distanceTo(camera.position),sz=Math.hypot(ar[m],ar[m+1],ar[m+2]);v.project(camera);r.push([+d.toFixed(2),+(v.y).toFixed(2),+sz.toFixed(2),NFEU.P[j*12+11]]);}
-    const w=new THREE.Vector3();potMonde(CAR_POTS[0],w);const dpot=w.distanceTo(camera.position);w.project(camera);return {dir:JET_DIR.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),pots:CAR_POTS.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),parPot:[0,1,2,3].map(function(i){let c=0;for(let j=0;j<NFEU.n;j++)if((NFEU.P[j*12+10]|0)===i&&(NFEU.P[j*12+11]===0||NFEU.P[j*12+11]===3))c++;return c;}),pot:[+dpot.toFixed(2),+w.y.toFixed(2),+w.x.toFixed(3)],cam:camera.position.toArray().map(x=>+x.toFixed(1)),car:carGroup.position.toArray().map(x=>+x.toFixed(1)),cubes:r};} // (banc) où tombent les cubes : distance, hauteur à l'écran (−1 bas, +1 haut), taille
+    const w=new THREE.Vector3();potMonde(CAR_POTS[0],w);const pw9=w.toArray().map(x=>+x.toFixed(2)),dpot=w.distanceTo(camera.position);w.project(camera);return {dir:JET_DIR.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),pots:CAR_POTS.map(function(d){return d.toArray().map(x=>+x.toFixed(2));}),parPot:[0,1,2,3].map(function(i){let c=0;for(let j=0;j<NFEU.n;j++)if((NFEU.P[j*12+10]|0)===i&&(NFEU.P[j*12+11]===0||NFEU.P[j*12+11]===3))c++;return c;}),pot:[+dpot.toFixed(2),+w.y.toFixed(2),+w.x.toFixed(3)],pw:pw9,cam:camera.position.toArray().map(x=>+x.toFixed(1)),car:carGroup.position.toArray().map(x=>+x.toFixed(1)),cubes:r};} // (banc) où tombent les cubes : distance, hauteur à l'écran (−1 bas, +1 haut), taille
   const F=FLM;return {on:FLM_ON,rpm:+F.rpm.toFixed(2),rapport:F.g,charge:+F.ch.toFixed(2),lacher:+F.ov.toFixed(2),chaleur:+F.heat.toFixed(2),pop:+F.pop.toFixed(2),
     L:Array.from(F.L).map(function(x){return +x.toFixed(2);}),mini:MOTEUR_MINI,feu:{n:NFEU.n,k:+NFEU.k.toFixed(2),ms:+NFEU.ms.toFixed(3),pots:nfeuNp(),cam:+camera.position.distanceTo(NFEU.pw[0]).toFixed(2)}};};
 /* LES POTS DE LA CAISSE (2026-09-26, user : « pour chaque skin, les flammes des pots d'échappement et la traînée de nitro au bon
@@ -27816,7 +27832,7 @@ const LPU={
    tube rentre dans la caisse vers +z. */
 const ECH_PAL={c:{g:'c',c:0xe8ecf0},C:{g:'c',c:0x9aa2ab},a:{g:'c',c:0xc9ced6},b:{g:'c',c:0x6157c9},v:{g:'c',c:0x9a62c8},x:{g:'c',c:0xc89a52},
   o:{g:'o',c:0xd9a520},k:{g:'m',c:0x08080a},s:{g:'s',c:0x1c1d21},f:{g:'s',c:0x2a2c31},r:{g:'m',c:0x6a3b1e},R:{g:'m',c:0x8f5a33},
-  w:{g:'s',c:0xf6f8fc},i:{g:'c',c:0xc4ecfb},n:{g:'c',c:0x2f8fc4},
+  w:{g:'s',c:0xf6f8fc},i:{g:'c',c:0xc4ecfb},n:{g:'c',c:0x2f8fc4},h:{g:'c',c:0x7884c8}, /* h : l'acier BLEUI par la chaleur (le pot réel) */
   g:{g:'l',c:0xff7a24},G:{g:'l',c:0x46d2ff},V:{g:'l',c:0x6dff5a},P:{g:'l',c:0xff3ea0},Y:{g:'l',c:0xffc84a},
   1:{g:'s',c:0xff2a2a},2:{g:'s',c:0xff9a1f},3:{g:'s',c:0xffe23a},4:{g:'s',c:0x3cdc4a},5:{g:'s',c:0x2f8cff},6:{g:'s',c:0x8a4dff}};
 /* LES PIÈCES. Chacune dessine dans le kit E et RENVOIE ses bouches [[x,y,z],…]. `o` : options de la fiche. */
@@ -27846,6 +27862,22 @@ const ECHP=(()=>{
     return [x,y,z];};
   const P={
     rond:(E,o)=>o.pts.map(q=>rond(E,q[0],q[1],q[2],Object.assign({},o,q[3]||{}))),
+    /* (2026-10-15, pôle TECHNIQUE — Léo : « un pot d'échappement plus réaliste, métallique… refonte du pot, sur LA HONTE, et toutes les voitures qui
+       ont un pot aussi peu bien fait ») LE POT RÉEL : un vrai embout d'échappement — le tube à peine évasé, le BORD ROULÉ, la double paroi plus
+       sombre, la SUIE puis le fond noir, la chaleur derrière le bord (une bande DORÉE, puis BLEUIE), un cordon de soudure, le tuyau qui repart
+       sous la caisse vers son silencieux et le collier qui le tient. Remplace le pot générique des gabarits sans fiche et les tubes fins et nus. */
+    reel:(E,o)=>o.pts.map(q=>{const [x,y,z]=q,o2=Object.assign({},o,q[3]||{}),r=o2.r||.045,k=o2.k||'c',L=o2.len||.3,n=16,Q={x,y,z,rx:o2.rx,ry:o2.ry,rz:o2.rz};
+      pose(E,k,tubeG(r*1.06,r,L,n),Q);                                    // le tube, à peine évasé vers la bouche
+      pose(E,k,bagueG(r*1.03,Math.max(.004,r*.16),n,.004),Q);             // le BORD ROULÉ
+      pose(E,'C',tubeG(r*.8,r*.8,.07,n,.01),Q);                           // la double paroi
+      pose(E,'f',tubeG(r*.68,r*.68,.05,n,.028),Q);                        // la suie
+      pose(E,'k',tubeG(r*.64,r*.64,.02,n,.07),Q);                         // le fond
+      pose(E,o2.kc||'x',tubeG(r*1.075,r*1.07,.045,n,.03),Q);              // la chaleur : la bande DORÉE derrière le bord…
+      pose(E,'h',tubeG(r*1.07,r*1.065,.05,n,.075),Q);                     // …puis BLEUIE
+      pose(E,k,bagueG(r*1.03,Math.max(.003,r*.07),n,L*.72),Q);            // le cordon de soudure
+      {const g=new THREE.CylinderGeometry(r*.8,r*.8,.4,10);g.rotateX(PI/2);g.rotateX(-.22);g.translate(0,-.03,L+.17);pose(E,'f',g,Q);} // le tuyau qui repart sous la caisse
+      {const g=new THREE.BoxGeometry(r*.7,r*1.6,.024);g.translate(0,r*1.2,L*.86);pose(E,'s',g,Q);} // le collier de fixation
+      return [x,y,z];}),
     rect:(E,o)=>o.pts.map(q=>rect(E,q[0],q[1],q[2],Object.assign({},o,q[3]||{}))),
     // UN ÉCRIN derrière les sorties (feuille d'or, laque noire…) : x,y,z centre, w,h
     plaque:(E,o)=>{E.box(o.k||'o',o.w,o.h,.012,o.x||0,o.y,o.z);return [];},
@@ -27958,6 +27990,7 @@ function echTaille(t,o){ // le demi-gabarit d'un embout vu de l'arrière : [form
   const r=(o.r||.05)*(o.ev||1);
   switch(t){
     case 'rond':return ['o',r*(o.sx||1),r*(o.sy||1)];
+    case 'reel':return ['o',r*1.12,r*1.12]; // (le pot réel : le bord roulé compris)
     case 'ovale':return ['o',r*(o.sx||1.45),r*(o.sy||.72)];
     case 'gueule':return ['o',r*1.3,r*1.3];
     case 'turbine':return ['o',o.r*1.14,o.r*1.14];
@@ -28050,7 +28083,7 @@ function echRetire(gs,prims,shape){
 /* DESSINER LE NOUVEAU POT, et déclarer ses bouches (la flamme naît là) */
 function echappement(K,shape,A){
   let F=ECH_POTS[shape];
-  if(!F&&A.pipes!==0){const W=K.W,L=K.L,y=A.split?K.y0+K.H*.06:K.y0+.08;F={p:[{t:'rond',r:.035,k:'c',len:.34,jeu:.008,jonc:.008,pts:[[W*.22,y,-L/2-.31],[-W*.22,y,-L/2-.31]]}]};} // (2026-10-15) les deux pots « canoniques » des gabarits sans fiche (des boîtes chromées de 22 cm qui pendaient 31 cm derrière) : deux vrais tubes de 7 cm, ENCASTRÉS dans le diffuseur (ou la tôle)
+  if(!F&&A.pipes!==0){const W=K.W,L=K.L,y=A.split?K.y0+K.H*.06:K.y0+.08;F={p:[{t:'reel',r:.042,k:'c',len:.34,jeu:.008,jonc:.008,pts:[[W*.22,y,-L/2-.31],[-W*.22,y,-L/2-.31]]}]};} /* (2026-10-15) le POT RÉEL (voir ECHP.reel) au lieu du tube nu */ // (2026-10-15) les deux pots « canoniques » des gabarits sans fiche (des boîtes chromées de 22 cm qui pendaient 31 cm derrière) : deux vrais tubes de 7 cm, ENCASTRÉS dans le diffuseur (ou la tôle)
   if(!F||!F.p)return;
   if(F.vieux){const g=K.add(new THREE.Group()),car=g.parent;car.remove(g);   // les gabarits d'avant le kit : leurs canons sont des maillages à part
     for(const o of car.children.slice()){const p=o.geometry&&o.geometry.parameters;
@@ -28063,7 +28096,7 @@ function echappement(K,shape,A){
   if(F.bouches!==0&&M.length)A.pots=M.slice(0,4);                 // 4 bouches au plus portent une flamme (voir les tuyères de buildCar)
 }
 const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
- epave:{p:[{t:'rond',k:'r',kb:'R',r:0.031,len:0.45,jeu:.007,jonc:.008,pts:[[0.3,0.3955,-2.4]]},{t:'rond',k:'r',kb:'R',r:0.027,len:0.45,bague:0,jeu:.007,jonc:.008,pts:[[-0.3,0.3955,-2.4]]}]}, // (2026-10-15, Léo : « il devrait être encastré, puis passer à travers une encoche ») deux pots ROUILLÉS de 5-6 cm (pas tout à fait pareils), chacun dans son encoche percée dans le DIFFUSEUR, entre ses ailettes — avant : un tuyau tordu qui traversait le pare-chocs sans trou et pendait, ficelé, et un bout de tube qui flottait derrière
+ epave:{p:[{t:'reel',k:'C',r:0.046,len:0.45,jeu:.007,jonc:.008,pts:[[0.55,0.3955,-2.4]]}]}, /* (2026-10-15, Léo : « un pot plus réaliste à LA HONTE, métallique, côté GAUCHE, et ça devrait ne sortir que d'un pot ») UN SEUL pot RÉEL, en acier, à gauche (x > 0 = la gauche de la caisse : la gauche de l'écran vue de derrière) — la flamme ne sort plus que de lui ; avant : */ // (2026-10-15, Léo : « il devrait être encastré, puis passer à travers une encoche ») deux pots ROUILLÉS de 5-6 cm (pas tout à fait pareils), chacun dans son encoche percée dans le DIFFUSEUR, entre ses ailettes — avant : un tuyau tordu qui traversait le pare-chocs sans trou et pendait, ficelé, et un bout de tube qui flottait derrière
  eldorado:{p:[{t:'ovale',r:0.06,sx:1.7,sy:0.62,k:'c',dbl:1,pts:[[0.68,0.4,-3.08],[-0.68,0.4,-3.08]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur le pare-chocs reculé de Léo (face à z -3,06) : bouches de -3,06 à -3,08, elles dépassent de 2 cm au lieu d'affleurer (z-fighting chrome)
  a_chargeur:{p:[{t:'rect',w:0.24,h:0.075,k:'c',e:0.015,pts:[[0.56,0.33,-2.58],[-0.56,0.33,-2.58]]}]},
  a_defieur:{p:[{t:'rond',r:0.068,k:'c',ev:1.06,pts:[[0.62,0.33,-2.584],[-0.62,0.33,-2.584]]}]},
@@ -28073,7 +28106,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  d_samourai:{p:[{t:'rond',r:0.078,k:'b',kb:'v',ev:1.1,dbl:1,k2:'x',pts:[[0.42,0.28,-2.44]]}]},
  d_vette:{p:[{t:'rond',r:0.044,k:'c',dbl:1,pts:[[-0.24,0.3,-2.32],[-0.09,0.3,-2.32],[0.09,0.3,-2.32],[0.24,0.3,-2.32]]}]},
  e_anglaise:{p:[{t:'ovale',r:0.05,sx:1.9,sy:0.6,k:'c',dbl:1,pts:[[0.55,0.33,-2.44],[-0.55,0.33,-2.44]]}]},
- d_corbillard:{p:[{t:'rond',r:0.036,k:'s',kb:'s',len:0.3,pts:[[-0.56,0.38,-3.04]]}]},
+ d_corbillard:{p:[{t:'reel',r:0.04,k:'s',kc:'f',len:0.3,pts:[[-0.56,0.38,-3.04]]}]}, // (2026-10-15) le pot réel, noir (le corbillard)
  a_chargeur69:{p:[{t:'rond',r:0.045,ev:1.4,k:'c',pts:[[0.32,0.3,-2.66],[-0.32,0.3,-2.66]]}]},
  b_canard:{p:[{t:'rond',r:0.05,k:'C',dbl:1,k2:'c',pts:[[-0.4,0.28,-2.13]]}]},
  e_aigle:{p:[{t:'rond',r:0.034,ev:1.18,k:'c',pts:[[0.36,0.28,-2.502],[0.46,0.28,-2.502],[-0.36,0.28,-2.502],[-0.46,0.28,-2.502]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur la jupe reculée de Léo (rampe du dessous, tôle à z -2,452 au bord haut des bouches) : de -2,60 à -2,502, elles dépassent de 5 cm comme avant
@@ -28090,17 +28123,17 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  abstraite:{p:[{t:'rond',r:0.05,k:'s',kb:'o',len:0.08,lueur:'Y',pts:[[0.22,0.36,-2.22],[-0.22,0.36,-2.22]]}]},
  iceberg:{p:[{t:'cristal',r:0.055,pts:[[0.11,0.31,-2.2681],[-0.11,0.31,-2.3239]]}]},
  e_murduson:{p:[{t:'turbine',r:0.11,n:10,k:'C',kp:'b',aubes:6,lueur:'g',force:1,pts:[[0.48,0.45,-3],[-0.48,0.45,-3]]},{t:'turbine',r:0.235,n:12,k:'C',kp:'b',aubes:0,force:1,pts:[[0.7,0.66,-0.8],[-0.7,0.66,-0.8]]}]},
- e_feline:{p:[{t:'rond',r:0.034,k:'c',len:0.5,pts:[[0.06,0.27,-2.465],[-0.06,0.27,-2.465]]}]},
+ e_feline:{p:[{t:'reel',r:0.034,k:'c',len:0.5,pts:[[0.06,0.27,-2.465],[-0.06,0.27,-2.465]]}]},
  b_trone:{p:[{t:'plaque',k:'o',w:0.56,h:0.22,x:0,y:0.46,z:-2.226},{t:'ovale',r:0.065,sx:1.4,sy:0.85,k:'C',dbl:1,k2:'o',pts:[[0,0.46,-2.269]]}]},
  c_spectre:{p:[{t:'fente',w:0.56,h:0.05,k:'s',lueur:'V',pts:[[0,0.4,-2.262]]}]},
  poptart:{ote:[[0.4,0.15,-1.06,0.56,0.32,-0.92],[-0.56,0.15,-1.06,-0.4,0.32,-0.92]],p:[{t:'pixel',a:0.1,pts:[[0.48,0.235,-1.045],[-0.48,0.235,-1.045]]}]},
  d_chevalier:{p:[{t:'turbine',r:0.205,n:12,k:'C',kp:'a',aubes:0,pts:[[0,0.8,-2.46]]}]},
  e_dragon:{p:[{t:'gueule',r:0.06,k:'o',ev:1.1,crocs:6,kc:'w',lueur:'g',pts:[[0.46,0.4,-2.41],[-0.46,0.4,-2.41]]}]},
- b_pizza:{p:[{t:'rond',r:0.034,k:'c',rx:0.45,len:0.25,pts:[[0.36,0.24,-1.845]]}]},
+ b_pizza:{p:[{t:'reel',r:0.034,k:'c',rx:0.45,len:0.25,pts:[[0.36,0.24,-1.845]]}]},
  bulle:{p:[{t:'rond',r:0.03,ev:1.45,k:'c',pts:[[-0.26,0.42,-2.185]]}]},
- combi:{p:[{t:'rond',r:0.024,k:'C',bague:0,len:0.42,pts:[[0.32,0.31,-2.42],[-0.32,0.31,-2.42]]}]},
+ combi:{p:[{t:'reel',r:0.032,k:'C',len:0.42,pts:[[0.32,0.31,-2.42],[-0.32,0.31,-2.42]]}]},
  dolores:{p:[{t:'rect',w:0.12,h:0.05,k:'a',e:0.012,pts:[[0.38,0.3,-2.17],[-0.38,0.3,-2.17]]}]},
- d_puce:{p:[{t:'rond',r:0.026,k:'c',pts:[[-0.045,0.22,-1.55],[0.045,0.22,-1.55],[-0.045,0.3,-1.55],[0.045,0.3,-1.55]]}]},
+ d_puce:{p:[{t:'reel',r:0.026,k:'c',pts:[[-0.045,0.22,-1.55],[0.045,0.22,-1.55],[-0.045,0.3,-1.55],[0.045,0.3,-1.55]]}]},
  b_groupeb:{p:[{t:'rond',r:0.058,k:'C',bague:0,len:0.5,bout:'x',ry:-0.45,pts:[[0.6,0.26,-2.1572]]}]},
  c_hotrod:{p:[{t:'hotrod'}]},
  a_mastodonte:{ote:[[0.47,0.42,-2.43,0.67,1.27,-1.74],[-0.67,0.42,-2.43,-0.47,1.27,-1.74]],p:[{t:'cheminee',h:1.35,r:0.075,k:'c',pts:[[0.8,1.62,-0.46],[-0.8,1.62,-0.46]]}]},
