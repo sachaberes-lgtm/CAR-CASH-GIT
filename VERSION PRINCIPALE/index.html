@@ -43749,6 +43749,14 @@ let airRoll=0; // vrille visuelle en vol
    vite ; si l'on braque à temps, le pneu raccroche la LÈVRE au lieu d'aller cogner la tranche ; et la caméra glisse au lieu de sauter.
    `bascOn` = ce vol vient d'une sortie par le bord, `bascDir` = sens de la vrille (+1 = celui de toujours), `levreY` = la marche que la
    caisse remonte en raccrochant (décroît). */
+/* LE BORD DE LA ROUTE TORDUE (2026-10-15 soir, Sacha : « fais revenir le BUMP sur la route tordue des nuages, sans toucher au reste »).
+   Sur la route SANS HAUT NI BAS (TORD) la dalle est couchée, sur la tranche, à l'envers — et la caisse sortie par le bord tombait selon le
+   bas du MONDE : elle ne s'enfonçait jamais sous le niveau de SA dalle, donc ne pouvait plus en cogner la tranche (MESURÉ, même graine :
+   0 BUMP sur 20 sorties, contre 3 sur la même piste remise droite par ?sans=haut). Ici, le temps de la BASCULE (1,1 s au plus) et après
+   chaque BUMP, la gravité est celle de la ROUTE quittée (−Nn × face de départ) : la caisse s'enfonce sous la dalle comme sur une route
+   droite, la lèvre raccroche, la tranche cogne, et le BUMP renvoie vers le ciel de LA ROUTE (pas vers celui du monde). Au-delà (ou à plus de
+   20 m du bord), le vol reprend la gravité du monde. Route droite (TORD éteint) : rien ne change. `TBORD.t` = le temps qu'il reste. */
+const TBORD={t:0,on:false,u:new THREE.Vector3()};
 let bascOn=false,bascDir=1,levreY=0,bascT=0; /* bascT (1/10, soir) : le temps VÉCU depuis la sortie par le bord — `fallT` est rendu par les bumps, il réarmait la bascule en plein vol */
 const BUMP_VY=16; /* (2026-10-01) la vitesse verticale rendue par un BUMP (voir tryLand) */
 const LEVRE_POSE=.45; /* (2026-10-01) la marche qu'un pneu monte à TOUTE pose au bord (voir levre9 dans tryLand) */
@@ -43822,7 +43830,8 @@ function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'ef
   return VEQ.u=Math.sign(steer)*Math.max(0,Math.abs(steer)-Math.abs(VEQ.l0)*g);
 }
 function veqNiveau(dt,dir){ // L'ÉQUILIBRE : le haut du vol se redresse vers la verticale, autour de la trajectoire `dir`
-  const sg=FLY_U.y>=0?1:-1;VEQ.tv.set(0,sg,0).addScaledVector(dir,-sg*dir.y);
+  const U9=TBORD.on?TBORD.u:null,sg=(U9?FLY_U.dot(U9):FLY_U.y)>=0?1:-1; // (LE BORD DE LA ROUTE TORDUE) au bord, l'équilibre se fait sur le ciel de LA ROUTE : le volant reste dans le plan de la dalle, on peut revenir cogner sa tranche
+  if(U9)VEQ.tv.copy(U9).multiplyScalar(sg).addScaledVector(dir,-sg*U9.dot(dir));else VEQ.tv.set(0,sg,0).addScaledVector(dir,-sg*dir.y);
   const L=VEQ.tv.length();if(L<.15)return; // trajectoire presque verticale : pas d'horizon à retrouver
   VEQ.tv.multiplyScalar(1/L);
   const e=Math.atan2(VEQ.tc.crossVectors(FLY_U,VEQ.tv).dot(dir),THREE.MathUtils.clamp(FLY_U.dot(VEQ.tv),-1,1));
@@ -46414,6 +46423,8 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // (bord v2) LA BASCULE : la vrille part du côté du VIDE (le toit vers l'extérieur : signe opposé à `lat`, même convention que carRoll9),
   // et elle part du roulis que la carrosserie avait déjà — reporté sur la caisse entière, sinon il s'effaçait d'un coup à la sortie
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
+  TBORD.t=bord&&TORD.on?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule
+  if(TBORD.t>0){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));curLatOff=lat;curHOff=side<0?-THICK:0;} // le radar part du bord quitté (sinon, à la 1re image, il parle encore du vol d'avant)
   if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
   veqDepart(bord,impU,roll0,carGroup.quaternion); // (2026-10-14) LE VOL ÉQUILIBRÉ : verrou du volant, ressorts de la caisse
   figDepart(bord); // (2026-10-14) LES FIGURES v2 : la caisse EMPORTE son élan de rotation (voir LES FIGURES v2)
@@ -46553,7 +46564,8 @@ function tryLand(dt){
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff),impB=Math.abs(vB);
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
     fallVel.multiplyScalar(.78);
-    fallVel.y=Math.max(fallVel.y+2.4,BUMP_VY*Math.sqrt(gK())); /* (2026-10-01, LA POSE) la tranche RENVOIE la caisse vers le ciel — POUR DE BON : le +2,4 d'origine (calé sur une autre échelle de vitesse) ne valait plus que 4 cm de montée et s'AJOUTAIT à la chute — un BUMP était une condamnation (relevé par GRAPHISME, MESURÉ au banc : « BUMP (h −0,95) puis tombée », à chaque fois). La vitesse verticale REPART à BUMP_VY : ~1,9 m de montée (gravité monde 15,8 m/s²), ~1 s en l'air — une caisse qui a cogné la tranche à moins de 1,3 m sous le bitume remonte AU-DESSUS de la route et peut revenir s'y poser (le volant commande le vol) ; plus bas, elle reste dessous. √gK : même hauteur en gravité lunaire. */
+    if(TBORD.on){const vu9=fallVel.dot(TBORD.u);fallVel.addScaledVector(TBORD.u,Math.max(vu9+2.4,BUMP_VY*Math.sqrt(gK()))-vu9);TBORD.t=1.1;} /* (LE BORD DE LA ROUTE TORDUE) vers le ciel de LA ROUTE, et sa gravité se réarme : le DOUBLE BUMP reste possible */
+    else fallVel.y=Math.max(fallVel.y+2.4,BUMP_VY*Math.sqrt(gK())); /* (2026-10-01, LA POSE) la tranche RENVOIE la caisse vers le ciel — POUR DE BON : le +2,4 d'origine (calé sur une autre échelle de vitesse) ne valait plus que 4 cm de montée et s'AJOUTAIT à la chute — un BUMP était une condamnation (relevé par GRAPHISME, MESURÉ au banc : « BUMP (h −0,95) puis tombée », à chaque fois). La vitesse verticale REPART à BUMP_VY : ~1,9 m de montée (gravité monde 15,8 m/s²), ~1 s en l'air — une caisse qui a cogné la tranche à moins de 1,3 m sous le bitume remonte AU-DESSUS de la route et peut revenir s'y poser (le volant commande le vol) ; plus bas, elle reste dessous. √gK : même hauteur en gravité lunaire. */
     // (bord v2) la caisse est remise CONTRE la tranche (sa demi-largeur), là où elle la touche : avant, elle était téléportée à 1,8 m du bord
     // ET recalée sur le point de piste le plus proche (jusqu'à 1,6 m le long du ruban) — un saut d'image, pas un choc
     fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
@@ -58397,7 +58409,9 @@ function loop(now){
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
       const gB9=bascOn?Math.min(1,bascT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
-      fallVel.y-=FALL_G*gK()*gB9*dtF; // gK : gravité LUNAIRE en orbite (÷2)
+      {const i9=tryLand._bi;if(TBORD.t>0&&(!TORD.on||Math.abs(curLatOff)>ROAD_HALF+20||Math.abs(curHOff)>20))TBORD.t=0; // (LE BORD DE LA ROUTE TORDUE) loin du bord : la gravité du monde reprend
+       TBORD.on=TBORD.t>0&&i9>=0&&!!Nn[i9]; // le bas de LA ROUTE, pas celui du monde
+       if(TBORD.on){TBORD.u.copy(Nn[i9]).multiplyScalar(fallStartSide).normalize();TBORD.t-=dtF;fallVel.addScaledVector(TBORD.u,-FALL_G*gK()*gB9*dtF);}else fallVel.y-=FALL_G*gK()*gB9*dtF;} // gK : gravité LUNAIRE en orbite (÷2)
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
       // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
       // (FLY_U) : il mord à toutes les assiettes, piqué à pic compris, et il ne redresse plus rien.
@@ -58410,7 +58424,7 @@ function loop(now){
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
-        fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF; // (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
+        if(TBORD.on)fallVel.addScaledVector(TBORD.u,FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF);else fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF; // (LE BORD DE LA ROUTE TORDUE : il plane contre la gravité de la route) (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
         /* (2026-09-26, user : « le boost nitro aérien doit VRAIMENT donner une impulsion, indépendamment de la vitesse de départ, qui s'y
            additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
