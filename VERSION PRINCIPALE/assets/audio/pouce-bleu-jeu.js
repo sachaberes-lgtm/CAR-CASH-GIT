@@ -29,7 +29,20 @@
     const r = await fetch(u); if (!r.ok) throw e;
     const b = URL.createObjectURL(new Blob([(await r.text()).split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));   // (son adresse reste la vraie : ses sons « vrais/ » à côté)
     try { return await import(b); } finally { URL.revokeObjectURL(b); } } };
-  const PB = { liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
+  /* (15/10 soir ; Léo : « parfois ça bug un tout petit peu — il faut que le jeu soit complètement solide sur la musique ») L'HORLOGE DU GÉNÉRATEUR
+     PRÉVOIT 1 s EN COURSE. Le générateur pose ses notes 0,35 s à l'avance, réveillé toutes les 50 ms par un minuteur de la page : quand la page gèle
+     plus longtemps, il SAUTE les temps manqués (un trou dans le groove). Mesuré en course : 546 ms au portail (Chrome, processeur bridé ×4 ≈ un
+     iPhone), jusqu'à 390 ms dans WebKit sur le Mac (départ, portails). Le jeu le charge donc avec 1 s d'avance : le même texte, cette seule
+     constante changée (la bibliothèque garde le sien). Un changement de moteur s'entend au plus ~0,65 s plus tard (il tombe déjà sur la mesure
+     suivante). Le texte introuvable ou l'import refusé → le module d'origine (rien ne casse). `?avance=.35` = l'horloge d'avant (A/B) ; dbgPouce().avance. */
+  const AVANCE = +((/[?&]avance=([\d.]+)/.exec(location.search) || [])[1]) || 1, AV_TXT = 'while (nextTime < now + .35)', MODS = {};
+  const importeAvance = u => MODS[u] || (MODS[u] = (async () => { try {
+      const r = await fetch(u); if (!r.ok) throw new Error(u);
+      const s = await r.text(); if (s.indexOf(AV_TXT) < 0) throw new Error('horloge introuvable');
+      const b = URL.createObjectURL(new Blob([s.split(AV_TXT).join('while (nextTime < now + ' + AVANCE + ')').split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
+      try { const m = await import(b); PB.avance = AVANCE; return m; } finally { URL.revokeObjectURL(b); }
+    } catch (e) { delete MODS[u]; PB.avance = .35; return importe(u); } })());   // (un espace de noms de module n'accepte aucune propriété : l'avance réelle est notée sur PB)
+  const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
 
   PB.charge = async function () {   // la liste de Pouce bleu (une fois)
     if (PB.liste) return PB.liste;
@@ -58,7 +71,7 @@
   // ---------------------------------------------------------------- les trois lecteurs (chacun : { regle(m 1..30), stop(), bpm() })
   async function joueurGen(ac, dest, E) {
     const f = E.v === 'actuelle' ? 'direct/musique-trente.js' : 'direct/musique-trente-' + E.v + '.js';
-    const mod = await importe(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: dest, renouvelle: 0, da: E.da });
+    const mod = await importeAvance(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: dest, renouvelle: 0, da: E.da });
     const O = {}; if (/^hyb:/.test(E.style)) O.style = E.style;   // (la couleur de l'avis : sans elle, une musique v6 en devenait une autre)
     if (E.ret) { O.retouche = E.ret.retouche; O.voix = E.ret.voix; O.acc = E.ret.acc; }
     inst.setTier(1, 30); inst.start(E.n, E.W || undefined, O); let cur = 1;
@@ -133,7 +146,7 @@
     try { if (ch && ac) t9(ch.g.gain, 0, ac.currentTime, d / 4); } catch (e) {}
     setTimeout(() => { try { if (J) J.stop(); } catch (e) {} setTimeout(() => { try { if (ch) ch.e.disconnect(); } catch (e) {} }, 600); }, d * 1000);
   };
-  PB.etat = () => ({ phase: PB.phase, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, liste: PB.liste ? PB.liste.length : null, err: PB.err,
+  PB.etat = () => ({ phase: PB.phase, avance: PB.avance, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, liste: PB.liste ? PB.liste.length : null, err: PB.err,
     filtre: PB.ch ? Math.round(PB.ch.f.frequency.value) : null, niveau: PB.ch ? +PB.ch.g.gain.value.toFixed(3) : null, bus: PB.ch && PB.ch.bus ? PB.ch.bus.etat() : null,
     moteur: PB.J && PB.J.inst ? PB.J.inst.tier : null });
   W.POUCE_JEU = PB;
