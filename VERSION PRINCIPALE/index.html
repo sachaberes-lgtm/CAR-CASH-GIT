@@ -8985,6 +8985,16 @@ html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16p
 #ecMain.double .p{animation:ecMDouble 1.8s steps(18) infinite}
 #ecMain.double .r{animation:ecMOnde2 1.8s var(--ease) infinite}
 #ecMain.double .x2{animation:ecX2 1.8s steps(18) infinite}
+/* (2026-10-15) LA FIGURE AU GLISSÉ : le pouce se pose sur NITRO, glisse vers la gauche, se lève */
+#ecMain.glisseN .p{animation:ecMGlisseN 1.7s var(--ease) infinite}
+#ecMain.glisseN .fg{left:-46px;opacity:1;animation:ecFleche .6s steps(2) infinite}
+@keyframes ecMGlisseN{0%,14%{transform:none;opacity:1}22%{transform:translateY(3px)}62%{transform:translate(-58px,3px)}70%,100%{transform:translate(-58px,-6px);opacity:0}}
+#figGl{position:fixed;left:0;top:0;z-index:66;display:none;align-items:center;gap:7px;padding:7px 10px 6px;pointer-events:none;white-space:nowrap;
+  font:10px/1 var(--pix);letter-spacing:1px;color:#fff;background:rgba(10,6,22,.86);border:2px solid var(--or,#ffd75e);box-shadow:0 3px 0 #1c0430}
+#figGl.on{display:flex}
+#figGl .pxi{--pxs:2;background:var(--or,#ffd75e)}
+body.dead #figGl,body:not(.play) #figGl{display:none}
+html body.figGlisse #fhLeg{display:none!important} /* en GLISSER, le rappel du double-tap au joystick se tait */
 @keyframes ecMDouble{0%,100%{transform:translateY(-10px);opacity:.4}10%,22%{transform:none;opacity:1}14%,28%{transform:translateY(5px) scale(.88);opacity:1}34%{transform:none;opacity:1}}
 @keyframes ecMOnde2{0%,12%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(.6)}26%{opacity:1;transform:scale(.6)}50%{opacity:0;transform:scale(3.4)}51%,100%{opacity:0}}
 body.hTp:not(#ccH) #ecMain,html.balade #ecMain,body.dead #ecMain{display:none}
@@ -9428,7 +9438,7 @@ html:not(.c6) #tPanel #tpIn>.tpHR{order:2;margin-top:12px}
 html:not(.c6) #tPanel #tpIn>.tpPanel{order:3}
 html:not(.c6) #tPanel #tpIn>.tp.go{order:6;margin-top:8px}
 html:not(.c6) #tPanel .tpH,html:not(.c6) #tPanel .tpResume .mStat span{font-size:var(--f1)} /* étiquettes 8 px -> 10 px */
-html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="q"],html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="volh"]{display:none} /* IMAGE et POUCE HAUT : dans les réglages complets */
+html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="q"],html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="volh"],html:not(.c6) #tPanel #tpIn .tp.ligne[data-a="figg"]{display:none} /* IMAGE, POUCE HAUT et FIGURES (2026-10-15) : dans les réglages complets (TOUS LES REGLAGES) */
 html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]{display:flex;min-height:58px}
 html:not(.c6) #tPanel #tpIn .tp[data-a="tous"]::after{content:'';flex:none;width:0;height:0;margin-left:auto;border-left:8px solid var(--neoC);border-top:6px solid transparent;border-bottom:6px solid transparent}
 html:not(.c6) #tPanel #tpIn .tp.rouge{--nc:var(--neoR);min-height:48px;margin:0 0 16px;background:transparent;text-shadow:none;
@@ -10019,6 +10029,7 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
             <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
             <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
+            <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
           </div>
           <div class="mSec oAide" data-fr="AIDE">AIDE</div>
           <div class="mPanel oAide">
@@ -10095,6 +10106,7 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
     <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
     <div class="tp ligne" data-a="volh"><i class="pxi pxi-aile" aria-hidden="true"></i> POUCE HAUT EN VOL</div><!-- (2026-09-30, R7-5) ce réglage n'agit qu'en VOL : c'est en pleine partie qu'on découvre qu'on préfère l'autre sens -->
+    <div class="tp ligne" data-a="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i> FIGURES</div><!-- (2026-10-15, Léo) la FIGURE : 2 TAPS ou GLISSER — en pleine partie, c'est là qu'on l'essaie -->
     <div class="tp ligne lien" data-a="tous" data-g="run"><i class="pxi pxi-reglages" aria-hidden="true"></i> TOUS LES REGLAGES</div><!-- (2026-10-14, charte 6) l'écran complet #mSet par-dessus la course en pause ; absent hors charte 6 (voir setPauseOuvre) -->
     </div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
@@ -23415,6 +23427,7 @@ Object.assign(I18N,{"FRONDE": "SLINGSHOT"}); /* (2026-09-30) LA FRONDE : le nom 
 Object.assign(I18N,{'TONNEAU':'BARREL ROLL','TONNEAU !':'BARREL ROLL!','PAR-DESSUS':'OVER IT','PAR-DESSUS !':'OVER IT!','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
 Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','PARIS TERMINE':'PARIS COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});
 try{if(window.FIG)FIG.liste.forEach(function(f){if(f.en&&f.en!==f.n)I18N[f.n]=f.en;});if(window.FIG&&FIG.auto)Object.keys(FIG.auto).forEach(function(k){const f=FIG.auto[k];I18N[f.n]=f.en;});}catch(e){} // (2026-10-14) les noms des FIGURES (figures.js) en anglais
+Object.assign(I18N,{'2 TAPS':'2 TAPS','GLISSER':'SLIDE','Pose le pouce sur *NITRO*, glisse, lâche':'Thumb on *NITRO*, slide, release','GLISSE DEPUIS NITRO, LACHE':'SLIDE FROM NITRO, RELEASE'}); // (2026-10-15) LA FIGURE AU GLISSÉ
 Object.assign(I18N,{'ENTRER UN CODE':'ENTER A CODE','TOUT EST DÉBLOQUÉ !':'EVERYTHING UNLOCKED!','CODE INCONNU':'UNKNOWN CODE','FIGURE RATEE !':'BOTCHED TRICK!','FIGURES':'TRICKS','FIGURE':'TRICK','ACQUISE':'OWNED','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
@@ -36643,7 +36656,7 @@ const TUTO_ETAPES=[
   {ico:'rampe', t:'DÉCOLLE', d:'Sors de la route *par le bord* !',                 dk:'Sors de la route *par le bord* !',          geste:'bord',   film:'bord',   main:'pousse', bravo:'ÇA DÉCOLLE !'},
   {ico:'eclair',t:'VOLE',    d:'En l\'air : garde *NITRO* et reviens sur la route', dk:'En l\'air : [ESPACE] et reviens sur la route', geste:'nitro', film:'vole', main:'appui', bravo:'TU VOLES !'},
   {ico:'cible', t:'POSE-TOI',d:'Vise *l\'anneau* sur la route. Doré = parfait !',   dk:'Vise *l\'anneau* sur la route. Doré = parfait !', geste:'pose', film:'pose', main:'',  bravo:'POSÉ !'},
-  {ico:'rotation',t:'FIGURE',d:'Tape *2 fois* vite sur *NITRO*',                   dk:'Tape *2 fois* vite sur [ESPACE]',           geste:'figure', film:'figure', main:'double', bravo:'STYLÉ !'}
+  {ico:'rotation',t:'FIGURE',get d(){return figGlisseOn()?'Pose le pouce sur *NITRO*, glisse, lâche':'Tape *2 fois* vite sur *NITRO*';}, dk:'Tape *2 fois* vite sur [ESPACE]', geste:'figure', film:'figure', get main(){return figGlisseOn()?'glisseN':'double';}, bravo:'STYLÉ !'} // (2026-10-15) FIGURES › GLISSER : la consigne et la main suivent le réglage
 ];
 const TUTO_ACCUEIL={t:'AUTO-ÉCOLE',d:'6 gestes. Ici, *impossible de perdre* !',film:'accueil'}; // la 1re carte : on rassure avant d'exiger
 const TUTO_FILMS={ // les acteurs de chaque petit film (leur mouvement est dans le CSS)
@@ -36835,7 +36848,7 @@ function tutoTick(dt){
        FINIE (veqFigFinie pose TUTO.fig). Trois sauts sans figure finie (posée en plein tour) : elle est accordée, la caisse sur ses roues. */
     case 5: if(TUTO.fig||tutoPayees()>(TUTO.p0|0))tutoBravo(); // une figure plantée (v2) — ou finie (`?fig=ancien`)
             else if(TUTO.sauts>=3&&mode==='drive')tutoBravo();
-            else if(mode==='fall'&&TUTO.t>12){sandRevive();TUTO.t=0;tutoAffiche('TAPE 2 FOIS VITE SUR NITRO');}
+            else if(mode==='fall'&&TUTO.t>12){sandRevive();TUTO.t=0;tutoAffiche(figGlisseOn()?'GLISSE DEPUIS NITRO, LACHE':'TAPE 2 FOIS VITE SUR NITRO');}
             break;
   }
 }
@@ -43402,6 +43415,7 @@ const SAVE={
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
     tctl:'stick',q:(PAL.b('qNetDefaut',0)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
+    figG:'tap', // (2026-10-15, Léo) FIGURES : 'tap' = le double-tap NITRO (d'origine) · 'glisse' = glisser depuis NITRO puis lâcher (voir GLI)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
     // progression DANS une partie (il repart à zéro), la voiture est la progression ENTRE les parties.
     // `eng` = plus haut palier moteur jamais atteint · `gaps`/`tricks`/`bumps` = cumuls · `zones`,
@@ -43439,6 +43453,7 @@ const SAVE={
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
+    c.figG=d.figG==='glisse'?'glisse':'tap'; // (2026-10-15) LA FIGURE AU GLISSÉ
     c.volH=d.volH==='plonge'&&d.volHv>=2?'plonge':'monte';c.volHv=2; // pouce en HAUT en vol : monte (d'origine depuis le 2026-10-10, Léo : « plus logique, plus intuitif sur mobile ») ou plonge (manche d'avion, l'ancien défaut) — `volHv` < 2 : sauvegarde d'avant, basculée UNE fois sur MONTE, le choix fait après est gardé
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
        nombres partent DIRECTEMENT dans un GainNode et dans `HTMLAudio.volume`. Un NaN venu d'un
@@ -44256,7 +44271,7 @@ function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; 
   if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
   return ok;
 }
-function veqSaut(){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle
+function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle — `fo` (LA FIGURE AU GLISSÉ) : la figure du sens glissé au lieu de l'emplacement suivant
   if(hopY>0||hopV!==0||POSE_F||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
   /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « saut nitro au double-tap sur la FACE CACHÉE : startFall(21) part vers le BAS, chute
      mortelle ») SOUS LA DALLE, la caisse est pendue à la route : la pousser « vers le haut de la caisse », c'est la lâcher dans le VIDE (et la
@@ -44269,6 +44284,7 @@ function veqSaut(){ // LE SAUT NITRO : le booster plaque la route, la caisse dé
   VEQ.sautT=performance.now();
   const p9=carGroup.position.clone();
   startFall(VEQ_K.saut,1);VEQ.sautF=flightId;VEQ.l0=0; // un saut VOULU : le volant tenu continue de tourner (pas de verrou), on reste sur sa route
+  if(fo&&FIGV2.on)figLance(-1,Object.assign({dispo:2*VEQ_K.saut/(FALL_G*gK())-.15},fo));else // (2026-10-15) le glissé : la figure de SON sens
   veqFigure(2*VEQ_K.saut/(FALL_G*gK())-.15); // la figure part TOUTE SEULE, à la taille du saut
   for(let k=0;k<26;k++){const a=Math.random()*6.2832,r=Math.random()*1.2; // le souffle du booster contre la route
     spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*r,p9.y+.2,p9.z+Math.sin(a)*r,Math.cos(a)*(3+Math.random()*6),-2-Math.random()*3,Math.sin(a)*(3+Math.random()*6),.18+Math.random()*.16);}
@@ -44539,8 +44555,8 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%E.length;return {attente:true};}
   const bud=o.dispo!=null?o.dispo:figBudget(),D=Math.min(f.D,(bud-.3)/.85);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
-  let enC=null;if(Math.abs(steer)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant que la même figure tourne (même le tonneau AUTOMATIQUE du saut nitro) : on CONTINUE dans son sens — alterner l'ÉTEIGNAIT (MESURÉ au banc : tonneau ×3 annulé par le bouton TONNEAU)
-  const sens=Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
+  let enC=null;if(o.sens==null&&Math.abs(steer)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant que la même figure tourne (même le tonneau AUTOMATIQUE du saut nitro) : on CONTINUE dans son sens — alterner l'ÉTEIGNAIT (MESURÉ au banc : tonneau ×3 annulé par le bouton TONNEAU)
+  const sens=o.sens!=null?o.sens:Math.abs(steer)>.25?(ax===2?(steer>0?-1:1):(steer>0?1:-1)):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche)
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
   let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour (sur le tonneau du saut nitro aussi : le joueur le reprend en main, il n'est plus « automatique »)
   if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/.85);if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);r.douce=false;}
@@ -44634,6 +44650,47 @@ function figDirSlot(){let x,y;
   return Math.abs(x)>=.3&&Math.abs(x)>=Math.abs(y)*.85?1:0;}
 window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot(),r=figLance(s,{double:true,empile:true});return r?(r.attente?'attente':'ok emplacement '+(s+1)):'refus';}finally{FDIR.force=null;}};
 function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
+/* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
+   être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
+   RÉGLAGES › JEU › FIGURES (et la PAUSE) — 2 TAPS (le double-tap, d'origine) · GLISSER (`SAVE.d.figG`, écrit par `figGBascule` seul).
+   · EN GLISSER, le pouce se pose sur NITRO (le boost part, comme toujours, et tient tant que le pouce reste posé), GLISSE d'au moins
+     `GLI.seuil` px, puis LÂCHE : la figure de ce SENS (Léo a choisi « le côté / l'axe ») — ← → = le TONNEAU de ce côté (l'IMPULSION de
+     flanc de Sacha ; on recommence dans le même sens pendant qu'elle roule : TONNEAU ×2, ×3…), ↑ = SALTO ARRIÈRE, ↓ = SALTO AVANT
+     (offerts à tous, comme le tonneau de l'impulsion). AU SOL : le SAUT NITRO, avec la figure du sens (Léo : « comme le double-tap »).
+   · Revenu près du point d'appui avant de lâcher = rien (on a changé d'avis). Pendant le glissé, `#figGl` dit la figure qui partira.
+   · Le double-tap et le redressement à un tap du BOUTON sont coupés (taper NITRO = booster, rien d'autre) ; le CLAVIER garde son double-tap
+     (une touche ne glisse pas, LE CHOIX AU JOYSTICK de Sacha y vit). Le rappel « ↑ 1 · ◄► 2 » (`#fhLeg`, celui du double-tap) se tait en
+     GLISSER (`body.figGlisse`) : il dirait un geste qui ne marche plus au doigt.
+   Lu aux événements (doigt, souris du cadre de l'ordi), joué par la boucle (`GLI.req`, comme `VEQ.dReq`). Console : `dbgGlisse()`,
+   `dbgGlisse('l'|'r'|'u'|'d')` (un glissé sans doigt), `dbgGlisse('on'|'off')`. */
+const GLI={seuil:38,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,vu:null,el:null};
+function figGlisseOn(){return !!(SAVE.d&&SAVE.d.figG==='glisse');}
+function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();figGClasse();}
+function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
+figGClasse();
+function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
+function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?F.tonneau:d==='u'?F.saltoa:F.saltov):null;}
+function figGOpts(d){const f=figGFig(d);if(!f)return null;
+  return {f:f,sens:d==='l'?-1:d==='r'?1:1,empile:true};} // (figLance : pouce à GAUCHE → sens −1, comme l'impulsion ; un salto garde son sens)
+function figGJoue(d){ // (la boucle) le glissé lâché
+  if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte())){GLI.refus++;return false;}
+  const o=figGOpts(d);let ok=false;
+  if(o){if(mode==='drive')ok=veqSaut(o);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());}
+  if(ok){GLI.n++;GLI.der=d;if(TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;}else GLI.refus++;
+  return ok;}
+function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche ici
+  if(!(d&&started&&!gameOver&&!paused))d=null;
+  let el=GLI.el;if(!el){if(!d)return;el=GLI.el=document.createElement('div');el.id='figGl';el.setAttribute('aria-hidden','true');el.innerHTML='<i class="pxi"></i><b></b>';document.body.appendChild(el);}
+  if(!d){if(GLI.vu){GLI.vu=null;el.classList.remove('on');}return;}
+  if(GLI.vu!==d){GLI.vu=d;const f=figGFig(d);
+    el.firstChild.className='pxi pxi-'+(d==='l'?'gauche':d==='r'?'droite':d==='u'?'haut':'bas');
+    el.lastChild.textContent=f?sansAcc(LANG==='en'?f.en:f.n):'';el.classList.add('on');try{hap(5);}catch(e){}}
+  const k=d==='l'||d==='r'?1:0,sx=d==='l'?-1:d==='r'?1:0,sy=d==='u'?-1:d==='d'?1:0,W=VP.w||innerWidth,H=VP.h||innerHeight;
+  const px=Math.max(70,Math.min(W-70,GLI.x0+sx*86)),py=Math.max(40,Math.min(H-40,GLI.y0+sy*86-(k?44:0)));
+  el.style.transform='translate('+Math.round(px)+'px,'+Math.round(py)+'px) translate(-50%,-50%)';}
+window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'glisse':'tap';figGClasse();return SAVE.d.figG;}
+  if(a==='l'||a==='r'||a==='u'||a==='d')return figGJoue(a);
+  return {mode:figGlisseOn()?'glisser':'2 taps',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n};};
 function figCvX(){const c=FX2.cv;return c.n?Math.min(IMPU.xMax,1+IMPU.xVar*(c.dist-1)+IMPU.xRep*(c.n-c.dist)):1;}
 function figCvTxtX(x){return '×'+String(Math.round(x*100)/100).replace('.',LANG==='en'?'.':',');}
 function figCvNote(f,reps){if(!f)return;const c=FX2.cv;c.n++;if(!c.ids[f.id]){c.ids[f.id]=1;c.dist++;}
@@ -48081,7 +48138,7 @@ function resetGame(){
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
-  VEQ.dReq=false;VEQ.dDn=0; // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
+  VEQ.dReq=false;VEQ.dDn=0;GLI.req=null;GLI.id=null;figGVoit(null); // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
@@ -48112,7 +48169,7 @@ function resetGame(){
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
-  VEQ.sautF=-1;VEQ.dReq=false;if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
+  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
   dolKill();serpShow=0; // créatures de figure au repos
@@ -58662,7 +58719,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<150)figGJoue(d9);}figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
@@ -60789,7 +60846,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const up=function(e){ if(e&&e.cancelable)e.preventDefault();
       if(e&&e.touches&&keys[code])for(let i=0;i<e.touches.length;i++){const c=e.touches[i].target;const b=c&&c.closest?c.closest('#tNitro,#tNitroZone,#tLeft,#tRight'):null;if(b&&b._tenu===code)return;} // (2026-10-14, chasse aux bugs) un AUTRE doigt tient encore cette commande (le pouce sur le disque NITRO, quand la paume quitte la zone élargie) : le lever d'un intrus ne coupe plus la nitro sous le pouce — même règle que le volant (2026-09-30)
       if(vis._t9){if((hap._t||0)<vis._t9)hap(9);vis._t9=0;} // (2026-10-14, accord) un appui plus bref qu'une image : la nitro n'a rien vu, rien n'a vibré — le tic d'appui part au lâcher (mesuré au banc : sinon, silence)
-      if(code==='Space'&&keys[code])veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU
+      if(code==='Space'&&keys[code]&&!figGlisseOn())veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU — (2026-10-15) sauf en FIGURES › GLISSER (voir GLI)
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
     el.addEventListener('touchcancel',up,{passive:false});
@@ -60797,11 +60854,26 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   bindHold($t('tLeft'),'ArrowLeft',start);
   bindHold($t('tRight'),'ArrowRight',start);
-  const nitroDown=function(){ veqDoigt(true); if(boomSkip())return; start(); // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+  const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
   bindHold($t('tNitro'),'Space',nitroDown);
   bindHold($t('tNitroZone'),'Space',nitroDown,$t('tNitro')); // (2026-09-26, audit UX) le pouce qui dérive hors du disque touche encore la NITRO
+  /* (2026-10-15) LA FIGURE AU GLISSÉ (voir GLI) : le point d'appui sur NITRO, le glissé, le lâcher. Écouteurs à part (passifs) : bindHold garde
+     seul la nitro. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. */
+  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;figGVoit(null);},
+    gliMv=function(id,x,y){if(GLI.id!==id)return;if(!figGlisseOn()){figGVoit(null);return;}figGVoit(figGDir(x-GLI.x0,y-GLI.y0));},
+    gliUp=function(id,x,y){if(GLI.id!==id)return;GLI.id=null;const d=figGlisseOn()?figGDir(x-GLI.x0,y-GLI.y0):null;figGVoit(null);
+      if(d){GLI.req=d;GLI.reqT=performance.now();}},
+    gliCoupe=function(){GLI.id=null;figGVoit(null);};
+  [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
+    el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
+    el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
+    el.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
+    el.addEventListener('touchcancel',gliCoupe,{passive:true});
+    el.addEventListener('mousedown',function(e){gliDn('souris',e.clientX,e.clientY);});}); // la souris du cadre de l'ordi fait le même geste au clic tenu
+  addEventListener('mousemove',function(e){if(GLI.id==='souris')gliMv('souris',e.clientX,e.clientY);});
+  addEventListener('mouseup',function(e){if(GLI.id==='souris')gliUp('souris',e.clientX,e.clientY);});
   // ---- LE VOLANT ANALOGIQUE : toute la moitié gauche. Le stick NAÎT sous le pouce (jamais de
   //      position imposée), FLOTTE au-delà du plein braquage (revenir au centre rend la main
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
@@ -61027,6 +61099,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
       else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
       else if(a==='volh')/* (2026-10-14, charte 6) « POUCE HAUT » seul, comme dans les réglages : la ligne tient sur 246 px (iPhone 7 couché) */e.innerHTML=tpLbl('aile',document.documentElement.classList.contains('c6')?'POUCE HAUT':'POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
+      else if(a==='figg')e.innerHTML=tpLbl('rotation','FIGURES',figGlisseOn()?'GLISSER':'2 TAPS',true); // (2026-10-15) LA FIGURE AU GLISSÉ
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
@@ -61075,6 +61148,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); panSync(); }
     else if(a==='volh'){ volhBascule(); panSync(); }
+    else if(a==='figg'){ figGBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
@@ -61091,7 +61165,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
             else{ecranWipe(function(){if(started&&!gameOver){carrIci();resetGame();}});
               if(r9&&r9.then&&SONV2)r9.then(function(){try{if(ecranWipe._on)sfx('ui.volet');}catch(e){}},function(){});} } }; // le son du volet, perdu sur le contexte encore endormi, part au réveil
         f9(); }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
-    uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
+    uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh'||a==='figg')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   /* (2026-10-14, chasse aux bugs) LE ⏸ AU DEUXIÈME DOIGT. Un doigt qui tape ⏸ pendant qu'un autre TIENT le volant ou la NITRO ne produit AUCUN `click`
      (le navigateur n'en synthétise pas pour un toucher secondaire en multi-touch — Chrome comme Safari iOS) : impossible de mettre en pause sans lâcher la
@@ -61393,6 +61467,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvFacile',SAVE.d.facile?'ON':'OFF',!!SAVE.d.facile);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
+      sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(qLbl()),true);
       sv('mvLang',LANG.toUpperCase(),true);
@@ -61410,7 +61485,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='vox')return SND.voice?'off':'on';
     if(a==='vib')return SND.vib?'off':'on';
     if(a==='facile')return SAVE.d.facile?'off':'on';
-    if(a==='volh')return 'onglet';
+    if(a==='volh'||a==='figg')return 'onglet';
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
     if(a==='sand')return SANDBOX?'off':'on';
@@ -61467,6 +61542,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='facile'&&!SANS_FACILE){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
     else if(a==='volh'){ volhBascule(); mFill(); }
+    else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }
@@ -61608,7 +61684,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
       else if(a==='vox')e.innerHTML=tpLbl('voix','VOIX',SND.voice?'ON':'OFF',SND.voice);
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
-      else if(a==='volh')e.style.display='none'; /* (R7-5) au clavier ce réglage ne change rien (volSens ne touche que le pouce) : pas de ligne qui ment */
+      else if(a==='volh'||a==='figg')e.style.display='none'; /* (2026-10-15 : FIGURES aussi — une touche ne glisse pas) (R7-5) au clavier ce réglage ne change rien (volSens ne touche que le pouce) : pas de ligne qui ment */
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=dPan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function dPanOpen(o){ if(!dPan)return;

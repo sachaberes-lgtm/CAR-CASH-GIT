@@ -110,6 +110,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo. Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
   double-tap NITRO (`FDIR`/`figDirSlot` : avant = 1, côté = 2 ; `?figdir=0` rend les boutons), le HUD des figures `#fh` (`fhLance`/`fhPlante`/
   `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO.
+  RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
+  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain ; ← → tonneau, ↑ salto arrière, ↓ salto avant, au sol `veqSaut(fo)`).
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
