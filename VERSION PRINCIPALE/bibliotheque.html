@@ -115,6 +115,9 @@ h2 span{font-size:14px;color:var(--tx3);font-weight:600}
 #lMot{font-size:13px;color:var(--tx2);margin-top:2px}
 #lPts{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
 #lPts button{width:22px;height:8px;border-radius:4px;background:var(--fil)}
+#lNitro{flex:none;height:52px;min-width:112px;padding:0 16px;border-radius:26px;background:var(--carte);color:#ff7a24;font-weight:800;font-size:16px;letter-spacing:.06em;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;touch-action:none;-webkit-user-select:none;user-select:none}
+#lNitro small{font-size:10px;font-weight:600;opacity:.6;letter-spacing:0}
+#lNitro.on{background:#ff7a24;color:#fff;transform:scale(.97)}
 #lPts button.on{background:var(--bleu)}#lPts button.passe{background:color-mix(in srgb,var(--bleu) 40%,var(--fil))}
 #lBarre{height:3px;border-radius:2px;background:var(--fil);margin-top:8px;overflow:hidden}#lBarre i{display:block;height:100%;width:0;background:var(--bleu)}
 .pm{display:flex;gap:6px}.pm button{width:36px;height:36px;border-radius:50%;background:var(--carte);color:var(--bleu);font-size:20px;font-weight:600}
@@ -183,7 +186,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
 <main class="page">
   <h1>Sons CASH CAR</h1>
   <p class="sous" id="compte">Chargement de la bibliothèque…</p>
-  <div class="outils"><button class="b" id="filtre">👍 Mes pouces<span class="n" id="nPouce"></span></button><button class="b" id="modif">Renommer</button><button class="b" id="copie" hidden title="Tes choix d’ici (suppressions, notes, pouces) en texte : colle-le dans la discussion avec Claude">Copier mes choix</button><div class="vol">Volume <input id="vol" type="range" min="0" max="1" step=".01" value=".8"></div></div>
+  <div class="outils"><button class="b" id="filtre">👍 Mes pouces<span class="n" id="nPouce"></span></button><button class="b" id="modif">Renommer</button><button class="b" id="basses"></button><button class="b" id="copie" hidden title="Tes choix d’ici (suppressions, notes, pouces) en texte : colle-le dans la discussion avec Claude">Copier mes choix</button><div class="vol">Volume <input id="vol" type="range" min="0" max="1" step=".01" value=".8"></div></div>
 
   <section id="gen"><h2>Générateur <span>hybride · comme en jeu</span></h2>
     <p class="aide">PLAY : une musique HYBRIDE neuve — le RYTHME d'un genre × les COULEURS d'un autre, parmi 55 (rock, funk, bossa, salsa, reggae, dub, afrobeat, amapiano, house, techno, jungle, footwork, drill, dubstep, country, balkan, western…) ; une sur cinq reste pure ; son thème, sa tonalité, son tempo, l'ordre de ses 30 éléments. Tu gagnes les moteurs toi-même ; en dessous, joue la course : NITRO, VOL (relâche = la pose), FLOW, FRÉNÉSIE, CRASH — la musique réagit comme dans le jeu. Une musique te plaît ? Son n° la refait à l'identique.</p>
@@ -231,10 +234,12 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
   <button id="lStop" aria-label="Arrêter"><svg viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg></button>
   <div class="lt"><div id="lNom"></div><div id="lMot"></div><div id="lPts"></div><div id="lBarre"><i></i></div></div>
   <div class="pm" id="lPm"><button id="lMoins" aria-label="Un moteur de moins">−</button><button id="lPlus" aria-label="Un moteur de plus">+</button></div>
+  <button id="lNitro" aria-label="Nitro (maintenir)" title="Maintenir (ou N) : la musique s’ouvre comme pendant la nitro du jeu">NITRO<small>maintenir · N</small></button>
 </div></div>
 <div id="annule"><span id="annT"></span><button id="annB">Annuler</button></div>
 
 <script src="musique-paliers.js?v=14"></script>
+<script src="assets/audio/musique-bus.js?v=1"></script><!-- (15/10) LE BUS DE LA MUSIQUE : basses régulées + nitro, le MÊME réglage que le jeu -->
 <script src="assets/audio/music/paliers/rendus/index.js?v=1"></script>
 <script src="assets/audio/music/boucles/boucles-donnees.js"></script>
 <script src="assets/audio/music/boucles/couches-jeu.js"></script>
@@ -550,7 +555,15 @@ let ac = null, maitre = null;
 const BUF = new Map();
 // (15/10) iPhone : le WebAudio est « ambient » — le bouton SILENCIEUX le coupe, toute la bibliothèque muette ; 'playback' (iOS 17+), comme le jeu (musicSession)
 function audio() { try { const s = navigator.audioSession; if (s && s.type !== 'playback') s.type = 'playback'; } catch (e) {}
-  if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); maitre = ac.createGain(); maitre.gain.value = +$('vol').value; maitre.connect(ac.destination); } return ac; }
+  if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); maitre = ac.createGain(); maitre.gain.value = +$('vol').value;
+    if (window.MUSBUS) { BUS = MUSBUS.cree(ac); BUS.brut(BASSES_BRUT); maitre.connect(BUS.entree); BUS.sortie.connect(ac.destination); } else maitre.connect(ac.destination); } return ac; }
+/* (15/10, pôle SON) LE BUS DE LA MUSIQUE (assets/audio/musique-bus.js, le MÊME que le jeu) : tout ce qui joue ici passe par lui — les basses
+   régulées morceau par morceau (le bouton « Basses » : réglées / brutes, pour comparer) et la NITRO à tenir dans le lecteur (ou N). */
+let BUS = null, BASSES_BRUT = false; try { BASSES_BRUT = localStorage.getItem('biblioBasses') === 'brut'; } catch (e) {}
+const cleSon = S => S.f || (S.fiche && S.fiche.fichiers && S.fiche.fichiers[0]) || (S.couches && S.couches[0] && S.couches[0].f) || (S.seq && S.seq.f) || (S.type === 'genv' ? 'musique-trente' : S.type);
+function bassesMaj() { const b = $('basses'); if (!b) return; b.textContent = BASSES_BRUT ? 'Basses : brutes' : 'Basses : réglées'; b.classList.toggle('on', !BASSES_BRUT);
+  b.title = BASSES_BRUT ? 'Les fichiers tels quels (touche pour régler les basses)' : 'Les basses réglées morceau par morceau (touche pour entendre le brut)'; }
+function nitroBus(on) { if (BUS) BUS.nitro(on); const b = $('lNitro'); if (b) b.classList.toggle('on', !!on); }
 function tampon(f) {
   if (!BUF.has(f)) BUF.set(f, fetch(f).then(r => { if (!r.ok) throw new Error('fichier introuvable (' + sansV(f).split('/').pop() + ')'); return r.arrayBuffer(); })
     .then(a => audio().decodeAudioData(a)).catch(e => { BUF.delete(f); throw e; }));
@@ -558,6 +571,10 @@ function tampon(f) {
 }
 $('vol').oninput = e => { if (maitre) maitre.gain.setTargetAtTime(+e.target.value, ac.currentTime, 0.05); };
 
+// LE CONTEXTE PRÊTÉ (15/10) : NOTRE contexte (réveillé au toucher), vu par un module ou une page comme le sien — sa « destination » est `dest`
+// (le volume, puis le BUS de la musique), et son close / suspend ne touchent pas le nôtre
+const contextePrete = dest => new Proxy(ac, { get(t, k) { if (k === 'destination') return dest; if (k === 'close' || k === 'suspend') return () => Promise.resolve();
+  const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; } });
 // les LECTEURS : chacun rend { regle(palier, moteur), arret() } ; regle est appelée 10 fois par seconde
 const LECTEURS = {
   async paliers(S) {   // les fichiers figés : intro, puis le palier que demande le moteur, à la mesure suivante
@@ -585,7 +602,8 @@ const LECTEURS = {
   },
   async js(S) {   // un module en direct (Glisse) : setTier(palier, nombre de paliers)
     const mod = await import(new URL(S.f, location.href).href), fab = Object.values(mod).find(v => typeof v === 'function' && /^create/i.test(v.name)) || Object.values(mod).find(v => typeof v === 'function');
-    const inst = fab({ audioContext: ac, destination: maitre }); if (inst.setGouts && window.G_GOUTS) inst.setGouts(window.G_GOUTS); inst.setTier(1, S.nb); inst.start();
+    // (15/10) GLISSE n'a pas d'option « destination » : il sortait droit sur ac.destination, à côté du volume et du BUS — il reçoit le contexte prêté
+    const inst = fab({ audioContext: contextePrete(maitre), destination: maitre }); if (inst.setGouts && window.G_GOUTS) inst.setGouts(window.G_GOUTS); inst.setTier(1, S.nb); inst.start();
     let cur = 0; return { regle(p) { if (p !== cur) { cur = p; inst.setTier(p + 1, S.nb); } }, arret() { try { inst.stop(); } catch (e) {} }, palier: () => cur,
       info: () => inst.nomElement ? '+ ' + inst.nomElement(inst.tier) : '', inst };
   },
@@ -599,9 +617,7 @@ const LECTEURS = {
     // (15/10, « je n'arrive pas à écouter certains sons ») LE CONTEXTE PRÊTÉ : la page joue dans NOTRE contexte, réveillé au toucher. Le sien
     // naissait après le chargement de la page, hors du toucher : sur iPhone il restait SUSPENDU (muet, mesuré au banc WebKit). Sa sortie passe
     // par le volume de la bibliothèque ; son STOP (close / suspend) ne touche pas notre contexte.
-    const sortie = ac.createGain(); sortie.connect(maitre);
-    const prete = new Proxy(ac, { get(t, k) { if (k === 'destination') return sortie; if (k === 'close' || k === 'suspend') return () => Promise.resolve();
-      const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; } });
+    const sortie = ac.createGain(); sortie.connect(maitre); const prete = contextePrete(sortie);
     fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
     jg.step = 'any'; const vit = x => { jg.value = (x * 100).toFixed(1); jg.dispatchEvent(new fr.contentWindow.Event('input')); };
     vit(0); bt.click();
@@ -671,7 +687,7 @@ function marque(S, joue, msg) {
 async function joue(S) {
   if (J.S === S) { stop(); return; }
   stop(); if (window.genStop) genStop(); const jeton = ++J.jeton; J.S = S; marque(S, true, S.sec === 'moteur' ? 'Chargement…' : '');
-  audio(); try { await ac.resume(); } catch (e) {}
+  audio(); try { await ac.resume(); } catch (e) {} if (BUS) BUS.piste(cleSon(S));
   try {
     const L = await LECTEURS[S.type](S, jeton);
     if (jeton !== J.jeton) { L.arret(); return; }
@@ -679,7 +695,7 @@ async function joue(S) {
     marque(S, true, ''); lecteurPose();
   } catch (e) { if (jeton === J.jeton) { marque(S, false, 'Impossible : ' + e.message); J.S = null; lecteurPose(); } }
 }
-function stop() { J.jeton++; if (J.L) try { J.L.arret(); } catch (e) {} const S = J.S; J.L = null; J.S = null; if (S) marque(S, false, ''); lecteurPose(); }
+function stop() { nitroBus(false); J.jeton++; if (J.L) try { J.L.arret(); } catch (e) {} const S = J.S; J.L = null; J.S = null; if (S) marque(S, false, ''); lecteurPose(); }
 
 // LE LECTEUR DU BAS : le moteur qui monte, le palier, − / +
 // (14/10, Léo : « en 30 paliers comme les autres ») : un morceau rangé dans POUCE BLEU se pilote comme les musiques du générateur — moteur 1 à
@@ -703,6 +719,14 @@ function lecteurMaj() {
   $('lBarre').firstChild.style.width = (J.mot / 29 * 100).toFixed(1) + '%';
 }
 $('lStop').onclick = stop;
+// LA NITRO DU LECTEUR (15/10, Léo : « un bouton pour activer la nitro et voir comment elle amplifie la musique en général ») : la tenir = la musique
+// s'ouvre comme pendant la nitro du jeu (le bus partagé) ; N au clavier quand le générateur ne joue pas (sinon N est à lui, et sa nitro colore aussi)
+{ const b = $('lNitro'), dn = ev => { ev.preventDefault(); try { b.setPointerCapture(ev.pointerId); } catch (e) {} nitroBus(true); }, up = () => nitroBus(false);
+  b.addEventListener('pointerdown', dn); ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(k => b.addEventListener(k, up)); b.addEventListener('contextmenu', e => e.preventDefault());
+  addEventListener('keydown', ev => { if (ev.repeat || ev.key.toLowerCase() !== 'n' || G.on || !J.L || /input|textarea/i.test(ev.target.tagName)) return; ev.preventDefault(); nitroBus(true); });
+  addEventListener('keyup', ev => { if (ev.key.toLowerCase() === 'n' && !G.on) nitroBus(false); }); }
+$('basses').onclick = () => { BASSES_BRUT = !BASSES_BRUT; try { localStorage.setItem('biblioBasses', BASSES_BRUT ? 'brut' : 'regle'); } catch (e) {} if (BUS) BUS.brut(BASSES_BRUT); bassesMaj(); };
+bassesMaj();
 $('lMoins').onclick = () => { J.t = Math.max(0, (J.mot - 1) * PAS); tic(true); };
 $('lPlus').onclick = () => { J.t = Math.min(29, J.mot + 1) * PAS; tic(true); };
 addEventListener('keydown', e => { if (!aLaMain(J.S) || /input|textarea|select/i.test(e.target.tagName)) return;   // Pouce bleu : les flèches (ou + / −) montent et descendent le moteur
@@ -755,12 +779,12 @@ const genNom = k => G.inst && G.inst.nomElement ? G.inst.nomElement(k) : '';
 async function genPlay() {
   if (G.on) { genStop(); return; }
   stop(); audio(); try { await ac.resume(); } catch (e) {}
-  const inst = await genInst(); G.on = true; G.t = 0; inst.setTier(G.mot); inst.start(); genMaj();
+  const inst = await genInst(); G.on = true; G.t = 0; if (BUS) BUS.piste('musique-trente'); inst.setTier(G.mot); inst.start(); genMaj();
 }
 function genStop() { if (!G.on) return; G.on = false; try { G.inst.stop(); } catch (e) {} genMaj(); }
 window.genStop = genStop;
 // LA COURSE, À LA MAIN (v3 : music.regle / music.evenement) — comme le jeu le fera à chaque image
-const genJeu = e => { if (G.on && G.inst && G.inst.regle) G.inst.regle(e); genMaj(); };
+const genJeu = e => { if (G.on && G.inst && G.inst.regle) G.inst.regle(e); if (e && e.nitro != null) nitroBus(e.nitro); genMaj(); };
 function tenir(el, cle, on, off) { const dn = ev => { ev.preventDefault(); el.classList.add('on'); on(); }, up = () => { if (!el.classList.contains('on')) return; el.classList.remove('on'); off(); };
   el.addEventListener('pointerdown', dn); ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => el.addEventListener(k, up));
   addEventListener('keydown', ev => { if (ev.repeat || ev.key.toLowerCase() !== cle || /input|textarea/i.test(ev.target.tagName) || !G.on) return; ev.preventDefault(); el.classList.add('on'); on(); });
@@ -777,8 +801,8 @@ $('gSimu').onchange = e => { G.simu = e.target.checked; G.sT = 0; };
 setInterval(() => { if (!G.on || !G.simu || !G.inst || !G.inst.regle) return; G.sT = (G.sT || 0) + .25;
   if (G.sT % 4 < .25 && G.mot < 30) genVa(G.mot + 1);
   const fl = Math.min(1, .25 + G.mot / 34 + (G.fren ? .2 : 0)); $('gFlow').value = fl; G.inst.regle({ flow: fl });
-  if (!G.sN && Math.random() < .03) { G.sN = 1.2 + Math.random() * 1.8; $('gNitro').classList.add('on'); G.inst.regle({ nitro: true }); }
-  else if (G.sN && (G.sN -= .25) <= 0) { G.sN = 0; $('gNitro').classList.remove('on'); G.inst.regle({ nitro: false }); }
+  if (!G.sN && Math.random() < .03) { G.sN = 1.2 + Math.random() * 1.8; $('gNitro').classList.add('on'); G.inst.regle({ nitro: true }); nitroBus(true); }
+  else if (G.sN && (G.sN -= .25) <= 0) { G.sN = 0; $('gNitro').classList.remove('on'); G.inst.regle({ nitro: false }); nitroBus(false); }
   if (!G.sV && Math.random() < .025) { G.sV = 1.5 + Math.random() * 1.5; $('gVol').classList.add('on'); G.inst.regle({ vol: true }); }
   else if (G.sV && (G.sV -= .25) <= 0) { G.sV = 0; $('gVol').classList.remove('on'); G.inst.evenement('pose', Math.random() < .3 ? 'parfait' : 'normal'); }
   if (G.mot >= 18 && !G.fren && Math.random() < .01) $('gFren').click(); else if (G.fren && Math.random() < .015) $('gFren').click();
