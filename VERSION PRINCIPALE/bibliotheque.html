@@ -239,7 +239,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
 <div id="annule"><span id="annT"></span><button id="annB">Annuler</button></div>
 
 <script src="musique-paliers.js?v=14"></script>
-<script src="assets/audio/musique-bus.js?v=1"></script><!-- (15/10) LE BUS DE LA MUSIQUE : basses régulées + nitro, le MÊME réglage que le jeu -->
+<script src="assets/audio/musique-bus.js?v=2"></script><!-- (15/10) LE BUS DE LA MUSIQUE : basses régulées + nitro, le MÊME réglage que le jeu -->
 <script src="assets/audio/music/paliers/rendus/index.js?v=1"></script>
 <script src="assets/audio/music/boucles/boucles-donnees.js"></script>
 <script src="assets/audio/music/boucles/couches-jeu.js"></script>
@@ -580,7 +580,19 @@ const contextePrete = dest => new Proxy(ac, { get(t, k) { if (k === 'destination
   const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; } });
 // les LECTEURS : chacun rend { regle(palier, moteur), arret() } ; regle est appelée 10 fois par seconde
 const LECTEURS = {
+  // (15/10, chantier B) LES MORCEAUX EN 30 PALIERS : 30 fichiers de 30 s font ~300 Mo une fois décodés — trop pour un iPhone. On ne garde que
+  // le palier qu'on joue et ses voisins (le précédent, les deux suivants), chargés à la demande ; tant qu'un palier n'est pas prêt, le
+  // lecteur reste sur le dernier qui l'est (PalLecteur : `dispo`). Les morceaux à 8 paliers se chargent comme avant, d'un coup.
+  async paliersLongs(S) {
+    const F = S.fiche, n = F.fichiers.length, L = PalLecteur(ac, maitre), enCours = {}; L.nb = F.mesures || 8;
+    const lit = f => fetch(f).catch(() => new Promise(ok => setTimeout(ok, 500)).then(() => fetch(f))).then(r => { if (!r.ok) throw new Error('fichier introuvable'); return r.arrayBuffer(); }).then(a => ac.decodeAudioData(a));
+    const charge = i => { if (i < 0 || i >= n || L.buf[i] || enCours[i]) return; enCours[i] = lit(F.fichiers[i]).then(b => { L.buf[i] = b; L.gain[i] = 1; }, () => {}).then(() => { delete enCours[i]; }); };
+    const garde = p => { for (let i = 0; i < n; i++) if (L.buf[i] && (i < p - 1 || i > p + 2) && i !== L.palier() && i !== L.vers()) L.buf[i] = undefined; for (let i = p - 1; i <= p + 2; i++) charge(i); };
+    L.buf[0] = await lit(F.fichiers[0]); L.gain[0] = 1; L.demarre(0); garde(0);
+    return { regle(p) { L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); }, arret() { L.stop(0.25); }, enIntro: () => false, palier: () => L.palier() };
+  },
   async paliers(S) {   // les fichiers figés : intro, puis le palier que demande le moteur, à la mesure suivante
+    if (S.fiche.fichiers.length > 8) return LECTEURS.paliersLongs(S);
     const F = S.fiche, bufs = await Promise.all(F.fichiers.map(tampon)), intro = F.introF ? await tampon(F.introF) : null;
     const L = PalLecteur(ac, maitre); L.nb = F.mesures || 8; L.nbIntro = intro ? F.intro : 0; L.intro = intro; L.introGain = 1;
     bufs.forEach((b, i) => { L.buf[i] = b; L.gain[i] = 1; }); L.demarre(0);

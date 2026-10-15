@@ -3,6 +3,37 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE BUS DE LA MUSIQUE : LES BASSES RÉGULÉES ET LA NITRO QUI COLORE (2026-10-15, pôle SON, chantier A — DANS LA BIBLIOTHÈQUE, le jeu après l'écoute de Léo)
+Léo : « j'aime beaucoup la basse, mais pour un jeu qui dure, des basses agréables : ça peut fatiguer dans les écouteurs. Régule les basses, ne rien
+enlever, tout bien mesurer » · « un bouton pour activer la nitro et voir comment elle amplifie la musique en général ; mais pas trop ».
+- `assets/audio/musique-bus.js` (`MUSBUS`) : UN réglage, pour la bibliothèque et — après l'écoute — pour le jeu. Par morceau (PRESETS, une clé =
+  un bout du nom du fichier) : un PLATEAU sous 65 Hz (le très grave tenu) et, si besoin, une CLOCHE à 110 Hz ; au-dessus de ~120 Hz rien ne
+  bouge (le clic du kick, les harmoniques de la basse : ce qu'en rend un téléphone). Bornes : −5 dB (−7 pour GLISSE) et −2 dB. `FORCE` règle tout.
+- MESURÉ (atelier : part d'énergie sous 60 / 150 Hz du fichier entier ; les sons en direct joués au banc) : les musiques de NIVEAU passaient 40 à
+  65 % de leur énergie sous 60 Hz (NOITE 73 %, GLISSE 85 %) ; lobby, ciel, garage < 12 % : rien. Après (rendu hors ligne par les vrais nœuds) :
+  −13 à −20 points de sub, 0 dB au haut-parleur de téléphone (coupe-bas 180 Hz), −0,4 à −2,3 LU en plein spectre.
+- LA NITRO : nitro tenue = plateau grave +2,5 dB à 90 Hz, aigus +4 dB au-dessus de 3,5 kHz, côtés +35 %, 8 % de grain saturé en parallèle (coupé sous
+  250 Hz et au-dessus de 6,5 kHz). Monte en ~0,3 s, TIENT 0,35 s après le lâcher (les petits coups répétés ne clignotent pas), retombe en ~0,8 s ;
+  aucun paramètre sous sa valeur de repos. Mesuré : +0,6 à +2,3 LU perçus selon le morceau (plafond +3), +1,2 à +2,4 dB de largeur.
+- LA BIBLIOTHÈQUE : tout passe par le bus (`maitre` → `BUS.entree`) ; le bouton « Basses : réglées / brutes » (A/B, gardé par ce navigateur) ; le
+  gros bouton NITRO à tenir dans le lecteur (et N) ; la nitro du générateur colore aussi (comme en jeu). GLISSE et les pages en direct reçoivent
+  le CONTEXTE PRÊTÉ (`contextePrete(dest)`) : ils sortaient droit sur `ac.destination`, à côté du volume et du bus.
+- POUR LE JEU (à faire après le oui de Léo) : la musique du jeu ne passe par WebAudio que sur iPhone iOS 17+ (MUS_WA) ; sur ordi et Android c'est
+  l'élément <audio> direct — brancher MUS_WA là aussi (le chien de garde existe), passer le contexte du jeu à GLISSE (le SOLEIL DE JADE), et
+  reprendre la part nitro de `musicBoostEnv` (+0,22) pour ne pas doubler. La distorsion du boost du 03/10 (DIST) reste coupée.
+
+## TOUT EN 30 PALIERS : SIFFLEUR · 30 ET CIEL · 30 (2026-10-15, pôle SON, chantier B ; Léo : « déconstruire les sons à 8 paliers en 30 paliers qui font évoluer le son »)
+- La méthode d'AURA · 30 : les 8 marches d'origine restent aux moteurs 1, 5 … 29 (VÉRIFIÉ : échantillon pour échantillon, écart 0), et entre deux
+  marches chaque élément du palier suivant entre à SON moteur (QUAND), ou monte d'un cran (sa piste à −7 dB, −3 dB, pleine). Les versions à 8
+  restent à côté, intactes. Seuls ces deux-là : les 6 autres morceaux à 8 paliers sont dans POUCE BLEU, gelé (Léo : « touche à rien »).
+- `atelier-son/siffleur_30.py` (28 éléments : la cabine, le Rhodes, la basse qui marche, les balais…, le drop du siffleur gardé au 13, le ton plus
+  haut au 22, un cran de plus au 30) et `atelier-son/ciel_30.py` (le compositeur de ciel.py, ses tests de niveau remplacés par un drapeau par élément,
+  même ordre des appels). `fige30` : la sonie monte d'un quart de palier par moteur ; AAC 128 kb/s (14 + 10 Mo).
+- La bibliothèque charge un morceau de plus de 8 paliers À LA DEMANDE (`LECTEURS.paliersLongs` : le palier joué et ses voisins ; 30 fichiers
+  décodés feraient ~300 Mo sur un iPhone). Banc : les sauts de moteur (5, 13, 22, 30, 12) arrivent à la mesure suivante (~3,6 s) ; 11/11 sons de
+  « Suivent le moteur » dans Chrome ET WebKit.
+- PAS DISCRETS (l'élément d'origine l'est déjà) : SIFFLEUR 16-17 (claps, shaker), 29 (le roulement), 30 ; CIEL 7, 19, 26-30 (cordes, arpège de verre).
+
 ## ZEPPELIN D'OR II, 2e JET — LA MACHINE DE 1983 PREND LA MAIN (2026-10-15, pôle SON › nouveaux sons ; Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → reformulé, « les deux » : la basse new wave grave-aigu en croches balancées ET le boum-tchak de fond)
 - Jusqu'au 9e moteur rien ne change (le gramophone, la même mélodie). Au 10e (étape `nw` de `TRIO.zeppelin2`) : tout devient DROIT (l'étape met
   `swing` et `swing8` à 0 — pas() lit désormais le balancement dans `M.etP`), la batterie se SYNCOPE (grosse caisse 1 · « et » de 2 · 3 · « et » de 3,
