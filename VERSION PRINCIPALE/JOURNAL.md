@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA POSE TENUE EN BOUTIQUE (2026-10-15, pôle CAISSES — Léo : « boutique : toucher la voiture fait bouger la voiture comme actuellement, mais laisse la voiture dans sa position souhaitée ; et lorsqu'on rappuie sur la voiture, elle se replace et la plateforme se remet à faire tourner la voiture »)
+- Le doigt sur la scène tourne et penche la caisse COMME AVANT (même prise `bqPrise`, mêmes coefficients, même élan de lacet). Dès qu'il a
+  GLISSÉ de plus de 8 px, elle est POSÉE À LA MAIN (`GBQ.pose`, `bqPoseTient`) : le plateau s'arrête net et, lâchée, elle GARDE sa pose — plus
+  de ressort de tangage ni de roulis ; son élan de lacet s'éteint comme avant (exp(−2,4 t)).
+- Un TOUCHER BREF SUR elle (moins de 8 px et de 0,3 s ; le rayon touche une pièce PLEINE : `bqPrise` → `sur`, filtré par `bqPlein` — ni halo
+  additif, ni lueur presque transparente, ni parent caché) : `bqPoseLache()` — tangage et roulis reviennent par le ressort d'avant (~2 s), le
+  plateau repart en 0,9 s adouci (`GBQ.platK`, qui multiplie l'avance de `garageAng` dans garageRender). À côté d'elle, ou quand elle tourne
+  déjà : rien. Le toucher qui la remet sonne `uiClic('nav')` + `hap(6)`.
+- Retour au plateau aussi quand : une autre caisse (vignette, flèches — `garageI` change sous le rideau de l'échange : à plat d'un coup), un
+  autre onglet ou une autre catégorie (en douceur), la sortie de la boutique ou JOUER (`platK` à 1 d'un coup), la fermeture du garage.
+- Seule la boutique passe par là (GBQ) : le doigt du garage et de l'inventaire n'a pas changé.
+- MESURÉ au banc muet, vrais touchers (couché 844 × 390, debout 588 × 900) et souris dans le cadre de l'ordi (couché ET portrait) : lacet sur
+  les 3 s après un glissé lâché à l'arrêt AVANT −26° (le plateau l'emporte, tangage −19° → −1°) · APRÈS 0,000 rad (tangage −19° gardé) ;
+  toucher à côté : 0,000 ; toucher sur elle : tangage −0,42 → −0,01 rad en 3 s, plateau à 0,15 rad/s dès 1 s ; autre caisse / OFFRES / RETOUR :
+  plateau repris ; boutique → garage → JOUER → course : OK ; 0 erreur (hors le 404 connu de dark-triad.mp3).
+  Planche : `photos-gameplay/boutique-pose-avant-apres.png` (dossier CAR CAHS V3). Banc : `dbgBqIndus()` donne désormais `pose`, `platK`,
+  `ang`, `cap`/`capV` (le cap de la caisse, dans le monde et vu de la caméra) et `ecr` (son centre à l'écran).
+
 ## LA MUSIQUE DU CIEL ET DU GARAGE (2026-10-14 soir, Léo : « le ciel et le garage devraient aussi avoir une musique légère — l'inspi des Lobby Chris, les instruments, mais calme ; musique ciel très discrète, garage aussi, différentes ambiances ; plusieurs propositions, direct sur le main, et dans la librairie »)
 - Au MENU, le CIEL (LA CHUTE, l'écran titre) et le GARAGE ont chacun SA musique : `MENU_MUS` (juste après `MUSIC`), une de chaque tirée au
   hasard à chaque lancement (`MENU_MUS.tire`), `musicMenuUrl()` = celle du lieu (CHUTE.on → ciel, sinon garage). Elle remplace `MUSIC.menu`

@@ -51384,6 +51384,7 @@ function closeGarage(){
   GAR.vD=0;GAR.wD=0;GAR.preE=0;GAR.misVit=false; // (2026-10-05) la composition de la vitrine repart de zéro à la prochaine visite
   chuteSort(true); // (2026-09-30) LA CHUTE : les nuages, les filets de vent et le vent s'en vont avec le menu
   try{bqSonCoupe(.4);BQSON.atelier=false;}catch(e){} // (2026-10-14) …et la voix de la boutique
+  GBQ.pose=false;GBQ.platK=1; // (2026-10-15) …et la pose tenue de la boutique
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   try{if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){}
   trailApercu(0,false);
@@ -53094,7 +53095,7 @@ function garGabarit(){
    · le doigt sur la scène TOURNE la caisse dans tous les sens (lacet libre avec élan, tangage ±60° qui revient doucement) ;
    · la caisse est plus petite à l'écran (les colonnes d'étiquettes la cadrent au milieu, la caméra recule).
    RETOUR : le glitch, l'atelier revient, la caisse se repose. Banc : dbgBqIndus(). */
-var GBQ={veut:false,on:false,t:9,bascule:true,k:0,kv:0,lev:0,levV:0,coupT:-1,boum:0,yaw:0,yawV:0,pit:0,pitV:0,grp:null,drag:null,cartesOn:false,ck:'',zone:null,hebdo:null,chocT:9,lay:''};
+var GBQ={veut:false,on:false,t:9,bascule:true,k:0,kv:0,lev:0,levV:0,coupT:-1,boum:0,yaw:0,yawV:0,pit:0,pitV:0,grp:null,drag:null,cartesOn:false,ck:'',zone:null,hebdo:null,chocT:9,lay:'',pose:false,platK:1}; // (2026-10-15) pose/platK : LA POSE TENUE (voir bqPoseLache)
 function bqSem(){return Math.floor((Math.floor(Date.now()/864e5)+3)/7);} // les semaines commencent le LUNDI (UTC) — le 1er janvier 1970 était un jeudi
 function bqHebdoReste(){const ms=Math.max(0,((bqSem()+1)*7-3)*864e5-Date.now()),t=Math.floor(ms/1000),d=Math.floor(t/86400),d2=function(n){return (n<10?'0':'')+n;};
   return (d>0?d+(LANG==='fr'?'J ':'D '):'')+d2(Math.floor(t/3600)%24)+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
@@ -53602,6 +53603,16 @@ function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
 try{Object.assign(I18N,{'CHOISIS UNE OFFRE':'PICK AN OFFER'});}catch(e){} // (2026-10-14, charte 6, boutique P1)
 function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
+/* LA POSE TENUE (2026-10-15, Léo : « boutique : toucher la voiture fait bouger la voiture comme actuellement, mais laisse la voiture dans sa
+   position souhaitée ; et lorsqu'on rappuie sur la voiture, elle se replace et la plateforme se remet à faire tourner la voiture »).
+   Le doigt la tourne et la penche comme avant (même prise, même élan) ; dès qu'il a GLISSÉ de plus de 8 px, elle est POSÉE À LA MAIN
+   (GBQ.pose) : le plateau s'arrête net et, lâchée, elle garde sa pose — plus de ressort de tangage ni de roulis, son élan de lacet s'éteint
+   comme avant. Un TOUCHER BREF SUR elle (moins de 8 px, moins de 0,3 s, le rayon touche la carrosserie : bqPrise → sur) la rend à sa pose de
+   vitrine : tangage et roulis reviennent en ressort, le plateau repart en 0,9 s (GBQ.platK, adouci). À côté d'elle, ou quand elle tourne
+   déjà : rien. Une autre caisse (sous le rideau de l'échange : à plat d'un coup), un autre onglet ou une autre catégorie (en douceur), la
+   sortie de la boutique : retour au plateau. Seule la boutique passe par ici : le garage et l'inventaire gardent leur doigt. */
+function bqPoseTient(){GBQ.pose=true;GBQ.platK=0;GBQ.poseI=garageI;GBQ.poseO=GBQ.ong||'cat';GBQ.poseC=GBQ.cat||'voiture';}
+function bqPoseLache(m){GBQ.pose=false;if(m==='caisse'||m==='sort')GBQ.platK=1;if(m==='caisse'){GBQ.pit=GBQ.pitV=GBQ.rol=GBQ.rolV=GBQ.yawV=0;}}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
 function garBqIndus(dt,ay,t9){
   dt=Math.min(.05,dt);const veut=bqIndusVoulu();
@@ -53616,6 +53627,8 @@ function garBqIndus(dt,ay,t9){
   if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;bqClasses(veut);
     if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}if(!GAR.go&&(veut||avant))garGlitch();}
   GBQ.t+=dt;
+  if(GBQ.pose){if(!veut||GAR.go)bqPoseLache('sort');else if(garageI!==GBQ.poseI)bqPoseLache('caisse');else if((GBQ.ong||'cat')!==GBQ.poseO||(GBQ.cat||'voiture')!==GBQ.poseC)bqPoseLache();} // (2026-10-15) LA POSE TENUE : une autre caisse, un autre onglet, la sortie → le plateau
+  GBQ.platK=GBQ.pose?0:Math.min(1,GBQ.platK+dt/.9);
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
   GBQ.lueur=0;
   if(!GBQ.bascule&&GBQ.t>.16){GBQ.bascule=true;GBQ.on=veut;garBqAmbiance(veut);}
@@ -53629,7 +53642,8 @@ function garBqIndus(dt,ay,t9){
   else{const c=veut?.95:0,w=veut?5.6:5.5,z=veut?.55:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
   if(!veut&&Math.abs(GBQ.lev)<.002&&Math.abs(GBQ.levV)<.01){GBQ.lev=0;GBQ.levV=0;}
   // LE DOIGT : lacet libre avec élan, tangage qui revient doucement ; au retour, elle se repose à plat
-  if(!GBQ.drag){GBQ.yaw+=GBQ.yawV*dt;GBQ.yawV*=Math.exp(-2.4*dt);const pw=1.7;GBQ.pitV+=(pw*pw*(0-GBQ.pit)-2*pw*GBQ.pitV)*dt;GBQ.pit+=GBQ.pitV*dt;GBQ.rol=GBQ.rol||0;GBQ.rolV=GBQ.rolV||0;GBQ.rolV+=(pw*pw*(0-GBQ.rol)-2*pw*GBQ.rolV)*dt;GBQ.rol+=GBQ.rolV*dt;}
+  if(!GBQ.drag&&GBQ.pose){GBQ.yaw+=GBQ.yawV*dt;GBQ.yawV*=Math.exp(-2.4*dt);GBQ.pitV=GBQ.rolV=0;} /* (2026-10-15) POSÉE À LA MAIN : le même élan de lacet, puis elle garde sa pose — ni ressort, ni plateau */
+  else if(!GBQ.drag){GBQ.yaw+=GBQ.yawV*dt;GBQ.yawV*=Math.exp(-2.4*dt);const pw=1.7;GBQ.pitV+=(pw*pw*(0-GBQ.pit)-2*pw*GBQ.pitV)*dt;GBQ.pit+=GBQ.pitV*dt;GBQ.rol=GBQ.rol||0;GBQ.rolV=GBQ.rolV||0;GBQ.rolV+=(pw*pw*(0-GBQ.rol)-2*pw*GBQ.rolV)*dt;GBQ.rol+=GBQ.rolV*dt;}
   if(!veut){const tg=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;GBQ.yaw+=(tg-GBQ.yaw)*Math.min(1,dt*5);GBQ.yawV=0;}
   const fl=Math.max(0,Math.min(1,GBQ.lev/.95));
   if(Math.abs(GBQ.lev)>1e-4||Math.abs(GBQ.yaw)>1e-4||Math.abs(GBQ.pit)>1e-4||Math.abs(GBQ.rol||0)>1e-4){
@@ -53952,12 +53966,13 @@ function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, 
    centre dans le sens qui fait descendre CE point (axe = bras × bas de l'écran), ramené sur ses deux axes : le TANGAGE (axe des roues :
    saisie par le nez ou la poupe, ce bout-là descend) et le ROULIS (axe long : saisie par le flanc, le flanc descend et le dessus — capot,
    toit — bascule vers nous). Les deux reviennent en ressort. Rien sous le doigt : le côté le plus proche du nez ou de la poupe, à l'écran. */
-function bqPrise(e){const R={kp:1,kr:0};try{
+function bqPrise(e){const R={kp:1,kr:0,sur:false};try{
   const cv=renderer.domElement.getBoundingClientRect(),T=bqPrise._t||(bqPrise._t={rc:new THREE.Raycaster(),m:new THREE.Vector2(),c:new THREE.Vector3(),r:new THREE.Vector3(),d:new THREE.Vector3(),a:new THREE.Vector3(),q:new THREE.Quaternion(),Y:new THREE.Vector3(0,1,0),v:[new THREE.Vector3(),new THREE.Vector3()]});
   carGroup.updateMatrixWorld(true);camera.updateMatrixWorld(true);
   T.c.set(0,.55,0);carGroup.localToWorld(T.c);                                   // son centre (la boîte englobante ramassait halos et lueurs, à 5 m)
   T.m.set((e.clientX-cv.left)/cv.width*2-1,-((e.clientY-cv.top)/cv.height)*2+1);T.rc.setFromCamera(T.m,camera);
-  const hit=T.rc.intersectObject(carGroup,true).find(function(h){const mt=Array.isArray(h.object.material)?h.object.material[0]:h.object.material;return h.object.visible&&!(mt&&mt.transparent&&mt.opacity<.2);});
+  const H9=T.rc.intersectObject(carGroup,true),hit=H9.find(function(h){const mt=Array.isArray(h.object.material)?h.object.material[0]:h.object.material;return h.object.visible&&!(mt&&mt.transparent&&mt.opacity<.2);});
+  R.sur=H9.some(bqPlein); // (2026-10-15, LA POSE TENUE) le doigt est-il SUR la caisse ? (sa carrosserie, ses vitres, ses roues — pas ses halos)
   if(hit){
     carGroup.getWorldQuaternion(T.q).invert();                                      // dans le repère de la caisse (⚠ pas rotation.y : relu d'un quaternion penché, l'Euler bascule de 180°)
     T.r.copy(hit.point).sub(T.c).applyQuaternion(T.q);T.d.set(0,-1,0).applyQuaternion(camera.quaternion).applyQuaternion(T.q);
@@ -53968,6 +53983,11 @@ function bqPrise(e){const R={kp:1,kr:0};try{
   const mx=(V[0].x+1)/2*cv.width+cv.left,my=(1-V[0].y)/2*cv.height+cv.top,nx=(V[1].x+1)/2*cv.width+cv.left-mx,ny=(1-V[1].y)/2*cv.height+cv.top-my;
   if(nx*nx+ny*ny>=400)R.kp=((e.clientX-mx)*nx+(e.clientY-my)*ny)>=0?1:-1;}catch(er){}
   return R;}
+/* une pièce PLEINE de la caisse, vraiment montrée (le Raycaster de three ne regarde pas `visible` des parents) : ni halo additif, ni lueur
+   presque transparente, ni ombre posée au sol */
+function bqPlein(h){const o=h.object,mt=Array.isArray(o.material)?o.material[0]:o.material;
+  if(!mt||mt.blending===THREE.AdditiveBlending||(mt.transparent&&mt.opacity<.2)||(o.userData&&o.userData.sol))return false;
+  for(let q9=o;q9&&q9!==carGroup;q9=q9.parent)if(!q9.visible)return false;return true;}
 window.dbgSonde=(function(ql){return function(x0,y0,x1,y1,st){if(arguments.length<4)return ql(x0); // (2026-10-14) DEUX bancs portaient ce nom : celui-ci écrasait la SONDE de la règle de qualité (dbgSonde(), dbgSonde(1), dbgSonde('sync')) — moins de quatre arguments, c'est elle
   st=st||4;const cv=renderer.domElement.getBoundingClientRect(),rc=new THREE.Raycaster(),m=new THREE.Vector2(),out={};carGroup.updateMatrixWorld(true); // (banc, 13/10) ce que la caméra voit de la caisse dans un rectangle de l'écran : matière (famille) et couleur de facette, avec quelques points
   for(let y=y0;y<y1;y+=st)for(let x=x0;x<x1;x+=st){m.set((x-cv.left)/cv.width*2-1,-((y-cv.top)/cv.height)*2+1);rc.setFromCamera(m,camera);const vu=function(o){for(;o;o=o.parent)if(!o.visible)return false;return true;},h=rc.intersectObject(carGroup,true).find(function(x){return vu(x.object);});if(!h)continue; // (le Raycaster de three ne regarde pas `visible`)
@@ -53978,18 +53998,20 @@ window.dbgSonde=(function(ql){return function(x0,y0,x1,y1,st){if(arguments.lengt
 window.dbgBqVoir=function(i){if(!GBQ.on)return 'boutique fermée';bqEssaie('v:'+(i|0));return CARS[i|0]&&CARS[i|0].name;}; // (banc) pose la caisse i sur le plateau de la boutique
 (function(){
   addEventListener('pointerdown',function(e){if(!GBQ.on||!garageOn||GAR.go||e.target!==renderer.domElement)return;if(GBQ.drag)return;
-    GBQ.drag={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now(),k:bqPrise(e)};GBQ.yawV=0;GBQ.pitV=0;GBQ.rolV=0;e.stopPropagation();},true);
+    const t0=performance.now();GBQ.drag={id:e.pointerId,x:e.clientX,y:e.clientY,t:t0,k:bqPrise(e),x0:e.clientX,y0:e.clientY,t0:t0,loin:false};GBQ.yawV=0;GBQ.pitV=0;GBQ.rolV=0;e.stopPropagation();},true);
   addEventListener('pointermove',function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();
+    if(!d.loin&&Math.hypot(e.clientX-d.x0,e.clientY-d.y0)>8){d.loin=true;bqPoseTient();} // (2026-10-15) LA POSE TENUE : elle a glissé → posée à la main
     const now=performance.now(),dx=e.clientX-d.x,dy=e.clientY-d.y,ds=Math.max(.008,(now-d.t)/1000);d.x=e.clientX;d.y=e.clientY;d.t=now;
     GBQ.yaw+=dx*.011;{const k=d.k||{kp:1,kr:0};GBQ.pit=THREE.MathUtils.clamp(GBQ.pit+k.kp*dy*.008,-.75,.75);GBQ.rol=THREE.MathUtils.clamp((GBQ.rol||0)+k.kr*dy*.008,-.55,.55);}GBQ.yawV=GBQ.yawV*.5+dx*.011/ds*.5;},true);
-  const fin=function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();GBQ.drag=null;if(performance.now()-d.t>90)GBQ.yawV=0;};
+  const fin=function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();GBQ.drag=null;if(performance.now()-d.t>90)GBQ.yawV=0;
+    if(e.type==='pointerup'&&!d.loin&&performance.now()-d.t0<300&&d.k&&d.k.sur&&GBQ.pose){bqPoseLache();try{uiClic('nav');hap(6);}catch(er){}}}; // (2026-10-15) un toucher bref SUR elle : la pose de vitrine, le plateau repart
   addEventListener('pointerup',fin,true);addEventListener('pointercancel',fin,true);})();
 try{Object.assign(I18N,{'COLORIS':'SKINS','ORIGINAL':'ORIGINAL','PEINTURES':'PAINTS','AILES':'WINGS','TRAÎNÉES':'TRAILS','À LA UNE':'FEATURED','SEMAINE':'WEEKLY','OFFRES':'OFFERS','VOITURES':'CARS','CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR','ÉDITIONS LIMITÉES':'LIMITED EDITIONS','TOUTES LES VOITURES':'ALL CARS','LIMITÉE':'LIMITED','À TOI':'YOURS','Dans ton garage':'In your garage','Exclusivité boutique — introuvable en jeu':'Shop exclusive — not obtainable in game','Exclusivité boutique — revient en édition limitée':'Shop exclusive — returns as a limited edition','En vente':'For sale','Se gagne aux défis':'Earned through challenges'});}catch(e){}
 window.dbgBqSol=function(){if(!GBQ.grp||!GBQ.grp.visible)return null;carGroup.updateMatrixWorld(true);const v=new THREE.Vector3();let mn=1e9,qui='';const top=GBQ.grp.position.y+(GBQ.socleH||0);
   carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const mt=Array.isArray(o.material)?o.material[0]:o.material;if((mt&&(mt.transparent||mt.blending===THREE.AdditiveBlending))||(o.userData&&o.userData.sol))return;
     for(let q9=o;q9;q9=q9.parent)if(!q9.visible)return;const a=o.geometry.attributes.position;for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);if(v.y<mn){mn=v.y;qui=o.name||o.geometry.type;}}});
   return {jeu:+(mn-top).toFixed(3),qui:qui,pit:+GBQ.pit.toFixed(2),rol:+(GBQ.rol||0).toFixed(2),yaw:+GBQ.yaw.toFixed(2),leve:+(GBQ.leve||0).toFixed(3)};}; // (banc) l'écart RÉEL entre le point le plus bas de la caisse et le dessus du socle (négatif = elle le traverse)
-window.dbgBqIndus=function(){return {cam:[+camera.position.x.toFixed(2),+camera.position.y.toFixed(2),+camera.position.z.toFixed(2),+camera.fov.toFixed(1)],grpY:GBQ.grp?+GBQ.grp.position.y.toFixed(2):null,veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
+window.dbgBqIndus=function(){return {cam:[+camera.position.x.toFixed(2),+camera.position.y.toFixed(2),+camera.position.z.toFixed(2),+camera.fov.toFixed(1)],grpY:GBQ.grp?+GBQ.grp.position.y.toFixed(2):null,veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),rol:+(GBQ.rol||0).toFixed(2),pose:GBQ.pose,platK:+GBQ.platK.toFixed(2),ang:+garageAng.toFixed(3),cap:+(function(){const v=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);return Math.atan2(v.x,v.z);})().toFixed(4),capV:+(function(){const v=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion).applyQuaternion(camera.quaternion.clone().invert());return Math.atan2(v.x,v.z);})().toFixed(4),ecr:(function(){const v=new THREE.Vector3(0,.55,0);carGroup.updateMatrixWorld(true);carGroup.localToWorld(v);v.project(camera);const r=renderer.domElement.getBoundingClientRect();return [Math.round(r.left+(v.x+1)/2*r.width),Math.round(r.top+(1-v.y)/2*r.height)];})(),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
   rail:[...document.querySelectorAll('#gBqPan .bqK')].map(function(el){const r=el.getBoundingClientRect();return [+el.getAttribute('data-i'),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('sel')];}),zone:GBQ.zone};};
 function garGlitch(){let el=document.getElementById('gGlitch'); // (essai boutique virtuelle, repris) le GLITCH : des bandes qui sautent, l'image qui tressaute, 0,72 s
   if(!el){el=document.createElement('div');el.id='gGlitch';el.setAttribute('aria-hidden','true');el.innerHTML='<i></i><i></i><i></i><i></i><i></i><b></b>';document.body.appendChild(el);}
@@ -54128,7 +54150,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GAR.vuePose){GAR.vit=1;GAR.vitV=0;}else garRessort(GAR,'vit','vitV',garVueLeo()?1:0,4.8,dt); /* (2026-10-06) LA VUE DE LÉO : la vitrine OU la console de Sacha (voir garVueLeo) */if(GAR.vit<0||GAR.vit>1){GAR.vit=Math.min(1,Math.max(0,GAR.vit));GAR.vitV=0;} // (2026-10-06) le fondu vitrine ⇄ boutique en RESSORT : il partait à pleine vitesse (1er ordre ×2,4/s) — la caméra, l'objectif et le recul démarraient d'un coup
   const VK=GAR.vit,VC=VITRINE_CAM;
   if(GAR.angTw){const T9=GAR.angTw;T9.t+=dt;const e9=Math.min(1,T9.t/T9.D),s9=e9*e9*(3-2*e9);if(garageDrag||GAR.go)GAR.angTw=null;else{garageAng=T9.a0+T9.d*s9;if(e9>=1)GAR.angTw=null;}} // (2026-10-11) un onglet TOURNE la caisse vers ce qu'il montre
-  else if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k)*(garageDrag&&GAR.doigt==='caisse'?0:1);if(GAR.go)GAR.platW=0;if(!garageDrag&&GAR.platW){garageAng+=GAR.platW*dt;GAR.platW*=Math.exp(-dt*1.2);if(Math.abs(GAR.platW)<.03)GAR.platW=0;} // (même soir) le PLATEAU tenu ne tourne plus tout seul ; lancé, il file et ralentit // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
+  else if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k)*(garageDrag&&GAR.doigt==='caisse'?0:1)*(GBQ.platK<1?GBQ.platK*GBQ.platK*(3-2*GBQ.platK):1); /* (2026-10-15) LA POSE TENUE : en boutique, posée à la main, le plateau s'arrête ; rendue, il repart en douceur */if(GAR.go)GAR.platW=0;if(!garageDrag&&GAR.platW){garageAng+=GAR.platW*dt;GAR.platW*=Math.exp(-dt*1.2);if(Math.abs(GAR.platW)<.03)GAR.platW=0;} // (même soir) le PLATEAU tenu ne tourne plus tout seul ; lancé, il file et ralentit // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
   /* LE GARAGE QUI VIT (2026-09-30, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit
      avec le doigt on glisse et on voit légèrement ; inspire-toi de ma branche ») : LES DEUX. (1) Au repos la VUE balance doucement
      autour de la caisse — les deux sinus lents de sa branche (±~11°, ~22 s) et un souffle de hauteur ; elle s'efface dès qu'on touche
