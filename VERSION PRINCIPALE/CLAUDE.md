@@ -100,7 +100,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 **Les systèmes et leurs noms**
 - **Boucle et états** : `loop` (son try/catch avale les erreurs : `window.__loopErr`), `start`, `resetGame`, `endGame`,
   `explode(cause)`, `mode` = 'drive' | 'fall' | 'boom', `togglePause`, `repriseCompte`, `CHANCE` (la seconde chance : la reprise
-  n'appelle ni `runxReset` ni `resetGame`, elle décale les bases de commitExploits — `chanceBase`).
+  n'appelle ni `runxReset` ni `resetGame`, elle décale les bases de commitExploits — `chanceBase`). Depuis le 15/10 soir elle se gagne par une
+  PUB, plus avec de l'argent : `pubRecompense(nom,fin)`/`PUBR` ; une régie se branche par `window.CC_PUB_RECOMPENSE`, sinon la pub maison `#pubR`.
 - **La mort** : `explode` (comptes, musique) → `boomDetone` (la boule DESSINÉE de l'airtime : `spawnBoomArt`, `VOLU`/`DARD`, `BOOM_ONDES`,
   pièces de la caisse) → `BOOM_CAM` (le plan de la mort) → `endGame`. Contre une PAROI, L'IMPACT passe avant : `impPrep(test,cause,marge)`
   trouve le contact et la normale, `IMP`/`impCoupTick` (0,11 s : la caisse s'écrase, étoile, négatif), puis le cratère `IMP_CRAT`, les
@@ -337,6 +338,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   `sons-banque.js?v=` +1 dans index.html et `sw.js` +1. Dans le jeu : `sfx('famille.nom',{vol,st,pan})`.
 - Avec repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (`typeof sfx` est toujours vrai).
 - On ne peut pas écouter : on MESURE (sonie, spectre) et Sacha ou Léo jugent dans `sons.html`. Jamais de voix.
+- Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie
+  entre 150 et 500 Hz, sinon il n'existe pas au haut-parleur d'un téléphone (mesurer la sonie après un passe-haut 200 Hz : perte ≤ 5 dB).
+  Les sons FRÉQUENTS de la route restent bas et brefs (la pièce : −35, « LES SONS GRAVES ET DISCRETS » au journal) ; les figures passent au-dessus.
 - Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `musicLieuVoulu`
   (ou `MUSIC_LOBBY` pour le lobby).
 
@@ -399,7 +403,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « L'ÉDITION POKI » (04/10) · « LA MÊME VERSION POUR TOUT LE MONDE — LA MISE À JOUR TOUTE SEULE » (01/10)
 - « LE MENU = LE GARAGE + LES BOUTONS DE SACHA » (30/09) · « JOUER = LE MODE CLASSIQUE » (08/10) · « L'iPHONE PAR DÉFAUT SUR L'ORDI » (06/10)
 - « PLUS AUCUNE VOIX » (07/10) · « LE CODE COUSIN » (14/10) · « PLUS DE CARRIÈRE + PLUS DE MODE FACILE » (14/10)
-- « LA SECONDE CHANCE » (14/10) · « LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 » (14/10) · « L'AUTO-ÉCOLE v2 » (14/10)
+- « LA SECONDE CHANCE » (14/10) · « LA PUB QUI RESSUSCITE » (15/10 soir, la seconde chance contre une pub) · « LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 » (14/10) · « L'AUTO-ÉCOLE v2 » (14/10)
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 **Débogage, perf, bancs**
@@ -455,6 +459,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 
 **Son et musique**
+- « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
 - « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html
@@ -763,6 +768,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   `sons-banque.js?v=` +1 dans index.html et `sw.js` +1. Dans le jeu : `sfx('famille.nom',{vol,st,pan})`.
 - Avec repli : `if(!(typeof sfx==='function'&&sfx('x')))repli();` (`typeof sfx` est toujours vrai).
 - On ne peut pas écouter : on MESURE (sonie, spectre) et Sacha ou Léo jugent dans `sons.html`. Jamais de voix.
+- Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie
+  entre 150 et 500 Hz, sinon il n'existe pas au haut-parleur d'un téléphone (mesurer la sonie après un passe-haut 200 Hz : perte ≤ 5 dB).
+  Les sons FRÉQUENTS de la route restent bas et brefs (la pièce : −35, « LES SONS GRAVES ET DISCRETS » au journal) ; les figures passent au-dessus.
 - Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `musicLieuVoulu`
   (ou `MUSIC_LOBBY` pour le lobby).
 
@@ -869,6 +877,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 
 **Son et musique**
+- « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
 - « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html

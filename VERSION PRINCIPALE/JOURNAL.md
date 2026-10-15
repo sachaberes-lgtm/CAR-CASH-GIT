@@ -3,6 +3,115 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : « toute la mécanique météore », jeu web ET ROBLOX)
+- Même recette que SNAKE LOOP et NITROOO : COUPÉ, pas arraché. Un interrupteur en tête du fichier, `SANS_METEORE` (vrai par défaut ;
+  `?meteore=1` le rend).
+- Ce qui ne se déclenche plus : la figure MÉTÉORE en vol (nitro tenue 1,2 s : `addTrick('meteo')`, donc ni aura de 100, ni chaîne, ni
+  son `fig.meteore`) ; les verdicts METEOR et MEGA METEOR de `tryLand` (`vKey` 'meteor' / 'megaMeteor' : ni mot, ni voix, ni son
+  `verdict.meteor` / `verdict.mega`, ni rang) — la pose garde MONSTRE / DOUBLE / TRIPLE ; le CRATÈRE de la pose en piqué nitro
+  (`cratere` non léger : onde, braises, secousse, flash orange, son `cratere`, « IMPACT METEORE »).
+- `chauffeDivers` ne prépare plus les trois cratères ni leurs deux textures au menu, sauf si la pluie de DÉBRIS est rallumée
+  (`DEB_ON`, `?debris=1`) : elle seule creuse encore le cratère LÉGER (`cratere(…,true)`), qui ne bouge pas. `cratTick` sort d'entrée.
+- Restent écrits, sans effet : `nitroAirT`, `trkMeteor`, les entrées METEOR de `ANN_LIB` / `VERD_DEF` / `I18N`, les sons de la banque.
+- ROBLOX : `Config.METEORE_ACTIF = false` (le rallumer = `true`), lu par `Pilote.client.luau` (figure, verdicts, sons, `meteore` du
+  signal `pose` → plus de `cratere()` dans `Effets.luau`). `CashCar.rbxlx` reconstruit (`node ROBLOX/construire.js`).
+## LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES (2026-10-15 soir, Sacha : « il y a trop plein de petits sons aigus quand on roule, avec des pièces, tout ça ; les pièces, tu peux les faire un peu moins fort, un petit tintement, un petit tchic, un petit tchic grave ; pas plein de ding-ding-ding-ding ; et rajoute tout un sound design pour les figures, avec des sons plus graves, genre doum, doum ; faut qu'on profite de la musique, que tu balances le son entre la musique et les bruitages, que les figures fassent plus de bruit que quand tu ramasses une pièce ; plus de sons graves et discrets — applique-toi bien pour les figures »)
+- MESURÉ AVANT (banc `banc-son` : une course muette au pilote, chaque `CCSON.play` relevé) : en 40 s de route, 119 pièces (3 par seconde,
+  la note montait de mi5 à mi7 — 659 Hz → 2,6 kHz — et sonnait 0,45 s), 30 CYLINDRES (chaque moteur neuf égrène jusqu'à 16 cloches qui
+  montaient de mi5 à mi9, 5,3 kHz, toutes les 50 ms : LE « ding-ding-ding-ding »), 22 RÉCOLTES (cascade mi6-si6-mi7 + poussière à 7,5 kHz),
+  9 SÉRIES (arpège jusqu'à mi8). Les figures, elles, sonnaient À OU SOUS le niveau d'une pièce : un TOUR à −39 (9 dB sous une pièce à −30),
+  la signature d'une figure plantée à −31, l'explosion de départ à 94 % sous 150 Hz — au haut-parleur d'un iPhone (passe-haut 200 Hz),
+  elle perdait 8 dB : le « doum » n'existait qu'au casque. Et chaque RÉCOLTE faisait reculer la musique de 3 dB pendant 0,4 s (`SIG_RECUL`) :
+  elle pompait toutes les 1,8 s pendant qu'on ramassait.
+- LES OUTILS DU GRAVE (`recettes.js`, bloc « LE GRAVE QUI CLAQUE », exportés `G.CCSON_GRAVE`) : `doum` (la grosse caisse en trois étages,
+  saturés ensemble : le SOUS qui tombe f0×2,4 → f1, le CORPS 5× plus haut sur la même chute — 470 → 210 Hz, le « tom » que rend un
+  téléphone — et un TOC à 1-1,5 kHz ; MESURÉ `essai-doum` : le sous seul perdait 12 dB au haut-parleur, avec le corps 3,4 dB), `basse`
+  (deux dents de scie dans un passe-bas qui se referme + le sinus une octave sous : le « bwom »), `wouom` (le souffle brun qui s'ouvre
+  puis se referme, qui peut traverser la stéréo), `mixe`. ⚠ RÈGLE pour tout son grave neuf : de l'énergie entre 150 et 500 Hz, sinon il
+  n'existe pas au téléphone (mesurer `sonie` après un passe-haut 200 Hz : perte ≤ 5 dB).
+- LA ROUTE, GRAVE ET DISCRÈTE :
+  · `piece` v2 = le petit « tchic » grave : une octave sous l'ancienne (mi4), la matière d'une vraie pièce (modes 2,32 · 4,25), éteinte en
+    0,13 s, le « tch » à 2,4 kHz (contact à 6,5 kHz avant) ; −5 dB dans le jeu (`blip` : vol 0 au lieu de +4) → −35 en sortie.
+    LA LIGNE tient dans l'octave : `SON_PG` (mi4 → mi5 en six pièces) puis `SON_PG_AR` (va-et-vient en haut) ; `GAMME_P` reste au repli.
+  · `piece.recolte` = deux pièces graves qui tombent dans la poche + le petit poids (vol 0) ; `piece.serie` = quatre pièces graves qui
+    montent + un petit doum + une cloche ronde (vol +1) ; elles ne font plus reculer la musique (`SIG_RECUL`).
+  · `moteur.cylindre` = un « toum » de piston saturé (si3) ; `engBig` passe à `sonPdAR` : la montée tient dans l'octave.
+  · une octave ou deux plus bas, sans poussière d'or : `aura.geste` (−1 dB), `frole`, `fruit.rafale`, `frenesie.cash` (TERCETS mi4-mi5),
+    `nitro.plein`, `nitro.pleine`, `billet.vole`, `aura.encaisse1/2/3` (posés sur un doum) ; `virage` : le sifflet étroit 1,8-2,4 kHz (Q 6)
+    → 0,9-1,25 kHz (Q 3) + la gomme, −3 dB ; `nitro.vide` (la gâchette à vide ET la figure refusée) : deux clics passe-haut, centre à 9 kHz
+    → deux clics en bande à 1,5 kHz / 1 kHz. Les FRUITS −4 dB dans le jeu (la rafale −3, la PASTÈQUE garde son niveau) : un fruit sortait
+    à −28, au-dessus d'une figure.
+  · LA GAMME DU VOL tient dans l'octave (`sonPdAR` : degrés 0 → 5 puis 4-3-4-5 ; avant jusqu'au 9e, +21) — `echSt`, le frôlé, les battements,
+    l'aura au sol (`aura.geste` passe à `sonPdAR(CHA.x)` : ×10 jouait +24).
+- LES FIGURES EN DOUM (toutes une octave sous l'ancienne note, mi4, avec le sous-grave dessous) :
+  · `fig.explose` (le départ) : le DOUM de la charge + le souffle 160-800 Hz ; la grosse : « ba-DOUM » et des braises sourdes. +4 dB.
+  · UN TOUR = UN DOUM : `fig.salto` (le wouom qui passe par-dessus la tête), `fig.tonneau` (d'une oreille à l'autre), `fig.toupie` (haché
+    à plat) ; le jeu les joue à vol −2 (−8 avant) : −32 en sortie, au-dessus d'une pièce. `fig.battement` (shimmy, chandelle) vol −4,
+    `fig.vrille`, `fig.maillon` (un « bom » de basse).
+  · `fig.signe` v2 (la figure PLANTÉE) : le même DOUM pour toutes (on sait sans regarder qu'une figure est payée), puis SA phrase à la basse
+    avec la matière de son geste — la quinte qui roule (tonneau), la note frappée deux fois (toupie, tail whip), le trille (shimmy), l'octave
+    qui se cabre (chandelle), la quinte qui retombe / qui monte (saltos), le second DOUM (double tonneau), la spirale (tire-bouchon), les
+    pales (hélico), la sixte de biais (vrille penchée), les deux ruades (rodéo), le gong grave et l'arpège qui s'ouvre (cosmique). db +2 : −28.
+  · LES COMBOS : DOUM, DOUM, DOUM… BOUM — `combo.frappe` = un tambour grave accordé dans la matière de son axe (bol, bois, fût, métal),
+    `sonCombo` les espace de 110 ms (85 avant) sur fa#-si-mi, puis `combo.sceau` (le grand coup sourd sous un cuivre grave) retombe sur la
+    tonique ; −26 en sortie, le son le plus fort du vol après le jackpot.
+  · `fig.palier`, `fig.jackpot` (trois coups de gong graves au lieu de la sonnette à mi7 ×8, la cascade en pièces graves), `fig.bigair`,
+    `fig.monstre`, `fig.essoreuse`, `fig.meteore`, `fig.gap`, `fig.bump`, `fig.slide.paye` : la même descente, chacun avec son doum ;
+    `fig.monde` (les figures de la banquise et de l'eau) comme `fig.signe` : le DOUM puis sa phrase une octave plus bas, db +1.
+  · LA POSE après les figures : `pose.parfait` sonnait à 97 % entre 2 et 5 kHz (deux cloches mi7 / si7 + poussière) → le TCHAK plus mat +
+    le DOUM de la caisse qui se pose pile + une cloche ronde mi5 ; `pose.divin` pareil, chœur grave ; `pose.nette` une octave plus bas.
+  · `SON_DUCK` : le doum des figures (`fig.explose` ,12 · `fig.signe` ,18 · `combo.sceau` ,35 · `pose.parfait` ,15 · `pose.divin` ,25)
+    écarte un instant le moteur et le vent — PAS la musique.
+- LA MUSIQUE n'est pas touchée (niveau, basses, bus : le travail du pôle SON) ; elle respire parce que les effets ne remplissent plus
+  le médium-aigu et ne la font plus pomper à chaque récolte.
+- MESURÉ APRÈS — LES MÊMES ÉVÉNEMENTS, DEUX BANQUES (`rendu-mix` : la liste des sons d'une course de l'ancienne version, 294 sons en 56 s
+  de route, rejouée avec les anciennes recettes et les anciens réglages d'appel, puis avec les nouveaux) : le niveau PERÇU des effets
+  (pondéré A) −33,9 → −38,3 dB(A) ; au haut-parleur −34,2 → −36,6 ; la part d'énergie entre 2 et 5 kHz 19 → 6 %, au-dessus de 500 Hz
+  82 → 55 %. Une course avec figures (136 sons) : −35,2 → −38,1 dB(A), 2-5 kHz 8,3 → 1,7 %. En direct (`banc-mix`, les quatre bus de la
+  console, nuages · midi, 40 s) : au-dessus de 500 Hz 82 → 28 % (le pilote a ramassé moitié moins de pièces dans la 2e course : les
+  niveaux se lisent au rendu). LA HIÉRARCHIE (sortie d'un son, LUFS 200 ms) : une pièce −30 → −35 · un TOUR de figure −39 → −32 · la
+  figure PLANTÉE −31 → −28 · le départ −33/−29 → −29/−25 · combo : frappe −30 → −28, sceau −28 → −26 · un fruit −28 → −32. Au
+  haut-parleur, les sons de figure perdent 2 à 4 dB (le départ 7,8 avant, 3,0 après ; la figure plantée 3,8 ; le sceau 3,4).
+- LA BANQUE : 39 sons recuits (`node atelier-son/cuire.js '^(id|id…)$'`, la liste exacte), 126 tampons ; 5,97 → 5,75 Mo (des sons plus courts) ;
+  `moteur.cylindre` perd sa base 24 ; l'ÉTALON d'origine remis (ré-encodé, sa crête tombait au même échantillon : 30,00 ms) ;
+  `mesures.txt` mis à jour pour ces sons. `sons-banque.js?v=26`, `sw.js` v533. Écoute : `sons.html` (les vrais sons, un par un).
+  ⚠ La cuisson demande ffmpeg (ici `ffmpeg-static`, hors du dépôt).
+- BANCS (muets, Chrome sans fenêtre, `dbgClassique('nuages','midi')` juste avant JOUER — `?carte=` est consommé par le menu —, l'ancienne version = `origin/main` servie à côté) : `banc-mix`
+  (analyseurs sur les quatre bus de la console : niveau pondéré A, part d'énergie par bande), `mesure-sons` (chaque recette : sonie
+  de sortie, perte au haut-parleur, centre, bandes), `essai-doum`. Partie complète couché, debout et dans le cadre de l'ordi : 0 erreur.
+- À ÉCOUTER par Sacha et Léo (au casque ET au haut-parleur du téléphone) : le niveau de la pièce (−5 dB : Léo l'avait montée de +4 le 12/10
+  parce qu'il ne l'entendait pas sous GLISSE — si elle se perd, `blip` vol +2) ; le DOUM des figures ; les fruits −4.
+  Les anciennes recettes : git, avant ce commit.
+
+## LA PUB QUI RESSUSCITE (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour recuicité »)
+La SECONDE CHANCE ne coûte plus d'argent : CONTINUER lance une PUB RÉCOMPENSÉE, et la course reprend quand elle a été vue jusqu'au bout.
+- **La plaque** de l'écran de mort dit `CONTINUER ▶ PUB` (l'icône `lecture`, plus de prix) ; avec un BON de la machine à sous, `CONTINUER GRATUIT`
+  (pas de pub). Tout le reste de l'offre est inchangé : une fois par partie, pas sous 20 s de jeu, 5,5 s pour décider, NON MERCI, le moteur perd un
+  palier, 3 s de bouclier. Le « −prix » sous le « 3 » de la reprise est parti.
+- **Le code** (bloc « LA PUB QUI RESSUSCITE », juste au-dessus de `CHANCE`) : `chanceOuvre` met `CHANCE.prix=0` ; `chanceEtat` ne lit plus le
+  compte ; `chanceJoue` arrête la fenêtre de 5,5 s, pose `CHANCE.pub` (la plaque s'efface, le FINAL SPIN attend : `chanceAttend`) et appelle
+  `pubRecompense('seconde-chance', fin)` ; vue → `chancePrend` (l'ancienne moitié de chanceJoue, SANS débit) → volet → `chanceRepart(bon)`.
+  Pas vue → l'écran de fin reprend la main (REJOUER), l'offre est perdue.
+- **Il n'y a AUCUNE régie de pub dans le jeu** (le kit Poki/CrazyGames est parti avec l'édition POKI, lot 3 du nettoyage ; l'app iPhone déclare
+  « aucune pub, aucune donnée collectée » à Apple). D'où deux chemins dans `pubRecompense` :
+  · **une régie branchée** : la page ou l'app qui en a une pose AVANT le jeu `window.CC_PUB_RECOMPENSE=function(nom){return Promise}` —
+    `true` = vue (reprise), `false` = fermée avant la fin (pas de reprise), rien ou une erreur = aucune pub à montrer (la pub maison prend le
+    relais). Le jeu se tait pendant (`pubSilence` : la musique en pause, l'AudioContext suspendu, puis rendus).
+  · **la pub maison** (`pubMaison`, `#pubR`, `<style id="pubRecompense">`) : 5 s (`PUBR.d`) plein écran, une caisse de la BOUTIQUE qu'on n'a pas
+    encore et qu'on peut acheter à l'argent du jeu (`pubCaisse`, jamais une caisse en euros), sa photo, son nom dans la couleur de sa rareté, son
+    prix ; l'étiquette PUB, le compte ROND, la barre du temps ; rien ne se touche (le clavier non plus) ; le temps ne court qu'écran allumé ;
+    elle ne s'efface qu'une fois le volet de la reprise posé (z-index 260 : sous `#wipe`, au-dessus de la machine à sous).
+- **Mesuré au banc** (Chrome sans fenêtre, muet ; partie de 40 s, 1 800 $ gagnés, compte 7 200 $) : COUCHÉ 844 × 390, DEBOUT 390 × 844 et dans le
+  CADRE DE L'ORDI à la souris → plaque `CONTINUER PUB`, la pub maison 5 s, reprise, 3 · 2 · 1, course qui roule ; compte 7 200 → 7 200 (avant :
+  débité de 1 800). Régie qui dit oui → reprise sans pub maison ; régie qui dit non → pas de reprise, écran de fin avec REJOUER ; régie sans pub →
+  pub maison puis reprise ; BON → reprise immédiate « GRATUIT », sans pub. 0 erreur (seul le 404 connu de `dark-triad.mp3`), `__loopErr` vide.
+- **Bancs** : `dbgPub()` (l'état) · `dbgPub('fin')` (la pub maison finit tout de suite) · `dbgPub(n)` (elle dure n s) ; `?pub=0` = pas de pub,
+  reprise immédiate ; `dbgChance(…)` inchangé.
+- **À trancher par Sacha** : une VRAIE régie. Sur le web : Google AdSense (jeux H5, `adBreak` type `reward`) ou un portail (Poki, CrazyGames) ;
+  dans l'app iPhone : AdMob (plugin Capacitor, branche `ios-capacitor`) — ce qui change les réponses « confidentialité » de l'App Store
+  (identifiant publicitaire, fenêtre de suivi ATT). Il faut un compte de régie et ses identifiants ; le jeu n'a qu'à poser `CC_PUB_RECOMPENSE`.
+  Et la durée de la pub maison (5 s), tant qu'aucune régie n'est branchée.
+
 ## LES ROUTES PLUS ÉPAISSES : 2,6 → 3,9 m (2026-10-15 soir, Sacha : « augmente de 50 % l'épaisseur des routes pour avoir plus de surface pour bump », puis « il y a plus le bump sur le bord de la route j'ai l'impression, et augmente un peu l'épaisseur des routes »)
 - `THICK` 2,6 → 3,9 m (les deux endroits : la déclaration et la remise à chaque `buildTrack` ; la JADE garde sa dalle de 0,30). Commit de la
   session EPAISSEUR (12 h 43), resté dans la file du train qui ne roulait plus : repris tel quel et poussé seul. Tout ce qui se pose sous la
