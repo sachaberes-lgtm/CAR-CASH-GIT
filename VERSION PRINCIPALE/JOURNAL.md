@@ -17,7 +17,28 @@
 - BANC (muet, couché 844×390) : partie neuve → les deux fiches (index 74 et 75) ne sont plus citées ni au garage ni à la boutique ;
   sauvegarde d'un acheteur (banque 1 000, `owned` 74 + 75, équipée en MERCURE) → banque 7 401 000 (= 1 000 + 3,6 M + 3,8 M), `owned` vidé,
   caisse 0 équipée, JOUER → course sans erreur ni « gabarit inconnu ». Fumée commune OK (couché + debout, 0 erreur JS).
-- Cache `cashcar-v516`.
+- Cache `cashcar-v518`.
+
+## LA CAISSE-NUAGE N'A PLUS DE SILLAGE VISIBLE (2026-10-15 soir, Sacha : « l'événement chasse-nuage, quand j'approche le nuage, son sillage, je sais pas ce que c'est, supprime-le, c'est nul »)
+- Retirés, dans la campagne (niveau 10) comme dans l'événement rare : le RUBAN d'or rose derrière elle (`fantomePose` : `GH.tr` reste éteint), la OUATE
+  (`cloudBits`) qui filait autour de toi dans son aspiration, et le HALO d'or au bord de l'écran quand on la tient (`campFx` 4e calque à 0). La plaque
+  SILLAGE était déjà partie (9c94fdf7).
+- Le JEU ne change pas : l'aspiration tire toujours (+9 m/s² × proximité), la bulle de 18 m, « ACCROCHE ! », le carillon qui monte et la prise en 1 s
+  restent. Banc (debout 390 × 844, `dbgEvt('caisse')`, la caisse collée 1,8 s) : ruban jamais visible, halo à 0, « ATTRAPÉE ! », zéro erreur.
+## LES PRIMES DE MISSION RAMENÉES À LA PARTIE (2026-10-15 soir, Sacha : « j'ai lancé 3 parties, je suis déjà à 96 000 $, c'est trop — il faut équilibrer »)
+- LA CAUSE, lue dans sa sauvegarde localhost : 96 036 $ en banque, rien d'acheté, **6 carnets de missions finis = 76 800 $ de primes**
+  (plus le permis, 500). Les pièces n'en faisaient que ~19 000 sur 27 parties. Les primes montaient ×10 à ×50 d'un carnet à l'autre
+  (300 → 80 000 $ la mission) quand une partie ne rapporte que ~500 à 3 000 $ ; et depuis LA FILE (v467, même jour) les missions faciles
+  des carnets suivants tombent sans attendre la difficile, donc elles arrivaient en rafale. Sur sa dernière partie : +16 900 $, dont 14 000
+  de trois missions (2 000 + 4 000 + 8 000).
+- LE CORRECTIF (`CARNETS`, aucun prix ni gain de course changé) : une mission vaut ~1/3 à 1 partie du joueur qui la remplit, +15 à 25 % par
+  carnet — carnet 3 : 700 · 700 · 800 ; 4 : 800 · 800 · 1 000 ; 5 : 1 000 ×3 ; 6 : 1 200 · 1 200 · 1 400 ; 7 : 1 500 · 1 500 · 1 800 ;
+  8 : 1 800 · 1 800 · 2 200 ; 9 : 2 200 · 2 200 · 2 600 ; POP 10-12 : 2 600 → 4 000. Les carnets 1-2 (300-600 $) sont INCHANGÉS : le
+  salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie. La suite sans fin repart dans leur pas (`carnetBrut` 40 000 →
+  3 200 : 4 000, 4 800, 5 600… la mission, jalon ×2). Total des 6 premiers carnets : 76 800 → 14 400 $ ; des 12 écrits : 904 800 → 60 700 $.
+- LE CADEAU (toutes les 6 h) PLAFONNÉ à 2 500 $ (`CADO.max`) : il vaut 8 % du record d'une partie, et une vieille sauvegarde garde un record
+  de l'ANCIENNE échelle (8,6e16 chez Sacha) : son prochain cadeau lui aurait versé ~7e15 $.
+- Ce qui est déjà en banque reste en banque (rien n'est repris à une sauvegarde).
 
 ## LE TAIL WHIP (2026-10-15 soir, Léo par le MANAGER : « la première figure : un TAIL WHIP » · « push-les, ils sont bien » ; choix coché : en GLISSER, ← → = tail whip) — pôle TECHNIQUE
 - LA FIGURE (`figures.js` ?v=8, `FIG.par.tailwhip`, 1re de `BASE`) : un tour à plat (axe vertical, `D` ,62, aura 50), mais le NEZ reste en
