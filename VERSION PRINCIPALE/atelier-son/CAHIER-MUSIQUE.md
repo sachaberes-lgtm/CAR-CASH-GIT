@@ -770,3 +770,21 @@ musique ciel très discrète et garage aussi, différentes ambiances, même regi
 - Affiner ≠ remplacer : COBRA garde son clavinet (CLAV_FIN, comparé note à note à l'original : même brillance, la boue en moins).
 - Mesuré : le vibraphone et les échos de la mélodie bouchent le médium (RUBIS) ; une octave basse carrée sous un koto aussi (LUNE DE JADE).
 - PISTON DE LUXE : cowbell + VOIX_IMPRO (une syllabe par hauteur = une voix qui improvise). GRÉSIL NOVA attend le pack de Léo.
+
+## 2026-10-15 — LES TROIS NOUVEAUX (pôle SON › trois nouveaux sons)
+- Léo : « trois nouveaux sons au niveau de mes 👍, une autre idée originale » → trois idées proposées, « les trois, vas-y ».
+- ZEPPELIN D'OR (électro swing, le gramophone qui s'ouvre, le champagne) · CARNAVAL D'OR (batucada électronique, l'agogô, la cuíca, la foule) ·
+  LE CASSE (trip-hop de braquage, la ligne espion, le coffre-fort, la poursuite en double tempo). Écrits sur le générateur v6-0 figé :
+  `assets/audio/music/direct/musique-trente-trio.js` ; bibliothèque › Nouveaux. Détail et mesures : JOURNAL.md, « LES TROIS NOUVEAUX ».
+- Leçons : un morceau ÉCRIT (l'ordre des 30 moteurs choisi, une signature qui raconte) garde la qualité du générateur et gagne une identité ;
+  mesurer contre SES 👍 avant de livrer (le 1er jet de ZEPPELIN était deux fois plus brillant que ses 👍, le thérémine du CASSE dans la boue) ;
+  une note « accordée sur la tonique » se calcule depuis do (`64 + pc(ton − 64)`), pas depuis mi.
+
+## 2026-10-15 (soir) — ZEPPELIN D'OR II ET III (pôle SON)
+- Léo garde ZEPPELIN D'OR (« parisien ») ; CARNAVAL et LE CASSE retirés de la bibliothèque. II = + deux instruments new wave (basse de 1983, arpège
+  analogique) ; III = l'orchestre d'époque seul. Les deux : l'intensité dès le 10e SANS tempo ni tonalité qui montent.
+- Leçon (Léo : « c'est nul quand ça devient juste plus aigu et plus rapide ») : la vitesse qu'on sent = la DENSITÉ des motifs (basse en croches,
+  charleys en doubles, piano en stride puis en croches, cuivres en rafales), pas les BPM ; et jamais de montée d'un ton pour « intensifier ».
+  Mesurer les attaques par seconde, la brillance et les BPM moteur par moteur. Détail : JOURNAL.md, « ZEPPELIN D'OR II ET III ».
+- 2e jet du II (Léo : « le 1 2 1 2 est relou, pas new wave ») : la new wave est DROITE et SYNCOPÉE — au 10e le balancement s'arrête, grosse caisse et
+  piano en syncope (3-3-2), basse en croches sur la fondamentale ; jamais d'alternance grave-aigu ni de boum-tchak sous la new wave.
