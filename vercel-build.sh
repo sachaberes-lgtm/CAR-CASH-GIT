@@ -7,12 +7,15 @@ set -e
 # (2026-10-07, Léo) LA GARDE DU BURN-OUT : une version sans le burn-out du garage n'est PAS publiée — la construction échoue, le site
 # garde la version d'avant (voir garde-burnout.sh, « LE BURN-OUT EST À LÉO » dans CLAUDE.md ; GARDE_BURNOUT=0 la coupe).
 sh garde-burnout.sh
+# (2026-10-14, Sacha) LA GARDE DE LA CHARTE : logo de l'accueil figé par empreinte, police pixel, charte 6 en opt-in (garde-charte.sh ;
+# GARDE_CHARTE=0 la coupe).
+sh garde-charte.sh
 rm -rf .vercel-static
 mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo
 cp demo/cash-car-demo/og.jpg .vercel-static/og.jpg
 cp -R "VERSION PRINCIPALE" .vercel-static/jouer
-rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/README.md .vercel-static/jouer/JOUER.bat
+rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/JOURNAL.md .vercel-static/jouer/README.md .vercel-static/jouer/JOUER.bat
 # (2026-10-07, campagne de debug avant publication) les OUTILS de travail ne partent plus en ligne : le banc d écoute (sons.html), l atelier
 # du son (recettes, scripts) — le jeu n en charge aucun (l atelier des nuages reste : ?nuages=1 le charge en ligne).
 rm -rf .vercel-static/jouer/atelier-son .vercel-static/jouer/sons.html
