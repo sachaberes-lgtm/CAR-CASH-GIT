@@ -51,6 +51,16 @@ for(const n of GARDE){const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('manqu
 for(const m of fs.readFileSync(path.join(SRC,'index.html'),'utf8').matchAll(/<script[^>]*\ssrc=["']([^"'?#]+)/g)){const n=m[1];
   if(/^[a-z]+:|^\/\//i.test(n)||n==='natif.js')continue;const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('la page charge '+n+', absent de VERSION PRINCIPALE');
   if(!fs.existsSync(path.join(WWW,n))){fs.mkdirSync(path.dirname(path.join(WWW,n)),{recursive:true});copie(a,path.join(WWW,n));console.log('  + '+n+' (chargé par la page)');}}
+/* (2026-10-16) LES FICHIERS QUE LE JEU CHARGE PAR PROGRAMME suivent aussi : un Worker (`new Worker('creatures/atelier.js?v=1')`, les
+   formes VITRAIL) et un fetch (`fetch('musique-moteur.json')`, la liste « Pouce bleu » de la musique de course) manquaient à l'app sans bruit
+   (404, vus à la fumée). Toute chaîne 'x.js' / 'x.json' d'un script copié qui désigne un fichier existant de VERSION PRINCIPALE est copiée —
+   jamais sw.js (pas de service worker dans l'app), ni ce que l'app écrit elle-même (natif.js, maj.json). */
+{const JAMAIS_PROG=new Set(['sw.js','natif.js','maj.json','version.json']),vus=new Set();
+  const scripts=[];const liste=d=>{for(const n of fs.readdirSync(d)){const p=path.join(d,n);if(fs.statSync(p).isDirectory())liste(p);else if(/\.(js|html)$/i.test(n))scripts.push(p);}};liste(WWW);
+  for(const p of scripts)for(const m of fs.readFileSync(p,'utf8').matchAll(/['"`]([\w][\w\-./]*\.(?:js|json))(?:\?[^'"`\s]*)?['"`]/g)){
+    const n=path.posix.normalize(m[1]);if(vus.has(n)||n.startsWith('..')||n.startsWith('atelier-son/')||JAMAIS_PROG.has(n))continue;vus.add(n); // (atelier-son/ : les outils du son, cités en commentaire)
+    const a=path.join(SRC,n),b=path.join(WWW,n);if(!fs.existsSync(a)||fs.existsSync(b)||!fs.statSync(a).isFile())continue;
+    fs.mkdirSync(path.dirname(b),{recursive:true});copie(a,b);console.log('  + '+n+' (chargé par programme)');}}
 // l'icône du web : le mot-symbole pixel CASH CAR (icon.svg du jeu = l'émoji 💰 d'Apple, une image protégée : refus App Store)
 fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg'));nFic++;
 {let n=fs.readFileSync(path.join(ICI,'natif','natif.js'),'utf8');const k=n.split("'"+MAJ_PROD+"'").length-1;
@@ -67,6 +77,11 @@ let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
   if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
+/* LA RÉGIE ADSENSE (main, f37c128 du 15/10 : « la pub récompensée de Google derrière CONTINUER ▶ PUB, sur le site seulement ») : le jeu sort
+   déjà de ce bloc sous Capacitor (aucune pub ne se charge dans l'app), mais l'adresse du script de Google y restait écrite — vidée ici :
+   l'app n'a ni pub ni adresse réseau. */
+une("s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+(CC_ADSENSE||'ca-pub-0000000000000000');",
+  "s.src=''; /* (app iOS) pas de régie publicitaire dans l'app */",'régie AdSense (site seulement)');
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
    · plus de vrai argent (pas d'achats intégrés pour l'instant) : les caisses vendues en € et L'ÉTERNELLE (100 pubs : l'app n'a pas
@@ -117,8 +132,6 @@ une("'Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a 
 une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
   '   la règle de l\'accueil v2 qui réaffiche la tuile OFFRES) */\n'+
   'html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}\n'+
-  '/* la BOUTIQUE du garage : plus aucune caisse en €, son onglet OFFRES resterait vide (« OFFRES 0 ») */\n'+
-  '#gBqPan .bqOng button[data-o="off"]{display:none!important}\n'+
   '/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
   '#setBtn,#settings{display:none!important}\n'+
   '/* la ligne ENTRER UN CODE des réglages (le code COUSIN, coupé plus haut ; RESTAURER UN CODE reste) */\n'+
@@ -134,6 +147,11 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   'html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:2!important}\n'+
   '@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) repeat(2,minmax(0,173px))!important}\n'+
   '  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:3!important}}</style>\n</head>','page OFFRES');
+/* LE RAYON ACHAT DE LA BOUTIQUE (main, 952dbb0 du 15/10 : à la place de l'onglet OFFRES, « ACHAT = toutes les caisses payantes », celles en €).
+   Dans l'app plus aucune caisse n'est en € (coupe « caisses en € » plus haut : elles passent à l'argent du jeu et rejoignent le rayon
+   VOITURES) : ACHAT serait VIDE. Le rayon n'est pas posé, et l'ancien chemin vers OFFRES ouvre VOITURES. */
+une("const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],","const BQ_CATS=[['voiture','VOITURES','voiture'],/* (app iOS) pas de rayon ACHAT : aucune caisse en € */",'rayon ACHAT de la boutique');
+une("if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='achat';}","if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='voiture';} /* (app iOS) */",'ancien chemin OFFRES → rayon ACHAT');
 une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LA CADENCE STABLE AUSSI SUR LES IPHONE RÉCENTS (2026-10-15, mesuré sur l'iPhone 13 Pro de Sacha : « ultra saccadé quand on va vite »).
    Le jeu réserve sa cadence 30 images/s calée (CAD) aux paliers ANCIEN et MOYEN ; au RÉCENT, une course qui manque de marge tombait de 60
@@ -155,7 +173,7 @@ une("else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
-  ['<button data-o="off"','l\'onglet OFFRES de la boutique du garage'],["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],
+  /* (l'onglet OFFRES de la boutique du garage : remplacé sur main par le rayon ACHAT, 952dbb0 du 15/10 — sa coupe est plus haut, en une()) */["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],
   ["k:'bientot'",'les caisses « DÉFI À VENIR »'],
   /* (le bouton verrouillé « BIENTÔT » du menu du garage : retiré du jeu lui-même sur main, 1b35a2b du 14/10 « Plus de BIENTOT visible », coupe ôtée) */
   ['<div class="mLigne lien" data-m="code">','la ligne ENTRER UN CODE des réglages'],['<div class="mLigne lien" data-m="imp">','la ligne RESTAURER UN CODE des réglages'],
