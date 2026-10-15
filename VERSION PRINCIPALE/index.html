@@ -48244,10 +48244,7 @@ function fantomeTick(dt){
   /* (2026-09-30) LA PLAQUE, comme le banquier du niveau 20 : la caisse-nuage n'avait AUCUN repère — ni où elle est, ni ce que vaut le
      sillage. Dans sa bulle : SILLAGE et la prise qui monte (1 s tenue = elle est à toi). Sinon : elle mène de X m (cyan), ou elle est
      derrière et ELLE REVIENT (son aspiration la ramène dans ta roue : c'est là qu'on la cueille). */
-  const e9=Math.round(Math.abs(GH.s-sP)/5)*5;
-  if(GH.accr&&GH.prise>0)vChip(TR('SILLAGE'),Math.round(GH.prise*100)+(LANG==='fr'?' %':'%'),'#ffe7a8');
-  else if(GH.s>=sP)vChip(TR('LA CAISSE-NUAGE'),TR('ELLE MENE DE')+' '+e9+' M','#9fe8ff');
-  else vChip(TR('ELLE REVIENT'),TR('DERRIERE TOI')+' '+e9+' M','#ffd75e');
+  vChip(''); // (2026-10-15, Sacha : « je sais pas ce que c'est, enlève-le complètement ») plus de plaque pour la caisse-nuage — l'ACCROCHE et le carillon disent la prise
 }
 function fantomePris(){ // ELLE EST À TOI
   GH.pris=true;CAMP.pris=true;GH.prise=1;vChip(''); // (la plaque se tait : le slam le dit, puis le portail s'ouvre)
