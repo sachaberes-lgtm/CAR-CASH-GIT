@@ -114,8 +114,12 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   AVANT, ↓ en ARRIÈRE, ◄► sur un CÔTÉ (la figure part du côté du pouce, `o.dx`) ; une figure à deux sens (rodéo…) peut tenir l'avant ET
   l'arrière, le geste oriente son salto ; équiper remplace celle de CET emplacement ; un emplacement vide : son geste ne fait RIEN
   (`o.strict`, sauf l'auto-école) ; la boutique les range en trois sections, une carte par direction (`bqFigRail`, `bqFigSec`, `data-dir`, `bqFigDir`).
+  L'ÉLAN (15/10 soir, `FIG.PHY.elan`, `?elan=0` = avant) : une figure = un COUP, l'air freine la rotation (`r.c`, `kT`, `cov`), une figure suivante
+  s'y ajoute, la fin est un RETOUR souple (`ret`, mode `retour`) ; la prise forte n'est plus qu'un filet (sol proche, tap qui redresse) ; le jeu
+  dose une figure sur le vol avec `figKT()`.
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
-  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain ; ← → tonneau, ↑ salto arrière, ↓ salto avant, au sol `veqSaut(fo)`).
+  (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → 360, ↑ salto arrière, ↓ salto avant ; AU SOL
+  `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
@@ -191,6 +195,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   par les boîtes). Les animaux reviendront PAR MAP (d'abord des singes de décor au SOLEIL DE JADE). Le reste : git (85470fb4 et avant).
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
+- HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
+  liste des figures sous la chaîne, plus de « $×1 » au palier 0 du flow, plus de nom du pouvoir au centre. On ne les rallume pas sans lui.
 
 **Interface (charte v4/v5 — pour tout écran neuf ou retouché ; de vieilles règles CSS y dérogent encore)**
 - PENCHÉ (`--sk`) = je touche · DROIT à coins coupés = je lis · ROND = une jauge.
