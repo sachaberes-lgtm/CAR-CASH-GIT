@@ -281,6 +281,9 @@ Object.values(window.PALIERS_RENDUS || {}).sort((x, y) => String(y.fige || '').l
 // (OG GINOBILI — le vrai morceau d'un artiste + ses pistes séparées, fichiers du labo hors git — reste sur la branche musique-2026-10 : le main est public)
 ajoute({ id: 'dir-french-touch', sec: 'moteur', type: 'html', titre: 'MOTEUR FRENCH TOUCH', style: 'Ton moteur en direct · Daft Punk, funk, SF (map Ville du simulateur)', nb: 0,
   f: 'assets/audio/music/direct/french-touch.html' });
+// (2026-10-15, Léo, dans sa note sur AURA : « incroyable, juste transformer en 30 paliers comme les autres ») — le même AURA, en direct, en 30 moteurs
+ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIERS', style: 'le même AURA, en 30 moteurs comme les musiques du générateur : chaque moteur ajoute un élément ou pousse un cran (l’AURA en 8 paliers reste à côté)', nb: 0,
+  f: 'assets/audio/music/paliers/aura-30.html' });
 ajoute({ id: 'dir-glisse-v2', sec: 'moteur', type: 'js', titre: 'GLISSE v2', style: 'Module en direct · Pics de jade', nb: 5, f: 'assets/audio/music/direct/musique-glisse-v2.js' });
 ajoute({ id: 'dir-glisse', sec: 'moteur', type: 'js', titre: 'GLISSE', style: 'Module en direct (1re version)', nb: 5, f: 'assets/audio/music/direct/musique-glisse.js' });
 (window.BOUCLES || []).filter(b => b.sequence).forEach(b => ajoute({ id: 'seq-' + b.id, sec: 'moteur', type: 'phrases', titre: b.titre,
@@ -430,7 +433,9 @@ $('filtre').onclick = () => { FILTRE = !FILTRE; dessine(); };
 // PREF.cats : les catégories de Léo). Le son ne change pas de nature : un morceau qui suit le moteur se joue toujours en montant.
 const GL = { S: null, el: null };
 const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gMenu: 'menu', gAnc: 'anciens', gPet: 'petits' };
-function placeDe(S, secs) { const p = PREF.place && PREF.place[S.id]; return p && secs[p] ? p : S.sec; }
+// (2026-10-15) les V2 des notes de Léo se rangent d'office à côté de leur original (Léo peut toujours les déplacer)
+const PLACE_DEF = { 'pal-penthouse-v2': 'bleu' };
+function placeDe(S, secs) { const p = (PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]; return p && secs[p] ? p : S.sec; }
 function secCle(sec) { const l = sec && sec.querySelector('.liste,.grille'); if (!l) return null; return sec.dataset.cat ? 'cat-' + sec.dataset.cat : SEC_DE[l.id] || null; }
 function catsSections() {   // une <section> par catégorie de Léo (au bout de la page : la barre d'onglets la voit toute seule)
   const main = document.querySelector('main.page'); PREF.cats = PREF.cats || [];
@@ -593,7 +598,7 @@ function stop() { J.jeton++; if (J.L) try { J.L.arret(); } catch (e) {} const S 
 // LE LECTEUR DU BAS : le moteur qui monte, le palier, − / +
 // (14/10, Léo : « en 30 paliers comme les autres ») : un morceau rangé dans POUCE BLEU se pilote comme les musiques du générateur — moteur 1 à
 // 30 À LA MAIN (− / +, flèches). Le son ne change pas : ses vraies étapes (8 figées, réparties sur les 30 moteurs) changent aux mêmes moteurs.
-const aLaMain = S => !!S && (S.sec === 'bleu' || !!(PREF.place && PREF.place[S.id] === 'bleu'));
+const aLaMain = S => !!S && (S.sec === 'bleu' || ((PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]) === 'bleu');   // (15/10 : les V2 rangées d'office comptent aussi)
 function lecteurPose() {
   const S = J.S, on = !!(S && J.L); $('lect').classList.toggle('on', on); if (!on) return;
   $('lNom').textContent = nomDe(S); const mt = S.sec === 'moteur' || S.sec === 'bleu';   // (Pouce bleu : le moteur à la main)

@@ -755,3 +755,12 @@ musique ciel très discrète et garage aussi, différentes ambiances, même regi
   dernière mesure). Piège noté : la tonalité de HAUTE ALTITUDE (si♭) = −6 depuis mi, pas −4.
 - Dans le jeu : `MENU_MUS`, `musicMenuUrl()`, bascule en fondu dans musicTick (voir VERSION PRINCIPALE/CLAUDE.md). Bibliothèque : onglet
   « Ciel et garage » (`lobby/menu-donnees.js`).
+
+## 2026-10-15 — LES NOTES DE LÉO APPLIQUÉES (pôle SON)
+- Pouce bleu : 8 V2 (retouches-bleu.js + le crochet `start(n, W, O)` des générateurs), 4 noms, et les musiques v6 rejouées telles qu'aimées
+  (la couleur hybride forcée : `O.style`). Détail : JOURNAL.md, « LES NOTES DE LÉO APPLIQUÉES ».
+- AURA · 30 PALIERS (paliers/aura-30.html) : le même morceau étiré sur 30 moteurs.
+- PENTHOUSE · V2 (atelier-son/penthouse_v2.py) : la même composition, tous les instruments remplacés.
+  Leçon de mixage : un chœur « oh » met son 1er formant à 450 Hz, en plein dans la boue. Des flûtes à la hauteur des cordes, ce sont des sinus purs dans les graves.
+  Un grognement de basse à travers une saturation déborde jusqu'à 420 Hz. On mesure la boue (200-500 Hz) instrument par instrument avant de creuser au hasard.
+- En attente : le pack d'instruments de Léo (PISTON DE LUXE, GRÉSIL NOVA) ; réécoute des trois v6.
