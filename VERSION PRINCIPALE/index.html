@@ -9874,6 +9874,51 @@ html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </style>
+<style id="accueilDoigt">
+/* LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, une sorte d'icône avec un doigt qui clignote sur la voiture la
+   première fois, pour lui montrer qu'on peut cliquer sur la voiture ; rends-le un peu stylisé, un peu accueillant pour la première
+   connexion, la première fois qu'il voit le menu »). La première fois qu'on voit l'accueil, une MAIN EN PIXELS (gant blanc, manchette
+   d'or, contour d'encre) vient se poser sous la caisse et la TAPE : à chaque coup, une onde et quatre éclats d'or partent du bout du doigt ;
+   une bulle dit BIENVENUE ! · TAPE TA CAISSE. Le point d'ancrage (left/top 0, déplacé par `transform`) = le bout du doigt = le centre de
+   la caisse à l'écran, suivi image par image (chuteDoigtTick, appelé par chuteRender). Au premier coup sur la caisse elle s'envole et ne
+   revient plus (SAVE.d.ast, bit 256 : chuteDoigtFini). Rien ne se touche ici (pointer-events:none) : le doigt du joueur passe au travers. */
+#chDoigt{position:fixed;left:0;top:0;z-index:6;width:0;height:0;pointer-events:none;opacity:0;visibility:hidden;
+  transition:opacity .3s var(--ease),visibility 0s linear .3s}
+#chDoigt.on{opacity:1;visibility:visible;transition:opacity .3s var(--ease)}
+#chDoigt .cdMain{position:absolute;left:-18px;top:2px;width:48px;height:54px;background:var(--cdSvg) 0 0/100% 100% no-repeat;transform-origin:18px 0;
+  filter:drop-shadow(0 3px 0 rgba(10,4,24,.6)) drop-shadow(0 0 9px rgba(255,215,94,.45))}
+#chDoigt.on .cdMain{animation:cdEntre .55s var(--ease) both,cdTape 1.6s var(--ease) .55s infinite}
+#chDoigt .cdOnde{position:absolute;left:-24px;top:-24px;width:48px;height:48px;border-radius:50%;box-sizing:border-box;opacity:0;
+  border:3px solid #fff;box-shadow:0 0 0 2px rgba(255,215,94,.85),inset 0 0 0 2px rgba(255,215,94,.85)}
+#chDoigt.on .cdOnde{animation:cdOnde 1.6s steps(6,end) .55s infinite}
+#chDoigt .cdEcl{position:absolute;left:-3px;top:-3px;width:6px;height:6px;background:#ffd75e;box-shadow:0 0 0 2px #1c0430;opacity:0}
+#chDoigt.on .cdEcl{animation:cdEcl 1.6s var(--ease) .55s infinite}
+#chDoigt .cdEcl:nth-of-type(1){--ex:-26px;--ey:-22px}#chDoigt .cdEcl:nth-of-type(2){--ex:26px;--ey:-22px}
+#chDoigt .cdEcl:nth-of-type(3){--ex:-32px;--ey:4px}#chDoigt .cdEcl:nth-of-type(4){--ex:32px;--ey:4px}
+#chDoigt .cdBul{position:absolute;left:0;top:70px;translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:7px;white-space:nowrap;
+  padding:9px 13px 10px;background:linear-gradient(180deg,#2a1e56,#140c2c);box-shadow:inset 0 0 0 2px #ffd75e,inset 0 0 0 4px #1c0430,0 4px 0 #0a0818,0 0 18px rgba(255,215,94,.3)}
+#chDoigt .cdBul::before{content:'';position:absolute;left:50%;top:-8px;width:12px;height:8px;translate:-50% 0;background:#ffd75e;
+  clip-path:polygon(0 100%,33% 50%,33% 0,67% 0,67% 50%,100% 100%)}
+#chDoigt .cdBul b{font-weight:400;font-size:8px;letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 #1c0430}
+#chDoigt .cdBul span{font-size:10px;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 #1c0430}
+#chDoigt.on .cdBul{animation:cdBul .6s var(--ease) .25s both,cdFlotte 2.4s ease-in-out .85s infinite}
+#chDoigt.fini{opacity:0;visibility:hidden;transition:opacity .35s var(--ease) .1s,visibility 0s linear .45s}
+#chDoigt.fini .cdMain{animation:cdPart .45s var(--ease) both}
+#chDoigt.fini .cdBul{animation:cdBulPart .35s var(--ease) both}
+#chDoigt.fini :is(.cdOnde,.cdEcl){animation:none;opacity:0}
+@keyframes cdEntre{0%{opacity:0;transform:translate(10px,34px) rotate(-14deg)}100%{opacity:1;transform:translate(3px,10px) rotate(-7deg)}}
+@keyframes cdTape{0%,30%{transform:translate(3px,10px) rotate(-7deg)}42%{transform:translate(0,-2px) rotate(0) scale(.9)}52%{transform:translate(0,0) rotate(0) scale(.94)}
+  70%,100%{transform:translate(3px,10px) rotate(-7deg)}}
+@keyframes cdOnde{0%,38%{opacity:0;transform:scale(.15)}42%{opacity:1;transform:scale(.25)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes cdEcl{0%,40%{opacity:0;transform:translate(0,0)}44%{opacity:1;transform:translate(0,0)}75%{opacity:0;transform:translate(var(--ex),var(--ey))}100%{opacity:0}}
+@keyframes cdBul{0%{opacity:0;scale:.6}60%{opacity:1;scale:1.06}100%{opacity:1;scale:1}}
+@keyframes cdFlotte{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes cdPart{0%{opacity:1;transform:translate(0,0) scale(.94)}100%{opacity:0;transform:translate(0,-30px) scale(1.5)}}
+@keyframes cdBulPart{to{opacity:0;scale:.7}}
+html[data-reduced-motion] #chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}
+html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}
+@media (prefers-reduced-motion:reduce){#chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}#chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}}
+</style>
 <style id="policeUnique">
 /* UNE SEULE POLICE (2026-10-15, Sacha : « c'est partout la même police ») — LE FILET CSS. Tout élément, tout pseudo-élément, tout champ
    (un <textarea>, un <input>, un <button> n'héritent PAS de la police de la page : c'est ainsi que le champ du CODE COUSIN tapait en
@@ -9884,6 +9929,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 ::placeholder{font-family:var(--pix)!important}
 #spPhi{font-family:"Times New Roman",Georgia,serif!important}
 </style>
+<div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -10224,7 +10270,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
          caisses premium. Les achats intégrés arrivent avec le compte développeur Apple (StoreKit) : « BIENTÔT ».
          « Restaurer mes achats » est OBLIGATOIRE pour l'App Store. -->
     <div class="mscr" id="mShop">
-      <div class="mHead"><h3>OFFRES</h3></div><!-- (2026-10-10, Léo : « la boutique du menu, on la renomme OFFRES » — la BOUTIQUE, c'est celle du garage) -->
+      <div class="mHead"><h3>ACHAT</h3></div><!-- (2026-10-10, Léo : « la boutique du menu, on la renomme OFFRES » — la BOUTIQUE, c'est celle du garage) (2026-10-15 soir, Sacha : « renomme aussi le titre de la page OFFRES en ACHAT », comme le bouton de l'accueil qui y mène) -->
       <div class="shUne" id="shUne" data-m="shopSoon" role="button"></div>
       <div class="mSec shSec">LES LEGENDAIRES</div>
       <div class="shGrille" id="shGrille"></div>
@@ -10367,7 +10413,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=26"></script>
+<script defer src="sons-banque.js?v=27"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
@@ -10577,6 +10623,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
   uJour:{value:0},uMerLoin:{value:/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?16000:8000}, /* (2026-10-14, passe graphismes · ciel2) la mer lointaine — là où son bruit s'étire en traînées — fond deux fois plus tôt dans la brume : un dégradé propre à l'horizon (titre et chute posent le leur) */uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
+  uSkySat:{value:1}, // (2026-10-15 soir) LA CHROMA DU CIEL DE JOUR (voir cielSat, routeTick) : 1 = telle quelle
   uSym:{value:0}, // (2026-10-15) LE CIEL SANS DESSOUS (map NUAGES) : 1 = la moitié basse du dôme est le reflet de la haute (voir TETE)
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},
@@ -10598,6 +10645,7 @@ const skyDome=(function(){
      ligne. À 0 (toutes les autres maps), mix(y,|y|,0) = y : l'image d'avant au bit près. */
   const TETE=[
       'varying vec3 vDirR;uniform float uSym;vec3 vDirS(){return vec3(vDirR.x,mix(vDirR.y,abs(vDirR.y),uSym),vDirR.z);}',
+      'uniform float uSkySat;vec3 cielSat(vec3 c){float l=dot(c,vec3(.2126,.7152,.0722));return max(mix(vec3(l),c,uSkySat),0.);}', // (2026-10-15 soir) la chroma du ciel de jour, plafonnée (voir routeTick)
       '#define vDir vDirS()',
       'uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
@@ -11402,7 +11450,7 @@ const skyDome=(function(){
       '  if(uVille>.001)col=mix(col,villeCiel(vDir,az,col),uVille);', // LE CIEL DE LA VILLE : plafond, skyline, abîme (voir villeCiel)
       '  if(uJade>.001)col=mix(col,jadeCiel(vDir),uJade);', // (le fondu d entrée/sortie de la map)
       '  if(uCanyon>.001)col=mix(col,canyonCiel(vDir),uCanyon);', // (2026-10-14) LE CANYON DES GÉANTS : son fondu
-      '  col+=vec3(cielTrame());', // dither
+      '  col=cielSat(col);col+=vec3(cielTrame());', // dither
       '  gl_FragColor=vec4(col,1.);',
       '}'],
     /* PASSE LISSE — NUAGES et ORBITE : dégradé, mer de nuages, soleil, guirlande, voile (tout ce qui varie lentement). Sa seule trame
@@ -11414,7 +11462,7 @@ const skyDome=(function(){
       '  cielMer(col,y,sd);cielJour(col,y,sd);'+(/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?'cielMotif(col,vDir,y,sd);':'')+'cielSoleil(col,sd);if(uTi.x>.001)cielTitre(col,vDir,y,sd);if(uParis>.001)parisCiel(col,vDir,y,sd);', // (ciel2) la passe basse aussi : plus de pommelé
       '  if(cielGOn(y,sd))cielGuirlande(col,y,atan(vDir.x,-vDir.z),sd);',
       '  cielVoile(col,y);',
-      '  gl_FragColor=vec4(col+vec3(cielTrame()*uBasTr),1.);}'],
+      '  gl_FragColor=vec4(cielSat(col)+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — NUAGES et ORBITE : la passe lisse relue, + étoiles et lune (des bords au pixel), + la trame
     netN:[LECT,
       'void main(){',
@@ -11427,7 +11475,7 @@ const skyDome=(function(){
     basV:[LECT_TR,'void main(){gl_FragColor=vec4(villeLisse(vDir,vec3(0.))+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
-    cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
+    cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
       'void main(){',
       '  vec3 c=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;',
@@ -13290,6 +13338,14 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
 if(NUJOUR_V)N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
+/* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
+   LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
+   qui s'allège, le fondu près de l'objectif, le fondu d'une zone neuve) mais il ÉCRIT sa profondeur ; les nuages sont rangés en ~100 lots
+   (gabarit × finesse) triés du plus loin au plus près DANS chaque lot, mais pas d'un lot à l'autre — un nuage proche dessiné avant un nuage
+   lointain d'un autre lot le masquait, et le ciel passait par son bord. Depuis la map SANS HAUT NI BAS (des nuages tout autour, très près de la
+   route qui se tord), on ne voyait plus que ça. Le bord devient une TRAME ordonnée (Bayer 4 × 4) : chaque fragment est opaque ou jeté — l'ordre
+   de dessin ne compte plus. Les nuages en instances seulement (le nuage du titre garde son fondu). `?nuages=fondus` = avant. */
+const N8_TRAME=!/[?&]nuages=fondus\b/.test(location.search);
 function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
   const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k in N8_U)U[k]=N8_U[k];
   U.uSunC.value=sun.color;U.uSky.value=hemi.color;U.uGnd.value=hemi.groundColor;
@@ -13345,6 +13401,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
       '#ifdef NUAGE8_INST',
       '  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
+      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125)discard;a=1.;}']:[]), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */
       '#endif',
       ...(N8_VAP?['  if(e9>.01&&a<.02)discard;']:[]), /* (coton-blanc) un bord effiloché n écrit pas sa profondeur : le lobe de derrière le remplit */
       '  gl_FragColor=vec4(col,a);',
@@ -15116,6 +15173,18 @@ const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : 
 const GLACE={k:1,nuages:.45,espace:.5,jade:.55}; // (v11) l'émeraude est polie comme une pierre taillée — (v12) « beaucoup plus brillante » : .5 → .8 // (v9) le jade est POLI : il renvoie le ciel en rasant
 const ROUTE_JADE=[1,1,.96]; /* (2026-10-14, passe graphismes) béton : un rien plus chaud aux PICS DE JADE (c'était [.95,1.04,.86] × la base violette) */ // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
+/* LE BÉTON DE JOUR (2026-10-15 soir, Sacha : « les couleurs en plein jour sont mal gérées ») — MESURÉ sur les photos de course : en plein jour le
+   béton sortait BLEU-VIOLET — nuages midi #5b5fb4 (saturation .37), matin #6d5eb1, forêt midi #516ad5 (.61), canyon midi #9f9cf4 (.80) — et non gris.
+   La cause : la passe « vives » du même jour (Sacha : « les maps sont trop ternes, sature un peu plus ») a teinté le béton lui-même en ardoise bleue
+   (BETON.t .86/.93/1.2), lui a fait prendre 40 % de la couleur de l'air (BETON.amb .22 → .4), puis l'étalonnage sature ×1,18 de plus. De JOUR,
+   le béton revient vers une ardoise NEUTRE (ROUTE_JOUR_T) et ne prend plus que 15 % de l'air ; la nuit garde la passe « vives » telle quelle (et
+   l'orbite, et les routes de jade). ROUTE_NEUTRE = la part (0,85). `?beton=bleu` = avant. */
+const ROUTE_NEUTRE=/[?&]beton=bleu\b/.test(location.search)?0:.85,ROUTE_JOUR_T=[.95,1,.99],ROUTE_T9=[1,1,1];
+/* LE CIEL DE JOUR SANS BLEU ÉLECTRIQUE (même demande) — MESURÉ : le zénith de midi sortait SATURÉ À BLOC, le rouge à ZÉRO — forêt #0058fd, canyon
+   #0044f8 (saturation 1,00) : la passe « vives » (×1,18 sur chaque ambiance) poussait le bleu du ciel hors de l'écran. Le ciel de JOUR garde
+   sa teinte mais sa chroma est ramenée (`cielSat` à la fin des programmes du ciel : plein, passe lisse, canyon) ; la nuit, l'orbite et le ciel de
+   jade ne bougent pas. `?ciel=vif` = avant. */
+const CIEL_DESAT=/[?&]ciel=vif\b/.test(location.search)?0:.5;
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
@@ -15124,8 +15193,11 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   {const j9=Math.max(LVL.mer,0)*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
-  {let rk9=1;try{rk9=BIO.cur.rtK;if(rk9==null)rk9=1;}catch(e9){} /* (2026-10-14, passe graphismes · contrôle) CLARTÉ DU BÉTON PAR AMBIANCE : `rtK` (1 par défaut, voir BIO_ETAL0) multiplie la clarté de niveau ET la teinte — le béton de jour était à L* 50-60 (cible 32-45) */ const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=(b.lift0+b.lift*LVL.route)*rk9,a9=b.amb,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
-    m9=b.t,e9=rk9*(1+(b.ville-1)*LVL.ville)*(1+(b.espace-1)*LVL.espace)*(1-b.mouille*w9);
+  {let rk9=1;try{rk9=BIO.cur.rtK;if(rk9==null)rk9=1;}catch(e9){} /* (2026-10-14, passe graphismes · contrôle) CLARTÉ DU BÉTON PAR AMBIANCE : `rtK` (1 par défaut, voir BIO_ETAL0) multiplie la clarté de niveau ET la teinte — le béton de jour était à L* 50-60 (cible 32-45) */ const jr9=ROUTE_NEUTRE*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.espace||0))*(1-Math.min(1,LVL.jade||0)); /* (2026-10-15 soir) LE BÉTON DE JOUR (voir ROUTE_NEUTRE) */
+   for(let c9=0;c9<3;c9++)ROUTE_T9[c9]=BETON.t[c9]+(ROUTE_JOUR_T[c9]-BETON.t[c9])*jr9;
+   skyU.uSkySat.value=1-CIEL_DESAT*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.espace||0))*(1-Math.min(1,LVL.jade||0)); /* (2026-10-15 soir) LE CIEL DE JOUR SANS BLEU ÉLECTRIQUE (voir CIEL_DESAT) */
+   const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=(b.lift0+b.lift*LVL.route)*rk9,a9=b.amb+(.15-b.amb)*jr9,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
+    m9=ROUTE_T9,e9=rk9*(1+(b.ville-1)*LVL.ville)*(1+(b.espace-1)*LVL.espace)*(1-b.mouille*w9);
    ROAD_U.uLift.value.setRGB(k*(1-a9+a9*f.r/fm),k*(1-a9+a9*f.g/fm),k*(1-a9+a9*f.b/fm)); // la clarté de niveau en gris MINÉRAL (plus de violet), à peine teintée par l'air du lieu
    ROAD_U.uTeinte.value.r*=m9[0]*e9;ROAD_U.uTeinte.value.g*=m9[1]*e9;ROAD_U.uTeinte.value.b*=m9[2]*e9; // le béton mouillé FONCE (la pluie), chaque monde sa teinte
    ROAD_U.uSheen.value*=Math.min(1,w9+js9+b.sheen); // MAT à sec : la brillance d'horizon ne vit que sous la pluie (et sur les routes de jade de Léo)
@@ -17021,7 +17093,7 @@ function genCanyon(rnd){
       BO.push([k0,C.length-1]);};
     let sg0=r()<.5?1:-1;const sens=()=>(sg0=-sg0);                            // les boucles alternent de côté : la piste ne dérive pas
     push();ici('depart');
-    large(340*LL,-.05,(480+r()*200)*RS);ici('breche0');                    // LA VALLÉE DES MITAINES, sur le plateau : presque à plat, en longue courbe
+    r();r();droite(820*LL,-.025,Math.max(2,Math.round(820*LL/90)));ici('breche0'); /* (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite, une vieille station-service et un panneau ROUTE 66 ») LA ROUTE 66 : la vallée des Mitaines en LONGUE LIGNE DROITE (820 m, à peine en pente) — les deux tirages de l'ancienne courbe sont gardés : la suite du canyon ne bouge pas. Avant : large(340*LL,-.05,(480+r()*200)*RS) */
     {const a=(r()<.5?-1:1)*(5+r()*6);arc(a,700*RS,-.2);}
     large(330*LL,-.62);ici('breche1');droite(90*LL,-.25,2);                 // LA BRÈCHE : le grand plongeon dans la gorge — en virage
     virages(380*LL,.30,.55);
@@ -17696,6 +17768,74 @@ function cyMineHeurt(p,M){const S=CY.S;if(!M)return false;let bi=-1,bd=1e18;
     const e=bi<M.i0?M.i0:M.i1,al=(p.x-S.x[e])*S.tx[e]+(p.z-S.z[e])*S.tz[e];if(Math.abs(al)<3&&(a>M.L0-1||p.y>S.y[e]+CY_MINE.MH-1))return true;return false;}
   if(a<M.L0&&p.y>yr+CY_MINE.MH-1.5)return true;                               // le plafond
   return a>M.L0-1.2&&a<M.L0+20&&p.y<yr+CY_MINE.MH+2&&p.y>yr-THICK-3;}       // les murs
+/* LA ROUTE 66 (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite, une vieille station-service
+   et un panneau ROUTE 66 ») — au départ, sur le plateau de la vallée des Mitaines (genCanyon : la droite de 820 m), deux décors posés au
+   sol, à côté de la route (jamais dessus : ils restent à ROAD_HALF + 6 m au moins) :
+   · le PANNEAU ROUTE 66 à 150 m, à gauche : le bouclier blanc bordé de noir sur ses deux poteaux, « ROUTE » et un grand « 66 » en pixels
+     (une police 3 × 5 et 5 × 7 en petits pavés), tourné vers la caisse qui arrive ;
+   · la VIEILLE STATION-SERVICE à 430 m, à droite : le bâtiment crème au bandeau rouge passé, sa porte, sa vitrine, la porte du garage, l'auvent
+     sur deux piliers, l'îlot et ses deux pompes rétro (rouge et turquoise, globes blancs), des fûts rouillés, le dallage fissuré, et le
+     grand mât « GAS » visible de loin.
+   Tout est en pavés à couleurs de sommets, cuits en UNE géométrie aux coordonnées du monde, dessinée par la matière des arbres du canyon
+   (`cyMonuMats().t` : la lumière, l'ombre portée des parois et le brouillard du canyon — aucun programme neuf). Console : dbgCanyon('r66'). */
+const CY_FONTE={R:['XX.','X.X','XX.','X.X','X.X'],O:['.X.','X.X','X.X','X.X','.X.'],U:['X.X','X.X','X.X','X.X','XXX'],T:['XXX','.X.','.X.','.X.','.X.'],
+  E:['XXX','X..','XX.','X..','XXX'],G:['.XX','X..','X.X','X.X','.XX'],A:['.X.','X.X','XXX','X.X','X.X'],S:['.XX','X..','.X.','..X','XX.'],
+  6:['.XXX.','X....','X....','XXXX.','X...X','X...X','.XXX.']};
+function cyRoute66(){
+  const S=CY.S;if(!S||S.n<80)return null;
+  const P=[],C=[],I=[],O=new THREE.Vector3(),Ax=new THREE.Vector3(),Az=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0),g0=new THREE.BoxGeometry(1,1,1);
+  let sd=1,ks=1;const rep=(s9,lat,cote)=>{const i=Math.min(S.n-2,Math.max(1,Math.round(s9/S.ds))),tx=S.tx[i],tz=S.tz[i];sd=cote; // le repère : x vers le dehors de la route, z le long de la route, y en haut
+    Ax.set(-tz*cote,0,tx*cote);Az.set(tx,0,tz);O.set(S.x[i],0,S.z[i]).addScaledVector(Ax,lat);return {i:i,yr:S.y[i]};};
+  const pave=(x,y,z,sx,sy,sz,col,rx,G)=>{const g1=G||g0,b=P.length/3,p=g1.attributes.position,n=g1.index,ca=Math.cos(rx||0),sa=Math.sin(rx||0);
+    for(let k=0;k<p.count;k++){let lx=p.getX(k)*sx,ly=p.getY(k)*sy,lz=p.getZ(k)*sz;if(rx){const t=lx*ca-lz*sa;lz=lx*sa+lz*ca;lx=t;}
+      const wx=(x+lx)*ks,wy=(y+ly)*ks,wz=(z+lz)*ks, /* ks : l'échelle du décor en cours (la station ×1,6 : la route fait 56 m de large) */v=.9+.18*Math.abs(Math.sin((b+k)*12.9898)); // un grain de vieillesse, sommet par sommet
+      P.push(O.x+Ax.x*wx+Az.x*wz,O.y+wy,O.z+Ax.z*wx+Az.z*wz);C.push(col[0]*v,col[1]*v,col[2]*v);}
+    if(n)for(let k=0;k<n.count;k++)I.push(b+n.getX(k));else for(let k=0;k<p.count;k++)I.push(b+k);};
+  const solMin=(pts)=>{let m=1e9;for(const q of pts){const x=O.x+Ax.x*q[0]+Az.x*q[1],z=O.z+Ax.z*q[0]+Az.z*q[1];m=Math.min(m,cyHauteur(x,z));}return m;};
+  const texte=(mot,x0,y0,z,cel,col,ep)=>{let x=x0;for(const ch of mot){const G=CY_FONTE[ch];if(!G){x+=cel*2;continue;}const w=G[0].length; // les pavés d'un mot, lus de GAUCHE à DROITE pour qui regarde vers +z
+      for(let r=0;r<G.length;r++)for(let c=0;c<w;c++)if(G[r][c]==='X')pave(sd*(x+(c+.5)*cel),y0-(r+.5)*cel,z,cel*1.02,cel*1.02,ep,col);x+=(w+1)*cel;}};
+  const larg=mot=>{let n=0;for(const ch of mot){const G=CY_FONTE[ch];n+=(G?G[0].length:1)+1;}return n-1;};
+  const NOIR=[.08,.08,.09],BLANC=[.93,.92,.88],CREME=[.88,.80,.64],ROUGE=[.70,.20,.15],GRIS=[.55,.53,.50],BETON=[.62,.59,.53],ROUILLE=[.52,.26,.13],TURQ=[.22,.62,.60],VITRE=[.20,.32,.38],BOIS=[.42,.30,.20];
+  // ---- LE PANNEAU ROUTE 66 (à gauche, à 150 m) ----
+  {const R9=rep(150,ROAD_HALF+5,-1),sol=solMin([[0,-1],[0,1],[1,0],[-1,0]]),cel=.42,haut=R9.yr+2.2+17*cel*.5; O.y=0;
+   const bas=haut-17*cel*.5;for(const px of [-1.5,1.5])pave(px,(sol+bas)/2,0,.3,Math.max(.5,bas-sol+.3),.3,GRIS);
+   const M=['..KKKKKKKKKKK..','.KWWWWWWWWWWWK.','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KKKKKKKKKKKKKKK',
+     'KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','.KWWWWWWWWWWWK.','..KWWWWWWWWWK..','...KKWWWWWKK...','.....KKKKK.....'];
+   const y0=haut+17*cel*.5;for(let r=0;r<M.length;r++)for(let c=0;c<15;c++){const k=M[r][c];if(k==='.')continue;pave((c-7)*cel,y0-(r+.5)*cel,0,cel,cel,.18,k==='K'?NOIR:BLANC);}
+   const zf=-.13,ct=cel*.47;texte('ROUTE',-larg('ROUTE')*ct/2,y0-1.4*cel,zf,ct,NOIR,.06); // la face tournée vers la caisse qui arrive (−z)
+   const c6=cel*1.07;texte('66',-larg('66')*c6/2,y0-7.6*cel,zf,c6,NOIR,.06);}
+  // ---- LA VIEILLE STATION-SERVICE (à droite, à 430 m) ----
+  {const KS=1.6,R9=rep(430,ROAD_HALF+25,1),RM=26,cx=4*KS,sol=solMin([[cx,0],[cx+RM,0],[cx-RM,0],[cx,RM],[cx,-RM]]),top=R9.yr-.3;
+   /* LA MESA : la route flotte au moins 18 m au-dessus du plateau (la règle d'or du canyon) — posée au sol, la station était cachée sous le
+      bord. Elle trône sur un petit piton de grès aux strates du canyon, son sommet au ras du bitume, à 4 m du bord (elle ne le touche pas). */
+   const STR=[[.96,.89,.78],[.96,.81,.49],[.95,.67,.55],[.89,.50,.34],[.67,.29,.20],[.96,.81,.49],[.69,.61,.72],[.95,.67,.55]];
+   O.y=0;{let y=sol-4,k=0;while(y<top-1.2){const h=Math.min(top-1.2-y,5+((k*37)%5)),r0=RM*(1+.05*Math.sin(k*2.1))+(top-y)*.035,r1=RM*(1+.05*Math.sin(k*2.1+1.3))+(top-y-h)*.035;
+       const cy9=new THREE.CylinderGeometry(r1,r0,h,9,1,false,k*.4);pave(cx,y+h/2,0,1,1,1,STR[k%STR.length],0,cy9);cy9.dispose();y+=h;k++;}
+     const cap=new THREE.CylinderGeometry(RM+.9,RM+.4,1.4,9,1,false,.2);pave(cx,top-.6,0,1,1,1,[.58,.30,.20],0,cap);cap.dispose();} // la corniche : la dalle de grès brun
+   CY.r66m={x:O.x+Ax.x*cx,z:O.z+Ax.z*cx,r:RM+.9,y0:sol-4,y1:top};
+   O.y=top;ks=KS; /* la station, à l'échelle 1,6 */
+   pave(4,-1.2,0,25,2.6,21,BETON);                                                     // le dallage (il descend dans le sol : jamais en l'air)
+   for(let k=0;k<5;k++)pave(-6+k*4.8,.11,-5+((k*7)%10),.12,.02,3.2,[.36,.33,.30],.6); // ses fissures
+   // le bâtiment
+   pave(10,2.2,1,9,4.4,12,CREME);pave(10,3.75,1,9.12,.65,12.12,ROUGE);pave(10,4.55,1,9.8,.35,12.8,[.48,.43,.38]);
+   pave(5.47,1.2,-1.6,.08,2.4,1.5,BOIS);pave(5.47,2.1,2.6,.08,1.5,3.4,VITRE);pave(5.46,2.1,2.6,.1,1.66,.12,CREME);
+   pave(5.47,1.55,-5,.08,3.1,3.3,[.66,.64,.58]);for(let k=0;k<5;k++)pave(5.43,.4+k*.62,-5,.04,.06,3.3,[.48,.46,.42]); // la porte du garage et ses lattes
+   pave(10,5.5,4.5,.5,1.8,.5,[.55,.42,.36]);                                           // la cheminée
+   // l'auvent et l'îlot des pompes
+   pave(-1,4.65,1,8.6,.5,10.5,BLANC);pave(-1,4.95,1,8.7,.12,10.6,ROUGE);for(const pz of [-3.4,5.4])pave(-1,2.2,pz,.38,4.4,.38,BLANC);
+   pave(-1,.13,1,1.6,.26,8.2,BETON);
+   const pompe=(pz,col)=>{pave(-1,1.15,pz,.85,1.9,.62,col);pave(-1.44,1.35,pz,.03,.55,.4,[.92,.88,.74]);pave(-1,2.15,pz,.6,.12,.5,[.2,.2,.2]);
+     const b=P.length/3,gi=new THREE.IcosahedronGeometry(.36,1),p=gi.attributes.position;for(let k=0;k<p.count;k++){const x=(-1+p.getX(k))*ks,y=(2.55+p.getY(k))*ks,z=(pz+p.getZ(k))*ks;P.push(O.x+Ax.x*x+Az.x*z,O.y+y,O.z+Ax.z*x+Az.z*z);C.push(.97,.96,.9);}for(let k=0;k<p.count;k++)I.push(b+k);gi.dispose();
+     pave(-1.3,.9,pz+.42,.06,.06,.5,NOIR);};                                         // le tuyau
+   pompe(-1.2,ROUGE);pompe(3.4,TURQ);
+   for(const f of [[15.6,-4.2],[15.4,-3.2],[16.2,-3.6]])pave(f[0],.45,f[1],.7,.9,.7,ROUILLE); // des fûts rouillés
+   pave(15.8,.95,-3.7,.74,.08,.74,[.4,.2,.1]);
+   // le grand mât « GAS », visible de loin, au bord du dallage
+   pave(-7.5,6,8,.4,12,.4,GRIS);pave(-7.5,12.4,8,4.6,2.6,.36,ROUGE);pave(-7.5,12.4,7.78,4.1,2.1,.1,BLANC);
+   texte('GAS',-7.5*sd-larg('GAS')*.42/2*sd+0,13.45,7.7,.42,ROUGE,.08);ks=1;}
+  g0.dispose();
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+  g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 function cyMonuments(seed){
   if(CY.grp){for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();}}
   const M9=cyMonuMats();CY.grp.visible=true;
@@ -17711,6 +17851,7 @@ function cyMonuments(seed){
     for(let v=0;v<2;v++){const L9=CY.chem.filter(c=>c.v===v);if(!L9.length)continue;const im=new THREE.InstancedMesh(CY.gChem[v],M9.i,L9.length);
       L9.forEach(function(c,k){q9.setFromAxisAngle(ax,c.a);s9.set(c.r/.5,c.h,c.r/.5);p9.set(c.x,c.y,c.z);mt.compose(p9,q9,s9);im.setMatrixAt(k,mt);});
       im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;CY.grp.add(im);}}
+  CY.r66=0;CY.r66m=null;try{const g9=cyRoute66();if(g9){const m=new THREE.InstancedMesh(g9,M9.t,1);m.setMatrixAt(0,new THREE.Matrix4());m.instanceMatrix.needsUpdate=true;m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=false;m.name='canyon route 66';CY.grp.add(m);CY.r66=g9.attributes.position.count;}}catch(e){console.warn('canyon : route 66',e);} /* une INSTANCE : le même programme que les arbres (canyonChauffe le compile au menu) — un Mesh simple en compilait un neuf en course */ // (2026-10-15 soir) la station-service et le panneau ROUTE 66 du départ
   CY.rais=null; // (14/10 soir) les RAIS DE LUMIÈRE retirés : sur la paroi ils se lisaient comme des traînées de ciel étalé (verdict de Sacha)
   CY.grp.updateMatrixWorld(true);
   CY.monu=!!(CY.arche||CY.chem.length);
@@ -17739,6 +17880,7 @@ function cyMonuHeurt(p){
     if(Math.abs(al)<A.W*1.6&&Math.abs(u)<A.Ua){const P=A.P,f=(u+A.Ua)/(2*A.Ua)*(P.length-1),k=Math.max(0,Math.min(P.length-2,Math.floor(f))),w=f-k,yc=P[k].y+(P[k+1].y-P[k].y)*w,e=Math.abs(u/A.Ua),ab=1+1.4*e*e*e;
       if(Math.abs(al)<A.W*.5*ab+1&&Math.abs(p.y-yc)<A.T*.5*ab+1)return true;}}
   for(const c of CY.chem){const dx=p.x-c.x,dz=p.z-c.z;if(dx*dx+dz*dz<(c.r*1.1+1.2)*(c.r*1.1+1.2)&&p.y>c.y&&p.y<c.y+c.h+1)return true;}
+  {const M=CY.r66m;if(M){const dx=p.x-M.x,dz=p.z-M.z;if(dx*dx+dz*dz<(M.r+1.2)*(M.r+1.2)&&p.y>M.y0&&p.y<M.y1+.6)return true;}} // (2026-10-15 soir) la mesa de la station-service : du grès, comme le reste
   return false;}
 function canyonChauffe(){ // au menu (chauffeDivers) : la matière du relief compilée et dessinée une fois hors écran — 0 programme en course
   if(!CANYON_OK)return;cyTerrain();const m=CY.mesh,v=m.visible,n=CY.geo.instanceCount;CY.geo.instanceCount=1;CY.aN.array[2]=64;m.visible=true;
@@ -17762,7 +17904,7 @@ window.dbgCanyon=function(k,a,b,c){
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:CY.n};}
-  return {on:CY.on,ms:CY.ms,noeuds:CY.n,sep:CY.sep,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
+  return {on:CY.on,r66:CY.r66|0,ms:CY.ms,noeuds:CY.n,sep:CY.sep,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
     ciel:CIEL2.mode,attente:!!CY.attente,sQ:CY.sQ,L:Math.round(L),buttes:CY.buttes?CY.buttes.length:0,soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+CY.ombre.toFixed(2),prof:+CY.prof.toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:CY.on?+(carGroup.position.y-cyHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* <<<BANQUISE>>> */
@@ -18225,7 +18367,73 @@ function bkMesh(root,K,mat,nom){if(!K.P.length)return null;const g=new THREE.Buf
   g.setAttribute('aB',new THREE.Float32BufferAttribute(K.B,3));g.setAttribute('aP',new THREE.Float32BufferAttribute(K.A,4));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,mat);m.name=nom;m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);return m;}
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la banquise) ---------------- */
+/* LES STALACTITES QUI SE BRISENT (2026-10-15 soir, Sacha : « retravaille les stalactites sous la route de montagne : faut qu'ils se brisent
+   de manière satisfaisante quand on les traverse, avec un son de bris de verre »). Avant : un décor fondu dans les morceaux de la banquise,
+   la caisse passait au travers sans rien. Maintenant chaque glaçon est NOTÉ à la construction (buildBanq § 5 : base, pointe, rayon, ses 15
+   sommets dans la toile de son morceau — `stalNote`) et rangé dans une grille de 24 m ; chaque image, `stalTick` cherche ceux que la caisse
+   traverse (le segment base → pointe contre le centre de la caisse, la largeur d'un pare-chocs) et `stalBris` :
+   · le glaçon DISPARAÎT de son morceau (ses sommets ramenés sur sa pointe : des triangles nuls ; une seule remontée par morceau et par image) ;
+   · il ÉCLATE en ÉCLATS DE VERRE qui tournoient et retombent (`STAL_ECL` : 72 tétraèdres étirés en UN InstancedMesh, cristal translucide,
+     recyclés), emportés par l'élan de la caisse, + la poudre de glace et les étincelles cyan de la banquise (fx.poudre, fx.eclat) ;
+   · le son `banq.bris` (le CRAC, les éclats de verre qui tintent et retombent, un petit doum dessous) — 70 ms au moins entre deux, plus fort
+     pour un gros glaçon ou un LUSTRE, panoramiqué du côté du choc ; une secousse et un coup dans la main.
+   Rien ne tue : on les traverse. Console : `dbgStal()` (comptes) · `dbgStal('bris',n)` (brise les n glaçons les plus proches de la caisse). */
+const STAL={g:new Map(),C:24,n:0,bris:0,maj:[],v:new THREE.Vector3(),q:new THREE.Vector3(),w:new THREE.Vector3(),tSon:0,kSon:0};
+function stalCle(x,z){return Math.floor(x/STAL.C)*100003+Math.floor(z/STAL.C);}
+function stalNote(m,G){for(const o of G){o.m=m;const k=stalCle(o.x,o.z);let a=STAL.g.get(k);if(!a)STAL.g.set(k,a=[]);a.push(o);STAL.n++;}}
+const STAL_ECL=(function(){const N=72,g=new THREE.TetrahedronGeometry(.42,0);g.scale(.55,1.9,.55);
+  const m=new THREE.MeshPhongMaterial({color:0xd8f6ff,emissive:0x2a6f8f,emissiveIntensity:.55,specular:0xffffff,shininess:120,flatShading:true,transparent:true,opacity:.82,depthWrite:false});
+  const im=new THREE.InstancedMesh(g,m,N);im.frustumCulled=false;im.renderOrder=7;im.name='stalactites éclats';im.count=1; // une fois dessinée au départ (au menu) : le programme est compilé
+  const M4=new THREE.Matrix4();M4.makeTranslation(0,-1e5,0);im.setMatrixAt(0,M4);im.instanceMatrix.needsUpdate=true;
+  im.onAfterRender=function(){im.count=0;delete im.onAfterRender;};scene.add(im);
+  const L=[];for(let i=0;i<N;i++)L.push({p:new THREE.Vector3(),v:new THREE.Vector3(),q:new THREE.Quaternion(),w:new THREE.Vector3(),s:1,t:0,life:0,on:false});
+  return {im:im,L:L,i:0,M4:M4,S:new THREE.Vector3(),Q:new THREE.Quaternion(),E:new THREE.Euler(),n:0};})();
+function stalBris(o,vit){ // le glaçon o se brise ; vit : la vitesse de ce qui le traverse (m/s)
+  if(o.bris)return;o.bris=true;STAL.bris++;
+  const A=o.m&&o.m.geometry.getAttribute('position');
+  if(A){for(let k=0;k<15;k++){const j=(o.v0+k)*3;A.array[j]=o.tx;A.array[j+1]=o.ty;A.array[j+2]=o.tz;}if(STAL.maj.indexOf(A)<0)STAL.maj.push(A);}
+  const E=STAL_ECL,gros=Math.min(1.6,o.lg/6),n=Math.min(16,5+Math.round(o.lg*1.2)),fx=BANQ.fx;
+  for(let i=0;i<n;i++){const e=E.L[E.i];E.i=(E.i+1)%E.L.length;const u=Math.random();
+    e.p.set(o.x+(o.tx-o.x)*u,o.y+(o.ty-o.y)*u,o.z+(o.tz-o.z)*u);
+    const a=Math.random()*6.283,sp=3+Math.random()*7;
+    e.v.copy(vit).multiplyScalar(.25+Math.random()*.25);e.v.x+=Math.cos(a)*sp;e.v.z+=Math.sin(a)*sp;e.v.y+=1+Math.random()*4;
+    e.q.set(Math.random()-.5,Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();e.w.set((Math.random()-.5)*16,(Math.random()-.5)*16,(Math.random()-.5)*16);
+    e.s=(.5+Math.random()*.9)*(.6+.5*gros)*(o.r>.6?1.4:1);e.t=0;e.life=1.4+Math.random()*1.2;e.on=true;}
+  if(fx&&fx.poudre)for(let i=0;i<10+n;i++){const u=Math.random();spawnP(fx.poudre,o.x+(o.tx-o.x)*u,o.y+(o.ty-o.y)*u,o.z+(o.tz-o.z)*u,vit.x*.2+(Math.random()-.5)*6,(Math.random()-.2)*4,vit.z*.2+(Math.random()-.5)*6,.6+Math.random()*.7);}
+  if(fx&&fx.eclat)for(let i=0;i<8+n;i++){const u=Math.random();spawnP(fx.eclat,o.x+(o.tx-o.x)*u,o.y+(o.ty-o.y)*u,o.z+(o.tz-o.z)*u,(Math.random()-.5)*14,(Math.random()-.3)*10,(Math.random()-.5)*14,.3+Math.random()*.4);}
+  const n9=performance.now();STAL.kSon=Math.max(STAL.kSon,gros);
+  if(n9-STAL.tSon>70){STAL.tSon=n9;
+    STAL.q.set(o.x,o.y,o.z).sub(camera.position);const cr=STAL.w.set(1,0,0).applyQuaternion(camera.quaternion).dot(STAL.q)/Math.max(1,STAL.q.length());
+    try{if(SONV2)sfx('banq.bris',{vol:-5+5*Math.min(1,STAL.kSon),pan:Math.max(-.7,Math.min(.7,cr)),rate:1.08-.12*Math.min(1,STAL.kSon)});}catch(e){}
+    STAL.kSon=0;hap(8);shake=Math.max(shake,.12+.1*gros);}}
+function stalTick(dt){ // banqTick, chaque image : les glaçons traversés, puis les éclats
+  if(STAL.n&&started&&!gameOver&&mode!=='boom'&&!paused){if(mode==='fall')STAL.v.copy(fallVel);else STAL.v.copy(F.t).multiplyScalar(vA*driveDir);stalTouche(carGroup.position,STAL.v);}
+  for(const A of STAL.maj)A.needsUpdate=true;STAL.maj.length=0;
+  stalEclats(dt);}
+function stalTouche(P,V){let n=0;const C=STAL.C,bx=Math.floor(P.x/C),bz=Math.floor(P.z/C); // les glaçons que traverse le point P (le centre de la caisse) — rend combien
+    for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=STAL.g.get((bx+dx)*100003+bz+dz);if(!a)continue;
+      for(let j=0;j<a.length;j++){const o=a[j];if(o.bris)continue;
+        if(P.y>o.y+1.2||P.y<o.ty-1.6)continue;
+        const sx=o.tx-o.x,sy=o.ty-o.y,sz=o.tz-o.z,l2=sx*sx+sy*sy+sz*sz||1,u=Math.max(0,Math.min(1,((P.x-o.x)*sx+(P.y-o.y)*sy+(P.z-o.z)*sz)/l2));
+        const qx=o.x+sx*u-P.x,qy=o.y+sy*u-P.y,qz=o.z+sz*u-P.z,R9=1.5+o.r*(1-u*.7);
+        if(qx*qx+qy*qy+qz*qz<R9*R9){stalBris(o,V);n++;}}}
+  return n;}
+function stalEclats(dt){const E=STAL_ECL;
+  let n=0;if(!paused)for(const e of E.L){if(!e.on)continue;e.t+=dt;if(e.t>=e.life){e.on=false;continue;}
+    e.v.y-=22*dt;e.v.multiplyScalar(1-.6*dt);e.p.addScaledVector(e.v,dt);E.Q.setFromEuler(E.E.set(e.w.x*dt,e.w.y*dt,e.w.z*dt));e.q.multiply(E.Q);
+    const k=e.s*Math.min(1,(e.life-e.t)/.35);E.S.set(k,k,k);E.M4.compose(e.p,e.q,E.S);E.im.setMatrixAt(n++,E.M4);}
+  else for(const e of E.L)if(e.on){const k=e.s*Math.min(1,(e.life-e.t)/.35);E.S.set(k,k,k);E.M4.compose(e.p,e.q,E.S);E.im.setMatrixAt(n++,E.M4);}
+  if(n||E.n){E.im.count=n;E.im.instanceMatrix.needsUpdate=true;}E.n=n;}
+function stalEteint(){const E=STAL_ECL;for(const e of E.L)e.on=false;if(E.n){E.im.count=0;E.n=0;}}
+window.dbgStal=function(a,k){if(a==='test'){const P=carGroup.position;let b=null,bd=1e18;STAL.g.forEach(function(A){for(const o of A)if(!o.bris){const d=(o.x-P.x)**2+(o.z-P.z)**2;if(d<bd){bd=d;b=o;}}}); // la géométrie du choc : à 3,5 m du glaçon rien, à 0,8 m il casse
+    if(!b)return null;const m=new THREE.Vector3((b.x+b.tx)/2,(b.y+b.ty)/2,(b.z+b.tz)/2),v=new THREE.Vector3(0,0,30);
+    const loin=stalTouche(m.clone().add(new THREE.Vector3(3.5,0,0)),v),pres=stalTouche(m.clone().add(new THREE.Vector3(.8,0,0)),v);return {loin:loin,pres:pres,lg:+b.lg.toFixed(1),r:+b.r.toFixed(2)};}
+  if(a==='bris'){const P=carGroup.position,L=[];STAL.g.forEach(function(A){for(const o of A)if(!o.bris)L.push(o);});
+    L.sort(function(p,q){return (p.x-P.x)**2+(p.y-P.y)**2+(p.z-P.z)**2-((q.x-P.x)**2+(q.y-P.y)**2+(q.z-P.z)**2);});
+    const n=Math.max(1,k|0);for(let i=0;i<n&&i<L.length;i++)stalBris(L[i],STAL.v.set(0,0,30));return {brises:Math.min(n,L.length),premier:L[0]?{x:+L[0].x.toFixed(1),y:+L[0].y.toFixed(1),z:+L[0].z.toFixed(1),lg:+L[0].lg.toFixed(1)}:null};}
+  return {glacons:STAL.n,brises:STAL.bris,cases:STAL.g.size,eclats:STAL_ECL.n};};
 function banqVide(){
+  STAL.g.clear();STAL.n=0;STAL.bris=0;STAL.maj.length=0;
   BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.lacs=[];BANQ.lacG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
   if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
   BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();
@@ -18281,21 +18489,21 @@ function buildBanq(seed){
   tp('pics');
   // ---- 5. LES STALACTITES sous la dalle : des glaçons le long des deux bords, et des lustres sous le milieu ----
   {const KS=PAL_BK('banqStal',1),st=Math.max(1,Math.round(7/ds/KS));BANQ.n.stalactites=0;
-    const glacon=(K,cx,cy,cz,Lg,r,rg)=>{const n=5,tip=[cx+(rg()-.5)*r*.6,cy-Lg,cz+(rg()-.5)*r*.6],R9=[],rot=rg()*6.28;
+    const glacon=(K,cx,cy,cz,Lg,r,rg)=>{const n=5,tip=[cx+(rg()-.5)*r*.6,cy-Lg,cz+(rg()-.5)*r*.6],R9=[],rot=rg()*6.28;if(K.G)K.G.push({x:cx,y:cy,z:cz,tx:tip[0],ty:tip[1],tz:tip[2],r:r,lg:Lg,v0:K.P.length/3,m:null,bris:false}); /* (2026-10-15 soir) STAL : on le note pour qu'il se BRISE (stalBris) */
       for(let a=0;a<n;a++){const th=rot+a/n*6.2832;R9.push([cx+Math.cos(th)*r,cy,cz+Math.sin(th)*r]);}
       for(let a=0;a<n;a++){const p=R9[a],q=R9[(a+1)%n],ux=q[0]-p[0],uy=q[1]-p[1],uz=q[2]-p[2],vx=tip[0]-p[0],vy=tip[1]-p[1],vz=tip[2]-p[2];
         let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const mx=(p[0]+q[0]+tip[0])/3-cx,mz=(p[2]+q[2]+tip[2])/3-cz;if(nx*mx+nz*mz<0){nx=-nx;ny=-ny;nz=-nz;}const l=Math.hypot(nx,ny,nz)||1;
         bkTri(K,p,q,tip,nx/l,ny/l,nz/l,1,1,0,rg(),3);}BANQ.n.stalactites++;};
     const i0=Math.round(200/ds),i9=NP-Math.round(60/ds),pk=Math.max(st,Math.round(300/ds/st)*st);
     for(let ia=i0,k=0;ia<i9;ia+=pk,k++){const ib=Math.min(i9,ia+pk),rg=mulberry32(((seed^0x57A1C)+k*7919)>>>0),pm=pts[Math.min(NP-1,(ia+ib)>>1)];
-      bkTache(pm.x,pm.z,function(){const K=bkLot();
+      bkTache(pm.x,pm.z,function(){const K=bkLot();K.G=[];
         for(let i=ia;i<ib;i+=st){const p=pts[i],b=B[i],nn=Nn[i];let air=p.y-THICK-bkSolH(p.x,p.z);
           proches(p.x,p.z,ROAD_HALF*2+8,function(j){if(Math.abs(j-i)*ds<160)return;const q=pts[j];if(q.y<p.y-8&&(q.x-p.x)**2+(q.z-p.z)**2<(ROAD_HALF*2+8)**2){const c=p.y-THICK-q.y-7;if(c<air)air=c;}}); // (le GLACIER) jamais jusqu'à la route d'en dessous
           for(const sg of [-1,1]){if(rg()<.28)continue;const l=sg*(ROAD_HALF-.6-rg()*1.4),x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97;
             const Lg=Math.min(air-4,1+Math.pow(rg(),2.2)*6.5);if(Lg>.6)glacon(K,x,y,z,Lg,.18+Lg*.05+rg()*.15,rg);}
           if(rg()<.16&&air>14){const n9=3+((rg()*3)|0);for(let q=0;q<n9;q++){const l=(rg()-.5)*ROAD_HALF*1.3,x=p.x+b.x*l-nn.x*THICK*.97,y=p.y+b.y*l-nn.y*THICK*.97,z=p.z+b.z*l-nn.z*THICK*.97; // un LUSTRE
             const Lg=Math.min(air-6,4+rg()*10);if(Lg>2)glacon(K,x+(rg()-.5)*3,y,z+(rg()-.5)*3,Lg,.45+Lg*.06,rg);}}}
-        const m=bkMesh(root,K,M.pic,'banquise stalactites');if(m)BANQ.picM.push(m);});}}
+        const m=bkMesh(root,K,M.pic,'banquise stalactites');if(m){BANQ.picM.push(m);stalNote(m,K.G);}});}}
   tp('stal');
   // ---- la physique des pics en grille de 120 m ----
   {const CG=120,G=new Map();for(const P of PH){const r=P.r,i0=Math.floor((P.cx-r)/CG),i1=Math.floor((P.cx+r)/CG),j0=Math.floor((P.cz-r)/CG),j1=Math.floor((P.cz+r)/CG);
@@ -18536,7 +18744,7 @@ function banqFx(){const fx=BANQ.fx;if(fx.flo)return fx;const M=banqMats(),R=mulb
   fx.poudre=makePool(PAL_BK('banqPoudre',520),2.3,0xf4f8ff,.78,true,{a:[.06,.6,.75,1.35],pr:[2,6,26,0]});fx.poudre.drag=1.6;fx.poudre.acc=12;fx.poudre.mesh.name='banquise poudre';
   fx.givre=makePool(240,1.1,0xe4fbff,1,true,{a:[.02,.3,.6,1],pr:[2,6,26,0]});fx.givre.drag=2.4;fx.givre.acc=9;fx.givre.mesh.name='banquise givre';
   // (2026-10-15 soir) LA GLISSE SUR LE VERGLAS : des éclats ÉTIRÉS (le trait suit leur vitesse, voir ptShader) et un voile de givre qui gonfle en s'effaçant
-  fx.eclat=makePool(PAL_BK('banqEclat',700),.8,0x8fe4ff,1,true,{a:[.02,.35,1,.35],pr:[1.2,3.5,30,90],etire:true,str:.05,v:.6}); // cyan glacier : blanc sur la glace blanche, on ne les voyait pasfx.eclat.drag=1.4;fx.eclat.acc=14;fx.eclat.mesh.name='banquise eclats';
+  fx.eclat=makePool(PAL_BK('banqEclat',700),.8,0x8fe4ff,1,true,{a:[.02,.35,1,.35],pr:[1.2,3.5,30,90],etire:true,str:.05,v:.6}); /* cyan glacier : blanc sur la glace blanche, on ne les voyait pas — (2026-10-15 soir) ce commentaire en // avalait la suite (drag, acc, nom) : rendu */fx.eclat.drag=1.4;fx.eclat.acc=14;fx.eclat.mesh.name='banquise eclats';
   fx.brume=makePool(PAL_BK('banqBrume',220),3.4,0xe2f2ff,.5,true,{a:[.10,.75,.45,1.7],pr:[2.5,7,120,0]}); // (plafond 120 px : à 46, le voile n'était qu'un point blanc sur la glace blanche)fx.brume.drag=2.4;fx.brume.mesh.name='banquise brume';
   fx.eclat.mesh.renderOrder=fx.brume.mesh.renderOrder=9; // ⚠ APRÈS la plaque de verglas (renderOrder 1, transparente) et les traces (2) : dessinées avant, elles étaient repeintes par la glace — invisibles au banc
   bkTraceMesh();
@@ -18554,7 +18762,7 @@ function banqPas(dt){if(!BANQ.cur||BANQ.k>=1)return;BANQ.k=Math.min(1,BANQ.k+dt/
 /* ---------------- LA BOUCLE DE LA BANQUISE (chaque image, après la caméra, juste avant le rendu) ---------------- */
 function banqTick(dt){
   const on=!!BANQ.root&&!!LVL.cur&&LVL.cur.id==='banquise'&&!PARK.on;
-  if(!on){banqFxCache();return;}
+  if(!on){banqFxCache();stalEteint();return;}
   const fx=banqFx(),U=BK_U,c=BANQ.cur||(banqMeteo(BANQ.met,.01),BANQ.cur);fx.on=true;
   const vit=!paused;banqPas(dt);if(vit)U.uTime.value+=dt;
   if(BANQ.file.length)bkTranches(paused||!started?8:3); // LA SUITE DE LA CONSTRUCTION : ~3 ms par image, du plus proche au plus loin
@@ -18577,6 +18785,7 @@ function banqTick(dt){
   if(BK_TR.mesh)BK_TR.mesh.visible=true;
   if(BANQ.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   if(BANQ.picM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.picM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
+  try{stalTick(dt);}catch(e){window.__banqErr=e;} /* (2026-10-15 soir) LES STALACTITES QUI SE BRISENT */
   if(vit){try{updatePool(fx.poudre,dt,0);updatePool(fx.givre,dt,0);updatePool(fx.eclat,dt,0);updatePool(fx.brume,dt,0);}catch(e){}}
   if(BANQ.fid!==flightId){BANQ.fid=flightId;BANQ.figs={};BANQ.lent=0;}
   if(mode==='fall'&&vit&&started&&!gameOver)banqVolFx(dt);
@@ -25276,7 +25485,13 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter'},
   saturne:{teinte:0x6c5e4a,atmo:0xf0dca0,limbe:0xe8d090,rim:.3,peint:'saturne'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
 if(PLANETES_ON){SF_CARTES.espace.m.midi.astre=Object.assign({echelle:1.35},PLANETES.mars);SF_CARTES.espace.m.soir.astre=Object.assign({echelle:1.35},PLANETES.jupiter);} /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de variante satellites (Saturne) */ // (Sacha a validé) matin = Terre (rien), midi = Mars, soir = Jupiter, satellites = Saturne
-if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
+if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
+/* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
+   Depuis LA MAP SANS HAUT NI BAS, le dôme est replié (uSym) et la caméra roule avec la route : l'horizon PÊCHE de la bible (jHor .95,.80,.64 à midi,
+   1,.74,.52 le matin), saturé par l'étalonnage jusqu'à #f8b571 (MESURÉ), devenait une bande orange qui barrait le ciel — en travers, en diagonale,
+   à la verticale quand la dalle se couche. À midi le lointain est une BRUME DE CIEL (bleu très pâle) ; le matin, une crème à peine dorée. Les
+   copies de course seulement (le menu garde matin/midi). `?ciel=peche` = avant. */
+if(SIG_V.nuagesjour&&!/[?&]ciel=peche\b/.test(location.search)){Object.assign(BIOMES.nuagesMidiCC,{jHor:[.80,.88,.98],jSol:[.80,.88,.98],fogCj:[.90,.92,.96]});Object.assign(BIOMES.nuagesMatinCC,{jHor:[.97,.91,.84],jSol:[.97,.91,.84],fogCj:[.98,.90,.82]});} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
 /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») */ // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
@@ -27044,7 +27259,12 @@ function trxVit(p,vk){const C=TRX.C,k=C.pv?(vk>=.999?0:-Math.max(1-vk,.35)):vk;p
 function trxQ(L,md,px,py,pz,a0,a1,a2,a3,b0,b1,b2,cell,r,g,b,al){const Y=TRX.L[L];if(Y.n>=TRX_N||al<=.003)return;const o=Y.n*4,A=Y.a;
   A.iP[o]=px;A.iP[o+1]=py;A.iP[o+2]=pz;A.iP[o+3]=md;A.iA[o]=a0;A.iA[o+1]=a1;A.iA[o+2]=a2;A.iA[o+3]=a3;
   A.iB[o]=b0;A.iB[o+1]=b1;A.iB[o+2]=b2;A.iB[o+3]=cell;A.iC[o]=r;A.iC[o+1]=g;A.iC[o+2]=b;A.iC[o+3]=al;Y.n++;}
-function trxParts(dt){let n=0;const E=TRX.C.pv?1:1.35; // en course la caisse est petite dans l'image : les sprites grossissent d'un tiers (mesuré au banc)
+/* (2026-10-15 soir, Sacha : « toutes les traînées désirables ») LES OBJETS DES TRAÎNÉES QU'ON VOIT — VU au banc : de la caméra de poursuite, un pétale
+   de 10-16 cm, un anneau de 21 cm, un billet de 30 cm faisaient 2 à 4 pixels : on ne voyait pas ce qu'on avait acheté. En course, les OBJETS (couche 0 :
+   pétales, anneaux, billets, blocs, pastilles) ×2,3 et les LUEURS (couche 1 : code, étincelles, éclats) ×1,6 ; les flammes posées au sol (88 À L'HEURE)
+   ×1,2. Le garage (l'aperçu) ne bouge pas. `?trainee=signal` rend aussi les tailles d'avant. */
+const TRX_GROS=/[?&]trainee=signal\b/.test(location.search)?[1.35,1.35]:[2.3,1.6],TRX_DENSE=!/[?&]trainee=signal\b/.test(location.search); // TRX_DENSE : en course, plus de pétales (×1,6), de billets, d'anneaux et de blocs (×1,4-1,5)
+function trxParts(dt){let n=0;const E0=TRX.C.pv?1:TRX_GROS[0],E1=TRX.C.pv?1:TRX_GROS[1]; // en course la caisse est petite dans l'image : les sprites grossissent — (2026-10-15 soir) ×1,35 → les OBJETS ×2,3, les lueurs ×1,6 (voir TRX_GROS)
   for(const p of TRX.P){if(!p.v)continue;p.a+=dt;if(p.a>=p.l){p.v=false;continue;}n++;
     if(p.dr){const e=Math.exp(-p.dr*dt);p.vx*=e;p.vy*=e;p.vz*=e;}
     p.vy+=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
@@ -27057,7 +27277,7 @@ function trxParts(dt){let n=0;const E=TRX.C.pv?1:1.35; // en course la caisse es
     if(p.md===1){const ln=p.ln*Math.min(1,p.a/p.gr)*.5;
       trxQ(p.L,1,p.x-p.dx*ln,p.y-p.dy*ln,p.z-p.dz*ln,p.dx*ln,p.dy*ln,p.dz*ln,p.w*sz,0,0,0,p.c,p.cr,p.cg,p.cb,al);continue;}
     let xs=1,cel=p.c;if(p.fl){const c=Math.cos(p.a*p.fl+p.fp);xs=Math.max(.08,Math.abs(c));if(c<0&&p.c2>=0&&!p.cf)cel=p.c2;} // il TOURNE : écrasé, puis son revers
-    const hh=p.h*sz*E;let X=p.x,Y=p.y,Z=p.z;if(p.an){X+=p.ux*hh;Y+=p.uy*hh;Z+=p.uz*hh;}               // posé par le pied (la flamme)
+    const E=p.L?(p.an?1.2:E1):E0,hh=p.h*sz*E;let X=p.x,Y=p.y,Z=p.z;if(p.an){X+=p.ux*hh;Y+=p.uy*hh;Z+=p.uz*hh;}               // posé par le pied (la flamme)
     trxQ(p.L,0,X,Y,Z,p.r,p.w*sz*xs*E,hh,0,0,0,0,cel,p.cr,p.cg,p.cb,al);}
   return n;}
 function trxHist(k){const H=TRX.H,C=TRX.C,N=TRX_HN; // en course : le chemin s'écrit (la tête en 0)
@@ -27109,7 +27329,7 @@ const TRX_EMET={
         p.l=l0-j*.07;p.w=p.h=.15;p.c0=4;p.cn=8;p.c=4+((Math.random()*8)|0);p.cf=.05+Math.random()*.1;p.fo=.35;p.fi=.04;
         if(j===0){p.cr=1.3;p.cg=2.1;p.cb=1.4;}else{const f=1-j*.13;p.cr=.12*f;p.cg=1.45*f;p.cb=.35*f;}}}},
   anneaux:function(T,C,k,dt,on,debut){if(!on)return; // ANNEAUX D'OR — ils s'échappent comme d'un hérisson qui vient de se cogner, tournent, rebondissent dans l'air, CLIGNOTENT et disparaissent
-    let nb=0;T.acc+=dt*(C.pv?9:12)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?8:14;
+    let nb=0;T.acc+=dt*(C.pv?9:TRX_DENSE?17:12)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?8:14;
     for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const sl=(Math.random()-.5)*7,su=2.5+Math.random()*3.5,sa=1+Math.random()*2,ol=(Math.random()-.5)*.6;
       p.x=C.P.x+C.R.x*ol+C.U.x*.25;p.y=C.P.y+C.R.y*ol+C.U.y*.25;p.z=C.P.z+C.R.z*ol+C.U.z*.25;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.88);
@@ -27156,20 +27376,20 @@ const TRX_EMET={
     for(const B of T.bolts){if(!B.on)continue;B.a+=dt;if(B.a>=B.l){B.on=false;continue;} // chaque éclair vit 0,1-0,18 s : il éclate à sa naissance et vacille
       const f=(1-B.a/B.l)*(.7+Math.random()*.3);trxBolt(B.p,B.n,f,1);trxBolt(B.q,B.bn,f*.8,.6);}},
   blocs:function(T,C,k,dt,on,debut){if(!on)return; // PLUIE DE BLOCS — les sept pièces tombent en tournant PAR QUARTS, comme dans le puits
-    let nb=0;T.acc+=dt*(C.pv?7:8)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=4;
+    let nb=0;T.acc+=dt*(C.pv?7:TRX_DENSE?12:8)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=4;
     for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*1.4,up=.3+Math.random()*.8,sl=(Math.random()-.5)*3,su=1.5+Math.random()*2.5;
       p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*1.5;p.vy=C.R.y*sl+C.U.y*su-C.F.y*1.5;p.vz=C.R.z*sl+C.U.z*su-C.F.z*1.5;trxVit(p,.86);
       p.g=-8;p.l=1.5+Math.random()*.4;p.w=p.h=.32;p.c=20+((Math.random()*7)|0);p.r=((Math.random()*4)|0)*1.5708;p.sn=.2;p.sg=Math.random()<.5?1:-1;p.fo=.3;}},
   sakura:function(T,C,k,dt,on){if(!on)return; // SAKURA — une pluie de pétales qui volettent, tournoient et se balancent en tombant
-    T.acc+=dt*(C.pv?20:32)*k;
+    T.acc+=dt*(C.pv?20:TRX_DENSE?50:32)*k; /* (2026-10-15 soir) une vraie pluie de pétales en course */
     while(T.acc>=1){T.acc-=1;const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*1.6,up=Math.random()*.9,ar=Math.random()*.5,sl=(Math.random()-.5)*2.6,su=.4+Math.random()*1.4,sa=Math.random()*1.2;
       p.x=C.P.x+C.R.x*lat+C.U.x*up-C.F.x*ar;p.y=C.P.y+C.R.y*lat+C.U.y*up-C.F.y*ar;p.z=C.P.z+C.R.z*lat+C.U.z*up-C.F.z*ar;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.88);
       p.g=-1.2;p.dr=.9;p.sw=1.1;p.sf=3+Math.random()*2;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*5;p.fl=3+Math.random()*5;
       p.l=1.8+Math.random()*.9;p.w=p.h=.1+Math.random()*.06;p.c=27+((Math.random()*3)|0);p.fi=.12;p.fo=.6;}},
   billets:function(T,C,k,dt,on,debut){if(!on)return; // FAIS PLEUVOIR — des billets qui jaillissent, tournoient (recto, verso) et planent
-    let nb=0;T.acc+=dt*(C.pv?8:12)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?10:18;
+    let nb=0;T.acc+=dt*(C.pv?8:TRX_DENSE?19:12)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?10:18;
     for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*.8,up=.3+Math.random()*.7,sl=(Math.random()-.5)*7,su=2+Math.random()*3.5,sa=1+Math.random()*2.5;
       p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.86);
@@ -27774,6 +27994,17 @@ const NFEU_P10={f:NFEU_TEINTE?[[2.95,2.87,2.58],[2.3,2.03,1.51],[1.91,1.53,.99],
   v:NFEU_TEINTE?[[2.81,2.78,2.78],[2.85,2.72,2.92],[1.68,1.4,1.92],[1.05,.79,1.34],[.79,.58,1.07],[.94,.61,1.53],[.57,.36,.86],[.28,.21,.38],[.13,.087,.16],[.2,.16,.22]]:NFEU_P10_AVANT.v,
   m:[[1.5,1.75,2.5],[2.2,1.95,1.5],[2.3,1.55,.6],[2.15,1.05,.22],[1.95,.78,.12],[1.85,.6,.08],[1.62,.42,.06],[1.3,.24,.04],[.7,.1,.03],[.2,.17,.17]]}; // m : le feu du MOTEUR — un pied BLEUTÉ, comme un vrai échappement, puis l'orange (qui tient : un retour de flamme est orange, pas rouge)
 const NFEU_FIN={taille:.73,taux:1.7,pas:0},NFEU_SOL={det:.45,vent:.9};
+/* (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables ») LE FEU À LA COULEUR DE LA TRAÎNÉE — VU au
+   banc : derrière la caisse, le plus gros, c'est le FEU DE PIXELS du nitro, et il restait orange (bleu en réserve, violet en infini) quelle que soit la
+   traînée achetée : MENTHE, ROSE, POUDRE D'OR… ne se voyaient qu'en un filet. Avec une traînée de la boutique, le feu prend SA couleur : dix nuances
+   tirées d'elle, comme celles du feu orange (le cœur chauffé à blanc, la couleur pleine, la braise, la fumée). La réserve et l'infini restent lisibles :
+   le feu y tire vers le bleu / le violet (le cœur 8 %, la braise et la fumée 30 %). `?trainee=signal` = le feu d'avant. */
+const NFEU_TR={cle:'',pal:null,b:null,v:null};
+function nfeuPalTrainee(){if(TRAINEE_SIGNAL||typeof FX_EFF==='undefined'||!FX_EFF||!FX_EFF.teinte)return null;const c=FX_EFF.teinte,cle=c.join(',');if(NFEU_TR.cle===cle)return NFEU_TR;
+  const m=Math.max(c[0],c[1],c[2],.05),n=[c[0]/m,c[1]/m,c[2]/m],LV=[2.4,2.3,2.2,2.05,1.85,1.62,1.38,1.08,.6],W=[.3,.55,.78,.92,1,1,1,1,1],P=[];
+  for(let i=0;i<9;i++){const l=LV[i],w=W[i];P.push([l*(1-w+w*n[0]),l*(1-w+w*n[1]),l*(1-w+w*n[2])]);}P.push([.2,.17,.17]);
+  const mix=(A,B,k)=>A.map(function(a,i){return [a[0]+(B[i][0]-a[0])*k,a[1]+(B[i][1]-a[1])*k,a[2]+(B[i][2]-a[2])*k];});
+  NFEU_TR.cle=cle;NFEU_TR.pal=P;NFEU_TR.b=mix(P,NFEU_P10.b,.3);NFEU_TR.v=mix(P,NFEU_P10.v,.3);for(let i=0;i<3;i++){NFEU_TR.b[i]=mix([P[i]],[NFEU_P10.b[i]],.08)[0];NFEU_TR.v[i]=mix([P[i]],[NFEU_P10.v[i]],.08)[0];}return NFEU_TR;} /* le CŒUR garde la couleur achetée (8 %), la braise et la fumée disent la réserve (30 %) */
 /* (2026-10-15, Léo : « ce qui manque, c'est la physique de la vitesse : là on dirait du slime ; ça devrait avoir l'air PROPULSÉ, plus dynamique, mais
    smooth le mouvement ») LE JET PROPULSÉ (`NFEU_JET`) : le feu SORT du pot à 13-26 m/s (×3-4), freine fort (le gaz s'étale dans l'air), vit moins
    longtemps ; serré à la sortie, il ne s'ouvre et ne tourbillonne qu'en vieillissant ; chaque cube s'ÉTIRE le long du jet tant qu'il file (une
@@ -27847,7 +28078,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   N.vs=Math.min(NFEU_JET.vMax,NFEU_JET.v0+Math.abs(speedKmh)*NFEU_JET.vK); /* (le JET PROPULSÉ) — avant : 3,2 à 7 m/s, la vitesse d'un slime */ /* plus la caisse file, plus le vent étire le feu (1,3 à 2 m). MESURÉ (dbgFlamme('proj')) : debout, la caméra de poursuite
      regarde la poupe presque d'AU-DESSUS (les pots à −0,6 de la hauteur d'écran, à 3,8 m) — un feu qui MONTE fonce dans l'objectif et fait un mur, un feu qui
      s'ÉLARGIT barre tout le bas de l'écran : il file donc à plat sur la route, pas plus large que la caisse, et c'est sa matière qui le rend vénère */
-  N.pal=bleu?NFEU_P10.b:inf?NFEU_P10.v:NFEU_P10.f;
+  {let T9=null;try{T9=nfeuPalTrainee();}catch(e9){}N.pal=T9?(bleu?T9.b:inf?T9.v:T9.pal):bleu?NFEU_P10.b:inf?NFEU_P10.v:NFEU_P10.f;} /* (2026-10-15 soir) le feu à la couleur de la traînée achetée */
   N.dp=np?camera.position.distanceTo(N.pw[0]):4;N.kd=Math.pow(Math.min(3.2,Math.max(1,N.dp/3.8)),.75); // la caméra RECULE (en vol : ~21 m) : le feu grossit, sinon il n'est plus que trois points
   N.vs*=1+.45*(N.kd-1);
   if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1);
@@ -32926,6 +33157,14 @@ window.dbgFacette=function(on){if(on!=null){FACETTE.on=!!on;try{buildCar(CARS[le
    appelé chaque image au menu, au garage et en course) et lit `wingT` : repliée, une aile ne bat pas.
    Les textures peintes sont cuites UNE fois (`AIL_TX`) : buildCar libère les matières de l'ancienne caisse, pas leurs textures.
    ========================================================================== */
+/* LES AILES QU'ON VEUT (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables, pareil pour les ailes »)
+   — VU sur les photos de la boutique (dbgAile) et en vol : plusieurs ailes se perdaient à côté de la caisse — le PIGEON minuscule, la FÉE grise et
+   pâle, le PHÉNIX (la mythique !) deux baguettes, les HÉLICES maigres, les PANNEAUX (l'aile offerte) deux planches mates à la couleur de la caisse,
+   les PLUMES des marches blanches sans éclat. `AILE_K` : la taille de chaque aile (posée au pivot ; le déploiement en vol et la photo de la
+   boutique la gardent), et les matières des plus faibles relevées : un filet de néon aux PANNEAUX, la lumière d'ange et l'or des PLUMES, les
+   voiles irisés de la FÉE, le halo du PHÉNIX. `?ailes=avant` = les ailes d'avant. */
+const AILE_K_ON=!/[?&]ailes=avant\b/.test(location.search);
+const AILE_K={panneaux:1.12,helices:1.3,plumes:1.2,chauve:1.12,pigeon:1.5,origami:1.15,monarque:1.25,pixel:1.15,baron:1.1,rouages:1.15,xwing:1.1,fee:1.45,dragon:1.05,phenix:1.7};
 var AILES_POP=null;const AIL_TX={};
 function ailTex(nom,f,w,h){if(AIL_TX[nom])return AIL_TX[nom];const cv=document.createElement('canvas');cv.width=w||256;cv.height=h||256;f(cv.getContext('2d'),cv.width,cv.height);
   const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return AIL_TX[nom]=t;}
@@ -33017,20 +33256,20 @@ AILES_POP={
     const halo=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.32,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
     for(let k=0;k<9;k++)plume(S*(1-k*.055),.27*S/2.3,-.32+k*.17,0,1);        // les rémiges (larges : fines, elles se lisaient en baguettes)
     for(let k=0;k<6;k++)plume(S*.48,.24*S/2.3,-.25+k*.22,.012,.8);           // les couvertures, plus sombres
-    ailAnime(function(t,e){g.rotation.z=sd*(.12+.22*(.5+.5*Math.sin(t*3.2)))*e;halo.opacity=.25+.12*Math.sin(t*17);
+    ailAnime(function(t,e){g.rotation.z=sd*(.12+.22*(.5+.5*Math.sin(t*3.2)))*e;halo.opacity=(AILE_K_ON?.4:.25)+.12*Math.sin(t*17);
       for(let i=0;i<pl.length;i++){const f=pl[i][0];f.rotation.y=sd*(pl[i][1]+.035*Math.sin(t*7+i));f.scale.x=1+.07*Math.sin(t*12+i*1.9)+(nitroOn?.08:0);}});},
   fee:function(piv,sd,W9,L9,H9,y0){ // FÉE — quatre voiles irisés (deux par côté) qui naissent du TOIT et BOURDONNENT
     piv.position.y=y0+H9*.92;
     const K=W9*.62,tex=ailTex('fee',function(x,w,h){x.save();x.beginPath();x.ellipse(w/2,h/2,w/2-2,h/2-2,0,0,Math.PI*2);x.clip();
-        const g=x.createLinearGradient(0,0,w,0);g.addColorStop(0,'#bff6ff');g.addColorStop(.45,'#e6c8ff');g.addColorStop(.8,'#ffc2e6');g.addColorStop(1,'#fff3c4');x.fillStyle=g;x.fillRect(0,0,w,h);
+        const g=x.createLinearGradient(0,0,w,0);if(AILE_K_ON){g.addColorStop(0,'#5fe4ff');g.addColorStop(.4,'#b48cff');g.addColorStop(.75,'#ff7fcf');g.addColorStop(1,'#ffd977');}else{g.addColorStop(0,'#bff6ff');g.addColorStop(.45,'#e6c8ff');g.addColorStop(.8,'#ffc2e6');g.addColorStop(1,'#fff3c4');} /* (2026-10-15 soir) des voiles IRISÉS, plus des pastels presque blancs */x.fillStyle=g;x.fillRect(0,0,w,h);
         x.strokeStyle='rgba(255,255,255,.85)';x.lineWidth=2.2;x.beginPath();x.moveTo(4,h/2);x.quadraticCurveTo(w*.5,h*.38,w-6,h*.46);x.stroke(); // la nervure maîtresse
         x.lineWidth=1.1;for(let i=1;i<9;i++){const u=i/9;x.beginPath();x.moveTo(w*u*.95,h*(.42+.02*u));x.quadraticCurveTo(w*(u+.04),h*.2,w*(u+.08),h*.04);x.stroke();
           x.beginPath();x.moveTo(w*u*.95,h*.46);x.quadraticCurveTo(w*(u+.04),h*.78,w*(u+.08),h*.96);x.stroke();}
         x.restore();x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=3;x.beginPath();x.ellipse(w/2,h/2,w/2-3,h/2-3,0,0,Math.PI*2);x.stroke();},256,128);
-    const mat=ailMat({map:tex,transparent:true,opacity:.72,depthWrite:false,shininess:120,specular:0xffffff,emissive:0x334455,emissiveIntensity:.6,envMap:envTex,reflectivity:.3,combine:THREE.MixOperation});
+    const mat=ailMat({map:tex,transparent:true,opacity:AILE_K_ON?.88:.72,depthWrite:false,shininess:120,specular:0xffffff,emissive:0x334455,emissiveIntensity:AILE_K_ON?1.15:.6,envMap:envTex,reflectivity:.3,combine:THREE.MixOperation});
     const vo=[];for(const q of [[1.55,.42,.18,.42],[1.05,.34,.75,.2]]){const s=new THREE.Shape();s.absellipse(q[0]*K/2,0,q[0]*K/2,q[1]*K/2,0,Math.PI*2,false,0);
       const gr=new THREE.Group();piv.add(gr);const m=new THREE.Mesh(ailForme(s,sd),mat);m.rotation.y=sd*q[2];gr.add(m);vo.push([gr,q[3]]);}
-    ailAnime(function(t,e){for(let i=0;i<vo.length;i++)vo[i][0].rotation.z=sd*(vo[i][1]+.2*Math.sin(t*36+i*1.7))*e;mat.emissive.setHSL((t*.08)%1,.7,.22);});},
+    ailAnime(function(t,e){for(let i=0;i<vo.length;i++)vo[i][0].rotation.z=sd*(vo[i][1]+.2*Math.sin(t*36+i*1.7))*e;mat.emissive.setHSL((t*.08)%1,AILE_K_ON?.85:.7,AILE_K_ON?.3:.22);});},
   rouages:function(piv,sd,W9){ // ENGRENAGES — l'aile de l'inventeur : longeron de laiton, nervures, voile de toile, deux roues dentées qui tournent
     const S=W9*1.05,laiton=ailMat({color:0xc8902e,shininess:95,specular:0xffe2a0,envMap:envTex,reflectivity:.28,combine:THREE.MixOperation}),cuivre=ailMat({color:0xa0522d,shininess:70,specular:0xffc090});
     const voile=ailMat({shininess:6,specular:0x111111,map:ailTex('voile',function(x,w,h){const g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,'#efe2bf');g.addColorStop(1,'#d9c393');x.fillStyle=g;x.fillRect(0,0,w,h);
@@ -33185,7 +33424,7 @@ function buildCar(spec){
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
   carGroup.userData.capot=[0,y0+H9*.78,L9*.28]; // (2026-09-28) le CAPOT, en repère caisse : c'est là que le nouveau moteur RENTRE (voir engBigSuit)
   try{const tD=cosmSur('trainee'); // LA TRAÎNÉE DE LA BOUTIQUE : elle se pose PAR-DESSUS la signature de la caisse
-   FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null,wow:false}:tD.wow?{wow:true,rainbow:false,trail:tD.rgb}:{trail:tD.rgb,rainbow:false,wow:false,pop:tD.pop||null,rubOff:!!tD.rubOff}):null; // (2026-10-14) une traînée POP : son moteur (TRX) et, ou non, son ruban
+   FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null,wow:false}:tD.wow?{wow:true,rainbow:false,trail:tD.rgb}:{trail:tD.rgb,rainbow:false,wow:false,pop:tD.pop||null,rubOff:!!tD.rubOff}):null; if(FX_EFF&&!FX_EFF.rainbow)FX_EFF.teinte=tD.rgb||(tD.col?[parseInt(tD.col.slice(1,3),16)/176,parseInt(tD.col.slice(3,5),16)/176,parseInt(tD.col.slice(5,7),16)/176]:null); /* (2026-10-15 soir) la TEINTE de la traînée achetée : le feu de pixels du nitro la prend (voir nfeuPalTrainee) */ // (2026-10-14) une traînée POP : son moteur (TRX) et, ou non, son ruban
   }catch(e){} // ⚠ 1er buildCar à l'init : `FX_EFF` n'est pas encore déclaré (zone morte) — il vaut null de toute façon
   /* (2026-10-14, session PERF) LA TRAÎNÉE WOW CHOISIE AU GARAGE. chauffeDivers ne prépare la traînée WOW que pour la caisse équipée AU
      CHARGEMENT : une caisse ou une traînée WOW prise ensuite au garage peignait ses 12 toiles et créait ses 18 sprites à la 1re NITRO,
@@ -33218,8 +33457,8 @@ function buildCar(spec){
         }
       }else if(wSt==='plumes'){
         // PLUMES D'ANGE : six rémiges en éventail, de la plus longue (devant) à la plus courte, pointe dorée
-        const plM=new THREE.MeshPhongMaterial({color:0xfbf8f0,emissive:0xfff4e0,emissiveIntensity:.35,shininess:40,specular:0xffffff});
-        const plO=new THREE.MeshPhongMaterial({color:0xffd75e,emissive:0xffb020,emissiveIntensity:.5,shininess:120,specular:0xffffff});
+        const plM=new THREE.MeshPhongMaterial({color:0xfbf8f0,emissive:0xfff4e0,emissiveIntensity:AILE_K_ON?.6:.35,shininess:40,specular:0xffffff});
+        const plO=new THREE.MeshPhongMaterial({color:0xffd75e,emissive:0xffb020,emissiveIntensity:AILE_K_ON?1:.5,shininess:120,specular:0xffffff});
         for(let k=0;k<6;k++){const ln=W9*(1.18-k*.13),f=new THREE.Group();f.rotation.y=sd*(k*.19-.05);
           const r=new THREE.Mesh(new THREE.BoxGeometry(ln,.05,.26),plM);r.position.set(sd*ln/2,-k*.012,0);f.add(r);
           const pt=new THREE.Mesh(new THREE.BoxGeometry(ln*.22,.055,.20),plO);pt.position.set(sd*ln*.9,-k*.012,0);f.add(pt);
@@ -33241,10 +33480,12 @@ function buildCar(spec){
         AILES_POP[wSt](piv,sd,W9,L9,H9,y0); // (2026-10-14) LES AILES POP (voir AILES_POP)
       }else{
         const wing=new THREE.Mesh(wGeo,accM);wing.position.set(sd*W9*.5,0,0);piv.add(wing);
+        if(AILE_K_ON){const hs9={};new THREE.Color(accM.color).getHSL(hs9);const neM=new THREE.MeshBasicMaterial({color:hs9.s<.2?new THREE.Color(.25,1.5,1.7):new THREE.Color().setHSL(hs9.h,1,.6).multiplyScalar(1.6)}),ng=new THREE.BoxGeometry(W9*.9,.03,.1);for(const z9 of [-1,1]){const ne=new THREE.Mesh(ng,neM);ne.position.set(sd*W9*.5,.04,z9*L9*.145);piv.add(ne);}} /* (2026-10-15 soir) un filet de NÉON au bord de fuite, à la couleur d'accent de la caisse */
         const tip=new THREE.Mesh(new THREE.BoxGeometry(W9*.28,.04,L9*.14),bodyM);
         tip.position.set(sd*W9*.92,.06,-L9*.08);tip.rotation.x=.2;piv.add(tip);
       }
       carGroup.add(piv);
+      {const k9=AILE_K_ON?(AILE_K[wSt]||1):1;piv.userData.k=k9;piv.scale.set(1,k9,k9);} /* (2026-10-15 soir) LA TAILLE DE L'AILE (voir AILE_K) */
       if(sd>0)carWingL=piv;else carWingR=piv;
     }
   }
@@ -36202,7 +36443,7 @@ function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
         rim=new THREE.DirectionalLight(0xff5ad0,1.35),rim2=new THREE.DirectionalLight(0x5ad8ff,.9),bas=new THREE.PointLight(0x8a5cff,.7,16);
   key.position.set(-3,8,7);rim.position.set(7,3.5,-6);rim2.position.set(-7,2.5,-5);bas.position.set(0,-.4,3);
   PHOTO.scene.add(hemi,key,rim,rim2,bas);PHOTO.key=key;}
-function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}}
+function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}}
 function aileFile(id,cb){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j}]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
@@ -36475,7 +36716,7 @@ function shopRender(){
     const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
     if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
       hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b><span>'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span></div>'
+        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b></div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
         +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
       une.setAttribute('data-car',i);continue;}
     hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
@@ -36901,6 +37142,13 @@ const LPG_A=new THREE.Color(),LPG_B=new THREE.Color();
 function lpGrad(g,y,col){const u=LPU.cl((y-.35)/1.35,0,1);
   if(u<.5){LPG_A.setHex(g[0]);LPG_B.setHex(g[1]);col.copy(LPG_A).lerp(LPG_B,u*2);}
   else{LPG_A.setHex(g[1]);LPG_B.setHex(g[2]);col.copy(LPG_A).lerp(LPG_B,(u-.5)*2);}}
+/* LES TRAÎNÉES TOUJOURS LÀ (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables ») — VU au banc
+   (les 17 traînées portées tour à tour, nitro tenue, mer de nuages) : derrière la caisse on ne voyait presque que le FEU DE PIXELS du nitro — les
+   pétales, le code, les anneaux, les billets… n'apparaissaient pas. La règle du 7 au 14/10 les ÉTEIGNAIT en réserve bleue et en nitro infinie (« deux
+   messages ») ; or tenir la nitro vide la jauge et passe en réserve en ~2 s : la traînée achetée disparaissait justement quand on boostait. La réserve
+   reste dite par le feu de pixels et la jauge ; la traînée de la boutique (`FX_EFF`), elle, joue à toute nitro. Les caisses à signature (le chat,
+   sans traînée achetée) gardent la règle. `?trainee=signal` = avant. */
+const TRAINEE_SIGNAL=/[?&]trainee=signal\b/.test(location.search);
 let FX_EFF=null; // la signature de traînée EFFECTIVE (caisse + boutique), recalculée à chaque `buildCar`
 /* ============================================================================
    L'AUTO-ÉCOLE — LA PREMIÈRE PARTIE GUIDÉE (2026-09-25)
@@ -38408,9 +38656,9 @@ function spinDom(){ // LA MACHINE, fabriquée une fois (au premier tirage de la 
   // LE LEVIER AU DOIGT : il suit le pouce (résistance qui monte), cliquette au cran, part au lâcher passé 55 % ; un simple toucher le tire d'un coup
   const lv=SPIN.lev,LV=SPIN.lv;
   lv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(SPIN.roule||LV.anim||(SAVE.d.spinJ|0)<=0)return;
-    LV.drag=true;LV.y0=e.clientY;LV.dy=0;LV.cran=false;try{lv.setPointerCapture(e.pointerId);}catch(_){}});
+    LV.drag=true;LV.y0=e.clientY;LV.dy=0;LV.cran=false;LV.cq=0;try{lv.setPointerCapture(e.pointerId);}catch(_){}});
   lv.addEventListener('pointermove',function(e){if(!LV.drag)return;LV.dy=e.clientY-LV.y0;const d=Math.max(0,LV.dy)/(SPIN.H*2.3);
-    const th=1-Math.exp(-d*2.2);levierPose(th);if(th>.55&&!LV.cran){LV.cran=true;hap(6);try{if(SONV2)sfx('spin.cran',{vol:-4});}catch(_){}}});
+    const th=1-Math.exp(-d*2.2);levierPose(th);{const q9=Math.floor(th/.14);if(q9>(LV.cq|0)){LV.cq=q9;try{if(SONV2)sfx('spin.cliquet',{vol:-2+q9});}catch(_){}}else if(q9<(LV.cq|0))LV.cq=q9;} /* (2026-10-15 soir) un cran de cliquet à chaque palier de la course */if(th>.55&&!LV.cran){LV.cran=true;hap(6);try{if(SONV2)sfx('spin.cran',{vol:-4});}catch(_){}}});
   const lache=function(e){if(!LV.drag)return;LV.drag=false;try{lv.releasePointerCapture(e.pointerId);}catch(_){}
     if(LV.dy<8&&LV.th<.12){spinTirer(false);return;} // un simple toucher
     if(LV.th>=.55)spinTirer(true);else levierRessort();};
@@ -38457,14 +38705,15 @@ function spinOuvre(){
   SPIN.el.classList.add('on');spinLabels();levierPose(0);
   SPIN.H=spinH();SPIN.el.style.setProperty('--spPx',(SPIN.H*.82).toFixed(0)+'px');spinPeint();
   requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
-  try{if(SONV2)sfx('ui.banniere');}catch(e){}hap(12);}
-function spinFerme(){if(!SPIN.el)return;SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
+  try{if(SONV2&&!sfx('spin.ouvre'))sfx('ui.banniere');}catch(e){}hap(12);} /* (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous ») elle S'ALLUME : relais, néon, ampoules en chenillard */
+function spinFerme(){if(!SPIN.el)return;if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
   setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{mFill();}catch(e){}}
 function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le levier a claqué, les rouleaux partent
   if(SPIN.roule)return;
   if((SAVE.d.spinJ|0)<=0){spinFerme();return;}
   hap(16);SAVE.d.spinJ=(SAVE.d.spinJ|0)-1;SAVE.flush();
   try{if(SONV2)sfx('spin.levier');else uiClic('');}catch(e){} /* (session SON) le levier a son clac mécanique */
+  try{if(SONV2)sfx('spin.jeton',{t:.28});}catch(e){} /* (2026-10-15 soir) le jeton tinte sur la lèvre de la fente, roule dans la goulotte */
   spinPlateau(true);spinLabels();
   spinLance(spinTire());}
 function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — positions en SYMBOLES, vitesse en symboles par seconde
@@ -38473,7 +38722,7 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
   /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans (9-11 pour le suspense), puis freine
      (easeOutBack raccordée à la vitesse : f'(0)=4) — jamais avant que son voisin de gauche ne soit posé depuis 0,3 s */
   const stop=[.95,1.4,tease?2.9:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false};});
-  let tic=0,prev=T0;
+  let tic=0,prev=T0;spinSonsStop();try{if(SONV2)SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){} /* (2026-10-15 soir) LE MOTEUR des rouleaux : une boucle qui suit leur vitesse (spinMoteur) */
   function pas(now){
     const t=(now-T0)/1000,dt=Math.min(.05,(now-prev)/1000);prev=now;let tous=true;
     for(let r=0;r<3;r++){const S=st[r];if(S.fin)continue;tous=false;
@@ -38489,13 +38738,17 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
         if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
         if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
           const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
-          if(r===1&&tease)SPIN.el.classList.add('tease');}}}
+          if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
+          if(r===2&&SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}}
     const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){}} /* (session SON) un cran par symbole : le cliquetis ralentit avec les rouleaux */
-    spinPeint();
+    spinPeint();spinMoteur(st,V,t);
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
-    else if(SPIN.ouvert){SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
-    else{spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
+    else if(SPIN.ouvert){spinSonsStop();SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
+    else{spinSonsStop();spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
   requestAnimationFrame(pas);}
+function spinSonsStop(){if(SPIN.mot){try{SPIN.mot.stop(.12);}catch(e){}SPIN.mot=null;}if(SPIN.tz){try{SPIN.tz.stop(.08);}catch(e){}SPIN.tz=null;}} // (2026-10-15 soir) les boucles de la machine se taisent (fin du tirage, fermeture)
+function spinMoteur(st,V,t){const h=SPIN.mot;if(!h)return;let k=0;for(let r=0;r<3;r++){const S=st[r];k+=S.fin?0:S.ph===0?S.v/V:Math.max(0,1-(t-S.ts)/Math.max(.05,S.D));} /* la vitesse moyenne des rouleaux (0-1) : le moteur monte avec l'élan, ralentit à chaque pose */
+  k/=3;if(Math.abs(k-(SPIN.motK||0))<.03)return;SPIN.motK=k;try{h.gain(-16+13*Math.min(1,k),.06);h.rate(.7+.45*Math.min(1,k),.06);}catch(e){}}
 function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau
   const L=R.lot;
   if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);SPIN.total+=L.cash;}
@@ -38513,7 +38766,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
       if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(L.cash);})(T0);}
   if(R.i>=0){SPIN.el.classList.add('gagne');if(jack)SPIN.el.classList.add('jackpot');
     setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne','jackpot');},jack?3200:1600);}
-  try{if(SONV2){if(jack)sfx('spin.jackpot');else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine */
+  try{if(SONV2){if(jack)sfx('spin.jackpot');else if(R.i<0&&R.s[0]===R.s[1]){sfx('spin.presque');sfx('spin.gain',{var:0,vol:-11,t:.75});}else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine — (2026-10-15 soir) deux pareils et le 3e à côté : le PRESQUE, puis la consolation tout bas */
   if(jack){hap([30,60,40,80,60,120,90]);spinFlash(3);spinPluie(46);spinExplose(40);}
   else if(gros){hap([20,40,30]);spinExplose(16);}
   else if(R.i>=0)hap(14);
@@ -43525,7 +43778,7 @@ const SAVE={
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
@@ -44302,8 +44555,38 @@ function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; 
   if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
   return ok;
 }
+/* LES FIGURES LANCÉES EN ROULANT (2026-10-15 soir, Sacha : « le salto avant ne marche pas quand on le lance en roulant sur la route ;
+   vérifie que chaque figure est lançable en roulant, sans être dans les airs ») — MESURÉ au banc (double-tap au sol, `dbgSautFig`, mer de
+   nuages) : le saut nitro donne ~1 s de vol sur du plat, mais quand la route REMONTE sous la caisse il ne dure que 0,24-0,40 s — le salto
+   (avant comme arrière) restait à 0,3-0,6 tour, posé sans être payé ; le tonneau aussi (1 sur 5). Et un double-tap fait pendant un petit
+   rebond (dos d'âne, la pose qui se tasse : hopY/hopV/POSE_F) était jeté sans un bruit.
+   · LE SAUT À LA TAILLE DE LA FIGURE : quand une figure part avec le saut, `sautAllonge` intègre la VRAIE trajectoire (la loi de la chute,
+     comme le viseur) contre la VRAIE route devant (dalleProche) et, si la pose arrive avant `sautBesoin(f)` (de quoi planter la figure à sa
+     durée de catalogue : ≥ 1 s), ajoute juste ce qu'il faut de poussée le long de la normale (+19 m/s au plus : ~11 m de haut au lieu de 5).
+     Sur du plat rien ne change (le saut fait déjà son vol) ; c'est la route qui remonte qui allonge le saut.
+   · LE DOUBLE-TAP GARDÉ : pendant un rebond, la demande attend la fin du rebond (0,4 s au plus, `VEQ.sautAtt`) au lieu d'être perdue.
+   Banc : `dbgSautFig(x,y)` (un double-tap, le joystick en x, y), `dbgSautFig('cause')`. ?saut=fixe = le saut d'avant (21 m/s toujours). */
+const SAUT_FIXE=/[?&]saut=fixe\b/.test(location.search),SAUT_P=new THREE.Vector3(),SAUT_V=new THREE.Vector3(),SAUT_N=new THREE.Vector3(),SAUT_D=new THREE.Vector3();
+function sautBesoin(f){return f&&f.D?Math.max(1,.35+f.D*.9/.72):0;} // le vol qu'il faut à la figure pour être plantée à ~90 % de sa durée de catalogue (figDose : D = (vol − 0,35) × 0,72)
+function sautVolPredit(dv){ // la durée (s) du vol qui vient de partir, avec dv m/s de plus le long de la normale de la route au décollage — 2,4 = pas de pose en vue
+  SAUT_P.copy(fallPos);SAUT_V.copy(fallVel).addScaledVector(SAUT_N,dv);if(SAUT_V.y>70)SAUT_V.y=70;
+  const g=FALL_G*gK(),h=1/30;let gi=-1;
+  for(let k=1;k<=72;k++){SAUT_V.y-=g*h;SAUT_P.addScaledVector(SAUT_V,h*SPD);if(k<3)continue;
+    const bi=dalleProche(SAUT_P.x,SAUT_P.y,SAUT_P.z,8,400,gi);if(bi<0)continue;gi=bi-bi%8;
+    SAUT_D.subVectors(SAUT_P,pts[bi]);const hh=SAUT_D.dot(Nn[bi]),l=SAUT_D.dot(B[bi]);
+    if(Math.abs(l)<ROAD_HALF+1&&hh>-THICK-1&&hh<.35&&SAUT_V.dot(Nn[bi])<0)return k*h;}
+  return 2.4;}
+function sautAllonge(f){ // juste après startFall : le saut assez long pour planter `f`
+  const need=sautBesoin(f);if(!need||SAUT_FIXE)return 0;
+  const t0=sautVolPredit(0);VEQ.tPred=t0;if(t0>=need)return 0;
+  let dv=0;for(const d of [3,6,9,12,15,19]){dv=d;if(sautVolPredit(d)>=need)break;}
+  fallVel.addScaledVector(SAUT_N,dv);if(fallVel.y>70)fallVel.y=70;VEQ.allonge=(VEQ.allonge|0)+1;VEQ.dvDer=dv;return dv;}
+function sautFigVisee(fo){ // la figure qui partira avec ce saut (celle du glissé, sinon celle de la direction tenue)
+  if(!FIGV2.on||!window.FIG)return null;if(fo&&fo.f)return fo.f;
+  const S=figSlots();let k=FDIR.on?figDirSlot():0;if(!S[k]&&!(FDIR.on&&!TUTO.on))for(let j=1;j<FIG_NB&&!S[k];j++)k=(k+1)%FIG_NB;return S[k]?FIG.par[S[k]]:null;}
 function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle — `fo` (LA FIGURE AU GLISSÉ) : la figure du sens glissé au lieu de l'emplacement suivant
-  if(hopY>0||hopV!==0||POSE_F||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
+  if(hopY>0||hopV!==0||POSE_F){if(!fo&&mode==='drive'&&!(VEQ.sautAtt>0))VEQ.sautAtt=performance.now();return false;} // (2026-10-15 soir) un rebond : le double-tap ATTEND (veqSautAttente)
+  if(performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
   /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « saut nitro au double-tap sur la FACE CACHÉE : startFall(21) part vers le BAS, chute
      mortelle ») SOUS LA DALLE, la caisse est pendue à la route : la pousser « vers le haut de la caisse », c'est la lâcher dans le VIDE (et la
      pose d'après, quand il y en a une, sortait POSÉ LOURD ~10,5 : momentum ÷ 2, une faute, des zones Survivant et des singes semés sur du plat).
@@ -44313,8 +44596,10 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
   if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
   if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
   VEQ.sautT=performance.now();
-  const p9=carGroup.position.clone();
+  const p9=carGroup.position.clone();VEQ.sautAtt=0;
+  SAUT_N.copy(F.n);const fV9=sautFigVisee(fo); /* (2026-10-15 soir) la normale de la route au décollage et la figure qui partira */
   startFall(VEQ_K.saut,1);VEQ.sautF=flightId;VEQ.l0=0; // un saut VOULU : le volant tenu continue de tourner (pas de verrou), on reste sur sa route
+  try{sautAllonge(fV9);}catch(e){} /* (2026-10-15 soir, Sacha : « chaque figure lançable en roulant ») le saut assez long pour la planter, quand la route remonte */
   if(fo&&FIGV2.on)figLance(-1,Object.assign({dispo:2*VEQ_K.saut/(FALL_G*gK())-.15},fo));else // (2026-10-15) le glissé : la figure de SON sens
   veqFigure(2*VEQ_K.saut/(FALL_G*gK())-.15); // la figure part TOUTE SEULE, à la taille du saut
   for(let k=0;k<26;k++){const a=Math.random()*6.2832,r=Math.random()*1.2; // le souffle du booster contre la route
@@ -44716,7 +45001,7 @@ function figDirSlot(){let x,y;
 window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot(),r=figLance(s,{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on});return r?(r.attente?'attente':'ok geste '+(s+1)+' '+r.f.id+(r.f.sens?' '+r.f.sens:'')+(r.s>0?'+':'-')):'refus';}finally{FDIR.force=null;}};
 function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
 window.dbgSautFig=function(x,y){if(x==='cause')return {cause:mortCause,mode:mode,go:gameOver};FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);} /* (banc, 2026-10-15 soir) un double-tap NITRO, le joystick en (x : le côté, y : l'avant) — au sol : le SAUT NITRO et la figure de cette direction */
-  return {ok:!!r,mode:mode,hopY:+hopY.toFixed(2),hopV:+hopV.toFixed(2),pose:!!POSE_F,cd:Math.round(performance.now()-VEQ.sautT),nit:+(nitroR+nitroX).toFixed(2),slot:figDirSlot()};};
+  return {ok:!!r,mode:mode,hopY:+hopY.toFixed(2),hopV:+hopV.toFixed(2),pose:!!POSE_F,cd:Math.round(performance.now()-VEQ.sautT),nit:+(nitroR+nitroX).toFixed(2),slot:figDirSlot(),allonge:VEQ.allonge|0,dv:VEQ.dvDer||0,tPred:VEQ.tPred||0};};
 /* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
    être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
    RÉGLAGES › JEU › FIGURES (et la PAUSE) — 2 TAPS (le double-tap, d'origine) · GLISSER (`SAVE.d.figG`, écrit par `figGBascule` seul).
@@ -47551,7 +47836,7 @@ function resetGame(){
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
-  VEQ.dReq=false;VEQ.dDn=0;GLI.req=null;GLI.id=null;figGVoit(null);gsolCoupe(); // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
+  VEQ.dReq=false;VEQ.dDn=0;GLI.req=null;GLI.id=null;VEQ.sautAtt=0;figGVoit(null);gsolCoupe(); // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
@@ -47582,7 +47867,7 @@ function resetGame(){
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
-  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;gsolCoupe();if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
+  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe();if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0};runxReset();
@@ -52839,6 +53124,37 @@ const CHUTE_TAP={p:new THREE.Vector3(),v:new THREE.Vector3(),Q:new THREE.Quatern
   V:10,W:6.5,WMAX:20,CHAOS:6,HS:.07,hs:0, /* (2026-10-14, Léo : « augmente l'impact des coups ») poussée ×1,33, pivot ×1,3 ; HS = l'ARRÊT SUR IMAGE au contact (s) */
   K:12,C:2.4,KR:16,CR:1.9,WL:3,TR:.011,TT:.012,PMAX:7,PL:5.5,
   n:0,combo:0,cT:-9,sh:0,deb:null,debM:null,tient:null};
+/* LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « une sorte d'icône avec un doigt qui clignote sur la voiture la première fois […] un peu
+   accueillant pour la première connexion ») — le dessin et le mouvement : <style id="accueilDoigt">. Montré tant que la caisse du titre n'a
+   jamais été tapée (SAVE.d.ast, bit 256), sur l'ACCUEIL seulement (la coque sur « home », le voile d'ouverture parti, ni piqué, ni volet, ni
+   auto-école), après 1,2 s d'accueil à l'écran. Le bout du doigt suit le centre de la caisse projeté, LISSÉ (elle tremble dans le vent de la
+   chute : la main ne tremble pas avec), gardé dans l'écran pour que la bulle tienne. Le DOM n'est écrit que si la place change d'un pixel.
+   La main (16 × 18) : o encre, w gant, g ombre du gant, y/d manchette d'or. */
+const CH_DOIGT={el:null,fini:false,on:false,t:0,x:-1,y:-1,tx:'',r:null,rT:0,v:new THREE.Vector3(),BIT:256,
+  G:['.....oo.........','....owwo........','....owgo........','....owgo........','....owgo........','....owgooo......','....owgowgooo...',
+     '....owgowgowgoo.','.oo.owgowgowgowo','owgoowgowgowgowo','owwwowwwwwwwwwgo','.owwwwwwwwwwwwgo','..owwwwwwwwwwwgo','..owwwwwwwwwwwgo',
+     '...owwwwwwwwwgo.','....oyyyyyyyydo.','....oyyyyyyyydo.','....ooooooooooo.'],
+  C:{o:'#1c0430',w:'#ffffff',g:'#c8bde8',y:'#ffd75e',d:'#c8901a'}};
+try{Object.assign(I18N,{'BIENVENUE !':'WELCOME!','TAPE TA CAISSE':'TAP YOUR CAR'});}catch(e){}
+function chuteDoigtEl(){const D=CH_DOIGT;if(D.el)return D.el;const el=document.getElementById('chDoigt');if(!el)return null;
+  let r='';for(let y=0;y<D.G.length;y++)for(let x=0;x<16;x++){const c=D.C[D.G[y][x]];if(c)r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+c+'"/>';}
+  el.style.setProperty('--cdSvg','url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 18" shape-rendering="crispEdges">'+r+'</svg>')+'")');
+  return D.el=el;}
+function chuteDoigtMontre(v){const D=CH_DOIGT;if(!v)D.t=0;if(D.on===v)return;D.on=v;if(D.el)D.el.classList.toggle('on',v);}
+function chuteDoigtTick(dt,Ck,G){const D=CH_DOIGT;if(D.fini)return;
+  if((SAVE.d.ast|0)&D.BIT){D.fini=true;chuteDoigtMontre(false);return;}
+  if(G||!carGroup.visible||TUTO.on||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
+  const el=chuteDoigtEl();if(!el){D.fini=true;return;}
+  D.rT-=dt;if(D.rT<=0||!D.r){D.rT=.5;D.r=renderer.domElement.getBoundingClientRect();} // la place du canevas (le cadre de l'ordi le décale) : relue deux fois par seconde
+  const R=D.r;D.v.copy(Ck).project(camera);if(!(R.width>0)||D.v.z>1){chuteDoigtMontre(false);return;}
+  let sx=R.left+(D.v.x*.5+.5)*R.width,sy=R.top+(.5-D.v.y*.5)*R.height;
+  sx=Math.max(R.left+96,Math.min(R.right-96,sx));sy=Math.max(R.top+24,Math.min(R.bottom-132,sy)); // la bulle (sous la main) reste dans l'écran
+  if(D.x<0){D.x=sx;D.y=sy;}else{const k=1-Math.exp(-dt*5);D.x+=(sx-D.x)*k;D.y+=(sy-D.y)*k;}
+  const tx='translate3d('+Math.round(D.x)+'px,'+Math.round(D.y)+'px,0)';if(tx!==D.tx){D.tx=tx;el.style.transform=tx;}
+  D.t+=dt;if(D.t>1.2)chuteDoigtMontre(true);}
+function chuteDoigtFini(){const D=CH_DOIGT;if(D.fini||(!D.on&&D.t<.3))return;D.fini=true; // le 1er coup sur la caisse : la main s'envole, pour toujours — (banc) sauf le tap qui ferme le voile d'ouverture et retombe sur la caisse (D.t < 0,3 s d'accueil) : il ne compte pas
+  SAVE.d.ast=(SAVE.d.ast|0)|D.BIT;try{SAVE.flush();}catch(e){} /* écrit tout de suite : l'appli fermée juste après ne la remontre pas */
+  const el=D.el;if(el&&D.on){el.classList.add('fini');setTimeout(function(){el.classList.remove('on','fini');},600);}else if(el)el.classList.remove('on');D.on=false;}
 function chuteVisible(o){for(let x=o;x;x=x.parent)if(!x.visible)return false;return true;}
 function chuteVise(e){ // le rayon du doigt : la 1re pièce VISIBLE et opaque de la caisse, ou rien
   if(!CHUTE.on||CHUTE.go||!carGroup.visible)return null;
@@ -52858,6 +53174,7 @@ function chuteDebris(){ // les morceaux de tôle (une fois) : 16 boîtes sur UNE
 }
 function chuteTape(e){ // TAPÉE : le coup
   const h=chuteVise(e);if(!h)return false;
+  try{chuteDoigtFini();}catch(_){} /* (2026-10-15 soir) le doigt de bienvenue a servi */
   const T=CHUTE_TAP,d=T.ray.ray.direction,c=CHUTE.ctr||carGroup.position,now=performance.now()/1000;
   T.combo=now-T.cT<.7?Math.min(6,T.combo+1):1;T.cT=now;const mu=1+.35*(T.combo-1);  // LE COMBO : ×1 → ×2,75
   chuteAxes();const lt=(Math.random()-.5)*2,lu=Math.random()*.8-.2;                       // la poussée : dans le sens du doigt, et DE CÔTÉ (repoussée au loin seulement, elle rapetissait)
@@ -53767,6 +54084,7 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
+  try{chuteDoigtMontre(false);}catch(_){} /* (2026-10-15 soir) le doigt de bienvenue ne reste pas sur l'atelier ni sur la course */
   if(CHUTE.corps){carBody.position.set(0,0,0);carBody.rotation.set(0,0,0);CHUTE.corps=false;} // (LA CHUTE LIBRE RÉALISTE) la carrosserie se repose sur ses ressorts
   CHUTE.on=false;CHUTE.go=null;CHUTE.sous=null;titreCiel(false);gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
@@ -53916,6 +54234,7 @@ function chuteRender(dt){
   if(CHUTE_TAP.sh>0){const k9=CHUTE_TAP.sh;camera.position.x+=(Math.random()-.5)*.5*k9;camera.position.y+=(Math.random()-.5)*.5*k9;camera.position.z+=(Math.random()-.5)*.5*k9;camera.rotateZ((Math.random()-.5)*.06*k9); // (LA CAISSE AU DOIGT v2) le coup secoue la caméra…
     camera.fov=fov0-9*Math.min(1,k9);camera.updateProjectionMatrix();} // (14/10) le coup de zoom ×1,8 // …et la fait cogner d'un coup de zoom (la ligne du champ, plus haut, le rend à l'image suivante)
   camera.updateMatrixWorld();
+  try{chuteDoigtTick(dt,Ck,G);}catch(_){} /* (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : la main suit la caisse, la caméra posée */
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
   if(P.studio){chuteStudio(Ck,up,P);}else{trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) LE MODELÉ DE LA CAISSE (voir chuteStudio) ; P.studio = 0 : l'éclairage d'avant
   stallKey.color.setHex(P.cleC);stallKey.intensity=.9*P.cle;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
@@ -55725,8 +56044,8 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
        conducteurs d'or), puis JOUER dans sa plaque. */
     try{Object.assign(I18N,{'REGLAGES':'SETTINGS'});if(!ge.querySelector('span'))ge.insertAdjacentHTML('beforeend','<span data-fr="REGLAGES">'+TR('REGLAGES')+'</span>');}catch(e){} /* (UX 8) le mot sous le pictogramme : un enfant lit, il ne devine pas */
     ou.insertBefore(ge,gar);if(!SANS_CARRIERE)ou.appendChild(ca); /* (2026-10-14, Sacha) sans carrière : pas de carte — MISSIONS prend sa place (<style id="sansCarriere">) */
-    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Offres');
-      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="OFFRES">'+TR('OFFRES')+'</span>'; /* (2026-10-15 matin, Sacha : « offre doit s'appeler boutique » ; même jour, après-midi : « dans l'écran d'accueil change le bouton boutique pour un bouton offre ») */if(bd)sh.appendChild(bd);ou.appendChild(sh);}
+    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Achat');
+      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="ACHAT">'+TR('ACHAT')+'</span>'; /* (2026-10-15 matin, Sacha : « offre doit s'appeler boutique » ; même jour, après-midi : « dans l'écran d'accueil change le bouton boutique pour un bouton offre » ; le soir : « dans l'écran d'accueil, l'offre doit maintenant s'appeler achat ») */if(bd)sh.appendChild(bd);ou.appendChild(sh);}
     mi.classList.add('mMisBarre');
     const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(mi);bas.appendChild(pl);
     }
@@ -58229,7 +58548,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<150)figGJoue(d9);}gsolTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<150)figGJoue(d9);}gsolTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
@@ -59323,7 +59642,9 @@ function loop(now){
     const spec9=CARS[level],tz9=-(spec9.l/2+.32);
     let tcr,tcg,tcb;
     const FXT=FX_EFF||spec9.fx; // la traînée de la boutique a le dernier mot
-    if(nitroBlue){tcr=.52;tcg=.72;tcb=1.5;}                       // la réserve bleue reste un SIGNAL — (vague 3) calée sur #5b7dff
+    const trSig9=TRAINEE_SIGNAL||!FX_EFF; /* (2026-10-15 soir) une traînée ACHETÉE ne se tait plus en réserve bleue ni en nitro infinie (voir TRAINEE_SIGNAL) */
+    if(!trSig9&&FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];}
+    else if(nitroBlue){tcr=.52;tcg=.72;tcb=1.5;}                       // la réserve bleue reste un SIGNAL — (vague 3) calée sur #5b7dff
     else if(pwrNitroT>0){tcr=NINF.trail[0];tcg=NINF.trail[1];tcb=NINF.trail[2];} // (2026-09-28) la NITRO INFINIE aussi : son ruban est VIOLET, comme sa plume et sa jauge
     else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
     else if(nitroOn){tcr=1.38;tcg=.62;tcb=.17;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro) — (vague 3) la nitro calée sur le feu #ff7a24 (elle tirait au rouge)
@@ -59331,7 +59652,7 @@ function loop(now){
     const tw9=nitroOn?1.3+NFX.ign*NFX.ignK*.7:1; // (vague 3) à la nitro le sillage s'épaissit (et gicle à l'allumage — la tête seulement, voir sillageStep)
     { // (2026-10-15) LES TRAÎNÉES DE LUMIÈRE (voir LUMT) : une par FEU ARRIÈRE — toujours là quand on roule, embrasées par le nitro
       const nf9=Math.min(2,CAR_FEUX.length),wu9=nf9===1?SIL.un:1,ku9=.74; // ×.74 (2026-09-25) : additif + bloom, le ruban faisait un faisceau AVEUGLANT sur la route
-      const arc9=(NYAN.on&&!FX_EFF)||!!(FXT&&FXT.rainbow)||!!(FXT&&FXT.rubOff),sig9=nitroBlue||pwrNitroT>0; // (2026-10-07) l'ARC-EN-CIEL est la traînée de nitro du chat : la lumière se tait au nitro (sauf réserve bleue / nitro infinie, des SIGNAUX)
+      const arc9=(NYAN.on&&!FX_EFF)||!!(FXT&&FXT.rainbow)||!!(FXT&&FXT.rubOff),sig9=trSig9&&(nitroBlue||pwrNitroT>0); // (2026-10-07) l'ARC-EN-CIEL est la traînée de nitro du chat : la lumière se tait au nitro (sauf réserve bleue / nitro infinie, des SIGNAUX)
       const fx9=(arc9&&!sig9)?0:trailK,roule9=running&&mode!=='boom'&&Math.abs(speedKmh)>12,fr9=VIT9.frein*(1-fx9);
       const kB=(arc9&&!sig9&&trailK>.05)?0:roule9?LUMT.k*(1+LUMT.kF*fr9):0,kT=kB+(1-kB)*fx9; // la lumière des feux, puis l'énergie du nitro par-dessus
       const lr=LUMT.r[0]+(LUMT.rF[0]-LUMT.r[0])*fr9,lg=LUMT.r[1]+(LUMT.rF[1]-LUMT.r[1])*fr9,lb=LUMT.r[2]+(LUMT.rF[2]-LUMT.r[2])*fr9; // rouge des feux, plus vif au frein
@@ -59354,7 +59675,7 @@ function loop(now){
          seule nitro (au sol comme en l'air) : `trailK` s'allumait à moitié sur une plaque turbo et dans le boost qui suit la nitro, et le
          chat le sortait aussi en vol. S'allume sec, s'éteint en ~0,5 s (l'extinction : il raccourcit en étincelles, voir rainbowStep). */
       loop._arcK=(loop._arcK||0)+((nitroOn&&mode!=='boom'?1:0)-(loop._arcK||0))*Math.min(1,dt*(nitroOn?16:6));
-      if(arcOn9){const rk=(mode==='boom'||nitroBlue||pwrNitroT>0)?0:loop._arcK;
+      if(arcOn9){const rk=(mode==='boom'||((trSig9||nyan9)&&(nitroBlue||pwrNitroT>0)))?0:loop._arcK;
         if(nyan9)nyanPixNitro(dt,rk*.45); // ses PIXELS scintillent toujours autour, moins nombreux : l'arc-en-ciel mène
         if(nyan9)potMonde(NYAN.arc,tmp2);else potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.19); // le chat : la poupe de la pop-tart, à mi-hauteur
         rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t,dt,-hsF.x,-hsF.y,-hsF.z);
@@ -59362,11 +59683,11 @@ function loop(now){
     }
     { // (2026-10-14) LES TRAÎNÉES POP (voir TRX) : à la nitro, comme l'arc-en-ciel et WOW — `dbgTrx('grille')` en force une sur n'importe quelle caisse
       const pop9=(FXT&&FXT.pop)||TRX_FORCE;
-      if(pop9||(TRX&&TRX.n)){const pk=(!pop9||mode==='boom'||nitroBlue||pwrNitroT>0)?0:(loop._arcK||0);trxStep(pop9,pk,dt);}
+      if(pop9||(TRX&&TRX.n)){const pk=(!pop9||mode==='boom'||(trSig9&&!TRX_FORCE&&(nitroBlue||pwrNitroT>0)))?0:(loop._arcK||0);trxStep(pop9,pk,dt);}
     }
     { // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) : le DOGE, ou toute caisse qui porte la traînée WOW — à la nitro, comme l'arc-en-ciel
       const wow9=!!(FXT&&FXT.wow);
-      if(wow9||WOWT.n){const wk=(!wow9||mode==='boom'||nitroBlue||pwrNitroT>0)?0:(loop._arcK||0);potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.25);wowStep(tmp2.x,tmp2.y,tmp2.z,wk,dt,1);}
+      if(wow9||WOWT.n){const wk=(!wow9||mode==='boom'||(trSig9&&(nitroBlue||pwrNitroT>0)))?0:(loop._arcK||0);potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.25);wowStep(tmp2.x,tmp2.y,tmp2.z,wk,dt,1);}
     }
     // LA GERBE D'EAU : la caisse qui déclare `fx.spray` ne crache pas du feu mais de l'EAU. On sème
     // à la tuyère, en cône, avec une composante latérale franche — une gerbe s'ÉVASE, un jet de
@@ -59786,7 +60107,7 @@ function loop(now){
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
   if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile'))))?1:0; // boutique, onglet AILES : on les montre ouvertes
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
-    const sc=.05+.95*wingT;carWingL.scale.x=sc;carWingR.scale.x=sc; // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
+    const sc=.05+.95*wingT;carWingL.scale.x=sc*(carWingL.userData.k||1);carWingR.scale.x=sc*(carWingR.userData.k||1); // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
     carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;  // léger dièdre de planeur une fois sorties
     /* (2026-10-13, Léo : « ces barres chelou blanches et d'autres couleurs, check chaque voiture ») RENTRÉES, ELLES DISPARAISSENT : écrasées à
        5 % de leur largeur, les ailes restaient un panneau de 8 cm × 1,5 m à la couleur d'ACCENT de la caisse, posé à mi-hauteur du flanc — tant
@@ -60872,7 +61193,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
     pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9+' '+T('FAITES','DONE'),ok9>=n9);
     pose('.mHubPorte',T('GARAGE','GARAGE'),LANG==='fr'?nm:TR(nm));
-    pose('.mOffres',T('OFFRES','OFFERS'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
+    pose('.mOffres',T('ACHAT','BUY'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
     pose('.mGear',T('RÉGLAGES','SETTINGS'));}
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');

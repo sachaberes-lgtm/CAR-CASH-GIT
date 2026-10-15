@@ -3,6 +3,170 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES ET LES AILES QU'ON VEUT (2026-10-15 soir, Sacha : « retravaille toutes les traînées, il faut qu'elles soient toutes désirables, pareil pour les ailes »)
+- VU AVANT (banc `habits.js` : les 17 traînées portées tour à tour, nitro tenue, mer de nuages de midi — une planche de 16 photos) : derrière la
+  caisse on ne voyait presque que le FEU DE PIXELS du nitro, orange / bleu / violet selon la jauge, quelle que soit la traînée ; MENTHE, ROSE, OR
+  n'étaient qu'un filet de ruban, et SAKURA, ANNEAUX, BILLETS, BLOCS… rien. Trois causes :
+  1. la règle du 7 au 14/10 ÉTEIGNAIT les traînées en réserve bleue et en nitro infinie (« deux messages ») — or tenir la nitro vide la jauge en
+     ~2 s : la traînée achetée disparaissait pendant qu'on boostait ;
+  2. le feu de pixels gardait sa couleur, et c'est le plus gros objet derrière la caisse ;
+  3. de la caméra de poursuite, un pétale de 10-16 cm, un anneau de 21 cm, un billet de 30 cm faisaient 2 à 4 pixels.
+- LES TRAÎNÉES TOUJOURS LÀ (`TRAINEE_SIGNAL` faux ; `trSig9` dans la boucle) : une traînée de la BOUTIQUE (`FX_EFF`) joue à toute nitro — réserve et
+  infini compris — : effets POP (`trxStep`), WOW, ARC-EN-CIEL, et la couleur de son ruban. Les caisses à signature (le chat sans traînée achetée)
+  gardent la règle d'avant. La réserve reste dite par la jauge et par le feu (ci-dessous).
+- LE FEU À LA COULEUR DE LA TRAÎNÉE (`nfeuPalTrainee`, `NFEU_TR`) : avec une traînée achetée, le feu de pixels prend dix nuances tirées de SA couleur
+  (`FX_EFF.teinte` : son `rgb`, sinon sa couleur de boutique `col`) — cœur chauffé à blanc, couleur pleine, braise, fumée — ; en réserve / à l'infini
+  il tire vers le bleu / le violet (le cœur 8 %, la braise et la fumée 30 %). Le feu du MOTEUR (hors nitro) ne change pas.
+- LES OBJETS QU'ON VOIT (`TRX_GROS`, `TRX_DENSE`, en course seulement — le garage ne bouge pas) : objets (pétales, anneaux, billets, blocs,
+  pastilles) ×2,3, lueurs (code, étincelles) ×1,6, flammes au sol ×1,2 (avant : ×1,35 pour tout) ; pétales ×1,6, billets, anneaux, blocs ×1,4-1,5.
+- VU APRÈS (mêmes bancs) : chaque traînée a son identité derrière la caisse — feu menthe, rose, or, magenta (WOW), vert et code (MATRICE), cyan et
+  blocs, jaune et le fantôme (GLOUTON), arc-en-ciel… — et ses objets se lisent : l'anneau d'or, les billets verts marqués $, les pièces qui tournent.
+- LES AILES (`AILE_K`, `AILE_K_ON`) — VU sur les photos de la boutique (`ailes.js` : `dbgAile` pour les 14) : le PIGEON minuscule, la FÉE grise et
+  pâle, le PHÉNIX (la mythique !) deux baguettes, les HÉLICES maigres, les PANNEAUX (l'aile offerte) deux planches mates. Chaque aile a sa TAILLE
+  (posée au pivot y/z, multipliée dans le déploiement `scale.x` et dans `photoAiles`) : PHÉNIX ×1,7, PIGEON ×1,5, FÉE ×1,45, HÉLICES ×1,3,
+  MONARQUE ×1,25, PLUMES ×1,2, les autres ×1,05-1,15 ; et les matières des plus faibles : deux filets de NÉON sur les PANNEAUX (la teinte d'accent
+  de la caisse poussée à fond, cyan si elle est grise), la lumière d'ange et l'or des PLUMES (émissif .35 → .6, .5 → 1), des voiles IRISÉS pour la
+  FÉE (dégradé cyan → lilas → rose → or, opacité .88, émissif 1,15), le halo du PHÉNIX (.25 → .4).
+- `?trainee=signal` = les traînées d'avant (règle, feu, tailles) ; `?ailes=avant` = les ailes d'avant. Bancs : `habits.js`, `ailes.js`, `ailevol.js`.
+- ⚠ Main a recalé entre-temps les couleurs du feu (`NFEU_P10`, « le feu du nitro aux couleurs de la barre ») : la teinte d'une traînée achetée passe
+  par-dessus (voir la fusion).
+
+## LES NUAGES SANS COUTURES, LE CIEL ET LES COULEURS DE PLEIN JOUR (2026-10-15 soir, Sacha : « les nuages sont encore buggés et le ciel est toujours assez mal géré ; les couleurs en plein jour sont mal gérées »)
+- MESURÉ AVANT (photos de course, banc muet ; `pix.py` = la couleur moyenne d'un carré de l'image) :
+  · le BÉTON de jour sortait BLEU-VIOLET — mer de nuages midi #5b5fb4 (saturation .37), matin #6d5eb1, forêt midi #516ad5 (.61), canyon midi #9f9cf4 (.80) ;
+  · le ZÉNITH de midi saturé À BLOC, le rouge à zéro — forêt #0058fd, canyon #0044f8 (saturation 1,00) : un bleu électrique hors de l'écran ;
+  · la mer de nuages : une BANDE ORANGE (#f8b571) en travers du ciel de midi — en diagonale ou à la verticale quand la route se couche ;
+  · des LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent.
+- LA CAUSE du béton et du ciel : la passe « vives » du même jour (« les maps sont trop ternes, sature un peu plus ») — béton teinté ardoise bleue
+  (`BETON.t` .86/.93/1,2), 40 % de la couleur de l'air (`BETON.amb`), ×1,18 de saturation sur chaque ambiance — trop pour le plein jour.
+  · LE BÉTON DE JOUR (`routeTick`) : de jour, la teinte du béton revient vers une ardoise neutre (`ROUTE_JOUR_T`, part `ROUTE_NEUTRE` .85) et il ne
+    prend plus que 15 % de l'air ; la nuit, l'orbite et les routes de jade gardent tout. `?beton=bleu` = avant.
+  · LE CIEL DE JOUR (`uSkySat`, `cielSat` à la fin des programmes du ciel : plein, passe lisse, canyon) : la chroma du ciel ramenée de moitié de
+    jour (`CIEL_DESAT` .5) — la teinte reste ; nuit, orbite, jade intacts. `?ciel=vif` = avant.
+  · LA BANDE ORANGE : l'horizon PÊCHE de la bible (`nuagesMidiCC` jHor .95/.80/.64, `nuagesMatinCC` 1/.74/.52) n'a plus de sens sur un dôme replié
+    dont la caméra roule : à midi une BRUME DE CIEL (.80/.88/.98), le matin une crème à peine dorée (.97/.91/.84). Copies de course seulement (le
+    menu garde matin/midi). `?ciel=peche` = avant.
+- LES NUAGES : les bords d'un cumulus (la silhouette qui s'allège, le fondu près de l'objectif, le fondu d'une zone neuve) étaient À DEMI
+  transparents mais écrivaient leur profondeur ; les ~100 lots du coton (gabarit × finesse) sont triés du plus loin au plus près dans chaque lot,
+  pas d'un lot à l'autre — un nuage proche dessiné avant un lointain le masquait et le ciel passait par son bord. Le bord devient une TRAME
+  ordonnée (Bayer 4 × 4, `N8_TRAME` dans `nuage8Mat`, nuages en instances seulement) : chaque fragment est opaque ou jeté, l'ordre ne compte plus.
+  Le nuage du titre garde son fondu. `?nuages=fondus` = avant.
+- MESURÉ APRÈS : béton mer de nuages midi saturation .13-.17 (gris), canyon .14, forêt .30 (ardoise) ; zénith forêt #3c87ed, nuages #a4c5f0 ;
+  plus de bande orange ; rafale de 8 photos de la mer de nuages : plus de liseré bleu ni de trou. Soir (le couchant rose), nuit, titre : inchangés.
+
+## LA ROUTE 66 — LE CANYON COMMENCE PAR UNE LONGUE LIGNE DROITE, UNE VIEILLE STATION-SERVICE ET SON PANNEAU (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite et une vieille station service et un panneau route 66 »)
+- LA LIGNE DROITE (`genCanyon`) : la vallée des Mitaines n'est plus une longue courbe (`large(340 m)`) mais une DROITE de 820 m × LL à peine
+  en pente (−2,5 %). Les deux tirages `r()` de l'ancienne courbe sont faits quand même : la suite du canyon garde ses tirages. Les buttes
+  des Mitaines (`cyMitaines`, au milieu de [départ, brèche]) encadrent maintenant la droite : Monument Valley de part et d'autre.
+- LE DÉCOR (`cyRoute66`, appelée par `cyMonuments`) — des pavés à couleurs de sommets, cuits en UNE géométrie aux coordonnées du monde, dessinée
+  par la matière des arbres du canyon (`cyMonuMats().t` : la lumière, l'ombre des parois, le brouillard), en InstancedMesh d'UNE instance :
+  c'est la variante que `canyonChauffe` compile au menu (un Mesh simple compilait un programme neuf en course — piège n° 7) :
+  · le PANNEAU ROUTE 66 à 150 m, à gauche, à 5 m du bord : le bouclier blanc bordé de noir (6,3 × 7,1 m, une grille de 15 × 17 pavés),
+    « ROUTE » et un grand « 66 » en pixels (`CY_FONTE` : 3 × 5 et 5 × 7), tourné vers la caisse qui arrive ; ses poteaux descendent au sol ;
+  · la VIEILLE STATION-SERVICE à 430 m, à droite (×1,6 : la route fait 56 m de large) : le bâtiment crème au bandeau rouge passé, sa porte,
+    sa vitrine, la porte du garage à lattes, la cheminée, l'auvent sur deux piliers, l'îlot et ses deux pompes rétro (rouge, turquoise, globes
+    blancs, tuyaux), des fûts rouillés, le dallage fissuré, le mât « GAS » de 12 m visible de loin ;
+  · ⚠ LA MESA : la route du canyon flotte AU MOINS 16-18 m au-dessus du plateau (sa règle d'or) — posée au sol, la station était cachée sous
+    le bord de la dalle (MESURÉ en photo). Elle trône sur un piton de grès de 26 m de rayon aux strates du canyon (8 couleurs), sa corniche au
+    ras du bitume, à 4 m du bord (elle ne touche pas la route). En vol, la mesa TUE comme les autres monuments (`CY.r66m` dans `cyMonuHeurt`).
+- Vérifié : `dbgCanyon('test')` → dessus 0, dessous 0, marge 16,8-18,7 m ; photos `dbgCanyon('vueA',s,h,cap)` au midi et au soir (le mât GAS
+  en silhouette sur le couchant) ; 10 162 sommets ; aucune erreur. Console : `dbgCanyon()` rend `r66` (le nombre de sommets).
+
+## L'ACCUEIL : ACHAT, LA VITRINE SANS SA PHRASE, LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, l'offre doit maintenant s'appeler achat ; enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien » · « une sorte d'icône avec un doigt qui clignote sur la voiture la première fois, pour lui montrer qu'on peut cliquer sur la voiture ; rends-le un peu stylisé, accueillant pour la première connexion »)
+- LE BOUTON : la tuile cadeau de l'accueil (`.mOffres`, bâtie par le bloc « accueil du ciel ») dit ACHAT (anglais : BUY, l'entrée `ACHAT`
+  existante d'I18N) ; même mot dans `accC6` (charte 6). L'écran où elle mène (`#mShop`, nommé OFFRES par Léo le 10/10) s'appelle
+  ACHAT lui aussi (Sacha, même soir : « renomme aussi le titre de la page OFFRES en ACHAT »). L'onglet OFFRES de la boutique du
+  garage (charte 6 / `?ux8g=1`, `UX8_TABS`) n'a pas bougé.
+- LA VITRINE (`shopRender`, l'offre à la une `.shUne`) : plus de phrase de la caisse sous son nom (la desc du CHAT POP-TART faisait trois
+  lignes). La fenêtre d'achat (`shopPop`, `.spDesc`) la montre toujours.
+- LE DOIGT DE BIENVENUE (`<style id="accueilDoigt">`, `#chDoigt`, `CH_DOIGT` / `chuteDoigtTick` / `chuteDoigtFini`, juste après
+  `CHUTE_TAP`) : une main en pixels (16 × 18, gant blanc ombré de lilas, manchette d'or, contour d'encre — dessinée en SVG par
+  `chuteDoigtEl`, rendue ×3) se pose sous la caisse du titre et la TAPE toutes les 1,6 s ; à chaque coup, une onde (en 6 crans) et quatre
+  éclats d'or partent du bout du doigt. Une bulle d'encre filetée d'or, sous la main : BIENVENUE ! (or) · TAPE TA CAISSE (blanc) — en
+  anglais WELCOME! · TAP YOUR CAR.
+  · Quand : sur l'accueil seulement (`overlay[data-ecran]` = home, voile d'ouverture parti, ni piqué, ni volet, ni auto-école), après
+    1,2 s d'accueil ; cachée dès qu'on quitte le ciel (`chuteSort`). Pas `overlay.style.display` : au ciel l'accueil s'affiche par-dessus
+    un display:none écrit en ligne.
+  · Où : le bout du doigt = le centre de la caisse projeté (`chuteRender`, après la caméra), lissé (la caisse tremble dans le vent, la
+    main non), gardé dans l'écran (96 px des côtés, 132 du bas) ; le cadre du canevas relu deux fois par seconde.
+  · Jusqu'à quand : le premier coup sur la caisse (`chuteTape`) → la main s'envole (0,45 s) et ne revient plus : SAVE.d.ast, bit 256.
+    ⚠ `san()` bornait `ast` à 255 : la borne passe à 1023, sinon le bit était perdu au rechargement.
+  · Réduire les animations : la main reste posée, sans coups ni ondes.
+- BANC (Chrome sans fenêtre, sauvegarde neuve et muette, 844 × 390 puis 390 × 844) : la main sous la caisse et la bulle lisibles couché ;
+  ACHAT à l'accueil ; le tap sur la caisse l'éteint, `ast` = 256 sauvegardé, rien après rechargement.
+
+## LES STALACTITES QUI SE BRISENT (2026-10-15 soir, Sacha : « retravaille les stalactites sous la route de montagne, faut qu'ils se brisent de manière satisfaisante quand on les traverse, avec un son de bris de verre »)
+- AVANT : les glaçons sous la dalle du GLACIER (buildBanq § 5 : le long des deux bords + les LUSTRES sous le milieu) étaient fondus dans les
+  morceaux de 300 m de la banquise — un pur décor, la caisse passait au travers sans rien.
+- CHAQUE GLAÇON EST NOTÉ (`glacon` → `K.G`, puis `stalNote` quand son morceau est bâti) : base, pointe, rayon, longueur, ses 15 sommets dans
+  la toile du morceau ; rangé dans une grille de 24 m (`STAL.g`, vidée par `banqVide`). MESURÉ : 2 624 à 2 695 glaçons sur une piste.
+- `stalTick` (banqTick, chaque image, hors pause) → `stalTouche(P,V)` : le centre de la caisse contre le segment base → pointe de chaque
+  glaçon des 9 cases autour (rayon 1,5 m + le sien, plus fin vers la pointe). Traversé → `stalBris` :
+  · le glaçon DISPARAÎT (ses sommets ramenés sur sa pointe ; une seule remontée par morceau et par image : `STAL.maj`) ;
+  · des ÉCLATS DE VERRE qui tournoient et retombent (`STAL_ECL` : 72 tétraèdres étirés en UN InstancedMesh de cristal translucide, Phong
+    à facettes, recyclés ; dessiné une fois au chargement : programme compilé au menu), lancés avec ~30-50 % de l'élan de la caisse, 5 à 16
+    selon la taille ; + la poudre (`fx.poudre`) et les étincelles cyan (`fx.eclat`) de la banquise ;
+  · le son neuf `banq.bris` (−30 : le CRAC, l'éclatement en éclats de verre qui tintent et retombent, un petit doum dessous ; 3 variantes),
+    70 ms au moins entre deux, plus fort et plus grave pour un gros glaçon, panoramiqué du côté du choc ; une secousse, un coup dans la main.
+  Rien ne tue : on les traverse (en vol sous la route, ou en roulant sur la face du dessous : ils sautent les uns après les autres).
+- Au passage : la ligne de `fx.eclat` (banqFx) avait un commentaire en `//` qui AVALAIT sa suite (`drag`, `acc`, le nom) — piège n° 1 ; rendu.
+- Banc (`staltest.js`, glacier midi, son allumé) : 7 glaçons brisés, 2 sons (la règle des 70 ms), la photo sous la dalle montre les éclats.
+  `dbgStal('test')` : à 0,8 m d'un glaçon il casse, à 3,5 m rien (sauf un voisin du même lustre). Console : `dbgStal()`, `dbgStal('bris',n)`.
+
+## LES FIGURES LANCÉES EN ROULANT — LE SAUT À LA TAILLE DE LA FIGURE (2026-10-15 soir, Sacha : « le salto avant ne marche pas quand on le lance en roulant sur la route ; vérifie que chaque figure est lançable en roulant sans être dans les airs »)
+- MESURÉ AVANT (banc `figstat.js` : double-tap au sol par le crochet neuf `dbgSautFig(x,y)` = le double-tap NITRO avec le joystick en x, y ;
+  mer de nuages, salto avant / salto arrière / tonneau dans les trois emplacements) : sur du plat le SAUT NITRO donne ~1 s de vol et la
+  figure se plante ; mais quand la route REMONTE sous la caisse le vol ne dure que 0,24-0,40 s — le salto restait à 0,3-0,6 tour, posé
+  sans être payé (« ça ne marche pas »), le tonneau aussi. Échecs : salto arrière 2/6, tonneau 1/5, salto avant 1 sur la trace (0,59 tour
+  en 0,39 s). Et un double-tap fait pendant un petit rebond (dos d'âne, pose qui se tasse : `hopY`/`hopV`/`POSE_F`) était jeté sans un bruit.
+- LE SAUT À LA TAILLE DE LA FIGURE (`veqSaut`) : la figure qui partira est connue au décollage (`sautFigVisee` : celle du glissé, sinon
+  celle de la direction tenue) ; juste après `startFall`, `sautAllonge(f)` intègre la vraie trajectoire (la loi de la chute, comme le
+  viseur : `sautVolPredit`, pas de 1/30 s, `dalleProche`) contre la vraie route devant. Si la pose arrive avant `sautBesoin(f)` (de quoi
+  planter la figure à ~90 % de sa durée de catalogue, 1 s au moins), il ajoute juste la poussée qu'il faut le long de la normale de la
+  route au décollage (`SAUT_N`) : +3, 6, 9… 19 m/s au plus. Sur du plat rien ne change ; c'est la route qui remonte qui allonge le saut.
+- LE DOUBLE-TAP GARDÉ : pendant un rebond, la demande attend la fin du rebond (`VEQ.sautAtt`, 0,4 s au plus ; lue par la boucle à côté
+  de `VEQ.dReq`, remise à zéro avec elle).
+- MESURÉ APRÈS (mêmes bancs, `figfail.js` par map) : nuages 20/22 puis 8/8 (salto avant) · ville 7/7 et 4/5 · forêt 2/2 et 5/5 · volcan 8/8
+  et 5/5 · canyon 8/8 et 6/6 — l'échec restant de la ville : la figure n'est jamais partie (0 tour en 3 s de vol), pas un vol trop court.
+- `?saut=fixe` = le saut d'avant (21 m/s toujours). Crochets : `dbgSautFig(x,y)` (rend ok, mode, `allonge`, `dv`, `tPred`),
+  `dbgSautFig('cause')` (la cause de la dernière mort).
+- Le mode FIGURES › GLISSER (Léo) n'est pas changé : au sol ← → = SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, et le salto part en poussant le
+  joystick en avant pendant l'amorce (le saut qui part de là profite aussi du saut à la taille de la figure). À trancher par Sacha et
+  Léo si, en GLISSER, ↓ sur la route doit lancer directement le salto avant.
+
+## LES SONS DE LA MACHINE À SOUS (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous »)
+- Elle avait son levier, ses crans, ses arrêts, ses pièces, ses gains et son jackpot (session SON, 14/10) ; il lui manquait tout ce qui se
+  passe AUTOUR. Sept sons neufs (`atelier-son/recettes.js`, famille `spin`, pentatonique de mi, key:1) :
+  · `spin.ouvre` (−32) — elle S'ALLUME : le relais, le néon qui chauffe, les ampoules en chenillard (remplace `ui.banniere`, gardé en repli) ;
+  · `spin.jeton` (−31) — le jeton tinte sur la lèvre de la fente, roule dans la goulotte, tombe dans la caisse (`spinAppui`, +0,28 s : le vol du jeton) ;
+  · `spin.roule` (−39, BOUCLE) — le moteur des rouleaux : il démarre avec eux et RALENTIT avec eux (`spinMoteur` : gain −16 → −3 dB,
+    lecture ×0,7 → ×1,15 selon leur vitesse moyenne), se tait à la pose du 3e (`spinSonsStop`) ;
+  · `spin.cliquet` (−40) — un cran de métal tous les 14 % de la course quand on tire le levier au doigt ;
+  · `spin.tease` (−33) — le SUSPENSE : deux symboles pareils, le roulement qui accélère jusqu'au 3e rouleau (coupé à sa pose) ;
+  · `spin.presque` (−35) — deux pareils et le 3e à côté : un « wouin-wouin » doux, puis la consolation tout bas (−11, +0,75 s) ;
+  · `spin.ferme` (−36) — elle S'ÉTEINT quand on la ferme.
+- MESURÉ au banc (`spintest.js` : son allumé, Chrome muet, chaque `CCSON.play` relevé) : tirage forcé « paire » → levier, jeton, moteur
+  (boucle), 56 crans, arrêt, arrêt + suspense, arrêt, moteur coupé, presque + consolation + pièces ; forcé « jackpot » → … jackpot. Aucune erreur.
+- ⚠ LA CUISSON SANS FFMPEG (ce Mac n'en a pas) : un remplaçant `ffmpeg` (lamejs, le LAME en JS) qui écrit le MÊME en-tête que ffmpeg
+  (ID3 + trame Xing + étiquette Lavc : retard 576, bourrage de fin) — sans lui, Chrome coupait le début des sons de la banque mais pas
+  ceux de lamejs (34,5 ms de retard, MESURÉ). Avec : l'étalon sort au même échantillon que celui de ffmpeg dans Chrome (30,0 ms) ET dans
+  CoreAudio (48,0 ms, celui de Safari). Cuisson filtrée : seuls les sons neufs (et l'étalon) sont réécrits. `sons-banque.js?v=27`.
+
+## LE BUMP EST UNE FIGURE QUI S'ADDITIONNE (2026-10-15 soir, Sacha : « bump doit compter comme une figure additionnable comme les autres »)
+- AVANT : le BUMP (la caisse qui cogne la tranche de la dalle et rebondit) était une figure GRATUITE (`addTrick(…, free=true)`) : il
+  s'écrivait, rendait la demi-jauge d'airtime, du nitro et du style, mais n'entrait NI dans la mallette (`chainVal`) NI dans le
+  multiplicateur (`chainMult`) — un vol avec seulement des BUMPS ne rapportait rien à la pose.
+- MAINTENANT : il entre dans la CHAÎNE comme les autres figures. Le 1er BUMP d'un vol verse `BUMP_VAL` = 5 (comme le RICOCHET sur l'eau),
+  le multiplicateur monte (+0,5 puis +0,15), le BRAQUAGE se prolonge, le FLOW « risque » monte, l'échelle des paliers se crie, le défi
+  secret LAMPADAIRE le compte. La redite s'use comme une figure refaite : ×0,6 par rebond du même vol (5 · 3 · 1,8 · 1,1…) — longer la
+  tranche à l'infini ne verse pas plus de 12,5 par vol : l'exploit fermé en septembre reste fermé. Le nom garde son compte (DOUBLE BUMP,
+  TRIPLE BUMP…), sans « ×n » ajouté (`raw`). Le paramètre `free` d'`addTrick` reste, plus personne ne s'en sert.
+- MESURÉ (banc pas à pas : la caisse sortie par le bord, renvoyée contre la tranche sous la lèvre, Chrome du Mac couché) : après le BUMP,
+  la chaîne affiche « CHAÎNE ×1,5 · +5 » (avant : ×1 · +0) ; posée ensuite sur la route, elle est encaissée (+3). Aucune erreur, couché,
+  debout et dans le cadre.
+- Le changement est parti dans le commit de LA PHOTO D'UNE FIGURE (même dossier de travail, cache v535).
+- À trancher par Sacha : la valeur (`BUMP_VAL` 5) et la décote par rebond (×0,6).
+
 ## LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE (2026-10-15 soir, Sacha : « mais bien des illustrations pour chaque figure, dans la boutique »)
 - AVANT : les 16 cartes du rayon FIGURES (13 figures, trois à deux sens) montraient TOUTES le même pictogramme (`pxi('rotation')` de
   `bqFigHab`), à moitié sous l'étiquette de rareté — quand les caisses et les ailes ont leur photo de studio.
