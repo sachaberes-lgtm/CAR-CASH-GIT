@@ -3,7 +3,9 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE BUS DE LA MUSIQUE : LES BASSES RÉGULÉES ET LA NITRO QUI COLORE (2026-10-15, pôle SON, chantier A — DANS LA BIBLIOTHÈQUE, le jeu après l'écoute de Léo)
+## LE BUS DE LA MUSIQUE : LES BASSES RÉGULÉES (2026-10-15, pôle SON, chantier A — DANS LA BIBLIOTHÈQUE, le jeu après l'écoute de Léo)
+- ⚠ LA NITRO QUI COLORAIT LA MUSIQUE (décrite plus bas) est RETIRÉE après l'écoute — Léo : « enlève nitro musique augmentée ». Ni dans la
+  bibliothèque ni dans le jeu ; son code reste dans l'historique git (commit f1e89131), on ne la réintègre pas.
 Léo : « j'aime beaucoup la basse, mais pour un jeu qui dure, des basses agréables : ça peut fatiguer dans les écouteurs. Régule les basses, ne rien
 enlever, tout bien mesurer » · « un bouton pour activer la nitro et voir comment elle amplifie la musique en général ; mais pas trop ».
 - `assets/audio/musique-bus.js` (`MUSBUS`) : UN réglage, pour la bibliothèque et — après l'écoute — pour le jeu. Par morceau (PRESETS, une clé =
@@ -12,15 +14,13 @@ enlever, tout bien mesurer » · « un bouton pour activer la nitro et voir comm
 - MESURÉ (atelier : part d'énergie sous 60 / 150 Hz du fichier entier ; les sons en direct joués au banc) : les musiques de NIVEAU passaient 40 à
   65 % de leur énergie sous 60 Hz (NOITE 73 %, GLISSE 85 %) ; lobby, ciel, garage < 12 % : rien. Après (rendu hors ligne par les vrais nœuds) :
   −13 à −20 points de sub, 0 dB au haut-parleur de téléphone (coupe-bas 180 Hz), −0,4 à −2,3 LU en plein spectre.
-- LA NITRO : nitro tenue = plateau grave +2,5 dB à 90 Hz, aigus +4 dB au-dessus de 3,5 kHz, côtés +35 %, 8 % de grain saturé en parallèle (coupé sous
+- (RETIRÉE) LA NITRO : nitro tenue = plateau grave +2,5 dB à 90 Hz, aigus +4 dB au-dessus de 3,5 kHz, côtés +35 %, 8 % de grain saturé en parallèle (coupé sous
   250 Hz et au-dessus de 6,5 kHz). Monte en ~0,3 s, TIENT 0,35 s après le lâcher (les petits coups répétés ne clignotent pas), retombe en ~0,8 s ;
   aucun paramètre sous sa valeur de repos. Mesuré : +0,6 à +2,3 LU perçus selon le morceau (plafond +3), +1,2 à +2,4 dB de largeur.
-- LA BIBLIOTHÈQUE : tout passe par le bus (`maitre` → `BUS.entree`) ; le bouton « Basses : réglées / brutes » (A/B, gardé par ce navigateur) ; le
-  gros bouton NITRO à tenir dans le lecteur (et N) ; la nitro du générateur colore aussi (comme en jeu). GLISSE et les pages en direct reçoivent
+- LA BIBLIOTHÈQUE : tout passe par le bus (`maitre` → `BUS.entree`) ; le bouton « Basses : réglées / brutes » (A/B, gardé par ce navigateur). GLISSE et les pages en direct reçoivent
   le CONTEXTE PRÊTÉ (`contextePrete(dest)`) : ils sortaient droit sur `ac.destination`, à côté du volume et du bus.
 - POUR LE JEU (à faire après le oui de Léo) : la musique du jeu ne passe par WebAudio que sur iPhone iOS 17+ (MUS_WA) ; sur ordi et Android c'est
-  l'élément <audio> direct — brancher MUS_WA là aussi (le chien de garde existe), passer le contexte du jeu à GLISSE (le SOLEIL DE JADE), et
-  reprendre la part nitro de `musicBoostEnv` (+0,22) pour ne pas doubler. La distorsion du boost du 03/10 (DIST) reste coupée.
+  l'élément <audio> direct — brancher MUS_WA là aussi (le chien de garde existe) et passer le contexte du jeu à GLISSE (le SOLEIL DE JADE).
 
 ## TOUT EN 30 PALIERS : SIFFLEUR · 30 ET CIEL · 30 (2026-10-15, pôle SON, chantier B ; Léo : « déconstruire les sons à 8 paliers en 30 paliers qui font évoluer le son »)
 - La méthode d'AURA · 30 : les 8 marches d'origine restent aux moteurs 1, 5 … 29 (VÉRIFIÉ : échantillon pour échantillon, écart 0), et entre deux
