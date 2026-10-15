@@ -26,8 +26,10 @@
   SUR le mur (`boomOnde`, rayon 24), une gerbe qui gicle puis DÉGOULINE le long du mur, 14 éclats de roche calcinée (`IMP_ECL`, un sur trois
   en braise) qui sautent du trou et rebondissent sur la paroi (`impRebond`, son plan tangent). Les pièces de la caisse s'en décollent à
   peine et s'ÉTALENT le long du mur (renvoyées vers nous, un capot de 2 m passait en plaque plein cadre — mesuré au banc).
-  LE CRATÈRE (`IMP_CRAT`, un quad décollé de 28 cm — les parois ne sont jamais planes : voxels, cartes de hauteur, neige —, shader en
-  pixels, 56 de bord à bord, rayon 3,6 → 5,8 m selon la vitesse) : trou noir où couve le brasier, lèvre chauffée à blanc qui tient ORANGE
+  LE CRATÈRE (`IMP_CRAT`, un quad posé à 12 cm de la paroi, shader en pixels, 56 de bord à bord, rayon 3,6 → 5,8 m selon la vitesse ;
+  son vertex shader l'AVANCE vers l'œil le long du rayon de vue — `uPull`, 1,6 m, 0,25 pendant le coup pour ne pas peindre sur la caisse :
+  même place à l'écran, mais il passe devant la paroi visible quand elle déborde du volume de collision — un tronc géant plus gros que
+  sa capsule l'avalait, la neige d'un glacier aussi, mesuré au banc) : trou noir où couve le brasier, lèvre chauffée à blanc qui tient ORANGE
   pendant tout le plan, onze lézardes qui courent en 0,13 s et rougeoient, suie ronde étirée vers le haut, liseré d'encre des volutes ;
   deux RÉPLIQUES (mini-boules dessinées qui ressortent du trou, 0,34 et 0,78 s, `explosion.loin`), flammes, braises, fumée qui part du
   HAUT du trou (le cratère reste à vue). Liquides (rivière, Seine, lave) : tout sauf le cratère et les éclats.

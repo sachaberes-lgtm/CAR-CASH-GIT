@@ -38958,8 +38958,10 @@ IMP_ETOILE.onAfterRender=function(){if(IMP.age<0)this.visible=false;this.onAfter
 /* LE CRATÈRE, peint en pixels (56 de bord à bord) dans un seul quad : suie étirée vers le haut, onze lézardes qui courent et rougeoient,
    liseré d'encre, lèvre chauffée à blanc qui refroidit, fond noir où couve le brasier. Couleurs > 1 : le halo les prend. */
 const IMP_CRAT=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({
-  uniforms:{uAge:{value:0},uSeed:{value:0},uOp:{value:0},uEtire:{value:1},uInk:{value:new THREE.Color(0x1c0430)}},
-  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+  uniforms:{uAge:{value:0},uSeed:{value:0},uOp:{value:0},uEtire:{value:1},uPull:{value:.25},uInk:{value:new THREE.Color(0x1c0430)}},
+  // uPull : le quad AVANCE vers l'œil le long du rayon de vue (même place à l'écran, profondeur plus proche) — chaque carte a son écart
+  // entre le volume de collision et ce qu'on voit (un tronc géant plus gros que sa capsule : le cratère tombait DEDANS, mesuré au banc)
+  vertexShader:'uniform float uPull;varying vec2 vUv;void main(){vUv=uv;vec4 mv=modelViewMatrix*vec4(position,1.);mv.xyz*=max(.05,1.-uPull/max(.1,length(mv.xyz)));gl_Position=projectionMatrix*mv;}',
   fragmentShader:['uniform float uAge;uniform float uSeed;uniform float uOp;uniform float uEtire;uniform vec3 uInk;varying vec2 vUv;',
     'float h1(float n){return fract(sin(n)*43758.5453);}',
     'void main(){',
@@ -39005,7 +39007,7 @@ function impCoupPart(){ // explode vient de trouver un impact frais : LE COUP �
   IMP.sc0.copy(carGroup.scale);IMP.cam0.copy(camera.position);IMP.fov0=camera.fov;
   IMP.R=Math.max(3.6,Math.min(5.8,3.2+IMP.v/28));IMP.kE=.85+Math.min(.5,IMP.v/160); // plus vite = plus gros trou, plus grosse étoile
   if(!IMP.mou){IMP_M4.makeBasis(IMP.t1,IMP.t2,N);IMP_CRAT.quaternion.setFromRotationMatrix(IMP_M4);
-    IMP_CRAT.position.copy(S).addScaledVector(N,.28);IMP_CRAT.scale.set(IMP.R,IMP.R,1); // décollé de 28 cm : une paroi n'est jamais plane (voxels, cartes de hauteur, neige) — plus près, il s'enfonçait à moitié dedans ; de biais, l'écart ne se voit pas
+    IMP_CRAT.position.copy(S).addScaledVector(N,.12);IMP_CRAT.scale.set(IMP.R,IMP.R,1); // une paroi n'est jamais plane (voxels, cartes de hauteur, neige, troncs) : le reste de l'écart, c'est uPull qui le rattrape
     const U=IMP_CRAT.material.uniforms;U.uAge.value=0;U.uOp.value=0;U.uSeed.value=Math.random()*40;U.uEtire.value=1-Math.min(1,Math.abs(N.y)*1.1);IMP_CRAT.visible=true;}
   IMP_ETOILE.position.copy(S).addScaledVector(N,.35);IMP_ETOILE.material.rotation=Math.random()*6.28;IMP_ETOILE.material.opacity=1; // au NEZ, contre la paroi
   IMP_ETOILE.scale.setScalar(.7*IMP.kE);IMP_ETOILE.visible=true;
@@ -39050,6 +39052,7 @@ function impTick(dt){ // chaque image (porte de simulation de la boucle) : le cr
   if(IMP.age<0)return;
   IMP.age+=dt;const a=IMP.age,N=IMP.n,S=IMP.s,T1=IMP.t1,T2=IMP.t2,R=IMP.R,b=a-IMP.COUP;
   const U=IMP_CRAT.material.uniforms;U.uAge.value=a;U.uOp.value=IMP.mou?0:Math.min(1,a/.03)*(1-THREE.MathUtils.smoothstep(a,7,9));
+  U.uPull.value=b<0?.25:1.6; // pendant le coup, à peine (il ne doit pas peindre SUR la caisse) ; la caisse partie, 1,6 m
   if(IMP_ETOILE.visible){ // l'étoile jaillit pendant le coup, puis se dissout dans la boule
     if(b<0){const e=1-Math.pow(1-a/IMP.COUP,2);IMP_ETOILE.scale.setScalar((.7+2.3*e)*IMP.kE);} // pendant l'écrasement : elle pousse au nez, la caisse reste lisible
     else{const w=b/.18;if(w>=1)IMP_ETOILE.visible=false;else{IMP_ETOILE.scale.setScalar((3+5.2*(1-(1-w)*(1-w)))*IMP.kE);IMP_ETOILE.material.opacity=1-w*w;}} // à la détonation : elle ÉCLATE
