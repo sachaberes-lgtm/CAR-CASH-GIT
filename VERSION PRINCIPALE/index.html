@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
@@ -192,7 +193,7 @@ html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
-html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
+html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:8px/1 var(--pix);letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
 html.colonne #tel{position:fixed;box-sizing:border-box;z-index:1;background:#050307;
@@ -205,7 +206,7 @@ html.colonne.couche #encoche::after{left:0;bottom:calc(-1*var(--or));background:
 html.colonne.debout #encoche::before{top:0;left:calc(-1*var(--or));background:radial-gradient(circle at 0 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 html.colonne.debout #encoche::after{top:0;right:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 /* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
-html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
+html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
 html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
@@ -227,7 +228,7 @@ html.labNuages #garage.menu.ciel::after{opacity:var(--labV2,1)}
 html.labNuages #overlay,html.labNuages #overlay *{pointer-events:none!important} /* ⚠ les [data-m] de l'accueil reprennent le doigt d'eux-mêmes : on les éteint UN PAR UN (sans ça, un JOUER invisible lançait la partie) */
 html.labNuages.labBoutons #overlay>*{opacity:1!important}
 html.labNuages #tSet,html.labNuages #tGear{display:none!important}
-#mSet p.ccVer{margin:14px 0 2px;text-align:center;font:600 11px/1.3 var(--sans,system-ui,sans-serif);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
+#mSet p.ccVer{margin:14px 0 2px;text-align:center;font:8px/1.6 var(--pix);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
   html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
   canvas{display:block}
@@ -336,7 +337,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   /* RÉGLAGES — carte sobre, verre dépoli, typo système (DA simple et efficace) */
   #settings{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
     background:rgba(6,8,18,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#f2f5fa}
+    font-family:var(--pix);color:#f2f5fa}
   #settings.on{display:flex}
   #setCard{width:min(460px,92vw);max-height:86vh;overflow-y:auto;background:rgba(22,24,34,.82);
     border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:22px 24px 24px;
@@ -756,13 +757,13 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     opacity:0;transition:opacity .5s ease-out,transform .8s cubic-bezier(.22,1.61,.36,1)}
   #launchGlow.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
   #overlay h2{font-family:var(--pix);font-size:11px;margin:14px 0 0;color:#00eaff;text-shadow:0 0 12px rgba(0,234,255,.7)}
-  #overlay p{max-width:640px;text-align:center;line-height:1.9;opacity:.92;font-size:15px;font-family:'Segoe UI',Arial,sans-serif}
+  #overlay p{max-width:640px;text-align:center;line-height:1.9;opacity:.92;font-size:10px;font-family:var(--pix)}
   #overlay .go{margin-top:22px;font-family:var(--pix);font-size:14px;color:#ffb000;animation:pulse 1.2s infinite;text-shadow:0 0 12px rgba(255,176,0,.7)}
   #finalScore{font-family:var(--pix);font-size:28px;margin:16px 0;display:none;
     background:linear-gradient(180deg,#fff6cf,#ffd75e 40%,#ff9d2e 78%,#a85e08);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 2px 0 #5c3600) drop-shadow(0 6px 12px rgba(0,0,0,.5))}
-  kbd{background:#1a1433;border:1px solid #00eaff;border-radius:3px;padding:2px 8px;font-size:12px;font-family:'Segoe UI',Arial,sans-serif}
+  kbd{background:#1a1433;border:1px solid #00eaff;border-radius:3px;padding:2px 8px;font-size:8px;font-family:var(--pix)}
   @keyframes pulse{50%{opacity:.4}}
   /* --- classement top 10 --- */
   /* le classement passe en second plan : on ouvre le jeu pour JOUER, pas pour lire un tableau */
@@ -778,7 +779,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   .lbName{flex:1;text-align:left;letter-spacing:2px}
   .lbScore{color:#62e062}
   .lbRow.hl .lbScore{color:#ffd75e}
-  .lbEmpty{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#8f84c8;text-align:center;padding:6px}
+  .lbEmpty{font-family:var(--pix);font-size:8px;color:#8f84c8;text-align:center;padding:6px}
 
   /* ------- ÉCRANS MODERNES (accueil / game over) ------- */
   /* le décor du menu : halo magenta, veine cyan rasante et trame de balayage — on est dans une borne,
@@ -846,7 +847,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #ctrlRow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:560px;margin:18px 0 4px}
   .kc{font-family:var(--pix);font-size:9px;letter-spacing:1px;color:#dfeeff;text-align:center;
     background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 13px 7px;line-height:1.1}
-  .kc i{display:block;font-style:normal;font-family:'Segoe UI',Arial,sans-serif;font-size:10px;color:#8fa4c4;letter-spacing:.5px;margin-top:5px;text-transform:lowercase}
+  .kc i{display:block;font-style:normal;font-family:var(--pix);font-size:8px;color:#8fa4c4;letter-spacing:.5px;margin-top:5px;text-transform:lowercase}
   /* le gros bouton doré devient une simple INVITE sous le logo : c'est le titre qu'on clique */
   #overlay .go{margin-top:12px;font-size:11px;letter-spacing:5px;color:#ffcf6a;background:none;
     border:none;padding:4px 10px;animation:pulse 1.8s infinite;cursor:pointer;
@@ -2021,6 +2022,21 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
      mémoire, un navigateur qui bloque une API en file://). Aucune erreur n'est levée dans ce cas —
      il n'y a qu'un silence. Le chien de garde transforme ce silence en diagnostic lisible. -->
 <script>
+/* UNE SEULE POLICE (2026-10-15, Sacha : « chaque texte du jeu doit avoir la bonne police […] il faut pas que je te le répète ») —
+   LE FILET DES CANVAS. Les textes DESSINÉS (billets, carte bancaire, montre et pièces de la boutique, « wow » du DOGE…) échappent au
+   CSS. Toute police de canvas qui n'est pas Press Start 2P est réécrite ici en Press Start 2P, à 62 % du corps demandé (la chasse pixel
+   est ~1,6 fois plus large qu'une Helvetica : le mot garde sa largeur) et sans gras (la police n'en a pas : un gras se synthétise et bave).
+   Les textures écrites pour le pixel passent telles quelles. Une police qu'on écrit demain dans un canvas est donc pixel d'office.
+   apresPolice(f) : dessine tout de suite, puis REDESSINE quand la police est chargée — une texture peinte au chargement de la page
+   l'était sinon dans la police de secours. garde-charte.sh refuse une version sans ce filet ni le filet CSS (#policeUnique). */
+(function UNE_POLICE(){try{const P=CanvasRenderingContext2D.prototype,D=Object.getOwnPropertyDescriptor(P,'font');if(!D||!D.set)return;
+  const C=new Map();
+  Object.defineProperty(P,'font',{configurable:true,enumerable:D.enumerable,get:D.get,set:function(v){let r=C.get(v);
+    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P",monospace';}C.set(v,r);}
+    D.set.call(this,r);}});}catch(e){}})();
+function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('16px "Press Start 2P"'))F.load('16px "Press Start 2P"').then(f).catch(function(){});}catch(e){}}
+</script>
+<script>
 (function(){
   var vu=false;
   function esc(t){return String(t).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
@@ -2044,10 +2060,10 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     var en=ccEn();
     var b=document.createElement('div');b.id='ccCrash';if(window.__ccLent){b.dataset.lent='1';window.__ccLent=0;} // (passe qualité) seul l'écran du chien de garde peut se retirer (voir garde)
     b.setAttribute('style','position:fixed;inset:0;z-index:99999;background:#07050f;color:#ffd75e;box-sizing:border-box;'+
-      'font:12px/1.6 ui-monospace,Menlo,monospace;padding:calc(var(--ccT,env(safe-area-inset-top,0px)) + 28px) 24px calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
-    b.innerHTML='<div style="font:600 20px/1.35 -apple-system,system-ui,sans-serif;color:#fff;margin-bottom:10px">'+(en?'CASH CAR hit a snag.':'CASH CAR a calé.')+'</div>'+
-      '<div style="font:500 15px/1.5 -apple-system,system-ui,sans-serif;color:#c9bdf0;margin-bottom:22px">'+(en?'Tap RESTART: your progress is saved.':'Touche RELANCER : ta progression est sauvegardée.')+'</div>'+
-      '<button id="ccRelance" style="display:block;width:100%;max-width:360px;min-height:56px;margin:0 0 28px;border:0;font:600 17px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);box-shadow:0 5px 0 #9c5200;cursor:pointer">'+(en?'RESTART':'RELANCER')+'</button>'+
+      'font:8px/1.8 var(--pix);padding:calc(var(--ccT,env(safe-area-inset-top,0px)) + 28px) 24px calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 24px);overflow:auto;-webkit-user-select:text;user-select:text');
+    b.innerHTML='<div style="font:14px/1.5 var(--pix);color:#fff;margin-bottom:10px">'+(en?'CASH CAR hit a snag.':'CASH CAR a calé.')+'</div>'+
+      '<div style="font:10px/1.7 var(--pix);color:#c9bdf0;margin-bottom:22px">'+(en?'Tap RESTART: your progress is saved.':'Touche RELANCER : ta progression est sauvegardée.')+'</div>'+
+      '<button id="ccRelance" style="display:block;width:100%;max-width:360px;min-height:56px;margin:0 0 28px;border:0;font:12px var(--pix);letter-spacing:1px;color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);box-shadow:0 5px 0 #9c5200;cursor:pointer">'+(en?'RESTART':'RELANCER')+'</button>'+
       '<div style="color:#ff5e7a;margin-bottom:6px">'+esc(titre)+(detail?'\n'+esc(detail):'')+'</div>'+
       '<div style="color:#6b6290;white-space:pre-wrap">'+esc(diag())+'</div>';
     (document.body||document.documentElement).appendChild(b);
@@ -2125,7 +2141,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   --cash:#7dff9b;--cashO:#05240f;--aura:#ff7ad5;
   /* le texte */
   --tx:#fff7ee;--tx2:#c9bdf0;--tx3:#8f84bd;--txO:#0a0616;
-  --sans:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+  --sans:'Press Start 2P',monospace; /* (2026-10-15, UNE SEULE POLICE) l'ancienne police système pointe sur le pixel : une règle oubliée tombe juste */
   /* LES CORPS — une gamme courte (--f2 garde son nom pour les règles historiques, il vaut le même 10 px que --f1) */
   --f0:8px;--f1:10px;--f2:10px;--f3:12px;--f4:14px;--f5:16px;--f6:20px;--f9:24px;--f7:28px;--f8:40px;
   /* les marges d'écran (safe areas comprises) */
@@ -2465,7 +2481,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
   transform:skewX(var(--sk));color:var(--neoV);background:#062414;box-shadow:0 0 0 1px #1f8a4b,0 0 12px rgba(94,227,122,.3)}
 .mMode.off .mmS{color:var(--tx3);background:var(--k0);box-shadow:0 0 0 1px var(--kl)}
 .mmP{color:var(--tx2);background:var(--k0);box-shadow:0 0 0 1px var(--kl2)}
-.mmD{font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2)}
+.mmD{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 
 /* ---------------------------------------------- RÉGLAGES ------------------------------------------------------------ */
 .mSet{display:flex;flex-direction:column;width:100%}
@@ -2503,7 +2519,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 .shPhoto .pxi{--pxs:6;color:var(--tx3)}
 .shUneTx{display:flex;flex-direction:column;gap:8px;text-align:left}
 .shUneTx b{font-family:var(--pix);font-weight:400;font-size:var(--f5);letter-spacing:1px;line-height:1.3;color:#fff;transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 14px rgba(255,199,42,.35)}
-.shUneTx span{font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2)}
+.shUneTx span{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 .shUneBas{display:flex;align-items:center;gap:12px;font-family:var(--pix)}
 .shUneBas s{font-size:var(--f2);color:var(--tx2);text-decoration-color:var(--neoM);text-decoration-thickness:2px}
 .shUneBas s{text-decoration:none;position:relative}.shUneBas s::after{content:'';position:absolute;left:-3px;right:-3px;top:calc(50% - 1px);height:2px;background:var(--neoM)} /* (2026-09-30, revue) le trait passe AU MILIEU des chiffres : le line-through de la police pixel tombait dessous, on lisait un souligné */
@@ -2606,9 +2622,9 @@ body.touch #tNitroZone{background:none!important;border:0!important;box-shadow:n
 #modale.on .modIn{animation:k4Feuille var(--t-slow) var(--ease) both}
 #modale.sortant .modIn{animation:k4FeuilleOut var(--t-fast) var(--ease) forwards}
 #modT{margin:0;font-family:var(--pix);font-weight:400;font-size:var(--f4);line-height:1.5;letter-spacing:1px;color:#fff;transform:skewX(var(--sk));text-shadow:0 2px 0 var(--txO),0 0 14px rgba(255,62,200,.5)}
-#modX{font-family:var(--sans);font-size:15px;line-height:1.5;font-weight:500;color:var(--tx2)}
+#modX{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 #modX:empty{display:none}
-#modC{box-sizing:border-box;width:100%;min-height:74px;padding:12px;border:0;border-radius:0;resize:none;outline:0;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;
+#modC{box-sizing:border-box;width:100%;min-height:74px;padding:12px;border:0;border-radius:0;resize:none;outline:0;font:var(--f1)/1.6 var(--pix);
   color:var(--au1);background:var(--k0);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--kl2);-webkit-user-select:text;user-select:text}
 .modB{display:flex;flex-direction:column;gap:18px;margin-top:10px}
 .modB .pbtn{width:100%;min-height:56px;padding:0 12px;font-size:var(--f2)}
@@ -2704,7 +2720,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 @keyframes k4Nom{0%{opacity:0;translate:-18px 0}100%{opacity:1;translate:0 0}}
 #gMeta{display:contents}
 #gSpd,#gDots,#gSw,#gBank,#gHint{display:none!important}
-#gDesc{flex:0 0 100%;max-width:340px;margin:12px 0 0;font-family:var(--sans);font-size:14px;line-height:1.5;font-weight:500;color:var(--tx2);text-shadow:0 1px 2px #000;display:none}
+#gDesc{flex:0 0 100%;max-width:340px;margin:12px 0 0;font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2);text-shadow:0 1px 2px #000;display:none}
 #gCard.verrou #gDesc,#gCard.defis #gDesc{display:block}
 #gCard.verrou #gDesc{font-family:var(--pix);font-size:var(--f1);line-height:1.8;letter-spacing:1px;color:var(--tx2)}
 #gCard.verrou #gDesc .pxi{--pxs:1}
@@ -3078,9 +3094,9 @@ body:not(.play) #misFocus{display:none!important}
 #stall #gBottom{flex-direction:row;align-items:center;max-width:none}
 #stall #gCard{flex:1;display:block;margin:0;padding:14px;background:var(--k2);box-shadow:0 0 0 1px var(--kl)}
 #stall #stName{font-size:var(--f3);margin-bottom:10px}
-#stall .stRow{display:flex;justify-content:space-between;font-family:var(--sans);font-size:13px;margin:8px 0 2px}
+#stall .stRow{display:flex;justify-content:space-between;font-family:var(--pix);font-size:var(--f1);margin:8px 0 2px}
 #stall .stSlider{width:100%}
-#stall #stRare{font-family:var(--sans);font-size:12px;color:var(--tx2);margin-top:6px}
+#stall #stRare{font-family:var(--pix);font-size:var(--f0);color:var(--tx2);margin-top:6px}
 #stall .gNav{position:static;width:46px;min-height:52px}
 
 /* ============================================ L'ÉCRAN TITRE : l'invite ============================================= */
@@ -3319,7 +3335,7 @@ html body.touch #pwrChip .pw u{left:14px;right:10px;bottom:5px;height:3px}
 html body #misBan{padding:12px 14px 12px 16px;border:0;border-radius:0;background:var(--plaqueH);clip-path:var(--coupeHP);
   box-shadow:inset 4px 0 0 var(--mbC),inset 30px 0 26px -20px color-mix(in srgb,var(--mbC) 45%,transparent),var(--filetH)}
 html body #misBan .mbTx small{font-size:var(--f0);letter-spacing:2px;color:var(--mbC);text-shadow:none}
-html body #misBan .mbTx span{font-family:var(--sans);font-size:14px;line-height:1.35;font-weight:600;letter-spacing:0;color:var(--tx);text-shadow:none}
+html body #misBan .mbTx span{font-family:var(--pix);font-size:var(--f1);line-height:1.6;font-weight:400;letter-spacing:0;color:var(--tx);text-shadow:none}
 /* l'AUTO-ÉCOLE (c'était une carte de verre arrondie, la seule du jeu) */
 html body #coach,html body #coach:not(.bravo){border:0!important;border-radius:0!important;overflow:visible;padding:12px 14px 12px 18px;
   background:var(--plaqueH)!important;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
@@ -3329,7 +3345,7 @@ html body #coach.bravo{border:0!important;border-radius:0!important;
   box-shadow:inset 4px 0 0 var(--neoV),inset 0 0 0 2px rgba(94,227,122,.55),var(--filetH)!important}
 html body #coach.bravo .coTx b,html body #coach.bravo .coIco{color:var(--neoV);text-shadow:0 2px 0 var(--txO)}
 html body #coach .coTop,html body #coach .coSkip{color:var(--tx2)}
-html body #coach .coTx span{font-family:var(--sans);font-size:14px;line-height:1.35;font-weight:600;letter-spacing:0;color:var(--tx)}
+html body #coach .coTx span{font-family:var(--pix);font-size:var(--f1);line-height:1.6;font-weight:400;letter-spacing:0;color:var(--tx)}
 html body #coach .coPips i{background:var(--k0);box-shadow:0 0 0 1px var(--kl)}
 html body #coach .coPips i.ok{background:var(--neoV)}
 /* l'OBJECTIF DE CAMPAGNE (#campChip) : même plaque, filet à la couleur de l'objectif ; rangé dans la COLONNE DE DROITE, sous la
@@ -4934,7 +4950,7 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
 .spCarte .shPhoto img{width:108%}
 .spNom{font-family:var(--pix);font-weight:400;font-size:var(--f6);line-height:1.4;letter-spacing:1px;color:var(--tx);
   text-shadow:0 3px 0 var(--txO),0 0 16px rgba(255,62,200,.45)}
-.spDesc{font-family:var(--sans);font-size:15px;line-height:1.45;font-weight:500;color:var(--tx2)}
+.spDesc{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
 .spPrix{display:flex;align-items:baseline;gap:14px;font-family:var(--pix);margin-top:2px}
 .spPrix s{position:relative;font-size:var(--f3);color:var(--tx3);text-decoration:none}
 .spPrix s::after{content:'';position:absolute;left:-3px;right:-3px;top:calc(50% - 1px);height:2px;background:var(--neoM)}
@@ -4947,7 +4963,7 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
 .spBtns .spOui{min-height:60px;font-size:var(--f4)}
 .spBtns .spNon{min-height:48px;font-size:var(--f1)}
 .spBtns .pbtn .pxi{--pxs:2}
-.spNote{min-height:2.8em;font-family:var(--sans);font-size:12px;line-height:1.4;font-weight:500;color:var(--tx3);text-align:center;text-wrap:balance} /* deux lignes réservées : la note qui change (« bientôt ») ne fait pas sauter la carte */
+.spNote{min-height:3.2em;font-family:var(--pix);font-size:var(--f0);line-height:1.6;font-weight:400;color:var(--tx3);text-align:center;text-wrap:balance} /* deux lignes réservées : la note qui change (« bientôt ») ne fait pas sauter la carte */
 /* ACHETER touché : la plaque s'éteint le temps de la réponse ; « bientôt » : la note le dit, en ambre */
 #shPop.attend .spOui{opacity:.7}
 #shPop.refus .spNote{color:var(--neoA)}
@@ -5797,19 +5813,19 @@ html body #garage.vitrine:not(.menu) #gVJ{position:fixed;z-index:2;top:calc(var(
 @keyframes gvJEntre{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
 /* (le voile du haut de la v4 est retiré : les jauges ont repris leurs cartes) */
 /* HOME · boulon : à leur place d'origine (top sT + 12, voir #gOutils plus haut) */
-.gvL{--gvF:"Avenir Next Condensed","Bahnschrift","Barlow Condensed","Roboto Condensed","Arial Narrow","DejaVu Sans Condensed","Helvetica Neue",Arial,sans-serif;
+.gvL{--gvF:var(--pix);
   position:relative;min-width:0;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;column-gap:8px;font-family:var(--gvF);font-stretch:condensed;
   padding:7px 11px 4px 13px;background:linear-gradient(180deg,rgba(24,17,52,.84),rgba(7,5,16,.88));
   box-shadow:inset 3px 0 0 var(--gc),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 0 18px -8px var(--gc),0 12px 24px -14px rgba(0,0,0,.85);
   clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)} /* la CARTE de la capture : laque sombre, coins coupés, filet de sa couleur à gauche */
 .gvA{--gc:#35ff86;--gh:#b4ffcf}
 .gvU{--gc:#c46bff;--gh:#ffc6f5}
-.gvK{font-style:italic;font-weight:800;font-size:11px;line-height:1;letter-spacing:2.4px;color:var(--gc);text-shadow:0 0 8px var(--gc),0 1px 0 #000,0 0 3px #000}
-.gvL b{font-style:italic;font-weight:800;font-size:18px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
+.gvK{font-style:normal;font-weight:400;font-size:8px;line-height:1;letter-spacing:2.4px;color:var(--gc);text-shadow:0 0 8px var(--gc),0 1px 0 #000,0 0 3px #000}
+.gvL b{font-style:normal;font-weight:400;font-size:12px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
   text-shadow:0 0 12px var(--gc),0 0 3px var(--gc),0 1px 0 #000,0 0 5px rgba(0,0,0,.9)}
-.gvL .gvR{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;font-weight:700;font-size:11px;line-height:1.2;letter-spacing:1.5px;
+.gvL .gvR{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:normal;font-weight:400;font-size:8px;line-height:1.4;letter-spacing:1px;
   color:var(--gh);text-shadow:0 1px 0 #000,0 0 3px rgba(0,0,0,.85),0 0 9px var(--gc)}
-.gvL .gvR em{font-style:italic;color:#fff;letter-spacing:.6px}
+.gvL .gvR em{font-style:normal;color:#fff;letter-spacing:.6px}
 .gvC{grid-column:1/-1;display:block;width:100%;height:20px;margin-top:1px}
 .gvL.sommet .gvR{color:#fff;animation:gvSommet 1.4s ease-in-out infinite}
 @keyframes gvSommet{50%{text-shadow:0 1px 0 #000,0 0 14px var(--gc),0 0 4px #fff}}
@@ -5831,7 +5847,7 @@ html body #garage.vitrine:not(.menu) #gAct>#gPerso[data-portee]::before{content:
   html body #garage.vitrine:not(.menu) #gVJ{left:auto;right:calc(var(--sR) + 16px);width:min(330px,40%)}
   .gvK{letter-spacing:1.8px}.gvL .gvR{letter-spacing:1.5px}.gvL{column-gap:8px}
   /* HOME · boulon : coin haut-gauche, comme debout */ /* (puis, Léo : « les jauges en haut ») : le coin haut-droit, HOME · ⚙ sont partis à gauche */
-  .gvL b{font-size:17px}
+  .gvL b{font-size:12px}
   html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 40px auto}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:40px;min-height:40px}
   html body #garage.vitrine:not(.menu) #gAct>#gvMis{height:26px;min-height:26px;margin-bottom:6px}
@@ -7324,7 +7340,7 @@ html.c6{
   --c6-y-bas:calc(var(--sB,0px) + 20px);--c6-pied:calc(var(--sB,0px) + 16px);
   --c6-e:8px;--c6-ev:12px;--c6-eg:16px;--c6-pad:12px;--c6-pad-p:16px;
   /* (accord) le TEXTE : deux familles, six corps, deux graisses */
-  --c6-sys:var(--sans,-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif);
+  --c6-sys:var(--pix);
   --c6-pixel:var(--pix);
   --c6-t11:11px;--c6-t13:13px;--c6-t15:15px;--c6-t16:16px;--c6-t24:24px;--c6-t32:32px;
   --c6-lh11:14px;--c6-lh13:18px;--c6-lh15:20px;--c6-lh16:24px;
@@ -7748,7 +7764,7 @@ html:not(.c6) #mSet .c6Tete{display:flex;align-items:center;gap:14px;margin:6px 
 html:not(.c6) #mSet .c6Titre{font-family:var(--pix);font-weight:400;font-size:var(--f9);color:#fff}
 html:not(.c6) #mSet :is(.c6Corps,.c6Col){display:flex;flex-direction:column;width:100%}
 html:not(.c6) #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:12px;margin:22px 0 0}
-html:not(.c6) #mSet .c6Ver{font-family:var(--sans);font-size:12px;color:var(--tx3)}
+html:not(.c6) #mSet .c6Ver{font-family:var(--pix);font-size:var(--f0);color:var(--tx3)}
 </style>
 <style id="c6-carriere-missions">
 /* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -8284,11 +8300,11 @@ html.c6 body #coach,html.c6 body #coach:not(.bravo){display:grid!important;box-s
   width:min(358px,calc(100vw - 32px));padding:9px 12px 9px;overflow:visible!important;border:0!important;border-radius:0!important;clip-path:none!important;
   background:var(--c6-e1)!important;filter:none;
   box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important;
-  font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+  font-family:var(--pix)}
 html.c6 body #coach.bravo{background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-cash),0 4px 0 0 #000!important}   /* (2026-10-14, accord n° 62) bravo = la grammaire du toast « coché » : encre, filet et mots verts (plus de vert plein #1c6b37) */
 html.c6 body #coach .coTop,html.c6 body #coach .coRow,html.c6 body #coach .coTx{display:contents}
 html.c6 body #coach .coIco{grid-area:1/1;--pxs:2;align-self:center;color:var(--c6-or)}
-html.c6 body #coach .coTx b{grid-area:1/2;display:block;margin:0;font:800 15px/18px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);
+html.c6 body #coach .coTx b{grid-area:1/2;display:block;margin:0;font:800 15px/18px var(--pix);letter-spacing:var(--c6-cap);
   text-transform:uppercase;color:var(--c6-or);text-shadow:none!important;filter:none!important;-webkit-text-fill-color:currentColor;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.c6 body #coach .coGeste{grid-area:1/3;position:relative;height:18px;margin:0;overflow:hidden}
@@ -8300,15 +8316,15 @@ html.c6 body #coach .g-glisse::before{animation-name:c6CoGlisse!important}
 html.c6 body #coach .g-bord::before{animation-name:c6CoBord!important}
 html.c6 body #coach .g-nitro::before{animation-name:c6CoAppui!important}
 html.c6 body #coach .coSkip{grid-area:1/4;justify-self:end;align-self:center;min-width:44px;min-height:44px;margin:-14px -8px -14px 0;padding:0 8px;
-  font:800 13px/1 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);color:var(--c6-g1);text-transform:uppercase}
+  font:800 13px/1 var(--pix);letter-spacing:var(--c6-cap);color:var(--c6-g1);text-transform:uppercase}
 html.c6 body #coach .coSkip.sur{color:var(--c6-rouge)}
-html.c6 body #coach .coTx span{grid-area:2/1/3/5;margin:0;font:600 13px/17px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:0;color:var(--c6-b0)}
+html.c6 body #coach .coTx span{grid-area:2/1/3/5;margin:0;font:600 13px/17px var(--pix);letter-spacing:0;color:var(--c6-b0)}
 html.c6 body #coach .coPips{grid-area:3/1/4/3;display:flex;gap:3px;margin:3px 0 0;align-self:center}
 html.c6 body #coach .coPips i{flex:1;height:4px;background:var(--c6-e3);box-shadow:none}
 html.c6 body #coach .coPips i.ok{background:var(--c6-b0)}
 html.c6 body #coach .coPips i.on{background:var(--c6-or)}
 html.c6 body #coach.bravo .coPips i{background:var(--c6-e3)}html.c6 body #coach.bravo .coPips i.ok,html.c6 body #coach.bravo .coPips i.on{background:var(--c6-cash)}
-html.c6 body #coach .coN{grid-area:3/3/4/5;justify-self:end;margin:3px 0 0;font:800 13px/16px -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;letter-spacing:var(--c6-cap);
+html.c6 body #coach .coN{grid-area:3/3/4/5;justify-self:end;margin:3px 0 0;font:800 13px/16px var(--pix);letter-spacing:var(--c6-cap);
   text-transform:uppercase;white-space:nowrap;color:var(--c6-g1)}
 html.c6 body #coach.passe .coN{color:var(--c6-or)}
 /* le raté : le message prend la place du titre (ligne 1), en rouge, lisible ; la phrase reste dessous */
@@ -8786,6 +8802,25 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 .fhL b{font-weight:400;color:var(--tx,#fff7ee)}
 .fhL.ko{--fc:var(--fhKo)}
 @media (prefers-reduced-motion:reduce){#fh .fhX.max,#fh .fhNom.ko b{animation:none}}
+/* ===== v4 (2026-10-15 soir, Sacha : « retravaille l'HUD des figures, il faut que ce soit parfait : là c'est écrit en double ») — le récit est au-dessus de figNom.
+   LE NOM et sa FLÈCHE (le geste : ▲ ▼ ◄ ►) sur une ligne ; LA LIGNE DU COMBO en pastilles muettes + « COMBO ×1,5 » + « RECORD » ; LE RAPPEL dont le
+   geste visé s'allume. Les anciennes pastilles à texte (.fhC) ne sont plus posées. */
+#fh .fhNom{display:flex;align-items:center;justify-content:center;gap:.45em}
+#fh .fhNom .fhD{--pxs:3;flex:none;color:var(--fc);filter:drop-shadow(0 3px 0 var(--fhE)) drop-shadow(0 0 10px color-mix(in srgb,var(--fc) 60%,transparent))}
+#fh .fhNom .fhD.vide{display:none}
+@media (orientation:portrait){#fh .fhNom .fhD{--pxs:2}}
+#fh .fhP{--cc:var(--fh0);display:block;width:10px;height:10px;background:var(--cc);clip-path:var(--fhCoupe);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 0 10px color-mix(in srgb,var(--cc) 60%,transparent)}
+#fh .fhP.neuf{width:15px;height:15px}
+#fh.paye .fhP{--cc:var(--fh0)}
+#fh.perdu .fhP{--cc:var(--fhKo)}
+#fh .fhX small{font-size:.42em;letter-spacing:1px;vertical-align:.32em;margin-right:.15em;color:var(--tx,#fff7ee);text-shadow:var(--fhBord2)}
+#fh .fhRec{font-family:var(--pix);font-size:var(--fhCh);letter-spacing:1px;line-height:1;text-decoration:none;color:var(--fhE);background:var(--fh0);padding:5px 6px 4px;clip-path:var(--fhCoupe);visibility:hidden}
+#fh .fhRec.on{visibility:visible;animation:fhRecBat .5s steps(2) infinite}
+@keyframes fhRecBat{50%{background:#fff}}
+.fhL{opacity:.62;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.fhL.arme{opacity:1;transform:translateX(-8px);background:color-mix(in srgb,var(--fc) 28%,var(--fhE));
+  box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 55%,transparent)}
+@media (prefers-reduced-motion:reduce){#fh .fhRec.on{animation:none}.fhL{transition:none}}
 </style>
 <style id="ecoleV2">
 /* ==============================================================================================================
@@ -8845,7 +8880,7 @@ html body #coach.v2.bravo .ecT{color:#fff;text-shadow:0 3px 0 #0b5a24,0 0 18px r
 html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(var(--i) * 26ms)} /* la célébration : seul rebond de la carte */
 @keyframes ecHourra{from{opacity:0;transform:translateY(-14px) scale(1.8)}to{opacity:1;transform:none}}
 /* — LA LIGNE : courte, les mots à retenir surlignés — */
-html body #coach.v2 .ecD{grid-column:2;align-self:start;font:700 13.5px/1.3 var(--sans);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
+html body #coach.v2 .ecD{grid-column:2;align-self:start;font:var(--f1)/1.6 var(--pix);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
 html body #coach.v2 .ecD em{font-style:normal;color:#0a0616;background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 #7a4400;white-space:nowrap}
 html body #coach.v2 .ecD kbd{font:9px var(--pix);color:#0a0616;background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
 @keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
@@ -9632,6 +9667,16 @@ html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </style>
+<style id="policeUnique">
+/* UNE SEULE POLICE (2026-10-15, Sacha : « c'est partout la même police ») — LE FILET CSS. Tout élément, tout pseudo-élément, tout champ
+   (un <textarea>, un <input>, un <button> n'héritent PAS de la police de la page : c'est ainsi que le champ du CODE COUSIN tapait en
+   monospace système) prend Press Start 2P, quoi qu'écrive une règle plus haut ou un style en ligne. Les règles qui étaient en police
+   système ont été refaites en pixel (corps --f0/--f1, graisse 400). SEULE EXCEPTION, NOMMÉE : le φ du « 1.61φ » de l'écran d'ouverture
+   (#spPhi) — c'est le logo, et la police pixel n'a pas de φ. Les textes des canvas ont leur filet (UNE_POLICE, premier script du body). */
+*,*::before,*::after{font-family:var(--pix)!important}
+::placeholder{font-family:var(--pix)!important}
+#spPhi{font-family:"Times New Roman",Georgia,serif!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -10097,7 +10142,8 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=8"></script>
+<script src="figures.js?v=9"></script>
+<script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=1"></script><script src="creatures/dauphin.js?v=1"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=2"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -10211,7 +10257,7 @@ function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF �
   return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
 addEventListener('error',function(e){try{document.title='ERR:'+e.message+' @'+e.lineno;}catch(_){}}); // capteur d'init (les erreurs top-level échappent à la console headless)
 if(typeof THREE==='undefined'){ // CDN indisponible : un message clair plutôt qu'un écran noir muet
-  document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:14px monospace;text-align:center;padding:20px;z-index:99">'+((function(){try{const l=localStorage.ccLang;return l?l!=='fr':!/^fr/i.test(navigator.language||'fr');}catch(e){return false;}})()?'CASH CAR couldn&#39;t load its 3D engine.<br>Check your internet connection, then reload the page.':'CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.')+'</div>'); // (2026-10-14, textes) bilingue
+  document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#12081f;color:#ffd75e;font:10px var(--pix);text-align:center;padding:20px;z-index:99">'+((function(){try{const l=localStorage.ccLang;return l?l!=='fr':!/^fr/i.test(navigator.language||'fr');}catch(e){return false;}})()?'CASH CAR couldn&#39;t load its 3D engine.<br>Check your internet connection, then reload the page.':'CASH CAR n&#39;a pas pu charger son moteur 3D.<br>V&eacute;rifie ta connexion internet puis recharge la page.')+'</div>'); // (2026-10-14, textes) bilingue
   return;
 }
 // ---------- SCENE ----------
@@ -12559,7 +12605,7 @@ window.dbgQual=function(k){ if(k!=null){QL.force=true;qlPose(k);RESPIN=true;} co
    rien de développement à l'écran). Réécrit 4 fois par seconde, et seulement si le texte change. */
 const PERF_MON=/[?&]perf=1/.test(location.search)?(function(){const e=document.createElement('div');e.id='perfMon';
   e.style.cssText='position:fixed;left:calc(var(--sL) + 6px);top:calc(var(--sT) + 4px);z-index:2147483000;pointer-events:none;'+
-    'font:600 var(--f1)/1.35 var(--sans);color:var(--tx);background:var(--k1);padding:2px 5px;white-space:pre;max-width:70vw';
+    'font:var(--f0)/1.6 var(--pix);color:var(--tx);background:var(--k1);padding:2px 5px;white-space:pre;max-width:70vw';
   document.body.appendChild(e);return {el:e,t:0,pire:0,txt:''};})():null;
 /* (2026-10-14, session OPTIMISATION — Sacha : « la version mobile saccade, juste de quoi tester en bonne condition ») LE RELEVÉ DES À-COUPS :
    le moniteur ne disait que la dernière seconde. Il garde maintenant chaque image de plus de 50 ms depuis l'ouverture : combien (> 50,
@@ -19629,7 +19675,7 @@ function villeMatPub(){
 }
 function plaPicto(x,k,cx,cy,s,col){x.save();x.translate(cx,cy);x.fillStyle=x.strokeStyle=col;x.lineWidth=s*.12;x.lineJoin='round'; // (pluie d'argent v2) les symboles frappés sur le billet ₿ et les pièces Ξ
   const tri=function(px,py,r){x.beginPath();x.moveTo(px,py-r);x.lineTo(px+r,py+r*.8);x.lineTo(px-r,py+r*.8);x.closePath();x.fill();};
-  if(k==='btc'){x.beginPath();x.arc(0,0,s*.55,0,6.283);x.fill();x.fillStyle='#08130c';x.font='bold '+Math.round(s*.72)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('B',s*.03,s*.04);
+  if(k==='btc'){x.beginPath();x.arc(0,0,s*.55,0,6.283);x.fill();x.fillStyle='#08130c';x.font=Math.round(s*.6)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('B',s*.03,s*.04);
     x.fillRect(-s*.16,-s*.47,s*.08,s*.16);x.fillRect(s*.04,-s*.47,s*.08,s*.16);x.fillRect(-s*.16,s*.3,s*.08,s*.16);x.fillRect(s*.04,s*.3,s*.08,s*.16);}
   else if(k==='eth'){x.beginPath();x.moveTo(0,-s*.6);x.lineTo(s*.36,0);x.lineTo(0,s*.18);x.lineTo(-s*.36,0);x.closePath();x.fill();x.beginPath();x.moveTo(-s*.36,s*.1);x.lineTo(0,s*.3);x.lineTo(s*.36,s*.1);x.lineTo(0,s*.6);x.closePath();x.fill();}
   x.restore();}
@@ -19660,9 +19706,9 @@ function plaBilletBtc(){ // le billet ₿ : vert billet et or, un ₿ dans la ro
     x.strokeStyle='rgba(255,215,94,.6)';x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);
     for(let i=0;i<14;i++){x.strokeStyle='rgba(255,215,94,'+(.07+i*.014)+')';x.beginPath();x.arc(118,118,62-i*4,0,6.2832);x.stroke();}
     plaPicto(x,'btc',118,118,92,'#ffb347');
-    x.fillStyle='rgba(255,236,170,.9)';x.font='bold 54px Helvetica,Arial,sans-serif';x.textAlign='left';x.textBaseline='middle';x.fillText('1',30,48);x.textAlign='right';x.fillText('1',w-30,h-44);
-    x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CASH CAR',w*.6,h*.42); /* (2026-10-14, revue des idées de Léo) le niveau CRYPTOCITY est retiré : le billet ₿ de la pluie d'argent, lui, pleut partout — il porte la marque du jeu */
-    x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(200,255,220,.6)';x.fillText('1 BITCOIN · TO THE MOON',w*.6,h*.56);
+    x.fillStyle='rgba(255,236,170,.9)';x.font='44px "Press Start 2P",monospace';x.textAlign='left';x.textBaseline='middle';x.fillText('1',30,48);x.textAlign='right';x.fillText('1',w-30,h-44);
+    x.font='14px "Press Start 2P",monospace';x.textAlign='center';x.fillStyle='rgba(255,236,170,.85)';x.fillText('CASH CAR',w*.6,h*.42); /* (2026-10-14, revue des idées de Léo) le niveau CRYPTOCITY est retiré : le billet ₿ de la pluie d'argent, lui, pleut partout — il porte la marque du jeu */
+    x.font='7px "Press Start 2P",monospace';x.fillStyle='rgba(200,255,220,.6)';x.fillText('1 BITCOIN · TO THE MOON',w*.6,h*.56);
     const Bd=x.createLinearGradient(w*.78,0,w*.86,0);Bd.addColorStop(0,'rgba(255,215,94,0)');Bd.addColorStop(.5,'rgba(255,230,140,.55)');Bd.addColorStop(1,'rgba(255,215,94,0)');x.fillStyle=Bd;x.fillRect(w*.78,0,w*.08,h);});
 }
 function plaTexPieces(){ // l'atlas des pièces : en haut la ₿ (la pièce de la pluie de richesse), en bas l'Ξ d'argent bleuté
@@ -20192,7 +20238,7 @@ function parisMoulin(p,yaw){ // LE MOULIN-ROUGE : la façade rouge, l'enseigne, 
   const g=parisGroupe(p.x,p.y,p.z,yaw),rg=parisMatNuit(0x9b1b1f,0xff2030,.15,.55,.9),so=parisMatNuit(0x5a0f14,0xff3040,.05,.2,.35);
   parisMesh(new THREE.BoxGeometry(30,12,16),rg,g,0,6,0);
   const cv=document.createElement('canvas');cv.width=512;cv.height=64;const x=cv.getContext('2d');x.fillStyle='#240306';x.fillRect(0,0,512,64);
-  x.font='bold 40px Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#ff2a2a';x.shadowBlur=14;x.fillStyle='#ffe0e0';x.fillText('MOULIN ROUGE',256,34);
+  x.font='26px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#ff2a2a';x.shadowBlur=14;x.fillStyle='#ffe0e0';x.fillText('MOULIN ROUGE',256,34);
   for(let i=0;i<40;i++){x.fillStyle='#ffd27a';x.beginPath();x.arc(8+i*12.6,6,2.4,0,7);x.arc(8+i*12.6,58,2.4,0,7);x.fill();}
   const tx=new THREE.CanvasTexture(cv),en=parisMatNuit(0xffffff,0x902020,.3,.8,1.2,{map:tx,emissiveMap:tx});
   const en1=parisMesh(new THREE.PlaneGeometry(26,3.2),en,g,0,8.3,-8.05);en1.rotation.y=Math.PI;       // l'enseigne, côté rue (−z)
@@ -21597,6 +21643,7 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       const vr=Math.max(Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend*Math.pow(EAU.amorti,Math.max(0,JEAU.n-1))+4,Math.sqrt(2*g*EAU.profSaut*JEAU.prof/SPD));if(fallVel.y<vr)fallVel.y=vr; // l'élan du premier plongeon, ou celui de la profondeur — jamais plus
       {const h2=Math.hypot(fallVel.x,fallVel.z),hw=Math.max(h2,JEAU.hIn*(EAU.fun?1+Math.min(EAU.dauphMax,EAU.dauph*Math.max(0,JEAU.n-1)):EAU.hRend));if(h2>1){fallVel.x*=hw/h2;fallVel.z*=hw/h2;}else{fallVel.x=JEAU.cap.x*hw;fallVel.z=JEAU.cap.z*hw;}fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
       fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve
+      try{jdmJailli(fallVel.x*vmW,fallVel.y*vmW,fallVel.z*vmW);}catch(e){} // (2026-10-15, Léo) LES DAUPHINS DE LA MER sautent avec elle, une fois sur deux
       const k9=Math.min(1,fallVel.y/170);
       jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
       shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
@@ -23218,13 +23265,13 @@ const CARS=[
  {name:'LA FOURNAISE',shape:'fournaise',color:0x241a16,accent:0xff6a1a,maxKmh:425,accel:50,turn:3.0,h:1.2,w:1.95,l:4.72,spoiler:0,rar:'epique',
   fx:{jet:0xff7a24,core:0xffe0a0,trail:[1.5,.7,.25],light:0xff6a1a},
   desc:'Une croûte de basalte qui se fend sur un cœur de lave, le feu qui coule dans chaque joint. Ne la touche pas.'},
- // (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; quelque chose de vraiment méchant ») LA DÉFERLANTE (voir SHAPES.deferlante). Ajoutée EN DERNIER.
- {name:'LA DÉFERLANTE',shape:'deferlante',color:0x06263c,accent:0x5ee6ff,maxKmh:430,accel:51,turn:3.1,h:1.68,w:2.0,l:4.9,spoiler:0,rar:'epique',
+ // (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; quelque chose de vraiment méchant ») LA DÉFERLANTE. RETIRÉE le 2026-10-15 (Sacha : « elle ne respecte pas les règles du low-poly », comme LA MERCURE) : son gabarit est effacé, la ligne reste pour les index.
+ {retire:1,name:'LA DÉFERLANTE',shape:'deferlante',color:0x06263c,accent:0x5ee6ff,maxKmh:430,accel:51,turn:3.1,h:1.68,w:2.0,l:4.9,spoiler:0,rar:'epique',
   fx:{jet:0x5ee6ff,core:0xe8fbff,trail:[.3,1.05,1.5],light:0x3fc8ff},
   desc:'Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d\'air.'},
  // (2026-10-11, Léo, « retoucheur de voitures » : la planche générée, « génère la mercure », « génère-la en 3D dans mon jeu ») LA MERCURE
- // (voir SHAPES.mercure) : l'hypercar en mercure liquide qui reflète le crépuscule et sème des gouttes de chrome. Ajoutée EN DERNIER.
- {name:'LA MERCURE',shape:'mercure',color:0xd9dde6,accent:0x8a4dff,maxKmh:435,accel:52,turn:3.1,h:1.16,w:2.0,l:4.72,spoiler:0,rar:'epique',
+ // : l'hypercar en mercure liquide. RETIRÉE le 2026-10-15 (Sacha : hors des règles du low-poly) : son gabarit est effacé, la ligne reste pour les index.
+ {retire:1,name:'LA MERCURE',shape:'mercure',color:0xd9dde6,accent:0x8a4dff,maxKmh:435,accel:52,turn:3.1,h:1.16,w:2.0,l:4.72,spoiler:0,rar:'epique',
   fx:{jet:0xb46bff,core:0xf3e6ff,trail:[1.1,.55,1.5],light:0xa864ff},
   desc:'Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.'},
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
@@ -26585,7 +26632,7 @@ var WOWT={sp:[],tx:null,acc:0,mi:0,der:-1,caisse:false,n:0,p0:null,vx:0,vy:0,vz:
 function wowTex(){if(WOWT.tx)return WOWT.tx;WOWT.tx=[];
   const MOTS=['wow','such speed','much fast','very nitro','so car','many coin','amaze','such drift','much aura','very vroom','excite','wow'],
         TEINTES=['#ff3ec8','#5ee6ff','#7dff5a','#ffe25a','#ff8a2a','#c07bff'];
-  MOTS.forEach(function(m9,n){const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='bold 64px "Comic Sans MS","Comic Sans","Chalkboard SE","Comic Neue",cursive';
+  MOTS.forEach(function(m9,n){const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='40px "Press Start 2P",monospace';
     x.font=F;const w=Math.ceil(x.measureText(m9).width)+28;cv.width=w;cv.height=96;x.font=F;x.textBaseline='middle';x.lineJoin='round';
     x.lineWidth=9;x.strokeStyle='#1c0430';x.strokeText(m9,14,50);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,14,50);
     const tx=new THREE.CanvasTexture(cv);tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;WOWT.tx.push({tx:tx,a:w/96});});
@@ -26725,9 +26772,9 @@ function trxPlanche(){
      rr(-W/2,-H/2,W,H,7);const g=x.createLinearGradient(0,-H/2,0,H/2);g.addColorStop(0,vs?'#52bd7c':'#5cc985');g.addColorStop(1,'#2b7f4d');x.fillStyle=g;x.fill();
      x.lineWidth=2;x.strokeStyle='#1d5c37';x.stroke();x.strokeStyle='rgba(220,255,228,.75)';x.lineWidth=1.6;x.strokeRect(-W/2+6,-H/2+6,W-12,H-12);
      x.textAlign='center';x.textBaseline='middle';x.fillStyle='#e8fdec';
-     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='bold 30px Arial,sans-serif';x.fillText('$',0,2);
-       x.fillStyle='#e8fdec';x.font='bold 11px Arial,sans-serif';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
-     else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='bold 12px Arial,sans-serif';x.fillText('CASH CAR',0,1);
+     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('$',0,2);
+       x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
+     else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('CASH CAR',0,1);
        x.beginPath();x.arc(-W/2+18,-H/2+17,6,0,Math.PI*2);x.moveTo(W/2-12,H/2-17);x.arc(W/2-18,H/2-17,6,0,Math.PI*2);x.fill();}
      x.restore();}}
   // 32-33 LA FLAMME EN PIXELS : deux images qui alternent, posées sur le bas de la case (la flamme se tient DEBOUT sur le bitume)
@@ -31824,382 +31871,6 @@ Object.assign(SHAPES,{
     return {hl:[.30,.51,2.36],tl:[.40,.78,-2.36],wx:.80,wzF:ZF,wzR:-ZR,pots:[[.30,.48,-2.37],[-.30,.48,-2.37]],
             lpw:{R:R,w:.26,style:'multi',n:8,jante:0xff7a24,accent:0xff7a24,pneu:0x120d0c}}; // (Léo : « je préférais avant, avec les roues noires »)
   },
-/* LA DÉFERLANTE (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; avec tout ce qu'on a appris, quelque chose
-   de vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas — original, qu'on n'a pas dans le jeu » → 1er jet, une sportive dont
-   l'aileron était une vague : « la vitre, elle est magnifique ; mais la forme, on dirait une voiture que j'ai déjà ») — LA VOITURE EST
-   LA VAGUE. De profil, c'est 🌊 : le nez est le CREUX (une lame au ras de la route), la face monte jusqu'à la CRÊTE, à l'arrière, et la
-   LÈVRE se recourbe vers l'avant au-dessus du pilote ; le pilote est DANS LE TUBE, sa bulle d'air se voit de côté, à travers. Plus de
-   carrosserie dessous : l'eau fait tout. Des bosses sur les roues avant, le nez arrondi en plan, la queue tombe en pente. Elle déferle un
-   peu en biais (la lèvre plus loin à droite) et sa lèvre est DÉCHIQUETÉE. La matière (« la vitre ») est celle du 1er jet, un programme
-   d'eau (`EAU_VS` : sommets qui ONDULENT le long d'un rayon de la caisse — continu, rien ne se décolle ; facettes par les dérivées) :
-   · le FOND (opaque, 5-8 cm sous la surface, seulement là où l'eau est épaisse) : une eau noire des abysses → canard, traversée de
-     CAUSTIQUES cyan qui filent vers l'arrière ;
-   · L'EAU par-dessus (transparente, `uGrad` : bleu profond en bas, turquoise où elle s'amincit, blanche à la crête ; Fresnel, filets qui
-     coulent, SCINTILLEMENT en points de soleil — jamais une facette entière en blanc) ; la lèvre n'a pas de fond : elle luit ;
-   · l'ÉCUME et les EMBRUNS EN CUBES (comme les petites flammes de LA FOURNAISE) : la lèvre mousse par crans et pend en rideau, la crête
-     moutonne, le nez fend l'eau ; des gouttes partent de la lèvre, la crête souffle son panache en arrière ; des BULLES montent dans le dos.
-   Tout s'emballe à la nitro. Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
-  deferlante:function(K){
-    const U=LPU,R=.37,ZF=1.48,ZR=-1.48,XE=.98;
-    let rs=0x2545f491;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};   // un hasard FIXE (la même vague à chaque construction)
-    const AR=[[0,2*R+.06],[R*.62,2*R+.06],[R+.16,.26]],Bz=z=>U.arch(z,[ZF,ZR],AR,.26),ss=(a,b,v)=>{const t=U.cl((v-a)/(b-a),0,1);return t*t*(3-2*t);},
-      Y=y=>.30+(y-.30)*.76;
-    // LE PROFIL (z, y) : le DESSUS du nez à la queue (le creux, la face, le tube, la lèvre, la crête, le dos), puis le DESSOUS de la queue au nez
-    const HAUT=[[2.45,.30],[2.0,.34],[1.5,.40],[1.0,.48],[.6,.58],[.25,.70],[-.05,.86],[-.28,1.06],[-.42,1.30],[-.46,1.52],[-.36,1.72],[-.12,1.86],
-        [.18,1.90],[.48,1.84],[.76,1.68],[1.00,1.46],[1.16,1.22],[1.24,1.00],[1.14,1.28],[.98,1.58],[.76,1.84],[.50,2.04],[.24,2.14],[-.06,2.02],
-        [-.50,1.80],[-1.00,1.53],[-1.50,1.25],[-1.95,.96],[-2.24,.70],[-2.38,.50],[-2.42,.32]],
-      FHAUT=[[1.0,.44],[.80,.50],[.6,.56],[.25,.66],[-.05,.80],[-.30,.98],[-.48,1.20],[-.54,1.46],[-.48,1.66],[-.32,1.80],
-        [-.10,1.88],[-.10,1.94],[-.48,1.73],[-.98,1.46],[-1.47,1.19],[-1.90,.92],[-2.18,.68],[-2.30,.50],[-2.32,.34]],
-      BAS=[-2.30,-2.01,-1.71,-1.48,-1.25,-.95,0,.95,1.25,1.48,1.71,2.01,2.30],LEVRE=17,CRETE=22;
-    const uX=x=>(x+XE)/(2*XE),cote=x=>Math.exp(-Math.pow((Math.abs(x)-.82)/.24,2));   // une houle ronde, centrée sur la roue
-    const plan=(z,x)=>{const a=(x/XE)*(x/XE);return z>1.6?1.6+(z-1.6)*(1-.55*a):z<-2.0?-2.0+(z+2.0)*(1-.3*a):z;};      // le nez arrondi, la queue aussi
-    const serre=z=>1-.40*ss(.75,1.15,z);                                                                                // devant, entre les roues (elles restent DEHORS)
-    const dessous=(z,x)=>z>.6?.30:.30+(Bz(z)-.26)*ss(.52,.62,Math.abs(x));                                              // le dessous, creusé sur les roues arrière
-    const profil=(x,fond)=>{const H=fond?FHAUT:HAUT,r=cote(x),out=[];
-      H.forEach((p,j)=>{let z=p[0],y=Y(p[1]);
-        if(!fond){if(j>=10&&j<=21)z+=.14*uX(x)-.05;                                                                    // elle déferle en biais
-          if(j>=15&&j<=19)z+=.06*Math.sin(x*9.7+2.1)+.035*Math.sin(x*23.+.4);                                            // la lèvre en GRIFFES
-          if(j>=20&&j<=24)y+=.06*Math.sin(x*6.3+.7)+.03*Math.sin(x*13.1+1.9);                                            // la crête
-          if(j>=24&&j<=28)z+=.05*Math.sin(x*8.3+j);}                                                                     // le dos qui ondule
-        if(z<.6){const yF=Bz(z)+(fond?.04:.14);if(yF>.4)y+=Math.max(0,yF-y)*r;}                                       // la HOULE qui passe sur les roues arrière
-        out.push([x*serre(z),plan(z,x),y]);});
-      for(const z of BAS){const zz=fond?U.cl(z,-2.26,1.0):z;out.push([x*serre(zz),plan(zz,x),dessous(zz,x)+(fond?.01:0)]);}
-      return out;};
-    const nappe=(fond,x0)=>{const NX=24,VP=[],IX=[],PR=[];let M=0;
-      for(let i=0;i<=NX;i++){const x=-x0+2*x0*i/NX,pr=profil(x,fond);M=pr.length;PR.push([x,pr]);for(const q of pr)VP.push(q[0],q[2],q[1]);}
-      for(let i=0;i<NX;i++)for(let j=0;j<M;j++){const a=i*M+j,b=i*M+(j+1)%M,c=(i+1)*M+(j+1)%M,d=(i+1)*M+j;IX.push(a,b,c,a,c,d);}
-      for(const i of [0,NX]){const ct=PR[i][1].map(q=>new THREE.Vector2(q[1],q[2]));                                    // les deux bouts : le profil plein
-        for(const f of THREE.ShapeUtils.triangulateShape(ct,[]))IX.push(i*M+f[0],i*M+f[1],i*M+f[2]);}
-      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(VP,3));geo.setIndex(IX);geo.computeVertexNormals();
-      return {geo,PR};};
-    // CE QUI N'EST PAS DE L'EAU : les yeux (en colère, sur les bosses), les feux, le baquet, les canons à eau
-    const P=K.kit({W:{g:'l',c:0xd9fbff},C:{g:'l',c:0x5ee6ff},L:{g:'l',c:0xff1838},k:{g:'m',c:0x06111a},s:{g:'s',c:0x0b1822}});
-    P.sym(sd=>{P.box('W',.26,.035,.07,sd*.36,.47,1.10,-.17,sd*.30,sd*-.28);P.box('C',.12,.025,.05,sd*.52,.45,1.20,-.17,sd*.30,sd*-.28);}); // les yeux, au fond de la GUEULE du tube
-    P.box('L',.90,.035,.02,0,.40,-2.43);P.sym(sd=>P.box('L',.05,.10,.02,sd*.46,.36,-2.43));
-    P.sym(sd=>{P.cyl('k',.065,.06,12,sd*.26,.34,-2.42,'z');P.cyl('C',.044,.01,12,sd*.26,.34,-2.45,'z');});
-    P.box('s',.32,.05,.40,0,.62,.40);P.box('s',.32,.26,.07,0,.76,.16,-.25,0,0);P.box('s',.18,.10,.07,0,.91,.11,-.25,0,0);
-    K.commit(P);
-    const g=K.add(new THREE.Group());
-    const UW={uT:{value:0},uF:{value:0}};
-    const EAU_VS='uniform float uT,uF,uAmp;varying vec3 vP,vV;void main(){vec3 p=position;vec3 d=normalize(vec3(p.x,p.y-.55,0.)+vec3(0.,1e-3,0.));'+
-      'float w=sin(p.z*3.1+p.x*1.3+uT*(2.6+uF*2.2))*.6+sin(p.z*5.3-p.x*4.1+uT*3.7)*.3+sin(p.y*6.+p.z*2.+uT*4.3)*.25;'+
-      'p+=d*w*uAmp*(1.+uF*.8);vP=p;vec4 mv=modelViewMatrix*vec4(p,1.);vV=mv.xyz;gl_Position=projectionMatrix*mv;}',
-      VOR='float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'+
-      'float vor(vec2 p,float t){vec2 i=floor(p),f=fract(p);float d1=8.,d2=8.;for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 c=vec2(float(x),float(y));'+
-      'vec2 o=c+.5+.38*sin(t+6.2831*vec2(h2(i+c),h2(i+c+17.)))-f;float d=dot(o,o);if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;}return sqrt(d2)-sqrt(d1);}',
-      FOND_FS='uniform float uT,uF;varying vec3 vP,vV;'+VOR+'void main(){vec3 n=normalize(cross(dFdx(vV),dFdy(vV)));'+
-      'float u=clamp((vP.y-.26)/.9,0.,1.);vec3 c=mix(vec3(.004,.02,.055),vec3(.01,.15,.25),u);'+
-      'vec2 q=vec2(vP.x*3.6+vP.y*2.2+sin(vP.z*1.9+uT*.8)*.7,vP.z*2.9+uT*(.9+uF*1.2));float e=vor(q,uT*1.3);float cl=1.-smoothstep(.0,.06,e);'+
-      'float pl=.45+.55*sin(vP.z*1.3-uT*1.1+vP.x*2.)*sin(vP.y*3.1+uT*.7);'+                                     /* la lumière vient par plaques */
-      'c+=vec3(.2,.85,1.)*cl*(.25+.6*u)*(.55+.45*pl)*(1.+uF*.7);float L=max(dot(n,normalize(vec3(-.35,.8,.45))),0.);c*=.5+.65*L;gl_FragColor=vec4(c,1.);}',
-      PEAU_FS='uniform float uT,uF,uA0,uA1,uCau,uGrad;uniform vec3 uTe;varying vec3 vP,vV;'+VOR+'void main(){vec3 n=normalize(cross(dFdx(vV),dFdy(vV))),v=normalize(-vV);'+
-      'float fr=pow(1.-abs(dot(n,v)),2.2);vec3 L=normalize(vec3(-.35,.8,.45));'+
-      'vec3 b=vec3(sin(vP.z*41.+uT*5.),sin(vP.x*37.-uT*4.),sin((vP.x+vP.z)*29.+vP.y*23.+uT*6.));float rv=max(dot(reflect(-L,normalize(n+.42*b)),v),0.);'+
-      'float sp=pow(max(dot(reflect(-L,n),v),0.),24.)*.25,gl=pow(rv,160.);'+                                     /* un voile de reflet, et le SCINTILLEMENT : des points de soleil */
-      'float e=vor(vec2(vP.x*3.4+vP.y*2.+sin(vP.z*2.3+uT)*.6,vP.z*2.8+uT*(1.3+uF*1.5)),uT*1.7);float cl=(1.-smoothstep(.0,.07,e))*uCau;'+
-      'float hg=smoothstep(.86,1.66,vP.y)*uGrad;'+                                                                /* la VAGUE : bleu profond au pied, */
-      'vec3 te=mix(mix(vec3(.01,.11,.22),uTe,smoothstep(.0,.5,hg)),vec3(.72,.97,1.),smoothstep(.72,1.,hg)*uGrad);'+  /* turquoise où elle s'amincit, blanche à la crête */
-      'te=uGrad>.5?te:uTe;float a0=uA0+uGrad*(1.-hg)*.38;'+
-      'float fil=smoothstep(.82,1.,sin(vP.x*41.+sin(vP.y*7.+uT*1.5)*1.6))*uGrad*(1.-fr)*.3;'+                     /* des FILETS d'eau qui coulent */
-      'vec3 c=mix(te,vec3(.62,.96,1.),fr*(1.-hg*.5))+vec3(.75,1.,1.)*(cl*(1.-hg*.6)+fil)+vec3(1.)*(sp+gl*1.4);'+
-      'gl_FragColor=vec4(c,clamp(a0+(uA1-a0)*fr+cl*.4+sp+gl+hg*hg*.35,0.,1.));}';
-    const eauMat=(fs,amp,transp,a0,a1,cau,te)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UW.uT,uF:UW.uF,uAmp:{value:amp},uA0:{value:a0||0},uA1:{value:a1||0},
-      uCau:{value:cau||0},uGrad:{value:cau?1:0},uTe:{value:new THREE.Color().setRGB(te?te[0]:.03,te?te[1]:.34,te?te[2]:.54)}},
-      vertexShader:EAU_VS,fragmentShader:fs,transparent:!!transp,depthWrite:!transp,side:THREE.DoubleSide,extensions:{derivatives:true}});m.userData.g='eau';return m;};
-    const F0=nappe(true,.90),E0=nappe(false,XE),PR=E0.PR;
-    const fond=new THREE.Mesh(F0.geo,eauMat(FOND_FS,.010,false));fond.userData.brut=1;fond.userData.ombre=1;g.add(fond);
-    const vague=new THREE.Mesh(E0.geo,eauMat(PEAU_FS,.016,true,.16,.90,.45,[.04,.50,.70]));vague.userData.brut=1;vague.userData.noShadow=1;vague.renderOrder=4;g.add(vague);
-    // LES ROUES D'EAU (Léo : « des roues élémentaires, en eau ») : le pneu est un ANNEAU D'EAU — la même eau que la caisse, transparente,
-    // caustiques qui tournent avec la roue — sur un CŒUR sombre ; au milieu, le tourbillon de la jante (`lpWheel`, `sansPneu`). Posés DANS
-    // chaque roue par `roueDeco` (buildCar et la salle l'appellent) : ils tournent avec elle. Matières PARTAGÉES par les quatre.
-    const anneau=(rc,ra,ha,n)=>{const pts=[];for(let k=0;k<=n;k++){const a=k/n*Math.PI*2;pts.push(new THREE.Vector2(rc+Math.cos(a)*ra,Math.sin(a)*ha));}
-      const geo=new THREE.LatheGeometry(pts,28);geo.rotateZ(-Math.PI/2);return geo;};
-    const gPneu=anneau(R*.83,R*.20,.145,16),gCoeur=anneau(R*.83,R*.12,.10,10),mPneu=eauMat(PEAU_FS,0,true,.30,.94,.5,[.05,.52,.74]),mCoeur=eauMat(FOND_FS,0,false);
-    mPneu.uniforms.uGrad.value=0;
-    const roueDeco=w=>{const a=new THREE.Mesh(gPneu,mPneu),b=new THREE.Mesh(gCoeur,mCoeur);a.userData.brut=b.userData.brut=1;a.userData.noShadow=1;b.userData.ombre=1;
-      a.renderOrder=4;w.add(b,a);};
-    // LA BULLE D'AIR : le cockpit, au fond du tube (le même programme que les bulles qui montent)
-    const BUL_VS='varying vec3 vN,vV;void main(){mat4 m=modelViewMatrix;\n#ifdef USE_INSTANCING\nm=m*instanceMatrix;\n#endif\n'+
-      'vN=normalize(mat3(m)*normal);vec4 mv=m*vec4(position,1.);vV=mv.xyz;gl_Position=projectionMatrix*mv;}',
-      BUL_FS='uniform float uA;varying vec3 vN,vV;void main(){vec3 n=normalize(vN),v=normalize(-vV);float fr=pow(1.-abs(dot(n,v)),1.7);'+
-      'float sp=pow(max(dot(reflect(-normalize(vec3(-.35,.8,.45)),n),v),0.),40.);gl_FragColor=vec4(mix(vec3(.55,.9,1.),vec3(1.),fr)+sp,clamp(uA+fr*.85+sp,0.,1.));}';
-    const bulMat=a=>{const m=new THREE.ShaderMaterial({uniforms:{uA:{value:a}},vertexShader:BUL_VS,fragmentShader:BUL_FS,transparent:true,depthWrite:false});m.userData.g='eau';return m;};
-    const cock=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),bulMat(.04));cock.scale.set(.32,.24,.55);cock.position.set(0,.80,.40);
-    cock.userData.brut=1;cock.userData.noShadow=1;cock.renderOrder=5;g.add(cock);
-    // LES BULLES qui montent dans le dos de la vague
-    const NB=30,bulles=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.03,0),bulMat(.28),NB);
-    bulles.frustumCulled=false;bulles.userData.brut=1;bulles.userData.noShadow=1;bulles.renderOrder=2;g.add(bulles);
-    const dos9=z=>Y(U.lin([[-1.5,1.25],[-1.0,1.53],[-.5,1.80]],z))-.1,nouvelle=b=>{b.z=-1.3+rnd()*.75;b.x=(rnd()-.5)*1.6;b.y=Y(.95);b.v=.2+rnd()*.25;b.r=.016+rnd()*.026;b.p=rnd()*6.3;};
-    const BU=[];for(let k=0;k<NB;k++){const b={};nouvelle(b);b.y+=rnd()*.45;BU.push(b);}
-    // L'ÉCUME ET LES EMBRUNS : des cubes (un InstancedMesh, couleurs écrites telles quelles — même rendu jeu / salle)
-    const e9=.06,NE=480,mE=new THREE.ShaderMaterial({vertexShader:'varying vec3 vC;varying float vS;void main(){vec3 n=normalize(mat3(instanceMatrix)*normal);'+
-      'vS=.8+.2*max(n.y,0.)+.1*abs(n.x);vC=instanceColor;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.);}',
-      fragmentShader:'varying vec3 vC;varying float vS;void main(){gl_FragColor=vec4(min(vC*vS*1.18,vec3(1.)),1.);}'});mE.userData.g='eau';
-    const ecume=new THREE.InstancedMesh(new THREE.BoxGeometry(e9*.86,e9*.86,e9*.86),mE,NE);
-    ecume.frustumCulled=false;ecume.userData.brut=1;ecume.userData.noShadow=1;ecume.renderOrder=6;g.add(ecume);
-    const BLANC=[[1,1,1],[.86,.97,1],[.62,.9,1]],M9=new THREE.Matrix4(),C9=new THREE.Color(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3();
-    // les points d'écume : la lèvre et la crête (d'un flanc à l'autre), le nez (le pied de la vague)
-    const LEV=[],CRE=[],ETR=[];
-    for(const [x,pr] of PR){LEV.push([pr[LEVRE][0],pr[LEVRE][2],pr[LEVRE][1]]);CRE.push([pr[CRETE][0],pr[CRETE][2]+.02,pr[CRETE][1]]);if(Math.abs(x)<.95)ETR.push([pr[0][0],.31,pr[0][1]-.02]);}
-    let FO=[];
-    const pasEcume=F=>{FO=[];const pose=(p,dx,dy,dz,s,c)=>FO.push([p[0]+dx+(rnd()<.3?(rnd()<.5?-e9:e9):0),p[1]+dy,p[2]+dz,s,c]);
-      for(const p of LEV)if(rnd()<.85+.15*F){pose(p,0,0,0,.9+rnd()*.4,0);if(rnd()<.5)pose(p,0,e9*.6,e9*.6,.7+rnd()*.4,0);      // la lèvre mousse,
-        const n=rnd()*(2.6+F*2)|0;for(let k=1;k<=n;k++)pose(p,0,-k*e9*.95,e9*.15*k,.85-k*.14,k<2?0:1);}                        // et son RIDEAU pend
-      for(const p of CRE){for(const dz of [e9,0,-e9])if(rnd()<.7+.25*F)pose(p,0,rnd()*e9*.5,dz,.8+rnd()*.5,rnd()<.75?0:1);}  // la crête moutonne
-      for(const p of ETR){const n=1+(rnd()*(1.8+F*1.5)|0);for(let k=0;k<n;k++)if(rnd()<.75)pose(p,0,k*e9*.9,e9*.3,.7+rnd()*.4,k?(rnd()<.5?1:2):0);}};
-    // les gouttes : elles partent, retombent (dans le repère de la caisse : à la course, elles filent derrière)
-    const NG=190,GO=[];for(let k=0;k<NG;k++)GO.push({v:0});
-    let emis=0;const lance=(p,vx,vy,vz)=>{for(const o of GO)if(o.v<=0){o.v=.55+rnd()*.5;o.v0=o.v;o.x=p[0];o.y=p[1];o.z=p[2];
-      o.vx=vx;o.vy=vy;o.vz=vz;o.s=.45+rnd()*.5;o.c=rnd()<.6?0:1;return;}};
-    const ROUE9=[0,0,0];
-    const pasGouttes=(dt,F)=>{emis+=dt*(80+F*90);while(emis>=1){emis-=1;const r=rnd();
-        if(r<.32){const p=LEV[rnd()*LEV.length|0];lance(p,(rnd()-.5)*.5,.1+rnd()*.8,.3-rnd()*1.6);}                    // la lèvre
-        else if(r<.62){const p=CRE[rnd()*CRE.length|0];lance(p,(rnd()-.5)*.6,1.0+rnd()*1.3,-1.6-rnd()*2.4);}          // le PANACHE de la crête
-        else if(r<.84){const k=rnd()*4|0,sd=k%2?1:-1,av=k<2;ROUE9[0]=sd*(av?.86:1.02);ROUE9[1]=av?.68:.46;ROUE9[2]=(av?ZF:ZR)-.24;  // les ROUES D'EAU
-          lance(ROUE9,sd*(.3+rnd()*.6),.6+rnd()*1.0,-1.2-rnd()*1.6);}
-        else{const p=ETR[rnd()*ETR.length|0];lance(p,Math.sign(p[0]||1)*(.4+rnd()*.9),.6+rnd()*.9,-.4-rnd()*1.0);}}  // le nez fend l'eau
-      for(const o of GO)if(o.v>0){o.v-=dt;o.vy-=5.5*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;if(o.y<.24)o.v=0;}};
-    const pose9=()=>{let n=0;const mat=(x,y,z,s,c)=>{if(n>=NE)return;M9.makeScale(s,s,s).setPosition(x,y,z);ecume.setMatrixAt(n,M9);
-        C9.setRGB(BLANC[c][0],BLANC[c][1],BLANC[c][2]);ecume.setColorAt(n,C9);n++;};
-      for(const f of FO)mat(f[0],f[1],f[2],f[3],f[4]);
-      for(const o of GO)if(o.v>0)mat(o.x,o.y,o.z,o.s*Math.min(1,o.v/o.v0*1.6),o.c);
-      ecume.count=n;ecume.instanceMatrix.needsUpdate=true;if(ecume.instanceColor)ecume.instanceColor.needsUpdate=true;
-      for(let k=0;k<NB;k++){const b=BU[k];M9.compose(V9.set(b.x+.015*Math.sin(t*3+b.p),b.y,b.z),Q9,S9.set(b.r/.03,b.r/.03,b.r/.03));bulles.setMatrixAt(k,M9);}
-      bulles.instanceMatrix.needsUpdate=true;};
-    // LA VIE : l'eau court, l'écume mousse par crans, les gouttes volent, les bulles montent ; tout s'emballe à la nitro
-    let t=0,acc=0;
-    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UW.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;UW.uF.value+=(fort-UW.uF.value)*Math.min(1,dt*4);
-      const F=UW.uF.value;acc+=dt;if(acc>=1/12){acc=0;pasEcume(F);}
-      pasGouttes(dt,F);for(const b of BU){b.y+=b.v*(1+F*.8)*dt;if(b.y>dos9(b.z))nouvelle(b);}
-      pose9();};
-    pasEcume(0);for(let k=0;k<30;k++)pasGouttes(1/30,0);pose9();
-    g.userData.anime=anime;
-    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.36,.47,1.14],tl:[.46,.38,-2.44],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.26,.34,-2.45],[-.26,.34,-2.45]],
-            lpw:{R:R,w:.27,style:'tourbillon',n:7,jante:0x5ee6ff,accent:0x5ee6ff,fond:0x061a2c,sansPneu:1},roueDeco};
-  },
-/* LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures » : la planche générée, « génère la mercure », « génère-la en 3D dans mon jeu »,
-   puis sur la v1 : « pas ouf, ça se sent que tu t'es appuyé sur la forme des projets précédents ») — UNE HYPERCAR EN MERCURE LIQUIDE.
-   La v1 était un loft à facettes, comme toute la gamme : une sportive violette de plus. La v2 change de TECHNIQUE, trois fois :
-   · LA FORME EST UN LIQUIDE, PAS UN PROFIL : un champ de distance (`MERC_F`) — une goutte allongée, un nez qui s'effile au ras de la route,
-     une BULLE, deux grosses HANCHES, deux ailes avant, une lèvre qui coule en arrière, le tout FONDU (union douce : les volumes se
-     rejoignent comme deux gouttes de mercure), creusé (arches, prise d'air latérale, deux bouches d'échappement), aplati dessous.
-     Le maillage en sort tout seul (SURFACE NETS sur une grille de 3,5 cm, normales = le gradient du champ : LISSE, sans une facette),
-     calculé UNE fois par session (`MERC_GEO`) — la même grille sert à poser phares, feux, sorties et sources des filets SUR la surface.
-   · LA MATIÈRE EST UN MIROIR QUI ONDULE (`MERC_FS`) : le ciel de la Mercure (dégradé violet → rose → or, cirrus, MER DE NUAGES en bruit,
-     soleil bas), lu dans le repère de la caisse, un peu du vrai ciel (`envTex`) ; Fresnel de métal (le mercure renvoie ~73 %) ; des ONDES
-     qui courent du nez à la queue déforment la surface ET la normale (le reflet ondule : c'est ça, le liquide) ; la bulle, fumée.
-   · LES FILETS (`FIL`) : des jets de mercure qui se détachent des hanches, de la lèvre et des arches — un tube qui suit les gouttes émises
-     (sous gravité, dans le repère de la caisse) et dont le rayon fait des PERLES : entre elles le fil s'amincit avec l'âge jusqu'à CASSER
-     (l'instabilité d'un jet liquide) — des chapelets de gouttes reliées, puis séparées, comme sur l'image. À la nitro tout s'emballe.
-   Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
-  mercure:function(K){
-    const R=.37,ZF=1.42,ZR=-1.38,WX=.84;
-    const sm=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25;},sM=(a,b,k)=>-sm(-a,-b,k);
-    const ell=(x,y,z,cx,cy,cz,rx,ry,rz)=>{const px=(x-cx)/rx,py=(y-cy)/ry,pz=(z-cz)/rz,k0=Math.sqrt(px*px+py*py+pz*pz),
-      k1=Math.sqrt(px*px/(rx*rx)+py*py/(ry*ry)+pz*pz/(rz*rz))||1e-6;return k0*(k0-1)/k1;};
-    const rcone=(x,y,z,ax,ay,az,bx,by,bz,r1,r2)=>{const bax=bx-ax,bay=by-ay,baz=bz-az,l2=bax*bax+bay*bay+baz*baz,rr=r1-r2,a2=l2-rr*rr,il2=1/l2,
-      pax=x-ax,pay=y-ay,paz=z-az,yy=pax*bax+pay*bay+paz*baz,zz=yy-l2,qx=pax*l2-bax*yy,qy=pay*l2-bay*yy,qz=paz*l2-baz*yy,x2=qx*qx+qy*qy+qz*qz,
-      y2=yy*yy*l2,z2=zz*zz*l2,k=Math.sign(rr)*rr*rr*x2;
-      if(Math.sign(zz)*a2*z2>k)return Math.sqrt(x2+z2)*il2-r2;if(Math.sign(yy)*a2*y2<k)return Math.sqrt(x2+y2)*il2-r1;return (Math.sqrt(x2*a2*il2)+yy*rr)*il2-r1;};
-    const capsule=(x,y,z,ax,ay,az,bx,by,bz,r)=>{const bax=bx-ax,bay=by-ay,baz=bz-az,pax=x-ax,pay=y-ay,paz=z-az,
-      h=Math.max(0,Math.min(1,(pax*bax+pay*bay+paz*baz)/(bax*bax+bay*bay+baz*baz))),dx=pax-bax*h,dy=pay-bay*h,dz=paz-baz*h;return Math.sqrt(dx*dx+dy*dy+dz*dz)-r;};
-    // LE CHAMP : la caisse sans sa bulle (`corps`), la bulle (`bulle`), et le tout (`MERC_F`)
-    const corps=(x,y,z)=>{const a=Math.abs(x);
-      let f=ell(a,y,z,0,.60,-.05,.80,.35,2.05);                                       // la goutte
-      f=sm(f,rcone(a,y,z,0,.56,.85,0,.41,2.34,.38,.08),.30);                          // le nez qui s'effile au ras de la route
-      f=sm(f,ell(a,y,z,.60,.70,-1.42,.44,.36,.96),.24);                               // les HANCHES
-      f=sm(f,ell(a,y,z,.64,.58,1.36,.32,.26,.62),.22);                                // les ailes avant
-      f=sm(f,ell(a,y,z,0,.52,-1.72,.62,.30,.70),.20);                                 // la poupe
-      f=sm(f,ell(a,y,z,.36,.76,-2.06,.34,.19,.56),.16);                               // la LÈVRE qui coule en arrière
-      f=sM(f,-capsule(a,y,z,.95,.48,1.0,1.02,.66,-.9,.18),.12);                      // la prise d'air qui creuse le flanc
-      for(const zw of [ZF,ZR]){const dC=Math.hypot(y-R,z-zw)-(R+.075);f=sM(f,-sM(dC,.44-a,.05),.05);}   // les arches
-      const dE=Math.hypot(a-.20,y-.42)-.095;f=sM(f,-Math.max(dE,z+1.92),.03);          // les deux bouches d'échappement
-      return sM(f,.235-y,.05);};                                                        // à plat dessous
-    const bulle=(x,y,z)=>ell(Math.abs(x),y,z,0,.92,-.25,.50,.26,1.05);
-    const MERC_F=(x,y,z)=>sm(corps(x,y,z),bulle(x,y,z),.22);
-    const grad=(x,y,z,o)=>{const e=.006,gx=MERC_F(x+e,y,z)-MERC_F(x-e,y,z),gy=MERC_F(x,y+e,z)-MERC_F(x,y-e,z),gz=MERC_F(x,y,z+e)-MERC_F(x,y,z-e),
-      l=Math.hypot(gx,gy,gz)||1;o[0]=gx/l;o[1]=gy/l;o[2]=gz/l;return o;};
-    const trace=(x,y,z,dx,dy,dz)=>{const l=Math.hypot(dx,dy,dz);dx/=l;dy/=l;dz/=l;let t=0;
-      for(let i=0;i<260;i++){const d=MERC_F(x+dx*t,y+dy*t,z+dz*t);if(d<.0015)return [x+dx*t,y+dy*t,z+dz*t];t+=Math.max(d*.7,.002);if(t>5)break;}return null;};
-    // LE MAILLAGE : surface nets (une fois par session)
-    if(!SHAPES.mercure._geo){const h=.035,X0=-1.16,Y0=.17,Z0=-2.80,nx=67,ny=35,nz=154,N=nx*ny*nz,V=new Float32Array(N);
-      for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)V[i+nx*(j+ny*k)]=MERC_F(X0+i*h,Y0+j*h,Z0+k*h);
-      const CI=new Int32Array((nx-1)*(ny-1)*(nz-1)).fill(-1),P=[],Nn=[],G=[],IX=[],g3=[0,0,0];
-      const EDG=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]],CO=[[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]],v8=new Float32Array(8);
-      for(let k=0;k<nz-1;k++)for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let m=0;
-        for(let c=0;c<8;c++){const o=CO[c];v8[c]=V[(i+o[0])+nx*((j+o[1])+ny*(k+o[2]))];if(v8[c]<0)m|=1<<c;}
-        if(m===0||m===255)continue;let sx=0,sy=0,sz=0,n=0;
-        for(const e of EDG){const a=v8[e[0]],b=v8[e[1]];if((a<0)===(b<0))continue;const t=a/(a-b),A=CO[e[0]],B=CO[e[1]];
-          sx+=A[0]+(B[0]-A[0])*t;sy+=A[1]+(B[1]-A[1])*t;sz+=A[2]+(B[2]-A[2])*t;n++;}
-        const x=X0+(i+sx/n)*h,y=Y0+(j+sy/n)*h,z=Z0+(k+sz/n)*h;CI[i+(nx-1)*(j+(ny-1)*k)]=P.length/3;P.push(x,y,z);grad(x,y,z,g3);Nn.push(g3[0],g3[1],g3[2]);
-        const db=bulle(x,y,z),dc=corps(x,y,z);G.push(Math.max(0,Math.min(1,(dc-db)/.05))*Math.max(0,Math.min(1,(y-.86)/.08))*(z>-1.05&&z<.62?1:0));}
-      const ci=(i,j,k)=>(i<0||j<0||k<0||i>=nx-1||j>=ny-1||k>=nz-1)?-1:CI[i+(nx-1)*(j+(ny-1)*k)];
-      const quad=(a,b,c,d,fl)=>{if(a<0||b<0||c<0||d<0)return;if(fl)IX.push(a,b,c,a,c,d);else IX.push(a,c,b,a,d,c);};
-      for(let k=1;k<nz-1;k++)for(let j=1;j<ny-1;j++)for(let i=1;i<nx-1;i++){const v0=V[i+nx*(j+ny*k)],in0=v0<0;
-        if(i<nx-1){const in1=V[(i+1)+nx*(j+ny*k)]<0;if(in0!==in1)quad(ci(i,j-1,k-1),ci(i,j,k-1),ci(i,j,k),ci(i,j-1,k),in0);}
-        if(j<ny-1){const in1=V[i+nx*((j+1)+ny*k)]<0;if(in0!==in1)quad(ci(i-1,j,k-1),ci(i-1,j,k),ci(i,j,k),ci(i,j,k-1),in0);}
-        if(k<nz-1){const in1=V[i+nx*(j+ny*(k+1))]<0;if(in0!==in1)quad(ci(i-1,j-1,k),ci(i,j-1,k),ci(i,j,k),ci(i-1,j,k),in0);}}
-      SHAPES.mercure._geo={P:new Float32Array(P),N:new Float32Array(Nn),G:new Float32Array(G),I:new Uint32Array(IX)};}
-    const MG=SHAPES.mercure._geo,geo=new THREE.BufferGeometry();
-    geo.setAttribute('position',new THREE.BufferAttribute(MG.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(MG.N,3));
-    geo.setAttribute('aG',new THREE.BufferAttribute(MG.G,1));geo.setIndex(new THREE.BufferAttribute(MG.I,1));geo.computeBoundingSphere();
-    // CE QUI N'EST PAS DU MERCURE, posé SUR la surface : phares, feux, fond des bouches, plancher
-    const P=K.kit({W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff2f86},V:{g:'l',c:0xb46bff},s:{g:'s',c:0x110f16}});
-    const tige=(k,a,b,r)=>{const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],l=Math.hypot(dx,dy,dz);if(l<1e-4)return;
-      const g=new THREE.CylinderGeometry(r,r,l,6,1,false),q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(dx/l,dy/l,dz/l));
-      g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3((a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2),q,new THREE.Vector3(1,1,1)));P.put(k,g,0,0,0);};
-    const ligne=(k,pts,r,ent)=>{const s=pts.map(p=>{const q=trace(p[0],p[1],p[2],p[3],p[4],p[5]);if(!q)return null;const n=grad(q[0],q[1],q[2],[0,0,0]);
-      return [q[0]-n[0]*ent,q[1]-n[1]*ent,q[2]-n[2]*ent];});for(let i=1;i<s.length;i++)if(s[i-1]&&s[i])tige(k,s[i-1],s[i],r);};
-    for(const sd of [1,-1]){const ph=[];for(let i=0;i<=6;i++){const x=sd*(.30+i*.05);ph.push([x,.60+i*.006,3.2,0,-.28,-1]);}ligne('W',ph,.017,.008); // les phares : une fente de lumière
-      const fe=[];for(let i=0;i<=8;i++){const x=sd*(.06+i*.075);fe.push([x,.64+i*.012,-3.3,0,0,1]);}ligne('L',fe,.011,.004);                         // les feux : un fil rose sous la lèvre
-      P.cyl('V',.088,.012,18,sd*.20,.42,-1.93,'z');}                                    // le fond des bouches : la lueur violette
-    P.box('s',1.10,.02,3.7,0,.245,-.10);
-    K.commit(P);
-    const g=K.add(new THREE.Group());
-    // LE MIROIR
-    const UM={uT:{value:0},uF:{value:0},rip:[0,1,2,3,4,5].map(()=>new THREE.Vector4(0,0,0,-99))},env=(typeof envTex!=='undefined'&&envTex)?envTex:null;
-    const AXES='vX=normalize(modelMatrix[0].xyz);vY=normalize(modelMatrix[1].xyz);vZ=normalize(modelMatrix[2].xyz);',
-      VAR='varying vec3 vW,vN,vL,vX,vY,vZ;varying float vG,vA;',
-      RIP='uniform vec4 uRip[6];float rip(vec3 p,out vec3 gr){float s=0.;gr=vec3(0.);for(int i=0;i<6;i++){vec4 e=uRip[i];float a=uT-e.w;if(a<0.||a>1.8)continue;'+ /* les ONDES en cercle là où une goutte s'est détachée */
-      'vec3 dv=p-e.xyz;float d=length(dv)+1e-4,x=d-a*1.1,env=exp(-x*x*30.)*exp(-a*2.2)*smoothstep(0.,.06,a)*.011,ph=x*24.;s+=sin(ph)*env;gr+=dv/d*(cos(ph)*24.*env-sin(ph)*env*60.*x);}return s;}',
-      MERC_VS='uniform float uT,uF;attribute float aG;'+VAR+RIP+'void main(){vec3 p=position,n=normal;vL=p;vN=n;vG=aG;'+AXES+
-      'float t=uT*(1.+uF*.9),A=mix(.003,.013,1.-smoothstep(-2.2,1.2,p.z))*smoothstep(.27,.45,p.y)*(1.+uF*.6);vA=A+1e-5;'+  /* calme devant, liquide sur les hanches */
-      'float w=sin(p.z*7.+p.x*1.3+t*5.5)*.6+sin(p.z*11.-p.x*4.1+t*8.)*.28+sin(p.x*8.7+p.y*6.1-t*3.4)*.22;vec3 gR;p+=n*(w*A+rip(position,gR));'+
-      'float tq=max(0.,-p.z-1.95)*smoothstep(.62,.80,p.y);p.z-=tq*tq*(1.1+.35*sin(uT*4.1+p.x*5.)+uF*1.1);'+             /* la lèvre s'étire comme une goutte */
-      'vec4 wp=modelMatrix*vec4(p,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
-      FIL_VS=VAR+'void main(){vL=position;vN=normal;vG=0.;vA=0.;'+AXES+'vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
-      PER_VS=VAR+'void main(){mat3 m=mat3(instanceMatrix);vec3 s2=vec3(dot(m[0],m[0]),dot(m[1],m[1]),dot(m[2],m[2]));vN=normalize(m*(normal/s2));vL=position;vG=0.;vA=0.;'+AXES+'vec4 wp=modelMatrix*instanceMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
-      MERC_FS='uniform float uT,uF,uEnvK;uniform samplerCube uEnv;uniform vec3 uSun;'+VAR+RIP+
-      'float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'+
-      'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1.,0.)),f.x),mix(h2(i+vec2(0.,1.)),h2(i+vec2(1.,1.)),f.x),f.y);}'+
-      'float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}'+
-      'vec3 ciel(vec3 r){float y=r.y;vec3 hor=vec3(1.,.86,.70),c=mix(hor,vec3(.96,.74,.86),smoothstep(0.,.12,y));c=mix(c,vec3(.70,.64,.90),smoothstep(.12,.32,y));'+
-      'c=mix(c,vec3(.93,.93,.99),smoothstep(.30,.80,y));'+                                                                                   /* or, rose, un voile violet, puis l'ARGENT */
-      'if(y>0.){vec2 q=r.xz/(y+.12)*1.3;float cl=smoothstep(.48,.86,fbm(q*vec2(1.,2.6)));c=mix(c,vec3(1.,.88,.93),cl*.55*smoothstep(.02,.3,y));}'+  /* les cirrus */
-      'else{vec2 q=r.xz/(.06-y)*1.1;float cl=fbm(q+vec2(0.,uT*.05)),top=smoothstep(.34,.74,cl);'+                                               /* la MER DE NUAGES */
-      'vec3 sea=mix(vec3(.46,.38,.58),vec3(1.,.86,.92),top);sea=mix(sea,hor*.96,exp(y*12.));c=mix(c,sea,smoothstep(0.,.015,-y));'+
-      'c=mix(c,vec3(.11,.09,.15),smoothstep(.28,.62,-y));}'+                                                                                 /* tout en bas : l'ombre de la route */
-      'float s=max(dot(r,uSun),0.);c+=vec3(1.,.92,.75)*(pow(s,300.)*4.+pow(s,12.)*.2);return c;}'+                                           /* le soleil, bas */
-      'void main(){vec3 n=normalize(vN);'+
-      'if(vA>0.){float t=uT*(1.+uF*.9),a1=vL.z*7.+vL.x*1.3+t*5.5,a2=vL.z*11.-vL.x*4.1+t*8.,a3=vL.x*8.7+vL.y*6.1-t*3.4;'+                       /* l'onde déforme aussi la NORMALE : le reflet ondule */
-      'vec3 gr=vec3(.78*cos(a1)-1.15*cos(a2)+1.91*cos(a3),1.34*cos(a3),4.2*cos(a1)+3.08*cos(a2));vec3 gR;rip(vL,gR);vec3 G=gr*vA*1.7+gR*1.3;n=normalize(n-(G-n*dot(n,G)));}'+
-      'vec3 nw=normalize(vX*n.x+vY*n.y+vZ*n.z),v=normalize(cameraPosition-vW),r=reflect(-v,nw),rl=normalize(vec3(dot(r,vX),dot(r,vY),dot(r,vZ)));'+
-      'vec3 c=ciel(rl)*(1.-uEnvK)+textureCube(uEnv,vec3(-r.x,r.y,r.z)).rgb*1.4*uEnvK;'+
-      'float fr=pow(1.-max(dot(nw,v),0.),5.);c*=mix(vec3(.78,.79,.82),vec3(1.),fr);'+                                                         /* le mercure renvoie ~73 %, tout au ras */
-      'c=mix(c,c*vec3(.26,.22,.36)+vec3(.01,0.,.03),vG*.88);'+                                                                                  /* la bulle : un miroir fumé */
-      'c+=vec3(.75,.45,1.)*uF*.25*fr;gl_FragColor=vec4(c,1.);}';
-    const mirMat=(vs,col)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UM.uT,uF:UM.uF,uRip:{value:UM.rip},uEnv:{value:env},uEnvK:{value:env?.16:0},
-      uSun:{value:new THREE.Vector3(-.35,.13,.93).normalize()}},vertexShader:vs,fragmentShader:MERC_FS,side:THREE.DoubleSide,extensions:{derivatives:true}});m.userData.g='mercure';return m;};
-    const caisse=new THREE.Mesh(geo,mirMat(MERC_VS));caisse.userData.brut=1;g.add(caisse);
-    // LES GOUTTES v3 (Léo : « elle drip de manière un peu générique » — un jet de perles continu, c'est un effet de particules comme
-    // partout). Ici chaque goutte a une VIE, celle d'un métal liquide :
-    //  1. elle NAÎT de la peau (`PEND`, un tour de révolution recalculé à chaque image : ménisque, cou, bulbe) — une bosse gonfle,
-    //     s'étire en LARME dans le sens du vent (vers le bas à l'arrêt, vers l'arrière en course), son cou s'amincit et CASSE ;
-    //  2. au pincement : la goutte part avec un SATELLITE (la petite perle du cou), le reste du cou est RAVALÉ par la caisse et une ONDE
-    //     en cercle court sur la carrosserie à partir de là (`onde`, `uRip` dans le programme) ;
-    //  3. en vol elle TREMBLE (allongée ↔ aplatie, amortie), poussée par le vent de la course ;
-    //  4. au sol elle ÉCLATE en billes (le volume est conservé) qui roulent, et qui FUSIONNENT quand elles se touchent ;
-    //  5. à l'arrêt (le garage), les billes RAMPENT vers la caisse et y RENTRENT, une onde à l'endroit où elles la touchent ;
-    //     en course, la route les emporte. En l'air (vol, écran titre) : pas de sol, elles tombent et s'éteignent.
-    let rs=0x51ed270b;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
-    let t=0,sV=0,pPrev=null,ri=0;
-    const onde=(x,y,z)=>{UM.rip[ri].set(x,y,z,t);ri=(ri+1)%UM.rip.length;};
-    const sMx=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.max(a,b)+h*h*k*.25;};
-    // les gouttes qui pendent : un tour de révolution par goutte
-    const NR=20,NS=10,PEND=[],mPend=mirMat(FIL_VS);
-    for(let k=0;k<8;k++){const pos=new Float32Array(NR*NS*3),nor=new Float32Array(NR*NS*3),ix=[];
-      for(let i=0;i<NR-1;i++)for(let j=0;j<NS;j++){const a=i*NS+j,b=i*NS+(j+1)%NS;ix.push(a,a+NS,b,b,a+NS,b+NS);}
-      const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pos,3).setUsage(THREE.DynamicDrawUsage));
-      gg.setAttribute('normal',new THREE.BufferAttribute(nor,3).setUsage(THREE.DynamicDrawUsage));gg.setIndex(ix);
-      const m=new THREE.Mesh(gg,mPend);m.frustumCulled=false;m.visible=false;m.userData.brut=1;m.userData.noShadow=1;g.add(m);
-      PEND.push({on:false,m,gg,pos,nor,D:[0,-1,0]});}
-    // où elles naissent : là où la caisse regarde vers le bas ou vers l'arrière (posées SUR la surface par le lancer de rayon)
-    const SRC=[],n3=[0,0,0];
-    const source=(o,d,w)=>{const p=trace(o[0],o[1],o[2],d[0],d[1],d[2]);if(!p)return;grad(p[0],p[1],p[2],n3);
-      SRC.push({B:[p[0]-n3[0]*.012,p[1]-n3[1]*.012,p[2]-n3[2]*.012],N:[n3[0],n3[1],n3[2]],w,next:.2+rnd()*1.6,R0:.05+rnd()*.025});};
-    for(const sd of [1,-1]){source([sd*.38,.62,-3.3],[0,0,1],1.2);      // sous la lèvre de la poupe
-      source([sd*.92,.52,-2.9],[0,0,1],1);                                // derrière les arches arrière
-      source([sd*1.5,.33,-.35],[-sd,0,0],.7);                             // le bas de caisse
-      source([sd*.92,.42,.2],[0,0,1],.6);}                                // derrière les ailes avant
-    source([0,.36,3.2],[0,0,-1],.5);                                      // le bout du nez
-    // les gouttes libres et les billes : une sphère instanciée chacune (allongée, aplatie, tournée)
-    const NG=200,GT=[],gouttes=new THREE.InstancedMesh(new THREE.SphereGeometry(1,16,12),mirMat(PER_VS),NG);
-    gouttes.frustumCulled=false;gouttes.userData.brut=1;gouttes.userData.noShadow=1;gouttes.count=0;g.add(gouttes);
-    const W3=[0,0,0],M9=new THREE.Matrix4(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3(),VA=new THREE.Vector3(),Z9=new THREE.Vector3(0,0,1);
-    const vent=(N,sp,o)=>{const k=.30+.40*(1-sp);let x=N[0]*k,y=N[1]*k-(1.1*(1-sp)+.25),z=N[2]*k-sp*1.9;const l=Math.hypot(x,y,z)||1;o[0]=x/l;o[1]=y/l;o[2]=z/l;return o;};
-    const prof=(s,P)=>{const base=s<=0?P.rb:P.rb*Math.pow(Math.max(0,1-s/(P.rb*1.6+1e-4)),1.5),neck=s<=P.sb?P.rn:0,
-      bulb=P.R>0?P.R*Math.sqrt(Math.max(0,1-Math.pow((s-P.sb)/P.R,2))):0;return sMx(sMx(base,neck,.012),bulb,.018);};
-    const posePend=p=>{const B=p.src.B,D=p.D,s0=-.025,s1=Math.max(p.sb+p.R,.02);let rx=0,ry=1,rz=0;if(Math.abs(D[1])>.9){rx=1;ry=0;}
-      let ux=D[1]*rz-D[2]*ry,uy=D[2]*rx-D[0]*rz,uz=D[0]*ry-D[1]*rx;const ul=Math.hypot(ux,uy,uz)||1;ux/=ul;uy/=ul;uz/=ul;
-      const vx=uy*D[2]-uz*D[1],vy=uz*D[0]-ux*D[2],vz=ux*D[1]-uy*D[0];let o=0;
-      for(let i=0;i<NR;i++){const s=s0+(s1-s0)*i/(NR-1),r=i===NR-1?0:prof(s,p),dr=(prof(s+.004,p)-prof(s-.004,p))/.008;
-        for(let j=0;j<NS;j++){const a=j/NS*Math.PI*2,c=Math.cos(a),sn=Math.sin(a),qx=ux*c+vx*sn,qy=uy*c+vy*sn,qz=uz*c+vz*sn;
-          p.pos[o]=B[0]+D[0]*s+qx*r;p.pos[o+1]=B[1]+D[1]*s+qy*r;p.pos[o+2]=B[2]+D[2]*s+qz*r;
-          let nx=qx-D[0]*dr,ny=qy-D[1]*dr,nz=qz-D[2]*dr;const nl=Math.hypot(nx,ny,nz)||1;p.nor[o]=nx/nl;p.nor[o+1]=ny/nl;p.nor[o+2]=nz/nl;o+=3;}}
-      p.gg.attributes.position.needsUpdate=true;p.gg.attributes.normal.needsUpdate=true;};
-    const naitre=src=>{const p=PEND.find(q=>!q.on);if(!p)return false;
-      Object.assign(p,{on:true,src,ph:0,t:0,Tg:.30+rnd()*.30,Ts:.22+rnd()*.25,R0:src.R0*(.8+rnd()*.45),L:.10+rnd()*.14,rb:0,rn:0,R:0,sb:0});
-      p.D[0]=src.N[0];p.D[1]=src.N[1];p.D[2]=src.N[2];p.m.visible=true;return true;};
-    const eclate=o=>{const vol=o.r*o.r*o.r,n=o.r>.03?5+(rnd()*5|0):2+(rnd()*2|0);let reste=vol;          // le volume est conservé
-      for(let k=0;k<n&&GT.length<NG;k++){const part=k===n-1?reste:vol*(.06+rnd()*.24);reste-=part;if(part<=vol*.01)continue;
-        const r=Math.cbrt(part),an=rnd()*Math.PI*2,v=(.6+rnd()*1.8)*(1-.4*sV);
-        GT.push({mode:1,x:o.x,y:r*.72,z:o.z,vx:Math.cos(an)*v+o.vx*.25,vy:0,vz:Math.sin(an)*v+o.vz*.35,r,a:0,age:0});}};
-    const auSol=()=>{try{if(typeof garageOn==='undefined')return true;                                       // hors du jeu (la salle blanche) : il y a un sol
-      if(typeof CHUTE!=='undefined'&&CHUTE&&CHUTE.on)return false;if(garageOn)return true;                     // LA CHUTE (l'écran titre) : en plein ciel, pas de sol
-      
-      if(typeof started!=='undefined'&&started&&typeof gameOver!=='undefined'&&!gameOver&&typeof mode!=='undefined')return mode==='drive';}catch(e){}return false;};
-    const pasGouttes=(dt,F)=>{
-      const e=g.matrixWorld.elements;                                                    // la vitesse de la caisse (0 au garage) : elle décide du vent
-      if(pPrev){const d=Math.hypot(e[12]-pPrev[0],e[13]-pPrev[1],e[14]-pPrev[2])/Math.max(dt,1e-3);sV+=(Math.min(1,d/45)-sV)*Math.min(1,dt*3);}else pPrev=[0,0,0];
-      pPrev[0]=e[12];pPrev[1]=e[13];pPrev[2]=e[14];const sp=sV,sol=auSol();
-      for(const s of SRC){s.next-=dt*(1+F*1.4)*(1+sp*.6)*s.w;if(s.next<=0)s.next=naitre(s)?.9+rnd()*1.6:.1;}
-      for(const p of PEND){if(!p.on)continue;p.t+=dt;vent(p.src.N,sp,W3);
-        const k=Math.min(1,dt*(p.ph===0?2.5:7));p.D[0]+=(W3[0]-p.D[0])*k;p.D[1]+=(W3[1]-p.D[1])*k;p.D[2]+=(W3[2]-p.D[2])*k;
-        const dl=Math.hypot(p.D[0],p.D[1],p.D[2])||1;p.D[0]/=dl;p.D[1]/=dl;p.D[2]/=dl;
-        if(p.ph===0){const u=Math.min(1,p.t/p.Tg),q=1-(1-u)*(1-u);p.R=p.R0*q;p.sb=p.R*1.05+.008;p.rn=p.R*.78;p.rb=p.R0*1.3*Math.min(1,u*1.6);   // elle GONFLE
-          if(u>=1){p.ph=1;p.t=0;}}
-        else if(p.ph===1){const Ts=p.Ts*(1-.45*sp),u=Math.min(1,p.t/Ts),L=p.L*(1+sp*1.2);                                                  // elle s'ÉTIRE en larme
-          p.R=p.R0;p.sb=p.R0*1.05+.008+L*u*u;p.rn=p.R0*(.78*Math.pow(1-u,1.4)+.035);p.rb=p.R0*1.3;
-          if(u>=1){const B=p.src.B,D=p.D,v0=2*L/Ts*.5;                                                                                     // et CASSE
-            GT.push({mode:0,x:B[0]+D[0]*p.sb,y:B[1]+D[1]*p.sb,z:B[2]+D[2]*p.sb,vx:D[0]*v0,vy:D[1]*v0,vz:D[2]*v0-sp*1.5,r:p.R0*.92,a:.38,age:0});
-            const sc=(p.sb-p.R0)*.6;GT.push({mode:0,x:B[0]+D[0]*sc,y:B[1]+D[1]*sc,z:B[2]+D[2]*sc,vx:D[0]*v0*.7,vy:D[1]*v0*.7,vz:D[2]*v0*.7-sp*1.5,r:p.R0*.24,a:.25,age:0});
-            onde(B[0],B[1],B[2]);p.ph=2;p.t=0;p.sr=Math.max(.01,p.sb-p.R0);}}
-        else{const u=Math.min(1,p.t/.2);p.R=0;p.sb=p.sr*(1-u);p.rn=p.R0*.55*(1-u);p.rb=p.R0*1.3*(1-u*.85);                                  // le cou est RAVALÉ
-          if(u>=1){p.on=false;p.m.visible=false;continue;}}
-        posePend(p);}
-      for(let i=GT.length-1;i>=0;i--){const o=GT[i];o.age+=dt;
-        if(o.mode===0){o.vy-=6.5*dt;o.vz-=sp*10*dt;const f=Math.exp(-.5*dt);o.vx*=f;o.vy*=f;o.vz*=f;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;o.a*=Math.exp(-2.6*dt);
-          if(sol&&o.y<=o.r*.75){GT.splice(i,1);eclate(o);continue;}
-          if((!sol&&o.age>1.6)||o.z<-9){GT.splice(i,1);continue;}}
-        else if(o.mode===1||o.mode===2){if(!sol){o.mode=0;continue;}o.y=o.r*.72;
-          if(o.mode===2&&sp>.3)o.mode=1;
-          if(o.mode===1){const f=Math.exp(-2.4*dt);o.vx*=f;o.vz*=f;o.vz-=sp*16*dt;o.x+=o.vx*dt;o.z+=o.vz*dt;
-            if(o.z<-9||o.age>12){o.mode=3;continue;}if(sp<.12&&o.age>.75){o.mode=2;o.cs=.45+rnd()*.45;}}
-          else{const tx=Math.max(-.62,Math.min(.62,o.x)),tz=Math.max(-2.2,Math.min(2.15,o.z)),dx=tx-o.x,dz=tz-o.z,d=Math.hypot(dx,dz);     // elle RAMPE vers la caisse
-            if(d<.03){o.mode=3;const sx=Math.sign(o.x)||1,q=trace(sx*1.4,.34,o.z,-sx,0,0)||[o.x,.34,o.z];onde(q[0],q[1],q[2]);continue;}
-            const w=Math.sin(o.age*9+o.r*300)*.35,st=Math.min(d,o.cs*dt);o.x+=(dx/d)*st-(dz/d)*w*st;o.z+=(dz/d)*st+(dx/d)*w*st;}}
-        else{o.r*=Math.exp(-dt*12);if(o.r<.003)GT.splice(i,1);}}
-      for(let i=0;i<GT.length;i++){const a=GT[i];if(a.mode!==1&&a.mode!==2)continue;                                               // les billes qui se touchent FUSIONNENT
-        for(let j=i+1;j<GT.length;j++){const b=GT[j];if(b.mode!==1&&b.mode!==2)continue;const dx=a.x-b.x,dz=a.z-b.z;
-          if(dx*dx+dz*dz<(a.r+b.r)*(a.r+b.r)*.7){const va=a.r*a.r*a.r,vb=b.r*b.r*b.r;a.x=(a.x*va+b.x*vb)/(va+vb);a.z=(a.z*va+b.z*vb)/(va+vb);
-            a.vx=(a.vx*va+b.vx*vb)/(va+vb);a.vz=(a.vz*va+b.vz*vb)/(va+vb);a.r=Math.cbrt(va+vb);a.a=.3;GT.splice(j,1);j--;}}}
-      let n=0;for(const o of GT){if(n>=NG)break;
-        if(o.mode===0){const v=Math.hypot(o.vx,o.vy,o.vz)||1;Q9.setFromUnitVectors(Z9,VA.set(o.vx/v,o.vy/v,o.vz/v));
-          const e2=1+o.a*Math.sin(o.age*44)+Math.min(.5,v*.04);S9.set(o.r/Math.sqrt(e2),o.r/Math.sqrt(e2),o.r*e2);}                  // elle TREMBLE en vol
-        else{Q9.identity();const w=1+(o.a||0)*Math.sin(o.age*40)*Math.exp(-o.age*3);S9.set(o.r*1.12*w,o.r*.78/w,o.r*1.12*w);}       // une bille : écrasée par son poids
-        M9.compose(V9.set(o.x,o.y,o.z),Q9,S9);gouttes.setMatrixAt(n++,M9);}
-      gouttes.count=n;gouttes.instanceMatrix.needsUpdate=true;};
-    // LA VIE : le mercure ondule, la lèvre s'étire, les gouttes naissent, cassent, roulent, rentrent ; tout s'emballe à la nitro
-    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UM.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;
-      UM.uF.value+=(fort-UM.uF.value)*Math.min(1,dt*4);pasGouttes(dt,UM.uF.value);};
-    for(let k=0;k<45;k++)anime(1/30);
-    g.userData.anime=anime;
-    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    const pot=sd=>{const q=trace(sd*.33,.42,-3.3,0,0,1);return [sd*.20,.42,(q?q[2]:-2.3)-.01];};
-    return {hl:[.22,.45,2.30],tl:[.40,.66,-2.40],lamps:0,halos:0,wx:WX,wzF:ZF,wzR:-ZR,pots:[pot(1),pot(-1)],
-            lpw:{R:R,w:.30,style:'multi',n:12,jante:0x3a3d47,accent:0x8a4dff,pneu:0x0e0d12}};
-  },
 /* LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — après les essais (gros voxels ;
    coupé puis muscle car avec la tête qui sort de la calandre — « nickel la tête » — ; visage peint dans le pare-brise ; tête au pare-brise ;
    visage réparti sur la caisse : « terrifiant »), Léo tranche : « LA GROSSE TÊTE DE SHIBA, mais avec des roues, les mêmes roues, un peu plus
@@ -35968,7 +35639,7 @@ function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, ti
   return {r:{cash:pr*2},m:m};
 }
 function misDuree(s){s=Math.round(s);return s>=60?(Math.floor(s/60)+' MIN'+(s%60?' '+String(s%60).padStart(2,'0'):'')):s+' S';}
-function misTxt(m,brut){ // la mission en une ligne, dans la langue du joueur — `brut` : sans majPix (la bannière est en police SYSTÈME, elle garde ses accents)
+function misTxt(m,brut){ // la mission en une ligne, dans la langue du joueur — `brut` : sans majPix (2026-10-15 : plus personne ne l'appelle brut, la bannière est passée en PIXEL)
   const L=LANG==='en'?1:0,v=m.v,pl=v>1;
   let s;
   switch(m.k){
@@ -36049,7 +35720,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
     if(v9>=m.v){
       s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);MIS_NEWG.push(s.w[i]); // (la file) la case ET le numéro : à la fin de la partie la case aura pris la mission suivante
-      misBanniere('MISSION RÉUSSIE',misTxt(m,true),'+'+fmtC(m.p),'coche');
+      misBanniere('MISSION RÉUSSIE',misTxt(m),'+'+fmtC(m.p),'coche');
       try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
     }}
@@ -36408,7 +36079,7 @@ window.dbgEssaiObjets=function(){
     PHOTO.scene.remove(m);
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H);
     for(let y=0;y<H;y++){const s0=(H-1-y)*W*4;for(let k=0;k<W*4;k++){let v2=buf[s0+k];if((k&3)!==3)v2=Math.min(255,Math.pow(v2/255,1/1.3)*255);im.data[y*W*4+k]=v2;}}
-    x.putImageData(im,0,0);x.fillStyle='#fff';x.font='12px monospace';x.fillText(o[0],6,16);out.push(cv.toDataURL('image/png'));}
+    x.putImageData(im,0,0);x.fillStyle='#fff';x.font='8px "Press Start 2P",monospace';x.fillText(o[0],6,16);out.push(cv.toDataURL('image/png'));}
   carGroup.visible=vis;rt.dispose();renderer.setClearColor(0x000000,0);
   return {photos:out};
 };
@@ -39727,6 +39398,240 @@ function sparkBurst(pool,pos,n,sp){
 }
 const crV1=new THREE.Vector3(),crV2=new THREE.Vector3(); // (2026-10-15) deux vecteurs de travail partagés (ils vivaient avec les dauphins)
 function triNoir(){return FLOW.lv===4&&!PARK.on;} // la DARK TRIAD tourne (la comète de NITROOO passe au sang)
+/* LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on
+   peut les voir dire bonjour ; on les voit quelques fois, de manière random comme la map, sur la route, en train de courir ou de manger une
+   mangue, ou penchés sur le bord de la route et sur les montagnes — qu'on en voie quelques fois seulement, mais qu'on les voie quand même »).
+   Du DÉCOR (aucune collision, aucun gain) : à chaque course sur les PICS DE JADE, QUATRE rencontres tirées au hasard le long de la piste
+   (`JSG_N`), une de chaque : sur une MONTAGNE proche de la route, un grand singe debout qui dit COUCOU · sur la ROUTE, un singe assis qui
+   MANGE UNE MANGUE (il regarde passer la caisse) · sur la ROUTE, un singe qui COURT dans le sens de la course (la caisse le double) · AU BORD
+   de la route, un singe assis sur l'arête, les jambes dans le vide, qui fait coucou. Chacun naît devant la caisse, assez loin pour qu'on le
+   voie venir (`JSG_AV`), de l'autre côté de la route qu'elle, et repart dès qu'elle l'a laissé derrière. La forme vient de `creatures/singe.js`
+   (les poses articulées) et de `creatures/vitrail.js` ; les quatre formes sont bâties AU MENU, tranche par tranche (≤ 5 ms par image), puis
+   compilées une fois hors écran : en course, rien ne se construit ni ne se compile. Console : `dbgJadeSinges()` (le plan, la rencontre en
+   cours), `dbgJadeSinges('bonjour'|'mangue'|'course'|'bord')` (une rencontre, tout de suite). */
+const JSG_ESSAI=/[?&]singesjade=1\b/.test(location.search);
+const JSG_N=4,JSG_AV={bonjour:240,mangue:170,course:150,bord:170},JSG_ECH={bonjour:11,mangue:8.5,course:7.5,bord:8.5}; // (mesuré au banc) à 6 m de haut, ils restaient cachés derrière la caisse jusqu'à 40 m : des singes GÉANTS, du décor de dessin animé
+const JSG_VIT={uSat:.62,uClair:.78,uLueur:.55,uEcart:.94,uCoqA0:.28}; // le vitrail EN COURSE (l'étalonnage du jeu sature ×1,4 : sans ça, un singe brun sort orange)
+const JSG={S:{},node:new THREE.Group(),fab:null,pret:false,chaud:false,cle:null,plan:[],cur:null,t:0,
+  F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),
+  m:new THREE.Matrix4(),cib:new THREE.Vector3(),vel:new THREE.Vector3(),p0:new THREE.Vector3()};
+JSG.node.visible=false;scene.add(JSG.node);
+function jsgActif(){return !!(started&&!gameOver&&JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!TUTO.on);}
+function jsgCache(){if(JSG.cur){JSG.cur.o.nd.visible=false;JSG.cur=null;}JSG.node.visible=false;}
+function jsgS(){ // où est la caisse sur la piste (au sol : s ; en vol : la dalle la plus proche) — null sans route sous elle
+  if(mode==='drive')return s;const P=carGroup.position,bi=dalleProche(P.x,P.y,P.z,2,1e9,tryLand._bi);if(bi<0||bi>=NP)return null;
+  return bi/(NP-1)*L+JSG.v1.subVectors(P,pts[bi]).dot(T[bi]);}
+function jsgPlan(){ // QUATRE rencontres sur la piste, une de chaque, dans un ordre tiré au hasard
+  const ty=['bonjour','mangue','course','bord'];for(let i=ty.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;const x=ty[i];ty[i]=ty[j];ty[j]=x;}
+  JSG.plan=[];for(let k=0;k<JSG_N;k++)JSG.plan.push({s:L*(.1+k*.21+Math.random()*.07),type:ty[k%ty.length],fait:false});
+}
+function jsgPose(o,p,y,z,ech){ // pose le singe : position p, son haut y, son regard z (unitaires)
+  const x=JSG.v3.crossVectors(y,z).normalize(),z2=JSG.v2.crossVectors(x,y);JSG.m.makeBasis(x,y,z2);
+  o.nd.quaternion.setFromRotationMatrix(JSG.m);o.nd.position.copy(p);o.nd.scale.setScalar(ech);o.nd.updateMatrixWorld(true);}
+function jsgMontagne(sp){ // une montagne près de la route, devant : son sommet sous le niveau de la route (on le voit d'en haut), le singe dessus
+  const C=JADE.col;if(!C)return null;const i0=Math.max(0,Math.min(NP-1,Math.round(sp/L*(NP-1)))),r0=pts[i0],mort=C.mort||new Set(),chute=new Set();
+  for(const c of JCH.L)if(c&&c.pi!=null)chute.add(c.pi);
+  let best=-1,bd=1e9;
+  C.P.forEach(function(q,k){if(mort.has(k)||chute.has(k))return;const d=Math.hypot(q[0]-r0.x,q[1]-r0.z),h=q[4]-r0.y;if(d<ROAD_HALF+q[2]+20||d>280)return;
+    if(h<-150||h>50)return; // MESURÉ : les montagnes au bord de la route la dépassent de 70 à 230 m — leur sommet est invisible d'en bas ; on prend un sommet de 150 m sous la route à 50 m au-dessus
+    const sc=Math.abs(h-10)*.5+Math.abs(d-130)*.4;if(sc<bd){bd=sc;best=k;}});
+  if(best<0)return null;const q=C.P[best];
+  let bx=q[0],bz=q[1],by=-1e9;
+  for(const o of [[0,0],[.25,0],[-.25,0],[0,.25],[0,-.25],[.18,.18],[-.18,-.18],[.18,-.18],[-.18,.18]]){const x=q[0]+o[0]*q[2],z=q[1]+o[1]*q[2];
+    for(let y=q[4]+2;y>q[4]-30;y-=.5)if(jadePilierDans(q,x,y,z)){if(y>by){by=y;bx=x;bz=z;}break;}}
+  if(by<-1e8)return null;return {p:new THREE.Vector3(bx,by+.5,bz),q:q};
+}
+function jsgLance(R,type){ // la rencontre naît devant la caisse
+  const o=JSG.S[type];if(!o)return false;const dir=driveDir||1,sp=R+dir*JSG_AV[type];if(sp<30||sp>L-80)return false;
+  const F=JSG.F;frameAt(sp,F);const cote=Math.random()<.5?1:-1,sl=-Math.sign(lat||cote)||cote; // de l'AUTRE côté de la route que la caisse
+  const E={type,o,s:sp,t:0,ech:JSG_ECH[type],vs:0,lat:0,cote:sl};
+  if(type==='bonjour'){const M=jsgMontagne(sp);if(!M)return false;E.p=M.p;E.n=new THREE.Vector3(0,1,0);
+    const i0=Math.max(0,Math.min(NP-1,Math.round(sp/L*(NP-1))));E.vers=pts[i0].clone();}
+  else if(type==='bord')E.lat=sl*(ROAD_HALF-.25);
+  else E.lat=sl*Math.max(ROAD_HALF*.5,ROAD_HALF-6); // (mesuré) à mi-largeur, dans un virage, il tombait pile derrière la caisse à l'écran : près du bord
+  if(type==='course'){const vt=JSG.vel.dot(F.t)*dir;E.vs=Math.max(8,.5*Math.max(20,vt));}
+  JSG.cur=E;JSG.node.visible=true;o.nd.visible=true;o.S.e.t=0;
+  try{if(typeof sfx==='function')sfx('singe.coucou');}catch(e){} // (son à faire : nom posé)
+  return true;
+}
+/* L'ATELIER (creatures/atelier.js, un Worker) : MESURÉ, les quatre formes VITRAIL coûtent 3,5 s de calcul ; en tranches de 5 ms dans la page,
+   il fallait 8 à 13 s de menu — un JOUER rapide les finissait (et les compilait) en pleine course. Le Worker les calcule à côté et les rend
+   en tableaux transférés ; `jsgGeo` refait les géométries telles que vitrailPrepare les aurait faites. Sans Worker (file://, refus, erreur,
+   silence de 30 s) : retour au calcul en tranches d'avant, rien ne casse. */
+function jsgGeo(o){const g=new THREE.BufferGeometry();for(const k in o.a)g.setAttribute(k,new THREE.BufferAttribute(o.a[k][0],o.a[k][1])); // (normal et aN gardent leur tableau commun, comme dans vitrailLisseG)
+  g.setIndex(new THREE.BufferAttribute(o.i,1));g.boundingSphere=new THREE.Sphere(new THREE.Vector3(o.bs[0],o.bs[1],o.bs[2]),o.bs[3]);return g;}
+function jsgAtelierRepli(){const L9=JSG.atW||[];JSG.at=null;JSG.atW=null;for(const W of L9)try{W.terminate();}catch(e){}}
+function jsgAtelier(){JSG.at=null;try{if(typeof Worker!=='function'||location.protocol==='file:')return;
+  const lots=[['bonjour','mangue'],['bord','course']]; // DEUX ouvriers en parallèle (les téléphones ont plusieurs cœurs) : ~0,9 s par forme, deux formes chacun
+  let reste=lots.length;JSG.atW=[];JSG.at='calcule';JSG.atT=performance.now();
+  for(const lot of lots){const W=new Worker('creatures/atelier.js?v=1');JSG.atW.push(W);
+    W.onerror=function(ev){try{if(ev&&ev.preventDefault)ev.preventDefault();}catch(e){}if(JSG.atW&&JSG.atW.indexOf(W)>=0)jsgAtelierRepli();};
+    W.onmessage=function(e){if(!JSG.atW||JSG.atW.indexOf(W)<0)return;try{for(const o of e.data){const F=o.n==='course'?SINGE_FC:singePoseForme(o.n);if(!F._geo)F._geo={lisse:jsgGeo(o.lisse),ecailles:jsgGeo(o.ecailles)};}}catch(er){jsgAtelierRepli();return;}
+      try{W.terminate();}catch(e){}if(--reste===0){JSG.at='fini';JSG.atW=null;}};
+    W.postMessage({formes:lot});}}catch(e){jsgAtelierRepli();}}
+function jsgTick(dt){
+  // LA FABRIQUE : les quatre formes, tranche par tranche (≤ 5 ms par image), puis UNE compilation hors écran au menu
+  if(typeof singePoseForme!=='function')return; // (creatures/singe.js absent : pas de singes)
+  if(!JSG.pret){if(JSG.at===undefined)jsgAtelier(); // (2026-10-15) L'ATELIER d'abord : un Worker calcule les formes hors du fil du jeu
+    if(JSG.at&&JSG.at!=='fini'&&performance.now()-JSG.atT>30000)jsgAtelierRepli(); // muet depuis 30 s : le calcul en tranches reprend
+    let fini=JSG.at==='fini';
+    if(!fini&&!JSG.at){if(!JSG.fab)JSG.fab=(function*(){for(const n of ['bonjour','mangue','bord'])yield* vitrailPrepare(singePoseForme(n));yield* vitrailPrepare(SINGE_FC);})();
+      const t0=performance.now();let r;do{r=JSG.fab.next();}while(!r.done&&performance.now()-t0<5);fini=r.done;}
+    if(fini){JSG.pret=true;for(const n of ['bonjour','mangue','bord','course']){const S=singeNouveau('singeJade',n),nd=new THREE.Group();
+      for(const k in JSG_VIT)S.U[k].value=JSG_VIT[k];nd.add(S.grp);nd.visible=false;JSG.node.add(nd);JSG.S[n]={S,nd};}}
+    return;}
+  if(!JSG.chaud){if(started&&!gameOver&&JSG.cur)return;JSG.chaud=true; // (au menu d'habitude ; une course partie trop tôt la fait ici, une fois, sans singe à l'écran)
+   JSG.node.visible=true;for(const n in JSG.S)JSG.S[n].nd.visible=true;
+    try{chauffeRendu([JSG.node]);}catch(e){}for(const n in JSG.S)JSG.S[n].nd.visible=false;JSG.node.visible=false;return;}
+  if(JSG_ESSAI&&(!started||gameOver)&&!SF.force)SF.force={carte:'jade',meteo:null}; // (prototype) `?singesjade=1` : chaque PLAY part au SOLEIL DE JADE, pour essayer les singes
+  if(paused)return;
+  if(dt>0){JSG.v1.subVectors(carGroup.position,JSG.p0).multiplyScalar(1/dt);if(JSG.v1.lengthSq()<4e6)JSG.vel.lerp(JSG.v1,Math.min(1,dt*1.5));}JSG.p0.copy(carGroup.position);
+  if(!jsgActif()){if(JSG.cur)jsgCache();if(!started||gameOver)JSG.cle=null;return;}
+  if(JSG.cle!==JADE.root||JSG.rs!==runStats){JSG.cle=JADE.root;JSG.rs=runStats;jsgCache();jsgPlan();} // une nouvelle vallée, ou une nouvelle partie : un nouveau plan
+  const R=jsgS();if(R==null)return;
+  if(!JSG.cur&&mode!=='boom'){for(const P of JSG.plan){if(P.fait)continue;if(R>=P.s-JSG_AV[P.type]){P.fait=true;if(Math.abs(R-P.s)<JSG_AV[P.type]+120)jsgLance(R,P.type);}break;}}
+  const E=JSG.cur;if(!E)return;
+  E.t+=dt;const o=E.o,S=o.S,F=JSG.F,dir=driveDir||1;
+  if(E.type==='course')E.s+=dir*E.vs*dt;
+  const der=(R-E.s)*dir; // de combien la caisse l'a dépassé
+  if(der>70||E.t>16||mode==='boom'){jsgCache();return;}
+  if(E.type==='bonjour'){const z=JSG.v2.subVectors(E.vers,E.p);z.y=0;if(z.lengthSq()<1)z.set(0,0,1);z.normalize();
+    const zc=JSG.cib.subVectors(carGroup.position,E.p);zc.y=0;if(zc.lengthSq()>1){zc.normalize();z.lerp(zc,.5).normalize();} // tourné vers la route, et un peu vers la caisse
+    jsgPose(o,E.p,E.n,z,E.ech);}
+  else{frameAt(Math.max(0,Math.min(L-.01,E.s)),F);const p=JSG.v1.copy(F.p).addScaledVector(F.b,E.lat);
+    const z=E.type==='mangue'?JSG.v2.copy(F.t).multiplyScalar(-dir):E.type==='course'?JSG.v2.copy(F.t).multiplyScalar(dir):JSG.v2.copy(F.b).multiplyScalar(E.cote);
+    jsgPose(o,p,F.n,z,E.ech);}
+  // l'apparition : il GRANDIT en 0,4 s (et rapetisse en partant)
+  const k=Math.min(1,E.t/.4)*(der>40?Math.max(0,1-(der-40)/30):1);o.nd.scale.setScalar(E.ech*Math.max(.01,k));
+  S.U.uNoir.value=triNoir()?1:0;S.U.uLum.value.copy(F.n.lengthSq()>.5&&E.type!=='bonjour'?F.n:JSG.v3.set(0,1,0));camera.getWorldDirection(JSG.v3);S.U.uLum.value.addScaledVector(JSG.v3,-.4).normalize();
+  const cible=o.nd.worldToLocal(JSG.cib.copy(carGroup.position));
+  if(E.type==='course')singeCourt(S,dt,0,0,cible);else singeAnimePose(S,dt,cible);
+}
+window.dbgJadeSinges=function(t){ // dbgJadeSinges() : le plan · dbgJadeSinges('bonjour'|'mangue'|'course'|'bord') : une rencontre tout de suite
+  if(t==='gel'){paused=!paused;return paused;} // (banc) fige / relance la course sans le panneau de pause — pour photographier
+  if(t==='montagnes'){const C=JADE.col,R=jsgS();if(!C||R==null)return null;const r0=pts[Math.max(0,Math.min(NP-1,Math.round((R+240)/L*(NP-1))))],o=[]; // (banc) les montagnes autour du point de la route 240 m devant : [distance, à la route, sommet − route, rayon]
+    C.P.forEach(function(q){const d=Math.hypot(q[0]-r0.x,q[1]-r0.z);if(d<500)o.push([Math.round(d),Math.round(q[8]),Math.round(q[4]-r0.y),Math.round(q[2])]);});o.sort(function(a,b){return a[0]-b[0];});return o.slice(0,30);}
+  if(t){if(!jsgActif())return 'il faut rouler au SOLEIL DE JADE';jsgCache();const R=jsgS();if(R==null)return 'pas de route sous la caisse';return jsgLance(R,t)?'lancé : '+t:'pas de place (montagne introuvable, ou fin de piste)';}
+  const v=new THREE.Vector3();const E=JSG.cur;
+  return {pret:JSG.pret,chaud:JSG.chaud,atelier:JSG.at==null?(JSG.at===null?'tranches':'-'):JSG.at,actif:jsgActif(),demiRoute:+ROAD_HALF.toFixed(1),lat:+lat.toFixed(1),plan:JSG.plan.map(p=>({type:p.type,s:Math.round(p.s),fait:p.fait})),L:Math.round(L),
+    cur:E?{type:E.type,t:+E.t.toFixed(1),s:Math.round(E.s),vu:E.o.nd.visible&&JSG.node.visible,ech:+E.o.nd.scale.x.toFixed(2),pos:E.o.nd.position.toArray().map(Math.round),caisse:carGroup.position.toArray().map(Math.round),ecran:E.o.nd.getWorldPosition(v).project(camera).toArray().map(a=>+a.toFixed(2)),dist:Math.round(E.o.nd.getWorldPosition(v).distanceTo(camera.position))}:null};
+};
+/* LES DAUPHINS DE LA MER DE JADE (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et
+   sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise »). Seulement dans la MER des PICS DE JADE
+   (là où l'on plonge et ressort) : nulle part ailleurs, et la figure LE DAUPHIN ne revient pas. Du DÉCOR : ni aura, ni collision.
+   · L'ARRIVÉE : après JDM_ATT s passées DANS l'eau (cumulées : plonger, jaillir, replonger — le compte repart quand la caisse a retrouvé la
+     route), un banc de TROIS arrive de devant en bondissant à la surface, puis s'enroule autour de la caisse.
+   · LE JEU : sous l'eau ils tournent autour d'elle à sa profondeur (chacun son rayon, son sens, sa hauteur) ; le plus proche de l'objectif
+     fait une VRILLE de temps en temps (le coucou) ; quand elle flotte ou surfe, ils bondissent à côté d'elle.
+   · LE SAUT : quand la caisse JAILLIT (jadeEauVol → jdmJailli), une fois sur deux (JDM_SAUT) le banc saute AVEC elle — même course, un élan
+     plafonné (un dauphin ne rejoint pas la route), chacun avec son petit retard ; ils retombent dans une gerbe.
+   · LE DÉPART : la caisse retrouve la route (ou part trop loin) → ils plongent ; l'eau les cache.
+   Le modèle : le grand dauphin VITRAIL de creatures/dauphin.js (mkDauphin : écailles en cubes, coque, cœur — 3 programmes compilés AU MENU par
+   chauffeRendu, 0 en course), la nage dans son shader (uDol) ; l'eau le COUPE (uSurf) quand on le voit d'au-dessus sans la peau de la mer,
+   sinon on le devine sous la peau comme la caisse. Les gerbes et les bulles sont celles de la caisse (eauP, eauRide, jadeBullesJet).
+   ⚠ Leur surface est celle où FLOTTE la caisse (jadeSurfMoy : la houle calmée) — la houle en cubes du décor (jadeSurf) varie de ±20 m d'une
+   colonne à l'autre : sur elle, ils bondissaient à 30 m.
+   Console : dbgJadeDauphins() (l'état) · ('viens') tout de suite · ('saut') le prochain jaillissement est sauté avec eux · ('route') la mer
+   ramène la caisse (le départ) · ('gel') fige. */
+const JDM_ATT=5,JDM_SAUT=.5,JDM_ECH=1.6,JDM_G=16,JDM_SAUT_H=8; // attente dans l'eau (s) · chance de sauter avec la caisse · taille · gravité de leurs bonds (m/s²) · hauteur de leur saut avec la caisse (m, × la taille)
+const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],merT:0,routeT:0,on:false,part:0,t:0,vrT:2.5,force:false,salut:false,noir:-1,
+  cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),
+  X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
+JDM.node.visible=false;scene.add(JDM.node);
+function jdmActif(){return !!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
+function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
+  if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
+  for(let i=0;i<3;i++){const b=DOL_BANC[i]||DOL_BANC[0],d=mkDauphin();d.visible=false;d.frustumCulled=false;JDM.node.add(d);
+    JDM.D.push({d:d,b:b,p:new THREE.Vector3(),v:new THREE.Vector3(),X:new THREE.Vector3(1,0,0),F:[11,17,23][i],L:[-6.5,6,-1.5][i],h:[0,1.8,-1.6][i],
+      ph:i*1.7,roll:i*2.3,vr:-1,vrS:1,st:'nage',up:false,bondT:.6+i*.5,sautT:-1,arr:true,saut:false,cou:0,cs:1,vrF:false,vu:false});}
+  return true;}
+function jdmCache(){for(const E of JDM.D){E.d.visible=false;E.vu=false;}JDM.node.visible=false;JDM.on=false;JDM.part=0;}
+function jdmNoirMaj(){const n=triNoir()?1:0;if(n===JDM.noir)return;JDM.noir=n; // la dark triad : noirs, liseré rouge sang (comme avant)
+  DOL_U.uNoir.value=n;DOL_U.uRimA.value.setRGB(n?1:.55,n?.08:.9,n?.14:1);DOL_U.uRimB.value.setRGB(n?.75:1,n?0:.6,n?.08:.88);DOL_U.uEcC.value.setRGB(n?1:.75,n?.22:.97,n?.28:1);
+  for(const E of JDM.D){E.d.material.color.setHex(n?0x0e0d12:0xffffff);if(E.d.userData.coque)E.d.userData.coque.material.color.setHex(n?0x0e0d12:0xffffff);}}
+function jdmGerbe(x,sy,z,up,k){ // un dauphin perce la surface (up) ou y retombe : une ride et des gouttes
+  try{eauPIm();eauRide(x,sy,z,.1*k);const n=(up?22:16)*k|0;
+    for(let i=0;i<n;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=.5+Math.random()*1.2*k,vo=2+Math.random()*5*k;
+      eauP(x+c*r,sy+.3,z+s*r,c*vo,(up?7:5)+Math.random()*(up?9:6)*k,s*vo,.06+Math.random()*.14,.8+Math.random()*.7,sy,(Math.random()*3)|0);}}catch(e){}}
+function jdmViens(){ // L'ARRIVÉE : devant la caisse, dans le sens de sa course, à la surface
+  const C=carGroup.position,H=JDM.H,px=-H.z,pz=H.x;JDM.on=true;JDM.part=0;JDM.t=0;JDM.vrT=1.8;JDM.salut=false;JDM.node.visible=true;
+  JDM.D.forEach(function(E,i){const lt=(i-1)*7+(Math.random()-.5)*3,av=62+i*8;E.p.set(C.x+H.x*av+px*lt,0,C.z+H.z*av+pz*lt);E.p.y=jadeSurfMoy(E.p.x,E.p.z)-2;
+    E.v.copy(JDM.cv).multiplyScalar(.2);E.v.y=0;E.st='nage';E.arr=true;E.saut=false;E.cou=0;E.bondT=.15+i*.3;E.sautT=-1;E.vr=-1;E.up=false;});}
+function jdmJailli(vx,vy,vz){ // appelée par jadeEauVol au JAILLISSEMENT : la vitesse de la caisse (m/s du monde)
+  if(!JDM.on||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
+  JDM.D.forEach(function(E,i){E.sautT=.05+i*.13+Math.random()*.06;E.sV=[vx,vy,vz];});}
+function jdmTick(dt){
+  if(!JDM.pret){if(!jdmFabrique())return;JDM.pret=true;return;}
+  if(!JDM.chaud){if(started&&!gameOver&&jadeEauOk())return; // (au menu : les trois programmes se compilent hors écran, une fois)
+    JDM.chaud=true;JDM.node.visible=true;for(const E of JDM.D)E.d.visible=true;try{chauffeRendu([JDM.node]);}catch(e){}for(const E of JDM.D)E.d.visible=false;JDM.node.visible=false;return;}
+  if(paused)return;
+  const C=carGroup.position;
+  if(dt>0){JDM.v1.subVectors(C,JDM.c0).multiplyScalar(1/dt);if(JDM.v1.lengthSq()<9e6)JDM.cv.lerp(JDM.v1,Math.min(1,dt*6));}JDM.c0.copy(C);
+  {const h=Math.hypot(JDM.cv.x,JDM.cv.z);if(h>3)JDM.H.set(JDM.cv.x/h,0,JDM.cv.z/h);}
+  if(!jdmActif()){if(JDM.on||JDM.node.visible)jdmCache();JDM.merT=0;return;}
+  // le TEMPS DANS L'EAU : cumulé dans l'eau, remis à zéro quand la caisse a retrouvé la route
+  if(mode==='drive'){JDM.routeT+=dt;if(JDM.routeT>.6)JDM.merT=0;}else JDM.routeT=0;
+  if(JEAU.dans||JSOUS.sous)JDM.merT+=dt;
+  if(!JDM.on&&(JDM.merT>=JDM_ATT||JDM.viens)&&mode==='fall'){JDM.viens=false;jdmViens();}
+  if(!JDM.on)return;
+  JDM.t+=dt;
+  if(!JDM.part&&(JDM.routeT>.6||mode==='boom'||JDM.D[0].p.distanceToSquared(C)>260*260))JDM.part=.01; // LE DÉPART
+  if(JDM.part){JDM.part+=dt;if(JDM.part>2.6){jdmCache();return;}}
+  jdmNoirMaj();
+  const H=JDM.H,px=-H.z,pz=H.x,cvh=Math.hypot(JDM.cv.x,JDM.cv.z),syC=jadeSurfMoy(C.x,C.z),pres=Math.abs(C.y-syC)<3.5&&mode==='fall',
+    sousCam=JSOUS.uK>.5,cam=camera.position,tanH=Math.tan(camera.fov*Math.PI/360),gW=JDM_G;
+  DOL_U.uLum.value.set(0,1,0);camera.getWorldDirection(JDM.v2);DOL_U.uLum.value.addScaledVector(JDM.v2,-.4).normalize();DOL_U.uEcume.value=.2*JDM_ECH;
+  // LE COUCOU : l'un d'eux recule jusqu'à la portière, fait sa VRILLE (le ventre au soleil) et repart devant
+  JDM.vrT-=dt;if(JDM.vrT<=0&&!JDM.part){const L9=JDM.D.filter(function(E){return !(E.cou>0)&&!E.arr&&!E.saut;});
+    if(L9.length){const E=L9[(Math.random()*L9.length)|0];E.cou=2.2;E.vrF=false;E.cs=E.L?Math.sign(E.L):(Math.random()<.5?-1:1);JDM.vrT=3.2+Math.random()*2;
+      if(!JDM.salut){JDM.salut=true;try{if(SONV2)sfx('dauphin.banc');}catch(e){}}}else JDM.vrT=.5;}
+  for(let i=0;i<JDM.D.length;i++){const E=JDM.D[i],p=E.p,v=E.v,sy=jadeSurfMoy(p.x,p.z),k=JDM_ECH*E.b.scale,sc=JDM_ECH/1.5;
+    if(E.sautT>=0){E.sautT-=dt;if(E.sautT<0){ // LE SAUT AVEC LA CAISSE : un élan plafonné (il ne rejoint pas la route), sa course à elle
+      const dep=Math.min(5,Math.max(0,sy-p.y));v.y=Math.min(Math.max(E.sV[1],8),Math.sqrt(2*gW*(JDM_SAUT_H*k+dep)));v.x=E.sV[0]*.95;v.z=E.sV[2]*.95;E.st='bond';E.saut=true;E.arr=false;}}
+    // OÙ IL VA (LA FORMATION, comme à l'étrave d'un bateau) : devant la caisse, de part et d'autre, dans le champ de la caméra — ou, au COUCOU, contre sa portière
+    let f9,l9;
+    if(E.cou>0){E.cou-=dt;f9=1.5*sc;l9=E.cs*4.6*sc;if(E.vr<0&&E.cou<1.2&&!E.vrF){E.vr=0;E.vrS=E.cs;E.vrF=true;}}
+    else{f9=(E.F+3*Math.sin(JDM.t*.7+i*2))*sc;l9=(E.L+2.5*Math.sin(JDM.t*.9+i*1.3))*sc;}
+    if(E.saut){f9=(i-1)*3*sc;l9=(i===1?-1:1)*(5+i)*sc;} // en l'air avec elle : à ses côtés
+    const tx=C.x+H.x*f9+px*l9,tz=C.z+H.z*f9+pz*l9,dx=tx-p.x,dz=tz-p.z,dd=Math.hypot(dx,dz);if(E.arr&&dd<22)E.arr=false;
+    {const kp=E.arr?.35:(E.saut?1.2:2.2),dvx=JDM.cv.x*(E.arr?.25:1)+dx*kp,dvz=JDM.cv.z*(E.arr?.25:1)+dz*kp,e=Math.min(1,dt*(E.arr?2:4));
+      v.x+=(dvx-v.x)*e;v.z+=(dvz-v.z)*e;const vh=Math.hypot(v.x,v.z),vmax=Math.max(26,cvh*1.4+16);if(vh>vmax){v.x*=vmax/vh;v.z*=vmax/vh;}}
+    if(JDM.part){v.y+=(-9-v.y)*Math.min(1,dt*2);E.st='nage';E.saut=false;} // ils plongent et s'en vont
+    else if(E.st==='bond'){v.y-=gW*dt;if(p.y<sy-1.4&&v.y<0){E.st='nage';E.saut=false;}} // en l'air : la chute, rien d'autre
+    else{ // SOUS L'EAU : à la profondeur de la caisse, jamais au-dessus de la surface ; elle vole haut → ils l'attendent sous la surface
+      let ty=Math.min(C.y+E.h*.6+1.1*Math.sin(JDM.t*1.1+i*2),sy-1.6);if(C.y>syC+3)ty=sy-2.2;
+      v.y+=((ty-p.y)*2.5-v.y)*Math.min(1,dt*4);
+      E.bondT-=dt;if(E.bondT<=0&&p.y>sy-3.5&&(E.arr||pres||E.cou>0)){E.st='bond';v.y=Math.sqrt(2*gW*(E.arr?3.4:2.6+Math.random()*1.8)*k);E.bondT=E.arr?.9+Math.random()*.3:1+Math.random()*1.2;} // LES BONDS : en arrivant, et quand la caisse flotte ou surfe
+      else if(E.bondT<=0)E.bondT=.4;}
+    p.addScaledVector(v,dt);
+    if(p.y<sy-60)p.y=sy-60;
+    const up=p.y>sy;if(up!==E.up){E.up=up;if(Math.abs(v.y)>2&&p.distanceToSquared(cam)<220*220)jdmGerbe(p.x,sy,p.z,up,Math.min(1.3,.5+Math.abs(v.y)/25));}
+    if(!up&&JSOUS.sous&&Math.random()<dt*5)try{jadeBullesJet(p,1,.6*k);}catch(e){}
+    // LA POSE : le nez suit sa course, le dos vers le ciel, un léger roulis — et la vrille du coucou
+    const d=E.d,vl=v.length();if(vl>1)E.X.copy(v).multiplyScalar(1/vl);
+    const X=E.X,Y=JDM.Y.crossVectors(X,JDM.UP);if(Y.lengthSq()<1e-4)Y.set(0,0,1);Y.normalize();const Zb=JDM.Z.copy(Y);Y.crossVectors(Zb,X);
+    JDM.m.makeBasis(X,Y,Zb);d.quaternion.setFromRotationMatrix(JDM.m);
+    E.roll+=dt*1.3;let rv=Math.sin(E.roll)*.12;if(E.vr>=0){E.vr+=dt/.9;if(E.vr>=1)E.vr=-1;else rv+=E.vrS*6.2832*THREE.MathUtils.smoothstep(E.vr,0,1);}
+    d.quaternion.multiply(JDM.q.setFromAxisAngle(JDM.AX,rv));
+    d.position.copy(p);d.scale.setScalar(k);d.updateMatrixWorld(true);
+    const dc=Math.sqrt(p.distanceToSquared(cam))+.01,px9=DOL_L*k/dc*VP.h/(2*tanH),g9=px9>260?DOL_GEO:DOL_GEO_L;if(d.geometry!==g9)d.geometry=g9;
+    if(!d.visible){d.visible=true;E.vu=true;}
+    const hors=E.st==='bond'?Math.max(0,Math.min(1,(p.y-sy)/(3*k))):0;E.ph+=dt*(7.5+Math.min(8,vl/8));
+    const mu=d.material.userData;mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),E.ph,2.3,E.st==='bond'?.05:0);
+    if(sousCam)mu.uSurf.value.set(0,1,0,-1e9);else mu.uSurf.value.set(0,1,0,sy); // sous la peau de la mer on le devine ; sans elle, l'eau le coupe
+  }
+}
+window.dbgJadeDauphins=function(t){ // dbgJadeDauphins() : l'état · ('viens') · ('saut') · ('plonge') · ('route') · ('gel')
+  if(t==='gel'){paused=!paused;return paused;}
+  if(t==='viens'){if(!jdmActif())return 'il faut rouler au SOLEIL DE JADE';if(mode!=='fall')return 'il faut être dans la mer (dbgEau({h:30,vy:-40}))';JDM.viens=true;return 'ils arrivent';}
+  if(t==='saut'){JDM.force=true;return 'le prochain jaillissement est sauté avec eux';}
+  if(t==='plonge'){if(!jdmActif()||mode!=='fall')return 'pas dans la mer';JEAU.dans=false;JEAU.cd=0;JDM.force=true;dbgEau({h:40,vy:-120});return 'un vrai plongeon, et ils sautent avec elle à la sortie';} // (banc) le saut avec la caisse
+  if(t==='route'){if(!jdmActif()||mode!=='fall')return 'pas dans la mer';jadeEauRamene();return 'la mer la ramène sur la route';} // (banc) le départ du banc
+  const C=carGroup.position;
+  return {pret:JDM.pret,chaud:JDM.chaud,actif:jdmActif(),on:JDM.on,part:+JDM.part.toFixed(2),merT:+JDM.merT.toFixed(2),attente:JDM_ATT,
+    D:JDM.D.map(function(E){const q=E.p.clone().project(camera);return {st:E.st,vu:E.d.visible,dist:+E.p.distanceTo(C).toFixed(1),sousSurf:+(jadeSurfMoy(E.p.x,E.p.z)-E.p.y).toFixed(1),arr:E.arr,cou:+E.cou.toFixed(1),vr:+E.vr.toFixed(2),
+      ecran:q.z<1&&Math.abs(q.x)<1&&Math.abs(q.y)<1?[+q.x.toFixed(2),+q.y.toFixed(2)]:null};})};
+};
 /* ============================================================================
    SYSTÈME MUSICAL — bande-son + analyse temps réel qui fait PULSER le ciel.
    La musique passe par le bus WebAudio (donc mixée/limitée avec tout le reste),
@@ -40853,13 +40758,13 @@ window.dbgNitro=function(r,x){if(r==='bords'){NFX.dbgB=x;return 'bords ×'+x;} /
 // billets de dollars qui volettent
 const billNoteTex=(function(){
   const cv=document.createElement('canvas');cv.width=64;cv.height=32;
-  const c=cv.getContext('2d');
+  const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   // (vague 2 « L'ENCRE ET L'OR ») le billet porte le LISERÉ d'encre de tout ce qui rapporte, et ses chiffres sont en OR (plus de vert layette)
-  c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
+  apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
-  c.fillStyle='#ffd75e';c.font='bold 15px Arial';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('$',13,17);c.fillText('100',39,17);
-  return new THREE.CanvasTexture(cv);
+  c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
+  c.fillText('$',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
 const billNoteM=new THREE.MeshBasicMaterial({map:billNoteTex,side:THREE.DoubleSide});
@@ -40999,15 +40904,17 @@ window.dbgPart=function(a,k,v){
    fête — en 15 couleurs pastel. Désormais : UN atlas cuit une fois (15 glyphes en OR de l'argent — clair en haut, ombre en bas — cerclés
    d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
-const CURR=['$','€','¥','£','₹','₩','₽','฿','₺','₪','₫','₴','₦','₱','¢'];
+const CURR=['$','€','¥','£','¢']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
 const MONN_TEX=(function(){
-  const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d');
-  c.textAlign='center';c.textBaseline='middle';c.font='bold 44px Georgia';c.lineJoin='round';
+  const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
+  apresPolice(function(){c.clearRect(0,0,S*4,S*4);
+  c.textAlign='center';c.textBaseline='middle';c.font='40px "Press Start 2P",monospace';c.lineJoin='round';
   for(let i=0;i<CURR.length;i++){const x=(i&3)*S+S/2,y=(i>>2)*S+S/2+2;
     c.lineWidth=7;c.strokeStyle='#1c0430';c.strokeText(CURR[i],x,y);                 // le liseré d'encre
     const g=c.createLinearGradient(0,y-20,0,y+20);g.addColorStop(0,'#fff3b0');g.addColorStop(.5,'#ffd75e');g.addColorStop(1,'#b8860b');
     c.fillStyle=g;c.fillText(CURR[i],x,y);}                                          // l'or : clair #fff3b0 · or #ffd75e · ombre #b8860b
-  return new THREE.CanvasTexture(cv);
+  tx.needsUpdate=true;});
+  return tx;
 })();
 const MONN_N=600,MONN=mkPanneaux(MONN_N,MONN_TEX,4,4,false,1,2);
 const MR={x:new Float32Array(MONN_N),y:new Float32Array(MONN_N),z:new Float32Array(MONN_N),vx:new Float32Array(MONN_N),vy:new Float32Array(MONN_N),
@@ -42745,6 +42652,7 @@ const SAVE={
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
+    if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
@@ -43630,6 +43538,7 @@ function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
   if(FIGV2.on){if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
     if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
+    if(FDIR.on&&dispo!=null)return !!figLance(figDirSlot(),{dispo:dispo,dx:FDIR.x,strict:!TUTO.on,muet:true}); // (2026-10-15 soir, Sacha : « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance ») le SAUT NITRO aussi : la figure de la direction tenue — rien dans cette direction : le saut part sans figure, sans bruit de refus
     return !!figLance(FX2.cyc,{dispo:dispo,double:dispo==null});} // (2026-10-14, LES FIGURES v2) l'emplacement SUIVANT, en vraie physique (le saut nitro ; ?impu=0 : aussi le double-tap en vol)
   if(FLK.on)return figLibreTap(); // (2026-10-14, Sacha) les FIGURES LIBRES : un coup de reins sur l'axe du pouce, pas une animation tirée au sort
   const L9=VEQ.lect;if(!L9||!window.FIG||L9.occupe()>=3)return false;
@@ -43690,7 +43599,7 @@ window.dbgVol=function(a){
    `?fig=ancien` (ou `dbgFig('ancien')`) rend les figures de Léo (le lecteur animé, au hasard parmi celles qu'on possède). Console : `dbgFig()`. */
 const FIGV2={on:!/[?&]fig=(ancien|script|libre)\b/.test(location.search)}; // ?fig=libre : les FIGURES LIBRES de GAMEPLAY (nuit du 14/10) · ?fig=script / ?fig=ancien : le lecteur de Léo
 if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
-function figKT(){return window.FIG&&FIG.PHY&&FIG.PHY.elan?FIG.PHY.kT+.35:.85;} // le temps d'une figure (sa glissade + le retour) pour une durée D : de quoi la doser sur le vol qui reste
+function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
   cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
@@ -43813,22 +43722,23 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
 function figTutoOk(){return !TUTO.on||(typeof tutoFigOuverte==='function'&&!!tutoFigOuverte());}
 function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)return null;
   if(!started||gameOver||paused||introD||!figTutoOk()||mode!=='fall')return null;
-  const S=figSlots();let f;if(o.f){f=o.f;s=-1;}else{s=Math.abs(s|0)%FIG_NB;if(!S[s]){if(o.strict){figRefus(s);return null;}for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;}if(!S[s])return null;f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);}if(!f)return null; // o.f : une figure hors emplacement (L'IMPULSION du double-tap) — s = −1, aucun bouton · (2026-10-15, les directions) s = l'EMPLACEMENT (0 avant, 1 arrière, 2 côté) ; vide : le GESTE (o.strict) est refusé — jamais un tonneau au pouce en avant —, le reste prend un emplacement qui existe (voir figSlots) ; à l'avant / à l'arrière, la figure est ORIENTÉE (son salto dans ce sens : le rodéo avant ≠ le rodéo arrière)
+  const S=figSlots();let f;if(o.f){f=o.f;s=-1;}else{s=Math.abs(s|0)%FIG_NB;if(!S[s]){if(o.strict){if(!o.muet)figRefus(s);return null;}for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;}if(!S[s])return null;f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);}if(!f)return null; // o.f : une figure hors emplacement (L'IMPULSION du double-tap) — s = −1, aucun bouton · (2026-10-15, les directions) s = l'EMPLACEMENT (0 avant, 1 arrière, 2 côté) ; vide : le GESTE (o.strict) est refusé — jamais un tonneau au pouce en avant —, le reste prend un emplacement qui existe (voir figSlots) ; à l'avant / à l'arrière, la figure est ORIENTÉE (son salto dans ce sens : le rodéo avant ≠ le rodéo arrière)
   if(o.dispo!=null)o.douce=true; // la figure du SAUT NITRO part toute seule : le joueur ne l'a pas risquée (pas finie = pas payée, jamais une CHUTE)
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%FIG_NB;return {attente:true};}
-  const bud=o.dispo!=null?o.dispo:figBudget(),D=Math.min(f.D,(bud-.3)/figKT());
+  const bud=o.dispo!=null?o.dispo:figBudget(),D=figDose(f,bud);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=o.dx!=null&&Math.abs(o.dx)>=.3?o.dx:steer; // (2026-10-15, les deux familles) le geste de CÔTÉ donne le pouce LUI-MÊME (figDirSlot) : la figure part de ce côté, sans attendre que le volant lissé l'ait rejoint
   let enC=null;if(o.sens==null&&Math.abs(st9)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant que la même figure tourne (même le tonneau AUTOMATIQUE du saut nitro) : on CONTINUE dans son sens — alterner l'ÉTEIGNAIT (MESURÉ au banc : tonneau ×3 annulé par le bouton TONNEAU)
   const sens=o.sens!=null?o.sens:Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // (2026-10-15) f.piv, le TAIL WHIP : la POUPE part du côté du pouce (comme au GLISSER) // du côté où l'on braque (steer > 0 = à gauche) — o.sens : le GLISSER de Léo l'impose
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
   let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour (sur le tonneau du saut nitro aussi : le joueur le reprend en main, il n'est plus « automatique »)
-  if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/figKT());if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);r.douce=false;}
-  else{if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
+  if(r){const el9=FIG.PHY&&FIG.PHY.elan,D2=el9?Math.min(f.D*1.35+Math.max(0,r.D-r.t),(bud-.35)*.72):figDose(f,bud-C.reste());if(r.mv[0].tours>=IMPU.max||D2<Math.max(.32,f.D*.5)){figRefus(s);return null;} /* (le coup net) le tour EMPILÉ se dose sur ce qui reste à CETTE figure (D2 = le temps pour TOUT finir) — MESURÉ : réserver le temps des autres figures refusait le DOUBLE SALTO du saut nitro */C.empile(r,D2);r.douce=false;}
+  else{if(C.occupe()>=3||D<Math.max(.32,f.D*.5)){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement ») — (le coup net) jamais en moins de 0,32 s : le coup serait un flou
     r=C.lance(f,sens,D,{tient:s>=0&&!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;}
   if(s>=0){FX2.slots[s]=r;FX2.cyc=(s+1)%FIG_NB;}FX2.n++;VEQ.n++;
+  {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} /* (le TAIL WHIP : la flèche montre le côté où part la POUPE, celui du pouce) */ // (HUD v4) la flèche du geste : ▲ ▼, ou le CÔTÉ où elle part (tonneau : sens −1 = à gauche ; toupie, hélico : +1 = à gauche)
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
@@ -43879,8 +43789,9 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
 window.dbgCombo=function(k){if(k==='raz'){SAVE.d.combos={};SAVE.mark();}return {on:COMBO_ON,carnet:Object.assign({},SAVE.d.combos||{}),trio:(FX2.trio||[]).map(function(x){return x.ax;}).join(''),faits:FX2.combos|0};};
 function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),aura=Math.round((f.aura||60)*(reps>1?1+(reps-1)*1.25:1));
   FX2.aura=aura;const c0=CHA.pts;
-  {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,FIG.nomReps(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
-  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;figCvNote(f,reps);fhPlante(r,f,reps); // (2026-10-15) LE COMBO DU VOL
+  {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
+  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
+  if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
   const k=NITRO2.figAir;nitroGain((k.base+k.rep*(reps-1))*Math.pow(k.k,FX2.nPay),'figair');FX2.nPay++; // ASPHALT 8 : la figure plantée remplit le NITRO, tout de suite
   hap([10,22,10]);
   comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
@@ -44006,7 +43917,7 @@ function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, 
 function figCvX(){const c=FX2.cv;return c.n?Math.min(IMPU.xMax,1+IMPU.xVar*(c.dist-1)+IMPU.xRep*(c.n-c.dist)):1;}
 function figCvTxtX(x){return '×'+String(Math.round(x*100)/100).replace('.',LANG==='en'?'.':',');}
 function figCvNote(f,reps){if(!f)return;const c=FX2.cv;c.n++;if(!c.ids[f.id]){c.ids[f.id]=1;c.dist++;}
-  c.noms.push(sansAcc(FIG.nomReps(f,reps,LANG==='en'?'en':'fr')));c.cle=''; // (le maillon sonne déjà : addTrick → trickPop, et figPaye vibre)
+  c.noms.push(figNom(f,reps));c.cle=''; // (le maillon sonne déjà : addTrick → trickPop, et figPaye vibre)
   if(c.n>=2)fovPunch=Math.max(fovPunch,3+Math.min(4,figCvX()));}
 function figCvRaz(){const c=FX2.cv;c.n=0;c.dist=0;c.ids={};c.noms.length=0;c.cle='raz';} // (≠ '' : le HUD repasse et s'éteint — MESURÉ au banc, il restait affiché après la pose)
 function figComboEncaisse(){const c=FX2.cv;if(c.n<2||!(FX2.pts>0)){if(c.n===1&&FX2.pts>0)fhFin(true);figCvRaz();return;} // (à la pose propre) le combo du vol s'encaisse — (HUD v3) une figure seule s'envole aussi vers la chaîne
@@ -44020,61 +43931,84 @@ function figCvFin(ok){fhFin(ok);figCvRaz();} // (HUD des figures v3) la pose : e
    dans la ligne, le × grimpe) · `fhFin` (la pose : encaissée = la ligne flashe en or et s'envole vers la chaîne d'aura ; chute = rouge, tout tombe)
    · `fhTick` (chaque image, depuis figHud : les minuteries, AUCUNE écriture DOM tant que rien ne change) · `fhLegMaj`/`fhLegFx` (le rappel).
    Plus de texte au-dessus de la caisse pour une figure (CHA.sansPop dans figPaye) : ce HUD le dit, en mieux. */
-const FH={el:null,nom:null,b:null,cs:null,x:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null};
+/* ===== LE HUD DES FIGURES v4 (2026-10-15 soir, Sacha : « retravaille l'HUD des figures aussi, il faut que ce soit parfait : là c'est écrit en
+   double et tout ; il faut des figures bien écrites, avec des moyens de rendre ça addictif »). RELEVÉ au banc (captures en temps réel) : deux
+   « ×2 » à l'écran (« SALTO AVANT ×2 » = deux tours, « 100 ×2 » = la chaîne d'aura) ; le nom revenait en grand ET en pastille à la plantée ;
+   à la pose, la ligne s'envolait PAR-DESSUS la carte moteur (« SALTO AVANTNEAU ») ; le rappel écrivait « ↑ AVANT » pour le SALTO AVANT ; un
+   HÉLICO 720 tout simple partait sous « HÉLICO 720 ×2 » (le nombre de tours lu comme une répétition) ; rien ne disait de quel côté elle part.
+   · LE NOM, une seule fois, bien écrit (`figNom`) : les tours se disent en mots ou en degrés — DOUBLE TONNEAU, TRIPLE SALTO AVANT, TOUPIE 720,
+     HÉLICO 1440, QUADRUPLE TONNEAU (un DOUBLE TONNEAU doublé) ; jamais « ×2 », qui reste au combo et à la chaîne ;
+   · LA FLÈCHE du geste devant le nom (▲ avant, ▼ arrière, ◄ ou ► : le côté où elle part) ;
+   · LA LIGNE DU COMBO : une PASTILLE muette par figure plantée (sa couleur ; plus grosse pour une figure neuve dans le vol — varier paie) et
+     « COMBO ×1,5 » ; au-delà du meilleur combo jamais posé (`SAVE.d.figRec`), « RECORD » bat à côté — battu à la pose, il est gardé ;
+   · À LA POSE : la ligne flashe en or et s'éteint SUR PLACE (elle ne traverse plus l'écran) ; à la chute, elle tombe en rouge ;
+   · LE RAPPEL (#fhLeg) écrit les vrais noms, et le geste que vise le pouce s'ALLUME en direct (`.arme`) : on voit ce qui va partir. */
+const FIG_MULT={fr:['','','DOUBLE ','TRIPLE ','QUADRUPLE ','QUINTUPLE ','SEXTUPLE ','SEPTUPLE ','OCTUPLE '],en:['','','DOUBLE ','TRIPLE ','QUAD ','QUINT ','SEXT ','SEPT ','OCT ']};
+function figNom(f,reps,lg){lg=lg||(LANG==='en'?'en':'fr');let n=sansAcc(lg==='en'&&f.en?f.en:f.n),k=Math.max(1,reps|0);if(k<2)return n;
+  const deg=n.match(/^(.*?)(\d{3,4})$/);if(deg)return deg[1]+(+deg[2]*k); // TOUPIE 360 → TOUPIE 720 · HELICO 720 → HELICO 1440
+  if(/^DOUBLE /.test(n)){n=n.slice(7);k*=2;} // DOUBLE TONNEAU doublé → QUADRUPLE TONNEAU
+  const M=FIG_MULT[lg==='en'?'en':'fr'];return (M[k]||k+'X ')+n;}
+function figRepsEnCours(r){const m=r&&r.mv&&r.mv[0];return m?Math.max(1,Math.round(m.tours/(r.base||m.tours))):1;} // les répétitions prévues (le tour EMPILÉ au double-tap compte)
+const FH={el:null,nom:null,b:null,d:null,cs:null,x:null,rec:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null,arme:-2,recBat:false};
 const FH_COUL=['var(--fh1)','var(--fhVert)','var(--fh2)','var(--fh0)']; // l'emplacement 1 (l'avant, cyan) · le 2 (l'arrière, vert — 2026-10-15 soir) · le 3 (le côté, magenta) · la figure que la caisse fait SEULE (or)
 const FH_N=[26,22]; // le corps du nom (px) : couché · debout — plafonné par la largeur (police pixel : 1 em par lettre)
 function fhEase(){if(!FH.ease){try{FH.ease=getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();}catch(e){}FH.ease=FH.ease||'ease-out';}return FH.ease;}
 function fhAnime(el,k,ms,o){if(!el||!el.animate)return null;if(REDUCED_MOTION&&!(o&&o.rm))return null; // « Réduire les animations » (iOS) : l'état final s'affiche, sans le mouvement
   try{return el.animate(k,Object.assign({duration:ms,easing:fhEase()},o||{}));}catch(e){return null;}}
 function fhEl(){if(FH.el)return FH.el;const e=document.createElement('div');e.id='fh';e.setAttribute('aria-hidden','true');
-  e.innerHTML='<div class="fhNom"><b></b></div><div class="fhLigne"><span class="fhCs"></span><em class="fhX"></em></div>';document.body.appendChild(e);
-  FH.el=e;FH.nom=e.firstChild;FH.b=FH.nom.firstChild;FH.cs=e.querySelector('.fhCs');FH.x=e.querySelector('.fhX');return e;}
+  e.innerHTML='<div class="fhNom"><i class="pxi fhD"></i><b></b></div><div class="fhLigne"><span class="fhCs"></span><em class="fhX"></em><u class="fhRec"></u></div>';document.body.appendChild(e);
+  FH.el=e;FH.nom=e.firstChild;FH.d=FH.nom.firstChild;FH.b=FH.nom.lastChild;FH.cs=e.querySelector('.fhCs');FH.x=e.querySelector('.fhX');FH.rec=e.querySelector('.fhRec');return e;}
 function fhNet(t){return sansAcc(String(t)).replace(/[<>&"]/g,'');}
-function fhNom(t,c,g){const e=fhEl();t=fhNet(t);const b=FH.b;
+function fhNom(t,c,g,dir){const e=fhEl();t=fhNet(t);const b=FH.b;
+  if(dir!==undefined){FH.d.className='pxi fhD'+(dir?' pxi-'+dir:' vide');} // (v4) la flèche du geste : ▲ ▼ ◄ ► (undefined = on garde celle d'avant : la plantée, le combo perdu)
   if(b.textContent!==t){b.textContent=t;b.setAttribute('data-t',t);
-    b.style.fontSize=Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.86/Math.max(1,t.length))-2))+'px';}
+    b.style.fontSize=Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,t.length+1.5))-2))+'px';}
   FH.nom.style.setProperty('--fc',c);FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
   if(g==='in')fhAnime(FH.nom,[{transform:'scale(2.3) rotate(-7deg)',opacity:0,filter:'brightness(3)'},{transform:'scale(.92) rotate(2deg)',opacity:1,filter:'brightness(1.6)',offset:.45},
     {transform:'scale(1.05) rotate(0deg)',offset:.72},{transform:'none',opacity:1,filter:'none'}],460);
   else if(g==='pl')fhAnime(FH.nom,[{transform:'scale(1.4)',filter:'brightness(3.2)'},{transform:'scale(.94)',filter:'brightness(1.5)',offset:.5},{transform:'none',filter:'none'}],400);
   else if(g==='ko')fhAnime(FH.nom,[{transform:'none'},{transform:'translateX(-10px) rotate(-3deg)'},{transform:'translateX(9px) rotate(2deg)'},{transform:'translateX(-6px)'},{transform:'translateX(4px)'},{transform:'none'}],460,{easing:'steps(6)'});}
-function fhChip(t,c){fhEl();const i=document.createElement('i');i.className='fhC';i.textContent=fhNet(t);i.style.setProperty('--cc',c);FH.cs.appendChild(i);
-  while(FH.cs.childElementCount>4)FH.cs.firstChild.remove(); // quatre pastilles au plus : les plus anciennes cèdent (le × garde la mémoire)
-  fhAnime(i,[{transform:'translateY(-26px) scale(1.9)',opacity:0,filter:'brightness(3)'},{transform:'translateY(3px) scale(.94)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],440);}
+function fhChip(neuf,c){fhEl();const i=document.createElement('i');i.className='fhP'+(neuf?' neuf':'');i.style.setProperty('--cc',c);FH.cs.appendChild(i); // (v4) une PASTILLE muette par figure plantée : le nom est déjà écrit au-dessus, une fois
+  while(FH.cs.childElementCount>8)FH.cs.firstChild.remove();
+  fhAnime(i,[{transform:'translateY(-30px) scale(2.4)',opacity:0,filter:'brightness(3)'},{transform:'translateY(2px) scale(.9)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],420);}
+function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} // le meilleur combo jamais POSÉ (le × du vol)
 function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x;fhEl();
-  FH.x.textContent=x?figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
+  FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
+  {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
 function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
-  const n=r.mv&&r.mv[0]?r.mv[0].tours|0:1;fhNom(FIG.nomReps(r.f,Math.max(1,n),LANG==='en'?'en':'fr'),FH_COUL[c],'in');FH.nomT=performance.now()+1900;
+  fhNom(figNom(r.f,figRepsEnCours(r)),FH_COUL[c],'in',r.flD||null);FH.nomT=performance.now()+1900; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste */
   if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
   if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps){if(!f||!window.FIG)return;const c=FH_COUL[r&&r.fhc!=null?r.fhc:3],t=FIG.nomReps(f,reps,LANG==='en'?'en':'fr'); // (figPaye) plantée : elle claque et tombe dans la ligne
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const c=FH_COUL[r&&r.fhc!=null?r.fhc:3],t=figNom(f,reps); // (figPaye) plantée : elle claque et tombe dans la ligne
   if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
-  fhNom(t,c,'pl');fhChip(t,c);fhXMaj();FH.nomT=performance.now()+1000;
+  fhNom(t,'var(--fh0)','pl');fhChip(neuf,c);fhXMaj();FH.nomT=performance.now()+1000; /* (v4) plantée : le nom passe en OR un instant (c'est fait), une pastille de sa couleur — pas un 2e texte */
   try{pixBurst(FH.b,Math.min(12,6+2*FX2.cv.n));}catch(e){}}
 function fhFin(ok){const c=FX2.cv;if(!FH.el||!FH.vu||c.n<1)return;const n=performance.now(); // (la pose) — à appeler AVANT figCvRaz
   if(ok){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.el.classList.remove('perdu');
     if(FH.xv>0)fhAnime(FH.x,[{transform:'scale(1.9)',filter:'brightness(3)'},{transform:'scale(1)',filter:'none'}],300);
-    fhAnime(FH.cs,[{filter:'brightness(3)'},{filter:'none'}],300);FH.fin='vole';FH.finT=n+(c.n>=2?200:0);}
+    fhAnime(FH.cs,[{filter:'brightness(3)'},{filter:'none'}],300);
+    {const x=c.n>=2?figCvX():0;if(x>figRec()+1e-6){SAVE.d.figRec=Math.round(x*100)/100;SAVE.mark();}} // (v4) le RECORD battu à la pose est gardé
+    FH.fin='efface';FH.finT=n+(c.n>=2?900:500);fhAnime(FH.el,[{opacity:1},{opacity:1,offset:.6},{opacity:0}],c.n>=2?900:500,{fill:'forwards',rm:true});} /* (v4) elle s'éteint SUR PLACE : plus de vol à travers l'écran par-dessus la carte moteur */
   else{if(c.n>=2)fhNom(TR('COMBO PERDU'),'var(--fhKo)','ko');else FH.nom.classList.remove('on'); /* une figure seule : « FIGURE RATÉE ! » le dit déjà sur la caisse (flowCasse) — les pastilles tombent, sans un 2e texte */
     FH.el.classList.add('perdu');FH.el.classList.remove('paye');
     const L=FH.cs.children;for(let i=0;i<L.length;i++)fhAnime(L[i],[{transform:'none',opacity:1},{transform:'translateY(46px) rotate('+(i%2?18:-16)+'deg)',opacity:0}],520,{delay:120+i*70,fill:'forwards',easing:'steps(5)'});
     FH.fin='efface';FH.finT=n+1050;}}
-function fhVole(){const e=FH.el;if(!e)return;let t=document.getElementById('avCh');if(!t||!t.classList.contains('on'))t=document.getElementById('auraV2'); // vers la chaîne d'aura (là où « COMBO ×N » vient de s'écrire)
-  const r=e.getBoundingClientRect(),q=t?t.getBoundingClientRect():null;let dx=-r.width*.4,dy=-r.top;
-  if(q&&q.width){dx=q.left+q.width/2-(r.left+r.width/2);dy=q.top+q.height/2-(r.top+r.height/2);}
-  FH.va=fhAnime(e,[{transform:'translateX(-50%)',opacity:1},{transform:'translate(calc(-50% + '+Math.round(dx)+'px),'+Math.round(dy)+'px) scale(.22)',opacity:0}],420,{fill:'forwards',rm:true});}
-function fhRaz(){if(FH.vu)document.body.classList.remove('fhOn');FH.vu=false;FH.fin='';FH.nomT=0;FH.xv=-1;if(!FH.el)return;if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}
-  FH.el.className='';FH.nom.className='fhNom';FH.cs.textContent='';FH.x.textContent='';FH.x.classList.remove('max');}
+/* (v4) fhVole retirée : la ligne du combo ne traverse plus l'écran (elle passait par-dessus la carte moteur) */
+function fhRaz(){if(FH.vu)document.body.classList.remove('fhOn');FH.vu=false;FH.fin='';FH.nomT=0;FH.xv=-1;FH.recBat=false;if(!FH.el)return;if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}
+  try{FH.el.getAnimations().forEach(function(a){a.cancel();});}catch(e){}
+  FH.el.className='';FH.nom.className='fhNom';FH.cs.textContent='';FH.x.textContent='';FH.x.classList.remove('max');FH.rec.textContent='';FH.rec.classList.remove('on');}
 function fhTick(vol){if(!FH.vu)return;const n=performance.now(); // (chaque image, depuis figHud) rien n'est écrit tant que rien ne change
-  if(FH.fin){if(n<FH.finT)return;if(FH.fin==='vole'){FH.fin='efface';FH.finT=n+440;fhVole();return;}fhRaz();return;}
-  if(!vol){if(mode==='drive'&&!gameOver&&FH.cs.firstChild){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.fin='vole';FH.finT=n;return;}fhRaz();return;} // (les figures plantées sont déjà dans la chaîne)
+  if(FH.fin){if(n<FH.finT)return;fhRaz();return;}
+  if(!vol){if(mode==='drive'&&!gameOver&&FH.cs.firstChild){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.fin='efface';FH.finT=n+500;fhAnime(FH.el,[{opacity:1},{opacity:0}],500,{fill:'forwards',rm:true});return;}fhRaz();return;} // (les figures plantées sont déjà dans la chaîne)
   if(FH.nomT&&n>FH.nomT){FH.nomT=0;FH.nom.classList.remove('on');} // le nom s'éteint ; la ligne du combo reste tant qu'on vole
   if(!FH.nomT&&!FH.cs.firstChild)fhRaz();}
 function fhLegMaj(){const el=document.getElementById('fhLeg');if(!el||!window.FIG)return;const S=figSlots(),cle=S.join(',')+'|'+LANG;if(FH.legCle===cle)return;FH.legCle=cle; // (en vol) ↑ figure 1 · ◄► figure 2
   const I=['haut','bas','fleches']; // (2026-10-15, les directions) chaque figure avec le geste et la couleur de SON emplacement ; un emplacement vide ne s'affiche pas (le tonneau ne part que de côté)
-  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b>'+fhNet(figCourt(f))+'</b></div>';}).join('');
-  FH.legs=[];[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
+  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b>'+fhNet(figNom(f,1))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
+  FH.legs=[];FH.arme=-2;[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
+function fhArme(){if(!FH.legs||figGlisseOn())return;const s=figDirSlot();if(s===FH.arme)return; // (v4, chaque image en vol) le geste que vise le pouce s'ALLUME
+  const a=FH.legs[FH.arme];if(a)a.classList.remove('arme');FH.arme=s;const b=FH.legs[s];if(b)b.classList.add('arme');}
 function fhLegFx(s,ko){const b=FH.legs&&FH.legs[s];if(!b||s<0)return;
   if(ko){b.classList.add('ko');clearTimeout(b._k);b._k=setTimeout(function(){b.classList.remove('ko');},460);
     fhAnime(b,[{transform:'none'},{transform:'translateX(-6px)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'none'}],400,{easing:'steps(4)'});}
@@ -44093,7 +44027,7 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
-  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v);
+  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v);if(v&&FDIR.on)fhArme();
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
   if(v&&FX2.bts)for(let i=0;i<FX2.bts.length;i++){if(!FX2.bts[i])continue;const r=FX2.slots[i],on=!!(r&&r.tient&&!r.paye);if(FX2.btOn[i]!==on){FX2.btOn[i]=on;FX2.bts[i].classList.toggle('on',on);}}}
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
@@ -44110,6 +44044,7 @@ function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on »
   addEventListener('keyup',function(e){const s=K[e.code];if(s!=null)lache('k'+s);});
 })();
 try{Object.assign(I18N,{'Depuis NITRO, glisse puis lâche : ◄► un tail whip, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':'From NITRO, slide then release: ◄► a tail whip, ▲ ▼ a flip. On the ground, push the joystick forward to jump.'});}catch(e){} // (2026-10-15) l'astuce du GLISSER (bit 64 de SAVE.d.ast — libre ; ⚠ san() plafonne ast à 255 : jamais de bit 256)
+try{Object.assign(I18N,{'COMBO':'COMBO','RECORD':'RECORD'});}catch(e){} // (HUD des figures v4)
 try{Object.assign(I18N,{'COMBO PERDU':'COMBO LOST','En vol, tape 2 fois NITRO : pouce en AVANT = figure 1, sur le CÔTÉ = figure 2.':'In the air, double-tap NITRO: thumb FORWARD = trick 1, to the SIDE = trick 2.','En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'In the air, double-tap NITRO: thumb FORWARD, BACK or to the SIDE — each gesture has its trick.'});}catch(e){} // (2026-10-15) HUD des figures v3 + le choix au joystick
 try{Object.assign(I18N,{'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !':'In the air, tap a TRICK: it blasts and spins the car. Hold for one more turn!','TOUPIE DE DRIFT':'DRIFT SPIN','EMPLACEMENTS':'SLOTS','ÉQUIPÉE':'EQUIPPED','REMPLACE':'REPLACES','RETIRÉE':'REMOVED',
   'IL EN FAUT UNE':'KEEP AT LEAST ONE','EMPLACEMENT':'SLOT'});}catch(e){}
@@ -48874,9 +48809,10 @@ const VFG=(function(){
     vit=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,combine:THREE.MixOperation}),
     chr=new THREE.MeshPhongMaterial({color:0xd8dce2,shininess:200,specular:0xffffff});
   const cv=document.createElement('canvas');cv.width=cv.height=64;
-  {const x=cv.getContext('2d');x.fillStyle='#1d2740';x.fillRect(0,0,64,64);x.fillStyle='#ffc33a';x.beginPath();x.arc(32,32,27,0,7);x.fill();
-   x.fillStyle='#1d2740';x.beginPath();x.arc(32,32,22,0,7);x.fill();x.fillStyle='#ffc33a';x.font='bold 34px monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',32,34);}
-  const logoM=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)});
+  const logoT=new THREE.CanvasTexture(cv);
+  apresPolice(function(){const x=cv.getContext('2d');x.fillStyle='#1d2740';x.fillRect(0,0,64,64);x.fillStyle='#ffc33a';x.beginPath();x.arc(32,32,27,0,7);x.fill();
+   x.fillStyle='#1d2740';x.beginPath();x.arc(32,32,22,0,7);x.fill();x.fillStyle='#ffc33a';x.font='28px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',32,34);logoT.needsUpdate=true;});
+  const logoM=new THREE.MeshBasicMaterial({map:logoT});
   const B=(w,h,d,m,x,y,z,par)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);(par||g).add(o);return o;};
   B(2.6,2.5,4.6,bleu,0,1.95,-.9);                                   // le coffre roulant
   B(2.5,1.7,1.9,bleu,0,1.55,2.35);                                  // la cabine, plus basse
@@ -51196,7 +51132,7 @@ function shopShow(cat,i){
   gNomEntre(TR(d.n));
   gLvlEl.textContent=(i+1)+' / '+L.length;gSpdEl.textContent='';
   {const pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(SHOP_LBL[cat]));pl.style.removeProperty('--rc');}} // (charte v4) la pastille dit la CATÉGORIE — la fiche garde ses trois étages
-  if(a||!d.mis)gDescEl.textContent=(d.fig&&window.FIG&&FIG.par[d.id])?figDesc(FIG.par[d.id],LANG):(LANG==='fr'?d.d:TR(d.d)); // (2026-10-14) une FIGURE se décrit dans la langue du joueur // (passe qualité) police système : TR (majPix) mangeait les accents
+  if(a||!d.mis)gDescEl.textContent=(d.fig&&window.FIG&&FIG.par[d.id])?figDesc(FIG.par[d.id],LANG):TR(d.d); // (2026-10-14) une FIGURE se décrit dans la langue du joueur // (2026-10-15, UNE SEULE POLICE) la fiche est en pixel : TR (majPix) retire l'accent des seuls mots en capitales
   else gDescEl.innerHTML=defisHtml(d.mis);
   $('gCard').classList.toggle('defis',!a&&!!d.mis);$('gCard').classList.remove('verrou');
   const sw=$('gSw');
@@ -52094,10 +52030,10 @@ function richFace(x,cx,cy,R,ext,int,face,val,H,rn){ // une face d'euro : le list
     x.fillStyle=H?'#cfcfcf':'rgba(60,42,12,.26)';for(let i=0;i<fe.length;i+=2){x.beginPath();x.arc(fe[i],fe[i+1],r*.036,0,6.2832);x.fill();} // le feuillage : le relief le dessine, la couleur à peine (en lumière décalée, il faisait des points blancs)
     frappe(function(){x.lineWidth=R*.03;x.beginPath();for(let i=0;i<=6;i++){const a=i/6*6.2832+Math.PI/6;x.lineTo(cx+Math.cos(a)*r*.82,cy+Math.sin(a)*r*.82);}x.stroke();
       x.fillRect(cx-r*.05,cy-r*.05,r*.1,r*.6);
-      x.font='bold '+Math.round(r*.32)+'px Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.fillText('R',cx-r*.5,cy+r*.35);x.fillText('F',cx+r*.5,cy+r*.35);},true);
+      x.font=Math.round(r*.26)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('R',cx-r*.5,cy+r*.35);x.fillText('F',cx+r*.5,cy+r*.35);},true);
   }else{ // le chiffre, frappé
-    frappe(function(){x.font='bold '+Math.round(r*(val.length>1?.8:1.05))+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,cy-r*.05);
-      x.font='bold '+Math.round(r*.2)+'px Helvetica,Arial,sans-serif';x.fillText(val.length>1?'EURO CENT':'EURO',cx,cy+r*.62);},true);
+    frappe(function(){x.font=Math.round(r*(val.length>1?.5:.8))+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,cy-r*.05);
+      x.font=Math.round(r*.12)+'px "Press Start 2P",monospace';x.fillText(val.length>1?'EURO CENT':'EURO',cx,cy+r*.62);},true);
   }
 }
 function richTranche(x,H,k,c){ // la TRANCHE (bande 246-256) : h = le relief le long du tour
@@ -52121,7 +52057,7 @@ function richTexBtc(){return richDuo(function(x,H){x.fillStyle=H?'#5c5c5c':'#c89
     x.lineWidth=R*.07;x.strokeStyle=H?'#ffffff':'rgba(255,248,222,.34)';x.beginPath();x.arc(cx,cy,R*.955,0,6.2832);x.stroke(); // le listel
     x.strokeStyle=H?'#d0d0d0':'rgba(90,55,10,.55)';x.lineWidth=3;for(let i=0;i<72;i++){const a=i/72*6.2832;x.beginPath();x.moveTo(cx+Math.cos(a)*R*.8,cy+Math.sin(a)*R*.8);x.lineTo(cx+Math.cos(a)*R*.89,cy+Math.sin(a)*R*.89);x.stroke();} // le crénelage
     if(H)x.fillStyle='#4c4c4c';else{const O=x.createRadialGradient(cx-25,cy-23,8,cx,cy,R*.79);O.addColorStop(0,'#ffb347');O.addColorStop(1,'#e2760c');x.fillStyle=O;}x.beginPath();x.arc(cx,cy,R*.79,0,6.2832);x.fill(); // l'émail (en creux)
-    x.save();x.translate(cx,cy);x.rotate(.24);x.fillStyle=H?'#e8e8e8':'#fff';x.font='bold '+Math.round(128*u)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('B',4*u,6*u);
+    x.save();x.translate(cx,cy);x.rotate(.24);x.fillStyle=H?'#e8e8e8':'#fff';x.font=Math.round(104*u)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('B',4*u,6*u);
     x.fillRect(-22*u,-72*u,11*u,26*u);x.fillRect(4*u,-72*u,11*u,26*u);x.fillRect(-22*u,46*u,11*u,26*u);x.fillRect(4*u,46*u,11*u,26*u);x.restore();} // ₿ : le B et ses deux barres
   richTranche(x,H,'btc','#e8b048');});}
 function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,0,4,4);});}
@@ -52143,10 +52079,10 @@ function richTexBillet(B){return richCv(512,236,function(x,w,h){
   x.strokeStyle=L(0,.10);x.lineWidth=1;for(let k=0;k<26;k++){x.beginPath();for(let i=0;i<=w;i+=6){x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));}x.stroke();} // la guilloche
   x.strokeStyle=L(.25,.35);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);
   for(let i=0;i<14;i++){x.strokeStyle=L(0,.07+i*.012);x.beginPath();x.ellipse(118,118,62-i*4,62-i*4,0,0,6.2832);x.stroke();} // la rosace
-  x.fillStyle=L(.55,.85);x.font='bold 60px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('$',118,120);
-  x.font='bold '+(B.v.length>2?46:54)+'px Helvetica,Arial,sans-serif';x.fillStyle=L(.65,.9);x.textAlign='left';x.fillText(B.v,30,48);x.textAlign='right';x.fillText(B.v,w-30,h-44);
-  x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle=L(.55,.8);x.fillText('CASH CAR',w*.6,h*.42);
-  x.font='11px Helvetica,Arial,sans-serif';x.fillStyle=L(.25,.5);x.fillText('BANQUE CENTRALE DU CIEL · '+B.m+' DOLLARS',w*.6,h*.56);
+  x.fillStyle=L(.55,.85);x.font='50px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',118,120);
+  x.font=(B.v.length>2?28:34)+'px "Press Start 2P",monospace';x.fillStyle=L(.65,.9);x.textAlign='left';x.fillText(B.v,30,48);x.textAlign='right';x.fillText(B.v,w-30,h-44);
+  x.font='14px "Press Start 2P",monospace';x.textAlign='center';x.fillStyle=L(.55,.8);x.fillText('CASH CAR',w*.6,h*.42);
+  x.font='7px "Press Start 2P",monospace';x.fillStyle=L(.25,.5);x.fillText('BANQUE CENTRALE DU CIEL · '+B.m+' DOLLARS',w*.6,h*.56);
   const Bd=x.createLinearGradient(w*.78,0,w*.86,0);Bd.addColorStop(0,L(.15,0));Bd.addColorStop(.5,L(.2,.55));Bd.addColorStop(1,L(.15,0));x.fillStyle=Bd;x.fillRect(w*.78,0,w*.08,h);}); // la bande holographique
 }
 function richTexTrefle(){return richCv(256,256,function(x){x.clearRect(0,0,256,256);
@@ -52201,12 +52137,12 @@ function richTexCarte(){return richCv(512,656,function(x){ // la carte NOIRE : r
     if(!dos){const cg=x.createLinearGradient(52,y0+112,116,y0+160);cg.addColorStop(0,'#fff0b5');cg.addColorStop(1,'#b8892c');x.fillStyle=cg;richRond(x,52,y0+110,66,50,9);x.fill(); // la puce
       x.strokeStyle='rgba(90,60,10,.7)';x.lineWidth=2;x.beginPath();x.moveTo(52,y0+135);x.lineTo(118,y0+135);x.moveTo(74,y0+110);x.lineTo(74,y0+160);x.moveTo(96,y0+110);x.lineTo(96,y0+160);x.stroke();
       x.strokeStyle='rgba(225,228,235,.75)';x.lineWidth=3;for(let k=0;k<3;k++){x.beginPath();x.arc(150,y0+135,10+k*9,-.7,.7);x.stroke();} // sans contact
-      x.font='bold 30px Helvetica,Arial,sans-serif';x.textBaseline='middle';x.fillStyle='#dfe2ea';x.fillText('CASH CAR',36,y0+58);
-      x.textAlign='right';x.font='bold 17px Helvetica,Arial,sans-serif';x.fillStyle='#a7adb8';x.fillText('BLACK',476,y0+58);x.textAlign='left';
-      x.font='bold 30px "Courier New",monospace';x.fillStyle='rgba(0,0,0,.8)';x.fillText('4000 1234 5678 9010',38,y0+218);x.fillStyle='#d9dce4';x.fillText('4000 1234 5678 9010',36,y0+215); // en RELIEF
-      x.font='15px Helvetica,Arial,sans-serif';x.fillStyle='#b9bec8';x.fillText('L. CASH',38,y0+272);x.fillText('12/99',250,y0+272);
+      x.font='19px "Press Start 2P",monospace';x.textBaseline='middle';x.fillStyle='#dfe2ea';x.fillText('CASH CAR',36,y0+58);
+      x.textAlign='right';x.font='11px "Press Start 2P",monospace';x.fillStyle='#a7adb8';x.fillText('BLACK',476,y0+58);x.textAlign='left';
+      x.font='18px "Press Start 2P",monospace';x.fillStyle='rgba(0,0,0,.8)';x.fillText('4000 1234 5678 9010',38,y0+218);x.fillStyle='#d9dce4';x.fillText('4000 1234 5678 9010',36,y0+215); // en RELIEF
+      x.font='9px "Press Start 2P",monospace';x.fillStyle='#b9bec8';x.fillText('L. CASH',38,y0+272);x.fillText('12/99',250,y0+272);
       x.globalAlpha=.9;x.fillStyle='#d9a63a';x.beginPath();x.arc(420,y0+266,24,0,6.2832);x.fill();x.fillStyle='#c9ccd4';x.beginPath();x.arc(450,y0+266,24,0,6.2832);x.fill();x.globalAlpha=1;}
-    else{x.fillStyle='#232328';x.fillRect(0,y0+30,512,58);x.fillStyle='#ddd8cb';x.fillRect(36,y0+120,300,40);x.font='bold 18px "Courier New",monospace';x.fillStyle='#444';x.fillText('777',300,y0+142);
+    else{x.fillStyle='#232328';x.fillRect(0,y0+30,512,58);x.fillStyle='#ddd8cb';x.fillRect(36,y0+120,300,40);x.font='11px "Press Start 2P",monospace';x.fillStyle='#444';x.fillText('777',300,y0+142);
       const H=x.createLinearGradient(380,0,470,0);H.addColorStop(0,'#ff9ad8');H.addColorStop(.5,'#8ffcff');H.addColorStop(1,'#fff08a');x.fillStyle=H;x.globalAlpha=.75;x.beginPath();x.arc(425,y0+250,34,0,6.2832);x.fill();x.globalAlpha=1;}};
   face(0,false);face(334,true);});}
 function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attributes.uv;
@@ -52215,7 +52151,7 @@ function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attribute
   g.clearGroups();return g;}
 function richTexLiasse(){const b=RICH.texBillet.image;return richCv(512,512,function(x){ // la LIASSE : le billet du dessus et sa BANDE ; les feuilles empilées sur la tranche
   x.drawImage(b,0,0,512,236);x.fillStyle='#efe6cf';x.fillRect(228,0,56,236);x.fillStyle='rgba(150,110,40,.6)';x.fillRect(228,0,3,236);x.fillRect(281,0,3,236);
-  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='bold 22px Helvetica,Arial,sans-serif';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('$ 10 000',0,0);x.restore();
+  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('$ 10 000',0,0);x.restore();
   for(let y=256;y<512;y+=4){x.fillStyle=(y/4)%2?'#cfe9e1':'#0c5a66';x.fillRect(0,y,512,4);}x.fillStyle='#efe6cf';x.fillRect(228,256,56,256);});}
 function richLiasseGeo(){const g=new THREE.BoxGeometry(1,.46,.12),uv=g.attributes.uv;
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -52268,8 +52204,8 @@ function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MON
   x.strokeStyle='rgba(255,255,255,.06)';x.lineWidth=1;for(let i=0;i<90;i++){const a=i/90*6.2832;x.beginPath();x.moveTo(c,c);x.lineTo(c+Math.cos(a)*110,c+Math.sin(a)*110);x.stroke();}
   for(let h=0;h<12;h++){const a=h/12*6.2832-Math.PI/2;x.save();x.translate(c+Math.cos(a)*88,c+Math.sin(a)*88);x.rotate(a+Math.PI/2);x.fillStyle='#ffdf8a'; // les index d'or
     if(h===0){x.beginPath();x.moveTo(-10,-10);x.lineTo(10,-10);x.lineTo(0,8);x.fill();}else if(h===3){}else x.fillRect(-4,-11,8,22);x.restore();}
-  x.fillStyle='#f4f0e6';x.fillRect(c+66,c-9,24,18);x.font='bold 15px Helvetica,Arial,sans-serif';x.fillStyle='#111';x.textAlign='center';x.textBaseline='middle';x.fillText('8',c+78,c+1); // le guichet de la date
-  x.font='bold 13px Helvetica,Arial,sans-serif';x.fillStyle='#ffe9b0';x.fillText('CASH CAR',c,c-42);x.font='9px Helvetica,Arial,sans-serif';x.fillText('AUTOMATIC',c,c+44);
+  x.fillStyle='#f4f0e6';x.fillRect(c+66,c-9,24,18);x.font='12px "Press Start 2P",monospace';x.fillStyle='#111';x.textAlign='center';x.textBaseline='middle';x.fillText('8',c+78,c+1); // le guichet de la date
+  x.font='8px "Press Start 2P",monospace';x.fillStyle='#ffe9b0';x.fillText('CASH CAR',c,c-42);x.font='6px "Press Start 2P",monospace';x.fillText('AUTOMATIC',c,c+44);
   const aig=function(a,l,w){x.save();x.translate(c,c);x.rotate(a);x.fillStyle='#ffe28f';x.beginPath();x.moveTo(-w,6);x.lineTo(0,-l);x.lineTo(w,6);x.fill();x.restore();};
   aig(-Math.PI/3,54,6);aig(Math.PI/3,82,4.5); // 10 h 10 (0 = midi, dans le sens des aiguilles)
   x.fillStyle='#ffe28f';x.beginPath();x.arc(c,c,7,0,6.2832);x.fill();
@@ -52300,8 +52236,8 @@ function richTexJeton(col,val){return richCv(512,288,function(x){ // un JETON : 
     x.fillStyle='#f4f1ea';for(let k=0;k<8;k++){x.save();x.translate(cx,128);x.rotate(k/8*6.2832);x.fillRect(-13,-127,26,26);x.restore();} // les plots blancs du bord
     x.fillStyle='rgba(255,255,255,.14)';x.beginPath();x.arc(cx,128,84,0,6.2832);x.fill();
     x.strokeStyle='#f4f1ea';x.lineWidth=4;x.setLineDash([10,8]);x.beginPath();x.arc(cx,128,80,0,6.2832);x.stroke();x.setLineDash([]);
-    x.fillStyle='#fff';x.font='bold '+(val.length>3?40:52)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,120);
-    x.font='bold 13px Helvetica,Arial,sans-serif';x.fillStyle='rgba(255,255,255,.85)';x.fillText('CASH CAR',cx,160);}
+    x.fillStyle='#fff';x.font=(val.length>3?22:28)+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,120);
+    x.font='8px "Press Start 2P",monospace';x.fillStyle='rgba(255,255,255,.85)';x.fillText('CASH CAR',cx,160);}
   x.fillStyle='#f4f1ea';for(let k=0;k<8;k++)x.fillRect(k*64+25,260,14,28);});} // la tranche : les mêmes plots
 function richJetonGeo(){const g=new THREE.CylinderGeometry(1,1,.17,32,1),uv=g.attributes.uv; // Ø 39 mm × 3,3 mm
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -53053,11 +52989,11 @@ function bqPovPanneau(){if(!BQ_CADRAGE||bqPovPanneau._el)return;
   const el=document.createElement('div');el.id='bqCadrage';
   el.innerHTML='<b class="cT">CADRAGE · <span class="cS"></span><i class="cO">▾</i></b><div class="cC">'+R.map(function(r){return '<label><span>'+r[1]+'</span><input type="range" data-k="'+r[0]+'" min="'+r[2]+'" max="'+r[3]+'" step="'+r[4]+'"><em></em></label>';}).join('')+'<button type="button" class="cZ">ZÉRO</button></div>';
   document.body.appendChild(el);bqPovPanneau._el=el;
-  const st=document.createElement('style');st.textContent='#bqCadrage{position:fixed;z-index:2147483000;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);background:rgba(255,255,255,.95);color:#111;border:2px solid #111;box-shadow:0 3px 0 #111;font:600 10px/1.2 -apple-system,system-ui,sans-serif;padding:5px 7px;display:none;user-select:none;-webkit-user-select:none;touch-action:none}'+
+  const st=document.createElement('style');st.textContent='#bqCadrage{position:fixed;z-index:2147483000;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);background:rgba(255,255,255,.95);color:#111;border:2px solid #111;box-shadow:0 3px 0 #111;font:8px/1.4 var(--pix);padding:5px 7px;display:none;user-select:none;-webkit-user-select:none;touch-action:none}'+
     '@media (orientation:portrait){#bqCadrage{right:auto;left:50%;top:auto;translate:-50% 0;bottom:calc(env(safe-area-inset-bottom,0px) + 96px)}}'+ /* (sur la grille de la boutique : la caisse reste à découvert) */
     '#bqCadrage.on{display:block}#bqCadrage .cT{display:flex;gap:6px;align-items:center;cursor:pointer;font-size:11px;letter-spacing:.06em}#bqCadrage .cO{margin-left:auto;font-style:normal;padding:0 4px}'+
     '#bqCadrage.ferme .cC{display:none}#bqCadrage label{display:grid;grid-template-columns:56px 112px 34px;gap:5px;align-items:center;margin-top:3px}#bqCadrage input{width:112px;margin:0;touch-action:auto}#bqCadrage em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}'+
-    '#bqCadrage .cZ{margin-top:6px;font:700 10px -apple-system,system-ui,sans-serif;border:1.5px solid #111;background:#fff;padding:3px 8px;cursor:pointer}';document.head.appendChild(st);
+    '#bqCadrage .cZ{margin-top:6px;font:8px var(--pix);border:1.5px solid #111;background:#fff;padding:3px 8px;cursor:pointer}';document.head.appendChild(st);
   ['pointerdown','pointermove','pointerup','touchstart','touchmove','wheel','click'].forEach(function(t){el.addEventListener(t,function(e){e.stopPropagation();},{passive:true});});
   const lit=function(){const s=bqPovSens(),l=bqPovLu();return Object.assign({},BQ_POV_DEF,BQ_POV[s]||{},l[s]||{});};
   const garde=function(o){const l=bqPovLu();l[bqPovSens()]=o;try{localStorage.setItem('ccCadrageBq',JSON.stringify(l));}catch(e){}};
@@ -53535,7 +53471,7 @@ function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=f
   else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
 function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
 function garFigEssai(id,c){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]); // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
-  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*figKT()/.85+.55; /* (2026-10-15 soir) l'élan glisse plus longtemps : le saut du plateau dure d'autant */
+  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
   try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}
@@ -58853,6 +58789,8 @@ function loop(now){
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
+  try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
   if(!mortS9)try{foretTick(dtA9);}catch(e){window.__foretErr=e;loopWarn(131072,'forêt',e);} // (2026-10-14) LA FORÊT NOIRE : lumière, météo, papillons, feux follets, le loup-garou, les voix du bois
   if(!mortS9)try{volcanTick(dtA9);}catch(e){window.__volcanErr=e;loopWarn(131072,'volcan',e);} // (2026-10-14) LE ROYAUME DE FEU : lumière, météo, éruptions, bombes, braises, cendre, les voix du volcan
   if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
@@ -60263,7 +60201,7 @@ if(BANC_ON)(function(){
   const px4=new Uint8Array(4),gl9=renderer.getContext(),Z=ms=>new Promise(r=>setTimeout(r,ms));
   const box=document.createElement('div');box.id='bancBox';
   box.style.cssText='position:fixed;left:calc(var(--sL) + 6px);right:calc(var(--sR) + 6px);top:calc(var(--sT) + 4px);z-index:2147483001;'+
-    'font:600 11px/1.35 ui-monospace,Menlo,monospace;color:var(--tx);background:var(--k1);padding:4px 6px;white-space:pre;overflow:auto;max-height:92vh;pointer-events:auto';
+    'font:8px/1.6 var(--pix);color:var(--tx);background:var(--k1);padding:4px 6px;white-space:pre;overflow:auto;max-height:92vh;pointer-events:auto';
   box.textContent='BANC : ne touche à rien (~3 min)…';document.body.appendChild(box);
   const etat=t=>{box.textContent='BANC en cours — ne touche à rien\n'+t;};
   window.__bancSync=function(){ // appelé en fin d'image par la boucle : la puce finit, on relève
@@ -60332,7 +60270,7 @@ if(BANC_ON)(function(){
     for(const l of LIG)t+=l.padEnd(w)+COLS.map(c=>String(R[c][l]==null?'':R[c][l]).padStart(cw)).join('')+'\n';
     return t;};
   const bouton=(txt,fn)=>{const k=document.createElement('button');k.textContent=txt;
-    k.style.cssText='font:700 13px/1 var(--sans);min-height:44px;padding:0 16px;margin:8px 8px 0 0;border:0;background:var(--or);color:var(--k1);border-radius:0';
+    k.style.cssText='font:10px/1 var(--pix);min-height:44px;padding:0 16px;margin:8px 8px 0 0;border:0;background:var(--or);color:var(--k1);border-radius:0';
     k.onclick=function(e){e.stopPropagation();fn(k);};box.appendChild(k);return k;};
   const copier=(txt,k)=>{const non=()=>{k.textContent='FAIS UNE CAPTURE';};try{navigator.clipboard.writeText(txt).then(()=>{k.textContent='COPIÉ !';},non);}catch(e){non();}};
   (async ()=>{
