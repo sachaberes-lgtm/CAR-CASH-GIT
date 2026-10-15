@@ -3,6 +3,30 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES POTS ENCASTRÉS (TOUTES LES VOITURES) + LE TOIT DE LA HONTE (2026-10-15, pôle CAISSES — Léo : « le pot d'échappement de la honte est un peu bizarre et mal. Il devrait être encastré, puis passer à travers une encoche qui a été faite exprès, un peu comme les vraies voitures » · « fais pareil pour toutes les voitures (seulement pot échappement) » · « remets le plafond comme avant » → « le toit d'avant, mais posé dessus »)
+- RENSEIGNÉ : sur une vraie voiture, le pare-chocs (ou la jupe) est percé d'une ouverture à la forme de la sortie, plus grande (le jeu :
+  le pot vibre et chauffe), souvent bordée d'un jonc ; l'embout y est centré, à fleur ou dépassant d'un ou deux centimètres ; une sortie
+  sous la jupe s'arrête à sa ligne.
+- LA RÈGLE (`echEncastre`, appelée par `echappement` ; `echTole`, `echTaille`, la pièce `ECHP.encoche`, les réglages `ECH_ENC`) : pour
+  chaque bouche qui sort par l'ARRIÈRE, un rayon tiré de l'arrière trouve la tôle à sa hauteur ; si elle l'entoure (6 rayons sur 8 en
+  anneau), l'embout est recalé à 1,6 cm devant elle et une ENCOCHE posée (poche noire CREUSE — les âmes, lueurs et aubes du fond restent
+  visibles —, 1,2 cm de jeu, jonc sombre de 1,4 cm ; `jeu`/`jonc` réglables par pièce ; deux encoches qui se touchent n'en font qu'une,
+  rectangulaire). Une bouche SOUS la caisse (ou plus grosse que la tôle qu'elle perce) : pas d'encoche, l'embout s'arrête à 3 cm derrière
+  la ligne du pare-chocs au-dessus d'elle. Les flammes suivent. `enc:0` : la fiche garde ses pots (LA SILENCIEUSE).
+- Le DIFFUSEUR commun (`A.split`) est désormais posé AVANT le pot dans buildCar : il dépasse de 8 cm derrière le pare-chocs et, posé après,
+  cachait le bas des encoches. Les pots « canoniques » des gabarits sans fiche (deux boîtes chromées de 22 cm qui pendaient 31 cm derrière)
+  deviennent deux tubes de 7 cm encastrés dans le diffuseur. LE DOGE (pot dessiné dans son gabarit) : ses sorties d'or s'arrêtent à 3 cm
+  derrière sa plaque (elles dépassaient de 25 cm).
+- LA HONTE : deux pots rouillés de 5-6 cm, chacun dans son encoche percée dans le diffuseur, entre ses ailettes (avant : un tuyau tordu qui
+  traversait le pare-chocs sans trou et pendait, ficelé, et un bout de tube qui flottait). SON TOIT : la petite dalle d'avant la v456
+  (lisse, l'accent, sa pente de ,09), POSÉE À PLAT : le dessus de la vitre prend la pente du toit (ses côtés restent ceux d'avant). Le
+  grand toit patiné de la v456 s'en va ; le capot et le reste de la patine restent.
+- MESURÉ (banc muet, rendus isolés figés AVANT | APRÈS de l'arrière des 77 voitures) : 42 voitures en jeu voient leur pot changer ;
+  inchangés : sorties latérales (LE CAÏD, ATCHOUM), cheminées, collecteurs, réacteurs, LA SILENCIEUSE, LA MERCURE, LA FOURNAISE, LA
+  DÉFERLANTE (déjà à fleur) ; les 77 se montent sans erreur ; 0 programme compilé en course (couché, debout) ; course sans erreur.
+  Planche : `photos-gameplay/pots-encastres-toit-honte-avant-apres.jpg` (dossier CAR CAHS V3). Bancs (scratchpad) : `dbgNyIsole`,
+  `dbgNyArriere`, `dbgNyPots`, `dbgNyTole` dans une copie instrumentée.
+
 ## LA HONTE — LA ROUE CASSÉE REVIENT (2026-10-15, pôle CAISSES — Léo, après la v456 : « c'était mieux avant, t'as pris trop de liberté, t'aurais dû m'en parler ; j'aimais bien le design un peu unique de la roue cassée » ; choisi : SEULEMENT la roue cassée)
 - ⚠ ANNULÉ le même jour (v458) — Léo : « reviens avant, j'avais pas vu que tu l'avais déjà faite unique » : la v456 avait déjà une roue arrière gauche UNIQUE (au kit, rouillée et voilée). index.html = celui de la v456 (167de9de) ; ce qui suit n'est plus en jeu.
 - La roue arrière gauche (`wi===2` dans la branche `rouesEpave` de buildCar) redevient celle de la v455, code recopié tel quel : pneu
