@@ -35818,23 +35818,29 @@ function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
 }
 /* LES CARNETS ÉCRITS À LA MAIN. L'ordre enseigne le jeu : 1) les gestes de base (pièces, fruits, encaisser),
    2) le vol (figures, pose parfaite, vitesse), 3) la maîtrise (changer de niveau, franchir un gap, gros
-   magot), 4-5) l'endurance et le style. Les seuils sont calés sur le pilote automatique (`dbgAuto`). */
+   magot), 4-5) l'endurance et le style. Les seuils sont calés sur le pilote automatique (`dbgAuto`).
+   (2026-10-15, Sacha : « j'ai lancé 3 parties, je suis déjà à 96 000 $, c'est trop — il faut équilibrer ») LES PRIMES DE MISSION SUIVENT
+   LA PARTIE, PLUS L'INFLATION. Sa sauvegarde le disait : sur 96 036 $ en banque, ~77 000 venaient des primes (6 carnets finis), pas des
+   pièces. Elles montaient ×10 à ×50 (300 → 80 000 $ la mission) quand une partie, elle, ne rapporte que ~500 à 3 000 $ ; et depuis LA FILE
+   (même jour) les missions faciles des carnets suivants tombent sans attendre la difficile, donc ces primes arrivaient en rafale. Désormais
+   une mission vaut ~1/3 à 1 partie du joueur qui la remplit : 700 → 4 000 $, +15 à 25 % par carnet. Carnets 1-2 (300-600) INCHANGÉS : c'est
+   le salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie. Total des 6 premiers carnets : 76 800 → 14 400 $. */
 const CARNETS=[
   {r:{car:6},m:[{k:'coins',v:25,p:300},{k:'fruits',v:4,p:300},{k:'cash',v:1000,p:400}]},
   {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'nitro',v:10,p:600},{k:'kmh',v:672,p:600}]}, /* (2026-10-07, Sacha : « enlève les défis pose parfaite ») UNE POSE PARFAITE → 10 s de nitro (même prime) */ // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
-  {r:{car:8},m:[{k:'zones',v:1,p:1500},{k:GAP_ON?'gaps':'chain',v:GAP_ON?1:3,p:1500},{k:'cash',v:20000,p:2000}]}, // (2026-09-26) sans catapultes (GAP_ON), un gap est IMPOSSIBLE : le contrat bloquait toute la suite
-  {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:4000},{k:'tricks',v:8,p:4000},{k:'cash',v:100000,p:5000}]},
-  {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:8000},{k:'chain',v:4,p:8000},{k:'coins',v:80,p:8000}]}, /* (2026-10-04, Sacha : « enlève la mission 3 pose parfaite ») le DÉFI 3 de ce carnet était « 3 POSES PARFAITES » : 80 pièces en une partie à la place (même prime) */
+  {r:{car:8},m:[{k:'zones',v:1,p:700},{k:GAP_ON?'gaps':'chain',v:GAP_ON?1:3,p:700},{k:'cash',v:20000,p:800}]}, // (2026-09-26) sans catapultes (GAP_ON), un gap est IMPOSSIBLE : le contrat bloquait toute la suite
+  {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:800},{k:'tricks',v:8,p:800},{k:'cash',v:100000,p:1000}]},
+  {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:1000},{k:'chain',v:4,p:1000},{k:'coins',v:80,p:1000}]}, /* (2026-10-04, Sacha : « enlève la mission 3 pose parfaite ») le DÉFI 3 de ce carnet était « 3 POSES PARFAITES » : 80 pièces en une partie à la place (même prime) */
 /* ===== LES CARNETS DES 50 — DÉBUT ===== */
-  {r:{car:65},m:[{k:'tricks',v:10,p:10000},{k:'coins',v:120,p:10000},{k:'zones',v:2,p:12000}]},
-  {r:{car:63},m:[{k:'survie',v:180,p:15000},{k:'kmh',v:900,p:15000},{k:'chain',v:6,p:18000}]}, /* (2026-10-07) 5 POSES PARFAITES → tiens 3 min */
-  {r:{car:64},m:[{k:'zones',v:3,p:25000},{k:'fruits',v:12,p:25000},{k:'cash',v:500000,p:30000}]},
-  {r:{car:62},m:[{k:'tricks',v:20,p:40000},{k:'nitro',v:45,p:40000},{k:'zones',v:4,p:50000}]}, /* (2026-10-07) 10 POSES PARFAITES → 45 s de nitro */
+  {r:{car:65},m:[{k:'tricks',v:10,p:1200},{k:'coins',v:120,p:1200},{k:'zones',v:2,p:1400}]},
+  {r:{car:63},m:[{k:'survie',v:180,p:1500},{k:'kmh',v:900,p:1500},{k:'chain',v:6,p:1800}]}, /* (2026-10-07) 5 POSES PARFAITES → tiens 3 min */
+  {r:{car:64},m:[{k:'zones',v:3,p:1800},{k:'fruits',v:12,p:1800},{k:'cash',v:500000,p:2200}]},
+  {r:{car:62},m:[{k:'tricks',v:20,p:2200},{k:'nitro',v:45,p:2200},{k:'zones',v:4,p:2600}]}, /* (2026-10-07) 10 POSES PARFAITES → 45 s de nitro */
 /* ===== LES CARNETS DES 50 — FIN ===== */
 /* (2026-10-14) LES CARNETS POP : trois habillages MYTHIQUES qui ne s'achètent pas — ils se méritent (les primes : un cran au-dessus du carnet 9) */
-  {r:{cat:'aile',id:'phenix'},m:[{k:'survie',v:240,p:50000},{k:'chain',v:7,p:50000},{k:'coins',v:150,p:60000}]},
-  {r:{cat:'trainee',id:'foudre'},m:[{k:'zones',v:5,p:60000},{k:'tricks',v:25,p:60000},{k:'nitro',v:55,p:70000}]},
-  {r:{cat:'peinture',id:'guerrier'},m:[{k:'kmh',v:1100,p:70000},{k:'fruits',v:20,p:70000},{k:'cash',v:500000,p:80000}]},
+  {r:{cat:'aile',id:'phenix'},m:[{k:'survie',v:240,p:2600},{k:'chain',v:7,p:2600},{k:'coins',v:150,p:3000}]},
+  {r:{cat:'trainee',id:'foudre'},m:[{k:'zones',v:5,p:3000},{k:'tricks',v:25,p:3000},{k:'nitro',v:55,p:3500}]},
+  {r:{cat:'peinture',id:'guerrier'},m:[{k:'kmh',v:1100,p:3500},{k:'fruits',v:20,p:3500},{k:'cash',v:500000,p:4000}]},
 ];
 /* (vague 3, 2026-09-27) LES CONTRATS À LA NOUVELLE ÉCHELLE — convertis À LA LECTURE (les carnets 6-9 sont régénérés par
    gamme/integrer.js : on n'y touche pas à la main). Primes × ECO3.prime ; seuils « ENCAISSE X » ramenés sur ce que rapporte
@@ -35857,7 +35863,7 @@ function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, ti
      d'atteinte bloque toute la suite pour toujours. Chaque seuil plafonne sur ce qu'une TRÈS bonne partie fait (chaîne 8, parfaites 10,
      figures 30, 7 min, 60 s de nitro, 300 pièces, 60 fruits : 2,4 min de LIGNE PARFAITE à un fruit toutes les 2,4 s, ~5 min à moitié
      prise — sous le plafond de survie) ; passé le plafond, c'est la PRIME qui continue de monter (+25 %/carnet, sans plafond). */
-  const l=n-CARNETS.length+1,pr=ecoRond(40000*ECO3.prime*(1+.25*l)) /* (2026-10-14) 5000 → 40000 : la suite sans fin prend la relève des carnets POP au lieu de payer 10× moins */,M=Math.min,POOL=[ // (vague 3) +25 % de la prime de base par carnet (c'était ×1,5)
+  const l=n-CARNETS.length+1,pr=ecoRond(3200*ECO3.prime*(1+.25*l)) /* (2026-10-14) 5000 → 40000 : la suite sans fin prend la relève des carnets POP · (2026-10-15, équilibrage) 40000 → 3200 : les carnets POP paient désormais 2 600-4 000, la suite continue dans leur pas (4 000, 4 800, 5 600… et le jalon ×2) */,M=Math.min,POOL=[ // (vague 3) +25 % de la prime de base par carnet (c'était ×1,5)
     {k:'coins',v:M(300,60+20*l)},{k:'fruits',v:M(60,10+3*l)},{k:'cash',v:ecoRond(ecoCash(100000)*M(4,1+.3*l))},{k:'tricks',v:M(30,8+3*l)}, // (vague 3) seuil d'argent : une BONNE partie +30 % par carnet, plafond ×4 (c'était ×2,2 par carnet : 440 k dès le 1er, impossible)
     {k:'perfect',v:M(10,3+l)},{k:'kmh',v:M(1200,680+48*l)},{k:'zones',v:M(6,2+(l>>1))},{k:'gaps',v:M(6,1+l)},
     {k:'survie',v:M(420,150+30*l)},{k:'chain',v:M(8,4+l)},{k:'nitro',v:M(60,20+5*l)}].filter(function(x){return GAP_ON||x.k!=='gaps';}); // jamais de mission impossible
@@ -42407,7 +42413,7 @@ const SND={sfx:true,voice:true,music:true,vib:true};
    Interrupteurs : ?jour=0 (ni ×2, ni série, ni prime : le jeu d'avant au dollar près) · ?cadeau=0. Sauvegarde : SAVE.d.jour={d,n} (dernier jour compté, série à cette date) · SAVE.d.cad={t} (dernier cadeau ouvert, en ms). Crochets : dbgJour(), dbgCadeau().
    Contrat avec l'accueil (INTERFACE), aussi sur window : cadeauEtat() → {pret, dansMs, jour} (PUR, appelable chaque seconde ; + actif · serie · valeur) · cadeauOuvre() → false si rien n'est prêt, sinon verse et rend une promesse du montant (événement document 'cc:cadeau', .valeur = le montant) · jourTexte() → la phrase du quotidien. C'est elle qui dessine la ligne : ce bloc ne pose AUCUN élément d'accueil. */
 const JOUR={on:!/[?&]jour=0\b/.test(location.search),x2:2,prime:[0,25,40,55,70,85,100],tMin:15,max:9999,k:1,e:1,cmp:false,dep:'',fin:null,dec:0}; // x2 · prime[] : par jour de série (sa longueur = le plafond) · tMin : secondes de course pour qu'une partie COMPTE · max : borne de la série · k : le multiplicateur de la partie en cours (e : celui d'ECOD seul) · cmp/dep : la partie compte, sa date de DÉPART · fin : ce que la dernière fin de partie a versé · dec : décalage des bancs, en jours
-const CADO={on:!/[?&]cadeau=0\b/.test(location.search),periode:216e5,min:25,pc:.08,force:false}; // periode : 6 h en ms · min : le plancher en $ · pc : la part du meilleur gain d'une partie · force : le banc (dbgCadeau) passe outre l'auto-école
+const CADO={on:!/[?&]cadeau=0\b/.test(location.search),periode:216e5,min:25,pc:.08,max:2500,force:false}; // periode : 6 h en ms · min : le plancher en $ · pc : la part du meilleur gain d'une partie · force : le banc (dbgCadeau) passe outre l'auto-école
 function jourAuj(){ // la date LOCALE de l'appareil, 'AAAA-MM-JJ' ; '' si l'horloge est illisible ou absurde (le jour est alors ignoré, rien ne plante)
   const t=new Date();if(JOUR.dec)t.setDate(t.getDate()+JOUR.dec);
   const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
@@ -42469,7 +42475,7 @@ function jourTexte(){ // la phrase du quotidien, déjà traduite ('' = rien à d
 }
 function cadeauValeur(){ // ce que le prochain cadeau donnera : la plus grande de deux choses, un plancher et une part de TON meilleur gain — il grandit avec le joueur, jamais plus qu'un dixième d'une bonne partie
   let b=0;try{b=SAVE.d.best||0;}catch(x){}
-  return Math.max(CADO.min,ecoRond(CADO.pc*b));
+  return Math.min(CADO.max,Math.max(CADO.min,ecoRond(CADO.pc*b))); /* (2026-10-15, équilibrage) max : 2 500 $ (une très bonne partie à ~30 k donne déjà ~2 400) — un record de l'ANCIENNE échelle (8,6e16 dans la sauvegarde de Sacha) offrait 7e15 $ toutes les 6 h */
 }
 function cadeauHorlogeOk(nw){return nw>=1.6e12&&nw<4.2e12;} // 2020 → 2100 : une horloge absurde (NaN, 1970) ne donne ni ne bloque rien
 function cadeauRecale(){ // la SEULE écriture de l'horloge du cadeau (cadeauEtat, lui, ne touche à rien) : un dernier cadeau « dans le futur » (montre reculée) repart de MAINTENANT ; appelée une fois par partie (jourMaj) — et san() fait pareil au chargement
@@ -47906,9 +47912,9 @@ function fantomePose(dt){ // la caisse-nuage dans le monde : au sol sur sa ligne
   }
   const rv=GH.v*SPD*dt/.36;for(const w of GH.roues)w.rotation.x+=rv;
   g.visible=Math.abs(GH.s-s)<1100||GH.air;
-  // SON RUBAN : un fil d'or rose depuis la poupe (on la suit à la trace, même quand elle est loin)
-  CV1.set(0,.75,-2.1).applyQuaternion(g.quaternion).add(g.position);
-  trailStep(GH.tr,CV1.x,CV1.y,CV1.z,1.25,1.02,.86,GH.fini?0:.85,3.2);
+  /* (2026-10-15, Sacha : « son sillage, je sais pas ce que c'est, supprime-le, c'est nul ») plus de ruban d'or rose derrière la
+     caisse-nuage — il reste éteint (trailStep à 0 le cache) */
+  trailStep(GH.tr,0,0,0,0,0,0,0);
 }
 function fantomeTick(dt){
   if(!GH.on||GH.pris||GH.fini){if(GH.on&&GH.fini)GH.g.visible=false;return;}
@@ -47943,9 +47949,7 @@ function fantomeTick(dt){
   const d=CV1.distanceTo(carGroup.position),sP=mode==='fall'?lastNearS:s;
   const derriere=GH.air||mode==='fall'?true:(sP<=GH.s+2);
   if(d<46&&derriere&&mode==='drive'&&!GH.air){ // L'ASPIRATION : dans son sillage, l'air te tire (et la ouate file autour de toi)
-    const k=1-d/46;vA+=9*k*dt;
-    if(Math.random()<dt*26*k){CV2.set((Math.random()-.5)*6,.8+Math.random()*2.2,2+Math.random()*6).applyQuaternion(carGroup.quaternion).add(carGroup.position);
-      spawnP(cloudBits,CV2.x,CV2.y,CV2.z,CAMP.vel.x*.7,CAMP.vel.y*.7+.5,CAMP.vel.z*.7,.45);}}
+    const k=1-d/46;vA+=9*k*dt;} // (2026-10-15, Sacha) plus de ouate qui file autour de toi dans son sillage : l'aspiration tire toujours, sans rien montrer
   if(d<18){
     if(!GH.accr){GH.accr=true;popTexte('ACCROCHE !','#ffe7a8',2);hap(12);if(SONV2)sfx('fantome.accroche');}
     GH.prise+=dt;GH.noteT-=dt;
@@ -48204,7 +48208,7 @@ function campTick(dt){
   // les halos de l'écran
   let r=0,b=0;
   if(SURV.chasse&&CAMP.proche<150){const k=(1-CAMP.proche/150)*.85,ph=SURV.ph<.5;r=ph?k:k*.2;b=ph?k*.2:k;}
-  campFx(r,b,CAMP.feuT*(.55+.25*Math.sin(performance.now()*.03)),GH.on&&!GH.pris?Math.min(1,GH.prise)*.9:0);
+  campFx(r,b,CAMP.feuT*(.55+.25*Math.sin(performance.now()*.03)),0); // (2026-10-15, Sacha) le halo d'or du sillage de la caisse-nuage est retiré
 }
 for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'LOW GRAVITY: JUMPS LAST TWICE AS LONG','LA ROUTE EST A TOI':'THE ROAD IS YOURS','TRAVERSE LE NUAGE':'PIERCE THE CLOUD','PASSE LES PORTES':'THREAD THE GATES',
   'SEME LA POLICE':'LOSE THE COPS','ET SI TU COUPAIS ?':'WHAT IF YOU CUT ACROSS?','DANSE AVEC LE RELIEF':'DANCE WITH THE HILLS','LE CIEL MENT':'THE SKY IS LYING',
@@ -49338,7 +49342,7 @@ function evtTick(dt){ // la boucle, juste après campTick — rien quand ?evt=0
   if(EVT.nom==='moutons'){campMoutonsTick(dt,EVT.mt,EVT,true);if(!EVT.fini){let n9=0;for(const m of EVT.mt)if(m.fait)n9++;if(n9===EVT.mt.length)evtMoutonsFin();}}
   else if(EVT.nom==='caisse'){
     if(CAMP.pvOk&&dt>0){CAMP.vel.subVectors(carGroup.position,CAMP.pv).divideScalar(dt);if(CAMP.vel.lengthSq()>2.5e5)CAMP.vel.set(0,0,0);}CAMP.pv.copy(carGroup.position);CAMP.pvOk=true; // la ouate du sillage suit la caisse (fumeTick le fait en campagne)
-    fantomeTick(dt);campFx(0,0,0,GH.on&&!GH.pris&&!GH.fini?Math.min(1,GH.prise)*.9:0);}
+    fantomeTick(dt);} // (2026-10-15, Sacha) plus de halo d'or au bord de l'écran
 }
 function evtDemarre(){ // l'événement SURGIT
   EVT.etat=2;EVT.fait=true;EVT.fini=false;EVT.res='';EVT.t0=EVT.tRun;
