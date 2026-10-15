@@ -40,7 +40,12 @@
   S'ALLUME (`fhArme`, `.arme`). Anglais : COMBO, RECORD, DOUBLE / TRIPLE / QUAD.
 - MESURÉ — banc du corps (`banc-corps.cjs`, au dosage du jeu) : tonneau sur 1,3 s de vol 18 → 3 rad/s, planté à 0,65 s ; salto 0,75 s ;
   hélico 720 1,08 s ; rodéo avant / arrière 0,9 s (0° à la fin) ; tonneau + salto, tonneau + toupie, salto du saut + tonneau, salto du saut
-  + rodéo arrière : tous rangés à l'endroit entre 1,4 et 1,6 s, la fin en décélération continue ; vol de 0,9 s : planté à 0,57 s. RESULTATS
+  + rodéo arrière : tous rangés à l'endroit entre 1,4 et 1,6 s, la fin en décélération continue ; vol de 0,9 s : planté à 0,57 s. Banc du
+  JEU (cc-banc, 390 × 844, muet ; films `film-fig.cjs` / `hud-film.cjs`) : re-taper EN AVANT sur le salto du saut nitro = « DOUBLE SALTO
+  AVANT », planté à 0,6 s (+203) — 1er jet : refusé 10 fois sur 10 (le tour empilé réservait le temps des autres figures : il se dose
+  désormais sur ce qui reste à CETTE figure, `D2`) ; saut de 0,96 s : tonneau planté, le salto en plus refusé (plus le temps — normal) ;
+  rodéo arrière en long vol : il mène, retour continu, à l'endroit à 1,6 s ; HUD : « ◄ TONNEAU », puis « SALTO AVANT » en or + COMBO ×1,5 +
+  RECORD, éteint sur place sans chevaucher « NOUVEAU SOMMET » ; 0 chute, 0 erreur.
 - Hooks : `dbgFigDir(x,y)` (le geste, la figure, son sens), `dbgFig('phy')` (les réglages, à chaud : `eps`, `finE`, `aUp`, `aDn`, `aFin`,
   `stickAng`), `?elan=0`.
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
