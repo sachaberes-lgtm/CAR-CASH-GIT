@@ -15,7 +15,11 @@
 (function(){
   'use strict';
   var BASE=[
-    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:0,     D:.6,  aura:50,  dir:['cote'], m:[{a:[0,0,1],t:1}]},
+    /* (2026-10-15, pôle TECHNIQUE — Léo par le MANAGER : « la première figure : un TAIL WHIP » ; en GLISSER, ← → en l'air) LE TAIL WHIP : l'ARRIÈRE
+       fait le tour autour de l'axe vertical, le NEZ reste en place (`piv` : le point fixe, en part de la demi-longueur vers le nez — le jeu y
+       fixe la rotation) ; une seule explosion, sur le flanc de la POUPE (la queue fouette). Offert d'office ; le TONNEAU s'achète (1 500). */
+    {id:'tailwhip',   n:'TAIL WHIP',      en:'TAIL WHIP',     c:'WHIP',    ce:'WHIP',    p:0,     D:.62, aura:50,  dir:['cote'], m:[{a:[0,1,0],t:1}],piv:.92},
+    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:1500,  D:.6,  aura:50,  dir:['cote'], m:[{a:[0,0,1],t:1}]},
     {id:'toupie',     n:'TOUPIE 360',     en:'FLAT 360',      c:'TOUPIE',  ce:'SPIN',    p:2500,  D:.6,  aura:60,  dir:['cote'], m:[{a:[0,1,0],t:1}]},
     {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:2000,  D:.6,  aura:40,  dir:['cote'], m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
     {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:3500,  D:.8,  aura:45,  dir:['arriere'], m:[{a:[1,0,0],b:-.17,k:1}]},
@@ -76,7 +80,7 @@
     return o;}
   // tirer une figure au hasard parmi celles qu'on POSSÈDE — jamais deux fois la même d'affilée si on en a plusieurs
   function tire(possedees,derniere,alea){alea=alea||Math.random;var L=(possedees||[]).filter(function(id){return !!PAR[id];});
-    if(!L.length)L=['tonneau'];if(L.length>1&&derniere)L=L.filter(function(id){return id!==derniere;});return PAR[L[Math.floor(alea()*L.length)]]||PAR.tonneau;}
+    if(!L.length)L=['tailwhip'];if(L.length>1&&derniere)L=L.filter(function(id){return id!==derniere;});return PAR[L[Math.floor(alea()*L.length)]]||PAR.tailwhip;}
   /* LE LECTEUR : les figures en cours (`actifs`) et celles qui attendent (`file`). La suivante part quand la dernière lancée passe CHEV (70 %) :
      les deux rotations se composent — l'une ralentit pendant que l'autre prend son élan, la caisse ne s'arrête jamais entre deux figures. */
   var CHEV=.7;
@@ -176,7 +180,7 @@
         var amp=m.b*6.2832*(m.k>1?sens:1),wo=m.k>1?6.2832*m.k/D:1.7*Math.PI/D,zo=m.k>1?.06:.5,rz=Math.sqrt(1-zo*zo),
           v0=amp*wo/Math.exp(-zo/rz*Math.atan2(rz,zo)); // la vitesse qui porte le ressort amorti JUSTE à l'amplitude voulue (le 1er sommet)
         r.osc={w:wo,z:zo};for(var j2=0;j2<3;j2++){r.imp[j2]+=a[j2]*v0;tq[j2]+=a[j2]*v0;}}}
-    var mag=Math.hypot(tq[0],tq[1],tq[2]);if(mag>1e-6)r.boums=boums([tq[0]/mag,tq[1]/mag,tq[2]/mag],Math.min(1.6,mag/11));
+    var mag=Math.hypot(tq[0],tq[1],tq[2]);if(mag>1e-6)r.boums=f.piv?[{p:[0,-.2,-.9],f:[tq[1]>0?-1:1,0,0],k:Math.min(1.6,mag/11)*1.15}]:boums([tq[0]/mag,tq[1]/mag,tq[2]/mag],Math.min(1.6,mag/11)); // (TAIL WHIP) la poupe seule est fouettée
     for(var b=0;b<r.boums.length;b++)this.evts.push(r.boums[b]);
     this.figs.push(r);this.n++;this.der=f.id;return r;};
   Corps.prototype.tiens=function(r,on){if(r)r.tient=!!on&&!r.paye;};
@@ -186,7 +190,7 @@
   Corps.prototype.empile=function(r,D){if(!r||r.paye||!r.mv.length)return null;D=Math.max(.3,D||r.f.D);
     var m=r.mv[0],sp=PHY.elan?6.2832*(r.c||PHY.cAir)*PHY.cov:6.2832/D*PHY.kImp;m.tours+=1;r.D+=D;r.fini=false;r.force=false;r.rate=false;
     r.imp[0]=m.a[0]*m.d*sp;r.imp[1]=m.a[1]*m.d*sp;r.imp[2]=m.a[2]*m.d*sp;r.impT=PHY.tImp;
-    var b=boums([r.imp[0]/sp,r.imp[1]/sp,r.imp[2]/sp],Math.min(1.6,sp/11));for(var i=0;i<b.length;i++)this.evts.push(b[i]);
+    var b=r.f.piv?[{p:[0,-.2,-.9],f:[r.imp[1]>0?-1:1,0,0],k:Math.min(1.6,sp/11)*1.15}]:boums([r.imp[0]/sp,r.imp[1]/sp,r.imp[2]/sp],Math.min(1.6,sp/11));for(var i=0;i<b.length;i++)this.evts.push(b[i]); // (TAIL WHIP) un tour de plus : la poupe refouette
     this.n++;return r;};
   /* LE REDRESSEMENT (2026-10-14, Sacha : « quand on a fait une figure stylée et qu'on veut se restabiliser face à la route : 1 seul tap permet de
      redresser la voiture ») : tout ce qui tourne passe à la PRISE, tout de suite, avec un freinage deux fois plus fort (`urgent`) — la caisse

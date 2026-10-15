@@ -19,6 +19,24 @@
   de l'ANCIENNE échelle (8,6e16 chez Sacha) : son prochain cadeau lui aurait versé ~7e15 $.
 - Ce qui est déjà en banque reste en banque (rien n'est repris à une sauvegarde).
 
+## LE TAIL WHIP (2026-10-15 soir, Léo par le MANAGER : « la première figure : un TAIL WHIP » · « push-les, ils sont bien » ; choix coché : en GLISSER, ← → = tail whip) — pôle TECHNIQUE
+- LA FIGURE (`figures.js` ?v=8, `FIG.par.tailwhip`, 1re de `BASE`) : un tour à plat (axe vertical, `D` ,62, aura 50), mais le NEZ reste en
+  place et c'est la POUPE qui fait le tour — `piv` ,92 = le point fixe, en part de la demi-longueur, vers le nez. `figPose` le lit (`FX2.pivK`,
+  lissé ×14/s) et fait tourner la caisse autour de ce point (le milieu se décale, `FX2.pivD`). Une seule explosion, sur le flanc de la poupe
+  (la queue fouette ; `Corps.lance` et `Corps.empile`). Son matériau sonore = celui de la toupie (`FIG_SIGNE.tailwhip` 1).
+- EN GLISSER, EN L'AIR : ← → = le TAIL WHIP de ce côté (`figGFig`, il remplace le 360) ; glissé à GAUCHE → la POUPE part à gauche (sens −1,
+  `figGOpts`), à droite → à droite. La flèche dit « TAIL WHIP ». AU SOL rien ne change (← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE), ↑ ↓ en l'air
+  non plus (saltos). L'astuce du 1er vol dit « ◄► un tail whip ».
+- OFFERT ET ÉQUIPÉ : `figPossede('tailwhip')` toujours vrai ; une sauvegarde neuve = `figs:['tailwhip']` ; l'emplacement CÔTÉ vide prend le
+  tail whip (`figSlots`). Le TONNEAU passe en BOUTIQUE à 1 500 pièces. LES SAUVEGARDES D'AVANT LE GARDENT : il est déjà dans leur liste `figs`
+  (il y était offert d'office), et une sauvegarde d'avant les figures qui a déjà joué (sans liste) le reçoit ; `SAVE.d.figT0` = 1 marque ce
+  tonneau OFFERT, pour que `ecoDebutAchat` ne le compte pas comme un achat. En 2 TAPS, rien ne change pour elles (le côté garde le tonneau) ;
+  un débutant en 2 TAPS a le tail whip sur le côté, la poupe du côté du pouce (`figLance`, `f.piv`).
+- Banc (Chrome muet, vrais glissés sur NITRO, debout 390 × 844 et couché 844 × 390, sauvegarde neuve et sauvegarde d'avant ; `dbgGlisse('save')`,
+  `dbgGlisse('nez')`) : spam NITRO ×10 = 0 figure ; ← au sol = SLIDE 360 (reste au sol) ; en vol ← → = TAIL WHIP, la poupe part du côté
+  du glissé, le NEZ bouge de 0,5-1,2 m (la trajectoire elle-même) quand la POUPE balaie 5,3-6,6 m — aux saltos, nez et poupe bougent pareil
+  (3,6 m) ; ↑ ↓ = saltos ; 2 TAPS côté = tail whip (neuve) / tonneau (d'avant) ; 0 exception.
+
 ## LA MUSIQUE DES COURSES MUETTE CHEZ SACHA — JOUER.bat ET LES .js EN text/plain (2026-10-15 soir, pôle SON ; Léo : « apparemment la musique bug, Sacha entendait mais n'entend plus la musique »)
 - La cause, reproduite au banc : JOUER.bat sert le jeu par `python -m http.server` ; sous Windows, Python lit le type des fichiers dans le registre, qui dit
   souvent `.js` = `text/plain`. Les `<script src>` passent quand même, mais `import()` (les modules du générateur de Pouce bleu, `direct/musique-trente-*.js`,
