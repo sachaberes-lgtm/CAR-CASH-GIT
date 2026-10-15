@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA ROUTE 66 — LE CANYON COMMENCE PAR UNE LONGUE LIGNE DROITE, UNE VIEILLE STATION-SERVICE ET SON PANNEAU (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite et une vieille station service et un panneau route 66 »)
+- LA LIGNE DROITE (`genCanyon`) : la vallée des Mitaines n'est plus une longue courbe (`large(340 m)`) mais une DROITE de 820 m × LL à peine
+  en pente (−2,5 %). Les deux tirages `r()` de l'ancienne courbe sont faits quand même : la suite du canyon garde ses tirages. Les buttes
+  des Mitaines (`cyMitaines`, au milieu de [départ, brèche]) encadrent maintenant la droite : Monument Valley de part et d'autre.
+- LE DÉCOR (`cyRoute66`, appelée par `cyMonuments`) — des pavés à couleurs de sommets, cuits en UNE géométrie aux coordonnées du monde, dessinée
+  par la matière des arbres du canyon (`cyMonuMats().t` : la lumière, l'ombre des parois, le brouillard), en InstancedMesh d'UNE instance :
+  c'est la variante que `canyonChauffe` compile au menu (un Mesh simple compilait un programme neuf en course — piège n° 7) :
+  · le PANNEAU ROUTE 66 à 150 m, à gauche, à 5 m du bord : le bouclier blanc bordé de noir (6,3 × 7,1 m, une grille de 15 × 17 pavés),
+    « ROUTE » et un grand « 66 » en pixels (`CY_FONTE` : 3 × 5 et 5 × 7), tourné vers la caisse qui arrive ; ses poteaux descendent au sol ;
+  · la VIEILLE STATION-SERVICE à 430 m, à droite (×1,6 : la route fait 56 m de large) : le bâtiment crème au bandeau rouge passé, sa porte,
+    sa vitrine, la porte du garage à lattes, la cheminée, l'auvent sur deux piliers, l'îlot et ses deux pompes rétro (rouge, turquoise, globes
+    blancs, tuyaux), des fûts rouillés, le dallage fissuré, le mât « GAS » de 12 m visible de loin ;
+  · ⚠ LA MESA : la route du canyon flotte AU MOINS 16-18 m au-dessus du plateau (sa règle d'or) — posée au sol, la station était cachée sous
+    le bord de la dalle (MESURÉ en photo). Elle trône sur un piton de grès de 26 m de rayon aux strates du canyon (8 couleurs), sa corniche au
+    ras du bitume, à 4 m du bord (elle ne touche pas la route). En vol, la mesa TUE comme les autres monuments (`CY.r66m` dans `cyMonuHeurt`).
+- Vérifié : `dbgCanyon('test')` → dessus 0, dessous 0, marge 16,8-18,7 m ; photos `dbgCanyon('vueA',s,h,cap)` au midi et au soir (le mât GAS
+  en silhouette sur le couchant) ; 10 162 sommets ; aucune erreur. Console : `dbgCanyon()` rend `r66` (le nombre de sommets).
+
 ## L'ACCUEIL : ACHAT, LA VITRINE SANS SA PHRASE, LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, l'offre doit maintenant s'appeler achat ; enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien » · « une sorte d'icône avec un doigt qui clignote sur la voiture la première fois, pour lui montrer qu'on peut cliquer sur la voiture ; rends-le un peu stylisé, accueillant pour la première connexion »)
 - LE BOUTON : la tuile cadeau de l'accueil (`.mOffres`, bâtie par le bloc « accueil du ciel ») dit ACHAT (anglais : BUY, l'entrée `ACHAT`
   existante d'I18N) ; même mot dans `accC6` (charte 6). L'écran où elle mène (`#mShop`) garde son titre OFFRES (le nom donné par Léo le

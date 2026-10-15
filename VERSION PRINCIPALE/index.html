@@ -17021,7 +17021,7 @@ function genCanyon(rnd){
       BO.push([k0,C.length-1]);};
     let sg0=r()<.5?1:-1;const sens=()=>(sg0=-sg0);                            // les boucles alternent de côté : la piste ne dérive pas
     push();ici('depart');
-    large(340*LL,-.05,(480+r()*200)*RS);ici('breche0');                    // LA VALLÉE DES MITAINES, sur le plateau : presque à plat, en longue courbe
+    r();r();droite(820*LL,-.025,Math.max(2,Math.round(820*LL/90)));ici('breche0'); /* (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite, une vieille station-service et un panneau ROUTE 66 ») LA ROUTE 66 : la vallée des Mitaines en LONGUE LIGNE DROITE (820 m, à peine en pente) — les deux tirages de l'ancienne courbe sont gardés : la suite du canyon ne bouge pas. Avant : large(340*LL,-.05,(480+r()*200)*RS) */
     {const a=(r()<.5?-1:1)*(5+r()*6);arc(a,700*RS,-.2);}
     large(330*LL,-.62);ici('breche1');droite(90*LL,-.25,2);                 // LA BRÈCHE : le grand plongeon dans la gorge — en virage
     virages(380*LL,.30,.55);
@@ -17696,6 +17696,74 @@ function cyMineHeurt(p,M){const S=CY.S;if(!M)return false;let bi=-1,bd=1e18;
     const e=bi<M.i0?M.i0:M.i1,al=(p.x-S.x[e])*S.tx[e]+(p.z-S.z[e])*S.tz[e];if(Math.abs(al)<3&&(a>M.L0-1||p.y>S.y[e]+CY_MINE.MH-1))return true;return false;}
   if(a<M.L0&&p.y>yr+CY_MINE.MH-1.5)return true;                               // le plafond
   return a>M.L0-1.2&&a<M.L0+20&&p.y<yr+CY_MINE.MH+2&&p.y>yr-THICK-3;}       // les murs
+/* LA ROUTE 66 (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite, une vieille station-service
+   et un panneau ROUTE 66 ») — au départ, sur le plateau de la vallée des Mitaines (genCanyon : la droite de 820 m), deux décors posés au
+   sol, à côté de la route (jamais dessus : ils restent à ROAD_HALF + 6 m au moins) :
+   · le PANNEAU ROUTE 66 à 150 m, à gauche : le bouclier blanc bordé de noir sur ses deux poteaux, « ROUTE » et un grand « 66 » en pixels
+     (une police 3 × 5 et 5 × 7 en petits pavés), tourné vers la caisse qui arrive ;
+   · la VIEILLE STATION-SERVICE à 430 m, à droite : le bâtiment crème au bandeau rouge passé, sa porte, sa vitrine, la porte du garage, l'auvent
+     sur deux piliers, l'îlot et ses deux pompes rétro (rouge et turquoise, globes blancs), des fûts rouillés, le dallage fissuré, et le
+     grand mât « GAS » visible de loin.
+   Tout est en pavés à couleurs de sommets, cuits en UNE géométrie aux coordonnées du monde, dessinée par la matière des arbres du canyon
+   (`cyMonuMats().t` : la lumière, l'ombre portée des parois et le brouillard du canyon — aucun programme neuf). Console : dbgCanyon('r66'). */
+const CY_FONTE={R:['XX.','X.X','XX.','X.X','X.X'],O:['.X.','X.X','X.X','X.X','.X.'],U:['X.X','X.X','X.X','X.X','XXX'],T:['XXX','.X.','.X.','.X.','.X.'],
+  E:['XXX','X..','XX.','X..','XXX'],G:['.XX','X..','X.X','X.X','.XX'],A:['.X.','X.X','XXX','X.X','X.X'],S:['.XX','X..','.X.','..X','XX.'],
+  6:['.XXX.','X....','X....','XXXX.','X...X','X...X','.XXX.']};
+function cyRoute66(){
+  const S=CY.S;if(!S||S.n<80)return null;
+  const P=[],C=[],I=[],O=new THREE.Vector3(),Ax=new THREE.Vector3(),Az=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0),g0=new THREE.BoxGeometry(1,1,1);
+  let sd=1,ks=1;const rep=(s9,lat,cote)=>{const i=Math.min(S.n-2,Math.max(1,Math.round(s9/S.ds))),tx=S.tx[i],tz=S.tz[i];sd=cote; // le repère : x vers le dehors de la route, z le long de la route, y en haut
+    Ax.set(-tz*cote,0,tx*cote);Az.set(tx,0,tz);O.set(S.x[i],0,S.z[i]).addScaledVector(Ax,lat);return {i:i,yr:S.y[i]};};
+  const pave=(x,y,z,sx,sy,sz,col,rx,G)=>{const g1=G||g0,b=P.length/3,p=g1.attributes.position,n=g1.index,ca=Math.cos(rx||0),sa=Math.sin(rx||0);
+    for(let k=0;k<p.count;k++){let lx=p.getX(k)*sx,ly=p.getY(k)*sy,lz=p.getZ(k)*sz;if(rx){const t=lx*ca-lz*sa;lz=lx*sa+lz*ca;lx=t;}
+      const wx=(x+lx)*ks,wy=(y+ly)*ks,wz=(z+lz)*ks, /* ks : l'échelle du décor en cours (la station ×1,6 : la route fait 56 m de large) */v=.9+.18*Math.abs(Math.sin((b+k)*12.9898)); // un grain de vieillesse, sommet par sommet
+      P.push(O.x+Ax.x*wx+Az.x*wz,O.y+wy,O.z+Ax.z*wx+Az.z*wz);C.push(col[0]*v,col[1]*v,col[2]*v);}
+    if(n)for(let k=0;k<n.count;k++)I.push(b+n.getX(k));else for(let k=0;k<p.count;k++)I.push(b+k);};
+  const solMin=(pts)=>{let m=1e9;for(const q of pts){const x=O.x+Ax.x*q[0]+Az.x*q[1],z=O.z+Ax.z*q[0]+Az.z*q[1];m=Math.min(m,cyHauteur(x,z));}return m;};
+  const texte=(mot,x0,y0,z,cel,col,ep)=>{let x=x0;for(const ch of mot){const G=CY_FONTE[ch];if(!G){x+=cel*2;continue;}const w=G[0].length; // les pavés d'un mot, lus de GAUCHE à DROITE pour qui regarde vers +z
+      for(let r=0;r<G.length;r++)for(let c=0;c<w;c++)if(G[r][c]==='X')pave(sd*(x+(c+.5)*cel),y0-(r+.5)*cel,z,cel*1.02,cel*1.02,ep,col);x+=(w+1)*cel;}};
+  const larg=mot=>{let n=0;for(const ch of mot){const G=CY_FONTE[ch];n+=(G?G[0].length:1)+1;}return n-1;};
+  const NOIR=[.08,.08,.09],BLANC=[.93,.92,.88],CREME=[.88,.80,.64],ROUGE=[.70,.20,.15],GRIS=[.55,.53,.50],BETON=[.62,.59,.53],ROUILLE=[.52,.26,.13],TURQ=[.22,.62,.60],VITRE=[.20,.32,.38],BOIS=[.42,.30,.20];
+  // ---- LE PANNEAU ROUTE 66 (à gauche, à 150 m) ----
+  {const R9=rep(150,ROAD_HALF+5,-1),sol=solMin([[0,-1],[0,1],[1,0],[-1,0]]),cel=.42,haut=R9.yr+2.2+17*cel*.5; O.y=0;
+   const bas=haut-17*cel*.5;for(const px of [-1.5,1.5])pave(px,(sol+bas)/2,0,.3,Math.max(.5,bas-sol+.3),.3,GRIS);
+   const M=['..KKKKKKKKKKK..','.KWWWWWWWWWWWK.','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KKKKKKKKKKKKKKK',
+     'KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','.KWWWWWWWWWWWK.','..KWWWWWWWWWK..','...KKWWWWWKK...','.....KKKKK.....'];
+   const y0=haut+17*cel*.5;for(let r=0;r<M.length;r++)for(let c=0;c<15;c++){const k=M[r][c];if(k==='.')continue;pave((c-7)*cel,y0-(r+.5)*cel,0,cel,cel,.18,k==='K'?NOIR:BLANC);}
+   const zf=-.13,ct=cel*.47;texte('ROUTE',-larg('ROUTE')*ct/2,y0-1.4*cel,zf,ct,NOIR,.06); // la face tournée vers la caisse qui arrive (−z)
+   const c6=cel*1.07;texte('66',-larg('66')*c6/2,y0-7.6*cel,zf,c6,NOIR,.06);}
+  // ---- LA VIEILLE STATION-SERVICE (à droite, à 430 m) ----
+  {const KS=1.6,R9=rep(430,ROAD_HALF+25,1),RM=26,cx=4*KS,sol=solMin([[cx,0],[cx+RM,0],[cx-RM,0],[cx,RM],[cx,-RM]]),top=R9.yr-.3;
+   /* LA MESA : la route flotte au moins 18 m au-dessus du plateau (la règle d'or du canyon) — posée au sol, la station était cachée sous le
+      bord. Elle trône sur un petit piton de grès aux strates du canyon, son sommet au ras du bitume, à 4 m du bord (elle ne le touche pas). */
+   const STR=[[.96,.89,.78],[.96,.81,.49],[.95,.67,.55],[.89,.50,.34],[.67,.29,.20],[.96,.81,.49],[.69,.61,.72],[.95,.67,.55]];
+   O.y=0;{let y=sol-4,k=0;while(y<top-1.2){const h=Math.min(top-1.2-y,5+((k*37)%5)),r0=RM*(1+.05*Math.sin(k*2.1))+(top-y)*.035,r1=RM*(1+.05*Math.sin(k*2.1+1.3))+(top-y-h)*.035;
+       const cy9=new THREE.CylinderGeometry(r1,r0,h,9,1,false,k*.4);pave(cx,y+h/2,0,1,1,1,STR[k%STR.length],0,cy9);cy9.dispose();y+=h;k++;}
+     const cap=new THREE.CylinderGeometry(RM+.9,RM+.4,1.4,9,1,false,.2);pave(cx,top-.6,0,1,1,1,[.58,.30,.20],0,cap);cap.dispose();} // la corniche : la dalle de grès brun
+   CY.r66m={x:O.x+Ax.x*cx,z:O.z+Ax.z*cx,r:RM+.9,y0:sol-4,y1:top};
+   O.y=top;ks=KS; /* la station, à l'échelle 1,6 */
+   pave(4,-1.2,0,25,2.6,21,BETON);                                                     // le dallage (il descend dans le sol : jamais en l'air)
+   for(let k=0;k<5;k++)pave(-6+k*4.8,.11,-5+((k*7)%10),.12,.02,3.2,[.36,.33,.30],.6); // ses fissures
+   // le bâtiment
+   pave(10,2.2,1,9,4.4,12,CREME);pave(10,3.75,1,9.12,.65,12.12,ROUGE);pave(10,4.55,1,9.8,.35,12.8,[.48,.43,.38]);
+   pave(5.47,1.2,-1.6,.08,2.4,1.5,BOIS);pave(5.47,2.1,2.6,.08,1.5,3.4,VITRE);pave(5.46,2.1,2.6,.1,1.66,.12,CREME);
+   pave(5.47,1.55,-5,.08,3.1,3.3,[.66,.64,.58]);for(let k=0;k<5;k++)pave(5.43,.4+k*.62,-5,.04,.06,3.3,[.48,.46,.42]); // la porte du garage et ses lattes
+   pave(10,5.5,4.5,.5,1.8,.5,[.55,.42,.36]);                                           // la cheminée
+   // l'auvent et l'îlot des pompes
+   pave(-1,4.65,1,8.6,.5,10.5,BLANC);pave(-1,4.95,1,8.7,.12,10.6,ROUGE);for(const pz of [-3.4,5.4])pave(-1,2.2,pz,.38,4.4,.38,BLANC);
+   pave(-1,.13,1,1.6,.26,8.2,BETON);
+   const pompe=(pz,col)=>{pave(-1,1.15,pz,.85,1.9,.62,col);pave(-1.44,1.35,pz,.03,.55,.4,[.92,.88,.74]);pave(-1,2.15,pz,.6,.12,.5,[.2,.2,.2]);
+     const b=P.length/3,gi=new THREE.IcosahedronGeometry(.36,1),p=gi.attributes.position;for(let k=0;k<p.count;k++){const x=(-1+p.getX(k))*ks,y=(2.55+p.getY(k))*ks,z=(pz+p.getZ(k))*ks;P.push(O.x+Ax.x*x+Az.x*z,O.y+y,O.z+Ax.z*x+Az.z*z);C.push(.97,.96,.9);}for(let k=0;k<p.count;k++)I.push(b+k);gi.dispose();
+     pave(-1.3,.9,pz+.42,.06,.06,.5,NOIR);};                                         // le tuyau
+   pompe(-1.2,ROUGE);pompe(3.4,TURQ);
+   for(const f of [[15.6,-4.2],[15.4,-3.2],[16.2,-3.6]])pave(f[0],.45,f[1],.7,.9,.7,ROUILLE); // des fûts rouillés
+   pave(15.8,.95,-3.7,.74,.08,.74,[.4,.2,.1]);
+   // le grand mât « GAS », visible de loin, au bord du dallage
+   pave(-7.5,6,8,.4,12,.4,GRIS);pave(-7.5,12.4,8,4.6,2.6,.36,ROUGE);pave(-7.5,12.4,7.78,4.1,2.1,.1,BLANC);
+   texte('GAS',-7.5*sd-larg('GAS')*.42/2*sd+0,13.45,7.7,.42,ROUGE,.08);ks=1;}
+  g0.dispose();
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+  g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 function cyMonuments(seed){
   if(CY.grp){for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();}}
   const M9=cyMonuMats();CY.grp.visible=true;
@@ -17711,6 +17779,7 @@ function cyMonuments(seed){
     for(let v=0;v<2;v++){const L9=CY.chem.filter(c=>c.v===v);if(!L9.length)continue;const im=new THREE.InstancedMesh(CY.gChem[v],M9.i,L9.length);
       L9.forEach(function(c,k){q9.setFromAxisAngle(ax,c.a);s9.set(c.r/.5,c.h,c.r/.5);p9.set(c.x,c.y,c.z);mt.compose(p9,q9,s9);im.setMatrixAt(k,mt);});
       im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;CY.grp.add(im);}}
+  CY.r66=0;CY.r66m=null;try{const g9=cyRoute66();if(g9){const m=new THREE.InstancedMesh(g9,M9.t,1);m.setMatrixAt(0,new THREE.Matrix4());m.instanceMatrix.needsUpdate=true;m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=false;m.name='canyon route 66';CY.grp.add(m);CY.r66=g9.attributes.position.count;}}catch(e){console.warn('canyon : route 66',e);} /* une INSTANCE : le même programme que les arbres (canyonChauffe le compile au menu) — un Mesh simple en compilait un neuf en course */ // (2026-10-15 soir) la station-service et le panneau ROUTE 66 du départ
   CY.rais=null; // (14/10 soir) les RAIS DE LUMIÈRE retirés : sur la paroi ils se lisaient comme des traînées de ciel étalé (verdict de Sacha)
   CY.grp.updateMatrixWorld(true);
   CY.monu=!!(CY.arche||CY.chem.length);
@@ -17739,6 +17808,7 @@ function cyMonuHeurt(p){
     if(Math.abs(al)<A.W*1.6&&Math.abs(u)<A.Ua){const P=A.P,f=(u+A.Ua)/(2*A.Ua)*(P.length-1),k=Math.max(0,Math.min(P.length-2,Math.floor(f))),w=f-k,yc=P[k].y+(P[k+1].y-P[k].y)*w,e=Math.abs(u/A.Ua),ab=1+1.4*e*e*e;
       if(Math.abs(al)<A.W*.5*ab+1&&Math.abs(p.y-yc)<A.T*.5*ab+1)return true;}}
   for(const c of CY.chem){const dx=p.x-c.x,dz=p.z-c.z;if(dx*dx+dz*dz<(c.r*1.1+1.2)*(c.r*1.1+1.2)&&p.y>c.y&&p.y<c.y+c.h+1)return true;}
+  {const M=CY.r66m;if(M){const dx=p.x-M.x,dz=p.z-M.z;if(dx*dx+dz*dz<(M.r+1.2)*(M.r+1.2)&&p.y>M.y0&&p.y<M.y1+.6)return true;}} // (2026-10-15 soir) la mesa de la station-service : du grès, comme le reste
   return false;}
 function canyonChauffe(){ // au menu (chauffeDivers) : la matière du relief compilée et dessinée une fois hors écran — 0 programme en course
   if(!CANYON_OK)return;cyTerrain();const m=CY.mesh,v=m.visible,n=CY.geo.instanceCount;CY.geo.instanceCount=1;CY.aN.array[2]=64;m.visible=true;
@@ -17762,7 +17832,7 @@ window.dbgCanyon=function(k,a,b,c){
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:CY.n};}
-  return {on:CY.on,ms:CY.ms,noeuds:CY.n,sep:CY.sep,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
+  return {on:CY.on,r66:CY.r66|0,ms:CY.ms,noeuds:CY.n,sep:CY.sep,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
     ciel:CIEL2.mode,attente:!!CY.attente,sQ:CY.sQ,L:Math.round(L),buttes:CY.buttes?CY.buttes.length:0,soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+CY.ombre.toFixed(2),prof:+CY.prof.toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:CY.on?+(carGroup.position.y-cyHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* <<<BANQUISE>>> */
@@ -18225,52 +18295,6 @@ function bkMesh(root,K,mat,nom){if(!K.P.length)return null;const g=new THREE.Buf
   g.setAttribute('aB',new THREE.Float32BufferAttribute(K.B,3));g.setAttribute('aP',new THREE.Float32BufferAttribute(K.A,4));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,mat);m.name=nom;m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);return m;}
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la banquise) ---------------- */
-function banqVide(){
-  BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.lacs=[];BANQ.lacG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
-  if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
-  BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();
-}
-function buildBanq(seed){
-  banqVide();
-  if(PARK.on||!LVL.cur||LVL.cur.id!=='banquise'||!(NP>1))return;
-  const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1);
-  BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
-  const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
-  const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
-  banqSol();tp('sol');banqLacs(fr);tp('lacs');const tS=performance.now();
-  banqSolMesh(root);tp('solMesh');banqLacMesh(root);tp('lacMesh');
-  try{bkVerglasPose(root,seed);}catch(e){window.__banqErr=e;}tp('verglas');
-  // ---- la route en grille (les règles de distance) ----
-  const HB=100,grille=new Map(),pg=Math.max(1,Math.round(3/ds)); // un point tous les 3 m : un sérac de 8 m ne passe pas entre deux
-  for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
-  const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+bz+dz);if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
-  const lat9=i=>{const t=T[i],hl=Math.hypot(t.x,t.z)||1;return [-t.z/hl,t.x/hl];};
-  // une grappe ne doit JAMAIS crever la dalle, ni ses bords, ni l'air de la caméra (14 m de chaque côté) : 5 m d'air au moins
-  const libre=L9=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
-    let ok=true;const W9=ROAD_HALF+14,LAT9=[-W9,-ROAD_HALF,-ROAD_HALF*.5,0,ROAD_HALF*.5,ROAD_HALF,W9];
-    if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],ex=p.x-cx,ez=p.z-cz;if(ex*ex+ez*ez>(r+W9)*(r+W9))return;const l9=lat9(j);
-      for(let q=0;q<7;q++){const l=LAT9[q],x=p.x+l9[0]*l,z=p.z+l9[1]*l;if((x-cx)**2+(z-cz)**2>r*r)continue;
-        for(const P of L9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;if(bkPrimH(P,x,z)>p.y-THICK-5){ok=false;return;}}}});
-    if(ok)for(const o of BANQ.lacs)if(Math.hypot(o.x-cx,o.z-cz)<o.R*1.25+r*.6){ok=false;break;}
-    return ok;};
-  const PH=[],KN={},KF={},cle=(x,z,c)=>Math.floor(x/c)*100003+Math.floor(z/c);
-  const pose=(L9,phys,loin)=>{for(const P of L9){const C=loin?1500:600,k=cle(P.cx,P.cz,C),D9=loin?KF:KN;(D9[k]||(D9[k]={L:[],x:(Math.floor(P.cx/C)+.5)*C,z:(Math.floor(P.cz/C)+.5)*C,r:C*.71})).L.push(P);if(phys)PH.push(P);}};
-  // ---- 1. LES PICS OÙ L'ON GLISSE : des dômes et des pyramides de glace au bord de la route (pente ≤ 1 : 45° au plus) ----
-  let nG=0,nS=0,nA=0,nL=0;
-  {let sd=fr()<.5?-1:1;for(let s9=380+fr()*120;s9<L-220;s9+=(105+fr()*115)/KP){const i=Math.round(s9/ds);if(fr()<.7)sd=-sd;
-    let H=34+fr()*96;const pente=.55+fr()*.40,nv=1+((fr()*3)|0),lat=ROAD_HALF+24+H/pente*.5+fr()*120,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
-    for(let e=0;e<3;e++){const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,nv,fr,0);if(libre(L9)){pose(L9,true,false);nG++;break;}H*=.68;}}}
-  // ---- 2. LES SÉRACS : des éclats de glace semés sur la neige, quelques-uns SOUS la route (on les frôle en plongeant) ----
-  for(let s9=300+fr()*60;s9<L-150;s9+=(44+fr()*56)/KP){const i=Math.round(s9/ds),sd=fr()<.5?-1:1,sous=fr()<.25,lat=sous?fr()*ROAD_HALF:ROAD_HALF+10+fr()*170,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
-    const H=sous?3+fr()*7:4+fr()*13,L9=bkGrappe(x,z,bkSolH(x,z)-.8,H,.6+fr()*.55,(fr()*3)|0,fr,0);if(libre(L9)){pose(L9,true,false);nS++;}}
-  // ---- 3. LES AIGUILLES : des flèches de 110 à 420 m, trop raides pour y glisser (on y meurt) ----
-  {let sd=fr()<.5?-1:1;for(let s9=200+fr()*200;s9<L;s9+=(115+fr()*120)/KP){const i=Math.min(NP-1,Math.round(s9/ds));sd=-sd;
-    const H=110+fr()*310,lat=230+fr()*640,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<200)continue;
-    const L9=bkGrappe(x,z,bkSolH(x,z)-6,H,2.2+fr()*1.8,3+((fr()*5)|0),fr,1);if(libre(L9)){pose(L9,true,false);nA++;}}}
-  // ---- 4. LES GÉANTS : l'horizon de glace (400 m à 1,3 km de haut, de 1,1 à 3,6 km de la route) — décor, sans physique ----
-  {const KL=PAL_BK('banqLoin',1);for(let s9=0;s9<L+600;s9+=230/KL){const i=Math.min(NP-1,Math.round(s9/ds));for(const sd of [-1,1]){if(fr()<.12)continue;
-    const lat=1100+fr()*2500,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<900)continue;
-    const H=380+fr()*920;pose(bkGrappe(x,z,bkSolH(x,z)-20,H,1.4+fr()*1.5,3+((fr()*5)|0),fr,2,420),false,true);nL++;}}
 /* LES STALACTITES QUI SE BRISENT (2026-10-15 soir, Sacha : « retravaille les stalactites sous la route de montagne : faut qu'ils se brisent
    de manière satisfaisante quand on les traverse, avec un son de bris de verre »). Avant : un décor fondu dans les morceaux de la banquise,
    la caisse passait au travers sans rien. Maintenant chaque glaçon est NOTÉ à la construction (buildBanq § 5 : base, pointe, rayon, ses 15
@@ -18336,8 +18360,54 @@ window.dbgStal=function(a,k){if(a==='test'){const P=carGroup.position;let b=null
     L.sort(function(p,q){return (p.x-P.x)**2+(p.y-P.y)**2+(p.z-P.z)**2-((q.x-P.x)**2+(q.y-P.y)**2+(q.z-P.z)**2);});
     const n=Math.max(1,k|0);for(let i=0;i<n&&i<L.length;i++)stalBris(L[i],STAL.v.set(0,0,30));return {brises:Math.min(n,L.length),premier:L[0]?{x:+L[0].x.toFixed(1),y:+L[0].y.toFixed(1),z:+L[0].z.toFixed(1),lg:+L[0].lg.toFixed(1)}:null};}
   return {glacons:STAL.n,brises:STAL.bris,cases:STAL.g.size,eclats:STAL_ECL.n};};
-   // l'avant et l'arrière de la descente : le grand amphithéâtre au loin, dans l'axe
+function banqVide(){
   STAL.g.clear();STAL.n=0;STAL.bris=0;STAL.maj.length=0;
+  BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.lacs=[];BANQ.lacG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
+  if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
+  BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();
+}
+function buildBanq(seed){
+  banqVide();
+  if(PARK.on||!LVL.cur||LVL.cur.id!=='banquise'||!(NP>1))return;
+  const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1);
+  BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
+  const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
+  const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
+  banqSol();tp('sol');banqLacs(fr);tp('lacs');const tS=performance.now();
+  banqSolMesh(root);tp('solMesh');banqLacMesh(root);tp('lacMesh');
+  try{bkVerglasPose(root,seed);}catch(e){window.__banqErr=e;}tp('verglas');
+  // ---- la route en grille (les règles de distance) ----
+  const HB=100,grille=new Map(),pg=Math.max(1,Math.round(3/ds)); // un point tous les 3 m : un sérac de 8 m ne passe pas entre deux
+  for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
+  const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+bz+dz);if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
+  const lat9=i=>{const t=T[i],hl=Math.hypot(t.x,t.z)||1;return [-t.z/hl,t.x/hl];};
+  // une grappe ne doit JAMAIS crever la dalle, ni ses bords, ni l'air de la caméra (14 m de chaque côté) : 5 m d'air au moins
+  const libre=L9=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
+    let ok=true;const W9=ROAD_HALF+14,LAT9=[-W9,-ROAD_HALF,-ROAD_HALF*.5,0,ROAD_HALF*.5,ROAD_HALF,W9];
+    if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],ex=p.x-cx,ez=p.z-cz;if(ex*ex+ez*ez>(r+W9)*(r+W9))return;const l9=lat9(j);
+      for(let q=0;q<7;q++){const l=LAT9[q],x=p.x+l9[0]*l,z=p.z+l9[1]*l;if((x-cx)**2+(z-cz)**2>r*r)continue;
+        for(const P of L9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;if(bkPrimH(P,x,z)>p.y-THICK-5){ok=false;return;}}}});
+    if(ok)for(const o of BANQ.lacs)if(Math.hypot(o.x-cx,o.z-cz)<o.R*1.25+r*.6){ok=false;break;}
+    return ok;};
+  const PH=[],KN={},KF={},cle=(x,z,c)=>Math.floor(x/c)*100003+Math.floor(z/c);
+  const pose=(L9,phys,loin)=>{for(const P of L9){const C=loin?1500:600,k=cle(P.cx,P.cz,C),D9=loin?KF:KN;(D9[k]||(D9[k]={L:[],x:(Math.floor(P.cx/C)+.5)*C,z:(Math.floor(P.cz/C)+.5)*C,r:C*.71})).L.push(P);if(phys)PH.push(P);}};
+  // ---- 1. LES PICS OÙ L'ON GLISSE : des dômes et des pyramides de glace au bord de la route (pente ≤ 1 : 45° au plus) ----
+  let nG=0,nS=0,nA=0,nL=0;
+  {let sd=fr()<.5?-1:1;for(let s9=380+fr()*120;s9<L-220;s9+=(105+fr()*115)/KP){const i=Math.round(s9/ds);if(fr()<.7)sd=-sd;
+    let H=34+fr()*96;const pente=.55+fr()*.40,nv=1+((fr()*3)|0),lat=ROAD_HALF+24+H/pente*.5+fr()*120,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
+    for(let e=0;e<3;e++){const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,nv,fr,0);if(libre(L9)){pose(L9,true,false);nG++;break;}H*=.68;}}}
+  // ---- 2. LES SÉRACS : des éclats de glace semés sur la neige, quelques-uns SOUS la route (on les frôle en plongeant) ----
+  for(let s9=300+fr()*60;s9<L-150;s9+=(44+fr()*56)/KP){const i=Math.round(s9/ds),sd=fr()<.5?-1:1,sous=fr()<.25,lat=sous?fr()*ROAD_HALF:ROAD_HALF+10+fr()*170,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
+    const H=sous?3+fr()*7:4+fr()*13,L9=bkGrappe(x,z,bkSolH(x,z)-.8,H,.6+fr()*.55,(fr()*3)|0,fr,0);if(libre(L9)){pose(L9,true,false);nS++;}}
+  // ---- 3. LES AIGUILLES : des flèches de 110 à 420 m, trop raides pour y glisser (on y meurt) ----
+  {let sd=fr()<.5?-1:1;for(let s9=200+fr()*200;s9<L;s9+=(115+fr()*120)/KP){const i=Math.min(NP-1,Math.round(s9/ds));sd=-sd;
+    const H=110+fr()*310,lat=230+fr()*640,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<200)continue;
+    const L9=bkGrappe(x,z,bkSolH(x,z)-6,H,2.2+fr()*1.8,3+((fr()*5)|0),fr,1);if(libre(L9)){pose(L9,true,false);nA++;}}}
+  // ---- 4. LES GÉANTS : l'horizon de glace (400 m à 1,3 km de haut, de 1,1 à 3,6 km de la route) — décor, sans physique ----
+  {const KL=PAL_BK('banqLoin',1);for(let s9=0;s9<L+600;s9+=230/KL){const i=Math.min(NP-1,Math.round(s9/ds));for(const sd of [-1,1]){if(fr()<.12)continue;
+    const lat=1100+fr()*2500,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<900)continue;
+    const H=380+fr()*920;pose(bkGrappe(x,z,bkSolH(x,z)-20,H,1.4+fr()*1.5,3+((fr()*5)|0),fr,2,420),false,true);nL++;}}
+   // l'avant et l'arrière de la descente : le grand amphithéâtre au loin, dans l'axe
    for(const fin of [0,1]){const i=fin?NP-1:0,t=T[i],hl=Math.hypot(t.x,t.z)||1,dx=t.x/hl*(fin?1:-1),dz=t.z/hl*(fin?1:-1);
      for(let k=0;k<7;k++){const a=(k-3)*.32+(fr()-.5)*.2,c=Math.cos(a),s9=Math.sin(a),d=2400+fr()*1800,x=pts[i].x+(dx*c-dz*s9)*d,z=pts[i].z+(dz*c+dx*s9)*d;
        const H=600+fr()*900;pose(bkGrappe(x,z,bkSolH(x,z)-40,H,1.5+fr()*1.2,4+((fr()*4)|0),fr,2,520),false,true);nL++;}}}
@@ -18643,6 +18713,7 @@ function banqTick(dt){
   if(BK_TR.mesh)BK_TR.mesh.visible=true;
   if(BANQ.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   if(BANQ.picM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.picM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
+  try{stalTick(dt);}catch(e){window.__banqErr=e;} /* (2026-10-15 soir) LES STALACTITES QUI SE BRISENT */
   if(vit){try{updatePool(fx.poudre,dt,0);updatePool(fx.givre,dt,0);updatePool(fx.eclat,dt,0);updatePool(fx.brume,dt,0);}catch(e){}}
   if(BANQ.fid!==flightId){BANQ.fid=flightId;BANQ.figs={};BANQ.lent=0;}
   if(mode==='fall'&&vit&&started&&!gameOver)banqVolFx(dt);
@@ -18689,7 +18760,6 @@ function bkBoucle(id,on,vol,rate){const B9=BANQ.boucles;let h=B9[id];
   else if(h){try{h.stop(.3);}catch(e){}B9[id]=null;}}
 const BK_SONS={jour:[],soir:[['banq.chant',14,26,-18]],nuit:[['banq.chant',8,17,-15]],neige:[],blizzard:[]};
 function banqSons(dt,c){
-  try{stalTick(dt);}catch(e){window.__banqErr=e;} /* (2026-10-15 soir) LES STALACTITES QUI SE BRISENT */
   const ok=SONV2&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
   bkBoucle('banq.vent',ok,c.vent>1.5?-10:c.neige>.3?-17:-23,1);
   if(!ok)return;
