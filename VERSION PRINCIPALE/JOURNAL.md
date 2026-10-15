@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE BUMP REVIENT SUR LA ROUTE TORDUE DES NUAGES (2026-10-15 soir, Sacha : « fais revenir le BUMP sur la route tordue des nuages, sans toucher au reste, et mesure-le au banc avant de pousser »)
+- LA CAUSE (mesurée, même graine, même carte) : sur la route SANS HAUT NI BAS la dalle est couchée, sur la tranche, à l'envers, mais la caisse
+  sortie par le bord tombait selon le bas du MONDE — elle ne s'enfonçait pas sous le niveau de SA dalle et ne pouvait plus en cogner la
+  tranche ; et l'équilibre du vol (`veqNiveau`) redressait son haut vers le ciel du monde : sur une dalle couchée, le volant ne la ramenait
+  plus vers la route. 0 BUMP sur 20 sorties, contre 3 sur la même piste remise droite (`?sans=haut`).
+- LE CORRECTIF (`TBORD`, route tordue + sortie par le BORD seulement) : le temps de la bascule (1,1 s au plus) et après chaque BUMP, la
+  gravité, le plané nitro et l'équilibre du vol sont ceux de la ROUTE quittée (−Nn × face de départ) ; le BUMP renvoie vers le ciel de la
+  route et réarme la fenêtre (DOUBLE BUMP possible). À plus de 20 m du bord, ou la fenêtre passée, le vol reprend la gravité du monde.
+  Route droite (TORD éteint) : aucune ligne ne change de chemin.
+- MESURÉ (banc `bump.cjs`, carte nuages midi, graines 4242 et 777, vA 70/130, braquage vers la route 200/450 ms après la sortie, 40 essais
+  par version) : essais avec BUMP 2 → 6, BUMP au total 2 → 14 (dont un MEGA BUMP ×7), caisses rattrapées (lèvre ou posée, dessus ou
+  dessous) 15 → 21, perdues ou encore en l'air au bout de 4 s 10 → 5. Fumée commune OK.
+
 ## L'IMPACT EN MINIATURE — LE COUP D'ÉPAULE CONTRE UNE PAROI (2026-10-15 soir, Sacha, après le recensement des obstacles : « oui : fais le point 1 tel que décrit (étoile + éclats + étincelles au premier contact, sans boule ni cratère), puis banc, poussée et recopie »)
 - LE RECENSEMENT (« on s'en servira pour tous les obstacles du jeu ») : tout ce qui TUE en percutant passe déjà par L'IMPACT (chaîne de vol
   des sept cartes, mur mortel de `parisMur` via `impMur`). Les PLOTS et les PORTES (`boomMini`) ne sont plus posés depuis le 14/10
