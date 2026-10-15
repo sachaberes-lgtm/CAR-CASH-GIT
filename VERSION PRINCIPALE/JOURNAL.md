@@ -4,6 +4,21 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LA DÉFERLANTE ET LA MERCURE RETIRÉES (2026-10-15, Sacha : « supprimer complètement du jeu la déferlante et la mercure, vu qu'elles ne respectent pas les règles du low-poly » — après hésitation, verdict final : « supprimez-les »)
+- Les deux épiques de Léo (LA DÉFERLANTE, 3,6 M ; LA MERCURE, 3,8 M) sortent de la gamme par la recette des caisses retirées : `retire:1`
+  dans leur fiche de `CARS`. Leur LIGNE RESTE (et celle de `CAR_UNLOCK`) : la sauvegarde désigne les caisses par leur index, LE DOGE et
+  toutes les suivantes gardent le leur. `carRetiree` les ôte de partout (boutique, garage, raretés, vitrine, équipement).
+- Qui en avait acheté une est REMBOURSÉ à son prix (le filtre des retirées dans `san`, une seule fois : elle sort de `owned`, `SAVE.remb`
+  le dit au menu) ; qui roulait avec repart en caisse 0.
+- Leurs GABARITS sont effacés (`SHAPES.deferlante` et `SHAPES.mercure` : 376 lignes, −43 Ko — le maillage en Surface Nets de la Mercure,
+  ses filets, son miroir `MERC_FS`, l'eau `EAU_VS`, l'écume en cubes de la Déferlante). Comme pour SA MAJESTÉ ou LA POSTIÈRE, si une fiche
+  retirée était quand même bâtie, `buildCar` replie sur `gt` avec un avertissement. Restent, inutilisées mais communes au kit : les options
+  `style:'tourbillon'`, `sansPneu` et `roueDeco` de `lpWheel` (rien à défaire). Les noms restent dans `I18N` (le message de remboursement).
+- BANC (muet, couché 844×390) : partie neuve → les deux fiches (index 74 et 75) ne sont plus citées ni au garage ni à la boutique ;
+  sauvegarde d'un acheteur (banque 1 000, `owned` 74 + 75, équipée en MERCURE) → banque 7 401 000 (= 1 000 + 3,6 M + 3,8 M), `owned` vidé,
+  caisse 0 équipée, JOUER → course sans erreur ni « gabarit inconnu ». Fumée commune OK (couché + debout, 0 erreur JS).
+- Cache `cashcar-v516`.
+
 ## LE TAIL WHIP (2026-10-15 soir, Léo par le MANAGER : « la première figure : un TAIL WHIP » · « push-les, ils sont bien » ; choix coché : en GLISSER, ← → = tail whip) — pôle TECHNIQUE
 - LA FIGURE (`figures.js` ?v=8, `FIG.par.tailwhip`, 1re de `BASE`) : un tour à plat (axe vertical, `D` ,62, aura 50), mais le NEZ reste en
   place et c'est la POUPE qui fait le tour — `piv` ,92 = le point fixe, en part de la demi-longueur, vers le nez. `figPose` le lit (`FX2.pivK`,
