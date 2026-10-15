@@ -183,7 +183,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
 <main class="page">
   <h1>Sons CASH CAR</h1>
   <p class="sous" id="compte">Chargement de la bibliothèque…</p>
-  <div class="outils"><button class="b" id="filtre">👍 Mes pouces<span class="n" id="nPouce"></span></button><button class="b" id="modif">Renommer</button><div class="vol">Volume <input id="vol" type="range" min="0" max="1" step=".01" value=".8"></div></div>
+  <div class="outils"><button class="b" id="filtre">👍 Mes pouces<span class="n" id="nPouce"></span></button><button class="b" id="modif">Renommer</button><button class="b" id="copie" hidden title="Tes choix d’ici (suppressions, notes, pouces) en texte : colle-le dans la discussion avec Claude">Copier mes choix</button><div class="vol">Volume <input id="vol" type="range" min="0" max="1" step=".01" value=".8"></div></div>
 
   <section id="gen"><h2>Générateur <span>hybride · comme en jeu</span></h2>
     <p class="aide">PLAY : une musique HYBRIDE neuve — le RYTHME d'un genre × les COULEURS d'un autre, parmi 55 (rock, funk, bossa, salsa, reggae, dub, afrobeat, amapiano, house, techno, jungle, footwork, drill, dubstep, country, balkan, western…) ; une sur cinq reste pure ; son thème, sa tonalité, son tempo, l'ordre de ses 30 éléments. Tu gagnes les moteurs toi-même ; en dessous, joue la course : NITRO, VOL (relâche = la pose), FLOW, FRÉNÉSIE, CRASH — la musique réagit comme dans le jeu. Une musique te plaît ? Son n° la refait à l'identique.</p>
@@ -283,7 +283,7 @@ ajoute({ id: 'dir-french-touch', sec: 'moteur', type: 'html', titre: 'MOTEUR FRE
   f: 'assets/audio/music/direct/french-touch.html' });
 // (2026-10-15, Léo, dans sa note sur AURA : « incroyable, juste transformer en 30 paliers comme les autres ») — le même AURA, en direct, en 30 moteurs
 ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIERS', style: 'le même AURA, en 30 moteurs comme les musiques du générateur : chaque moteur ajoute un élément ou pousse un cran (l’AURA en 8 paliers reste à côté)', nb: 0,
-  f: 'assets/audio/music/paliers/aura-30.html' });
+  f: 'assets/audio/music/direct/aura-30.html' });
 ajoute({ id: 'dir-glisse-v2', sec: 'moteur', type: 'js', titre: 'GLISSE v2', style: 'Module en direct · Pics de jade', nb: 5, f: 'assets/audio/music/direct/musique-glisse-v2.js' });
 ajoute({ id: 'dir-glisse', sec: 'moteur', type: 'js', titre: 'GLISSE', style: 'Module en direct (1re version)', nb: 5, f: 'assets/audio/music/direct/musique-glisse.js' });
 (window.BOUCLES || []).filter(b => b.sequence).forEach(b => ajoute({ id: 'seq-' + b.id, sec: 'moteur', type: 'phrases', titre: b.titre,
@@ -339,16 +339,58 @@ let PREF = { noms: {}, suppr: [], paliers: {}, pouces: [], gen: [], place: {}, c
 // échouerait en rouge dans la console : l'instantané publié fait foi, et ce navigateur garde ses propres retouches (PREF_SIG).
 let SERVEUR = false, PREF_SIG = '';
 const prefDe = d => ({ noms: d.noms || {}, suppr: d.suppr || [], paliers: d.paliers || {}, pouces: d.pouces || [], gen: d.gen || [], place: d.place || {}, cats: d.cats || [], notes: d.notes || {} });
+/* (15/10, Léo : « permets-moi de supprimer… » ; le patron : « que ses suppressions TIENNENT là où il écoute ») EN LIGNE, ce navigateur ne garde
+   plus une copie entière des choix (elle tombait dès qu'un instantané plus neuf était publié : ses retouches du téléphone disparaissaient) mais
+   L'ÉCART à l'instantané publié (ECART_K) : noms, notes, rangements, retraits, pouces, avis — rejoué sur chaque nouvel instantané. « Copier mes
+   choix » le met dans le presse-papiers : Léo le colle dans la discussion, et il rejoint musique-moteur.json. */
+const ECART_K = 'biblioEcart', cleGen = e => e.n + '|' + e.titre;
+let PREF0 = null;   // l'instantané publié, tel que lu (en ligne)
+function ecartDe(a, b) {   // ce que b change à a
+  const d = {};
+  ['noms', 'place', 'notes', 'paliers'].forEach(k => { const A = a[k] || {}, B = b[k] || {}, o = {}; let n = 0;
+    for (const x in B) if (JSON.stringify(A[x]) !== JSON.stringify(B[x])) { o[x] = B[x]; n++; }
+    for (const x in A) if (!(x in B)) { o[x] = null; n++; }
+    if (n) d[k] = o; });
+  ['suppr', 'pouces'].forEach(k => { const A = new Set(a[k] || []), B = new Set(b[k] || []), plus = [...B].filter(x => !A.has(x)), moins = [...A].filter(x => !B.has(x));
+    if (plus.length || moins.length) d[k] = { plus, moins }; });
+  const GA = new Map((a.gen || []).map(e => [cleGen(e), e])), GB = new Map((b.gen || []).map(e => [cleGen(e), e])), av = {}, plus = [], moins = [];
+  GB.forEach((e, k) => { const x = GA.get(k); if (!x) plus.push(e); else if ((x.avis || 0) !== (e.avis || 0)) av[k] = e.avis || 0; });
+  GA.forEach((e, k) => { if (!GB.has(k)) moins.push(k); });
+  if (Object.keys(av).length) d.avis = av; if (plus.length) d.genPlus = plus; if (moins.length) d.genMoins = moins;
+  if (JSON.stringify(a.cats || []) !== JSON.stringify(b.cats || [])) d.cats = b.cats || [];
+  return d;
+}
+function ecartPose(p, d) {   // rejoue l'écart d sur les choix p
+  ['noms', 'place', 'notes', 'paliers'].forEach(k => { const o = d[k]; if (!o) return; p[k] = p[k] || {}; for (const x in o) { if (o[x] === null) delete p[k][x]; else p[k][x] = o[x]; } });
+  ['suppr', 'pouces'].forEach(k => { const o = d[k]; if (!o) return; const s = new Set(p[k] || []); (o.plus || []).forEach(x => s.add(x)); (o.moins || []).forEach(x => s.delete(x)); p[k] = [...s]; });
+  p.gen = p.gen || [];
+  if (d.genMoins) { const m = new Set(d.genMoins); p.gen = p.gen.filter(e => !m.has(cleGen(e))); }
+  if (d.avis) p.gen.forEach(e => { const k = cleGen(e); if (k in d.avis) e.avis = d.avis[k]; });
+  if (d.genPlus) d.genPlus.forEach(e => { const i = p.gen.findIndex(x => cleGen(x) === cleGen(e)); if (i >= 0) p.gen[i] = e; else p.gen.push(e); });
+  if (d.cats) p.cats = d.cats;
+}
 async function prefLit() {
   let texte = null;
   try { const r = await fetch('musique-moteur.json', { cache: 'no-store' }); if (r.ok) { SERVEUR = !!r.headers.get('X-Serveur-Moteur'); texte = await r.text(); PREF = prefDe(JSON.parse(texte)); } } catch (e) {}
   if (SERVEUR) return;
   PREF_SIG = texte ? texte.length + ':' + texte.slice(-64) : '';   // la signature de l'instantané publié
-  try { const d = JSON.parse(localStorage.getItem('musiqueMoteurPref') || 'null');
-    if (d && (!texte || d.sig === PREF_SIG)) PREF = prefDe(d); } catch (e) {}   // un instantané plus neuf de Léo passe devant les vieilles retouches
+  PREF0 = JSON.parse(JSON.stringify(PREF));
+  let E = null; try { E = JSON.parse(localStorage.getItem(ECART_K) || 'null'); } catch (e) {}
+  if (!E) try { const d = JSON.parse(localStorage.getItem('musiqueMoteurPref') || 'null');   // l'ancienne mémoire (une copie entière) : son écart, si elle vient de CET instantané
+    if (d && (!texte || d.sig === PREF_SIG)) E = ecartDe(PREF0, prefDe(d)); } catch (e) {}
+  if (E) ecartPose(PREF, E);
 }
-function prefEcrit() { try { localStorage.setItem('musiqueMoteurPref', JSON.stringify(Object.assign({ sig: PREF_SIG }, PREF))); } catch (e) {}
-  if (SERVEUR) fetch('musique-moteur.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(PREF) }).catch(() => {}); }
+function prefEcrit() {
+  if (!SERVEUR) { try { localStorage.setItem(ECART_K, JSON.stringify(ecartDe(PREF0 || prefDe({}), PREF))); localStorage.removeItem('musiqueMoteurPref'); } catch (e) {} copieMaj(); return; }
+  try { localStorage.setItem('musiqueMoteurPref', JSON.stringify(Object.assign({ sig: PREF_SIG }, PREF))); } catch (e) {}
+  fetch('musique-moteur.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(PREF) }).catch(() => {}); }
+// « COPIER MES CHOIX » (en ligne seulement, quand il y a des retouches) : l'écart, en texte, dans le presse-papiers
+function ecartTexte() { const E = ecartDe(PREF0 || prefDe({}), PREF); return Object.keys(E).length ? 'CHOIX BIBLIOTHÈQUE ' + JSON.stringify(E) : ''; }
+function copieMaj() { const b = $('copie'); if (b) b.hidden = SERVEUR || !ecartTexte(); }
+$('copie').onclick = async () => { const t = ecartTexte(); if (!t) return; let ok = false;
+  try { await navigator.clipboard.writeText(t); ok = true; } catch (e) {}
+  if (!ok) try { const x = document.createElement('textarea'); x.value = t; x.setAttribute('readonly', ''); x.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(x); x.select(); x.setSelectionRange(0, t.length); ok = document.execCommand('copy'); x.remove(); } catch (e) {}
+  annonce(ok ? 'Copié — colle-le dans la discussion avec Claude' : 'Copie impossible ici : écoute sur l’ordi (127.0.0.1:9200)'); };
 const nomDe = S => PREF.noms[S.id] || (RETOUCHES && RETOUCHES.RENOMS && RETOUCHES.RENOMS[S.id]) || S.titre, retire = S => PREF.suppr.indexOf(S.id) >= 0, aime = S => PREF.pouces.indexOf(S.id) >= 0;
 function majPouces() { const n = CAT.filter(S => aime(S) && !retire(S)).length; $('nPouce').textContent = n ? '(' + n + ')' : ''; $('filtre').classList.toggle('on', FILTRE); }
 
@@ -403,7 +445,8 @@ function dessine() {
     const ch = el.querySelector('.champ'); ch.value = nomDe(S);
     ch.oninput = () => { const v = ch.value.trim(); if (v && v !== S.titre) PREF.noms[S.id] = v; else delete PREF.noms[S.id]; };
     ch.onchange = prefEcrit; ch.onkeydown = e => { if (e.key === 'Enter') ch.blur(); }; ch.onclick = e => e.stopPropagation();
-    el.querySelector('.moins').onclick = el.querySelector('.poub').onclick = e => { e.stopPropagation(); supprime(S); };
+    el.querySelector('.moins').onclick = el.querySelector('.poub').onclick = e => { e.stopPropagation(); if (sk === 'bleu') retireDeBleu(S); else supprime(S); };
+    if (sk === 'bleu') el.querySelector('.poub').title = 'Retirer de Pouce bleu';
     noteBranche(el, S);
     const pc = el.querySelector('.pouce'); pc.classList.toggle('on', aime(S)); pc.setAttribute('aria-pressed', aime(S));
     pc.onclick = e => { e.stopPropagation(); const k = PREF.pouces.indexOf(S.id); if (k < 0) PREF.pouces.push(S.id); else PREF.pouces.splice(k, 1); prefEcrit();
@@ -416,7 +459,7 @@ function dessine() {
   PREF.cats.forEach(c => { const x = $('nCat-' + c.id); if (x) x.textContent = n['cat-' + c.id] || 0; });
   dessineBleus(); if ($('gIns')) { $('nIns').textContent = n.inspi || ''; $('gIns').hidden = !n.inspi; }   // (en ligne, la section des inspirations n'existe pas)
   $('nMot').textContent = n.moteur || 0; $('nNiv').textContent = n.niv || 0; $('nChr').textContent = n.chris || 0; $('nMenu').textContent = n.menu || 0; if ($('nPm')) $('nPm').textContent = n.pm || 0; if ($('nLob')) $('nLob').textContent = n.lobby || 0; $('nAnc').textContent = n.anciens || 0; $('nPet').textContent = n.petits || 0;
-  $('compte').textContent = CAT.filter(S => !retire(S) && S.sec !== 'inspi').length + ' sons · tout est déjà prêt, rien ne se calcule' + (SERVEUR ? '' : ' · en ligne : tes 👍 et tes changements restent sur cet appareil');
+  $('compte').textContent = CAT.filter(S => !retire(S) && S.sec !== 'inspi').length + ' sons · tout est déjà prêt, rien ne se calcule' + (SERVEUR ? '' : ' · en ligne : tes 👍 et tes changements restent sur cet appareil (« Copier mes choix » pour me les envoyer)'); copieMaj();
   const r = CAT.filter(retire), c = $('corb');
   c.innerHTML = '' && r.length ? '<a id="corbA">Sons supprimés (' + r.length + ') — les remettre</a><div class="l">' + r.map(S => '<div><span></span><button data-id="' + S.id + '">Remettre</button></div>').join('') + '</div>' : '';
   if (false) { c.querySelectorAll('.l span').forEach((s, i) => s.textContent = nomDe(r[i]));
@@ -466,21 +509,38 @@ function glisseCible(sec) {   // une liste visible qui accepte le son lâché de
 document.querySelectorAll('main.page>section').forEach(glisseCible);
 window.biblioGlisse = { actif: () => !!GL.S, vers: glisseVers, cle: secCle, neuve: () => { const v = GL.neuve; GL.neuve = null; return v; },
   nouvelle: () => { const id = Date.now().toString(36); PREF.cats.push({ id, nom: 'Nouvelle catégorie' }); prefEcrit(); dessine(); return id; } };
-// SUPPRIMER : le son part tout de suite ; « Annuler » 6 s ; il reste dans « Sons supprimés » en bas (le fichier, lui, n'est jamais effacé)
-let annS = null, annT = 0;
+// SUPPRIMER : le son part tout de suite ; « Annuler » 6 s (le fichier, lui, n'est jamais effacé)
+let annD = null, annT = 0;
+function annonce(msg, defaire) {   // la bulle du bas : un message, et « Annuler » s'il y a quelque chose à défaire
+  annD = defaire || null; $('annT').textContent = msg; $('annB').hidden = !annD; $('annule').classList.add('on');
+  clearTimeout(annT); annT = setTimeout(() => { $('annule').classList.remove('on'); annD = null; }, 6000);
+}
+$('annB').onclick = () => { const d = annD; if (!d) return; annD = null; $('annule').classList.remove('on'); d(); prefEcrit(); goutsMaj(true); dessine(); };
 function supprime(S) {
   if (J.S === S) stop();
   if (PREF.suppr.indexOf(S.id) < 0) PREF.suppr.push(S.id); prefEcrit(); dessine();
-  annS = S; $('annT').textContent = '« ' + nomDe(S) + ' » supprimé'; $('annule').classList.add('on');
-  clearTimeout(annT); annT = setTimeout(() => { $('annule').classList.remove('on'); annS = null; }, 6000);
+  annonce('« ' + nomDe(S) + ' » supprimé', () => { PREF.suppr = PREF.suppr.filter(x => x !== S.id); });
 }
-$('annB').onclick = () => { if (!annS) return; PREF.suppr = PREF.suppr.filter(x => x !== annS.id); prefEcrit(); annS = null; $('annule').classList.remove('on'); dessine(); };
+// RETIRER DE POUCE BLEU (15/10, Léo : « permets-moi de supprimer tous les sons des pouces bleus, on en a 36 ») : la corbeille de chaque son de
+// Pouce bleu, un toucher, « Annuler » 6 s. Une musique du générateur (là par son 👍) perd son 👍 ; un morceau que Léo y avait glissé retourne
+// dans sa catégorie ; ce qui n'existe que là (les V2, AURA · 30 PALIERS, PENTHOUSE · V2) s'efface.
+function retireDeBleu(S) {
+  if (J.S === S) stop();
+  let defaire;
+  if (S.type === 'genv' && !S.v2) { const e = S.e, av = e.avis; e.avis = 0; defaire = () => { e.avis = av; }; }
+  else if (PREF.place && PREF.place[S.id] === 'bleu') { delete PREF.place[S.id]; defaire = () => { PREF.place[S.id] = 'bleu'; }; }
+  else { if (PREF.suppr.indexOf(S.id) < 0) PREF.suppr.push(S.id); defaire = () => { PREF.suppr = PREF.suppr.filter(x => x !== S.id); }; }
+  prefEcrit(); goutsMaj(true); dessine();
+  annonce('« ' + nomDe(S) + ' » retiré de Pouce bleu', defaire);
+}
 $('modif').onclick = () => { EDIT = !EDIT; if (!EDIT) prefEcrit(); dessine(); };
 
 // ================================================================ LE SON
 let ac = null, maitre = null;
 const BUF = new Map();
-function audio() { if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); maitre = ac.createGain(); maitre.gain.value = +$('vol').value; maitre.connect(ac.destination); } return ac; }
+// (15/10) iPhone : le WebAudio est « ambient » — le bouton SILENCIEUX le coupe, toute la bibliothèque muette ; 'playback' (iOS 17+), comme le jeu (musicSession)
+function audio() { try { const s = navigator.audioSession; if (s && s.type !== 'playback') s.type = 'playback'; } catch (e) {}
+  if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); maitre = ac.createGain(); maitre.gain.value = +$('vol').value; maitre.connect(ac.destination); } return ac; }
 function tampon(f) {
   if (!BUF.has(f)) BUF.set(f, fetch(f).then(r => { if (!r.ok) throw new Error('fichier introuvable (' + sansV(f).split('/').pop() + ')'); return r.arrayBuffer(); })
     .then(a => audio().decodeAudioData(a)).catch(e => { BUF.delete(f); throw e; }));
@@ -525,10 +585,17 @@ const LECTEURS = {
     document.body.appendChild(fr);
     await new Promise((ok, ko) => { fr.onload = ok; fr.onerror = () => ko(new Error('page introuvable')); });
     if (MUET) muetPose(fr.contentWindow);
-    const d = fr.contentDocument, bt = d.getElementById('play'), jg = d.getElementById('speed'); if (!bt || !jg) throw new Error('ni #play ni #speed dans la page');
+    const d = fr.contentDocument, bt = d.getElementById('play'), jg = d.getElementById('speed'); if (!bt || !jg) throw new Error('page introuvable (ni #play ni #speed)');
+    // (15/10, « je n'arrive pas à écouter certains sons ») LE CONTEXTE PRÊTÉ : la page joue dans NOTRE contexte, réveillé au toucher. Le sien
+    // naissait après le chargement de la page, hors du toucher : sur iPhone il restait SUSPENDU (muet, mesuré au banc WebKit). Sa sortie passe
+    // par le volume de la bibliothèque ; son STOP (close / suspend) ne touche pas notre contexte.
+    const sortie = ac.createGain(); sortie.connect(maitre);
+    const prete = new Proxy(ac, { get(t, k) { if (k === 'destination') return sortie; if (k === 'close' || k === 'suspend') return () => Promise.resolve();
+      const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; } });
+    fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
     jg.step = 'any'; const vit = x => { jg.value = (x * 100).toFixed(1); jg.dispatchEvent(new fr.contentWindow.Event('input')); };
     vit(0); bt.click();
-    return { regle(p, m) { vit(m / 29); }, arret() { try { if (/stop/i.test(bt.textContent)) bt.click(); } catch (e) {} fr.remove(); }, palier: () => -1 };
+    return { regle(p, m) { vit(m / 29); }, arret() { try { if (/stop/i.test(bt.textContent)) bt.click(); } catch (e) {} try { sortie.disconnect(); } catch (e) {} fr.remove(); }, palier: () => -1 };
   },
   async boucle(S) {   // une boucle : en entier, sans couture (l'amorce AAC sautée si le fichier est plus long que sa durée)
     const buf = await tampon(S.f), ex = S.dur ? buf.duration - S.dur : 0, a = ex > 0.03 ? Math.min(ex, 2112 / buf.sampleRate) : 0, fin = S.dur ? Math.min(buf.duration, a + S.dur) : buf.duration;
@@ -559,17 +626,23 @@ const BLEUS = new Map();
 let RETOUCHES = null;
 function dessineBleus() {
   const L = $('gBleu'); if (!L) return; L.querySelectorAll(':scope>.genv').forEach(x => x.remove());   // (les sons de la bibliothèque rangés ici restent)
-  const B = (PREF.gen || []).filter(e => e.avis > 0).flatMap(e => { const k = e.n + '|' + e.titre; let S = BLEUS.get(k);
-    if (!S) { S = { id: 'bleu-' + e.n, sec: 'bleu', type: 'genv', titre: e.titre, style: (e.nom || e.style || '') + ' · n° ' + e.n, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e }; BLEUS.set(k, S); }
-    const v2 = (RETOUCHES && RETOUCHES.V2 || []).filter(d => d.base === e.n).map(d => { let S2 = BLEUS.get(d.id);
-      if (!S2) { S2 = { id: d.id, sec: 'bleu', type: 'genv', titre: d.titre, style: 'V2 · ' + d.idee, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e, v2: d }; BLEUS.set(d.id, S2); } return S2; });
-    return [S, ...v2]; });
+  // (15/10) une V2 vit sans son original : si Léo retire l'original de Pouce bleu, sa V2 reste (elle a sa propre corbeille)
+  const B = (PREF.gen || []).flatMap(e => { const k = e.n + '|' + e.titre, L9 = [];
+    if (e.avis > 0) { let S = BLEUS.get(k);
+      if (!S) { S = { id: 'bleu-' + e.n, sec: 'bleu', type: 'genv', titre: e.titre, style: (e.nom || e.style || '') + ' · n° ' + e.n, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e }; BLEUS.set(k, S); }
+      S.e = e; L9.push(S); }
+    (RETOUCHES && RETOUCHES.V2 || []).filter(d => d.base === e.n && !retire(d)).forEach(d => { let S2 = BLEUS.get(d.id);
+      if (!S2) { S2 = { id: d.id, sec: 'bleu', type: 'genv', titre: d.titre, style: 'V2 · ' + d.idee, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e, v2: d }; BLEUS.set(d.id, S2); }
+      S2.e = e; S2.seule = !(e.avis > 0); L9.push(S2); });
+    return L9; });
+  const POUB = '<button class="poub" aria-label="Retirer de Pouce bleu" title="Retirer de Pouce bleu"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>';
   B.forEach(S => { const el = document.createElement('div'); el.className = 'ligne genv'; S.el = el;
     el.innerHTML = '<button class="play" aria-label="Écouter">' + PLAY + '</button><div class="txt"><div class="nom"></div><div class="meta"></div><div class="etat"></div></div>' +
-      '<button class="noteB" aria-label="Note">' + NOTE_SVG + '</button><button class="pouce on" aria-label="Retirer le pouce" title="Retirer le pouce"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button>';
+      '<button class="noteB" aria-label="Note">' + NOTE_SVG + '</button><button class="pouce on" aria-label="Retirer le pouce" title="Retirer le pouce"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button>' + POUB;
     el.querySelector('.nom').textContent = nomDe(S); el.querySelector('.meta').textContent = S.style + ' · version ' + (S.v === 'actuelle' ? 'actuelle' : S.v.replace('v', '').replace('-', '.'));
-    if (S.v2) { el.classList.add('v2'); el.querySelector('.pouce').remove(); }   // (une V2 n'a pas son propre pouce : c'est celui de l'original)
-    else el.querySelector('.pouce').onclick = ev => { ev.stopPropagation(); if (J.S === S) stop(); S.e.avis = 0; prefEcrit(); goutsMaj(true); dessineBleus(); };
+    if (S.v2) { if (!S.seule) el.classList.add('v2'); el.querySelector('.pouce').remove(); }   // (une V2 n'a pas son propre pouce : c'est celui de l'original)
+    else el.querySelector('.pouce').onclick = ev => { ev.stopPropagation(); retireDeBleu(S); };
+    el.querySelector('.poub').onclick = ev => { ev.stopPropagation(); retireDeBleu(S); };
     el.onclick = () => joue(S); noteBranche(el, S);
     if (J.S === S) { el.classList.add('joue'); el.querySelector('.play').innerHTML = STOP; }
     L.appendChild(el); });
