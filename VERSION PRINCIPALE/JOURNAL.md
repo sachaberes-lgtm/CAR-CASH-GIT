@@ -3,6 +3,47 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ÉLAN : UNE FIGURE EST UN COUP, PLUS UNE ANIMATION (2026-10-15 soir, Sacha : « retravaille un peu la physique : là, on dirait une animation — quand tu fais la figure, la voiture se redresse très vite et retourne très vite à un axe parfaitement droit, alors qu'il faudrait que ça agisse plus comme une sorte d'impulsion qui donne un élan à la voiture dans un sens, et si tu fais l'autre figure en même temps, ça modifie cette impulsion ; par exemple tu peux faire un tonneau, et pendant que le tonneau se finit… »)
+- MESURÉ AVANT (banc Node du corps, `banc-corps.cjs`, le vrai `figures.js`) : la caisse tournait à vitesse CONSTANTE (tonneau 11,3 rad/s,
+  salto 9,7), puis passait de 11 à 1 rad/s en 0,1 s (la PRISE à 85 rad/s²) et rebondissait sur l'axe (le planté, ressort ω 13) ; après deux
+  figures mêlées, la prise la faisait tourner à vitesse FIXE (4,5 ou 11,5 rad/s) jusqu'à l'endroit. C'était l'« animation ».
+- **L'ÉLAN** (`FIG.PHY.elan`, défaut ; **`?elan=0` = la physique d'avant**) dans `FIG.Corps` (figures.js ?v=7) :
+  · LE COUP : l'explosion lance la rotation fort, puis l'AIR la freine en continu (exponentiel) — la caisse file, GLISSE et ralentit d'elle-même.
+    Le coup est dosé pour que la glissade fasse ses tours : elle atteindrait 97 % (`cov`) et passe `fin` (82 %) en `kT` × D (`kT` 1,1 ; le frein
+    `r.c` = −ln(1 − fin/cov) / (kT·D) : un vol court → D raccourci par le jeu → frein plus fort, coup plus sec) ;
+  · UNE FIGURE PENDANT QU'UNE AUTRE GLISSE S'Y AJOUTE : l'air freine au rythme de la DERNIÈRE lancée (au rythme de la plus nerveuse, la
+    précédente n'arrivait qu'à 85 % de son tour, en traînant) ; l'axe se penche, la caisse part en vrille mêlée ;
+  · À BOUT DE SOUFFLE : quand l'élan qui reste sur son axe ne la mènera plus au bout (coup contraire, deux coups mêlés) ou qu'elle finirait
+    au-delà de 1,3 × sa durée, la figure s'arrête là (elle paiera si elle a fait 70 % — `paye`) ; MESURÉ : sans ça la caisse flottait 0,8 s à
+    l'envers, presque immobile ;
+  · LA FIN : plus de freinage sec — un RETOUR souple vers l'endroit (`ret` ω 5,5, amorti .65) qui reprend la caisse là où la glissade l'a
+    laissée ; elle paie à l'endroit, comme le planté (mode `retour`) ;
+  · LA PRISE FORTE n'est plus qu'un FILET : le sol arrive (le budget du viseur), le tap NITRO qui redresse.
+  · Le jeu dose une figure sur le vol qui reste avec `figKT()` (la glissade + le retour : kT + .35 au lieu de .85) ; l'essai au garage dure
+    d'autant (`garFigEssai`) ; la boîte à figures prolonge déjà son saut sur `reste()`.
+- MESURÉ APRÈS — banc du corps : tonneau 15 → 11 → 8 → 6 → 4,6 → 3,5 rad/s (0,1 → 0,6 s), retour, payé à 1,1 s, rangé à 1,75 s ; tonneau puis
+  salto à 0,4 s : deux coups, glissade mêlée, retour à 1,2 s, les deux payées à 1,73 s ; salto avant + salto arrière : retour souple dès 0,2 s,
+  rien ne paie ; vol de 1 s / 0,8 s : le tonneau paie (0,92 / 0,75 s), le filet ne sert que les 2-3 derniers dixièmes. Banc du JEU (cc-banc,
+  390 × 844, muet) : tonneau seul payé (16 → 3 rad/s en 0,7 s, à l'endroit à 1,3 s) ; tonneau puis salto 0,35 s après → les deux payées +
+  COMBO ×1,5 ; rodéo arrière payé ; 0 chute, 0 erreur.
+- Hors de cette demande, rappelé par Sacha en passant : l'HÉLICO 720 est bien une figure de CÔTÉ, le SALTO COSMIQUE avant ET arrière
+  (section précédente) — rien à changer.
+- À juger par Sacha en jouant : la vigueur du coup (`kT`), la longueur de la glissade et la mollesse du retour (`ret`) — `dbgFig('phy')` les
+  montre et les change à chaud.
+## LE HUD ALLÉGÉ (2026-10-15, Sacha : « supprime des éléments d'HUD un peu inutiles, je trouve qu'il y a trop d'info affichée et que ça nuit à l'expérience »)
+- RELEVÉ au banc en course (`hudtour.cjs` du scratchpad de la session : route, vol, route 6 s plus tard, pouvoir ramassé ; debout 390 × 844 et couché
+  844 × 390, inventaire DOM de tout ce qui est visible) : le coin haut-gauche empilait TROIS barres (boost, jauge d'aura « MOY 400 », flow), DEUX
+  lectures de l'aura (la jauge et le compteur « 609 AURA ») et la liste de chaque figure de la chaîne ; des « +N » d'aura traversaient l'écran.
+- RETIRÉ (détail dans `<style id="hudAllege">`, juste avant `#splash`) : (1) la JAUGE D'AURA de Léo (12/10) et ses « +N » volants — Sacha a tranché
+  (« oui, retire-la ») ; code gardé, `?jauge=1` la rend (`JAUGE_AURA`, la classe `html.sansJauge`, `ajGain` muet, plus de « MOYENNE BATTUE ») ;
+  les éclairs de NITRO qui volent vers la barre de boost restent (même couche `#ajVols`, même boucle `ajTick`) ; (2) la liste des figures sous la
+  chaîne (`#avList`) ; (3) le « $×1 » du flow au palier 0 ; (4) le nom du pouvoir au centre (`slam` dans `pwrPrend`) — sa plaque le dit.
+- PLACES : le flow monte à la place de la jauge, l'aura d'autant ; mesuré, l'écart flow → aura est celui d'avant (21 px debout, 17 couché).
+  `#auraV2` est rétréci par `zoom` : ses pas CSS (+76 debout, +72 couché) ne sont pas ceux de l'écran.
+- GARDÉ (à rayer par numéro si Sacha le veut) : barre de boost + vitesse, flow, ⏸, argent, compteur d'aura + chaîne, chrono de vol, plaques de pouvoir,
+  carte moteur (NOUVEAU MOTEUR / SOMMET), rappel de figure, bouton NITRO, « GLISSE POUR TOURNER » (s'efface au premier braquage), « BOOST »,
+  « +1 » des pièces, bannières de mission, DAUPHIN.
+
 ## LES FIGURES PAR DIRECTION : AVANT · ARRIÈRE · CÔTÉS (2026-10-15 soir, Sacha : « en vrai mets aussi une catégorie de figure en mode flèche vers l'arrière pour les saltos arrière ou certaines figures qui peuvent être faites vers l'arrière ; une même figure doit avoir marqué à quelle direction elle peut aller, par exemple tonneau c'est que les côtés mais rodéo ça peut être mis à l'avant ou à l'arrière » → question posée, réponse : « 3, une par geste »)
 - Suite directe des DEUX FAMILLES (section suivante), qu'elle remplace : la famille `cat` devient `dir` (les DIRECTIONS d'une figure), et
   « 2 figures à la fois » (Sacha, le matin) devient **3, une par geste** (`FIG_NB`=3) — c'est lui qui l'a choisi, la question posée disait

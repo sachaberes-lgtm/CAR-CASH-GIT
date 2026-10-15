@@ -120,7 +120,21 @@
      Une figure ne paie qu'une fois PLANTÉE (ou posée à moins de `ok` de l'endroit) : `tick` rend les figures plantées, avec leur nombre de
      tours (`reps`). Les points d'explosion (`evts`) sont lus par le jeu pour les flammes, le son, la secousse. */
   var PHY={I:[1,1.12,.46],gyro:.12,tImp:.08,kImp:1.08,aHold:12,wMax:22,aCtl:85,wE:1.7,wMin:4.5,
-    pd:{w:13,z:.42},aero:{w:3.2,z:.36},fin:.82,ok:.35,wPose:9,drag:.05,sub:1/120,w0max:3,q0max:.9};
+    pd:{w:13,z:.42},aero:{w:3.2,z:.36},fin:.82,ok:.35,wPose:9,drag:.05,sub:1/120,w0max:3,q0max:.9,
+    elan:true,kT:1.1,cAir:2.6,cov:.97,ret:{w:5.5,z:.65},retT:.25};
+  /* L'ÉLAN (2026-10-15 soir, Sacha : « retravaille un peu la physique : là, on dirait une animation — quand tu fais la figure, la voiture se
+     redresse très vite et retourne très vite à un axe parfaitement droit, alors qu'il faudrait que ça agisse plus comme une sorte d'impulsion
+     qui donne un élan à la voiture dans un sens, et si tu fais l'autre figure en même temps, ça modifie cette impulsion »). MESURÉ avant
+     (banc-corps) : la caisse tournait à vitesse CONSTANTE (tonneau 11,3 rad/s), puis passait de 11 à 1 rad/s en 0,1 s et rebondissait sur
+     l'axe (la PRISE à 85 rad/s² + le planté raide) ; après deux figures, la prise la faisait tourner à vitesse FIXE jusqu'à l'endroit.
+     Avec `elan` (défaut ; `?elan=0` dans le jeu = avant) :
+     · le COUP : l'explosion lance la rotation fort, et l'AIR la freine en continu (`cAir` par seconde, exponentiel) — la caisse file, puis
+       GLISSE et ralentit d'elle-même ; le coup est dosé pour que la glissade fasse ses tours (`cov` = 97 % : elle arrive presque à l'endroit,
+       lentement) et atteigne `fin` en `kT` × D (`r.c`) — un vol court (D raccourci par le jeu) : l'air freine plus fort, le coup est plus sec ;
+     · une figure lancée pendant qu'une autre glisse S'AJOUTE à ce qui tourne encore : l'axe se penche, la caisse part en vrille composée ;
+     · la fin : plus de freinage sec — un RETOUR souple vers l'endroit (`ret`, ω 6,5, amorti .6), qui reprend la caisse là où sa glissade
+       l'a laissée ; elle paie quand elle y est (comme le planté) ;
+     · la PRISE forte ne sert plus que de FILET : le sol arrive (le budget du viseur), le tap qui redresse, deux coups qui s'annulent. */
   var AUTO={derive:{id:'derive',n:'TOUPIE DE DRIFT',en:'DRIFT SPIN',p:0,D:.85,aura:70,m:[{a:[0,1,0],t:1}],auto:1}};
   function vNorm(a){var l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}
   function vDot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
@@ -152,9 +166,10 @@
      tourne plus vite). o.tient : le doigt est encore sur le bouton (poussée continue) · o.vise : la vitesse visée est un TOTAL (la toupie de
      drift reprend l'élan qu'a déjà la caisse au lieu de s'y ajouter). */
   Corps.prototype.lance=function(f,sens,D,o){o=o||{};D=Math.max(.3,D||f.D);sens=sens||1;
-    var r={f:f,s:sens,D:D,t:0,mv:[],imp:[0,0,0],impT:PHY.tImp,tient:!!o.tient,tenu:0,fini:false,paye:false,reps:0,osc:null,boums:[],force:false,douce:!!o.douce},tq=[0,0,0]; // douce : une figure AUTOMATIQUE (celle du saut nitro, la toupie de drift) — le joueur ne l'a pas risquée : pas finie = pas payée, jamais une CHUTE
+    var r={f:f,s:sens,D:D,t:0,mv:[],imp:[0,0,0],impT:PHY.tImp,tient:!!o.tient,tenu:0,fini:false,paye:false,reps:0,osc:null,boums:[],force:false,douce:!!o.douce,
+      c:PHY.elan?-Math.log(1-PHY.fin/PHY.cov)/(PHY.kT*D):0},tq=[0,0,0]; // (L'ÉLAN) c : le frein de l'air sur CETTE figure — la glissade atteint `fin` en kT × D (plus court si le vol l'est) // douce : une figure AUTOMATIQUE (celle du saut nitro, la toupie de drift) — le joueur ne l'a pas risquée : pas finie = pas payée, jamais une CHUTE
     for(var i=0;i<f.m.length;i++){var m=f.m[i],a=vNorm(m.a);
-      if(m.t!=null){var d=(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)?(m.t>0?1:-1):(m.t>0?1:-1)*sens,tours=Math.abs(m.t),sp=6.2832*tours/D*PHY.kImp;
+      if(m.t!=null){var d=(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)?(m.t>0?1:-1):(m.t>0?1:-1)*sens,tours=Math.abs(m.t),sp=PHY.elan?6.2832*tours*r.c*PHY.cov:6.2832*tours/D*PHY.kImp; // (L'ÉLAN) la glissade freinée fait ses tours : coup = tours × 2π × frein
         if(o.vise)sp=Math.max(0,sp-vDot(this.w,a)*d);
         r.mv.push({a:a,d:d,tours:tours,th:0});for(var j=0;j<3;j++){r.imp[j]+=a[j]*d*sp;tq[j]+=a[j]*d*sp;}}
       else{ // un BATTEMENT (shimmy, chandelle) : un ressort qui bat — l'impulsion le lance, sa raideur le fait battre k fois en D
@@ -169,7 +184,7 @@
      ou dans Asphalt 8 ») : une explosion de plus sur la MÊME figure, dans le même sens, encore en train de tourner — un tour de plus prévu
      (TONNEAU → TONNEAU ×2 → ×3…), la poussée S'AJOUTE à ce qui tourne. Une seule figure qui compte ses tours, pas deux qui se les volent. */
   Corps.prototype.empile=function(r,D){if(!r||r.paye||!r.mv.length)return null;D=Math.max(.3,D||r.f.D);
-    var m=r.mv[0],sp=6.2832/D*PHY.kImp;m.tours+=1;r.D+=D;r.fini=false;r.force=false;r.rate=false;
+    var m=r.mv[0],sp=PHY.elan?6.2832*(r.c||PHY.cAir)*PHY.cov:6.2832/D*PHY.kImp;m.tours+=1;r.D+=D;r.fini=false;r.force=false;r.rate=false;
     r.imp[0]=m.a[0]*m.d*sp;r.imp[1]=m.a[1]*m.d*sp;r.imp[2]=m.a[2]*m.d*sp;r.impT=PHY.tImp;
     var b=boums([r.imp[0]/sp,r.imp[1]/sp,r.imp[2]/sp],Math.min(1.6,sp/11));for(var i=0;i<b.length;i++)this.evts.push(b[i]);
     this.n++;return r;};
@@ -187,8 +202,11 @@
     for(i=0;i<this.figs.length;i++){r=this.figs[i];if(r.paye||!(r.impT>0))continue;var u=r.impT/PHY.tImp;W[0]+=r.imp[0]*u;W[1]+=r.imp[1]*u;W[2]+=r.imp[2]*u;}
     for(i=0;i<this.figs.length;i++){r=this.figs[i];if(r.paye)continue;any=true;
       if(r.osc&&!r.mv.length){t=Math.max(t,r.D-r.t);continue;}
-      for(var j=0;j<r.mv.length;j++){var m=r.mv[j],rem=Math.max(0,m.tours*6.2832*PHY.fin-m.th),v=Math.max(1.5,Math.abs(vDot(W,m.a)));t=Math.max(t,rem/v+(r.tient?.35:0));}}
-    return any?t+Math.hypot(W[0],W[1],W[2])/PHY.aCtl+.14:0;};
+      if(PHY.elan&&r.fini)continue; // (L'ÉLAN) finie : il ne lui reste que le retour (compté en bas)
+      for(var j=0;j<r.mv.length;j++){var m=r.mv[j],rem=Math.max(0,m.tours*6.2832*PHY.fin-m.th),v=Math.max(1.5,Math.abs(vDot(W,m.a))),ti=rem/v;
+        if(PHY.elan&&rem>0){var c=r.c||PHY.cAir,va=vDot(W,m.a)*m.d;ti=va*.97>rem*c?-Math.log(1-rem*c/va)/c:.2;} // (L'ÉLAN) la glissade freinée : x(t) = v/c·(1 − e^(−ct)) ; trop peu d'élan pour finir : elle s'arrêtera là (pas plus de temps à réserver)
+        t=Math.max(t,ti+(r.tient?.35:0));}}
+    return any?t+(PHY.elan?PHY.retT:Math.hypot(W[0],W[1],W[2])/PHY.aCtl+.14):0;};
   Corps.prototype.ecart=function(){return 2*Math.acos(Math.min(1,Math.abs(this.q[3])));};
   Corps.prototype.tick=function(dt){var fin=[];if(!(dt>0))return fin;var n=Math.max(1,Math.ceil(dt/PHY.sub)),h=dt/n;for(var k=0;k<n;k++)this.pas(h,fin);return fin;};
   Corps.prototype.pas=function(h,fin){
@@ -201,25 +219,32 @@
     var gx=(I[1]-I[2])/I[0]*w[1]*w[2],gy=(I[2]-I[0])/I[1]*w[2]*w[0],gz=(I[0]-I[1])/I[2]*w[0]*w[1],kg=P.gyro*h;
     w[0]+=gx*kg;w[1]+=gy*kg;w[2]+=gz*kg;
     // 3. QUI COMMANDE : une figure qui tourne encore (libre), une figure finie à planter (prise), ou personne (l'air la range)
-    var tourne=false,aPlanter=false,osc=null,tient=false;
+    var tourne=false,aPlanter=false,osc=null,tient=false,prog=0;
     for(i=0;i<F.length;i++){r=F[i];if(r.paye)continue;
       if(r.osc&&r.t<r.D)osc=r.osc;
       if(!r.mv.length)continue;
       if(r.tient)tient=true;
-      if(!r.fini){var ok=true,mort=false;for(j=0;j<r.mv.length;j++){m=r.mv[j];if(m.th<m.tours*6.2832*P.fin){ok=false;
+      if(!r.fini){var ok=true,mort=false;for(j=0;j<r.mv.length;j++){m=r.mv[j];prog=Math.max(prog,m.th/(m.tours*6.2832));if(m.th<m.tours*6.2832*P.fin){ok=false;
           // ANNULÉE : une explosion contraire a éteint la rotation sur SON axe (un tonneau à gauche sur un tonneau à droite) — elle ne finira jamais, même si
           // la caisse tourne encore sur un autre : au bout de 0,35 s, elle sort du compte (et ne paie pas)
-          if(r.impT<=0&&!r.tient&&Math.abs(vDot(w,m.a))<1.2){m.cale=(m.cale||0)+h;if(m.cale>.35)mort=true;}else m.cale=0;}}
+          if(r.impT<=0&&!r.tient&&Math.abs(vDot(w,m.a))<1.2&&!(P.elan&&m.th>m.tours*6.2832*.45)){m.cale=(m.cale||0)+h;if(m.cale>.35)mort=true;}else m.cale=0;
+          // (L'ÉLAN) À BOUT DE SOUFFLE : ce qui reste d'élan sur SON axe (v/c, la glissade) ne la mènera plus au bout (deux coups mêlés, un coup contraire) :
+          // elle s'arrête là, le retour souple prend la caisse (MESURÉ au banc-corps : sinon elle flottait 0,8 s à l'envers, presque immobile)
+          if(P.elan&&r.impT<=0&&!r.tient){var vv=vDot(w,m.a)*m.d,cc=r.c||P.cAir,rr=(m.tours*6.2832*P.fin-m.th)*cc/Math.max(1e-6,vv); // la part de la glissade restante qu'il lui faudrait
+            if(vv<=0||rr>=.97||r.t-Math.log(1-rr)/cc>P.kT*r.D*1.3+.15)mort=true;}}} // (la traîne : finir au-delà de 1,3 fois sa durée prévue — elle s'arrête là)
         if(ok&&!r.tient)r.fini=true;else if(mort||(!r.tient&&r.t>r.D*2.2+.4)){r.fini=true;r.force=true;}} // (trois rotations empilées qui se mêlent : passé 2,2 fois sa durée, on se replace — elle paie si l'essentiel est fait)
       if(!r.fini||r.tient)tourne=true;else aPlanter=true;}
     // plus le temps de finir (le viseur dit quand on touche) : on lâche tout et on se replace — ce qui n'a pas fini ne comptera pas
     // CALÉE : deux explosions qui s'annulent (un salto avant puis un salto arrière) laissent la caisse presque immobile, n'importe où — l'air ne
     // finira pas la figure à sa place : au bout de 0,2 s, on se replace (rien ne paie)
-    var sp0=Math.hypot(w[0],w[1],w[2]);this.cale=tourne&&!tient&&sp0<2.5?(this.cale||0)+h:0;
-    if(tourne&&!tient&&(this.cale>.2||this.budget<this.reste()+.05)){for(i=0;i<F.length;i++){r=F[i];if(!r.paye&&r.mv.length&&!r.fini){r.fini=true;r.force=true;}}tourne=false;aPlanter=true;}
+    var sp0=Math.hypot(w[0],w[1],w[2]),force9=false;this.cale=tourne&&!tient&&sp0<2.5&&!(P.elan&&prog>.45)?(this.cale||0)+h:0;
+    if(tourne&&!tient&&(this.cale>.2||this.budget<this.reste()+.05)){for(i=0;i<F.length;i++){r=F[i];if(!r.paye&&r.mv.length&&!r.fini){r.fini=true;r.force=true;}}tourne=false;aPlanter=true;force9=!(this.cale>.2);}
     var sp=Math.hypot(w[0],w[1],w[2]),R=this.r;
     if(this.urgent>0&&!tourne&&!aPlanter&&this.ecart()>.3)aPlanter=true; // (le redressement) même une caisse qui ne fait que se balancer se remet tout de suite
-    if(tourne){this.mode='libre';var dk=1-P.drag*h;w[0]*=dk;w[1]*=dk;w[2]*=dk;}
+    var doux=P.elan&&!force9&&!(this.urgent>0)&&!(this.budget<P.retT)&&this.mode!=='prise'; // (L'ÉLAN) la fin en douceur — sauf le filet : sol proche, redressement (deux coups qui s'annulent : le retour souple aussi)
+    if(tourne){this.mode='libre';var cD=P.drag;if(P.elan){cD=0;for(i=F.length-1;i>=0;i--){r=F[i];if(!r.paye&&!r.fini&&r.mv.length&&r.c){cD=r.c;break;}}cD=cD||P.cAir;} // (L'ÉLAN) l'air freine au rythme de la DERNIÈRE figure lancée : c'est elle qui donne l'élan (au plus nerveux, la précédente n'arrivait qu'à 85 % de son tour)
+      var dk=P.elan?Math.exp(-cD*h):1-P.drag*h;w[0]*=dk;w[1]*=dk;w[2]*=dk;}
+    else if(aPlanter&&doux&&this.mode!=='plante')this.mode='retour';
     else if(aPlanter&&this.mode!=='plante'){this.mode='prise';this.tPrise+=h;
       retour(this.q,R);var nf0=R.n[0],nf1=R.n[1],nf2=R.n[2],pf=R.phi,dn=w[0]*nf0+w[1]*nf1+w[2]*nf2;
       if(dn<0&&sp>.5&&pf>.5&&!(this.urgent>0)&&!(this.budget<(6.2832-pf)/sp+.1&&this.budget>pf/Math.max(sp,P.wMin))) /* (le redressement : le plus court chemin, tout de suite) */
@@ -228,9 +253,9 @@
       else{var tg=Math.sqrt(P.wE*P.wE+2*P.aCtl*pf),cap=Math.max(sp,P.wMin);if(tg>cap)tg=cap;
         var e0=nf0*tg-w[0],e1=nf1*tg-w[1],e2=nf2*tg-w[2],em=Math.hypot(e0,e1,e2),lim=P.aCtl*1.6*h*(this.budget<.5||this.urgent>0?2:1);if(em>lim){e0*=lim/em;e1*=lim/em;e2*=lim/em;}
         w[0]+=e0;w[1]+=e1;w[2]+=e2;}}
-    if(!tourne&&(this.mode==='plante'||!aPlanter)){ // LE RESSORT : le planté (raide, un rebond) ou l'air (mou : l'élan hérité se voit, puis se range)
-      if(!aPlanter&&this.mode!=='aero'&&this.mode!=='plante')this.mode='aero'; // le planté va au bout de son rebond (il ne repasse pas au ressort mou en pleine course)
-      var pr=this.mode==='plante'?P.pd:osc||P.aero,wn=pr.w*(this.mode==='aero'&&!osc?1+2.5*this.poseK:1),z=pr.z+(this.mode==='aero'&&!osc?.4*this.poseK:0);
+    if(!tourne&&(this.mode==='plante'||this.mode==='retour'||!aPlanter)){ // LE RESSORT : le planté (raide, un rebond), le RETOUR de l'élan (souple) ou l'air (mou : l'élan hérité se voit, puis se range)
+      if(!aPlanter&&this.mode!=='aero'&&this.mode!=='plante'&&this.mode!=='retour')this.mode='aero'; // le planté / le retour vont au bout de leur course (ils ne repassent pas au ressort mou en pleine course)
+      var pr=this.mode==='plante'?P.pd:this.mode==='retour'?P.ret:osc||P.aero,wn=pr.w*(this.mode==='aero'&&!osc?1+2.5*this.poseK:1),z=pr.z+(this.mode==='aero'&&!osc?.4*this.poseK:0);
       retour(this.q,R);var kp=wn*wn*R.phi,kd=2*z*wn;
       w[0]+=(kp*R.n[0]-kd*w[0])*h;w[1]+=(kp*R.n[1]-kd*w[1])*h;w[2]+=(kp*R.n[2]-kd*w[2])*h;}
     if(this.urgent>0)this.urgent-=h;
@@ -241,10 +266,10 @@
     // 6. PLANTÉE : à l'endroit, presque immobile — les figures finies paient (leurs tours comptés), les battements à la fin de leur durée
     var ang=this.ecart();
     for(i=F.length-1;i>=0;i--){r=F[i];if(r.paye)continue;
-      if(r.mv.length){if(r.fini&&this.mode==='plante'&&ang<.12&&sp<2.5)this.paye(r,fin);}
+      if(r.mv.length){if(r.fini&&(this.mode==='plante'||this.mode==='retour')&&ang<.12&&sp<2.5)this.paye(r,fin);}
       else if(r.t>=r.D){this.paye(r,fin);}}
     for(i=F.length-1;i>=0;i--)if(F[i].paye&&F[i].t>F[i].D*.5)F.splice(i,1);
-    if(this.mode==='plante'&&ang<.012&&sp<.1){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;w[0]=w[1]=w[2]=0;this.mode='aero';this.tPrise=0;}
+    if((this.mode==='plante'||this.mode==='retour')&&ang<.012&&sp<.1){this.q[0]=this.q[1]=this.q[2]=0;this.q[3]=1;w[0]=w[1]=w[2]=0;this.mode='aero';this.tPrise=0;}
   };
   // une figure qui paie : ses tours comptés sur son axe principal (×2 si on a tenu pour un tour de plus) — une figure FORCÉE (plus le temps) ne paie que si elle a fait l'essentiel
   Corps.prototype.paye=function(r,fin){r.paye=true;r.tient=false;

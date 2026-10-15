@@ -9660,6 +9660,26 @@ html:not(.c6) #mCadeau{padding:4px 12px}
 html:not(.c6) #gmHead #mCadeau{grid-column:1/-1;width:100%;box-sizing:border-box;margin:10px 0 0;pointer-events:auto} /* (14/10 ~21 h) le cadeau en tête de l'écran MISSIONS, sous le titre ; il n'est plus à l'accueil */
 html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
 </style>
+<style id="hudAllege">
+/* LE HUD ALLÉGÉ (2026-10-15, Sacha : « supprime des éléments d'HUD un peu inutiles, je trouve qu'il y a trop d'info affichée et que ça nuit
+   à l'expérience »). Relevé au banc en course, debout (390 × 844) et couché (844 × 390) : le coin haut-gauche empilait TROIS barres (boost,
+   aura, flow), DEUX lectures de l'aura et la liste de chaque figure. Retirés (Sacha a tranché pour la jauge de Léo) :
+   1. LA JAUGE D'AURA « MOY 400 » (`#ajCourse`, Léo, 12/10) et les « +N » d'aura qui volaient vers elle à travers l'écran : doublon du
+      compteur « 609 AURA ». Code gardé : `?jauge=1` la rend (`JAUGE_AURA`). Le FLOW remonte à sa place, l'AURA d'autant (mesuré :
+      16 px à l'écran debout, 17 couché ; `#auraV2` est rétréci par `zoom`, d'où des pas CSS plus grands — l'écart flow → aura ne change pas). Les éclairs de NITRO qui volent vers la barre de boost (même couche `#ajVols`) restent.
+   2. LA LISTE DES FIGURES sous la chaîne (« VIRAGE SERRE +45 / TONNEAU +50 ») : la chaîne garde son total, son × et sa barre.
+   3. Le « $×1 » du FLOW au palier 0 : il ne dit rien tant que le flow ne multiplie pas ; il revient dès le palier 1.
+   4. (dans le script, `pwrPrend`) le NOM DU POUVOIR au centre de l'écran : sa plaque, à droite, le dit déjà. */
+html.sansJauge #ajCourse{display:none!important}
+html.sansJauge body.touch #flowHud{top:calc(var(--hudH) + 53px)!important}
+html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
+@media (orientation:landscape) and (max-height:540px){
+  html.sansJauge body.touch #flowHud{top:calc(var(--hudH) + 56px)!important}
+  html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 72px)!important}
+}
+html body #avList{display:none!important}
+html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -10125,7 +10145,7 @@ html:not(.c6) #gmHead #mCadeau[hidden]{display:none}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=6"></script>
+<script src="figures.js?v=7"></script>
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=1"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -38389,7 +38409,7 @@ function pwrPrend(k,pos){
   /* (2026-09-29, Sacha : « pas de texte quand on ramasse un pouvoir, juste le nom du pouvoir, mais plus petit ») : plus de sous-titre
      (« L'OR VIENT À TOI »…), plus de « +6 S » ni de « DOUBLE POUVOIR ! » — le NOM, de sa couleur, 40 → 26 */
   if(!reprise){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
-  slam(d.gros,'',d.tint,d.c2,26,2);
+  /* (2026-10-15, Sacha : « trop d'info affichée ») plus de NOM au centre non plus : la plaque du pouvoir, à droite, le dit (voir <style id="hudAllege">) */
   if(!SONV2)boostSnd();pwrPrisSnd(k); // (console) chaque pouvoir a sa signature entière : plus le souffle d'un pad dessous
  shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
   sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
@@ -44571,6 +44591,8 @@ window.dbgVol=function(a){
      pose : posée en plein tour (> 52°), c'est la CHUTE — les figures de ce vol quittent la chaîne (`figChute`) et le flow tombe.
    `?fig=ancien` (ou `dbgFig('ancien')`) rend les figures de Léo (le lecteur animé, au hasard parmi celles qu'on possède). Console : `dbgFig()`. */
 const FIGV2={on:!/[?&]fig=(ancien|script|libre)\b/.test(location.search)}; // ?fig=libre : les FIGURES LIBRES de GAMEPLAY (nuit du 14/10) · ?fig=script / ?fig=ancien : le lecteur de Léo
+if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
+function figKT(){return window.FIG&&FIG.PHY&&FIG.PHY.elan?FIG.PHY.kT+.35:.85;} // le temps d'une figure (sa glissade + le retour) pour une durée D : de quoi la doser sur le vol qui reste
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
   cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
@@ -44697,14 +44719,14 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%FIG_NB;return {attente:true};}
-  const bud=o.dispo!=null?o.dispo:figBudget(),D=Math.min(f.D,(bud-.3)/.85);
+  const bud=o.dispo!=null?o.dispo:figBudget(),D=Math.min(f.D,(bud-.3)/figKT());
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=o.dx!=null&&Math.abs(o.dx)>=.3?o.dx:steer; // (2026-10-15, les deux familles) le geste de CÔTÉ donne le pouce LUI-MÊME (figDirSlot) : la figure part de ce côté, sans attendre que le volant lissé l'ait rejoint
   let enC=null;if(o.sens==null&&Math.abs(st9)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant que la même figure tourne (même le tonneau AUTOMATIQUE du saut nitro) : on CONTINUE dans son sens — alterner l'ÉTEIGNAIT (MESURÉ au banc : tonneau ×3 annulé par le bouton TONNEAU)
   const sens=o.sens!=null?o.sens:Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1)):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche) — o.sens : le GLISSER de Léo l'impose
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
   let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour (sur le tonneau du saut nitro aussi : le joueur le reprend en main, il n'est plus « automatique »)
-  if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/.85);if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);r.douce=false;}
+  if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/figKT());if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);r.douce=false;}
   else{if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
     r=C.lance(f,sens,D,{tient:s>=0&&!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;}
   if(s>=0){FX2.slots[s]=r;FX2.cyc=(s+1)%FIG_NB;}FX2.n++;VEQ.n++;
@@ -55242,7 +55264,7 @@ function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=f
   else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
 function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
 function garFigEssai(id,c){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]); // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
-  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2+.45;
+  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*figKT()/.85+.55; /* (2026-10-15 soir) l'élan glisse plus longtemps : le saut du plateau dure d'autant */
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
   try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}
@@ -58454,6 +58476,10 @@ window.dbgNitro3=function(a,b){
    ===================================================================================================================================== */
 const AJ={el:null,seg:null,cel:null,lS:null,lB:null,vols:null,pool:[],moy:0,rec:0,moyT:0,vis:0,vv:0,envol:0,acc:0,accT:0,accCh:false,
   enVol:0,fs:[-1,-1,-1,-1],cur:-1,rev:false,recB:false,fx:0,w:0,wT:0,dit:false,txt:'',lbl:'',run0:-1,v3:null};
+/* (2026-10-15, Sacha : « trop d'info affichée ») la jauge est MASQUÉE par défaut — voir <style id="hudAllege"> ; `?jauge=1` la rend.
+   Sans elle : plus d'aura qui vole, plus de « MOYENNE BATTUE » au centre. La boucle (ajTick) tourne toujours : elle porte aussi les vols de NITRO. */
+const JAUGE_AURA=/[?&]jauge=1\b/.test(location.search);
+if(!JAUGE_AURA)document.documentElement.classList.add('sansJauge');
 function ajMoy(){const r=(SAVE.d.ex&&SAVE.d.ex.runs)|0,a=SAVE.d.aura||0;return r>0?Math.max(100,a/r):400;}
 function ajMonte(){
   if(AJ.el)return true;if(!document.getElementById('nitroBar'))return false;
@@ -58472,7 +58498,7 @@ function ajSource(ch){
   return [VP.w*.5,VP.h*.55];
 }
 function ajGain(n,ch){
-  if(!(n>0)||!AJ.el)return;
+  if(!(n>0)||!AJ.el||!JAUGE_AURA)return;
   if(REDUCED_MOTION||document.hidden||!document.body.classList.contains('play'))return; // pas de vol : l'image suivante recale la jauge sur auraRun
   AJ.acc+=n;if(ch)AJ.accCh=true;
   if(ch||n>=150)ajLance(); // une chaîne qu'on encaisse, un gros gain : il part tout de suite
@@ -58609,7 +58635,7 @@ function ajTick(dt){
   if(cur!==AJ.cur){if(AJ.cur>=0)AJ.cel[AJ.cur].classList.remove('cur');AJ.cel[cur].classList.add('cur');AJ.cur=cur;
     AJ.el.style.setProperty('--ajI',FLOW_CEL[cur]);AJ.vols.style.setProperty('--ajI',FLOW_CEL[cur]);}
   if(rev!==AJ.rev){AJ.rev=rev;AJ.el.classList.toggle('revele',rev);
-    if(rev&&!AJ.dit&&running&&!gameOver&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0){AJ.dit=true;try{popTexte(sansAcc(TR('MOYENNE BATTUE')),FLOW_CEL[3],2);}catch(e){}hap([10,30,14]);
+    if(rev&&!AJ.dit&&JAUGE_AURA&&running&&!gameOver&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0){AJ.dit=true;try{popTexte(sansAcc(TR('MOYENNE BATTUE')),FLOW_CEL[3],2);}catch(e){}hap([10,30,14]);
       try{typeof sfx==='function'&&!sfx('aura.moyenne')&&sfx('victoire',{vol:-4});}catch(e){}}} // (console de son) aura.moyenne — (2026-10-14, session SON) cuit le 14/10 : la MOYENNE BATTUE, trois notes de marimba qui montent, 3 dB sous la victoire. Le repli sur victoire n'est plus qu'un filet
   if(recB!==AJ.recB){AJ.recB=recB;AJ.el.classList.toggle('record',recB);}
   // (2026-10-12, passe qualité) le libellé et le chiffre ne se REFABRIQUENT que si ce qu'ils disent change (TR + majPix + toLocaleString
