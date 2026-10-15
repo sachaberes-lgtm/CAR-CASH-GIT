@@ -208,6 +208,9 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
   <section id="secBleu"><h2>Pouce bleu <span id="nBleu"></span></h2>
     <p class="aide">Tes morceaux préférés de la bibliothèque (glisse un son sur l'onglet pour l'y ranger), puis les musiques du générateur que tu as aimées (👍), chacune rejouée par la version qui l'a faite — leur moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier). Le crayon ✎ ajoute une note sur n'importe quel son.</p>
     <div class="liste" id="gBleu"></div></section>
+  <section id="secNeuf"><h2>Nouveaux <span id="nNeuf"></span></h2>
+    <p class="aide">Trois musiques neuves, chacune son univers, au niveau de tes 👍 : elles suivent le moteur en 30 paliers. Le moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier).</p>
+    <div class="liste" id="gNeuf"></div></section>
   <section id="secIns"><h2>Inspirations <span id="nIns"></span></h2>
     <p class="aide">Les sons qui te donnent une idée pour le générateur. Dépose-les ici et écris ce qui te plaît dedans : je m'en sers pour le faire évoluer.</p>
     <label class="depot" id="depot">Glisse un son ici, ou <u>choisis un fichier</u> (mp3, m4a, wav…)<input type="file" id="depF" accept="audio/*,video/*" multiple hidden></label>
@@ -284,6 +287,13 @@ ajoute({ id: 'dir-french-touch', sec: 'moteur', type: 'html', titre: 'MOTEUR FRE
 // (2026-10-15, Léo, dans sa note sur AURA : « incroyable, juste transformer en 30 paliers comme les autres ») — le même AURA, en direct, en 30 moteurs
 ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIERS', style: 'le même AURA, en 30 moteurs comme les musiques du générateur : chaque moteur ajoute un élément ou pousse un cran (l’AURA en 8 paliers reste à côté)', nb: 0,
   f: 'assets/audio/music/direct/aura-30.html' });
+// (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai
+// déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y ») : trois morceaux ÉCRITS, rejoués par
+// assets/audio/music/direct/musique-trente-trio.js (le générateur v6-0 figé + leurs instruments, `O.style`) ; le moteur à la main, comme Pouce bleu
+[['zeppelin', 1999, 'ZEPPELIN D’OR', 'électro swing · clarinette, trompette bouchée, contrebasse qui marche, piano en pompe, la house dessous · le gramophone qui s’ouvre, le champagne · la mineur, 122 → 127 BPM'],
+ ['carnaval', 1555, 'CARNAVAL D’OR', 'batucada électronique · l’école de samba entre rang par rang : agogô, ganzá, surdos, tamborins, cavaquinho, trompettes, la foule · la cuíca qui rit · sol dorien, 104 → 110 BPM'],
+ ['casse', 1925, 'LE CASSE', 'trip-hop de braquage · clavecin, Rhodes, contrebasse, thérémine, la ligne espion · le coffre-fort, puis la poursuite en double tempo · mi mineur, 87 → 89 BPM']]
+  .forEach(([st, n, titre, style]) => ajoute({ id: 'neuf-' + st, sec: 'neuf', type: 'genv', titre, style, n, W: { clarte: .85 }, v: 'trio', da: 'trio', o9: { style: st } }));
 ajoute({ id: 'dir-glisse-v2', sec: 'moteur', type: 'js', titre: 'GLISSE v2', style: 'Module en direct · Pics de jade', nb: 5, f: 'assets/audio/music/direct/musique-glisse-v2.js' });
 ajoute({ id: 'dir-glisse', sec: 'moteur', type: 'js', titre: 'GLISSE', style: 'Module en direct (1re version)', nb: 5, f: 'assets/audio/music/direct/musique-glisse.js' });
 (window.BOUCLES || []).filter(b => b.sequence).forEach(b => ajoute({ id: 'seq-' + b.id, sec: 'moteur', type: 'phrases', titre: b.titre,
@@ -426,7 +436,7 @@ function badge(S) {
   return '<div class="badge"><span class="points">' + '<i></i>'.repeat(S.nb) + '</span>' + S.nb + ' paliers moteur</div>';
 }
 function dessine() {
-  const secs = { inspi: $('gIns'), bleu: $('gBleu'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), menu: $('gMenu'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
+  const secs = { inspi: $('gIns'), bleu: $('gBleu'), neuf: $('gNeuf'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), menu: $('gMenu'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
   catsSections().forEach(c => { secs['cat-' + c.id] = $('gCat-' + c.id); });   // (14/10) les catégories de Léo
   Object.values(secs).forEach(x => { if (!x) return; x.innerHTML = ''; x.classList.toggle('edit', EDIT); });   // (14/10 : « Petites musiques » et « Lobby » retirées)
   for (const S of CAT) {
@@ -458,7 +468,7 @@ function dessine() {
   }
   PREF.cats.forEach(c => { const x = $('nCat-' + c.id); if (x) x.textContent = n['cat-' + c.id] || 0; });
   dessineBleus(); if ($('gIns')) { $('nIns').textContent = n.inspi || ''; $('gIns').hidden = !n.inspi; }   // (en ligne, la section des inspirations n'existe pas)
-  $('nMot').textContent = n.moteur || 0; $('nNiv').textContent = n.niv || 0; $('nChr').textContent = n.chris || 0; $('nMenu').textContent = n.menu || 0; if ($('nPm')) $('nPm').textContent = n.pm || 0; if ($('nLob')) $('nLob').textContent = n.lobby || 0; $('nAnc').textContent = n.anciens || 0; $('nPet').textContent = n.petits || 0;
+  if ($('nNeuf')) $('nNeuf').textContent = n.neuf || 0; $('nMot').textContent = n.moteur || 0; $('nNiv').textContent = n.niv || 0; $('nChr').textContent = n.chris || 0; $('nMenu').textContent = n.menu || 0; if ($('nPm')) $('nPm').textContent = n.pm || 0; if ($('nLob')) $('nLob').textContent = n.lobby || 0; $('nAnc').textContent = n.anciens || 0; $('nPet').textContent = n.petits || 0;
   $('compte').textContent = CAT.filter(S => !retire(S) && S.sec !== 'inspi').length + ' sons · tout est déjà prêt, rien ne se calcule' + (SERVEUR ? '' : ' · en ligne : tes 👍 et tes changements restent sur cet appareil (« Copier mes choix » pour me les envoyer)'); copieMaj();
   const r = CAT.filter(retire), c = $('corb');
   c.innerHTML = '' && r.length ? '<a id="corbA">Sons supprimés (' + r.length + ') — les remettre</a><div class="l">' + r.map(S => '<div><span></span><button data-id="' + S.id + '">Remettre</button></div>').join('') + '</div>' : '';
@@ -475,7 +485,7 @@ $('filtre').onclick = () => { FILTRE = !FILTRE; dessine(); };
 // titre, « Retirer la catégorie » renvoie ses sons chez eux. Le rangement va dans musique-moteur.json (PREF.place : id → catégorie ;
 // PREF.cats : les catégories de Léo). Le son ne change pas de nature : un morceau qui suit le moteur se joue toujours en montant.
 const GL = { S: null, el: null };
-const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gMenu: 'menu', gAnc: 'anciens', gPet: 'petits' };
+const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gNeuf: 'neuf', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gMenu: 'menu', gAnc: 'anciens', gPet: 'petits' };
 // (2026-10-15) les V2 des notes de Léo se rangent d'office à côté de leur original (Léo peut toujours les déplacer)
 const PLACE_DEF = { 'pal-penthouse-v2': 'bleu' };
 function placeDe(S, secs) { const p = (PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]; return p && secs[p] ? p : S.sec; }
@@ -609,7 +619,8 @@ LECTEURS.unique = LECTEURS.boucle;
 LECTEURS.genv = async S => {   // une musique 👍 du générateur, rejouée par SA version
   const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: maitre, renouvelle: 0, da: S.da || 'cashcar' });
   const O = {}; if (/^hyb:/.test(String(S.e && S.e.style || ''))) O.style = S.e.style;   // (15/10) la couleur de l'avis : sans elle, une musique v6 en devenait une autre
-  if (S.v2) { O.retouche = S.v2.retouche; O.voix = S.v2.voix; O.acc = S.v2.acc; }
+  const R9 = S.v2 || S.retouche; if (R9) { O.retouche = R9.retouche; O.voix = R9.voix; O.acc = R9.acc; }   // une V2, ou la retouche posée sur la musique elle-même
+  if (S.o9) Object.assign(O, S.o9);   // (trio) Nouveaux : le morceau écrit
   inst.setTier(1, 30); inst.start(S.n, S.W || undefined, O); let cur = 1;
   return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); } }, arret() { try { inst.stop(); } catch (e) {} }, palier: () => cur - 1,
     info: () => inst.nomElement ? '+ ' + inst.nomElement(inst.tier) : '', inst };
@@ -621,8 +632,9 @@ const GEN_VERSIONS = [['2026-10-14T00:16:50', 'v3-1'], ['2026-10-14T01:01:05', '
 function versionDe(e) { if (e.v) return e.v; const t = String(e.date || ''); for (const [lim, v] of GEN_VERSIONS) if (t < lim) return v; return 'v3-9'; }
 function fichierVersion(v) { return v && v !== 'actuelle' ? 'assets/audio/music/direct/musique-trente-' + v + '.js' : GEN_F; }
 const BLEUS = new Map();
-// (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version ») LES V2 : `assets/audio/music/direct/retouches-bleu.js`
-// — chaque V2 est la même musique, retouchée selon la note de Léo, posée juste SOUS son original (qui ne change pas) ; RENOMS = ses « renommer ».
+// (2026-10-15, pôle SON ; Léo : « lis mes modifs, applique, rends la nouvelle version », puis « juste respecte les consignes ») LES RETOUCHES :
+// `assets/audio/music/direct/retouches-bleu.js` — la plupart se jouent SUR la musique elle-même (`direct`) ; une V2 posée SOUS l'original
+// seulement quand sa note le demande ; RENOMS = ses « renommer ».
 let RETOUCHES = null;
 function dessineBleus() {
   const L = $('gBleu'); if (!L) return; L.querySelectorAll(':scope>.genv').forEach(x => x.remove());   // (les sons de la bibliothèque rangés ici restent)
@@ -630,8 +642,8 @@ function dessineBleus() {
   const B = (PREF.gen || []).flatMap(e => { const k = e.n + '|' + e.titre, L9 = [];
     if (e.avis > 0) { let S = BLEUS.get(k);
       if (!S) { S = { id: 'bleu-' + e.n, sec: 'bleu', type: 'genv', titre: e.titre, style: (e.nom || e.style || '') + ' · n° ' + e.n, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e }; BLEUS.set(k, S); }
-      S.e = e; L9.push(S); }
-    (RETOUCHES && RETOUCHES.V2 || []).filter(d => d.base === e.n && !retire(d)).forEach(d => { let S2 = BLEUS.get(d.id);
+      S.e = e; S.retouche = (RETOUCHES && RETOUCHES.V2 || []).find(d => d.base === e.n && d.direct) || null; L9.push(S); }   // (15/10, « respecte les consignes ») retouchée SUR elle-même
+    (RETOUCHES && RETOUCHES.V2 || []).filter(d => d.base === e.n && !d.direct && !retire(d)).forEach(d => { let S2 = BLEUS.get(d.id);
       if (!S2) { S2 = { id: d.id, sec: 'bleu', type: 'genv', titre: d.titre, style: 'V2 · ' + d.idee, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e, v2: d }; BLEUS.set(d.id, S2); }
       S2.e = e; S2.seule = !(e.avis > 0); L9.push(S2); });
     return L9; });
@@ -640,6 +652,7 @@ function dessineBleus() {
     el.innerHTML = '<button class="play" aria-label="Écouter">' + PLAY + '</button><div class="txt"><div class="nom"></div><div class="meta"></div><div class="etat"></div></div>' +
       '<button class="noteB" aria-label="Note">' + NOTE_SVG + '</button><button class="pouce on" aria-label="Retirer le pouce" title="Retirer le pouce"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button>' + POUB;
     el.querySelector('.nom').textContent = nomDe(S); el.querySelector('.meta').textContent = S.style + ' · version ' + (S.v === 'actuelle' ? 'actuelle' : S.v.replace('v', '').replace('-', '.'));
+    if (S.retouche) { el.querySelector('.meta').textContent += ' · retouchée : ' + S.retouche.idee; el.title = 'Ta note : « ' + S.retouche.note + ' »\nRetouchée : ' + S.retouche.idee; }
     if (S.v2) { if (!S.seule) el.classList.add('v2'); el.querySelector('.pouce').remove(); }   // (une V2 n'a pas son propre pouce : c'est celui de l'original)
     else el.querySelector('.pouce').onclick = ev => { ev.stopPropagation(); retireDeBleu(S); };
     el.querySelector('.poub').onclick = ev => { ev.stopPropagation(); retireDeBleu(S); };
@@ -671,10 +684,10 @@ function stop() { J.jeton++; if (J.L) try { J.L.arret(); } catch (e) {} const S 
 // LE LECTEUR DU BAS : le moteur qui monte, le palier, − / +
 // (14/10, Léo : « en 30 paliers comme les autres ») : un morceau rangé dans POUCE BLEU se pilote comme les musiques du générateur — moteur 1 à
 // 30 À LA MAIN (− / +, flèches). Le son ne change pas : ses vraies étapes (8 figées, réparties sur les 30 moteurs) changent aux mêmes moteurs.
-const aLaMain = S => !!S && (S.sec === 'bleu' || ((PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]) === 'bleu');   // (15/10 : les V2 rangées d'office comptent aussi)
+const aLaMain = S => !!S && (S.sec === 'bleu' || S.sec === 'neuf' || ((PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]) === 'bleu');   // (15/10 : les V2 rangées d'office comptent aussi)
 function lecteurPose() {
   const S = J.S, on = !!(S && J.L); $('lect').classList.toggle('on', on); if (!on) return;
-  $('lNom').textContent = nomDe(S); const mt = S.sec === 'moteur' || S.sec === 'bleu';   // (Pouce bleu : le moteur à la main)
+  $('lNom').textContent = nomDe(S); const mt = S.sec === 'moteur' || S.sec === 'bleu' || S.sec === 'neuf';   // (Pouce bleu : le moteur à la main)
   $('lPm').hidden = !mt; $('lPts').hidden = !mt || !S.nb; $('lBarre').hidden = !mt;
   $('lPts').innerHTML = mt && S.nb ? J.deb.map((d, i) => '<button data-i="' + i + '" aria-label="Palier ' + (i + 1) + '"></button>').join('') : '';
   lecteurMaj();
@@ -682,7 +695,7 @@ function lecteurPose() {
 function palierDuMoteur() { return J.deb ? palPalierDe(J.deb, J.mot) : 0; }
 function lecteurMaj() {
   const S = J.S; if (!S || !J.L) return;
-  if (S.sec === 'bleu') { $('lMot').textContent = 'Moteur ' + (J.mot + 1) + ' / 30 · à la main : − / + (ou les flèches)' + (J.L.info && J.L.info() ? ' · ' + J.L.info() : ''); $('lBarre').firstChild.style.width = (J.mot / 29 * 100).toFixed(1) + '%'; return; }
+  if (S.sec === 'bleu' || S.sec === 'neuf') { $('lMot').textContent = 'Moteur ' + (J.mot + 1) + ' / 30 · à la main : − / + (ou les flèches)' + (J.L.info && J.L.info() ? ' · ' + J.L.info() : ''); $('lBarre').firstChild.style.width = (J.mot / 29 * 100).toFixed(1) + '%'; return; }
   if (S.sec !== 'moteur') { $('lMot').textContent = meta(S); return; }
   const p = palierDuMoteur(), intro = J.L.enIntro && J.L.enIntro();
   $('lMot').textContent = (intro ? 'Intro · ' : '') + 'Moteur ' + (J.mot + 1) + ' / 30 · ' + MOT[J.mot] + (S.nb ? ' · palier ' + (p + 1) + ' / ' + S.nb : ' · jauge ' + Math.round(J.mot / 29 * 100) + ' %') + (J.L.info && J.L.info() ? ' · ' + J.L.info() : '') + (aLaMain(S) ? ' · à la main : − / +' : '');
@@ -702,7 +715,7 @@ let der = performance.now();
 function tic(force) {
   const now = performance.now(), dt = Math.min(1, (now - der) / 1000); der = now;
   const S = J.S, L = J.L; if (!S || !L) return;
-  if (S.sec === 'moteur' || S.sec === 'bleu') {
+  if (S.sec === 'moteur' || S.sec === 'bleu' || S.sec === 'neuf') {
     if (!force && S.sec === 'moteur' && !aLaMain(S) && !(L.enIntro && L.enIntro())) J.t += dt;   // le moteur attend la fin de l'intro pour monter (Pouce bleu : seulement à la main)
     J.mot = Math.max(0, Math.min(29, Math.floor(J.t / PAS)));
     try { L.regle(palierDuMoteur(), J.mot); } catch (e) {}
