@@ -28409,7 +28409,7 @@ function echRetire(gs,prims,shape){
   const F=ECH_POTS[shape];if(!F||F.garde)return gs;
   let zMin=1e9;for(const g in gs){gs[g].computeBoundingBox();zMin=Math.min(zMin,gs[g].boundingBox.min.z);}
   const B=[];
-  if(prims)for(let i=prims.length-1;i>=0;i--){const p=prims[i];if(p.g==='l'||p.g==='g'||p.g==='p')continue;let bx=null;
+  if(prims)for(let i=prims.length-1;i>=0;i--){const p=prims[i];if(p.g==='l'||p.g==='g'||p.g==='p'||String(p.g).indexOf('pm:')===0)continue;let bx=null; // (2026-10-16) 'pm:…' : la tôle à motif (voir MOTIFS)
     if((p.t==='cyl'||p.t==='lathe')&&p.ax==='z'&&p.r<=.2&&p.z0<=zMin+.7&&p.y>.08&&p.y<=.6)bx=[p.x-p.r-.012,p.y-p.r-.012,p.z0-.012,p.x+p.r+.012,p.y+p.r+.012,p.z1+.012];
     else if(p.t==='box'&&!p.rot&&p.g==='c'&&p.w<=.4&&p.h<=.25&&p.z-p.d/2<=zMin+.15&&p.y<=.6&&((p.w>=p.h&&p.h>=.07)||(p.w<=.12&&p.h<=.12&&p.w>=.04&&p.h>=.04&&p.d>=.08)))
       bx=[p.x-p.w/2-.01,p.y-p.h/2-.01,p.z-p.d/2-.01,p.x+p.w/2+.01,p.y+p.h/2+.01,p.z+p.d/2+.01];
@@ -28519,6 +28519,7 @@ const LP_MAT={p:{sh:44,sp:0x4a4a4a,rf:.24,gl:.06,v:[.25,1.5,3,.2]},   // LAQUE
               n:{sh:70, sp:0xfff4fa,rf:.30,gl:.12,v:[.4,2.6,1.6,.1]},   // (2026-10-14, passe graphismes · palette) NACRE : un voile de ciel LARGE et doux en rasant (courbe 1,6), à peine teinté — même programme
               f:{sh:34, sp:0x5c5c5c,rf:.12,gl:.32}};// FRUITS : vernis + plancher lumineux haut (lisibles de nuit) — (2026-09-26) reflet adouci : les grosses taches BLANCHES mangeaient les fruits redessinés — (vernis : aucun, les fruits ne sont pas des caisses)
 function lpMat(g){
+  if(typeof g==='string'&&g.indexOf('pm:')===0){const m=lpMat('p');try{motGreffe(m,g.slice(3));}catch(e){console.warn('motif',e);}return m;} // (2026-10-16) LA TÔLE À MOTIF : la laque, et le motif par-dessus (voir MOTIFS)
   if(g==='l'){const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});m.userData.lp=1;return m;}
   const P=LP_MAT[g]||LP_MAT.m;
   const m=new THREE.MeshPhongMaterial({vertexColors:true,shininess:P.sh,specular:P.sp,side:THREE.DoubleSide});
@@ -28551,7 +28552,7 @@ function lpKit(pal){
     if(nx*nx+ny*ny+nz*nz<1e-12)return;                     // facette dégénérée (section qui se referme)
     const t=B[e.g]||(B[e.g]={P:[],C:[]});col.setHex(e.c);
     for(const p of [a,b,c]){t.P.push(p[0],p[1],p[2]);if(e.grad)lpGrad(e.grad,p[1],col); // PEINTURE en dégradé : une couleur par sommet
-      const s=(e.g==='p'&&e.f!==0)?fondu(p[1]):1;t.C.push(col.r*s,col.g*s,col.b*s);}
+      const s=((e.g==='p'||e.g.charAt(0)==='p')&&e.f!==0)?fondu(p[1]):1;t.C.push(col.r*s,col.g*s,col.b*s);} // ('pm:…' : la tôle à motif garde son fondu)
   };
   const put=(k,g,x,y,z,rx,ry,rz,sx,sy,sz)=>{               // verse une géométrie THREE, posée et tournée
     if(g.type==='CylinderGeometry'&&Math.abs(Math.abs(rx||0)-Math.PI/2)<.05&&!ry&&!rz&&K.prims){ // (pots) un cylindre COUCHÉ dans l'axe par rotation
@@ -33128,7 +33129,7 @@ function buildCar(spec){
   const chromeM=new THREE.MeshPhongMaterial({color:0xe8ecf0,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation});
   const darkM=new THREE.MeshPhongMaterial({color:0x14161a,shininess:60,specular:0x333333});
   const rustM=new THREE.MeshPhongMaterial({color:0x5a3a20,shininess:5,specular:0x111111});
-  {const pd=cosmSur('peinture');if(pd&&pd.id!=='usine'){const pc=pd.c!=null?pd.c:pd.grad[1];bodyM.color.setHex(pc);bodyM.emissive.setHex(pc);}}
+  {const pd=cosmSur('peinture');if(pd&&pd.id!=='usine'){const pc=pd.c!=null?pd.c:pd.grad[1];bodyM.color.setHex(pd.mot?0xffffff:pc);bodyM.emissive.setHex(pc);if(pd.mot)bodyM.userData.mot=pd.mot;}} // (2026-10-16) un MOTIF : la tôle blanche, le motif la colore (greffé après rimify)
   // le liseré (rim), c'est pour la tôle. (2026-09-26) + LE VERNIS des caisses « classiques » (pop-tart, requin, comète, formule, le
   // mans, patron, acide) : à .45 de reflet FIXE, la FORMULE OR sortait jaune pâle et ses vitres couleur de ciel. Le verre et le chrome
   // prennent le vernis SANS le liseré. L'épave garde l'ancien mélange au bit près (« ne rien changer »).
@@ -33137,6 +33138,7 @@ function buildCar(spec){
   // teinté à 20 % par la peinture.
   const VN9=wreck?null:[.06/refl,.36/refl,3,.2];
   rimify(bodyM,VN9);rimify(accM,VN9);bodyM.userData.g='p'; // (le banc des laques reconnaît la tôle des gabarits hors kit)
+  if(bodyM.userData.mot)try{motGreffe(bodyM,bodyM.userData.mot);}catch(e){console.warn('motif',e);} // (2026-10-16) le MOTIF d'un gabarit hors kit (voir MOTIFS)
   if(!wreck){rimify(glassM,[.1,.95,3,.35],0);rimify(chromeM,[.7,1.1,2,1],0);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;} // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
   const y0=.35,W9=spec.w,H9=spec.h,L9=spec.l;
   // ---- LA BOÎTE À OUTILS DES GABARITS : sans ces six raccourcis, 15 silhouettes feraient 1500 lignes.
@@ -33356,7 +33358,7 @@ function buildCar(spec){
   else if(lpPrims.length){
     const cand=[];
     for(const p of lpPrims){
-      if(p.g==='l'||p.g==='g'||p.g==='p')continue;                           // ni feux, ni verre, ni tôle
+      if(p.g==='l'||p.g==='g'||p.g==='p'||String(p.g).indexOf('pm:')===0)continue; // ni feux, ni verre, ni tôle (à motif comprise)
       // ⚠ PLUS BAS QUE 60 cm : mesuré sur les 66, les vrais pots sortent entre 26 et 52 cm ; au-dessus, le relevé prenait les FEUX RONDS
       // cerclés de chrome (Stratos, Raie, Trône, Spectre, Étalon, Daytona, Vette, Hot Rod) et le moyeu de la roue de secours du Caïd
       if((p.t==='cyl'||p.t==='lathe')&&p.ax==='z'&&p.r<=.2&&p.z0<=zPoupe+.7&&p.y>.08&&p.y<=.6)cand.push([p.x,p.y,p.z0,p.r]);
@@ -33448,6 +33450,7 @@ function buildCar(spec){
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
+  if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
 }
 /* <<<FIN VOITURES>>> */
@@ -36084,7 +36087,7 @@ function objFig(o){ try{
   const hx9=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');},rg9=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
   if(o.car!=null){const ph=carPhoto(o.car);return '<i class="obFig">'+(ph?'<img src="'+ph+'" alt="">':pxi('voiture'))+'</i>';}
   const d=COSM[o.cat]&&COSM[o.cat][o.i];if(!d)return '';
-  if(o.cat==='peinture')return '<i class="obFig"><b class="obSw'+cosmSwCl(d)+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx9).join(',')+')':hx9(d.c||0))+'"></b></i>';
+  if(o.cat==='peinture')return '<i class="obFig"><b class="obSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx9).join(',')+')':hx9(d.c||0))+'"></b></i>';
   if(o.cat==='trainee')return '<i class="obFig"><b class="obRub" style="color:'+(d.rgb?rg9(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg9(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></b>'+pxi('voiture')+'</i>'; // (2026-09-28) le ruban part d'une caisse : sans elle, une barre qui flotte
   return '<i class="obFig">'+pxi('aile')+'</i>';
 }catch(e){return '';} }
@@ -36702,6 +36705,143 @@ if(PALETTE_ON){
     COSM.peinture.push(o);PALETTE_PACK.ids.push(e[0]);}
   Object.assign(I18N,{"LA PALETTE": "THE PALETTE", "COULEUR SECRÈTE": "SECRET COLOUR", "LES 40 COULEURS SONT À TOI": "ALL 40 COLOURS ARE YOURS", "COULEUR": "COLOUR", "ROSE DRAGÉE": "SUGAR PINK", "Le rose des baptêmes. Tu roules quand même à 300.": "Christening pink. You're still doing 300.", "ABRICOT": "APRICOT", "Doux comme un fruit, rapide comme un vol.": "Soft as a fruit, fast as a flight.", "VANILLE": "VANILLA", "Une boule de glace qui ne fond pas à 1 000 km/h.": "A scoop of ice cream that won't melt at 1,000 km/h.", "PISTACHE": "PISTACHIO", "Le vert des glaciers italiens. Les pneus, eux, sont chauds.": "Italian gelato green. The tyres, though, are hot.", "VERT AMANDE": "ALMOND GREEN", "Le vert de la voiture de ta grand-mère. En plus nerveux.": "Your grandma's car green. With more attitude.", "ÉCUME": "SEA FOAM", "La mousse sur la vague. La vague, c'est toi.": "The foam on the wave. You are the wave.", "BLEU PISCINE": "POOL BLUE", "Le bleu d'une piscine de palace. Plongeoir compris.": "Five-star hotel pool blue. Diving board included.", "LILAS": "LILAC", "Une fleur de printemps qui double par la droite.": "A spring flower that overtakes on the right.", "BARBE À PAPA": "CANDY FLOSS", "Sucre filé, carrosserie dure. Ne lèche pas.": "Spun sugar, hard shell. Don't lick it.", "BLANC NEIGE": "SNOW WHITE", "Propre comme un compte en Suisse.": "Clean as a Swiss bank account.", "ROUGE BOLIDE": "RACING RED", "Le rouge des grandes marques. Sans le cheval, avec l'arrogance.": "The red of the big brands. Without the horse, with the arrogance.", "ORANGE ÉMEUTE": "RIOT ORANGE", "Visible depuis l'espace. C'est le but.": "Visible from space. That's the point.", "JAUNE TAXI": "TAXI YELLOW", "Tout le monde te fait signe. Tu ne t'arrêtes pas.": "Everyone waves at you. You don't stop.", "CITRON VERT": "LIME", "Acide. Comme tes dépassements.": "Sour. Like your overtakes.", "VERT BILLET": "CASH GREEN", "La couleur préférée de ton banquier.": "Your banker's favourite colour.", "LAGON": "LAGOON", "L'eau des îles où tu dépenses tes primes.": "The water of the islands where you spend your bonuses.", "AZUR": "AZURE", "Le ciel sans un nuage. Le tien.": "A sky without a single cloud. Yours.", "VIOLET ROYAL": "ROYAL PURPLE", "La couleur des rois. Et de ceux qui roulent comme eux.": "The colour of kings. And of those who drive like them.", "FUCHSIA": "FUCHSIA", "Trop voyant ? Juste assez.": "Too loud? Exactly loud enough.", "ARGENT BROSSÉ": "BRUSHED SILVER", "Métal brossé, reflet discret. L'argent ne crie pas, il brille.": "Brushed metal, quiet shine. Money doesn't shout, it gleams.", "BORDEAUX": "BURGUNDY", "Un grand cru, mis en bouteille dans de la tôle.": "A great vintage, bottled in sheet metal.", "CUIVRE": "COPPER", "Le métal des vieux tuyaux. Passé au polish.": "Old-pipe metal. Freshly polished.", "BRONZE": "BRONZE", "La troisième marche du podium ? Pas ce soir.": "Third step of the podium? Not tonight.", "OLIVE": "OLIVE", "Du kaki métallisé. Une jeep qui serait allée à l'opéra.": "Metallic khaki. A jeep that went to the opera.", "VERT ANGLAIS": "BRITISH GREEN", "Le vert des bolides d'avant-guerre. Le thé est en option.": "Pre-war racing green. Tea is optional.", "BLEU PÉTROLE": "PETROL BLUE", "Profond comme une nappe de pétrole. En plus propre.": "Deep as an oil slick. Only cleaner.", "BLEU ABYSSE": "ABYSS BLUE", "Le bleu du fond des océans. Personne ne t'y trouve.": "Deep-ocean blue. Nobody finds you down there.", "AUBERGINE": "AUBERGINE", "Un violet presque noir. Classe sans le faire exprès.": "Almost-black purple. Classy without trying.", "FRAMBOISE": "RASPBERRY", "Un rouge mûri au soleil. Sucré, pas mou.": "A red that ripened in the sun. Sweet, not soft.", "GRAPHITE": "GRAPHITE", "Le gris des voitures de direction. Celles qui ne s'arrêtent jamais.": "Boardroom grey. Those cars never stop.", "PRISME": "PRISM", "La lumière se casse en trois sur ta carrosserie.": "Light splits in three on your bodywork.", "Six en l'air, sans toucher terre.": "Six in the air, without touching down.", "FANTÔME": "GHOST", "Blanc nacré, presque transparent. Personne ne t'a vu passer.": "Pearl white, almost see-through. Nobody saw you pass.", "Deux minutes. Pas un bord.": "Two minutes. Not one edge.", "OR ROSE": "ROSE GOLD", "L'or des montres dont personne ne regarde l'heure.": "The gold of watches nobody checks the time on.", "Divin, et très, très vite.": "Divine, and very, very fast.", "ÉCLAIR": "LIGHTNING", "Du bleu nuit au blanc électrique : la foudre qui monte.": "From night blue to electric white: lightning on the rise.", "Le compteur a une limite. Pas toi.": "The speedometer has a limit. You don't.", "NACRE": "PEARL", "L'intérieur d'un coquillage, poli par cinq vagues parfaites.": "The inside of a shell, polished by five perfect waves.", "Cinq fois parfait. À la suite.": "Perfect five times. In a row.", "CIEL D'ORAGE": "STORM SKY", "Ardoise en bas, éclair en haut. Le ciel quand il se fâche.": "Slate below, lightning above. The sky when it's angry.", "Sous l'orage, le pied loin du bouton.": "In the storm, keep your foot off the button.", "JADE IMPÉRIAL": "IMPERIAL JADE", "La pierre des empereurs, taillée sur le plus long chemin.": "The emperors' stone, cut on the longest road.", "Les pics gardent le chemin le plus long.": "The peaks guard the longest road.", "LUNAIRE": "LUNAR", "Poussière de cratère, sans un grain d'atmosphère.": "Crater dust, without a grain of atmosphere.", "En orbite, passe la troisième porte.": "In orbit, pass the third gate.", "LAMPADAIRE": "STREETLIGHT", "La nuit en bas, le réverbère sur le toit. La ville t'éclaire.": "Night below, the lamp on the roof. The city lights you up.", "La ville, la nuit, applaudit les acrobates.": "The city, at night, cheers for acrobats.", "CAMÉLÉON": "CHAMELEON", "Vert, bleu, violet : elle change de peau à chaque monde.": "Green, blue, purple: it changes skin in every world.", "Quatre mondes, une seule vie.": "Four worlds, one life."});
 }
+/* LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les
+   dégradés de plusieurs couleurs, rare — pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique ;
+   classe-les dans l'ordre de rareté » · « génère une dizaine de peintures épiques avec des motifs ; couleur pleine : commun ; dégradée : rare ; avec
+   des motifs : épique ; légendaire, on verra après — pas de légendaire pour l'instant ; communes 1 €, rares 3 €, épiques 5 € »).
+   · LA RÈGLE (`peintRegle`), une seule pour toutes les peintures : un MOTIF = ÉPIQUE · un DÉGRADÉ (`grad`) ou l'OR (g:'o') = RARE · une couleur
+     pleine (laque, mat, métallisé, nacre, chrome, laqué noir) = COMMUNE. Plus aucune peinture exotique, légendaire ni mythique — ces raretés
+     restent aux caisses, ailes et traînées.
+   · LE PRIX EN EUROS (`PEINT_EUR` → `d.eur`) : 1 € · 3 € · 5 €, par la même porte que les caisses en € : `shopPaye('peinture:'+id)` (produit App
+     Store à créer : `cashcar.peinture.<id>`), puis `habDonne`. Tant que StoreKit n'est pas branché, ACHETER le DIT (« L'achat est indisponible
+     pour le moment. ») et ne donne rien (`habPaye`). Le prix en pièces (`p`) des peintures est retiré : celles déjà achetées restent à toi.
+     Se gagnent toujours, sans prix : l'OR MASSIF et le SUPER GUERRIER (carnets), les dix SECRÈTES (leur défi, ou le pack). D'ORIGINE reste offerte.
+   · L'ORDRE (`peintOrdre`) : le rayon PEINTURES de la boutique et la bande de la console vont de la COMMUNE à l'ÉPIQUE.
+   · LES MOTIFS (`MOTIFS`) : onze peintures épiques. Chacune est une toile de 512 px qui se raccorde sur ses quatre bords (`motTore`), dessinée une
+     fois (`motTex`), posée sur la tôle en PROJECTION TRIPLANAIRE dans le repère de la caisse (`motGreffe`/`MOT_GLSL` : côtés, toit, nez, poupe,
+     chacun à l'endroit — le « $ » se lit des deux côtés). Le kit coule la tôle peinte dans son propre tampon (`pm:<id>`, voir peintPal) : les
+     accents gardent leur couleur ; un gabarit hors kit greffe sa matière de carrosserie (bodyM). `s` = répétitions par mètre ; `c` = la teinte
+     de fond (les outils de l'atelier, les replis). Les pastilles des listes montrent le motif (`motFond`). Essayer : `dbgHab('peinture','tigre')`.
+   `?peintures=avant` = les raretés et les prix d'avant, sans les motifs. */
+const PEINT_V2=!/[?&]peintures=avant\b/.test(location.search);
+const PEINT_EUR={commun:'1 €',rare:'3 €',epique:'5 €'};
+const PEINT_SEC_R={prisme:'rare',fantome:'commun',orrose:'rare',eclair:'rare',nacre:'rare',orage:'rare',jadeimperial:'rare',lunaire:'rare',lampadaire:'rare',cameleon:'rare'}; // les secrètes : leur vraie matière reste masquée tant qu'on ne les a pas gagnées
+function peintRegle(d){if(d.mot)return 'epique';if(d.sec)return PEINT_SEC_R[d.id]||'rare';return (d.grad||d.g==='o')?'rare':'commun';}
+const MOT_W=512;
+function motAlea(s){return function(){s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function motTore(x,f){for(const ox of [-MOT_W,0,MOT_W])for(const oy of [-MOT_W,0,MOT_W]){x.save();x.translate(ox,oy);f();x.restore();}} // chaque forme est posée avec ses huit voisines : la toile se raccorde sur ses quatre bords
+function motForme(R,k){const h=[];for(let i=0;i<3;i++)h.push([2+i+((R()*2)|0),R()*6.283,(k==null?.22:k)*(.4+.6*R())/(1+i*.5)]);return h;} // une tache : trois harmoniques sur le rayon
+function motTache(x,cx,cy,r,h,sy){x.beginPath();for(let i=0;i<=40;i++){const t=i/40*6.2832;let q=1;for(const e of h)q+=e[2]*Math.sin(e[0]*t+e[1]);
+  const X=cx+Math.cos(t)*r*q,Y=cy+Math.sin(t)*r*q*(sy||1);if(i)x.lineTo(X,Y);else x.moveTo(X,Y);}x.closePath();}
+function motPose(x,cx,cy,r,h,col,sy){motTore(x,function(){motTache(x,cx,cy,r,h,sy);x.fillStyle=col;x.fill();});}
+function motGrille(n,R,j){const L=[],c=MOT_W/n;for(let a=0;a<n;a++)for(let b=0;b<n;b++)L.push([(a+.5)*c+(R()-.5)*c*j,(b+.5)*c+(R()-.5)*c*j]);return L;} // des points sans paquets : une grille secouée
+function motLueur(x,cx,cy,r,c0,c1){motTore(x,function(){const g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,c0);g.addColorStop(1,c1);x.fillStyle=g;x.fillRect(cx-r,cy-r,2*r,2*r);});}
+function motBande(x,P,col){motTore(x,function(){x.beginPath();x.moveTo(P[0][0]-P[0][2],P[0][1]);for(const q of P)x.lineTo(q[0]-q[2],q[1]);for(let k=P.length-1;k>=0;k--)x.lineTo(P[k][0]+P[k][2],P[k][1]);x.closePath();x.fillStyle=col;x.fill();});} // une rayure : [x du milieu, y, demi-largeur]
+const MOTIFS={
+  leopard:{s:.42,c:0xd29a45,f:function(x,R){x.fillStyle='#d29a45';x.fillRect(0,0,MOT_W,MOT_W);
+    for(let i=0;i<9;i++)motLueur(x,R()*MOT_W,R()*MOT_W,60+R()*90,R()<.5?'rgba(238,192,112,.4)':'rgba(170,110,40,.32)','rgba(200,150,70,0)'); // le pelage ondule
+    for(const p of motGrille(6,R,.6)){const r=19+R()*12;motPose(x,p[0],p[1],r*.62,motForme(R,.25),'#a65d1b');      // la rosette : un cœur fauve…
+      const n=3+((R()*3)|0),a0=R()*6.28;for(let k=0;k<n;k++){const a=a0+k/n*6.2832+(R()-.5)*.5,d=r*(.85+R()*.15);
+        motPose(x,p[0]+Math.cos(a)*d,p[1]+Math.sin(a)*d,r*(.3+R()*.14),motForme(R,.35),'#1a110a');}}            // …dans un anneau noir en morceaux
+    for(let i=0;i<30;i++)motPose(x,R()*MOT_W,R()*MOT_W,4+R()*6,motForme(R,.3),'#1a110a');}},
+  tigre:{s:.45,c:0xee8320,f:function(x,R){x.fillStyle='#ee8320';x.fillRect(0,0,MOT_W,MOT_W);
+    for(let i=0;i<8;i++)motLueur(x,R()*MOT_W,R()*MOT_W,70+R()*100,'rgba(255,186,90,.5)','rgba(255,186,90,0)');
+    const n=9;for(let i=0;i<n;i++){const x0=(i+.2+R()*.6)*MOT_W/n,y0=R()*MOT_W,L=MOT_W*(.45+R()*.5),w=9+R()*9,A=6+R()*12,fr=.6+R()*1.2,ph=R()*6.28,pen=(R()-.5)*.35,P=[];
+      for(let k=0;k<=24;k++){const t=k/24,y=y0+t*L;P.push([x0+A*Math.sin(t*6.283*fr+ph)+pen*(y-y0),y,w*Math.pow(Math.sin(Math.PI*t),.6)+.5]);}motBande(x,P,'#140c06'); // la rayure s'effile aux deux bouts
+      if(R()<.6){const t0=.2+R()*.5,yb=y0+t0*L,xb=x0+A*Math.sin(t0*6.283*fr+ph)+pen*(yb-y0),sg=R()<.5?-1:1,Lb=40+R()*50,wb=w*.55; // une fourche
+        motTore(x,function(){x.beginPath();x.moveTo(xb,yb-wb);x.quadraticCurveTo(xb+sg*Lb*.6,yb-wb*.2,xb+sg*Lb,yb+Lb*.35);x.quadraticCurveTo(xb+sg*Lb*.5,yb+wb*.9,xb,yb+wb);x.closePath();x.fillStyle='#140c06';x.fill();});}}}},
+  zebre:{s:.45,c:0xf1ede4,f:function(x,R){x.fillStyle='#f1ede4';x.fillRect(0,0,MOT_W,MOT_W);
+    const n=11;for(let i=0;i<n;i++){const x0=(i+R()*.3)*MOT_W/n,w=8+R()*8,a1=10+R()*14,a2=4+R()*8,p1=R()*6.28,p2=R()*6.28,p3=R()*6.28,k1=1+((R()*2)|0),P=[];
+      for(let k=0;k<=48;k++){const t=k/48;P.push([x0+a1*Math.sin(t*6.2832*k1+p1)+a2*Math.sin(t*6.2832*3+p2),t*MOT_W,w*(1+.45*Math.sin(t*6.2832*2+p3))]);}motBande(x,P,'#121212');}}}, // des fréquences entières : la rayure se raccorde en haut et en bas
+  vache:{s:.38,c:0xf4f2ec,f:function(x,R){x.fillStyle='#f4f2ec';x.fillRect(0,0,MOT_W,MOT_W);
+    for(const p of motGrille(3,R,.7))motPose(x,p[0],p[1],38+R()*32,motForme(R,.3),'#151515');
+    for(let i=0;i<4;i++)motPose(x,R()*MOT_W,R()*MOT_W,10+R()*14,motForme(R,.3),'#151515');}},
+  fleurs:{s:.45,c:0xff5aa5,f:function(x,R){x.fillStyle='#ff5aa5';x.fillRect(0,0,MOT_W,MOT_W);
+    const T=[['#fffaf2','#ffc928',8],['#ff9b21','#fff4d6',6],['#c8f04a','#ff8a1f',5],['#7fe3ff','#fffaf2',6]]; // [pétales, cœur, nombre de pétales]
+    const fl=function(cx,cy,r,ty,a0){const q=T[ty];motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(a0);
+      for(let k=0;k<q[2];k++){x.save();x.rotate(k/q[2]*6.2832);x.beginPath();x.ellipse(r*.55,0,r*.5,r*.24,0,0,6.2832);x.fillStyle=q[0];x.fill();x.lineWidth=2;x.strokeStyle='rgba(120,20,60,.25)';x.stroke();x.restore();}
+      x.beginPath();x.arc(0,0,r*.3,0,6.2832);x.fillStyle=q[1];x.fill();x.restore();});};
+    for(const p of motGrille(4,R,.55))fl(p[0],p[1],34+R()*20,R()<.5?0:1+((R()*3)|0),R()*6.28);
+    for(const p of motGrille(4,R,.9))if(R()<.6)fl(p[0]+64,p[1]+64,14+R()*8,(R()*4)|0,R()*6.28);}},
+  camo:{s:.4,c:0x6f7b44,f:function(x,R){x.fillStyle='#6f7b44';x.fillRect(0,0,MOT_W,MOT_W);
+    for(const L of [['#45522a',5,46,40],['#86683f',4,38,34],['#24241a',5,22,22]])for(const p of motGrille(L[1],R,1))motPose(x,p[0],p[1],L[2]+R()*L[3],motForme(R,.4),L[0],.75+R()*.5);}},
+  damier:{s:.42,c:0xf2f2f2,f:function(x){const n=8,c=MOT_W/n;for(let a=0;a<n;a++)for(let b=0;b<n;b++){x.fillStyle=(a+b)&1?'#141414':'#f2f2f2';x.fillRect(a*c,b*c,c,c);}}},
+  ecailles:{s:.5,c:0x1a8a55,f:function(x,R){x.fillStyle='#0b3524';x.fillRect(0,0,MOT_W,MOT_W);
+    const nc=8,nr=10,cw=MOT_W/nc,rh=MOT_W/nr,r=cw*.62,V=[];for(let j=0;j<nr;j++){V.push([]);for(let i=0;i<nc;i++)V[j].push(R());}
+    for(let j=-2;j<=nr+2;j++){const jj=((j%nr)+nr)%nr,y=MOT_W-j*rh,ox=(jj&1)*cw/2; // du bas vers le haut : chaque rangée recouvre le haut de celle du dessous — on voit le bord ARRONDI des écailles, tourné vers le sol
+      for(let i=-1;i<=nc;i++){const v=V[jj][((i%nc)+nc)%nc],cx=i*cw+ox,cy=y-r*.35,g=x.createRadialGradient(cx,cy-r*.2,r*.1,cx,cy+r*.15,r*1.05);
+        g.addColorStop(0,'hsl('+(140+v*22).toFixed(0)+',70%,'+(46+v*10).toFixed(0)+'%)');g.addColorStop(.7,'hsl('+(150+v*15).toFixed(0)+',75%,24%)');g.addColorStop(1,'#06261a');
+        x.beginPath();x.arc(cx,cy,r,0,6.2832);x.fillStyle=g;x.fill();x.beginPath();x.arc(cx,cy,r-2,.12*Math.PI,.88*Math.PI);x.lineWidth=4;x.strokeStyle='#e6bf57';x.stroke();}}}},
+  coccinelle:{s:.5,c:0xd8141c,f:function(x,R){x.fillStyle='#d8141c';x.fillRect(0,0,MOT_W,MOT_W);
+    for(let i=0;i<6;i++)motLueur(x,R()*MOT_W,R()*MOT_W,80+R()*80,'rgba(255,90,80,.35)','rgba(255,90,80,0)');
+    for(const p of motGrille(4,R,.5))motPose(x,p[0],p[1],22+R()*12,motForme(R,.06),'#120808');
+    for(const p of motGrille(4,R,.4))if(R()<.45)motPose(x,p[0]+64,p[1]+64,9+R()*6,motForme(R,.05),'#120808');}},
+  galaxie:{s:.32,c:0x2a1a6a,f:function(x,R){x.fillStyle='#0a0720';x.fillRect(0,0,MOT_W,MOT_W);
+    const N=['255,70,200','70,150,255','150,80,255','60,230,220'];
+    for(let i=0;i<12;i++){const c=N[(R()*4)|0],a=.18+R()*.25;motLueur(x,R()*MOT_W,R()*MOT_W,70+R()*130,'rgba('+c+','+a.toFixed(2)+')','rgba('+c+',0)');} // les nébuleuses
+    for(let i=0;i<260;i++){const cx=R()*MOT_W,cy=R()*MOT_W,r=.7+R()*R()*2.2,a=.45+R()*.55;motTore(x,function(){x.beginPath();x.arc(cx,cy,r,0,6.2832);x.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';x.fill();});}
+    for(let i=0;i<9;i++){const cx=R()*MOT_W,cy=R()*MOT_W,r=10+R()*10;motLueur(x,cx,cy,r,'rgba(255,255,255,1)','rgba(160,190,255,0)'); // les étoiles qui brillent, en croix
+      motTore(x,function(){x.fillStyle='rgba(255,255,255,.85)';x.fillRect(cx-r*1.4,cy-.8,r*2.8,1.6);x.fillRect(cx-.8,cy-r*1.4,1.6,r*2.8);});}}},
+  cash:{s:.45,c:0x1d7f45,f:function(x,R){x.fillStyle='#1d7f45';x.fillRect(0,0,MOT_W,MOT_W);
+    x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=10;for(let k=-5;k<5;k++){x.beginPath();x.moveTo(k*128,0);x.lineTo(k*128+MOT_W,MOT_W);x.stroke();} // le guillochage du billet
+    x.font='900 92px "Arial Black",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    for(let b=0;b<4;b++)for(let a=0;a<4;a++){const cx=(a+.5+(b&1)*.5)*128,cy=(b+.5)*128,ro=(R()-.5)*.5;
+      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('$',0,4);x.fillStyle='#ffd23a';x.fillText('$',0,4);x.restore();});}}}};
+const MOT_TX={},MOT_URL={};
+function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d');
+  let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
+function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;}
+function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,128);u=cv?cv.toDataURL('image/jpeg',.88):'';}catch(e){}return MOT_URL[id]=u;}
+function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/200% auto,'+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
+/* la projection : chaque face prend la toile du plan qui lui fait face (pondérée par sa normale ^12 : un pan en biais prend surtout le plan le plus proche — à ^6 le damier virait au gris en fondant deux plans),
+   retournée là où il faut pour se lire À L'ENDROIT de l'extérieur — dans le repère de la caisse : le motif colle à la tôle quand elle roule */
+const MOT_GLSL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+
+  'vec3 motC=texture2D(uMot,vec2(mN9.x<0.?mP9.z:-mP9.z,mP9.y)).rgb*mA9.x+texture2D(uMot,vec2(mN9.y<0.?mP9.x:-mP9.x,mP9.z)).rgb*mA9.y+texture2D(uMot,vec2(mN9.z<0.?-mP9.x:mP9.x,mP9.y)).rgb*mA9.z;\n'+
+  'diffuseColor.rgb*=motC;\n';
+const MOT_FAIT=new WeakSet(); // les matières déjà greffées (un clone de matière perd la greffe : la fin de buildCar le rattrape)
+function motGreffe(m,id){const T=motTex(id),M=MOTIFS[id];if(!T||!M||MOT_FAIT.has(m))return m;MOT_FAIT.add(m);const prev=m.onBeforeCompile,pk=String(prev),uT={value:T},uS={value:M.s};
+  m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);sh.uniforms.uMot=uT;sh.uniforms.uMotS=uS;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vMotP;varying vec3 vMotN;').replace('#include <begin_vertex>','#include <begin_vertex>\nvMotP=transformed;vMotN=objectNormal;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D uMot;uniform float uMotS;varying vec3 vMotP;varying vec3 vMotN;')
+      .replace('#include <color_fragment>','#include <color_fragment>\n'+MOT_GLSL).replace('vColor*uGlow','vColor*motC*uGlow');}; // le plancher lumineux du kit prend le motif aussi
+  m.customProgramCacheKey=function(){return 'motif|'+pk;}; // ⚠ r128 réutilise un programme d'une matière à l'autre par cette clé : une par greffe d'origine (la laque du kit, le vernis rimify) ; le motif, lui, vit dans un uniform
+  m.userData.mot=id;return m;}
+if(PEINT_V2){
+  for(const e of [ // [id, nom, description] — le motif : MOTIFS[id]
+    ["leopard","LÉOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles."],
+    ["tigre","TIGRE","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus."],
+    ["zebre","ZÈBRE","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces."],
+    ["vache","VACHE","Des taches noires sur fond blanc. Meuh, à 300 à l'heure."],
+    ["fleurs","FLOWER POWER","Des marguerites sur fond rose. Peace, love et nitro."],
+    ["camo","CAMOUFLAGE","Kaki, brun, vert sapin. Invisible en forêt. À 900 à l'heure, un peu moins."],
+    ["damier","DAMIER","Le drapeau d'arrivée peint sur toute la caisse. Tu as déjà gagné."],
+    ["ecailles","ÉCAILLES DE DRAGON","Des écailles vertes cerclées d'or. Le dragon a mué : la peau est à toi."],
+    ["coccinelle","COCCINELLE","Rouge vif, pois noirs. Porte-bonheur, et en plus elle va vite."],
+    ["galaxie","GALAXIE","Des nébuleuses et mille étoiles sur la carrosserie. Le ciel de nuit, en laque."],
+    ["cash","PLEIN AUX AS","Des dollars d'or sur fond vert billet. Discret ? Non."],
+  ])COSM.peinture.push({id:e[0],n:e[1],mot:e[0],c:MOTIFS[e[0]].c,d:e[2]});
+  for(const d of COSM.peinture){if(d.id==='usine')continue;const r=peintRegle(d);d.r=r;if(!d.mis&&!d.sec){d.eur=PEINT_EUR[r];delete d.p;}} // la rareté ÉCRITE et le prix en euros ; carnets et secrètes se gagnent toujours
+  Object.assign(I18N,{"LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
+    "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tyres.",
+    "ZÈBRE":"ZEBRA","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces.":"Black on white or white on black? Nobody knows. You just floor it.",
+    "VACHE":"COW","Des taches noires sur fond blanc. Meuh, à 300 à l'heure.":"Black patches on white. Moo, at 300 km/h.",
+    "FLOWER POWER":"FLOWER POWER","Des marguerites sur fond rose. Peace, love et nitro.":"Daisies on pink. Peace, love and nitro.",
+    "CAMOUFLAGE":"CAMO","Kaki, brun, vert sapin. Invisible en forêt. À 900 à l'heure, un peu moins.":"Khaki, brown, pine green. Invisible in the woods. At 900 km/h, a bit less.",
+    "DAMIER":"CHEQUERED","Le drapeau d'arrivée peint sur toute la caisse. Tu as déjà gagné.":"The finish flag painted all over the car. You've already won.",
+    "ÉCAILLES DE DRAGON":"DRAGON SCALES","Des écailles vertes cerclées d'or. Le dragon a mué : la peau est à toi.":"Green scales rimmed with gold. The dragon shed its skin: it's yours now.",
+    "COCCINELLE":"LADYBUG","Rouge vif, pois noirs. Porte-bonheur, et en plus elle va vite.":"Bright red, black dots. A lucky charm, and fast too.",
+    "GALAXIE":"GALAXY","Des nébuleuses et mille étoiles sur la carrosserie. Le ciel de nuit, en laque.":"Nebulae and a thousand stars on your bodywork. The night sky, lacquered.",
+    "PLEIN AUX AS":"LOADED","Des dollars d'or sur fond vert billet. Discret ? Non.":"Gold dollars on cash green. Subtle? No.",
+    "L'achat est indisponible pour le moment.":"Buying is unavailable right now."});
+}
+function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, de la COMMUNE à l'ÉPIQUE (D'ORIGINE en tête ; dans une rareté, l'ordre du catalogue)
+  const rg=function(j){const d=COSM.peinture[j];return d.id==='usine'?-1:(INV_RANG[cosmRar('peinture',d)]|0);};return L.sort(function(a,b){return (rg(a)-rg(b))||(a-b);});}
+/* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
+function habDonne(cat,id){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);SAVE.d.shop.eq[cat]=id;SAVE.flush();}
+function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOwned(cat,d.id)||habPaye.on)return false;habPaye.on=1;uiClic('');hap(12);
+  shopPaye(cat+':'+d.id).then(function(){habPaye.on=0;habDonne(cat,d.id);garEquipeHabit(cat,i);shopShow(cat,i);hap([10,30,20,30,40]);try{pixBurst($('gCard'),26);gTampon(TR('À TOI !'));}catch(e){}
+    try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{GBQ.rk='';gShopJour();}catch(e){}},
+    function(){habPaye.on=0;if(bt)try{gSecoue(bt);}catch(e){}uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR("L'achat est indisponible pour le moment."));});return true;}
 function palPossede(){const o=SAVE.d.shop.own;return PALETTE_PACK.ids.length>0&&PALETTE_PACK.ids.every(function(id){return o.indexOf('peinture:'+id)>=0;});} // le pack est acquis
 function palDonne(){ // APRÈS le succès de shopPaye('palette') (ou une restauration d'achats) : les 40 dans `own` (Sacha, quiz 14 h 10 : les secrètes sont AUSSI dans le pack ; leur DÉFI reste la voie gratuite), jamais la banque du jeu
   if(!PALETTE_ON)return false;const o=SAVE.d.shop.own;let n9=0;for(const id of PALETTE_PACK.ids)if(o.indexOf('peinture:'+id)<0){o.push('peinture:'+id);n9++;}
@@ -36732,7 +36872,7 @@ const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
 function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
-  if(!d.p&&!d.mis&&!d.pack&&!d.sec)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
+  if(!d.p&&!d.mis&&!d.pack&&!d.sec&&!d.eur)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
@@ -36754,7 +36894,7 @@ window.dbgHab=function(cat,id){if(!COSM[cat])return null;const i=COSM[cat].findI
    hauteur : du bas de caisse au toit. */
 function peintPal(pal){
   const d=cosmSur('peinture');if(!d||d.id==='usine'||!pal||!pal.p)return pal;
-  const o=Object.assign({},pal);o.p={g:d.g||'p',c:d.c!=null?d.c:d.grad[1],grad:d.grad||null};
+  const o=Object.assign({},pal);o.p=d.mot?{g:'pm:'+d.mot,c:0xffffff,grad:null}:{g:d.g||'p',c:d.c!=null?d.c:d.grad[1],grad:d.grad||null}; // (2026-10-16) un MOTIF : la tôle blanche dans son propre tampon, le motif la colore (voir MOTIFS)
   if(pal.p.f===0)o.p.f=0;return o;
 }
 const LPG_A=new THREE.Color(),LPG_B=new THREE.Color();
@@ -51627,7 +51767,7 @@ function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
 function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
   return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqFig(cat,d){const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-  if(cat==='peinture')return '<i class="fnSw'+cosmSwCl(d)+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
+  if(cat==='peinture')return '<i class="fnSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
   if(cat==='trainee')return '<i class="fnRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
   return '<i class="pxi pxi-aile fnAile"></i>';}
 function bqCarte(k,une,sansRuban){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty='',px='',eur=false,fig='';
@@ -51903,7 +52043,7 @@ try{document.getElementById('gCache').addEventListener('click',function(e){e.sto
    à toi (si celui qu'on voit ne l'est pas) — au changement de mode ET d'onglet (shopTab) */
 function gModeCale(){const m=gModeM();if(m==='tout'||m==='shop'||m==='tous')return; // (2026-10-10, Léo : « quand tu appuies sur SHOP, ça ne change pas automatiquement ta voiture : ça attend que tu appuies sur une voiture ») la BOUTIQUE ne saute plus sur la 1re caisse (ou le 1er habillage) à vendre
   if(SHOP.tab==='voiture'){if(m==='inv'){if(!gPossede(garageI))garageSaute(SAVE.d.equipped|0);return;}const L=gModeListeVoitures(m);if(L.length&&L.indexOf(garageI)<0)garageSaute(L[0]);return;}
-  const cat=SHOP.tab,Lc=COSM[cat],cur=Lc[SHOP.i[cat]],ok=function(d){const a=shopOwned(cat,d.id);return m==='inv'?a:(!a&&!!d.p);};
+  const cat=SHOP.tab,Lc=COSM[cat],cur=Lc[SHOP.i[cat]],ok=function(d){const a=shopOwned(cat,d.id);return m==='inv'?a:(!a&&!!(d.p||d.eur));};
   if(cur&&!ok(cur)){const j=Lc.findIndex(ok);if(j>=0)shopShow(cat,j);}}
 try{Object.keys({'RIEN ICI':1,'TOUT EST A TOI':1}).forEach(function(k){if(!I18N[k])I18N[k]=k==='RIEN ICI'?'NOTHING HERE':'ALL YOURS';});}catch(e){}
 // LA FILE DU STUDIO PHOTO : une vignette par image, jamais pendant la bascule du plateau ni hors du garage
@@ -52003,15 +52143,15 @@ function shopShow(cat,i){
   if(sw){ // LE NUANCIER : la teinte (ou le dégradé) de la peinture, le ruban de la traînée
     let bg='';
     const hx=function(c){return '#'+c.toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-    if(cat==='peinture'){const c9=d.id==='usine'?CARS[eqC].color:d.c;bg=d.grad?'linear-gradient(90deg,'+d.grad.map(hx).join(',')+')':hx(c9);}
+    if(cat==='peinture'){const c9=d.id==='usine'?CARS[eqC].color:d.c;bg=d.mot?motFond(d):d.grad?'linear-gradient(90deg,'+d.grad.map(hx).join(',')+')':hx(c9);}
     else if(cat==='trainee')bg=d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 30%,'+(d.rgb?rg(d.rgb):'#ffb040')+')';
     sw.style.display=bg?'':'none';sw.className=cat;sw.innerHTML=bg?'<i style="background:'+bg+'"></i>':'';
   }
   const bt=$('gEquip'),bb=$('gBuy'),row=$('gBuyRow');
-  if(row)row.style.display=(!a&&d.p)?'':'none';
-  if(bb){bb.dataset.bout='';if(!a&&d.p){const peut=bank()>=d.p;bb.innerHTML=gPrixHtml(peut,d.p);bb.dataset.px=fmtC(d.p);bb.dataset.eur='';bb.classList.toggle('pauvre',!peut);}}
+  if(row)row.style.display=(!a&&(d.p||d.eur))?'':'none';
+  if(bb){bb.dataset.bout='';if(!a&&d.eur){bb.innerHTML='<span>'+TR('ACHETER')+'</span><b class="gPrix">'+eurTxt(d.eur)+'</b>';bb.dataset.px=eurTxt(d.eur);bb.dataset.eur='1';bb.classList.remove('pauvre');} /* (2026-10-16) une peinture en EUROS */ else if(!a&&d.p){const peut=bank()>=d.p;bb.innerHTML=gPrixHtml(peut,d.p);bb.dataset.px=fmtC(d.p);bb.dataset.eur='';bb.classList.toggle('pauvre',!peut);}}
   if(bt){
-    bt.style.display=(!a&&d.p)?'none':'';
+    bt.style.display=(!a&&(d.p||d.eur))?'none':'';
     bt.disabled=false;
     if(!a)gEtat(bt,'verrou','verrou','À GAGNER');
     else if(cat==='figure')gEtat(bt,'eq','coche','ACQUISE'); // (2026-10-14) une figure à toi joue d'office
@@ -52114,24 +52254,24 @@ function gStripHabits(cat,i){
   const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],md=gModeM(),fi=md==='inv'?'moi':md==='shop'?'achat':md==='tous'?'prix':(SHOP.filtre||'tout'); // (2026-10-09) INVENTAIRE = à moi, BOUTIQUE = à acheter
   try{gModeBoutons();}catch(e){}
   const k='cos:'+md+':'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id+(cat==='figure'&&window.FIG?':'+figSlots().join(','):''); // (L'INVENTAIRE ILLUSTRÉ) une figure équipée ailleurs refait la bande
-  const garde=function(d){const a=shopOwned(cat,d.id);return fi==='tout'||(fi==='prix'?!!d.p:fi==='moi'?a:(!a&&!!d.p));}; // (2026-10-10) SEE ALL ITEMS : tout ce qui a un prix, à toi ou pas // À ACHETER = en vente et pas à toi (les défis se gagnent)
+  const garde=function(d){const a=shopOwned(cat,d.id);return fi==='tout'||(fi==='prix'?!!(d.p||d.eur):fi==='moi'?a:(!a&&!!(d.p||d.eur)));}; // (2026-10-10) SEE ALL ITEMS : tout ce qui a un prix, à toi ou pas // À ACHETER = en vente et pas à toi (les défis se gagnent)
   if(bar&&bar._k!==k&&md!=='tout'){bar._k=k;bar._on=null;let n9=0;for(const d of L)if(garde(d))n9++;gModeTete(bar,md,n9);} // (2026-10-09) en mode, la barre dit le MODE
   else if(bar&&bar._k!==k){bar._k=k;bar._on=null;bar.classList.remove('gModeBar'); // la barre des familles devient celle des FILTRES (même touche, même place)
-    const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(f==='tout'||(f==='moi'?a:(!a&&!!d.p)))n++;}return n;};
+    const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(f==='tout'||(f==='moi'?a:(!a&&!!(d.p||d.eur))))n++;}return n;};
     bar.innerHTML=[['tout','TOUT','var(--tx2)'],['moi','À MOI','var(--neoV)'],['achat','À ACHETER','var(--neoC)']].map(function(f){
       return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'"><span class="gRn">'+sansAcc(TR(f[1]))+'</span><b>'+nb(f[0])+'</b></button>';}).join('');}
   if(st._r!==k){st._r=k;st._n=-1;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
     const S9=cat==='figure'&&window.FIG?figSlots():null; // (LES FIGURES v2) équipée = dans un des trois emplacements
-    st.innerHTML=L.map(function(d,j){const a=shopOwned(cat,d.id),eqd=S9&&FIGV2.on?S9.indexOf(d.id)>=0:shopEqD(cat)===d;
+    st.innerHTML=(cat==='peinture'?peintOrdre():L.map(function(x9,j){return j;})).map(function(j){const d=L[j],a=shopOwned(cat,d.id),eqd=S9&&FIGV2.on?S9.indexOf(d.id)>=0:shopEqD(cat)===d; /* (2026-10-16) les peintures rangées par RARETÉ (voir peintOrdre) */
       let fig='',ill=false;
       if(cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;
-        fig='<i class="gSwc'+(d.grad?'':cosmSwCl(d))+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
+        fig='<i class="gSwc'+(d.grad?'':cosmSwCl(d))+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
       else if(cat==='trainee'&&illuTr(d)){fig=illuPx(illuTr(d),'gIc',!a);ill=true;} // (2026-10-14) une traînée POP : son pictogramme et son nom, comme les ailes — (L'INVENTAIRE ILLUSTRÉ) celles d'origine aussi
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
       else if(cat==='figure'){fig=illuFig(d.id,a?rarInfo(cosmRar(cat,d)).c:'#6c6390',false,'gIc')+(S9?'<s class="fgDir">'+figPeut(d.id).map(function(k9){return '<i'+(S9[k9]===d.id?' class="on"':'')+'>'+pxi(FIG_FAM[k9][2])+'</i>';}).join('')+'</s>':'');ill=true;} // (2026-10-14) une FIGURE — (L'INVENTAIRE ILLUSTRÉ) son anneau, sa caisse, et ses directions (allumée = équipée là)
       else{fig=illuPx(illuAile(d),'gIc',!a);ill=true;} // (2026-10-14) les ailes POP ont leur pictogramme — (L'INVENTAIRE ILLUSTRÉ) celles d'origine aussi
-      const et=a?(eqd||S9?'':pxi('coche')):(d.p?fmtC(d.p):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('DÉFI'))); // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
+      const et=a?(eqd||S9?'':pxi('coche')):(d.eur?eurTxt(d.eur):d.p?fmtC(d.p):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('DÉFI'))); // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
@@ -54199,7 +54339,7 @@ function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; /
   for(let i=0;i<3;i++){if(V[i])L.push(V[i]);if(C[i])L.push(C[i]);}return GBQ.sem={w:w,l:L};}
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
   if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
-  if(o.cat==='peinture')return '<i class="bqSw" style="background:'+(d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
+  if(o.cat==='peinture')return '<i class="bqSw" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
   if(o.cat==='trainee'&&d.ico)return pxi(d.ico); // (2026-10-14) une traînée POP : son pictogramme
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
@@ -54227,10 +54367,10 @@ function bqFigRail(){const R=[];if(!window.FIG)return R;for(let c=0;c<FIG_NB;c++
 function bqFigDir(id){const P=figPeut(id);return GBQ.figDir!=null&&P.indexOf(GBQ.figDir)>=0?GBQ.figDir:P[0];} // la direction de la carte touchée (sinon la 1re de la figure)
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;}); /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
-  else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';}
+  else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';}
   if(bqPxLg(px))c+=' lg';
   return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
     +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
@@ -54367,7 +54507,7 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
     return figSlots()[bqFigDir(d.id)]===d.id?{e:'eq',t:'ÉQUIPÉE'}:{e:'figeq',t:'ÉQUIPER'};} // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
-  if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
+  if(d.eur)return {e:'achat',t:'ACHETER',p:eurTxt(d.eur)};if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
   if(s.e==='choix'||s.e==='manque'){if(bt)gSecoue(bt);uiClic('refus');return;} // (2026-10-14, charte 6) l'état se lit AVANT le toucher : ni toast, ni achat
   if(s.e==='achat'&&k.indexOf('figure:')===0){figAchete(k.slice(7),bt);return;} // (2026-10-14) acheter une FIGURE
@@ -56054,7 +56194,7 @@ function invRender(){
     g.innerHTML=L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
       if(o.cat==='voiture'){nm=TR(CARS[o.i].name);fig=PHOTO.cache[o.i]?'<img alt="" src="'+PHOTO.cache[o.i]+'">':'<i class="ivPh"></i>';}
       else{const d=o.d;nm=TR(d.n);
-        if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
+        if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
         else if(o.cat==='trainee')fig='<i class="ivRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
         else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
@@ -57124,7 +57264,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     // fondu, et son propre ecranWipe était ignoré (garde `_on`) — ou en faisait un second. Pas dans `fn` : l'observateur de l'overlay
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
     ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('shop');});return;}
-  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
+  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];{const d9=COSM[c9]&&COSM[c9][i9];if(d9&&d9.eur&&!shopOwned(c9,d9.id)){habPaye(c9,i9,e.currentTarget);return;}} /* (2026-10-16) une peinture en EUROS (voir habPaye) */ const r9=shopBuy(c9,i9);
     if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque),true);}return;} /* (2026-10-14, session SON) toast muet : le refus a déjà dit « non » (avant : refus + erreur, deux non-non identiques) */
     garEquipeHabit(c9,i9);shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI !')); /* (2026-10-11) acheté = équipé */
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){}return;} /* (console de son) le tiroir-caisse, puis le TAMPON quand il s'abat (14 % de 1,9 s) — en mouvement réduit c'est un toast (ui.ok) */
