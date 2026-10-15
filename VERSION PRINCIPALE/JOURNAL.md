@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite »)
+- En INVENTAIRE (`gModeM()==='inv'`, l'atelier fermé), toucher une vignette À TOI (elle s'équipe : `garEquipeCaisse` / `garEquipeHabit`
+  rendent vrai) ouvre l'onglet d'après : VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES (`gInvSuite(cat)`, juste sous le gestionnaire de
+  `#gStrip`). FIGURES est le bout de la chaîne : on y range trois figures, pas de « suivant ». La BOUTIQUE n'enchaîne pas.
+- Le temps de VOIR son choix : une caisse attend la fin de la bascule du plateau (`GAR.sw`, ~1,1 s) puis 220 ms — changer d'onglet pendant
+  la bascule laissait `garageShow` réécrire le nom de la caisse sur la fiche de la peinture ; la caisse déjà équipée, 250 ms ; un habillage, 550 ms.
+- S'annule de lui-même : un onglet touché à la main, une autre vignette (le minuteur repart), la console quittée, la caisse qui sort (`GAR.go`).
+  `uiGarde(350)` au changement : la bande change sous le doigt, un second toucher trop rapide aurait équipé une peinture pas encore vue.
+- **Mesuré au banc** (Chrome sans fenêtre, muet, iPhone debout et couché) : caisse touchée → PEINTURE à ~1,5 s (bascule comprise) sur la
+  peinture équipée ; peinture → AILES, aile → TRAÎNÉES, traînée → FIGURES à ~0,6 s, chaque choix bien enregistré ; onglet TRAÎNÉES touché à la
+  main pendant l'attente → on reste sur TRAÎNÉES. 0 erreur.
+
 ## L'ACCUEIL AUX COULEURS DU LOGO : GARAGE ROSE, OFFRES CYAN, RÉGLAGES OR (2026-10-16, Sacha : « dans l'écran d'accueil garage, offre et réglages doivent être de couleur rose, bleu et jaune », puis « comme les bandes sous le logo CAR CASH »)
 - Les trois tuiles de l'accueil (`.mHubPorte`, `.mOffres`, `.mGear` dans `#mHome.acc2`) prennent, de gauche à droite, les trois couleurs du trait
   néon sous le logo (`--livree` / `#mHome .mTitle::after`) : `--neoM` rose, `--neoC` cyan, `--au2` or. Avant : GARAGE cyan, OFFRES rose, RÉGLAGES cyan.
