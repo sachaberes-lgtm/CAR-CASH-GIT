@@ -8834,6 +8834,25 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 .fhL b{font-weight:400;color:var(--tx,#fff7ee)}
 .fhL.ko{--fc:var(--fhKo)}
 @media (prefers-reduced-motion:reduce){#fh .fhX.max,#fh .fhNom.ko b{animation:none}}
+/* ===== v4 (2026-10-15 soir, Sacha : « retravaille l'HUD des figures, il faut que ce soit parfait : là c'est écrit en double ») — le récit est au-dessus de figNom.
+   LE NOM et sa FLÈCHE (le geste : ▲ ▼ ◄ ►) sur une ligne ; LA LIGNE DU COMBO en pastilles muettes + « COMBO ×1,5 » + « RECORD » ; LE RAPPEL dont le
+   geste visé s'allume. Les anciennes pastilles à texte (.fhC) ne sont plus posées. */
+#fh .fhNom{display:flex;align-items:center;justify-content:center;gap:.45em}
+#fh .fhNom .fhD{--pxs:3;flex:none;color:var(--fc);filter:drop-shadow(0 3px 0 var(--fhE)) drop-shadow(0 0 10px color-mix(in srgb,var(--fc) 60%,transparent))}
+#fh .fhNom .fhD.vide{display:none}
+@media (orientation:portrait){#fh .fhNom .fhD{--pxs:2}}
+#fh .fhP{--cc:var(--fh0);display:block;width:10px;height:10px;background:var(--cc);clip-path:var(--fhCoupe);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 0 10px color-mix(in srgb,var(--cc) 60%,transparent)}
+#fh .fhP.neuf{width:15px;height:15px}
+#fh.paye .fhP{--cc:var(--fh0)}
+#fh.perdu .fhP{--cc:var(--fhKo)}
+#fh .fhX small{font-size:.42em;letter-spacing:1px;vertical-align:.32em;margin-right:.15em;color:var(--tx,#fff7ee);text-shadow:var(--fhBord2)}
+#fh .fhRec{font-family:var(--pix);font-size:var(--fhCh);letter-spacing:1px;line-height:1;text-decoration:none;color:var(--fhE);background:var(--fh0);padding:5px 6px 4px;clip-path:var(--fhCoupe);visibility:hidden}
+#fh .fhRec.on{visibility:visible;animation:fhRecBat .5s steps(2) infinite}
+@keyframes fhRecBat{50%{background:#fff}}
+.fhL{opacity:.62;transition:opacity var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.fhL.arme{opacity:1;transform:translateX(-8px);background:color-mix(in srgb,var(--fc) 28%,var(--fhE));
+  box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 55%,transparent)}
+@media (prefers-reduced-motion:reduce){#fh .fhRec.on{animation:none}.fhL{transition:none}}
 </style>
 <style id="ecoleV2">
 /* ==============================================================================================================
@@ -10145,7 +10164,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
   </div></div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script src="figures.js?v=7"></script>
+<script src="figures.js?v=8"></script>
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=1"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -43647,6 +43666,7 @@ const SAVE={
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
+    if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
@@ -44532,6 +44552,7 @@ function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
   if(FIGV2.on){if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
     if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
+    if(FDIR.on&&dispo!=null)return !!figLance(figDirSlot(),{dispo:dispo,dx:FDIR.x,strict:!TUTO.on,muet:true}); // (2026-10-15 soir, Sacha : « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance ») le SAUT NITRO aussi : la figure de la direction tenue — rien dans cette direction : le saut part sans figure, sans bruit de refus
     return !!figLance(FX2.cyc,{dispo:dispo,double:dispo==null});} // (2026-10-14, LES FIGURES v2) l'emplacement SUIVANT, en vraie physique (le saut nitro ; ?impu=0 : aussi le double-tap en vol)
   if(FLK.on)return figLibreTap(); // (2026-10-14, Sacha) les FIGURES LIBRES : un coup de reins sur l'axe du pouce, pas une animation tirée au sort
   const L9=VEQ.lect;if(!L9||!window.FIG||L9.occupe()>=3)return false;
@@ -44592,7 +44613,7 @@ window.dbgVol=function(a){
    `?fig=ancien` (ou `dbgFig('ancien')`) rend les figures de Léo (le lecteur animé, au hasard parmi celles qu'on possède). Console : `dbgFig()`. */
 const FIGV2={on:!/[?&]fig=(ancien|script|libre)\b/.test(location.search)}; // ?fig=libre : les FIGURES LIBRES de GAMEPLAY (nuit du 14/10) · ?fig=script / ?fig=ancien : le lecteur de Léo
 if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
-function figKT(){return window.FIG&&FIG.PHY&&FIG.PHY.elan?FIG.PHY.kT+.35:.85;} // le temps d'une figure (sa glissade + le retour) pour une durée D : de quoi la doser sur le vol qui reste
+function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
   cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
@@ -44714,22 +44735,23 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
 function figTutoOk(){return !TUTO.on||(typeof tutoFigOuverte==='function'&&!!tutoFigOuverte());}
 function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)return null;
   if(!started||gameOver||paused||introD||!figTutoOk()||mode!=='fall')return null;
-  const S=figSlots();let f;if(o.f){f=o.f;s=-1;}else{s=Math.abs(s|0)%FIG_NB;if(!S[s]){if(o.strict){figRefus(s);return null;}for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;}if(!S[s])return null;f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);}if(!f)return null; // o.f : une figure hors emplacement (L'IMPULSION du double-tap) — s = −1, aucun bouton · (2026-10-15, les directions) s = l'EMPLACEMENT (0 avant, 1 arrière, 2 côté) ; vide : le GESTE (o.strict) est refusé — jamais un tonneau au pouce en avant —, le reste prend un emplacement qui existe (voir figSlots) ; à l'avant / à l'arrière, la figure est ORIENTÉE (son salto dans ce sens : le rodéo avant ≠ le rodéo arrière)
+  const S=figSlots();let f;if(o.f){f=o.f;s=-1;}else{s=Math.abs(s|0)%FIG_NB;if(!S[s]){if(o.strict){if(!o.muet)figRefus(s);return null;}for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;}if(!S[s])return null;f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);}if(!f)return null; // o.f : une figure hors emplacement (L'IMPULSION du double-tap) — s = −1, aucun bouton · (2026-10-15, les directions) s = l'EMPLACEMENT (0 avant, 1 arrière, 2 côté) ; vide : le GESTE (o.strict) est refusé — jamais un tonneau au pouce en avant —, le reste prend un emplacement qui existe (voir figSlots) ; à l'avant / à l'arrière, la figure est ORIENTÉE (son salto dans ce sens : le rodéo avant ≠ le rodéo arrière)
   if(o.dispo!=null)o.douce=true; // la figure du SAUT NITRO part toute seule : le joueur ne l'a pas risquée (pas finie = pas payée, jamais une CHUTE)
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%FIG_NB;return {attente:true};}
-  const bud=o.dispo!=null?o.dispo:figBudget(),D=Math.min(f.D,(bud-.3)/figKT());
+  const bud=o.dispo!=null?o.dispo:figBudget(),D=figDose(f,bud);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=o.dx!=null&&Math.abs(o.dx)>=.3?o.dx:steer; // (2026-10-15, les deux familles) le geste de CÔTÉ donne le pouce LUI-MÊME (figDirSlot) : la figure part de ce côté, sans attendre que le volant lissé l'ait rejoint
   let enC=null;if(o.sens==null&&Math.abs(st9)<=.25)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.mv.length){enC=r9;break;}} // (L'IMPULSION) pouce au neutre pendant que la même figure tourne (même le tonneau AUTOMATIQUE du saut nitro) : on CONTINUE dans son sens — alterner l'ÉTEIGNAIT (MESURÉ au banc : tonneau ×3 annulé par le bouton TONNEAU)
   const sens=o.sens!=null?o.sens:Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1)):enC?enC.s:(FX2.sensAlt=-FX2.sensAlt); // du côté où l'on braque (steer > 0 = à gauche) — o.sens : le GLISSER de Léo l'impose
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
   let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour (sur le tonneau du saut nitro aussi : le joueur le reprend en main, il n'est plus « automatique »)
-  if(r){const D2=Math.min(f.D,(bud-C.reste()-.3)/figKT());if(r.mv[0].tours>=IMPU.max||D2<f.D*.5){figRefus(s);return null;}C.empile(r,D2);r.douce=false;}
-  else{if(C.occupe()>=3||D<f.D*.5){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement »)
+  if(r){const el9=FIG.PHY&&FIG.PHY.elan,D2=el9?Math.min(f.D*1.35+Math.max(0,r.D-r.t),(bud-.35)*.72):figDose(f,bud-C.reste());if(r.mv[0].tours>=IMPU.max||D2<Math.max(.32,f.D*.5)+(el9?Math.max(0,r.D-r.t)*.5:0)){figRefus(s);return null;} /* (le coup net) le tour EMPILÉ se dose sur ce qui reste à CETTE figure (D2 = le temps pour TOUT finir) — MESURÉ : réserver le temps des autres figures refusait le DOUBLE SALTO du saut nitro */C.empile(r,D2);r.douce=false;}
+  else{if(C.occupe()>=3||D<Math.max(.32,f.D*.5)){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement ») — (le coup net) jamais en moins de 0,32 s : le coup serait un flou
     r=C.lance(f,sens,D,{tient:s>=0&&!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;}
   if(s>=0){FX2.slots[s]=r;FX2.cyc=(s+1)%FIG_NB;}FX2.n++;VEQ.n++;
+  {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':(ax===2?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // (HUD v4) la flèche du geste : ▲ ▼, ou le CÔTÉ où elle part (tonneau : sens −1 = à gauche ; toupie, hélico : +1 = à gauche)
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
@@ -44780,8 +44802,9 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
 window.dbgCombo=function(k){if(k==='raz'){SAVE.d.combos={};SAVE.mark();}return {on:COMBO_ON,carnet:Object.assign({},SAVE.d.combos||{}),trio:(FX2.trio||[]).map(function(x){return x.ax;}).join(''),faits:FX2.combos|0};};
 function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),aura=Math.round((f.aura||60)*(reps>1?1+(reps-1)*1.25:1));
   FX2.aura=aura;const c0=CHA.pts;
-  {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,FIG.nomReps(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
-  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;figCvNote(f,reps);fhPlante(r,f,reps); // (2026-10-15) LE COMBO DU VOL
+  {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
+  FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
+  if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
   const k=NITRO2.figAir;nitroGain((k.base+k.rep*(reps-1))*Math.pow(k.k,FX2.nPay),'figair');FX2.nPay++; // ASPHALT 8 : la figure plantée remplit le NITRO, tout de suite
   hap([10,22,10]);
   comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
@@ -44904,7 +44927,7 @@ function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, 
 function figCvX(){const c=FX2.cv;return c.n?Math.min(IMPU.xMax,1+IMPU.xVar*(c.dist-1)+IMPU.xRep*(c.n-c.dist)):1;}
 function figCvTxtX(x){return '×'+String(Math.round(x*100)/100).replace('.',LANG==='en'?'.':',');}
 function figCvNote(f,reps){if(!f)return;const c=FX2.cv;c.n++;if(!c.ids[f.id]){c.ids[f.id]=1;c.dist++;}
-  c.noms.push(sansAcc(FIG.nomReps(f,reps,LANG==='en'?'en':'fr')));c.cle=''; // (le maillon sonne déjà : addTrick → trickPop, et figPaye vibre)
+  c.noms.push(figNom(f,reps));c.cle=''; // (le maillon sonne déjà : addTrick → trickPop, et figPaye vibre)
   if(c.n>=2)fovPunch=Math.max(fovPunch,3+Math.min(4,figCvX()));}
 function figCvRaz(){const c=FX2.cv;c.n=0;c.dist=0;c.ids={};c.noms.length=0;c.cle='raz';} // (≠ '' : le HUD repasse et s'éteint — MESURÉ au banc, il restait affiché après la pose)
 function figComboEncaisse(){const c=FX2.cv;if(c.n<2||!(FX2.pts>0)){if(c.n===1&&FX2.pts>0)fhFin(true);figCvRaz();return;} // (à la pose propre) le combo du vol s'encaisse — (HUD v3) une figure seule s'envole aussi vers la chaîne
@@ -44918,61 +44941,84 @@ function figCvFin(ok){fhFin(ok);figCvRaz();} // (HUD des figures v3) la pose : e
    dans la ligne, le × grimpe) · `fhFin` (la pose : encaissée = la ligne flashe en or et s'envole vers la chaîne d'aura ; chute = rouge, tout tombe)
    · `fhTick` (chaque image, depuis figHud : les minuteries, AUCUNE écriture DOM tant que rien ne change) · `fhLegMaj`/`fhLegFx` (le rappel).
    Plus de texte au-dessus de la caisse pour une figure (CHA.sansPop dans figPaye) : ce HUD le dit, en mieux. */
-const FH={el:null,nom:null,b:null,cs:null,x:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null};
+/* ===== LE HUD DES FIGURES v4 (2026-10-15 soir, Sacha : « retravaille l'HUD des figures aussi, il faut que ce soit parfait : là c'est écrit en
+   double et tout ; il faut des figures bien écrites, avec des moyens de rendre ça addictif »). RELEVÉ au banc (captures en temps réel) : deux
+   « ×2 » à l'écran (« SALTO AVANT ×2 » = deux tours, « 100 ×2 » = la chaîne d'aura) ; le nom revenait en grand ET en pastille à la plantée ;
+   à la pose, la ligne s'envolait PAR-DESSUS la carte moteur (« SALTO AVANTNEAU ») ; le rappel écrivait « ↑ AVANT » pour le SALTO AVANT ; un
+   HÉLICO 720 tout simple partait sous « HÉLICO 720 ×2 » (le nombre de tours lu comme une répétition) ; rien ne disait de quel côté elle part.
+   · LE NOM, une seule fois, bien écrit (`figNom`) : les tours se disent en mots ou en degrés — DOUBLE TONNEAU, TRIPLE SALTO AVANT, TOUPIE 720,
+     HÉLICO 1440, QUADRUPLE TONNEAU (un DOUBLE TONNEAU doublé) ; jamais « ×2 », qui reste au combo et à la chaîne ;
+   · LA FLÈCHE du geste devant le nom (▲ avant, ▼ arrière, ◄ ou ► : le côté où elle part) ;
+   · LA LIGNE DU COMBO : une PASTILLE muette par figure plantée (sa couleur ; plus grosse pour une figure neuve dans le vol — varier paie) et
+     « COMBO ×1,5 » ; au-delà du meilleur combo jamais posé (`SAVE.d.figRec`), « RECORD » bat à côté — battu à la pose, il est gardé ;
+   · À LA POSE : la ligne flashe en or et s'éteint SUR PLACE (elle ne traverse plus l'écran) ; à la chute, elle tombe en rouge ;
+   · LE RAPPEL (#fhLeg) écrit les vrais noms, et le geste que vise le pouce s'ALLUME en direct (`.arme`) : on voit ce qui va partir. */
+const FIG_MULT={fr:['','','DOUBLE ','TRIPLE ','QUADRUPLE ','QUINTUPLE ','SEXTUPLE ','SEPTUPLE ','OCTUPLE '],en:['','','DOUBLE ','TRIPLE ','QUAD ','QUINT ','SEXT ','SEPT ','OCT ']};
+function figNom(f,reps,lg){lg=lg||(LANG==='en'?'en':'fr');let n=sansAcc(lg==='en'&&f.en?f.en:f.n),k=Math.max(1,reps|0);if(k<2)return n;
+  const deg=n.match(/^(.*?)(\d{3,4})$/);if(deg)return deg[1]+(+deg[2]*k); // TOUPIE 360 → TOUPIE 720 · HELICO 720 → HELICO 1440
+  if(/^DOUBLE /.test(n)){n=n.slice(7);k*=2;} // DOUBLE TONNEAU doublé → QUADRUPLE TONNEAU
+  const M=FIG_MULT[lg==='en'?'en':'fr'];return (M[k]||k+'X ')+n;}
+function figRepsEnCours(r){const m=r&&r.mv&&r.mv[0];return m?Math.max(1,Math.round(m.tours/(r.base||m.tours))):1;} // les répétitions prévues (le tour EMPILÉ au double-tap compte)
+const FH={el:null,nom:null,b:null,d:null,cs:null,x:null,rec:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null,arme:-2,recBat:false};
 const FH_COUL=['var(--fh1)','var(--fhVert)','var(--fh2)','var(--fh0)']; // l'emplacement 1 (l'avant, cyan) · le 2 (l'arrière, vert — 2026-10-15 soir) · le 3 (le côté, magenta) · la figure que la caisse fait SEULE (or)
 const FH_N=[26,22]; // le corps du nom (px) : couché · debout — plafonné par la largeur (police pixel : 1 em par lettre)
 function fhEase(){if(!FH.ease){try{FH.ease=getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();}catch(e){}FH.ease=FH.ease||'ease-out';}return FH.ease;}
 function fhAnime(el,k,ms,o){if(!el||!el.animate)return null;if(REDUCED_MOTION&&!(o&&o.rm))return null; // « Réduire les animations » (iOS) : l'état final s'affiche, sans le mouvement
   try{return el.animate(k,Object.assign({duration:ms,easing:fhEase()},o||{}));}catch(e){return null;}}
 function fhEl(){if(FH.el)return FH.el;const e=document.createElement('div');e.id='fh';e.setAttribute('aria-hidden','true');
-  e.innerHTML='<div class="fhNom"><b></b></div><div class="fhLigne"><span class="fhCs"></span><em class="fhX"></em></div>';document.body.appendChild(e);
-  FH.el=e;FH.nom=e.firstChild;FH.b=FH.nom.firstChild;FH.cs=e.querySelector('.fhCs');FH.x=e.querySelector('.fhX');return e;}
+  e.innerHTML='<div class="fhNom"><i class="pxi fhD"></i><b></b></div><div class="fhLigne"><span class="fhCs"></span><em class="fhX"></em><u class="fhRec"></u></div>';document.body.appendChild(e);
+  FH.el=e;FH.nom=e.firstChild;FH.d=FH.nom.firstChild;FH.b=FH.nom.lastChild;FH.cs=e.querySelector('.fhCs');FH.x=e.querySelector('.fhX');FH.rec=e.querySelector('.fhRec');return e;}
 function fhNet(t){return sansAcc(String(t)).replace(/[<>&"]/g,'');}
-function fhNom(t,c,g){const e=fhEl();t=fhNet(t);const b=FH.b;
+function fhNom(t,c,g,dir){const e=fhEl();t=fhNet(t);const b=FH.b;
+  if(dir!==undefined){FH.d.className='pxi fhD'+(dir?' pxi-'+dir:' vide');} // (v4) la flèche du geste : ▲ ▼ ◄ ► (undefined = on garde celle d'avant : la plantée, le combo perdu)
   if(b.textContent!==t){b.textContent=t;b.setAttribute('data-t',t);
-    b.style.fontSize=Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.86/Math.max(1,t.length))-2))+'px';}
+    b.style.fontSize=Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,t.length+1.5))-2))+'px';}
   FH.nom.style.setProperty('--fc',c);FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
   if(g==='in')fhAnime(FH.nom,[{transform:'scale(2.3) rotate(-7deg)',opacity:0,filter:'brightness(3)'},{transform:'scale(.92) rotate(2deg)',opacity:1,filter:'brightness(1.6)',offset:.45},
     {transform:'scale(1.05) rotate(0deg)',offset:.72},{transform:'none',opacity:1,filter:'none'}],460);
   else if(g==='pl')fhAnime(FH.nom,[{transform:'scale(1.4)',filter:'brightness(3.2)'},{transform:'scale(.94)',filter:'brightness(1.5)',offset:.5},{transform:'none',filter:'none'}],400);
   else if(g==='ko')fhAnime(FH.nom,[{transform:'none'},{transform:'translateX(-10px) rotate(-3deg)'},{transform:'translateX(9px) rotate(2deg)'},{transform:'translateX(-6px)'},{transform:'translateX(4px)'},{transform:'none'}],460,{easing:'steps(6)'});}
-function fhChip(t,c){fhEl();const i=document.createElement('i');i.className='fhC';i.textContent=fhNet(t);i.style.setProperty('--cc',c);FH.cs.appendChild(i);
-  while(FH.cs.childElementCount>4)FH.cs.firstChild.remove(); // quatre pastilles au plus : les plus anciennes cèdent (le × garde la mémoire)
-  fhAnime(i,[{transform:'translateY(-26px) scale(1.9)',opacity:0,filter:'brightness(3)'},{transform:'translateY(3px) scale(.94)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],440);}
+function fhChip(neuf,c){fhEl();const i=document.createElement('i');i.className='fhP'+(neuf?' neuf':'');i.style.setProperty('--cc',c);FH.cs.appendChild(i); // (v4) une PASTILLE muette par figure plantée : le nom est déjà écrit au-dessus, une fois
+  while(FH.cs.childElementCount>8)FH.cs.firstChild.remove();
+  fhAnime(i,[{transform:'translateY(-30px) scale(2.4)',opacity:0,filter:'brightness(3)'},{transform:'translateY(2px) scale(.9)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],420);}
+function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} // le meilleur combo jamais POSÉ (le × du vol)
 function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x;fhEl();
-  FH.x.textContent=x?figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
+  FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
+  {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
 function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
-  const n=r.mv&&r.mv[0]?r.mv[0].tours|0:1;fhNom(FIG.nomReps(r.f,Math.max(1,n),LANG==='en'?'en':'fr'),FH_COUL[c],'in');FH.nomT=performance.now()+1900;
+  fhNom(figNom(r.f,figRepsEnCours(r)),FH_COUL[c],'in',r.flD||null);FH.nomT=performance.now()+1900; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste */
   if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
   if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps){if(!f||!window.FIG)return;const c=FH_COUL[r&&r.fhc!=null?r.fhc:3],t=FIG.nomReps(f,reps,LANG==='en'?'en':'fr'); // (figPaye) plantée : elle claque et tombe dans la ligne
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const c=FH_COUL[r&&r.fhc!=null?r.fhc:3],t=figNom(f,reps); // (figPaye) plantée : elle claque et tombe dans la ligne
   if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
-  fhNom(t,c,'pl');fhChip(t,c);fhXMaj();FH.nomT=performance.now()+1000;
+  fhNom(t,'var(--fh0)','pl');fhChip(neuf,c);fhXMaj();FH.nomT=performance.now()+1000; /* (v4) plantée : le nom passe en OR un instant (c'est fait), une pastille de sa couleur — pas un 2e texte */
   try{pixBurst(FH.b,Math.min(12,6+2*FX2.cv.n));}catch(e){}}
 function fhFin(ok){const c=FX2.cv;if(!FH.el||!FH.vu||c.n<1)return;const n=performance.now(); // (la pose) — à appeler AVANT figCvRaz
   if(ok){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.el.classList.remove('perdu');
     if(FH.xv>0)fhAnime(FH.x,[{transform:'scale(1.9)',filter:'brightness(3)'},{transform:'scale(1)',filter:'none'}],300);
-    fhAnime(FH.cs,[{filter:'brightness(3)'},{filter:'none'}],300);FH.fin='vole';FH.finT=n+(c.n>=2?200:0);}
+    fhAnime(FH.cs,[{filter:'brightness(3)'},{filter:'none'}],300);
+    {const x=c.n>=2?figCvX():0;if(x>figRec()+1e-6){SAVE.d.figRec=Math.round(x*100)/100;SAVE.mark();}} // (v4) le RECORD battu à la pose est gardé
+    FH.fin='efface';FH.finT=n+(c.n>=2?900:500);fhAnime(FH.el,[{opacity:1},{opacity:1,offset:.6},{opacity:0}],c.n>=2?900:500,{fill:'forwards',rm:true});} /* (v4) elle s'éteint SUR PLACE : plus de vol à travers l'écran par-dessus la carte moteur */
   else{if(c.n>=2)fhNom(TR('COMBO PERDU'),'var(--fhKo)','ko');else FH.nom.classList.remove('on'); /* une figure seule : « FIGURE RATÉE ! » le dit déjà sur la caisse (flowCasse) — les pastilles tombent, sans un 2e texte */
     FH.el.classList.add('perdu');FH.el.classList.remove('paye');
     const L=FH.cs.children;for(let i=0;i<L.length;i++)fhAnime(L[i],[{transform:'none',opacity:1},{transform:'translateY(46px) rotate('+(i%2?18:-16)+'deg)',opacity:0}],520,{delay:120+i*70,fill:'forwards',easing:'steps(5)'});
     FH.fin='efface';FH.finT=n+1050;}}
-function fhVole(){const e=FH.el;if(!e)return;let t=document.getElementById('avCh');if(!t||!t.classList.contains('on'))t=document.getElementById('auraV2'); // vers la chaîne d'aura (là où « COMBO ×N » vient de s'écrire)
-  const r=e.getBoundingClientRect(),q=t?t.getBoundingClientRect():null;let dx=-r.width*.4,dy=-r.top;
-  if(q&&q.width){dx=q.left+q.width/2-(r.left+r.width/2);dy=q.top+q.height/2-(r.top+r.height/2);}
-  FH.va=fhAnime(e,[{transform:'translateX(-50%)',opacity:1},{transform:'translate(calc(-50% + '+Math.round(dx)+'px),'+Math.round(dy)+'px) scale(.22)',opacity:0}],420,{fill:'forwards',rm:true});}
-function fhRaz(){if(FH.vu)document.body.classList.remove('fhOn');FH.vu=false;FH.fin='';FH.nomT=0;FH.xv=-1;if(!FH.el)return;if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}
-  FH.el.className='';FH.nom.className='fhNom';FH.cs.textContent='';FH.x.textContent='';FH.x.classList.remove('max');}
+/* (v4) fhVole retirée : la ligne du combo ne traverse plus l'écran (elle passait par-dessus la carte moteur) */
+function fhRaz(){if(FH.vu)document.body.classList.remove('fhOn');FH.vu=false;FH.fin='';FH.nomT=0;FH.xv=-1;FH.recBat=false;if(!FH.el)return;if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}
+  try{FH.el.getAnimations().forEach(function(a){a.cancel();});}catch(e){}
+  FH.el.className='';FH.nom.className='fhNom';FH.cs.textContent='';FH.x.textContent='';FH.x.classList.remove('max');FH.rec.textContent='';FH.rec.classList.remove('on');}
 function fhTick(vol){if(!FH.vu)return;const n=performance.now(); // (chaque image, depuis figHud) rien n'est écrit tant que rien ne change
-  if(FH.fin){if(n<FH.finT)return;if(FH.fin==='vole'){FH.fin='efface';FH.finT=n+440;fhVole();return;}fhRaz();return;}
-  if(!vol){if(mode==='drive'&&!gameOver&&FH.cs.firstChild){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.fin='vole';FH.finT=n;return;}fhRaz();return;} // (les figures plantées sont déjà dans la chaîne)
+  if(FH.fin){if(n<FH.finT)return;fhRaz();return;}
+  if(!vol){if(mode==='drive'&&!gameOver&&FH.cs.firstChild){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.fin='efface';FH.finT=n+500;fhAnime(FH.el,[{opacity:1},{opacity:0}],500,{fill:'forwards',rm:true});return;}fhRaz();return;} // (les figures plantées sont déjà dans la chaîne)
   if(FH.nomT&&n>FH.nomT){FH.nomT=0;FH.nom.classList.remove('on');} // le nom s'éteint ; la ligne du combo reste tant qu'on vole
   if(!FH.nomT&&!FH.cs.firstChild)fhRaz();}
 function fhLegMaj(){const el=document.getElementById('fhLeg');if(!el||!window.FIG)return;const S=figSlots(),cle=S.join(',')+'|'+LANG;if(FH.legCle===cle)return;FH.legCle=cle; // (en vol) ↑ figure 1 · ◄► figure 2
   const I=['haut','bas','fleches']; // (2026-10-15, les directions) chaque figure avec le geste et la couleur de SON emplacement ; un emplacement vide ne s'affiche pas (le tonneau ne part que de côté)
-  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b>'+fhNet(figCourt(f))+'</b></div>';}).join('');
-  FH.legs=[];[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
+  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b>'+fhNet(figNom(f,1))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
+  FH.legs=[];FH.arme=-2;[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
+function fhArme(){if(!FH.legs||figGlisseOn())return;const s=figDirSlot();if(s===FH.arme)return; // (v4, chaque image en vol) le geste que vise le pouce s'ALLUME
+  const a=FH.legs[FH.arme];if(a)a.classList.remove('arme');FH.arme=s;const b=FH.legs[s];if(b)b.classList.add('arme');}
 function fhLegFx(s,ko){const b=FH.legs&&FH.legs[s];if(!b||s<0)return;
   if(ko){b.classList.add('ko');clearTimeout(b._k);b._k=setTimeout(function(){b.classList.remove('ko');},460);
     fhAnime(b,[{transform:'none'},{transform:'translateX(-6px)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'none'}],400,{easing:'steps(4)'});}
@@ -44991,7 +45037,7 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
-  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v);
+  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v);if(v&&FDIR.on)fhArme();
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
   if(v&&FX2.bts)for(let i=0;i<FX2.bts.length;i++){if(!FX2.bts[i])continue;const r=FX2.slots[i],on=!!(r&&r.tient&&!r.paye);if(FX2.btOn[i]!==on){FX2.btOn[i]=on;FX2.bts[i].classList.toggle('on',on);}}}
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
@@ -45008,6 +45054,7 @@ function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on »
   addEventListener('keyup',function(e){const s=K[e.code];if(s!=null)lache('k'+s);});
 })();
 try{Object.assign(I18N,{'Depuis NITRO, glisse puis lâche : ◄► un 360, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':'From NITRO, slide then release: ◄► a 360, ▲ ▼ a flip. On the ground, push the joystick forward to jump.'});}catch(e){} // (2026-10-15) l'astuce du GLISSER (bit 64 de SAVE.d.ast — libre ; ⚠ san() plafonne ast à 255 : jamais de bit 256)
+try{Object.assign(I18N,{'COMBO':'COMBO','RECORD':'RECORD'});}catch(e){} // (HUD des figures v4)
 try{Object.assign(I18N,{'COMBO PERDU':'COMBO LOST','En vol, tape 2 fois NITRO : pouce en AVANT = figure 1, sur le CÔTÉ = figure 2.':'In the air, double-tap NITRO: thumb FORWARD = trick 1, to the SIDE = trick 2.','En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'In the air, double-tap NITRO: thumb FORWARD, BACK or to the SIDE — each gesture has its trick.'});}catch(e){} // (2026-10-15) HUD des figures v3 + le choix au joystick
 try{Object.assign(I18N,{'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !':'In the air, tap a TRICK: it blasts and spins the car. Hold for one more turn!','TOUPIE DE DRIFT':'DRIFT SPIN','EMPLACEMENTS':'SLOTS','ÉQUIPÉE':'EQUIPPED','REMPLACE':'REPLACES','RETIRÉE':'REMOVED',
   'IL EN FAUT UNE':'KEEP AT LEAST ONE','EMPLACEMENT':'SLOT'});}catch(e){}
@@ -55265,7 +55312,7 @@ function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=f
   else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
 function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
 function garFigEssai(id,c){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]); // (2026-10-15) la caisse la fait dans le sens de la carte (le rodéo avant ≠ le rodéo arrière)
-  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*figKT()/.85+.55; /* (2026-10-15 soir) l'élan glisse plus longtemps : le saut du plateau dure d'autant */
+  if(FIGV2.on&&FIG.Corps){if(!GFIG.corps)GFIG.corps=new FIG.Corps();const C=GFIG.corps;C.vide();C.lance(f,1,f.D*1.2);C.evts.length=0;GFIG.t=0;GFIG.D=f.D*1.2*(FIG.PHY.elan?1:1/.85)+.6; /* (2026-10-15 soir) le coup net : la figure en f.D × 1,2, puis le planté */
     try{if(SONV2){sfx('turbo.mini',{vol:-6});GSON9=true;}}catch(e){}return;} // (LES FIGURES v2) la caisse fait la figure en vraie physique : explosion, élan, planté
   if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
   try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}

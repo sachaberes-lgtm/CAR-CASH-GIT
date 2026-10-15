@@ -4,6 +4,46 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LES FIGURES SUPER FUN : LE COUP NET, LE SENS QUI SE VOIT, LE HUD v4 (2026-10-15 soir, Sacha : « ça marche un peu mais c'est imprécis et peu spectaculaire, fais dans le détail pour que les figures soient super fun » · « les figures doivent vraiment changer de sens selon le côté où tu les as mises : le rodéo vers l'avant ou l'arrière, l'hélico à gauche ou à droite, la rotation inversée » · « retravaille l'HUD des figures aussi, il faut que ce soit parfait : là c'est écrit en double ; des figures bien écrites, avec des moyens de rendre ça addictif » · « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance »)
+- RELEVÉ d'abord, au FILM : `film-fig.cjs` (la boucle du jeu figée — `requestAnimationFrame` détourné, pompé à la main — une capture par image
+  à 60 i/s : la 3D telle que le joueur la voit) et `hud-film.cjs` (captures en temps RÉEL : les minuteries du HUD suivent l'horloge). Trouvé :
+  en vrai vol (1,2 s) le filet de sécurité reprenait la main dès 0,2 s — le tonneau bouclé en 0,35 s à vitesse fixe, illisible, puis la caisse
+  à plat les deux tiers du saut ; le rodéo arrière coupé à 0,1 s ; au sol, la figure du SAUT NITRO partait « à tour de rôle » (`FX2.cyc`),
+  sans regarder la direction ; le HUD (voir v4 plus bas).
+- **LE COUP NET** (`FIG.Corps`, figures.js ?v=8, `PHY.elan`, `?elan=0` = la prise d'avant) :
+  · la DURÉE vient du vol (`figDose` : 72 % du vol qui reste moins la pose, au plus 1,35 × la durée du catalogue, jamais sous 0,32 s) ;
+  · le COUP : départ à 2 × la vitesse moyenne, puis un FREIN RÉGULIER (décélération constante, `m.acc`) qui l'arrête pile après ses tours + 5°
+    (`eps`) : elle dépasse un poil l'endroit et s'y PLANTE (le ressort du planté, un rebond) — finie à `finE` (98,5 %) ;
+  · une figure à DEUX rotations (rodéo, tire-bouchon, cosmique) = UNE rotation autour de l'axe penché qui les combine, en tours ENTIERS : elle
+    retombe pile à l'endroit (MESURÉ : menées chacune de son côté, elles laissaient la caisse à 148° — elles ne commutent pas) ; c'est le vrai
+    rodéo des riders, un salto désaxé ; orientée avant ou arrière, son salto change de sens (vérifié : tangage + / −) ;
+  · le coup VISE la vitesse de départ sur son axe (il renverse une rotation contraire, il complète une du même sens) ; une figure CONTRAIRE
+    sur le même axe ANNULE celle qui tourne ; deux figures qui se CONTRARIENT (axes à demi opposés : salto + rodéo arrière) — la dernière
+    prend la main, l'autre compte dès la moitié faite ; sur des axes de travers (tonneau + salto), chacune garde son frein (MESURÉ : la relayer
+    laissait 160° en fin de combo, contre 55°) ;
+  · LA FIN d'un mélange (`finVise`) : elle CONTINUE dans son sens et ralentit à décélération constante jusqu'à l'endroit (FIGÉE au début de la
+    fin — recalculée chaque image, elle gardait la vitesse : MESURÉ 9,2 rad/s constants), plus fort si le sol presse ; plus de vitesse fixe,
+    plus de balancier ; la prise forte n'est plus qu'un filet (sol trop proche, tap qui redresse) ;
+  · le temps qu'il reste (`reste`) = le plan de la figure (estimé sur la vitesse de son axe, il forçait la prise dès le départ en mélange) ;
+  · le compte des RÉPÉTITIONS se fait sur la figure de base (`r.base`) : un HÉLICO 720 qui fait ses deux tours = UN hélico, un tonneau empilé
+    au double-tap = DOUBLE TONNEAU (payé comme tel).
+- **LE SAUT NITRO suit la direction** (`veqFigure`) : la figure du double-tap au SOL est celle de la direction tenue à cet instant (▲ ou rien =
+  l'avant, ▼ = l'arrière, ◄► = le côté) ; rien dans cette direction : le saut part sans figure, sans bruit de refus (`o.muet`).
+- **LE SPECTACLE** sans ralenti (verdict du 26/09 : plus aucun ralenti — les gels d'image restent muets) : la plantée CLAQUE — un coup de zoom
+  sec (le même que la pose PARFAITE, en petit : `CAMV.zoom` .42), une secousse, une gerbe d'or ; le coup de départ garde son explosion.
+- **LE HUD DES FIGURES v4** (le récit est au-dessus de `figNom`) : le NOM une seule fois, bien écrit (`figNom` : DOUBLE TONNEAU, TOUPIE 720,
+  HÉLICO 1440, QUADRUPLE TONNEAU — plus de « ×2 », qui se confondait avec le × de la chaîne d'aura ; un HÉLICO 720 simple ne s'écrit plus
+  « HÉLICO 720 ×2 ») ; la FLÈCHE du geste devant (▲ ▼ ◄ ►, le côté où elle part) ; à la plantée le nom passe en OR et une PASTILLE muette
+  tombe dans la ligne (plus grosse pour une figure neuve dans le vol) ; « COMBO ×1,5 » ; le RECORD de combo (`SAVE.d.figRec`, désinfecté) bat
+  à côté du × dès qu'on le dépasse, gardé à la pose ; à la pose la ligne s'éteint SUR PLACE (`fhVole` retirée : elle traversait la carte
+  moteur — « SALTO AVANTNEAU ») ; le rappel #fhLeg écrit les vrais noms (« SALTO AVANT », plus « AVANT ») et le geste que vise le pouce
+  S'ALLUME (`fhArme`, `.arme`). Anglais : COMBO, RECORD, DOUBLE / TRIPLE / QUAD.
+- MESURÉ — banc du corps (`banc-corps.cjs`, au dosage du jeu) : tonneau sur 1,3 s de vol 18 → 3 rad/s, planté à 0,65 s ; salto 0,75 s ;
+  hélico 720 1,08 s ; rodéo avant / arrière 0,9 s (0° à la fin) ; tonneau + salto, tonneau + toupie, salto du saut + tonneau, salto du saut
+  + rodéo arrière : tous rangés à l'endroit entre 1,4 et 1,6 s, la fin en décélération continue ; vol de 0,9 s : planté à 0,57 s. RESULTATS
+- Hooks : `dbgFigDir(x,y)` (le geste, la figure, son sens), `dbgFig('phy')` (les réglages, à chaud : `eps`, `finE`, `aUp`, `aDn`, `aFin`,
+  `stickAng`), `?elan=0`.
+
 ## FIGURES › GLISSER, 2e PASSE : LES FIGURES AU SOL (2026-10-15, Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air seulement lorsque le joueur fait flèche avant pendant le trick ; faites sur le sol, la voiture reste au sol ; d'autres, comme le slide 360, restent au sol ; une figure peut aussi se faire en maintenant le boost avec un geste brusque ; droite ou bas pas forcément sur le boost »)
 - Choix cochés par Léo : « flèche avant » = le JOYSTICK (pouce gauche) poussé vers l'avant pendant la figure ; au sol, sans lui, la figure se
   fait AU SOL ; ← → = SLIDE 360 au sol et 360 en l'air ; → ↓ peuvent partir de n'importe où (moitié droite de l'écran).
