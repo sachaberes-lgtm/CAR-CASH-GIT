@@ -9828,6 +9828,51 @@ html.sansJauge body.touch #auraV2{top:calc(var(--hudH) + 76px)!important}
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 </style>
+<style id="accueilDoigt">
+/* LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, une sorte d'icône avec un doigt qui clignote sur la voiture la
+   première fois, pour lui montrer qu'on peut cliquer sur la voiture ; rends-le un peu stylisé, un peu accueillant pour la première
+   connexion, la première fois qu'il voit le menu »). La première fois qu'on voit l'accueil, une MAIN EN PIXELS (gant blanc, manchette
+   d'or, contour d'encre) vient se poser sous la caisse et la TAPE : à chaque coup, une onde et quatre éclats d'or partent du bout du doigt ;
+   une bulle dit BIENVENUE ! · TAPE TA CAISSE. Le point d'ancrage (left/top 0, déplacé par `transform`) = le bout du doigt = le centre de
+   la caisse à l'écran, suivi image par image (chuteDoigtTick, appelé par chuteRender). Au premier coup sur la caisse elle s'envole et ne
+   revient plus (SAVE.d.ast, bit 256 : chuteDoigtFini). Rien ne se touche ici (pointer-events:none) : le doigt du joueur passe au travers. */
+#chDoigt{position:fixed;left:0;top:0;z-index:6;width:0;height:0;pointer-events:none;opacity:0;visibility:hidden;
+  transition:opacity .3s var(--ease),visibility 0s linear .3s}
+#chDoigt.on{opacity:1;visibility:visible;transition:opacity .3s var(--ease)}
+#chDoigt .cdMain{position:absolute;left:-18px;top:2px;width:48px;height:54px;background:var(--cdSvg) 0 0/100% 100% no-repeat;transform-origin:18px 0;
+  filter:drop-shadow(0 3px 0 rgba(10,4,24,.6)) drop-shadow(0 0 9px rgba(255,215,94,.45))}
+#chDoigt.on .cdMain{animation:cdEntre .55s var(--ease) both,cdTape 1.6s var(--ease) .55s infinite}
+#chDoigt .cdOnde{position:absolute;left:-24px;top:-24px;width:48px;height:48px;border-radius:50%;box-sizing:border-box;opacity:0;
+  border:3px solid #fff;box-shadow:0 0 0 2px rgba(255,215,94,.85),inset 0 0 0 2px rgba(255,215,94,.85)}
+#chDoigt.on .cdOnde{animation:cdOnde 1.6s steps(6,end) .55s infinite}
+#chDoigt .cdEcl{position:absolute;left:-3px;top:-3px;width:6px;height:6px;background:#ffd75e;box-shadow:0 0 0 2px #1c0430;opacity:0}
+#chDoigt.on .cdEcl{animation:cdEcl 1.6s var(--ease) .55s infinite}
+#chDoigt .cdEcl:nth-of-type(1){--ex:-26px;--ey:-22px}#chDoigt .cdEcl:nth-of-type(2){--ex:26px;--ey:-22px}
+#chDoigt .cdEcl:nth-of-type(3){--ex:-32px;--ey:4px}#chDoigt .cdEcl:nth-of-type(4){--ex:32px;--ey:4px}
+#chDoigt .cdBul{position:absolute;left:0;top:70px;translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:7px;white-space:nowrap;
+  padding:9px 13px 10px;background:linear-gradient(180deg,#2a1e56,#140c2c);box-shadow:inset 0 0 0 2px #ffd75e,inset 0 0 0 4px #1c0430,0 4px 0 #0a0818,0 0 18px rgba(255,215,94,.3)}
+#chDoigt .cdBul::before{content:'';position:absolute;left:50%;top:-8px;width:12px;height:8px;translate:-50% 0;background:#ffd75e;
+  clip-path:polygon(0 100%,33% 50%,33% 0,67% 0,67% 50%,100% 100%)}
+#chDoigt .cdBul b{font-weight:400;font-size:8px;letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 #1c0430}
+#chDoigt .cdBul span{font-size:10px;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 #1c0430}
+#chDoigt.on .cdBul{animation:cdBul .6s var(--ease) .25s both,cdFlotte 2.4s ease-in-out .85s infinite}
+#chDoigt.fini{opacity:0;visibility:hidden;transition:opacity .35s var(--ease) .1s,visibility 0s linear .45s}
+#chDoigt.fini .cdMain{animation:cdPart .45s var(--ease) both}
+#chDoigt.fini .cdBul{animation:cdBulPart .35s var(--ease) both}
+#chDoigt.fini :is(.cdOnde,.cdEcl){animation:none;opacity:0}
+@keyframes cdEntre{0%{opacity:0;transform:translate(10px,34px) rotate(-14deg)}100%{opacity:1;transform:translate(3px,10px) rotate(-7deg)}}
+@keyframes cdTape{0%,30%{transform:translate(3px,10px) rotate(-7deg)}42%{transform:translate(0,-2px) rotate(0) scale(.9)}52%{transform:translate(0,0) rotate(0) scale(.94)}
+  70%,100%{transform:translate(3px,10px) rotate(-7deg)}}
+@keyframes cdOnde{0%,38%{opacity:0;transform:scale(.15)}42%{opacity:1;transform:scale(.25)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes cdEcl{0%,40%{opacity:0;transform:translate(0,0)}44%{opacity:1;transform:translate(0,0)}75%{opacity:0;transform:translate(var(--ex),var(--ey))}100%{opacity:0}}
+@keyframes cdBul{0%{opacity:0;scale:.6}60%{opacity:1;scale:1.06}100%{opacity:1;scale:1}}
+@keyframes cdFlotte{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes cdPart{0%{opacity:1;transform:translate(0,0) scale(.94)}100%{opacity:0;transform:translate(0,-30px) scale(1.5)}}
+@keyframes cdBulPart{to{opacity:0;scale:.7}}
+html[data-reduced-motion] #chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}
+html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}
+@media (prefers-reduced-motion:reduce){#chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}#chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}}
+</style>
 <style id="policeUnique">
 /* UNE SEULE POLICE (2026-10-15, Sacha : « c'est partout la même police ») — LE FILET CSS. Tout élément, tout pseudo-élément, tout champ
    (un <textarea>, un <input>, un <button> n'héritent PAS de la police de la page : c'est ainsi que le champ du CODE COUSIN tapait en
@@ -9838,6 +9883,7 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 ::placeholder{font-family:var(--pix)!important}
 #spPhi{font-family:"Times New Roman",Georgia,serif!important}
 </style>
+<div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -43325,7 +43371,7 @@ const SAVE={
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
@@ -52619,6 +52665,37 @@ const CHUTE_TAP={p:new THREE.Vector3(),v:new THREE.Vector3(),Q:new THREE.Quatern
   V:10,W:6.5,WMAX:20,CHAOS:6,HS:.07,hs:0, /* (2026-10-14, Léo : « augmente l'impact des coups ») poussée ×1,33, pivot ×1,3 ; HS = l'ARRÊT SUR IMAGE au contact (s) */
   K:12,C:2.4,KR:16,CR:1.9,WL:3,TR:.011,TT:.012,PMAX:7,PL:5.5,
   n:0,combo:0,cT:-9,sh:0,deb:null,debM:null,tient:null};
+/* LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « une sorte d'icône avec un doigt qui clignote sur la voiture la première fois […] un peu
+   accueillant pour la première connexion ») — le dessin et le mouvement : <style id="accueilDoigt">. Montré tant que la caisse du titre n'a
+   jamais été tapée (SAVE.d.ast, bit 256), sur l'ACCUEIL seulement (la coque sur « home », le voile d'ouverture parti, ni piqué, ni volet, ni
+   auto-école), après 1,2 s d'accueil à l'écran. Le bout du doigt suit le centre de la caisse projeté, LISSÉ (elle tremble dans le vent de la
+   chute : la main ne tremble pas avec), gardé dans l'écran pour que la bulle tienne. Le DOM n'est écrit que si la place change d'un pixel.
+   La main (16 × 18) : o encre, w gant, g ombre du gant, y/d manchette d'or. */
+const CH_DOIGT={el:null,fini:false,on:false,t:0,x:-1,y:-1,tx:'',r:null,rT:0,v:new THREE.Vector3(),BIT:256,
+  G:['.....oo.........','....owwo........','....owgo........','....owgo........','....owgo........','....owgooo......','....owgowgooo...',
+     '....owgowgowgoo.','.oo.owgowgowgowo','owgoowgowgowgowo','owwwowwwwwwwwwgo','.owwwwwwwwwwwwgo','..owwwwwwwwwwwgo','..owwwwwwwwwwwgo',
+     '...owwwwwwwwwgo.','....oyyyyyyyydo.','....oyyyyyyyydo.','....ooooooooooo.'],
+  C:{o:'#1c0430',w:'#ffffff',g:'#c8bde8',y:'#ffd75e',d:'#c8901a'}};
+try{Object.assign(I18N,{'BIENVENUE !':'WELCOME!','TAPE TA CAISSE':'TAP YOUR CAR'});}catch(e){}
+function chuteDoigtEl(){const D=CH_DOIGT;if(D.el)return D.el;const el=document.getElementById('chDoigt');if(!el)return null;
+  let r='';for(let y=0;y<D.G.length;y++)for(let x=0;x<16;x++){const c=D.C[D.G[y][x]];if(c)r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+c+'"/>';}
+  el.style.setProperty('--cdSvg','url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 18" shape-rendering="crispEdges">'+r+'</svg>')+'")');
+  return D.el=el;}
+function chuteDoigtMontre(v){const D=CH_DOIGT;if(!v)D.t=0;if(D.on===v)return;D.on=v;if(D.el)D.el.classList.toggle('on',v);}
+function chuteDoigtTick(dt,Ck,G){const D=CH_DOIGT;if(D.fini)return;
+  if((SAVE.d.ast|0)&D.BIT){D.fini=true;chuteDoigtMontre(false);return;}
+  if(G||!carGroup.visible||TUTO.on||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
+  const el=chuteDoigtEl();if(!el){D.fini=true;return;}
+  D.rT-=dt;if(D.rT<=0||!D.r){D.rT=.5;D.r=renderer.domElement.getBoundingClientRect();} // la place du canevas (le cadre de l'ordi le décale) : relue deux fois par seconde
+  const R=D.r;D.v.copy(Ck).project(camera);if(!(R.width>0)||D.v.z>1){chuteDoigtMontre(false);return;}
+  let sx=R.left+(D.v.x*.5+.5)*R.width,sy=R.top+(.5-D.v.y*.5)*R.height;
+  sx=Math.max(R.left+96,Math.min(R.right-96,sx));sy=Math.max(R.top+24,Math.min(R.bottom-132,sy)); // la bulle (sous la main) reste dans l'écran
+  if(D.x<0){D.x=sx;D.y=sy;}else{const k=1-Math.exp(-dt*5);D.x+=(sx-D.x)*k;D.y+=(sy-D.y)*k;}
+  const tx='translate3d('+Math.round(D.x)+'px,'+Math.round(D.y)+'px,0)';if(tx!==D.tx){D.tx=tx;el.style.transform=tx;}
+  D.t+=dt;if(D.t>1.2)chuteDoigtMontre(true);}
+function chuteDoigtFini(){const D=CH_DOIGT;if(D.fini||(!D.on&&D.t<.3))return;D.fini=true; // le 1er coup sur la caisse : la main s'envole, pour toujours — (banc) sauf le tap qui ferme le voile d'ouverture et retombe sur la caisse (D.t < 0,3 s d'accueil) : il ne compte pas
+  SAVE.d.ast=(SAVE.d.ast|0)|D.BIT;try{SAVE.flush();}catch(e){} /* écrit tout de suite : l'appli fermée juste après ne la remontre pas */
+  const el=D.el;if(el&&D.on){el.classList.add('fini');setTimeout(function(){el.classList.remove('on','fini');},600);}else if(el)el.classList.remove('on');D.on=false;}
 function chuteVisible(o){for(let x=o;x;x=x.parent)if(!x.visible)return false;return true;}
 function chuteVise(e){ // le rayon du doigt : la 1re pièce VISIBLE et opaque de la caisse, ou rien
   if(!CHUTE.on||CHUTE.go||!carGroup.visible)return null;
@@ -52638,6 +52715,7 @@ function chuteDebris(){ // les morceaux de tôle (une fois) : 16 boîtes sur UNE
 }
 function chuteTape(e){ // TAPÉE : le coup
   const h=chuteVise(e);if(!h)return false;
+  try{chuteDoigtFini();}catch(_){} /* (2026-10-15 soir) le doigt de bienvenue a servi */
   const T=CHUTE_TAP,d=T.ray.ray.direction,c=CHUTE.ctr||carGroup.position,now=performance.now()/1000;
   T.combo=now-T.cT<.7?Math.min(6,T.combo+1):1;T.cT=now;const mu=1+.35*(T.combo-1);  // LE COMBO : ×1 → ×2,75
   chuteAxes();const lt=(Math.random()-.5)*2,lu=Math.random()*.8-.2;                       // la poussée : dans le sens du doigt, et DE CÔTÉ (repoussée au loin seulement, elle rapetissait)
@@ -53547,6 +53625,7 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
+  try{chuteDoigtMontre(false);}catch(_){} /* (2026-10-15 soir) le doigt de bienvenue ne reste pas sur l'atelier ni sur la course */
   if(CHUTE.corps){carBody.position.set(0,0,0);carBody.rotation.set(0,0,0);CHUTE.corps=false;} // (LA CHUTE LIBRE RÉALISTE) la carrosserie se repose sur ses ressorts
   CHUTE.on=false;CHUTE.go=null;CHUTE.sous=null;titreCiel(false);gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
@@ -53696,6 +53775,7 @@ function chuteRender(dt){
   if(CHUTE_TAP.sh>0){const k9=CHUTE_TAP.sh;camera.position.x+=(Math.random()-.5)*.5*k9;camera.position.y+=(Math.random()-.5)*.5*k9;camera.position.z+=(Math.random()-.5)*.5*k9;camera.rotateZ((Math.random()-.5)*.06*k9); // (LA CAISSE AU DOIGT v2) le coup secoue la caméra…
     camera.fov=fov0-9*Math.min(1,k9);camera.updateProjectionMatrix();} // (14/10) le coup de zoom ×1,8 // …et la fait cogner d'un coup de zoom (la ligne du champ, plus haut, le rend à l'image suivante)
   camera.updateMatrixWorld();
+  try{chuteDoigtTick(dt,Ck,G);}catch(_){} /* (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : la main suit la caisse, la caméra posée */
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
   if(P.studio){chuteStudio(Ck,up,P);}else{trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) LE MODELÉ DE LA CAISSE (voir chuteStudio) ; P.studio = 0 : l'éclairage d'avant
   stallKey.color.setHex(P.cleC);stallKey.intensity=.9*P.cle;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);

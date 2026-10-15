@@ -3,6 +3,28 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ACCUEIL : ACHAT, LA VITRINE SANS SA PHRASE, LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, l'offre doit maintenant s'appeler achat ; enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien » · « une sorte d'icône avec un doigt qui clignote sur la voiture la première fois, pour lui montrer qu'on peut cliquer sur la voiture ; rends-le un peu stylisé, accueillant pour la première connexion »)
+- LE BOUTON : la tuile cadeau de l'accueil (`.mOffres`, bâtie par le bloc « accueil du ciel ») dit ACHAT (anglais : BUY, l'entrée `ACHAT`
+  existante d'I18N) ; même mot dans `accC6` (charte 6). L'écran où elle mène (`#mShop`) garde son titre OFFRES (le nom donné par Léo le
+  10/10) : à trancher si on le renomme aussi.
+- LA VITRINE (`shopRender`, l'offre à la une `.shUne`) : plus de phrase de la caisse sous son nom (la desc du CHAT POP-TART faisait trois
+  lignes). La fenêtre d'achat (`shopPop`, `.spDesc`) la montre toujours.
+- LE DOIGT DE BIENVENUE (`<style id="accueilDoigt">`, `#chDoigt`, `CH_DOIGT` / `chuteDoigtTick` / `chuteDoigtFini`, juste après
+  `CHUTE_TAP`) : une main en pixels (16 × 18, gant blanc ombré de lilas, manchette d'or, contour d'encre — dessinée en SVG par
+  `chuteDoigtEl`, rendue ×3) se pose sous la caisse du titre et la TAPE toutes les 1,6 s ; à chaque coup, une onde (en 6 crans) et quatre
+  éclats d'or partent du bout du doigt. Une bulle d'encre filetée d'or, sous la main : BIENVENUE ! (or) · TAPE TA CAISSE (blanc) — en
+  anglais WELCOME! · TAP YOUR CAR.
+  · Quand : sur l'accueil seulement (`overlay[data-ecran]` = home, voile d'ouverture parti, ni piqué, ni volet, ni auto-école), après
+    1,2 s d'accueil ; cachée dès qu'on quitte le ciel (`chuteSort`). Pas `overlay.style.display` : au ciel l'accueil s'affiche par-dessus
+    un display:none écrit en ligne.
+  · Où : le bout du doigt = le centre de la caisse projeté (`chuteRender`, après la caméra), lissé (la caisse tremble dans le vent, la
+    main non), gardé dans l'écran (96 px des côtés, 132 du bas) ; le cadre du canevas relu deux fois par seconde.
+  · Jusqu'à quand : le premier coup sur la caisse (`chuteTape`) → la main s'envole (0,45 s) et ne revient plus : SAVE.d.ast, bit 256.
+    ⚠ `san()` bornait `ast` à 255 : la borne passe à 1023, sinon le bit était perdu au rechargement.
+  · Réduire les animations : la main reste posée, sans coups ni ondes.
+- BANC (Chrome sans fenêtre, sauvegarde neuve et muette, 844 × 390 puis 390 × 844) : la main sous la caisse et la bulle lisibles couché ;
+  ACHAT à l'accueil ; le tap sur la caisse l'éteint, `ast` = 256 sauvegardé, rien après rechargement.
+
 ## LES STALACTITES QUI SE BRISENT (2026-10-15 soir, Sacha : « retravaille les stalactites sous la route de montagne, faut qu'ils se brisent de manière satisfaisante quand on les traverse, avec un son de bris de verre »)
 - AVANT : les glaçons sous la dalle du GLACIER (buildBanq § 5 : le long des deux bords + les LUSTRES sous le milieu) étaient fondus dans les
   morceaux de 300 m de la banquise — un pur décor, la caisse passait au travers sans rien.
