@@ -19,6 +19,40 @@
   (`fx.trail`, boutique) sont inchangées ; la plume des pots se couche sur la traînée de SON côté. Chat pop-tart / traînées arc-en-ciel :
   la lumière se tait au nitro (l'arc-en-ciel EST la traînée), comme avant.
 - Inchangé : pas de lampe au sol (refus du 26/09), coupe au plan caméra et fondus près de l'objectif (v6), la meute garde ses rubans bleus.
+## BOUTIQUE : LE LANCER, UN TOUT PETIT PEU MOINS DE FRICTION (2026-10-15 au soir, pôle CAISSES — Léo : « quand la personne fait tourner la voiture et lâche son doigt, en fonction de la force, la voiture va tourner un peu ; mais il doit y avoir un peu de friction, un tout petit peu moins que là » → choisi : « un peu moins de friction »)
+- `BQ_GLISSE` (0,65 → 0,8) dans `bqLance` : la distance planifiée D = 2 tours × tanh(BQ_GLISSE v / 2 tours) ; la durée de base 1,3 → 1,45 s.
+  Même courbe (elle part à la vitesse du doigt, s'arrête en douceur), même plafond (2 tours), même attrape. Le garage ne change pas.
+- MESURÉ (banc muet, vrais touchers, mêmes vitesses de doigt) : doux 3 rad/s 0,30 → 0,37 tour (+23 %), arrêt 1,61 → 1,98 s ; moyen 7 rad/s
+  0,69 → 0,83 (+21 %), 1,56 → 1,88 s ; fort 12 rad/s 1,11 → 1,29 (+16 %), 1,63 → 1,84 s ; pareil debout ; à la souris (cadre) jusqu'à
+  1,83 tour. Partie lancée (couché, debout, cadre). Courbe : `photos-gameplay/boutique-lancer-friction-avant-apres.png`.
+- Piège de banc : un lancer qui PART sur une étiquette de l'interface (un SPAN au bord gauche, couché) n'est pas un lancer de la boutique —
+  c'est le doigt du garage qui tourne la caisse, sans élan planifié. Partir sur le canevas.
+
+## LA MAP DES NUAGES SANS HAUT NI BAS (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, il doit y avoir les nuages ou sinon le ciel partout, rien d'autre ; pour faire ça il faut aussi changer la génération de la route pour qu'elle se torde, se plie et tout, qu'il n'y ait plus de haut et de bas »)
+- PORTÉE : `hautOn()` = la MER DE NUAGES (toutes ses météos, l'orage compris) EN COURSE. Le ciel et la piste du menu, l'auto-école, la
+  campagne, le parc : inchangés. `?sans=haut` rend la map d'avant.
+- LA ROUTE (`pisteTord`, appelée par `buildTrack` juste après `genCtrl`) : on relève, tous les 6 m, ce que le pilote vit sur la piste de
+  genCtrl — le virage (rotation de la tangente dans le plan de la dalle), la bosse (dans le plan de la normale), le roulis du repère — puis on
+  REFAIT le chemin en y ajoutant des VRILLES (tenue · quart de tour · demi-tour · tour complet, lissées). Un virage pris sur une dalle couchée
+  devient une montée, sur une dalle retournée il part de l'autre côté : la route file dans tous les sens. Au volant : mêmes virages, mêmes
+  rayons, mêmes bosses. La normale de chaque point de contrôle (`TORD.N`) remplace, dans `buildTrack`, le transport + rappel vers le ciel.
+  Les vrilles ont leur propre flux (`graine ^ 0x70D5E11A`) : `rnd` est consommé comme avant.
+- TRONÇONS DROITS : l'approche et le saut de chaque TROU de genCtrl, et l'arrivée au portail, se redressent vers le CIEL DU MONDE (le rappel
+  de buildTrack, même depuis l'envers, au plus un demi-tour en 1,3 s de croisière). ⚠ Revenir au même angle de roulis ne suffit pas : après des
+  virages pris sur la tranche tout le repère a tourné (mesuré : portail à 45° du ciel). Un trou dont la lèvre n'est pas revenue à plat
+  (`Nn.y < 0,85`) est REFERMÉ. Les filets (« la route qui te rattrape ») ne se posent pas ici.
+- LA CONDUITE : la pente ne pousse ni ne retient plus sur cette route (`hautPente()` = 0, joueur et meute) ; l'aide « rails » des loopings
+  (`rails9`) y est coupée — la dalle couchée n'est pas un looping, ses virages se prennent au pouce. La caméra suivait déjà la normale de la
+  route (`camUp`) : le monde tourne avec la dalle. En VOL la gravité reste celle du monde ; sous la dalle à l'arrêt (< 7 m/s) on tombe, comme avant.
+- LE CIEL : `uSym` (fondu par `lvlStep`) replie la moitié basse du dôme sur la haute — plus d'abîme bleu sous la route, le même ciel (son
+  soleil a un reflet en bas). Une macro `#define vDir vDirS()` dans `TETE` le fait pour TOUTES les couches ; à 0, l'image d'avant au bit
+  près. LES NUAGES : en plus des couronnes du ciel de coton, LA SPHÈRE (56 cumulus tirés uniformément dans toutes les directions autour de
+  la route, à 420-1 920 m, dessous compris).
+- MESURÉ (banc Node de `pisteTord` sur pistes synthétiques, 4 graines) : contrôle sans vrille = piste d'origine à 0,0000 m ; ~20 vrilles par
+  zone de 11 km au palier de départ (une toutes les 5-8 s), 4-5 aux paliers rapides ; 20-35 % de la route à l'envers, 20-35 % sur la tranche ;
+  9-40 ms de calcul à la construction. Crochets : `dbgHaut()` (vrilles, tours, part à l'envers / sur la tranche, dénivelé, trous) et
+  `dbgHaut('controle')`.
+- À TRANCHER par Sacha : la dose de vrilles, le reflet du soleil en bas, et si l'orage (tordu lui aussi) doit garder son plafond.
 
 ## ZEPPELIN D'OR II, 2e JET — LA MACHINE DE 1983 PREND LA MAIN (2026-10-15, pôle SON › nouveaux sons ; Léo : « le rythme 1 2 1 2 est un peu relou et pas adapté pour la new wave, retente, fais mieux » → reformulé, « les deux » : la basse new wave grave-aigu en croches balancées ET le boum-tchak de fond)
 - Jusqu'au 9e moteur rien ne change (le gramophone, la même mélodie). Au 10e (étape `nw` de `TRIO.zeppelin2`) : tout devient DROIT (l'étape met
@@ -79,6 +113,22 @@
   DÉFERLANTE (déjà à fleur) ; les 77 se montent sans erreur ; 0 programme compilé en course (couché, debout) ; course sans erreur.
   Planche : `photos-gameplay/pots-encastres-toit-honte-avant-apres.jpg` (dossier CAR CAHS V3). Bancs (scratchpad) : `dbgNyIsole`,
   `dbgNyArriere`, `dbgNyPots`, `dbgNyTole` dans une copie instrumentée.
+- LES 6 ORIGINALES (même jour, Léo : « vraiment toutes, même les originales ») — branche `caisses-pots-originales`, LOOK en attente du oui :
+  · la règle sait où REGARDE une bouche (`echSortie` : sur le côté, de biais, vers l'arrière) ; `echRayon` tire dans le repère caisse le
+    long de cette sortie, et l'encoche se tourne vers elle (`ECHP.encoche`, option `d`). Un tube à peine biais (moins de 45° : PIZZA,
+    GROUPE B) se règle encore le long de z, comme dans la v468.
+  · LE CAÏD : ses quatre sorties latérales montent de 40 à 64 cm, dans le bas de caisse, chacune dans son encoche (avant : sous le flanc) ;
+    `ote` retire les deux que son gabarit dessinait en plus.
+  · ATCHOUM : sa sortie latérale remonte à 47 cm, dans une encoche du flanc (avant : un tube sous la caisse) ; `ote` retire l'ancien.
+  · LE MASTODONTE : chaque cheminée descend jusqu'au plateau (rayon vers le bas) et y entre par une encoche ronde tournée vers le ciel.
+  · LE HOT ROD : les huit collecteurs (gabarit + `ECHP.hotrod`) sortent du FLANC DU V8 : rapprochés de 9 cm, le pied 2 cm dans le bloc,
+    chacun par une lumière rectangulaire à jonc et FOND NOIR (la face du bloc n'est pas percée). Avant : à 10 cm du bloc, dans le vide.
+  · LE MUR DU SON : les deux tuyères arrière dans leur encoche (`force:1`) ; les réacteurs latéraux sont des nacelles, inchangés.
+  · LA SILENCIEUSE : le silencieux remonte de 24 à 44 cm, son cul ovale dans une encoche du panneau arrière, l'embout devant lui (pièce
+    `lie` : elle suit son recalage). Avant : il pendait dessous. Son `enc:0` est retiré.
+  · MESURÉ : 77 montages sans erreur ; maillage par maillage contre le main, SEULES ces 6 changent ; le feu (plume et feu de pixels) naît
+    aux nouvelles bouches (CAR_POTS = A.pots) ; 0 programme compilé en course (couché, debout, cadre). Planche :
+    `photos-gameplay/pots-encastres-originales-avant-apres.jpg`.
 
 ## LE MOTEUR QUI AVANCE + LE NITRO EN FEU DE PIXELS (2026-10-15, pôle TECHNIQUE — Léo : « on veut retoucher le nitro ainsi que la flamme du moteur quand la voiture avance ; c'est un peu fade, on n'arrive pas trop à distinguer le nitro du moteur » · « pas trop régulier, comme un moteur d'une voiture qui avance : la personne ne doit pas voir une séquence qui se répète ; en réaction à comment la voiture bouge, inspiré de la physique » · « le nitro : un classique, en feu pixelisé, bien vénère, un mélange du burn-out et des flammes en cubes de la porte ; pas la forme de l'arc-en-ciel, mais sa grandeur, en moins gros »)
 - ⚠ LOOK, pas encore validé : branche `visuel-flammes`, planches `photos-gameplay/flammes-moteur-nitro-avant-apres.png` et
