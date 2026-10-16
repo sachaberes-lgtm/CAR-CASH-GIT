@@ -35,9 +35,10 @@ K = pondération de sonie, HP = ce que rend un haut-parleur de téléphone) :
 - Bancs du jeu (Chrome sans fenêtre, muet, rendu logiciel) : couché, debout, cadre de l'ordi, son coupé, `?nitroson=ancien` : la course part,
   aucune erreur (le 404 de dark-triad.mp3 : faux positif connu) ; `sh garde-burnout.sh` et `sh garde-charte.sh` : OK.
 Crochets : `dbgRug()` (prêt, montée, gains, coupure du filtre) · `?nitroson=ancien` = le son d'avant, intact.
-À TRANCHER à l'oreille (Sacha, Léo) : les niveaux `RUG_NIV` (gorge .14, crépitement .14, PSSHT .05, boule .2, pap .15, bang .2), le PSSHT
-d'allumage (le garder ?), la pulsation de la montée, la quantité de pétarade. Deux enregistrements comparés ont été envoyés à Sacha
-(`nitro-ancien.wav` / `nitro-NOUVEAU.wav` : 3 s au sol, deux coups, 2,3 s en vol, la réserve bleue).
+VALIDÉ par Sacha (16/10, après l'écoute de `nitro-ancien.wav` / `nitro-NOUVEAU.wav` — 3 s au sol, deux coups, 2,3 s en vol, la réserve bleue) :
+« C'est bon, on garde le nouveau son du nitro. » On ne le rebascule pas sans lui. Restent réglables à la demande (Léo n'a pas encore écouté) :
+les niveaux `RUG_NIV` (gorge .14, crépitement .14, PSSHT .05, boule .2, pap .15, bang .2), le PSSHT d'allumage, la pulsation de la montée,
+la quantité de pétarade.
 
 ## CHAQUE BOUTON A SON SON, CHAQUE CURSEUR SON CRAN, ET JOUER FAIT VROMBIR UN V8 (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus dans l'interface, chaque curseur ; le bouton jouer doit avoir un bruit de moteur »)
 
@@ -182,14 +183,15 @@ puis le LÂCHER, le vent, le logo) → course sans erreur ; `garde-burnout.sh` e
   (`AILE_K`, posée au pivot) se garde telle quelle — les gestes vivent DANS le pivot ; ses matières relevées sont portées dans les ailes
   vivantes (halo du phénix, voiles de la fée, le filet de NÉON des panneaux — au bord d'attaque et sur l'aileron, qu'il suit) ; ses plumes
   d'ange en boîtes sont remplacées par les vraies plumes. `?ailes=avant` rend ses tailles et matières d'avant, pas les gestes.
-- **À trancher par Sacha** : (1) au SOL les ailes restent rentrées (règle du 13/10, les barres à travers les vitres) — les ailes en X ne
-  s'ouvrent donc qu'au boost EN VOL ; les déplier aussi au boost sur la route serait une règle neuve. (2) Aucun SON n'a été ajouté (le « clac »
+- **TRANCHÉ par Sacha (16/10)** : (1) PAS d'ailes ouvertes au SOL (« non pas d'aile ouverte sur le sol ») — elles restent rentrées sur la
+  route (règle du 13/10), les ailes en X ne s'ouvrent qu'au boost EN VOL. Ne pas le reproposer.
+- **À trancher** : (2) Aucun SON n'a été ajouté (le « clac »
   des ailes en X, le battement du dragon…) : la banque de sons se recuit en entier, d'autres sessions y travaillent — à faire dans une session SON.
 ## LES PEINTURES PAR RARETÉ, EN EUROS, ET ONZE MOTIFS ÉPIQUES (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les dégradés de plusieurs couleurs, ça doit être rare, pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique et classe-les dans l'ordre de rareté dans le truc de peinture » · « génère une dizaine de peintures épiques avec des motifs ; couleur pleine : commun ; dégradée : rare ; avec des motifs : épique ; légendaire on verra après, pour l'instant pas de légendaire ; communes 1 €, rares 3 €, épiques 5 € »)
 - LA RÈGLE (`peintRegle`, bloc « LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS » juste après la palette) : un MOTIF = ÉPIQUE · un DÉGRADÉ
   (`grad`) ou l'OR (`g:'o'`) = RARE · une couleur pleine (laque, mat, métallisé, nacre, chrome, laqué noir) = COMMUNE. La rareté est écrite sur
   chaque peinture au chargement (`d.r`). Résultat sur les 68 : 40 communes, 17 rares, 11 épiques — plus aucune peinture exotique, légendaire ni
-  mythique. ⚠ « Enlève la mythique » a été lu POUR LES PEINTURES : `RARETES` n'a pas bougé, les caisses, ailes et traînées mythiques le restent.
+  mythique. « Enlève la mythique » = POUR LES PEINTURES SEULEMENT — TRANCHÉ par Sacha (16/10 : « garde la rareté mythique pour les caisses, ailes et traînées : seulement les peintures ») : `RARETES` ne bouge pas.
   Le CHROME MIROIR est une couleur pleine → commune (la règle ; l'or seul a été nommé).
 - LE PRIX EN EUROS (`PEINT_EUR` → `d.eur`) : 1 € · 3 € · 5 €. Le prix en pièces (`p`) des peintures est retiré ; celles déjà achetées restent à toi
   (`shopOwned` lit `own`). En vente en € : 38 communes (les 8 d'origine et POP + les 30 de la palette), 6 rares, les 11 motifs. Se gagnent toujours,
