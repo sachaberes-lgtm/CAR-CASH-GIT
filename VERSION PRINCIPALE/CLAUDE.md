@@ -286,9 +286,11 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 **Les outils de Léo** (locaux, retirés du site par `vercel-build.sh` et des portails par `poki-construire.js`) : `simulateur.html`
 (`python3 simulateur/serveur.py 9101`), `maps-ciel.html` (`python3 maps-ciel/serveur.py 9019`), `salle-blanche.html`,
 `boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
-**Le RÉPERTOIRE DES MAPS** (15/10, Léo : « on va créer plein d'autres maps ») : `repertoire-maps/index.html` (page blanche, double-clic ou
-serveur local) = les maps que JOUER tire au hasard (`SF_CARTES`), titre + photo + vignette par météo. Liste : `repertoire-maps/maps.js`.
-Une MAP NOUVELLE dans SF_CARTES → une ligne dans maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet).
+**Les MAPS DU JEU** (15-16/10, Léo : « une liste des maps qu'on a sur le jeu, pour appuyer dessus, aller voir dedans et te donner des
+changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps que JOUER tire au hasard (`SF_CARTES`) ; un toucher →
+`voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
+portails et aux relances, météos dans la barre. Liste : `repertoire-maps/maps.js`. Une MAP NOUVELLE dans SF_CARTES → une ligne dans
+maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet). Servir VERSION PRINCIPALE en http.
 
 ---
 
