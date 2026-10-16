@@ -7,8 +7,8 @@
 <!-- LES MAPS DU JEU (2026-10-15, refaite le 16/10 — Léo : « je veux juste une liste des maps qu'on a actuellement sur le jeu, qui sont
      disponibles, pour que je puisse appuyer dessus, aller voir dedans et te donner des changements à faire »).
      Une ligne par map (photo + nom, la liste vit dans maps.js) ; un toucher = voir.html : le vrai jeu, parti tout seul sur cette map.
-     Outil LOCAL : retiré du site par vercel-build.sh (il changerait l'empreinte du jeu publié). Servir VERSION PRINCIPALE en http
-     (le jeu ne tourne pas en file://). -->
+     Outil LOCAL : retiré du site par vercel-build.sh (il changerait l'empreinte du jeu publié). Servir par
+     `python3 repertoire-maps/serveur.py 9244` (depuis VERSION PRINCIPALE : sans cache, sans le service worker du jeu). -->
 <style>
   :root{--encre:#111113;--gris:#86868b;--gris2:#b9b9be;--trait:#efeff1;--doux:#f4f4f6;
     --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
@@ -44,10 +44,19 @@
   <h1>Maps</h1>
   <ol id="liste"></ol>
 </div>
+<script>
+// (16/10) le service worker du JEU, s'il s'est installé sur cette adresse (voir.html charge le jeu), fait échouer maps.js et les photos dans le
+// navigateur du chat (la liste restait VIDE) : on le retire et on recharge une fois. serveur.py refuse sw.js, il ne revient pas.
+if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => {
+  if (!rs.length) return;
+  Promise.all(rs.map(r => r.unregister())).then(() => { try { if (!sessionStorage.getItem('ccSwRetire')) { sessionStorage.setItem('ccSwRetire', '1'); location.reload(); } } catch (e) {} });
+}).catch(() => {});
+</script>
 <script src="maps.js"></script>
 <script>
 (function(){
   const L = window.REPERTOIRE || [];
+  if (!L.length) { document.getElementById('liste').innerHTML = '<li style="padding:24px 6px;color:#86868b">La liste ne s\'est pas chargée : recharge la page.</li>'; return; }
   document.getElementById('liste').innerHTML = L.map((m, i) =>
     '<li><a href="voir.html?carte=' + m.id + '&meteo=' + m.couverture + '">' +
       '<span class="num">' + String(i + 1).padStart(2, '0') + '</span>' +
