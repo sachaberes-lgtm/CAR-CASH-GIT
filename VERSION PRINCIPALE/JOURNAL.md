@@ -3,6 +3,42 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE FEU QUI RUGIT — LE SON DU NITRO REFAIT (2026-10-16, session « Effets sonores nitro et flamme » — Sacha : « il faut un bruit de flamme et de nitro beaucoup plus travaillé pour le nitro ; il faut que ce soit jouissif de cramer du nitro »)
+AVANT (mesuré au banc, nitro seule, au sol à 250 km/h) : la tenue = le grondement BRUN `jrG` (passe-bas 620 Hz, coupé sous 85/120 Hz
+depuis le « bruit assourdissant » du 12/10) + 25 « plops » bruns par seconde : octaves de la tenue 125 Hz −8 · 1 kHz −25 · 2 kHz −36 (relatif) ;
+sur un haut-parleur de téléphone (passe-haut 200 Hz) −41 dB, presque rien. Elle ne MONTAIT jamais (courbe de sonie plate de 0 à 3 s).
+LE NITRO EN QUATRE TEMPS — tout dans le bloc `<<<FEU QUI RUGIT>>>` (juste avant `nitroWhoomp`), préfixe `RUG` (`FEU` est déjà le feu de la porte, à Léo) :
+- L'ALLUMAGE (`rugAllume`, appelé par `nitroWhoomp` à la place de son souffle brun) : le PSSHT du protoxyde (bruit blanc, bande 6,5 → 2,6 kHz,
+  0,2 s) puis, 15 ms après, la BOULE DE FEU (`RUG.boules`, 3 variantes) : passe-bas qui s'ouvre d'un coup à 3,7 kHz et se referme, sinus
+  170 → 48 Hz SATURÉ (ses harmoniques 200-600 Hz = le « BWOUMF » qu'un téléphone rend), crépitement de naissance. subBoom, ruée d'air, sifflet
+  du 2e étage, spool du turbo : inchangés.
+- LA GORGE (`RUG.roar`, boucle de 3,7 s jouée deux fois, gauche/droite, décalées) : bruit rose agité par deux turbulences (5 et 21 Hz),
+  pointes de jet (Pareto), bosses à 250 Hz et 1,15 kHz, saturation douce ; puis deux passe-bas (−24 dB/oct. : le mordant vient du crépitement,
+  pas d'un souffle aigu continu) et un passe-haut 95 Hz (190 sur téléphone). Le corps brun d'avant reste, à 70 % (`RUG_CORPS`).
+- LA MONTÉE (`RUG.h`/`RUG.k`, constante 0,9 s ; lâcher une fraction de seconde ne la perd pas) : en ~2,5 s la gorge enfle (+10 dB), s'ouvre
+  (passe-bas 700 → 1 800 Hz à 250 km/h, + la vitesse, + la réserve bleue), monte d'environ 4 demi-tons ; pendant qu'elle s'installe elle PULSE
+  (`RUG.thO`, 7 → 19 Hz, qui s'efface) ; le crépitement (`RUG.crep` : tics, pops, paps, en boucle) s'épaissit et accélère. Les 25 plops/s
+  (4 nœuds WebAudio chacun) sont remplacés par cette boucle ; le POK au sol reste.
+- LA COUPURE : la gorge se referme (passe-bas à 380 Hz, 0,14 s de queue : un dernier « whouff ») et `rugPetarade` remplace `crackle(.7)` :
+  un BANG si on a tenu, puis 2 à 8 « pap » qui s'égrènent de plus en plus espacés, dans la stéréo, à la mesure de ce qu'on a brûlé
+  (tenue 0,25 → 2 s). La soupape du turbo (blowOff) part toujours avec.
+Tout est CALCULÉ au premier son (`rugTampons`, à 24 kHz, en 4 tâches espacées de 30 ms : 18 + 5 + 9 + 7 ms sur le Mac), aucun fichier,
+rien dans la banque. Les gains passent par `stt`, les PORTES (débranchés hors nitro) et les trois listes coupées à la main (reprise, fin, pause).
+MESURÉ (banc hors ligne : le code du jeu rendu image par image dans un OfflineAudioContext, même scénario ancien / nouveau, sans le bus de sortie ;
+K = pondération de sonie, HP = ce que rend un haut-parleur de téléphone) :
+- allumage (pic 50 ms) K −21,5 → −17,6 · HP −33 → −23 ; tenue K −35,4 → −30,8 · HP −40,6 → −33,2 (avec la gorge à .1 ; elle est à .14 dans le jeu) ;
+  octaves de la tenue 1 kHz −25 → −9, 2 kHz −36 → −11, 4 kHz −46 → −21 ; coupure (pic) K −24,7 → −21 · HP −30 → −26 ; quatre petits coups K −31 → −24.
+- courbe de la tenue (K, par 0,25 s) : l'ancienne plate (−35 ±1) ; la nouvelle −27 (queue de l'allumage) → −31 → −29 à 2,5-3 s : elle monte.
+- DANS LE JEU (`dbgVu()`, médianes nitro tenue, son des effets seul) : ancien total −30 · moteur −32 · grondement −36 ; nouveau total −28 ·
+  moteur −32 · gorge −31 · grondement −39 · crépitement −49 (des crêtes, peu de RMS). La gorge passe juste devant le moteur pendant qu'on brûle ;
+  loin du « bruit assourdissant » du 12/10 (−14, 12 dB au-dessus de tout).
+- Bancs du jeu (Chrome sans fenêtre, muet, rendu logiciel) : couché, debout, cadre de l'ordi, son coupé, `?nitroson=ancien` : la course part,
+  aucune erreur (le 404 de dark-triad.mp3 : faux positif connu) ; `sh garde-burnout.sh` et `sh garde-charte.sh` : OK.
+Crochets : `dbgRug()` (prêt, montée, gains, coupure du filtre) · `?nitroson=ancien` = le son d'avant, intact.
+À TRANCHER à l'oreille (Sacha, Léo) : les niveaux `RUG_NIV` (gorge .14, crépitement .14, PSSHT .05, boule .2, pap .15, bang .2), le PSSHT
+d'allumage (le garder ?), la pulsation de la montée, la quantité de pétarade. Deux enregistrements comparés ont été envoyés à Sacha
+(`nitro-ancien.wav` / `nitro-NOUVEAU.wav` : 3 s au sol, deux coups, 2,3 s en vol, la réserve bleue).
+
 ## CHAQUE BOUTON A SON SON, CHAQUE CURSEUR SON CRAN, ET JOUER FAIT VROMBIR UN V8 (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus dans l'interface, chaque curseur ; le bouton jouer doit avoir un bruit de moteur »)
 
 **JOUER = UN MOTEUR (`ui.jouer`).** JOUER de l'accueil et REJOUER de l'écran de mort (`mRole9` → `'jouer'`), JOUER du garage (`garJouer`)

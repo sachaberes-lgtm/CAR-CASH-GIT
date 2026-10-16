@@ -43213,6 +43213,7 @@ function initAudio(){
   const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
   jrDep=AC.createGain();jrDep.gain.value=0;
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
+  try{if(RUG_SON)rugTampons(AC,MASTER,{tel:TEL_NATIF,stt:stt,porte:porte});}catch(e){console.warn('feu qui rugit',e);} // (2026-10-16) LE FEU QUI RUGIT : la gorge, le crépitement, la boule de feu, la pétarade — calculés en morceaux juste après (rugTampons)
   sonConsole(); // (2026-09-28) LA CONSOLE DE SON se branche sur ce contexte et ce MASTER
   try{porte(gainN,MASTER,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
   try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
@@ -45782,18 +45783,170 @@ function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vites
       camera.position.z+dir.z*d+NFX.cR.z*cx+NFX.cU.z*cy,0,0,0,.3+nfxR()*.2);
   }
 }
+/* <<<FEU QUI RUGIT>>> (2026-10-16, session « Effets sonores nitro et flamme » — Sacha : « il faut un bruit de flamme et de nitro beaucoup
+   plus travaillé pour le nitro ; il faut que ce soit jouissif de cramer du nitro »)
+   AVANT : la nitro tenue, c'était un grondement BRUN étouffé (passe-bas 620 Hz — et coupé sous 85/120 Hz depuis le « bruit assourdissant »
+   du 12/10) + des « plops » bruns à 600 Hz : sur un haut-parleur de téléphone, un « ffff » sourd, toujours pareil, qui ne monte jamais.
+   L'allumage avait son WHOOMP ; la coupure, quelques pops de bruit filtré.
+   LE NITRO EN QUATRE TEMPS — ce qui rend le geste jouissif, c'est l'ATTENTE qui monte puis la RÉCOMPENSE de fin :
+   · L'ALLUMAGE (`rugAllume`) : le PSSHT du protoxyde (bruit blanc, une bande qui descend 6,5 → 2,6 kHz : LE son du nitro), puis 15 ms
+     après la BOULE DE FEU (`RUG.boules`) — le gaz qui s'enflamme : un passe-bas qui s'ouvre d'un coup à 3,7 kHz et se referme, un coup
+     de sinus qui plonge 170 → 48 Hz SATURÉ (ses harmoniques 200-600 Hz sont ce qu'un téléphone rend du « BWOUMF »), un crépitement de
+     naissance. Le coup de poitrine (subBoom), la ruée d'air et le sifflet du 2e étage restent ceux d'avant.
+   · LA GORGE (`RUG.roar`) : le RUGISSEMENT de la flamme, la couche qui manquait — un bruit rose agité par deux turbulences (5 et 21 Hz :
+     la flamme n'est jamais stable), percé de pointes de jet (le « crackle » d'une tuyère : des pointes positives, loi de Pareto — beaucoup
+     de petites, quelques grosses), deux bosses de résonance (250 Hz le corps, 1,15 kHz la déchirure), saturé (la tôle). Une boucle de
+     3,7 s jouée DEUX fois à deux endroits, l'une à gauche, l'autre à droite : large, et jamais deux fois la même seconde.
+   · LA MONTÉE (`RUG.h`/`RUG.k`) : tenir le nitro, ça MONTE — en 2,5 s la flamme s'ouvre (passe-bas 700 → 1 800 Hz à 250 km/h), sa hauteur
+     grimpe (≈ +4 demi-tons, plus la vitesse), elle enfle (+10 dB) et le crépitement s'épaissit ; et pendant qu'elle s'installe elle PULSE (whoum-whoum-wum-brrr :
+     7 → 19 Hz, une pulsation qui accélère et s'efface) — l'allumage d'une postcombustion. Lâcher une fraction de seconde ne perd pas la
+     montée (elle redescend 3 fois plus vite qu'elle ne monte).
+   · LA COUPURE : la flamme se REFERME (passe-bas qui retombe à 380 Hz, 0,14 s de queue : un dernier « whouff », plus une coupure) et
+     l'échappement PÈTE (`rugPetarade`) — un BANG si on a tenu, puis des « pap-pap-pap… pap » qui s'égrènent, de plus en plus espacés,
+     répartis dans la stéréo ; plus on a brûlé longtemps, plus il y en a. La soupape du turbo (blowOff) part en même temps.
+   Tout est CALCULÉ une fois (`rugTampons`, en morceaux après initAudio : aucun fichier, rien dans la banque), puis joué en boucle :
+   les 25 « plops » par seconde d'avant (4 nœuds WebAudio chacun) sont remplacés par une boucle de crépitement (`RUG.crep`).
+   Les gains suivent `dk` (les grands moments creusent le mix) et passent par les PORTES (débranchés hors nitro : coût nul).
+   `?nitroson=ancien` = le son d'avant, intact. */
+const RUG_SON=!/[?&]nitroson=ancien/.test(location.search);
+const RUG_NIV={rg:.14,cr:.14,pssht:.05,boule:.2,pap:.15,bang:.2}; // les niveaux (voir le journal : mesurés contre l'ancien au banc)
+const RUG_CORPS=.7; // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
+const RUG={pret:false,ac:null,d:null,tel:false,h:0,k:0,rs:[],cs:[],boules:null,paps:null,bangs:null,blanc:null,stt:null};
+function rugBq(t,f,q,g,sr){ // les coefficients d'un biquad (RBJ) : 'lp' 'hp' 'bp' 'pk'
+  const w=2*Math.PI*Math.min(f,sr*.45)/sr,c=Math.cos(w),s=Math.sin(w),al=s/(2*q),A=Math.pow(10,(g||0)/40);let b0,b1,b2,a0,a1,a2;
+  if(t==='lp'){b0=(1-c)/2;b1=1-c;b2=b0;a0=1+al;a1=-2*c;a2=1-al;}
+  else if(t==='hp'){b0=(1+c)/2;b1=-(1+c);b2=b0;a0=1+al;a1=-2*c;a2=1-al;}
+  else if(t==='bp'){b0=al;b1=0;b2=-al;a0=1+al;a1=-2*c;a2=1-al;}
+  else{b0=1+al*A;b1=-2*c;b2=1-al*A;a0=1+al/A;a1=-2*c;a2=1-al/A;}
+  return {b0:b0/a0,b1:b1/a0,b2:b2/a0,a1:a1/a0,a2:a2/a0,x1:0,x2:0,y1:0,y2:0};}
+function rugBqSet(o,t,f,q,g,sr){const c=rugBq(t,f,q,g,sr);o.b0=c.b0;o.b1=c.b1;o.b2=c.b2;o.a1=c.a1;o.a2=c.a2;} // un filtre qui BOUGE garde sa mémoire
+function rugRun(o,x){const y=o.b0*x+o.b1*o.x1+o.b2*o.x2-o.a1*o.y1-o.a2*o.y2;o.x2=o.x1;o.x1=x;o.y2=o.y1;o.y1=y;return y;}
+function rugRose(){let b0=0,b1=0,b2=0;return function(){const w=Math.random()*2-1;b0=.99765*b0+w*.099046;b1=.963*b1+w*.2965164;b2=.57*b2+w*1.0526913;return (b0+b1+b2+w*.1848)*.2;};} // Kellett
+function rugNorme(X,pic){let m=0;for(let i=0;i<X.length;i++){const a=Math.abs(X[i]);if(a>m)m=a;}const g=pic/(m||1);for(let i=0;i<X.length;i++)X[i]*=g;return X;}
+function rugRoar(sr,dur){ // LA GORGE : la boucle du rugissement (voir l'en-tête)
+  const n=Math.round(sr*dur),F=Math.round(.12*sr),N=n+F,T=new Float32Array(N),E=new Float32Array(N),R=Math.random;
+  {let a=0,b=0,c=0,d=0,s1=0,s2=0;const k1=1-Math.exp(-2*Math.PI*5/sr),k2=1-Math.exp(-2*Math.PI*21/sr),e2=new Float32Array(N);
+   for(let i=0;i<N;i++){a+=(R()*2-1-a)*k1;b+=(a-b)*k1;c+=(R()*2-1-c)*k2;d+=(c-d)*k2;E[i]=b;e2[i]=d;s1+=b*b;s2+=d*d;}
+   s1=Math.sqrt(s1/N)||1;s2=Math.sqrt(s2/N)||1;
+   for(let i=0;i<N;i++)E[i]=Math.max(.12,Math.min(1.45,.62+.26*E[i]/s1+.17*e2[i]/s2));} // la TURBULENCE : la flamme n'est jamais stable
+  const rose=rugRose(),hp=rugBq('hp',105,.7,0,sr),pA=rugBq('pk',250,.9,6,sr),pB=rugBq('pk',1150,.8,3.5,sr),lp=rugBq('lp',5200,.7,0,sr);
+  const dec=Math.exp(-1/(sr*.00045)),pc=70/sr;let cr=0,s=0;
+  for(let i=0;i<N;i++){if(R()<pc)cr+=Math.min(1.1,.06*Math.pow(R()+1e-6,-1/1.7));cr*=dec; // les POINTES DE JET (Pareto)
+    const y=rugRun(lp,rugRun(pB,rugRun(pA,rugRun(hp,(rose()+cr*.55)*E[i]))));T[i]=y;s+=y*y;}
+  s=Math.sqrt(s/N)||1;let s2=0;
+  for(let i=0;i<N;i++){T[i]=Math.tanh(T[i]/s*.55);s2+=T[i]*T[i];} // la TÔLE : saturation douce
+  const g=.25/(Math.sqrt(s2/N)||1),X=new Float32Array(n);
+  for(let i=0;i<n;i++)X[i]=T[i]*g;
+  for(let i=0;i<F;i++){const a=i/F;X[i]=(T[i]*Math.sin(a*Math.PI/2)+T[n+i]*Math.cos(a*Math.PI/2))*g;} // la COUTURE : la boucle n'a pas de clic
+  return X;}
+function rugCrep(sr,dur){ // LE CRÉPITEMENT : la boucle des pops (une queue qui dépasse la fin repart au début : couture parfaite)
+  const n=Math.round(sr*dur),X=new Float32Array(n),R=Math.random;
+  const pose=function(t0,L,f){for(let j=0;j<L;j++)X[(t0+j)%n]+=f(j);};
+  for(let k=0,nt=Math.round(32*dur);k<nt;k++){const L=sr*(.0003+R()*.0009),a=.05+.22*Math.pow(R(),3),h=rugBq('hp',2600,.7,0,sr); // les TICS : le grésillement
+    pose((R()*n)|0,Math.round(L*5),function(j){return rugRun(h,(R()*2-1)*a*Math.exp(-j/L));});}
+  for(let k=0,np=Math.round(11*dur);k<np;k++){const L=sr*(.0015+R()*.005),a=Math.min(1,.16*Math.pow(R()+1e-6,-.55)),b=rugBq('bp',600+R()*1500,1.4,0,sr); // les POPS
+    pose((R()*n)|0,Math.round(L*5),function(j){return rugRun(b,(R()*2-1))*a*Math.exp(-j/L)*(1-Math.exp(-j/(sr*.0002)))*2.2;});}
+  for(let k=0,nq=Math.round(1.4*dur);k<nq;k++){const L=sr*.012,a=.5+.5*R(),l=rugBq('lp',1100,.7,0,sr),f0=120+R()*60;let ph=0; // les PAPS : la bouffée sourde
+    pose((R()*n)|0,Math.round(L*5),function(j){ph+=2*Math.PI*f0/sr;return (rugRun(l,R()*2-1)*1.6+Math.sin(ph)*.25)*a*Math.exp(-j/L)*(1-Math.exp(-j/(sr*.0004)));});}
+  let s=0;for(let i=0;i<n;i++)s+=X[i]*X[i];const g=.1/(Math.sqrt(s/n)||1);for(let i=0;i<n;i++)X[i]=Math.tanh(X[i]*g*2.2)/2.2; // −20 dB RMS, crêtes arrondies
+  return X;}
+function rugBoule(sr){ // LA BOULE DE FEU de l'allumage (le BWOUMF)
+  const n=Math.round(sr*1.1),X=new Float32Array(n),R=Math.random,rose=rugRose(),lp=rugBq('lp',300,.9,0,sr),lp2=rugBq('lp',300,.7,0,sr),hp=rugBq('hp',60,.7,0,sr),bp=rugBq('bp',1900,1.1,0,sr);
+  let ph=0,cr=0;const dc=Math.exp(-1/(sr*.0007));
+  for(let i=0;i<n;i++){const t=i/sr;
+    if((i&31)===0){const fc=420+3300*(1-Math.exp(-t/.018))*Math.exp(-t/.22);rugBqSet(lp,'lp',fc,.9,0,sr);rugBqSet(lp2,'lp',fc*1.3,.7,0,sr);} // le passe-bas S'OUVRE d'un coup puis se referme
+    let x=rugRun(lp2,rugRun(lp,rose()))*(1-Math.exp(-t/.007))*(.75*Math.exp(-t/.24)+.25*Math.exp(-t/.6))*2.4;
+    if(R()<160*Math.exp(-t/.14)/sr)cr+=(R()<.5?-1:1)*Math.min(1,.15*Math.pow(R()+1e-6,-.6));cr*=dc;x+=rugRun(bp,cr)*1.6; // elle CRÉPITE en naissant
+    const f=48+122*Math.exp(-t/.055);ph+=2*Math.PI*f/sr;x+=Math.sin(ph)*Math.exp(-t/.11)*.95*(1-Math.exp(-t/.002)); // le COUP qui plonge
+    X[i]=Math.tanh(rugRun(hp,x)*1.6);}
+  const F=Math.round(.03*sr);for(let i=0;i<F;i++)X[n-1-i]*=i/F;
+  return rugNorme(X,.95);}
+function rugPap(sr,gros){ // un PET d'échappement : le CLAC, le PAP (bande), la bouffée, le coup sourd
+  const n=Math.round(sr*(gros?.32:.12)),X=new Float32Array(n),R=Math.random;
+  const bp=rugBq('bp',gros?420+R()*200:560+R()*420,1.2,0,sr),lp=rugBq('lp',gros?1500:2400,.7,0,sr),hc=rugBq('hp',2000,.7,0,sr);
+  const fq=gros?150:110+R()*40,f1=gros?50:80;let ph=0;
+  for(let i=0;i<n;i++){const t=i/sr,a=1-Math.exp(-t/.0003);
+    let x=rugRun(hc,R()*2-1)*Math.exp(-t/.0009)*.9;
+    x+=rugRun(bp,R()*2-1)*Math.exp(-t/(gros?.03:.011))*a*2.4;
+    x+=rugRun(lp,R()*2-1)*Math.exp(-t/(gros?.06:.02))*a*(gros?1.2:.5);
+    const f=f1+(fq-f1)*Math.exp(-t/(gros?.07:.03));ph+=2*Math.PI*f/sr;x+=Math.sin(ph)*Math.exp(-t/(gros?.09:.03))*(gros?1:.55)*a;
+    X[i]=Math.tanh(x*(gros?2:1.7));}
+  const F=Math.round(.01*sr);for(let i=0;i<F;i++)X[n-1-i]*=i/F;
+  return rugNorme(X,.95);}
+function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MORCEAUX (un par tâche : jamais un long gel au premier toucher)
+  if(RUG.ac)return;RUG.ac=ac;RUG.d=d;RUG.tel=!!o.tel;RUG.stt=o.stt||function(p,v,t,tc){p.setTargetAtTime(v,t,tc);};
+  const sr=24000,mk=function(X){const b=ac.createBuffer(1,X.length,sr);b.getChannelData(0).set(X);return b;};
+  const pan=function(v){if(!ac.createStereoPanner)return ac.createGain();const p=ac.createStereoPanner();p.pan.value=v;return p;};
+  const kr=function(p){try{p.automationRate='k-rate';}catch(e){}}; // piloté à chaque image : k-rate (voir initAudio)
+  const etapes=[
+    function(){ // la GORGE + la PULSATION
+      const b=mk(rugRoar(sr,3.7));
+      RUG.rgF=ac.createBiquadFilter();RUG.rgF.type='lowpass';RUG.rgF.frequency.value=650;RUG.rgF.Q.value=.55;kr(RUG.rgF.frequency);
+      RUG.rgF2=ac.createBiquadFilter();RUG.rgF2.type='lowpass';RUG.rgF2.frequency.value=850;RUG.rgF2.Q.value=.6;kr(RUG.rgF2.frequency); // deux passe-bas : la pente raide (−24 dB/oct.) — le mordant vient du crépitement, jamais d'un souffle aigu continu (la fatigue vit à 2-4 kHz)
+      const h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=RUG.tel?190:95;h.Q.value=.7; // un téléphone ne rend rien sous 150 Hz : ce grave ne ferait que pomper le compresseur
+      RUG.rgG=ac.createGain();RUG.rgG.gain.value=0;
+      for(let c=0;c<2;c++){const s=ac.createBufferSource();s.buffer=b;s.loop=true;const p=pan(c?.55:-.55);s.connect(p);p.connect(RUG.rgF);s.start(0,c?b.duration*.47:0);RUG.rs.push(s);}
+      RUG.rgF.connect(RUG.rgF2);RUG.rgF2.connect(h);h.connect(RUG.rgG);RUG.rgG.connect(d);
+      RUG.thO=ac.createOscillator();RUG.thO.type='sine';RUG.thO.frequency.value=7;kr(RUG.thO.frequency);
+      RUG.thG=ac.createGain();RUG.thG.gain.value=0;RUG.thO.connect(RUG.thG);RUG.thG.connect(RUG.rgG.gain);RUG.thO.start();
+      if(o.porte)o.porte(RUG.rgG,d,RUG.thG);},
+    function(){ // le CRÉPITEMENT
+      const b=mk(rugCrep(sr,3.3));
+      RUG.crF=ac.createBiquadFilter();RUG.crF.type='highpass';RUG.crF.frequency.value=RUG.tel?600:300;RUG.crF.Q.value=.7;
+      RUG.crG=ac.createGain();RUG.crG.gain.value=0;
+      for(let c=0;c<2;c++){const s=ac.createBufferSource();s.buffer=b;s.loop=true;const p=pan(c?.35:-.35);s.connect(p);p.connect(RUG.crF);s.start(0,c?b.duration*.53:0);RUG.cs.push(s);}
+      RUG.crF.connect(RUG.crG);RUG.crG.connect(d);
+      if(o.porte)o.porte(RUG.crG,d);
+      RUG.pret=true;},
+    function(){ // l'allumage
+      const w=new Float32Array(Math.round(sr*.3));for(let i=0;i<w.length;i++)w[i]=Math.random()*2-1;RUG.blanc=mk(w);
+      RUG.boules=[mk(rugBoule(sr)),mk(rugBoule(sr)),mk(rugBoule(sr))];},
+    function(){ // la pétarade
+      RUG.paps=[mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0))];RUG.bangs=[mk(rugPap(sr,1)),mk(rugPap(sr,1))];}];
+  let i=0;const suite=function(){try{etapes[i++]();}catch(e){console.warn('feu qui rugit',e);return;}if(i<etapes.length)setTimeout(suite,o.vite?0:30);};
+  if(o.vite)for(;i<etapes.length;)etapes[i++]();else setTimeout(suite,60);}
+function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
+  if(!RUG.pret)return;const t=RUG.ac.currentTime,S=RUG.stt,on=!!o.on,b=o.bleu?1:0,air=o.air?1:0,v=Math.max(0,o.v||0);
+  RUG.h=on?Math.min(4,RUG.h+dt):Math.max(0,RUG.h-dt*3);const k=RUG.k=1-Math.exp(-RUG.h/.9); // LA MONTÉE : 63 % en 0,9 s, 93 % en 2,4 s — elle continue APRÈS la queue de l'allumage
+  const gR=on?RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
+  S(RUG.rgG.gain,gR,t,on?.06:.14); // coupée : 0,14 s de queue
+  const fc=on?Math.min(3000,700+900*k+v*.9+b*450):380;S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
+  const r=on?.86+.2*k+Math.min(.12,v/3000)+b*.07:.8;S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
+  S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
+  S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
+  const rc=on?.88+.3*k+b*.12:.9;S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
+function rugAllume(k,bleu,air){ // LE PSSHT + LA BOULE DE FEU (le reste du coup d'allumage est dans nitroWhoomp)
+  if(!RUG.boules)return false;const ac=RUG.ac,t0=ac.currentTime,R=Math.random;
+  {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;
+   f.frequency.setValueAtTime(bleu?7600:6500,t0);f.frequency.exponentialRampToValueAtTime(2600,t0+.18);
+   const g=ac.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(Math.max(.0002,RUG_NIV.pssht*k),t0+.004);g.gain.exponentialRampToValueAtTime(.001,t0+.22);
+   s.connect(f);f.connect(g);g.connect(RUG.d);s.start(t0);s.stop(t0+.25);}
+  {const s=ac.createBufferSource();s.buffer=RUG.boules[(R()*RUG.boules.length)|0];s.playbackRate.value=(bleu?1.1:1)*(.96+.08*R())*(air?1.04:1);
+   const g=ac.createGain();g.gain.value=RUG_NIV.boule*k;s.connect(g);g.connect(RUG.d);s.start(t0+.015);}
+  return true;}
+function rugPetarade(q){ // LA PÉTARADE de la coupure : q 0..1, ce qu'on a brûlé
+  if(!RUG.paps)return false;const ac=RUG.ac,t0=ac.currentTime+.02,R=Math.random;let t=0;
+  const joue=function(b,dt,v,p){const s=ac.createBufferSource();s.buffer=b;s.playbackRate.value=.9+.2*R();const g=ac.createGain();g.gain.value=v;s.connect(g);
+    let x=g;if(ac.createStereoPanner){x=ac.createStereoPanner();x.pan.value=p;g.connect(x);}x.connect(RUG.d);s.start(t0+dt);};
+  if(q>.3){joue(RUG.bangs[(R()*RUG.bangs.length)|0],0,RUG_NIV.bang*(.7+.3*q),(R()-.5)*.3);t=.075+R()*.03;}
+  for(let i=0,n=2+Math.round(q*5+R()*1.5);i<n;i++){joue(RUG.paps[(R()*RUG.paps.length)|0],t,RUG_NIV.pap*Math.pow(.84,i)*(.7+.3*R()),(R()-.5)*.8);t+=.04+.025*R()+i*i*.006;}
+  return true;}
+window.dbgRug=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {son:RUG_SON,pret:RUG.pret,tampons:!!(RUG.boules&&RUG.paps),h:+RUG.h.toFixed(2),k:+RUG.k.toFixed(2),gorge:r(RUG.rgG&&RUG.rgG.gain,4),crepite:r(RUG.crG&&RUG.crG.gain,4),pulse:r(RUG.thO&&RUG.thO.frequency,1),fc:r(RUG.rgF&&RUG.rgF.frequency,0)};}; // l'état du rugissement (banc, console)
+/* <<<FIN FEU QUI RUGIT>>> */
 function nitroWhoomp(k,bleu,air){ // LE « WHOOMP » d'allumage — 8 à 10 nœuds, tous arrêtés en moins d'une seconde (rien ne s'empile)
   if(!sfxOk())return;
   const n9=performance.now();if(n9-NFX.sT<150)return;NFX.sT=n9; // une rafale de taps ne fait pas une rafale de souffles
   try{
     const t0=AC.currentTime;
     // 1) LE SOUFFLE QUI S'OUVRE : bruit BRUN (rond, jamais un chuintement), passe-bas qui s'ouvre d'un coup puis se referme
+    // (2026-10-16) LE FEU QUI RUGIT le remplace : le PSSHT du protoxyde puis la BOULE DE FEU (rugAllume) — celui-ci reste pour ?nitroson=ancien
+    if(!(RUG_SON&&rugAllume(k,bleu,air))){
     const s=AC.createBufferSource();s.buffer=brownBuf(1);
     const f=AC.createBiquadFilter();f.type='lowpass';f.Q.value=1.4;
     f.frequency.setValueAtTime(TEL_NATIF?420:170,t0);f.frequency.exponentialRampToValueAtTime(bleu?3600:2600,t0+.09);
     f.frequency.exponentialRampToValueAtTime(TEL_NATIF?700:420,t0+.75);
     const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.42*k,t0+.025);g.gain.exponentialRampToValueAtTime(.001,t0+.85);
-    s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.9);
+    s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.9);}
     // 2) LE COUP DE POITRINE (le « MP ») — subBoom : dédoublonné et calé pour le haut-parleur du téléphone
     subBoom((air?.2:.26)*k);
     // 3) LA RUÉE D'AIR : bande de bruit blanc qui MONTE — la vitesse qui arrive (c'est elle qu'un haut-parleur de téléphone rend)
@@ -45827,7 +45980,7 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
   for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
     spawnP(flames,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(9+nfxR()*9)+(nfxR()-.5)*2.4,VC.y-hsF.y*9+nfxR()*1.4,VC.z-hsF.z*(9+nfxR()*9)+(nfxR()-.5)*2.4,.1+nfxR()*.08);
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
-  try{crackle(.7);}catch(e){}
+  try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)
   try{nfeuFin();}catch(e){} // (2026-10-15) le feu de pixels : la dernière bouffée, lente et sale
 }
 /* (2026-10-14, sensations · nitro) LA POUSSÉE SE SENT DANS LES RESSORTS. L'allumage avait tout (cabrage, onde, champ, vibration, whoomp) ;
@@ -48235,7 +48388,7 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
   startBoostT=Math.max(startBoostT,2);paintMoney();
   if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage (niveau 10) et le banquier (niveau 20) : ils reviennent
   if(VBQ.on&&!VBQ.fini)VBQ.g.visible=true;
-  if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
+  if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,RUG.rgG,RUG.thG,RUG.crG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
   musicStartRun(true,true);
   CHANCE.inv=CHANCE.invD;
   try{flashEcran('rgba(255,255,255,.35)');}catch(e){}
@@ -48422,7 +48575,7 @@ function endGame(){
   // frein moteur y sont branchés en parallèle). Les oublier laissait un sifflement de boîte
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
-  for(const n9 of [whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
+  for(const n9 of [whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;
   pwrNitroT=pwrAirT=pwrSpdT=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
@@ -60359,7 +60512,7 @@ function loop(now){
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
-        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE:0;
+        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1):0;
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
         JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
         stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
@@ -60376,13 +60529,15 @@ function loop(now){
           stt(jetOsc.frequency,900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
-          if(Math.random()<dt*(air9?(TEL_NATIF?4:9):(TEL_NATIF?6:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops, plus hauts (audibles) — (2026-10-14, session SON) 10 → 6/s au sol et 9 → 4/s en l'air sur iPhone : chaque pop alloue 4 nœuds WebAudio, la cadence était un coût CPU ; le timbre ne change pas
+          // (2026-10-16) LE FEU QUI RUGIT : ces pops-là sont remplacés par sa boucle de crépitement (RUG.crep, zéro nœud créé) — le POK reste
+          if(!(RUG_SON&&RUG.pret)&&Math.random()<dt*(air9?(TEL_NATIF?4:9):(TEL_NATIF?6:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops, plus hauts (audibles) — (2026-10-14, session SON) 10 → 6/s au sol et 9 → 4/s en l'air sur iPhone : chaque pop alloue 4 nœuds WebAudio, la cadence était un coût CPU ; le timbre ne change pas
           if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
         if(nOn9&&air9&&!loop._jetWas&&NFX.ign<.5){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé) — (vague 3) seulement quand on DÉCOLLE nitro tenue : un allumage frais a déjà son WHOOMP (nitroAllume)
           noiseBurst(.35,.2,300);subBoom(.15);
         }
         loop._jetWas=nOn9&&air9;
+        if(RUG_SON)rugPas(dt,{on:nOn9,air:air9,bleu:nitroBlue,v:spd3,dk:dk}); // (2026-10-16) LE FEU QUI RUGIT : la gorge, la montée, la pulsation, le crépitement
       }
     }
     // portail qui pulse + pads RGB qui défilent
@@ -61048,7 +61203,7 @@ function togglePause(){ if(!started||gameOver)return;
      sans ça, à la reprise, la boucle croirait la cible déjà envoyée et laisserait tout à zéro. `jrDep`/`engLfoG` en font partie :
      ce sont des LFO branchés sur un gain, ils rendraient un trémolo audible même gain principal à zéro. */
   if(paused&&AC){ try{ const T9=AC.currentTime;
-    for(const n9 of [gainN,windG,whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG])
+    for(const n9 of [gainN,windG,whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG,RUG.rgG,RUG.thG,RUG.crG])
       if(n9){const p9=n9.gain;p9.cancelScheduledValues(T9);p9.setTargetAtTime(0,T9,.012);p9._s9=undefined;} }catch(e){} }
   /* (2026-09-28) …et en FONDU : un `suspend()` sec coupait le moteur en plein cycle — un « tic » à chaque pause. La sortie commune
      (`BUSOUT`) descend en ~40 ms, le contexte s'endort derrière ; la reprise (ou le compte 3-2-1) remet la sortie à plein. */
