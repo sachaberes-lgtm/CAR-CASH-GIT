@@ -146,7 +146,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `figAchat`/`figPossede`, la photo-séquence d'une carte FIGURES `figFile`/`figPhoto` (studio commun `photoStudio`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
-  `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, missions `CARNETS`/`misTick`.
+  `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend`/`MISSIONS_V2` (sauvegarde `SAVE.d.m2` ;
+  l'ancien système des carnets `CARNETS`/`misTick`, coupé : `?missions=v1`).
 - **HUD** : `#hud`, `hudColonne`, `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (jauge d'aura),
   `VOLG` (les gains qui volent vers leur jauge), `airPieDraw`, `#tNitro`, pause `#tGear`/`#tPanel`/`panSync`, `HAS_D`/`hasMaj`.
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
@@ -320,8 +321,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 **Ajouter un habillage** (le 14/10 : « LES HABILLAGES POP » au journal)
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
-  `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
-  au carnet n (une ligne dans `CARNETS` dont `r` le donne, et `pk` = son prix sur Poki), `r` = la rareté écrite ; `n` et `d` dans `I18N`.
+  `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU gagné par
+  une MISSION v2 : une ligne dans `M2` dont `r:{cat,id}` le donne (le patch pose `mis2` et retire le prix ; l'ancien `mis:n` = un carnet, v1),
+  `r` = la rareté écrite ; `n` et `d` dans `I18N`.
 - Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'|'k'|'n'` (satiné, chrome, or, laqué noir, métallisé, nacre), ou `grad:[bas,milieu,haut]`,
   ou `mot:'<id>'` (un MOTIF : sa toile dans `MOTIFS`). Depuis le 16/10, ni `p` ni `r` : la rareté et le prix EN EUROS se déduisent
   (`peintRegle`, `PEINT_EUR`) — couleur pleine = commune 1 € · dégradé ou or = rare 3 € · motif = épique 5 € (achat : `habPaye`).
@@ -470,6 +472,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE SILLAGE DE NITRO v5 » (29/09) · « LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR » (01/10) · « LA PLUIE DE RICHESSE » (08/10)
 
 **Garage, menus, écrans**
+- « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)
