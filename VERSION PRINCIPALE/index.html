@@ -23771,6 +23771,11 @@ const CARS=[
  {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
   fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
   desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
+ // (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie », puis « un rose plus pâle, vraiment Cayenne ») LA POUPÉE (voir SHAPES.poupee) :
+ // le grand SUV de luxe allemand, en rose poupée pâle. Pas de marque (ni le nom, ni le blason) : un petit cœur à la place. Ajoutée EN DERNIER.
+ {name:'LA POUPÉE',shape:'poupee',color:0xf49bcb,accent:0xfdf0f6,maxKmh:445,accel:54,turn:3.1,h:1.7,w:2.0,l:4.93,spoiler:0,rar:'epique',
+  fx:{jet:0xff5cb0,core:0xffe2f1,trail:[1.5,.5,1.05],light:0xff5cb0},
+  desc:'Rose poupée, cuir crème, 650 chevaux. Elle se gare en double file, et c\'est la file qui s\'excuse.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -24251,6 +24256,11 @@ Object.assign(I18N,{
 Object.assign(I18N,{
  "LA DÉFERLANTE":"THE BREAKER",
  "Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d'air.":"A rogue wave that learned to drive. It curls right over the back of your neck, and you breathe inside an air bubble."
+});
+// (2026-10-16) LA POUPÉE
+Object.assign(I18N,{
+ "LA POUPÉE":"THE DOLL",
+ "Rose poupée, cuir crème, 650 chevaux. Elle se gare en double file, et c'est la file qui s'excuse.":"Doll pink, cream leather, 650 horsepower. She double-parks, and traffic apologizes.",
 });
 // (2026-10-14) LE DOGE
 Object.assign(I18N,{
@@ -28768,6 +28778,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  a_eternelle:{p:[{t:'rond',r:0.04,k:'b',kb:'x',dbl:1,k2:'x',pts:[[-0.23,0.47,-2.349],[-0.08,0.47,-2.349],[0.08,0.47,-2.349],[0.23,0.47,-2.349]]}]},
  nuage:{p:[{t:'nuage',r:0.075,pts:[[0.46,0.42,-2.43],[-0.46,0.42,-2.43]]}]},
  lingot:{p:[{t:'rect',w:0.11,h:0.11,k:'o',e:0.018,pts:[[0.46,0.42,-2.56],[-0.46,0.42,-2.56]]}]},
+ poupee:{p:[{t:'rond',r:0.045,k:'c',dbl:1,pts:[[0.52,0.40,-2.485],[0.63,0.40,-2.485],[-0.52,0.40,-2.485],[-0.63,0.40,-2.485]]}]}, // (2026-10-16) LA POUPÉE : les quatre sorties de la Cayenne, deux paires aux coins du diffuseur
 };
 /* ---- FIN DES POTS D'ÉCHAPPEMENT ---- */
 /* LES MATIÈRES. La couleur vient des SOMMETS ; la matière ne dit que comment la surface répond.
@@ -32540,6 +32551,138 @@ Object.assign(SHAPES,{
    elle perdait son inox. Neuf lames, un ton sur deux ; pas de rainure fine (de loin elle scintille en pointillé).
    Électrique : pas de pot. Les tuyères sortent sous le bouclier arrière (fiche `pots`).
    ========================================================================================== */
+/* LA POUPÉE (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie » · « un rose plus pâle, une Cayenne, vraiment Cayenne : le devant
+   un peu arrondi, un peu gros ; elle a une forme unique, fais ce qu'il faut pour la retranscrire ; pas besoin du logo, va dans l'exactitude de
+   la forme »). Calée sur des photos de la Cayenne 2018-2025 (profil, trois-quarts, face, poupe). Au kit low-poly, à facettes. */
+SHAPES.poupee=function(K){
+  /* LA POUPÉE — le grand SUV de luxe allemand (la ligne de la Cayenne 2018-2025), en rose poupée pâle. Ce qui la fait reconnaître :
+     le NEZ arrondi et costaud (il s'arrondit en plan ET en profil), le capot qui plonge ENTRE deux ailes en bosse qui portent les
+     phares, les trois bouches du bouclier, la ceinture haute qui monte vers l'arrière, la custode effilée en pointe, le pavillon qui
+     fuit vers un becquet, les hanches arrière larges, le bandeau de feux d'une aile à l'autre qui s'enroule dans la poupe ronde.
+     Les grandes zones (bouches, phares, bandeau) sont PEINTES sur les facettes de la caisse : elles épousent sa rondeur. */
+  const U=LPU,R=.385,ZF=1.48,ZR=-1.42,ZE=2.465,ZB=-2.465;
+  const P=K.kit({p:{g:'p',c:0xf49bcb},k:{g:'m',c:0x161419},K:{g:'g',c:0x0c0b0f},c:{g:'c',c:0xeef0f4},C:{g:'c',c:0x9aa0a8},
+    g:{g:'g',c:0x1d1820},W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff1a3a},r:{g:'l',c:0x7a0a1e},O:{g:'l',c:0xffa21a},m:{g:'s',c:0x2c2930},
+    s:{g:'s',c:0xd9c9d2}});
+  const AR=[[0,2*R+.05],[R*.72,2*R+.025],[R+.05,R*1.12],[R+.17,.31]];
+  const CW=.90,RF=-.10,BP=-.34,RD=-1.13,RR=-1.97,RB=-2.30,QT=-1.61; // pied de pare-brise · haut du pare-brise · montant B · fin de la portière arrière · becquet · bas de lunette · pointe de la custode (au-dessus de la roue arrière, comme la vraie)
+  const zs=[ZB,-2.455,-2.44,-2.41,-2.37,-2.33,RB,-2.14,RR,-1.80,QT,RD-.02,RD+.02,BP-.04,BP+.04,RF,.86,CW,1.25,1.65,1.95,2.10,2.20,2.28,2.34,2.39,2.42,2.445,2.457,ZE];
+  for(const w of [ZF,ZR])for(const d of [R*.72,R+.05,R+.17])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[ZB,1.17],[-2.40,1.20],[RB,1.255],[-2.14,1.42],[RR,1.585],[-1.60,1.645],[RD,1.68],[BP,1.695],[RF,1.665],[.86,1.19],[CW,1.15],[1.65,1.075],[2.15,.995],[ZE-.05,.965],[ZE,.955]],z),
+        xW=z=>U.lin([[ZB,.93],[-2.30,.955],[-1.90,.965],[2.10,.965],[ZE,.955]],z),                    // la voie des flancs (le nez et la poupe s'arrondissent plus bas)
+        xF=z=>.020*U.cl(1-Math.abs(z-ZF)/.70,0,1)+.040*U.cl(1-Math.abs(z-ZR)/1.0,0,1),              // les ailes bombées sur les roues
+        bL=z=>U.lin([[ZB,1.15],[-2.38,1.18],[RB,1.205],[QT,1.215],[RD,1.195],[BP,1.17],[RF,1.16],[CW,1.145],[1.65,1.085],[2.15,1.012],[ZE,.965]],z), // la ceinture · devant, le flanc de l'aile
+        hump=z=>U.lin([[CW,.015],[1.65,.04],[2.15,.052],[ZE,.045]],z),                                // la BOSSE de l'aile au-dessus du capot
+        yE=z=>U.lin([[RB,1.275],[-2.14,1.39],[RR,1.525],[QT,1.565],[RD,1.585],[BP,1.60],[RF,1.585],[.86,1.20],[CW,1.152]],z), // le rebord du pavillon (et les montants)
+        xG=z=>U.lin([[RB,.80],[RR,.76],[BP,.74],[RF,.75],[.86,.88],[CW,.90]],z),
+        yWin=(z,bl,ye)=>z<QT?bl:z<RD?U.lin([[QT,bl+.004],[RD,ye-.035]],z):ye-.035,          // le haut des vitres : la custode file en pointe
+        cab=z=>z>RB-.001&&z<CW+.001;
+  // LE NEZ ET LA POUPE S'ARRONDISSENT : en plan (x se resserre) et en profil (le haut et le bas se referment vers le milieu du bouclier)
+  const kxF=z=>U.lin([[ZE-.48,1],[ZE-.26,.93],[ZE-.12,.80],[ZE-.04,.62],[ZE,.42]],z),
+        kTF=z=>U.lin([[ZE-.20,1],[ZE-.10,.94],[ZE-.04,.82],[ZE,.60]],z),
+        kBF=z=>U.lin([[ZE-.14,1],[ZE-.05,.95],[ZE,.78]],z),
+        kxR=z=>U.lin([[ZB,.66],[ZB+.03,.80],[ZB+.10,.90],[ZB+.24,.97],[ZB+.45,1]],z),
+        kTR=z=>U.lin([[ZB,.80],[ZB+.03,.90],[ZB+.10,.97],[ZB+.22,1]],z),
+        kBR=z=>U.lin([[ZB,.70],[ZB+.05,.85],[ZB+.15,.96],[ZB+.30,1]],z);
+  const raw=z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.31),c=yC(z),xw=xW(z),xf=xw+xF(z),bl=bL(z),
+          L=[Math.max(yb+.06,.40),.53,.68,.84,.97,1.06,1.10,1.145].map(v=>Math.min(v,bl-.004)),
+          ner=z>ZR+R+.1&&z<ZF-R-.1?U.cl(Math.min(z-(ZR+R+.1),(ZF-R-.1)-z)/.25,0,1):0,mt=U.lin([[ZF,0],[ZR,.07]],z),     // la NERVURE creuse du bas des portières, qui monte vers l'arrière
+          s=[[0,yb],[xf-.09,yb],[xf-.012,Math.max(yb+.004,L[0]-.03)],[xf,L[0]],[xf+.010-.016*ner,Math.min(L[2]-.01,L[1]+mt)],[xf+.016+.004*ner,Math.min(L[3]-.01,L[2]+mt*.6)],[xf+.012,L[3]],[xw+.005+xF(z)*.4,L[4]],
+             [xw-.008,L[5]],[xw-.018,L[6]],[xw-.028,L[7]],[xw-.04,bl]];
+    for(let i=2;i<s.length;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]);
+    const x8=xw-.04;
+    if(cab(z)){const ye=Math.max(bl+.006,yE(z)),yw=Math.min(ye-.002,Math.max(bl+.002,yWin(z,bl,ye))),XV=y=>x8-(y-bl)*.42; // le PLAN des vitres
+      const xe=Math.min(XV(ye),z>RF?9:xG(z)+.02);
+      s.push([XV(yw),yw],[xe,ye],[xe-.10,Math.max(ye+.002,Math.min(c-.012,ye+.04))],[xG(z)*.52,Math.max(ye+.004,c-.006)],[0,Math.max(ye+.006,c)]);}
+    else if(z>CW){const cr=Math.max(bl+.03,c+hump(z));
+      s.push([xw-.075,bl+.022],[xw-.14,cr],[xw-.29,cr-.012],[xw-.50,Math.max(c+.004,cr-.04)],[0,c+.016]);}
+    else{s.push([xw-.08,bl+.025],[xw-.16,Math.max(bl+.045,c-.012)],[xw-.33,c],[xw-.55,c+.004],[0,c+.006]);}
+    return s;};
+  const S=z=>{const s=raw(z);
+    if(z>ZE-.49){const kx=kxF(z),kt=kTF(z),kb=kBF(z),ym=.58;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
+    if(z<ZB+.46){const kx=kxR(z),kt=kTR(z),kb=kBR(z),ym=.72;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
+    return s;};
+  // ---- LA PEINTURE : chaque facette choisit sa matière d'après sa place ----
+  const AV=2.16,AP=-2.31; // où commencent la face et la poupe
+  const face=(x,y,z)=>{
+    if(y<.355)return 'k';                                                    // la lèvre et le dessous du bouclier
+    if(y<.60&&x<.43)return 'k';                                              // la grande bouche du milieu (noir MAT : le laqué renvoyait le ciel)
+    if(y>.33&&y<.62&&x>.50&&x<.87-(y-.33)*.12)return 'k';                    // les deux bouches des coins, en trapèze
+    return null;};
+  const poupe=(x,y,z)=>{
+    if(y<.50)return 'k';                                                     // le diffuseur noir
+    return null;};
+  P.loft(zs,S,(j,z,y,x)=>{
+    if(j<0)return 'p';                                                       // les deux bouchons : des pièces posées dessus (voir plus bas)
+    if(j===0||j===1)return 'k';                                              // dessous, bas de caisse
+    if(z>AV){const f=face(x,y,z);if(f)return f;
+      if(z>2.22&&j>=5&&j<=11&&y>.84&&x>.38&&x<.94-(z-2.22)*.3)return 'K';}    // LES PHARES, peints sur le coin de l'aile : ils épousent sa rondeur
+    if(z<AP){const f=poupe(x,y,z);if(f)return f;if(j===9)return 'L';if(j===8||j===10)return 'K';} // le BANDEAU de feux qui s'enroule dans la poupe
+    if(j===2&&!(Math.abs(z-ZF)<R+.2||Math.abs(z-ZR)<R+.2))return 'k';        // le bas de caisse noir entre les roues
+    if(!cab(z))return 'p';
+    if(j===11){if(z>BP+.04)return 'g';if(z>BP-.04)return 'K';if(z>RD+.02)return 'g';if(z>RD-.02)return 'K';if(z>QT)return 'g';return 'p';} // vitres · montant B · montant C · custode
+    if(j===12)return z>.86?'p':z>QT?'c':'p';                                 // le jonc chromé autour des vitres
+    if(j>=14){if(z>RF+.02)return 'g';if(z<RR&&z>RB+.01)return 'g';return 'p';} // pare-brise, lunette, toit
+    if(j===13&&z<RR&&z>RB)return 'K';                                        // le cadre noir de la lunette
+    return 'p';});
+  // ---- LES DÉTAILS POSÉS SUR LA PEAU ----
+  const yAt=(s,x)=>{let best=null;for(let i=1;i<s.length-1;i++){const a=s[i],b=s[i+1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0]){const t=(x-a[0])/(b[0]-a[0]);best=a[1]+t*(b[1]-a[1]);}}return best;};
+  const wAt=(z,y)=>{const s=S(z);for(let i=1;i<s.length-1;i++){const a=s[i],b=s[i+1];if(y>=a[1]&&y<=b[1]&&b[1]>a[1])return a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);}return 0;};
+  const zFace=(x,y,sg)=>{let lo=sg>0?1.6:ZB,hi=sg>0?ZE:-1.6;for(let i=0;i<30;i++){const m=(lo+hi)/2,ok=wAt(m,y)>=x;if(sg>0){if(ok)lo=m;else hi=m;}else{if(ok)hi=m;else lo=m;}}return sg>0?lo:hi;};
+  const decal=(k,w,h,d,x,y,sg,e)=>{const z=zFace(Math.abs(x),y,sg),e9=.012,zx=(zFace(Math.abs(x)+e9,y,sg)-zFace(Math.max(0,Math.abs(x)-e9),y,sg))/(2*e9)*(x<0?-1:1),
+      zy=(zFace(Math.abs(x),y+e9,sg)-zFace(Math.abs(x),y-e9,sg))/(2*e9);
+    let n=sg>0?[-zx,-zy,1]:[zx,zy,-1];const l=Math.hypot(n[0],n[1],n[2]);n=n.map(v=>v/l);
+    const o=d/2-(e||0);P.box(k,w,h,d,x+n[0]*o,y+n[1]*o,z+n[2]*o,Math.atan2(-n[1],n[2]),Math.asin(n[0]),0);};
+  // la grande bouche : ses lames horizontales, et la barre couleur caisse au-dessus
+  for(let i=0;i<4;i++)for(let q=-3;q<=3;q++)decal('m',.115,.014,.03,q*.12,.40+i*.05,1,.012);
+  P.sym(sd=>{
+    for(let i=0;i<4;i++)for(const q of [.57,.66,.75])decal('m',.085,.012,.03,sd*q,.39+i*.055,1,.012);   // les bouches des coins
+    decal('W',.13,.016,.02,sd*.69,.64,1,.006);                                // le trait LED au-dessus de la bouche
+    // LES PHARES : le boîtier noir en goutte couchée sur la bosse de l'aile (plus haut vers le dehors), les QUATRE POINTS de lumière,
+    // le projecteur, et le liseré blanc qui en souligne le bas
+    for(const q of [[.52,.93],[.60,.93],[.52,.885],[.60,.885]])decal('W',.06,.024,.03,sd*q[0],q[1],1,.008); // les quatre points
+    decal('c',.10,.07,.03,sd*.73,.915,1,.008);decal('W',.07,.045,.03,sd*.73,.915,1,.002);              // le projecteur
+    decal('W',.36,.009,.03,sd*.65,.852,1,.008);                                                        // le liseré du bas
+    // les flancs : rétros couleur caisse sur pied noir, poignées, joints de portières
+    P.prism('k',[[.88,1.12],[.70,1.12],[.74,1.17],[.84,1.17]],.07,sd*.925);P.box('p',.07,.05,.07,sd*.975,1.165,.78);   // le pied, puis la coque
+    P.box('p',.10,.115,.21,sd*1.025,1.19,.76,0,sd*.10,0);P.box('p',.06,.09,.16,sd*1.08,1.19,.73,0,sd*.18,0);
+    P.box('K',.012,.085,.15,sd*1.105,1.19,.70,0,sd*.18,0);P.box('O',.012,.016,.12,sd*1.03,1.137,.76,0,sd*.10,0);
+    P.box('c',.02,.022,.16,sd*.982,1.06,.42);P.box('c',.02,.022,.16,sd*.988,1.08,-.64);
+    for(const z of [.86,BP,RD])P.box('k',.012,.58,.012,sd*.984,.84,z);
+    // la poupe : les catadioptres
+    decal('r',.10,.03,.02,sd*.78,.56,-1,.006);
+  });
+  // le capot : deux nervures qui partent des phares
+  P.sym(sd=>{for(let i=0;i<5;i++){const za=1.10+i*.21,zb=za+.21,ya=yAt(S(za),.44),yb2=yAt(S(zb),.44);if(ya==null||yb2==null)continue;
+    P.box('p',.03,.016,.215,sd*.44,(ya+yb2)/2+.006,(za+zb)/2,Math.atan2(ya-yb2,.21),0,0);}});
+  // les bouchons : la bouche du milieu sur celui du nez ; le bandeau, le diffuseur sur celui de la poupe
+  {const s=S(ZE),y0=s[0][1],w=wAt(ZE,.5);P.box('k',2*w,.60-y0,.004,0,(y0+.60)/2,ZE+.002);}
+  {const s=S(ZB);P.box('L',2*s[9][0],s[10][1]-s[9][1],.004,0,(s[9][1]+s[10][1])/2,ZB-.002);
+   P.box('K',2*s[8][0],s[9][1]-s[8][1],.004,0,(s[8][1]+s[9][1])/2,ZB-.002);P.box('K',2*s[10][0],s[11][1]-s[10][1],.004,0,(s[10][1]+s[11][1])/2,ZB-.002);
+   const yd=.72-(.72-.50)*kBR(ZB);P.box('k',2*wAt(ZB,yd-.01),yd-s[0][1],.004,0,(s[0][1]+yd)/2,ZB-.002);}
+  // ---- LA POUPE ----
+  decal('K',.50,.15,.02,0,.76,-1,.008);decal('s',.46,.11,.02,0,.76,-1,.0);  // la plaque
+  {const H=[];for(let i=0;i<=24;i++){const t=i/24*Math.PI*2;H.push([.005*16*Math.pow(Math.sin(t),3),.005*(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))]);}
+   const zh=zFace(0,.97,-1);P.plate('c',H.map(p=>[p[0],p[1]+.97]),.02,zh-.014);}  // un petit CŒUR chromé à la place du blason
+  // le becquet de pavillon qui déborde sur la lunette
+  P.prism('p',[[RR+.06,yC(RR+.06)-.004],[RR-.10,yC(RR)-.035],[RR-.12,yC(RR)-.018],[RR+.06,yC(RR+.06)+.014]],1.30,0);
+  P.box('L',.50,.012,.05,0,yC(RR)-.03,RR-.08,.38,0,0);                       // le feu stop sous le becquet
+  K.commit(P);
+  // LES JANTES : de grandes jantes argent à DIX branches (cinq doubles) qui remplissent la roue, un cache-moyeu ; posées DANS la roue
+  // (`roueDeco` : elles tournent avec elle, le miroir des roues de gauche les suit). Rien ne dépasse le plan du flou de jante.
+  const JW=.31,fx=JW/2-.035,RJ=R*.64,J=lpKit({c:{g:'c',c:0xe4e8ed},d:{g:'m',c:0x1b1c21}});
+  for(let i=0;i<5;i++){const a=i/5*Math.PI*2;for(const e of [-.15,.15]){const aa=a+e,rr=RJ*.55;
+    J.box('c',.03,RJ*.88,.034,fx-.002,Math.sin(aa)*rr,Math.cos(aa)*rr,-aa);}}
+  J.lathe('c',[[RJ,fx-.004],[RJ*.90,fx+.010]],20,0,0,0,'x');                          // la lèvre
+  J.cyl('c',R*.17,.04,10,fx-.005,0,0,'x');J.cyl('d',R*.10,.012,10,fx+.016,0,0,'x');  // le moyeu, son cache
+  for(let i=0;i<5;i++){const a=(i+.5)/5*Math.PI*2;J.cyl('d',.012,.012,6,fx+.012,Math.sin(a)*R*.12,Math.cos(a)*R*.12,'x');} // les écrous
+  const JG=J.done();
+  return {hl:[.66,.92,2.44],tl:[.72,1.09,-2.47],wx:.83,wzF:ZF,wzR:-ZR,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'rayons',n:5,jante:0xe4e8ed,accent:0xd4d8de}};
+};
 SHAPES.origami=function(K){
   const U=LPU,R=.44,ZF=1.92,ZR=-1.72,ZN=2.74,ZT=-2.74,TB=.64,KL=.10,E=.006;
   const P=K.kit({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
@@ -35230,6 +35373,7 @@ const CAR_UNLOCK=[
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
+  {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
 ]
 /* (2026-10-14, Sacha) SANS CARRIÈRE : ses deux trophées passent à l'argent du jeu, aux prix de l'ancienne édition Poki (en haut des épiques ;
    leur famille suit le prix, comme chez Poki). `exK`/`exV` gardent l'ancienne condition : une caisse déjà GAGNÉE en carrière entre dans
