@@ -6632,10 +6632,27 @@ body.gGlitchOn>canvas{animation:gCvJit .5s steps(5,end)}
 @keyframes gCvJit{0%{translate:0 0}20%{translate:-4px 0}40%{translate:5px 1px}60%{translate:-2px -1px}80%{translate:3px 0}100%{translate:0 0}}
 @media (prefers-reduced-motion:reduce){#gGlitch.go i,body.gGlitchOn>canvas{animation:none}}
 #gBq{display:none}
-#gBqVoile{position:fixed;inset:0;z-index:58;pointer-events:none;opacity:0;background:#f3f4f6;transition:opacity var(--t-slow) var(--ease)} /* (2026-10-15) le voile de la bascule garage ⇄ boutique : il monte vite, il se lève lentement */
-#gBqVoile.nuit{background:#0b0d16}
-#gBqVoile.on{opacity:1;transition:opacity var(--t-fast) linear}
-@media (prefers-reduced-motion:reduce){#gBqVoile,#gBqVoile.on{transition:none}}
+/* LE SOUFFLE DE LUMIÈRE (2026-10-16, Léo : « j'aime pas trop la transition glitch — trouve une autre transition, plus smooth ») : plus de
+   bandes ni de tressauts. Vers la boutique, la lumière NAÎT DE LA CAISSE (un disque blanc posé sur elle, ::before, qui grandit) et le blanc
+   gagne les bords (::after) ; l'image avance un peu dans la lumière (la toile grandit de 5 %, depuis la caisse) ; dessous, le décor bascule ;
+   puis le voile se lève pendant que l'image, partie un peu trop près, se POSE (−3 % → 0). Vers l'atelier : la nuit tombe d'un bloc, l'image
+   recule, puis se pose. Rien que de l'opacité et des échelles : le compositeur les joue même si le jeu travaille sous le voile. */
+#gBqVoile{position:fixed;inset:0;z-index:58;pointer-events:none;overflow:hidden;contain:strict;--vc:#f3f4f6;--vg:255,255,255}
+#gBqVoile.nuit{--vc:#0b0d16;--vg:11,13,22}
+#gBqVoile::after{content:'';position:absolute;inset:0;background:var(--vc);opacity:0}
+#gBqVoile::before{content:'';position:absolute;left:var(--fx,50%);top:var(--fy,46%);width:240px;height:240px;margin:-120px 0 0 -120px;border-radius:50%;opacity:0;scale:.2;
+  background:radial-gradient(circle closest-side,rgb(var(--vg)) 0,rgb(var(--vg)) 36%,rgba(var(--vg),.55) 64%,rgba(var(--vg),0) 100%)}
+#gBqVoile.on::after{opacity:1;transition:opacity .25s cubic-bezier(.55,0,.8,.3) .03s} /* les bords en dernier */
+#gBqVoile.on::before{opacity:1;scale:9;transition:opacity .07s linear,scale .3s cubic-bezier(.3,.5,.4,1)}
+#gBqVoile.nuit::before{display:none}
+#gBqVoile.nuit.on::after{transition:opacity .26s cubic-bezier(.45,0,.55,1)}
+#gBqVoile.leve{opacity:0;transition:opacity .5s cubic-bezier(.3,.55,.35,1)}
+canvas.bqPasse{scale:1.05;transition:scale .3s cubic-bezier(.55,0,.8,.35)}
+canvas.bqPasse.recul{scale:.96}
+canvas.bqPose{scale:.97;transition:none}
+canvas.bqPose.recul{scale:1.03}
+canvas.bqArrive{transition:scale .62s cubic-bezier(.2,.75,.25,1)}
+@media (prefers-reduced-motion:reduce){#gBqVoile::before{display:none}#gBqVoile.on::after{transition:opacity .12s linear}#gBqVoile.leve{transition:opacity .2s linear}canvas.bqPasse,canvas.bqPose{scale:none}}
 html.bqIndus body #garage.bqBlanc #gBq{display:block;position:absolute;inset:0;pointer-events:none;z-index:6} /* la page de vente : après la lueur */
 html.bqIndus body #garage #gTop{visibility:hidden!important} /* (la place reste : la console est calée en flex sous elle) */
 html.bqIndus #gTourne{display:none!important}
@@ -34988,7 +35005,8 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{volcanChauffe();}catch(e){console.warn('volcanChauffe',e);}}, // (2026-10-14) LE ROYAUME DE FEU : roche, lave, aiguilles, panaches, geysers, braises, cendre, bombes, halos — compilés au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
-  function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}}, // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
+  function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}},
+  function(){try{bqChauffe(0);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(1);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(2);}catch(e){console.warn('bqChauffe',e);}}, // (2026-10-16, « la boutique rame de ouf ») LA BOUTIQUE bâtie et compilée au menu, en trois étapes : MESURÉ, sa 1re ouverture figeait l'image 1,2 s (10 programmes, la salle blanche, les bras, le trône) // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
@@ -37550,6 +37568,22 @@ function misRender(){
    seule caisse qui existe — et on reconstruit la caisse équipée à la fin : jamais pendant une partie (la boutique est un
    écran de menu). Les photos sont gardées en mémoire pour la session (une caisse ne se photographie qu'une fois). */
 const PHOTO={cache:{},rt:null,scene:null,cam:null};
+/* LES PHOTOS GARDÉES (2026-10-16, « la boutique rame de ouf ») — chaque photo du studio (caisse, aile, figure) est rangée dans la base du
+   navigateur (IndexedDB `ccPhotos`) avec sa SIGNATURE : la version publiée (CC_BUILD) et la peinture portée (elle colore toute caisse bâtie).
+   Au lancement, celles de cette version et de cette peinture reviennent dans PHOTO.cache (adresses blob:, rien à recalculer) ; les autres
+   versions s'effacent. Copie locale (jeton CC_BUILD non gravé) : rien n'est gardé — les caisses y changent sans changer de version. */
+const PHDB={db:null,n:0};
+function phdbSig(){let p='';try{const d=cosmSur('peinture');p=d&&d.id||'';}catch(e){}return CC_BUILD+'|'+p;}
+function phdbOuvre(){if(PHDB.db!==null)return;PHDB.db=false;if(/^__/.test(CC_BUILD)||!window.indexedDB||!window.URL||!URL.createObjectURL)return;
+  try{const r=indexedDB.open('ccPhotos',1);r.onupgradeneeded=function(){try{r.result.createObjectStore('p');}catch(e){}};
+    r.onsuccess=function(){PHDB.db=r.result;phdbLit();};r.onerror=function(){PHDB.db=false;};}catch(e){PHDB.db=false;}}
+function phdbLit(){try{const sig=phdbSig(),st=PHDB.db.transaction('p','readwrite').objectStore('p'),q=st.openCursor();
+  q.onsuccess=function(){const cu=q.result;if(!cu)return;const v=cu.value,k=cu.key;
+    if(!v||String(v.s).split('|')[0]!==CC_BUILD)cu.delete();
+    else if(v.s===sig&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}
+    cu.continue();};}catch(e){}}
+function phdbEcrit(ck,b,sig){if(!PHDB.db||!b)return;try{PHDB.db.transaction('p','readwrite').objectStore('p').put({s:sig,b:b},String(ck));}catch(e){}}
+setTimeout(function(){try{phdbOuvre();}catch(e){}},700);
 // une photo de STUDIO : ailes de vol rentrées, ni halos, ni flaques de phares, ni plumes de réacteur — la carrosserie, les roues, point
 function photoPropre(){if(carWingL){carWingL.visible=false;carWingR.visible=false;}
   carGroup.traverse(o=>{if(o.isSprite||(o.isMesh&&!(o.userData&&o.userData.lp)&&o.material&&(o.material.transparent||o.material.blending===THREE.AdditiveBlending)))o.visible=false;});}
@@ -37574,14 +37608,39 @@ function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.scene.add(hemi,key,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
-function aileFile(id,cb){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
-  if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j}]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
+  if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
    `carPhoto(i, cb)` : avec un rappel, la photo finit en `toBlob` (l'encodage PNG part hors du fil, le rappel reçoit une adresse `blob:` d'une
    soixantaine de caractères) au lieu de `toDataURL` (encodage sur place + ~400 Ko de base64 par photo, recopiés dans chaque innerHTML de la
    vitrine, de l'inventaire, des missions). Même PNG, même image. Les deux toiles de travail (5 Mo et 1,3 Mo) sont rendues aussitôt (toileRend).
    Sans rappel : comme avant (data: URL, synchrone). Une photo déjà en cours d'encodage n'est pas reprise : le rappel attend la même.
    `dbgPhoto()` : les temps de la dernière photo (caisse, rendu + lecture, pellicule, montage, caisse rendue). */
+/* LA PELLICULE SUR LA PUCE (2026-10-16, « la boutique rame de ouf ») — MESURÉ au banc (processeur ×4) : la moitié d'une photo (61 ms sur 121)
+   était la boucle JavaScript de la pellicule, pixel par pixel sur 1 440 × 880, puis la réduction de moitié par la toile. La même recette passe
+   dans un petit programme : il lit la photo rendue au double, développe chaque pixel EXACTEMENT comme la boucle (relève sur la luminance,
+   épaule au-dessus de .82, saturation ×1,14, plafond qui garde la teinte), en moyenne quatre (la réduction de moitié, alpha pondéré comme une
+   toile), retourne l'image, et la toile reçoit 720 × 440 pixels déjà prêts. Même photo (écart ≤ 2/255, mesuré) ; `?photo=ancien` = la boucle. */
+let PHOTO_DEV_JS=/[?&]photo=ancien\b/.test(location.search);
+function photoDev(W,H){
+  if(!PHOTO.dev){const m=new THREE.ShaderMaterial({uniforms:{t:{value:null},px:{value:new THREE.Vector2()}},depthTest:false,depthWrite:false,blending:THREE.NoBlending,toneMapped:false,
+      vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
+      fragmentShader:'uniform sampler2D t;uniform vec2 px;varying vec2 vUv;'
+        +'vec3 dev(vec3 c){float L=dot(c,vec3(.2126,.7152,.0722));if(L>1e-4){float L2=pow(L,1./1.22);if(L2>.82)L2=.82+(L2-.82)/(1.+(L2-.82)*2.6);c*=L2/L;}'
+        +'float l=dot(c,vec3(.2126,.7152,.0722));c=max(vec3(0.),l+(c-l)*1.14);float m=max(c.r,max(c.g,c.b));if(m>1.)c/=m;return c;}'
+        +'void main(){vec2 u=vec2(vUv.x,1.-vUv.y),h=px*.5;vec3 s=vec3(0.);float a=0.;vec4 c;'
+        +'c=texture2D(t,u+vec2(-h.x,-h.y));if(c.a>0.){s+=dev(c.rgb)*c.a;a+=c.a;}'
+        +'c=texture2D(t,u+vec2(h.x,-h.y));if(c.a>0.){s+=dev(c.rgb)*c.a;a+=c.a;}'
+        +'c=texture2D(t,u+vec2(-h.x,h.y));if(c.a>0.){s+=dev(c.rgb)*c.a;a+=c.a;}'
+        +'c=texture2D(t,u+vec2(h.x,h.y));if(c.a>0.){s+=dev(c.rgb)*c.a;a+=c.a;}'
+        +'gl_FragColor=a>0.?vec4(s/a,a*.25):vec4(0.);}'});
+    const sc=new THREE.Scene(),q=new THREE.Mesh(new THREE.PlaneGeometry(2,2),m);q.frustumCulled=false;sc.add(q);sc.matrixAutoUpdate=false;
+    PHOTO.dev={m:m,sc:sc,cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1),rt:null,buf:null};}
+  const D=PHOTO.dev;
+  if(!D.rt||D.rt.width!==W||D.rt.height!==H){if(D.rt)D.rt.dispose();D.rt=new THREE.WebGLRenderTarget(W,H,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:false,stencilBuffer:false,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});D.buf=new Uint8ClampedArray(W*H*4);}
+  D.m.uniforms.t.value=PHOTO.rt.texture;D.m.uniforms.px.value.set(1/PHOTO.rt.width,1/PHOTO.rt.height);
+  renderer.setRenderTarget(D.rt);renderer.render(D.sc,D.cam);renderer.readRenderTargetPixels(D.rt,0,0,W,H,D.buf);
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.putImageData(new ImageData(D.buf,W,H),0,0);return cv;}
 function carPhoto(i,cb,aile){
   const ck=aile?aile.k:i; // (2026-10-15) LA PHOTO D'UNE AILE (aileFile) : la caisse i qui la porte, ailes déployées — rangée sous SA clé
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
@@ -37591,8 +37650,8 @@ function carPhoto(i,cb,aile){
   const W=PHOTO_W,H=PHOTO_H,SS=PHOTO_SS,RW=W*SS,RH=H*SS;
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
-  PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin)
-  let url=null,asy=false;
+  if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
+  const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
@@ -37618,17 +37677,18 @@ function carPhoto(i,cb,aile){
     {v9.set(ctr.x,bx.min.y,ctr.z).project(cam);ymin=v9.y;} // le sol SOUS le centre de la caisse, à l'écran (le coin avant de la boîte tombait plus bas : l'ombre se décollait)
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
     renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,cam);
-    const buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);
+    let gros=null;if(!PHOTO_DEV_JS)try{gros=photoDev(W,H);}catch(e){console.warn('photoDev',e);gros=null;PHOTO_DEV_JS=true;} // (2026-10-16) LA PELLICULE SUR LA PUCE (photoDev) : la toile sort déjà développée, retournée et réduite
+    let buf=null;if(!gros){buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);}
     renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;
     // la PELLICULE : retournée, relevée sur la LUMINANCE (la teinte ne bouge pas), une ÉPAULE au-dessus de .82 (les vifs gardent leur modelé), un soupçon de saturation
-    const gros=document.createElement('canvas');gros.width=RW;gros.height=RH;const gx=gros.getContext('2d'),im=gx.createImageData(RW,RH),dd=im.data;
+    if(!gros){gros=document.createElement('canvas');gros.width=RW;gros.height=RH;const gx=gros.getContext('2d'),im=gx.createImageData(RW,RH),dd=im.data;
     for(let y=0;y<RH;y++){const s0=(RH-1-y)*RW*4,d0=y*RW*4;for(let k=0;k<RW*4;k+=4){const al=buf[s0+k+3];if(!al){dd[d0+k+3]=0;continue;}
       let r=buf[s0+k]/255,g=buf[s0+k+1]/255,bl=buf[s0+k+2]/255;const L=.2126*r+.7152*g+.0722*bl;
       if(L>1e-4){let L2=Math.pow(L,1/1.22);if(L2>.82)L2=.82+(L2-.82)/(1+(L2-.82)*2.6);const q=L2/L;r*=q;g*=q;bl*=q;}
       const l2=.2126*r+.7152*g+.0722*bl;r=Math.max(0,l2+(r-l2)*1.14);g=Math.max(0,l2+(g-l2)*1.14);bl=Math.max(0,l2+(bl-l2)*1.14);
       const m=Math.max(r,g,bl);if(m>1){r/=m;g/=m;bl/=m;}
       dd[d0+k]=r*255;dd[d0+k+1]=g*255;dd[d0+k+2]=bl*255;dd[d0+k+3]=al;}}
-    gx.putImageData(im,0,0);T9.pellicule=performance.now()-T9.t0;
+    gx.putImageData(im,0,0);}T9.pellicule=performance.now()-T9.t0;
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
@@ -37643,13 +37703,13 @@ function carPhoto(i,cb,aile){
     x.drawImage(gros,0,0,W,H);toileRend(gros);
     if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else PHOTO.cache[ck]=u;}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const f of L9)try{f(u);}catch(e){console.warn('photo',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
     T9.montage=performance.now()-T9.t0;
   }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
-  {const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée)
+  if(!PHOTO.chaine){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
   T9.total=performance.now()-T9.t0;
   if(url)PHOTO.cache[ck]=url;
   if(cb&&!asy)cb(url);
@@ -37678,8 +37738,8 @@ window.dbgAilesForce=function(o){AILV.force=o||null;return AILV.force;}; // (ban
    · une figure de CÔTÉ est photographiée telle quelle (le jeu la tire du côté du pouce) ; une figure à deux sens a une photo par carte.
    File PHQ partagée avec les caisses (une photo par image), cache de session `f:<figure>:<sens>:<caisse>`. Banc : dbgFigPhoto(id, sens, o). */
 const PHOTO_FIG={w:600,h:240,el:.3,elPlat:.62,az:.07,pas:.8,haut:.45,bas:-.86,n:5,n2:7,large2:1.12}; // pas : l'écart des poses en longueurs de caisse (< 1 : elles se chevauchent, la caisse est plus grande) ; large2 : un saut un peu plus long pour sept poses ; elPlat : une figure À PLAT (toupie, tail whip, hélico : l'axe vertical seul) se photographie de plus haut, sinon de profil on ne la lit pas
-function figFile(id,dir,cb){if(!(window.FIG&&FIG.par[id]))return;const k='f:'+id+':'+dir+':'+equippedCar();
-  if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,fig:id,dir:dir}]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function figFile(id,dir,cb,el){if(!(window.FIG&&FIG.par[id]))return;const k='f:'+id+':'+dir+':'+equippedCar();
+  if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,fig:id,dir:dir},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function figPhoto(o,cb){const ck=o.k;
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
@@ -37688,7 +37748,7 @@ function figPhoto(o,cb){const ck=o.k;
   const f=FIG.oriente?FIG.oriente(f0,o.dir):f0,P=PHOTO_FIG,W=P.w,H=P.h,SS=PHOTO_SS,RW=W*SS,RH=H*SS,i=equippedCar(),T9=PHOTO.msF={fig:o.fig,dir:o.dir,t0:performance.now()};
   photoStudio();if(!PHOTO.rtF){PHOTO.rtF=new THREE.WebGLRenderTarget(RW,RH);PHOTO.camF=new THREE.PerspectiveCamera(24,W/H,.1,900);}
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
-  PHOTO.avant=carGroup.userData.lvl;
+  PHOTO.avant=carGroup.userData.lvl;const sig9=phdbSig();
   let url=null,asy=false;
   try{
     buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
@@ -37748,7 +37808,7 @@ function figPhoto(o,cb){const ck=o.k;
     x.drawImage(gros,0,0,W,H);toileRend(gros);T9.montage=performance.now()-T9.t0;
     if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
-        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else PHOTO.cache[ck]=u;}
+        if(u){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u;phdbEcrit(ck,b,sig9);}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const fn of L9)try{fn(u);}catch(e){console.warn('photo figure',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
   }catch(e){console.warn('photo figure',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
@@ -54293,15 +54353,56 @@ function gModeCale(){const m=gModeM();if(m==='tout'||m==='shop'||m==='tous')retu
   if(cur&&!ok(cur)){const j=Lc.findIndex(ok);if(j>=0)shopShow(cat,j);}}
 try{Object.keys({'RIEN ICI':1,'TOUT EST A TOI':1}).forEach(function(k){if(!I18N[k])I18N[k]=k==='RIEN ICI'?'NOTHING HERE':'ALL YOURS';});}catch(e){}
 // LA FILE DU STUDIO PHOTO : une vignette par image, jamais pendant la bascule du plateau ni hors du garage
-const PHQ={q:[],on:false};
-function photoFile(i,cb){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+/* LE STUDIO SANS À-COUPS (2026-10-16, Léo : « le garage dans la boutique, ça rame de ouf ») — MESURÉ au banc (iPhone simulé, processeur ×4) :
+   à l'ouverture de la boutique, la grille demandait ses 48 photos d'un coup et la file en prenait UNE PAR IMAGE, ~150 ms chacune (la caisse
+   bâtie, rendue, relue, développée, puis la caisse regardée rebâtie) : 5 à 9 images/s pendant 8 s. Désormais :
+   · une carte de la grille donne son ÉLÉMENT (`el`) : sa photo attend d'être EN VUE — on ne photographie que ce qu'on regarde, défiler en
+     amène d'autres ; une carte sortie de la page (rayon changé) est oubliée ;
+   · la file RESPIRE : après une photo de d ms, rien pendant 2 × d (150 à 400 ms) ; rien pendant la bascule garage ⇄ boutique (voile
+     compris), sous un doigt (garage, boutique), ni pendant qu'on fait défiler la grille (photoCalme) ;
+   · à l'entrée de la boutique, SOUS LE VOILE, les vignettes en vue se prennent à la chaîne (photoRafale) : la caisse regardée n'est rebâtie
+     qu'une fois, à la fin, et la grille se découvre déjà remplie ;
+   · les photos sont GARDÉES d'une session à l'autre pour la version publiée (PHDB) : la 2e ouverture n'en prend plus aucune. */
+const PHQ={q:[],on:false,pret:0,defile:0};
+function photoFile(i,cb,el){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb,undefined,el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function photoCalme(){const t=performance.now();
+  if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
+  if(typeof GBQ!=='undefined'&&(GBQ.drag||GBQ.veut!==GBQ.on||!GBQ.bascule||t<(bqVoile._fin||0)))return false;
+  return true;}
+/* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
+   rafale) : seulement les caisses en vue */
+function photoChoix(stricte){let lib=-1;
+  for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
+    if(!el){if(lib<0&&!stricte)lib=j;continue;}
+    if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
+    if(stricte&&it[2])continue;
+    const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
+    if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
+    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;}
+  return lib;}
+function photoPrends(it){const u=PHOTO.cache[it[0]];
+  if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.fig)figPhoto(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
+}
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
-  if(GAR.sw||GAR.go){requestAnimationFrame(photoTour);return;}
-  const it=PHQ.q.shift(),u=PHOTO.cache[it[0]];
-  if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.fig)figPhoto(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
   requestAnimationFrame(photoTour);
+  if(GAR.sw||GAR.go)return;
+  const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
+  const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
+  const it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+Math.min(400,Math.max(150,d*2));
 }
+/* LA RAFALE SOUS LE VOILE : `ms` de photos d'affilée (les caisses en vue), la caisse regardée rebâtie une seule fois à la fin */
+const PHOTO_RAFALE_MS=300;
+function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver))return 0;
+  const t0=performance.now(),av=carGroup.userData.lvl;let n=0;PHOTO.chaine=true;PHOTO.avant=av;
+  try{while(performance.now()-t0<ms){const j=photoChoix(true);if(j<0)break;const it=PHQ.q.splice(j,1)[0];
+      if(PHOTO.cache[it[0]]){it[1](PHOTO.cache[it[0]]);continue;}
+      carPhoto(it[0],function(u9){if(u9)it[1](u9);});n++;}}
+  catch(e){console.warn('photoRafale',e);}
+  finally{PHOTO.chaine=false;if(n)try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRafale',e);}}
+  PHQ.pret=performance.now()+120;PHQ.rafale={n:n,ms:Math.round(performance.now()-t0)};return n;}
+window.dbgPhotoCar=function(i){delete PHOTO.cache[i];return carPhoto(i|0);}; // (banc) la photo de la caisse i, refaite, en data: (pour comparer deux pellicules)
+window.dbgPhotoFile=function(){return {file:PHQ.q.length,on:PHQ.on,rafale:PHQ.rafale||null,gardees:PHDB.n,db:PHDB.db?'ouverte':String(PHDB.db),calme:photoCalme()};}; // (banc)
 function gBankPaint(){const gb=$('gBank');
   if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtSolde(bank())+'<span class="aura">'+pxi('etoile')+' '+fmtAura(SAVE.d.aura||0)+'</span>';
   gCompteur();}
@@ -56824,12 +56925,21 @@ function bqSonCoupe(d){const n=BQSON.n;if(!n||!AC)return;
 window.dbgBqSon=function(){return {on:!!BQSON.n,gain:BQSON.n?+BQSON.n.g.gain.value.toFixed(4):0,acc:BQSON.acc,veut:!!(typeof GBQ!=='undefined'&&GBQ.veut)};}; // (dev)
 function garBqAmbiance(on){garLibre._r=null; // (v3) au BASCULEMENT (pic de la lueur) : la lumière, et les voiles d'encre du garage retirés (#garage.bqBlanc)
   if(gEl)gEl.classList.toggle('bqBlanc',on);try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
-function bqVoile(v){let w=document.getElementById('gBqVoile'); // LE VOILE de la bascule garage ⇄ boutique (voir garBqIndus) : v=true blanc, false nuit, null = il se lève
+function bqVoile(v){let w=document.getElementById('gBqVoile'); // LE VOILE de la bascule garage ⇄ boutique (voir garBqIndus et LE SOUFFLE DE LUMIÈRE) : v=true blanc, false nuit, null = il se lève
   if(!w){w=document.createElement('div');w.id='gBqVoile';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
-  clearTimeout(bqVoile._t);
-  if(v===null){requestAnimationFrame(function(){requestAnimationFrame(function(){w.classList.remove('on');});});bqVoile._t=setTimeout(function(){w.className='';},REDUCED_MOTION?60:700);return;} // deux images : l'écran neuf est peint avant qu'il se découvre
+  clearTimeout(bqVoile._t);clearTimeout(bqVoile._t2);const cv=renderer.domElement,rm=REDUCED_MOTION;
+  if(v===null){ // dessous, l'écran neuf est en place : l'image part un peu trop près (bqPose, sans transition), puis, deux images plus tard (l'écran neuf est peint), le voile se lève et l'image se pose
+    cv.classList.remove('bqPasse','bqArrive');cv.classList.add('bqPose');
+    requestAnimationFrame(function(){requestAnimationFrame(function(){cv.classList.remove('bqPose','recul');cv.classList.add('bqArrive');w.classList.add('leve');
+      bqVoile._fin=performance.now()+(rm?220:560);bqVoile._t2=setTimeout(function(){cv.classList.remove('bqArrive');cv.style.transformOrigin='';},700);});});
+    bqVoile._fin=performance.now()+1200;bqVoile._t=setTimeout(function(){w.className='';},rm?400:900);return;}
+  // la lumière naît sur la caisse : son centre à l'écran
+  try{const p=GBQ._vf||(GBQ._vf=new THREE.Vector3());carGroup.getWorldPosition(p);p.y+=.55;p.project(camera);
+    if(p.z<1&&Math.abs(p.x)<1.5&&Math.abs(p.y)<1.5){const x=(p.x*.5+.5)*100,y=(.5-p.y*.5)*100;w.style.setProperty('--fx',x.toFixed(1)+'%');w.style.setProperty('--fy',y.toFixed(1)+'%');cv.style.transformOrigin=x.toFixed(1)+'% '+y.toFixed(1)+'%';}}catch(e){}
   w.className=v?'blanc':'nuit';void w.offsetWidth;w.classList.add('on');
-  bqVoile._t=setTimeout(function(){if(!GBQ.bascule){GBQ.bascule=true;GBQ.on=GBQ.veut;bqClasses(GBQ.veut);try{garBqAmbiance(GBQ.veut);}catch(e){}}w.classList.remove('on');},900);} // filet : jamais de voile collé ni d'interface à moitié basculée (onglet caché, garage quitté en plein geste) // filet : jamais de voile collé (onglet caché, garage fermé en plein geste)
+  cv.classList.remove('bqPose','bqArrive');cv.classList.toggle('recul',!v);void cv.offsetWidth;cv.classList.add('bqPasse');
+  bqVoile._fin=performance.now()+2e3;
+  bqVoile._t=setTimeout(function(){if(!GBQ.bascule){GBQ.bascule=true;GBQ.on=GBQ.veut;bqClasses(GBQ.veut);try{garBqAmbiance(GBQ.veut);}catch(e){}}bqVoile(null);},1400);} // filet : jamais de voile collé ni d'interface à moitié basculée (onglet caché, garage quitté en plein geste)
 function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
 /* LA LUEUR DERRIÈRE LA CAISSE (v3) : un disque blanc tourné vers la caméra, posé DERRIÈRE la caisse (elle reste devant : il est caché par
    elle), qui grandit jusqu'à couvrir le garage ; une nappe blanche s'étale au sol depuis sous elle. Deux objets de la scène (hors de
@@ -56941,10 +57051,10 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
    seule fonction fait les deux (le `[data-ph]` couvre aussi `.fpPh i` et `.fpSlPh` de l'ancienne). */
 function bqPhotos(el){
   el.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(c){const i=+c.getAttribute('data-fn').slice(2);
-    photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});
-  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}});});
-  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');});}); /* (2026-10-15) les AILES ont leur photo (aileFile) */
-  el.querySelectorAll('[data-phf]:not(.ok)').forEach(function(x){const p=x.getAttribute('data-phf').split('|');figFile(p[0],p[1],function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');});});} /* (2026-10-15 soir) et les FIGURES leur photo-séquence (figFile), dans le sens de leur carte */
+    photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}},c);});
+  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}},x);}); /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
+  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);}); /* (2026-10-15) les AILES ont leur photo (aileFile) */
+  el.querySelectorAll('[data-phf]:not(.ok)').forEach(function(x){const p=x.getAttribute('data-phf').split('|');figFile(p[0],p[1],function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);});} /* (2026-10-15 soir) et les FIGURES leur photo-séquence (figFile), dans le sens de leur carte */
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
   ui.innerHTML='<div id="gBqTete"><div class="bqT1"><div class="bqTl"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqArg"><b id="gBqArg"></b></div></div>'
@@ -56962,6 +57072,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';}});
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
+  ui.querySelector('.bqRail').addEventListener('scroll',function(){PHQ.defile=performance.now();},{passive:true}); // (2026-10-16) pas de photo pendant qu'on fait défiler (voir LE STUDIO SANS À-COUPS)
   return ui;}
 /* L'AIMANT COUPÉ PENDANT L'ENTRÉE (2026-10-15, session du rangement des figures : « en ouvrant un onglet, la grille s'ouvre défilée de 14 px ») :
    les cartes entrent en glissant de 12 px (bqK) et l'aimant de défilement (scroll-snap) les attrapait EN PLEIN GLISSÉ — la grille restait
@@ -57129,6 +57240,15 @@ try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB 
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
 try{Object.assign(I18N,{'CHOISIS UNE OFFRE':'PICK AN OFFER'});}catch(e){} // (2026-10-14, charte 6, boutique P1)
 function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
+/* LA BOUTIQUE SE PRÉPARE AU MENU (2026-10-16, Léo : « la boutique rame de ouf ») — MESURÉ au banc : à la 1re ouverture, l'image figeait 1,2 s
+   (la salle blanche, le trône, les bras d'atelier, les gerbes bâtis au toucher, puis 10 programmes compilés à sa 1re image, 4 autres ensuite).
+   Comme l'atelier (atelierChauffe), elle est désormais bâtie CACHÉE au menu et compilée sous le même éclairage (les lumières ne changent que
+   d'intensité en boutique : bqBio), puis dessinée une fois hors écran — chauffeRendu ne garde que ses sous-arbres. */
+function bqChauffe(k){if(GBQ.chaud||garageOn)return; // k : 0 la salle bâtie · 1 les bras, l'outil, la lueur · 2 tout compilé et dessiné une fois (dans le garage, rien : l'ouverture bâtit ce qui manque, sous le voile)
+  if(k===0){garBqBatit();return;}if(k===1){garBqLueurBatit();garBqOutilBatit();return;}
+  GBQ.chaud=true;garBqBatit();garBqLueurBatit();garBqOutilBatit();
+  const q=[GBQ.grp,GBQ.halo,GBQ.nappe,GBQ.bras,BQG.m,BQG.lame,BQT.g].filter(function(o){return o&&o.parent===scene;});
+  if(q.length)chauffeRendu(q);}
 /* LA POSE TENUE (2026-10-15, Léo : « boutique : toucher la voiture fait bouger la voiture comme actuellement, mais laisse la voiture dans sa
    position souhaitée ; et lorsqu'on rappuie sur la voiture, elle se replace et la plateforme se remet à faire tourner la voiture »).
    Le doigt la tourne et la penche comme avant (même prise, même élan) ; dès qu'il a GLISSÉ de plus de 8 px, elle est POSÉE À LA MAIN
@@ -57171,13 +57291,13 @@ function garBqIndus(dt,ay,t9){
      puis il se lève en --t-slow sur l'écran déjà en place. Le glitch de Léo reste par-dessus. */
   if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;const dedans=!GAR.go&&garageOn&&!!gEl&&!['menu','missions','quiet','launching'].some(function(c){return gEl.classList.contains(c);});
     GBQ.v0=performance.now();if(dedans&&(veut||avant))bqVoile(veut);else{bqClasses(veut);GBQ.v0=0;} /* on sort du garage (HOME, missions, départ) : la bascule d'avant, d'un coup, sous le volet de l'écran */
-    if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}if(!GAR.go&&(veut||avant))garGlitch();}
+    if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}} /* (2026-10-16, Léo : « j'aime pas trop la transition glitch ») plus de garGlitch : LE SOUFFLE DE LUMIÈRE (bqVoile) fait seul la bascule */
   GBQ.t+=dt;
   if(GBQ.pose){if(!veut||GAR.go)bqPoseLache('sort');else if(garageI!==GBQ.poseI)bqPoseLache('caisse');else if((GBQ.ong||'cat')!==GBQ.poseO||(GBQ.cat||'voiture')!==GBQ.poseC)bqPoseLache();} // (2026-10-15) LA POSE TENUE : une autre caisse, un autre onglet, la sortie → le plateau
   GBQ.platK=GBQ.pose?0:Math.min(1,GBQ.platK+dt/.9);
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
   GBQ.lueur=0;
-  if(!GBQ.bascule&&GBQ.t>.16&&performance.now()-(GBQ.v0||0)>150){ /* (2026-10-15) 150 ms RÉELLES : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);}
+  if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;}
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
   try{garBqLueur(ay);garBqGloire(dt,t9);}catch(e){}
   const on=GBQ.on;
@@ -57216,6 +57336,7 @@ function garBqIndus(dt,ay,t9){
   try{bqOutilTick(dt,t9,ay);}catch(e){window.__outilErr=e;}
   try{bqGesteTick(dt,t9);bqPoussiere(t9);}catch(e){window.__gesteErr=e;}
   try{garBqPanneau(dt,t9);}catch(e){}
+  if(GBQ.rafale){GBQ.rafale=false;if(GBQ.on)try{photoRafale(PHOTO_RAFALE_MS);}catch(e){}} // (2026-10-16) sous le voile plein : les vignettes en vue, à la chaîne (voir LE STUDIO SANS À-COUPS) — la grille se découvre remplie
 }
 /* LE DESSOUS DE LA CAISSE (bqDessous) — relevé une fois par caisse, dans SON repère : le FOND (le point le plus bas de chaque case de 8 cm,
    toutes pièces pleines comprises — roues, pare-chocs, becquet : la levée qui l'empêche de traverser le socle) et le PLANCHER (sans les roues,
