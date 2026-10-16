@@ -10468,7 +10468,7 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=29"></script>
+<script defer src="sons-banque.js?v=30"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=6"></script>
 <script>
@@ -54262,7 +54262,8 @@ function chuteTape(e){ // TAPÉE : le coup
     m.position.copy(P).addScaledVector(n,.05);D.v.set(n.x*sp9+(Math.random()-.5)*5,n.y*sp9+(Math.random()-.5)*5+1.5,n.z*sp9+(Math.random()-.5)*5);
     D.w.set((Math.random()-.5)*16,(Math.random()-.5)*16,(Math.random()-.5)*16);m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);
     const k9=.5+Math.random()*.8;D.s.set(.34*k9,.05+.05*Math.random(),.24*k9);m.scale.copy(D.s);D.t=0;D.vie=1.3+Math.random()*.9;m.visible=true;}
-  try{if(SONV2){sfx('pose.choc',{vol:1+3*Math.min(1,mu-1)});sfx('debris.tole',{vol:3,t:.03});if(T.combo>=2)sfx('pose.lourde',{vol:-2+2*Math.min(1,(T.combo-2)/3),t:.02});}else{chimeNote(340,0,.05,.10);noiseBurst(.18,.08,900);}}catch(_){} /* la tôle qui encaisse — de plus en plus lourd */
+  try{if(SONV2){if(richSon()){sfx('riche.coup',{vol:-1+3*Math.min(1,mu-1)});sfx('riche.combo',{st:RICH_PD[Math.min(RICH_PD.length-1,T.combo-1)],vol:-3+2*Math.min(1,(T.combo-1)/4),t:.012});} /* (2026-10-16) LE COUP et la note du COMBO qui monte d'un degré à chaque coup de la rafale (voir <<<RICHESSE>>> dans l'atelier) */
+      else{sfx('pose.choc',{vol:1+3*Math.min(1,mu-1)});sfx('debris.tole',{vol:3,t:.03});if(T.combo>=2)sfx('pose.lourde',{vol:-2+2*Math.min(1,(T.combo-2)/3),t:.02});}}else{chimeNote(340,0,.05,.10);noiseBurst(.18,.08,900);}}catch(_){} /* la tôle qui encaisse — de plus en plus lourd (l'ancien jeu de sons en repli, banque d'avant) */
   try{hap(T.combo>=3?[40,20,55]:[32,14,26]);}catch(_){}
   return true;
 }
@@ -54377,6 +54378,9 @@ const RICH_T={
   fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
 const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
+const RICH_PD=[0,2,4,7,9,12,14,16,19,21],RICH_MEL=[0,2,4,7,9,12,14,16,14,12,9,7,4,2]; // RICH_MEL : la mélodie des cœurs qui éclatent — elle monte puis redescend (un aller-retour, pas une chute)
+function richSon(){const B=window.CCSON_BANQUE;return !!(B&&B.m&&B.m['riche.coup']);} // richSon : la banque a-t-elle les sons de la pluie de richesse ? (sinon, l'ancien jeu de sons)
+ // (2026-10-16) la pentatonique en demi-tons (degré → st) : la note du combo, la mélodie des cœurs
 const RICH_NUEE={petit:[.22,4,6],bon:[.35,6,9],gros:[.5,8,12],jackpot:[.75,12,16]}; // (2026-10-16) LA NUÉE DE CŒURS : la chance qu'une gerbe en porte une, combien de petits cœurs (min, max) // (la chaîne : son pool à elle, RICH.ch)
 /* (2026-10-14, Léo : « diminue la quantité d'objets déversés lors des coups, garde la variété ; vise quelque chose d'addictif qui joue avec le
    besoin d'effort et de récompense ») LES GERBES MAIGRISSENT (≈ ÷2,5 : petit 1-2, bon 3-5, gros 6-9, jackpot 14-19 ; les répliques aussi), les
@@ -55109,24 +55113,27 @@ function richCoup(P,n,d,mu,combo){
   if(r==='rien')return;
   const P9=P.clone(),n9=n.clone(),d9=d.clone();
   if(r==='presque'){RICH.n.presque++;                                          // presque : une seule pièce s'échappe, mollement
-    setTimeout(function(){try{if(!CHUTE.on)return;richLance(['piece2','piece1','piece50'][Math.floor(Math.random()*3)],P9,n9,d9,0,.55);if(SONV2)sfx('piece',{st:Math.floor(Math.random()*3),vol:-7});}catch(e){}},90);return;}
+    setTimeout(function(){try{if(!CHUTE.on)return;richLance(['piece2','piece1','piece50'][Math.floor(Math.random()*3)],P9,n9,d9,0,.55);if(SONV2){if(richSon())sfx('riche.piece',{st:RICH_PD[Math.floor(Math.random()*3)],vol:-6});else sfx('piece',{st:Math.floor(Math.random()*3),vol:-7});}}catch(e){}},90);return;}
   const T9=RICH_TIER[r];RICH.n.gains++;if(r==='jackpot')RICH.n.jackpot++;
   setTimeout(function(){try{if(!CHUTE.on)return;                              // 80 ms : le souffle, puis la flamme crache
     richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
     const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
-    for(let i=0;i<nb;i++){const ty=richPioche(T9.w),D9=RICH_T[ty]||{},lourd=D9.flip==='y'||ty==='or'||ty==='lingot'; // (2026-10-10) LA GERBE EN DEUX TEMPS : le métal part d'abord, sec ; le papier suit et s'étale
+    const M9=RICH.mat9={g:0,v:0,f:0};for(let i=0;i<nb;i++){const ty=richPioche(T9.w),D9=RICH_T[ty]||{},lourd=D9.flip==='y'||ty==='or'||ty==='lingot'; // (2026-10-10) LA GERBE EN DEUX TEMPS : le métal part d'abord, sec ; le papier suit et s'étale
+      if(ty==='diamant'||ty==='rubis'||ty==='emeraude')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
       richLance(ty,P9,n9,d9,lourd?Math.random()*etal*.55:D9.papier||ty==='liasse'?.05+Math.random()*etal*1.25:Math.random()*etal,r==='jackpot'?1.2:1);}
     if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
-    {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));for(let i=0;i<nc;i++)richLance('coeur',P9,n9,d9,.04+Math.random()*(etal+.15)*1.4,r==='jackpot'?1.15:.95);}} // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un
-    if(SONV2){if(r==='petit'){sfx('fourgon.billets',{vol:3});sfx('piece',{st:2,vol:-4,t:.05});}
-      else if(r==='bon'){sfx('piece.recolte',{vol:-1});sfx('fourgon.billets',{vol:2,t:.06});}
-      else if(r==='gros')sfx('argent.gros');
-      else{sfx('fig.jackpot');sfx('pluie.billets',{t:.25,vol:-3});}}
+    {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));for(let i=0;i<nc;i++)richLance('coeur',P9,n9,d9,.04+Math.random()*(etal+.15)*1.4,r==='jackpot'?1.15:.95);}} // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un
+    if(SONV2){const ri=richSon();if(ri)sfx('riche.'+r); // (2026-10-16) LA GERBE PAIE : sa cascade à elle (petit → bon → gros → jackpot), au juste milieu — la course garde les pièces de Sacha
+      if(r==='petit'){sfx('fourgon.billets',{vol:-1,t:.04});if(!ri)sfx('piece',{st:2,vol:-4,t:.05});}
+      else if(r==='bon'){sfx('fourgon.billets',{vol:-1,t:.06});if(!ri)sfx('piece.recolte',{vol:-1});}
+      else if(r==='gros'){if(!ri)sfx('argent.gros');sfx('fourgon.billets',{vol:-3,t:.1});}
+      else{if(!ri)sfx('fig.jackpot');sfx('pluie.billets',{t:.25,vol:-3});}
+      const M9=RICH.mat9;if(M9.g)sfx('riche.gemme',{t:.1});if(M9.v){sfx('riche.verre',{t:.08});if(Math.random()<.5)sfx('riche.bouchon',{t:.02});}if(M9.f)sfx('riche.fleurs',{t:.12});} // et ses MATIÈRES : le cristal des gemmes, le verre des vins (et un bouchon qui saute), le souffle des fleurs
     if(r==='jackpot'){CHUTE_TAP.sh=Math.min(1.8,CHUTE_TAP.sh+.8);try{hap([20,30,20,30,60]);}catch(e){}}else if(r==='gros'){try{hap([16,24,30]);}catch(e){}}
     if(r==='jackpot'||r==='gros')setTimeout(function(){try{if(!CHUTE.on)return; // (2026-10-10) LA RÉPLIQUE : la caisse en recrache une poignée (pièces surtout), un temps après
       richEtincelles(P9,n9,d9,r==='jackpot'?12:7,1);const m9=r==='jackpot'?4+Math.floor(Math.random()*2):1+Math.floor(Math.random()*2);
       for(let i=0;i<m9;i++)richLance(['piece2','piece1','piece50','piece2','piece1','billet','or'][Math.floor(Math.random()*7)],P9,n9,d9,Math.random()*.1,.8); /* (14/10) la réplique, plus maigre aussi */
-      if(SONV2)sfx('piece.recolte',{vol:-6});}catch(e){}},r==='jackpot'?430:340);
+      if(SONV2){if(richSon())sfx('riche.petit',{vol:-5});else sfx('piece.recolte',{vol:-6});}}catch(e){}},r==='jackpot'?430:340);
   }catch(e){}},80);
 }
 // ---- CHAQUE IMAGE (appelé par chuteTapeTick) ----
@@ -55154,7 +55161,7 @@ function richTick(dt,C){
     let bt=1;if(D.bat){const u9=(a9*1.3+o.ph)%1;bt=1+.13*Math.exp(-((u9-.06)*(u9-.06))/.0018)+.08*Math.exp(-((u9-.24)*(u9-.24))/.0018);} // (2026-10-15) le cœur BAT : poum-poum (~78 battements/min, chacun à sa phase)
     if(D.pop){const pp=Math.min(1,Math.max(0,(o.age-o.pt)/.34));m.material.uniforms.uPop.value=pp;if(m.children[0])m.children[0].scale.setScalar(2.2*Math.max(0,1-pp*1.7)); // (2026-10-16) POP : ses cubes filent (RICH_VS_COEUR), son aura s'éteint
       if(pp>0&&!o.popS){o.popS=1;for(const f of RICH.fl)if(f.age>=f.vie){f.p.copy(m.position);f.v.set(0,.6,0);f.age=0;f.vie=.22;f.r0=o.s*.3;f.r1=o.s*1.7;f.c.setRGB(1,.78,.9);break;} // un éclat blanc rosé
-        const t9=performance.now();if(SONV2&&!(RICH.popT>t9-70)){RICH.popT=t9;try{sfx('ui.appui',{vol:-7});}catch(e){}}}} // et un petit « pop » (pas plus d'un tous les 70 ms)
+        const t9=performance.now();if(SONV2&&!(RICH.popT>t9-45)){RICH.popT=t9;try{const i9=RICH.popI=(RICH.popI||0)+1;if(richSon())sfx('riche.coeur',{st:RICH_MEL[(i9-1)%RICH_MEL.length],vol:-4});else sfx('ui.appui',{vol:-7});}catch(e){}}}} // (2026-10-16) et son « plop » : chaque pop prend le degré suivant de la gamme — la nuée qui éclate un à un CHANTE (pas plus d'un tous les 45 ms)
     m.scale.setScalar(Math.max(1e-4,o.s*o.fr*pop*fin*pres*bt));m.visible=pres>0;
     if(o.gl){ // LE BLING : une facette qui renvoie le soleil vers l'œil
       RICH.cam.copy(cp).sub(m.position).normalize();RICH.H.copy(SUN_DIR).add(RICH.cam).normalize();let g=0;
