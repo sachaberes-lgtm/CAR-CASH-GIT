@@ -141,12 +141,12 @@ const garde=()=>{try{localStorage.setItem('boiteDauphins',JSON.stringify(ST));}c
 let JEU=null,BLOC='',LU='',ERR='',VERSION=0;
 async function lireBloc(){
   // ⚠ le service worker du jeu répond à `index.html` depuis SON cache : une requête à part y échappe
-  const r=await fetch('index.html?boite='+Date.now(),{cache:'no-store'});
-  if(!r.ok)throw new Error('index.html : '+r.status);
+  const r=await fetch('creatures/dauphin.js?boite='+Date.now(),{cache:'no-store'}); // (2026-10-15) le dauphin a quitté le jeu : il vit dans creatures/dauphin.js
+  if(!r.ok)throw new Error('creatures/dauphin.js : '+r.status);
   const L=(await r.text()).split('\n');
   let a=-1,b=-1;
-  for(let i=0;i<L.length;i++){if(a<0&&L[i].startsWith('const DOL_L='))a=i;else if(a>=0&&L[i].startsWith('const dolphinRig=')){b=i;break;}}
-  if(a<0||b<0)throw new Error('bloc des dauphins introuvable dans index.html');
+  for(let i=0;i<L.length;i++){if(a<0&&L[i].startsWith('const DOL_L='))a=i;}b=L.length;
+  if(a<0)throw new Error('bloc des dauphins introuvable dans creatures/dauphin.js');
   return L.slice(a,b).join('\n');
 }
 function executer(bloc,dolphins,dolTrail,dolSplash){
@@ -385,7 +385,7 @@ let signe='',signeBoite=null;
 async function veille(){
   try{const rb=await fetch('boite-dauphins.html?v='+Date.now(),{method:'HEAD',cache:'no-store'}); // la BOÎTE elle-même a changé (lumières, vues, boutons) : on recharge la page — réglages et vue sont gardés
     const sb=(rb.headers.get('last-modified')||'')+'|'+(rb.headers.get('content-length')||'');if(signeBoite===null)signeBoite=sb;else if(sb!==signeBoite){location.reload();return;}}catch(e){}
-  try{const r=await fetch('index.html?boite-v='+Date.now(),{method:'HEAD',cache:'no-store'});
+  try{const r=await fetch('creatures/dauphin.js?boite-v='+Date.now(),{method:'HEAD',cache:'no-store'});
     const s=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');
     if(s!==signe){signe=s;const bloc=await lireBloc();
       if(bloc!==BLOC){try{monter(bloc);ERR='';LU=heure();annonce('Nouveau dessin · '+LU);}
@@ -439,7 +439,7 @@ function boucle(now){
 }
 (async()=>{
   try{const bloc=await lireBloc();monter(bloc);LU=heure();
-    const r=await fetch('index.html?boite-v='+Date.now(),{method:'HEAD',cache:'no-store'});signe=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');}
+    const r=await fetch('creatures/dauphin.js?boite-v='+Date.now(),{method:'HEAD',cache:'no-store'});signe=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');}
   catch(e){const c=$('charge');c.classList.add('erreur');c.innerHTML='La boîte n\'a pas pu lire le jeu.<br>'+e.message+
     '<br><br>Ouvre-la par le serveur du dossier (http://localhost:…/boite-dauphins.html), pas en double-clic.';return;}
   $('charge').classList.add('fini');

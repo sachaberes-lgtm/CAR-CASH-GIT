@@ -41,7 +41,13 @@
   "d-cloche",
   "petit-kalimba",
   "petit-guitare",
-  "petit-funk"
+  "petit-funk",
+  "pal-penthouse-v2",
+  "neuf-zeppelin2",
+  "neuf-zeppelin3",
+  "neuf-zeppelin",
+  "bleu-4830-v2",
+  "bleu-9551-v2"
  ],
  "pouces": [
   "pal-aura",
@@ -4087,7 +4093,7 @@
    "n": 3067,
    "titre": "MIRAGE DE VITESSE",
    "nom": "TOUGE · eurobeat de col de montagne",
-   "avis": 1,
+   "avis": 0,
    "date": "2026-10-14T01:39",
    "style": "touge",
    "couleur": "touge",
@@ -27233,7 +27239,7 @@
    "n": 8526,
    "titre": "GRÉSIL NOVA",
    "nom": "ZEF · rave-rap sombre",
-   "avis": 1,
+   "avis": 0,
    "date": "2026-10-14T02:59",
    "style": "zef",
    "couleur": "zef",
@@ -40720,7 +40726,7 @@
    "n": 6200,
    "titre": "MIRAGE ULTRA",
    "nom": "BROSTEP × RIDDIM · le rythme brostep, les couleurs riddim",
-   "avis": 1,
+   "avis": 0,
    "date": "2026-10-14T10:45",
    "style": "hyb:brostep+riddim+b",
    "couleur": "hyb:brostep+riddim+b",
@@ -42788,7 +42794,7 @@
    "n": 5161,
    "titre": "TURBO DE NÉON",
    "nom": "BOSSA × SURF · le rythme bossa nova, les couleurs surf rock (réverbe à ressort)",
-   "avis": 1,
+   "avis": 0,
    "date": "2026-10-14T10:46",
    "style": "hyb:bossa+surf+b",
    "couleur": "hyb:bossa+surf+b",
@@ -48859,15 +48865,11 @@
  ],
  "paliers": {},
  "place": {
-  "pal-aura": "bleu",
   "pal-neon-noir": "bleu",
-  "pal-nuit-de-velours": "bleu",
-  "pal-penthouse": "bleu",
-  "pal-glisse-fusion": "bleu"
+  "pal-nuit-de-velours": "bleu"
  },
  "cats": [],
  "notes": {
-  "pal-penthouse": "tenter avec des instruments different, remplacer completement",
   "pal-aura": "incroyabale juste transformer en 30 palier comme les autres",
   "bleu-1540": "ajoutes un arpege un peu cifi quii danse autour du lead qq part, ca dort trop au niv 15",
   "bleu-2221": "appaufiner instruments un peu brut",
