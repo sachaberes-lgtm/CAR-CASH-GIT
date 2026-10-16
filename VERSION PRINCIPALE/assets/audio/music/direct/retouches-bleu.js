@@ -84,47 +84,6 @@ const CLAV_FIN = () => [.7, 44100, (c, f, dest) => { [[-3, -.35], [3, .35]].forE
 // une voix qui improvise ; la note glisse d'un demi-ton et demi vers le haut en entrant, une sur trois retombe à la fin (le « ahh » qui se laisse
 // tomber), un « h » de souffle à l'attaque ; filtrées comme une cassette (coupe-bas 260 Hz, coupe-haut 3 kHz) et saturées doucement : l'underground.
 const VOYELLES = [[730, 1090, 2440], [570, 840, 2410], [300, 870, 2240], [530, 1840, 2480], [390, 2000, 2600], [500, 1400, 2400]];
-// ---------------------------------------------------------------- LES SONS NEUFS (16/10, Léo : « surprends-moi : de nouveaux sons — les basses, les
-// arpèges, je les ai reconnus ; de nouveaux instruments, de nouvelles manières de composer ; rien d'enfantin ni de cirque ; pas mille fois plus complexe »)
-// LE CHŒUR « AH » : trois voix à peine désaccordées qui chantent « ah » — une impulsion (scie + carré) dans quatre formants, l'attaque qui glisse
-// sur la note (30 cents dessous → juste en 60 ms, comme une voix), un souffle, un vibrato tardif, large dans la stéréo.
-const VOIX_AH = () => [1.6, [48, 55, 62, 69, 76], (c, f) => {
-  const g = env(c, .03, 1.1, .45, .5), hp = filtre(c, 'highpass', 160, .6, g), sortieF = c.createGain(), src = c.createGain(), vb = vibrato(c, 5, 12, .35); sortieF.connect(hp);
-  [[800, 1, 6], [1150, .55, 7], [2900, .2, 9], [3500, .08, 9]].forEach(([fr, v, q]) => { const bp = c.createBiquadFilter(), m = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; m.gain.value = v; src.connect(bp); bp.connect(m); m.connect(sortieF); });
-  [[-12, -.6], [0, 0], [12, .6]].forEach(([dt, x]) => [['sawtooth', 1], ['square', .35]].forEach(([ty, v]) => { const o = osc(c, ty, f, 0), m = c.createGain(); m.gain.value = v;
-    o.detune.setValueAtTime(dt - 30, 0); o.detune.linearRampToValueAtTime(dt, .06); vb.connect(o.detune); o.connect(m); m.connect(pan(c, x, src)); o.start(0); }));
-  souffle(c, 1150, 1.2, .06, 1.5, sortieF); }, 2];
-// LE PIANO ÉLECTRIQUE À LAMES : la lame frappée — une sinusoïde qu'un modulateur à 14× fait sonner « tine » au coup de marteau (éteint en 80 ms),
-// qu'un second à 1× réchauffe ; la décroissance d'un piano électrique, un trémolo stéréo lent. Rond, doux — jamais une clochette de jouet.
-const RHODES_LAMES = () => [1.6, [48, 60, 72, 84], (c, f) => {
-  const g = decroit(c, .004, 1.4, .5), car = osc(c, 'sine', f), m1 = osc(c, 'sine', f * 14), g1 = c.createGain(), m2 = osc(c, 'sine', f), g2 = c.createGain();
-  g1.gain.setValueAtTime(f * 1.6, 0); g1.gain.exponentialRampToValueAtTime(f * .01, .08); m1.connect(g1); g1.connect(car.frequency);
-  g2.gain.setValueAtTime(f * .9, 0); g2.gain.exponentialRampToValueAtTime(f * .15, 1.2); m2.connect(g2); g2.connect(car.frequency);
-  const tr = c.createStereoPanner(), lfo = osc(c, 'sine', 3.2), lg = c.createGain(); lg.gain.value = .35; lfo.connect(lg); lg.connect(tr.pan); tr.connect(g);
-  car.connect(filtre(c, 'lowpass', Math.min(5000, f * 10), .5, tr)); [car, m1, m2, lfo].forEach(o => o.start(0)); }, 2];
-// LES ACCORDS DEEP HOUSE (ASPHALTE D'ÉMERAUDE, 16/10 — Léo : « les accords de piano » du début, c'est ce qui ne va pas) : deux scies désaccordées
-// (gauche / droite) et un carré, dans un coupe-haut qui se referme après l'attaque, une tenue, puis l'extinction — l'accord chaud de la house de nuit.
-const ACCORDS_DEEP = () => [1.6, 44100, (c, f, dest) => {
-  const g = c.createGain(), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.1;
-  g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.22, .008); g.gain.exponentialRampToValueAtTime(.09, .35); g.gain.setValueAtTime(.09, 1.1); g.gain.exponentialRampToValueAtTime(.0001, 1.55);
-  lp.frequency.setValueAtTime(Math.min(4200, f * 9), 0); lp.frequency.exponentialRampToValueAtTime(Math.min(1500, f * 3.2), .4); lp.connect(g); g.connect(dest);
-  [['sawtooth', -9, -.4, .5], ['sawtooth', 9, .4, .5], ['square', 0, 0, .25]].forEach(([ty, dt, x, v]) => { const o = osc(c, ty, f, dt), m = c.createGain(); m.gain.value = v; o.connect(m); m.connect(pan(c, x, lp)); o.start(0); }); }];
-// LA MÉLODIE D'ASPHALTE, réécrite (« la mélodie elle-même ») : un thème qui CHANTE — des notes plus longues, une accroche qui monte et se pose
-// sur la tonique (A) ; un couplet plus bas qui répond (B). Pas de double croche 0-127, degré, durée, marque — les degrés de la gamme du morceau.
-const THEME_ASPHALTE = [[2, 2, 2, ''], [4, 3, 2, ''], [6, 4, 6, ''], [12, 3, 2, ''], [14, 2, 2, ''], [16, 0, 10, 'o'], [34, 2, 2, ''], [36, 3, 2, ''], [38, 4, 4, ''], [42, 5, 2, ''],
-  [44, 4, 2, ''], [46, 3, 2, ''], [48, 2, 12, 'o'], [66, 3, 2, ''], [68, 4, 2, ''], [70, 5, 6, ''], [76, 4, 2, ''], [78, 3, 2, ''], [80, 2, 10, ''], [96, 4, 6, 's'], [102, 3, 2, ''],
-  [104, 2, 4, ''], [108, 1, 4, ''], [112, 0, 12, 'f']];
-const COUPLET_ASPHALTE = [[0, 0, 2, ''], [2, 0, 2, ''], [4, 2, 4, ''], [8, 1, 2, ''], [10, 0, 2, ''], [12, -1, 4, ''], [16, 0, 8, 'o'], [32, 2, 2, ''], [34, 2, 2, ''], [36, 3, 4, ''],
-  [40, 2, 2, ''], [42, 1, 2, ''], [44, 0, 4, ''], [48, 1, 8, 'o'], [64, 0, 2, ''], [66, 0, 2, ''], [68, 2, 4, ''], [72, 3, 2, ''], [74, 4, 2, ''], [76, 3, 4, ''], [80, 2, 8, ''],
-  [96, 1, 4, ''], [100, 2, 4, ''], [104, 0, 8, ''], [112, -1, 8, '']];
-// LA COURBE DE LÉO (16/10) : un premier instrument qui tient SEUL (pas « trop léger » au départ), des échos qui rêvent vers le 11, dynamique dès 15,
-// le climax sur les derniers (le final au 29), et au 30 la mélodie une octave plus haut (« augmenter le registre, plus fort émotionnellement »).
-// `tete` : les premiers moteurs, dans l'ordre (les sons neufs ENTRENT TÔT, sinon on ne les entend qu'au 12e) ; `sans` : ce qu'on ne veut plus.
-// `depart` (dB, lu par la bibliothèque et par le jeu) : le générateur v6 recule tout de −10 dB au 1er moteur (rattrapé au 18e) — le départ était
-// presque inaudible (−35 dB) ; on le compense, le même +10 dB qui s'efface jusqu'au 18e : il démarre comme TONNERRE DELUXE, et monte encore.
-const courbeLeo = (Mx, tete, sans) => { const hors = new Set(['i_sommet', 'final', 'i_large', 'i_sature'].concat(sans || [])), t9 = (tete || []).filter(x => !hors.has(x));
-  let o = t9.concat(Mx.ordre.filter(x => !hors.has(x) && !t9.includes(x))); o = o.slice(0, 28); o.push('final', 'i_sommet'); Mx.ordre = o; };
-
 const VOIX_IMPRO = () => [.8, [50, 53, 56, 59, 62, 65, 68, 71, 74, 77], (c, f) => {
   const m = Math.round(12 * Math.log2(f / 440) + 69), V = VOYELLES[(m * 7) % VOYELLES.length], tombe = m % 3 === 0;
   const g = env(c, .015, .42, .3, .5), lp = filtre(c, 'lowpass', 3000, .6, g), hp = filtre(c, 'highpass', 260, .7, lp), ws = c.createWaveShaper(); ws.curve = douce(2.2); ws.connect(hp);
@@ -242,14 +201,4 @@ export const V2 = [
     retouche(Mx) {
       Mx.tim.lead = 'cowbell'; Mx.tim.basse = '808dur'; Mx.tim.contre = 'voix';
       const sans = ['i_pulse', 'i_relance', 'i_basseOct', 'i_tambours']; insere(Mx, 'vinyl', 3, sans); insere(Mx, 'contre', 6, sans); insere(Mx, 'i_sature', 12, sans); } },
-  // LES DEUX SONS NEUFS (16/10) — des squelettes du générateur v6-0 hors de la DA CASH CAR (atlas : la house ; dubstep : le chillstep), habillés
-  // de timbres que la bibliothèque n'avait jamais joués.
-  { id: 'bleu-1259-neuf', base: 1259, direct: true, titre: 'ASPHALTE D’ÉMERAUDE',
-    note: 'surprends-moi : de nouveaux sons, de nouveaux instruments (16/10)',
-    idee: 'house de nuit en mi mineur : les accords deep house, une mélodie qui chante (réécrite), la basse aux doigts, le chœur « ah » qui chante la mélodie, le piano électrique à lames en arpège, les vrais violons ; au 30, la mélodie une octave plus haut',
-    voix: { lead: VOIX_AH, pluck: RHODES_LAMES }, acc: { keys: ACCORDS_DEEP },
-    retouche(Mx, O) { nomme(O, 'NOM_LEAD', 'choeurAh', 'le chœur « ah »'); nomme(O, 'NOM_PLUCK', 'rhodesLames', 'le piano électrique à lames'); nomme(O, 'NOM_KEYS', 'accordsDeep', 'les accords deep house');
-      Object.assign(Mx.tim, { lead: 'choeurAh', pluck: 'rhodesLames', keys: 'accordsDeep', pad: '@violons', basse: 'doigts' });
-      if (Mx.motifs) { Mx.motifs[0] = THEME_ASPHALTE.map(x => x.slice()); if (Mx.motifs[1]) Mx.motifs[1] = COUPLET_ASPHALTE.map(x => x.slice()); }
-      courbeLeo(Mx, ['keys', 'basse', 'kick', 'arp', 'hat', 'lead', 'snare', 'pad', 'stab', 'sig', 'echo', 'pompe', 'hatO', 'choeur', 'i_frappe', 'clarte']); }, depart: 6 },   // (mesuré : +10 l'aplatissait, du 3 au 22 au même niveau)
 ];

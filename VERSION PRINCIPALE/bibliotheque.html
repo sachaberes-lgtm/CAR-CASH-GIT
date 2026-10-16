@@ -292,6 +292,9 @@ ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIER
 // musique évolutive jusqu'à 30 ») — écrit à la main au format des morceaux à paliers (comme AURA), rangé d'office dans Pouce bleu
 ajoute({ id: 'pal-rubis-neon', sec: 'bleu', type: 'html', titre: 'RUBIS DE NÉON', style: 'réécrit à la main, sans le générateur : house de nuit rêveuse en fa mineur — piano feutré, violoncelle de néon, basse de velours, 30 moteurs', nb: 0,
   f: 'assets/audio/music/direct/rubis-de-neon.html' });
+// (2026-10-16, pôle SON ; Léo : « refonte complète de ASPHALTE D'ÉMERAUDE ») — réécrit à la main, comme RUBIS DE NÉON
+ajoute({ id: 'pal-asphalte', sec: 'bleu', type: 'html', titre: 'ASPHALTE D’ÉMERAUDE', style: 'réécrit à la main, sans le générateur : techno mélodique de nuit en mi mineur — la basse qui roule, la séquence d’émeraude qui s’ouvre, 30 moteurs', nb: 0,
+  f: 'assets/audio/music/direct/asphalte-emeraude.html' });
 // (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai
 // déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y ») : trois morceaux ÉCRITS, rejoués par
 // assets/audio/music/direct/musique-trente-trio.js (le générateur v6-0 figé + leurs instruments, `O.style`) ; le moteur à la main, comme Pouce bleu
@@ -701,8 +704,8 @@ function dessineBleus() {
    Pouce bleu comme les autres (leur 👍 dans musique-moteur.json) ; la mention « Nouveau » les signale en tête, le temps qu'il les écoute. */
 const NOUVEAUX_BLEU = {   // (16/10, Léo : « surprends-moi : de nouveaux sons, de nouveaux instruments ») — TONNERRE DELUXE gardé ; les deux SONS NEUFS (retouches-bleu.js)
   'bleu-6104': 'GARDÉ — le seul que tu as gardé des nouveaux (nuit lo-fi en vrais instruments : piano, clarinette, contrebasse)',
+  'pal-asphalte': 'refonte complète, à la main : techno mélodique de nuit — la basse qui roule, la séquence d’émeraude qui s’ouvre moteur après moteur',
   'pal-rubis-neon': 'réécrit à la main, sans le générateur : piano feutré, violoncelle de néon, basse de velours — fa mineur, 30 moteurs',
-  'bleu-1259': 'son neuf : house de nuit — accords deep house et mélodie réécrite (ton retour), basse aux doigts, un chœur « ah » qui chante, un piano électrique à lames, de vrais violons',
 };
 function nouveauxMarque() {
   const L = $('gBleu'); if (!L) return; const prem = L.querySelector(':scope>.genv');

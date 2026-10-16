@@ -15,7 +15,7 @@
   'use strict';
   const D = 'assets/audio/music/';
   const EN_ATTENTE = {};   // (15/10 soir) MIRAGE ULTRA n'y est plus : Léo l'a laissé à la corbeille (sa retouche d'entrée jetée) — le tirage suit Pouce bleu, rien de plus
-  const HTML = { 'pal-aura-30': ['AURA · 30 PALIERS', 'direct/aura-30.html'], 'pal-rubis-neon': ['RUBIS DE NÉON', 'direct/rubis-de-neon.html'] };   // (16/10) les morceaux écrits à la main, en page
+  const HTML = { 'pal-aura-30': ['AURA · 30 PALIERS', 'direct/aura-30.html'], 'pal-rubis-neon': ['RUBIS DE NÉON', 'direct/rubis-de-neon.html'], 'pal-asphalte': ['ASPHALTE D’ÉMERAUDE', 'direct/asphalte-emeraude.html'] };   // (16/10) les morceaux écrits à la main, en page
   const DEFAUT = Object.keys(HTML);   // rangés d'office dans Pouce bleu par la bibliothèque (sec 'bleu')
   const GEN_VERSIONS = [['2026-10-14T00:16:50', 'v3-1'], ['2026-10-14T01:01:05', 'v3-3'], ['2026-10-14T01:46:19', 'v3-4'], ['2026-10-14T03:05:00', 'v3-7']];   // = bibliotheque.html
   const versionDe = e => { if (e.v) return e.v; const t = String(e.date || ''); for (const [l, v] of GEN_VERSIONS) if (t < l) return v; return 'v3-9'; };
