@@ -189,7 +189,7 @@ puis le LÂCHER, le vent, le logo) → course sans erreur ; `garde-burnout.sh` e
 - LA RÈGLE (`peintRegle`, bloc « LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS » juste après la palette) : un MOTIF = ÉPIQUE · un DÉGRADÉ
   (`grad`) ou l'OR (`g:'o'`) = RARE · une couleur pleine (laque, mat, métallisé, nacre, chrome, laqué noir) = COMMUNE. La rareté est écrite sur
   chaque peinture au chargement (`d.r`). Résultat sur les 68 : 40 communes, 17 rares, 11 épiques — plus aucune peinture exotique, légendaire ni
-  mythique. ⚠ « Enlève la mythique » a été lu POUR LES PEINTURES : `RARETES` n'a pas bougé, les caisses, ailes et traînées mythiques le restent.
+  mythique. « Enlève la mythique » = POUR LES PEINTURES SEULEMENT — TRANCHÉ par Sacha (16/10 : « garde la rareté mythique pour les caisses, ailes et traînées : seulement les peintures ») : `RARETES` ne bouge pas.
   Le CHROME MIROIR est une couleur pleine → commune (la règle ; l'or seul a été nommé).
 - LE PRIX EN EUROS (`PEINT_EUR` → `d.eur`) : 1 € · 3 € · 5 €. Le prix en pièces (`p`) des peintures est retiré ; celles déjà achetées restent à toi
   (`shopOwned` lit `own`). En vente en € : 38 communes (les 8 d'origine et POP + les 30 de la palette), 6 rares, les 11 motifs. Se gagnent toujours,
