@@ -3,6 +3,53 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES GESTES DES AILES ONT LEUR SON — LE K-CHAK DES AILES EN X, LE WOUF DU DRAGON, LES CLAPS DU PIGEON (2026-10-16, session SON des ailes — la suite de « LES AILES VIVANTES », Sacha : « les ailes X-Wing, quand tu boostes, elles doivent s'ouvrir comme dans le vrai jeu Star Wars ; les ailes de dragon, elles doivent battre, celles de pigeon et tout »)
+AVANT : les gestes des ailes étaient muets (le point (2) « à trancher » des AILES VIVANTES : la banque se recuit, d'autres sessions y travaillaient).
+QUATRE SONS, bloc `<<<AILES>>>` en fin de `atelier-son/recettes.js` (famille `ailes`, bus `fx`, MONO — les deux ailes sont symétriques, derrière la caisse) :
+- `ailes.xwing` (2 variantes) — LES PLANS SE VERROUILLENT EN X : le K du pêne, le CHAK de la butée 7 ms après, la MASSE des plans qui s'arrête
+  (`doum` court, saturé), la tôle qui sonne, le FRISSON (un cliquetis à ~15 Hz qui s'éteint en 0,2 s, comme le `clac*.03*sin(t*95)` des plans),
+  « tss » (la pression), le servo qui s'arrête. Joué à l'IMAGE où `clac` passe à 1 dans `AILES_POP.xwing`.
+- `ailes.xwingFerme` (2) — LA REFERMETURE : le « tchk » du verrou qui lâche, le servo et le « pfff » pendant la course, le TONK des plans qui se
+  reposent l'un sur l'autre CUIT à +0,15 s (le ressort du bâtisseur, simulé : 0,13 / 0,15 / 0,17 s de `cib`→0 au contact à 30 / 60 / 120 images/s).
+  Joué quand `cib` repasse à 0 (0,45 s après le boost), plans encore ouverts (`x > .5`).
+- `ailes.dragon` (3) — UN COUP D'AILE : le WOUF de l'air chassé (bande rose 200-330 Hz + souffle brun qui s'ouvre puis se referme, coupé sous
+  150 Hz), la poussée (sinus grave saturé : ses harmoniques passent au téléphone), la membrane de cuir qui frémit puis CLAQUE au bas du coup.
+  Joué quand `ailBat` passe sous 0 (au plus vite de la descente), à `vol` −1 dB en croisière → +3 au boost (`-1+4*AILV.n`).
+- `ailes.pigeon` (2) — IL SORT LES AILES : deux CLAPS au-dessus du dos CUITS à +0,155 et +0,465 s (les crêtes de `|sin(clap/.62·2π)|` : les
+  ailes se touchent), le tchap des rémiges, le corps creux (~480 Hz), les barbes qui froissent, puis deux coups trop vite qui s'éteignent.
+  Joué quand `clap` passe à .62 (wingT franchit .85 au décollage : une fois par vol).
+DANS LE JEU : `ailSon(id,e,db)` (juste après `ailvTick`) — EN VOL seulement (`mode==='fall'`, ni `garageOn` ni `AILV.photo`) : la VITRINE du
+garage, qui boost toutes les 7,5 s, reste muette (un clac toutes les 7,5 s sous la musique du garage) ; une aile à peine sortie sonne plus bas
+(`20·log10(wingT)`, rien sous .25). Chaque bâtisseur l'appelle d'UN côté (`sd > 0`) : les deux battent sur la même horloge. Aucun oscillateur
+dans le jeu : `sfx` seulement. `sons-banque.js?v=29`, `sw.js` v548.
+LA CUISSON : `PCM=1 node atelier-son/cuire.js 'ailes\.'` (le Mac de Sacha n'a pas ffmpeg) — 9 tampons en WAV 24 kHz (`pcm:1`) ; CONTRÔLÉ : les
+406 autres tampons et leurs fiches identiques à l'octet près (`ui.jouer` garde son `pcm:1`). Banque 6,05 → 6,35 Mo (+300 Ko : le prix du PCM ;
+une cuisson complète AVEC ffmpeg les repassera en MP3 d'elle-même, ~4× plus légers). Lignes ajoutées à la main à `mesures.txt`.
+MESURÉ (rendu des recettes, sonie LUFS 200 ms à la sortie de la fiche ; HP = la perte au passe-haut 200 Hz, ce que rend un téléphone) :
+- sortie : `ailes.xwing` −31 · `ailes.xwingFerme` −35 · `ailes.dragon` −37 · `ailes.pigeon` −33,4 / −34,4 ; avec le bus fx (+1) et l'appel :
+  le verrou X ≈ −30 (un TOUR de figure : −32 ; la nitro tenue : −28, le verrou tombe 0,25 s après son allumage), la refermeture ≈ −34, le dragon
+  ≈ −37 en croisière (2 dB SOUS une pièce, −35 : il bat toutes les 1,15-1,4 s) et ≈ −33 au boost, le pigeon ≈ −34.
+- perte au haut-parleur : xwing 1,6-2,2 dB · xwingFerme 2,2-2,6 · dragon 3,2-3,4 · pigeon 0,2-0,4 (règle du grave : ≤ 5). Le dragon de la
+  1re version perdait 9-10 dB (90 % de son énergie sous 150 Hz : le sinus de poussée dominait de 8 dB) → corps rose remonté, brun coupé sous
+  150 Hz, poussée à .28 : 35-46 % sous 150 Hz, 41-55 % entre 150 et 500.
+- bandes (<150 · 150-500 · 0,5-2 k · 2-5 k · >5 k, %) : xwing 34-42 · 17-24 · 38 · 3-4 · 0-1 ; xwingFerme 33-35 · 17-23 · 41-49 · 1 · 0 ; pigeon
+  1-3 · 25-27 · 49-52 · 18-21 · 1-2 (le froufrou baissé de moitié : il était presque aussi fort que les claps).
+BANCS (Chrome du système sans fenêtre, `--mute-audio`, pilote CDP maison : il n'y a pas de Puppeteer sur le Mac ; sauvegarde posée avant le
+chargement : auto-école faite, musique coupée ; chaque `CCSON.play` relevé) — menu → JOUER → course, `dbgClassique('nuages','midi')`,
+`dbgHab('aile',…)`, `dbgDauphin(70,16,0)`, nitro à la touche Espace :
+- COUCHÉ (844 × 390) : ailes en X, nitro à 0,6 s → `ailes.xwing` à 0,91 s (0,6 + 0,09 de lissage d'`AILV.n` + 0,08 de déverrouillage + 0,15 de
+  course), relâchée → `ailes.xwingFerme` ; deux boosts dans un vol → verrou, refermeture, verrou ; DRAGON : 0,29 s (−2,6 dB, ailes pas encore
+  toutes sorties), 1,44 s (−1) puis au boost 2,32 et 3,15 s (+3, un coup toutes les 0,82 s) ; PIGEON : 0,33 s après le décollage (−1,3 dB) ;
+  GARAGE : 12 s de vitrine (ailes en X puis dragon) → 0 son d'aile. 0 erreur.
+- DEBOUT (390 × 844) : les mêmes temps à 10 ms près. 0 erreur. DANS LE CADRE DE L'ORDI (1 280 × 800, JOUER au zoom 1,4) : la course part,
+  le vol joue `ailes.xwing` puis `ailes.xwingFerme`. 0 erreur. `garde-burnout.sh` et `garde-charte.sh` : OK.
+- `sons.html` : la famille « Les gestes des ailes (4) » et le scénario « Les ailes en vol » (pigeon, deux coups de dragon, verrou X + coup au
+  boost, refermeture) — les six sons partent.
+À ÉCOUTER par Sacha et Léo : `sons.html` (local : il n'est pas publié) ou, en ligne, en vol avec l'aile portée ; le WAV « en situation »
+(trois pièces pour l'échelle, puis les ailes aux niveaux du jeu) a été remis à Sacha. À TRANCHER : (1) la vitrine du garage muette — la faire
+sonner (plus bas) serait une règle neuve ; (2) les autres ailes (chauve-souris, phénix, plumes d'ange, ornithoptère…) restent muettes : à
+demander une par une ; (3) les niveaux (`db` des fiches, `-1+4*n` du dragon) se règlent sans recuire le reste.
+
 ## LE FEU QUI RUGIT — LE SON DU NITRO REFAIT (2026-10-16, session « Effets sonores nitro et flamme » — Sacha : « il faut un bruit de flamme et de nitro beaucoup plus travaillé pour le nitro ; il faut que ce soit jouissif de cramer du nitro »)
 AVANT (mesuré au banc, nitro seule, au sol à 250 km/h) : la tenue = le grondement BRUN `jrG` (passe-bas 620 Hz, coupé sous 85/120 Hz
 depuis le « bruit assourdissant » du 12/10) + 25 « plops » bruns par seconde : octaves de la tenue 125 Hz −8 · 1 kHz −25 · 2 kHz −36 (relatif) ;
@@ -187,6 +234,7 @@ puis le LÂCHER, le vent, le logo) → course sans erreur ; `garde-burnout.sh` e
   route (règle du 13/10), les ailes en X ne s'ouvrent qu'au boost EN VOL. Ne pas le reproposer.
 - **À trancher** : (2) Aucun SON n'a été ajouté (le « clac »
   des ailes en X, le battement du dragon…) : la banque de sons se recuit en entier, d'autres sessions y travaillent — à faire dans une session SON.
+  → FAIT le 16/10 : « LES GESTES DES AILES ONT LEUR SON » (le K-CHAK des ailes en X et leur refermeture, le WOUF du dragon, les claps du pigeon).
 ## LES PEINTURES PAR RARETÉ, EN EUROS, ET ONZE MOTIFS ÉPIQUES (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les dégradés de plusieurs couleurs, ça doit être rare, pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique et classe-les dans l'ordre de rareté dans le truc de peinture » · « génère une dizaine de peintures épiques avec des motifs ; couleur pleine : commun ; dégradée : rare ; avec des motifs : épique ; légendaire on verra après, pour l'instant pas de légendaire ; communes 1 €, rares 3 €, épiques 5 € »)
 - LA RÈGLE (`peintRegle`, bloc « LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS » juste après la palette) : un MOTIF = ÉPIQUE · un DÉGRADÉ
   (`grad`) ou l'OR (`g:'o'`) = RARE · une couleur pleine (laque, mat, métallisé, nacre, chrome, laqué noir) = COMMUNE. La rareté est écrite sur

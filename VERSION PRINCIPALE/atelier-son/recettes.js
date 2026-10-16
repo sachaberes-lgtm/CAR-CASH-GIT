@@ -1671,3 +1671,64 @@ D('volcan.amb',{fam:'volcan',bus:'amb',dur:9,st:1,db:-14,max:1,cd:1,dit:'LE ROYA
     O.filtre(b,'lp',1600,.7);O.boucle(b,.6);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN VOLCAN>>> */
+/* <<<AILES>>> */
+(function(G){
+'use strict';
+/* LES GESTES DES AILES ONT LEUR SON (2026-10-16, session SON des ailes — Sacha, en commandant LES AILES VIVANTES : « les ailes X-Wing, quand
+   tu boostes, elles doivent s'ouvrir comme dans le vrai jeu Star Wars ; les ailes de dragon, elles doivent battre, celles de pigeon et tout »).
+   Joués par les bâtisseurs de AILES_POP (index.html, `ailSon`) EN VOL seulement : ni à la vitrine du garage, ni à la photo de la boutique.
+   · `ailes.xwing` — LES PLANS SE VERROUILLENT EN X (au boost) : joué à l'image où `clac` passe à 1. Le K-CHAK du verrou (le pêne, puis la
+     butée 7 ms après), la MASSE des plans qui s'arrête (un doum court, saturé : son corps à 200-500 Hz), la tôle qui sonne, le FRISSON des
+     plans (un cliquetis à ~15 Hz qui s'éteint en 0,2 s, comme `clac*.03*sin(t*95)`), la pression qui s'équilibre (« tss »), le servo qui s'arrête.
+   · `ailes.xwingFerme` — LES PLANS SE REFERMENT (0,45 s après le boost) : joué quand le verrou lâche (`cib` → 0). Le « tchk », le servo et la
+     pression qui s'échappe pendant la course, puis le TONK des plans qui se reposent l'un sur l'autre à +0,15 s (le ressort : mesuré 0,13 à
+     0,17 s de 30 à 120 images/s).
+   · `ailes.dragon` — UN COUP D'AILE (à chaque descente, quand `ailBat` passe sous 0, au plus vite du coup) : le WOUF de l'air chassé (une bande
+     rose 200-330 Hz + un souffle brun qui s'ouvre puis se referme), la poussée (un sinus grave saturé qui gonfle), la membrane de cuir qui
+     frémit puis CLAQUE en se tendant au bas du coup. Fréquent (un coup toutes les 0,8 à 1,4 s) : discret, sous la pièce.
+   · `ailes.pigeon` — IL SORT LES AILES : deux CLAPS au-dessus du dos à +0,155 s et +0,465 s (les crêtes de `clap`, voir AILES_POP.pigeon),
+     le tchap des rémiges qui se frappent, le corps creux des deux ailes, les barbes qui froissent ; puis deux coups trop vite qui s'éteignent.
+   ⚠ MONO (les deux ailes sont symétriques, derrière la caisse) et courts : sans ffmpeg sur le Mac, ils sont rangés en PCM (cuire.js PCM=1),
+   chaque octet compte. Le grave a son énergie entre 150 et 500 Hz (la règle du DOUM, 15/10) : mesuré au passe-haut 200 Hz. */
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,cloche=O.cloche,clic=O.clic,GR=G.CCSON_GRAVE;
+function tole(b,R,t0,f,v,d){cloche(b,{f:f,r:[1,2.39,3.86,5.3,7.1],m:[1,.7,.5,.35,.25],d:[d,d*.7,d*.5,d*.35,d*.25],t0:t0,v:v,jit:.02},R);} // la plaque de métal (comme la PALETTE)
+D('ailes.xwing',{fam:'ailes',bus:'fx',dur:.62,v:2,db:-1,max:1,cd:.2,rj:.015,dit:'LES AILES EN X SE VERROUILLENT (au boost, en vol) : le K-CHAK du verrou, la butée de métal, les plans qui vibrent, la pression qui siffle, le servo qui s’arrête',
+  r:function(b,R,o){const k=o.v;
+    clic(b,{t0:0,f:4200,d:.003,v:.8},R);bruit(b,{c:'b',t0:0,a:.0004,d:.03,v:.45,ft:'bp',f:3000+k*350,q:1.8},R);    // K : le pêne qui part
+    clic(b,{t0:.007,f:1900,d:.006,v:.6,ft:'bp'},R);bruit(b,{c:'b',t0:.007,a:.0004,d:.035,v:.3,ft:'bp',f:1700,q:1.5},R); // CHAK : la butée
+    GR.doum(b,R,.007,.55,100+k*10,58,.18,{corps:.05,fc:650,sat:2.8,lp:2600,toc:2300,vt:.3});                        // la MASSE des plans qui s'arrête net
+    tole(b,R,.008,540+k*45,.2,.17);tole(b,R,.01,1310+k*70,.14,.09);tole(b,R,.009,2650+k*120,.06,.05);             // la tôle qui sonne un instant
+    for(let i=0;i<6;i++)clic(b,{t0:.035+i*.033+R()*.004,f:2300+R()*1000,d:.003,v:.2*Math.pow(.68,i),ft:'bp'},R);   // le FRISSON des plans (≈ 15 Hz)
+    bruit(b,{c:'r',t0:.018,a:.008,d:.2,v:.07,ft:'bp',f:4600,f1:2600,g:.18,q:1.6},R);                                 // « tss » : la pression qui s'équilibre
+    osc(b,{f:900+k*60,f1:380,g:.13,gc:.7,w:'saw',t0:0,a:.002,d:.15,v:.045,flt:['lp',2400,700,.13,1.2]});           // le SERVO qui s'arrête
+    O.filtre(b,'lp',7000,.7);}});
+D('ailes.xwingFerme',{fam:'ailes',bus:'fx',dur:.5,v:2,db:-5,max:1,cd:.2,rj:.015,dit:'LES AILES EN X SE REFERMENT : le verrou qui lâche (tchk), le servo et la pression qui s’échappe, les plans qui se reposent l’un sur l’autre (tonk)',
+  r:function(b,R,o){const k=o.v,T=.15; // T : la course des plans (le ressort de AILES_POP.xwing)
+    clic(b,{t0:0,f:3000,d:.003,v:.35},R);bruit(b,{c:'b',t0:0,a:.0004,d:.014,v:.2,ft:'bp',f:2200,q:2},R);            // le verrou qui lâche
+    bruit(b,{c:'r',t0:.004,a:.02,d:.22,v:.09,ft:'bp',f:2400,f1:1100,g:.16,q:1.3},R);                                 // « pfff » : la pression qui s'échappe
+    osc(b,{f:470+k*30,f1:640,g:T,w:'saw',t0:.006,a:.015,h:T*.6,d:.05,v:.04,flt:['lp',1500,1500,T,1.1]});             // le SERVO pendant la course
+    GR.doum(b,R,T,.4,120+k*10,72,.14,{corps:.04,fc:700,sat:2.2,lp:2200,toc:1700,vt:.25});                          // TONK : les plans se posent
+    tole(b,R,T+.002,690+k*50,.09,.08);clic(b,{t0:T+.009,f:1500,d:.004,v:.18,ft:'bp'},R);                           // (et l'autre plan, juste après)
+    O.filtre(b,'lp',6000,.7);}});
+D('ailes.dragon',{fam:'ailes',bus:'fx',dur:.75,v:3,db:-7,max:2,cd:.25,rj:.03,dit:'UN COUP D’AILE DU DRAGON (à chaque descente) : le WOUF de l’air chassé, la poussée grave, la membrane de cuir qui frémit et claque en se tendant',
+  r:function(b,R,o){const k=o.v,te=.12+k*.02;
+    bruit(b,{c:'r',t0:0,a:.045,h:.02,d:.3,v:1.1,ft:'bp',f:200,f1:330+k*25,g:.06,q:.75},R);                           // L'AIR CHASSÉ : le corps, 200-330 Hz (ce que rend un téléphone)
+    bruit(b,{c:'n',t0:0,a:.05,h:.03,d:.4,v:.7,ft:'lp',f:140,f1:560,g:.07,gc:.6,q:1.2,ft2:'hp',f2:150},R);           // …le souffle qui s'ouvre d'un coup (sans sa boue sous 150 Hz)
+    bruit(b,{c:'n',t0:.08,a:.02,d:.35,v:.45,ft:'lp',f:560,f1:180,g:.3,gc:.7,q:1,ft2:'hp',f2:150},R);                // …et se referme
+    {const t=O.Toile(b.sr,b.dur,false);osc(t,{f:68+k*5,f1:44,g:.3,t0:.01,a:.04,d:.32,v:.22});                        // LA POUSSÉE : un sinus grave qui gonfle,
+      osc(t,{f:136+k*10,f1:92,g:.25,w:'tri',t0:.01,a:.04,d:.22,v:.3});O.sature(t,3);GR.mixe(b,t,.28,0);}             // saturé : ses harmoniques (150-400 Hz) passent au téléphone
+    bruit(b,{c:'r',t0:.015,a:.03,d:.16,v:.45,ft:'bp',f:620,q:1.2,am:[38,.7]},R);                                     // LA MEMBRANE frémit pendant le coup
+    bruit(b,{c:'b',t0:te,a:.002,d:.035,v:.55,ft:'bp',f:900+k*90,q:1.4},R);clic(b,{t0:te,f:700,d:.006,v:.3,ft:'bp'},R); // …et claque en se tendant, au bas du coup
+    O.filtre(b,'lp',2400,.7);}});
+D('ailes.pigeon',{fam:'ailes',bus:'fx',dur:.95,v:2,db:-3,max:1,cd:.5,rj:.03,dit:'LE PIGEON SORT LES AILES : deux CLAPS au-dessus du dos (le tchap des rémiges qui se frappent, les plumes qui froissent), puis le battement trop vite qui s’éteint',
+  r:function(b,R,o){const k=o.v;
+    const clap=function(t0,v){clic(b,{t0:t0,f:2300,d:.004,v:v*.55,ft:'bp'},R);                                       // le TCHAP des rémiges,
+      bruit(b,{c:'b',t0:t0,a:.0006,d:.04,v:v*.5,ft:'bp',f:1250+k*120,q:.9},R);
+      bruit(b,{c:'r',t0:t0,a:.0008,d:.07,v:v*.8,ft:'bp',f:480+k*40,q:1.2},R);                                         // le corps creux des deux ailes,
+      bruit(b,{c:'r',t0:t0+.005,a:.004,d:.1,v:v*.12,ft:'bp',f:3400,q:1.1,am:[55,.6]},R);};                            // les barbes qui froissent
+    const frou=function(t0,d,v,f){bruit(b,{c:'r',t0:t0,a:d*.5,d:d*.8,v:v,ft:'bp',f:f,q:.9,am:[24,.5]},R);};          // le froufrou d'un coup d'aile
+    frou(.03,.12,.05,1100);clap(.155,1);frou(.24,.16,.07,950);clap(.465,.85);                                        // les deux claps, à l'image (clap = .62 dans AILES_POP.pigeon)
+    frou(.62,.1,.06,1250);frou(.77,.09,.035,1150);                                                                    // il bat trop vite (6,5 coups/s), puis plane
+    O.filtre(b,'lp',6500,.7);}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN AILES>>> */
