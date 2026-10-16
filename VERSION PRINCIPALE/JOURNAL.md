@@ -3,6 +3,67 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MUSIQUE NE COMMENCE QU'AU CIEL — L'INTRO 1.61 SANS SES NOTES (2026-10-16, pôle SON — Léo, sur l'appli iPhone : « c'est quoi cette première musique de merde ? » puis « version main, il faut que la musique ne commence qu'au menu ciel », relayé par la session « appli iPhone »)
+- MESURÉ au banc muet (`ouverture.py` : chaque AudioContext à part, du toucher de l'écran titre au ciel, joueur habitué ET neuf) : la seule chose
+  qui sonne avant le ciel est la COMPOSITION DE L'INTRO 1.61 (`introSound`, son propre contexte) — 4,5 s, de −32 à −14 dB, quand la musique du
+  ciel part ensuite à −40 dB. La musique du lobby, elle, part bien avec le ciel (`hide`). Ni la bienvenue ni la leçon ne jouent avant.
+- L'HISTOIRE : Léo l'avait coupée le 6/10 (« plus aucune musique avant le ciel ») ; Sacha l'a rendue le 7/10 (« pour l'animation 1.61, il n'y a
+  plus le son »). Les deux tiennent ensemble : l'animation GARDE SON SON, mais plus une NOTE. `INTRO_SON` vaut 1 (défaut) : les bruitages —
+  clic, compteuse à billets, spirales de souffle, coups de cœur, aspiration, canon de la fission, impact du titre, cliquetis des pièces — et
+  rien de ce qui chante (`INTRO_NOTES` faux : `tone` refuse toute note tenue, `f1/f0 > 0,9` ; le double sub ne part plus). Mesuré : la montée
+  passe de −17/−23 dB à −31/−48 dB, le coup de la fission reste (−17 dB), la musique part avec le ciel.
+- `?intro=musique` = la composition entière (celle du 7/10), `?intro=muet` = l'intro muette (celle du 6/10). ⚠ À SIGNALER À SACHA : c'est son
+  choix du 7/10 qui est touché (la musique, pas le son) — s'il veut ses notes, une ligne (`INTRO_SON` à 2) les rend.
+
+## POUCE BLEU REFAIT — DEUX MORCEAUX ÉCRITS À LA MAIN EN 30 PALIERS (2026-10-16, pôle SON — Léo : « il y a quelques musiques faibles… remplace-les par des sons qui ont le niveau de ceux qui ont été laissés » · « ça fait trop jeu vidéo, presque inaudible » · « surprends-moi, de nouveaux sons » · « oublie le générateur, juste le système de musique évolutive jusqu'à 30 » · « réécris complètement RUBIS DE NÉON » · « refonte complète d'ASPHALTE D'ÉMERAUDE » · « RUBIS DE NÉON : enlève la basse et profites-en pour charger encore plus, harmonieux » · « push main les dernières chansons »)
+- LE TRI DE LÉO (bibliothèque, `musique-moteur.json`, tel quel) : PISTON DE LUXE, FLAMME DE VITESSE, CRISTAL D'ARGENT retirés ; des générés
+  proposés ensuite, il ne garde que TONNERRE DELUXE (`bleu-6104`, v3-10) ; son pouce sur ASPHALTE D'ÉMERAUDE. Pouce bleu = 20 morceaux.
+- DEUX PAGES « MORCEAU À PALIERS » ÉCRITES À LA MAIN (le format d'AURA · 30 : `MORCEAU = { preparer, jouer(p) }`, aucun son du générateur —
+  il reconnaissait ses basses et ses arpèges) : `assets/audio/music/direct/rubis-de-neon.html` (house de nuit rêveuse, fa mineur, 118 BPM, SANS
+  BASSE : piano feutré, nappe de verre fumé sur deux octaves, CHŒUR « ou » qui s'ouvre vers « a » au 3, l'HARMONIE DE NAPPE au 9 — un accord lié
+  par demi-mesure dont la voix du haut chante le thème, de 3 à 5 voix —, les CORDES EN TENUE en accord ouvert au 13 (`CORDES`, elles respirent
+  avec la pompe dès 15), le chœur à l'octave au climax, l'harmonie une octave plus haut au 30) et `asphalte-emeraude.html` (techno mélodique de
+  nuit, mi mineur, 124 BPM : la basse qui roule, la séquence d'émeraude qui s'ouvre `FILTRE_SEQ`, la polyrythmie 3 contre 4 dès 12).
+  Chaque élément entre à SON moteur (`QUAND`, texte `ENTRE`), et la SORTIE MONTE AVEC LE MOTEUR (`kit.master`) : sans ça le compresseur
+  écrasait la montée au 12e.
+- BRANCHÉS : la table `HTML` de `pouce-bleu-jeu.js` (`?v=4`, rangés d'office comme AURA · 30, lecteur `joueurHtml`) et deux `ajoute({sec:'bleu',
+  type:'html'})` dans `bibliotheque.html` (marqués « Nouveau » en tête, `NOUVEAUX_BLEU`). Le DÉPART COMPENSÉ (`depart` en dB dans
+  `retouches-bleu.js`, lu par la bibliothèque et par `joueurGen`) reste disponible, aucune retouche ne s'en sert aujourd'hui.
+- MESURÉ au banc d'écoute (Chrome muet, `ECOUTE.joue` = `POUCE_JEU.depart`, le lecteur de la course, moteurs 3/12/22/30) — la cible :
+  ~−22 dB au 3, −10 à −13 au 30 (TONNERRE DELUXE : −22,6 → −8,9). RUBIS DE NÉON −23 / −17,6 / −12,9 / −11,3 (sans basse : médiums
+  +7 à +9 dB par rapport à la version avec basse) ; ASPHALTE −24,1 → −12,3 (basse ramenée de 17 à ~8 dB au-dessus des médiums).
+- AVANT LE PUSH, LES 20 MORCEAUX DE POUCE BLEU JOUÉS UN PAR UN (`?pouce=<id>`, la liste que fabrique `POUCE_JEU.charge` sur cette version) :
+  20 / 20 jouent par le lecteur de la course, aucun silence, aucune erreur — 15 du générateur, 2 paliers figés (NÉON NOIR, NUIT DE VELOURS),
+  3 pages (AURA · 30, RUBIS DE NÉON, ASPHALTE). Le plus discret au départ : AVERSE DE CHROME (−39 dB au 3, −7,4 au 30), à lui de juger.
+- Banc : `~/Downloads/CAR-bancs/son/ecoute/` (`serveur_ecoute.py 9284 "<VERSION PRINCIPALE>"`, `ecoute.py <port chrome> <sortie> [ids]`),
+  Chrome `--mute-audio --disable-audio-output` (sans le second, l'horloge audio se fige quand la sortie du Mac change).
+
+## LE DÉBUT DE PARTIE — LA QUESTION DE BIENVENUE, LA MUSIQUE DE LA LEÇON, LE PIQUÉ QUI NE CRIE PLUS (2026-10-16, Léo — « premier niveau apprentissage : un message à la première ouverture, bien designé, avec une option ne plus répéter ; seulement si on dit que c'est la première fois, ça lance la partie guidée » · « règle grâce à ce changement le problème de la musique JOUER, et la musique du niveau d'apprentissage » · « un bug audio que tu n'as jamais su régler, qui pourrait défoncer les oreilles en plein début de partie — un mélange entre un souffle, un bruit aigu et un boom ; dans mes écouteurs Bluetooth et parfois sur l'ordi »)
+Choix cochés par Léo : la musique du JOUER « change en route » ET « parfois rien ne joue » ; la leçon : « une musique calme à part ».
+- **LA QUESTION DE BIENVENUE** (`bienvMontre`, `bienvGuette` lancé à côté de `__gameReady`, `BIENV`) : à l'ouverture, sur l'accueil du ciel
+  (700 ms après qu'il est prêt), la fenêtre du jeu (`modale` + `cls:'bienv'`, deux cartes) : PREMIÈRE FOIS ICI ? — OUI, GUIDE-MOI (la leçon
+  part tout de suite : le clic du JOUER de l'accueil, `bienvJoue`) · J'AI DÉJÀ JOUÉ (`tuto=1` + `tutoProv=1` : sautée pour CETTE ouverture,
+  remise à 0 au chargement suivant → la question revient) · la case NE PLUS ME DEMANDER (`modale` sait porter `o.coche`, rendu `r.coche`) →
+  `SAVE.d.bienv=1`. Posée seulement si ni `tuto` ni `permis` ni `bienv` (une sauvegarde qui a des parties : jamais). `?bienvenue=0` la tait,
+  `?bienvenue=1` la pose toujours (essai), `dbgBienvenue()` / `('raz')`. Style : bloc « LA QUESTION DE BIENVENUE » après facC6 (l'interface
+  pixel ; la charte 6 est éteinte). Le doigt TAPE TA CAISSE attend `BIENV.on`.
+- **LA MUSIQUE DE LA LEÇON** (`ECOLE_MUS`, `ECOLE`, `ecoleMusPique`) : PREMIER MATIN (lobby Chris, plus joué ailleurs depuis le 15/10) ;
+  elle part DÈS le piqué du JOUER (`pbjDepart()` sans argument + leçon armée), la course la GARDE (musicStartRun : ni coupure ni 2e fondu),
+  et au portail d'après elle s'efface en 1,2 s pendant que Pouce bleu entre (`ECOLE.f0` dans musicTick). `?ecole=ciel|dimanche|nuit|
+  polaroid|siffleur` pour essayer ; `?ecole=ciel1` = l'ancien CIEL · NIVEAU 1. Avant : le lobby s'effaçait jusqu'au silence pendant le piqué,
+  puis CIEL 1 arrivait au départ, puis une coupure nette au portail.
+- **LE PLANCHER DU DÉPART** (`PBJ_PL`, `pbjPlancher`) : MESURÉ, au moteur 1 les morceaux de Pouce bleu sortent à −42/−50 dB RMS, 20 dB sous les
+  effets — la course démarrait « sans musique ». Un analyseur écoute le morceau avant son niveau ; sous la cible (−29 dB) il le relève, +11 dB
+  au plus, plein jusqu'au moteur 3, éteint au 12e (le haut de LA GRANDE MONTÉE intact). Mesuré : en course −40 → −26 dB. `?depart=0` = sans.
+- **LE PIQUÉ QUI NE CRIE PLUS** (bloc dans `chuteTick`, `garLacherSon`, `uiClic`, logo) : MESURÉ (sortie enregistrée, bandes, un son retiré à
+  la fois) : au JOUER le V8 du bouton (`ui.jouer`, posé le jour même pour Sacha) + le lâcher font bondir le médium/grave de +20 dB en 200 ms
+  (le BOOM), puis le vent du moteur (windG/whG, filtre jusqu'à 3,3 kHz) + la chute douce gonflée montent l'aigu de +30 dB (le SOUFFLE AIGU),
+  sur un ciel réglé très bas. Désormais : V8 −9 dB, lâcher −8, logo −4, vent sombre (≤ 1,7 kHz), sifflet ÷4, chute douce +4 dB au lieu de +8,
+  chute.vent +2 au lieu de +4 ; repli sans banque −10 dB. Mesuré : souffle aigu −33 → −43 dB, boom −22 → −30 dB au plus fort.
+- Bancs (scratchpad de la session 5f8510a9, `banc/`) : `depart.py <port> neuf|confirme <iph> <sortie>` (SFX/MUS/Q/BLOQUE), `hook2.js`
+  (enregistrement + `__bandes` FFT), `journal.js` (`?sans=id,id` retire un son), `bandes.py`, `resume.py`, `bienv.py`, `lecon.py`, `reouv.py`,
+  `pay.py`, `mkplanche.py`. Planche : `CAR CAHS V3/photos-gameplay/bienvenue-debut-partie-avant-apres.png`.
+
 ## LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS (2026-10-16, session MISSIONS — Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ; toutes les missions sont ouvertes en même temps, sans ordre imposé ; des MISSIONS SECRÈTES invisibles débloquent des voitures montrées en silhouette noire dans la boutique ; le mot DÉFI disparaît de l'interface »)
 Livré par étapes (chacune vérifiée, commitée, poussée). Cette section grandit à chaque étape.
 
@@ -63,6 +124,61 @@ Livré par étapes (chacune vérifiée, commitée, poussée). Cette section gran
     achetées à l'argent du jeu, 164 500 $ en tout). ⚠ « toutes les couleurs » est hors d'atteinte : les 53 se paient en EUROS (StoreKit pas
     branché) ; « toutes les voitures » demande 6 caisses hors argent du jeu (POSTER 84 au rang d'aura, et 5 en euros dont LA PIZZA EXPRESS à
     161 €) ; « toutes les traînées » demande l'ARC-EN-CIEL, donc le chat (4,20 €).
+**ÉTAPE 2 — L'ÉCRAN MISSIONS** (toujours `?missions=v2` pendant la livraison)
+- LE DÉCOR GARDÉ : la vue caméra au-dessus de l'atelier (`GMIS`, trame, balayage, hologrammes) et le CADEAU en tête (`#mCadeau` dans `#gmHead`).
+  `gmRender` → `m2Render` (et `gmSuit` → `gmSuitS`, qui recale le panneau) ; le panneau est le même `#gmListe` (classe `m2`), placé par
+  `gmPlaceL` : debout entre le titre et JOUER, couché dans la colonne de JOUER (la moitié gauche laisse voir l'atelier).
+- UNE SEULE LISTE (`m2Lignes`) : À RÉCUPÉRER (elles brillent, `m2Brille`) → SUIVIES (filet or) → presque finies (≥ 2/3) → en cours → pas
+  commencées ; « TERMINÉES (n) » repliées en bas (`M2E.fin`). Une ligne (`m2Ligne`) : l'icône pixel de la famille dans un octogone à sa
+  couleur (exploit cyan · aura rose · argent vert · moteur ambre · collection bleu · exploration menthe · secrète magenta — jamais l'or),
+  qui sert de case (un coin d'or quand elle est suivie) ; le texte ; la jauge et son chiffre (`m2Prog` : « 3 / 5 », « 42 000 / 100 000 $ »,
+  « 3,2 / 5 S », « 1:12 / 5:00 ») ; la vignette (`m2Vign` : photo de la caisse par `photoFile`, aile par `aileFile`, peinture et traînée par
+  `objFig`, l'argent en vert, « ? » pour la récompense à définir) qui tourne doucement (`m2Tourne`). En-tête : MISSIONS + le compteur
+  (« 6 / 39 » : les visibles + les secrètes trouvées, couleurs secrètes de la palette comprises).
+- LES GESTES (`m2Clic`, branché en tête du clic de `#gmNoeuds`) : toucher une ligne la SUIT (3 au plus : la 4e secoue, toast) · une ligne
+  qui brille = RÉCUPÈRE (`m2Recupere` → `m2Prend` : la vignette tombe, gerbe `pixBurst`, `ui.achat` pour l'argent / `ui.debloque` pour un
+  objet + `ui.tampon`, vibration, toast ; une caisse : `carSnapshot`, pas de « nouvelle caisse » en double) · la vignette ouvre l'objet au
+  garage ou à la boutique (`m2Voir`) · TERMINÉES s'ouvre / se ferme. Les jauges partent de `SAVE.d.m2.vu` (ce que l'écran avait montré) :
+  après une partie on les voit monter. « Réduire les animations » : rien ne bouge, les jauges sont posées.
+- EN COURSE : `#m2Focus` (à la place de `#misFocus`, même place : au centre en bas couché, à gauche debout) — les suivies, trois lignes
+  fines : consigne · avancement DE LA PARTIE (`m2ValCourse` : l'aura de la partie, la série de poses en cours… — le record ne bouge pas tant
+  qu'on ne le bat pas) · jauge ; verte quand elle tombe ; DOM écrit seulement si ça change (4 fois/s au plus). Une suivie réussie quitte le
+  suivi à la fin de la partie (on la récupère). Le bandeau « MISSION RÉUSSIE » (la bannière du haut) ; une secrète : « MISSION SECRÈTE · ? ? ? ».
+- L'ÉCRAN DE MORT : la carte MISSIONS (`objRenderV2`) — les missions réussies pendant la partie, l'avancement des suivies (la jauge se
+  remplit, `ui.jauge`), à défaut la plus proche de tomber ; le compteur ; le point vert ; touchée : l'écran MISSIONS.
+- LES PORTES (accueil, garage, vitrine, onglet du hub) : les trois pastilles du carnet sont masquées ; un POINT VERT (`m2Portes`, `.m2Pt`)
+  quand une récompense attend. Le toast des couleurs secrètes dit « MISSION SECRÈTE » (plus « DÉFI RÉUSSI »).
+- CSS : `<style id="missionsV2">` (après `policeUnique`). Vérifié au banc (muet) : couché 844 × 390 et 667 × 375, debout 390 × 844 et
+  375 × 667 (iPhone SE), encoche simulée, français et anglais ; récupérer (argent, caisse), suivre / ne plus suivre, 4e refusée,
+  TERMINÉES, vignette → garage, course (3 suivies), écran de mort — 0 erreur.
+**ÉTAPE 3 — LA BOUTIQUE, LES SILHOUETTES SECRÈTES, LA BASCULE** — la v2 est le DÉFAUT (`MISSIONS_V2=!?missions=v1`).
+- RAYON VOITURES (`bqPieces`) : les caisses à pièces (au prix), puis celles des MISSIONS (pastille MISSION), puis les SECRÈTES — silhouette
+  noire (`.m2sec` : la photo en `brightness(0)` ourlée de magenta), nom « ? ? ? », étiquette SECRÈTE, ligne « MISSION SECRÈTE » ; aucun indice,
+  aucune jauge. Une secrète TOUCHÉE n'est jamais construite : `GBQ.sec` (bqEssaie ne fait pas `garageSaute`), `bqCourant` la rend, la ligne
+  de garageRender qui montre la caisse la TAIT (plateau vide), pas de coloris (`bqSkins`), l'étiquette dit MISSION SECRÈTE / ? ? ?, le bouton
+  MISSION SECRÈTE est éteint (bqEtat 'sec'). Les vignettes de la console du garage (« voir tout ») : même silhouette (`.gT.m2sec`).
+- UN OBJET DE MISSION (caisse, peinture, aile, traînée) : l'étiquette au-dessus de l'objet porte « SE DÉBLOQUE : <la mission> » + sa jauge
+  et son chiffre (`m2DebloqueHtml`) ; le bouton dit VOIR LA MISSION (bqEtat 'mis', cyan) → `m2VaMission` : la boutique rangée sous le voile,
+  l'écran MISSIONS, la mission SUIVIE (trois le sont déjà : la plus ancienne laisse sa place), sa ligne amenée en vue et qui flashe. La fiche
+  de la console (#gDesc, garageShow / shopShow) dit la même chose avec son bouton (`data-m2voir`, écouté en capture sur le document).
+  `carUnlockText` : « SE DÉBLOQUE : … » / « MISSION SECRÈTE ». Les nombres ne se coupent plus en fin de ligne (`m2TxtH`, `.m2Nw`).
+- LES MOTS : plus de « DÉFI » visible en v2 (pastille de la console : MISSION ; toast des couleurs secrètes : MISSION SECRÈTE ; OR MASSIF :
+  « Ne s'achète pas : elle se gagne par une mission. » ; ARC-EN-CIEL : « … elle vient avec le CHAT POP-TART. », FR et EN). Les textes « carnet »
+  et « relève 3 missions » ne vivent plus que dans les chemins de la v1 (`defisHtml`, `misRender`, l'écran de Léo `?menu=leo` en v1).
+- Vérifié au banc (muet) : boutique debout 390 × 844 et couché 844 × 390 — LA DOLORÈS (mission), LE CORBILLARD (secrète : plateau vide),
+  PHÉNIX (aile de mission), VOIR LA MISSION → l'écran MISSIONS, la mission suivie en tête ; fumée commune OK (défaut v2) ; `?missions=v1`
+  rend l'écran des carnets à l'identique. 0 erreur.
+**ÉTAPE 4 — LA RÉVÉLATION D'UNE SECRÈTE** (`#m2Rev`, `m2Revele`, `m2RevFerme`, la file `m2RevFile` / `m2RevAuto`)
+- Par-dessus tout : la nuit et ses rayons (à la couleur de la rareté) ; MISSION SECRÈTE ; la caisse en SILHOUETTE NOIRE (sa photo de studio,
+  `carPhoto`, en `brightness(0)` ourlée de magenta) ; à 0,7 s la COULEUR la remplit de bas en haut sous une ligne de lumière (`clip-path`, 1,4 s,
+  `ui.debloque` + vibration) ; à 2 s son NOM tombe (gerbe de pixels) ; à 2,5 s l'INTITULÉ de la mission s'écrit lettre à lettre (`ui.lettre`) ;
+  à 3,3 s RÉCUPÈRE (le lingot de l'écran) → `m2Prend` (la caisse dans `owned`), `ui.achat` + `ui.tampon`. Toucher avant la fin = aller au bout ;
+  Entrée / Espace / Échap aussi. « Réduire les animations » : tout posé d'un coup.
+- QUAND : la secrète est trouvée EN COURSE (bandeau « MISSION SECRÈTE · ? ? ? », rien d'autre) ; sa révélation se joue sur l'écran de mort,
+  1,4 s après lui ; sinon en ouvrant l'écran MISSIONS, ou en touchant la secrète qui brille. Une à la fois ; la suivante enchaîne. Une caisse
+  retirée pas encore revenue au garage attend (sa révélation viendra avec son gabarit, étape 5).
+- Vérifié au banc (muet), debout 390 × 844 et couché 844 × 390 : `dbgMissions('gagne','morts100')` au menu (LE CORBILLARD) et `kmh2000`
+  trouvée en course puis jouée sur l'écran de mort (LE MUR DU SON) ; la caisse est à toi, la mission prise. 0 erreur.
 - À TRANCHER PAR SACHA : la récompense de « tous les objets du jeu » (emplacement vide) · LA STRATOS pour « parfait sur chaque map » · les
   prix des 4 caisses orphelines · « 3 premières secondes » (impossible : 6 s ?) · « jauge de nitro pleine » (la jauge est PLEINE au départ :
   LA BOULE tombe dès qu'on meurt tôt) · « 0 s de vol » (la mort par le chrono de 6 s est l'une des plus fréquentes : LE SPECTRE tombe vite) ·
