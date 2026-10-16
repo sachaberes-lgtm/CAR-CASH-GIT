@@ -644,12 +644,14 @@ const LECTEURS = {
 };
 LECTEURS.unique = LECTEURS.boucle;
 LECTEURS.genv = async S => {   // une musique 👍 du générateur, rejouée par SA version
-  const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: maitre, renouvelle: 0, da: S.da || 'cashcar' });
+  const R0 = S.v2 || S.retouche, dep = R0 && +R0.depart || 0, gc = dep ? ac.createGain() : null, depG = k => Math.pow(10, dep * (1 - Math.min(1, Math.max(0, (k - 1) / 17))) / 20);   // (16/10) le départ compensé (retouches-bleu.js, `depart`)
+  if (gc) { gc.gain.value = depG(1); gc.connect(maitre); }
+  const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: gc || maitre, renouvelle: 0, da: S.da || 'cashcar' });
   const O = {}; if (/^hyb:/.test(String(S.e && S.e.style || ''))) O.style = S.e.style;   // (15/10) la couleur de l'avis : sans elle, une musique v6 en devenait une autre
   const R9 = S.v2 || S.retouche; if (R9) { O.retouche = R9.retouche; O.voix = R9.voix; O.acc = R9.acc; }   // une V2, ou la retouche posée sur la musique elle-même
   if (S.o9) Object.assign(O, S.o9);   // (trio) Nouveaux : le morceau écrit
   inst.setTier(1, 30); inst.start(S.n, S.W || undefined, O); let cur = 1;
-  return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); } }, arret() { try { inst.stop(); } catch (e) {} }, palier: () => cur - 1,
+  return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); if (gc) gc.gain.setTargetAtTime(depG(k), ac.currentTime, .3); } }, arret() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, palier: () => cur - 1,
     info: () => inst.nomElement ? '+ ' + inst.nomElement(inst.tier) : '', inst };
 };
 // LES POUCES BLEUS (14/10, Léo : « récupère tous ceux que j'ai bien aimés, mets-les dans une nouvelle catégorie » → « seulement les
@@ -693,10 +695,10 @@ function dessineBleus() {
    NOUVEAUX DE CLAUDE : tirés par le générateur avec ses goûts appris, choisis au banc d'écoute du pôle SON (parmi 24) pour avoir le profil des morceaux
    qu'il a GARDÉS (une vraie montée avec le moteur, une harmonie qui bouge, peu de répétition) — pas celui des trois qu'il a retirés. Ils entrent dans
    Pouce bleu comme les autres (leur 👍 dans musique-moteur.json) ; la mention « Nouveau » les signale en tête, le temps qu'il les écoute. */
-const NOUVEAUX_BLEU = {   // (16/10, Léo) TONNERRE DELUXE gardé ; COURT-CIRCUIT retouché (voir retouches-bleu.js) ; ORBITE D'OPALE remplacé — tirés en mineur, audibles dès le départ, au banc d'écoute
-  'bleu-6104': 'nuit lo-fi en vrais instruments (piano, clarinette, contrebasse) : le moins répétitif, l\u2019harmonie qui bouge le plus',
-  'bleu-3493': 'retouché : le lead rêveur au lieu du saxophone (moteur 2), échos et cordes dès 11, le climax 27-29, la mélodie une octave plus haut au 30',
-  'bleu-2874': 'remplace ORBITE : trap de luxe en dorien, vrai piano, vraie flûte, 808 — audible dès le départ, l\u2019harmonie qui bouge le plus des 16'
+const NOUVEAUX_BLEU = {   // (16/10, Léo : « surprends-moi : de nouveaux sons, de nouveaux instruments ») — TONNERRE DELUXE gardé ; les deux SONS NEUFS (retouches-bleu.js)
+  'bleu-1259': 'son neuf : house de nuit — piano à queue, basse aux doigts, un chœur « ah » qui chante la mélodie, un piano électrique à lames, de vrais violons',
+  'bleu-1111': 'son neuf : chillstep tout en vrais instruments — piano à queue, violon solo, violoncelles en basse, cor, violons, guitare électrique claire',
+  'bleu-2874': 'PIÈCES DE CHROME : tu ne l\u2019as pas encore écouté — attention, sa mélodie est une flûte (tu ne voulais plus de flûte)'
 };
 function nouveauxMarque() {
   const L = $('gBleu'); if (!L) return; const prem = L.querySelector(':scope>.genv');

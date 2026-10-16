@@ -71,11 +71,13 @@
   // ---------------------------------------------------------------- les trois lecteurs (chacun : { regle(m 1..30), stop(), bpm() })
   async function joueurGen(ac, dest, E) {
     const f = E.v === 'actuelle' ? 'direct/musique-trente.js' : 'direct/musique-trente-' + E.v + '.js';
-    const mod = await importeAvance(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: dest, renouvelle: 0, da: E.da });
+    const dep = E.ret && +E.ret.depart || 0, depG = k => Math.pow(10, dep * (1 - Math.min(1, Math.max(0, (k - 1) / 17))) / 20), gc = dep ? ac.createGain() : null;   // (16/10) le départ compensé (retouches-bleu.js, `depart`)
+    if (gc) { gc.gain.value = depG(1); gc.connect(dest); }
+    const mod = await importeAvance(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: gc || dest, renouvelle: 0, da: E.da });
     const O = {}; if (/^hyb:/.test(E.style)) O.style = E.style;   // (la couleur de l'avis : sans elle, une musique v6 en devenait une autre)
     if (E.ret) { O.retouche = E.ret.retouche; O.voix = E.ret.voix; O.acc = E.ret.acc; }
     inst.setTier(1, 30); inst.start(E.n, E.W || undefined, O); let cur = 1;
-    return { regle(m) { if (m !== cur) { cur = m; inst.setTier(m, 30); } }, stop() { try { inst.stop(); } catch (e) {} }, bpm: () => inst.bpm || 120, inst };
+    return { regle(m) { if (m !== cur) { cur = m; inst.setTier(m, 30); if (gc) gc.gain.setTargetAtTime(depG(m), ac.currentTime, .3); } }, stop() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, bpm: () => inst.bpm || 120, inst };
   }
   async function joueurPaliers(ac, dest, E) {
     if (!W.PalLecteur) await script('musique-paliers.js');

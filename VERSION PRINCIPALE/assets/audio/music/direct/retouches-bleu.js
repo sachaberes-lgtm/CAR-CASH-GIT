@@ -84,17 +84,31 @@ const CLAV_FIN = () => [.7, 44100, (c, f, dest) => { [[-3, -.35], [3, .35]].forE
 // une voix qui improvise ; la note glisse d'un demi-ton et demi vers le haut en entrant, une sur trois retombe à la fin (le « ahh » qui se laisse
 // tomber), un « h » de souffle à l'attaque ; filtrées comme une cassette (coupe-bas 260 Hz, coupe-haut 3 kHz) et saturées doucement : l'underground.
 const VOYELLES = [[730, 1090, 2440], [570, 840, 2410], [300, 870, 2240], [530, 1840, 2480], [390, 2000, 2600], [500, 1400, 2400]];
-// LE LEAD RÊVEUR (COURT-CIRCUIT DE NÉON, 16/10 — Léo : l'instrument du moteur 2, le « saxophone de minuit », « un peu wow, what the fuck »,
-// trop pareil aux autres, il ne va pas avec le reste) : une voix douce et polie qui CHANTE — deux triangles à peine désaccordés (gauche / droite)
-// et un fil de scie pour la présence, dans un coupe-haut qui s'ouvre à l'attaque (la note « fleurit »), un corps sinus une octave dessous, une
-// lueur à l'octave au-dessus, un vibrato tardif, un peu d'air. Rien de commun avec les mélodies des autres morceaux de Pouce bleu.
-const LEAD_REVE = () => [1.9, [60, 72, 84], (c, f) => {
-  const g = env(c, .07, 1.35, .5, .6), lp = filtre(c, 'lowpass', 1700, .6, g), som = c.createGain(), vb = vibrato(c, 4.8, 10, .35);   // (un peu plus clair qu'au 1er essai ; son niveau, le générateur le cale lui-même — mesuré : le morceau reste au niveau moyen des gardés)
-  lp.frequency.setValueAtTime(1700, 0); lp.frequency.linearRampToValueAtTime(3400, .25); som.connect(lp);
-  [['triangle', 1, -.3, -7], ['triangle', 1, .3, 7], ['sawtooth', .18, 0, 0]].forEach(([ty, v, x, dt]) => { const o = osc(c, ty, f, dt), m = c.createGain(); m.gain.value = v; vb.connect(o.detune); o.connect(m); m.connect(pan(c, x, som)); o.start(0); });
-  const s = osc(c, 'sine', f / 2), sg = c.createGain(); sg.gain.value = .25; s.connect(sg); sg.connect(g); s.start(0);
-  const o8 = osc(c, 'sine', f * 2), g8 = env(c, .3, 1.2, .5, .05, g); vb.connect(o8.detune); o8.connect(g8); o8.start(0);
-  souffle(c, f * 3, 1.5, .02, 1.7, g); }, 2];
+// ---------------------------------------------------------------- LES SONS NEUFS (16/10, Léo : « surprends-moi : de nouveaux sons — les basses, les
+// arpèges, je les ai reconnus ; de nouveaux instruments, de nouvelles manières de composer ; rien d'enfantin ni de cirque ; pas mille fois plus complexe »)
+// LE CHŒUR « AH » : trois voix à peine désaccordées qui chantent « ah » — une impulsion (scie + carré) dans quatre formants, l'attaque qui glisse
+// sur la note (30 cents dessous → juste en 60 ms, comme une voix), un souffle, un vibrato tardif, large dans la stéréo.
+const VOIX_AH = () => [1.6, [48, 55, 62, 69, 76], (c, f) => {
+  const g = env(c, .03, 1.1, .45, .5), hp = filtre(c, 'highpass', 160, .6, g), sortieF = c.createGain(), src = c.createGain(), vb = vibrato(c, 5, 12, .35); sortieF.connect(hp);
+  [[800, 1, 6], [1150, .55, 7], [2900, .2, 9], [3500, .08, 9]].forEach(([fr, v, q]) => { const bp = c.createBiquadFilter(), m = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; m.gain.value = v; src.connect(bp); bp.connect(m); m.connect(sortieF); });
+  [[-12, -.6], [0, 0], [12, .6]].forEach(([dt, x]) => [['sawtooth', 1], ['square', .35]].forEach(([ty, v]) => { const o = osc(c, ty, f, 0), m = c.createGain(); m.gain.value = v;
+    o.detune.setValueAtTime(dt - 30, 0); o.detune.linearRampToValueAtTime(dt, .06); vb.connect(o.detune); o.connect(m); m.connect(pan(c, x, src)); o.start(0); }));
+  souffle(c, 1150, 1.2, .06, 1.5, sortieF); }, 2];
+// LE PIANO ÉLECTRIQUE À LAMES : la lame frappée — une sinusoïde qu'un modulateur à 14× fait sonner « tine » au coup de marteau (éteint en 80 ms),
+// qu'un second à 1× réchauffe ; la décroissance d'un piano électrique, un trémolo stéréo lent. Rond, doux — jamais une clochette de jouet.
+const RHODES_LAMES = () => [1.6, [48, 60, 72, 84], (c, f) => {
+  const g = decroit(c, .004, 1.4, .5), car = osc(c, 'sine', f), m1 = osc(c, 'sine', f * 14), g1 = c.createGain(), m2 = osc(c, 'sine', f), g2 = c.createGain();
+  g1.gain.setValueAtTime(f * 1.6, 0); g1.gain.exponentialRampToValueAtTime(f * .01, .08); m1.connect(g1); g1.connect(car.frequency);
+  g2.gain.setValueAtTime(f * .9, 0); g2.gain.exponentialRampToValueAtTime(f * .15, 1.2); m2.connect(g2); g2.connect(car.frequency);
+  const tr = c.createStereoPanner(), lfo = osc(c, 'sine', 3.2), lg = c.createGain(); lg.gain.value = .35; lfo.connect(lg); lg.connect(tr.pan); tr.connect(g);
+  car.connect(filtre(c, 'lowpass', Math.min(5000, f * 10), .5, tr)); [car, m1, m2, lfo].forEach(o => o.start(0)); }, 2];
+// LA COURBE DE LÉO (16/10) : un premier instrument qui tient SEUL (pas « trop léger » au départ), des échos qui rêvent vers le 11, dynamique dès 15,
+// le climax sur les derniers (le final au 29), et au 30 la mélodie une octave plus haut (« augmenter le registre, plus fort émotionnellement »).
+// `tete` : les premiers moteurs, dans l'ordre (les sons neufs ENTRENT TÔT, sinon on ne les entend qu'au 12e) ; `sans` : ce qu'on ne veut plus.
+// `depart` (dB, lu par la bibliothèque et par le jeu) : le générateur v6 recule tout de −10 dB au 1er moteur (rattrapé au 18e) — le départ était
+// presque inaudible (−35 dB) ; on le compense, le même +10 dB qui s'efface jusqu'au 18e : il démarre comme TONNERRE DELUXE, et monte encore.
+const courbeLeo = (Mx, tete, sans) => { const hors = new Set(['i_sommet', 'final', 'i_large', 'i_sature'].concat(sans || [])), t9 = (tete || []).filter(x => !hors.has(x));
+  let o = t9.concat(Mx.ordre.filter(x => !hors.has(x) && !t9.includes(x))); o = o.slice(0, 28); o.push('final', 'i_sommet'); Mx.ordre = o; };
 
 const VOIX_IMPRO = () => [.8, [50, 53, 56, 59, 62, 65, 68, 71, 74, 77], (c, f) => {
   const m = Math.round(12 * Math.log2(f / 440) + 69), V = VOYELLES[(m * 7) % VOYELLES.length], tombe = m % 3 === 0;
@@ -213,13 +227,20 @@ export const V2 = [
     retouche(Mx) {
       Mx.tim.lead = 'cowbell'; Mx.tim.basse = '808dur'; Mx.tim.contre = 'voix';
       const sans = ['i_pulse', 'i_relance', 'i_basseOct', 'i_tambours']; insere(Mx, 'vinyl', 3, sans); insere(Mx, 'contre', 6, sans); insere(Mx, 'i_sature', 12, sans); } },
-  { id: 'bleu-3493-retouche', base: 3493, direct: true, titre: 'COURT-CIRCUIT DE NÉON',
-    note: 'change juste le lead (l\u2019instrument du moteur 2, « un peu wow, what the fuck »), trop pareil aux autres ; plus rêveur, bien poli, qui suit l\u2019intensité : pas d\u2019ennui dès 10, dynamique dès 15, le climax sur les derniers, au dernier le registre qui monte',
-    idee: 'la mélodie au lead rêveur (au lieu du saxophone de minuit) ; les échos au 11, les cordes au 12, le chœur au 24 ; le climax du 27 au 29 (fins qui montent, un ton plus haut, le final) ; au 30, la mélodie une octave plus haut',
-    voix: { lead: LEAD_REVE },
-    retouche(Mx, O) {
-      nomme(O, 'NOM_LEAD', 'reve', 'lead rêveur'); Mx.tim.lead = 'reve';
-      // le début (1-9) ne bouge pas (« le début, c'était très bien ») ; il n'y a que l'ordre de la suite, et 3 marches dures remplacées par du rêve
-      Mx.ordre = ['pad', 'lead', 'arp', 'basse', 'kick', 'sig', 'snare', 'hat', 'i_filtre', 'keys', 'echo', 'cordes', 'contre', 'pompe', 'clarte', 'i_frappe', 'hatO',
-        'i_basse', 'fant', 'i_dense', 'octave', 'double', 'sig2', 'choeur', 'i_relance', 'i_tambours', 'i_monte', 'modul', 'final', 'i_sommet']; } },
+  // LES DEUX SONS NEUFS (16/10) — des squelettes du générateur v6-0 hors de la DA CASH CAR (atlas : la house ; dubstep : le chillstep), habillés
+  // de timbres que la bibliothèque n'avait jamais joués.
+  { id: 'bleu-1259-neuf', base: 1259, direct: true, titre: 'ASPHALTE D’ÉMERAUDE',
+    note: 'surprends-moi : de nouveaux sons, de nouveaux instruments (16/10)',
+    idee: 'house de nuit en mi mineur : le piano à queue, la basse aux doigts, le chœur « ah » qui chante la mélodie, le piano électrique à lames en arpège, les vrais violons ; au 30, la mélodie une octave plus haut',
+    voix: { lead: VOIX_AH, pluck: RHODES_LAMES },
+    retouche(Mx, O) { nomme(O, 'NOM_LEAD', 'choeurAh', 'le chœur « ah »'); nomme(O, 'NOM_PLUCK', 'rhodesLames', 'le piano électrique à lames');
+      Object.assign(Mx.tim, { lead: 'choeurAh', pluck: 'rhodesLames', keys: '@pianoQueue', pad: '@violons', basse: 'doigts' });
+      courbeLeo(Mx, ['keys', 'basse', 'kick', 'arp', 'hat', 'lead', 'snare', 'pad', 'stab', 'sig', 'echo', 'pompe', 'hatO', 'choeur', 'i_frappe', 'clarte']); }, depart: 6 },   // (mesuré : +10 l'aplatissait, du 3 au 22 au même niveau)
+  { id: 'bleu-1111-neuf', base: 1111, direct: true, titre: 'RUBIS DE NÉON',
+    note: 'surprends-moi : de nouveaux sons, de nouveaux instruments (16/10)',
+    idee: 'chillstep en la mineur, tout en vrais instruments : le piano à queue, le violon solo, les violoncelles en basse, le cor en contre-chant, les violons ; l\u2019arpège à la guitare électrique claire (une vraie corde pincée, simulée) ; au 30, le violon une octave plus haut',
+    voix: { pluck: () => ({ ks: true, dur: 1.8, refs: [48, 60, 72, 84], eclat: .45 }) },
+    retouche(Mx, O) { nomme(O, 'NOM_PLUCK', 'guitareClaire', 'la guitare électrique claire');
+      Object.assign(Mx.tim, { pluck: 'guitareClaire', keys: '@pianoQueue', pad: '@violons', lead: '@violonSolo', basse: '@celli', contre: '@cor' });
+      courbeLeo(Mx, ['keys', 'pad', 'basse', 'lead', 'hat', 'kick', 'snare', 'arp', 'sub', 'sig', 'echo', 'choeur', 'cordes', 'i_filtre', 'contre', 'vinyl'], ['wob']); }, depart: 8 },
 ];
