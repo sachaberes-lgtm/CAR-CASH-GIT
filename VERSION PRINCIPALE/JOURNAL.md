@@ -139,6 +139,23 @@ Livré par étapes (chacune vérifiée, commitée, poussée). Cette section gran
 - CSS : `<style id="missionsV2">` (après `policeUnique`). Vérifié au banc (muet) : couché 844 × 390 et 667 × 375, debout 390 × 844 et
   375 × 667 (iPhone SE), encoche simulée, français et anglais ; récupérer (argent, caisse), suivre / ne plus suivre, 4e refusée,
   TERMINÉES, vignette → garage, course (3 suivies), écran de mort — 0 erreur.
+**ÉTAPE 3 — LA BOUTIQUE, LES SILHOUETTES SECRÈTES, LA BASCULE** — la v2 est le DÉFAUT (`MISSIONS_V2=!?missions=v1`).
+- RAYON VOITURES (`bqPieces`) : les caisses à pièces (au prix), puis celles des MISSIONS (pastille MISSION), puis les SECRÈTES — silhouette
+  noire (`.m2sec` : la photo en `brightness(0)` ourlée de magenta), nom « ? ? ? », étiquette SECRÈTE, ligne « MISSION SECRÈTE » ; aucun indice,
+  aucune jauge. Une secrète TOUCHÉE n'est jamais construite : `GBQ.sec` (bqEssaie ne fait pas `garageSaute`), `bqCourant` la rend, la ligne
+  de garageRender qui montre la caisse la TAIT (plateau vide), pas de coloris (`bqSkins`), l'étiquette dit MISSION SECRÈTE / ? ? ?, le bouton
+  MISSION SECRÈTE est éteint (bqEtat 'sec'). Les vignettes de la console du garage (« voir tout ») : même silhouette (`.gT.m2sec`).
+- UN OBJET DE MISSION (caisse, peinture, aile, traînée) : l'étiquette au-dessus de l'objet porte « SE DÉBLOQUE : <la mission> » + sa jauge
+  et son chiffre (`m2DebloqueHtml`) ; le bouton dit VOIR LA MISSION (bqEtat 'mis', cyan) → `m2VaMission` : la boutique rangée sous le voile,
+  l'écran MISSIONS, la mission SUIVIE (trois le sont déjà : la plus ancienne laisse sa place), sa ligne amenée en vue et qui flashe. La fiche
+  de la console (#gDesc, garageShow / shopShow) dit la même chose avec son bouton (`data-m2voir`, écouté en capture sur le document).
+  `carUnlockText` : « SE DÉBLOQUE : … » / « MISSION SECRÈTE ». Les nombres ne se coupent plus en fin de ligne (`m2TxtH`, `.m2Nw`).
+- LES MOTS : plus de « DÉFI » visible en v2 (pastille de la console : MISSION ; toast des couleurs secrètes : MISSION SECRÈTE ; OR MASSIF :
+  « Ne s'achète pas : elle se gagne par une mission. » ; ARC-EN-CIEL : « … elle vient avec le CHAT POP-TART. », FR et EN). Les textes « carnet »
+  et « relève 3 missions » ne vivent plus que dans les chemins de la v1 (`defisHtml`, `misRender`, l'écran de Léo `?menu=leo` en v1).
+- Vérifié au banc (muet) : boutique debout 390 × 844 et couché 844 × 390 — LA DOLORÈS (mission), LE CORBILLARD (secrète : plateau vide),
+  PHÉNIX (aile de mission), VOIR LA MISSION → l'écran MISSIONS, la mission suivie en tête ; fumée commune OK (défaut v2) ; `?missions=v1`
+  rend l'écran des carnets à l'identique. 0 erreur.
 - À TRANCHER PAR SACHA : la récompense de « tous les objets du jeu » (emplacement vide) · LA STRATOS pour « parfait sur chaque map » · les
   prix des 4 caisses orphelines · « 3 premières secondes » (impossible : 6 s ?) · « jauge de nitro pleine » (la jauge est PLEINE au départ :
   LA BOULE tombe dès qu'on meurt tôt) · « 0 s de vol » (la mort par le chrono de 6 s est l'une des plus fréquentes : LE SPECTRE tombe vite) ·

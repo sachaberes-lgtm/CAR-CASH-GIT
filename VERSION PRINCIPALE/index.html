@@ -71,9 +71,9 @@ const SANS_CARRIERE=!/[?&]carriere=1\b/.test(location.search);
 if(SANS_CARRIERE)document.documentElement.classList.add('sansCarr');
 /* LES MISSIONS v2 (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ») :
    l'ancien système (CARNETS, la file de trois, les pastilles, la constellation de l'atelier) est COUPÉ, pas arraché — `?missions=v1` le
-   rend. Les compteurs des missions (SAVE.d.m2) tournent dans les deux cas. ⚠ PENDANT LA LIVRAISON PAR ÉTAPES, la v2 s'allume par
-   `?missions=v2` ; le défaut bascule quand l'écran MISSIONS et la boutique sont livrés. Voir « LES MISSIONS v2 » au journal. */
-const MISSIONS_V2=/[?&]missions=v2\b/.test(location.search);
+   rend. Les compteurs des missions (SAVE.d.m2) tournent dans les deux cas. La v2 est le DÉFAUT depuis la livraison de
+   l'écran MISSIONS et de la boutique (étape 3, 16/10) ; `?missions=v1` rend les carnets. Voir « LES MISSIONS v2 » au journal. */
+const MISSIONS_V2=!/[?&]missions=v1\b/.test(location.search); // (2026-10-16) la v2 est le DÉFAUT depuis la livraison de l'écran et de la boutique
 if(MISSIONS_V2)document.documentElement.classList.add('misV2');
 /* PLUS DE MODE FACILE (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu ») : même recette que la carrière — COUPÉ,
    pas arraché. `facOn()` répond toujours non : plus d'aide au virage (FAC_CAP), plus de bord élargi (facBord), plus de 10 s en l'air
@@ -10113,6 +10113,29 @@ body:not(.play) #m2Focus{display:none!important}
 @media (orientation:landscape) and (max-height:540px){.m2L{min-height:52px;padding:7px 9px 7px 8px;gap:9px}.m2R{width:62px;height:38px}.m2Ic{width:28px;height:28px}.m2L u{margin:5px 0 4px}}
 @media (max-width:360px){.m2L{gap:8px;padding:8px}.m2R{width:56px;height:36px}.m2Ic{width:28px;height:28px}}
 @media (prefers-reduced-motion:reduce){.m2L,.m2L.pret,.m2R .m2Ph img,.m2R .obFig,.m2Pt,.m2L.pris .m2R{animation:none!important}.m2L u em{transition:none}}
+/* LA BOUTIQUE ET LE GARAGE (étape 3) : SE DÉBLOQUE + la jauge + VOIR LA MISSION (cyan : aller voir) ; les SECRÈTES en silhouette noire */
+.m2Deb{display:flex;flex-direction:column;gap:6px;font-family:var(--pix)}
+.m2DebT{font-size:var(--f0);line-height:1.5;letter-spacing:.5px;color:var(--neoC)}.m2DebT .pxi{--pxs:1}
+.m2DebB{display:flex;align-items:center;gap:8px}
+.m2DebB u{flex:1;min-width:40px;display:block;height:5px;background:#030914;box-shadow:0 0 0 1px rgba(95,240,255,.25)}
+.m2DebB u em{display:block;height:100%;background:var(--neoC);box-shadow:0 0 6px var(--neoC)}
+.m2DebB b{font-weight:400;font-size:var(--f0);color:#dfeeff;white-space:nowrap}
+.m2DebV{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;font-size:var(--f0);letter-spacing:1px;color:#031b24;
+  background:var(--neoC);transform:skewX(var(--sk));cursor:pointer;box-shadow:0 3px 0 #0a6f80;transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+.m2DebV:active{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 #0a6f80}.m2DebV .pxi{--pxs:1}
+.m2Deb.sec .m2DebT{color:var(--neoM)}
+.m2Nw{white-space:nowrap}
+/* dans la salle blanche de la boutique : l'étiquette au-dessus de l'objet, encre sombre sur blanc */
+#gBqNom .bqM2{display:block;max-width:min(80vw,440px);margin-top:4px;white-space:normal;text-align:center}
+#gBqNom .bqM2[hidden]{display:none}
+@media (orientation:landscape){#gBqNom .bqM2{max-width:min(33vw,290px)}#gBqNom .m2DebB{width:min(28vw,230px)}} /* couché : la place entre les rayons et le panneau */
+#gBqNom .m2Deb{align-items:center}
+#gBqNom .m2DebT{color:#0b7183}#gBqNom .m2Deb.sec .m2DebT{color:#c2187f;font-size:var(--f1)}
+#gBqNom .m2DebB{width:min(60vw,260px)}#gBqNom .m2DebB u{height:6px;background:#cfd5dc;box-shadow:none}#gBqNom .m2DebB u em{background:#00b8d4;box-shadow:none}#gBqNom .m2DebB b{color:#3a4250}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="mis"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="mis"]{background:#00b8d4;color:#fff;box-shadow:0 4px 0 #087a8c}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="sec"]{background:#f3eef2;color:#c2187f;box-shadow:none;cursor:default}
+.bqK.m2sec .bqKph img,.gT.m2sec>img{filter:brightness(0) drop-shadow(0 0 1px rgba(255,62,200,.9))}
+.bqK.m2sec .bqKp.sec{color:#c2187f}
 </style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
@@ -38166,8 +38189,8 @@ if(PEINT_V2){
    `pack:'chat'` (shopOwned : à toi avec le CHAT POP-TART ; qui l'a déjà gagnée au carnet la garde, elle est dans `own`). */
 if(MISSIONS_V2){const H9={};for(const m of M2)if(m.r&&m.r.cat)H9[m.r.cat+':'+m.r.id]=m.id;
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat]){const id=H9[cat+':'+d.id];
-    if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;}
-    else if(d.mis){delete d.mis;if(d.id==='arcenciel')d.pack='chat';}}}
+    if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;if(/relevant des défis/.test(d.d||''))d.d="Ne s'achète pas : elle se gagne par une mission.";}
+    else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.pack='chat';d.d="Ne s'achète pas : elle vient avec le CHAT POP-TART.";}}}}
 function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, de la COMMUNE à l'ÉPIQUE (D'ORIGINE en tête ; dans une rareté, l'ordre du catalogue)
   const rg=function(j){const d=COSM.peinture[j];return d.id==='usine'?-1:(INV_RANG[cosmRar('peinture',d)]|0);};return L.sort(function(a,b){return (rg(a)-rg(b))||(a-b);});}
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
@@ -38531,6 +38554,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
       ? ['\n(il te manque ','\n(short by '][L]+fmtC(manque)+')'
       : ['\nTU PEUX TE LA PAYER !','\nYOU CAN AFFORD IT!'][L]); // (2026-09-29) la 2e moitié sur SA ligne (#gDesc en pre-line) : « — tu peux » tombait seul en tête de ligne
   }
+  if(u.k==='mis'){const m9=m2Def(u.id);if(!m9)return '';return m9.f==='secret'&&!carUnlockedVrai(i)?TR('MISSION SECRÈTE'):sansAcc(TR('SE DÉBLOQUE'))+' : '+sansAcc(m2Txt(m9));} // (2026-10-16) LES MISSIONS v2
   const v=u.v,cur=carStat(u.k);
   if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 MISSIONS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY COMPLETING 3 MISSIONS'][L];
   if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)'][L]; // (2026-09-27)
@@ -46838,7 +46862,7 @@ function m2Ligne(x,k,s){const m=x.m,F=M2_FAM[m.f]||M2_FAM.exploit,pret=x.rg===0,
   else bas='<small>'+(x.ok?TR('RÉUSSIE'):(suiv?TR('SUIVIE')+' · ':'')+m2Prog(m,x.v,x.t))+'</small>';
   return '<div class="m2L m2F-'+m.f+(suiv?' f':'')+(x.ok?' ok':'')+(pret?' pret':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" aria-pressed="'+suiv+'" style="--i:'+Math.min(k,12)+'">'
     +'<span class="m2Ic">'+pxi(x.ok&&!pret?'coche':F.ic)+(suiv?'<i class="m2Ck"></i>':'')+'</span>'
-    +'<div class="glTx"><b>'+(m.f==='secret'?'<i class="m2Sec">'+TR('SECRÈTE')+'</i> ':'')+sansAcc(m2Txt(m))+'</b>'
+    +'<div class="glTx"><b>'+(m.f==='secret'?'<i class="m2Sec">'+TR('SECRÈTE')+'</i> ':'')+m2TxtH(m)+'</b>'
     +(x.ok?'':'<u><em style="width:'+w0+'%" data-w="'+w1+'"></em></u>')+bas+'</div>'
     +'<div class="m2R'+(voir?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+m2Vign(m)+'</div></div>';}
 function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son indice devient sa mission
@@ -46861,6 +46885,7 @@ function m2Render(vu){
   const aide=$('gmAide');if(aide)aide.textContent=s.su.length?'':sansAcc(TR('TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS'));
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
   const nl=$('gmListe');if(nl){nl.scrollTop=sc0;const a1=nl.querySelector('.glA');if(a1)a1.scrollTop=sc1;}
+  if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe .m2L[data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
   /* les photos : une à la fois (photoFile tourne au garage), posées si la ligne est encore là */
   el.querySelectorAll('img[data-ph]').forEach(function(im){const i=+im.getAttribute('data-ph');photoFile(i,function(u){if(u&&im.isConnected)im.src=u;});});
   el.querySelectorAll('img[data-ai]').forEach(function(im){try{aileFile(im.getAttribute('data-ai'),function(u){if(u&&im.isConnected)im.src=u;});}catch(e){}});
@@ -46937,6 +46962,40 @@ function objRenderV2(el){const s=m2Etat(),L=[];
   const bars=el.querySelectorAll('.obBar i');
   if(bars.length&&!REDUCED_MOTION&&TCTL.mortT&&objRenderV2._k!==TCTL.mortT){objRenderV2._k=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},520);}
   setTimeout(function(){requestAnimationFrame(function(){bars.forEach(function(i){i.style.width=i.getAttribute('data-w')+'%';});});},REDUCED_MOTION?0:520);}
+/* ===== LES MISSIONS v2 — LA BOUTIQUE ET LE GARAGE (2026-10-16, Sacha : « une voiture ou un habillage qui se gagne par mission affiche, à
+   la place du prix, SE DÉBLOQUE : texte de la mission, avec sa barre d'avancement, plus un bouton qui mène directement à la mission dans
+   l'écran MISSIONS (et la suit) » · « voitures secrètes : dans la boutique, elles n'apparaissent qu'en silhouette noircie, avec écrit
+   MISSION SECRÈTE. Aucun indice, aucune barre. Elles ne s'affichent ni en 3D ni en couleur tant qu'elles ne sont pas gagnées ») =====
+   · rayon VOITURES (bqPieces) : les caisses à pièces, puis celles des missions, puis les secrètes (silhouettes : `.m2sec`, nom « ? ? ? »,
+     rareté « MISSION SECRÈTE », pastille SECRÈTE) ;
+   · une SECRÈTE touchée n'est jamais construite : le plateau se vide (`GBQ.sec`, la ligne de garageRender qui montre la caisse la tait),
+     l'étiquette dit MISSION SECRÈTE, le bouton est éteint ;
+   · une caisse ou un habillage de mission : l'étiquette au-dessus de l'objet porte SE DÉBLOQUE + la jauge (m2DebloqueHtml), le bouton dit
+     VOIR LA MISSION (bqEtat 'mis' → m2VaMission : la mission SUIVIE, l'écran MISSIONS, la ligne amenée en vue) ; la fiche de la console
+     (#gDesc) aussi, avec son bouton (`data-m2voir`). */
+function m2DeCaisse(i){const u=CAR_UNLOCK[i];return MISSIONS_V2&&u&&u.k==='mis'?m2Def(u.id):null;}
+function m2DeHab(cat,d){return MISSIONS_V2&&d&&d.mis2?m2Def(d.mis2):null;}
+function m2Secrete(i){const m=m2DeCaisse(i);return !!(m&&m.f==='secret'&&!carUnlockedVrai(i));}
+Object.assign(I18N,{'SE DÉBLOQUE':'UNLOCKS','VOIR LA MISSION':'SEE THE MISSION','RÉCUPÈRE DANS MISSIONS':'CLAIM IT IN MISSIONS',
+  "Ne s'achète pas : elle se gagne par une mission.":'Not for sale: it is earned through a mission.',
+  "Ne s'achète pas : elle vient avec le CHAT POP-TART.":'Not for sale: it comes with the POP-TART CAT.'});
+function m2DebloqueHtml(m,sansBouton){if(!m)return '';const s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
+  return '<span class="m2Deb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('SE DÉBLOQUE'))+' : '+m2TxtH(m)+'</span>'
+    +'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+(ok?sansAcc(TR('RÉCUPÈRE DANS MISSIONS')):m2Prog(m,v,t))+'</b></span>'
+    +(sansBouton?'':'<span class="m2DebV" role="button" tabindex="0" data-m2voir="'+m.id+'">'+sansAcc(TR('VOIR LA MISSION'))+' '+pxi('droite')+'</span>')+'</span>';}
+function m2TxtH(m){return sansAcc(m2Txt(m)).replace(/\d[\d ]*\d/g,function(x){return '<span class="m2Nw">'+x+'</span>';});} // les nombres ne se coupent pas en fin de ligne (« 1 / 000 »)
+function m2SecretHtml(){return '<span class="m2Deb sec"><span class="m2DebT">'+pxi('oeil')+' '+sansAcc(TR('MISSION SECRÈTE'))+'</span></span>';}
+/* VOIR LA MISSION : l'écran MISSIONS, la mission SUIVIE (trois le sont déjà : la plus ancienne laisse sa place), sa ligne amenée en vue */
+function m2VaMission(id){const m=m2Def(id);if(!m||m.f==='secret')return;const s=m2Etat();
+  if(s.ok.indexOf(id)<0&&s.su.indexOf(id)<0){if(s.su.length>=3)s.su.shift();s.su.push(id);SAVE.flush();}
+  uiClic('nav');hap(8);
+  const va=function(){garMode('missions');setTimeout(function(){const r=document.querySelector('#gmListe .m2L[data-m2="'+id+'"]');if(r){try{r.scrollIntoView({block:'center'});}catch(e){}r.classList.add('flash');}},REDUCED_MOTION?0:380);};
+  if(!garageOn){GAR.aMisId=id;garMissionsOuvre();return;}
+  ecranWipe(function(){
+    if(GBQ.on||GMODE.m==='shop')try{gGarageReplie();GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);try{garBqAmbiance(false);bqSonCoupe(.4);}catch(e){}GBQ.lueur=0;GBQ.sec=null;SHOP.prev=null;buildCar(CARS[equippedCar()]);}catch(e){} // la boutique rangée d'un coup sous le voile (la recette de son ◀ depuis l'accueil)
+    va();});}
+document.addEventListener('click',function(e){const t=e.target&&e.target.closest&&e.target.closest('[data-m2voir]');if(!t)return;e.stopPropagation();e.preventDefault();
+  if(typeof GAR!=='undefined'&&(GAR.go||ecranWipe._on))return;try{uiPop(t);}catch(x){}m2VaMission(t.getAttribute('data-m2voir'));},true);
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -53694,8 +53753,8 @@ function garageShow(i){
   // ressert enfin, il n'était plus affiché nulle part depuis le retrait de la carte de déblocage.
   const ouverte=carUnlocked(garageI),testOuv=TEST_CAISSES&&!carUnlockedVrai(garageI); // testOuv : ouverte pour le TEST seulement
   const u9=CAR_UNLOCK[garageI],dfi=!ouverte&&u9&&u9.k==='carnet';
-  if(testOuv)gDescEl.innerHTML='<i class="gTest">TEST</i> '+(u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — <b class="gEur">'+eurTxt(u9.eur)+'</b>':String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite (charte v5 : le prix en € en or, « TEST » en pastille discrète — elle disparaît avec TEST_CAISSES)
-  else if(ouverte)gDescEl.textContent=LANG==='fr'?(c.desc||''):TR(c.desc||''); /* (2026-09-29) en police système : « Ça se voit », pas « Ca se voit » */else if(dfi)gDescEl.innerHTML=defisHtml(u9.v);else gDescEl.innerHTML=pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;');
+  if(testOuv)gDescEl.innerHTML='<i class="gTest">TEST</i> '+(u9&&u9.k==='mis'?(m2Secrete(garageI)?m2SecretHtml():m2DebloqueHtml(m2Def(u9.id))):u9&&u9.k==='carnet'?defisHtml(u9.v):pxi('verrou')+' '+(u9&&u9.k==='premium'?TR('BOUTIQUE')+' — <b class="gEur">'+eurTxt(u9.eur)+'</b>':String(carUnlockText(garageI)).replace(/</g,'&lt;'))); // la VRAIE condition reste écrite (charte v5 : le prix en € en or, « TEST » en pastille discrète — elle disparaît avec TEST_CAISSES)
+  else if(ouverte)gDescEl.textContent=LANG==='fr'?(c.desc||''):TR(c.desc||''); /* (2026-09-29) en police système : « Ça se voit », pas « Ca se voit » */else if(dfi)gDescEl.innerHTML=defisHtml(u9.v);else if(u9&&u9.k==='mis')gDescEl.innerHTML=m2Secrete(garageI)?m2SecretHtml():m2DebloqueHtml(m2Def(u9.id));else gDescEl.innerHTML=pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;');
   $('gCard').classList.toggle('defis',!!dfi);
   $('gCard').classList.toggle('prixSeul',!!(testOuv||(u9&&u9.p&&!dfi&&u9.k!=='premium'&&!ouverte))); /* (garage v7) le prix est sur le bouton (« IL MANQUE $ X ») et sur la vignette : l'encadré ne le redit plus — (2026-10-11, Léo : « enlève le TEST BOUTIQUE 0,99 €, c'est super dérangeant, on ne voit pas la voiture ») une caisse ouverte pour le TEST n'a plus d'encadré */
   // ÉQUIPER : verrouillé tant que la caisse n'est pas débloquée ; marqué quand c'est déjà la tienne
@@ -53757,8 +53816,9 @@ function garageFamilles(r){
     const lu9={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1}[r]||.5, // (2026-10-07, Léo) LA LUEUR de la famille : plus elle est rare, plus elle brille — les crans de l'inventaire (INV_LUEUR)
       lg9=';--rg:'+invRgba(ri.c,.22+.28*lu9)+';--rg2:'+invRgba(ri.c,.55+.4*lu9); // en rgba, pas de color-mix (les vieux iPhone, voir hudDA §7)
     st.innerHTML=(shop&&!L.length)?'<div class="gVide">'+sansAcc(TR('TOUT EST A TOI'))+'</div>':L.map(function(i){const u=CAR_UNLOCK[i],ouv=carUnlockedVrai(i);
-      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):''); // (la police pixel n'a pas de ✓ : l'icône pixel) · (2026-09-29) la caisse des MISSIONS en cours dit où on en est : « 1 / 3 »
-      return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
+      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):u&&u.k==='mis'?sansAcc(TR(m2Secrete(i)?'SECRÈTE':'MISSION')):''); // (la police pixel n'a pas de ✓ : l'icône pixel) · (2026-09-29) la caisse des MISSIONS en cours dit où on en est : « 1 / 3 »
+      const sec9=!ouv&&MISSIONS_V2&&m2Secrete(i);
+      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">'
         +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
@@ -53824,8 +53884,9 @@ function gStripModeVoitures(){
     if(!L.length)st.innerHTML='<div class="gVide">'+sansAcc(TR(m==='inv'?'RIEN ICI':'TOUT EST A TOI'))+'</div>';
     else st.innerHTML=L.map(function(i){const ri={c:m==='tous'?'#ff3ec8':'#5ee6ff'},lg9=m==='tous'?';--rg:rgba(255,62,200,.3);--rg2:rgba(255,62,200,.7)':';--rg:rgba(94,230,255,.32);--rg2:rgba(94,230,255,.72)'; // (2026-10-09, Léo : « enlève la rareté de l'inventaire ») tout dans le cyan de l'INVENTAIRE — (2026-10-10) SEE ALL ITEMS : pas de rareté non plus, le magenta de la boutique
       const u=CAR_UNLOCK[i],ouv=i===eq||carUnlockedVrai(i);
-      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
-      return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
+      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):u&&u.k==='mis'?sansAcc(TR(m2Secrete(i)?'SECRÈTE':'MISSION')):'');
+      const sec9=!ouv&&MISSIONS_V2&&m2Secrete(i);
+      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
@@ -53906,7 +53967,7 @@ setInterval(function(){try{if(!garageOn)return;const c=document.querySelector('#
   let i=-1;S.forEach(function(e,j){if(e.classList.contains('on'))i=j;});const n=(i+1)%S.length;if(i>=0){S[i].classList.remove('on');S[i].classList.add('sort');setTimeout(function(){S[i].classList.remove('sort');},500);if(P[i])P[i].classList.remove('on');}
   S[n].classList.add('on');if(P[n])P[n].classList.add('on');}catch(e){}},2600); // (2026-10-12) le défilé des offres
 function gOffresPage(){if(bqC6()){GBQ.ong='off';GBQ.rk='';if(GMODE.m!=='shop')gModeVa('shop');return;} /* (2026-10-14, charte 6) plus d'écran rose : l'onglet OFFRES */ window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
-function bqCourant(){if(GBQ.figK&&GBQ.panOn&&(GBQ.cat==='figure'))return GBQ.figK;if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
+function bqCourant(){if(GBQ.figK&&GBQ.panOn&&(GBQ.cat==='figure'))return GBQ.figK;if(GBQ.sec!=null&&GBQ.panOn&&SHOP.tab==='voiture')return 'v:'+GBQ.sec; /* (missions v2) la secrète regardée */if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   if(gEl)gEl.classList.toggle('shopJour',!GMODE.paye);
   if(GMODE.paye){gShopPaye(bar,st);return;}
@@ -54238,9 +54299,10 @@ function shopShow(cat,i){
   gNomEntre(TR(d.n));
   gLvlEl.textContent=(i+1)+' / '+L.length;gSpdEl.textContent='';
   {const pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(SHOP_LBL[cat]));pl.style.removeProperty('--rc');}} // (charte v4) la pastille dit la CATÉGORIE — la fiche garde ses trois étages
-  if(a||!d.mis)gDescEl.textContent=(d.fig&&window.FIG&&FIG.par[d.id])?figDesc(FIG.par[d.id],LANG):TR(d.d); // (2026-10-14) une FIGURE se décrit dans la langue du joueur // (2026-10-15, UNE SEULE POLICE) la fiche est en pixel : TR (majPix) retire l'accent des seuls mots en capitales
+  if(!a&&d.mis2&&MISSIONS_V2)gDescEl.innerHTML=m2DebloqueHtml(m2Def(d.mis2)); // (2026-10-16) LES MISSIONS v2 : SE DÉBLOQUE + VOIR LA MISSION
+  else if(a||!d.mis)gDescEl.textContent=(d.fig&&window.FIG&&FIG.par[d.id])?figDesc(FIG.par[d.id],LANG):TR(d.d); // (2026-10-14) une FIGURE se décrit dans la langue du joueur // (2026-10-15, UNE SEULE POLICE) la fiche est en pixel : TR (majPix) retire l'accent des seuls mots en capitales
   else gDescEl.innerHTML=defisHtml(d.mis);
-  $('gCard').classList.toggle('defis',!a&&!!d.mis);$('gCard').classList.remove('verrou');
+  $('gCard').classList.toggle('defis',!a&&!!(d.mis||d.mis2));$('gCard').classList.remove('verrou');
   const sw=$('gSw');
   if(sw){ // LE NUANCIER : la teinte (ou le dégradé) de la peinture, le ruban de la traînée
     let bg='';
@@ -54373,7 +54435,7 @@ function gStripHabits(cat,i){
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
       else if(cat==='figure'){fig=illuFig(d.id,a?rarInfo(cosmRar(cat,d)).c:'#6c6390',false,'gIc')+(S9?'<s class="fgDir">'+figPeut(d.id).map(function(k9){return '<i'+(S9[k9]===d.id?' class="on"':'')+'>'+pxi(FIG_FAM[k9][2])+'</i>';}).join('')+'</s>':'');ill=true;} // (2026-10-14) une FIGURE — (L'INVENTAIRE ILLUSTRÉ) son anneau, sa caisse, et ses directions (allumée = équipée là)
       else{fig=illuPx(illuAile(d),'gIc',!a);ill=true;} // (2026-10-14) les ailes POP ont leur pictogramme — (L'INVENTAIRE ILLUSTRÉ) celles d'origine aussi
-      const et=a?(eqd||S9?'':pxi('coche')):(d.eur?eurTxt(d.eur):d.p?fmtC(d.p):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('DÉFI'))); // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
+      const et=a?(eqd||S9?'':pxi('coche')):(d.eur?eurTxt(d.eur):d.p?fmtC(d.p):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR(MISSIONS_V2?'MISSION':'DÉFI'))); // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
@@ -56728,11 +56790,11 @@ function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).
   if(o.cat==='trainee'&&d.ico)return pxi(d.ico); // (2026-10-14) une traînée POP : son pictogramme
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
-function bqPieces(){if(!GBQ.pieces){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.p>0&&u.k!=='premium'&&!carRetiree(i))L.push(i);} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
-  GBQ.pieces=L.sort(function(a,b){return (CAR_UNLOCK[a].p-CAR_UNLOCK[b].p)||(a-b);});}return GBQ.pieces;}
+function bqPieces(){if(!GBQ.pieces){const L=[],M9=[],S9=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(u&&u.p>0&&u.k!=='premium')L.push(i);else if(MISSIONS_V2&&u&&u.k==='mis'){const m9=m2Def(u.id);(m9&&m9.f==='secret'?S9:M9).push(i);}} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
+  GBQ.pieces=L.sort(function(a,b){return (CAR_UNLOCK[a].p-CAR_UNLOCK[b].p)||(a-b);}).concat(M9,S9);}return GBQ.pieces;} /* (2026-10-16) LES MISSIONS v2 : après les caisses à pièces, celles des missions, puis les secrètes en silhouette */
 function bqPxT(v){return bqC6()?fmtC(v):fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») ; UX 8 / charte 6 gardent l'abrégé */
 function bqPxLg(t){return !bqC6()&&String(t).replace(/<[^>]*>/g,'').length>9;} /* un prix long (≥ 1 000 000) passe un corps en dessous : il tient dans sa carte */
-function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
+function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(MISSIONS_V2&&m2Secrete(i))return {t:sansAcc(TR('MISSION SECRÈTE')),c:'defi sec'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
   if(u.p)return {t:bqPxT(u.p),c:'pc'};return {t:sansAcc(TR('MISSION')),c:'defi'};}
 /* L'INTERFACE v4 (2026-10-12, Léo : « l'argent à côté de BOUTIQUE, et la boutique peut encore prendre tout cet espace ; le bouton VOITURES
    laisse choisir entre les traînées… ; sur le côté gauche qui défile, ce sont les objets hebdomadaires ») :
@@ -56783,11 +56845,11 @@ function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan)
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
 function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;}); /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
-function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);
+function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),sec9=vo&&MISSIONS_V2&&m2Secrete(i);let ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);if(sec9){ri={c:'#ff3ec8',n1:'SECRÈTE'};nom='? ? ?';} /* (2026-10-16) une SECRÈTE : ni nom, ni rareté, ni couleur */
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';}
   if(bqPxLg(px))c+=' lg';
-  return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
+  return '<div class="bqK'+(sec9?' m2sec':'')+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
     +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
     +'<span class="bqKr'+(sansAcc(TR(ri.n1)).length>8?' lg':'')+'">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';} /* (clarté 14/10) la RARETÉ s'écrit sur la carte */
 /* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
@@ -56829,6 +56891,7 @@ function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.b
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
+  if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
   if(!voulu)return;
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES — un ancien chemin qui y menait ouvre le rayon ACHAT)
   if(GBQ.ong==='off'){GBQ.ong='cat';GBQ.cat='achat';}
@@ -56851,9 +56914,13 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   const i=garageI,cur=bqCourant(),lim=false,te=document.getElementById('gBqTete'),nm=document.getElementById('gBqNom'),sk=document.getElementById('gBqSkins');
   const vu9=cur+(String(cur).indexOf('figure:')===0&&GBQ.figDir!=null?'@'+GBQ.figDir:''); // (2026-10-15) une figure à deux sens a deux cartes : la direction touchée fait partie de ce qu'on regarde (le cadre .sel suit la bonne)
   if(GBQ.vu!==vu9){GBQ.vu=vu9;let ri,nom;
-    if(cur[0]==='v'){ri=rarInfo(carRar(i));nom=TR(CARS[i].name);}else{const o=bqCos(cur);ri=rarInfo(cosmRar(o.cat,o.d));nom=o.d?TR(o.d.n):'';}
+    if(cur[0]==='v'){const iv=+cur.slice(2);if(MISSIONS_V2&&m2Secrete(iv)){ri={c:'#ff3ec8',n1:'MISSION SECRÈTE'};nom='? ? ?';}else{ri=rarInfo(carRar(iv));nom=TR(CARS[iv].name);}}else{const o=bqCos(cur);ri=rarInfo(cosmRar(o.cat,o.d));nom=o.d?TR(o.d.n):'';}
     nm.style.setProperty('--rc',ri.c);nm.classList.toggle('lim',lim);
     nm.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));nm.querySelector('.bqNom').textContent=sansAcc(String(nom));
+    if(MISSIONS_V2){let mt=nm.querySelector('.bqM2');if(!mt){mt=document.createElement('span');mt.className='bqM2';nm.appendChild(mt);} /* (2026-10-16) SE DÉBLOQUE : la mission, sa jauge — une secrète : rien (son étiquette dit déjà MISSION SECRÈTE) */
+      let h9='';if(cur[0]==='v'){const iv=+cur.slice(2),m9=m2DeCaisse(iv);if(m9&&!carUnlockedVrai(iv))h9=m9.f==='secret'?'':m2DebloqueHtml(m9,true);}
+      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);}
+      mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
 }
@@ -56874,10 +56941,11 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
    const z=GBQ.zone,w2=nm.offsetWidth/2,x=Math.max((z.g||0)+w2,Math.min((z.cote?z.x0-8:z.d)-w2,(v.x*.5+.5)*W)),y=Math.max(tr.bottom+8,(.5-v.y*.5)*H-nm.offsetHeight-8);
    nm.style.left=Math.round(x)+'px';nm.style.top=Math.round(y)+'px';}
 }
-function bqSkins(k){if(!k)return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris
+function bqSkins(k){if(!k)return [];if(k[0]==='v'&&MISSIONS_V2&&m2Secrete(+k.slice(2)))return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris
   return [{id:'original',n:'ORIGINAL',c:'linear-gradient(135deg,#fff,#d9dde3)'}];} // (2026-10-12) aucun skin n'est encore dessiné : chaque voiture, aile, traînée a son ORIGINAL
 function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai(k.slice(7),bqFigDir(k.slice(7)));try{gShopJour();}catch(e){}GBQ.ck='';return;}GBQ.figK=null; // (2026-10-14) une FIGURE : la caisse la fait sur le plateau
   // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
+  if(k[0]==='v'&&MISSIONS_V2&&m2Secrete(+k.slice(2))){GBQ.sec=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');GBQ.vu=-1;GBQ.ck='';return;}GBQ.sec=null; /* (2026-10-16) une SECRÈTE n'est jamais construite : le plateau se vide (garageRender la tait) */
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){SHOP.i[o.cat]=j; /* (2026-10-14, UX 8) la clé COURANTE se pose AU TOUCHER : le geste du bras ne pose la pièce qu'à 0,71 s, et ACHETER/ÉQUIPER agissait sur l'objet d'AVANT */ bqOutil(o.cat,'essai',o.d,function(){shopShow(o.cat,j);try{gShopJour();}catch(e){}});}} // (2026-10-13) LES BRAS D'ATELIER posent la pièce (voir bqOutil)
   try{gShopJour();}catch(e){}GBQ.ck='';}
@@ -56917,6 +56985,7 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   {const c6=bqEtatC6(k);if(c6)return c6;} // (2026-10-14, charte 6, boutique P1) OFFRES sans choix · pas assez d'argent : voir bqEtatC6
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
     if(eq)return {e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
+    if(u.k==='mis'&&MISSIONS_V2){const m9=m2Def(u.id);return m9&&m9.f==='secret'?{e:'sec',t:'MISSION SECRÈTE'}:{e:'mis',t:'VOIR LA MISSION',m:u.id};} // (2026-10-16) LES MISSIONS v2
     if(u.k==='premium')return {e:'achat',t:'ACHETER',p:eurTxt(u.eur)};if(u.p)return {e:'achat',t:'ACHETER',p:bqPxT(u.p)};return {e:'defi',t:'À GAGNER'};}
   const o=bqCos(k),d=o.d;if(!d)return null;
   if(o.cat==='figure'){if(!figPossede(d.id))return {e:'achat',t:'ACHETER',p:bqPxT(d.p)}; // (2026-10-14) une figure : on l'a, ou on l'achète
@@ -56924,6 +56993,7 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
     return figSlots()[bqFigDir(d.id)]===d.id?{e:'eq',t:'ÉQUIPÉE'}:{e:'figeq',t:'ÉQUIPER'};} // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
+  if(d.mis2&&MISSIONS_V2)return {e:'mis',t:'VOIR LA MISSION',m:d.mis2}; // (2026-10-16) LES MISSIONS v2
   if(d.eur)return {e:'achat',t:'ACHETER',p:eurTxt(d.eur)};if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
   if(s.e==='choix'||s.e==='manque'){if(bt)gSecoue(bt);uiClic('refus');return;} // (2026-10-14, charte 6) l'état se lit AVANT le toucher : ni toast, ni achat
@@ -56932,6 +57002,8 @@ function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('g
   if(s.e==='achat'){const b=$('gBuy');if(b)b.click();return;}
   if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
   if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);bqOutil(o.cat,'retire',o.d,function(){if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{gShopJour();}catch(e){}});try{hap(6);}catch(e){}return;}
+  if(s.e==='mis'){m2VaMission(s.m);return;} // (2026-10-16) VOIR LA MISSION : l'écran MISSIONS, la mission suivie
+  if(s.e==='sec'){if(bt)gSecoue(bt);uiClic('refus');return;}
   if(s.e==='defi'){if(bt)gSecoue(bt);uiClic('refus');if(k[0]==='v')toast(pxi('verrou')+' '+String(carUnlockText(+k.slice(2))).replace(/</g,'&lt;'));return;}
   try{uiClic('nav');}catch(e){}}
 /* LES FIGURES AU SHOP ET À L'INVENTAIRE (2026-10-14) — possédées : SAVE.d.figs ; achetées en pièces (la banque) ; toucher = la caisse la fait */
@@ -56969,7 +57041,7 @@ function garFigTick(dt){
   VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
   VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
-  bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
+  bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):s.e==='mis'?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
 try{Object.assign(I18N,{'CHOISIS UNE OFFRE':'PICK AN OFFER'});}catch(e){} // (2026-10-14, charte 6, boutique P1)
@@ -57423,7 +57495,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;garArgentMaj(); // (2026-10-01) les tas de billets suivent le compte (une comparaison par image)
   garPorte(dt);garFeu(dt);garBeaute(dt,t9); // (2026-09-30) la PORTE (fermée au menu, ouverte au JOUER) ; le rideau de flammes : il brûle au repos, il RUGIT pendant le lâcher
-  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true;try{garBqIndus(dt,ay,t9);}catch(e){}try{garFigTick(dt);}catch(e){} /* (essai) LA BOUTIQUE INDUSTRIELLE · (2026-10-14) la FIGURE essayée */ // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
+  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=!(GBQ.sec!=null&&GBQ.panOn&&SHOP.tab==='voiture'); /* (2026-10-16, missions v2) une SECRÈTE regardée en boutique : le plateau vide, jamais sa caisse */try{garBqIndus(dt,ay,t9);}catch(e){}try{garFigTick(dt);}catch(e){} /* (essai) LA BOUTIQUE INDUSTRIELLE · (2026-10-14) la FIGURE essayée */ // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
