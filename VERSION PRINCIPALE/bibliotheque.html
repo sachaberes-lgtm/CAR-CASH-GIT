@@ -288,6 +288,13 @@ ajoute({ id: 'dir-french-touch', sec: 'moteur', type: 'html', titre: 'MOTEUR FRE
 // (2026-10-15, Léo, dans sa note sur AURA : « incroyable, juste transformer en 30 paliers comme les autres ») — le même AURA, en direct, en 30 moteurs
 ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIERS', style: 'le même AURA, en 30 moteurs comme les musiques du générateur : chaque moteur ajoute un élément ou pousse un cran (l’AURA en 8 paliers reste à côté)', nb: 0,
   f: 'assets/audio/music/direct/aura-30.html' });
+// (2026-10-16, pôle SON ; Léo : « réécris complètement RUBIS DE NÉON, juste le nom garde-le » · « oublie le générateur, juste le système de
+// musique évolutive jusqu'à 30 ») — écrit à la main au format des morceaux à paliers (comme AURA), rangé d'office dans Pouce bleu
+ajoute({ id: 'pal-rubis-neon', sec: 'bleu', type: 'html', titre: 'RUBIS DE NÉON', style: 'réécrit à la main, sans le générateur : house de nuit rêveuse en fa mineur, SANS BASSE — piano feutré, nappe de verre fumé, chœur, cordes en tenue, harmonie qui évolue, 30 moteurs', nb: 0,
+  f: 'assets/audio/music/direct/rubis-de-neon.html' });
+// (2026-10-16, pôle SON ; Léo : « refonte complète de ASPHALTE D'ÉMERAUDE ») — réécrit à la main, comme RUBIS DE NÉON
+ajoute({ id: 'pal-asphalte', sec: 'bleu', type: 'html', titre: 'ASPHALTE D’ÉMERAUDE', style: 'réécrit à la main, sans le générateur : techno mélodique de nuit en mi mineur — la basse qui roule, la séquence d’émeraude qui s’ouvre, 30 moteurs', nb: 0,
+  f: 'assets/audio/music/direct/asphalte-emeraude.html' });
 // (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai
 // déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y ») : trois morceaux ÉCRITS, rejoués par
 // assets/audio/music/direct/musique-trente-trio.js (le générateur v6-0 figé + leurs instruments, `O.style`) ; le moteur à la main, comme Pouce bleu
@@ -644,12 +651,14 @@ const LECTEURS = {
 };
 LECTEURS.unique = LECTEURS.boucle;
 LECTEURS.genv = async S => {   // une musique 👍 du générateur, rejouée par SA version
-  const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: maitre, renouvelle: 0, da: S.da || 'cashcar' });
+  const R0 = S.v2 || S.retouche, dep = R0 && +R0.depart || 0, gc = dep ? ac.createGain() : null, depG = k => Math.pow(10, dep * (1 - Math.min(1, Math.max(0, (k - 1) / 17))) / 20);   // (16/10) le départ compensé (retouches-bleu.js, `depart`)
+  if (gc) { gc.gain.value = depG(1); gc.connect(maitre); }
+  const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: gc || maitre, renouvelle: 0, da: S.da || 'cashcar' });
   const O = {}; if (/^hyb:/.test(String(S.e && S.e.style || ''))) O.style = S.e.style;   // (15/10) la couleur de l'avis : sans elle, une musique v6 en devenait une autre
   const R9 = S.v2 || S.retouche; if (R9) { O.retouche = R9.retouche; O.voix = R9.voix; O.acc = R9.acc; }   // une V2, ou la retouche posée sur la musique elle-même
   if (S.o9) Object.assign(O, S.o9);   // (trio) Nouveaux : le morceau écrit
   inst.setTier(1, 30); inst.start(S.n, S.W || undefined, O); let cur = 1;
-  return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); } }, arret() { try { inst.stop(); } catch (e) {} }, palier: () => cur - 1,
+  return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); if (gc) gc.gain.setTargetAtTime(depG(k), ac.currentTime, .3); } }, arret() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, palier: () => cur - 1,
     info: () => inst.nomElement ? '+ ' + inst.nomElement(inst.tier) : '', inst };
 };
 // LES POUCES BLEUS (14/10, Léo : « récupère tous ceux que j'ai bien aimés, mets-les dans une nouvelle catégorie » → « seulement les
@@ -687,6 +696,22 @@ function dessineBleus() {
     if (J.S === S) { el.classList.add('joue'); el.querySelector('.play').innerHTML = STOP; }
     L.appendChild(el); });
   $('nBleu').textContent = L.children.length || 0;
+  nouveauxMarque();
+}
+/* (16/10, Léo : « j'ai enlevé les sons qui n'étaient pas top ; remplace-moi ça par trois sons qui ont le niveau de ceux qui ont été laissés ») LES
+   NOUVEAUX DE CLAUDE : tirés par le générateur avec ses goûts appris, choisis au banc d'écoute du pôle SON (parmi 24) pour avoir le profil des morceaux
+   qu'il a GARDÉS (une vraie montée avec le moteur, une harmonie qui bouge, peu de répétition) — pas celui des trois qu'il a retirés. Ils entrent dans
+   Pouce bleu comme les autres (leur 👍 dans musique-moteur.json) ; la mention « Nouveau » les signale en tête, le temps qu'il les écoute. */
+const NOUVEAUX_BLEU = {   // (16/10, Léo : « surprends-moi : de nouveaux sons, de nouveaux instruments ») — TONNERRE DELUXE gardé ; les deux SONS NEUFS (retouches-bleu.js)
+  'bleu-6104': 'GARDÉ — le seul que tu as gardé des nouveaux (nuit lo-fi en vrais instruments : piano, clarinette, contrebasse)',
+  'pal-asphalte': 'refonte complète, à la main : techno mélodique de nuit — la basse qui roule, la séquence d’émeraude qui s’ouvre moteur après moteur',
+  'pal-rubis-neon': 'réécrit à la main, sans basse : piano feutré, chœur « ou » qui s’ouvre, cordes en tenue, harmonie de nappe à 5 voix — fa mineur, 30 moteurs',
+};
+function nouveauxMarque() {
+  const L = $('gBleu'); if (!L) return; const prem = L.querySelector(':scope>.genv');
+  [...CAT, ...BLEUS.values()].filter(S => S.el && S.el.parentNode === L && NOUVEAUX_BLEU[S.id]).forEach(S => {
+    if (!S.el.querySelector('.pourquoi')) { const q = document.createElement('div'); q.className = 'pourquoi'; q.textContent = 'Nouveau · ' + NOUVEAUX_BLEU[S.id]; S.el.querySelector('.txt').appendChild(q); }
+    S.el.classList.add('nouveau'); if (prem && prem !== S.el) L.insertBefore(S.el, prem); });
 }
 
 // ================================================================ UNE LECTURE À LA FOIS (le jeton : un clic rapide sur un autre son annule celle en cours)
@@ -964,6 +989,7 @@ Promise.all([prefLit().then(inspiLit), mesuresLit()]).then(() => import(new URL(
      Bloc à part, posé après le script de la page : il ne touche ni au catalogue ni à dessine(). -->
 <style>
 .ligne.genv.v2{margin-left:18px;border-left:3px solid var(--tx3)}
+.ligne .pourquoi{margin-top:2px;font-size:12px;color:var(--tx3)}.ligne.nouveau .pourquoi{color:var(--bleu);font-weight:600}
 #onglets{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--fond) 88%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--fil)}
 #onglets{margin:18px -16px 0}
 #onglets .in{padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px}
