@@ -40983,48 +40983,57 @@ window.dbgJadeSinges=function(t){ // dbgJadeSinges() : le plan · dbgJadeSinges(
     cur:E?{type:E.type,t:+E.t.toFixed(1),s:Math.round(E.s),vu:E.o.nd.visible&&JSG.node.visible,ech:+E.o.nd.scale.x.toFixed(2),pos:E.o.nd.position.toArray().map(Math.round),caisse:carGroup.position.toArray().map(Math.round),ecran:E.o.nd.getWorldPosition(v).project(camera).toArray().map(a=>+a.toFixed(2)),dist:Math.round(E.o.nd.getWorldPosition(v).distanceTo(camera.position))}:null};
 };
 /* LES DAUPHINS DE LA MER DE JADE (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et
-   sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise »). Seulement dans la MER des PICS DE JADE
-   (là où l'on plonge et ressort) : nulle part ailleurs, et la figure LE DAUPHIN ne revient pas. Du DÉCOR : ni aura, ni collision.
-   · L'ARRIVÉE : après JDM_ATT s passées DANS l'eau (cumulées : plonger, jaillir, replonger — le compte repart quand la caisse a retrouvé la
-     route), un banc de TROIS arrive de devant en bondissant à la surface, puis s'enroule autour de la caisse.
-   · LE JEU : sous l'eau ils tournent autour d'elle à sa profondeur (chacun son rayon, son sens, sa hauteur) ; le plus proche de l'objectif
-     fait une VRILLE de temps en temps (le coucou) ; quand elle flotte ou surfe, ils bondissent à côté d'elle.
-   · LE SAUT : quand la caisse JAILLIT (jadeEauVol → jdmJailli), une fois sur deux (JDM_SAUT) le banc saute AVEC elle — même course, un élan
-     plafonné (un dauphin ne rejoint pas la route), chacun avec son petit retard ; ils retombent dans une gerbe.
-   · LE DÉPART : la caisse retrouve la route (ou part trop loin) → ils plongent ; l'eau les cache.
+   sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise » — puis, v2 : « ça pourrait être plus pro,
+   et tu pourrais même les faire apparaître avant » → au questionnaire : des BONDS NATURELS, PLUS BEAUX À L'ÉCRAN, un COUCOU PLUS CLAIR ; et
+   ils sont là AVANT, dès le premier plongeon). Seulement dans la MER des PICS DE JADE ; nulle part ailleurs, et la
+   figure LE DAUPHIN ne revient pas. Du DÉCOR : ni aura, ni collision.
+   · AVANT LE PLONGEON : la caisse tombe vers la mer (en vol, à moins de 170 m de l'eau, l'impact dans moins de 2,6 s) → le banc est déjà là,
+     sous elle, et BONDIT au-devant d'elle : on le voit en tombant. ⚠ Essayé puis retiré : un banc VU DEPUIS LA ROUTE — MESURÉ en captures, la
+     dalle cache toute la mer à la caméra de poursuite (elle est 45 à 230 m plus bas : le regard touche la route bien avant l'eau).
+   · DÈS LE PLONGEON : la caisse touche l'eau sans avoir été vue tomber → le banc arrive de devant, à sa profondeur ; il joue DEVANT elle, de part
+     et d'autre (comme à l'étrave d'un bateau — MESURÉ : en cercle autour d'elle, ils étaient derrière la caméra) ; quand elle flotte ou surfe,
+     ils bondissent ; toutes les 3,6-5 s l'un vient à la PORTIÈRE faire COUCOU : sous l'eau il tourne la tête vers l'objectif et vrille
+     lentement ; à la surface il saute à côté d'elle en vrillant (son `dauphin.banc`). Quand elle JAILLIT (jadeEauVol → jdmJailli), une fois
+     sur deux (JDM_SAUT) ils sautent AVEC elle (élan plafonné : ~10 m). Elle retrouve la route, explose ou part loin → ils plongent.
+   · LE BOND NATUREL : ÉLAN (0,3 s : il plonge un peu, la queue bat vite) → le saut (le corps épouse l'arc : `uDol.w` = la courbure de sa
+     trajectoire, la queue se relâche en l'air) → l'entrée NEZ LE PREMIER (il poursuit sa plongée un instant). Les gerbes naissent LÀ OÙ SON
+     CORPS TRAVERSE LA SURFACE, image après image (la sortie ruisselle de la queue, l'entrée éclabousse autour du nez) + une ride à chaque passage.
    Le modèle : le grand dauphin VITRAIL de creatures/dauphin.js (mkDauphin : écailles en cubes, coque, cœur — 3 programmes compilés AU MENU par
-   chauffeRendu, 0 en course), la nage dans son shader (uDol) ; l'eau le COUPE (uSurf) quand on le voit d'au-dessus sans la peau de la mer,
-   sinon on le devine sous la peau comme la caisse. Les gerbes et les bulles sont celles de la caisse (eauP, eauRide, jadeBullesJet).
-   ⚠ Leur surface est celle où FLOTTE la caisse (jadeSurfMoy : la houle calmée) — la houle en cubes du décor (jadeSurf) varie de ±20 m d'une
-   colonne à l'autre : sur elle, ils bondissaient à 30 m.
-   Console : dbgJadeDauphins() (l'état) · ('viens') tout de suite · ('saut') le prochain jaillissement est sauté avec eux · ('route') la mer
-   ramène la caisse (le départ) · ('gel') fige. */
-const JDM_ATT=5,JDM_SAUT=.5,JDM_ECH=1.6,JDM_G=16,JDM_SAUT_H=8; // attente dans l'eau (s) · chance de sauter avec la caisse · taille · gravité de leurs bonds (m/s²) · hauteur de leur saut avec la caisse (m, × la taille)
-const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],merT:0,routeT:0,on:false,part:0,t:0,vrT:2.5,force:false,salut:false,noir:-1,
-  cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),
+   chauffeRendu, 0 en course) ; les cubes FINS dès 150 px à l'écran. Les gouttes, rides, bulles = celles de la caisse (eauP, eauRide, jadeBullesJet).
+   ⚠ Dans la mer leur surface est celle où FLOTTE la caisse (jadeSurfMoy : la houle calmée — la houle en cubes `jadeSurf` varie de ±20 m d'une
+   colonne à l'autre : sur elle ils bondissaient à 30 m) ; l'eau les
+   COUPE (uSurf) quand on les regarde d'au-dessus sans la peau de la mer ; sous la peau on les devine, comme la caisse.
+   Console : dbgJadeDauphins() (l'état, où ils sont à l'écran) · ('tombe') la caisse tombe vers la mer · ('viens') · ('saut') ·
+   ('plonge') un vrai plongeon sauté avec eux · ('route') la mer ramène la caisse (le départ) · ('gel') fige. */
+const JDM_ECH=1.6,JDM_G=16,JDM_SAUT=.5,JDM_SAUT_H=8; // taille dans la mer · gravité de leurs bonds (m/s²) · chance de sauter avec la caisse · hauteur de ce saut (m, × la taille)
+const JDM_AVANT={h:170,tti:2.6}; // AVANT LE PLONGEON : à moins de h m de l'eau, l'impact dans moins de tti s
+const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],mode:null,part:0,t:0,vrT:2.5,force:false,salut:false,noir:-1,routeT:0,accT:0,cle:null,viens:false,
+  cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),Xr:new THREE.Vector3(),
   X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
 JDM.node.visible=false;scene.add(JDM.node);
 function jdmActif(){return !!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
 function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
   if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
   for(let i=0;i<3;i++){const b=DOL_BANC[i]||DOL_BANC[0],d=mkDauphin();d.visible=false;d.frustumCulled=false;JDM.node.add(d);
-    JDM.D.push({d:d,b:b,p:new THREE.Vector3(),v:new THREE.Vector3(),X:new THREE.Vector3(1,0,0),F:[11,17,23][i],L:[-6.5,6,-1.5][i],h:[0,1.8,-1.6][i],
-      ph:i*1.7,roll:i*2.3,vr:-1,vrS:1,st:'nage',up:false,bondT:.6+i*.5,sautT:-1,arr:true,saut:false,cou:0,cs:1,vrF:false,vu:false});}
+    JDM.D.push({d:d,b:b,p:new THREE.Vector3(),v:new THREE.Vector3(),X:new THREE.Vector3(1,0,0),F:[11,17,23][i],L:[-6.5,6,-1.5][i],h:[0,1.8,-1.6][i],k:JDM_ECH,
+      ph:i*1.7,roll:i*2.3,vr:-1,vrS:1,vrD:.9,st:'nage',up:false,bondT:.6+i*.5,elT:0,plT:0,hB:4,sautT:-1,sV:null,saut:false,cou:0,cs:1,vrF:false,n:0,arr:true});}
   return true;}
-function jdmCache(){for(const E of JDM.D){E.d.visible=false;E.vu=false;}JDM.node.visible=false;JDM.on=false;JDM.part=0;}
+function jdmRaz(E){E.st='nage';E.saut=false;E.cou=0;E.sautT=-1;E.vr=-1;E.up=false;E.elT=0;E.plT=0;E.n=0;E.vrF=false;}
+function jdmCache(){for(const E of JDM.D)E.d.visible=false;JDM.node.visible=false;JDM.mode=null;JDM.part=0;}
 function jdmNoirMaj(){const n=triNoir()?1:0;if(n===JDM.noir)return;JDM.noir=n; // la dark triad : noirs, liseré rouge sang (comme avant)
   DOL_U.uNoir.value=n;DOL_U.uRimA.value.setRGB(n?1:.55,n?.08:.9,n?.14:1);DOL_U.uRimB.value.setRGB(n?.75:1,n?0:.6,n?.08:.88);DOL_U.uEcC.value.setRGB(n?1:.75,n?.22:.97,n?.28:1);
   for(const E of JDM.D){E.d.material.color.setHex(n?0x0e0d12:0xffffff);if(E.d.userData.coque)E.d.userData.coque.material.color.setHex(n?0x0e0d12:0xffffff);}}
-function jdmGerbe(x,sy,z,up,k){ // un dauphin perce la surface (up) ou y retombe : une ride et des gouttes
-  try{eauPIm();eauRide(x,sy,z,.1*k);const n=(up?22:16)*k|0;
-    for(let i=0;i<n;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=.5+Math.random()*1.2*k,vo=2+Math.random()*5*k;
-      eauP(x+c*r,sy+.3,z+s*r,c*vo,(up?7:5)+Math.random()*(up?9:6)*k,s*vo,.06+Math.random()*.14,.8+Math.random()*.7,sy,(Math.random()*3)|0);}}catch(e){}}
-function jdmViens(){ // L'ARRIVÉE : devant la caisse, dans le sens de sa course, à la surface
-  const C=carGroup.position,H=JDM.H,px=-H.z,pz=H.x;JDM.on=true;JDM.part=0;JDM.t=0;JDM.vrT=1.8;JDM.salut=false;JDM.node.visible=true;
-  JDM.D.forEach(function(E,i){const lt=(i-1)*7+(Math.random()-.5)*3,av=62+i*8;E.p.set(C.x+H.x*av+px*lt,0,C.z+H.z*av+pz*lt);E.p.y=jadeSurfMoy(E.p.x,E.p.z)-2;
-    E.v.copy(JDM.cv).multiplyScalar(.2);E.v.y=0;E.st='nage';E.arr=true;E.saut=false;E.cou=0;E.bondT=.15+i*.3;E.sautT=-1;E.vr=-1;E.up=false;});}
+function jdmGerbe(x,sy,z,up,k,s9){ // un dauphin perce la surface (up : la sortie) ou y rentre : une ride, et une couronne de gouttes (à la taille du dauphin)
+  try{eauPIm();eauRide(x,sy,z,(up?.1:.16)*s9);const n=(up?14:24)*Math.min(2.2,s9*k)|0;
+    for(let i=0;i<n;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=(.3+Math.random()*.9)*s9,vo=(1.5+Math.random()*4)*Math.sqrt(s9);
+      eauP(x+c*r,sy+.2,z+s*r,c*vo,((up?5:7)+Math.random()*(up?6:9))*Math.sqrt(s9),s*vo,(.06+Math.random()*.15)*s9,.7+Math.random()*.7,sy,(Math.random()*3)|0);}}catch(e){}}
+function jdmViens(tti){ // le banc arrive : devant la caisse, à sa profondeur — ou, quand elle TOMBE encore (tti : l'impact dans tti s), à mi-chemin de son point d'impact (MESURÉ : sur l'impact, ils étaient à 170 m — minuscules), et il bondit au-devant d'elle (×1,8 : il reprend sa taille sous l'eau)
+  const C=carGroup.position,H=JDM.H,px=-H.z,pz=H.x,ix=tti?C.x+JDM.cv.x*tti*.55:C.x,iz=tti?C.z+JDM.cv.z*tti*.55:C.z;JDM.mode='mer';JDM.part=0;JDM.t=0;JDM.vrT=tti?tti+1.6:1.6;JDM.salut=false;JDM.node.visible=true;
+  JDM.D.forEach(function(E,i){const lt=(i-1)*(tti?9:6)+(Math.random()-.5)*2,av=tti?8+i*7:30+i*6;jdmRaz(E);E.arr=true;E.k=JDM_ECH*E.b.scale*(tti?1.8:1);E.bondT=tti?.05+i*.3:.5+i*.35;
+    E.p.set(ix+H.x*av+px*lt,0,iz+H.z*av+pz*lt);const sy=jadeSurfMoy(E.p.x,E.p.z);E.p.y=tti?sy-2.5:Math.min(C.y-1+(i-1)*1.5,sy-2);E.v.copy(JDM.cv).multiplyScalar(.3);E.v.y=0;});
+  if(tti)try{if(SONV2)sfx('dauphin.banc',{vol:-4});}catch(e){}}
 function jdmJailli(vx,vy,vz){ // appelée par jadeEauVol au JAILLISSEMENT : la vitesse de la caisse (m/s du monde)
-  if(!JDM.on||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
+  if(JDM.mode!=='mer'||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
   JDM.D.forEach(function(E,i){E.sautT=.05+i*.13+Math.random()*.06;E.sV=[vx,vy,vz];});}
 function jdmTick(dt){
   if(!JDM.pret){if(!jdmFabrique())return;JDM.pret=true;return;}
@@ -41034,68 +41043,84 @@ function jdmTick(dt){
   const C=carGroup.position;
   if(dt>0){JDM.v1.subVectors(C,JDM.c0).multiplyScalar(1/dt);if(JDM.v1.lengthSq()<9e6)JDM.cv.lerp(JDM.v1,Math.min(1,dt*6));}JDM.c0.copy(C);
   {const h=Math.hypot(JDM.cv.x,JDM.cv.z);if(h>3)JDM.H.set(JDM.cv.x/h,0,JDM.cv.z/h);}
-  if(!jdmActif()){if(JDM.on||JDM.node.visible)jdmCache();JDM.merT=0;return;}
-  // le TEMPS DANS L'EAU : cumulé dans l'eau, remis à zéro quand la caisse a retrouvé la route
-  if(mode==='drive'){JDM.routeT+=dt;if(JDM.routeT>.6)JDM.merT=0;}else JDM.routeT=0;
-  if(JEAU.dans||JSOUS.sous)JDM.merT+=dt;
-  if(!JDM.on&&(JDM.merT>=JDM_ATT||JDM.viens)&&mode==='fall'){JDM.viens=false;jdmViens();}
-  if(!JDM.on)return;
+  if(!jdmActif()){if(JDM.mode||JDM.node.visible)jdmCache();JDM.cle=null;return;}
+  if(JDM.cle!==runStats){JDM.cle=runStats;jdmCache();} // une nouvelle partie
+  if(mode==='drive')JDM.routeT+=dt;else JDM.routeT=0;
+  if(!JDM.mode&&mode==='fall'&&(JEAU.dans||JDM.viens)){JDM.viens=false;jdmViens(0);} // DÈS LE PLONGEON
+  if(!JDM.mode&&mode==='fall'&&!JEAU.dans&&JDM.cv.y<-3){const h=C.y-jadeSurfMoy(C.x,C.z),tti=h/Math.max(3,-JDM.cv.y); // AVANT LE PLONGEON : elle tombe vers la mer
+    if(h>4&&h<JDM_AVANT.h&&tti<JDM_AVANT.tti){JDM.accT+=dt;if(JDM.accT>.25)jdmViens(tti);}else JDM.accT=0;}else JDM.accT=0;
+  if(!JDM.mode)return;
   JDM.t+=dt;
-  if(!JDM.part&&(JDM.routeT>.6||mode==='boom'||JDM.D[0].p.distanceToSquared(C)>260*260))JDM.part=.01; // LE DÉPART
+  if(!JDM.part&&(mode==='boom'||JDM.routeT>.6||JDM.D[0].p.distanceToSquared(C)>260*260))JDM.part=.01; // LE DÉPART : elle a retrouvé la route (ou s'est posée sur une autre), elle explose, elle est loin
   if(JDM.part){JDM.part+=dt;if(JDM.part>2.6){jdmCache();return;}}
   jdmNoirMaj();
   const H=JDM.H,px=-H.z,pz=H.x,cvh=Math.hypot(JDM.cv.x,JDM.cv.z),syC=jadeSurfMoy(C.x,C.z),pres=Math.abs(C.y-syC)<3.5&&mode==='fall',
     sousCam=JSOUS.uK>.5,cam=camera.position,tanH=Math.tan(camera.fov*Math.PI/360),gW=JDM_G;
-  DOL_U.uLum.value.set(0,1,0);camera.getWorldDirection(JDM.v2);DOL_U.uLum.value.addScaledVector(JDM.v2,-.4).normalize();DOL_U.uEcume.value=.2*JDM_ECH;
-  // LE COUCOU : l'un d'eux recule jusqu'à la portière, fait sa VRILLE (le ventre au soleil) et repart devant
-  JDM.vrT-=dt;if(JDM.vrT<=0&&!JDM.part){const L9=JDM.D.filter(function(E){return !(E.cou>0)&&!E.arr&&!E.saut;});
-    if(L9.length){const E=L9[(Math.random()*L9.length)|0];E.cou=2.2;E.vrF=false;E.cs=E.L?Math.sign(E.L):(Math.random()<.5?-1:1);JDM.vrT=3.2+Math.random()*2;
-      if(!JDM.salut){JDM.salut=true;try{if(SONV2)sfx('dauphin.banc');}catch(e){}}}else JDM.vrT=.5;}
-  for(let i=0;i<JDM.D.length;i++){const E=JDM.D[i],p=E.p,v=E.v,sy=jadeSurfMoy(p.x,p.z),k=JDM_ECH*E.b.scale,sc=JDM_ECH/1.5;
+  DOL_U.uLum.value.set(0,1,0);camera.getWorldDirection(JDM.v2);DOL_U.uLum.value.addScaledVector(JDM.v2,-.4).normalize();DOL_U.uEcume.value=.32;
+  // LE COUCOU : l'un d'eux vient à la portière (la caméra est derrière la caisse : on le voit de côté)
+  {JDM.vrT-=dt;if(JDM.vrT<=0&&!JDM.part){const L9=JDM.D.filter(function(E){return !(E.cou>0)&&!E.arr&&!E.saut&&E.st==='nage';});
+    if(L9.length){const E=L9[(Math.random()*L9.length)|0];E.cou=2.6;E.vrF=false;E.cs=E.L?Math.sign(E.L):(Math.random()<.5?-1:1);JDM.vrT=3.6+Math.random()*1.4;
+      try{if(SONV2)sfx('dauphin.banc',{vol:JDM.salut?-5:0});}catch(e){}JDM.salut=true;}else JDM.vrT=.5;}}
+  for(let i=0;i<JDM.D.length;i++){const E=JDM.D[i],p=E.p,v=E.v,sy=jadeSurfMoy(p.x,p.z),s9=E.k/1.6,sc=JDM_ECH/1.5;
+    if(Math.abs(E.k-JDM_ECH*E.b.scale)>.01&&E.st==='nage'&&p.y<sy-.8*E.k)E.k+=(JDM_ECH*E.b.scale-E.k)*Math.min(1,dt*1.5); // le banc de l'accueil (×1,8) reprend sa taille sous l'eau, jamais à la vue
     if(E.sautT>=0){E.sautT-=dt;if(E.sautT<0){ // LE SAUT AVEC LA CAISSE : un élan plafonné (il ne rejoint pas la route), sa course à elle
-      const dep=Math.min(5,Math.max(0,sy-p.y));v.y=Math.min(Math.max(E.sV[1],8),Math.sqrt(2*gW*(JDM_SAUT_H*k+dep)));v.x=E.sV[0]*.95;v.z=E.sV[2]*.95;E.st='bond';E.saut=true;E.arr=false;}}
-    // OÙ IL VA (LA FORMATION, comme à l'étrave d'un bateau) : devant la caisse, de part et d'autre, dans le champ de la caméra — ou, au COUCOU, contre sa portière
-    let f9,l9;
-    if(E.cou>0){E.cou-=dt;f9=1.5*sc;l9=E.cs*4.6*sc;if(E.vr<0&&E.cou<1.2&&!E.vrF){E.vr=0;E.vrS=E.cs;E.vrF=true;}}
-    else{f9=(E.F+3*Math.sin(JDM.t*.7+i*2))*sc;l9=(E.L+2.5*Math.sin(JDM.t*.9+i*1.3))*sc;}
-    if(E.saut){f9=(i-1)*3*sc;l9=(i===1?-1:1)*(5+i)*sc;} // en l'air avec elle : à ses côtés
-    const tx=C.x+H.x*f9+px*l9,tz=C.z+H.z*f9+pz*l9,dx=tx-p.x,dz=tz-p.z,dd=Math.hypot(dx,dz);if(E.arr&&dd<22)E.arr=false;
-    {const kp=E.arr?.35:(E.saut?1.2:2.2),dvx=JDM.cv.x*(E.arr?.25:1)+dx*kp,dvz=JDM.cv.z*(E.arr?.25:1)+dz*kp,e=Math.min(1,dt*(E.arr?2:4));
-      v.x+=(dvx-v.x)*e;v.z+=(dvz-v.z)*e;const vh=Math.hypot(v.x,v.z),vmax=Math.max(26,cvh*1.4+16);if(vh>vmax){v.x*=vmax/vh;v.z*=vmax/vh;}}
+      const dep=Math.min(5,Math.max(0,sy-p.y));v.y=Math.min(Math.max(E.sV[1],8),Math.sqrt(2*gW*(JDM_SAUT_H*E.k+dep)));v.x=E.sV[0]*.95;v.z=E.sV[2]*.95;E.st='bond';E.saut=true;E.arr=false;}}
+    // OÙ IL VA
+    let tx,tz,ty,kp,bvx,bvz,saute=false,hB=0,cloche=0;
+    {let f9,l9;
+      if(E.cou>0){E.cou-=dt;const ph=2.6-E.cou;f9=.6*sc;l9=E.cs*3.9*sc;cloche=Math.max(0,Math.sin(Math.PI*Math.min(1,Math.max(0,(ph-.8)/1.7))));
+        if(ph>1&&!E.vrF){E.vrF=true;E.vr=0;E.vrS=E.cs;if(pres&&E.st==='nage'){E.st='elan';E.elT=.25;E.hB=3.2*E.k;E.bondT=1.6;E.vrD=1.05;}else E.vrD=1.25;}} // à la surface il saute en vrillant ; sous l'eau il vrille lentement en nous regardant
+      else{f9=(E.F+3*Math.sin(JDM.t*.7+i*2))*sc;l9=(E.L+2.5*Math.sin(JDM.t*.9+i*1.3))*sc;}
+      if(E.saut){f9=(i-1)*3*sc;l9=(i===1?-1:1)*(5+i)*sc;} // en l'air avec elle : à ses côtés
+      tx=C.x+H.x*f9+px*l9;tz=C.z+H.z*f9+pz*l9;if(E.arr&&Math.hypot(tx-p.x,tz-p.z)<22)E.arr=false;
+      kp=E.arr?.35:(E.saut?1.2:2.2);bvx=JDM.cv.x*(E.arr?.25:1);bvz=JDM.cv.z*(E.arr?.25:1);
+      ty=Math.min(C.y+E.h*.6+1.1*Math.sin(JDM.t*1.1+i*2),sy-1.6);if(C.y>syC+3)ty=sy-2.2;
+      saute=E.arr||pres;hB=(2.4+1.6*Math.random())*E.k;}
+    {const e=Math.min(1,dt*(E.arr?2:4)),dx=tx-p.x,dz=tz-p.z;v.x+=(bvx+dx*kp-v.x)*e;v.z+=(bvz+dz*kp-v.z)*e;
+      const vh=Math.hypot(v.x,v.z),vmax=Math.max(26,cvh*1.4+16);if(vh>vmax){v.x*=vmax/vh;v.z*=vmax/vh;}}
+    // LE BOND NATUREL : l'élan (il plonge un peu, la queue bat vite) → le saut → l'entrée nez le premier
     if(JDM.part){v.y+=(-9-v.y)*Math.min(1,dt*2);E.st='nage';E.saut=false;} // ils plongent et s'en vont
-    else if(E.st==='bond'){v.y-=gW*dt;if(p.y<sy-1.4&&v.y<0){E.st='nage';E.saut=false;}} // en l'air : la chute, rien d'autre
-    else{ // SOUS L'EAU : à la profondeur de la caisse, jamais au-dessus de la surface ; elle vole haut → ils l'attendent sous la surface
-      let ty=Math.min(C.y+E.h*.6+1.1*Math.sin(JDM.t*1.1+i*2),sy-1.6);if(C.y>syC+3)ty=sy-2.2;
-      v.y+=((ty-p.y)*2.5-v.y)*Math.min(1,dt*4);
-      E.bondT-=dt;if(E.bondT<=0&&p.y>sy-3.5&&(E.arr||pres||E.cou>0)){E.st='bond';v.y=Math.sqrt(2*gW*(E.arr?3.4:2.6+Math.random()*1.8)*k);E.bondT=E.arr?.9+Math.random()*.3:1+Math.random()*1.2;} // LES BONDS : en arrivant, et quand la caisse flotte ou surfe
-      else if(E.bondT<=0)E.bondT=.4;}
+    else if(E.st==='bond'){v.y-=gW*dt;if(p.y<sy-.35*E.k&&v.y<0){E.st='nage';E.plT=.5;E.saut=false;}}
+    else if(E.st==='elan'){E.elT-=dt;v.y+=((sy-1.7*E.k-p.y)*3-v.y)*Math.min(1,dt*5);
+      if(E.elT<=0){E.st='bond';v.y=Math.sqrt(2*gW*(E.hB+Math.max(0,sy-p.y)));}}
+    else{v.y+=((ty-p.y)*2.5-v.y)*Math.min(1,dt*(E.plT>0?1.1:4));if(E.plT>0)E.plT-=dt;
+      E.bondT-=dt;if(E.bondT<=0&&saute&&p.y>sy-4*E.k){E.st='elan';E.elT=.3;E.hB=hB;E.bondT=E.arr?.9+Math.random()*.4:1.1+Math.random()*1.1;}
+      else if(E.bondT<=0)E.bondT=.3;}
     p.addScaledVector(v,dt);
     if(p.y<sy-60)p.y=sy-60;
-    const up=p.y>sy;if(up!==E.up){E.up=up;if(Math.abs(v.y)>2&&p.distanceToSquared(cam)<220*220)jdmGerbe(p.x,sy,p.z,up,Math.min(1.3,.5+Math.abs(v.y)/25));}
-    if(!up&&JSOUS.sous&&Math.random()<dt*5)try{jadeBullesJet(p,1,.6*k);}catch(e){}
-    // LA POSE : le nez suit sa course, le dos vers le ciel, un léger roulis — et la vrille du coucou
+    // LA POSE : le nez suit sa course (au coucou, la tête se tourne vers l'objectif), le dos vers le ciel, un léger roulis — et la vrille
     const d=E.d,vl=v.length();if(vl>1)E.X.copy(v).multiplyScalar(1/vl);
-    const X=E.X,Y=JDM.Y.crossVectors(X,JDM.UP);if(Y.lengthSq()<1e-4)Y.set(0,0,1);Y.normalize();const Zb=JDM.Z.copy(Y);Y.crossVectors(Zb,X);
+    const X=JDM.Xr.copy(E.X);if(cloche>0&&E.st!=='bond'){JDM.v3.subVectors(cam,p).normalize();X.lerp(JDM.v3,.45*cloche).normalize();}
+    const Y=JDM.Y.crossVectors(X,JDM.UP);if(Y.lengthSq()<1e-4)Y.set(0,0,1);Y.normalize();const Zb=JDM.Z.copy(Y);Y.crossVectors(Zb,X);
     JDM.m.makeBasis(X,Y,Zb);d.quaternion.setFromRotationMatrix(JDM.m);
-    E.roll+=dt*1.3;let rv=Math.sin(E.roll)*.12;if(E.vr>=0){E.vr+=dt/.9;if(E.vr>=1)E.vr=-1;else rv+=E.vrS*6.2832*THREE.MathUtils.smoothstep(E.vr,0,1);}
+    E.roll+=dt*1.3;let rv=Math.sin(E.roll)*(E.st==='bond'?.22:.12);if(E.vr>=0){E.vr+=dt/E.vrD;if(E.vr>=1)E.vr=-1;else rv+=E.vrS*6.2832*THREE.MathUtils.smoothstep(E.vr,0,1);}
     d.quaternion.multiply(JDM.q.setFromAxisAngle(JDM.AX,rv));
-    d.position.copy(p);d.scale.setScalar(k);d.updateMatrixWorld(true);
-    const dc=Math.sqrt(p.distanceToSquared(cam))+.01,px9=DOL_L*k/dc*VP.h/(2*tanH),g9=px9>260?DOL_GEO:DOL_GEO_L;if(d.geometry!==g9)d.geometry=g9;
-    if(!d.visible){d.visible=true;E.vu=true;}
-    const hors=E.st==='bond'?Math.max(0,Math.min(1,(p.y-sy)/(3*k))):0;E.ph+=dt*(7.5+Math.min(8,vl/8));
-    const mu=d.material.userData;mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),E.ph,2.3,E.st==='bond'?.05:0);
+    d.position.copy(p);d.scale.setScalar(E.k);d.updateMatrixWorld(true);
+    const dc=Math.sqrt(p.distanceToSquared(cam))+.01,px9=DOL_L*E.k/dc*VP.h/(2*tanH),g9=px9>150?DOL_GEO:DOL_GEO_L;if(d.geometry!==g9)d.geometry=g9; // (v2) les cubes FINS dès 150 px
+    if(!d.visible)d.visible=true;
+    // la NAGE dans le shader : la queue bat vite à l'élan, se relâche en l'air ; le corps épouse la courbure de l'arc
+    const vh9=Math.hypot(v.x,v.z),kap=E.st==='bond'?gW*vh9*vh9/Math.pow(Math.max(2,vl),3):0;
+    E.ph+=dt*(E.st==='elan'?15:E.st==='bond'?3.5:7.5+Math.min(8,vl/8));
+    const mu=d.material.userData;mu.uDol.value.set(E.st==='elan'?.42:E.st==='bond'?.07:.24,E.ph,2.3,Math.min(.1,kap*E.k*.5));
     if(sousCam)mu.uSurf.value.set(0,1,0,-1e9);else mu.uSurf.value.set(0,1,0,sy); // sous la peau de la mer on le devine ; sans elle, l'eau le coupe
+    // L'EAU : une ride et une couronne à chaque passage ; et les gouttes LÀ OÙ SON CORPS TRAVERSE LA SURFACE, image après image
+    const up=p.y>sy,prox=p.distanceToSquared(cam)<420*420;
+    if(up!==E.up){E.up=up;if(Math.abs(v.y)>2&&prox)jdmGerbe(p.x,sy,p.z,up,Math.min(1.3,.5+Math.abs(v.y)/25),s9);}
+    if(prox&&Math.abs(X.y)>.12){const t9=(sy-p.y)/X.y;if(Math.abs(t9)<DOL_L*.5*E.k&&Math.random()<dt*42)try{eauPIm();const qx=p.x+X.x*t9,qz=p.z+X.z*t9;
+      for(let n=0;n<2;n++)eauP(qx+(Math.random()-.5)*.6*s9,sy+.15,qz+(Math.random()-.5)*.6*s9,v.x*.22+(Math.random()-.5)*3*s9,(3+Math.random()*6)*Math.sqrt(s9),v.z*.22+(Math.random()-.5)*3*s9,(.07+Math.random()*.16)*s9,.6+Math.random()*.6,sy,(Math.random()*3)|0);}catch(e){}}
+    if(!up&&JSOUS.sous&&E.plT>0&&Math.random()<dt*22)try{jadeBullesJet(p,2,.5*s9);}catch(e){} // l'entrée sous l'eau : une traînée de bulles
   }
 }
-window.dbgJadeDauphins=function(t){ // dbgJadeDauphins() : l'état · ('viens') · ('saut') · ('plonge') · ('route') · ('gel')
+window.dbgJadeDauphins=function(t){ // dbgJadeDauphins() : l'état · ('tombe') · ('viens') · ('saut') · ('plonge') · ('route') · ('gel')
   if(t==='gel'){paused=!paused;return paused;}
+  if(t==='tombe'){if(!jdmActif())return 'il faut rouler au SOLEIL DE JADE';jdmCache();JEAU.dans=false;JEAU.cd=0;dbgEau({h:110,vy:-30});return 'elle tombe vers la mer : le banc l\'attend';} // (banc) avant le plongeon
   if(t==='viens'){if(!jdmActif())return 'il faut rouler au SOLEIL DE JADE';if(mode!=='fall')return 'il faut être dans la mer (dbgEau({h:30,vy:-40}))';JDM.viens=true;return 'ils arrivent';}
   if(t==='saut'){JDM.force=true;return 'le prochain jaillissement est sauté avec eux';}
   if(t==='plonge'){if(!jdmActif()||mode!=='fall')return 'pas dans la mer';JEAU.dans=false;JEAU.cd=0;JDM.force=true;dbgEau({h:40,vy:-120});return 'un vrai plongeon, et ils sautent avec elle à la sortie';} // (banc) le saut avec la caisse
   if(t==='route'){if(!jdmActif()||mode!=='fall')return 'pas dans la mer';jadeEauRamene();return 'la mer la ramène sur la route';} // (banc) le départ du banc
   const C=carGroup.position;
-  return {pret:JDM.pret,chaud:JDM.chaud,actif:jdmActif(),on:JDM.on,part:+JDM.part.toFixed(2),merT:+JDM.merT.toFixed(2),attente:JDM_ATT,
-    D:JDM.D.map(function(E){const q=E.p.clone().project(camera);return {st:E.st,vu:E.d.visible,dist:+E.p.distanceTo(C).toFixed(1),sousSurf:+(jadeSurfMoy(E.p.x,E.p.z)-E.p.y).toFixed(1),arr:E.arr,cou:+E.cou.toFixed(1),vr:+E.vr.toFixed(2),
+  return {pret:JDM.pret,chaud:JDM.chaud,actif:jdmActif(),mode:JDM.mode,part:+JDM.part.toFixed(2),t:+JDM.t.toFixed(1),
+    D:JDM.D.map(function(E){const q=E.p.clone().project(camera),sy=jadeSurfMoy(E.p.x,E.p.z);return {st:E.st,vu:E.d.visible,k:+E.k.toFixed(2),n:E.n,dist:+E.p.distanceTo(C).toFixed(1),sousSurf:+(sy-E.p.y).toFixed(1),arr:E.arr,cou:+E.cou.toFixed(1),vr:+E.vr.toFixed(2),
       ecran:q.z<1&&Math.abs(q.x)<1&&Math.abs(q.y)<1?[+q.x.toFixed(2),+q.y.toFixed(2)]:null};})};
 };
 /* ============================================================================
