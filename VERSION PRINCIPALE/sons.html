@@ -74,9 +74,9 @@ $('vol').oninput=function(){if(MASTER)MASTER.gain.value=+this.value/100;};
 setInterval(function(){const e=CCSON.etat();$('etat').textContent=AC?('décodés '+e.decodes+'/'+e.total+' · tonalité '+(e.ton>0?'+':'')+e.ton):'son éteint';},300);
 function joue(id,o){allume();return CCSON.play(id,o||{});}
 // ---- la liste, par famille ----
-const L=CCSON.liste(),NOMS={interface:'Interface',argent:'Argent',figures:'Vol et figures',pose:'La pose',aura:'Aura',flow:'Flow · triade · frénésie',machine:'Machine · nitro · pouvoirs',piste:'La piste',fruits:'Fruits',mort:'La mort',campagne:'Campagne · rivaux · espace'};
+const L=CCSON.liste(),NOMS={interface:'Interface',argent:'Argent',figures:'Vol et figures',ailes:'Les gestes des ailes',pose:'La pose',aura:'Aura',flow:'Flow · triade · frénésie',machine:'Machine · nitro · pouvoirs',piste:'La piste',fruits:'Fruits',mort:'La mort',campagne:'Campagne · rivaux · espace'};
 const racine=$('liste');
-for(const fam of ['interface','argent','figures','pose','aura','flow','machine','piste','fruits','mort','campagne']){
+for(const fam of ['interface','argent','figures','ailes','pose','aura','flow','machine','piste','fruits','mort','campagne']){
   if(!L[fam])continue;
   const h=document.createElement('div');h.className='fam';h.textContent=(NOMS[fam]||fam)+' ('+L[fam].length+')';racine.appendChild(h);
   const g=document.createElement('div');g.className='grille';racine.appendChild(g);
@@ -104,6 +104,7 @@ const SC=[
   ['Les six fruits',function(){suite([[0,'fruit.myrtille'],[.4,'fruit.banane'],[.4,'fruit.orange'],[.4,'fruit.peche'],[.4,'fruit.grenade'],[.5,'fruit.pasteque'],[.2,'nitro.plein']]);}],
   ['Menu : naviguer, se tromper, acheter, équiper',function(){suite([[0,'ui.appui'],[.06,'ui.tap'],[.1,'ui.volet'],[.25,'ui.voletSort'],[.5,'ui.appui'],[.06,'ui.nav'],[.4,'garage.bascule'],[1.1,'ui.appui'],[.06,'ui.refus'],[.6,'ui.appui'],[.06,'ui.achat'],[1.2,'ui.appui'],[.06,'ui.equipe'],[.7,'ui.appui'],[.06,'ui.retour']]);}],
   ['Écran de mort : enseigne, montant qui s\'égrène, record',function(){const p=[[0,'explosion'],[1.8,'mort.enseigne']];for(let k=0;k<9;k++)p.push([k?.08:.3,'ui.compte',{st:pd(k)}]);p.push([.05,'mort.compteFin'],[.2,'ui.record']);suite(p);}],
+  ['Les ailes en vol (2026-10-16) : le pigeon sort les ailes, trois coups du dragon (le 3e au boost), les ailes en X s\'ouvrent au boost puis se referment',function(){suite([[0,'ailes.pigeon'],[1.2,'ailes.dragon',{vol:-1}],[1.25,'ailes.dragon',{vol:-1}],[1.15,'ailes.xwing'],[.05,'ailes.dragon',{vol:3}],[1.6,'ailes.xwingFerme']]);}],
   ['Départ : lâcher du garage → logo → 3-2-1 GO',function(){suite([[0,'garage.lacher'],[1.8,'depart.logo'],[1.4,'ui.bip'],[.3,'ui.bip'],[.3,'ui.bip'],[.3,'ui.go']]);}]
 ];
 for(const [nom,f] of SC){const b=document.createElement('button');b.textContent=nom;b.onclick=function(){allume();f();};$('scen').appendChild(b);}

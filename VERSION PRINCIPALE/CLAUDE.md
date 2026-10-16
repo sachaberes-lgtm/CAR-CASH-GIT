@@ -133,6 +133,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
+  LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
+  (`VILLE_NUIT_V`, `VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
 - **Ciel et décor** : `BIOMES`/`bioApply` (le SEUL écrivain des lumières), `skyDome`, `CIEL2`, `COTON`/`CLOUDS`/`buildClouds`/
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
@@ -144,7 +146,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `figAchat`/`figPossede`, la photo-séquence d'une carte FIGURES `figFile`/`figPhoto` (studio commun `photoStudio`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
-  `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, missions `CARNETS`/`misTick`.
+  `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend`/`MISSIONS_V2` (sauvegarde `SAVE.d.m2` ;
+  l'ancien système des carnets `CARNETS`/`misTick`, coupé : `?missions=v1`).
 - **HUD** : `#hud`, `hudColonne`, `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (jauge d'aura),
   `VOLG` (les gains qui volent vers leur jauge), `airPieDraw`, `#tNitro`, pause `#tGear`/`#tPanel`/`panSync`, `HAS_D`/`hasMaj`.
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
@@ -152,7 +155,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
-  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose`),
+  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose` ; leurs SONS `ailSon` → `ailes.*`, en vol seulement),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
   moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`) et son jet propulsé (`NFEU_JET`), hors nitro le
   même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
@@ -161,6 +164,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
   Le son de la NITRO : LE FEU QUI RUGIT (16/10) — `RUG`/`rugTampons`/`rugPas`/`rugAllume`/`rugPetarade`, `RUG_NIV`, `dbgRug()` ; `?nitroson=ancien` = avant.
+  Le CRISSEMENT de la course : LA GOMME DOUCE (16/10) — `GOM`/`gomBatit`/`gomPas`, `GOM_NIV`, `dbgGomme()` ; `?crisse=ancien` = avant (l'ancien `skidG` reste au burn-out).
 - **Musique** : `MUSIC`/`MUSIC_LOBBY`, `musicTick`, `musicJoue`, `playMusic`, `musicLieuVoulu`, `MUS_TAIT`, `DEPMUS`,
   `JMUS_NIV` (GLISSE V2 : `assets/audio/music/musique-glisse-v2.js`), `INSTRU` (coupé).
 - **Sauvegarde** : `SAVE` (clé localStorage `cashcarSave`, `def()`, `san()`, `flush()`, `mark()`, `export()`/`import()`),
@@ -198,6 +202,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
+- LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
+  JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit. `?sans=villenuit` rend l'ancienne.
 - Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
   vit sur la branche `garde/carriere`. Les missions restent.
 - Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
@@ -315,8 +321,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 **Ajouter un habillage** (le 14/10 : « LES HABILLAGES POP » au journal)
 - Une ligne dans `COSM.peinture` / `COSM.aile` / `COSM.trainee` : `id` (2 à 12 lettres a-z, sinon `san()` perd l'achat), `n`, `d`,
-  `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU `mis:n` = gagné
-  au carnet n (une ligne dans `CARNETS` dont `r` le donne, et `pk` = son prix sur Poki), `r` = la rareté écrite ; `n` et `d` dans `I18N`.
+  `p` = prix sur la grille (commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k) OU gagné par
+  une MISSION v2 : une ligne dans `M2` dont `r:{cat,id}` le donne (le patch pose `mis2` et retire le prix ; l'ancien `mis:n` = un carnet, v1),
+  `r` = la rareté écrite ; `n` et `d` dans `I18N`.
 - Peinture : `c` (couleur) et `g:'s'|'c'|'o'|'g'|'k'|'n'` (satiné, chrome, or, laqué noir, métallisé, nacre), ou `grad:[bas,milieu,haut]`,
   ou `mot:'<id>'` (un MOTIF : sa toile dans `MOTIFS`). Depuis le 16/10, ni `p` ni `r` : la rareté et le prix EN EUROS se déduisent
   (`peintRegle`, `PEINT_EUR`) — couleur pleine = commune 1 € · dégradé ou or = rare 3 € · motif = épique 5 € (achat : `habPaye`).
@@ -439,6 +446,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE FLOW v2 » (28/09) · « LA TRIADE v5 » et « LA TRIADE SIMPLIFIÉE » (28/09) · « LA FRÉNÉSIE ×3 » (29/09)
 
 **Niveaux et maps**
+- « LA VILLE TOUJOURS LA NUIT — QUATRE TEINTES, QUATRE TEMPS » (16/10) — plus de ville de jour ; violet/vert/jaune/bleu, le brouillard, le remappage sélectif
 - « LE GLACIER — LA FACE EN LACETS QUI SE SUPERPOSENT » (14/10 soir) — ex-banquise : spirales ovales superposées, raccourcis par le bord aval
 - « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (14/10) — la route qui dévale, la poudreuse qui porte et qui avale, la glisse sur les lacs gelés et les pics, les aurores
 - « LE ROYAUME DE FEU — LA MAP DU VOLCAN » (14/10) — le flanc qui descend, les lacs et les coulées de lave, les éruptions, les six temps
@@ -450,6 +458,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 **Caisses, boutique, habillages**
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
+- « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
 - « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
@@ -463,6 +472,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE SILLAGE DE NITRO v5 » (29/09) · « LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR » (01/10) · « LA PLUIE DE RICHESSE » (08/10)
 
 **Garage, menus, écrans**
+- « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)
@@ -474,6 +484,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 
 **Son et musique**
+- « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
 - « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
