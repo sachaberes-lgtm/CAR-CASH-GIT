@@ -156,6 +156,17 @@ Livré par étapes (chacune vérifiée, commitée, poussée). Cette section gran
 - Vérifié au banc (muet) : boutique debout 390 × 844 et couché 844 × 390 — LA DOLORÈS (mission), LE CORBILLARD (secrète : plateau vide),
   PHÉNIX (aile de mission), VOIR LA MISSION → l'écran MISSIONS, la mission suivie en tête ; fumée commune OK (défaut v2) ; `?missions=v1`
   rend l'écran des carnets à l'identique. 0 erreur.
+**ÉTAPE 4 — LA RÉVÉLATION D'UNE SECRÈTE** (`#m2Rev`, `m2Revele`, `m2RevFerme`, la file `m2RevFile` / `m2RevAuto`)
+- Par-dessus tout : la nuit et ses rayons (à la couleur de la rareté) ; MISSION SECRÈTE ; la caisse en SILHOUETTE NOIRE (sa photo de studio,
+  `carPhoto`, en `brightness(0)` ourlée de magenta) ; à 0,7 s la COULEUR la remplit de bas en haut sous une ligne de lumière (`clip-path`, 1,4 s,
+  `ui.debloque` + vibration) ; à 2 s son NOM tombe (gerbe de pixels) ; à 2,5 s l'INTITULÉ de la mission s'écrit lettre à lettre (`ui.lettre`) ;
+  à 3,3 s RÉCUPÈRE (le lingot de l'écran) → `m2Prend` (la caisse dans `owned`), `ui.achat` + `ui.tampon`. Toucher avant la fin = aller au bout ;
+  Entrée / Espace / Échap aussi. « Réduire les animations » : tout posé d'un coup.
+- QUAND : la secrète est trouvée EN COURSE (bandeau « MISSION SECRÈTE · ? ? ? », rien d'autre) ; sa révélation se joue sur l'écran de mort,
+  1,4 s après lui ; sinon en ouvrant l'écran MISSIONS, ou en touchant la secrète qui brille. Une à la fois ; la suivante enchaîne. Une caisse
+  retirée pas encore revenue au garage attend (sa révélation viendra avec son gabarit, étape 5).
+- Vérifié au banc (muet), debout 390 × 844 et couché 844 × 390 : `dbgMissions('gagne','morts100')` au menu (LE CORBILLARD) et `kmh2000`
+  trouvée en course puis jouée sur l'écran de mort (LE MUR DU SON) ; la caisse est à toi, la mission prise. 0 erreur.
 - À TRANCHER PAR SACHA : la récompense de « tous les objets du jeu » (emplacement vide) · LA STRATOS pour « parfait sur chaque map » · les
   prix des 4 caisses orphelines · « 3 premières secondes » (impossible : 6 s ?) · « jauge de nitro pleine » (la jauge est PLEINE au départ :
   LA BOULE tombe dès qu'on meurt tôt) · « 0 s de vol » (la mort par le chrono de 6 s est l'une des plus fréquentes : LE SPECTRE tombe vite) ·
