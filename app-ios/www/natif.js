@@ -235,16 +235,21 @@
         /* L'A/B DES FILTRES DU HUD (2026-10-15, demande de la session Chrome DevTools : à grande vitesse, les contours d'encre en
            drop-shadow d'une quarantaine de textes du HUD, re-filtrés à chaque image) : après 15 s, 10 phases de 5 s, A = le jeu tel quel,
            B = tous les `filter` CSS coupés (hors toile 3D) ; bilan A contre B. */
-        if(AB==='filtres'&&t>=15){var k=Math.floor((t-15)/5);
-          if(k!==abK){abK=k;if(!abSt){abSt=document.createElement('style');abSt.textContent='body *:not(canvas),body *::before,body *::after{filter:none!important}';}
-            var B9=k%2===1;if(B9&&!abSt.parentNode)document.head.appendChild(abSt);if(!B9&&abSt.parentNode)abSt.remove();bl('A/B phase',k,B9?'B sans filtres':'A normal');}
+        /* `-ccAB contour` (2026-10-16, avec la session Chrome DevTools) : le VRAI contour d'encre sans filtre de la page, s'il y est —
+           B = window.dbgContour(true) (ou la classe html.contourV2), A = le contour d'aujourd'hui. */
+        if((AB==='filtres'||AB==='contour')&&t>=15){var k=Math.floor((t-15)/5);
+          if(k!==abK){abK=k;var B9=k%2===1;
+            if(AB==='filtres'){if(!abSt){abSt=document.createElement('style');abSt.textContent='body *:not(canvas),body *::before,body *::after{filter:none!important}';}
+              if(B9&&!abSt.parentNode)document.head.appendChild(abSt);if(!B9&&abSt.parentNode)abSt.remove();}
+            else{if(typeof window.dbgContour==='function')g(function(){window.dbgContour(B9);});else document.documentElement.classList.toggle('contourV2',B9);}
+            bl('A/B phase',k,B9?(AB==='filtres'?'B sans filtres':'B contour v2'+(typeof window.dbgContour==='function'?'':' (classe seule : dbgContour absent)')):'A normal');}
           var q=ABS[k%2===1?'B':'A'];if(t-15-k*5>=1){q.n++;q.dur+=dt;if(dt>34)q.s34++;if(dt>50)q.s50++;}}
         if(!DIS){var w=Math.floor(t/30);if(w!==FEN.w){if(FEN.w>=0&&FEN.n)FENS.push(FEN.w*30+'-'+(FEN.w*30+30)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);FEN={w:w,n:0,dur:0,s34:0,s50:0,cal:0,ch:FEN.ch};}
           FEN.n++;FEN.dur+=dt;if(dt>34)FEN.s34++;if(dt>50)FEN.s50++;if(CADON)FEN.cal++;FEN.ch=TH.thermique!=null?TH.thermique:'?';}
         if(t<(DIS?15+8*ET.length+1:AB?65:180))requestAnimationFrame(f);
-        else if(AB){if(abSt&&abSt.parentNode)abSt.remove();g(function(){dbgAuto(0);dbgCout(0);});
+        else if(AB){if(abSt&&abSt.parentNode)abSt.remove();if(AB==='contour')g(function(){if(window.dbgContour)window.dbgContour(false);else document.documentElement.classList.remove('contourV2');});g(function(){dbgAuto(0);dbgCout(0);});
           var r=function(q){return q.dur?Math.round(q.n*1000/q.dur)+' i/s, '+(q.s34*1000/q.dur).toFixed(1)+' images > 34 ms par s, '+q.s50+' > 50 ms':'-';};
-          bl('BILAN A/B FILTRES','A normal : '+r(ABS.A),'|| B sans filtres : '+r(ABS.B),'|| chaleur '+(TH.thermique!=null?TH.thermique:'?'));bl('FIN');}
+          bl('BILAN A/B '+AB.toUpperCase(),'A normal : '+r(ABS.A),'|| B '+(AB==='filtres'?'sans filtres':'contour v2')+' : '+r(ABS.B),'|| chaleur '+(TH.thermique!=null?TH.thermique:'?'));bl('FIN');}
         else if(!DIS){if(FEN.n)FENS.push(FEN.w*30+'-'+Math.round(t)+' s : '+Math.round(FEN.n*1000/FEN.dur)+' i/s, '+FEN.s50+' à-coups > 50 ms, '+FEN.s34+' > 34 ms, calé 30 : '+Math.round(100*FEN.cal/FEN.n)+' %, chaleur '+FEN.ch);
           g(function(){dbgAuto(0);dbgCout(0);});bl('BILAN ENDURANCE',FENS.join(' || '));bl('FIN');}
         else{cloture();montre();g(function(){dbgAuto(0);dbgCout(0);dbgNet(0);dbgPin(false);});

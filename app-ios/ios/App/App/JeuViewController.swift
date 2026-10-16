@@ -48,7 +48,7 @@ class JeuViewController: CAPBridgeViewController {
         guard banc, let i = a.firstIndex(of: "-ccCarte"), i + 1 < a.count, a[i + 1].allSatisfy({ $0.isLetter }) else { return "" }
         return a[i + 1]
     }()
-    /// `-ccAB filtres` (avec -ccBanc) : un A/B toutes les 5 s (natif.js, partie 9) — ici, les filtres CSS du HUD coupés ou non.
+    /// `-ccAB filtres` ou `-ccAB contour` (avec -ccBanc) : un A/B toutes les 5 s (natif.js, partie 9) — les filtres CSS du HUD coupés, ou le contour d’encre v2.
     static let bancAB: String = {
         let a = ProcessInfo.processInfo.arguments
         guard banc, let i = a.firstIndex(of: "-ccAB"), i + 1 < a.count, a[i + 1].allSatisfy({ $0.isLetter }) else { return "" }
