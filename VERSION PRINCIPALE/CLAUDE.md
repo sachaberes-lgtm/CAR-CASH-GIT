@@ -161,6 +161,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
   Le son de la NITRO : LE FEU QUI RUGIT (16/10) — `RUG`/`rugTampons`/`rugPas`/`rugAllume`/`rugPetarade`, `RUG_NIV`, `dbgRug()` ; `?nitroson=ancien` = avant.
+  Le CRISSEMENT de la course : LA GOMME DOUCE (16/10) — `GOM`/`gomBatit`/`gomPas`, `GOM_NIV`, `dbgGomme()` ; `?crisse=ancien` = avant (l'ancien `skidG` reste au burn-out).
 - **Musique** : `MUSIC`/`MUSIC_LOBBY`, `musicTick`, `musicJoue`, `playMusic`, `musicLieuVoulu`, `MUS_TAIT`, `DEPMUS`,
   `JMUS_NIV` (GLISSE V2 : `assets/audio/music/musique-glisse-v2.js`), `INSTRU` (coupé).
 - **Sauvegarde** : `SAVE` (clé localStorage `cashcarSave`, `def()`, `san()`, `flush()`, `mark()`, `export()`/`import()`),
@@ -475,6 +476,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 
 **Son et musique**
+- « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
 - « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)

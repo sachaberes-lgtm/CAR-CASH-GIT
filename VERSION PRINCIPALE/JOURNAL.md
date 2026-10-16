@@ -3,6 +3,43 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE (2026-10-16, session « Son des pneus trop agressif » — Sacha : « le son du crissement des pneus est désagréable et empêche de profiter de la musique ; change pour un truc moins agressif et plus ASMR »)
+AVANT (CRISSEMENT v2, `skidG`, mesuré au banc) : du bruit blanc dans deux bandes ÉTROITES (Q 8 et 10) qui montaient jusqu'à 1,5 et 2,3 kHz,
+brouté 9 à 16 fois par seconde par un LFO de « stick-slip », attaque en 0,05 s. ~80 % de son énergie dans l'octave de 2 kHz (centre du
+spectre 2,3 kHz : là où l'oreille est la plus sensible et où chante la mélodie) ; posé sur GLASSY PLUCKS il montait la musique de +3 dB à
+4 kHz et +7 dB à 8 kHz — le sifflement passait AU-DESSUS d'elle.
+LA GOMME DOUCE — le bloc `<<<GOMME DOUCE>>>` (juste avant `initAudio`), préfixe `GOM`. Deux couches sans aucune résonance, calculées une fois
+au premier son (`gomBatit`, aucun fichier, rien dans la banque) :
+- LE SOUFFLE : bruit rose STÉRÉO (deux canaux indépendants : large, enveloppant), deux passe-hauts à 260 Hz (le grave est au moteur et à la
+  musique), deux passe-bas doux (−24 dB/oct.) qui s'ouvrent de ~1,3 à ~2 kHz avec la glisse et la vitesse, une respiration lente (0,6 Hz,
+  ±22 %) — le « chhhh » de la gomme qui glisse.
+- LE GRAIN : ~240 grains par seconde (rafales de 0,3 à 1 ms, au hasard dans la stéréo) → passe-bande large 1,8 kHz (Q .7) → passe-bas 4 kHz :
+  le sable, le gravier fin sous la gomme. Il ne vient que dans les vraies glisses (niveau × glisse²), plus dense avec la vitesse (`playbackRate`).
+- L'ENVELOPPE : monte en ~0,12 s, s'éteint en ~0,28 s (la constante tient jusqu'au silence) — un soupir, pas un coup de frein.
+- Même mesure que la fumée (`glisse9`, sa zone morte) et même place dans la boucle (`gomPas`, là où l'ancien était piloté) ; le creux des
+  grands moments (`dk`) respecté. Deux PORTES (débranchées hors glisse : coût nul), les 10e et 11e de `dbgVu()` (`gomSouffle`, `gomGrain`) ;
+  ajoutées aux trois listes coupées à la main (reprise de la seconde chance, QUITTER, pause).
+- L'ANCIEN reste INTACT : il se tait en course mais le BURN-OUT du garage (à Léo, `burnSon`) l'écrit toujours lui-même — vérifié en jeu :
+  burn-out lancé (`dbgBurn('tourne')`), gain de l'ancien crissement 0,115, gomme à 0. `?crisse=ancien` le rend en course (la gomme est
+  alors bâtie mais muette, pour que l'ordre des portes ne bouge pas).
+MESURÉ (banc hors ligne : le bloc lu dans `index.html` rendu image par image dans un OfflineAudioContext, l'ancien recopié à l'identique,
+même scénario — un virage pris fort à ~300 km/h, glisse .42 ; un power-slide à ~350 km/h, glisse .9-1 ; deux coups de volant à .3) :
+- sonie K : virage −37 → −42 · power-slide −29 → −34,5 (5 à 6 dB plus bas) ; RMS −32 → −35,5 ; haut-parleur de téléphone (passe-haut 200 Hz) −32 → −36.
+- centre du spectre : 2 350 → 980 Hz ; octaves (relatif au total) 2 kHz −1 → −6, 4 kHz −9 → −16, 8 kHz −17 → −32 ; corrélation gauche/droite 1,00 → 0,00.
+- sur GLASSY PLUCKS (musique ≈ niveau du jeu, effets à −3 dB) : l'ancien montait le mélange de +1 dB à 2 kHz, +3,3 à 4 kHz, +6,9 à 8 kHz ;
+  le nouveau de +0,4 dB au plus, dans toutes les octaves.
+- la queue : l'ancien coupé net (−85 dB en 0,25 s) ; le nouveau −55 → −65 → −72 → −78 sur une seconde.
+- DANS LE JEU (`dbgVu()`, drifts au clavier ↓ + braquage, pilote auto entre deux) : glisse jusqu'à .92, souffle −39 dBFS au plus fort
+  (médiane −51 quand la glisse dépasse .15), moteur −31, ancien crissement muet.
+Bancs du jeu (Chrome sans fenêtre, muet, rendu logiciel) : couché, debout, cadre de l'ordi, `?crisse=ancien`, le burn-out du garage : la course
+part, aucune erreur (le 404 de dark-triad.mp3 : faux positif connu) ; `sh garde-burnout.sh` et `sh garde-charte.sh` : OK.
+Écoute envoyée à Sacha : `musique+crissement-ancien.wav` / `musique+crissement-NOUVEAU.wav` (GLASSY PLUCKS dessous) et
+`crissement-ancien.wav` / `crissement-NOUVEAU.wav` (seuls, à leur vrai niveau), 8,5 s, le scénario ci-dessus.
+Crochets : `dbgGomme()` (prêt, glisse ressentie, gains, passe-bas, densité des grains) · `?crisse=ancien` = le son d'avant.
+À TRANCHER par Sacha (à l'oreille) : le niveau (`GOM_NIV` : souffle .11, grain .4 — +3 dB = ×1,4), la part du grain, la respiration.
+Pas touchés : la charge du drift (`DRS`, le « brrrr » qui monte à chaque palier) et les crissements ponctuels de la banque (`virage`,
+`pose.travers`, `flaque.huile`, `fig.slide.debut`).
+
 ## LES GESTES DES AILES ONT LEUR SON — LE K-CHAK DES AILES EN X, LE WOUF DU DRAGON, LES CLAPS DU PIGEON (2026-10-16, session SON des ailes — la suite de « LES AILES VIVANTES », Sacha : « les ailes X-Wing, quand tu boostes, elles doivent s'ouvrir comme dans le vrai jeu Star Wars ; les ailes de dragon, elles doivent battre, celles de pigeon et tout »)
 AVANT : les gestes des ailes étaient muets (le point (2) « à trancher » des AILES VIVANTES : la banque se recuit, d'autres sessions y travaillaient).
 QUATRE SONS, bloc `<<<AILES>>>` en fin de `atelier-son/recettes.js` (famille `ailes`, bus `fx`, MONO — les deux ailes sont symétriques, derrière la caisse) :

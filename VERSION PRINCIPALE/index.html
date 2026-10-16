@@ -43051,11 +43051,72 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain'];
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
   const o={total:db(dbgVu.M)};dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
+/* <<<GOMME DOUCE>>> LE CRISSEMENT QUI CHUCHOTE (2026-10-16, session « Son des pneus trop agressif » — Sacha : « le son du crissement des
+   pneus est désagréable et empêche de profiter de la musique ; change pour un truc moins agressif et plus ASMR »).
+   L'ANCIEN (CRISSEMENT v2, `skidG`) : du bruit blanc dans deux bandes ÉTROITES (Q 8 et 10) qui montaient jusqu'à 1,5 et 2,3 kHz, brouté 9 à
+   16 fois par seconde — un sifflement aigu posé pile où l'oreille est la plus sensible, là où chante la mélodie de la musique. Il reste
+   INTACT pour le burn-out du garage (à Léo : `burnSon` l'écrit lui-même) et pour l'écoute : `?crisse=ancien` le rend en course.
+   LE NOUVEAU, deux couches SANS AUCUNE résonance, calculées une fois au premier son (aucun fichier) :
+   · LE SOUFFLE : bruit rose STÉRÉO (deux canaux indépendants : large, enveloppant, comme au casque d'une vidéo ASMR) → deux passe-hauts
+     à 260 Hz (le grave est au moteur et à la musique) → deux passe-bas doux (−24 dB/oct.) qui s'ouvrent de ~1,3 à ~2 kHz avec la glisse et
+     la vitesse, et une respiration lente (0,6 Hz) — le « chhhh » de la gomme qui glisse ;
+   · LE GRAIN : un tapis de minuscules grains (le sable, le gravier fin sous la gomme), ~240 par seconde, chacun une rafale de 0,3 à 1 ms
+     posée au hasard dans la stéréo → passe-bande large (1,8 kHz, Q .7) puis passe-bas 4 kHz : un grésillement doux, jamais un sifflement ;
+     il ne vient que dans les vraies glisses (niveau × glisse²), plus dense et un peu plus clair avec la vitesse (`playbackRate`).
+   L'ENVELOPPE : il monte en ~0,12 s et s'éteint en ~0,28 s — un soupir, pas un coup de frein. Même ZONE MORTE et même mesure que la
+   fumée (`glisse9`). Deux PORTES (`porte`) : débranché hors glisse, coût nul. `GOM_NIV` = ses deux niveaux ; `dbgGomme()` = son état.
+   MESURÉ (banc hors ligne, même scénario de glisse) : 5 à 6 dB sous l'ancien (sonie K), centre du spectre à ~1 kHz au lieu de 2,3 ; posé sur
+   GLASSY PLUCKS, l'ancien montait la musique de +3 dB à 4 kHz et +7 dB à 8 kHz (le sifflement AU-DESSUS d'elle), lui de 0,3 dB au plus. */
+const CRISSE_DOUX=!/[?&]crisse=ancien/.test(location.search);
+const GOM_NIV={souffle:.11,grain:.4};
+const GOM={ok:false,k:0,tc:.12,sG:null,gG:null,respG:null,lp1:null,lp2:null,gSrc:null,stt:null};
+function gomBatit(ac,dest,o){
+  const sr=ac.sampleRate,nS=Math.floor(sr*2.9),bS=ac.createBuffer(2,nS,sr);
+  for(let c=0;c<2;c++){const ch=bS.getChannelData(c);let b0=0,b1=0,b2=0,m=0; // le rose de Paul Kellett (comme pinkBuf), un tirage par canal
+    for(let i=0;i<nS;i++){const w=Math.random()*2-1;b0=.99765*b0+w*.0990460;b1=.96300*b1+w*.2965164;b2=.57000*b2+w*1.0526913;
+      const v=b0+b1+b2+w*.1848;ch[i]=v;const a=Math.abs(v);if(a>m)m=a;}
+    const d0=ch[0]/(m||1),d1=ch[nS-1]/(m||1);for(let i=0;i<nS;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/nS);} // normalisé + boucle sans couture
+  const nG=Math.floor(sr*3.3),bG=ac.createBuffer(2,nG,sr),L=bG.getChannelData(0),R=bG.getChannelData(1);
+  let t=0,m=0;
+  for(;;){t+=-Math.log(1-Math.random()*.999)/240;const i0=Math.floor(t*sr);if(i0>=nG)break; // des grains au hasard (Poisson), surtout doux, quelques-uns plus francs
+    const n=Math.max(4,Math.floor(sr*(.0003+Math.random()*.0007))),a=.2+.8*Math.pow(Math.random(),2.5),p=Math.random()*Math.PI/2,aL=a*Math.cos(p),aR=a*Math.sin(p);
+    for(let j=0;j<n;j++){const e=Math.exp(-4*j/n)*(Math.random()*2-1),i=(i0+j)%nG;L[i]+=aL*e;R[i]+=aR*e;}} // le modulo : la boucle tombe juste
+  for(let i=0;i<nG;i++){const a=Math.max(Math.abs(L[i]),Math.abs(R[i]));if(a>m)m=a;}
+  for(let i=0;i<nG;i++){L[i]/=m||1;R[i]/=m||1;}
+  const sS=ac.createBufferSource();sS.buffer=bS;sS.loop=true;
+  const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=260;hp.Q.value=.6;
+  const hp2=ac.createBiquadFilter();hp2.type='highpass';hp2.frequency.value=260;hp2.Q.value=.6;
+  const lp1=ac.createBiquadFilter();lp1.type='lowpass';lp1.frequency.value=1200;lp1.Q.value=.5;
+  const lp2=ac.createBiquadFilter();lp2.type='lowpass';lp2.frequency.value=1500;lp2.Q.value=.5;
+  const sG=ac.createGain();sG.gain.value=0;
+  sS.connect(hp);hp.connect(hp2);hp2.connect(lp1);lp1.connect(lp2);lp2.connect(sG);sG.connect(dest);
+  const resp=ac.createOscillator();resp.type='sine';resp.frequency.value=.6;
+  const respG=ac.createGain();respG.gain.value=0;resp.connect(respG);respG.connect(sG.gain);
+  const gS=ac.createBufferSource();gS.buffer=bG;gS.loop=true;
+  const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1800;bp.Q.value=.7;
+  const glp=ac.createBiquadFilter();glp.type='lowpass';glp.frequency.value=4000;glp.Q.value=.5;
+  const gG=ac.createGain();gG.gain.value=0;
+  gS.connect(bp);bp.connect(glp);glp.connect(gG);gG.connect(dest);
+  sS.start();gS.start();resp.start();
+  for(const q of [lp1.frequency,lp2.frequency])try{q.automationRate='k-rate';}catch(e){} // pilotés à chaque image, glissés lents : k-rate (voir initAudio)
+  GOM.sG=sG;GOM.gG=gG;GOM.respG=respG;GOM.lp1=lp1;GOM.lp2=lp2;GOM.gSrc=gS;GOM.stt=o.stt;GOM.ok=true;
+  if(o.porte){o.porte(sG,dest,respG);o.porte(gG,dest);}
+}
+function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l'ancien crissement — drift = glisse9 (0 hors glisse), spd3 = la vitesse ressentie
+  if(!GOM.ok)return;const s=GOM.stt,v=Math.min(1,spd3/420);
+  const k=drift>0?Math.min(1,drift)*(.55+.45*v)*dk:0,tc=GOM.tc=k>GOM.k?.12:k<GOM.k?.28:GOM.tc;GOM.k=k; // monte en soupir, s'éteint plus lentement (la constante tient jusqu'au silence : sinon la queue repartait à .12 une image après)
+  s(GOM.sG.gain,k*GOM_NIV.souffle,T,tc);s(GOM.respG.gain,k*GOM_NIV.souffle*.22,T,tc);
+  s(GOM.gG.gain,k*k*GOM_NIV.grain,T,tc);
+  if(k>0){const f=950+drift*700+Math.min(900,spd3)*.6;s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
+    s(GOM.gSrc.playbackRate,.8+.35*v+.15*drift,T,.25);}
+}
+window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,pret:GOM.ok,k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
+/* <<<FIN GOMME DOUCE>>> */
 function initAudio(){
   AC=new (window.AudioContext||window.webkitAudioContext)();
   if(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe())try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
@@ -43254,6 +43315,7 @@ function initAudio(){
   sonConsole(); // (2026-09-28) LA CONSOLE DE SON se branche sur ce contexte et ce MASTER
   try{porte(gainN,MASTER,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
   try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
+  try{gomBatit(AC,MASTER,{stt:stt,porte:porte});}catch(e){console.warn('gomme douce',e);} // (2026-10-16) LA GOMME DOUCE, le crissement qui chuchote (voir <<<GOMME DOUCE>>>) : ses deux portes sont la 10e et la 11e de dbgVu (bâtie même en `?crisse=ancien`, muette : l'ordre des portes ne bouge pas)
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
      fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
      ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.
@@ -48426,7 +48488,7 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
   startBoostT=Math.max(startBoostT,2);paintMoney();
   if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage (niveau 10) et le banquier (niveau 20) : ils reviennent
   if(VBQ.on&&!VBQ.fini)VBQ.g.visible=true;
-  if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,RUG.rgG,RUG.thG,RUG.crG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
+  if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,RUG.rgG,RUG.thG,RUG.crG,GOM.sG,GOM.gG,GOM.respG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
   musicStartRun(true,true);
   CHANCE.inv=CHANCE.invD;
   try{flashEcran('rgba(255,255,255,.35)');}catch(e){}
@@ -48613,7 +48675,7 @@ function endGame(){
   // frein moteur y sont branchés en parallèle). Les oublier laissait un sifflement de boîte
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
-  for(const n9 of [whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
+  for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;
   pwrNitroT=pwrAirT=pwrSpdT=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
@@ -60540,8 +60602,9 @@ function loop(now){
         const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
         // (2026-10-14, session SON) il était 10 à 20 dB SOUS le moteur (−46 dBFS à drift .4, −36 à plein drift, le moteur seul −29) : l'exposant 1,3 l'éteignait pile où le joueur en a besoin.
         // Courbe linéaire en drift, gain .20, cap .30 : +5,6 dB à drift .4 (300 km/h), +4,9 dB à plein drift. Le burn-out du garage réécrit skidG lui-même (burnSon) : NON touché. (audit oreille-neuve n°3 §5)
-        stt(skidG.gain,drift>0?Math.min(.30,drift*.20*(.5+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
-        if(drift>0){
+        if(CRISSE_DOUX)gomPas(drift,spd3,dk,AC.currentTime); // (2026-10-16, Sacha : « moins agressif et plus ASMR ») LA GOMME DOUCE à sa place — l'ancien se tait en course (`?crisse=ancien` le rend)
+        stt(skidG.gain,drift>0&&!CRISSE_DOUX?Math.min(.30,drift*.20*(.5+Math.min(1,spd3/380)))*dk:0,AC.currentTime,.05);
+        if(drift>0&&!CRISSE_DOUX){
           const sq=900+drift*430+spd3*.35;
           stt(skF1.frequency,sq,AC.currentTime,.05);stt(skF2.frequency,sq*1.56,AC.currentTime,.05);
           stt(skD1.gain,40+130*drift,AC.currentTime,.1);stt(skD2.gain,60+200*drift,AC.currentTime,.1); // le broutage stick-slip suit la glisse
@@ -61249,7 +61312,7 @@ function togglePause(){ if(!started||gameOver)return;
      sans ça, à la reprise, la boucle croirait la cible déjà envoyée et laisserait tout à zéro. `jrDep`/`engLfoG` en font partie :
      ce sont des LFO branchés sur un gain, ils rendraient un trémolo audible même gain principal à zéro. */
   if(paused&&AC){ try{ const T9=AC.currentTime;
-    for(const n9 of [gainN,windG,whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG,RUG.rgG,RUG.thG,RUG.crG])
+    for(const n9 of [gainN,windG,whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG,RUG.rgG,RUG.thG,RUG.crG,GOM.sG,GOM.gG,GOM.respG])
       if(n9){const p9=n9.gain;p9.cancelScheduledValues(T9);p9.setTargetAtTime(0,T9,.012);p9._s9=undefined;} }catch(e){} }
   /* (2026-09-28) …et en FONDU : un `suspend()` sec coupait le moteur en plein cycle — un « tic » à chaque pause. La sortie commune
      (`BUSOUT`) descend en ~40 ms, le contexte s'endort derrière ; la reprise (ou le compte 3-2-1) remet la sortie à plein. */
