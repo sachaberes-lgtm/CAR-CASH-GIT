@@ -152,7 +152,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
-  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose`),
+  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose` ; leurs SONS `ailSon` → `ailes.*`, en vol seulement),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
   moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`) et son jet propulsé (`NFEU_JET`), hors nitro le
   même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
@@ -161,6 +161,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
   Le son de la NITRO : LE FEU QUI RUGIT (16/10) — `RUG`/`rugTampons`/`rugPas`/`rugAllume`/`rugPetarade`, `RUG_NIV`, `dbgRug()` ; `?nitroson=ancien` = avant.
+  Le CRISSEMENT de la course : LA GOMME DOUCE (16/10) — `GOM`/`gomBatit`/`gomPas`, `GOM_NIV`, `dbgGomme()` ; `?crisse=ancien` = avant (l'ancien `skidG` reste au burn-out).
 - **Musique** : `MUSIC`/`MUSIC_LOBBY`, `musicTick`, `musicJoue`, `playMusic`, `musicLieuVoulu`, `MUS_TAIT`, `DEPMUS`,
   `JMUS_NIV` (GLISSE V2 : `assets/audio/music/musique-glisse-v2.js`), `INSTRU` (coupé).
 - **Sauvegarde** : `SAVE` (clé localStorage `cashcarSave`, `def()`, `san()`, `flush()`, `mark()`, `export()`/`import()`),
@@ -207,8 +208,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (lus par les boîtes, et
   chargés par le jeu depuis le retour PAR MAP). Le reste : git (85470fb4 et avant).
 - LES ANIMAUX PAR MAP (15/10, Léo : « soleil jade singe va sur main et dauphins aussi ») : au SOLEIL DE JADE seulement — les SINGES (décor :
-  coucou sur une montagne, mangue, course, assis au bord ; `jsgTick`) et les DAUPHINS DE LA MER (au bout de 5 s dans l'eau ils arrivent, jouent
-  devant la caisse, l'un vient faire coucou à la portière, et une fois sur deux ils SAUTENT AVEC ELLE quand elle jaillit ; `jdmTick`). Les formes
+  coucou sur une montagne, mangue, course, assis au bord ; `jsgTick`) et les DAUPHINS DE LA MER (v2 : dès qu'elle TOMBE vers la mer ils bondissent
+  au-devant d'elle, puis jouent devant elle dans l'eau, l'un fait coucou à la portière, et une fois sur deux ils SAUTENT AVEC ELLE ; `jdmTick`). Les formes
   des singes se calculent dans un Worker (`creatures/atelier.js`). Détail : JOURNAL.md. Pas de figure LE DAUPHIN.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
@@ -286,9 +287,11 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 **Les outils de Léo** (locaux, retirés du site par `vercel-build.sh` et des portails par `poki-construire.js`) : `simulateur.html`
 (`python3 simulateur/serveur.py 9101`), `maps-ciel.html` (`python3 maps-ciel/serveur.py 9019`), `salle-blanche.html`,
 `boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
-**Le RÉPERTOIRE DES MAPS** (15/10, Léo : « on va créer plein d'autres maps ») : `repertoire-maps/index.html` (page blanche, double-clic ou
-serveur local) = les maps que JOUER tire au hasard (`SF_CARTES`), titre + photo + vignette par météo. Liste : `repertoire-maps/maps.js`.
-Une MAP NOUVELLE dans SF_CARTES → une ligne dans maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet).
+**Les MAPS DU JEU** (15-16/10, Léo : « une liste des maps qu'on a sur le jeu, pour appuyer dessus, aller voir dedans et te donner des
+changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps que JOUER tire au hasard (`SF_CARTES`) ; un toucher →
+`voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
+portails et aux relances, météos dans la barre. Liste : `repertoire-maps/maps.js`. Une MAP NOUVELLE dans SF_CARTES → une ligne dans
+maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet). Servir VERSION PRINCIPALE en http.
 
 ---
 
@@ -448,6 +451,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 **Caisses, boutique, habillages**
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
+- « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
 - « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
@@ -472,6 +476,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 
 **Son et musique**
+- « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
 - « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
