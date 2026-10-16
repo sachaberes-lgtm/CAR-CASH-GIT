@@ -84,6 +84,18 @@ const CLAV_FIN = () => [.7, 44100, (c, f, dest) => { [[-3, -.35], [3, .35]].forE
 // une voix qui improvise ; la note glisse d'un demi-ton et demi vers le haut en entrant, une sur trois retombe à la fin (le « ahh » qui se laisse
 // tomber), un « h » de souffle à l'attaque ; filtrées comme une cassette (coupe-bas 260 Hz, coupe-haut 3 kHz) et saturées doucement : l'underground.
 const VOYELLES = [[730, 1090, 2440], [570, 840, 2410], [300, 870, 2240], [530, 1840, 2480], [390, 2000, 2600], [500, 1400, 2400]];
+// LE LEAD RÊVEUR (COURT-CIRCUIT DE NÉON, 16/10 — Léo : l'instrument du moteur 2, le « saxophone de minuit », « un peu wow, what the fuck »,
+// trop pareil aux autres, il ne va pas avec le reste) : une voix douce et polie qui CHANTE — deux triangles à peine désaccordés (gauche / droite)
+// et un fil de scie pour la présence, dans un coupe-haut qui s'ouvre à l'attaque (la note « fleurit »), un corps sinus une octave dessous, une
+// lueur à l'octave au-dessus, un vibrato tardif, un peu d'air. Rien de commun avec les mélodies des autres morceaux de Pouce bleu.
+const LEAD_REVE = () => [1.9, [60, 72, 84], (c, f) => {
+  const g = env(c, .07, 1.35, .5, .6), lp = filtre(c, 'lowpass', 1700, .6, g), som = c.createGain(), vb = vibrato(c, 4.8, 10, .35);   // (un peu plus clair qu'au 1er essai ; son niveau, le générateur le cale lui-même — mesuré : le morceau reste au niveau moyen des gardés)
+  lp.frequency.setValueAtTime(1700, 0); lp.frequency.linearRampToValueAtTime(3400, .25); som.connect(lp);
+  [['triangle', 1, -.3, -7], ['triangle', 1, .3, 7], ['sawtooth', .18, 0, 0]].forEach(([ty, v, x, dt]) => { const o = osc(c, ty, f, dt), m = c.createGain(); m.gain.value = v; vb.connect(o.detune); o.connect(m); m.connect(pan(c, x, som)); o.start(0); });
+  const s = osc(c, 'sine', f / 2), sg = c.createGain(); sg.gain.value = .25; s.connect(sg); sg.connect(g); s.start(0);
+  const o8 = osc(c, 'sine', f * 2), g8 = env(c, .3, 1.2, .5, .05, g); vb.connect(o8.detune); o8.connect(g8); o8.start(0);
+  souffle(c, f * 3, 1.5, .02, 1.7, g); }, 2];
+
 const VOIX_IMPRO = () => [.8, [50, 53, 56, 59, 62, 65, 68, 71, 74, 77], (c, f) => {
   const m = Math.round(12 * Math.log2(f / 440) + 69), V = VOYELLES[(m * 7) % VOYELLES.length], tombe = m % 3 === 0;
   const g = env(c, .015, .42, .3, .5), lp = filtre(c, 'lowpass', 3000, .6, g), hp = filtre(c, 'highpass', 260, .7, lp), ws = c.createWaveShaper(); ws.curve = douce(2.2); ws.connect(hp);
@@ -201,4 +213,13 @@ export const V2 = [
     retouche(Mx) {
       Mx.tim.lead = 'cowbell'; Mx.tim.basse = '808dur'; Mx.tim.contre = 'voix';
       const sans = ['i_pulse', 'i_relance', 'i_basseOct', 'i_tambours']; insere(Mx, 'vinyl', 3, sans); insere(Mx, 'contre', 6, sans); insere(Mx, 'i_sature', 12, sans); } },
+  { id: 'bleu-3493-retouche', base: 3493, direct: true, titre: 'COURT-CIRCUIT DE NÉON',
+    note: 'change juste le lead (l\u2019instrument du moteur 2, « un peu wow, what the fuck »), trop pareil aux autres ; plus rêveur, bien poli, qui suit l\u2019intensité : pas d\u2019ennui dès 10, dynamique dès 15, le climax sur les derniers, au dernier le registre qui monte',
+    idee: 'la mélodie au lead rêveur (au lieu du saxophone de minuit) ; les échos au 11, les cordes au 12, le chœur au 24 ; le climax du 27 au 29 (fins qui montent, un ton plus haut, le final) ; au 30, la mélodie une octave plus haut',
+    voix: { lead: LEAD_REVE },
+    retouche(Mx, O) {
+      nomme(O, 'NOM_LEAD', 'reve', 'lead rêveur'); Mx.tim.lead = 'reve';
+      // le début (1-9) ne bouge pas (« le début, c'était très bien ») ; il n'y a que l'ordre de la suite, et 3 marches dures remplacées par du rêve
+      Mx.ordre = ['pad', 'lead', 'arp', 'basse', 'kick', 'sig', 'snare', 'hat', 'i_filtre', 'keys', 'echo', 'cordes', 'contre', 'pompe', 'clarte', 'i_frappe', 'hatO',
+        'i_basse', 'fant', 'i_dense', 'octave', 'double', 'sig2', 'choeur', 'i_relance', 'i_tambours', 'i_monte', 'modul', 'final', 'i_sommet']; } },
 ];
