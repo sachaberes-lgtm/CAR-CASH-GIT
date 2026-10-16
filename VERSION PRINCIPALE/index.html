@@ -9990,6 +9990,104 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 ::placeholder{font-family:var(--pix)!important}
 #spPhi{font-family:"Times New Roman",Georgia,serif!important}
 </style>
+<style id="missionsV2">
+/* LES MISSIONS v2 — L'ÉCRAN (2026-10-16, Sacha : « un écran MISSIONS magnifique, bâti à partir de la vue garage » · « une seule liste,
+   triée intelligemment » · charte v4/v5 : texte et icônes en pixel, aucun emoji, l'argent du jeu en vert, l'or réservé à la décision et
+   au suivi). Sur le panneau de la vue caméra (#gmListe.m2, placé par gmPlaceL). Chaque famille a SA couleur — jamais l'or : exploit
+   cyan · aura rose · argent vert · moteur ambre · collection bleu · exploration menthe · secrète magenta. L'or = la mission SUIVIE ; le
+   vert = l'argent et RÉCUPÈRE. Voir « LES MISSIONS v2 » au journal. */
+html.misV2 #gMis{--m2Col:#4db8ff;--m2Exp:#3ee8a8;--m2T:.9s}
+html.misV2 #gmSous{font-size:var(--f3);line-height:1.5;letter-spacing:2px;color:var(--neoC)}
+html.misV2 #gMisPips,html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips,html.misV2 #misFocus{display:none!important}
+#gmListe.m2 .glA{padding-bottom:8px}
+.m2L{position:relative;display:flex;align-items:center;gap:10px;min-height:60px;box-sizing:border-box;padding:9px 10px 9px 9px;margin-bottom:6px;cursor:pointer;
+  --fc:var(--neoC);--bc:var(--fc);background:#0f2747;box-shadow:inset 0 0 0 1px rgba(95,240,255,.18);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease);animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i,0)*45ms + 220ms)}
+.m2L:active{transform:translateY(2px)}
+.m2F-exploit{--fc:var(--neoC)}.m2F-aura{--fc:var(--aura)}.m2F-argent{--fc:var(--cash)}.m2F-moteur{--fc:var(--neoA)}
+.m2F-collection{--fc:var(--m2Col)}.m2F-exploration{--fc:var(--m2Exp)}.m2F-secret{--fc:var(--neoM)}
+/* l'icône de la famille = la case qu'on coche : un octogone pixel, son coin d'or quand la mission est suivie */
+.m2Ic{position:relative;flex:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--fc);background:#06142b;
+  box-shadow:inset 0 0 0 1px var(--fc);clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px)}
+.m2Ic .pxi{--pxs:2}
+.m2Ck{position:absolute;right:0;bottom:0;width:12px;height:12px;background:var(--au2);clip-path:polygon(100% 0,100% 100%,0 100%)}
+.m2L .glTx b{font-size:var(--f1);line-height:1.45}
+.m2L u{display:block;height:5px;margin:6px 0 5px;background:#030914;box-shadow:0 0 0 1px rgba(95,240,255,.2)}
+.m2L u em{display:block;height:100%;width:0;background:var(--bc);box-shadow:0 0 8px var(--bc);transition:width var(--m2T) var(--ease)}
+.m2L .glTx small{color:#8fb8c8}
+.m2Sec{font-style:normal;display:inline-block;padding:2px 4px 1px;margin-right:2px;background:var(--neoM);color:#fff;font-size:var(--f0);line-height:1.3;letter-spacing:1px;vertical-align:1px}
+/* la vignette de la récompense : elle tourne doucement (une caisse sur son plateau) */
+.m2R{flex:none;width:70px;height:44px;display:flex;align-items:center;justify-content:center}
+.m2R.voir{cursor:pointer}
+.m2R .obFig{position:relative;right:auto;top:auto;margin:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.m2Ph{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#4c5f8c}
+.m2Ph .pxi{--pxs:2}
+.m2Ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.m2Ph img:not([src]){display:none}
+.m2R .m2Ph img,.m2R .obFig{animation:m2Tourne 5.5s var(--ease) infinite alternate;transform-origin:50% 62%}
+@keyframes m2Tourne{from{transform:perspective(240px) rotateY(-18deg)}to{transform:perspective(240px) rotateY(18deg)}}
+.m2Cash{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap;text-shadow:0 0 8px rgba(125,255,155,.35)}
+.m2Vide{font-style:normal;font-size:var(--f4);color:#6f6a99}.m2Vide .pxi{--pxs:2}
+/* SUIVIE : le filet d'or */
+.m2L.f{--bc:var(--au2);background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2)}
+.m2L.f .glTx small{color:var(--au1)}
+.m2L.f .m2Ic{box-shadow:inset 0 0 0 2px var(--au2)}
+/* À RÉCUPÉRER : elle brille, et RÉCUPÈRE (penché : on touche) — toute la ligne répond */
+.m2L.pret{--bc:var(--cash);background:#0b2a1c;box-shadow:inset 0 0 0 2px var(--cash),0 0 16px rgba(125,255,155,.25);
+  animation:gmIn .4s var(--ease) backwards,m2Brille 1.4s var(--ease) infinite alternate;animation-delay:calc(var(--i,0)*45ms + 220ms),0s}
+@keyframes m2Brille{to{box-shadow:inset 0 0 0 2px var(--cash),0 0 28px rgba(125,255,155,.55)}}
+.m2Pr{display:inline-flex;align-items:center;margin-top:7px;min-height:30px;padding:0 12px;background:linear-gradient(180deg,#9dffb4,#3fd46a);color:var(--cashO);
+  font-size:var(--f0);letter-spacing:1px;transform:skewX(var(--sk));box-shadow:0 3px 0 #127a35,inset 0 1px 0 rgba(255,255,255,.6)}
+.m2Pr>span{display:inline-flex;align-items:center;gap:6px;transform:skewX(var(--skI))}.m2Pr .pxi{--pxs:1}
+.m2L.pret:active .m2Pr{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 #127a35}
+.m2Bt{color:#6f93a6!important}
+.m2L.pris .m2R{animation:m2Tombe .55s var(--ease) forwards}
+@keyframes m2Tombe{to{transform:translateY(26px) scale(.55);opacity:0}}
+/* TERMINÉE : posée, cochée, en retrait */
+.m2L.ok:not(.pret){background:#0b1a33;box-shadow:inset 0 0 0 1px rgba(95,240,255,.10);cursor:default}
+.m2L.ok:not(.pret) .glTx b{color:#a9bfd6}.m2L.ok:not(.pret) .glTx small{color:#5ee37a}.m2L.ok:not(.pret) .m2Ic{color:#5ee37a;box-shadow:inset 0 0 0 1px #5ee37a}
+.m2L.ok:not(.pret) .m2R{opacity:.75}
+.m2L.flash{animation:gmFlash .5s var(--ease)}
+#gmListe.m2.vu .m2L:not(.pret){animation:none}#gmListe.m2.vu .m2L.pret{animation:m2Brille 1.4s var(--ease) infinite alternate}#gmListe.m2.vu .m2L.flash{animation:gmFlash .5s var(--ease)}
+.m2Fin{display:flex;align-items:center;gap:8px;min-height:44px;margin:10px 2px 4px;padding:0 4px;cursor:pointer;font-size:var(--f0);letter-spacing:1px;color:#b9b2e6;
+  border-top:1px solid rgba(143,132,200,.3)}
+.m2Fin span{flex:1}.m2Fin .pxi{--pxs:1}.m2Fin.on{color:#dfeeff}
+.m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
+/* LE POINT VERT des portes MISSIONS : une récompense attend */
+.m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
+  clip-path:polygon(2px 0,8px 0,10px 2px,10px 8px,8px 10px,2px 10px,0 8px,0 2px);animation:m2Pouls 1.2s var(--ease) infinite alternate}
+.m2Pt[hidden]{display:none}
+.m2Pt.in{position:relative;top:auto;right:auto;display:inline-block;margin-left:6px;vertical-align:0}
+@keyframes m2Pouls{to{box-shadow:0 0 0 2px var(--k0),0 0 18px var(--cash)}}
+/* EN COURSE : les missions suivies (#m2Focus), là où vivait #misFocus — discrètes, sous la route */
+#m2Focus{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px);transform:translateX(-50%);display:none;flex-direction:column;gap:2px;pointer-events:none;
+  width:min(42vw,360px);font-family:var(--pix)}
+#m2Focus.on{display:flex}
+body:not(.play) #m2Focus{display:none!important}
+.m2FR{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:6px;padding:3px 6px 2px;background:rgba(6,14,33,.84);
+  box-shadow:inset 0 0 0 1px rgba(255,199,42,.5);font-size:var(--f0);line-height:1.2;color:#fff}
+.m2FR i{font-style:normal;line-height:0;color:var(--au2)}.m2FR i .pxi{--pxs:1}
+.m2FR span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.m2FR b{font-weight:400;color:var(--au1);white-space:nowrap}
+.m2FR u{grid-column:1/-1;display:block;height:2px;margin-top:2px;background:rgba(255,255,255,.12)}
+.m2FR u em{display:block;height:100%;background:var(--au2)}
+.m2FR.ok{box-shadow:inset 0 0 0 1px var(--cash)}.m2FR.ok i,.m2FR.ok b{color:var(--cash)}.m2FR.ok u em{background:var(--cash)}
+@media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
+/* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
+.mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
+.mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
+.mObj.m2Ob .obM{display:flex;align-items:center;gap:8px;min-width:0;font-size:var(--f0);line-height:1.45;letter-spacing:.5px;color:#dfeeff}
+.mObj.m2Ob .obM .pxi{--pxs:1;flex:none;color:var(--neoC)}
+.mObj.m2Ob .obM span{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mObj.m2Ob .obM b{font-weight:400;color:#8fb8c8;white-space:nowrap}
+.mObj.m2Ob .obM em{font-style:normal;color:var(--cash);white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.mObj.m2Ob .obM.ok .pxi{color:var(--cash)}.mObj.m2Ob .obM.sec,.mObj.m2Ob .obM.sec .pxi{color:var(--neoM)}
+.mObj.m2Ob .obBar{margin:-2px 0 2px}
+/* les petits téléphones et le couché bas : plus serré, la vignette rapetisse, rien ne déborde */
+@media (orientation:landscape) and (max-height:540px){.m2L{min-height:52px;padding:7px 9px 7px 8px;gap:9px}.m2R{width:62px;height:38px}.m2Ic{width:28px;height:28px}.m2L u{margin:5px 0 4px}}
+@media (max-width:360px){.m2L{gap:8px;padding:8px}.m2R{width:56px;height:36px}.m2Ic{width:28px;height:28px}}
+@media (prefers-reduced-motion:reduce){.m2L,.m2L.pret,.m2R .m2Ph img,.m2R .obFig,.m2Pt,.m2L.pris .m2R{animation:none!important}.m2L u em{transition:none}}
+</style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -35700,7 +35798,7 @@ const M2K={partie:60,frole:6,prof:EAU.fond,debut:3}; // prof : le fond de la mer
 /* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
    parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
    réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */
-const M2R={ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
+const M2R={ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0,figMax:0,airPm:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
 /* LES CAISSES QUI SE GAGNENT PAR MISSION : leur condition devient la mission (`k:'mis'`), l'ancienne reste dans `av` — la migration de
    la sauvegarde (m2Migre) la relit pour rendre à chacun ce qu'il avait déjà (une mise à jour ne confisque rien) ; une caisse qui se
    vendait (à l'argent du jeu ou en euros) ne s'achète plus. Les caisses RETIRÉES ne reviennent qu'avec leur gabarit (SHAPES). */
@@ -37164,6 +37262,7 @@ let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (n
    (plein), ce que la partie vient d'y verser (qui se remplit sous les yeux), et ce qu'il manque. */
 function objRender(el){
   if(!el)return;
+  if(MISSIONS_V2){objRenderV2(el);return;} // (2026-10-16) LES MISSIONS v2 : réussies pendant la partie, suivies, le point vert
   if(MIS_REC){const r=MIS_REC;
     el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
     // (2026-09-28, console de son) CARNET BOUCLÉ — la récompense la plus rare : la carte arrive à 490 ms, UNE fois par mort
@@ -37938,7 +38037,7 @@ function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. R
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
-  toast(pxi('coche')+' '+TR('DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
+  toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
 function cosmVu(cat,d){ // la VUE d'un habillage pour une liste (contrat avec INTERFACE) : une secrète pas encore gagnée → masquée (les accesseurs le font déjà ; `masque` le dit)
   if(d&&d.sec&&!window.PAL_REVELE&&!shopOwned(cat,d.id))return {id:d.id,sec:d.sec,n:d.n,d:d.d,c:d.c,g:d.g,r:d.r,ind:d.ind,masque:true};return d;}
 function cosmSwCl(d){return d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'';} // la classe de finition d'une pastille de peinture (une seule table pour toutes les listes)
@@ -46368,7 +46467,7 @@ function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.v!=='tot')return m.v;
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
-  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='aura'?(typeof fmtAura==='function'?fmtAura(v):String(v)):String(v));}
+  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
 function m2Flag(id){const s=m2Etat();if(s.fl.indexOf(id)<0){s.fl.push(id);SAVE.mark();}}
 function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x)&&x>0)s.c.gagne=Math.min(1e30,(s.c.gagne||0)+x);}catch(e){}}
 /* ---- LA MIGRATION, EN DEUX TEMPS : ce que l'ancienne sauvegarde savait déjà ----
@@ -46405,7 +46504,7 @@ function m2GagneEstime(){const d=SAVE.d;let t=bank();
 function m2Verifie(enC){if(!MISSIONS_V2)return 0; /* en v1 les compteurs tournent, rien ne se coche : la bascule juge tout d'un coup (m2MigreV2) */const s=m2Etat();let n=0;
   for(const m of M2){if(s.ok.indexOf(m.id)>=0)continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
     if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
-  if(n)SAVE.mark();return n;}
+  if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
 /* le bandeau DISCRET de la course (« il ne cache pas la route » : la bannière du haut, celle des missions) ; une secrète ne dit rien d'elle */
 function m2Annonce(m,enC){if(!MISSIONS_V2)return;const r=m.r||{};
   if(m.f==='secret'){if(enC)misBanniere('MISSION SECRÈTE','? ? ?','','etoile');return;}
@@ -46421,7 +46520,7 @@ function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.p
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 /* ---- LES BRANCHEMENTS DE LA COURSE ---- */
-function m2Raz(){M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;}
+function m2Raz(){M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
 function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
   if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
   if(new Date().getHours()===3)m2Flag('nuit3h');}
@@ -46434,7 +46533,7 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(mode==='fall'){if(!JEAU.dans)M2R.volT+=dt;if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
   if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
   if(k==='jade'&&JEAU.dans&&JEAU.prof>(r.prof||0))r.prof=JEAU.prof;
-  M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);}}
+  M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);try{m2FocusMaj();}catch(e){}}}
 function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
    villeHeurt (CITY.col : boîtes x,y,z,l,h,p), les huit cases voisines comprises. Une tour = son décalage dans la grille. */
@@ -46449,14 +46548,14 @@ function m2Geyser(){const G=VOLCAN.gey;if(!G||!G.length)return;let t=0;try{t=VLC
     const tE=(((t/g.per+g.ph)%1+1)%1)*g.per,h=g.v*g.v/(2*9.8);if(tE<2*g.v/9.8&&p.y>g.y-2&&p.y<g.y+h){m2Flag('geyser');return;}}}
 function m2Fig(id){if(!m2Ok())return;const s=m2Etat(),r=s.r;
   /* UNE FIGURE = une figure à bouton (fig_<id>, pas le bonus fig_combo_) ou le BUMP (Sacha, 15/10 : « bump doit compter comme une figure ») */
-  if((/^fig_/.test(id)&&!/^fig_combo_/.test(id))||id==='bump'){M2R.figV++;if(M2R.figV>(r.fig|0))r.fig=M2R.figV;}
+  if((/^fig_/.test(id)&&!/^fig_combo_/.test(id))||id==='bump'){M2R.figV++;if(M2R.figV>M2R.figMax)M2R.figMax=M2R.figV;if(M2R.figV>(r.fig|0))r.fig=M2R.figV;}
   /* LE SALTO DEVANT LA TERRE : une figure qui passe par l'avant ou l'arrière (un salto), en orbite, la Terre dans le champ */
   if(/^fig_/.test(id)&&secCarte().c==='espace'&&typeof planetGroup!=='undefined'&&planetGroup&&planetGroup.visible&&LVL.cur&&LVL.cur.meteo==='matin'){
     try{const f=FIG.liste.find(function(x){return 'fig_'+x.id===id;}),D=f?FIG.dirs(f):[];
       if(D.indexOf('avant')>=0||D.indexOf('arriere')>=0){camera.getWorldDirection(tmp3);if(tmp3.dot(ORB.terre)>.55)m2Flag('terre');}}catch(e){}}}
 function m2Pose(g,ratee,vol){if(!m2Ok())return;const s=m2Etat(),r=s.r;
   if(vol>.7){if(!ratee&&g>=1.5){M2R.parf++;if(M2R.parf>(r.parf|0))r.parf=M2R.parf;}else M2R.parf=0;}
-  if(!ratee&&g>=1.5){if(M2R.volT>(r.airP||0))r.airP=M2R.volT; /* le temps VÉCU en l'air (le bump ne le raccourcit pas) */const k=secCarte().c;if(k&&s.c.cartesP.indexOf(k)<0){s.c.cartesP.push(k);SAVE.mark();}}}
+  if(!ratee&&g>=1.5){if(M2R.volT>M2R.airPm)M2R.airPm=M2R.volT;if(M2R.volT>(r.airP||0))r.airP=M2R.volT; /* le temps VÉCU en l'air (le bump ne le raccourcit pas) */const k=secCarte().c;if(k&&s.c.cartesP.indexOf(k)<0){s.c.cartesP.push(k);SAVE.mark();}}}
 function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0)+1;
   if(M2R.ctl<M2K.debut)m2Flag('mort3s');
   if(cause==='arret')m2Flag('arret');
@@ -46468,7 +46567,7 @@ function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
   if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');}
-  m2Verifie(false);SAVE.flush();}
+  m2Verifie(false);{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
 function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
 /* CONSOLE : dbgMissions() = chaque mission (visibles ET secrètes) : sa valeur, son seuil, réussie, prise · dbgMissions('gagne',id) = la
@@ -46488,6 +46587,165 @@ window.dbgMissions=function(a,id){
   if(a==='prend')return m2Prend(id)||'rien à prendre';
   return M2.map(function(m){let v=0;try{v=m2Val(m);}catch(e){v='?';}return {id:m.id,famille:m.f,texte:m2Txt(m),valeur:typeof v==='number'?Math.round(v*10)/10:v,seuil:m2Seuil(m),
     reussie:s.ok.indexOf(m.id)>=0,prise:s.pr.indexOf(m.id)>=0,suivie:s.su.indexOf(m.id)>=0,recompense:m.r};});};
+/* ===== LES MISSIONS v2 — L'ÉCRAN (2026-10-16, Sacha : « un écran MISSIONS magnifique, bâti à partir de la vue garage qui existe déjà » ·
+   « UNE SEULE LISTE, triée intelligemment » · « toucher une mission la SUIT, jusqu'à 3 » · « une mission réussie brille et propose
+   RÉCUPÈRE ») =====
+   Le décor reste : la caméra s'élève au-dessus de l'atelier (GMIS), la trame et le balayage de la vue caméra, le cadeau en tête.
+   Le panneau (#gmListe.m2, placé par gmPlaceL : debout entre le titre et JOUER, couché dans la colonne de JOUER) porte UNE liste :
+   À RÉCUPÉRER (elles brillent) → SUIVIES (filet or, 3 au plus) → presque finies (≥ 2/3) → en cours → pas commencées ; puis
+   « TERMINÉES (n) », repliées, qu'on ouvre. Une ligne : l'icône de sa famille (la case qu'on coche : un coin d'or quand elle est suivie),
+   le texte, la jauge et son chiffre, la vignette de la récompense (photo de la caisse, aperçu de l'habillage, montant en vert).
+   Les SECRÈTES n'y sont pas, même en « ? ? ? » : trouvées, elles arrivent avec leur badge SECRÈTE (les dix couleurs secrètes de la
+   palette aussi, dans les TERMINÉES). Les jauges se remplissent DEPUIS ce que l'écran a déjà montré (`SAVE.d.m2.vu`). */
+const M2_FAM={exploit:{ic:'eclair'},aura:{ic:'etoile'},argent:{ic:'piece'},moteur:{ic:'flamme'},collection:{ic:'coffre'},exploration:{ic:'drapeau'},secret:{ic:'oeil'}};
+const M2E={fin:false}; // les TERMINÉES dépliées (le temps de la session)
+Object.assign(I18N,{'RÉCUPÈRE':'CLAIM','BIENTÔT':'SOON','RÉUSSIE':'DONE','SECRÈTE':'SECRET','TERMINÉES':'COMPLETED','MISSION SECRÈTE':'SECRET MISSION',
+  'MISSION SECRÈTE TROUVÉE':'SECRET MISSION FOUND','FAIT':'DONE','PAS ENCORE':'NOT YET','TROIS MISSIONS SUIVIES AU PLUS':'3 TRACKED MISSIONS AT MOST',
+  'TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS':'TAP A MISSION TO TRACK IT · 3 MAX','RÉCOMPENSE À RÉCUPÉRER':'A REWARD IS WAITING',
+  'TOUTES LES MISSIONS':'ALL MISSIONS','À RÉCUPÉRER':'TO CLAIM','BIENTÔT AU GARAGE':'COMING TO THE GARAGE SOON','RÉCOMPENSE À VENIR':'REWARD COMING SOON',
+  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT'});
+function m2Nb(x){return Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[  ]/g,' ');}
+function m2Mn(x){x=Math.max(0,Math.floor(x));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
+/* L'AVANCEMENT DE LA PARTIE (en course, l'écran de mort) : pour une mission « en une partie », ce que CETTE partie a fait — le record
+   ne bouge pas tant qu'on ne le bat pas, la jauge de course doit bouger, elle ; le reste (à vie, collection) : m2Val */
+function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||0;case 'parf':return M2R.parf;case 'fig':return Math.max(M2R.figV,M2R.figMax);
+  case 'vie':return M2R.vie;case 'frenT':return FLOW.lv===4?FREN.t:(RUNX.frenMax||0);case 'eng':return (engTier|0)+1;case 'kmh':return Math.round(runStats.vmax)||0;
+  case 'tours':return M2R.tourV.length;case 'airP':return M2R.airPm;}}catch(e){}return m2Val(m);}
+function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
+function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
+  switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';
+    case '$':return m2Nb(v)+' / '+m2Nb(t)+' $';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
+    case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
+  return m2Nb(v)+' / '+m2Nb(t);}
+function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
+  if(r.cat){const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return d?TR(d.n):'';}return TR('RÉCOMPENSE À VENIR');}
+function m2NbPret(){const s=m2Etat();let n=0;for(const id of s.ok)if(s.pr.indexOf(id)<0&&m2Pret(id))n++;return n;}
+function m2SecPal(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];return COSM.peinture.filter(function(d){return d.sec&&o.indexOf('peinture:'+d.id)>=0;});} // les couleurs secrètes TROUVÉES (le pack n'en fait pas des missions… mais on ne sait pas d'où elles viennent : elles comptent)
+function m2Compte(){const s=m2Etat(),p=m2SecPal().length;let vis=0,sec=0;for(const m of M2){if(m.f!=='secret')vis++;else if(s.ok.indexOf(m.id)>=0)sec++;}
+  return {ok:s.ok.length+p,tot:vis+sec+p};}
+/* les lignes, triées : 0 à récupérer · 1 suivies · 2 presque finies (≥ 2/3) · 3 en cours · 4 pas commencées · 9 terminées */
+function m2Lignes(){const s=m2Etat(),L=[];
+  for(const m of M2){const ok=s.ok.indexOf(m.id)>=0;if(m.f==='secret'&&!ok)continue;let v=0;try{v=m2Val(m);}catch(e){}
+    const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t),pr=s.pr.indexOf(m.id)>=0,su=s.su.indexOf(m.id),vide=!!(m.r&&m.r.vide);
+    const rg=ok?(!pr&&!vide?0:9):su>=0?1:p>=.66?2:p>0?3:4;L.push({m:m,v:v,t:t,p:p,ok:ok,pr:pr,su:su,rg:rg});}
+  L.sort(function(a,b){return a.rg-b.rg||(a.rg===1?a.su-b.su:b.p-a.p)||M2.indexOf(a.m)-M2.indexOf(b.m);});return L;}
+function m2CarVoir(m){const r=m.r||{};if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i)?{car:i}:null;}
+  if(r.cat){const j=(COSM[r.cat]||[]).findIndex(function(x){return x.id===r.id;});return j>=0?{cat:r.cat,i:j}:null;}return null;}
+/* LA VIGNETTE : la caisse en photo (photoFile, une par image, au garage), l'aile en photo sur ta caisse (aileFile), la peinture en pastille
+   et la traînée en ruban (objFig, ceux de l'écran de mort), l'argent en vert, « ? » pour la récompense encore à définir */
+function m2Vign(m){const r=m.r||{};
+  if(r.cash)return '<b class="m2Cash">+'+fmtC(r.cash)+'</b>';
+  if(r.vide)return '<i class="m2Vide">?</i>';
+  if(r.car){const i=m2CarIdx(r.car);const ph=i>=0&&PHOTO.cache[i];return '<i class="m2Ph">'+pxi('voiture')+'<img alt=""'+(ph?' src="'+ph+'"':i>=0&&!carRetiree(i)?' data-ph="'+i+'"':'')+'></i>';}
+  if(r.cat==='aile')return '<i class="m2Ph">'+pxi('aile')+'<img alt="" data-ai="'+r.id+'"></i>';
+  if(r.cat){const j=(COSM[r.cat]||[]).findIndex(function(x){return x.id===r.id;});return j>=0?objFig({cat:r.cat,i:j}):'<i class="m2Vide">'+pxi(r.cat==='trainee'?'trainee':'pinceau')+'</i>';}
+  return '';}
+function m2Ligne(x,k,s){const m=x.m,F=M2_FAM[m.f]||M2_FAM.exploit,pret=x.rg===0,suiv=x.su>=0&&!x.ok,vu=s.vu[m.id],voir=!!m2CarVoir(m);
+  const w0=Math.round(100*Math.min(x.p,vu!=null?vu:x.p)),w1=Math.round(100*x.p);
+  let bas;
+  if(pret)bas=m2Pret(m.id)?'<span class="m2Pr" aria-hidden="true"><span>'+pxi('cadeau')+' '+TR('RÉCUPÈRE')+'</span></span>':'<small class="m2Bt">'+TR('BIENTÔT AU GARAGE')+'</small>';
+  else bas='<small>'+(x.ok?TR('RÉUSSIE'):(suiv?TR('SUIVIE')+' · ':'')+m2Prog(m,x.v,x.t))+'</small>';
+  return '<div class="m2L m2F-'+m.f+(suiv?' f':'')+(x.ok?' ok':'')+(pret?' pret':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" aria-pressed="'+suiv+'" style="--i:'+Math.min(k,12)+'">'
+    +'<span class="m2Ic">'+pxi(x.ok&&!pret?'coche':F.ic)+(suiv?'<i class="m2Ck"></i>':'')+'</span>'
+    +'<div class="glTx"><b>'+(m.f==='secret'?'<i class="m2Sec">'+TR('SECRÈTE')+'</i> ':'')+sansAcc(m2Txt(m))+'</b>'
+    +(x.ok?'':'<u><em style="width:'+w0+'%" data-w="'+w1+'"></em></u>')+bas+'</div>'
+    +'<div class="m2R'+(voir?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+m2Vign(m)+'</div></div>';}
+function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son indice devient sa mission
+  const j=COSM.peinture.indexOf(d);return '<div class="m2L m2F-secret ok" data-pal="'+d.id+'"><span class="m2Ic">'+pxi('coche')+'</span>'
+    +'<div class="glTx"><b><i class="m2Sec">'+TR('SECRÈTE')+'</i> '+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><small>'+TR('RÉUSSIE')+'</small></div>'
+    +'<div class="m2R voir">'+objFig({cat:'peinture',i:j})+'</div></div>';}
+function m2Render(vu){
+  const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
+  const old=$('gmListe'),sc0=old?old.scrollTop:0,a0=old&&old.querySelector('.glA'),sc1=a0?a0.scrollTop:0;
+  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let h='<div class="glA m2A">',k=0;
+  for(const x of L)if(x.rg<9)h+=m2Ligne(x,k++,s);
+  const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
+  if(nf){h+='<div class="m2Fin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'">'+pxi('coche')+'<span>'+sansAcc(TR('TERMINÉES'))+' ('+nf+')</span>'+pxi(M2E.fin?'haut':'bas')+'</div>';
+    if(M2E.fin){h+='<div class="m2FinL">';fin.forEach(function(x,j){h+=m2Ligne(x,j,s);});pal.forEach(function(d){h+=m2LignePal(d);});h+='</div>';}}
+  if(!k&&!nf)h+='<div class="m2Rien">'+TR('TOUTES LES MISSIONS')+'</div>';
+  h+='</div>';
+  el.innerHTML='<div id="gmListe" class="m2'+(vu?' vu':'')+'">'+h+'</div>';
+  GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
+  const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
+  const aide=$('gmAide');if(aide)aide.textContent=s.su.length?'':sansAcc(TR('TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS'));
+  try{gmPlaceL(VP.w,VP.h);}catch(e){}
+  const nl=$('gmListe');if(nl){nl.scrollTop=sc0;const a1=nl.querySelector('.glA');if(a1)a1.scrollTop=sc1;}
+  /* les photos : une à la fois (photoFile tourne au garage), posées si la ligne est encore là */
+  el.querySelectorAll('img[data-ph]').forEach(function(im){const i=+im.getAttribute('data-ph');photoFile(i,function(u){if(u&&im.isConnected)im.src=u;});});
+  el.querySelectorAll('img[data-ai]').forEach(function(im){try{aileFile(im.getAttribute('data-ai'),function(u){if(u&&im.isConnected)im.src=u;});}catch(e){}});
+  /* les jauges se remplissent depuis ce que l'écran avait montré (après une partie : on voit ce qu'elle a fait) */
+  const ems=el.querySelectorAll('.m2L u em[data-w]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});};
+  if(REDUCED_MOTION||vu)go();else setTimeout(function(){requestAnimationFrame(go);},420);
+  let ch=false;for(const x of L){const p=Math.round(x.p*1000)/1000;if(s.vu[x.m.id]!==p){s.vu[x.m.id]=p;ch=true;}}if(ch)SAVE.mark();
+  m2Portes();}
+function m2Voir(m){const o=m2CarVoir(m);if(!o){uiClic('refus');return;}uiClic('nav');
+  ecranWipe(function(){garMode('boutique');if(o.car!=null){shopTab('voiture');garageShow(o.car);}else{shopTab(o.cat);shopShow(o.cat,o.i);}});}
+function m2Recupere(id,row){
+  if(!m2Pret(id)){uiClic('refus');try{gSecoue(row);}catch(e){}toast(pxi('horloge')+' '+TR('BIENTÔT AU GARAGE'));return;}
+  const o=m2Prend(id);if(!o){uiClic('refus');return;}
+  row.classList.add('pris');const vg=row.querySelector('.m2R');
+  try{pixBurst(row.querySelector('.m2Pr')||row,12);if(vg)pixBurst(vg,10);}catch(e){}
+  try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.27});}else uiClic('ok');}catch(e){}
+  hap([12,40,18,40,30]);
+  if(o.car!=null){try{carSnapshot();}catch(e){}toast(pxi('voiture')+' '+TR(CARS[o.car].name)+' — '+TR('EST À TOI'),true);}
+  else if(o.cat){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});toast(pxi('coche')+' '+(d?TR(d.n):'')+' — '+TR('EST À TOI'),true);}
+  else toast(pxi('piece')+' +'+fmtC(o.cash)+' '+TR('VERSÉS AU COMPTE'),true);
+  try{gBankPaint();}catch(e){}try{garMenuMaj();}catch(e){}
+  setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
+function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
+  const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
+    if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
+  const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
+    ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
+  const row=t.closest('.m2L');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
+  if(t.closest('.m2R.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
+  if(row.classList.contains('pret')){m2Recupere(id,row);return;}
+  if(s.ok.indexOf(id)>=0){uiClic('refus');return;}
+  const k=s.su.indexOf(id);
+  if(k>=0)s.su.splice(k,1);
+  else{if(s.su.length>=3){uiClic('refus');try{gSecoue(row);}catch(x){}toast(pxi('cible')+' '+TR('TROIS MISSIONS SUIVIES AU PLUS'));return;}s.su.push(id);}
+  SAVE.flush();uiClic(k>=0?'off':'on');hap(10);m2Render(true);
+  const r2=document.querySelector('#gmListe .m2L[data-m2="'+id+'"]');if(r2){r2.classList.add('flash');if(k<0&&r2.scrollIntoView)try{r2.scrollIntoView({block:'nearest'});}catch(x){}}}
+/* LE POINT VERT DES PORTES (à la place des trois pastilles du carnet) : une récompense attend d'être récupérée */
+function m2Portes(){if(!MISSIONS_V2)return;const n=m2NbPret();
+  document.querySelectorAll('#gMisBtn,#gvMis,.ghT[data-h="mis"],#mHome [data-m="mis"]').forEach(function(d){let p=d.querySelector(':scope>.m2Pt');
+    if(!p){if(!n)return;p=document.createElement('i');p.className='m2Pt';p.setAttribute('aria-hidden','true');try{if(getComputedStyle(d).position==='static')d.style.position='relative';}catch(e){}d.appendChild(p);}
+    p.hidden=!n;});}
+/* LES MISSIONS SUIVIES, EN COURSE (#m2Focus, à la place de #misFocus) : trois lignes au plus, discrètes — consigne · avancement · jauge
+   fine ; verte quand elle tombe. Le DOM n'est écrit que si un texte ou une jauge change (4 fois par seconde au plus, m2Tick). */
+function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=MISSIONS_V2&&misOn()&&!TUTO.on;
+  const s=on?m2Etat():null,L=on?s.su.filter(function(id){return !!m2Def(id);}):[];
+  if(!L.length){if(e&&e._on){e.classList.remove('on');e._on=0;}return;}
+  if(!e){e=document.createElement('div');e.id='m2Focus';e.setAttribute('aria-hidden','true');(document.getElementById('hud')||document.body).appendChild(e);e._k='';e.r=[];}
+  const k9=L.join(',');
+  if(e._k!==k9){e._k=k9;e.innerHTML=L.map(function(){return '<div class="m2FR"><i></i><span></span><b></b><u><em></em></u></div>';}).join('');
+    e.r=[].map.call(e.children,function(r){return {el:r,i:r.children[0],sp:r.children[1],b:r.children[2],em:r.children[3].firstChild,t:'',p:'',w:'',ic:'',ok:null};});}
+  L.forEach(function(id,j){const m=m2Def(id),R=e.r[j],ok=s.ok.indexOf(id)>=0;let v=0;try{v=m2ValCourse(m);}catch(x){}const t=m2Seuil(m);
+    const tx=sansAcc(m2Txt(m)),pg=ok?TR('RÉUSSIE'):m2Prog(m,v,t),w=Math.round(100*(ok?1:m2Frac(m,v,t)))+'%',ic=ok?'coche':(M2_FAM[m.f]||M2_FAM.exploit).ic;
+    if(R.t!==tx){R.t=tx;R.sp.textContent=tx;}if(R.p!==pg){R.p=pg;R.b.textContent=pg;}if(R.w!==w){R.w=w;R.em.style.width=w;}
+    if(R.ic!==ic){R.ic=ic;R.i.innerHTML=pxi(ic);}if(R.ok!==ok){R.ok=ok;R.el.classList.toggle('ok',ok);}});
+  if(!e._on){e.classList.add('on');e._on=1;}}
+/* LA CARTE MISSIONS DE L'ÉCRAN DE MORT : les missions réussies pendant la partie, puis l'avancement des suivies (la jauge se remplit
+   sous les yeux) ; à défaut, celle qui est la plus proche de tomber. Une SECRÈTE trouvée ne dit pas son nom (sa révélation est à venir).
+   Le point vert : une récompense attend. Touchée : l'écran MISSIONS. */
+function objRenderV2(el){const s=m2Etat(),L=[];
+  for(const id of M2R.run){const m=m2Def(id);if(m&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
+  for(const id of s.su){const m=m2Def(id);if(!m||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
+  if(!L.length){let b=null,bp=-1;for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0)continue;let v=0;try{v=m2Val(m);}catch(x){}
+    const p=m2Frac(m,v,m2Seuil(m));if(p<1&&p>bp){bp=p;b=m;}}if(b)L.push({m:b,ok:0});}
+  const nP=m2NbPret(),c=m2Compte();
+  el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
+  let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'</b></div>';
+  for(const x of L){const m=x.m;
+    if(m.f==='secret')h+='<div class="obM ok sec">'+pxi('oeil')+'<span>'+sansAcc(TR('MISSION SECRÈTE TROUVÉE'))+'</span></div>';
+    else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+sansAcc(m2Txt(m))+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
+    else{let v=0;try{v=m2ValCourse(m);}catch(q){}const t=m2Seuil(m);
+      h+='<div class="obM">'+pxi((M2_FAM[m.f]||M2_FAM.exploit).ic)+'<span>'+sansAcc(m2Txt(m))+'</span><b>'+m2Prog(m,v,t)+'</b></div><div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>';}}
+  h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
+  el.innerHTML=h;
+  const bars=el.querySelectorAll('.obBar i');
+  if(bars.length&&!REDUCED_MOTION&&TCTL.mortT&&objRenderV2._k!==TCTL.mortT){objRenderV2._k=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},520);}
+  setTimeout(function(){requestAnimationFrame(function(){bars.forEach(function(i){i.style.width=i.getAttribute('data-w')+'%';});});},REDUCED_MOTION?0:520);}
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -57703,7 +57961,7 @@ function hubSync(){ // appelée à chaque image de l'atelier (garageRender) et �
   if(GTN&&GTN.el)GTN.el.classList.toggle('on',t==='atl'&&!cache); // (2026-10-09) LA JAUGE : dans l'atelier seulement
   {const hm=document.getElementById('gHomeMini');if(hm){hm.classList.toggle('on',t==='atl'&&!cache);try{gHomePlace(true);}catch(e){}}} // (2026-10-09) le PETIT HOME aussi
   if(t!==t0)el.querySelectorAll('.ghT').forEach(function(b){const on=b.getAttribute('data-h')===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});
-  if(t&&!t0)try{const s9=misEtat();const p9=misPips(s9);el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});}catch(e){}}
+  if(t&&!t0)try{const s9=misEtat();const p9=misPips(s9);el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});}catch(e){}try{m2Portes();}catch(e){}}
 function hubVa(t,b){ // changer d'onglet : la feuille CARRIÈRE se pose par-dessus l'atelier (qui reste ouvert dessous), les deux autres sont des modes de l'atelier
   const cur=hubCtx();if(!cur||GAR.go||ecranWipe._on)return;
   if(b)uiPop(b);uiClic('onglet');
@@ -57913,7 +58171,7 @@ function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGN
     if(!SF.prochain)SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);const t=SF.prochain,cle=t.meteo==='orage'&&t.carte==='nuages'?'orage':t.meteo==='nuit'&&t.carte==='ville'?'villeN':t.meteo==='satellites'?'espaceH':t.carte;
     el9.querySelector('.gvN').textContent='1';el9.querySelector('.gvT').textContent=sansAcc(TR(SF_CARTES[t.carte].nm));el9.querySelector('.gvD').textContent=sansAcc(TR(SF_METEOS[t.meteo]));
     el9.style.setProperty('--lc',GV_TEINTE[t.carte]||'#5ee6ff');try{el9.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}
-    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}
+    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}try{m2Portes();}catch(e){}
     return;}}
   const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
     el.querySelector('.gvN').textContent=tuto?'P':'1';
@@ -57922,7 +58180,7 @@ function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGN
     el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));
     try{el.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}}
   gvNivs(false,true);
-  const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}
+  const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}try{m2Portes();}catch(e){}
 }
 /* LE TIROIR DES NIVEAUX ACCOMPLIS (`#gvNivs`) : la vignette touchée l'ouvre, retouchée (ou un tap ailleurs, Échap, HOME, SHOP, JOUER) le
    referme. Dedans : les niveaux TERMINÉS (coche), puis le prochain à battre et ce qui reste à découvrir — ou, s'il n'y en a aucun, la phrase qui
@@ -58916,7 +59174,7 @@ function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, l
   GAR.lvlW=w;const n=Math.min(CARRIERE[w].niveaux.length,carrFait(w)+1);
   const gn=$('glN');if(gn)gn.textContent=TR('NIVEAU')+' '+n;
   const gm=$('glM');if(gm)gm.textContent=sansAcc(TR(CARRIERE[w].nm));
-  const pp=$('gMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});
+  const pp=$('gMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});try{m2Portes();}catch(e){}
 }
 function garMenuSuit(){ // l'étiquette MISSIONS se pose sur le socle, où qu'il soit à l'écran
   const an=$('gMisAncre');if(!an||!GAR.misPos)return;
@@ -58974,7 +59232,7 @@ function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite)
 function gmHoloTick(t9){const e=GMIS.e;for(let i=0;i<GMIS.holo.length;i++){const h=GMIS.holo[i],o=e*(.34+.12*Math.sin(t9*2.7+i*1.3));
   h.beam.material.opacity=o;if(h.ring){h.ring.material.opacity=e*.8;const k=1+.12*Math.sin(t9*3.1+i);h.ring.scale.set(k,k,k);}}}
 function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
-  if(MENU_SACHA)return gmRenderS(vu); // (Sacha a tranché) son écran rangé ; celui de Léo avec ?menu=leo
+  if(MISSIONS_V2)return m2Render(vu); /* (2026-10-16) LES MISSIONS v2 : la liste unique */if(MENU_SACHA)return gmRenderS(vu); // (Sacha a tranché) son écran rangé ; celui de Léo avec ?menu=leo
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el||!sv)return;
   const s=misEtat(),c=carnet(s.n),g=misGain(c);let h='';
   if(s.f>=0&&s.ok[s.f])s.f=-1;
@@ -58998,7 +59256,7 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
 }
 function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à côté (écartées, dans l'écran), les fils
-  if(MENU_SACHA)return gmSuitS();
+  if(MISSIONS_V2||MENU_SACHA)return gmSuitS();
   if(!GMIS.cards||!GMIS.cards.length)return;
   const W=VP.w,H=VP.h,v=GMIS.v,A=GMIS.ancres,n=A.length,P=GMIS.P||(GMIS.P=[]),Q=GMIS.Q||(GMIS.Q=[]);
   const now=performance.now();if(!GMIS.bT||now-GMIS.bT>300){GMIS.bT=now;const hd=$('gmHead'),bs=$('gmBas');
@@ -59142,6 +59400,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
  clicM(document.querySelector('#gmHead .c6Ret'),function(){uiClic('retour');garMisRetour();}); // (2026-10-14, charte 6) le ◀ de l'en-tête = HOME (masqué sous c6)             // HOME : le menu (ou la VITRINE, si on en vient)
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
+   if(MISSIONS_V2){m2Clic(e);return;} /* (2026-10-16) LES MISSIONS v2 : suivre, récupérer, voir, TERMINÉES */
    const l9=e.target.closest&&e.target.closest('.glM,.glRec'),s9=misEtat(); // (2026-10-15) le panneau MISSIONS en liste
    if(l9&&l9.classList.contains('glM')){const i=+l9.getAttribute('data-s');if(s9.ok[i]){uiClic('refus');return;}
      s9.f=s9.f===i?-1:i;SAVE.flush();uiClic(s9.f>=0?'on':'off');hap(10);gmRenderS(true);const l2=document.querySelector('#gmListe .glM[data-s="'+i+'"]');if(l2)l2.classList.add('flash');return;}
@@ -59153,7 +59412,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
    else if(a.k==='r'){const g=misGain(carnet(s.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
      ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});}
    else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});
-   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.glM,.glRec')){e.preventDefault();e.stopPropagation();e.target.click();}});}
+   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.glM,.glRec,.m2L,.m2Fin')){e.preventDefault();e.stopPropagation();e.target.click();}});}
  clicM(document.querySelector('#gMenuBas .gBoutique'),function(){uiClic('nav');ecranWipe(function(){garMode('boutique');});}); // la BOUTIQUE : l'atelier et ses vitrines
  clicM(document.querySelector('#gMenuBas .gLevel'),function(){uiClic('nav');carrVue(GAR.lvlW||0);});            // le NIVEAU : la carrière, sur le monde en cours
 }
@@ -62920,7 +63179,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     }else if(mCur==='home'){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
         if(r9){MIS_REC=r9;misBanniere('MISSIONS RÉUSSIES !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
-      {const pp=$t('mMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});} // la porte MISSIONS : une case allumée par défi relevé
+      {const pp=$t('mMisPips'),s9=misEtat(),p9=misPips(s9);if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!p9[i]);});}try{m2Portes();}catch(e){} // la porte MISSIONS : une case allumée par défi relevé
       soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop'),c6=document.documentElement.classList.contains('c6'); // (2026-10-14, charte 6) la pastille = un carré d'or SANS chiffre ni mot (« 39 » ne disait rien)

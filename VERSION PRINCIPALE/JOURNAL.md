@@ -63,6 +63,33 @@ Livré par étapes (chacune vérifiée, commitée, poussée). Cette section gran
     achetées à l'argent du jeu, 164 500 $ en tout). ⚠ « toutes les couleurs » est hors d'atteinte : les 53 se paient en EUROS (StoreKit pas
     branché) ; « toutes les voitures » demande 6 caisses hors argent du jeu (POSTER 84 au rang d'aura, et 5 en euros dont LA PIZZA EXPRESS à
     161 €) ; « toutes les traînées » demande l'ARC-EN-CIEL, donc le chat (4,20 €).
+**ÉTAPE 2 — L'ÉCRAN MISSIONS** (toujours `?missions=v2` pendant la livraison)
+- LE DÉCOR GARDÉ : la vue caméra au-dessus de l'atelier (`GMIS`, trame, balayage, hologrammes) et le CADEAU en tête (`#mCadeau` dans `#gmHead`).
+  `gmRender` → `m2Render` (et `gmSuit` → `gmSuitS`, qui recale le panneau) ; le panneau est le même `#gmListe` (classe `m2`), placé par
+  `gmPlaceL` : debout entre le titre et JOUER, couché dans la colonne de JOUER (la moitié gauche laisse voir l'atelier).
+- UNE SEULE LISTE (`m2Lignes`) : À RÉCUPÉRER (elles brillent, `m2Brille`) → SUIVIES (filet or) → presque finies (≥ 2/3) → en cours → pas
+  commencées ; « TERMINÉES (n) » repliées en bas (`M2E.fin`). Une ligne (`m2Ligne`) : l'icône pixel de la famille dans un octogone à sa
+  couleur (exploit cyan · aura rose · argent vert · moteur ambre · collection bleu · exploration menthe · secrète magenta — jamais l'or),
+  qui sert de case (un coin d'or quand elle est suivie) ; le texte ; la jauge et son chiffre (`m2Prog` : « 3 / 5 », « 42 000 / 100 000 $ »,
+  « 3,2 / 5 S », « 1:12 / 5:00 ») ; la vignette (`m2Vign` : photo de la caisse par `photoFile`, aile par `aileFile`, peinture et traînée par
+  `objFig`, l'argent en vert, « ? » pour la récompense à définir) qui tourne doucement (`m2Tourne`). En-tête : MISSIONS + le compteur
+  (« 6 / 39 » : les visibles + les secrètes trouvées, couleurs secrètes de la palette comprises).
+- LES GESTES (`m2Clic`, branché en tête du clic de `#gmNoeuds`) : toucher une ligne la SUIT (3 au plus : la 4e secoue, toast) · une ligne
+  qui brille = RÉCUPÈRE (`m2Recupere` → `m2Prend` : la vignette tombe, gerbe `pixBurst`, `ui.achat` pour l'argent / `ui.debloque` pour un
+  objet + `ui.tampon`, vibration, toast ; une caisse : `carSnapshot`, pas de « nouvelle caisse » en double) · la vignette ouvre l'objet au
+  garage ou à la boutique (`m2Voir`) · TERMINÉES s'ouvre / se ferme. Les jauges partent de `SAVE.d.m2.vu` (ce que l'écran avait montré) :
+  après une partie on les voit monter. « Réduire les animations » : rien ne bouge, les jauges sont posées.
+- EN COURSE : `#m2Focus` (à la place de `#misFocus`, même place : au centre en bas couché, à gauche debout) — les suivies, trois lignes
+  fines : consigne · avancement DE LA PARTIE (`m2ValCourse` : l'aura de la partie, la série de poses en cours… — le record ne bouge pas tant
+  qu'on ne le bat pas) · jauge ; verte quand elle tombe ; DOM écrit seulement si ça change (4 fois/s au plus). Une suivie réussie quitte le
+  suivi à la fin de la partie (on la récupère). Le bandeau « MISSION RÉUSSIE » (la bannière du haut) ; une secrète : « MISSION SECRÈTE · ? ? ? ».
+- L'ÉCRAN DE MORT : la carte MISSIONS (`objRenderV2`) — les missions réussies pendant la partie, l'avancement des suivies (la jauge se
+  remplit, `ui.jauge`), à défaut la plus proche de tomber ; le compteur ; le point vert ; touchée : l'écran MISSIONS.
+- LES PORTES (accueil, garage, vitrine, onglet du hub) : les trois pastilles du carnet sont masquées ; un POINT VERT (`m2Portes`, `.m2Pt`)
+  quand une récompense attend. Le toast des couleurs secrètes dit « MISSION SECRÈTE » (plus « DÉFI RÉUSSI »).
+- CSS : `<style id="missionsV2">` (après `policeUnique`). Vérifié au banc (muet) : couché 844 × 390 et 667 × 375, debout 390 × 844 et
+  375 × 667 (iPhone SE), encoche simulée, français et anglais ; récupérer (argent, caisse), suivre / ne plus suivre, 4e refusée,
+  TERMINÉES, vignette → garage, course (3 suivies), écran de mort — 0 erreur.
 - À TRANCHER PAR SACHA : la récompense de « tous les objets du jeu » (emplacement vide) · LA STRATOS pour « parfait sur chaque map » · les
   prix des 4 caisses orphelines · « 3 premières secondes » (impossible : 6 s ?) · « jauge de nitro pleine » (la jauge est PLEINE au départ :
   LA BOULE tombe dès qu'on meurt tôt) · « 0 s de vol » (la mort par le chrono de 6 s est l'une des plus fréquentes : LE SPECTRE tombe vite) ·
