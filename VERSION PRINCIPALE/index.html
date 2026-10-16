@@ -32081,10 +32081,12 @@ Object.assign(SHAPES,{
      posés sur la peau même du loft (`surf`/`nrm` relisent les sections au point près), couchés vers la poupe, courts sur le museau,
      longs sur le dos, une CRÊTE sur l'échine, les plus longs sur les ailes arrière — rien sur les vitres ni dans une roue. Le gothique :
      les meurtrières deviennent des LANCETTES en ogive (vitrail sombre, meneau), un pic au moyeu. 2e jet : le porc-épic sur le DOS, des
-     CLOUS chromés sur les flancs et l'avant, la turbine d'origine (voir LE PELAGE). */
+     CLOUS chromés sur les flancs et l'avant, la turbine d'origine (voir LE PELAGE). 3e jet (Léo : « la structure était belle, mais ça
+     manque de finition et de fusion avec l'idée des pics ») : LA MUE (le clou se couche et s'allonge du nez au dos), des collerettes,
+     le FILET D'OS de la ceinture, les ailes arrière en OGIVE, le BÉLIER, les yeux en biais, les plaques en fer noir. */
   d_chevalier:function(K){
-  const U=LPU,R=.52,ZF=1.52,ZR=-1.42,WX=1.03,TW=.44,STYLE=(typeof location!=='undefined'&&/[?&]blinde=chrome\b/.test(location.search))?'chrome':'porc';
-  const P=K.kit({p:{g:'s',c:0x17181b},G:{g:'s',c:0x4a4e56},k:{g:'m',c:0x111214},K:{g:'g',c:0x0b0c0e},c:{g:'c',c:0xc9ced6},
+  const U=LPU,R=.52,ZF=1.52,ZR=-1.42,WX=1.03,TW=.44;
+  const P=K.kit({p:{g:'s',c:0x17181b},G:{g:'s',c:0x33353c},k:{g:'m',c:0x111214},K:{g:'g',c:0x0b0c0e},c:{g:'c',c:0xc9ced6},
     g:{g:'g',c:0x141c24},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xff8a24},
     q:{g:'k',c:0x24252b},Q:{g:'n',c:0xe9e1cd},                                  // LES PIQUANTS : la hampe en fer noir, la pointe en ivoire
     r:{g:'l',c:0x5e0a1e},v:{g:'l',c:0x3a1270}});                                  // LES LANCETTES : vitrail sombre, allumé de l'intérieur
@@ -32128,14 +32130,17 @@ Object.assign(SHAPES,{
     for(let k=0;k<4;k++){const n=(k+1)%4;
       T3('q',C0[k],C0[n],C1[n],sd);T3('q',C0[k],C1[n],C1[k],sd);T3('Q',C1[k],C1[n],A,sd);}
   };
-  /* ---- LE CLOU GOTHIQUE : un cône d'acier chromé à six pans, droit, comme sur un blouson clouté ---- */
+  /* ---- LE CLOU GOTHIQUE : un cône d'acier chromé à six pans, monté sur sa COLLERETTE de fer noir (le rivet du blouson clouté) ---- */
   const clou=(b,d,L,r,sd)=>{
     const l=Math.hypot(d[0],d[1],d[2]);d=[d[0]/l,d[1]/l,d[2]/l];
     const up=Math.abs(d[1])<.92?[0,1,0]:[1,0,0];
     let e1=[up[1]*d[2]-up[2]*d[1],up[2]*d[0]-up[0]*d[2],up[0]*d[1]-up[1]*d[0]];const m1=Math.hypot(e1[0],e1[1],e1[2]);e1=[e1[0]/m1,e1[1]/m1,e1[2]/m1];
-    const e2=[d[1]*e1[2]-d[2]*e1[1],d[2]*e1[0]-d[0]*e1[2],d[0]*e1[1]-d[1]*e1[0]],b0=[b[0]-d[0]*.03,b[1]-d[1]*.03,b[2]-d[2]*.03],A=[b[0]+d[0]*L,b[1]+d[1]*L,b[2]+d[2]*L],C=[];
-    for(let k=0;k<6;k++){const a=k*Math.PI/3,ca=Math.cos(a)*r,sa=Math.sin(a)*r;C.push([b0[0]+e1[0]*ca+e2[0]*sa,b0[1]+e1[1]*ca+e2[1]*sa,b0[2]+e1[2]*ca+e2[2]*sa]);}
-    for(let k=0;k<6;k++)T3('c',C[k],C[(k+1)%6],A,sd);
+    const e2=[d[1]*e1[2]-d[2]*e1[1],d[2]*e1[0]-d[0]*e1[2],d[0]*e1[1]-d[1]*e1[0]],at=h=>[b[0]+d[0]*h,b[1]+d[1]*h,b[2]+d[2]*h],
+      hex=(o,rr)=>{const H=[];for(let k=0;k<6;k++){const a=k*Math.PI/3+.52,ca=Math.cos(a)*rr,sa=Math.sin(a)*rr;H.push([o[0]+e1[0]*ca+e2[0]*sa,o[1]+e1[1]*ca+e2[1]*sa,o[2]+e1[2]*ca+e2[2]*sa]);}return H;},
+      oc=at(.024),C0=hex(at(-.03),r*1.55),C1=hex(oc,r*1.22),C2=hex(oc,r),A=at(L);
+    for(let k=0;k<6;k++){const n=(k+1)%6;
+      T3('q',C0[k],C0[n],C1[n],sd);T3('q',C0[k],C1[n],C1[k],sd);T3('q',oc,C1[k],C1[n],sd);  // la collerette et son plateau
+      T3('c',C2[k],C2[n],A,sd);}                                                            // le cône
   };
   const rot=(n,bk,a,sx,sd)=>{const c=Math.cos(a),s=Math.sin(a);   // la direction : couchée vers l'arrière de `a`, écartée vers le dehors de `sx`
     return [n[0]*c+bk[0]*s+sx,n[1]*c+bk[1]*s,n[2]*c+bk[2]*s];};
@@ -32146,7 +32151,10 @@ Object.assign(SHAPES,{
   let id=0;
   const dos9=z=>U.cl((.6-z)/2.4,0,1),                                           // 0 au museau → 1 à la poupe
     arr=(z,i)=>z<-.55+(hh(i*9.1)-.5)*.30,                                         // le dos de la bête (piquants) ou l'avant (clous)
-    bete=(b,d,L,r,sd)=>{if(STYLE==='chrome')clou(b,d,L*.92,r*1.25,sd);else pique(b,d,L,r,sd);};
+    bete=pique,
+    /* (3e jet, Léo : « ça manque de fusion avec l'idée des pics ») LA MUE : du museau au toit, le clou se COUCHE et s'allonge — droit et court
+       sur le nez, penché et long en arrivant au dos, où il devient piquant. Une seule bête, du nez à la queue. */
+    mue=dos=>{const g=Math.pow(U.cl(dos/.48,0,1),1.4);return [.12+.86*g,.80+.75*g];};
   for(const j of [2,3,4]){
     let row=0;
     for(let z=-2.12;z<=2.04;row++){
@@ -32161,8 +32169,8 @@ Object.assign(SHAPES,{
             L=(j===4?.42:.36)*(.55+.62*dos)*(.82+.36*hh(id*3.1)),a=(j===4?1.06:1.02)+(hh(id*7.7)-.5)*.22;
           bete(b,rot(nn,bk,a,(j===4?.10:.04)+(hh(id*5.3)-.5)*.10,1),L,.036+.01*dos,1);
         }else{                                                                 // LES FLANCS ET L'AVANT : les clous, en rangées
-          const t=U.cl((k+.5+(row%2?.25:-.25))/n,.08,j===4?.88:.92),b=surf(j,z,t),[nn,bk]=nrm(j,z,t);
-          clou(b,rot(nn,bk,.22,0,1),(j===4?.24:j===3?.21:.17)*(.85+.25*dos),.056,1);}
+          const t=U.cl((k+.5+(row%2?.25:-.25))/n,.08,j===4?.88:.92),b=surf(j,z,t),[nn,bk]=nrm(j,z,t),[ma,ml]=mue(dos);
+          clou(b,rot(nn,bk,ma,0,1),(j===4?.22:j===3?.20:.16)*ml,.05,1);}
       }
       z+=zArr?.165:.19;
     }
@@ -32170,9 +32178,9 @@ Object.assign(SHAPES,{
   // LA CRÊTE : sur l'échine, la rangée des plus longs, dressée (derrière le toit) — devant, une rangée de gros clous
   for(let z=-2.0;z<=.02;){id++;const b=surf(4,z,1),[nn,bk]=nrm(4,z,.999),dos=dos9(z),r9=arr(z,id);
     if(r9)bete([0,b[1]+.02,z],rot([0,1,0],bk,.86+(hh(id)-.5)*.16,0,0),(.52+.30*dos)*(.85+.3*hh(id*2.3)),.05,0);
-    else clou([0,b[1]+.02,z],rot([0,1,0],bk,.35,0,0),.34+.12*dos,.075,0);
+    else{const [ma,ml]=mue(dos);clou([0,b[1]+.02,z],rot([0,1,0],bk,Math.min(.86,ma+.2),0,0),.30*ml,.07,0);}
     z+=r9?.15:.19;}
-  P.box('G',.30,.05,.80,0,1.60,-.45);P.box('G',.60,.04,.50,0,1.39,-1.30,-.24); // l'arête dorsale, la trappe
+  P.box('q',.30,.05,.80,0,1.60,-.45);P.box('Q',.035,.02,.80,0,1.63,-.45);P.box('q',.60,.04,.50,0,1.39,-1.30,-.24); // l'arête dorsale (son filet d'os), la trappe
   /* ---- LES LANCETTES : trois fenêtres en ogive par flanc, à la place des meurtrières — un vitrail sombre allumé de l'intérieur,
      un meneau noir au milieu (la fenêtre gothique à deux jours), posé 1 cm au-dessus de la tôle. ---- */
   const LW=.12,OFF=.012,onB=(z,t)=>{const p=surf(3,z,t),[nn]=nrm(3,z,t);return [p[0]+nn[0]*OFF,p[1]+nn[1]*OFF,p[2]+nn[2]*OFF];};
@@ -32183,12 +32191,19 @@ Object.assign(SHAPES,{
     const m0=onB(zc-.011,.12),m1=onB(zc+.011,.12),m2=onB(zc+.011,.86),m3=onB(zc-.011,.86),dn=nrm(3,zc,.5)[0],up=x=>[x[0]+dn[0]*.004,x[1]+dn[1]*.004,x[2]+dn[2]*.004];
     T3('K',up(m0),up(m2),up(m1),1);T3('K',up(m0),up(m3),up(m2),1);
   });
+  /* ---- LE FILET D'OS : la ligne de ceinture (le haut du flanc), du nez à la queue, en ivoire — la couleur des pointes court sur
+     toute la caisse et la lie : les clous dessous, les lancettes et le dos de la bête dessus. ---- */
+  {const bord=(z,t)=>{const p=surf(2,z,t),[nn]=nrm(2,z,t);return [p[0]+nn[0]*.008,p[1]+nn[1]*.008,p[2]+nn[2]*.008];};
+    for(let z=-2.18;z<2.14;z+=.12){const z1=Math.min(2.14,z+.12),a=bord(z,.955),b=bord(z1,.955),c=bord(z1,1),d=bord(z,1);T3('Q',a,b,c,1);T3('Q',a,c,d,1);}}
+  /* ---- LES AILES ARRIÈRE EN OGIVE (3e jet) : la plaque plate devient un ARC BRISÉ d'église au-dessus de la roue, filet d'os sur
+     l'arête — les plus longs piquants poussent sur son dos. ---- */
+  const FX=.86,FW=.86,AW=.82,AY=.96,AH=.42,ARC=z=>{const w=(z-ZR)/AW;if(Math.abs(w)>=1)return AY;const v=Math.abs(w)+1;return AY+AH*Math.sqrt(Math.max(0,4-v*v))/1.732;};
+  const ARC_N=18,arcPts=(dy)=>{const o=[];for(let i=0;i<=ARC_N;i++){const z=ZR+AW-i*2*AW/ARC_N;o.push([z,ARC(z)+dy]);}return o;};
   P.sym(sd=>{
-    // LES GARDE-BOUE EN PLAQUES au-dessus des pneus arrière
-    P.box('p',.86,.06,1.36,sd*.86,1.17,ZR,0,0,-sd*.10);
-    P.box('p',.84,.05,.44,sd*.86,1.06,ZR+.79,.55,0,-sd*.10);
-    P.box('p',.80,.30,.05,sd*.86,.98,ZR-.70,-.35,0,0);                         // la bavette
-    P.box('G',.05,.20,1.20,sd*1.285,1.04,ZR);                                // la joue extérieure
+    // LES AILES ARRIÈRE : l'ogive (dessus, puis le dessous à 8 cm), le filet d'os sur l'arête extérieure
+    {const top=arcPts(0),bas=arcPts(-.085).reverse();P.prism('p',top.concat(bas),FW,sd*FX);
+     const fil=arcPts(.006),fil2=arcPts(-.03).reverse();P.prism('Q',fil.concat(fil2),.03,sd*(FX+FW/2-.005));}
+    P.box('q',.80,.26,.05,sd*.86,.90,ZR-.80,-.20,0,0);                         // la bavette, au pied de l'ogive
     // LE PNEU ARRIÈRE DOUBLÉ vers l'intérieur (révolution parfaite : immobile ou pas, on ne voit rien)
     const hw=.15;P.lathe('k',[[R*.64,-sd*hw],[R*.88,-sd*hw],[R,-sd*hw*.55],[R,sd*hw*.55]],16,sd*(WX-TW/2-hw+.005),R,ZR,'x');
     P.lathe('k',[[R*.64,-sd*hw],[0,-sd*hw]],10,sd*(WX-TW/2-hw+.005),R,ZR,'x');
@@ -32199,20 +32214,22 @@ Object.assign(SHAPES,{
     P.put('c',new THREE.CylinderGeometry(.045,.045,.56,8),sd*.70,.84,ZF-.10,0,0,sd*.78);
     P.put('k',new THREE.CylinderGeometry(.07,.07,.26,8),sd*.64,.92,ZF-.10,0,0,sd*.78);
     // yeux et feux
-    P.box('W',.14,.04,.03,sd*.20,.58,2.265);P.box('W',.08,.04,.03,sd*.34,.60,2.25);
+    P.box('W',.15,.035,.03,sd*.21,.585,2.265,0,0,sd*.28);P.box('W',.08,.03,.03,sd*.35,.625,2.25,0,0,sd*.28); // les yeux, en biais : le regard de la bête
     P.box('W',.12,.035,.03,sd*.52,.98,1.06,0,sd*.5,0);
     P.box('L',.16,.04,.03,sd*.36,1.00,-2.245);P.box('L',.04,.10,.03,sd*.46,.80,-2.245);
-    P.box('G',.40,.04,.36,sd*.36,1.14,-2.14,-.35);                             // les volets de poupe
+    P.box('q',.40,.04,.36,sd*.36,1.14,-2.14,-.35);                             // les volets de poupe
   });
-  /* ---- LE DOS DES AILES ARRIÈRE : les plus longs piquants de la bête, couchés vers la poupe et un peu vers le dehors ---- */
+  /* ---- LE DOS DES AILES ARRIÈRE : les plus longs piquants de la bête, plantés sur l'ogive, couchés vers la poupe et un peu dehors ---- */
   for(let ix=0;ix<4;ix++)for(let iz=0;iz<8;iz++){id++;
-    const dx=-.30+ix*.20+(iz%2?.05:-.05),dz=-.56+iz*.16,rz=-.10,cr=Math.cos(rz),sr=Math.sin(rz),
-      b=[.86+dx*cr-.03*sr,1.17+dx*sr+.03*cr,ZR+dz],nn=[-sr,cr,0],dos=dos9(b[2]);
-    bete(b,rot(nn,[0,-.08,-1],1.0+(hh(id)-.5)*.24,.10+.10*ix/3,1),(.50+.18*dos)*(.8+.4*hh(id*4.1)),.045,1);}
+    const dx=-.30+ix*.20+(iz%2?.05:-.05),z=ZR-.60+iz*.17,e=.01,y=ARC(z),yp=(ARC(z+e)-ARC(z-e))/(2*e),
+      ln=Math.hypot(yp,1),nn=[0,1/ln,-yp/ln],bk=[0,-yp/ln,-1/ln],b=[FX+dx,y,z],dos=dos9(z);
+    bete(b,rot(nn,bk,1.0+(hh(id)-.5)*.24,.10+.10*ix/3,1),(.50+.18*dos)*(.8+.4*hh(id*4.1)),.045,1);}
   // LA TUYÈRE centrale (2026-10-16 : la rosace essayée, Léo : « bizarre avec les couleurs, reviens sur le moteur d'avant »)
   P.cyl('k',.30,.26,12,0,.80,-2.32,'z',.25);P.cyl('c',.24,.04,12,0,.80,-2.44,'z');
   P.cyl('K',.20,.05,12,0,.80,-2.44,'z');P.cyl('O',.10,.06,10,0,.80,-2.44,'z');
   P.box('G',.70,.10,.06,0,.46,2.26);                                          // bouclier de nez
+  // LE BÉLIER (3e jet) : cinq clous droit devant sur le bouclier, le plus long au milieu — la bête charge
+  [[0,.30],[.15,.22],[.29,.15]].forEach(([x,L])=>clou([x,.46,2.29],[0,-.06,1],L,.045,x?1:0));
   K.commit(P);
   return {hl:[.20,.58,2.28],tl:[.36,1.00,-2.26],wx:WX,wzF:ZF,wzR:-ZR,pots:[[0,.80,-2.47]], // (pots) LA TURBINE centrale, à 80 cm : le relevé s'arrête à 60
           lpw:{R:R,w:TW,style:'rayons',n:5,jante:0x6a6e76,accent:0x2a2c31,crampons:1,pique:1}};
