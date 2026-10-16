@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MUSIQUE NE COMMENCE QU'AU CIEL — L'INTRO 1.61 SANS SES NOTES (2026-10-16, pôle SON — Léo, sur l'appli iPhone : « c'est quoi cette première musique de merde ? » puis « version main, il faut que la musique ne commence qu'au menu ciel », relayé par la session « appli iPhone »)
+- MESURÉ au banc muet (`ouverture.py` : chaque AudioContext à part, du toucher de l'écran titre au ciel, joueur habitué ET neuf) : la seule chose
+  qui sonne avant le ciel est la COMPOSITION DE L'INTRO 1.61 (`introSound`, son propre contexte) — 4,5 s, de −32 à −14 dB, quand la musique du
+  ciel part ensuite à −40 dB. La musique du lobby, elle, part bien avec le ciel (`hide`). Ni la bienvenue ni la leçon ne jouent avant.
+- L'HISTOIRE : Léo l'avait coupée le 6/10 (« plus aucune musique avant le ciel ») ; Sacha l'a rendue le 7/10 (« pour l'animation 1.61, il n'y a
+  plus le son »). Les deux tiennent ensemble : l'animation GARDE SON SON, mais plus une NOTE. `INTRO_SON` vaut 1 (défaut) : les bruitages —
+  clic, compteuse à billets, spirales de souffle, coups de cœur, aspiration, canon de la fission, impact du titre, cliquetis des pièces — et
+  rien de ce qui chante (`INTRO_NOTES` faux : `tone` refuse toute note tenue, `f1/f0 > 0,9` ; le double sub ne part plus). Mesuré : la montée
+  passe de −17/−23 dB à −31/−48 dB, le coup de la fission reste (−17 dB), la musique part avec le ciel.
+- `?intro=musique` = la composition entière (celle du 7/10), `?intro=muet` = l'intro muette (celle du 6/10). ⚠ À SIGNALER À SACHA : c'est son
+  choix du 7/10 qui est touché (la musique, pas le son) — s'il veut ses notes, une ligne (`INTRO_SON` à 2) les rend.
+
 ## POUCE BLEU REFAIT — DEUX MORCEAUX ÉCRITS À LA MAIN EN 30 PALIERS (2026-10-16, pôle SON — Léo : « il y a quelques musiques faibles… remplace-les par des sons qui ont le niveau de ceux qui ont été laissés » · « ça fait trop jeu vidéo, presque inaudible » · « surprends-moi, de nouveaux sons » · « oublie le générateur, juste le système de musique évolutive jusqu'à 30 » · « réécris complètement RUBIS DE NÉON » · « refonte complète d'ASPHALTE D'ÉMERAUDE » · « RUBIS DE NÉON : enlève la basse et profites-en pour charger encore plus, harmonieux » · « push main les dernières chansons »)
 - LE TRI DE LÉO (bibliothèque, `musique-moteur.json`, tel quel) : PISTON DE LUXE, FLAMME DE VITESSE, CRISTAL D'ARGENT retirés ; des générés
   proposés ensuite, il ne garde que TONNERRE DELUXE (`bleu-6104`, v3-10) ; son pouce sur ASPHALTE D'ÉMERAUDE. Pouce bleu = 20 morceaux.

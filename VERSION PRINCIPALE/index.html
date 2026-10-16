@@ -62597,7 +62597,15 @@ renderLeaders(-1);
   /* (2026-10-07, Sacha : « pour l'animation 1.61 au début, il n'y a plus le son ») : la composition REVIENT — Léo l'avait coupée la nuit du
      6/10 (c135414, « plus aucune musique avant le ciel »). La musique du LOBBY, elle, part toujours avec le ciel (hide) ; ici, c'est
      le sound design de l'intro, qui s'éteint en fondu quand le voile s'ouvre. false = l'intro muette de Léo. */
-  const INTRO_SON=true;
+  /* (2026-10-16, pôle SON — Léo, sur l'appli : « c'est quoi cette première musique de merde ? » puis « il faut que la musique ne commence qu'au
+     menu ciel ») MESURÉ au banc muet, du toucher de l'écran titre au ciel : la SEULE chose qui sonne avant le ciel, c'est cette composition
+     (4,5 s, jusqu'à −14 dB, quand la musique du ciel part à −40). Les deux demandes tiennent ensemble : l'animation GARDE SON SON (Sacha, 7/10)
+     mais plus une NOTE — on garde les bruitages (le clic, la compteuse à billets, les spirales de souffle, les coups de cœur, l'aspiration, le
+     canon de la fission, l'impact du titre : tout ce qui chute en hauteur) et on retire tout ce qui CHANTE (les tintements sur l'échelle d'or,
+     la poussière d'or, le double sub qui tient sa note, l'accord des battements, le chœur de la fission, la pluie de pièces accordée, l'accord du
+     titre, la nappe de traîne). La musique ne commence qu'au ciel. `?intro=musique` = la composition entière (celle du 7/10), `?intro=muet` =
+     l'intro muette (celle du 6/10). */
+  const INTRO_SON=/[?&]intro=muet\b/.test(location.search)?0:/[?&]intro=musique\b/.test(location.search)?2:1, INTRO_NOTES=INTRO_SON===2;
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
     try{iAC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
@@ -62614,6 +62622,7 @@ renderLeaders(-1);
     const nzBuf=(function(){const n=A.sampleRate*2,b=A.createBuffer(1,n,A.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=Math.random()*2-1;return b;})();
     const pan=x=>{const p=A.createStereoPanner?A.createStereoPanner():A.createGain();if(p.pan)p.pan.value=x;return p;};
     function tone(f0,f1,t,dur,vol,type,px){ // ton glissant enveloppé
+      if(!INTRO_NOTES&&f1&&f1/f0>.9)return; // (2026-10-16) une NOTE (hauteur tenue) : seulement avec ?intro=musique — les coups qui chutent (×0,2 à ×0,35) restent
       const o=A.createOscillator(),g=A.createGain(),p=pan(px||0);
       o.type=type||'sine';
       o.frequency.setValueAtTime(Math.max(1,f0),t0+t);
@@ -62656,7 +62665,7 @@ renderLeaders(-1);
     }
     // 3) DOUBLE SUB : 38 + 38,618 Hz → battement de 0,618 Hz. Harmoniques ×2 pour
     //    rester audible sur petites enceintes (les portables ne sortent pas le 38 Hz)
-    for(const fh of [[38,.16],[38.618,.16],[76,.07],[77.236,.07]]){
+    if(INTRO_NOTES)for(const fh of [[38,.16],[38.618,.16],[76,.07],[77.236,.07]]){ // (2026-10-16) une note tenue : seulement avec ?intro=musique
       const o=A.createOscillator(),g=A.createGain();
       o.type='sine';o.frequency.value=fh[0];
       g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(fh[1],t0+2.1);
