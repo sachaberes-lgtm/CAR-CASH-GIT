@@ -7853,6 +7853,29 @@ html.c6 #modale.facC6 .modB .pbtn>span{font-family:var(--pix);font-size:16px;lin
 html.c6 #modale.facC6 .modB .pbtn>small{display:block;font-family:var(--sans);font-size:13px;line-height:17px;font-weight:600;letter-spacing:0;text-transform:none;opacity:1}
 html.c6 #modale.facC6 .modB .pb-gold>small{color:var(--c6-orE)}
 html.c6 #modale.facC6 .modB .pbtn:not(.pb-gold)>small{color:var(--c6-g1)}
+/* ====== LA QUESTION DE BIENVENUE (bienvMontre, 2026-10-16, Léo : « un message à la première ouverture, bien designé, en cohérence avec le
+   reste du jeu, avec une option ne plus répéter ») : les deux CARTES de CHOISIS TON MODE + la case NE PLUS ME DEMANDER (.modCoche, posée par
+   modale() quand on lui passe `coche`) — une case de 20 px qui se remplit d'or, son mot qui s'allume ; 44 px de haut pour le pouce. ====== */
+#modale .modCoche{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin:14px auto 0;padding:0 10px;cursor:pointer;
+  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:#b3b8c4;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#modale .modCoche .mcBox{flex:0 0 auto;display:grid;place-items:center;width:20px;height:20px;background:#13161d;box-shadow:inset 0 0 0 2px #b3b8c4;transition:background .12s,box-shadow .12s}
+#modale .modCoche .mcBox .pxi{--pxs:2;opacity:0;transform:scale(.4);transition:opacity .12s,transform .16s cubic-bezier(.32,.72,0,1)}
+#modale .modCoche.on .mcBox{background:#ffc62b;box-shadow:inset 0 0 0 2px #ffc62b}
+#modale .modCoche.on .mcBox .pxi{opacity:1;transform:none;color:#1d1300}
+#modale .modCoche.on span{color:#fff}
+#modale .modCoche:is(:active,.appui) .mcBox{transform:translateY(2px)}
+/* l'interface pixel (la charte v5, celle du jeu — la 6 est éteinte) : deux plaques l'une sous l'autre, le geste en pixel, la promesse dessous
+   en police système (elle a les accents) ; ni la ligne qui déborde, ni la plaque trop basse pour le pouce. */
+html:not(.c6) #modale.bienv .modB .pbtn{flex-wrap:wrap;align-content:center;justify-content:center;column-gap:10px;row-gap:7px;height:auto;min-height:74px;padding:12px 16px;white-space:normal}
+html:not(.c6) #modale.bienv .modB .pbtn>span{font-size:12px;line-height:14px}
+html:not(.c6) #modale.bienv .modB .pbtn .pxi{--pxs:2}
+html:not(.c6) #modale.bienv .modB .pbtn>small{flex-basis:100%;text-align:center;font-family:var(--sans);font-size:13px;line-height:16px;font-weight:700;letter-spacing:0;text-transform:none;opacity:.86}
+html:not(.c6) #modale.bienv #modX{font-family:var(--sans);font-size:14px;line-height:19px;font-weight:600;letter-spacing:0}
+html.c6 #modale.bienv #modT{font-size:20px;line-height:24px;color:var(--c6-or)}
+html.c6 #modale.bienv #modX{max-width:300px;margin-left:auto;margin-right:auto}
+html.c6 #modale.bienv .modB .pbtn{min-height:136px}
+html.c6 #modale.on .modCoche{animation:c6Entre var(--c6-pose) var(--c6-courbe) calc(3*var(--c6-cascade)) backwards}
+@media (prefers-reduced-motion:reduce){html.c6 #modale.on .modCoche{animation:none}}
 html.c6 body #mHome .mBadge{display:none!important} /* les pastilles muettes partent (elles ne disaient rien) */
 </style>
 <style id="c6-pages">
@@ -10571,6 +10594,12 @@ function facChoix(){ /* (2026-10-14, charte 6 · règles de 6 h) deux CARTES ég
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   m.classList.toggle('facC6',!!o.cartes); // (2026-10-14, charte 6) les boutons en CARTES (le choix FACILE / NORMAL)
+  m.classList.toggle('bienv',o.cls==='bienv'); // (2026-10-16) LA QUESTION DE BIENVENUE (bienvMontre) a son habillage
+  let ck=m.querySelector('.modCoche');if(ck)ck.remove();ck=null; // (2026-10-16) `o.coche` : une case « NE PLUS ME DEMANDER » sous les cartes, rendue dans `coche`
+  if(o.coche){ck=document.createElement('div');ck.className='modCoche';ck.setAttribute('role','checkbox');ck.setAttribute('aria-checked','false');
+    ck.innerHTML='<i class="mcBox">'+pxi('coche')+'</i><span>'+TR(o.coche)+'</span>';
+    ck.addEventListener('click',function(ev){ev.stopPropagation();const on=!ck.classList.contains('on');ck.classList.toggle('on',on);ck.setAttribute('aria-checked',on?'true':'false');uiClic(on?'on':'off');});
+    m.querySelector('.modIn').appendChild(ck);}
   document.getElementById('modT').textContent=TR(o.titre);document.getElementById('modX').textContent=o.texte?TR(o.texte):'';
   c.style.display=o.champ!=null?'':'none';c.value=o.champ||'';c.readOnly=!!o.lecture;
   b.innerHTML='';
@@ -10578,10 +10607,43 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>'+(k.sous?'<small>'+TR(k.sous)+'</small>':''); // (2026-10-14) k.sous : la promesse d'une carte
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE'||o.cls==='bienv')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus (2026-10-16 : la question de bienvenue aussi) */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value,coche:!!(ck&&ck.classList.contains('on'))});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
+/* (2026-10-16, Léo : « premier niveau apprentissage : tu mets un message à la première ouverture, bien designé, en cohérence avec le reste du
+   jeu, avec une option ne plus répéter ; et seulement si on dit que c'est la première fois qu'on joue, ça lance la partie guidée pour
+   beginner — sinon on peut enlever ce truc pour toujours ») LA QUESTION DE BIENVENUE. Avant : le 1er JOUER d'une sauvegarde neuve lançait
+   D'OFFICE l'auto-école (la leçon), même pour qui avait déjà joué sur un autre téléphone. Désormais, à l'ouverture, sur l'accueil, une fenêtre
+   (les deux CARTES de la charte 6, comme CHOISIS TON MODE) demande : PREMIÈRE FOIS ICI ?
+   · OUI, GUIDE-MOI → la leçon part tout de suite (le JOUER de l'accueil, son chemin et sa musique : voir ECOLE_MUS) ;
+   · J'AI DÉJÀ JOUÉ → pas de leçon pour cette ouverture (SAVE.d.tuto = 1, `tutoProv` : la question revient à la prochaine ouverture) ;
+   · la case NE PLUS ME DEMANDER (SAVE.d.bienv) : la question ne revient plus — avec J'AI DÉJÀ JOUÉ, la leçon est enlevée pour toujours
+     (REVOIR L'AUTO-ÉCOLE, dans les réglages, la rend quand on veut).
+   Posée UNE fois par ouverture, seulement à qui n'a jamais passé ni sauté la leçon (une sauvegarde qui a déjà des parties : jamais).
+   `?bienvenue=0` la tait (bancs), `dbgBienvenue()` la montre. Le doigt TAPE TA CAISSE attend qu'elle soit refermée (BIENV.on). */
+var BIENV={on:false,fait:false,t0:0,iv:0};
+function bienvI18n(){Object.assign(I18N,{'PREMIERE FOIS ICI ?':'FIRST TIME HERE?','OUI, GUIDE-MOI':'YES, GUIDE ME',"J'AI DEJA JOUE":"I'VE PLAYED BEFORE",'Une course guidée':'A guided run','Direct en course':'Straight to the race','NE PLUS ME DEMANDER':"DON'T ASK AGAIN",
+  'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.':'One minute on the road to learn, and your LICENSE pays $500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
+function bienvVeut(){const d=SAVE.d;return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
+function bienvPret(){const sp=document.getElementById('splash'),md=document.getElementById('modale');
+  return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play');}
+function bienvGuette(){if(BIENV.iv)return;try{bienvI18n();}catch(e){}BIENV.iv=setInterval(function(){try{
+  if(BIENV.fait||!bienvVeut()){clearInterval(BIENV.iv);return;}
+  if(!bienvPret()){BIENV.t0=0;return;}
+  if(!BIENV.t0){BIENV.t0=performance.now();return;}
+  if(performance.now()-BIENV.t0>700){clearInterval(BIENV.iv);bienvMontre();}}catch(e){}},250);} // l'accueil a fini d'entrer (700 ms) : la question se pose
+function bienvMontre(force){if(BIENV.on||(!force&&(BIENV.fait||!bienvVeut())))return;BIENV.fait=true;BIENV.on=true;
+  try{chuteDoigtMontre(false);}catch(e){}
+  modale({titre:'PREMIERE FOIS ICI ?',texte:'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.',cartes:true,cls:'bienv',coche:'NE PLUS ME DEMANDER',
+    boutons:[{l:'OUI, GUIDE-MOI',ic:'volant',cls:'pb-gold',sous:'Une course guidée',v:1},{l:"J'AI DEJA JOUE",ic:'eclair',cls:'c6Neutre',sous:'Direct en course',v:0}]}).then(function(r){
+    BIENV.on=false;
+    if(r.coche)SAVE.d.bienv=1;
+    if(r.v){SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();bienvJoue();}
+    else{SAVE.d.tuto=1;SAVE.d.tutoProv=r.coche?0:1;SAVE.flush();}});}
+function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même chemin (piqué, voile, piste d'école, musique de la leçon)
+  setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
+window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
 function toast(h,muet){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
@@ -41593,6 +41655,17 @@ let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
 // les niveaux 6 à 10 gardent NOITE DE VELOCIDADE. En partie SANS FIN, la zone NUAGES joue le morceau entier (les 5 niveaux à la suite).
 // Chaque fichier = sa boucle de 8 mesures répétée sans couture sur ~110 s. Les objets sont FIXES (musicSuitLieu compare par identité).
 const MUSIC_CIEL=[1,2,3,4,5].map(function(k){return{titre:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a'};});
+/* (2026-10-16, Léo : « la musique du niveau d'apprentissage : une musique calme à part » ; et « le problème de la musique au JOUER : elle change
+   en route ») LA MUSIQUE DE L'AUTO-ÉCOLE. Avant : la leçon jouait CIEL · NIVEAU 1 — mais seulement quand la course démarrait : pendant le piqué
+   de JOUER, le lobby s'effaçait jusqu'au silence, puis un autre morceau arrivait. Désormais la leçon a SA musique, calme, entendue nulle part
+   ailleurs dans le jeu (un des lobbys « Chris », qui ne jouent plus au menu depuis le 15/10) ; elle part DÈS le JOUER (le piqué) et continue
+   toute la leçon ; au portail d'après, elle s'efface en 1,2 s pendant que Pouce bleu entre (ECOLE.f0). `?ecole=ciel|dimanche|nuit|polaroid|
+   siffleur|matin` pour en essayer une autre ; `?ecole=ciel1` = l'ancien CIEL · NIVEAU 1. */
+const ECOLE_MUS=(function(){const m=/[?&]ecole=([a-z0-9]+)/.exec(location.search),k=m?m[1]:'matin';
+  if(k==='ciel1')return MUSIC_CIEL[0];
+  const T={matin:'PREMIER MATIN',dimanche:'DIMANCHE',nuit:'GARAGE DE NUIT',polaroid:'POLAROÏD',ciel:'GRAND CIEL',siffleur:'SIFFLEUR'};
+  return {titre:T[k]||T.matin,f:'assets/audio/music/lobby/chris-'+(T[k]?k:'matin')+'.m4a'};})();
+const ECOLE={pique:false,f0:0,ms:1200,v0:0};
 // (2026-10-05, Léo : « voilà les musiques 1 à 5 de la ville » — NÉON COMPLÈTE 1 à 5, ses boucles du Studio recréées par atelier-son/neon_ville.py :
 // 12 tours de 4 mesures qui évoluent, 96 s chacune ; avant, NÉON seule au niveau 1)
 // (2026-10-05, Léo : « fais les 4 prochains niveaux en t'inspirant de la base… qu'à la cinq on ressente EXPLOSION, ARGENT, BOOMIN, LUXURY ») : 6 à 10 = la
@@ -41602,14 +41675,14 @@ const MUSIC_VILLE=['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','
 const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
 function musicLieuVoulu(){
   const c=LVL.cur;if(!c)return null;
-  if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;else if(c.piste==='tuto')return MUSIC_CIEL[0];} /* (2026-10-07, audit GRAPHISME) l'AUTO-ÉCOLE (1re partie d'un joueur neuf) retombait sur NOITE DE VELOCIDADE : elle joue le CIEL niveau 1, comme la carrière */
+  if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;else if(c.piste==='tuto')return ECOLE_MUS;} /* (2026-10-07, audit GRAPHISME) l'AUTO-ÉCOLE (1re partie d'un joueur neuf) retombait sur NOITE DE VELOCIDADE : elle joue le CIEL niveau 1, comme la carrière */
   if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; /* (2026-10-05, Léo : « seulement celles de mon screen » : NÉON COMPLÈTE 1-5 ; 6-10 en attente) */ // la carrière VILLE : ses dix musiques (NÉON COMPLÈTE 1-5, puis la suite)
   return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
    en réclame un autre que celui qui joue. */
 function musicSuitLieu(){
   if(musicMode!=='run')return;
-  if(pbjRegne()){musicLieu=null;if(SND.music&&!POUCE_JEU.joue()&&POUCE_JEU.phase!=='charge'){stopMusic();pbjDepart(true,false);}return;} // (15/10) POUCE BLEU continue aux portails : pas de raccord — (soir) au sortir de l'auto-école, CIEL 1 s'arrête et il entre
+  if(pbjRegne()){const ec9=musicLieu===ECOLE_MUS&&musicOn&&(!VOL_LOCKED||musWaTient());musicLieu=null;ECOLE.pique=false;if(SND.music&&!POUCE_JEU.joue()&&POUCE_JEU.phase!=='charge'){if(ec9){ECOLE.f0=performance.now();ECOLE.v0=musicVolCour;}else stopMusic();pbjDepart(true,false);}return;} /* (2026-10-16) la musique de la leçon s'EFFACE (1,2 s, musicTick) pendant que Pouce bleu entre — plus de coupure nette */ // (15/10) POUCE BLEU continue aux portails : pas de raccord — (soir) au sortir de l'auto-école, CIEL 1 s'arrête et il entre
   if(jadeMusOn()){musicLieu=null;if(musicOn){if(VOL_LOCKED&&!musWaTient())stopMusic();else MUSJ.f0=performance.now();}return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick) — (2026-10-14, session SON) la radio lui CÈDE en 0,3 s (musicTick) au lieu d'un pause() net sous le portail ; volume verrouillé (iPhone avant iOS 17) : rien à ramper, coupure comme avant
   const v=musicLieuVoulu();
   if(v===musicLieu&&(musicOn||!SND.music||FRENM.sw))return; // (2026-10-13) …et en en sortant, la radio qu'elle avait fait taire repart
@@ -42018,6 +42091,24 @@ var PBJ_ON=!/[?&]musique=niveaux\b/.test(location.search); // (en var : jadeMusO
    (moteur 1) à ~−12 dB (moteur 30) — LA GRANDE MONTÉE de Léo, gardée (jamais de régleur de niveau). −4 dB : au niveau de la radio vers le
    moteur 10, 5 dB au-dessus au 30e (≈ −16), sans couvrir les effets. */
 const PBJ_NIV=.39;
+/* (2026-10-16, Léo : « le problème de la musique au JOUER » — choix cochés : « elle change en route » ET « parfois rien ne joue ») LE PLANCHER DU
+   DÉPART. MESURÉ au banc (Chrome muet, sortie enregistrée, effets coupés) : au JOUER le morceau tiré entre au MOTEUR 1, et au moteur 1 les
+   morceaux du générateur sortent à −42/−50 dB RMS (FEU DE LUXE, NÉNUPHARS VELOURS…) — 20 dB SOUS les effets de la course (−20) : le lobby
+   s'efface pendant le piqué, et la course démarre sans musique audible pendant des dizaines de secondes, jusqu'à ce que le moteur monte.
+   Le plancher : un analyseur écoute le morceau AVANT son niveau ; tant qu’il sort trop bas, on le relève (+11 dB au plus, cible −29 dB) — mais seulement en
+   BAS de la montée : plein jusqu'au moteur 3, éteint au moteur 12. Au-dessus, LA GRANDE MONTÉE de Léo est intacte (pas un régleur de niveau :
+   on ne touche jamais le haut). Un silence (entre deux parties) ne fait pas monter le relevé. `?depart=0` = sans (A/B) ; dbgPouce().plancher. */
+const PBJ_PL={on:!/[?&]depart=0\b/.test(location.search),cible:-29,max:11,an:null,buf:null,ch:null,p:-1,k:1,t:0,db:0};
+function pbjPlancher(dt,base,tier){const P=PBJ_PL;
+  if(!P.on||!AC||!window.POUCE_JEU)return 1;
+  const ch=POUCE_JEU.ch;if(!ch||!ch.f)return 1;
+  try{if(!P.an){P.an=AC.createAnalyser();P.an.fftSize=2048;P.buf=new Float32Array(2048);}
+    if(P.ch!==ch){if(P.ch&&P.ch.f)try{P.ch.f.disconnect(P.an);}catch(e){}P.ch=ch;ch.f.connect(P.an);P.p=-1;}}catch(e){return P.k;}
+  P.t-=dt;if(P.t<=0){P.t=.2;try{P.an.getFloatTimeDomainData(P.buf);let s=0;const B=P.buf;for(let i=0;i<B.length;i++)s+=B[i]*B[i];const pw=s/B.length;
+    if(pw>1e-7)P.p=P.p<0?pw:P.p+(pw-P.p)*.15;}catch(e){}} // ~1,3 s de mémoire ; le silence (sous −70 dB) ne compte pas
+  const fade=tier<=3?1:Math.max(0,1-(tier-3)/9);
+  let db=0;if(P.p>0&&base>1e-4){const sortie=10*Math.log10(P.p)+20*Math.log10(base);db=Math.max(0,Math.min(P.max,P.cible-sortie))*fade;}
+  P.db+=(db-P.db)*(1-Math.exp(-dt/1.2));P.k=Math.pow(10,P.db/20);return P.k;}
 let PBJ_KO=0,PBJ_ESSAI=0; // (15/10) un morceau n'a pas pu partir (réseau, fichier) : un AUTRE est tiré (3 essais) ; après, la course reste sans musique — chaque JOUER réessaie
 function pbjTuto(){return (typeof TUTO!=='undefined'&&!!TUTO.on)||!!(LVL.cur&&LVL.cur.piste==='tuto');} /* (15/10 soir, Léo : « remets le premier son du test, le premier son
    dans le ciel pour ceux qui jouent pour la première fois ») L'AUTO-ÉCOLE (le permis) joue CIEL · NIVEAU 1, comme avant (musicLieuVoulu) ; Pouce bleu prend la suite au portail d'après */
@@ -42030,9 +42121,15 @@ function pbjLance(vite,meme){if(!pbjActif()||!SND.music)return;
       console.warn('Pouce bleu : '+(POUCE_JEU.err||'liste vide'));
       if(f==='erreur'&&++PBJ_ESSAI<3){pbjLance(vite||musicMode==='run',false);return;} // un autre morceau (le raté est compté comme joué)
       PBJ_KO=1;});}catch(e){}}
-function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie)
+function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;if(pbjTuto()){try{ecoleMusPique();}catch(e){}return;}}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie) — (2026-10-16) le JOUER de la LEÇON lance la musique de la leçon
+function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique part pendant le piqué, en fondu (DEPMUS), et la course la GARDE (musicStartRun)
+  if(!SND.music)return;
+  if(window.POUCE_JEU&&POUCE_JEU.phase!=='repos')try{POUCE_JEU.fin(true);}catch(e){}
+  musicMode='run';musicLieu=ECOLE_MUS;NIVEAU_FX=0;MUSJ.f0=0;ECOLE.f0=0;
+  if(DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;}
+  ECOLE.pique=true;musicPlayCurrent();}
 let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
-window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE},POUCE_JEU.etat()):null;};
+window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE,plancher:{on:PBJ_PL.on,db:Math.round(PBJ_PL.db*10)/10,avant:PBJ_PL.p>0?Math.round(100*Math.log10(PBJ_PL.p))/10:null}},POUCE_JEU.etat()):null;};
 function musicStartRun(depart,reprise){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course · reprise : la seconde chance (la course continue)
   MUSREP.att=false;DEPMUS.f0=-1;DEPMUS.sort=0;MUSJ.f0=0;
   if(SND.music&&pbjRegne()){ // POUCE BLEU : le morceau tiré au JOUER passe de l'intro à la course (sinon il part tout de suite, intro courte)
@@ -42046,8 +42143,9 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
-  musicMode='run';NIVEAU_FX=0;
-  if(depart&&DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  musicMode='run';NIVEAU_FX=0;ECOLE.f0=0;
+  const garde9=ECOLE.pique&&musicLieu===ECOLE_MUS&&musicOn&&!!musicEl&&!musicEl.paused;ECOLE.pique=false; // (2026-10-16) la musique de la leçon, partie au piqué, CONTINUE (ni coupure ni second fondu)
+  if(depart&&DEPMUS.on&&!garde9){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
   musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
   LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
@@ -42351,7 +42449,8 @@ function musicTick(dt,mvt){
   if(window.POUCE_JEU&&POUCE_JEU.joue()){ /* (15/10) POUCE BLEU : son niveau = celui qu'aurait la radio (le curseur, le souffle du mouvement, l'annonceur), le moteur du jeu le pilote ; la musique coupée l'éteint */
     if(!SND.music)POUCE_JEU.fin(false);
     else{const fr9=musicMode==='run'&&!!FRENM.sw; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient */
-      POUCE_JEU.niveau(fr9?0:VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62)*mDuck);if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||engTier+1);if(!fr9)musicVolCible=0;}}}
+      const b9=VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62)*mDuck;
+      POUCE_JEU.niveau(fr9?0:b9*pbjPlancher(dt,b9,PBJ_FORCE||(musicMode==='run'&&running?engTier+1:1))); /* (2026-10-16) LE PLANCHER DU DÉPART (pbjPlancher) */if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||engTier+1);if(!fr9)musicVolCible=0;}}}
   else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
     if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
@@ -42380,6 +42479,11 @@ function musicTick(dt,mvt){
     if(musicMode!=='run'||!jadeMusOn()||!musicOn){MUSJ.f0=0;}
     else if(k8>=1){MUSJ.f0=0;stopMusic();}
     else{musicVolCible*=1-k8;musicVolCour=Math.min(musicVolCour,musicVolCible);}}
+  if(ECOLE.f0){ /* (2026-10-16) la musique de la leçon cède à Pouce bleu au portail d'après : une courbe douce sur ECOLE.ms, puis la pause */
+    const k7=(performance.now()-ECOLE.f0)/ECOLE.ms;
+    if(musicMode!=='run'||!musicOn)ECOLE.f0=0;
+    else if(k7>=1){ECOLE.f0=0;stopMusic();}
+    else{musicVolCible=ECOLE.v0*(1-k7)*(1-k7);musicVolCour=musicVolCible;}}
   if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
     if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
   if(MUSAP.joue){ /* (2026-10-14, session SON) l'extrait du curseur MUSIQUE ouvert depuis la PAUSE (voir musApercu) : fondus en temps RÉEL
@@ -44640,7 +44744,7 @@ const SAVE={
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.bienv=d.bienv?1:0;c.tutoProv=d.tutoProv?1:0; /* (2026-10-16) LA QUESTION DE BIENVENUE : `bienv` = ne plus la poser · `tutoProv` = la leçon sautée pour UNE ouverture (voir bienvMontre) */c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
@@ -44747,6 +44851,8 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
   }).catch(function(){});}catch(e){}
 }
 SAVE.load();
+/* (2026-10-16) J'AI DÉJÀ JOUÉ, sans « ne plus me demander » : la leçon n'était sautée que pour l'ouverture d'avant — la question revient. */
+if(SAVE.d.tutoProv){SAVE.d.tutoProv=0;if(!SAVE.d.bienv&&!SAVE.d.permis)SAVE.d.tuto=0;}
 /* (2026-10-14, Sacha) SANS CARRIÈRE : un trophée de la carrière déjà GAGNÉ (5 niveaux de SKY HIGH → LA CAISSE-NUAGE, 5 de la VILLE → LE LINGOT)
    entre dans `owned` — il est à toi partout, boutique comprise (elle ne te le revend pas). Voir SANS_CARRIERE et `exK`/`exV` dans CAR_UNLOCK. */
 if(SANS_CARRIERE)try{const mo9={carrN:'nuages',carrV:'ville'};let m9=false;
@@ -44930,7 +45036,7 @@ function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
   if(g>1.2)SON_UI.i=0;else if(id==='ui.retour')SON_UI.i=Math.max(0,(SON_UI.i<4?SON_UI.i:2+(SON_UI.i&1))-1);else if(g<.6&&++SON_UI.i>5)SON_UI.i=4;
   const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
 function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return id==='ui.jouer'&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?'ui.tap':id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
-function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:undefined);else chimeNote(1480,0,.045,.05);}; // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
+function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:id9==='ui.jouer'?{vol:-6}:undefined);else chimeNote(1480,0,.045,.05);}; /* (2026-10-16, LE PIQUÉ QUI NE CRIE PLUS) le V8 de JOUER −6 dB : posé sur le ciel calme, avec le lâcher et le vent, c'était le gros du BOOM du départ (+15 à +20 dB en 200 ms, mesuré) */ // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
   else if(SND.sfx&&paused&&SONV2&&PSON_ON)f9(); /* (2026-10-16) LE CLIC DANS LA PAUSE : il sonne tout de suite (sfx → pauseSon réveille le contexte le temps du clic) — l'attente ci-dessous reste pour ?pauseson=0 */
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),j9=uiClic._att=(uiClic._att|0)+1,w9=function(){if(j9!==uiClic._att)return;if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (2026-10-14, session SON — relevé par DEBUGGING) UNE seule attente à la fois : la ligne QUITTER puis sa confirmation ouvraient chacune la leur, la sortie de pause les relâchait dans la même image (le son de danger doublé, 14-27 ms d'écart) ; la nouvelle remplace l'ancienne */ /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
@@ -46713,7 +46819,7 @@ function fireLaunchBoost(){
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
   const ll9=$('launchLogo'),lg9=$('launchGlow');
-  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo');}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or */
+  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo',{vol:-4});}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or — (2026-10-16) −4 dB : il remettait un coup de sub juste après le piqué */
   if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
@@ -52868,7 +52974,7 @@ function garageLaunch(){
   pbjDepart(); // (15/10) POUCE BLEU : le morceau de la course entre pendant le piqué (son intro)
   if(!pre)garLacherSon();
 }
-function garLacherSon(){try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22,420);chimeNote(196,0,.5,.16);}}catch(e){}} /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli ; après LE RETOUR AU FEU s'il y en a un */
+function garLacherSon(){try{if(SONV2)sfx('garage.lacher',{vol:-6});else{noiseBurst(.6,.07,420);chimeNote(196,0,.5,.06);}}catch(e){}} /* (2026-10-16) −6 dB, et le repli −10 dB : c'était le BOOM du début de partie (voir LE PIQUÉ QUI NE CRIE PLUS) */ /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli ; après LE RETOUR AU FEU s'il y en a un */
 // `playViaGarage()` — UNE SEULE PORTE D'ENTRÉE POUR LANCER UNE COURSE (2026-09-05) : « on ne peut
 // jouer que depuis le garage avec la porte qui s'ouvre » (demande du user). Le bouton JOUER du menu,
 // REJOUER, la touche Entrée en fin de partie — tout ouvre le garage et enchaîne LE LÂCHER : c'est le
@@ -54203,7 +54309,7 @@ function chuteDoigtEl(){const D=CH_DOIGT;if(D.el)return D.el;const el=document.g
 function chuteDoigtMontre(v){const D=CH_DOIGT;if(!v)D.t=0;if(D.on===v)return;D.on=v;if(D.el)D.el.classList.toggle('on',v);}
 function chuteDoigtTick(dt,Ck,G){const D=CH_DOIGT;if(D.fini)return;
   if((SAVE.d.ast|0)&D.BIT){D.fini=true;chuteDoigtMontre(false);return;}
-  if(G||!carGroup.visible||TUTO.on||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
+  if(G||!carGroup.visible||TUTO.on||BIENV.on||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
   const el=chuteDoigtEl();if(!el){D.fini=true;return;}
   D.rT-=dt;if(D.rT<=0||!D.r){D.rT=.5;D.r=renderer.domElement.getBoundingClientRect();} // la place du canevas (le cadre de l'ordi le décale) : relue deux fois par seconde
   const R=D.r;D.v.copy(Ck).project(camera);if(!(R.width>0)||D.v.z>1){chuteDoigtMontre(false);return;}
@@ -55349,9 +55455,9 @@ function chuteDoux(t,u){
   }
   clearTimeout(CHDOUX.off);CHDOUX.off=0;
   const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);CHDOUX.h=houle; // (la musique du ciel la lit : elle plonge sous les rafales)
-  stt(n.g.gain,CHDOUX_VOL*houle*(1+1.6*u),now,.5);                 // au piqué de JOUER il gonfle (+8 dB)…
-  stt(n.f1.frequency,330+70*Math.sin(t*.29)+600*u,now,.6);         // …et s'éclaircit
-  stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+1200*u,now,.6);
+  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
+  stt(n.f1.frequency,330+70*Math.sin(t*.29)+300*u,now,.6);         // …et s'éclaircit un peu
+  stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+500*u,now,.6);
   stt(n.g2.gain,.2+.08*Math.sin(t*.67),now,.6);
   if(n.pan)stt(n.pan.pan,.45*Math.sin(t*.23),now,.8);
 }
@@ -55564,11 +55670,20 @@ function chuteRender(dt){
   /* (2026-10-14, Léo : « quand on est — et quand on revient — dans le menu ciel, un bruit de chute libre doux ») AU REPOS, le ciel n'a plus que
      LA CHUTE LIBRE DOUCE (`chuteDoux`, la musique du lobby loin derrière : MUS_CIEL) ; le grondement claquant de `chute.vent` et le vent du
      moteur ne servent plus qu'au PIQUÉ de JOUER, où l'air se met à hurler (comme avant). */
+/* (2026-10-16, Léo : « un bug audio que tu n'as jamais su régler, qui pourrait défoncer les oreilles des joueurs en plein début de partie —
+   un mélange entre un souffle, un bruit aigu, et un boom ; dans mes écouteurs Bluetooth, et parfois sur l'ordi ») LE PIQUÉ QUI NE CRIE PLUS.
+   MESURÉ au banc (sortie enregistrée, effets seuls, bandes grave < 160 Hz et aigu 2,5-8 kHz, un son retiré à la fois) : au ciel tout est doux
+   (grave −50, aigu −62 dB) ; au JOUER, en 200 ms, le LÂCHER (garage.lacher) fait bondir le grave de +18 dB (le BOOM), puis pendant le piqué le
+   VENT du moteur (windG/whG, filtre ouvert jusqu'à 3,3 kHz) et la chute douce gonflée montent l'aigu de +27 dB en 1,5 s (le SOUFFLE AIGU) ;
+   le logo du départ remet un coup de sub. Le joueur règle son volume sur le ciel, calme : le piqué lui arrivait 20-27 dB plus fort, d'un
+   coup — au casque, où l'aigu et le sub passent entiers, c'était la gifle. Désormais le piqué monte d'environ 10 dB au plus : le vent reste
+   sombre (filtre ≤ 1,7 kHz), le sifflet discret, le lâcher et le logo −6/−4 dB ; sans la banque de sons (pas encore chargée), le vieux souffle
+   de secours est −10 dB (il partait en 50 ms à −5 dBFS de crête). */
   try{chuteDoux(t,G?u:0);}catch(e){}
   if(G){
-    if(SONV2&&!CHUTE.snd&&t>(CHUTE.sndT||0)){CHUTE.sndT=t+1;try{CHUTE.snd=sfx('chute.vent',{loop:true,vol:-20});}catch(e){}}
-    if(CHUTE.snd){CHUTE.snd.gain(4*u,.15);CHUTE.snd.rate(1+.25*u,.15);}
-    if(AC&&windG&&whG){try{CHUTE.vent=true;stt(windG.gain,.05+.05*u,AC.currentTime,.3);stt(windF.frequency,900+2400*u,AC.currentTime,.3);stt(whG.gain,.02+.05*u,AC.currentTime,.3);}catch(e){}}}
+    if(SONV2&&!CHUTE.snd&&t>(CHUTE.sndT||0)){CHUTE.sndT=t+1;try{CHUTE.snd=sfx('chute.vent',{loop:true,vol:-22});}catch(e){}}
+    if(CHUTE.snd){CHUTE.snd.gain(2*u,.25);CHUTE.snd.rate(1+.2*u,.25);} // (2026-10-16) +2 dB au piqué (était +4), −22 (était −20)
+    if(AC&&windG&&whG){try{CHUTE.vent=true;stt(windG.gain,.025+.02*u,AC.currentTime,.4);stt(windF.frequency,800+900*u,AC.currentTime,.4);stt(whG.gain,.008+.01*u,AC.currentTime,.4);}catch(e){}}} // (2026-10-16) le vent du piqué : .05→.10 / 900→3 300 Hz / sifflet .02→.07 avant
   // JOUER : le banc de nuage traversé (voile blanc), puis la course sous le voile
   if(G){if(!G.voile&&u>.74){G.voile=true;try{sfx('nuage.entre');}catch(e){}}
     /* (2026-10-15) LE NUAGE QU'ON TRAVERSE : le voile montait en rampe droite, plat ; il arrive maintenant en courbe douce et EN APPROCHE
@@ -62664,7 +62779,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, ?menu=leo (carrPlayOk)
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
-    else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
+    else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
     else if(a==='back'&&mCur==='shop'&&window.__offGar){ window.__offGar=false; ecranWipe(function(){ openGarage(); try{gModeVa('shop');}catch(e){} }); } // (2026-10-10) venue de la PORTE DES OFFRES du garage : le RETOUR y ramène
     else if(a==='back')mGo(mRoot());
@@ -63037,6 +63152,7 @@ if(BANC_ON)(function(){
   })();
 })();
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
+try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)
 requestAnimationFrame(loop);
 })();
 </script>
