@@ -54,6 +54,9 @@ Livré par étapes (chacune vérifiée, commitée, poussée). Cette section gran
     vite : 10 000 et 20 000 = une bonne partie de 3 à 6 min ; 50 000 = une partie exceptionnelle (à confirmer sur de vraies parties).
   · PLONGÉE (mer de Jade) : une plongée ordinaire descend à 8 m ; en tenant la plongée (3,6 g contre 3,4 d'Archimède) on passe le fond
     `EAU.fond` = 420 m en ~25 s → c'est le seuil (`M2K.prof`).
+  · FIGURES D'UN SAUT : la chaîne (`chain`, `ex.chain`) compte aussi les gestes automatiques — au pilote auto, sans un bouton, 5 « figures »
+    en un saut en 30 s sur la mer de Jade (les jaillissements). Une FIGURE de mission = une figure à bouton (`fig_<id>`, pas le bonus
+    `fig_combo_`) ou le BUMP ; la durée d'un saut = le temps VÉCU hors de l'eau (`M2R.volT` : le bump retranche à `fallT`, pas à lui).
   · LA MORT LA PLUS RAPIDE après la prise en main : 5,4 s (canyon), 8,4 s ailleurs (nuages, forêt, ville) → « meurs dans les 3 premières
     secondes » est IMPOSSIBLE aujourd'hui (seuil gardé, `M2K.debut`, à trancher).
   · LES LOTS « TOUTES » : voitures 29, couleurs 53, traînées 15, ailes 13, figures 13 (tout le jeu : 123). Les FIGURES se collectent (13,

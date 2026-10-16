@@ -35700,7 +35700,7 @@ const M2K={partie:60,frole:6,prof:EAU.fond,debut:3}; // prof : le fond de la mer
 /* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
    parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
    réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */
-const M2R={ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false};
+const M2R={ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
 /* LES CAISSES QUI SE GAGNENT PAR MISSION : leur condition devient la mission (`k:'mis'`), l'ancienne reste dans `av` — la migration de
    la sauvegarde (m2Migre) la relit pour rendre à chacun ce qu'il avait déjà (une mise à jour ne confisque rien) ; une caisse qui se
    vendait (à l'argent du jeu ou en euros) ne s'achète plus. Les caisses RETIRÉES ne reviennent qu'avec leur gabarit (SHAPES). */
@@ -46341,7 +46341,7 @@ const M2_COLK={cars:'voiture',peint:'peinture',trainee:'trainee',aile:'aile',fig
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
 function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
   switch(m.k){
-    case 'fig':return Math.max(ex.chain|0,r.fig|0);
+    case 'fig':return r.fig|0; // (pas ex.chain : la chaîne compte aussi les gestes automatiques — jaillissements, vrilles, glisses)
     case 'airP':return r.airP||0;
     case 'parf':return r.parf|0;
     case 'fren':return (r.frenN||(d.frenRec||0)>0)?1:0;
@@ -46421,7 +46421,7 @@ function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.p
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 /* ---- LES BRANCHEMENTS DE LA COURSE ---- */
-function m2Raz(){M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;}
+function m2Raz(){M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;}
 function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
   if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
   if(new Date().getHours()===3)m2Flag('nuit3h');}
@@ -46431,11 +46431,11 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(kmh>(r.kmh||0))r.kmh=Math.round(kmh);
   if(FLOW.lv===4){r.frenN=1;if(FREN.t>(r.frenT||0))r.frenT=FREN.t;}
   const k=secCarte().c;if(k&&s.c.cartes.indexOf(k)<0){s.c.cartes.push(k);SAVE.mark();}
-  if(mode==='fall'){if(k==='nuages'&&fallT>(r.vol||0))r.vol=fallT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
+  if(mode==='fall'){if(!JEAU.dans)M2R.volT+=dt;if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
   if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
   if(k==='jade'&&JEAU.dans&&JEAU.prof>(r.prof||0))r.prof=JEAU.prof;
   M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);}}
-function m2Saut(){M2R.tourV.length=0;} // startFall : un saut neuf, des tours neuves
+function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
    villeHeurt (CITY.col : boîtes x,y,z,l,h,p), les huit cases voisines comprises. Une tour = son décalage dans la grille. */
 function m2Tours(r){const C=CITY.col;if(!C||!CITY.root)return;const p=carGroup.position,cg=C.CG,ix=Math.floor(p.x/cg),iz=Math.floor(p.z/cg),c=C.c,M=M2K.frole;
@@ -46447,14 +46447,16 @@ function m2Tours(r){const C=CITY.col;if(!C||!CITY.root)return;const p=carGroup.p
 function m2Geyser(){const G=VOLCAN.gey;if(!G||!G.length)return;let t=0;try{t=VLC_U.uTime.value;}catch(e){return;}const p=carGroup.position;
   for(const g of G){const dx=p.x-g.x,dz=p.z-g.z;if(dx*dx+dz*dz>(g.sz*2.4)*(g.sz*2.4))continue;
     const tE=(((t/g.per+g.ph)%1+1)%1)*g.per,h=g.v*g.v/(2*9.8);if(tE<2*g.v/9.8&&p.y>g.y-2&&p.y<g.y+h){m2Flag('geyser');return;}}}
-function m2Fig(id){if(!m2Ok())return;const s=m2Etat(),r=s.r;if(chain>(r.fig|0))r.fig=chain;
+function m2Fig(id){if(!m2Ok())return;const s=m2Etat(),r=s.r;
+  /* UNE FIGURE = une figure à bouton (fig_<id>, pas le bonus fig_combo_) ou le BUMP (Sacha, 15/10 : « bump doit compter comme une figure ») */
+  if((/^fig_/.test(id)&&!/^fig_combo_/.test(id))||id==='bump'){M2R.figV++;if(M2R.figV>(r.fig|0))r.fig=M2R.figV;}
   /* LE SALTO DEVANT LA TERRE : une figure qui passe par l'avant ou l'arrière (un salto), en orbite, la Terre dans le champ */
   if(/^fig_/.test(id)&&secCarte().c==='espace'&&typeof planetGroup!=='undefined'&&planetGroup&&planetGroup.visible&&LVL.cur&&LVL.cur.meteo==='matin'){
     try{const f=FIG.liste.find(function(x){return 'fig_'+x.id===id;}),D=f?FIG.dirs(f):[];
       if(D.indexOf('avant')>=0||D.indexOf('arriere')>=0){camera.getWorldDirection(tmp3);if(tmp3.dot(ORB.terre)>.55)m2Flag('terre');}}catch(e){}}}
 function m2Pose(g,ratee,vol){if(!m2Ok())return;const s=m2Etat(),r=s.r;
   if(vol>.7){if(!ratee&&g>=1.5){M2R.parf++;if(M2R.parf>(r.parf|0))r.parf=M2R.parf;}else M2R.parf=0;}
-  if(!ratee&&g>=1.5){if(vol>(r.airP||0))r.airP=vol;const k=secCarte().c;if(k&&s.c.cartesP.indexOf(k)<0){s.c.cartesP.push(k);SAVE.mark();}}}
+  if(!ratee&&g>=1.5){if(M2R.volT>(r.airP||0))r.airP=M2R.volT; /* le temps VÉCU en l'air (le bump ne le raccourcit pas) */const k=secCarte().c;if(k&&s.c.cartesP.indexOf(k)<0){s.c.cartesP.push(k);SAVE.mark();}}}
 function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0)+1;
   if(M2R.ctl<M2K.debut)m2Flag('mort3s');
   if(cause==='arret')m2Flag('arret');
