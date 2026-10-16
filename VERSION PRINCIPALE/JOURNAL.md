@@ -21,6 +21,21 @@
   disque blanc naît sur la caisse et grandit, le blanc gagne les bords, l'image avance de 5 % ; dessous tout bascule (285 ms réelles), puis le voile
   se lève pendant que l'image se pose (−3 % → 0). Vers l'atelier : la nuit d'un bloc, l'image recule, puis se pose. Opacité et échelle seulement.
 - RÉSULTAT (même banc ×4) : ~0,35 s de travail caché sous le blanc, puis une seule saccade de 0,08 s. Hooks : `dbgPhotoFile()`, `dbgPhotoCar(i)`.
+## LE BLINDÉ NOIR EN PORC-ÉPIC GOTHIQUE (2026-10-16, Léo — « la Black Armor, retouche-la : un peu en mode gothique, mais partout, c'est un peu une voiture porc-épic »)
+- Trois jets, chacun en planche AVANT | APRÈS (`photos-gameplay/blinde-porcepic-*.png` de CAR CAHS V3). 1er : piquants partout OU clous chromés
+  partout, + rosace de vitrail autour de la turbine. Léo : « l'arrière c'est bien en porc-épic ; sur les côtés et devant, gothique ; le
+  moteur bizarre avec les couleurs, reviens sur celui d'avant » → 2e jet, puis « dos ivoire » et « la structure était belle, mais ça manque
+  de finition et de fusion avec l'idée des pics » → 3e jet (LA REFONTE), envoyé.
+- TECHNIQUE (`SHAPES.d_chevalier`) : la silhouette ne bouge pas. `surf(j,z,t)`/`nrm(j,z,t)` relisent les sections du loft au point près
+  (normale dehors + tangente vers la poupe) : tout ce qui pousse sur la peau s'y plante. `pique()` = piquant à 4 pans, hampe de fer `q`
+  (métallisé `k`) + pointe ivoire `Q` (nacre `n`), enfoncé de 3 cm ; `clou()` = cône chromé à 6 pans sur sa collerette de fer.
+  Le DOS (derrière z −0,55, fondu de 30 cm par hachage) = piquants ; les FLANCS et l'AVANT = clous, et LA MUE (`mue(dos)`) les couche et
+  les allonge du nez vers le dos : une seule bête. Ailes arrière en OGIVE (`ARC` : deux arcs de rayon 2·AW, tassés ; un prisme + le filet
+  d'os) qui portent les plus longs piquants ; FILET D'OS sur la ceinture ; LANCETTES en ogive (vitrail sombre + meneau) à la place des
+  meurtrières ; BÉLIER de cinq clous ; yeux en biais ; plaques grises en fer noir ; pic au moyeu (`lpWheel` option `pique`, roues
+  du Blindé seulement). Turbine d'origine (la rosace a été refusée).
+- Coût : 3 116 → 9 378 facettes (LA PERLE 19 060, médiane de la gamme 3 204). 0 erreur au banc ; garage, course (`dbgAuto`), studio
+  (`dbgEssaiCaisse`). Tout est déterministe (hachage `hh`, aucun `Math.random`).
 
 ## LA MUSIQUE NE COMMENCE QU'AU CIEL — L'INTRO 1.61 SANS SES NOTES (2026-10-16, pôle SON — Léo, sur l'appli iPhone : « c'est quoi cette première musique de merde ? » puis « version main, il faut que la musique ne commence qu'au menu ciel », relayé par la session « appli iPhone »)
 - MESURÉ au banc muet (`ouverture.py` : chaque AudioContext à part, du toucher de l'écran titre au ciel, joueur habitué ET neuf) : la seule chose

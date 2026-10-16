@@ -29331,6 +29331,7 @@ function lpWheel(o){
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
   }
   if(o.style!=='enjoliveur'&&o.style!=='plis'&&o.style!=='tourbillon')K.cyl('c',R*.16,.05,8,fx-e*.01,0,0,'x'); // le moyeu
+  if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
 }
@@ -32092,31 +32093,134 @@ Object.assign(SHAPES,{
   return {hl:[.60,.55,2.00],tl:[.67,.66,-2.27],wx:.84,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.30,style:'rayons',n:7,jante:0x5cff1e,accent:0x2a2e35}};
 },
+  /* LE BLINDÉ NOIR EN PORC-ÉPIC (2026-10-16, Léo : « un peu en mode gothique, mais partout — c'est un peu une voiture porc-épic »).
+     Sa silhouette ne bouge pas (le char à roues avant sur bras, l'arrière doublé, les plaques) ; par-dessus, LE PELAGE : ~350 piquants
+     posés sur la peau même du loft (`surf`/`nrm` relisent les sections au point près), couchés vers la poupe, courts sur le museau,
+     longs sur le dos, une CRÊTE sur l'échine, les plus longs sur les ailes arrière — rien sur les vitres ni dans une roue. Le gothique :
+     les meurtrières deviennent des LANCETTES en ogive (vitrail sombre, meneau), un pic au moyeu. 2e jet : le porc-épic sur le DOS, des
+     CLOUS chromés sur les flancs et l'avant, la turbine d'origine (voir LE PELAGE). 3e jet (Léo : « la structure était belle, mais ça
+     manque de finition et de fusion avec l'idée des pics ») : LA MUE (le clou se couche et s'allonge du nez au dos), des collerettes,
+     le FILET D'OS de la ceinture, les ailes arrière en OGIVE, le BÉLIER, les yeux en biais, les plaques en fer noir. */
   d_chevalier:function(K){
   const U=LPU,R=.52,ZF=1.52,ZR=-1.42,WX=1.03,TW=.44;
-  const P=K.kit({p:{g:'s',c:0x17181b},G:{g:'s',c:0x4a4e56},k:{g:'m',c:0x111214},K:{g:'g',c:0x0b0c0e},c:{g:'c',c:0xc9ced6},
-    g:{g:'g',c:0x141c24},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xff8a24}});
+  const P=K.kit({p:{g:'s',c:0x17181b},G:{g:'s',c:0x33353c},k:{g:'m',c:0x111214},K:{g:'g',c:0x0b0c0e},c:{g:'c',c:0xc9ced6},
+    g:{g:'g',c:0x141c24},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xff8a24},
+    q:{g:'k',c:0x24252b},Q:{g:'n',c:0xe9e1cd},                                  // LES PIQUANTS : la hampe en fer noir, la pointe en ivoire
+    r:{g:'l',c:0x5e0a1e},v:{g:'l',c:0x3a1270}});                                  // LES LANCETTES : vitrail sombre, allumé de l'intérieur
   const zs=[-2.24,-2.08,-1.92,-.88,-.45,.15,.65,1.00,2.06,2.26];
   const yB=z=>U.lin([[-2.24,.48],[-1.92,.42],[1.00,.42],[2.06,.46],[2.26,.50]],z),
         xM=z=>U.lin([[-2.24,.50],[-1.92,.54],[-.88,.54],[-.45,.88],[.15,.93],[.65,.84],[1.00,.62],[2.06,.56],[2.26,.46]],z),
         yT=z=>U.lin([[-2.24,1.08],[-2.08,1.16],[-1.92,1.20],[-.88,1.46],[-.45,1.57],[.15,1.52],[.65,1.16],[1.00,1.00],[2.06,.74],[2.26,.62]],z),
         xT=z=>U.lin([[-2.24,.44],[-1.92,.48],[-.88,.50],[-.45,.56],[.15,.58],[.65,.70],[1.00,.56],[2.06,.44],[2.26,.36]],z);
-  P.loft(zs,z=>{
-    const yb=yB(z),xm=xM(z),yt=yT(z),ys=Math.max(yb+.32,yt-.18);
-    return [[0,yb],[xm-.14,yb],[xm,yb+.26],[xm-.06,ys],[xT(z),yt],[0,yt+.03]];
-  },(j,z)=>{
+  const SEC=z=>{const yb=yB(z),xm=xM(z),yt=yT(z),ys=Math.max(yb+.32,yt-.18);
+    return [[0,yb],[xm-.14,yb],[xm,yb+.26],[xm-.06,ys],[xT(z),yt],[0,yt+.03]];};
+  P.loft(zs,SEC,(j,z)=>{
     if(j===0)return 'k';
     if(j<0||j===1)return 'G';                                                  // bouclier et chine basse en plaques grises
-    if(j===3&&z>-.40&&z<.60)return 'g';                                        // les meurtrières latérales
     if(j===4&&z>.15&&z<.65)return 'g';                                         // le pare-brise blindé
-    return 'p';});
-  P.box('G',.30,.05,.80,0,1.60,-.45);P.box('G',.60,.04,.50,0,1.39,-1.30,-.24); // l'arête dorsale, la trappe
+    return 'p';});                                                             // (les meurtrières deviennent des LANCETTES, posées plus bas)
+  // ---- LA PEAU, lue au point près : bande j de la section, `t` de 0 (point j) à 1 (point j+1), côté droit ----
+  const SS=zs.map(SEC),hh=i=>{const x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x);};
+  const surf=(j,z,t)=>{let i=0;while(i<zs.length-2&&z>zs[i+1])i++;
+    const u=U.cl((z-zs[i])/(zs[i+1]-zs[i]),0,1),A=SS[i],C=SS[i+1],
+      ax=A[j][0]+(A[j+1][0]-A[j][0])*t,ay=A[j][1]+(A[j+1][1]-A[j][1])*t,
+      cx=C[j][0]+(C[j+1][0]-C[j][0])*t,cy=C[j][1]+(C[j+1][1]-C[j][1])*t;
+    return [ax+(cx-ax)*u,ay+(cy-ay)*u,z];};
+  const nrm=(j,z,t)=>{const e=.012,a=surf(j,z,Math.max(0,t-e)),b=surf(j,z,Math.min(1,t+e)),c=surf(j,z-e,t),d=surf(j,z+e,t),
+      tx=b[0]-a[0],ty=b[1]-a[1],tz=b[2]-a[2],wx=d[0]-c[0],wy=d[1]-c[1],wz=d[2]-c[2];
+    let nx=ty*wz-tz*wy,ny=tz*wx-tx*wz,nz=tx*wy-ty*wx;const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
+    let bx=-wx,by=-wy,bz=-wz;const s=bx*nx+by*ny+bz*nz;bx-=nx*s;by-=ny*s;bz-=nz*s;const m=Math.hypot(bx,by,bz)||1;
+    return [[nx,ny,nz],[bx/m,by/m,bz/m]];};                                    // la normale (dehors) et la tangente qui file vers la POUPE
+  // un triangle, et son miroir sur l'autre flanc (sd = 0 : sur l'axe, une seule fois)
+  const T3=(k,a,b,c,sd)=>{if(sd>=0)P.tri(k,a,b,c);if(sd!==0)P.tri(k,[-a[0],a[1],a[2]],[-c[0],c[1],c[2]],[-b[0],b[1],b[2]]);};
+  /* ---- LE PIQUANT DU PORC-ÉPIC : une hampe à quatre pans (losange) en fer noir qui s'affine, puis la pointe en ivoire —
+     les vrais piquants sont clairs au bout. Enfoncé de 3 cm dans la tôle (aucun jour à sa base). ---- */
+  const pique=(b,d,L,r,sd)=>{
+    const l=Math.hypot(d[0],d[1],d[2]);d=[d[0]/l,d[1]/l,d[2]/l];
+    const up=Math.abs(d[1])<.92?[0,1,0]:[1,0,0];
+    let e1=[up[1]*d[2]-up[2]*d[1],up[2]*d[0]-up[0]*d[2],up[0]*d[1]-up[1]*d[0]];const m1=Math.hypot(e1[0],e1[1],e1[2]);e1=[e1[0]/m1,e1[1]/m1,e1[2]/m1];
+    const e2=[d[1]*e1[2]-d[2]*e1[1],d[2]*e1[0]-d[0]*e1[2],d[0]*e1[1]-d[1]*e1[0]];
+    const b0=[b[0]-d[0]*.03,b[1]-d[1]*.03,b[2]-d[2]*.03],F=.6,
+      ring=(o,rr)=>{const R4=[];for(let k=0;k<4;k++){const a=k*Math.PI/2,ca=Math.cos(a)*rr,sa=Math.sin(a)*rr;
+        R4.push([o[0]+e1[0]*ca+e2[0]*sa,o[1]+e1[1]*ca+e2[1]*sa,o[2]+e1[2]*ca+e2[2]*sa]);}return R4;},
+      C0=ring(b0,r),mid=[b[0]+d[0]*L*F,b[1]+d[1]*L*F,b[2]+d[2]*L*F],C1=ring(mid,r*.46),A=[b[0]+d[0]*L,b[1]+d[1]*L,b[2]+d[2]*L];
+    for(let k=0;k<4;k++){const n=(k+1)%4;
+      T3('q',C0[k],C0[n],C1[n],sd);T3('q',C0[k],C1[n],C1[k],sd);T3('Q',C1[k],C1[n],A,sd);}
+  };
+  /* ---- LE CLOU GOTHIQUE : un cône d'acier chromé à six pans, monté sur sa COLLERETTE de fer noir (le rivet du blouson clouté) ---- */
+  const clou=(b,d,L,r,sd)=>{
+    const l=Math.hypot(d[0],d[1],d[2]);d=[d[0]/l,d[1]/l,d[2]/l];
+    const up=Math.abs(d[1])<.92?[0,1,0]:[1,0,0];
+    let e1=[up[1]*d[2]-up[2]*d[1],up[2]*d[0]-up[0]*d[2],up[0]*d[1]-up[1]*d[0]];const m1=Math.hypot(e1[0],e1[1],e1[2]);e1=[e1[0]/m1,e1[1]/m1,e1[2]/m1];
+    const e2=[d[1]*e1[2]-d[2]*e1[1],d[2]*e1[0]-d[0]*e1[2],d[0]*e1[1]-d[1]*e1[0]],at=h=>[b[0]+d[0]*h,b[1]+d[1]*h,b[2]+d[2]*h],
+      hex=(o,rr)=>{const H=[];for(let k=0;k<6;k++){const a=k*Math.PI/3+.52,ca=Math.cos(a)*rr,sa=Math.sin(a)*rr;H.push([o[0]+e1[0]*ca+e2[0]*sa,o[1]+e1[1]*ca+e2[1]*sa,o[2]+e1[2]*ca+e2[2]*sa]);}return H;},
+      oc=at(.024),C0=hex(at(-.03),r*1.55),C1=hex(oc,r*1.22),C2=hex(oc,r),A=at(L);
+    for(let k=0;k<6;k++){const n=(k+1)%6;
+      T3('q',C0[k],C0[n],C1[n],sd);T3('q',C0[k],C1[n],C1[k],sd);T3('q',oc,C1[k],C1[n],sd);  // la collerette et son plateau
+      T3('c',C2[k],C2[n],A,sd);}                                                            // le cône
+  };
+  const rot=(n,bk,a,sx,sd)=>{const c=Math.cos(a),s=Math.sin(a);   // la direction : couchée vers l'arrière de `a`, écartée vers le dehors de `sx`
+    return [n[0]*c+bk[0]*s+sx,n[1]*c+bk[1]*s,n[2]*c+bk[2]*s];};
+  /* ---- LE PELAGE (2026-10-16, 2e jet, Léo : « l'arrière, c'est bien en mode porc-épic ; sur les côtés ça peut être gothique, et
+     devant aussi ») : derrière le toit (z < −0,55, fondu sur 30 cm), le DOS DE LA BÊTE — les piquants couchés vers la poupe, la crête,
+     les ailes arrière ; les FLANCS et tout l'AVANT, des CLOUS gothiques chromés, droits, en rangées. Rien sur les vitres ni dans une roue.
+     `?blinde=chrome` : le dos en cônes chromés (même pose que les piquants) — à trancher par Léo. ---- */
+  let id=0;
+  const dos9=z=>U.cl((.6-z)/2.4,0,1),                                           // 0 au museau → 1 à la poupe
+    arr=(z,i)=>z<-.55+(hh(i*9.1)-.5)*.30,                                         // le dos de la bête (piquants) ou l'avant (clous)
+    bete=pique,
+    /* (3e jet, Léo : « ça manque de fusion avec l'idée des pics ») LA MUE : du museau au toit, le clou se COUCHE et s'allonge — droit et court
+       sur le nez, penché et long en arrivant au dos, où il devient piquant. Une seule bête, du nez à la queue. */
+    mue=dos=>{const g=Math.pow(U.cl(dos/.48,0,1),1.4);return [.12+.86*g,.80+.75*g];};
+  for(const j of [2,3,4]){
+    let row=0;
+    for(let z=-2.12;z<=2.04;row++){
+      const zArr=z<-.55&&j>2;
+      if(j===4&&z>.06&&z<.72){z+=.19;continue;}                                // le pare-brise
+      if(j===3&&z>-.46&&z<.64){z+=.19;continue;}                               // les lancettes
+      if(j===2&&(z>2.0||z<-.80)){z+=.19;continue;}                             // l'arrière des flancs : les roues sous leurs ailes
+      const a0=surf(j,z,0),a1=surf(j,z,1),wd=Math.hypot(a1[0]-a0[0],a1[1]-a0[1]),n=Math.max(1,Math.round(wd/(zArr?.17:.20)));
+      for(let k=0;k<n;k++){id++;const dos=dos9(z);
+        if(j>2&&arr(z,id)){                                                   // LE DOS : les piquants du porc-épic
+          const t=U.cl((k+.5+(row%2?.25:-.25)+(hh(id)-.5)*.3)/n,.06,j===4?.9:.94),b=surf(j,z,t),[nn,bk]=nrm(j,z,t),
+            L=(j===4?.42:.36)*(.55+.62*dos)*(.82+.36*hh(id*3.1)),a=(j===4?1.06:1.02)+(hh(id*7.7)-.5)*.22;
+          bete(b,rot(nn,bk,a,(j===4?.10:.04)+(hh(id*5.3)-.5)*.10,1),L,.036+.01*dos,1);
+        }else{                                                                 // LES FLANCS ET L'AVANT : les clous, en rangées
+          const t=U.cl((k+.5+(row%2?.25:-.25))/n,.08,j===4?.88:.92),b=surf(j,z,t),[nn,bk]=nrm(j,z,t),[ma,ml]=mue(dos);
+          clou(b,rot(nn,bk,ma,0,1),(j===4?.22:j===3?.20:.16)*ml,.05,1);}
+      }
+      z+=zArr?.165:.19;
+    }
+  }
+  // LA CRÊTE : sur l'échine, la rangée des plus longs, dressée (derrière le toit) — devant, une rangée de gros clous
+  for(let z=-2.0;z<=.02;){id++;const b=surf(4,z,1),[nn,bk]=nrm(4,z,.999),dos=dos9(z),r9=arr(z,id);
+    if(r9)bete([0,b[1]+.02,z],rot([0,1,0],bk,.86+(hh(id)-.5)*.16,0,0),(.52+.30*dos)*(.85+.3*hh(id*2.3)),.05,0);
+    else{const [ma,ml]=mue(dos);clou([0,b[1]+.02,z],rot([0,1,0],bk,Math.min(.86,ma+.2),0,0),.30*ml,.07,0);}
+    z+=r9?.15:.19;}
+  P.box('q',.30,.05,.80,0,1.60,-.45);P.box('Q',.035,.02,.80,0,1.63,-.45);P.box('q',.60,.04,.50,0,1.39,-1.30,-.24); // l'arête dorsale (son filet d'os), la trappe
+  /* ---- LES LANCETTES : trois fenêtres en ogive par flanc, à la place des meurtrières — un vitrail sombre allumé de l'intérieur,
+     un meneau noir au milieu (la fenêtre gothique à deux jours), posé 1 cm au-dessus de la tôle. ---- */
+  const LW=.12,OFF=.012,onB=(z,t)=>{const p=surf(3,z,t),[nn]=nrm(3,z,t);return [p[0]+nn[0]*OFF,p[1]+nn[1]*OFF,p[2]+nn[2]*OFF];};
+  [-.24,.09,.42].forEach((zc,w)=>{
+    const C=[[zc-LW,.12],[zc+LW,.12],[zc+LW,.56],[zc+LW*.86,.69],[zc+LW*.52,.80],[zc,.88],[zc-LW*.52,.80],[zc-LW*.86,.69],[zc-LW,.56]],
+      o=onB(zc,.46),col=w===1?'v':'r';
+    for(let i=0;i<C.length;i++){const a=C[i],b=C[(i+1)%C.length];T3(col,o,onB(b[0],b[1]),onB(a[0],a[1]),1);}
+    const m0=onB(zc-.011,.12),m1=onB(zc+.011,.12),m2=onB(zc+.011,.86),m3=onB(zc-.011,.86),dn=nrm(3,zc,.5)[0],up=x=>[x[0]+dn[0]*.004,x[1]+dn[1]*.004,x[2]+dn[2]*.004];
+    T3('K',up(m0),up(m2),up(m1),1);T3('K',up(m0),up(m3),up(m2),1);
+  });
+  /* ---- LE FILET D'OS : la ligne de ceinture (le haut du flanc), du nez à la queue, en ivoire — la couleur des pointes court sur
+     toute la caisse et la lie : les clous dessous, les lancettes et le dos de la bête dessus. ---- */
+  {const bord=(z,t)=>{const p=surf(2,z,t),[nn]=nrm(2,z,t);return [p[0]+nn[0]*.008,p[1]+nn[1]*.008,p[2]+nn[2]*.008];};
+    for(let z=-2.18;z<2.14;z+=.12){const z1=Math.min(2.14,z+.12),a=bord(z,.955),b=bord(z1,.955),c=bord(z1,1),d=bord(z,1);T3('Q',a,b,c,1);T3('Q',a,c,d,1);}}
+  /* ---- LES AILES ARRIÈRE EN OGIVE (3e jet) : la plaque plate devient un ARC BRISÉ d'église au-dessus de la roue, filet d'os sur
+     l'arête — les plus longs piquants poussent sur son dos. ---- */
+  const FX=.86,FW=.86,AW=.82,AY=.96,AH=.42,ARC=z=>{const w=(z-ZR)/AW;if(Math.abs(w)>=1)return AY;const v=Math.abs(w)+1;return AY+AH*Math.sqrt(Math.max(0,4-v*v))/1.732;};
+  const ARC_N=18,arcPts=(dy)=>{const o=[];for(let i=0;i<=ARC_N;i++){const z=ZR+AW-i*2*AW/ARC_N;o.push([z,ARC(z)+dy]);}return o;};
   P.sym(sd=>{
-    // LES GARDE-BOUE EN PLAQUES au-dessus des pneus arrière
-    P.box('p',.86,.06,1.36,sd*.86,1.17,ZR,0,0,-sd*.10);
-    P.box('p',.84,.05,.44,sd*.86,1.06,ZR+.79,.55,0,-sd*.10);
-    P.box('p',.80,.30,.05,sd*.86,.98,ZR-.70,-.35,0,0);                         // la bavette
-    P.box('G',.05,.20,1.20,sd*1.285,1.04,ZR);                                // la joue extérieure
+    // LES AILES ARRIÈRE : l'ogive (dessus, puis le dessous à 8 cm), le filet d'os sur l'arête extérieure
+    {const top=arcPts(0),bas=arcPts(-.085).reverse();P.prism('p',top.concat(bas),FW,sd*FX);
+     const fil=arcPts(.006),fil2=arcPts(-.03).reverse();P.prism('Q',fil.concat(fil2),.03,sd*(FX+FW/2-.005));}
+    P.box('q',.80,.26,.05,sd*.86,.90,ZR-.80,-.20,0,0);                         // la bavette, au pied de l'ogive
     // LE PNEU ARRIÈRE DOUBLÉ vers l'intérieur (révolution parfaite : immobile ou pas, on ne voit rien)
     const hw=.15;P.lathe('k',[[R*.64,-sd*hw],[R*.88,-sd*hw],[R,-sd*hw*.55],[R,sd*hw*.55]],16,sd*(WX-TW/2-hw+.005),R,ZR,'x');
     P.lathe('k',[[R*.64,-sd*hw],[0,-sd*hw]],10,sd*(WX-TW/2-hw+.005),R,ZR,'x');
@@ -32127,18 +32231,25 @@ Object.assign(SHAPES,{
     P.put('c',new THREE.CylinderGeometry(.045,.045,.56,8),sd*.70,.84,ZF-.10,0,0,sd*.78);
     P.put('k',new THREE.CylinderGeometry(.07,.07,.26,8),sd*.64,.92,ZF-.10,0,0,sd*.78);
     // yeux et feux
-    P.box('W',.14,.04,.03,sd*.20,.58,2.265);P.box('W',.08,.04,.03,sd*.34,.60,2.25);
+    P.box('W',.15,.035,.03,sd*.21,.585,2.265,0,0,sd*.28);P.box('W',.08,.03,.03,sd*.35,.625,2.25,0,0,sd*.28); // les yeux, en biais : le regard de la bête
     P.box('W',.12,.035,.03,sd*.52,.98,1.06,0,sd*.5,0);
     P.box('L',.16,.04,.03,sd*.36,1.00,-2.245);P.box('L',.04,.10,.03,sd*.46,.80,-2.245);
-    P.box('G',.40,.04,.36,sd*.36,1.14,-2.14,-.35);                             // les volets de poupe
+    P.box('q',.40,.04,.36,sd*.36,1.14,-2.14,-.35);                             // les volets de poupe
   });
-  // LA TUYÈRE centrale
+  /* ---- LE DOS DES AILES ARRIÈRE : les plus longs piquants de la bête, plantés sur l'ogive, couchés vers la poupe et un peu dehors ---- */
+  for(let ix=0;ix<4;ix++)for(let iz=0;iz<8;iz++){id++;
+    const dx=-.30+ix*.20+(iz%2?.05:-.05),z=ZR-.60+iz*.17,e=.01,y=ARC(z),yp=(ARC(z+e)-ARC(z-e))/(2*e),
+      ln=Math.hypot(yp,1),nn=[0,1/ln,-yp/ln],bk=[0,-yp/ln,-1/ln],b=[FX+dx,y,z],dos=dos9(z);
+    bete(b,rot(nn,bk,1.0+(hh(id)-.5)*.24,.10+.10*ix/3,1),(.50+.18*dos)*(.8+.4*hh(id*4.1)),.045,1);}
+  // LA TUYÈRE centrale (2026-10-16 : la rosace essayée, Léo : « bizarre avec les couleurs, reviens sur le moteur d'avant »)
   P.cyl('k',.30,.26,12,0,.80,-2.32,'z',.25);P.cyl('c',.24,.04,12,0,.80,-2.44,'z');
   P.cyl('K',.20,.05,12,0,.80,-2.44,'z');P.cyl('O',.10,.06,10,0,.80,-2.44,'z');
   P.box('G',.70,.10,.06,0,.46,2.26);                                          // bouclier de nez
+  // LE BÉLIER (3e jet) : cinq clous droit devant sur le bouclier, le plus long au milieu — la bête charge
+  [[0,.30],[.15,.22],[.29,.15]].forEach(([x,L])=>clou([x,.46,2.29],[0,-.06,1],L,.045,x?1:0));
   K.commit(P);
   return {hl:[.20,.58,2.28],tl:[.36,1.00,-2.26],wx:WX,wzF:ZF,wzR:-ZR,pots:[[0,.80,-2.47]], // (pots) LA TURBINE centrale, à 80 cm : le relevé s'arrête à 60
-          lpw:{R:R,w:TW,style:'rayons',n:5,jante:0x6a6e76,accent:0x2a2c31,crampons:1}};
+          lpw:{R:R,w:TW,style:'rayons',n:5,jante:0x6a6e76,accent:0x2a2c31,crampons:1,pique:1}};
 },
   e_murduson:function(K){
   const U=LPU,R=.28,ZF=1.62,ZR=-2.12,XN=.70;
