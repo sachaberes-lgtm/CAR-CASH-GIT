@@ -26,6 +26,9 @@ rm -rf .vercel-static/jouer/simulateur.html .vercel-static/jouer/simulateur
 # (2026-10-12, passe qualité) les autres outils LOCAUX de Léo (servis par python en local, serveurs qui écrivent sur le disque) :
 # la salle blanche, la boîte à dauphins, la boîte du singe — et aucun script Python ne part en ligne
 rm -rf .vercel-static/jouer/salle-blanche.html .vercel-static/jouer/salle-blanche .vercel-static/jouer/boite-dauphins.html .vercel-static/jouer/boite-singe.html
+# (2026-10-15, Léo) LE RÉPERTOIRE DES MAPS (repertoire-maps/ : la page, ses photos, son banc) reste un outil LOCAL — en ligne, il changerait
+# l empreinte du jeu publié (tous les joueurs rechargés)
+rm -rf .vercel-static/jouer/repertoire-maps
 find .vercel-static/jouer -name '*.py' -delete
 # (2026-10-14, pôle SON) L'ATELIER DE LA MUSIQUE reste un outil LOCAL (Léo : « pour toi ») : la page musique-moteur.html (elle fige les
 # morceaux par le serveur de la page) et les sources des morceaux à paliers (paliers/*.html). La BIBLIOTHÈQUE, elle, est publiée.
@@ -45,3 +48,8 @@ printf '{"v":"%s","commit":"%s"}\n' "$JEU" "$SHA" > .vercel-static/jouer/version
 # (2026-10-14, Sacha : « publie ») LES DEUX PAGES QUE L'APP STORE EXIGE, à la racine du site : /confidentialite.html et /assistance.html
 # (dossier pages-app/ ; leur source est app-ios/fiche/ sur la branche ios-capacitor). Rien du jeu n'en dépend.
 cp pages-app/confidentialite.html pages-app/assistance.html .vercel-static/
+# (2026-10-15 soir, Sacha : « branche les vraies pubs sur le site web avec Google AdSense ») /ads.txt à la RACINE du site, tiré de
+# l'identifiant d'éditeur posé UNE fois dans le jeu (var CC_ADSENSE='ca-pub-…' dans le <head> de index.html, « LA RÉGIE ADSENSE »).
+# Identifiant vide = pas de régie = pas d'ads.txt. f08c47fec0942fa0 = l'identifiant de Google dans le registre des vendeurs (TAG-ID).
+PUBID=$(grep -o "var CC_ADSENSE='ca-pub-[0-9]*'" "VERSION PRINCIPALE/index.html" | head -1 | grep -o "pub-[0-9]*" || true)
+if [ -n "$PUBID" ]; then printf 'google.com, %s, DIRECT, f08c47fec0942fa0\n' "$PUBID" > .vercel-static/ads.txt; fi
