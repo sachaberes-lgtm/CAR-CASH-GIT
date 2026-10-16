@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Dans le jeu</title>
+<!-- DANS LE JEU (2026-10-16, avec LES VOITURES DU JEU) : voir.html?i=<n° de la voiture> — LE JEU (../index.html, sans une ligne changée) dans
+     un cadre de téléphone couché (844 × 390, comme sur l'ordi ; debout si la fenêtre est plus haute que large), en ?simu=1 (pas d'écran
+     titre), la voiture ÉQUIPÉE pour toi (dbgEquipe) : on la voit à l'accueil, au garage, et ROULER part en course avec elle. Même mécanique
+     que la liste des maps (repertoire-maps/voir.html). La sauvegarde est celle du jeu à cette adresse (la caisse reste équipée ici). -->
+<style>
+  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased}
+  #barre{position:fixed;top:0;left:0;right:0;height:48px;display:flex;align-items:center;gap:10px;
+    padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));font-size:13px;white-space:nowrap;z-index:2}
+  #retour{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);flex:none}
+  #retour:hover{background:rgba(255,255,255,.22)}
+  svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  #titre{font-weight:650;letter-spacing:.02em;flex:none;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  #actions{display:flex;gap:6px;margin-left:auto;flex:none}
+  #actions button{height:30px;padding:0 13px;border-radius:999px;font:inherit;font-size:12px;font-weight:600;letter-spacing:.04em;border:0;cursor:pointer;
+    color:rgba(255,255,255,.8);background:rgba(255,255,255,.1)}
+  #actions button:hover{background:rgba(255,255,255,.2);color:#fff}
+  #actions button.or{background:#fff;color:#000}
+  #scene{position:fixed;left:0;right:0;top:48px;bottom:0;display:grid;place-items:center}
+  #jeu{border:0;display:block;background:#000}
+</style>
+</head>
+<body>
+<div id="barre">
+  <a id="retour" href="index.html" aria-label="Retour à la liste des voitures"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <b id="titre"></b>
+  <div id="actions">
+    <button id="bAccueil">ACCUEIL</button>
+    <button id="bGarage">GARAGE</button>
+    <button id="bRouler" class="or">ROULER</button>
+  </div>
+</div>
+<div id="scene"><iframe id="jeu" title="Le jeu"></iframe></div>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const N = Math.max(0, parseInt(new URLSearchParams(location.search).get('i'), 10) || 0);
+  $('retour').href = 'index.html#i=' + N;
+
+  // la sauvegarde de cette adresse : auto-école passée, pas de question du mode au 1er JOUER, la voiture équipée (le reste : celle du jeu)
+  try {
+    const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {};
+    d.v = d.v || 2; d.tuto = 1; d.permis = 1; if (d.facile == null) d.facile = 0; d.equipped = N;
+    localStorage.setItem('cashcarSave', JSON.stringify(d));
+  } catch (e) {}
+
+  const jeu = $('jeu');
+  function taille(){
+    const W = innerWidth, H = innerHeight - 48, debout = H > W * 1.1, w = debout ? 390 : 844, h = debout ? 844 : 390;
+    jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
+  }
+  addEventListener('resize', taille); taille();
+  jeu.src = '../index.html?simu=1&voiture=' + N;
+  const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
+  jeu.addEventListener('load', focusJeu);
+  document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#barre')) setTimeout(focusJeu, 0); });
+  for (const t of ['keydown', 'keyup']) addEventListener(t, ev => { // une touche frappée hors du cadre part dans le jeu
+    if (ev.target === jeu) return;
+    try { const w = jeu.contentWindow; w.document.dispatchEvent(new w.KeyboardEvent(t, { code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat, bubbles: true, cancelable: true })); } catch (e) {}
+    if (/^(Space|Arrow)/.test(ev.code)) ev.preventDefault();
+  });
+
+  const W = () => { try { return jeu.contentWindow; } catch (e) { return null; } };
+  const etat = () => { const w = W(); try { return w && w.dbgState ? w.dbgState() : null; } catch (e) { return null; } };
+  // la voiture équipée UNE fois, dès que le jeu sait le faire (la sauvegarde l'a déjà posée ; ceci la remet si le jeu l'a refusée)
+  let mise = false;
+  const T = setInterval(() => {
+    const w = W(), st = etat(); if (mise || !w || !st || typeof w.dbgEquipe !== 'function') return;
+    if (st.started && !st.gameOver) return;
+    try { const n = w.dbgEquipe(N); if (n && n !== 'en course') { $('titre').textContent = n; document.title = n + ' · dans le jeu'; mise = true; clearInterval(T); } } catch (e) {}
+  }, 400);
+  const clique = sel => { const w = W(); if (!w) return false; const b = w.document.querySelector(sel); if (b && b.getClientRects().length) { b.click(); return true; } return false; };
+  // ROULER : le PLAY de l'accueil ; depuis le garage (il n'a plus de JOUER), on revient à l'accueil et le PLAY est touché à l'arrivée
+  let veutRouler = false;
+  const rouler = () => { const st = etat(); if (st && st.started && !st.gameOver) return true;
+    if (st && st.started && st.gameOver) { try { W().dbgEco('rejouer'); } catch (e) {} return true; }
+    return clique('[data-m="play"]'); };
+  $('bRouler').onclick = () => { if (!rouler()) { veutRouler = true; jeu.src = jeu.src; } focusJeu(); };
+  setInterval(() => { if (veutRouler && rouler()) veutRouler = false; }, 500);
+  $('bGarage').onclick = () => { const w = W(); if (!w) return; const st = etat(); if (st && st.started && !st.gameOver) return;
+    clique('[data-m="garage"]'); focusJeu(); };
+  $('bAccueil').onclick = () => { location.reload(); };
+})();
+</script>
+</body>
+</html>

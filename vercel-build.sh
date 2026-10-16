@@ -29,6 +29,8 @@ rm -rf .vercel-static/jouer/salle-blanche.html .vercel-static/jouer/salle-blanch
 # (2026-10-15, Léo) LE RÉPERTOIRE DES MAPS (repertoire-maps/ : la page, ses photos, son banc) reste un outil LOCAL — en ligne, il changerait
 # l empreinte du jeu publié (tous les joueurs rechargés)
 rm -rf .vercel-static/jouer/repertoire-maps
+# (2026-10-16, Léo) LES VOITURES DU JEU (repertoire-voitures/ : la liste, la vue dans le jeu, son serveur) : outil LOCAL, même raison
+rm -rf .vercel-static/jouer/repertoire-voitures
 find .vercel-static/jouer -name '*.py' -delete
 # (2026-10-14, pôle SON) L'ATELIER DE LA MUSIQUE reste un outil LOCAL (Léo : « pour toi ») : la page musique-moteur.html (elle fige les
 # morceaux par le serveur de la page) et les sources des morceaux à paliers (paliers/*.html). La BIBLIOTHÈQUE, elle, est publiée.
