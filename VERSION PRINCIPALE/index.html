@@ -55122,7 +55122,9 @@ function richCoup(P,n,d,mu,combo){
       if(ty==='diamant'||ty==='rubis'||ty==='emeraude')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
       richLance(ty,P9,n9,d9,lourd?Math.random()*etal*.55:D9.papier||ty==='liasse'?.05+Math.random()*etal*1.25:Math.random()*etal,r==='jackpot'?1.2:1);}
     if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
-    {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));for(let i=0;i<nc;i++)richLance('coeur',P9,n9,d9,.04+Math.random()*(etal+.15)*1.4,r==='jackpot'?1.15:.95);}} // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un
+    {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));let t9=.03;for(let i=0;i<nc;i++){t9+=.03+Math.pow(Math.random(),2.2)*.38; // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un — et (Léo : « plus irréguliers, on les voit trop en groupe ») ils s'ÉCHAPPENT un par un, à intervalles irréguliers (parfois deux d'affilée, parfois un silence), chacun sa vitesse, sa direction et son point de départ autour de la caisse
+      const o9=richLance('coeur',P9,n9,d9,t9,(r==='jackpot'?1.15:.95)*(.55+Math.random()*.9));
+      if(o9){RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(1.5+Math.random()*2.5);o9.v.add(RICH.v1);richVise(o9.v);o9.m.position.add(RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).multiplyScalar(1.2));}}}}
     if(SONV2){const ri=richSon();if(ri)sfx('riche.'+r); // (2026-10-16) LA GERBE PAIE : sa cascade à elle (petit → bon → gros → jackpot), au juste milieu — la course garde les pièces de Sacha
       if(r==='petit'){sfx('fourgon.billets',{vol:-1,t:.04});if(!ri)sfx('piece',{st:2,vol:-4,t:.05});}
       else if(r==='bon'){sfx('fourgon.billets',{vol:-1,t:.06});if(!ri)sfx('piece.recolte',{vol:-1});}
