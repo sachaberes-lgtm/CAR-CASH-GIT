@@ -35,9 +35,10 @@ K = pondération de sonie, HP = ce que rend un haut-parleur de téléphone) :
 - Bancs du jeu (Chrome sans fenêtre, muet, rendu logiciel) : couché, debout, cadre de l'ordi, son coupé, `?nitroson=ancien` : la course part,
   aucune erreur (le 404 de dark-triad.mp3 : faux positif connu) ; `sh garde-burnout.sh` et `sh garde-charte.sh` : OK.
 Crochets : `dbgRug()` (prêt, montée, gains, coupure du filtre) · `?nitroson=ancien` = le son d'avant, intact.
-À TRANCHER à l'oreille (Sacha, Léo) : les niveaux `RUG_NIV` (gorge .14, crépitement .14, PSSHT .05, boule .2, pap .15, bang .2), le PSSHT
-d'allumage (le garder ?), la pulsation de la montée, la quantité de pétarade. Deux enregistrements comparés ont été envoyés à Sacha
-(`nitro-ancien.wav` / `nitro-NOUVEAU.wav` : 3 s au sol, deux coups, 2,3 s en vol, la réserve bleue).
+VALIDÉ par Sacha (16/10, après l'écoute de `nitro-ancien.wav` / `nitro-NOUVEAU.wav` — 3 s au sol, deux coups, 2,3 s en vol, la réserve bleue) :
+« C'est bon, on garde le nouveau son du nitro. » On ne le rebascule pas sans lui. Restent réglables à la demande (Léo n'a pas encore écouté) :
+les niveaux `RUG_NIV` (gorge .14, crépitement .14, PSSHT .05, boule .2, pap .15, bang .2), le PSSHT d'allumage, la pulsation de la montée,
+la quantité de pétarade.
 
 ## CHAQUE BOUTON A SON SON, CHAQUE CURSEUR SON CRAN, ET JOUER FAIT VROMBIR UN V8 (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus dans l'interface, chaque curseur ; le bouton jouer doit avoir un bruit de moteur »)
 
