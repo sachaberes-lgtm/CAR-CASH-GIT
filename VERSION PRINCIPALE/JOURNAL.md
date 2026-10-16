@@ -3,6 +3,74 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS (2026-10-16, session MISSIONS — Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ; toutes les missions sont ouvertes en même temps, sans ordre imposé ; des MISSIONS SECRÈTES invisibles débloquent des voitures montrées en silhouette noire dans la boutique ; le mot DÉFI disparaît de l'interface »)
+Livré par étapes (chacune vérifiée, commitée, poussée). Cette section grandit à chaque étape.
+
+**ÉTAPE 1 — LES DONNÉES, LES COMPTEURS, LA MIGRATION**
+- COUPÉ, PAS ARRACHÉ : `MISSIONS_V2` (head, classe `html.misV2`). ⚠ PENDANT LA LIVRAISON la v2 s'allume par `?missions=v2` (le défaut reste
+  l'ancien système) ; le défaut bascule quand l'écran et la boutique sont livrés, et `?missions=v1` rendra alors l'ancien. En v2 : `misTick`
+  ne coche plus de carnet (il garde `RUNX.t`/`RUNX.nitro`), `misFin` ne referme plus rien, `misFocusMaj` passe la main à la v2.
+- LA TABLE `M2` (juste après le patch SANS CARRIÈRE de `CAR_UNLOCK`) : 38 missions visibles (exploits 10, aura 3, argent 4, moteur 3,
+  collection 17, exploration 1) + 19 SECRÈTES. Une ligne = `id` (clé de sauvegarde : ne jamais la renommer), famille `f`, mesure `k`, seuil
+  `v` (`'tot'` = tout le lot, compté au chargement), récompense `r` ({cash} · {car:'NOM'} · {cat,id} · {vide:1} pour « tous les objets du
+  jeu », à définir par Sacha), textes `t`/`en`, unité `u`. Réglages des détections : `M2K` ; état de la partie : `M2R`.
+- UN OBJET DE MISSION NE S'ACHÈTE PLUS : en v2, les caisses récompenses passent à `CAR_UNLOCK[i]={k:'mis',id,av:<l'ancienne condition>}`
+  (rareté d'avant GARDÉE dans `CARS[i].rar`) — CORBILLARD, SILENCIEUSE, STRATOS, NOCTAMBULE, AIGLE DE FEU, ORIGAMI, ATCHOUM, SQUALE,
+  FOURNAISE, DOGE, CAISSE-NUAGE (argent du jeu) et TRÔNE CENTRAL, SPECTRE, MUR DU SON (en euros) ne se vendent plus ; une caisse de mission
+  est à toi quand sa récompense est RÉCUPÉRÉE (`m2Prend` la pose dans `owned`). Les habillages (`COSM`) : `mis2` = la mission, plus de prix
+  (VAPORWAVE, LAVE, HOLOGRAMME, OR MASSIF, SUPER GUERRIER, PHÉNIX, FOUDRE DIVINE, la traînée de SANG à venir). L'ARC-EN-CIEL n'est plus la
+  récompense d'aucune mission : `pack:'chat'` (shopOwned : à toi avec le CHAT POP-TART ; qui l'a gagnée au carnet 5 la garde).
+  Les caisses retirées ne reviennent qu'avec un gabarit (`SHAPES`) : COMÈTE (`proto`) revient tout de suite ; les 7 autres à l'étape 5.
+- LES QUATRE CAISSES ORPHELINES (carnets 6-9 : LA PUCE, LA GROUPE B, LE HOT ROD, LE MASTODONTE) ne sont la récompense d'aucune mission v2 :
+  elles passent à l'argent du jeu — 400 k, 500 k, 800 k, 1 M (⚠ prix posés par Claude, À VALIDER PAR SACHA), rareté gardée, `exK:'carnet'`.
+- LA SAUVEGARDE `SAVE.d.m2` (dans `def` et `san`) : `ok` réussies · `pr` prises · `su` suivies (≤ 3) · `vu` l'avancement déjà montré · `nv`
+  réussies pas encore vues · `fl` drapeaux d'un instant · `r` records d'une partie que le jeu ne gardait pas (figures d'un saut, air puis
+  parfait, parfaites d'affilée, frénésie, km/h, vie, tours frôlées, vol, lac, plongée, parties enchaînées) · `c` compteurs à vie (morts,
+  argent ACCUMULÉ, jours joués + dernier jour, maps jouées, maps posées en parfait, parties enchaînées).
+- LES BRANCHEMENTS, à côté de ceux des couleurs secrètes (`SEC`) : `m2Tick` (après `secTick`) · `m2Fig` (addTrick) · `m2Pose` (après
+  `secPose`) · `m2Mort` (explode, après `mortsCompte`) · `m2Fin` (endGame, après `commitExploits`) · `m2Raz` (runxReset) · `m2Saut`
+  (startFall) · `m2Rejoue` (REJOUER) · `m2Menu` (accueilRetour) · `gagneAjoute(x)` à CHAQUE crédit de la banque (paie de course, primes,
+  permis, série du jour, cadeau, machine à sous, partie interrompue reversée au chargement, primes de mission).
+  Neuf : la tour FRÔLÉE (`m2Tours` : la grille `CITY.col` de `villeHeurt`, flanc à moins de `M2K.frole` = 6 m, à hauteur de tour, une tour par
+  décalage), le GEYSER traversé (`m2Geyser` : le calendrier du shader, la colonne v²/2g), le CRATÈRE (`VOLCAN.C/K.rc`), le SALTO DEVANT LA TERRE
+  (une figure à salto, `FIG.dirs`, orbite au matin, `ORB.terre` dans le champ). LA SECONDE CHANCE ne fausse rien : la reprise n'appelle pas
+  `runxReset` (les compteurs de la partie continuent), seule la VIE repart (`M2R.vie=0` dans chanceRepart).
+- LA MIGRATION, en deux temps : `m2Migre` (une fois, v1 comme v2) remplit les compteurs — morts = la mesure par niveau (`ex.morts`), argent
+  accumulé = la banque + ce qui a été dépensé (caisses, figures, habillages), jamais sous le record de fortune, jours = la série du jour (≥ 1
+  si l'on a joué) ; `m2MigreV2` (une fois, à la 1re ouverture en v2) pose dans `owned` les caisses déjà acquises sous l'ancienne règle (carnet
+  relevé, 100 parties), marque RÉUSSIES les missions déjà remplies, donne leur OBJET si on ne l'a pas, mais ne verse la prime en ARGENT que
+  pour la COLLECTION : les exploits, l'aura, l'argent et le moteur avaient leurs primes dans les carnets (« sans redonner de primes déjà
+  touchées »). En v1 les compteurs tournent mais rien ne se coche (la bascule juge tout d'un coup). Le code COUSIN ne compte pas dans la
+  collection (`m2CarAMoi`/`m2HabAMoi`).
+- CONSOLE : `dbgMissions()` (chaque mission, visibles ET secrètes : valeur, seuil, réussie, prise, suivie, récompense), `dbgMissions('gagne',id)`,
+  `('prend',id)`, `('raz')`, `('etat')` (la partie en cours) ; `dbgMissionsLots()` (les lots « toutes » et ce qui ne s'achète pas à l'argent du
+  jeu). L'ancien crochet des carnets reste sous `dbgMissionsV1` (et reprend le nom en v1).
+- MESURÉ (banc muet, pilote auto `dbgAuto`, `dbgMoteur`) :
+  · VITESSE : 1 000 km/h atteint en ~50 s (palier ~10, nitro au sol) ; au palier 30 (TROU NOIR) 1 988 km/h au sol, et nitro tenue EN VOL
+    8 363 km/h → les deux missions de vitesse sont atteignables (2 000 : en volant nitro tenue, à haut palier).
+  · MOTEUR : palier 10 en ~50 s, 14 en ~100 s (≈ 3,3 pièces moteur/s) ; le palier 20 demande 844 pièces (~4-5 min sans mourir), le 30 environ
+    2 300 (~11-12 min sans mourir) : atteignable, mais une très longue partie.
+  · AURA : le pilote auto (sans figures) fait ~55 d'aura/s — 5 000 à 6 000 en 100 s, 1 500 en 30 s. Un joueur qui pose des figures va plus
+    vite : 10 000 et 20 000 = une bonne partie de 3 à 6 min ; 50 000 = une partie exceptionnelle (à confirmer sur de vraies parties).
+  · PLONGÉE (mer de Jade) : une plongée ordinaire descend à 8 m ; en tenant la plongée (3,6 g contre 3,4 d'Archimède) on passe le fond
+    `EAU.fond` = 420 m en ~25 s → c'est le seuil (`M2K.prof`).
+  · FIGURES D'UN SAUT : la chaîne (`chain`, `ex.chain`) compte aussi les gestes automatiques — au pilote auto, sans un bouton, 5 « figures »
+    en un saut en 30 s sur la mer de Jade (les jaillissements). Une FIGURE de mission = une figure à bouton (`fig_<id>`, pas le bonus
+    `fig_combo_`) ou le BUMP ; la durée d'un saut = le temps VÉCU hors de l'eau (`M2R.volT` : le bump retranche à `fallT`, pas à lui).
+  · LA MORT LA PLUS RAPIDE après la prise en main : 5,4 s (canyon), 8,4 s ailleurs (nuages, forêt, ville) → « meurs dans les 3 premières
+    secondes » est IMPOSSIBLE aujourd'hui (seuil gardé, `M2K.debut`, à trancher).
+  · LES LOTS « TOUTES » : voitures 29, couleurs 53, traînées 15, ailes 13, figures 13 (tout le jeu : 123). Les FIGURES se collectent (13,
+    achetées à l'argent du jeu, 164 500 $ en tout). ⚠ « toutes les couleurs » est hors d'atteinte : les 53 se paient en EUROS (StoreKit pas
+    branché) ; « toutes les voitures » demande 6 caisses hors argent du jeu (POSTER 84 au rang d'aura, et 5 en euros dont LA PIZZA EXPRESS à
+    161 €) ; « toutes les traînées » demande l'ARC-EN-CIEL, donc le chat (4,20 €).
+- À TRANCHER PAR SACHA : la récompense de « tous les objets du jeu » (emplacement vide) · LA STRATOS pour « parfait sur chaque map » · les
+  prix des 4 caisses orphelines · « 3 premières secondes » (impossible : 6 s ?) · « jauge de nitro pleine » (la jauge est PLEINE au départ :
+  LA BOULE tombe dès qu'on meurt tôt) · « 0 s de vol » (la mort par le chrono de 6 s est l'une des plus fréquentes : LE SPECTRE tombe vite) ·
+  « 30 s en l'air en rebondissant sur les nuages » : les nuages ne font plus rebondir depuis le 30/09 ; compté comme UN vol de 30 s sur la mer
+  de nuages (13,8 s mesurées nitro tenue) · « partie entière sans nitro / sans pièce » = au moins 60 s de conduite (`M2K.partie`), sinon trois
+  caisses tombaient en mourant à la 2e seconde · les primes de collection (50 k, 150 k, 300 k pour 5, 10, 20 voitures) face à une partie qui
+  rapporte 500 à 3 000 $.
+
 ## LA VILLE TOUJOURS LA NUIT — QUATRE TEINTES, QUATRE TEMPS (2026-10-16, session « Ville jour » — Sacha : « la map ville, elle sera toujours la nuit. Tu reprends la map nuit avec de la pluie qui était là de base — la première version finie de la ville — et tu la déclines simplement en plusieurs couleurs : une violette, c'est celle de base ; une autre avec des néons verts, une autre avec des néons jaunes, une autre bleue — bleu foncé, bleu électrique. Des fois du brouillard, des fois de la pluie, des fois pas de pluie. La ville-jour, ça marche pas : on abandonne toutes les maps ville-jour »)
 Le point de départ : Sacha classait la ville de jour parmi les pires maps (« les meilleures : les montagnes chinoises en journée et la ville
 avec pluie et nuit »). Une refonte du jour a été commencée puis ARRÊTÉE à sa demande : la ville ne se joue plus de jour.
