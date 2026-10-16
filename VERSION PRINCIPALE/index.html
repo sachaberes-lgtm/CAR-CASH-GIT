@@ -69,6 +69,12 @@ if(SANS_VOIX)document.documentElement.classList.add('sansVoix');
    jour : `const SANS_CARRIERE=false;`. */
 const SANS_CARRIERE=!/[?&]carriere=1\b/.test(location.search);
 if(SANS_CARRIERE)document.documentElement.classList.add('sansCarr');
+/* LES MISSIONS v2 (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ») :
+   l'ancien système (CARNETS, la file de trois, les pastilles, la constellation de l'atelier) est COUPÉ, pas arraché — `?missions=v1` le
+   rend. Les compteurs des missions (SAVE.d.m2) tournent dans les deux cas. ⚠ PENDANT LA LIVRAISON PAR ÉTAPES, la v2 s'allume par
+   `?missions=v2` ; le défaut bascule quand l'écran MISSIONS et la boutique sont livrés. Voir « LES MISSIONS v2 » au journal. */
+const MISSIONS_V2=/[?&]missions=v2\b/.test(location.search);
+if(MISSIONS_V2)document.documentElement.classList.add('misV2');
 /* PLUS DE MODE FACILE (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu ») : même recette que la carrière — COUPÉ,
    pas arraché. `facOn()` répond toujours non : plus d'aide au virage (FAC_CAP), plus de bord élargi (facBord), plus de 10 s en l'air
    (FAC_AIR), plus de 3 vies ni de filet (facileSauve) ; le choix FACILE / NORMAL du 1er JOUER ne s'ouvre plus (facChoix rend NORMAL) et la
@@ -35615,6 +35621,100 @@ const CAR_UNLOCK=[
 if(SANS_CARRIERE){const PRIX_CARR={carrN:1.8e6,carrV:2.2e6};
   CAR_UNLOCK.forEach(function(u,i){if(!u||!PRIX_CARR[u.k])return;const c=CARS[i];
     CAR_UNLOCK[i]={p:PRIX_CARR[u.k],exK:u.k,exV:u.v};if(c&&c.rar==='defi')delete c.rar;});}
+/* ===== LES MISSIONS v2 — LA TABLE (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des
+   MISSIONS libres ; toutes les missions sont ouvertes en même temps, sans ordre imposé ») =====
+   Une ligne par mission : `id` (2 à 12 lettres a-z0-9 : c'est la clé de la sauvegarde, ne jamais la renommer), `f` la famille
+   (exploit · aura · argent · moteur · collection · exploration · secret), `k` ce qu'on mesure (voir m2Val), `v` le seuil ('tot' = tout
+   le lot, compté au chargement), `r` la récompense — {cash} versé en banque · {car:'NOM'} une caisse · {cat,id} un habillage · {vide:1}
+   (récompense à définir par Sacha : l'emplacement existe, vide). `t`/`en` le texte ({v} = le seuil), `u` l'unité de la barre
+   ('' nombre · 's' secondes · 'kmh' · '$' · 'aura' · 'b' oui/non · 'mn' minutes:secondes).
+   ⚠ Un objet donné par une mission ne s'achète plus : le patch de CAR_UNLOCK juste dessous, celui de COSM après les peintures.
+   Les SECRÈTES (`f:'secret'`) ne se montrent qu'une fois trouvées. Console : dbgMissions(). Les seuils sont ceux de la demande de
+   Sacha ; les mesures (atteignables ou non) sont au journal, « LES MISSIONS v2 ». */
+const M2=[
+  // EXPLOITS — à réussir en une seule partie
+  {id:'fig2',f:'exploit',k:'fig',v:2,u:'',r:{cash:1000},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'fig5',f:'exploit',k:'fig',v:5,u:'',r:{car:'LA BULLE'},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'air5',f:'exploit',k:'airP',v:5,u:'s',r:{cash:2000},t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
+  {id:'parf10',f:'exploit',k:'parf',v:10,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
+  {id:'fren',f:'exploit',k:'fren',v:1,u:'b',r:{cash:10000},t:'ATTEINS LA FRÉNÉSIE',en:'REACH FRENZY'},
+  {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cat:'trainee',id:'sang'},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'},
+  {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{car:'LA DOLORÈS'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{car:'LA JEEP'},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'},
+  {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{car:'LE TAXI JAUNE'},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'},
+  {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{car:'LA STRATOS'},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha)
+  // AURA — le record d'une partie
+  {id:'aura10k',f:'aura',k:'aura',v:10000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'aura20k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'aura50k',f:'aura',k:'aura',v:50000,u:'aura',r:{cat:'aile',id:'phenix'},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  // ARGENT — le total ACCUMULÉ depuis le début (pas le solde en banque)
+  {id:'cash100k',f:'argent',k:'gagne',v:100000,u:'$',r:{cat:'peinture',id:'vaporwave'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  {id:'cash500k',f:'argent',k:'gagne',v:500000,u:'$',r:{cat:'peinture',id:'lave'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  {id:'cash1m',f:'argent',k:'gagne',v:1000000,u:'$',r:{cat:'peinture',id:'holo'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  {id:'cash2m',f:'argent',k:'gagne',v:2000000,u:'$',r:{cat:'peinture',id:'or'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  // MOTEUR — le record d'une partie (le palier affiché = index + 1)
+  {id:'eng10',f:'moteur',k:'eng',v:10,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'eng20',f:'moteur',k:'eng',v:20,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'eng30',f:'moteur',k:'eng',v:30,u:'',r:{cat:'trainee',id:'foudre'},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  // COLLECTION — ce que le joueur possède (« toutes » : sans les objets gagnés par mission)
+  {id:'car5',f:'collection',k:'cars',v:5,u:'',r:{cash:50000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
+  {id:'car10',f:'collection',k:'cars',v:10,u:'',r:{cash:150000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
+  {id:'car20',f:'collection',k:'cars',v:20,u:'',r:{cash:300000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
+  {id:'carall',f:'collection',k:'carsT',v:'tot',u:'',r:{car:'LE TRÔNE CENTRAL'},t:'COLLECTE TOUTES LES VOITURES',en:'COLLECT EVERY CAR'},
+  {id:'col5',f:'collection',k:'peint',v:5,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
+  {id:'col10',f:'collection',k:'peint',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} COULEURS',en:'COLLECT {v} PAINTS'},
+  {id:'colall',f:'collection',k:'peintT',v:'tot',u:'',r:{cat:'peinture',id:'guerrier'},t:'COLLECTE TOUTES LES COULEURS',en:'COLLECT EVERY PAINT'},
+  {id:'tr5',f:'collection',k:'trainee',v:5,u:'',r:{cash:3000},t:'COLLECTE {v} TRAÎNÉES',en:'COLLECT {v} TRAILS'},
+  {id:'tr10',f:'collection',k:'trainee',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} TRAÎNÉES',en:'COLLECT {v} TRAILS'},
+  {id:'trall',f:'collection',k:'traineeT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES TRAÎNÉES',en:'COLLECT EVERY TRAIL'},
+  {id:'ai5',f:'collection',k:'aile',v:5,u:'',r:{cash:3000},t:'COLLECTE {v} AILES',en:'COLLECT {v} WINGS'},
+  {id:'ai10',f:'collection',k:'aile',v:10,u:'',r:{cash:10000},t:'COLLECTE {v} AILES',en:'COLLECT {v} WINGS'},
+  {id:'aiall',f:'collection',k:'aileT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES AILES',en:'COLLECT EVERY WING'},
+  {id:'fig3',f:'collection',k:'figure',v:3,u:'',r:{cash:3000},t:'COLLECTE {v} FIGURES',en:'COLLECT {v} TRICKS'},
+  {id:'fig8',f:'collection',k:'figure',v:8,u:'',r:{cash:10000},t:'COLLECTE {v} FIGURES',en:'COLLECT {v} TRICKS'},
+  {id:'figall',f:'collection',k:'figureT',v:'tot',u:'',r:{cash:50000},t:'COLLECTE TOUTES LES FIGURES',en:'COLLECT EVERY TRICK'},
+  {id:'toutall',f:'collection',k:'toutT',v:'tot',u:'',r:{vide:1},t:'COLLECTE TOUS LES OBJETS DU JEU',en:'COLLECT EVERYTHING IN THE GAME'}, // la récompense : à définir par Sacha
+  // EXPLORATION
+  {id:'maps',f:'exploration',k:'cartes',v:'tot',u:'',r:{car:'L\'ORIGAMI'},t:'JOUE SUR CHAQUE MAP AU MOINS UNE FOIS',en:'PLAY EVERY MAP AT LEAST ONCE'},
+  // SECRÈTES — invisibles tant qu'elles ne sont pas trouvées ; chacune donne une caisse, montrée en silhouette noire à la boutique
+  {id:'morts100',f:'secret',k:'morts',v:100,u:'',r:{car:'LE CORBILLARD'},t:'MEURS {v} FOIS',en:'DIE {v} TIMES'},
+  {id:'mort3s',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SANS-PERMIS'},t:'MEURS DANS LES 3 PREMIÈRES SECONDES',en:'DIE IN THE FIRST 3 SECONDS'},
+  {id:'arret',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE GRILLE-PAIN'},t:'RESTE À L\'ARRÊT JUSQU\'À EXPLOSER',en:'STAND STILL UNTIL YOU BLOW UP'},
+  {id:'nitplein',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA BOULE'},t:'MEURS LA JAUGE DE NITRO PLEINE',en:'DIE WITH A FULL NITRO TANK'},
+  {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{car:'LE SPECTRE'},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'},
+  {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{car:'LE MUR DU SON'},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'cratere',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA FOURNAISE'},t:'MEURS AU-DESSUS DU CRATÈRE DU VOLCAN',en:'DIE ABOVE THE VOLCANO CRATER'},
+  {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
+  {id:'geyser',f:'secret',k:'flag',v:1,u:'b',r:{car:'ATCHOUM'},t:'TRAVERSE UN GEYSER',en:'FLY THROUGH A GEYSER'},
+  {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{car:'SQUALE'},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'},
+  {id:'nuage30',f:'secret',k:'vol',v:30,u:'s',r:{car:'LA CAISSE-NUAGE'},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'},
+  {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
+  {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{car:'LE GLACIER'},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'},
+  {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'},
+  {id:'sanspiece',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA DEUCHE'},t:'FAIS UNE PARTIE SANS RAMASSER UNE SEULE PIÈCE',en:'PLAY A WHOLE RUN WITHOUT PICKING UP A COIN'},
+  {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE DOGE'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
+  {id:'nuit3h',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA NOCTAMBULE'},t:'JOUE À 3 H DU MATIN',en:'PLAY AT 3 AM'},
+  {id:'jours7',f:'secret',k:'jours',v:7,u:'',r:{car:'LA DÉESSE'},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'},
+  {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{car:'L\'ÉTERNELLE'},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}];
+/* les réglages des détections (mesurés : voir le journal) — `partie` : une « partie entière » dure au moins ça (s de conduite), sinon trois
+   caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
+   la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */
+const M2K={partie:60,frole:6,prof:EAU.fond,debut:3}; // prof : le fond de la mer de Jade (420 m) — mesuré : en tenant la plongée on le passe en ~25 s
+/* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
+   parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
+   réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */
+const M2R={ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:false,figV:0,volT:0}; // figV/volT : les figures et la durée VÉCUE (hors de l'eau) du saut en cours — le bump retranche du temps à fallT, pas à volT
+/* LES CAISSES QUI SE GAGNENT PAR MISSION : leur condition devient la mission (`k:'mis'`), l'ancienne reste dans `av` — la migration de
+   la sauvegarde (m2Migre) la relit pour rendre à chacun ce qu'il avait déjà (une mise à jour ne confisque rien) ; une caisse qui se
+   vendait (à l'argent du jeu ou en euros) ne s'achète plus. Les caisses RETIRÉES ne reviennent qu'avec leur gabarit (SHAPES). */
+if(MISSIONS_V2){for(const m of M2){const r=m.r;if(!r||!r.car)continue;const i=CARS.findIndex(function(c){return c&&c.name===r.car;});if(i<0)continue;
+  const c=CARS[i],rr=carRar(i),u=CAR_UNLOCK[i];CAR_UNLOCK[i]={k:'mis',id:m.id,av:u||null};c.rar=rr; // la rareté d'avant est GARDÉE (elle se lisait du prix ou du défi)
+  if(c.retire&&typeof SHAPES[c.shape]==='function'){c.retire=0;c.revenue=1;}} // `revenue` : une retirée qui revient comme récompense de mission
+  /* les quatre caisses des carnets 6 à 9 (LA PUCE, LA GROUPE B, LE HOT ROD, LE MASTODONTE) ne sont la récompense d'aucune mission v2 : sans
+     carnet, plus personne ne pourrait les avoir. Elles passent à l'argent du jeu (prix posés par Claude, À VALIDER PAR SACHA), comme les
+     trophées de la carrière ; leur rareté ne bouge pas ; `exK`/`exV` gardent le carnet — qui l'avait relevé l'a dans `owned` (m2MigreV2). */
+  const PX9={6:400e3,7:500e3,8:800e3,9:1e6};
+  CAR_UNLOCK.forEach(function(u,i){if(!u||u.k!=='carnet'||!PX9[u.v])return;const rr=carRar(i);CAR_UNLOCK[i]={p:PX9[u.v],exK:'carnet',exV:u.v};CARS[i].rar=rr;});}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
    ----------------------------------------------------------------------------
@@ -36763,7 +36863,7 @@ function nitroGain(q,src){
   if(LIVRE.on){livre('n+:'+(src||'?'),nitroR-av);livre('n0:'+(src||'?'),q-(nitroR-av));}
   if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
-function runxReset(){flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le relèvement du début se décide ICI, une fois par partie (voir ECOD) */jourMaj(); /* (2026-10-14, GAMEPLAY) …et le ×2 du jour juste après : ECOD.k = le MAX des deux, jamais le produit (voir JOUR) */RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
+function runxReset(){m2Raz();/* (2026-10-16) LES MISSIONS v2 : une partie neuve */flowReset();ecoDebutMaj(); /* (2026-10-14, GAMEPLAY) le relèvement du début se décide ICI, une fois par partie (voir ECOD) */jourMaj(); /* (2026-10-14, GAMEPLAY) …et le ×2 du jour juste après : ECOD.k = le MAX des deux, jamais le produit (voir JOUR) */RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
 RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;MIS_NEWG.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
@@ -36915,14 +37015,14 @@ let misT=0;const MIS_NEW=[],MIS_NEWG=[]; // missions réussies PENDANT cette par
 function misOn(){return started&&!gameOver&&!SANDBOX&&!PARK.on;}
 function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIRECT, pas à la fin
   if(!misOn()){if(misTick._f!==0){misTick._f=0;try{misFocusMaj();}catch(e){}}return;} // (2026-09-30) la mission suivie s'éteint hors course
-  RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
+  RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;if(MISSIONS_V2)return; /* (2026-10-16) LES MISSIONS v2 : les carnets ne se cochent plus (m2Tick a pris le relais) */
   misT-=dt;if(misT>0)return;misT=.25;
   if(TUTO.on||(MIS0.on&&RUNX.t-MIS0.t<20)){misTick._f=1;try{misFocusMaj();}catch(e){}return;} // (2026-10-14, gameplay) rien ne se coche pendant la leçon, ni dans les 20 premières secondes de la course qui suit le permis (MIS0)
   const s=misEtat();
   for(let i=0;i<3;i++){if(s.ok[i])continue;const m=misM(s,i),v9=misVal(m.k);
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
     if(v9>=m.v){
-      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);MIS_NEWG.push(s.w[i]); // (la file) la case ET le numéro : à la fin de la partie la case aura pris la mission suivante
+      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);gagneAjoute(m.p);bankMaxMaj();MIS_NEW.push(i);MIS_NEWG.push(s.w[i]); // (la file) la case ET le numéro : à la fin de la partie la case aura pris la mission suivante
       misBanniere('MISSION RÉUSSIE',misTxt(m),'+'+fmtC(m.p),'coche');
       try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
@@ -36932,14 +37032,14 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
 /* LE CARNET SE FERME À LA FIN DE LA PARTIE, jamais en vol : sinon le carnet suivant s'ouvrirait avec les
    compteurs d'une partie déjà bien entamée, et ses missions tomberaient toutes seules — gagnées sans
    avoir été lues. Rend la récompense (pour l'écran de mort) ou null. */
-function misFin(){ // (2026-10-15, la file) chaque case relevée prend la mission suivante de la route ; les jalons franchis versent leur récompense
+function misFin(){if(MISSIONS_V2)return null; /* (2026-10-16) LES MISSIONS v2 : plus de carnet à refermer */ // (2026-10-15, la file) chaque case relevée prend la mission suivante de la route ; les jalons franchis versent leur récompense
   const s=misEtat();if(!(s.ok[0]||s.ok[1]||s.ok[2]))return null;
   let hi=Math.max(s.w[0],s.w[1],s.w[2]);
   for(let i=0;i<3;i++)if(s.ok[i]){s.w[i]=++hi;s.ok[i]=0;s.best[i]=0;if(s.f===i)s.f=-1;} // une mission neuve : plus suivie, meilleur essai à zéro
   const n2=Math.floor(Math.min(s.w[0],s.w[1],s.w[2])/3);let out=null;
   while(s.n<n2){const c=carnet(s.n),r=c.r; // (une partie peut en franchir deux : chacun verse la sienne, l'écran de mort montre la dernière)
     if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
-    if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);bankMaxMaj();}
+    if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);gagneAjoute(r.cash);bankMaxMaj();}
     out={n:s.n+1,nom:misRecompense(c),car:r.car,cat:r.cat,id:r.id};s.n++;}
   SAVE.flush();
   return out;
@@ -37817,6 +37917,14 @@ if(PEINT_V2){
     "PLEIN AUX AS":"LOADED","Des dollars d'or sur fond vert billet. Discret ? Non.":"Gold dollars on cash green. Subtle? No.",
     "L'achat est indisponible pour le moment.":"Buying is unavailable right now."});
 }
+/* LES MISSIONS v2 — LES HABILLAGES QUI SE GAGNENT (2026-10-16, Sacha : « un objet donné par une mission ne s'achète plus : la boutique
+   affiche à la place la mission qui le débloque ») : `mis2` = l'id de la mission ; plus de prix (ni dollars ni euros), plus de carnet.
+   L'ARC-EN-CIEL (carnet 5) n'est plus la récompense d'aucune mission : « elle reste UNIQUEMENT dans le pack de la voiture chat » —
+   `pack:'chat'` (shopOwned : à toi avec le CHAT POP-TART ; qui l'a déjà gagnée au carnet la garde, elle est dans `own`). */
+if(MISSIONS_V2){const H9={};for(const m of M2)if(m.r&&m.r.cat)H9[m.r.cat+':'+m.r.id]=m.id;
+  for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat]){const id=H9[cat+':'+d.id];
+    if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;}
+    else if(d.mis){delete d.mis;if(d.id==='arcenciel')d.pack='chat';}}}
 function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, de la COMMUNE à l'ÉPIQUE (D'ORIGINE en tête ; dans une rareté, l'ordre du catalogue)
   const rg=function(j){const d=COSM.peinture[j];return d.id==='usine'?-1:(INV_RANG[cosmRar('peinture',d)]|0);};return L.sort(function(a,b){return (rg(a)-rg(b))||(a-b);});}
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
@@ -37855,7 +37963,7 @@ const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
 function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
-  if(!d.p&&!d.mis&&!d.pack&&!d.sec&&!d.eur)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
+  if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
@@ -38057,7 +38165,7 @@ function tutoFin(passe){
   if(TUTO.pa){TUTO.pa=0;if(pwrAirT>0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
   SAVE.d.tuto=1;
   if(!passe){const paye=!SAVE.d.permis; // (2026-09-28) la prime du permis ne se verse qu'UNE fois : REVOIR L'AUTO-ÉCOLE ne doit pas devenir un robinet à 500
-    if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);bankMaxMaj();}
+    if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);gagneAjoute(500);bankMaxMaj();}
     /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : la grande annonce du centre (tenue 1,6 s, les cartes retenues pendant
        la leçon attendent derrière), puis — à la 1re fois — ce qui vient de changer : fini l'entraînement où l'on ne pouvait pas mourir. */
     hautPasse(function(){slamMontre('PERMIS OBTENU !',paye?'+'+fmtC(500):'','#62e062','#ffd75e',40,22);},1900,'slam',3,{min:1600});
@@ -39493,7 +39601,7 @@ function spinMoteur(st,V,t){const h=SPIN.mot;if(!h)return;let k=0;for(let r=0;r<
   k/=3;if(Math.abs(k-(SPIN.motK||0))<.03)return;SPIN.motK=k;try{h.gain(-16+13*Math.min(1,k),.06);h.rate(.7+.45*Math.min(1,k),.06);}catch(e){}}
 function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau
   const L=R.lot;
-  if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);SPIN.total+=L.cash;}
+  if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);gagneAjoute(L.cash);SPIN.total+=L.cash;}
   if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}
@@ -40923,7 +41031,7 @@ function explode(cause){
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
-  try{mortsCompte(mortCause);}catch(e){} // (2026-09-30) la mesure des morts par niveau (voir MORTS)
+  try{mortsCompte(mortCause);}catch(e){}try{m2Mort(mortCause);}catch(e){} /* (2026-10-16) LES MISSIONS v2 : morts, les secrètes de la mort */ // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
   /* (2026-09-30) LA MUSIQUE MEURT AVEC LA CAISSE : le tape-stop partait d'endGame, 1,8 s APRÈS l'explosion — toute la boule de feu se
      jouait sur la bande à plein (sur iPhone `el.volume` est verrouillé et `duckT` ne creuse que le WebAudio) : le son de mort, la voix
@@ -44442,7 +44550,7 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
     if(!J.on||!J.cmp||!J.dep||!(RUNX.t>=J.tMin))return 0;
     const e=jourEtat(J.dep),S=SAVE.d.jour;
     if(e.dispo){S.d=J.dep;S.n=e.suiv;const p=jourPrime(e.suiv);
-      if(p>0){SAVE.d.bank=Math.min(1e30,bank()+p);bankMaxMaj();}
+      if(p>0){SAVE.d.bank=Math.min(1e30,bank()+p);gagneAjoute(p);bankMaxMaj();}
       J.fin={n:e.suiv,p:p,k:J.k};J.cmp=false; // une seule fois par partie
       return p;}
     if(e.recale){S.d=J.dep;J.cmp=false;} // l'horloge avait reculé : on recale la date, sans ×2 ni prime
@@ -44493,7 +44601,7 @@ function cadeauOuvre(){ // LE CONTRAT : s'il y a un cadeau prêt, le verse (banq
   try{
     const e=cadeauEtat();if(!e.actif||!e.pret)return false;
     const v=e.valeur;
-    SAVE.d.cad.t=Date.now();SAVE.d.bank=Math.min(1e30,bank()+v);bankMaxMaj();SAVE.flush();
+    SAVE.d.cad.t=Date.now();SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();SAVE.flush();
     try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(x){}
     hap([12,40,12,40,30]);
     try{toast(pxi('cadeau')+' '+TR('CADEAU')+' : +'+fmtC(v),true);}catch(x){}
@@ -44563,6 +44671,7 @@ const SAVE={
     mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip'], figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
+    m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
@@ -44685,6 +44794,14 @@ const SAVE={
     if(d.bq&&typeof d.bq==='object'&&isFinite(+d.bq.j)&&Array.isArray(d.bq.l))c.bq={j:Math.round(+d.bq.j),l:d.bq.l.filter(function(x){return typeof x==='string';}).slice(0,12).map(function(x){return x.slice(0,32);})}; // (2026-10-10) LA BOUTIQUE DU JOUR : la vitrine tirée ce jour-là
     /* (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR ET LE CADEAU : une date illisible repart de zéro, la série est bornée ; un cadeau « dans le futur » (horloge reculée, code importé) est ramené à maintenant — il ne bloquerait pas le suivant des mois */
     c.jour={d:'',n:0};if(typeof jourNum==='function'&&typeof JOUR==='object'&&d.jour&&typeof d.jour==='object'){/* (2026-10-14, GAMEPLAY) le test de typeof : les preuves de sauvegarde (passation/preuves) n'exécutent que la zone SAVE, hors du bloc JOUR — sans lui elles jetaient « jourNum is not defined » */const nj=jourNum(d.jour.d);if(nj===nj){c.jour.d=String(d.jour.d);c.jour.n=Math.max(0,Math.min(JOUR.max,Math.round(+d.jour.n)||0));}}
+    /* (2026-10-16) LES MISSIONS v2 : bornées comme le reste — ids a-z0-9 (2 à 12), listes courtes, nombres finis ; un code importé ne coche rien qu'il ne saurait dire */
+    if(d.m2&&typeof d.m2==='object'){const s9=d.m2,o9=c.m2,I9=/^[a-z0-9]{2,12}$/,L9=function(a,n){return Array.isArray(a)?[...new Set(a.filter(function(x){return typeof x==='string'&&I9.test(x);}))].slice(0,n):[];},
+      N9=function(x,hi){x=+x;return isFinite(x)?Math.max(0,Math.min(hi,x)):0;};
+      o9.v=s9.v===1?1:0;if(s9.vc===1)o9.vc=1;o9.ok=L9(s9.ok,200);o9.pr=L9(s9.pr,200);o9.su=L9(s9.su,3);o9.nv=L9(s9.nv,200);o9.fl=L9(s9.fl,60);
+      if(s9.vu&&typeof s9.vu==='object')for(const k of Object.keys(s9.vu).slice(0,200))if(I9.test(k))o9.vu[k]=N9(s9.vu[k],1e30);
+      if(s9.r&&typeof s9.r==='object')for(const k of ['fig','airP','parf','frenN','frenT','kmh','vie','tours','vol','lac','rejoue','prof'])if(s9.r[k]!=null)o9.r[k]=N9(s9.r[k],1e7);
+      const cc=s9.c&&typeof s9.c==='object'?s9.c:{};o9.c.morts=Math.round(N9(cc.morts,1e7));o9.c.gagne=N9(cc.gagne,1e30);o9.c.jours=Math.round(N9(cc.jours,1e5));
+      o9.c.jd=typeof cc.jd==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(cc.jd)?cc.jd:'';o9.c.cartes=L9(cc.cartes,40);o9.c.cartesP=L9(cc.cartesP,40);o9.c.rejoue=Math.round(N9(cc.rejoue,1e5));}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
     return c;
   },
@@ -44704,7 +44821,7 @@ const SAVE={
        sur le disque en même temps. `repris` : ce qui vient d'être versé (le toast du menu, dbgEnCours). */
     const ec=this.d.enCours;
     if(ec){delete this.d.enCours;const x=this.d.ex,L=this.d.leaders;
-      this.d.bank=Math.min(1e30,this.d.bank+ec.v);if(this.d.bank>(this.d.bankMax||0))this.d.bankMax=this.d.bank;
+      this.d.bank=Math.min(1e30,this.d.bank+ec.v);gagneAjoute(ec.v);if(this.d.bank>(this.d.bankMax||0))this.d.bankMax=this.d.bank;
       this.d.aura=(this.d.aura||0)+ec.a;this.d.auraMax=Math.max(this.d.auraMax||0,ec.a);
       x.eng=Math.max(x.eng,ec.e);x.tricks+=ec.tr;x.gaps+=ec.ga;x.bumps+=ec.bu;x.surv+=ec.sv;
       x.zones=Math.max(x.zones,ec.zo);x.chain=Math.max(x.chain,ec.ch);x.kmh=Math.max(x.kmh,ec.km);x.runs++;
@@ -44755,6 +44872,7 @@ SAVE.load();
 if(SANS_CARRIERE)try{const mo9={carrN:'nuages',carrV:'ville'};let m9=false;
   CAR_UNLOCK.forEach(function(u,i){if(u&&u.exK&&mo9[u.exK]&&(((SAVE.d.carr||{})[mo9[u.exK]])|0)>=u.exV&&!carOwned(i)){SAVE.d.owned.push(i);m9=true;}});
   if(m9)SAVE.mark();}catch(e){}
+try{m2Etat();}catch(e){console.warn('missions v2 : migration',e);} // (2026-10-16) LES MISSIONS v2 : la migration de la sauvegarde, une fois (voir m2Migre / m2MigreV2)
 if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;SAVE.flush=function(){};SAVE.mark=function(){};} // (2026-10-09) LA BALADE n'écrit rien : ni leçon, ni question du mode, ni sauvegarde
 /* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
 Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});
@@ -46183,6 +46301,196 @@ function secPorte(){const k=secCarte();if(k.c==='espace'&&(runStats.zones|0)>=SE
 window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}const k=secCarte();
   return {actif:secOk(),secDonne:typeof secDonne==='function',carte:k.c,meteo:k.m,sansBord:+SEC.bordT.toFixed(1),parfaitsDeSuite:SEC.parf,sansNitroOrage:Math.round(SEC.sansNit),
     jade:Math.round(SEC.jadeD),villeNuitFigures:SEC.villeFig,cartes:Object.keys(SEC.cartes),portails:runStats.zones|0,gagnesCettePartie:Object.keys(SEC.dits),seuils:SEC_K};};
+/* ===== LES MISSIONS v2 — LE MOTEUR (2026-10-16, Sacha : « toutes les missions sont ouvertes en même temps, sans ordre imposé » · « il
+   faut une migration propre de SAVE.d.mis vers le nouveau format, sans rien perdre et sans redonner de primes déjà touchées ») =====
+   LA SAUVEGARDE `SAVE.d.m2` (désinfectée par san) : `ok` les missions réussies · `pr` celles dont la récompense est prise · `su` les
+   suivies (3 au plus) · `vu` l'avancement que l'écran a déjà montré (la barre se remplit DEPUIS là) · `nv` réussies pas encore vues ·
+   `fl` les drapeaux des exploits d'un instant (les secrètes « meurs… ») · `r` les records d'une partie que le jeu ne gardait pas · `c` les
+   compteurs à vie (morts, argent accumulé, jours joués, maps jouées, maps posées en parfait, parties enchaînées).
+   LES BRANCHEMENTS (à côté de ceux des couleurs secrètes, SEC) : m2Tick (chaque image de course, après secTick) · m2Fig (addTrick) ·
+   m2Pose (le verdict d'une pose) · m2Mort (explode, une vraie mort) · m2Fin (endGame) · m2Raz (runxReset : une partie neuve) ·
+   m2Saut (startFall) · m2Rejoue / m2Menu (REJOUER / le retour au menu) · gagneAjoute (chaque crédit de la banque).
+   LA SECONDE CHANCE (CHANCE) : la reprise n'appelle pas runxReset → les compteurs de la partie continuent (« 3 premières secondes » se
+   juge sur la conduite depuis le DÉPART, « partie entière sans… » sur toute la partie) ; seule la vie repart (« tiens 5 min sans
+   mourir » : on est mort). Rien en BALADE, au BAC À SABLE, au PARC ni à l'AUTO-ÉCOLE. */
+function m2Vierge(){return {v:0,ok:[],pr:[],su:[],vu:{},nv:[],fl:[],r:{},c:{morts:0,gagne:0,jours:0,jd:'',cartes:[],cartesP:[],rejoue:0}};}
+function m2Etat(){const d=SAVE.d;let s=d.m2;if(!s||typeof s!=='object'||!s.c)s=d.m2=m2Vierge();if(s.v!==1)m2Migre(s);if(MISSIONS_V2&&s.vc!==1)m2MigreV2(s);return s;}
+function m2EnC(){try{return !!(started&&!gameOver);}catch(e){return false;}} // (les `let` de la course naissent APRÈS SAVE.load : la migration passe avant)
+function m2Ok(){try{return started&&!gameOver&&!BALADE&&!SANDBOX&&!(PARK&&PARK.on)&&!TUTO.on;}catch(e){return false;}}
+function m2Def(id){for(let i=0;i<M2.length;i++)if(M2[i].id===id)return M2[i];return null;}
+function m2CarIdx(nom){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].name===nom)return i;return -1;}
+function m2Jour(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+/* LES CARTES : celles que JOUER tire (SF_CARTES, le canyon compris quand il est ouvert) — « chaque map » suit la liste du jeu */
+function m2Cartes(){try{return Object.keys(SF_CARTES);}catch(e){return [];}}
+/* À TOI, SANS LE CODE COUSIN : le code cousin ouvre tout sur un appareil (« l'argent, l'aura et les records ne bougent pas ») — il ne
+   doit pas non plus encaisser les primes de collection. Même règle que carUnlockedVrai / shopOwned / figPossede, le cousin en moins. */
+function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true;
+  const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
+function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
+  if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
+function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
+/* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
+   couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
+let M2_RECO=null;
+function m2Reco(){if(M2_RECO)return M2_RECO;const R={car:{},hab:{}};for(const m of M2){const r=m.r||{};if(r.car)R.car[r.car]=m.id;if(r.cat)R.hab[r.cat+':'+r.id]=m.id;}return (M2_RECO=R);}
+function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&d.sec));}
+/* LA COLLECTION : n = possédés (tout compte), tot/nT = le lot « toutes » (sans les objets de mission) et ce qu'on en a */
+function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
+  if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]){tot++;if(a)nT++;}}}
+  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)){tot++;if(a)nT++;}}}
+  return {n:n,tot:tot,nT:nT};}
+function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
+const M2_COLK={cars:'voiture',peint:'peinture',trainee:'trainee',aile:'aile',figure:'figure'};
+/* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
+function m2Val(m){const d=SAVE.d,s=m2Etat(),r=s.r,c=s.c,ex=d.ex||{},enC=m2EnC();
+  switch(m.k){
+    case 'fig':return r.fig|0; // (pas ex.chain : la chaîne compte aussi les gestes automatiques — jaillissements, vrilles, glisses)
+    case 'airP':return r.airP||0;
+    case 'parf':return r.parf|0;
+    case 'fren':return (r.frenN||(d.frenRec||0)>0)?1:0;
+    case 'frenT':return Math.max(d.frenRec||0,r.frenT||0);
+    case 'kmh':return Math.max(ex.kmh|0,r.kmh|0);
+    case 'vie':return Math.max(r.vie||0,enC?M2R.vie:0);
+    case 'tours':return r.tours|0;
+    case 'cartesP':return c.cartesP.length;
+    case 'cartes':return c.cartes.length;
+    case 'aura':{let a=d.auraMax||0;if(enC)try{a=Math.max(a,Math.round(auraRun)||0);}catch(e){}return a;}
+    case 'gagne':return c.gagne||0;
+    case 'eng':{let e=ex.eng|0;if(enC)e=Math.max(e,engTier|0);return e+1;}
+    case 'morts':return c.morts|0;
+    case 'jours':return c.jours|0;
+    case 'vol':return r.vol||0;
+    case 'lac':return r.lac||0;
+    case 'rejoue':return r.rejoue|0;
+    case 'prof':return r.prof||0;
+    case 'flag':return s.fl.indexOf(m.id)>=0?1:0;
+    case 'toutT':return m2Tout().nT;
+  }
+  const t=/T$/.test(m.k),o=m2Col(M2_COLK[t?m.k.slice(0,-1):m.k]);return t?o.nT:o.n;}
+function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.v!=='tot')return m.v;
+  if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='toutT')return m2Tout().tot;
+  return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
+function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
+  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='aura'?(typeof fmtAura==='function'?fmtAura(v):String(v)):String(v));}
+function m2Flag(id){const s=m2Etat();if(s.fl.indexOf(id)<0){s.fl.push(id);SAVE.mark();}}
+function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x)&&x>0)s.c.gagne=Math.min(1e30,(s.c.gagne||0)+x);}catch(e){}}
+/* ---- LA MIGRATION, EN DEUX TEMPS : ce que l'ancienne sauvegarde savait déjà ----
+   1. m2Migre (une fois, v1 comme v2) — les compteurs : morts (la mesure par niveau, ex.morts), argent accumulé (la banque + ce qui a été
+      dépensé en caisses, figures et habillages ; jamais sous le record de fortune), jours (la série du jour, au moins 1 si l'on a joué).
+   2. m2MigreV2 (une fois, à la première ouverture en v2) — les CAISSES déjà acquises sous l'ancienne règle (carnet relevé, 100 parties,
+      achat) entrent dans `owned` : à toi pour toujours ; une mission DÉJÀ remplie à ce moment est réussie ; sa récompense est donnée si
+      c'est un OBJET qu'on n'a pas ; sa prime en ARGENT n'est versée que pour la COLLECTION — les exploits, l'aura, l'argent et le moteur
+      avaient leurs primes dans les carnets (« sans redonner de primes déjà touchées ») ; ce qu'on a déjà est marqué pris. */
+function m2Migre(s){const d=SAVE.d,ex=d.ex||{},c=s.c;
+  let mo=0;try{for(const k in (ex.morts||{}))for(const q in ex.morts[k])mo+=ex.morts[k][q]|0;}catch(e){}c.morts=Math.max(c.morts|0,mo);
+  c.gagne=Math.max(c.gagne||0,m2GagneEstime());
+  const j=d.jour||{};if(!c.jd&&j.d)c.jd=String(j.d);c.jours=Math.max(c.jours|0,j.n|0,(ex.runs|0)>0?1:0);
+  s.v=1;SAVE.mark();}
+function m2MigreV2(s){const d=SAVE.d;s.vc=1; /* posé d'abord : m2Val rappelle m2Etat */
+  if(!Array.isArray(d.owned))d.owned=[];
+  for(let i=0;i<CAR_UNLOCK.length;i++){const u=CAR_UNLOCK[i];if(!u||carRetiree(i)||carOwned(i))continue;let a=false;
+    if(u.k==='mis'){const o=u.av;if(o&&o.k&&!o.p&&o.k!=='premium'&&!o.eur)try{a=carStat(o.k)>=o.v;}catch(e){}}
+    else if(u.exK==='carnet')try{a=carStat('carnet')>=u.exV;}catch(e){}
+    if(a)d.owned.push(i);}
+  for(const m of M2){if(s.ok.indexOf(m.id)>=0)continue;let v=0;try{v=m2Val(m);}catch(e){}if(!(v>=m2Seuil(m)))continue;
+    s.ok.push(m.id);const r=m.r||{};let deja=false;
+    if(r.car){const i=m2CarIdx(r.car);deja=i>=0&&carOwned(i);}
+    else if(r.cat)deja=d.shop.own.indexOf(r.cat+':'+r.id)>=0;
+    else if(r.cash)deja=m.f!=='collection';
+    (deja?s.pr:s.nv).push(m.id);}
+  SAVE.mark();}
+function m2GagneEstime(){const d=SAVE.d;let t=bank();
+  try{for(const i of (d.owned||[])){const u=CAR_UNLOCK[i];const o=u&&u.k==='mis'?u.av:u;if(o&&o.p)t+=o.p;}}catch(e){}
+  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
+  try{for(const k of (d.shop&&d.shop.own)||[]){const p=k.split(':'),h=(COSM[p[0]]||[]).find(function(x){return x.id===p[1];});if(h&&h.p)t+=h.p;}}catch(e){}
+  return Math.max(t,d.bankMax||0);}
+/* ---- LA VÉRIFICATION : une mission tombe dès que sa valeur passe le seuil (en course : 4 fois par seconde, sans la collection) ---- */
+function m2Verifie(enC){if(!MISSIONS_V2)return 0; /* en v1 les compteurs tournent, rien ne se coche : la bascule juge tout d'un coup (m2MigreV2) */const s=m2Etat();let n=0;
+  for(const m of M2){if(s.ok.indexOf(m.id)>=0)continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
+    if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
+  if(n)SAVE.mark();return n;}
+/* le bandeau DISCRET de la course (« il ne cache pas la route » : la bannière du haut, celle des missions) ; une secrète ne dit rien d'elle */
+function m2Annonce(m,enC){if(!MISSIONS_V2)return;const r=m.r||{};
+  if(m.f==='secret'){if(enC)misBanniere('MISSION SECRÈTE','? ? ?','','etoile');return;}
+  const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
+  if(enC)misBanniere('MISSION RÉUSSIE',m2Txt(m),p,'coche');else try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+/* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
+function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
+  if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
+  if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);gagneAjoute(r.cash);bankMaxMaj();o.cash=r.cash;}
+  else if(r.car){const i=m2CarIdx(r.car);if(i<0||carRetiree(i))return null; /* pas encore revenue au garage : elle attend */ if(!carOwned(i))SAVE.d.owned.push(i);o.car=i;}
+  else if(r.cat){const h=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});if(!h)return null;const k=r.cat+':'+r.id;if(SAVE.d.shop.own.indexOf(k)<0)SAVE.d.shop.own.push(k);o.cat=r.cat;o.hab=r.id;}
+  s.pr.push(id);const k9=s.nv.indexOf(id);if(k9>=0)s.nv.splice(k9,1);SAVE.flush();return o;}
+function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
+  if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
+/* ---- LES BRANCHEMENTS DE LA COURSE ---- */
+function m2Raz(){M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;}
+function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
+  if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
+  if(new Date().getHours()===3)m2Flag('nuit3h');}
+function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R.deb)m2Debut();
+  if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
+  if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
+  if(kmh>(r.kmh||0))r.kmh=Math.round(kmh);
+  if(FLOW.lv===4){r.frenN=1;if(FREN.t>(r.frenT||0))r.frenT=FREN.t;}
+  const k=secCarte().c;if(k&&s.c.cartes.indexOf(k)<0){s.c.cartes.push(k);SAVE.mark();}
+  if(mode==='fall'){if(!JEAU.dans)M2R.volT+=dt;if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);else if(k==='volcan')m2Geyser();}
+  if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
+  if(k==='jade'&&JEAU.dans&&JEAU.prof>(r.prof||0))r.prof=JEAU.prof;
+  M2R.t-=dt;if(M2R.t<=0){M2R.t=.25;m2Verifie(true);}}
+function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
+/* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
+   villeHeurt (CITY.col : boîtes x,y,z,l,h,p), les huit cases voisines comprises. Une tour = son décalage dans la grille. */
+function m2Tours(r){const C=CITY.col;if(!C||!CITY.root)return;const p=carGroup.position,cg=C.CG,ix=Math.floor(p.x/cg),iz=Math.floor(p.z/cg),c=C.c,M=M2K.frole;
+  for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const L=C.g.get((ix+a)+','+(iz+b));if(!L)continue;
+    for(let j=0;j<L.length;j++){const o=L[j];if(Math.abs(p.y-c[o+1])>c[o+4]/2)continue;
+      const ex9=Math.abs(p.x-c[o])-c[o+3]/2,ez9=Math.abs(p.z-c[o+2])-c[o+5]/2,dd=Math.max(ex9,ez9);
+      if(dd>0&&dd<M&&M2R.tourV.indexOf(o)<0&&M2R.tourV.length<32){M2R.tourV.push(o);if(M2R.tourV.length>(r.tours|0))r.tours=M2R.tourV.length;}}}}
+/* TRAVERSER UN GEYSER (le volcan) : le calendrier du shader (période, phase), la colonne qui monte de sa bouche (v m/s) */
+function m2Geyser(){const G=VOLCAN.gey;if(!G||!G.length)return;let t=0;try{t=VLC_U.uTime.value;}catch(e){return;}const p=carGroup.position;
+  for(const g of G){const dx=p.x-g.x,dz=p.z-g.z;if(dx*dx+dz*dz>(g.sz*2.4)*(g.sz*2.4))continue;
+    const tE=(((t/g.per+g.ph)%1+1)%1)*g.per,h=g.v*g.v/(2*9.8);if(tE<2*g.v/9.8&&p.y>g.y-2&&p.y<g.y+h){m2Flag('geyser');return;}}}
+function m2Fig(id){if(!m2Ok())return;const s=m2Etat(),r=s.r;
+  /* UNE FIGURE = une figure à bouton (fig_<id>, pas le bonus fig_combo_) ou le BUMP (Sacha, 15/10 : « bump doit compter comme une figure ») */
+  if((/^fig_/.test(id)&&!/^fig_combo_/.test(id))||id==='bump'){M2R.figV++;if(M2R.figV>(r.fig|0))r.fig=M2R.figV;}
+  /* LE SALTO DEVANT LA TERRE : une figure qui passe par l'avant ou l'arrière (un salto), en orbite, la Terre dans le champ */
+  if(/^fig_/.test(id)&&secCarte().c==='espace'&&typeof planetGroup!=='undefined'&&planetGroup&&planetGroup.visible&&LVL.cur&&LVL.cur.meteo==='matin'){
+    try{const f=FIG.liste.find(function(x){return 'fig_'+x.id===id;}),D=f?FIG.dirs(f):[];
+      if(D.indexOf('avant')>=0||D.indexOf('arriere')>=0){camera.getWorldDirection(tmp3);if(tmp3.dot(ORB.terre)>.55)m2Flag('terre');}}catch(e){}}}
+function m2Pose(g,ratee,vol){if(!m2Ok())return;const s=m2Etat(),r=s.r;
+  if(vol>.7){if(!ratee&&g>=1.5){M2R.parf++;if(M2R.parf>(r.parf|0))r.parf=M2R.parf;}else M2R.parf=0;}
+  if(!ratee&&g>=1.5){if(M2R.volT>(r.airP||0))r.airP=M2R.volT; /* le temps VÉCU en l'air (le bump ne le raccourcit pas) */const k=secCarte().c;if(k&&s.c.cartesP.indexOf(k)<0){s.c.cartesP.push(k);SAVE.mark();}}}
+function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0)+1;
+  if(M2R.ctl<M2K.debut)m2Flag('mort3s');
+  if(cause==='arret')m2Flag('arret');
+  if(cause==='air')m2Flag('air0'); // le chrono de vol est tombé à zéro (la boule de l'airtime)
+  if(cause==='lave')m2Flag('lave');
+  try{if(nitroR>=nitroCap()-.01)m2Flag('nitplein');}catch(e){}
+  try{if(secCarte().c==='volcan'){const p=carGroup.position;for(const q of [[VOLCAN.C,VOLCAN.K],[VOLCAN.C2,VOLCAN.K2]])if(q[0]&&q[1]&&Math.hypot(p.x-q[0].x,p.z-q[0].z)<q[1].rc){m2Flag('cratere');break;}}}catch(e){}
+  m2Verifie(true);SAVE.mark();}
+function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
+  try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
+  if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');}
+  m2Verifie(false);SAVE.flush();}
+function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
+function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
+/* CONSOLE : dbgMissions() = chaque mission (visibles ET secrètes) : sa valeur, son seuil, réussie, prise · dbgMissions('gagne',id) = la
+   réussir pour de vrai (sa récompense attend à l'écran ; une secrète joue sa révélation) · ('prend',id) · ('raz') = tout effacer
+   (la sauvegarde repart de la migration) · ('etat') = l'état de la partie en cours */
+/* console : dbgMissionsLots() = le contenu des lots « toutes » (sans les objets de mission) et ce qui, dedans, ne s'achète PAS à l'argent du jeu */
+window.dbgMissionsLots=function(){const o={};for(const cat of ['voiture','peinture','aile','trainee','figure']){const c=m2Col(cat),sans=[];
+  if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i)||m2Reco().car[CARS[i].name])continue;const u=CAR_UNLOCK[i];if(u&&!u.p&&u.k)sans.push(CARS[i].name+' ('+(u.eur||u.k)+')');}}
+  else for(const d of COSM[cat]||[]){if(m2HabReco(cat,d))continue;if(!d.p&&(d.eur||d.pack||d.sec||d.mis))sans.push(d.id+' ('+(d.eur||d.pack||'?')+')');}
+  o[cat]={possedes:c.n,toutes:c.tot,dansToutes:c.nT,pasAArgentDuJeu:sans};}return o;};
+window.dbgMissions=function(a,id){
+  if(a==='raz'){SAVE.d.m2=m2Vierge();SAVE.flush();return 'missions remises à zéro (migration rejouée)';}
+  if(a==='etat')return {ctl:+M2R.ctl.toFixed(1),vie:+M2R.vie.toFixed(1),parf:M2R.parf,lac:+M2R.lac.toFixed(1),tours:M2R.tourV.length,cettePartie:M2R.run.slice(),v2:MISSIONS_V2};
+  const s=m2Etat();
+  if(a==='gagne'){const m=m2Def(id);if(!m)return 'inconnue : '+id;if(s.ok.indexOf(id)<0){s.ok.push(id);s.nv.push(id);SAVE.flush();try{m2Annonce(m,m2EnC());}catch(e){}}
+    try{if(typeof m2Revele==='function'&&m.f==='secret')m2Revele(id);}catch(e){console.warn(e);}return 'réussie : '+id;}
+  if(a==='prend')return m2Prend(id)||'rien à prendre';
+  return M2.map(function(m){let v=0;try{v=m2Val(m);}catch(e){v='?';}return {id:m.id,famille:m.f,texte:m2Txt(m),valeur:typeof v==='number'?Math.round(v*10)/10:v,seuil:m2Seuil(m),
+    reussie:s.ok.indexOf(m.id)>=0,prise:s.pr.indexOf(m.id)>=0,suivie:s.su.indexOf(m.id)>=0,recompense:m.r};});};
 // TREMPLIN HÉROS : gapArmed = variante du tremplin qui a lancé CE vol (0 = vol ordinaire, 1/2/3 = v+1),
 // lu au verdict d'atterrissage pour le GAP FRANCHI ; rampCd empêche de re-catapulter en reposant dessus.
 let gapArmed=0,rampCd=0;
@@ -47754,7 +48062,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
       ladderI++;
     }
   }
-  chain++;if(!free)secFig(); // (2026-10-14) LES DÉFIS SECRETS : LAMPADAIRE (les figures de la ville, la nuit)
+  chain++;if(!free)secFig();m2Fig(id); /* (2026-10-16) LES MISSIONS v2 : figures d'un saut, salto devant la Terre */ // (2026-10-14) LES DÉFIS SECRETS : LAMPADAIRE (les figures de la ville, la nuit)
   if(chain>(runStats.chainMax||0))runStats.chainMax=chain;
   trickMsg(txt+(n>2&&!raw?' ×'+n:''),tier||false); // (dauphin v5) en vol, le dauphin ne s'ÉCRIT pas : on le voit nager
   addStyle(tier===3?16:tier===2?11:7);
@@ -48097,7 +48405,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
-  if(bord)secBord(); // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
+  if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
   ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.wB=0;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
@@ -48413,7 +48721,7 @@ function tryLand(dt){
     }
     if(g>=1.5){if(SENS&&POSE_F){SCOUP.fp=g>=2?2:1;SCOUP.fh=hitT;hitT=0;}else try{poseParfaiteFx(g>=2);}catch(e){}} // (2026-09-28) coup de zoom + couronne dorée — (2026-10-14, œil · pose) sous SENS, AU CONTACT comme sa vibration : joués par touche9
     if(fallT>.7)sfaPose(!poseRatee&&g>=1); // (2026-09-28) SANS FAUTE : les poses propres d'affilée
-    secPose(g,poseRatee,fallT,Math.hypot(fallVel.x,fallVel.z)*3.6*SPD); // (2026-10-14) LES DÉFIS SECRETS : PRISME, OR ROSE, NACRE
+    secPose(g,poseRatee,fallT,Math.hypot(fallVel.x,fallVel.z)*3.6*SPD);m2Pose(g,poseRatee,fallT); /* (2026-10-16) LES MISSIONS v2 : parfaites d'affilée, 5 s en l'air, chaque map */ // (2026-10-14) LES DÉFIS SECRETS : PRISME, OR ROSE, NACRE
     rollover=0; // (2026-09-29, passe qualité) plus de REPORT : il date de la mallette d'argent — les figures ne paient plus qu'en aura, et le report fabriquait une FAUSSE figure au vol suivant (verdict, voix, mission « figures » comptée sur une simple chute)
     if(g>=1.5)momT=Math.max(momT,3);else if(g<1)momT*=.5; // (momentum v2) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
     if(g<1){try{if(SONV2){/* (console) pose ratée : flowCasse ; cratère à la pose : il couvre la tôle */if(!poseRatee&&!(performance.now()-(CRAT.tSon||-1e9)<400))sfx('pose.lourde');}else{clank9(0,190,.12);clank9(.05,135,.09);}}catch(e){}if(!poseRatee)flowFaute('n',FLOW2.faute.lourd,.5);} // (v5) POSÉ LOURD : -NARCISSE // (2026-09-25) POSÉ LOURD : la TÔLE, sans carillon
@@ -48849,7 +49157,7 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
   clearBoom();RALENTI.t=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
-  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
+  M2R.vie=0;/* (missions v2) on est mort : « tiens 5 min sans mourir » repart de zéro */respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
   if(CHANCE.moteurPerte>0&&engTier>0){engTier=Math.max(0,engTier-CHANCE.moteurPerte);coinsGot=ENGINE_TIERS[engTier].coins;} // le MOTEUR encaisse le choc : un palier (ses pièces avec), la vignette et le timbre suivent seuls
   startBoostT=Math.max(startBoostT,2);paintMoney();
   if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage (niveau 10) et le banquier (niveau 20) : ils reviennent
@@ -48979,7 +49287,7 @@ function commitExploits(){
      donc mourir en vol la perd, exactement comme avant. La banque ne rachète pas le bank-or-bust,
      elle en est la conséquence logique. */
   const vire=Math.max(0,money-chanceBase())||0; /* (2026-10-14) SECONDE CHANCE : après une reprise, seulement ce qui a été gagné depuis */ // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
-  SAVE.d.bank=Math.min(1e30,bank()+vire);bankMaxMaj();
+  SAVE.d.bank=Math.min(1e30,bank()+vire);gagneAjoute(vire);bankMaxMaj();
   if(!lecon)jourCommit(); /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE ») la partie COMPTE : le jour est marqué, la série monte, la prime de série entre en banque (voir JOUR) */
   const rangAvant=auraRank();
   if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.max(0,Math.round(auraRun)-(CHANCE.used?CHANCE.a0:0)); // (SECONDE CHANCE : l'aura d'avant la reprise est déjà versée)
@@ -49053,7 +49361,7 @@ function endGame(){
   const isTop=q&&(!leaders.length||sc>leaders[0].s);
   ovSub.textContent=TR('GAME OVER');ovSub.style.display='';
   tagline.textContent=TR(pickL(isTop?END_TOP:END_LINES));tagline.style.display=''; // la punchline de fin — même la mort a du style
-  const gagnees=commitExploits(); // les exploits de la run entrent au compteur À VIE → nouvelles caisses
+  const gagnees=commitExploits();try{m2Fin();}catch(e){console.warn('m2Fin',e);} /* (2026-10-16) LES MISSIONS v2 : la partie entière se juge ici */ // les exploits de la run entrent au compteur À VIE → nouvelles caisses
   MIS_REC=SANDBOX?null:misFin();   // un carnet rempli se referme ICI, jamais en vol (voir `misFin`)
   try{RUNX.verse=Math.max(0,Math.round(bank()-(RUNX.bank0||0)));}catch(e){} // (2026-09-29) VERSÉS AU COMPTE figé à la mort : un achat au garage ne le fait plus baisser
   setBestChip();
@@ -51826,7 +52134,7 @@ function rebuildMenuScene(){
    change : `MENUV.retour` fait de l'ACCUEIL la racine (mRoot), rallume la VITRINE (loop, ombre de contact, Entrée) ; la course
    est rangée comme au chargement de la page — débris de l'explosion, meute, carrière en cours — puis une piste de menu neuve.
    `resetGame()` éteint `MENUV.retour` au départ suivant. */
-function accueilRetour(){
+function accueilRetour(){try{m2Menu();}catch(e){} /* (2026-10-16) LES MISSIONS v2 : retour au menu, la série des REJOUER repart */
   if(!(started&&gameOver)||MENUV.retour)return;
   MENUV.retour=true;
   clearBoom();try{deathStop();annStop();}catch(e){}
@@ -58806,7 +59114,7 @@ function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'é
 function misFocusEl(){let e=document.getElementById('misFocus');
   if(!e){e=document.createElement('div');e.id='misFocus';e.setAttribute('aria-hidden','true');e.innerHTML='<i></i><span></span><b></b><u></u>';(document.getElementById('hud')||document.body).appendChild(e);}
   return e;}
-function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) : consigne · avancement · jauge fine ; verte 3 s quand elle tombe
+function misFocusMaj(){if(MISSIONS_V2&&typeof m2FocusMaj==='function')return m2FocusMaj(); /* (2026-10-16) LES MISSIONS v2 : les missions suivies */ // LA MISSION SUIVIE, en course (appelée par misTick) : consigne · avancement · jauge fine ; verte 3 s quand elle tombe
   const s=misEtat(),f=s.f,e=misFocusEl();
   if(!misOn()){if(f>=0&&s.ok[f]){s.f=-1;SAVE.mark();}if(e._on){e.classList.remove('on','ok');e._on=0;}e._okT=0;return;}
   if(f<0){if(e._on){e.classList.remove('on','ok');e._on=0;}return;}
@@ -58824,7 +59132,8 @@ window.dbgMisFile=function(){const s=misEtat(),o=JSON.stringify(s); /* (2026-10-
   try{s.n=0;s.w=[0,1,2];s.ok=[1,1,0];s.best=[0,0,0];s.f=1;const r1=misFin(),a={w:s.w.slice(),n:s.n,f:s.f,r:r1};
     s.ok=[0,0,1];const r2=misFin();return {a:a,b:{w:s.w.slice(),n:s.n,r:r2&&r2.nom,pips:misPips(s),reste:misReste(s)}};}
   finally{SAVE.d.mis=JSON.parse(o);}};
-window.dbgMissions=function(f){if(f!=null){misEtat().f=f;SAVE.flush();}if(garageOn&&!GAR.go&&(f!=null||!gEl.classList.contains('missions')))garMode('missions'); /* (ne reconstruit pas l'écran à chaque lecture) */return {mk:+GMIS.mk.toFixed(2),f:misEtat().f,cartes:GMIS.cards?GMIS.cards.length:0};};
+window.dbgMissionsV1=function(f){if(f!=null){misEtat().f=f;SAVE.flush();}if(garageOn&&!GAR.go&&(f!=null||!gEl.classList.contains('missions')))garMode('missions'); /* (ne reconstruit pas l'écran à chaque lecture) */return {mk:+GMIS.mk.toFixed(2),f:misEtat().f,cartes:GMIS.cards?GMIS.cards.length:0};};
+if(!MISSIONS_V2)window.dbgMissions=window.dbgMissionsV1; // (2026-10-16) en v2, dbgMissions liste les missions v2 (voir m2Etat) ; l'ancien crochet des carnets reste sous dbgMissionsV1
 function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
   if((started&&!gameOver)||pendingScore!=null)return;               // une course tourne, ou un nom se saisit
   if(garageOn){if(!GAR.go)garMode('menu');return;}
@@ -61274,7 +61583,7 @@ function loop(now){
     // `nitroOn`) — il ne manquait qu'un appelant.
     if(!REDUCED_MOTION){drawSpeedLines(speedKmh,nitroOn,dt);nfxFiles(dt);} // reduced-motion : speed lines coupées (la garde avait sauté au rétablissement du 2026-09-05) — (vague 3) + la gerbe de l'allumage
     if(speedKmh>runStats.vmax)runStats.vmax=speedKmh;
-    secTick(dt,speedKmh); // (2026-10-14) LES DÉFIS SECRETS : vitesse, bords, distances, maps traversées
+    secTick(dt,speedKmh);m2Tick(dt,speedKmh); /* (2026-10-16) LES MISSIONS v2 */ // (2026-10-14) LES DÉFIS SECRETS : vitesse, bords, distances, maps traversées
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
     auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
@@ -62667,7 +62976,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
+    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()&&!carrPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
