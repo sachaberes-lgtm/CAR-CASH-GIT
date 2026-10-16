@@ -687,6 +687,22 @@ function dessineBleus() {
     if (J.S === S) { el.classList.add('joue'); el.querySelector('.play').innerHTML = STOP; }
     L.appendChild(el); });
   $('nBleu').textContent = L.children.length || 0;
+  nouveauxMarque();
+}
+/* (16/10, Léo : « j'ai enlevé les sons qui n'étaient pas top ; remplace-moi ça par trois sons qui ont le niveau de ceux qui ont été laissés ») LES
+   NOUVEAUX DE CLAUDE : tirés par le générateur avec ses goûts appris, choisis au banc d'écoute du pôle SON (parmi 24) pour avoir le profil des morceaux
+   qu'il a GARDÉS (une vraie montée avec le moteur, une harmonie qui bouge, peu de répétition) — pas celui des trois qu'il a retirés. Ils entrent dans
+   Pouce bleu comme les autres (leur 👍 dans musique-moteur.json) ; la mention « Nouveau » les signale en tête, le temps qu'il les écoute. */
+const NOUVEAUX_BLEU = {   // (16/10) les 3 retenus sur 24 tirés (v3-10 et v6-0, ses goûts appris) — mesurés aux moteurs 3, 12, 22, 30
+  'bleu-5809': 'NÉON, synthwave : +18 dB de montée avec le moteur, une harmonie qui bouge, peu répétitif',
+  'bleu-4770': 'NUIT LO-FI : le moins répétitif des 24, l\u2019harmonie qui bouge le plus, +23 dB de montée',
+  'bleu-6199': 'drum & bass liquide : +23 dB de montée (nom provisoire : le générateur l\u2019appelait aussi CAVALE ULTRA)'
+};
+function nouveauxMarque() {
+  const L = $('gBleu'); if (!L) return; const prem = L.querySelector(':scope>.genv');
+  [...BLEUS.values()].filter(S => S.el && S.el.parentNode === L && NOUVEAUX_BLEU[S.id]).forEach(S => {
+    if (!S.el.querySelector('.pourquoi')) { const q = document.createElement('div'); q.className = 'pourquoi'; q.textContent = 'Nouveau · ' + NOUVEAUX_BLEU[S.id]; S.el.querySelector('.txt').appendChild(q); }
+    S.el.classList.add('nouveau'); if (prem && prem !== S.el) L.insertBefore(S.el, prem); });
 }
 
 // ================================================================ UNE LECTURE À LA FOIS (le jeton : un clic rapide sur un autre son annule celle en cours)
@@ -964,6 +980,7 @@ Promise.all([prefLit().then(inspiLit), mesuresLit()]).then(() => import(new URL(
      Bloc à part, posé après le script de la page : il ne touche ni au catalogue ni à dessine(). -->
 <style>
 .ligne.genv.v2{margin-left:18px;border-left:3px solid var(--tx3)}
+.ligne .pourquoi{margin-top:2px;font-size:12px;color:var(--tx3)}.ligne.nouveau .pourquoi{color:var(--bleu);font-weight:600}
 #onglets{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--fond) 88%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--fil)}
 #onglets{margin:18px -16px 0}
 #onglets .in{padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px}
