@@ -10630,11 +10630,11 @@ function modale(o){return new Promise(function(res){
    · la case NE PLUS ME DEMANDER (SAVE.d.bienv) : la question ne revient plus — avec J'AI DÉJÀ JOUÉ, la leçon est enlevée pour toujours
      (REVOIR L'AUTO-ÉCOLE, dans les réglages, la rend quand on veut).
    Posée UNE fois par ouverture, seulement à qui n'a jamais passé ni sauté la leçon (une sauvegarde qui a déjà des parties : jamais).
-   `?bienvenue=0` la tait (bancs), `dbgBienvenue()` la montre. Le doigt TAPE TA CAISSE attend qu'elle soit refermée (BIENV.on). */
+   `?bienvenue=0` la tait (bancs), `?bienvenue=1` la pose à chaque ouverture (essai), `dbgBienvenue()` la montre. Le doigt TAPE TA CAISSE attend qu'elle soit refermée (BIENV.on). */
 var BIENV={on:false,fait:false,t0:0,iv:0};
 function bienvI18n(){Object.assign(I18N,{'PREMIERE FOIS ICI ?':'FIRST TIME HERE?','OUI, GUIDE-MOI':'YES, GUIDE ME',"J'AI DEJA JOUE":"I'VE PLAYED BEFORE",'Une course guidée':'A guided run','Direct en course':'Straight to the race','NE PLUS ME DEMANDER':"DON'T ASK AGAIN",
   'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.':'One minute on the road to learn, and your LICENSE pays $500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
-function bienvVeut(){const d=SAVE.d;return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
+function bienvVeut(){const d=SAVE.d;if(/[?&]bienvenue=1\b/.test(location.search))return !BALADE; /* (essai) `?bienvenue=1` la pose quelle que soit la sauvegarde */ return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
 function bienvPret(){const sp=document.getElementById('splash'),md=document.getElementById('modale');
   return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play');}
 function bienvGuette(){if(BIENV.iv)return;try{bienvI18n();}catch(e){}BIENV.iv=setInterval(function(){try{
