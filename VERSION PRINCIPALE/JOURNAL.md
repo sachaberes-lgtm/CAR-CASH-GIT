@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA BOUTIQUE FLUIDE — LE SOUFFLE DE LUMIÈRE AU LIEU DU GLITCH (2026-10-16, Léo : « le garage dans la boutique, il bug, ça rame de ouf ; j'aime pas trop la transition glitch, trouve plus smooth »)
+- MESURÉ au banc (Chrome sans fenêtre, iPhone 390 × 844 simulé, processeur ×4) : à la 1re ouverture, l'image figeait 1,2 s, puis 5 à 9 images/s
+  pendant 8 s. La cause : la grille de la boutique demandait ses 48 PHOTOS de caisses d'un coup, et le studio (`photoTour`) en prenait une par
+  image, ~150 ms chacune (caisse bâtie, rendue, relue, pellicule en JS sur 1 440 × 880 pixels, caisse regardée rebâtie). Plus 10 programmes compilés
+  au toucher (la salle blanche, les bras, le trône, bâtis à la 1re visite).
+- LE STUDIO SANS À-COUPS (`photoFile(i,cb,el)`, `photoCalme`, `photoChoix`, `photoRafale`) : une carte donne son élément, sa photo attend d'être
+  EN VUE ; la file respire (2 × la durée d'une photo, 150-400 ms) et se tait pendant la bascule, sous un doigt, pendant le défilement de la grille ;
+  à l'entrée, SOUS LE VOILE, les vignettes en vue se prennent à la chaîne (`PHOTO.chaine` : la caisse regardée rebâtie une fois à la fin).
+- LA PELLICULE SUR LA PUCE (`photoDev`) : la même recette dans un petit programme, qui réduit de moitié et retourne l'image ; mesuré : écart moyen
+  0,01/255, les seuls écarts sont dans le reflet presque transparent ; photo 2× plus rapide. `?photo=ancien` = la boucle JS.
+- LES PHOTOS GARDÉES (`PHDB`, IndexedDB `ccPhotos`) : signature = CC_BUILD + peinture portée ; la 2e session n'en prend plus aucune (mesuré).
+  Copie locale (jeton non gravé) : rien n'est gardé.
+- LA BOUTIQUE PRÉPARÉE AU MENU (`bqChauffe`, trois étapes de `chauffeDivers`) : bâtie cachée et compilée comme l'atelier — 1 seul programme
+  au 1er toucher (la pellicule) au lieu de 10 à 15.
+- LE SOUFFLE DE LUMIÈRE (`bqVoile`, CSS `#gBqVoile`, `canvas.bqPasse/bqPose/bqArrive`) : `garGlitch` n'est plus appelé. Vers la boutique, un
+  disque blanc naît sur la caisse et grandit, le blanc gagne les bords, l'image avance de 5 % ; dessous tout bascule (285 ms réelles), puis le voile
+  se lève pendant que l'image se pose (−3 % → 0). Vers l'atelier : la nuit d'un bloc, l'image recule, puis se pose. Opacité et échelle seulement.
+- RÉSULTAT (même banc ×4) : ~0,35 s de travail caché sous le blanc, puis une seule saccade de 0,08 s. Hooks : `dbgPhotoFile()`, `dbgPhotoCar(i)`.
+
 ## LA MUSIQUE NE COMMENCE QU'AU CIEL — L'INTRO 1.61 SANS SES NOTES (2026-10-16, pôle SON — Léo, sur l'appli iPhone : « c'est quoi cette première musique de merde ? » puis « version main, il faut que la musique ne commence qu'au menu ciel », relayé par la session « appli iPhone »)
 - MESURÉ au banc muet (`ouverture.py` : chaque AudioContext à part, du toucher de l'écran titre au ciel, joueur habitué ET neuf) : la seule chose
   qui sonne avant le ciel est la COMPOSITION DE L'INTRO 1.61 (`introSound`, son propre contexte) — 4,5 s, de −32 à −14 dB, quand la musique du
