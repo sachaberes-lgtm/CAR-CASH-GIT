@@ -52445,17 +52445,18 @@ const RICH_T={
   champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
   crane:{kd:.6,fl:0,s:[.24,.29],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
   coeur:{kd:1.25,fl:1.1,s:[.34,.48],w:[1.1,2.4],v:[3,6],vie:[2.9,3.7],face:1,bat:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur, 34-48 cm : une breloque de 2-4 cm, par la règle des tailles) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
+  fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
-const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:4,crane:6,coeur:10,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
+const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:4,crane:6,coeur:10,fleur:12,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
 /* (2026-10-14, Léo : « diminue la quantité d'objets déversés lors des coups, garde la variété ; vise quelque chose d'addictif qui joue avec le
    besoin d'effort et de récompense ») LES GERBES MAIGRISSENT (≈ ÷2,5 : petit 1-2, bon 3-5, gros 6-9, jackpot 14-19 ; les répliques aussi), les
    MÉLANGES ne bougent pas (la variété reste) — et L'EFFORT DÉCIDE DE LA TAILLE : un coup isolé paie surtout PETIT (le jackpot n'y tombe
    presque jamais), la RAFALE (le combo) fait monter gros et jackpot (voir richTire). La rareté rend le gros lot lisible : il se MÉRITE. */
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
-  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:6,emeraude:6,diamant:5,liasse:4,montre:1,coeur:10}},
-  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:4,chaine:3,coeur:9}},
-  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3,coeur:9}},
-  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,coeur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe)
+  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:6,emeraude:6,diamant:5,liasse:4,montre:1,coeur:10,fleur:9}},
+  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:4,chaine:3,coeur:9,fleur:9}},
+  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3,coeur:9,fleur:9}},
+  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,coeur:11,fleur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe) ; + les petites fleurs
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -52543,7 +52544,19 @@ const RICH_FS_COEUR=['uniform vec3 uSunDir;uniform float uT;uniform vec3 uRouge;
   ' col=mix(col,vec3(1.,.95,.98),clamp(smoothstep(.5,1.,bo)*.9+step(.86,vR.y)*tw*.85,0.,1.));', // blanc tout au bord, et quelques cubes blancs qui scintillent
   ' float df=.66+.34*max(dot(N,L),0.)+.1*N.y;', // les faces des cubes se lisent (un peu de soleil, le dessus plus clair)
   ' float a=min(.92,mix(uA,.86,pow(bo,1.25))*(.8+.2*tw)*(1.+.5*on));',
-  ' gl_FragColor=vec4(col*df*a*(1.+.45*on)+col*(.1+.3*bo)*uBlanc,a);}'].join('\n'); // prémultiplié : ce qui couvre + ce qui luit (le fantôme brille un peu)
+  ' gl_FragColor=vec4(col*df*a*(1.+.45*on)+col*(.1+.3*bo)*uBlanc,a);}'].join('\n');
+/* (2026-10-16) LES PÉTALES : de la soie qui laisse passer le jour (éclairés de face COMME de dos), un liseré blanc rosé à la silhouette (la
+   lueur des cœurs), un lustre doux ; transparents (aC.a), mélange prémultiplié — ils écrivent la profondeur : les pétales de derrière que
+   cache un pétale de devant ne se mélangent pas en bouillie. */
+const RICH_VS_FLEUR=['attribute vec4 aC;varying vec3 vN;varying vec3 vP;varying vec4 vC;',
+  'void main(){vec4 w=modelMatrix*vec4(position,1.);vP=w.xyz;vN=normalize(mat3(modelMatrix)*normal);vC=aC;gl_Position=projectionMatrix*viewMatrix*w;}'].join('\n');
+const RICH_FS_FLEUR=['uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;',
+  'varying vec3 vN;varying vec3 vP;varying vec4 vC;',
+  'void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;vec3 V=normalize(cameraPosition-vP),L=normalize(uSunDir);',
+  ' float nl=dot(N,L),df=max(nl,0.)*.55+max(-nl,0.)*.38+.3;', // le jour passe au travers du pétale
+  ' vec3 c=vC.rgb*(mix(uGnd,uSky,N.y*.5+.5)*.32+uSunCol*df*.55+.34);',
+  ' float bo=1.-abs(dot(N,V));c+=vec3(1.,.93,.97)*pow(bo,2.4)*.42+uSunCol*pow(max(dot(N,normalize(L+V)),0.),36.)*.22;', // le liseré blanc rosé, le lustre de la soie
+  ' float a=vC.a*(.78+.22*bo);gl_FragColor=vec4(c*a,a);}'].join('\n'); // prémultiplié : ce qui couvre + ce qui luit (le fantôme brille un peu)
 function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false});}
 
 // ---- LES DESSINS (canvas) ----
@@ -52772,6 +52785,82 @@ function richCoeurCubes(){ // (2026-10-16) LE CŒUR EN MINUSCULES CUBES : la sur
       const b9=(i*6+f)*4,t9=(i*6+f)*6;idx[t9]=b9;idx[t9+1]=b9+1;idx[t9+2]=b9+2;idx[t9+3]=b9;idx[t9+4]=b9+2;idx[t9+5]=b9+3;}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));
   g.setAttribute('aN',new THREE.BufferAttribute(an,3));g.setAttribute('aR',new THREE.BufferAttribute(ar,2));g.setIndex(new THREE.BufferAttribute(idx,1));g.computeBoundingSphere();g.userData.cubes=n;return g;}
+/* (2026-10-16, Léo : « et des petites fleurs — hibiscus tropical, rose, lilas, lotus, LYS, tulipes rose pâle » ; le style choisi : « pétales
+   lisses, translucides ») LES SIX FLEURS. Un pétale = une GRILLE (u : du pied à la pointe, v : d'un bord à l'autre) le long d'une NERVURE
+   qui se courbe (a0 : l'élévation au pied, cu : de combien elle tourne jusqu'à la pointe — négatif : le pétale se recourbe, comme le lys) ;
+   sa largeur suit une FORME (f, u → 0..1 : rond, en éventail, pointu), ses bords se relèvent (cup : le creux) et peuvent friser (ruf) ;
+   couleur du pied (c0) à la pointe (c1) entre k0 et k1, le bord vers c2, l'opacité al. Les cœurs de fleur (étamines, pistil, gousse du
+   lotus) sont des primitives teintées (richFlPrim). Tout est fusionné en UNE géométrie par fleur (aC = rgba par sommet), 1 de grand,
+   centrée, l'axe de la fleur en +y : richTick la penche vers toi de userData.vue (une corolle se lit de face, une tulipe de profil). */
+function richFlPart(P,pos,idx,col){P.push({p:pos,i:idx,c:col});}
+function richPetale(P,o){
+  const nu=o.nu||8,nv=o.nv||6,cph=Math.cos(o.phi||0),sph=Math.sin(o.phi||0),pos=[],col=[],idx=[],c0=o.c0,c1=o.c1||o.c0,c2=o.c2,ds=o.L/nu,v3=new THREE.Vector3();
+  let sx=o.r0||0,sy=o.y0||0;
+  for(let i=0;i<=nu;i++){const u=i/nu;if(i>0){const tm=o.a0+o.cu*(u-.5/nu);sx+=Math.cos(tm)*ds;sy+=Math.sin(tm)*ds;}
+    const th=o.a0+o.cu*u,nX=-Math.sin(th),nY=Math.cos(th),w=o.W*o.f(u),kk=Math.min(1,Math.max(0,(u-(o.k0||0))/((o.k1||1)-(o.k0||0))));
+    for(let j=0;j<=nv;j++){const v=-1+2*j/nv,h=(o.cup||0)*w*v*v+(o.ruf||0)*o.W*Math.sin(v*6.5+u*4+(o.rp||0))*u*u,lx=sx+nX*h,ly=sy+nY*h,lz=v*w;
+      v3.set(lx*cph-lz*sph,ly,lx*sph+lz*cph);if(o.m)v3.applyMatrix4(o.m);pos.push(v3.x,v3.y,v3.z);
+      const e=c2?Math.pow(Math.abs(v),3)*(o.ke!=null?o.ke:.35):0;for(let d=0;d<3;d++){const c=c0[d]+(c1[d]-c0[d])*kk*kk*(3-2*kk);col.push(c2?c+(c2[d]-c)*e:c);}col.push(o.al!=null?o.al:.8);}}
+  for(let i=0;i<nu;i++)for(let j=0;j<nv;j++){const a=i*(nv+1)+j,b=a+nv+1;idx.push(a,b,a+1,a+1,b,b+1);}
+  richFlPart(P,pos,idx,col);}
+function richFlPrim(P,g,M,c,al){ // une primitive de three (sphère, cylindre, boîte), placée par la matrice M, d'une couleur
+  g.applyMatrix4(M);const p=g.attributes.position,pos=Array.from(p.array),idx=g.index?Array.from(g.index.array):pos.map(function(_,i){return i;}).slice(0,p.count),col=[];
+  for(let i=0;i<p.count;i++)col.push(c[0],c[1],c[2],al==null?1:al);g.dispose();richFlPart(P,pos,idx,col);}
+function richFlM(x,y,z,dx,dy,dz,sx,sy,sz){ // matrice : posée en (x,y,z), son axe +y tourné vers (dx,dy,dz), mise à l'échelle
+  const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(dx,dy,dz).normalize());
+  return new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),q,new THREE.Vector3(sx||1,sy||1,sz||1));}
+function richFlFin(P){ // fusion, centrage, 1 de grand
+  let n=0,m=0;for(const q of P){n+=q.p.length/3;m+=q.i.length;}
+  const pos=new Float32Array(n*3),col=new Float32Array(n*4),idx=n>65535?new Uint32Array(m):new Uint16Array(m);let o=0,oi=0;
+  for(const q of P){const b=o/3;pos.set(q.p,o);col.set(q.c,b*4);for(let k=0;k<q.i.length;k++)idx[oi+k]=q.i[k]+b;o+=q.p.length;oi+=q.i.length;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aC',new THREE.BufferAttribute(col,4));g.setIndex(new THREE.BufferAttribute(idx,1));
+  g.computeBoundingBox();const B=g.boundingBox,c=B.getCenter(new THREE.Vector3()),sz=B.getSize(new THREE.Vector3()),k=1/Math.max(sz.x,sz.y,sz.z);
+  g.translate(-c.x,-c.y,-c.z);g.scale(k,k,k);g.computeVertexNormals();g.computeBoundingSphere();return g;}
+const RICH_FF={ // les formes de pétale
+  rond:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.15)),.45);},
+  eventail:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.7)),.55);},
+  pointu:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,.85)),.75);},
+  lance:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,.75)),.8);},
+  oeuf:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.25)),.5);}};
+function richFleurs(){const F=RICH_FF,V=[],S=function(r){return new THREE.SphereGeometry(r,8,6);},C=function(r0,r1,h){return new THREE.CylinderGeometry(r1,r0,h,7,1);},TAU=6.2832;
+  // 1. L'HIBISCUS TROPICAL : cinq larges pétales corail en éventail, l'œil cramoisi au pied, le bord qui frise ; la longue colonne d'étamines, pollen d'or, stigmates rouges
+  {const P=[];for(let i=0;i<5;i++)richPetale(P,{phi:i*TAU/5+.2,a0:.38,cu:-.3,L:.5,W:.215,f:F.eventail,cup:.22,ruf:.05,rp:i*1.7,r0:.03,c0:[.42,0,.1],c1:[1,.36,.36],c2:[1,.7,.62],k0:.04,k1:.46,ke:.5,al:.84,nu:9,nv:8});
+   const d=[.38,1,.1],L9=.5;richFlPrim(P,C(.026,.018,L9),richFlM(d[0]*L9*.5/1.08,L9*.5,d[2]*L9*.5/1.08,d[0],d[1],d[2]),[1,.45,.55],1);
+   const tx=.38*L9/1.08,ty=L9*.96,tz=.1*L9/1.08;for(let k=0;k<7;k++){const a=k*TAU/7;richFlPrim(P,S(.024),richFlM(tx+Math.cos(a)*.04,ty-.04+(k%2)*.025,tz+Math.sin(a)*.04,0,1,0),[1,.84,.18],1);}
+   for(let k=0;k<5;k++){const a=k*TAU/5;richFlPrim(P,S(.02),richFlM(tx+.025+Math.cos(a)*.022,ty+.045,tz+Math.sin(a)*.022,0,1,0),[.85,.02,.12],1);}
+   V.push(richFlFin(P));V[0].userData.vue=1.15;}
+  // 2. LA ROSE : quatre couronnes de pétales ronds qui s'ouvrent de plus en plus (le cœur serré, le bord qui se roule), velours rouge ; cinq sépales verts dessous
+  {const P=[],R=[[3,1.45,.25,.15,.13,.9,0,.02],[5,1.22,-.1,.21,.16,.8,.02,.015],[5,.98,-.35,.26,.19,.65,.035,.01],[6,.68,-.6,.3,.21,.5,.05,0]];
+   R.forEach(function(r,ri){for(let i=0;i<r[0];i++)richPetale(P,{phi:i*TAU/r[0]+ri*.9,a0:r[1],cu:r[2],L:r[3],W:r[4],f:F.rond,cup:r[5],r0:r[6],y0:r[7],c0:[.36,0,.05],c1:[.86,.03,.13],c2:[.98,.3,.38],k0:0,k1:1,ke:.45,al:.9});});
+   for(let i=0;i<5;i++)richPetale(P,{phi:i*TAU/5+.3,a0:-.85,cu:.3,L:.17,W:.045,f:F.pointu,cup:.2,r0:.03,c0:[.12,.38,.12],c1:[.25,.58,.2],al:1,nu:5,nv:2});
+   V.push(richFlFin(P));V[1].userData.vue=0.9;}
+  // 3. LE LILAS : une grappe en cône de petites fleurs à quatre pétales (lilas, du mauve profond au presque blanc), sur sa tige
+  {const P=[];const N=62;for(let i=0;i<N;i++){const t=(i+.5)/N,y=t*.62,R9=.23*(1-t*.82)+.04,a=i*2.39996,cx=Math.cos(a)*R9,cz=Math.sin(a)*R9,h=Math.sin(i*12.9898)*43758.5453,rr=h-Math.floor(h);
+     const M=richFlM(cx,y,cz,cx,.55,cz),c0=rr<.2?[.86,.74,1]:rr<.6?[.62,.4,.9]:[.72,.52,.96],c1=[Math.min(1,c0[0]+.18),Math.min(1,c0[1]+.2),1];
+     for(let j=0;j<4;j++)richPetale(P,{phi:j*TAU/4+a,a0:.28,cu:-.35,L:.058,W:.042,f:F.rond,cup:.3,c0:c0,c1:c1,al:.86,nu:3,nv:2,m:M});}
+   richFlPrim(P,C(.012,.008,.8),richFlM(0,.24,0,0,1,0),[.3,.55,.25],1);
+   for(let k=0;k<4;k++){const a=k*TAU/4+.4;richFlPrim(P,S(.018),richFlM(Math.cos(a)*.025,.66+(k%2)*.03,Math.sin(a)*.025,0,1,0),[.78,.62,.98],1);} // les boutons du sommet
+   V.push(richFlFin(P));V[2].userData.vue=0.35;}
+  // 4. LE LOTUS : trois couronnes de pétales pointus en coupe, blancs au pied, roses à la pointe ; la gousse jaune et sa couronne d'étamines
+  {const P=[],R=[[7,.35,.25,.36,.15,.45,.05],[8,.8,.3,.34,.14,.5,.04],[8,1.18,.2,.28,.12,.6,.03]];
+   R.forEach(function(r,ri){for(let i=0;i<r[0];i++)richPetale(P,{phi:i*TAU/r[0]+ri*.4,a0:r[1],cu:r[2],L:r[3],W:r[4],f:F.pointu,cup:r[5],r0:r[6],c0:[1,.96,.97],c1:[1,.4,.66],c2:[1,.78,.9],k0:.3,k1:1,al:.78});});
+   richFlPrim(P,C(.07,.078,.06),richFlM(0,.05,0,0,1,0),[.86,.84,.32],1);
+   for(let k=0;k<7;k++){const a=k*TAU/7;richFlPrim(P,S(.011),richFlM(Math.cos(a)*.04,.082,Math.sin(a)*.04,0,1,0),[.95,.72,.18],1);}
+   for(let k=0;k<18;k++){const a=k*TAU/18;richFlPrim(P,new THREE.BoxGeometry(.008,.07,.008),richFlM(Math.cos(a)*.09,.06,Math.sin(a)*.09,Math.cos(a)*.6,1,Math.sin(a)*.6),[1,.86,.3],1);}
+   V.push(richFlFin(P));V[3].userData.vue=0.8;}
+  // 5. LE LYS : six longs tépales blancs qui se recourbent en arrière, une rougeur rose au fond de la gorge ; six étamines aux anthères orange, le pistil
+  {const P=[];for(let i=0;i<6;i++)richPetale(P,{phi:i*TAU/6,a0:.92,cu:-1.7,L:.46,W:i%2?.12:.145,f:F.lance,cup:.28,r0:.02,c0:[1,.42,.68],c1:[1,1,1],c2:[1,.97,.98],k0:0,k1:.52,al:.9,nu:10,nv:6});
+   for(let k=0;k<6;k++){const a=k*TAU/6+.5,dx=Math.cos(a)*.38,dz=Math.sin(a)*.38,L9=.3;richFlPrim(P,C(.006,.005,L9),richFlM(dx*L9*.5,L9*.46,dz*L9*.5,dx,.92,dz),[.78,.9,.62],1);
+     richFlPrim(P,new THREE.BoxGeometry(.065,.022,.026),richFlM(dx*L9,L9*.93,dz*L9,dz,0,-dx),[.86,.38,.1],1);}
+   richFlPrim(P,C(.009,.007,.34),richFlM(0,.17,0,0,1,0),[.7,.86,.55],1);richFlPrim(P,S(.02),richFlM(0,.345,0,0,1,0),[.6,.8,.4],1);
+   V.push(richFlFin(P));V[4].userData.vue=0.95;}
+  // 6. LA TULIPE ROSE PÂLE : six pétales en coupe fermée (trois dehors, trois dedans), les bords plus blancs ; sa tige et une feuille
+  {const P=[];for(let i=0;i<3;i++)richPetale(P,{phi:i*TAU/3,a0:1.45,cu:.5,L:.42,W:.22,f:F.oeuf,cup:.62,r0:.06,c0:[.98,.76,.82],c1:[1,.86,.91],c2:[1,.97,.98],ke:.5,al:.8});
+   for(let i=0;i<3;i++)richPetale(P,{phi:i*TAU/3+TAU/6,a0:1.5,cu:.48,L:.4,W:.2,f:F.oeuf,cup:.65,r0:.035,c0:[.96,.72,.8],c1:[1,.84,.9],c2:[1,.96,.97],ke:.5,al:.8});
+   richFlPrim(P,C(.018,.015,.36),richFlM(0,-.17,0,0,1,0),[.3,.6,.26],1);
+   richPetale(P,{phi:.5,a0:1.15,cu:-.25,L:.3,W:.06,f:F.lance,cup:.4,r0:.02,y0:-.34,c0:[.22,.5,.2],c1:[.38,.7,.3],al:1,nu:7,nv:3});
+   V.push(richFlFin(P));V[5].userData.vue=0.3;}
+  return V;}
 function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MONTRE : le cadran (en haut à gauche), l'or (en haut à droite), le bracelet à maillons (en bas)
   x.fillStyle='#e8b33a';x.fillRect(0,0,512,512);const Go=x.createLinearGradient(256,0,512,256);Go.addColorStop(0,'#ffe9a8');Go.addColorStop(1,'#c58b22');x.fillStyle=Go;x.fillRect(256,0,256,256);
   const c=128;x.fillStyle='#d9a63a';x.beginPath();x.arc(c,c,127,0,6.2832);x.fill();                                   // la lunette
@@ -52840,9 +52929,11 @@ function richInit(){
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
   M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.86,.015,.08)},uFuch:{value:new THREE.Color(1,.16,.6)},uBlanc:{value:1},uA:{value:.2}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
     transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le cœur fantôme (voir RICH_FS_COEUR) : transparent, prémultiplié
+  M.fleur=new THREE.ShaderMaterial({uniforms:RICH_U,vertexShader:RICH_VS_FLEUR,fragmentShader:RICH_FS_FLEUR,transparent:true,depthWrite:true,side:THREE.DoubleSide,
+    blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) les pétales (voir RICH_FS_FLEUR)
   M.aura=new THREE.SpriteMaterial({map:richCv(64,64,function(x){const G=x.createRadialGradient(32,32,0,32,32,32);G.addColorStop(0,'rgba(255,215,228,.46)');G.addColorStop(.42,'rgba(255,170,200,.2)');G.addColorStop(1,'rgba(255,140,180,0)');x.fillStyle=G;x.fillRect(0,0,64,64);}),
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}); // l'aura des cœurs : un halo blanc rosé additif (2026-10-16 : rouge ET blanc) (le programme des éclats : 0 compilé de plus)
-  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurCubes();
+  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurCubes();Gm.fleurs=richFleurs();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
   for(const k9 in M)for(const m9 of [].concat(M[k9]))if(m9&&m9.uniforms)for(const u9 in m9.uniforms){const v9=m9.uniforms[u9].value;if(v9&&v9.isCanvasTexture)texLibere(v9);} // (2026-10-14, passe perf mobile) les ~30 toiles de la pluie de richesse (pièces, billets, jetons, carte, montre, liasse : ~14 Mo), peintes UNE fois ici et plus jamais relues (la liasse a déjà recopié son billet) : rendues après l'envoi (paliers 0-1)
@@ -52851,6 +52942,7 @@ function richInit(){
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
+      else if(t==='fleur'){m=new THREE.Mesh(Gm.fleurs[i%Gm.fleurs.length],M.fleur);const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(1.6);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-16) la fleur et son aura
       else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
       if(t==='coeur'){const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(2.2);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-15) son AURA, derrière lui : elle grandit et bat avec lui (le cœur, transparent, se peint APRÈS elle)
       m.visible=false;m.castShadow=m.receiveShadow=false;m.frustumCulled=false;scene.add(m);
@@ -52898,6 +52990,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
   if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[k9]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
+  if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet')m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)]; // (2026-10-10) une valeur, une couleur
   o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   o.fv=.4;o.mode=0;o.ec=t==='liasse'&&Math.random()<.5?.42+Math.random()*.45:0; // une liasse sur deux CRAQUE en vol (richEclate)
@@ -53048,6 +53141,7 @@ function richTick(dt,C){
     if(D.fl&&kp<1){const f=Math.sin(o.age*6.3+o.ph)*D.fl*(1-kp);o.v.x+=Math.cos(o.fd+o.age*.7)*f*k;o.v.z+=Math.sin(o.fd+o.age*.7)*f*k;o.v.y+=Math.cos(o.age*12.6+o.ph)*D.fl*.35*k*(1-kp);} // il PAPILLONNE
     m.position.addScaledVector(o.v,dt);
     if(o.mode)richPapierTick(o,dt,k,kp,cp);
+    else if(D.fleur){m.lookAt(cp);m.rotateX((m.geometry.userData.vue||.95)+Math.sin(o.age*1.1+o.fd)*.2);m.rotateY(o.age*o.A+o.ph);m.rotateZ(Math.sin(o.age*1.6+o.ph)*.18);} // (2026-10-16) la fleur : penchée vers toi selon SA forme (userData.vue : l'hibiscus de face, la tulipe et le lilas de profil), elle tourne lentement sur sa tige et se balance
     else if(D.bat){m.lookAt(cp);m.rotateY(Math.sin(o.age*1.9+o.ph)*.62);m.rotateZ(Math.sin(o.age*1.3+o.fd)*.24);} // (2026-10-15) le cœur ne tourne pas sur lui-même (de profil ce n'était plus qu'une goutte) : il se BALANCE en flottant, toujours de face
     else{const wl=o.w.length();if(wl>1e-4){RICH.q.setFromAxisAngle(RICH.v1.copy(o.w).divideScalar(wl),wl*dt);m.quaternion.premultiply(RICH.q);}
       if(D.fl)o.w.multiplyScalar(Math.exp(-dt*.4)).addScaledVector(RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5),D.fl*.9*k);} // le billet bascule au gré de l'air
