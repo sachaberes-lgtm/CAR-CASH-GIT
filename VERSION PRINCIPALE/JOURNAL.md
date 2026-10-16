@@ -183,8 +183,9 @@ puis le LÂCHER, le vent, le logo) → course sans erreur ; `garde-burnout.sh` e
   (`AILE_K`, posée au pivot) se garde telle quelle — les gestes vivent DANS le pivot ; ses matières relevées sont portées dans les ailes
   vivantes (halo du phénix, voiles de la fée, le filet de NÉON des panneaux — au bord d'attaque et sur l'aileron, qu'il suit) ; ses plumes
   d'ange en boîtes sont remplacées par les vraies plumes. `?ailes=avant` rend ses tailles et matières d'avant, pas les gestes.
-- **À trancher par Sacha** : (1) au SOL les ailes restent rentrées (règle du 13/10, les barres à travers les vitres) — les ailes en X ne
-  s'ouvrent donc qu'au boost EN VOL ; les déplier aussi au boost sur la route serait une règle neuve. (2) Aucun SON n'a été ajouté (le « clac »
+- **TRANCHÉ par Sacha (16/10)** : (1) PAS d'ailes ouvertes au SOL (« non pas d'aile ouverte sur le sol ») — elles restent rentrées sur la
+  route (règle du 13/10), les ailes en X ne s'ouvrent qu'au boost EN VOL. Ne pas le reproposer.
+- **À trancher** : (2) Aucun SON n'a été ajouté (le « clac »
   des ailes en X, le battement du dragon…) : la banque de sons se recuit en entier, d'autres sessions y travaillent — à faire dans une session SON.
 ## LES PEINTURES PAR RARETÉ, EN EUROS, ET ONZE MOTIFS ÉPIQUES (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les dégradés de plusieurs couleurs, ça doit être rare, pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique et classe-les dans l'ordre de rareté dans le truc de peinture » · « génère une dizaine de peintures épiques avec des motifs ; couleur pleine : commun ; dégradée : rare ; avec des motifs : épique ; légendaire on verra après, pour l'instant pas de légendaire ; communes 1 €, rares 3 €, épiques 5 € »)
 - LA RÈGLE (`peintRegle`, bloc « LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS » juste après la palette) : un MOTIF = ÉPIQUE · un DÉGRADÉ
