@@ -773,6 +773,22 @@ La SECONDE CHANCE ne coûte plus d'argent : CONTINUER lance une PUB RÉCOMPENSÉ
 - `?moteur=goutte` : la goutte lisse (le moteur simulé sans feu). Même matière : 0 programme (182 → 182, debout et couché), 0 erreur.
   Planche `photos-gameplay/moteur-mini-feu-avant-apres.png`.
 - ⚠ Le site en ligne était BLOQUÉ (quota Vercel, « rate limited ») : Léo voyait encore la goutte de la v482 — les éclats n'ont jamais été en ligne.
+## LES DAUPHINS DE JADE v2 — PLUS PRO, ET AVANT (2026-10-15 soir, Léo : « les dauphins ça pourrait être plus pro, et tu pourrais même les faire apparaître avant » ; au questionnaire : bonds naturels, plus beaux à l'écran, coucou plus clair ; « avant » = vus depuis la route ET dès le plongeon)
+- AVANT LE PLONGEON (`JDM_AVANT`) : la caisse tombe vers la mer (à moins de 170 m de l'eau, l'impact dans moins de 2,6 s) → le banc naît à
+  MI-CHEMIN de son point d'impact (MESURÉ : sur l'impact il était à 170 m, minuscule) et bondit au-devant d'elle, ×1,8 (il reprend sa taille SOUS
+  l'eau, jamais à la vue). Mesuré : 6 à 15 images (sur 4 par seconde) avec un dauphin à l'écran avant que la caisse touche l'eau.
+- ⚠ « VUS DEPUIS LA ROUTE » ESSAYÉ PUIS RETIRÉ : la dalle cache toute la mer à la caméra de poursuite (l'eau est 45 à 230 m plus bas, le regard
+  touche la route bien avant) — en captures, un banc « à l'écran » d'après la projection n'était jamais visible. À dire à Léo s'il le redemande :
+  la seule façon serait des sauts si hauts qu'ils dépassent la route.
+- DÈS LE PLONGEON : plus d'attente de 5 s ; le banc arrive à la profondeur de la caisse.
+- LE BOND NATUREL : ÉLAN (0,3 s : il plonge un peu, la queue bat à ×2) → saut (le corps épouse la COURBURE de sa trajectoire `uDol.w`, la queue
+  se relâche) → entrée nez le premier (sa plongée continue 0,5 s). Les gouttes naissent là où SON CORPS TRAVERSE LA SURFACE, image après image
+  (la sortie ruisselle de la queue), + une ride et une couronne à chaque passage, + une traînée de bulles sous l'eau. Cubes fins dès 150 px.
+- LE COUCOU : toutes les 3,6-5 s, l'un d'eux vient à la PORTIÈRE ; sous l'eau il tourne la tête vers l'objectif et vrille lentement ; à la surface
+  il saute à côté d'elle en vrillant ; `dauphin.banc` à chaque coucou (le 1er plus fort).
+- Bancs : `dbgJadeDauphins('tombe')` (la caisse tombe vers la mer de 110 m) en plus des autres. 0 erreur, 0 programme compilé en course,
+  debout et couché. Planche : photos-gameplay/dauphins-jade-v2-avant-apres.jpg.
+
 ## LES DAUPHINS DE LA MER DE JADE + L'ATELIER DES SINGES (2026-10-15, Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau (SOLEIL DE JADE) et sautent en même temps que nous ; pas à chaque fois, mais au bout de 5 s dans l'eau on les croise » · « soleil jade singe va sur main et dauphins aussi »)
 - Seulement dans la MER des PICS DE JADE (là où l'on plonge et ressort). Bloc « LES DAUPHINS DE LA MER DE JADE » (après `dbgJadeSinges`), `jdmTick`
   dans la boucle après `jsgTick`, un appel `jdmJailli` au JAILLISSEMENT de `jadeEauVol`. Du DÉCOR : ni aura, ni collision, pas de figure.
@@ -1399,7 +1415,7 @@ enlever, tout bien mesurer » · « un bouton pour activer la nitro et voir comm
 ## LA PASSE CHROME DEVTOOLS — CE QUI MONTE AVEC LA VITESSE (2026-10-15, session « Chrome DevTools MCP optimisation » — Sacha : « j'ai téléchargé Chrome DevTools MCP, travaille sur l'optimisation de la nouvelle version sur main en te mettant d'accord avec l'autre session de cet ordi »)
 - **Le partage** (convenu avec la session « Car Cash optimisation iPhone ») : elle garde `app-ios/` (natif.js : banc partie 9, gouverneur
   thermique partie 10) et les mesures sur le VRAI iPhone 13 Pro ; ici, le jeu web (`VERSION PRINCIPALE/`), branche `perf-devtools`. Prévu :
-  rien sur `main` avant son banc iPhone ; POUSSÉ le 16/10 (cache v548) à la demande de Sacha (« demande à toutes les sessions qui n'ont pas
+  rien sur `main` avant son banc iPhone ; POUSSÉ le 16/10 (cache v549) à la demande de Sacha (« demande à toutes les sessions qui n'ont pas
   push de push ») — un lot sans changement d'image, que sa version de banc iPhone contenait déjà ; l'A/B des filtres n'a pas encore été relevé.
   Les crochets `dbg*` qu'elle lit ne sont pas renommés.
 - **La méthode** : Chrome piloté par Chrome DevTools MCP, iPhone couché émulé (844 × 390 ×3, tactile, UA iOS), `?palier=2`, NETTE (DPR 1,5),
