@@ -29099,7 +29099,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  b_trone:{p:[{t:'plaque',k:'o',w:0.56,h:0.22,x:0,y:0.46,z:-2.226},{t:'ovale',r:0.065,sx:1.4,sy:0.85,k:'C',dbl:1,k2:'o',pts:[[0,0.46,-2.269]]}]},
  c_spectre:{p:[{t:'fente',w:0.56,h:0.05,k:'s',lueur:'V',pts:[[0,0.4,-2.262]]}]},
  poptart:{ote:[[0.4,0.15,-1.06,0.56,0.32,-0.92],[-0.56,0.15,-1.06,-0.4,0.32,-0.92]],p:[{t:'pixel',a:0.1,pts:[[0.48,0.235,-1.045],[-0.48,0.235,-1.045]]}]},
- d_chevalier:{p:[{t:'turbine',r:0.088,n:12,k:'C',kp:'a',aubes:0,pts:[[0,0.8,-2.46]]}]},
+ d_chevalier:{p:[{t:'turbine',r:0.205,n:12,k:'C',kp:'a',aubes:0,pts:[[0,0.8,-2.46]]}]},
  e_dragon:{p:[{t:'gueule',r:0.06,k:'o',ev:1.1,crocs:6,kc:'w',lueur:'g',pts:[[0.46,0.4,-2.41],[-0.46,0.4,-2.41]]}]},
  b_pizza:{p:[{t:'reel',r:0.034,k:'c',rx:0.45,len:0.25,pts:[[0.36,0.24,-1.845]]}]},
  bulle:{p:[{t:'rond',r:0.03,ev:1.45,k:'c',pts:[[-0.26,0.42,-2.185]]}]},
@@ -32080,14 +32080,13 @@ Object.assign(SHAPES,{
      Sa silhouette ne bouge pas (le char à roues avant sur bras, l'arrière doublé, les plaques) ; par-dessus, LE PELAGE : ~350 piquants
      posés sur la peau même du loft (`surf`/`nrm` relisent les sections au point près), couchés vers la poupe, courts sur le museau,
      longs sur le dos, une CRÊTE sur l'échine, les plus longs sur les ailes arrière — rien sur les vitres ni dans une roue. Le gothique :
-     les meurtrières deviennent des LANCETTES en ogive (vitrail sombre, meneau), la turbine une ROSACE de douze pétales, un pic au moyeu.
-     `?blinde=clous` = l'autre lecture (des clous chromés droits, le blouson clouté) — à trancher par Léo. */
+     les meurtrières deviennent des LANCETTES en ogive (vitrail sombre, meneau), un pic au moyeu. 2e jet : le porc-épic sur le DOS, des
+     CLOUS chromés sur les flancs et l'avant, la turbine d'origine (voir LE PELAGE). */
   d_chevalier:function(K){
-  const U=LPU,R=.52,ZF=1.52,ZR=-1.42,WX=1.03,TW=.44,STYLE=(typeof location!=='undefined'&&/[?&]blinde=clous\b/.test(location.search))?'clous':'porc';
+  const U=LPU,R=.52,ZF=1.52,ZR=-1.42,WX=1.03,TW=.44,STYLE=(typeof location!=='undefined'&&/[?&]blinde=chrome\b/.test(location.search))?'chrome':'porc';
   const P=K.kit({p:{g:'s',c:0x17181b},G:{g:'s',c:0x4a4e56},k:{g:'m',c:0x111214},K:{g:'g',c:0x0b0c0e},c:{g:'c',c:0xc9ced6},
     g:{g:'g',c:0x141c24},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xff8a24},
     q:{g:'k',c:0x24252b},Q:{g:'n',c:0xe9e1cd},                                  // LES PIQUANTS : la hampe en fer noir, la pointe en ivoire
-    R:{g:'l',c:0xc8102e},V:{g:'l',c:0x8a2cff},B:{g:'l',c:0x2f5cff},              // LES VITRAUX de la rosace
     r:{g:'l',c:0x5e0a1e},v:{g:'l',c:0x3a1270}});                                  // LES LANCETTES : vitrail sombre, allumé de l'intérieur
   const zs=[-2.24,-2.08,-1.92,-.88,-.45,.15,.65,1.00,2.06,2.26];
   const yB=z=>U.lin([[-2.24,.48],[-1.92,.42],[1.00,.42],[2.06,.46],[2.26,.50]],z),
@@ -32140,33 +32139,39 @@ Object.assign(SHAPES,{
   };
   const rot=(n,bk,a,sx,sd)=>{const c=Math.cos(a),s=Math.sin(a);   // la direction : couchée vers l'arrière de `a`, écartée vers le dehors de `sx`
     return [n[0]*c+bk[0]*s+sx,n[1]*c+bk[1]*s,n[2]*c+bk[2]*s];};
-  /* ---- LE PELAGE : trois bandes de la caisse (flanc, épaule, toit), en quinconce, ~17 cm entre deux piquants. Courts sur le
-     museau, longs sur le dos et vers la poupe — comme la bête. Rien sur les vitres, rien qui entre dans une roue. ---- */
-  let id=0;const PORC=STYLE!=='clous',PAS=PORC?.17:.20;
+  /* ---- LE PELAGE (2026-10-16, 2e jet, Léo : « l'arrière, c'est bien en mode porc-épic ; sur les côtés ça peut être gothique, et
+     devant aussi ») : derrière le toit (z < −0,55, fondu sur 30 cm), le DOS DE LA BÊTE — les piquants couchés vers la poupe, la crête,
+     les ailes arrière ; les FLANCS et tout l'AVANT, des CLOUS gothiques chromés, droits, en rangées. Rien sur les vitres ni dans une roue.
+     `?blinde=chrome` : le dos en cônes chromés (même pose que les piquants) — à trancher par Léo. ---- */
+  let id=0;
+  const dos9=z=>U.cl((.6-z)/2.4,0,1),                                           // 0 au museau → 1 à la poupe
+    arr=(z,i)=>z<-.55+(hh(i*9.1)-.5)*.30,                                         // le dos de la bête (piquants) ou l'avant (clous)
+    bete=(b,d,L,r,sd)=>{if(STYLE==='chrome')clou(b,d,L*.92,r*1.25,sd);else pique(b,d,L,r,sd);};
   for(const j of [2,3,4]){
     let row=0;
-    for(let z=-2.12;z<=2.04;z+=PORC?.165:.19,row++){
-      if(j===4&&z>.06&&z<.72)continue;                                         // le pare-brise
-      if(j===3&&z>-.46&&z<.64)continue;                                        // les lancettes
-      if(j===2&&(z>(PORC?ZF-.66:2.0)||z<-.80))continue;                         // les roues (l'avant sur ses bras, l'arrière sous ses ailes)
-      const a0=surf(j,z,0),a1=surf(j,z,1),wd=Math.hypot(a1[0]-a0[0],a1[1]-a0[1]),n=Math.max(1,Math.round(wd/PAS));
-      for(let k=0;k<n;k++){id++;
-        const dos=U.cl((.6-z)/2.4,0,1);                                         // 0 au museau → 1 à la poupe
-        if(PORC){
+    for(let z=-2.12;z<=2.04;row++){
+      const zArr=z<-.55&&j>2;
+      if(j===4&&z>.06&&z<.72){z+=.19;continue;}                                // le pare-brise
+      if(j===3&&z>-.46&&z<.64){z+=.19;continue;}                               // les lancettes
+      if(j===2&&(z>2.0||z<-.80)){z+=.19;continue;}                             // l'arrière des flancs : les roues sous leurs ailes
+      const a0=surf(j,z,0),a1=surf(j,z,1),wd=Math.hypot(a1[0]-a0[0],a1[1]-a0[1]),n=Math.max(1,Math.round(wd/(zArr?.17:.20)));
+      for(let k=0;k<n;k++){id++;const dos=dos9(z);
+        if(j>2&&arr(z,id)){                                                   // LE DOS : les piquants du porc-épic
           const t=U.cl((k+.5+(row%2?.25:-.25)+(hh(id)-.5)*.3)/n,.06,j===4?.9:.94),b=surf(j,z,t),[nn,bk]=nrm(j,z,t),
-            L=(j===4?.42:j===3?.36:.30)*(.55+.62*dos)*(.82+.36*hh(id*3.1)),
-            a=(j===4?1.06:j===3?1.02:1.10)+(z>1.1?.14:0)+(hh(id*7.7)-.5)*.22;
-          pique(b,rot(nn,bk,a,(j===4?.10:.04)+(hh(id*5.3)-.5)*.10,1),L,.036+.01*dos,1);
-        }else{
+            L=(j===4?.42:.36)*(.55+.62*dos)*(.82+.36*hh(id*3.1)),a=(j===4?1.06:1.02)+(hh(id*7.7)-.5)*.22;
+          bete(b,rot(nn,bk,a,(j===4?.10:.04)+(hh(id*5.3)-.5)*.10,1),L,.036+.01*dos,1);
+        }else{                                                                 // LES FLANCS ET L'AVANT : les clous, en rangées
           const t=U.cl((k+.5+(row%2?.25:-.25))/n,.08,j===4?.88:.92),b=surf(j,z,t),[nn,bk]=nrm(j,z,t);
           clou(b,rot(nn,bk,.22,0,1),(j===4?.24:j===3?.21:.17)*(.85+.25*dos),.056,1);}
       }
+      z+=zArr?.165:.19;
     }
   }
-  // LA CRÊTE : sur l'échine, la rangée des plus longs, dressée — l'arête dorsale en est le pied
-  for(let z=-2.0;z<=.02;z+=PORC?.15:.19){id++;const b=surf(4,z,1),[nn,bk]=nrm(4,z,.999),dos=U.cl((.6-z)/2.4,0,1);
-    if(PORC)pique([0,b[1]+.02,z],rot([0,1,0],bk,.86+(hh(id)-.5)*.16,0,0),(.52+.30*dos)*(.85+.3*hh(id*2.3)),.05,0);
-    else clou([0,b[1]+.02,z],rot([0,1,0],bk,.35,0,0),.34+.12*dos,.075,0);}
+  // LA CRÊTE : sur l'échine, la rangée des plus longs, dressée (derrière le toit) — devant, une rangée de gros clous
+  for(let z=-2.0;z<=.02;){id++;const b=surf(4,z,1),[nn,bk]=nrm(4,z,.999),dos=dos9(z),r9=arr(z,id);
+    if(r9)bete([0,b[1]+.02,z],rot([0,1,0],bk,.86+(hh(id)-.5)*.16,0,0),(.52+.30*dos)*(.85+.3*hh(id*2.3)),.05,0);
+    else clou([0,b[1]+.02,z],rot([0,1,0],bk,.35,0,0),.34+.12*dos,.075,0);
+    z+=r9?.15:.19;}
   P.box('G',.30,.05,.80,0,1.60,-.45);P.box('G',.60,.04,.50,0,1.39,-1.30,-.24); // l'arête dorsale, la trappe
   /* ---- LES LANCETTES : trois fenêtres en ogive par flanc, à la place des meurtrières — un vitrail sombre allumé de l'intérieur,
      un meneau noir au milieu (la fenêtre gothique à deux jours), posé 1 cm au-dessus de la tôle. ---- */
@@ -32200,21 +32205,13 @@ Object.assign(SHAPES,{
     P.box('G',.40,.04,.36,sd*.36,1.14,-2.14,-.35);                             // les volets de poupe
   });
   /* ---- LE DOS DES AILES ARRIÈRE : les plus longs piquants de la bête, couchés vers la poupe et un peu vers le dehors ---- */
-  for(let ix=0;ix<4;ix++)for(let iz=0;iz<(PORC?8:7);iz++){id++;
-    const dx=-.30+ix*.20+(PORC?(iz%2?.05:-.05):0),dz=PORC?-.56+iz*.16:-.54+iz*.18,rz=-.10,cr=Math.cos(rz),sr=Math.sin(rz),
-      b=[.86+dx*cr-.03*sr,1.17+dx*sr+.03*cr,ZR+dz],nn=[-sr,cr,0],dos=U.cl((.6-b[2])/2.4,0,1);
-    if(PORC)pique(b,rot(nn,[0,-.08,-1],1.0+(hh(id)-.5)*.24,.10+.10*ix/3,1),(.50+.18*dos)*(.8+.4*hh(id*4.1)),.045,1);
-    else clou(b,rot(nn,[0,0,-1],.22,.06*ix,1),.20,.056,1);}
-  /* ---- LA ROSACE : la turbine centrale devient la rose d'une cathédrale — douze pétales en ogive (rouge, violet, bleu) autour
-     de la tuyère qui rougeoie, sertis de plomb noir. C'est elle qu'on regarde toute la course. ---- */
-  P.cyl('k',.30,.26,12,0,.80,-2.32,'z',.25);
-  P.cyl('K',.27,.03,16,0,.80,-2.445,'z');                                        // le plomb (le fond de la rose)
-  P.cyl('G',.30,.02,16,0,.80,-2.452,'z',.285);                                   // le cercle de pierre
-  const ZR0=-2.462,RC=[0,.80],pr=(a,rr)=>[RC[0]+Math.cos(a)*rr,RC[1]+Math.sin(a)*rr,ZR0];
-  for(let i=0;i<12;i++){const a=i/12*Math.PI*2+Math.PI/2,w=Math.PI/12*.74,col=i%3===0?'R':i%3===1?'V':'B',c0=pr(a,.17);
-    const C=[pr(a-w*.55,.122),pr(a-w,.20),pr(a-w*.62,.238),pr(a,.262),pr(a+w*.62,.238),pr(a+w,.20),pr(a+w*.55,.122)];
-    for(let k=0;k<C.length;k++)P.tri(col,c0,C[k],C[(k+1)%C.length]);}
-  P.cyl('K',.112,.02,12,0,.80,-2.458,'z');P.cyl('O',.10,.06,10,0,.80,-2.44,'z');  // la tuyère, au cœur de la rose
+  for(let ix=0;ix<4;ix++)for(let iz=0;iz<8;iz++){id++;
+    const dx=-.30+ix*.20+(iz%2?.05:-.05),dz=-.56+iz*.16,rz=-.10,cr=Math.cos(rz),sr=Math.sin(rz),
+      b=[.86+dx*cr-.03*sr,1.17+dx*sr+.03*cr,ZR+dz],nn=[-sr,cr,0],dos=dos9(b[2]);
+    bete(b,rot(nn,[0,-.08,-1],1.0+(hh(id)-.5)*.24,.10+.10*ix/3,1),(.50+.18*dos)*(.8+.4*hh(id*4.1)),.045,1);}
+  // LA TUYÈRE centrale (2026-10-16 : la rosace essayée, Léo : « bizarre avec les couleurs, reviens sur le moteur d'avant »)
+  P.cyl('k',.30,.26,12,0,.80,-2.32,'z',.25);P.cyl('c',.24,.04,12,0,.80,-2.44,'z');
+  P.cyl('K',.20,.05,12,0,.80,-2.44,'z');P.cyl('O',.10,.06,10,0,.80,-2.44,'z');
   P.box('G',.70,.10,.06,0,.46,2.26);                                          // bouclier de nez
   K.commit(P);
   return {hl:[.20,.58,2.28],tl:[.36,1.00,-2.26],wx:WX,wzF:ZF,wzR:-ZR,pots:[[0,.80,-2.47]], // (pots) LA TURBINE centrale, à 80 cm : le relevé s'arrête à 60
