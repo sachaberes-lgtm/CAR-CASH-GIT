@@ -52444,18 +52444,18 @@ const RICH_T={
   emeraude:{kd:.55,fl:0,s:[.12,.17],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
   champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
   crane:{kd:.6,fl:0,s:[.24,.29],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
-  coeur:{kd:1.25,fl:1.1,s:[.34,.48],w:[1.1,2.4],v:[3,6],vie:[2.9,3.7],face:1,bat:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur, 34-48 cm : une breloque de 2-4 cm, par la règle des tailles) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
+  coeur:{kd:1.25,fl:1.1,s:[.34,.48],w:[1.1,2.4],v:[3,6],vie:[2.9,3.7],face:1,bat:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur, 34-48 cm : une breloque de 2-4 cm, par la règle des tailles) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
-const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:6,coeur:10,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
+const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:4,crane:6,coeur:10,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
 /* (2026-10-14, Léo : « diminue la quantité d'objets déversés lors des coups, garde la variété ; vise quelque chose d'addictif qui joue avec le
    besoin d'effort et de récompense ») LES GERBES MAIGRISSENT (≈ ÷2,5 : petit 1-2, bon 3-5, gros 6-9, jackpot 14-19 ; les répliques aussi), les
    MÉLANGES ne bougent pas (la variété reste) — et L'EFFORT DÉCIDE DE LA TAILLE : un coup isolé paie surtout PETIT (le jackpot n'y tombe
    presque jamais), la RAFALE (le combo) fait monter gros et jackpot (voir richTire). La rareté rend le gros lot lisible : il se MÉRITE. */
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
-  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4,montre:1,coeur:10}},
-  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3,coeur:9}},
-  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:12,rubis:8,emeraude:8,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3,coeur:9}},
-  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:16,rubis:10,emeraude:10,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,coeur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles
+  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:6,emeraude:6,diamant:5,liasse:4,montre:1,coeur:10}},
+  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:4,chaine:3,coeur:9}},
+  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3,coeur:9}},
+  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,coeur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe)
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -52524,23 +52524,26 @@ const RICH_FS_SOUPLE=['uniform sampler2D uMap;uniform vec3 uSunDir;uniform vec3 
   ' vec3 H=normalize(L+V);c+=uSunCol*pow(max(dot(N,H),0.),36.)*.3*uSheenK;',
   ' gl_FragColor=vec4(c,1.);}'].join('\n');
 /* (2026-10-15, Léo : « des petits cœurs rouges — un bon rouge, bien rouge, avec un petit dégradé rose fuchsia et un peu de blanc pour les
-   rendre vraiment dreamy ») LE CŒUR EN BONBON : un rouge plein qui tient le milieu de la face ; le FUCHSIA vient par les bords (là où la
-   face tourne) et monte un peu sur le haut des lobes (vUv.x = la hauteur, de la pointe aux lobes) ; le BLANC, c'est le vernis — le studio
-   du bijoutier en reflet, un point de lumière sur le lobe (la boîte à lumière derrière l'objectif : il est toujours là), l'éclat du
-   soleil — et un LISERÉ NACRÉ qui passe du rose au blanc tout au bord ; un voile de nacre glisse lentement dessus. Les blancs dépassent 1 :
-   la lueur de l'image (bloom) les auréole, c'est elle qui fait le « dreamy ». Un programme de plus, compilé sous l'écran titre (richChauffeTick). */
-const RICH_FS_COEUR=['uniform samplerCube uEnv;uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;uniform float uT;uniform vec3 uRouge;uniform vec3 uFuch;uniform float uBlanc;',
-  'varying vec3 vN;varying vec3 vP;varying vec2 vUv;',
-  'void main(){vec3 N=normalize(vN),V=normalize(cameraPosition-vP),L=normalize(uSunDir);float ndv=max(dot(N,V),0.),bo=1.-ndv;',
-  ' vec3 base=mix(uRouge,uFuch,clamp(pow(bo,2.2)*1.1+smoothstep(.62,1.,vUv.x)*smoothstep(.35,.9,vUv.y)*.22,0.,1.));', // le dégradé : rouge plein au milieu, fuchsia aux bords et en haut des lobes
-  ' float nl=dot(N,L),df=max(nl,0.)*.6+(nl*.5+.5)*.3;', // le bonbon laisse passer le jour : une lumière enveloppée, sans noir
-  ' vec3 hc=mix(uGnd,uSky,N.y*.5+.5);vec3 c=base*(hc*.4+uSunCol*df*.62+.34);',
-  ' vec3 R=reflect(-V,N);float F=.05+.95*pow(bo,5.);c+=mix(vec3(.3,.04,.14),vec3(1.25,1.12,1.2),smoothstep(-.15,.75,R.y))*F*.6*uBlanc;', // le vernis : une grande fenêtre douce en reflet (Fresnel) — le studio du bijoutier y traçait une ligne d'horizon en travers du cœur
-  ' vec3 H=normalize(L+V),H2=normalize(normalize(V+vec3(-.35,.9,.25))+V);',
-  ' c+=uSunCol*pow(max(dot(N,H),0.),110.)*1.3*uBlanc+vec3(1.,.97,.99)*(pow(max(dot(N,H2),0.),16.)*.85+pow(max(dot(N,H2),0.),110.)*2.2)*uBlanc;', // le point de lumière sur le lobe, doux puis net
-  ' float sw=fract(vUv.x*.7+vUv.y*.35-uT*.22+dot(vP,vec3(.04)));c+=vec3(1.,.82,.94)*smoothstep(0.,.3,sw)*smoothstep(.62,.3,sw)*(.06+.22*bo)*uBlanc;', // le voile de nacre qui glisse
-  ' c+=mix(vec3(1.,.38,.78),vec3(1.,.94,.98),pow(bo,2.6))*pow(bo,2.2)*.95*uBlanc;', // le liseré nacré : rose, puis blanc tout au bord
-  ' gl_FragColor=vec4(c,1.);}'].join('\n');
+   rendre vraiment dreamy ») puis (2026-10-16 : « rends les cœurs en minuscules cubes ; joue la transparence, je ne vois pas assez ce côté
+   rouge et blanc fantomatique ; ils sont trop solides et font jeu vidéo — on parle de l'amour, c'est autre chose que du matériel »)
+   LE CŒUR FANTÔME : une PEAU de minuscules cubes (richCoeurCubes) qu'on voit au travers. Chaque cube connaît la normale LISSE du cœur à sa
+   place (aN) : là où le cœur te fait face il est presque transparent, rouge (on voit le ciel au travers, et les cubes du dos par-dessus) ;
+   vers le bord il s'épaissit, passe au FUCHSIA puis au BLANC — la silhouette brille, le milieu est un souffle. Quelques cubes blancs
+   scintillent à leur rythme (aR.y = le hasard), une ONDE de lumière monte de la pointe aux lobes (aR.x = la hauteur). Mélange PRÉMULTIPLIÉ :
+   ce qui couvre (alpha) et ce qui luit (la couleur au-delà de l'alpha) se dosent à part. Faces des cubes : un peu de soleil, pour qu'on lise
+   les cubes. Un programme de plus, compilé sous l'écran titre (richChauffeTick). */
+const RICH_VS_COEUR=['attribute vec3 aN;attribute vec2 aR;varying vec3 vN;varying vec3 vP;varying vec3 vH;varying vec2 vR;',
+  'void main(){vec4 w=modelMatrix*vec4(position,1.);vP=w.xyz;vN=normalize(mat3(modelMatrix)*normal);vH=normalize(mat3(modelMatrix)*aN);vR=aR;gl_Position=projectionMatrix*viewMatrix*w;}'].join('\n');
+const RICH_FS_COEUR=['uniform vec3 uSunDir;uniform float uT;uniform vec3 uRouge;uniform vec3 uFuch;uniform float uBlanc;uniform float uA;',
+  'varying vec3 vN;varying vec3 vP;varying vec3 vH;varying vec2 vR;',
+  'void main(){vec3 N=normalize(vN),Hn=normalize(vH),V=normalize(cameraPosition-vP),L=normalize(uSunDir);',
+  ' float bo=1.-abs(dot(Hn,V));', // le BORD du cœur (sa silhouette) : 1 ; la face qui te regarde, devant comme au dos : 0
+  ' float tw=.5+.5*sin(uT*(2.4+vR.y*4.)+vR.y*37.),on=smoothstep(.14,0.,abs(fract(vR.x*.8-uT*.42)-.5));', // chaque cube scintille à son rythme ; l'onde qui monte
+  ' vec3 col=mix(uRouge,uFuch,smoothstep(.35,.88,bo));',
+  ' col=mix(col,vec3(1.,.95,.98),clamp(smoothstep(.5,1.,bo)*.9+step(.86,vR.y)*tw*.85,0.,1.));', // blanc tout au bord, et quelques cubes blancs qui scintillent
+  ' float df=.66+.34*max(dot(N,L),0.)+.1*N.y;', // les faces des cubes se lisent (un peu de soleil, le dessus plus clair)
+  ' float a=min(.92,mix(uA,.86,pow(bo,1.25))*(.8+.2*tw)*(1.+.5*on));',
+  ' gl_FragColor=vec4(col*df*a*(1.+.45*on)+col*(.1+.3*bo)*uBlanc,a);}'].join('\n'); // prémultiplié : ce qui couvre + ce qui luit (le fantôme brille un peu)
 function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false});}
 
 // ---- LES DESSINS (canvas) ----
@@ -52739,25 +52742,36 @@ function richCraneGeo(){ // (2026-10-08, Léo : « des crânes pastel, plus peti
     [I(1,1),richM4(.045,-.17,.64,.06,.1,.06)],[I(1,1),richM4(-.045,-.17,.64,.06,.1,.06)],[new THREE.ConeGeometry(.07,.16,3),richM4(0,-.1,.64,1)], // le nez (un cœur renversé)
     [B(.55,.16,.06),richM4(0,-.52,.58,1)]];                                                           // l'ombre de la bouche, entre les dents
   return {or:richFusion(os),noir:richFusion(noir)};}
-function richCoeurGeo(){ // (2026-10-15) LE CŒUR GONFLÉ : la surface de Taubin, (x² + 9/4·y² + z² − 1)³ − x²z³ − 9/80·y²z³ = 0 (z en haut, y l'épaisseur) —
-  // deux lobes, le creux entre eux, la pointe. Chaque sommet d'une sphère est tiré en RAYON depuis le centre jusqu'à la surface (la forme est
-  // étoilée depuis là) ; sa normale vient du GRADIENT de l'équation (exacte : aucune couture, le bonbon reste lisse). Épaisseur ×.82 (un cœur
-  // de bonbon, pas une balle) ; uv.x = la hauteur (0 la pointe → 1 les lobes), uv.y = l'avant (1) ou l'arrière (0) — le dégradé du programme.
-  const g=new THREE.SphereGeometry(1,48,32),p=g.attributes.position,nr=g.attributes.normal,uv=g.attributes.uv,v=new THREE.Vector3(),E=.82;
-  // ⚠ écrite telle quelle, l'équation a un gradient NUL sur tout l'équateur (a³ y a une racine triple : une ligne en travers du cœur) — on la
-  // lit sous sa forme « racine cubique », même surface : H = (x² + 9/4·y² + z² − 1) − z·∛(x² + 9/80·y²), dont le gradient ne s'annule que sur l'axe
-  const H=function(x,y,z){return x*x+2.25*y*y+z*z-1-z*Math.cbrt(x*x+.1125*y*y);};
-  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z1=0;
-  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).normalize();const X=v.x,Y=v.z,Z=v.y; // le haut de la sphère = le haut du cœur
-    let hi=.04;while(hi<3&&H(X*hi,Y*hi,Z*hi)<0)hi+=.04;let lo=hi-.04;for(let k=0;k<26;k++){const m=(lo+hi)*.5;if(H(X*m,Y*m,Z*m)<0)lo=m;else hi=m;}
-    const r=(lo+hi)*.5,x=X*r,y=Y*r,z=Z*r,q=x*x+.1125*y*y;
-    let gx=X,gy=Y*E,gz=Z;
-    if(q>1e-9){const k3=z/(3*Math.pow(q,2/3));gx=2*x-k3*2*x;gy=4.5*y-k3*.225*y;gz=2*z-Math.cbrt(q);} // sur l'axe (le fond du creux, la pointe) : la direction du rayon
-    p.setXYZ(i,x,z,y*E);v.set(gx,gz,gy/E).normalize();nr.setXYZ(i,v.x,v.y,v.z);
-    if(x<x0)x0=x;if(x>x1)x1=x;if(z<y0)y0=z;if(z>y1)y1=z;if(Math.abs(y*E)>z1)z1=Math.abs(y*E);}
-  const k=1/(x1-x0),cy=(y0+y1)*.5;
-  for(let i=0;i<p.count;i++){const y=p.getY(i),z=p.getZ(i);p.setXYZ(i,p.getX(i)*k,(y-cy)*k,z*k);uv.setXY(i,(y-y0)/(y1-y0),z/z1*.5+.5);} // centré, 1 de large
-  g.computeBoundingSphere();return g;}
+function richCoeurCubes(){ // (2026-10-16) LE CŒUR EN MINUSCULES CUBES : la surface de Taubin, (x² + 9/4·y² + z² − 1)³ − x²z³ − 9/80·y²z³ = 0
+  // (z en haut, y l'épaisseur ×.82 : un cœur de bonbon, pas une balle), lue sous sa forme « racine cubique » — même surface :
+  // H = (x² + 9/4·y² + z² − 1) − z·∛(x² + 9/80·y²), dont le gradient ne s'annule que sur l'axe (écrite telle quelle, il s'annule sur tout
+  // l'équateur : une ligne en travers du cœur). Le cœur est REMPLI À LA GRILLE (20 cubes sur sa largeur : ~1 cm à l'écran) et seule sa PEAU est gardée (un cube
+  // dedans dont un voisin est dehors) ; chaque cube fait 72 % de sa case (des joints où passe le ciel). Rangés du DOS vers l'AVANT : le cœur se
+  // tourne toujours vers toi (richTick), le fond se peint donc avant le devant — le transparent sans tri. aN = la normale LISSE du cœur à la
+  // place du cube (le gradient), aR = (la hauteur 0 → 1, un hasard) : ce que lit RICH_FS_COEUR. 1 de large, centré.
+  const E=.82,H=function(x,y,z){return x*x+2.25*y*y+z*z-1-z*Math.cbrt(x*x+.1125*y*y);};
+  const ray=function(X,Y,Z){let hi=.04;while(hi<3&&H(X*hi,Y*hi,Z*hi)<0)hi+=.04;let lo=hi-.04;for(let k=0;k<24;k++){const m=(lo+hi)*.5;if(H(X*m,Y*m,Z*m)<0)lo=m;else hi=m;}return (lo+hi)*.5;};
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;                                                  // son gabarit : la forme est étoilée depuis le centre, on la tire en rayons
+  for(let a=0;a<72;a++)for(let b=0;b<=36;b++){const th=b/36*Math.PI,ph=a/72*6.2832,X=Math.sin(th)*Math.cos(ph),Z=Math.cos(th),Y=Math.sin(th)*Math.sin(ph),r=ray(X,Y,Z),x=X*r,z=Z*r;
+    if(x<x0)x0=x;if(x>x1)x1=x;if(z<y0)y0=z;if(z>y1)y1=z;}
+  const k=1/(x1-x0),cy=(y0+y1)*.5,hh=(y1-y0)*k*.5,zz=E*k*.7,st=1/20,hc=st*.36;
+  const dans=function(x,y,z){return H(x/k,z/(E*k),y/k+cy)<0;};                       // (x largeur, y hauteur, z épaisseur) du cœur
+  const L=[],nx=Math.ceil(.5/st)+1,ny=Math.ceil(hh/st)+1,nz=Math.ceil(zz/st)+1;
+  for(let iz=-nz;iz<nz;iz++)for(let iy=-ny;iy<ny;iy++)for(let ix=-nx;ix<nx;ix++){const x=(ix+.5)*st,y=(iy+.5)*st,z=(iz+.5)*st;if(!dans(x,y,z))continue;
+    let peau=false;for(let a=-1;a<=1&&!peau;a++)for(let b=-1;b<=1&&!peau;b++)for(let c=-1;c<=1&&!peau;c++)if((a||b||c)&&!dans(x+a*st,y+b*st,z+c*st))peau=true;
+    if(peau)L.push([x,y,z]);}
+  L.sort(function(p,q){return p[2]-q[2];});                                           // du dos vers l'avant
+  const FA=[[1,0,0,0,1,0,0,0,1],[-1,0,0,0,0,1,0,1,0],[0,1,0,0,0,1,1,0,0],[0,-1,0,1,0,0,0,0,1],[0,0,1,1,0,0,0,1,0],[0,0,-1,0,1,0,1,0,0]]; // n, u, v (u × v = n : les faces regardent dehors)
+  const n=L.length,pos=new Float32Array(n*72),nor=new Float32Array(n*72),an=new Float32Array(n*72),ar=new Float32Array(n*48),idx=new Uint16Array(n*36),SG=[[-1,-1],[1,-1],[1,1],[-1,1]];
+  for(let i=0;i<n;i++){const P=L[i],X=P[0]/k,Y=P[2]/(E*k),Z=P[1]/k+cy,q=X*X+.1125*Y*Y;let gx=P[0],gy=P[1],gz=P[2];
+    if(q>1e-9){const k3=Z/(3*Math.pow(q,2/3));gx=2*X-k3*2*X;gz=(4.5*Y-k3*.225*Y)/E;gy=2*Z-Math.cbrt(q);} // la normale lisse (sur l'axe : la direction depuis le centre)
+    const gl=Math.hypot(gx,gy,gz)||1,hs=(P[1]+hh)/(2*hh),rs=(function(){const h=Math.sin(P[0]*127.1+P[1]*311.7+P[2]*74.7)*43758.5453;return h-Math.floor(h);})();
+    for(let f=0;f<6;f++){const F9=FA[f];for(let j=0;j<4;j++){const o=((i*6+f)*4+j),su=SG[j][0],sv=SG[j][1];
+        for(let d=0;d<3;d++){pos[o*3+d]=P[d]+hc*(F9[d]+su*F9[3+d]+sv*F9[6+d]);nor[o*3+d]=F9[d];}
+        an[o*3]=gx/gl;an[o*3+1]=gy/gl;an[o*3+2]=gz/gl;ar[o*2]=hs;ar[o*2+1]=rs;}
+      const b9=(i*6+f)*4,t9=(i*6+f)*6;idx[t9]=b9;idx[t9+1]=b9+1;idx[t9+2]=b9+2;idx[t9+3]=b9;idx[t9+4]=b9+2;idx[t9+5]=b9+3;}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+  g.setAttribute('aN',new THREE.BufferAttribute(an,3));g.setAttribute('aR',new THREE.BufferAttribute(ar,2));g.setIndex(new THREE.BufferAttribute(idx,1));g.computeBoundingSphere();g.userData.cubes=n;return g;}
 function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MONTRE : le cadran (en haut à gauche), l'or (en haut à droite), le bracelet à maillons (en bas)
   x.fillStyle='#e8b33a';x.fillRect(0,0,512,512);const Go=x.createLinearGradient(256,0,512,256);Go.addColorStop(0,'#ffe9a8');Go.addColorStop(1,'#c58b22');x.fillStyle=Go;x.fillRect(256,0,256,256);
   const c=128;x.fillStyle='#d9a63a';x.beginPath();x.arc(c,c,127,0,6.2832);x.fill();                                   // la lunette
@@ -52824,10 +52838,11 @@ function richInit(){
   M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
-  M.coeur=richMat(RICH_FS_COEUR,{uRouge:{value:new THREE.Color(.82,.012,.07)},uFuch:{value:new THREE.Color(1,.15,.6)},uBlanc:{value:1}}); // (2026-10-15) le bonbon rouge (voir RICH_FS_COEUR)
-  M.aura=new THREE.SpriteMaterial({map:richCv(64,64,function(x){const G=x.createRadialGradient(32,32,0,32,32,32);G.addColorStop(0,'rgba(255,120,190,.5)');G.addColorStop(.42,'rgba(255,80,165,.24)');G.addColorStop(1,'rgba(255,60,150,0)');x.fillStyle=G;x.fillRect(0,0,64,64);}),
-    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}); // l'aura des cœurs : un halo rose additif (le programme des éclats : 0 compilé de plus)
-  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurGeo();
+  M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.86,.015,.08)},uFuch:{value:new THREE.Color(1,.16,.6)},uBlanc:{value:1},uA:{value:.2}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
+    transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le cœur fantôme (voir RICH_FS_COEUR) : transparent, prémultiplié
+  M.aura=new THREE.SpriteMaterial({map:richCv(64,64,function(x){const G=x.createRadialGradient(32,32,0,32,32,32);G.addColorStop(0,'rgba(255,215,228,.46)');G.addColorStop(.42,'rgba(255,170,200,.2)');G.addColorStop(1,'rgba(255,140,180,0)');x.fillStyle=G;x.fillRect(0,0,64,64);}),
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}); // l'aura des cœurs : un halo blanc rosé additif (2026-10-16 : rouge ET blanc) (le programme des éclats : 0 compilé de plus)
+  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurCubes();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
   for(const k9 in M)for(const m9 of [].concat(M[k9]))if(m9&&m9.uniforms)for(const u9 in m9.uniforms){const v9=m9.uniforms[u9].value;if(v9&&v9.isCanvasTexture)texLibere(v9);} // (2026-10-14, passe perf mobile) les ~30 toiles de la pluie de richesse (pièces, billets, jetons, carte, montre, liasse : ~14 Mo), peintes UNE fois ici et plus jamais relues (la liasse a déjà recopié son billet) : rendues après l'envoi (paliers 0-1)
@@ -52837,7 +52852,7 @@ function richInit(){
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
       else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
-      if(t==='coeur'){const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(2.2);a9.renderOrder=4;m.add(a9);} // (2026-10-15) son AURA rose, derrière lui : elle grandit et bat avec lui
+      if(t==='coeur'){const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(2.2);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-15) son AURA, derrière lui : elle grandit et bat avec lui (le cœur, transparent, se peint APRÈS elle)
       m.visible=false;m.castShadow=m.receiveShadow=false;m.frustumCulled=false;scene.add(m);
       RICH.libres[t].push({m:m,t:t,v:new THREE.Vector3(),w:new THREE.Vector3(),age:0,vie:1,s:1,ph:0,fd:0,nl:null,gl:null,on:false,
         pa:new THREE.Vector3(),pw:0,fv:.4,ec:0,mode:0,ax:new THREE.Vector3(),gd:new THREE.Vector3(),om:0,A:0,G:0,yr:0,kb:0});}} // (2026-10-10) pa/pw : la précession de la pièce · fv : son fondu de sortie · ec : l'heure où la liasse craque · mode… : le papier qui tombe (richPapier)
