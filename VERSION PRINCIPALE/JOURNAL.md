@@ -3,6 +3,29 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## POUCE BLEU REFAIT — DEUX MORCEAUX ÉCRITS À LA MAIN EN 30 PALIERS (2026-10-16, pôle SON — Léo : « il y a quelques musiques faibles… remplace-les par des sons qui ont le niveau de ceux qui ont été laissés » · « ça fait trop jeu vidéo, presque inaudible » · « surprends-moi, de nouveaux sons » · « oublie le générateur, juste le système de musique évolutive jusqu'à 30 » · « réécris complètement RUBIS DE NÉON » · « refonte complète d'ASPHALTE D'ÉMERAUDE » · « RUBIS DE NÉON : enlève la basse et profites-en pour charger encore plus, harmonieux » · « push main les dernières chansons »)
+- LE TRI DE LÉO (bibliothèque, `musique-moteur.json`, tel quel) : PISTON DE LUXE, FLAMME DE VITESSE, CRISTAL D'ARGENT retirés ; des générés
+  proposés ensuite, il ne garde que TONNERRE DELUXE (`bleu-6104`, v3-10) ; son pouce sur ASPHALTE D'ÉMERAUDE. Pouce bleu = 20 morceaux.
+- DEUX PAGES « MORCEAU À PALIERS » ÉCRITES À LA MAIN (le format d'AURA · 30 : `MORCEAU = { preparer, jouer(p) }`, aucun son du générateur —
+  il reconnaissait ses basses et ses arpèges) : `assets/audio/music/direct/rubis-de-neon.html` (house de nuit rêveuse, fa mineur, 118 BPM, SANS
+  BASSE : piano feutré, nappe de verre fumé sur deux octaves, CHŒUR « ou » qui s'ouvre vers « a » au 3, l'HARMONIE DE NAPPE au 9 — un accord lié
+  par demi-mesure dont la voix du haut chante le thème, de 3 à 5 voix —, les CORDES EN TENUE en accord ouvert au 13 (`CORDES`, elles respirent
+  avec la pompe dès 15), le chœur à l'octave au climax, l'harmonie une octave plus haut au 30) et `asphalte-emeraude.html` (techno mélodique de
+  nuit, mi mineur, 124 BPM : la basse qui roule, la séquence d'émeraude qui s'ouvre `FILTRE_SEQ`, la polyrythmie 3 contre 4 dès 12).
+  Chaque élément entre à SON moteur (`QUAND`, texte `ENTRE`), et la SORTIE MONTE AVEC LE MOTEUR (`kit.master`) : sans ça le compresseur
+  écrasait la montée au 12e.
+- BRANCHÉS : la table `HTML` de `pouce-bleu-jeu.js` (`?v=4`, rangés d'office comme AURA · 30, lecteur `joueurHtml`) et deux `ajoute({sec:'bleu',
+  type:'html'})` dans `bibliotheque.html` (marqués « Nouveau » en tête, `NOUVEAUX_BLEU`). Le DÉPART COMPENSÉ (`depart` en dB dans
+  `retouches-bleu.js`, lu par la bibliothèque et par `joueurGen`) reste disponible, aucune retouche ne s'en sert aujourd'hui.
+- MESURÉ au banc d'écoute (Chrome muet, `ECOUTE.joue` = `POUCE_JEU.depart`, le lecteur de la course, moteurs 3/12/22/30) — la cible :
+  ~−22 dB au 3, −10 à −13 au 30 (TONNERRE DELUXE : −22,6 → −8,9). RUBIS DE NÉON −23 / −17,6 / −12,9 / −11,3 (sans basse : médiums
+  +7 à +9 dB par rapport à la version avec basse) ; ASPHALTE −24,1 → −12,3 (basse ramenée de 17 à ~8 dB au-dessus des médiums).
+- AVANT LE PUSH, LES 20 MORCEAUX DE POUCE BLEU JOUÉS UN PAR UN (`?pouce=<id>`, la liste que fabrique `POUCE_JEU.charge` sur cette version) :
+  20 / 20 jouent par le lecteur de la course, aucun silence, aucune erreur — 15 du générateur, 2 paliers figés (NÉON NOIR, NUIT DE VELOURS),
+  3 pages (AURA · 30, RUBIS DE NÉON, ASPHALTE). Le plus discret au départ : AVERSE DE CHROME (−39 dB au 3, −7,4 au 30), à lui de juger.
+- Banc : `~/Downloads/CAR-bancs/son/ecoute/` (`serveur_ecoute.py 9284 "<VERSION PRINCIPALE>"`, `ecoute.py <port chrome> <sortie> [ids]`),
+  Chrome `--mute-audio --disable-audio-output` (sans le second, l'horloge audio se fige quand la sortie du Mac change).
+
 ## LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS (2026-10-16, session MISSIONS — Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ; toutes les missions sont ouvertes en même temps, sans ordre imposé ; des MISSIONS SECRÈTES invisibles débloquent des voitures montrées en silhouette noire dans la boutique ; le mot DÉFI disparaît de l'interface »)
 Livré par étapes (chacune vérifiée, commitée, poussée). Cette section grandit à chaque étape.
 
