@@ -4,7 +4,9 @@
 #   (a) LE LOGO de l'accueil (celui de 92cb2bb) : HTML (`class="lg …"`), CSS (`.lg`, `.lg.gold`, `.lg.grad`, `::before`, `::after`,
 #       lgShine, `.mTitle .lg`) — l'EMPREINTE (sha1) de ces lignes est figée ci-dessous ;
 #   (b) LA POLICE PIXEL : `--pix:'Press Start 2P'`, son @font-face + le fichier woff2, et au moins SEUIL emplois de var(--pix) ;
-#   (c) LA CHARTE 6 reste un OPT-IN : la ligne `if(/[?&]ui=6\b/` (classe c6 posée seulement par ?ui=6) doit rester.
+#   (c) LA CHARTE 6 reste un OPT-IN : la ligne `if(/[?&]ui=6\b/` (classe c6 posée seulement par ?ui=6) doit rester ;
+#   (d) UNE SEULE POLICE (2026-10-15, Sacha : « il faut pas que je te le répète ») : le filet CSS `<style id="policeUnique">` (tout élément en
+#       var(--pix)!important) et le filet des canvas `UNE_POLICE` (tout ctx.font réécrit en Press Start 2P) doivent rester.
 # Usage : sh garde-charte.sh [fichier]            (par défaut : VERSION PRINCIPALE/index.html)
 #         sh garde-charte.sh --empreinte [fichier]  (imprime l'empreinte courante du logo et le compte de var(--pix))
 # Appelée par vercel-build.sh juste après garde-burnout.sh, et par la procédure de poussée (CLAUDE.md du jeu).
@@ -42,12 +44,16 @@ grep -qF "font-family:'Press Start 2P'" "$F" && grep -qF "pressstart2p.woff2" "$
     · le fichier assets/fonts/pressstart2p.woff2 est introuvable"
 [ "$PIX" -ge "$SEUIL_PIX" ] || PROBLEMES="$PROBLEMES
     · trop peu d'emplois de var(--pix) : $PIX (seuil $SEUIL_PIX)"
+grep -qF '<style id="policeUnique">' "$F" && grep -qF '*,*::before,*::after{font-family:var(--pix)!important}' "$F" || PROBLEMES="$PROBLEMES
+    · le filet CSS d'UNE SEULE POLICE (<style id=\"policeUnique\">, *{font-family:var(--pix)!important}) a disparu"
+grep -qF 'function UNE_POLICE(' "$F" && grep -qF 'function apresPolice(' "$F" || PROBLEMES="$PROBLEMES
+    · le filet des canvas d'UNE SEULE POLICE (UNE_POLICE, apresPolice) a disparu"
 grep -qF 'if(/[?&]ui=6\b/' "$F" || PROBLEMES="$PROBLEMES
     · la ligne « if(/[?&]ui=6\b/ » a disparu : la charte 6 ne doit s'allumer que par ?ui=6"
 if [ -n "$PROBLEMES" ]; then
   echo "
   ✋ LA CHARTE EST CASSÉE dans $F :$PROBLEMES
-  Le logo de l'accueil est INTOUCHABLE (92cb2bb), la police pixel reste, la charte 6 reste un opt-in (?ui=6).
+  Le logo de l'accueil est INTOUCHABLE (92cb2bb), la police pixel reste — et c'est la SEULE police du jeu —, la charte 6 reste un opt-in (?ui=6).
   Remettre : git checkout <dernier bon commit> -- \"VERSION PRINCIPALE/index.html\" (ou refusionner en gardant ces blocs).
   Si le changement est VOULU (décidé avec Sacha) : sh garde-charte.sh --empreinte, puis mettre à jour EMPREINTE_LOGO / SEUIL_PIX ici.
 "

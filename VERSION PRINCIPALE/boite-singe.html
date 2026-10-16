@@ -66,7 +66,7 @@
   <button class="rond on" id="bTourne" title="Tourner tout seul"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.2v2.6H11"/></svg></button>
   <button class="rond" id="bCadre" title="Recadrer (R)"><svg viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>
 </div>
-<div id="bas"><div class="seg" id="pose"><button data-p="queue">Par la queue</button><button data-p="mains">Par les mains</button><button data-p="course">En course</button></div><div class="opts">
+<div id="bas"><div class="seg" id="pose"><button data-p="queue">Par la queue</button><button data-p="mains">Par les mains</button><button data-p="course">En course</button><button data-p="bonjour">Coucou</button><button data-p="mangue">Mangue</button><button data-p="bord">Au bord</button></div><div class="opts">
   <button class="pil" id="oPasse" title="Une caisse passe : il la regarde (pendu : il tend la main et se balance)">La caisse passe</button>
   <button class="pil" id="oSaut" title="En course : il saute toutes les 2 s, comme quand la caisse saute">Il saute</button>
   <button class="pil" id="oNoir" title="La frénésie DARK TRIAD">Dark triad</button>
@@ -99,18 +99,18 @@ const JOURNAL=[];{const ce=console.error.bind(console);console.error=(...a)=>{JO
   addEventListener('error',e=>JOURNAL.push(String(e.message)+' @'+e.lineno));}
 const PREF=(()=>{try{return JSON.parse(localStorage.getItem('boiteSinge')||'{}')||{};}catch(e){return {};}})();
 const ST=Object.assign({pose:'queue',tourne:false,passe:true,saut:true,noir:false,lent:false,fige:false,lisse:false,reve:false,peau:true,coeur:true,cq:null},PREF);
-{const q=new URLSearchParams(location.search);if(q.has('pose'))ST.pose=['mains','course'].includes(q.get('pose'))?q.get('pose'):'queue';for(const k of ['tourne','passe','saut','noir','lent','fige','lisse','reve','peau','coeur'])if(q.has(k))ST[k]=q.get(k)!=='0';}
+{const q=new URLSearchParams(location.search);if(q.has('pose'))ST.pose=['mains','course','bonjour','mangue','bord'].includes(q.get('pose'))?q.get('pose'):'queue';for(const k of ['tourne','passe','saut','noir','lent','fige','lisse','reve','peau','coeur'])if(q.has(k))ST[k]=q.get(k)!=='0';}
 const garde=()=>{try{localStorage.setItem('boiteSinge',JSON.stringify(ST));}catch(e){}};
 
 /* 1. LIRE LE JEU */
 let JEU=null,BLOC='',LU='',ERR='',VER=0;
 async function lireBloc(){
-  const r=await fetch('index.html?singe='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('index.html : '+r.status);
-  const L=(await r.text()).split('\n'),pr=(a,b)=>{let i0=-1,i1=-1;for(let i=0;i<L.length;i++){if(i0<0&&L[i].startsWith(a))i0=i;else if(i0>=0&&L[i].startsWith(b)){i1=i;break;}}
-    if(i0<0||i1<0)throw new Error('bloc introuvable dans index.html : '+a);return L.slice(i0,i1+1).join('\n');};
+  const tx=[];for(const f of ['creatures/vitrail.js','creatures/singe.js']){const r=await fetch(f+'?singe='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(f+' : '+r.status);tx.push(await r.text());} // (2026-10-15) le singe et le vitrail ont quitté index.html
+  const L=tx.join('\n').split('\n'),pr=(a,b)=>{let i0=-1,i1=-1;for(let i=0;i<L.length;i++){if(i0<0&&L[i].startsWith(a))i0=i;else if(i0>=0&&L[i].startsWith(b)){i1=i;break;}}
+    if(i0<0||i1<0)throw new Error('bloc introuvable dans creatures/ : '+a);return L.slice(i0,i1+1).join('\n');};
   return pr('/* <<<VITRAIL>>>','/* <<<FIN VITRAIL>>>')+'\n'+pr('/* <<<SINGE>>>','/* <<<FIN SINGE>>>');
 }
-const executer=bloc=>new Function('THREE',bloc+'\nreturn {singeNouveau,singeAnime,singeTape,SINGE_F,SINGE_FM:typeof SINGE_FM!=="undefined"?SINGE_FM:null,SINGE_FC:typeof SINGE_FC!=="undefined"?SINGE_FC:null,singeCourt:typeof singeCourt!=="undefined"?singeCourt:null};')(THREE);
+const executer=bloc=>new Function('THREE',bloc+'\nreturn {singeNouveau,singeAnime,singeTape,SINGE_F,SINGE_FM:typeof SINGE_FM!=="undefined"?SINGE_FM:null,SINGE_FC:typeof SINGE_FC!=="undefined"?SINGE_FC:null,singeCourt:typeof singeCourt!=="undefined"?singeCourt:null,singeAnimePose:typeof singeAnimePose!=="undefined"?singeAnimePose:null,SG_POSES:typeof SG_POSES!=="undefined"?SG_POSES:null};')(THREE);
 
 /* 2. LA SALLE : le dessous de la route (le singe y est accroché), la caisse qui passe */
 const cv=$('cv'),renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
@@ -141,9 +141,10 @@ function monter(bloc){ // un nouveau dessin : on relit les blocs et on rebâtit 
   JEU=J;BLOC=bloc;poser();
 }
 function poser(){ // le singe dans la pose ST.pose (la géométrie de chaque pose est bâtie une fois, à sa première visite)
-  const P=ST.pose==='course'&&!JEU.SINGE_FC?'queue':ST.pose,S2=JEU.singeNouveau('singe-boite'+(++VER),P);
+  const P=(ST.pose==='course'&&!JEU.SINGE_FC)||(['bonjour','mangue','bord'].includes(ST.pose)&&!JEU.SG_POSES)?'queue':ST.pose,S2=JEU.singeNouveau('singe-boite'+(++VER),P);
   if(S){S.grp.parent.remove(S.grp);for(const m of Object.values(S.grp.userData))m.material.dispose();}
-  if(P==='course')SOL.add(S2.grp);else{S2.grp.position.copy(ACC);scene.add(S2.grp);}S=S2;carteLit();etat();
+  const DECOR=JEU.SG_POSES&&JEU.SG_POSES[P];SOL.rotation.y=P==='bord'?Math.PI/2:0;SOL.position.x=P==='bord'?3:1.15; // (15/10) les poses du DÉCOR (Jade) : sur la dalle ; AU BORD : sur l'arête, tourné vers le vide
+  if(P==='course'||DECOR)SOL.add(S2.grp);else{S2.grp.position.copy(ACC);scene.add(S2.grp);}S=S2;carteLit();etat();
 }
 // LA CARTE VITRAIL : les réglages du singe (uniforms du jeu), gardés dans ce navigateur — [clé, uniform, min, max, pas, ×cube, étiquette, groupe, couche]
 const CQ=[['a0','uCoqA0',0,1,.01,0,'De face','LA PEAU DE VERRE','peau'],['a1','uCoqA1',0,1,.01,0,'Bords','','peau'],['g','uCoqG',0,2.5,.05,1,'Gonflée','','peau'],
@@ -173,10 +174,11 @@ $('pose').addEventListener('click',e=>{const b=e.target.closest('button');if(!b|
 $('cZero').onclick=()=>{if(CQ0){ST.cq=Object.assign({},CQ0);garde();peindre();}};
 
 /* 4. LA CAMÉRA — une orbite à inertie (vue d'en dessous de la route, de trois-quarts) */
-const CAD0={cx:2.45,cy:-1.15,cz:0,yaw:.55,pitch:-.08,dist:4.3},CADC={cx:1.15,cy:1.05,cz:.35,yaw:1.05,pitch:.16,dist:4.6}; // pendu : vu d'en dessous de la route · en course : sur la dalle, de trois-quarts
-const CAD={};const cadre=()=>Object.assign(CAD,ST.pose==='course'?CADC:CAD0);cadre();
+const CAD0={cx:2.45,cy:-1.15,cz:0,yaw:.55,pitch:-.08,dist:4.3},CADC={cx:1.15,cy:1.05,cz:.35,yaw:1.05,pitch:.16,dist:4.6},CADB={cx:3,cy:.9,cz:0,yaw:1.35,pitch:.12,dist:4.4}; // pendu : vu d'en dessous de la route · en course : sur la dalle, de trois-quarts
+const CADD={cx:1.15,cy:1.15,cz:.2,yaw:.45,pitch:.12,dist:6};
+const CAD={};const cadre=()=>Object.assign(CAD,ST.pose==='bord'?CADB:ST.pose==='course'?CADC:['bonjour','mangue'].includes(ST.pose)?CADD:CAD0);cadre();
 const CAM={cx:0,cy:0,cz:0,yaw:0,pitch:0,dist:8,vy:0,vp:0,lache:9,vise:null};
-{const q=new URLSearchParams(location.search);for(const k of ['yaw','pitch','dist','cx','cy','cz'])if(q.has(k))CAD0[k]=CADC[k]=CAD[k]=+q.get(k);}
+{const q=new URLSearchParams(location.search);for(const k of ['yaw','pitch','dist','cx','cy','cz'])if(q.has(k))CAD0[k]=CADC[k]=CADB[k]=CAD[k]=+q.get(k);}
 function recadre(d){cadre();const a={...CAM},dy=((CAD.yaw-CAM.yaw)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI,b=Object.assign({},CAD,{yaw:CAM.yaw+dy});
   if(!d){Object.assign(CAM,b);CAM.vise=null;}else CAM.vise={a,b,t:0,d};CAM.vy=CAM.vp=0;}
 function camTick(dt){
@@ -211,7 +213,7 @@ let signe='',signeBoite=null;
 async function veille(){
   try{const rb=await fetch('boite-singe.html?v='+Date.now(),{method:'HEAD',cache:'no-store'}),sb=(rb.headers.get('last-modified')||'')+'|'+(rb.headers.get('content-length')||'');
     if(signeBoite===null)signeBoite=sb;else if(sb!==signeBoite){location.reload();return;}}catch(e){}
-  try{const r=await fetch('index.html?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'}),s=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');
+  try{const r=await fetch('creatures/singe.js?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'}),s=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');
     if(s!==signe){signe=s;const bloc=await lireBloc();if(bloc!==BLOC){try{monter(bloc);ERR='';LU=heure();annonce('Nouveau singe · '+LU);}catch(e){ERR='erreur : '+e.message+' — on garde le précédent';annonce('Erreur dans le singe',true);}etat();}}}catch(e){}
   setTimeout(veille,900);}
 function taille(){const w=innerWidth,h=innerHeight,pr=Math.min(devicePixelRatio||1,2);renderer.setPixelRatio(pr);renderer.setSize(w,h,false);
@@ -223,14 +225,15 @@ function boucle(now){
   if(S){carteApplique();
     // LA CAISSE : elle passe sous la route le long de z, juste sous les mains du singe, puis revient 2,5 s plus tard
     let cib=null,pro=0;
-    const C=S.mode==='course';
+    const C=S.mode==='course',DEC=!!(JEU.SG_POSES&&JEU.SG_POSES[S.mode]);
     if(ST.passe){if(JUS<0){PAUSE-=dt;if(PAUSE<=0){JUS=0;caisse.visible=true;}}
-      if(JUS>=0){const zO=JUS*28-14,zA=zO;JUS+=dt*12/28;if(C)caisse.position.set(-1.2,.68,zA);else caisse.position.set(ACC.x-.55,-2.55,zA);
+      if(JUS>=0){const zO=JUS*28-14,zA=zO;JUS+=dt*12/28;if(C||DEC)caisse.position.set(-1.2,.68,zA);else caisse.position.set(ACC.x-.55,-2.55,zA);
         const zp=zO,zn=JUS*28-14;if(!C&&zp<0&&zn>=0)JEU.singeTape(S,.9,(Math.random()-.5)*.3); // elle passe : le souffle le fait balancer
         if(JUS>1){JUS=-1;PAUSE=2.5;caisse.visible=false;}
-        CIB.copy(caisse.position).sub(C?SOL.position:ACC);cib=CIB;pro=Math.max(0,Math.min(1,(4.5-CIB.distanceTo(MAINS))/3.3));}}
+        if(DEC||C){SOL.updateMatrixWorld(true);CIB.copy(caisse.position);SOL.worldToLocal(CIB);}else CIB.copy(caisse.position).sub(ACC);cib=CIB;pro=Math.max(0,Math.min(1,(4.5-CIB.distanceTo(MAINS))/3.3));}}
     else{caisse.visible=false;JUS=-1;}
-    if(C){ // EN COURSE : il galope sur place ; « Il saute » : un bond toutes les 2,2 s (la hauteur d'un saut de caisse, à l'échelle de la boîte)
+    if(DEC){SOL.position.y=.5;JEU.singeAnimePose(S,dt,cib);}
+    else if(C){ // EN COURSE : il galope sur place ; « Il saute » : un bond toutes les 2,2 s (la hauteur d'un saut de caisse, à l'échelle de la boîte)
       SAUT.t+=dt;const u=SAUT.t%2.2,h0=SAUT.h;SAUT.h=ST.saut&&u<1.1?1.1*4*(u/1.1)*(1-u/1.1):0;const vh=dt>0?(SAUT.h-h0)/dt:0;
       SOL.position.y=.5+SAUT.h;JEU.singeCourt(S,dt,Math.max(0,Math.min(1,(SAUT.h-.15)/.5)),vh*3,cib);}
     else JEU.singeAnime(S,dt,cib,pro);
@@ -240,7 +243,7 @@ function boucle(now){
   requestAnimationFrame(boucle);}
 (async()=>{
   try{const bloc=await lireBloc();monter(bloc);LU=heure();
-    const r=await fetch('index.html?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'});signe=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');}
+    const r=await fetch('creatures/singe.js?singe-v='+Date.now(),{method:'HEAD',cache:'no-store'});signe=(r.headers.get('last-modified')||'')+'|'+(r.headers.get('content-length')||'');}
   catch(e){const c=$('charge');c.classList.add('erreur');c.innerHTML='La boîte n\'a pas pu lire le jeu.<br>'+e.message;return;}
   $('charge').classList.add('fini');caisse.visible=false;
   taille();peindre();recadre(0);etat();requestAnimationFrame(boucle);setTimeout(veille,900);
