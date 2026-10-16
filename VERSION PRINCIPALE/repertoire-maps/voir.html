@@ -65,7 +65,9 @@
     jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
   }
   addEventListener('resize', taille); taille();
-  jeu.src = '../index.html?simu=1&carte=' + encodeURIComponent(M.id) + '&meteo=' + encodeURIComponent(met);
+  // (2026-10-16) une clé « météo-teinte » (LA VILLE : « pluie-vert ») = la météo + la TEINTE ; la ville sans teinte dite = la violette (celle de base)
+  const mt = met.split('-')[0], te = met.split('-')[1] || (M.id === 'ville' ? 'violet' : '');
+  jeu.src = '../index.html?simu=1&carte=' + encodeURIComponent(M.id) + '&meteo=' + encodeURIComponent(mt) + (te ? '&teinte=' + encodeURIComponent(te) : '');
   const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
   jeu.addEventListener('load', () => { E.charge = performance.now(); focusJeu(); });
   document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#barre')) setTimeout(focusJeu, 0); });
@@ -81,7 +83,7 @@
     let w, st; try { w = jeu.contentWindow; st = w && w.dbgState ? w.dbgState() : null; } catch (e) { st = null; }
     if (!st) return;
     const now = performance.now();
-    try { if (!w.dbgClassique().force) w.dbgClassique(M.id, met); } catch (e) {}
+    try { if (!w.dbgClassique().force) w.dbgClassique(M.id, mt, te || null); } catch (e) {}
     if (st.started && !st.gameOver) { E.roule = true; E.finT = 0; return; }
     if (st.started && st.gameOver) { // la mort : 3 s pour la voir, puis on repart sur la même map
       if (!E.finT) E.finT = now;

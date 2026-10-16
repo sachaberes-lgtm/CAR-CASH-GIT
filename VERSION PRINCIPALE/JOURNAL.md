@@ -3,6 +3,134 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE TOUJOURS LA NUIT — QUATRE TEINTES, QUATRE TEMPS (2026-10-16, session « Ville jour » — Sacha : « la map ville, elle sera toujours la nuit. Tu reprends la map nuit avec de la pluie qui était là de base — la première version finie de la ville — et tu la déclines simplement en plusieurs couleurs : une violette, c'est celle de base ; une autre avec des néons verts, une autre avec des néons jaunes, une autre bleue — bleu foncé, bleu électrique. Des fois du brouillard, des fois de la pluie, des fois pas de pluie. La ville-jour, ça marche pas : on abandonne toutes les maps ville-jour »)
+Le point de départ : Sacha classait la ville de jour parmi les pires maps (« les meilleures : les montagnes chinoises en journée et la ville
+avec pluie et nuit »). Une refonte du jour a été commencée puis ARRÊTÉE à sa demande : la ville ne se joue plus de jour.
+CE QUI CHANGE AU JOUER (`VILLE_NUIT_V`, `?sans=villenuit` = la ville d'avant, ses six temps, sans teinte) :
+- `SF_CARTES.ville` n'a plus ni MATIN, ni MIDI, ni SOIR (villeMatin, villeMidi, villeSoir restent dans BIOMES, plus tirées). Ses quatre temps :
+  la PLUIE = AU-DESSUS DE LA VILLE telle quelle (poids 1,2), la NUIT sèche = MINUIT EN VILLE sans sa pluie (comme avant), le BROUILLARD (neuf),
+  l'ORAGE (poids 0,8). Le cycle fixe (`?classique=cycle`, Poki) ne bouge pas : il n'avait que la pluie et minuit.
+- LE BROUILLARD : l'ambiance `villeBrume` (la nuit sèche de la ville au néon, sans étoiles ni lune, brume [.30,.19,.40] PLUS CLAIRE que les tours —
+  de nuit c'est ce qui la fait lire —, 30 → 950 m) sur le niveau minuit (pleins phares). Un levier neuf, `LVL.brume` (fondu au portail par
+  lvlGo/lvlStep comme la pluie) : le dôme prend `uPluie = max(pluie, brume)`, donc le PLAFOND BAS de la ville sans une goutte (ni rideau, ni
+  route mouillée). Libellé « BROUILLARD » (I18N : FOG). Vu au banc : à 60/1100 m les tours proches restaient nettes (un plafond, pas un brouillard).
+- LES TEINTES : à chaque passage dans la ville, `sfTire` tire une teinte (`SF_CARTES.ville.teintes` : violet, vert, jaune, bleu ; jamais deux
+  fois la même de suite si possible) ; `sfNiveau(c,m,te)` pose `teinte` et `bioBase` sur le niveau. VIOLET = la ville de base, au pixel près.
+COMMENT UNE TEINTE SE FAIT (`VTEINTES`, juste après `villeRose`) — rien n'est compilé de plus, ce ne sont que des données et des uniforms :
+- `vtRgb` : un REMAPPAGE SÉLECTIF DE LA TEINTE. Seule la famille violet → magenta → rose (250°-342°, fondue aux bords, rien au-delà de 348° :
+  le rouge des balises reste rouge ; les gris restent gris) bascule — le violet de l'air (262°) vers `a`, le magenta des néons (330°) vers `b` ;
+  `s`/`v` = saturation et éclat de la bande, `sA`/`vA` = ceux de l'AIR seul. Le cyan des enseignes, l'ambre et le cyan des fenêtres restent.
+  vert : a 178 b 128 sA .82 vA .86 · jaune : a 30 b 50 v 1,08 sA .42 vA .72 · bleu : a 230 b 218 s 1,05.
+- il s'applique aux AMBIANCES (`vtBio` : `pluie_vert`, `villeBrume_bleu`… copiées à leur premier emploi d'après l'ambiance FINIE — brume,
+  lumières, vignette, reflets, env ; `T.bio` en plus : le skyMul chaud du jaune), aux NÉONS des tours (`NEON` dans buildVoxCity), à l'ACCENT de
+  la route (accC : rails, nappe, flaques, couronnes), aux RÉCLAMES (`villePubAtlas` repeint sa toile quand la teinte change, `CITY.pubT`) ;
+- et aux couleurs FIXES devenues uniforms (valeurs d'origine par défaut, donc toutes les autres maps et la ville violette au bit près) :
+  `skyU.uFd[8]` (le dégradé de `cielFond`), `skyU.uVc[6]` (lilas du plafond, éclair, lueur rose des quartiers, points roses de l'abîme, rose et
+  cyan de la guirlande), `CITY.uPiedC` (la lueur au pied des tours, villePied), `ROAD_U.uBmM` (le magenta que renvoient les flaques, bmCol).
+  `vtGo` (dans lvlGo) / `vtPose` (dans lvlStep) les fondent au portail avec le reste.
+- le ciel SEC (la nuit) a son dégradé DESSINÉ par teinte (`fd`) et la guirlande du jaune un orange au lieu du cyan (`vc`) : vu au banc, le seul
+  remappage gardait l'horizon corail et ambre, un jaune sombre sortait OLIVE (le skyMul bleuté de la ville) puis ROUGE de couchant (la saturation
+  1,38 de l'étalonnage), et le cyan mêlé au jaune verdissait l'horizon.
+MESURÉ / VU (banc photo Chrome sans fenêtre, rendu logiciel, muet ; planches dans le scratchpad de la session) :
+- 16 couples temps × teinte photographiés : violet identique à la ville d'origine ; vert = ciel sarcelle sombre, néons vert acide ; jaune = air
+  brun de sodium, néons or, horizon doré la nuit ; bleu = marine et bleu électrique. Avant retouche : vert « toxique » (a 166, pleine saturation),
+  jaune = ciel orange brûlé qui noyait le néon (air ambre plein), reflets ROSES restés sur la route mouillée (bmCol), balises dérivées.
+- PROGRAMMES : 181 après le départ, 181 après quatre portails forcés vers des villes teintées (brouillard vert, orage jaune, nuit bleue, pluie
+  verte) — zéro compilation en course. Départ et course sans erreur couché, debout et dans le cadre de l'ordi (seul 404 : dark-triad.mp3, connu).
+- ⚠ au banc en rendu logiciel, une photo prise quelques secondes après un portail forcé montre encore l'ambiance d'avant (l'image traîne) :
+  l'état était juste (dbgTeinte). Attendre ~6 s.
+CROCHETS : `?carte=ville&meteo=brouillard&teinte=vert` · `dbgClassique('ville','pluie','jaune')` puis `dbgSaut()` · `dbgTeinte()` (teinte,
+ambiance, uFd/uVc/pied posés, brume, mode du ciel, couleur et portée du brouillard).
+LE RÉPERTOIRE DES MAPS : LA VILLE = PLUIE, NUIT, BROUILLARD, ORAGE (violette) puis NÉONS VERTS, NÉONS JAUNES, BLEU ÉLECTRIQUE sous la pluie — une
+clé « météo-teinte » (`pluie-vert`) que `banc/photos.py` et `voir.html` traduisent en `&meteo=pluie&teinte=vert` ; photos refaites, celles du
+matin, du midi et du soir retirées.
+À TRANCHER PAR SACHA : les dosages (le vert de l'horizon la nuit, l'or du jaune) se jugent sur le téléphone ; les poids du tirage (la pluie un
+peu plus souvent, l'orage un peu moins) ; si la teinte doit se DIRE au portail (aujourd'hui seul le temps s'écrit : « LA VILLE — BROUILLARD »).
+
+## LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE (2026-10-16, session « Son des pneus trop agressif » — Sacha : « le son du crissement des pneus est désagréable et empêche de profiter de la musique ; change pour un truc moins agressif et plus ASMR »)
+AVANT (CRISSEMENT v2, `skidG`, mesuré au banc) : du bruit blanc dans deux bandes ÉTROITES (Q 8 et 10) qui montaient jusqu'à 1,5 et 2,3 kHz,
+brouté 9 à 16 fois par seconde par un LFO de « stick-slip », attaque en 0,05 s. ~80 % de son énergie dans l'octave de 2 kHz (centre du
+spectre 2,3 kHz : là où l'oreille est la plus sensible et où chante la mélodie) ; posé sur GLASSY PLUCKS il montait la musique de +3 dB à
+4 kHz et +7 dB à 8 kHz — le sifflement passait AU-DESSUS d'elle.
+LA GOMME DOUCE — le bloc `<<<GOMME DOUCE>>>` (juste avant `initAudio`), préfixe `GOM`. Deux couches sans aucune résonance, calculées une fois
+au premier son (`gomBatit`, aucun fichier, rien dans la banque) :
+- LE SOUFFLE : bruit rose STÉRÉO (deux canaux indépendants : large, enveloppant), deux passe-hauts à 260 Hz (le grave est au moteur et à la
+  musique), deux passe-bas doux (−24 dB/oct.) qui s'ouvrent de ~1,3 à ~2 kHz avec la glisse et la vitesse, une respiration lente (0,6 Hz,
+  ±22 %) — le « chhhh » de la gomme qui glisse.
+- LE GRAIN : ~240 grains par seconde (rafales de 0,3 à 1 ms, au hasard dans la stéréo) → passe-bande large 1,8 kHz (Q .7) → passe-bas 4 kHz :
+  le sable, le gravier fin sous la gomme. Il ne vient que dans les vraies glisses (niveau × glisse²), plus dense avec la vitesse (`playbackRate`).
+- L'ENVELOPPE : monte en ~0,12 s, s'éteint en ~0,28 s (la constante tient jusqu'au silence) — un soupir, pas un coup de frein.
+- Même mesure que la fumée (`glisse9`, sa zone morte) et même place dans la boucle (`gomPas`, là où l'ancien était piloté) ; le creux des
+  grands moments (`dk`) respecté. Deux PORTES (débranchées hors glisse : coût nul), les 10e et 11e de `dbgVu()` (`gomSouffle`, `gomGrain`) ;
+  ajoutées aux trois listes coupées à la main (reprise de la seconde chance, QUITTER, pause).
+- L'ANCIEN reste INTACT : il se tait en course mais le BURN-OUT du garage (à Léo, `burnSon`) l'écrit toujours lui-même — vérifié en jeu :
+  burn-out lancé (`dbgBurn('tourne')`), gain de l'ancien crissement 0,115, gomme à 0. `?crisse=ancien` le rend en course (la gomme est
+  alors bâtie mais muette, pour que l'ordre des portes ne bouge pas).
+MESURÉ (banc hors ligne : le bloc lu dans `index.html` rendu image par image dans un OfflineAudioContext, l'ancien recopié à l'identique,
+même scénario — un virage pris fort à ~300 km/h, glisse .42 ; un power-slide à ~350 km/h, glisse .9-1 ; deux coups de volant à .3) :
+- sonie K : virage −37 → −42 · power-slide −29 → −34,5 (5 à 6 dB plus bas) ; RMS −32 → −35,5 ; haut-parleur de téléphone (passe-haut 200 Hz) −32 → −36.
+- centre du spectre : 2 350 → 980 Hz ; octaves (relatif au total) 2 kHz −1 → −6, 4 kHz −9 → −16, 8 kHz −17 → −32 ; corrélation gauche/droite 1,00 → 0,00.
+- sur GLASSY PLUCKS (musique ≈ niveau du jeu, effets à −3 dB) : l'ancien montait le mélange de +1 dB à 2 kHz, +3,3 à 4 kHz, +6,9 à 8 kHz ;
+  le nouveau de +0,4 dB au plus, dans toutes les octaves.
+- la queue : l'ancien coupé net (−85 dB en 0,25 s) ; le nouveau −55 → −65 → −72 → −78 sur une seconde.
+- DANS LE JEU (`dbgVu()`, drifts au clavier ↓ + braquage, pilote auto entre deux) : glisse jusqu'à .92, souffle −39 dBFS au plus fort
+  (médiane −51 quand la glisse dépasse .15), moteur −31, ancien crissement muet.
+Bancs du jeu (Chrome sans fenêtre, muet, rendu logiciel) : couché, debout, cadre de l'ordi, `?crisse=ancien`, le burn-out du garage : la course
+part, aucune erreur (le 404 de dark-triad.mp3 : faux positif connu) ; `sh garde-burnout.sh` et `sh garde-charte.sh` : OK.
+Écoute envoyée à Sacha : `musique+crissement-ancien.wav` / `musique+crissement-NOUVEAU.wav` (GLASSY PLUCKS dessous) et
+`crissement-ancien.wav` / `crissement-NOUVEAU.wav` (seuls, à leur vrai niveau), 8,5 s, le scénario ci-dessus.
+Crochets : `dbgGomme()` (prêt, glisse ressentie, gains, passe-bas, densité des grains) · `?crisse=ancien` = le son d'avant.
+À TRANCHER par Sacha (à l'oreille) : le niveau (`GOM_NIV` : souffle .11, grain .4 — +3 dB = ×1,4), la part du grain, la respiration.
+Pas touchés : la charge du drift (`DRS`, le « brrrr » qui monte à chaque palier) et les crissements ponctuels de la banque (`virage`,
+`pose.travers`, `flaque.huile`, `fig.slide.debut`).
+
+## LES GESTES DES AILES ONT LEUR SON — LE K-CHAK DES AILES EN X, LE WOUF DU DRAGON, LES CLAPS DU PIGEON (2026-10-16, session SON des ailes — la suite de « LES AILES VIVANTES », Sacha : « les ailes X-Wing, quand tu boostes, elles doivent s'ouvrir comme dans le vrai jeu Star Wars ; les ailes de dragon, elles doivent battre, celles de pigeon et tout »)
+AVANT : les gestes des ailes étaient muets (le point (2) « à trancher » des AILES VIVANTES : la banque se recuit, d'autres sessions y travaillaient).
+QUATRE SONS, bloc `<<<AILES>>>` en fin de `atelier-son/recettes.js` (famille `ailes`, bus `fx`, MONO — les deux ailes sont symétriques, derrière la caisse) :
+- `ailes.xwing` (2 variantes) — LES PLANS SE VERROUILLENT EN X : le K du pêne, le CHAK de la butée 7 ms après, la MASSE des plans qui s'arrête
+  (`doum` court, saturé), la tôle qui sonne, le FRISSON (un cliquetis à ~15 Hz qui s'éteint en 0,2 s, comme le `clac*.03*sin(t*95)` des plans),
+  « tss » (la pression), le servo qui s'arrête. Joué à l'IMAGE où `clac` passe à 1 dans `AILES_POP.xwing`.
+- `ailes.xwingFerme` (2) — LA REFERMETURE : le « tchk » du verrou qui lâche, le servo et le « pfff » pendant la course, le TONK des plans qui se
+  reposent l'un sur l'autre CUIT à +0,15 s (le ressort du bâtisseur, simulé : 0,13 / 0,15 / 0,17 s de `cib`→0 au contact à 30 / 60 / 120 images/s).
+  Joué quand `cib` repasse à 0 (0,45 s après le boost), plans encore ouverts (`x > .5`).
+- `ailes.dragon` (3) — UN COUP D'AILE : le WOUF de l'air chassé (bande rose 200-330 Hz + souffle brun qui s'ouvre puis se referme, coupé sous
+  150 Hz), la poussée (sinus grave saturé : ses harmoniques passent au téléphone), la membrane de cuir qui frémit puis CLAQUE au bas du coup.
+  Joué quand `ailBat` passe sous 0 (au plus vite de la descente), à `vol` −1 dB en croisière → +3 au boost (`-1+4*AILV.n`).
+- `ailes.pigeon` (2) — IL SORT LES AILES : deux CLAPS au-dessus du dos CUITS à +0,155 et +0,465 s (les crêtes de `|sin(clap/.62·2π)|` : les
+  ailes se touchent), le tchap des rémiges, le corps creux (~480 Hz), les barbes qui froissent, puis deux coups trop vite qui s'éteignent.
+  Joué quand `clap` passe à .62 (wingT franchit .85 au décollage : une fois par vol).
+DANS LE JEU : `ailSon(id,e,db)` (juste après `ailvTick`) — EN VOL seulement (`mode==='fall'`, ni `garageOn` ni `AILV.photo`) : la VITRINE du
+garage, qui boost toutes les 7,5 s, reste muette (un clac toutes les 7,5 s sous la musique du garage) ; une aile à peine sortie sonne plus bas
+(`20·log10(wingT)`, rien sous .25). Chaque bâtisseur l'appelle d'UN côté (`sd > 0`) : les deux battent sur la même horloge. Aucun oscillateur
+dans le jeu : `sfx` seulement. `sons-banque.js?v=29`, `sw.js` v548.
+LA CUISSON : `PCM=1 node atelier-son/cuire.js 'ailes\.'` (le Mac de Sacha n'a pas ffmpeg) — 9 tampons en WAV 24 kHz (`pcm:1`) ; CONTRÔLÉ : les
+406 autres tampons et leurs fiches identiques à l'octet près (`ui.jouer` garde son `pcm:1`). Banque 6,05 → 6,35 Mo (+300 Ko : le prix du PCM ;
+une cuisson complète AVEC ffmpeg les repassera en MP3 d'elle-même, ~4× plus légers). Lignes ajoutées à la main à `mesures.txt`.
+MESURÉ (rendu des recettes, sonie LUFS 200 ms à la sortie de la fiche ; HP = la perte au passe-haut 200 Hz, ce que rend un téléphone) :
+- sortie : `ailes.xwing` −31 · `ailes.xwingFerme` −35 · `ailes.dragon` −37 · `ailes.pigeon` −33,4 / −34,4 ; avec le bus fx (+1) et l'appel :
+  le verrou X ≈ −30 (un TOUR de figure : −32 ; la nitro tenue : −28, le verrou tombe 0,25 s après son allumage), la refermeture ≈ −34, le dragon
+  ≈ −37 en croisière (2 dB SOUS une pièce, −35 : il bat toutes les 1,15-1,4 s) et ≈ −33 au boost, le pigeon ≈ −34.
+- perte au haut-parleur : xwing 1,6-2,2 dB · xwingFerme 2,2-2,6 · dragon 3,2-3,4 · pigeon 0,2-0,4 (règle du grave : ≤ 5). Le dragon de la
+  1re version perdait 9-10 dB (90 % de son énergie sous 150 Hz : le sinus de poussée dominait de 8 dB) → corps rose remonté, brun coupé sous
+  150 Hz, poussée à .28 : 35-46 % sous 150 Hz, 41-55 % entre 150 et 500.
+- bandes (<150 · 150-500 · 0,5-2 k · 2-5 k · >5 k, %) : xwing 34-42 · 17-24 · 38 · 3-4 · 0-1 ; xwingFerme 33-35 · 17-23 · 41-49 · 1 · 0 ; pigeon
+  1-3 · 25-27 · 49-52 · 18-21 · 1-2 (le froufrou baissé de moitié : il était presque aussi fort que les claps).
+BANCS (Chrome du système sans fenêtre, `--mute-audio`, pilote CDP maison : il n'y a pas de Puppeteer sur le Mac ; sauvegarde posée avant le
+chargement : auto-école faite, musique coupée ; chaque `CCSON.play` relevé) — menu → JOUER → course, `dbgClassique('nuages','midi')`,
+`dbgHab('aile',…)`, `dbgDauphin(70,16,0)`, nitro à la touche Espace :
+- COUCHÉ (844 × 390) : ailes en X, nitro à 0,6 s → `ailes.xwing` à 0,91 s (0,6 + 0,09 de lissage d'`AILV.n` + 0,08 de déverrouillage + 0,15 de
+  course), relâchée → `ailes.xwingFerme` ; deux boosts dans un vol → verrou, refermeture, verrou ; DRAGON : 0,29 s (−2,6 dB, ailes pas encore
+  toutes sorties), 1,44 s (−1) puis au boost 2,32 et 3,15 s (+3, un coup toutes les 0,82 s) ; PIGEON : 0,33 s après le décollage (−1,3 dB) ;
+  GARAGE : 12 s de vitrine (ailes en X puis dragon) → 0 son d'aile. 0 erreur.
+- DEBOUT (390 × 844) : les mêmes temps à 10 ms près. 0 erreur. DANS LE CADRE DE L'ORDI (1 280 × 800, JOUER au zoom 1,4) : la course part,
+  le vol joue `ailes.xwing` puis `ailes.xwingFerme`. 0 erreur. `garde-burnout.sh` et `garde-charte.sh` : OK.
+- `sons.html` : la famille « Les gestes des ailes (4) » et le scénario « Les ailes en vol » (pigeon, deux coups de dragon, verrou X + coup au
+  boost, refermeture) — les six sons partent.
+À ÉCOUTER par Sacha et Léo : `sons.html` (local : il n'est pas publié) ou, en ligne, en vol avec l'aile portée ; le WAV « en situation »
+(trois pièces pour l'échelle, puis les ailes aux niveaux du jeu) a été remis à Sacha. À TRANCHER : (1) la vitrine du garage muette — la faire
+sonner (plus bas) serait une règle neuve ; (2) les autres ailes (chauve-souris, phénix, plumes d'ange, ornithoptère…) restent muettes : à
+demander une par une ; (3) les niveaux (`db` des fiches, `-1+4*n` du dragon) se règlent sans recuire le reste.
+
 ## LE FEU QUI RUGIT — LE SON DU NITRO REFAIT (2026-10-16, session « Effets sonores nitro et flamme » — Sacha : « il faut un bruit de flamme et de nitro beaucoup plus travaillé pour le nitro ; il faut que ce soit jouissif de cramer du nitro »)
 AVANT (mesuré au banc, nitro seule, au sol à 250 km/h) : la tenue = le grondement BRUN `jrG` (passe-bas 620 Hz, coupé sous 85/120 Hz
 depuis le « bruit assourdissant » du 12/10) + 25 « plops » bruns par seconde : octaves de la tenue 125 Hz −8 · 1 kHz −25 · 2 kHz −36 (relatif) ;
@@ -187,6 +315,7 @@ puis le LÂCHER, le vent, le logo) → course sans erreur ; `garde-burnout.sh` e
   route (règle du 13/10), les ailes en X ne s'ouvrent qu'au boost EN VOL. Ne pas le reproposer.
 - **À trancher** : (2) Aucun SON n'a été ajouté (le « clac »
   des ailes en X, le battement du dragon…) : la banque de sons se recuit en entier, d'autres sessions y travaillent — à faire dans une session SON.
+  → FAIT le 16/10 : « LES GESTES DES AILES ONT LEUR SON » (le K-CHAK des ailes en X et leur refermeture, le WOUF du dragon, les claps du pigeon).
 ## LES PEINTURES PAR RARETÉ, EN EUROS, ET ONZE MOTIFS ÉPIQUES (2026-10-16, Sacha : « toutes les couleurs classiques doivent être en rareté commune ; les dégradés de plusieurs couleurs, ça doit être rare, pareil pour l'or ; les épiques, c'est des motifs : léopard, tigre, fleur… ; enlève la rareté mythique et classe-les dans l'ordre de rareté dans le truc de peinture » · « génère une dizaine de peintures épiques avec des motifs ; couleur pleine : commun ; dégradée : rare ; avec des motifs : épique ; légendaire on verra après, pour l'instant pas de légendaire ; communes 1 €, rares 3 €, épiques 5 € »)
 - LA RÈGLE (`peintRegle`, bloc « LES PEINTURES PAR RARETÉ, EN EUROS, ET LES MOTIFS » juste après la palette) : un MOTIF = ÉPIQUE · un DÉGRADÉ
   (`grad`) ou l'OR (`g:'o'`) = RARE · une couleur pleine (laque, mat, métallisé, nacre, chrome, laqué noir) = COMMUNE. La rareté est écrite sur
@@ -1411,6 +1540,41 @@ enlever, tout bien mesurer » · « un bouton pour activer la nitro et voir comm
   décodés feraient ~300 Mo sur un iPhone). Banc : les sauts de moteur (5, 13, 22, 30, 12) arrivent à la mesure suivante (~3,6 s) ; 11/11 sons de
   « Suivent le moteur » dans Chrome ET WebKit.
 - PAS DISCRETS (l'élément d'origine l'est déjà) : SIFFLEUR 16-17 (claps, shaker), 29 (le roulement), 30 ; CIEL 7, 19, 26-30 (cordes, arpège de verre).
+
+## LA PASSE CHROME DEVTOOLS — CE QUI MONTE AVEC LA VITESSE (2026-10-15, session « Chrome DevTools MCP optimisation » — Sacha : « j'ai téléchargé Chrome DevTools MCP, travaille sur l'optimisation de la nouvelle version sur main en te mettant d'accord avec l'autre session de cet ordi »)
+- **Le partage** (convenu avec la session « Car Cash optimisation iPhone ») : elle garde `app-ios/` (natif.js : banc partie 9, gouverneur
+  thermique partie 10) et les mesures sur le VRAI iPhone 13 Pro ; ici, le jeu web (`VERSION PRINCIPALE/`), branche `perf-devtools`. Prévu :
+  rien sur `main` avant son banc iPhone ; POUSSÉ le 16/10 (cache v549) à la demande de Sacha (« demande à toutes les sessions qui n'ont pas
+  push de push ») — un lot sans changement d'image, que sa version de banc iPhone contenait déjà ; l'A/B des filtres n'a pas encore été relevé.
+  Les crochets `dbg*` qu'elle lit ne sont pas renommés.
+- **La méthode** : Chrome piloté par Chrome DevTools MCP, iPhone couché émulé (844 × 390 ×3, tactile, UA iOS), `?palier=2`, NETTE (DPR 1,5),
+  `dbgSable(1)` + `dbgAuto(1,0,{nit:1})`. Traces lues FIL PAR FIL (fil principal, processus GPU, compositeur). IMAGE FIGÉE : la boucle reçoit
+  toujours le même horodatage (dt = 0 : la simulation s'arrête, le rendu continue) — mêmes objets, même HUD, A/B sans le bruit de la course.
+- **MESURÉ, le WebGL du jeu (Mac M4)** : au volcan à pleine vitesse avec NITRO, la puce prend 2-3,5 ms par image (216 appels, 545 k triangles,
+  740 610 px). Masquer transparents, additifs, particules, caisse ou passe d'ombre : rien de mesurable ; flou −0,7 ms ; décor opaque −1,2 ms ;
+  résolution ×0,7 −0,9 ms. Appels et triangles ne montent PAS avec la vitesse. Le M4 ne départage pas : la puce de l'iPhone se juge sur l'iPhone.
+- **MESURÉ, ce qui monte avec la vitesse dans Chrome = LE HUD** : à vH > 600, 46-52 i/s avec le HUD normal, **60 i/s pile** quand les `filter`
+  CSS sont coupés (7 alternances de 2,6 s) ; à basse vitesse, aucune différence. Image figée : le processus GPU de Chrome est occupé à 86-88 %,
+  22 % sans les filtres, 16 % sans le HUD. Les coupables : les contours d'encre `--contourH` / `--contourP` (5 `drop-shadow` enchaînés + un halo)
+  sur ~130 éléments du HUD, dont plusieurs changent à CHAQUE image à grande vitesse (#ajVols b.a ~60/s, b.chV ~40/s, #avVal ~28/s, .pw, #nxVit b).
+  NON ADDITIF : couper une seule famille (texte uni, chiffres en dégradé, pseudo-éléments, autres) ne change rien — dès qu'un chiffre change,
+  Chrome repeint toute sa tuile avec TOUS les filtres qu'elle contient.
+- **FAIT (même image, même son)** :
+  · `jumelle(el,a,b)` : l'anneau d'arrivée (`volgImpact`), l'éclat de la barre (`nbPrend`) et la cellule d'aura (`volgArrive`) se relançaient par
+    `void offsetWidth` (styles + mise en page du HUD recalculés à chaque gain arrivé) → animations JUMELLES `volImpact2`, `nbPrendK2`, `ajPrend2`
+    (classes `on2`, `prend2`, et la règle « réduire les animations »), comme `flashEcran`. Trace après : 0 mise en page forcée venant d'elles
+    (avant : ~35 ms de lectures forcées sur 5 s de course rapide).
+  · `raseSnd` : la consigne 0 du rase-bord partait à CHAQUE image hors du bord (53 ms sur 5 s) → une fois, au décrochage (`raseSnd._on`).
+- **EN ATTENTE du banc iPhone** (`-ccBanc -ccAB filtres`, session iPhone : 10 phases de 5 s, HUD tel quel / `filter:none` partout) : si Safari
+  (WKWebView) gagne comme Chrome, le contour d'encre se refait SANS filtre, même dessin — `text-shadow` aux 15 décalages de la chaîne
+  (x ∈ {−2, 0, 2} × y ∈ {−2, 0, 2, 4, 6} pour `--contourH`) sur le texte uni ; pour les chiffres en dégradé (`background-clip:text`, où un
+  text-shadow passerait PAR-DESSUS), un double en `::before` derrière. À trancher par Sacha (la typo du HUD, pôle INTERFACE).
+- Vu, pas touché : `hudColonne` (10 Hz) et `volgTick` (2 Hz) lisent encore des rectangles (`zRect`) — leur coût vient des animations CSS non
+  composées de la jauge (`nbRaye`, `nbBout`, `nbReflet`, `k5PwBat`), mesurées à ~0,05 ms par image : pas la peine de les réécrire. Après une
+  mort en bac à sable, la puce monte à 7-11 ms (M4) pendant 2-3 s à basse vitesse : à creuser. Ce journal contient deux fois son début
+  (une 2e copie commence à la 2e ligne « # CASH CAR — le JOURNAL ») : héritage d'une fusion, pas touché.
+- Outils (hors dépôt, sur le Mac) : `~/cash-car/perf-traces/` — `fils.cjs` (occupation par fil), `analyse.cjs` / `analyse2.cjs` (profil JS, qui
+  force les mises en page), `styles.cjs` (recalculs de styles et leurs déclencheurs), `compare.cjs` (deux traces, par image).
 
 ## LE MOTEUR EN ÉCLATS (2026-10-15, pôle TECHNIQUE — Léo : « la flamme du moteur normal, sans nitro, plus déconstruite : là on dirait une bougie, c'est pas très réaliste ; ça part normalement un peu en éclats ; plus impulsive mais pas trop — là on dirait un turboréacteur ; le moteur de base, ça doit être stylé » ; reformulé, il a choisi ÉCLATS FACETTÉS ; puis « c'est encore la bougie flamme ? » — oui : les éclats n'étaient pas encore sur le main)
 - Hors nitro, la goutte lisse (JETS) se cache — il ne reste que la lueur ronde dans la bouche du pot ; la flamme EST une gerbe d'éclats
