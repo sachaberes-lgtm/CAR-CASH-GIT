@@ -10474,7 +10474,7 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=29"></script>
+<script defer src="sons-banque.js?v=30"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=6"></script>
 <script>
@@ -12530,11 +12530,22 @@ function carVit(dt){
   const d=VIT9.f.dot(VIT9.v)/Math.max(1e-3,VIT9.v.length());   // +1 : on regarde la calandre · −1 : on regarde les feux
   const fr9=VIT9.frein;
   const av=THREE.MathUtils.smoothstep(d,-.2,.8),ar=THREE.MathUtils.smoothstep(-d,-.2,.8);
-  HALO.hM.opacity=boom?0:.95*(.3+.7*av);
-  for(const s9 of HALO.h){const k=s9.userData.k*(.55+.5*av)*(1+.3*nuit)*(1+.45*LVL.nuit);s9.scale.set(k,k,1);} // (2026-09-30) MINUIT EN VILLE : des phares PUISSANTS
+  /* (2026-10-16, Léo, deux photos à l'appui : la caisse noire vue de trois-quarts — « des boules de lumière comme ça, c'est pas réaliste, ça
+     cache » — et l'orange vue de face — « un peu lumineux, mais pas trop ») EN BOUTIQUE le halo des phares ne s'allume qu'en FACE : opacité et
+     taille suivent av² (de face ≈ comme avant, de trois-quarts un quart, de profil rien) — la boule qui débordait du nez a disparu, la lueur sur
+     le phare reste. `VIT9.bqK` fond le passage (0,25 s) ; en course et au garage, rien ne change. */
+  const bqV=garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut||Math.abs(GBQ.lev||0)>.02);
+  VIT9.bqK=(VIT9.bqK||0)+((bqV?1:0)-(VIT9.bqK||0))*Math.min(1,dt*4);const bk9=VIT9.bqK,av2=av*av;
+  HALO.hM.opacity=boom?0:.95*(.3+.7*av)*(1-bk9)+.9*av2*bk9;
+  for(const s9 of HALO.h){const k=s9.userData.k*((.55+.5*av)*(1-bk9)+(.3+.6*av2)*bk9)*(1+.3*nuit)*(1+.45*LVL.nuit);s9.scale.set(k,k,1);} // (2026-09-30) MINUIT EN VILLE : des phares PUISSANTS
   // LES FAISCEAUX AU SOL (CARPOOL.head) : en plein jour, un phare ne dessine rien sur le bitume — la nappe chaude se retire de moitié ;
   // la nuit (ville, orbite) elle mord pour de bon. Ce sont les seuls à rester au sol, et ils sont DEVANT la caisse.
   if(CARPOOL.head&&CARPOOL.head.userData.op!=null)CARPOOL.head.material.opacity=Math.min(1,CARPOOL.head.userData.op*(.5+.6*nuit)*(1+1.1*LVL.nuit));
+  /* (2026-10-16, Léo : « dans la boutique, enlève le rayon plat lumineux des phares ; les phares doivent rester un peu lumineux ») EN BOUTIQUE la
+     nappe des faisceaux se retire : la caisse lévite, le plan peint restait au ras du plateau et traînait un rayon sur le sol blanc. Les HALOS des
+     phares (HALO.h, plus haut) restent, adoucis : ce sont eux qui gardent les phares allumés. Rendue à la sortie (la course la repose de toute façon). */
+  if(CARPOOL.head){
+    if(bqV){if(CARPOOL.head.visible){CARPOOL.head.visible=false;VIT9.phBq=1;}}else if(VIT9.phBq){CARPOOL.head.visible=true;VIT9.phBq=0;}}
   HALO.tM.opacity=boom?0:Math.min(1,.85*(.35+.65*ar)+.2*fr9);
   HALO.tM.color.copy(VIT9.tC).lerp(VIT9.tF,fr9);
   for(const s9 of HALO.t){const k=s9.userData.k*(.85+.2*ar+.65*fr9)*(1+.2*nuit);s9.scale.set(k,k,1);}
@@ -20266,7 +20277,7 @@ PAL.B.memTexBillets=[.5,1,1]; // (2026-10-14, passe perf mobile) l'échelle de l
 function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie de richesse) + le billet ₿ · la rangée du bas : les confettis
   if(PLA.texB)return PLA.texB;
   const kT=PAL.b('memTexBillets',1),cv=document.createElement('canvas');cv.width=2048*kT;cv.height=768*kT;const x=cv.getContext('2d');if(kT!==1)x.scale(kT,kT); // (2026-10-14, passe perf mobile) même dessin, mêmes coordonnées, toile taillée au palier
-  for(let k=0;k<8;k++){let t=null;try{t=k<7?richTexBillet(RICH_BILLETS[k]):plaBilletBtc();}catch(e){}
+  for(let k=0;k<8;k++){let t=null;try{t=k<7?richTexBillet(RICH_BILLETS[k%RICH_BILLETS.length]):plaBilletBtc();}catch(e){} // (2026-10-16) la série a 5 billets : les cases restantes la répètent
     if(t&&t.image)x.drawImage(t.image,(k%4)*512,Math.floor(k/4)*256+10,512,236);if(t&&t.image)toileRend(t.image);if(t&&t.dispose)t.dispose();} // (2026-10-14, passe perf mobile) les 8 toiles de travail 512 × 236 (3,9 Mo) rendues tout de suite : elles ne vont jamais à la puce
   ['#2bff88','#ffd23e','#ffffff','#ff9a2e'].forEach(function(c,i){const g=x.createLinearGradient(i*512,512,i*512+512,768);g.addColorStop(0,c);g.addColorStop(1,'#ffffff');x.fillStyle=c;x.fillRect(i*512+40,552,432,176);x.globalAlpha=.35;x.fillStyle=g;x.fillRect(i*512+40,552,432,60);x.globalAlpha=1;});
   const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=texLibere(t);return t; // (2026-10-14, passe perf mobile) 2048 × 768 : 6,3 Mo rendus après l'envoi (paliers 0-1)
@@ -23853,6 +23864,16 @@ const CARS=[
  {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
   fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
   desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
+ // (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie », puis « un rose plus pâle, vraiment Cayenne ») LA POUPÉE (voir SHAPES.poupee) :
+ // le grand SUV de luxe allemand, en rose poupée pâle. Pas de marque (ni le nom, ni le blason) : un petit cœur à la place. Ajoutée EN DERNIER.
+ {name:'LA POUPÉE',shape:'poupee',color:0xf49bcb,accent:0xfdf0f6,maxKmh:445,accel:54,turn:3.1,h:1.7,w:2.0,l:4.93,spoiler:0,rar:'epique',
+  fx:{jet:0xff5cb0,core:0xffe2f1,trail:[1.5,.5,1.05],light:0xff5cb0},
+  desc:'Rose poupée, cuir crème, 650 chevaux. Elle se gare en double file, et c\'est la file qui s\'excuse.'},
+ // (2026-10-16, Léo : « Porsche Taycan 4S », « black edition bien glossy ») L'ONYX (voir SHAPES.onyx) : la berline électrique, NOIR LAQUÉ.
+ // Pas de marque (ni le nom, ni le blason). Électrique : pas de pots, deux fentes bleues dans le diffuseur. Ajoutée EN DERNIER.
+ {name:'L\'ONYX',shape:'onyx',color:0x040405,accent:0xd31f2a,maxKmh:450,accel:56,turn:3.2,h:1.38,w:1.97,l:4.96,spoiler:0,rar:'epique',
+  fx:{jet:0x6fd6ff,core:0xe8fbff,trail:[.3,1.0,1.5],light:0x46c8ff},
+  desc:'Noir laqué, zéro bruit, 571 chevaux. Tu la vois dans ton rétro, et l\'instant d\'après tu ne vois plus que ses feux.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -24333,6 +24354,16 @@ Object.assign(I18N,{
 Object.assign(I18N,{
  "LA DÉFERLANTE":"THE BREAKER",
  "Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d'air.":"A rogue wave that learned to drive. It curls right over the back of your neck, and you breathe inside an air bubble."
+});
+// (2026-10-16) L'ONYX
+Object.assign(I18N,{
+ "L'ONYX":"ONYX",
+ "Noir laqué, zéro bruit, 571 chevaux. Tu la vois dans ton rétro, et l'instant d'après tu ne vois plus que ses feux.":"Gloss black, zero noise, 571 horsepower. You spot her in your mirror, and a second later all you see are her taillights.",
+});
+// (2026-10-16) LA POUPÉE
+Object.assign(I18N,{
+ "LA POUPÉE":"THE DOLL",
+ "Rose poupée, cuir crème, 650 chevaux. Elle se gare en double file, et c'est la file qui s'excuse.":"Doll pink, cream leather, 650 horsepower. She double-parks, and traffic apologizes.",
 });
 // (2026-10-14) LE DOGE
 Object.assign(I18N,{
@@ -28864,6 +28895,8 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  a_eternelle:{p:[{t:'rond',r:0.04,k:'b',kb:'x',dbl:1,k2:'x',pts:[[-0.23,0.47,-2.349],[-0.08,0.47,-2.349],[0.08,0.47,-2.349],[0.23,0.47,-2.349]]}]},
  nuage:{p:[{t:'nuage',r:0.075,pts:[[0.46,0.42,-2.43],[-0.46,0.42,-2.43]]}]},
  lingot:{p:[{t:'rect',w:0.11,h:0.11,k:'o',e:0.018,pts:[[0.46,0.42,-2.56],[-0.46,0.42,-2.56]]}]},
+ poupee:{p:[{t:'rond',r:0.045,k:'c',dbl:1,pts:[[0.52,0.40,-2.485],[0.63,0.40,-2.485],[-0.52,0.40,-2.485],[-0.63,0.40,-2.485]]}]}, // (2026-10-16) LA POUPÉE : les quatre sorties de la Cayenne, deux paires aux coins du diffuseur
+ onyx:{p:[{t:'fente',w:0.30,h:0.035,k:'s',lueur:'G',pts:[[0.42,0.33,-2.495],[-0.42,0.33,-2.495]]}]}, // (2026-10-16) L'ONYX : électrique — pas de pots, deux fentes qui luisent bleu au bas du diffuseur
 };
 /* ---- FIN DES POTS D'ÉCHAPPEMENT ---- */
 /* LES MATIÈRES. La couleur vient des SOMMETS ; la matière ne dit que comment la surface répond.
@@ -32636,6 +32669,250 @@ Object.assign(SHAPES,{
    elle perdait son inox. Neuf lames, un ton sur deux ; pas de rainure fine (de loin elle scintille en pointillé).
    Électrique : pas de pot. Les tuyères sortent sous le bouclier arrière (fiche `pots`).
    ========================================================================================== */
+/* LA POUPÉE (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie » · « un rose plus pâle, une Cayenne, vraiment Cayenne : le devant
+   un peu arrondi, un peu gros ; elle a une forme unique, fais ce qu'il faut pour la retranscrire ; pas besoin du logo, va dans l'exactitude de
+   la forme »). Calée sur des photos de la Cayenne 2018-2025 (profil, trois-quarts, face, poupe). Au kit low-poly, à facettes. */
+SHAPES.poupee=function(K){
+  /* LA POUPÉE — le grand SUV de luxe allemand (la ligne de la Cayenne 2018-2023), en rose poupée pâle. Calée sur des photos (profil,
+     trois-quarts avant, gros plans du nez et des jantes). PEU DE PLIS : chaque arête tombe sur une vraie ligne de la voiture —
+     le bas de caisse, la nervure basse des portières, l'ÉPAULE, la ceinture, la crête des ailes ; le nez s'arrondit en TROIS grandes
+     facettes (en plan et en profil) ; les phares, les bouches et le bandeau de feux sont des facettes de la caisse peintes, pas des
+     pièces posées : ils suivent la forme au millimètre. */
+  const U=LPU,R=.385,ZF=1.48,ZR=-1.42,ZE=2.465,ZB=-2.465;
+  const P=K.kit({p:{g:'p',c:0xf49bcb},k:{g:'m',c:0x161419},K:{g:'g',c:0x0c0b0f},c:{g:'c',c:0xeef0f4},
+    g:{g:'g',c:0x1d1820},W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff1a3a},r:{g:'l',c:0x7a0a1e},O:{g:'l',c:0xffa21a},m:{g:'s',c:0x2c2930},
+    s:{g:'s',c:0xd9c9d2},e:{g:'s',c:0xeceef1}});
+  const AR=[[0,2*R+.05],[R*.72,2*R+.025],[R+.05,R*1.12],[R+.17,.31]];
+  const CW=.90,RF=-.10,BP=-.34,RD=-1.13,RR=-1.97,RB=-2.30,QT=-1.61; // pied de pare-brise · haut du pare-brise · montant B · fin de la portière arrière · becquet · bas de lunette · pointe de la custode
+  const NZ=[ZE-.42,ZE-.30,ZE-.18,ZE-.06,ZE-.025,ZE], NB=[ZB,ZB+.05,ZB+.15,ZB+.30];  // les stations du NEZ et de la POUPE : peu, bien placées
+  const zs=[...NB,RB,-2.14,RR,QT,RD-.02,RD+.02,BP-.04,BP+.04,RF,.86,CW,1.65,...NZ];
+  for(const w of [ZF,ZR])for(const d of [R*.72,R+.05,R+.17])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[ZB,1.17],[-2.40,1.20],[RB,1.255],[-2.14,1.42],[RR,1.585],[-1.60,1.645],[RD,1.68],[BP,1.695],[RF,1.665],[.86,1.19],[CW,1.15],[1.65,1.075],[ZE-.42,1.005],[ZE,.975]],z),
+        xW=z=>U.lin([[ZB,.93],[-2.30,.955],[-1.90,.965],[2.10,.965],[ZE,.955]],z),                    // la voie des flancs
+        xF=z=>.018*U.cl(1-Math.abs(z-ZF)/.70,0,1)+.036*U.cl(1-Math.abs(z-ZR)/1.0,0,1),              // les ailes bombées sur les roues
+        bL=z=>U.lin([[ZB,1.15],[-2.38,1.18],[RB,1.205],[QT,1.215],[RD,1.195],[BP,1.17],[RF,1.16],[CW,1.145],[1.65,1.085],[ZE-.42,1.0],[ZE-.18,.975],[ZE,.95]],z), // la ceinture · devant, le haut des phares
+        crH=z=>U.lin([[CW,.02],[1.65,.04],[ZE-.42,.05],[ZE,.04]],z),                                 // la crête de l'aile au-dessus du capot
+        yE=z=>U.lin([[RB,1.275],[-2.14,1.39],[RR,1.525],[QT,1.565],[RD,1.585],[BP,1.60],[RF,1.585],[.86,1.20],[CW,1.152]],z), // le rebord du pavillon (et les montants)
+        xG=z=>U.lin([[RB,.80],[RR,.76],[BP,.74],[RF,.75],[.86,.88],[CW,.90]],z),
+        yWin=(z,bl,ye)=>z<QT?bl:z<RD?U.lin([[QT,bl+.004],[RD,ye-.035]],z):ye-.035,          // le haut des vitres : la custode file en pointe
+        cab=z=>z>RB-.001&&z<CW+.001;
+  // LE NEZ ET LA POUPE S'ARRONDISSENT en trois facettes : en plan (x se resserre) et en profil (le haut se referme vers le bouclier)
+  const kxF=z=>U.lin([[ZE-.42,1],[ZE-.30,.975],[ZE-.18,.915],[ZE-.06,.74],[ZE-.025,.58],[ZE,.44]],z),
+        kTF=z=>U.lin([[ZE-.18,1],[ZE-.06,.90],[ZE-.025,.78],[ZE,.64]],z),
+        kBF=z=>U.lin([[ZE-.18,1],[ZE-.06,.96],[ZE,.80]],z),
+        kxR=z=>U.lin([[ZB,.70],[ZB+.05,.86],[ZB+.15,.95],[ZB+.30,1]],z),
+        kTR=z=>U.lin([[ZB,.84],[ZB+.05,.94],[ZB+.15,.99],[ZB+.30,1]],z),
+        kBR=z=>U.lin([[ZB,.70],[ZB+.05,.86],[ZB+.15,.96],[ZB+.30,1]],z);
+  const raw=z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.31),c=yC(z),xw=xW(z),xf=xw+xF(z),bl=bL(z),
+          ner=z>ZR+R+.12&&z<ZF-R-.12?U.cl(Math.min(z-(ZR+R+.12),(ZF-R-.12)-z)/.30,0,1):0,   // la NERVURE basse des portières (entre les roues)
+          y2=Math.max(yb+.06,.42),
+          y3=Math.max(y2+.01,z>ZE-.42?.62:U.lin([[ZF,.60],[ZR,.67]],z)),                     // devant : le haut des bouches · flanc : la nervure, qui monte vers l'arrière
+          off=z>ZE-.42?U.lin([[ZE-.42,.10],[ZE-.30,.15],[ZE-.18,.16],[ZE-.06,.125],[ZE,.06]],z):z<RB?U.lin([[ZB,.045],[RB,.06]],z):U.lin([[RB,.06],[RD,.10]],z),
+          y4=Math.max(y3+.02,bl-off),                                                         // l'ÉPAULE · devant : le bas des phares · derrière : le bas du bandeau
+          s=[[0,yb],[xf-.08,yb],[xf-.004,y2],[xf+.006+.018*ner,y3],[xf+.014,y4],[xw-.04,bl]];
+    const x5=xw-.04;
+    if(cab(z)){const ye=Math.max(bl+.006,yE(z)),yw=Math.min(ye-.002,Math.max(bl+.002,yWin(z,bl,ye))),XV=y=>x5-(y-bl)*.42; // le PLAN des vitres
+      const xe=Math.min(XV(ye),z>RF?9:xG(z)+.02);
+      s.push([XV(yw),yw],[xe,ye],[xe-.14,Math.max(ye+.002,Math.min(c-.01,ye+.045))],[0,Math.max(ye+.006,c)]);}
+    else if(z>CW){const cr=Math.max(bl+.03,c+crH(z));
+      s.push([xw-.10,cr],[xw-.30,cr-.014],[xw-.52,Math.max(c+.004,cr-.04)],[0,c+.016]);}
+    else{s.push([xw-.09,bl+.03],[xw-.20,Math.max(bl+.05,c-.01)],[xw-.50,c],[0,c+.006]);}
+    return s;};
+  const S=z=>{const s=raw(z);
+    if(z>ZE-.43){const kx=kxF(z),kt=kTF(z),kb=kBF(z),ym=.58;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
+    if(z<ZB+.31){const kx=kxR(z),kt=kTR(z),kb=kBR(z),ym=.72;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
+    return s;};
+  // ---- LA PEINTURE : chaque facette choisit sa matière d'après sa bande et sa place ----
+  P.loft(zs,S,(j,z)=>{
+    if(j<0)return 'p';                                                       // les deux bouchons : des pièces posées dessus (plus bas)
+    if(j===0||j===1)return 'k';                                              // dessous, bas de caisse noir
+    if(z>ZE-.43){                                                            // LA FACE
+      if(j===2)return z>ZE-.30&&z<ZE-.026?'k':'p';                           // les BOUCHES des coins (la lame couleur caisse vers le milieu)
+      if(j===4)return z>ZE-.35?'K':'p';                                      // LES PHARES : la facette sous la crête de l'aile, qui s'enroule
+      return 'p';}
+    if(z<ZB+.31){if(j===2)return 'k';if(j===4)return 'L';if(j===3)return 'p';} // LA POUPE : diffuseur, BANDEAU de feux qui s'enroule
+    if(!cab(z))return 'p';
+    if(j===5){if(z>BP+.04)return z>.86?'p':'g';if(z>BP-.04)return 'K';if(z>RD+.02)return 'g';if(z>RD-.02)return 'K';if(z>QT)return 'g';return 'p';} // vitres · montant B · montant C · custode
+    if(j===6)return z>.86?'p':z>QT?'c':'p';                                  // le jonc chromé autour des vitres
+    if(j>=7){if(z>RF+.02)return 'g';if(z<RR&&z>RB+.01)return 'g';return 'p';} // pare-brise, lunette, toit
+    return 'p';});
+  // ---- LES DÉTAILS POSÉS SUR LA PEAU ----
+  const wAt=(z,y)=>{const s=S(z);for(let i=1;i<s.length-1;i++){const a=s[i],b=s[i+1];if(y>=a[1]&&y<=b[1]&&b[1]>a[1])return a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);}return 0;};
+  const zFace=(x,y,sg)=>{let lo=sg>0?1.6:ZB,hi=sg>0?ZE:-1.6;for(let i=0;i<30;i++){const m=(lo+hi)/2,ok=wAt(m,y)>=x;if(sg>0){if(ok)lo=m;else hi=m;}else{if(ok)hi=m;else lo=m;}}return sg>0?lo:hi;};
+  const decal=(k,w,h,d,x,y,sg,e)=>{const z=zFace(Math.abs(x),y,sg),e9=.012,zx=(zFace(Math.abs(x)+e9,y,sg)-zFace(Math.max(0,Math.abs(x)-e9),y,sg))/(2*e9)*(x<0?-1:1),
+      zy=(zFace(Math.abs(x),y+e9,sg)-zFace(Math.abs(x),y-e9,sg))/(2*e9);
+    let n=sg>0?[-zx,-zy,1]:[zx,zy,-1];const l=Math.hypot(n[0],n[1],n[2]);n=n.map(v=>v/l);
+    const o=d/2-(e||0);P.box(k,w,h,d,x+n[0]*o,y+n[1]*o,z+n[2]*o,Math.atan2(-n[1],n[2]),Math.asin(n[0]),0);};
+  // le bouchon du nez : la grande bouche du milieu, ses lames ; la barre couleur caisse au-dessus reste la peau
+  {const s=S(ZE),y0=s[0][1],y3=s[3][1],w=wAt(ZE,(y0+y3)/2)-.005;P.box('k',2*w,y3-y0,.004,0,(y0+y3)/2,ZE+.002);
+   for(let i=0;i<3;i++)P.box('m',2*w-.04,.012,.01,0,y0+(y3-y0)*(.3+i*.22),ZE+.006);}
+  P.sym(sd=>{
+    for(let i=0;i<3;i++)decal('m',.13,.014,.03,sd*.69,.45+i*.055,1,.012);  // les lames des bouches des coins
+    // les QUATRE POINTS de lumière et le projecteur, sur la facette du phare
+    const s=S(ZE-.12),yh=(s[4][1]+s[5][1])/2;
+    for(const q of [[.60,.012],[.66,.012],[.60,-.016],[.66,-.016]])decal('W',.04,.016,.03,sd*q[0],yh+q[1],1,.008);
+    decal('c',.07,.045,.03,sd*.79,yh+.004,1,.008);decal('W',.05,.03,.03,sd*.79,yh+.004,1,.002);
+    // les flancs : rétros couleur caisse sur pied noir, poignées, joints de portières
+    P.prism('k',[[.88,1.12],[.70,1.12],[.74,1.17],[.84,1.17]],.07,sd*.925);P.box('p',.07,.05,.07,sd*.975,1.165,.78);
+    P.box('p',.10,.115,.21,sd*1.025,1.19,.76,0,sd*.10,0);P.box('p',.06,.09,.16,sd*1.08,1.19,.73,0,sd*.18,0);
+    P.box('K',.012,.085,.15,sd*1.105,1.19,.70,0,sd*.18,0);P.box('O',.012,.016,.12,sd*1.03,1.137,.76,0,sd*.10,0);
+    P.box('c',.02,.022,.16,sd*.982,1.06,.42);P.box('c',.02,.022,.16,sd*.988,1.08,-.64);
+    for(const z of [.86,BP,RD])P.box('k',.012,.58,.012,sd*.984,.84,z);
+    decal('r',.10,.03,.02,sd*.78,.56,-1,.006);                               // les catadioptres
+    // LES ÉTRIERS de frein, blancs, derrière les jantes (ils ne tournent pas)
+    for(const w of [ZF,ZR]){const ph=2.55,rr=.215;P.box('e',.07,.085,w>0?.22:.18,sd*(.83+.12-.075),R+Math.sin(ph)*rr,w+Math.cos(ph)*rr,Math.PI/2-ph,0,0);}
+  });
+  // ---- LA POUPE ----
+  {const s=S(ZB);P.box('L',2*s[4][0],s[5][1]-s[4][1],.004,0,(s[4][1]+s[5][1])/2,ZB-.002);              // le bandeau, sur le bouchon
+   P.box('k',2*s[2][0],s[3][1]-s[0][1],.004,0,(s[0][1]+s[3][1])/2,ZB-.002);}                            // le diffuseur
+  P.sym(sd=>{for(let i=0;i<4;i++)decal('r',.05,.02,.02,sd*(.60+i*.07),1.12,-1,.004);});                // les segments des feux
+  decal('K',.50,.15,.02,0,.80,-1,.008);decal('s',.46,.11,.02,0,.80,-1,.0);  // la plaque
+  {const H=[];for(let i=0;i<=24;i++){const t=i/24*Math.PI*2;H.push([.005*16*Math.pow(Math.sin(t),3),.005*(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))]);}
+   const zh=zFace(0,1.00,-1);P.plate('c',H.map(p=>[p[0],p[1]+1.00]),.02,zh-.014);}  // un petit CŒUR chromé à la place du blason
+  // le becquet de pavillon qui déborde sur la lunette, le feu stop dessous
+  P.prism('p',[[RR+.06,yC(RR+.06)-.004],[RR-.10,yC(RR)-.035],[RR-.12,yC(RR)-.018],[RR+.06,yC(RR+.06)+.014]],1.30,0);
+  P.box('L',.50,.012,.05,0,yC(RR)-.03,RR-.08,.38,0,0);
+  K.commit(P);
+  // ---- LES JANTES : la « 5 doubles branches » de la Cayenne — dix branches argent en V, fond noir, la jante GRANDE (pneu bas),
+  // le disque, le cache-moyeu ; posées DANS la roue (`roueDeco` : elles tournent avec elle, le miroir des roues de gauche suit).
+  const JW=.31,hw=JW/2,fx=hw-.035,RJ=R*.74,J=lpKit({k:{g:'m',c:0x16171a},c:{g:'c',c:0xe4e8ed},d:{g:'m',c:0x141518},b:{g:'s',c:0x2e2925}});
+  J.lathe('k',[[RJ,-hw],[R*.90,-hw],[R,-hw*.62],[R,hw*.62],[R*.90,hw],[RJ,hw]],20,0,0,0,'x');   // le pneu, bas
+  J.lathe('d',[[RJ,-hw+.02],[RJ,fx-.004]],20,0,0,0,'x');J.lathe('d',[[RJ,-hw+.03],[R*.10,-hw+.03]],20,0,0,0,'x'); // le fût, le fond (au fond de la roue)
+  J.lathe('d',[[R*.26,fx-.004],[R*.10,fx-.004]],16,0,0,0,'x');                                 // le voile du moyeu : entre les branches, on voit le disque et l'étrier
+  J.lathe('b',[[R*.56,fx-.05],[R*.26,fx-.05]],20,0,0,0,'x');                                   // le disque de frein
+  J.lathe('c',[[RJ+.002,fx-.006],[RJ*.94,fx+.012]],24,0,0,0,'x');                              // la lèvre
+  const pt=(a,r,x)=>[x,Math.sin(a)*r,Math.cos(a)*r],XF=fx+.016,XB=fx-.004;
+  const branche=(a0,a1,r0,r1,w0,w1)=>{const q=[],m=(a,r,dw)=>{const y=Math.sin(a)*r,z=Math.cos(a)*r,ty=Math.cos(a),tz=-Math.sin(a);return [y+ty*dw,z+tz*dw];};
+    const A=m(a0,r0,-w0/2),B=m(a1,r1,-w1/2),C=m(a1,r1,w1/2),D=m(a0,r0,w0/2),F=(p,x)=>[x,p[0],p[1]];
+    J.tri('c',F(A,XF),F(B,XF),F(C,XF));J.tri('c',F(A,XF),F(C,XF),F(D,XF));                 // la face usinée, argent
+    for(const [p,q2] of [[A,B],[C,D]]){J.tri('d',F(p,XF),F(p,XB),F(q2,XB));J.tri('d',F(p,XF),F(q2,XB),F(q2,XF));}}; // les flancs, noirs
+  for(let i=0;i<5;i++){const a=i/5*Math.PI*2;for(const e of [-1,1])branche(a+e*.06,a+e*.24,R*.16,RJ*.95,.040,.030);}
+  J.cyl('c',R*.17,.03,10,fx+.002,0,0,'x');J.cyl('d',R*.11,.012,10,fx+.018,0,0,'x');           // le moyeu, son cache
+  const JG=J.done();
+  return {hl:[.66,.90,2.42],tl:[.72,1.11,-2.47],wx:.83,wzF:ZF,wzR:-ZR,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
+};
+/* L'ONYX (2026-10-16, Léo, en interview sur LA POUPÉE : « Porsche Taycan 4S », « black edition bien glossy », « un peu plus de facettes,
+   plus rond » → « une Taycan 4S noire, EN PLUS » de la Cayenne rose). Calée sur des photos de la Taycan (profil, face, poupe, jante). */
+SHAPES.onyx=function(K){
+  /* L'ONYX — la berline électrique de Zuffenhausen (la ligne de la Taycan 4S), NOIR LAQUÉ. Calée sur des photos (profil, face, poupe,
+     jante). Ce qui la fait reconnaître : le capot très BAS qui plonge entre deux ailes en bosse, les phares compacts et, dessous, la
+     FENTE verticale noire (le rideau d'air), la grande bouche basse en sourire, le pavillon en fastback, les HANCHES arrière qui
+     débordent, le bandeau de feux d'une aile à l'autre, la jante bicolore et les étriers ROUGES. Les arêtes tombent sur ses vraies
+     lignes ; les phares, les bouches et le bandeau sont des facettes de la caisse peintes. */
+  const U=LPU,R=.36,ZF=1.52,ZR=-1.38,ZE=2.48,ZB=-2.48;
+  const P=K.kit({p:{g:'g',c:0x040405},k:{g:'m',c:0x141217},K:{g:'g',c:0x0c0b0f},c:{g:'c',c:0xc9ced6},C:{g:'c',c:0x8a9098},
+    g:{g:'g',c:0x1b2532},W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff1a3a},r:{g:'l',c:0x7a0a1e},O:{g:'l',c:0xffa21a},m:{g:'s',c:0x2c2930},
+    s:{g:'s',c:0x2a2c31},e:{g:'s',c:0xd31f2a}});
+  const AR=[[0,2*R+.05],[R*.72,2*R+.025],[R+.05,R*1.12],[R+.16,.17]];
+  const CW=.88,RF=-.20,BP=-.48,RD=-1.25,RR=-1.15,RB=-2.02,QT=-1.62; // pied de pare-brise · haut du pare-brise · montant B · montant C · haut de lunette · bas de lunette · pointe de la custode
+  const NZ=[ZE-.48,ZE-.40,ZE-.34,ZE-.25,ZE-.12,ZE-.05,ZE-.02,ZE], NB=[ZB,ZB+.06,ZB+.18,ZB+.35];
+  const zs=[...NB,-2.25,RB,-1.80,QT,RD-.02,RD+.02,RR,-.85,BP-.04,BP+.04,RF,.30,CW,1.40,1.90,...NZ];
+  for(const w of [ZF,ZR])for(const d of [R*.72,R+.05,R+.16])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[ZB,.95],[-2.38,.985],[-2.25,.995],[RB,1.012],[-1.80,1.10],[RR,1.31],[-.85,1.355],[BP,1.375],[RF,1.355],[.30,1.16],[CW,.955],[1.40,.865],[1.90,.785],[ZE-.30,.735],[ZE,.70]],z),
+        xW=z=>U.lin([[ZB,.90],[-2.30,.945],[-1.90,.955],[2.10,.955],[ZE,.94]],z),                     // la voie des flancs
+        xF=z=>.024*U.cl(1-Math.abs(z-ZF)/.70,0,1)+.058*U.cl(1-Math.abs(z-ZR)/1.10,0,1),             // les ailes ; les HANCHES arrière
+        bL=z=>U.lin([[ZB,.90],[-2.38,.93],[RB,.965],[QT,.975],[RD,.965],[BP,.935],[CW,.93],[1.40,.86],[1.90,.81],[ZE-.22,.765],[ZE,.735]],z), // la ceinture · devant, le haut des phares
+        crH=z=>U.lin([[CW,.025],[1.40,.055],[2.0,.075],[ZE,.065]],z),                                   // la bosse de l'aile au-dessus du capot
+        yE=z=>U.lin([[RB,1.03],[-1.80,1.10],[QT,1.15],[RR,1.27],[-.85,1.31],[BP,1.325],[RF,1.31],[.30,1.13],[CW,.962]],z), // le rebord du pavillon (et les montants)
+        xG=z=>U.lin([[RB,.74],[RR,.69],[BP,.68],[RF,.69],[.30,.76],[CW,.82]],z),
+        yWin=(z,bl,ye)=>z<QT?bl:z<RD?U.lin([[QT,bl+.004],[RD,ye-.03]],z):ye-.03,           // le haut des vitres : la custode file en pointe
+        cab=z=>z>RB-.001&&z<CW+.001;
+  const kxF=z=>U.lin([[ZE-.48,1],[ZE-.34,.975],[ZE-.22,.93],[ZE-.12,.84],[ZE-.05,.68],[ZE-.02,.56],[ZE,.44]],z),
+        kTF=z=>U.lin([[ZE-.40,1],[ZE-.25,.93],[ZE-.12,.80],[ZE-.04,.64],[ZE,.52]],z),     // le NEZ EN COIN : il plonge sur 40 cm
+        kBF=z=>U.lin([[ZE-.20,1],[ZE-.06,.94],[ZE,.78]],z),
+        kxR=z=>U.lin([[ZB,.74],[ZB+.06,.88],[ZB+.18,.96],[ZB+.35,1]],z),
+        kTR=z=>U.lin([[ZB,.90],[ZB+.06,.96],[ZB+.18,.99],[ZB+.35,1]],z),
+        kBR=z=>U.lin([[ZB,.72],[ZB+.06,.86],[ZB+.18,.96],[ZB+.35,1]],z);
+  const FR=z=>z>ZE-.49,AR9=z=>z<ZB+.36;
+  const raw=z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.17),c=yC(z),xw=xW(z),f=xF(z),xf=xw+f,bl=bL(z),
+          hanche=.05*U.cl(1-Math.abs(z-ZR)/.95,0,1),                                                   // la hanche monte au-dessus de la roue arrière
+          L=FR(z)?[.26,.40,.54,bl-.13,bl-.045]:AR9(z)?[.26,.42,.58,.72,bl-.045]:[Math.max(yb+.06,.30),.44,.58,.70,Math.min(.83+hanche,bl-.06)],
+          s=[[0,yb],[xf-.08,yb],[xf-.012,Math.max(yb+.004,L[0])],[xf+.004,L[1]],[xf+.014,L[2]],[xf+.018,L[3]],[xw+.006+f*.6+hanche*.6,L[4]],[xw-.045,bl]];
+    for(let i=2;i<s.length;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]+.002);
+    const x7=xw-.045,b7=s[7][1];
+    if(cab(z)){const ye=Math.max(b7+.006,yE(z)),yw=Math.min(ye-.002,Math.max(b7+.002,yWin(z,b7,ye))),XV=y=>x7-(y-b7)*.68; // le PLAN des vitres : forte rentrée
+      const xe=Math.min(XV(ye),z>RF?9:xG(z)+.02);
+      s.push([XV(yw),yw],[xe,ye],[xe-.16,Math.max(ye+.002,Math.min(c-.008,ye+.035))],[0,Math.max(ye+.006,c)]);}
+    else if(z>CW){const cr=Math.max(b7+.03,c+crH(z));
+      s.push([xw-.08,b7+.02],[xw-.15,cr],[xw-.40,Math.max(c+.006,cr-.035)],[0,c+.018]);}
+    else{s.push([xw-.08,b7+.025],[xw-.18,Math.max(b7+.04,c-.01)],[xw-.48,c],[0,c+.006]);}
+    return s;};
+  const S=z=>{const s=raw(z);
+    if(FR(z)){const kx=kxF(z),kt=kTF(z),kb=kBF(z),ym=.40;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
+    if(AR9(z)){const kx=kxR(z),kt=kTR(z),kb=kBR(z),ym=.60;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
+    return s;};
+  // ---- LA PEINTURE ----
+  P.loft(zs,S,(j,z)=>{
+    if(j<0)return 'p';
+    if(j===0||j===1)return 'k';                                              // dessous, bas de caisse
+    if(FR(z)){
+      if(j===2)return z>ZE-.20?'k':'p';                                      // la grande BOUCHE basse
+      if((j===3||j===4)&&z>ZE-.34&&z<ZE-.21)return 'k';                      // la FENTE verticale sous chaque phare (le rideau d'air)
+      if((j===5||j===6)&&z>ZE-.36)return 'K';                                // LES PHARES, sur le bout de la bosse de l'aile
+      return 'p';}
+    if(AR9(z)){if(j===2)return 'k';if(j===6)return 'L';return 'p';}         // LA POUPE : diffuseur, BANDEAU de feux qui s'enroule
+    if(j===2)return 'k';                                                     // les bas de caisse noirs
+    if(!cab(z))return 'p';
+    if(j===7){if(z>BP+.04)return z>.60?'p':'g';if(z>BP-.04)return 'K';if(z>RD+.02)return 'g';if(z>RD-.02)return 'K';if(z>QT)return 'g';return 'p';} // vitres · montants · custode
+    if(j===8)return z>.60?'p':z>QT?'C':'p';                                  // le jonc fumé autour des vitres (black edition)
+    if(j>=9){if(z>RF+.02)return 'g';if(z<RR&&z>RB+.01)return 'g';return 'p';} // pare-brise, lunette, toit
+    return 'p';});
+  // ---- LES DÉTAILS ----
+  const wAt=(z,y)=>{const s=S(z);for(let i=1;i<s.length-1;i++){const a=s[i],b=s[i+1];if(y>=a[1]&&y<=b[1]&&b[1]>a[1])return a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);}return 0;};
+  const zFace=(x,y,sg)=>{let lo=sg>0?1.6:ZB,hi=sg>0?ZE:-1.6;for(let i=0;i<30;i++){const m=(lo+hi)/2,ok=wAt(m,y)>=x;if(sg>0){if(ok)lo=m;else hi=m;}else{if(ok)hi=m;else lo=m;}}return sg>0?lo:hi;};
+  const decal=(k,w,h,d,x,y,sg,e)=>{const z=zFace(Math.abs(x),y,sg),e9=.012,zx=(zFace(Math.abs(x)+e9,y,sg)-zFace(Math.max(0,Math.abs(x)-e9),y,sg))/(2*e9)*(x<0?-1:1),
+      zy=(zFace(Math.abs(x),y+e9,sg)-zFace(Math.abs(x),y-e9,sg))/(2*e9);
+    let n=sg>0?[-zx,-zy,1]:[zx,zy,-1];const l=Math.hypot(n[0],n[1],n[2]);n=n.map(v=>v/l);
+    const o=d/2-(e||0);P.box(k,w,h,d,x+n[0]*o,y+n[1]*o,z+n[2]*o,Math.atan2(-n[1],n[2]),Math.asin(n[0]),0);};
+  {const s=S(ZE),y0=s[0][1],y3=s[3][1],w=wAt(ZE,(y0+y3)/2)-.005;P.box('k',2*w,y3-y0,.004,0,(y0+y3)/2,ZE+.002);}   // la bouche, sur le bouchon du nez
+  P.sym(sd=>{
+    // les QUATRE POINTS de lumière de chaque phare, et le trait du clignotant dessous
+    const s=S(ZE-.17),yh=(s[5][1]+s[7][1])/2;
+    for(const q of [[.70,.013],[.77,.013],[.70,-.013],[.77,-.013]])decal('W',.042,.017,.03,sd*q[0],yh+q[1],1,.008);
+    decal('W',.16,.008,.03,sd*.70,s[5][1]+.006,1,.008);
+    // les flancs : rétros sur pied, poignées affleurantes, joints, l'OUÏE derrière la roue avant
+    P.prism('K',[[.80,.95],[.64,.95],[.68,.99],[.76,.99]],.06,sd*.86);
+    P.box('p',.09,.085,.19,sd*.965,1.01,.70,0,sd*.10,0);P.box('p',.05,.07,.14,sd*1.01,1.01,.67,0,sd*.18,0);
+    P.box('K',.02,.012,.15,sd*.958,.86,.30);P.box('K',.02,.012,.15,sd*.962,.88,-.80);
+    for(const z of [.64,BP,RD])P.box('k',.012,.50,.012,sd*.968,.69,z);
+    {const zv=ZF-R-.20;P.box('k',.014,.24,.045,sd*(xW(zv)+xF(zv)+.016),.56,zv,0,0,-sd*.12);}
+    // LES ÉTRIERS ROUGES derrière les jantes (ils ne tournent pas)
+    for(const w of [ZF,ZR]){const ph=2.55,rr=.20;P.box('e',.07,.08,w>0?.21:.17,sd*(.835+.115-.075),R+Math.sin(ph)*rr,w+Math.cos(ph)*rr,Math.PI/2-ph,0,0);}
+  });
+  // ---- LA POUPE ----
+  {const s=S(ZB);P.box('L',2*s[6][0],s[7][1]-s[6][1],.004,0,(s[6][1]+s[7][1])/2,ZB-.002);               // le bandeau, sur le bouchon
+   P.box('k',2*s[2][0],s[3][1]-s[0][1],.004,0,(s[0][1]+s[3][1])/2,ZB-.002);}                            // le diffuseur
+  P.sym(sd=>{for(let i=0;i<3;i++)decal('r',.06,.018,.02,sd*(.62+i*.08),.89,-1,.004);});
+  decal('K',.50,.13,.02,0,.62,-1,.008);decal('s',.46,.10,.02,0,.62,-1,.0);  // la plaque
+  // le becquet en queue de canard au bout de la malle
+  {const z0=-2.30,z1=ZB+.01;P.prism('p',[[z0,yC(z0)-.004],[z1,yC(z1)+.012],[z1,yC(z1)+.034],[z0,yC(z0)+.01]],1.30,0);}
+  K.commit(P);
+  // ---- LES JANTES : la jante de la 4S — cinq doubles branches en V, faces usinées argent sur fond NOIR, la jante grande (pneu bas),
+  // le disque, le cache-moyeu ; posées DANS la roue (`roueDeco`).
+  const JW=.30,hw=JW/2,fx=hw-.035,RJ=R*.75,J=lpKit({k:{g:'m',c:0x16171a},c:{g:'c',c:0xd9dde3},d:{g:'m',c:0x101114},n:{g:'g',c:0x0c0c0f},b:{g:'m',c:0x1c1c1f}});
+  J.lathe('k',[[RJ,-hw],[R*.90,-hw],[R,-hw*.62],[R,hw*.62],[R*.90,hw],[RJ,hw]],20,0,0,0,'x');   // le pneu, bas
+  J.lathe('d',[[RJ,-hw+.02],[RJ,fx-.004]],20,0,0,0,'x');J.lathe('d',[[RJ,-hw+.03],[R*.10,-hw+.03]],20,0,0,0,'x'); // le fût, le fond
+  J.lathe('d',[[R*.24,fx-.004],[R*.10,fx-.004]],16,0,0,0,'x');
+  J.lathe('b',[[R*.50,fx-.06],[R*.24,fx-.06]],20,0,0,0,'x');                                   // le disque
+  J.lathe('n',[[RJ+.002,fx-.006],[RJ*.95,fx+.012]],24,0,0,0,'x');J.lathe('c',[[RJ*.95,fx+.012],[RJ*.93,fx+.014]],24,0,0,0,'x'); // la lèvre noire, son liseré argent
+  const XF=fx+.016,XB=fx-.004;
+  const branche=(a0,a1,r0,r1,w0,w1)=>{const m=(a,r,dw)=>{const y=Math.sin(a)*r,z=Math.cos(a)*r,ty=Math.cos(a),tz=-Math.sin(a);return [y+ty*dw,z+tz*dw];};
+    const A=m(a0,r0,-w0/2),B=m(a1,r1,-w1/2),C=m(a1,r1,w1/2),D=m(a0,r0,w0/2),F=(p,x)=>[x,p[0],p[1]];
+    J.tri('c',F(A,XF),F(B,XF),F(C,XF));J.tri('c',F(A,XF),F(C,XF),F(D,XF));
+    for(const [p,q2] of [[A,B],[C,D]]){J.tri('n',F(p,XF),F(p,XB),F(q2,XB));J.tri('n',F(p,XF),F(q2,XB),F(q2,XF));}};
+  for(let i=0;i<5;i++){const a=i/5*Math.PI*2;for(const e of [-1,1])branche(a+e*.06,a+e*.25,R*.15,RJ*.94,.052,.040);} // des branches LARGES, comme la vraie
+  J.cyl('n',R*.16,.03,10,fx+.002,0,0,'x');J.cyl('c',R*.10,.012,10,fx+.018,0,0,'x');           // le moyeu, son cache
+  const JG=J.done();
+  return {hl:[.73,.69,2.44],tl:[.74,.88,-2.49],wx:.835,wzF:ZF,wzR:-ZR,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0xd9dde3}};
+};
 SHAPES.origami=function(K){
   const U=LPU,R=.44,ZF=1.92,ZR=-1.72,ZN=2.74,ZT=-2.74,TB=.64,KL=.10,E=.006;
   const P=K.kit({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
@@ -35332,6 +35609,8 @@ const CAR_UNLOCK=[
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
+  {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
+  {p:4400000}, // (2026-10-16, Léo : « Taycan 4S, black edition bien glossy ») L'ONYX — ÉPIQUE, juste après LA POUPÉE
 ]
 /* (2026-10-14, Sacha) SANS CARRIÈRE : ses deux trophées passent à l'argent du jeu, aux prix de l'ancienne édition Poki (en haut des épiques ;
    leur famille suit le prix, comme chez Poki). `exK`/`exV` gardent l'ancienne condition : une caisse déjà GAGNÉE en carrière entre dans
@@ -54289,7 +54568,8 @@ function chuteTape(e){ // TAPÉE : le coup
     m.position.copy(P).addScaledVector(n,.05);D.v.set(n.x*sp9+(Math.random()-.5)*5,n.y*sp9+(Math.random()-.5)*5+1.5,n.z*sp9+(Math.random()-.5)*5);
     D.w.set((Math.random()-.5)*16,(Math.random()-.5)*16,(Math.random()-.5)*16);m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);
     const k9=.5+Math.random()*.8;D.s.set(.34*k9,.05+.05*Math.random(),.24*k9);m.scale.copy(D.s);D.t=0;D.vie=1.3+Math.random()*.9;m.visible=true;}
-  try{if(SONV2){sfx('pose.choc',{vol:1+3*Math.min(1,mu-1)});sfx('debris.tole',{vol:3,t:.03});if(T.combo>=2)sfx('pose.lourde',{vol:-2+2*Math.min(1,(T.combo-2)/3),t:.02});}else{chimeNote(340,0,.05,.10);noiseBurst(.18,.08,900);}}catch(_){} /* la tôle qui encaisse — de plus en plus lourd */
+  try{if(SONV2){if(richSon()){sfx('riche.coup',{vol:-1+3*Math.min(1,mu-1)});sfx('riche.combo',{st:RICH_PD[Math.min(RICH_PD.length-1,T.combo-1)],vol:-3+2*Math.min(1,(T.combo-1)/4),t:.012});} /* (2026-10-16) LE COUP et la note du COMBO qui monte d'un degré à chaque coup de la rafale (voir <<<RICHESSE>>> dans l'atelier) */
+      else{sfx('pose.choc',{vol:1+3*Math.min(1,mu-1)});sfx('debris.tole',{vol:3,t:.03});if(T.combo>=2)sfx('pose.lourde',{vol:-2+2*Math.min(1,(T.combo-2)/3),t:.02});}}else{chimeNote(340,0,.05,.10);noiseBurst(.18,.08,900);}}catch(_){} /* la tôle qui encaisse — de plus en plus lourd (l'ancien jeu de sons en repli, banque d'avant) */
   try{hap(T.combo>=3?[40,20,55]:[32,14,26]);}catch(_){}
   return true;
 }
@@ -54400,17 +54680,23 @@ const RICH_T={
   emeraude:{kd:.55,fl:0,s:[.12,.17],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
   champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
   crane:{kd:.6,fl:0,s:[.24,.29],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
+  coeur:{kd:1.25,fl:1.1,s:[.17,.25],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
+  fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
-const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:6,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
+const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
+const RICH_PD=[0,2,4,7,9,12,14,16,19,21],RICH_MEL=[0,2,4,7,9,12,14,16,14,12,9,7,4,2]; // RICH_MEL : la mélodie des cœurs qui éclatent — elle monte puis redescend (un aller-retour, pas une chute)
+function richSon(){const B=window.CCSON_BANQUE;return !!(B&&B.m&&B.m['riche.coup']);} // richSon : la banque a-t-elle les sons de la pluie de richesse ? (sinon, l'ancien jeu de sons)
+ // (2026-10-16) la pentatonique en demi-tons (degré → st) : la note du combo, la mélodie des cœurs
+const RICH_NUEE={petit:[.22,4,6],bon:[.35,6,9],gros:[.5,8,12],jackpot:[.75,12,16]}; // (2026-10-16) LA NUÉE DE CŒURS : la chance qu'une gerbe en porte une, combien de petits cœurs (min, max) // (la chaîne : son pool à elle, RICH.ch)
 /* (2026-10-14, Léo : « diminue la quantité d'objets déversés lors des coups, garde la variété ; vise quelque chose d'addictif qui joue avec le
    besoin d'effort et de récompense ») LES GERBES MAIGRISSENT (≈ ÷2,5 : petit 1-2, bon 3-5, gros 6-9, jackpot 14-19 ; les répliques aussi), les
    MÉLANGES ne bougent pas (la variété reste) — et L'EFFORT DÉCIDE DE LA TAILLE : un coup isolé paie surtout PETIT (le jackpot n'y tombe
    presque jamais), la RAFALE (le combo) fait monter gros et jackpot (voir richTire). La rareté rend le gros lot lisible : il se MÉRITE. */
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
-  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4,montre:1}},
-  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3}},
-  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:12,rubis:8,emeraude:8,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3}},
-  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:16,rubis:10,emeraude:10,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3}}};
+  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:6,emeraude:6,diamant:5,liasse:4,montre:1,fleur:9,champagne:2}},
+  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:7,chaine:3,fleur:9}},
+  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:9,chaine:6,crane:2,trefle:3,fruit:3,fleur:9}},
+  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:11,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,fleur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe) ; + les petites fleurs ; (2026-10-16) + les vins chers (le champagne a quatre cousins, plus souvent) ; les cœurs ne sont plus tirés ici : ils viennent en NUÉE (RICH_NUEE)
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -54478,6 +54764,45 @@ const RICH_FS_SOUPLE=['uniform sampler2D uMap;uniform vec3 uSunDir;uniform vec3 
   ' c+=uSheen*(pow(1.-ndv,2.)*.55+band*.4)*uSheenK;',
   ' vec3 H=normalize(L+V);c+=uSunCol*pow(max(dot(N,H),0.),36.)*.3*uSheenK;',
   ' gl_FragColor=vec4(c,1.);}'].join('\n');
+/* (2026-10-15, Léo : « des petits cœurs rouges — un bon rouge, bien rouge, avec un petit dégradé rose fuchsia et un peu de blanc pour les
+   rendre vraiment dreamy ») puis (2026-10-16 : « rends les cœurs en minuscules cubes ; joue la transparence, je ne vois pas assez ce côté
+   rouge et blanc fantomatique ; ils sont trop solides et font jeu vidéo — on parle de l'amour, c'est autre chose que du matériel »)
+   LE CŒUR FANTÔME : une PEAU de minuscules cubes (richCoeurCubes) qu'on voit au travers. Chaque cube connaît la normale LISSE du cœur à sa
+   place (aN) : là où le cœur te fait face il est presque transparent, rouge (on voit le ciel au travers, et les cubes du dos par-dessus) ;
+   vers le bord il s'épaissit, passe au FUCHSIA puis au BLANC — la silhouette brille, le milieu est un souffle. Quelques cubes blancs
+   scintillent à leur rythme (aR.y = le hasard), une ONDE de lumière monte de la pointe aux lobes (aR.x = la hauteur). Mélange PRÉMULTIPLIÉ :
+   ce qui couvre (alpha) et ce qui luit (la couleur au-delà de l'alpha) se dosent à part. Faces des cubes : un peu de soleil, pour qu'on lise
+   les cubes. Un programme de plus, compilé sous l'écran titre (richChauffeTick). */
+const RICH_VS_COEUR=['attribute vec3 aN;attribute vec2 aR;attribute vec4 aK;uniform float uPop;varying vec3 vN;varying vec3 vP;varying vec3 vH;varying vec2 vR;varying float vPeau;varying float vPop;',
+  'void main(){vec3 p=position;vPeau=aK.w;vPop=uPop;',
+  ' if(uPop>0.){vec3 C=aK.xyz,j=vec3(fract(aR.y*7.13),fract(aR.y*13.37),fract(aR.y*3.71))-.5,dr=normalize(aN+j*1.1+C*1.2);', // (2026-10-16) POP : le cœur ÉCLATE en ses cubes, qui filent dehors en rapetissant
+  '  p=C+(p-C)*(1.-uPop*.65)+dr*uPop*(.3+aR.y*.6);p.y-=uPop*uPop*.3;}',
+  ' vec4 w=modelMatrix*vec4(p,1.);vP=w.xyz;vN=normalize(mat3(modelMatrix)*normal);vH=normalize(mat3(modelMatrix)*aN);vR=aR;gl_Position=projectionMatrix*viewMatrix*w;}'].join('\n');
+const RICH_FS_COEUR=['uniform vec3 uSunDir;uniform float uT;uniform vec3 uRouge;uniform vec3 uFuch;uniform float uBlanc;uniform float uA;',
+  'varying vec3 vN;varying vec3 vP;varying vec3 vH;varying vec2 vR;varying float vPeau;varying float vPop;',
+  'void main(){vec3 N=normalize(vN),Hn=normalize(vH),V=normalize(cameraPosition-vP),L=normalize(uSunDir);',
+  ' float bo=1.-abs(dot(Hn,V));', // le BORD du cœur (sa silhouette) : 1 ; la face qui te regarde, devant comme au dos : 0
+  ' float tw=.5+.5*sin(uT*(2.4+vR.y*4.)+vR.y*37.),on=smoothstep(.14,0.,abs(fract(vR.x*.8-uT*.42)-.5));', // chaque cube scintille à son rythme ; l'onde qui monte
+  ' vec3 col=mix(uRouge,uFuch,smoothstep(.35,.88,bo));',
+  ' col=mix(col,vec3(1.,.95,.98),clamp(smoothstep(.5,1.,bo)*.9+step(.86,vR.y)*tw*.85,0.,1.));', // blanc tout au bord, et quelques cubes blancs qui scintillent
+  ' float df=.66+.34*max(dot(N,L),0.)+.1*N.y;', // les faces des cubes se lisent (un peu de soleil, le dessus plus clair)
+  ' float a=min(.92,mix(uA,.86,pow(bo,1.25))*(.8+.2*tw)*(1.+.5*on));',
+  ' if(vPeau<.5){col=uRouge*(1.05+.25*tw);a=.3;bo=0.;}', // le DEDANS : des cubes d'un rouge plein, à demi transparents — le cœur est rempli
+  ' float fl=smoothstep(0.,.25,vPop)*(1.-vPop);col=mix(col,vec3(1.,.95,.98),fl*.7);a*=pow(1.-vPop,1.4);', // l'éclat blanc du pop, puis les cubes s'éteignent
+  ' gl_FragColor=vec4(col*df*a*(1.+.45*on)+col*(.1+.3*bo)*uBlanc*(1.-vPop),a);}'].join('\n');
+/* (2026-10-16) LES PÉTALES : de la soie qui laisse passer le jour (éclairés de face COMME de dos), un liseré blanc rosé à la silhouette (la
+   lueur des cœurs), un lustre doux ; transparents (aC.a), mélange prémultiplié — ils écrivent la profondeur : les pétales de derrière que
+   cache un pétale de devant ne se mélangent pas en bouillie. */
+const RICH_VS_FLEUR=['attribute vec4 aC;varying vec3 vN;varying vec3 vP;varying vec4 vC;',
+  'void main(){vec4 w=modelMatrix*vec4(position,1.);vP=w.xyz;vN=normalize(mat3(modelMatrix)*normal);vC=aC;gl_Position=projectionMatrix*viewMatrix*w;}'].join('\n');
+const RICH_FS_FLEUR=['uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;',
+  'varying vec3 vN;varying vec3 vP;varying vec4 vC;',
+  'void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;vec3 V=normalize(cameraPosition-vP),L=normalize(uSunDir);',
+  ' float nl=dot(N,L),df=max(nl,0.)*.55+max(-nl,0.)*.38+.3;', // le jour passe au travers du pétale
+  ' vec3 c=vC.rgb*(mix(uGnd,uSky,N.y*.5+.5)*.32+uSunCol*df*.55+.34);',
+  ' float bo=1.-abs(dot(N,V));c+=vec3(1.,.93,.97)*pow(bo,2.4)*.42+uSunCol*pow(max(dot(N,normalize(L+V)),0.),36.)*.22;', // le liseré blanc rosé, le lustre de la soie
+  ' float a=vC.a*(.78+.22*bo);gl_FragColor=vec4(c*a,a);}'].join('\n');
+ // prémultiplié : ce qui couvre + ce qui luit (le fantôme brille un peu)
 function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false});}
 
 // ---- LES DESSINS (canvas) ----
@@ -54541,30 +54866,49 @@ function richTexBtc(){return richDuo(function(x,H){x.fillStyle=H?'#5c5c5c':'#c89
     x.fillRect(-22*u,-72*u,11*u,26*u);x.fillRect(4*u,-72*u,11*u,26*u);x.fillRect(-22*u,46*u,11*u,26*u);x.fillRect(4*u,46*u,11*u,26*u);x.restore();} // ₿ : le B et ses deux barres
   richTranche(x,H,'btc','#e8b048');});}
 function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,0,4,4);});}
-/* (2026-10-10, Léo : « les billets, on peut faire plusieurs couleurs — les liasses restent vertes ») UNE SÉRIE : une couleur par valeur,
-   comme les vrais billets (on lit la valeur à la couleur avant le chiffre). Le 100, sarcelle (le billet d'origine), est celui des liasses :
-   la liasse et les billets qui en sortent quand elle craque restent verts. sh = la teinte du reflet qui glisse sur le papier. */
+/* (2026-10-10, Léo : « les billets, on peut faire plusieurs couleurs — les liasses restent vertes ») UNE SÉRIE : une couleur par valeur ; le 100 est
+   celui des liasses. (2026-10-16 : la série est redessinée, voir richTexBillet.) */
+/* (2026-10-16, Léo, après les billets « de sa toile » : « trop moches, ils étaient mieux ; le style enfantin dégoûte ; fais juste le chiffre
+   écrit de manière CARRÉE — de ma toile, garde seulement l'EMPLACEMENT du chiffre — dans le style de la première version, et plus joli » ;
+   la série : 10 rouge (comme l'ancien), 20 bleu « plus français », 50 orange, 100 vert en dégradé (un peu plus vert), 500 violet ; le rose,
+   le jaune et le 200 s'en vont) LES BILLETS v3 : le papier de la 1re version (dégradé, guilloche, double cadre, rosace, bande), un voile clair
+   au milieu (le filigrane), et la valeur en GRAND au milieu, en lettres carrées (la police pixel du jeu), frappée : ombre d'encre, contour,
+   dégradé clair, un fil de lumière. Le 20 a sa tour Eiffel dans la rosace et sa bande BLEU-BLANC-ROUGE ; le 500 est violet et OR. */
 const RICH_BILLETS=[
-  {v:'5',  m:'CINQ',      c:['#4c0c38','#7d1a5c','#601247'],l:[255,140,215],sh:[1,.55,.86]},  // fuchsia
-  {v:'10', m:'DIX',       c:['#520b13','#901d28','#6b121c'],l:[255,150,140],sh:[1,.58,.5]},   // rubis
-  {v:'20', m:'VINGT',     c:['#0a1f52','#1a46a0','#112e72'],l:[140,195,255],sh:[.55,.76,1]},  // bleu roi
-  {v:'50', m:'CINQUANTE', c:['#5a2505','#a8561a','#7b380d'],l:[255,195,130],sh:[1,.76,.45]},  // orange
-  {v:'100',m:'CENT',      c:['#08414d','#0c5f6c','#0a4a57'],l:[120,255,210],sh:[.49,1,.62]},  // sarcelle — celui des liasses
-  {v:'200',m:'DEUX CENTS',c:['#2b0c58','#5427a4','#3c177d'],l:[200,160,255],sh:[.76,.6,1]},   // violet
-  {v:'500',m:'CINQ CENTS',c:['#4d3a04','#a27c14','#77590a'],l:[255,228,130],sh:[1,.88,.45]}]; // or
-const RICH_B100=4;
+  {v:'10', m:'DIX DOLLARS',       c:['#520b13','#901d28','#6b121c'],l:[255,150,140],sh:[1,.58,.5]},   // rouge rubis (l'ancien 10)
+  {v:'20', m:'VINGT FRANCS',      c:['#0a1f52','#1d4ba8','#112e72'],l:[150,200,255],sh:[.55,.76,1],fr:1}, // bleu, à la française
+  {v:'50', m:'CINQUANTE DOLLARS', c:['#5a2505','#a8561a','#7b380d'],l:[255,195,130],sh:[1,.76,.45]},  // orange
+  {v:'100',m:'CENT DOLLARS',      c:['#063f46','#138a5e','#0a5a52'],l:[140,255,200],sh:[.49,1,.62]},  // VERT en dégradé (sarcelle → vert) — celui des liasses
+  {v:'500',m:'CINQ CENTS DOLLARS',c:['#22093f','#5a2aa8','#341272'],l:[205,165,255],sh:[.85,.7,1],or:1}]; // violet et or
+const RICH_B100=3;
 function richTexBillet(B){return richCv(512,236,function(x,w,h){
-  const L=function(k,a){const c=B.l.map(function(v){return Math.round(v+(255-v)*k);});return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}; // la couleur des traits, éclaircie de k
+  const L=function(k,a){const c=B.l.map(function(v){return Math.round(v+(255-v)*k);});return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}, // la couleur des traits, éclaircie de k
+    O=function(a){return 'rgba(255,214,128,'+a+')';},T=B.or?function(k,a){return O(a);}:L,F='"Press Start 2P",monospace';
   const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,B.c[0]);G.addColorStop(.55,B.c[1]);G.addColorStop(1,B.c[2]);x.fillStyle=G;x.fillRect(0,0,w,h);
-  x.strokeStyle=L(0,.10);x.lineWidth=1;for(let k=0;k<26;k++){x.beginPath();for(let i=0;i<=w;i+=6){x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));}x.stroke();} // la guilloche
-  x.strokeStyle=L(.25,.35);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);
-  for(let i=0;i<14;i++){x.strokeStyle=L(0,.07+i*.012);x.beginPath();x.ellipse(118,118,62-i*4,62-i*4,0,0,6.2832);x.stroke();} // la rosace
-  x.fillStyle=L(.55,.85);x.font='50px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText('$',118,120);
-  x.font=(B.v.length>2?28:34)+'px "Press Start 2P",monospace';x.fillStyle=L(.65,.9);x.textAlign='left';x.fillText(B.v,30,48);x.textAlign='right';x.fillText(B.v,w-30,h-44);
-  x.font='14px "Press Start 2P",monospace';x.textAlign='center';x.fillStyle=L(.55,.8);x.fillText('CASH CAR',w*.6,h*.42);
-  x.font='7px "Press Start 2P",monospace';x.fillStyle=L(.25,.5);x.fillText('BANQUE CENTRALE DU CIEL · '+B.m+' DOLLARS',w*.6,h*.56);
-  const Bd=x.createLinearGradient(w*.78,0,w*.86,0);Bd.addColorStop(0,L(.15,0));Bd.addColorStop(.5,L(.2,.55));Bd.addColorStop(1,L(.15,0));x.fillStyle=Bd;x.fillRect(w*.78,0,w*.08,h);}); // la bande holographique
-}
+  const W=x.createRadialGradient(w*.56,h*.5,6,w*.56,h*.5,h*.85);W.addColorStop(0,'rgba(255,255,255,.13)');W.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=W;x.fillRect(0,0,w,h); // le filigrane : un voile clair au milieu
+  x.lineWidth=1;for(let k=0;k<26;k++){x.strokeStyle=L(0,.09);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));x.stroke(); // la guilloche, deux familles croisées
+    x.strokeStyle=L(.1,.05);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2-Math.sin(i*.024+k*.61)*h*.4*Math.sin(k*.17+2));x.stroke();}
+  x.strokeStyle=T(.25,.42);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);           // le double cadre
+  x.fillStyle=T(.3,.5);for(const [a,b] of [[14,14],[w-22,14],[14,h-22],[w-22,h-22]])x.fillRect(a,b,8,8);                      // ses coins
+  const rx=96,ry=118;for(let i=0;i<14;i++){x.strokeStyle=T(0,.07+i*.012);x.beginPath();x.ellipse(rx,ry,58-i*4,58-i*4,0,0,6.2832);x.stroke();} // la rosace
+  x.strokeStyle=T(.2,.16);for(let i=0;i<12;i++){x.save();x.translate(rx,ry);x.rotate(i*Math.PI/6);x.beginPath();x.ellipse(0,-30,9,26,0,0,6.2832);x.stroke();x.restore();}
+  if(B.fr){x.fillStyle=L(.6,.85);x.beginPath();x.moveTo(rx-22,ry+40);x.lineTo(rx-6,ry-6);x.lineTo(rx-2,ry-38);x.lineTo(rx,ry-50);x.lineTo(rx+2,ry-38);x.lineTo(rx+6,ry-6);x.lineTo(rx+22,ry+40); // la TOUR EIFFEL
+    x.lineTo(rx+12,ry+40);x.quadraticCurveTo(rx,ry+18,rx-12,ry+40);x.closePath();x.fill();x.fillRect(rx-13,ry+14,26,4);x.fillRect(rx-8,ry-10,16,3);x.fillRect(rx-1,ry-58,2,9);}
+  else{x.fillStyle=T(.55,.85);x.font='44px '+F;x.textAlign='center';x.textBaseline='middle';x.fillText('$',rx+2,ry+2);}
+  const n=B.v.length,fz=n>2?66:80,cx=w*.555,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
+  x.fillStyle='rgba(0,0,0,.35)';x.fillText(B.v,cx+5,cy+6);                                                                  // son ombre d'encre
+  x.lineJoin='miter';x.lineWidth=5;x.strokeStyle='rgba(0,0,0,.45)';x.strokeText(B.v,cx,cy);                                  // son contour
+  const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#fff3c4');Z.addColorStop(.5,'#ffd56a');Z.addColorStop(1,'#c58b22');}else{Z.addColorStop(0,L(.92,1));Z.addColorStop(.55,L(.62,1));Z.addColorStop(1,L(.35,1));}
+  x.fillStyle=Z;x.fillText(B.v,cx,cy);x.save();x.beginPath();x.rect(0,cy-fz*.5,w,fz*.16);x.clip();x.fillStyle='rgba(255,255,255,.45)';x.fillText(B.v,cx,cy);x.restore(); // dégradé clair, et le fil de lumière en haut
+  x.font='16px '+F;x.fillStyle=T(.65,.9);x.textAlign='left';x.fillText(B.v,30,40);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins
+  x.textAlign='center';x.font='11px '+F;x.fillStyle=T(.55,.8);x.fillText('CASH CAR',cx,h*.2);
+  x.font='7px '+F;x.fillStyle=L(.3,.55);x.fillText((B.fr?'REPUBLIQUE DU CIEL':'BANQUE CENTRALE DU CIEL')+' · '+B.m,cx,h*.84);
+  x.textAlign='left';x.fillText('CC '+(4100+B.v.length*977+B.v.charCodeAt(0)*13),30,h-34);                                   // le numéro de série
+  const bx=w*.8,bw=w*.075;
+  if(B.fr){[['rgba(30,70,200,.75)',0],['rgba(245,245,250,.75)',1],['rgba(220,30,50,.75)',2]].forEach(function(q){x.fillStyle=q[0];x.fillRect(bx+q[1]*bw/3,0,bw/3+.5,h);});} // la bande BLEU-BLANC-ROUGE
+  else{const Bd=x.createLinearGradient(0,0,0,h);Bd.addColorStop(0,B.or?'rgba(255,220,140,.5)':'rgba(255,160,220,.38)');Bd.addColorStop(.5,B.or?'rgba(255,245,200,.62)':'rgba(150,250,255,.42)');Bd.addColorStop(1,B.or?'rgba(210,150,60,.5)':'rgba(255,230,140,.38)');x.fillStyle=Bd;x.fillRect(bx,0,bw,h); // la bande irisée
+    x.strokeStyle='rgba(255,255,255,.18)';for(let i=0;i<6;i++){x.beginPath();x.moveTo(bx+4+i*6,0);x.lineTo(bx+4+i*6,h);x.stroke();}}
+});}
 function richTexTrefle(){return richCv(256,256,function(x){x.clearRect(0,0,256,256);
   x.strokeStyle='#2f7a2a';x.lineWidth=9;x.lineCap='round';x.beginPath();x.moveTo(128,132);x.quadraticCurveTo(150,190,132,248);x.stroke(); // la tige
   for(let i=0;i<4;i++){x.save();x.translate(128,128);x.rotate(i*Math.PI/2+Math.PI/4);
@@ -54643,6 +54987,42 @@ function richTexChampagne(){return richCv(128,512,function(x){const Y=function(v
   const G=x.createLinearGradient(0,0,128,0);G.addColorStop(0,'#b8862c');G.addColorStop(.45,'#ffe6a0');G.addColorStop(1,'#a87a22');x.fillStyle=G;x.fillRect(0,0,128,Y(.71)); // la COIFFE dorée
   x.fillStyle='rgba(90,60,10,.35)';for(let i=0;i<14;i++)x.fillRect(Math.random()*128,Math.random()*Y(.8),2,30+Math.random()*60);
   x.fillStyle='#efe3c2';x.fillRect(0,Y(.71),128,8);});}
+/* (2026-10-16, Léo : « les bouteilles, on dirait des sodas, des potions Fortnite — reviens sur la bouteille de vin cher, juste deux, trois,
+   quatre en plus, mais dans le vin ») LES COUSINS DU CHAMPAGNE : le bordeaux grand cru, le bourgogne, le champagne rosé, le vin liquoreux
+   doré — faits comme lui : un profil tourné (richVinGeo), une toile peinte de bas en haut (le verre et son reflet, l'étiquette sur une face,
+   la capsule), le programme du métal (le studio du bijoutier s'y reflète comme sur le verre). Sans nom ni marque. */
+function richVinStrie(x,Y,c,v0,v1){x.fillStyle=c;x.fillRect(22,Y(v1),7,Y(v0)-Y(v1));x.fillRect(31,Y(v1),2,Y(v0)-Y(v1));} // le reflet du verre
+function richVinCoiffe(x,Y,v0,c0,c1,c2){const G=x.createLinearGradient(0,0,128,0);G.addColorStop(0,c0);G.addColorStop(.42,c1);G.addColorStop(1,c2);x.fillStyle=G;x.fillRect(0,0,128,Y(v0));} // la capsule, éclairée de biais
+function richVinEtiq(x,Y,v0,v1,fond,fil,enc,l1,l2,deco){ // l'étiquette sur une face (0 → 80 de la toile) : le papier, deux filets, l'emblème, deux lignes de texte
+  const a=Y(v1),b=Y(v0);x.fillStyle=fond;x.fillRect(0,a,80,b-a);x.fillStyle=fil;x.fillRect(0,a+5,80,2);x.fillRect(0,b-7,80,2);x.fillRect(4,a+5,1.5,b-a-10);x.fillRect(74,a+5,1.5,b-a-10);
+  if(deco)deco(x,40,a+(b-a)*.36);x.textAlign='center';x.textBaseline='middle';x.fillStyle=enc;x.font='7px "Press Start 2P",monospace';x.fillText(l1,40,a+(b-a)*.7);
+  x.font='5px "Press Start 2P",monospace';x.fillText(l2,40,a+(b-a)*.84);}
+function richVinChateau(x,cx,cy){x.strokeStyle='#5b3a1e';x.lineWidth=1.4;x.beginPath();x.moveTo(cx-22,cy+8);x.lineTo(cx+22,cy+8);x.moveTo(cx-16,cy+8);x.lineTo(cx-16,cy-2);x.lineTo(cx,cy-10);x.lineTo(cx+16,cy-2);x.lineTo(cx+16,cy+8);
+  x.moveTo(cx-22,cy+8);x.lineTo(cx-22,cy-6);x.lineTo(cx-19,cy-11);x.lineTo(cx-16,cy-6);x.moveTo(cx+22,cy+8);x.lineTo(cx+22,cy-6);x.lineTo(cx+19,cy-11);x.lineTo(cx+16,cy-6);x.stroke();
+  x.fillStyle='#5b3a1e';x.fillRect(cx-3,cy+1,6,7);} // le château, gravé
+function richVinBlason(x,cx,cy){x.fillStyle='#c9a24a';x.beginPath();x.moveTo(cx-11,cy-10);x.lineTo(cx+11,cy-10);x.lineTo(cx+11,cy+2);x.quadraticCurveTo(cx,cy+13,cx-11,cy+2);x.closePath();x.fill();
+  x.fillStyle='#7a1420';x.fillRect(cx-2,cy-10,4,19);x.fillRect(cx-11,cy-4,22,3);} // le blason
+const RICH_VINS=[
+  {nom:'bordeaux',p:[[0,0],[.3,0],[.33,.03],[.34,.06],[.34,.72],[.33,.77],[.27,.83],[.17,.88],[.13,.93],[.12,1],[.12,1.2],[.13,1.22],[.13,1.28],[.1,1.3],[0,1.3]],
+   peint:function(x,Y){x.fillStyle='#120a0b';x.fillRect(0,0,128,512);richVinStrie(x,Y,'rgba(210,140,150,.16)',.08,.7);   // LE BORDEAUX GRAND CRU : le verre presque noir
+     richVinEtiq(x,Y,.2,.48,'#efe6cf','#b8923e','#5a1a1e','GRAND CRU','CLASSE 1982',richVinChateau);
+     richVinCoiffe(x,Y,.79,'#3c0810','#8a1a26','#2a050b');x.fillStyle='#c9a24a';x.fillRect(0,Y(.8),128,4);}},                   // la capsule bordeaux, son anneau d'or
+  {nom:'bourgogne',p:[[0,0],[.33,0],[.36,.03],[.37,.07],[.37,.42],[.35,.55],[.29,.7],[.21,.84],[.15,.96],[.13,1.04],[.13,1.2],[.14,1.22],[.14,1.28],[.1,1.3],[0,1.3]],
+   peint:function(x,Y){x.fillStyle='#16200e';x.fillRect(0,0,128,512);richVinStrie(x,Y,'rgba(170,210,140,.17)',.08,.6);   // LE BOURGOGNE : épaules tombantes, verre vert sombre
+     richVinEtiq(x,Y,.16,.4,'#f2ead6','#9c7a34','#3d2a12','GRAND VIN','DE BOURGOGNE',richVinBlason);
+     x.fillStyle='#f2ead6';x.fillRect(0,Y(.62),60,Y(.56)-Y(.62));x.fillStyle='#9c7a34';x.fillRect(0,Y(.62),60,2);            // la collerette
+     richVinCoiffe(x,Y,.8,'#8a6a22','#f4dc8e','#6e5216');}},                                                                     // la capsule dorée
+  {nom:'rose',p:[[0,0],[.33,0],[.36,.03],[.37,.08],[.37,.6],[.34,.7],[.24,.82],[.15,.92],[.13,1],[.13,1.16],[.145,1.18],[.145,1.27],[.1,1.3],[0,1.3]],shin:110,
+   peint:function(x,Y){x.fillStyle='#6e2432';x.fillRect(0,0,128,512);x.fillStyle='rgba(255,170,180,.12)';x.fillRect(0,Y(.6),128,Y(.04)-Y(.6));richVinStrie(x,Y,'rgba(255,215,222,.34)',.06,.7);    // LE CHAMPAGNE ROSÉ : le verre clair, le rosé qui se voit
+     richVinEtiq(x,Y,.22,.46,'#f7f1ea','#d49a82','#8a4a40','BRUT ROSE','MILLESIME',function(x9,cx,cy){x9.fillStyle='#d49a82';x9.beginPath();x9.arc(cx,cy,9,0,6.2832);x9.fill();x9.fillStyle='#f7f1ea';x9.beginPath();x9.arc(cx,cy,5,0,6.2832);x9.fill();});
+     richVinCoiffe(x,Y,.71,'#a8604e','#f6cdbd','#8a4a3c');x.fillStyle='#f7f1ea';x.fillRect(0,Y(.71),128,6);}},                   // la coiffe or rose
+  {nom:'liquoreux',p:[[0,0],[.27,0],[.3,.03],[.3,.74],[.29,.79],[.23,.85],[.15,.9],[.115,.95],[.105,1.02],[.105,1.22],[.115,1.24],[.115,1.3],[0,1.3]],shin:120,
+   peint:function(x,Y){x.fillStyle='#6a4206';x.fillRect(0,0,128,512);x.fillStyle='rgba(255,200,90,.12)';x.fillRect(0,Y(.64),128,Y(.04)-Y(.64));richVinStrie(x,Y,'rgba(255,236,180,.34)',.06,.72);  // LE VIN LIQUOREUX : fin, le vin couleur d'or au travers du verre clair
+     richVinEtiq(x,Y,.24,.5,'#f8f5ec','#c9a24a','#6e5216','PREMIER CRU','VIN DOUX',function(x9,cx,cy){x9.strokeStyle='#c9a24a';x9.lineWidth=1.5;x9.beginPath();x9.arc(cx,cy,10,0,6.2832);x9.stroke();x9.fillStyle='#c9a24a';x9.font='8px "Press Start 2P",monospace';x9.textAlign='center';x9.textBaseline='middle';x9.fillText('1',cx,cy+1);});
+     richVinCoiffe(x,Y,.82,'#8a6a22','#f8e6a6','#6e5216');}}];
+function richTexVin(V){return richCv(128,512,function(x){V.peint(x,function(v){return (1-v)*512;});});}
+function richVinGeo(P){const g=new THREE.LatheGeometry(P.map(function(a){return new THREE.Vector2(a[0],a[1]);}),16),p=g.attributes.position,uv=g.attributes.uv;
+  for(let i=0;i<p.count;i++)uv.setY(i,p.getY(i)/1.3);g.translate(0,-.62,0);g.computeVertexNormals();return g;}
 function richChampagneGeo(){const P=[[0,0],[.33,0],[.36,.03],[.37,.08],[.37,.6],[.34,.7],[.24,.82],[.15,.92],[.13,1],[.13,1.16],[.145,1.18],[.145,1.27],[.1,1.3],[0,1.3]].map(function(a){return new THREE.Vector2(a[0],a[1]);});
   const g=new THREE.LatheGeometry(P,14),p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setY(i,p.getY(i)/1.3);g.translate(0,-.62,0);g.computeVertexNormals();return g;}
 function richEmeraude(){ // la taille ÉMERAUDE : table rectangulaire, gradins, rondiste octogonal allongé, culasse en carène
@@ -54676,6 +55056,118 @@ function richCraneGeo(){ // (2026-10-08, Léo : « des crânes pastel, plus peti
     [I(1,1),richM4(.045,-.17,.64,.06,.1,.06)],[I(1,1),richM4(-.045,-.17,.64,.06,.1,.06)],[new THREE.ConeGeometry(.07,.16,3),richM4(0,-.1,.64,1)], // le nez (un cœur renversé)
     [B(.55,.16,.06),richM4(0,-.52,.58,1)]];                                                           // l'ombre de la bouche, entre les dents
   return {or:richFusion(os),noir:richFusion(noir)};}
+function richCoeurCubes(){ // (2026-10-16) LE CŒUR EN MINUSCULES CUBES : la surface de Taubin, (x² + 9/4·y² + z² − 1)³ − x²z³ − 9/80·y²z³ = 0
+  // (z en haut, y l'épaisseur ×.82 : un cœur de bonbon, pas une balle), lue sous sa forme « racine cubique » — même surface :
+  // H = (x² + 9/4·y² + z² − 1) − z·∛(x² + 9/80·y²), dont le gradient ne s'annule que sur l'axe (écrite telle quelle, il s'annule sur tout
+  // l'équateur : une ligne en travers du cœur). Le cœur est REMPLI À LA GRILLE (13 cubes sur sa largeur) — (2026-10-16, Léo : « le cœur rempli de
+  // cubes ») TOUS les cubes du dedans sont gardés, ceux de la PEAU marqués (aK.w = 1 : un voisin est dehors) ; chaque cube fait 72 % de sa case (des joints où passe le ciel). Rangés du DOS vers l'AVANT : le cœur se
+  // tourne toujours vers toi (richTick), le fond se peint donc avant le devant — le transparent sans tri. aN = la normale LISSE du cœur à la
+  // place du cube (le gradient), aR = (la hauteur 0 → 1, un hasard) : ce que lit RICH_FS_COEUR. 1 de large, centré.
+  const E=.82,H=function(x,y,z){return x*x+2.25*y*y+z*z-1-z*Math.cbrt(x*x+.1125*y*y);};
+  const ray=function(X,Y,Z){let hi=.04;while(hi<3&&H(X*hi,Y*hi,Z*hi)<0)hi+=.04;let lo=hi-.04;for(let k=0;k<24;k++){const m=(lo+hi)*.5;if(H(X*m,Y*m,Z*m)<0)lo=m;else hi=m;}return (lo+hi)*.5;};
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;                                                  // son gabarit : la forme est étoilée depuis le centre, on la tire en rayons
+  for(let a=0;a<72;a++)for(let b=0;b<=36;b++){const th=b/36*Math.PI,ph=a/72*6.2832,X=Math.sin(th)*Math.cos(ph),Z=Math.cos(th),Y=Math.sin(th)*Math.sin(ph),r=ray(X,Y,Z),x=X*r,z=Z*r;
+    if(x<x0)x0=x;if(x>x1)x1=x;if(z<y0)y0=z;if(z>y1)y1=z;}
+  const k=1/(x1-x0),cy=(y0+y1)*.5,hh=(y1-y0)*k*.5,zz=E*k*.7,st=1/13,hc=st*.36;
+  const dans=function(x,y,z){return H(x/k,z/(E*k),y/k+cy)<0;};                       // (x largeur, y hauteur, z épaisseur) du cœur
+  const L=[],nx=Math.ceil(.5/st)+1,ny=Math.ceil(hh/st)+1,nz=Math.ceil(zz/st)+1;
+  for(let iz=-nz;iz<nz;iz++)for(let iy=-ny;iy<ny;iy++)for(let ix=-nx;ix<nx;ix++){const x=(ix+.5)*st,y=(iy+.5)*st,z=(iz+.5)*st;if(!dans(x,y,z))continue;
+    let peau=false;for(let a=-1;a<=1&&!peau;a++)for(let b=-1;b<=1&&!peau;b++)for(let c=-1;c<=1&&!peau;c++)if((a||b||c)&&!dans(x+a*st,y+b*st,z+c*st))peau=true;
+    L.push([x,y,z,peau?1:0]);}
+  L.sort(function(p,q){return p[2]-q[2];});                                           // du dos vers l'avant
+  const FA=[[1,0,0,0,1,0,0,0,1],[-1,0,0,0,0,1,0,1,0],[0,1,0,0,0,1,1,0,0],[0,-1,0,1,0,0,0,0,1],[0,0,1,1,0,0,0,1,0],[0,0,-1,0,1,0,1,0,0]]; // n, u, v (u × v = n : les faces regardent dehors)
+  const n=L.length,pos=new Float32Array(n*72),nor=new Float32Array(n*72),an=new Float32Array(n*72),ar=new Float32Array(n*48),ak=new Float32Array(n*96),idx=new Uint16Array(n*36),SG=[[-1,-1],[1,-1],[1,1],[-1,1]];
+  for(let i=0;i<n;i++){const P=L[i],X=P[0]/k,Y=P[2]/(E*k),Z=P[1]/k+cy,q=X*X+.1125*Y*Y;let gx=P[0],gy=P[1],gz=P[2];
+    if(q>1e-9){const k3=Z/(3*Math.pow(q,2/3));gx=2*X-k3*2*X;gz=(4.5*Y-k3*.225*Y)/E;gy=2*Z-Math.cbrt(q);} // la normale lisse (sur l'axe : la direction depuis le centre)
+    const gl=Math.hypot(gx,gy,gz)||1,hs=(P[1]+hh)/(2*hh),rs=(function(){const h=Math.sin(P[0]*127.1+P[1]*311.7+P[2]*74.7)*43758.5453;return h-Math.floor(h);})();
+    for(let f=0;f<6;f++){const F9=FA[f];for(let j=0;j<4;j++){const o=((i*6+f)*4+j),su=SG[j][0],sv=SG[j][1];
+        for(let d=0;d<3;d++){pos[o*3+d]=P[d]+hc*(F9[d]+su*F9[3+d]+sv*F9[6+d]);nor[o*3+d]=F9[d];}
+        an[o*3]=gx/gl;an[o*3+1]=gy/gl;an[o*3+2]=gz/gl;ar[o*2]=hs;ar[o*2+1]=rs;ak[o*4]=P[0];ak[o*4+1]=P[1];ak[o*4+2]=P[2];ak[o*4+3]=P[3];}
+      const b9=(i*6+f)*4,t9=(i*6+f)*6;idx[t9]=b9;idx[t9+1]=b9+1;idx[t9+2]=b9+2;idx[t9+3]=b9;idx[t9+4]=b9+2;idx[t9+5]=b9+3;}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+  g.setAttribute('aN',new THREE.BufferAttribute(an,3));g.setAttribute('aR',new THREE.BufferAttribute(ar,2));g.setAttribute('aK',new THREE.BufferAttribute(ak,4));g.setIndex(new THREE.BufferAttribute(idx,1));g.computeBoundingSphere();g.userData.cubes=n;return g;}
+/* (2026-10-16, Léo : « et des petites fleurs — hibiscus tropical, rose, lilas, lotus, LYS, tulipes rose pâle » ; le style choisi : « pétales
+   lisses, translucides ») LES SIX FLEURS. Un pétale = une GRILLE (u : du pied à la pointe, v : d'un bord à l'autre) le long d'une NERVURE
+   qui se courbe (a0 : l'élévation au pied, cu : de combien elle tourne jusqu'à la pointe — négatif : le pétale se recourbe, comme le lys) ;
+   sa largeur suit une FORME (f, u → 0..1 : rond, en éventail, pointu), ses bords se relèvent (cup : le creux) et peuvent friser (ruf) ;
+   couleur du pied (c0) à la pointe (c1) entre k0 et k1, le bord vers c2, l'opacité al. Les cœurs de fleur (étamines, pistil, gousse du
+   lotus) sont des primitives teintées (richFlPrim). Tout est fusionné en UNE géométrie par fleur (aC = rgba par sommet), 1 de grand,
+   centrée, l'axe de la fleur en +y : richTick la penche vers toi de userData.vue (une corolle se lit de face, une tulipe de profil). */
+function richFlPart(P,pos,idx,col){P.push({p:pos,i:idx,c:col});}
+function richPetale(P,o){
+  const nu=o.nu||8,nv=o.nv||6,cph=Math.cos(o.phi||0),sph=Math.sin(o.phi||0),pos=[],col=[],idx=[],c0=o.c0,c1=o.c1||o.c0,c2=o.c2,ds=o.L/nu,v3=new THREE.Vector3();
+  let sx=o.r0||0,sy=o.y0||0;
+  for(let i=0;i<=nu;i++){const u=i/nu;if(i>0){const tm=o.a0+o.cu*(u-.5/nu);sx+=Math.cos(tm)*ds;sy+=Math.sin(tm)*ds;}
+    const th=o.a0+o.cu*u,nX=-Math.sin(th),nY=Math.cos(th),w=o.W*o.f(u),kk=Math.min(1,Math.max(0,(u-(o.k0||0))/((o.k1||1)-(o.k0||0))));
+    for(let j=0;j<=nv;j++){const v=-1+2*j/nv,h=(o.cup||0)*w*v*v+(o.ruf||0)*o.W*Math.sin(v*6.5+u*4+(o.rp||0))*u*u,lx=sx+nX*h,ly=sy+nY*h,lz=v*w;
+      v3.set(lx*cph-lz*sph,ly,lx*sph+lz*cph);if(o.m)v3.applyMatrix4(o.m);pos.push(v3.x,v3.y,v3.z);
+      const e=c2?Math.pow(Math.abs(v),3)*(o.ke!=null?o.ke:.35):0;for(let d=0;d<3;d++){const c=c0[d]+(c1[d]-c0[d])*kk*kk*(3-2*kk);col.push(c2?c+(c2[d]-c)*e:c);}col.push(o.al!=null?o.al:.8);}}
+  for(let i=0;i<nu;i++)for(let j=0;j<nv;j++){const a=i*(nv+1)+j,b=a+nv+1;idx.push(a,b,a+1,a+1,b,b+1);}
+  richFlPart(P,pos,idx,col);}
+function richFlPrim(P,g,M,c,al){ // une primitive de three (sphère, cylindre, boîte), placée par la matrice M, d'une couleur
+  g.applyMatrix4(M);const p=g.attributes.position,pos=Array.from(p.array),idx=g.index?Array.from(g.index.array):pos.map(function(_,i){return i;}).slice(0,p.count),col=[];
+  for(let i=0;i<p.count;i++)col.push(c[0],c[1],c[2],al==null?1:al);g.dispose();richFlPart(P,pos,idx,col);}
+function richFlM(x,y,z,dx,dy,dz,sx,sy,sz){ // matrice : posée en (x,y,z), son axe +y tourné vers (dx,dy,dz), mise à l'échelle
+  const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(dx,dy,dz).normalize());
+  return new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),q,new THREE.Vector3(sx||1,sy||1,sz||1));}
+function richFlFin(P){ // fusion, centrage, 1 de grand
+  let n=0,m=0;for(const q of P){n+=q.p.length/3;m+=q.i.length;}
+  const pos=new Float32Array(n*3),col=new Float32Array(n*4),idx=n>65535?new Uint32Array(m):new Uint16Array(m);let o=0,oi=0;
+  for(const q of P){const b=o/3;pos.set(q.p,o);col.set(q.c,b*4);for(let k=0;k<q.i.length;k++)idx[oi+k]=q.i[k]+b;o+=q.p.length;oi+=q.i.length;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aC',new THREE.BufferAttribute(col,4));g.setIndex(new THREE.BufferAttribute(idx,1));
+  g.computeBoundingBox();const B=g.boundingBox,c=B.getCenter(new THREE.Vector3()),sz=B.getSize(new THREE.Vector3()),k=1/Math.max(sz.x,sz.y,sz.z);
+  g.translate(-c.x,-c.y,-c.z);g.scale(k,k,k);g.computeVertexNormals();g.computeBoundingSphere();return g;}
+const RICH_FF={ // les formes de pétale
+  rond:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.15)),.45);},
+  eventail:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.7)),.55);},
+  pointu:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,.85)),.75);},
+  lance:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,.75)),.8);},
+  oeuf:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.25)),.5);}};
+function richFleurs(){const F=RICH_FF,V=[],S=function(r){return new THREE.SphereGeometry(r,8,6);},C=function(r0,r1,h){return new THREE.CylinderGeometry(r1,r0,h,7,1);},TAU=6.2832;
+  // 1. L'HIBISCUS TROPICAL : cinq larges pétales corail en éventail, l'œil cramoisi au pied, le bord qui frise ; la longue colonne d'étamines, pollen d'or, stigmates rouges
+  {const P=[];for(let i=0;i<5;i++)richPetale(P,{phi:i*TAU/5+.2,a0:.38,cu:-.3,L:.5,W:.215,f:F.eventail,cup:.22,ruf:.05,rp:i*1.7,r0:.03,c0:[.42,0,.1],c1:[1,.36,.36],c2:[1,.7,.62],k0:.04,k1:.46,ke:.5,al:.84,nu:9,nv:8});
+   const d=[.38,1,.1],L9=.5;richFlPrim(P,C(.026,.018,L9),richFlM(d[0]*L9*.5/1.08,L9*.5,d[2]*L9*.5/1.08,d[0],d[1],d[2]),[1,.45,.55],1);
+   const tx=.38*L9/1.08,ty=L9*.96,tz=.1*L9/1.08;for(let k=0;k<7;k++){const a=k*TAU/7;richFlPrim(P,S(.024),richFlM(tx+Math.cos(a)*.04,ty-.04+(k%2)*.025,tz+Math.sin(a)*.04,0,1,0),[1,.84,.18],1);}
+   for(let k=0;k<5;k++){const a=k*TAU/5;richFlPrim(P,S(.02),richFlM(tx+.025+Math.cos(a)*.022,ty+.045,tz+Math.sin(a)*.022,0,1,0),[.85,.02,.12],1);}
+   V.push(richFlFin(P));V[0].userData.vue=1.15;}
+  // 2. LA ROSE : quatre couronnes de pétales ronds qui s'ouvrent de plus en plus (le cœur serré, le bord qui se roule), velours rouge ; cinq sépales verts dessous
+  {const P=[],R=[[3,1.45,.25,.15,.13,.9,0,.02],[5,1.22,-.1,.21,.16,.8,.02,.015],[5,.98,-.35,.26,.19,.65,.035,.01],[6,.68,-.6,.3,.21,.5,.05,0]];
+   R.forEach(function(r,ri){for(let i=0;i<r[0];i++)richPetale(P,{phi:i*TAU/r[0]+ri*.9,a0:r[1],cu:r[2],L:r[3],W:r[4],f:F.rond,cup:r[5],r0:r[6],y0:r[7],c0:[.36,0,.05],c1:[.86,.03,.13],c2:[.98,.3,.38],k0:0,k1:1,ke:.45,al:.9});});
+   for(let i=0;i<5;i++)richPetale(P,{phi:i*TAU/5+.3,a0:-.85,cu:.3,L:.17,W:.045,f:F.pointu,cup:.2,r0:.03,c0:[.12,.38,.12],c1:[.25,.58,.2],al:1,nu:5,nv:2});
+   V.push(richFlFin(P));V[1].userData.vue=0.9;}
+  // 3. LE LILAS : une grappe en cône de petites fleurs à quatre pétales (lilas, du mauve profond au presque blanc), sur sa tige
+  {const P=[];const N=62;for(let i=0;i<N;i++){const t=(i+.5)/N,y=t*.62,R9=.23*(1-t*.82)+.04,a=i*2.39996,cx=Math.cos(a)*R9,cz=Math.sin(a)*R9,h=Math.sin(i*12.9898)*43758.5453,rr=h-Math.floor(h);
+     const M=richFlM(cx,y,cz,cx,.55,cz),c0=rr<.2?[.86,.74,1]:rr<.6?[.62,.4,.9]:[.72,.52,.96],c1=[Math.min(1,c0[0]+.18),Math.min(1,c0[1]+.2),1];
+     for(let j=0;j<4;j++)richPetale(P,{phi:j*TAU/4+a,a0:.28,cu:-.35,L:.058,W:.042,f:F.rond,cup:.3,c0:c0,c1:c1,al:.86,nu:3,nv:2,m:M});}
+   richFlPrim(P,C(.012,.008,.8),richFlM(0,.24,0,0,1,0),[.3,.55,.25],1);
+   for(let k=0;k<4;k++){const a=k*TAU/4+.4;richFlPrim(P,S(.018),richFlM(Math.cos(a)*.025,.66+(k%2)*.03,Math.sin(a)*.025,0,1,0),[.78,.62,.98],1);} // les boutons du sommet
+   V.push(richFlFin(P));V[2].userData.vue=0.35;}
+  // 4. LE LOTUS : trois couronnes de pétales pointus en coupe, blancs au pied, roses à la pointe ; la gousse jaune et sa couronne d'étamines
+  {const P=[],R=[[7,.35,.25,.36,.15,.45,.05],[8,.8,.3,.34,.14,.5,.04],[8,1.18,.2,.28,.12,.6,.03]];
+   R.forEach(function(r,ri){for(let i=0;i<r[0];i++)richPetale(P,{phi:i*TAU/r[0]+ri*.4,a0:r[1],cu:r[2],L:r[3],W:r[4],f:F.pointu,cup:r[5],r0:r[6],c0:[1,.96,.97],c1:[1,.4,.66],c2:[1,.78,.9],k0:.3,k1:1,al:.78});});
+   richFlPrim(P,C(.07,.078,.06),richFlM(0,.05,0,0,1,0),[.86,.84,.32],1);
+   for(let k=0;k<7;k++){const a=k*TAU/7;richFlPrim(P,S(.011),richFlM(Math.cos(a)*.04,.082,Math.sin(a)*.04,0,1,0),[.95,.72,.18],1);}
+   for(let k=0;k<18;k++){const a=k*TAU/18;richFlPrim(P,new THREE.BoxGeometry(.008,.07,.008),richFlM(Math.cos(a)*.09,.06,Math.sin(a)*.09,Math.cos(a)*.6,1,Math.sin(a)*.6),[1,.86,.3],1);}
+   V.push(richFlFin(P));V[3].userData.vue=0.8;}
+  // 5. LE LYS : six longs tépales blancs qui se recourbent en arrière, une rougeur rose au fond de la gorge ; six étamines aux anthères orange, le pistil
+  {const P=[];for(let i=0;i<6;i++)richPetale(P,{phi:i*TAU/6,a0:.92,cu:-1.7,L:.46,W:i%2?.12:.145,f:F.lance,cup:.28,r0:.02,c0:[1,.42,.68],c1:[1,1,1],c2:[1,.97,.98],k0:0,k1:.52,al:.9,nu:10,nv:6});
+   for(let k=0;k<6;k++){const a=k*TAU/6+.5,dx=Math.cos(a)*.38,dz=Math.sin(a)*.38,L9=.3;richFlPrim(P,C(.006,.005,L9),richFlM(dx*L9*.5,L9*.46,dz*L9*.5,dx,.92,dz),[.78,.9,.62],1);
+     richFlPrim(P,new THREE.BoxGeometry(.065,.022,.026),richFlM(dx*L9,L9*.93,dz*L9,dz,0,-dx),[.86,.38,.1],1);}
+   richFlPrim(P,C(.009,.007,.34),richFlM(0,.17,0,0,1,0),[.7,.86,.55],1);richFlPrim(P,S(.02),richFlM(0,.345,0,0,1,0),[.6,.8,.4],1);
+   V.push(richFlFin(P));V[4].userData.vue=0.95;}
+  // 6. LA TULIPE ROSE PÂLE : six pétales en coupe fermée (trois dehors, trois dedans), les bords plus blancs ; sa tige et une feuille
+  {const P=[];for(let i=0;i<3;i++)richPetale(P,{phi:i*TAU/3,a0:1.45,cu:.5,L:.42,W:.22,f:F.oeuf,cup:.62,r0:.06,c0:[.98,.76,.82],c1:[1,.86,.91],c2:[1,.97,.98],ke:.5,al:.8});
+   for(let i=0;i<3;i++)richPetale(P,{phi:i*TAU/3+TAU/6,a0:1.5,cu:.48,L:.4,W:.2,f:F.oeuf,cup:.65,r0:.035,c0:[.96,.72,.8],c1:[1,.84,.9],c2:[1,.96,.97],ke:.5,al:.8});
+   richFlPrim(P,C(.018,.015,.36),richFlM(0,-.17,0,0,1,0),[.3,.6,.26],1);
+   richPetale(P,{phi:.5,a0:1.15,cu:-.25,L:.3,W:.06,f:F.lance,cup:.4,r0:.02,y0:-.34,c0:[.22,.5,.2],c1:[.38,.7,.3],al:1,nu:7,nv:3});
+   V.push(richFlFin(P));V[5].userData.vue=0.3;}
+  // 7. LA MARGUERITE (2026-10-16) : une vingtaine de pétales blancs en lanière, presque à plat, sur deux rangs ; le cœur jaune bombé
+  {const P=[],lan=function(u){return Math.min(1,u*7)*(u>.8?Math.sqrt(Math.max(0,1-Math.pow((u-.8)/.2,2))):1);};
+   for(let i=0;i<22;i++)richPetale(P,{phi:i*TAU/22+(i%2)*.07,a0:.14+(i%2)*.12,cu:-.16,L:.42,W:.05,f:lan,cup:.18,r0:.075,c0:[.98,.96,.88],c1:[1,1,1],al:.9,nu:6,nv:2});
+   richFlPrim(P,new THREE.SphereGeometry(.095,14,8),richFlM(0,.015,0,0,1,0,1,.5,1),[1,.76,.1],1);
+   for(let k=0;k<12;k++){const a=k*2.39996,r9=.02+.05*Math.sqrt((k+.5)/12);richFlPrim(P,S(.012),richFlM(Math.cos(a)*r9,.055-r9*.35,Math.sin(a)*r9,0,1,0),[.92,.55,.05],1);}
+   V.push(richFlFin(P));V[6].userData.vue=1.1;}
+  return V;}
 function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MONTRE : le cadran (en haut à gauche), l'or (en haut à droite), le bracelet à maillons (en bas)
   x.fillStyle='#e8b33a';x.fillRect(0,0,512,512);const Go=x.createLinearGradient(256,0,512,256);Go.addColorStop(0,'#ffe9a8');Go.addColorStop(1,'#c58b22');x.fillStyle=Go;x.fillRect(256,0,256,256);
   const c=128;x.fillStyle='#d9a63a';x.beginPath();x.arc(c,c,127,0,6.2832);x.fill();                                   // la lunette
@@ -54739,10 +55231,16 @@ function richInit(){
   M.montre=metal(richTexMontre(),150);
   M.cranes=[['#ffcbe0',[1,.85,.92]],['#c4f5e1',[.85,1,.93]],['#ddd2ff',[.9,.87,1]],['#c9e6ff',[.86,.93,1]],['#ffdac6',[1,.9,.84]],['#fff4c4',[1,1,.86]]].map(function(P){const m9=metal(richTexUni(P[0]),130);m9.userData.gc=P[1];return m9;}); // les CRÂNES PASTEL : rose, menthe, lavande, ciel, pêche, citron — une laque nacrée (le métal du studio, teinté)
   M.jetons=[['#c61b2c','5'],['#1d8f3a','25'],['#18181d','100'],['#6a2a9a','500'],['#e09a12','1000']].map(function(J){return richMat(RICH_FS_SOUPLE,{uMap:{value:richTexJeton(J[0],J[1])},uSheen:{value:new THREE.Color(1,1,1)},uSheenK:{value:.28},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide);}); // la terre cuite des jetons : mate, un peu de lustre
-  M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.noir=metal(richTexUni('#16121c'),60);
+  M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.vins=[M.champagne].concat(RICH_VINS.map(function(V9){return metal(richTexVin(V9),V9.shin||100);})); // (2026-10-16) les vins : le programme du métal, comme le champagne (0 compilé de plus)M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
-  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();
+  M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.86,.015,.08)},uFuch:{value:new THREE.Color(1,.16,.6)},uBlanc:{value:1},uA:{value:.2},uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
+    transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le cœur fantôme (voir RICH_FS_COEUR) : transparent, prémultiplié
+  M.fleur=new THREE.ShaderMaterial({uniforms:RICH_U,vertexShader:RICH_VS_FLEUR,fragmentShader:RICH_FS_FLEUR,transparent:true,depthWrite:true,side:THREE.DoubleSide,
+    blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) les pétales (voir RICH_FS_FLEUR)
+  M.aura=new THREE.SpriteMaterial({map:richCv(64,64,function(x){const G=x.createRadialGradient(32,32,0,32,32,32);G.addColorStop(0,'rgba(255,215,228,.46)');G.addColorStop(.42,'rgba(255,170,200,.2)');G.addColorStop(1,'rgba(255,140,180,0)');x.fillStyle=G;x.fillRect(0,0,64,64);}),
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}); // l'aura des cœurs : un halo blanc rosé additif (2026-10-16 : rouge ET blanc) (le programme des éclats : 0 compilé de plus)
+  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.vins=[Gm.champagne].concat(RICH_VINS.map(function(V9){return richVinGeo(V9.p);}));Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurCubes();Gm.fleurs=richFleurs();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
   for(const k9 in M)for(const m9 of [].concat(M[k9]))if(m9&&m9.uniforms)for(const u9 in m9.uniforms){const v9=m9.uniforms[u9].value;if(v9&&v9.isCanvasTexture)texLibere(v9);} // (2026-10-14, passe perf mobile) les ~30 toiles de la pluie de richesse (pièces, billets, jetons, carte, montre, liasse : ~14 Mo), peintes UNE fois ici et plus jamais relues (la liasse a déjà recopié son billet) : rendues après l'envoi (paliers 0-1)
@@ -54751,7 +55249,11 @@ function richInit(){
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
+      else if(t==='coeur'){m=new THREE.Mesh(Gm.coeur,new THREE.ShaderMaterial({uniforms:Object.assign({},M.coeur.uniforms,{uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR, // (2026-10-16) chaque cœur sa matière (son pop à lui) : les mêmes réglages, le même programme
+        transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}));}
+      else if(t==='fleur'){m=new THREE.Mesh(Gm.fleurs[i%Gm.fleurs.length],M.fleur);const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(1.6);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-16) la fleur et son aura
       else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
+      if(t==='coeur'){const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(2.2);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-15) son AURA, derrière lui : elle grandit et bat avec lui (le cœur, transparent, se peint APRÈS elle)
       m.visible=false;m.castShadow=m.receiveShadow=false;m.frustumCulled=false;scene.add(m);
       RICH.libres[t].push({m:m,t:t,v:new THREE.Vector3(),w:new THREE.Vector3(),age:0,vie:1,s:1,ph:0,fd:0,nl:null,gl:null,on:false,
         pa:new THREE.Vector3(),pw:0,fv:.4,ec:0,mode:0,ax:new THREE.Vector3(),gd:new THREE.Vector3(),om:0,A:0,G:0,yr:0,kb:0});}} // (2026-10-10) pa/pw : la précession de la pièce · fv : son fondu de sortie · ec : l'heure où la liasse craque · mode… : le papier qui tombe (richPapier)
@@ -54797,6 +55299,8 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
   if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[k9]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
+  if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
+  if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet')m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)]; // (2026-10-10) une valeur, une couleur
   o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   o.fv=.4;o.mode=0;o.ec=t==='liasse'&&Math.random()<.5?.42+Math.random()*.45:0; // une liasse sur deux CRAQUE en vol (richEclate)
@@ -54810,6 +55314,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   else o.w.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(ws);
   if(D.flip==='y'){o.pa.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();o.pw=(1.2+Math.random()*2.6)*(Math.random()<.5?-1:1);}else o.pw=0; // (2026-10-10) la pièce VOILE : l'axe de sa rotation tourne lentement
   if(D.papier)richPapier(o);
+  if(D.pop){o.pt=Math.max(.45,o.vie*(.3+Math.random()*.55));o.vie=o.pt+.34;o.fv=.05;o.popS=0;m.material.uniforms.uPop.value=0;if(m.children[0])m.children[0].scale.setScalar(2.2);} // (2026-10-16) le cœur ÉCLATERA à son heure (o.pt), chacun la sienne
   // les facettes qui peuvent renvoyer le soleil (repère de l'objet)
   o.nl=D.nl||null;let gc=D.gc||[1,.9,.68];
   if(t==='crane'){const mc=RICH.M.cranes[Math.floor(Math.random()*RICH.M.cranes.length)];m.children[0].material=mc;gc=mc.userData.gc;} // un pastel au hasard, son éclat à sa teinte
@@ -54914,23 +55419,27 @@ function richCoup(P,n,d,mu,combo){
   if(r==='rien')return;
   const P9=P.clone(),n9=n.clone(),d9=d.clone();
   if(r==='presque'){RICH.n.presque++;                                          // presque : une seule pièce s'échappe, mollement
-    setTimeout(function(){try{if(!CHUTE.on)return;richLance(['piece2','piece1','piece50'][Math.floor(Math.random()*3)],P9,n9,d9,0,.55);if(SONV2)sfx('piece',{st:Math.floor(Math.random()*3),vol:-7});}catch(e){}},90);return;}
+    setTimeout(function(){try{if(!CHUTE.on)return;richLance(['piece2','piece1','piece50'][Math.floor(Math.random()*3)],P9,n9,d9,0,.55);if(SONV2){if(richSon())sfx('riche.piece',{st:RICH_PD[Math.floor(Math.random()*3)],vol:-6});else sfx('piece',{st:Math.floor(Math.random()*3),vol:-7});}}catch(e){}},90);return;}
   const T9=RICH_TIER[r];RICH.n.gains++;if(r==='jackpot')RICH.n.jackpot++;
   setTimeout(function(){try{if(!CHUTE.on)return;                              // 80 ms : le souffle, puis la flamme crache
     richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
     const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
-    for(let i=0;i<nb;i++){const ty=richPioche(T9.w),D9=RICH_T[ty]||{},lourd=D9.flip==='y'||ty==='or'||ty==='lingot'; // (2026-10-10) LA GERBE EN DEUX TEMPS : le métal part d'abord, sec ; le papier suit et s'étale
+    const M9=RICH.mat9={g:0,v:0,f:0};for(let i=0;i<nb;i++){const ty=richPioche(T9.w),D9=RICH_T[ty]||{},lourd=D9.flip==='y'||ty==='or'||ty==='lingot'; // (2026-10-10) LA GERBE EN DEUX TEMPS : le métal part d'abord, sec ; le papier suit et s'étale
+      if(ty==='diamant'||ty==='rubis'||ty==='emeraude')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
       richLance(ty,P9,n9,d9,lourd?Math.random()*etal*.55:D9.papier||ty==='liasse'?.05+Math.random()*etal*1.25:Math.random()*etal,r==='jackpot'?1.2:1);}
     if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
-    if(SONV2){if(r==='petit'){sfx('fourgon.billets',{vol:3});sfx('piece',{st:2,vol:-4,t:.05});}
-      else if(r==='bon'){sfx('piece.recolte',{vol:-1});sfx('fourgon.billets',{vol:2,t:.06});}
-      else if(r==='gros')sfx('argent.gros');
-      else{sfx('fig.jackpot');sfx('pluie.billets',{t:.25,vol:-3});}}
+    {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));for(let i=0;i<nc;i++)richLance('coeur',P9,n9,d9,.04+Math.random()*(etal+.15)*1.4,r==='jackpot'?1.15:.95);}} // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un
+    if(SONV2){const ri=richSon();if(ri)sfx('riche.'+r); // (2026-10-16) LA GERBE PAIE : sa cascade à elle (petit → bon → gros → jackpot), au juste milieu — la course garde les pièces de Sacha
+      if(r==='petit'){sfx('fourgon.billets',{vol:-1,t:.04});if(!ri)sfx('piece',{st:2,vol:-4,t:.05});}
+      else if(r==='bon'){sfx('fourgon.billets',{vol:-1,t:.06});if(!ri)sfx('piece.recolte',{vol:-1});}
+      else if(r==='gros'){if(!ri)sfx('argent.gros');sfx('fourgon.billets',{vol:-3,t:.1});}
+      else{if(!ri)sfx('fig.jackpot');sfx('pluie.billets',{t:.25,vol:-3});}
+      const M9=RICH.mat9;if(M9.g)sfx('riche.gemme',{t:.1});if(M9.v){sfx('riche.verre',{t:.08});if(Math.random()<.5)sfx('riche.bouchon',{t:.02});}if(M9.f)sfx('riche.fleurs',{t:.12});} // et ses MATIÈRES : le cristal des gemmes, le verre des vins (et un bouchon qui saute), le souffle des fleurs
     if(r==='jackpot'){CHUTE_TAP.sh=Math.min(1.8,CHUTE_TAP.sh+.8);try{hap([20,30,20,30,60]);}catch(e){}}else if(r==='gros'){try{hap([16,24,30]);}catch(e){}}
     if(r==='jackpot'||r==='gros')setTimeout(function(){try{if(!CHUTE.on)return; // (2026-10-10) LA RÉPLIQUE : la caisse en recrache une poignée (pièces surtout), un temps après
       richEtincelles(P9,n9,d9,r==='jackpot'?12:7,1);const m9=r==='jackpot'?4+Math.floor(Math.random()*2):1+Math.floor(Math.random()*2);
       for(let i=0;i<m9;i++)richLance(['piece2','piece1','piece50','piece2','piece1','billet','or'][Math.floor(Math.random()*7)],P9,n9,d9,Math.random()*.1,.8); /* (14/10) la réplique, plus maigre aussi */
-      if(SONV2)sfx('piece.recolte',{vol:-6});}catch(e){}},r==='jackpot'?430:340);
+      if(SONV2){if(richSon())sfx('riche.petit',{vol:-5});else sfx('piece.recolte',{vol:-6});}}catch(e){}},r==='jackpot'?430:340);
   }catch(e){}},80);
 }
 // ---- CHAQUE IMAGE (appelé par chuteTapeTick) ----
@@ -54947,18 +55456,24 @@ function richTick(dt,C){
     if(D.fl&&kp<1){const f=Math.sin(o.age*6.3+o.ph)*D.fl*(1-kp);o.v.x+=Math.cos(o.fd+o.age*.7)*f*k;o.v.z+=Math.sin(o.fd+o.age*.7)*f*k;o.v.y+=Math.cos(o.age*12.6+o.ph)*D.fl*.35*k*(1-kp);} // il PAPILLONNE
     m.position.addScaledVector(o.v,dt);
     if(o.mode)richPapierTick(o,dt,k,kp,cp);
+    else if(D.fleur){m.lookAt(cp);m.rotateX((m.geometry.userData.vue||.95)+Math.sin(o.age*1.1+o.fd)*.2);m.rotateY(o.age*o.A+o.ph);m.rotateZ(Math.sin(o.age*1.6+o.ph)*.18);} // (2026-10-16) la fleur : penchée vers toi selon SA forme (userData.vue : l'hibiscus de face, la tulipe et le lilas de profil), elle tourne lentement sur sa tige et se balance
+    else if(D.bat){m.lookAt(cp);m.rotateY(Math.sin(o.age*1.9+o.ph)*.62);m.rotateZ(Math.sin(o.age*1.3+o.fd)*.24);} // (2026-10-15) le cœur ne tourne pas sur lui-même (de profil ce n'était plus qu'une goutte) : il se BALANCE en flottant, toujours de face
     else{const wl=o.w.length();if(wl>1e-4){RICH.q.setFromAxisAngle(RICH.v1.copy(o.w).divideScalar(wl),wl*dt);m.quaternion.premultiply(RICH.q);}
       if(D.fl)o.w.multiplyScalar(Math.exp(-dt*.4)).addScaledVector(RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5),D.fl*.9*k);} // le billet bascule au gré de l'air
     if(o.pw){o.w.applyAxisAngle(o.pa,o.pw*dt);o.w.multiplyScalar(Math.exp(-dt*.16));}             // la pièce qui voile : les éclats tombent quand on ne les attend pas
     if(o.ec&&o.age>=o.ec){o.ec=0;richEclate(o);}                                                   // la liasse qui craque
     }const a9=o.age,pop=a9<.14?(function(u){return 1+2.2*(u-1)*(u-1)*(u-1)+1.2*(u-1)*(u-1);})(a9/.14):1,fin=Math.min(1,(o.vie-a9)/o.fv); // il JAILLIT (petit dépassement), puis s'efface
     const dc=m.position.distanceTo(cp),pres=RICH.gel?1:Math.min(1,Math.max(0,(dc-2.2)/2.6)); // trop près de l'objectif : il s'efface (comme les nuages) — sauf figé au banc (vitrine, étal : on les regarde de près)
-    m.scale.setScalar(Math.max(1e-4,o.s*o.fr*pop*fin*pres));m.visible=pres>0;
+    let bt=1;if(D.bat){const u9=(a9*1.3+o.ph)%1;bt=1+.13*Math.exp(-((u9-.06)*(u9-.06))/.0018)+.08*Math.exp(-((u9-.24)*(u9-.24))/.0018);} // (2026-10-15) le cœur BAT : poum-poum (~78 battements/min, chacun à sa phase)
+    if(D.pop){const pp=Math.min(1,Math.max(0,(o.age-o.pt)/.34));m.material.uniforms.uPop.value=pp;if(m.children[0])m.children[0].scale.setScalar(2.2*Math.max(0,1-pp*1.7)); // (2026-10-16) POP : ses cubes filent (RICH_VS_COEUR), son aura s'éteint
+      if(pp>0&&!o.popS){o.popS=1;for(const f of RICH.fl)if(f.age>=f.vie){f.p.copy(m.position);f.v.set(0,.6,0);f.age=0;f.vie=.22;f.r0=o.s*.3;f.r1=o.s*1.7;f.c.setRGB(1,.78,.9);break;} // un éclat blanc rosé
+        const t9=performance.now();if(SONV2&&!(RICH.popT>t9-45)){RICH.popT=t9;try{const i9=RICH.popI=(RICH.popI||0)+1;if(richSon())sfx('riche.coeur',{st:RICH_MEL[(i9-1)%RICH_MEL.length],vol:-4});else sfx('ui.appui',{vol:-7});}catch(e){}}}} // (2026-10-16) et son « plop » : chaque pop prend le degré suivant de la gamme — la nuée qui éclate un à un CHANTE (pas plus d'un tous les 45 ms)
+    m.scale.setScalar(Math.max(1e-4,o.s*o.fr*pop*fin*pres*bt));m.visible=pres>0;
     if(o.gl){ // LE BLING : une facette qui renvoie le soleil vers l'œil
       RICH.cam.copy(cp).sub(m.position).normalize();RICH.H.copy(SUN_DIR).add(RICH.cam).normalize();let g=0;
-      for(const nl of o.nl){RICH.v2.set(nl[0],nl[1],nl[2]).applyQuaternion(m.quaternion);const c=RICH.v2.dot(RICH.H);if(c>0)g=Math.max(g,Math.pow(c,D.gem?60:D.flip==='y'?64:110));}
+      for(const nl of o.nl){RICH.v2.set(nl[0],nl[1],nl[2]).applyQuaternion(m.quaternion);const c=RICH.v2.dot(RICH.H);if(c>0)g=Math.max(g,Math.pow(c,D.gp||(D.gem?60:D.flip==='y'?64:110)));}
       if(D.gem)g=Math.max(g,.18+.18*Math.sin(o.age*23+o.ph)); // la gemme vit toujours un peu
-      const s=o.gl.s;g*=pres;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,o.s*1.1);const sz=o.s*fin*(D.gem?3.4:D.flip==='y'?3.1:2.6)*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}
+      const s=o.gl.s;g*=pres;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,o.s*1.1);const sz=o.s*fin*(D.gs||(D.gem?3.4:D.flip==='y'?3.1:2.6))*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}
       else s.visible=false;}}}
   richChaineTick(dt,cp); // les chaînes d'or
   // la flamme
