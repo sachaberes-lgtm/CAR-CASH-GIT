@@ -38,6 +38,14 @@
   <nav id="meteos" aria-label="Météo"></nav>
 </div>
 <div id="scene"><iframe id="jeu" title="Le jeu"></iframe></div>
+<script>
+// (16/10) le service worker du JEU, s'il s'est installé sur cette adresse (voir.html charge le jeu), fait échouer maps.js et les photos dans le
+// navigateur du chat (la liste restait VIDE) : on le retire et on recharge une fois. serveur.py refuse sw.js, il ne revient pas.
+if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => {
+  if (!rs.length) return;
+  Promise.all(rs.map(r => r.unregister())).then(() => { try { if (!sessionStorage.getItem('ccSwRetire')) { sessionStorage.setItem('ccSwRetire', '1'); location.reload(); } } catch (e) {} });
+}).catch(() => {});
+</script>
 <script src="maps.js"></script>
 <script>
 (function(){
@@ -76,21 +84,32 @@
   });
 
   // le départ et la tenue : JOUER touché pour toi, la map gardée armée, une partie finie relancée
-  const E = { charge: 0, essai: 0, roule: false, finT: 0 };
+  // (16/10, Léo : « je ne vois rien ») MESURÉ dans le navigateur du chat, plus lent que le banc : JOUER touché à 1,5 s, AVANT que le ciel
+  // du titre soit en place (body.titreCiel), lançait le départ par l'atelier, puis le ciel arrivait par-dessus — le départ restait figé
+  // (#garage.launching) pour toujours. On attend donc le ciel du titre (1 s stable ; 9 s au plus si le jeu n'en montre pas), et un départ
+  // qui n'a pas pris en 12 s recharge le jeu (deux fois au plus).
+  const E = { charge: 0, essai: 0, cielT: 0, relance: 0, finT: 0 };
+  const visible = el => !!(el && el.getClientRects().length);
   setInterval(() => {
     let w, st; try { w = jeu.contentWindow; st = w && w.dbgState ? w.dbgState() : null; } catch (e) { st = null; }
     if (!st) return;
-    const now = performance.now();
+    const now = performance.now(), d = w.document;
     try { if (!w.dbgClassique().force) w.dbgClassique(M.id, met); } catch (e) {}
-    if (st.started && !st.gameOver) { E.roule = true; E.finT = 0; return; }
+    if (st.started && !st.gameOver) { E.essai = 0; E.finT = 0; return; }
     if (st.started && st.gameOver) { // la mort : 3 s pour la voir, puis on repart sur la même map
       if (!E.finT) E.finT = now;
-      if (now - E.finT > 3000 && now - E.essai > 2500) { E.essai = now; try { if (w.dbgEco) w.dbgEco('rejouer'); } catch (e) {} }
+      if (now - E.finT > 3000 && now - (E.rejoue || 0) > 2500) { E.rejoue = now; try { if (w.dbgEco) w.dbgEco('rejouer'); } catch (e) {} }
       return;
     }
-    if (now - E.charge < 1200 || now - E.essai < 2000) return; // l'accueil : JOUER, tant que la course ne tourne pas
-    const b = w.document.querySelector('[data-m="play"]');
-    if (b && b.getClientRects().length) { E.essai = now; b.click(); }
+    if (E.essai && now - E.essai > 12000 && E.relance < 2) { // un départ figé : on recharge le jeu
+      E.relance++; E.essai = 0; E.cielT = 0; E.charge = now; jeu.src = jeu.src; return;
+    }
+    if (E.essai) return;
+    if (d.body.classList.contains('titreCiel')) { if (!E.cielT) E.cielT = now; } else E.cielT = 0;
+    const pret = (E.cielT && now - E.cielT > 1000) || now - E.charge > 9000;
+    if (!pret) return;
+    const b = [d.querySelector('[data-m="play"]'), d.getElementById('gJouer')].find(visible);
+    if (b) { E.essai = now; b.click(); }
   }, 300);
 })();
 </script>
