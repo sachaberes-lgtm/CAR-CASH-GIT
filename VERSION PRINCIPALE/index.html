@@ -7859,6 +7859,29 @@ html.c6 #modale.facC6 .modB .pbtn>span{font-family:var(--pix);font-size:16px;lin
 html.c6 #modale.facC6 .modB .pbtn>small{display:block;font-family:var(--sans);font-size:13px;line-height:17px;font-weight:600;letter-spacing:0;text-transform:none;opacity:1}
 html.c6 #modale.facC6 .modB .pb-gold>small{color:var(--c6-orE)}
 html.c6 #modale.facC6 .modB .pbtn:not(.pb-gold)>small{color:var(--c6-g1)}
+/* ====== LA QUESTION DE BIENVENUE (bienvMontre, 2026-10-16, Léo : « un message à la première ouverture, bien designé, en cohérence avec le
+   reste du jeu, avec une option ne plus répéter ») : les deux CARTES de CHOISIS TON MODE + la case NE PLUS ME DEMANDER (.modCoche, posée par
+   modale() quand on lui passe `coche`) — une case de 20 px qui se remplit d'or, son mot qui s'allume ; 44 px de haut pour le pouce. ====== */
+#modale .modCoche{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin:14px auto 0;padding:0 10px;cursor:pointer;
+  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:#b3b8c4;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#modale .modCoche .mcBox{flex:0 0 auto;display:grid;place-items:center;width:20px;height:20px;background:#13161d;box-shadow:inset 0 0 0 2px #b3b8c4;transition:background .12s,box-shadow .12s}
+#modale .modCoche .mcBox .pxi{--pxs:2;opacity:0;transform:scale(.4);transition:opacity .12s,transform .16s cubic-bezier(.32,.72,0,1)}
+#modale .modCoche.on .mcBox{background:#ffc62b;box-shadow:inset 0 0 0 2px #ffc62b}
+#modale .modCoche.on .mcBox .pxi{opacity:1;transform:none;color:#1d1300}
+#modale .modCoche.on span{color:#fff}
+#modale .modCoche:is(:active,.appui) .mcBox{transform:translateY(2px)}
+/* l'interface pixel (la charte v5, celle du jeu — la 6 est éteinte) : deux plaques l'une sous l'autre, le geste en pixel, la promesse dessous
+   en police système (elle a les accents) ; ni la ligne qui déborde, ni la plaque trop basse pour le pouce. */
+html:not(.c6) #modale.bienv .modB .pbtn{flex-wrap:wrap;align-content:center;justify-content:center;column-gap:10px;row-gap:7px;height:auto;min-height:74px;padding:12px 16px;white-space:normal}
+html:not(.c6) #modale.bienv .modB .pbtn>span{font-size:12px;line-height:14px}
+html:not(.c6) #modale.bienv .modB .pbtn .pxi{--pxs:2}
+html:not(.c6) #modale.bienv .modB .pbtn>small{flex-basis:100%;text-align:center;font-family:var(--sans);font-size:13px;line-height:16px;font-weight:700;letter-spacing:0;text-transform:none;opacity:.86}
+html:not(.c6) #modale.bienv #modX{font-family:var(--sans);font-size:14px;line-height:19px;font-weight:600;letter-spacing:0}
+html.c6 #modale.bienv #modT{font-size:20px;line-height:24px;color:var(--c6-or)}
+html.c6 #modale.bienv #modX{max-width:300px;margin-left:auto;margin-right:auto}
+html.c6 #modale.bienv .modB .pbtn{min-height:136px}
+html.c6 #modale.on .modCoche{animation:c6Entre var(--c6-pose) var(--c6-courbe) calc(3*var(--c6-cascade)) backwards}
+@media (prefers-reduced-motion:reduce){html.c6 #modale.on .modCoche{animation:none}}
 html.c6 body #mHome .mBadge{display:none!important} /* les pastilles muettes partent (elles ne disaient rien) */
 </style>
 <style id="c6-pages">
@@ -9930,6 +9953,9 @@ html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
 html[data-reduced-motion] #chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}
 html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}
 @media (prefers-reduced-motion:reduce){#chDoigt.on :is(.cdMain,.cdOnde,.cdEcl,.cdBul){animation:none}#chDoigt.on .cdMain{transform:translate(3px,10px) rotate(-7deg)}}
+/* (2026-10-16, Léo : « enlève le tap your car… pas besoin, les gens découvriront ; la main s'enlève aussi ») LE DOIGT DE BIENVENUE ne
+   s'affiche plus du tout (ni la main, ni la bulle) — le code reste (chuteDoigtTick), invisible : retirer cette ligne le rend. */
+#chDoigt{display:none!important}
 </style>
 <style id="bqFigHex">
 /* ===== LA BOUTIQUE : LES TROIS FIGURES EN BLANC + UN RETOUR QUI SE LIT (2026-10-16, Sacha : « quand on est dans l'onglet figure, tout en haut,
@@ -10560,7 +10586,7 @@ body:not(.play) #m2Focus{display:none!important}
 <script src="figures.js?v=9"></script>
 <script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=1"></script><script src="creatures/dauphin.js?v=1"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
 <script src="assets/audio/musique-bus.js?v=4"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
-<script src="assets/audio/pouce-bleu-jeu.js?v=3"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="assets/audio/pouce-bleu-jeu.js?v=4"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -10675,6 +10701,12 @@ function facChoix(){ /* (2026-10-14, charte 6 · règles de 6 h) deux CARTES ég
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
   m.classList.toggle('facC6',!!o.cartes); // (2026-10-14, charte 6) les boutons en CARTES (le choix FACILE / NORMAL)
+  m.classList.toggle('bienv',o.cls==='bienv'); // (2026-10-16) LA QUESTION DE BIENVENUE (bienvMontre) a son habillage
+  let ck=m.querySelector('.modCoche');if(ck)ck.remove();ck=null; // (2026-10-16) `o.coche` : une case « NE PLUS ME DEMANDER » sous les cartes, rendue dans `coche`
+  if(o.coche){ck=document.createElement('div');ck.className='modCoche';ck.setAttribute('role','checkbox');ck.setAttribute('aria-checked','false');
+    ck.innerHTML='<i class="mcBox">'+pxi('coche')+'</i><span>'+TR(o.coche)+'</span>';
+    ck.addEventListener('click',function(ev){ev.stopPropagation();const on=!ck.classList.contains('on');ck.classList.toggle('on',on);ck.setAttribute('aria-checked',on?'true':'false');uiClic(on?'on':'off');});
+    m.querySelector('.modIn').appendChild(ck);}
   document.getElementById('modT').textContent=TR(o.titre);document.getElementById('modX').textContent=o.texte?TR(o.texte):'';
   c.style.display=o.champ!=null?'':'none';c.value=o.champ||'';c.readOnly=!!o.lecture;
   b.innerHTML='';
@@ -10682,10 +10714,43 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>'+(k.sous?'<small>'+TR(k.sous)+'</small>':''); // (2026-10-14) k.sous : la promesse d'une carte
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE'||o.cls==='bienv')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus (2026-10-16 : la question de bienvenue aussi) */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value,coche:!!(ck&&ck.classList.contains('on'))});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
+/* (2026-10-16, Léo : « premier niveau apprentissage : tu mets un message à la première ouverture, bien designé, en cohérence avec le reste du
+   jeu, avec une option ne plus répéter ; et seulement si on dit que c'est la première fois qu'on joue, ça lance la partie guidée pour
+   beginner — sinon on peut enlever ce truc pour toujours ») LA QUESTION DE BIENVENUE. Avant : le 1er JOUER d'une sauvegarde neuve lançait
+   D'OFFICE l'auto-école (la leçon), même pour qui avait déjà joué sur un autre téléphone. Désormais, à l'ouverture, sur l'accueil, une fenêtre
+   (les deux CARTES de la charte 6, comme CHOISIS TON MODE) demande : PREMIÈRE FOIS ICI ?
+   · OUI, GUIDE-MOI → la leçon part tout de suite (le JOUER de l'accueil, son chemin et sa musique : voir ECOLE_MUS) ;
+   · J'AI DÉJÀ JOUÉ → pas de leçon pour cette ouverture (SAVE.d.tuto = 1, `tutoProv` : la question revient à la prochaine ouverture) ;
+   · la case NE PLUS ME DEMANDER (SAVE.d.bienv) : la question ne revient plus — avec J'AI DÉJÀ JOUÉ, la leçon est enlevée pour toujours
+     (REVOIR L'AUTO-ÉCOLE, dans les réglages, la rend quand on veut).
+   Posée UNE fois par ouverture, seulement à qui n'a jamais passé ni sauté la leçon (une sauvegarde qui a déjà des parties : jamais).
+   `?bienvenue=0` la tait (bancs), `?bienvenue=1` la pose à chaque ouverture (essai), `dbgBienvenue()` la montre. Le doigt TAPE TA CAISSE attend qu'elle soit refermée (BIENV.on). */
+var BIENV={on:false,fait:false,t0:0,iv:0};
+function bienvI18n(){Object.assign(I18N,{'PREMIERE FOIS ICI ?':'FIRST TIME HERE?','OUI, GUIDE-MOI':'YES, GUIDE ME',"J'AI DEJA JOUE":"I'VE PLAYED BEFORE",'Une course guidée':'A guided run','Direct en course':'Straight to the race','NE PLUS ME DEMANDER':"DON'T ASK AGAIN",
+  'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.':'One minute on the road to learn, and your LICENSE pays $500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
+function bienvVeut(){const d=SAVE.d;if(/[?&]bienvenue=1\b/.test(location.search))return !BALADE; /* (essai) `?bienvenue=1` la pose quelle que soit la sauvegarde */ return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
+function bienvPret(){const sp=document.getElementById('splash'),md=document.getElementById('modale');
+  return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play');}
+function bienvGuette(){if(BIENV.iv)return;try{bienvI18n();}catch(e){}BIENV.iv=setInterval(function(){try{
+  if(BIENV.fait||!bienvVeut()){clearInterval(BIENV.iv);return;}
+  if(!bienvPret()){BIENV.t0=0;return;}
+  if(!BIENV.t0){BIENV.t0=performance.now();return;}
+  if(performance.now()-BIENV.t0>700){clearInterval(BIENV.iv);bienvMontre();}}catch(e){}},250);} // l'accueil a fini d'entrer (700 ms) : la question se pose
+function bienvMontre(force){if(BIENV.on||(!force&&(BIENV.fait||!bienvVeut())))return;BIENV.fait=true;BIENV.on=true;
+  try{chuteDoigtMontre(false);}catch(e){}
+  modale({titre:'PREMIERE FOIS ICI ?',texte:'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.',cartes:true,cls:'bienv',coche:'NE PLUS ME DEMANDER',
+    boutons:[{l:'OUI, GUIDE-MOI',ic:'volant',cls:'pb-gold',sous:'Une course guidée',v:1},{l:"J'AI DEJA JOUE",ic:'eclair',cls:'c6Neutre',sous:'Direct en course',v:0}]}).then(function(r){
+    BIENV.on=false;
+    if(r.coche)SAVE.d.bienv=1;
+    if(r.v){SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();bienvJoue();}
+    else{SAVE.d.tuto=1;SAVE.d.tutoProv=r.coche?0:1;SAVE.flush();}});}
+function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même chemin (piqué, voile, piste d'école, musique de la leçon)
+  setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
+window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
 function toast(h,muet){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
@@ -23967,11 +24032,12 @@ const CARS=[
  {name:'LA POUPÉE',shape:'poupee',color:0xf49bcb,accent:0xfdf0f6,maxKmh:445,accel:54,turn:3.1,h:1.7,w:2.0,l:4.93,spoiler:0,rar:'epique',
   fx:{jet:0xff5cb0,core:0xffe2f1,trail:[1.5,.5,1.05],light:0xff5cb0},
   desc:'Rose poupée, cuir crème, 650 chevaux. Elle se gare en double file, et c\'est la file qui s\'excuse.'},
- // (2026-10-16, Léo : « Porsche Taycan 4S », « black edition bien glossy ») L'ONYX (voir SHAPES.onyx) : la berline électrique, NOIR LAQUÉ.
- // Pas de marque (ni le nom, ni le blason). Électrique : pas de pots, deux fentes bleues dans le diffuseur. Ajoutée EN DERNIER.
- {name:'L\'ONYX',shape:'onyx',color:0x040405,accent:0xd31f2a,maxKmh:450,accel:56,turn:3.2,h:1.38,w:1.97,l:4.96,spoiler:0,rar:'epique',
+ // (2026-10-16, Léo : « Taycan 4S » ; puis « trop style jouet, mimétisme » → « blanche, laquée comme une vraie, lissée, tous les traits
+ // du plan », nom « la perle ») LA PERLE (voir SHAPES.perle) : la berline électrique, BLANC LAQUÉ, refaite sur un plan coté. Elle
+ // remplace L'ONYX (noire). Pas de marque (ni le nom, ni le blason). Électrique : pas de pots, deux fentes bleues dans le diffuseur.
+ {name:'LA PERLE',shape:'perle',color:0xf3f3f1,accent:0xd31f2a,maxKmh:450,accel:56,turn:3.2,h:1.38,w:1.97,l:4.96,spoiler:0,rar:'epique',
   fx:{jet:0x6fd6ff,core:0xe8fbff,trail:[.3,1.0,1.5],light:0x46c8ff},
-  desc:'Noir laqué, zéro bruit, 571 chevaux. Tu la vois dans ton rétro, et l\'instant d\'après tu ne vois plus que ses feux.'},
+  desc:'Blanc laqué, zéro bruit, 571 chevaux. Elle passe sans un son, et tout le monde se retourne quand même.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -24453,10 +24519,10 @@ Object.assign(I18N,{
  "LA DÉFERLANTE":"THE BREAKER",
  "Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d'air.":"A rogue wave that learned to drive. It curls right over the back of your neck, and you breathe inside an air bubble."
 });
-// (2026-10-16) L'ONYX
+// (2026-10-16) LA PERLE (ex-L'ONYX)
 Object.assign(I18N,{
- "L'ONYX":"ONYX",
- "Noir laqué, zéro bruit, 571 chevaux. Tu la vois dans ton rétro, et l'instant d'après tu ne vois plus que ses feux.":"Gloss black, zero noise, 571 horsepower. You spot her in your mirror, and a second later all you see are her taillights.",
+ "LA PERLE":"THE PEARL",
+ "Blanc laqué, zéro bruit, 571 chevaux. Elle passe sans un son, et tout le monde se retourne quand même.":"Gloss white, zero noise, 571 horsepower. She glides by without a sound, and everyone turns around anyway.",
 });
 // (2026-10-16) LA POUPÉE
 Object.assign(I18N,{
@@ -28994,7 +29060,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  nuage:{p:[{t:'nuage',r:0.075,pts:[[0.46,0.42,-2.43],[-0.46,0.42,-2.43]]}]},
  lingot:{p:[{t:'rect',w:0.11,h:0.11,k:'o',e:0.018,pts:[[0.46,0.42,-2.56],[-0.46,0.42,-2.56]]}]},
  poupee:{p:[{t:'rond',r:0.045,k:'c',dbl:1,pts:[[0.52,0.40,-2.485],[0.63,0.40,-2.485],[-0.52,0.40,-2.485],[-0.63,0.40,-2.485]]}]}, // (2026-10-16) LA POUPÉE : les quatre sorties de la Cayenne, deux paires aux coins du diffuseur
- onyx:{p:[{t:'fente',w:0.30,h:0.035,k:'s',lueur:'G',pts:[[0.42,0.33,-2.495],[-0.42,0.33,-2.495]]}]}, // (2026-10-16) L'ONYX : électrique — pas de pots, deux fentes qui luisent bleu au bas du diffuseur
+ perle:{p:[{t:'fente',w:0.30,h:0.035,k:'s',lueur:'G',pts:[[0.42,0.33,-2.495],[-0.42,0.33,-2.495]]}]}, // (2026-10-16) LA PERLE : électrique — pas de pots, deux fentes qui luisent bleu au bas du diffuseur
 };
 /* ---- FIN DES POTS D'ÉCHAPPEMENT ---- */
 /* LES MATIÈRES. La couleur vient des SOMMETS ; la matière ne dit que comment la surface répond.
@@ -32893,124 +32959,204 @@ SHAPES.poupee=function(K){
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
 };
-/* L'ONYX (2026-10-16, Léo, en interview sur LA POUPÉE : « Porsche Taycan 4S », « black edition bien glossy », « un peu plus de facettes,
-   plus rond » → « une Taycan 4S noire, EN PLUS » de la Cayenne rose). Calée sur des photos de la Taycan (profil, face, poupe, jante). */
-SHAPES.onyx=function(K){
-  /* L'ONYX — la berline électrique de Zuffenhausen (la ligne de la Taycan 4S), NOIR LAQUÉ. Calée sur des photos (profil, face, poupe,
-     jante). Ce qui la fait reconnaître : le capot très BAS qui plonge entre deux ailes en bosse, les phares compacts et, dessous, la
-     FENTE verticale noire (le rideau d'air), la grande bouche basse en sourire, le pavillon en fastback, les HANCHES arrière qui
-     débordent, le bandeau de feux d'une aile à l'autre, la jante bicolore et les étriers ROUGES. Les arêtes tombent sur ses vraies
-     lignes ; les phares, les bouches et le bandeau sont des facettes de la caisse peintes. */
-  const U=LPU,R=.36,ZF=1.52,ZR=-1.38,ZE=2.48,ZB=-2.48;
-  const P=K.kit({p:{g:'g',c:0x040405},k:{g:'m',c:0x141217},K:{g:'g',c:0x0c0b0f},c:{g:'c',c:0xc9ced6},C:{g:'c',c:0x8a9098},
-    g:{g:'g',c:0x1b2532},W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff1a3a},r:{g:'l',c:0x7a0a1e},O:{g:'l',c:0xffa21a},m:{g:'s',c:0x2c2930},
-    s:{g:'s',c:0x2a2c31},e:{g:'s',c:0xd31f2a}});
-  const AR=[[0,2*R+.05],[R*.72,2*R+.025],[R+.05,R*1.12],[R+.16,.17]];
-  const CW=.88,RF=-.20,BP=-.48,RD=-1.25,RR=-1.15,RB=-2.02,QT=-1.62; // pied de pare-brise · haut du pare-brise · montant B · montant C · haut de lunette · bas de lunette · pointe de la custode
-  const NZ=[ZE-.48,ZE-.40,ZE-.34,ZE-.25,ZE-.12,ZE-.05,ZE-.02,ZE], NB=[ZB,ZB+.06,ZB+.18,ZB+.35];
-  const zs=[...NB,-2.25,RB,-1.80,QT,RD-.02,RD+.02,RR,-.85,BP-.04,BP+.04,RF,.30,CW,1.40,1.90,...NZ];
-  for(const w of [ZF,ZR])for(const d of [R*.72,R+.05,R+.16])zs.push(w-d,w+d);
-  zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[ZB,.95],[-2.38,.985],[-2.25,.995],[RB,1.012],[-1.80,1.10],[RR,1.31],[-.85,1.355],[BP,1.375],[RF,1.355],[.30,1.16],[CW,.955],[1.40,.865],[1.90,.785],[ZE-.30,.735],[ZE,.70]],z),
-        xW=z=>U.lin([[ZB,.90],[-2.30,.945],[-1.90,.955],[2.10,.955],[ZE,.94]],z),                     // la voie des flancs
-        xF=z=>.024*U.cl(1-Math.abs(z-ZF)/.70,0,1)+.058*U.cl(1-Math.abs(z-ZR)/1.10,0,1),             // les ailes ; les HANCHES arrière
-        bL=z=>U.lin([[ZB,.90],[-2.38,.93],[RB,.965],[QT,.975],[RD,.965],[BP,.935],[CW,.93],[1.40,.86],[1.90,.81],[ZE-.22,.765],[ZE,.735]],z), // la ceinture · devant, le haut des phares
-        crH=z=>U.lin([[CW,.025],[1.40,.055],[2.0,.075],[ZE,.065]],z),                                   // la bosse de l'aile au-dessus du capot
-        yE=z=>U.lin([[RB,1.03],[-1.80,1.10],[QT,1.15],[RR,1.27],[-.85,1.31],[BP,1.325],[RF,1.31],[.30,1.13],[CW,.962]],z), // le rebord du pavillon (et les montants)
-        xG=z=>U.lin([[RB,.74],[RR,.69],[BP,.68],[RF,.69],[.30,.76],[CW,.82]],z),
-        yWin=(z,bl,ye)=>z<QT?bl:z<RD?U.lin([[QT,bl+.004],[RD,ye-.03]],z):ye-.03,           // le haut des vitres : la custode file en pointe
-        cab=z=>z>RB-.001&&z<CW+.001;
-  const kxF=z=>U.lin([[ZE-.48,1],[ZE-.34,.975],[ZE-.22,.93],[ZE-.12,.84],[ZE-.05,.68],[ZE-.02,.56],[ZE,.44]],z),
-        kTF=z=>U.lin([[ZE-.40,1],[ZE-.25,.93],[ZE-.12,.80],[ZE-.04,.64],[ZE,.52]],z),     // le NEZ EN COIN : il plonge sur 40 cm
-        kBF=z=>U.lin([[ZE-.20,1],[ZE-.06,.94],[ZE,.78]],z),
-        kxR=z=>U.lin([[ZB,.74],[ZB+.06,.88],[ZB+.18,.96],[ZB+.35,1]],z),
-        kTR=z=>U.lin([[ZB,.90],[ZB+.06,.96],[ZB+.18,.99],[ZB+.35,1]],z),
-        kBR=z=>U.lin([[ZB,.72],[ZB+.06,.86],[ZB+.18,.96],[ZB+.35,1]],z);
-  const FR=z=>z>ZE-.49,AR9=z=>z<ZB+.36;
+/* LA PERLE (2026-10-16 ; ex-L'ONYX noire). Léo : « Taycan 4S », puis « trop style jouet, mimétisme, ne te gourre pas, revois plusieurs fois »
+   → « blanche, laquée comme une vraie », « lissée », « tous les traits du plan », nom « la perle ». Refaite sur un PLAN COTÉ (4 vues).
+   Les traits sont projetés à la construction puis gardés sur la fonction (`SHAPES.perle._tri`) : la 2e construction ne recalcule rien. */
+SHAPES.perle=function(K){
+  /* LA PERLE — la berline électrique de Zuffenhausen (la ligne de la Taycan 4S, 2019-2024), BLANC LAQUÉ. Tout vient d'un PLAN COTÉ
+     (élévations de côté, de face, de dos et vue de dessus, 117,23 unités par mètre) :
+     · la CARROSSERIE : la silhouette (toit en arc qui culmine à 1,38 m, pare-brise posé loin devant), la ceinture et les vitres, les
+       largeurs (portes 0,957, ailes avant et HANCHES 0,986), le capot qui plonge entre les ailes, le nez et la poupe rognés au profil ;
+     · CHAQUE TRAIT DU PLAN, projeté sur la tôle à sa place (`PLAN`) : les joints (portes, capot, malle, montants, cadres de vitres,
+       pavillon) en gris foncé, les plis de tôle (épaules, hanches, bas de portes, ailes, boucliers) en gris clair, et les ZONES
+       pleines : les phares et leur rideau d'air, la bouche, l'ouïe d'aile, la bande noire du bandeau, la plaque, le diffuseur ;
+     · LA JANTE du plan : la jante ajourée (ses dix alvéoles), le moyeu, et derrière le disque et l'étrier rouge de la 4S.
+     Normales lissées dans les panneaux (les arêtes gardées) : les reflets glissent comme sur une laque. Repère : x à droite, y en
+     haut, z vers l'avant, mètres. */
+  const U=LPU,R=.364,ZF=1.484,ZR=-1.439,ZE=2.48,ZB=-2.475;
+  const PLAN={"cote":{"fonce":[[[0.45,0.946],[0.031,0.958],[-0.623,0.99],[-0.97,1.012],[-1.122,1.028],[-1.253,1.052],[-1.272,1.061],[-1.277,1.069],[-1.277,1.079],[-1.266,1.096],[-1.241,1.114],[-1.213,1.127],[-1.078,1.173],[-0.949,1.207],[-0.789,1.24],[-0.647,1.261],[-0.495,1.276],[-0.311,1.285],[-0.178,1.286],[-0.076,1.279],[0.025,1.266],[0.116,1.248],[0.194,1.225],[0.251,1.202],[0.324,1.165],[0.544,1.036]],[[0.458,0.925],[0.11,0.936],[-0.308,0.954],[-0.891,0.986],[-1.033,0.997],[-1.185,1.018],[-1.245,1.03],[-1.294,1.045],[-1.313,1.054],[-1.326,1.069],[-1.322,1.088],[-1.308,1.103],[-1.282,1.118],[-1.226,1.143],[-1.081,1.193],[-0.942,1.23],[-0.792,1.26],[-0.64,1.282],[-0.488,1.297],[-0.293,1.306],[-0.15,1.305],[-0.048,1.297],[0.043,1.284],[0.143,1.262],[0.211,1.241],[0.277,1.212],[0.358,1.17],[0.595,1.028]],[[-0.356,0.976],[-0.417,1.281]],[[-0.317,1.285],[-0.2,0.968]],[[-1.106,1.026],[-1.036,1.185]],[[-1.27,0.738],[-1.294,0.868],[-1.296,0.899],[-1.29,0.929],[-1.278,0.946],[-1.262,0.957],[-1.177,0.992],[-1.161,1.006],[-1.144,1.031]],[[-0.207,0.251],[-0.183,0.382],[-0.2,0.45],[-0.201,0.747],[-0.207,0.797],[-0.217,0.837],[-0.262,0.951]],[[0.894,0.347],[1.077,0.345]],[[0.874,0.2],[0.897,0.372],[0.905,0.577],[0.907,0.75],[0.902,0.791],[0.889,0.829],[0.868,0.864],[0.842,0.896],[0.806,0.932],[0.765,0.963],[0.645,1.041],[0.288,1.259],[0.282,1.268],[0.284,1.277],[0.357,1.313]],[[0.756,0.97],[0.795,0.959],[0.835,0.955],[0.946,0.961],[1.037,0.972]],[[0.66,0.986],[0.761,0.92]],[[0.38,1.202],[0.363,1.228],[0.366,1.237],[0.392,1.255],[0.45,1.28]],[[-0.949,0.21],[0.965,0.175]]],"clair":[[[-0.891,0.816],[-0.162,0.802]],[[0.063,0.798],[1.12,0.781],[1.191,0.772],[1.227,0.753]],[[-1.879,0.972],[-1.655,0.99],[-1.442,0.995],[-1.228,0.988],[-1.025,0.969]],[[-1.518,0.765],[-1.596,0.832],[-1.622,0.847],[-1.907,0.874]],[[-2.103,0.778],[-2.03,0.77],[-1.96,0.751],[-1.874,0.714],[-1.803,0.671]],[[-2.064,1.002],[-1.993,0.996],[-1.943,1.004],[-1.251,1.22],[-1.234,1.231],[-1.233,1.241],[-1.245,1.269]],[[-2.392,0.793],[-2.197,0.788],[-2.115,0.792],[-2.056,0.806],[-1.971,0.843],[-1.908,0.874],[-2.326,0.911],[-2.346,0.914],[-2.353,0.921],[-2.351,0.931],[-2.344,0.938],[-2.183,0.968],[-2.114,0.985],[-1.778,1.11],[-1.554,1.182],[-1.259,1.266],[-1.059,1.309],[-0.765,1.352],[-0.623,1.366],[-0.48,1.375],[-0.224,1.379],[0.032,1.371],[0.184,1.354],[0.324,1.323],[0.459,1.276],[0.599,1.213],[0.852,1.079],[1.09,0.939]],[[-1.835,1.089],[-1.775,1.075],[-1.724,1.073]],[[-1.898,1.066],[-1.81,1.047]],[[-2.141,0.977],[-2.016,0.96]],[[-1.329,1.247],[-1.317,1.217],[-1.319,1.206],[-1.337,1.194]],[[-0.9,0.43],[0.111,0.427],[0.867,0.42]],[[-0.912,0.403],[0.861,0.35]],[[-0.965,0.353],[-0.977,0.444],[-1.002,0.522],[-1.041,0.594],[-1.098,0.666],[-1.159,0.72],[-1.238,0.767],[-1.325,0.798],[-1.406,0.81],[-1.498,0.808],[-1.588,0.788],[-1.672,0.751],[-1.74,0.704],[-1.805,0.639],[-1.851,0.572],[-1.889,0.488],[-1.908,0.409]],[[1.737,0.724],[1.675,0.76],[1.619,0.782],[1.559,0.796],[1.488,0.803],[1.417,0.798],[1.357,0.784],[1.291,0.758],[1.238,0.728],[1.189,0.691],[1.146,0.647],[1.11,0.599],[1.08,0.545],[1.058,0.488],[1.044,0.428],[1.033,0.266]],[[1.93,0.349],[1.922,0.44],[1.91,0.489],[1.892,0.537],[1.869,0.582],[1.841,0.624],[1.779,0.692]],[[-2.231,0.475],[-1.939,0.463]],[[-2.311,0.354],[-1.864,0.331]],[[-1.017,0.269],[0.695,0.229],[0.745,0.224],[0.792,0.203],[1.069,0.197]],[[-2.436,0.549],[-2.434,0.579],[-2.415,0.616],[-2.408,0.623],[-2.398,0.625],[-2.357,0.625],[-2.348,0.63],[-2.343,0.639],[-2.341,0.773],[-2.337,0.793],[-2.321,0.804],[-2.226,0.845],[-2.211,0.859],[-2.208,0.879],[-2.223,0.905],[-2.217,0.924],[-2.188,0.933],[-2.005,0.963],[-1.925,0.982],[-1.858,1.01],[-1.81,1.047]],[[-2.407,0.623],[-2.401,0.674],[-2.418,0.721],[-2.417,0.792],[-2.405,0.808],[-2.333,0.846]],[[-1.999,0.83],[-2.329,0.844],[-2.333,0.851],[-2.31,0.909]],[[-2.279,0.875],[-1.986,0.854]],[[-2.399,0.372],[-2.43,0.507]],[[-2.37,0.315],[-2.412,0.314],[-2.419,0.309],[-2.416,0.299],[-2.385,0.271],[-2.339,0.247]],[[-2.422,0.474],[-2.384,0.474]],[[-2.05,0.205],[-2.049,0.174],[-2.054,0.166],[-2.065,0.167],[-2.244,0.21],[-2.331,0.24],[-2.339,0.247],[-2.363,0.303],[-2.38,0.329],[-2.397,0.341],[-2.446,0.357],[-2.452,0.363],[-2.435,0.371],[-2.322,0.373]],[[-1.232,1.24],[-0.981,1.29],[-0.748,1.327],[-0.574,1.344],[-0.39,1.353],[-0.185,1.353],[0.01,1.341],[0.172,1.315],[0.29,1.282]],[[1.659,0.724],[1.794,0.724],[1.825,0.719],[1.838,0.704],[1.839,0.694],[1.716,0.692]],[[1.965,0.748],[2.035,0.734],[2.058,0.7]],[[2.004,0.694],[2.127,0.676],[2.143,0.663],[2.16,0.637]],[[2.183,0.573],[2.25,0.547],[2.319,0.527],[2.38,0.516],[2.441,0.512]],[[1.833,0.712],[1.945,0.712]],[[2.031,0.64],[2.135,0.575],[2.15,0.561],[2.161,0.544],[2.174,0.494],[2.183,0.424],[2.173,0.384],[2.149,0.328]],[[2.228,0.302],[2.177,0.309],[2.158,0.317],[2.151,0.324],[2.14,0.363],[2.116,0.515],[2.106,0.554],[2.088,0.579],[1.993,0.656],[1.964,0.685],[1.938,0.729],[1.933,0.749],[1.933,0.769],[1.939,0.777],[1.948,0.781],[1.969,0.779],[2.056,0.751],[2.211,0.67],[2.254,0.644],[2.277,0.624],[2.274,0.618],[2.243,0.619],[2.009,0.643]],[[2.279,0.619],[2.371,0.615]],[[2.31,0.35],[2.436,0.353],[2.453,0.364],[2.467,0.403]],[[2.41,0.278],[2.432,0.353]]],"plein":[{"k":"k","p":[[1.057,0.66],[1.016,0.664],[1.0,0.676],[0.994,0.695],[0.99,0.736],[0.993,0.787],[1.008,0.8],[1.038,0.804],[1.121,0.802],[1.15,0.793],[1.164,0.778],[1.178,0.751],[1.179,0.741],[1.171,0.722],[1.133,0.688],[1.107,0.67],[1.088,0.663],[1.057,0.66]]}],"lignes":[{"k":"j","w":0.012,"p":[[0.052,0.734],[-0.071,0.739],[-0.121,0.748],[-0.145,0.766],[-0.162,0.803],[-0.16,0.813],[-0.152,0.818],[-0.131,0.819],[-0.019,0.815],[0.042,0.806],[0.069,0.793],[0.073,0.784],[0.072,0.774],[0.062,0.771],[-0.152,0.778]]},{"k":"j","w":0.012,"p":[[-0.907,0.756],[-1.029,0.761],[-1.08,0.77],[-1.103,0.788],[-1.121,0.825],[-1.119,0.835],[-1.11,0.84],[-1.09,0.842],[-0.978,0.837],[-0.917,0.829],[-0.89,0.815],[-0.885,0.806],[-0.887,0.797],[-0.896,0.794],[-1.111,0.8]]},{"k":"j","w":0.012,"p":[[-1.136,0.75],[-1.093,0.777]]}]},"face":{"fonce":[[[0,0.975],[-0.665,0.973],[-0.696,0.975],[-0.715,0.981],[-0.721,0.99],[-0.719,1.01],[-0.69,1.086],[-0.632,1.206],[-0.62,1.223],[-0.604,1.236],[-0.575,1.246],[-0.515,1.254],[-0.269,1.268],[-0.137,1.267],[-0.114,1.222],[-0.107,1.215],[-0.067,1.209],[0.097,1.211],[0.114,1.222],[0.137,1.267],[0.147,1.269],[0.259,1.268],[0.454,1.259],[0.545,1.251],[0.585,1.243],[0.613,1.23],[0.632,1.206],[0.698,1.067],[0.721,1.0],[0.721,0.99],[0.715,0.981],[0.696,0.975],[0.676,0.973],[0,0.975]]],"clair":[[[-0.957,0.335],[-0.775,0.321]],[[0.957,0.335],[0.775,0.321]],[[-0.782,0.554],[-0.632,0.527],[-0.469,0.512],[-0.296,0.503],[-0.01,0.498],[0.245,0.501],[0.459,0.511],[0.642,0.529],[0.782,0.554]],[[-0.254,1.368],[-0.251,1.322]],[[0.254,1.368],[0.251,1.322]],[[-0.338,0.925],[-0.305,0.851],[-0.278,0.775],[-0.261,0.706],[-0.249,0.637]],[[0.338,0.925],[0.305,0.851],[0.278,0.775],[0.261,0.706],[0.249,0.637]],[[-0.73,0.936],[-0.668,0.901],[-0.602,0.838],[-0.533,0.749],[-0.446,0.612]],[[0.73,0.936],[0.668,0.901],[0.602,0.838],[0.528,0.741],[0.446,0.612]]],"plein":[{"k":"g","p":[[-0.5,0.622],[-0.508,0.628],[-0.607,0.732],[-0.631,0.752],[-0.649,0.762],[-0.678,0.772],[-0.729,0.78],[-0.821,0.785],[-0.861,0.783],[-0.88,0.775],[-0.891,0.758],[-0.9,0.729],[-0.907,0.689],[-0.91,0.637],[-0.911,0.576],[-0.906,0.515],[-0.898,0.474],[-0.89,0.445],[-0.879,0.416],[-0.869,0.398],[-0.856,0.382],[-0.848,0.376],[-0.829,0.369],[-0.758,0.358],[-0.849,0.377],[-0.823,0.393],[-0.817,0.401],[-0.815,0.411],[-0.839,0.552],[-0.844,0.593],[-0.843,0.613],[-0.837,0.633],[-0.832,0.641],[-0.823,0.647],[-0.803,0.651],[-0.773,0.651],[-0.619,0.645],[-0.559,0.636],[-0.489,0.617]]},{"k":"g","p":[[0.758,0.358],[0.829,0.369],[0.848,0.376],[0.857,0.382],[0.869,0.398],[0.883,0.426],[0.893,0.455],[0.903,0.494],[0.91,0.555],[0.911,0.627],[0.907,0.689],[0.898,0.739],[0.891,0.758],[0.88,0.775],[0.862,0.783],[0.831,0.785],[0.769,0.783],[0.708,0.777],[0.678,0.772],[0.649,0.762],[0.631,0.752],[0.615,0.739],[0.516,0.636],[0.5,0.622],[0.491,0.618],[0.49,0.617],[0.559,0.636],[0.619,0.645],[0.773,0.651],[0.803,0.651],[0.823,0.647],[0.832,0.641],[0.841,0.623],[0.844,0.593],[0.839,0.552],[0.815,0.411],[0.817,0.401],[0.823,0.393],[0.849,0.377]]},{"k":"k","p":[[-0.97,0.223],[-0.796,0.223],[-0.776,0.226],[-0.768,0.232],[-0.764,0.241],[-0.76,0.313],[-0.747,0.328],[-0.676,0.369],[-0.599,0.395],[-0.497,0.404],[-0.005,0.406],[0.487,0.404],[0.589,0.397],[0.667,0.373],[0.713,0.351],[0.747,0.328],[0.76,0.313],[0.764,0.241],[0.768,0.232],[0.776,0.226],[0.796,0.223],[0.97,0.223]]}],"lignes":[{"k":"j","w":0.011,"p":[[0.758,0.358],[0.829,0.369],[0.857,0.382],[0.869,0.398],[0.883,0.426],[0.903,0.494],[0.91,0.555],[0.911,0.627],[0.907,0.689],[0.898,0.739],[0.891,0.758],[0.88,0.775],[0.862,0.783],[0.831,0.785],[0.708,0.777],[0.649,0.762],[0.615,0.739],[0.516,0.636],[0.491,0.618],[0.441,0.612],[0.236,0.61],[-0.369,0.61],[-0.481,0.615],[-0.508,0.628],[-0.607,0.732],[-0.649,0.762],[-0.678,0.772],[-0.729,0.78],[-0.821,0.785],[-0.861,0.783],[-0.88,0.775],[-0.891,0.758],[-0.907,0.689],[-0.911,0.576],[-0.906,0.515],[-0.898,0.474],[-0.879,0.416],[-0.856,0.382],[-0.829,0.369],[-0.758,0.358]]},{"k":"j","w":0.011,"p":[[-0.903,0.715],[-0.882,0.679],[-0.832,0.641]]},{"k":"j","w":0.011,"p":[[0.903,0.715],[0.895,0.696],[0.882,0.679],[0.832,0.641]]},{"k":"j","w":0.011,"p":[[-0.849,0.377],[-0.823,0.393],[-0.817,0.401],[-0.815,0.411],[-0.844,0.593],[-0.837,0.633],[-0.823,0.647],[-0.773,0.651],[-0.619,0.645],[-0.559,0.636],[-0.489,0.617]]},{"k":"j","w":0.011,"p":[[0.849,0.377],[0.823,0.393],[0.817,0.401],[0.815,0.411],[0.844,0.593],[0.841,0.623],[0.832,0.641],[0.823,0.647],[0.773,0.651],[0.619,0.645],[0.559,0.636],[0.49,0.617]]},{"k":"j","w":0.011,"p":[[-0.587,1.286],[-0.559,1.364]]},{"k":"j","w":0.011,"p":[[0.587,1.286],[0.559,1.364]]},{"k":"j","w":0.011,"p":[[-0.792,0.929],[-0.715,1.108],[-0.661,1.219],[-0.633,1.262],[-0.608,1.279],[-0.548,1.293],[-0.436,1.3],[-0.241,1.308],[-0.005,1.311],[0.241,1.308],[0.436,1.3],[0.559,1.291],[0.608,1.279],[0.633,1.262],[0.662,1.219],[0.715,1.108],[0.792,0.929]]},{"k":"W","w":0.016,"p":[[-0.803,0.68],[-0.813,0.709],[-0.806,0.728],[-0.782,0.747],[-0.751,0.751],[-0.721,0.744],[-0.699,0.723],[-0.696,0.693],[-0.705,0.674]]},{"k":"W","w":0.016,"p":[[0.803,0.68],[0.813,0.709],[0.806,0.728],[0.782,0.747],[0.751,0.751],[0.721,0.744],[0.699,0.723],[0.696,0.693],[0.705,0.674]]},{"k":"O","w":0.014,"p":[[-0.956,0.726],[-0.901,0.726]]},{"k":"O","w":0.014,"p":[[0.956,0.726],[0.901,0.726]]},{"k":"O","w":0.014,"p":[[-0.986,0.727],[-0.956,0.726],[-0.951,0.707],[-0.951,0.697],[-0.956,0.689],[-0.986,0.687]]},{"k":"O","w":0.014,"p":[[0.986,0.727],[0.956,0.726],[0.951,0.707],[0.951,0.697],[0.956,0.689],[0.986,0.687]]},{"k":"C","w":0.012,"p":[[-0.738,0.336],[-0.346,0.336]]},{"k":"C","w":0.012,"p":[[0.738,0.336],[0.346,0.336]]},{"k":"C","w":0.012,"p":[[-0.762,0.254],[-0.432,0.254],[-0.402,0.259],[-0.358,0.286],[-0.347,0.303],[-0.345,0.406]]},{"k":"C","w":0.012,"p":[[0.763,0.254],[0.432,0.254],[0.402,0.259],[0.358,0.286],[0.347,0.303],[0.345,0.406]]},{"k":"C","w":0.012,"p":[[-0.302,0.282],[0.302,0.282]]},{"k":"C","w":0.012,"p":[[-0.358,0.233],[0.358,0.233]]},{"k":"C","w":0.012,"p":[[-0.779,0.224],[-0.411,0.225],[-0.37,0.228],[-0.336,0.249],[-0.306,0.277],[-0.294,0.294],[-0.29,0.406]]},{"k":"C","w":0.012,"p":[[0.779,0.224],[0.411,0.225],[0.37,0.228],[0.336,0.249],[0.306,0.277],[0.294,0.294],[0.29,0.406]]}]},"dos":{"fonce":[[[-0.602,0.956],[-0.347,0.967],[-0.02,0.968],[0.347,0.967],[0.602,0.956]],[[0,1.063],[-0.461,1.061],[-0.502,1.055],[-0.531,1.046],[-0.584,1.014],[-0.604,0.991],[-0.603,0.961],[-0.52,0.697],[-0.503,0.659],[-0.484,0.636],[-0.456,0.624],[-0.384,0.62],[0.384,0.62],[0.456,0.624],[0.475,0.63],[0.492,0.643],[0.508,0.668],[0.527,0.716],[0.603,0.961],[0.604,0.991],[0.584,1.014],[0.531,1.046],[0.502,1.055],[0.461,1.061],[0,1.063]],[[-0.774,0.353],[-0.718,0.451],[-0.684,0.503],[-0.656,0.532],[-0.619,0.551],[-0.559,0.561],[-0.456,0.566],[-0.005,0.568],[0.456,0.566],[0.549,0.562],[0.619,0.551],[0.656,0.532],[0.684,0.503],[0.718,0.451],[0.774,0.353]],[[0.687,0.339],[0.421,0.351],[0.082,0.355],[-0.4,0.351],[-0.687,0.339]],[[-0.936,0.337],[-0.681,0.36]],[[0.936,0.337],[0.681,0.36]],[[-0.516,1.238],[-0.527,1.288],[-0.551,1.366]],[[0.516,1.238],[0.529,1.298],[0.551,1.366]],[[0,0.997],[-0.42,0.997],[-0.461,1.0],[-0.48,1.005],[-0.496,1.018],[-0.513,1.055],[-0.548,1.194],[-0.55,1.214],[-0.548,1.224],[-0.53,1.234],[-0.5,1.241],[-0.378,1.255],[-0.194,1.265],[0,1.269],[0.195,1.265],[0.358,1.257],[0.48,1.244],[0.54,1.23],[0.548,1.224],[0.55,1.204],[0.522,1.084],[0.502,1.026],[0.48,1.005],[0.461,1.0],[0.42,0.997],[0,0.997]],[[-0.784,0.859],[-0.436,0.865],[-0.416,0.87],[-0.394,0.891],[-0.374,0.894],[-0.015,0.898],[0.374,0.894],[0.394,0.891],[0.416,0.87],[0.436,0.865],[0.784,0.859]],[[-0.846,0.879],[-0.841,0.818],[-0.83,0.801],[-0.811,0.794],[-0.73,0.791],[-0.189,0.79],[0.791,0.792],[0.821,0.797],[0.837,0.809],[0.844,0.828],[0.846,0.879]],[[0,1.084],[-0.419,1.084],[-0.459,1.087],[-0.467,1.094],[-0.476,1.112],[-0.496,1.191],[-0.495,1.202],[-0.479,1.212],[-0.378,1.224],[-0.214,1.234],[0.082,1.238],[0.266,1.232],[0.418,1.221],[0.479,1.212],[0.496,1.201],[0.49,1.161],[0.472,1.103],[0.46,1.087],[0.45,1.085],[0,1.084]]],"clair":[[[-0.921,0.748],[-0.89,0.721],[-0.863,0.707],[-0.824,0.697],[-0.783,0.694],[-0.425,0.721],[-0.036,0.726],[0.395,0.723],[0.793,0.694],[0.834,0.699],[0.863,0.707],[0.89,0.721],[0.921,0.748]],[[-0.629,0.209],[-0.537,0.254],[-0.459,0.277],[-0.398,0.281],[-0.133,0.282],[0.439,0.28],[0.479,0.273],[0.519,0.262],[0.629,0.209]],[[-0.711,0.167],[0.711,0.167]],[[-0.254,1.367],[-0.247,1.274]],[[0.254,1.367],[0.247,1.274]],[[-0.972,0.815],[-0.91,0.852],[-0.854,0.876],[-0.795,0.893],[-0.725,0.904],[-0.613,0.913],[-0.439,0.92],[-0.02,0.924],[0.439,0.92],[0.613,0.913],[0.725,0.904],[0.795,0.893],[0.855,0.876],[0.91,0.852],[0.972,0.815]]],"plein":[{"k":"K","p":[[-0.972,0.815],[-0.91,0.852],[-0.854,0.876],[-0.795,0.893],[-0.725,0.904],[-0.613,0.913],[-0.439,0.92],[-0.02,0.924],[0.439,0.92],[0.613,0.913],[0.725,0.904],[0.795,0.893],[0.855,0.876],[0.91,0.852],[0.972,0.815],[0.846,0.879],[0.844,0.828],[0.837,0.809],[0.821,0.797],[0.791,0.792],[-0.189,0.79],[-0.73,0.791],[-0.811,0.794],[-0.83,0.801],[-0.841,0.818],[-0.846,0.879]]},{"k":"s","p":[[-0.23,0.401],[-0.226,0.391],[-0.217,0.387],[0.215,0.387],[0.224,0.389],[0.23,0.398],[0.23,0.48],[0.226,0.489],[0.217,0.494],[-0.215,0.494],[-0.224,0.491],[-0.23,0.483],[-0.23,0.401]]},{"k":"k","p":[[0.687,0.339],[0.421,0.351],[0.082,0.355],[-0.4,0.351],[-0.687,0.339],[-0.687,0.17],[0.687,0.17]]}],"lignes":[{"k":"L","w":0.02,"p":[[0.846,0.849],[0.83,0.837],[0.809,0.835],[0.021,0.841],[-0.809,0.835],[-0.83,0.837],[-0.846,0.849]]},{"k":"L","w":0.016,"p":[[-0.234,1.234],[-0.202,1.208],[-0.183,1.2],[-0.01,1.199],[0.184,1.2],[0.202,1.208],[0.234,1.234]]},{"k":"r","w":0.02,"p":[[-0.63,0.469],[-0.344,0.477],[-0.337,0.484],[-0.337,0.514]]},{"k":"r","w":0.02,"p":[[0.63,0.469],[0.344,0.477],[0.337,0.484],[0.337,0.514]]}]},"dessus":{"fonce":[[[0.968,0.744],[1.091,0.739],[1.233,0.723],[1.385,0.7],[1.576,0.663],[1.795,0.611],[1.983,0.56],[2.158,0.504],[2.303,0.452]],[[0.968,-0.743],[1.101,-0.737],[1.243,-0.721],[1.415,-0.694],[1.586,-0.659],[1.795,-0.61],[1.992,-0.556],[2.158,-0.503],[2.303,-0.451]],[[0.852,0.805],[0.925,0.75],[0.982,0.69],[1.039,0.605],[1.088,0.504],[1.124,0.397],[1.149,0.287],[1.165,0.165],[1.171,0.011],[1.167,-0.133],[1.152,-0.265],[1.127,-0.386],[1.091,-0.493],[1.048,-0.586],[0.994,-0.673],[0.932,-0.742],[0.852,-0.804]],[[0.76,0.829],[0.506,0.751],[0.278,0.691],[0.127,0.662],[-0.025,0.646],[-0.516,0.63],[-0.874,0.629],[-1.079,0.637],[-1.262,0.652],[-1.312,0.662],[-1.321,0.668],[-1.322,0.678],[-1.315,0.685],[-1.287,0.699],[-1.199,0.725],[-1.099,0.748],[-0.988,0.765],[-0.672,0.795],[-0.253,0.817],[0.33,0.833],[0.719,0.831],[0.79,0.825],[0.84,0.815],[0.888,0.797],[0.941,0.766],[1.001,0.711],[1.057,0.638],[1.111,0.539],[1.157,0.425],[1.183,0.326],[1.199,0.225],[1.207,0.103],[1.208,-0.071],[1.203,-0.184],[1.191,-0.285],[1.169,-0.385],[1.135,-0.482],[1.093,-0.575],[1.04,-0.662],[0.987,-0.725],[0.924,-0.777],[0.879,-0.801],[0.82,-0.819],[0.76,-0.828],[0.688,-0.831],[0.33,-0.832],[-0.376,-0.811],[-0.744,-0.789],[-1.018,-0.76],[-1.119,-0.743],[-1.229,-0.716],[-1.297,-0.694],[-1.322,-0.677],[-1.32,-0.667],[-1.312,-0.661],[-1.262,-0.651],[-1.099,-0.637],[-0.874,-0.628],[-0.516,-0.629],[-0.025,-0.645],[0.138,-0.662],[0.298,-0.694],[0.506,-0.75],[0.76,-0.828]],[[0.862,0.808],[0.329,0.66],[0.292,0.642],[0.287,0.623],[0.324,0.453],[0.349,0.302],[0.365,0.149],[0.37,0.016],[0.366,-0.127],[0.353,-0.27],[0.328,-0.432],[0.29,-0.602],[0.288,-0.632],[0.3,-0.647],[0.339,-0.662],[0.862,-0.807]],[[-2.063,0.001],[-2.057,-0.173],[-2.048,-0.234],[-2.032,-0.304],[-2.01,-0.372],[-1.99,-0.419],[-1.961,-0.462],[-1.931,-0.488],[-1.903,-0.501],[-1.873,-0.509],[-1.741,-0.522],[-1.271,-0.551],[-1.24,-0.548],[-1.225,-0.536],[-1.222,-0.516],[-1.239,-0.291],[-1.245,-0.025],[-1.24,0.272],[-1.222,0.517],[-1.225,0.537],[-1.232,0.545],[-1.25,0.551],[-1.281,0.552],[-1.792,0.519],[-1.883,0.508],[-1.931,0.489],[-1.961,0.463],[-1.985,0.429],[-2.01,0.373],[-2.032,0.305],[-2.048,0.235],[-2.057,0.174],[-2.063,0.001]],[[-2.014,0.607],[-2.074,0.467],[-2.099,0.389],[-2.119,0.31],[-2.144,0.159],[-2.151,0.006],[-2.144,-0.158],[-2.119,-0.309],[-2.099,-0.388],[-2.074,-0.466],[-2.014,-0.606]],[[-2.223,0.594],[-1.988,0.608],[-1.927,0.609],[-1.886,0.605],[-1.857,0.595],[-1.833,0.577],[-1.811,0.543],[-1.803,0.514],[-1.849,0.379],[-1.879,0.26],[-1.897,0.139],[-1.903,0.006],[-1.898,-0.127],[-1.881,-0.249],[-1.855,-0.358],[-1.803,-0.513],[-1.803,-0.523],[-1.82,-0.56],[-1.84,-0.583],[-1.867,-0.598],[-1.896,-0.606],[-1.988,-0.607],[-2.223,-0.593]],[[-1.186,0.247],[-0.42,0.251],[-0.011,0.261],[0.326,0.276]],[[-1.186,-0.246],[-0.379,-0.251],[-0.032,-0.259],[0.326,-0.275]],[[-1.222,0.524],[-0.853,0.53],[-0.433,0.545],[-0.035,0.568],[0.292,0.594]],[[-1.222,-0.523],[-0.833,-0.529],[-0.444,-0.543],[-0.096,-0.563],[0.292,-0.593]],[[0.543,0.001],[0.542,-0.092],[0.533,-0.131],[0.518,-0.144],[0.449,-0.164],[0.441,-0.17],[0.436,-0.179],[0.415,-0.362],[0.368,-0.582],[0.367,-0.602],[0.373,-0.621],[0.39,-0.633],[0.428,-0.647],[0.685,-0.719],[0.746,-0.728],[0.786,-0.722],[0.813,-0.708],[0.837,-0.689],[0.881,-0.632],[0.933,-0.532],[0.982,-0.409],[1.002,-0.34],[1.016,-0.27],[1.034,-0.107],[1.035,0.087],[1.029,0.179],[1.016,0.271],[0.999,0.351],[0.979,0.419],[0.949,0.496],[0.911,0.58],[0.875,0.642],[0.844,0.682],[0.813,0.709],[0.786,0.723],[0.735,0.728],[0.665,0.715],[0.409,0.642],[0.381,0.629],[0.368,0.614],[0.368,0.583],[0.42,0.332],[0.436,0.18],[0.441,0.171],[0.449,0.165],[0.518,0.146],[0.533,0.132],[0.542,0.093],[0.543,0.001]],[[-1.82,0.001],[-1.816,-0.133],[-1.795,-0.285],[-1.761,-0.413],[-1.744,-0.451],[-1.731,-0.466],[-1.713,-0.476],[-1.694,-0.481],[-1.622,-0.488],[-1.377,-0.502],[-1.346,-0.501],[-1.327,-0.494],[-1.321,-0.485],[-1.319,-0.465],[-1.332,-0.271],[-1.336,-0.005],[-1.332,0.272],[-1.319,0.466],[-1.321,0.486],[-1.327,0.495],[-1.346,0.502],[-1.377,0.503],[-1.612,0.49],[-1.694,0.482],[-1.713,0.477],[-1.731,0.467],[-1.749,0.443],[-1.764,0.405],[-1.795,0.286],[-1.816,0.134],[-1.82,0.001]],[[-1.333,-0.245],[-1.397,-0.212],[-1.421,-0.193],[-1.426,-0.173],[-1.428,-0.143],[-1.429,0.001],[-1.428,0.144],[-1.426,0.174],[-1.421,0.194],[-1.397,0.213],[-1.333,0.246]],[[-2.349,0.001],[-2.342,-0.184],[-2.323,-0.316],[-2.284,-0.454],[-2.227,-0.585],[-2.174,-0.672],[-2.118,-0.732],[-2.077,-0.763],[-2.025,-0.797],[-1.919,-0.848],[-2.052,-0.843],[-2.092,-0.832],[-2.128,-0.814],[-2.169,-0.783],[-2.213,-0.74],[-2.258,-0.684],[-2.296,-0.624],[-2.324,-0.569],[-2.346,-0.511],[-2.366,-0.442],[-2.383,-0.362],[-2.401,-0.199],[-2.406,0.016],[-2.399,0.221],[-2.379,0.383],[-2.363,0.453],[-2.342,0.522],[-2.319,0.579],[-2.291,0.633],[-2.252,0.694],[-2.206,0.749],[-2.162,0.791],[-2.119,0.82],[-2.082,0.837],[-2.042,0.846],[-1.919,0.849],[-2.025,0.798],[-2.077,0.764],[-2.118,0.733],[-2.147,0.705],[-2.18,0.665],[-2.227,0.586],[-2.284,0.455],[-2.323,0.317],[-2.343,0.175],[-2.349,0.001]],[[2.133,0.884],[2.055,0.906],[1.973,0.912],[1.944,0.907],[1.936,0.9],[1.936,0.88],[1.951,0.842],[2.005,0.743],[2.056,0.667],[2.11,0.62],[2.263,0.518],[2.288,0.486],[2.326,0.38],[2.351,0.271],[2.36,0.169],[2.362,0.026],[2.361,-0.158],[2.353,-0.26],[2.329,-0.369],[2.292,-0.476],[2.277,-0.502],[2.263,-0.517],[2.11,-0.619],[2.056,-0.666],[2.031,-0.698],[2.0,-0.751],[1.956,-0.832],[1.936,-0.879],[1.936,-0.898],[1.944,-0.905],[1.973,-0.911],[2.055,-0.905],[2.133,-0.883]]],"clair":[[[1.423,0.34],[1.638,0.329],[1.863,0.311],[2.097,0.285],[2.3,0.255]],[[1.423,-0.339],[1.648,-0.327],[1.873,-0.309],[2.087,-0.286],[2.3,-0.254]],[[-1.882,0.657],[-1.835,0.678],[-1.777,0.696],[-1.697,0.715],[-1.596,0.733],[-1.363,0.761],[-1.036,0.786]],[[-1.882,-0.656],[-1.826,-0.68],[-1.767,-0.698],[-1.586,-0.733],[-1.342,-0.762],[-1.036,-0.785]],[[-1.917,0.849],[-1.706,0.926],[-1.565,0.986]],[[-1.917,-0.848],[-1.715,-0.921],[-1.565,-0.985]],[[-2.332,0.549],[-2.241,0.558]],[[-2.332,-0.548],[-2.241,-0.557]],[[-2.314,0.689],[-2.357,0.66],[-2.386,0.632],[-2.41,0.587],[-2.429,0.528],[-2.448,0.438],[-2.468,0.297],[-2.479,0.164],[-2.482,0.031],[-2.481,-0.112],[-2.473,-0.245],[-2.459,-0.367],[-2.436,-0.498],[-2.413,-0.576],[-2.392,-0.623],[-2.365,-0.653],[-2.314,-0.688]],[[1.767,-0.984],[1.863,-0.947],[1.946,-0.907]],[[1.767,0.985],[1.863,0.948],[1.946,0.908]]]},"retro":{"tete":[[0.621,0.904],[0.57,0.899],[0.519,0.899],[0.489,0.903],[0.47,0.912],[0.457,0.927],[0.45,0.946],[0.448,0.977],[0.45,0.997],[0.453,1.006],[0.459,1.015],[0.476,1.026],[0.495,1.032],[0.526,1.036],[0.556,1.035],[0.586,1.03],[0.615,1.02],[0.633,1.011],[0.65,0.998],[0.662,0.982],[0.67,0.964],[0.673,0.944],[0.671,0.934],[0.666,0.925],[0.658,0.918],[0.64,0.908],[0.621,0.904]],"bras":[[0.573,0.899],[0.581,0.88],[0.587,0.872],[0.595,0.867],[0.616,0.867],[0.636,0.871],[0.674,0.883],[0.691,0.895],[0.695,0.904],[0.695,0.914],[0.685,0.932],[0.673,0.948]],"dessus":[[0.645,0.879],[0.562,0.878],[0.543,0.883],[0.536,0.89],[0.507,0.956],[0.47,1.052],[0.465,1.072],[0.465,1.082],[0.472,1.089],[0.482,1.09],[0.502,1.087],[0.55,1.067],[0.583,1.043],[0.612,1.013],[0.63,0.988],[0.65,0.953],[0.668,0.916],[0.674,0.896],[0.673,0.886],[0.665,0.88],[0.645,0.879]],"face":[[0.931,0.904],[1.024,0.91],[1.044,0.913],[1.064,0.92],[1.071,0.927],[1.077,0.935],[1.088,0.975],[1.088,0.995],[1.084,1.005],[1.076,1.011],[1.047,1.023],[0.977,1.037],[0.915,1.044],[0.885,1.042],[0.876,1.037],[0.87,1.029],[0.867,1.019],[0.865,0.988],[0.868,0.947]]},"jante":{"jante":[[0.2759,-0.0002],[0.2712,0.0506],[0.2572,0.0996],[0.2345,0.1453],[0.217,0.1704],[0.1968,0.1934],[0.1742,0.2141],[0.1579,0.2263],[0.1318,0.2424],[0.1042,0.2556],[0.0554,0.2705],[0.0047,0.2761],[-0.0461,0.2723],[-0.0954,0.2592],[-0.1415,0.2374],[-0.1669,0.2203],[-0.1903,0.2006],[-0.2113,0.1783],[-0.2298,0.1539],[-0.2542,0.1091],[-0.2647,0.0804],[-0.272,0.0506],[-0.2766,-0.0002],[-0.272,-0.0509],[-0.2647,-0.0807],[-0.2542,-0.1094],[-0.2297,-0.1542],[-0.1976,-0.1937],[-0.1586,-0.2267],[-0.1143,-0.2518],[-0.0857,-0.2629],[-0.0561,-0.2707],[-0.0055,-0.2764],[0.0454,-0.2727],[0.0947,-0.2596],[0.1407,-0.2377],[0.1661,-0.2207],[0.1895,-0.2009],[0.2105,-0.1786],[0.229,-0.1542],[0.2534,-0.1094],[0.2692,-0.0609],[0.2742,-0.0307],[0.2759,-0.0002]],"moyeu":[[0.0593,0.0493],[0.0556,0.0783],[0.0268,0.0699],[0.0086,0.0456],[-0.011,0.0472],[-0.029,0.0719],[-0.0577,0.0773],[-0.0586,0.0473],[-0.0411,0.0225],[-0.0487,0.0044],[-0.0777,-0.0051],[-0.0918,-0.0307],[-0.0635,-0.0409],[-0.0345,-0.0319],[-0.0196,-0.0447],[-0.0196,-0.0753],[0.0004,-0.0965],[0.0188,-0.0728],[0.0193,-0.0424],[0.036,-0.0322],[0.0651,-0.0416],[0.0915,-0.0292],[0.0746,-0.0043],[0.0459,0.0055],[0.0414,0.0246],[0.0593,0.0493]],"poches":[[[0.1124,-0.2405],[0.1306,-0.2311],[0.1564,-0.2144],[0.1802,-0.1948],[0.1923,-0.1801],[0.1,-0.0443],[0.0919,-0.0438],[0.0449,-0.0641],[0.0113,-0.1029],[0.0118,-0.1108],[0.1124,-0.2405]],[[-0.0959,-0.236],[-0.0026,-0.129],[0.004,-0.1315],[0.0107,-0.1391],[0.0906,-0.2308],[0.0922,-0.2372],[0.0534,-0.2489],[0.0334,-0.2524],[0.0031,-0.2546],[-0.0474,-0.2503],[-0.0671,-0.2458],[-0.0959,-0.236]],[[-0.2542,0.0178],[-0.1236,-0.0378],[-0.1239,-0.0449],[-0.1916,-0.158],[-0.1973,-0.1614],[-0.2095,-0.1453],[-0.2253,-0.1193],[-0.2413,-0.0821],[-0.2528,-0.0328],[-0.2549,-0.0024],[-0.2542,0.0178]],[[0.2156,0.1345],[0.0772,0.1028],[0.0732,0.1087],[0.0616,0.2399],[0.0641,0.246],[0.1023,0.2327],[0.1205,0.2238],[0.1464,0.2077],[0.1625,0.1954],[0.1846,0.1746],[0.2042,0.1513],[0.2156,0.1345]],[[-0.0617,0.2468],[-0.0743,0.1054],[-0.0811,0.1035],[-0.1009,0.108],[-0.2096,0.133],[-0.2146,0.1373],[-0.203,0.1539],[-0.1832,0.1769],[-0.1685,0.1909],[-0.1445,0.2096],[-0.1185,0.2253],[-0.1002,0.234],[-0.0617,0.2468]],[[-0.1941,-0.1817],[-0.1019,-0.0459],[-0.0944,-0.0431],[-0.0472,-0.063],[-0.0133,-0.1015],[-0.0114,-0.1093],[-0.112,-0.239],[-0.1297,-0.232],[-0.1557,-0.2155],[-0.1941,-0.1817]],[[0.1944,-0.1639],[0.1215,-0.0421],[0.1259,-0.0365],[0.2471,0.0151],[0.2537,0.0146],[0.2537,-0.0158],[0.2516,-0.036],[0.2395,-0.0851],[0.218,-0.1309],[0.1944,-0.1639]],[[0.2631,0.0328],[0.1086,-0.0228],[0.1009,-0.0207],[0.0745,0.0232],[0.0697,0.0742],[0.0727,0.0817],[0.2303,0.1275],[0.2405,0.1114],[0.2518,0.0828],[0.2575,0.0631],[0.2631,0.0328]],[[-0.2329,0.128],[-0.0753,0.0822],[-0.0703,0.0761],[-0.0747,0.0249],[-0.1007,-0.0191],[-0.1076,-0.0234],[-0.262,0.0322],[-0.2609,0.0512],[-0.2532,0.081],[-0.2329,0.128]],[[0.0497,0.2606],[0.0548,0.0965],[0.0505,0.0899],[0.0005,0.0782],[-0.0494,0.0894],[-0.0557,0.0946],[-0.0505,0.2587],[-0.032,0.2634],[-0.0013,0.2653],[0.0294,0.2637],[0.0497,0.2606]]]}};
+  const P=K.kit({p:{g:'p',c:0xf3f3f1},k:{g:'m',c:0x141317},K:{g:'g',c:0x0c0c0f},c:{g:'c',c:0xd2d6dc},C:{g:'c',c:0x8a9098},
+    g:{g:'g',c:0x172130},W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff1a3a},r:{g:'l',c:0x8a0c22},O:{g:'l',c:0xffa21a},m:{g:'s',c:0x26272c},
+    s:{g:'s',c:0xdedee2},e:{g:'s',c:0xd31f2a},j:{g:'s',c:0x2e2f34},h:{g:'s',c:0xc4c5cb}});
+  const L=(t,z)=>U.lin(t,z);
+  const AR=[[0,.805],[.20,.77],[.30,.70],[.36,.60],[.40,.48],[.42,.30],[.43,0]];   // le passage de roue SERRÉ sur le pneu
+  const CW=1.06,RB=-2.07,AV=2.25,AP=-2.30;
+  const xM=z=>L([[-2.30,.759],[-2.2,.84],[-2.1,.896],[-2.0,.925],[-1.9,.966],[-1.8,.978],[-1.7,.986],[-1.1,.986],[-1.0,.98],[-.8,.968],[-.6,.957],[.9,.957],[1.0,.981],[1.2,.985],[1.9,.982],[2.0,.957],[2.1,.929],[2.2,.86],[AV,.82]],z),
+        yB0=z=>L([[-2.30,.23],[-2.0,.20],[-1.1,.165],[1.1,.16],[1.9,.15],[AV,.17]],z),
+        yB=z=>L([[RB,1.0],[-1.6,1.03],[-1.277,1.065],[-1.194,1.04],[-1.104,1.025],[-.647,.991],[-.282,.973],[.084,.956],[.45,.946],[CW,.945]],z),
+        yT=z=>L([[-1.277,1.07],[-1.213,1.126],[-1.039,1.184],[-.861,1.227],[-.681,1.257],[-.499,1.276],[-.316,1.285],[-.224,1.287],[-.133,1.284],[.049,1.262],[.225,1.214],[.307,1.174],[.466,1.083],[.544,1.036],[CW,.955]],z),
+        yRE=z=>L([[RB,1.0],[-1.75,1.12],[-1.5,1.20],[-1.25,1.265],[-1.0,1.31],[-.6,1.33],[-.25,1.335],[.05,1.31],[.30,1.22],[.544,1.10],[.80,1.02],[CW,.958]],z),
+        xRE=z=>L([[RB,.55],[-1.25,.56],[.05,.56],[.544,.66],[CW,.76]],z),
+        yC=z=>L([[ZB,.90],[AP,.948],[-2.231,.959],[-2.16,.973],[RB,1.0],[-1.955,1.044],[-1.75,1.119],[-1.543,1.186],[-1.334,1.246],[-1.122,1.297],[-.907,1.333],[-.691,1.36],[-.474,1.375],[-.256,1.38],[-.039,1.375],[.178,1.355],[.389,1.303],[.524,1.249],[.654,1.185],[.782,1.117],[.909,1.046],[1.034,.973],[CW,.96],
+                 [1.20,.928],[1.42,.905],[1.8,.83],[2.05,.75],[AV,.665]],z),
+        yCr=z=>L([[CW,.955],[1.46,.918],[1.75,.877],[1.89,.84],[2.02,.788],[2.16,.73],[AV,.69]],z),
+        xBe=z=>L([[RB,.78],[-1.1,.82],[.544,.82],[CW,.80]],z),
+        hipY=z=>L([[AP,.925],[RB,.98]],z);
   const raw=z=>{
-    const yb=U.arch(z,[ZF,ZR],AR,.17),c=yC(z),xw=xW(z),f=xF(z),xf=xw+f,bl=bL(z),
-          hanche=.05*U.cl(1-Math.abs(z-ZR)/.95,0,1),                                                   // la hanche monte au-dessus de la roue arrière
-          L=FR(z)?[.26,.40,.54,bl-.13,bl-.045]:AR9(z)?[.26,.42,.58,.72,bl-.045]:[Math.max(yb+.06,.30),.44,.58,.70,Math.min(.83+hanche,bl-.06)],
-          s=[[0,yb],[xf-.08,yb],[xf-.012,Math.max(yb+.004,L[0])],[xf+.004,L[1]],[xf+.014,L[2]],[xf+.018,L[3]],[xw+.006+f*.6+hanche*.6,L[4]],[xw-.045,bl]];
-    for(let i=2;i<s.length;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]+.002);
-    const x7=xw-.045,b7=s[7][1];
-    if(cab(z)){const ye=Math.max(b7+.006,yE(z)),yw=Math.min(ye-.002,Math.max(b7+.002,yWin(z,b7,ye))),XV=y=>x7-(y-b7)*.68; // le PLAN des vitres : forte rentrée
-      const xe=Math.min(XV(ye),z>RF?9:xG(z)+.02);
-      s.push([XV(yw),yw],[xe,ye],[xe-.16,Math.max(ye+.002,Math.min(c-.008,ye+.035))],[0,Math.max(ye+.006,c)]);}
-    else if(z>CW){const cr=Math.max(b7+.03,c+crH(z));
-      s.push([xw-.08,b7+.02],[xw-.15,cr],[xw-.40,Math.max(c+.006,cr-.035)],[0,c+.018]);}
-    else{s.push([xw-.08,b7+.025],[xw-.18,Math.max(b7+.04,c-.01)],[xw-.48,c],[0,c+.006]);}
+    const xm=xM(z),yb=U.arch(z,[ZF,ZR],AR,yB0(z)),fr=z>1.9,ar=z<RB;
+    const cr=z>CW?yCr(z):0,lv=fr?[.22,.41,cr-.165,cr-.012]:ar?[.30,.36,.62,.79]:[.28,.44,.62,.76];
+    const s=[[0,yb],[xm-.12,yb],[xm-.035,Math.max(yb+.03,.20)],[xm-.02,lv[0]],[xm-.006,lv[1]],[xm,lv[2]],[xm-.012,lv[3]]];
+    if(z>=RB&&z<=CW){
+      const b=yB(z),y9=z<-1.277?b+.004:yT(z),xb=xBe(z),x9=xb-Math.max(0,y9-b)*.62,re=Math.max(y9+.004,yRE(z)),c=Math.max(re+.004,yC(z));
+      s.push([xm-.05,b-.07],[xb,b],[x9,y9],[Math.min(xRE(z),x9-.01),re],[xRE(z)*.47,Math.max(re+.002,c-.008)],[0,c]);}
+    else if(z>CW){
+      const xc=Math.min(.74,xm-.14),xs=Math.min(L([[1.0,.74],[2.30,.45]],z),xc-.06),h=yC(z),d7=L([[CW,.10],[1.9,.10],[2.0,.012]],z),d8=L([[CW,.035],[1.9,.035],[2.0,.006]],z);
+      s.push([xm-.04,cr-d7],[xm-.10,cr-d8],[xc,cr],[xs,cr-.025],[xs*.5,h+.012],[0,h]);}
+    else{const lid=yC(z),hp=hipY(z),x9=Math.min(.62,xm-.18);
+      s.push([xm-.04,.88],[xm-.12,hp],[x9,Math.max(hp+.004,lid-.006)],[Math.min(.55,x9-.04),lid],[.28,lid+.004],[0,lid+.006]);}
+    for(let i=1;i<=9;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]+(i===1?0:.002));
     return s;};
-  const S=z=>{const s=raw(z);
-    if(FR(z)){const kx=kxF(z),kt=kTF(z),kb=kBF(z),ym=.40;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
-    if(AR9(z)){const kx=kxR(z),kt=kTR(z),kb=kBR(z),ym=.60;for(const p of s){p[0]*=kx;p[1]=p[1]>ym?ym+(p[1]-ym)*kt:ym-(ym-p[1])*kb;}}
-    return s;};
-  // ---- LA PEINTURE ----
+  const NEZ={z:[AV,2.30,2.36,2.41,2.45,ZE],x:[.82,.777,.72,.662,.57,.42],t:[.69,.666,.63,.589,.55,.50],b:[.17,.175,.18,.20,.28,.44]},
+        POU={z:[ZB,-2.45,-2.41,-2.37,-2.33,AP],x:[.45,.57,.65,.70,.735,.759],t:[.58,.62,.78,.83,.89,.948],b:[.47,.42,.30,.27,.25,.23]};
+  const fin=(E,z)=>{const i0=E.z===NEZ.z?0:E.z.length-1,s=raw(E.z[i0]),T=a=>L(E.z.map((v,i)=>[v,a[i]]),z),kx=T(E.x)/E.x[i0],t=T(E.t),b=T(E.b);
+    return s.map(p=>[p[0]*kx,Math.min(t,Math.max(b,p[1]))]);};
+  const S0=z=>z>AV?fin(NEZ,z):z<AP?fin(POU,z):raw(z);
+  const SM=new Map(),S=z=>{const k=Math.round(z*2000);let s=SM.get(k);if(!s){s=S0(k/2000);SM.set(k,s);}return s;};
+  const zs=[ZB,-2.45,-2.42,-2.37,-2.33,AP,-2.20,-2.12,RB,-1.95,-1.80,-1.65,-1.277,-1.21,-1.13,-1.10,-.95,-.75,-.47,-.40,-.20,.05,.30,.544,.80,CW,1.20,1.42,1.65,1.90,2.02,2.14,AV,2.30,2.36,2.41,2.45,ZE];
+  for(const w of [ZF,ZR])for(const d of [.20,.30,.36,.40,.42,.43])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  // ---- LA PEINTURE : la tôle blanche, les vitres, le bas de caisse ; le reste vient du plan ----
   P.loft(zs,S,(j,z)=>{
     if(j<0)return 'p';
-    if(j===0||j===1)return 'k';                                              // dessous, bas de caisse
-    if(FR(z)){
-      if(j===2)return z>ZE-.20?'k':'p';                                      // la grande BOUCHE basse
-      if((j===3||j===4)&&z>ZE-.34&&z<ZE-.21)return 'k';                      // la FENTE verticale sous chaque phare (le rideau d'air)
-      if((j===5||j===6)&&z>ZE-.36)return 'K';                                // LES PHARES, sur le bout de la bosse de l'aile
-      return 'p';}
-    if(AR9(z)){if(j===2)return 'k';if(j===6)return 'L';return 'p';}         // LA POUPE : diffuseur, BANDEAU de feux qui s'enroule
-    if(j===2)return 'k';                                                     // les bas de caisse noirs
-    if(!cab(z))return 'p';
-    if(j===7){if(z>BP+.04)return z>.60?'p':'g';if(z>BP-.04)return 'K';if(z>RD+.02)return 'g';if(z>RD-.02)return 'K';if(z>QT)return 'g';return 'p';} // vitres · montants · custode
-    if(j===8)return z>.60?'p':z>QT?'C':'p';                                  // le jonc fumé autour des vitres (black edition)
-    if(j>=9){if(z>RF+.02)return 'g';if(z<RR&&z>RB+.01)return 'g';return 'p';} // pare-brise, lunette, toit
+    if(j<=1)return 'k';
+    if(j===2&&z>-2.0&&z<2.0)return Math.abs(z-ZF)>.43&&Math.abs(z-ZR)>.43?'k':'p';
+    if(z>CW||z<RB)return 'p';
+    if(j===8){if(z>.544||z<-1.277)return 'p';if(z<-.40&&z>-.47)return 'K';if(z<-1.10&&z>-1.13)return 'K';return 'g';}
+    if(j===9)return z>-1.277?'K':'p';
+    if(j>=10){if(z>.20)return 'g';if(z<-1.25&&z>-1.82)return 'g';return 'p';}   // la lunette s'arrête au becquet (dessus 246, dos 297)
     return 'p';});
-  // ---- LES DÉTAILS ----
-  const wAt=(z,y)=>{const s=S(z);for(let i=1;i<s.length-1;i++){const a=s[i],b=s[i+1];if(y>=a[1]&&y<=b[1]&&b[1]>a[1])return a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);}return 0;};
-  const zFace=(x,y,sg)=>{let lo=sg>0?1.6:ZB,hi=sg>0?ZE:-1.6;for(let i=0;i<30;i++){const m=(lo+hi)/2,ok=wAt(m,y)>=x;if(sg>0){if(ok)lo=m;else hi=m;}else{if(ok)hi=m;else lo=m;}}return sg>0?lo:hi;};
-  const decal=(k,w,h,d,x,y,sg,e)=>{const z=zFace(Math.abs(x),y,sg),e9=.012,zx=(zFace(Math.abs(x)+e9,y,sg)-zFace(Math.max(0,Math.abs(x)-e9),y,sg))/(2*e9)*(x<0?-1:1),
-      zy=(zFace(Math.abs(x),y+e9,sg)-zFace(Math.abs(x),y-e9,sg))/(2*e9);
-    let n=sg>0?[-zx,-zy,1]:[zx,zy,-1];const l=Math.hypot(n[0],n[1],n[2]);n=n.map(v=>v/l);
-    const o=d/2-(e||0);P.box(k,w,h,d,x+n[0]*o,y+n[1]*o,z+n[2]*o,Math.atan2(-n[1],n[2]),Math.asin(n[0]),0);};
-  {const s=S(ZE),y0=s[0][1],y3=s[3][1],w=wAt(ZE,(y0+y3)/2)-.005;P.box('k',2*w,y3-y0,.004,0,(y0+y3)/2,ZE+.002);}   // la bouche, sur le bouchon du nez
+  // ---- LES PROJECTIONS : un point du plan → la tôle ----
+  // (la section refermée par l'axe x = 0, sans rien allouer : c'est l'appel le plus fréquent de la projection)
+  const bord=(s,x,y)=>{const n=s.length,N=n+2;let c=false,px=0,py=s[0][1];
+    for(let i=0;i<N;i++){const qx=i<n?s[i][0]:0,qy=i<n?s[i][1]:i===n?s[n-1][1]:s[0][1];
+      if((qy>y)!==(py>y)&&x<(px-qx)*(y-qy)/(py-qy)+qx)c=!c;px=qx;py=qy;}return c;};
+  // (sous le haut des passages de roue, on part de DEVANT la roue : sinon la recherche s'arrêtait au bord du passage)
+  const zAv=(x,y)=>{const z0=y<.82?1.95:-.5;if(!bord(S(z0),x,y))return null;let lo=z0,hi=ZE+.002;for(let i=0;i<15;i++){const m=(lo+hi)/2;if(bord(S(m),x,y))lo=m;else hi=m;}return lo;},
+        zAr=(x,y)=>{const z0=y<.82?-1.92:-.5;if(!bord(S(z0),x,y))return null;let lo=ZB-.002,hi=z0;for(let i=0;i<15;i++){const m=(lo+hi)/2;if(bord(S(m),x,y))hi=m;else lo=m;}return hi;},
+        xCo=(z,y)=>{const s=S(z);for(let i=1;i<s.length-1;i++){const a=s[i],b=s[i+1];if(b[1]>a[1]&&y>=a[1]&&y<=b[1])return a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);}return null;},
+        yDe=(z,x)=>{const s=S(z);for(let i=s.length-1;i>0;i--){const a=s[i],b=s[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return null;};
+  let E=.006;const proj={
+    face:(x,y)=>{const z=zAv(Math.abs(x),y);return z==null?null:[x,y,z+E];},
+    dos:(x,y)=>{const z=zAr(Math.abs(x),y);return z==null?null:[x,y,z-E];},
+    cote:(z,y)=>{const x=xCo(z,y);return x==null?null:[x+E,y,z];},
+    dessus:(z,x)=>{const y=yDe(z,Math.abs(x));return y==null?null:[x,y+E,z];}};
+  const AXE={face:[0,0,1],dos:[0,0,-1],cote:[1,0,0],dessus:[0,1,0]};
+  const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],cro=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],nrm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];};
+  const miroir=v=>v==='cote'?[1,-1]:[1];                                            // le côté du plan habille les deux flancs
+  const TRI=[];                                                                      // [clé, a, b, c] — gardé d'une construction à l'autre
+  // un trait du plan, recoupé en pas de 3 cm AVANT la projection : il épouse la tôle (un long trait droit tiré en une corde passait
+  // SOUS la carrosserie bombée), et un saut de projection (> 10 cm entre deux pas) ne se relie jamais
+  const dense=pts=>{const o=[pts[0]];for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.03));
+      for(let t=1;t<=n;t++)o.push([a[0]+(b[0]-a[0])*t/n,a[1]+(b[1]-a[1])*t/n]);}return o;};
+  // le ruban est COUCHÉ SUR LA TÔLE : sa largeur suit la surface (deux voisins du plan, de part et d'autre du trait, projetés eux
+  // aussi) et il se décolle de 7 mm selon la normale (au-dessus des zones pleines) — sur un pare-brise vu de dessus, un ruban tenu droit face à la vue entrait
+  // pour moitié dans le verre (les « gribouillis »)
+  const P0=(v,p)=>{const E0=E;E=0;try{return proj[v](p[0],p[1]);}finally{E=E0;}};
+  const trait=(v,pts0,k,w,fi)=>{const pts=dense(pts0),n=pts.length,ax=AXE[v],h=.004,Q=[],WD=[];
+    for(let i=0;i<n;i++){const p=pts[i],q=P0(v,p);Q.push(q);if(!q){WD.push(null);continue;}
+      const a=pts[Math.max(0,i-1)],b=pts[Math.min(n-1,i+1)];let ux=b[0]-a[0],uy=b[1]-a[1];const l=Math.hypot(ux,uy)||1;ux/=l;uy/=l;
+      const q1=P0(v,[p[0]-uy*h,p[1]+ux*h]),q2=P0(v,[p[0]+uy*h,p[1]-ux*h]),W=q1&&q2?sub(q1,q2):q1?sub(q1,q):q2?sub(q,q2):null,lw=W?Math.hypot(W[0],W[1],W[2]):0;
+      WD.push(W&&lw>1e-6&&lw<(q1&&q2?20:10)*h?[W[0]/lw,W[1]/lw,W[2]/lw]:null);}
+    const segW=(i,j)=>{const a=Q[i],b=Q[j],d=sub(b,a),wa=WD[i],wb=WD[j];let W=wa&&wb?nrm([wa[0]+wb[0],wa[1]+wb[1],wa[2]+wb[2]]):wa||wb;
+      if(!W){if(fi===1)return null;W=nrm(cro(d,ax));}                      // (sans tôle mesurée sous le trait : un joint ne se pose pas au jugé)
+      let N=nrm(cro(d,W));if(N[0]*ax[0]+N[1]*ax[1]+N[2]*ax[2]<0)N=N.map(t=>-t);return [W,N];};
+    const ok=[];for(let i=0;i<n-1;i++){const a=Q[i],b=Q[i+1];ok.push(false);if(!a||!b)continue;const d=sub(b,a);if(Math.hypot(d[0],d[1],d[2])>.10)continue;
+      const r=segW(i,i+1);if(!r)continue;const N=r[1],nd=N[0]*ax[0]+N[1]*ax[1]+N[2]*ax[2];
+      // UNE SEULE VUE PAR TÔLE : un joint vu de biais dans un plan (le pare-brise vu de dessus, le capot vu de face) se doublait,
+      // décalé, avec celui de la vue qui le regarde en face ; on ne garde que la vue la plus de face (à 0,08 près, pas de trou)
+      // (les détails de phares et de feux — fi 2 — ne sont jamais doublés : on ne retire que leurs bouts rasants)
+      if(fi===2?nd<.25:nd<.45&&nd<Math.max(Math.abs(N[0]),Math.abs(N[1]),Math.abs(N[2]))-.08)continue;ok[i]=true;}
+    // chaque tronçon continu, allégé : on ne garde que les points qui s'écartent de plus de 0,8 mm de la corde (la tôle reste épousée)
+    const rdp=(i,j,o)=>{let best=0,bi=-1;const a=Q[i],b=Q[j],d=sub(b,a),L2=d[0]*d[0]+d[1]*d[1]+d[2]*d[2]||1e-12;
+      for(let k9=i+1;k9<j;k9++){const p=sub(Q[k9],a),t=Math.max(0,Math.min(1,(p[0]*d[0]+p[1]*d[1]+p[2]*d[2])/L2)),e=Math.hypot(p[0]-t*d[0],p[1]-t*d[1],p[2]-t*d[2]);if(e>best){best=e;bi=k9;}}
+      if(best>.0008&&bi>0){rdp(i,bi,o);rdp(bi,j,o);}else o.push([i,j]);};
+    for(let i=0;i<n-1;){if(!ok[i]){i++;continue;}let j=i;while(j<n-1&&ok[j])j++;const o=[];rdp(i,j,o);i=j;
+      for(const [ia,ib] of o){const r=segW(ia,ib);if(!r)continue;const [W,N]=r,a=Q[ia],b=Q[ib];
+        const of=N.map(t=>t*.007),m=W.map(t=>t*w/2),V=(p,s)=>[p[0]+of[0]+s*m[0],p[1]+of[1]+s*m[1],p[2]+of[2]+s*m[2]];
+        const a1=V(a,1),a2=V(a,-1),b1=V(b,1),b2=V(b,-1);
+        for(const sg of miroir(v)){const F=sg<0?p=>[-p[0],p[1],p[2]]:p=>p;TRI.push([k,F(a1),F(b1),F(b2)],[k,F(a1),F(b2),F(a2)]);}}}};
+  // les zones pleines, SOUS les traits : chaque sommet se décolle de 4 mm selon la normale de la tôle (mesurée par deux voisins du
+  // plan) — tenues face à la vue, elles se battaient avec la tôle inclinée (le moiré du bas de la bouche)
+  const plein=(v,pts,k)=>{const ax=AXE[v],h=.004,M9=new Map(),pose=p=>{const c9=p[0].toFixed(5)+','+p[1].toFixed(5);if(M9.has(c9))return M9.get(c9);
+      const q=P0(v,p);let r=null;if(q){const qa=P0(v,[p[0]+h,p[1]])||P0(v,[p[0]-h,p[1]]),qb=P0(v,[p[0],p[1]+h])||P0(v,[p[0],p[1]-h]);
+        let N=qa&&qb?nrm(cro(sub(qa,q),sub(qb,q))):ax;if(N[0]*ax[0]+N[1]*ax[1]+N[2]*ax[2]<0)N=N.map(t=>-t);r=[q[0]+N[0]*.004,q[1]+N[1]*.004,q[2]+N[2]*.004];}
+      M9.set(c9,r);return r;};
+    const C=pts.map(p=>new THREE.Vector2(p[0],p[1]));let F;try{F=THREE.ShapeUtils.triangulateShape(C,[]);}catch(e){return;}
+    const out=[];const coupe=(a,b,c,n)=>{const l1=Math.hypot(a[0]-b[0],a[1]-b[1]),l2=Math.hypot(b[0]-c[0],b[1]-c[1]),l3=Math.hypot(c[0]-a[0],c[1]-a[1]),m=Math.max(l1,l2,l3);
+      const mi=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];if(n>9||m<.012){out.push([a,b,c]);return;}
+      // découpe ADAPTATIVE : on ne recoupe que là où la tôle s'écarte de plus de 1,2 mm de la facette (les arêtes vives du bouclier)
+      {const [e1,e2]=m===l1?[a,b]:m===l2?[b,c]:[c,a],P1=pose(e1),P2=pose(e2),Pm=pose(mi(e1,e2));
+       if(P1&&P2&&Pm){const dv=Math.hypot(Pm[0]-(P1[0]+P2[0])/2,Pm[1]-(P1[1]+P2[1])/2,Pm[2]-(P1[2]+P2[2])/2);if(m<.07&&dv<.0012){out.push([a,b,c]);return;}}
+       else if(m<.025){out.push([a,b,c]);return;}}
+      if(m===l1){const d=mi(a,b);coupe(a,d,c,n+1);coupe(d,b,c,n+1);}else if(m===l2){const d=mi(b,c);coupe(a,b,d,n+1);coupe(a,d,c,n+1);}else{const d=mi(c,a);coupe(a,b,d,n+1);coupe(d,b,c,n+1);}};
+    for(const f of F)coupe(pts[f[0]],pts[f[1]],pts[f[2]],0);
+    for(const sg of miroir(v))for(const t of out){const Q=t.map(p=>{const q=pose(p);return q&&sg<0?[-q[0],q[1],q[2]]:q;});if(Q[0]&&Q[1]&&Q[2])TRI.push([k,Q[0],Q[1],Q[2]]);}};
+  const MEM=(typeof SHAPES==='object'&&SHAPES.perle)||null;
+  if(!MEM||!MEM._tri){
+    for(const v of ['cote','face','dos','dessus']){const D=PLAN[v];
+      for(const f of (D.plein||[]))plein(v,f.p,f.k);
+      for(const t of (D.fonce||[]))trait(v,t,'j',.011,1);
+      for(const t of (D.clair||[]))trait(v,t,'h',.008,1);
+      for(const l of (D.lignes||[]))trait(v,l.p,l.k,l.w,2);}
+    if(MEM)MEM._tri=TRI.slice();}
+  else for(const t of MEM._tri)TRI.push(t);
+  for(const t of TRI)P.tri(t[0],t[1],t[2],t[3]);
+  // ---- LES DÉTAILS EN VOLUME : rétros (bras noir, coque blanche), étriers rouges, passages de roue ----
+  // LE RÉTRO, des TROIS contours du plan : à chaque tranche z, la largeur vient du dessus, la hauteur du côté, et la coupe est celle
+  // vue de face (le coin épais en haut dehors) ; ce qui regarde vers l'arrière est la glace noire
+  const coupe=(poly,u,iu,iv)=>{let lo=1e9,hi=-1e9;const n=poly.length;for(let i=0;i<n;i++){const a=poly[i],b=poly[(i+1)%n];
+      if((a[iu]-u)*(b[iu]-u)<=0&&a[iu]!==b[iu]){const t=a[iv]+(b[iv]-a[iv])*(u-a[iu])/(b[iu]-a[iu]);if(t<lo)lo=t;if(t>hi)hi=t;}}return hi-lo>.004?[lo,hi]:null;};
+  const RT=PLAN.retro,RF=(()=>{const F=RT.face.concat([RT.face[0]]);let L0=0;const cum=[0];for(let i=1;i<F.length;i++)cum.push(L0+=Math.hypot(F[i][0]-F[i-1][0],F[i][1]-F[i-1][1]));
+      let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const p of F){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);}
+      const o=[];for(let k=0,i=1;k<22;k++){const s=L0*k/22;while(cum[i]<s)i++;const t=(s-cum[i-1])/((cum[i]-cum[i-1])||1),a=F[i-1],b=F[i];
+        o.push([(a[0]+(b[0]-a[0])*t-x0)/(x1-x0),(a[1]+(b[1]-a[1])*t-y0)/(y1-y0)]);}return o;})();
+  const RA=(()=>{let a=-1e9,b=1e9;for(const P9 of [RT.tete,RT.dessus]){let lo=1e9,hi=-1e9;for(const p of P9){lo=Math.min(lo,p[0]);hi=Math.max(hi,p[0]);}a=Math.max(a,lo);b=Math.min(b,hi);}
+      const o=[];for(let i=0;i<13;i++){const z=a+.003+(b-a-.006)*(1-Math.cos(Math.PI*i/12))/2,X=coupe(RT.dessus,z,0,1),Y=coupe(RT.tete,z,0,1);
+        if(X&&Y)o.push(RF.map(q=>[X[0]+(X[1]-X[0])*q[0],Y[0]+(Y[1]-Y[0])*q[1],z]));}return o;})();
+  const RC=(()=>{let x=0,y=0,z=0,n=0;for(const r of RA)for(const p of r){x+=p[0];y+=p[1];z+=p[2];n++;}return [x/n,y/n,z/n];})();
+  const retro=sd=>{const M=p=>[p[0]*sd,p[1],p[2]],N=RF.length;
+    for(let i=0;i<RA.length-1;i++)for(let j=0;j<N;j++){const a=RA[i][j],b=RA[i][(j+1)%N],c=RA[i+1][(j+1)%N],d=RA[i+1][j];
+      const nn=cro(sub(c,a),sub(d,b)),m=[(a[0]+c[0])/2-RC[0],(a[1]+c[1])/2-RC[1],(a[2]+c[2])/2-RC[2]],s9=(nn[0]*m[0]+nn[1]*m[1]+nn[2]*m[2])<0?-1:1,
+            nz=s9*nn[2]/(Math.hypot(nn[0],nn[1],nn[2])||1),k=nz<-.55?'K':'p';
+      P.tri(k,M(a),M(b),M(c));P.tri(k,M(a),M(c),M(d));}
+    for(const [r,k] of [[RA[0],'K'],[RA[RA.length-1],'p']]){let cx=0,cy=0;for(const p of r){cx+=p[0];cy+=p[1];}const C=[cx/N,cy/N,r[0][2]];
+      for(let j=0;j<N;j++)P.tri(k,M(C),M(r[j]),M(r[(j+1)%N]));}};
+  // LE PASSAGE DE ROUE : une joue noire derrière la roue, à la forme de l'ouverture — on ne voit plus le ciel à travers l'aile
+  const joue=w=>{const o=[];for(let i=AR.length-1;i>=0;i--){const p=AR[i];if(p[1]>=.16)o.push([w-p[0]*1.04,p[1]+.03*(p[0]<.25)]);}
+    o.unshift([w-.43,.16]);for(let i=1;i<AR.length;i++){const p=AR[i];if(p[1]>=.16)o.push([w+p[0]*1.04,p[1]+.03*(p[0]<.25)]);}o.push([w+.43,.16]);return o;};
   P.sym(sd=>{
-    // les QUATRE POINTS de lumière de chaque phare, et le trait du clignotant dessous
-    const s=S(ZE-.17),yh=(s[5][1]+s[7][1])/2;
-    for(const q of [[.70,.013],[.77,.013],[.70,-.013],[.77,-.013]])decal('W',.042,.017,.03,sd*q[0],yh+q[1],1,.008);
-    decal('W',.16,.008,.03,sd*.70,s[5][1]+.006,1,.008);
-    // les flancs : rétros sur pied, poignées affleurantes, joints, l'OUÏE derrière la roue avant
-    P.prism('K',[[.80,.95],[.64,.95],[.68,.99],[.76,.99]],.06,sd*.86);
-    P.box('p',.09,.085,.19,sd*.965,1.01,.70,0,sd*.10,0);P.box('p',.05,.07,.14,sd*1.01,1.01,.67,0,sd*.18,0);
-    P.box('K',.02,.012,.15,sd*.958,.86,.30);P.box('K',.02,.012,.15,sd*.962,.88,-.80);
-    for(const z of [.64,BP,RD])P.box('k',.012,.50,.012,sd*.968,.69,z);
-    {const zv=ZF-R-.20;P.box('k',.014,.24,.045,sd*(xW(zv)+xF(zv)+.016),.56,zv,0,0,-sd*.12);}
-    // LES ÉTRIERS ROUGES derrière les jantes (ils ne tournent pas)
-    for(const w of [ZF,ZR]){const ph=2.55,rr=.20;P.box('e',.07,.08,w>0?.21:.17,sd*(.835+.115-.075),R+Math.sin(ph)*rr,w+Math.cos(ph)*rr,Math.PI/2-ph,0,0);}
+    retro(sd);P.prism('K',PLAN.retro.bras,.06,sd*.86);
+    for(const w of [ZF,ZR]){const ph=2.55,rr=.19;P.box('e',.06,.075,w>0?.20:.16,sd*(.83+.1075-.085),R+Math.sin(ph)*rr,w+Math.cos(ph)*rr,Math.PI/2-ph,0,0);
+      P.prism('k',joue(w),.02,sd*.60);}
   });
-  // ---- LA POUPE ----
-  {const s=S(ZB);P.box('L',2*s[6][0],s[7][1]-s[6][1],.004,0,(s[6][1]+s[7][1])/2,ZB-.002);               // le bandeau, sur le bouchon
-   P.box('k',2*s[2][0],s[3][1]-s[0][1],.004,0,(s[0][1]+s[3][1])/2,ZB-.002);}                            // le diffuseur
-  P.sym(sd=>{for(let i=0;i<3;i++)decal('r',.06,.018,.02,sd*(.62+i*.08),.89,-1,.004);});
-  decal('K',.50,.13,.02,0,.62,-1,.008);decal('s',.46,.10,.02,0,.62,-1,.0);  // la plaque
-  // le becquet en queue de canard au bout de la malle
-  {const z0=-2.30,z1=ZB+.01;P.prism('p',[[z0,yC(z0)-.004],[z1,yC(z1)+.012],[z1,yC(z1)+.034],[z0,yC(z0)+.01]],1.30,0);}
+  // les normales lissées dans les panneaux (sous 32° d'écart), les arêtes et les joints gardés
+  {const fin9=P.done;P.done=()=>{const gs=fin9();for(const g9 of ['p','g']){const G=gs[g9];if(!G)continue;
+      const a=G.attributes.position.array,n=G.attributes.normal.array,M=new Map(),cle=i=>Math.round(a[i]*2e3)+','+Math.round(a[i+1]*2e3)+','+Math.round(a[i+2]*2e3);
+      for(let i=0;i<a.length;i+=3){const k9=cle(i);let l=M.get(k9);if(!l)M.set(k9,l=[]);l.push(i);}
+      const o=new Float32Array(n.length),cs=Math.cos(32*Math.PI/180);
+      for(const l of M.values())for(const i of l){let x=0,y=0,z=0;for(const q of l){if(n[i]*n[q]+n[i+1]*n[q+1]+n[i+2]*n[q+2]>=cs){x+=n[q];y+=n[q+1];z+=n[q+2];}}const h=Math.hypot(x,y,z)||1;o[i]=x/h;o[i+1]=y/h;o[i+2]=z/h;}
+      n.set(o);G.attributes.normal.needsUpdate=true;}return gs;};}
   K.commit(P);
-  // ---- LES JANTES : la jante de la 4S — cinq doubles branches en V, faces usinées argent sur fond NOIR, la jante grande (pneu bas),
-  // le disque, le cache-moyeu ; posées DANS la roue (`roueDeco`).
-  const JW=.30,hw=JW/2,fx=hw-.035,RJ=R*.75,J=lpKit({k:{g:'m',c:0x16171a},c:{g:'c',c:0xd9dde3},d:{g:'m',c:0x101114},n:{g:'g',c:0x0c0c0f},b:{g:'m',c:0x1c1c1f}});
-  J.lathe('k',[[RJ,-hw],[R*.90,-hw],[R,-hw*.62],[R,hw*.62],[R*.90,hw],[RJ,hw]],20,0,0,0,'x');   // le pneu, bas
-  J.lathe('d',[[RJ,-hw+.02],[RJ,fx-.004]],20,0,0,0,'x');J.lathe('d',[[RJ,-hw+.03],[R*.10,-hw+.03]],20,0,0,0,'x'); // le fût, le fond
-  J.lathe('d',[[R*.24,fx-.004],[R*.10,fx-.004]],16,0,0,0,'x');
-  J.lathe('b',[[R*.50,fx-.06],[R*.24,fx-.06]],20,0,0,0,'x');                                   // le disque
-  J.lathe('n',[[RJ+.002,fx-.006],[RJ*.95,fx+.012]],24,0,0,0,'x');J.lathe('c',[[RJ*.95,fx+.012],[RJ*.93,fx+.014]],24,0,0,0,'x'); // la lèvre noire, son liseré argent
-  const XF=fx+.016,XB=fx-.004;
-  const branche=(a0,a1,r0,r1,w0,w1)=>{const m=(a,r,dw)=>{const y=Math.sin(a)*r,z=Math.cos(a)*r,ty=Math.cos(a),tz=-Math.sin(a);return [y+ty*dw,z+tz*dw];};
-    const A=m(a0,r0,-w0/2),B=m(a1,r1,-w1/2),C=m(a1,r1,w1/2),D=m(a0,r0,w0/2),F=(p,x)=>[x,p[0],p[1]];
-    J.tri('c',F(A,XF),F(B,XF),F(C,XF));J.tri('c',F(A,XF),F(C,XF),F(D,XF));
-    for(const [p,q2] of [[A,B],[C,D]]){J.tri('n',F(p,XF),F(p,XB),F(q2,XB));J.tri('n',F(p,XF),F(q2,XB),F(q2,XF));}};
-  for(let i=0;i<5;i++){const a=i/5*Math.PI*2;for(const e of [-1,1])branche(a+e*.06,a+e*.25,R*.15,RJ*.94,.052,.040);} // des branches LARGES, comme la vraie
-  J.cyl('n',R*.16,.03,10,fx+.002,0,0,'x');J.cyl('c',R*.10,.012,10,fx+.018,0,0,'x');           // le moyeu, son cache
+  // LA LAQUE BLANCHE : un voile de ciel doux de face, franc en rasant, non teinté ; un point chaud large
+  {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=90;mP.specular.setHex(0x8a8a8a);mP.reflectivity=.45;
+    if(mP.userData.uG)mP.userData.uG.value=.05;if(mP.userData.uV)mP.userData.uV.value.set(.16,1.15,3,0);}}
+  // ---- LA JANTE DU PLAN : la face ajourée (dix alvéoles), le moyeu ; derrière, le fût noir et le disque ; pneu bas ----
+  const JW=.285,hw=JW/2,fx=hw-.035,J=lpKit({k:{g:'m',c:0x16171a},c:{g:'c',c:0xd9dde3},d:{g:'m',c:0x101114},n:{g:'g',c:0x0c0c0f},b:{g:'m',c:0x3a3a40}});
+  const RJ=.276;
+  J.lathe('k',[[RJ,-hw],[R*.90,-hw],[R,-hw*.62],[R,hw*.62],[R*.90,hw],[RJ,hw]],24,0,0,0,'x');
+  J.lathe('d',[[RJ,-hw+.02],[RJ,fx-.004]],24,0,0,0,'x');J.lathe('d',[[RJ,-hw+.03],[R*.10,-hw+.03]],20,0,0,0,'x');
+  J.lathe('b',[[.20,fx-.07],[.09,fx-.07]],24,0,0,0,'x');                                     // le disque
+  {const D=PLAN.jante,V=p=>new THREE.Vector2(p[0],p[1]),sh=new THREE.Shape(D.jante.map(V));for(const q of D.poches)sh.holes.push(new THREE.Path(q.map(V)));
+   const g=new THREE.ExtrudeGeometry(sh,{depth:.022,bevelEnabled:false,curveSegments:1});g.rotateY(-Math.PI/2);g.translate(fx+.016,0,0);J.put('c',g,0,0,0);
+   const m=new THREE.Shape(D.moyeu.map(V)),gm=new THREE.ExtrudeGeometry(m,{depth:.012,bevelEnabled:false,curveSegments:1});gm.rotateY(-Math.PI/2);gm.translate(fx+.026,0,0);J.put('n',gm,0,0,0);}
   const JG=J.done();
-  return {hl:[.73,.69,2.44],tl:[.74,.88,-2.49],wx:.835,wzF:ZF,wzR:-ZR,
+  return {hl:[.74,.71,2.30],tl:[.80,.84,-2.42],wx:.83,wzF:ZF,wzR:-ZR,
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xd9dde3}};
 };
+// (2026-10-16) LA PERLE : la projection de TOUS les traits du plan sur la tôle (~0,2 s sur ordi, ~2× sur téléphone) se fait une fois,
+// pendant la préchauffe du menu (`chauffeDivers`) : le gabarit tourne à vide (un kit muet) et garde ses triangles dans `SHAPES.perle._tri`.
+function perleTraits(){if(SHAPES.perle._tri)return;const nul=()=>{},P9=new Proxy({},{get:()=>nul});SHAPES.perle({kit:()=>P9,commit:nul,mats:{}});}
 SHAPES.origami=function(K){
   const U=LPU,R=.44,ZF=1.92,ZR=-1.72,ZN=2.74,ZT=-2.74,TB=.64,KL=.10,E=.006;
   const P=K.kit({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
@@ -34785,6 +34931,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{volcanChauffe();}catch(e){console.warn('volcanChauffe',e);}}, // (2026-10-14) LE ROYAUME DE FEU : roche, lave, aiguilles, panaches, geysers, braises, cendre, bombes, halos — compilés au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
+  function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}}, // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
@@ -35708,7 +35855,7 @@ const CAR_UNLOCK=[
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
-  {p:4400000}, // (2026-10-16, Léo : « Taycan 4S, black edition bien glossy ») L'ONYX — ÉPIQUE, juste après LA POUPÉE
+  {p:4400000}, // (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
 ]
 /* (2026-10-14, Sacha) SANS CARRIÈRE : ses deux trophées passent à l'argent du jeu, aux prix de l'ancienne édition Poki (en haut des épiques ;
    leur famille suit le prix, comme chez Poki). `exK`/`exV` gardent l'ancienne condition : une caisse déjà GAGNÉE en carrière entre dans
@@ -41800,6 +41947,17 @@ let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
 // les niveaux 6 à 10 gardent NOITE DE VELOCIDADE. En partie SANS FIN, la zone NUAGES joue le morceau entier (les 5 niveaux à la suite).
 // Chaque fichier = sa boucle de 8 mesures répétée sans couture sur ~110 s. Les objets sont FIXES (musicSuitLieu compare par identité).
 const MUSIC_CIEL=[1,2,3,4,5].map(function(k){return{titre:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a'};});
+/* (2026-10-16, Léo : « la musique du niveau d'apprentissage : une musique calme à part » ; et « le problème de la musique au JOUER : elle change
+   en route ») LA MUSIQUE DE L'AUTO-ÉCOLE. Avant : la leçon jouait CIEL · NIVEAU 1 — mais seulement quand la course démarrait : pendant le piqué
+   de JOUER, le lobby s'effaçait jusqu'au silence, puis un autre morceau arrivait. Désormais la leçon a SA musique, calme, entendue nulle part
+   ailleurs dans le jeu (un des lobbys « Chris », qui ne jouent plus au menu depuis le 15/10) ; elle part DÈS le JOUER (le piqué) et continue
+   toute la leçon ; au portail d'après, elle s'efface en 1,2 s pendant que Pouce bleu entre (ECOLE.f0). `?ecole=ciel|dimanche|nuit|polaroid|
+   siffleur|matin` pour en essayer une autre ; `?ecole=ciel1` = l'ancien CIEL · NIVEAU 1. */
+const ECOLE_MUS=(function(){const m=/[?&]ecole=([a-z0-9]+)/.exec(location.search),k=m?m[1]:'matin';
+  if(k==='ciel1')return MUSIC_CIEL[0];
+  const T={matin:'PREMIER MATIN',dimanche:'DIMANCHE',nuit:'GARAGE DE NUIT',polaroid:'POLAROÏD',ciel:'GRAND CIEL',siffleur:'SIFFLEUR'};
+  return {titre:T[k]||T.matin,f:'assets/audio/music/lobby/chris-'+(T[k]?k:'matin')+'.m4a'};})();
+const ECOLE={pique:false,f0:0,ms:1200,v0:0};
 // (2026-10-05, Léo : « voilà les musiques 1 à 5 de la ville » — NÉON COMPLÈTE 1 à 5, ses boucles du Studio recréées par atelier-son/neon_ville.py :
 // 12 tours de 4 mesures qui évoluent, 96 s chacune ; avant, NÉON seule au niveau 1)
 // (2026-10-05, Léo : « fais les 4 prochains niveaux en t'inspirant de la base… qu'à la cinq on ressente EXPLOSION, ARGENT, BOOMIN, LUXURY ») : 6 à 10 = la
@@ -41809,14 +41967,14 @@ const MUSIC_VILLE=['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','
 const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
 function musicLieuVoulu(){
   const c=LVL.cur;if(!c)return null;
-  if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;else if(c.piste==='tuto')return MUSIC_CIEL[0];} /* (2026-10-07, audit GRAPHISME) l'AUTO-ÉCOLE (1re partie d'un joueur neuf) retombait sur NOITE DE VELOCIDADE : elle joue le CIEL niveau 1, comme la carrière */
+  if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;else if(c.piste==='tuto')return ECOLE_MUS;} /* (2026-10-07, audit GRAPHISME) l'AUTO-ÉCOLE (1re partie d'un joueur neuf) retombait sur NOITE DE VELOCIDADE : elle joue le CIEL niveau 1, comme la carrière */
   if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; /* (2026-10-05, Léo : « seulement celles de mon screen » : NÉON COMPLÈTE 1-5 ; 6-10 en attente) */ // la carrière VILLE : ses dix musiques (NÉON COMPLÈTE 1-5, puis la suite)
   return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
    en réclame un autre que celui qui joue. */
 function musicSuitLieu(){
   if(musicMode!=='run')return;
-  if(pbjRegne()){musicLieu=null;if(SND.music&&!POUCE_JEU.joue()&&POUCE_JEU.phase!=='charge'){stopMusic();pbjDepart(true,false);}return;} // (15/10) POUCE BLEU continue aux portails : pas de raccord — (soir) au sortir de l'auto-école, CIEL 1 s'arrête et il entre
+  if(pbjRegne()){const ec9=musicLieu===ECOLE_MUS&&musicOn&&(!VOL_LOCKED||musWaTient());musicLieu=null;ECOLE.pique=false;if(SND.music&&!POUCE_JEU.joue()&&POUCE_JEU.phase!=='charge'){if(ec9){ECOLE.f0=performance.now();ECOLE.v0=musicVolCour;}else stopMusic();pbjDepart(true,false);}return;} /* (2026-10-16) la musique de la leçon s'EFFACE (1,2 s, musicTick) pendant que Pouce bleu entre — plus de coupure nette */ // (15/10) POUCE BLEU continue aux portails : pas de raccord — (soir) au sortir de l'auto-école, CIEL 1 s'arrête et il entre
   if(jadeMusOn()){musicLieu=null;if(musicOn){if(VOL_LOCKED&&!musWaTient())stopMusic();else MUSJ.f0=performance.now();}return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick) — (2026-10-14, session SON) la radio lui CÈDE en 0,3 s (musicTick) au lieu d'un pause() net sous le portail ; volume verrouillé (iPhone avant iOS 17) : rien à ramper, coupure comme avant
   const v=musicLieuVoulu();
   if(v===musicLieu&&(musicOn||!SND.music||FRENM.sw))return; // (2026-10-13) …et en en sortant, la radio qu'elle avait fait taire repart
@@ -42225,6 +42383,24 @@ var PBJ_ON=!/[?&]musique=niveaux\b/.test(location.search); // (en var : jadeMusO
    (moteur 1) à ~−12 dB (moteur 30) — LA GRANDE MONTÉE de Léo, gardée (jamais de régleur de niveau). −4 dB : au niveau de la radio vers le
    moteur 10, 5 dB au-dessus au 30e (≈ −16), sans couvrir les effets. */
 const PBJ_NIV=.39;
+/* (2026-10-16, Léo : « le problème de la musique au JOUER » — choix cochés : « elle change en route » ET « parfois rien ne joue ») LE PLANCHER DU
+   DÉPART. MESURÉ au banc (Chrome muet, sortie enregistrée, effets coupés) : au JOUER le morceau tiré entre au MOTEUR 1, et au moteur 1 les
+   morceaux du générateur sortent à −42/−50 dB RMS (FEU DE LUXE, NÉNUPHARS VELOURS…) — 20 dB SOUS les effets de la course (−20) : le lobby
+   s'efface pendant le piqué, et la course démarre sans musique audible pendant des dizaines de secondes, jusqu'à ce que le moteur monte.
+   Le plancher : un analyseur écoute le morceau AVANT son niveau ; tant qu’il sort trop bas, on le relève (+11 dB au plus, cible −29 dB) — mais seulement en
+   BAS de la montée : plein jusqu'au moteur 3, éteint au moteur 12. Au-dessus, LA GRANDE MONTÉE de Léo est intacte (pas un régleur de niveau :
+   on ne touche jamais le haut). Un silence (entre deux parties) ne fait pas monter le relevé. `?depart=0` = sans (A/B) ; dbgPouce().plancher. */
+const PBJ_PL={on:!/[?&]depart=0\b/.test(location.search),cible:-29,max:11,an:null,buf:null,ch:null,p:-1,k:1,t:0,db:0};
+function pbjPlancher(dt,base,tier){const P=PBJ_PL;
+  if(!P.on||!AC||!window.POUCE_JEU)return 1;
+  const ch=POUCE_JEU.ch;if(!ch||!ch.f)return 1;
+  try{if(!P.an){P.an=AC.createAnalyser();P.an.fftSize=2048;P.buf=new Float32Array(2048);}
+    if(P.ch!==ch){if(P.ch&&P.ch.f)try{P.ch.f.disconnect(P.an);}catch(e){}P.ch=ch;ch.f.connect(P.an);P.p=-1;}}catch(e){return P.k;}
+  P.t-=dt;if(P.t<=0){P.t=.2;try{P.an.getFloatTimeDomainData(P.buf);let s=0;const B=P.buf;for(let i=0;i<B.length;i++)s+=B[i]*B[i];const pw=s/B.length;
+    if(pw>1e-7)P.p=P.p<0?pw:P.p+(pw-P.p)*.15;}catch(e){}} // ~1,3 s de mémoire ; le silence (sous −70 dB) ne compte pas
+  const fade=tier<=3?1:Math.max(0,1-(tier-3)/9);
+  let db=0;if(P.p>0&&base>1e-4){const sortie=10*Math.log10(P.p)+20*Math.log10(base);db=Math.max(0,Math.min(P.max,P.cible-sortie))*fade;}
+  P.db+=(db-P.db)*(1-Math.exp(-dt/1.2));P.k=Math.pow(10,P.db/20);return P.k;}
 let PBJ_KO=0,PBJ_ESSAI=0; // (15/10) un morceau n'a pas pu partir (réseau, fichier) : un AUTRE est tiré (3 essais) ; après, la course reste sans musique — chaque JOUER réessaie
 function pbjTuto(){return (typeof TUTO!=='undefined'&&!!TUTO.on)||!!(LVL.cur&&LVL.cur.piste==='tuto');} /* (15/10 soir, Léo : « remets le premier son du test, le premier son
    dans le ciel pour ceux qui jouent pour la première fois ») L'AUTO-ÉCOLE (le permis) joue CIEL · NIVEAU 1, comme avant (musicLieuVoulu) ; Pouce bleu prend la suite au portail d'après */
@@ -42237,9 +42413,15 @@ function pbjLance(vite,meme){if(!pbjActif()||!SND.music)return;
       console.warn('Pouce bleu : '+(POUCE_JEU.err||'liste vide'));
       if(f==='erreur'&&++PBJ_ESSAI<3){pbjLance(vite||musicMode==='run',false);return;} // un autre morceau (le raté est compté comme joué)
       PBJ_KO=1;});}catch(e){}}
-function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie)
+function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;if(pbjTuto()){try{ecoleMusPique();}catch(e){}return;}}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie) — (2026-10-16) le JOUER de la LEÇON lance la musique de la leçon
+function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique part pendant le piqué, en fondu (DEPMUS), et la course la GARDE (musicStartRun)
+  if(!SND.music)return;
+  if(window.POUCE_JEU&&POUCE_JEU.phase!=='repos')try{POUCE_JEU.fin(true);}catch(e){}
+  musicMode='run';musicLieu=ECOLE_MUS;NIVEAU_FX=0;MUSJ.f0=0;ECOLE.f0=0;
+  if(DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;}
+  ECOLE.pique=true;musicPlayCurrent();}
 let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
-window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE},POUCE_JEU.etat()):null;};
+window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE,plancher:{on:PBJ_PL.on,db:Math.round(PBJ_PL.db*10)/10,avant:PBJ_PL.p>0?Math.round(100*Math.log10(PBJ_PL.p))/10:null}},POUCE_JEU.etat()):null;};
 function musicStartRun(depart,reprise){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course · reprise : la seconde chance (la course continue)
   MUSREP.att=false;DEPMUS.f0=-1;DEPMUS.sort=0;MUSJ.f0=0;
   if(SND.music&&pbjRegne()){ // POUCE BLEU : le morceau tiré au JOUER passe de l'intro à la course (sinon il part tout de suite, intro courte)
@@ -42253,8 +42435,9 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
-  musicMode='run';NIVEAU_FX=0;
-  if(depart&&DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  musicMode='run';NIVEAU_FX=0;ECOLE.f0=0;
+  const garde9=ECOLE.pique&&musicLieu===ECOLE_MUS&&musicOn&&!!musicEl&&!musicEl.paused;ECOLE.pique=false; // (2026-10-16) la musique de la leçon, partie au piqué, CONTINUE (ni coupure ni second fondu)
+  if(depart&&DEPMUS.on&&!garde9){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
   musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
   LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
@@ -42558,7 +42741,8 @@ function musicTick(dt,mvt){
   if(window.POUCE_JEU&&POUCE_JEU.joue()){ /* (15/10) POUCE BLEU : son niveau = celui qu'aurait la radio (le curseur, le souffle du mouvement, l'annonceur), le moteur du jeu le pilote ; la musique coupée l'éteint */
     if(!SND.music)POUCE_JEU.fin(false);
     else{const fr9=musicMode==='run'&&!!FRENM.sw; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient */
-      POUCE_JEU.niveau(fr9?0:VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62)*mDuck);if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||engTier+1);if(!fr9)musicVolCible=0;}}}
+      const b9=VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62)*mDuck;
+      POUCE_JEU.niveau(fr9?0:b9*pbjPlancher(dt,b9,PBJ_FORCE||(musicMode==='run'&&running?engTier+1:1))); /* (2026-10-16) LE PLANCHER DU DÉPART (pbjPlancher) */if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||engTier+1);if(!fr9)musicVolCible=0;}}}
   else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
     if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
@@ -42587,6 +42771,11 @@ function musicTick(dt,mvt){
     if(musicMode!=='run'||!jadeMusOn()||!musicOn){MUSJ.f0=0;}
     else if(k8>=1){MUSJ.f0=0;stopMusic();}
     else{musicVolCible*=1-k8;musicVolCour=Math.min(musicVolCour,musicVolCible);}}
+  if(ECOLE.f0){ /* (2026-10-16) la musique de la leçon cède à Pouce bleu au portail d'après : une courbe douce sur ECOLE.ms, puis la pause */
+    const k7=(performance.now()-ECOLE.f0)/ECOLE.ms;
+    if(musicMode!=='run'||!musicOn)ECOLE.f0=0;
+    else if(k7>=1){ECOLE.f0=0;stopMusic();}
+    else{musicVolCible=ECOLE.v0*(1-k7)*(1-k7);musicVolCour=musicVolCible;}}
   if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
     if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
   if(MUSAP.joue){ /* (2026-10-14, session SON) l'extrait du curseur MUSIQUE ouvert depuis la PAUSE (voir musApercu) : fondus en temps RÉEL
@@ -44848,7 +45037,7 @@ const SAVE={
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.bienv=d.bienv?1:0;c.tutoProv=d.tutoProv?1:0; /* (2026-10-16) LA QUESTION DE BIENVENUE : `bienv` = ne plus la poser · `tutoProv` = la leçon sautée pour UNE ouverture (voir bienvMontre) */c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
@@ -44963,6 +45152,8 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
   }).catch(function(){});}catch(e){}
 }
 SAVE.load();
+/* (2026-10-16) J'AI DÉJÀ JOUÉ, sans « ne plus me demander » : la leçon n'était sautée que pour l'ouverture d'avant — la question revient. */
+if(SAVE.d.tutoProv){SAVE.d.tutoProv=0;if(!SAVE.d.bienv&&!SAVE.d.permis)SAVE.d.tuto=0;}
 /* (2026-10-14, Sacha) SANS CARRIÈRE : un trophée de la carrière déjà GAGNÉ (5 niveaux de SKY HIGH → LA CAISSE-NUAGE, 5 de la VILLE → LE LINGOT)
    entre dans `owned` — il est à toi partout, boutique comprise (elle ne te le revend pas). Voir SANS_CARRIERE et `exK`/`exV` dans CAR_UNLOCK. */
 if(SANS_CARRIERE)try{const mo9={carrN:'nuages',carrV:'ville'};let m9=false;
@@ -45147,7 +45338,7 @@ function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
   if(g>1.2)SON_UI.i=0;else if(id==='ui.retour')SON_UI.i=Math.max(0,(SON_UI.i<4?SON_UI.i:2+(SON_UI.i&1))-1);else if(g<.6&&++SON_UI.i>5)SON_UI.i=4;
   const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
 function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return id==='ui.jouer'&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?'ui.tap':id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
-function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:undefined);else chimeNote(1480,0,.045,.05);}; // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
+function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:id9==='ui.jouer'?{vol:-9}:undefined);else chimeNote(1480,0,.045,.05);}; /* (2026-10-16, LE PIQUÉ QUI NE CRIE PLUS) le V8 de JOUER −9 dB : posé sur le ciel calme, avec le lâcher et le vent, c'était le gros du BOOM du départ (+15 à +20 dB en 200 ms, mesuré) */ // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
   else if(SND.sfx&&paused&&SONV2&&PSON_ON)f9(); /* (2026-10-16) LE CLIC DANS LA PAUSE : il sonne tout de suite (sfx → pauseSon réveille le contexte le temps du clic) — l'attente ci-dessous reste pour ?pauseson=0 */
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),j9=uiClic._att=(uiClic._att|0)+1,w9=function(){if(j9!==uiClic._att)return;if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (2026-10-14, session SON — relevé par DEBUGGING) UNE seule attente à la fois : la ligne QUITTER puis sa confirmation ouvraient chacune la leur, la sortie de pause les relâchait dans la même image (le son de danger doublé, 14-27 ms d'écart) ; la nouvelle remplace l'ancienne */ /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
@@ -47279,7 +47470,7 @@ function fireLaunchBoost(){
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
   const ll9=$('launchLogo'),lg9=$('launchGlow');
-  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo');}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or */
+  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo',{vol:-4});}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or — (2026-10-16) −4 dB : il remettait un coup de sub juste après le piqué */
   if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
@@ -53434,7 +53625,7 @@ function garageLaunch(){
   pbjDepart(); // (15/10) POUCE BLEU : le morceau de la course entre pendant le piqué (son intro)
   if(!pre)garLacherSon();
 }
-function garLacherSon(){try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22,420);chimeNote(196,0,.5,.16);}}catch(e){}} /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli ; après LE RETOUR AU FEU s'il y en a un */
+function garLacherSon(){try{if(SONV2)sfx('garage.lacher',{vol:-8});else{noiseBurst(.6,.07,420);chimeNote(196,0,.5,.06);}}catch(e){}} /* (2026-10-16) −8 dB, et le repli −10 dB : c'était le BOOM du début de partie (voir LE PIQUÉ QUI NE CRIE PLUS) */ /* (console de son) LE LÂCHER : moteur, turbo, départ, et le WHOOSH du voile (1,36 s) — le 196 Hz hors gamme reste en repli ; après LE RETOUR AU FEU s'il y en a un */
 // `playViaGarage()` — UNE SEULE PORTE D'ENTRÉE POUR LANCER UNE COURSE (2026-09-05) : « on ne peut
 // jouer que depuis le garage avec la porte qui s'ouvre » (demande du user). Le bouton JOUER du menu,
 // REJOUER, la touche Entrée en fin de partie — tout ouvre le garage et enchaîne LE LÂCHER : c'est le
@@ -54769,7 +54960,7 @@ function chuteDoigtEl(){const D=CH_DOIGT;if(D.el)return D.el;const el=document.g
 function chuteDoigtMontre(v){const D=CH_DOIGT;if(!v)D.t=0;if(D.on===v)return;D.on=v;if(D.el)D.el.classList.toggle('on',v);}
 function chuteDoigtTick(dt,Ck,G){const D=CH_DOIGT;if(D.fini)return;
   if((SAVE.d.ast|0)&D.BIT){D.fini=true;chuteDoigtMontre(false);return;}
-  if(G||!carGroup.visible||TUTO.on||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
+  if(G||!carGroup.visible||TUTO.on||BIENV.on||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
   const el=chuteDoigtEl();if(!el){D.fini=true;return;}
   D.rT-=dt;if(D.rT<=0||!D.r){D.rT=.5;D.r=renderer.domElement.getBoundingClientRect();} // la place du canevas (le cadre de l'ordi le décale) : relue deux fois par seconde
   const R=D.r;D.v.copy(Ck).project(camera);if(!(R.width>0)||D.v.z>1){chuteDoigtMontre(false);return;}
@@ -55135,7 +55326,7 @@ function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,
    au milieu (le filigrane), et la valeur en GRAND au milieu, en lettres carrées (la police pixel du jeu), frappée : ombre d'encre, contour,
    dégradé clair, un fil de lumière. Le 20 a sa tour Eiffel dans la rosace et sa bande BLEU-BLANC-ROUGE ; le 500 est violet et OR. */
 const RICH_BILLETS=[
-  {v:'10', m:'DIX DOLLARS',       c:['#520b13','#901d28','#6b121c'],l:[255,150,140],sh:[1,.58,.5]},   // rouge rubis (l'ancien 10)
+  {v:'10', m:'DIX DOLLARS',       c:['#2a0c0f','#4c1c21','#381418'],l:[236,180,172],sh:[.7,.5,.48]}, // rouge BORDEAUX, peu saturé (l'étalonnage du jeu sature ×1,4 : à l'écran il reste rouge) (2026-10-16, Léo : « le dix est encore trop pétant »)
   {v:'20', m:'VINGT FRANCS',      c:['#0a1f52','#1d4ba8','#112e72'],l:[150,200,255],sh:[.55,.76,1],fr:1}, // bleu, à la française
   {v:'50', m:'CINQUANTE DOLLARS', c:['#5a2505','#a8561a','#7b380d'],l:[255,195,130],sh:[1,.76,.45]},  // orange
   {v:'100',m:'CENT DOLLARS',      c:['#063f46','#138a5e','#0a5a52'],l:[140,255,200],sh:[.49,1,.62]},  // VERT en dégradé (sarcelle → vert) — celui des liasses
@@ -55145,7 +55336,6 @@ function richTexBillet(B){return richCv(512,236,function(x,w,h){
   const L=function(k,a){const c=B.l.map(function(v){return Math.round(v+(255-v)*k);});return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}, // la couleur des traits, éclaircie de k
     O=function(a){return 'rgba(255,214,128,'+a+')';},T=B.or?function(k,a){return O(a);}:L,F='"Press Start 2P",monospace';
   const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,B.c[0]);G.addColorStop(.55,B.c[1]);G.addColorStop(1,B.c[2]);x.fillStyle=G;x.fillRect(0,0,w,h);
-  const W=x.createRadialGradient(w*.56,h*.5,6,w*.56,h*.5,h*.85);W.addColorStop(0,'rgba(255,255,255,.13)');W.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=W;x.fillRect(0,0,w,h); // le filigrane : un voile clair au milieu
   x.lineWidth=1;for(let k=0;k<26;k++){x.strokeStyle=L(0,.09);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));x.stroke(); // la guilloche, deux familles croisées
     x.strokeStyle=L(.1,.05);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2-Math.sin(i*.024+k*.61)*h*.4*Math.sin(k*.17+2));x.stroke();}
   x.strokeStyle=T(.25,.42);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);           // le double cadre
@@ -55155,12 +55345,14 @@ function richTexBillet(B){return richCv(512,236,function(x,w,h){
   if(B.fr){x.fillStyle=L(.6,.85);x.beginPath();x.moveTo(rx-22,ry+40);x.lineTo(rx-6,ry-6);x.lineTo(rx-2,ry-38);x.lineTo(rx,ry-50);x.lineTo(rx+2,ry-38);x.lineTo(rx+6,ry-6);x.lineTo(rx+22,ry+40); // la TOUR EIFFEL
     x.lineTo(rx+12,ry+40);x.quadraticCurveTo(rx,ry+18,rx-12,ry+40);x.closePath();x.fill();x.fillRect(rx-13,ry+14,26,4);x.fillRect(rx-8,ry-10,16,3);x.fillRect(rx-1,ry-58,2,9);}
   else{x.fillStyle=T(.55,.85);x.font='44px '+F;x.textAlign='center';x.textBaseline='middle';x.fillText('$',rx+2,ry+2);}
-  const n=B.v.length,fz=n>2?66:80,cx=w*.555,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
-  x.fillStyle='rgba(0,0,0,.35)';x.fillText(B.v,cx+5,cy+6);                                                                  // son ombre d'encre
-  x.lineJoin='miter';x.lineWidth=5;x.strokeStyle='rgba(0,0,0,.45)';x.strokeText(B.v,cx,cy);                                  // son contour
-  const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#fff3c4');Z.addColorStop(.5,'#ffd56a');Z.addColorStop(1,'#c58b22');}else{Z.addColorStop(0,L(.92,1));Z.addColorStop(.55,L(.62,1));Z.addColorStop(1,L(.35,1));}
+  const n=B.v.length,fz=n>2?74:92,cx=w*.555,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
+  {const tw=x.measureText(B.v).width,px=cx-tw*.5-16,py=cy-fz*.5-13,pw=tw+32,ph=fz+26;x.fillStyle='rgba(0,0,0,.3)';richRond(x,px,py,pw,ph,10);x.fill(); // (2026-10-16, Léo : « plus visibles les numéros ») un CARTOUCHE sombre sous le chiffre (le voile clair d'avant le noyait)
+   x.strokeStyle=T(.45,.4);x.lineWidth=2;richRond(x,px+4,py+4,pw-8,ph-8,7);x.stroke();}
+  x.fillStyle='rgba(0,0,0,.55)';x.fillText(B.v,cx+6,cy+7);                                                                  // son ombre d'encre
+  x.lineJoin='miter';x.lineWidth=9;x.strokeStyle='rgba(0,0,0,.72)';x.strokeText(B.v,cx,cy);                                  // son contour, épais
+  const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#fff8dc');Z.addColorStop(.5,'#ffd970');Z.addColorStop(1,'#e2a73c');}else{Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,L(.88,1));Z.addColorStop(1,L(.7,1));}
   x.fillStyle=Z;x.fillText(B.v,cx,cy);x.save();x.beginPath();x.rect(0,cy-fz*.5,w,fz*.16);x.clip();x.fillStyle='rgba(255,255,255,.45)';x.fillText(B.v,cx,cy);x.restore(); // dégradé clair, et le fil de lumière en haut
-  x.font='16px '+F;x.fillStyle=T(.65,.9);x.textAlign='left';x.fillText(B.v,30,40);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins
+  x.font='20px '+F;x.fillStyle=T(.8,.95);x.textAlign='left';x.fillText(B.v,30,42);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins (un cran plus grandes, plus claires)
   x.textAlign='center';x.font='11px '+F;x.fillStyle=T(.55,.8);x.fillText('CASH CAR',cx,h*.2);
   x.font='7px '+F;x.fillStyle=L(.3,.55);x.fillText((B.fr?'REPUBLIQUE DU CIEL':'BANQUE CENTRALE DU CIEL')+' · '+B.m,cx,h*.84);
   x.textAlign='left';x.fillText('CC '+(4100+B.v.length*977+B.v.charCodeAt(0)*13),30,h-34);                                   // le numéro de série
@@ -55688,7 +55880,9 @@ function richCoup(P,n,d,mu,combo){
       if(ty==='diamant'||ty==='rubis'||ty==='emeraude')M9.g=1;else if(ty==='champagne')M9.v=1;else if(ty==='fleur')M9.f=1; // (les matières de la gerbe, pour ses sons)
       richLance(ty,P9,n9,d9,lourd?Math.random()*etal*.55:D9.papier||ty==='liasse'?.05+Math.random()*etal*1.25:Math.random()*etal,r==='jackpot'?1.2:1);}
     if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
-    {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));for(let i=0;i<nc;i++)richLance('coeur',P9,n9,d9,.04+Math.random()*(etal+.15)*1.4,r==='jackpot'?1.15:.95);}} // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un
+    {const NU=RICH_NUEE[r];if(NU&&Math.random()<NU[0]){RICH.popI=0;const nc=NU[1]+Math.floor(Math.random()*(NU[2]-NU[1]+1));let t9=.03;for(let i=0;i<nc;i++){t9+=.03+Math.pow(Math.random(),2.2)*.38; // (2026-10-16) LA NUÉE : de petits cœurs, en plus de la gerbe, qui éclatent un à un — et (Léo : « plus irréguliers, on les voit trop en groupe ») ils s'ÉCHAPPENT un par un, à intervalles irréguliers (parfois deux d'affilée, parfois un silence), chacun sa vitesse, sa direction et son point de départ autour de la caisse
+      const o9=richLance('coeur',P9,n9,d9,t9,(r==='jackpot'?1.15:.95)*(.55+Math.random()*.9));
+      if(o9){RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(1.5+Math.random()*2.5);o9.v.add(RICH.v1);richVise(o9.v);o9.m.position.add(RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).multiplyScalar(1.2));}}}}
     if(SONV2){const ri=richSon();if(ri)sfx('riche.'+r); // (2026-10-16) LA GERBE PAIE : sa cascade à elle (petit → bon → gros → jackpot), au juste milieu — la course garde les pièces de Sacha
       if(r==='petit'){sfx('fourgon.billets',{vol:-1,t:.04});if(!ri)sfx('piece',{st:2,vol:-4,t:.05});}
       else if(r==='bon'){sfx('fourgon.billets',{vol:-1,t:.06});if(!ri)sfx('piece.recolte',{vol:-1});}
@@ -55922,9 +56116,9 @@ function chuteDoux(t,u){
   }
   clearTimeout(CHDOUX.off);CHDOUX.off=0;
   const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);CHDOUX.h=houle; // (la musique du ciel la lit : elle plonge sous les rafales)
-  stt(n.g.gain,CHDOUX_VOL*houle*(1+1.6*u),now,.5);                 // au piqué de JOUER il gonfle (+8 dB)…
-  stt(n.f1.frequency,330+70*Math.sin(t*.29)+600*u,now,.6);         // …et s'éclaircit
-  stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+1200*u,now,.6);
+  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
+  stt(n.f1.frequency,330+70*Math.sin(t*.29)+300*u,now,.6);         // …et s'éclaircit un peu
+  stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+500*u,now,.6);
   stt(n.g2.gain,.2+.08*Math.sin(t*.67),now,.6);
   if(n.pan)stt(n.pan.pan,.45*Math.sin(t*.23),now,.8);
 }
@@ -56137,11 +56331,20 @@ function chuteRender(dt){
   /* (2026-10-14, Léo : « quand on est — et quand on revient — dans le menu ciel, un bruit de chute libre doux ») AU REPOS, le ciel n'a plus que
      LA CHUTE LIBRE DOUCE (`chuteDoux`, la musique du lobby loin derrière : MUS_CIEL) ; le grondement claquant de `chute.vent` et le vent du
      moteur ne servent plus qu'au PIQUÉ de JOUER, où l'air se met à hurler (comme avant). */
+/* (2026-10-16, Léo : « un bug audio que tu n'as jamais su régler, qui pourrait défoncer les oreilles des joueurs en plein début de partie —
+   un mélange entre un souffle, un bruit aigu, et un boom ; dans mes écouteurs Bluetooth, et parfois sur l'ordi ») LE PIQUÉ QUI NE CRIE PLUS.
+   MESURÉ au banc (sortie enregistrée, effets seuls, bandes grave < 160 Hz et aigu 2,5-8 kHz, un son retiré à la fois) : au ciel tout est doux
+   (grave −50, aigu −62 dB) ; au JOUER, en 200 ms, le LÂCHER (garage.lacher) fait bondir le grave de +18 dB (le BOOM), puis pendant le piqué le
+   VENT du moteur (windG/whG, filtre ouvert jusqu'à 3,3 kHz) et la chute douce gonflée montent l'aigu de +27 dB en 1,5 s (le SOUFFLE AIGU) ;
+   le logo du départ remet un coup de sub. Le joueur règle son volume sur le ciel, calme : le piqué lui arrivait 20-27 dB plus fort, d'un
+   coup — au casque, où l'aigu et le sub passent entiers, c'était la gifle. Désormais le piqué monte d'environ 10 dB au plus : le vent reste
+   sombre (filtre ≤ 1,7 kHz), le sifflet discret, le V8 du JOUER −9 dB, le lâcher −8, le logo −4 ; sans la banque de sons (pas encore chargée), le vieux souffle
+   de secours est −10 dB (il partait en 50 ms à −5 dBFS de crête). */
   try{chuteDoux(t,G?u:0);}catch(e){}
   if(G){
-    if(SONV2&&!CHUTE.snd&&t>(CHUTE.sndT||0)){CHUTE.sndT=t+1;try{CHUTE.snd=sfx('chute.vent',{loop:true,vol:-20});}catch(e){}}
-    if(CHUTE.snd){CHUTE.snd.gain(4*u,.15);CHUTE.snd.rate(1+.25*u,.15);}
-    if(AC&&windG&&whG){try{CHUTE.vent=true;stt(windG.gain,.05+.05*u,AC.currentTime,.3);stt(windF.frequency,900+2400*u,AC.currentTime,.3);stt(whG.gain,.02+.05*u,AC.currentTime,.3);}catch(e){}}}
+    if(SONV2&&!CHUTE.snd&&t>(CHUTE.sndT||0)){CHUTE.sndT=t+1;try{CHUTE.snd=sfx('chute.vent',{loop:true,vol:-22});}catch(e){}}
+    if(CHUTE.snd){CHUTE.snd.gain(2*u,.25);CHUTE.snd.rate(1+.2*u,.25);} // (2026-10-16) +2 dB au piqué (était +4), −22 (était −20)
+    if(AC&&windG&&whG){try{CHUTE.vent=true;stt(windG.gain,.025+.02*u,AC.currentTime,.4);stt(windF.frequency,800+900*u,AC.currentTime,.4);stt(whG.gain,.008+.01*u,AC.currentTime,.4);}catch(e){}}} // (2026-10-16) le vent du piqué : .05→.10 / 900→3 300 Hz / sifflet .02→.07 avant
   // JOUER : le banc de nuage traversé (voile blanc), puis la course sous le voile
   if(G){if(!G.voile&&u>.74){G.voile=true;try{sfx('nuage.entre');}catch(e){}}
     /* (2026-10-15) LE NUAGE QU'ON TRAVERSE : le voile montait en rampe droite, plat ; il arrive maintenant en courbe douce et EN APPROCHE
@@ -63239,7 +63442,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, ?menu=leo (carrPlayOk)
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
-    else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
+    else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
     else if(a==='back'&&mCur==='shop'&&window.__offGar){ window.__offGar=false; ecranWipe(function(){ openGarage(); try{gModeVa('shop');}catch(e){} }); } // (2026-10-10) venue de la PORTE DES OFFRES du garage : le RETOUR y ramène
     else if(a==='back')mGo(mRoot());
@@ -63612,6 +63815,7 @@ if(BANC_ON)(function(){
   })();
 })();
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
+try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)
 requestAnimationFrame(loop);
 })();
 </script>

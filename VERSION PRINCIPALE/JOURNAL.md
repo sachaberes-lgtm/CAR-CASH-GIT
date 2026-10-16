@@ -3,6 +3,55 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## POUCE BLEU REFAIT — DEUX MORCEAUX ÉCRITS À LA MAIN EN 30 PALIERS (2026-10-16, pôle SON — Léo : « il y a quelques musiques faibles… remplace-les par des sons qui ont le niveau de ceux qui ont été laissés » · « ça fait trop jeu vidéo, presque inaudible » · « surprends-moi, de nouveaux sons » · « oublie le générateur, juste le système de musique évolutive jusqu'à 30 » · « réécris complètement RUBIS DE NÉON » · « refonte complète d'ASPHALTE D'ÉMERAUDE » · « RUBIS DE NÉON : enlève la basse et profites-en pour charger encore plus, harmonieux » · « push main les dernières chansons »)
+- LE TRI DE LÉO (bibliothèque, `musique-moteur.json`, tel quel) : PISTON DE LUXE, FLAMME DE VITESSE, CRISTAL D'ARGENT retirés ; des générés
+  proposés ensuite, il ne garde que TONNERRE DELUXE (`bleu-6104`, v3-10) ; son pouce sur ASPHALTE D'ÉMERAUDE. Pouce bleu = 20 morceaux.
+- DEUX PAGES « MORCEAU À PALIERS » ÉCRITES À LA MAIN (le format d'AURA · 30 : `MORCEAU = { preparer, jouer(p) }`, aucun son du générateur —
+  il reconnaissait ses basses et ses arpèges) : `assets/audio/music/direct/rubis-de-neon.html` (house de nuit rêveuse, fa mineur, 118 BPM, SANS
+  BASSE : piano feutré, nappe de verre fumé sur deux octaves, CHŒUR « ou » qui s'ouvre vers « a » au 3, l'HARMONIE DE NAPPE au 9 — un accord lié
+  par demi-mesure dont la voix du haut chante le thème, de 3 à 5 voix —, les CORDES EN TENUE en accord ouvert au 13 (`CORDES`, elles respirent
+  avec la pompe dès 15), le chœur à l'octave au climax, l'harmonie une octave plus haut au 30) et `asphalte-emeraude.html` (techno mélodique de
+  nuit, mi mineur, 124 BPM : la basse qui roule, la séquence d'émeraude qui s'ouvre `FILTRE_SEQ`, la polyrythmie 3 contre 4 dès 12).
+  Chaque élément entre à SON moteur (`QUAND`, texte `ENTRE`), et la SORTIE MONTE AVEC LE MOTEUR (`kit.master`) : sans ça le compresseur
+  écrasait la montée au 12e.
+- BRANCHÉS : la table `HTML` de `pouce-bleu-jeu.js` (`?v=4`, rangés d'office comme AURA · 30, lecteur `joueurHtml`) et deux `ajoute({sec:'bleu',
+  type:'html'})` dans `bibliotheque.html` (marqués « Nouveau » en tête, `NOUVEAUX_BLEU`). Le DÉPART COMPENSÉ (`depart` en dB dans
+  `retouches-bleu.js`, lu par la bibliothèque et par `joueurGen`) reste disponible, aucune retouche ne s'en sert aujourd'hui.
+- MESURÉ au banc d'écoute (Chrome muet, `ECOUTE.joue` = `POUCE_JEU.depart`, le lecteur de la course, moteurs 3/12/22/30) — la cible :
+  ~−22 dB au 3, −10 à −13 au 30 (TONNERRE DELUXE : −22,6 → −8,9). RUBIS DE NÉON −23 / −17,6 / −12,9 / −11,3 (sans basse : médiums
+  +7 à +9 dB par rapport à la version avec basse) ; ASPHALTE −24,1 → −12,3 (basse ramenée de 17 à ~8 dB au-dessus des médiums).
+- AVANT LE PUSH, LES 20 MORCEAUX DE POUCE BLEU JOUÉS UN PAR UN (`?pouce=<id>`, la liste que fabrique `POUCE_JEU.charge` sur cette version) :
+  20 / 20 jouent par le lecteur de la course, aucun silence, aucune erreur — 15 du générateur, 2 paliers figés (NÉON NOIR, NUIT DE VELOURS),
+  3 pages (AURA · 30, RUBIS DE NÉON, ASPHALTE). Le plus discret au départ : AVERSE DE CHROME (−39 dB au 3, −7,4 au 30), à lui de juger.
+- Banc : `~/Downloads/CAR-bancs/son/ecoute/` (`serveur_ecoute.py 9284 "<VERSION PRINCIPALE>"`, `ecoute.py <port chrome> <sortie> [ids]`),
+  Chrome `--mute-audio --disable-audio-output` (sans le second, l'horloge audio se fige quand la sortie du Mac change).
+
+## LE DÉBUT DE PARTIE — LA QUESTION DE BIENVENUE, LA MUSIQUE DE LA LEÇON, LE PIQUÉ QUI NE CRIE PLUS (2026-10-16, Léo — « premier niveau apprentissage : un message à la première ouverture, bien designé, avec une option ne plus répéter ; seulement si on dit que c'est la première fois, ça lance la partie guidée » · « règle grâce à ce changement le problème de la musique JOUER, et la musique du niveau d'apprentissage » · « un bug audio que tu n'as jamais su régler, qui pourrait défoncer les oreilles en plein début de partie — un mélange entre un souffle, un bruit aigu et un boom ; dans mes écouteurs Bluetooth et parfois sur l'ordi »)
+Choix cochés par Léo : la musique du JOUER « change en route » ET « parfois rien ne joue » ; la leçon : « une musique calme à part ».
+- **LA QUESTION DE BIENVENUE** (`bienvMontre`, `bienvGuette` lancé à côté de `__gameReady`, `BIENV`) : à l'ouverture, sur l'accueil du ciel
+  (700 ms après qu'il est prêt), la fenêtre du jeu (`modale` + `cls:'bienv'`, deux cartes) : PREMIÈRE FOIS ICI ? — OUI, GUIDE-MOI (la leçon
+  part tout de suite : le clic du JOUER de l'accueil, `bienvJoue`) · J'AI DÉJÀ JOUÉ (`tuto=1` + `tutoProv=1` : sautée pour CETTE ouverture,
+  remise à 0 au chargement suivant → la question revient) · la case NE PLUS ME DEMANDER (`modale` sait porter `o.coche`, rendu `r.coche`) →
+  `SAVE.d.bienv=1`. Posée seulement si ni `tuto` ni `permis` ni `bienv` (une sauvegarde qui a des parties : jamais). `?bienvenue=0` la tait,
+  `?bienvenue=1` la pose toujours (essai), `dbgBienvenue()` / `('raz')`. Style : bloc « LA QUESTION DE BIENVENUE » après facC6 (l'interface
+  pixel ; la charte 6 est éteinte). Le doigt TAPE TA CAISSE attend `BIENV.on`.
+- **LA MUSIQUE DE LA LEÇON** (`ECOLE_MUS`, `ECOLE`, `ecoleMusPique`) : PREMIER MATIN (lobby Chris, plus joué ailleurs depuis le 15/10) ;
+  elle part DÈS le piqué du JOUER (`pbjDepart()` sans argument + leçon armée), la course la GARDE (musicStartRun : ni coupure ni 2e fondu),
+  et au portail d'après elle s'efface en 1,2 s pendant que Pouce bleu entre (`ECOLE.f0` dans musicTick). `?ecole=ciel|dimanche|nuit|
+  polaroid|siffleur` pour essayer ; `?ecole=ciel1` = l'ancien CIEL · NIVEAU 1. Avant : le lobby s'effaçait jusqu'au silence pendant le piqué,
+  puis CIEL 1 arrivait au départ, puis une coupure nette au portail.
+- **LE PLANCHER DU DÉPART** (`PBJ_PL`, `pbjPlancher`) : MESURÉ, au moteur 1 les morceaux de Pouce bleu sortent à −42/−50 dB RMS, 20 dB sous les
+  effets — la course démarrait « sans musique ». Un analyseur écoute le morceau avant son niveau ; sous la cible (−29 dB) il le relève, +11 dB
+  au plus, plein jusqu'au moteur 3, éteint au 12e (le haut de LA GRANDE MONTÉE intact). Mesuré : en course −40 → −26 dB. `?depart=0` = sans.
+- **LE PIQUÉ QUI NE CRIE PLUS** (bloc dans `chuteTick`, `garLacherSon`, `uiClic`, logo) : MESURÉ (sortie enregistrée, bandes, un son retiré à
+  la fois) : au JOUER le V8 du bouton (`ui.jouer`, posé le jour même pour Sacha) + le lâcher font bondir le médium/grave de +20 dB en 200 ms
+  (le BOOM), puis le vent du moteur (windG/whG, filtre jusqu'à 3,3 kHz) + la chute douce gonflée montent l'aigu de +30 dB (le SOUFFLE AIGU),
+  sur un ciel réglé très bas. Désormais : V8 −9 dB, lâcher −8, logo −4, vent sombre (≤ 1,7 kHz), sifflet ÷4, chute douce +4 dB au lieu de +8,
+  chute.vent +2 au lieu de +4 ; repli sans banque −10 dB. Mesuré : souffle aigu −33 → −43 dB, boom −22 → −30 dB au plus fort.
+- Bancs (scratchpad de la session 5f8510a9, `banc/`) : `depart.py <port> neuf|confirme <iph> <sortie>` (SFX/MUS/Q/BLOQUE), `hook2.js`
+  (enregistrement + `__bandes` FFT), `journal.js` (`?sans=id,id` retire un son), `bandes.py`, `resume.py`, `bienv.py`, `lecon.py`, `reouv.py`,
+  `pay.py`, `mkplanche.py`. Planche : `CAR CAHS V3/photos-gameplay/bienvenue-debut-partie-avant-apres.png`.
+
 ## LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS (2026-10-16, session MISSIONS — Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ; toutes les missions sont ouvertes en même temps, sans ordre imposé ; des MISSIONS SECRÈTES invisibles débloquent des voitures montrées en silhouette noire dans la boutique ; le mot DÉFI disparaît de l'interface »)
 Livré par étapes (chacune vérifiée, commitée, poussée). Cette section grandit à chaque étape.
 
