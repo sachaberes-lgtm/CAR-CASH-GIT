@@ -3,6 +3,50 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE TOUJOURS LA NUIT — QUATRE TEINTES, QUATRE TEMPS (2026-10-16, session « Ville jour » — Sacha : « la map ville, elle sera toujours la nuit. Tu reprends la map nuit avec de la pluie qui était là de base — la première version finie de la ville — et tu la déclines simplement en plusieurs couleurs : une violette, c'est celle de base ; une autre avec des néons verts, une autre avec des néons jaunes, une autre bleue — bleu foncé, bleu électrique. Des fois du brouillard, des fois de la pluie, des fois pas de pluie. La ville-jour, ça marche pas : on abandonne toutes les maps ville-jour »)
+Le point de départ : Sacha classait la ville de jour parmi les pires maps (« les meilleures : les montagnes chinoises en journée et la ville
+avec pluie et nuit »). Une refonte du jour a été commencée puis ARRÊTÉE à sa demande : la ville ne se joue plus de jour.
+CE QUI CHANGE AU JOUER (`VILLE_NUIT_V`, `?sans=villenuit` = la ville d'avant, ses six temps, sans teinte) :
+- `SF_CARTES.ville` n'a plus ni MATIN, ni MIDI, ni SOIR (villeMatin, villeMidi, villeSoir restent dans BIOMES, plus tirées). Ses quatre temps :
+  la PLUIE = AU-DESSUS DE LA VILLE telle quelle (poids 1,2), la NUIT sèche = MINUIT EN VILLE sans sa pluie (comme avant), le BROUILLARD (neuf),
+  l'ORAGE (poids 0,8). Le cycle fixe (`?classique=cycle`, Poki) ne bouge pas : il n'avait que la pluie et minuit.
+- LE BROUILLARD : l'ambiance `villeBrume` (la nuit sèche de la ville au néon, sans étoiles ni lune, brume [.30,.19,.40] PLUS CLAIRE que les tours —
+  de nuit c'est ce qui la fait lire —, 30 → 950 m) sur le niveau minuit (pleins phares). Un levier neuf, `LVL.brume` (fondu au portail par
+  lvlGo/lvlStep comme la pluie) : le dôme prend `uPluie = max(pluie, brume)`, donc le PLAFOND BAS de la ville sans une goutte (ni rideau, ni
+  route mouillée). Libellé « BROUILLARD » (I18N : FOG). Vu au banc : à 60/1100 m les tours proches restaient nettes (un plafond, pas un brouillard).
+- LES TEINTES : à chaque passage dans la ville, `sfTire` tire une teinte (`SF_CARTES.ville.teintes` : violet, vert, jaune, bleu ; jamais deux
+  fois la même de suite si possible) ; `sfNiveau(c,m,te)` pose `teinte` et `bioBase` sur le niveau. VIOLET = la ville de base, au pixel près.
+COMMENT UNE TEINTE SE FAIT (`VTEINTES`, juste après `villeRose`) — rien n'est compilé de plus, ce ne sont que des données et des uniforms :
+- `vtRgb` : un REMAPPAGE SÉLECTIF DE LA TEINTE. Seule la famille violet → magenta → rose (250°-342°, fondue aux bords, rien au-delà de 348° :
+  le rouge des balises reste rouge ; les gris restent gris) bascule — le violet de l'air (262°) vers `a`, le magenta des néons (330°) vers `b` ;
+  `s`/`v` = saturation et éclat de la bande, `sA`/`vA` = ceux de l'AIR seul. Le cyan des enseignes, l'ambre et le cyan des fenêtres restent.
+  vert : a 178 b 128 sA .82 vA .86 · jaune : a 30 b 50 v 1,08 sA .42 vA .72 · bleu : a 230 b 218 s 1,05.
+- il s'applique aux AMBIANCES (`vtBio` : `pluie_vert`, `villeBrume_bleu`… copiées à leur premier emploi d'après l'ambiance FINIE — brume,
+  lumières, vignette, reflets, env ; `T.bio` en plus : le skyMul chaud du jaune), aux NÉONS des tours (`NEON` dans buildVoxCity), à l'ACCENT de
+  la route (accC : rails, nappe, flaques, couronnes), aux RÉCLAMES (`villePubAtlas` repeint sa toile quand la teinte change, `CITY.pubT`) ;
+- et aux couleurs FIXES devenues uniforms (valeurs d'origine par défaut, donc toutes les autres maps et la ville violette au bit près) :
+  `skyU.uFd[8]` (le dégradé de `cielFond`), `skyU.uVc[6]` (lilas du plafond, éclair, lueur rose des quartiers, points roses de l'abîme, rose et
+  cyan de la guirlande), `CITY.uPiedC` (la lueur au pied des tours, villePied), `ROAD_U.uBmM` (le magenta que renvoient les flaques, bmCol).
+  `vtGo` (dans lvlGo) / `vtPose` (dans lvlStep) les fondent au portail avec le reste.
+- le ciel SEC (la nuit) a son dégradé DESSINÉ par teinte (`fd`) et la guirlande du jaune un orange au lieu du cyan (`vc`) : vu au banc, le seul
+  remappage gardait l'horizon corail et ambre, un jaune sombre sortait OLIVE (le skyMul bleuté de la ville) puis ROUGE de couchant (la saturation
+  1,38 de l'étalonnage), et le cyan mêlé au jaune verdissait l'horizon.
+MESURÉ / VU (banc photo Chrome sans fenêtre, rendu logiciel, muet ; planches dans le scratchpad de la session) :
+- 16 couples temps × teinte photographiés : violet identique à la ville d'origine ; vert = ciel sarcelle sombre, néons vert acide ; jaune = air
+  brun de sodium, néons or, horizon doré la nuit ; bleu = marine et bleu électrique. Avant retouche : vert « toxique » (a 166, pleine saturation),
+  jaune = ciel orange brûlé qui noyait le néon (air ambre plein), reflets ROSES restés sur la route mouillée (bmCol), balises dérivées.
+- PROGRAMMES : 181 après le départ, 181 après quatre portails forcés vers des villes teintées (brouillard vert, orage jaune, nuit bleue, pluie
+  verte) — zéro compilation en course. Départ et course sans erreur couché, debout et dans le cadre de l'ordi (seul 404 : dark-triad.mp3, connu).
+- ⚠ au banc en rendu logiciel, une photo prise quelques secondes après un portail forcé montre encore l'ambiance d'avant (l'image traîne) :
+  l'état était juste (dbgTeinte). Attendre ~6 s.
+CROCHETS : `?carte=ville&meteo=brouillard&teinte=vert` · `dbgClassique('ville','pluie','jaune')` puis `dbgSaut()` · `dbgTeinte()` (teinte,
+ambiance, uFd/uVc/pied posés, brume, mode du ciel, couleur et portée du brouillard).
+LE RÉPERTOIRE DES MAPS : LA VILLE = PLUIE, NUIT, BROUILLARD, ORAGE (violette) puis NÉONS VERTS, NÉONS JAUNES, BLEU ÉLECTRIQUE sous la pluie — une
+clé « météo-teinte » (`pluie-vert`) que `banc/photos.py` et `voir.html` traduisent en `&meteo=pluie&teinte=vert` ; photos refaites, celles du
+matin, du midi et du soir retirées.
+À TRANCHER PAR SACHA : les dosages (le vert de l'horizon la nuit, l'or du jaune) se jugent sur le téléphone ; les poids du tirage (la pluie un
+peu plus souvent, l'orage un peu moins) ; si la teinte doit se DIRE au portail (aujourd'hui seul le temps s'écrit : « LA VILLE — BROUILLARD »).
+
 ## LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE (2026-10-16, session « Son des pneus trop agressif » — Sacha : « le son du crissement des pneus est désagréable et empêche de profiter de la musique ; change pour un truc moins agressif et plus ASMR »)
 AVANT (CRISSEMENT v2, `skidG`, mesuré au banc) : du bruit blanc dans deux bandes ÉTROITES (Q 8 et 10) qui montaient jusqu'à 1,5 et 2,3 kHz,
 brouté 9 à 16 fois par seconde par un LFO de « stick-slip », attaque en 0,05 s. ~80 % de son énergie dans l'octave de 2 kHz (centre du
