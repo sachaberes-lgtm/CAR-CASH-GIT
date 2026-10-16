@@ -19844,7 +19844,7 @@ PAL.B.memTexBillets=[.5,1,1]; // (2026-10-14, passe perf mobile) l'échelle de l
 function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie de richesse) + le billet ₿ · la rangée du bas : les confettis
   if(PLA.texB)return PLA.texB;
   const kT=PAL.b('memTexBillets',1),cv=document.createElement('canvas');cv.width=2048*kT;cv.height=768*kT;const x=cv.getContext('2d');if(kT!==1)x.scale(kT,kT); // (2026-10-14, passe perf mobile) même dessin, mêmes coordonnées, toile taillée au palier
-  for(let k=0;k<8;k++){let t=null;try{t=k<7?richTexBillet(RICH_BILLETS[k]):plaBilletBtc();}catch(e){}
+  for(let k=0;k<8;k++){let t=null;try{t=k<7?richTexBillet(RICH_BILLETS[k%RICH_BILLETS.length]):plaBilletBtc();}catch(e){} // (2026-10-16) la série a 5 billets : les cases restantes la répètent
     if(t&&t.image)x.drawImage(t.image,(k%4)*512,Math.floor(k/4)*256+10,512,236);if(t&&t.image)toileRend(t.image);if(t&&t.dispose)t.dispose();} // (2026-10-14, passe perf mobile) les 8 toiles de travail 512 × 236 (3,9 Mo) rendues tout de suite : elles ne vont jamais à la puce
   ['#2bff88','#ffd23e','#ffffff','#ff9a2e'].forEach(function(c,i){const g=x.createLinearGradient(i*512,512,i*512+512,768);g.addColorStop(0,c);g.addColorStop(1,'#ffffff');x.fillStyle=c;x.fillRect(i*512+40,552,432,176);x.globalAlpha=.35;x.fillStyle=g;x.fillRect(i*512+40,552,432,60);x.globalAlpha=1;});
   const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=texLibere(t);return t; // (2026-10-14, passe perf mobile) 2048 × 768 : 6,3 Mo rendus après l'envoi (paliers 0-1)
@@ -52445,20 +52445,19 @@ const RICH_T={
   champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
   crane:{kd:.6,fl:0,s:[.24,.29],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
   coeur:{kd:1.25,fl:1.1,s:[.17,.25],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
-  bouteille:{kd:.7,fl:0,s:[.78,.95],w:[3,7],v:[4,7],vie:[2.6,3.4],nl:[[1,0,0],[-1,0,0],[0,0,1],[0,0,-1]],gp:70,gs:1.6,gc:[1,.96,.9]}, // (2026-10-16, Léo) une BOUTEILLE CONNUE (s = sa hauteur) : champagne d'or, soda, whisky carré, vodka givrée, cognac, tequila — silhouettes sans logo (richBouteilles)
   fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
-const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:4,crane:6,coeur:22,fleur:12,bouteille:8,fruit:8};
+const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
 const RICH_NUEE={petit:[.22,4,6],bon:[.35,6,9],gros:[.5,8,12],jackpot:[.75,12,16]}; // (2026-10-16) LA NUÉE DE CŒURS : la chance qu'une gerbe en porte une, combien de petits cœurs (min, max) // (la chaîne : son pool à elle, RICH.ch)
 /* (2026-10-14, Léo : « diminue la quantité d'objets déversés lors des coups, garde la variété ; vise quelque chose d'addictif qui joue avec le
    besoin d'effort et de récompense ») LES GERBES MAIGRISSENT (≈ ÷2,5 : petit 1-2, bon 3-5, gros 6-9, jackpot 14-19 ; les répliques aussi), les
    MÉLANGES ne bougent pas (la variété reste) — et L'EFFORT DÉCIDE DE LA TAILLE : un coup isolé paie surtout PETIT (le jackpot n'y tombe
    presque jamais), la RAFALE (le combo) fait monter gros et jackpot (voir richTire). La rareté rend le gros lot lisible : il se MÉRITE. */
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
-  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:6,emeraude:6,diamant:5,liasse:4,montre:1,fleur:9,bouteille:2}},
-  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:4,chaine:3,fleur:9,bouteille:5}},
-  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3,fleur:9,bouteille:6}},
-  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,fleur:11,bouteille:7}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe) ; + les petites fleurs ; (2026-10-16) + les bouteilles connues ; les cœurs ne sont plus tirés ici : ils viennent en NUÉE (RICH_NUEE)
+  petit:  {n:[1,2],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:6,emeraude:6,diamant:5,liasse:4,montre:1,fleur:9,champagne:2}},
+  bon:    {n:[3,5],  fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:9,rubis:9,emeraude:9,carte:6,liasse:6,champagne:7,chaine:3,fleur:9}},
+  gros:   {n:[6,9],  fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:18,rubis:13,emeraude:13,carte:7,liasse:8,champagne:9,chaine:6,crane:2,trefle:3,fruit:3,fleur:9}},
+  jackpot:{n:[14,19],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:24,rubis:16,emeraude:16,btc:10,carte:6,liasse:8,champagne:11,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3,fleur:11}}}; // (2026-10-15) + les petits cœurs rouges, dans les quatre tailles · (2026-10-16, Léo : « plus de pierres précieuses en général ») diamants, rubis, émeraudes ≈ ×1,6 (et le diamant entre dans la petite gerbe) ; + les petites fleurs ; (2026-10-16) + les vins chers (le champagne a quatre cousins, plus souvent) ; les cœurs ne sont plus tirés ici : ils viennent en NUÉE (RICH_NUEE)
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -52564,15 +52563,6 @@ const RICH_FS_FLEUR=['uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSk
   ' vec3 c=vC.rgb*(mix(uGnd,uSky,N.y*.5+.5)*.32+uSunCol*df*.55+.34);',
   ' float bo=1.-abs(dot(N,V));c+=vec3(1.,.93,.97)*pow(bo,2.4)*.42+uSunCol*pow(max(dot(N,normalize(L+V)),0.),36.)*.22;', // le liseré blanc rosé, le lustre de la soie
   ' float a=vC.a*(.78+.22*bo);gl_FragColor=vec4(c*a,a);}'].join('\n');
-const RICH_FS_VERRE=['uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;',
-  'varying vec3 vN;varying vec3 vP;varying vec4 vC;',RICH_STUDIO,
-  'void main(){vec3 N=normalize(vN),V=normalize(cameraPosition-vP),L=normalize(uSunDir),R=reflect(-V,N);float ndv=max(dot(N,V),0.),fr=.05+.95*pow(1.-ndv,4.);',
-  ' float nl=dot(N,L),df=max(nl,0.)*.6+.4;vec3 hc=mix(uGnd,uSky,N.y*.5+.5),H=normalize(L+V);float sp=pow(max(dot(N,H),0.),120.);',
-  ' vec3 c;float a;',
-  ' if(vC.a>1.5){c=vC.rgb*(studio(R,.3)*.9+hc*.15)+uSunCol*sp*1.6;a=1.;}', // le MÉTAL : le studio teinté
-  ' else if(vC.a>.99){c=vC.rgb*(hc*.35+uSunCol*df*.6+.25)+studio(R,.1)*fr*.5+uSunCol*sp*.8;a=1.;}', // peint et vernis
-  ' else{c=vC.rgb*(hc*.25+uSunCol*df*.3+.1)*.6+studio(R,.15)*fr*1.1+uSunCol*sp*2.;a=min(1.,vC.a+fr*.45);}', // le VERRE : surtout ce qu'il reflète
-  ' gl_FragColor=vec4(c*a,a);}'].join('\n');
  // prémultiplié : ce qui couvre + ce qui luit (le fantôme brille un peu)
 function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false});}
 
@@ -52638,42 +52628,47 @@ function richTexBtc(){return richDuo(function(x,H){x.fillStyle=H?'#5c5c5c':'#c89
   richTranche(x,H,'btc','#e8b048');});}
 function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,0,4,4);});}
 /* (2026-10-10, Léo : « les billets, on peut faire plusieurs couleurs — les liasses restent vertes ») UNE SÉRIE : une couleur par valeur ; le 100 est
-   celui des liasses. (2026-10-16 : la série est redessinée d'après la toile de Léo, voir richTexBillet.) */
-/* (2026-10-16, Léo, une photo de SA toile : des billets verts au gros contour noir, « 1000 », « 100 » en grands chiffres blancs cernés de
-   noir — « 100 sur les verts, 50 sur les orange… inspire-toi de moi, c'est mon tableau ; ne les fais pas couler, c'est juste ma peinture »)
-   LES BILLETS DU TABLEAU : le papier en dégradé (sombre au bord, vif au milieu, comme passé à la bombe), un GROS CONTOUR noir, et la valeur
-   en GRANDS CHIFFRES de tag — des traits ronds blancs cernés d'encre, tous les contours d'abord puis tous les blancs (les chiffres qui se
-   touchent fusionnent, comme à la bombe), un peu penchés ; quelques reflets blancs et un grain de pulvérisation. Les chiffres sont DESSINÉS
-   au trait (richChiffre), pas tirés d'une police (la police unique du jeu reste celle de l'interface). Aucune coulure. */
-function richChiffre(x,c,cx,cy,h){ // un chiffre de tag, centré en (cx,cy), haut de h : seulement le tracé (le trait se pose dehors)
-  const u=h,L=function(a,b){x.lineTo(cx+a*u,cy+b*u);},M=function(a,b){x.moveTo(cx+a*u,cy+b*u);};x.beginPath();
-  if(c==='0'){x.ellipse(cx,cy,.27*u,.46*u,0,0,6.2832);}
-  else if(c==='1'){M(-.17,-.3);L(.04,-.47);L(.04,.47);}
-  else if(c==='2'){M(-.25,-.24);x.bezierCurveTo(cx-.2*u,cy-.56*u,cx+.34*u,cy-.56*u,cx+.27*u,cy-.18*u);x.bezierCurveTo(cx+.22*u,cy+.06*u,cx-.12*u,cy+.24*u,cx-.27*u,cy+.46*u);L(.3,.46);}
-  else if(c==='5'){M(.26,-.46);L(-.18,-.46);L(-.23,-.04);x.bezierCurveTo(cx+.1*u,cy-.2*u,cx+.36*u,cy-.02*u,cx+.29*u,cy+.24*u);x.bezierCurveTo(cx+.22*u,cy+.52*u,cx-.14*u,cy+.54*u,cx-.29*u,cy+.33*u);}
-}
-const RICH_BILLETS=[ // le papier (bord sombre → milieu vif), le reflet qui glisse (sh) — une couleur par valeur, comme les vrais billets
-  {v:'5',  c:['#3d0730','#c0217f'],sh:[1,.55,.86]},  // fuchsia
-  {v:'10', c:['#3d0710','#c7232f'],sh:[1,.58,.5]},   // rubis
-  {v:'20', c:['#081a4a','#2a62d6'],sh:[.55,.76,1]},  // bleu roi
-  {v:'50', c:['#5a1f02','#f07a12'],sh:[1,.76,.45]},  // ORANGE (Léo)
-  {v:'100',c:['#063f46','#1fb06a'],sh:[.49,1,.62]},  // VERT (Léo : sa toile — sarcelle au bord, vert au milieu) — celui des liasses
-  {v:'200',c:['#22093f','#7a3bd6'],sh:[.76,.6,1]},   // violet
-  {v:'500',c:['#4a3502','#e2ad22'],sh:[1,.88,.45]}]; // or
-const RICH_B100=4;
+   celui des liasses. (2026-10-16 : la série est redessinée, voir richTexBillet.) */
+/* (2026-10-16, Léo, après les billets « de sa toile » : « trop moches, ils étaient mieux ; le style enfantin dégoûte ; fais juste le chiffre
+   écrit de manière CARRÉE — de ma toile, garde seulement l'EMPLACEMENT du chiffre — dans le style de la première version, et plus joli » ;
+   la série : 10 rouge (comme l'ancien), 20 bleu « plus français », 50 orange, 100 vert en dégradé (un peu plus vert), 500 violet ; le rose,
+   le jaune et le 200 s'en vont) LES BILLETS v3 : le papier de la 1re version (dégradé, guilloche, double cadre, rosace, bande), un voile clair
+   au milieu (le filigrane), et la valeur en GRAND au milieu, en lettres carrées (la police pixel du jeu), frappée : ombre d'encre, contour,
+   dégradé clair, un fil de lumière. Le 20 a sa tour Eiffel dans la rosace et sa bande BLEU-BLANC-ROUGE ; le 500 est violet et OR. */
+const RICH_BILLETS=[
+  {v:'10', m:'DIX DOLLARS',       c:['#520b13','#901d28','#6b121c'],l:[255,150,140],sh:[1,.58,.5]},   // rouge rubis (l'ancien 10)
+  {v:'20', m:'VINGT FRANCS',      c:['#0a1f52','#1d4ba8','#112e72'],l:[150,200,255],sh:[.55,.76,1],fr:1}, // bleu, à la française
+  {v:'50', m:'CINQUANTE DOLLARS', c:['#5a2505','#a8561a','#7b380d'],l:[255,195,130],sh:[1,.76,.45]},  // orange
+  {v:'100',m:'CENT DOLLARS',      c:['#063f46','#138a5e','#0a5a52'],l:[140,255,200],sh:[.49,1,.62]},  // VERT en dégradé (sarcelle → vert) — celui des liasses
+  {v:'500',m:'CINQ CENTS DOLLARS',c:['#22093f','#5a2aa8','#341272'],l:[205,165,255],sh:[.85,.7,1],or:1}]; // violet et or
+const RICH_B100=3;
 function richTexBillet(B){return richCv(512,236,function(x,w,h){
-  let sd=B.v.length*977+B.v.charCodeAt(0);const rn=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
-  x.fillStyle=B.c[0];x.fillRect(0,0,w,h);x.save();x.translate(w*.5,h*.5);x.scale(w/h*.62,1); // le papier passé à la bombe : une ellipse vive au milieu, sombre vers les bords
-  const G=x.createRadialGradient(0,0,4,0,0,h*.78);G.addColorStop(0,B.c[1]);G.addColorStop(.4,B.c[1]);G.addColorStop(1,B.c[0]);x.fillStyle=G;x.fillRect(-w,-h,2*w,2*h);x.restore();
-  for(let i=0;i<900;i++){const a=rn()*w,b=rn()*h,r=rn()*1.6+.3;x.fillStyle='rgba('+(rn()<.5?'0,0,0':'255,255,255')+','+(.05+rn()*.08)+')';x.beginPath();x.arc(a,b,r,0,6.2832);x.fill();} // le grain de pulvérisation
-  x.lineJoin='round';x.strokeStyle='#0b0a0d';x.lineWidth=24;richRond(x,13,13,w-26,h-26,30);x.stroke();                                       // le GROS CONTOUR noir
-  const n=B.v.length,H=Math.min(150,(w-110)/(n*.6)),pas=H*.6,x0=w*.5-(n-1)*pas*.5,yc=h*.52;
-  x.save();x.translate(w*.5,yc);x.rotate(-.07);x.translate(-w*.5,-yc);x.lineCap='round';x.lineJoin='round';
-  for(let i=0;i<n;i++){richChiffre(x,B.v[i],x0+i*pas,yc+(i%2?4:-4),H);x.strokeStyle='#0b0a0d';x.lineWidth=H*.32;x.stroke();}            // tous les contours d'encre…
-  for(let i=0;i<n;i++){richChiffre(x,B.v[i],x0+i*pas,yc+(i%2?4:-4),H);x.strokeStyle='#f4efe4';x.lineWidth=H*.165;x.stroke();}            // …puis tous les blancs
-  x.globalAlpha=.55;for(let i=0;i<n;i++){x.save();x.translate(-H*.025,-H*.03);richChiffre(x,B.v[i],x0+i*pas,yc+(i%2?4:-4),H);x.strokeStyle='#ffffff';x.lineWidth=H*.035;x.stroke();x.restore();}x.globalAlpha=1; // la lumière sur le trait
-  x.restore();
-  x.fillStyle='rgba(255,255,255,.85)';for(const [a,b,r] of [[40,44,7],[w-46,h-42,6],[w*.8,34,4]]){x.beginPath();x.arc(a,b,r,0,6.2832);x.fill();} // les petits reflets blancs de la toile
+  const L=function(k,a){const c=B.l.map(function(v){return Math.round(v+(255-v)*k);});return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}, // la couleur des traits, éclaircie de k
+    O=function(a){return 'rgba(255,214,128,'+a+')';},T=B.or?function(k,a){return O(a);}:L,F='"Press Start 2P",monospace';
+  const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,B.c[0]);G.addColorStop(.55,B.c[1]);G.addColorStop(1,B.c[2]);x.fillStyle=G;x.fillRect(0,0,w,h);
+  const W=x.createRadialGradient(w*.56,h*.5,6,w*.56,h*.5,h*.85);W.addColorStop(0,'rgba(255,255,255,.13)');W.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=W;x.fillRect(0,0,w,h); // le filigrane : un voile clair au milieu
+  x.lineWidth=1;for(let k=0;k<26;k++){x.strokeStyle=L(0,.09);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));x.stroke(); // la guilloche, deux familles croisées
+    x.strokeStyle=L(.1,.05);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2-Math.sin(i*.024+k*.61)*h*.4*Math.sin(k*.17+2));x.stroke();}
+  x.strokeStyle=T(.25,.42);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);           // le double cadre
+  x.fillStyle=T(.3,.5);for(const [a,b] of [[14,14],[w-22,14],[14,h-22],[w-22,h-22]])x.fillRect(a,b,8,8);                      // ses coins
+  const rx=96,ry=118;for(let i=0;i<14;i++){x.strokeStyle=T(0,.07+i*.012);x.beginPath();x.ellipse(rx,ry,58-i*4,58-i*4,0,0,6.2832);x.stroke();} // la rosace
+  x.strokeStyle=T(.2,.16);for(let i=0;i<12;i++){x.save();x.translate(rx,ry);x.rotate(i*Math.PI/6);x.beginPath();x.ellipse(0,-30,9,26,0,0,6.2832);x.stroke();x.restore();}
+  if(B.fr){x.fillStyle=L(.6,.85);x.beginPath();x.moveTo(rx-22,ry+40);x.lineTo(rx-6,ry-6);x.lineTo(rx-2,ry-38);x.lineTo(rx,ry-50);x.lineTo(rx+2,ry-38);x.lineTo(rx+6,ry-6);x.lineTo(rx+22,ry+40); // la TOUR EIFFEL
+    x.lineTo(rx+12,ry+40);x.quadraticCurveTo(rx,ry+18,rx-12,ry+40);x.closePath();x.fill();x.fillRect(rx-13,ry+14,26,4);x.fillRect(rx-8,ry-10,16,3);x.fillRect(rx-1,ry-58,2,9);}
+  else{x.fillStyle=T(.55,.85);x.font='44px '+F;x.textAlign='center';x.textBaseline='middle';x.fillText('$',rx+2,ry+2);}
+  const n=B.v.length,fz=n>2?66:80,cx=w*.555,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
+  x.fillStyle='rgba(0,0,0,.35)';x.fillText(B.v,cx+5,cy+6);                                                                  // son ombre d'encre
+  x.lineJoin='miter';x.lineWidth=5;x.strokeStyle='rgba(0,0,0,.45)';x.strokeText(B.v,cx,cy);                                  // son contour
+  const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#fff3c4');Z.addColorStop(.5,'#ffd56a');Z.addColorStop(1,'#c58b22');}else{Z.addColorStop(0,L(.92,1));Z.addColorStop(.55,L(.62,1));Z.addColorStop(1,L(.35,1));}
+  x.fillStyle=Z;x.fillText(B.v,cx,cy);x.save();x.beginPath();x.rect(0,cy-fz*.5,w,fz*.16);x.clip();x.fillStyle='rgba(255,255,255,.45)';x.fillText(B.v,cx,cy);x.restore(); // dégradé clair, et le fil de lumière en haut
+  x.font='16px '+F;x.fillStyle=T(.65,.9);x.textAlign='left';x.fillText(B.v,30,40);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins
+  x.textAlign='center';x.font='11px '+F;x.fillStyle=T(.55,.8);x.fillText('CASH CAR',cx,h*.2);
+  x.font='7px '+F;x.fillStyle=L(.3,.55);x.fillText((B.fr?'REPUBLIQUE DU CIEL':'BANQUE CENTRALE DU CIEL')+' · '+B.m,cx,h*.84);
+  x.textAlign='left';x.fillText('CC '+(4100+B.v.length*977+B.v.charCodeAt(0)*13),30,h-34);                                   // le numéro de série
+  const bx=w*.8,bw=w*.075;
+  if(B.fr){[['rgba(30,70,200,.75)',0],['rgba(245,245,250,.75)',1],['rgba(220,30,50,.75)',2]].forEach(function(q){x.fillStyle=q[0];x.fillRect(bx+q[1]*bw/3,0,bw/3+.5,h);});} // la bande BLEU-BLANC-ROUGE
+  else{const Bd=x.createLinearGradient(0,0,0,h);Bd.addColorStop(0,B.or?'rgba(255,220,140,.5)':'rgba(255,160,220,.38)');Bd.addColorStop(.5,B.or?'rgba(255,245,200,.62)':'rgba(150,250,255,.42)');Bd.addColorStop(1,B.or?'rgba(210,150,60,.5)':'rgba(255,230,140,.38)');x.fillStyle=Bd;x.fillRect(bx,0,bw,h); // la bande irisée
+    x.strokeStyle='rgba(255,255,255,.18)';for(let i=0;i<6;i++){x.beginPath();x.moveTo(bx+4+i*6,0);x.lineTo(bx+4+i*6,h);x.stroke();}}
 });}
 function richTexTrefle(){return richCv(256,256,function(x){x.clearRect(0,0,256,256);
   x.strokeStyle='#2f7a2a';x.lineWidth=9;x.lineCap='round';x.beginPath();x.moveTo(128,132);x.quadraticCurveTo(150,190,132,248);x.stroke(); // la tige
@@ -52753,6 +52748,42 @@ function richTexChampagne(){return richCv(128,512,function(x){const Y=function(v
   const G=x.createLinearGradient(0,0,128,0);G.addColorStop(0,'#b8862c');G.addColorStop(.45,'#ffe6a0');G.addColorStop(1,'#a87a22');x.fillStyle=G;x.fillRect(0,0,128,Y(.71)); // la COIFFE dorée
   x.fillStyle='rgba(90,60,10,.35)';for(let i=0;i<14;i++)x.fillRect(Math.random()*128,Math.random()*Y(.8),2,30+Math.random()*60);
   x.fillStyle='#efe3c2';x.fillRect(0,Y(.71),128,8);});}
+/* (2026-10-16, Léo : « les bouteilles, on dirait des sodas, des potions Fortnite — reviens sur la bouteille de vin cher, juste deux, trois,
+   quatre en plus, mais dans le vin ») LES COUSINS DU CHAMPAGNE : le bordeaux grand cru, le bourgogne, le champagne rosé, le vin liquoreux
+   doré — faits comme lui : un profil tourné (richVinGeo), une toile peinte de bas en haut (le verre et son reflet, l'étiquette sur une face,
+   la capsule), le programme du métal (le studio du bijoutier s'y reflète comme sur le verre). Sans nom ni marque. */
+function richVinStrie(x,Y,c,v0,v1){x.fillStyle=c;x.fillRect(22,Y(v1),7,Y(v0)-Y(v1));x.fillRect(31,Y(v1),2,Y(v0)-Y(v1));} // le reflet du verre
+function richVinCoiffe(x,Y,v0,c0,c1,c2){const G=x.createLinearGradient(0,0,128,0);G.addColorStop(0,c0);G.addColorStop(.42,c1);G.addColorStop(1,c2);x.fillStyle=G;x.fillRect(0,0,128,Y(v0));} // la capsule, éclairée de biais
+function richVinEtiq(x,Y,v0,v1,fond,fil,enc,l1,l2,deco){ // l'étiquette sur une face (0 → 80 de la toile) : le papier, deux filets, l'emblème, deux lignes de texte
+  const a=Y(v1),b=Y(v0);x.fillStyle=fond;x.fillRect(0,a,80,b-a);x.fillStyle=fil;x.fillRect(0,a+5,80,2);x.fillRect(0,b-7,80,2);x.fillRect(4,a+5,1.5,b-a-10);x.fillRect(74,a+5,1.5,b-a-10);
+  if(deco)deco(x,40,a+(b-a)*.36);x.textAlign='center';x.textBaseline='middle';x.fillStyle=enc;x.font='7px "Press Start 2P",monospace';x.fillText(l1,40,a+(b-a)*.7);
+  x.font='5px "Press Start 2P",monospace';x.fillText(l2,40,a+(b-a)*.84);}
+function richVinChateau(x,cx,cy){x.strokeStyle='#5b3a1e';x.lineWidth=1.4;x.beginPath();x.moveTo(cx-22,cy+8);x.lineTo(cx+22,cy+8);x.moveTo(cx-16,cy+8);x.lineTo(cx-16,cy-2);x.lineTo(cx,cy-10);x.lineTo(cx+16,cy-2);x.lineTo(cx+16,cy+8);
+  x.moveTo(cx-22,cy+8);x.lineTo(cx-22,cy-6);x.lineTo(cx-19,cy-11);x.lineTo(cx-16,cy-6);x.moveTo(cx+22,cy+8);x.lineTo(cx+22,cy-6);x.lineTo(cx+19,cy-11);x.lineTo(cx+16,cy-6);x.stroke();
+  x.fillStyle='#5b3a1e';x.fillRect(cx-3,cy+1,6,7);} // le château, gravé
+function richVinBlason(x,cx,cy){x.fillStyle='#c9a24a';x.beginPath();x.moveTo(cx-11,cy-10);x.lineTo(cx+11,cy-10);x.lineTo(cx+11,cy+2);x.quadraticCurveTo(cx,cy+13,cx-11,cy+2);x.closePath();x.fill();
+  x.fillStyle='#7a1420';x.fillRect(cx-2,cy-10,4,19);x.fillRect(cx-11,cy-4,22,3);} // le blason
+const RICH_VINS=[
+  {nom:'bordeaux',p:[[0,0],[.3,0],[.33,.03],[.34,.06],[.34,.72],[.33,.77],[.27,.83],[.17,.88],[.13,.93],[.12,1],[.12,1.2],[.13,1.22],[.13,1.28],[.1,1.3],[0,1.3]],
+   peint:function(x,Y){x.fillStyle='#120a0b';x.fillRect(0,0,128,512);richVinStrie(x,Y,'rgba(210,140,150,.16)',.08,.7);   // LE BORDEAUX GRAND CRU : le verre presque noir
+     richVinEtiq(x,Y,.2,.48,'#efe6cf','#b8923e','#5a1a1e','GRAND CRU','CLASSE 1982',richVinChateau);
+     richVinCoiffe(x,Y,.79,'#3c0810','#8a1a26','#2a050b');x.fillStyle='#c9a24a';x.fillRect(0,Y(.8),128,4);}},                   // la capsule bordeaux, son anneau d'or
+  {nom:'bourgogne',p:[[0,0],[.33,0],[.36,.03],[.37,.07],[.37,.42],[.35,.55],[.29,.7],[.21,.84],[.15,.96],[.13,1.04],[.13,1.2],[.14,1.22],[.14,1.28],[.1,1.3],[0,1.3]],
+   peint:function(x,Y){x.fillStyle='#16200e';x.fillRect(0,0,128,512);richVinStrie(x,Y,'rgba(170,210,140,.17)',.08,.6);   // LE BOURGOGNE : épaules tombantes, verre vert sombre
+     richVinEtiq(x,Y,.16,.4,'#f2ead6','#9c7a34','#3d2a12','GRAND VIN','DE BOURGOGNE',richVinBlason);
+     x.fillStyle='#f2ead6';x.fillRect(0,Y(.62),60,Y(.56)-Y(.62));x.fillStyle='#9c7a34';x.fillRect(0,Y(.62),60,2);            // la collerette
+     richVinCoiffe(x,Y,.8,'#8a6a22','#f4dc8e','#6e5216');}},                                                                     // la capsule dorée
+  {nom:'rose',p:[[0,0],[.33,0],[.36,.03],[.37,.08],[.37,.6],[.34,.7],[.24,.82],[.15,.92],[.13,1],[.13,1.16],[.145,1.18],[.145,1.27],[.1,1.3],[0,1.3]],shin:110,
+   peint:function(x,Y){x.fillStyle='#6e2432';x.fillRect(0,0,128,512);x.fillStyle='rgba(255,170,180,.12)';x.fillRect(0,Y(.6),128,Y(.04)-Y(.6));richVinStrie(x,Y,'rgba(255,215,222,.34)',.06,.7);    // LE CHAMPAGNE ROSÉ : le verre clair, le rosé qui se voit
+     richVinEtiq(x,Y,.22,.46,'#f7f1ea','#d49a82','#8a4a40','BRUT ROSE','MILLESIME',function(x9,cx,cy){x9.fillStyle='#d49a82';x9.beginPath();x9.arc(cx,cy,9,0,6.2832);x9.fill();x9.fillStyle='#f7f1ea';x9.beginPath();x9.arc(cx,cy,5,0,6.2832);x9.fill();});
+     richVinCoiffe(x,Y,.71,'#a8604e','#f6cdbd','#8a4a3c');x.fillStyle='#f7f1ea';x.fillRect(0,Y(.71),128,6);}},                   // la coiffe or rose
+  {nom:'liquoreux',p:[[0,0],[.27,0],[.3,.03],[.3,.74],[.29,.79],[.23,.85],[.15,.9],[.115,.95],[.105,1.02],[.105,1.22],[.115,1.24],[.115,1.3],[0,1.3]],shin:120,
+   peint:function(x,Y){x.fillStyle='#6a4206';x.fillRect(0,0,128,512);x.fillStyle='rgba(255,200,90,.12)';x.fillRect(0,Y(.64),128,Y(.04)-Y(.64));richVinStrie(x,Y,'rgba(255,236,180,.34)',.06,.72);  // LE VIN LIQUOREUX : fin, le vin couleur d'or au travers du verre clair
+     richVinEtiq(x,Y,.24,.5,'#f8f5ec','#c9a24a','#6e5216','PREMIER CRU','VIN DOUX',function(x9,cx,cy){x9.strokeStyle='#c9a24a';x9.lineWidth=1.5;x9.beginPath();x9.arc(cx,cy,10,0,6.2832);x9.stroke();x9.fillStyle='#c9a24a';x9.font='8px "Press Start 2P",monospace';x9.textAlign='center';x9.textBaseline='middle';x9.fillText('1',cx,cy+1);});
+     richVinCoiffe(x,Y,.82,'#8a6a22','#f8e6a6','#6e5216');}}];
+function richTexVin(V){return richCv(128,512,function(x){V.peint(x,function(v){return (1-v)*512;});});}
+function richVinGeo(P){const g=new THREE.LatheGeometry(P.map(function(a){return new THREE.Vector2(a[0],a[1]);}),16),p=g.attributes.position,uv=g.attributes.uv;
+  for(let i=0;i<p.count;i++)uv.setY(i,p.getY(i)/1.3);g.translate(0,-.62,0);g.computeVertexNormals();return g;}
 function richChampagneGeo(){const P=[[0,0],[.33,0],[.36,.03],[.37,.08],[.37,.6],[.34,.7],[.24,.82],[.15,.92],[.13,1],[.13,1.16],[.145,1.18],[.145,1.27],[.1,1.3],[0,1.3]].map(function(a){return new THREE.Vector2(a[0],a[1]);});
   const g=new THREE.LatheGeometry(P,14),p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setY(i,p.getY(i)/1.3);g.translate(0,-.62,0);g.computeVertexNormals();return g;}
 function richEmeraude(){ // la taille ÉMERAUDE : table rectangulaire, gradins, rondiste octogonal allongé, culasse en carène
@@ -52847,45 +52878,6 @@ function richFlFin(P){ // fusion, centrage, 1 de grand
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aC',new THREE.BufferAttribute(col,4));g.setIndex(new THREE.BufferAttribute(idx,1));
   g.computeBoundingBox();const B=g.boundingBox,c=B.getCenter(new THREE.Vector3()),sz=B.getSize(new THREE.Vector3()),k=1/Math.max(sz.x,sz.y,sz.z);
   g.translate(-c.x,-c.y,-c.z);g.scale(k,k,k);g.computeVertexNormals();g.computeBoundingSphere();return g;}
-/* (2026-10-16, Léo : « ajoute différentes bouteilles connues » — choisi : des SILHOUETTES SANS LOGO, on les reconnaît à la forme et aux
-   couleurs, ni nom ni marque : pas de risque avec Apple ni avec les marques) LES BOUTEILLES : des profils tournés (LatheGeometry), le
-   LIQUIDE d'abord (vu au travers), le VERRE ensuite (translucide), puis bouchons, capsules et bandes d'étiquette. Le code de matière est
-   dans l'alpha de aC : < 1 = du verre (cette opacité-là), 1 = peint et vernis, 2 = du MÉTAL (or, argent : le studio en reflet). */
-function richBtTour(P,prof,c,al,seg,o){ // un profil [[rayon, hauteur]…] tourné
-  let g=new THREE.LatheGeometry(prof.map(function(a){return new THREE.Vector2(a[0],a[1]);}),seg||18,o&&o.ph||0);if(o&&o.plat)g=g.toNonIndexed();
-  if(o&&o.sz)g.scale(1,1,o.sz);richFlPrim(P,g,new THREE.Matrix4(),c,al);}
-function richBtJus(prof,haut,k){ // le liquide : le profil rentré de k, coupé à la hauteur haut
-  const L=[];for(const a of prof){if(a[1]>=haut)break;L.push([a[0]*k,Math.max(.02,a[1])]);}const r=L.length?L[L.length-1][0]:.1;L.push([r,haut],[0,haut]);L[0]=[0,.02];return L;}
-function richBtBande(P,r,y0,y1,c,al,seg,o){richBtTour(P,[[r,y0],[r,y1]],c,al,seg,o);}
-function richBouteilles(){const V=[],C=function(r0,r1,h){return new THREE.CylinderGeometry(r1,r0,h,16,1);};
-  // 1. LE CHAMPAGNE D'OR : la bouteille de prestige toute en métal doré, le col noir et or
-  {const P=[],pr=[[0,0],[.33,0],[.36,.03],[.37,.08],[.37,.6],[.34,.7],[.24,.82],[.15,.92],[.13,1],[.13,1.16],[.145,1.18],[.145,1.27],[.1,1.3],[0,1.3]];
-   richBtTour(P,pr,[1,.78,.32],2,22);richBtBande(P,.378,.3,.46,[.08,.07,.07],1,22);richBtBande(P,.382,.33,.43,[1,.82,.38],2,22);richBtBande(P,.15,1.08,1.31,[.1,.09,.09],1,16);
-   V.push(richFlFin(P));}
-  // 2. LE SODA DE LÉGENDE : le verre à la taille de guêpe, le liquide brun, la bande rouge, la capsule rouge
-  {const P=[],pr=[[0,0],[.2,0],[.235,.04],[.25,.14],[.215,.3],[.25,.44],[.265,.55],[.24,.66],[.17,.8],[.115,.94],[.1,1.05],[.118,1.07],[.118,1.12],[0,1.12]];
-   richBtTour(P,richBtJus(pr,.88,.88),[.2,.08,.04],1,18);richBtTour(P,pr,[.62,.86,.72],.42,24);richBtBande(P,.255,.4,.52,[.86,.06,.1],1,24);richFlPrim(P,C(.12,.12,.06),richFlM(0,1.12,0,0,1,0),[.86,.08,.1],2);
-   V.push(richFlFin(P));}
-  // 3. LE WHISKY CARRÉ : la section carrée, le liquide ambré, l'étiquette noire bordée de blanc, le bouchon noir
-  {const P=[],pr=[[0,0],[.33,0],[.35,.03],[.35,.64],[.3,.73],[.13,.81],[.11,.93],[.12,.95],[.12,1.06],[0,1.06]],q={plat:1,ph:Math.PI/4};
-   richBtTour(P,richBtJus(pr,.66,.88),[.62,.28,.05],1,4,q);richBtTour(P,pr,[.9,.86,.78],.38,4,q);
-   richBtBande(P,.362,.18,.5,[.06,.06,.06],1,4,q);richBtBande(P,.366,.48,.5,[.95,.95,.92],1,4,q);richBtBande(P,.366,.18,.2,[.95,.95,.92],1,4,q);richBtBande(P,.13,.94,1.07,[.05,.05,.05],1,12);
-   V.push(richFlFin(P));}
-  // 4. LA VODKA GIVRÉE : haute et fine, le verre dépoli blanc-bleu, une bande bleu nuit, le bouchon d'argent
-  {const P=[],pr=[[0,0],[.22,0],[.24,.03],[.24,.78],[.2,.9],[.09,1.02],[.08,1.2],[.09,1.22],[.09,1.32],[0,1.32]];
-   richBtTour(P,pr,[.86,.93,1],.7,22);richBtBande(P,.245,.42,.5,[.12,.2,.42],1,22);richFlPrim(P,C(.095,.095,.13),richFlM(0,1.27,0,0,1,0),[.88,.9,.95],2);
-   V.push(richFlFin(P));}
-  // 5. LE COGNAC : la carafe ronde aplatie, le liquide ambre profond, le col cerclé d'or, le gros bouchon doré
-  {const P=[],pr=[[0,0],[.25,0],[.33,.08],[.36,.25],[.33,.45],[.22,.58],[.1,.66],[.08,.8],[0,.8]],q={sz:.6};
-   richBtTour(P,richBtJus(pr,.5,.88),[.42,.14,.02],1,20,q);richBtTour(P,pr,[.95,.85,.7],.4,20,q);richBtBande(P,.085,.66,.72,[1,.8,.35],2,14);
-   richFlPrim(P,C(.12,.1,.12),richFlM(0,.85,0,0,1,0),[1,.8,.35],2);
-   V.push(richFlFin(P));}
-  // 6. LA TEQUILA : trapue, le verre clair, le liquide doré, le gros bouchon rond en bois, le ruban vert au col
-  {const P=[],pr=[[0,0],[.3,0],[.32,.03],[.32,.35],[.3,.42],[.16,.5],[.12,.58],[.12,.62],[0,.62]];
-   richBtTour(P,richBtJus(pr,.4,.9),[.92,.72,.32],1,20);richBtTour(P,pr,[.95,.98,1],.32,22);richBtBande(P,.125,.52,.57,[.1,.55,.25],1,14);
-   richFlPrim(P,new THREE.SphereGeometry(.14,12,8),richFlM(0,.7,0,0,1,0),[.82,.64,.4],1);
-   V.push(richFlFin(P));}
-  return V;}
 const RICH_FF={ // les formes de pétale
   rond:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.15)),.45);},
   eventail:function(u){return Math.pow(Math.sin(Math.PI*Math.pow(u,1.7)),.55);},
@@ -53000,18 +52992,16 @@ function richInit(){
   M.montre=metal(richTexMontre(),150);
   M.cranes=[['#ffcbe0',[1,.85,.92]],['#c4f5e1',[.85,1,.93]],['#ddd2ff',[.9,.87,1]],['#c9e6ff',[.86,.93,1]],['#ffdac6',[1,.9,.84]],['#fff4c4',[1,1,.86]]].map(function(P){const m9=metal(richTexUni(P[0]),130);m9.userData.gc=P[1];return m9;}); // les CRÂNES PASTEL : rose, menthe, lavande, ciel, pêche, citron — une laque nacrée (le métal du studio, teinté)
   M.jetons=[['#c61b2c','5'],['#1d8f3a','25'],['#18181d','100'],['#6a2a9a','500'],['#e09a12','1000']].map(function(J){return richMat(RICH_FS_SOUPLE,{uMap:{value:richTexJeton(J[0],J[1])},uSheen:{value:new THREE.Color(1,1,1)},uSheenK:{value:.28},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide);}); // la terre cuite des jetons : mate, un peu de lustre
-  M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.noir=metal(richTexUni('#16121c'),60);
+  M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.vins=[M.champagne].concat(RICH_VINS.map(function(V9){return metal(richTexVin(V9),V9.shin||100);})); // (2026-10-16) les vins : le programme du métal, comme le champagne (0 compilé de plus)M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
   M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.86,.015,.08)},uFuch:{value:new THREE.Color(1,.16,.6)},uBlanc:{value:1},uA:{value:.2},uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
     transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le cœur fantôme (voir RICH_FS_COEUR) : transparent, prémultiplié
   M.fleur=new THREE.ShaderMaterial({uniforms:RICH_U,vertexShader:RICH_VS_FLEUR,fragmentShader:RICH_FS_FLEUR,transparent:true,depthWrite:true,side:THREE.DoubleSide,
     blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) les pétales (voir RICH_FS_FLEUR)
-  M.verre=new THREE.ShaderMaterial({uniforms:RICH_U,vertexShader:RICH_VS_FLEUR,fragmentShader:RICH_FS_VERRE,transparent:true,depthWrite:true,
-    blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le verre, le métal, l'étiquette des bouteilles (voir RICH_FS_VERRE)
   M.aura=new THREE.SpriteMaterial({map:richCv(64,64,function(x){const G=x.createRadialGradient(32,32,0,32,32,32);G.addColorStop(0,'rgba(255,215,228,.46)');G.addColorStop(.42,'rgba(255,170,200,.2)');G.addColorStop(1,'rgba(255,140,180,0)');x.fillStyle=G;x.fillRect(0,0,64,64);}),
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}); // l'aura des cœurs : un halo blanc rosé additif (2026-10-16 : rouge ET blanc) (le programme des éclats : 0 compilé de plus)
-  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurCubes();Gm.fleurs=richFleurs();Gm.bouteilles=richBouteilles();
+  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.vins=[Gm.champagne].concat(RICH_VINS.map(function(V9){return richVinGeo(V9.p);}));Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();Gm.coeur=richCoeurCubes();Gm.fleurs=richFleurs();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
   for(const k9 in M)for(const m9 of [].concat(M[k9]))if(m9&&m9.uniforms)for(const u9 in m9.uniforms){const v9=m9.uniforms[u9].value;if(v9&&v9.isCanvasTexture)texLibere(v9);} // (2026-10-14, passe perf mobile) les ~30 toiles de la pluie de richesse (pièces, billets, jetons, carte, montre, liasse : ~14 Mo), peintes UNE fois ici et plus jamais relues (la liasse a déjà recopié son billet) : rendues après l'envoi (paliers 0-1)
@@ -53020,7 +53010,6 @@ function richInit(){
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
-      else if(t==='bouteille')m=new THREE.Mesh(Gm.bouteilles[i%Gm.bouteilles.length],M.verre);
       else if(t==='coeur'){m=new THREE.Mesh(Gm.coeur,new THREE.ShaderMaterial({uniforms:Object.assign({},M.coeur.uniforms,{uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR, // (2026-10-16) chaque cœur sa matière (son pop à lui) : les mêmes réglages, le même programme
         transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}));}
       else if(t==='fleur'){m=new THREE.Mesh(Gm.fleurs[i%Gm.fleurs.length],M.fleur);const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(1.6);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-16) la fleur et son aura
@@ -53071,7 +53060,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
   if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[k9]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
-  if(t==='bouteille')m.geometry=RICH.G.bouteilles[Math.floor(Math.random()*RICH.G.bouteilles.length)]; // (2026-10-16) une des six bouteilles
+  if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet')m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)]; // (2026-10-10) une valeur, une couleur
   o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
