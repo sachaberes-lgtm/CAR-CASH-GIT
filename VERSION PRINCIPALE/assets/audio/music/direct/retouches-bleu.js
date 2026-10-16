@@ -102,6 +102,21 @@ const RHODES_LAMES = () => [1.6, [48, 60, 72, 84], (c, f) => {
   g2.gain.setValueAtTime(f * .9, 0); g2.gain.exponentialRampToValueAtTime(f * .15, 1.2); m2.connect(g2); g2.connect(car.frequency);
   const tr = c.createStereoPanner(), lfo = osc(c, 'sine', 3.2), lg = c.createGain(); lg.gain.value = .35; lfo.connect(lg); lg.connect(tr.pan); tr.connect(g);
   car.connect(filtre(c, 'lowpass', Math.min(5000, f * 10), .5, tr)); [car, m1, m2, lfo].forEach(o => o.start(0)); }, 2];
+// LES ACCORDS DEEP HOUSE (ASPHALTE D'ÉMERAUDE, 16/10 — Léo : « les accords de piano » du début, c'est ce qui ne va pas) : deux scies désaccordées
+// (gauche / droite) et un carré, dans un coupe-haut qui se referme après l'attaque, une tenue, puis l'extinction — l'accord chaud de la house de nuit.
+const ACCORDS_DEEP = () => [1.6, 44100, (c, f, dest) => {
+  const g = c.createGain(), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.1;
+  g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(.22, .008); g.gain.exponentialRampToValueAtTime(.09, .35); g.gain.setValueAtTime(.09, 1.1); g.gain.exponentialRampToValueAtTime(.0001, 1.55);
+  lp.frequency.setValueAtTime(Math.min(4200, f * 9), 0); lp.frequency.exponentialRampToValueAtTime(Math.min(1500, f * 3.2), .4); lp.connect(g); g.connect(dest);
+  [['sawtooth', -9, -.4, .5], ['sawtooth', 9, .4, .5], ['square', 0, 0, .25]].forEach(([ty, dt, x, v]) => { const o = osc(c, ty, f, dt), m = c.createGain(); m.gain.value = v; o.connect(m); m.connect(pan(c, x, lp)); o.start(0); }); }];
+// LA MÉLODIE D'ASPHALTE, réécrite (« la mélodie elle-même ») : un thème qui CHANTE — des notes plus longues, une accroche qui monte et se pose
+// sur la tonique (A) ; un couplet plus bas qui répond (B). Pas de double croche 0-127, degré, durée, marque — les degrés de la gamme du morceau.
+const THEME_ASPHALTE = [[2, 2, 2, ''], [4, 3, 2, ''], [6, 4, 6, ''], [12, 3, 2, ''], [14, 2, 2, ''], [16, 0, 10, 'o'], [34, 2, 2, ''], [36, 3, 2, ''], [38, 4, 4, ''], [42, 5, 2, ''],
+  [44, 4, 2, ''], [46, 3, 2, ''], [48, 2, 12, 'o'], [66, 3, 2, ''], [68, 4, 2, ''], [70, 5, 6, ''], [76, 4, 2, ''], [78, 3, 2, ''], [80, 2, 10, ''], [96, 4, 6, 's'], [102, 3, 2, ''],
+  [104, 2, 4, ''], [108, 1, 4, ''], [112, 0, 12, 'f']];
+const COUPLET_ASPHALTE = [[0, 0, 2, ''], [2, 0, 2, ''], [4, 2, 4, ''], [8, 1, 2, ''], [10, 0, 2, ''], [12, -1, 4, ''], [16, 0, 8, 'o'], [32, 2, 2, ''], [34, 2, 2, ''], [36, 3, 4, ''],
+  [40, 2, 2, ''], [42, 1, 2, ''], [44, 0, 4, ''], [48, 1, 8, 'o'], [64, 0, 2, ''], [66, 0, 2, ''], [68, 2, 4, ''], [72, 3, 2, ''], [74, 4, 2, ''], [76, 3, 4, ''], [80, 2, 8, ''],
+  [96, 1, 4, ''], [100, 2, 4, ''], [104, 0, 8, ''], [112, -1, 8, '']];
 // LA COURBE DE LÉO (16/10) : un premier instrument qui tient SEUL (pas « trop léger » au départ), des échos qui rêvent vers le 11, dynamique dès 15,
 // le climax sur les derniers (le final au 29), et au 30 la mélodie une octave plus haut (« augmenter le registre, plus fort émotionnellement »).
 // `tete` : les premiers moteurs, dans l'ordre (les sons neufs ENTRENT TÔT, sinon on ne les entend qu'au 12e) ; `sans` : ce qu'on ne veut plus.
@@ -231,16 +246,10 @@ export const V2 = [
   // de timbres que la bibliothèque n'avait jamais joués.
   { id: 'bleu-1259-neuf', base: 1259, direct: true, titre: 'ASPHALTE D’ÉMERAUDE',
     note: 'surprends-moi : de nouveaux sons, de nouveaux instruments (16/10)',
-    idee: 'house de nuit en mi mineur : le piano à queue, la basse aux doigts, le chœur « ah » qui chante la mélodie, le piano électrique à lames en arpège, les vrais violons ; au 30, la mélodie une octave plus haut',
-    voix: { lead: VOIX_AH, pluck: RHODES_LAMES },
-    retouche(Mx, O) { nomme(O, 'NOM_LEAD', 'choeurAh', 'le chœur « ah »'); nomme(O, 'NOM_PLUCK', 'rhodesLames', 'le piano électrique à lames');
-      Object.assign(Mx.tim, { lead: 'choeurAh', pluck: 'rhodesLames', keys: '@pianoQueue', pad: '@violons', basse: 'doigts' });
+    idee: 'house de nuit en mi mineur : les accords deep house, une mélodie qui chante (réécrite), la basse aux doigts, le chœur « ah » qui chante la mélodie, le piano électrique à lames en arpège, les vrais violons ; au 30, la mélodie une octave plus haut',
+    voix: { lead: VOIX_AH, pluck: RHODES_LAMES }, acc: { keys: ACCORDS_DEEP },
+    retouche(Mx, O) { nomme(O, 'NOM_LEAD', 'choeurAh', 'le chœur « ah »'); nomme(O, 'NOM_PLUCK', 'rhodesLames', 'le piano électrique à lames'); nomme(O, 'NOM_KEYS', 'accordsDeep', 'les accords deep house');
+      Object.assign(Mx.tim, { lead: 'choeurAh', pluck: 'rhodesLames', keys: 'accordsDeep', pad: '@violons', basse: 'doigts' });
+      if (Mx.motifs) { Mx.motifs[0] = THEME_ASPHALTE.map(x => x.slice()); if (Mx.motifs[1]) Mx.motifs[1] = COUPLET_ASPHALTE.map(x => x.slice()); }
       courbeLeo(Mx, ['keys', 'basse', 'kick', 'arp', 'hat', 'lead', 'snare', 'pad', 'stab', 'sig', 'echo', 'pompe', 'hatO', 'choeur', 'i_frappe', 'clarte']); }, depart: 6 },   // (mesuré : +10 l'aplatissait, du 3 au 22 au même niveau)
-  { id: 'bleu-1111-neuf', base: 1111, direct: true, titre: 'RUBIS DE NÉON',
-    note: 'surprends-moi : de nouveaux sons, de nouveaux instruments (16/10)',
-    idee: 'chillstep en la mineur, tout en vrais instruments : le piano à queue, le violon solo, les violoncelles en basse, le cor en contre-chant, les violons ; l\u2019arpège à la guitare électrique claire (une vraie corde pincée, simulée) ; au 30, le violon une octave plus haut',
-    voix: { pluck: () => ({ ks: true, dur: 1.8, refs: [48, 60, 72, 84], eclat: .45 }) },
-    retouche(Mx, O) { nomme(O, 'NOM_PLUCK', 'guitareClaire', 'la guitare électrique claire');
-      Object.assign(Mx.tim, { pluck: 'guitareClaire', keys: '@pianoQueue', pad: '@violons', lead: '@violonSolo', basse: '@celli', contre: '@cor' });
-      courbeLeo(Mx, ['keys', 'pad', 'basse', 'lead', 'hat', 'kick', 'snare', 'arp', 'sub', 'sig', 'echo', 'choeur', 'cordes', 'i_filtre', 'contre', 'vinyl'], ['wob']); }, depart: 8 },
 ];

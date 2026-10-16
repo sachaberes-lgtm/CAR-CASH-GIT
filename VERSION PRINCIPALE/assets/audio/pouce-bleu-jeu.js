@@ -15,7 +15,8 @@
   'use strict';
   const D = 'assets/audio/music/';
   const EN_ATTENTE = {};   // (15/10 soir) MIRAGE ULTRA n'y est plus : Léo l'a laissé à la corbeille (sa retouche d'entrée jetée) — le tirage suit Pouce bleu, rien de plus
-  const DEFAUT = ['pal-aura-30'];   // rangés d'office dans Pouce bleu par la bibliothèque (sec 'bleu')
+  const HTML = { 'pal-aura-30': ['AURA · 30 PALIERS', 'direct/aura-30.html'], 'pal-rubis-neon': ['RUBIS DE NÉON', 'direct/rubis-de-neon.html'] };   // (16/10) les morceaux écrits à la main, en page
+  const DEFAUT = Object.keys(HTML);   // rangés d'office dans Pouce bleu par la bibliothèque (sec 'bleu')
   const GEN_VERSIONS = [['2026-10-14T00:16:50', 'v3-1'], ['2026-10-14T01:01:05', 'v3-3'], ['2026-10-14T01:46:19', 'v3-4'], ['2026-10-14T03:05:00', 'v3-7']];   // = bibliotheque.html
   const versionDe = e => { if (e.v) return e.v; const t = String(e.date || ''); for (const [l, v] of GEN_VERSIONS) if (t < l) return v; return 'v3-9'; };
   const url = f => new URL(f, location.href).href;
@@ -57,7 +58,7 @@
     Object.keys(place).forEach(id => { if (place[id] !== 'bleu' || suppr.has(id) || !/^pal-/.test(id) || EN_ATTENTE[id]) return; const f = RF[id.slice(4)];
       if (f && f.fichiers && f.fichiers.length) L.push({ id, type: 'paliers', titre: noms[id] || f.titre, fiche: f }); });
     DEFAUT.forEach(id => { if (suppr.has(id) || (place[id] && place[id] !== 'bleu') || EN_ATTENTE[id]) return;
-      if (id === 'pal-aura-30') L.push({ id, type: 'html', titre: noms[id] || 'AURA · 30 PALIERS', f: D + 'direct/aura-30.html' }); });
+      if (HTML[id]) L.push({ id, type: 'html', titre: noms[id] || HTML[id][0], f: D + HTML[id][1] }); });
     return PB.liste = L;
   };
   PB.tire = function () {   // au hasard, sans doublon d'une course à l'autre

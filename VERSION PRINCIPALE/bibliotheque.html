@@ -288,6 +288,10 @@ ajoute({ id: 'dir-french-touch', sec: 'moteur', type: 'html', titre: 'MOTEUR FRE
 // (2026-10-15, Léo, dans sa note sur AURA : « incroyable, juste transformer en 30 paliers comme les autres ») — le même AURA, en direct, en 30 moteurs
 ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIERS', style: 'le même AURA, en 30 moteurs comme les musiques du générateur : chaque moteur ajoute un élément ou pousse un cran (l’AURA en 8 paliers reste à côté)', nb: 0,
   f: 'assets/audio/music/direct/aura-30.html' });
+// (2026-10-16, pôle SON ; Léo : « réécris complètement RUBIS DE NÉON, juste le nom garde-le » · « oublie le générateur, juste le système de
+// musique évolutive jusqu'à 30 ») — écrit à la main au format des morceaux à paliers (comme AURA), rangé d'office dans Pouce bleu
+ajoute({ id: 'pal-rubis-neon', sec: 'bleu', type: 'html', titre: 'RUBIS DE NÉON', style: 'réécrit à la main, sans le générateur : house de nuit rêveuse en fa mineur — piano feutré, violoncelle de néon, basse de velours, 30 moteurs', nb: 0,
+  f: 'assets/audio/music/direct/rubis-de-neon.html' });
 // (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai
 // déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y ») : trois morceaux ÉCRITS, rejoués par
 // assets/audio/music/direct/musique-trente-trio.js (le générateur v6-0 figé + leurs instruments, `O.style`) ; le moteur à la main, comme Pouce bleu
@@ -696,13 +700,13 @@ function dessineBleus() {
    qu'il a GARDÉS (une vraie montée avec le moteur, une harmonie qui bouge, peu de répétition) — pas celui des trois qu'il a retirés. Ils entrent dans
    Pouce bleu comme les autres (leur 👍 dans musique-moteur.json) ; la mention « Nouveau » les signale en tête, le temps qu'il les écoute. */
 const NOUVEAUX_BLEU = {   // (16/10, Léo : « surprends-moi : de nouveaux sons, de nouveaux instruments ») — TONNERRE DELUXE gardé ; les deux SONS NEUFS (retouches-bleu.js)
-  'bleu-1259': 'son neuf : house de nuit — piano à queue, basse aux doigts, un chœur « ah » qui chante la mélodie, un piano électrique à lames, de vrais violons',
-  'bleu-1111': 'son neuf : chillstep tout en vrais instruments — piano à queue, violon solo, violoncelles en basse, cor, violons, guitare électrique claire',
-  'bleu-2874': 'PIÈCES DE CHROME : tu ne l\u2019as pas encore écouté — attention, sa mélodie est une flûte (tu ne voulais plus de flûte)'
+  'bleu-6104': 'GARDÉ — le seul que tu as gardé des nouveaux (nuit lo-fi en vrais instruments : piano, clarinette, contrebasse)',
+  'pal-rubis-neon': 'réécrit à la main, sans le générateur : piano feutré, violoncelle de néon, basse de velours — fa mineur, 30 moteurs',
+  'bleu-1259': 'son neuf : house de nuit — accords deep house et mélodie réécrite (ton retour), basse aux doigts, un chœur « ah » qui chante, un piano électrique à lames, de vrais violons',
 };
 function nouveauxMarque() {
   const L = $('gBleu'); if (!L) return; const prem = L.querySelector(':scope>.genv');
-  [...BLEUS.values()].filter(S => S.el && S.el.parentNode === L && NOUVEAUX_BLEU[S.id]).forEach(S => {
+  [...CAT, ...BLEUS.values()].filter(S => S.el && S.el.parentNode === L && NOUVEAUX_BLEU[S.id]).forEach(S => {
     if (!S.el.querySelector('.pourquoi')) { const q = document.createElement('div'); q.className = 'pourquoi'; q.textContent = 'Nouveau · ' + NOUVEAUX_BLEU[S.id]; S.el.querySelector('.txt').appendChild(q); }
     S.el.classList.add('nouveau'); if (prem && prem !== S.el) L.insertBefore(S.el, prem); });
 }
