@@ -151,7 +151,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
   `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend`/`MISSIONS_V2` (sauvegarde `SAVE.d.m2` ;
   l'ancien système des carnets `CARNETS`/`misTick`, coupé : `?missions=v1`).
-- **HUD** : `#hud`, `hudColonne`, `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (jauge d'aura),
+- **HUD** : `#hud`, `hudColonne` (sa mesure `hudColMesure` passe par `apresMiseEnPage`), `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (jauge d'aura),
   `VOLG` (les gains qui volent vers leur jauge), `airPieDraw`, `#tNitro`, pause `#tGear`/`#tPanel`/`panSync`, `HAS_D`/`hasMaj`.
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
@@ -210,6 +210,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
+- LES MAPS COMME UN TOUT (17/10, Sacha) : nuages, canyon, forêt, glacier, volcan et orbite suivent UNE recette par temps (`CONTI` : saturation, vignette,
+  contre-jour rose, bitume commun `rtT`/`rtA`, ciel continu `uCiel2`, la nuit à deux températures) ; la VILLE et le JADE n'y sont jamais (`contiMap()`).
+  Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part. `?sans=continuite` = avant.
+- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : `BANQ_V4` (123 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler) ;
+  `?glacier=v3` = la descente verglacée d'avant. Les satellites sont des obstacles de l'orbite normale (`SAT_OBST_V`, `?sans=satobst`).
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit. `?sans=villenuit` rend l'ancienne.
 - LES MISSIONS v2 (16/10, Sacha : « des MISSIONS libres à la place des carnets ») : toutes ouvertes, une seule liste, des SECRÈTES qui donnent des
@@ -416,7 +421,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 9. **`scene.onBeforeRender` est déjà pris** (piste, plots, ville, ciel) : chaîner, jamais réassigner.
 10. **`body:has(…)` pour le HUD** rendait chaque écriture de style ~80× plus chère : une classe dans `HAS_D`.
 11. **`innerWidth` lu dans la boucle** force une mise en page complète sur mobile : `VP.w`/`VP.h`. Et `textContent=` recrée le nœud
-    même à valeur égale : écrire seulement si ça change.
+    même à valeur égale : écrire seulement si ça change. Un rectangle ou un style CALCULÉ du HUD lu dans la boucle
+    (`getBoundingClientRect`, `getComputedStyle`, `zRect`) force aussi styles + mise en page : le lire dans `apresMiseEnPage(fn)`
+    (rappelé juste après la mise en page de l'image, où lire ne coûte rien ; `apresMiseEnPage(fn,true)` si fn écrit ensuite).
 12. **La scène est gelée** (`matrixAutoUpdate=false`) : un objet immobile qu'on anime appelle `updateMatrix()` ; un objet caché
     n'est pas mis à jour (pour lire sa position, `SCENE_TOUJOURS`).
 13. **Un fichier changé sans `CACHE` de `sw.js` incrémenté** (ou sans `?v=`) : les joueurs gardent l'ancien, pour toujours.
