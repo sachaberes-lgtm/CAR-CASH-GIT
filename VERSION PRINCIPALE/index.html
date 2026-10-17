@@ -12787,6 +12787,94 @@ function carVit(dt){
   HALO.tM.color.copy(VIT9.tC).lerp(VIT9.tF,fr9);
   for(const s9 of HALO.t){const k=s9.userData.k*(.85+.2*ar+.65*fr9)*(1+.2*nuit);s9.scale.set(k,k,1);}
 }
+/* LES LUMIÈRES DE LA CAISSE v2 — LE PILOTE (2026-10-17, voir LUM_GLSL). `lumTick` pose chaque image, EN COORDONNÉES MONDE, ce que la caisse éclaire :
+   les phares, les deux feux arrière, le feu du nitro (un trait par côté), les traînées de lumière (trois traits chacune) ; `lumVue`, chaîné sur
+   scene.onBeforeRender, les passe dans le repère de LA caméra qui rend (poursuite, mode photo, chauffe) — les flaques de lumière ne glissent jamais.
+   LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (le ciel et le soleil posés par bioApply : ~0,55 de jour, 0,34 au soir et sous la pluie, 0,10-0,16
+   la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
+   éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
+const LUMK={air:[.12,.9],hl:180000,hlC:[1,.88,.7],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
+const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
+  k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
+function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
+  if(LUM.n>=LM_N||cr+cg+cb<.004)return;const W=LUM.W,o=LUM.n*12;W[o]=ax;W[o+1]=ay;W[o+2]=az;W[o+3]=r*r;W[o+4]=bx;W[o+5]=by;W[o+6]=bz;W[o+7]=lob;W[o+8]=cr;W[o+9]=cg;W[o+10]=cb;W[o+11]=sp;LUM.n++;}
+function lumNoeud(tr,d,o){ // le point de la traînée à `d` mètres de sa tête (le long du chemin), son éclat dans o.w : null au-delà de sa longueur
+  const X=tr.X,Y=tr.Y,Z=tr.Z;if(d<=0){o.set(X[0],Y[0],Z[0]);return tr.K[0];}let ac=0;
+  for(let i=1;i<tr.n;i++){const dx=X[i]-X[i-1],dy=Y[i]-Y[i-1],dz=Z[i]-Z[i-1],l=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(ac+l>=d){const u=l>1e-4?(d-ac)/l:0;o.set(X[i-1]+dx*u,Y[i-1]+dy*u,Z[i-1]+dz*u);return tr.K[i-1]+(tr.K[i]-tr.K[i-1])*u;}ac+=l;}
+  return null;}
+function lumTick(dt,kmh){
+  if(!LUM_V2)return;
+  if(!LUM.W)LUM.W=new Float32Array(LM_N*12);
+  const actif=!LUMK.off&&running&&!garageOn&&started&&!gameOver; // la course seulement (LUMK.off : le banc coupe tout, dbgLum({off:1})) : le menu, le ciel du titre et le garage ont leur propre éclairage
+  if(!actif){if(LUM.actif){LUM.actif=false;LUM.n=0;LUM.hl=0;LUM_U.uLmN.value=0;LUM_U.uHlC.value.setRGB(0,0,0);if(CARPOOL.head&&CARPOOL.head.userData.lumCache){CARPOOL.head.visible=true;CARPOOL.head.userData.lumCache=0;}}return;}
+  LUM.actif=true;
+  /* LA NUIT : la lumière du lieu (ciel + soleil, en luminance), et le drapeau du niveau (les nuits de lune claire) */
+  const lu=function(c){return .2126*c.r+.7152*c.g+.0722*c.b;},amb=hemi.intensity*(lu(hemi.color)+lu(hemi.groundColor))*.5;
+  const nv=Math.max(LVL.nuit||0,1-THREE.MathUtils.smoothstep(amb,LUMK.amb[0],LUMK.amb[1]));
+  LUM.nuit+=(nv-LUM.nuit)*Math.min(1,dt*2);const nu=LUM.nuit,boom=mode==='boom';
+  LUM.n=0;
+  carGroup.getWorldDirection(LUM.hF);LUM.hU.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(LUM.hF,LUM.hU);
+  LUM.k.copy(LUM.hF).negate(); // l'ARRIÈRE de la caisse : le lobe des feux
+  /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
+  const sp=CARS[level]||{w:2,l:4.4,h:1.3};
+  LUM.hl+=(((boom?0:1)*nu)-LUM.hl)*Math.min(1,dt*(boom?12:3));
+  if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
+  else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
+  if(HALO.h.length===1)LUM.hP[1].copy(LUM.hP[0]);
+  /* LES FEUX ARRIÈRE : rouges, ils rayonnent vers l'arrière ; au FREIN ils s'embrasent (le même frein que leurs halos, VIT9.frein) */
+  const fr=LUMK.frein!=null?LUMK.frein:(VIT9.frein||0),kf=nu*(boom?0:1)*LUMK.feu*(1+(LUMK.feuF-1)*fr);
+  LUM.f=nu*(boom?0:1)*LUMK.car*(1+(LUMK.carF-1)*fr); // la lueur des feux SUR LA CAISSE (voir FEU_U)
+  if(CAR_FEUX.length){potMonde(CAR_FEUX[0],LUM.fA).addScaledVector(LUM.k,.06);if(CAR_FEUX.length>1)potMonde(CAR_FEUX[1],LUM.fB).addScaledVector(LUM.k,.06);else LUM.fB.copy(LUM.fA);}else LUM.f=0;
+  if(kf>.002)for(let i=0;i<Math.min(2,CAR_FEUX.length);i++){potMonde(CAR_FEUX[i],LUM.v);LUM.v.addScaledVector(LUM.k,.14);
+    const k=CAR_FEUX.length===1?kf*1.6:kf;lumLampe(LUM.v.x,LUM.v.y,LUM.v.z,LUM.v.x,LUM.v.y,LUM.v.z,LUMK.feuR,1,k*(1+.25*fr),k*(.05+.1*fr),k*.03,LUMK.feuS);}
+  /* LE FEU DU NITRO : un trait par côté, de la bouche du pot le long du jet (il s'allonge avec la vitesse), à la couleur de la flamme (nitroLight :
+     orange, bleu de réserve, violet de l'infini, l'or du pad, la traînée achetée…) et qui TREMBLE avec elle */
+  let nI=(LUMK.nitF!=null?LUMK.nitF:nitroLight.intensity)*(boom?0:1),c=LUMK.nitF!=null?LUM.cc.setRGB(1,.48,.14):nitroLight.color; // (banc) LUMK.nitF force le feu du nitro, LUMK.frein le frein
+  if(nI<.05&&MOTEUR_MINI&&!boom&&mode==='drive'&&FLM.L){let l=0;const np=Math.max(1,Math.min(4,CAR_POTS.length));for(let i=0;i<np;i++)l+=FLM.L[i]||0; // hors nitro, LA FLAMME DU MOTEUR (le mini feu de pixels) : une lueur qui crépite avec ses bouffées, la nuit
+    const m=LUMK.mot*Math.min(1.6,l/np)*nu;if(m>nI){nI=m;c=LUM.cc.setRGB(1,.5,.16);}}
+  if(nI>.01){const k=nI*LUMK.nit*(LUMK.nitJ+(1-LUMK.nitJ)*nu),ln=LUMK.nitL*(1+Math.min(1.4,Math.abs(kmh||0)/200));
+    const pts=CAR_POT_1?[CAR_POT_C]:[CAR_POT_L,CAR_POT_R];
+    for(const p of pts){potMonde(p,LUM.v);LUM.w.copy(LUM.v).addScaledVector(LUM.k,ln).addScaledVector(LUM.hU,-.05);LUM.v.addScaledVector(LUM.k,.12);
+      const kk=k*(pts.length===1?1.5:1);lumLampe(LUM.v.x,LUM.v.y,LUM.v.z,LUM.w.x,LUM.w.y,LUM.w.z,LUMK.nitR,0,c.r*kk,c.g*kk,c.b*kk,LUMK.nitS);}}
+  /* LES TRAÎNÉES DE LUMIÈRE : un trait sur leurs 12 premiers mètres, à leur couleur et à leur éclat (rouge des feux au roulage, le feu du nitro) */
+  const kt=QUAL_LOW?0:LUMK.tr*(.2+.8*nu)*(boom?0:1); // (qualité basse : la puce chauffe, les traînées n'éclairent plus — six lampes de moins)
+  if(kt>.002)for(let i=0;i<Math.min(2,CAR_FEUX.length);i++){const tr=SILS[i];if(!tr||!tr.m.visible||tr.n<2)continue;
+    const g=tr.emit?1:tr.g,cr=tr.CR[0],cg=tr.CG[0],cb=tr.CB[0];let ka=lumNoeud(tr,LUMK.trD[0],LUM.v);
+    for(let s=1;s<LUMK.trD.length;s++){const kb=lumNoeud(tr,LUMK.trD[s],LUM.w);if(kb==null||ka==null)break;
+      const kk=kt*g*.5*(ka+kb);lumLampe(LUM.v.x,LUM.v.y,LUM.v.z,LUM.w.x,LUM.w.y,LUM.w.z,LUMK.trR,0,cr*kk,cg*kk,cb*kk,LUMK.trS);LUM.v.copy(LUM.w);ka=kb;}}
+  /* la NAPPE PEINTE des phares (le trapèze blanc) se retire : la vraie lumière des phares est dans le bitume */
+  if(CARPOOL.head&&CARPOOL.head.visible){CARPOOL.head.visible=false;CARPOOL.head.userData.lumCache=1;}
+}
+function lumVue(cam){ // (chaîné sur scene.onBeforeRender) monde → vue, pour LA caméra qui rend
+  if(!LUM_V2)return;const U=LUM_U,e=cam.matrixWorldInverse.elements;
+  const P=function(x,y,z,o,w){o.set(e[0]*x+e[4]*y+e[8]*z+e[12],e[1]*x+e[5]*y+e[9]*z+e[13],e[2]*x+e[6]*y+e[10]*z+e[14],w);};
+  const D=function(v,o){o.set(e[0]*v.x+e[4]*v.y+e[8]*v.z,e[1]*v.x+e[5]*v.y+e[9]*v.z,e[2]*v.x+e[6]*v.y+e[10]*v.z);};
+  if(!LUM.actif){U.uLmN.value=0;U.uHlC.value.setRGB(0,0,0);FEU_U.uFvC.value.setRGB(0,0,0);return;}
+  {const f=LUM.f;FEU_U.uFvC.value.setRGB(f,f*.06,f*.03);if(f>0){P(LUM.fA.x,LUM.fA.y,LUM.fA.z,FEU_U.uFvA.value,.09);P(LUM.fB.x,LUM.fB.y,LUM.fB.z,FEU_U.uFvB.value,.09);}}
+  const W=LUM.W,n=LUM.n,sp=(ROAD_U.uWet.value>.01||ROAD_U.uJadeR.value>.01)?1:0; // sp : le REFLET ne se calcule que sur l'eau (et les routes polies de jade) — le béton sec est mat, la moitié du travail sautée
+  for(let i=0;i<n;i++){const o=i*12,dx=W[o+4]-W[o],dy=W[o+5]-W[o+1],dz=W[o+6]-W[o+2],dd=dx*dx+dy*dy+dz*dz,Bv=U.uLmB.value[i];
+    P(W[o],W[o+1],W[o+2],U.uLmA.value[i],W[o+3]+(W[o+7]>.5?100:0)); // le rayon² (+100 : la lampe rayonne vers l'arrière, voir LUM_GLSL)
+    Bv.set(e[0]*dx+e[4]*dy+e[8]*dz,e[1]*dx+e[5]*dy+e[9]*dz,e[2]*dx+e[6]*dy+e[10]*dz,dd>1e-6?1/dd:0); // le trait A→B (en vue) et 1/|AB|² (une rotation garde les longueurs)
+    U.uLmC.value[i].set(W[o+8],W[o+9],W[o+10],W[o+11]*sp);}
+  U.uLmN.value=n;const c=carGroup.position;P(c.x,c.y,c.z,U.uLmS.value,324);D(LUM.k,U.uLmK.value); // la sphère utile : 18 m autour de la caisse (au-delà, un test et rien)
+  const hl=LUM.hl*LUMK.hl;U.uHlC.value.setRGB(LUMK.hlC[0]*hl,LUMK.hlC[1]*hl,LUMK.hlC[2]*hl);
+  if(hl>0){for(let j=0;j<2;j++){const p=LUM.hP[j];P(p.x,p.y,p.z,U.uHlP.value[j],j&&HALO.h.length===1?.4:1);} /* un seul phare (l'épave) : 1,4 lampe, pas 2 */D(LUM.hF,U.uHlF.value);D(LUM.hR,U.uHlR.value);D(LUM.hU,U.uHlU.value);}
+}
+window.dbgLumVue=function(d,h,az,vise){ // (banc) MODE PHOTO dans le repère de la CAISSE : d m derrière, h m au-dessus (son haut à elle), az rad autour, vise = m devant le point visé
+  if(started&&!gameOver&&!paused)togglePause();
+  const p=carGroup.position,F=LUM.v,U=LUM.w,R=LUM.q;carGroup.getWorldDirection(F);U.set(0,1,0).applyQuaternion(carGroup.quaternion);R.crossVectors(F,U);
+  d=d==null?9:d;h=h==null?3.4:h;az=az||0;
+  camera.position.copy(p).addScaledVector(F,-d*Math.cos(az)).addScaledVector(R,d*Math.sin(az)).addScaledVector(U,h);camera.up.copy(U);
+  camera.lookAt(p.x+F.x*(vise||4)+U.x*.7,p.y+F.y*(vise||4)+U.y*.7,p.z+F.z*(vise||4)+U.z*.7);camera.updateMatrixWorld();camera.up.set(0,1,0);
+  RIM_U.uSunV.value.copy(RIM_DIR).transformDirection(camera.matrixWorldInverse);
+  if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);};
+window.dbgLumReprise=function(){if(paused)togglePause();return paused;}; // (banc) la photo a mis en pause : on repart
+window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum({hl:12000,…}) règle LUMK à chaud ; dbgLum({hlK:[…],lmW:[…]}) les uniformes
+  if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
+  return {v2:LUM_V2,actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
+    uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
+    W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
 /* ============ fin TRIPTYQUE ============ */
 
 // ---------- GÉNÉRATEUR (45°, patterns pensés pour l'airtime) ----------
@@ -12971,6 +13059,7 @@ function conesVus(cam){ // appelé par scene.onBeforeRender : caméra et soleil 
 }
 function conesZero(ims){for(const im of ims){const a=im.instanceMatrix;a.array.fill(0,0,16);a.array[15]=1;a.updateRange.offset=0;a.updateRange.count=16;a.needsUpdate=true;}}
 scene.onBeforeRender=function(r9,s9,cam){pisteLoin(cam);conesVus(cam);}; // (passe perf) avant le tri de three : tranches de piste lointaines, plots vus
+{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);lumVue(cam);};} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : monde → vue pour la caméra qui rend — CHAÎNÉ (jamais réassigné)
 function coneVole(c9){ // le plot percuté quitte l'instance : un VRAI plot, posé au même endroit, part valser (FLYCONES)
   const g=mkCone();g.position.copy(c9.mesh.position);g.quaternion.copy(c9.mesh.quaternion);scene.add(g);trackMeshes.push(g);
   c9.mesh=g;return g; // (passe perf) `hit` est déjà posé : conesVus le sort des listes au prochain rendu
@@ -15199,6 +15288,61 @@ const LFB_ROUTE=(function(){
     .replace(di,'$1\n\t\tif ( dot( geometry.normal, directLight.direction ) > 0.0 && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}');
   if(!sp.test(LFB_SANS_PL)||!di.test(LFB_SANS_PL)){console.warn('CASH CAR : lumières du bitume non greffées (chunk inattendu)');return LFB_SANS_PL;}
   return t;})();
+/* ===================== LES LUMIÈRES DE LA CAISSE v2 (2026-10-17, session « Système d'éclairage » — Sacha : « on retravaille complètement comment les
+   lumières fonctionnent : les flammes de nitro doivent faire de la lumière, les feux arrière doivent faire de la lumière quand il fait nuit, sur la route ;
+   on retravaille comment les phares fonctionnent, comment la lumière des feux arrière se reflète dans le pare-brise arrière ; il faut que la lumière marche
+   très bien, que ce soit parfait — optimisé quand même, pas de ray tracing : magnifique, mais compréhensible pour un iPhone ») =====================
+   L'ancien éclairage de la caisse sur la route : UN projecteur three (headSpot) au milieu du capot, une NAPPE PEINTE plate (CARPOOL.head, le trapèze blanc
+   qu'on voit devant la caisse la nuit) — et RIEN derrière : la flaque rouge des feux et le halo nitro, des plans additifs, faisaient des « taches rondes »
+   (verdict du 25-26/09) et avaient été retirés. Les PointLights ne touchent plus le bitume depuis le 26/09 (LFB_SANS_PL : ~20 % du GPU).
+   LA RECETTE NEUVE : les lumières de la caisse sont CALCULÉES DANS LE SHADER DU BITUME, en quelques lignes, sans aucune lumière three de plus :
+     · LES PHARES (`uHl*`) : deux lampes, chacune un vrai faisceau de croisement — un éventail large, une COUPURE nette à l'horizon de la lampe, un point
+       chaud juste dessous qui porte loin, l'inverse du carré de la distance et le cosinus de la surface (une bosse, une rampe s'allument plus fort). Les
+       deux lobes se croisent devant le capot. Le projecteur three ne touche plus le bitume (la boucle des spots est retirée de son shader, comme celle
+       des points) : il reste pour le décor (tours, rochers, arbres). La nappe peinte est éteinte.
+     · DES LAMPES-SEGMENTS (`uLmA/B/C`, LM_N au plus) : un point (A = B) ou un trait (A → B) de lumière — l'éclairement vient du point le plus proche du
+       trait, le REFLET (pellicule d'eau, flaques — le béton sec est mat : sauté) du point du trait le plus proche du rayon réfléchi (« point représentatif »,
+       Karis 2013), dans un lobe ÉTIRÉ (fin en travers, long vers l'œil) : sur une route mouillée chaque lumière s'étire en TRAÎNÉE vers la caméra, comme
+       sur une vraie route de nuit sous la pluie (un lobe rond y faisait des taches). Les FEUX ARRIÈRE (deux points rayonnés vers l'arrière, embrasés au
+       frein), le FEU DU NITRO (un trait par côté, de la bouche du pot le long du jet, à la couleur de sa flamme, qui tremble avec elle) — hors nitro la
+       FLAMME DU MOTEUR, qui crépite —, les TRAÎNÉES DE LUMIÈRE (un trait sur leurs 12 premiers mètres, à leur couleur et à leur éclat).
+   Tout est en espace VUE (lumTick pose en monde, lumVue transforme pour la caméra qui rend) ; hors d'une sphère de 18 m autour de la caisse, le pixel ne
+   paie qu'un test ; les phares sautent tout ce qui est derrière eux, hors de l'éventail ou au-dessus de la coupure. Rien n'est alloué, aucun programme de
+   plus (la clé du bitume change : UN programme remplacé). MESURÉ (temps GPU) : sous le bruit, comme l'éclairage d'avant. `?sans=lumieres` = l'éclairage
+   d'avant. Crochets : `dbgLum()`, `dbgLumVue()`. */
+const LUM_V2=!/[?&]sans=([^&]*,)?lumieres(,|&|$)/.test(location.search);
+const LM_N=6; /* deux feux, deux traits de nitro (ou la flamme du moteur), une traînée par feu — MESURÉ : à 10 (trois traits par traînée) le bitume coûtait trop, pour une lueur qu'on ne distinguait pas */
+const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS:{value:new THREE.Vector4(0,0,0,0)},uLmK:{value:new THREE.Vector3(0,0,1)},
+  uLmW:{value:new THREE.Vector4(260,.1,.6,1.4)}, /* le reflet : x = finesse du lobe en travers (en long : ×0,05, la traînée) · y = béton sec · z = pellicule d'eau · w = flaques */
+  uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
+  uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.6,4,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
+for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
+const LUM_GLSL=['#define LM_N '+LM_N,
+  'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN;',
+  'vec3 lmSp9=vec3(0.);float bmP9=0.;',
+  'vec3 lmRoute(vec3 P,vec3 N,vec3 V){',
+  '  vec3 E=vec3(0.);',
+  '  if(uHlC.r+uHlC.g+uHlC.b>0.){',                                                              // LES PHARES — trois tests bon marché d abord : devant, dans l éventail, sous la coupure
+  '    for(int j=0;j<2;j++){vec3 v=P-uHlP[j].xyz;float fw=dot(v,uHlF);',
+  '      if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHlR))*iw;',                                      // les tangentes du rayon : en travers…
+  '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw;',                                               // …et en hauteur
+  '          if(vy<uHlK.x+.02){float d2=dot(v,v);',
+  '            float I=(1.-smoothstep(uHlK.y*.55,uHlK.y,hx))*(.5+.5*exp(-hx*hx*9.))*(1.-smoothstep(uHlK.x-.006,uHlK.x+.02,vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw);', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
+  '            E+=uHlC*(I*uHlP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
+  '  vec3 dq=P-uLmS.xyz;',
+  '  if(uLmN>.5&&dot(dq,dq)<uLmS.w){vec3 R=reflect(-V,N),T=normalize(cross(N,V)+vec3(1e-5,0.,0.)),B=cross(R,T);', // LES LAMPES-SEGMENTS (feux, nitro, traînées) — T : le travers de la route vu d ici, B : le long (vers l œil)
+  '    for(int i=0;i<LM_N;i++){if(float(i)>=uLmN)break;',
+  '      vec4 a=uLmA[i],b=uLmB[i],c=uLmC[i];vec3 Q=P-a.xyz;',                                     // a : départ + rayon² (+100 : rayonné vers l arrière) · b : le trait A→B + 1/|AB|² (posés par lumVue)
+  '      vec3 L=b.xyz*clamp(dot(Q,b.xyz)*b.w,0.,1.)-Q;float d2=dot(L,L)+1e-4;vec3 l=L*inversesqrt(d2);', // le point du trait le plus proche
+  '      float r2=a.w,lob=1.;if(r2>50.){r2-=100.;lob=smoothstep(-.35,.6,-dot(l,uLmK));}',         // les feux rayonnent vers l arrière (branche UNIFORME : la même pour tout l écran)
+  '      E+=c.rgb*(max(dot(N,l),0.)*lob/(d2+r2));',
+  '      if(c.w>0.){float DD=dot(b.xyz,b.xyz),RD=dot(R,b.xyz);',                                 // le REFLET (sur l eau seulement) : le point du trait le plus proche du rayon réfléchi
+  '        vec3 Ls=b.xyz*clamp((dot(R,-Q)*RD+dot(Q,b.xyz))/max(DD-RD*RD,1e-4),0.,1.)-Q;float s2=dot(Ls,Ls);',
+  '        vec3 e=Ls*inversesqrt(s2)-R;float et=dot(e,T),eb=dot(e,B);',                               // l écart angulaire, en travers et en long
+  '        lmSp9+=c.rgb*(c.w*lob*step(0.,dot(R,Ls))*exp(-et*et*uLmW.x-eb*eb*uLmW.x*.05)/(1.+.08*s2+r2));}}}', // un lobe ÉTIRÉ : fin en travers, long vers l œil — la TRAÎNÉE d une lumière sur l eau (un lobe rond faisait des taches)
+  '  return E;}',''].join('\n');
+const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
+const LFB_ROUTE_LUM=LUM_V2?LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''):LFB_ROUTE; // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
 function roadMat(){
   /* (2026-09-26, vague 2) UNE LECTURE DE TEXTURE DE MOINS PAR PIXEL DE ROUTE. Le grain servait deux fois — en `map` ET en `specularMap`,
      la même image lue deux fois dans chaque pixel du bitume (la moitié de l'écran). Le spéculaire prend désormais le rouge du texel
@@ -15211,13 +15355,15 @@ function roadMat(){
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
+    if(LUM_V2)for(const k in LUM_U)sh.uniforms[k]=LUM_U[k]; // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 (voir LUM_GLSL)
     sh.uniforms.uTeinte=ROAD_U.uTeinte;sh.uniforms.uBmM9=ROAD_U.uBmM;sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;sh.uniforms.uJadeR=ROAD_U.uJadeR;sh.uniforms.uHalf9=ROAD_U.uHalf;sh.uniforms.uJSt9=ROAD_U.uJStyle;
     if(face)sh.vertexShader=sh.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\nvColor=abs(vColor);') // le dessous porte des couleurs NIÉES : on relit leur valeur
       .replace('#include <shadowmap_vertex>',THREE.ShaderChunk.shadowmap_vertex.split('inverseTransformDirection( transformedNormal, viewMatrix )')
         .join('inverseTransformDirection( transformedNormal*(color.r<0.?-1.:1.), viewMatrix )')); // …et le décalage d'ombre reprend la normale d'avant le retournement
     sh.fragmentShader='uniform vec3 uTeinte;uniform vec3 uBmM9;uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9,uJadeR,uHalf9,uJSt9;\n'+
       'float jdH9(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}float jdN9(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(jdH9(i),jdH9(i+vec2(1.,0.)),f.x),mix(jdH9(i+vec2(0.,1.)),jdH9(i+vec2(1.,1.)),f.x),f.y);}\n'+
-      sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE:LFB_SANS_PL)
+      sh.fragmentShader.replace('void main() {',(LUM_V2?LUM_GLSL+BITUME_MOUILLE.replace('  col*=1.-uWet*.2*P;','  bmP9=P;col*=1.-uWet*.2*P;'):BITUME_MOUILLE)+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE_LUM:LFB_SANS_PL)
+      .replace('#include <lights_fragment_end>','#include <lights_fragment_end>'+(LUM_V2?LUM_APPEL:''))
       .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;diffuseColor.rgb*=uTeinte;'+
       /* (v11, Léo : « la route comme un bijou de jade, mais brillant — presque de l'ÉMERAUDE, vert comme ça, et les bords DORÉS : une route
          d'architecture asiatique ») LA ROUTE BIJOU — l'émeraude franche et polie, TAILLÉE en grandes facettes (cellules de ~3-4 m, chacune sa
@@ -15325,9 +15471,10 @@ function roadMat(){
       'outgoingLight+=mix(vec3(.95,.97,1.),vec3(1.,.85,.55),.35+.5*wk9)*(pow(max(dot(rV9,Lv9),0.),14.)*.05+pow(max(dot(rF9,Lv9),0.),70.)*.55*jM9)*uJadeR;'+
       'float tw9=pow(max(0.,sin(uT9*2.3+jH9*61.)),24.)*step(.92,fract(jH9*13.7))*(1.-smoothstep(40.,140.,length(vViewPosition)));'+
       'outgoingLight+=vec3(1.,1.,1.)*tw9*jM9*.9*uJadeR;}\n#endif\n'+
-      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(uJSt9<.5?.20:uJSt9<1.5?.30:uJSt9<3.5?.04:.05)*uJadeR;}'); // (v16 : les rondins comme le bois) // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude — (v14) le nuage luit, le bois non
+      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(uJSt9<.5?.20:uJSt9<1.5?.30:uJSt9<3.5?.04:.05)*uJadeR;}'+
+      (LUM_V2?'\noutgoingLight+=lmSp9*(uLmW.y*(.4+spec9)+uWet*(uLmW.z+uLmW.w*bmP9)+uJadeR*uLmW.z);':'')); // (2026-10-17) le REFLET des lampes de la caisse : le béton sec en garde un voile, la pellicule d'eau et les FLAQUES le font miroir (voir LUM_GLSL) // (v16 : les rondins comme le bois) // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude — (v14) le nuage luit, le bois non
   };
-  m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
+  m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'')+(LUM_V2?'L':'');}; // UNE compilation pour toutes les pistes (L : les lumières de la caisse v2)
   return m;
 }
 /* LE BITUME MOUILLÉ DE LA VILLE (2026-09-26) — sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
@@ -27193,7 +27340,8 @@ headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
    LVL.nuit est nul. En FrontSide : la caméra est derrière, elle ne passe jamais dedans (la leçon des cônes de l'atelier). */
 const PHARE_FX=(function(){
   const cv=document.createElement('canvas');cv.width=4;cv.height=64;const c=cv.getContext('2d'),g=c.createLinearGradient(0,0,0,64);
-  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.55)');g.addColorStop(.7,'rgba(255,255,255,.14)');g.addColorStop(1,'rgba(255,255,255,0)');
+  if(LUM_V2){g.addColorStop(0,'rgba(255,255,255,.12)');g.addColorStop(.06,'rgba(255,255,255,.5)');g.addColorStop(.22,'rgba(255,255,255,.42)');g.addColorStop(.6,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(255,255,255,0)');} /* (2026-10-17, les lumières de la caisse v2) le faisceau NAÎT au phare au lieu d'y flamber : vu de la poursuite, le pied du cône faisait un éventail blanc posé sur le capot */
+  else{g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.55)');g.addColorStop(.7,'rgba(255,255,255,.14)');g.addColorStop(1,'rgba(255,255,255,0)');}
   c.fillStyle=g;c.fillRect(0,0,4,64);const tx=new THREE.CanvasTexture(cv);
   const geo=new THREE.ConeGeometry(6,70,18,1,true);geo.translate(0,-35,0);geo.rotateX(-Math.PI/2);geo.rotateX(.045); // la pointe au phare, l'ouverture 70 m devant, un rien vers le bitume
   const m=new THREE.MeshBasicMaterial({map:tx,color:0xdfe9ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.FrontSide});
@@ -28115,6 +28263,17 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
 // ---- RIM GOLDEN HOUR : liseré doré sur les arêtes exposées au soleil (fresnel masqué côté lumière).
 // Uniforms PARTAGÉS entre toutes les caisses — une seule source de vérité, teinte pilotée par l'état dans loop().
 const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.40},uRimPow:{value:3.0},uSunV:{value:new THREE.Vector3()}};
+/* LES FEUX ÉCLAIRENT LA CAISSE (2026-10-17, « les lumières de la caisse v2 » — Sacha : « comment la lumière des feux arrière se reflète dans le pare-brise
+   arrière ») : les deux feux arrière (repère VUE : uFvA/uFvB = position + rayon², uFvC = rouge × intensité, posés par lumVue) allument la tôle qui les
+   entoure — le pare-chocs, la malle, la jupe — en diffus vrai (cosinus, inverse du carré), et le VERRE (la lunette arrière, juste au-dessus) en prend le
+   REFLET : un voile rouge qui monte du bas de la vitre, plus fort en rasant (Fresnel) — la lunette, sombre et lisse, renvoie la lueur des feux. `uFvK` =
+   la part de ce reflet par matière (verre 1, chrome .6, laque .2, mat .05). Une branche UNIFORME (feux éteints de jour : rien n'est calculé), quelques
+   opérations par pixel de caisse, zéro lumière three de plus. Hors course (garage, boutique, étal), uFvC vaut 0. */
+const FEU_U={uFvA:{value:new THREE.Vector4(0,0,0,1)},uFvB:{value:new THREE.Vector4(0,0,0,1)},uFvC:{value:new THREE.Color(0,0,0)}};
+const FEU_GLSL='uniform vec4 uFvA,uFvB;uniform vec3 uFvC;uniform float uFvK;\n'+
+  'vec3 fvFeu(vec4 a,vec3 P,vec3 N,vec3 V,vec3 al){vec3 L=a.xyz-P;float d2=dot(L,L);'+
+  'return (max(dot(N,L),0.)*inversesqrt(d2)*al*exp(-d2*1.6)+uFvK*(.3+.7*pow(1.-abs(dot(N,V)),2.))*exp(-d2*.9))/(d2+a.w);}\n'; // exp(-d²·1,6) : la lueur reste AUTOUR du feu (à 1/d² seul, toute la poupe virait au rouge uni) ; le reflet du verre porte un peu plus haut
+const FEU_APPEL='if(uFvC.r+uFvC.g+uFvC.b>0.){vec3 P9=-vViewPosition,N9=normalize(normal),V9=normalize(vViewPosition);gl_FragColor.rgb+=uFvC*(fvFeu(uFvA,P9,N9,V9,diffuseColor.rgb)+fvFeu(uFvB,P9,N9,V9,diffuseColor.rgb));}\n';
 /* ---- LE VERNIS (2026-09-26) — la laque garde sa COULEUR, le ciel se pose PAR-DESSUS selon l'angle -------------------------
    ⚠ POURQUOI. En `MixOperation`, three MÉLANGE peinture et reflet dans une proportion FIXE (`reflectivity`) : à .45 (le plafond
    de la passe de finition), une caisse jaune vue de face était à 45 % le ciel violet — une peinture délavée sous TOUS les angles,
@@ -28158,16 +28317,16 @@ const LFB_CAISSE=(function(){
    matières des gabarits) partagent le programme Phong générique de la scène : leur donner le leur ajoutait 1 à 7 programmes à relier AU
    DÉPART de la course (mesuré — le nombre de lumières ponctuelles change entre le garage et la course, tout se relie à ce moment-là). */
 // `v` : le vernis (voir ENV_VERNIS) · `rimK` : part du liseré doré (0 = aucun — le verre et le chrome n'en veulent pas)
-function rimify(m,v,rimK){
-  const uV={value:new THREE.Vector4().fromArray(v||[1,1,1,0])},uK={value:rimK==null?1:rimK};
+function rimify(m,v,rimK,fvK){ // fvK : la part du REFLET DES FEUX (voir FEU_U) — la tôle .2, le verre 1
+  const uV={value:new THREE.Vector4().fromArray(v||[1,1,1,0])},uK={value:rimK==null?1:rimK},uF={value:fvK==null?.2:fvK};
   m.onBeforeCompile=function(sh){
     sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
-    sh.uniforms.uVern=uV;sh.uniforms.uRimK=uK;
+    sh.uniforms.uVern=uV;sh.uniforms.uRimK=uK;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
     sh.fragmentShader=sh.fragmentShader
-      .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;')
+      .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;\n'+FEU_GLSL)
       .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('1.')+ // seulement le flanc au soleil : un liseré, pas un halo cartoon (+ le contre-jour : voir RIM_GLSL)
-        'gl_FragColor.rgb+=uRimC*rimF*uRimStr*uRimK;\n#include <dithering_fragment>');
+        'gl_FragColor.rgb+=uRimC*rimF*uRimStr*uRimK;\n'+FEU_APPEL+'#include <dithering_fragment>'); // (2026-10-17) + la lueur des feux arrière (voir FEU_U)
   };
 }
 const wheels=[];
@@ -29171,15 +29330,16 @@ function lpMat(g){
   const P=LP_MAT[g]||LP_MAT.m;
   const m=new THREE.MeshPhongMaterial({vertexColors:true,shininess:P.sh,specular:P.sp,side:THREE.DoubleSide});
   if(P.rf>0){m.envMap=envTex;m.reflectivity=P.rf;m.combine=THREE.MixOperation;}
-  const uG={value:P.gl},uV={value:new THREE.Vector4().fromArray(P.v||[1,1,1,0])},uC={value:g==='f'?0:1}; // uC : le contre-jour du liseré (voir RIM_GLSL) — pas sur les fruits
+  const uG={value:P.gl},uV={value:new THREE.Vector4().fromArray(P.v||[1,1,1,0])},uC={value:g==='f'?0:1}, // uC : le contre-jour du liseré (voir RIM_GLSL) — pas sur les fruits
+        uF={value:g==='g'?1:g==='c'||g==='o'?.6:g==='k'||g==='n'?.3:g==='m'?.05:g==='f'?0:.2}; // (2026-10-17) la part du REFLET DES FEUX par famille (voir FEU_U)
   m.onBeforeCompile=function(sh){
     sh.uniforms.uGlow=uG;sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
-    sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;
+    sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
     sh.fragmentShader=sh.fragmentShader
-      .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uCj;')
+      .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uCj;\n'+FEU_GLSL)
       .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
       .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
-        'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n#include <dithering_fragment>');
+        'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n'+FEU_APPEL+'#include <dithering_fragment>'); // (2026-10-17) + la lueur des feux arrière (voir FEU_U)
   };
   m.userData.lp=1;m.userData.g=g;m.userData.uG=uG;m.userData.uV=uV;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle) · `uG` : le plancher lumineux (l'atelier le relève pour ses meubles)
 }
@@ -34603,7 +34763,7 @@ function buildCar(spec){
   const VN9=wreck?null:[.06/refl,.36/refl,3,.2];
   rimify(bodyM,VN9);rimify(accM,VN9);bodyM.userData.g='p'; // (le banc des laques reconnaît la tôle des gabarits hors kit)
   if(bodyM.userData.mot)try{motGreffe(bodyM,bodyM.userData.mot);}catch(e){console.warn('motif',e);} // (2026-10-16) le MOTIF d'un gabarit hors kit (voir MOTIFS)
-  if(!wreck){rimify(glassM,[.1,.95,3,.35],0);rimify(chromeM,[.7,1.1,2,1],0);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;} // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
+  if(!wreck){rimify(glassM,[.1,.95,3,.35],0,1);rimify(chromeM,[.7,1.1,2,1],0,.6);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;} // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
   const y0=.35,W9=spec.w,H9=spec.h,L9=spec.l;
   // ---- LA BOÎTE À OUTILS DES GABARITS : sans ces six raccourcis, 15 silhouettes feraient 1500 lignes.
   const add=m=>{carGroup.add(m);return m;};
@@ -62115,7 +62275,7 @@ function loop(now){
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
     headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
-    {const nu9=LVL.nuit,ok9=nu9>.02&&mode!=='boom'&&!garageOn;PHARE_FX.m.opacity=ok9?.16*nu9:0; // (2026-09-30) MINUIT EN VILLE : les faisceaux
+    {const nu9=LVL.nuit,ok9=nu9>.02&&mode!=='boom'&&!garageOn;PHARE_FX.m.opacity=ok9?.16*nu9*(LUM_V2?LUMK.air[0]+LUMK.air[1]*Math.min(1,Math.max(LVL.pluie||0,LVL.brume||0)):1):0; // (2026-10-17) le faisceau dans l'AIR ne se voit que s'il y a de quoi l'attraper : la pluie, le brouillard (LUMK.air) // (2026-09-30) MINUIT EN VILLE : les faisceaux
      for(let j=0;j<2;j++){const o=PHARE_FX.L[j];o.visible=ok9;if(!ok9)continue;hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);PHARE_FX.r.set(j?1:-1,0,0).applyQuaternion(carGroup.quaternion);
        o.position.copy(carGroup.position).addScaledVector(hsF,1.9).addScaledVector(hsU,.72).addScaledVector(PHARE_FX.r,.62);o.quaternion.copy(carGroup.quaternion);}}
     if(CARPOOL.head)CARPOOL.head.visible=(mode==='drive'); // (2026-09-28) en VOL la nappe de 15 m flottait dans le ciel devant la caisse et tournait avec la vrille comme une pale // (2026-09-26) la flaque rouge et le halo nitro au sol n'existent plus : seuls les faisceaux restent
@@ -62755,6 +62915,7 @@ function loop(now){
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   try{canyonTick(dt);cyVautours(dt);}catch(e){loopWarn(262144,'canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : les lumières du relief, l'ombre des parois sur la caisse
   if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
+  try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
   if(mortS9){}else
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
