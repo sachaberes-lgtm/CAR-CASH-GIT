@@ -3,6 +3,41 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GARAGE QUI PREND TOUT L'ÉCRAN — ⚙ ET JOUER ▸▸▸ AJOUTÉS, LES BOUTONS MONTENT (2026-10-17, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ; faut que tu rajoutes un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous assez en bas alors qu'il y a tout le haut de l'écran qui peut être utilisé »)
+⚠ **À DIRE À LÉO** : ce rangement remplace par défaut la console du 11/10 (« INVENTAIRE et BOUTIQUE en bas… », Léo) et rend le ⚙ que Léo
+avait masqué le 9/10 (31840c4, « enlève le settings »). Rien n'est détruit : **`?garage=leo`** (html.garLeo) rend le garage d'avant, au pixel
+(mêmes rectangles mesurés). C'est Sacha qui l'a demandé ; à trancher entre eux s'il faut garder les deux.
+- **L'ACCUEIL DU GARAGE** (`#garage.consoleCachee`), tout dans **`<style id="garageHaut">`**, la DERNIÈRE feuille de la page (après missionsV2).
+  Mêmes éléments, mêmes styles, mêmes écouteurs : seules les PLACES changent.
+  · EN HAUT À DROITE, la barre d'outils : ACCUEIL (`#gHomeBas`, son mot passe en lecteur d'écran) · ŒIL (`#gOeil`) · **⚙ RÉGLAGES** — trois
+    carrés de 50 × 46, à 8 px. Le ⚙ est l'ancien `#gOutils [data-go="set"]` (dans #gTop : le glissé de la vue l'exclut déjà), en or.
+  · COUCHÉ : `#gBottom` devient LA COLONNE DE DROITE (224 px, du haut au bas de l'écran) ; INVENTAIRE · MISSIONS · BOUTIQUE au MILIEU de la
+    place entre la barre d'outils et JOUER (46 px, 10 d'écart), **JOUER ▸▸▸** seul en bas, 224 × 62. garLibre lit le bord gauche de la colonne :
+    la caisse a tout le reste (x < 606 au lieu de 425 : elle se centre sur le plateau).
+  · DEBOUT : `#gBottom` reste au pied (la jauge de Léo au-dessus) mais ne tient plus que **JOUER ▸▸▸**, de toute la largeur (359 × 66 sur
+    390) ; les trois portes en RANGÉE SOUS LE NOM (`top: sT + 176 px`, trois tiers), la barre d'outils en haut à droite (fixed).
+- **L'INVENTAIRE** (l'atelier fermé, `#garage.atelierInv`) : ◀ RETOUR garde sa place et **JOUER ▸▸▸** se pose à côté (2e colonne de la
+  rangée) ; le ⚙ en haut à droite. Les chevrons y étaient tus (règle des 230 px du 30/09, que la règle du 15/10 ne levait pas dans l'atelier) :
+  forcés, le mot serré à 17 px sous 185 px de lingot ; sous 150 px (un écran de 320) seuls les chevrons se taisent.
+  JOUER depuis l'atelier (`garJouer`) : la porte est baissée → on fait ce que fait RETOUR (`gAtelier(false)` + `gGarageReplie()`), puis le lâcher
+  part après **`GAR_ATL_MS`** (450 ms ; la porte remonte en 0,7 s lissée et le lâcher recale d'abord la vue). Un 2e appui pendant l'attente ne
+  relance rien (`garJouer._t`). FILMÉ (screencast) : la porte est en haut quand la caisse roule.
+- **LE ⚙ RAMÈNE AU GARAGE** : `window.__setGar` (posé par l'écouteur de `#gOutils [data-go]`) → le ◀ des RÉGLAGES rouvre le garage
+  (`openGarage`, sous le volet, comme `__offGar` pour les offres) ; une course qui part l'efface (`garageLaunch`).
+- **LA PENTE** : `garAplomb` (15/10) penche toute la pile autour d'UN axe (le milieu de la grille) en style en ligne ; dans une colonne de
+  toute la hauteur, le haut partait de 30 px à droite (l'œil couvrait le ⚙) et JOUER de 30 px à gauche. Ici chaque plaque penche autour de
+  SON centre (`transform-origin:50% 50%!important`). Piège de spécificité : la règle `#garage#garage … :is(…, #gAct:has(>#gEquip.achat)>#gShopBas)`
+  compte 5 identifiants (le `:has` compte) — d'où `#garage#garage` dans toutes les règles de garageHaut.
+- MESURÉ (téléphone couché 844 × 390, rectangles des touches) : AVANT tout tenait dans x 427-829, y 262-368 (le quart bas droit) — ACCUEIL
+  427,312 · JOUER 491,312 263 × 56 · ŒIL 749,312 · les trois portes y 262. APRÈS : ACCUEIL 660,12 · ŒIL 718,12 · ⚙ 776,12 · portes 602 × y 108/164/220 ·
+  JOUER 600,316 236 × 62. Debout 390 × 844 : AVANT portes y 696, ACCUEIL/JOUER/ŒIL y 756 ; APRÈS outils y 12, portes y 176, JOUER y 756 (359 de large).
+- Bancs (scratchpad de la session, Chrome sans fenêtre et muet par CDP) : `t-garage.mjs` (accueil → garage → inventaire → retour → boutique →
+  missions, photo + relevé des touches et de ce qui les couvre) au téléphone couché et debout (tactile émulé), 360 × 800, 320 × 568,
+  667 × 375, 932 × 430, dans le cadre de l'ordi (avec et sans `?encoche=1`) ; `t-flux.mjs` À LA SOURIS dans le cadre : ⚙ → RÉGLAGES →
+  ◀ → garage · l'œil aller-retour (seul l'œil reste) · INVENTAIRE → JOUER → course · mort → MENU → accueil → GARAGE (les sept touches
+  dessus, `elementFromPoint`) → JOUER → 2e course ; `t-film.mjs` (le JOUER de l'inventaire en screencast). 0 exception. `?garage=leo` :
+  les mêmes rectangles qu'avant. Pas de Poki (`html.poki`), ni charte 6, ni UX 8, ni vitrine de Léo : intouchés.
+
 ## LE DÉFIEUR EN ROBOT JAUNE — LA CAISSE DE TRANSFORMERS, À 120 000 $ (2026-10-17, Sacha : « rajoute des éléments pour qu'elle ressemble vraiment à la voiture de Transformers et mets-lui la bonne couleur de base ; inspire-toi de la Chevrolet dans Transformers ; rajoute-lui des petits détails pour la rendre plus belle ; et tu mets son prix à 120 000 dollars »)
 - LAQUELLE : aucune caisse ne s'appelait ainsi. C'est LE DÉFIEUR (`shape:'a_defieur'`, index 32 de `CARS`), le coupé muscle de 1970, orange à deux
   bandes noires : la plus proche du robot jaune du film. Si Sacha pensait à une autre caisse, la recette se rejoue sur elle.
