@@ -305,6 +305,11 @@ changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps
 `voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
 portails et aux relances, météos dans la barre. Liste : `repertoire-maps/maps.js`. Une MAP NOUVELLE dans SF_CARTES → une ligne dans
 maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet). Servir VERSION PRINCIPALE en http.
+**Les NOTES DES MAPS** (17/10, Léo : « une page locale sur laquelle je pourrai retoucher chaque map » → « notes seulement ») : dans
+`voir.html`, le panneau NOTES (à droite, ou en bas sur un petit écran) — il écrit ce qu'il veut changer ; chaque note garde la météo et
+l'IMAGE du jeu à cet instant. Servir par `python3 repertoire-maps/serveur.py 9244` (il écrit les notes) ; elles vivent HORS du dépôt dans
+`~/Downloads/CAR-notes-maps/` : `notes-maps.txt` = ce qu'on lit (map par map, [ ] à faire, id, chemin de l'image) ; une note faite dans le
+jeu → `python3 repertoire-maps/serveur.py fait <id>` (coche verte, vue par la page en 5 s). Le compte « n notes » s'affiche sur la liste.
 
 ---
 
@@ -461,7 +466,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (14/10) — la route qui dévale, la poudreuse qui porte et qui avale, la glisse sur les lacs gelés et les pics, les aurores
 - « LE ROYAUME DE FEU — LA MAP DU VOLCAN » (14/10) — le flanc qui descend, les lacs et les coulées de lave, les éruptions, les six temps
 - « LA FORÊT NOIRE — LA MAP DES CONTES » (14/10) — la vallée en slalom qui descend, les géants, le jour fleuri, la nuit hantée, le loup-garou
-- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
+- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)

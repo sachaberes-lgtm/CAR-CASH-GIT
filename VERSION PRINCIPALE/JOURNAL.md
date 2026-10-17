@@ -37,6 +37,30 @@ Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : 
 - LES CARTES : toutes les traînées ont leur pictogramme EN COULEUR en boutique (`illuTr` → `bqTrIc`, trait d'ombre dur pour le blanc).
 - Perf : aucune PointLight, aucun programme en plus ; tout passe par les pools existants (TRX_PN 560, SIL).
 
+## CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : Crypto City, une ville imaginaire avec de grands immeubles qui reflètent — des vitrés, des dorés, des argentés, des métalliques et des blancs ; hyper moderne, le futur, pas forcément moche ; explosif : la période bullrun, l'apogée de la ville, pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »)
+- LA BASE : la CRYPTOCITY de Léo (13/10, section « CRYPTOCITY — LA VILLE EN BULL RUN » plus bas) avait été retirée le 14/10 (`0ac875d`,
+  « on supprime tout ce qui n'est pas là » : elle n'était pas dans le tirage). Elle est REVENUE (le retrait défait sur le main d'aujourd'hui :
+  24 morceaux reposés tels quels, 11 refaits à la main sur la ville qui a changé depuis — néons v5, grues, `uPied9`) : taureaux, bougies,
+  pièces ₿ géantes (JACKPOT), diamants, dirigeables à écran, lune ₿, fusées TO THE MOON, feux d'artifice, le NOUVEL ATH, la pluie d'argent
+  à 50 % en fond, les pièces de la route frappées du ₿, le bitume glacé (`LVL.crypto`, `GLACE.crypto`), l'accent vert profit 0x35ff9e.
+- UNE MAP DU TIRAGE : `SF_CARTES.crypto` (« CRYPTO CITY », base `NIV_CRYPTO`, `SF_NIV.crypto`). QUATRE TEMPS, jamais de pluie ni d'orage
+  (c'est l'apogée) : MATIN (`BIOMES.cryptoMatin`, aube rose et or), MIDI (`bullrun`, le ciel de Léo + l'étalonnage du 14/10, poids 1,3),
+  SOIR (`cryptoSoir`, tout l'or s'allume, poids 1,2), NUIT (`cryptoNuit`, nuit:1 → phares ; « LA VILLE NE DORT JAMAIS »). Plus de JOUER à
+  part : `CRYPTO_JEU`, `cryptoJouer`, `cryptoPlayOk` sont partis ; `?niveau=crypto` = `?carte=crypto` ; `dbgNiveauCrypto(meteo)` impose
+  la map puis `classiqueJouer()`. Vignette du garage (`gvVignette('crypto')`, `GV_TEINTE.crypto` or).
+- LES FAÇADES EN CINQ MATIÈRES (`CRYPTO_VERRE`, programme `toursCrypto2`) — le même seuil dans le shader (`s3`) et pour la structure
+  (couleur d'instance, buildVoxCity) : 26 % VERRE bleu-vert · 18 % OR (renvoie la lumière du ciel) · 20 % ARGENT (miroir : garde le bleu,
+  Fresnel +60 %) · 16 % MÉTAL brossé (lames verticales, reflet brouillé, éclat du soleil en traînée large) · 20 % BLANC (résille de
+  céramique autour de baies étroites). Parapets : menthe / or / blanc chaud. LA NUIT, les bureaux restent allumés (`uNuit9` =
+  `CRYPTO.uNuit`, suit `LVL.nuit` dans cryptoTick).
+- LES RÉCLAMES : 32 écrans au lieu de 16 (atlas 2048 × 1024, 8 × 4, programme `pubsCrypto2`) — ajoutés NFT, SATOSHI, WEB3, DEFI, AIRDROP,
+  STAKE, WHALE, FOMO, DOGE, DAO, GAS 0, AI, MINING, LFG, SER, 1 BTC = 1 BTC ; traduits par `pubLangue`.
+- MESURÉ (banc Playwright + Chromium logiciel, 844 × 390, muet, `?carte=crypto&meteo=…`, pilote `dbgAuto`) : midi, soir, nuit lancés par
+  le JOUER du tirage, `__loopErr` nul, `dbgCrypto('progs')` vide, aucune erreur de page (seul le 404 connu de dark-triad.mp3). Ville bâtie :
+  1 425 tours, 3 913 volumes, 66 réclames, 2 taureaux, 59 bougies, 12 pièces, 8 diamants, 3 dirigeables, en 48 ms.
+  Les neuf maps du tirage : nuages, ville, jade, foret, banquise, volcan, crypto, espace, canyon.
+- À TRANCHER (Sacha, Léo) : la part de chaque matière ; la pluie d'argent en fond (.5) ; le nom (CRYPTO CITY / CRYPTOCITY de Léo).
+
 ## LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE (2026-10-17, session « Système d'éclairage » — Sacha : « on retravaille complètement comment les lumières fonctionnent : les traînées doivent faire de la lumière, les flammes de nitro doivent faire de la lumière, les feux arrière doivent faire de la lumière quand il fait nuit, sur la route ; on retravaille comment les phares fonctionnent, comment la lumière des feux arrière se reflète dans le pare-brise arrière ; il faut que la lumière marche très bien, que ce soit parfait — optimisé quand même, pas de ray tracing : compatible iPhone, magnifique mais compréhensible pour un iPhone »)
 - AVANT : sur la route, la caisse n'éclairait presque rien. Un projecteur three (`headSpot`) au milieu du capot, une NAPPE PEINTE plate devant
   (`CARPOOL.head`, le trapèze blanc qu'on voyait flotter devant la caisse la nuit) et, derrière, RIEN : la flaque rouge des feux et le halo nitro
