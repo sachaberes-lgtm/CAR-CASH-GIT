@@ -113,7 +113,7 @@ const ligneErreur=e=>{const m=/(?:<anonymous>|Function):(\d+):\d+/.exec((e&&e.st
 let SEGS=null; // le plan de la dernière lecture : [{code, d (1re ligne), f, ori (n° du morceau d'origine ou -1), nom}]
 function construire(M,L){
   const S=[{code:'let carGroup=null;',ori:-1}],mets=a=>S.push({code:a.code,ori:-1,nom:a.nom});
-  M.forEach((code,o)=>{for(const a of AJOUTS)if(a.avant===o)mets(a);S.push({code,ori:o});});
+  (ORDRE_M&&ORDRE_M.length===M.length?ORDRE_M:M.map((_,o)=>o)).forEach(o=>{for(const a of AJOUTS)if(a.avant===o)mets(a);S.push({code:M[o],ori:o});});
   for(const a of AJOUTS)if(!(a.avant>=0&&a.avant<M.length))mets(a);
   S.push({code:RETOUR,ori:-1});
   let l=0;for(const s of S){s.d=l;l+=s.code.split('\n').length;s.f=l;}
@@ -129,9 +129,14 @@ function reparer(e,L,pendantCaisse){
   const tdz=/Cannot access '([\w$]+)' before initialization/.exec(msg)||/Cannot access uninitialized variable/.exec(msg);
   const ln=ligneErreur(e),seg=SEGS&&SEGS.find(s=>ln>=s.d&&ln<s.f),aj=seg&&seg.nom?AJOUTS.find(x=>x.nom===seg.nom):null;
   if(tdz){ // un ajout posé trop tôt (il lit une constante d'un morceau plus bas) : il descend juste après ce morceau
-    if(!aj||!tdz[1])return false;
+    if(!tdz[1])return false;
     const def=SEGS.findIndex(s=>s.ori>=0&&new RegExp('(?:^|\\n)(?:const|let|var)\\s+(?:[^=\\n]*?[,\\s])?'+tdz[1].replace(/[$]/g,'\\$')+'\\s*=').test(s.code));
-    if(def<0)return false;const suiv=SEGS.slice(def+1).find(s=>s.ori>=0),nv=suiv?suiv.ori:Infinity;
+    if(def<0)return false;
+    // (17/10) un morceau D'ORIGINE qui lit une constante d'un morceau plus bas (les MISSIONS v2, dans le bloc CAR_UNLOCK, lisent SHAPES) :
+    // c'est lui qui descend, juste après le morceau qui la déclare
+    if(!aj){if(!seg||seg.ori<0||!ORDRE_M)return false;const a=ORDRE_M.indexOf(seg.ori);if(ORDRE_M.indexOf(SEGS[def].ori)<=a)return false;
+      ORDRE_M.splice(a,1);ORDRE_M.splice(ORDRE_M.indexOf(SEGS[def].ori)+1,0,seg.ori);return true;}
+    const suiv=SEGS.slice(def+1).find(s=>s.ori>=0),nv=suiv?suiv.ori:Infinity;
     if(nv===aj.avant)return false;aj.avant=nv;return true;}
   if(!m)return false;const nom=m[1];if(AJOUTS.some(a=>a.nom===nom))return false;
   let code=declaration(L,nom);
@@ -139,9 +144,9 @@ function reparer(e,L,pendantCaisse){
   const n={nom,code,avant:aj?aj.avant:pendantCaisse?Infinity:(seg&&seg.ori>=0?seg.ori:0)};
   if(aj)AJOUTS.splice(AJOUTS.indexOf(aj),0,n);else AJOUTS.push(n);
   DERNIER=n;return true;}
-let LIGNES=null,MORCEAUX=null;
+let LIGNES=null,MORCEAUX=null,ORDRE_M=null; // ORDRE_M : l'ordre des morceaux d'origine (une lecture le corrige, la suivante le garde)
 function evaluerJeu(SRC){
-  LIGNES=SRC.split('\n');MORCEAUX=morceauxDe(LIGNES);DERNIER=null;
+  LIGNES=SRC.split('\n');MORCEAUX=morceauxDe(LIGNES);DERNIER=null;if(!ORDRE_M||ORDRE_M.length!==MORCEAUX.length)ORDRE_M=MORCEAUX.map((_,o)=>o);
   for(let essai=0;essai<150;essai++){
     try{G=construire(MORCEAUX,LIGNES);DERNIER=null;return;}
     catch(e){if(!reparer(e,LIGNES,false))throw e;}}
