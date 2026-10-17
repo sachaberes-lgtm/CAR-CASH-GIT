@@ -3,6 +3,42 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE PLAQUE À L'AVANT (2026-10-17 soir, Sacha : « pas de plaque d'immatriculation à l'avant »)
+- `plqPose` ne pose plus que la plaque ARRIÈRE (`PLQ.pos[lvl].ar`) ; plus de rayons tirés vers le nez (`plqCherche(1,…)` n'est plus appelé :
+  la pose coûte deux fois moins). L'atelier de la plaque, ses modèles et le profil sont inchangés. `dbgPlaque('pos')` ne liste plus que `ar`.
+
+## LA PELOTE REVIENT DANS LA FORÊT NOIRE — LA ROUTE DÉCOLLÉE DU SOL, LES ÉTAGES QUI SE CROISENT (2026-10-17 soir, Sacha : « j'aime bien la nouvelle forêt mais il refaut le système où la route n'est pas collée au sol et où elle est sens dessus dessous avec les autres »)
+- LA ROUTE : `FOR_ZIG_V` passe à FAUX par défaut — la PELOTE (`forPelote` : trois nœuds en étoile qui descendent, montent, font la vague ; ≥ 32 m
+  entre étages, on saute d'une route à l'autre) redevient la route de la forêt. Tout ce que Léo a fait sur l'image reste : arbres en VITRAIL,
+  mini-cubes, contraste, pleureurs, géants tordus, abeilles et lucioles. Le SLALOM au ras du sol (ses ponts et sa MOUSSE, qui n'existe que
+  sur le slalom : `mousseOk` lit `FORET.zig`) = `?foret=slalom` (ou `?foret=zigzag`). `?foret=pelote` ne sert plus à rien (sans effet).
+  En Node (outils `passation/foret-pelote/`), c'est de nouveau la pelote par défaut.
+- LES GÉANTS PLEUREURS DANS LA PELOTE : ils prennent la place d'un géant taillé pour SA couronne (un séquoia s'ouvre à 178, le rideau d'un saule
+  tombe à 94, celui du hêtre pleureur à 76) — avec les étages, une route passait dans leurs mèches et leurs branches (32 géants sur 220, jusqu'à
+  251 m de feuillage traversé, mesuré). Maintenant, dans la pelote seulement, chaque pleureur est REHAUSSÉ (`sy`, la hauteur seule) jusqu'à ce
+  que le bas de ses rideaux passe 16 m au-dessus de la plus haute route sous sa ramure (la règle de `geantXZ`) ; s'il faut plus de ×1,45, on
+  prend l'autre pleureur ; sinon la clairière reste vide (`g.vide`, deux tirages `fr()` consommés : le décor qui suit ne bouge pas).
+  Le volume des pleureurs : `FOR_PLEUR_VOL` (bas des rideaux, cime, rayon, en unités du prototype). MESURÉ : 0 route dans un feuillage sur
+  228 pleureurs, 2 clairières vides ; construction de la forêt inchangée (~430 ms, comme le slalom au même moment du banc).
+- Banc : `dbgForet('rideaux')` → `{n, dedans, pire, vides, ex}` (une route DANS la couronne d'un pleureur, du bas des rideaux à la cime).
+  Le slalom au même banc : 0 aussi (route au sol, rien au-dessus). L'avertissement « computeBoundingSphere NaN » et deux 404 existaient déjà
+  avant (slalom compris).
+- ⚠ À DIRE À LÉO : le slalom remplaçait la pelote à sa demande (« oui, la remplacer ») ; Sacha la remet. Rien n'est détruit : `?foret=slalom`.
+## LE PANNEAU DU CANYON DEVIENT « ROUTE 67 » (2026-10-17 soir, Sacha : « le panneau sur la route 66 dans la map canyon doit s'appeler la route 67 »)
+- `cyRoute66` : le grand chiffre du bouclier passe de « 66 » à « 67 ». `CY_FONTE` gagne un `7` en 5 × 7 pavés (barre du haut, puis
+  diagonale qui tombe vers la gauche) ; même largeur que le 6 : le texte reste centré. Rien d'autre ne bouge (station-service, mesa,
+  tirages de la piste) ; les noms internes (`cyRoute66`, `CY.r66`, `dbgCanyon('r66')`) sont gardés tels quels.
+
+## LES SATELLITES FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route »)
+- La passe « les maps comme un tout » (même jour, 15 h 37) avait lu « il faut que ce soit un obstacle à part entière » comme des satellites
+  SUR la chaussée (seul, porte, chicane, L'IMPACT au choc). Ce n'était pas la demande : ils quittent la route.
+- `orbiteBuild` §0 bis : les mêmes grands engins (Starlink 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, petit satellite
+  d'or) DÉRIVENT à 4-16 m du bord, de 8 m sous la dalle à 16 m au-dessus (repère de la route F.b/F.n : juste sur le côté, même dans les
+  virages relevés ; plus bas, la caméra plongeante ne les voyait plus, la route les cachait), et tournent lentement sur eux-mêmes. Trois figures, toutes les 200-400 m × la croisière : le SEUL, la PORTE (un de chaque
+  côté, la route passe entre les deux), la FILE (2-3 à la suite du même côté, en escalier). `libre` les tient loin de toutes les AUTRES
+  portions de piste ; au plus un quart des Starlink et un cinquième des débris (les passants, le champ et les trains gardent leur part).
+- Décor pur : `SATOB` est vide, rien à percuter, les pièces ne s'écartent plus, ni liseré rouge ni étoile qui pulse. `?sats=route` (`SAT_OBST_V`)
+  rend les obstacles de l'après-midi ; `?sans=satobst` n'existe plus (c'est le défaut).
 ## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
 - **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
   la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.
