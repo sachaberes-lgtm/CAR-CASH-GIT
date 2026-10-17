@@ -3,7 +3,6 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-
 ## LE DEMI-TOUR — LA POSE À CONTRESENS NE TOMBE PLUS (2026-10-17, Léo : « quand tu ratterris sur la route mais dans le mauvais sens, la voiture ne reste pas sur la route, elle continue juste de tomber — qu'elle arrive à l'envers, "mauvais sens" écrit discrètement mais stylé, un dérapage demi-tour un peu en burn-out (pas trop), elle revient sur la route automatiquement, et ça reprend »)
 - **Le bug, MESURÉ** (banc, pose forcée à 149°) : à la pose, `psi = atan2(vLat,|vT|)` gardait un cap de 30° vers le BORD, le moteur relançait la
   caisse vers l'avant et elle sortait par le côté en ~1 s → chute, mort (sur la même map, avant : au bord à 2 s, dans le vide à 2,6 s). À 180°
@@ -27,7 +26,44 @@
   son élan (Sacha, 15/10). Mesuré : 180°, 178° à 200, 149°, 135°, 120° → la caisse reste sur la route ; 14 sauts dans le bon sens → 0
   demi-tour, 0 erreur ; vrai demi-tour au joystick en l'air → posée à 139°, nez du vol à 126°, demi-tour joué.
 - `?demitour=0` = l'ancienne pose. `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie la caisse se poser à contresens ; `dbgDemiTour()` = l'état.
-  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v591.
+  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v593.
+## LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES (2026-10-17, session PORTAIL — Léo : « revoir tout le système de transition entre chaque map : que les portails soient une accumulation de cubes bien disposés, stylés, au bout de la route, avec un peu de transparence, mais qui te laissent comprendre que tu vas aller ailleurs — et qui te donnent une vue sur où tu vas aller »)
+Léo préférait « un portail qui montre la map où tu vas » aux « portails de feu » (repli prévu si c'était trop lourd) : c'est la 1re option, et elle est légère.
+- VU AVANT (banc, debout 390 × 844) : l'OVULE rose (sphère additive de 55 m, la même pour toutes les maps) ne disait rien de la suite ; au passage,
+  les FEUX DU DÉPART (portique d'or, rouge-rouge-rouge-vert, 15/10) couvraient l'écran pendant la construction.
+- LA MAP D'EN FACE EST TIRÉE D'AVANCE (`portDest`) : en mode classique, la construction d'une piste remplit `SF.tirage[zone+1]` (avec la règle de
+  `sfTire` : jamais la même map deux fois de suite) ; au portail, `lvlChoisir` la REPREND (et en fait `SF.der`). Carrière : le niveau suivant.
+  `dbgClassique(c,m)` en course remplace la suite que le portail montre.
+- L'ANNEAU (`PCUBE`, `pcubeGabarit`/`pcubeInit`/`pcubePose`/`pcubeDest`/`pcubeTick`) : un cercle tracé AU PIXEL (cubes de 5,2 m, Ri 44 · Ro 54,
+  centre 20 m au-dessus du bitume, la route passe dans le bas), trois couches (derrière, le plan, quelques cubes devant), chaque cube à ~90 % de sa
+  case (les JOINTS du vitrail), verre à arêtes claires, une ONDE de lumière qui fait le tour, 34 FLOTTEURS qui tournent autour, 44 FUYARDS qui
+  sortent de la fenêtre vers la caisse ; à ~4 s de la caisse l'anneau se penche vers elle (`uAsp`). UNE instance (285 cubes), mouvement dans le
+  vertex shader, hasard à lui (jamais `rnd()` : la piste est seedée). COULEURS de la map d'en face (`PCUBE_PAL` : jade et or, lave, glace,
+  or et argent, la teinte de la ville…), la PointLight du portail aussi (elle reste : le compte des lumières ne bouge pas).
+- LA FENÊTRE : un disque lu PAR LA DIRECTION DU REGARD (une fenêtre, pas une affiche) sur la CARTE POSTALE de la map d'en face
+  (`assets/portail/<map>-<météo>[-<teinte>].webp`, 640², ~20 Ko, chargée à la construction de la piste). L'œil est RAPPROCHÉ (jamais à plus de
+  34 m, `uDv`) : de loin on voit déjà toute la map d'en face, de près c'est la vraie fenêtre. La carte postale est déjà étalonnée : la fenêtre
+  défait d'avance l'étalonnage du monde d'ici (`versScene`, l'inverse approché de l'ACES avec SES uniformes, partagés) — sans ça le volcan
+  sortait rouge saturé. Au bord, l'image se pixelise. `PCUBE_CP` = la liste des cartes livrées (réécrite par le banc).
+- LES CARTES POSTALES se TIRENT au banc (`dbgCartePostale()` : l'œil de la caméra de poursuite, 3,2 m, 30 m DEVANT la caisse, à l'horizontale,
+  champ carré de `PCUBE_FOV` 116° — en portrait la caméra a ~110° de haut). 59 couples (toutes les maps × météos, la ville × ses 4 teintes).
+  ⚠ UNE MAP NOUVELLE (ou un décor qui change beaucoup) → retirer ses cartes postales ; sans elle, le portail montre ses couleurs seules.
+- LE PASSAGE PAR LA FENÊTRE (`pcVoile`/`pcVoileSort`/`pcPrepare`/`pcDessine`, `#portC`) remplace les feux quand le portail est de cubes : on
+  passe en TRAVERSANT le plan de la fenêtre (`pcubeFranchi`, dans un sens ou dans l'autre, au sol comme en vol — l'ovule se prenait à 48 m de son
+  centre), la scène est rendue une fois et RECOPIÉE dans une toile plein écran (la fenêtre couvre déjà tout l'écran), la toile avance (zoom CSS,
+  joué même quand newTrack bloque), le ciel bascule d'un coup dessous (`bioPortDur`, `PCV.fen`), puis elle SE DÉFAIT EN CUBES (carrés qui
+  rétrécissent, du centre vers les bords, 0,44 s) sur la map d'arrivée — la vue même de la carte postale.
+- 2e TOUR, LA TRAVERSÉE (Léo, après l'avoir essayée : « il y a une pause quand on passe dans le portail ; donner encore plus l'impression qu'on
+  change de dimension, que ça reste fluide ; pousser l'aspect traversée multidimensionnelle pixel, sans prendre trop de place ») : la pause, c'est
+  la construction de la map (le script est bloqué) — tout ce qui bouge pendant ce temps est joué par le COMPOSITEUR : l'image avance (×1,3), le
+  monde perd sa définition par PALIERS (petits pixels à 90 ms, puis les GROS PIXELS = les cubes de la traversée à 240 ms ; deux petites toiles
+  tirées une fois de l'image, affichées `pixelated`), un TUNNEL DE PIXELS aux couleurs d'en face (3 petites toiles de 96², `pcTunnel`, qui
+  grandissent en boucle) file vers l'écran, les bords s'allument de sa couleur (`.pcE`). La map bâtie, chaque gros pixel S'ALLUME de la couleur
+  d'en face, rétrécit et part (des `fillRect`, ~0,5 ms par image au processeur bridé ×4). Même durée qu'avant.
+- `?portail=ancien` : l'ovule et les feux, tels quels. Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgPortailPhoto(d)`,
+  `dbgCartePostale()`, `dbgPassage(p)` / `dbgPassage('lent',k)`. Bancs (scratchpad de la session) : `approche.py`, `passage.py`, `cp.py`.
+
+
 ## LA POUPÉE RETIRÉE (2026-10-17, Léo : « enlève la barbie » → au questionnaire : « du jeu »)
 - `retire:1` sur sa ligne de CARS (la ligne reste : les index de sauvegarde ne bougent pas). Le mécanisme des caisses retirées fait le reste :
   qui l'avait achetée est REMBOURSÉ de son prix (4,2 M$, `CAR_UNLOCK`) et repart en LA HONTE s'il roulait avec. Le gabarit `SHAPES.poupee`
