@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES SATELLITES FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route »)
+- La passe « les maps comme un tout » (même jour, 15 h 37) avait lu « il faut que ce soit un obstacle à part entière » comme des satellites
+  SUR la chaussée (seul, porte, chicane, L'IMPACT au choc). Ce n'était pas la demande : ils quittent la route.
+- `orbiteBuild` §0 bis : les mêmes grands engins (Starlink 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, petit satellite
+  d'or) DÉRIVENT à 4-16 m du bord, de 8 m sous la dalle à 16 m au-dessus (repère de la route F.b/F.n : juste sur le côté, même dans les
+  virages relevés ; plus bas, la caméra plongeante ne les voyait plus, la route les cachait), et tournent lentement sur eux-mêmes. Trois figures, toutes les 200-400 m × la croisière : le SEUL, la PORTE (un de chaque
+  côté, la route passe entre les deux), la FILE (2-3 à la suite du même côté, en escalier). `libre` les tient loin de toutes les AUTRES
+  portions de piste ; au plus un quart des Starlink et un cinquième des débris (les passants, le champ et les trains gardent leur part).
+- Décor pur : `SATOB` est vide, rien à percuter, les pièces ne s'écartent plus, ni liseré rouge ni étoile qui pulse. `?sats=route` (`SAT_OBST_V`)
+  rend les obstacles de l'après-midi ; `?sans=satobst` n'existe plus (c'est le défaut).
 ## LA CAISSE PLUS LOURDE, 2e TOUR — LE SAUT NITRO QUI RETOMBE (2026-10-17 soir, Sacha : « augmente la gravité des voitures : quand on fait une figure sur route on doit retomber sur la route plus vite »)
 - POURQUOI LE ×1,3 DU 15/10 NE SE SENTAIT PLUS : deux heures après lui, « les figures lancées en roulant » (16/10, 0 h) a rallongé chaque
   saut nitro à figure jusqu'à 90 % de la durée de CATALOGUE de la figure (`sautBesoin` ≥ 1 s, jusqu'à +19 m/s de poussée) — sur du plat
