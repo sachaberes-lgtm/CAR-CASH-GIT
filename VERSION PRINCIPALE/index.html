@@ -10060,17 +10060,21 @@ html.misV2 #gMisPips,html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips,
 .m2L .glTx small{color:#8fb8c8}
 .m2Sec{font-style:normal;display:inline-block;padding:2px 4px 1px;margin-right:2px;background:var(--neoM);color:#fff;font-size:var(--f0);line-height:1.3;letter-spacing:1px;vertical-align:1px}
 /* la vignette de la récompense : elle tourne doucement (une caisse sur son plateau) */
-.m2R{flex:none;width:70px;height:44px;display:flex;align-items:center;justify-content:center}
+.m2R{flex:none;width:88px;height:50px;display:flex;align-items:center;justify-content:center} /* (2026-10-17, Sacha : « les vignettes de récompense plus grandes ») 70 × 44 → 88 × 50 */
 .m2R.voir{cursor:pointer}
 .m2R .obFig{position:relative;right:auto;top:auto;margin:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
 .m2Ph{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#4c5f8c}
 .m2Ph .pxi{--pxs:2}
 .m2Ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .m2Ph img:not([src]){display:none}
+/* (2026-10-17) la photo du studio (720 × 440) laisse un grand vide autour de la caisse (elle tient dans x 68-666, y 46-306) : la vignette
+   la RECADRE sur la caisse — 115 % de large, son milieu (51 % en x, 40 % en y) au milieu de la case (rapport ~1,75 à toutes les tailles :
+   top 0 tombe juste). La caisse y passe de ~60 × 26 à ~84 × 37 px ; le débord est transparent et ne prend pas le doigt. */
+.m2R .m2Ph img{inset:auto;left:-8.65%;top:0;width:115%;height:auto;object-fit:fill;pointer-events:none}
 .m2R .m2Ph img,.m2R .obFig{animation:m2Tourne 5.5s var(--ease) infinite alternate;transform-origin:50% 62%}
 @keyframes m2Tourne{from{transform:perspective(240px) rotateY(-18deg)}to{transform:perspective(240px) rotateY(18deg)}}
 .m2Cash{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap;text-shadow:0 0 8px rgba(125,255,155,.35)}
-.m2Vide{font-style:normal;font-size:var(--f4);color:#6f6a99}.m2Vide .pxi{--pxs:2}
+.m2Vide{font-style:normal;font-size:var(--f4);color:#6f6a99}.m2Vide .pxi{--pxs:3} /* (2026-10-17) l'objet pas encore dans le jeu (la traînée de SANG) : son icône à la taille de la vignette */
 /* SUIVIE : le filet d'or */
 .m2L.f{--bc:var(--au2);background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2)}
 .m2L.f .glTx small{color:var(--au1)}
@@ -10127,8 +10131,8 @@ body:not(.play) #m2Focus{display:none!important}
 .mObj.m2Ob .obM.ok .pxi{color:var(--cash)}.mObj.m2Ob .obM.sec,.mObj.m2Ob .obM.sec .pxi{color:var(--neoM)}
 .mObj.m2Ob .obBar{margin:-2px 0 2px}
 /* les petits téléphones et le couché bas : plus serré, la vignette rapetisse, rien ne déborde */
-@media (orientation:landscape) and (max-height:540px){.m2L{min-height:52px;padding:7px 9px 7px 8px;gap:9px}.m2R{width:62px;height:38px}.m2Ic{width:28px;height:28px}.m2L u{margin:5px 0 4px}}
-@media (max-width:360px){.m2L{gap:8px;padding:8px}.m2R{width:56px;height:36px}.m2Ic{width:28px;height:28px}}
+@media (orientation:landscape) and (max-height:540px){.m2L{min-height:52px;padding:7px 9px 7px 8px;gap:9px}.m2R{width:80px;height:46px}.m2Ic{width:28px;height:28px}.m2L u{margin:5px 0 4px}}
+@media (max-width:360px){.m2L{gap:8px;padding:8px}.m2R{width:70px;height:40px}.m2Ic{width:28px;height:28px}}
 @media (prefers-reduced-motion:reduce){.m2L,.m2L.pret,.m2R .m2Ph img,.m2R .obFig,.m2Pt,.m2L.pris .m2R{animation:none!important}.m2L u em{transition:none}}
 /* LA BOUTIQUE ET LE GARAGE (étape 3) : SE DÉBLOQUE + la jauge + VOIR LA MISSION (cyan : aller voir) ; les SECRÈTES en silhouette noire */
 .m2Deb{display:flex;flex-direction:column;gap:6px;font-family:var(--pix)}
@@ -10145,14 +10149,25 @@ body:not(.play) #m2Focus{display:none!important}
 /* dans la salle blanche de la boutique : l'étiquette au-dessus de l'objet, encre sombre sur blanc */
 #gBqNom .bqM2{display:block;max-width:min(80vw,440px);margin-top:4px;white-space:normal;text-align:center}
 #gBqNom .bqM2[hidden]{display:none}
-@media (orientation:landscape){#gBqNom .bqM2{max-width:min(33vw,290px)}#gBqNom .m2DebB{width:min(28vw,230px)}} /* couché : la place entre les rayons et le panneau */
+@media (orientation:landscape){#gBqNom .bqM2{max-width:min(33vw,290px)}} /* couché : la place entre les rayons et le panneau (garBq la resserre à la place réelle) */
 #gBqNom .m2Deb{align-items:center}
-#gBqNom .m2DebT{color:#0b7183}#gBqNom .m2Deb.sec .m2DebT{color:#c2187f;font-size:var(--f1)}
-#gBqNom .m2DebB{width:min(60vw,260px)}#gBqNom .m2DebB u{height:6px;background:#cfd5dc;box-shadow:none}#gBqNom .m2DebB u em{background:#00b8d4;box-shadow:none}#gBqNom .m2DebB b{color:#3a4250}
+#gBqNom .m2DebT{color:#0b7183;font-size:var(--f1);line-height:1.6}#gBqNom .m2Deb.sec .m2DebT{color:#c2187f}
+#gBqNom .m2DebB{width:100%;min-width:min(60vw,180px)}#gBqNom .m2DebB u{height:8px;background:#cfd5dc;box-shadow:none}#gBqNom .m2DebB u em{background:#00b8d4;box-shadow:none}#gBqNom .m2DebB b{color:#14171c;font-size:var(--f1)}
+/* (2026-10-17, Sacha : « SE DÉBLOQUE en plus gros avec son compteur entier ») 8 → 10 px, la jauge de 6 → 8 px et sur toute la largeur de
+   l'étiquette ; la règle couchée de la jauge (230 px) était écrasée par celle-ci, écrite après : la jauge restait à 260 px et le compteur
+   passait sous la grille. */
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="mis"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="mis"]{background:#00b8d4;color:#fff;box-shadow:0 4px 0 #087a8c}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="sec"]{background:#f3eef2;color:#c2187f;box-shadow:none;cursor:default}
 .bqK.m2sec .bqKph img,.gT.m2sec>img{filter:brightness(0) drop-shadow(0 0 1px rgba(255,62,200,.9))}
 .bqK.m2sec .bqKp.sec{color:#c2187f}
+/* (2026-10-17, Sacha : « les silhouettes secrètes pas rognées ») la grille agrandit chaque photo (118 %) et la centre : le toit et les bouts
+   sortaient de la case — une caisse en couleur se lit quand même, une silhouette noire devenait une tache. La silhouette tient ENTIÈRE :
+   la photo au plus 110 % de large et 148 % de haut (la caisse = 83 % × 59 % de la photo : ~90 % de la case), descendue de 10 % (le milieu de
+   la caisse est à 40 % de la hauteur de la photo). L'étiquette SECRÈTE lui couvrait le toit : retirée ici, la carte dit déjà
+   « MISSION SECRÈTE » en magenta juste dessous. */
+#gBqPan .bqK.m2sec .bqKph img{width:auto;height:auto;min-width:0;max-width:110%;max-height:148%;transform:translateY(10%)}
+#gBqPan .bqK.m2sec .bqKr{display:none}
+html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-left:4px;padding-right:4px} /* debout, « MISSION SECRÈTE » (117 px de texte) était coupé dans une carte de 112 px : il passe sur deux lignes ; couché (128 px) il tient sur une, à 4 px des bords */
 /* LA RÉVÉLATION D'UNE SECRÈTE (étape 4, #m2Rev) : la nuit, les rayons à la couleur de la rareté, la silhouette qui se remplit de couleur
    de bas en haut sous une ligne de lumière, le nom qui tombe, l'intitulé tapé, RÉCUPÈRE (le lingot de l'écran) */
 #m2Rev{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);
@@ -57326,7 +57341,8 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
    GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
   {const v=GBQ._vn||(GBQ._vn=new THREE.Vector3()),G=garGabarit();carGroup.getWorldPosition(v);v.y+=G.H*1.1+.5;v.project(camera);
-   const z=GBQ.zone,w2=nm.offsetWidth/2,x=Math.max((z.g||0)+w2,Math.min((z.cote?z.x0-8:z.d)-w2,(v.x*.5+.5)*W)),y=Math.max(tr.bottom+8,(.5-v.y*.5)*H-nm.offsetHeight-8);
+   const z=GBQ.zone,m9=nm.querySelector('.bqM2'),mw9=m9?Math.max(150,Math.round((z.cote?z.x0-8:(z.d||W-12))-(z.g||0)))+'px':'';if(m9&&m9.style.width!==mw9)m9.style.width=mw9; /* (2026-10-17, Sacha) SE DÉBLOQUE prend TOUTE la place libre à côté des rayons (couché : jusqu'à la grille, qu'il ne passe plus — le compteur passait dessous ; debout : il tenait sur 180 px, quatre lignes) */
+   const w2=nm.offsetWidth/2,x=Math.max((z.g||0)+w2,Math.min((z.cote?z.x0-8:z.d)-w2,(v.x*.5+.5)*W)),y=Math.max(tr.bottom+8,(.5-v.y*.5)*H-nm.offsetHeight-8);
    nm.style.left=Math.round(x)+'px';nm.style.top=Math.round(y)+'px';}
 }
 function bqSkins(k){if(!k)return [];if(k[0]==='v'&&MISSIONS_V2&&m2Secrete(+k.slice(2)))return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris

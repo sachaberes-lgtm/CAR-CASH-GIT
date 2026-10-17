@@ -23,6 +23,27 @@
   sinon l'essai avait le pot générique et non celui de la caisse) et (b) prendre une vue `[rotation, ×hauteur, ×distance]` (de plus haut comme la
   poursuite, de plus près pour un détail). Une vue de l'arrière : rotation ≈ 222° (π + 0,73).
 - Reste à faire, si Sacha le veut : la même passe sur l'arrière des autres caisses de la boutique (« chaque voiture, qu'on ait envie de l'acheter »).
+## LA BOUTIQUE PLUS LISIBLE — SE DÉBLOQUE EN GRAND, LES SILHOUETTES ENTIÈRES, LES VIGNETTES DE MISSIONS AGRANDIES (2026-10-17, session MISSIONS — Sacha : « rends la boutique plus lisible : SE DÉBLOQUE en plus gros avec son compteur entier, les silhouettes secrètes pas rognées, et les vignettes de récompense plus grandes dans MISSIONS »)
+- SE DÉBLOQUE (l'étiquette au-dessus d'une caisse ou d'un objet de mission, `#gBqNom .bqM2`, `m2DebloqueHtml`) : texte et compteur de 8 à 10 px
+  (`--f1`), compteur en encre noire, jauge de 6 à 8 px et sur TOUTE la largeur de l'étiquette. Sa largeur = la place libre à côté des rayons
+  (le bloc de placement de `#gBqNom` dans garBq pose `width`, d'après `GBQ.zone`) : couché jusqu'à 8 px de la grille, debout jusqu'au bord. AVANT :
+  couché, l'étiquette faisait 278 px pour ~245 de place — le nom se recalait contre les rayons, la fin de la jauge et le compteur (« 0 / 8 »)
+  passaient SOUS la grille ; la règle couchée de la jauge (230 px) était écrasée par la règle générale écrite après elle (260 px). Debout, elle
+  tenait sur 180 px (quatre lignes) ; désormais 239 px, trois lignes. Mesuré couché : bord droit 413 px, grille à 421 px.
+- LES SILHOUETTES SECRÈTES (rayon VOITURES, `.bqK.m2sec`) : la grille agrandit chaque photo à 118 % et la centre ; or la caisse est en haut de la
+  photo du studio (720 × 440 : x 68-666, y 46-306, mesuré sur les photos) — le toit et les bouts sortaient de la case. En couleur ça se lit, en
+  silhouette noire c'était une tache. Les secrètes seules : photo au plus 110 % de large et 148 % de haut de la case, descendue de 10 % → la
+  caisse ENTIÈRE, ~90 % de la hauteur. L'étiquette SECRÈTE (`.bqKr`) leur couvrait le toit : retirée sur ces cartes (la ligne du bas dit déjà
+  « MISSION SECRÈTE », en magenta). Cette ligne passe sur deux lignes debout (carte de 112 px, il en fallait 117 + marges : elle était coupée en
+  « MISSION SECRÈ… ») et tient sur une couché (marges de 4 px).
+- LES VIGNETTES DE MISSIONS (`.m2R`, `m2Vign`) : 70 × 44 → 88 × 50 (couché bas 62 × 38 → 80 × 46 ; ≤ 360 px 56 × 36 → 70 × 40, rapport ~1,75
+  partout). La photo d'une caisse ou d'une aile est RECADRÉE sur l'objet (`.m2R .m2Ph img` : 115 % de large, décalée de −8,65 %, le débord
+  transparent ne prend pas le doigt) : la caisse passe de ~60 × 26 à ~84 × 37 px. Peintures et traînées (`objFig`) remplissent la case agrandie ;
+  l'icône d'un objet pas encore dans le jeu (la traînée de SANG, `.m2Vide`) passe à `--pxs:3`.
+- Vérifié (copie servie à part, banc du panneau navigateur, muet) : boutique couchée et debout (LA STRATOS, LA DOLORÈS : « 0 / 1 000 KM/H »
+  entier ; 13 silhouettes entières, toutes sur une ligne couché), MISSIONS couché et debout (caisses, aile PHÉNIX, peintures, traînée FOUDRE) ;
+  JOUER → course couché et debout, 0 erreur (seul 404 : dark-triad.mp3, connu).
+
 ## LA BAVAROISE EN KIT RALLYE — ET À 100 000 $ (2026-10-17, Sacha : « tu peux lui rajouter plus d'éléments de tuning — c'est inspiré des BMW de rallye : sur les roues, autour des roues, le pare-choc et tout ça ; des trucs un peu plus stylés, plus de détails » · « tu l'as mise en vente à 10 000 dollars : cent mille »)
 - LE KIT RALLYE, un bloc du gabarit `b_bavaroise` posé juste avant `K.commit(P)` (rien d'ancien n'est retouché, la caisse garde sa silhouette) :
   · DEVANT — la RAMPE de quatre longue-portée sur une barre, devant le bouclier, sous les phares (boîtier noir, cerclage chromé, verre JAUNE :
