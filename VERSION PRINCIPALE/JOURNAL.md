@@ -4,6 +4,30 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LE DEMI-TOUR — LA POSE À CONTRESENS NE TOMBE PLUS (2026-10-17, Léo : « quand tu ratterris sur la route mais dans le mauvais sens, la voiture ne reste pas sur la route, elle continue juste de tomber — qu'elle arrive à l'envers, "mauvais sens" écrit discrètement mais stylé, un dérapage demi-tour un peu en burn-out (pas trop), elle revient sur la route automatiquement, et ça reprend »)
+- **Le bug, MESURÉ** (banc, pose forcée à 149°) : à la pose, `psi = atan2(vLat,|vT|)` gardait un cap de 30° vers le BORD, le moteur relançait la
+  caisse vers l'avant et elle sortait par le côté en ~1 s → chute, mort (sur la même map, avant : au bord à 2 s, dans le vide à 2,6 s). À 180°
+  pile, elle virait face à la route en UNE image et la caméra de vol la perdait (caisse coupée au coin de l'écran).
+- **Bloc « LE DEMI-TOUR »** (`DMT`, juste avant `tryLand`) : toute pose À CONTRESENS (> 90°, hors PARC) appelle `dmtArme` dans tryLand. ~1 s :
+  la caisse garde le cap de son ARRIVÉE (le nez du vol à plat dans la dalle, angle autour de la normale = `dmtAng`), GLISSE en arrière sur
+  son élan (`vb`, ≤ 0,9 vmax) que les pneus mangent en 0,5 s, pivote sur un RESSORT (ω 6,5, ζ .6 : ~15° de dépassement ; presque pile à
+  l'envers, le nez part vers le milieu de la route), puis BURN-OUT léger 0,5 s (roues qui patinent, fumée qui crache par l'arrière, la
+  caisse s'accroupit) et repart à la moitié de l'élan (entre 40 et 80 % de la vmax du moteur). Pendant ce temps `dmtConduite` tient le cap
+  (0), la vitesse et la ligne (ramenée dans la largeur), et `graceT` empêche bord, dessous et « ROULE OU CRÈVE ».
+- **Le lacet est VISUEL** (`dmtPose` : rotation de carGroup autour de F.n, après le power-slide, comme le SLIDE 360) : la physique roule dans
+  l'axe. À la fin, le reste du lacet passe à `driftYaw`, qui le rend en douceur.
+- **La caméra ORBITE** : `DMT.cam` part de là où regarde la caméra de vol et suit le cap de la caisse (τ .13 s : on voit son flanc pendant le
+  pivot) ; la place (`loop._camOff`) et la visée (`loop._vise`) tournent D'UN BLOC de `DMT.dc` à chaque image — avec le lissage lent d'après
+  le vol, elle traînait de 60-90° et coupait la caisse au bord de l'image. Tournée vers l'arrière, elle ne cherche pas la route devant (kV).
+- **« MAUVAIS SENS »** (`dmtSigne`, `#dmtSigne`, son style injecté `<style id="demiTour">`) : un petit panneau routier (rouge, double liseré
+  blanc, cerné d'encre, son épaisseur dessous, police pixel 9 px, flèche de demi-tour dans le sens où la caisse tourne), au-dessus du toit ;
+  il tombe en place en trois crans, clignote deux fois, se plie quand elle repart. EN : « WRONG WAY ». Il remplace le « À CONTRESENS ! » de
+  `flowCasse` (le son `pose.contresens` reste). Sons : `fig.slide` à la pose, `turbo.mini` au burn-out (banque existante).
+- **La règle ne bouge pas** (Sacha, v4) : pose ratée = flow à zéro, pas de PARFAIT. De TRAVERS (55-90°), rien ne change : la coupe garde
+  son élan (Sacha, 15/10). Mesuré : 180°, 178° à 200, 149°, 135°, 120° → la caisse reste sur la route ; 14 sauts dans le bon sens → 0
+  demi-tour, 0 erreur ; vrai demi-tour au joystick en l'air → posée à 139°, nez du vol à 126°, demi-tour joué.
+- `?demitour=0` = l'ancienne pose. `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie la caisse se poser à contresens ; `dbgDemiTour()` = l'état.
+  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v591.
 ## LA POUPÉE RETIRÉE (2026-10-17, Léo : « enlève la barbie » → au questionnaire : « du jeu »)
 - `retire:1` sur sa ligne de CARS (la ligne reste : les index de sauvegarde ne bougent pas). Le mécanisme des caisses retirées fait le reste :
   qui l'avait achetée est REMBOURSÉ de son prix (4,2 M$, `CAR_UNLOCK`) et repart en LA HONTE s'il roulait avec. Le gabarit `SHAPES.poupee`

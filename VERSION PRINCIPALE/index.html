@@ -39133,7 +39133,7 @@ function flowCasse(contre,txt){
   const lv0=FLOW.lv;
   if(lv0===4){try{frenMus(false);}catch(e){}frenFin(true);}
   FLOW.v=0;FLOW.lv=0;FLOW.idle=0;FLOW.tk=0;FREN.acc=0;FREN.arme=false;
-  popTexte(txt||(contre?'À CONTRESENS !':'DE TRAVERS !'),'#ff5e7a',3);flowTag('n',-1); // (v5) la pose ratée, c'est NARCISSE qui tombe
+  if(!(contre&&!txt&&DMT.act))popTexte(txt||(contre?'À CONTRESENS !':'DE TRAVERS !'),'#ff5e7a',3);flowTag('n',-1); /* (LE DEMI-TOUR) à contresens, le panneau MAUVAIS SENS le dit déjà */ // (v5) la pose ratée, c'est NARCISSE qui tombe
   if(!SONV2){if(lv0>0){try{flowDropSnd(lv0);}catch(e){}}try{clank9(0,150,.14);}catch(e){}} /* (console) pose.travers / pose.contresens, en tête, les remplacent */
   hap([30,40,30,40,60]);shake=Math.max(shake,.6);
   if(lv0>=2)try{flashEcran('rgba(255,42,61,.35)');}catch(e){}
@@ -43602,7 +43602,7 @@ function boomMini(pos,power,mat){try{spawnBoomArt(pos,power,mat||BOOM_MAT.plot,t
 window.dbgExplo=function(c){const v=+PT_U.uVc.value.length().toFixed(1),m=mode;
   if(c==='plot'||c==='porte')boomMini(carGroup.position.clone(),c==='porte'?.42:.3);else explode(c);
   return {avant:m,v:v,volutes:VOLU.filter(function(p){return p.on;}).length,dards:DARD.filter(function(p){return p.on;}).length,debris:debris.length};};
-function explode(cause){
+function explode(cause){dmtCoupe();
   try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
   if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
@@ -50978,6 +50978,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
   chainHudShow();
 }
 function respawn(){
+  dmtCoupe();
   try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   try{bkSkateRaz();BKV.yaw=0;BKV.gl=0;BKV.gk=0;}catch(e){} // (ICE SKATE) la glisse aussi · (2026-10-15 soir) et la glissade sur le verglas
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
@@ -51311,7 +51312,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
     spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
 }
-function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
+function startFall(impU,impF,bord){dmtCoupe(); // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
   if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
@@ -51443,6 +51444,120 @@ function dalleProche(x,y,z,pas,bd0,graine){
   }
   dalleProche.bd=bd;return bi;
 }
+/* ===== LE DEMI-TOUR (2026-10-17, Léo : « le moment où tu ratterris sur la route, mais dans le mauvais sens : la voiture ne reste pas sur la
+   route et ne perd pas juste de vitesse, elle continue juste de tomber — qu'elle arrive à l'envers, "mauvais sens" écrit discrètement mais de
+   manière stylée, une sorte de dérapage demi-tour un peu en burn-out, mais pas trop, qu'elle revienne sur la route automatiquement, et ça reprend »).
+   MESURÉ AVANT (banc, pose forcée à 149°) : la caisse gardait un cap de 30° vers le BORD (psi = atan2(vLat,|vT|)), le moteur la relançait
+   vers l'avant et elle sortait par le côté en ~1 s : chute, mort. À 180° pile, elle virait face à la route en UNE image.
+   Toute pose À CONTRESENS (> 90°, hors PARC où les deux sens roulent) joue désormais LE DEMI-TOUR (~1 s) :
+   · la caisse garde le cap de son ARRIVÉE (le nez du vol, à plat dans la dalle) et GLISSE sur son élan, les quatre pneus fument ;
+   · coup de frein à main : elle pivote sur un RESSORT (ω 6,5, ζ .6 — ça part sec, ça dépasse d'une quinzaine de degrés, ça se pose) jusqu'à
+     faire face à la route ; presque pile à l'envers, le nez part vers le MILIEU de la route ;
+   · BURN-OUT léger : l'arrière patine et crache sa fumée, la caisse s'accroupit et repart (la moitié de l'élan, entre 40 et 80 % de la vmax
+     du moteur — le moteur reprend ensuite comme d'habitude) ;
+   · pendant la manœuvre les commandes dorment et elle ne peut pas tomber (graceT) : ramenée dans la largeur s'il le faut ;
+   · la CAMÉRA tourne autour d'elle avec elle (elle part d'où était la caméra de vol) au lieu de la traverser ;
+   · « MAUVAIS SENS » : un petit panneau rouge façon panneau routier au-dessus de la caisse, sa flèche dans le sens du demi-tour ; il se plie
+     quand elle repart. Il remplace « À CONTRESENS ! » (flowCasse ne l'écrit plus pendant un demi-tour).
+   La RÈGLE ne bouge pas (Sacha, v4 : pose ratée = flow à zéro, pas de PARFAIT) : on a raté, mais on repart en beauté.
+   Le lacet visuel est une rotation de carGroup autour de la normale de la dalle, posée APRÈS la caisse (comme le power-slide et le SLIDE 360) :
+   la physique roule dans l'axe de la route, cap 0. `?demitour=0` = l'ancienne pose. Banc : `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie
+   la caisse se poser à contresens (nez dans le sens du vol) ; `dbgDemiTour()` = l'état. */
+var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1,tS:.5,y:0,yV:0,cam:0,camP:0,dc:0,vb:0,vo:0,vl:0,sg:1,burn:false,force:false,n:0,
+  g:new THREE.Vector3(),f:new THREE.Vector3(),c:new THREE.Vector3(),nn:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),fw:new THREE.Vector3(),
+  el:null,eW:0,eTop:'',eLeft:''};
+function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
+function dmtAng(f,n,g){DMT.c.crossVectors(n,f);return Math.atan2(g.dot(DMT.c),g.dot(f));} // l'angle, autour de n, qui mène f sur g (même sens que setFromAxisAngle(n,·))
+function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face sd — lat, psi, vA viennent d'être posés
+  const D=DMT,n=D.nn.copy(Nn[bI]).multiplyScalar(sd),f=D.f.copy(T[bI]),vm=vitMult(),mx=Math.max(20,dmtVmax());
+  // le cap d'ARRIVÉE : le nez de la caisse en vol, à plat dans la dalle — nez au ciel (ou au banc) : la direction du vol
+  D.g.set(0,0,1).applyQuaternion(carGroup.quaternion);D.g.addScaledVector(n,-D.g.dot(n));
+  if(D.force||D.g.lengthSq()<.09){D.g.copy(fallVel);D.g.addScaledVector(n,-D.g.dot(n));}
+  let y0=dmtAng(f,n,D.g);
+  if(Math.abs(y0)>2.6){const b=D.c.crossVectors(n,f).dot(B[bI])*sd; // presque pile à l'envers : le nez part vers le MILIEU de la route (lat vit le long de B·sd)
+    y0=(Math.abs(lat)>.3?-Math.sign(lat)*Math.sign(b||1):(Math.random()<.5?1:-1))*Math.abs(y0);}
+  // la caméra part d'où elle REGARDE (la caméra de vol, derrière le vol) : elle orbite ensuite avec la caisse, du même côté qu'elle
+  D.g.subVectors(carGroup.position,camera.position);D.g.addScaledVector(n,-D.g.dot(n));
+  let yc=D.g.lengthSq()>.25?dmtAng(f,n,D.g):y0;yc=y0+Math.atan2(Math.sin(yc-y0),Math.cos(yc-y0));
+  const vT=fallVel.dot(T[bI])/vm,vB=fallVel.dot(B[bI])*sd/vm; // (vA : la vitesse d'avant le multiplicateur, comme la pose)
+  D.vb=THREE.MathUtils.clamp(-vT,0,mx*.9);D.vl=THREE.MathUtils.clamp(vB*.35,-mx*.15,mx*.15);D.vo=THREE.MathUtils.clamp(Math.hypot(vT,vB)*.5,mx*.4,mx*.8);
+  D.y=y0;D.yV=0;D.cam=yc;D.camP=yc;D.dc=0;D.sg=y0>=0?1:-1;D.t=0;D.burn=false;D.act=true;D.n++;
+  psi=0;yawR=0;slipB=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;vA=-D.vb;vL=0;driftT=1;
+  graceT=Math.max(graceT,D.D+.3); // ni le bord, ni le dessous de la dalle, ni « ROULE OU CRÈVE » pendant la manœuvre
+  try{if(SONV2)sfx('fig.slide');}catch(e){}
+  dmtSigne(true);
+}
+function dmtConduite(dt){const D=DMT; // (boucle de conduite, après le lacet du pouce) la manœuvre REMPLACE la conduite du joueur
+  D.t+=dt;const d=Math.min(dt,1/30);
+  for(let k=0;k<2;k++){const h=d*.5;D.yV+=(-D.y*42.25-D.yV*7.8)*h;D.y+=D.yV*h;} // le RESSORT du lacet : ω 6,5 (ω² 42,25), ζ .6 (2ζω 7,8), deux demi-pas
+  D.cam+=(D.y-D.cam)*(1-Math.exp(-dt/.13)); // la caméra suit le cap de la caisse avec un temps de retard (on voit son flanc pendant le pivot) : elle ORBITE
+  const x=D.t/D.tS,u=x<1?0:Math.min(1,(D.t-D.tS)/(D.D-D.tS));
+  if(x<1)vA=-D.vb*Math.pow(1-x,1.5); // la GLISSE en arrière, que les pneus mangent
+  else{vA=D.vo*u*u; // le BURN-OUT : ça patine d'abord, puis ça mord
+    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,5);if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);}}
+  if(vA<0&&s<6)vA=0;
+  D.vl*=Math.exp(-dt*3.5);lat+=D.vl*dt*SPD; // un reste de dérive latérale, qui meurt vite
+  const lim=ROAD_HALF-(CARS[level].w||2)*.5-.35;if(Math.abs(lat)>lim)lat+=(Math.sign(lat)*lim-lat)*(1-Math.exp(-dt*7)); // ramenée sur le bitume
+  psi=0;yawR=0;slipB=0;driftEnCours=false;driftC=0;driftLv=0;
+  glisse9=Math.max(glisse9,x<1?.95:.8*(1-.7*u)); // la gomme crie et fume (son du crissement, fumée et traces de la boucle)
+  graceT=Math.max(graceT,.25);
+  if(D.t>=D.D){D.act=false;driftYaw=THREE.MathUtils.clamp(D.y,-.35,.35);D.y=0;D.yV=0;dmtSigne(false);} // le reste du lacet passe au power-slide, qui le rend en douceur
+}
+function dmtPose(F,dt){const D=DMT; // (conduite, après la pose de la caisse sur la route) le lacet de la manœuvre, la fumée, le panneau
+  if(D.y){qTmp.setFromAxisAngle(F.n,D.y);carGroup.quaternion.premultiply(qTmp);}
+  if(!D.act)return;
+  const sp=CARS[level]||CARS[0],bo=D.burn,VC=PT_U.uVc&&PT_U.uVc.value,rp=emiN('dmt',dt*(bo?2:.8));
+  D.w.set(0,0,-1).applyQuaternion(carGroup.quaternion); // l'arrière de la caisse (le patinage crache par là)
+  for(let r=0;r<rp;r++){const sd=r&1?1:-1,av=!bo&&(r&2);
+    D.v.set(sd*sp.w*.45,.25,(av?.38:-.38)*sp.l).applyQuaternion(carGroup.quaternion).add(carGroup.position);
+    const k=bo?6.5:1.5;
+    spawnP(dust,D.v.x,D.v.y,D.v.z,(VC?VC.x*.85:0)+D.w.x*k+(Math.random()-.5)*3,(VC?VC.y*.85:0)+.8+Math.random()*1.6,(VC?VC.z*.85:0)+D.w.z*k+(Math.random()-.5)*3,(bo?.5:.35)+Math.random()*.3);}
+  dmtSigneSuit();
+}
+function dmtCamDir(fw,n){const D=DMT; // (caméra de conduite) la direction de la caméra, tournée avec la caisse — et après la manœuvre, elle se recale en douceur
+  if(!D.cam)return fw;
+  return D.fw.copy(fw).applyAxisAngle(n,D.cam);}
+function dmtCamTick(dt){const D=DMT;if(!D.act&&D.cam){D.cam*=Math.exp(-dt/.14);if(Math.abs(D.cam)<.003)D.cam=0;}D.dc=D.cam-D.camP;D.camP=D.cam;} // dc : de combien la caméra a tourné depuis l'image d'avant
+function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
+/* LE PANNEAU « MAUVAIS SENS » : le panneau routier en petit (rouge, double liseré blanc, cerné d'encre, son épaisseur dessous), police pixel,
+   une flèche de demi-tour dans le sens où la caisse tourne. Il TOMBE en place (trois crans), clignote deux fois comme un vrai panneau, puis se
+   PLIE quand la caisse est repartie. Discret : 8-9 px, au-dessus du toit, il suit la caisse à l'écran. */
+const DMT_FL='<svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 0h4v1H3zM2 1h6v1H2zM1 2h2v4H1zM7 2h2v8H7zM0 6h5v1H0zM1 7h3v1H1zM2 8h1v1H2z"/></svg>';
+function dmtSigne(on,net){const D=DMT;
+  if(!D.el){if(!on)return;
+    const st=document.createElement('style');st.id='demiTour';st.textContent=
+      '#dmtSigne{position:fixed;left:50%;top:40%;z-index:40;pointer-events:none;display:flex;align-items:center;gap:6px;padding:5px 8px 5px 6px;'+
+      'background:#e01b3c;color:#fff;font-family:var(--pix);font-size:9px;line-height:1;letter-spacing:1px;white-space:nowrap;'+
+      'box-shadow:inset 0 0 0 2px #e01b3c,inset 0 0 0 3px #fff,0 0 0 2px #1c0430,0 4px 0 2px #1c0430,0 0 16px rgba(255,40,72,.5);'+
+      'transform:translate(-50%,-100%);transform-origin:50% 100%;opacity:0;visibility:hidden}'+
+      '#dmtSigne svg{width:10px;height:10px;display:block}#dmtSigne.g svg{transform:scaleX(-1)}'+
+      '#dmtSigne b{font-weight:normal;text-shadow:0 1px 0 #7a0a1e}'+
+      '#dmtSigne.on{visibility:visible;animation:dmtTombe .2s steps(3,end) both,dmtCligne .36s steps(1,end) .32s 2}'+
+      '#dmtSigne.sort{visibility:visible;animation:dmtPlie .18s steps(3,end) both}'+
+      '@keyframes dmtTombe{0%{opacity:0;scale:1.7}100%{opacity:1;scale:1}}'+
+      '@keyframes dmtCligne{0%{opacity:.45}50%{opacity:1}}'+
+      '@keyframes dmtPlie{0%{opacity:1;scale:1 1}100%{opacity:0;scale:1 0}}'+
+      'html[data-reduced-motion="1"] #dmtSigne.on,html[data-reduced-motion="1"] #dmtSigne.sort{animation:none}html[data-reduced-motion="1"] #dmtSigne.on{opacity:1}'+
+      'body.ebOn #dmtSigne,body.ftOn #dmtSigne{visibility:hidden!important}';
+    document.head.appendChild(st);
+    const e=D.el=document.createElement('div');e.id='dmtSigne';e.setAttribute('aria-hidden','true');e.innerHTML=DMT_FL+'<b></b>';document.body.appendChild(e);}
+  const e=D.el;
+  if(on){e.lastChild.textContent=TR('MAUVAIS SENS');e.classList.toggle('g',D.sg<0);D.eW=e.textContent.length*10+40;D.eTop='';D.eLeft='';
+    e.classList.remove('sort');e.classList.remove('on');void e.offsetWidth;e.classList.add('on');dmtSigneSuit();} // (une fois par demi-tour : la relance synchrone est sans conséquence)
+  else if(net){e.classList.remove('on');e.classList.remove('sort');}
+  else if(e.classList.contains('on')){e.classList.remove('on');e.classList.add('sort');}
+}
+function dmtSigneSuit(){const D=DMT,e=D.el;if(!e||!e.classList.contains('on'))return;
+  POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.2).project(camera);
+  const y=THREE.MathUtils.clamp((-POP_V9.y*.5+.5)*VP.h-8,laneY()+40,VP.h*.7),hw=D.eW*.5+6,x=THREE.MathUtils.clamp((POP_V9.x*.5+.5)*VP.w,hw,VP.w-hw);
+  const t9=y.toFixed(0)+'px',l9=x.toFixed(0)+'px';if(t9!==D.eTop){D.eTop=t9;e.style.top=t9;}if(l9!==D.eLeft){D.eLeft=l9;e.style.left=l9;}}
+Object.assign(I18N,{'MAUVAIS SENS':'WRONG WAY'});
+window.dbgDemiTour=function(ang,v,la,h){
+  if(ang==null)return {actif:DMT.act,on:DMT.on,t:+DMT.t.toFixed(2),lacetDeg:Math.round(DMT.y*57.3),cameraDeg:Math.round(DMT.cam*57.3),vA:+vA.toFixed(1),lat:+lat.toFixed(2),
+    glisse:+DMT.vb.toFixed(1),relance:+DMT.vo.toFixed(1),n:DMT.n,mode:mode,panneau:!!(DMT.el&&DMT.el.classList.contains('on'))};
+  if(!started||gameOver)return 'pas de course en cours';if(mode!=='drive')return 'déjà en vol : '+mode;
+  const a=(+ang||180)/57.3,V=v==null?70:+v;DMT.force=true;setTimeout(function(){DMT.force=false;},6000);
+  return window.dbgDauphin(h==null?12:+h,V*Math.cos(a),V*Math.sin(a),la||0);};
 function tryLand(dt){
   // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas (trous exclus dans dalleProche) — (2026-09-27) balayage en casiers
   const bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
@@ -51565,6 +51680,7 @@ function tryLand(dt){
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
   const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */ FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose — (2026-10-14, revue des idées de Léo) il était collé au commentaire d'avant, donc avalé : jamais écrit
+  if(DMT.on&&!PARK.on&&poseAng>90)dmtArme(bestI,sideL); // (LE DEMI-TOUR) posée à contresens : la caisse glisse, pivote d'un coup de frein à main et repart — au lieu de filer vers le bord (voir DMT)
   const figN9=FX2.nitF|0;{const nf9=nitroR;figNitRend(!poseRatee);if(SONV2&&nitroR>nf9+.01&&nf9<=nPose9+.01)sfx('nitro.plein',{t:.2});} // (2026-10-17, LA FIGURE SE PAIE — loi 6) chaque figure plantée rend 30 % à la pose RÉUSSIE ; de travers, à contresens ou en plein tour : perdu — le « plein » sonne une fois, avec celui de la pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
@@ -51835,7 +51951,7 @@ function newTrack0(){
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   spawnPickups(mulberry32(sd^0x9e3779b9));
   cratCache();debCache();
-  s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
+  dmtCoupe();s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';
   campDebut(); // (2026-09-27) CAMPAGNE : le niveau qui commence arme ses systèmes (poursuite, orage, caisse-nuage) — ou les éteint
@@ -52114,6 +52230,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
@@ -63422,6 +63539,7 @@ function loop(now){
       // (la RÉCEPTION EN GLISSE à l'atterrissage, elle, reste — c'est un effet ponctuel bien visible)
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
+      if(DMT.act)dmtConduite(dt); // (LE DEMI-TOUR) la manœuvre tient le volant, la vitesse et la ligne pendant ~1 s
       vL=vA*Math.sin(psi-slipB-BKV.gl); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift) · moins la glissade du verglas (BKV.gl, 0 hors du glacier)
       const lat09=lat; // (BALAYAGE, voir balEcart) la ligne de la caisse AVANT l'avance : plots, pads, dos d'âne et flaques se testent sur le trajet
       lat+=vL*driveDir*dt*SPD*spdMult; // (spdMult : calculé avant le lacet, voir HAUTE VITESSE)
@@ -63630,7 +63748,8 @@ function loop(now){
             qTmp.setFromAxisAngle(F.n,driftYaw);
             carGroup.quaternion.premultiply(qTmp); // rotation MONDE autour de la verticale de la route
           }
-          if(BKV.yaw){qTmp.setFromAxisAngle(F.n,BKV.yaw);carGroup.quaternion.premultiply(qTmp);} // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
+          if(BKV.yaw){qTmp.setFromAxisAngle(F.n,BKV.yaw);carGroup.quaternion.premultiply(qTmp);}
+          if(DMT.y||DMT.act)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
           gsolPose(F); // (2026-10-15) LES FIGURES AU SOL du GLISSER (slide 360, wheelie, stoppie)
           figMemo(dt); // (2026-10-14, LES FIGURES v2) l'assiette des deux dernières images : au décollage, la caisse emporte sa rotation
           // (conduite v3) LE ROULIS : la caisse s'écrase sur l'extérieur du virage — elle a du POIDS
@@ -63657,7 +63776,7 @@ function loop(now){
          susV+=((-sq*.17-susY)*230-susV*16)*d9;susY=THREE.MathUtils.clamp(susY+susV*d9,-.26,.12);
          const pv=carBody.userData.pivY||.45;carBody.position.y=pv-pv*Math.cos(carRoll9)+susY;}
         carGroup.scale.set(1,1,1);
-        ROUES.v=vF*SPD; // (2026-09-26) la vitesse du SOL sous les pneus : carVit fait tourner chaque roue à v ÷ R (+ flou de jante)
+        ROUES.v=vF*SPD;if(DMT.act&&DMT.burn)ROUES.v=Math.max(ROUES.v,45); // (LE DEMI-TOUR) au burn-out, les roues patinent // (2026-09-26) la vitesse du SOL sous les pneus : carVit fait tourner chaque roue à v ÷ R (+ flou de jante)
         // ombre
         shadow.material.opacity=0; // (2026-09-25) .10 → 0 : ce disque à bord NET se lisait comme une tache sombre autour de la caisse — l'ombre portée (shadow map) et le blob de contact doux suffisent // en drive la shadow map fait le travail — le disque noir creusait un DONUT dans le néon/les flaques
         shadow.position.copy(carGroup.position).addScaledVector(F.n,.06-hopY); // l'ombre reste collée à la route (drop/dos d'âne)
@@ -63776,6 +63895,7 @@ function loop(now){
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
         loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(fwdW,.55).normalize();
+        if(DMT.cam)loop._camD.applyAxisAngle(F.n,DMT.cam);dmtCamTick(dt); // (LE DEMI-TOUR) la caméra tourne autour de la caisse avec elle
         // (2026-09-25, user : « toujours aimantée au centre ») : la caméra suivait la position latérale AU CENTIMÈTRE — la caisse restait
         // plantée au milieu de l'image et c'est la route qui coulissait dessous. Elle suit désormais avec un RETARD (~0,35 s) : quand on
         // change de ligne, on VOIT la caisse partir vers le bord de l'écran, puis la caméra la rejoint. Pas de rappel vers l'axe : la cible
@@ -63796,7 +63916,8 @@ function loop(now){
         {const off=loop._camOff,cibleOff=tmp2.sub(carGroup.position);        // l'écart VOULU (tmp2 redevient un écart)
          camRouteTonneau(cibleOff,loop._camD,dt); // (vague 3) dessus ↔ dessous : la caméra ROULE et orbite (voir CAM_ROUTE)
          if(off.distanceToSquared(cibleOff)>2500)off.copy(cibleOff);           // téléport (respawn, portail) : on ne lisse pas un saut de 50 m
-         {const r9=loop._viseR==null?1:loop._viseR;off.lerp(cibleOff,Math.min(1,dt*(CAM_ROUTE.vif?16:7*(.3+.7*r9*r9))));} /* (2026-10-01, LA POSE) la PLACE de la caméra reprend en douceur, comme sa visée (`_viseR`) : à ×7/s elle faisait 11 % du chemin entre la caméra de vol et celle de route dès la 1re image */ // (vague 3) pendant le tonneau, la caméra colle à son orbite (sinon elle coupe au travers de la dalle)
+         if(DMT.dc)off.applyAxisAngle(F.n,DMT.dc); /* (LE DEMI-TOUR) l'orbite : la caméra tourne d'un bloc autour de la caisse, puis se recale */
+         {const r9=loop._viseR==null?1:loop._viseR;off.lerp(cibleOff,Math.min(1,dt*(CAM_ROUTE.vif?16:7*(.3+.7*r9*r9))));if(DMT.cam){const l9=cibleOff.length()*.9;if(off.lengthSq()<l9*l9)off.setLength(l9);}} /* (LE DEMI-TOUR) en orbite, la caméra ne coupe pas au plus court à travers la caisse */ /* (2026-10-01, LA POSE) la PLACE de la caméra reprend en douceur, comme sa visée (`_viseR`) : à ×7/s elle faisait 11 % du chemin entre la caméra de vol et celle de route dès la 1re image */ // (vague 3) pendant le tonneau, la caméra colle à son orbite (sinon elle coupe au travers de la dalle)
          camera.position.copy(carGroup.position).add(off);}
         (loop._carPrev||(loop._carPrev=new THREE.Vector3())).copy(carGroup.position);
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
@@ -63805,7 +63926,7 @@ function loop(now){
         // PORTRAIT : on vise plus BAS (F.n 1,05 → 0,50) — la caméra pique du nez, donc la caisse
         // REMONTE dans le cadre au lieu de sortir par le bas. Reculer/monter/viser bas se règlent
         // ENSEMBLE : sans cette ligne, camBack et camH seuls laissaient une caisse minuscule en bas.
-        tmp2.copy(carGroup.position).addScaledVector(fwdW,8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55-(H9?CAM_HEROS.vise*POR:0)).addScaledVector(F.b,cLag9*.5); /* (CAM_HEROS) debout, la visée descend : la caisse remonte */ // la visée prend une partie du retard : la caisse sort un peu du centre de l'image
+        tmp2.copy(carGroup.position).addScaledVector(dmtCamDir(fwdW,F.n),8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55-(H9?CAM_HEROS.vise*POR:0)).addScaledVector(F.b,cLag9*.5); /* (CAM_HEROS) debout, la visée descend : la caisse remonte */ // la visée prend une partie du retard : la caisse sort un peu du centre de l'image
         /* (route v2) LE REGARD SUIT LA ROUTE : la visée se tire à 35 % vers un point de la piste 35 m DEVANT (à la même
            distance du bord que la caisse). Dans une courbe, l'œil part vers la sortie du virage au lieu de fixer l'axe de
            la caisse — on voit où l'on va. */
@@ -63817,12 +63938,13 @@ function loop(now){
          const dd=Math.sqrt(tmp3.distanceToSquared(tmp2)), // fenêtre de fondu ∝ D : 40 → 100 m à 35 m (à D=35 et CAM_REGARD éteint : la formule d'avant, au bit près)
                kV=(CR.on?.35*(1+CR.por*POR)*(CR.comp?CR.min/dR:1):.35)*THREE.MathUtils.clamp(1-(dd-dR*8/7)/(dR*12/7),0,1);
          CR.D=dR;CR.kV=kV;
-         tmp2.lerp(tmp3,kV);
+         tmp2.lerp(tmp3,DMT.cam?kV*Math.max(0,Math.cos(DMT.cam)):kV); // (LE DEMI-TOUR) tournée vers l'arrière, la caméra ne cherche pas la route devant
          tmp2.sub(carGroup.position); // (conduite v6) lissée RELATIVEMENT à la caisse : lissée en position monde, elle traînait de v/9 — à 700 km/h on regardait le capot
          /* (2026-10-01, LA POSE) LA VISÉE REPREND EN DOUCEUR : en vol la caméra vise la caisse, au sol ~10 m devant — à la pose, la visée y repartait
             à plein régime (×9/s : 15 % du chemin dès la 1re image, la caisse glissait de 0,05 à 0,18 NDC en une image — MESURÉ au banc des poses,
             contre 0,005 à 0,04 pour un pas de vol). Elle part désormais lentement (×2,2/s) et retrouve son régime en 0,6 s (`_viseR`, remis à 0 en vol). */
          loop._viseR=Math.min(1,(loop._viseR==null?1:loop._viseR)+dt/.6);
+         if(DMT.dc&&loop._vise)loop._vise.applyAxisAngle(F.n,DMT.dc); // (LE DEMI-TOUR) la visée tourne avec l'orbite
          if(!loop._vise||n9Saut(loop))loop._vise=tmp2.clone();else loop._vise.lerp(tmp2,Math.min(1,dt*(2.2+6.8*loop._viseR*loop._viseR)));
          tmp2.copy(loop._vise).add(carGroup.position);}
         /* (vague 3) LE CABRAGE ANTICIPÉ : tout le plan (place, visée, haut) pivote autour de la caisse d'une part du cabrage de la route
