@@ -19192,7 +19192,7 @@ const BK_LAC_D=36,BK_LARG=2.4;
    petit rebord, qui permettent au joueur de s'envoler — sinon il ne peut pas décoller ») =================
    · LA PISTE : le ruban reste (la physique, les pièces, la caméra), mais il est LARGE (`BK_LARG4` : 123 m) et il n'a plus rien d'une route — ni béton,
      ni rails, ni nappe, ni ligne, ni tranche (`bkPisteNue`) : seule la GLACE (le verglas de bkVerglasPose, opaque, sur toute la largeur, sa frange de
-     givre fondue dans la neige). Plus raide (22-37 %, ~27 % de moyenne) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
+     givre fondue dans la neige). Plus raide (36-58 %, ~45 % de moyenne — « beaucoup plus pentue », Sacha) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
    · SES BORDS : la neige se cale AU RAS de la glace puis monte en BOURRELET (13-19 m sur 45 m) — on ne tombe plus de la piste, on COGNE la neige :
      le mur des couloirs du canyon (`parisMur`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
    · LES PICS SUR LA PISTE (`BANQ.obst`) : des cristaux de glace coiffés de neige, en QUATRE FIGURES qui ouvrent des chemins — la FOURCHE (une arête au
@@ -19216,7 +19216,7 @@ function genBanq(rnd){
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
   const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),cas=[],spi=[];
   const KR=typeof rayonPalier==='function'?Math.max(1,rayonPalier()/63):LV; // (GAMEPLAY, RACCOURCIS.md) les rayons suivent le rayon tenable du palier (rayonPalier/63) ; sans lui, l'échelle du moteur
-  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),.18);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
+  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BANQ_V4?.36:.18);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
   const LIB=75*Math.PI/180,LEN=8600*Math.min(1.25,Math.sqrt(KR));
   push();ici('depart');D(260,.10);
   let sg=rnd()<.5?-1:1;
@@ -19224,9 +19224,9 @@ function genBanq(rnd){
     if(rnd()<.78)sg=-sg;                                                                    // le plus souvent on change de côté ; parfois deux virages du même
     const big=rnd()<.3,a=big?70+rnd()*40:30+rnd()*40,R=Math.max(ROAD_HALF*2.6,(BANQ_V4?(big?220+rnd()*140:175+rnd()*150):(big?160+rnd()*120:115+rnd()*130))*KR); // (v4) grands rayons : la piste fait 123 m
     let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}               // le cap reste dans la pente : la route ne se recroise jamais
-    A(sg*Math.min(a,lib),R,(BANQ_V4?.22:.17)+rnd()*(BANQ_V4?.10:.09));
-    D(50+rnd()*140,(BANQ_V4?.25:.19)+rnd()*(BANQ_V4?.12:.09));} // (v4) une piste NOIRE : 22-37 %
-  cap(0);D(160,.14);ici('fin');D(120,.06);                                                 // l'arrivée : dans la pente, puis le replat de la ligne
+    A(sg*Math.min(a,lib),R,(BANQ_V4?.36:.17)+rnd()*(BANQ_V4?.12:.09));
+    D(50+rnd()*140,(BANQ_V4?.42:.19)+rnd()*(BANQ_V4?.16:.09));} // (v4) une piste NOIRE : 36-58 % (2026-10-17, Sacha : « la map montagne neige doit être beaucoup plus pentue » — c'était 22-37 %)
+  if(BANQ_V4){cap(0);D(160,.30);ici('fin');D(120,.06);}else{cap(0);D(160,.14);ici('fin');D(120,.06);} // l'arrivée : dans la pente, puis le replat de la ligne
   /* LE PROFIL : la pente de chaque tronçon (positive = on descend), lue sur la longueur de la polyligne, adoucie aux raccords (moyenne glissante
      de 60 m) ; les 300 premiers mètres en douceur. Intégrée tous les 10 m : aucun point ne remonte. */
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
@@ -19700,7 +19700,7 @@ function buildBanq(seed){
   BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
   const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
-  banqSol();tp('sol');if(BANQ_V4){BANQ.lacs=[];BANQ.lacG=null;}else banqLacs(fr);tp('lacs'); // (v4) plus de lacs : ils creusaient la pisteconst tS=performance.now();
+  banqSol();tp('sol');if(BANQ_V4){BANQ.lacs=[];BANQ.lacG=null;}else banqLacs(fr);tp('lacs');const tS=performance.now(); // (v4) plus de lacs : ils creusaient la piste
   banqSolMesh(root);tp('solMesh');banqLacMesh(root);tp('lacMesh');
   try{bkVerglasPose(root,seed);}catch(e){window.__banqErr=e;}tp('verglas');
   // ---- la route en grille (les règles de distance) ----
@@ -19743,7 +19743,7 @@ function buildBanq(seed){
   if(BANQ_V4){const RH=ROAD_HALF,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
     const libreK=(s9,la,r)=>{for(const k of KK)if(s9>k.s-50&&s9<k.s+150&&la+r>k.l0-6&&la-r<k.l1+6)return false;for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
     const pic=(s9,la,H,pente)=>{const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
-      const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(6,R*.5)); /* fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
+      const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
     const bec=(s9,c,w)=>{c=THREE.MathUtils.clamp(c,-RH+w/2+4,RH-w/2-4);KK.push({s:s9,l0:c-w/2,l1:c+w/2});};
     let sp=560+fr()*120;

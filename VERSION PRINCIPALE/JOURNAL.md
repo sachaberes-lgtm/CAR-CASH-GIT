@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER BEAUCOUP PLUS PENTU (2026-10-17, Sacha : « la map montagne neige doit être beaucoup plus pentue »)
+- `genBanq` (v4) : virages 36-48 % (22-32 %), droites 42-58 % (25-37 %), retour dans la pente et arrivée à 36 % / 30 %. MESURÉ en Node
+  (`banq-trace.cjs`, 8 graines) : pente moyenne ~27 % → ~43 % (pointes à 57 %), dénivelé 2,4-2,5 km → 3,8-4,1 km sur ~10 km ; aucun pli (rayon mini
+  155 m pour 62 m de demi-largeur). Les pics de la piste ont un pied plus profond (`prof` 9 m ou R × 1,1) : sur la pente raide, leur côté aval ne flotte pas.
+- RÉPARÉ : depuis la v587, un commentaire `//` posé en milieu de ligne (« plus de lacs ») avalait `const tS=` dans `buildBanq` → `tS is not defined`
+  à la toute fin de la construction (la météo du glacier n'y était plus posée). Audit de tous les commentaires de la session : plus rien d'avalé.
+- À TRANCHER par Sacha : la caméra de course s'incline avec la route (gelée depuis la passe de fluidité) — une pente, même à 43 %, se lit donc
+  surtout à la vitesse et au paysage qui plonge, pas à l'image. Une caméra qui resterait un peu plus à niveau AU GLACIER montrerait la pente.
+
 ## LA CAISSE PLUS LOURDE, 2e TOUR — LE SAUT NITRO QUI RETOMBE (2026-10-17 soir, Sacha : « augmente la gravité des voitures : quand on fait une figure sur route on doit retomber sur la route plus vite »)
 - POURQUOI LE ×1,3 DU 15/10 NE SE SENTAIT PLUS : deux heures après lui, « les figures lancées en roulant » (16/10, 0 h) a rallongé chaque
   saut nitro à figure jusqu'à 90 % de la durée de CATALOGUE de la figure (`sautBesoin` ≥ 1 s, jusqu'à +19 m/s de poussée) — sur du plat
