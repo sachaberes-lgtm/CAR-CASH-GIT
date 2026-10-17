@@ -131,7 +131,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable` (LA VILLE VITRÉE = CLEAN CITY : tours de verre et blanches, logos minimalistes, un dirigeable, bords de route bleus ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
@@ -234,6 +234,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   coucou sur une montagne, mangue, course, assis au bord ; `jsgTick`) et les DAUPHINS DE LA MER (v2 : dès qu'elle TOMBE vers la mer ils bondissent
   au-devant d'elle, puis jouent devant elle dans l'eau, l'un fait coucou à la portière, et une fois sur deux ils SAUTENT AVEC ELLE ; `jdmTick`). Les formes
   des singes se calculent dans un Worker (`creatures/atelier.js`). Détail : JOURNAL.md. Pas de figure LE DAUPHIN.
+  17/10 (Léo : « plus petits, un peu trop grands ; imprévisibles : soit te suivre, soit sauter, soit… ») : `JSG_TAILLE` .45 (11-14 m de
+  haut → 5-6 m ; `?singetaille=` pour essayer) ; chaque rencontre TIRE sa réaction (`JSG_ACT`) : SUIT (galope à côté de la caisse, un peu
+  devant), SAUTE (bond par-dessus la caisse, d'un bord à l'autre), PLONGE (dans le vide), RESTE ; celui de la montagne saute jusque sur la
+  route puis suit. Balistique dans le repère de la route (`jsgBouge`, `jsgReveil`). `dbgJadeSinges('mangue','saute')`.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
 - HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
