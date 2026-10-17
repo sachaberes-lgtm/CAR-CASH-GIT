@@ -3,6 +3,30 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA BAVAROISE EN KIT RALLYE — ET À 100 000 $ (2026-10-17, Sacha : « tu peux lui rajouter plus d'éléments de tuning — c'est inspiré des BMW de rallye : sur les roues, autour des roues, le pare-choc et tout ça ; des trucs un peu plus stylés, plus de détails » · « tu l'as mise en vente à 10 000 dollars : cent mille »)
+- LE KIT RALLYE, un bloc du gabarit `b_bavaroise` posé juste avant `K.commit(P)` (rien d'ancien n'est retouché, la caisse garde sa silhouette) :
+  · DEVANT — la RAMPE de quatre longue-portée sur une barre, devant le bouclier, sous les phares (boîtier noir, cerclage chromé, verre JAUNE :
+    clé `Y`, famille 'l', allumé comme les phares) ; la LAME noire sous le bouclier ; la SANGLE de remorquage rouge et son anneau (et sa sœur
+    derrière, à gauche) ;
+  · DESSUS — deux GOUPILLES de capot, l'ÉCOPE du pavillon (sa bouche noire devant), l'ANTENNE couchée vers l'arrière, l'aileron devenu
+    RÉGLABLE (joues en trapèze aux bouts du becquet, volet noir au bord de fuite) ; le BOUCHON de réservoir à fermeture rapide (aile arrière droite) ;
+  · AUTOUR DES ROUES — le JONC de caoutchouc des élargisseurs, sur le bord de l'arche (il suit le profil `AR` du loft, quatre segments par
+    roue) et ses RIVETS chromés ; une BAVETTE rouge derrière chaque roue ;
+  · SUR LES ROUES — jantes DORÉES (`lpw` : `jante` 0xd4a43a, douze rayons fins au lieu de dix argent ; le flou de jante suit, il lit `jante`) ;
+    derrière les rayons, le DISQUE (clé `D`, mat sombre) et l'ÉTRIER rouge en haut à l'arrière : pièces de CAISSE, posées entre le fond de la
+    jante (x ,745) et ses rayons (x ,768) — ils ne tournent pas avec la roue ; en vol (la caisse monte de ,11 sur ses roues) ils passent derrière le flanc du pneu.
+- Les pièges évités : aucune pièce chromée n'est un tube en z près de la poupe (le relevé des pots, `echRetire`, l'ôterait) ; le rouge des
+  bavettes, étriers et sangles est de la laque (`r`, famille 'p') et pas un feu (`CAR_FEUX` relève le rouge ÉMISSIF de la poupe) ; ni le
+  filet de bas de caisse ni les filets du capot que Léo avait retirés le 13/10 ne reviennent.
+- LE PRIX : `CAR_UNLOCK` 20 000 → 100 000 $ — entre LA SILENCIEUSE (90 000) et LE SAMOURAÏ (120 000). (Sacha l'avait vue « à 10 000 » : dans
+  le code elle était à 20 000 depuis le 14/10 au soir ; LE DÉFIEUR, lui, est à 10 000.) Sa rareté reste écrite (`rar:'rare'`).
+- VÉRIFIÉ au banc (Chrome du Mac sans fenêtre, muet, piloté en CDP) : la vignette de boutique (`dbgPhotoCar`), sept vues dans le repère de la
+  caisse (`dbgAilesVue`), avant / après ; une partie lancée avec elle (JOUER → canyon, soir, 140 km/h) : 0 erreur, rien d'avalé.
+- À trancher par Sacha ou Léo : les élargisseurs bordés de NOIR et rivetés (la sportive d'origine les a couleur caisse) ; les bavettes ROUGES
+  (sinon : le violet des bandes, `v`) ; la rampe jaune toujours allumée.
+- À signaler : la salle blanche (`salle-blanche.html?source=local`) ne lit plus le jeu d'aujourd'hui (« SANS_CARRIERE is not defined », puis
+  « EAU ») — elle évalue des blocs d'index.html qui dépendent maintenant de constantes posées ailleurs. Pas touché ici.
+
 ## LES MISSIONS : LES EXPLOITS EN HAUT, L'EN-TÊTE QUI NE PASSE PLUS SOUS LE PANNEAU, PLUS DE CADEAU À 0 MIN (2026-10-17, session MISSIONS — Sacha : « corrige l'ordre de la liste (les exploits en haut, pas les COLLECTE) et les textes coupés en paysage, plus le cadeau à 0 min »)
 Trois retouches de l'écran MISSIONS (v2), vues au jeu le matin même (couché 844 × 390 et debout, dans le cadre de l'ordi).
 - L'ORDRE (`m2Lignes`, `M2_ORDRE`) : À RÉCUPÉRER → SUIVIES → puis les autres PAR FAMILLE — exploit, aura, moteur, exploration, (secrète),
