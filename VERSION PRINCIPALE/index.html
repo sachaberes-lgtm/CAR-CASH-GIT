@@ -29747,59 +29747,110 @@ const SHAPES={
     // (2026-10-13, Léo : « rends-les plus réalistes et ressemblantes ») v2 : les flancs GALBÉS (le bas rentre, l'arête de ceinture, le haut
     // qui s'arrondit), la face de 59 (quatre phares sous une VISIÈRE d'aile, calandre à deux étages piquée de BIJOUX, pare-chocs à OBUS qui
     // s'enroule), le pare-brise PANORAMIQUE qui tourne aux coins, des ailerons plus épais à la base, le jonc et le skeg chromés.
+    /* (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails… sans folie, sans trop de ressources »)
+       v3, LES DÉTAILS DE LA BIARRITZ 59 (photos de Wikimedia Commons). La silhouette ne bouge pas (seul le nez s'élargit de 5 cm, comme la vraie :
+       les phares au coin des ailes). VU : la calandre de face, celle de la poupe, les cerclages des phares étaient posés 2 cm DERRIÈRE le bouchon du
+       loft (z ±2,90) — invisibles, on ne voyait que six traits sur du rose. Ils sont sortis de la tôle. Ajouts : les OBUS POINTUS dans leur bague
+       chromée au bout des ailerons, la calandre ARRIÈRE à bijoux, les NACELLES rondes des feux de recul aux coins du pare-chocs, le second étage
+       de calandre dans le pare-chocs avant et ses feux de position orange, la mascotte en flèche, les joints des portières (un fil SUR la peau du
+       loft, relu à la section), et l'habitacle qu'on voit d'en haut : moquette, deux baquets capitonnés à dossier chromé et leur console, banquette
+       capitonnée à accoudoir, planche de bord chromée à deux cadrans, volant incliné à jante chromée, essuie-glaces, rétroviseur intérieur.
+       ⚠ Les longs joncs de flanc et le skeg restent RETIRÉS (Léo, 13/10 : « ne plus en reposer sans qu'il le demande »).
+       COÛT : mêmes matières (aucun appel de dessin, aucun programme de plus — les clés neuves G, t, q, O sont dans les familles g, m, s, l déjà
+       posées) ; les bijoux sont des POINTES à quatre facettes (4 triangles au lieu des 12 d'une boîte), plis et joints des PLAQUES (2 triangles).
+       ⚠ Les nacelles de la poupe sont des tubes posés par `put` (sans relevé) : un `cyl` couché sous 60 cm près de la poupe serait pris pour un pot
+       et effacé par echRetire. */
     const U=LPU,R=.40,ZF=1.70,ZR=-1.62;
     const P=K.kit({p:{g:'p',c:0xff6fae},c:{g:'c',c:0xe9ecf0},k:{g:'m',c:0x17171c},s:{g:'s',c:0xf6efe3,f:0},
-      S:{g:'s',c:0xe6dfcf},g:{g:'g',c:0x6f9fbf},W:{g:'l',c:0xfff3cf},L:{g:'l',c:0xff2236}});
+      S:{g:'s',c:0xe6dfcf},g:{g:'g',c:0x6f9fbf},W:{g:'l',c:0xfff3cf},L:{g:'l',c:0xff2236},
+      G:{g:'g',c:0x0b0c10},t:{g:'m',c:0x3b1530},q:{g:'s',c:0xd9c9ae},O:{g:'l',c:0xffa43a}});   // (17/10) G fond de calandre laqué noir · t moquette prune (la laque rose sous le soleil l'aurait avalée) · q plis du cuir · O feux de position
     const AR=[[0,2*R+.04],[R*.55,2*R],[R*.95,R*1.30],[R+.12,.30]];         // arche HEXAGONALE
     const zs=[-2.90,-2.80,-2.62,-1.36,-1.30,-.40,.44,.50,1.2,2.40,2.62,2.80,2.90];
     for(const w of [ZF,ZR])for(const d of [R*.55,R*.95,R+.12])zs.push(w-d,w+d);
     zs.sort((a,b)=>a-b);
     const tub=z=>z>-1.33&&z<.47;                                             // la baignoire de l'habitacle
+    const xW=z=>U.lin([[-2.90,.86],[-2.80,.97],[-2.62,1.00],[2.62,1.00],[2.80,.98],[2.90,.93]],z),   // (17/10) le nez à ,93 (il était à ,88 : les phares débordaient dans le vide)
+          yL=z=>U.lin([[-2.90,.88],[-2.62,.93],[1.10,.93],[2.40,.90],[2.90,.84]],z);
     P.loft(zs,z=>{
-      const yb=U.arch(z,[ZF,ZR],AR,.30),xw=U.lin([[-2.90,.86],[-2.80,.97],[-2.62,1.00],[2.62,1.00],[2.80,.96],[2.90,.88]],z),
-            yl=U.lin([[-2.90,.88],[-2.62,.93],[1.10,.93],[2.40,.90],[2.90,.84]],z),yc=Math.max(.66,yb+.06);  // yc : l'arête de ceinture (le galbe)
+      const yb=U.arch(z,[ZF,ZR],AR,.30),xw=xW(z),yl=yL(z),yc=Math.max(.66,yb+.06);  // yc : l'arête de ceinture (le galbe)
       const s=[[0,yb],[xw-.12,yb],[xw-.03,Math.max(.52,yb+.04)],[xw,yc],[xw-.008,yl-.08],[xw-.035,yl-.015],[xw-.07,yl]];
       if(tub(z))s.push([xw-.17,.66],[0,.64]);                                // on CREUSE : le loft descend dans l'habitacle
       else s.push([xw-.30,yl+.02],[0,yl+.035]);
       return s;
     },(j,z)=>{
       if(j===0)return 'k';
-      if(j>=6&&(tub(z)||(z>-1.36&&z<.50)))return (j===7&&z>.44)?'p':'s';   // parois + plancher de cuir, planche de bord rose
+      if(j>=6&&(tub(z)||(z>-1.36&&z<.50)))return j===7?(z>.44?'p':z>-1.30?'t':'s'):'s';   // parois de cuir, planche de bord rose, (17/10) plancher en MOQUETTE
       return 'p';});
+    const tube=(k,rAr,rAv,len,n,x,y,z)=>{const g=new THREE.CylinderGeometry(rAv,rAr,len,n);g.rotateX(Math.PI/2);P.put(k,g,x,y,z);}; // un tube dans l'axe, SANS relevé de pot
+    const quad=(k,a,b,c,d)=>{P.tri(k,a,b,c);P.tri(k,a,c,d);};
+    const bijou=(x,y,z,s,d)=>{const h=s/2,o=[x,y,z+d*s*.75],A=[x-h,y-h,z],B=[x+h,y-h,z],C=[x+h,y+h,z],D=[x-h,y+h,z];   // une POINTE à quatre facettes : chacune prend SA lumière
+      P.tri('c',A,B,o);P.tri('c',B,C,o);P.tri('c',C,D,o);P.tri('c',D,A,o);};
     // LES AILERONS : une lame qui naît au milieu de la portière et file jusqu'à la poupe — épaisse à la base, fine au sommet — et ses obus
     P.sym(sd=>{
       P.prism('p',[[-.45,.92],[-2.94,1.40],[-2.86,.92]],.07,sd*.955);
       P.prism('p',[[-.90,.92],[-2.90,1.16],[-2.86,.92]],.16,sd*.90);
-      for(const y of [1.05,1.19])P.cyl('L',.048,.22,10,sd*.955,y,-2.84-(y-.92)*.08,'z');
+      // (17/10) LES OBUS POINTUS : une bague chromée au ras du bord de fuite, la lentille, la pointe ; une lame chromée suit le bord entre les deux
+      for(const y of [1.05,1.19]){const e=-2.86-(y-.92)/.48*.08;            // e : le bord de fuite de l'aileron à cette hauteur
+        P.cyl('c',.058,.06,10,sd*.955,y,e,'z',.066);P.cyl('L',.05,.08,10,sd*.955,y,e-.07,'z');P.cyl('L',.006,.08,10,sd*.955,y,e-.15,'z',.05);}
+      P.box('c',.08,.30,.03,sd*.955,1.12,-2.893,-.165,0,0);
       // (13/10, Léo : « les barres chelou ») le SKEG chromé RETIRÉ
     });
-    // LE PARE-CHOCS À OBUS, qui s'enroule sur les ailes
+    // LE PARE-CHOCS À OBUS, qui s'enroule sur les ailes — (17/10) et dans ses coins, les FEUX DE POSITION ronds
     P.box('c',1.80,.20,.24,0,.42,2.94);P.box('c',1.70,.07,.18,0,.55,2.90);
     P.sym(sd=>{P.box('c',.30,.20,.22,sd*.95,.42,2.80,0,sd*.55,0);
-      P.cyl('c',.085,.20,12,sd*.46,.37,3.10,'z',.035);P.cyl('c',.06,.05,10,sd*.46,.37,2.98,'z');});   // les OBUS
-    P.box('c',1.80,.20,.24,0,.42,-2.94);P.sym(sd=>P.box('c',.30,.20,.22,sd*.95,.42,-2.80,0,sd*-.55,0));
-    // LA CALANDRE à deux étages, piquée de bijoux
-    for(const [y,h] of [[.72,.15],[.56,.11]]){P.box('k',1.12,h,.03,0,y,2.875);P.box('c',1.16,.025,.035,0,y+h/2,2.885);
-      for(let i=0;i<13;i++)for(let r=0;r<2;r++)P.box('c',.035,.035,.035,(i/12-.5)*1.02,y-h/4+r*h/2,2.89);}
-    // QUATRE PHARES sous une VISIÈRE d'aile
-    P.sym(sd=>{P.box('p',.52,.07,.26,sd*.74,.86,2.78);P.box('c',.50,.20,.03,sd*.74,.75,2.87);
-      for(const x of [.62,.86]){P.cyl('c',.095,.04,12,sd*x,.75,2.875,'z');P.cyl('W',.072,.05,12,sd*x,.75,2.89,'z');}
+      P.cyl('c',.085,.20,12,sd*.46,.37,3.10,'z',.035);P.cyl('c',.06,.05,10,sd*.46,.37,2.98,'z');   // les OBUS
+      tube('c',.085,.08,.05,12,sd*.74,.41,3.075);P.cyl('O',.055,.02,10,sd*.74,.41,3.10,'z');});
+    // LA CALANDRE à deux étages, piquée de bijoux — (17/10) SORTIE de la tôle : l'étage haut entre les phares, l'étage bas dans le pare-chocs
+    P.box('G',1.00,.20,.03,0,.70,2.915);
+    for(const y of [.805,.595])P.box('c',1.04,.024,.035,0,y,2.922);
+    for(let i=0;i<13;i++)for(let r=0;r<3;r++)bijou((i/12-.5)*.90,.645+r*.055,2.93,.036,1);
+    P.box('G',.70,.09,.02,0,.43,3.065);
+    for(let i=0;i<8;i++)bijou((i/7-.5)*.60,.43,3.075,.036,1);
+    // QUATRE PHARES sous une VISIÈRE d'aile — (17/10) le cerclage chromé SORTI de la tôle, la visière plus profonde
+    P.sym(sd=>{P.box('p',.54,.07,.30,sd*.74,.86,2.80);P.box('c',.50,.20,.03,sd*.75,.75,2.915);
+      for(const x of [.62,.86]){P.cyl('c',.095,.04,12,sd*x,.75,2.935,'z');P.cyl('W',.072,.05,12,sd*x,.75,2.945,'z');}
       P.cyl('c',.055,.14,8,sd*.44,.43,-3.06,'z');                           // les pots, à travers le pare-chocs
       // (13/10) le jonc chromé de flanc RETIRÉ
       P.box('c',.04,.12,.14,sd*.98,1.00,.40);                                // rétro chromé
-      P.box('c',.02,.03,.14,sd*1.005,.82,-.30);                               // poignée
+      P.box('c',.02,.03,.14,sd*1.005,.82,-.56);                               // poignée — (17/10) au bout de la portière
     });
-    P.box('k',1.30,.16,.03,0,.64,-2.875);                                    // la seconde calandre, à la poupe
-    for(let i=0;i<6;i++)P.box('c',.025,.14,.03,(i/5-.5)*1.20,.64,-2.887);
-    P.box('c',.03,.07,.20,0,.915,2.52);                                       // la mascotte
-    // le pare-brise PANORAMIQUE : la vitre de face et ses deux coins qui tournent, cadre chromé
+    // (17/10) LA CALANDRE DE LA POUPE à bijoux, entre les ailerons (elle était cachée dans la tôle), et les NACELLES des feux de recul
+    P.box('G',1.24,.20,.03,0,.66,-2.915);
+    for(const y of [.765,.555])P.box('c',1.28,.022,.035,0,y,-2.922);
+    for(let i=0;i<13;i++)for(let r=0;r<3;r++)bijou((i/12-.5)*1.12,.60+r*.06,-2.93,.036,-1);
+    P.box('c',1.80,.20,.24,0,.42,-2.94);
+    P.sym(sd=>{P.box('c',.30,.20,.22,sd*.95,.42,-2.80,0,sd*-.55,0);
+      tube('c',.125,.112,.08,12,sd*.88,.51,-3.06);tube('G',.092,.092,.02,12,sd*.88,.51,-3.095);tube('W',.042,.042,.02,8,sd*.88,.51,-3.10);});
+    P.prism('c',[[2.72,.90],[2.44,.926],[2.47,.985],[2.62,.932]],.026,0);    // la mascotte — (17/10) une flèche couchée qui file
+    // (17/10) LES JOINTS DES PORTIÈRES : un fil sombre posé SUR la peau, relu à la section du loft (jamais à un x constant), 4 mm dehors
+    const peau=z=>{const xw=xW(z),yl=yL(z);return [[xw-.087,.38],[xw-.03,.52],[xw,.66],[xw-.008,yl-.08],[xw-.035,yl-.015],[xw-.07,yl]];};
+    for(const zf of [.52,-.68]){const pts=peau(zf);
+      P.sym(sd=>{for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=(b[1]-a[1])/l*.004,ny=-(b[0]-a[0])/l*.004;
+        quad('k',[sd*(a[0]+nx),a[1]+ny,zf-.007],[sd*(b[0]+nx),b[1]+ny,zf-.007],[sd*(b[0]+nx),b[1]+ny,zf+.007],[sd*(a[0]+nx),a[1]+ny,zf+.007]);}});}
+    // le pare-brise PANORAMIQUE : la vitre de face et ses deux coins qui tournent, cadre chromé — (17/10) essuie-glaces, rétroviseur intérieur
     P.box('g',1.40,.38,.03,0,1.12,.58,-.30);
-    P.sym(sd=>{P.box('g',.30,.36,.03,sd*.80,1.11,.44,-.20,sd*1.15,0);P.box('c',.045,.42,.045,sd*.90,1.10,.30,-.08,0,0);});
+    P.sym(sd=>{P.box('g',.30,.36,.03,sd*.80,1.11,.44,-.20,sd*1.15,0);P.box('c',.045,.42,.045,sd*.90,1.10,.30,-.08,0,0);
+      P.box('k',.40,.012,.012,sd*.28,.985,.645,-.30,0,sd*.10);});
     P.box('c',1.50,.04,.05,0,1.31,.52,-.30);
-    // banquettes, volant, capote repliée
-    for(const [z,h] of [[-.22,.46],[-1.14,.42]]){P.box('s',1.56,.12,.44,0,.72,z+.12);P.box('s',1.56,h,.13,0,.64+h/2,z-.10,-.14);}
-    P.lathe('k',[[.17,-.02],[.17,.02]],10,.36,.98,.30,'z');
-    P.box('S',1.70,.10,.30,0,.98,-1.48);
+    P.box('c',.16,.05,.025,0,1.255,.50,-.30);
+    // (17/10) LES SIÈGES CAPITONNÉS : deux baquets à dossier chromé et leur console, la banquette et son accoudoir ; les plis, des bandes de cuir plus foncé
+    const pliA=(x,y,z,w,l)=>quad('q',[x-w/2,y,z-l/2],[x+w/2,y,z-l/2],[x+w/2,y,z+l/2],[x-w/2,y,z+l/2]),               // sur une assise
+          pliD=(x,y,z,w,h,a)=>{const cy=Math.cos(a)*h/2,cz=Math.sin(a)*h/2;quad('q',[x-w/2,y-cy,z-cz],[x+w/2,y-cy,z-cz],[x+w/2,y+cy,z+cz],[x-w/2,y+cy,z+cz]);}; // sur un dossier penché de a
+    for(const sd of [1,-1]){const x=sd*.40;
+      P.box('s',.64,.12,.44,x,.72,-.10);P.box('s',.64,.46,.13,x,.87,-.32,-.14,0,0);
+      for(let i=0;i<5;i++){const xi=x+(i/4-.5)*.48;pliA(xi,.782,-.10,.04,.40);pliD(xi,.880,-.247,.04,.40,-.14);}
+      P.box('c',.64,.024,.14,x,1.112,-.354,-.14,0,0);}
+    P.box('S',.14,.16,.48,0,.73,-.10);P.box('c',.14,.012,.40,0,.815,-.10);
+    P.box('s',1.56,.12,.44,0,.72,-1.02);P.box('s',1.56,.42,.13,0,.85,-1.24,-.14,0,0);
+    for(let i=0;i<9;i++){const xi=(i/8-.5)*1.40;if(Math.abs(xi)<.1)continue;pliA(xi,.782,-1.02,.04,.40);pliD(xi,.860,-1.167,.04,.36,-.14);}
+    P.box('S',.16,.07,.40,0,.815,-1.02);
+    P.box('S',1.70,.10,.30,0,.98,-1.48);                                     // la capote repliée
+    // (17/10) LE POSTE DE CONDUITE : volant incliné vers le conducteur (jante, cerclage chromé, branches, colonne), bloc de deux cadrans, jonc de planche
+    for(const [k,g] of [['k',new THREE.TorusGeometry(.16,.016,5,12)],['c',new THREE.TorusGeometry(.095,.006,3,10)],['c',new THREE.BoxGeometry(.31,.02,.012)]])P.put(k,g,.36,.99,.28,-.55,0,0);
+    P.put('c',new THREE.BoxGeometry(.02,.15,.012),.36,.926,.319,-.55,0,0);
+    P.box('k',.035,.035,.22,.36,.935,.36,.60,0,0);
+    P.box('k',.44,.10,.04,.36,.92,.475);for(const x of [.27,.45])P.cyl('W',.028,.01,8,x,.92,.453,'z');
+    P.box('c',1.50,.025,.025,0,.85,.468);
     K.commit(P);
     return {hl:[.74,.75,2.90],tl:[.955,1.12,-2.96],wx:.83,wzF:ZF,wzR:-ZR,
             lpw:{R:R,w:.26,style:'enjoliveur',blanc:1}};
