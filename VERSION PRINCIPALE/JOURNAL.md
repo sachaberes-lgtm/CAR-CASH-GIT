@@ -39,6 +39,11 @@ Léo préférait « un portail qui montre la map où tu vas » aux « portails d
 - `?portail=ancien` : l'ovule et les feux, tels quels. Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgPortailPhoto(d)`,
   `dbgCartePostale()`, `dbgPassage(p)` / `dbgPassage('lent',k)`. Bancs (scratchpad de la session) : `approche.py`, `passage.py`, `cp.py`.
 
+
+## LA POUPÉE RETIRÉE (2026-10-17, Léo : « enlève la barbie » → au questionnaire : « du jeu »)
+- `retire:1` sur sa ligne de CARS (la ligne reste : les index de sauvegarde ne bougent pas). Le mécanisme des caisses retirées fait le reste :
+  qui l'avait achetée est REMBOURSÉ de son prix (4,2 M$, `CAR_UNLOCK`) et repart en LA HONTE s'il roulait avec. Le gabarit `SHAPES.poupee`
+  reste dans le code (elle peut revenir : retirer `retire:1`). sw.js v590.
 ## LA PLAQUE D'IMMATRICULATION + LE PROFIL DU JOUEUR (2026-10-17, Sacha : « rajoute une plaque d'immatriculation personnalisable au début du jeu, fais plusieurs templates et le joueur peut écrire ce qu'il veut sur la plaque, puis elle doit être intégrée à toutes les voitures » puis « rajoute un bouton dans le garage, un petit bouton avec un logo trophée : le joueur peut changer sa plaque et voir des stats sur son compte — il joue depuis combien de temps, combien de figures, meilleur temps, etc. »)
 - **L'atelier de la plaque (`#plq`, `plqOuvre`)** : la plaque en grand (la toile même de la caisse), un champ de 9 signes (capitales sans
   accent : A-Z, 0-9, espace, `- . ! ? $` — `plqNet` nettoie la frappe, minuscules et accents compris), le DÉ (une plaque au hasard au format
