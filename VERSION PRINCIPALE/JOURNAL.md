@@ -3,6 +3,20 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA CAMÉRA DU GLACIER : ON VOIT LA PENTE EN ROULANT (2026-10-18, Sacha : « oui : redresse la caméra sur le glacier seulement, pour qu'on voie la pente en roulant »)
+- Réponse à la question laissée par le 2e tour (ci-dessous) : la caméra de course s'inclinait avec la piste, la glace à 70 % remplissait l'écran
+  comme un parking plat. `CAM_GLACIER` (`k` .8, `max` 30°, `garde` 12°) + `camGlacier()` : au glacier v4, SUR la piste, le CABRAGE ANTICIPÉ
+  (`camRouteCabrage`) prend en plus 80 % de la pente sous la caisse — tout le plan pivote autour de la caisse, nez levé vers l'horizon : la caisse
+  reste à sa place à l'écran, la glace plonge sous le milieu de l'image, les pics se redressent. Borné par la garde (la caméra reste 12° au-dessus
+  de la glace derrière la caisse) et par 30°. Hors glacier, en vol, sous la dalle : zéro.
+- MESURÉ (banc headless, `dbgBanq('cam')`) : debout, regard −41/−45° → −20/−23° sous l'horizon (pivot 23-24°), caisse au même endroit de
+  l'écran (NDC −0,24 → −0,22) ; couché, −40° → −29° (pivot 10°, la garde l'arrête : la caméra couchée est plus basse).
+- ESSAYÉ ET RETIRÉ : monter la caméra pour redresser plus (couché surtout) — la caisse descendait et rapetissait à l'écran ; une garde de 7°
+  — vue rasante, les roues passaient derrière la glace.
+- `?glaciercam=0` = la caméra d'avant. Banc : `dbgBanq('cam',{k:…})` règle à chaud et rend {g, phi, site, caisseY}. Aucune physique touchée.
+- Vérifié au passage : les morts du pilote de mesure au glacier élargi sont TOUTES des pics de la piste (cause « glace » : il vise le centre
+  sans esquiver) — pas de pic du décor entré sur la piste.
+
 ## LE GLACIER, 2e TOUR : PISTE BEAUCOUP PLUS LARGE, PENTE BEAUCOUP PLUS FORTE (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue »)
 - LARGEUR : `BK_LARG4` 4,4 → 7 — la piste passe de 123 à 196 m (demi-largeur 98 m). Tout ce qui la borde suit `ROAD_HALF` (bourrelet de
   neige, glace, becs, pics, mur `parisMur`) ; le plancher des rayons (2,6 demi-largeurs = 255 m) l'emporte souvent : virages plus amples.
