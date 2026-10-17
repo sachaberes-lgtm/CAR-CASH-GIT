@@ -46135,6 +46135,11 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);uiClic('nav');pan.classList.remove('menu');bqEssaie(t.getAttribute('data-k'));};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));ui.querySelector('.bqUr').addEventListener('click',essaie('.bqU'));
   return ui;}
+/* (2026-10-13, passe de sortie) les marges sûres de l'écran (encoche, coins, barre d'accueil) en px : une sonde lit var(--sT/R/B/L) RÉSOLUES
+   (env(safe-area-inset-*) sur iPhone, --ccX dans la colonne de l'ordi) — la mise en page de la boutique est posée en JS */
+function garSur(){let p=garSur.p;if(!p||!p.isConnected){p=garSur.p=document.createElement('div');p.setAttribute('aria-hidden','true');
+    p.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--sT,0px) var(--sR,0px) var(--sB,0px) var(--sL,0px)';document.body.appendChild(p);}
+  const c=getComputedStyle(p);return {t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0};}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   {const a=document.getElementById('gBqArg'),v=fmtC(Math.floor(bank()));if(a&&a.textContent!==v)a.textContent=v;}
@@ -46176,12 +46181,14 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong+':'+Math.round(tr.bottom);
   if(GBQ.lay!==lay){GBQ.lay=lay;
-    const UW=Math.round(Math.min(110,W*.28)),top=tr.bottom+(cou?6:14);une.classList.add('vert');une.style.left=(cou?36:12)+'px';une.style.right='auto';une.style.width=UW+'px';une.style.top=top+'px';
-    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left='14px';pan.style.right='14px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');
+    /* (2026-10-13, passe de sortie) LES MARGES DE L'IPHONE (garSur) : couché, la colonne CETTE SEMAINE (36 px du bord) et la grille (12 px)
+       passaient sous l'encoche et le coin arrondi (47 px) ; la colonne s'aligne aussi sur le titre BOUTIQUE (cartes au même bord que lui) */
+    const S9=garSur(),UW=Math.round(Math.min(110,W*.28)),top=tr.bottom+(cou?6:14);une.classList.add('vert');une.style.left=Math.round(S9.l+14)+'px';une.style.right='auto';une.style.width=UW+'px';une.style.top=top+'px';
+    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left=Math.round(S9.l+14)+'px';pan.style.right=Math.round(S9.r+14)+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');
       une.style.bottom=(H-(bas-10-ph)+10)+'px';}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');une.style.bottom='12px';}
-    garLibre._r=null;}
-  {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=sk.classList.contains('vide')?0:46,sb=cou?H-14:pr.top-10;
+    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right=Math.round(S9.r+14)+'px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');une.style.bottom=Math.round(S9.b+12)+'px';}
+    GBQ.sb=S9.b;garLibre._r=null;}
+  {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=sk.classList.contains('vide')?0:46,sb=cou?H-(GBQ.sb||0)-14:pr.top-10;
    sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
    GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
