@@ -10121,6 +10121,24 @@ body:not(.play) #m2Focus{display:none!important}
 .m2FR u em{display:block;height:100%;background:var(--au2)}
 .m2FR.ok{box-shadow:inset 0 0 0 1px var(--cash)}.m2FR.ok i,.m2FR.ok b{color:var(--cash)}.m2FR.ok u em{background:var(--cash)}
 @media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « trop de pop-up mission pendant la partie : en ligne, plus discrète, en bas ») — une mission
+   réussie en course : une ligne fine au-dessus des suivies (--m2lY = leur hauteur, posée par m2LigneSuit), à leur place et dans leur matière */
+#m2Ligne{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
+  display:flex;align-items:center;gap:6px;box-sizing:border-box;width:max-content;max-width:min(60vw,520px);padding:3px 7px 2px;pointer-events:none;
+  background:color-mix(in srgb,var(--k1) 84%,transparent);box-shadow:inset 2px 0 0 var(--m2lC);font-family:var(--pix);font-size:var(--f0);
+  line-height:1.3;color:var(--tx);--m2lC:var(--cash);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)}
+#m2Ligne.on{opacity:1;transform:translate(-50%,0)}
+#m2Ligne.sec{--m2lC:var(--neoM)}
+#m2Ligne i{flex:none;font-style:normal;line-height:0;color:var(--m2lC)}#m2Ligne i .pxi{--pxs:1}
+#m2Ligne span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#m2Ligne small{font-size:inherit;color:var(--m2lC)}
+#m2Ligne b{flex:none;font-weight:400;color:var(--au1);white-space:nowrap}
+body:not(.play) #m2Ligne{display:none!important}
+@media (orientation:portrait){#m2Ligne{left:var(--hudG,16px);transform:translateY(4px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px + var(--m2lY,0px));
+  max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}
+  #m2Ligne.on{transform:none}
+  #m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}}
+@media (prefers-reduced-motion:reduce){#m2Ligne{transition:opacity var(--t-slow) linear}}
 /* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
 .mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
 .mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
@@ -10203,6 +10221,31 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
 @media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
 @media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
+</style>
+<style id="uiRevue">
+/* LA REVUE DE L'INTERFACE (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran au bon endroit,
+   avec la bonne police ; une animation et un son pour chaque bouton ; des transitions fluides entre chaque écran »). Relevé au banc écran par
+   écran (debout 390×844 et couché 844×390) puis corrigé ici, après tous les blocs qu'il surcharge. Le JS : « L'APPUI POUR TOUS ». */
+/* le curseur tenu : son bouton grossit et s'éclaire sous le doigt (le reste de l'appui passe par l'API d'animation, sans CSS) */
+.volS::-webkit-slider-thumb{transition:transform var(--t-fast) var(--ease),filter var(--t-fast) var(--ease)}
+.volS.tient::-webkit-slider-thumb{transform:scale(1.18);filter:brightness(1.18)}
+.volS.tient::-moz-range-thumb{transform:scale(1.18)}
+/* L'OFFRE DE SECONDE CHANCE, DEBOUT : CONTINUER descendait sous la barre d'accueil de l'iPhone (relevé 390×844 : son bas à 824 px, la zone
+   sûre s'arrête à 810) — la seule décision des 5,5 s sortait de l'écran. NON MERCI prend la marge libre au-dessus d'elle (margin-top:auto)
+   et les deux plaques se resserrent d'un cran : CONTINUER retombe à la place exacte de REJOUER. Couché, la règle de l'UX 8 reste maîtresse. */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html:not(.c6) body.chOffre #mDead #mChanceNon:not([hidden]){margin-top:auto;min-height:44px}
+  html:not(.c6) body.chOffre #mDead #mChance:not([hidden]){margin-top:8px}
+}
+/* LA BOUTIQUE, COUCHÉE, HORS DE L'ENCOCHE : le titre BOUTIQUE (left 16 px) et la colonne des rayons (left 36 px) passaient sous l'encoche
+   (zone sûre de 47 px à gauche — sur l'iPhone ET dans le cadre de l'ordi, html.telCadre) ; la dernière colonne de cartes débordait de 33 px
+   dans l'arrondi de droite. Debout, les zones latérales valent 0 : rien ne bouge. La colonne se décale par sa MARGE (son entrée anime
+   `translate`, on n'y touche pas) ; les mesures du script (getBoundingClientRect) suivent d'elles-mêmes. */
+#gBqTete{left:calc(var(--sL,0px) + 16px);right:calc(var(--sR,0px) + 16px)}
+#gBq.pan #gBqCats{margin-left:max(0px,calc(var(--sL,0px) - 26px))}
+#gBqPan.cote{right:calc(var(--sR,0px) + 12px)!important}
+/* L'INVENTAIRE : son RETOUR parlait en 8 px quand tous les autres RETOUR (réglages, offres, boutique, missions) parlent en 10 px */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gAct>#gvCof{font-size:var(--f1)}
 </style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
@@ -30724,7 +30767,8 @@ const SHAPES={
     // d'arche, une calandre plus étroite ENTRE les phares, le bouclier à grandes prises d'air.
     const U=LPU,R=.47,ZF=1.47,ZR=-1.42;
     const P=K.kit({p:{g:'p',c:0x86f51c},k:{g:'m',c:0x16171b},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},
-      g:{g:'g',c:0x1a2a3c},W:{g:'l',c:0xfff4d8},L:{g:'l',c:0xff2030},O:{g:'l',c:0xffa21a}});
+      g:{g:'g',c:0x1a2a3c},W:{g:'l',c:0xfff4d8},L:{g:'l',c:0xff2030},O:{g:'l',c:0xffa21a},
+      r:{g:'l',c:0x9a0f1a},R:{g:'l',c:0x7a1018},w:{g:'l',c:0xd9dce0},m:{g:'m',c:0x2a2c31}}); // (17/10, l'arrière v2) r, R, w (la plaque éclairée), m — aucune famille de plus
     const AR=[[0,2*R+.06],[R*.92,2*R+.06],[R+.10,.48]];                     // arche CARRÉE
     const zs=[-2.26,-2.12,-1.66,-1.52,-.62,-.48,.78,.86,.98,2.18,2.30];
     for(const w of [ZF,ZR])for(const d of [R*.92,R+.10,R+.24])zs.push(w-d,w+d);
@@ -30759,7 +30803,13 @@ const SHAPES={
       P.cyl('c',.16,.05,14,sd*.73,.90,2.31,'z');P.cyl('W',.11,.06,14,sd*.73,.90,2.33,'z');P.lathe('W',[[.135,0],[.15,0]],16,sd*.73,.90,2.345,'z');
       P.box('W',.14,.07,.03,sd*.68,.51,2.495);
       P.box('O',.12,.07,.14,sd*.82,1.225,2.12);                              // clignotants SUR les ailes
-      P.box('L',.12,.40,.03,sd*.84,.92,-2.275);
+      /* (17/10, l'arrière v2) LE FEU EN COLONNE dans sa coque noire qui dépasse : rouge en haut (strié), clignotant, recul, cerclé de chrome */
+      P.box('K',.19,.47,.06,sd*.84,.93,-2.285);
+      P.box('L',.14,.21,.012,sd*.84,1.04,-2.318);for(const y of [.98,1.02,1.06,1.10])P.box('r',.14,.014,.006,sd*.84,y,-2.326);
+      P.box('O',.14,.08,.012,sd*.84,.875,-2.318);P.box('W',.14,.06,.012,sd*.84,.795,-2.318);P.box('L',.14,.04,.012,sd*.84,.735,-2.318);
+      for(const y of [.696,1.164])P.box('c',.19,.014,.012,sd*.84,y,-2.318);for(const x of [.745,.935])P.box('c',.014,.47,.012,sd*x,.93,-2.318);
+      P.box('K',.10,.27,.25,sd*.95,.51,-2.33);                                // la protection d'angle du pare-chocs
+      P.box('R',.10,.03,.012,sd*.70,.585,-2.436);                              // les catadioptres
       P.box('p',.20,.16,.12,sd*1.03,1.36,.80);P.box('k',.10,.04,.05,sd*.96,1.30,.80); // rétro + bras
       for(const z of [.70,-.40])for(const y of [.70,1.02])P.box('c',.03,.07,.08,sd*.965,y,z); // CHARNIÈRES
       for(const z of [.20,-.90])P.box('c',.03,.03,.14,sd*.965,1.06,z);        // poignées
@@ -30774,6 +30824,19 @@ const SHAPES={
     P.lathe('k',[[.26,-.13],[.36,-.13],[.41,-.06],[.41,.06],[.36,.13],[.26,.13]],14,0,1.06,-2.42,'z');
     P.lathe('p',[[.32,-.12],[.30,-.14],[0,-.15]],14,0,1.06,-2.42,'z');
     P.cyl('c',.08,.04,8,0,1.06,-2.57,'z');
+    /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'était un mur plat,
+       deux pavés rouges et un pare-chocs en boîte ; seule la roue de secours tenait la poupe. Désormais les feux en COLONNE dans leurs coques
+       (plus haut, dans le P.sym), et ici : le JOINT de la porte arrière, ses deux CHARNIÈRES et sa poignée, la HOUSSE de la roue cerclée de
+       chrome, le 3e feu stop sous le pavillon, la PLAQUE et l'ANNEAU DE REMORQUAGE dans le pare-chocs, le marchepied strié. Les pots latéraux
+       de Léo (ECH_POTS.caid) n'ont pas bougé. */
+    P.box('k',1.47,.014,.012,0,.70,-2.266);P.box('k',1.47,.014,.012,0,1.70,-2.266);P.sym(sd=>P.box('k',.014,1.0,.012,sd*.735,1.20,-2.266)); // le joint de porte
+    for(const y of [.86,1.50]){P.box('c',.06,.11,.05,-.72,y,-2.29);P.box('k',.03,.13,.03,-.72,y,-2.272);} // les charnières (à droite vue de derrière, comme la G : x < 0)
+    P.box('k',.20,.06,.02,.58,1.12,-2.272);P.box('c',.15,.03,.03,.58,1.12,-2.29);                      // la poignée
+    P.put('c',new THREE.TorusGeometry(1,.07,4,28),0,1.06,-2.556,0,0,0,.335,.335,.4);                    // le cerclage chromé de la housse
+    P.box('L',.36,.03,.02,0,1.83,-2.272);                                                              // le 3e feu stop
+    P.box('K',.46,.14,.012,0,.50,-2.436);P.box('w',.40,.10,.012,0,.50,-2.443);                         // la plaque
+    P.box('m',.62,.03,.10,0,.645,-2.38);for(let i=0;i<4;i++)P.box('k',.60,.014,.012,0,.662,-2.35-i*.024); // le marchepied strié
+    P.put('c',new THREE.TorusGeometry(1,.28,4,10),.48,.36,-2.44,0,Math.PI/2,0,.05,.05,.05);              // l'anneau de remorquage
     K.commit(P);
     return {hl:[.73,.90,2.36],tl:[.84,.92,-2.32],wx:.84,wzF:ZF,wzR:-ZR,
             lpw:{R:R,w:.32,style:'rayons',n:6,accent:0x1d1f24,crampons:1}};
@@ -31256,7 +31319,31 @@ const SHAPES={
         K.cyl(.022,.022,.05,K.dark,sd*(W/2-.10),.40*.94+Math.cos(a9)*.17,fz*zw+Math.sin(a9)*.17,6).rotation.z=Math.PI/2;}
       const et=B(.07,.16,.09,K.acc,sd*(W/2-.10),.40*.94+.19,fz*zw);et.rotation.x=.2; // l'étrier
     }
-    return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,y0+H*.66,-L/2-.04],wr:.94,doors:1,sp:0};
+    /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'était un mur
+       vert plat sous le grand aileron, deux traits rouges et une barre noire. Désormais :
+       · LES FEUX sous un VERRE FUMÉ d'une aile à l'autre : deux LED en équerre, leur cœur sombre, le fil de LED qui les relie ;
+       · le BOUCLIER dans le vernis de la caisse, creusé de deux ÉCOPES noires à lames, la plaque au milieu ;
+       · le DIFFUSEUR noir à ailettes VERT ACIDE, où s'encastre le gros canon de Léo (ECH_POTS.tuner, inchangé).
+       Le diffuseur commun de buildCar (`split`) ne passait plus derrière le bouclier : il est coupé (`split:0`) et sa LAME AVANT reposée
+       ici telle quelle — l'avant ne bouge pas. Les feux-boîtes communs (`tl`) passent dans la caisse. */
+    B(W*.96,.05,.3,K.dark,0,y0+H*.04,L/2+.12);                     // (la lame avant que posait `split`, à l'identique)
+    {const zf=-L/2-.09,P=K.kit({k:{g:'m',c:0x101210},K:{g:'g',c:0x07080a},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},  // zf : la VRAIE poupe (carProfile biseaute de 9 cm)
+        v:{g:'l',c:0x8dff2a},w:{g:'l',c:0xd9dce0}}); // (les ailettes en néon acide, la plaque éclairée : aucune famille de matière de plus)
+     P.box('K',1.66,.13,.02,0,.625,zf-.012);                      // le verre fumé
+     P.sym(sd=>{
+       P.plate('L',[[.46*sd,.672],[.80*sd,.672],[.80*sd,.582],[.73*sd,.582],[.73*sd,.636],[.46*sd,.636]],.014,zf-.036); // la LED en équerre
+       P.plate('r',[[.50*sd,.630],[.70*sd,.630],[.70*sd,.594],[.50*sd,.594]],.01,zf-.03);                             // son cœur
+       P.box('L',.04,.02,.01,sd*.63,.654,zf-.03);                  // (le repère des traînées, dans l'équerre : un `plate` ne se relève pas)
+       P.box('K',.26,.10,.02,sd*.66,.43,zf-.096);                  // l'écope du bouclier…
+       for(const x of [.58,.66,.74])P.box('k',.014,.09,.03,sd*x,.43,zf-.104); // …et ses lames
+     });
+     P.box('r',.88,.016,.012,0,.618,zf-.03);                       // le fil de LED d'une équerre à l'autre
+     P.box('K',.44,.13,.012,0,.435,zf-.096);P.box('w',.40,.10,.012,0,.435,zf-.102); // la plaque
+     P.box('k',1.52,.155,.16,0,.278,zf-.06);                      // le diffuseur…
+     for(const x of [-.66,-.42,-.18,.06,.66])P.box('v',.016,.12,.18,x,.29,zf-.08); // …ses ailettes (le canon passe à droite)
+     K.commit(P);}
+    B(W*.90,.15,.10,vernis,0,.43,-L/2-.13);                        // le bouclier, dans le vernis de la caisse (9 cm devant la poupe biseautée)
+    return {hl:[W*.32,y0+H*.40,L/2+.06],tl:[W*.34,.55,-L/2+.10],wr:.94,doors:1,sp:0,split:0}; // tl : DANS la caisse (les LED font les feux)
   },
   // 14. LE CHAT POP-TART — refait en VOXELS le 2026-10-06 (voir « LE CHAT POP-TART EN VOXELS », juste avant SHAPES) : le gâteau
   //     couché en châssis, la tête dressée à l'avant, pattes et queue dessinées de profil, quatre roulettes pixel.
@@ -31541,7 +31628,8 @@ Object.assign(SHAPES,{
   const U=LPU,R=.30,ZF=1.06,ZR=-1.10;
   const P=K.kit({p:{g:'p',c:0xf4f1ea},r:{g:'p',c:0xd8261e,f:0},k:{g:'m',c:0x33353a},n:{g:'m',c:0x141518},
     K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},
-    O:{g:'l',c:0xffa21a},b:{g:'s',c:0x8f5f2e},y:{g:'f',c:0xffc233},t:{g:'f',c:0xd98a3a},e:{g:'f',c:0xc3261a}});
+    O:{g:'l',c:0xffa21a},b:{g:'s',c:0x8f5f2e},y:{g:'f',c:0xffc233},t:{g:'f',c:0xd98a3a},e:{g:'f',c:0xc3261a},
+    R:{g:'l',c:0x7a1018},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) R les catadioptres, w la plaque éclairée
   const AR=[[0,2*R+.05],[R*.78,2*R+.03],[R+.10,.22]];
   const zs=[-1.70,-1.66,-1.58,-1.46,-1.08,-1.00,-.26,-.18,.28,.36,.96,1.62,1.70];
   for(const w of [ZF,ZR])for(const d of [R*.78,R+.10])zs.push(w-d,w+d);
@@ -31570,13 +31658,27 @@ Object.assign(SHAPES,{
   P.sym(sd=>{
     P.box('n',.28,.18,.03,sd*.575,.64,1.705);P.box('W',.24,.14,.02,sd*.575,.64,1.72);
     P.box('O',.12,.05,.02,sd*.56,.36,1.75);
-    P.box('L',.13,.24,.02,sd*.62,.68,-1.715);P.box('O',.13,.07,.02,sd*.62,.525,-1.715);
+    /* (17/10, l'arrière v2) LE FEU EN COLONNE dans sa coque noire : rouge strié en haut, recul, clignotant, rouge bas, cerclé de chrome */
+    P.box('K',.17,.43,.04,sd*.625,.685,-1.718);
+    P.box('L',.13,.17,.01,sd*.625,.80,-1.742);for(const y of [.76,.80,.84])P.box('K',.13,.014,.006,sd*.625,y,-1.749);
+    P.box('W',.13,.05,.01,sd*.625,.685,-1.742);P.box('O',.13,.07,.01,sd*.625,.62,-1.742);P.box('L',.13,.06,.01,sd*.625,.545,-1.742);
+    for(const y of [.47,.90])P.box('c',.17,.014,.01,sd*.625,y,-1.744);for(const x of [.535,.715])P.box('c',.014,.43,.01,sd*x,.685,-1.744);
+    P.box('R',.10,.03,.012,sd*.58,.40,-1.752);                                 // les catadioptres
     P.box('r',.012,.07,3.28,sd*.748,.82,-.02);                                 // le liseré de livraison
     P.box('n',.03,.10,.05,sd*.76,.99,.86);P.box('n',.08,.09,.12,sd*.80,1.03,.86); // rétro
     P.box('n',.012,.03,.12,sd*.75,.89,-.10);                                    // poignée
     P.box('n',.05,.05,.08,sd*.52,1.445,-.18);P.box('n',.05,.05,.08,sd*.52,1.445,-1.08); // pieds de galerie
   });
-  P.box('n',.46,.12,.02,0,.62,-1.715);                                         // l'emplacement de plaque
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'était un hayon
+     plat, des feux en pavés, une plaque noire et un pare-chocs en boîte, sur la caisse la plus chère en euros. Désormais les feux en COLONNE
+     (dans le P.sym), et ici : la PLAQUE blanche dans son cadre et sa lampe, la POIGNÉE du hayon, l'ESSUIE-GLACE sur la lunette, le
+     MARCHEPIED strié sur le pare-chocs, le petit BECQUET de pavillon et son 3e feu stop. Le pot de Léo (ECH_POTS.b_pizza) n'a pas bougé. */
+  P.box('n',.46,.14,.02,0,.62,-1.712);P.box('w',.40,.10,.01,0,.62,-1.726);    // la plaque
+  P.sym(sd=>P.box('n',.014,.52,.01,sd*.515,.735,-1.704));                      // le joint du hayon
+  P.box('n',.30,.06,.02,0,.765,-1.712);P.box('c',.22,.03,.03,0,.765,-1.73);P.box('W',.10,.014,.01,0,.70,-1.722); // la poignée, la lampe de plaque
+  P.box('n',.42,.016,.016,.15,1.21,-1.636,.213,0,.9);P.box('n',.30,.012,.03,.21,1.28,-1.628,.213,0,.9); // l'essuie-glace : le bras, le balai
+  P.box('n',.64,.025,.11,0,.472,-1.70);for(let i=0;i<3;i++)P.box('c',.60,.014,.01,0,.49,-1.66-i*.03); // le marchepied strié
+  P.box('p',1.16,.04,.17,0,1.44,-1.63);P.box('n',1.10,.012,.15,0,1.418,-1.635);P.box('L',.34,.018,.012,0,1.425,-1.716); // le becquet, son 3e feu
   P.cyl('c',.035,.10,8,.33,.29,-1.72,'z');                                     // le pot
   P.box('n',1.20,.03,.05,0,1.485,-.18);P.box('n',1.20,.03,.05,0,1.485,-1.08); // barres de toit
   // LA BOÎTE GÉANTE : un plateau carton, la pizza dedans, le couvercle entrouvert qui laisse passer une part
@@ -32118,7 +32220,8 @@ Object.assign(SHAPES,{
   d_vette:function(K){
   const U=LPU,R=.33,ZF=1.19,ZR=-1.25;
   const P=K.kit({p:{g:'p',c:0xd01a22},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},
-    g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+    g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
+    r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus
   const AR=[[0,2*R+.04],[R*.70,2*R+.02],[R+.06,R*1.12],[R+.14,.26]];
   const zs=[-2.24,-2.20,-2.10,-1.85,-.90,-.80,-.30,.40,.45,1.80,2.10,2.20,2.24];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.06,R+.14])zs.push(w-d,w+d);
@@ -32150,13 +32253,27 @@ Object.assign(SHAPES,{
     for(const [a,b] of [[-2.10,-1.74],[-.76,.70],[1.68,1.98]])P.box('k',.02,.045,b-a,sd*.908,.50,(a+b)/2); // le jonc de caoutchouc
     P.box('k',.06,.07,.14,sd*.93,.92,.36);P.box('k',.06,.02,.04,sd*.88,.90,.36); // rétro
     P.box('O',.16,.04,.02,sd*.58,.49,2.235);P.box('W',.12,.04,.02,sd*.36,.34,2.235);
-    // QUATRE FEUX CARRÉS sur le tableau noir
-    for(const x of [.36,.63]){P.box('c',.21,.15,.02,sd*x,.72,-2.245);P.box('L',.18,.12,.03,sd*x,.72,-2.25);}
+    // QUATRE FEUX CARRÉS sur le tableau noir — (17/10, l'arrière v2) ENFONCÉS : un cerclage chromé qui dépasse, la cuvette noire, le verre
+    // rouge en retrait, son cœur sombre et ses stries
+    for(const x of [.36,.63]){
+      for(const y of [.64,.80])P.box('c',.22,.02,.04,sd*x,y,-2.262);for(const dx of [-.10,.10])P.box('c',.02,.16,.04,sd*(x+dx),.72,-2.262);
+      P.box('K',.18,.14,.03,sd*x,.72,-2.252);P.box('L',.17,.11,.01,sd*x,.72,-2.262);P.box('r',.08,.05,.01,sd*x,.72,-2.268);
+      for(const y of [.69,.75])P.box('K',.17,.014,.006,sd*x,y,-2.27);}
     for(const x of [.30,.44])P.cyl('c',.045,.10,8,sd*x,.32,-2.26,'z');
   });
   P.box('k',1.44,.06,.03,0,.44,2.225);P.box('k',1.10,.07,.02,0,.34,2.225); // bouclier, fente
   P.box('K',1.52,.20,.02,0,.72,-2.242);                                     // le tableau noir de la poupe
-  P.box('k',1.40,.12,.03,0,.36,-2.235);
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'étaient quatre
+     carrés rouges plats, un bas noir plat et quatre pots en pastilles. Désormais les feux ENFONCÉS (dans le P.sym), et ici : le tableau EN
+     CREUX entre deux lèvres de tôle, le BOUCLIER qui se replie sous la caisse et son pli, la PLAQUE, le DIFFUSEUR noir dont les ailettes
+     encadrent les quatre sorties de Léo (ECH_POTS.d_vette, inchangé), le 3e feu stop. (Le bas noir plat est retiré.) */
+  P.box('p',1.62,.035,.05,0,.835,-2.25);P.box('p',1.62,.035,.05,0,.605,-2.25);                // le tableau en creux
+  P.prism('p',[[-2.16,.585],[-2.27,.575],[-2.30,.50],[-2.29,.43],[-2.24,.40],[-2.16,.40]],1.68,0); // le bouclier qui se replie
+  P.box('K',1.60,.014,.012,0,.50,-2.302);                                                    // son pli
+  P.box('K',.34,.12,.012,0,.48,-2.298);P.box('w',.30,.09,.012,0,.48,-2.306);                 // la plaque
+  P.box('k',1.24,.18,.12,0,.30,-2.27);                                                       // le diffuseur…
+  for(const x of [-.45,-.33,-.165,0,.165,.33,.45])P.box('K',.014,.16,.14,x,.30,-2.28);        // …ses ailettes entre les quatre sorties
+  P.box('L',.30,.02,.012,0,.885,-2.247);                                                     // le 3e feu stop
   P.box('K',.30,.012,.14,0,.905,.46,-.35);                                   // essuie-glace caché
   K.commit(P);
   return {hl:[.60,.68,1.95],tl:[.63,.72,-2.26],wx:.77,wzF:ZF,wzR:-ZR,
@@ -32169,7 +32286,8 @@ Object.assign(SHAPES,{
      un capot galbé à deux nervures, la calandre à mailles droite comme un I, les quatre phares ronds. */
   const U=LPU,R=.385,ZF=1.45,ZR=-1.30,hmp=(z,w)=>{const d=Math.abs(z-w)/.95;return d>=1?0:1-d*d;};
   const P=K.kit({p:{g:'p',c:0x1a3d2a},k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xeef0f3},
-    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff6e0},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff6e0},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
+    r:{g:'l',c:0x7e0a14},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) r la lentille, w la plaque éclairée — aucune famille de plus
   const AR=[[0,2*R+.04],[R*.60,2*R+.01],[R*.98,R*1.12],[R+.12,.30]];
   const ZC=.70,ZM=-1.85;                                                         // pied du pare-brise, pied de la lunette
   let zs=[-2.40,-2.37,-2.30,-2.15,-2.02,ZM,-1.80,-1.66,-1.52,-1.48,-1.30,-1.10,-.92,-.86,-.60,-.40,-.15,.10,.40,.50,.66,ZC,.74,1.00,1.80,2.10,2.22,2.30,2.35,2.38,2.40];
@@ -32224,11 +32342,26 @@ Object.assign(SHAPES,{
     // LA POUPE : feux ovales couchés au bout des hanches, sorties ovales
     P.put('k',new THREE.CylinderGeometry(1,1,1,14),sd*.50,.84,-2.37,Math.PI/2,0,0,.165,.06,.095);
     P.put('L',new THREE.CylinderGeometry(1,1,1,14),sd*.50,.84,-2.395,Math.PI/2,0,0,.145,.05,.075);
+    /* (17/10, l'arrière v2) LE FEU OVALE EN VOLUME : le cerclage chromé, la lentille sombre, l'anneau de LED au cœur */
+    {const ann=(k,a,b,e,z,ep)=>{const s=new THREE.Shape(),h=new THREE.Path();s.absellipse(0,0,a,b,0,Math.PI*2,false,0); // un anneau OVALE d'épaisseur égale
+       h.absellipse(0,0,a-e,b-e,0,Math.PI*2,true,0);s.holes.push(h);P.put(k,new THREE.ExtrudeGeometry(s,{depth:ep,bevelEnabled:false,curveSegments:7}),sd*.50,.84,z);}; // (une ellipse fait 2 × 7 pans)
+     ann('c',.168,.098,.022,-2.432,.05);                                                               // le cerclage chromé, qui dépasse
+     P.put('r',new THREE.CylinderGeometry(1,1,1,14),sd*.50,.84,-2.424,Math.PI/2,0,0,.085,.01,.042);   // la lentille sombre
+     ann('L',.062,.032,.012,-2.434,.012);}                                                            // l'anneau de LED au cœur
     P.put('c',new THREE.CylinderGeometry(1,1,1,10),sd*.55,.34,-2.40,Math.PI/2,0,0,.10,.12,.055);
     P.put('k',new THREE.CylinderGeometry(1,1,1,10),sd*.55,.34,-2.42,Math.PI/2,0,0,.08,.10,.042);
   });
   P.box('c',.56,.022,.03,0,.72,-2.39);P.box('c',.06,.06,.02,0,.78,-2.39);         // le jonc de malle, l'emblème
-  P.box('k',1.40,.10,.03,0,.29,-2.37);                                             // diffuseur
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'étaient deux ovales
+     rouges plaqués à plat et une baguette. Désormais les feux ovales en volume (dans le P.sym), et ici : la LÈVRE de malle, la PLAQUE,
+     le BOUCLIER dans la couleur et sa BAGUETTE chromée, le DIFFUSEUR à ailettes où s'encastrent les sorties ovales de Léo (ECH_POTS.e_anglaise,
+     inchangé). (Le diffuseur plat d'avant est remplacé.) */
+  P.prism('p',[[-2.28,.99],[-2.385,.945],[-2.41,.952],[-2.30,1.004]],1.0,0);                   // la lèvre de malle
+  P.box('k',.40,.13,.012,0,.645,-2.404);P.box('w',.36,.10,.012,0,.645,-2.411);                 // la plaque
+  P.prism('p',[[-2.36,.44],[-2.44,.46],[-2.45,.56],[-2.42,.60],[-2.36,.60]],1.20,0);           // le bouclier…
+  P.box('c',1.12,.018,.01,0,.57,-2.452);                                                       // …sa baguette chromée
+  P.box('k',1.36,.16,.08,0,.34,-2.41);                                                         // le diffuseur…
+  for(const x of [-.36,-.18,0,.18,.36])P.box('K',.014,.15,.10,x,.335,-2.42);                   // …ses ailettes
   K.commit(P);
   return {hl:[.62,.665,2.26],tl:[.50,.84,-2.42],wx:.80,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xd9dde2,accent:0xb9bec6}};
@@ -32298,7 +32431,8 @@ Object.assign(SHAPES,{
   // ailes qui se GONFLENT au-dessus des roues (l'arrière élargi de la RS), la poupe qui tombe sous la queue de canard, la grande custode.
   const U=LPU,R=.31,ZF=1.20,ZR=-1.07;
   const P=K.kit({p:{g:'p',c:0xf2efe6},b:{g:'p',c:0x1f5fd8,f:0},n:{g:'m',c:0x141518},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},
-    c:{g:'c',c:0xe9ecf0},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+    c:{g:'c',c:0xe9ecf0},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
+    r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus
   const AR=[[0,2*R+.04],[R*.60,2*R+.02],[R*.95,R*1.25],[R+.10,.24]];
   const zs=[-2.03,-1.97,-1.85,-1.75,-1.60,-1.50,-1.30,-1.25,-1.20,-1.05,-.90,-.60,-.45,-.35,-.29,-.10,.05,.55,1.00,1.10,1.40,1.70,1.95,2.03];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.95,R+.10])zs.push(w-d,w+d);
@@ -32324,16 +32458,23 @@ Object.assign(SHAPES,{
     if(j===7&&z>-1.30&&z<-.60)return 'g';                                      // la lunette du fastback
     return 'p';});
   // LA QUEUE DE CANARD : la poupe du capot moteur qui se relève en lèvre, grille dessus
-  P.prism('p',[[-1.52,yC(-1.52)-.04],[-2.00,.93],[-2.08,.95],[-2.07,.89],[-1.97,.80],[-1.60,.90]],1.30,0);
-  P.box('n',1.32,.02,.05,0,.945,-2.075);
-  for(let i=0;i<4;i++){const z=-1.66-i*.08;P.box('n',.90,.012,.04,0,U.lin([[-1.52,yC(-1.52)-.04],[-2.00,.93]],z)+.012,z,-.36);}
+  // (17/10, l'arrière v2) la lèvre RELEVÉE de 4 cm (elle ne se lisait presque pas de dos) et la grille à six lames
+  P.prism('p',[[-1.52,yC(-1.52)-.04],[-2.02,.965],[-2.10,.99],[-2.09,.93],[-1.97,.80],[-1.60,.90]],1.30,0);
+  P.box('n',1.32,.02,.05,0,.985,-2.095);
+  for(let i=0;i<6;i++){const z=-1.62-i*.065;P.box('n',.90,.012,.04,0,U.lin([[-1.52,yC(-1.52)-.04],[-2.02,.965]],z)+.012,z,-.36);}
   // LES YEUX : phares ronds perchés au bout des ailes
   P.sym(sd=>{
     P.put('n',new THREE.CylinderGeometry(.115,.115,.05,12),sd*.58,.744,1.950,Math.PI/2-.35,0,0);
     P.put('c',new THREE.CylinderGeometry(.10,.10,.06,12),sd*.58,.745,1.955,Math.PI/2-.35,0,0);
     P.put('W',new THREE.CylinderGeometry(.08,.08,.07,12),sd*.58,.747,1.962,Math.PI/2-.35,0,0);
     P.box('O',.10,.05,.02,sd*.54,.42,2.07);P.box('W',.10,.05,.02,sd*.28,.42,2.07);   // clignotants, antibrouillards
-    P.box('L',.20,.10,.02,sd*.60,.73,-2.035);P.box('O',.20,.05,.02,sd*.60,.655,-2.035);
+    /* (17/10, l'arrière v2) LE FEU EN VOLUME : sa coque noire, le rouge strié, l'orange, cerclés de chrome ; le SOUFFLET au bout du
+       pare-chocs, le BUTOIR de caoutchouc */
+    P.box('K',.26,.17,.05,sd*.60,.70,-2.03);
+    P.box('L',.22,.09,.012,sd*.60,.725,-2.058);P.box('K',.22,.014,.006,sd*.60,.725,-2.066);P.box('O',.22,.045,.012,sd*.60,.655,-2.058);
+    for(const y of [.617,.783])P.box('c',.26,.014,.01,sd*.60,y,-2.058);
+    P.box('n',.12,.15,.13,sd*.71,.42,-1.995);for(const y of [.375,.42,.465])P.box('K',.122,.014,.132,sd*.71,y,-1.995);
+    P.box('n',.07,.15,.03,sd*.30,.42,-2.06);
     // (13/10, Léo : « les barres chelou ») LA BANDE BLEUE de flanc RETIRÉE
     P.cyl('c',.05,.03,10,sd*.84,.93,.42,'x');P.box('c',.03,.03,.06,sd*.81,.91,.42); // rétro rond
     P.box('c',.012,.025,.12,sd*.83,.82,-.20);                                    // poignée
@@ -32342,7 +32483,12 @@ Object.assign(SHAPES,{
   // pare-chocs fins à jonc noir, lame avant
   P.box('p',1.58,.14,.12,0,.42,1.99);P.box('n',1.60,.035,.13,0,.47,1.99);P.box('n',1.46,.05,.14,0,.31,1.97);
   P.box('p',1.58,.14,.12,0,.42,-1.99);P.box('n',1.60,.035,.13,0,.47,-1.99);
-  P.box('n',.40,.11,.02,0,.60,-2.035);
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'étaient des feux
+     en pavés, une plaque noire, un bas plat, et de dos la queue de canard ne se lisait pas. Désormais la lèvre relevée et sa grille (plus
+     haut), les feux en volume, soufflets et butoirs (dans le P.sym), et ici : le BANDEAU RÉFLÉCHISSANT strié d'un feu à l'autre, la PLAQUE
+     blanche, son cadre et sa lampe. Le pot de Léo (ECH_POTS.b_canard) n'a pas bougé. */
+  P.box('K',.74,.08,.03,0,.70,-2.04);P.box('r',.70,.05,.012,0,.70,-2.058);for(let i=-4;i<=4;i++)P.box('K',.014,.05,.006,i*.075,.70,-2.066);
+  P.box('n',.40,.13,.02,0,.585,-2.035);P.box('w',.36,.10,.01,0,.585,-2.048);P.box('W',.12,.014,.01,0,.655,-2.044);
   P.box('c',.14,.03,.03,0,.72,1.99);                                           // la poignée du capot
   K.commit(P);
   return {hl:[.58,.745,1.97],tl:[.60,.73,-2.04],wx:.68,wzF:ZF,wzR:-ZR,
@@ -32692,7 +32838,8 @@ Object.assign(SHAPES,{
      les phares au fond de leurs cuvettes au bout des ailes hautes, la bouche sous le nez. */
   const U=LPU,R=.31,ZF=1.19,ZR=-1.115;
   const P=K.kit({p:{g:'p',c:0xff6a14},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
-    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
+    r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus
   const AR=[[0,2*R+.04],[R*.60,2*R+.01],[R*.98,R*1.14],[R+.12,.27]];
   let zs=[-2.07,-1.96,-1.45,-1.05,-.62,-.58,-.35,.25,.31,.40,1.80,1.95,2.03,2.07];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
@@ -32729,9 +32876,14 @@ Object.assign(SHAPES,{
     P.box('k',.02,.05,1.20,sd*.79,.34,.04);
     // les ouïes du montant arrière
     for(let i=0;i<3;i++)P.box('k',.012,.016,.20,sd*(.695-i*.018),.96+i*.035,-1.28,0,0,sd*.46);
-    // la POUPE TRONQUÉE : bandeau noir, feux, pare-chocs, pots
-    P.box('L',.30,.12,.02,sd*.52,.74,-2.076);P.box('W',.07,.12,.02,sd*.33,.74,-2.076);
+    // la POUPE TRONQUÉE : bandeau noir, feux, pare-chocs, pots — (17/10, l'arrière v2) LE FEU EN TROIS SEGMENTS EN RELIEF dans sa coque
+    // et son cadre chromé : le stop strié, le feu, le recul ; les BUTOIRS des pare-chocs et leur caoutchouc
+    P.box('K',.50,.15,.03,sd*.49,.74,-2.088);
+    P.box('L',.20,.11,.02,sd*.60,.74,-2.106);P.box('r',.12,.11,.02,sd*.43,.74,-2.104);P.box('W',.07,.11,.02,sd*.315,.74,-2.104);
+    for(const y of [.70,.74,.78])P.box('K',.20,.014,.006,sd*.60,y,-2.117);
+    for(const y of [.663,.817])P.box('c',.50,.014,.012,sd*.49,y,-2.104);
     P.box('c',.52,.045,.08,sd*.43,.48,-2.10);
+    P.box('c',.035,.13,.05,sd*.21,.49,-2.13);P.box('k',.04,.035,.03,sd*.21,.535,-2.155);
     P.cyl('c',.04,.12,8,sd*.36,.32,-2.12,'z');
   });
   P.box('k',.70,.14,.03,0,.43,2.07);P.box('c',.66,.02,.02,0,.44,2.09);          // la bouche et sa barrette
@@ -32741,6 +32893,15 @@ Object.assign(SHAPES,{
   for(const w of [ZF,ZR])P.sym(sd=>P.prism('k',[[w-R-.18,.27],[w-R*.98-.06,R*1.14+.05],[w-R*.6,2*R+.08],[w+R*.6,2*R+.08],[w+R*.98+.06,R*1.14+.05],[w+R+.18,.27],
     [w+R+.12,.27],[w+R*.98,R*1.14],[w+R*.6,2*R+.01],[w-R*.6,2*R+.01],[w-R*.98,R*1.14],[w-R-.12,.27]],.04,sd*(xW(w)+.004)));
   P.box('k',1.44,.18,.02,0,.74,-2.072);
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'était un bandeau
+     noir à deux pavés rouges, deux barres chromées et un pot en pastille, sur une caisse à 1,6 M$. Désormais les feux en trois segments
+     en relief et les butoirs (dans le P.sym), et ici : la GARNITURE striée de chrome entre les feux, la LÈVRE de malle relevée, la PLAQUE
+     et sa lampe entre les deux pare-chocs, la JUPE noire et ses ailettes où s'encastre le pot de Léo (ECH_POTS.e_zed, inchangé). */
+  for(const y of [.70,.74,.78])P.box('c',.44,.014,.01,0,y,-2.086);                          // la garniture striée
+  P.prism('p',[[-1.98,.935],[-2.115,.968],[-2.12,.948],[-2.07,.915]],1.40,0);                 // la lèvre de malle
+  P.box('K',.34,.13,.012,0,.52,-2.084);P.box('w',.30,.10,.012,0,.52,-2.091);P.box('W',.10,.014,.01,0,.592,-2.084); // la plaque, sa lampe
+  P.box('k',1.30,.18,.06,0,.31,-2.095);                                                      // la jupe…
+  for(const x of [-.56,-.38,-.20,0,.20,.56])P.box('K',.014,.15,.08,x,.30,-2.11);             // …ses ailettes (le pot passe à gauche)
   K.commit(P);
   return {hl:[.52,.645,2.10],tl:[.52,.74,-2.09],wx:.705,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.24,style:'rayons',n:8,jante:0xcfd3d8,accent:0x1d1f24}};
@@ -33433,7 +33594,8 @@ Object.assign(SHAPES,{
   const U=LPU,R=.33,ZF=1.28,ZR=-1.26;
   const P=K.kit({p:{g:'p',c:0xf4f4f0},n:{g:'m',c:0x141518},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
-    b:{g:'p',c:0x1f4fd8,f:0},y:{g:'p',c:0xffc61a,f:0},r:{g:'p',c:0xd8261e,f:0}});
+    b:{g:'p',c:0x1f4fd8,f:0},y:{g:'p',c:0xffc61a,f:0},r:{g:'p',c:0xd8261e,f:0},
+    R:{g:'l',c:0x7a1018},w:{g:'l',c:0xd9dce0},a:{g:'c',c:0x9aa2ab}}); // (17/10, l'arrière v2) R, w (la plaque éclairée), a (l'alu du sabot) — aucune famille de plus
   const AR=[[0,2*R+.05],[R*.82,2*R+.03],[R+.11,.26]];
   const zs=[-1.915,-1.88,-1.78,-1.55,-1.45,-1.25,-1.19,-.60,-.52,-.45,.30,.38,1.05,1.85,1.915];
   for(const d of [R*.82,R+.11])zs.push(ZR-d,ZR+d);
@@ -33465,7 +33627,11 @@ Object.assign(SHAPES,{
   P.sym(sd=>{
     for(const x of [.17,.45]){P.cyl('n',.085,.08,8,sd*x,.80,1.93,'z');P.cyl('c',.075,.02,8,sd*x,.80,1.975,'z');P.cyl('W',.062,.03,8,sd*x,.80,1.98,'z');}
     P.box('W',.28,.10,.02,sd*.53,.64,1.918);P.box('O',.08,.10,.02,sd*.72,.64,1.915);
-    P.box('L',.32,.15,.02,sd*.56,.83,-1.918);P.box('O',.08,.15,.02,sd*.36,.83,-1.918);
+    /* (17/10, l'arrière v2) LE FEU EN VOLUME dans sa coque noire : le rouge strié, l'orange ; le catadioptre du pare-chocs */
+    P.box('n',.50,.19,.04,sd*.55,.83,-1.935);
+    P.box('L',.30,.14,.012,sd*.60,.83,-1.958);for(const y of [.79,.83,.87])P.box('n',.30,.014,.006,sd*.60,y,-1.966);
+    P.box('O',.08,.14,.012,sd*.405,.83,-1.958);
+    P.box('R',.10,.03,.012,sd*.66,.43,-1.932);
     P.box('b',.012,.035,1.62,sd*(xS(0)+.004),.60,.01);P.box('y',.012,.035,1.62,sd*(xS(0)+.004),.56,.01);P.box('r',.012,.035,1.62,sd*(xS(0)+.004),.52,.01);
     P.box('n',.02,.18,.36,sd*.85,.80,-.80);                                     // grille d'ouïe
     for(const y of [.74,.80,.86])P.box('p',.024,.012,.34,sd*.85,y,-.80);
@@ -33477,7 +33643,14 @@ Object.assign(SHAPES,{
   P.box('n',.52,.09,.02,0,.64,1.918);for(const y of [.62,.66])P.box('c',.50,.008,.02,0,y,1.925);
   P.box('n',1.64,.20,.12,0,.36,1.87);P.box('n',.90,.05,.02,0,.33,1.935);
   P.box('n',1.72,.20,.12,0,.38,-1.87);
-  P.box('n',.56,.15,.02,0,.83,-1.918);for(let i=0;i<3;i++)P.box('c',.50,.008,.02,0,.79+i*.04,-1.925);
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'étaient des feux
+     en pavés de part et d'autre d'une grille plate et un pare-chocs en boîte. Désormais les feux en volume (dans le P.sym), et ici : la
+     GRILLE en relief (cadre, cinq lames), la PLAQUE de rallye, la SANGLE DE REMORQUAGE rouge sous le pare-chocs, le SABOT d'alu boulonné.
+     Le pot latéral de Léo (ECH_POTS.b_groupeb) n'a pas bougé. */
+  P.box('n',.60,.19,.04,0,.83,-1.935);for(let i=0;i<5;i++)P.box('K',.54,.014,.03,0,.762+i*.034,-1.955,-.35); // la grille en relief
+  P.box('n',.42,.13,.012,0,.62,-1.918);P.box('w',.38,.10,.012,0,.62,-1.925);                                  // la plaque
+  P.put('r',new THREE.TorusGeometry(1,.22,4,12),-.42,.235,-1.935,0,0,0,.05,.075,.06);P.box('r',.035,.06,.02,-.42,.30,-1.935); // la sangle
+  P.box('a',1.10,.025,.26,0,.27,-1.80);for(const x of [-.45,-.15,.15,.45])P.cyl('n',.014,.01,6,x,.255,-1.90,'y'); // le sabot, ses boulons
   K.commit(P);
   return {hl:[.53,.64,1.93],tl:[.55,.83,-1.93],wx:.74,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'rayons',n:8,jante:0xf2f2ee,accent:0xf2f2ee}};
@@ -33486,7 +33659,7 @@ Object.assign(SHAPES,{
   const U=LPU,R=.35,ZF=1.60,ZR=-1.09,WX=.68,HW=.09;
   const P=K.kit({p:{g:'p',c:0x1a1b20},f:{g:'p',c:0xff5a0a,f:0},y:{g:'p',c:0xffc21a,f:0},e:{g:'p',c:0xb81c14,f:0},
     k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
-    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e}});
+    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) w : la plaque éclairée
   // LA CAISSE : cowl, habitacle découpé (toit « choppé ») et poupe en carapace
   const zs=[-1.90,-1.86,-1.76,-1.55,-1.20,-.86,-.78,-.68,-.55,-.50,-.38,.36,.45,.56,.62,.72];
   const T=z=>U.lin([[-1.90,.56],[-1.86,.72],[-1.76,.86],[-1.55,.95],[-1.20,1.00],[-.86,1.01],[-.78,1.20],[-.68,1.33],[-.55,1.38],[.45,1.40],[.56,1.37],[.62,1.04],[.72,1.02]],z),
@@ -33540,9 +33713,20 @@ Object.assign(SHAPES,{
             [-.20,.715],[-.46,.665],[-.14,.635],[.20,.605],[.72,.585]];
   P.sym(sd=>{P.prism('f',fl,.008,sd*.604);
     P.prism('y',fl.map(p=>[.72-(.72-p[0])*.58,.785+(p[1]-.785)*.70]),.008,sd*.610);});
-  // LA POUPE : feux en goutte, réservoir apparent, pare-chocs à barres
-  P.sym(sd=>{P.cyl('c',.06,.05,10,sd*.34,.70,-1.84,'z');P.cyl('L',.045,.06,10,sd*.34,.70,-1.855,'z');});
-  P.box('k',.80,.18,.26,0,.40,-1.72);P.box('c',1.00,.04,.04,0,.44,-1.92);
+  // LA POUPE : feux en goutte, réservoir apparent, pare-chocs à barres — L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture,
+  // on ait envie de l'acheter » — la revue des poupes) : c'étaient deux points rouges sur un dos nu et une barre. Désormais : les GOUTTES
+  // chromées posées sur la carapace, rondes derrière et pointues devant, leur verre rouge bombé ; la PLAQUE et sa lampe ; le RÉSERVOIR
+  // rond entre les longerons, ses deux sangles et son bouchon ; la BARRE TUBULAIRE sur ses deux pattes noires.
+  {const goutte=[[0,0],[.045,.008],[.06,.03],[.065,.07],[.055,.12],[.03,.16],[0,.17]];             // (rayon, avancée)
+   P.sym(sd=>{P.lathe('c',goutte,12,sd*.40,.66,-1.95,'z');
+     P.put('L',new THREE.SphereGeometry(.052,10,5,0,Math.PI*2,0,Math.PI/2),sd*.40,.66,-1.946,-Math.PI/2,0,0,1,.55,1); // le verre bombé
+     P.cyl('L',.02,.01,6,sd*.40,.66,-1.976,'z');                                                  // (le repère des traînées, au bout du verre)
+     P.box('k',.03,.05,.10,sd*.36,.40,-1.93);});                                                  // les pattes de la barre
+   P.cyl('c',.024,1.10,10,0,.40,-1.985,'x');                                                       // la barre tubulaire
+   P.box('k',.34,.13,.02,0,.52,-1.935);P.box('w',.30,.10,.01,0,.52,-1.947);                         // la plaque
+   P.box('c',.10,.03,.05,0,.605,-1.925,.35);P.box('W',.08,.014,.01,0,.588,-1.948);                 // sa lampe
+   P.cyl('c',.12,.62,14,0,.37,-1.76,'x');P.sym(sd=>P.lathe('k',[[.126,-.016],[.126,.016]],14,sd*.18,.37,-1.76,'x')); // le réservoir, ses sangles
+   P.cyl('c',.035,.04,8,.15,.495,-1.76,'y');}                                                      // son bouchon
   // LES BOUDINS ARRIÈRE : une bande de roulement qui déborde vers l'extérieur, jante creuse chromée
   P.sym(sd=>{const a=q=>q.map(p=>[p[0],sd*p[1]]),x0=sd*(WX+HW*.5);
     P.lathe('k',a([[R,0],[R,.105],[R*.90,.13],[R*.74,.13]]),12,x0,R,ZR,'x');
@@ -33641,9 +33825,19 @@ Object.assign(SHAPES,{
       const ar=new THREE.CylinderGeometry(R+.10,R+.10,.30,12,1,true,Math.PI*1.5-1.1,2.2);ar.rotateZ(-Math.PI/2);P.put('p',ar,sd*.86,R,z);
       for(const dx of [-.15,.15]){const fil=new THREE.TorusGeometry(R+.102,.009,4,18,2.2);fil.rotateZ(Math.PI/2-1.1);fil.rotateY(Math.PI/2);P.put('O',fil,sd*.86+dx,R,z);}}});
     P.put('o',new THREE.TorusGeometry(.88,.042,6,32),0,.93,-.45,-.25,0,0);                               // L'ANNEAU D'OR, penché vers l'arrière : le mouvement
-    for(const x of [-.3,0,.3])P.box('G',.022,.13,.32,x,.33,-2.08);                                      // les ailettes, sous la poupe
     P.box('W',1.04,.026,.03,0,.48,2.06);                                                                 // le trait blanc, devant
-    P.box('L',1.06,.035,.02,0,.80,-2.305);                                                               // le trait rouge, derrière
+    /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'était un mur
+       blanc barré d'un trait rouge ; l'anneau d'or faisait tout le travail. Désormais LE FEU EN ANNEAU, ovale, qui répond à l'anneau d'or :
+       un anneau de lumière rouge sur un fond de verre noir, cerclé d'un fil d'or ; dessous, le BOUCLIER sculpté en creux et son fil d'or ;
+       le DIFFUSEUR aux ailettes d'or, et un anneau d'or autour de chaque sortie (le pot de Léo, ECH_POTS.abstraite, n'a pas bougé). */
+    {const ann=(k,a,b,e,x,y,z,n)=>{const s=new THREE.Shape(),h=new THREE.Path();s.absellipse(0,0,a,b,0,Math.PI*2,false,0); // un anneau OVALE d'épaisseur égale
+       h.absellipse(0,0,a-e,b-e,0,Math.PI*2,true,0);s.holes.push(h);P.put(k,new THREE.ExtrudeGeometry(s,{depth:.014,bevelEnabled:false,curveSegments:n||12}),x,y,z);}; // (n : une ellipse fait 2n pans)
+     P.put('K',new THREE.CylinderGeometry(1,1,1,24),0,.75,-2.306,Math.PI/2,0,0,.44,.012,.13);            // le fond de verre noir
+     ann('L',.46,.15,.032,0,.75,-2.33);ann('o',.505,.195,.014,0,.75,-2.33);                              // l'anneau rouge, le fil d'or
+     P.sym(sd=>P.box('L',.03,.03,.012,sd*.46,.75,-2.318));                                               // (les repères des traînées, aux bouts)
+     P.plate('K',[[-.40,.52],[.40,.52],[.47,.615],[-.47,.615]],.02,-2.322);P.box('o',.94,.014,.012,0,.618,-2.318); // le creux du bouclier
+     for(const x of [-.46,-.34,-.10,0,.10,.34,.46])P.box('o',.022,.13,.34,x,.33,-2.09);                  // les ailettes d'or, sous la poupe
+     P.sym(sd=>ann('o',.075,.075,.014,sd*.22,.36,-2.246,6));}                                              // un anneau d'or autour de chaque sortie
     P.sym(sd=>P.cyl('k',.05,.04,10,sd*.22,.36,-2.23,'z'));                                               // deux fentes rondes : la poussée sort de là
     K.commit(P);
     return {hl:[.30,.48,2.08],tl:[.46,.80,-2.32],wx:.86,wzF:ZF,wzR:-ZR,pots:[[.22,.36,-2.26],[-.22,.36,-2.26]],
@@ -37403,6 +37597,52 @@ const APPUI_SEL='.pbtn,.mLigne,.tp,.gT,.gTab,.gR,.mMode,.misPrix.voir,.mObj[data
   addEventListener('blur',lache);
   document.addEventListener('visibilitychange',lache); // (2026-09-29) l'appli part en arrière-plan en plein appui : la touche ne reste pas enfoncée
 })();
+/* L'APPUI POUR TOUS (2026-10-17, session UI-REVUE, Sacha : « je veux une animation et un son pour chaque bouton »). La charte a son
+   enfoncement (`.appui` ci-dessus) pour ses familles de touches (APPUI_SEL) ; tout le reste de ce qui se touche — une ligne de mission, une
+   case de la boutique, un hexagone de figure, une puce, une étiquette, la croix d'une fenêtre… — ne bougeait pas sous le doigt (relevé au
+   banc : le :active seul ne se peint pas sur iPhone pour un tap bref). Même cible que le filet des sons (même liste, ou un curseur « main »),
+   même tenue (90 ms au moins), même micro-tic au contact : la touche se TASSE (scale ×0,94 en --t-press) et revient en --t-fast sur la
+   courbe de la charte. Propriété individuelle `scale` par l'API d'animation : elle s'ajoute au transform/translate de l'élément au lieu de
+   l'écraser, ne touche ni à ses transitions ni à ses animations CSS, et se joue au compositeur. Un curseur (volume, réglages) prend la
+   classe `.tient` le temps du geste : son bouton grossit (voir <style id="uiRevue">). Hors course, hors canvas, hors champs de texte,
+   jamais un écran entier (#overlay est role=button). `?appui=0` = comme avant. */
+const APPUI_TOUT='button,a[href],[role="button"],[role="tab"],[role="switch"],[role="menuitem"],[role="option"],[role="checkbox"],[data-m],[data-a],[data-c],[data-go],[data-tab],summary,label';
+const APPUI_TOUS=!/[?&]appui=0\b/.test(location.search);
+(function(){if(!APPUI_TOUS)return;let cur=null,anim=null,t0=0,base=1,glis=null;
+  const EASE='cubic-bezier(.32,.72,0,1)';
+  /* la touche visée : la plus proche qui SE DIT touchable (rôle, data-*, bouton), à 7 étages au plus ; sinon celle qui POSE le curseur main
+     (il s'hérite : l'enfant sous le doigt l'a aussi — on remonte jusqu'au dernier parent qui l'a encore) */
+  const cible=function(t){const e0=t&&t.nodeType===1?t:(t&&t.parentElement);if(!e0||!e0.closest)return null;
+    if(e0.closest('canvas,[data-muet],#tNitroZone,#tSteer,#touchCtl,#tNitro,#tLeft,#tRight')||e0.closest(APPUI_SEL))return null; /* la charte a déjà son enfoncement */
+    if(e0.closest('#hud')&&!e0.closest('#garage'))return null; /* le HUD de course n'est pas une touche */
+    let el=e0.closest(APPUI_TOUT);
+    if(el){let x=e0,n=0;while(x&&x!==el&&n<8){x=x.parentElement;n++;}if(x!==el)el=null;}
+    if(!el){let x=e0,haut=null;for(let n=0;x&&n<7&&x!==document.body;n++,x=x.parentElement){let c='';try{c=getComputedStyle(x).cursor;}catch(_){}if(c==='pointer')haut=x;else if(haut)break;}el=haut;}
+    if(!el||el===document.body||el===document.documentElement||el.classList.contains('arme'))return null;
+    if(el.matches('input,textarea,select,option'))return null;
+    const r=el.getBoundingClientRect();if(r.width<4||r.height<4||r.width*r.height>innerWidth*innerHeight*.35)return null;
+    return el;};
+  const echelle=function(el){const s=getComputedStyle(el).scale;const v=parseFloat(s);return (s&&s!=='none'&&isFinite(v)&&v>0)?v:1;};
+  const lache=function(){
+    if(glis){glis.classList.remove('tient');glis=null;}
+    if(!cur)return;const el=cur,b0=base;cur=null;anim=null;
+    const go=function(){let v=b0*.94;try{v=echelle(el);}catch(x){}
+      try{if(el._apA)el._apA.cancel();el._apA=el.animate([{scale:String(v)},{scale:String(b0)}],{duration:REDUCED_MOTION?1:140,easing:EASE});}catch(x){}};
+    const r=Math.max(0,90-(performance.now()-t0));if(r)setTimeout(go,r);else go();};
+  addEventListener('pointerdown',function(e){if(e.button>0)return;
+    const t=e.target;
+    if(t&&t.type==='range'&&!t.closest('#touchCtl')){glis=t;t.classList.add('tient');return;}
+    const el=cible(t);if(!el||typeof el.animate!=='function')return;
+    if(cur&&cur!==el)lache();
+    try{if(el._apA)el._apA.cancel();}catch(x){} /* un appui rapide après un autre : on repart de l'échelle VRAIE de la touche */
+    cur=el;t0=performance.now();base=echelle(el);
+    if(!REDUCED_MOTION)try{anim=el._apA=el.animate([{scale:String(base)},{scale:String(base*.94)}],{duration:70,easing:EASE,fill:'forwards'});}catch(x){anim=null;}
+    if(!el.classList.contains('off')&&el.getAttribute('aria-disabled')!=='true')try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
+  addEventListener('pointerup',lache,{capture:true,passive:true});
+  addEventListener('pointercancel',lache,{capture:true,passive:true});
+  addEventListener('blur',lache);
+  document.addEventListener('visibilitychange',lache);
+})();
 /* LE VERROU DU DOUBLE-TAP (2026-09-29, audit de sortie) : iOS envoie un `click` par tap. Un double-tap sur RETOUR ouvrait l'accueil au 1er
    tap et lançait une COURSE au 2e (JOUER est dessous, encore transparent mais déjà touchable) ; un double-tap sur ANNULER traversait la
    fenêtre qui s'efface et tombait sur REPRENDRE ; un double-tap sur un monde de la carrière lançait un niveau qu'on n'avait pas choisi.
@@ -38587,6 +38827,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   const c=HAUT.cur;if(c&&performance.now()<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
   HAUT.cur=null;HAUT.fin=0;engBigCoupe();
   const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
+  try{m2LigneVide();}catch(e){} // (2026-10-17) la ligne des missions du bas se tait avec les autres (l'écran de mort les récapitule)
 }
 function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
@@ -39441,7 +39682,8 @@ function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. R
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
-  toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
+  if(!(MISSIONS_V2&&m2LigneDit('col',sansAcc(TR('COULEUR')+' '+TR(d.n)),''))) /* (2026-10-17) en course : la ligne du bas, pas le toast du haut */
+    toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
 function cosmVu(cat,d){ // la VUE d'un habillage pour une liste (contrat avec INTERFACE) : une secrète pas encore gagnée → masquée (les accesseurs le font déjà ; `masque` le dit)
   if(d&&d.sec&&!window.PAL_REVELE&&!shopOwned(cat,d.id))return {id:d.id,sec:d.sec,n:d.n,d:d.d,c:d.c,g:d.g,r:d.r,ind:d.ind,masque:true};return d;}
 function cosmSwCl(d){return d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'';} // la classe de finition d'une pastille de peinture (une seule table pour toutes les listes)
@@ -47963,11 +48205,32 @@ function m2Verifie(enC){if(!MISSIONS_V2)return 0; /* en v1 les compteurs tournen
   for(const m of M2){if(s.ok.indexOf(m.id)>=0)continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
     if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
-/* le bandeau DISCRET de la course (« il ne cache pas la route » : la bannière du haut, celle des missions) ; une secrète ne dit rien d'elle */
+/* l'annonce d'une mission réussie : EN COURSE, la LIGNE du bas (#m2Ligne) ; hors course, le toast. Une secrète ne dit rien d'elle */
 function m2Annonce(m,enC){if(!MISSIONS_V2)return;const r=m.r||{};
-  if(m.f==='secret'){if(enC)misBanniere('MISSION SECRÈTE','? ? ?','','etoile');return;}
+  if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC)misBanniere('MISSION RÉUSSIE',m2Txt(m),p,'coche');else try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
+   en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
+   UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
+   NITRO reste libre). Plusieurs d'un coup : la première passe seule, tout le reste se dit en UNE ligne (« 3 MISSIONS RÉUSSIES ») ; 2,4 s
+   chacune. Le son ui.mission une fois par ligne (la couleur secrète garde le sien, sonné par secDonne). Aucune image de la boucle n'y touche :
+   piloté par événements, vidé par hautVide (l'explosion, l'écran de mort, RECOMMENCER). k : 'ok' réussie · 'sec' secrète · 'col' couleur */
+const M2L={q:[],t:0,on:0};
+function m2LigneDit(k,tx,p){if(!m2EnC())return false;M2L.q.push({k:k,tx:tx,p:p||''});if(!M2L.on)m2LigneSuit();return true;}
+function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Ligne');
+  if(!M2L.q.length||!m2EnC()){m2LigneVide();return;}
+  let it=M2L.q.shift();
+  if(M2L.on&&M2L.q.length){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne
+  M2L.on=1;
+  if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
+  const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
+  const sec=it.k!=='ok',ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
+  e.innerHTML='<i>'+pxi(sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  try{if(SONV2&&it.k==='ok')sfx('ui.mission');}catch(x){}
+  M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
+function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
 function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
   if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
@@ -48061,7 +48324,7 @@ Object.assign(I18N,{'RÉCUPÈRE':'CLAIM','BIENTÔT':'SOON','RÉUSSIE':'DONE','SE
   'MISSION SECRÈTE TROUVÉE':'SECRET MISSION FOUND','FAIT':'DONE','PAS ENCORE':'NOT YET','TROIS MISSIONS SUIVIES AU PLUS':'3 TRACKED MISSIONS AT MOST',
   'TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS':'TAP A MISSION TO TRACK IT · 3 MAX','RÉCOMPENSE À RÉCUPÉRER':'A REWARD IS WAITING',
   'TOUTES LES MISSIONS':'ALL MISSIONS','À RÉCUPÉRER':'TO CLAIM','BIENTÔT AU GARAGE':'COMING TO THE GARAGE SOON','RÉCOMPENSE À VENIR':'REWARD COMING SOON',
-  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT'});
+  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT','MISSIONS RÉUSSIES':'MISSIONS DONE'});
 function m2Nb(x){return Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[  ]/g,' ');}
 function m2Mn(x){x=Math.max(0,Math.floor(x));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
 /* L'AVANCEMENT DE LA PARTIE (en course, l'écran de mort) : pour une mission « en une partie », ce que CETTE partie a fait — le record
@@ -53516,8 +53779,43 @@ SHAPES.lingot=function(K){ // la caisse du garage — buildCar pose les roues, l
   const p=new THREE.Mesh(new THREE.PlaneGeometry(1.1,2.4),LINGOT_PL);p.rotation.x=-Math.PI/2;p.position.set(0,1.452,-.2);K.add(p);
   K.box(1.2,.16,.5,K.glass,0,1.53,.95);                                        // la visière
   K.box(1.9,.2,3.9,K.dark,0,.42,0);                                            // le châssis
-  K.box(1.76,.12,.16,K.chrome,0,.5,2.12);K.box(1.72,.12,.16,K.chrome,0,.52,-2.1);
-  return {hl:[.62,.66,2.16],tl:[.66,.7,-2.14],wr:.95,wx:1.0,wz:1.36,split:0,skirt:0,sp:0,doors:0,slats:0,wings:'none',glowX:1.02,glowY:.5,glowL:3.2,glowF:0};
+  K.box(1.76,.12,.16,K.chrome,0,.5,2.12);
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de l'acheter » — la revue des poupes) : c'était un trapèze
+     jaune nu, deux pavés rouges et une barre chromée, sur la 2e caisse la plus chère. Désormais, posés SUR la face penchée du lingot :
+     · LES RUBIS TAILLÉS : deux feux en pierre taillée — la table, huit facettes en trois rouges (le haut attrape la lumière), un chaton
+       d'or sombre ; une petite pièce `L` cachée sous la table donne leur place aux traînées de lumière (CAR_FEUX) ;
+     · LE POINÇON : « 999,9 » frappé au milieu de la face, dans un cartouche d'or sombre — la même toile que le dessus (LINGOT_PL, la
+       région du titre) : aucune matière neuve ;
+     · LE BOUCLIER doré chanfreiné et sa rainure ; LE DIFFUSEUR sombre à ailettes d'or où s'encastrent les deux pots (ECH_POTS.lingot,
+       inchangés). Les feux-boîtes communs (`tl`) passent DANS la caisse, invisibles : les rubis les remplacent. L'avant est intact. */
+  {const al=Math.atan2(.546,.95),ca=Math.cos(al),sa=Math.sin(al),                   // la face arrière penche de 30° (1,554 m en haut, 2,10 m en bas)
+        F=(u,v,n)=>[u,.5+v*ca+n*sa,-2.1+v*sa-n*ca],                                 // un point de la face : u en travers, v en montant la pente, n en dehors
+        P=K.kit({o:{g:'o',c:0xd9a520},O:{g:'o',c:0x8a5a06},k:{g:'m',c:0x141418},K:{g:'g',c:0x0b0c0f},
+          L:{g:'l',c:0xff1a2a},Q:{g:'l',c:0xc8101e},r:{g:'l',c:0x7e0a14},R:{g:'l',c:0xff7a84}});
+   const T=(k,a,b,c)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2]; // une facette, tournée vers le dehors
+     if((uz*vx-ux*vz)*sa-(ux*vy-uy*vx)*ca<0)P.tri(k,a,c,b);else P.tri(k,a,b,c);};
+   const quad=(k,u0,v0,u1,v1,n)=>{const a=F(u0,v0,n),b=F(u1,v0,n),c=F(u1,v1,n),d=F(u0,v1,n);T(k,a,b,c);T(k,a,c,d);};
+   const oct=(cu,cv,w,h,s,n)=>{const o=[],r=1/Math.cos(Math.PI/8);for(let i=0;i<8;i++){const a=(i+.5)/8*Math.PI*2;o.push([cu+Math.cos(a)*w/2*r*s,cv+Math.sin(a)*h/2*r*s,n,Math.sin(a)]);}return o;};
+   P.sym(sd=>{const cu=sd*.60,cv=.29,w=.30,h=.16;
+     const ch=oct(cu,cv,w,h,1.28,.003);for(let i=0;i<8;i++)T('O',F(cu,cv,.003),F(...ch[i]),F(...ch[(i+1)%8]));      // le chaton d'or sombre
+     const b=oct(cu,cv,w,h,1,.006),t=oct(cu,cv,w,h,.56,.042);
+     for(let i=0;i<8;i++){const j=(i+1)%8,m=(b[i][3]+b[j][3])/2;const k=m>.3?'R':m<-.3?'r':'Q';               // les facettes : le haut clair, le bas sombre
+       T(k,F(...b[i]),F(...b[j]),F(...t[j]));T(k,F(...b[i]),F(...t[j]),F(...t[i]));
+       T('L',F(cu,cv,.042),F(...t[i]),F(...t[j]));}                                                         // la table
+     const q=F(cu,cv,.02);P.box('L',.04,.02,.01,q[0],q[1],q[2]);                                            // (le repère des traînées, sous la table)
+   });
+   /* le cartouche du poinçon : un cadre d'or sombre, et le titre en relief (la toile du dessus) */
+   for(const [u0,v0,u1,v1] of [[-.36,.42,.36,.46],[-.36,.86,.36,.90],[-.36,.46,-.32,.86],[.32,.46,.36,.86]])quad('O',u0,v0,u1,v1,.004);
+   {const g=new THREE.PlaneGeometry(.60,.38),uv=g.attributes.uv;                  // la région « 999 / ,9 » de LINGOT_PL (x 8-120, y 112-184 sur 128 × 256)
+    for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)>.5?.9375:.0625,uv.getY(i)>.5?.5625:.28125);
+    const m=new THREE.Mesh(g,LINGOT_PL),q=F(0,.66,.005);m.position.set(q[0],q[1],q[2]);m.rotation.set(al,Math.PI,0);K.add(m);}
+   /* le bouclier chanfreiné, sa rainure, le diffuseur et ses ailettes */
+   P.prism('o',[[-1.98,.34],[-2.18,.34],[-2.24,.40],[-2.24,.55],[-2.18,.61],[-2.04,.61]],1.84,0);
+   P.box('K',1.80,.014,.012,0,.53,-2.243);
+   P.box('k',1.40,.12,.02,0,.42,-2.248);
+   for(const x of [-.66,-.26,-.13,0,.13,.26,.66])P.box('O',.014,.12,.03,x,.42,-2.262);
+   K.commit(P);}
+  return {hl:[.62,.66,2.16],tl:[.62,.62,-1.90],wr:.95,wx:1.0,wz:1.36,split:0,skirt:0,sp:0,doors:0,slats:0,wings:'none',glowX:1.02,glowY:.5,glowL:3.2,glowF:0}; // tl : DANS la caisse (les rubis font les feux)
 };
 const VBQ=(function(){
   const g=new THREE.Group(),dk=new THREE.MeshPhongMaterial({color:0x14161b,shininess:40,specular:0x333844}),
@@ -58310,7 +58608,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   if(GBQ.lay!==lay){GBQ.lay=lay;
     const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?6:14);une.style.left=(cou?36:12)+'px';une.style.width=UW+'px';une.style.top=top+'px';let fond;
     if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left='14px';pan.style.right='14px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12;}
+    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
     bqRayons(une,fond-top);garLibre._r=null;}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
    sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
@@ -64914,6 +65212,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='wipe')return 'danger';
     return 'nav';
   }
+  /* LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « soigne les transitions entre chaque écran, qu'elles soient fluides »).
+     Mesuré au banc (390×844, chrono des classes de #wipe) : ACCUEIL → RÉGLAGES (ou ACHAT, MODES) passait par le volet pixel — couvrir
+     160 ms, fermer l'atelier dessous (closeGarage : caisse rebâtie, ciel repeint, une image de 83 ms), découvrir 280 ms avec une image de
+     133 ms EN PLEIN balayage — ~800 ms dont un palier sombre, pour une simple page de réglages ; et le RETOUR refaisait tout à l'envers
+     (openGarage sous un second volet). L'accueil, c'est l'atelier en mode menu (body.garMenuH) avec #overlay forcé par-dessus : la page
+     peut s'y poser SANS fermer l'atelier — son fond (::before, opaque, fondu en --t-slow) recouvre le ciel qui continue de vivre dessous,
+     la page entre avec le langage de la coque (sortie 150 ms, cascade) et le RETOUR n'a plus qu'à la retirer (mGo('home') → garAccueil :
+     l'atelier est déjà là). Le volet reste pour les vrais changements de DÉCOR (atelier ↔ course, fin → accueil, garage ↔ accueil).
+     `?menupasse=0` = le volet comme avant. */
+  const MENU_PASSE=!/[?&]menupasse=0\b/.test(location.search);
+  function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
@@ -64932,7 +65241,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='back')mGo(mRoot());
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
     else if(a==='mis'){ if(started&&gameOver&&!garageOn){GAR.aMis=true;ecranWipe(function(){ accueilRetour(); mGo('home','racine'); });} else garMissionsOuvre(); } // (2026-09-30) les MISSIONS vivent dans l'atelier (la constellation) — l'ancien écran #mMis n'est plus ouvert d'ici
-    else if((a==='modes'||a==='set')&&garageOn){ ecranWipe(function(){ window.__mRetour=a; closeGarage(); }); } // (2026-09-30) depuis le garage-menu : l'atelier se ferme sous le volet, l'observateur de l'overlay ouvre l'écran (retour : le menu)
+    else if((a==='modes'||a==='set')&&garageOn){ if(surAccueilCiel())mGo(a); else ecranWipe(function(){ window.__mRetour=a; closeGarage(); }); } // (2026-09-30) depuis le garage-menu : l'atelier se ferme sous le volet, l'observateur de l'overlay ouvre l'écran (retour : le menu)
     else if(a==='modes'||a==='set')mGo(a);
     // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
     else if(a==='menu'&&started&&gameOver){ ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); }
@@ -64940,7 +65249,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       window.__mRetour=PROF[mCur]?mCur:null; // (2026-09-29) le RETOUR de l'atelier ramène aux MISSIONS
       ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
     else if(a==='shop'&&bqC6()){ bqVaOffres(1); } // (2026-10-14, charte 6) le cadeau de l'accueil = la boutique, onglet OFFRES (UN seul écran OFFRES ; l'ancien #mShop reste pour ?ui=5)
-    else if(a==='shop'){ ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
+    else if(a==='shop'){ if(surAccueilCiel())mGo('shop'); else ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('INDISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
     else if(a==='shopRestore'){ toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER')); } // LA BOUTIQUE : le même atelier 3D, onglet PEINTURE — on essaie sur la vraie caisse
@@ -65064,6 +65373,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(window.__setPause){uiClic('retour');setPauseFerme();return;} // (2026-10-14, charte 6) les réglages ouverts depuis la pause : Échap = leur ◀
     if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);uiClic('retour');return;}
     if(cr&&cr.classList.contains('on')&&!cr.classList.contains('sortant')){uiClic('retour');feuilleFerme(cr,'on');return;}
+    if(PROF[mCur]&&surAccueilCiel()){mTap('back',null);return;} // (2026-10-17) une page posée sur l'accueil-atelier : Échap = son RETOUR
     if(garageOn||(typeof stallOn!=='undefined'&&stallOn))return; // l'atelier et l'étal ont déjà leur Échap
     if(started&&!gameOver){panOpen(true);hap(10);return;}
     if(overlay.style.display!=='none'&&PROF[mCur])mTap('back',null);
