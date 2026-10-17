@@ -7,6 +7,21 @@
 - `plqPose` ne pose plus que la plaque ARRIÈRE (`PLQ.pos[lvl].ar`) ; plus de rayons tirés vers le nez (`plqCherche(1,…)` n'est plus appelé :
   la pose coûte deux fois moins). L'atelier de la plaque, ses modèles et le profil sont inchangés. `dbgPlaque('pos')` ne liste plus que `ar`.
 
+## LE PANNEAU DU CANYON DEVIENT « ROUTE 67 » (2026-10-17 soir, Sacha : « le panneau sur la route 66 dans la map canyon doit s'appeler la route 67 »)
+- `cyRoute66` : le grand chiffre du bouclier passe de « 66 » à « 67 ». `CY_FONTE` gagne un `7` en 5 × 7 pavés (barre du haut, puis
+  diagonale qui tombe vers la gauche) ; même largeur que le 6 : le texte reste centré. Rien d'autre ne bouge (station-service, mesa,
+  tirages de la piste) ; les noms internes (`cyRoute66`, `CY.r66`, `dbgCanyon('r66')`) sont gardés tels quels.
+
+## LES SATELLITES FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route »)
+- La passe « les maps comme un tout » (même jour, 15 h 37) avait lu « il faut que ce soit un obstacle à part entière » comme des satellites
+  SUR la chaussée (seul, porte, chicane, L'IMPACT au choc). Ce n'était pas la demande : ils quittent la route.
+- `orbiteBuild` §0 bis : les mêmes grands engins (Starlink 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, petit satellite
+  d'or) DÉRIVENT à 4-16 m du bord, de 8 m sous la dalle à 16 m au-dessus (repère de la route F.b/F.n : juste sur le côté, même dans les
+  virages relevés ; plus bas, la caméra plongeante ne les voyait plus, la route les cachait), et tournent lentement sur eux-mêmes. Trois figures, toutes les 200-400 m × la croisière : le SEUL, la PORTE (un de chaque
+  côté, la route passe entre les deux), la FILE (2-3 à la suite du même côté, en escalier). `libre` les tient loin de toutes les AUTRES
+  portions de piste ; au plus un quart des Starlink et un cinquième des débris (les passants, le champ et les trains gardent leur part).
+- Décor pur : `SATOB` est vide, rien à percuter, les pièces ne s'écartent plus, ni liseré rouge ni étoile qui pulse. `?sats=route` (`SAT_OBST_V`)
+  rend les obstacles de l'après-midi ; `?sans=satobst` n'existe plus (c'est le défaut).
 ## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
 - **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
   la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.

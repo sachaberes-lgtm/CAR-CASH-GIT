@@ -18981,7 +18981,7 @@ function cyMineHeurt(p,M){const S=CY.S;if(!M)return false;let bi=-1,bd=1e18;
 /* LA ROUTE 66 (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite, une vieille station-service
    et un panneau ROUTE 66 ») — au départ, sur le plateau de la vallée des Mitaines (genCanyon : la droite de 820 m), deux décors posés au
    sol, à côté de la route (jamais dessus : ils restent à ROAD_HALF + 6 m au moins) :
-   · le PANNEAU ROUTE 66 à 150 m, à gauche : le bouclier blanc bordé de noir sur ses deux poteaux, « ROUTE » et un grand « 66 » en pixels
+   · le PANNEAU ROUTE 67 (rebaptisé le 17/10 par Sacha) à 150 m, à gauche : le bouclier blanc bordé de noir sur ses deux poteaux, « ROUTE » et un grand « 67 » en pixels
      (une police 3 × 5 et 5 × 7 en petits pavés), tourné vers la caisse qui arrive ;
    · la VIEILLE STATION-SERVICE à 430 m, à droite : le bâtiment crème au bandeau rouge passé, sa porte, sa vitrine, la porte du garage, l'auvent
      sur deux piliers, l'îlot et ses deux pompes rétro (rouge et turquoise, globes blancs), des fûts rouillés, le dallage fissuré, et le
@@ -18990,7 +18990,7 @@ function cyMineHeurt(p,M){const S=CY.S;if(!M)return false;let bi=-1,bd=1e18;
    (`cyMonuMats().t` : la lumière, l'ombre portée des parois et le brouillard du canyon — aucun programme neuf). Console : dbgCanyon('r66'). */
 const CY_FONTE={R:['XX.','X.X','XX.','X.X','X.X'],O:['.X.','X.X','X.X','X.X','.X.'],U:['X.X','X.X','X.X','X.X','XXX'],T:['XXX','.X.','.X.','.X.','.X.'],
   E:['XXX','X..','XX.','X..','XXX'],G:['.XX','X..','X.X','X.X','.XX'],A:['.X.','X.X','XXX','X.X','X.X'],S:['.XX','X..','.X.','..X','XX.'],
-  6:['.XXX.','X....','X....','XXXX.','X...X','X...X','.XXX.']};
+  6:['.XXX.','X....','X....','XXXX.','X...X','X...X','.XXX.'],7:['XXXXX','....X','...X.','..X..','.X...','.X...','.X...']};
 function cyRoute66(){
   const S=CY.S;if(!S||S.n<80)return null;
   const P=[],C=[],I=[],O=new THREE.Vector3(),Ax=new THREE.Vector3(),Az=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0),g0=new THREE.BoxGeometry(1,1,1);
@@ -19013,7 +19013,7 @@ function cyRoute66(){
      'KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','.KWWWWWWWWWWWK.','..KWWWWWWWWWK..','...KKWWWWWKK...','.....KKKKK.....'];
    const y0=haut+17*cel*.5;for(let r=0;r<M.length;r++)for(let c=0;c<15;c++){const k=M[r][c];if(k==='.')continue;pave((c-7)*cel,y0-(r+.5)*cel,0,cel,cel,.18,k==='K'?NOIR:BLANC);}
    const zf=-.13,ct=cel*.47;texte('ROUTE',-larg('ROUTE')*ct/2,y0-1.4*cel,zf,ct,NOIR,.06); // la face tournée vers la caisse qui arrive (−z)
-   const c6=cel*1.07;texte('66',-larg('66')*c6/2,y0-7.6*cel,zf,c6,NOIR,.06);}
+   const c6=cel*1.07;texte('67',-larg('67')*c6/2,y0-7.6*cel,zf,c6,NOIR,.06);} // (2026-10-17, Sacha : « doit s'appeler la route 67 ») : ROUTE 67
   // ---- LA VIEILLE STATION-SERVICE (à droite, à 430 m) ----
   {const KS=1.6,R9=rep(430,ROAD_HALF+25,1),RM=26,cx=4*KS,sol=solMin([[cx,0],[cx+RM,0],[cx-RM,0],[cx,RM],[cx,-RM]]),top=R9.yr-.3;
    /* LA MESA : la route flotte au moins 18 m au-dessus du plateau (la règle d'or du canyon) — posée au sol, la station était cachée sous le
@@ -28769,12 +28769,13 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
      des panneaux EN L'AIR (9-20 m au-dessus de la route) tous les ~500 m. Orientation FIGÉE (ni phase ni rotation propre) : la boîte
      de collision de `satHard` est exactement celle qu'on voit. Le dessous de la dalle reste libre (le raccourci des voltigeurs). */
   /* LES SATELLITES, OBSTACLES À PART ENTIÈRE (2026-10-17, Sacha : « améliore aussi la taille et la disposition des satellites dans l'espace, il faut
-     que ce soit un obstacle à part entière ») : la PLUIE DE SATELLITES (le niveau dur, retiré le 14/10) gardait seule ses satellites sur la route — l'orbite
+     que ce soit un obstacle à part entière » — puis le soir même : « je voulais juste qu'ils flottent proche de la route » : ce §0 ne tourne plus qu'avec
+     ?sats=route, voir §0 bis) : la PLUIE DE SATELLITES (le niveau dur, retiré le 14/10) gardait seule ses satellites sur la route — l'orbite
      n'en avait plus que dans le décor. Ils reviennent sur l'ORBITE NORMALE, mais en COURSE, pas en averse : plus GRANDS (un Starlink de 18-26 m
      d'envergure couché en travers, un étage de fusée de 15-20 m — on les lit de loin, liseré rouge et éclat), et posés en TROIS FIGURES lisibles —
      le SEUL (une moitié de route à choisir), la PORTE (deux engins, une trouée de 16-20 m à viser), la CHICANE (un côté, puis l'autre 70-100 m plus
      loin) —, une figure toutes les 300-520 m (× la vitesse de croisière), et quelques panneaux EN L'AIR pour qui saute. Les toucher = L'IMPACT, le
-     même crash que tous les obstacles (impSat) ; les frôler paie (frole). Les pièces s'en écartent. `?sans=satobst` = l'orbite sans obstacles. */
+     même crash que tous les obstacles (impSat) ; les frôler paie (frole). Les pièces s'en écartent. */
   SATOB.on=!!c.hard||SAT_OBST_V;
   if(SATOB.on){
     const RH=ROAD_HALF-2,Bv=ORB.t1,Wv=ORB.t2,Uv=ORB.t3;
@@ -28822,6 +28823,30 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
     for(let s9=900+r()*300;s9<L-500;s9+=(420+r()*220)*espK) // EN L'AIR : pour qui saute par-dessus un rideau
       pose0(0,s9,(r()*2-1)*RH*.8,9+r()*11,6+r()*4,(r()-.5)*1.4,0,1,true);
     }
+  }
+  /* 0 bis. LES SATELLITES QUI FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je
+     voulais juste qu'ils flottent proche de la route »). Les obstacles de l'après-midi (§0, gardés derrière ?sats=route) quittent la chaussée : les
+     mêmes grands engins — Starlink de 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, petit satellite d'or — DÉRIVENT à 4-16 m
+     du bord, de 8 m sous la dalle à 16 m au-dessus (repère de la route : F.b en travers, F.n vers le haut), et tournent lentement sur
+     eux-mêmes. Trois figures : le SEUL (un côté), la PORTE (un de chaque côté, la route passe entre les deux) et la FILE (deux ou trois à la suite du
+     même côté, en escalier). Décor pur : rien sur la chaussée, rien à percuter, les pièces ne s'écartent plus. `libre` les garde loin de TOUTES les
+     autres portions de piste (un virage serré, un looping au-dessus) ; un quart des Starlink et un cinquième des débris au plus — les passants, le
+     champ et les trains gardent leur part. */
+  if(!SATOB.on){
+    const espK=Math.max(1,.45+.4*lvPiste()),M0=Math.round(SAT_MAX[0]*.25),M1=Math.round(SAT_MAX[1]*.2);
+    const flotte=function(s9,sg,dh){if(satPassage(s9))return;
+      const st=cnt[0]<M0&&(cnt[1]>=M1||r()<.6),k=st?0:1;if(!st&&cnt[1]>=M1)return;
+      frameAt(s9,F);const rad=st?9+r()*4:7+r()*4,lat=ROAD_HALF+rad+4+r()*12,h=dh+(r()-.5)*4;
+      const x=F.p.x+F.b.x*sg*lat+F.n.x*h,y=F.p.y+F.b.y*sg*lat+F.n.y*h,z=F.p.z+F.b.z*sg*lat+F.n.z*h;
+      if(!libre(x,y,z,ROAD_HALF+rad+3.5))return; // sa propre route est à ≥ lat : ce test ne vise que les AUTRES portions
+      pose(k,x,y,z,rad,.04+r()*.12,st?(r()<.5?0:1):tire([.30,.20,.25,.25]));};
+    let sp=650+r()*200;
+    while(sp<L-450){const f=tire([.45,.30,.25]),sg=r()<.5?-1:1,dh=-6+r()*20; // (banc) à −12 m sous la dalle, la caméra plongeante ne les voyait plus : la route les cachait
+      if(f===0)flotte(sp,sg,dh);                                                   // LE SEUL
+      else if(f===1){flotte(sp,-1,dh);flotte(sp+(r()-.5)*30,1,-6+r()*20);}         // LA PORTE
+      else{const n=2+(r()<.4?1:0),e9=45+r()*30,mh=(r()-.5)*10;                     // LA FILE
+        for(let j=0;j<n;j++)flotte(sp+j*e9,sg,dh+j*mh);sp+=(n-1)*e9;}
+      sp+=(200+r()*200)*espK;}
   }
   // 1. LES PASSANTS : de grands Starlink au bord de la route, du côté EXTÉRIEUR du virage qui vient (ils ne cachent jamais la route qui tourne)
   {const pasP=(L-900)/SAT_PASS;
@@ -28886,7 +28911,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
    SATELLITE »). Passé à moins de ~3 m sans toucher : FRÔLÉ (la même récompense que les plots : nitro, flow, aura — et le SLALOM qui
    s'enchaîne d'un satellite à l'autre). Le tri par distance au carré (R2) écarte tout ce qui est loin : ~150 obstacles = 150 soustractions. */
 const SATOB={list:[],on:false,d:new THREE.Vector3(),pp:new THREE.Vector3(),pv:false};
-const SAT_OBST_V=!/[?&]sans=([^&]*,)?satobst(,|&|$)/.test(location.search); // (2026-10-17) les satellites, obstacles de l'orbite normale (voir orbiteBuild §0)
+const SAT_OBST_V=/[?&]sats=route(&|$)/.test(location.search); // (2026-10-17 soir) les satellites SUR la route (§0 d'orbiteBuild) ne reviennent qu'avec ?sats=route — par défaut ils FLOTTENT au bord (Sacha : « je voulais juste qu'ils flottent proche de la route »)
 /* (2026-10-17) L'IMPACT contre un satellite — la même animation que tous les obstacles (Sacha, 15/10) : `explode('sat')` partait sans elle. La face
    touchée est celle des trois axes de la boîte où la caisse est entrée le plus profond ; pas de cratère (`mou`) : il resterait suspendu dans le vide. */
 function impSat(o,d){
