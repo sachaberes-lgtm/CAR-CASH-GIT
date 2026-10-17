@@ -85,8 +85,12 @@ tient plus : la reprise ne vaut le coup que si l'on compte gagner plus que ce qu
   tableau d'un même facteur par `ECO3.prime` (lu par `carnet()`), pas carnet par carnet.
 
 ## 10. L'ELDORADO À 40 000 $ (Sacha, 17/10 : « pas 3 000 dollars, elle doit coûter 40 000 dollars »)
-- ELDORADO 3 000 → **40 000 $** (`CAR_UNLOCK`, ligne de l'ELDORADO). Elle passe entre LA BAVAROISE (20 000) et LE CAÏD (50 000), toujours RARE
-  (`rar:'rare'` sur sa fiche). Ceux qui l'ont déjà la gardent : aucun remboursement ne lit ce prix.
-- Conséquence : la 1re caisse à l'argent est désormais LE CHARGEUR (6 000 $), vers la 9e partie d'un joueur moyen selon le §6, au lieu de
-  l'ELDORADO vers la 3e-4e. Le bas de gamme : 6 000 · 10 000 · 20 000 · 40 000 · 50 000 · 120 000 (×1,25 à ×2,4 par marche).
-- À trancher si le début paraît long : une marche vers 3 000 $ (une autre caisse), ou les gains du début (§6, option B).
+- ELDORADO 3 000 → **40 000 $** (`CAR_UNLOCK`, ligne de l'ELDORADO), toujours RARE (`rar:'rare'` sur sa fiche). Ceux qui l'ont déjà la
+  gardent : aucun remboursement ne lit ce prix.
+- Le même jour, Sacha a aussi monté LE CHARGEUR 6 000 → **60 000 $**, LA BAVAROISE 20 000 → **100 000 $** et LE DÉFIEUR 10 000 → **120 000 $**
+  (« non, chargeur 60 000 » : une 1re version de ce § disait LE CHARGEUR à 6 000, c'était avant ces hausses).
+- Conséquence : l'ELDORADO RESTE la 1re caisse à l'argent, mais à 40 000 $ au lieu de 3 000. Les caisses moins chères de `CAR_UNLOCK` sont
+  retirées ou se gagnent par mission (LA SILENCIEUSE, 90 000). Le bas de gamme : 40 000 (ELDORADO) · 50 000 (LE CAÏD) · 60 000 (LE CHARGEUR) ·
+  100 000 (LA BAVAROISE) · 120 000 (LE DÉFIEUR, LE SAMOURAÏ) · 140 000 (LA VETTE), soit ×1,2 à ×1,7 par marche.
+- Au rythme du §6 (~600 $ la partie d'un joueur moyen), 40 000 $ demandent ~60 parties sans compter les primes de mission, contre 3-4
+  parties avant. À trancher si le début paraît long : une caisse d'entrée vers 3 000-6 000 $, ou les gains du début (§6, option B).

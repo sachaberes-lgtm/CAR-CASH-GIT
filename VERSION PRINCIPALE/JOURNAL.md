@@ -22,6 +22,10 @@
   sans lumière (le CHAT POP-TART en pixels, LE DOGE, L'ICEBERG, LA FOURNAISE) passe une 2e fois en acceptant cette peau, plaque EN BAS (16 %
   de la hauteur : sous le museau, pas sur le visage) — `src:'souple'` ; en dernier recours, le bord de sa boîte. Les effets instanciés
   (flammes, écume, gouttes) ne sont pas visés.
+  **La plaque déjà dessinée** (`plqDessinee`) : LES POUPES REFAITES du même jour posent une plaque blanche éclairée dans le pare-chocs
+  de onze caisses (boîte du kit en famille `l`, presque blanche, ~4 fois plus large que haute, au milieu) : la nôtre se pose PILE dessus,
+  un peu devant et plus grande — elle la couvre, jamais deux plaques (`src:'dessinee'`, sans rayon). Un gabarit qui dessine sa plaque ainsi
+  décide donc de sa place.
   La plaque se colle à 2,4 cm, penchée comme la tôle (bornée −17° / +40°), sur un cadre noir de 2 cm. Largeur 32 % de la caisse (50 à 64 cm),
   rapport 4:1. Le résultat se garde par caisse (`PLQ.pos`) : la rafale de photos ne relance pas les rayons.
   UNE toile 512 × 128, UNE texture, DEUX matières partagées (face MeshBasic : lisible la nuit comme une plaque éclairée ; cadre Phong noir,
@@ -50,6 +54,292 @@
   caisse et par session : médiane 2 ms, LE DOGE 63 ms (146 avant le balayage unique), 270 ms pour les 79.
 - À trancher par Sacha : les noms et dessins des neuf modèles, la taille de la plaque (32 % de la largeur), la plaque sur le front du DOGE et
   dans la gueule du SQUALE, celle sur la roue de secours du CAÏD.
+
+## LA FIGURE SE PAIE — 20 % DE NITRO, 30 % RENDUS À LA POSE, CUMULABLE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage, cumulable »)
+- **La règle** (loi 6 du réservoir, réglages `NITRO2.figN` = `{cout:.2, rend:.3}`, en part de la jauge du moteur) :
+  · LANCER une figure en vol (double-tap NITRO, le glissé, un tour EMPILÉ sur le tonneau) coûte **20 %** de la jauge, payés à la jauge
+    puis à la réserve bleue des fruits (`nitroX`), comme le saut nitro. Pas assez des deux : la figure ne part pas (le « tchk » de la
+    nitro à vide, `figRefus`) et rien n'est prélevé. Une figure refusée faute de temps ne coûte rien non plus.
+  · Chaque figure PLANTÉE rapporte **30 %** à la POSE RÉUSSIE, et ça s'additionne : deux figures = 60 %, trois = 90 % (plafonné à la jauge
+    pleine). Un tonneau ×3 (trois double-taps) = 60 % payés, 90 % rendus.
+  · « Bon atterrissage » = la pose qui n'est pas RATÉE (`poseRatee` : posée en plein tour, de travers à plus de 55° ou à contresens) ; la
+    lèvre rattrapée compte comme une pose. Pose ratée, chute, explosion en vol : les 20 % sont perdus.
+  · La figure du SAUT NITRO ne coûte rien de plus (le saut paie déjà ses 20 %, `VEQ_K.sautCout`) mais rapporte ses 30 % comme les autres.
+    Offerte aussi : sous NITRO INFINIE, au parc, à l'auto-école. La toupie AUTOMATIQUE du drift ne coûte ni ne rapporte.
+  · Les figures AU SOL (glissé en roulant : SLIDE 360, WHEELIE, STOPPIE) ne sont pas touchées : pas d'atterrissage.
+- **Ce qui s'est tu** (sinon la règle était noyée) : le plein immédiat à la plantée (`NITRO2.figAir`, « ASPHALT 8 », supprimé), les 0,15
+  du COMBO À TROIS (`COMBO_K.nitro`, supprimé), et la recharge de la chaîne à la pose (`nitroFigDe`) quand le vol porte au moins une figure.
+  Un vol SANS figure garde sa recharge de chaîne ; la pose (20 % au prorata du vol nitro coupée) ne change pas.
+- **Code** : `figNitCout(o)` / `figNitPaye(q)` / `figNitRend(ok)` à côté de `figRefus` ; le compte `FX2.nitF` (remis à zéro par `figDepart`,
+  nourri par `figPaye` avec `r.nitN`, le nombre de lancements payés de la figure) ; `figNitRend` appelée par `tryLand` (juste après
+  `poseRatee`) et `levreRattrape`. Le « plein » (`nitro.plein`) sonne une fois, avec celui de la pose. `dbgFigNit()` : le prix, ce qui
+  attend la pose, la jauge, la réserve. Le grand livre compte `n-:figure` et `n+:figure`.
+- **Mesuré au banc** (UA iPhone, muet, vraie partie, pilote auto, saut nitro + double-tap en vol, 10 vols en deux passages) : chaque lancement −20,0 % pile ;
+  pose avec deux figures plantées depuis une jauge basse : +1,366 = 2 × 30 % × 2,05 + la pose du saut (0,136), au millième ; figure refusée
+  faute de temps : 0 prélevé ; jauge ET réserve vides : la figure en vol refusée, 0 prélevé (et la figure du saut rend quand même ses 30 % : +0,734 = 0,6 + 0,134 de pose) ; 0 erreur JS.
+- À juger en jeu par Sacha : le rythme (chaque figure plantée et bien posée rapporte +10 % net ; le saut nitro et sa figure : 20 % payés, 30 % rendus).
+## LES MISSIONS EN UNE LIGNE, EN BAS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète, en bas de l'écran »)
+- EN COURSE, une mission réussie ne pose plus la bannière du haut (`#misBan` : plaque, grosse icône, 12 px, au milieu du ciel) : `m2Annonce`
+  écrit UNE ligne fine en bas, `#m2Ligne` (`m2LigneDit`/`m2LigneSuit`/`m2LigneVide`, la file `M2L`) — coche verte · MISSION REUSSIE ·
+  la consigne · la récompense en or, en 8 px comme les missions suivies et sur leur bande sombre (debout : 3 lignes au plus). Couché : au centre, debout : à gauche (la colonne de
+  NITRO reste libre) ; toujours JUSTE AU-DESSUS des missions suivies (`#m2Focus`, leur hauteur dans `--m2lY`). Une secrète : œil magenta,
+  « MISSION SECRETE ? ? ? ». Une couleur secrète trouvée en course (`secDonne`) : la même ligne au lieu du toast du haut.
+- LA RAFALE : la première passe seule (2,4 s), TOUT le reste se dit en une seule ligne (« 2 MISSIONS REUSSIES ») — au plus deux lignes, là
+  où il y avait une bannière par mission à la queue leu leu. Le son `ui.mission` une fois par ligne.
+- Hors course (menu, écran de mort, `dbgMissions('gagne',…)` au menu) : le toast, inchangé. La ligne se tait avec la file du haut
+  (`hautVide` : l'explosion, l'écran de mort, RECOMMENCER) et disparaît hors manette (`body:not(.play)`).
+- `#misBan` reste aux ASTUCES et aux NOUVEAUX COMBOS (ce ne sont pas des missions).
+- Vérifié au banc (muet), couché 844 × 390 et debout 390 × 844, deux missions suivies, trois missions réussies d'un coup en course
+  (`dbgMissions('gagne','fig2'|'fig5'|'air5')`) : « MISSION REUSSIE FAIS 2 FIGURES DANS UN SEUL SAUT +$ 1 k » puis « 2 MISSIONS REUSSIES » ;
+  aucune bannière en haut. Couché : une ligne de 467 × 15 px, 4 px au-dessus des suivies, rien de lisible dessous ; debout : 244 × 36 px
+  (3 lignes), à gauche de NITRO. Une vraie secrète tombée à l'explosion s'est dite « MISSION SECRETE ? ? ? ». 0 erreur JS.
+
+## LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran doit être positionné au bon endroit avec la bonne police ; je veux une animation et un son pour chaque bouton ; soigne les transitions entre chaque écran, qu'elles soient fluides »)
+- LE RELEVÉ (banc `audit.cjs`, scratchpad de la session ed900fe4) : 16 étapes (accueil, réglages et leur bas, code, achat, garage, inventaire
+  et ses 5 onglets, missions, boutique et un rayon, course, pause, pause → réglages, fenêtre QUITTER, fin avec l'offre de seconde chance, fin,
+  retour), DEBOUT 390 × 844 ET COUCHÉ 844 × 390 (zones sûres de l'iPhone posées). Pour CHAQUE chose qu'on touche : sa boîte, chevauchements,
+  zone sûre, taille, libellé qui déborde, caractère absent de la police pixel (monospace/serif/cursive mesurent différemment), corps, retour
+  visuel à l'appui (:active forcé par CDP, `.appui`, et un vrai pointerdown), le son réellement déclenché au toucher (`dbgFilet`). Plus tous
+  les TEXTES visibles de chaque écran contre la police pixel.
+- CE QUI ÉTAIT DÉJÀ BON (mesuré) : une seule police — 0 caractère hors de Press Start 2P dans TOUS les textes visibles des 31 écrans relevés ;
+  chaque toucher du parcours déclenche un son (39/39 couché, 31/31 debout : uiClic ou son propre son — le FILET du 16/10 tient) ; l'or en
+  bas, la sortie en bas à gauche.
+- CORRIGÉ :
+  · L'APPUI POUR TOUS (JS, juste après « L'APPUI SOUS LE DOIGT ») : seules les familles de la charte (`APPUI_SEL`) s'enfonçaient ; les cartes
+    de la boutique (`.bqK`) ne bougeaient pas du tout, les lignes de missions (`.m2L`), les hexagones de figures (`.fsHex`) seulement en
+    `:active` (invisible sur iPhone pour un tap bref). Toute autre chose touchable (même cible que le filet des sons : rôle, data-*, bouton, ou
+    l'élément qui POSE le curseur main — il s'hérite, on remonte au dernier parent qui l'a) se TASSE au contact (scale ×0,94 en 70 ms, par
+    l'API d'animation : propriété `scale` seule, qui s'ajoute au transform de l'élément sans toucher ses transitions ni ses animations CSS),
+    tenue 90 ms, revient en 140 ms sur `--ease` ; micro-tic `ui.appui` au contact comme les touches de la charte. Curseurs : `.tient`, le
+    bouton grossit. Hors HUD de course, canvas, champs. `?appui=0` = avant. Après : plus aucune touche sans retour visuel au relevé
+    (115 debout + 138 couché), hors le champ du code.
+  · LE PASSAGE DIRECT (mTap, `surAccueilCiel`, `MENU_PASSE`) : ACCUEIL → RÉGLAGES / ACHAT / MODES passait sous le volet pixel ET fermait
+    l'atelier (closeGarage), le retour le rouvrait sous un second volet. Chrono au banc : ~800 ms aller (couvrir 160, fermer, découvrir 280
+    avec une image de 133 ms en plein balayage), ~720 ms retour. Désormais la page se pose PAR-DESSUS l'accueil-atelier (`body.garMenuH`
+    force #overlay au-dessus), son fond opaque fond sur le ciel qui continue de vivre ; le RETOUR la retire (garAccueil : l'atelier est déjà
+    là). Mesuré : RÉGLAGES lisible à ~320 ms (avant ~650), retour à l'accueil à ~240 ms (avant ~650), plus de palier sombre. Le volet reste
+    pour les vrais changements de DÉCOR. Échap sur une telle page = son RETOUR. `?menupasse=0` = avant.
+  · LA SECONDE CHANCE, DEBOUT : CONTINUER descendait sous la barre d'accueil (bas à 824 px pour une zone sûre à 810) → NON MERCI prend la
+    marge libre au-dessus (margin-top:auto), les plaques se resserrent d'un cran : CONTINUER retombe à la place de REJOUER (bas à 792).
+  · LES MISSIONS, COUCHÉ : l'en-tête (aide, plaque CADEAU) courait SOUS la liste — corrigé en parallèle sur main (v571, `gmPlaceL`) : vérifié
+    au banc, rien à ajouter.
+  · LA BOUTIQUE, COUCHÉE : le titre BOUTIQUE et la colonne des rayons passaient sous l'encoche (zone sûre de 47 px, iPhone et cadre de l'ordi),
+    la dernière colonne de cartes débordait de 33 px dans l'arrondi de droite → `--sL`/`--sR` (le rail se décale par sa marge : son entrée
+    anime `translate`) ; la colonne s'arrête au-dessus de la barre d'accueil (`fond` moins `--sB`, FIGURES y entrait de 6 px).
+  · L'INVENTAIRE : son RETOUR en 10 px comme tous les autres RETOUR (il était en 8).
+- VU, PAS TOUCHÉ (à Léo ou à trancher) : garage → boutique, au banc (Chrome sans GPU) ~0,3 s sans réponse puis une image de la console
+  « OFFRES ÉPHÉMÈRES » avant le souffle blanc (le voile part à l'image suivante de `garBqPanneau`, après le travail de `gModeVa`) ; garage →
+  inventaire et changement d'onglet : une image de 100 à 140 ms au toucher (la bande se reconstruit). Les RETOUR du garage n'ont pas la
+  taille de ceux de la coque (inventaire 128 × 52, boutique 128 × 44, missions 90 × 74, réglages/achat 159 × 56) : ce sont les barres de Léo.
+- BANCS : `audit.cjs <debout|couche>` (RACINE, TAG), `analyse.cjs <TAG>`, `film2.cjs` (screencast + horloge rAF + longues tâches par
+  transition, 22 passages), `planche_film.py`, `chrono.cjs` (classes de #wipe, écrans, LoAF) — scratchpad ed900fe4.
+## LES POUPES REFAITES — ONZE CAISSES QU'ON SUIT ENFIN AVEC ENVIE (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de les acheter » puis, sur la revue des poupes : « refais l'arrière des onze caisses à refaire : LE LINGOT, ACIDE, LA PIZZA EXPRESS, LE CAÏD, LA ZED, LA VETTE, LA QUEUE DE CANARD, LE HOT ROD, LA GROUPE B, L'ABSTRAITE, LA GRANDE ANGLAISE »)
+- LA REVUE (avant de toucher) : les 29 caisses achetables de la boutique (`CAR_UNLOCK` p > 0 ou premium, après les rustines missions v2,
+  carnets 6-9 et carrière, non retirées) photographiées de DOS au studio — `dbgEssaiCaisse(gabarit,{...fiche, pot:gabarit},
+  [[Math.PI+.73,1,1],[Math.PI,1,1],[Math.PI+.73,2.4,1.05]])` : plein arrière, trois quarts, vue de poursuite. Verdict rendu à Sacha sur une
+  page à cocher (https://claude.ai/artifact/FTAB4EjEpJFn3pxx2wr7Q4) : 11 À REFAIRE (mur plat, feux en simple boîte, pots en pastilles, aucun
+  relief), 10 qui gagneraient un cran (ROSSO 40, LE CHARGEUR 69, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, LA PUCE, LE MASTODONTE, ELDORADO — refaite
+  depuis en v3 —, L'ICEBERG, LE DÉFIEUR), 8 déjà belles (LE CHARGEUR, LE BLINDÉ NOIR, LA PERLE, LA POUPÉE, LE DRAGON D'OR, LA TAURINE, CHAT
+  POP-TART, LA BAVAROISE). Sacha a validé les onze.
+- CE QUI A CHANGÉ — à chaque fois un bloc « L'ARRIÈRE v2 » dans le gabarit (`SHAPES.<gabarit>`), l'avant, les flancs et le pot de Léo
+  (`ECH_POTS`) intacts ; le pot s'encastre de lui-même dans le nouveau diffuseur (echEncastre) :
+  · LE LINGOT (`SHAPES.lingot`, gabarit d'avant le kit) : deux RUBIS TAILLÉS (table + huit facettes en trois rouges, chaton d'or sombre) posés
+    sur la face penchée à 30°, le POINÇON « 999,9 » dans son cartouche (la même toile que le dessus, `LINGOT_PL` : aucune matière neuve), le
+    bouclier doré chanfreiné et sa rainure, le diffuseur sombre aux ailettes d'or. Les feux-boîtes communs (`tl`) passent DANS la caisse ;
+  · ACIDE (`SHAPES.tuner`, d'avant le kit) : deux LED en équerre sous un VERRE FUMÉ d'une aile à l'autre et le fil qui les relie, le bouclier
+    dans son vernis creusé de deux écopes à lames, la plaque, le diffuseur à ailettes en NÉON ACIDE où s'encastre le gros canon. Piège : la
+    caisse `K.prof` est biseautée de 9 cm (`carProfile`), la vraie poupe est à −L/2 − 0,09 ; le diffuseur commun (`split`) passait à travers
+    le bouclier : coupé, et sa LAME AVANT reposée à l'identique ;
+  · LA PIZZA EXPRESS : feux en COLONNE dans leur coque (rouge strié, recul, clignotant, rouge bas, cerclage chromé), joint du hayon, poignée et
+    lampe de plaque, plaque blanche, essuie-glace sur la lunette, marchepied strié, becquet de pavillon et 3e feu, catadioptres ;
+  · LE CAÏD : feux en colonne dans leurs coques qui dépassent, joint de la porte, deux CHARNIÈRES à droite vue de derrière (comme la G) et la
+    poignée, cerclage chromé de la housse de roue, 3e feu stop, protections d'angle, plaque, marchepied strié, anneau de remorquage ;
+  · LA ZED : feux en trois segments EN RELIEF (stop strié, feu, recul) dans un cadre chromé, garniture striée entre eux, lèvre de malle,
+    butoirs et leur caoutchouc, plaque et sa lampe, jupe noire à ailettes ;
+  · LA VETTE : les quatre feux carrés ENFONCÉS (cerclage chromé qui dépasse, cuvette, verre en retrait, cœur, stries), le tableau noir EN
+    CREUX entre deux lèvres, le bouclier qui se replie et son pli, la plaque, le diffuseur dont les ailettes encadrent les quatre sorties,
+    le 3e feu ;
+  · LA QUEUE DE CANARD : la lèvre RELEVÉE de 4 cm (de dos elle ne se lisait pas) et sa grille à six lames, feux en volume (coque, rouge strié,
+    orange, chrome), le BANDEAU RÉFLÉCHISSANT strié d'un feu à l'autre, les soufflets du pare-chocs et ses butoirs, la plaque et sa lampe ;
+  · LE HOT ROD : les GOUTTES chromées sur la carapace (rondes derrière, pointues devant, verre rouge bombé), la plaque et sa lampe, le
+    RÉSERVOIR rond entre les longerons (sangles, bouchon), la barre tubulaire sur deux pattes noires ;
+  · LA GROUPE B : feux en volume dans leur coque (rouge strié, orange), la grille en relief, la plaque de rallye, la SANGLE de remorquage
+    rouge, le sabot d'alu boulonné, les catadioptres ;
+  · L'ABSTRAITE : le trait rouge devient un FEU EN ANNEAU ovale sur un fond de verre noir, cerclé d'un fil d'or — il répond à l'anneau d'or
+    au-dessus de la caisse ; le bouclier sculpté en creux et son fil d'or ; le diffuseur aux ailettes d'OR, un anneau d'or autour de chaque
+    sortie ;
+  · LA GRANDE ANGLAISE : les feux ovales EN VOLUME (cerclage chromé qui dépasse, lentille sombre, anneau de LED au cœur), la lèvre de malle,
+    la plaque, le bouclier dans la couleur et sa baguette chromée, le diffuseur à ailettes autour des sorties ovales.
+- LE BUDGET (la méthode de l'ELDORADO v3) : aucune FAMILLE de matière de plus sur les caisses du kit — les plaques sont des clés `w` de la
+  famille des feux (une plaque éclairée), l'alu du sabot une clé de la famille chrome ; les lignes visibles font au moins 1,4 cm (plus fin, elles
+  sortent en pointillés à 844 px) ; les anneaux ovales sont des ellipses EXTRUDÉES à épaisseur égale (un tore aplati est épais sur les côtés,
+  mince en haut) et à peu de pans (Three double les pans d'une ellipse : 32 donnaient +44 % à L'ABSTRAITE). Les deux gabarits d'avant le kit
+  (LE LINGOT, ACIDE) gagnent un chantier du kit chacun (4 et 3 familles : quelques appels de dessin, aucun programme neuf).
+- MESURÉ (`dbgEssaiCaisse`, carrosserie + roues visibles du kit) : LE CAÏD 4 962 → 5 794 (+17 %), LA PIZZA EXPRESS 3 964 → 4 408 (+11 %),
+  LA ZED 3 332 → 3 716 (+12 %), LA VETTE 3 936 → 4 664 (+18 %), LA QUEUE DE CANARD 3 390 → 3 788 (+12 %), LE HOT ROD 4 634 → 5 174 (+12 %),
+  LA GROUPE B 3 520 → 3 886 (+10 %), L'ABSTRAITE 4 200 → 4 908 (+17 %), LA GRANDE ANGLAISE 4 944 → 5 628 (+14 %) ; LE LINGOT et ACIDE
+  (hors kit, le relevé ne compte que le kit) : 120 → 560 et 288 → 692.
+- LES TRAÎNÉES DE LUMIÈRE partent des nouveaux feux (`dbgFeux`, `CAR_FEUX_SRC` = 'releve' pour les onze) : un `plate` et un `put` ne se relèvent
+  pas, d'où une petite pièce `L` cachée dans le feu (LE LINGOT, ACIDE, LE HOT ROD, L'ABSTRAITE) — sans elle, ACIDE les faisait partir du fil
+  central (±0,33 m), maintenant de ses équerres (±0,63 m).
+- BANCS (Chrome sans fenêtre et muet, sauvegarde muette, jeu servi en http, ports 9287/9587) : les onze rebâties une à une (`dbgEquipe`,
+  `dbgFeux`, `dbgPhotoCar`), puis menu → JOUER → course au pilote automatique : plein écran (LE LINGOT), cadre de l'ordi (ACIDE), debout
+  (LA PIZZA EXPRESS), téléphone couché 844 × 390 (LE CAÏD) — départ, course, **0 erreur**, `__loopErr` vide ; refait après la fusion de main
+  (l'ELDORADO v3) avec LA ZED, LA VETTE, LA QUEUE DE CANARD et LE HOT ROD : 0 erreur.
+  ⚠ Un autre banc tenait 9271/9571 : le banc des poupes refuse désormais de démarrer si ses ports sont pris (sinon il pilote le Chrome d'un autre).
+- À TRANCHER par Sacha : les dix caisses « un cran » de la revue, si l'envie le prend ; et sur LE CAÏD, les charnières sont à droite vue de
+  derrière (fidèle à la vraie), ce qui rend la poupe asymétrique.
+
+## LES TRAÎNÉES QUI DONNENT ENVIE — L'APERÇU EN VRAIE LUMIÈRE, LES SIGNATURES, LES ALLUMAGES (2026-10-16/17, session TRAÎNÉES — Sacha : « lance une grosse session pour améliorer chaque traînée, il faut qu'elle donne toute envie d'acheter, donne-leur le max de soin à chacune »)
+Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : traînée à toute nitro, feu teinté, objets ×2,3) : ici, les VITRINES
+(atelier, inventaire, boutique) et ce qui rend chaque traînée reconnaissable au premier coup d'œil. `?trainee=signal` rend toujours l'avant de la passe du 15/10.
+- VU AVANT (bancs `banc-trainees.cjs` course + `banc-vitrines.cjs` inventaire/boutique, les 16 tour à tour) : à l'atelier, les rubans d'aperçu
+  (`TRPV`) partaient des POTS en bande plate — un pavé de couleur, rien à voir avec la traînée de la course ; dans la SALLE BLANCHE de la boutique,
+  tout ce qui est additif (rubans, code, filés, foudre, pétales lumineux) disparaissait sur le blanc ; MENTHE / ROSE NÉON / POUDRE D'OR = un fil de
+  couleur ; aucune traînée POP n'avait de « coup » à l'allumage, et l'aperçu ne le montrait qu'une fois.
+- L'APERÇU EN VRAIE LUMIÈRE (`silApercu`, `silRuban` séparé de `sillageStep`) : deux sillages à eux, même matière que la course, nourris d'un chemin
+  inventé qui part des FEUX ARRIÈRE et ondule ; l'allumage se voit (la lumière file des feux en 0,28 s, la tête flashe). `TRPV` reste en repli.
+- LA SALLE BLANCHE EN ENCRE (`SIL_ENCRE`, `silEncre`, `silBlanc()` ; TRX : sortie PRÉMULTIPLIÉE + `M._encre`) : en boutique, la lumière additive
+  passe en mélange (0, 1 − src) avec la couleur inversée — le blanc se teinte de la couleur de la traînée. Le mélange n'entre pas dans la clé des
+  programmes de three r128 : zéro recompilation.
+- LE TEMPÉRAMENT DU RUBAN (`sil` sur la fiche : c cœur ×, h halo ×, f refroidissement, p pouls ×) : MENTHE douce, ROSE NÉON tube franc sans
+  refroidir, OR à pouls d'énergie, SAKURA halo large, MATRICE fil fin à paquets de données, HYPERESPACE cœur brûlant à pouls rapides, FOUDRE électrique.
+- LES SIGNATURES DES TROIS RUBANS (nouveaux émetteurs TRX, cases 34-35 de la planche) : MENTHE = bulles de savon irisées qui montent et CRÈVENT
+  (`trxMeurt`) ; ROSE NÉON = cœurs d'enseigne en tube qui grésillent (`fk`) + l'enseigne qui s'allume en clignotant (`neonAllume`) ; POUDRE D'OR =
+  paillettes qui scintillent (`tw`) et poussière d'or.
+- LES ALLUMAGES (`debut`) : SAKURA la corolle, MATRICE le rideau de code, ANNEAUX la fontaine en éventail régulier, PLUIE DE BLOCS les sept pièces
+  en éventail, HYPERESPACE le saut (éclair qui se resserre + averse de filés), 88 MILES l'éclair du départ, FOUDRE DIVINE la frappe du ciel (un
+  éclair épais de 14 m tombe sur la caisse, `B.wk`), GLOUTON commence par une super-pastille, FAIS PLEUVOIR lâche des étincelles d'or qui
+  scintillent (presque tous ses billets à l'allumage). LA GRILLE se défait en PIXELS au bout de sa vie (case 36).
+- MENTHE en course : bulles ramenées à 20-45 cm (×2,3 de `TRX_GROS` : une bulle de 85 cm couvrait la poupe).
+- EN COURSE, les quatre qui ne tenaient pas leur prix (VU au banc après la passe du 15/10) : HYPERESPACE — ses filés de 4 cm se confondaient
+  avec les lignes de vitesse du jeu → 130/s, deux fois plus épais, plus longs, élan gardé .62 : un vrai tunnel bleu ; 88 MILES — flammes au sol
+  30 → 50 cm ; LA GRILLE — mur 1,05 → 1,3 m, plus franc ; FOUDRE DIVINE — les éclairs se noyaient dans le ruban violet → ×1,7 et deux fois plus
+  écartés, ruban au halo réduit, frappe de 0,42 s.
+- EN BOUTIQUE (caméra loin de la caisse) : objets POP ×1,7, fantômes ×1,6, éclairs ×2, et la frappe de la foudre tombe du haut du CADRE (4,2 m).
+- VU APRÈS : planche finale des 16 (boutique avant/après, inventaire, course) montrée à Sacha. Coût : TRX < 0,13 ms par image en course.
+- LA VITRINE QUI VROMBIT (`SILPV.cy`) : en boutique, la traînée essayée se coupe 0,45 s toutes les 4,3 s et se rallume — on revoit le coup.
+  À l'aperçu, changer de traînée chasse les objets de la précédente et rejoue l'allumage (`T.kp=0`).
+- WOW : les mots gardent 95,5 % de l'élan en course (86 % : ils passaient l'objectif en un tiers de seconde), plus écartés, plus hauts.
+- LES CARTES : toutes les traînées ont leur pictogramme EN COULEUR en boutique (`illuTr` → `bqTrIc`, trait d'ombre dur pour le blanc).
+- Perf : aucune PointLight, aucun programme en plus ; tout passe par les pools existants (TRX_PN 560, SIL).
+
+## CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : Crypto City, une ville imaginaire avec de grands immeubles qui reflètent — des vitrés, des dorés, des argentés, des métalliques et des blancs ; hyper moderne, le futur, pas forcément moche ; explosif : la période bullrun, l'apogée de la ville, pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »)
+- LA BASE : la CRYPTOCITY de Léo (13/10, section « CRYPTOCITY — LA VILLE EN BULL RUN » plus bas) avait été retirée le 14/10 (`0ac875d`,
+  « on supprime tout ce qui n'est pas là » : elle n'était pas dans le tirage). Elle est REVENUE (le retrait défait sur le main d'aujourd'hui :
+  24 morceaux reposés tels quels, 11 refaits à la main sur la ville qui a changé depuis — néons v5, grues, `uPied9`) : taureaux, bougies,
+  pièces ₿ géantes (JACKPOT), diamants, dirigeables à écran, lune ₿, fusées TO THE MOON, feux d'artifice, le NOUVEL ATH, la pluie d'argent
+  à 50 % en fond, les pièces de la route frappées du ₿, le bitume glacé (`LVL.crypto`, `GLACE.crypto`), l'accent vert profit 0x35ff9e.
+- UNE MAP DU TIRAGE : `SF_CARTES.crypto` (« CRYPTO CITY », base `NIV_CRYPTO`, `SF_NIV.crypto`). QUATRE TEMPS, jamais de pluie ni d'orage
+  (c'est l'apogée) : MATIN (`BIOMES.cryptoMatin`, aube rose et or), MIDI (`bullrun`, le ciel de Léo + l'étalonnage du 14/10, poids 1,3),
+  SOIR (`cryptoSoir`, tout l'or s'allume, poids 1,2), NUIT (`cryptoNuit`, nuit:1 → phares ; « LA VILLE NE DORT JAMAIS »). Plus de JOUER à
+  part : `CRYPTO_JEU`, `cryptoJouer`, `cryptoPlayOk` sont partis ; `?niveau=crypto` = `?carte=crypto` ; `dbgNiveauCrypto(meteo)` impose
+  la map puis `classiqueJouer()`. Vignette du garage (`gvVignette('crypto')`, `GV_TEINTE.crypto` or).
+- LES FAÇADES EN CINQ MATIÈRES (`CRYPTO_VERRE`, programme `toursCrypto2`) — le même seuil dans le shader (`s3`) et pour la structure
+  (couleur d'instance, buildVoxCity) : 26 % VERRE bleu-vert · 18 % OR (renvoie la lumière du ciel) · 20 % ARGENT (miroir : garde le bleu,
+  Fresnel +60 %) · 16 % MÉTAL brossé (lames verticales, reflet brouillé, éclat du soleil en traînée large) · 20 % BLANC (résille de
+  céramique autour de baies étroites). Parapets : menthe / or / blanc chaud. LA NUIT, les bureaux restent allumés (`uNuit9` =
+  `CRYPTO.uNuit`, suit `LVL.nuit` dans cryptoTick).
+- LES RÉCLAMES : 32 écrans au lieu de 16 (atlas 2048 × 1024, 8 × 4, programme `pubsCrypto2`) — ajoutés NFT, SATOSHI, WEB3, DEFI, AIRDROP,
+  STAKE, WHALE, FOMO, DOGE, DAO, GAS 0, AI, MINING, LFG, SER, 1 BTC = 1 BTC ; traduits par `pubLangue`.
+- MESURÉ (banc Playwright + Chromium logiciel, 844 × 390, muet, `?carte=crypto&meteo=…`, pilote `dbgAuto`) : midi, soir, nuit lancés par
+  le JOUER du tirage, `__loopErr` nul, `dbgCrypto('progs')` vide, aucune erreur de page (seul le 404 connu de dark-triad.mp3). Ville bâtie :
+  1 425 tours, 3 913 volumes, 66 réclames, 2 taureaux, 59 bougies, 12 pièces, 8 diamants, 3 dirigeables, en 48 ms.
+  Les neuf maps du tirage : nuages, ville, jade, foret, banquise, volcan, crypto, espace, canyon.
+- À TRANCHER (Sacha, Léo) : la part de chaque matière ; la pluie d'argent en fond (.5) ; le nom (CRYPTO CITY / CRYPTOCITY de Léo).
+
+## LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE (2026-10-17, session « Système d'éclairage » — Sacha : « on retravaille complètement comment les lumières fonctionnent : les traînées doivent faire de la lumière, les flammes de nitro doivent faire de la lumière, les feux arrière doivent faire de la lumière quand il fait nuit, sur la route ; on retravaille comment les phares fonctionnent, comment la lumière des feux arrière se reflète dans le pare-brise arrière ; il faut que la lumière marche très bien, que ce soit parfait — optimisé quand même, pas de ray tracing : compatible iPhone, magnifique mais compréhensible pour un iPhone »)
+- AVANT : sur la route, la caisse n'éclairait presque rien. Un projecteur three (`headSpot`) au milieu du capot, une NAPPE PEINTE plate devant
+  (`CARPOOL.head`, le trapèze blanc qu'on voyait flotter devant la caisse la nuit) et, derrière, RIEN : la flaque rouge des feux et le halo nitro
+  (des plans additifs, les « taches rondes » du 25-26/09) avaient été retirés, et les PointLights ne touchent plus le bitume depuis le 26/09
+  (`LFB_SANS_PL`, ~20 % du GPU). Les feux, le feu du nitro, les traînées brillaient… dans le vide.
+- LA RECETTE : les lumières de la caisse sont CALCULÉES DANS LE SHADER DU BITUME (`LUM_GLSL`, `lmRoute`), sans AUCUNE lumière three de plus :
+  · LES PHARES (`uHl*`) : deux lampes (les halos `HALO.h` du gabarit ; l'épave n'en a qu'une, c'est voulu), chacune un faisceau de croisement — un
+    éventail (`uHlK.y`), une COUPURE à l'horizon de la lampe (`uHlK.x`), un point chaud juste dessous qui PORTE LOIN (`uHlK.z`), rien sous le
+    pare-chocs (vu de la poursuite, c'était un halo autour du capot), l'inverse du carré et le cosinus de la surface (une bosse s'allume). Mesuré au
+    calcul : à peu près plat de 10 à 20 m, 60 % à 40 m, 25 % à 60 m. Le projecteur three ne touche plus le bitume (la boucle des spots est retirée de
+    son shader, `LFB_ROUTE_LUM`) — il reste pour le décor (tours, rochers, arbres) ; la nappe peinte est éteinte en course.
+  · DES LAMPES-SEGMENTS (`uLmA/B/C`, `LM_N` = 6) : un point ou un trait de lumière. L'éclairement vient du point du trait le plus proche ; le REFLET
+    (pellicule d'eau, FLAQUES ; le béton sec est mat : sauté) du point du trait le plus proche du rayon réfléchi (le « point représentatif » de Karis),
+    dans un lobe ÉTIRÉ — fin en travers, long vers l'œil : sur une route mouillée chaque feu s'étire en TRAÎNÉE ROUGE vers la caméra, comme une vraie
+    route de nuit sous la pluie (un lobe rond y faisait des taches rondes, vu au banc). Les lampes :
+    les deux FEUX ARRIÈRE (`CAR_FEUX`, rayonnés vers l'arrière, embrasés au frein — le même `VIT9.frein` que leurs halos), LE FEU DU NITRO (un trait
+    par côté, de la bouche du pot le long du jet, qui s'allonge avec la vitesse, à la couleur de la flamme — celle de `nitroLight` : orange, bleu de
+    réserve, violet de l'infini, or du pad, la traînée achetée, l'arc-en-ciel du chat — et qui tremble avec elle), LA FLAMME DU MOTEUR hors nitro
+    (le mini feu de pixels : une lueur qui crépite avec ses bouffées, `FLM.L`, la nuit), LES TRAÎNÉES DE LUMIÈRE (un trait par traînée sur ses
+    12 premiers mètres, à sa couleur et à son éclat — `SILS`, `lumNoeud`).
+  · LA LUEUR DES FEUX SUR LA CAISSE (`FEU_U`, `FEU_GLSL`, dans le bloc VOITURES) : les deux feux allument la tôle qui les entoure (diffus vrai,
+    fenêtre de proximité : sans elle, toute la poupe virait au rouge uni) et le VERRE en prend le reflet — un voile rouge qui monte du bas de la
+    lunette, plus fort en rasant (`uFvK` par famille de matière : verre 1, chrome .6, laque .2, mat .05 ; `rimify(m,v,rimK,fvK)`).
+  · LES FAISCEAUX DANS L'AIR (`PHARE_FX`, les cônes de minuit) : ils NAISSENT au phare au lieu d'y flamber (l'éventail blanc posé sur le capot) et ne se
+    voient que s'il y a de quoi les attraper — la pluie, le brouillard (`LUMK.air`).
+- LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (ciel + soleil posés par `bioApply`, en luminance) et au drapeau `nuit` du niveau. MESURÉ sur les
+  couples map × météo : ~0,55 de jour, ~0,34 au soir et sous la pluie de jour, 0,10-0,16 la nuit (ville, nuages, orage) → les phares et les feux
+  mordent pleinement la nuit, à un tiers au soir et sous la pluie, plus du tout en plein jour ; le feu du nitro éclaire toujours un peu (c'est du feu).
+- PERF : tout en espace VUE (`lumTick` pose les lampes en coordonnées monde, `lumVue`, chaîné sur `scene.onBeforeRender`, les passe dans le repère de
+  LA caméra qui rend — mode photo compris) ; hors d'une sphère de 18 m autour de la caisse le pixel ne paie qu'un test ; les phares sautent ce qui
+  est derrière eux, hors de l'éventail ou au-dessus de la coupure ; les branches sont uniformes (lampes éteintes, béton sec : rien) ; le trait et
+  1/|AB|² sont pré-calculés ; rien n'est alloué ; aucun programme de plus (la clé du bitume devient `bitumeV5fsL` : UN programme remplacé). En
+  QUALITÉ BASSE les traînées n'éclairent plus. MESURÉ (requêtes de temps GPU `EXT_disjoint_timer_query_webgl2`, Chrome du Mac, 1920 × 886, canyon de
+  nuit au nitro, image figée, 5 tours de 40 images en alternance) : tout coupé 7,8 ms (médiane des médianes), tout allumé 7,6, l'éclairage d'avant
+  8,0 — l'écart est SOUS LE BRUIT (± 0,5 ms : le GPU est partagé) ; le projecteur retiré du bitume paie à peu près les lampes. La première version
+  (10 lampes, trois traits par traînée, sphère de 30 m) semblait coûter ~1 ms : elle a été allégée avant de partir. À confirmer sur un vrai
+  iPhone (`?perf=1`, `?banc=1`).
+- RÉGLAGES (`LUMK`, à chaud par `dbgLum({…})`) — valeurs posées au banc : `hl` 180 000, `feu` .45 (×2 au frein), `nit` .8, `mot` .22, `tr` .1, `car` .15,
+  `air` [.12, .9], la nuit entre 0,17 et 0,45 de lumière du lieu. `hl` les phares, `feu`/`feuF` les feux (×frein), `nit` le nitro, `mot` la flamme du moteur, `tr` les
+  traînées, `car`/`carF` la lueur sur la caisse, `air` les faisceaux dans l'air, `amb` le seuil de la nuit ; `dbgLum({hlK:[coupure,éventail,point
+  chaud,adoucissement],lmW:[dureté du reflet,sec,eau,flaques]})` les uniformes. Bancs : `dbgLum({off:1})` coupe tout, `frein:1` / `nitF:1.25` les
+  forcent, `dbgLumVue(d,h,az)` = la photo de poursuite dans le repère de la caisse, `dbgLumReprise()` relance après la photo.
+- `?sans=lumieres` = l'éclairage d'avant (le projecteur sur le bitume, la nappe peinte, les cônes d'avant).
+- BANCS : planches avant/après (canyon, ville sous la pluie et au brouillard, forêt, nuages, jade la nuit ; nuages à midi pour vérifier que le jour ne
+  bouge pas), en roulant, au frein, au nitro (orange, et bleu en réserve), de près et de trois-quarts — Chrome du Mac sans fenêtre, piloté par CDP,
+  caméra de poursuite figée par `dbgLumVue` sur la première ligne droite (le pilote saute trop souvent sur les nuages pour comparer).
+- À TRANCHER PAR SACHA : la force des phares (`hl`) et de la tache rouge au frein ; garder ou non la lueur des traînées sur la route (`tr`) ; l'ancien
+  éventail peint devant la caisse est retiré en course (il revient avec `?sans=lumieres`). Pas fait : les feux des autres caisses (les bots) n'éclairent
+  pas la route ; la lueur des feux sur la lunette reste discrète sur les caisses à lunette haute.
+
+## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
+- RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
+  Ce qui la fait reconnaître : les doubles feux en OBUS POINTUS dans une bague chromée au bout des ailerons, la calandre à BIJOUX devant ET
+  derrière, les grosses NACELLES rondes chromées aux coins du pare-chocs arrière, quatre phares dans un bandeau chromé, la sellerie capitonnée.
+- VU AU BANC AVANT DE TOUCHER : la calandre de face, celle de la poupe et les cerclages des phares étaient posés 2 cm DERRIÈRE le bouchon du
+  loft (le loft se ferme par une face plate en z ±2,90) : invisibles. De dos, on ne voyait que six petits traits chromés sur du rose. Dans la
+  boutique, le volant vu par la tranche ressemblait à un « 0 » posé sur le siège.
+- CE QUI A CHANGÉ (`SHAPES.eldorado`, la silhouette ne bouge pas ; seul le nez passe de 0,88 à 0,93 de demi-largeur : les phares débordaient
+  dans le vide) : calandres et phares SORTIS de la tôle ; la calandre AVANT à 39 bijoux et son second étage dans le pare-chocs (8 bijoux) avec
+  deux feux de position orange ; la calandre ARRIÈRE à 39 bijoux sur fond laqué noir (elle se lit en poursuite) ; les obus pointus (bague
+  chromée, lentille, pointe) et une lame chromée sur le bord de fuite ; les deux nacelles des feux de recul (chrome, fond noir, lentille
+  blanche) ; la mascotte en flèche ; les JOINTS des portières (un fil sombre posé SUR la peau, relu à la section du loft) ; la poignée au bout de
+  la portière ; l'habitacle qu'on voit d'en haut (l'accueil, la poursuite) : moquette prune, deux baquets capitonnés à dossier chromé et leur
+  console, banquette capitonnée à accoudoir, planche de bord à jonc chromé et deux cadrans, volant incliné (jante, cerclage chromé, branches,
+  colonne), essuie-glaces, rétroviseur intérieur.
+- PAS REMIS : les longs joncs chromés de flanc et le skeg (la vraie voiture en a ; Léo les a fait retirer le 13/10 : « ne plus en reposer sans
+  qu'il le demande »). Une ligne les rendrait si Sacha et Léo les veulent.
+- MESURÉ (`dbgEssaiCaisse`, carrosserie + roues visibles) : 4 120 → **5 020 facettes** (+22 % ; un premier jet en boîtes faisait 6 372). Matières :
+  les mêmes six familles qu'avant (laque, chrome, mat, satiné, verre, feux) → **0 appel de dessin et 0 programme de plus** — les clés neuves
+  `G` (fond de calandre), `t` (moquette), `q` (plis du cuir), `O` (feux de position) vivent dans les familles g, m, s, l déjà posées. Ancres
+  `hl`/`tl` inchangées (les lumières de la caisse s'en servent). Bancs : 0 erreur ; garage, boutique, course (pilote automatique), couché,
+  debout, cadre de l'ordi ; `garde-burnout.sh` et `garde-charte.sh` OK.
+- LA MÉTHODE, POUR LA VOITURE SUIVANTE (le banc est dans `outils/banc-caisses/`, lire l'en-tête de `cdp.mjs`) :
+  1. Servir le jeu sur un port à soi ; `jeu.mjs <avant> <index>` (accueil = vue de DESSUS, garage sous trois angles HUD masqué, boutique,
+     course en poursuite) et `studio.mjs avant/studio <gabarit>` (FICHE= sa couleur et ses cotes) AVANT de toucher au gabarit.
+  2. Chercher ce qui se voit VRAIMENT : en course on voit l'ARRIÈRE et le DESSUS (feux, calandre de poupe, habitacle), à l'accueil le DESSUS, au
+     garage les trois-quarts. Les signes du vrai modèle d'abord ; les détails cachés ne servent à rien.
+  3. Écrire le gabarit en texte `function(K){…}` et l'essayer au studio (`dbgEssaiCaisse` le prend tel quel) : on itère sans recharger le jeu ;
+     puis le poser dans index.html et refaire `jeu.mjs`, `planche.mjs avant apres planche.png`, `verif.mjs`.
+  4. LE BUDGET : les mêmes familles de matière (une clé neuve dans une famille déjà posée est gratuite ; une famille neuve = un appel de dessin
+     et un programme à chauffer au menu) ; viser ≤ +25 % de facettes. Un petit détail répété ne se dessine pas en boîte (12 triangles dont on
+     ne voit qu'une face) : un BIJOU = une pointe à quatre facettes (4 triangles, et chaque facette prend sa lumière), un pli ou un joint = une
+     PLAQUE (`P.tri` deux fois, 2 triangles), les tubes à 8-12 pans.
+  5. LES PIÈGES RENCONTRÉS : (a) le BOUCHON du loft cache tout ce qui est posé en deçà de son z : une face (calandre, feux, plaque) se pose 1,5 à
+     3 cm DEHORS ; (b) `echRetire` EFFACE tout tube couché dans l'axe (`cyl`/`lathe` en 'z') sous 60 cm et à moins de 70 cm de la poupe, et les
+     boîtes chromées non tournées de 7 à 25 cm de haut près de la poupe — c'est le relevé des pots : une nacelle, un feu rond bas à l'arrière se
+     posent par `put` avec une `CylinderGeometry` déjà couchée (le `tube` du gabarit : pas de relevé) ; (c) le soleil éclaircit une couleur d'à
+     peu près ×2 : la moquette 0x7c2346 sortait du même rose que la caisse → 0x3b1530 ; (d) une plaque de moins de 1,2 cm de large sort en
+     POINTILLÉS à 844 px (aliasing) → 1,4 cm ; (e) un rx POSITIF baisse le bout avant (le volant penché vers le conducteur = rx négatif) ;
+     (f) la SALLE BLANCHE du studio délave les couleurs et grise les noirs : juger la couleur au garage et en course.
+- VALIDÉE par Sacha le 17/10 sur la planche AVANT | APRÈS (« C'est bon, on garde la nouvelle Eldorado »), joints de portière et moquette prune
+  compris. À montrer à Léo : les joints sont des traits neufs sur le flanc (discrets ; il n'aimait pas les « traits » du 13/10).
 
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
