@@ -19,6 +19,102 @@
   aucune bannière en haut. Couché : une ligne de 467 × 15 px, 4 px au-dessus des suivies, rien de lisible dessous ; debout : 244 × 36 px
   (3 lignes), à gauche de NITRO. Une vraie secrète tombée à l'explosion s'est dite « MISSION SECRETE ? ? ? ». 0 erreur JS.
 
+## LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran doit être positionné au bon endroit avec la bonne police ; je veux une animation et un son pour chaque bouton ; soigne les transitions entre chaque écran, qu'elles soient fluides »)
+- LE RELEVÉ (banc `audit.cjs`, scratchpad de la session ed900fe4) : 16 étapes (accueil, réglages et leur bas, code, achat, garage, inventaire
+  et ses 5 onglets, missions, boutique et un rayon, course, pause, pause → réglages, fenêtre QUITTER, fin avec l'offre de seconde chance, fin,
+  retour), DEBOUT 390 × 844 ET COUCHÉ 844 × 390 (zones sûres de l'iPhone posées). Pour CHAQUE chose qu'on touche : sa boîte, chevauchements,
+  zone sûre, taille, libellé qui déborde, caractère absent de la police pixel (monospace/serif/cursive mesurent différemment), corps, retour
+  visuel à l'appui (:active forcé par CDP, `.appui`, et un vrai pointerdown), le son réellement déclenché au toucher (`dbgFilet`). Plus tous
+  les TEXTES visibles de chaque écran contre la police pixel.
+- CE QUI ÉTAIT DÉJÀ BON (mesuré) : une seule police — 0 caractère hors de Press Start 2P dans TOUS les textes visibles des 31 écrans relevés ;
+  chaque toucher du parcours déclenche un son (39/39 couché, 31/31 debout : uiClic ou son propre son — le FILET du 16/10 tient) ; l'or en
+  bas, la sortie en bas à gauche.
+- CORRIGÉ :
+  · L'APPUI POUR TOUS (JS, juste après « L'APPUI SOUS LE DOIGT ») : seules les familles de la charte (`APPUI_SEL`) s'enfonçaient ; les cartes
+    de la boutique (`.bqK`) ne bougeaient pas du tout, les lignes de missions (`.m2L`), les hexagones de figures (`.fsHex`) seulement en
+    `:active` (invisible sur iPhone pour un tap bref). Toute autre chose touchable (même cible que le filet des sons : rôle, data-*, bouton, ou
+    l'élément qui POSE le curseur main — il s'hérite, on remonte au dernier parent qui l'a) se TASSE au contact (scale ×0,94 en 70 ms, par
+    l'API d'animation : propriété `scale` seule, qui s'ajoute au transform de l'élément sans toucher ses transitions ni ses animations CSS),
+    tenue 90 ms, revient en 140 ms sur `--ease` ; micro-tic `ui.appui` au contact comme les touches de la charte. Curseurs : `.tient`, le
+    bouton grossit. Hors HUD de course, canvas, champs. `?appui=0` = avant. Après : plus aucune touche sans retour visuel au relevé
+    (115 debout + 138 couché), hors le champ du code.
+  · LE PASSAGE DIRECT (mTap, `surAccueilCiel`, `MENU_PASSE`) : ACCUEIL → RÉGLAGES / ACHAT / MODES passait sous le volet pixel ET fermait
+    l'atelier (closeGarage), le retour le rouvrait sous un second volet. Chrono au banc : ~800 ms aller (couvrir 160, fermer, découvrir 280
+    avec une image de 133 ms en plein balayage), ~720 ms retour. Désormais la page se pose PAR-DESSUS l'accueil-atelier (`body.garMenuH`
+    force #overlay au-dessus), son fond opaque fond sur le ciel qui continue de vivre ; le RETOUR la retire (garAccueil : l'atelier est déjà
+    là). Mesuré : RÉGLAGES lisible à ~320 ms (avant ~650), retour à l'accueil à ~240 ms (avant ~650), plus de palier sombre. Le volet reste
+    pour les vrais changements de DÉCOR. Échap sur une telle page = son RETOUR. `?menupasse=0` = avant.
+  · LA SECONDE CHANCE, DEBOUT : CONTINUER descendait sous la barre d'accueil (bas à 824 px pour une zone sûre à 810) → NON MERCI prend la
+    marge libre au-dessus (margin-top:auto), les plaques se resserrent d'un cran : CONTINUER retombe à la place de REJOUER (bas à 792).
+  · LES MISSIONS, COUCHÉ : l'en-tête (aide, plaque CADEAU) courait SOUS la liste — corrigé en parallèle sur main (v571, `gmPlaceL`) : vérifié
+    au banc, rien à ajouter.
+  · LA BOUTIQUE, COUCHÉE : le titre BOUTIQUE et la colonne des rayons passaient sous l'encoche (zone sûre de 47 px, iPhone et cadre de l'ordi),
+    la dernière colonne de cartes débordait de 33 px dans l'arrondi de droite → `--sL`/`--sR` (le rail se décale par sa marge : son entrée
+    anime `translate`) ; la colonne s'arrête au-dessus de la barre d'accueil (`fond` moins `--sB`, FIGURES y entrait de 6 px).
+  · L'INVENTAIRE : son RETOUR en 10 px comme tous les autres RETOUR (il était en 8).
+- VU, PAS TOUCHÉ (à Léo ou à trancher) : garage → boutique, au banc (Chrome sans GPU) ~0,3 s sans réponse puis une image de la console
+  « OFFRES ÉPHÉMÈRES » avant le souffle blanc (le voile part à l'image suivante de `garBqPanneau`, après le travail de `gModeVa`) ; garage →
+  inventaire et changement d'onglet : une image de 100 à 140 ms au toucher (la bande se reconstruit). Les RETOUR du garage n'ont pas la
+  taille de ceux de la coque (inventaire 128 × 52, boutique 128 × 44, missions 90 × 74, réglages/achat 159 × 56) : ce sont les barres de Léo.
+- BANCS : `audit.cjs <debout|couche>` (RACINE, TAG), `analyse.cjs <TAG>`, `film2.cjs` (screencast + horloge rAF + longues tâches par
+  transition, 22 passages), `planche_film.py`, `chrono.cjs` (classes de #wipe, écrans, LoAF) — scratchpad ed900fe4.
+## LES POUPES REFAITES — ONZE CAISSES QU'ON SUIT ENFIN AVEC ENVIE (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de les acheter » puis, sur la revue des poupes : « refais l'arrière des onze caisses à refaire : LE LINGOT, ACIDE, LA PIZZA EXPRESS, LE CAÏD, LA ZED, LA VETTE, LA QUEUE DE CANARD, LE HOT ROD, LA GROUPE B, L'ABSTRAITE, LA GRANDE ANGLAISE »)
+- LA REVUE (avant de toucher) : les 29 caisses achetables de la boutique (`CAR_UNLOCK` p > 0 ou premium, après les rustines missions v2,
+  carnets 6-9 et carrière, non retirées) photographiées de DOS au studio — `dbgEssaiCaisse(gabarit,{...fiche, pot:gabarit},
+  [[Math.PI+.73,1,1],[Math.PI,1,1],[Math.PI+.73,2.4,1.05]])` : plein arrière, trois quarts, vue de poursuite. Verdict rendu à Sacha sur une
+  page à cocher (https://claude.ai/artifact/FTAB4EjEpJFn3pxx2wr7Q4) : 11 À REFAIRE (mur plat, feux en simple boîte, pots en pastilles, aucun
+  relief), 10 qui gagneraient un cran (ROSSO 40, LE CHARGEUR 69, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, LA PUCE, LE MASTODONTE, ELDORADO — refaite
+  depuis en v3 —, L'ICEBERG, LE DÉFIEUR), 8 déjà belles (LE CHARGEUR, LE BLINDÉ NOIR, LA PERLE, LA POUPÉE, LE DRAGON D'OR, LA TAURINE, CHAT
+  POP-TART, LA BAVAROISE). Sacha a validé les onze.
+- CE QUI A CHANGÉ — à chaque fois un bloc « L'ARRIÈRE v2 » dans le gabarit (`SHAPES.<gabarit>`), l'avant, les flancs et le pot de Léo
+  (`ECH_POTS`) intacts ; le pot s'encastre de lui-même dans le nouveau diffuseur (echEncastre) :
+  · LE LINGOT (`SHAPES.lingot`, gabarit d'avant le kit) : deux RUBIS TAILLÉS (table + huit facettes en trois rouges, chaton d'or sombre) posés
+    sur la face penchée à 30°, le POINÇON « 999,9 » dans son cartouche (la même toile que le dessus, `LINGOT_PL` : aucune matière neuve), le
+    bouclier doré chanfreiné et sa rainure, le diffuseur sombre aux ailettes d'or. Les feux-boîtes communs (`tl`) passent DANS la caisse ;
+  · ACIDE (`SHAPES.tuner`, d'avant le kit) : deux LED en équerre sous un VERRE FUMÉ d'une aile à l'autre et le fil qui les relie, le bouclier
+    dans son vernis creusé de deux écopes à lames, la plaque, le diffuseur à ailettes en NÉON ACIDE où s'encastre le gros canon. Piège : la
+    caisse `K.prof` est biseautée de 9 cm (`carProfile`), la vraie poupe est à −L/2 − 0,09 ; le diffuseur commun (`split`) passait à travers
+    le bouclier : coupé, et sa LAME AVANT reposée à l'identique ;
+  · LA PIZZA EXPRESS : feux en COLONNE dans leur coque (rouge strié, recul, clignotant, rouge bas, cerclage chromé), joint du hayon, poignée et
+    lampe de plaque, plaque blanche, essuie-glace sur la lunette, marchepied strié, becquet de pavillon et 3e feu, catadioptres ;
+  · LE CAÏD : feux en colonne dans leurs coques qui dépassent, joint de la porte, deux CHARNIÈRES à droite vue de derrière (comme la G) et la
+    poignée, cerclage chromé de la housse de roue, 3e feu stop, protections d'angle, plaque, marchepied strié, anneau de remorquage ;
+  · LA ZED : feux en trois segments EN RELIEF (stop strié, feu, recul) dans un cadre chromé, garniture striée entre eux, lèvre de malle,
+    butoirs et leur caoutchouc, plaque et sa lampe, jupe noire à ailettes ;
+  · LA VETTE : les quatre feux carrés ENFONCÉS (cerclage chromé qui dépasse, cuvette, verre en retrait, cœur, stries), le tableau noir EN
+    CREUX entre deux lèvres, le bouclier qui se replie et son pli, la plaque, le diffuseur dont les ailettes encadrent les quatre sorties,
+    le 3e feu ;
+  · LA QUEUE DE CANARD : la lèvre RELEVÉE de 4 cm (de dos elle ne se lisait pas) et sa grille à six lames, feux en volume (coque, rouge strié,
+    orange, chrome), le BANDEAU RÉFLÉCHISSANT strié d'un feu à l'autre, les soufflets du pare-chocs et ses butoirs, la plaque et sa lampe ;
+  · LE HOT ROD : les GOUTTES chromées sur la carapace (rondes derrière, pointues devant, verre rouge bombé), la plaque et sa lampe, le
+    RÉSERVOIR rond entre les longerons (sangles, bouchon), la barre tubulaire sur deux pattes noires ;
+  · LA GROUPE B : feux en volume dans leur coque (rouge strié, orange), la grille en relief, la plaque de rallye, la SANGLE de remorquage
+    rouge, le sabot d'alu boulonné, les catadioptres ;
+  · L'ABSTRAITE : le trait rouge devient un FEU EN ANNEAU ovale sur un fond de verre noir, cerclé d'un fil d'or — il répond à l'anneau d'or
+    au-dessus de la caisse ; le bouclier sculpté en creux et son fil d'or ; le diffuseur aux ailettes d'OR, un anneau d'or autour de chaque
+    sortie ;
+  · LA GRANDE ANGLAISE : les feux ovales EN VOLUME (cerclage chromé qui dépasse, lentille sombre, anneau de LED au cœur), la lèvre de malle,
+    la plaque, le bouclier dans la couleur et sa baguette chromée, le diffuseur à ailettes autour des sorties ovales.
+- LE BUDGET (la méthode de l'ELDORADO v3) : aucune FAMILLE de matière de plus sur les caisses du kit — les plaques sont des clés `w` de la
+  famille des feux (une plaque éclairée), l'alu du sabot une clé de la famille chrome ; les lignes visibles font au moins 1,4 cm (plus fin, elles
+  sortent en pointillés à 844 px) ; les anneaux ovales sont des ellipses EXTRUDÉES à épaisseur égale (un tore aplati est épais sur les côtés,
+  mince en haut) et à peu de pans (Three double les pans d'une ellipse : 32 donnaient +44 % à L'ABSTRAITE). Les deux gabarits d'avant le kit
+  (LE LINGOT, ACIDE) gagnent un chantier du kit chacun (4 et 3 familles : quelques appels de dessin, aucun programme neuf).
+- MESURÉ (`dbgEssaiCaisse`, carrosserie + roues visibles du kit) : LE CAÏD 4 962 → 5 794 (+17 %), LA PIZZA EXPRESS 3 964 → 4 408 (+11 %),
+  LA ZED 3 332 → 3 716 (+12 %), LA VETTE 3 936 → 4 664 (+18 %), LA QUEUE DE CANARD 3 390 → 3 788 (+12 %), LE HOT ROD 4 634 → 5 174 (+12 %),
+  LA GROUPE B 3 520 → 3 886 (+10 %), L'ABSTRAITE 4 200 → 4 908 (+17 %), LA GRANDE ANGLAISE 4 944 → 5 628 (+14 %) ; LE LINGOT et ACIDE
+  (hors kit, le relevé ne compte que le kit) : 120 → 560 et 288 → 692.
+- LES TRAÎNÉES DE LUMIÈRE partent des nouveaux feux (`dbgFeux`, `CAR_FEUX_SRC` = 'releve' pour les onze) : un `plate` et un `put` ne se relèvent
+  pas, d'où une petite pièce `L` cachée dans le feu (LE LINGOT, ACIDE, LE HOT ROD, L'ABSTRAITE) — sans elle, ACIDE les faisait partir du fil
+  central (±0,33 m), maintenant de ses équerres (±0,63 m).
+- BANCS (Chrome sans fenêtre et muet, sauvegarde muette, jeu servi en http, ports 9287/9587) : les onze rebâties une à une (`dbgEquipe`,
+  `dbgFeux`, `dbgPhotoCar`), puis menu → JOUER → course au pilote automatique : plein écran (LE LINGOT), cadre de l'ordi (ACIDE), debout
+  (LA PIZZA EXPRESS), téléphone couché 844 × 390 (LE CAÏD) — départ, course, **0 erreur**, `__loopErr` vide ; refait après la fusion de main
+  (l'ELDORADO v3) avec LA ZED, LA VETTE, LA QUEUE DE CANARD et LE HOT ROD : 0 erreur.
+  ⚠ Un autre banc tenait 9271/9571 : le banc des poupes refuse désormais de démarrer si ses ports sont pris (sinon il pilote le Chrome d'un autre).
+- À TRANCHER par Sacha : les dix caisses « un cran » de la revue, si l'envie le prend ; et sur LE CAÏD, les charnières sont à droite vue de
+  derrière (fidèle à la vraie), ce qui rend la poupe asymétrique.
+
 ## LES TRAÎNÉES QUI DONNENT ENVIE — L'APERÇU EN VRAIE LUMIÈRE, LES SIGNATURES, LES ALLUMAGES (2026-10-16/17, session TRAÎNÉES — Sacha : « lance une grosse session pour améliorer chaque traînée, il faut qu'elle donne toute envie d'acheter, donne-leur le max de soin à chacune »)
 Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : traînée à toute nitro, feu teinté, objets ×2,3) : ici, les VITRINES
 (atelier, inventaire, boutique) et ce qui rend chaque traînée reconnaissable au premier coup d'œil. `?trainee=signal` rend toujours l'avant de la passe du 15/10.
