@@ -30766,14 +30766,13 @@ Object.assign(SHAPES,{
     k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a},
     m:{g:'s',c:0x3a3f47},e:{g:'m',c:0xc8102e}});
-  const qz=(k,xa,xb,ya,yb,z)=>{P.tri(k,[xa,ya,z],[xb,ya,z],[xb,yb,z]);P.tri(k,[xa,ya,z],[xb,yb,z],[xa,yb,z]);};
   const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.16],[R+.12,.34]];
   const CW=1.30,RF=.36,RR=-.50,RB=-1.76,ZE=2.50;
-  const zs=[-ZE,-2.44,-2.30,RB,-1.20,-.86,-.80,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
+  const zs=[-ZE,-2.47,-2.44,-2.30,-2.10,RB,-1.20,-.86,-.80,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-ZE,.98],[-2.44,1.07],[-2.30,1.08],[RB,1.09],[-1.20,1.30],[-.80,1.415],[RR,1.45],[RF,1.47],[CW,1.00],[2.00,.93],[2.30,.89],[2.44,.85],[ZE,.80]],z),
-        xW=z=>U.lin([[-ZE,.84],[-2.36,.92],[-1.90,.95],[1.90,.95],[2.30,.90],[ZE,.80]],z),
+  const yC=z=>U.lin([[-ZE,1.075],[-2.47,1.13],[-2.44,1.125],[-2.30,1.10],[RB,1.09],[-1.20,1.30],[-.80,1.415],[RR,1.45],[RF,1.47],[CW,1.00],[2.00,.93],[2.30,.89],[2.44,.85],[ZE,.80]],z),
+        xW=z=>U.lin([[-ZE,.86],[-2.44,.915],[-2.30,.945],[-2.10,.962],[-1.50,.972],[-1.00,.958],[-.80,.95],[1.90,.95],[2.30,.90],[ZE,.80]],z),
         bL=z=>U.lin([[-ZE,1.05],[CW,.98]],z),
         sC=z=>U.lin([[-1.02,0],[-.80,.04],[.80,.04],[1.08,0]],z),cab=z=>z>RB-.001&&z<CW+.001;
   P.loft(zs,z=>{
@@ -30789,15 +30788,35 @@ Object.assign(SHAPES,{
     if(j===7&&cab(z)&&z>-.86&&z<1.26)return 'K';                     /* l'entourage de vitres noir */
     if(j===8&&((z>RF&&z<CW)||(z>RB&&z<RR)))return 'g';
     return 'p';});
-  /* LE BANDEAU DE FEUX : un ruban rouge continu, cerclé de noir, qui mord sur les ailes */
-  P.box('K',1.62,.17,.02,0,.98,-ZE-.002);P.box('L',1.54,.09,.03,0,.98,-ZE-.006);
-  for(let i=0;i<8;i++)qz('r',-.77+i*.195,-.745+i*.195,.94,1.02,-ZE-.023);
-  P.box('k',1.60,.20,.08,0,.38,-ZE+.02);P.box('K',1.40,.03,.02,0,.62,-ZE-.004);
-  P.sym(sd=>{P.box('L',.03,.09,.16,sd*.855,.98,-2.40,0,-sd*.45,0);
-    /* doubles sorties aux deux coins, dans le diffuseur */
-    for(const x of [.52,.64])P.cyl('c',.05,.06,8,sd*x,.37,-ZE-.02,'z');
-    /* la lèvre de coffre */
-    P.box('k',.80,.025,.08,sd*.40,1.10,-2.46,.25,0,0);
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « retravaille l'arrière, il n'est pas beau ; chaque voiture, il faut qu'on ait envie de l'acheter ») —
+     c'était un mur noir plat, un fil rouge et quatre pastilles ; c'est la poupe qu'on suit pendant toute la course :
+     · LE BECQUET EN CANARD : la malle remonte au bout (yC) et porte le 3e feu stop ;
+     · LES HANCHES : la caisse s'élargit sur les roues arrière (xW), les coins de poupe sont coupés en biseau ;
+     · LE FEU EN ANNEAU, d'une aile à l'autre : deux barres de LED, le verre rouge entre elles, et les bouts ronds qui TOURNENT sur les
+       biseaux des coins (on les voit de côté) ;
+     · le BOUCLIER dans la couleur et son pli d'ombre, le monogramme chromé sous les feux, les catadioptres aux coins ;
+     · le DIFFUSEUR noir à ailettes, où s'encastrent les deux sorties rectangulaires (le pot de Léo, ECH_POTS, inchangé). */
+  {const zf=-ZE,yF=.94,                                                                                   // la poupe, la hauteur des feux
+         TX=.676,TZ=.737,NX=.737,NZ=-.676,                                                                // le biseau du coin, de (.86, −2.50) à (.915, −2.44) : sa tangente, sa normale
+         bis=(s,e)=>[.86+TX*s+NX*e,zf+TZ*s+NZ*e];                                                         // un point du biseau (s le long, e en avant de la tôle)
+   P.plate('K',[[-.85,yF-.078],[.85,yF-.078],[.858,yF+.05],[.82,yF+.088],[-.82,yF+.088],[-.858,yF+.05]],.008,zf-.008); // le caisson noir des feux (à fleur : l'anneau rejoint le biseau sans marche)
+   P.box('r',1.72,.10,.008,0,yF,zf-.012);                                                                 // le verre rouge
+   P.box('L',1.72,.026,.012,0,yF+.056,zf-.014);P.box('L',1.72,.026,.012,0,yF-.056,zf-.014);                // l'anneau : les deux barres
+   P.box('p',1.68,.22,.05,0,.71,zf-.025);                                                                 // le bouclier, dans la couleur
+   P.box('K',1.64,.012,.012,0,.598,zf-.044);                                                              // son pli d'ombre, dessous
+   {let x=-.17;for(const w of [.028,.024,.03,.022,.028,.024,.03]){P.box('c',w,.018,.01,x+w/2,.825,zf-.006);x+=w+.014;}} // le monogramme : sept lettres chromées, sans nom
+   P.box('k',1.62,.24,.07,0,.39,zf-.035);                                                                 // le diffuseur : les sorties s'y encastrent
+   for(const x of [-.32,-.20,-.08,.08,.20,.32])P.box('K',.014,.17,.09,x,.375,zf-.045);                    // ses ailettes
+   P.box('L',.36,.016,.012,0,1.113,-2.490,.5,0,0);                                                        // le 3e feu stop, sur le biseau du becquet
+   const disque=new THREE.CylinderGeometry(.05,.05,.012,12);disque.rotateX(Math.PI/2);
+   P.sym(sd=>{const ry=sd>0?-Math.atan2(TZ,TX):-(Math.PI-Math.atan2(TZ,TX)),c=bis(.012,.006),v=bis(.006,.004);
+     P.box('r',.012,.10,.012,sd*v[0],yF,v[1],0,sd*Math.atan2(TX,TZ),0);                                  // le verre passe le coin…
+     P.put('r',disque.clone(),sd*c[0],yF,c[1],0,ry,0);                                               // …et finit en rond sur le biseau
+     P.put('L',new THREE.TorusGeometry(1,.23,4,12,Math.PI),sd*c[0],yF,c[1],0,ry,-Math.PI/2,.056,.056,.035); // le bout rond de l'anneau
+     for(const dy of [.056,-.056])P.box('L',.016,.026,.02,sd*v[0],yF+dy,v[1],0,sd*Math.atan2(TX,TZ),0);    // les barres passent le coin
+     P.box('r',.10,.022,.008,sd*.74,.665,zf-.052);                                                        // les catadioptres
+   });disque.dispose();}
+  P.sym(sd=>{
     /* LES PHARES EFFILÉS (13/10, « retravaille le détail ») : ils partent des COINS de la calandre et s'enroulent dans l'aile,
        boîtier noir, deux projecteurs, l'anneau LED en C autour de celui du dehors et le trait LED dessous */
     P.plate('K',[[.50*sd,.705],[.80*sd,.722],[.80*sd,.782],[.52*sd,.778]],.03,ZE-.004);
@@ -30831,7 +30850,7 @@ Object.assign(SHAPES,{
    P.prism('p',[[za,ha-.02],[zb,hb-.02],[zb,hb+.07],[za,ha+.004]],.50,0);
    P.box('K',.42,.055,.01,0,hb+.03,zb+.002);}
   K.commit(P);
-  return {hl:[.56,.745,2.51],tl:[.77,.98,-2.53],wx:.82,wzF:ZF,wzR:-ZR,
+  return {hl:[.56,.745,2.51],tl:[.74,.95,-2.55],wx:.82,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xa7adb5,accent:0x1b1c20}};
  },
   a_defieur:function(K){
@@ -36015,7 +36034,7 @@ const CAR_UNLOCK=[
   {p:12000}, // L'AUTO-ÉCOLE — (2026-10-06) RETIRÉE
   {p:15000}, // LE PICK-UP DU FERMIER — (2026-10-06) RETIRÉE
   {p:20000}, // L'AMBASSADEUR — (2026-10-06) RETIRÉE
-  {p:6000}, // LE CHARGEUR — (2026-10-14 soir, option A : 16 000 → 6 000, la 1re marche de transition ; les communes retirées n'ont plus de modèle) — (2026-10-14, équilibrage : 26 000 → 16 000 — une marche douce ×1,5 au bas de la gamme)
+  {p:60000}, // LE CHARGEUR — (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars » : 6 000 → 60 000) — (2026-10-14 soir, option A : 16 000 → 6 000, la 1re marche de transition ; les communes retirées n'ont plus de modèle) — (2026-10-14, équilibrage : 26 000 → 16 000 — une marche douce ×1,5 au bas de la gamme)
   {p:10000}, // LE DÉFIEUR — (2026-10-14 soir, option A : 24 000 → 10 000, la 2e marche) — (2026-10-14, équilibrage : 32 000 → 24 000)
   {p:20000}, // LA BAVAROISE — (2026-10-14 soir, PILOTAGE après l'option A : 42 000 → 20 000, la marche à ×2 entre LE DÉFIEUR 10 000 et LE CAÏD 50 000) — (2026-10-06 : 38 000 → 42 000)
   {p:45000}, // LA SUÉDOISE TURBO — (2026-10-06) RETIRÉE
@@ -38010,7 +38029,7 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
   if(typeof src==='string'&&SHAPES[src])f=SHAPES[src];
   else{try{f=(new Function('LPU','THREE','lpKit','return ('+src+');'))(LPU,THREE,lpKit);}catch(e){return {err:'SYNTAXE : '+e.message};}}
   if(typeof f!=='function')return {err:'le source ne rend pas une fonction'};
-  SHAPES[nom]=f;
+  SHAPES[nom]=f;if(fiche&&fiche.pot&&ECH_POTS[fiche.pot])ECH_POTS[nom]=ECH_POTS[fiche.pot]; /* (2026-10-17, banc) `fiche.pot` : l'essai porte LE POT d'un gabarit existant (sans lui, le pot générique) */
   const sp=Object.assign({name:'ESSAI',color:0xffffff,accent:0x222222,maxKmh:300,accel:30,turn:2.6,h:1.3,w:1.9,l:4.5,spoiler:0,desc:''},fiche||{});sp.shape=nom;
   CARS.push(sp);const i=CARS.length-1,out={photos:[]};
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
@@ -38026,8 +38045,8 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
       if(vu&&o.isMesh&&o.userData&&o.userData.lp&&o.geometry&&o.geometry.attributes.position){tri+=o.geometry.attributes.position.count/3;bb.expandByObject(o);}});
     out.facettes=Math.round(tri);bb.getSize(dim);out.horsTout=[+dim.x.toFixed(2),+dim.y.toFixed(2),+dim.z.toFixed(2)]; // la carrosserie et les roues (visibles) seulement
     const L=Math.max(3.2,sp.l||4.5,(sp.h||1.3)*1.7),yv=Math.max(.62,(sp.h||1.3)*.45);
-    for(const v of (vues||[.72])){
-      carGroup.rotation.set(0,v,0);PHOTO.cam2.position.set(L*1.05,L*.42,L*1.18);PHOTO.cam2.lookAt(0,yv,0);
+    for(const v0 of (vues||[.72])){const v=Array.isArray(v0)?v0[0]:v0,kh=Array.isArray(v0)?v0[1]:1,kd=Array.isArray(v0)&&v0[2]||1; /* (2026-10-17, banc) une vue [rotation, ×hauteur, ×distance] : de plus haut (la poursuite), de plus près (un détail) */
+      carGroup.rotation.set(0,v,0);PHOTO.cam2.position.set(L*1.05*kd,L*.42*kh*kd,L*1.18*kd);PHOTO.cam2.lookAt(0,yv,0);
       const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
       renderer.setRenderTarget(PHOTO.rt2);renderer.setClearColor(0x2a2140,1);renderer.clear();renderer.render(PHOTO.scene,PHOTO.cam2);
       const buf=new Uint8Array(W*H*4);renderer.readRenderTargetPixels(PHOTO.rt2,0,0,W,H,buf);
@@ -38037,7 +38056,7 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
       x.putImageData(im,0,0);out.photos.push(cv.toDataURL('image/png'));
     }
   }finally{
-    CARS.pop();delete SHAPES[nom];
+    CARS.pop();delete SHAPES[nom];delete ECH_POTS[nom];
     if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
     try{buildCar(CARS[equippedCar()]);}catch(e){}
   }

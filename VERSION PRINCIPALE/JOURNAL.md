@@ -3,6 +3,27 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
+- **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir) ;
+  la 1re marche est désormais LE DÉFIEUR (10 000), et parmi les caisses à dollars le CHARGEUR se range entre LA BAVAROISE (20 000) et LA SILENCIEUSE (90 000). À trancher par
+  Sacha si cet ordre lui va (rien d'autre n'a bougé dans la grille). Ce n'est PAS LE CHARGEUR 69 (300 000 $, inchangé).
+- **L'arrière** (`SHAPES.a_chargeur`, bloc « L'ARRIÈRE v2 ») : c'était un mur noir plat, un fil rouge à 8 cases, un trait gris et deux pastilles —
+  la poupe qu'on suit pendant toute la course. Désormais :
+  · **le becquet en canard** : la malle remonte au bout (`yC` : 1,075 à la poupe, 1,13 à −2,47 — elle finissait à 0,98) et porte le 3e feu stop ;
+  · **les hanches** : `xW` s'élargit sur les roues arrière (0,972 à −1,50, la caisse était à 0,95 partout) ; les coins de poupe coupés en biseau
+    (0,86 → 0,915 entre −2,50 et −2,44) ;
+  · **le feu en anneau** d'une aile à l'autre : deux barres de LED (`L`), le verre rouge entre elles (`r`), et les BOUTS RONDS posés sur les
+    biseaux des coins (un demi-tore tourné dans le plan du biseau) : l'anneau tourne le coin, on le voit de trois quarts ;
+  · le **bouclier** dans la couleur et son pli d'ombre, un monogramme de sept lettres chromées SANS nom sous les feux, les catadioptres ;
+  · le **diffuseur** noir à six ailettes, où s'encastrent les deux sorties rectangulaires — **le pot de Léo (`ECH_POTS.a_chargeur`) n'a pas bougé**.
+  · `tl` (les traînées de lumière `CAR_FEUX`) part du bout de l'anneau : `[.74,.95,-2.55]`. L'avant, les flancs et la cabine sont intacts.
+- **Mesuré** : 4 152 → 4 972 facettes (+20 %). Banc en course (sauvegarde muette, la caisse 31 équipée, menu → JOUER → course, pilote auto) :
+  plein écran nuages-midi, cadre de l'ordi ville-pluie, debout jade-soir, téléphone couché 844 × 390 : départ, course, **0 erreur**, `__loopErr` vide.
+- **Le banc photo d'une caisse** : `dbgEssaiCaisse(src, fiche, vues)` sait maintenant (a) porter LE POT d'un gabarit existant (`fiche.pot:'a_chargeur'`,
+  sinon l'essai avait le pot générique et non celui de la caisse) et (b) prendre une vue `[rotation, ×hauteur, ×distance]` (de plus haut comme la
+  poursuite, de plus près pour un détail). Une vue de l'arrière : rotation ≈ 222° (π + 0,73).
+- Reste à faire, si Sacha le veut : la même passe sur l'arrière des autres caisses de la boutique (« chaque voiture, qu'on ait envie de l'acheter »).
+
 ## LA BOUTIQUE FLUIDE — LE SOUFFLE DE LUMIÈRE AU LIEU DU GLITCH (2026-10-16, Léo : « le garage dans la boutique, il bug, ça rame de ouf ; j'aime pas trop la transition glitch, trouve plus smooth »)
 - MESURÉ au banc (Chrome sans fenêtre, iPhone 390 × 844 simulé, processeur ×4) : à la 1re ouverture, l'image figeait 1,2 s, puis 5 à 9 images/s
   pendant 8 s. La cause : la grille de la boutique demandait ses 48 PHOTOS de caisses d'un coup, et le studio (`photoTour`) en prenait une par
