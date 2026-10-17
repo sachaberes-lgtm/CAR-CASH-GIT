@@ -27,6 +27,56 @@
   Les neuf maps du tirage : nuages, ville, jade, foret, banquise, volcan, crypto, espace, canyon.
 - À TRANCHER (Sacha, Léo) : la part de chaque matière ; la pluie d'argent en fond (.5) ; le nom (CRYPTO CITY / CRYPTOCITY de Léo).
 
+## LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE (2026-10-17, session « Système d'éclairage » — Sacha : « on retravaille complètement comment les lumières fonctionnent : les traînées doivent faire de la lumière, les flammes de nitro doivent faire de la lumière, les feux arrière doivent faire de la lumière quand il fait nuit, sur la route ; on retravaille comment les phares fonctionnent, comment la lumière des feux arrière se reflète dans le pare-brise arrière ; il faut que la lumière marche très bien, que ce soit parfait — optimisé quand même, pas de ray tracing : compatible iPhone, magnifique mais compréhensible pour un iPhone »)
+- AVANT : sur la route, la caisse n'éclairait presque rien. Un projecteur three (`headSpot`) au milieu du capot, une NAPPE PEINTE plate devant
+  (`CARPOOL.head`, le trapèze blanc qu'on voyait flotter devant la caisse la nuit) et, derrière, RIEN : la flaque rouge des feux et le halo nitro
+  (des plans additifs, les « taches rondes » du 25-26/09) avaient été retirés, et les PointLights ne touchent plus le bitume depuis le 26/09
+  (`LFB_SANS_PL`, ~20 % du GPU). Les feux, le feu du nitro, les traînées brillaient… dans le vide.
+- LA RECETTE : les lumières de la caisse sont CALCULÉES DANS LE SHADER DU BITUME (`LUM_GLSL`, `lmRoute`), sans AUCUNE lumière three de plus :
+  · LES PHARES (`uHl*`) : deux lampes (les halos `HALO.h` du gabarit ; l'épave n'en a qu'une, c'est voulu), chacune un faisceau de croisement — un
+    éventail (`uHlK.y`), une COUPURE à l'horizon de la lampe (`uHlK.x`), un point chaud juste dessous qui PORTE LOIN (`uHlK.z`), rien sous le
+    pare-chocs (vu de la poursuite, c'était un halo autour du capot), l'inverse du carré et le cosinus de la surface (une bosse s'allume). Mesuré au
+    calcul : à peu près plat de 10 à 20 m, 60 % à 40 m, 25 % à 60 m. Le projecteur three ne touche plus le bitume (la boucle des spots est retirée de
+    son shader, `LFB_ROUTE_LUM`) — il reste pour le décor (tours, rochers, arbres) ; la nappe peinte est éteinte en course.
+  · DES LAMPES-SEGMENTS (`uLmA/B/C`, `LM_N` = 6) : un point ou un trait de lumière. L'éclairement vient du point du trait le plus proche ; le REFLET
+    (pellicule d'eau, FLAQUES ; le béton sec est mat : sauté) du point du trait le plus proche du rayon réfléchi (le « point représentatif » de Karis),
+    dans un lobe ÉTIRÉ — fin en travers, long vers l'œil : sur une route mouillée chaque feu s'étire en TRAÎNÉE ROUGE vers la caméra, comme une vraie
+    route de nuit sous la pluie (un lobe rond y faisait des taches rondes, vu au banc). Les lampes :
+    les deux FEUX ARRIÈRE (`CAR_FEUX`, rayonnés vers l'arrière, embrasés au frein — le même `VIT9.frein` que leurs halos), LE FEU DU NITRO (un trait
+    par côté, de la bouche du pot le long du jet, qui s'allonge avec la vitesse, à la couleur de la flamme — celle de `nitroLight` : orange, bleu de
+    réserve, violet de l'infini, or du pad, la traînée achetée, l'arc-en-ciel du chat — et qui tremble avec elle), LA FLAMME DU MOTEUR hors nitro
+    (le mini feu de pixels : une lueur qui crépite avec ses bouffées, `FLM.L`, la nuit), LES TRAÎNÉES DE LUMIÈRE (un trait par traînée sur ses
+    12 premiers mètres, à sa couleur et à son éclat — `SILS`, `lumNoeud`).
+  · LA LUEUR DES FEUX SUR LA CAISSE (`FEU_U`, `FEU_GLSL`, dans le bloc VOITURES) : les deux feux allument la tôle qui les entoure (diffus vrai,
+    fenêtre de proximité : sans elle, toute la poupe virait au rouge uni) et le VERRE en prend le reflet — un voile rouge qui monte du bas de la
+    lunette, plus fort en rasant (`uFvK` par famille de matière : verre 1, chrome .6, laque .2, mat .05 ; `rimify(m,v,rimK,fvK)`).
+  · LES FAISCEAUX DANS L'AIR (`PHARE_FX`, les cônes de minuit) : ils NAISSENT au phare au lieu d'y flamber (l'éventail blanc posé sur le capot) et ne se
+    voient que s'il y a de quoi les attraper — la pluie, le brouillard (`LUMK.air`).
+- LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (ciel + soleil posés par `bioApply`, en luminance) et au drapeau `nuit` du niveau. MESURÉ sur les
+  couples map × météo : ~0,55 de jour, ~0,34 au soir et sous la pluie de jour, 0,10-0,16 la nuit (ville, nuages, orage) → les phares et les feux
+  mordent pleinement la nuit, à un tiers au soir et sous la pluie, plus du tout en plein jour ; le feu du nitro éclaire toujours un peu (c'est du feu).
+- PERF : tout en espace VUE (`lumTick` pose les lampes en coordonnées monde, `lumVue`, chaîné sur `scene.onBeforeRender`, les passe dans le repère de
+  LA caméra qui rend — mode photo compris) ; hors d'une sphère de 18 m autour de la caisse le pixel ne paie qu'un test ; les phares sautent ce qui
+  est derrière eux, hors de l'éventail ou au-dessus de la coupure ; les branches sont uniformes (lampes éteintes, béton sec : rien) ; le trait et
+  1/|AB|² sont pré-calculés ; rien n'est alloué ; aucun programme de plus (la clé du bitume devient `bitumeV5fsL` : UN programme remplacé). En
+  QUALITÉ BASSE les traînées n'éclairent plus. MESURÉ (requêtes de temps GPU `EXT_disjoint_timer_query_webgl2`, Chrome du Mac, 1920 × 886, canyon de
+  nuit au nitro, image figée, 5 tours de 40 images en alternance) : tout coupé 7,8 ms (médiane des médianes), tout allumé 7,6, l'éclairage d'avant
+  8,0 — l'écart est SOUS LE BRUIT (± 0,5 ms : le GPU est partagé) ; le projecteur retiré du bitume paie à peu près les lampes. La première version
+  (10 lampes, trois traits par traînée, sphère de 30 m) semblait coûter ~1 ms : elle a été allégée avant de partir. À confirmer sur un vrai
+  iPhone (`?perf=1`, `?banc=1`).
+- RÉGLAGES (`LUMK`, à chaud par `dbgLum({…})`) — valeurs posées au banc : `hl` 180 000, `feu` .45 (×2 au frein), `nit` .8, `mot` .22, `tr` .1, `car` .15,
+  `air` [.12, .9], la nuit entre 0,17 et 0,45 de lumière du lieu. `hl` les phares, `feu`/`feuF` les feux (×frein), `nit` le nitro, `mot` la flamme du moteur, `tr` les
+  traînées, `car`/`carF` la lueur sur la caisse, `air` les faisceaux dans l'air, `amb` le seuil de la nuit ; `dbgLum({hlK:[coupure,éventail,point
+  chaud,adoucissement],lmW:[dureté du reflet,sec,eau,flaques]})` les uniformes. Bancs : `dbgLum({off:1})` coupe tout, `frein:1` / `nitF:1.25` les
+  forcent, `dbgLumVue(d,h,az)` = la photo de poursuite dans le repère de la caisse, `dbgLumReprise()` relance après la photo.
+- `?sans=lumieres` = l'éclairage d'avant (le projecteur sur le bitume, la nappe peinte, les cônes d'avant).
+- BANCS : planches avant/après (canyon, ville sous la pluie et au brouillard, forêt, nuages, jade la nuit ; nuages à midi pour vérifier que le jour ne
+  bouge pas), en roulant, au frein, au nitro (orange, et bleu en réserve), de près et de trois-quarts — Chrome du Mac sans fenêtre, piloté par CDP,
+  caméra de poursuite figée par `dbgLumVue` sur la première ligne droite (le pilote saute trop souvent sur les nuages pour comparer).
+- À TRANCHER PAR SACHA : la force des phares (`hl`) et de la tache rouge au frein ; garder ou non la lueur des traînées sur la route (`tr`) ; l'ancien
+  éventail peint devant la caisse est retiré en course (il revient avec `?sans=lumieres`). Pas fait : les feux des autres caisses (les bots) n'éclairent
+  pas la route ; la lueur des feux sur la lunette reste discrète sur les caisses à lunette haute.
+
 ## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
 - RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
   Ce qui la fait reconnaître : les doubles feux en OBUS POINTUS dans une bague chromée au bout des ailerons, la calandre à BIJOUX devant ET
