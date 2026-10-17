@@ -45,6 +45,70 @@
      (f) la SALLE BLANCHE du studio délave les couleurs et grise les noirs : juger la couleur au garage et en course.
 - À TRANCHER PAR SACHA ET LÉO : les joints de portière (des traits neufs sur le flanc : discrets, mais Léo n'aimait pas les « traits ») ; la
   moquette prune. Planche AVANT | APRÈS envoyée à Sacha avant la poussée.
+## LA BOUTIQUE PLUS LISIBLE — SE DÉBLOQUE EN GRAND, LES SILHOUETTES ENTIÈRES, LES VIGNETTES DE MISSIONS AGRANDIES (2026-10-17, session MISSIONS — Sacha : « rends la boutique plus lisible : SE DÉBLOQUE en plus gros avec son compteur entier, les silhouettes secrètes pas rognées, et les vignettes de récompense plus grandes dans MISSIONS »)
+- SE DÉBLOQUE (l'étiquette au-dessus d'une caisse ou d'un objet de mission, `#gBqNom .bqM2`, `m2DebloqueHtml`) : texte et compteur de 8 à 10 px
+  (`--f1`), compteur en encre noire, jauge de 6 à 8 px et sur TOUTE la largeur de l'étiquette. Sa largeur = la place libre à côté des rayons
+  (le bloc de placement de `#gBqNom` dans garBq pose `width`, d'après `GBQ.zone`) : couché jusqu'à 8 px de la grille, debout jusqu'au bord. AVANT :
+  couché, l'étiquette faisait 278 px pour ~245 de place — le nom se recalait contre les rayons, la fin de la jauge et le compteur (« 0 / 8 »)
+  passaient SOUS la grille ; la règle couchée de la jauge (230 px) était écrasée par la règle générale écrite après elle (260 px). Debout, elle
+  tenait sur 180 px (quatre lignes) ; désormais 239 px, trois lignes. Mesuré couché : bord droit 413 px, grille à 421 px.
+- LES SILHOUETTES SECRÈTES (rayon VOITURES, `.bqK.m2sec`) : la grille agrandit chaque photo à 118 % et la centre ; or la caisse est en haut de la
+  photo du studio (720 × 440 : x 68-666, y 46-306, mesuré sur les photos) — le toit et les bouts sortaient de la case. En couleur ça se lit, en
+  silhouette noire c'était une tache. Les secrètes seules : photo au plus 110 % de large et 148 % de haut de la case, descendue de 10 % → la
+  caisse ENTIÈRE, ~90 % de la hauteur. L'étiquette SECRÈTE (`.bqKr`) leur couvrait le toit : retirée sur ces cartes (la ligne du bas dit déjà
+  « MISSION SECRÈTE », en magenta). Cette ligne passe sur deux lignes debout (carte de 112 px, il en fallait 117 + marges : elle était coupée en
+  « MISSION SECRÈ… ») et tient sur une couché (marges de 4 px).
+- LES VIGNETTES DE MISSIONS (`.m2R`, `m2Vign`) : 70 × 44 → 88 × 50 (couché bas 62 × 38 → 80 × 46 ; ≤ 360 px 56 × 36 → 70 × 40, rapport ~1,75
+  partout). La photo d'une caisse ou d'une aile est RECADRÉE sur l'objet (`.m2R .m2Ph img` : 115 % de large, décalée de −8,65 %, le débord
+  transparent ne prend pas le doigt) : la caisse passe de ~60 × 26 à ~84 × 37 px. Peintures et traînées (`objFig`) remplissent la case agrandie ;
+  l'icône d'un objet pas encore dans le jeu (la traînée de SANG, `.m2Vide`) passe à `--pxs:3`.
+- Vérifié (copie servie à part, banc du panneau navigateur, muet) : boutique couchée et debout (LA STRATOS, LA DOLORÈS : « 0 / 1 000 KM/H »
+  entier ; 13 silhouettes entières, toutes sur une ligne couché), MISSIONS couché et debout (caisses, aile PHÉNIX, peintures, traînée FOUDRE) ;
+  JOUER → course couché et debout, 0 erreur (seul 404 : dark-triad.mp3, connu).
+
+## LA BAVAROISE EN KIT RALLYE — ET À 100 000 $ (2026-10-17, Sacha : « tu peux lui rajouter plus d'éléments de tuning — c'est inspiré des BMW de rallye : sur les roues, autour des roues, le pare-choc et tout ça ; des trucs un peu plus stylés, plus de détails » · « tu l'as mise en vente à 10 000 dollars : cent mille »)
+- LE KIT RALLYE, un bloc du gabarit `b_bavaroise` posé juste avant `K.commit(P)` (rien d'ancien n'est retouché, la caisse garde sa silhouette) :
+  · DEVANT — la RAMPE de quatre longue-portée sur une barre, devant le bouclier, sous les phares (boîtier noir, cerclage chromé, verre JAUNE :
+    clé `Y`, famille 'l', allumé comme les phares) ; la LAME noire sous le bouclier ; la SANGLE de remorquage rouge et son anneau (et sa sœur
+    derrière, à gauche) ;
+  · DESSUS — deux GOUPILLES de capot, l'ÉCOPE du pavillon (sa bouche noire devant), l'ANTENNE couchée vers l'arrière, l'aileron devenu
+    RÉGLABLE (joues en trapèze aux bouts du becquet, volet noir au bord de fuite) ; le BOUCHON de réservoir à fermeture rapide (aile arrière droite) ;
+  · AUTOUR DES ROUES — le JONC de caoutchouc des élargisseurs, sur le bord de l'arche (il suit le profil `AR` du loft, quatre segments par
+    roue) et ses RIVETS chromés ; une BAVETTE rouge derrière chaque roue ;
+  · SUR LES ROUES — jantes DORÉES (`lpw` : `jante` 0xd4a43a, douze rayons fins au lieu de dix argent ; le flou de jante suit, il lit `jante`) ;
+    derrière les rayons, le DISQUE (clé `D`, mat sombre) et l'ÉTRIER rouge en haut à l'arrière : pièces de CAISSE, posées entre le fond de la
+    jante (x ,745) et ses rayons (x ,768) — ils ne tournent pas avec la roue ; en vol (la caisse monte de ,11 sur ses roues) ils passent derrière le flanc du pneu.
+- Les pièges évités : aucune pièce chromée n'est un tube en z près de la poupe (le relevé des pots, `echRetire`, l'ôterait) ; le rouge des
+  bavettes, étriers et sangles est de la laque (`r`, famille 'p') et pas un feu (`CAR_FEUX` relève le rouge ÉMISSIF de la poupe) ; ni le
+  filet de bas de caisse ni les filets du capot que Léo avait retirés le 13/10 ne reviennent.
+- LE PRIX : `CAR_UNLOCK` 20 000 → 100 000 $ — entre LA SILENCIEUSE (90 000) et LE SAMOURAÏ (120 000). (Sacha l'avait vue « à 10 000 » : dans
+  le code elle était à 20 000 depuis le 14/10 au soir ; LE DÉFIEUR, lui, est à 10 000.) Sa rareté reste écrite (`rar:'rare'`).
+- VÉRIFIÉ au banc (Chrome du Mac sans fenêtre, muet, piloté en CDP) : la vignette de boutique (`dbgPhotoCar`), sept vues dans le repère de la
+  caisse (`dbgAilesVue`), avant / après ; une partie lancée avec elle (JOUER → canyon, soir, 140 km/h) : 0 erreur, rien d'avalé.
+- À trancher par Sacha ou Léo : les élargisseurs bordés de NOIR et rivetés (la sportive d'origine les a couleur caisse) ; les bavettes ROUGES
+  (sinon : le violet des bandes, `v`) ; la rampe jaune toujours allumée.
+- À signaler : la salle blanche (`salle-blanche.html?source=local`) ne lit plus le jeu d'aujourd'hui (« SANS_CARRIERE is not defined », puis
+  « EAU ») — elle évalue des blocs d'index.html qui dépendent maintenant de constantes posées ailleurs. Pas touché ici.
+
+## LES MISSIONS : LES EXPLOITS EN HAUT, L'EN-TÊTE QUI NE PASSE PLUS SOUS LE PANNEAU, PLUS DE CADEAU À 0 MIN (2026-10-17, session MISSIONS — Sacha : « corrige l'ordre de la liste (les exploits en haut, pas les COLLECTE) et les textes coupés en paysage, plus le cadeau à 0 min »)
+Trois retouches de l'écran MISSIONS (v2), vues au jeu le matin même (couché 844 × 390 et debout, dans le cadre de l'ordi).
+- L'ORDRE (`m2Lignes`, `M2_ORDRE`) : À RÉCUPÉRER → SUIVIES → puis les autres PAR FAMILLE — exploit, aura, moteur, exploration, (secrète),
+  argent, collection —, la plus avancée d'abord dans chaque famille, puis l'ordre de la table `M2`. TERMINÉES en bas, inchangé. Avant, le reste
+  se triait à l'AVANCEMENT seul (presque finies ≥ 2/3, en cours, pas commencées) : les COLLECTE, déjà à 1 / 3, 1 / 5… avec la caisse et les
+  habillages du départ, passaient au-dessus des exploits à 0 — un nouveau joueur voyait d'abord une douzaine de « COLLECTE ». Les rangs 2, 3, 4
+  ne servaient qu'au tri (seuls 0 et 9 sont lus ailleurs : `m2Ligne`, `m2Render`).
+- COUCHÉ, L'EN-TÊTE (`gmPlaceL`) : `#gmHead` s'élargit jusqu'à 420 px (`charte4`) ; avec la consigne « TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU
+  PLUS » ou la ligne du cadeau (`#mCadeau`, largeur 100 %), il passait SOUS le panneau des missions (qui commence au bord gauche de JOUER).
+  Couché, sa largeur s'arrête désormais 14 px avant le panneau (`maxWidth` en ligne, rendu à '' debout) : la consigne passe sur deux lignes.
+  Mesuré : bord droit de l'en-tête 364 px, panneau à 378 px (avant : jusqu'à 484 px).
+- LE CADEAU (`cadeauLigne`) : tant que le cadeau n'existe pas (`cadeauEtat().actif` faux : la leçon de l'auto-école pas faite, `?cadeau=0`,
+  horloge absurde), la ligne se TAIT — elle affichait « PROCHAIN CADEAU DANS 0 MIN » sans fin (`dansMs` = 0 quand il n'est pas actif). Et le
+  compte à rebours ne descend jamais sous « 1 MIN ».
+- Vérifié (banc du panneau navigateur, muet, une copie servie à part : le dossier partagé était cassé par un chantier en cours d'une autre
+  session) : l'ordre lu dans le DOM (2 à récupérer, puis les 10 exploits, aura, moteur, exploration, argent, les 16 COLLECTE en dernier) ;
+  couché, consigne et cadeau (« CADEAU PRÊT · TOUCHE », « ×2 SUR TA 1RE PARTIE · PROCHAIN CADEAU DANS 6 H 00 ») à gauche du panneau ; debout,
+  l'en-tête en pleine largeur ; JOUER → course couché et debout, 0 erreur (seul 404 : dark-triad.mp3, connu). Crochets : `dbgMissions('gagne',id)`,
+  `dbgCadeau('pret'|'attente')`.
 
 ## LA BOUTIQUE FLUIDE — LE SOUFFLE DE LUMIÈRE AU LIEU DU GLITCH (2026-10-16, Léo : « le garage dans la boutique, il bug, ça rame de ouf ; j'aime pas trop la transition glitch, trouve plus smooth »)
 - MESURÉ au banc (Chrome sans fenêtre, iPhone 390 × 844 simulé, processeur ×4) : à la 1re ouverture, l'image figeait 1,2 s, puis 5 à 9 images/s
