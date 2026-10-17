@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE JOUER PARTOUT DANS LE GARAGE — INVENTAIRE ET BOUTIQUE (2026-10-18, session UI-REVUE, Sacha : « rajoute le bouton jouer avec les 3 flèches animées dans le garage » ; à la question « où ? » : « inventaire + boutique »)
+- CONSTAT (banc, v609, debout + couché) : le JOUER à chevrons était sur la vue principale du garage (chevrons en grand depuis v607) et dans les
+  MISSIONS (petite flèche à pas, `k4Chev`) ; l'INVENTAIRE n'avait que RETOUR (l'atelier fermé de Léo, 12/10) et la BOUTIQUE RETOUR + ÉQUIPER/ACHETER.
+- DÉSORMAIS (`<style id="jouerGarage">`, après « uiRevue ») : la rangée du bas dit la même chose partout dans le garage — la sortie à gauche,
+  JOUER en or à droite avec la VAGUE de chevrons (`gChevFile`). Inventaire : JOUER prend la 2e colonne de la barre, vide jusqu'ici (52 px,
+  l'entrée `atRet` de RETOUR). Boutique : ÉQUIPER / ACHETER monte sur sa propre rangée pleine largeur, RETOUR | JOUER en dessous, tous deux à 52 px.
+  Le JOUER des MISSIONS prend la même vague. Lingot court (~220 px debout) : chevrons ×2 sous 200 px, mot à 17 px sous 185 (seuils du JOUER principal).
+- LE DÉPART (`garJouer`) : depuis l'inventaire, l'atelier se rouvre d'abord (`gAtelier(false)` : la porte remonte en 0,7 s, les pinces lâchent les
+  roues) puis la caisse part à 450 ms ; depuis la boutique, `gGarageReplie` rend l'atelier sous le voile de nuit puis départ à 650 ms. Clic, moteur
+  (`ui.jouer`) et jaillissement au toucher ; un 2e toucher pendant l'attente est ignoré (`garJouer._t`).
+- Le petit TROPHÉE du profil (`plqGarage`) se fiait à « JOUER visible » pour reconnaître la vue principale : il ne s'affiche plus dans
+  l'inventaire ni la boutique (il se posait sur la vignette de la caisse).
+- `?garjouer=0` (classe `html.sansGarJouer`, posée dans le `<head>`) = la barre d'avant. L'atelier fermé « seul RETOUR » était un choix de Léo
+  (12/10) : changé sur demande directe de Sacha, l'ancien rendu reste derrière ce paramètre.
+- BANC : `garjouer2.cjs` (FMT=debout|couche, LANCE=1 = toucher JOUER et vérifier que la course part) — scratchpad de la session ed900fe4.
 ## LES NUAGES EN VITRAIL (2026-10-18, Léo : « Sacha avait beaucoup de mal à avoir les nuages comme il voulait ; essaie la technique des mini-cubes et de la couche transparente lisse — la glisse transparente peut EMBRASSER la forme des cubes ; garde toutes les qualités qu'on a déjà, encore plus de relief, de profondeur, d'immersion » → questionnaire : TOUS les nuages ; planche de trois dosages → MOYEN)
 - La recette VITRAIL (cœur de lumière, écailles en cubes, peau de verre, onde) tirée du MÊME champ que la surface v8 (`nuage8Calc`, option
   `opt.vit` = nombre de cubes sur la plus grande dimension, dans l'ouvrier) : ÉCAILLES = les cases de `ext/NUVIT.nc` dont le centre est dedans et
