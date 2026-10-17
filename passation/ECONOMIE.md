@@ -75,3 +75,22 @@ Ma recommandation : **A seul**, puis on re-mesure. Ajouter B seulement si les 3 
 Continuer coûte exactement ce que la partie a encaissé (300 $ minimum si elle n'a presque rien rapporté). Elle ne crée donc plus
 rien : on rend toute la partie pour la prolonger, et le moteur perd un palier. Le calcul « +25 % / +65 % de revenu » du §4 ne
 tient plus : la reprise ne vaut le coup que si l'on compte gagner plus que ce que l'on a déjà en survivant après elle.
+
+## 9. LES PRIMES DE MISSION RAMENÉES À LA PARTIE (Sacha, 15/10 soir : « 3 parties, déjà 96 000 $, c'est trop — il faut équilibrer »)
+- Mesuré dans sa sauvegarde : 76 800 $ des 96 036 $ venaient des primes (6 carnets), pas des pièces. Les carnets 3-12 payaient 1 500 → 80 000 $
+  la mission ; LA FILE (15/10) les fait tomber en rafale.
+- Appliqué : carnets 1-2 inchangés (300-600) ; puis 700 → 4 000 $ la mission (+15-25 %/carnet), suite sans fin 4 000 → +800/carnet, jalon ×2.
+  6 premiers carnets : 76 800 → 14 400 $. Cadeau plafonné à 2 500 $ (`CADO.max`) — un record de l'ancienne échelle le rendait astronomique.
+- Règle pour la suite : une prime de mission ≈ 1/3 à 1 partie du joueur qui la remplit. Si les missions paraissent maigres, monter tout le
+  tableau d'un même facteur par `ECO3.prime` (lu par `carnet()`), pas carnet par carnet.
+
+## 10. L'ELDORADO À 40 000 $ (Sacha, 17/10 : « pas 3 000 dollars, elle doit coûter 40 000 dollars »)
+- ELDORADO 3 000 → **40 000 $** (`CAR_UNLOCK`, ligne de l'ELDORADO), toujours RARE (`rar:'rare'` sur sa fiche). Ceux qui l'ont déjà la
+  gardent : aucun remboursement ne lit ce prix.
+- Le même jour, Sacha a aussi monté LE CHARGEUR 6 000 → **60 000 $**, LA BAVAROISE 20 000 → **100 000 $** et LE DÉFIEUR 10 000 → **120 000 $**
+  (« non, chargeur 60 000 » : une 1re version de ce § disait LE CHARGEUR à 6 000, c'était avant ces hausses).
+- Conséquence : l'ELDORADO RESTE la 1re caisse à l'argent, mais à 40 000 $ au lieu de 3 000. Les caisses moins chères de `CAR_UNLOCK` sont
+  retirées ou se gagnent par mission (LA SILENCIEUSE, 90 000). Le bas de gamme : 40 000 (ELDORADO) · 50 000 (LE CAÏD) · 60 000 (LE CHARGEUR) ·
+  100 000 (LA BAVAROISE) · 120 000 (LE DÉFIEUR, LE SAMOURAÏ) · 140 000 (LA VETTE), soit ×1,2 à ×1,7 par marche.
+- Au rythme du §6 (~600 $ la partie d'un joueur moyen), 40 000 $ demandent ~60 parties sans compter les primes de mission, contre 3-4
+  parties avant. À trancher si le début paraît long : une caisse d'entrée vers 3 000-6 000 $, ou les gains du début (§6, option B).
