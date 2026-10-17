@@ -44,8 +44,9 @@ export async function lance({ port = 9477, w = 844, h = 390, dpr = 2 } = {}) {
     const r = await send('Page.captureScreenshot', Object.assign({ format: 'png' }, clip ? { clip: Object.assign({ scale: 1 }, clip) } : {}));
     fs.writeFileSync(fichier, Buffer.from(r.result.data, 'base64'));
   };
-  const clic = async (x, y) => {
-    for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
+  const clic = async (x, y) => { // la souris passe d'abord AU-DESSUS (un bouton du cadre de l'ordi ne prenait pas un appui sans survol)
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y }); await sleep(60);
+    for (const type of ['mousePressed', 'mouseReleased']) { await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', buttons: type === 'mousePressed' ? 1 : 0, clickCount: 1 }); await sleep(40); }
   };
   const fin = async () => { try { ws.close(); } catch (e) {} ch.kill('SIGKILL'); await sleep(300); try { fs.rmSync(prof, { recursive: true, force: true }); } catch (e) {} };
   return { send, ev, photo, clic, fin, erreurs, ecoute };
