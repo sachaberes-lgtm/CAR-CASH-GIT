@@ -26,7 +26,7 @@
 - Reste à faire, si Sacha le veut : la même passe sur l'arrière des autres caisses de la boutique (« chaque voiture, qu'on ait envie de l'acheter »).
 ## LE DÉFIEUR EN ROBOT JAUNE — LA CAISSE DE TRANSFORMERS, À 120 000 $ (2026-10-17, Sacha : « rajoute des éléments pour qu'elle ressemble vraiment à la voiture de Transformers et mets-lui la bonne couleur de base ; inspire-toi de la Chevrolet dans Transformers ; rajoute-lui des petits détails pour la rendre plus belle ; et tu mets son prix à 120 000 dollars »)
 - LAQUELLE : aucune caisse ne s'appelait ainsi. C'est LE DÉFIEUR (`shape:'a_defieur'`, index 32 de `CARS`), le coupé muscle de 1970, orange à deux
-  bandes noires : la plus proche du robot jaune du film. Si Sacha pensait à une autre caisse, la recette se rejoue sur elle.
+  bandes noires : la plus proche du robot jaune du film — VALIDÉ par Sacha le 17/10 : « Oui, c'est bien LE DÉFIEUR, on garde. »
 - LA COULEUR : orange `0xff7a14` → JAUNE RALLYE `0xffd000` (la fiche ET la laque `p` du gabarit ; le joint `j` en ocre `0xa07a00`). `0xffb80c` essayé
   d'abord : au studio il était jaune, mais en course la lumière chaude le refaisait orange.
 - `SHAPES.a_defieur`, la silhouette ne bouge pas, on AJOUTE : les deux bandes noires ÉLARGIES et presque jointives (un filet jaune de 9 cm au milieu,
