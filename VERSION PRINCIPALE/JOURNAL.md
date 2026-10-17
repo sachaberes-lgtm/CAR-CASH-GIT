@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DÉFIEUR EN ROBOT JAUNE — LA CAISSE DE TRANSFORMERS, À 120 000 $ (2026-10-17, Sacha : « rajoute des éléments pour qu'elle ressemble vraiment à la voiture de Transformers et mets-lui la bonne couleur de base ; inspire-toi de la Chevrolet dans Transformers ; rajoute-lui des petits détails pour la rendre plus belle ; et tu mets son prix à 120 000 dollars »)
+- LAQUELLE : aucune caisse ne s'appelait ainsi. C'est LE DÉFIEUR (`shape:'a_defieur'`, index 32 de `CARS`), le coupé muscle de 1970, orange à deux
+  bandes noires : la plus proche du robot jaune du film. Si Sacha pensait à une autre caisse, la recette se rejoue sur elle.
+- LA COULEUR : orange `0xff7a14` → JAUNE RALLYE `0xffd000` (la fiche ET la laque `p` du gabarit ; le joint `j` en ocre `0xa07a00`). `0xffb80c` essayé
+  d'abord : au studio il était jaune, mais en course la lumière chaude le refaisait orange.
+- `SHAPES.a_defieur`, la silhouette ne bouge pas, on AJOUTE : les deux bandes noires ÉLARGIES et presque jointives (un filet jaune de 9 cm au milieu,
+  les points du dessus de section passent de .36/.16 à .31/.045) ; les quatre phares dans des cuvettes noires, cerclés d'un ANNEAU de lumière
+  bleutée (`H`, un tore — les yeux du robot) ; un ÉCUSSON en masque de robot au milieu de la calandre (chrome, fond noir, deux fentes bleues `B` en
+  biais) et le même en petit au milieu de la poupe (c'est elle qu'on voit en course) ; deux barrettes dans la calandre ; LA GRANDE BOUCHE noire du
+  bouclier (trapèze à mailles), ses antibrouillards ronds et ses clignotants ; la lame avant ; deux goupilles de capot chromées ; L'OUÏE de flanc
+  devant la roue arrière (coin noir, trois lames, posée sur la largeur du gabarit `xF`) ; les feux de position latéraux (orange devant, rouge
+  derrière) ; QUATRE feux CARRÉS à l'arrière dans des cadres noirs laqués (des cadres chromés faisaient une barre BLANCHE au soleil) ; le
+  troisième feu au bord du becquet ; la glace des rétros ; des jantes sombres (`0x33363d`) à cinq branches noires. Facettes 3 224 → 4 880.
+- AUCUNE MARQUE : ni nom, ni nœud papillon, ni le logo du film — le masque est dessiné ici. Le nom et la description de la caisse ne changent pas.
+- LE PRIX (`CAR_UNLOCK[32]`) : 10 000 → 120 000 $ (LA VETTE, même rareté, est à 140 000). L'échelle du début perd sa marche à 10 000 : LE CHARGEUR
+  6 000 → LA BAVAROISE 20 000 → L'ELDORADO 40 000 → LE CAÏD 50 000 (`passation/ECONOMIE.md` cite encore LE DÉFIEUR à 10 000).
+- BANCS : `dbgEssaiCaisse` (studio, 6 angles, AVANT | APRÈS), course `nuages:midi` et `ville:nuit` en mode photo (`dbgAilesVue`), vignette de
+  boutique `dbgPhotoCar(32)`, sans erreur. Le jeu de ce dossier partagé était cassé ce matin-là par une édition en cours d'une autre session
+  (`LM_N` lu avant d'être déclaré) : bancs faits sur une copie de HEAD + ces blocs.
 ## LA BOUTIQUE FLUIDE — LE SOUFFLE DE LUMIÈRE AU LIEU DU GLITCH (2026-10-16, Léo : « le garage dans la boutique, il bug, ça rame de ouf ; j'aime pas trop la transition glitch, trouve plus smooth »)
 - MESURÉ au banc (Chrome sans fenêtre, iPhone 390 × 844 simulé, processeur ×4) : à la 1re ouverture, l'image figeait 1,2 s, puis 5 à 9 images/s
   pendant 8 s. La cause : la grille de la boutique demandait ses 48 PHOTOS de caisses d'un coup, et le studio (`photoTour`) en prenait une par
