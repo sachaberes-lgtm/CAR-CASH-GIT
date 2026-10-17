@@ -20272,6 +20272,17 @@ const CITY={root:null,uT:{value:0},uC:{value:1},uPied:{value:1},n:{}}; // uC : l
    ne coupe que la palette des néons et des parapets (ambre / blanc / rouge de balise au lieu de magenta / cyan). */
 const FACADES_V5=!/[?&]sans=([^&]*,)?facades(,|&|$)/.test(location.search),NEONVILLE_V5=FACADES_V5&&!/[?&]sans=([^&]*,)?neonville(,|&|$)/.test(location.search);
 CITY.uJ={value:0};
+/* (2026-10-17, Léo : « retouche un petit peu la ville, donne-lui plus un aspect GTA ; les immeubles sont cool, mais ils pourraient être encore plus
+   cyberpunk réaliste ») LES FAÇADES GTA — la nuit seulement (pondéré par 1 − uJ9), même géométrie, même nombre d'appels, un programme remplacé
+   (clé +g). Chaque tour lit sa graine : les BUREAUX deviennent des murs-rideaux (grands carreaux de 1,8-2,6 m, verre teinté qui renvoie la lueur
+   de la ville et le ciel selon l'angle — Fresnel, normale tirée des dérivées : zéro varying de plus —, plateaux allumés en néon de bureau, plus
+   clair sous le plafond, rangées de tubes, bureaux sombres en bas) ; les LOGEMENTS gardent leurs fenêtres, mais chaque carreau est du VERRE
+   (éteint, il reflète), éclairé en cloche par la lampe de la pièce, stores (1 sur 4), rideaux de couleur (1 sur 6) ; une ligne de dalle à chaque
+   étage ; les FEUX D'OBSTACLE rouges qui battent aux coins du toit des tours de plus de 150 m ; une tour sur cinq porte des BANDES LED à ses arêtes
+   (violet de la ville — remappé par la teinte — ou cyan), lumière qui monte. `?sans=villegta` = l'image d'avant au bit près (l'ancien programme) ;
+   `CITY.uGta` (banc : dbgVilleGta) éteint tout sur la même image (mix vers l'ancien calcul). */
+const VILLE_GTA_V=FACADES_V5&&!/[?&]sans=([^&]*,)?villegta(,|&|$)/.test(location.search);
+CITY.uGta={value:1};
 CITY.uPiedC={value:new THREE.Vector3(.16,.04,.2)}; // (2026-10-16) la lueur VIOLETTE qui monte au pied des tours (villePied) — remappée dans une ville teintée (voir VTEINTES, vtPose)
 /* (2026-09-27/28, passe perf iPhone) LA VILLE NE TRAVAILLE PLUS POUR RIEN — mesuré au banc en rendu logiciel (image figée, iPhone
    585×1266) : la ville coûtait ~25 % de l'image en VILLE, et la plus grosse part n'était PAS des pixels — avec une fenêtre de rendu
@@ -20482,11 +20493,12 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
   m.extensions={derivatives:true}; // fwidth (WebGL1) : les fenêtres se filtrent à la taille du pixel
   // (2026-10-14, passe graphismes · facades-jour) V5 = les façades de jour (voir FACADES_V5) ; FIN9 = le verre en Fresnel vrai (normale
   // monde + reflet du ciel), réservé au palier 2 — aux paliers 0-1 le verre prend une part fixe de l'horizon (zéro calcul de plus).
-  const V5=FACADES_V5,NV5=NEONVILLE_V5,FIN9=V5&&PAL.n===2;
+  const V5=FACADES_V5,NV5=NEONVILLE_V5,FIN9=V5&&PAL.n===2,GTA9=VILLE_GTA_V&&!ancien; // (2026-10-17) GTA9 : les façades GTA (voir VILLE_GTA_V)
   const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;'+(FIN9?'varying vec3 vWN9;':'');
   const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;sh.uniforms.uPied9=CITY.uPied;sh.uniforms.uPiedC9=CITY.uPiedC;if(!ancien){sh.uniforms.uLum9=CITY.uL;sh.uniforms.uImp9=IMPACT.u;sh.uniforms.uImpN9=IMPACT.n;}
     if(V5){sh.uniforms.uJ9=CITY.uJ;sh.uniforms.uJHor9=skyU.uJHor;sh.uniforms.uJMid9=skyU.uJMid;} // le jour, et le ciel que le verre renvoie
+    if(GTA9)sh.uniforms.uGta9=CITY.uGta;
     sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
@@ -20498,7 +20510,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n'))
       .replace('#include <lights_lambert_vertex>',ancien?'#include <lights_lambert_vertex>':'vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
     if(!ancien)sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader;
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+(ancien?'':'uniform vec4 uImp9,uImpN9;')+(V5?'uniform float uJ9;uniform vec3 uJHor9,uJMid9;':''))
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+(ancien?'':'uniform vec4 uImp9,uImpN9;')+(V5?'uniform float uJ9;uniform vec3 uJHor9,uJMid9;':'')+(GTA9?'uniform float uGta9;':''))
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
            d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
@@ -20513,25 +20525,45 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
            plateau sur quatre dort). Le rose n'est plus aux fenêtres : il est aux ENSEIGNES (néon magenta et cyan). */
         '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
         'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),bur=step(.7,s3),fro=step(.58,s3);'+ // fro : tour FROIDE (les bureaux en sont)
-        'vec2 cel=vec2(2.6+s1*1.8,3.5+s2*.9),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4));'+
+        (GTA9?'float s4=fract(vSeed9*41.17),s5=fract(vSeed9*53.91),G9=uGta9*(1.-uJ9);'+ // (GTA) deux graines de plus ; G9 = les façades GTA (la nuit)
+          'vec2 cel=mix(vec2(2.6+s1*1.8,3.5+s2*.9),vec2(1.8+s1*.8,3.8+s2*.4),bur*G9),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4));' // (GTA) les bureaux : le carreau d'un mur-rideau
+          :'vec2 cel=vec2(2.6+s1*1.8,3.5+s2*.9),uv=(an.x>an.z?vLoc9.zy:vLoc9.xy)/cel,fw=max(fwidth(uv),vec2(1e-4));')+
         // LES TOITS (2026-09-26) : vus d'avion (vol libre, plongeons), c'étaient des dalles noires. Chaque toit porte désormais un LISERÉ
         // néon sur son parapet (ambre, cyan des bureaux, parfois magenta) : d'en haut, la ville dessine ses blocs et ses retraits en
         // lignes de lumière. Anticrénelé, et éteint quand le liseré tombe sous le pixel (pas de fourmillement au loin).
         'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),fe=max(fwidth(de),1e-4);'+ // (passe perf) les DEUX dérivées avant tout branchement
+        (GTA9?'bool AX9=an.x>an.z;float dc9=(AX9?vSc9.z:vSc9.x)*.5-abs(AX9?vLoc9.z:vLoc9.x),dt9=vSc9.y*.5-vLoc9.y,fc9=max(fwidth(dc9),1e-4),ft9=max(fwidth(dt9),1e-4);'+ // (GTA) distance à l'ARÊTE et au TOIT (m), leur taille au pixel
+          'vec3 Nd9=cross(dFdx(vW9),dFdy(vW9));'+ // (GTA) la normale MONDE de la face, tirée des dérivées (exacte sur une face plane) — avant tout branchement
+          '\n#ifdef USE_FOG\nvec3 fo9=fogColor;\n#else\nvec3 fo9=vec3(.1);\n#endif\n':'')+
         '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nbool VIS9=fogDepth<fogFar;\n#else\nbool VIS9=true;\n#endif\n'+ // au-delà, le brouillard rend fogColor au bit près : rien de ce qui suit ne se verrait
         'if('+Q('VIS9&&uCour9>0.')+'){vec3 cW=vec3(1.,.69,.29),cC=vec3(.56,.85,1.),dom=mix(cW,cC,fro),aut=mix(cC,cW,fro);'+ // #ffb04a / #8fd8ff : la dominante et l'autre
-        'if('+Q('fv>0.')+'){vec2 hw=vec2(mix(.3,.46,bur),.26);float tx=.55+.1*s2,far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;vec3 wv=mix(dom,aut,.2)*avg*1.05;'+ // wv : la lueur MOYENNE (le lointain)
+        (GTA9?'vec3 V9=normalize(cameraPosition-vW9);float nl9=length(Nd9);vec3 N9=nl9>1e-12?Nd9/nl9:vec3(0.,1.,0.);N9*=dot(N9,V9)<0.?-1.:1.;'+
+          'float F9=min(.04+.96*pow(1.-max(dot(N9,V9),0.),5.),.5);vec3 R9=reflect(-V9,N9);'+ // (GTA) le VERRE : Fresnel de Schlick
+          'vec3 sk9=mix(fo9*1.1+uPiedC9*1.4*uPied9,fo9*.3,smoothstep(-.05,.45,R9.y));'+ // ce qu'il renvoie : la lueur de la ville sur l'horizon, le ciel sombre au-dessus
+          'sk9=mix(sk9,fo9*.55+uPiedC9*2.6*uPied9,smoothstep(0.,-.35,R9.y));'+ // … et la rue violette en dessous
+          'vec3 gl9=mix(vec3(.010,.012,.020)*(1.+bur),sk9*.5,F9);float sl9=0.,pr9=1.;':'')+ // pr9 : chaque carreau un peu de travers (le reflet varie) // le verre teinté (les bureaux un peu plus clairs) ; sl9 : la ligne de dalle
+        'if('+Q('fv>0.')+'){vec2 hw='+(GTA9?'mix(vec2(mix(.3,.46,bur),.26),mix(vec2(.32,.28),vec2(.46,.40),bur),G9);':'vec2(mix(.3,.46,bur),.26);')+ // (GTA) logements : le carreau un peu plus grand ; bureaux : le verre de dalle à dalle
+        'float tx=.55+.1*s2,far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;vec3 wv=mix(dom,aut,.2)*avg*1.05;'+ // wv : la lueur MOYENNE (le lointain)
+        (GTA9?'wv=mix(wv,vec3(.66,.84,1.)*avg*.62,bur*G9);':'')+ // (GTA) au loin, les bureaux gardent la couleur de leur néon (et leurs 40 % allumés)
         (V5?'float gm9=4.*hw.x*hw.y;':'')+ // (facades-jour) gm9 : la part de VERRE du mur (le carreau de près, la moyenne au loin)
         'if('+Q('far<1.')+'){vec2 id=floor(uv),f=fract(uv),dd=(hw-abs(f-.5))/fw;float w=clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.);'+ // (passe perf) motif sous le pixel : la moyenne suffit, les hachages ne se calculent pas
         (V5?'gm9=mix(w,gm9,far);':'')+
+        (GTA9?'sl9=(1.-smoothstep(.035,.035+fw.y*1.5,min(f.y,1.-f.y)))*(1.-far);pr9=mix(.7+.6*fract(sin(dot(id,vec2(41.3,17.9))+vSeed9*7.)*4375.85),1.,far);':'')+ // (GTA) la DALLE de chaque étage : un fil qui accroche la brume
         'vec3 wo=vec3(0.);if('+Q('w>0.')+'){'+ // (passe perf) entre deux carreaux (la moitié du mur de près) : rien à allumer, les hachages ne se calculent pas
-        'vec2 idH=bur>.5?vec2(floor(id.x/5.),id.y):id;'+                                   // les bureaux s'allument par PLATEAUX
+        (GTA9?'vec2 idH=bur>.5?vec2(floor(id.x/mix(5.,4.+floor(s1*6.),G9)),id.y):id;':'vec2 idH=bur>.5?vec2(floor(id.x/5.),id.y):id;')+ // (GTA) des plateaux de 4 à 9 carreaux                                   // les bureaux s'allument par PLATEAUX
         'float h=fract(sin(dot(idH+vec2(vSeed9*97.,vSeed9*61.),vec2(12.9898,78.233)))*43758.5453);'+
         'float hb=fract(sin(floor(id.y/(1.+floor(s1*3.)))*91.7+vSeed9*311.)*43758.5453),vit=step(.26,hb);'+ // les BANDES d'étages : 3 plateaux sur 4 vivent
-        'float on=step(1.-mix(.08,(tx-.02)/.74,vit),h);'+                                  // 55-65 % allumées en moyenne (un plateau qui dort garde 8 % de veilleuses)
+        'float on=step(1.-mix(.08,(tx-.02)/.74,vit),h);'+(GTA9?'on*=1.-bur*G9*step(fract(h*4.73),.36);':'')+ // (GTA) des plateaux de bureaux éteints (la nuit, 40 % restent allumés)                                  // 55-65 % allumées en moyenne (un plateau qui dort garde 8 % de veilleuses)
         'float hv=fract(sin(dot(id+vec2(floor(uT9/(15.+25.*h)+h*7.),vSeed9*13.),vec2(39.34,11.13)))*24634.63);on=abs(on-step(.94,hv));'+ // la VIE : ~6 % des fenêtres basculent de temps en temps
         'if('+Q('on>0.')+'){vec3 wc=mix(dom,aut,step(.8,fract(h*7.77)))*(.8+.4*fract(h*13.1));'+ // (passe perf) fenêtre éteinte : ni teinte ni écran
         'float tv=step(.955,hv)*step(hv,.975)*(.55+.45*sin(uT9*7.3+h*40.)*sin(uT9*2.9+h*9.));wc=mix(wc,vec3(.45,.6,1.)*1.2*tv,step(.001,tv));'+ // les ÉCRANS
+        (GTA9?'vec2 p9=(f-.5)/hw;'+ // (GTA) LA PIÈCE ALLUMÉE — p9 : la place dans le carreau (−1…1)
+          'float lu9=bur>.5?(.62+.38*smoothstep(-.7,.8,p9.y)+.8*exp(-pow((p9.y-.8)/.09,2.))*step(.4,fract(f.x*2.6+id.x*.37))-.28*step(p9.y,-.5)*step(.45,fract(f.x*4.3+id.x*1.7))):(1.08-.32*dot(p9,p9));'+ // bureaux : clair sous le plafond, tubes, bureaux sombres en bas ; logement : la lampe en cloche
+          'float bl9=step(.75,fract(h*5.31))*(1.-bur);lu9*=mix(1.,.58+.42*step(.42,fract(f.y*15.)),bl9);'+ // les STORES (un logement sur quatre)
+          'float ch9=fract(h*11.3);vec3 cc9=ch9<.34?vec3(1.,.55,.35):ch9<.67?vec3(1.,.42,.46):vec3(.95,.78,.48);'+ // les RIDEAUX, CHAUDS : orange, rouge rosé, or (vague 2 : pas de guirlande de Noël)
+          'vec3 wg9=bur>.5?mix(vec3(.66,.84,1.),vec3(.74,.94,.86),step(.65,fract(h*5.7)))*(.8+.35*fract(h*13.1)):mix(wc,wc*cc9*1.2,step(.875,fract(h*3.17))*.6);'+ // le néon de bureau (blanc, parfois verdâtre)
+          'wc=mix(wc,wg9*lu9,G9);'+
+          'if(bur<.5){vec2 mf9=fw*1.3+.012;float mu9=min(smoothstep(0.,mf9.x,abs(f.x-.5)-.016),smoothstep(0.,mf9.y,abs(p9.y-.38)*hw.y-.012));wc*=mix(1.,.25+.75*mu9,G9);}':'')+ // (GTA) la CROISÉE du logement : un montant et une traverse sombres (sous le pixel, ils s'effacent)
         'wo=wc*w*on;}}wv=mix(wo,wv,far);}'+
         /* (2026-10-14, passe graphismes · facades-jour) LE VERRE DE JOUR : le carreau s'assombrit (l'intérieur d'un bureau au soleil)
            et, en rasant, renvoie le CIEL de la ville (horizon → milieu du ciel selon le reflet) — Fresnel de Schlick au palier 2, une
@@ -20539,7 +20571,13 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         (V5?(FIN9?'{vec3 V9=normalize(cameraPosition-vW9),N9=normalize(vWN9);float F9=min(.04+.96*pow(1.-max(dot(N9,V9),0.),5.),.8);'+
           (METRO_V?'vec3 R9=reflect(-V9,N9),sk9=mix(uJHor9,uJMid9,.5+.5*smoothstep(0.,.6,R9.y))*.85;gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(gl_FragColor.rgb*.85,sk9,F9*.8),gm9*fv*uJ9);}':'vec3 R9=reflect(-V9,N9),sk9=mix(uJHor9,uJMid9,smoothstep(0.,.6,R9.y))*.85;gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(gl_FragColor.rgb*.5,sk9,F9),gm9*fv*uJ9);}') /* (metropole) le verre de jour reflète le BLEU du ciel et garde la couleur de sa tour (à ×.5 + l'horizon crème, une tour bleue sortait beige) */
           :(METRO_V?'gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(gl_FragColor.rgb*.88,mix(uJHor9,uJMid9,.65)*.85,.26),gm9*fv*uJ9);':'gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(gl_FragColor.rgb*.5,uJHor9*.85,.3),gm9*fv*uJ9);')):'')+ /* (metropole) idem aux paliers 0-1 */
-        'gl_FragColor.rgb+=wv*fv*1.3*uCour9'+(V5?'*(1.-.9*uJ9)':'')+';}'+ // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16) ; (facades-jour) de jour, un reflet à 10 %, pas une lumière
+        (GTA9?'gl_FragColor.rgb=mix(gl_FragColor.rgb,gl9*pr9,gm9*G9);gl_FragColor.rgb+=fo9*(.28*sl9*(1.-gm9)+.3*(1.-smoothstep(0.,max(.7,1.5*fc9),dc9)))*G9;':'')+ // les ARÊTES de la tour accrochent la lueur : on lit son volume // (GTA) chaque carreau est du VERRE (allumé ou non), la dalle accroche la brume
+        'gl_FragColor.rgb+=wv*fv*1.3*uCour9'+(V5?'*(1.-.9*uJ9)':'')+';}'+
+        (GTA9?'if(G9>0.&&fv>0.){'+
+          'if(vSc9.y>150.&&s5<.62){float rr=max(.9,2.2*max(fc9,ft9));float ka=(1.-smoothstep(rr*.5,rr,dc9))*(1.-smoothstep(rr*.5,rr,dt9));gl_FragColor.rgb+=vec3(1.,.07,.04)*ka*step(.55,fract(uT9*.8+s5*3.))*3.5*G9;}'+ // (GTA) les FEUX D'OBSTACLE aux coins du toit (≥ 1 px)
+          'if(s4>.8&&vSc9.y>80.){float lw=max(.5,1.8*fc9);float kl=max(1.-smoothstep(lw*.5,lw,dc9),1.-smoothstep(lw*.5,lw,dt9));vec3 lc=s5>.5?vec3(.24,.91,1.):normalize(uPiedC9+1e-4)*1.5;'+
+          'gl_FragColor.rgb+=lc*kl*(.75+.45*sin(vLoc9.y*.06-uT9*3.+s5*20.))*1.25*uCour9*G9;}}':'')+ // (GTA) les BANDES LED des arêtes et du toit (une tour sur cinq), la lumière qui monte
+        // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16) ; (facades-jour) de jour, un reflet à 10 %, pas une lumière
         'if('+Q('tt>0.&&fe<1.4')+'){vec3 rc='+(NV5?'fro>.5?vec3(.91,.93,.95):vec3(1.,.69,.29);':'fro>.5?vec3(.24,.91,1.):s2>.72?vec3(1.,.24,.78):vec3(1.,.58,.24);')+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8 — (facades-jour) blanc de bureau #E8EEF2 / ambre #FFB04A
         'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9'+(V5?'*(1.-.9*uJ9)':'')+';}}}\n'+
         (ancien?'':VILLE_IMPACT)+'#include <fog_fragment>\n'+villePied(Q));
@@ -20548,9 +20586,15 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
     // Pondéré par uJ9 : la nuit garde ses teintes au bit près (mix(…,0) rend la couleur telle quelle).
     if(V5)sh.fragmentShader=sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=mix(vec3(1.),'+(METRO_V?'vec3(1.,1.,.98)':'vec3(1.008,1.013,.883)')+',uJ9);'); /* (metropole) le béton de jour reste NEUTRE (la teinte jaunâtre beigeait l'acier et le verre) */
   };
-  m.customProgramCacheKey=function(){return ancien?(V5?'toursV3j':'toursV3'):(V5?'toursV5'+(FIN9?'f':'')+(NV5?'n':''):'toursV4');}; // (facades-jour) une clé remplacée, pas un programme de plus
+  m.customProgramCacheKey=function(){return ancien?(V5?'toursV3j':'toursV3'):(V5?'toursV5'+(FIN9?'f':'')+(NV5?'n':'')+(GTA9?'g':''):'toursV4');}; // (facades-jour) une clé remplacée, pas un programme de plus
   CITY[K]=m;return m;
 }
+/* (2026-10-17, banc) dbgVilleGta(k,a,d,h) : les façades GTA à k (0 = l'image d'avant, 1 = GTA) et UNE image re-rendue — la caméra posée par
+   dbgView si a est donné (angle relatif au CAP de la caisse : 0 = derrière), sinon telle quelle (en pause : la même image, A puis B). */
+window.dbgVilleGta=function(k,a,d,h){CITY.uGta.value=k==null?1:+k;
+  if(a!=null){const f=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.getWorldQuaternion(new THREE.Quaternion()));window.dbgView(Math.atan2(-f.x,-f.z)+a,d,h);}
+  else if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  return {gta:VILLE_GTA_V,k:CITY.uGta.value};};
 function villeMatNeon(ancien){ // enseignes, couronnes, feux d'antenne — ils RESPIRENT, quelques-uns clignotent, une poignée grésille
   const K=ancien?'matN0':'matN';if(CITY[K])return CITY[K];
   const Q=c=>ancien?'true':c; // (passe perf) voir villeMatTours
