@@ -27,6 +27,23 @@
   montagnes et le décor (posés autour de la route, quelle qu'elle soit). `?graine=n` / `?niveau=jade` / la balade gardent une vallée FIXE
   (0x51ADE) — mais ce n'est plus la même qu'avant (le tirage de `genJade` a changé).
 
+## LES NUAGES EN VITRAIL (2026-10-18, Léo : « Sacha avait beaucoup de mal à avoir les nuages comme il voulait ; essaie la technique des mini-cubes et de la couche transparente lisse — la glisse transparente peut EMBRASSER la forme des cubes ; garde toutes les qualités qu'on a déjà, encore plus de relief, de profondeur, d'immersion » → questionnaire : TOUS les nuages ; planche de trois dosages → MOYEN)
+- La recette VITRAIL (cœur de lumière, écailles en cubes, peau de verre, onde) tirée du MÊME champ que la surface v8 (`nuage8Calc`, option
+  `opt.vit` = nombre de cubes sur la plus grande dimension, dans l'ouvrier) : ÉCAILLES = les cases de `ext/NUVIT.nc` dont le centre est dedans et
+  qui touchent le dehors, faces extérieures seules, à 94 % (`opt.ecart`) ; une écaille = UNE normale (le gradient du champ en son centre), un
+  modelé, un hasard (`aG`, `aCu`). PEAU = l'isosurface de l'occupation des cubes floutée [¼ ½ ¼] (seuil `NUVIT.iso`) sur SA grille (~1 case par
+  cube) : elle a la FORME des cubes mais la LUMIÈRE du champ lisse (normale mêlée à 65 % — sinon chaque marche faisait un liseré blanc, un
+  filet). CŒUR = la surface v8 rentrée de 0,6 cube, éclairée comme le nuage × `uLueur` (l'ombre reste une ombre).
+- Les trois matières (`nuVitMats`, `nuVitVS/FS`, la lumière v8 en fonction `n8lum`) ; instances : trois maillages par lot fin (finesses 2 et 3,
+  MÊME vitrail calculé une fois par gabarit), avec LEURS instances : `cotonTick` range dans le lot v8 les nuages dont l'écaille serait trop
+  grosse à l'écran (> `NUVIT.ang` rad : de près, des cubes de 15 m faisaient des éclats de verre) ; de loin (finesses 0-1) la v8. Bancs,
+  coussins, tours (`mkCloud`) : écailles et peau en ENFANTS, le maillage devient le cœur ; dedans (white-out) les enfants se cachent.
+  Pas aux Pics de Jade (`J`). Trame du bord et fondu près de l'objectif gardés (écailles, cœur) ; la peau se fond (alpha).
+- Dosages `NV_DOSES` (doux · MOYEN par défaut · fort ; `?nuvit=`), `?sans=nuvit` = la v8 seule, `dbgNuVit(0|1,{dose,detail,banc})`, `dbgNuVue(k,a,p,h)`
+  (même vue A/B), `dbgProgs('h')`. MESURÉ : nuages ×2,3 en triangles, +1 à 1,7 ms/image sur le Mac (~+25 % sur la map) — la peau transparente
+  coûte ; 0 programme compilé en course (au menu, une fois la préparation finie). Écarté : cubes de ext/22 (façades en briques de verre),
+  faces très marquées (damier « boule disco »), peau laiteuse à 50 % (nuage aplati).
+
 ## LA FIGURE POSÉE RAPPORTE 40 % (2026-10-18, Sacha : « les figures une fois posées doivent rapporter du nitro » puis « on peut faire -20 +40 »)
 - **Le constat** (dit à Sacha) : la règle −20 % / +30 % tournait (banc `figroute` : 16/16 figures sur la route payées), mais elle ne
   rapportait que **+10 % net** par figure, et en vol la pose remplit souvent la jauge d'abord : le gain de la figure part alors dans la
