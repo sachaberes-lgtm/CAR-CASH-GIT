@@ -18999,7 +18999,7 @@ function cyMineHeurt(p,M){const S=CY.S;if(!M)return false;let bi=-1,bd=1e18;
 /* LA ROUTE 66 (2026-10-15 soir, Sacha : « le niveau dans le canyon doit commencer par une longue ligne droite, une vieille station-service
    et un panneau ROUTE 66 ») — au départ, sur le plateau de la vallée des Mitaines (genCanyon : la droite de 820 m), deux décors posés au
    sol, à côté de la route (jamais dessus : ils restent à ROAD_HALF + 6 m au moins) :
-   · le PANNEAU ROUTE 66 à 150 m, à gauche : le bouclier blanc bordé de noir sur ses deux poteaux, « ROUTE » et un grand « 66 » en pixels
+   · le PANNEAU ROUTE 67 (rebaptisé le 17/10 par Sacha) à 150 m, à gauche : le bouclier blanc bordé de noir sur ses deux poteaux, « ROUTE » et un grand « 67 » en pixels
      (une police 3 × 5 et 5 × 7 en petits pavés), tourné vers la caisse qui arrive ;
    · la VIEILLE STATION-SERVICE à 430 m, à droite : le bâtiment crème au bandeau rouge passé, sa porte, sa vitrine, la porte du garage, l'auvent
      sur deux piliers, l'îlot et ses deux pompes rétro (rouge et turquoise, globes blancs), des fûts rouillés, le dallage fissuré, et le
@@ -19008,7 +19008,7 @@ function cyMineHeurt(p,M){const S=CY.S;if(!M)return false;let bi=-1,bd=1e18;
    (`cyMonuMats().t` : la lumière, l'ombre portée des parois et le brouillard du canyon — aucun programme neuf). Console : dbgCanyon('r66'). */
 const CY_FONTE={R:['XX.','X.X','XX.','X.X','X.X'],O:['.X.','X.X','X.X','X.X','.X.'],U:['X.X','X.X','X.X','X.X','XXX'],T:['XXX','.X.','.X.','.X.','.X.'],
   E:['XXX','X..','XX.','X..','XXX'],G:['.XX','X..','X.X','X.X','.XX'],A:['.X.','X.X','XXX','X.X','X.X'],S:['.XX','X..','.X.','..X','XX.'],
-  6:['.XXX.','X....','X....','XXXX.','X...X','X...X','.XXX.']};
+  6:['.XXX.','X....','X....','XXXX.','X...X','X...X','.XXX.'],7:['XXXXX','....X','...X.','..X..','.X...','.X...','.X...']};
 function cyRoute66(){
   const S=CY.S;if(!S||S.n<80)return null;
   const P=[],C=[],I=[],O=new THREE.Vector3(),Ax=new THREE.Vector3(),Az=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0),g0=new THREE.BoxGeometry(1,1,1);
@@ -19031,7 +19031,7 @@ function cyRoute66(){
      'KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','KWWWWWWWWWWWWWK','.KWWWWWWWWWWWK.','..KWWWWWWWWWK..','...KKWWWWWKK...','.....KKKKK.....'];
    const y0=haut+17*cel*.5;for(let r=0;r<M.length;r++)for(let c=0;c<15;c++){const k=M[r][c];if(k==='.')continue;pave((c-7)*cel,y0-(r+.5)*cel,0,cel,cel,.18,k==='K'?NOIR:BLANC);}
    const zf=-.13,ct=cel*.47;texte('ROUTE',-larg('ROUTE')*ct/2,y0-1.4*cel,zf,ct,NOIR,.06); // la face tournée vers la caisse qui arrive (−z)
-   const c6=cel*1.07;texte('66',-larg('66')*c6/2,y0-7.6*cel,zf,c6,NOIR,.06);}
+   const c6=cel*1.07;texte('67',-larg('67')*c6/2,y0-7.6*cel,zf,c6,NOIR,.06);} // (2026-10-17, Sacha : « doit s'appeler la route 67 ») : ROUTE 67
   // ---- LA VIEILLE STATION-SERVICE (à droite, à 430 m) ----
   {const KS=1.6,R9=rep(430,ROAD_HALF+25,1),RM=26,cx=4*KS,sol=solMin([[cx,0],[cx+RM,0],[cx-RM,0],[cx,RM],[cx,-RM]]),top=R9.yr-.3;
    /* LA MESA : la route flotte au moins 18 m au-dessus du plateau (la règle d'or du canyon) — posée au sol, la station était cachée sous le

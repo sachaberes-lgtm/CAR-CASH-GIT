@@ -20,6 +20,10 @@
   Le slalom au même banc : 0 aussi (route au sol, rien au-dessus). L'avertissement « computeBoundingSphere NaN » et deux 404 existaient déjà
   avant (slalom compris).
 - ⚠ À DIRE À LÉO : le slalom remplaçait la pelote à sa demande (« oui, la remplacer ») ; Sacha la remet. Rien n'est détruit : `?foret=slalom`.
+## LE PANNEAU DU CANYON DEVIENT « ROUTE 67 » (2026-10-17 soir, Sacha : « le panneau sur la route 66 dans la map canyon doit s'appeler la route 67 »)
+- `cyRoute66` : le grand chiffre du bouclier passe de « 66 » à « 67 ». `CY_FONTE` gagne un `7` en 5 × 7 pavés (barre du haut, puis
+  diagonale qui tombe vers la gauche) ; même largeur que le 6 : le texte reste centré. Rien d'autre ne bouge (station-service, mesa,
+  tirages de la piste) ; les noms internes (`cyRoute66`, `CY.r66`, `dbgCanyon('r66')`) sont gardés tels quels.
 
 ## LES SATELLITES FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route »)
 - La passe « les maps comme un tout » (même jour, 15 h 37) avait lu « il faut que ce soit un obstacle à part entière » comme des satellites
