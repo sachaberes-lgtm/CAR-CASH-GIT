@@ -3,6 +3,63 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES POUPES REFAITES — ONZE CAISSES QU'ON SUIT ENFIN AVEC ENVIE (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de les acheter » puis, sur la revue des poupes : « refais l'arrière des onze caisses à refaire : LE LINGOT, ACIDE, LA PIZZA EXPRESS, LE CAÏD, LA ZED, LA VETTE, LA QUEUE DE CANARD, LE HOT ROD, LA GROUPE B, L'ABSTRAITE, LA GRANDE ANGLAISE »)
+- LA REVUE (avant de toucher) : les 29 caisses achetables de la boutique (`CAR_UNLOCK` p > 0 ou premium, après les rustines missions v2,
+  carnets 6-9 et carrière, non retirées) photographiées de DOS au studio — `dbgEssaiCaisse(gabarit,{...fiche, pot:gabarit},
+  [[Math.PI+.73,1,1],[Math.PI,1,1],[Math.PI+.73,2.4,1.05]])` : plein arrière, trois quarts, vue de poursuite. Verdict rendu à Sacha sur une
+  page à cocher (https://claude.ai/artifact/FTAB4EjEpJFn3pxx2wr7Q4) : 11 À REFAIRE (mur plat, feux en simple boîte, pots en pastilles, aucun
+  relief), 10 qui gagneraient un cran (ROSSO 40, LE CHARGEUR 69, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, LA PUCE, LE MASTODONTE, ELDORADO — refaite
+  depuis en v3 —, L'ICEBERG, LE DÉFIEUR), 8 déjà belles (LE CHARGEUR, LE BLINDÉ NOIR, LA PERLE, LA POUPÉE, LE DRAGON D'OR, LA TAURINE, CHAT
+  POP-TART, LA BAVAROISE). Sacha a validé les onze.
+- CE QUI A CHANGÉ — à chaque fois un bloc « L'ARRIÈRE v2 » dans le gabarit (`SHAPES.<gabarit>`), l'avant, les flancs et le pot de Léo
+  (`ECH_POTS`) intacts ; le pot s'encastre de lui-même dans le nouveau diffuseur (echEncastre) :
+  · LE LINGOT (`SHAPES.lingot`, gabarit d'avant le kit) : deux RUBIS TAILLÉS (table + huit facettes en trois rouges, chaton d'or sombre) posés
+    sur la face penchée à 30°, le POINÇON « 999,9 » dans son cartouche (la même toile que le dessus, `LINGOT_PL` : aucune matière neuve), le
+    bouclier doré chanfreiné et sa rainure, le diffuseur sombre aux ailettes d'or. Les feux-boîtes communs (`tl`) passent DANS la caisse ;
+  · ACIDE (`SHAPES.tuner`, d'avant le kit) : deux LED en équerre sous un VERRE FUMÉ d'une aile à l'autre et le fil qui les relie, le bouclier
+    dans son vernis creusé de deux écopes à lames, la plaque, le diffuseur à ailettes en NÉON ACIDE où s'encastre le gros canon. Piège : la
+    caisse `K.prof` est biseautée de 9 cm (`carProfile`), la vraie poupe est à −L/2 − 0,09 ; le diffuseur commun (`split`) passait à travers
+    le bouclier : coupé, et sa LAME AVANT reposée à l'identique ;
+  · LA PIZZA EXPRESS : feux en COLONNE dans leur coque (rouge strié, recul, clignotant, rouge bas, cerclage chromé), joint du hayon, poignée et
+    lampe de plaque, plaque blanche, essuie-glace sur la lunette, marchepied strié, becquet de pavillon et 3e feu, catadioptres ;
+  · LE CAÏD : feux en colonne dans leurs coques qui dépassent, joint de la porte, deux CHARNIÈRES à droite vue de derrière (comme la G) et la
+    poignée, cerclage chromé de la housse de roue, 3e feu stop, protections d'angle, plaque, marchepied strié, anneau de remorquage ;
+  · LA ZED : feux en trois segments EN RELIEF (stop strié, feu, recul) dans un cadre chromé, garniture striée entre eux, lèvre de malle,
+    butoirs et leur caoutchouc, plaque et sa lampe, jupe noire à ailettes ;
+  · LA VETTE : les quatre feux carrés ENFONCÉS (cerclage chromé qui dépasse, cuvette, verre en retrait, cœur, stries), le tableau noir EN
+    CREUX entre deux lèvres, le bouclier qui se replie et son pli, la plaque, le diffuseur dont les ailettes encadrent les quatre sorties,
+    le 3e feu ;
+  · LA QUEUE DE CANARD : la lèvre RELEVÉE de 4 cm (de dos elle ne se lisait pas) et sa grille à six lames, feux en volume (coque, rouge strié,
+    orange, chrome), le BANDEAU RÉFLÉCHISSANT strié d'un feu à l'autre, les soufflets du pare-chocs et ses butoirs, la plaque et sa lampe ;
+  · LE HOT ROD : les GOUTTES chromées sur la carapace (rondes derrière, pointues devant, verre rouge bombé), la plaque et sa lampe, le
+    RÉSERVOIR rond entre les longerons (sangles, bouchon), la barre tubulaire sur deux pattes noires ;
+  · LA GROUPE B : feux en volume dans leur coque (rouge strié, orange), la grille en relief, la plaque de rallye, la SANGLE de remorquage
+    rouge, le sabot d'alu boulonné, les catadioptres ;
+  · L'ABSTRAITE : le trait rouge devient un FEU EN ANNEAU ovale sur un fond de verre noir, cerclé d'un fil d'or — il répond à l'anneau d'or
+    au-dessus de la caisse ; le bouclier sculpté en creux et son fil d'or ; le diffuseur aux ailettes d'OR, un anneau d'or autour de chaque
+    sortie ;
+  · LA GRANDE ANGLAISE : les feux ovales EN VOLUME (cerclage chromé qui dépasse, lentille sombre, anneau de LED au cœur), la lèvre de malle,
+    la plaque, le bouclier dans la couleur et sa baguette chromée, le diffuseur à ailettes autour des sorties ovales.
+- LE BUDGET (la méthode de l'ELDORADO v3) : aucune FAMILLE de matière de plus sur les caisses du kit — les plaques sont des clés `w` de la
+  famille des feux (une plaque éclairée), l'alu du sabot une clé de la famille chrome ; les lignes visibles font au moins 1,4 cm (plus fin, elles
+  sortent en pointillés à 844 px) ; les anneaux ovales sont des ellipses EXTRUDÉES à épaisseur égale (un tore aplati est épais sur les côtés,
+  mince en haut) et à peu de pans (Three double les pans d'une ellipse : 32 donnaient +44 % à L'ABSTRAITE). Les deux gabarits d'avant le kit
+  (LE LINGOT, ACIDE) gagnent un chantier du kit chacun (4 et 3 familles : quelques appels de dessin, aucun programme neuf).
+- MESURÉ (`dbgEssaiCaisse`, carrosserie + roues visibles du kit) : LE CAÏD 4 962 → 5 794 (+17 %), LA PIZZA EXPRESS 3 964 → 4 408 (+11 %),
+  LA ZED 3 332 → 3 716 (+12 %), LA VETTE 3 936 → 4 664 (+18 %), LA QUEUE DE CANARD 3 390 → 3 788 (+12 %), LE HOT ROD 4 634 → 5 174 (+12 %),
+  LA GROUPE B 3 520 → 3 886 (+10 %), L'ABSTRAITE 4 200 → 4 908 (+17 %), LA GRANDE ANGLAISE 4 944 → 5 628 (+14 %) ; LE LINGOT et ACIDE
+  (hors kit, le relevé ne compte que le kit) : 120 → 560 et 288 → 692.
+- LES TRAÎNÉES DE LUMIÈRE partent des nouveaux feux (`dbgFeux`, `CAR_FEUX_SRC` = 'releve' pour les onze) : un `plate` et un `put` ne se relèvent
+  pas, d'où une petite pièce `L` cachée dans le feu (LE LINGOT, ACIDE, LE HOT ROD, L'ABSTRAITE) — sans elle, ACIDE les faisait partir du fil
+  central (±0,33 m), maintenant de ses équerres (±0,63 m).
+- BANCS (Chrome sans fenêtre et muet, sauvegarde muette, jeu servi en http, ports 9287/9587) : les onze rebâties une à une (`dbgEquipe`,
+  `dbgFeux`, `dbgPhotoCar`), puis menu → JOUER → course au pilote automatique : plein écran (LE LINGOT), cadre de l'ordi (ACIDE), debout
+  (LA PIZZA EXPRESS), téléphone couché 844 × 390 (LE CAÏD) — départ, course, **0 erreur**, `__loopErr` vide ; refait après la fusion de main
+  (l'ELDORADO v3) avec LA ZED, LA VETTE, LA QUEUE DE CANARD et LE HOT ROD : 0 erreur.
+  ⚠ Un autre banc tenait 9271/9571 : le banc des poupes refuse désormais de démarrer si ses ports sont pris (sinon il pilote le Chrome d'un autre).
+- À TRANCHER par Sacha : les dix caisses « un cran » de la revue, si l'envie le prend ; et sur LE CAÏD, les charnières sont à droite vue de
+  derrière (fidèle à la vraie), ce qui rend la poupe asymétrique.
+
 ## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
 - RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
   Ce qui la fait reconnaître : les doubles feux en OBUS POINTUS dans une bague chromée au bout des ailerons, la calandre à BIJOUX devant ET
