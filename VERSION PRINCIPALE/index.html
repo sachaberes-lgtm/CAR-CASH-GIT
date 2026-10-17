@@ -10121,6 +10121,24 @@ body:not(.play) #m2Focus{display:none!important}
 .m2FR u em{display:block;height:100%;background:var(--au2)}
 .m2FR.ok{box-shadow:inset 0 0 0 1px var(--cash)}.m2FR.ok i,.m2FR.ok b{color:var(--cash)}.m2FR.ok u em{background:var(--cash)}
 @media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « trop de pop-up mission pendant la partie : en ligne, plus discrète, en bas ») — une mission
+   réussie en course : une ligne fine au-dessus des suivies (--m2lY = leur hauteur, posée par m2LigneSuit), à leur place et dans leur matière */
+#m2Ligne{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
+  display:flex;align-items:center;gap:6px;box-sizing:border-box;width:max-content;max-width:min(60vw,520px);padding:3px 7px 2px;pointer-events:none;
+  background:color-mix(in srgb,var(--k1) 84%,transparent);box-shadow:inset 2px 0 0 var(--m2lC);font-family:var(--pix);font-size:var(--f0);
+  line-height:1.3;color:var(--tx);--m2lC:var(--cash);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)}
+#m2Ligne.on{opacity:1;transform:translate(-50%,0)}
+#m2Ligne.sec{--m2lC:var(--neoM)}
+#m2Ligne i{flex:none;font-style:normal;line-height:0;color:var(--m2lC)}#m2Ligne i .pxi{--pxs:1}
+#m2Ligne span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#m2Ligne small{font-size:inherit;color:var(--m2lC)}
+#m2Ligne b{flex:none;font-weight:400;color:var(--au1);white-space:nowrap}
+body:not(.play) #m2Ligne{display:none!important}
+@media (orientation:portrait){#m2Ligne{left:var(--hudG,16px);transform:translateY(4px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px + var(--m2lY,0px));
+  max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}
+  #m2Ligne.on{transform:none}
+  #m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}}
+@media (prefers-reduced-motion:reduce){#m2Ligne{transition:opacity var(--t-slow) linear}}
 /* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
 .mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
 .mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
@@ -38524,6 +38542,12 @@ function nitroFeu(dt){
       tenir, quatre sur cinq pour tenir. EN L'AIR elle brûle plein. La FRÉNÉSIE garde son
       nitro qui dure 2× partout (demande de Sacha, FLOW v3) : c'est l'état des maîtres, et il se perd tout seul.
    5. LE RASE-BORD (,22/s) ne remplit que nitro COUPÉE : rien ne se remplit en continu pendant que ça brûle.
+   6. LA FIGURE SE PAIE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage,
+      cumulable »). La lancer en vol coûte `figN.cout` (20 % de la jauge) — pas assez dans la jauge : elle ne part pas (le « tchk » de la
+      nitro à vide). Plantée, elle rapporte `figN.rend` (30 %) à la POSE RÉUSSIE, et ça s'additionne : trois figures = 90 %, un tonneau ×3
+      (trois double-taps, 60 % payés) = 90 %. Chute en plein tour, pose de travers ou à contresens : les 20 % sont perdus. Le SAUT NITRO paie
+      déjà ses 20 % (VEQ_K.sautCout) : sa figure rapporte comme les autres. Plus rien n'est rendu EN VOL (le plein à la plantée d'ASPHALT 8
+      et la prime du COMBO À TROIS se sont tus), et la recharge de la chaîne (`fig`) ne joue plus quand le vol porte une figure : la loi 6 paie.
    Ce qui se RAMASSE (pads, fruits, la LIGNE PARFAITE) et les gestes de la route (drift, frôlé, fronde…) ne changent pas : tenir le
    nitro « à fond tout le temps » reste le prix de la trajectoire parfaite — sur la ROUTE.
    ⚠ BLOC PUR : ne lit que ses arguments et NITRO2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les réglages du
@@ -38537,7 +38561,7 @@ const NITRO2={
   coup:.12,                // l'allumage EN VOL (le coup de réacteur) : 12 % de la jauge
   pose:{pct:.2,plein:1.2}, // la pose : 20 % de la jauge, pleine à partir de 1,2 s de vol (loi 2)
   fig:{base:.45,par:.12,max:1.2}, // la figure posée : ,45 + ,12 par × de la chaîne, plafond 1,2 (puis ×1,5 parfaite · ×2 divine)
-  figAir:{base:.22,rep:.12,k:.8}, // (2026-10-14, LES FIGURES v2 — Asphalt 8) la figure PLANTÉE en vol, tout de suite : ,22 (+ ,12 par tour de plus), × ,8 par figure déjà payée dans ce vol
+  figN:{cout:.2,rend:.3},  // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 30 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée)
   bump:{q:.35,k:.6,n:4},   // le bump : ,35 · ,21 · ,13 · ,08 puis rien (loi 3)
   rase:.22                 // le rase-bord (/s), nitro coupée seulement (loi 5)
 };
@@ -38838,6 +38862,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   const c=HAUT.cur;if(c&&performance.now()<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
   HAUT.cur=null;HAUT.fin=0;engBigCoupe();
   const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
+  try{m2LigneVide();}catch(e){} // (2026-10-17) la ligne des missions du bas se tait avec les autres (l'écran de mort les récapitule)
 }
 function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
@@ -39692,7 +39717,8 @@ function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. R
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
-  toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
+  if(!(MISSIONS_V2&&m2LigneDit('col',sansAcc(TR('COULEUR')+' '+TR(d.n)),''))) /* (2026-10-17) en course : la ligne du bas, pas le toast du haut */
+    toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
 function cosmVu(cat,d){ // la VUE d'un habillage pour une liste (contrat avec INTERFACE) : une secrète pas encore gagnée → masquée (les accesseurs le font déjà ; `masque` le dit)
   if(d&&d.sec&&!window.PAL_REVELE&&!shopOwned(cat,d.id))return {id:d.id,sec:d.sec,n:d.n,d:d.d,c:d.c,g:d.g,r:d.r,ind:d.ind,masque:true};return d;}
 function cosmSwCl(d){return d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'';} // la classe de finition d'une pastille de peinture (une seule table pour toutes les listes)
@@ -47600,7 +47626,7 @@ if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; 
 function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
-  cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
+  cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,nitF:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
   qf:new THREE.Quaternion(),qr:new THREE.Quaternion(),qd:new THREE.Quaternion(),m4:new THREE.Matrix4(),v:new THREE.Vector3(),d:new THREE.Vector3(),
   n:0,payees:0,chutes:0,vis:null,cle:'',wPose:0,jetS:0,herite:null,img:0,att:null,redresse:0};
 /* UN EMPLACEMENT PAR DIRECTION (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; dans
@@ -47640,7 +47666,7 @@ function figEquipe(id,k){if(!window.FIG||!FIG.par[id]||!figPossede(id))return nu
   if(S[k]===id)return {deja:true,slot:k};
   const parti=S[k];S[k]=id;SAVE.d.figEq3=S.map(function(x){return x||'';});SAVE.d.figEq=figEquipees().slice(0,2);SAVE.flush();FX2.cle='';return {parti:parti,slot:k};}
 function figMemo(dt){FX2.qm1.copy(FX2.qm0);FX2.qm0.copy(carGroup.quaternion);FX2.dm=dt;FX2.memo=FX2.memoN;FX2.memoN=true;} // (conduite, chaque image) l'assiette des deux dernières images
-function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;if(!C)return;
+function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;FX2.nitF=0; /* (loi 6) un vol neuf : rien à rendre */if(!C)return;
   C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.redP=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
   if(!FIGV2.on||bord||!VEQ.on){FX2.memo=false;return;} // le BORD garde la bascule de Léo (VEQ)
   tmp.copy(fallVel).normalize();FX2.m4.makeBasis(FLY_R,FLY_U,tmp);FX2.qf.setFromRotationMatrix(FX2.m4);
@@ -47725,6 +47751,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%FIG_NB;return {attente:true};}
+  const nc9=figNitCout(o);if(nc9>0&&nitroR+nitroX+(o.double&&FLC.ok&&performance.now()-FLC.t<450?FLC.c:0)<nc9){figRefus(s);return null;} // (2026-10-17, LA FIGURE SE PAIE — loi 6 du réservoir) pas 20 % dans la jauge (le coup de réacteur du double-tap, qui sera rendu, compté) : elle ne part pas
   const bud=o.dispo!=null?o.dispo:figBudget(),D=figDose(f,bud);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=o.dx!=null&&Math.abs(o.dx)>=.3?o.dx:steer; // (2026-10-15, les deux familles) le geste de CÔTÉ donne le pouce LUI-MÊME (figDirSlot) : la figure part de ce côté, sans attendre que le volant lissé l'ait rejoint
@@ -47740,10 +47767,19 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
+  if(nc9>0)figNitPaye(nc9);r.nitN=(r.nitN|0)+1; // (loi 6) les 20 % partent ; la figure (celle du SAUT NITRO aussi : le saut a payé) comptera pour la pose — un tour EMPILÉ compte pour une de plus
   // le SAUT NITRO a déjà son souffle et son motif dans la main (Léo) : l'explosion de la figure ne revibre pas par-dessus (une seule voix par événement)
   const sautN=performance.now()-VEQ.sautT<120;
   if(sautN){try{if(SONV2)sfx('fig.explose',{var:0,vol:-6});}catch(e){}}else figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);figBtFx(s,'boum');fhLance(s,r,o); // (HUD des figures v3) son nom tombe en grand
   return r;}
+/* LA FIGURE SE PAIE (2026-10-17, Sacha — loi 6 du réservoir, réglages dans NITRO2.figN) : 20 % de la jauge au lancement, 30 % par
+   figure plantée rendus à la pose RÉUSSIE (figNitRend, appelée par tryLand et levreRattrape), perdus sinon. Offerte (rien à payer, elle
+   rapporte quand même) : la figure du SAUT NITRO (le saut a déjà payé ses 20 %), sous NITRO INFINIE, au parc, à l'auto-école.
+   `dbgFigNit()` : le prix, ce qui attend la pose, la jauge. */
+function figNitCout(o){return o.douce||pwrNitroT>0||PARK.on||TUTO.on?0:NITRO2.figN.cout*nitroCap();}
+function figNitPaye(q){const av=nitroR+nitroX;if(nitroR>=q)nitroR-=q;else{nitroX=Math.max(0,nitroX-(q-nitroR));nitroR=0;}if(LIVRE.on)livre('n-:figure',av-nitroR-nitroX);} // (la réserve bleue après la jauge, comme le saut nitro)
+function figNitRend(ok){const n=FX2.nitF|0;FX2.nitF=0;if(ok&&n>0)nitroPct(NITRO2.figN.rend*n,'figure');return n;}
+window.dbgFigNit=function(){return {cout:+(NITRO2.figN.cout*nitroCap()).toFixed(3),aRendre:FX2.nitF|0,rendSiPose:+(NITRO2.figN.rend*(FX2.nitF|0)*nitroCap()).toFixed(3),jauge:+nitroR.toFixed(3),reserve:+nitroX.toFixed(3),cap:nitroCap(),mode:mode};};
 function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
 /* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
    de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
@@ -47752,7 +47788,7 @@ function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,
    20 familles (COMBO_NOMS) : on les découvre avec ses trois emplacements, et chaque figure achetée en ouvre d'autres.
    · LA PRIME : de l'AURA = la moitié des trois figures. ×1,5 pour LE GYROSCOPE (les trois axes purs), +25 % par enchaînement PILE
      (la figure suivante lancée pendant la PRISE de la précédente : `r.bm`, posé par figLance), ×2 à la 1re fois. Elle entre dans la
-     chaîne comme une figure (FX2.pts) : une pose ratée (figChute) l'emporte avec les autres. Plus un peu de nitro, comme une figure.
+     chaîne comme une figure (FX2.pts) : une pose ratée (figChute) l'emporte avec les autres. (Plus de nitro depuis la loi 6 : la pose paie.)
    · LE CARNET : `SAVE.d.combos` {famille: nombre}. Une famille neuve → bandeau « NOUVEAU COMBO » avec le compte « n / 20 ».
    `?combo=0` les éteint. `dbgCombo()` : le carnet, le trio en cours. */
 const COMBO_ON=!/[?&]combo=0\b/.test(location.search);
@@ -47762,7 +47798,7 @@ const COMBO_NOMS={TTT:['LA PERCEUSE','THE DRILL'],PPP:['LE TOURBILLON','THE WHIR
   PSS:['LA MACHINE A LAVER','THE WASHER'],SST:['LA ROUE DU HAMSTER','THE HAMSTER WHEEL'],MSS:['LE CASCADEUR','THE STUNTMAN'],
   MMT:['LA TORNADE','THE TORNADO'],MMP:['LA BOULE DISCO','THE DISCO BALL'],MMS:['LE CRASH-TEST','THE CRASH TEST'],
   PST:['LE GYROSCOPE','THE GYROSCOPE'],MPT:['LE SATELLITE','THE SATELLITE'],MST:['LE BOOMERANG','THE BOOMERANG'],MPS:['LE KAMIKAZE','THE KAMIKAZE']};
-const COMBO_K={part:.5,gyro:1.5,pile:.25,neuf:2,nitro:.15};
+const COMBO_K={part:.5,gyro:1.5,pile:.25,neuf:2};
 function comboAxe(f){const m=f&&f.m||[];if(m.length!==1||!m[0].t)return 'M';const a=m[0].a;
   if(a[2]&&!a[0]&&!a[1])return 'T';if(a[1]&&!a[0]&&!a[2])return 'P';if(a[0]&&!a[1]&&!a[2])return 'S';return 'M';}
 function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou à la pose)
@@ -47777,7 +47813,6 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
   FX2.aura=aura;const c0=CHA.pts;
   addTrick('fig_combo_'+cle,txt,Math.round(aura/16),3); // (dans la chaîne comme une figure : sa famille s'use à la redite, ×0,7)
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.combos=(FX2.combos|0)+1;
-  try{nitroGain(K.nitro,'figair');}catch(e){}
   hap([14,30,14,30,40]);
   try{sonCombo(cle,neuf);}catch(e){} // (SON) la signature sonore du combo : livrée par la session SON — muet tant qu'elle n'existe pas
   if(neuf){const n=Object.keys(D).filter(function(k){return COMBO_NOMS[k];}).length;
@@ -47790,7 +47825,7 @@ function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),
   {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
   if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
-  const k=NITRO2.figAir;nitroGain((k.base+k.rep*(reps-1))*Math.pow(k.k,FX2.nPay),'figair');FX2.nPay++; // ASPHALT 8 : la figure plantée remplit le NITRO, tout de suite
+  FX2.nitF+=r.nitN|0;FX2.nPay++; // (2026-10-17, loi 6) la figure plantée ne remplit plus le NITRO tout de suite (ASPHALT 8) : elle COMPTE, la pose réussie la rend — 30 % chacune
   hap([10,22,10]);
   comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
 function figChute(){if(FX2.pts>0&&CHA.n>0){CHA.pts=Math.max(0,CHA.pts-FX2.pts);chaHud(true,false);}FX2.pts=0;FX2.chutes++; // posée en plein tour : les figures du vol quittent la chaîne (BMX)
@@ -48205,11 +48240,32 @@ function m2Verifie(enC){if(!MISSIONS_V2)return 0; /* en v1 les compteurs tournen
   for(const m of M2){if(s.ok.indexOf(m.id)>=0)continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
     if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
-/* le bandeau DISCRET de la course (« il ne cache pas la route » : la bannière du haut, celle des missions) ; une secrète ne dit rien d'elle */
+/* l'annonce d'une mission réussie : EN COURSE, la LIGNE du bas (#m2Ligne) ; hors course, le toast. Une secrète ne dit rien d'elle */
 function m2Annonce(m,enC){if(!MISSIONS_V2)return;const r=m.r||{};
-  if(m.f==='secret'){if(enC)misBanniere('MISSION SECRÈTE','? ? ?','','etoile');return;}
+  if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC)misBanniere('MISSION RÉUSSIE',m2Txt(m),p,'coche');else try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
+   en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
+   UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
+   NITRO reste libre). Plusieurs d'un coup : la première passe seule, tout le reste se dit en UNE ligne (« 3 MISSIONS RÉUSSIES ») ; 2,4 s
+   chacune. Le son ui.mission une fois par ligne (la couleur secrète garde le sien, sonné par secDonne). Aucune image de la boucle n'y touche :
+   piloté par événements, vidé par hautVide (l'explosion, l'écran de mort, RECOMMENCER). k : 'ok' réussie · 'sec' secrète · 'col' couleur */
+const M2L={q:[],t:0,on:0};
+function m2LigneDit(k,tx,p){if(!m2EnC())return false;M2L.q.push({k:k,tx:tx,p:p||''});if(!M2L.on)m2LigneSuit();return true;}
+function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Ligne');
+  if(!M2L.q.length||!m2EnC()){m2LigneVide();return;}
+  let it=M2L.q.shift();
+  if(M2L.on&&M2L.q.length){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne
+  M2L.on=1;
+  if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
+  const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
+  const sec=it.k!=='ok',ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
+  e.innerHTML='<i>'+pxi(sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  try{if(SONV2&&it.k==='ok')sfx('ui.mission');}catch(x){}
+  M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
+function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
 function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
   if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
@@ -48303,7 +48359,7 @@ Object.assign(I18N,{'RÉCUPÈRE':'CLAIM','BIENTÔT':'SOON','RÉUSSIE':'DONE','SE
   'MISSION SECRÈTE TROUVÉE':'SECRET MISSION FOUND','FAIT':'DONE','PAS ENCORE':'NOT YET','TROIS MISSIONS SUIVIES AU PLUS':'3 TRACKED MISSIONS AT MOST',
   'TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS':'TAP A MISSION TO TRACK IT · 3 MAX','RÉCOMPENSE À RÉCUPÉRER':'A REWARD IS WAITING',
   'TOUTES LES MISSIONS':'ALL MISSIONS','À RÉCUPÉRER':'TO CLAIM','BIENTÔT AU GARAGE':'COMING TO THE GARAGE SOON','RÉCOMPENSE À VENIR':'REWARD COMING SOON',
-  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT'});
+  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT','MISSIONS RÉUSSIES':'MISSIONS DONE'});
 function m2Nb(x){return Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[  ]/g,' ');}
 function m2Mn(x){x=Math.max(0,Math.floor(x));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
 /* L'AVANCEMENT DE LA PARTIE (en course, l'écran de mort) : pour une mission « en une partie », ce que CETTE partie a fait — le record
@@ -50688,7 +50744,7 @@ function tryLand(dt){
   {const vm9=vitMult(),vT9=fallVel.dot(T[bestI])/vm9,vB9=fallVel.dot(B[bestI])/vm9;vA=vT9>0?Math.hypot(vT9,vB9):vT9;vL=vB9*.4*sideL;} /* (2026-10-15, Sacha : « quand on arrive sur la route en volant avec un certain angle on est ralenti d'un coup, on ne peut pas la couper ») LA COUPE GARDE SON ÉLAN : au sol vA est la vitesse le long du CAP (on avance de vA·cos psi, on dérive de vA·sin psi), et le cap posé juste au-dessus EST la direction du vol — vA = toute la vitesse à plat, plus sa seule part dans l'axe : le cosinus de l'angle était compté DEUX fois (45° → la moitié de l'avance envolée, 60° → les trois quarts). À contresens, inchangé. */ // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
-  {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
+  const nPose9=nitroR;{const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
@@ -50700,6 +50756,7 @@ function tryLand(dt){
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
   const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */ FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose — (2026-10-14, revue des idées de Léo) il était collé au commentaire d'avant, donc avalé : jamais écrit
+  const figN9=FX2.nitF|0;{const nf9=nitroR;figNitRend(!poseRatee);if(SONV2&&nitroR>nf9+.01&&nf9<=nPose9+.01)sfx('nitro.plein',{t:.2});} // (2026-10-17, LA FIGURE SE PAIE — loi 6) chaque figure plantée rend 30 % à la pose RÉUSSIE ; de travers, à contresens ou en plein tour : perdu — le « plein » sonne une fois, avec celui de la pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
   vA*=(1-landLoss);vL*=(1-landLoss);
@@ -50798,7 +50855,7 @@ function tryLand(dt){
     if(g>=1.5&&!poseRatee&&(fallT>.7||gain>0))RUNX.perfect++;
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
-      nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit)*veqNitK(),'figure'); // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
+      if(!figN9)nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit)*veqNitK(),'figure'); /* (loi 6) un vol à figures est payé par figNitRend, juste au-dessus */ // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
       runStats.tricks++;
@@ -50899,6 +50956,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
   mode='drive';prevTvalid=false;bascOn=false;
+  {const nf9=nitroR;figNitRend(!VEQ.rate);if(SONV2&&nitroR>nf9+.01)sfx('nitro.plein',{t:.2});} /* (loi 6) rattrapée à la lèvre : les figures plantées rendent leurs 30 % */
   if(FIGV2.on){if(VEQ.rate)figChute();else figComboEncaisse();} /* (2026-10-15, HUD des figures v3 — vu au banc) la LÈVRE rattrapée est une pose : le combo du vol s'y encaisse
      (ou s'y perd), comme sur la dalle — avant, il disparaissait sans un mot (tryLand sort ici avant l'encaissement) */
   if(chain===0&&chainVal>0)rollover=chainVal; // le REPORT d'un PARFAIT, consommé au décollage, n'est pas perdu pour autant
