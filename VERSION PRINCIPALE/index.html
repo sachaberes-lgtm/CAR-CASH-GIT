@@ -6755,6 +6755,7 @@ html:not([lang=fr]) #gBqTete .bqLim::before,html:not([lang=fr]) #gBqNom .bqLim::
 #gBqPan .bqK.hab .bqKph .bqSw{width:30px;height:30px;box-shadow:0 0 0 1px rgba(20,23,28,.15),inset 0 0 0 2px rgba(255,255,255,.35)}
 #gBqPan .bqK.hab .bqKph .bqRub{width:62%;height:10px;box-shadow:0 0 0 1px rgba(20,23,28,.15)}
 #gBqPan .bqK.hab .bqKph .pxi{--pxs:3;color:#14171c}
+#gBqPan .bqK .bqKph .pxi.bqTrIc{filter:drop-shadow(1px 1px 0 rgba(20,23,28,.6))} /* (2026-10-16, TRAÎNÉES) le pictogramme d'une traînée garde SA couleur sur la salle blanche : un trait d'ombre dur (pixel) pour que le menthe et l'or se lisent sur le blanc */
 #gBqPan .bqK .bqKp.pc{color:#14171c}
 /* (2026-10-12) À LA UNE EN COLONNE, sur le bord : le titre et le compte à rebours en tête, les objets montent en boucle */
 #gBqUne.vert{gap:10px}
@@ -26888,16 +26889,16 @@ function wowStep(px,py,pz,k,dt,big){
   if(WOWT.p0&&dt>0){const iv=1/Math.max(dt,1e-3);WOWT.vx=(px-WOWT.p0[0])*iv;WOWT.vy=(py-WOWT.p0[1])*iv;WOWT.vz=(pz-WOWT.p0[2])*iv;}else{WOWT.p0=[0,0,0];WOWT.vx=WOWT.vy=WOWT.vz=0;}
   WOWT.p0[0]=px;WOWT.p0[1]=py;WOWT.p0[2]=pz;
   if(k>.05){const A=wowAxes(),gar=big<1;WOWT.acc+=dt*(gar?3.2:7)*k;
-    while(WOWT.acc>=1){WOWT.acc-=1;const sd=(WOWT.mi++%2?1:-1),lat=sd*(.45+Math.random()*.9),up=.25+Math.random()*.75,ar=gar?1.6:2.6,ou=sd*(gar?.35:.7);
+    while(WOWT.acc>=1){WOWT.acc-=1;const sd=(WOWT.mi++%2?1:-1),lat=sd*(.45+Math.random()*.9),up=.25+Math.random()*.75,ar=gar?1.6:1.1,ou=sd*(gar?.35:1.1),vk=gar?.86:.955; /* (2026-10-16, TRAÎNÉES) en course les mots gardaient 86 % de l'élan : ils passaient l'objectif en un tiers de seconde, on ne lisait rien — 95,5 %, plus écartés, plus hauts */
       wowLance(px+A[3]*lat+A[6]*up-A[0]*.2,py+A[4]*lat+A[7]*up-A[1]*.2,pz+A[5]*lat+A[8]*up-A[2]*.2,
-        WOWT.vx*.86-A[0]*ar+A[3]*ou+A[6]*.35,WOWT.vy*.86-A[1]*ar+A[4]*ou+A[7]*.35,WOWT.vz*.86-A[2]*ar+A[5]*ou+A[8]*.35,big);}}
+        WOWT.vx*vk-A[0]*ar+A[3]*ou+A[6]*(gar?.35:.8),WOWT.vy*vk-A[1]*ar+A[4]*ou+A[7]*(gar?.35:.8),WOWT.vz*vk-A[2]*ar+A[5]*ou+A[8]*(gar?.35:.8),big);}}
   else WOWT.acc=Math.min(WOWT.acc,.7);                                                                                  // le premier mot part à l'appui
   wowTick(dt);}
 const WOW_V=new THREE.Vector3();
 function wowApercu(dt,on){ // au garage (onglet TRAÎNÉES) : la caisse est posée, les mots sortent de la poupe et s'en vont
   if(!on&&!WOWT.n)return;
   potMonde(typeof CAR_POT_C!=='undefined'?CAR_POT_C:WOW_V.set(0,.5,-2),WOW_V);const A=wowAxes();
-  wowStep(WOW_V.x+A[6]*.2,WOW_V.y+A[7]*.2,WOW_V.z+A[8]*.2,on?1:0,dt,.75);}
+  wowStep(WOW_V.x+A[6]*.2,WOW_V.y+A[7]*.2,WOW_V.z+A[8]*.2,on?1:0,dt,.9);} // (2026-10-16, TRAÎNÉES) ,75 → ,9 : sur la vitrine les mots se lisaient à peine
 window.dbgWow=function(){return {vivants:WOWT.n,caisse:WOWT.caisse,textures:WOWT.tx?WOWT.tx.length:0,fx:!!(FX_EFF?FX_EFF.wow:(CARS[level]&&CARS[level].fx&&CARS[level].fx.wow))};};
 /* ============================================================================
    LES TRAÎNÉES POP (2026-10-14, Sacha : « sois très inventif : invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la
@@ -26928,7 +26929,7 @@ const TRX_VS='attribute vec4 iP;attribute vec4 iA;attribute vec4 iB;attribute ve
  +' float cl=floor(mod(iB.w+.5,8.)),rw=floor((iB.w+.5)/8.);vUv=vec2((cl+q.x*.5+.5)/8.,(7.-rw+q.y*.5+.5)/8.);\n'
  +' vC=iC;vC.a*=smoothstep(uNear.x,uNear.y,-mv.z);}'; // près de l'objectif, tout s'efface : la caméra de poursuite roule DANS la traînée
 const TRX_FS='uniform sampler2D uMap;varying vec2 vUv;varying vec4 vC;\n'
- +'void main(){vec4 t=texture2D(uMap,vUv);float a=t.a*vC.a;if(a<.004)discard;gl_FragColor=vec4(t.rgb*vC.rgb,a);}';
+ +'void main(){vec4 t=texture2D(uMap,vUv);float a=t.a*vC.a;if(a<.004)discard;gl_FragColor=vec4(t.rgb*vC.rgb*a,a);}'; // (2026-10-16, TRAÎNÉES) PRÉMULTIPLIÉ : le mélange se règle sans toucher au programme (additif ↔ encre de la salle blanche, voir trxEncre)
 /* LA PLANCHE : 64 cases de 128 px, chacune garde une marge (les mipmaps ne débordent pas chez la voisine).
    0 halo · 1 trait (foudre, filés) · 2 étincelle · 3 mur de lumière · 4-11 glyphes · 12 anneau d'or · 13 pastille · 14 super-pastille ·
    15-18 fantômes (rouge, rose, cyan, orange) · 19 fantôme apeuré · 20-26 les sept pièces de quatre carrés · 27-29 pétales · 30-31 billet
@@ -27013,6 +27014,21 @@ function trxPlanche(){
   [['....r.....','...ro..r..','...roo.r..','..royo.ro.','..royyoro.','.royyyyor.','.royywyyor','.roywwwyor','royywwwyor','royywwwyyo','.royywwyor','.rooyyyyor','..rooyyor.','...rrrrr..'],
    ['.....r....','..r..or...','..r.oor...','.or.oyor..','.oroyyor..','.royyyyor.','royyywyor.','royywwwyor','royywwwyor','oyywwwyyor','.royywwyor','.royyyyoor','..royyoor.','...rrrrr..']]
    .forEach(function(f,n){pix(32+n,f,8,{'w':'#fff8d0','y':'#ffd02a','o':'#ff7a12','r':'#d8300c'},S-8-f.length*8);});
+  /* (2026-10-16, session TRAÎNÉES) 34 LA BULLE DE SAVON (MENTHE) : presque transparente au milieu, un bord irisé menthe → cyan → rose → or,
+     un reflet de fenêtre en haut à gauche et un point de lumière en bas — elle se lit sur le ciel comme sur le bitume */
+  {const p=O(34),cx=p[0]+64,cy=p[1]+64,R=54;x.save();
+   const b=x.createRadialGradient(cx,cy,R*.55,cx,cy,R);b.addColorStop(0,'rgba(200,255,236,.10)');b.addColorStop(.75,'rgba(170,255,225,.32)');b.addColorStop(1,'rgba(230,255,248,.92)');
+   x.fillStyle=b;x.beginPath();x.arc(cx,cy,R,0,Math.PI*2);x.fill();
+   const ir=[['#5effc8',0],['#5ee6ff',1.3],['#ff8ad8',2.6],['#ffe46a',3.9],['#5effc8',5.2]];x.lineWidth=5;
+   for(let i=0;i<ir.length-1;i++){x.strokeStyle=ir[i][0];x.globalAlpha=.75;x.beginPath();x.arc(cx,cy,R-3,ir[i][1],ir[i+1][1]+.08);x.stroke();}
+   x.globalAlpha=1;x.lineCap='round';x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=7;x.beginPath();x.arc(cx,cy,R-14,Math.PI*1.08,Math.PI*1.38);x.stroke();
+   x.lineWidth=4;x.beginPath();x.arc(cx,cy,R-14,Math.PI*1.47,Math.PI*1.55);x.stroke();
+   x.fillStyle='rgba(255,255,255,.9)';x.beginPath();x.arc(cx+R*.42,cy+R*.45,5,0,Math.PI*2);x.fill();x.restore();}
+  /* 35 LE CŒUR D'ENSEIGNE (ROSE NÉON) : un TUBE de néon plié en cœur (le trait blanc, la couleur vient de l'instance) et sa lueur */
+  {const p=O(35),cx=p[0]+64,cy=p[1]+68;x.save();x.lineJoin='round';x.lineCap='round';
+   const coeur=function(){x.beginPath();x.moveTo(cx,cy+36);x.bezierCurveTo(cx-52,cy+2,cx-44,cy-46,cx,cy-20);x.bezierCurveTo(cx+44,cy-46,cx+52,cy+2,cx,cy+36);};
+   x.shadowColor='#ffffff';x.shadowBlur=18;x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=16;coeur();x.stroke();
+   x.shadowBlur=6;x.strokeStyle='#ffffff';x.lineWidth=7;coeur();x.stroke();x.restore();}
   return cv;
 }
 function trxBati(){if(TRX)return TRX;
@@ -27021,9 +27037,9 @@ function trxBati(){if(TRX)return TRX;
     g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([-1,-1,0,1,-1,0,1,1,0,-1,1,0]),3));g.setIndex([0,1,2,0,2,3]);
     for(const k of ['iP','iA','iB','iC']){const at=new THREE.InstancedBufferAttribute(new Float32Array(TRX_N*4),4);at.setUsage(THREE.DynamicDrawUsage);g.setAttribute(k,at);a[k]=at.array;}
     g.instanceCount=0;
-    const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:{uMap:{value:tx},uNear:{value:new THREE.Vector2(1.2,3.4)}},vertexShader:TRX_VS,fragmentShader:TRX_FS,
-      transparent:true,depthWrite:false,blending:add?THREE.AdditiveBlending:THREE.NormalBlending,side:THREE.DoubleSide}));
-    m.frustumCulled=false;m.renderOrder=add?4:3;m.visible=false;scene.add(m);return {m:m,g:g,a:a,n:0};};
+    const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:{uMap:{value:tx},uNear:{value:new THREE.Vector2(.9,2.1)}/* (2026-10-16, TRAÎNÉES) 1,2-3,4 → 0,9-2,1 m : ce qui entoure la caisse est à 3-5 m de la poursuite, il s'effaçait */},vertexShader:TRX_VS,fragmentShader:TRX_FS,
+      transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:add?THREE.OneFactor:THREE.OneMinusSrcAlphaFactor,side:THREE.DoubleSide}));
+    m.frustumCulled=false;m.renderOrder=add?4:3;m.visible=false;scene.add(m);return {m:m,g:g,a:a,n:0,add:add};};
   const V=function(){return new THREE.Vector3();};
   TRX={L:[mk(false),mk(true)],P:[],pi:0,type:null,n:0,t:0,acc:0,dist:0,cnt:0,kp:0,gk:0,peur:0,boltT:0,ms:0,apercu:false,
     C:{P:V(),F:V(),U:V(),R:V(),V:V(),B:V(),WL:V(),WR:V(),pv:false,dp:0,sol:true},v1:V(),wl0:V(),wr0:V(),pP:V(),bolts:[],
@@ -27034,7 +27050,11 @@ function trxBati(){if(TRX)return TRX;
   return TRX;}
 function trxNait(L){const T=TRX;for(let n=0;n<TRX_PN;n++){const i=(T.pi+n)%TRX_PN,p=T.P[i];if(p.v)continue;T.pi=(i+1)%TRX_PN;
   p.v=true;p.L=L;p.md=0;p.vx=p.vy=p.vz=0;p.g=0;p.dr=0;p.a=0;p.l=1;p.s1=1;p.r=0;p.vr=0;p.sn=0;p.st=0;p.sg=1;p.fl=0;p.fp=Math.random()*6.283;
-  p.c2=-1;p.cf=0;p.ct=0;p.cn=0;p.cr=p.cg=p.cb=p.ca=1;p.fi=0;p.fo=.3;p.bk=0;p.an=false;p.sw=0;p.ln=0;p.gr=.3;return p;}return null;}
+  p.c2=-1;p.cf=0;p.ct=0;p.cn=0;p.cr=p.cg=p.cb=p.ca=1;p.fi=0;p.fo=.3;p.bk=0;p.an=false;p.sw=0;p.ln=0;p.gr=.3;p.fk=0;p.tw=0;p.mo=0;return p;}return null;}
+function trxMeurt(p){ // (2026-10-16, TRAÎNÉES) ce qui meurt avec un éclat : la bulle de savon CREVE (un anneau de gouttes qui s'ouvre, une étincelle)
+  if(p.mo===1){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx;s.vy=p.vy;s.vz=p.vz;s.l=.13;s.w=s.h=p.w*1.6;s.s1=1.8;s.c=2;s.cr=1.2;s.cg=1.7;s.cb=1.5;s.fo=.1;s.vr=4;}
+    for(let i=0;i<4;i++){const d=trxNait(1);if(!d)break;const a=i*1.5708+Math.random()*.6;d.x=p.x;d.y=p.y;d.z=p.z;
+      d.vx=p.vx+Math.cos(a)*1.6;d.vy=p.vy+Math.sin(a)*1.6;d.vz=p.vz;d.g=-3;d.l=.22;d.w=d.h=.035;d.c=0;d.cr=.8;d.cg=1.6;d.cb=1.3;d.fo=.12;}}}
 function trxVit(p,vk){const C=TRX.C,k=C.pv?(vk>=.999?0:-Math.max(1-vk,.35)):vk;p.vx+=C.V.x*k;p.vy+=C.V.y*k;p.vz+=C.V.z*k;} // l'élan hérité — au garage, le RECUL (la caisse est posée) : au moins 35 % des 14 m/s, sinon ce qui suit la caisse s'entasse sur la poupe
 /* ⚠ L'ÉLAN GARDÉ (`vk`) DÉCIDE CE QU'ON VOIT EN COURSE (mesuré au 1er banc) : la caméra de poursuite est à quelques mètres derrière. À 80 m/s,
    une particule qui ne garde que 55 % de l'élan recule de 36 m/s et passe l'objectif en 0,15 s — on ne la voit jamais. Ce qui doit se LIRE
@@ -27043,7 +27063,7 @@ function trxQ(L,md,px,py,pz,a0,a1,a2,a3,b0,b1,b2,cell,r,g,b,al){const Y=TRX.L[L]
   A.iP[o]=px;A.iP[o+1]=py;A.iP[o+2]=pz;A.iP[o+3]=md;A.iA[o]=a0;A.iA[o+1]=a1;A.iA[o+2]=a2;A.iA[o+3]=a3;
   A.iB[o]=b0;A.iB[o+1]=b1;A.iB[o+2]=b2;A.iB[o+3]=cell;A.iC[o]=r;A.iC[o+1]=g;A.iC[o+2]=b;A.iC[o+3]=al;Y.n++;}
 function trxParts(dt){let n=0;const E=TRX.C.pv?1:1.35; // en course la caisse est petite dans l'image : les sprites grossissent d'un tiers (mesuré au banc)
-  for(const p of TRX.P){if(!p.v)continue;p.a+=dt;if(p.a>=p.l){p.v=false;continue;}n++;
+  for(const p of TRX.P){if(!p.v)continue;p.a+=dt;if(p.a>=p.l){p.v=false;if(p.mo)trxMeurt(p);continue;}n++;
     if(p.dr){const e=Math.exp(-p.dr*dt);p.vx*=e;p.vy*=e;p.vz*=e;}
     p.vy+=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
     if(p.sw){const s=Math.cos(p.a*p.sf+p.fp)*p.sw*dt;p.x+=p.sx*s;p.y+=p.sy*s;p.z+=p.sz*s;}           // le balancement (pétale, billet)
@@ -27051,6 +27071,8 @@ function trxParts(dt){let n=0;const E=TRX.C.pv?1:1.35; // en course la caisse es
     if(p.cf){p.ct+=dt;if(p.ct>=p.cf){p.ct=0;p.c=p.cn?p.c0+((Math.random()*p.cn)|0):(p.c===p.c0?p.c2:p.c0);}} // le code qui change, la flamme qui bat
     const rest=p.l-p.a;let al=p.ca;if(p.fi&&p.a<p.fi)al*=p.a/p.fi;if(rest<p.fo)al*=rest/p.fo;
     if(p.bk&&rest<p.bk&&((p.a*16)|0)%2)al*=.15;                                                      // le CLIGNOTEMENT d'avant la disparition
+    if(p.fk&&Math.random()<p.fk)al*=.12;                                                              // (2026-10-16) le néon qui GRÉSILLE
+    if(p.tw){const w=Math.max(0,Math.sin(p.a*p.tw+p.fp));al*=.25+.75*w*w*w;}                          // (2026-10-16) la paillette qui SCINTILLE
     const sz=1+(p.s1-1)*p.a/p.l;
     if(p.md===1){const ln=p.ln*Math.min(1,p.a/p.gr)*.5;
       trxQ(p.L,1,p.x-p.dx*ln,p.y-p.dy*ln,p.z-p.dz*ln,p.dx*ln,p.dy*ln,p.dz*ln,p.w*sz,0,0,0,p.c,p.cr,p.cg,p.cb,al);continue;}
@@ -27172,8 +27194,38 @@ const TRX_EMET={
       p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.86);
       p.g=-5.5;p.dr=1.4;p.sw=.8;p.sf=4+Math.random()*3;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*6;p.fl=6+Math.random()*6;
-      p.l=1.8+Math.random()*.6;p.w=p.h=.3;p.c=30;p.c2=31;p.fo=.5;}}
+      p.l=1.8+Math.random()*.6;p.w=p.h=.3;p.c=30;p.c2=31;p.fo=.5;}},
+  /* (2026-10-16, session TRAÎNÉES — Sacha : « il faut qu'elle donne toute envie d'acheter ») LES TROIS RUBANS ONT ENFIN LEUR SIGNATURE.
+     En course on voit ~3 m de traînée dans l'axe : MENTHE, ROSE NÉON et POUDRE D'OR n'étaient qu'un fil d'une autre couleur à côté du
+     feu orange. Chacun gagne ses éclats, lancés SUR LES CÔTÉS et VERS LE HAUT (là où la caméra de poursuite les voit), élan gardé ~0,93. */
+  bulles:function(T,C,k,dt,on,debut){if(!on)return; // MENTHE — des bulles de savon irisées qui montent de la poupe, se dandinent et CRÈVENT
+    let nb=0;T.acc+=dt*(C.pv?6:10)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?5:9;
+    for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const sd=Math.random()<.5?-1:1,lat=sd*(.35+Math.random()*.6),up=.15+Math.random()*.5,sl=sd*(.5+Math.random()*1.4),su=.7+Math.random()*1.3,sa=.1+Math.random()*.4;
+      p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
+      p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.975);
+      p.g=.5;p.dr=.9;p.sw=.7;p.sf=2+Math.random()*2.5;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;
+      p.l=1.1+Math.random()*1.2;p.w=p.h=.17+Math.random()*.2;p.s1=1.3;p.c=34;p.fi=.12;p.fo=.06;p.mo=1;}},
+  neon:function(T,C,k,dt,on,debut){if(!on)return; // ROSE NÉON — des cœurs d'enseigne en tube de néon, qui grésillent ; à l'allumage, une volée
+    let nb=0;T.acc+=dt*(C.pv?3.2:4.5)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?3:5;
+    for(let q=0;q<nb;q++){const p=trxNait(1);if(!p)return;const sd=(T.cnt++%2)?1:-1,lat=sd*(.45+Math.random()*.55),up=.45+Math.random()*.7;
+      p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
+      p.vx=C.R.x*sd*(.5+Math.random())+C.U.x*(.5+Math.random()*.8)-C.F.x*.6;p.vy=C.R.y*sd*(.5+Math.random())+C.U.y*(.5+Math.random()*.8)-C.F.y*.6;p.vz=C.R.z*sd*(.5+Math.random())+C.U.z*(.5+Math.random()*.8)-C.F.z*.6;trxVit(p,.975);
+      p.dr=.6;p.l=.9+Math.random()*.6;p.w=p.h=.2+Math.random()*.12;p.s1=1.15;p.c=35;p.r=(Math.random()-.5)*.5;p.vr=(Math.random()-.5)*.8;
+      p.cr=1.75;p.cg=.28;p.cb=1.2;p.fi=.05;p.fo=.25;p.fk=.07;p.bk=.3;}
+    T.boltT-=dt;if(T.boltT<=0){T.boltT=.05+Math.random()*.12;const p=trxNait(1);if(p){const sd=Math.random()<.5?-1:1; // le tube qui CRÉPITE : une petite étincelle rose à un feu
+      p.x=C.P.x+C.R.x*sd*.5;p.y=C.P.y+C.R.y*sd*.5;p.z=C.P.z+C.R.z*sd*.5;trxVit(p,.97);p.l=.09;p.w=p.h=.22;p.c=2;p.vr=9;p.cr=1.9;p.cg=.9;p.cb=1.6;p.fo=.06;}}},
+  paillettes:function(T,C,k,dt,on,debut){if(!on)return; // POUDRE D'OR — des paillettes qui SCINTILLENT et retombent en pluie fine, et la poussière d'or qui luit
+    let nb=0;T.acc+=dt*(C.pv?30:55)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?14:28;
+    for(let q=0;q<nb;q++){const p=trxNait(1);if(!p)return;const lat=(Math.random()-.5)*2.1,up=.05+Math.random()*1.1,ar=Math.random()*1.2;
+      p.x=C.P.x+C.R.x*lat+C.U.x*up-C.F.x*ar;p.y=C.P.y+C.R.y*lat+C.U.y*up-C.F.y*ar;p.z=C.P.z+C.R.z*lat+C.U.z*up-C.F.z*ar;
+      const sl=lat*.9,su=.3+Math.random()*1.2;p.vx=C.R.x*sl+C.U.x*su;p.vy=C.R.y*sl+C.U.y*su;p.vz=C.R.z*sl+C.U.z*su;trxVit(p,.96);
+      p.g=-1.6;p.dr=1.2;p.l=.8+Math.random()*1;p.w=p.h=(C.pv?.08:.13)+Math.random()*(C.pv?.1:.15);p.c=2;p.vr=(Math.random()-.5)*6;p.tw=9+Math.random()*12;
+      const bl=Math.random();p.cr=2.2+bl*.4;p.cg=1.75+bl*.6;p.cb=.5+bl*.8;p.fi=.05;p.fo=.3;
+      if(Math.random()<.2){const h=trxNait(1);if(h){h.x=p.x;h.y=p.y;h.z=p.z;h.vx=p.vx;h.vy=p.vy;h.vz=p.vz;h.g=-.6;h.dr=1.5;h.l=.6+Math.random()*.5;h.w=h.h=.22+Math.random()*.2;h.c=0;h.cr=.9;h.cg=.6;h.cb=.12;h.ca=.55;h.fi=.1;h.fo=.4;}}}}
 };
+/* (2026-10-16, TRAÎNÉES) L'ENSEIGNE QUI S'ALLUME : à l'appui de nitro, ROSE NÉON ne s'allume pas d'un coup — le tube CLIGNOTE comme une
+   enseigne qu'on branche (allumé, noir, allumé, noir, puis pour de bon), en 0,42 s. `t` = le temps depuis l'allumage. */
+function neonAllume(t){return t>=.42?1:t<.06?1:t<.13?.08:t<.18?.85:t<.29?.05:t<.34?.6:t<.37?.15:1;}
 function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   if(type!==T.type){T.type=type;T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.cnt=0;for(const b of T.bolts)b.on=false;T.wl0.copy(C.WL);T.wr0.copy(C.WR);}
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
@@ -27181,6 +27233,12 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   T.L[0].n=T.L[1].n=0;
   const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,dt,on,debut);
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
+  { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
+       passe en ENCRE (mélange 0, 1 − src ; couleur = la teinte pure × l'intensité) : sur le blanc on lit la couleur de la traînée */
+    const enc=C.pv&&silBlanc(),Y=T.L[1],M=Y.m.material;
+    if(!!M._encre!==enc){M._encre=enc;M.blendSrc=enc?THREE.ZeroFactor:THREE.OneFactor;M.blendDst=enc?THREE.OneMinusSrcColorFactor:THREE.OneFactor;}
+    if(enc){const c=Y.a.iC;for(let i=0;i<Y.n;i++){const o=i*4,r=c[o],g=c[o+1],b=c[o+2],m=Math.max(r,g,b,1e-4),s=Math.min(1,m*.85);
+      c[o]=Math.min(1,1.1-r/m)*s;c[o+1]=Math.min(1,1.1-g/m)*s;c[o+2]=Math.min(1,1.1-b/m)*s;}}}
   for(const Y of T.L){const n=Y.n;Y.g.instanceCount=n;Y.m.visible=n>0;
     if(n)for(const nm of ['iP','iA','iB','iC']){const at=Y.g.attributes[nm];at.updateRange.offset=0;at.updateRange.count=n*4;at.needsUpdate=true;}}
   T.n=np+T.L[0].n+T.L[1].n+nb+(T.gk>0?1:0); // tant qu'il reste quelque chose (même un mur qui s'éteint), la boucle continue d'appeler
@@ -27414,11 +27472,25 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
     const dx=Q[r2*8]-Q[0],dy=Q[r2*8+1]-Q[1],dz=Q[r2*8+2]-Q[2],l9=Math.sqrt(dx*dx+dy*dy+dz*dz);
     if(l9>.25){tr.dX=dx/l9;tr.dY=dy/l9;tr.dZ=dz/l9;tr.dOk=true;}}
   // (v6) LES BRAISES : le sillage crache des étincelles sur toute sa longueur (plus serrées près de la tuyère), qui s'écartent et montent
-  if(emet&&R9>6&&dt>0&&tr.hk>.15){let nb=SIL.braise*dt*60*tr.g*tr.hk; // (2026-10-15) au nitro seulement : un feu arrière ne crache pas de braises
+  if(emet&&R9>6&&dt>0&&tr.hk>.15&&!(FX_EFF&&FX_EFF.pop)){let nb=SIL.braise*dt*60*tr.g*tr.hk; // (2026-10-15) au nitro seulement : un feu arrière ne crache pas de braises — (2026-10-16, TRAÎNÉES) une traînée qui a ses propres éclats (pop) ne crache plus les cubes ORANGE du feu : une traînée menthe crachait de la braise
     while(nb>0){if(nb<1&&Math.random()>nb)break;nb--;
       const r=2+Math.floor(Math.pow(Math.random(),1.6)*(R9-3)),o=r*8,a=Math.random()*6.2832,sp=.8+Math.random()*2.2;
       if(nfeuGicle(Q[o]+(Math.random()-.5)*.3,Q[o+1]+(Math.random()-.5)*.3,Q[o+2]+(Math.random()-.5)*.3,Math.cos(a)*sp*.8,Math.abs(Math.sin(a))*sp+1.2,Math.sin(a)*sp*.5,.09+.07*Math.random()))continue; // (2026-10-15) des CUBES du feu de pixels (repli : les braises rondes)
       spawnP(silBraises,Q[o]+(Math.random()-.5)*.3,Q[o+1]+(Math.random()-.5)*.3,Q[o+2]+(Math.random()-.5)*.3,Math.cos(a)*sp,Math.abs(Math.sin(a))*sp+.6,Math.sin(a)*sp*.6,.35+Math.random()*.4);}}
+  silRuban(tr,R9,emet,dt,wm,wu);
+}
+/* (2026-10-16, session TRAÎNÉES — Sacha : « améliore chaque traînée, il faut qu'elle donne toute envie d'acheter ») LE RUBAN À PART :
+   la courbe (SIL_Q, R9 rangées x y z k r g b) devient le ruban face caméra. Séparé de sillageStep pour que l'APERÇU du garage dessine la
+   VRAIE traînée de lumière (silApercu) — avant, l'atelier montrait une bande plate qui sortait des pots.
+   SIL_ENCRE : dans la SALLE BLANCHE de la boutique, une lumière additive ne se voit pas sur le blanc. Le ruban y passe en ENCRE : même
+   géométrie, mélange (0, 1 − src) et couleur inversée — le blanc se teinte de la couleur de la traînée, à la même intensité. Le mélange
+   n'entre pas dans la clé des programmes de three r128 : zéro recompilation. */
+let SIL_ENCRE=false,SIL_STY=null; // SIL_STY : le TEMPÉRAMENT d'un ruban de la boutique (`sil` sur sa fiche) — c : le cœur ×, h : le halo ×, f : le refroidissement (0 = garde sa couleur jusqu'au bout), p : les pouls ×
+function silEncre(m,on){const M=m.material;if(!!M._encre===on)return;M._encre=on;
+  if(on){M.blending=THREE.CustomBlending;M.blendEquation=THREE.AddEquation;M.blendSrc=THREE.ZeroFactor;M.blendDst=THREE.OneMinusSrcColorFactor;}
+  else M.blending=THREE.AdditiveBlending;}
+function silRuban(tr,R9,emet,dt,wm,wu){
+  const Q=SIL_Q;silEncre(tr.m,SIL_ENCRE);
   // 2) LE RUBAN : face caméra, halo + cœur ; en vol, coupé à l'écran quand il PEND sous sa tuyère
   const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1,wa=wu||1,LG=Math.max(4,tr.lg),QU=SIL.QUEUE*LG/SIL.LONG;
   TR_PJ.set(Q[0],Q[1],Q[2]).project(camera);const yh=TR_PJ.y,xh=TR_PJ.x,asp=camera.aspect||.5;
@@ -27447,17 +27519,19 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
     if(fin)f=0;
     const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
     dp=d;
-    const fC=f*fK*SM(dC,2.4,4.2),fG=f*SM(dC,3,6.5),wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
+    const fC=f*fK*SM(dC,1.4,2.7),fG=f*SM(dC,1.9,3.8), /* (2026-10-16, TRAÎNÉES) le fondu près de l'objectif RESSERRÉ (cœur 2,4-4,2 → 1,4-2,7 m, halo 3-6,5 → 1,9-3,8 m) : la poursuite est à 2,5-4,5 m des feux, donc TOUT ce qu'on voyait de la traînée en course était dans le fondu — deux fils pâles. Les plafonds de largeur (capC/capG) gardent l'écran sans voile. */wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
     const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
-    const pu=1+SIL.pouls*tr.hk*Math.pow(Math.max(0,Math.sin(arc*.5-tr.clk*SIL.poulsV)),4); // (v6) les POULS : des perles d'énergie filent de la tuyère vers la queue
+    const pu=1+SIL.pouls*(SIL_STY&&SIL_STY.p?SIL_STY.p:1)*tr.hk*Math.pow(Math.max(0,Math.sin(arc*.5-tr.clk*SIL.poulsV)),4); // (v6) les POULS : des perles d'énergie filent de la tuyère vers la queue
     const hot=SIL.chaud*(.12+.88*tr.hk)*fC*Math.exp(-arc*.4)*pu; // (traînées de lumière) un feu arrière ne blanchit presque pas ; le nitro, si // la tête BLANCHIT
     /* LE FEU REFROIDIT : blanc à la tuyère, la couleur franche sur le corps, puis elle tire vers le ROUGE-MAGENTA vers le bout */
     /* (2026-10-15) …comme les CUBES du feu de pixels : la teinte GARDE sa famille et s'assombrit en se serrant un peu sur sa couleur dominante —
        l'orange tombe à la braise (pas au rouge : « trop rouge par rapport à la barre », Sacha), le bleu de réserve au bleu nuit, le rouge des feux
        au rouge sang. Plus de virage magenta. */
-    const c0=Q[o+4],c1=Q[o+5],c2=Q[o+6],m9=Math.max(c0,c1,c2,1e-4),fr=SIL.froid*SM(al,.08,.85),
+    const c0=Q[o+4],c1=Q[o+5],c2=Q[o+6],m9=Math.max(c0,c1,c2,1e-4),fr=(SIL_STY&&SIL_STY.f!=null?SIL_STY.f:SIL.froid)*SM(al,.08,.85),
       qr=c0+(c0*.5*Math.pow(c0/m9,.4)-c0)*fr,qg=c1+(c1*.5*Math.pow(c1/m9,.4)-c1)*fr,qb=c2+(c2*.5*Math.pow(c2/m9,.4)-c2)*fr;
-    const hk=SIL.halo*(1+(pu-1)*.4),ck=SIL.coeur*pu,v=r*12,gr=qr*fG*hk,gg=qg*fG*hk,gb=qb*fG*hk,kr=qr*fC*ck+hot,kg=qg*fC*ck+hot,kb=qb*fC*ck+hot;
+    const hk=SIL.halo*(SIL_STY?SIL_STY.h:1)*(1+(pu-1)*.4),ck=SIL.coeur*(SIL_STY?SIL_STY.c:1)*pu,v=r*12;let gr=qr*fG*hk,gg=qg*fG*hk,gb=qb*fG*hk,kr=qr*fC*ck+hot,kg=qg*fC*ck+hot,kb=qb*fC*ck+hot;
+    if(SIL_ENCRE){const mq=Math.max(qr,qg,qb,1e-4),hr=1-qr/mq,hg=1-qg/mq,hb=1-qb/mq,sg=Math.min(1,fG*hk*1.15),sc=Math.min(1,fC*ck*1.1); // l'ENCRE : la teinte pure, posée à l'intensité de la lumière (le cœur « blanc » se lit en couleur dense)
+      gr=hr*sg;gg=hg*sg;gb=hb*sg;kr=Math.min(1,(hr+.18)*sc);kg=Math.min(1,(hg+.18)*sc);kb=Math.min(1,(hb+.18)*sc);}
     P[v]=x+SS.x*wg;P[v+1]=y+SS.y*wg;P[v+2]=z+SS.z*wg;P[v+3]=x-SS.x*wg;P[v+4]=y-SS.y*wg;P[v+5]=z-SS.z*wg;
     P[v+6]=x+SS.x*wc;P[v+7]=y+SS.y*wc;P[v+8]=z+SS.z*wc;P[v+9]=x-SS.x*wc;P[v+10]=y-SS.y*wc;P[v+11]=z-SS.z*wc;
     C[v]=C[v+3]=gr;C[v+1]=C[v+4]=gg;C[v+2]=C[v+5]=gb;C[v+6]=C[v+9]=kr;C[v+7]=C[v+10]=kg;C[v+8]=C[v+11]=kb;
@@ -33181,7 +33255,7 @@ function buildCar(spec){
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
   carGroup.userData.capot=[0,y0+H9*.78,L9*.28]; // (2026-09-28) le CAPOT, en repère caisse : c'est là que le nouveau moteur RENTRE (voir engBigSuit)
   try{const tD=cosmSur('trainee'); // LA TRAÎNÉE DE LA BOUTIQUE : elle se pose PAR-DESSUS la signature de la caisse
-   FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null,wow:false}:tD.wow?{wow:true,rainbow:false,trail:tD.rgb}:{trail:tD.rgb,rainbow:false,wow:false,pop:tD.pop||null,rubOff:!!tD.rubOff}):null; // (2026-10-14) une traînée POP : son moteur (TRX) et, ou non, son ruban
+   FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null,wow:false}:tD.wow?{wow:true,rainbow:false,trail:tD.rgb}:{trail:tD.rgb,rainbow:false,wow:false,pop:tD.pop||null,rubOff:!!tD.rubOff,sil:tD.sil||null}):null; // (2026-10-14) une traînée POP : son moteur (TRX) et, ou non, son ruban
   }catch(e){} // ⚠ 1er buildCar à l'init : `FX_EFF` n'est pas encore déclaré (zone morte) — il vaut null de toute façon
   /* (2026-10-14, session PERF) LA TRAÎNÉE WOW CHOISIE AU GARAGE. chauffeDivers ne prépare la traînée WOW que pour la caisse équipée AU
      CHARGEMENT : une caisse ou une traînée WOW prise ensuite au garage peignait ses 12 toiles et créait ses 18 sprites à la 1re NITRO,
@@ -36522,9 +36596,9 @@ const COSM={
     {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'mythique',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui ne s\'éteignent jamais. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
   trainee:[
     {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
-    {id:'menthe',  n:'MENTHE',            p:2000,  rgb:[.30,1.30,.92],d:'Un sillage vert d\'eau qui sent le propre.'},
-    {id:'rose',    n:'ROSE NÉON',         p:4000,  rgb:[1.45,.22,1.05],d:'Le rose des enseignes. On te suit à la trace.'},
-    {id:'or',      n:'POUDRE D\'OR',      p:15000, rgb:[1.45,1.05,.22],d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
+    {id:'menthe',  n:'MENTHE',            p:2000,  rgb:[.30,1.30,.92],pop:'bulles',sil:{c:1.15,h:.9,f:.12,p:.6},d:'Un sillage vert d\'eau qui sent le propre.'},
+    {id:'rose',    n:'ROSE NÉON',         p:4000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
+    {id:'or',      n:'POUDRE D\'OR',      p:15000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
     // (2026-10-14) LES TRAÎNÉES POP (voir TRX) — `pop` : son moteur · `rgb` : la couleur du ruban qui l'accompagne · `rubOff` : pas de ruban (l'effet EST la traînée)
@@ -52107,13 +52181,41 @@ function closeGarage(){
    longueur. On dessine donc deux rubans d'aperçu qui partent des tuyères et ondulent vers l'arrière, à la couleur de la
    traînée essayée (arc-en-ciel compris), additifs et fondus au bout — seulement dans l'onglet TRAÎNÉES. */
 const TRPV={r:[],t:0,v1:new THREE.Vector3(),c:new THREE.Color()};
+/* L'APERÇU EN VRAIE LUMIÈRE (2026-10-16, session TRAÎNÉES — Sacha : « améliore chaque traînée, il faut qu'elle donne toute envie
+   d'acheter »). L'atelier et la boutique montraient une bande PLATE qui sortait des POTS : un pavé de couleur, rien à voir avec la traînée
+   de la course (qui part des FEUX ARRIÈRE, cœur + halo, tête chauffée à blanc, pouls d'énergie). Ici, deux sillages à eux (créés à la
+   première traînée essayée, même matière que ceux de la course : zéro programme de plus), nourris d'un chemin inventé qui part des feux et
+   ondule vers l'arrière, rendus par silRuban. L'ALLUMAGE se voit — la lumière file des feux jusqu'au bout en 0,28 s, la tête flashe —
+   parce que l'inventaire ENCHAÎNE (v540) : on n'a qu'une demi-seconde pour la voir. En salle blanche (boutique), le ruban passe en encre. */
+const SILPV={s:[],t:0,on:0,id:'',v:new THREE.Vector3()};
+function silBlanc(){return !!(garageOn&&GBQ.on&&GBQ.grp&&GBQ.grp.visible);}
+function silApercu(dt,on,k9){
+  const S=SILPV;
+  if(!on){for(const tr of S.s)tr.m.visible=false;S.on=0;S.id='';return false;}
+  const d=cosmSur('trainee'),nf=Math.min(2,CAR_FEUX.length);if(!d||!nf)return false;
+  if(!S.s.length)S.s.push(mkSillage(),mkSillage());
+  const id=d.id+':'+garageI+':'+nf;if(id!==S.id){S.id=id;S.on=0;}            // une autre traînée, une autre caisse : l'allumage se rejoue
+  S.on+=dt;S.t+=dt;
+  const neo=d.pop==='neon',rgb=d.rgb||[1.38,.62,.17],ku=.74,kk=Math.max(.8,k9==null?1:k9)*(neo?neonAllume(S.on):1),gro=neo?1:Math.min(1,S.on/.28),ign=neo?0:Math.exp(-S.on*4.5),
+    L=11*(.12+.88*gro*(2-gro)),Q=SIL_Q,v=S.v,N=34;
+  SIL_ENCRE=silBlanc();SIL_STY=d.sil||null;
+  for(let i=0;i<2;i++){const tr=S.s[i];if(i>=nf){tr.m.visible=false;continue;}
+    const F=CAR_FEUX[i],sd=nf===1?0:(F.x<0?-1:1);
+    tr.g=1;tr.hk=1;tr.clk=S.t;tr.lg=L;
+    for(let j=0;j<N;j++){const u=j/(N-1),o=j*8;
+      if(!j)potMonde(F,v);
+      else{v.set(F.x+sd*u*.4+Math.sin(u*3.1-S.t*3.4+i*.7)*.2*u,F.y+u*.14+Math.sin(u*2.3-S.t*2.6+i)*.08*u,F.z-u*L);carGroup.localToWorld(v);}
+      Q[o]=v.x;Q[o+1]=v.y;Q[o+2]=v.z;Q[o+3]=kk;Q[o+4]=rgb[0]*ku;Q[o+5]=rgb[1]*ku;Q[o+6]=rgb[2]*ku;}
+    silRuban(tr,N,true,dt,1+ign*1.1,(nf===1?SIL.un:1)*.62);}
+  SIL_ENCRE=false;SIL_STY=null;return true;}
 function trailApercu(dt,on,k9){ // k9 (2026-09-30, LA CHUTE) : l'intensité, 1 par défaut
   {const d9=on?cosmSur('trainee'):null,a9=!!(d9&&(d9.rainbow||(d9.id==='nitro'&&NYAN.on))), // (2026-10-07) l'ARC-EN-CIEL s'essaie en vrai : le feu de pixels de la course — celui de la boutique, ou la traînée d'origine du chat
          bk9=(NYAN.on&&garageOn&&BURN.k>.03)?BURN.k:0; // …et au BURN-OUT le chat boost sur place : son arc-en-ciel sort de la poupe et suit la caisse dans le donut
    rainbowApercu(dt,a9||bk9>0,camera,Math.max(a9?(k9==null?1:k9):0,bk9));if(a9)on=false;}
   {const d9=on?cosmSur('trainee'):null,w9=!!(d9&&(d9.wow||(d9.id==='nitro'&&WOWT.caisse)));wowApercu(dt,w9);if(w9)on=false;}
   {const d9=on?cosmSur('trainee'):null,p9=d9&&d9.pop||null;trxApercu(dt,p9,k9);if(p9&&d9.rubOff)on=false;} // (2026-10-14) LES TRAÎNÉES POP s'essaient en vrai (le ruban d'aperçu reste, à leur couleur, sauf pour celles qui n'en ont pas) // (2026-10-14) LA TRAÎNÉE WOW s'essaie en vrai
-  if(!on){for(const r of TRPV.r)r.m.visible=false;return;}
+  if(!on){for(const r of TRPV.r)r.m.visible=false;silApercu(0,false);return;}
+  if(silApercu(dt,true,k9)){for(const r of TRPV.r)r.m.visible=false;return;} // (2026-10-16, TRAÎNÉES) la VRAIE traînée de lumière, depuis les feux (la bande d'avant reste en repli)
   const N=36;
   if(!TRPV.r.length)for(let k=0;k<2;k++){
     const g=new THREE.BufferGeometry(),pos=new Float32Array(N*2*3),col=new Float32Array(N*2*3),idx=[];
@@ -54092,7 +54194,7 @@ function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; /
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
   if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
   if(o.cat==='peinture')return '<i class="bqSw" style="background:'+(d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
-  if(o.cat==='trainee'&&d.ico)return pxi(d.ico); // (2026-10-14) une traînée POP : son pictogramme
+  if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
 function bqPieces(){if(!GBQ.pieces){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.p>0&&u.k!=='premium'&&!carRetiree(i))L.push(i);} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
@@ -59087,11 +59189,14 @@ function loop(now){
       const kB=(arc9&&!sig9&&trailK>.05)?0:roule9?LUMT.k*(1+LUMT.kF*fr9):0,kT=kB+(1-kB)*fx9; // la lumière des feux, puis l'énergie du nitro par-dessus
       const lr=LUMT.r[0]+(LUMT.rF[0]-LUMT.r[0])*fr9,lg=LUMT.r[1]+(LUMT.rF[1]-LUMT.r[1])*fr9,lb=LUMT.r[2]+(LUMT.rF[2]-LUMT.r[2])*fr9; // rouge des feux, plus vif au frein
       const cr9=(lr+(tcr-lr)*fx9)*ku9,cg9=(lg+(tcg-lg)*fx9)*ku9,cb9=(lb+(tcb-lb)*fx9)*ku9,wm9=1+(tw9-1)*fx9,wl9=wu9*(LUMT.w+(1-LUMT.w)*fx9);
+      loop._nOnT=nitroOn?(loop._nOnT||0)+dt:0;let kT9=kT;if(FXT&&FXT.pop==='neon'&&!sig9&&fx9>.05)kT9*=neonAllume(loop._nOnT); // (2026-10-16, TRAÎNÉES) ROSE NÉON : l'enseigne qui s'allume en clignotant
+      SIL_STY=(FXT&&FXT.sil&&!sig9&&fx9>.4)?FXT.sil:null;
       const lgT=LUMT.lg+(SIL.LONG-LUMT.lg)*fx9;
       for(let i9=0;i9<4;i9++){const tr9=SILS[i9];
         tr9.hk=fx9;tr9.lg=lgT>tr9.lg?lgT:Math.max(lgT,tr9.lg-LUMT.rDn*dt); // la queue de nitro s'allonge d'un coup, et se fait AVALER en douceur
-        if(i9<nf9){potMonde(CAR_FEUX[i9],tmp2);sillageStep(tr9,tmp2.x,tmp2.y,tmp2.z,cr9,cg9,cb9,kT,wm9,dt,wl9);}
+        if(i9<nf9){potMonde(CAR_FEUX[i9],tmp2);sillageStep(tr9,tmp2.x,tmp2.y,tmp2.z,cr9,cg9,cb9,kT9,wm9,dt,wl9);}
         else sillageStep(tr9,0,0,0,0,0,0,0,1,dt);} // un feu de moins (changement de caisse) : ce sillage s'éteint
+      SIL_STY=null;
     }
     // L'ARC-EN-CIEL EST LA TRAÎNÉE DE NITRO DE CETTE CAISSE — pas un décor permanent. Il suit donc
     // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
