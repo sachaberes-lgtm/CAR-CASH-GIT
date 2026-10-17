@@ -3,6 +3,31 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE VITRÉE v3 — CLEAN CITY (2026-10-17 soir, Léo : « j'abandonne l'idée de la ville au plafond ; rends-la plus distincte — les trucs rouges au-dessus ressemblent trop à Crypto City ; c'est CLEAN CITY : miroir, moderne, le futur, l'avancement, la technologie ; des bâtiments blancs, des logos très minimalistes, un avion-ballon énorme et très moderne ; les lumières sur les côtés de la route en BLEU »)
+- LE PLAFOND (v2) n'est plus le défaut : `VIT_PLAFOND` (`?plafond=1` le rend tel quel : ville à l'envers, ciel en bande, heures et soleil bas de la v2,
+  `VIT_MET_PL`). Sans lui : le ciel et ses cumulus de la v1 (`VIT_MET_CL`, la couche `vitreCiel` d'avant) ; le verre renvoie le ciel et ses nuages
+  vers le haut, la mer de nuages et les tours qui montent vers le bas (la correction des tours noires vues d'en haut est gardée).
+- PLUS DE FEUX ROUGES : les mâts deviennent de fines FLÈCHES BLANCHES (1,4 m) à petit feu BLEU (2,2 m) ; pas de mât sur une LAME.
+- LES TOURS BLANCHES : familles revues — VERRE BLEU 26 % · BLANCHE à bandeaux 24 % (1,8 à 2,4 m de panneau blanc par étage) · LAMES blanches 16 %
+  · VERRE SOMBRE 10 % · ARGENT 24 % ; lames plaquées et flèches en blanc ; toits clairs ; contre-jour en blanc froid (plus de rose : `kickC`).
+- LES LOGOS (`vitreBox`/`vitreTri`, distances signées dans le shader) : sur une tour de FORME sur deux, une marque minimaliste INVENTÉE près du sommet, au
+  milieu des faces droites, jusqu'aux trois quarts de la face — anneau, disque, triangle, deux barres, carré évidé, point + barre ; blanc sur le verre,
+  bleu profond sur les tours blanches ; la nuit ils s'allument (blanc-bleu).
+- LES FILETS BLEUS : une tour sur deux a ses arêtes en LED bleue (à peine le jour, franches la nuit) ; les bureaux de nuit en LED plus froide.
+- LE DIRIGEABLE (`vitreDirigeable`, `vitreDirTick`) : un seul, ÉNORME (230 m), blanc et lisse, une ligne de lumière bleue sur chaque flanc, ailerons,
+  nacelle vitrée, un logo (anneau + point) sur les flancs, feu de navigation bleu qui bat ; ~1 200 triangles, matières de base compilées au menu. Il croise
+  1,7 km devant la caisse sur la piste, 130 m au-dessus, 200 m de côté, et avance lentement ; dépassé, il reprend sa place loin devant, de l'autre côté.
+- LES BORDS DE LA ROUTE EN BLEU (`bordsTick` : rails #2f8cff sur la VILLE VITRÉE ; la nappe suit l'accent `accC` bleu).
+- ⚠ CORRIGÉ EN ROUTE : une tour qui borde un étage de route PLUS HAUT (la piste descend en spirale) avait son pied au-dessus de la caméra — la nappe de
+  brume posée sous la caméra ne le noyait pas : elle FLOTTAIT, dessous visible (ça faisait encore « ville du plafond »). Le volume du pied (et les lames)
+  porte un drapeau dans la couleur d'instance (vert + 8, `vPb9`) : son pied se noie comme dans la ville de nuit, et un pied au-dessus de la caméra se
+  fond dans le CIEL (pas dans la brume de l'horizon, plus claire, qui le découpait).
+- MESURÉ (banc Chrome sans fenêtre, Mac encore chargé) : 0 programme compilé en course (vitrée midi, nuit ; ville pluie en témoin : 198 → 198) ;
+  triangles d'une image 206-667 k (ville pluie 380-472 k ce soir-là). À mesurer sur un vrai iPhone (`?banc=1`).
+- Console en plus : `dbgVitre('dir')` (où est le dirigeable), `dbgVitre('tours',f)` donne aussi le sommet et la graine (les logos).
+- PLANCHE AVANT (v2, le plafond) | APRÈS (CLEAN CITY) + détails : `photos-gameplay/ville-vitree-clean-city-avant-apres.jpg` (dossier de Léo, hors dépôt).
+- POUR APRÈS (Léo : « on verra ça après ») : sur CHAQUE map, les côtés lumineux de la route à la couleur de la map, et qui évoluent avec le boost.
+
 ## LA VILLE VITRÉE v2 — LE PLAFOND-MIROIR, LES TOURS DE SHANGHAI, LA PLUIE (2026-10-17, Léo : « plein de reflets magnifiques ; le but c'est la ville avec le plafond de glace, l'effet miroir — une ville où elle est déjà et aussi qui vient du ciel ; il n'y a même pas de ciel, juste un ciel entre les deux ; il pleuvra, adapte la météo ; les bâtiments moins en forme que Crypto City, imagine plutôt Shanghai — surtout pas de stéréotype, l'architecture des bâtiments »)
 Questionnaire : la ville du ciel = LA MÊME VILLE À L'ENVERS · météo = les 4 heures + une PLUIE · bâtiments = des formes travaillées, toujours en verre.
 - LE PLAFOND (`VIT_HC` 150 m, dans buildVoxCity derrière `VI`) : chaque tour (volumes, mât, feux) a son REFLET accroché au plafond — retourné par

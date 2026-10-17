@@ -15653,7 +15653,7 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
 function bordsTick(){ // appelée par musicTick, APRÈS la peinture « caméléon » des rails et de la nappe
   skyU.uRose.value=(PLAFROSE_V&&villeRose())?1:0; // (plafrose, Sacha : « la ville la nuit = ROSE ») le plafond de la pluie et de l'orage retrouve sa lueur LILAS et son éclair violet en ville au néon
   if(villeRose())return; // (villerose) la ville au néon garde ses rails et sa nappe ROSES (la peinture caméléon d'avant)
-  if(routeSig()){const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf;_c9.setHex(0xf24aa0).multiplyScalar(.7+.3*(1-jf)); // (bible) la SIGNATURE : rails roses (70 % de jour, plein la nuit), nappe à 55 % de jour
+  if(routeSig()){const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf;_c9.setHex(LVL.cur&&LVL.cur.vitre?0x2f8cff:0xf24aa0) /* (2026-10-17, Léo) la VILLE VITRÉE : les bords de la route en BLEU */.multiplyScalar(.7+.3*(1-jf)); // (bible) la SIGNATURE : rails roses (70 % de jour, plein la nuit), nappe à 55 % de jour
     for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.copy(_c9);}
     for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i],b=m.userData.base;if(b!=null)m.opacity=Math.min(1,b*(.55+.45*(1-jf)));}return;}
   const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf; // 1 = plein jour sec ; 0 = nuit / pluie / orage (fondus par lvlStep au portail)
@@ -16038,7 +16038,7 @@ function buildTrack(seed){
      VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
-  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?(LVL.cur.crypto?0x35ff9e:0xf24aa0):idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:idA9==='foret'?0xd8b45a:idA9==='volcan'?0xf24aa0:idA9==='banquise'?0xff5fd0:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?(LVL.cur.crypto?0x35ff9e:LVL.cur.vitre?0x2f8cff:0xf24aa0):idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:idA9==='foret'?0xd8b45a:idA9==='volcan'?0xf24aa0:idA9==='banquise'?0xff5fd0:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
   if(BORDS_V2){const ia9=Math.max(0,ACCENTS.indexOf(accR));ACCENTS.splice(0,6,0xffb04a,0xf2b93b,0xe8e4da,0xffc477,0xf2b93b,0xffb04a);accC.setHex((routeSig()&&idA9!=='ville')?0xf24aa0:idA9==='espace'?0xe8eef2:idA9==='paris'?0xd9d4ca:idA9==='jade'?0xf2b93b:(idA9==='nuages'||idA9==='orage'||idA9==='ville')?((villeRose()||routeSig())?0xf24aa0:0xffb04a):ACCENTS[ia9]);} /* (villerose) la ville au néon garde son accent ROSE */ // (2026-10-14, bords-route) L'ACCENT N'EST PLUS UN NÉON : ambre sodium (nuages, ville, orage, hasard), or (jade), blanc froid (orbite) — il nourrit le reflet des flaques (uAcc), le liseré des flancs, la couronne des tours (buildVoxCity) et le ciel musical
   if(VILLE_NUIT_V)vtCol(accC,vtCur()); // (2026-10-16) LES TEINTES DE LA VILLE : le rose de la route prend la couleur de la ville (rails, nappe, flaques, couronnes des tours)
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
@@ -21233,6 +21233,9 @@ window.dbgCrypto=function(k,v){ // console : l'état de CRYPTOCITY · ('ath') un
    Que des matières neuves compilées AU MENU (`vitreChauffe`) : 0 programme en course. `?sans=vitree` = la map retirée du tirage.
    Console : `dbgVitre()` (état), `dbgVitre('nuages',{…})` (les nuages à chaud), `dbgNiveauVitre(meteo)`. */
 const VITRE_V=!/[?&]sans=([^&]*,)?vitree(,|&|$)/.test(location.search);
+/* (2026-10-17 soir, Léo : « j'abandonne l'idée de la ville au plafond ; rends-la plus distincte — c'est CLEAN CITY : miroir, moderne, le futur,
+   la technologie ») LE PLAFOND (la ville à l'envers, v2) n'est plus le défaut : `?plafond=1` le rend, tel quel. */
+const VIT_PLAFOND=/[?&]plafond=1\b/.test(location.search);
 const VIT={mat:{},geo:null,tex:null,ciel:null,met:'midi',
   uT:{value:0},uCam:{value:new THREE.Vector3()},uSun:{value:new THREE.Vector3().copy(SUN_DIR)},uNuit:{value:0},uSunC:{value:new THREE.Vector3(1,1,1)},uSunK:{value:1},
   uCl:{value:null},uClK:{value:new THREE.Vector4(.50,.76,.9,0)},uClL:{value:new THREE.Vector3(1,1,1)},uClA:{value:new THREE.Vector3(.66,.74,.86)},
@@ -21242,12 +21245,20 @@ const VIT={mat:{},geo:null,tex:null,ciel:null,met:'midi',
 /* LES HEURES (v2, le plafond) : k = [seuil bas, seuil haut, force] du relief du plafond de nuages · l = le côté éclairé · a = le creux · p = la couleur du
    PLAFOND (la mer de nuages à l'envers, au-dessus de la ville d'en haut) · s = l'éclat du soleil sur le verre · sol = [hauteur, azimut] du soleil en degrés
    (l'azimut depuis +z vers +x : 157° = le soleil de toujours) — BAS : il vit dans la bande de ciel entre les deux villes. */
-const VIT_MET={
+const VIT_MET_PL={
   matin:{k:[.30,.76,.90],l:[1,.90,.78],a:[.76,.68,.74],p:[.92,.84,.80],s:1,sol:[4,128]},
   midi: {k:[.30,.76,.90],l:[1,1,1],a:[.72,.78,.88],p:[.86,.90,.96],s:1,sol:[8,157]},
   soir: {k:[.30,.76,.90],l:[1,.76,.58],a:[.62,.40,.50],p:[.95,.66,.55],s:1,sol:[2.5,186]},
   nuit: {k:[.42,.84,.70],l:[.11,.12,.19],a:[.03,.035,.06],p:[.035,.045,.085],s:0,sol:[10,157]},
   pluie:{k:[.30,.78,.85],l:[.58,.62,.68],a:[.30,.33,.38],p:[.46,.50,.56],s:.15,sol:[6,157]}};
+/* CLEAN CITY : le ciel de la v1 (ses cumulus, k = couverture du ciel) ; p = la mer de nuages d'EN BAS, que le verre renvoie vers le bas. */
+const VIT_MET_CL={
+  matin:{k:[.54,.80,.78],l:[1,.86,.70],a:[.62,.60,.76],p:[.92,.86,.82],s:1,sol:[9,128]},
+  midi: {k:[.47,.74,.94],l:[1,1,1],a:[.64,.72,.86],p:[.88,.92,.97],s:1,sol:[26,157]},
+  soir: {k:[.56,.82,.72],l:[1,.76,.56],a:[.46,.32,.48],p:[.95,.70,.58],s:1,sol:[4,186]},
+  nuit: {k:[.56,.82,.55],l:[.16,.18,.26],a:[.04,.045,.08],p:[.04,.05,.09],s:0,sol:[32,157]},
+  pluie:{k:[.26,.66,.96],l:[.64,.68,.74],a:[.38,.42,.48],p:[.50,.54,.60],s:.15,sol:[20,157]}};
+const VIT_MET=VIT_PLAFOND?VIT_MET_PL:VIT_MET_CL;
 const VIT_HC=150; // le PLAFOND : la ville d'en haut est le miroir de celle d'en bas par rapport à un plan à 150 m au-dessus de la route qu'elle borde (à 330 m, vue de la caméra de course, elle restait hors de l'écran)
 function vitreOn(){return !!(LVL.cur&&LVL.cur.vitre&&!PARK.on);}
 function vitreNuages(){ // la toile des nuages : un bruit de valeur PÉRIODIQUE (5 octaves, sans couture), remis sur [0,1], peint une fois
@@ -21300,7 +21311,7 @@ function vitreForme(cx,cz,H,canyon){const h=metroH(cx*1.7+3.1,cz*.9-7.3);
 // LE MUR DE VERRE — au sommet le biseau, au pixel la façade ; la tour de la ville (tri hors champ, portée des lampes, impact) pour le reste
 const VIT_VERRE=
   '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
-  'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),s4=fract(vSeed9*53.17),sty=s3<.34?0.:s3<.52?1.:s3<.68?2.:s3<.84?3.:4.;'+ // 34 % VERRE BLEU · 18 % BANDEAUX · 16 % LAMES · 16 % SOMBRE · 16 % ARGENT
+  'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),s4=fract(vSeed9*53.17),sty=s3<.26?0.:s3<.50?1.:s3<.66?2.:s3<.76?3.:4.;'+ // (CLEAN CITY) 26 % VERRE BLEU · 24 % BLANCHE à bandeaux · 16 % LAMES blanches · 10 % SOMBRE · 24 % ARGENT
   'vec2 nh=normalize(vNrm9.xz+vec2(1e-6,0.));float ux=dot(vLoc9.xz,vec2(-nh.y,nh.x));'+                       // le long de la façade (pans de coin compris), en mètres
   'float fh=3.9+s2*.5,cw=sty>3.5?3.+s1*.4:sty>2.5?2.5+s1*.7:1.45+s1*.45;'+                                     // l'ÉTAGE et la TRAVÉE
   'vec2 uv=vec2(ux/cw,(vW9.y+s1*97.)/fh),fw=max(fwidth(uv),vec2(1e-4));'+                                         // les étages comptés dans le MONDE : les volumes empilés d'une tour gardent les mêmes
@@ -21314,7 +21325,9 @@ const VIT_VERRE=
   'if(VIS9){'+
   ' if(fv>0.){'+
   '  vec3 sky=mix(mix(uHor9,uMid9,smoothstep(0.,.18,ary)),uZen9,smoothstep(.14,.9,ary));'+ // (v2) la carte est un MIROIR : en bas comme en haut, la bande de ciel puis la mer de nuages // en dessous : la ville noyée de brume
-  '  {float cv=smoothstep(uClK9.x,uClK9.y,c1)*uClK9.z;vec3 plc=mix(uPlf9,mix(uClA9,uClL9,clamp(.55+(c1-c2)*2.4,0.,1.)),cv);sky=mix(sky,plc,smoothstep(uBand9.x,uBand9.y,ary));}'+ // (v2) LE PLAFOND : au-dessus de la bande de ciel, la mer de nuages à l'envers
+  '  {float cv=smoothstep(uClK9.x,uClK9.y,c1)*uClK9.z;vec3 rel9=mix(uClA9,uClL9,clamp(.55+(c1-c2)*2.4,0.,1.));'+
+  (VIT_PLAFOND?'sky=mix(sky,mix(uPlf9,rel9,cv),smoothstep(uBand9.x,uBand9.y,ary));}':  // (v2) LE PLAFOND : au-dessus de la bande de ciel, la mer de nuages à l'envers
+   'sky=ry>0.?mix(sky,rel9,cv*smoothstep(.015,.12,ry)):mix(sky,mix(uPlf9,rel9,smoothstep(uClK9.x-.17,uClK9.y,c1)),smoothstep(uBand9.x,uBand9.y,ary));}')+ // (CLEAN CITY) en haut le ciel et ses nuages ; en bas, la mer de nuages
   // LES TOURS D'EN FACE : le verre renvoie aussi la ville — deux rangées de tours sur l'horizon du reflet (72 et 120 par tour d'horizon), plus sombres que le ciel,
   // leurs étages en filets (et la nuit leurs bureaux) ; c'est ce qui fait un vrai mur de verre (il ne renvoie jamais que du ciel)
   '  {float az=atan(R9.z,R9.x),a1=floor(az*11.46),a2=floor(az*19.1+.5),q1=fract(sin(a1*12.9898)*43758.5453),q2=fract(sin(a2*78.233+1.7)*43758.5453);'+
@@ -21323,7 +21336,7 @@ const VIT_VERRE=
   '   float wy=fract(ry*90.),wx=fract(az*120.),wn=step(.5,fract(sin(floor(ry*90.)*7.1+floor(az*120.)*3.3)*4375.85));'+
   '   bc+=vec3(1.,.82,.56)*wn*step(.25,wy)*step(.3,wx)*uNuit9*.55*(1.-far);'+                                    // la NUIT : leurs bureaux allumés
   '   float q3=fract(sin(a1*91.7+3.3)*43758.5453),q4=fract(sin(a2*17.3+.7)*43758.5453),hu1=uBand9.x*.8+.18*q3,hu2=uBand9.x*.9+.07*q4;'+ // (v2) LA VILLE D'EN HAUT : ses tours pendent dans le reflet, au-dessus de la bande
-  '   float bu=max(max(smoothstep(hu1-fry,hu1+fry,ry),.5*smoothstep(hu2-fry,hu2+fry,ry)),max(smoothstep(hu1-fry,hu1+fry,-ry),.5*smoothstep(hu2-fry,hu2+fry,-ry))*step(ry,0.))*(1.-smoothstep(.55,.85,ary));'+ // (et leurs miroirs : la ville d'en bas qui monte vers le reflet)
+  '   float bu=max('+(VIT_PLAFOND?'max(smoothstep(hu1-fry,hu1+fry,ry),.5*smoothstep(hu2-fry,hu2+fry,ry))':'0.')+',max(smoothstep(hu1-fry,hu1+fry,-ry),.5*smoothstep(hu2-fry,hu2+fry,-ry))*step(ry,0.))*(1.-smoothstep(.55,.85,ary));'+ // (et leurs miroirs : la ville d'en bas qui monte vers le reflet)
   '   sky=mix(sky,bc,max(bb*(1.-.5*b2*(1.-b1)),bu));}'+
   '  float sd=max(dot(R9,uSun9),0.),gl=(pow(sd,900.)*16.+pow(sd,70.)*.6+pow(sd,6.)*.3)*uSunK9;'+               // l'ÉCLAT du soleil
   '  vec3 tint=sty<.5?vec3(.40,.66,.96):sty<1.5?vec3(.56,.72,.90):sty<2.5?vec3(.48,.70,.94):sty<3.5?vec3(.30,.50,.60):vec3(.82,.88,.96);'+
@@ -21331,40 +21344,52 @@ const VIT_VERRE=
   '  vec3 refl=sky*tint*1.18+gl*uSunC9*mix(tint,vec3(1.),.6);'+
   // L'INTÉRIEUR : un bureau sombre derrière un verre teinté ; la NUIT, les plateaux allumés (des baies entières, des étages qui dorment, les plafonniers en haut)
   '  vec2 ib=vec2(floor(id.x/(sty>2.5?2.:4.)),id.y);float hb=fract(sin(dot(ib+vSeed9*17.,vec2(41.3,97.1)))*31758.5453),hf=fract(sin(id.y*91.7+vSeed9*311.)*43758.5453),on=step(.4,hb)*step(.22,hf);'+
-  '  vec3 lc=mix(vec3(1.,.78,.50),vec3(.78,.88,1.),step(.7,fract(s4*3.7+hb*.6)))*(.5+.5*h1);'+
+  '  vec3 lc=mix(vec3(1.,.82,.58),vec3(.80,.90,1.),step(.45,fract(s4*3.7+hb*.6)))*(.5+.5*h1);'+ // (CLEAN CITY) des bureaux en LED froide, un peu plus de la moitié
   '  float spd=(sty<.5||(sty>1.5&&sty<2.5))?1.-smoothstep(.25-fw.y,.25+fw.y,f.y):0.;'+                         // l'ALLÈGE : le bas de chaque étage, verre opaque
   '  float blind=step(.86,fract(h1*13.7));vec3 ins=tint*.045*(.6+.8*h1)+lc*(.5+.5*hb)*on*(uNuit9*(.32+.5*smoothstep(.3,.92,f.y)+.55*smoothstep(.86,.93,f.y)*(1.-smoothstep(.93,.97,f.y)))*(1.-.6*blind)+.03)*(1.-spd);'+ // le PLAFONNIER : un filet clair en haut de la baie ; un store sur sept
   '  ins=mix(ins,tint*.045+vec3(1.,.82,.58)*.11*uNuit9,far);'+ // au loin, la lueur moyenne des bureaux (les baies sous le pixel) : une tour sombre qui rougeoie, pas un carton
   '  vec3 glass=mix(ins,refl,fr*(1.-.35*uNuit9));'+
   // LES MONTANTS (la teinte d'instance, éclairée) : travée et étage ; BANDEAUX : 1,3-1,7 m de béton par étage ; le parapet en haut de chaque volume
-  '  float mw=sty>3.5?.05:sty>2.5?.09:.075;vec2 hw=vec2(.5-mw/cw,.5-.07/fh);if(sty>.5&&sty<1.5)hw.y=.5-(.65+.2*s2)/fh;'+
+  '  float mw=sty>3.5?.05:sty>2.5?.09:.075;vec2 hw=vec2(.5-mw/cw,.5-.07/fh);if(sty>.5&&sty<1.5)hw.y=.5-(.9+.3*s2)/fh;'+ // (CLEAN CITY) les tours BLANCHES : 1,8 à 2,4 m de panneau blanc par étage
   '  vec2 dd=(hw-abs(f-.5))/fw;float pane=mix(clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.),4.*hw.x*hw.y,far)*(1.-step(vSc9.y-1.5,vB9));'+
   '  vec3 st=gl_FragColor.rgb*(1.-.6*uNuit9)+sky*tint*.10,colF=mix(st,glass,pane);'+ // (la nuit, le béton et les montants s'éteignent : les bureaux ressortent)
   // LES LAMES : une toutes les deux travées, plus épaisse en rasant (sa profondeur), son OMBRE du côté opposé au soleil
   '  if(sty>1.5&&sty<2.5){float fu=(fract(uv.x*.5+.5)-.5)*2.*cw,fwm=fw.x*cw,lw=.18+.45*(1.-cv),fin=1.-clamp((abs(fu)-lw)/(fwm*2.)+.5,0.,1.);'+
   '   float ss=sign(dot(uSun9.xz,T9.xz)+1e-4),sh=step(0.,-fu*ss)*(1.-smoothstep(lw+.5,lw+.9,abs(fu)));'+
   '   fin=mix(fin,lw/cw,far);colF*=1.-.45*sh*(1.-uNuit9)*(1.-far);colF=mix(colF,st*1.1,fin);}'+
+  '  if(an.x>.9||an.z>.9){float hw9=(an.x>an.z?vSc9.z:vSc9.x)*.5-vCh9,pxm=max(fw.x*cw,1e-3);'+ // (CLEAN CITY) sur les faces droites :
+  '   colF+=vec3(.25,.62,1.)*(1.-smoothstep(.12,.12+pxm*1.5,hw9-abs(ux)))*step(.5,fract(vSeed9*17.9))*(.1+1.5*uNuit9)*(1.-far);'+ // LES FILETS BLEUS : une tour sur deux a ses arêtes en LED (la nuit surtout)
+  '   if(vFo9>.5&&s4>.45){float lw9=min(34.,hw9*1.5),pxl=pxm/(lw9*.5);vec2 q=vec2(ux,vB9-(vSc9.y-lw9*.5-16.))/(lw9*.5);float lk=floor(fract(vSeed9*91.3)*6.),dl=1e3;'+ // LE LOGO : une marque minimaliste près du sommet (inventée)
+  '    if(lk<.5)dl=abs(length(q)-.72)-.12;else if(lk<1.5)dl=length(q)-.62;else if(lk<2.5)dl=vitreTri(q);else if(lk<3.5)dl=min(vitreBox(q-vec2(-.34,0.),vec2(.12,.75)),vitreBox(q-vec2(.34,0.),vec2(.12,.75)));'+
+  '    else if(lk<4.5)dl=abs(vitreBox(q,vec2(.66)))-.1;else dl=min(length(q-vec2(0.,.42))-.2,vitreBox(q-vec2(0.,-.3),vec2(.62,.1)));'+
+  '    float lm=(1.-smoothstep(-pxl,pxl,dl))*(1.-far);colF=mix(colF,mix((sty>.5&&sty<2.5)?vec3(.05,.16,.42):vec3(1.12),vec3(.6,.86,1.)*1.9,uNuit9),lm);}}'+ // bleu profond sur une tour blanche, blanc sur le verre ; la nuit, il s'allume
   '  gl_FragColor.rgb=colF;'+
   ' }'+
   ' if(tt>0.){float hr=fract(sin(dot(floor(vLoc9.xz/6.+vSeed9*7.),vec2(12.9898,78.233)))*43758.5453);'+ // (v2) LE TOIT, vu d'en haut : une dalle sombre et ses blocs techniques, le parapet clair
-  '  gl_FragColor.rgb=mix(gl_FragColor.rgb*(.36+.16*step(.72,hr))*(1.-.5*uNuit9),gl_FragColor.rgb,1.-smoothstep(1.2,1.2+fe*1.5,de));'+
+  '  gl_FragColor.rgb=mix(gl_FragColor.rgb*('+(VIT_PLAFOND?'.36+.16':'.66+.12')+'*step(.72,hr))*(1.-.5*uNuit9),gl_FragColor.rgb,1.-smoothstep(1.2,1.2+fe*1.5,de));'+ // (CLEAN CITY) un toit clair
   '  if(fe<1.4)gl_FragColor.rgb+=vec3(.86,.93,1.)*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uNuit9;}'+ // la nuit, le parapet s'allume d'un filet blanc
   '}}\n';
 /* LE PIED DANS LA BRUME : les volumes sont EMPILÉS (voir buildVoxCity), on ne connaît plus le pied de la tour — la brume est une NAPPE posée
    à ~380 m sous la caméra (la route est à ~330 m au-dessus du pied des tours), fondue sur 300 m ; la nuit, la rue l'éclaire à peine. */
-const VIT_PIED='#ifdef USE_FOG\n{float hB=vW9.y-uCam9.y+380.,hT=uCam9.y+'+(2*VIT_HC+380)+'.-vW9.y;' + // (v2) et la même NAPPE en miroir, au-dessus de la ville d'en haut (couleur du plafond)
-  'if(hB<300.){vec3 mc=fogColor+vec3(.07,.06,.04)*uNuit9*(1.-smoothstep(0.,160.,hB));gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,smoothstep(0.,300.,hB));}'+
+/* (CLEAN CITY) ⚠ une tour qui borde un étage de route PLUS HAUT a son pied au-dessus de la caméra : la nappe seule ne le noyait pas — elle flottait,
+   le dessous visible (on aurait dit la ville du plafond). Le volume du PIED (et les lames, qui partent du pied) porte un drapeau (vert + 8) :
+   son pied se noie comme dans la ville de nuit. */
+const VIT_PIED_P='vPb9>.5?vB9:1e5';
+const vitrePied=function(pres){return VIT_PIED.replace('float hB=vW9.y-uCam9.y+380.','float hB=min(vW9.y-uCam9.y+380.,'+(pres?VIT_PIED_P:'1e5')+')');};
+const VIT_PIED='#ifdef USE_FOG\n{float hB=vW9.y-uCam9.y+380.,hT=uCam9.y+'+(VIT_PLAFOND?2*VIT_HC+380:1e5)+'.-vW9.y;' + // (v2) et la même NAPPE en miroir, au-dessus de la ville d'en haut (couleur du plafond)
+  'if(hB<300.){vec3 vd9=normalize(vW9-uCam9);vec3 mc=mix(fogColor,mix(mix(uHor9,uMid9,smoothstep(0.,.18,vd9.y)),uZen9,smoothstep(.14,.9,vd9.y)),smoothstep(.02,.25,vd9.y))'+ // (CLEAN CITY) un pied AU-DESSUS de la caméra se fond dans le CIEL (pas dans la brume de l'horizon : il se découpait)
+  '+vec3(.07,.06,.04)*uNuit9*(1.-smoothstep(0.,160.,hB));gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,smoothstep(0.,300.,hB));}'+
   'if(hT<300.)gl_FragColor.rgb=mix(uPlf9,gl_FragColor.rgb,smoothstep(0.,300.,hT));}\n#endif';
 function vitreBiseau(cx,cz){const s=((cx*.0131+cz*.0173)%1+1)%1;return ((s*71.3)%1)<=.6;} // la tour (cx,cz) est-elle biseautée ? (le même tirage que le sommet : la graine de son centre)
 function vitreMatToursLoin(){ // la tour AU LOIN (voir villeMatToursLoin) : la couleur de la brume, le pied dans la nappe
   if(VIT.mat.toursL)return VIT.mat.toursL;
   const m=new THREE.MeshBasicMaterial({color:0x000000});
-  m.onBeforeCompile=function(sh){sh.uniforms.uNuit9=VIT.uNuit;sh.uniforms.uCam9=VIT.uCam;sh.uniforms.uPlf9=VIT.uPlf;
+  m.onBeforeCompile=function(sh){sh.uniforms.uNuit9=VIT.uNuit;sh.uniforms.uCam9=VIT.uCam;sh.uniforms.uPlf9=VIT.uPlf;sh.uniforms.uZen9=skyU.uJZen;sh.uniforms.uMid9=skyU.uJMid;sh.uniforms.uHor9=skyU.uJHor;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vW9;')
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\nvW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uNuit9;uniform vec3 uCam9,uPlf9;varying vec3 vW9;')
-      .replace('#include <fog_fragment>','#include <fog_fragment>\n'+VIT_PIED);};
-  m.customProgramCacheKey=function(){return 'toursLoinVitre';};m.dispose=function(){};
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uNuit9;uniform vec3 uCam9,uPlf9,uZen9,uMid9,uHor9;varying vec3 vW9;')
+      .replace('#include <fog_fragment>','#include <fog_fragment>\n'+vitrePied(false));};
+  m.customProgramCacheKey=function(){return 'toursLoinVitre2';};m.dispose=function(){};
   VIT.mat.toursL=m;return m;
 }
 function vitreMatTours(){
@@ -21372,13 +21397,15 @@ function vitreMatTours(){
   vitreNuages();
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x05070a});
   m.extensions={derivatives:true};
-  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;varying float vCh9;varying vec3 vNw9;';
+  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;varying float vCh9;varying vec3 vNw9;varying float vFo9;varying float vPb9;';
+  const SDF='float vitreBox(vec2 p,vec2 b){vec2 d=abs(p)-b;return length(max(d,0.))+min(max(d.x,d.y),0.);}'+ // les formes des logos (distances signées)
+    'float vitreTri(vec2 p){const float k=1.7320508;p.x=abs(p.x)-.7;p.y=p.y+.7/k;if(p.x+k*p.y>0.)p=vec2(p.x-k*p.y,-k*p.x-p.y)/2.;p.x-=clamp(p.x,-1.4,0.);return -length(p)*sign(p.y);}';
   const SF='float vitreSF(float fo,float sv,float hh){if(fo<.5)return 1.;if(fo<1.5)return mix(1.,.45+.15*sv,smoothstep(.4,1.,hh));if(fo<2.5)return mix(1.,.72,smoothstep(.3,1.,hh));'+ // l'échelle de la section à la hauteur hh (0 pied, 1 sommet) — la forme vit dans la moitié HAUTE : celle qui sort de la brume
     'if(fo<3.5)return (1.+.16*sin(3.1416*clamp((hh-.4)/.45,0.,1.)))*mix(1.,.5,smoothstep(.8,1.,hh));if(fo<4.5)return mix(1.,.8,smoothstep(.4,1.,hh));return 1.;}';
   m.onBeforeCompile=function(sh){Object.assign(sh.uniforms,{uT9:CITY.uT,uWet9:ROAD_U.uWet,uLum9:CITY.uL,uImp9:IMPACT.u,uImpN9:IMPACT.n,uZen9:skyU.uJZen,uMid9:skyU.uJMid,uHor9:skyU.uJHor,
       uSun9:VIT.uSun,uCam9:VIT.uCam,uNuit9:VIT.uNuit,uSunC9:VIT.uSunC,uSunK9:VIT.uSunK,uCl9:VIT.uCl,uClK9:VIT.uClK,uClL9:VIT.uClL,uClA9:VIT.uClA,uClD9:VIT.uClD,uClS9:VIT.uClS,uClH9:VIT.uClH,uClT9:VIT.uClT,uBand9:VIT.uBand,uPlf9:VIT.uPlf,uHaut9:VIT.uHaut});
     sh.vertexShader='#undef USE_SHADOWMAP\n'+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+'\nattribute vec2 aCh9;uniform vec4 uLum9[4];uniform float uHaut9;\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'+SF+'\n')
-      .replace('#include <color_vertex>','#include <color_vertex>\nfloat fo9=0.;\n#ifdef USE_INSTANCING_COLOR\nfo9=floor(instanceColor.r/8.+.001);vColor.r-=8.*fo9;\n#endif\n') // LA FORME, rangée dans la couleur d'instance (r + 8 × forme)
+      .replace('#include <color_vertex>','#include <color_vertex>\nfloat fo9=0.;\n#ifdef USE_INSTANCING_COLOR\nfo9=floor(instanceColor.r/8.+.001);vColor.r-=8.*fo9;\n#endif\nvFo9=fo9;vPb9=0.;\n#ifdef USE_INSTANCING_COLOR\nvPb9=floor(instanceColor.g/8.+.001);vColor.g-=8.*vPb9;\n#endif\n') // LA FORME, rangée dans la couleur d'instance (r + 8 × forme)
             .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=max(vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz)),vec3(1e-4));vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);'+
         'vec3 fl9=vec3(instanceMatrix[0].x<0.?-1.:1.,instanceMatrix[1].y<0.?-1.:1.,1.);\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vec3 fl9=vec3(1.);\n#endif\n'+ // fl9 : la ville d'EN HAUT (l'instance retournée)
@@ -21398,9 +21425,9 @@ function vitreMatTours(){
         '#ifdef USE_INSTANCING\nbool proche9=false;{vec3 w9=(modelMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;float r9=.5*length(sc9)+1.;'+
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n')
       .replace('#include <lights_lambert_vertex>','vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
-    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9,uSunK9,uClH9,uClT9;uniform vec3 uZen9,uMid9,uHor9,uSun9,uSunC9,uClL9,uClA9,uCam9,uPlf9;uniform vec4 uImp9,uImpN9,uClK9;uniform vec2 uClD9,uClS9,uBand9;uniform sampler2D uCl9;'+DECL)
-      .replace('#include <fog_fragment>',VIT_VERRE+VILLE_IMPACT+'#include <fog_fragment>\n'+VIT_PIED);};
-  m.customProgramCacheKey=function(){return 'toursVitre2';};m.dispose=function(){};
+    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9,uSunK9,uClH9,uClT9;uniform vec3 uZen9,uMid9,uHor9,uSun9,uSunC9,uClL9,uClA9,uCam9,uPlf9;uniform vec4 uImp9,uImpN9,uClK9;uniform vec2 uClD9,uClS9,uBand9;uniform sampler2D uCl9;'+DECL+SDF)
+      .replace('#include <fog_fragment>',VIT_VERRE+VILLE_IMPACT+'#include <fog_fragment>\n'+vitrePied(true));};
+  m.customProgramCacheKey=function(){return VIT_PLAFOND?'toursVitre2':'toursVitre4';};m.dispose=function(){};
   VIT.mat.tours=m;return m;
 }
 /* LE PLAFOND (v2, Léo : « faire la ville avec le plafond de glace, l'effet miroir… une ville qui vient du ciel ; il n'y a même pas de ciel, juste
@@ -21413,21 +21440,56 @@ function vitreCiel(){
   const g=new THREE.SphereGeometry(1,40,12,0,Math.PI*2,0,Math.PI*.5);
   const m=new THREE.ShaderMaterial({uniforms:{uCl:VIT.uCl,uClK:VIT.uClK,uClL:VIT.uClL,uClA:VIT.uClA,uClD:VIT.uClD,uClS:VIT.uClS,uClH:VIT.uClH,uClT:VIT.uClT,uSun:VIT.uSun,uHor:skyU.uJHor,uBand:VIT.uBand,uPlf:VIT.uPlf},
     vertexShader:'varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_Position.z=gl_Position.w;}',
-    fragmentShader:'uniform sampler2D uCl;uniform vec4 uClK;uniform vec3 uClL,uClA,uSun,uHor,uPlf;uniform vec2 uClD,uClS,uBand;uniform float uClH,uClT;varying vec3 vD;'+
+    fragmentShader:'uniform sampler2D uCl;uniform vec4 uClK;uniform vec3 uClL,uClA,uSun,uHor,uPlf;uniform vec2 uClD,uClS,uBand;uniform float uClH,uClT;varying vec3 vD;'+(!VIT_PLAFOND?
+      /* CLEAN CITY : les cumulus de la v1 — un plafond à 1 400 m, deux lectures + une octave fine ; le verre lit LE MÊME */
+      'void main(){vec3 d=normalize(vD);float dy=max(d.y,.008);vec2 cp=(cameraPosition.xz+d.xz*uClH/dy)/uClT+uClD;float c3=texture2D(uCl,cp*3.7+.31).r,c1=texture2D(uCl,cp).r*.78+c3*.22,c2=texture2D(uCl,cp+uClS).r*.78+c3*.2;'+
+      'float hz=smoothstep(.008,.16,d.y),cov=smoothstep(uClK.x,uClK.y,c1)*uClK.z*hz;if(cov<.003)discard;'+
+      'vec3 col=mix(uClA,uClL,clamp(.55+(c1-c2)*2.4,0.,1.));float sd=max(dot(d,uSun),0.);col+=uClL*pow(sd,12.)*.4*(1.-.6*smoothstep(uClK.x,uClK.y,c1));'+
+      'col=mix(uHor,col,.25+.75*smoothstep(.01,.22,d.y));gl_FragColor=vec4(col,cov);}':
       'void main(){vec3 d=normalize(vD);float pl=smoothstep(uBand.x,uBand.y,d.y);if(pl<.003)discard;float dy=max(d.y,.02);vec2 cp=(cameraPosition.xz+d.xz*uClH/dy)/uClT+uClD;'+
       'float c3=texture2D(uCl,cp*3.7+.31).r,c1=texture2D(uCl,cp).r*.78+c3*.22,c2=texture2D(uCl,cp+uClS).r*.78+c3*.2,cv=smoothstep(uClK.x,uClK.y,c1)*uClK.z;'+ // la mer de nuages, vue d'en dessous : relief et creux
       'vec3 col=mix(uPlf,mix(uClA,uClL,clamp(.55+(c1-c2)*2.4,0.,1.)),cv);float sd=max(dot(d,uSun),0.);col+=uClL*pow(sd,10.)*.25;'+ // le soleil (dans la bande) l'allume par en dessous
-      'col=mix(uHor,col,smoothstep(uBand.x,uBand.y+.12,d.y));gl_FragColor=vec4(col,pl);}', // au bord de la bande, le plafond se fond dans la brume du ciel
+      'col=mix(uHor,col,smoothstep(uBand.x,uBand.y+.12,d.y));gl_FragColor=vec4(col,pl);}'), // au bord de la bande, le plafond se fond dans la brume du ciel
     transparent:true,depthWrite:false,depthTest:true,fog:false,side:THREE.BackSide});
-  m.customProgramCacheKey=function(){return 'vitreCiel2';};
+  m.customProgramCacheKey=function(){return VIT_PLAFOND?'vitreCiel2':'vitreCiel1';};
   const o=new THREE.Mesh(g,m);o.name='ville vitrée plafond';o.frustumCulled=false;o.renderOrder=-2;o.scale.setScalar(8000);o.visible=false;scene.add(o);VIT.ciel=o;return o;}
 /* ⚠ three r128 n'envoie PAS `cameraPosition` aux matières Lambert (setProgram : seulement Shader/Phong/Toon/Standard ou avec envMap) — dans le
    verre il valait (0,0,0) : la direction du regard partait de l'origine du monde. La vraie caméra du rendu, posée avant chaque rendu de la scène. */
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);if(cam&&cam.matrixWorld)VIT.uCam.value.setFromMatrixPosition(cam.matrixWorld);};} // CHAÎNÉ (jamais réassigné)
+/* LE DIRIGEABLE (CLEAN CITY, Léo : « une sorte d'avion-ballon, énorme, très moderne : le futur, l'avancement, la technologie ») : UN seul, blanc,
+   lisse, une ligne de lumière BLEUE sur chaque flanc, ailerons fins, nacelle vitrée, un logo minimaliste (un anneau et un point, inventé).
+   ~1 200 triangles, matières de base (Lambert, Basic : compilées au menu). Il croise au-dessus de la ville, DEVANT la caisse sur la
+   piste (1,7 km devant, 130 m au-dessus, 200 m de côté), d'un côté puis de l'autre, et avance lentement ; une fois dépassé il reprend sa place loin devant (il réapparaît dans la brume). */
+function vitreDirigeable(){
+  if(VIT.dir)return VIT.dir;
+  const g=new THREE.Group(),Lh=230,Rh=31,M=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0x000000});};
+  const blanc=M(0xf2f5f9,0x0b0f16),gris=M(0xc9d0da),bleu=new THREE.MeshBasicMaterial({color:0x4cb6ff}),vitre=new THREE.MeshBasicMaterial({color:0x9fdcff});
+  const rayon=function(u){return Rh*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.62)*(1-.2*u);};
+  const prof=[];for(let i=0;i<=16;i++){const u=i/16;prof.push(new THREE.Vector2(Math.max(.05,rayon(u)),(u-.5)*Lh));}
+  const coque=new THREE.Mesh(new THREE.LatheGeometry(prof,20),blanc);coque.rotation.x=Math.PI/2;g.add(coque); // l'axe de la coque : +z (le nez devant… la queue au bout du profil)
+  for(const sg of [-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,Lh*.62),bleu);b.position.set(sg*(Rh*.985),-2,Lh*.02);g.add(b); // la ligne de lumière
+    const u=.62,r=rayon(u)+.6,an=new THREE.Mesh(new THREE.RingGeometry(9,12.5,32),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}));an.position.set(sg*r,6,(u-.5)*Lh);an.rotation.y=sg*Math.PI/2;g.add(an); // le logo : un anneau…
+    const pt=new THREE.Mesh(new THREE.CircleGeometry(3.6,20),bleu);pt.position.set(sg*(r+.2),6,(u-.5)*Lh);pt.rotation.y=sg*Math.PI/2;g.add(pt);} // …et un point
+  const zq=-Lh*.41;
+  for(const [sx,sy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=new THREE.Mesh(new THREE.BoxGeometry(sx?28:1.6,sx?1.6:28,26),gris);a.position.set(sx*(rayon(.09)+11),sy*(rayon(.09)+11),zq);g.add(a);} // les ailerons
+  const nac=new THREE.Mesh(new THREE.BoxGeometry(12,6,40),blanc);nac.position.set(0,-Rh-1.5,14);g.add(nac); // la nacelle
+  const fen=new THREE.Mesh(new THREE.BoxGeometry(12.3,1.6,34),vitre);fen.position.set(0,-Rh-1.2,14);g.add(fen); // ses vitres
+  const nav=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,6),bleu);nav.position.set(0,rayon(.1)+11+14,zq-6);g.add(nav);VIT.nav=nav; // le feu de navigation (bleu, il bat)
+  g.traverse(function(o){if(o.isMesh){o.frustumCulled=false;o.matrixAutoUpdate=true;}});
+  g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;
+  VIT.Fd={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};VIT.dirS=null;VIT.dirC=0;VIT.dirT=0;return g;}
+function vitreDirTick(d){
+  const g=vitreDirigeable();g.visible=true;
+  if(VIT.dirS==null||s>VIT.dirS-150||VIT.dirS>s+5200){VIT.dirS=Math.min(L-80,s+1700);VIT.dirC++;VIT.dirT=0;} // dépassé (ou nouvelle piste) : loin devant, de l'autre côté
+  VIT.dirT+=d;frameAt(VIT.dirS,VIT.Fd);const F9=VIT.Fd,h=Math.hypot(F9.t.x,F9.t.z)||1,tx=F9.t.x/h,tz=F9.t.z/h,sg=(VIT.dirC%2)?1:-1;
+  g.position.set(F9.p.x-tz*sg*200+tx*VIT.dirT*7,F9.p.y+130+Math.sin(VIT.uT.value*.3)*3,F9.p.z+tx*sg*200+tz*VIT.dirT*7);
+  g.rotation.set(0,Math.atan2(tx,tz),Math.sin(VIT.uT.value*.21)*.02);
+  if(VIT.nav)VIT.nav.visible=(VIT.uT.value%1.6)<.25;
+}
 function vitreTick(dt,sim){
   const on=vitreOn()&&!!CITY.root;
   VIT.solK+=((on?1:0)-VIT.solK)*Math.min(1,dt*1.2);if(VIT.solK<.001)VIT.solK=0; // le soleil de l'heure, fondu (lu par canyonSoleil)
-  if(!on){if(VIT.ciel&&VIT.ciel.visible)VIT.ciel.visible=false;return;}
+  if(!on){if(VIT.ciel&&VIT.ciel.visible)VIT.ciel.visible=false;if(VIT.dir&&VIT.dir.visible)VIT.dir.visible=false;return;}
   const d=sim?dt:0;VIT.uT.value+=d;
   VIT.uSun.value.copy(SUN_DIR);VIT.uNuit.value=LVL.nuit||0;
   VIT.uSunC.value.set(sun.color.r,sun.color.g,sun.color.b).multiplyScalar(Math.min(1.6,sun.intensity));
@@ -21439,20 +21501,23 @@ function vitreTick(dt,sim){
   VIT.uClD.value.x+=d*.0016;VIT.uClD.value.y+=d*.0007; // le vent pousse les nuages (et leurs reflets avec eux)
   {const s=VIT.uSun.value,h=Math.hypot(s.x,s.z)||1;VIT.uClS.value.set(s.x/h*.012,s.z/h*.012);} // le côté au soleil : une lecture décalée vers lui
   const c=vitreCiel();c.visible=true;c.position.copy(camera.position);
+  if(!VIT_PLAFOND)vitreDirTick(d);
 }
 function vitreChauffe(){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
   const L9=[],add=function(o){o.position.copy(camera.position);camera.getWorldDirection(VIT.v1);o.position.addScaledVector(VIT.v1,30);scene.add(o);L9.push(o);};
   {const im=new THREE.InstancedMesh(vitreGeo(),vitreMatTours(),1);im.setMatrixAt(0,VIT.m4.identity());im.setColorAt(0,VIT.c.set(1,1,1));add(im);}
   {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),vitreMatToursLoin(),1);im.setMatrixAt(0,VIT.m4.identity());add(im);}
   const c=vitreCiel();c.visible=true;L9.push(c);
+  const dg=vitreDirigeable();dg.visible=true;dg.position.copy(camera.position);camera.getWorldDirection(VIT.v1);dg.position.addScaledVector(VIT.v1,300);L9.push(dg); // le dirigeable
   try{chauffeRendu(L9);}catch(e){}
-  for(const o of L9){if(o===c)c.visible=false;else{scene.remove(o);if(o.geometry!==VIT.geo)o.geometry.dispose();}}
+  for(const o of L9){if(o===dg)dg.visible=false;else if(o===c)c.visible=false;else{scene.remove(o);if(o.geometry!==VIT.geo)o.geometry.dispose();}}
 }
 window.dbgVitre=function(k,v){ // console : l'état de la VILLE VITRÉE · ('nuages',{k:[…],l:[…],a:[…]}) les nuages de l'heure à chaud · ('ciel') cacher/montrer la couche
   if(k==='nuages'&&v){const M=VIT_MET[(LVL.cur&&LVL.cur.meteo)||'midi'];Object.assign(M,v);VIT.neuf=true;return M;}
-  if(k==='tours'&&VIT.tours){const c=carGroup.position;return VIT.tours.filter(function(t){return v==null||t[3]===v;}).map(function(t){return [Math.round(t[0]),Math.round(t[1]),Math.round(t[2]),t[3],Math.round(Math.hypot(t[0]-c.x,t[1]-c.z))];}).sort(function(a,b){return a[4]-b[4];}).slice(0,12);} // (banc) les tours les plus proches de la caisse (d'une forme)
+  if(k==='tours'&&VIT.tours){const c=carGroup.position;return VIT.tours.filter(function(t){return v==null||t[3]===v;}).map(function(t){return [Math.round(t[0]),Math.round(t[1]),Math.round(t[2]),t[3],Math.round(Math.hypot(t[0]-c.x,t[1]-c.z)),Math.round(t[4]),+(((t[0]*.0131+t[1]*.0173)%1+1)%1).toFixed(5)];}).sort(function(a,b){return a[4]-b[4];}).slice(0,12);} // (banc) les tours les plus proches de la caisse (d'une forme)
   if(k==='progs')return (renderer.info.programs||[]).map(function(p){var k9=String(p.cacheKey).replace(/\n/g,' ');return (p.name||'')+' | '+k9.slice(0,40)+' … '+k9.slice(-90);}); // (banc) les programmes compilés (pour traquer une compilation en course)
   if(k==='haut'){VIT.uHaut.value=VIT.uHaut.value>.5?0:1;return VIT.uHaut.value;} // (banc) la ville d'en haut masquée / rendue (le loin, couleur de brume, reste)
+  if(k==='dir'&&VIT.dir)return {p:VIT.dir.position.toArray().map(Math.round),visible:VIT.dir.visible,devant:VIT.dirS!=null?Math.round(VIT.dirS-s):null}; // (banc) où est le dirigeable
   if(k==='ciel'&&VIT.ciel){VIT.ciel.material.visible=!VIT.ciel.material.visible;return VIT.ciel.material.visible;}
   if(k==='rayon'){const rc=new THREE.Raycaster();rc.setFromCamera(new THREE.Vector2(v[0]/VP.w*2-1,1-v[1]/VP.h*2),camera);const L=[],M=new THREE.Matrix4(); // (banc) ce qu'il y a sous le pixel (x,y) : quelle pièce de quelle tour
     for(const F of CITY.fam||[])for(const im of [F.im,F.imL])for(const h of rc.intersectObject(im).slice(0,4)){im.getMatrixAt(h.instanceId,M);const e=M.elements;L.push({im:im===F.im?'pres':'loin',fam:CITY.fam.indexOf(F),id:h.instanceId,d:Math.round(h.distance),
@@ -24391,7 +24456,7 @@ function buildVoxCity(seed,accC){
   // en faisaient une guirlande. Cinq teintes comme avant (le tirage `vr` ne bouge pas), le feu d'antenne au rouge DANGER, la couronne à l'accent.
   const MJ9=metroJour();CITY.uPied.value=MJ9?.12:1; // (metropole) de jour, plus de voile violet au pied des tours
   const NEON=VI?[new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff), // (VILLE VITRÉE) pas d'enseigne (voir batir) ;
-                 new THREE.Color(0xff3b3b),new THREE.Color(0xe6f0ff)]: // le feu d'antenne rouge, la couronne en bandeau de lumière blanche
+                 new THREE.Color(VIT_PLAFOND?0xff3b3b:0x5ab8ff),new THREE.Color(0xe6f0ff)]: // le feu d'antenne (CLEAN CITY : BLEU — Léo : « les trucs rouges au-dessus, ça ressemble trop à Crypto City »), la couronne en bandeau de lumière blanche
            CR?[new THREE.Color(0x2bff88),new THREE.Color(0xffd23e),new THREE.Color(0xf7931a),new THREE.Color(0x6dffc8), // CRYPTO CITY : le vert profit, l'or, l'orange bitcoin, la menthe…
                  new THREE.Color(0xfff2c8),new THREE.Color(0xff3b5c),new THREE.Color(0xffc63a)]: // …un blanc chaud, le feu d'antenne, la couronne en OR
              (NEONVILLE_V5&&!villeRose())?[new THREE.Color(MJ9?0xffc81e:0xffb04a),new THREE.Color(0xe8eef2),new THREE.Color(0xffb04a),new THREE.Color(0xe8eef2), // (2026-10-14, passe graphismes · facades-jour)
@@ -24423,7 +24488,7 @@ function buildVoxCity(seed,accC){
       t=yN-50+290*Math.pow(vr(),.75)*(.55+.45*k);if(k>.5&&vr()<.22)t+=160;}
     else t=yN-230+vr()*vr()*470;                                   // AU LARGE : la forêt du village
     if(eE>0){const u9=THREE.MathUtils.clamp((t-yN+50)/450,0,1),tE=yN-VILLE_ENTREE_R.toit-(1-u9)*VILLE_ENTREE_R.etage;t+=(tE-t)*eE;} // (2026-09-29) L'ENTRÉE SURÉLEVÉE : le toit passe SOUS la route (juste sous elle pour les plus hautes : on les voit défiler au ras du bitume)
-    if(VI&&t>yN)t=yN+(VIT_HC-40)*(1-Math.exp(-(t-yN)/(VIT_HC-40))); // (VILLE VITRÉE) la hauteur AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux villes, chaque reflet pend au-dessus de sa tour
+    if(VI&&VIT_PLAFOND&&t>yN)t=yN+(VIT_HC-40)*(1-Math.exp(-(t-yN)/(VIT_HC-40))); // (VILLE VITRÉE) la hauteur AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux villes, chaque reflet pend au-dessus de sa tour
     let b=Math.min(yLo,yN)-330-vr()*120;if(t-b>1000)b=t-1000;
     const bt=tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
     const H=t-b,km=(b+t)/2;nT++;
@@ -24450,7 +24515,7 @@ function buildVoxCity(seed,accC){
         corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);tqC.push(cx,km,cz);}
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
-    if(H>320&&vr()<.5){let ha=24+vr()*56;if(VI){if(fo===5)ha=0;else{corps.push(cx,yV+ha/2,cz,2.4,ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
+    if(H>320&&vr()<.5){let ha=24+vr()*56;if(VI){if(fo===5)ha=0;else{corps.push(cx,yV+ha/2,cz,1.4,ha,1.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,2.2,2.2,2.2);neonC.push(5);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) le mât part du TOIT — pas de mât sur une LAME (son toit est en biais) (il ne traverse plus la tour)
       else{corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}}
     else if(vr()<.32){if(!VI||(fo===0&&!vitreBiseau(cx,cz))){neon.push(cx,(VI?yV:t)-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
     // (metropole) LA GRUE : sur le toit d'une tour haute sur ~9 (moins sur téléphone) — un mât rouge, une flèche, une contre-flèche, une cabine et un contrepoids jaunes
@@ -24501,8 +24566,10 @@ function buildVoxCity(seed,accC){
      La règle d'or tient aussi là-haut (tourLibre) : un reflet qui couperait un étage de route est écourté par sa pointe, ou omis. Les tours d'en
      haut sont DURES, comme celles d'en bas (CITY.col). */
   const nBas=genre.length,formV=new Array(nBas).fill(0),mirOf=[];
-  VIT.tours=VI?VTW.map(function(r){const o=r[0]*6;return [corps[o],corps[o+2],r[4],r[5]];}):null; // (banc) les tours : x, z, route, forme
-  if(VI){for(const r of VTW)for(let i=r[0];i<r[1];i++)if(genre[i]===0)formV[i]=r[5];
+  VIT.tours=VI?VTW.map(function(r){const o=r[0]*6;return [corps[o],corps[o+2],r[4],r[5],corps[o+1]+corps[o+4]/2];}):null; // (banc) les tours : x, z, route, forme
+  const piedV=new Array(nBas).fill(0); // (CLEAN CITY) le volume du PIED de chaque tour, et ses lames : leur pied se noie (VIT_PIED)
+  if(VI)for(const r of VTW)for(let i=r[0];i<r[1];i++){if(genre[i]===0)formV[i]=r[5];if(i===r[0]||genre[i]===1)piedV[i]=1;}
+  if(VI&&VIT_PLAFOND){
     for(const r of VTW){const yC=r[4]+VIT_HC;
       for(let i=r[0];i<r[1];i++){const o=i*6,x=corps[o],z=corps[o+2],w9=corps[o+3],h9=corps[o+4],p9=corps[o+5],yt=2*yC-(corps[o+1]-h9/2);let yb=yt-h9;
         const bt9=tourLibre(x,z,Math.hypot(w9,p9)*.5+5,yb,yt);if(!bt9||bt9[1]<yt-1)continue;yb=bt9[0];
@@ -24520,9 +24587,9 @@ function buildVoxCity(seed,accC){
   const col=new THREE.Color(),colT=new Float32Array(genre.length*3),colN=new Float32Array(neonC.length*3);
   for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i]; // (le tirage `vr` dans le MÊME ordre qu'avant : chaque tour garde sa teinte)
     if(VI&&i>=nBas){const j=mirOf[i-nBas];colT[i*3]=colT[j*3];colT[i*3+1]=colT[j*3+1];colT[i*3+2]=colT[j*3+2];continue;} // (VILLE VITRÉE) le reflet a la teinte (et la forme) de sa tour
-    if(VI){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,q9=(sd9*29.37)%1,st9=q9<.34?0:q9<.52?1:q9<.68?2:q9<.84?3:4,k9=.9+(t9-.8)*.35; // (VILLE VITRÉE) la STRUCTURE (la façade, c'est le shader : mêmes seuils)
-      if(g===0){const P9=[[.66,.70,.76],[.84,.84,.82],[.88,.89,.90],[.20,.22,.25],[.74,.77,.82]][st9];col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // montants d'alu · béton clair · lames blanches · montants noirs · alu argent
-      else if(g===1)col.setRGB(.86*k9,.86*k9,.84*k9);else col.setRGB(.60,.62,.66);col.toArray(colT,i*3);colT[i*3]+=8*formV[i];continue;} // + la FORME (r + 8 × forme, lue au sommet) // les tuyaux deviennent des LAMES de béton clair ; les mâts, acier clair
+    if(VI){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,q9=(sd9*29.37)%1,st9=q9<.26?0:q9<.50?1:q9<.66?2:q9<.76?3:4,k9=.9+(t9-.8)*.35; // (mêmes seuils que le sommet) // (VILLE VITRÉE) la STRUCTURE (la façade, c'est le shader : mêmes seuils)
+      if(g===0){const P9=[[.66,.70,.76],[.94,.95,.96],[.93,.94,.95],[.20,.22,.25],[.80,.83,.87]][st9]; /* (CLEAN CITY) le BLANC des tours blanches et des lames */col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // montants d'alu · béton clair · lames blanches · montants noirs · alu argent
+      else if(g===1)col.setRGB(.93*k9,.94*k9,.95*k9);else col.setRGB(.88,.90,.93);col.toArray(colT,i*3);colT[i*3]+=8*formV[i];colT[i*3+1]+=8*piedV[i];continue;} // + la FORME (r + 8 × forme, lue au sommet) // les tuyaux deviennent des LAMES de béton clair ; les mâts, acier clair
     if(CR){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,q9=(sd9*29.37)%1,st9=q9<.26?0:q9<.44?1:q9<.64?2:q9<.80?3:4,k9=Math.min(1.12,t9); // CRYPTO CITY : la STRUCTURE de la tour (la façade, c'est le shader)
       if(g===0){const P9=[[.30,.40,.46],[.74,.62,.36],[.70,.74,.80],[.38,.40,.44],[.94,.94,.92]][st9];col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // VERRE · OR · ARGENT · MÉTAL · BLANC (2026-10-15, Sacha)
       else if(g===1)col.setRGB(.76*k9,.78*k9,.82*k9);else col.setRGB(.16,.16,.18);}               // tuyaux de chrome, mâts sombres
@@ -26706,7 +26773,8 @@ BIOMES.vitreNuit=bioMet(BIOMES.cryptoNuit,{nm:'VILLE VITREE · NUIT',stars:.7,mo
 BIOMES.vitrePluie=bioMet(BIOMES.vitreMidi,{nm:'VILLE VITREE · PLUIE',jZen:[.30,.34,.42],jMid:[.42,.47,.55],jHor:[.60,.64,.70],jSol:[.30,.33,.38],sunTint:[.8,.84,.9],sunHalo:.1,sunC:[.78,.82,.90],sunI:.55,
   fog:[.50,.55,.62],fogN:420,fogF:2900,fogCj:[.62,.66,.72],fogIn:[.6,.64,.7],hemiS:[.62,.68,.78],hemiG:[.30,.32,.36],hemiI:.7,fillC:[.5,.56,.66],fillI:.18,kickI:.08,expo:.84,sat:.92,con:1.1,
   env:[[0,'#3a4250'],[.3,'#5a6474'],[.48,'#8a94a2'],[.58,'#7a8494'],[.66,'#4a525e'],[1,'#2a3038']],eS1:[200,210,225,.4],eS2:[150,165,190,.3]});
-for(const k9 of ['vitreMatin','vitreMidi','vitreSoir','vitreNuit'])Object.assign(BIOMES[k9],{fogN:Math.max(BIOMES[k9].fogN||0,900),fogF:Math.max(BIOMES[k9].fogF||0,4600)}); // (v2) la brume recule : la ville d'en haut se voit
+for(const k9 of ['vitreMatin','vitreMidi','vitreSoir','vitreNuit'])Object.assign(BIOMES[k9],{fogN:Math.max(BIOMES[k9].fogN||0,900),fogF:Math.max(BIOMES[k9].fogF||0,4600)});
+if(!VIT_PLAFOND){for(const k9 of ['vitreMatin','vitreMidi','vitreSoir','vitreNuit','vitrePluie'])Object.assign(BIOMES[k9],{kickC:[.80,.88,1],kickI:.12});BIOMES.vitreNuit.moon=1;} // (CLEAN CITY) le contre-jour en blanc froid (le rose est la signature des autres maps) ; la lune revient // (v2) la brume recule : la ville d'en haut se voit
 // (fin EN ORBITE)
 //
 //
