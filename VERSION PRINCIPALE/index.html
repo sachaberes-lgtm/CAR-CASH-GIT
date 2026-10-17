@@ -40241,8 +40241,8 @@ function nitroFeu(dt){
    5. LE RASE-BORD (,22/s) ne remplit que nitro COUPÉE : rien ne se remplit en continu pendant que ça brûle.
    6. LA FIGURE SE PAIE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage,
       cumulable »). La lancer en vol coûte `figN.cout` (20 % de la jauge) — pas assez dans la jauge : elle ne part pas (le « tchk » de la
-      nitro à vide). Plantée, elle rapporte `figN.rend` (30 %) à la POSE RÉUSSIE, et ça s'additionne : trois figures = 90 %, un tonneau ×3
-      (trois double-taps, 60 % payés) = 90 %. Chute en plein tour, pose de travers ou à contresens : les 20 % sont perdus. Le SAUT NITRO paie
+      nitro à vide). Plantée, elle rapporte `figN.rend` (40 % depuis le 18/10, 30 % avant) à la POSE RÉUSSIE, et ça s'additionne : trois figures = 120 %, un tonneau ×3
+      (trois double-taps, 60 % payés) = 120 %. Chute en plein tour, pose de travers ou à contresens : les 20 % sont perdus. Le SAUT NITRO paie
       déjà ses 20 % (VEQ_K.sautCout) : sa figure rapporte comme les autres. Plus rien n'est rendu EN VOL (le plein à la plantée d'ASPHALT 8
       et la prime du COMBO À TROIS se sont tus), et la recharge de la chaîne (`fig`) ne joue plus quand le vol porte une figure : la loi 6 paie.
    Ce qui se RAMASSE (pads, fruits, la LIGNE PARFAITE) et les gestes de la route (drift, frôlé, fronde…) ne changent pas : tenir le
@@ -40258,7 +40258,7 @@ const NITRO2={
   coup:.12,                // l'allumage EN VOL (le coup de réacteur) : 12 % de la jauge
   pose:{pct:.2,plein:1.2}, // la pose : 20 % de la jauge, pleine à partir de 1,2 s de vol (loi 2)
   fig:{base:.45,par:.12,max:1.2}, // la figure posée : ,45 + ,12 par × de la chaîne, plafond 1,2 (puis ×1,5 parfaite · ×2 divine)
-  figN:{cout:.2,rend:.3},  // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 30 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée)
+  figN:{cout:.2,rend:.4},  // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 40 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée) — (2026-10-18, Sacha : « on peut faire -20 +40 ») 30 → 40 % : +20 % net par figure posée, au lieu de +10 % qu'on ne sentait pas
   bump:{q:.35,k:.6,n:4},   // le bump : ,35 · ,21 · ,13 · ,08 puis rien (loi 3)
   rase:.22                 // le rase-bord (/s), nitro coupée seulement (loi 5)
 };
@@ -49606,7 +49606,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   const sautN=performance.now()-VEQ.sautT<120;
   if(sautN){try{if(SONV2)sfx('fig.explose',{var:0,vol:-6});}catch(e){}}else figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);figBtFx(s,'boum');fhLance(s,r,o); // (HUD des figures v3) son nom tombe en grand
   return r;}
-/* LA FIGURE SE PAIE (2026-10-17, Sacha — loi 6 du réservoir, réglages dans NITRO2.figN) : 20 % de la jauge au lancement, 30 % par
+/* LA FIGURE SE PAIE (2026-10-17, Sacha — loi 6 du réservoir, réglages dans NITRO2.figN) : 20 % de la jauge au lancement, 40 % par
    figure plantée rendus à la pose RÉUSSIE (figNitRend, appelée par tryLand et levreRattrape), perdus sinon. Offerte (rien à payer, elle
    rapporte quand même) : la figure du SAUT NITRO (le saut a déjà payé ses 20 %), sous NITRO INFINIE, au parc, à l'auto-école.
    `dbgFigNit()` : le prix, ce qui attend la pose, la jauge.
@@ -49616,7 +49616,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
    (`nitroX`, plafond 2 comme les fruits) : rien n'est perdu, et il vole vers la partie bleue de la barre. (2) LA FIGURE PAS BOUCLÉE : un tour
    empilé, ou relayé, qui n'avait pas fini son dernier quart au contact (fréquent depuis la gravité ×1,45) était payé 20 % et ne rendait RIEN,
    sans un mot — 3 lancements, 1 rendu. Le compte de la pose est maintenant celui des LANCEMENTS du vol (`FX2.nitL`, celui qui a payé) :
-   chaque figure lancée rend ses 30 % à une pose réussie. Pose ratée (en plein tour, de travers, à contresens) : rien, comme avant. La toupie
+   chaque figure lancée rend ses 40 % à une pose réussie. Pose ratée (en plein tour, de travers, à contresens) : rien, comme avant. La toupie
    automatique du drift ne passe pas par figLance : ni coût ni gain. Rend le nitro crédité (jauge + réserve). */
 function figNitCout(o){return o.douce||pwrNitroT>0||PARK.on||TUTO.on?0:NITRO2.figN.cout*nitroCap();}
 function figNitPaye(q){const av=nitroR+nitroX;if(nitroR>=q)nitroR-=q;else{nitroX=Math.max(0,nitroX-(q-nitroR));nitroR=0;}if(LIVRE.on)livre('n-:figure',av-nitroR-nitroX);} // (la réserve bleue après la jauge, comme le saut nitro)
@@ -49671,7 +49671,7 @@ function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),
   {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
   if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
-  FX2.nitF+=r.nitN|0;FX2.nPay++; // (2026-10-17, loi 6) la figure plantée ne remplit plus le NITRO tout de suite (ASPHALT 8) : elle COMPTE, la pose réussie la rend — 30 % chacune
+  FX2.nitF+=r.nitN|0;FX2.nPay++; // (2026-10-17, loi 6) la figure plantée ne remplit plus le NITRO tout de suite (ASPHALT 8) : elle COMPTE, la pose réussie la rend — 40 % chacune
   hap([10,22,10]);
   comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
 function figChute(){if(FX2.pts>0&&CHA.n>0){CHA.pts=Math.max(0,CHA.pts-FX2.pts);chaHud(true,false);}FX2.pts=0;FX2.chutes++; // posée en plein tour : les figures du vol quittent la chaîne (BMX)
@@ -49808,7 +49808,7 @@ function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, 
    · La durée (`frDuree`) : 65 % du catalogue, entre 0,4 et 0,72 s (le salto du saut tournait en ~0,36 s) ; le bond dure ×1,12 + le planté.
    · Le prix et la paie ne bougent pas : 20 % de la jauge au lancement (comme le saut, offert sous NITRO INFINIE, au parc, au mouton, à
      l'auto-école ; à sec : le « tchk ») ; plantée = `figPaye` (l'aura, le HUD des figures, les missions, la leçon) ; la caisse retombée, la
-     POSE d'un vol est rejouée pour la figure (`frEncaisse` : le combo, les 30 % rendus, les pièces du MOTEUR, le flow, la frénésie armée).
+     POSE d'un vol est rejouée pour la figure (`frEncaisse` : le combo, les 40 % rendus, les pièces du MOTEUR, le flow, la frénésie armée).
    · Rien dans la direction tenue : le SAUT NITRO d'avant, sans figure. Une figure sur la route à la fois. Décollage en pleine figure (une
      crête, le bord) : son corps passe au vol (`frDecolle`/`frVersVol`, dans startFall) et elle finit en l'air.
    · Le GLISSER de Léo n'est pas changé : au sol, slide 360 / wheelie / stoppie, et son salto part toujours avec le saut (joystick en avant).
@@ -49860,7 +49860,7 @@ function frEncaisse(){ // la caisse est retombée sur ses roues : ce que la POSE
   figComboEncaisse();const g=figNitRend(true);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
 function frCoupe(){if(FR.C)FR.C.vide();FR.on=false;FR.lift=0;FX2.nitL=0;} // (la course s'arrête, la caisse explose) rien à rendre
 function frFin(){const C=FR.C,P=C.pose();for(let i=0;i<P.payees.length;i++)frPaye(P.payees[i]); // le bond fini : ce qui reste se juge (une figure presque finie compte)
-  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(); // (FX2.nitL gardé : frEncaisse rend ses 30 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
+  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(); // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
   sensCoup(0,.6,-1.4);hap([8,18]);try{if(SONV2)sfx('pose.nette',{t:.02});}catch(e){} // elle retombe : la suspension encaisse, le petit son de la pose
   const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.2,0);carGroup.localToWorld(FX2.v);for(let k=0;k<4;k++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,FR.vel.x*.7+(Math.random()-.5)*5,1+Math.random()*2,FR.vel.z*.7+(Math.random()-.5)*5,.3+Math.random()*.25);}}
 function frTick(dt){if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
@@ -53102,7 +53102,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
   mode='drive';prevTvalid=false;bascOn=false;
-  {const g9=figNitRend(!VEQ.rate);if(SONV2&&g9>.01)sfx('nitro.plein',{t:.2});} /* (loi 6) rattrapée à la lèvre : les figures lancées rendent leurs 30 % (le trop-plein dans la réserve bleue) */
+  {const g9=figNitRend(!VEQ.rate);if(SONV2&&g9>.01)sfx('nitro.plein',{t:.2});} /* (loi 6) rattrapée à la lèvre : les figures lancées rendent leurs 40 % (le trop-plein dans la réserve bleue) */
   if(FIGV2.on){if(VEQ.rate)figChute();else figComboEncaisse();} /* (2026-10-15, HUD des figures v3 — vu au banc) la LÈVRE rattrapée est une pose : le combo du vol s'y encaisse
      (ou s'y perd), comme sur la dalle — avant, il disparaissait sans un mot (tryLand sort ici avant l'encaissement) */
   if(chain===0&&chainVal>0)rollover=chainVal; // le REPORT d'un PARFAIT, consommé au décollage, n'est pas perdu pour autant
