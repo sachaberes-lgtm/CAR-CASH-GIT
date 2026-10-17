@@ -60,6 +60,114 @@
 - À TRANCHER par Sacha : les dix caisses « un cran » de la revue, si l'envie le prend ; et sur LE CAÏD, les charnières sont à droite vue de
   derrière (fidèle à la vraie), ce qui rend la poupe asymétrique.
 
+## LES TRAÎNÉES QUI DONNENT ENVIE — L'APERÇU EN VRAIE LUMIÈRE, LES SIGNATURES, LES ALLUMAGES (2026-10-16/17, session TRAÎNÉES — Sacha : « lance une grosse session pour améliorer chaque traînée, il faut qu'elle donne toute envie d'acheter, donne-leur le max de soin à chacune »)
+Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : traînée à toute nitro, feu teinté, objets ×2,3) : ici, les VITRINES
+(atelier, inventaire, boutique) et ce qui rend chaque traînée reconnaissable au premier coup d'œil. `?trainee=signal` rend toujours l'avant de la passe du 15/10.
+- VU AVANT (bancs `banc-trainees.cjs` course + `banc-vitrines.cjs` inventaire/boutique, les 16 tour à tour) : à l'atelier, les rubans d'aperçu
+  (`TRPV`) partaient des POTS en bande plate — un pavé de couleur, rien à voir avec la traînée de la course ; dans la SALLE BLANCHE de la boutique,
+  tout ce qui est additif (rubans, code, filés, foudre, pétales lumineux) disparaissait sur le blanc ; MENTHE / ROSE NÉON / POUDRE D'OR = un fil de
+  couleur ; aucune traînée POP n'avait de « coup » à l'allumage, et l'aperçu ne le montrait qu'une fois.
+- L'APERÇU EN VRAIE LUMIÈRE (`silApercu`, `silRuban` séparé de `sillageStep`) : deux sillages à eux, même matière que la course, nourris d'un chemin
+  inventé qui part des FEUX ARRIÈRE et ondule ; l'allumage se voit (la lumière file des feux en 0,28 s, la tête flashe). `TRPV` reste en repli.
+- LA SALLE BLANCHE EN ENCRE (`SIL_ENCRE`, `silEncre`, `silBlanc()` ; TRX : sortie PRÉMULTIPLIÉE + `M._encre`) : en boutique, la lumière additive
+  passe en mélange (0, 1 − src) avec la couleur inversée — le blanc se teinte de la couleur de la traînée. Le mélange n'entre pas dans la clé des
+  programmes de three r128 : zéro recompilation.
+- LE TEMPÉRAMENT DU RUBAN (`sil` sur la fiche : c cœur ×, h halo ×, f refroidissement, p pouls ×) : MENTHE douce, ROSE NÉON tube franc sans
+  refroidir, OR à pouls d'énergie, SAKURA halo large, MATRICE fil fin à paquets de données, HYPERESPACE cœur brûlant à pouls rapides, FOUDRE électrique.
+- LES SIGNATURES DES TROIS RUBANS (nouveaux émetteurs TRX, cases 34-35 de la planche) : MENTHE = bulles de savon irisées qui montent et CRÈVENT
+  (`trxMeurt`) ; ROSE NÉON = cœurs d'enseigne en tube qui grésillent (`fk`) + l'enseigne qui s'allume en clignotant (`neonAllume`) ; POUDRE D'OR =
+  paillettes qui scintillent (`tw`) et poussière d'or.
+- LES ALLUMAGES (`debut`) : SAKURA la corolle, MATRICE le rideau de code, ANNEAUX la fontaine en éventail régulier, PLUIE DE BLOCS les sept pièces
+  en éventail, HYPERESPACE le saut (éclair qui se resserre + averse de filés), 88 MILES l'éclair du départ, FOUDRE DIVINE la frappe du ciel (un
+  éclair épais de 14 m tombe sur la caisse, `B.wk`), GLOUTON commence par une super-pastille, FAIS PLEUVOIR lâche des étincelles d'or qui
+  scintillent (presque tous ses billets à l'allumage). LA GRILLE se défait en PIXELS au bout de sa vie (case 36).
+- MENTHE en course : bulles ramenées à 20-45 cm (×2,3 de `TRX_GROS` : une bulle de 85 cm couvrait la poupe).
+- EN COURSE, les quatre qui ne tenaient pas leur prix (VU au banc après la passe du 15/10) : HYPERESPACE — ses filés de 4 cm se confondaient
+  avec les lignes de vitesse du jeu → 130/s, deux fois plus épais, plus longs, élan gardé .62 : un vrai tunnel bleu ; 88 MILES — flammes au sol
+  30 → 50 cm ; LA GRILLE — mur 1,05 → 1,3 m, plus franc ; FOUDRE DIVINE — les éclairs se noyaient dans le ruban violet → ×1,7 et deux fois plus
+  écartés, ruban au halo réduit, frappe de 0,42 s.
+- EN BOUTIQUE (caméra loin de la caisse) : objets POP ×1,7, fantômes ×1,6, éclairs ×2, et la frappe de la foudre tombe du haut du CADRE (4,2 m).
+- VU APRÈS : planche finale des 16 (boutique avant/après, inventaire, course) montrée à Sacha. Coût : TRX < 0,13 ms par image en course.
+- LA VITRINE QUI VROMBIT (`SILPV.cy`) : en boutique, la traînée essayée se coupe 0,45 s toutes les 4,3 s et se rallume — on revoit le coup.
+  À l'aperçu, changer de traînée chasse les objets de la précédente et rejoue l'allumage (`T.kp=0`).
+- WOW : les mots gardent 95,5 % de l'élan en course (86 % : ils passaient l'objectif en un tiers de seconde), plus écartés, plus hauts.
+- LES CARTES : toutes les traînées ont leur pictogramme EN COULEUR en boutique (`illuTr` → `bqTrIc`, trait d'ombre dur pour le blanc).
+- Perf : aucune PointLight, aucun programme en plus ; tout passe par les pools existants (TRX_PN 560, SIL).
+
+## CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE (2026-10-15, Sacha : « un nouveau décor pour le générateur aléatoire de map : Crypto City, une ville imaginaire avec de grands immeubles qui reflètent — des vitrés, des dorés, des argentés, des métalliques et des blancs ; hyper moderne, le futur, pas forcément moche ; explosif : la période bullrun, l'apogée de la ville, pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »)
+- LA BASE : la CRYPTOCITY de Léo (13/10, section « CRYPTOCITY — LA VILLE EN BULL RUN » plus bas) avait été retirée le 14/10 (`0ac875d`,
+  « on supprime tout ce qui n'est pas là » : elle n'était pas dans le tirage). Elle est REVENUE (le retrait défait sur le main d'aujourd'hui :
+  24 morceaux reposés tels quels, 11 refaits à la main sur la ville qui a changé depuis — néons v5, grues, `uPied9`) : taureaux, bougies,
+  pièces ₿ géantes (JACKPOT), diamants, dirigeables à écran, lune ₿, fusées TO THE MOON, feux d'artifice, le NOUVEL ATH, la pluie d'argent
+  à 50 % en fond, les pièces de la route frappées du ₿, le bitume glacé (`LVL.crypto`, `GLACE.crypto`), l'accent vert profit 0x35ff9e.
+- UNE MAP DU TIRAGE : `SF_CARTES.crypto` (« CRYPTO CITY », base `NIV_CRYPTO`, `SF_NIV.crypto`). QUATRE TEMPS, jamais de pluie ni d'orage
+  (c'est l'apogée) : MATIN (`BIOMES.cryptoMatin`, aube rose et or), MIDI (`bullrun`, le ciel de Léo + l'étalonnage du 14/10, poids 1,3),
+  SOIR (`cryptoSoir`, tout l'or s'allume, poids 1,2), NUIT (`cryptoNuit`, nuit:1 → phares ; « LA VILLE NE DORT JAMAIS »). Plus de JOUER à
+  part : `CRYPTO_JEU`, `cryptoJouer`, `cryptoPlayOk` sont partis ; `?niveau=crypto` = `?carte=crypto` ; `dbgNiveauCrypto(meteo)` impose
+  la map puis `classiqueJouer()`. Vignette du garage (`gvVignette('crypto')`, `GV_TEINTE.crypto` or).
+- LES FAÇADES EN CINQ MATIÈRES (`CRYPTO_VERRE`, programme `toursCrypto2`) — le même seuil dans le shader (`s3`) et pour la structure
+  (couleur d'instance, buildVoxCity) : 26 % VERRE bleu-vert · 18 % OR (renvoie la lumière du ciel) · 20 % ARGENT (miroir : garde le bleu,
+  Fresnel +60 %) · 16 % MÉTAL brossé (lames verticales, reflet brouillé, éclat du soleil en traînée large) · 20 % BLANC (résille de
+  céramique autour de baies étroites). Parapets : menthe / or / blanc chaud. LA NUIT, les bureaux restent allumés (`uNuit9` =
+  `CRYPTO.uNuit`, suit `LVL.nuit` dans cryptoTick).
+- LES RÉCLAMES : 32 écrans au lieu de 16 (atlas 2048 × 1024, 8 × 4, programme `pubsCrypto2`) — ajoutés NFT, SATOSHI, WEB3, DEFI, AIRDROP,
+  STAKE, WHALE, FOMO, DOGE, DAO, GAS 0, AI, MINING, LFG, SER, 1 BTC = 1 BTC ; traduits par `pubLangue`.
+- MESURÉ (banc Playwright + Chromium logiciel, 844 × 390, muet, `?carte=crypto&meteo=…`, pilote `dbgAuto`) : midi, soir, nuit lancés par
+  le JOUER du tirage, `__loopErr` nul, `dbgCrypto('progs')` vide, aucune erreur de page (seul le 404 connu de dark-triad.mp3). Ville bâtie :
+  1 425 tours, 3 913 volumes, 66 réclames, 2 taureaux, 59 bougies, 12 pièces, 8 diamants, 3 dirigeables, en 48 ms.
+  Les neuf maps du tirage : nuages, ville, jade, foret, banquise, volcan, crypto, espace, canyon.
+- À TRANCHER (Sacha, Léo) : la part de chaque matière ; la pluie d'argent en fond (.5) ; le nom (CRYPTO CITY / CRYPTOCITY de Léo).
+
+## LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE (2026-10-17, session « Système d'éclairage » — Sacha : « on retravaille complètement comment les lumières fonctionnent : les traînées doivent faire de la lumière, les flammes de nitro doivent faire de la lumière, les feux arrière doivent faire de la lumière quand il fait nuit, sur la route ; on retravaille comment les phares fonctionnent, comment la lumière des feux arrière se reflète dans le pare-brise arrière ; il faut que la lumière marche très bien, que ce soit parfait — optimisé quand même, pas de ray tracing : compatible iPhone, magnifique mais compréhensible pour un iPhone »)
+- AVANT : sur la route, la caisse n'éclairait presque rien. Un projecteur three (`headSpot`) au milieu du capot, une NAPPE PEINTE plate devant
+  (`CARPOOL.head`, le trapèze blanc qu'on voyait flotter devant la caisse la nuit) et, derrière, RIEN : la flaque rouge des feux et le halo nitro
+  (des plans additifs, les « taches rondes » du 25-26/09) avaient été retirés, et les PointLights ne touchent plus le bitume depuis le 26/09
+  (`LFB_SANS_PL`, ~20 % du GPU). Les feux, le feu du nitro, les traînées brillaient… dans le vide.
+- LA RECETTE : les lumières de la caisse sont CALCULÉES DANS LE SHADER DU BITUME (`LUM_GLSL`, `lmRoute`), sans AUCUNE lumière three de plus :
+  · LES PHARES (`uHl*`) : deux lampes (les halos `HALO.h` du gabarit ; l'épave n'en a qu'une, c'est voulu), chacune un faisceau de croisement — un
+    éventail (`uHlK.y`), une COUPURE à l'horizon de la lampe (`uHlK.x`), un point chaud juste dessous qui PORTE LOIN (`uHlK.z`), rien sous le
+    pare-chocs (vu de la poursuite, c'était un halo autour du capot), l'inverse du carré et le cosinus de la surface (une bosse s'allume). Mesuré au
+    calcul : à peu près plat de 10 à 20 m, 60 % à 40 m, 25 % à 60 m. Le projecteur three ne touche plus le bitume (la boucle des spots est retirée de
+    son shader, `LFB_ROUTE_LUM`) — il reste pour le décor (tours, rochers, arbres) ; la nappe peinte est éteinte en course.
+  · DES LAMPES-SEGMENTS (`uLmA/B/C`, `LM_N` = 6) : un point ou un trait de lumière. L'éclairement vient du point du trait le plus proche ; le REFLET
+    (pellicule d'eau, FLAQUES ; le béton sec est mat : sauté) du point du trait le plus proche du rayon réfléchi (le « point représentatif » de Karis),
+    dans un lobe ÉTIRÉ — fin en travers, long vers l'œil : sur une route mouillée chaque feu s'étire en TRAÎNÉE ROUGE vers la caméra, comme une vraie
+    route de nuit sous la pluie (un lobe rond y faisait des taches rondes, vu au banc). Les lampes :
+    les deux FEUX ARRIÈRE (`CAR_FEUX`, rayonnés vers l'arrière, embrasés au frein — le même `VIT9.frein` que leurs halos), LE FEU DU NITRO (un trait
+    par côté, de la bouche du pot le long du jet, qui s'allonge avec la vitesse, à la couleur de la flamme — celle de `nitroLight` : orange, bleu de
+    réserve, violet de l'infini, or du pad, la traînée achetée, l'arc-en-ciel du chat — et qui tremble avec elle), LA FLAMME DU MOTEUR hors nitro
+    (le mini feu de pixels : une lueur qui crépite avec ses bouffées, `FLM.L`, la nuit), LES TRAÎNÉES DE LUMIÈRE (un trait par traînée sur ses
+    12 premiers mètres, à sa couleur et à son éclat — `SILS`, `lumNoeud`).
+  · LA LUEUR DES FEUX SUR LA CAISSE (`FEU_U`, `FEU_GLSL`, dans le bloc VOITURES) : les deux feux allument la tôle qui les entoure (diffus vrai,
+    fenêtre de proximité : sans elle, toute la poupe virait au rouge uni) et le VERRE en prend le reflet — un voile rouge qui monte du bas de la
+    lunette, plus fort en rasant (`uFvK` par famille de matière : verre 1, chrome .6, laque .2, mat .05 ; `rimify(m,v,rimK,fvK)`).
+  · LES FAISCEAUX DANS L'AIR (`PHARE_FX`, les cônes de minuit) : ils NAISSENT au phare au lieu d'y flamber (l'éventail blanc posé sur le capot) et ne se
+    voient que s'il y a de quoi les attraper — la pluie, le brouillard (`LUMK.air`).
+- LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (ciel + soleil posés par `bioApply`, en luminance) et au drapeau `nuit` du niveau. MESURÉ sur les
+  couples map × météo : ~0,55 de jour, ~0,34 au soir et sous la pluie de jour, 0,10-0,16 la nuit (ville, nuages, orage) → les phares et les feux
+  mordent pleinement la nuit, à un tiers au soir et sous la pluie, plus du tout en plein jour ; le feu du nitro éclaire toujours un peu (c'est du feu).
+- PERF : tout en espace VUE (`lumTick` pose les lampes en coordonnées monde, `lumVue`, chaîné sur `scene.onBeforeRender`, les passe dans le repère de
+  LA caméra qui rend — mode photo compris) ; hors d'une sphère de 18 m autour de la caisse le pixel ne paie qu'un test ; les phares sautent ce qui
+  est derrière eux, hors de l'éventail ou au-dessus de la coupure ; les branches sont uniformes (lampes éteintes, béton sec : rien) ; le trait et
+  1/|AB|² sont pré-calculés ; rien n'est alloué ; aucun programme de plus (la clé du bitume devient `bitumeV5fsL` : UN programme remplacé). En
+  QUALITÉ BASSE les traînées n'éclairent plus. MESURÉ (requêtes de temps GPU `EXT_disjoint_timer_query_webgl2`, Chrome du Mac, 1920 × 886, canyon de
+  nuit au nitro, image figée, 5 tours de 40 images en alternance) : tout coupé 7,8 ms (médiane des médianes), tout allumé 7,6, l'éclairage d'avant
+  8,0 — l'écart est SOUS LE BRUIT (± 0,5 ms : le GPU est partagé) ; le projecteur retiré du bitume paie à peu près les lampes. La première version
+  (10 lampes, trois traits par traînée, sphère de 30 m) semblait coûter ~1 ms : elle a été allégée avant de partir. À confirmer sur un vrai
+  iPhone (`?perf=1`, `?banc=1`).
+- RÉGLAGES (`LUMK`, à chaud par `dbgLum({…})`) — valeurs posées au banc : `hl` 180 000, `feu` .45 (×2 au frein), `nit` .8, `mot` .22, `tr` .1, `car` .15,
+  `air` [.12, .9], la nuit entre 0,17 et 0,45 de lumière du lieu. `hl` les phares, `feu`/`feuF` les feux (×frein), `nit` le nitro, `mot` la flamme du moteur, `tr` les
+  traînées, `car`/`carF` la lueur sur la caisse, `air` les faisceaux dans l'air, `amb` le seuil de la nuit ; `dbgLum({hlK:[coupure,éventail,point
+  chaud,adoucissement],lmW:[dureté du reflet,sec,eau,flaques]})` les uniformes. Bancs : `dbgLum({off:1})` coupe tout, `frein:1` / `nitF:1.25` les
+  forcent, `dbgLumVue(d,h,az)` = la photo de poursuite dans le repère de la caisse, `dbgLumReprise()` relance après la photo.
+- `?sans=lumieres` = l'éclairage d'avant (le projecteur sur le bitume, la nappe peinte, les cônes d'avant).
+- BANCS : planches avant/après (canyon, ville sous la pluie et au brouillard, forêt, nuages, jade la nuit ; nuages à midi pour vérifier que le jour ne
+  bouge pas), en roulant, au frein, au nitro (orange, et bleu en réserve), de près et de trois-quarts — Chrome du Mac sans fenêtre, piloté par CDP,
+  caméra de poursuite figée par `dbgLumVue` sur la première ligne droite (le pilote saute trop souvent sur les nuages pour comparer).
+- À TRANCHER PAR SACHA : la force des phares (`hl`) et de la tache rouge au frein ; garder ou non la lueur des traînées sur la route (`tr`) ; l'ancien
+  éventail peint devant la caisse est retiré en course (il revient avec `?sans=lumieres`). Pas fait : les feux des autres caisses (les bots) n'éclairent
+  pas la route ; la lueur des feux sur la lunette reste discrète sur les caisses à lunette haute.
+
 ## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
 - RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
   Ce qui la fait reconnaître : les doubles feux en OBUS POINTUS dans une bague chromée au bout des ailerons, la calandre à BIJOUX devant ET
