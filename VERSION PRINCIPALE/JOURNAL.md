@@ -3,6 +3,26 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES MISSIONS : LES EXPLOITS EN HAUT, L'EN-TÊTE QUI NE PASSE PLUS SOUS LE PANNEAU, PLUS DE CADEAU À 0 MIN (2026-10-17, session MISSIONS — Sacha : « corrige l'ordre de la liste (les exploits en haut, pas les COLLECTE) et les textes coupés en paysage, plus le cadeau à 0 min »)
+Trois retouches de l'écran MISSIONS (v2), vues au jeu le matin même (couché 844 × 390 et debout, dans le cadre de l'ordi).
+- L'ORDRE (`m2Lignes`, `M2_ORDRE`) : À RÉCUPÉRER → SUIVIES → puis les autres PAR FAMILLE — exploit, aura, moteur, exploration, (secrète),
+  argent, collection —, la plus avancée d'abord dans chaque famille, puis l'ordre de la table `M2`. TERMINÉES en bas, inchangé. Avant, le reste
+  se triait à l'AVANCEMENT seul (presque finies ≥ 2/3, en cours, pas commencées) : les COLLECTE, déjà à 1 / 3, 1 / 5… avec la caisse et les
+  habillages du départ, passaient au-dessus des exploits à 0 — un nouveau joueur voyait d'abord une douzaine de « COLLECTE ». Les rangs 2, 3, 4
+  ne servaient qu'au tri (seuls 0 et 9 sont lus ailleurs : `m2Ligne`, `m2Render`).
+- COUCHÉ, L'EN-TÊTE (`gmPlaceL`) : `#gmHead` s'élargit jusqu'à 420 px (`charte4`) ; avec la consigne « TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU
+  PLUS » ou la ligne du cadeau (`#mCadeau`, largeur 100 %), il passait SOUS le panneau des missions (qui commence au bord gauche de JOUER).
+  Couché, sa largeur s'arrête désormais 14 px avant le panneau (`maxWidth` en ligne, rendu à '' debout) : la consigne passe sur deux lignes.
+  Mesuré : bord droit de l'en-tête 364 px, panneau à 378 px (avant : jusqu'à 484 px).
+- LE CADEAU (`cadeauLigne`) : tant que le cadeau n'existe pas (`cadeauEtat().actif` faux : la leçon de l'auto-école pas faite, `?cadeau=0`,
+  horloge absurde), la ligne se TAIT — elle affichait « PROCHAIN CADEAU DANS 0 MIN » sans fin (`dansMs` = 0 quand il n'est pas actif). Et le
+  compte à rebours ne descend jamais sous « 1 MIN ».
+- Vérifié (banc du panneau navigateur, muet, une copie servie à part : le dossier partagé était cassé par un chantier en cours d'une autre
+  session) : l'ordre lu dans le DOM (2 à récupérer, puis les 10 exploits, aura, moteur, exploration, argent, les 16 COLLECTE en dernier) ;
+  couché, consigne et cadeau (« CADEAU PRÊT · TOUCHE », « ×2 SUR TA 1RE PARTIE · PROCHAIN CADEAU DANS 6 H 00 ») à gauche du panneau ; debout,
+  l'en-tête en pleine largeur ; JOUER → course couché et debout, 0 erreur (seul 404 : dark-triad.mp3, connu). Crochets : `dbgMissions('gagne',id)`,
+  `dbgCadeau('pret'|'attente')`.
+
 ## LA BOUTIQUE FLUIDE — LE SOUFFLE DE LUMIÈRE AU LIEU DU GLITCH (2026-10-16, Léo : « le garage dans la boutique, il bug, ça rame de ouf ; j'aime pas trop la transition glitch, trouve plus smooth »)
 - MESURÉ au banc (Chrome sans fenêtre, iPhone 390 × 844 simulé, processeur ×4) : à la 1re ouverture, l'image figeait 1,2 s, puis 5 à 9 images/s
   pendant 8 s. La cause : la grille de la boutique demandait ses 48 PHOTOS de caisses d'un coup, et le studio (`photoTour`) en prenait une par

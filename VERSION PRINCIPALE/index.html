@@ -45150,8 +45150,8 @@ window.cadeauEtat=cadeauEtat;window.cadeauOuvre=cadeauOuvre;window.jourTexte=jou
    seulement si le texte change ; toucher = cadeauOuvre(). Pas prêt : « PROCHAIN CADEAU DANS 3 H 12 » (et « ×2 SUR TA 1RE PARTIE » si le jour est là). */
 function cadeauLigne(){const el=document.getElementById('mCadeau'),h=document.getElementById('garage');if(!el||!h)return; /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'accueil) le cadeau vit EN TÊTE de l'écran MISSIONS : il ne se montre que MISSIONS ouvert */
   if(!(h.classList.contains('on')&&h.classList.contains('missions'))||typeof cadeauEtat!=='function'){if(!el.hidden)el.hidden=true;return;}
-  let e;try{e=cadeauEtat();}catch(x){return;}if(!e){el.hidden=true;return;}
-  let t;if(e.pret)t=TR('CADEAU PRÊT · TOUCHE');else{const m=Math.max(0,Math.ceil((+e.dansMs||0)/60000)),hh=Math.floor(m/60),mm=m%60;
+  let e;try{e=cadeauEtat();}catch(x){return;}if(!e||!e.actif){if(!el.hidden)el.hidden=true;return;} /* (2026-10-17, Sacha) pas encore de cadeau (la leçon pas faite, ?cadeau=0, horloge absurde) : la ligne se tait — elle disait « PROCHAIN CADEAU DANS 0 MIN » sans fin */
+  let t;if(e.pret)t=TR('CADEAU PRÊT · TOUCHE');else{const m=Math.max(1,Math.ceil((+e.dansMs||0)/60000)),hh=Math.floor(m/60),mm=m%60;
     t=TR('PROCHAIN CADEAU DANS')+' '+(hh?hh+' H '+String(mm).padStart(2,'0'):mm+' MIN');if(e.jour)t=TR('×2 SUR TA 1RE PARTIE')+' · '+t;}
   if((e.serie|0)>1)t=TR('SÉRIE')+' '+(e.serie|0)+' '+TR('JOURS')+' · '+t; /* la SÉRIE de jours (Sacha : « ce qui fait revenir le lendemain ») */
   t=sansAcc(t);const sp=el.querySelector('span');if(sp&&sp.textContent!==t)sp.textContent=t;
@@ -47065,12 +47065,15 @@ function m2NbPret(){const s=m2Etat();let n=0;for(const id of s.ok)if(s.pr.indexO
 function m2SecPal(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];return COSM.peinture.filter(function(d){return d.sec&&o.indexOf('peinture:'+d.id)>=0;});} // les couleurs secrètes TROUVÉES (le pack n'en fait pas des missions… mais on ne sait pas d'où elles viennent : elles comptent)
 function m2Compte(){const s=m2Etat(),p=m2SecPal().length;let vis=0,sec=0;for(const m of M2){if(m.f!=='secret')vis++;else if(s.ok.indexOf(m.id)>=0)sec++;}
   return {ok:s.ok.length+p,tot:vis+sec+p};}
-/* les lignes, triées : 0 à récupérer · 1 suivies · 2 presque finies (≥ 2/3) · 3 en cours · 4 pas commencées · 9 terminées */
-function m2Lignes(){const s=m2Etat(),L=[];
+/* les lignes, triées : 0 à récupérer · 1 suivies · 2 les autres, PAR FAMILLE (M2_ORDRE), la plus avancée d'abord · 9 terminées
+   (2026-10-17, Sacha : « les exploits en haut, pas les COLLECTE ») — avant, le reste se triait à l'avancement seul : les COLLECTE (déjà à
+   1 / 3 avec la caisse du départ) passaient au-dessus des exploits à 0, et un nouveau joueur ne voyait d'abord que des « COLLECTE ». */
+const M2_ORDRE={exploit:0,aura:1,moteur:2,exploration:3,secret:4,argent:5,collection:6}; // ce qui se joue en course d'abord, ce qui s'accumule ensuite
+function m2Lignes(){const s=m2Etat(),L=[],fo=function(x){const o=M2_ORDRE[x.m.f];return o==null?9:o;};
   for(const m of M2){const ok=s.ok.indexOf(m.id)>=0;if(m.f==='secret'&&!ok)continue;let v=0;try{v=m2Val(m);}catch(e){}
     const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t),pr=s.pr.indexOf(m.id)>=0,su=s.su.indexOf(m.id),vide=!!(m.r&&m.r.vide);
-    const rg=ok?(!pr&&!vide?0:9):su>=0?1:p>=.66?2:p>0?3:4;L.push({m:m,v:v,t:t,p:p,ok:ok,pr:pr,su:su,rg:rg});}
-  L.sort(function(a,b){return a.rg-b.rg||(a.rg===1?a.su-b.su:b.p-a.p)||M2.indexOf(a.m)-M2.indexOf(b.m);});return L;}
+    const rg=ok?(!pr&&!vide?0:9):su>=0?1:2;L.push({m:m,v:v,t:t,p:p,ok:ok,pr:pr,su:su,rg:rg});}
+  L.sort(function(a,b){return a.rg-b.rg||(a.rg===1?a.su-b.su:a.rg===2?fo(a)-fo(b):0)||b.p-a.p||M2.indexOf(a.m)-M2.indexOf(b.m);});return L;}
 function m2CarVoir(m){const r=m.r||{};if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i)?{car:i}:null;}
   if(r.cat){const j=(COSM[r.cat]||[]).findIndex(function(x){return x.id===r.id;});return j>=0?{cat:r.cat,i:j}:null;}return null;}
 /* LA VIGNETTE : la caisse en photo (photoFile, une par image, au garage), l'aile en photo sur ta caisse (aileFile), la peinture en pastille
@@ -59932,6 +59935,7 @@ function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché
   const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
   L.classList.toggle('land',land);
+  if(hd)hd.style.maxWidth=land&&rb&&rb.width?px(Math.max(160,rb.left-g0-14)):''; // (2026-10-17, Sacha) couché, l'en-tête s'arrête avant le panneau : la consigne et la ligne du cadeau (jusqu'à 420 px de large) passaient DESSOUS
   if(land){const tp=rh&&rh.height?rh.top:12,l=rb&&rb.width?rb.left:W*.5,r=rb&&rb.width?W-rb.right:g0,bB=H-(rb&&rb.height?H-rb.bottom:14);
     L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
     if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}
