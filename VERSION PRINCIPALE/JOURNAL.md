@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES FLÈCHES DU JOUER DU GARAGE, EN GRAND ET EN LUMIÈRE (2026-10-17 soir, Sacha : « rajoute le bouton jouer avec les trois flèches animées dans le garage », puis « les flèches sont trop discrètes : rends-les plus grosses et plus lumineuses, avec une animation qui se voit vraiment »)
+- Constat (banc, v602, debout 390 et couché 844×390) : les trois chevrons étaient bien là depuis le 15/10, mais à peine lisibles — brun
+  à 45 % sur l'or, un seul « allumé » à la fois dans la MÊME couleur (seule l'opacité changeait), en ×2 (18 px).
+- Désormais (bloc CSS en fin de la barre du garage, `gChevFile`) : chevrons ×3 (27 px), emboîtés (−7 px), au repos en BRUN du mot à 55 % ;
+  une VAGUE court de gauche à droite (0,9 s, décalages 0,15 s) — chacun passe au BLANC CHAUFFÉ, grossit (×1,16) et avance de 3 px, puis
+  retombe. Le contour brun (quatre `drop-shadow`) vit sur le parent `.mChev` : sur le `.pxi` (masqué) le masque rognerait l'ombre.
+- Sous 200 px de lingot (téléphones de 320-360 px), retour à ×2 (−5 px) pour que le mot garde sa place. « Réduire les animations » :
+  chevrons figés, pleinement opaques. Seul le JOUER du garage change (accueil, missions, UX 8 intacts).
+
 ## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
 - **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
   la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.
