@@ -3,6 +3,65 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DEMI-TOUR — LA POSE À CONTRESENS NE TOMBE PLUS (2026-10-17, Léo : « quand tu ratterris sur la route mais dans le mauvais sens, la voiture ne reste pas sur la route, elle continue juste de tomber — qu'elle arrive à l'envers, "mauvais sens" écrit discrètement mais stylé, un dérapage demi-tour un peu en burn-out (pas trop), elle revient sur la route automatiquement, et ça reprend »)
+- **Le bug, MESURÉ** (banc, pose forcée à 149°) : à la pose, `psi = atan2(vLat,|vT|)` gardait un cap de 30° vers le BORD, le moteur relançait la
+  caisse vers l'avant et elle sortait par le côté en ~1 s → chute, mort (sur la même map, avant : au bord à 2 s, dans le vide à 2,6 s). À 180°
+  pile, elle virait face à la route en UNE image et la caméra de vol la perdait (caisse coupée au coin de l'écran).
+- **Bloc « LE DEMI-TOUR »** (`DMT`, juste avant `tryLand`) : toute pose À CONTRESENS (> 90°, hors PARC) appelle `dmtArme` dans tryLand. ~1 s :
+  la caisse garde le cap de son ARRIVÉE (le nez du vol à plat dans la dalle, angle autour de la normale = `dmtAng`), GLISSE en arrière sur
+  son élan (`vb`, ≤ 0,9 vmax) que les pneus mangent en 0,5 s, pivote sur un RESSORT (ω 6,5, ζ .6 : ~15° de dépassement ; presque pile à
+  l'envers, le nez part vers le milieu de la route), puis BURN-OUT léger 0,5 s (roues qui patinent, fumée qui crache par l'arrière, la
+  caisse s'accroupit) et repart à la moitié de l'élan (entre 40 et 80 % de la vmax du moteur). Pendant ce temps `dmtConduite` tient le cap
+  (0), la vitesse et la ligne (ramenée dans la largeur), et `graceT` empêche bord, dessous et « ROULE OU CRÈVE ».
+- **Le lacet est VISUEL** (`dmtPose` : rotation de carGroup autour de F.n, après le power-slide, comme le SLIDE 360) : la physique roule dans
+  l'axe. À la fin, le reste du lacet passe à `driftYaw`, qui le rend en douceur.
+- **La caméra ORBITE** : `DMT.cam` part de là où regarde la caméra de vol et suit le cap de la caisse (τ .13 s : on voit son flanc pendant le
+  pivot) ; la place (`loop._camOff`) et la visée (`loop._vise`) tournent D'UN BLOC de `DMT.dc` à chaque image — avec le lissage lent d'après
+  le vol, elle traînait de 60-90° et coupait la caisse au bord de l'image. Tournée vers l'arrière, elle ne cherche pas la route devant (kV).
+- **« MAUVAIS SENS »** (`dmtSigne`, `#dmtSigne`, son style injecté `<style id="demiTour">`) : un petit panneau routier (rouge, double liseré
+  blanc, cerné d'encre, son épaisseur dessous, police pixel 9 px, flèche de demi-tour dans le sens où la caisse tourne), au-dessus du toit ;
+  il tombe en place en trois crans, clignote deux fois, se plie quand elle repart. EN : « WRONG WAY ». Il remplace le « À CONTRESENS ! » de
+  `flowCasse` (le son `pose.contresens` reste). Sons : `fig.slide` à la pose, `turbo.mini` au burn-out (banque existante).
+- **La règle ne bouge pas** (Sacha, v4) : pose ratée = flow à zéro, pas de PARFAIT. De TRAVERS (55-90°), rien ne change : la coupe garde
+  son élan (Sacha, 15/10). Mesuré : 180°, 178° à 200, 149°, 135°, 120° → la caisse reste sur la route ; 14 sauts dans le bon sens → 0
+  demi-tour, 0 erreur ; vrai demi-tour au joystick en l'air → posée à 139°, nez du vol à 126°, demi-tour joué.
+- `?demitour=0` = l'ancienne pose. `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie la caisse se poser à contresens ; `dbgDemiTour()` = l'état.
+  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v598 (essai 2, poussé sur main avec le oui de Léo).
+- **2e ESSAI (même jour)** — Léo l'a vu en vrai : « c'est bof » ; puis « le pivot, le panneau, les lumières faisaient un tour bugué, c'était un
+  peu bizarre — les lumières de la voiture » ; questionnaire : pivot « trop sec, trop rapide », panneau « plus petit et discret », le refaire.
+  · LES TRAÎNÉES DE LUMIÈRE (les rubans rouges accrochés aux feux, `SILS`) dessinaient une BOUCLE sur la route pendant le pivot : elles se
+    TAISENT pendant la manœuvre (`kT9=0`, et l'arc-en-ciel `rk=0`), s'éteignent en 0,9 s (`SIL.OFF`) et repartent coupées net à la fin.
+  · LE PIVOT : plus de ressort (180° en 0,43 s, 17° de dépassement) — une courbe smootherstep sur 1,1 s (`DMT.TR`, pointe ~5 rad/s), sans
+    dépassement ; la glisse dure 0,8 s, la manœuvre 1,45 s ; la caméra suit à τ .16 s.
+  · LE PANNEAU : le texte seul, 8 px, rouge `#ff5e7a` cerné d'encre, fondu d'entrée/sortie — plus de plaque rouge ni de flèche.
+  Planche : `photos-gameplay/demi-tour-essai1-essai2.png`. ⚠ L'anneau cyan qu'on voit au sol sur une capture est l'onde de la montée de
+  moteur (`swapRing`), sans rapport.
+## LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) (2026-10-17, session FORÊT — Léo, en quatre tours : « la ville plus GTA, les immeubles plus cyberpunk réaliste ; la forêt noire, des arbres PLEUREURS » · « les arbres en cubes comme la mer ; une route qui zigzague entre les arbres, amusante à toute vitesse ; des abeilles le jour, des lucioles la nuit » · « moins Minecraft : troncs à peu près cylindriques, des mini-cubes, plus de brillance, une belle obscurité, du contraste » · « la même technique que les singes et les dauphins — tes cylindres sont tout lisses ; enlève les arbres à gros cylindres ; la route encore en hauteur, elle descend, monte, contourne les arbres ; au sol c'est de la mousse, on roule dessus »)
+- LA VILLE (v589) : `VILLE_GTA_V` (`?sans=villegta`, `dbgVilleGta(0|1)` = A/B sur la même image) dans `villeMatTours` — verre teinté qui reflète,
+  bureaux en mur-rideau allumés par plateaux, croisées des logements, rideaux chauds 1/8, LED d'arêtes 1 tour/5, feux d'obstacle.
+- LES PLEUREURS (v589) : `PLEUR_V` (`?sans=pleureurs`, `dbgPleureurs(0|1)`) — essences `saule`/`pleureur`, géants `gsaule`/`gpleureur`
+  (`FOR_GEANTS_PL`, À PART de `FOR_GEANTS_N` : sinon le tirage des géants change), `fbRideau` = mèches séparées (aB.x = 1). Flux `fw` à part.
+- LE SLALOM (remplace la PELOTE de Sacha ; `?foret=pelote` la rend) : `FOR_ZIG_V`, `forZigzag` — virages entre les troncs, relief (`ter`) et
+  4-5 PONTS de 18-30 m (`EL`, `elev`, rampes de 330-390 m, jamais sur une arche) ; `foretSol` suit `FORET.zigTer` et creuse sous la route au sol ;
+  sous un pont les arbres ordinaires restent 7 m sous la dalle. `dbgPont(k,d)` met la caisse au pied du k-ième pont, `dbgPont('etat')`.
+- ABEILLES ET LUCIOLES : `ABE` (`ABEILLES_V`, `dbgAbeilles`, `sfx('foret.abeille')` à cuire par la session SON) ; lucioles à hauteur d'yeux (11 px max).
+- PLUS DE GÉANT À FÛT DROIT : `TORDUS_V` (`?sans=tordus`) — séquoias, épicéas, chênes et hêtres géants deviennent `gsaule`/`gpleureur` (flux `fw`).
+- LES ARBRES EN VITRAIL (`VITRAIL_V`, `?sans=vitrail`, `dbgVitrail(0|1,{L,S,banc})`) — dans le shader des arbres (`FOR_ARB_FS`), ZÉRO géométrie :
+  écailles de 42 cm (1,45 m sur les géants : `aI.w` = 1) lues au centre de leur case (une écaille = une teinte, une facette, un biseau sombre) ;
+  JOINTS de 5 % MESURÉS SUR LA SURFACE (÷ √(1−n²) : une grille rasante ne fait plus de taches) qui PÂLISSENT sous le pixel au lieu de grossir
+  (sinon « grillage doré ») et prennent la lumière du jour (`dif`) ; le CŒUR = la couleur de l'arbre en lumière (`uVitG` or) ; la PEAU DE VERRE
+  sur la normale LISSE (ciel au bord, éclat de soleil, film irisé, liseré clair) ; l'ONDE qui monte le long de chaque arbre (`uVitS`).
+  La nuit les fils de lumière s'éteignent au-delà de ~30-100 m : l'obscurité reste. Les mini-cubes (`MINI_V`) et le contraste (`CONTRASTE_V`,
+  APRÈS la passe CONTI de Sacha) restent. MESURÉ : +0,3 ms/image (~4 %), 0 programme de plus.
+- LA MOUSSE (`MOUSSE_V`, `?sans=mousse`, `dbgMousse()`) : hors de la route, la caisse se POSE et ROULE (`foretSolVol`, sur le modèle de
+  `banqSolVol` du glacier ; `MOU`, `mousseTouche`, `mousseAssiette`) — vitesse de la route (`MOU.vr`, gardée d'une bosse à l'autre), volant
+  entier, nitro ; mort sur un TRONC (`FORET.troncs`, grille de 24 m, `FOR_TRONC`), une cime, ou une chute de plus de 40 m/s (un pont).
+  Sur la mousse : ni chrono de vol, ni ailes (`wingT`), ni viseur, ni « tension du vol » ; le moteur tire comme au sol. Le sol a ses COUSSINETS
+  (`uMou` dans `FOR_SOL_FS`, rosée qui s'allume) et les fleurs peintes s'effacent de près (elles faisaient des pois de 50 cm).
+- Bancs (scratchpad de la session) : `banc.py` (A/B par crochet, ⚠ ports 9586/9587 — 9497 était pris par une autre session), `film.py`
+  (une prise par seconde + suivi), `roule.py` (pilote auto, morts), `perfvit.py` (ms synchronisées A/B). Planches photos-gameplay/
+  ville-gta-avant-apres, foret-pleureurs-, foret-cubes-zigzag-, foret-minicubes-, foret-vitrail-avant-apres.png.
+
 ## LA VILLE VITRÉE v3 — CLEAN CITY (2026-10-17 soir, Léo : « j'abandonne l'idée de la ville au plafond ; rends-la plus distincte — les trucs rouges au-dessus ressemblent trop à Crypto City ; c'est CLEAN CITY : miroir, moderne, le futur, l'avancement, la technologie ; des bâtiments blancs, des logos très minimalistes, un avion-ballon énorme et très moderne ; les lumières sur les côtés de la route en BLEU »)
 - LE PLAFOND (v2) n'est plus le défaut : `VIT_PLAFOND` (`?plafond=1` le rend tel quel : ville à l'envers, ciel en bande, heures et soleil bas de la v2,
   `VIT_MET_PL`). Sans lui : le ciel et ses cumulus de la v1 (`VIT_MET_CL`, la couche `vitreCiel` d'avant) ; le verre renvoie le ciel et ses nuages
