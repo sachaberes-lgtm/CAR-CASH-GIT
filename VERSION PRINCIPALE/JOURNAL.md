@@ -3,6 +3,35 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE VITRÉE v2 — LE PLAFOND-MIROIR, LES TOURS DE SHANGHAI, LA PLUIE (2026-10-17, Léo : « plein de reflets magnifiques ; le but c'est la ville avec le plafond de glace, l'effet miroir — une ville où elle est déjà et aussi qui vient du ciel ; il n'y a même pas de ciel, juste un ciel entre les deux ; il pleuvra, adapte la météo ; les bâtiments moins en forme que Crypto City, imagine plutôt Shanghai — surtout pas de stéréotype, l'architecture des bâtiments »)
+Questionnaire : la ville du ciel = LA MÊME VILLE À L'ENVERS · météo = les 4 heures + une PLUIE · bâtiments = des formes travaillées, toujours en verre.
+- LE PLAFOND (`VIT_HC` 150 m, dans buildVoxCity derrière `VI`) : chaque tour (volumes, mât, feux) a son REFLET accroché au plafond — retourné par
+  rapport au plan à 150 m au-dessus de la route qu'elle borde (à 330 m, vu de la caméra de course, il restait hors de l'écran). L'instance est
+  RETOURNÉE (échelle −x, −y = un demi-tour : les faces restent à l'endroit ; `fam(…,flip)`), même centre donc même graine, même façade, même forme.
+  La hauteur des tours d'en bas AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux
+  villes. La règle d'or tient là-haut (tourLibre : un reflet qui couperait un étage de route est écourté par sa pointe, ou omis). Les tours d'en haut
+  sont DURES (CITY.col). Brume : la nappe du pied ET son miroir au-dessus de la ville d'en haut (`VIT_PIED`, couleur du plafond).
+- LE CIEL ENTRE LES DEUX : la couche `vitreCiel` devient le PLAFOND — dans la bande (horizon → ~4°, fondue jusqu'à ~15°) le vrai ciel de l'heure ;
+  au-dessus, la MER DE NUAGES À L'ENVERS (le miroir de celle d'en bas, `VIT_MET.p` + le relief de la toile). Le soleil (`VIT_MET.sol`) descend dans
+  la bande : 4° le matin, 8° à midi, 2,5° au coucher. Plus de lune. Le verre renvoie la même chose, EN MIROIR : vers le haut la bande puis le plafond
+  et les tours qui pendent, vers le bas la bande puis la mer de nuages et les tours qui montent (avant, une tour de verre sombre vue d'en haut
+  sortait NOIRE : elle renvoyait la brume sombre d'en dessous).
+- LES FORMES (`vitreForme`, tirée de la POSITION — aucun tirage `vr` ; rangée dans la couleur d'instance r + 8 × forme, lue au sommet) : DROITE
+  (retraits empilés) · EFFILÉE · VRILLÉE (90-160°) · FUSEAU · RONDE (octogone presque régulier) · LAME (toit en biais). La forme vit dans la moitié
+  HAUTE de la tour (celle qui sort de la brume ; pour la ville d'en haut, son miroir). Une tour de forme = un seul volume, sans lame plaquée ; pas
+  de mât sur une LAME. VRILLÉE et FUSEAU ont leur géométrie à 6 étages (`vitreGeoR`, 108 triangles, deuxième famille d'instances) ; les autres
+  gardent le prisme à 28. La normale suit la forme (vrillée, penchée) : reflets et lumière justes. Aucun monument reconnaissable.
+- LES TOITS, qu'on voit maintenant d'en haut : une dalle sombre, des blocs techniques, le parapet clair (ils sortaient en plaques lavande).
+- LA PLUIE (`SF_CARTES.vitree.m.pluie`, biome `vitrePluie`, « IL PLEUT ENTRE LES VILLES ») : ciel gris-bleu, brume plus proche, le plafond gris.
+- MESURÉ (banc Chrome sans fenêtre, 1280 × 720, Mac très chargé — charge 33, d'autres bancs tournaient : les ms de la puce ne sont PAS fiables
+  aujourd'hui) : PROGRAMMES — 0 compilé en course sur 6 parties (vitrée midi ×3, pluie, soir ; ville pluie, crypto midi en témoin) ; une seule fois,
+  un programme MeshBasic générique est apparu en course, non reproduit (pas une matière de la map). TRIANGLES d'une image (`dbgAppels`) : 320-660 k
+  (v1 : 141-641 k ; ville de nuit : 247-572 k). À vérifier sur un vrai iPhone (`?banc=1`) avant la sortie : la ville d'en haut double les tours à
+  dessiner (le tri par quartiers les écarte hors champ et au loin). Console : `dbgVitre('haut')` masque la ville d'en haut (A/B), `dbgVitre('tours',f)`
+  (les tours d'une forme près de la caisse), `dbgVitre('progs')` (traquer une compilation).
+- LA PLANCHE AVANT | APRÈS : `photos-gameplay/ville-vitree-plafond-avant-apres.jpg` (dossier de Léo, hors dépôt). L'atelier (Maps, ESSAI) sert
+  directement cette copie : la PLUIE y est, rien à relancer.
+
 ## LA VILLE VITRÉE — UNE MAP DE TOURS DE VERRE (2026-10-17, Léo : « une nouvelle map VILLE VITRÉE : une ville de tours en VERRE — murs-rideaux à grands carreaux bleus, montants fins, reflets du ciel et des nuages dans les vitres, éclat du soleil, coins de tours biseautés, quelques bandes de béton / lames verticales — comme mes deux photos (tours de bureaux vues d'en bas, ciel bleu, soleil qui éblouit) ; quatre heures tirées au hasard : MATIN, MIDI, COUCHER, NUIT »)
 Une map EN PLUS dans le tirage du JOUER (`SF_CARTES.vitree`) : LA VILLE (la nuit) ne bouge pas. Tout est dans le bloc « LA VILLE VITRÉE — LES TOURS
 DE VERRE » (juste avant LA PLUIE D'ARGENT v2) + des aiguillages `VI` dans `buildVoxCity`.
