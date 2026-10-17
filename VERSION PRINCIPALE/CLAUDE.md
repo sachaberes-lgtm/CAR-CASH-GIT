@@ -136,6 +136,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
   `pcubeFranchi` ; `?portail=ancien` (l'ovule et les feux), `?portail=vite`. ⚠ Une map nouvelle ou refaite → refaire ses cartes postales.
+  LA FORÊT (17/10, Léo) : le slalom `forZigzag` (ponts de 18-30 m, `dbgPont`), les arbres en VITRAIL dans `FOR_ARB_FS` (`VITRAIL_V`, `dbgVitrail`),
+  la MOUSSE où l'on roule hors de la route (`foretSolVol`, `MOU`, `dbgMousse`) — voir le journal.
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
   (`VILLE_NUIT_V`, `VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
 - **Ciel et décor** : `BIOMES`/`bioApply` (le SEUL écrivain des lumières), `skyDome`, `CIEL2`, `COTON`/`CLOUDS`/`buildClouds`/
@@ -464,6 +466,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 - « LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES » (17/10, Léo)
+- « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `VITRAIL_V`, `forZigzag`, `MOUSSE_V`, `TORDUS_V`, `PLEUR_V`, `VILLE_GTA_V`
 
 **Débogage, perf, bancs**
 - « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
