@@ -222,6 +222,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - LES MAPS COMME UN TOUT (17/10, Sacha) : nuages, canyon, forêt, glacier, volcan et orbite suivent UNE recette par temps (`CONTI` : saturation, vignette,
   contre-jour rose, bitume commun `rtT`/`rtA`, ciel continu `uCiel2`, la nuit à deux températures) ; la VILLE et le JADE n'y sont jamais (`contiMap()`).
   Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part. `?sans=continuite` = avant.
+- LA MAP NUAGES EST UNE COURSE (18/10, Sacha : « trop peu de virages… ça reste un jeu de course ») : sur la route sans haut ni bas, zoom `TORD_AMP` 1,1, poids `TORD_W`,
+  modules de COURSE (`MODT` : slalom, épingle, double corde, esses, montagnes russes, rayons VRAIS ≥ 1,7 × le rayon du palier), dévers `TORD_DEVERS`, et
+  `pisteTordPropre` qui rejoue les vrilles si la route se touche. Une retouche passe par le banc des virages (journal). `?sans=virages` = la route du 15/10.
 - LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : `BANQ_V4` (123 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler) ;
   `?glacier=v3` = la descente verglacée d'avant. Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi ne reviennent qu'avec `?sats=route` (`SAT_OBST_V`).
@@ -501,6 +504,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA FORÊT NOIRE — LA MAP DES CONTES » (14/10) — la vallée en slalom qui descend, les géants, le jour fleuri, la nuit hantée, le loup-garou
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
+- « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 

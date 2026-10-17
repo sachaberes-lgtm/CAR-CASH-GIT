@@ -3,6 +3,48 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS (2026-10-18, Sacha : « trop peu de virage dans la map nuage, rajoute des virages et des modules cool à rider, ça reste un jeu de course »)
+- LA CAUSE (mesurée) : sur la route SANS HAUT NI BAS, le zoom `TORD_AMP` ×2,4 du 15/10 (« EN GRAND ») gonflait chaque virage au-delà du seuil où l'on
+  tourne le volant. Règle COURSE de `passation/RACCOURCIS.md` (un virage = un cap qui tourne de 20° ou plus à un rayon < 4 × le rayon que la caisse tient
+  à fond, `40 + 0,3·v`) : **0,01 virage par km** au palier de départ (la règle en veut 2,5), des « droites » de 134 s en moyenne, rayon médian 680 m,
+  un seul module par zone.
+- CE QUI CHANGE (route tordue des nuages et de son orage seulement ; `NV_ON`, `?sans=virages` rend la route du 15/10) :
+  · LE ZOOM redescend : `TORD_AMP` 2,4 → **1,1**. Les VRILLES ne bougent pas (leur longueur se compte en secondes de croisière) : on garde les grandes
+    torsions lentes, on rend les virages.
+  · LES RAYONS suivent le palier (`RS` de genCtrl) : sur cette route ils grandissent comme `40 + 0,3·v` au lieu de `LV`, qui grandissait plus vite
+    (au palier 12, plus aucun virage ne demandait le volant).
+  · LES POIDS des motifs (`TORD_W`) : esses ×2, chicanes ×2,2 (et leurs coups de volant francs, 26-40° au lieu de 16-30°), épingles ×1,8, virages ×1,8 ;
+    droites ×0,2, plongeons ×0,25 (sans haut ni bas, une pente ne pousse ni ne retient : un plongeon n'y est qu'une droite). Même nombre de tirages `rnd`.
+  · LES MODULES DE COURSE (`MODT`, genCtrl : `tSlalom`, `tEpingle`, `tCorde`, `tEsses`, `tRusses`) remplacent ceux de la gravité (filet, lacets, plongeon,
+    dos de chameau) : LE SLALOM (5-7 virages alternés de 38-52°), L'ÉPINGLE (demi-tour de 165-185° à 1,7-2 × le rayon du palier), LA DOUBLE CORDE (deux
+    virages de 80-105° du même côté), LES ESSES (trois grands virages alternés), LES MONTAGNES RUSSES (3-4 bosses rondes en courbe). Tous les 0,5-0,9 km
+    × LV, paquet mélangé, jamais deux fois de suite, hasard `rf` du filet. Leurs rayons sont VRAIS (ils échappent au zoom : ×1/AMP) — jamais sous
+    1,7 × le rayon du palier : serré, jamais infranchissable. Nus de plots (`MODMARK` → `MODS`). Plus de filet sur cette route (sa route d'en dessous
+    n'y est plus en dessous).
+  · LE DÉVERS (`TORD_DEVERS`, pisteTord « 2 bis ») : dans chaque virage la dalle se couche vers l'intérieur, 0,75 × l'angle d'un virage relevé à la
+    croisière (atan v²/gR), plafonné à 50°, lissé ~1 s, au plus 30°/s ; elle se couche AVANT le virage et se redresse en sortant. Au volant rien ne
+    change (le virage est rejoué dans le plan de la dalle) : c'est l'horizon qui bascule dans le sens du virage, comme un avion qui s'incline.
+    Le roulis TOTAL (vrilles + dévers) est borné à 62°/s (le retard se rattrape dans la tenue qui suit).
+  · LA ROUTE QUI NE SE TOUCHE PAS (`tordContacts`, `pisteTordPropre`) : plus serrée, la piste enroulée dans l'espace repassait parfois à travers
+    elle-même (banc : 10 contacts sur 30 zones au palier 0, deux dalles à 2-23 m). À la construction, si deux dalles se touchent (moins de 16 m de
+    vide sur la normale et moins de 62 m de côté), les VRILLES sont rejouées avec un autre tirage (même graine : tout le monde a la même route), jusqu'à
+    5 fois ; le tracé ressenti ne bouge pas. La courbe et le repère d'origine sont gardés d'un essai à l'autre (`pisteTord._c1`).
+- MESURÉ (banc Node de genCtrl + pisteTord tirés du jeu, 6 graines, avant → après) :
+  | palier (LV) | virages/km | enchaînements/km | plus longue « droite » | rayon médian | tours de vrille/km | pic de roulis |
+  |---|---|---|---|---|---|---|
+  | 0 (1,08) | 0,01 → **2,27** | 0 → 1,55 | 134 → 15 s | 678 → 287 m | 0,50 → 0,78 | 89 → 93°/s |
+  | ~5 (1,35) | 0 → **1,91** | 0 → 1,27 | 153 → 15 s | 846 → 327 m | 0,39 → 0,62 | 64 → 88°/s |
+  | ~10 (1,88) | 0 → **1,45** | 0 → 0,81 | 156 → 14 s | 1 167 → 412 m | 0,26 → 0,42 | 78 → 76°/s |
+  | ~15 (2,66) | 0 → **1,04** | 0 → 0,56 | 129 → 12 s | 1 624 → 526 m | 0,18 → 0,30 | 74 → 85°/s |
+  En TEMPS, un virage toutes les 4-6 s à tous les paliers (0,18 → 0,25 virage/s). 6-6,5 modules par zone (1 avant). Virages SERRÉS (< 1,5 rMin) : 0,7
+  par zone, INFRANCHISSABLES : 0. Toujours ~33 % de la route à l'envers et ~33 % sur la tranche. Portail : même redressement qu'avant (Ny 0,87).
+  Contacts : 0 sur 180 zones (60 graines × 3 paliers) ; 3 zones sur 4 passent au premier tirage ; pisteTord + garde : 15-34 ms la zone en médiane,
+  p95 41-69 ms, pire 86 ms (PC, Node).
+- BANCS (scratchpad de la session) : `virages-banc.cjs` (virages ressentis, vrilles, passages proches, planche vue de dessus en PNG),
+  `proches-detail.cjs` (chaque passage < 60 m : vide sur la normale, écart latéral), `essais.cjs` (rejeux et temps), `nuages-course.cjs` (le vrai jeu,
+  couché + debout, pilote de mesure 45 s). Crochets : `dbgHaut()` (TORD.info : `essai`, `contacts`, `deversMaxDeg` en plus), `dbgHaut('controle')`.
+- À TRANCHER par Sacha : la dose du dévers (`TORD_DEVERS.k`/`max`), la fréquence des modules, et si l'orage (tordu lui aussi) garde ces virages.
+
 ## LE CANYON SANS VITESSE ×2 (2026-10-18, Sacha : « met pas de power up vitesse x2 dans le canyon »)
 - Au CANYON DES GÉANTS, plus aucun cristal ⚡ VITESSE ×2 : `pwrPoids` met sa part à 0 et la rend aux quatre autres (NITRO MAX, AIR MAX,
   AIMANT, AURA ×2) au prorata. Toujours UN seul `rnd()` par cristal : mêmes emplacements, même nombre de cristaux, même piste — seul le

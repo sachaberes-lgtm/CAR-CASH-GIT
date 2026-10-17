@@ -42,7 +42,8 @@
 //  v54 (2026-10-02) : L'ORIGAMI, la 69e caisse (le pick-up d'inox).
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
-const CACHE = 'cashcar-v610'; // v610 (2026-10-18, Sacha : « met pas de power up vitesse x2 dans le canyon ») : LE CANYON SANS VITESSE ×2 — sa part du tirage des cristaux rendue aux quatre autres pouvoirs (pwrPoids), le reste de la piste identique
+const CACHE = 'cashcar-v611'; // v611 (2026-10-18, Sacha : « trop peu de virage dans la map nuage, rajoute des virages et des modules cool à rider, ça reste un jeu de course ») : LA MAP NUAGES, DES VIRAGES DE COURSE — zoom 2,4 → 1,1, cinq modules (slalom, épingle, double corde, esses, montagnes russes), le dévers, la route qui ne se touche plus ; ?sans=virages = avant
+// const CACHE = 'cashcar-v610'; // v610 (2026-10-18, Sacha : « met pas de power up vitesse x2 dans le canyon ») : LE CANYON SANS VITESSE ×2 — sa part du tirage des cristaux rendue aux quatre autres pouvoirs (pwrPoids), le reste de la piste identique
 // const CACHE = 'cashcar-v609'; // v609 (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue ») : LE GLACIER, 2e TOUR — piste 123 → 196 m, pente 36-58 % → 58-88 % (~69 % de moyenne en jeu, 5,3 km de dénivelé)
 // const CACHE = 'cashcar-v608'; // v608 (2026-10-17 soir, Sacha : « tout les figure doivent pouvoir etre executer sur route c'est a dire sans s'envoler ») : LES FIGURES SUR LA ROUTE — au sol, le double-tap NITRO fait la figure sans décoller (la carrosserie bondit, la caisse reste en conduite) ; rien dans la direction tenue : le saut nitro
 // const CACHE = 'cashcar-v607'; // v607 (2026-10-17 soir, Sacha : « les flèches sont trop discrètes ») : LES FLÈCHES DU JOUER DU GARAGE plus grosses, brunes au repos, une vague qui les allume en blanc
