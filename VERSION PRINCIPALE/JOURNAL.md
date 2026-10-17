@@ -27,6 +27,15 @@
   demi-tour, 0 erreur ; vrai demi-tour au joystick en l'air → posée à 139°, nez du vol à 126°, demi-tour joué.
 - `?demitour=0` = l'ancienne pose. `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie la caisse se poser à contresens ; `dbgDemiTour()` = l'état.
   Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v593.
+- **2e ESSAI (même jour)** — Léo l'a vu en vrai : « c'est bof » ; puis « le pivot, le panneau, les lumières faisaient un tour bugué, c'était un
+  peu bizarre — les lumières de la voiture » ; questionnaire : pivot « trop sec, trop rapide », panneau « plus petit et discret », le refaire.
+  · LES TRAÎNÉES DE LUMIÈRE (les rubans rouges accrochés aux feux, `SILS`) dessinaient une BOUCLE sur la route pendant le pivot : elles se
+    TAISENT pendant la manœuvre (`kT9=0`, et l'arc-en-ciel `rk=0`), s'éteignent en 0,9 s (`SIL.OFF`) et repartent coupées net à la fin.
+  · LE PIVOT : plus de ressort (180° en 0,43 s, 17° de dépassement) — une courbe smootherstep sur 1,1 s (`DMT.TR`, pointe ~5 rad/s), sans
+    dépassement ; la glisse dure 0,8 s, la manœuvre 1,45 s ; la caméra suit à τ .16 s.
+  · LE PANNEAU : le texte seul, 8 px, rouge `#ff5e7a` cerné d'encre, fondu d'entrée/sortie — plus de plaque rouge ni de flèche.
+  Planche : `photos-gameplay/demi-tour-essai1-essai2.png`. ⚠ L'anneau cyan qu'on voit au sol sur une capture est l'onde de la montée de
+  moteur (`swapRing`), sans rapport.
 ## LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES (2026-10-17, session PORTAIL — Léo : « revoir tout le système de transition entre chaque map : que les portails soient une accumulation de cubes bien disposés, stylés, au bout de la route, avec un peu de transparence, mais qui te laissent comprendre que tu vas aller ailleurs — et qui te donnent une vue sur où tu vas aller »)
 Léo préférait « un portail qui montre la map où tu vas » aux « portails de feu » (repli prévu si c'était trop lourd) : c'est la 1re option, et elle est légère.
 - VU AVANT (banc, debout 390 × 844) : l'OVULE rose (sphère additive de 55 m, la même pour toutes les maps) ne disait rien de la suite ; au passage,

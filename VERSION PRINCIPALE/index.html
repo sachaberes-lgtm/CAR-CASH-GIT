@@ -51744,21 +51744,26 @@ function dalleProche(x,y,z,pas,bd0,graine){
    manière stylée, une sorte de dérapage demi-tour un peu en burn-out, mais pas trop, qu'elle revienne sur la route automatiquement, et ça reprend »).
    MESURÉ AVANT (banc, pose forcée à 149°) : la caisse gardait un cap de 30° vers le BORD (psi = atan2(vLat,|vT|)), le moteur la relançait
    vers l'avant et elle sortait par le côté en ~1 s : chute, mort. À 180° pile, elle virait face à la route en UNE image.
-   Toute pose À CONTRESENS (> 90°, hors PARC où les deux sens roulent) joue désormais LE DEMI-TOUR (~1 s) :
+   Toute pose À CONTRESENS (> 90°, hors PARC où les deux sens roulent) joue désormais LE DEMI-TOUR (~1,45 s) :
    · la caisse garde le cap de son ARRIVÉE (le nez du vol, à plat dans la dalle) et GLISSE sur son élan, les quatre pneus fument ;
-   · coup de frein à main : elle pivote sur un RESSORT (ω 6,5, ζ .6 — ça part sec, ça dépasse d'une quinzaine de degrés, ça se pose) jusqu'à
-     faire face à la route ; presque pile à l'envers, le nez part vers le MILIEU de la route ;
+   · elle pivote en 1,1 s sur une courbe douce (smootherstep : ça part en douceur, ça tourne, ça se pose sans dépasser) jusqu'à faire face
+     à la route ; presque pile à l'envers, le nez part vers le MILIEU de la route ;
    · BURN-OUT léger : l'arrière patine et crache sa fumée, la caisse s'accroupit et repart (la moitié de l'élan, entre 40 et 80 % de la vmax
      du moteur — le moteur reprend ensuite comme d'habitude) ;
    · pendant la manœuvre les commandes dorment et elle ne peut pas tomber (graceT) : ramenée dans la largeur s'il le faut ;
    · la CAMÉRA tourne autour d'elle avec elle (elle part d'où était la caméra de vol) au lieu de la traverser ;
-   · « MAUVAIS SENS » : un petit panneau rouge façon panneau routier au-dessus de la caisse, sa flèche dans le sens du demi-tour ; il se plie
-     quand elle repart. Il remplace « À CONTRESENS ! » (flowCasse ne l'écrit plus pendant un demi-tour).
+   · « MAUVAIS SENS » : le texte seul, petit (8 px), rouge cerné d'encre, au-dessus de la caisse ; il s'efface quand elle repart. Il remplace
+     « À CONTRESENS ! » (flowCasse ne l'écrit plus pendant un demi-tour) ;
+   · les TRAÎNÉES DE LUMIÈRE des feux (et l'arc-en-ciel) se TAISENT pendant la manœuvre : accrochées aux feux, elles dessinaient une boucle
+     sur la route pendant le pivot. Elles s'éteignent en 0,9 s (SIL.OFF) et repartent, coupées net, quand la caisse repart.
+   2e ESSAI (même jour) — Léo, après l'avoir vu en vrai : « le pivot, le panneau, les lumières faisaient un tour bugué, c'était un peu bizarre »
+   → pivot « trop sec, trop rapide » (le ressort ω 6,5 tournait 180° en 0,43 s et dépassait de 17°), panneau « plus petit et discret » (la plaque
+   rouge à double liseré est partie), traînées coupées.
    La RÈGLE ne bouge pas (Sacha, v4 : pose ratée = flow à zéro, pas de PARFAIT) : on a raté, mais on repart en beauté.
    Le lacet visuel est une rotation de carGroup autour de la normale de la dalle, posée APRÈS la caisse (comme le power-slide et le SLIDE 360) :
    la physique roule dans l'axe de la route, cap 0. `?demitour=0` = l'ancienne pose. Banc : `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie
    la caisse se poser à contresens (nez dans le sens du vol) ; `dbgDemiTour()` = l'état. */
-var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1,tS:.5,y:0,yV:0,cam:0,camP:0,dc:0,vb:0,vo:0,vl:0,sg:1,burn:false,force:false,n:0,
+var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1.45,tS:.8,TR:1.1,y0:0,y:0,yV:0,cam:0,camP:0,dc:0,vb:0,vo:0,vl:0,sg:1,burn:false,force:false,n:0,
   g:new THREE.Vector3(),f:new THREE.Vector3(),c:new THREE.Vector3(),nn:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),fw:new THREE.Vector3(),
   el:null,eW:0,eTop:'',eLeft:''};
 function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
@@ -51776,7 +51781,7 @@ function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face
   let yc=D.g.lengthSq()>.25?dmtAng(f,n,D.g):y0;yc=y0+Math.atan2(Math.sin(yc-y0),Math.cos(yc-y0));
   const vT=fallVel.dot(T[bI])/vm,vB=fallVel.dot(B[bI])*sd/vm; // (vA : la vitesse d'avant le multiplicateur, comme la pose)
   D.vb=THREE.MathUtils.clamp(-vT,0,mx*.9);D.vl=THREE.MathUtils.clamp(vB*.35,-mx*.15,mx*.15);D.vo=THREE.MathUtils.clamp(Math.hypot(vT,vB)*.5,mx*.4,mx*.8);
-  D.y=y0;D.yV=0;D.cam=yc;D.camP=yc;D.dc=0;D.sg=y0>=0?1:-1;D.t=0;D.burn=false;D.act=true;D.n++;
+  D.y=y0;D.y0=y0;D.yV=0;D.cam=yc;D.camP=yc;D.dc=0;D.sg=y0>=0?1:-1;D.t=0;D.burn=false;D.act=true;D.n++;
   psi=0;yawR=0;slipB=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;vA=-D.vb;vL=0;driftT=1;
   graceT=Math.max(graceT,D.D+.3); // ni le bord, ni le dessous de la dalle, ni « ROULE OU CRÈVE » pendant la manœuvre
   try{if(SONV2)sfx('fig.slide');}catch(e){}
@@ -51784,8 +51789,8 @@ function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face
 }
 function dmtConduite(dt){const D=DMT; // (boucle de conduite, après le lacet du pouce) la manœuvre REMPLACE la conduite du joueur
   D.t+=dt;const d=Math.min(dt,1/30);
-  for(let k=0;k<2;k++){const h=d*.5;D.yV+=(-D.y*42.25-D.yV*7.8)*h;D.y+=D.yV*h;} // le RESSORT du lacet : ω 6,5 (ω² 42,25), ζ .6 (2ζω 7,8), deux demi-pas
-  D.cam+=(D.y-D.cam)*(1-Math.exp(-dt/.13)); // la caméra suit le cap de la caisse avec un temps de retard (on voit son flanc pendant le pivot) : elle ORBITE
+  {const r=Math.min(1,D.t/D.TR),e=r*r*r*(r*(r*6-15)+10);D.y=D.y0*(1-e);} // le PIVOT : smootherstep sur 1,1 s (pointe ~5 rad/s pour 180°), il part et se pose en douceur, sans dépasser
+  D.cam+=(D.y-D.cam)*(1-Math.exp(-d/.16)); // la caméra suit le cap de la caisse avec un temps de retard (on voit son flanc pendant le pivot) : elle ORBITE
   const x=D.t/D.tS,u=x<1?0:Math.min(1,(D.t-D.tS)/(D.D-D.tS));
   if(x<1)vA=-D.vb*Math.pow(1-x,1.5); // la GLISSE en arrière, que les pneus mangent
   else{vA=D.vo*u*u; // le BURN-OUT : ça patine d'abord, puis ça mord
@@ -51814,30 +51819,25 @@ function dmtCamDir(fw,n){const D=DMT; // (caméra de conduite) la direction de l
   return D.fw.copy(fw).applyAxisAngle(n,D.cam);}
 function dmtCamTick(dt){const D=DMT;if(!D.act&&D.cam){D.cam*=Math.exp(-dt/.14);if(Math.abs(D.cam)<.003)D.cam=0;}D.dc=D.cam-D.camP;D.camP=D.cam;} // dc : de combien la caméra a tourné depuis l'image d'avant
 function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
-/* LE PANNEAU « MAUVAIS SENS » : le panneau routier en petit (rouge, double liseré blanc, cerné d'encre, son épaisseur dessous), police pixel,
-   une flèche de demi-tour dans le sens où la caisse tourne. Il TOMBE en place (trois crans), clignote deux fois comme un vrai panneau, puis se
-   PLIE quand la caisse est repartie. Discret : 8-9 px, au-dessus du toit, il suit la caisse à l'écran. */
-const DMT_FL='<svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 0h4v1H3zM2 1h6v1H2zM1 2h2v4H1zM7 2h2v8H7zM0 6h5v1H0zM1 7h3v1H1zM2 8h1v1H2z"/></svg>';
+/* LE « MAUVAIS SENS » : le texte seul, petit (8 px, police pixel), rouge cerné d'encre comme les textes du HUD, au-dessus du toit ; il suit la
+   caisse à l'écran, apparaît en fondu et s'efface quand elle repart. (1er essai : un panneau routier rouge à double liseré et sa flèche —
+   « plus petit et discret », Léo.) */
 function dmtSigne(on,net){const D=DMT;
   if(!D.el){if(!on)return;
     const st=document.createElement('style');st.id='demiTour';st.textContent=
-      '#dmtSigne{position:fixed;left:50%;top:40%;z-index:40;pointer-events:none;display:flex;align-items:center;gap:6px;padding:5px 8px 5px 6px;'+
-      'background:#e01b3c;color:#fff;font-family:var(--pix);font-size:9px;line-height:1;letter-spacing:1px;white-space:nowrap;'+
-      'box-shadow:inset 0 0 0 2px #e01b3c,inset 0 0 0 3px #fff,0 0 0 2px #1c0430,0 4px 0 2px #1c0430,0 0 16px rgba(255,40,72,.5);'+
-      'transform:translate(-50%,-100%);transform-origin:50% 100%;opacity:0;visibility:hidden}'+
-      '#dmtSigne svg{width:10px;height:10px;display:block}#dmtSigne.g svg{transform:scaleX(-1)}'+
-      '#dmtSigne b{font-weight:normal;text-shadow:0 1px 0 #7a0a1e}'+
-      '#dmtSigne.on{visibility:visible;animation:dmtTombe .2s steps(3,end) both,dmtCligne .36s steps(1,end) .32s 2}'+
-      '#dmtSigne.sort{visibility:visible;animation:dmtPlie .18s steps(3,end) both}'+
-      '@keyframes dmtTombe{0%{opacity:0;scale:1.7}100%{opacity:1;scale:1}}'+
-      '@keyframes dmtCligne{0%{opacity:.45}50%{opacity:1}}'+
-      '@keyframes dmtPlie{0%{opacity:1;scale:1 1}100%{opacity:0;scale:1 0}}'+
-      'html[data-reduced-motion="1"] #dmtSigne.on,html[data-reduced-motion="1"] #dmtSigne.sort{animation:none}html[data-reduced-motion="1"] #dmtSigne.on{opacity:1}'+
+      '#dmtSigne{position:fixed;left:50%;top:40%;z-index:40;pointer-events:none;font-family:var(--pix);font-size:8px;line-height:1;letter-spacing:1px;'+
+      'white-space:nowrap;color:#ff5e7a;text-shadow:1px 0 0 #1c0430,-1px 0 0 #1c0430,0 1px 0 #1c0430,0 -1px 0 #1c0430,1px 1px 0 #1c0430,-1px 1px 0 #1c0430,0 2px 0 #1c0430;'+
+      'transform:translate(-50%,-100%);opacity:0;visibility:hidden}'+
+      '#dmtSigne.on{visibility:visible;animation:dmtVient .18s ease-out both}'+
+      '#dmtSigne.sort{visibility:visible;animation:dmtPart .3s ease-in both}'+
+      '@keyframes dmtVient{0%{opacity:0;translate:0 4px}100%{opacity:.92;translate:0 0}}'+
+      '@keyframes dmtPart{0%{opacity:.92}100%{opacity:0}}'+
+      'html[data-reduced-motion="1"] #dmtSigne.on,html[data-reduced-motion="1"] #dmtSigne.sort{animation:none}html[data-reduced-motion="1"] #dmtSigne.on{opacity:.92}'+
       'body.ebOn #dmtSigne,body.ftOn #dmtSigne{visibility:hidden!important}';
     document.head.appendChild(st);
-    const e=D.el=document.createElement('div');e.id='dmtSigne';e.setAttribute('aria-hidden','true');e.innerHTML=DMT_FL+'<b></b>';document.body.appendChild(e);}
+    const e=D.el=document.createElement('div');e.id='dmtSigne';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
   const e=D.el;
-  if(on){e.lastChild.textContent=TR('MAUVAIS SENS');e.classList.toggle('g',D.sg<0);D.eW=e.textContent.length*10+40;D.eTop='';D.eLeft='';
+  if(on){e.textContent=TR('MAUVAIS SENS');D.eW=e.textContent.length*9+4;D.eTop='';D.eLeft='';
     e.classList.remove('sort');e.classList.remove('on');void e.offsetWidth;e.classList.add('on');dmtSigneSuit();} // (une fois par demi-tour : la relance synchrone est sans conséquence)
   else if(net){e.classList.remove('on');e.classList.remove('sort');}
   else if(e.classList.contains('on')){e.classList.remove('on');e.classList.add('sort');}
@@ -64807,7 +64807,7 @@ function loop(now){
       const kB=(arc9&&!sig9&&trailK>.05)?0:roule9?LUMT.k*(1+LUMT.kF*fr9):0,kT=kB+(1-kB)*fx9; // la lumière des feux, puis l'énergie du nitro par-dessus
       const lr=LUMT.r[0]+(LUMT.rF[0]-LUMT.r[0])*fr9,lg=LUMT.r[1]+(LUMT.rF[1]-LUMT.r[1])*fr9,lb=LUMT.r[2]+(LUMT.rF[2]-LUMT.r[2])*fr9; // rouge des feux, plus vif au frein
       const cr9=(lr+(tcr-lr)*fx9)*ku9,cg9=(lg+(tcg-lg)*fx9)*ku9,cb9=(lb+(tcb-lb)*fx9)*ku9,wm9=1+(tw9-1)*fx9,wl9=wu9*(LUMT.w+(1-LUMT.w)*fx9);
-      loop._nOnT=nitroOn?(loop._nOnT||0)+dt:0;let kT9=kT;if(FXT&&FXT.pop==='neon'&&!sig9&&fx9>.05)kT9*=neonAllume(loop._nOnT); // (2026-10-16, TRAÎNÉES) ROSE NÉON : l'enseigne qui s'allume en clignotant
+      loop._nOnT=nitroOn?(loop._nOnT||0)+dt:0;let kT9=DMT.act?0:kT; /* (LE DEMI-TOUR) pendant la manœuvre les traînées se taisent : accrochées aux feux, elles dessinaient une boucle sur la route */if(FXT&&FXT.pop==='neon'&&!sig9&&fx9>.05)kT9*=neonAllume(loop._nOnT); // (2026-10-16, TRAÎNÉES) ROSE NÉON : l'enseigne qui s'allume en clignotant
       SIL_STY=(FXT&&FXT.sil&&!sig9&&fx9>.4)?FXT.sil:null;
       const lgT=LUMT.lg+(SIL.LONG-LUMT.lg)*fx9;
       for(let i9=0;i9<4;i9++){const tr9=SILS[i9];
@@ -64828,7 +64828,7 @@ function loop(now){
          seule nitro (au sol comme en l'air) : `trailK` s'allumait à moitié sur une plaque turbo et dans le boost qui suit la nitro, et le
          chat le sortait aussi en vol. S'allume sec, s'éteint en ~0,5 s (l'extinction : il raccourcit en étincelles, voir rainbowStep). */
       loop._arcK=(loop._arcK||0)+((nitroOn&&mode!=='boom'?1:0)-(loop._arcK||0))*Math.min(1,dt*(nitroOn?16:6));
-      if(arcOn9){const rk=(mode==='boom'||((trSig9||nyan9)&&(nitroBlue||pwrNitroT>0)))?0:loop._arcK;
+      if(arcOn9){const rk=(DMT.act||mode==='boom'||((trSig9||nyan9)&&(nitroBlue||pwrNitroT>0)))?0:loop._arcK;
         if(nyan9)nyanPixNitro(dt,rk*.45); // ses PIXELS scintillent toujours autour, moins nombreux : l'arc-en-ciel mène
         if(nyan9)potMonde(NYAN.arc,tmp2);else potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.19); // le chat : la poupe de la pop-tart, à mi-hauteur
         rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t,dt,-hsF.x,-hsF.y,-hsF.z);
