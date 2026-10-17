@@ -6,7 +6,7 @@
 ## LES MISSIONS EN UNE LIGNE, EN BAS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète, en bas de l'écran »)
 - EN COURSE, une mission réussie ne pose plus la bannière du haut (`#misBan` : plaque, grosse icône, 12 px, au milieu du ciel) : `m2Annonce`
   écrit UNE ligne fine en bas, `#m2Ligne` (`m2LigneDit`/`m2LigneSuit`/`m2LigneVide`, la file `M2L`) — coche verte · MISSION REUSSIE ·
-  la consigne · la récompense en or, 10 px, sur la bande sombre des missions suivies. Couché : au centre, debout : à gauche (la colonne de
+  la consigne · la récompense en or, en 8 px comme les missions suivies et sur leur bande sombre (debout : 3 lignes au plus). Couché : au centre, debout : à gauche (la colonne de
   NITRO reste libre) ; toujours JUSTE AU-DESSUS des missions suivies (`#m2Focus`, leur hauteur dans `--m2lY`). Une secrète : œil magenta,
   « MISSION SECRETE ? ? ? ». Une couleur secrète trouvée en course (`secDonne`) : la même ligne au lieu du toast du haut.
 - LA RAFALE : la première passe seule (2,4 s), TOUT le reste se dit en une seule ligne (« 2 MISSIONS REUSSIES ») — au plus deux lignes, là
@@ -14,6 +14,10 @@
 - Hors course (menu, écran de mort, `dbgMissions('gagne',…)` au menu) : le toast, inchangé. La ligne se tait avec la file du haut
   (`hautVide` : l'explosion, l'écran de mort, RECOMMENCER) et disparaît hors manette (`body:not(.play)`).
 - `#misBan` reste aux ASTUCES et aux NOUVEAUX COMBOS (ce ne sont pas des missions).
+- Vérifié au banc (muet), couché 844 × 390 et debout 390 × 844, deux missions suivies, trois missions réussies d'un coup en course
+  (`dbgMissions('gagne','fig2'|'fig5'|'air5')`) : « MISSION REUSSIE FAIS 2 FIGURES DANS UN SEUL SAUT +$ 1 k » puis « 2 MISSIONS REUSSIES » ;
+  aucune bannière en haut. Couché : une ligne de 467 × 15 px, 4 px au-dessus des suivies, rien de lisible dessous ; debout : 244 × 36 px
+  (3 lignes), à gauche de NITRO. Une vraie secrète tombée à l'explosion s'est dite « MISSION SECRETE ? ? ? ». 0 erreur JS.
 
 ## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
 - RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
