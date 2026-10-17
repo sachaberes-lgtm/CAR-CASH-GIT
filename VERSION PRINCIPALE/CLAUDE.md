@@ -154,6 +154,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
+- **Lumières de la caisse** (17/10) : phares, feux arrière, feu du nitro, flamme du moteur et traînées ÉCLAIRENT LE BITUME dans son shader (`LUM_GLSL`/`lmRoute`,
+  uniformes `LUM_U`, `LM_N` lampes-segments + deux phares ; `lumTick` les pose en monde, `lumVue` — chaîné sur `scene.onBeforeRender` — les passe en vue ; réglages
+  `LUMK`) et la lueur des feux allume la CAISSE et sa lunette (`FEU_U`/`FEU_GLSL`, bloc VOITURES) — aucune lumière three. `?sans=lumieres` = avant.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose` ; leurs SONS `ailSon` → `ailes.*`, en vol seulement),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
@@ -174,7 +177,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `SIMU_JEU`, `BALADE`.
 - **Perf** : qualité auto `QL`/`QLR`/`qlSonde`, résolution `applyDPR`/`applyQ`/`curDPR`/`DPR_CAP`/`DPR_MIN`, chauffe
   `chauffeRendu`/`chauffeDivers`/`engChauffe`/`atelierChauffe`, sursis `MAT_SURSIS`/`CAR_GARDE`/`ENG_GARDE`, `SCENE_TOUJOURS`,
-  `VP`, `pisteTranches`, `LFB_SANS_PL`, `atelierLampes`.
+  `VP`, `pisteTranches`, `LFB_SANS_PL`, `LFB_ROUTE_LUM`, `atelierLampes`.
 
 ---
 
@@ -184,7 +187,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Le style compact du fichier ; commentaires en FRANÇAIS, datés et signés (`(2026-10-14, Léo : « … »)`), qui disent POURQUOI.
 - Un commentaire au MILIEU d'une ligne s'écrit `/* … */`, jamais `//` (voir piège n° 1).
 - Perf : rien n'est alloué dans la boucle (on réutilise les vecteurs `tmp…`), particules en pools ; le DOM n'est écrit QUE si la
-  valeur change ; `VP.w`/`VP.h` au lieu d'`innerWidth` ; aucune `new THREE.PointLight` en course ; toute matière neuve est chauffée
+  valeur change ; `VP.w`/`VP.h` au lieu d'`innerWidth` ; aucune `new THREE.PointLight` en course (une lumière de la caisse sur la route = une lampe de
+  `LUM`, voir `lumLampe`) ; toute matière neuve est chauffée
   au menu : **zéro programme compilé en course**, à mesurer ; `scene.onBeforeRender` se CHAÎNE ; objets immobiles en
   `matrixAutoUpdate=false`.
 - Un seul écrivain par réglage : `bioApply` pour les lumières, `nitroGain(q,'source')` pour toute nitro, `sfx('famille.nom')`
@@ -286,7 +290,9 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 · `dbgView(a,d,h)` (mode photo) · `dbgSaut()` (= NIVEAU suivant, pas un saut) · `dbgDauphin(…)` (s'envoler) ·
 `dbgClassique(carte,meteo)` · `dbgCampagne(n,monde)` · `dbgNiveauJade()`/`dbgNiveauCrypto()` · `dbgEquipe(i)`/`dbgCar(i)`/
 `dbgPhoto(i)`/`dbgBqVoir(i)` · `dbgSon(id)`/`dbgVu()` · `dbgLivre('ouvre')` · `dbgFren()` · `dbgVol()` · `dbgBurn()` · `dbgFlamme()` ·
-`dbgQual()`/`dbgDPR()`/`dbgPerf()` · `dbgAppels(n)`/`dbgProgsListe()` (traquer une compilation en course) · `dbgMaj()` · `dbgPoki()`.
+`dbgQual()`/`dbgDPR()`/`dbgPerf()` · `dbgAppels(n)`/`dbgProgsListe()` (traquer une compilation en course) · `dbgMaj()` · `dbgPoki()` ·
+`dbgLum({…})` (les lumières de la caisse : état, réglages `LUMK` à chaud, `off`/`frein`/`nitF` pour les bancs) · `dbgLumVue(d,h,az)` (photo de poursuite dans le
+repère de la caisse) · `dbgLumReprise()`.
 
 **Adresses utiles** : `?perf=1` (moniteur) · `?banc=1` (le banc de perf à lancer sur un VRAI téléphone) · `?poki=1`, `?crazy=1` ·
 `?menu=leo` · `?carte=jade&meteo=orage` · `?carte=canyon&meteo=soir` (`?cyw=0` : sans travailleur) · `?niveau=jade`, `?niveau=crypto` · `?heure=nuit` · `?simu=1`.
@@ -459,6 +465,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
+
+**Lumière**
+- « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`, `?sans=lumieres`
 
 **Caisses, boutique, habillages**
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
