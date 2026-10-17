@@ -43153,7 +43153,11 @@ function pwrV2Raz(){PWR_V2.bt=null;}
    suite de la génération ne bouge pas. Les poids suivent l'expérience du joueur (`SAVE.d.ex.runs`) : le débutant tombe surtout sur ce
    qui le fait jouer tout de suite (AIMANT, AIR MAX) ; le vétéran sur ce qui fait monter le score (AURA ×2, VITESSE). ⚠ En CAMPAGNE (pistes
    identiques à chaque essai) les poids restent FIXES : la même graine donne les mêmes cristaux, quel que soit le joueur. */
-function pwrPoids(){
+/* (2026-10-18, Sacha : « met pas de power up vitesse x2 dans le canyon ») LE CANYON SANS VITESSE ×2 : entre des parois qui ne pardonnent
+   pas, le ×2 n'était qu'un ticket pour le mur. Sa part du tirage est rendue aux quatre autres AU PRORATA (somme 1) — toujours UN seul
+   `rnd()` par cristal : la génération en aval ne bouge pas, seul le cristal change de nature. Le parc freestyle n'est pas le canyon. */
+function pwrPoids(){const W=pwrPoids0();if(LVL.cur&&LVL.cur.id==='canyon'&&!PARK.on&&W.v>0){const k9=1/(1-W.v);W.v=0;for(const q in W)W[q]*=k9;}return W;}
+function pwrPoids0(){
   const camp=!!(LVL.cur&&LVL.cur.camp),runs=camp?20:((SAVE.d.ex&&SAVE.d.ex.runs)|0);
   if(runs<8)return {n:.2,a:.22,v:.12,m:.3,x:.16}; // (29/09) les parts du BOUCLIER retiré sont rendues aux autres
   if(runs<30)return {n:.21,a:.19,v:.18,m:.21,x:.21};

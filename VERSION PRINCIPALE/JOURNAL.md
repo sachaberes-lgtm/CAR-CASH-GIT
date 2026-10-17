@@ -3,6 +3,13 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE CANYON SANS VITESSE ×2 (2026-10-18, Sacha : « met pas de power up vitesse x2 dans le canyon »)
+- Au CANYON DES GÉANTS, plus aucun cristal ⚡ VITESSE ×2 : `pwrPoids` met sa part à 0 et la rend aux quatre autres (NITRO MAX, AIR MAX,
+  AIMANT, AURA ×2) au prorata. Toujours UN seul `rnd()` par cristal : mêmes emplacements, même nombre de cristaux, même piste — seul le
+  pouvoir change. Le parc freestyle n'est pas concerné (`!PARK.on`), les autres maps gardent leur VITESSE ×2.
+- MESURÉ (banc headless, 10 graines, `dbgTrace` + `dbgPwr('cristaux')`) : avant 26 (débutant) / 33 (vétéran) cristaux VITESSE ×2 sur 199 ;
+  après 0 sur 199 ; au nuages ils restent (15 / 21). `dbgPwr().poids` montre `v:0` au canyon.
+
 ## LE GLACIER, 2e TOUR : PISTE BEAUCOUP PLUS LARGE, PENTE BEAUCOUP PLUS FORTE (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue »)
 - LARGEUR : `BK_LARG4` 4,4 → 7 — la piste passe de 123 à 196 m (demi-largeur 98 m). Tout ce qui la borde suit `ROAD_HALF` (bourrelet de
   neige, glace, becs, pics, mur `parisMur`) ; le plancher des rayons (2,6 demi-largeurs = 255 m) l'emporte souvent : virages plus amples.
