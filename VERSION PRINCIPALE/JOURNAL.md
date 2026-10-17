@@ -298,7 +298,9 @@ part, aucune erreur (le 404 de dark-triad.mp3 : faux positif connu) ; `sh garde-
 Écoute envoyée à Sacha : `musique+crissement-ancien.wav` / `musique+crissement-NOUVEAU.wav` (GLASSY PLUCKS dessous) et
 `crissement-ancien.wav` / `crissement-NOUVEAU.wav` (seuls, à leur vrai niveau), 8,5 s, le scénario ci-dessus.
 Crochets : `dbgGomme()` (prêt, glisse ressentie, gains, passe-bas, densité des grains) · `?crisse=ancien` = le son d'avant.
-À TRANCHER par Sacha (à l'oreille) : le niveau (`GOM_NIV` : souffle .11, grain .4 — +3 dB = ×1,4), la part du grain, la respiration.
+VALIDÉ par Sacha (17/10, après l'écoute de `musique+crissement-ancien.wav` / `musique+crissement-NOUVEAU.wav`) : « C'est bon, on garde le nouveau
+crissement des pneus. » On ne le rebascule pas sans lui. Restent réglables à la demande : le niveau (`GOM_NIV` : souffle .11, grain .4 —
++3 dB = ×1,4), la part du grain, la respiration.
 Pas touchés : la charge du drift (`DRS`, le « brrrr » qui monte à chaque palier) et les crissements ponctuels de la banque (`virage`,
 `pose.travers`, `flaque.huile`, `fig.slide.debut`).
 
