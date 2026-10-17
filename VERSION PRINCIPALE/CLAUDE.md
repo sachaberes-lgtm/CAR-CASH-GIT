@@ -154,8 +154,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
   le grand livre `LIVRE`/`livre`/`dbgLivre`.
+- **Lumières de la caisse** (17/10) : phares, feux arrière, feu du nitro, flamme du moteur et traînées ÉCLAIRENT LE BITUME dans son shader (`LUM_GLSL`/`lmRoute`,
+  uniformes `LUM_U`, `LM_N` lampes-segments + deux phares ; `lumTick` les pose en monde, `lumVue` — chaîné sur `scene.onBeforeRender` — les passe en vue ; réglages
+  `LUMK`) et la lueur des feux allume la CAISSE et sa lunette (`FEU_U`/`FEU_GLSL`, bloc VOITURES) — aucune lumière three. `?sans=lumieres` = avant.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
-  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose` ; leurs SONS `ailSon` → `ailes.*`, en vol seulement),
+  `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche` (17/10 : chacune son ALLUMAGE `debut`, son ruban à tempérament `sil` → `SIL_STY`), l'aperçu des rubans en vraie lumière depuis les feux `silApercu`/`silRuban`, la salle blanche en ENCRE `SIL_ENCRE`/`silBlanc`, la vitrine qui vrombit `SILPV.cy`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose` ; leurs SONS `ailSon` → `ailes.*`, en vol seulement),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
   moteur simulé `FLM`/`flmPas`, le nitro en feu de pixels `NFEU`/`nfeuPas` (`?flamme=ancien`) et son jet propulsé (`NFEU_JET`), hors nitro le
   même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
@@ -174,7 +177,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `SIMU_JEU`, `BALADE`.
 - **Perf** : qualité auto `QL`/`QLR`/`qlSonde`, résolution `applyDPR`/`applyQ`/`curDPR`/`DPR_CAP`/`DPR_MIN`, chauffe
   `chauffeRendu`/`chauffeDivers`/`engChauffe`/`atelierChauffe`, sursis `MAT_SURSIS`/`CAR_GARDE`/`ENG_GARDE`, `SCENE_TOUJOURS`,
-  `VP`, `pisteTranches`, `LFB_SANS_PL`, `atelierLampes`.
+  `VP`, `pisteTranches`, `LFB_SANS_PL`, `LFB_ROUTE_LUM`, `atelierLampes`.
 
 ---
 
@@ -184,7 +187,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Le style compact du fichier ; commentaires en FRANÇAIS, datés et signés (`(2026-10-14, Léo : « … »)`), qui disent POURQUOI.
 - Un commentaire au MILIEU d'une ligne s'écrit `/* … */`, jamais `//` (voir piège n° 1).
 - Perf : rien n'est alloué dans la boucle (on réutilise les vecteurs `tmp…`), particules en pools ; le DOM n'est écrit QUE si la
-  valeur change ; `VP.w`/`VP.h` au lieu d'`innerWidth` ; aucune `new THREE.PointLight` en course ; toute matière neuve est chauffée
+  valeur change ; `VP.w`/`VP.h` au lieu d'`innerWidth` ; aucune `new THREE.PointLight` en course (une lumière de la caisse sur la route = une lampe de
+  `LUM`, voir `lumLampe`) ; toute matière neuve est chauffée
   au menu : **zéro programme compilé en course**, à mesurer ; `scene.onBeforeRender` se CHAÎNE ; objets immobiles en
   `matrixAutoUpdate=false`.
 - Un seul écrivain par réglage : `bioApply` pour les lumières, `nitroGain(q,'source')` pour toute nitro, `sfx('famille.nom')`
@@ -240,6 +244,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
 - Chaque appui répond : visuel + `uiClic(rôle)` + `hap(p)` (jamais `navigator.vibrate` en direct).
   Un bouton oublié est rattrapé par le FILET (`uiFiletRole` : il sonne si rien n'a sonné) ; `data-muet` s'en passe. Dans la pause aussi (`pauseSon`).
+  Le VISUEL a son filet aussi (17/10) : L'APPUI POUR TOUS — toute chose touchable hors `APPUI_SEL` se tasse au contact (`scale` ×0,94 par
+  l'API d'animation, sans toucher à ses transitions) ; `?appui=0` l'enlève.
+- Le VOLET pixel (`ecranWipe`) = un changement de DÉCOR (atelier ↔ course, fin → accueil, garage ↔ accueil). Une PAGE posée sur l'accueil
+  (réglages, achat, modes) passe en direct par-dessus l'atelier-menu (`surAccueilCiel`, 17/10) ; `?menupasse=0` = sous le volet.
 - Tout texte affiché passe par `TR('TEXTE FR')` avec son entrée `I18N` (§6).
 - Couché ET debout : l'ordi montre le téléphone couché ; chaque écran se vérifie dans les deux sens.
 
@@ -286,7 +294,9 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 · `dbgView(a,d,h)` (mode photo) · `dbgSaut()` (= NIVEAU suivant, pas un saut) · `dbgDauphin(…)` (s'envoler) ·
 `dbgClassique(carte,meteo)` · `dbgCampagne(n,monde)` · `dbgNiveauJade()`/`dbgNiveauCrypto()` · `dbgEquipe(i)`/`dbgCar(i)`/
 `dbgPhoto(i)`/`dbgBqVoir(i)` · `dbgSon(id)`/`dbgVu()` · `dbgLivre('ouvre')` · `dbgFren()` · `dbgVol()` · `dbgBurn()` · `dbgFlamme()` ·
-`dbgQual()`/`dbgDPR()`/`dbgPerf()` · `dbgAppels(n)`/`dbgProgsListe()` (traquer une compilation en course) · `dbgMaj()` · `dbgPoki()`.
+`dbgQual()`/`dbgDPR()`/`dbgPerf()` · `dbgAppels(n)`/`dbgProgsListe()` (traquer une compilation en course) · `dbgMaj()` · `dbgPoki()` ·
+`dbgLum({…})` (les lumières de la caisse : état, réglages `LUMK` à chaud, `off`/`frein`/`nitF` pour les bancs) · `dbgLumVue(d,h,az)` (photo de poursuite dans le
+repère de la caisse) · `dbgLumReprise()`.
 
 **Adresses utiles** : `?perf=1` (moniteur) · `?banc=1` (le banc de perf à lancer sur un VRAI téléphone) · `?poki=1`, `?crazy=1` ·
 `?menu=leo` · `?carte=jade&meteo=orage` · `?carte=canyon&meteo=soir` (`?cyw=0` : sans travailleur) · `?niveau=jade`, `?niveau=crypto` · `?heure=nuit` · `?simu=1`.
@@ -299,6 +309,11 @@ changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps
 `voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
 portails et aux relances, météos dans la barre. Liste : `repertoire-maps/maps.js`. Une MAP NOUVELLE dans SF_CARTES → une ligne dans
 maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet). Servir VERSION PRINCIPALE en http.
+**Les NOTES DES MAPS** (17/10, Léo : « une page locale sur laquelle je pourrai retoucher chaque map » → « notes seulement ») : dans
+`voir.html`, le panneau NOTES (à droite, ou en bas sur un petit écran) — il écrit ce qu'il veut changer ; chaque note garde la météo et
+l'IMAGE du jeu à cet instant. Servir par `python3 repertoire-maps/serveur.py 9244` (il écrit les notes) ; elles vivent HORS du dépôt dans
+`~/Downloads/CAR-notes-maps/` : `notes-maps.txt` = ce qu'on lit (map par map, [ ] à faire, id, chemin de l'image) ; une note faite dans le
+jeu → `python3 repertoire-maps/serveur.py fait <id>` (coche verte, vue par la page en 5 s). Le compte « n notes » s'affiche sur la liste.
 
 ---
 
@@ -314,6 +329,8 @@ maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu
 4. La traduction : `Object.assign(I18N,{"LE NOM":"THE NAME","desc française":"english desc"})`.
 Puis `sw.js` +1 et une section au journal. Vérifier : `dbgCar(i)`/`dbgPhoto(i)`, la boutique (`dbgBqVoir(i)` : les mini-ailes ne
 se voient que là), la course (`dbgEquipe(i)`), le garage du jeu (la salle blanche grise les noirs).
+**Retoucher une caisse** (le redesign voiture par voiture, 17/10) : budget, pièges et méthode → « L'ELDORADO v3 » au journal ; le banc
+`outils/banc-caisses/` (le gabarit au studio, la caisse dans le vrai jeu, la planche AVANT | APRÈS, SANS TOUT CASSER).
 ⚠ Jamais retirer ni insérer une ligne au milieu de `CARS`/`CAR_UNLOCK` : la sauvegarde désigne les caisses par leur INDEX.
 Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 
@@ -455,16 +472,20 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (14/10) — la route qui dévale, la poudreuse qui porte et qui avale, la glisse sur les lacs gelés et les pics, les aurores
 - « LE ROYAUME DE FEU — LA MAP DU VOLCAN » (14/10) — le flanc qui descend, les lacs et les coulées de lave, les éruptions, les six temps
 - « LA FORÊT NOIRE — LA MAP DES CONTES » (14/10) — la vallée en slalom qui descend, les géants, le jour fleuri, la nuit hantée, le loup-garou
-- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
+- « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
+
+**Lumière**
+- « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`, `?sans=lumieres`
 
 **Caisses, boutique, habillages**
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
 - « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
+- « L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE » (17/10) — le redesign voiture par voiture : budget, pièges, banc `outils/banc-caisses/`
 - « LE BLINDÉ NOIR EN PORC-ÉPIC GOTHIQUE » (16/10) — piquants sur le dos, clous chromés devant (`pique`, `clou`, `mue`, ailes en ogive)
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
@@ -487,6 +508,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA CHARTE v5 — LAQUE · OR · NÉON » (28/09) · « LA CHARTE v4 — CARBONE · OR · NÉON » (26/09, sa grammaire reste la loi)
 - « LA CHARTE AU COMPLET » (28/09) · « LA DA DU HUD, UNE SEULE FAMILLE » (28/09) · « LE HUD DE COURSE, MAÎTRISÉ ET EN MOUVEMENT » (28/09)
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
+- « LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT » (17/10) — bancs audit/film/chrono
 
 **Son et musique**
 - « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
