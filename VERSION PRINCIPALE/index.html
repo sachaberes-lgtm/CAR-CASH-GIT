@@ -10120,6 +10120,24 @@ body:not(.play) #m2Focus{display:none!important}
 .m2FR u em{display:block;height:100%;background:var(--au2)}
 .m2FR.ok{box-shadow:inset 0 0 0 1px var(--cash)}.m2FR.ok i,.m2FR.ok b{color:var(--cash)}.m2FR.ok u em{background:var(--cash)}
 @media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « trop de pop-up mission pendant la partie : en ligne, plus discrète, en bas ») — une mission
+   réussie en course : une ligne fine au-dessus des suivies (--m2lY = leur hauteur, posée par m2LigneSuit), à leur place et dans leur matière */
+#m2Ligne{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
+  display:flex;align-items:center;gap:6px;box-sizing:border-box;width:max-content;max-width:min(60vw,520px);padding:3px 7px 2px;pointer-events:none;
+  background:color-mix(in srgb,var(--k1) 84%,transparent);box-shadow:inset 2px 0 0 var(--m2lC);font-family:var(--pix);font-size:var(--f1);
+  line-height:1.3;color:var(--tx);--m2lC:var(--cash);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)}
+#m2Ligne.on{opacity:1;transform:translate(-50%,0)}
+#m2Ligne.sec{--m2lC:var(--neoM)}
+#m2Ligne i{flex:none;font-style:normal;line-height:0;color:var(--m2lC)}#m2Ligne i .pxi{--pxs:1}
+#m2Ligne span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#m2Ligne small{font-size:inherit;color:var(--m2lC)}
+#m2Ligne b{flex:none;font-weight:400;color:var(--au1);white-space:nowrap}
+body:not(.play) #m2Ligne{display:none!important}
+@media (orientation:portrait){#m2Ligne{left:var(--hudG,16px);transform:translateY(4px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px + var(--m2lY,0px));
+  max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}
+  #m2Ligne.on{transform:none}
+  #m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}}
+@media (prefers-reduced-motion:reduce){#m2Ligne{transition:opacity var(--t-slow) linear}}
 /* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
 .mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
 .mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
@@ -37684,6 +37702,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   const c=HAUT.cur;if(c&&performance.now()<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
   HAUT.cur=null;HAUT.fin=0;engBigCoupe();
   const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
+  try{m2LigneVide();}catch(e){} // (2026-10-17) la ligne des missions du bas se tait avec les autres (l'écran de mort les récapitule)
 }
 function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
@@ -38538,7 +38557,8 @@ function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. R
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
-  toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
+  if(!(MISSIONS_V2&&m2LigneDit('col',sansAcc(TR('COULEUR')+' '+TR(d.n)),''))) /* (2026-10-17) en course : la ligne du bas, pas le toast du haut */
+    toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
 function cosmVu(cat,d){ // la VUE d'un habillage pour une liste (contrat avec INTERFACE) : une secrète pas encore gagnée → masquée (les accesseurs le font déjà ; `masque` le dit)
   if(d&&d.sec&&!window.PAL_REVELE&&!shopOwned(cat,d.id))return {id:d.id,sec:d.sec,n:d.n,d:d.d,c:d.c,g:d.g,r:d.r,ind:d.ind,masque:true};return d;}
 function cosmSwCl(d){return d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'';} // la classe de finition d'une pastille de peinture (une seule table pour toutes les listes)
@@ -47051,11 +47071,32 @@ function m2Verifie(enC){if(!MISSIONS_V2)return 0; /* en v1 les compteurs tournen
   for(const m of M2){if(s.ok.indexOf(m.id)>=0)continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
     if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
-/* le bandeau DISCRET de la course (« il ne cache pas la route » : la bannière du haut, celle des missions) ; une secrète ne dit rien d'elle */
+/* l'annonce d'une mission réussie : EN COURSE, la LIGNE du bas (#m2Ligne) ; hors course, le toast. Une secrète ne dit rien d'elle */
 function m2Annonce(m,enC){if(!MISSIONS_V2)return;const r=m.r||{};
-  if(m.f==='secret'){if(enC)misBanniere('MISSION SECRÈTE','? ? ?','','etoile');return;}
+  if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC)misBanniere('MISSION RÉUSSIE',m2Txt(m),p,'coche');else try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
+   en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
+   UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
+   NITRO reste libre). Plusieurs d'un coup : la première passe seule, tout le reste se dit en UNE ligne (« 3 MISSIONS RÉUSSIES ») ; 2,4 s
+   chacune. Le son ui.mission une fois par ligne (la couleur secrète garde le sien, sonné par secDonne). Aucune image de la boucle n'y touche :
+   piloté par événements, vidé par hautVide (l'explosion, l'écran de mort, RECOMMENCER). k : 'ok' réussie · 'sec' secrète · 'col' couleur */
+const M2L={q:[],t:0,on:0};
+function m2LigneDit(k,tx,p){if(!m2EnC())return false;M2L.q.push({k:k,tx:tx,p:p||''});if(!M2L.on)m2LigneSuit();return true;}
+function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Ligne');
+  if(!M2L.q.length||!m2EnC()){m2LigneVide();return;}
+  let it=M2L.q.shift();
+  if(M2L.on&&M2L.q.length){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne
+  M2L.on=1;
+  if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
+  const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
+  const sec=it.k!=='ok',ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
+  e.innerHTML='<i>'+pxi(sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  try{if(SONV2&&it.k==='ok')sfx('ui.mission');}catch(x){}
+  M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
+function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
 function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
   if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
@@ -47149,7 +47190,7 @@ Object.assign(I18N,{'RÉCUPÈRE':'CLAIM','BIENTÔT':'SOON','RÉUSSIE':'DONE','SE
   'MISSION SECRÈTE TROUVÉE':'SECRET MISSION FOUND','FAIT':'DONE','PAS ENCORE':'NOT YET','TROIS MISSIONS SUIVIES AU PLUS':'3 TRACKED MISSIONS AT MOST',
   'TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS':'TAP A MISSION TO TRACK IT · 3 MAX','RÉCOMPENSE À RÉCUPÉRER':'A REWARD IS WAITING',
   'TOUTES LES MISSIONS':'ALL MISSIONS','À RÉCUPÉRER':'TO CLAIM','BIENTÔT AU GARAGE':'COMING TO THE GARAGE SOON','RÉCOMPENSE À VENIR':'REWARD COMING SOON',
-  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT'});
+  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT','MISSIONS RÉUSSIES':'MISSIONS DONE'});
 function m2Nb(x){return Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[  ]/g,' ');}
 function m2Mn(x){x=Math.max(0,Math.floor(x));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
 /* L'AVANCEMENT DE LA PARTIE (en course, l'écran de mort) : pour une mission « en une partie », ce que CETTE partie a fait — le record

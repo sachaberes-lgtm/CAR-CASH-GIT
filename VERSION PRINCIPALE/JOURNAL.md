@@ -3,6 +3,18 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES MISSIONS EN UNE LIGNE, EN BAS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète, en bas de l'écran »)
+- EN COURSE, une mission réussie ne pose plus la bannière du haut (`#misBan` : plaque, grosse icône, 12 px, au milieu du ciel) : `m2Annonce`
+  écrit UNE ligne fine en bas, `#m2Ligne` (`m2LigneDit`/`m2LigneSuit`/`m2LigneVide`, la file `M2L`) — coche verte · MISSION REUSSIE ·
+  la consigne · la récompense en or, 10 px, sur la bande sombre des missions suivies. Couché : au centre, debout : à gauche (la colonne de
+  NITRO reste libre) ; toujours JUSTE AU-DESSUS des missions suivies (`#m2Focus`, leur hauteur dans `--m2lY`). Une secrète : œil magenta,
+  « MISSION SECRETE ? ? ? ». Une couleur secrète trouvée en course (`secDonne`) : la même ligne au lieu du toast du haut.
+- LA RAFALE : la première passe seule (2,4 s), TOUT le reste se dit en une seule ligne (« 2 MISSIONS REUSSIES ») — au plus deux lignes, là
+  où il y avait une bannière par mission à la queue leu leu. Le son `ui.mission` une fois par ligne.
+- Hors course (menu, écran de mort, `dbgMissions('gagne',…)` au menu) : le toast, inchangé. La ligne se tait avec la file du haut
+  (`hautVide` : l'explosion, l'écran de mort, RECOMMENCER) et disparaît hors manette (`body:not(.play)`).
+- `#misBan` reste aux ASTUCES et aux NOUVEAUX COMBOS (ce ne sont pas des missions).
+
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
   Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
