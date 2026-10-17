@@ -10920,6 +10920,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
+  uCiel2:{value:0}, /* (2026-10-17, continuité) LE CIEL CONTINU : 1 sur les six maps de la continuité (routeTick), 0 ailleurs (titre, ville, jade : au bit près) */
   uJour:{value:0},uMerLoin:{value:/[?&]sans=([^&]*,)?ciel2(,|&|$)/.test(location.search)?16000:8000}, /* (2026-10-14, passe graphismes · ciel2) la mer lointaine — là où son bruit s'étire en traînées — fond deux fois plus tôt dans la brume : un dégradé propre à l'horizon (titre et chute posent le leur) */uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uSkySat:{value:1}, // (2026-10-15 soir) LA CHROMA DU CIEL DE JOUR (voir cielSat, routeTick) : 1 = telle quelle
   uSym:{value:0}, // (2026-10-15) LE CIEL SANS DESSOUS (map NUAGES) : 1 = la moitié basse du dôme est le reflet de la haute (voir TETE)
@@ -10954,7 +10955,7 @@ const skyDome=(function(){
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse,uRose;', // grade biome (identité par défaut) + uPulse musique
       'uniform vec3 uFd[8];uniform vec3 uVc[6];', // (2026-10-16) LES TEINTES DE LA VILLE : les couleurs fixes du dégradé et du ciel de la ville (valeurs d'origine hors ville teintée)
       'uniform float uSpace,uNeb;', // NIVEAU ORBITE : 0 = aucun effet · uNeb : les nébuleuses (2026-10-15)
-      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
+      'uniform float uJour,uMerLoin,uCiel2;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       /* ROTATION DE TEINTE AUTOUR DE L AXE DES GRIS (Rodrigues). ⚠ c est LA fonction qui permet les
@@ -11440,7 +11441,14 @@ const skyDome=(function(){
          doit être refaite et parfaite ») : le ciel d AU-DESSUS des nuages, pas celui d en bas — un azur profond au zénith, un turquoise
          lumineux au milieu, un horizon crème presque blanc (l air épais, éclairé). Son propre dégradé, pas le couchant de Vice City
          multiplié : un rose ne devient jamais turquoise. uJour 0 = le ciel d avant. */
-      '  if(uJour>.001){float yj=max(y,0.);vec3 j=mix(uJHor,uJMid,smoothstep(0.,.16,yj));j=mix(j,uJZen,smoothstep(.12,.92,yj));col=mix(col,j,uJour);}',
+      /* LE CIEL CONTINU (2026-10-17, Sacha, sur une capture du glacier à midi : « regarde comme le ciel est moche ; le dégradé de ciel-soleil est à refaire
+         complètement ») : l'ancien dégradé passait de l'horizon au milieu en 9° — une BANDE dure, orange tout autour du monde même à midi, sous un bleu
+         saturé. Ici : le zénith fond vers le milieu sur TOUT le dôme (courbe douce), l'HORIZON est un voile large (moitié à ~5°, presque rien à 20°)
+         à la couleur de l'AIR, pâle ; la chaleur ne vit que du côté du SOLEIL (cielJour, uJSol). Sur les six maps de la continuité seulement (uCiel2). */
+      '  if(uJour>.001){float yj=max(y,0.);vec3 j;',
+      '    if(uCiel2>.5){float u=1.-yj;j=mix(uJZen,uJMid,smoothstep(0.,1.,pow(u,1.7)));j=mix(j,uJHor,pow(u,7.));}',
+      '    else{j=mix(uJHor,uJMid,smoothstep(0.,.16,yj));j=mix(j,uJZen,smoothstep(.12,.92,yj));}',
+      '    col=mix(col,j,uJour);}',
       '  col=mix(col,vec3(0.),uSpace);', // ORBITE : le NOIR COMPLET (demande du user) — la Terre et la route portent seules la lumiere
       '  col*=1.+uPulse*.13;', // MUSIQUE : tout le ciel respire au beat (souffle global doux)
       '  return col;}',
@@ -11520,8 +11528,8 @@ const skyDome=(function(){
          de la mer de nuages (le cœur du soleil reste cielSoleil). */
       'void cielJour(inout vec3 col,float y,float sd){',
       '  if(uJour<.001)return;',
-      '  float h=exp(-abs(y)*6.5);',
-      '  col+=uJSol*(pow(sd,3.)*.55*h+pow(sd,14.)*.30)*uJour;}',
+      '  float h=exp(-abs(y)*mix(6.5,5.,uCiel2));',
+      '  col+=uJSol*(pow(sd,3.)*.55*h+pow(sd,14.)*.30)*uJour;}', // (continuité) la chaleur autour du soleil monte un peu plus haut (mesuré : plus large, elle blanchissait la moitié du ciel)
     ],
     soleil:[
       /* (2026-09-27, passe perf iPhone) CHAQUE COUCHE NE SE CALCULE QUE LÀ OÙ ELLE PEINT. Mesuré au banc (dôme seul, mêmes uniformes,
@@ -15482,7 +15490,16 @@ window.dbgTeinte=function(){const c=typeof LVL!=='undefined'&&LVL.cur;return {on
    chaque map passée à la bible (une map à la fois, chacune son `?sans=`). routeSig() dit si la map courante la porte. La ville au néon (villeRose) garde
    sa peinture caméléon d'origine ; les autres reçoivent le rose de la marque, plein la nuit et sous la pluie, ~70 % de jour (jamais blanc ni éteint). */
 const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),nuagesjour:!/[?&]sans=([^&]*,)?nuagesjour(,|&|$)/.test(location.search),jade:!/[?&]sans=([^&]*,)?jade2(,|&|$)/.test(location.search),foret:!/[?&]sans=([^&]*,)?foret2(,|&|$)/.test(location.search),orbite:!/[?&]sans=([^&]*,)?orbite3(,|&|$)/.test(location.search),canyon:!/[?&]sans=([^&]*,)?canyon2(,|&|$)/.test(location.search),nuagesnuit:!/[?&]sans=([^&]*,)?clairdelune(,|&|$)/.test(location.search),banquise:!/[?&]sans=([^&]*,)?banquise2(,|&|$)/.test(location.search),volcan:!/[?&]sans=([^&]*,)?volcan2(,|&|$)/.test(location.search)};
+/* LA CONTINUITÉ DES MAPS (2026-10-17, Sacha : « grosse session d'amélioration des maps : mets-toi dans la peau d'un game designer senior, regarde
+   toutes les maps comme un tout ; il faut une vraie continuité dans les maps, tant dans la colorimétrie que dans les textures — pour l'instant les
+   seules maps à ne pas toucher sont les montagnes chinoises (jade) et la ville » · « c'est surtout l'éclairage de NUIT que tu arrives mal à faire » ·
+   « des couleurs vives et pop mais pas trop : la journée dans les nuages est trop saturée ; un vrai équilibre ») — six maps : NUAGES, CANYON, FORÊT,
+   GLACIER, VOLCAN, ORBITE. Le détail (la recette commune par temps, la route commune, la nuit) est dans `CONTI` (après l'étalonnage) et au JOURNAL.
+   `?sans=continuite` = tout d'avant. `contiMap()` : la map courante est l'une des six (JAMAIS la ville ni le jade). */
+const CONTI_V=!/[?&]sans=([^&]*,)?continuite(,|&|$)/.test(location.search);
+function contiMap(){const c=typeof LVL!=='undefined'&&LVL.cur;return CONTI_V&&!!c&&(c.id==='nuages'||c.id==='canyon'||c.id==='foret'||c.id==='banquise'||c.id==='volcan'||c.id==='espace');}
 function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)return false;const b=c.bio[0];
+  if(CONTI_V&&c.id==='nuages')return true; // (continuité) la signature rose + or sur TOUTES les météos des nuages (le soir, la pluie et l'orage l'avaient perdue)
   return (SIG_V.nuagesnuit&&c.id==='nuages'&&b==='nuagesNuit')||(SIG_V.banquise&&c.id==='banquise')||(SIG_V.volcan&&c.id==='volcan')||(SIG_V.canyon&&c.id==='canyon')||(SIG_V.orbite&&c.id==='espace')||(SIG_V.foret&&c.id==='foret')||(SIG_V.jade&&c.id==='jade')||(SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
@@ -15496,7 +15513,7 @@ function bordsTick(){ // appelée par musicTick, APRÈS la peinture « caméléo
   const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf; // 1 = plein jour sec ; 0 = nuit / pluie / orage (fondus par lvlStep au portail)
   _c9.copy(BORDS.nuit).multiplyScalar(BORDS.kNuit);_d9.copy(BORDS.jour).multiplyScalar(BORDS.kJ);_c9.lerp(_d9,jf);
   let kk=1,kg=BORDS.glowN*(1-jf);
-  try{const nu=LVL.nuit,k=(CAMP.n===16?VC.cour:1)*(1-.6*nu);if(k<.999){kk=1/(.07+.93*k);kg*=kk*kk;}}catch(e){} // villeApres multipliera la couleur par kr et l'opacité par kr² : on l'annule d'avance
+  if(!contiMap())try{const nu=LVL.nuit,k=(CAMP.n===16?VC.cour:1)*(1-.6*nu);if(k<.999){kk=1/(.07+.93*k);kg*=kk*kk;}}catch(e){} // (continuité : villeApres ne baisse plus les néons des six maps) villeApres multipliera la couleur par kr et l'opacité par kr² : on l'annule d'avance
   _c9.multiplyScalar(kk);
   for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.copy(_c9);}
   for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i],b=m.userData.base;if(b!=null)m.opacity=Math.min(1,b*kg);}
@@ -15568,11 +15585,14 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
   {let rk9=1;try{rk9=BIO.cur.rtK;if(rk9==null)rk9=1;}catch(e9){} /* (2026-10-14, passe graphismes · contrôle) CLARTÉ DU BÉTON PAR AMBIANCE : `rtK` (1 par défaut, voir BIO_ETAL0) multiplie la clarté de niveau ET la teinte — le béton de jour était à L* 50-60 (cible 32-45) */ const jr9=ROUTE_NEUTRE*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.espace||0))*(1-Math.min(1,LVL.jade||0)); /* (2026-10-15 soir) LE BÉTON DE JOUR (voir ROUTE_NEUTRE) */
    for(let c9=0;c9<3;c9++)ROUTE_T9[c9]=BETON.t[c9]+(ROUTE_JOUR_T[c9]-BETON.t[c9])*jr9;
-   skyU.uSkySat.value=1-CIEL_DESAT*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.espace||0))*(1-Math.min(1,LVL.jade||0)); /* (2026-10-15 soir) LE CIEL DE JOUR SANS BLEU ÉLECTRIQUE (voir CIEL_DESAT) */
-   const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=(b.lift0+b.lift*LVL.route)*rk9,a9=b.amb+(.15-b.amb)*jr9,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
+   skyU.uCiel2.value=contiMap()?1:0; // (continuité) le ciel continu sur les six maps
+   skyU.uSkySat.value=1-CIEL_DESAT*(contiMap()?.55:1)*(1-Math.min(1,LVL.nuit||0))*(1-Math.min(1,LVL.espace||0))*(1-Math.min(1,LVL.jade||0)); /* (2026-10-15 soir) LE CIEL DE JOUR SANS BLEU ÉLECTRIQUE (voir CIEL_DESAT) */
+   const cm9=contiMap(),rA9=cm9&&BIO.cur.rtA!=null?BIO.cur.rtA:1, // (continuité) `rtA` : la part de l'air du lieu dans la clarté du béton (× ; la nuit, la brume violette teignait toute la route)
+    b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=(b.lift0+b.lift*LVL.route)*rk9,a9=(b.amb+(.15-b.amb)*jr9)*rA9,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
     m9=ROUTE_T9,e9=rk9*(1+(b.ville-1)*LVL.ville)*(1+(b.espace-1)*LVL.espace)*(1-b.mouille*w9);
    ROAD_U.uLift.value.setRGB(k*(1-a9+a9*f.r/fm),k*(1-a9+a9*f.g/fm),k*(1-a9+a9*f.b/fm)); // la clarté de niveau en gris MINÉRAL (plus de violet), à peine teintée par l'air du lieu
    ROAD_U.uTeinte.value.r*=m9[0]*e9;ROAD_U.uTeinte.value.g*=m9[1]*e9;ROAD_U.uTeinte.value.b*=m9[2]*e9; // le béton mouillé FONCE (la pluie), chaque monde sa teinte
+   if(cm9&&BIO.cur.rtT){const t9=BIO.cur.rtT;ROAD_U.uTeinte.value.r*=t9[0];ROAD_U.uTeinte.value.g*=t9[1];ROAD_U.uTeinte.value.b*=t9[2];} // (continuité) LE BITUME COMMUN : `rtT` corrige la teinte du béton par temps (voir CONTI) — le ciel bleu ×1,5 de saturation le peignait en pervenche
    ROAD_U.uSheen.value*=Math.min(1,w9+js9+b.sheen); // MAT à sec : la brillance d'horizon ne vit que sous la pluie (et sur les routes de jade de Léo)
    if(js9<.5)ROAD_U.uGlace.value*=js9;} // … et plus de « bitume glacé » : le béton sec ne renvoie pas le ciel (les routes de jade polies gardent le leur)
 }
@@ -16222,7 +16242,17 @@ try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[900,1250,1650],fore
    Le sens d'un croisement ambigu (< 8 m) est tiré au sort, 6 fois sur 10 un raccourci ; un croisement qui résiste change de sens.
    MESURÉ (banc raccourcis, palier 0, 12 graines) : 9-15 km, 11-27 croisements, 1-4 raccourcis RENTABLES/km et 0-2,5 PIÈGES/km (pose propre
    ≥ 300 m en arrière), 4,3-5,2 virages/km, 0 croisement dangereux, 0 virage infranchissable ; construite en ~25 ms (8 essais au pire).
-   Tout à l'échelle du palier (rayons × rayonPalier()/63) ; un seul `rnd` consommé (le flux propre `gr`), le meilleur des essais gagne (`note`). */
+   Tout à l'échelle du palier (rayons × rayonPalier()/63) ; un seul `rnd` consommé (le flux propre `gr`), le meilleur des essais gagne (`note`).
+   LA PELOTE AU LARGE (2026-10-17, Sacha : « la génération de route dans la map forêt est bof, car trop de virages serrés — mais on a bien l'idée d'être
+   perdu en forêt ») : MESURÉ avant (8 graines, palier 0) 4,75 virages/km dont 2,62 SERRÉS/km (plus de la moitié braqués à fond, rayon d'axe 70 m pour
+   rMin 63). Le DESSIN ne change pas (les nœuds en étoile, les pointes visitées d'un bord à l'autre, les boucles, les croisements, le relief) : seuls
+   les RAYONS s'ouvrent — plancher des arcs 1,18 → 1,4 × rMin, virage d'alignement 1,25-2,3 → 1,5-2,7 × rMin, S de slalom plus larges (rayon
+   1,25-2,45 → 1,55-2,85 × rMin), boucles 1,45 → 1,6 × rMin ; l'étoile garde sa taille. Aucun tirage ajouté (même flux `gr`). MESURÉ après (12 graines,
+   palier 0, racc2) : 3,9 virages/km (on tourne toujours beaucoup), plus AUCUNE épingle à fond (sous 1,2 × rMin : 1,0/km → 0 ; sous 1,35 × rMin :
+   1,9/km → 0,23/km ; les « serrés » qui restent sont surtout à 1,35-1,5 × rMin), 10-15 km comme avant, 0 croisement dangereux, 0 infranchissable
+   (palier 22 : 5 → 0). Au palier 10 les pistes s'allongent d'~20 % (mêmes virages, plus grands). Un pas plus loin (plancher 1,62) tuait les virages :
+   2,9/km, pistes de 15-17 km. `?foret=serre` = la pelote d'avant. */
+const FORET_LARGE=typeof location==='undefined'||!/[?&]foret=serre\b/.test(location.search);
 function genForet(rnd){
   GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
   const LV=Math.min(4.4,typeof lvPiste==='function'?lvPiste():1),vP9=70+(LV-1)*100;
@@ -16239,7 +16269,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const pas=(nx,nz)=>{const dh=Math.hypot(nx-x,nz-z),n=Math.max(1,Math.ceil(dh/10));for(let j=1;j<=n;j++)D.push(x+(nx-x)*j/n,z+(nz-z)*j/n,s+dh*j/n);s+=dh;x=nx;z=nz;C.push([x,z]);SC.push(s);};
   const droite=l=>{const n=Math.max(1,Math.round(l/30));for(let k=0;k<n;k++)pas(x+Math.sin(phi)*l/n,z+Math.cos(phi)*l/n);};
   const arc=(aDeg,R,R2,ond)=>{if(R2==null)R2=R;const n=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),st=aDeg*Math.PI/180/n,o9=rnd()*6.283;
-    for(let k=0;k<n;k++){let r=R+(R2-R)*(k+.5)/n;if(ond)r=Math.max(rM*1.18,r*(1+ond*Math.sin((k+.5)/n*9.4+o9)));const ch=2*r*Math.sin(Math.abs(st)/2);phi+=st/2;const nx=x+Math.sin(phi)*ch,nz=z+Math.cos(phi)*ch;phi+=st/2;pas(nx,nz);}};
+    for(let k=0;k<n;k++){let r=R+(R2-R)*(k+.5)/n;if(ond)r=Math.max(rM*(FORET_LARGE?1.4:1.18),r*(1+ond*Math.sin((k+.5)/n*9.4+o9)));const ch=2*r*Math.sin(Math.abs(st)/2);phi+=st/2;const nx=x+Math.sin(phi)*ch,nz=z+Math.cos(phi)*ch;phi+=st/2;pas(nx,nz);}};
   const wrap=a=>{while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
   const rel=()=>cib?wrap(Math.atan2(cib[0]-x,cib[1]-z)-phi):0,dist=()=>cib?Math.hypot(cib[0]-x,cib[1]-z):0; // l'angle (signé) et la distance vers la cible
   const ici=k=>{Q[k]={x:x,z:z,phi:phi,s:s};};
@@ -16255,11 +16285,11 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   // ALLER VERS une cible : hors de l'axe, UN virage qui s'y aligne (rayon à la mesure de la distance) ; dans l'axe, un S (deux virages
   // opposés de 22-48°, parfois une respiration) — on avance en slalom, jamais en zigzag sur place
   const vers=(c,ra)=>{cib=c;for(let k=0;k<12&&dist()>ra;k++){const r9=rel(),d=dist();
-    if(Math.abs(r9)>.35){const R=Math.max(rM*1.25,Math.min(rM*2.3,d*.26));arc((r9>0?1:-1)*Math.abs(r9)*57.3*(.85+rnd()*.2),R,R*(.85+rnd()*.3),.1);}
-    else{const a=22+rnd()*26,R=rM*(1.25+rnd()*1.2),sg=rnd()<.5?-1:1;arc(sg*a,R,null,.1);arc(-sg*a*(.8+rnd()*.5),R*(.9+rnd()*.3),null,.1);if(rnd()<.3)droite((40+rnd()*60)*kV);}}};
+    if(Math.abs(r9)>.35){const R=FORET_LARGE?Math.max(rM*1.5,Math.min(rM*2.7,d*.29)):Math.max(rM*1.25,Math.min(rM*2.3,d*.26));arc((r9>0?1:-1)*Math.abs(r9)*57.3*(.85+rnd()*.2),R,R*(.85+rnd()*.3),.1);}
+    else{const a=FORET_LARGE?20+rnd()*26:22+rnd()*26,R=rM*(FORET_LARGE?1.55+rnd()*1.3:1.25+rnd()*1.2),sg=rnd()<.5?-1:1;arc(sg*a,R,null,.1);arc(-sg*a*(.8+rnd()*.5),R*(.9+rnd()*.3),null,.1);if(rnd()<.3)droite((40+rnd()*60)*kV);}}};
   // LA BOUCLE : un tour complet (la sortie au-dessus ou en dessous de l'entrée) — le FILET (360°, le rayon qui s'ouvre : la sortie court
   // à côté de l'entrée, ~70 m à l'extérieur) ou le NOEUD (300-330° ou 390-430° : la sortie recoupe l'entrée en biais)
-  const boucle=()=>{const r9=rel(),sg=Math.abs(r9)>.3?(r9>0?1:-1):(rnd()<.5?-1:1),R=rM*(1.45+rnd()*.5);
+  const boucle=()=>{const r9=rel(),sg=Math.abs(r9)>.3?(r9>0?1:-1):(rnd()<.5?-1:1),R=rM*((FORET_LARGE?1.6:1.45)+rnd()*.5);
     if(rnd()<.62){droite((50+rnd()*40)*kV);const e={x:x,z:z,phi:phi,s:s};arc(sg*360,R,R+30+rnd()*15,.1);BO.push({e:e,sg:sg,R:R});droite((60+rnd()*50)*kV);}
     else{droite((30+rnd()*40)*kV);const e={x:x,z:z,phi:phi,s:s};const a=rnd()<.5?300+rnd()*30:390+rnd()*40;arc(sg*a,R,R*(.85+rnd()*.35),.15);BO.push({e:e,sg:sg,R:R});}};
   const pente=(lo,hi)=>lo+rnd()*(hi-lo);
@@ -16710,7 +16740,12 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen;varying vec3 vW,vN,vO,vC;v
   '    else if(st<4.5){float r=fn3(o*vec3(1.4,.4,1.4));alb=mix(vec3(.30,.27,.24)*(.55+.6*r),alb*(.82+.35*r),smoothstep(.35,.62,vA.w));}', // pin : gris en bas, saumon en haut
   '    else alb*=.9+.2*fn3(o*2.);',
   '    float mo=clamp(vB.y*(smoothstep(-.2,.6,N.y+fn3(o*.35)*.7-.35)+.32)+uWet*.3*vB.y,0.,1.);alb=mix(alb,vec3(.15,.30,.07)*(.8+.4*fn3(o*1.7)),mo*.85);}', // la MOUSSE (plus verte sous la pluie)
-  '  else if(part<2.5){float fin=1.-smoothstep(60.,170.,dist);leaf=fn3(o*.38)*.35+fn3(o*1.15)*.40+mix(.5,fn3(o*2.9),fin)*.25;alb*=mix(.32,1.22,smoothstep(.28,.72,leaf));ao*=mix(.62,1.,smoothstep(.2,.6,leaf));',                                   // LE FEUILLAGE : des grappes de feuilles
+  /* (2026-10-17, Sacha, sur une capture de la forêt : « on voit clairement un problème de texture des feuilles des arbres ») LE FEUILLAGE EN CAMOUFLAGE :
+     le bruit multipliait la couleur de ×,32 à ×1,22 (3,8 fois d'écart, en taches franches) — des TROUS NOIRS dans des grappes vert fluo. Désormais un écart
+     doux (×,74 à ×1,06) sur des grappes plus larges, et la variation passe par DEUX VERTS (plus jaune au soleil, plus froid dans le creux) ; le relief
+     bosselé de la touffe et la lumière font le reste. `?sans=continuite` = l'ancien. */
+  (CONTI_V?'  else if(part<2.5){float fin=1.-smoothstep(60.,170.,dist);leaf=fn3(o*.26)*.50+fn3(o*.80)*.34+mix(.5,fn3(o*2.1),fin)*.16;float lk=smoothstep(.18,.82,leaf);alb*=mix(.74,1.06,lk)*mix(vec3(.92,.97,1.06),vec3(1.06,1.03,.90),lk);ao*=mix(.82,1.,smoothstep(.15,.65,leaf));'
+          :'  else if(part<2.5){float fin=1.-smoothstep(60.,170.,dist);leaf=fn3(o*.38)*.35+fn3(o*1.15)*.40+mix(.5,fn3(o*2.9),fin)*.25;alb*=mix(.32,1.22,smoothstep(.28,.72,leaf));ao*=mix(.62,1.,smoothstep(.2,.6,leaf));'), // LE FEUILLAGE : des grappes de feuilles
   '    if(vI.y>1.5)alb*=vec3(1.35,1.12,.7);',                           // l'érable d'or
   '    else alb*=1.+vI.y*vec3(.16,.06,-.18);alb*=uLeafT;}',
   '  else if(part<3.5)alb*=.92+.16*fn3(o*1.5);',
@@ -17522,8 +17557,13 @@ function cyNz(u,v,c){ // le bruit `CY.nz` lu comme la puce (bilinéaire, répét
    rose d'abord (Sacha) ; le corail et la brique en accents. sRGB dans la texture (décodé au carré dans le shader) ; A = « massif » (le litage oblique). */
 function cyStrates(){
   const N=1024,d=new Uint8Array(N*4),r=mulberry32(0x57A7A);
-  const MAS=[[246,228,200,16,38],[244,206,124,12,30],[241,170,140,10,24],[236,190,150,8,20],[228,128,86,7,16],[248,238,226,6,14],[240,214,162,10,26]];
-  const MIN=[[226,138,150,3,10],[172,74,52,3,9],[176,156,184,2,7],[220,168,80,3,10],[198,100,128,1,3],[236,160,160,2,6]];
+  /* (2026-10-17, continuité des maps — « la colorimétrie et les textures ») LA ROCHE EN TERRES : les lits ROSE, MAGENTA et ROSE PÂLE, poussés au fluo par
+     la chaîne de saturation (×1,55), faisaient des rayures roses sur toutes les falaises ; ils deviennent VIEUX ROSE, LIE-DE-VIN et PÊCHE, la lavande
+     un GRIS-VIOLET froid (l'ombre commune des maps), le corail une TERRE CUITE. Mêmes lits, mêmes épaisseurs (le tirage ne bouge pas). */
+  const MAS=CONTI_V?[[244,228,204,16,38],[240,204,132,12,30],[236,172,138,10,24],[232,190,152,8,20],[212,126,88,7,16],[246,236,224,6,14],[236,212,166,10,26]]
+                   :[[246,228,200,16,38],[244,206,124,12,30],[241,170,140,10,24],[236,190,150,8,20],[228,128,86,7,16],[248,238,226,6,14],[240,214,162,10,26]];
+  const MIN=CONTI_V?[[208,150,138,3,10],[166,82,62,3,9],[156,148,166,2,7],[214,166,92,3,10],[164,96,90,1,3],[230,170,142,2,6]]
+                   :[[226,138,150,3,10],[172,74,52,3,9],[176,156,184,2,7],[220,168,80,3,10],[198,100,128,1,3],[236,160,160,2,6]];
   let y=0,mas=true;
   while(y<N){
     const L9=mas?MAS[Math.floor(r()*MAS.length)]:MIN[Math.floor(r()*MIN.length)],t=Math.max(MATIERE_V&&!mas?4:0,Math.round(L9[3]+r()*(L9[4]-L9[3]))); // (matière) un lit mince n'est plus un trait de 2 m
@@ -18349,9 +18389,28 @@ function PAL_BK(k,d){return PAL_B9(k,d);}
    (le volant ne mord qu'à BK_VG.grip) — 115 m × l'échelle du palier au plus serré, soit 1,8 × le rayon tenable sur le sec.
    La largeur : `BK_LARG` × ROAD_HALF0 (2,0 partout ailleurs). `BANQ.cas` et `BANQ.spi` restent (vides) pour les bancs. */
 const BK_LAC_D=36,BK_LARG=2.4;
+/* ================= LE GLACIER v4 — LA PISTE DE GLACE (2026-10-17, Sacha : « en fait, dans la map montagne, on ne met même plus de route. Ça doit
+   juste être une grande piste de glace — plus de neige, plus de route —, avec des pics de glace qu'il faut éviter, et plusieurs chemins ; une piste
+   descendante le long d'une montagne, des pics de glace autour et un peu de neige pour décorer, sur les côtés, sur les obstacles ; il faut descendre la
+   piste comme une piste de ski, mais sur de la glace : la voiture drifte, elle est compliquée à contrôler ; et de petits tremplins de glace, une sorte de
+   petit rebord, qui permettent au joueur de s'envoler — sinon il ne peut pas décoller ») =================
+   · LA PISTE : le ruban reste (la physique, les pièces, la caméra), mais il est LARGE (`BK_LARG4` : 123 m) et il n'a plus rien d'une route — ni béton,
+     ni rails, ni nappe, ni ligne, ni tranche (`bkPisteNue`) : seule la GLACE (le verglas de bkVerglasPose, opaque, sur toute la largeur, sa frange de
+     givre fondue dans la neige). Plus raide (22-37 %, ~27 % de moyenne) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
+   · SES BORDS : la neige se cale AU RAS de la glace puis monte en BOURRELET (13-19 m sur 45 m) — on ne tombe plus de la piste, on COGNE la neige :
+     le mur des couloirs du canyon (`parisMur`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
+   · LES PICS SUR LA PISTE (`BANQ.obst`) : des cristaux de glace coiffés de neige, en QUATRE FIGURES qui ouvrent des chemins — la FOURCHE (une arête au
+     milieu : deux couloirs), le CHAMP (des pics semés), la PORTE (deux géants, une trouée), l'ÎLOT (un massif d'un côté, le large de l'autre). Au sol,
+     les toucher = L'IMPACT (`banqPisteHeurt` → impPic) ; en vol, ils sont dans la physique des pics (banqSurf : on glisse sur les doux, on se fracasse sur
+     les raides).
+   · LES BECS DE GLACE (`BANQ.kick`) : un petit rebord de glace sur une partie de la largeur ; passé dessus au-dessus de 70 km/h, on S'ENVOLE (startFall,
+     la poussée suit la vitesse) — souvent juste avant un champ de pics, pour le survoler.
+   · LA GLISSE : un cran de plus (grip ,92 → ,86, dérive ,16 → ,21) — et la brume de vallée descend (on VOIT la montagne dévaler sous soi).
+   `?glacier=v3` = la grande descente verglacée d'avant (route de 67 m, neige sous la dalle, lacs). */
+const BANQ_V4=!/[?&]glacier=v3\b/.test(location.search),BK_LARG4=4.4;
 function genBanq(rnd){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
-  ROAD_HALF=ROAD_HALF0*BK_LARG; // (2026-10-15, Sacha : « fais la route un peu plus large ») 56 → 67 m
+  ROAD_HALF=ROAD_HALF0*(BANQ_V4?BK_LARG4:BK_LARG); // (2026-10-15, Sacha : « fais la route un peu plus large ») 56 → 67 m — (v4) la PISTE : 123 m
   let P=new THREE.Vector3(0,0,0),phi=0,sC=0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
   const segs=[],note=(l,g,ty)=>{segs.push([sC,sC+l,g,ty||0]);sC+=l;};                       // le profil, tronçon par tronçon : [s0, s1, pente, type]
@@ -18361,16 +18420,16 @@ function genBanq(rnd){
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
   const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),cas=[],spi=[];
   const KR=typeof rayonPalier==='function'?Math.max(1,rayonPalier()/63):LV; // (GAMEPLAY, RACCOURCIS.md) les rayons suivent le rayon tenable du palier (rayonPalier/63) ; sans lui, l'échelle du moteur
-  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,(140+rnd()*40)*KR,.18);}; // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
+  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),.18);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
   const LIB=75*Math.PI/180,LEN=8600*Math.min(1.25,Math.sqrt(KR));
   push();ici('depart');D(260,.10);
   let sg=rnd()<.5?-1:1;
   while(sC<LEN){
     if(rnd()<.78)sg=-sg;                                                                    // le plus souvent on change de côté ; parfois deux virages du même
-    const big=rnd()<.3,a=big?70+rnd()*40:30+rnd()*40,R=(big?160+rnd()*120:115+rnd()*130)*KR;
+    const big=rnd()<.3,a=big?70+rnd()*40:30+rnd()*40,R=Math.max(ROAD_HALF*2.6,(BANQ_V4?(big?220+rnd()*140:175+rnd()*150):(big?160+rnd()*120:115+rnd()*130))*KR); // (v4) grands rayons : la piste fait 123 m
     let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}               // le cap reste dans la pente : la route ne se recroise jamais
-    A(sg*Math.min(a,lib),R,.17+rnd()*.09);
-    D(50+rnd()*140,.19+rnd()*.09);}
+    A(sg*Math.min(a,lib),R,(BANQ_V4?.22:.17)+rnd()*(BANQ_V4?.10:.09));
+    D(50+rnd()*140,(BANQ_V4?.25:.19)+rnd()*(BANQ_V4?.12:.09));} // (v4) une piste NOIRE : 22-37 %
   cap(0);D(160,.14);ici('fin');D(120,.06);                                                 // l'arrivée : dans la pente, puis le replat de la ligne
   /* LE PROFIL : la pente de chaque tronçon (positive = on descend), lue sur la longueur de la polyligne, adoucie aux raccords (moyenne glissante
      de 60 m) ; les 300 premiers mètres en douceur. Intégrée tous les 10 m : aucun point ne remonte. */
@@ -18396,7 +18455,8 @@ function genBanq(rnd){
 const BK_DF=1000;
 function bkProfil(x,z,d,ys,sd9){
   const W9=70+50*forBruit(x*.43,z*.43,sd9+3);let h;
-  if(d<540){const D0=Math.max(10,24+14*forBruit(x,z,sd9)+9*forBruit(x*.21,z*.21,sd9+11));h=ys-D0+(D0+W9)*Math.pow(THREE.MathUtils.smoothstep(d,40,520),1.3);}
+  if(BANQ_V4&&d<540)h=ys+13+(W9-13)*Math.pow(THREE.MathUtils.smoothstep(d,ROAD_HALF+46,520),1.3); // (v4) le BOURRELET puis les flancs : plus de combe sous la piste
+  else if(d<540){const D0=Math.max(10,24+14*forBruit(x,z,sd9)+9*forBruit(x*.21,z*.21,sd9+11));h=ys-D0+(D0+W9)*Math.pow(THREE.MathUtils.smoothstep(d,40,520),1.3);}
   else h=ys+W9;
   if(d>420)h+=38*forBruit(x*.31,z*.31,sd9+5)*THREE.MathUtils.smoothstep(d,420,900);                      // les ARÊTES
   if(d>480)h+=170*Math.max(0,forBruit(x*.13,z*.13,sd9+7)+.25)*THREE.MathUtils.smoothstep(d,480,1500);
@@ -18405,7 +18465,7 @@ function banqSol(){
   const C=PAL_BK('banqSolC',26),MARG=PAL_BK('banqMarge',2200),R1=380,sd9=BANQ.graine*.001,T0=performance.now(),TQ=BANQ.tq={};let tq=T0;const tqm=k=>{const n=performance.now();TQ[k]=Math.round((n-tq)*10)/10;tq=n;};
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N),YM=new Float32Array(N).fill(1e9);
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e9),WS=new Float32Array(N),YS=new Float32Array(N),YM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(-1e9); // YN (v4) : la hauteur du point de piste le plus proche
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   // 1. LA GRILLE GROSSIÈRE (4 C) : la transformée de distance — chaque case garde le point de route le plus proche (GI) ; on le propage
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,G=gx*gz,GD=new Float32Array(G).fill(1e18),GY=new Float32Array(G),GI=new Int32Array(G).fill(-1);
@@ -18427,7 +18487,7 @@ function banqSol(){
   for(const ri of RS){const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R1*R1)continue;const k=i+j*nx;
-        if(d2<D[k])D[k]=d2;const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;if(d2<14400&&p.y<YM[k])YM[k]=p.y;}}}
+        if(d2<D[k]){D[k]=d2;YN[k]=p.y;}const u=1-d2*iR,w=u*u*u;WS[k]+=w;YS[k]+=w*p.y;if(d2<14400&&p.y<YM[k])YM[k]=p.y;}}}
   tqm('noyau');
   // 3. chaque case fine
   const H=new Float32Array(N);
@@ -18436,14 +18496,17 @@ function banqSol(){
     D[k]=d;
     if(d>=BK_DF){H[k]=gBil(HF,x,z);continue;}
     let h=bkProfil(x,z,d,ys,sd9);
+    if(BANQ_V4&&d<ROAD_HALF+90&&YN[k]>-1e8){ // (v4) LA PISTE : la neige se cale au RAS de la glace (le point de piste le plus proche, pas la moyenne), puis le BOURRELET
+      const y0=YN[k]-.9,hb=y0+THREE.MathUtils.smoothstep(d,ROAD_HALF+1,ROAD_HALF+46)*(13+6*forBruit(x*.5,z*.5,sd9+9));
+      h=d<ROAD_HALF+1?y0-.6:d<ROAD_HALF+46?hb:hb+(Math.max(hb,h)-hb)*THREE.MathUtils.smoothstep(d,ROAD_HALF+46,ROAD_HALF+90);}
     if(d>BK_DF-200)h+=(gBil(HF,x,z)-h)*THREE.MathUtils.smoothstep(d,BK_DF-200,BK_DF);                 // le raccord avec le loin
     const kb=1-THREE.MathUtils.smoothstep(d,700,BK_DF-200);
     if(kb>0)h+=kb*(2.4*forBruit(x*2.7,z*2.7,sd9+1)+(d<500?1.1*forBruit(x*6.1,z*6.1,sd9+2):0));     // les bosses de la poudreuse
     H[k]=h;}
   tqm('cases');
   // LA SÛRETÉ : jamais moins de 7 m d'air sous la dalle (ni sous ses bords, ni sous la caméra qui suit à 14 m)
-  {const rr=Math.ceil((ROAD_HALF+16)/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=p.y-THICK-7;
-    for(let b=-rr;b<=rr;b++)for(let a=-rr;a<=rr;a++){const i=ci+a,j=cj+b;if(i<0||j<0||i>=nx||j>=nz)continue;const x=x0+i*C,z=z0+j*C;if((x-p.x)**2+(z-p.z)**2>(ROAD_HALF+16)**2)continue;const k=i+j*nx;if(H[k]>lim)H[k]=lim;}}}
+  {const W9=BANQ_V4?ROAD_HALF+.5:ROAD_HALF+16,rr=Math.ceil(W9/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=BANQ_V4?p.y-.8:p.y-THICK-7; // (v4) sous la glace : juste sous la surface (la piste EST le sol)
+    for(let b=-rr;b<=rr;b++)for(let a=-rr;a<=rr;a++){const i=ci+a,j=cj+b;if(i<0||j<0||i>=nx||j>=nz)continue;const x=x0+i*C,z=z0+j*C;if((x-p.x)**2+(z-p.z)**2>W9*W9)continue;const k=i+j*nx;if(H[k]>lim)H[k]=lim;}}}
   tqm('surete');
   return BANQ.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,MARG:MARG,gBil:gBil,GY:GY,GD:GD};
 }
@@ -18508,7 +18571,7 @@ const BK_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCa
   'vec3 bPhare(vec3 w,vec3 n){vec3 d=w-uCarP;float l=length(d);d/=max(l,.001);float c=smoothstep(.62,.93,dot(d,uCarF));',
   '  return vec3(.92,.96,1.)*uPhare*c*(2600./(l*l*.10+320.))*(.30+.70*max(dot(n,-d),0.));}',
   // la BRUME DE VALLÉE : elle dort dans les creux, sous la route
-  'float bBrume(vec3 w,float dist){return uMistK*smoothstep(uMistY-12.,uMistY-150.,w.y)*(1.-exp(-dist*.0028));}',
+  'float bBrume(vec3 w,float dist){return uMistK*smoothstep(uMistY-'+(BANQ_V4?'90.':'12.')+',uMistY-'+(BANQ_V4?'620.':'150.')+',w.y)*(1.-exp(-dist*.0028));}', // (v4) la brume de vallée DESCEND : on voit la montagne dévaler sous soi
   // le CIEL qui se reflète (glace, lacs) : le bas = le sol de neige, l'horizon = la brume, le haut = le ciel ; la nuit, les aurores
   'vec3 bCiel(vec3 R){float h=R.y;vec3 c=mix(uGnd*.9+uMistC*.25,uMistC*.7+uSky*.5,smoothstep(-.35,.02,h));c=mix(c,uSky*1.25,smoothstep(.02,.55,h));',
   '  c+=mix(uAurC,uAurC2,smoothstep(.25,.7,h))*uAur*smoothstep(.06,.30,h)*(1.-smoothstep(.55,.95,h))*1.1;return c;}'].join('\n');
@@ -18575,6 +18638,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float e=min(min(vB.x,vB.y),vB.z),w9=fwidth(e)*1.4;float ar=1.-smoothstep(0.,w9+.010,e);',                                 // les ARÊTES
   '  col+=clair*(uSunC*.55+uSky*.45)*ar*(.30+.70*dif)*(1.-smoothstep(900.,3000.,dist)*.6);',
   '  float nv=smoothstep(.70,.90,N.y+(fn3(vW*.018)-.5)*.40)*step(.5,fam)*step(fam,2.5)*smoothstep(.15,.5,hf);',              // la neige des aiguilles et des géants
+  '  nv=max(nv,step(1.3,fam)*step(fam,1.5)*smoothstep(.70,.80,hf+(fn3(vW*.08)-.5)*.16));',                                   // (2026-10-17, glacier v4) les pics de la PISTE : une calotte de neige (Sacha : « un peu de neige pour décorer, sur les obstacles »)
   '  float gv=(1.-smoothstep(0.,.14,hf+(fn3(vW*.05)-.5)*.10))*step(fam,2.5);',                                                  // le givre au pied
   '  vec3 nc=vec3(.82,.88,.97)*(uSky*.55+uGnd*.1+uSunC*(.15+.85*dif));col=mix(col,nc,max(nv,gv*.85));',
   '  col+=mix(alb,vec3(1.),.4)*uAlpC*uAlp*smoothstep(.35,1.,hf)*(.25+.75*dif)*.9;',                                           // l'ALPENGLOW : le haut des pics s'embrase
@@ -18619,18 +18683,19 @@ const BK_VG_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec4 vV;','#include 
   'vec2 bVor(vec2 p){vec2 i=floor(p),f=fract(p);float d1=8.,d2=8.;for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(float(x),float(y));vec2 o=vec2(fh2(i+g),fh2(i+g+17.3));vec2 r=g+o-f;float d=dot(r,r);if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;}return vec2(sqrt(d1),sqrt(d2));}',
   'void main(){vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec2 q=vW.xz+vV.z*97.;',
   '  float u=abs(vV.x),e=.88+.10*fn2(q*.23),al=1.-smoothstep(e-.06,e,u);',                                      // le bord déchiqueté
-  '  float t=vV.y,en=.10+.08*fn2(q*.17+3.);al*=smoothstep(0.,en,t)*(1.-smoothstep(1.-en,1.,t));if(al<.01)discard;', // les bouts
+  '  float t=vV.y,en=.10+.08*fn2(q*.17+3.);al*=smoothstep(0.,en,t)*(1.-smoothstep(1.-en,1.,t));',
+  '#ifdef V4','  e=1.06;al=1.;','#else','  if(al<.01)discard;','#endif', // les bouts — (v4) la glace couvre tout, de bout en bout
   '  vec2 v1=bVor(q*.14);float c1=1.-smoothstep(0.,.05,v1.y-v1.x);vec2 v2=bVor(q*.45+3.1);float c2=(1.-smoothstep(0.,.06,v2.y-v2.x))*smoothstep(.5,.75,fn2(q*.08));',
   '  vec3 alb=uIceT*mix(vec3(.01,.06,.11),vec3(.04,.20,.30),fn2(q*.05));',
   '  vec3 R=reflect(-V,N);float fres=.05+.95*pow(1.-max(dot(V,N),0.),5.);',
   '  vec3 col=alb*(uSky*.8+uSunC*.45)+vec3(.78,.94,1.)*(uSky*.5+uSunC*.35)*(c1*.42+c2*.25);',
   '  col=mix(col,bCiel(R)*.95,fres*.9);',
   '  float sr=max(dot(R,uSunDir),0.);col+=uSunC*(pow(sr,500.)*6.+pow(sr,35.)*.35);',                               // le chemin du soleil
-  '  float gv=smoothstep(e-.32,e-.02,u)*(.45+.55*fn2(q*1.9));col=mix(col,vec3(.88,.94,1.)*(uSky*.6+uSunC*.85),gv*.75);', // le givre des bords
+  '  float gv=smoothstep(e-.32,e-.02,u)*(.45+.55*fn2(q*1.9));col=mix(col,vec3(.88,.94,1.)*(uSky*.6+uSunC*.85),gv*.75);', // le givre des bords (v4 : la frange qui se fond dans la neige)
   '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);col+=(uSunC*1.6+uSky*.4)*step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark;}', // les paillettes
   '  vec3 hd=normalize(uCarP+vec3(0.,1.,0.)-vW);col+=vec3(.9,.95,1.)*uPhare*pow(max(dot(R,hd),0.),60.)*2.5*(1.-smoothstep(10.,140.,distance(uCarP,vW)));',
   '  col+=bPhare(vW,N)*.3+uFlash*vec3(.8,.85,1.)*.5;',
-  '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,al*.9);','#include <fog_fragment>','}'].join('\n');
+  '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,al*.9);','#ifdef V4','  gl_FragColor.a=1.;','#endif','#include <fog_fragment>','}'].join('\n');
 /* LES TRACES : la poudreuse (type 0) = une TRANCHÉE bleue d'ombre, deux bourrelets clairs qui scintillent ; la glace (type 1) = deux rayures
    blanches de patins, fines. Elles s'effacent avec l'âge (BK_TR.vie) et la distance. aT = (côté -1..1, naissance, profondeur, type). */
 const BK_TR_VS=['attribute vec4 aT;varying vec4 vT;varying vec3 vW;','#include <fog_pars_vertex>',
@@ -18681,7 +18746,7 @@ function banqMats(){if(BANQ.mats)return BANQ.mats;const U=BK_U,F=THREE.UniformsL
   M.pic=sm(BK_PIC_VS,BK_PIC_FS,{m:{extensions:{derivatives:true}}});
   M.loin=sm(BK_PIC_VS,BK_PIC_FS,{m:{extensions:{derivatives:true},fog:false,defines:{LOIN:1}}});
   M.lac=sm(BK_LAC_VS,BK_LAC_FS);
-  M.vg=sm(BK_VG_VS,BK_VG_FS,{m:{transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}}); // (2026-10-15) LE VERGLAS de la route
+  M.vg=sm(BK_VG_VS,BK_VG_FS,{m:BANQ_V4?{defines:{V4:1},polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}:{transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}}); // (2026-10-15) LE VERGLAS de la route — (v4) OPAQUE : c'est le sol
   M.tr=sm(BK_TR_VS,BK_TR_FS,{u:{uVie:{value:110}},m:{transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}});
   const flo=()=>new THREE.ShaderMaterial({uniforms:U,vertexShader:BK_FLO_VS,fragmentShader:BK_FLO_FS,transparent:true,depthWrite:false});
   M.flo=flo();M.flo.dispose=function(){};
@@ -18806,7 +18871,27 @@ window.dbgStal=function(a,k){if(a==='test'){const P=carGroup.position;let b=null
     L.sort(function(p,q){return (p.x-P.x)**2+(p.y-P.y)**2+(p.z-P.z)**2-((q.x-P.x)**2+(q.y-P.y)**2+(q.z-P.z)**2);});
     const n=Math.max(1,k|0);for(let i=0;i<n&&i<L.length;i++)stalBris(L[i],STAL.v.set(0,0,30));return {brises:Math.min(n,L.length),premier:L[0]?{x:+L[0].x.toFixed(1),y:+L[0].y.toFixed(1),z:+L[0].z.toFixed(1),lg:+L[0].lg.toFixed(1)}:null};}
   return {glacons:STAL.n,brises:STAL.bris,cases:STAL.g.size,eclats:STAL_ECL.n};};
+/* (v4) LA PISTE NUE : cacher la route (béton, rails, nappe, ligne, tranche) — par `material.visible` (PISTE_LOD joue sur mesh.visible) ; ce qu'on a
+   caché est NOTÉ et rendu à la piste suivante (banqVide : une matière peut être reprise par la piste neuve) */
+const BK_NUE=[];
+function bkPisteNue(on){
+  for(const m of BK_NUE)m.visible=true;BK_NUE.length=0;if(!on)return;
+  const cache=m=>{if(m&&m.visible){m.visible=false;BK_NUE.push(m);}};
+  for(const m of NEON_RAILS)cache(m);for(const m of NEON_GLOW)cache(m);try{cache(JADE.flank);}catch(e){}
+  for(const o of trackMeshes)if(o&&o.traverse)o.traverse(function(c){const mt=c.material;if(!mt||Array.isArray(mt)||c.name==='banquise verglas')return;if((mt.userData&&mt.userData.bitume)||(LIGNE_TEX&&mt.map===LIGNE_TEX))cache(mt);});}
+/* (v4) LES PICS DE LA PISTE, AU SOL : la caisse entre dans un cristal = L'IMPACT (la même animation que tous les obstacles), face = du centre du pic vers la caisse */
+function banqPisteHeurt(){
+  if(!BANQ_V4||mode!=='drive'||graceT>0||!BANQ.obst||!BANQ.obst.length||!banqOk())return false;
+  const P=carGroup.position;
+  for(const o of BANQ.obst){if(Math.abs(o.s-s)>o.r+10)continue;
+    for(const Q of o.L9){const dx=P.x-Q.cx,dz=P.z-Q.cz;if(dx*dx+dz*dz>Q.r2)continue;if(bkPrimH(Q,P.x,P.z)<P.y+.35)continue;
+      IMP.frais=-1;try{const V=IMP.d.copy(PT_U.uVc.value);let l=V.length();if(!(l>1)){V.copy(F.t);l=1;}V.multiplyScalar(1/l);IMP.v=Math.min(l,200);
+        IMP.n.set(dx,0,dz);if(IMP.n.lengthSq()<1e-4)IMP.n.copy(F.t).multiplyScalar(-1);IMP.n.normalize();IMP.c.copy(P);
+        IMP.s.copy(P).addScaledVector(IMP.n,-((CARS[level]||CARS[0]).w*.5+.1));IMP.test=null;IMP.mou=true;IMP.frais=performance.now();}catch(e){IMP.frais=-1;}
+      shake=Math.max(shake,1.2);explode('glace');return true;}}
+  return false;}
 function banqVide(){
+  bkPisteNue(false);BANQ.obst=[];BANQ.kick=[]; // (v4) la route revient aux autres maps ; les pics et les becs partent avec leur piste
   STAL.g.clear();STAL.n=0;STAL.bris=0;STAL.maj.length=0;
   BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.lacs=[];BANQ.lacG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
   if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
@@ -18819,7 +18904,7 @@ function buildBanq(seed){
   BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
   const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
-  banqSol();tp('sol');banqLacs(fr);tp('lacs');const tS=performance.now();
+  banqSol();tp('sol');if(BANQ_V4){BANQ.lacs=[];BANQ.lacG=null;}else banqLacs(fr);tp('lacs'); // (v4) plus de lacs : ils creusaient la pisteconst tS=performance.now();
   banqSolMesh(root);tp('solMesh');banqLacMesh(root);tp('lacMesh');
   try{bkVerglasPose(root,seed);}catch(e){window.__banqErr=e;}tp('verglas');
   // ---- la route en grille (les règles de distance) ----
@@ -18857,12 +18942,40 @@ function buildBanq(seed){
    for(const fin of [0,1]){const i=fin?NP-1:0,t=T[i],hl=Math.hypot(t.x,t.z)||1,dx=t.x/hl*(fin?1:-1),dz=t.z/hl*(fin?1:-1);
      for(let k=0;k<7;k++){const a=(k-3)*.32+(fr()-.5)*.2,c=Math.cos(a),s9=Math.sin(a),d=2400+fr()*1800,x=pts[i].x+(dx*c-dz*s9)*d,z=pts[i].z+(dz*c+dx*s9)*d;
        const H=600+fr()*900;pose(bkGrappe(x,z,bkSolH(x,z)-40,H,1.5+fr()*1.2,4+((fr()*4)|0),fr,2,520),false,true);nL++;}}}
+  // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures (voir BANQ_V4) ----
+  BANQ.obst=[];BANQ.kick=[];
+  if(BANQ_V4){const RH=ROAD_HALF,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
+    const libreK=(s9,la,r)=>{for(const k of KK)if(s9>k.s-50&&s9<k.s+150&&la+r>k.l0-6&&la-r<k.l1+6)return false;for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
+    const pic=(s9,la,H,pente)=>{const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
+      const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(6,R*.5)); // fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS)pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
+      O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
+    const bec=(s9,c,w)=>{c=THREE.MathUtils.clamp(c,-RH+w/2+4,RH-w/2-4);KK.push({s:s9,l0:c-w/2,l1:c+w/2});};
+    let sp=560+fr()*120;
+    while(sp<L-380){const f=fr();
+      if(fr()<.5){bec(sp,(fr()*2-1)*RH*.5,26+fr()*22);sp+=90+fr()*30;} // un BEC, le plus souvent juste avant une figure : on peut la survoler
+      if(f<.25){const c=(fr()-.5)*14,n=4+((fr()*4)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
+        for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
+      else if(f<.55){const lg=160+fr()*90,n=7+((fr()*5)|0); // LE CHAMP : des pics semés, des trouées
+        for(let j=0,e=0;j<n&&e<n*4;e++){if(pic(sp+fr()*lg,(fr()*2-1)*(RH-10),6+fr()*14,1.4+fr()*1.2))j++;}sp+=lg;}
+      else if(f<.75){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
+        for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
+      else{const sg=fr()<.5?-1:1,n=3+((fr()*3)|0); // L'ÎLOT : un massif d'un côté, le large de l'autre
+        for(let j=0;j<n;j++)pic(sp+fr()*70,sg*(RH*.35+fr()*RH*.4),10+fr()*16,1.5+fr()*.9);sp+=70;}
+      sp+=180+fr()*200;}
+    if(KK.length){const P=[],Cc=[],I=[];let n=0;const LG=8,HT=1.1,col=(a,b,c)=>Cc.push(a,b,c); // le maillage des becs : un coin de glace bas, sa LÈVRE claire
+      for(const k of KK){const nl=6;for(let a=0;a<=nl;a++){const la=k.l0+(k.l1-k.l0)*a/nl;
+          for(const [ds9,h9] of [[-1,0],[LG,HT],[LG,0]]){frameAt(k.s+ds9,F);P.push(F.p.x+F.b.x*la+F.n.x*(h9+.05),F.p.y+F.b.y*la+F.n.y*(h9+.05),F.p.z+F.b.z*la+F.n.z*(h9+.05));
+            if(h9>0)col(1.25,1.3,1.35);else col(.62,.88,1.05);}} // (lisible de loin : la lèvre BLANCHE, le coin cyan clair sur la glace sombre)
+        for(let a=0;a<nl;a++){const r0=n+a*3,r1=n+(a+1)*3;I.push(r0,r1,r0+1,r0+1,r1,r1+1,r0+1,r1+1,r0+2,r0+2,r1+1,r1+2);}n+=(nl+1)*3;}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();
+      const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true}));m.name='glacier becs';m.matrixAutoUpdate=false;root.add(m);}
+    BANQ.n.pistePics=O.length;BANQ.n.becs=KK.length;}
   BANQ.picM=[];BANQ.loinM=[];
   for(const k in KN){const o=KN[k];bkTache(o.x,o.z,function(){const K=bkLot();for(const P of o.L)bkPrimGeo(K,P);const m=bkMesh(root,K,M.pic,'banquise pics');if(m)BANQ.picM.push(m);});BANQ.file[BANQ.file.length-1].d=Math.max(0,BANQ.file[BANQ.file.length-1].d-o.r);}
   for(const k in KF){const o=KF[k];bkTache(o.x,o.z,function(){const K=bkLot();for(const P of o.L)bkPrimGeo(K,P);const m=bkMesh(root,K,M.loin,'banquise géants');if(m){m.renderOrder=-.5;BANQ.loinM.push(m);}});}
   tp('pics');
   // ---- 5. LES STALACTITES sous la dalle : des glaçons le long des deux bords, et des lustres sous le milieu ----
-  {const KS=PAL_BK('banqStal',1),st=Math.max(1,Math.round(7/ds/KS));BANQ.n.stalactites=0;
+  if(!BANQ_V4){const KS=PAL_BK('banqStal',1),st=Math.max(1,Math.round(7/ds/KS));BANQ.n.stalactites=0; // (v4) pas de stalactites : la piste est posée sur la montagne, il n'y a plus de vide sous la glace
     const glacon=(K,cx,cy,cz,Lg,r,rg)=>{const n=5,tip=[cx+(rg()-.5)*r*.6,cy-Lg,cz+(rg()-.5)*r*.6],R9=[],rot=rg()*6.28;if(K.G)K.G.push({x:cx,y:cy,z:cz,tx:tip[0],ty:tip[1],tz:tip[2],r:r,lg:Lg,v0:K.P.length/3,m:null,bris:false}); /* (2026-10-15 soir) STAL : on le note pour qu'il se BRISE (stalBris) */
       for(let a=0;a<n;a++){const th=rot+a/n*6.2832;R9.push([cx+Math.cos(th)*r,cy,cz+Math.sin(th)*r]);}
       for(let a=0;a<n;a++){const p=R9[a],q=R9[(a+1)%n],ux=q[0]-p[0],uy=q[1]-p[1],uz=q[2]-p[2],vx=tip[0]-p[0],vy=tip[1]-p[1],vz=tip[2]-p[2];
@@ -18885,6 +18998,7 @@ function buildBanq(seed){
    BANQ.picG={CG:CG,G:G};BANQ.pics=PH;}
   BANQ.n.glisse=nG;BANQ.n.seracs=nS;BANQ.n.aiguilles=nA;BANQ.n.geants=nL;BANQ.n.prims=PH.length;
   BANQ.file.sort(function(a,b){return a.d-b.d;});BANQ.fi=0;bkTranches(1e9,BK_TOUT);tp('depart');BANQ.nFile=BANQ.file.length-BANQ.fi;
+  if(BANQ_V4)bkPisteNue(true); // (v4) plus de route : la glace seule
   tp('grille');BANQ.ms=Math.round(performance.now()-t0);BANQ.msSol=Math.round(tS-t0);BANQ.yRaz=true;
   banqMeteo(BANQ.met,started?BIO_PORTAIL:.01);
 }
@@ -19009,20 +19123,20 @@ function banqRamene(){
      `fx.eclat` (éclats étirés, jetés du côté où la caisse glisse — la gerbe du carveur), `fx.brume` (le voile de givre qui reste
      derrière), le givre des roues, et une rayure de glace qui s'élargit avec l'angle. `BKV.gk` (0-1) = la glisse ressentie.
    Console : dbgBanq('verglas') (l'état, avec gl et gk), dbgBanq('verglas',{s,v}) pose la caisse au mètre s (à v km/h). */
-const BK_VG={grip:.92,der:.16,tau:.38,tau0:.15,glMax:.5,base:6,v:24,tMin:.4,lache:.2,kmhMin:30}; // (2026-10-15) toute la route gèle : la dérive .30 → .16 (au banc, .62/.20 : le pilote sortait à 455 km/h après 1 km) · (soir) le volant remonte à 92 % : c'est la TRAJECTOIRE qui traîne (tau s, tau0 à l'arrêt), plus le volant qui manque — glMax ≈ 29° de crabe ; au banc, tau .55 : le pilote de mesure (qui vise avec le NEZ) sortait en 3 s à 390 km/h — 0,5 s de glisse = 50 m
+const BK_VG={grip:.92,der:.16,tau:.38,tau0:.15,glMax:.5,base:6,v:24,tMin:.4,lache:.2,kmhMin:30};if(BANQ_V4){BK_VG.grip=.86;BK_VG.der=.21;} // (v4) la piste de glace : elle part un cran plus // (2026-10-15) toute la route gèle : la dérive .30 → .16 (au banc, .62/.20 : le pilote sortait à 455 km/h après 1 km) · (soir) le volant remonte à 92 % : c'est la TRAJECTOIRE qui traîne (tau s, tau0 à l'arrêt), plus le volant qui manque — glMax ≈ 29° de crabe ; au banc, tau .55 : le pilote de mesure (qui vise avec le NEZ) sortait en 3 s à 390 km/h — 0,5 s de glisse = 50 m
 const BKV={sur:false,v:null,yaw:0,ph:0,t:0,aura:0,hors:0,k:0,etiq:null,dix:0,eg:0,gl:0,gk:0,ee:0,eb:0,cr:0,crT:0};
 const BKV_A=new THREE.Vector3(),BKV_B=new THREE.Vector3(),BKV_C=new THREE.Vector3();
 function bkVerglasPose(root,seed){ // (2026-10-15, Sacha : « toute la route doit être verglacée ») UNE plaque, du départ à l'arrivée
   BANQ.verg=[];const vr=mulberry32((seed^0x1CE5)>>>0),ds=L/(NP-1);
-  BANQ.verg.push({s0:-1e9,s1:1e9,a:40,b:Math.max(80,L-40),sd:1});
+  BANQ.verg.push({s0:-1e9,s1:1e9,a:BANQ_V4?0:40,b:BANQ_V4?L:Math.max(80,L-40),sd:1}); // (v4) de bout en bout : la glace est TOUTE la piste
   if(!BANQ.verg.length)return;
-  const P=[],N=[],A=[],I=[],COL=[-1,-.5,0,.5,1],W=ROAD_HALF-.35;let n=0;
+  const P=[],N=[],A=[],I=[],COL=BANQ_V4?[-1,-.75,-.5,-.25,0,.25,.5,.75,1]:[-1,-.5,0,.5,1],W=BANQ_V4?ROAD_HALF+1.2:ROAD_HALF-.35,NC=COL.length;let n=0; // (v4) un peu plus large que la piste : sa frange de givre se fond dans le bourrelet
   for(const v of BANQ.verg){const sdg=vr()*10,va=v.a,vb=v.b;
     for(const fy of [1,-1]){const nk=Math.max(2,Math.ceil((vb-va)/3.5));
       for(let k=0;k<=nk;k++){const s9=va+(vb-va)*k/nk,d0=s9-va,d1=vb-s9,tv=d0<d1?Math.min(.5,d0/200):1-Math.min(.5,d1/200);frameAt(s9,F); // (le long : les bouts fondent sur ~30 m, pas sur 15 % de 9 km)
         for(const c of COL){const l=c*W,o=fy>0?.06:-THICK-.06;P.push(F.p.x+F.b.x*l+F.n.x*o,F.p.y+F.b.y*l+F.n.y*o,F.p.z+F.b.z*l+F.n.z*o);N.push(F.n.x*fy,F.n.y*fy,F.n.z*fy);A.push(c,tv,sdg,0);}
-        if(k>0){const r0=n+(k-1)*5,r1=n+k*5;for(let q=0;q<4;q++){if(fy>0)I.push(r0+q,r1+q,r0+q+1,r0+q+1,r1+q,r1+q+1);else I.push(r0+q,r0+q+1,r1+q,r0+q+1,r1+q+1,r1+q);}}}
-      n+=(nk+1)*5;}}
+        if(k>0){const r0=n+(k-1)*NC,r1=n+k*NC;for(let q=0;q<NC-1;q++){if(fy>0)I.push(r0+q,r1+q,r0+q+1,r0+q+1,r1+q,r1+q+1);else I.push(r0+q,r0+q+1,r1+q,r0+q+1,r1+q+1,r1+q);}}}
+      n+=(nk+1)*NC;}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
   g.setAttribute('aV',new THREE.Float32BufferAttribute(A,4));g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='banquise verglas';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);BANQ.n.verglas=BANQ.verg.length;}
@@ -19226,6 +19340,7 @@ function banqChauffe(){
 /* ---------------- LA CONSOLE ---------------- */
 function bkVie(P){if(!P)return -1;let n=0;for(let i=0;i<P.n;i++)if(P.life[i]>0)n++;return n;} // (console) les particules vivantes d'une réserve
 window.dbgBanq=function(k,o){
+  if(k==='piste')return {pics:(BANQ.obst||[]).map(function(q){return [Math.round(q.s),Math.round(q.lat),Math.round(q.r)];}),becs:(BANQ.kick||[]).map(function(q){return [Math.round(q.s),Math.round(q.l0),Math.round(q.l1)];})}; // (v4) la piste : [s, lat, rayon] des pics, [s, l0, l1] des becs
   if(k==='verglas'){const V9=(BANQ.verg||[]).map(function(v){return [Math.round(v.a),Math.round(v.b)];});
     if(o&&(o.s!=null||o.n!=null)){safeS=o.s!=null?o.s:600+(o.n|0)*800;respawn();graceT=0;if(o.v)vA=o.v/(3.6*SPD);}
     return {plaques:V9,sur:BKV.sur,yaw:+BKV.yaw.toFixed(3),gl:+BKV.gl.toFixed(3),gk:+BKV.gk.toFixed(2),ecl:bkVie(BANQ.fx.eclat),bru:bkVie(BANQ.fx.brume),t:+BKV.t.toFixed(2),aura:Math.round(BKV.aura),s:Math.round(s),lat:+lat.toFixed(2),psi:+psi.toFixed(3),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode};}
@@ -19503,11 +19618,15 @@ const VLC_SOL_VS=['attribute vec4 aS;varying vec3 vW,vN;varying vec4 vS;','#incl
 /* LA ROCHE : aS = (distance à la route, chaleur, hauteur au-dessus de la lave, genre : 0 relief · 2 volcan du loin) */
 const VLC_SOL_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN;varying vec4 vS;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec2 q=vW.xz;',
+  /* (2026-10-17, continuité — Sacha : « la map volcan est la plus moche ») LE GRAIN QUI FOURMILLAIT : n3 (des cases de 2,3 m, sans filtrage) et les
+     fissures fines (3,4 m) crépitaient en sel et poivre sur tout le cône dès 300 m — ils FONDENT avec la distance (plus rien au-delà de ~320 m) ;
+     le BASALTE presque noir (,048) ne se lisait plus la nuit : une ARDOISE froide un cran plus claire (l'ombre bleu-violet commune des maps),
+     la braise reste l'accent chaud. `?sans=continuite` = la roche d'avant. */
   '  float n1=fn2(q*.021),n2=fn2(q*.09),n3=fn2(q*.43),ht=clamp(vS.y,0.,1.),ab=vS.z,loin=smoothstep(260.,800.,dist);',
-  '  vec3 alb=mix(vec3(.048,.040,.040),vec3(.12,.10,.092),n2*(.7+.3*n3));',                                  // le BASALTE
+  (CONTI_V?'  n3=mix(n3,.5,smoothstep(90.,320.,dist));vec3 alb=mix(vec3(.060,.054,.070),vec3(.15,.13,.14),n2*(.7+.3*n3));':'  vec3 alb=mix(vec3(.048,.040,.040),vec3(.12,.10,.092),n2*(.7+.3*n3));'), // le BASALTE (ardoise)
   '  float plat=smoothstep(.70,.94,N.y);',
   '  alb=mix(alb,mix(vec3(.15,.135,.125),vec3(.25,.22,.20),n1),plat*smoothstep(.30,.68,n1+.12*n3));',         // la CENDRE se pose sur le plat
-  '  alb=mix(alb,vec3(.22,.075,.04)*(.7+.6*n3),smoothstep(.56,.8,n2)*(1.-plat)*.75);',                        // l'OXYDE des pentes
+  '  alb=mix(alb,vec3(.22,.075,.04)*(.7+.6*n3),smoothstep(.56,.8,n2)*(1.-plat)*'+(CONTI_V?'.32':'.75')+');',                        // l'OXYDE des pentes (continuité : plus de motif LÉOPARD sur le cône)
   '  alb=mix(alb,vec3(.52,.45,.10)*(.8+.4*n3),smoothstep(.55,.9,ht)*smoothstep(.55,.72,fn2(q*.05+7.))*.85);', // le SOUFRE des bouches chaudes
   '  alb=mix(alb,vec3(.018,.014,.014),smoothstep(9.,1.,ab));',                                                 // la croûte vitreuse de la rive
   '  float dif=clamp((dot(N,uSunDir)+.12)/1.12,0.,1.);',
@@ -19517,7 +19636,7 @@ const VLC_SOL_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN;varying vec4 vS;','#inclu
   '  col+=alb*(vPhare(vW,N)+vErupt(vW,N)*3.+uFlash*vec3(.8,.82,1.)*1.3);',
   '  col+=uSky*alb*1.6*pow(1.-max(dot(N,V),0.),3.);',                                                        // le liseré froid du ciel (deux températures)
   '  col=mix(col,uBruC,vBrume(vW,dist));',
-  '  float fi=abs(fn2(q*.11+vec2(3.1,7.7))-.5)+abs(fn2(q*.29)-.5)*.5,fis=smoothstep(.05,0.,fi)*clamp(ht*1.3+smoothstep(26.,0.,ab)*.7,0.,1.);', // les FISSURES qui couvent
+  '  float fi=abs(fn2(q*.11+vec2(3.1,7.7))-.5)+abs(fn2(q*.29)-.5)*.5'+(CONTI_V?'*(1.-loin)':'')+',fis=smoothstep(.05,0.,fi)*clamp(ht*1.3+smoothstep(26.,0.,ab)*.7,0.,1.);', // les FISSURES qui couvent (continuité : le détail fin fond au loin)
   '  vec3 feu=mix(vec3(.85,.09,.01),vec3(1.,.55,.08),fn2(q*.7+uTime*.2));',
   '  vec3 em=feu*uLue*(mix(fis*(1.3+.6*sin(uTime*1.7+n2*12.)),ht*.13,loin)+.06*smoothstep(4.,0.,ab));',
   '  if(vS.w>1.5)em+=vec3(1.,.28,.04)*uLue*smoothstep(.55,1.,ht)*1.4;',  // les coulées des volcans du loin
@@ -19592,7 +19711,7 @@ const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK;unifo
   '  float fl=.5+.5*sin(uTime*(6.+aR.w*9.)+aR.x*40.);',
   '  vA=smoothstep(0.,.08,e)*(uK<.5?uBra*(.35+.65*fl):uCen*(.55+.45*aR.w));',
   '  vC=uK<.5?mix(vec3(1.,.22,.02),vec3(1.,.72,.22),aR.y)*2.2:vec3(.11,.10,.095);',
-  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?1.3+aR.z:2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);}'].join('\n');
+  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+(CONTI_V?'.75+aR.z*.6':'1.3+aR.z')+':2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
 const VLC_PART_FS=['uniform float uK;varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;',
   '  if(uK<.5)gl_FragColor=vec4(vC*vA*a,1.);else gl_FragColor=vec4(vC,min(1.,vA*a*1.6));}'].join('\n');
 /* LES GEYSERS DE LAVE (et la FONTAINE du cratère à l'éruption) : chaque goutte vit sa parabole dans le shader ; aG = (période, phase,
@@ -23744,6 +23863,7 @@ function ligneBloque(s9,k){
   for(const o of OILS)if(o.face===1&&Math.abs(o.s-s9)<(o.r||4)+7)return true; // …ni dans une flaque
   try{if(VZ.chaines)for(const c of VZ.chaines)if(s9>c.s0-140&&s9<c.s1+100)return true;}catch(e){} // (VZ peut ne pas exister encore au 1er build)
   if(SATOB.on)for(const o of SATOB.list)if(!o.haut&&Math.abs(o.s-s9)<o.ht+12)return true; // (2026-09-30) jamais dans un satellite (niveau hardcore)
+  if(BANQ_V4&&BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst)if(Math.abs(o.s-s9)<o.r+12)return true; // (2026-10-17) ni dans un pic de la piste du glacier
   return false;
 }
 function ligneRaz(){ // à chaque piste neuve (buildTrack) : la file repart du début
@@ -25899,6 +26019,85 @@ if(SIG_V.nuagesjour){SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuag
    à la verticale quand la dalle se couche. À midi le lointain est une BRUME DE CIEL (bleu très pâle) ; le matin, une crème à peine dorée. Les
    copies de course seulement (le menu garde matin/midi). `?ciel=peche` = avant. */
 if(SIG_V.nuagesjour&&!/[?&]ciel=peche\b/.test(location.search)){Object.assign(BIOMES.nuagesMidiCC,{jHor:[.80,.88,.98],jSol:[.80,.88,.98],fogCj:[.90,.92,.96]});Object.assign(BIOMES.nuagesMatinCC,{jHor:[.97,.91,.84],jSol:[.97,.91,.84],fogCj:[.98,.90,.82]});} // (bible · nuagesjour) la course prend les copies, le menu garde matin/midi
+/* ================= LA CONTINUITÉ DES MAPS — LA RECETTE COMMUNE (2026-10-17, voir CONTI_V/contiMap près de routeSig) =================
+   Regardées ENSEMBLE (le mur des maps, mesuré en Lab sur les photos du répertoire), les six maps hors ville et jade ne parlaient pas la même langue :
+   · LA ROUTE, la seule matière commune, était un PERVENCHE saturé partout (chroma 40-95 ; 94 aux nuages de nuit) qui écrasait la couleur propre de
+     chaque map — la lave orange, la glace, la forêt — et blanchissait au midi du canyon ;
+   · LA SATURATION allait du simple au double : effective = sat × POP 1,18 × DA 1,17 × écran 1,12, soit 1,58-1,82 sur les ciels des nuages, du canyon,
+     du volcan (soir des nuages : pointes de chroma à 125) ;
+   · LA NUIT était un CIEL NOIR (canyon, forêt, volcan : L* 2-4 au ciel) ou une NAPPE d'un seul bleu (nuages : chroma 86 sur toute l'image), la lune
+     n'éclairait rien et les néons de route s'éteignaient (voir villeApres) — quand la ville, la référence, tient un ciel L* 13-27 bien coloré.
+   LA RECETTE, pareille pour les six : une SATURATION par temps (matin 1,04 · midi 1,0 · soir 1,08 · nuit 1,0 · pluie ,92 · orage ,96 — avant ×1,31 de la
+   chaîne : « vif et pop mais pas trop »), un contraste et une vignette à l'encre bleu nuit, le CONTRE-JOUR ROSE de la bible à toutes les heures (plus fort
+   la nuit), et LE BITUME COMMUN : un béton ardoise qui PREND la lumière du lieu au lieu de la peindre en violet (`rtT` : sa teinte, `rtA` : la part de la
+   brume dans sa clarté — lus par routeTick, sur les six maps seulement).
+   LA NUIT CAR CASH : DEUX TEMPÉRATURES, jamais un ciel noir ni une nappe d'un seul bleu — zénith marine profond, milieu indigo, HORIZON qui brûle de
+   l'accent de la map (rose-violet, braise de lave, aurore turquoise), une LUNE argent qui éclaire vraiment (la clé froide), le REMPLISSAGE à l'accent de
+   la map (la clé chaude ou colorée), une brume indigo PLUS CLAIRE que les silhouettes (c'est elle qui découpe les plans), les néons de route pleins.
+   Ce que chaque map garde : sa géographie, ses matières, son accent (azur, sable, vert, glace, lave, planète). `?sans=continuite` = avant. */
+const CONTI={
+  temps:{
+    matin:{sat:1.04,con:1.18,vigK:.26,vigC:[.05,.04,.10],kickC:[1,.40,.66],kickI:.16,rimK:.3,rtT:[1.02,1.0,.92],rtA:.8},
+    midi: {sat:1.0, con:1.2, vigK:.22,vigC:[.04,.04,.09],kickC:[1,.42,.68],kickI:.14,rimK:.25,rtT:[1.02,1.0,.92],rtA:.8},
+    soir: {sat:1.08,con:1.2, vigK:.3, vigC:[.06,.03,.09],kickC:[1,.36,.64],kickI:.2, rimK:.45,rtT:[1.03,.99,.88],rtA:.8},
+    nuit: {sat:1.0, con:1.1, vigK:.5, vigC:[.025,.02,.07],kickC:[1,.30,.68],kickI:.26,rimK:.85,rimS:.55,rtT:[1.08,1.0,.78],rtA:.45,rtK:.75,bloomS:.56,bloomT:.86,stars:1.15}, /* (mesuré : la route de nuit sortait à L* 35-38, chroma 44 — lavande sous la lune ; la ville tient L* 13-18) */
+    pluie:{sat:.92,con:1.14,vigK:.32,vigC:[.04,.04,.08],kickC:[1,.38,.66],kickI:.18,rimK:.45,rtT:[1.05,1.0,.86],rtA:.7},
+    orage:{sat:.96,con:1.18,vigK:.45,vigC:[.02,.02,.06],kickC:[1,.32,.70],kickI:.24,rimK:.75,rtT:[1.06,1.0,.84],rtA:.55}},
+  /* les ambiances de chaque map, par temps (celles que SF_CARTES tire ; les nuages prennent les copies de course, le menu garde les siennes) */
+  cartes:{
+    nuages:{matin:'nuagesMatinCC',midi:'nuagesMidiCC',soir:'nuagesSoir',nuit:'nuagesNuit',pluie:'nuagesPluie',orage:'tempete'},
+    canyon:{matin:'canyonMatin',midi:'canyonMidi',soir:'canyonSoir',nuit:'canyonNuit',pluie:'canyonPluie',orage:'canyonOrage'},
+    foret:{matin:'foretMatin',midi:'foretMidi',soir:'foretSoir',nuit:'foretNuit',pluie:'foretPluie',orage:'foretOrage'},
+    banquise:{matin:'banqMatin',midi:'banqMidi',soir:'banqSoir',nuit:'banqNuit',pluie:'banqNeige',orage:'banqBlizzard'},
+    volcan:{matin:'volcanMatin',midi:'volcanMidi',soir:'volcanSoir',nuit:'volcanNuit',pluie:'volcanCendre',orage:'volcanOrage'},
+    espace:{matin:'espaceMatin',midi:'espace',soir:'espaceSoir'}},
+  /* LES NUITS, map par map : le ciel (jZen/jMid/jHor en LINÉAIRE ; le canyon a le sien, cy*), la brume, la lune (sunC/sunI = la clé froide), le ciel et
+     le sol de l'hémisphère, le remplissage à l'accent de la map */
+  nuits:{
+    nuagesNuit:{rtK:.45,jZen:[.026,.036,.17],jMid:[.07,.06,.22],jHor:[.20,.08,.26],fog:[.06,.055,.15],fogCj:[.14,.10,.24],hemiS:[.36,.40,.72],hemiG:[.16,.12,.28],hemiI:.6,
+      sunC:[.82,.88,1],sunI:1.05,fillC:[.62,.34,.92],fillI:.24,volSun:[1.25,1.30,1.5],volSky:[.30,.30,.58],volGnd:[.10,.07,.20],nuLav:[.44,.40,.66],mzH:[.16,.18,.40,.8],moon:1.3},
+    canyonNuit:{cyZ:[.04,.05,.22],cyM:[.09,.07,.27],cyH:[.12,.06,.18],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.04,.04,.10],cyF:[.07,.06,.15],cyL:[.18,.15,.22],
+      jZen:[.04,.05,.22],jMid:[.09,.07,.27],jHor:[.12,.06,.18],fog:[.05,.045,.12],fogCj:[.12,.12,.24],fogIn:[.14,.14,.24],
+      hemiS:[.28,.32,.64],hemiG:[.10,.06,.09],hemiI:.46,sunC:[.60,.70,1],sunI:.62,fillC:[.48,.30,.78],fillI:.22,expo:.9}, // (mesuré : à .95 la lune blanchissait les parois des Étroits comme en plein jour)
+    foretNuit:{jZen:[.05,.07,.26],jMid:[.09,.10,.30],jHor:[.10,.09,.24],fog:[.07,.08,.16],fogCj:[.14,.16,.26],fogIn:[.16,.18,.26],
+      hemiS:[.34,.42,.72],hemiG:[.06,.09,.09],hemiI:.66,sunC:[.68,.78,1],sunI:1.0,fillC:[.24,.52,.42],fillI:.26,expo:1.0},
+    banqNuit:{jZen:[.04,.06,.24],jMid:[.07,.11,.30],jHor:[.06,.13,.22],fog:[.045,.06,.14],fogCj:[.12,.24,.28],fogIn:[.12,.20,.26],
+      hemiS:[.30,.46,.74],hemiG:[.12,.18,.26],hemiI:.62,sunC:[.62,.76,1],sunI:.95,fillC:[.22,.60,.50],fillI:.28},
+    volcanNuit:{jZen:[.06,.04,.20],jMid:[.16,.06,.24],jHor:[.34,.08,.05],fog:[.14,.05,.10],fogCj:[.40,.12,.08],fogIn:[.30,.10,.10],
+      hemiS:[.30,.26,.56],hemiG:[.40,.11,.04],hemiI:.66,sunC:[.58,.62,.95],sunI:.75,fillC:[.95,.30,.07],fillI:.42,stars:.9,moon:.4}}, /* (mesuré : à 1,1 de contraste et zénith ×4 le ciel de nuit sort enfin du noir ; la lune du dôme, à ,9, dessinait un losange) */
+  /* LE CIEL DE JOUR CONTINU (Sacha : « le dégradé de ciel-soleil est à refaire complètement ») : le même ciel à la même heure sur les quatre maps au
+     ciel d'altitude (nuages, forêt, glacier, volcan — le canyon a le sien) — zénith azur, milieu bleu clair, HORIZON PÂLE tout autour (l'air, jamais une
+     bande orange : le glacier avait un horizon orange en plein midi), la CHALEUR seulement du côté du soleil (jSol, large) ; le soir garde son horizon
+     de braise. LINÉAIRE. `cielJ_map` : l'accent d'une map par-dessus (le volcan garde son aube rose et son air soufré). */
+  cielJ:{
+    matin:{jZen:[.10,.28,.66],jMid:[.34,.50,.80],jHor:[.88,.84,.86],jSol:[.85,.48,.24]},
+    midi: {jZen:[.07,.25,.68],jMid:[.30,.54,.88],jHor:[.76,.85,.95],jSol:[.34,.30,.22]},
+    soir: {jZen:[.09,.10,.34],jMid:[.40,.28,.46],jHor:[.98,.64,.50],jSol:[1,.46,.16]}},
+  cielJ_map:{
+    volcanMatin:{jZen:[.08,.12,.36],jMid:[.38,.30,.52],jHor:[.96,.70,.66],jSol:[1,.50,.28]},
+    volcanMidi:{jHor:[.84,.80,.78],jSol:[.40,.30,.16],fog:[.52,.48,.50]},
+    volcanSoir:{jZen:[.08,.03,.12],jMid:[.34,.07,.16],jHor:[1,.40,.18],jSol:[1,.36,.08]},
+    banqSoir:{jMid:[.44,.26,.50],jHor:[1,.58,.48]}},
+  /* LE JOUR, les retouches propres (au-delà de la recette) : le midi du canyon ne blanchit plus sa route, le soir des nuages et du volcan retrouvent
+     un horizon qui brûle sans saturer tout l'écran */
+  jours:{
+    canyonMidi:{rtK:.6,sunI:1.6},
+    nuagesMatinCC:{rtT:[.97,1,1.05]},nuagesMidiCC:{rtT:[.97,1,1.05]}, // (mesuré) la route des nuages de jour était déjà NEUTRE (ROUTE_JOUR) : la teinte commune la faisait beige
+    nuagesSoir:{volSun:[1.95,1.65,1.40]}}
+};
+if(CONTI_V){
+  for(const k in BIOMES){const b=BIOMES[k];if(!b||typeof b!=='object')continue;if(!b.rtT)b.rtT=[1,1,1];if(b.rtA==null)b.rtA=1;}
+  if(!BIO.cur.rtT)BIO.cur.rtT=[1,1,1];if(BIO.cur.rtA==null)BIO.cur.rtA=1; // (bioLerp écrit DANS les tableaux de l'ambiance courante : elle doit les avoir)
+  const garde9={espace:{sat:1,con:1,vigK:1,rimK:1,stars:1}}; // l'ORBITE est déjà la map la plus sobre (chroma 15-23 mesurée) : elle garde son grade, elle prend la route, la vignette et le contre-jour
+  for(const c in CONTI.cartes)for(const t in CONTI.cartes[c]){const b=BIOMES[CONTI.cartes[c][t]];if(!b)continue;const r=CONTI.temps[t],g9=garde9[c]||{};
+    for(const f in r)if(!g9[f])b[f]=Array.isArray(r[f])?r[f].slice():r[f];}
+  for(const c of ['nuages','foret','banquise','volcan'])for(const t in CONTI.cielJ){const b=BIOMES[CONTI.cartes[c][t]];if(b)Object.assign(b,JSON.parse(JSON.stringify(CONTI.cielJ[t])));}
+  for(const k in CONTI.cielJ_map)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.cielJ_map[k])));
+  for(const k in CONTI.nuits)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.nuits[k])));
+  for(const k in CONTI.jours)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.jours[k])));
+  // la BRUME BASSE des nuits (celle qui noie les vallées sous la route) prend l'indigo de la nuit commune : la forêt la tirait au noir-sarcelle, le glacier au vert sombre
+  if(FOR_MET.nuit)FOR_MET.nuit.mC=[.06,.07,.15];if(BK_MET.nuit)BK_MET.nuit.mC=[.05,.09,.17];
+}
 /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») */ // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
@@ -26677,7 +26876,14 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
      ou en RIDEAU de deux qui ne laissent qu'une trouée de 11-14 m. Un tous les 110-230 m à partir de 650 m ; et, pour les voltigeurs,
      des panneaux EN L'AIR (9-20 m au-dessus de la route) tous les ~500 m. Orientation FIGÉE (ni phase ni rotation propre) : la boîte
      de collision de `satHard` est exactement celle qu'on voit. Le dessous de la dalle reste libre (le raccourci des voltigeurs). */
-  SATOB.on=!!c.hard;
+  /* LES SATELLITES, OBSTACLES À PART ENTIÈRE (2026-10-17, Sacha : « améliore aussi la taille et la disposition des satellites dans l'espace, il faut
+     que ce soit un obstacle à part entière ») : la PLUIE DE SATELLITES (le niveau dur, retiré le 14/10) gardait seule ses satellites sur la route — l'orbite
+     n'en avait plus que dans le décor. Ils reviennent sur l'ORBITE NORMALE, mais en COURSE, pas en averse : plus GRANDS (un Starlink de 18-26 m
+     d'envergure couché en travers, un étage de fusée de 15-20 m — on les lit de loin, liseré rouge et éclat), et posés en TROIS FIGURES lisibles —
+     le SEUL (une moitié de route à choisir), la PORTE (deux engins, une trouée de 16-20 m à viser), la CHICANE (un côté, puis l'autre 70-100 m plus
+     loin) —, une figure toutes les 300-520 m (× la vitesse de croisière), et quelques panneaux EN L'AIR pour qui saute. Les toucher = L'IMPACT, le
+     même crash que tous les obstacles (impSat) ; les frôler paie (frole). Les pièces s'en écartent. `?sans=satobst` = l'orbite sans obstacles. */
+  SATOB.on=!!c.hard||SAT_OBST_V;
   if(SATOB.on){
     const RH=ROAD_HALF-2,Bv=ORB.t1,Wv=ORB.t2,Uv=ORB.t3;
     const pose0=function(k,s9,la,h,rad,al,be,vr,haut){if(satPassage(s9))return false;frameAt(s9,F);
@@ -26691,9 +26897,25 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
       const i=pose(k,q.x,q.y,q.z,rad,0,vr,Q9);if(i<0)return false;
       const A=SATS[k].geometry.attributes;A.aVar.setY(i,0);A.aVar.setW(i,1);A.aRot.setW(i,0); // orientation FIGÉE + drapeau d'obstacle (le liseré rouge)
       const hw=(k===0?rad:rad*.8),hu=(k===0?rad*.06:rad*.24),ht=(k===0?rad*.13:rad*.24),mx=Math.max(hw,hu,ht)+5;
-      SATOB.list.push({s:s9,lat:la,q:q,W:W,U:U,T:Tt,hw:hw+1.0,hu:hu+.75,ht:ht+2.2,hw0:hw,R2:mx*mx,haut:!!haut,pres:0,min:99,fait:false,fr:{frole:false,mesh:{position:q}}});
+      SATOB.list.push({s:s9,lat:la,q:q,W:W,U:U,T:Tt,hw:hw+1.0,hu:hu+.75,ht:ht+2.2,hw0:hw,R2:mx*mx,haut:!!haut,pres:0,min:99,fait:false,fr:{frole:false,mesh:{position:q},lat:la}}); // (2026-10-17) fr.lat : le côté du souffle de froleSnd (il lisait NaN)
       return true;};
     const espK=Math.max(1,.45+.4*lvPiste()); // (2026-09-30) l'écart grandit avec la vitesse de croisière (lvPiste : 1,3 → 4,1 selon le palier)
+    if(!c.hard){ // (2026-10-17) L'ORBITE NORMALE : les trois figures (voir plus haut)
+      const D2R=Math.PI/180,pan=()=>(r()<.5?-1:1)*(25+r()*25)*D2R; // (banc) couchés à 8-26°, on n'en voyait que la TRANCHE (un trait rouge) : dressés à 25-50°, on voit leur face
+      let sp=720+r()*160;
+      while(sp<L-520){const f=tire([.38,.32,.30]);
+        if(f===0){const k=r()<.5?0:1,rad=k?7.5+r()*2.5:9+r()*4,half=k?rad*.8:rad,la=(r()*2-1)*Math.max(0,RH-half*.6); // LE SEUL
+          pose0(k,sp,la,k?rad*.24+.3:1.15,rad,pan(),(r()-.5)*.6,1,false);}
+        else if(f===1){const gw=16+r()*4,g=(r()*2-1)*Math.max(0,RH-gw/2-10); // LA PORTE
+          for(const sg of [-1,1]){const k=r()<.55?0:1,rad=k?7.5+r()*2:9+r()*3,half=k?rad*.8:rad;
+            pose0(k,sp+(r()-.5)*4,g+sg*(gw/2+half),k?rad*.24+.3:1.15,rad,sg*(25+r()*22)*D2R,(r()-.5)*.4,1,false);}}
+        else{const sg=r()<.5?-1:1,e9=(70+r()*30)*espK; // LA CHICANE
+          for(let j=0;j<2;j++){const rad=9+r()*3,la=(j?-sg:sg)*(RH*.42+r()*RH*.22);pose0(0,sp+j*e9,la,1.15,rad,pan(),0,1,false);}
+          sp+=e9;}
+        sp+=(300+r()*220)*espK;}
+      for(let s9=1100+r()*400;s9<L-600;s9+=(700+r()*400)*espK) // EN L'AIR : pour qui saute par-dessus une porte
+        pose0(0,s9,(r()*2-1)*RH*.7,10+r()*10,8+r()*3,(r()-.5)*1.2,0,1,true);
+    }else{
     let sp=650+r()*100;
     while(sp<L-420){
       const rideau=r()<.32;
@@ -26707,6 +26929,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
     }
     for(let s9=900+r()*300;s9<L-500;s9+=(420+r()*220)*espK) // EN L'AIR : pour qui saute par-dessus un rideau
       pose0(0,s9,(r()*2-1)*RH*.8,9+r()*11,6+r()*4,(r()-.5)*1.4,0,1,true);
+    }
   }
   // 1. LES PASSANTS : de grands Starlink au bord de la route, du côté EXTÉRIEUR du virage qui vient (ils ne cachent jamais la route qui tourne)
   {const pasP=(L-900)/SAT_PASS;
@@ -26771,6 +26994,16 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
    SATELLITE »). Passé à moins de ~3 m sans toucher : FRÔLÉ (la même récompense que les plots : nitro, flow, aura — et le SLALOM qui
    s'enchaîne d'un satellite à l'autre). Le tri par distance au carré (R2) écarte tout ce qui est loin : ~150 obstacles = 150 soustractions. */
 const SATOB={list:[],on:false,d:new THREE.Vector3(),pp:new THREE.Vector3(),pv:false};
+const SAT_OBST_V=!/[?&]sans=([^&]*,)?satobst(,|&|$)/.test(location.search); // (2026-10-17) les satellites, obstacles de l'orbite normale (voir orbiteBuild §0)
+/* (2026-10-17) L'IMPACT contre un satellite — la même animation que tous les obstacles (Sacha, 15/10) : `explode('sat')` partait sans elle. La face
+   touchée est celle des trois axes de la boîte où la caisse est entrée le plus profond ; pas de cratère (`mou`) : il resterait suspendu dans le vide. */
+function impSat(o,d){
+  IMP.frais=-1;
+  try{const V=IMP.d.copy(PT_U.uVc.value);let l=V.length();if(!(l>1)){V.copy(F.t);l=1;}V.multiplyScalar(1/l);IMP.v=Math.min(l,200);
+    const a=d.dot(o.W)/o.hw,u=d.dot(o.U)/o.hu,t=d.dot(o.T)/o.ht,A9=Math.abs(a),U9=Math.abs(u),T9=Math.abs(t);
+    if(T9>=A9&&T9>=U9)IMP.n.copy(o.T).multiplyScalar(t<0?-1:1);else if(U9>=A9)IMP.n.copy(o.U).multiplyScalar(u<0?-1:1);else IMP.n.copy(o.W).multiplyScalar(a<0?-1:1);
+    IMP.c.copy(carGroup.position);IMP.s.copy(IMP.c).addScaledVector(IMP.n,-((CARS[level]||CARS[0]).w*.5+.1));
+    IMP.test=null;IMP.mou=true;IMP.frais=performance.now();}catch(e){IMP.frais=-1;}}
 function satHard(){
   if(!SATOB.on||!ORB.actif||!started||gameOver||mode==='boom'||graceT>0){SATOB.pv=false;return;}
   const P=carGroup.position,d=SATOB.d;
@@ -26787,11 +27020,11 @@ function satHard(){
     const dx=P.x-o.q.x,dy=P.y-o.q.y,dz=P.z-o.q.z;
     if(bal){const t1=dx*o.T.x+dy*o.T.y+dz*o.T.z,eT=ex*o.T.x+ey*o.T.y+ez*o.T.z;
       if(t1*(t1-eT)<0){const k=t1/eT;d.set(dx-ex*k,dy-ey*k,dz-ez*k);const a=Math.abs(d.dot(o.W)),u=Math.abs(d.dot(o.U)); // le plan a été franchi PENDANT l'image : la caisse à cet instant
-        if(a<o.hw&&u<o.hu){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}explode('sat');return;}
+        if(a<o.hw&&u<o.hu){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}impSat(o,d);explode('sat');return;}
         if(u<o.hu+1.2&&a<o.hw+3.2)o.min=Math.min(o.min,Math.max(0,a-o.hw)),o.pres=1;}} // le frôlé raté de la même façon (seulement s'il paie : < 3,2 m)
     if(dx*dx+dy*dy+dz*dz>o.R2){if(o.pres){o.fait=true;if(o.min<3.2)try{frole(o.fr,1.6+o.min*.62,1);}catch(e){}}continue;} // sorti de la bulle : le frôlé se paie
     d.set(dx,dy,dz);const a=Math.abs(d.dot(o.W)),u=Math.abs(d.dot(o.U)),t=Math.abs(d.dot(o.T));
-    if(a<o.hw&&u<o.hu&&t<o.ht){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}explode('sat');return;}
+    if(a<o.hw&&u<o.hu&&t<o.ht){o.fait=true;shake=Math.max(shake,1.3);try{sparkBurst(sparkGold,o.q,26,16);}catch(e){}impSat(o,d);explode('sat');return;}
     if(u<o.hu+1.2&&t<o.ht+1)o.min=Math.min(o.min,Math.max(0,a-o.hw)),o.pres=1; // à hauteur et au droit : la marge qui reste en travers
   }
 }
@@ -40352,6 +40585,12 @@ function spawnPickups(rnd){
       if(o.face!==1||Math.abs(o.s-sp)>o.r+2.4||Math.abs(o.lat-lt)>o.r+1.4)continue;
       let n9=o.lat+(lt>=o.lat?1:-1)*(o.r+1.8);if(Math.abs(n9)>HALF)n9=o.lat+(lt>=o.lat?-1:1)*(o.r+1.8);lt=n9;
     }
+    if(BANQ_V4&&BANQ.obst&&LVL.cur&&LVL.cur.id==='banquise')for(const o of BANQ.obst){ // (2026-10-17, GLACIER v4) jamais une pièce dans un pic de la piste
+      if(Math.abs(o.s-sp)>o.r+3||Math.abs(o.lat-lt)>o.r+2)continue;let n9=o.lat+(lt>=o.lat?1:-1)*(o.r+3);if(Math.abs(n9)>HALF)n9=o.lat+(lt>=o.lat?-1:1)*(o.r+3);lt=n9;}
+    if(SATOB.on)for(const o of SATOB.list){ // (2026-10-17) les SATELLITES de l'orbite : une pièce n'est jamais dans un satellite (posés avant, par buildTrack → orbiteBuild)
+      if(o.haut)continue;const hw=o.hw0+2.5;if(Math.abs(o.s-sp)>o.ht+5||Math.abs(o.lat-lt)>hw)continue;
+      let n9=o.lat+(lt>=o.lat?1:-1)*(hw+1.5);if(Math.abs(n9)>HALF)n9=o.lat+(lt>=o.lat?-1:1)*(hw+1.5);lt=n9;
+    }
     return THREE.MathUtils.clamp(lt,-HALF,HALF);
   };
   // pose UNE pièce (mirroir deux faces, saute les trous, s'écarte des obstacles, clamp sur la route)
@@ -52228,7 +52467,9 @@ function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la
   CITY.uJ.value=!FACADES_V5?0:CITY.uJf!=null?CITY.uJf:skyU.uJour.value*(1-nu)*(1-THREE.MathUtils.smoothstep(skyU.uCity.value,.45,.95));
   if(CAMP.n!==16)CITY.uC.value=1-.72*nu; // (la panne du niveau 16 de la campagne garde la main sur le courant)
   const k=(CAMP.n===16?VC.cour:1)*(1-.6*nu);
-  if(k<.999){const kr=.07+.93*k; // on ne baisse QUE ce que musicTick repeint (userData.base) : rien ne s'accumule d'une image à l'autre
+  /* (2026-10-17, continuité) « néons pleins la nuit » : la baisse des néons de route de MINUIT EN VILLE ne touche plus les six maps de la continuité
+     (elle tombait sur toutes les routes de nuit : rails roses à 44 %, nappe à 20 %) */
+  if(k<.999&&!contiMap()){const kr=.07+.93*k; // on ne baisse QUE ce que musicTick repeint (userData.base) : rien ne s'accumule d'une image à l'autre
     for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.multiplyScalar(kr);}
     for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i];if(m.userData.base!=null)m.opacity*=kr*kr;}}
   if(k<.999||VC.phare){VC.phare=k<.999;headSpot.distance=72+64*(1-k)+120*nu;if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k)+1.6*nu);headSpot.angle=.5+.12*nu;} // 1,85 : la valeur que la boucle pose (phares de course)
@@ -61244,6 +61485,7 @@ function loop(now){
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
       if(PARIS.sol&&Math.abs(lat)>ROAD_HALF-1.15)parisMur(dt); // (Paris au sol) les façades sont des MURS : on frotte, on ne tombe pas
       else if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){parisMur(dt,'paroi');slideContact();} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
+      else if(BANQ_V4&&banqOk()&&Math.abs(lat)>ROAD_HALF-1.15){parisMur(dt,'glace');slideContact();} // (2026-10-17, GLACIER v4) les BOURRELETS de neige : on cogne, on ne tombe pas
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
@@ -61285,6 +61527,11 @@ function loop(now){
       // Trop lent = pas de décollage : on franchit la lèvre et on plonge dans le gouffre — dont le fond
       // est roulable et la remontée praticable. Rater coûte du temps et du style, jamais la partie.
       rampCd=Math.max(0,rampCd-dt);
+      if(BANQ_V4&&mode==='drive')banqPisteHeurt(); // (v4) un pic de la piste, percuté au sol : L'IMPACT
+      if(BANQ_V4&&mode==='drive'&&rampCd<=0&&BANQ.kick&&BANQ.kick.length&&banqOk())for(const k9 of BANQ.kick){ // (v4) LES BECS DE GLACE : on passe dessus, on s'envole
+        if(k9.s<Math.min(sPrev9,s)-2||k9.s>Math.max(sPrev9,s)+2||lat<k9.l0||lat>k9.l1)continue;
+        if(Math.abs(vA)*3.6*SPD<70)break;
+        rampCd=1.2;startFall(THREE.MathUtils.clamp(.2*Math.abs(vA)*vitMult(),12,48),1.04);boost=Math.max(boost,1.2);shake=Math.max(shake,.45);try{hap(10);}catch(e){}break;}
       if(mode==='drive'&&rampCd<=0&&Math.abs(lat)<ROAD_HALF-1)for(const r9 of RAMPS){
         // ⚠ BALAYAGE, PAS UN POINT (2026-08-03) : le test était `|s - lèvre| > 7`, soit une fenêtre de
         // 14 unités. Dans l'endgame on avance de ~9 unités par frame, et le moindre à-coup de frame

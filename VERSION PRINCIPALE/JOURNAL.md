@@ -3,6 +3,47 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES MAPS COMME UN TOUT — L'ÉTALONNAGE COMMUN, LA NUIT, LE CIEL ; LE GLACIER EN PISTE DE GLACE ; LA FORÊT AU LARGE ; LES SATELLITES EN OBSTACLES (2026-10-17, Sacha : « grosse session d'amélioration des maps : mets-toi dans la peau d'un game designer senior, regarde toutes les maps comme un tout ; il faut une vraie continuité dans les maps, tant dans la colorimétrie que dans les textures — les seules maps à ne pas toucher sont les montagnes chinoises et la ville »)
+- Les demandes suivantes de la même séance : « la map neige doit descendre plus vers le bas, comme une montagne » puis « on ne met même plus de route : une
+  grande piste de glace, des pics de glace qu'il faut éviter, plusieurs chemins, un peu de neige pour décorer, la voiture drifte, et de petits tremplins
+  en glace pour s'envoler » · « la map volcan est la plus moche » · « la génération de route dans la forêt est bof, trop de virages serrés, mais on a bien
+  l'idée d'être perdu » · « c'est surtout l'éclairage de NUIT que tu arrives mal à faire » · « des couleurs vives et pop mais pas trop : la journée dans
+  les nuages est trop saturée ; un vrai équilibre » · « le dégradé de ciel-soleil est à refaire complètement » (capture du glacier à midi) · « améliore la
+  taille et la disposition des satellites dans l'espace : un obstacle à part entière » · « on voit clairement un problème de texture des feuilles ».
+- LE MUR DES MAPS, MESURÉ (Lab, photos du répertoire) : la ROUTE, seule matière commune, était un PERVENCHE saturé partout (chroma 40-95, 94 aux nuages de
+  nuit) ; les ciels de NUIT du canyon, de la forêt, du volcan à L* 2-4 (noirs) — la ville, la référence, tient L* 13-27 ; les nuages de nuit à chroma 86
+  sur toute l'image (une seule nappe bleue) ; le soir des nuages à 125 en pointe. Saturation effective = sat × POP 1,18 × DA 1,17 × écran 1,12 (≈ ×1,55).
+- LA RECETTE COMMUNE (`CONTI`, après tout l'étalonnage ; `CONTI_V`, `contiMap()` = nuages, canyon, forêt, glacier, volcan, orbite — JAMAIS la ville ni le
+  jade ; `?sans=continuite` = tout d'avant) : une SATURATION par temps (matin 1,04 · midi 1,0 · soir 1,08 · nuit 1,0 · pluie ,92 · orage ,96, avant ×1,31 ;
+  l'orbite, déjà la plus sobre, garde son grade), contraste, vignette à l'encre bleu nuit, le contre-jour ROSE à toutes les heures (plus fort la nuit) ;
+  LE BITUME COMMUN (`rtT` teinte, `rtA` part de la brume, lus par routeTick sur les six maps) — mesuré à la forêt : route de midi chroma 60 → 10,
+  route de nuit ramenée (L* 35 → plus sombre, `rtK` ,62) ; la signature rose + or sur TOUTES les météos des nuages.
+- LA NUIT CAR CASH (`CONTI.nuits`) : deux températures — zénith marine, milieu indigo, HORIZON à l'accent de la map (rose-violet ; braise au volcan ;
+  turquoise d'aurore au glacier), une LUNE argent qui éclaire (sunC/sunI), le remplissage à l'accent (lave, lucioles, aurore), une brume indigo plus
+  claire que les silhouettes, la brume basse des vallées indigo (FOR_MET/BK_MET). Les NÉONS DE ROUTE restent pleins la nuit : `villeApres` (MINUIT EN
+  VILLE) les baissait sur TOUTES les routes (rails ×,44, nappe ×,20) — il ne touche plus les six maps.
+- LE CIEL CONTINU (`uCiel2` du dôme, `cielFond` jour) : l'ancien dégradé passait de l'horizon au milieu en 9° (une BANDE orange, même à midi) ; le zénith
+  fond désormais vers le milieu sur tout le dôme, l'horizon est un voile large (moitié à ~5°) à la couleur de l'AIR (pâle), la chaleur ne vit que côté
+  soleil (`jSol`). Couleurs communes par temps (`CONTI.cielJ`), l'accent d'une map par-dessus (`cielJ_map` : l'aube rose et le soir rouge du volcan).
+  La désaturation du ciel de jour (CIEL_DESAT) est allégée sur les six maps (×,55).
+- LA FORÊT AU LARGE (`FORET_LARGE`, `?foret=serre`) : le dessin en étoile ne change pas (on se perd), les RAYONS s'ouvrent — MESURÉ (12 graines, palier 0,
+  racc2) : 4,75 → 3,9 virages/km, épingles sous 1,2 × rMin 1,0/km → 0, sous 1,35 × rMin 1,9 → 0,23/km, 10-15 km, 0 infranchissable (palier 22 : 5 → 0).
+  LE FEUILLAGE : le bruit des touffes multipliait la couleur de ×,32 à ×1,22 (des trous noirs en camouflage) → ×,74 à ×1,06 et deux verts.
+- LE CANYON : la palette des strates (`cyStrates`) en TERRES — vieux rose, lie-de-vin, pêche, gris-violet, terre cuite au lieu du rose, du magenta fluo et
+  de la lavande. LE VOLCAN : la roche ne fourmille plus au loin (le bruit fin fond avec la distance), un basalte ARDOISE lisible la nuit, des braises
+  en étincelles (taille ×,58).
+- LE GLACIER v4 — LA PISTE DE GLACE (`BANQ_V4`, `?glacier=v3`) : piste de 123 m (`BK_LARG4`), raide (22-37 %, ~26 % de moyenne, 2,4-2,5 km de dénivelé,
+  mesuré en Node), sans route (`bkPisteNue` : ni béton, ni rails, ni nappe, ni ligne, ni tranche — le verglas opaque, de bout en bout), bordée de
+  BOURRELETS de neige (13-19 m) qu'on cogne (`parisMur`, cause 'glace'), plus de lacs ni de stalactites ; LES PICS SUR LA PISTE (`BANQ.obst`, 78-104
+  par piste au banc) en fourche, champ, porte, îlot — coiffés de neige (fam 1,4), L'IMPACT au sol (`banqPisteHeurt`), la physique des pics en vol ;
+  LES BECS DE GLACE (`BANQ.kick`) : on passe dessus au-dessus de 70 km/h, on s'envole (`startFall`, poussée ∝ vitesse) ; la glisse un cran plus vive
+  (grip ,86, dérive ,21) ; la brume de vallée descend. Console : `dbgBanq('piste')` (les pics et les becs).
+- LES SATELLITES (`SAT_OBST_V`, `?sans=satobst`) : sur l'ORBITE NORMALE, en trois figures — le SEUL, la PORTE (trouée 16-20 m), la CHICANE — plus grands
+  (Starlink 18-26 m d'envergure), une figure tous les 300-520 m × la croisière, des panneaux en l'air ; les toucher = L'IMPACT (`impSat`) ; les pièces
+  et la ligne parfaite s'en écartent ; `frole` connaît leur côté.
+- BANCS (scratchpad de la session) : `photos.cjs`/`lots.sh` (Math.random GRAINÉ : même piste avant/après, par paquets de 3 sous le plafond du banc),
+  `glacier-vue.cjs`, `sat-vue.cjs`, `lab.py` (L*/C* par zones), `banq-trace.cjs` (le glacier en Node), le banc forêt de passation/foret-pelote.
+
 ## LA BOUTIQUE FLUIDE — LE SOUFFLE DE LUMIÈRE AU LIEU DU GLITCH (2026-10-16, Léo : « le garage dans la boutique, il bug, ça rame de ouf ; j'aime pas trop la transition glitch, trouve plus smooth »)
 - MESURÉ au banc (Chrome sans fenêtre, iPhone 390 × 844 simulé, processeur ×4) : à la 1re ouverture, l'image figeait 1,2 s, puis 5 à 9 images/s
   pendant 8 s. La cause : la grille de la boutique demandait ses 48 PHOTOS de caisses d'un coup, et le studio (`photoTour`) en prenait une par
