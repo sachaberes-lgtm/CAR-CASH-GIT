@@ -49394,7 +49394,7 @@ if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; 
 function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
-  cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,nitF:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
+  cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,nitF:0,nitL:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
   qf:new THREE.Quaternion(),qr:new THREE.Quaternion(),qd:new THREE.Quaternion(),m4:new THREE.Matrix4(),v:new THREE.Vector3(),d:new THREE.Vector3(),
   n:0,payees:0,chutes:0,vis:null,cle:'',wPose:0,jetS:0,herite:null,img:0,att:null,redresse:0};
 /* UN EMPLACEMENT PAR DIRECTION (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; dans
@@ -49434,7 +49434,7 @@ function figEquipe(id,k){if(!window.FIG||!FIG.par[id]||!figPossede(id))return nu
   if(S[k]===id)return {deja:true,slot:k};
   const parti=S[k];S[k]=id;SAVE.d.figEq3=S.map(function(x){return x||'';});SAVE.d.figEq=figEquipees().slice(0,2);SAVE.flush();FX2.cle='';return {parti:parti,slot:k};}
 function figMemo(dt){FX2.qm1.copy(FX2.qm0);FX2.qm0.copy(carGroup.quaternion);FX2.dm=dt;FX2.memo=FX2.memoN;FX2.memoN=true;} // (conduite, chaque image) l'assiette des deux dernières images
-function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;FX2.nitF=0; /* (loi 6) un vol neuf : rien à rendre */if(!C)return;
+function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;FX2.nitF=0;FX2.nitL=0; /* (loi 6) un vol neuf : rien à rendre */if(!C)return;
   C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.redP=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
   if(!FIGV2.on||bord||!VEQ.on){FX2.memo=false;return;} // le BORD garde la bascule de Léo (VEQ)
   tmp.copy(fallVel).normalize();FX2.m4.makeBasis(FLY_R,FLY_U,tmp);FX2.qf.setFromRotationMatrix(FX2.m4);
@@ -49535,7 +49535,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
-  if(nc9>0)figNitPaye(nc9);r.nitN=(r.nitN|0)+1; // (loi 6) les 20 % partent ; la figure (celle du SAUT NITRO aussi : le saut a payé) comptera pour la pose — un tour EMPILÉ compte pour une de plus
+  if(nc9>0)figNitPaye(nc9);r.nitN=(r.nitN|0)+1;FX2.nitL=(FX2.nitL|0)+1; /* (POSER UNE FIGURE RAPPORTE) le lancement compte pour la pose, plantée ou pas */ // (loi 6) les 20 % partent ; la figure (celle du SAUT NITRO aussi : le saut a payé) comptera pour la pose — un tour EMPILÉ compte pour une de plus
   // le SAUT NITRO a déjà son souffle et son motif dans la main (Léo) : l'explosion de la figure ne revibre pas par-dessus (une seule voix par événement)
   const sautN=performance.now()-VEQ.sautT<120;
   if(sautN){try{if(SONV2)sfx('fig.explose',{var:0,vol:-6});}catch(e){}}else figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);figBtFx(s,'boum');fhLance(s,r,o); // (HUD des figures v3) son nom tombe en grand
@@ -49543,11 +49543,23 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
 /* LA FIGURE SE PAIE (2026-10-17, Sacha — loi 6 du réservoir, réglages dans NITRO2.figN) : 20 % de la jauge au lancement, 30 % par
    figure plantée rendus à la pose RÉUSSIE (figNitRend, appelée par tryLand et levreRattrape), perdus sinon. Offerte (rien à payer, elle
    rapporte quand même) : la figure du SAUT NITRO (le saut a déjà payé ses 20 %), sous NITRO INFINIE, au parc, à l'auto-école.
-   `dbgFigNit()` : le prix, ce qui attend la pose, la jauge. */
+   `dbgFigNit()` : le prix, ce qui attend la pose, la jauge.
+   POSER UNE FIGURE RAPPORTE DU NITRO (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro ») — MESURÉ au banc (fignit.cjs,
+   vraie partie) : la règle tournait, mais deux fuites l'avalaient. (1) LE PLAFOND : à la pose la jauge est souvent presque pleine (la pose
+   elle-même la remplit d'abord) — 1,2 à rendre, 0,57 crédités, le reste s'évaporait. Le trop-plein passe désormais dans la RÉSERVE BLEUE
+   (`nitroX`, plafond 2 comme les fruits) : rien n'est perdu, et il vole vers la partie bleue de la barre. (2) LA FIGURE PAS BOUCLÉE : un tour
+   empilé, ou relayé, qui n'avait pas fini son dernier quart au contact (fréquent depuis la gravité ×1,45) était payé 20 % et ne rendait RIEN,
+   sans un mot — 3 lancements, 1 rendu. Le compte de la pose est maintenant celui des LANCEMENTS du vol (`FX2.nitL`, celui qui a payé) :
+   chaque figure lancée rend ses 30 % à une pose réussie. Pose ratée (en plein tour, de travers, à contresens) : rien, comme avant. La toupie
+   automatique du drift ne passe pas par figLance : ni coût ni gain. Rend le nitro crédité (jauge + réserve). */
 function figNitCout(o){return o.douce||pwrNitroT>0||PARK.on||TUTO.on?0:NITRO2.figN.cout*nitroCap();}
 function figNitPaye(q){const av=nitroR+nitroX;if(nitroR>=q)nitroR-=q;else{nitroX=Math.max(0,nitroX-(q-nitroR));nitroR=0;}if(LIVRE.on)livre('n-:figure',av-nitroR-nitroX);} // (la réserve bleue après la jauge, comme le saut nitro)
-function figNitRend(ok){const n=FX2.nitF|0;FX2.nitF=0;if(ok&&n>0)nitroPct(NITRO2.figN.rend*n,'figure');return n;}
-window.dbgFigNit=function(){return {cout:+(NITRO2.figN.cout*nitroCap()).toFixed(3),aRendre:FX2.nitF|0,rendSiPose:+(NITRO2.figN.rend*(FX2.nitF|0)*nitroCap()).toFixed(3),jauge:+nitroR.toFixed(3),reserve:+nitroX.toFixed(3),cap:nitroCap(),mode:mode};};
+function figNitRend(ok){const n=FX2.nitL|0;FX2.nitF=0;FX2.nitL=0;if(!ok||n<=0)return 0;
+  const cap=nitroCap(),q=NITRO2.figN.rend*n*cap,av=nitroR,ax=nitroX;
+  nitroGain(Math.min(q,Math.max(0,cap-nitroR)),'figure'); // la jauge d'abord
+  const reste=q-(nitroR-av);if(reste>.001){nitroX=Math.min(2,nitroX+reste);const dx=nitroX-ax;if(LIVRE.on){livre('n+:figure.reserve',dx);livre('n0:figure',reste-dx);}if(dx>.03&&!volgNitro('x',dx))nbPrend('x');} // …le trop-plein dans la réserve bleue
+  return (nitroR-av)+(nitroX-ax);}
+window.dbgFigNit=function(){return {cout:+(NITRO2.figN.cout*nitroCap()).toFixed(3),aRendre:FX2.nitL|0,plantees:FX2.nitF|0,rendSiPose:+(NITRO2.figN.rend*(FX2.nitL|0)*nitroCap()).toFixed(3),jauge:+nitroR.toFixed(3),reserve:+nitroX.toFixed(3),cap:nitroCap(),mode:mode};};
 function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
 /* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
    de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
@@ -52721,7 +52733,7 @@ function tryLand(dt){
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
   const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */ FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose — (2026-10-14, revue des idées de Léo) il était collé au commentaire d'avant, donc avalé : jamais écrit
   if(DMT.on&&!PARK.on&&poseAng>90)dmtArme(bestI,sideL); // (LE DEMI-TOUR) posée à contresens : la caisse glisse, pivote d'un coup de frein à main et repart — au lieu de filer vers le bord (voir DMT)
-  const figN9=FX2.nitF|0;{const nf9=nitroR;figNitRend(!poseRatee);if(SONV2&&nitroR>nf9+.01&&nf9<=nPose9+.01)sfx('nitro.plein',{t:.2});} // (2026-10-17, LA FIGURE SE PAIE — loi 6) chaque figure plantée rend 30 % à la pose RÉUSSIE ; de travers, à contresens ou en plein tour : perdu — le « plein » sonne une fois, avec celui de la pose
+  const figN9=FX2.nitL|0;{const nf9=nitroR,g9=figNitRend(!poseRatee);if(SONV2&&g9>.01&&nf9<=nPose9+.01)sfx('nitro.plein',{t:.2});} /* (POSER UNE FIGURE RAPPORTE) le compte = les figures LANCÉES du vol ; le « plein » sonne aussi quand tout part dans la réserve bleue */ // (2026-10-17, LA FIGURE SE PAIE — loi 6) chaque figure plantée rend 30 % à la pose RÉUSSIE ; de travers, à contresens ou en plein tour : perdu — le « plein » sonne une fois, avec celui de la pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
   /* (2026-10-17, LA POSE QUI MORD AU CONTACT) la perte de vitesse de la pose (même formule, même plafond de 30 %) ne tombe plus à la
@@ -52924,7 +52936,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
   mode='drive';prevTvalid=false;bascOn=false;
-  {const nf9=nitroR;figNitRend(!VEQ.rate);if(SONV2&&nitroR>nf9+.01)sfx('nitro.plein',{t:.2});} /* (loi 6) rattrapée à la lèvre : les figures plantées rendent leurs 30 % */
+  {const g9=figNitRend(!VEQ.rate);if(SONV2&&g9>.01)sfx('nitro.plein',{t:.2});} /* (loi 6) rattrapée à la lèvre : les figures lancées rendent leurs 30 % (le trop-plein dans la réserve bleue) */
   if(FIGV2.on){if(VEQ.rate)figChute();else figComboEncaisse();} /* (2026-10-15, HUD des figures v3 — vu au banc) la LÈVRE rattrapée est une pose : le combo du vol s'y encaisse
      (ou s'y perd), comme sur la dalle — avant, il disparaissait sans un mot (tryLand sort ici avant l'encaissement) */
   if(chain===0&&chainVal>0)rollover=chainVal; // le REPORT d'un PARFAIT, consommé au décollage, n'est pas perdu pour autant

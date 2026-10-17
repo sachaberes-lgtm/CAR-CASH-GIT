@@ -3,6 +3,25 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
+- **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
+  la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.
+  · LE PLAFOND : à la pose la jauge est presque pleine (la pose de 20 % passe d'abord) — 1,2 à rendre, **0,57** crédités, le reste perdu.
+  · LA FIGURE PAS BOUCLÉE : un tour empilé (ou relayé) dont le dernier quart n'était pas fini au contact (fréquent depuis la gravité ×1,45)
+    avait payé ses 20 % et ne rendait RIEN, sans un mot — trois double-taps, une seule figure rendue (**0,77** au lieu de ~2).
+- **La règle, précisée** : chaque figure LANCÉE dans le vol (celle qui a payé, comptée par `FX2.nitL` dans `figLance`) rend ses 30 % à une pose
+  réussie — plantée ou pas tout à fait. Pose ratée (en plein tour, de travers, à contresens) : rien, comme avant. Ce qui ne tient plus dans la
+  jauge passe dans la **RÉSERVE BLEUE** (`nitroX`, plafond 2 comme les fruits) et vole vers la partie bleue de la barre (`volgNitro('x')`).
+  La toupie automatique du drift (lancée hors de `figLance`) ne coûte ni ne rapporte. Le « plein » sonne aussi quand tout part en réserve.
+- **Code** : `figNitRend(ok)` (rend le nitro crédité, jauge + réserve), `FX2.nitL` remis à zéro par `figDepart` ; `tryLand` et la lèvre lisent
+  le crédit rendu pour le son ; `figN9` (le vol « à figures » qui ne prend pas la recharge de chaîne) compte les lancements.
+  `dbgFigNit()` : `aRendre` = les lancements, `plantees` = les figures finies, `rendSiPose`, jauge, réserve.
+- **Mesuré, avant → après** (mêmes sauts, réserve vidée avant chaque saut) : une figure en vol + celle du saut 0,57 · 0,57 · 0,66 → **1,30 ·
+  1,27 · 1,43 · 1,37** (= les 2 × 30 % + la pose du saut) ; trois double-taps 0,77 · 1,01 → **1,92 · 2,12** (4 lancements comptés, borné
+  par la jauge ET la réserve pleines) ; figure refusée faute de nitro : rien de prélevé, la figure du saut rend quand même ; 0 erreur JS.
+- À juger par Sacha en jouant : faire des figures remplit maintenant vite la réserve bleue (nitro plus puissant) — si c'est trop généreux,
+  `NITRO2.figN.rend` (0,3) est le seul réglage.
+
 ## LA CAISSE PLUS LOURDE, 2e TOUR — LE SAUT NITRO QUI RETOMBE (2026-10-17 soir, Sacha : « augmente la gravité des voitures : quand on fait une figure sur route on doit retomber sur la route plus vite »)
 - POURQUOI LE ×1,3 DU 15/10 NE SE SENTAIT PLUS : deux heures après lui, « les figures lancées en roulant » (16/10, 0 h) a rallongé chaque
   saut nitro à figure jusqu'à 90 % de la durée de CATALOGUE de la figure (`sautBesoin` ≥ 1 s, jusqu'à +19 m/s de poussée) — sur du plat
