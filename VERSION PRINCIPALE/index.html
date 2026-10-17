@@ -16993,7 +16993,14 @@ function fbRideau(K,o){
    le shader en tire la case de chaque pixel et peint CHAQUE CUBE d'une seule teinte (la MOSAÏQUE : toutes les peintures — écorce, mousse,
    feuilles — lues au centre du cube, puis une nuance par cube et quelques ÉCLATS qui scintillent au soleil). Une fois par session (les
    prototypes), au menu. `?sans=cubes` = les arbres lisses d'avant. */
-const FOR_CUBES_V=!/[?&]sans=([^&]*,)?cubes(,|&|$)/.test(location.search);
+const FOR_CUBES_V=/[?&]cubes=gros\b/.test(location.search); // (même jour, Léo : « un tout petit peu moins Minecraft… évite le cube, un tronc à peu près cylindrique, fais des MINI-CUBES ») les gros cubes ne sont plus qu'une option : `?cubes=gros`
+/* LES MINI-CUBES (2026-10-17, Léo : « moins Minecraft, notre touche à nous ; évite le cube ; tous les arbres un tronc à peu près cylindrique ; fais
+   des mini-cubes ; encore plus de brillance ; que la scène soit belle, l'obscurité belle aussi ; joue sur le contraste ») : les arbres gardent leurs
+   formes (troncs ronds, couronnes, rideaux) et le FEUILLAGE se peint en cubes de 42 cm — la grille suit l'arbre (position sans le vent × l'échelle
+   de l'exemplaire), chaque mini-cube lit les peintures en son centre (une teinte), prend sa nuance et sa propre facette (sa normale penchée au
+   hasard : il attrape la lumière à sa façon), un reflet serré (la BRILLANCE) et parfois un ÉCLAT qui scintille ; tout se fond quand le cube tombe
+   sous ~2 px (aucun fourmillement au loin). Zéro triangle de plus, le même programme. `?sans=minicubes` = les feuilles d'avant. */
+const MINI_V=!/[?&]sans=([^&]*,)?minicubes(,|&|$)/.test(location.search),CONTRASTE_V=!/[?&]sans=([^&]*,)?contraste(,|&|$)/.test(location.search);
 function fbCubes(K,vs,ytop,mosa){
   const P=K.P,A=K.A,Cc=K.C,B=K.B,I=K.I,nv=K.n;let mnx=1e9,mny=1e9,mnz=1e9,mxx=-1e9,mxy=-1e9,mxz=-1e9;
   for(let i=0;i<nv;i++){const x=P[3*i],y=P[3*i+1],z=P[3*i+2];if(x<mnx)mnx=x;if(x>mxx)mxx=x;if(y<mny)mny=y;if(y>mxy)mxy=y;if(z<mnz)mnz=z;if(z>mxz)mxz=z;}
@@ -17389,17 +17396,21 @@ const FG_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCa
   // la BRUME DU FOND : elle s'épaissit sous la route, et avec la distance
   'float fBrume(vec3 w,float dist){return uMistK*smoothstep(uMistY-6.,uMistY-95.,w.y)*(1.-exp(-dist*.0042));}'].join('\n');
 const FOR_ARB_VS=['attribute vec4 aA;attribute vec3 aC;attribute vec2 aB;','#ifdef USE_INSTANCING','attribute vec4 aI;','#endif',
-  'uniform float uTime,uVent;varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;varying vec2 vB;','#include <fog_pars_vertex>',
+  'uniform float uTime,uVent;varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;varying vec2 vB;varying float vS9;','#include <fog_pars_vertex>',
   'void main(){vec4 I=vec4(0.);mat4 M=modelMatrix;','#ifdef USE_INSTANCING','I=aI;M=modelMatrix*instanceMatrix;','#endif',
-  '  vec3 p=position;float h=aA.w,sw=uVent*h*h*(aA.x>.5&&aA.x<2.5?1.:.35);',
+  '  vec3 p=position;float h=aA.w,sw=uVent*h*h*(aA.x>.5&&aA.x<2.5?1.:.35);vS9=length(M[0].xyz);',
   '  p.x+=sin(uTime*1.05+I.x*31.+p.y*.04)*sw*.9;p.z+=sin(uTime*.83+I.x*17.+p.y*.05)*sw*.7;',              // le vent : tout l'arbre se balance
   '  if(aA.x>.5&&aA.x<2.5&&aA.z<10.)p+=normal*sin(uTime*3.3+dot(p,vec3(.6,.4,.5))+I.x*9.)*.10*uVent;',   // …et le feuillage frissonne (pas les CUBES : leurs faces se sépareraient)
   '  vec4 wp=M*vec4(p,1.);vW=wp.xyz;vN=normalize((M*vec4(normal,0.)).xyz);vO=position+I.x*vec3(71.3,13.7,37.1);vC=aC;vA=aA;vB=aB;vI=I;', // (2026-10-17) vO SANS le vent : les peintures ne glissent plus sur l arbre qui se balance (et le cube garde sa case)
   '  if(I.z>0.){vC=aC*I.yzw;vI=vec4(I.x,0.,0.,0.);vO=wp.xyz*.15;}',                                   // le LOIN : l'albédo de l'arbre est dans son exemplaire
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen;varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;varying vec2 vB;','#include <fog_pars_fragment>',
+const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon;varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;varying vec2 vB;varying float vS9;','#include <fog_pars_fragment>',
   'void main(){float part=floor(vA.x+.5);vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec3 L=uSunDir;',
   '  vec3 alb=vC;float ao=vA.y,leaf=0.;vec3 o=vO;float hC9=-1.,hT9=0.;',
+  '  float mk9=0.,mh9=0.;vec3 mn9=vec3(0.);',
+  '  if(uMini>0.){vec3 jm9=vI.x*vec3(71.3,13.7,37.1),mp9=(vO-jm9)*vS9/.42,ce9=floor(mp9);mk9=1.-smoothstep(.3,.85,length(fwidth(mp9)));', // (2026-10-17) LES MINI-CUBES : la case de 42 cm de ce pixel ; mk9 s efface quand elle tombe sous ~2 px
+  '    mh9=fract(sin(dot(ce9+vI.x*31.,vec3(12.9898,78.233,37.719)))*43758.5453);mn9=vec3(fract(mh9*17.31),fract(mh9*43.17),fract(mh9*91.7))-.5;',
+  '    if(part>.5&&part<2.5&&vA.z<10.)o=mix(vO,(ce9+.5)*.42/max(vS9,.01)+jm9,mk9);}',                                    // le feuillage lu au CENTRE de son mini-cube : une teinte par cube
   '  if(vA.z>10.5){float q9=vA.z-10.,v9=floor(q9/10.+.001),dr=q9-v9*10.,vs9=v9*.1;',                              // (2026-10-17) LES CUBES : la case de ce pixel (aA.z : sens de la face, taille du cube)
   '    vec3 n9=dr<.5?vec3(-1.,0.,0.):dr<1.5?vec3(1.,0.,0.):dr<2.5?vec3(0.,-1.,0.):dr<3.5?vec3(0.,1.,0.):dr<4.5?vec3(0.,0.,-1.):vec3(0.,0.,1.);',
   '    vec3 j9=vI.x*vec3(71.3,13.7,37.1),ce=floor((vO-j9)/vs9-n9*.5+.001);o=(ce+.5)*vs9+j9;',                        // toutes les peintures lues au CENTRE du cube : un cube, une teinte
@@ -17421,17 +17432,22 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen;varying vec3 vW,vN,vO,vC;v
   (CONTI_V?'  else if(part<2.5){float fin=1.-smoothstep(60.,170.,dist);leaf=fn3(o*.26)*.50+fn3(o*.80)*.34+mix(.5,fn3(o*2.1),fin)*.16;float lk=smoothstep(.18,.82,leaf);alb*=mix(.74,1.06,lk)*mix(vec3(.92,.97,1.06),vec3(1.06,1.03,.90),lk);ao*=mix(.82,1.,smoothstep(.15,.65,leaf));'
           :'  else if(part<2.5){float fin=1.-smoothstep(60.,170.,dist);leaf=fn3(o*.38)*.35+fn3(o*1.15)*.40+mix(.5,fn3(o*2.9),fin)*.25;alb*=mix(.32,1.22,smoothstep(.28,.72,leaf));ao*=mix(.62,1.,smoothstep(.2,.6,leaf));'), // LE FEUILLAGE : des grappes de feuilles
   '    if(hC9>=0.){float t6=floor(hT9*6.);alb*=(.8+.08*t6)*(.94+.12*hC9);alb=mix(alb,alb*vec3(1.2,1.14,.7),step(5.,t6)*.55);alb=mix(alb,alb*vec3(.74,.88,.84),step(t6,0.));}', // (cubes) la MOSAÏQUE du feuillage : six nuances par carreau (comme la mer), la plus claire tire au jaune, la plus sombre au bleu-vert
+  '    if(mk9>0.){vec3 fm9=fract((vO-vI.x*vec3(71.3,13.7,37.1))*vS9/.42);vec3 em9=min(fm9,1.-fm9);float eb9=smoothstep(.0,.16,min(min(em9.x,em9.y),em9.z));alb*=mix(1.,(.76+.48*mh9)*mix(.52,1.,eb9),mk9);}', // (mini-cubes) chaque cube sa nuance, et son bord un peu dans l ombre : on lit les petits cubes                                                                   // (mini-cubes) chaque cube sa nuance
   '    if(vI.y>1.5)alb*=vec3(1.35,1.12,.7);',                           // l'érable d'or
   '    else alb*=1.+vI.y*vec3(.16,.06,-.18);alb*=uLeafT;}',
   '  else if(part<3.5)alb*=.92+.16*fn3(o*1.5);',
   '  else if(part>5.5)alb=mix(alb*(.8+.3*fn3(o*.9)),vec3(.96,.94,.88),step(.62,fn3(o*3.)));',                       // l'amanite : rouge, points blancs
+  '  if(part>.5&&part<2.5&&mk9>0.)N=normalize(N+mn9*.85*mk9);',                                                    // (mini-cubes) chaque cube sa facette : il attrape la lumière à sa façon
+  '  if(uCon>0.)ao=mix(ao,pow(ao,1.6),uCon);',                                                                     // (contraste) le creux des couronnes plus profond
   '  float ndl=dot(N,L),wr=(part>.5&&part<2.5)?.55:.25,dif=clamp((ndl+wr)/(1.+wr),0.,1.);',
-  '  vec3 col=alb*(uSky*(.42+.36*N.y)*ao+uGnd*(.40-.30*N.y)*ao+uSunC*dif*mix(.45,.86,ao)+uFillC*max(dot(N,-uFillD),0.)*.4);',
+  '  vec3 col=alb*((uSky*(.42+.36*N.y)*ao+uGnd*(.40-.30*N.y)*ao)*(1.-.12*uCon)+uSunC*dif*mix(.45,.86,ao)*(1.+.15*uCon)+uFillC*max(dot(N,-uFillD),0.)*.4);', // (contraste) moins de lumière du ciel dans l ombre, plus de soleil
   '  if(part>.5&&part<2.5){float tr=pow(max(dot(-V,L),0.),5.)*(1.-.45*ao);col+=alb*uSunC*tr*vec3(1.2,1.45,.7)*.85;', // le CONTRE-JOUR à travers les feuilles
   '    col+=uSunC*pow(max(dot(reflect(-L,N),V),0.),24.)*step(.72,leaf)*.35*uRos;',                                     // la rosée qui scintille
-  '    if(hC9>=0.)col+=uSunC*alb*2.4*step(.982,fract(hT9*7.31+floor(uTime*.9+hT9*13.)*.618))*max(ndl,0.);}',            // (cubes) les ÉCLATS : un carreau sur cinquante s allume au soleil, puis un autre (comme la mer en cubes)
-  '  float rim=pow(1.-max(dot(N,V),0.),3.);col+=alb*uSunC*rim*.20*dif;',
-  '  col+=vec3(.55,.68,.92)*rim*uHante*.14*step(part,2.5);',                                                          // la nuit, une lisière de LUNE (argent bleuté)
+  '    if(hC9>=0.)col+=uSunC*alb*2.4*step(.982,fract(hT9*7.31+floor(uTime*.9+hT9*13.)*.618))*max(ndl,0.);',
+  '    if(mk9>0.){col+=uSunC*pow(max(dot(reflect(-L,N),V),0.),16.)*(.2+.55*mh9)*mk9*.72;',                           // (mini-cubes) la BRILLANCE : un reflet serré par cube (la nuit, celui de la lune)
+  '      col+=uSunC*alb*2.*step(.985,fract(mh9*7.31+floor(uTime*.9+mh9*13.)*.618))*max(ndl,0.)*mk9;}}',               // …et des ÉCLATS : un cube sur soixante-dix s allume, puis un autre            // (cubes) les ÉCLATS : un carreau sur cinquante s allume au soleil, puis un autre (comme la mer en cubes)
+  '  float rim=pow(1.-max(dot(N,V),0.),3.);col+=alb*uSunC*rim*(.20+.14*uCon)*dif;',
+  '  col+=vec3(.55,.68,.92)*rim*uHante*(.14+.18*uCon)*step(part,2.5);',                                            // (contraste) la nuit, la lisière de lune plus franche : de belles silhouettes                                                          // la nuit, une lisière de LUNE (argent bleuté)
   '  col+=alb*fPhare(vW,N)*(part>.5&&part<2.5&&vB.x>.5?.3:1.);col+=alb*uFlash*vec3(.8,.85,1.)*(1.2+.8*max(N.y,0.));',             // (2026-10-17) les MÈCHES des pleureurs (aB.x = 1) : les phares les effleurent (pleins, elles faisaient une pluie de fils verts fluo la nuit)
   '  if(part>3.5&&part<4.5)col=mix(col,vec3(1.,.60,.22)*(1.3+.25*sin(uTime*7.+vI.x*20.+o.x)),uFen);',               // la FENÊTRE de la chaumière
   '  if(part>4.5&&part<5.5)col+=vec3(1.,.36,.08)*uHante*(1.6+.8*sin(uTime*2.2+vI.x*9.))*(.6+.4*fn3(o*2.+uTime*.8));', // le VISAGE du vieux chêne
@@ -17547,7 +17563,7 @@ const FOR_LUEUR_FS=['varying vec2 vQ;varying vec4 vL;varying float vO;',
 function foretMats(){if(FORET.mats)return FORET.mats;const U=FOR_U,F=THREE.UniformsLib.fog;
   const sm=(vs,fs,o)=>{const m=new THREE.ShaderMaterial(Object.assign({uniforms:Object.assign(THREE.UniformsUtils.clone(F),U,o&&o.u||{}),vertexShader:vs,fragmentShader:fs,fog:true},o&&o.m||{}));m.dispose=function(){};return m;}; // jamais libérées : un seul jeu pour toutes les forêts
   const M={};
-  M.arb=sm(FOR_ARB_VS,FOR_ARB_FS,{u:{uFen:{value:0}}});
+  M.arb=sm(FOR_ARB_VS,FOR_ARB_FS,{u:{uFen:{value:0},uMini:{value:MINI_V?1:0},uCon:{value:CONTRASTE_V?1:0}}});
   M.sol=sm(FOR_SOL_VS,FOR_SOL_FS);
   M.eau=sm(FOR_EAU_VS,FOR_EAU_FS,{m:{transparent:true,depthWrite:false}});
   M.fleur=sm(FOR_FLEUR_VS,FOR_FLEUR_FS,{u:{uTex:{value:forFleursTex()}},m:{side:THREE.DoubleSide}});
@@ -27496,6 +27512,12 @@ if(CONTI_V){
   // la BRUME BASSE des nuits (celle qui noie les vallées sous la route) prend l'indigo de la nuit commune : la forêt la tirait au noir-sarcelle, le glacier au vert sombre
   if(FOR_MET.nuit)FOR_MET.nuit.mC=[.06,.07,.15];if(BK_MET.nuit)BK_MET.nuit.mC=[.05,.09,.17];
 }
+/* (2026-10-17, Léo : « joue sur le contraste, que l'obscurité soit belle là aussi ») LA FORÊT CONTRASTÉE — APRÈS la continuité de Sacha (elle réécrit
+   contraste, vignette et nuits de toutes les maps) : un cran de contraste, un peu plus de halo pour les éclats des mini-cubes ; la nuit et l'orage plus
+   NOIRS (moins de ciel, moins d'exposition) — la lune, les lucioles, les éclats et les phares ressortent. `?sans=contraste`. */
+if(CONTRASTE_V)for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','foretOrage'])if(BIOMES[k]){const b=BIOMES[k],n9=k==='foretNuit'||k==='foretOrage';
+  b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
+  if(n9){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}}
 /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») */ // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
