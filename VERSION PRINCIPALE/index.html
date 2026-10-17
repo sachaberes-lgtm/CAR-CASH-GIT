@@ -10121,6 +10121,24 @@ body:not(.play) #m2Focus{display:none!important}
 .m2FR u em{display:block;height:100%;background:var(--au2)}
 .m2FR.ok{box-shadow:inset 0 0 0 1px var(--cash)}.m2FR.ok i,.m2FR.ok b{color:var(--cash)}.m2FR.ok u em{background:var(--cash)}
 @media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « trop de pop-up mission pendant la partie : en ligne, plus discrète, en bas ») — une mission
+   réussie en course : une ligne fine au-dessus des suivies (--m2lY = leur hauteur, posée par m2LigneSuit), à leur place et dans leur matière */
+#m2Ligne{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
+  display:flex;align-items:center;gap:6px;box-sizing:border-box;width:max-content;max-width:min(60vw,520px);padding:3px 7px 2px;pointer-events:none;
+  background:color-mix(in srgb,var(--k1) 84%,transparent);box-shadow:inset 2px 0 0 var(--m2lC);font-family:var(--pix);font-size:var(--f0);
+  line-height:1.3;color:var(--tx);--m2lC:var(--cash);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)}
+#m2Ligne.on{opacity:1;transform:translate(-50%,0)}
+#m2Ligne.sec{--m2lC:var(--neoM)}
+#m2Ligne i{flex:none;font-style:normal;line-height:0;color:var(--m2lC)}#m2Ligne i .pxi{--pxs:1}
+#m2Ligne span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#m2Ligne small{font-size:inherit;color:var(--m2lC)}
+#m2Ligne b{flex:none;font-weight:400;color:var(--au1);white-space:nowrap}
+body:not(.play) #m2Ligne{display:none!important}
+@media (orientation:portrait){#m2Ligne{left:var(--hudG,16px);transform:translateY(4px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px + var(--m2lY,0px));
+  max-width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}
+  #m2Ligne.on{transform:none}
+  #m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}}
+@media (prefers-reduced-motion:reduce){#m2Ligne{transition:opacity var(--t-slow) linear}}
 /* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
 .mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
 .mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
@@ -25713,9 +25731,15 @@ const HUDCOL={t:0,els:null,p:[]};
    lecture (getComputedStyle, getBoundingClientRect) forçait un recalcul complet des styles — et chaque `top` écrit dans la boucle salissait
    tout pour la lecture suivante (jusqu'à six recalculs par passage, dix fois par seconde : une image sur six payait l'addition).
    Désormais : appelée en tête de `loop` (les styles sont encore propres : le navigateur vient de peindre l'image d'avant), toutes les
-   lectures d'un bloc, puis les écritures — seulement celles qui changent. La colonne suit avec une image de retard : invisible. */
+   lectures d'un bloc, puis les écritures — seulement celles qui changent. La colonne suit avec une image de retard : invisible.
+   (2026-10-17, HUD-MESURE) …mais même en tête d'image, la première lecture forçait encore tout (le HUD est resali entre deux images) :
+   la mesure ne tourne plus ici, elle tombe JUSTE APRÈS la mise en page de l'image, là où lire ne coûte rien — voir apresMiseEnPage. */
 function hudColonne(dt){
   HUDCOL.t-=dt;if(HUDCOL.t>0)return;HUDCOL.t=.1;
+  apresMiseEnPage(hudColMesure,true);
+}
+function hudColMesure(){ // la mesure d'avant, à l'identique
+  if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['cashHud','facVies','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+10:66;P.length=0;
@@ -25723,9 +25747,38 @@ function hudColonne(dt){
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);const h=r.height*(zRect.leg?z:1);if(h<2)continue;
-    P.push(e,(y/z).toFixed(1)+'px');y+=h+8;}
+    P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
+}
+/* LIRE APRÈS LA MISE EN PAGE (2026-10-17, HUD-MESURE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »).
+   MESURÉ (téléphone émulé 390×844, processeur bridé ×4, 12 s de course, édition App Store) : getBoundingClientRect ≈ 600-720 ms de temps
+   propre, ~5-6 % du fil principal, presque tout via hudColonne (son premier rectangle, le ⚙, par zRect) et volgTick. Ce n'est pas la
+   lecture qui coûte, c'est ce qu'elle FORCE : entre deux images le HUD est resali (ses animations avancent, des minuteries écrivent), donc
+   le premier rectangle demandé refait les styles et la mise en page sur-le-champ — et le navigateur les refait une deuxième fois, après
+   les écritures de l'image, pour peindre. Dix fois par seconde.
+   Relire « seulement quand une hauteur change » ne suffisait pas : la colonne dépend aussi de ce qu'aucune taille ne dit (un
+   `visibility:hidden` posé par une classe du <body>, un `transform` qui glisse ou rétrécit un bloc, le ⚙ qui entre en course). Compté au
+   banc sur 20 s de course debout : 14 changements de taille, contre 30 classes du <body>, 29 du compteur, ~20 transitions sur la colonne.
+   Donc les MÊMES lectures, au même rythme, déplacées au seul instant où elles sont gratuites : juste APRÈS la mise en page que le
+   navigateur fait de toute façon avant de peindre (styles et boîtes à jour : lire ne force plus rien). Le moyen : un TÉMOIN invisible
+   observé par un ResizeObserver — on change sa largeur, le navigateur rappelle l'observateur après sa mise en page, dans la même image.
+   Si une écriture suit (un `top` qui change), seule la boîte déplacée se refait. Les lectures passent d'abord, les écritures (`ecrit`)
+   ensuite : une écriture ne resalit pas la lecture d'à côté. Sans ResizeObserver (très vieux WebKit) : fn tout de suite, comme avant. */
+const MEP={el:null,ro:null,l:[],e:[],k:0,att:false,tA:0};
+function apresMiseEnPage(fn,ecrit){
+  if(!MEP.ro){if(!window.ResizeObserver||!document.body){fn();return;}
+    try{const t=document.createElement('div');t.id='mepTemoin';t.setAttribute('aria-hidden','true');
+      t.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;visibility:hidden;pointer-events:none;contain:strict';
+      document.body.appendChild(t);MEP.el=t;MEP.ro=new ResizeObserver(mepRappel);MEP.ro.observe(t);}catch(x){MEP.ro=null;fn();return;}}
+  const q=ecrit?MEP.e:MEP.l;if(q.indexOf(fn)<0)q.push(fn);
+  if(!MEP.el.isConnected)document.body.appendChild(MEP.el); // (si un écran a vidé le <body>, le témoin revient)
+  const now=performance.now();if(MEP.att&&now-MEP.tA<1000)return; // déjà demandé pour cette image (un rappel perdu se redemande au bout d'1 s)
+  MEP.att=true;MEP.tA=now;MEP.k=(MEP.k+1)%8;MEP.el.style.width=(1+MEP.k)+'px'; // le témoin change de taille : l'observateur sera rappelé
+}
+function mepRappel(){
+  MEP.att=false;const l=MEP.l,e=MEP.e;if(!l.length&&!e.length)return;MEP.l=[];MEP.e=[];
+  for(const f of l.concat(e))try{f();}catch(x){if(!MEP.w){MEP.w=1;console.warn('mesure après mise en page · '+(f.name||'?'),x);}} // une panne se dit UNE fois, la suivante tourne quand même
 }
 /* LES « :has() » DU HUD DEVENUS DES CLASSES DU <body> (2026-10-14, passe mobile — « jouer en NETTE sans que ça bug, pour tout le monde »).
    MESURÉ (téléphone émulé, micro-banc : une seule écriture de style sur un seul élément, puis sa lecture) : ~500 µs par écriture
@@ -31065,7 +31118,8 @@ const SHAPES={
        elle rentre sous la taille, et ses hanches se gonflent au-dessus des roues arrière. */
     const U=LPU,R=.37,ZF=1.30,ZR=-1.16;
     const P=K.kit({p:{g:'p',c:0xe8121c},r:{g:'p',c:0xb00d15},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
-      c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e}});
+      c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},
+      Q:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) Q le cœur des feux, w la plaque éclairée — aucune famille de plus
     const AR=[[0,2*R+.03],[R*.60,2*R-.02],[R*.98,R*1.10],[R+.12,.26]];
     const zs=[-2.20,-1.95,-.70,-.52,-.36,.10,.60,.74,1.95,2.18];
     for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
@@ -31097,11 +31151,21 @@ const SHAPES={
       P.box('k',.02,.18,.36,sd*(xw9(-.57)+.002),.72,-.57);                                // prise d'air arrière
       P.box('k',.02,.06,.34,sd*(xw9(.12)+.002),.74,.12);P.box('k',.012,.04,1.40,sd*(xw9(0)-.02),.30,.07);   // NACA de portière, le seuil noir                                 // NACA de portière
       P.box('p',.12,.08,.16,sd*.84,.95,.52);P.box('k',.10,.03,.04,sd*.77,.92,.52);
-      for(const x of [.55,.76])P.cyl('L',.065,.03,10,sd*x,.74,-2.215,'z');     // quatre feux ronds
+      for(const x of [.55,.76]){P.cyl('K',.088,.04,14,sd*x,.74,-2.225,'z');   // quatre feux ronds — (17/10, l'arrière v2) EN VOLUME : la cuvette
+        P.lathe('L',[[.07,0],[.055,-.017],[0,-.024]],14,sd*x,.74,-2.245,'z');P.cyl('Q',.026,.01,8,sd*x,.74,-2.268,'z');} // le verre bombé, son cœur
       P.cyl('c',.05,.14,8,sd*.44,.43,-2.26,'z');
     });
     P.box('k',1.50,.12,.03,0,.33,2.185);                                      // bouche avant
     P.box('k',1.84,.46,.02,0,.66,-2.205);                                     // grille arrière
+    /* L'ARRIÈRE v2 (2026-10-17, Sacha : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG » — la revue des poupes, 2e tour) : le panneau noir et ses quatre feux ronds étaient fidèles mais peints à plat. Désormais
+       la GRILLE EN LOSANGES sur tout le panneau (deux nappes de barres croisées à 45°, coupées au bord), les feux EN VOLUME (dans le P.sym),
+       la PLAQUE au milieu de la grille, le DIFFUSEUR noir à ailettes où s'encastrent les trois sorties de Léo (ECH_POTS.rosso, inchangé). */
+    {const X=.92,Y0=.43,Y1=.89,H=Y1-Y0;for(const sg of [1,-1])for(let x0=-X-H;x0<=X+H;x0+=.15){                // la grille en losanges
+       const t0=Math.max(0,sg>0?(-X-x0)/H:(x0-X)/H),t1=Math.min(1,sg>0?(X-x0)/H:(x0+X)/H);if(t1-t0<.05)continue;
+       const xa=x0+sg*H*t0,xb=x0+sg*H*t1,ya=Y0+H*t0,yb=Y0+H*t1;
+       P.box('K',Math.hypot(xb-xa,yb-ya),.016,.008,(xa+xb)/2,(ya+yb)/2,-2.219,0,0,sg*Math.PI/4);}}
+    P.box('K',.40,.13,.012,0,.60,-2.226);P.box('w',.36,.10,.012,0,.60,-2.233);                       // la plaque
+    P.box('k',1.00,.16,.08,0,.40,-2.24);for(const x of [-.40,-.26,-.075,.075,.26,.40])P.box('K',.016,.15,.10,x,.40,-2.26); // le diffuseur, ses ailettes
     P.cyl('c',.05,.14,8,0,.43,-2.26,'z');                                     // la troisième sortie
     K.commit(P);
     return {hl:[.62,.42,2.20],tl:[.66,.74,-2.24],wx:.80,wzF:ZF,wzR:-ZR,
@@ -32365,7 +32429,8 @@ Object.assign(SHAPES,{
   const U=LPU,R=.34,ZF=1.37,ZR=-1.30;
   const P=K.kit({p:{g:'p',c:0x3b2c4e},   // (13/10, Léo : « plus mauve, comme sur la photo ») le VIOLET NUIT, plus le bleu roi
     C:{g:'s',c:0x1b1d22},h:{g:'s',c:0xa9b1bc},e:{g:'m',c:0xc8102e},K:{g:'g',c:0x16181c},k:{g:'m',c:0x131417},c:{g:'c',c:0xe9ecf0},
-    g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+    g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
+    R:{g:'l',c:0x7a1018},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) R les catadioptres, w la plaque éclairée — aucune famille de plus
   const AR=[[0,2*R+.05],[R*.75,2*R+.03],[R+.08,R*1.15],[R+.14,.30]];
   const zs=[-2.30,-2.25,-2.20,-1.50,-.85,-.70,-.20,-.13,.02,.10,.62,.68,1.40,2.10,2.24,2.30];
   for(const w of [ZF,ZR])for(const d of [R*.75,R+.08,R+.14])zs.push(w-d,w+d);
@@ -32425,8 +32490,15 @@ Object.assign(SHAPES,{
   P.box('C',1.66,.025,.12,0,.215,2.28);P.box('C',.70,.03,.08,0,.23,2.36);  // la lame carbone, qui avance au milieu
   // L'ÉVENT DE CAPOT carbone : un bossage, sa bouche noire devant
   P.prism('C',[[1.70,.935],[2.12,.905],[2.12,.935],[1.80,.955]],.46,0);P.box('K',.40,.022,.01,0,.92,2.124);
-  P.box('C',1.20,.10,.20,0,.28,-2.22);                                       // diffuseur
-  P.box('K',.52,.14,.02,0,.57,-2.305);                                       // plaque
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG » — la revue des poupes, 2e tour) : les feux ronds en anneaux étaient bons ; la plaque était un pavé noir, le bas plat,
+     le pot une pastille. Désormais le BOUCLIER dans la couleur et son pli, la PLAQUE ENCASTRÉE et sa lampe, l'antibrouillard au milieu,
+     les catadioptres, le grand DIFFUSEUR carbone à ailettes où s'encastre le gros canon de Léo (ECH_POTS.d_samourai, inchangé). */
+  P.prism('p',[[-2.25,.67],[-2.335,.66],[-2.36,.60],[-2.355,.43],[-2.31,.38],[-2.25,.38]],1.70,0);   // le bouclier
+  P.box('K',1.66,.014,.012,0,.615,-2.356);                                                          // son pli
+  P.box('K',.50,.15,.012,0,.52,-2.362);P.box('w',.44,.11,.012,0,.52,-2.369);P.box('W',.10,.014,.01,0,.602,-2.36); // la plaque encastrée, sa lampe
+  P.box('L',.16,.045,.012,0,.42,-2.36);                                                             // l'antibrouillard
+  P.sym(sd=>P.box('R',.10,.03,.012,sd*.70,.47,-2.357));                                             // les catadioptres
+  P.box('C',1.40,.20,.16,0,.28,-2.30);for(const x of [-.60,-.45,-.30,-.15,0,.15,.62])P.box('k',.016,.19,.18,x,.28,-2.31); // le diffuseur, ses ailettes
   P.cyl('c',.07,.12,10,.39,.30,-2.33,'z');P.cyl('k',.05,.13,10,.39,.30,-2.33,'z'); // UN seul gros canon
   K.commit(P);
   return {hl:[.60,.738,2.33],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
@@ -32716,7 +32788,8 @@ Object.assign(SHAPES,{
      laquelle la coque rentre, des vitres qui rentrent fort sur une coque large. */
   const U=LPU,R=.33,ZF=1.08,ZR=-1.32;
   const P=K.kit({p:{g:'p',c:0xd01a1a},n:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
-    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+    W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
+    r:{g:'l',c:0x8a0c18},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) r le cœur des feux, w la plaque éclairée — aucune famille de plus
   const AR=[[0,2*R+.04],[R*.60,2*R+.01],[R*.95,R*1.20],[R+.10,.24]];
   const ZC=.05,ZM=-1.72;
   let zs=[-2.21,-2.17,-2.10,-1.95,ZM,-1.66,-1.30,-1.26,-1.15,-.95,-.80,-.75,-.62,-.50,-.30,-.10,ZC,.08,.20,.60,1.60,1.85,2.00,2.12,2.18,2.21];
@@ -32755,8 +32828,11 @@ Object.assign(SHAPES,{
     P.box('c',.20,.04,.06,sd*.44,.385,2.19);P.box('c',.05,.04,.13,sd*.57,.385,2.14,0,sd*.85,0); // butoirs chromés
     P.box('O',.07,.03,.02,sd*.44,.435,2.205);
     // la poupe tronquée : quatre feux ronds cerclés, butoirs en deux
-    for(const x of [.48,.66]){P.cyl('n',.078,.03,10,sd*x,.78,-2.215,'z');P.cyl('L',.062,.04,10,sd*x,.78,-2.22,'z');}
-    P.box('c',.50,.05,.06,sd*.50,.58,-2.225);
+    // (17/10, l'arrière v2) LES FEUX EN VOLUME : la cuvette qui dépasse, le cerclage chromé, le verre bombé et son cœur ; la lame qui
+    // tourne sur l'aile, le butoir de caoutchouc
+    for(const x of [.48,.66]){P.cyl('n',.084,.05,12,sd*x,.78,-2.225,'z');P.put('c',new THREE.TorusGeometry(.08,.011,4,16),sd*x,.78,-2.25);
+      P.lathe('L',[[.066,0],[.05,-.016],[0,-.022]],12,sd*x,.78,-2.248,'z');P.cyl('r',.026,.01,8,sd*x,.78,-2.268,'z');}
+    P.box('c',.50,.05,.06,sd*.50,.58,-2.225);P.box('c',.05,.05,.16,sd*.76,.58,-2.15,0,sd*.6,0);P.box('n',.035,.09,.05,sd*.27,.585,-2.255);
     for(const x of [.30,.40])P.cyl('c',.035,.12,8,sd*x,.30,-2.24,'z');
     for(let i=0;i<2;i++)P.box('n',.26,.01,.12,sd*.30,T(.42-i*.17)+.006,.42-i*.17,.08); // les ouïes du capot
     P.put('c',new THREE.CylinderGeometry(.018,.03,.10,8),sd*.84,.95,-.08,0,0,Math.PI/2*sd); // rétro obus
@@ -32764,7 +32840,13 @@ Object.assign(SHAPES,{
     P.box('O',.012,.035,.08,sd*(xW(1.75)-.004),.64,1.75);
   });
   P.box('n',.62,.05,.02,0,.38,2.215);                                          // la bouche
-  P.box('n',.40,.11,.02,0,.62,-2.215);
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG » — la revue des poupes, 2e tour) : quatre feux ronds et des baguettes chromées, correct, mais le bas était plat. Désormais
+     les feux en volume, les retours de lame et les butoirs (dans le P.sym), et ici : la PLAQUE et sa lampe, le BOUCLIER sous les lames et
+     son pli d'ombre, la JUPE noire à ailettes où s'encastrent les quatre sorties de Léo et leurs écrins (ECH_POTS.b_daytona, inchangé). */
+  P.box('n',.40,.13,.02,0,.62,-2.215);P.box('w',.36,.10,.012,0,.62,-2.228);P.box('W',.10,.014,.01,0,.69,-2.222); // la plaque, sa lampe
+  P.prism('p',[[-2.16,.54],[-2.245,.53],[-2.26,.46],[-2.25,.39],[-2.20,.37],[-2.16,.37]],1.56,0);                 // le bouclier…
+  P.box('n',1.50,.014,.012,0,.535,-2.247);                                                                        // …son pli d'ombre
+  P.box('n',1.36,.12,.05,0,.33,-2.245);for(const x of [0,-.13,.13,-.52,.52,-.64,.64])P.box('K',.016,.11,.07,x,.33,-2.26); // la jupe, ses ailettes
   P.cyl('c',.055,.02,10,-.60,T(-1.95)+.01,-1.95,'y');                          // le bouchon de réservoir
   K.commit(P);
   return {hl:[.38,.485,2.225],tl:[.66,.78,-2.23],wx:.74,wzF:ZF,wzR:-ZR,
@@ -33128,7 +33210,8 @@ Object.assign(SHAPES,{
      en fastback jusqu'à la poupe ronde, et la ceinture qui redescend sur les hanches. */
   const U=LPU,R=.33,ZF=1.375,ZR=-1.065;
   const P=K.kit({p:{g:'p',c:0xeee3c6},j:{g:'p',c:0xa89c7e},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xb9bec6},
-    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+    g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
+    w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) w la plaque éclairée — aucune famille de plus
   const AR=[[0,2*R+.06],[R*.55,2*R+.03],[R*.95,R*1.30],[R+.12,.27]];
   const ZC=.28;                                                                   // le pied du pare-brise
   let zs=[-2.225,-2.19,-2.12,-2.03,-1.92,-1.80,-1.66,-1.50,-1.33,-1.30,-.88,-.80,-.76,-.70,-.66,-.40,-.14,-.10,.10,.24,.27,.30,.45,.70,1.00,1.15,1.62,1.80,1.92,2.02,2.10,2.17,2.205,2.225];
@@ -33183,12 +33266,21 @@ Object.assign(SHAPES,{
     P.box('j',.006,.36,.008,sd*(xW(-.70)+.002),.60,-.70);                          // l'arrière de la porte
     // (13/10, Léo : « les barres chelou ») le jonc de seuil chromé RETIRÉ
     // la poupe ronde : petits feux sur les ailes, lames chromées, plaque
-    P.put('L',new THREE.SphereGeometry(1,6,4),sd*.50,.585,-2.165,0,0,0,.075,.045,.05);
-    P.put('O',new THREE.SphereGeometry(1,6,4),sd*.54,.52,-2.145,0,0,0,.045,.03,.045);
-    P.box('c',.30,.03,.06,sd*.40,.44,-2.205,0,-sd*.28);
+    // (17/10, l'arrière v2) LES FEUX SUR LEUR SOCLE CHROMÉ, plus marqués : le rouge bombé au-dessus, l'orange dessous ; la LAME qui tourne
+    // le coin, et son BUTOIR
+    // (la queue est ronde : à x 0,5 la tôle est déjà à z −2,18 — socle et verres posés DEHORS)
+    P.put('c',new THREE.CylinderGeometry(1,1,1,12),sd*.505,.56,-2.19,Math.PI/2,0,-sd*.25,.088,.03,.13);
+    P.put('L',new THREE.SphereGeometry(1,8,5),sd*.505,.598,-2.205,0,0,0,.075,.058,.05);P.cyl('L',.012,.01,6,sd*.505,.598,-2.22,'z');
+    P.put('O',new THREE.SphereGeometry(1,8,5),sd*.51,.515,-2.20,0,0,0,.058,.04,.045);
+    P.box('c',.30,.03,.06,sd*.40,.44,-2.205,0,-sd*.28);P.box('c',.10,.03,.05,sd*.58,.44,-2.10,0,-sd*.9);
+    P.box('c',.03,.11,.04,sd*.24,.46,-2.25,.01);
   });
   P.box('c',.24,.016,.02,0,.63,-2.20);                                            // poignée de hayon
-  P.box('k',.34,.11,.02,0,.40,-2.222);P.box('k',.90,.05,.10,0,.30,-2.14);         // l'encadré de plaque (vierge), la jupe
+  /* L'ARRIÈRE v2 (2026-10-17, Sacha : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG » — la revue des poupes, 2e tour) : de petits feux ronds, une plaque vierge, deux pots ; fidèle, mais minuscule de loin.
+     Désormais les feux sur leur socle chromé, les retours de lame et les butoirs (dans le P.sym), et la PLAQUE éclairée par ses deux
+     lampes. Les deux pots de Léo (ECH_POTS.e_feline) n'ont pas bougé. */
+  P.box('k',.36,.13,.02,0,.40,-2.222);P.box('w',.32,.10,.012,0,.40,-2.234);P.box('k',.90,.05,.10,0,.30,-2.14);   // la plaque, la jupe
+  P.sym(sd=>{P.box('c',.07,.03,.04,sd*.12,.475,-2.225,.35);P.box('W',.05,.014,.01,sd*.12,.462,-2.24);});        // ses deux lampes
   K.commit(P);
   return {hl:[.535,.625,2.03],tl:[.50,.585,-2.20],wx:.68,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.22,style:'multi',n:10,jante:0xe9ecf0}};
@@ -34070,7 +34162,8 @@ Object.assign(SHAPES,{
   iceberg:function(K){
     const U=LPU,R=.36,ZF=1.5,ZR=-1.5,V=new THREE.Vector3(),V2=new THREE.Vector3(),V3=new THREE.Vector3();
     const P=K.kit({N:{g:'s',c:0xeaf4fb},B:{g:'p',c:0x0d2d4a,f:0},G:{g:'s',c:0x23272e},C:{g:'l',c:0x46d2ff},
-      W:{g:'l',c:0xeafaff},L:{g:'l',c:0xff1838},k:{g:'m',c:0x0c1a26}});
+      W:{g:'l',c:0xeafaff},L:{g:'l',c:0xff1838},k:{g:'m',c:0x0c1a26},
+      r:{g:'l',c:0x8a0c18},R:{g:'l',c:0xff7a8c}}); // (17/10, l'arrière v2) r, R : les facettes des éclats rouges — aucune famille de plus
     const I=K.kit({i:{g:'c',c:0x1479b8},o:{g:'c',c:0x1f95cf},j:{g:'c',c:0x2fb2e6},m:{g:'c',c:0x48c4ee},h:{g:'c',c:0x7ad8f7},n:{g:'c',c:0x9ae2fa},v:{g:'c',c:0x0b3f66}});
     const hs=(a,b)=>{const x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x);};             // un hasard FIXE (la même glace à chaque construction)
     // UNE FACETTE : `cle` la force ; sinon, à plat c'est de la NEIGE (par plaques), ailleurs une nuance de GLACE plus profonde vers le bas
@@ -34129,6 +34222,15 @@ Object.assign(SHAPES,{
       dehors(B9[0],B9[1],A,[x,yb-l*.3,z],'h');dehors(B9[1],B9[2],A,[x,yb-l*.3,z],'n');dehors(B9[2],B9[0],A,[x,yb-l*.3,z],'m');}
     // LES PHARES (des fentes au nez des blocs), LES FEUX (sur les falaises), les tuyères (au bout du fuselage)
     P.sym(sd=>{P.box('W',.26,.035,.03,sd*.78,.44,2.31,0,sd*.25,0);P.box('L',.34,.045,.02,sd*.78,.86,-2.265);});
+    /* L'ARRIÈRE v2 (2026-10-17, Sacha : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG » — la revue des poupes, 2e tour) : les feux étaient deux bâtons rouges. Désormais LES FEUX EN ÉCLATS DE GLACE ROUGE : sur
+       chaque falaise, une gerbe de cinq aiguilles, chacune trois facettes (claire, vive, sombre) — on lit un cristal. Le fil rouge reste
+       dessous : il donne leur place aux traînées (un `tri` ne se relève pas). */
+    {const ec=(x,y,z,l,r,dx,dy)=>{const A=[x+dx*l,y+dy*l,z-l],B=[[x+r,y-r*.6,z],[x,y+r,z],[x-r,y-r*.6,z]],o=[x,y,z+.2];
+       for(let k=0;k<3;k++){const a=B[k],b=B[(k+1)%3],cle=k===0?'R':k===1?'L':'r';
+         V.set(b[0]-a[0],b[1]-a[1],b[2]-a[2]);V2.set(A[0]-a[0],A[1]-a[1],A[2]-a[2]);V.cross(V2);
+         V3.set((a[0]+b[0]+A[0])/3-o[0],(a[1]+b[1]+A[1])/3-o[1],(a[2]+b[2]+A[2])/3-o[2]);if(V.dot(V3)<0)P.tri(cle,a,A,b);else P.tri(cle,a,b,A);}};
+     P.sym(sd=>{for(const q of [[.70,.88,.16,.035,-.15,.25],[.78,.90,.22,.04,0,.35],[.86,.87,.15,.032,.25,.2],[.74,.83,.12,.03,-.1,-.15],[.83,.82,.13,.03,.2,-.2]])
+       ec(sd*q[0],q[1],-2.262,q[2],q[3],sd*q[4],q[5]);});}
     P.box('L',.12,.035,.02,0,.36,-2.315);
     P.sym(sd=>P.cyl('k',.045,.04,10,sd*.11,.31,-2.30,'z'));
     K.commit(P);
@@ -38722,6 +38824,12 @@ function nitroFeu(dt){
       tenir, quatre sur cinq pour tenir. EN L'AIR elle brûle plein. La FRÉNÉSIE garde son
       nitro qui dure 2× partout (demande de Sacha, FLOW v3) : c'est l'état des maîtres, et il se perd tout seul.
    5. LE RASE-BORD (,22/s) ne remplit que nitro COUPÉE : rien ne se remplit en continu pendant que ça brûle.
+   6. LA FIGURE SE PAIE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage,
+      cumulable »). La lancer en vol coûte `figN.cout` (20 % de la jauge) — pas assez dans la jauge : elle ne part pas (le « tchk » de la
+      nitro à vide). Plantée, elle rapporte `figN.rend` (30 %) à la POSE RÉUSSIE, et ça s'additionne : trois figures = 90 %, un tonneau ×3
+      (trois double-taps, 60 % payés) = 90 %. Chute en plein tour, pose de travers ou à contresens : les 20 % sont perdus. Le SAUT NITRO paie
+      déjà ses 20 % (VEQ_K.sautCout) : sa figure rapporte comme les autres. Plus rien n'est rendu EN VOL (le plein à la plantée d'ASPHALT 8
+      et la prime du COMBO À TROIS se sont tus), et la recharge de la chaîne (`fig`) ne joue plus quand le vol porte une figure : la loi 6 paie.
    Ce qui se RAMASSE (pads, fruits, la LIGNE PARFAITE) et les gestes de la route (drift, frôlé, fronde…) ne changent pas : tenir le
    nitro « à fond tout le temps » reste le prix de la trajectoire parfaite — sur la ROUTE.
    ⚠ BLOC PUR : ne lit que ses arguments et NITRO2 — le banc de simulation l'exécute tel quel, hors du jeu. Tous les réglages du
@@ -38735,7 +38843,7 @@ const NITRO2={
   coup:.12,                // l'allumage EN VOL (le coup de réacteur) : 12 % de la jauge
   pose:{pct:.2,plein:1.2}, // la pose : 20 % de la jauge, pleine à partir de 1,2 s de vol (loi 2)
   fig:{base:.45,par:.12,max:1.2}, // la figure posée : ,45 + ,12 par × de la chaîne, plafond 1,2 (puis ×1,5 parfaite · ×2 divine)
-  figAir:{base:.22,rep:.12,k:.8}, // (2026-10-14, LES FIGURES v2 — Asphalt 8) la figure PLANTÉE en vol, tout de suite : ,22 (+ ,12 par tour de plus), × ,8 par figure déjà payée dans ce vol
+  figN:{cout:.2,rend:.3},  // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 30 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée)
   bump:{q:.35,k:.6,n:4},   // le bump : ,35 · ,21 · ,13 · ,08 puis rien (loi 3)
   rase:.22                 // le rase-bord (/s), nitro coupée seulement (loi 5)
 };
@@ -39036,6 +39144,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
   const c=HAUT.cur;if(c&&performance.now()<HAUT.fin)try{HAUT_COUPE[c.k]();}catch(e){}
   HAUT.cur=null;HAUT.fin=0;engBigCoupe();
   const p=document.getElementById('popTxt');if(p)p.classList.remove('on','on2');popTexte._s=0; // le dernier geste ne survit pas à la caisse (gt1-16)
+  try{m2LigneVide();}catch(e){} // (2026-10-17) la ligne des missions du bas se tait avec les autres (l'écran de mort les récapitule)
 }
 function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
@@ -39890,7 +39999,8 @@ function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. R
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
-  toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
+  if(!(MISSIONS_V2&&m2LigneDit('col',sansAcc(TR('COULEUR')+' '+TR(d.n)),''))) /* (2026-10-17) en course : la ligne du bas, pas le toast du haut */
+    toast(pxi('coche')+' '+TR(MISSIONS_V2?'MISSION SECRÈTE':'DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
 function cosmVu(cat,d){ // la VUE d'un habillage pour une liste (contrat avec INTERFACE) : une secrète pas encore gagnée → masquée (les accesseurs le font déjà ; `masque` le dit)
   if(d&&d.sec&&!window.PAL_REVELE&&!shopOwned(cat,d.id))return {id:d.id,sec:d.sec,n:d.n,d:d.d,c:d.c,g:d.g,r:d.r,ind:d.ind,masque:true};return d;}
 function cosmSwCl(d){return d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'';} // la classe de finition d'une pastille de peinture (une seule table pour toutes les listes)
@@ -47804,7 +47914,7 @@ if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; 
 function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
-  cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
+  cv:{n:0,dist:0,ids:{},noms:[],cle:'',finT:0},redP:0,cyc:0,sensAlt:1,nPay:0,nitF:0,pts:0,aura:0,deriveArm:0,drift:false,driftS:1,qm0:new THREE.Quaternion(),qm1:new THREE.Quaternion(),dm:0,memo:false,memoN:false,
   qf:new THREE.Quaternion(),qr:new THREE.Quaternion(),qd:new THREE.Quaternion(),m4:new THREE.Matrix4(),v:new THREE.Vector3(),d:new THREE.Vector3(),
   n:0,payees:0,chutes:0,vis:null,cle:'',wPose:0,jetS:0,herite:null,img:0,att:null,redresse:0};
 /* UN EMPLACEMENT PAR DIRECTION (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant ; dans
@@ -47844,7 +47954,7 @@ function figEquipe(id,k){if(!window.FIG||!FIG.par[id]||!figPossede(id))return nu
   if(S[k]===id)return {deja:true,slot:k};
   const parti=S[k];S[k]=id;SAVE.d.figEq3=S.map(function(x){return x||'';});SAVE.d.figEq=figEquipees().slice(0,2);SAVE.flush();FX2.cle='';return {parti:parti,slot:k};}
 function figMemo(dt){FX2.qm1.copy(FX2.qm0);FX2.qm0.copy(carGroup.quaternion);FX2.dm=dt;FX2.memo=FX2.memoN;FX2.memoN=true;} // (conduite, chaque image) l'assiette des deux dernières images
-function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;if(!C)return;
+function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;FX2.nitF=0; /* (loi 6) un vol neuf : rien à rendre */if(!C)return;
   C.vide();FX2.slots[0]=FX2.slots[1]=FX2.slots[2]=null;FX2.nPay=0;FX2.pts=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.redP=0;FX2.trio=[]; /* (COMBOS À TROIS : un vol neuf, un trio neuf) */FX2.deriveArm=0;FX2.img=0;FX2.att=null;CAMV.eta=99; // (le viseur de l'image d'avant date du vol précédent)
   if(!FIGV2.on||bord||!VEQ.on){FX2.memo=false;return;} // le BORD garde la bascule de Léo (VEQ)
   tmp.copy(fallVel).normalize();FX2.m4.makeBasis(FLY_R,FLY_U,tmp);FX2.qf.setFromRotationMatrix(FX2.m4);
@@ -47929,6 +48039,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   /* À L'IMAGE DU DÉCOLLAGE (le saut nitro, un doigt déjà posé) le viseur n'a pas encore mesuré le vol : une route qui plonge sous la caisse
      reprend la caisse en 0,1 s (MESURÉ au banc : le salto du saut nitro partait, puis s'annulait). La demande attend UNE image (16 ms). */
   if(FX2.img<2&&!o.attendu){FX2.att={s:s,o:Object.assign({},o,{attendu:true,dispo:null})};if(s>=0)FX2.cyc=(s+1)%FIG_NB;return {attente:true};}
+  const nc9=figNitCout(o);if(nc9>0&&nitroR+nitroX+(o.double&&FLC.ok&&performance.now()-FLC.t<450?FLC.c:0)<nc9){figRefus(s);return null;} // (2026-10-17, LA FIGURE SE PAIE — loi 6 du réservoir) pas 20 % dans la jauge (le coup de réacteur du double-tap, qui sera rendu, compté) : elle ne part pas
   const bud=o.dispo!=null?o.dispo:figBudget(),D=figDose(f,bud);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
   const st9=o.dx!=null&&Math.abs(o.dx)>=.3?o.dx:steer; // (2026-10-15, les deux familles) le geste de CÔTÉ donne le pouce LUI-MÊME (figDirSlot) : la figure part de ce côté, sans attendre que le volant lissé l'ait rejoint
@@ -47944,10 +48055,19 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   /* LE DOUBLE-TAP N'EST PAS UN BOOST (la règle des FIGURES LIBRES de GAMEPLAY, gardée) : son 1er appui avait allumé le réacteur en vol (+46,
      12 % de la jauge) — rendu, vitesse et nitro. Un appui seul reste le boost ; marteler fait tourner, pas filer. */
   if(o.double&&FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // (le FLC des FIGURES LIBRES, posé au coup de réacteur)
+  if(nc9>0)figNitPaye(nc9);r.nitN=(r.nitN|0)+1; // (loi 6) les 20 % partent ; la figure (celle du SAUT NITRO aussi : le saut a payé) comptera pour la pose — un tour EMPILÉ compte pour une de plus
   // le SAUT NITRO a déjà son souffle et son motif dans la main (Léo) : l'explosion de la figure ne revibre pas par-dessus (une seule voix par événement)
   const sautN=performance.now()-VEQ.sautT<120;
   if(sautN){try{if(SONV2)sfx('fig.explose',{var:0,vol:-6});}catch(e){}}else figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);figBtFx(s,'boum');fhLance(s,r,o); // (HUD des figures v3) son nom tombe en grand
   return r;}
+/* LA FIGURE SE PAIE (2026-10-17, Sacha — loi 6 du réservoir, réglages dans NITRO2.figN) : 20 % de la jauge au lancement, 30 % par
+   figure plantée rendus à la pose RÉUSSIE (figNitRend, appelée par tryLand et levreRattrape), perdus sinon. Offerte (rien à payer, elle
+   rapporte quand même) : la figure du SAUT NITRO (le saut a déjà payé ses 20 %), sous NITRO INFINIE, au parc, à l'auto-école.
+   `dbgFigNit()` : le prix, ce qui attend la pose, la jauge. */
+function figNitCout(o){return o.douce||pwrNitroT>0||PARK.on||TUTO.on?0:NITRO2.figN.cout*nitroCap();}
+function figNitPaye(q){const av=nitroR+nitroX;if(nitroR>=q)nitroR-=q;else{nitroX=Math.max(0,nitroX-(q-nitroR));nitroR=0;}if(LIVRE.on)livre('n-:figure',av-nitroR-nitroX);} // (la réserve bleue après la jauge, comme le saut nitro)
+function figNitRend(ok){const n=FX2.nitF|0;FX2.nitF=0;if(ok&&n>0)nitroPct(NITRO2.figN.rend*n,'figure');return n;}
+window.dbgFigNit=function(){return {cout:+(NITRO2.figN.cout*nitroCap()).toFixed(3),aRendre:FX2.nitF|0,rendSiPose:+(NITRO2.figN.rend*(FX2.nitF|0)*nitroCap()).toFixed(3),jauge:+nitroR.toFixed(3),reserve:+nitroX.toFixed(3),cap:nitroCap(),mode:mode};};
 function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
 /* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
    de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
@@ -47956,7 +48076,7 @@ function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,
    20 familles (COMBO_NOMS) : on les découvre avec ses trois emplacements, et chaque figure achetée en ouvre d'autres.
    · LA PRIME : de l'AURA = la moitié des trois figures. ×1,5 pour LE GYROSCOPE (les trois axes purs), +25 % par enchaînement PILE
      (la figure suivante lancée pendant la PRISE de la précédente : `r.bm`, posé par figLance), ×2 à la 1re fois. Elle entre dans la
-     chaîne comme une figure (FX2.pts) : une pose ratée (figChute) l'emporte avec les autres. Plus un peu de nitro, comme une figure.
+     chaîne comme une figure (FX2.pts) : une pose ratée (figChute) l'emporte avec les autres. (Plus de nitro depuis la loi 6 : la pose paie.)
    · LE CARNET : `SAVE.d.combos` {famille: nombre}. Une famille neuve → bandeau « NOUVEAU COMBO » avec le compte « n / 20 ».
    `?combo=0` les éteint. `dbgCombo()` : le carnet, le trio en cours. */
 const COMBO_ON=!/[?&]combo=0\b/.test(location.search);
@@ -47966,7 +48086,7 @@ const COMBO_NOMS={TTT:['LA PERCEUSE','THE DRILL'],PPP:['LE TOURBILLON','THE WHIR
   PSS:['LA MACHINE A LAVER','THE WASHER'],SST:['LA ROUE DU HAMSTER','THE HAMSTER WHEEL'],MSS:['LE CASCADEUR','THE STUNTMAN'],
   MMT:['LA TORNADE','THE TORNADO'],MMP:['LA BOULE DISCO','THE DISCO BALL'],MMS:['LE CRASH-TEST','THE CRASH TEST'],
   PST:['LE GYROSCOPE','THE GYROSCOPE'],MPT:['LE SATELLITE','THE SATELLITE'],MST:['LE BOOMERANG','THE BOOMERANG'],MPS:['LE KAMIKAZE','THE KAMIKAZE']};
-const COMBO_K={part:.5,gyro:1.5,pile:.25,neuf:2,nitro:.15};
+const COMBO_K={part:.5,gyro:1.5,pile:.25,neuf:2};
 function comboAxe(f){const m=f&&f.m||[];if(m.length!==1||!m[0].t)return 'M';const a=m[0].a;
   if(a[2]&&!a[0]&&!a[1])return 'T';if(a[1]&&!a[0]&&!a[2])return 'P';if(a[0]&&!a[1]&&!a[2])return 'S';return 'M';}
 function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou à la pose)
@@ -47981,7 +48101,6 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
   FX2.aura=aura;const c0=CHA.pts;
   addTrick('fig_combo_'+cle,txt,Math.round(aura/16),3); // (dans la chaîne comme une figure : sa famille s'use à la redite, ×0,7)
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.combos=(FX2.combos|0)+1;
-  try{nitroGain(K.nitro,'figair');}catch(e){}
   hap([14,30,14,30,40]);
   try{sonCombo(cle,neuf);}catch(e){} // (SON) la signature sonore du combo : livrée par la session SON — muet tant qu'elle n'existe pas
   if(neuf){const n=Object.keys(D).filter(function(k){return COMBO_NOMS[k];}).length;
@@ -47994,7 +48113,7 @@ function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),
   {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
   if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
-  const k=NITRO2.figAir;nitroGain((k.base+k.rep*(reps-1))*Math.pow(k.k,FX2.nPay),'figair');FX2.nPay++; // ASPHALT 8 : la figure plantée remplit le NITRO, tout de suite
+  FX2.nitF+=r.nitN|0;FX2.nPay++; // (2026-10-17, loi 6) la figure plantée ne remplit plus le NITRO tout de suite (ASPHALT 8) : elle COMPTE, la pose réussie la rend — 30 % chacune
   hap([10,22,10]);
   comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
 function figChute(){if(FX2.pts>0&&CHA.n>0){CHA.pts=Math.max(0,CHA.pts-FX2.pts);chaHud(true,false);}FX2.pts=0;FX2.chutes++; // posée en plein tour : les figures du vol quittent la chaîne (BMX)
@@ -48409,11 +48528,32 @@ function m2Verifie(enC){if(!MISSIONS_V2)return 0; /* en v1 les compteurs tournen
   for(const m of M2){if(s.ok.indexOf(m.id)>=0)continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
     if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
-/* le bandeau DISCRET de la course (« il ne cache pas la route » : la bannière du haut, celle des missions) ; une secrète ne dit rien d'elle */
+/* l'annonce d'une mission réussie : EN COURSE, la LIGNE du bas (#m2Ligne) ; hors course, le toast. Une secrète ne dit rien d'elle */
 function m2Annonce(m,enC){if(!MISSIONS_V2)return;const r=m.r||{};
-  if(m.f==='secret'){if(enC)misBanniere('MISSION SECRÈTE','? ? ?','','etoile');return;}
+  if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC)misBanniere('MISSION RÉUSSIE',m2Txt(m),p,'coche');else try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+/* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
+   en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
+   UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
+   NITRO reste libre). Plusieurs d'un coup : la première passe seule, tout le reste se dit en UNE ligne (« 3 MISSIONS RÉUSSIES ») ; 2,4 s
+   chacune. Le son ui.mission une fois par ligne (la couleur secrète garde le sien, sonné par secDonne). Aucune image de la boucle n'y touche :
+   piloté par événements, vidé par hautVide (l'explosion, l'écran de mort, RECOMMENCER). k : 'ok' réussie · 'sec' secrète · 'col' couleur */
+const M2L={q:[],t:0,on:0};
+function m2LigneDit(k,tx,p){if(!m2EnC())return false;M2L.q.push({k:k,tx:tx,p:p||''});if(!M2L.on)m2LigneSuit();return true;}
+function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Ligne');
+  if(!M2L.q.length||!m2EnC()){m2LigneVide();return;}
+  let it=M2L.q.shift();
+  if(M2L.on&&M2L.q.length){const n=M2L.q.length+1;M2L.q.length=0;it={k:'ok',tx:'',p:'',n:n};} // une rafale : le reste en une seule ligne
+  M2L.on=1;
+  if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
+  const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
+  const sec=it.k!=='ok',ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
+  e.innerHTML='<i>'+pxi(sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  try{if(SONV2&&it.k==='ok')sfx('ui.mission');}catch(x){}
+  M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
+function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
 function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
   if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
@@ -48507,7 +48647,7 @@ Object.assign(I18N,{'RÉCUPÈRE':'CLAIM','BIENTÔT':'SOON','RÉUSSIE':'DONE','SE
   'MISSION SECRÈTE TROUVÉE':'SECRET MISSION FOUND','FAIT':'DONE','PAS ENCORE':'NOT YET','TROIS MISSIONS SUIVIES AU PLUS':'3 TRACKED MISSIONS AT MOST',
   'TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU PLUS':'TAP A MISSION TO TRACK IT · 3 MAX','RÉCOMPENSE À RÉCUPÉRER':'A REWARD IS WAITING',
   'TOUTES LES MISSIONS':'ALL MISSIONS','À RÉCUPÉRER':'TO CLAIM','BIENTÔT AU GARAGE':'COMING TO THE GARAGE SOON','RÉCOMPENSE À VENIR':'REWARD COMING SOON',
-  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT'});
+  'EST À TOI':'IS YOURS','SUIVIE':'TRACKED','VERSÉS AU COMPTE':'PAID INTO YOUR ACCOUNT','MISSIONS RÉUSSIES':'MISSIONS DONE'});
 function m2Nb(x){return Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[  ]/g,' ');}
 function m2Mn(x){x=Math.max(0,Math.floor(x));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
 /* L'AVANCEMENT DE LA PARTIE (en course, l'écran de mort) : pour une mission « en une partie », ce que CETTE partie a fait — le record
@@ -50892,7 +51032,7 @@ function tryLand(dt){
   {const vm9=vitMult(),vT9=fallVel.dot(T[bestI])/vm9,vB9=fallVel.dot(B[bestI])/vm9;vA=vT9>0?Math.hypot(vT9,vB9):vT9;vL=vB9*.4*sideL;} /* (2026-10-15, Sacha : « quand on arrive sur la route en volant avec un certain angle on est ralenti d'un coup, on ne peut pas la couper ») LA COUPE GARDE SON ÉLAN : au sol vA est la vitesse le long du CAP (on avance de vA·cos psi, on dérive de vA·sin psi), et le cap posé juste au-dessus EST la direction du vol — vA = toute la vitesse à plat, plus sa seule part dans l'axe : le cosinus de l'angle était compté DEUX fois (45° → la moitié de l'avance envolée, 60° → les trois quarts). À contresens, inchangé. */ // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
-  {const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
+  const nPose9=nitroR;{const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
   /* (2026-09-26, user : « l'impact MÉTÉORE, c'est quand on entre en collision avec la route EN NITRO avec un angle supérieur à 45° »)
      Plus la figure MÉTÉORE (nitro tenue en l'air) : le CRATÈRE naît d'un PIQUÉ — nitro allumée au contact, et la trajectoire plonge
      dans la dalle à plus de 45° (vitesse normale > vitesse dans le plan : vN² > v² − vN²). Une pose rasante en nitro ne creuse rien. */
@@ -50904,6 +51044,7 @@ function tryLand(dt){
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
   const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */ FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose — (2026-10-14, revue des idées de Léo) il était collé au commentaire d'avant, donc avalé : jamais écrit
+  const figN9=FX2.nitF|0;{const nf9=nitroR;figNitRend(!poseRatee);if(SONV2&&nitroR>nf9+.01&&nf9<=nPose9+.01)sfx('nitro.plein',{t:.2});} // (2026-10-17, LA FIGURE SE PAIE — loi 6) chaque figure plantée rend 30 % à la pose RÉUSSIE ; de travers, à contresens ou en plein tour : perdu — le « plein » sonne une fois, avec celui de la pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
   vA*=(1-landLoss);vL*=(1-landLoss);
@@ -51002,7 +51143,7 @@ function tryLand(dt){
     if(g>=1.5&&!poseRatee&&(fallT>.7||gain>0))RUNX.perfect++;
     if(gain>0){ // l'airtime brut ne rapporte RIEN : sans chaîne à casher, la pose est muette
       flowAdd(g>=2?14:g>=1.5?10:4,g>=1.5?'risque':'style',sideL<0?'m':'n'); // (v5) posé sur la FACE CACHÉE : l'envers du décor, c'est MACHIAVEL // FLOW : une figure encaissée nourrit la montée — la pose PARFAITE est un RISQUE (on a visé), l'ordinaire du style
-      nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit)*veqNitK(),'figure'); // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
+      if(!figN9)nitroGain(nitroFigDe(chainMult,g,NIT.vol,NIT.nit)*veqNitK(),'figure'); /* (loi 6) un vol à figures est payé par figNitRend, juste au-dessus */ // (LA LOI DU RÉSERVOIR : au prorata du vol nitro coupée) LA FIGURE RECHARGE LE NITRO — plus la chaîne est longue, plus ça remplit ; une pose parfaite ×1,5, DIVINE ×2 (l'échelle des grades monte aussi ici)
       // LA CAISSE ENREGISTREUSE : seulement sur un ENCAISSEMENT QUI COMPTE. Sur chaque pose,
       // meme minuscule, le son deviendrait un tic — et 9 samples n'y changeraient rien.
       runStats.tricks++;
@@ -51103,6 +51244,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
   mode='drive';prevTvalid=false;bascOn=false;
+  {const nf9=nitroR;figNitRend(!VEQ.rate);if(SONV2&&nitroR>nf9+.01)sfx('nitro.plein',{t:.2});} /* (loi 6) rattrapée à la lèvre : les figures plantées rendent leurs 30 % */
   if(FIGV2.on){if(VEQ.rate)figChute();else figComboEncaisse();} /* (2026-10-15, HUD des figures v3 — vu au banc) la LÈVRE rattrapée est une pose : le combo du vol s'y encaisse
      (ou s'y perd), comme sur la dalle — avant, il disparaissait sans un mot (tryLand sort ici avant l'encaissement) */
   if(chain===0&&chainVal>0)rollover=chainVal; // le REPORT d'un PARFAIT, consommé au décollage, n'est pas perdu pour autant
@@ -62250,8 +62392,9 @@ function volgArrive(f,i,muet){
   else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgBat(document.getElementById(f.k==='x'?'nitroX':'nitroR'),a);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
 }
 function volgVide(){for(let i=VOLG.L.length-1;i>=0;i--)volgArrive(VOLG.L[i],i,true);VOLG.n.r=VOLG.n.x=0;}
+function volgMesure(){if(AJ.seg)VOLG.rS=zRect(AJ.seg);const nb=document.getElementById('nitroBar');if(nb)VOLG.rN=zRect(nb);}
 function volgTick(dt){
-  if((VOLG.rT-=dt)<=0){VOLG.rT=.5;if(AJ.seg)VOLG.rS=zRect(AJ.seg);const nb=document.getElementById('nitroBar');if(nb)VOLG.rN=zRect(nb);}
+  if((VOLG.rT-=dt)<=0){VOLG.rT=.5;apresMiseEnPage(volgMesure);} // (2026-10-17, HUD-MESURE) relus en fin d'image, quand ça ne force plus rien (voir apresMiseEnPage)
   if(!VOLG.L.length)return;
   dt=Math.min(dt,.05)*VOLG.k; // (k : le ralenti du banc, `dbgVols('ralenti',.1)`)
   for(let i=VOLG.L.length-1;i>=0;i--){const f=VOLG.L[i];f.t+=dt;

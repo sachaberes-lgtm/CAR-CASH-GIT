@@ -44,6 +44,76 @@
 - BANCS (scratchpad de la session) : `photos.cjs`/`lots.sh` (Math.random GRAINÉ : même piste avant/après, par paquets de 3 sous le plafond du banc),
   `glacier-vue.cjs`, `sat-vue.cjs`, `lab.py` (L*/C* par zones), `banq-trace.cjs` (le glacier en Node), le banc forêt de passation/foret-pelote.
 
+## LA COLONNE DU HUD SE MESURE APRÈS LA MISE EN PAGE — getBoundingClientRect 675 → 9 ms EN COURSE (2026-10-17, session HUD-MESURE, lancée par ALLÈGE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »)
+- LE CONSTAT (ALLÈGE, refait ici) : téléphone émulé 390×844, processeur bridé ×4, 12 s de course : `getBoundingClientRect` ≈ 540-675 ms de temps
+  propre debout, 743 couché (~5 % du fil principal), presque tout par `zRect` — `hudColonne` 506-645 ms inclusif, `volgTick` 85-153. Ce ne sont pas
+  les lectures qui coûtent : la PREMIÈRE de chaque passage (le ⚙, via `zRect`) refaisait sur-le-champ styles + mise en page — même en tête d'image,
+  le HUD est resali entre deux images (ses animations avancent, des minuteries écrivent) — puis le navigateur les refaisait pour peindre.
+- POURQUOI PAS « relire seulement quand une hauteur change » (la piste de `passation/ETAT-OPTIMISATION.md`) : compté au banc sur 20 s de course
+  debout (ResizeObserver, MutationObserver et événements d'animation posés sur les six blocs, le ⚙ et la carte du coach) : 14 changements de taille,
+  contre 30 changements de classe du `<body>` (`slamOn`, `ebOn`, `ebPlonge`, `hAirPie`…), 29 du compteur (`b1`/`b2`) et ~20 transitions ou
+  animations sur la colonne (`#pwrChip` qui glisse, `#airHud` `hmPie`, le ⚙ `hmDroite`, `#triade` `trNait`). Un `visibility:hidden` posé par une
+  classe, un `transform` qui déplace ou rétrécit un bloc : aucune taille ne le dit. Des « drapeaux sales » auraient dû tout suivre — et se seraient
+  trompés en silence au premier oubli d'une autre session.
+- CE QUI CHANGE : `apresMiseEnPage(fn,ecrit)` — un TÉMOIN invisible (`#mepTemoin`, 1 à 8 px, `contain:strict`) observé par un ResizeObserver : changer
+  sa largeur fait rappeler l'observateur juste APRÈS la mise en page de l'image, avant la peinture — styles et boîtes à jour, lire ne force plus
+  rien ; si un `top` change, seule la boîte déplacée se refait. `hudColonne` garde son rythme (10 fois par seconde) et confie la mesure — le code
+  d'avant, À L'IDENTIQUE, devenu `hudColMesure` — à ce rappel ; `volgTick` y relit ses deux rectangles (`volgMesure`, 2 fois par seconde). Les
+  lectures passent avant les écritures (`ecrit`). Sans ResizeObserver (très vieux WebKit) : tout de suite, comme avant ; un rappel perdu se
+  redemande au bout d'1 s ; le témoin revient si un écran vide le `<body>`. La colonne suit désormais dans la MÊME image (avant : une de retard).
+- Au passage, le `top` s'écrit « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison réécrivait le même `top` à chaque
+  passage (sans effet dans Chrome ; un recalcul de style possible dans WebKit). Même valeur, même pixel.
+- MESURÉ (banc de la session, 12 s de course en bac à sable, ×4, profil CPU ; cartes tirées au hasard) :
+  · `getBoundingClientRect` : debout 675 → 9 ms et 536 → 11 ms (deux paires de passages), couché 743 → 7 ms ;
+  · `hudColonne` + `hudColMesure` : 617 → 74, 506 → 55, couché 645 → 65 ms ; `volgTick` : 124 → 3, 85 → 2, 153 → 8 ms ;
+  · images en 12 s : 242 → 270, 265 → 278, couché 249 → 294 (indicatif : la carte change d'un passage à l'autre). La mise en page restante est faite
+    UNE fois par image, par le navigateur, au lieu de deux.
+- MÊME PLACEMENT, debout ET couché : l'algorithme d'origine recalculé dans la page en lecture seule toutes les 200 ms et comparé aux `top` posés,
+  pendant un pouvoir, deux pouvoirs, la frénésie, le vol : 0 écart sur 75 échantillons stables debout, 0 sur 80 couché (l'ancien code : 0 sur 76 et
+  76). Rectangles relevés identiques au dixième de pixel pour les mêmes états (debout : bas du ⚙ 103, argent 113, plaques 176,3 / 240,2 / 304,2 ;
+  frénésie 176,3 / 246,3 / 300,2 / 428,1 — couché : 66, 125, 191,2, 257,4). Planches avant | après de la colonne :
+  `passation/hud-mesure-colonne-debout.jpg` et `-couche.jpg`. Fumée commune OK (couché + debout, 0 erreur JS, après fusion de main).
+- Non touchés (au coup par coup, hors boucle) : `pixBurst` et la mesure de la triade. Le reste du coût d'une image est au rendu three.js (ALLÈGE).
+
+## LA FIGURE SE PAIE — 20 % DE NITRO, 30 % RENDUS À LA POSE, CUMULABLE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage, cumulable »)
+- **La règle** (loi 6 du réservoir, réglages `NITRO2.figN` = `{cout:.2, rend:.3}`, en part de la jauge du moteur) :
+  · LANCER une figure en vol (double-tap NITRO, le glissé, un tour EMPILÉ sur le tonneau) coûte **20 %** de la jauge, payés à la jauge
+    puis à la réserve bleue des fruits (`nitroX`), comme le saut nitro. Pas assez des deux : la figure ne part pas (le « tchk » de la
+    nitro à vide, `figRefus`) et rien n'est prélevé. Une figure refusée faute de temps ne coûte rien non plus.
+  · Chaque figure PLANTÉE rapporte **30 %** à la POSE RÉUSSIE, et ça s'additionne : deux figures = 60 %, trois = 90 % (plafonné à la jauge
+    pleine). Un tonneau ×3 (trois double-taps) = 60 % payés, 90 % rendus.
+  · « Bon atterrissage » = la pose qui n'est pas RATÉE (`poseRatee` : posée en plein tour, de travers à plus de 55° ou à contresens) ; la
+    lèvre rattrapée compte comme une pose. Pose ratée, chute, explosion en vol : les 20 % sont perdus.
+  · La figure du SAUT NITRO ne coûte rien de plus (le saut paie déjà ses 20 %, `VEQ_K.sautCout`) mais rapporte ses 30 % comme les autres.
+    Offerte aussi : sous NITRO INFINIE, au parc, à l'auto-école. La toupie AUTOMATIQUE du drift ne coûte ni ne rapporte.
+  · Les figures AU SOL (glissé en roulant : SLIDE 360, WHEELIE, STOPPIE) ne sont pas touchées : pas d'atterrissage.
+- **Ce qui s'est tu** (sinon la règle était noyée) : le plein immédiat à la plantée (`NITRO2.figAir`, « ASPHALT 8 », supprimé), les 0,15
+  du COMBO À TROIS (`COMBO_K.nitro`, supprimé), et la recharge de la chaîne à la pose (`nitroFigDe`) quand le vol porte au moins une figure.
+  Un vol SANS figure garde sa recharge de chaîne ; la pose (20 % au prorata du vol nitro coupée) ne change pas.
+- **Code** : `figNitCout(o)` / `figNitPaye(q)` / `figNitRend(ok)` à côté de `figRefus` ; le compte `FX2.nitF` (remis à zéro par `figDepart`,
+  nourri par `figPaye` avec `r.nitN`, le nombre de lancements payés de la figure) ; `figNitRend` appelée par `tryLand` (juste après
+  `poseRatee`) et `levreRattrape`. Le « plein » (`nitro.plein`) sonne une fois, avec celui de la pose. `dbgFigNit()` : le prix, ce qui
+  attend la pose, la jauge, la réserve. Le grand livre compte `n-:figure` et `n+:figure`.
+- **Mesuré au banc** (UA iPhone, muet, vraie partie, pilote auto, saut nitro + double-tap en vol, 10 vols en deux passages) : chaque lancement −20,0 % pile ;
+  pose avec deux figures plantées depuis une jauge basse : +1,366 = 2 × 30 % × 2,05 + la pose du saut (0,136), au millième ; figure refusée
+  faute de temps : 0 prélevé ; jauge ET réserve vides : la figure en vol refusée, 0 prélevé (et la figure du saut rend quand même ses 30 % : +0,734 = 0,6 + 0,134 de pose) ; 0 erreur JS.
+- À juger en jeu par Sacha : le rythme (chaque figure plantée et bien posée rapporte +10 % net ; le saut nitro et sa figure : 20 % payés, 30 % rendus).
+## LES MISSIONS EN UNE LIGNE, EN BAS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète, en bas de l'écran »)
+- EN COURSE, une mission réussie ne pose plus la bannière du haut (`#misBan` : plaque, grosse icône, 12 px, au milieu du ciel) : `m2Annonce`
+  écrit UNE ligne fine en bas, `#m2Ligne` (`m2LigneDit`/`m2LigneSuit`/`m2LigneVide`, la file `M2L`) — coche verte · MISSION REUSSIE ·
+  la consigne · la récompense en or, en 8 px comme les missions suivies et sur leur bande sombre (debout : 3 lignes au plus). Couché : au centre, debout : à gauche (la colonne de
+  NITRO reste libre) ; toujours JUSTE AU-DESSUS des missions suivies (`#m2Focus`, leur hauteur dans `--m2lY`). Une secrète : œil magenta,
+  « MISSION SECRETE ? ? ? ». Une couleur secrète trouvée en course (`secDonne`) : la même ligne au lieu du toast du haut.
+- LA RAFALE : la première passe seule (2,4 s), TOUT le reste se dit en une seule ligne (« 2 MISSIONS REUSSIES ») — au plus deux lignes, là
+  où il y avait une bannière par mission à la queue leu leu. Le son `ui.mission` une fois par ligne.
+- Hors course (menu, écran de mort, `dbgMissions('gagne',…)` au menu) : le toast, inchangé. La ligne se tait avec la file du haut
+  (`hautVide` : l'explosion, l'écran de mort, RECOMMENCER) et disparaît hors manette (`body:not(.play)`).
+- `#misBan` reste aux ASTUCES et aux NOUVEAUX COMBOS (ce ne sont pas des missions).
+- Vérifié au banc (muet), couché 844 × 390 et debout 390 × 844, deux missions suivies, trois missions réussies d'un coup en course
+  (`dbgMissions('gagne','fig2'|'fig5'|'air5')`) : « MISSION REUSSIE FAIS 2 FIGURES DANS UN SEUL SAUT +$ 1 k » puis « 2 MISSIONS REUSSIES » ;
+  aucune bannière en haut. Couché : une ligne de 467 × 15 px, 4 px au-dessus des suivies, rien de lisible dessous ; debout : 244 × 36 px
+  (3 lignes), à gauche de NITRO. Une vraie secrète tombée à l'explosion s'est dite « MISSION SECRETE ? ? ? ». 0 erreur JS.
+
 ## LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran doit être positionné au bon endroit avec la bonne police ; je veux une animation et un son pour chaque bouton ; soigne les transitions entre chaque écran, qu'elles soient fluides »)
 - LE RELEVÉ (banc `audit.cjs`, scratchpad de la session ed900fe4) : 16 étapes (accueil, réglages et leur bas, code, achat, garage, inventaire
   et ses 5 onglets, missions, boutique et un rayon, course, pause, pause → réglages, fenêtre QUITTER, fin avec l'offre de seconde chance, fin,
@@ -83,6 +153,31 @@
   taille de ceux de la coque (inventaire 128 × 52, boutique 128 × 44, missions 90 × 74, réglages/achat 159 × 56) : ce sont les barres de Léo.
 - BANCS : `audit.cjs <debout|couche>` (RACINE, TAG), `analyse.cjs <TAG>`, `film2.cjs` (screencast + horloge rAF + longues tâches par
   transition, 22 passages), `planche_film.py`, `chrono.cjs` (classes de #wipe, écrans, LoAF) — scratchpad ed900fe4.
+## LES POUPES, 2e TOUR — ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG (2026-10-17, Sacha, sur la page de la revue : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG »)
+- Cinq des dix caisses « un cran » de la revue (section suivante) ; même méthode : un bloc « L'ARRIÈRE v2 » dans chaque gabarit, l'avant,
+  les flancs et les pots de Léo (`ECH_POTS`) intacts, aucune famille de matière de plus (plaques et cœurs de feux = clés de la famille des feux).
+  · ROSSO 40 (`SHAPES.rosso`) : la GRILLE EN LOSANGES sur tout le panneau noir (deux nappes de barres croisées à 45°, coupées au bord du
+    panneau, pas de 15 cm), les quatre feux EN VOLUME (cuvette qui dépasse, verre bombé, cœur), la plaque au milieu de la grille, le
+    diffuseur noir à ailettes autour des trois sorties. En course, la lueur des feux (LES LUMIÈRES DE LA CAISSE v2) allume la grille en rouge ;
+  · LE SAMOURAÏ : les feux ronds en anneaux gardés ; le BOUCLIER dans la couleur et son pli, la plaque ENCASTRÉE et sa lampe,
+    l'antibrouillard au milieu, les catadioptres, le grand diffuseur carbone à ailettes (descendu à 18 cm : sans lui le gros canon ne s'y
+    encastrait pas) ;
+  · LA DAYTONA : les quatre feux en volume (cuvette qui dépasse, CERCLAGE CHROMÉ, verre bombé, cœur), les lames chromées qui tournent
+    sur l'aile, les butoirs de caoutchouc, la plaque et sa lampe, le bouclier sous les lames et son pli d'ombre, la jupe noire à ailettes
+    autour des quatre sorties et de leurs écrins ;
+  · LA FÉLINE : les feux sur leur SOCLE CHROMÉ, plus gros (le rouge bombé au-dessus, l'orange dessous), les retours de lame et les
+    butoirs, la plaque éclairée par ses deux lampes. Piège : la queue est RONDE — à x 0,5 la tôle est déjà à z −2,18 ; le premier jet
+    posait socle et verres dedans ;
+  · L'ICEBERG : les deux bâtons rouges deviennent des ÉCLATS DE GLACE ROUGE — sur chaque falaise, cinq aiguilles à trois facettes (claire,
+    vive, sombre). Le fil rouge reste dessous : il donne leur place aux traînées (un `tri` ne se relève pas).
+- MESURÉ (`dbgEssaiCaisse`) : ROSSO 40 3 252 → 4 062 facettes (+25 %), LE SAMOURAÏ 4 704 → 4 980 (+6 %), LA DAYTONA 4 868 → 5 724 (+18 %),
+  LA FÉLINE 5 464 → 5 828 (+7 %), L'ICEBERG 2 022 → 2 052 (+1,5 %). Traînées : `CAR_FEUX_SRC` 'releve' sur les cinq, aux nouveaux feux.
+- BANCS (Chrome sans fenêtre et muet, ports 9287/9587) : les seize caisses refaites rebâties une à une, puis menu → JOUER → course au pilote
+  automatique : plein écran (ROSSO 40), cadre de l'ordi (LE SAMOURAÏ), debout (LA DAYTONA), téléphone couché 844 × 390 (L'ICEBERG) —
+  **0 erreur**, `__loopErr` vide ; refait après la fusion de main (la figure se paie) en tournant les caisses : LA FÉLINE plein écran,
+  L'ICEBERG dans le cadre, ROSSO 40 debout, LE SAMOURAÏ couché — 0 erreur. `garde-burnout.sh` et `garde-charte.sh` OK.
+- Restent « un cran » dans la revue, à la demande : LE CHARGEUR 69, LA PUCE, LE MASTODONTE, LE DÉFIEUR (ELDORADO a eu sa v3).
+
 ## LES POUPES REFAITES — ONZE CAISSES QU'ON SUIT ENFIN AVEC ENVIE (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de les acheter » puis, sur la revue des poupes : « refais l'arrière des onze caisses à refaire : LE LINGOT, ACIDE, LA PIZZA EXPRESS, LE CAÏD, LA ZED, LA VETTE, LA QUEUE DE CANARD, LE HOT ROD, LA GROUPE B, L'ABSTRAITE, LA GRANDE ANGLAISE »)
 - LA REVUE (avant de toucher) : les 29 caisses achetables de la boutique (`CAR_UNLOCK` p > 0 ou premium, après les rustines missions v2,
   carnets 6-9 et carrière, non retirées) photographiées de DOS au studio — `dbgEssaiCaisse(gabarit,{...fiche, pot:gabarit},
@@ -290,6 +385,7 @@ Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : 
      (f) la SALLE BLANCHE du studio délave les couleurs et grise les noirs : juger la couleur au garage et en course.
 - VALIDÉE par Sacha le 17/10 sur la planche AVANT | APRÈS (« C'est bon, on garde la nouvelle Eldorado »), joints de portière et moquette prune
   compris. À montrer à Léo : les joints sont des traits neufs sur le flanc (discrets ; il n'aimait pas les « traits » du 13/10).
+
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
   Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
@@ -311,6 +407,7 @@ Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : 
   sinon l'essai avait le pot générique et non celui de la caisse) et (b) prendre une vue `[rotation, ×hauteur, ×distance]` (de plus haut comme la
   poursuite, de plus près pour un détail). Une vue de l'arrière : rotation ≈ 222° (π + 0,73).
 - Reste à faire, si Sacha le veut : la même passe sur l'arrière des autres caisses de la boutique (« chaque voiture, qu'on ait envie de l'acheter »).
+
 ## LE DÉFIEUR EN ROBOT JAUNE — LA CAISSE DE TRANSFORMERS, À 120 000 $ (2026-10-17, Sacha : « rajoute des éléments pour qu'elle ressemble vraiment à la voiture de Transformers et mets-lui la bonne couleur de base ; inspire-toi de la Chevrolet dans Transformers ; rajoute-lui des petits détails pour la rendre plus belle ; et tu mets son prix à 120 000 dollars »)
 - LAQUELLE : aucune caisse ne s'appelait ainsi. C'est LE DÉFIEUR (`shape:'a_defieur'`, index 32 de `CARS`), le coupé muscle de 1970, orange à deux
   bandes noires : la plus proche du robot jaune du film — VALIDÉ par Sacha le 17/10 : « Oui, c'est bien LE DÉFIEUR, on garde. »
@@ -6436,7 +6533,6 @@ rien de la vitesse. Et les tirets de la ligne centrale (un tous les ~31 m) BÉGA
     DANS la zone sûre et pose la caisse au milieu de la hauteur utile (47 %) ; debout le « un peu à gauche » de la CHUTE passe de
     −0,16 à −0,07 (la caisse plongeante du titre v3 touchait le bord gauche). Vaut aussi pour le vrai iPhone (env()).
   · ⚠ NON TESTÉ : Safari sur Mac (pas de WebKit au banc) — le zoom d'une iframe y est le point fragile.
-
 
 ## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8
 - ⚠⚠ **(2026-10-01, matin, 2e verdict) SACHA : « enlève aussi dans le ciel, enlève tous les trucs Van Gogh »** — TOUT est retiré : la couche
@@ -12756,7 +12852,6 @@ rien de la vitesse. Et les tirets de la ligne centrale (un tous les ~31 m) BÉGA
     DANS la zone sûre et pose la caisse au milieu de la hauteur utile (47 %) ; debout le « un peu à gauche » de la CHUTE passe de
     −0,16 à −0,07 (la caisse plongeante du titre v3 touchait le bord gauche). Vaut aussi pour le vrai iPhone (env()).
   · ⚠ NON TESTÉ : Safari sur Mac (pas de WebKit au banc) — le zoom d'une iframe y est le point fragile.
-
 
 ## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8
 - ⚠⚠ **(2026-10-01, matin, 2e verdict) SACHA : « enlève aussi dans le ciel, enlève tous les trucs Van Gogh »** — TOUT est retiré : la couche
