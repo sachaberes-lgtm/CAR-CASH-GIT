@@ -3,6 +3,45 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran doit être positionné au bon endroit avec la bonne police ; je veux une animation et un son pour chaque bouton ; soigne les transitions entre chaque écran, qu'elles soient fluides »)
+- LE RELEVÉ (banc `audit.cjs`, scratchpad de la session ed900fe4) : 16 étapes (accueil, réglages et leur bas, code, achat, garage, inventaire
+  et ses 5 onglets, missions, boutique et un rayon, course, pause, pause → réglages, fenêtre QUITTER, fin avec l'offre de seconde chance, fin,
+  retour), DEBOUT 390 × 844 ET COUCHÉ 844 × 390 (zones sûres de l'iPhone posées). Pour CHAQUE chose qu'on touche : sa boîte, chevauchements,
+  zone sûre, taille, libellé qui déborde, caractère absent de la police pixel (monospace/serif/cursive mesurent différemment), corps, retour
+  visuel à l'appui (:active forcé par CDP, `.appui`, et un vrai pointerdown), le son réellement déclenché au toucher (`dbgFilet`). Plus tous
+  les TEXTES visibles de chaque écran contre la police pixel.
+- CE QUI ÉTAIT DÉJÀ BON (mesuré) : une seule police — 0 caractère hors de Press Start 2P dans TOUS les textes visibles des 31 écrans relevés ;
+  chaque toucher du parcours déclenche un son (39/39 couché, 31/31 debout : uiClic ou son propre son — le FILET du 16/10 tient) ; l'or en
+  bas, la sortie en bas à gauche.
+- CORRIGÉ :
+  · L'APPUI POUR TOUS (JS, juste après « L'APPUI SOUS LE DOIGT ») : seules les familles de la charte (`APPUI_SEL`) s'enfonçaient ; les cartes
+    de la boutique (`.bqK`) ne bougeaient pas du tout, les lignes de missions (`.m2L`), les hexagones de figures (`.fsHex`) seulement en
+    `:active` (invisible sur iPhone pour un tap bref). Toute autre chose touchable (même cible que le filet des sons : rôle, data-*, bouton, ou
+    l'élément qui POSE le curseur main — il s'hérite, on remonte au dernier parent qui l'a) se TASSE au contact (scale ×0,94 en 70 ms, par
+    l'API d'animation : propriété `scale` seule, qui s'ajoute au transform de l'élément sans toucher ses transitions ni ses animations CSS),
+    tenue 90 ms, revient en 140 ms sur `--ease` ; micro-tic `ui.appui` au contact comme les touches de la charte. Curseurs : `.tient`, le
+    bouton grossit. Hors HUD de course, canvas, champs. `?appui=0` = avant. Après : plus aucune touche sans retour visuel au relevé
+    (115 debout + 138 couché), hors le champ du code.
+  · LE PASSAGE DIRECT (mTap, `surAccueilCiel`, `MENU_PASSE`) : ACCUEIL → RÉGLAGES / ACHAT / MODES passait sous le volet pixel ET fermait
+    l'atelier (closeGarage), le retour le rouvrait sous un second volet. Chrono au banc : ~800 ms aller (couvrir 160, fermer, découvrir 280
+    avec une image de 133 ms en plein balayage), ~720 ms retour. Désormais la page se pose PAR-DESSUS l'accueil-atelier (`body.garMenuH`
+    force #overlay au-dessus), son fond opaque fond sur le ciel qui continue de vivre ; le RETOUR la retire (garAccueil : l'atelier est déjà
+    là). Mesuré : RÉGLAGES lisible à ~320 ms (avant ~650), retour à l'accueil à ~240 ms (avant ~650), plus de palier sombre. Le volet reste
+    pour les vrais changements de DÉCOR. Échap sur une telle page = son RETOUR. `?menupasse=0` = avant.
+  · LA SECONDE CHANCE, DEBOUT : CONTINUER descendait sous la barre d'accueil (bas à 824 px pour une zone sûre à 810) → NON MERCI prend la
+    marge libre au-dessus (margin-top:auto), les plaques se resserrent d'un cran : CONTINUER retombe à la place de REJOUER (bas à 792).
+  · LES MISSIONS, COUCHÉ : l'en-tête (aide, plaque CADEAU) courait SOUS la liste — corrigé en parallèle sur main (v571, `gmPlaceL`) : vérifié
+    au banc, rien à ajouter.
+  · LA BOUTIQUE, COUCHÉE : le titre BOUTIQUE et la colonne des rayons passaient sous l'encoche (zone sûre de 47 px, iPhone et cadre de l'ordi),
+    la dernière colonne de cartes débordait de 33 px dans l'arrondi de droite → `--sL`/`--sR` (le rail se décale par sa marge : son entrée
+    anime `translate`) ; la colonne s'arrête au-dessus de la barre d'accueil (`fond` moins `--sB`, FIGURES y entrait de 6 px).
+  · L'INVENTAIRE : son RETOUR en 10 px comme tous les autres RETOUR (il était en 8).
+- VU, PAS TOUCHÉ (à Léo ou à trancher) : garage → boutique, au banc (Chrome sans GPU) ~0,3 s sans réponse puis une image de la console
+  « OFFRES ÉPHÉMÈRES » avant le souffle blanc (le voile part à l'image suivante de `garBqPanneau`, après le travail de `gModeVa`) ; garage →
+  inventaire et changement d'onglet : une image de 100 à 140 ms au toucher (la bande se reconstruit). Les RETOUR du garage n'ont pas la
+  taille de ceux de la coque (inventaire 128 × 52, boutique 128 × 44, missions 90 × 74, réglages/achat 159 × 56) : ce sont les barres de Léo.
+- BANCS : `audit.cjs <debout|couche>` (RACINE, TAG), `analyse.cjs <TAG>`, `film2.cjs` (screencast + horloge rAF + longues tâches par
+  transition, 22 passages), `planche_film.py`, `chrono.cjs` (classes de #wipe, écrans, LoAF) — scratchpad ed900fe4.
 ## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
 - RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
   Ce qui la fait reconnaître : les doubles feux en OBUS POINTUS dans une bague chromée au bout des ailerons, la calandre à BIJOUX devant ET

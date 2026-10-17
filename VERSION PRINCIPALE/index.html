@@ -60167,9 +60167,8 @@ function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché
     L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
     if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}
     if(Bk){const t2=(rh&&rh.height?rh.bottom:80)+12;Bk.style.left=px(g0);Bk.style.width=px(Math.max(200,Math.min(420,l-g0-16)));Bk.style.top=px(t2);Bk.style.maxHeight=px(Math.max(90,bB-t2));}
-    if(hd)hd.style.maxWidth=px(Math.max(180,Math.min(420,l-g0-16))); /* (2026-10-17, session UI-REVUE) l'en-tête (titre, aide, CADEAU) s'arrête où commence la liste : couché, sa plaque CADEAU passait SOUS la 2e mission et l'aide courait sous la liste (« 3 AU PLUS » sur « COLLECTE 3 FIGURES ») */
     return;}
-  [A,Bk].forEach(function(e){if(e)e.style.left=e.style.right=e.style.top=e.style.width=e.style.maxHeight='';});if(hd)hd.style.maxWidth='';
+  [A,Bk].forEach(function(e){if(e)e.style.left=e.style.right=e.style.top=e.style.width=e.style.maxHeight='';});
   const tp=(rh&&rh.height?rh.bottom:60)+10;
   L.style.left=px(g0);L.style.right=px(g0);L.style.top=px(tp);L.style.maxHeight=px(Math.max(120,bt-12-tp));
 }

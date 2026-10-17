@@ -240,6 +240,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
 - Chaque appui répond : visuel + `uiClic(rôle)` + `hap(p)` (jamais `navigator.vibrate` en direct).
   Un bouton oublié est rattrapé par le FILET (`uiFiletRole` : il sonne si rien n'a sonné) ; `data-muet` s'en passe. Dans la pause aussi (`pauseSon`).
+  Le VISUEL a son filet aussi (17/10) : L'APPUI POUR TOUS — toute chose touchable hors `APPUI_SEL` se tasse au contact (`scale` ×0,94 par
+  l'API d'animation, sans toucher à ses transitions) ; `?appui=0` l'enlève.
+- Le VOLET pixel (`ecranWipe`) = un changement de DÉCOR (atelier ↔ course, fin → accueil, garage ↔ accueil). Une PAGE posée sur l'accueil
+  (réglages, achat, modes) passe en direct par-dessus l'atelier-menu (`surAccueilCiel`, 17/10) ; `?menupasse=0` = sous le volet.
 - Tout texte affiché passe par `TR('TEXTE FR')` avec son entrée `I18N` (§6).
 - Couché ET debout : l'ordi montre le téléphone couché ; chaque écran se vérifie dans les deux sens.
 
@@ -488,6 +492,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA CHARTE v5 — LAQUE · OR · NÉON » (28/09) · « LA CHARTE v4 — CARBONE · OR · NÉON » (26/09, sa grammaire reste la loi)
 - « LA CHARTE AU COMPLET » (28/09) · « LA DA DU HUD, UNE SEULE FAMILLE » (28/09) · « LE HUD DE COURSE, MAÎTRISÉ ET EN MOUVEMENT » (28/09)
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
+- « LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT » (17/10) — bancs audit/film/chrono
 
 **Son et musique**
 - « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
