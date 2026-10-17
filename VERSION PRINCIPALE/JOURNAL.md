@@ -21,6 +21,34 @@
   avant (slalom compris).
 - ⚠ À DIRE À LÉO : le slalom remplaçait la pelote à sa demande (« oui, la remplacer ») ; Sacha la remet. Rien n'est détruit : `?foret=slalom`.
 
+## LES SATELLITES FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route »)
+- La passe « les maps comme un tout » (même jour, 15 h 37) avait lu « il faut que ce soit un obstacle à part entière » comme des satellites
+  SUR la chaussée (seul, porte, chicane, L'IMPACT au choc). Ce n'était pas la demande : ils quittent la route.
+- `orbiteBuild` §0 bis : les mêmes grands engins (Starlink 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, petit satellite
+  d'or) DÉRIVENT à 4-16 m du bord, de 8 m sous la dalle à 16 m au-dessus (repère de la route F.b/F.n : juste sur le côté, même dans les
+  virages relevés ; plus bas, la caméra plongeante ne les voyait plus, la route les cachait), et tournent lentement sur eux-mêmes. Trois figures, toutes les 200-400 m × la croisière : le SEUL, la PORTE (un de chaque
+  côté, la route passe entre les deux), la FILE (2-3 à la suite du même côté, en escalier). `libre` les tient loin de toutes les AUTRES
+  portions de piste ; au plus un quart des Starlink et un cinquième des débris (les passants, le champ et les trains gardent leur part).
+- Décor pur : `SATOB` est vide, rien à percuter, les pièces ne s'écartent plus, ni liseré rouge ni étoile qui pulse. `?sats=route` (`SAT_OBST_V`)
+  rend les obstacles de l'après-midi ; `?sans=satobst` n'existe plus (c'est le défaut).
+## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
+- **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
+  la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.
+  · LE PLAFOND : à la pose la jauge est presque pleine (la pose de 20 % passe d'abord) — 1,2 à rendre, **0,57** crédités, le reste perdu.
+  · LA FIGURE PAS BOUCLÉE : un tour empilé (ou relayé) dont le dernier quart n'était pas fini au contact (fréquent depuis la gravité ×1,45)
+    avait payé ses 20 % et ne rendait RIEN, sans un mot — trois double-taps, une seule figure rendue (**0,77** au lieu de ~2).
+- **La règle, précisée** : chaque figure LANCÉE dans le vol (celle qui a payé, comptée par `FX2.nitL` dans `figLance`) rend ses 30 % à une pose
+  réussie — plantée ou pas tout à fait. Pose ratée (en plein tour, de travers, à contresens) : rien, comme avant. Ce qui ne tient plus dans la
+  jauge passe dans la **RÉSERVE BLEUE** (`nitroX`, plafond 2 comme les fruits) et vole vers la partie bleue de la barre (`volgNitro('x')`).
+  La toupie automatique du drift (lancée hors de `figLance`) ne coûte ni ne rapporte. Le « plein » sonne aussi quand tout part en réserve.
+- **Code** : `figNitRend(ok)` (rend le nitro crédité, jauge + réserve), `FX2.nitL` remis à zéro par `figDepart` ; `tryLand` et la lèvre lisent
+  le crédit rendu pour le son ; `figN9` (le vol « à figures » qui ne prend pas la recharge de chaîne) compte les lancements.
+  `dbgFigNit()` : `aRendre` = les lancements, `plantees` = les figures finies, `rendSiPose`, jauge, réserve.
+- **Mesuré, avant → après** (mêmes sauts, réserve vidée avant chaque saut) : une figure en vol + celle du saut 0,57 · 0,57 · 0,66 → **1,30 ·
+  1,27 · 1,43 · 1,37** (= les 2 × 30 % + la pose du saut) ; trois double-taps 0,77 · 1,01 → **1,92 · 2,12** (4 lancements comptés, borné
+  par la jauge ET la réserve pleines) ; figure refusée faute de nitro : rien de prélevé, la figure du saut rend quand même ; 0 erreur JS.
+- À juger par Sacha en jouant : faire des figures remplit maintenant vite la réserve bleue (nitro plus puissant) — si c'est trop généreux,
+  `NITRO2.figN.rend` (0,3) est le seul réglage.
 ## LE GLACIER BEAUCOUP PLUS PENTU (2026-10-17, Sacha : « la map montagne neige doit être beaucoup plus pentue »)
 - `genBanq` (v4) : virages 36-48 % (22-32 %), droites 42-58 % (25-37 %), retour dans la pente et arrivée à 36 % / 30 %. MESURÉ en Node
   (`banq-trace.cjs`, 8 graines) : pente moyenne ~27 % → ~43 % (pointes à 57 %), dénivelé 2,4-2,5 km → 3,8-4,1 km sur ~10 km ; aucun pli (rayon mini
