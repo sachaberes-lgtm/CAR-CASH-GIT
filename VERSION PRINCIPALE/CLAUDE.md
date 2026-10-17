@@ -153,7 +153,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
-  le grand livre `LIVRE`/`livre`/`dbgLivre`.
+  le grand livre `LIVRE`/`livre`/`dbgLivre`. LA FIGURE SE PAIE (17/10, loi 6, `NITRO2.figN`) : 20 % au lancement en vol, 30 % par figure
+  plantée à la pose réussie, cumulable — `figNitCout`/`figNitPaye`/`figNitRend`, `FX2.nitF`, `dbgFigNit()`.
 - **Lumières de la caisse** (17/10) : phares, feux arrière, feu du nitro, flamme du moteur et traînées ÉCLAIRENT LE BITUME dans son shader (`LUM_GLSL`/`lmRoute`,
   uniformes `LUM_U`, `LM_N` lampes-segments + deux phares ; `lumTick` les pose en monde, `lumVue` — chaîné sur `scene.onBeforeRender` — les passe en vue ; réglages
   `LUMK`) et la lueur des feux allume la CAISSE et sa lunette (`FEU_U`/`FEU_GLSL`, bloc VOITURES) — aucune lumière three. `?sans=lumieres` = avant.
