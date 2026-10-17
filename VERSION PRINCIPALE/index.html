@@ -44731,12 +44731,20 @@ function pbjPlancher(dt,base,tier){const P=PBJ_PL;
   if(!P.on||!AC||!window.POUCE_JEU)return 1;
   const ch=POUCE_JEU.ch;if(!ch||!ch.f)return 1;
   try{if(!P.an){P.an=AC.createAnalyser();P.an.fftSize=2048;P.buf=new Float32Array(2048);}
-    if(P.ch!==ch){if(P.ch&&P.ch.f)try{P.ch.f.disconnect(P.an);}catch(e){}P.ch=ch;ch.f.connect(P.an);P.p=-1;}}catch(e){return P.k;}
-  P.t-=dt;if(P.t<=0){P.t=.2;try{P.an.getFloatTimeDomainData(P.buf);let s=0;const B=P.buf;for(let i=0;i<B.length;i++)s+=B[i]*B[i];const pw=s/B.length;
-    if(pw>1e-7)P.p=P.p<0?pw:P.p+(pw-P.p)*.15;}catch(e){}} // ~1,3 s de mémoire ; le silence (sous −70 dB) ne compte pas
+    if(P.ch!==ch){if(P.ch&&P.ch.f)try{P.ch.f.disconnect(P.an);}catch(e){}P.ch=ch;ch.f.connect(P.an);P.p=-1;P.ps=-1;P.pk=0;}}catch(e){return P.k;}
+  P.t-=dt;if(P.t<=0){P.t=.1;try{P.an.getFloatTimeDomainData(P.buf);let s=0,m=0;const B=P.buf;for(let i=0;i<B.length;i++){const v=B[i];s+=v*v;if(v>m)m=v;else if(-v>m)m=-v;}const pw=s/B.length;
+    P.pk=Math.max(m,(P.pk||0)*.75); // la crête : tenue ~0,5 s (une grosse caisse par temps la garde en mémoire)
+    if(pw>1e-7){P.p=P.p<0?pw:P.p+(pw-P.p)*.08;P.ps=P.ps>0?P.ps+(pw-P.ps)*.35:pw;}}catch(e){}} // ~1,3 s de mémoire (et ~0,3 s pour le garde-fou) ; le silence (sous −70 dB) ne compte pas
   const fade=tier<=3?1:Math.max(0,1-(tier-3)/9);
-  let db=0;if(P.p>0&&base>1e-4){const sortie=10*Math.log10(P.p)+20*Math.log10(base);db=Math.max(0,Math.min(P.max,P.cible-sortie))*fade;}
-  P.db+=(db-P.db)*(1-Math.exp(-dt/1.2));P.k=Math.pow(10,P.db/20);return P.k;}
+  /* (2026-10-17, Léo : « ça explose… ça pourrait détruire les oreilles ») LE PLANCHER NE SURCHAUFFE PLUS. Il relevait le morceau sur ~1,3 s
+     de mémoire et ne relâchait qu'en 1,2 s : quand le morceau repartait FORT (le palier d'après, la basse qui revient après un passage
+     calme), les +7 à +11 dB restaient posés 2 à 4 s sur une musique déjà pleine — MESURÉ (PLUIE D'ARGENT, moteur 1 → 3) : crête −0,5 dBFS,
+     +10 dB d'un coup ; et la grosse caisse de certains paliers sort ~18 dB au-dessus du reste du morceau : relevée, chaque coup tapait le
+     limiteur. Deux garde-fous : la dernière ~0,3 s jamais à plus de 6 dB au-dessus de la cible, et JAMAIS une crête de la musique relevée
+     au-dessus de −6 dB ; quand il faut BAISSER, ça baisse en 0,1 s (monter reste lent, comme avant). Un départ calme (sans crête) est
+     relevé comme avant. */
+  let db=0;if(P.p>0&&base>1e-4){const lb=20*Math.log10(base),sortie=10*Math.log10(P.p)+lb,court=10*Math.log10(P.ps>0?P.ps:P.p)+lb,crete=P.pk>1e-5?20*Math.log10(P.pk)+lb:-99;db=Math.max(0,Math.min(P.max,P.cible-sortie,P.cible+6-court,-6-crete))*fade;}
+  P.db+=(db-P.db)*(1-Math.exp(-dt/(db<P.db?.1:1.2)));P.k=Math.pow(10,P.db/20);return P.k;}
 let PBJ_KO=0,PBJ_ESSAI=0; // (15/10) un morceau n'a pas pu partir (réseau, fichier) : un AUTRE est tiré (3 essais) ; après, la course reste sans musique — chaque JOUER réessaie
 function pbjTuto(){return (typeof TUTO!=='undefined'&&!!TUTO.on)||!!(LVL.cur&&LVL.cur.piste==='tuto');} /* (15/10 soir, Léo : « remets le premier son du test, le premier son
    dans le ciel pour ceux qui jouent pour la première fois ») L'AUTO-ÉCOLE (le permis) joue CIEL · NIVEAU 1, comme avant (musicLieuVoulu) ; Pouce bleu prend la suite au portail d'après */
@@ -49489,6 +49497,19 @@ function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vites
    `?nitroson=ancien` = le son d'avant, intact. */
 const RUG_SON=!/[?&]nitroson=ancien/.test(location.search);
 const RUG_NIV={rg:.14,cr:.14,pssht:.05,boule:.2,pap:.15,bang:.2}; // les niveaux (voir le journal : mesurés contre l'ancien au banc)
+/* (2026-10-17, Léo : « dès que j'appuie, ça explose et ça fait un bruit qui n'a aucun rapport avec le boost, qui pourrait détruire les
+   oreilles des joueurs — écouteurs », sur iPhone ET sur Mac). MESURÉ au banc muet avec SA sauvegarde : deux sons d'EXPLOSION se mêlaient au boost.
+   · LA BOULE DE FEU à chaque appui (`rugBoule` : un BWOUMF saturé, son coup grave qui plonge 170 → 48 Hz, par-dessus le subBoom) — c'est
+     une explosion, pas un boost. COUPÉE (`RUG_BOULE`) : l'allumage garde le PSSHT, le coup de poitrine et la ruée d'air. `?boule=1` la rend.
+   · LA PANNE SÈCHE SOUS LE DOIGT (`NSEC`) : le nitro tenu vide la jauge en ~4-6 s, puis se coupe et se rallume en boucle (hystérésis à ,3)
+     — à chaque coupure la pétarade (BANG + pap-pap) et la soupape, à chaque rallumage un coup d'allumage complet : une explosion toutes les
+     ~1,5 s tant qu'on tient. Désormais, tant que le doigt ne s'est pas levé : la toux `nitro.sec` seule à la coupure, la gorge qui reprend
+     au rallumage — la pétarade et le coup d'allumage reviennent au prochain VRAI appui / à la vraie relâche. */
+const RUG_BOULE=/[?&]boule=1\b/.test(location.search);
+const NSEC={sous:false,etage:false}; // sous : la jauge a lâché sous le doigt, et ce doigt n'est pas encore levé · etage : le 2e étage (réserve bleue) a déjà sonné pendant cet appui
+/* (même jour) LE 2e ÉTAGE NE SE REJOUE PAS EN BOUCLE : un fruit ramassé nitro tenu remplit un peu la jauge, on ressort de la réserve bleue, on y
+   retombe une seconde plus tard — et le coup d'allumage du 2e étage repartait à CHAQUE fruit (MESURÉ : 7 à 12 coups en 30 s de nitro tenu).
+   Il sonne désormais une fois par appui ; le reste (onde, champ, couleur) suit comme avant. */
 const RUG_CORPS=.7; // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
 const RUG={pret:false,ac:null,d:null,tel:false,h:0,k:0,rs:[],cs:[],boules:null,paps:null,bangs:null,blanc:null,stt:null};
 function rugBq(t,f,q,g,sr){ // les coefficients d'un biquad (RBJ) : 'lp' 'hp' 'bp' 'pk'
@@ -49600,8 +49621,8 @@ function rugAllume(k,bleu,air){ // LE PSSHT + LA BOULE DE FEU (le reste du coup 
    f.frequency.setValueAtTime(bleu?7600:6500,t0);f.frequency.exponentialRampToValueAtTime(2600,t0+.18);
    const g=ac.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(Math.max(.0002,RUG_NIV.pssht*k),t0+.004);g.gain.exponentialRampToValueAtTime(.001,t0+.22);
    s.connect(f);f.connect(g);g.connect(RUG.d);s.start(t0);s.stop(t0+.25);}
-  {const s=ac.createBufferSource();s.buffer=RUG.boules[(R()*RUG.boules.length)|0];s.playbackRate.value=(bleu?1.1:1)*(.96+.08*R())*(air?1.04:1);
-   const g=ac.createGain();g.gain.value=RUG_NIV.boule*k;s.connect(g);g.connect(RUG.d);s.start(t0+.015);}
+  if(RUG_BOULE){const s=ac.createBufferSource();s.buffer=RUG.boules[(R()*RUG.boules.length)|0];s.playbackRate.value=(bleu?1.1:1)*(.96+.08*R())*(air?1.04:1);
+   const g=ac.createGain();g.gain.value=RUG_NIV.boule*k;s.connect(g);g.connect(RUG.d);s.start(t0+.015);} // (2026-10-17) coupée : voir RUG_BOULE
   return true;}
 function rugPetarade(q){ // LA PÉTARADE de la coupure : q 0..1, ce qu'on a brûlé
   if(!RUG.paps)return false;const ac=RUG.ac,t0=ac.currentTime+.02,R=Math.random;let t=0;
@@ -49649,17 +49670,18 @@ function nitroAllume(bleu,etage){ // LE COUP — au front montant de `nitroOn` (
   try{nfeuCoup(k);}catch(e){} // (2026-10-15) le feu de pixels : une boule de feu par pot
   fovPunch=Math.max(fovPunch,(NFX.air?8:7)*k);     // le champ S'OUVRE d'un coup (lu au sol comme en vol) — un COUP au-dessus de l'ouverture de la nitro (+15°), pas un second zoom : à 14 la caisse fondait de moitié
   hap(bleu?[8,16,8]:[14,26,10]);
-  nitroWhoomp(k,bleu,NFX.air);
+  if(!NSEC.sous&&!(etage&&NSEC.etage))nitroWhoomp(k,bleu,NFX.air); // (2026-10-17) rallumé sous le même doigt (panne sèche), ou 2e étage déjà sonné pendant cet appui : la gorge reprend, pas de second coup d'allumage (voir NSEC)
+  if(etage)NSEC.etage=true;
   if(!POST_ON)flashEcran(bleu?'rgba(91,125,255,.45)':'rgba(255,122,36,.45)'); // sans l'ACES (post coupé), le coup de couleur passe par le calque DOM
 }
-function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + la pétarade — puis le champ retombe en douceur (`NFX.off`)
+function nitroEteint(sous){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + la pétarade — puis le champ retombe en douceur (`NFX.off`) — `sous` : la jauge a lâché SOUS le doigt (panne sèche) : la langue de feu oui, la pétarade non (voir NSEC)
   NFX.off=1;
   if(nitroHeldT<.25||mode==='boom')return; // un simple tap ne mérite pas la cérémonie
   const VC=PT_U.uVc.value;
   for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
     spawnP(flames,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(9+nfxR()*9)+(nfxR()-.5)*2.4,VC.y-hsF.y*9+nfxR()*1.4,VC.z-hsF.z*(9+nfxR()*9)+(nfxR()-.5)*2.4,.1+nfxR()*.08);
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
-  try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)
+  if(!sous)try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)
   try{nfeuFin();}catch(e){} // (2026-10-15) le feu de pixels : la dernière bouffée, lente et sale
 }
 /* (2026-10-14, sensations · nitro) LA POUSSÉE SE SENT DANS LES RESSORTS. L'allumage avait tout (cabrage, onde, champ, vibration, whoomp) ;
@@ -63281,14 +63303,16 @@ function loop(now){
     }
     nitroBlue=nitroOn&&nitroR<=.01; // réserve bleue = plus puissante
     // TURBO v2 : spool à l'enclenchement (au sol), blow-off + flutter à la relâche (partout)
-    if(nitroOn&&!loop._nOn&&mode==='drive')nitroSpool();
+    if(!wantN){NSEC.sous=false;NSEC.etage=false;} // (2026-10-17) le doigt levé : le prochain allumage est un VRAI appui (voir NSEC)
+    if(nitroOn&&!loop._nOn&&mode==='drive'&&!NSEC.sous)nitroSpool();
     if(nitroOn&&!loop._nOn&&mode!=='boom')nitroAllume(nitroBlue,false);            // (vague 3) LE COUP d'allumage — au sol comme en vol
     else if(nitroOn&&nitroBlue&&!loop._nBl&&mode!=='boom')nitroAllume(true,true); // …et le 2e étage : on bascule dans la réserve bleue
     loop._nBl=nitroBlue;
     if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
-    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom')blowOff(); // (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
+    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom'&&!wantN)blowOff(); // (2026-10-17) pas sous le doigt : la panne sèche n'est pas une relâche (voir NSEC) — (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
     if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
-    if(!nitroOn&&loop._nOn)nitroEteint(); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro)
+    if(!nitroOn&&loop._nOn)nitroEteint(!!wantN); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro) — (2026-10-17) `wantN` : la jauge lâche SOUS le doigt, la pétarade se tait
+    if(!nitroOn&&loop._nOn&&wantN)NSEC.sous=true;
     if(SENS)try{sensNitro(dt,!!wantN);}catch(e){} // (2026-10-14, sensations · nitro) la coupure, la panne sèche, les rapports, les paliers : dans la tôle et la main (lit nitroHeldT avant sa remise à zéro)
     if(SENS)try{sensPassages(dt);}catch(e){} // (2026-10-14, sensations · passages) l'arrivée d'un portail, le replacement : la caisse se pose sur ses ressorts
     if(!nitroOn)nitroHeldT=0;
