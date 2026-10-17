@@ -26,7 +26,7 @@
   son élan (Sacha, 15/10). Mesuré : 180°, 178° à 200, 149°, 135°, 120° → la caisse reste sur la route ; 14 sauts dans le bon sens → 0
   demi-tour, 0 erreur ; vrai demi-tour au joystick en l'air → posée à 139°, nez du vol à 126°, demi-tour joué.
 - `?demitour=0` = l'ancienne pose. `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie la caisse se poser à contresens ; `dbgDemiTour()` = l'état.
-  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v596 (essai 2, poussé sur main avec le oui de Léo).
+  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v598 (essai 2, poussé sur main avec le oui de Léo).
 - **2e ESSAI (même jour)** — Léo l'a vu en vrai : « c'est bof » ; puis « le pivot, le panneau, les lumières faisaient un tour bugué, c'était un
   peu bizarre — les lumières de la voiture » ; questionnaire : pivot « trop sec, trop rapide », panneau « plus petit et discret », le refaire.
   · LES TRAÎNÉES DE LUMIÈRE (les rubans rouges accrochés aux feux, `SILS`) dessinaient une BOUCLE sur la route pendant le pivot : elles se
@@ -36,6 +36,32 @@
   · LE PANNEAU : le texte seul, 8 px, rouge `#ff5e7a` cerné d'encre, fondu d'entrée/sortie — plus de plaque rouge ni de flèche.
   Planche : `photos-gameplay/demi-tour-essai1-essai2.png`. ⚠ L'anneau cyan qu'on voit au sol sur une capture est l'onde de la montée de
   moteur (`swapRing`), sans rapport.
+## LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) (2026-10-17, session FORÊT — Léo, en quatre tours : « la ville plus GTA, les immeubles plus cyberpunk réaliste ; la forêt noire, des arbres PLEUREURS » · « les arbres en cubes comme la mer ; une route qui zigzague entre les arbres, amusante à toute vitesse ; des abeilles le jour, des lucioles la nuit » · « moins Minecraft : troncs à peu près cylindriques, des mini-cubes, plus de brillance, une belle obscurité, du contraste » · « la même technique que les singes et les dauphins — tes cylindres sont tout lisses ; enlève les arbres à gros cylindres ; la route encore en hauteur, elle descend, monte, contourne les arbres ; au sol c'est de la mousse, on roule dessus »)
+- LA VILLE (v589) : `VILLE_GTA_V` (`?sans=villegta`, `dbgVilleGta(0|1)` = A/B sur la même image) dans `villeMatTours` — verre teinté qui reflète,
+  bureaux en mur-rideau allumés par plateaux, croisées des logements, rideaux chauds 1/8, LED d'arêtes 1 tour/5, feux d'obstacle.
+- LES PLEUREURS (v589) : `PLEUR_V` (`?sans=pleureurs`, `dbgPleureurs(0|1)`) — essences `saule`/`pleureur`, géants `gsaule`/`gpleureur`
+  (`FOR_GEANTS_PL`, À PART de `FOR_GEANTS_N` : sinon le tirage des géants change), `fbRideau` = mèches séparées (aB.x = 1). Flux `fw` à part.
+- LE SLALOM (remplace la PELOTE de Sacha ; `?foret=pelote` la rend) : `FOR_ZIG_V`, `forZigzag` — virages entre les troncs, relief (`ter`) et
+  4-5 PONTS de 18-30 m (`EL`, `elev`, rampes de 330-390 m, jamais sur une arche) ; `foretSol` suit `FORET.zigTer` et creuse sous la route au sol ;
+  sous un pont les arbres ordinaires restent 7 m sous la dalle. `dbgPont(k,d)` met la caisse au pied du k-ième pont, `dbgPont('etat')`.
+- ABEILLES ET LUCIOLES : `ABE` (`ABEILLES_V`, `dbgAbeilles`, `sfx('foret.abeille')` à cuire par la session SON) ; lucioles à hauteur d'yeux (11 px max).
+- PLUS DE GÉANT À FÛT DROIT : `TORDUS_V` (`?sans=tordus`) — séquoias, épicéas, chênes et hêtres géants deviennent `gsaule`/`gpleureur` (flux `fw`).
+- LES ARBRES EN VITRAIL (`VITRAIL_V`, `?sans=vitrail`, `dbgVitrail(0|1,{L,S,banc})`) — dans le shader des arbres (`FOR_ARB_FS`), ZÉRO géométrie :
+  écailles de 42 cm (1,45 m sur les géants : `aI.w` = 1) lues au centre de leur case (une écaille = une teinte, une facette, un biseau sombre) ;
+  JOINTS de 5 % MESURÉS SUR LA SURFACE (÷ √(1−n²) : une grille rasante ne fait plus de taches) qui PÂLISSENT sous le pixel au lieu de grossir
+  (sinon « grillage doré ») et prennent la lumière du jour (`dif`) ; le CŒUR = la couleur de l'arbre en lumière (`uVitG` or) ; la PEAU DE VERRE
+  sur la normale LISSE (ciel au bord, éclat de soleil, film irisé, liseré clair) ; l'ONDE qui monte le long de chaque arbre (`uVitS`).
+  La nuit les fils de lumière s'éteignent au-delà de ~30-100 m : l'obscurité reste. Les mini-cubes (`MINI_V`) et le contraste (`CONTRASTE_V`,
+  APRÈS la passe CONTI de Sacha) restent. MESURÉ : +0,3 ms/image (~4 %), 0 programme de plus.
+- LA MOUSSE (`MOUSSE_V`, `?sans=mousse`, `dbgMousse()`) : hors de la route, la caisse se POSE et ROULE (`foretSolVol`, sur le modèle de
+  `banqSolVol` du glacier ; `MOU`, `mousseTouche`, `mousseAssiette`) — vitesse de la route (`MOU.vr`, gardée d'une bosse à l'autre), volant
+  entier, nitro ; mort sur un TRONC (`FORET.troncs`, grille de 24 m, `FOR_TRONC`), une cime, ou une chute de plus de 40 m/s (un pont).
+  Sur la mousse : ni chrono de vol, ni ailes (`wingT`), ni viseur, ni « tension du vol » ; le moteur tire comme au sol. Le sol a ses COUSSINETS
+  (`uMou` dans `FOR_SOL_FS`, rosée qui s'allume) et les fleurs peintes s'effacent de près (elles faisaient des pois de 50 cm).
+- Bancs (scratchpad de la session) : `banc.py` (A/B par crochet, ⚠ ports 9586/9587 — 9497 était pris par une autre session), `film.py`
+  (une prise par seconde + suivi), `roule.py` (pilote auto, morts), `perfvit.py` (ms synchronisées A/B). Planches photos-gameplay/
+  ville-gta-avant-apres, foret-pleureurs-, foret-cubes-zigzag-, foret-minicubes-, foret-vitrail-avant-apres.png.
+
 ## LA VILLE VITRÉE v3 — CLEAN CITY (2026-10-17 soir, Léo : « j'abandonne l'idée de la ville au plafond ; rends-la plus distincte — les trucs rouges au-dessus ressemblent trop à Crypto City ; c'est CLEAN CITY : miroir, moderne, le futur, l'avancement, la technologie ; des bâtiments blancs, des logos très minimalistes, un avion-ballon énorme et très moderne ; les lumières sur les côtés de la route en BLEU »)
 - LE PLAFOND (v2) n'est plus le défaut : `VIT_PLAFOND` (`?plafond=1` le rend tel quel : ville à l'envers, ciel en bande, heures et soleil bas de la v2,
   `VIT_MET_PL`). Sans lui : le ciel et ses cumulus de la v1 (`VIT_MET_CL`, la couche `vitreCiel` d'avant) ; le verre renvoie le ciel et ses nuages
