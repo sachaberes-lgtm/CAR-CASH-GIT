@@ -81,6 +81,31 @@
   taille de ceux de la coque (inventaire 128 × 52, boutique 128 × 44, missions 90 × 74, réglages/achat 159 × 56) : ce sont les barres de Léo.
 - BANCS : `audit.cjs <debout|couche>` (RACINE, TAG), `analyse.cjs <TAG>`, `film2.cjs` (screencast + horloge rAF + longues tâches par
   transition, 22 passages), `planche_film.py`, `chrono.cjs` (classes de #wipe, écrans, LoAF) — scratchpad ed900fe4.
+## LES POUPES, 2e TOUR — ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG (2026-10-17, Sacha, sur la page de la revue : « refais aussi l'arrière de : ROSSO 40, LE SAMOURAÏ, LA DAYTONA, LA FÉLINE, L'ICEBERG »)
+- Cinq des dix caisses « un cran » de la revue (section suivante) ; même méthode : un bloc « L'ARRIÈRE v2 » dans chaque gabarit, l'avant,
+  les flancs et les pots de Léo (`ECH_POTS`) intacts, aucune famille de matière de plus (plaques et cœurs de feux = clés de la famille des feux).
+  · ROSSO 40 (`SHAPES.rosso`) : la GRILLE EN LOSANGES sur tout le panneau noir (deux nappes de barres croisées à 45°, coupées au bord du
+    panneau, pas de 15 cm), les quatre feux EN VOLUME (cuvette qui dépasse, verre bombé, cœur), la plaque au milieu de la grille, le
+    diffuseur noir à ailettes autour des trois sorties. En course, la lueur des feux (LES LUMIÈRES DE LA CAISSE v2) allume la grille en rouge ;
+  · LE SAMOURAÏ : les feux ronds en anneaux gardés ; le BOUCLIER dans la couleur et son pli, la plaque ENCASTRÉE et sa lampe,
+    l'antibrouillard au milieu, les catadioptres, le grand diffuseur carbone à ailettes (descendu à 18 cm : sans lui le gros canon ne s'y
+    encastrait pas) ;
+  · LA DAYTONA : les quatre feux en volume (cuvette qui dépasse, CERCLAGE CHROMÉ, verre bombé, cœur), les lames chromées qui tournent
+    sur l'aile, les butoirs de caoutchouc, la plaque et sa lampe, le bouclier sous les lames et son pli d'ombre, la jupe noire à ailettes
+    autour des quatre sorties et de leurs écrins ;
+  · LA FÉLINE : les feux sur leur SOCLE CHROMÉ, plus gros (le rouge bombé au-dessus, l'orange dessous), les retours de lame et les
+    butoirs, la plaque éclairée par ses deux lampes. Piège : la queue est RONDE — à x 0,5 la tôle est déjà à z −2,18 ; le premier jet
+    posait socle et verres dedans ;
+  · L'ICEBERG : les deux bâtons rouges deviennent des ÉCLATS DE GLACE ROUGE — sur chaque falaise, cinq aiguilles à trois facettes (claire,
+    vive, sombre). Le fil rouge reste dessous : il donne leur place aux traînées (un `tri` ne se relève pas).
+- MESURÉ (`dbgEssaiCaisse`) : ROSSO 40 3 252 → 4 062 facettes (+25 %), LE SAMOURAÏ 4 704 → 4 980 (+6 %), LA DAYTONA 4 868 → 5 724 (+18 %),
+  LA FÉLINE 5 464 → 5 828 (+7 %), L'ICEBERG 2 022 → 2 052 (+1,5 %). Traînées : `CAR_FEUX_SRC` 'releve' sur les cinq, aux nouveaux feux.
+- BANCS (Chrome sans fenêtre et muet, ports 9287/9587) : les seize caisses refaites rebâties une à une, puis menu → JOUER → course au pilote
+  automatique : plein écran (ROSSO 40), cadre de l'ordi (LE SAMOURAÏ), debout (LA DAYTONA), téléphone couché 844 × 390 (L'ICEBERG) —
+  **0 erreur**, `__loopErr` vide ; refait après la fusion de main (la figure se paie) en tournant les caisses : LA FÉLINE plein écran,
+  L'ICEBERG dans le cadre, ROSSO 40 debout, LE SAMOURAÏ couché — 0 erreur. `garde-burnout.sh` et `garde-charte.sh` OK.
+- Restent « un cran » dans la revue, à la demande : LE CHARGEUR 69, LA PUCE, LE MASTODONTE, LE DÉFIEUR (ELDORADO a eu sa v3).
+
 ## LES POUPES REFAITES — ONZE CAISSES QU'ON SUIT ENFIN AVEC ENVIE (2026-10-17, Sacha : « il faut que chaque voiture, on ait envie de les acheter » puis, sur la revue des poupes : « refais l'arrière des onze caisses à refaire : LE LINGOT, ACIDE, LA PIZZA EXPRESS, LE CAÏD, LA ZED, LA VETTE, LA QUEUE DE CANARD, LE HOT ROD, LA GROUPE B, L'ABSTRAITE, LA GRANDE ANGLAISE »)
 - LA REVUE (avant de toucher) : les 29 caisses achetables de la boutique (`CAR_UNLOCK` p > 0 ou premium, après les rustines missions v2,
   carnets 6-9 et carrière, non retirées) photographiées de DOS au studio — `dbgEssaiCaisse(gabarit,{...fiche, pot:gabarit},
