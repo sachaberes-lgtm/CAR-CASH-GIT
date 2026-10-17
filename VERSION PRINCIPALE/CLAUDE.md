@@ -153,7 +153,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
-  le grand livre `LIVRE`/`livre`/`dbgLivre`.
+  le grand livre `LIVRE`/`livre`/`dbgLivre`. LA FIGURE SE PAIE (17/10, loi 6, `NITRO2.figN`) : 20 % au lancement en vol, 30 % par figure
+  plantée à la pose réussie, cumulable — `figNitCout`/`figNitPaye`/`figNitRend`, `FX2.nitF`, `dbgFigNit()`.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose` ; leurs SONS `ailSon` → `ailes.*`, en vol seulement),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le

@@ -3,6 +3,30 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA FIGURE SE PAIE — 20 % DE NITRO, 30 % RENDUS À LA POSE, CUMULABLE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage, cumulable »)
+- **La règle** (loi 6 du réservoir, réglages `NITRO2.figN` = `{cout:.2, rend:.3}`, en part de la jauge du moteur) :
+  · LANCER une figure en vol (double-tap NITRO, le glissé, un tour EMPILÉ sur le tonneau) coûte **20 %** de la jauge, payés à la jauge
+    puis à la réserve bleue des fruits (`nitroX`), comme le saut nitro. Pas assez des deux : la figure ne part pas (le « tchk » de la
+    nitro à vide, `figRefus`) et rien n'est prélevé. Une figure refusée faute de temps ne coûte rien non plus.
+  · Chaque figure PLANTÉE rapporte **30 %** à la POSE RÉUSSIE, et ça s'additionne : deux figures = 60 %, trois = 90 % (plafonné à la jauge
+    pleine). Un tonneau ×3 (trois double-taps) = 60 % payés, 90 % rendus.
+  · « Bon atterrissage » = la pose qui n'est pas RATÉE (`poseRatee` : posée en plein tour, de travers à plus de 55° ou à contresens) ; la
+    lèvre rattrapée compte comme une pose. Pose ratée, chute, explosion en vol : les 20 % sont perdus.
+  · La figure du SAUT NITRO ne coûte rien de plus (le saut paie déjà ses 20 %, `VEQ_K.sautCout`) mais rapporte ses 30 % comme les autres.
+    Offerte aussi : sous NITRO INFINIE, au parc, à l'auto-école. La toupie AUTOMATIQUE du drift ne coûte ni ne rapporte.
+  · Les figures AU SOL (glissé en roulant : SLIDE 360, WHEELIE, STOPPIE) ne sont pas touchées : pas d'atterrissage.
+- **Ce qui s'est tu** (sinon la règle était noyée) : le plein immédiat à la plantée (`NITRO2.figAir`, « ASPHALT 8 », supprimé), les 0,15
+  du COMBO À TROIS (`COMBO_K.nitro`, supprimé), et la recharge de la chaîne à la pose (`nitroFigDe`) quand le vol porte au moins une figure.
+  Un vol SANS figure garde sa recharge de chaîne ; la pose (20 % au prorata du vol nitro coupée) ne change pas.
+- **Code** : `figNitCout(o)` / `figNitPaye(q)` / `figNitRend(ok)` à côté de `figRefus` ; le compte `FX2.nitF` (remis à zéro par `figDepart`,
+  nourri par `figPaye` avec `r.nitN`, le nombre de lancements payés de la figure) ; `figNitRend` appelée par `tryLand` (juste après
+  `poseRatee`) et `levreRattrape`. Le « plein » (`nitro.plein`) sonne une fois, avec celui de la pose. `dbgFigNit()` : le prix, ce qui
+  attend la pose, la jauge, la réserve. Le grand livre compte `n-:figure` et `n+:figure`.
+- **Mesuré au banc** (UA iPhone, muet, vraie partie, pilote auto, saut nitro + double-tap en vol, 10 vols en deux passages) : chaque lancement −20,0 % pile ;
+  pose avec deux figures plantées depuis une jauge basse : +1,366 = 2 × 30 % × 2,05 + la pose du saut (0,136), au millième ; figure refusée
+  faute de temps : 0 prélevé ; jauge ET réserve vides : la figure en vol refusée, 0 prélevé (et la figure du saut rend quand même ses 30 % : +0,734 = 0,6 + 0,134 de pose) ; 0 erreur JS.
+- À juger en jeu par Sacha : le rythme (chaque figure plantée et bien posée rapporte +10 % net ; le saut nitro et sa figure : 20 % payés, 30 % rendus).
+
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
   Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
