@@ -3,6 +3,40 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES TRAÎNÉES QUI DONNENT ENVIE — L'APERÇU EN VRAIE LUMIÈRE, LES SIGNATURES, LES ALLUMAGES (2026-10-16/17, session TRAÎNÉES — Sacha : « lance une grosse session pour améliorer chaque traînée, il faut qu'elle donne toute envie d'acheter, donne-leur le max de soin à chacune »)
+Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : traînée à toute nitro, feu teinté, objets ×2,3) : ici, les VITRINES
+(atelier, inventaire, boutique) et ce qui rend chaque traînée reconnaissable au premier coup d'œil. `?trainee=signal` rend toujours l'avant de la passe du 15/10.
+- VU AVANT (bancs `banc-trainees.cjs` course + `banc-vitrines.cjs` inventaire/boutique, les 16 tour à tour) : à l'atelier, les rubans d'aperçu
+  (`TRPV`) partaient des POTS en bande plate — un pavé de couleur, rien à voir avec la traînée de la course ; dans la SALLE BLANCHE de la boutique,
+  tout ce qui est additif (rubans, code, filés, foudre, pétales lumineux) disparaissait sur le blanc ; MENTHE / ROSE NÉON / POUDRE D'OR = un fil de
+  couleur ; aucune traînée POP n'avait de « coup » à l'allumage, et l'aperçu ne le montrait qu'une fois.
+- L'APERÇU EN VRAIE LUMIÈRE (`silApercu`, `silRuban` séparé de `sillageStep`) : deux sillages à eux, même matière que la course, nourris d'un chemin
+  inventé qui part des FEUX ARRIÈRE et ondule ; l'allumage se voit (la lumière file des feux en 0,28 s, la tête flashe). `TRPV` reste en repli.
+- LA SALLE BLANCHE EN ENCRE (`SIL_ENCRE`, `silEncre`, `silBlanc()` ; TRX : sortie PRÉMULTIPLIÉE + `M._encre`) : en boutique, la lumière additive
+  passe en mélange (0, 1 − src) avec la couleur inversée — le blanc se teinte de la couleur de la traînée. Le mélange n'entre pas dans la clé des
+  programmes de three r128 : zéro recompilation.
+- LE TEMPÉRAMENT DU RUBAN (`sil` sur la fiche : c cœur ×, h halo ×, f refroidissement, p pouls ×) : MENTHE douce, ROSE NÉON tube franc sans
+  refroidir, OR à pouls d'énergie, SAKURA halo large, MATRICE fil fin à paquets de données, HYPERESPACE cœur brûlant à pouls rapides, FOUDRE électrique.
+- LES SIGNATURES DES TROIS RUBANS (nouveaux émetteurs TRX, cases 34-35 de la planche) : MENTHE = bulles de savon irisées qui montent et CRÈVENT
+  (`trxMeurt`) ; ROSE NÉON = cœurs d'enseigne en tube qui grésillent (`fk`) + l'enseigne qui s'allume en clignotant (`neonAllume`) ; POUDRE D'OR =
+  paillettes qui scintillent (`tw`) et poussière d'or.
+- LES ALLUMAGES (`debut`) : SAKURA la corolle, MATRICE le rideau de code, ANNEAUX la fontaine en éventail régulier, PLUIE DE BLOCS les sept pièces
+  en éventail, HYPERESPACE le saut (éclair qui se resserre + averse de filés), 88 MILES l'éclair du départ, FOUDRE DIVINE la frappe du ciel (un
+  éclair épais de 14 m tombe sur la caisse, `B.wk`), GLOUTON commence par une super-pastille, FAIS PLEUVOIR lâche des étincelles d'or qui
+  scintillent (presque tous ses billets à l'allumage). LA GRILLE se défait en PIXELS au bout de sa vie (case 36).
+- MENTHE en course : bulles ramenées à 20-45 cm (×2,3 de `TRX_GROS` : une bulle de 85 cm couvrait la poupe).
+- EN COURSE, les quatre qui ne tenaient pas leur prix (VU au banc après la passe du 15/10) : HYPERESPACE — ses filés de 4 cm se confondaient
+  avec les lignes de vitesse du jeu → 130/s, deux fois plus épais, plus longs, élan gardé .62 : un vrai tunnel bleu ; 88 MILES — flammes au sol
+  30 → 50 cm ; LA GRILLE — mur 1,05 → 1,3 m, plus franc ; FOUDRE DIVINE — les éclairs se noyaient dans le ruban violet → ×1,7 et deux fois plus
+  écartés, ruban au halo réduit, frappe de 0,42 s.
+- EN BOUTIQUE (caméra loin de la caisse) : objets POP ×1,7, fantômes ×1,6, éclairs ×2, et la frappe de la foudre tombe du haut du CADRE (4,2 m).
+- VU APRÈS : planche finale des 16 (boutique avant/après, inventaire, course) montrée à Sacha. Coût : TRX < 0,13 ms par image en course.
+- LA VITRINE QUI VROMBIT (`SILPV.cy`) : en boutique, la traînée essayée se coupe 0,45 s toutes les 4,3 s et se rallume — on revoit le coup.
+  À l'aperçu, changer de traînée chasse les objets de la précédente et rejoue l'allumage (`T.kp=0`).
+- WOW : les mots gardent 95,5 % de l'élan en course (86 % : ils passaient l'objectif en un tiers de seconde), plus écartés, plus hauts.
+- LES CARTES : toutes les traînées ont leur pictogramme EN COULEUR en boutique (`illuTr` → `bqTrIc`, trait d'ombre dur pour le blanc).
+- Perf : aucune PointLight, aucun programme en plus ; tout passe par les pools existants (TRX_PN 560, SIL).
+
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
   Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
