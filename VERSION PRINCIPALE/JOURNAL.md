@@ -43,8 +43,8 @@
      peu près ×2 : la moquette 0x7c2346 sortait du même rose que la caisse → 0x3b1530 ; (d) une plaque de moins de 1,2 cm de large sort en
      POINTILLÉS à 844 px (aliasing) → 1,4 cm ; (e) un rx POSITIF baisse le bout avant (le volant penché vers le conducteur = rx négatif) ;
      (f) la SALLE BLANCHE du studio délave les couleurs et grise les noirs : juger la couleur au garage et en course.
-- À TRANCHER PAR SACHA ET LÉO : les joints de portière (des traits neufs sur le flanc : discrets, mais Léo n'aimait pas les « traits ») ; la
-  moquette prune. Planche AVANT | APRÈS envoyée à Sacha avant la poussée.
+- VALIDÉE par Sacha le 17/10 sur la planche AVANT | APRÈS (« C'est bon, on garde la nouvelle Eldorado »), joints de portière et moquette prune
+  compris. À montrer à Léo : les joints sont des traits neufs sur le flanc (discrets ; il n'aimait pas les « traits » du 13/10).
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
   Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
