@@ -3,6 +3,41 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NUAGES EN VITRAIL (2026-10-18, Léo : « Sacha avait beaucoup de mal à avoir les nuages comme il voulait ; essaie la technique des mini-cubes et de la couche transparente lisse — la glisse transparente peut EMBRASSER la forme des cubes ; garde toutes les qualités qu'on a déjà, encore plus de relief, de profondeur, d'immersion » → questionnaire : TOUS les nuages ; planche de trois dosages → MOYEN)
+- La recette VITRAIL (cœur de lumière, écailles en cubes, peau de verre, onde) tirée du MÊME champ que la surface v8 (`nuage8Calc`, option
+  `opt.vit` = nombre de cubes sur la plus grande dimension, dans l'ouvrier) : ÉCAILLES = les cases de `ext/NUVIT.nc` dont le centre est dedans et
+  qui touchent le dehors, faces extérieures seules, à 94 % (`opt.ecart`) ; une écaille = UNE normale (le gradient du champ en son centre), un
+  modelé, un hasard (`aG`, `aCu`). PEAU = l'isosurface de l'occupation des cubes floutée [¼ ½ ¼] (seuil `NUVIT.iso`) sur SA grille (~1 case par
+  cube) : elle a la FORME des cubes mais la LUMIÈRE du champ lisse (normale mêlée à 65 % — sinon chaque marche faisait un liseré blanc, un
+  filet). CŒUR = la surface v8 rentrée de 0,6 cube, éclairée comme le nuage × `uLueur` (l'ombre reste une ombre).
+- Les trois matières (`nuVitMats`, `nuVitVS/FS`, la lumière v8 en fonction `n8lum`) ; instances : trois maillages par lot fin (finesses 2 et 3,
+  MÊME vitrail calculé une fois par gabarit), avec LEURS instances : `cotonTick` range dans le lot v8 les nuages dont l'écaille serait trop
+  grosse à l'écran (> `NUVIT.ang` rad : de près, des cubes de 15 m faisaient des éclats de verre) ; de loin (finesses 0-1) la v8. Bancs,
+  coussins, tours (`mkCloud`) : écailles et peau en ENFANTS, le maillage devient le cœur ; dedans (white-out) les enfants se cachent.
+  Pas aux Pics de Jade (`J`). Trame du bord et fondu près de l'objectif gardés (écailles, cœur) ; la peau se fond (alpha).
+- Dosages `NV_DOSES` (doux · MOYEN par défaut · fort ; `?nuvit=`), `?sans=nuvit` = la v8 seule, `dbgNuVit(0|1,{dose,detail,banc})`, `dbgNuVue(k,a,p,h)`
+  (même vue A/B), `dbgProgs('h')`. MESURÉ : nuages ×2,3 en triangles, +1 à 1,7 ms/image sur le Mac (~+25 % sur la map) — la peau transparente
+  coûte ; 0 programme compilé en course (au menu, une fois la préparation finie). Écarté : cubes de ext/22 (façades en briques de verre),
+  faces très marquées (damier « boule disco »), peau laiteuse à 50 % (nuage aplati).
+
+## LA FIGURE POSÉE RAPPORTE 40 % (2026-10-18, Sacha : « les figures une fois posées doivent rapporter du nitro » puis « on peut faire -20 +40 »)
+- **Le constat** (dit à Sacha) : la règle −20 % / +30 % tournait (banc `figroute` : 16/16 figures sur la route payées), mais elle ne
+  rapportait que **+10 % net** par figure, et en vol la pose remplit souvent la jauge d'abord : le gain de la figure part alors dans la
+  réserve bleue, et on ne le voit presque pas.
+- **Le choix de Sacha** : garder le prix (20 % au lancement, le « tchk » à sec, la pose ratée qui perd tout), rendre **40 %** au lieu de 30 %
+  — `NITRO2.figN.rend` 0,3 → 0,4, le seul réglage. Soit **+20 % net** par figure posée ; deux figures = 80 %, trois = 120 %.
+  Rien d'autre ne bouge (pas d'affichage ajouté : il a écarté le « +30 % NITRO » sur la barre).
+- MESURÉ (banc en vraie partie, `fig40.cjs`, jauge à 30 % avant chaque figure, grand livre `LIVRE`) : salto avant, salto arrière,
+  tonneau, salto avant → −0,20 / +0,40 chacun (en part de la jauge), rien de perdu ; la 1re, au départ, est offerte (`startBoostT`, comme avant).
+  Fumée OK couche + debout, 0 erreur JS.
+
+## LE CANYON SANS VITESSE ×2 (2026-10-18, Sacha : « met pas de power up vitesse x2 dans le canyon »)
+- Au CANYON DES GÉANTS, plus aucun cristal ⚡ VITESSE ×2 : `pwrPoids` met sa part à 0 et la rend aux quatre autres (NITRO MAX, AIR MAX,
+  AIMANT, AURA ×2) au prorata. Toujours UN seul `rnd()` par cristal : mêmes emplacements, même nombre de cristaux, même piste — seul le
+  pouvoir change. Le parc freestyle n'est pas concerné (`!PARK.on`), les autres maps gardent leur VITESSE ×2.
+- MESURÉ (banc headless, 10 graines, `dbgTrace` + `dbgPwr('cristaux')`) : avant 26 (débutant) / 33 (vétéran) cristaux VITESSE ×2 sur 199 ;
+  après 0 sur 199 ; au nuages ils restent (15 / 21). `dbgPwr().poids` montre `v:0` au canyon.
+
 ## LE GLACIER, 2e TOUR : PISTE BEAUCOUP PLUS LARGE, PENTE BEAUCOUP PLUS FORTE (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue »)
 - LARGEUR : `BK_LARG4` 4,4 → 7 — la piste passe de 123 à 196 m (demi-largeur 98 m). Tout ce qui la borde suit `ROAD_HALF` (bourrelet de
   neige, glace, becs, pics, mur `parisMur`) ; le plancher des rayons (2,6 demi-largeurs = 255 m) l'emporte souvent : virages plus amples.
