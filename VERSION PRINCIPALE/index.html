@@ -15074,30 +15074,52 @@ const SANS_HAUT=!/[?&]sans=([^&]*,)?haut(,|&|$)/.test(location.search);
      possible parce que les tremplins sont coupés, GAP_ON : aucune géométrie de saut calée sur la physique à ne pas agrandir) ;
    · les vrilles s'étirent : un quart de tour en ~4-6 s, un demi en ~6-9 s, le tour complet rare (~11 s), et de longues tenues entre deux ;
      le redressement avant le portail prend 3 s au lieu de 1,3 (et agit jusque dans les montées raides). */
-const TORD_AMP=2.4;
+/* LES VIRAGES DE COURSE (2026-10-18, Sacha : « trop peu de virages dans la map nuage, rajoute des virages et des modules cool à rider, ça reste
+   un jeu de course »). MESURÉ (banc Node de genCtrl + pisteTord, 6 graines × 3 paliers, règle COURSE de passation/RACCOURCIS.md : un virage =
+   un cap qui tourne de 20° ou plus à un rayon < 4 × le rayon que la caisse tient à fond) : 0,03 virage par km (la règle en veut 2,5), des
+   « droites » de 100 s, un rayon médian de 640 m. Le zoom ×2,4 avait gonflé chaque virage au-delà du seuil où l'on tourne le volant. Quatre leviers,
+   sur la route tordue seulement :
+   · le ZOOM redescend (2,4 → TORD_AMP ci-dessous) — les VRILLES gardent leur lenteur (leur longueur se compte en secondes de croisière, pas au zoom) ;
+   · les POIDS des motifs (`TORD_W`) : plus d'esses, de chicanes, d'épingles et de virages, moins de droites et de plongeons (sans haut ni bas,
+     une pente ne pousse ni ne retient : un plongeon n'y est qu'une droite) ;
+   · les MODULES DE COURSE (genCtrl, `modTord`) remplacent ceux de la gravité (filet, lacets, plongeon, chameau) : SLALOM, ÉPINGLE, DOUBLE CORDE,
+     ESSES, MONTAGNES RUSSES — à leur VRAIE taille (ils échappent au zoom), dosés sur le rayon du palier ;
+   · le DÉVERS (`TORD_DEVERS`, pisteTord) : la dalle se COUCHE dans le virage, vers l'intérieur, de l'angle d'un virage relevé à la croisière.
+   `?sans=virages` rend la route du 15/10. */
+const NV_ON=!/[?&]sans=([^&]*,)?virages(,|&|$)/.test(location.search);
+const TORD_AMP=NV_ON?1.1:2.4;
+const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
+const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s)
 const TORD={on:false,N:null,info:null};
 function hautOn(){const c=LVL.cur;return SANS_HAUT&&!PARK.on&&!!c&&(c.id==='nuages'||c.id==='orage')&&!c.camp&&!c.sansNuages&&!c.piste&&(started||SF.pret);}
 function hautPente(){return TORD.on?0:1;}
-function pisteTord(ctrl,seed,sansVrille){
+function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
+  const q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();
+  /* (2026-10-18) la courbe et le repère d'origine ne dépendent pas du tirage des vrilles : gardés d'un essai à l'autre (pisteTordPropre, qui les
+     libère en sortant) — la mesure de la courbe coûtait ~30 ms à chaque essai */
+  let c1=pisteTord._c1;
+  if(!c1||c1.ctrl!==ctrl){
   const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,ctrl.length*16);
   const Lc=cv.getLength(),K=Math.max(16,Math.round(Lc/6)),P=cv.getSpacedPoints(K),n1=K+1,h=Lc/K;
   // 1) LE REPÈRE D'ORIGINE, recette de buildTrack (transport parallèle + rappel vers le ciel) : `om` = le roulis que le rappel ajoute à chaque pas
   const Tv=[],Nv=[],om=new Float32Array(n1);
   for(let i=0;i<n1;i++)Tv.push(new THREE.Vector3().subVectors(P[Math.min(i+1,K)],P[Math.max(i-1,0)]).normalize());
-  const n=new THREE.Vector3(0,1,0),q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();n.addScaledVector(Tv[0],-n.dot(Tv[0])).normalize();
+  const n=new THREE.Vector3(0,1,0);n.addScaledVector(Tv[0],-n.dot(Tv[0])).normalize();
   for(let i=0;i<n1;i++){Nv.push(n.clone());if(i>=K)break;
     q.setFromUnitVectors(Tv[i],Tv[i+1]);n.applyQuaternion(q);n.addScaledVector(Tv[i+1],-n.dot(Tv[i+1])).normalize();
     const t9=Tv[i+1],ty=Math.abs(t9.y);
     if(ty<.7&&n.y>0){up.set(-t9.x*t9.y,1-t9.y*t9.y,-t9.z*t9.y);if(up.lengthSq()>1e-8){up.normalize();
       const th=Math.atan2(c9.crossVectors(n,up).dot(t9),n.dot(up)),mx=.05*P[i+1].distanceTo(P[i])*(1-ty/.7),a=THREE.MathUtils.clamp(th,-mx,mx);
       om[i]=a;n.applyAxisAngle(t9,a);n.addScaledVector(t9,-n.dot(t9)).normalize();}}}
+  c1={ctrl:ctrl,cv:cv,Lc:Lc,K:K,P:P,n1:n1,h:h,Tv:Tv,Nv:Nv,om:om};if(NV_ON)pisteTord._c1=c1;}
+  const cv=c1.cv,Lc=c1.Lc,K=c1.K,P=c1.P,n1=c1.n1,h=c1.h,Tv=c1.Tv,Nv=c1.Nv,om=c1.om;
   // 2) LES VRILLES : le roulis voulu `rho(s)`, par segments lissés (smoothstep) — tenue, quart de tour, demi-tour, tour complet
   /* LES TRONÇONS DROITS — l'approche et le saut de chaque TROU, l'arrivée au portail — ne suivent pas le plan : la dalle s'y redresse vers le
      CIEL DU MONDE (le rappel de buildTrack, mais d'où qu'elle parte, même à l'envers). ⚠ Revenir au même angle de roulis ne suffit pas : après
      des virages pris sur la tranche, tout le repère a tourné — seul un rappel vers la verticale remet la route à l'endroit. Les trous se
      sautent avec la vraie gravité : celui dont la lèvre n'est pas revenue à plat (route trop raide pour se redresser) est refermé. Le DÉPART,
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
-  const rg=mulberry32((seed^0x70D5E11A)>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
+  const rg=mulberry32((seed^0x70D5E11A^(essai?Math.imul(essai,0x9E3779B1):0))>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
   const s0=Math.max(500,3*vC),fin=Lc-Math.max(1200*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
   const near0=function(v){let bi=0,bd=1e18;for(let i=0;i<n1;i++){const e=P[i].distanceToSquared(v);if(e<bd){bd=e;bi=i;}}return bi;};
   const zones=GAPMARK.filter(function(g){return g.p&&g.h1;}).map(function(g){return {g:g,i:near0(g.p),a:near0(g.p)*h-Math.max(600,6*vC),b:near0(g.h1)*h+Math.max(200,1.5*vC)};}).sort(function(x,y){return x.a-y.a;});
@@ -15115,6 +15137,20 @@ function pisteTord(ctrl,seed,sansVrille){
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);for(const z of zones)mk(z.a,z.b);}
+  /* 2 bis) LE DÉVERS (2026-10-18, voir NV_ON) : dans chaque virage la dalle se couche vers l'INTÉRIEUR, de l'angle qu'aurait un virage relevé pris
+     à la croisière (atan v²/gR, plafonné) — l'épingle se prend presque sur la tranche, le grand balayage à peine penché. Le lacet est relevé dans le
+     plan de la dalle d'origine (lissé sur ~30 m), la cible lissée sur ~1 s puis bornée en vitesse de roulis (deux passes, aller et retour : la
+     dalle se couche AVANT le virage, se redresse en sortant). Rien dans les tronçons droits (portail) ; au volant, rien ne change. */
+  const dev=new Float32Array(n1+1);let devMax=0;
+  if(!sansVrille&&NV_ON){const DV=TORD_DEVERS,a9=new THREE.Vector3(),yw=new Float32Array(n1),y2=new Float32Array(n1);
+    for(let i=0;i<K;i++){a9.crossVectors(Tv[i],Tv[i+1]);const sn=a9.length();if(sn>1e-9)yw[i]=a9.dot(Nv[i])/sn*Math.atan2(sn,Tv[i].dot(Tv[i+1]))/h;}
+    const flou=function(src,dst,r){let s=0,c=0;for(let i=-r;i<n1+r;i++){const ia=i+r,io=i-r-1;if(ia<n1){s+=src[ia];c++;}if(io>=0){s-=src[io];c--;}if(i>=0&&i<n1)dst[i]=s/Math.max(1,c);}};
+    flou(yw,y2,Math.max(1,Math.round(15/h)));
+    for(let i=0;i<n1;i++)yw[i]=droit[i]?0:-Math.sign(y2[i])*Math.min(DV.max,DV.k*Math.atan(vC*vC*Math.abs(y2[i])/DV.g)); // − : la normale penche vers le centre du virage (vers +B quand la route tourne vers +B)
+    const r9=Math.max(1,Math.round(DV.lis*vC/h/2));flou(yw,y2,r9);flou(y2,yw,r9);
+    for(let i=0;i<n1;i++)if(droit[i])yw[i]=0; // (le tronçon droit à 0 AVANT les bornes : la passe retour couche la dalle à plat en l'approchant — dedans, de toute façon, seul le rappel vers le ciel agit)
+    const m9=DV.vmax/vC*h;for(let i=n1-2;i>=0;i--)yw[i]=THREE.MathUtils.clamp(yw[i],yw[i+1]-m9,yw[i+1]+m9);for(let i=1;i<n1;i++)yw[i]=THREE.MathUtils.clamp(yw[i],yw[i-1]-m9,yw[i-1]+m9);
+    for(let i=0;i<n1;i++){dev[i]=yw[i];devMax=Math.max(devMax,Math.abs(dev[i]));}dev[n1]=dev[n1-1];}
   // 3) LE CHEMIN REFAIT : chaque pas d'origine (corde, rotation de la tangente, roulis) relu dans le repère d'origine, rejoué dans le nouveau
   const Y9=new THREE.Vector3(0,1,0),T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
   const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;
@@ -15125,7 +15161,9 @@ function pisteTord(ctrl,seed,sansVrille){
     if(sn>1e-9){ax.multiplyScalar(1/sn);const an=ax.dot(Nv[i]),ab=ax.dot(Bo),at=ax.dot(Tv[i]);
       c9.set(0,0,0).addScaledVector(N2,an).addScaledVector(B2,ab).addScaledVector(T2,at).normalize();q.setFromAxisAngle(c9,Math.atan2(sn,cs));T2.applyQuaternion(q);N2.applyQuaternion(q);}
     T2.normalize();N2.addScaledVector(T2,-N2.dot(T2)).normalize();
-    const rN=rhoAt((i+1)*h);let rl=om[i]+(rN-rhoP);rhoP=rN;
+    const rN=rhoAt((i+1)*h)+dev[i+1];let rl; // (2026-10-18) + le DÉVERS (2 bis)
+    if(NV_ON){const mR=TORD_DEVERS.roulis/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
+    else{rl=om[i]+(rN-rhoP);rhoP=rN;}
     if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers » — (EN GRAND) et jusque dans les montées raides (.7 → .95) : un rappel plus doux doit pouvoir agir partout
       const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(3*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);}}} /* au plus un demi-tour en 3 s de croisière (EN GRAND ; c'était 1,3 s : un coup de vrille sec avant chaque trou) */
     rMax=Math.max(rMax,Math.abs(rl)/h);N2.applyAxisAngle(T2,rl);
@@ -15148,9 +15186,36 @@ function pisteTord(ctrl,seed,sansVrille){
    for(const m of MODMARK){m.i0=ix(m.i0);m.i1=ix(m.i1);}}
   FILETMARK.length=0;
   TORD.info={L:Math.round(Lc),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,trousFermes:fermes,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
-    ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1]))};
+    ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1])),deversMaxDeg:Math.round(devMax*57.3)};
   return {ctrl:out,N:outN};
 }
+/* LA ROUTE QUI NE SE TOUCHE PAS (2026-10-18, avec LES VIRAGES DE COURSE — voir NV_ON). Plus serrée, la piste enroulée dans l'espace repasse
+   parfois près d'elle-même — MESURÉ (banc Node, 30 zones au palier 0) : 10 contacts, deux dalles qui se croisent à 2-23 m (la route d'avant,
+   étalée par le zoom ×2,4 : aucun passage à moins de 60 m). Un pont propre reste permis (≥ 14 m de vide sous la dalle, la règle des ponts de
+   passation/RACCOURCIS.md, avec marge) : on refuse seulement deux dalles qui se TOUCHENT. `tordContacts` les compte sur les points de contrôle
+   (~18 m) ; `pisteTordPropre` rejoue alors les VRILLES avec un autre tirage (même graine de départ : tout le monde a la même route), jusqu'à
+   5 fois, et garde la plus propre (mesuré, 180 zones : 3 sur 4 passent du premier coup, aucune ne reste en contact ; 15-26 ms la zone en médiane). Le tracé ressenti (virages, modules) ne bouge pas : seule la façon dont la route s'enroule change. */
+function tordContacts(Q,NQ){
+  const n=Q.length,C=70,g=new Map(),key=function(x,y,z){return ((x&2047)*2048+(y&2047))*2048+(z&2047);};let s=0;const sA=new Float32Array(n); // (clé NUMÉRIQUE : une clé texte coûtait 10 ms par essai)
+  for(let i=0;i<n;i++){if(i)s+=Q[i].distanceTo(Q[i-1]);sA[i]=s;const k=key(Math.floor(Q[i].x/C),Math.floor(Q[i].y/C),Math.floor(Q[i].z/C));let l=g.get(k);if(!l){l=[];g.set(k,l);}l.push(i);}
+  const T9=new THREE.Vector3(),B9=new THREE.Vector3(),d9=new THREE.Vector3();let nC=0,vu=-1e9;
+  for(let i=1;i<n-1;i++){const p=Q[i],cx=Math.floor(p.x/C),cy=Math.floor(p.y/C),cz=Math.floor(p.z/C);let tc=false;
+    T9.subVectors(Q[i+1],Q[i-1]).normalize();B9.crossVectors(T9,NQ[i]);
+    for(let a=-1;a<=1&&!tc;a++)for(let b=-1;b<=1&&!tc;b++)for(let c=-1;c<=1&&!tc;c++){const l=g.get(key(cx+a,cy+b,cz+c));if(!l)continue;
+      for(const j of l){if(sA[j]-sA[i]<250)continue;d9.subVectors(Q[j],p);if(d9.lengthSq()>75*75)continue;
+        if(Math.abs(d9.dot(NQ[i]))<16&&Math.abs(d9.dot(B9))<62){tc=true;break;}}}
+    if(tc&&sA[i]-vu>300){nC++;vu=sA[i];}}
+  return nC;}
+function pisteTordPropre(ctrl,seed){
+  const g0=GAPMARK.map(function(g){return Object.assign({},g);}),m0=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};}),f0=FILETMARK.slice();
+  let best=null,bC=1e9,bI=null,bG=null,bM=null;
+  for(let e=0;e<6;e++){
+    if(e){GAPMARK.length=0;for(const g of g0)GAPMARK.push(Object.assign({},g));MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);}
+    const r=pisteTord(ctrl,seed,false,e),c=tordContacts(r.ctrl,r.N);
+    if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:e,contacts:c});bG=GAPMARK.slice();bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}
+    if(!c)break;}
+  GAPMARK.length=0;for(const g of bG)GAPMARK.push(g);MODMARK.forEach(function(m,k){m.i0=bM[k].i0;m.i1=bM[k].i1;});TORD.info=bI;pisteTord._c1=null;
+  return best;}
 window.dbgHaut=function(k){ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : son relevé · dbgHaut('controle') = la piste refaite SANS vrille doit retomber sur l'originale
   if(k==='controle'){if(!TORD.ctrl0)return 'pas de piste tordue en cours';const r=pisteTord(TORD.ctrl0,TORD.seed,true);return {ecartFin:+r.ecart.toFixed(3),ecartMax:+r.ecartMax.toFixed(3)};}
   let dos=0,tranche=0,yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i++){const y=Nn[i].y;if(y<-.2)dos++;else if(y<.5)tranche++;yMin=Math.min(yMin,pts[i].y);yMax=Math.max(yMax,pts[i].y);}
@@ -15487,7 +15552,7 @@ function genCtrl(rnd,startPos,startPhi){
     {nm:'GRAND8', w:[4,0,7,18,8,24,6,6,8,14,1,0,0],    wv:[4,0,5,16,8,34,3,3,6,24,1,0,0],  rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
   zoneArch=AR.nm; // exporté pour les BIOMES
-  const RS=AR.rs*LV*1.25,VT=AR.vt,LOOPS=1+(LV-1)*.35; // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas // les loops grossissent doucement (un loop de 120 m reste un loop)
+  const RS=AR.rs*(NV_ON&&hautOn()?(40+.3*(70+(LV-1)*100))/61:LV)*1.25,VT=AR.vt,LOOPS=1+(LV-1)*.35; // (2026-10-18) sur la route TORDUE des nuages, les rayons suivent le rayon que la caisse tient au palier (40 + 0,3·v, passation/RACCOURCIS.md) au lieu de LV : LV grandissait plus vite que lui, au palier 12 plus aucun virage ne demandait le volant // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas // les loops grossissent doucement (un loop de 120 m reste un loop)
   const hand=rnd()<.33?-1:(rnd()<.5?0:1);        // LATÉRALITÉ : une piste qui spirale à gauche ne ressemble pas à une équilibrée
   const sgn=()=>rnd()<.5+hand*.22?1:-1;
   // ---- HUMEUR DE LA ZONE : deux FLOW ne doivent PAS se ressembler ----
@@ -15495,10 +15560,11 @@ function genCtrl(rnd,startPos,startPhi){
   // sortaient statistiquement jumelles (« on a l'impression que la génération est toujours pareille »).
   // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
   // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
-  const W=((ESPON?AR.wv.map(function(v,k){return v*ESP_ROUTE.w[k];}):AR.w)).map(v=>v*(0.35+rnd()*1.7)); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`)
+  const TORDU=hautOn(),TW=TORDU&&NV_ON; // TW : (2026-10-18) LES VIRAGES DE COURSE sur la route tordue des nuages (voir NV_ON)
+  const W=((ESPON?AR.wv.map(function(v,k){return v*ESP_ROUTE.w[k];}):AR.w)).map(v=>v*(0.35+rnd()*1.7)).map(function(v,k){return TW?v*TORD_W[k]:v;}); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`) · (2026-10-18) la route tordue, les siens (TORD_W) — même nombre de tirages
   const wsum=W.reduce((a,b)=>a+b,0);
   const pick=()=>{let x=rnd()*wsum;for(let k=0;k<13;k++){x-=W[k];if(x<0)return k;}return 5;};
-  const AMP=hautOn()?TORD_AMP:1; // (2026-10-15) LA ROUTE SANS HAUT NI BAS EN GRAND : la zone est tirée AMP fois plus courte, puis tout est agrandi AMP fois (voir TORD_AMP)
+  const AMP=TORDU?TORD_AMP:1; // (2026-10-15) LA ROUTE SANS HAUT NI BAS EN GRAND : la zone est tirée AMP fois plus courte, puis tout est agrandi AMP fois (voir TORD_AMP)
   const LEN=14400*(1+Math.min(1.5,(LV-1)*.55))/AMP; // (2026-09-25, user : « double la longueur de chaque niveau ») 7200 → 14400 — et plus longues encore à haute vitesse
   // ---- LE VIRAGE À FILET (voir FILET) : NUAGES seulement ; son hasard a SON générateur (un seul tirage de `rnd`, et seulement ici) ----
   FILETMARK.length=0;MODMARK.length=0;
@@ -15518,7 +15584,8 @@ function genCtrl(rnd,startPos,startPhi){
        4 · LE DOS DE CHAMEAU : une seule grande bosse, puis une descente longue et lisible — le BIG AIR du niveau
      Tout passe par `rf` (le hasard du filet) : les autres niveaux ne tirent pas un `rnd` de plus. Les crêtes restent soumises à
      adoucirCretes (verdict du 25/09 : jamais de crête aveugle) — les bosses sont RONDES, la route derrière se voit. */
-  const MODON=FILON&&LVL.cur.id==='nuages';
+  const MODT=FILON&&TW; // (2026-10-18) la route TORDUE a ses modules de COURSE (voir plus bas) : ceux d'ici vivent de la gravité, qu'elle n'a plus
+  const MODON=FILON&&LVL.cur.id==='nuages'&&!MODT;
   const modPaq=[];let modNext=1000*LV,modLast=-1;
   const modTire=()=>{for(let e=0;e<12;e++){if(!modPaq.length){const t=[0,1,2,3,4];for(let i=4;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)modPaq.push(x);}
     const m=modPaq.shift();if(m===modLast||(m===0&&filN>=filMax))continue;return m;}return 3;};
@@ -15532,6 +15599,29 @@ function genCtrl(rnd,startPos,startPhi){
   const plongeonG=()=>{const L1=(200+rf()*80)*LV;straight(100*LV,4*LV,2);straight(L1,-L1*.46,4); // la lèvre, puis ~25° qu'on voit venir
     arc((rf()<.5?1:-1)*(40+rf()*30),(150+rf()*70)*RS,4,-12*LV);straight(140*LV,-6*LV,2);}; // la compression : un grand virage presque plat
   const chameau=()=>{const sg=rf()<.5?1:-1;courbe((140+rf()*40)*LV,(22+rf()*10)*LV,sg*5,3);courbe((220+rf()*60)*LV,-(70+rf()*25)*LV,sg*8,3);straight(100*LV,-6*LV,2);};
+  /* LES MODULES DE COURSE DE LA ROUTE TORDUE (2026-10-18, Sacha : « rajoute des virages et des modules cool à rider, ça reste un jeu de course »).
+     Sans haut ni bas, le filet n'a plus de route en dessous, et lacets, plongeon, dos de chameau vivaient de la pente — qui ne pousse plus ici.
+     Cinq modules qui se jouent AU VOLANT, tirés comme les autres (paquet mélangé, jamais deux fois de suite, `rf`), tous les 0,5-0,9 km (× LV) :
+       0 · LE SLALOM : 5 à 7 virages alternés de 38-52°, sans respiration — le rythme gauche-droite à pleine vitesse
+       1 · L'ÉPINGLE : un demi-tour de 165-185° au rayon que la caisse tient à fond (~1,7-2 fois) — on la voit venir, on la prend couchée (dévers)
+       2 · LA DOUBLE CORDE : deux virages de 80-105° du même côté, une courte droite entre — un U en deux coups de volant
+       3 · LES ESSES : trois grands virages alternés de 70-95° — la courbe qui coule
+       4 · LES MONTAGNES RUSSES : 3-4 bosses rondes en courbe — le rouleur sent le rythme, le voltigeur décolle aux crêtes
+     ⚠ Leurs rayons sont VRAIS : ils échappent au zoom de la route (×Z, Z = 1/AMP) et se règlent sur `rP`, le rayon que la caisse tient volant à fond
+     au palier (40 + 0,3·v, passation/RACCOURCIS.md) — jamais sous 1,7 rP : serré, jamais infranchissable. Leurs pentes sont douces (sans haut ni bas,
+     une pente ne se sent pas) ; le dévers de pisteTord les couche dans le virage. */
+  const rP=40+.3*(70+(LV-1)*100),Z=1/AMP;
+  const tSlalom=()=>{const n=5+((rf()*3)|0),R=(1.9+rf()*.5)*rP;let sg=rf()<.5?1:-1;straight(70*LV*Z,-4*LV*Z,1);
+    for(let k=0;k<n;k++){const a=38+rf()*14;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);sg=-sg;}straight(70*LV*Z,-4*LV*Z,1);};
+  const tEpingle=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(1.7+rf()*.3)*rP,a=165+rf()*20;straight(150*LV*Z,-6*LV*Z,2);
+    arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);straight(130*LV*Z,-6*LV*Z,2);};
+  const tCorde=()=>{const sg=rf()<.5+hand*.22?1:-1,R=(2+rf()*.5)*rP;straight(100*LV*Z,-5*LV*Z,1);
+    for(let k=0;k<2;k++){const a=80+rf()*25;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);if(!k)straight((60+rf()*40)*LV*Z,-3*LV*Z,1);}straight(100*LV*Z,-5*LV*Z,1);};
+  const tEsses=()=>{let sg=rf()<.5?1:-1;const R=(2.4+rf()*.7)*rP;straight(60*LV*Z,-3*LV*Z,1);
+    for(let k=0;k<3;k++){const a=70+rf()*25;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);sg=-sg;}straight(60*LV*Z,-3*LV*Z,1);};
+  const tRusses=()=>{const n=3+(rf()<.5?1:0),sg=rf()<.5?1:-1;straight(90*LV*Z,-4*LV*Z,2);
+    for(let k=0;k<n;k++){const h=(16+rf()*10)*LV*Z;courbe((80+rf()*25)*LV*Z,h,sg*(8+rf()*8),2);courbe((110+rf()*30)*LV*Z,-(h+(6+rf()*6)*LV*Z),sg*(8+rf()*8),3);}
+    straight(100*LV*Z,-6*LV*Z,2);};
   const filet=()=>{
     const sg=rf()<.5+hand*.22?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
     const vN=FILET.kv*(70+(LV-1)*100),g=FALL_G*SPD,k0=FILET.kick,iM0=ctrl.length-1; // iM0 : début du module (MODMARK)
@@ -15620,12 +15710,17 @@ function genCtrl(rnd,startPos,startPhi){
     const E9=VILLE_ENTREE_R;straight(E9.droite*LV,-6*LV,4);const iA9=ctrl.length-1;
     straight(E9.rampe*LV,-E9.chute*LV,6);VILLE_ENTREE={pA:ctrl[iA9],pB:ctrl[ctrl.length-1]}; // (les points eux-mêmes : les adoucissements les déplacent, la ville lit leur place FINALE)
   }else straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
+  if(MODT)modNext=900*LV*Z; // (2026-10-18) le 1er module de course ~900 m après le départ (VRAIS mètres : la zone est tirée au 1/AMP)
   while(approx<LEN){
+    if(MODT&&approx>modNext&&approx<LEN-1500*LV*Z){const m=modTire(),iM9=ctrl.length-1;modLast=m; // (2026-10-18) LES MODULES DE COURSE (voir tSlalom…) — même paquet, même hasard `rf`
+      if(m===0)tSlalom();else if(m===1)tEpingle();else if(m===2)tCorde();else if(m===3)tEsses();else tRusses();
+      MODMARK.push({i0:iM9,i1:ctrl.length-1});
+      modNext=approx+(500+rf()*400)*LV*Z;continue;}
     if(MODON&&approx>modNext&&approx<LEN-2600*LV){const m=modTire(),iM9=ctrl.length-1;modLast=m; // (2026-09-30) LES MODULES DU 1er NIVEAU (voir plus haut)
       if(m===0){filet();filN++;}else if(m===1)lacets();else if(m===2)russes();else if(m===3)plongeonG();else chameau();
       if(m!==0)MODMARK.push({i0:iM9,i1:ctrl.length-1}); // (revue PISTE) le module entier (le filet pose ses deux tronçons lui-même)
       modNext=approx+(1600+rf()*1000)*LV;continue;}
-    const mo=(!MODON&&filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick();
+    const mo=(!MODON&&!MODT&&filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick(); // (2026-10-18) pas de filet sur la route tordue (MODT) : sa route d'en dessous n'est plus en dessous
     if(mo===-7){filet();filN++;filNext=approx+(1500+rf()*1300)*LV;} // LE VIRAGE À FILET (voir FILET)
     else if(mo===0&&!sansLoop&&!SANS_LOOPING&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville, et plus nulle part (SANS_LOOPING)
       straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
@@ -15662,7 +15757,7 @@ function genCtrl(rnd,startPos,startPhi){
       const l=(90+rnd()*100)*LV;
       {const a7=20+rnd()*20;arc(sgn()*a7,l/(a7*Math.PI/180),3,-l*(.32+rnd()*.16));} // (piste v6) la ligne de momentum se CINTRE — (route v3) pente ≤ ~26° au lieu du toboggan à 45°
     }else if(mo===8){ // chicane rapide : gauche-droite-gauche à pleine vitesse
-      const n8=3+Math.floor(rnd()*3),a8=16+rnd()*14,R8=(70+rnd()*90)*RS;let sg8=sgn();
+      const n8=3+Math.floor(rnd()*3),a8=(TW?26:16)+rnd()*14,R8=(70+rnd()*90)*RS;let sg8=sgn(); // (2026-10-18) sur la route tordue, des coups de volant francs (26-40°)
       for(let q=0;q<n8;q++){arc(sg8*a8,R8,2,-(a8*Math.PI/180*R8*.5));sg8=-sg8;}
     }else if(mo===10){ // LE GAP CATAPULTE — l'ÉVÉNEMENT de la zone : au plus 1 (2 dans l'endgame), jamais coup sur coup
       const vG=(level>=8&&rnd()<.22)?2:(rnd()<.42?1:0);
@@ -16437,7 +16532,7 @@ function buildTrack(seed){
   {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:THICK_ROUTE;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   let ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?genForet(rnd):(LVL.cur&&LVL.cur.piste==='volcan')?genVolcan(rnd):(LVL.cur&&LVL.cur.piste==='canyon')?genCanyon(rnd):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
-  TORD.on=false;TORD.N=null;if(hautOn()){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTord(ctrl,seed|0);ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;} // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord)
+  TORD.on=false;TORD.N=null;if(hautOn()){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=NV_ON?pisteTordPropre(ctrl,seed|0):pisteTord(ctrl,seed|0);ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;} // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord)
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
@@ -20095,7 +20190,7 @@ function banqSolVol(dt,dtF){
       if(vn<0){v.x-=nx*vn;v.y-=ny*vn;v.z-=nz*vn;}
       p.y=Math.max(p.y,S.h+.03-v.y*k9);                                                // posée SUR la glace à la fin de l'image
       {const kf=Math.exp(-BK_PH.frG*dtF);v.multiplyScalar(kf);}
-      {const yi=veqVolant()*(1.15+Math.min(.6,v.length()*.004))*dtF;if(yi)v.applyAxisAngle(FLY_U,-yi*(1-BK_PH.grip));} // le volant mord moins : la caisse DÉRIVE
+      {const yi=veqVolant()*lacetVol(v.length())*dtF;if(yi)v.applyAxisAngle(FLY_U,-yi*(1-BK_PH.grip));} // le volant mord moins : la caisse DÉRIVE
       BK_N.set(nx,ny,nz);BANQ.nS.lerp(BK_N,Math.min(1,dt*14)).normalize();FLY_U.copy(BANQ.nS);
       fallVH0=Math.max(fallVH0,Math.hypot(v.x,v.z));fallTR=Math.max(0,fallTR-dt*3);
       BANQ.sur=S.t;BANQ.gT+=dt;BANQ.tG=S.t;
@@ -20142,7 +20237,7 @@ function foretSolVol(dt,dtF){
   p.y=Math.max(p.y,h+MOU_PH.haut-v.y*k9);                                          // posée SUR la mousse à la fin de l'image
   {if(nitroOn)MOU.vr=Math.min(MOU.vr+dt*12/SPD,vCroisiere()*1.25/(3.6*SPD));const hv=v.length(),vt=MOU.vr*(nitroOn?MOU_PH.vKn:MOU_PH.vK);if(hv>1){const a=(vt-hv)*(1-Math.exp(-MOU_PH.frein*dtF));v.multiplyScalar(Math.max(0,hv+a)/hv);}
    else v.set(Math.sin(psi||0),0,Math.cos(psi||0)).multiplyScalar(vt*.3);}           // le moteur la tient à sa vitesse de mousse (la pente fait le reste)
-  {const yi=(steer-veqVolant())*(1.15+Math.min(.6,v.length()*.004))*dtF;if(yi)v.applyAxisAngle(MOU.nS,yi);} // le VOLANT ENTIER (en l'air, il ne garde que le geste neuf)
+  {const yi=(steer-veqVolant())*lacetVol(v.length())*dtF;if(yi)v.applyAxisAngle(MOU.nS,yi);} // le VOLANT ENTIER (en l'air, il ne garde que le geste neuf)
   BK_N.set(nx,ny,nz);MOU.nS.lerp(BK_N,Math.min(1,dt*12)).normalize();FLY_U.copy(MOU.nS);
   fallVH0=Math.max(fallVH0,Math.hypot(v.x,v.z));fallT=0;fallTR=0;yawAcc=0;spinHalf=0;MIR.t=0;MIR.max=0; // sur la mousse : ni chrono de vol, ni vrille, ni chute « perdue »
   MOU.t+=dt;
@@ -23560,42 +23655,71 @@ const JADE_U={uSunDir:{value:SUN_DIR},uSunC:{value:new THREE.Color()},uSky:{valu
   uFillD:{value:new THREE.Vector3(0,-1,0)},uFillC:{value:new THREE.Color()},uMist:{value:new THREE.Color(.86,.87,.82)},
   uMerY:{value:-420},uSous:{value:0},uEauT:skyU.uEauT,uTime:{value:0},uCam:{value:new THREE.Vector3()},uY0:{value:0},uYH:{value:1},uGhost:{value:new THREE.Color(.70,.92,1.)}};
 /* LA ROUTE — même outillage que genParis (droites, arcs ≤ 9° par point), mais tirée à la graine de la piste : chaque vallée est neuve.
-   Le cap reste dans ±85° de l'axe de départ (aucun retour sur ses pas : la route ne recroise jamais un de ses tronçons). */
+   Le cap reste dans ±85° de l'axe de départ (aucun retour sur ses pas : la route ne recroise jamais un de ses tronçons).
+   (2026-10-18, Sacha : « la génération de map dans les montagnes chinoises est toujours la même, rends-la plus aléatoire ») MESURÉ (les plans
+   de 60 graines, vus de dessus) : la graine changeait bien à chaque partie, mais la RECETTE était la même — un serpentin doux tout droit vers
+   le nord, la Porte au premier quart, le Pont au milieu, 11 à 13 km, deux ondes de relief : on croyait rouler la même vallée. LA VALLÉE AU
+   HASARD — chaque piste tire désormais :
+   · l'AXE de la vallée (±45° autour du nord : la lumière rasante du soleil bas change de côté d'une piste à l'autre) ;
+   · l'ORDRE des deux monuments (la Porte puis le Pont, ou le Pont d'abord) et leur PLACE : les trois tronçons de virages se partagent la
+     longueur au hasard (chacun entre ~20 et ~45 %) ;
+   · un CARACTÈRE par tronçon (`JADE_HUMEURS`), jamais deux fois le même de suite — le serpentin serré, les grandes courbes, la DÉRIVE (la
+     vallée part en biais d'un côté puis revient), le balcon (de longues droites cassées de coudes), les chicanes, et la vallée d'origine ;
+   · la LONGUEUR (≈ 10,5 à 14,5 km : ni trop court ni trop long, la règle de la v14) et le RELIEF (amplitudes et longueurs d'onde tirées, une
+     3e onde courte une fois sur deux, le tout ramené sous la pente d'origine), puis les rampes vers les monuments ADOUCIES (`adoucirPentes`) :
+     avant, elles montaient jusqu'à ~70 % entre deux points de contrôle.
+   Le départ, l'arrivée, l'effondrement, les deux monuments à plat et dans l'axe : inchangés. `?graine=n` (la balade, `?niveau=jade`) garde
+   une vallée fixe — mais plus celle d'avant. */
+const JADE_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · R : rayon (m, minimum + étendue) · inv : la chance d'inverser le sens (un S) · dr : [chance d'une droite après, longueur minimum, étendue]
+  {nm:'vallee',  a:[28,62],R:[280,420],inv:.72,dr:[.4,90,230]},   // l'ancienne recette, gardée parmi les autres
+  {nm:'serpent', a:[40,42],R:[280,140],inv:.88,dr:[.12,60,100]},  // des S serrés, presque sans répit (280 m : jamais plus serré que l'ancienne recette)
+  {nm:'courbes', a:[26,36],R:[680,480],inv:.6,dr:[.35,160,240]},  // de grandes courbes qui se prennent à fond
+  {nm:'derive',  a:[18,26],R:[420,320],inv:.2,dr:[.3,120,220]},   // la vallée tourne d'un côté jusqu'à la butée, puis revient : un grand biais
+  {nm:'balcon',  a:[14,26],R:[460,360],inv:.5,dr:[1,260,360]},    // de longues droites cassées de coudes : on voit loin
+  {nm:'chicanes',a:[22,20],R:[280,80],inv:1,dr:[.06,40,70]}];     // gauche-droite-gauche, vite
+const JADE_PENTE={seuil:.12,garde:.3}; // au-delà de 12 %, la pente n'est gardée qu'à 30 % (voir adoucirPentes)
 function genJade(rnd){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
-  let P=new THREE.Vector3(0,0,0),phi=0;
+  const phi0=(rnd()-.5)*1.5708; // l'AXE de la vallée, tourné au hasard (±45°) : le soleil bas du rouleau (SUN_DIR, derrière le départ) ne tombe plus toujours du même côté
+  let P=new THREE.Vector3(0,0,0),phi=phi0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
   const droite=(l,nn)=>{nn=nn||Math.max(2,Math.round(l/100));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);push();}};
   const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}};
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
   const LIM=85*Math.PI/180;
-  const virages=len=>{let fait=0,sg=rnd()<.5?-1:1;
+  const virages=(len,H)=>{let fait=0,sg=rnd()<.5?-1:1;
     while(fait<len){
-      if(rnd()<.72)sg=-sg;                                        // le plus souvent un S : on serpente
-      let a=28+rnd()*62;const R=280+rnd()*420;
-      const lib=(LIM-sg*phi)*57.2958;                             // ce qu'il reste avant la butée de cap, dans ce sens
-      if(lib<22){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
+      if(rnd()<H.inv)sg=-sg;                                      // le plus souvent un S : on serpente (la DÉRIVE, elle, insiste du même côté)
+      let a=H.a[0]+rnd()*H.a[1];const R=H.R[0]+rnd()*H.R[1];
+      const lib=(LIM-sg*(phi-phi0))*57.2958;                      // ce qu'il reste avant la butée de cap (autour de l'axe), dans ce sens
+      if(lib<22){sg=-sg;a=Math.min(a,(LIM-sg*(phi-phi0))*57.2958);}else a=Math.min(a,lib);
       arc(sg*a,R);fait+=R*a/57.2958;
-      if(rnd()<.4){const l=90+rnd()*230;droite(l);fait+=l;}}};
+      if(rnd()<H.dr[0]){const l=H.dr[1]+rnd()*H.dr[2];droite(l);fait+=l;}}};
+  let hPrec=-1;const humeur=()=>{let i=(rnd()*JADE_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rnd()*(JADE_HUMEURS.length-1))|0))%JADE_HUMEURS.length;hPrec=i;return JADE_HUMEURS[i];}; // jamais deux fois le même caractère de suite
+  const tot=5200+rnd()*3200,pa=[.75+rnd(),.75+rnd(),.75+rnd()],ps=pa[0]+pa[1]+pa[2]; // la longueur des virages, partagée au hasard entre les trois tronçons
+  const porte=()=>{{const a=(phi0-phi)*57.2958*.7;if(Math.abs(a)>4)arc(a,520);} // la Porte se prend plutôt dans l'axe de la vallée
+    droite(380,4);ici('porte0');droite(520,6);ici('porte1');droite(260,3);};
+  const pont=()=>{droite(300,3);ici('pont0');droite(360,4);ici('pont1');droite(200,2);};
+  const monus=rnd()<.5?[porte,pont]:[pont,porte];               // la Porte d'abord, ou le Pont
   push();ici('depart');
   droite(380,4);
-  virages(1900+rnd()*500);
-  {const a=-phi*57.2958*.7;if(Math.abs(a)>4)arc(a,520);}        // la Porte se prend plutôt dans l'axe de la vallée
-  droite(380,4);ici('porte0');droite(520,6);ici('porte1');droite(260,3);
-  virages(2000+rnd()*600);
-  droite(300,3);ici('pont0');droite(360,4);ici('pont1');droite(200,2);
-  virages(1700+rnd()*500);
-  ici('chute');virages(700+rnd()*300);droite(650,7);ici('fin');droite(150,2); // (v14) LA FIN : les montagnes commencent à tomber autour (jadeChute), puis la ligne droite vers l'arrivée
-  // LE RELIEF : deux ondes lentes (pente ≤ ~11°), aplanies sous les deux monuments (la Porte et le Pont se prennent à plat)
-  const ph1=rnd()*6.283,ph2=rnd()*6.283,A1=55+rnd()*40,A2=18+rnd()*14;
+  virages(tot*pa[0]/ps,humeur());monus[0]();
+  virages(tot*pa[1]/ps,humeur());monus[1]();
+  virages(tot*pa[2]/ps,humeur());
+  ici('chute');virages(700+rnd()*300,humeur());droite(650,7);ici('fin');droite(150,2); // (v14) LA FIN : les montagnes commencent à tomber autour (jadeChute), puis la ligne droite vers l'arrivée
+  // LE RELIEF : des ondes lentes tirées au hasard (pente ramenée sous celle d'origine), aplanies sous les deux monuments (la Porte et le Pont se prennent à plat)
+  const ph1=rnd()*6.283,ph2=rnd()*6.283,ph3=rnd()*6.283,L1=2600+rnd()*2400,L2=850+rnd()*900,L3=480+rnd()*360;
+  let A1=35+rnd()*75,A2=10+rnd()*28,A3=rnd()<.5?5+rnd()*13:0;
+  {const k9=Math.min(1,.30/(6.283*(A1/L1+A2/L2+A3/L3)));A1*=k9;A2*=k9;A3*=k9;} // .30 : le pire cas de l'ancienne recette (95 m sur 3,6 km + 32 m sur 1,3 km)
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
   const sDe=v=>{let bi=0,bd=1e18;for(let k=0;k<ctrl.length;k++){const d=(ctrl[k].x-v.x)**2+(ctrl[k].z-v.z)**2;if(d<bd){bd=d;bi=k;}}return sOf[bi];};
   const zones=[[sDe(Q.porte0.p)-260,sDe(Q.porte1.p)+180],[sDe(Q.pont0.p)-220,sDe(Q.pont1.p)+160],[0,300]];
-  const brut=s9=>A1*Math.sin(s9/3600*6.283+ph1)+A2*Math.sin(s9/1300*6.283+ph2);
+  const brut=s9=>A1*Math.sin(s9/L1*6.283+ph1)+A2*Math.sin(s9/L2*6.283+ph2)+A3*Math.sin(s9/L3*6.283+ph3);
   for(let k=0;k<ctrl.length;k++){const s9=sOf[k];let y=brut(s9)-brut(0);
     for(const z of zones){const c=(z[0]+z[1])/2,yc=brut(c)-brut(0),w=1-THREE.MathUtils.smoothstep(Math.abs(s9-c),(z[1]-z[0])/2,(z[1]-z[0])/2+260);y+=(yc-y)*w;}
     ctrl[k].y=y;}
+  adoucirPentes(ctrl,JADE_PENTE); // les rampes vers les monuments (et les crêtes des ondes) ramenées vers ~10° — les paliers restent à plat
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=ctrl[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
   JADE.Q=Q;
   return ctrl;
@@ -49299,10 +49423,10 @@ const FLY_U=new THREE.Vector3(0,1,0),FLY_R=new THREE.Vector3(1,0,0);
    Ce qui tournait : (1) le volant TENU dans le virage continuait de tourner la trajectoire en l'air, au lacet du sol — la caisse suivait la
    courbe qu'elle venait de quitter ; (2) la VRILLE visuelle permanente (3 rad/s autour du nez, vers le vide après le bord) ; (3) le haut du
    vol partait de la normale de la route (penchée dans les virages relevés) et y restait.
-   · LE VOLANT SE RÉ-ARME AU DÉCOLLAGE (`veqVolant`) : la part du braquage tenue depuis la route s'efface sur VEQ_K.latch s — la caisse part
+   · LE VOLANT SE RÉ-ARME AU DÉCOLLAGE (`veqVolant`) : la part du braquage tenue depuis la route s'efface sur VIRVOL.latch s — la caisse part
      TOUT DROIT, sur son élan ; tout geste NOUVEAU (pousser plus, changer de côté) agit tout de suite, un pouce gardé finit par tourner.
      Sortie par le BORD : le verrou ne part qu'à la fin de la bascule (roues encore sur la lèvre = on braque comme au sol : le sauvetage).
-     Le TAUX de virage en vol ne change pas (verdict de Sacha du 09/10).
+     Le TAUX de virage en vol ne change pas (verdict de Sacha du 09/10) — (2026-10-18) jusqu'au VIRAGE SERRÉ EN VOL : voir `VIRVOL` juste dessous.
    · L'ÉQUILIBRE (`veqNiveau`) : le haut du vol (FLY_U) se redresse vers la verticale du monde autour de la trajectoire (l'hémisphère où il
      est : partie à l'envers sous la dalle, elle reste à l'envers) — caisse et caméra reviennent à l'horizontale.
    · LA BALANCE (`veqCorps`) : plus de vrille. La caisse est un corps sur ressorts amortis autour de son assiette de vol : elle PIVOTE devant
@@ -49325,7 +49449,18 @@ const FLY_U=new THREE.Vector3(0,1,0),FLY_R=new THREE.Vector3(1,0,0);
      Chaque figure finie entre dans la CHAÎNE (son aura, payée à la pose ; des figures DIFFÉRENTES font monter le multiplicateur). Posée en plein
      tour : à moins de 20° de la fin elle compte ; au-delà de 50° c'est une POSE RATÉE (« FIGURE RATÉE ! », le flow tombe).
    `?vol=ancien` (ou `dbgVol('ancien')`) rend le vol d'avant au chiffre près (le tonneau reste). Console : `dbgVol()`, `dbgVol('tonneau')`. */
-const VEQ_K={latch:.7,niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR:.36,houle:.024,
+/* LE VIRAGE SERRÉ EN VOL (2026-10-18, Sacha : « augmente la maniabilité dans les airs, on a du mal à faire des virages serrés »). Deux freins :
+   (1) le LACET plafonnait à 1,75 rad/s dès 260 km/h — passé ce cap, le rayon grandissait avec la vitesse (48 m à 300 km/h, 95 m à 600) ;
+   (2) le VERROU du volant (`veqVolant`) effaçait pendant 0,7 s le braquage tenu depuis la route — un saut dure ~1 s : on y tournait à moitié.
+   Désormais le lacet vaut ×1,5 et son plafond monte (3,1 rad/s, atteint vers 390 km/h) : le rayon fond d'un bon tiers (19 m à 150 km/h, 30 m
+   à 300, 54 m à 600) ; le verrou s'efface en 0,35 s (la caisse quitte toujours la route TOUT DROIT, mais le pouce tenu reprend vite la main).
+   UNE formule pour tout le vol (`lacetVol`) : le vol, la mousse, la poudreuse du glacier et le lacet emporté à la pose. `?virvol=0` = avant. */
+const VIRVOL=/[?&]virvol=0\b/.test(location.search)?{k:1,cap:.6,latch:.7}:{k:1.5,cap:.9,latch:.35};
+function lacetVol(v){return VIRVOL.k*(1.15+Math.min(VIRVOL.cap,v*.004));} // rad/s au plein pouce, v = |fallVel|
+function lacetVolK(v){return lacetVol(v)/(1.15+Math.min(.6,v*.004));} /* le rapport au virage d'AVANT le 18/10 : la caméra de vol suit d'autant plus vite
+   (mesuré : à lacet ×1,6 et suivi inchangé, la caméra restait 28° à l'EXTÉRIEUR du virage contre 16° — on voyait moins où l'on tourne) */
+window.dbgVirVol=function(k,cap,latch){if(k!=null)VIRVOL.k=k;if(cap!=null)VIRVOL.cap=cap;if(latch!=null)VIRVOL.latch=latch;return Object.assign({},VIRVOL);};
+const VEQ_K={niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR:.36,houle:.024,
   ext:.11,posA:.05,posB:.45,    // la suspension pendante en vol · la pose se prépare entre ,45 s et ,05 s avant qu'elle soit déclarée
   saut:21,sautCout:.2,sautNit:.3,sautCd:.9}; // LE SAUT NITRO : impulsion, coût (part de la jauge), part du nitro rendu à sa pose, attente (s)
 const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0,by:0,byV:0,bp:0,bpV:0,br:0,brV:0,tf:0,ext:0,
@@ -49345,7 +49480,7 @@ function veqDepart(bord,impU,roll0,qDep){ // au décollage (startFall)
 function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'efface, tout geste nouveau agit
   if(!VEQ.on)return steer;
   if(!VEQ.lArm){if(bascOn&&bascT<BASC_T)return VEQ.u=steer;VEQ.lArm=true;VEQ.l0=steer;VEQ.lT=0;}
-  const g=Math.max(0,1-VEQ.lT/VEQ_K.latch);
+  const g=Math.max(0,1-VEQ.lT/VIRVOL.latch);
   if(g<=0||steer*VEQ.l0<=0){VEQ.l0=0;return VEQ.u=steer;}
   if(Math.abs(steer)<Math.abs(VEQ.l0))VEQ.l0=steer; // le pouce revient vers le centre : le verrou descend avec lui (jamais de contre-braquage)
   return VEQ.u=Math.sign(steer)*Math.max(0,Math.abs(steer)-Math.abs(VEQ.l0)*g);
@@ -53103,7 +53238,7 @@ function tryLand(dt){
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   {const vm9=vitMult(),vT9=fallVel.dot(T[bestI])/vm9,vB9=fallVel.dot(B[bestI])/vm9;vA=vT9>0?Math.hypot(vT9,vB9):vT9;vL=vB9*.4*sideL;} /* (2026-10-15, Sacha : « quand on arrive sur la route en volant avec un certain angle on est ralenti d'un coup, on ne peut pas la couper ») LA COUPE GARDE SON ÉLAN : au sol vA est la vitesse le long du CAP (on avance de vA·cos psi, on dérive de vA·sin psi), et le cap posé juste au-dessus EST la direction du vol — vA = toute la vitesse à plat, plus sa seule part dans l'axe : le cosinus de l'angle était compté DEUX fois (45° → la moitié de l'avance envolée, 60° → les trois quarts). À contresens, inchangé. */ // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
@@ -53319,7 +53454,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
-  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
   vA=(vTan>0?Math.hypot(vTan,vLat):vTan)*.94;vL=0; // le choc de la lèvre coûte 6 % · (2026-10-15) toute la vitesse à plat, comme à la pose : le cap EST la trajectoire
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
@@ -65490,7 +65625,7 @@ function loop(now){
       // chute pilotée : un peu de lacet, c'est tout — la voiture est LOURDE
       // (le lacet gagne un peu d'autorité à grande vitesse → vol simplifié)
       if(VEQ.lArm)VEQ.lT+=dt; // (vol équilibré) l'horloge du verrou du volant
-      const yawIn=veqVolant()*(1.15+Math.min(.6,fallVel.length()*.004))*dtF; // (2026-10-14) le braquage tenu depuis la route ne continue plus le virage en l'air (veqVolant)
+      const yawIn=veqVolant()*lacetVol(fallVel.length())*dtF; // (2026-10-14) le braquage tenu depuis la route ne continue plus le virage en l'air (veqVolant)
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
       /* (2026-10-17, LE RÉACTEUR QUI S'INSTALLE) lâcher le nitro en vol (ou la jauge qui se vide) faisait passer EN UNE IMAGE la gravité de 40 %
@@ -65667,7 +65802,7 @@ function loop(now){
       {const oA=CAMV.oA||(CAMV.oA=new THREE.Vector3());loop._camAirT=(loop._camAirT||0)+dt;
        const c09=CAMV.p0ok&&CAMV.p0.distanceToSquared(camera.position)<100?CAMV.p0:camera.position; /* (2026-10-17) l'écart se lit sur la place d'AVANT les secousses (CAMV.p0) : relu après elles, chaque coup et le vent étaient réinjectés dans le suivi — ×1,5 à 2 à 60 i/s, ×3 à 120 Hz, et le « vent ×.42 » voulu n'existait plus */
        oA.subVectors(c09,fallPos).addScaledVector(fallVel,SPD*dtF*(1-Math.min(1,loop._camAirT/.6))) // l'écart de l'image d'avant, moins la part de traîne pas encore installée
-         .lerp(tmp2.sub(fallPos),Math.min(1,dt*(3+bigAir*4.5))); // suivi plus vif en gros air : la caméra ne décroche pas
+         .lerp(tmp2.sub(fallPos),Math.min(1,dt*(3+bigAir*4.5)*(1+Math.abs(VEQ.on?VEQ.u:steer)*(lacetVolK(fallVel.length())-1)))); // suivi plus vif en gros air : la caméra ne décroche pas — (2026-10-18) et dans le VIRAGE SERRÉ, au prorata du lacet gagné (`lacetVolK`) : elle garde son retard d'avant
        camera.position.copy(fallPos).add(oA);}
       /* LE BRAS DE LA CAMÉRA (2026-09-28, nuit, Sacha : « sur mobile la voiture devient trop petite en air time — il faut juste pas que ça
          complexifie »). MESURÉ en portrait : la poursuite décroche à 17-18 m dans la 1re seconde du vol, quand le champ est encore large —

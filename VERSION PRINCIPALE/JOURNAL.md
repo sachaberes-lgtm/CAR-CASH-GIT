@@ -18,6 +18,92 @@
 - `?garjouer=0` (classe `html.sansGarJouer`, posée dans le `<head>`) = la barre d'avant. L'atelier fermé « seul RETOUR » était un choix de Léo
   (12/10) : changé sur demande directe de Sacha, l'ancien rendu reste derrière ce paramètre.
 - BANC : `garjouer2.cjs` (FMT=debout|couche, LANCE=1 = toucher JOUER et vérifier que la course part) — scratchpad de la session ed900fe4.
+## LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS (2026-10-18, Sacha : « trop peu de virage dans la map nuage, rajoute des virages et des modules cool à rider, ça reste un jeu de course »)
+- LA CAUSE (mesurée) : sur la route SANS HAUT NI BAS, le zoom `TORD_AMP` ×2,4 du 15/10 (« EN GRAND ») gonflait chaque virage au-delà du seuil où l'on
+  tourne le volant. Règle COURSE de `passation/RACCOURCIS.md` (un virage = un cap qui tourne de 20° ou plus à un rayon < 4 × le rayon que la caisse tient
+  à fond, `40 + 0,3·v`) : **0,01 virage par km** au palier de départ (la règle en veut 2,5), des « droites » de 134 s en moyenne, rayon médian 680 m,
+  un seul module par zone.
+- CE QUI CHANGE (route tordue des nuages et de son orage seulement ; `NV_ON`, `?sans=virages` rend la route du 15/10) :
+  · LE ZOOM redescend : `TORD_AMP` 2,4 → **1,1**. Les VRILLES ne bougent pas (leur longueur se compte en secondes de croisière) : on garde les grandes
+    torsions lentes, on rend les virages.
+  · LES RAYONS suivent le palier (`RS` de genCtrl) : sur cette route ils grandissent comme `40 + 0,3·v` au lieu de `LV`, qui grandissait plus vite
+    (au palier 12, plus aucun virage ne demandait le volant).
+  · LES POIDS des motifs (`TORD_W`) : esses ×2, chicanes ×2,2 (et leurs coups de volant francs, 26-40° au lieu de 16-30°), épingles ×1,8, virages ×1,8 ;
+    droites ×0,2, plongeons ×0,25 (sans haut ni bas, une pente ne pousse ni ne retient : un plongeon n'y est qu'une droite). Même nombre de tirages `rnd`.
+  · LES MODULES DE COURSE (`MODT`, genCtrl : `tSlalom`, `tEpingle`, `tCorde`, `tEsses`, `tRusses`) remplacent ceux de la gravité (filet, lacets, plongeon,
+    dos de chameau) : LE SLALOM (5-7 virages alternés de 38-52°), L'ÉPINGLE (demi-tour de 165-185° à 1,7-2 × le rayon du palier), LA DOUBLE CORDE (deux
+    virages de 80-105° du même côté), LES ESSES (trois grands virages alternés), LES MONTAGNES RUSSES (3-4 bosses rondes en courbe). Tous les 0,5-0,9 km
+    × LV, paquet mélangé, jamais deux fois de suite, hasard `rf` du filet. Leurs rayons sont VRAIS (ils échappent au zoom : ×1/AMP) — jamais sous
+    1,7 × le rayon du palier : serré, jamais infranchissable. Nus de plots (`MODMARK` → `MODS`). Plus de filet sur cette route (sa route d'en dessous
+    n'y est plus en dessous).
+  · LE DÉVERS (`TORD_DEVERS`, pisteTord « 2 bis ») : dans chaque virage la dalle se couche vers l'intérieur, 0,75 × l'angle d'un virage relevé à la
+    croisière (atan v²/gR), plafonné à 50°, lissé ~1 s, au plus 30°/s ; elle se couche AVANT le virage et se redresse en sortant. Au volant rien ne
+    change (le virage est rejoué dans le plan de la dalle) : c'est l'horizon qui bascule dans le sens du virage, comme un avion qui s'incline.
+    Le roulis TOTAL (vrilles + dévers) est borné à 62°/s (le retard se rattrape dans la tenue qui suit).
+  · LA ROUTE QUI NE SE TOUCHE PAS (`tordContacts`, `pisteTordPropre`) : plus serrée, la piste enroulée dans l'espace repassait parfois à travers
+    elle-même (banc : 10 contacts sur 30 zones au palier 0, deux dalles à 2-23 m). À la construction, si deux dalles se touchent (moins de 16 m de
+    vide sur la normale et moins de 62 m de côté), les VRILLES sont rejouées avec un autre tirage (même graine : tout le monde a la même route), jusqu'à
+    5 fois ; le tracé ressenti ne bouge pas. La courbe et le repère d'origine sont gardés d'un essai à l'autre (`pisteTord._c1`).
+- MESURÉ (banc Node de genCtrl + pisteTord tirés du jeu, 6 graines, avant → après) :
+  | palier (LV) | virages/km | enchaînements/km | plus longue « droite » | rayon médian | tours de vrille/km | pic de roulis |
+  |---|---|---|---|---|---|---|
+  | 0 (1,08) | 0,01 → **2,27** | 0 → 1,55 | 134 → 15 s | 678 → 287 m | 0,50 → 0,78 | 89 → 93°/s |
+  | ~5 (1,35) | 0 → **1,91** | 0 → 1,27 | 153 → 15 s | 846 → 327 m | 0,39 → 0,62 | 64 → 88°/s |
+  | ~10 (1,88) | 0 → **1,45** | 0 → 0,81 | 156 → 14 s | 1 167 → 412 m | 0,26 → 0,42 | 78 → 76°/s |
+  | ~15 (2,66) | 0 → **1,04** | 0 → 0,56 | 129 → 12 s | 1 624 → 526 m | 0,18 → 0,30 | 74 → 85°/s |
+  En TEMPS, un virage toutes les 4-6 s à tous les paliers (0,18 → 0,25 virage/s). 6-6,5 modules par zone (1 avant). Virages SERRÉS (< 1,5 rMin) : 0,7
+  par zone, INFRANCHISSABLES : 0. Toujours ~33 % de la route à l'envers et ~33 % sur la tranche. Portail : même redressement qu'avant (Ny 0,87).
+  Contacts : 0 sur 180 zones (60 graines × 3 paliers) ; 3 zones sur 4 passent au premier tirage ; pisteTord + garde : 15-34 ms la zone en médiane,
+  p95 41-69 ms, pire 86 ms (PC, Node).
+- BANCS (scratchpad de la session) : `virages-banc.cjs` (virages ressentis, vrilles, passages proches, planche vue de dessus en PNG),
+  `proches-detail.cjs` (chaque passage < 60 m : vide sur la normale, écart latéral), `essais.cjs` (rejeux et temps), `nuages-course.cjs` (le vrai jeu,
+  couché + debout, pilote de mesure 45 s). Crochets : `dbgHaut()` (TORD.info : `essai`, `contacts`, `deversMaxDeg` en plus), `dbgHaut('controle')`.
+- À TRANCHER par Sacha : la dose du dévers (`TORD_DEVERS.k`/`max`), la fréquence des modules, et si l'orage (tordu lui aussi) garde ces virages.
+
+## LE VIRAGE SERRÉ EN VOL (2026-10-18, Sacha : « augmente la maniabilité dans les airs, on a du mal a faire des virage serrer »)
+- **Deux freins trouvés** : (1) le lacet en vol plafonnait à ~1,75 rad/s dès 260 km/h — passé ce cap, le rayon grandissait avec la vitesse ;
+  (2) le VERROU du volant au décollage (`veqVolant`, Léo 14/10) effaçait pendant 0,7 s le braquage tenu depuis la route — un saut dure ~1 s.
+- **Réglage** (`VIRVOL`, bloc « LE VIRAGE SERRÉ EN VOL » juste avant `VEQ_K`) : lacet ×1,5, plafond relevé (3,1 rad/s vers 390 km/h), verrou
+  0,35 s (la caisse quitte toujours la route tout droit). UNE formule `lacetVol(v)` pour le vol, la mousse, la poudreuse du glacier et le
+  lacet emporté à la pose (il y avait 5 copies de `1.15+Math.min(.6,…)`). `VEQ_K.latch` a disparu (un réglage, un endroit).
+- **La caméra de vol garde son retard d'avant** : son suivi va plus vite au prorata du lacet gagné (`lacetVolK`, × |volant|) — sans ça, elle
+  restait jusqu'à 28° à l'EXTÉRIEUR du virage (16° avant) et cachait l'intérieur, là où l'on tourne. Volant au centre : suivi inchangé.
+- **MESURÉ** (banc `C:/Users/sacha/cc-banc/volvirage.cjs`, ville, pas à pas 16 ms, caisse à 250 m au-dessus de la route, volant à fond) :
+  | cas | avant (main v609) | après |
+  |---|---|---|
+  | 150 km/h, geste neuf | 87° en 1 s · rayon 24 m | 128° · 17 m |
+  | 300 km/h, geste neuf | 98° · 45 m | 154° · 27 m |
+  | 600 km/h, geste neuf | 97° · 91 m | 171° · 48 m |
+  | 300 km/h, volant TENU depuis la route | 18° à 0,5 s · 68° en 1 s | 52° · 134° |
+  | caméra derrière la trajectoire, 150 / 300 / 600 km/h | 16° / 16° / 10° | 10° / 17° / 16° (sans la compensation : 22° / 28° / 19°) |
+- Effet de bord assumé : la VRILLE (aura par demi-tour de lacet, `yawAcc`) vient plus vite — un 180° tient en ~1,1 s au lieu de ~1,8 s.
+- `?virvol=0` = le vol d'avant au chiffre près (caméra comprise) ; `dbgVirVol(k,cap,latch)` règle en direct.
+- À VÉRIFIER SUR UN VRAI IPHONE : rien de propre au téléphone (même formule au pouce et au clavier).
+
+## LA VALLÉE DE JADE AU HASARD (2026-10-18 nuit, Sacha : « la génération de map dans les montagnes chinoises est toujours la même, rends-la plus aléatoire »)
+- **Le constat, mesuré** : au mode classique, la graine des PICS DE JADE changeait déjà à chaque partie (`sfNiveau` → `graine:0`) — mais
+  `genJade` suivait toujours la même RECETTE : départ, ~2 km de serpentin doux, la Porte, ~2,3 km, le Pont, ~2 km, la chute, l'arrivée ;
+  le tout filant vers le nord (+z), 11 à 13 km, deux ondes de relief. Vus de dessus (plans de 60 graines), tous les tracés se ressemblaient ;
+  et le soleil bas du rouleau (`SUN_DIR`, côté −z) était toujours DANS LE DOS.
+- **Désormais (`genJade`, `JADE_HUMEURS`, `JADE_PENTE`)**, chaque vallée tire :
+  · son AXE : ±45° autour du nord (`phi0` ; la butée de cap ±85° se compte autour de lui — la route ne recroise toujours jamais un tronçon) ;
+  · l'ORDRE des monuments (Porte puis Pont, ou Pont d'abord) et leur PLACE (les trois tronçons de virages se partagent 5,2-8,4 km au hasard) ;
+  · un CARACTÈRE par tronçon, jamais deux fois le même de suite : `vallee` (l'ancienne recette), `serpent` (S serrés, R 280-420 m),
+    `courbes` (R 680-1160 m), `derive` (la vallée part en biais d'un côté jusqu'à la butée), `balcon` (longues droites cassées de coudes),
+    `chicanes` ; le dernier kilomètre (la chute) a le sien aussi ;
+  · son RELIEF : trois ondes aux amplitudes et longueurs d'onde tirées (la 3e une fois sur deux), ramenées sous la pente du pire cas
+    d'avant ; puis `adoucirPentes` (12 %, gardée à 30 % au-delà) — les rampes vers les paliers des monuments montaient jusqu'à ~90 %
+    entre deux points de contrôle, elles plafonnent vers 35 %.
+- MESURÉ (Node, les 300 mêmes graines, avant → après) : longueur 10,7-13,7 → 10-15,1 km ; dénivelé 139-246 → 74-307 m ; virages cumulés
+  643-1060° → 373-1221° ; pente max entre points 19-92 % → 14-36 % ; deux bouts de route à plus de 700 m l'un de l'autre restent à ≥ 551 m
+  (avant 560). Aucun rayon sous 280 m (le minimum d'avant). EN JEU (banc headless, 4 vallées : la 1re au JOUER puis 3 portails) : 11,6 ·
+  11,6 · 13,6 · 13,8 km, axes 13° · −13° · −16° · −39°, deux fois Pont puis Porte, monuments bâtis, construction 1156 · 707 · 734 · 606 ms,
+  zéro erreur JS. (La 1re construction de la session paie les gabarits ; la carte ne se reprend plus de la garde au mode classique — elle
+  ne s'y reprenait déjà pas : la graine y changeait.)
+- Inchangé : départ et arrivée (portiques), l'effondrement (en fraction du parcours), les deux monuments à plat et la Porte dans l'axe, les
+  montagnes et le décor (posés autour de la route, quelle qu'elle soit). `?graine=n` / `?niveau=jade` / la balade gardent une vallée FIXE
+  (0x51ADE) — mais ce n'est plus la même qu'avant (le tirage de `genJade` a changé).
+
 ## LES NUAGES EN VITRAIL (2026-10-18, Léo : « Sacha avait beaucoup de mal à avoir les nuages comme il voulait ; essaie la technique des mini-cubes et de la couche transparente lisse — la glisse transparente peut EMBRASSER la forme des cubes ; garde toutes les qualités qu'on a déjà, encore plus de relief, de profondeur, d'immersion » → questionnaire : TOUS les nuages ; planche de trois dosages → MOYEN)
 - La recette VITRAIL (cœur de lumière, écailles en cubes, peau de verre, onde) tirée du MÊME champ que la surface v8 (`nuage8Calc`, option
   `opt.vit` = nombre de cubes sur la plus grande dimension, dans l'ouvrier) : ÉCAILLES = les cases de `ext/NUVIT.nc` dont le centre est dedans et
