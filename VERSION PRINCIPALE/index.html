@@ -42,6 +42,7 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
    dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
 if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
@@ -10262,6 +10263,40 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #gBqPan.cote{right:calc(var(--sR,0px) + 12px)!important}
 /* L'INVENTAIRE : son RETOUR parlait en 8 px quand tous les autres RETOUR (réglages, offres, boutique, missions) parlent en 10 px */
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gAct>#gvCof{font-size:var(--f1)}
+</style>
+<style id="jouerGarage">
+/* LE JOUER PARTOUT DANS LE GARAGE (2026-10-18, session UI-REVUE, Sacha : « rajoute le bouton JOUER avec les 3 flèches animées dans le garage »
+   — choisi : l'INVENTAIRE et la BOUTIQUE, où la barre n'avait que RETOUR). Partout dans le garage, la rangée du bas dit maintenant la même chose :
+   la sortie à gauche, JOUER en or à droite, avec la vague de chevrons du JOUER principal (gChevFile, 17/10). Le départ : garJouer (il referme
+   l'inventaire ou la boutique avant de lâcher la caisse). `?garjouer=0` = la barre d'avant (RETOUR seul). */
+/* l'inventaire : la 2e colonne de sa barre était vide — JOUER s'y pose, à la hauteur de RETOUR, et entre avec lui */
+html:not(.sansGarJouer) body #garage#garage.atelierInv:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{display:flex!important;grid-column:2!important;grid-row:1!important;
+  justify-self:stretch!important;width:auto!important;min-width:0!important;height:52px!important;min-height:52px!important;margin:0!important;animation:atRet .32s var(--ease) both}
+/* la boutique : ÉQUIPER / ACHETER monte sur sa propre rangée, pleine largeur ; RETOUR | JOUER restent en bas, comme partout */
+html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct{grid-template-rows:auto auto!important;row-gap:8px}
+html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct>#gBqBtn{grid-column:1/-1!important;grid-row:1!important}
+html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct>#gShopBas#gShopBas{grid-row:2!important;height:52px!important;min-height:52px!important} /* RETOUR à la hauteur de JOUER : une seule rangée d'aplomb */
+html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{display:flex!important;grid-column:2!important;grid-row:2!important;
+  justify-self:stretch!important;width:auto!important;min-width:0!important;height:52px!important;min-height:52px!important;margin:0!important;animation:atRet .32s var(--ease) both}
+/* les chevrons : la même vague que le JOUER du garage (le JOUER des MISSIONS la prend aussi : il n'avait que la petite flèche à pas) */
+html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev,
+html:not(.sansGarJouer) #gMis #gmBas .gmJouer .mChev{display:inline-flex!important;gap:0;margin-left:8px;
+  filter:drop-shadow(1px 0 0 var(--auT)) drop-shadow(-1px 0 0 var(--auT)) drop-shadow(0 -1px 0 var(--auT)) drop-shadow(0 2px 0 var(--auT))}
+html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev .pxi,
+html:not(.sansGarJouer) #gMis #gmBas .gmJouer .mChev .pxi{--pxs:3;color:var(--auT);opacity:.55;filter:none;animation:gChevFile .9s var(--ease) infinite}
+html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev .pxi+.pxi,
+html:not(.sansGarJouer) #gMis #gmBas .gmJouer .mChev .pxi+.pxi{margin-left:-7px}
+html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev .pxi:nth-child(2),
+html:not(.sansGarJouer) #gMis #gmBas .gmJouer .mChev .pxi:nth-child(2){animation-delay:.15s}
+html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev .pxi:nth-child(3),
+html:not(.sansGarJouer) #gMis #gmBas .gmJouer .mChev .pxi:nth-child(3){animation-delay:.3s}
+/* le lingot plus court (inventaire, boutique : ~220 px debout) : chevrons ×2 sous 200 px, le mot se serre sous 185 px — les seuils du JOUER principal */
+@container (max-width:200px){html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev .pxi{--pxs:2}
+  html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .mChev .pxi+.pxi{margin-left:-5px}}
+@container (max-width:185px){html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet):not(.menu):not(.vitrine) #gAct#gAct>#gJouer .lg{font-size:17px!important}}
+@media (prefers-reduced-motion:reduce){html body #garage#garage #gAct>#gJouer .mChev .pxi,#gMis #gmBas .gmJouer .mChev .pxi{animation:none;opacity:1;transform:none}}
+html[data-reduced-motion="1"] body #garage#garage #gAct>#gJouer .mChev .pxi,html[data-reduced-motion="1"] #gMis #gmBas .gmJouer .mChev .pxi{animation:none;opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){html:not(.sansGarJouer) body #garage#garage:is(.atelierInv,.shopRet) #gAct#gAct>#gJouer#gJouer{animation:none}}
 </style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
@@ -37786,7 +37821,7 @@ function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)re
    boutique, ni missions, ni garage-menu — relu 4 fois par seconde, écrit seulement quand ça change. Il se pose AU-DESSUS d'INVENTAIRE (#gvCof) :
    au coin bas-gauche, il tombait sous la jauge de rotation (couché) et sur le HOME (debout). */
 function plqGarage(){const g=$p('gProf');if(!g)return;let on=false;
-  try{if(garageOn&&!(GAR&&GAR.go)&&!(INV&&INV.on)&&!PLQ.prof&&!PLQ.on&&gEl&&!gEl.classList.contains('vueSeule')&&!gEl.classList.contains('menu')){const j=$p('gJouer'),c=$p('gvCof');
+  try{if(garageOn&&!(GAR&&GAR.go)&&!(INV&&INV.on)&&!PLQ.prof&&!PLQ.on&&gEl&&!gEl.classList.contains('vueSeule')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('atelierInv')&&!gEl.classList.contains('shopRet')){const j=$p('gJouer'),c=$p('gvCof'); /* (2026-10-18) JOUER vit aussi dans l'inventaire et la boutique : ce ne sont pas la vue principale */
     if(j&&c&&j.getClientRects().length&&getComputedStyle(j).visibility!=='hidden'){const r=c.getBoundingClientRect();
       if(r.width>8){on=true;const L=Math.round(r.left)+'px',T=Math.round(r.top-58)+'px';if(g.style.left!==L)g.style.left=L;if(g.style.top!==T)g.style.top=T;}}}}catch(e){}
   if(g.classList.contains('on')!==on)g.classList.toggle('on',on);} /* (la place : 10 px au-dessus d'INVENTAIRE, à son aplomb gauche — la jauge qui tourne l'atelier et le HOME du bas changent de place selon le sens, la grappe de JOUER non) */
@@ -61984,9 +62019,17 @@ $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarg
    demande le mode (facChoix), comme celui de l'accueil. */
 function garJouer(e){
   if(e)e.stopPropagation();
-  if(!garageOn||GAR.go||ecranWipe._on||pendingScore!=null)return;
+  if(!garageOn||GAR.go||ecranWipe._on||pendingScore!=null||performance.now()<(garJouer._t||0))return;
   invFerme(true);invHoldFin();
   const el=$('gJouer');uiPop(el);uiClic('jouer');try{pixBurst(el,16);}catch(x){} // (2026-10-16) le bruit de MOTEUR
+  /* (2026-10-18, session UI-REVUE, Sacha : « rajoute le bouton JOUER avec les 3 flèches animées dans le garage » → l'INVENTAIRE et la BOUTIQUE,
+     où il n'y avait que RETOUR) JOUER part aussi de là. On referme d'abord le mode comme le ferait RETOUR — l'inventaire rouvre l'atelier (la
+     porte remonte en 0,7 s, les pinces lâchent les roues : la caisse ne part pas dans une porte fermée), la boutique rend l'atelier sous son
+     voile de nuit — puis le départ habituel, le temps que la scène soit là (450 / 650 ms). Le clic, le moteur et le jaillissement partent au
+     toucher ; un second toucher pendant l'attente est ignoré. */
+  let att9=0;const bq9=gModeM()==='shop';
+  if(GATL.on){gAtelier(false);att9=450;}
+  if(att9||bq9){try{gGarageReplie();}catch(x){}if(bq9)att9=650;garJouer._t=performance.now()+att9+200;}
   const part=function(){
     if(!garageOn||GAR.go)return;
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
@@ -61996,7 +62039,7 @@ function garJouer(e){
     if(sfPlayOk()&&!carrPlayOk()){classiqueJouer();return;} // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
     if(carrPlayOk()){carrJouer();return;} // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière, par son départ (le voile, la piste du niveau, sa musique)
     CARR.actif=null;tutoArme();garageLaunch();};
-  if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(part);else part();
+  if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(part);else if(att9)setTimeout(part,att9);else part();
 }
 $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
