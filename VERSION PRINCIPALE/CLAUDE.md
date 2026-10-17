@@ -214,6 +214,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Zéro assistance de conduite (`ASSIST_VIRAGE=0`, `AIR_ASSIST=0`) : pouce lâché, la caisse garde son cap et sort dans les virages.
   Le mode FACILE (la seule exception) est COUPÉ depuis le 14/10 : `SANS_FACILE`, `?facile=1` le rend.
 - `AIR_RATE=1` : le temps du vol n'est pas accéléré. Le virage en vol ne suit pas la vitesse (voulu).
+  Son autorité, elle, a monté (18/10, Sacha : « des virages serrés ») : UNE formule, `lacetVol` (`VIRVOL` : lacet ×1,5, plafond plus haut,
+  verrou du volant au décollage 0,35 s) ; `?virvol=0` = avant, `dbgVirVol(k,cap,latch)` pour régler en direct.
 - En vol, pouce HAUT = la caisse MONTE (`volSens`) ; au clavier ↑ piqué, ↓ cabré.
 - La loi du réservoir : le vol dépense la nitro, la route la remplit — sauf les FIGURES PLANTÉES, qui en rendent tout de suite (Asphalt 8, 14/10).
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
