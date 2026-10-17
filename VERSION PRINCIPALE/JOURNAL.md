@@ -4,9 +4,10 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
-- **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir) ;
-  la 1re marche est désormais LE DÉFIEUR (10 000), et parmi les caisses à dollars le CHARGEUR se range entre L'ELDORADO (40 000, du même jour) et LA SILENCIEUSE (90 000) — LA BAVAROISE est passée à 100 000 le même jour. À trancher par
-  Sacha si cet ordre lui va (rien d'autre n'a bougé dans la grille). Ce n'est PAS LE CHARGEUR 69 (300 000 $, inchangé).
+- **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
+  Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
+  100 000 et LE DÉFIEUR à 120 000 (autres sessions) : le bas de la gamme des rares n'a plus de marche à 6-20 000. À trancher par Sacha si
+  cet ordre lui va. Ce n'est PAS LE CHARGEUR 69 (300 000 $, inchangé).
 - **L'arrière** (`SHAPES.a_chargeur`, bloc « L'ARRIÈRE v2 ») : c'était un mur noir plat, un fil rouge à 8 cases, un trait gris et deux pastilles —
   la poupe qu'on suit pendant toute la course. Désormais :
   · **le becquet en canard** : la malle remonte au bout (`yC` : 1,075 à la poupe, 1,13 à −2,47 — elle finissait à 0,98) et porte le 3e feu stop ;
@@ -23,6 +24,25 @@
   sinon l'essai avait le pot générique et non celui de la caisse) et (b) prendre une vue `[rotation, ×hauteur, ×distance]` (de plus haut comme la
   poursuite, de plus près pour un détail). Une vue de l'arrière : rotation ≈ 222° (π + 0,73).
 - Reste à faire, si Sacha le veut : la même passe sur l'arrière des autres caisses de la boutique (« chaque voiture, qu'on ait envie de l'acheter »).
+## LE DÉFIEUR EN ROBOT JAUNE — LA CAISSE DE TRANSFORMERS, À 120 000 $ (2026-10-17, Sacha : « rajoute des éléments pour qu'elle ressemble vraiment à la voiture de Transformers et mets-lui la bonne couleur de base ; inspire-toi de la Chevrolet dans Transformers ; rajoute-lui des petits détails pour la rendre plus belle ; et tu mets son prix à 120 000 dollars »)
+- LAQUELLE : aucune caisse ne s'appelait ainsi. C'est LE DÉFIEUR (`shape:'a_defieur'`, index 32 de `CARS`), le coupé muscle de 1970, orange à deux
+  bandes noires : la plus proche du robot jaune du film. Si Sacha pensait à une autre caisse, la recette se rejoue sur elle.
+- LA COULEUR : orange `0xff7a14` → JAUNE RALLYE `0xffd000` (la fiche ET la laque `p` du gabarit ; le joint `j` en ocre `0xa07a00`). `0xffb80c` essayé
+  d'abord : au studio il était jaune, mais en course la lumière chaude le refaisait orange.
+- `SHAPES.a_defieur`, la silhouette ne bouge pas, on AJOUTE : les deux bandes noires ÉLARGIES et presque jointives (un filet jaune de 9 cm au milieu,
+  les points du dessus de section passent de .36/.16 à .31/.045) ; les quatre phares dans des cuvettes noires, cerclés d'un ANNEAU de lumière
+  bleutée (`H`, un tore — les yeux du robot) ; un ÉCUSSON en masque de robot au milieu de la calandre (chrome, fond noir, deux fentes bleues `B` en
+  biais) et le même en petit au milieu de la poupe (c'est elle qu'on voit en course) ; deux barrettes dans la calandre ; LA GRANDE BOUCHE noire du
+  bouclier (trapèze à mailles), ses antibrouillards ronds et ses clignotants ; la lame avant ; deux goupilles de capot chromées ; L'OUÏE de flanc
+  devant la roue arrière (coin noir, trois lames, posée sur la largeur du gabarit `xF`) ; les feux de position latéraux (orange devant, rouge
+  derrière) ; QUATRE feux CARRÉS à l'arrière dans des cadres noirs laqués (des cadres chromés faisaient une barre BLANCHE au soleil) ; le
+  troisième feu au bord du becquet ; la glace des rétros ; des jantes sombres (`0x33363d`) à cinq branches noires. Facettes 3 224 → 4 880.
+- AUCUNE MARQUE : ni nom, ni nœud papillon, ni le logo du film — le masque est dessiné ici. Le nom et la description de la caisse ne changent pas.
+- LE PRIX (`CAR_UNLOCK[32]`) : 10 000 → 120 000 $ (LA VETTE, même rareté, est à 140 000). L'échelle du début perd sa marche à 10 000 : LE CHARGEUR
+  6 000 → LA BAVAROISE 20 000 → L'ELDORADO 40 000 → LE CAÏD 50 000 (`passation/ECONOMIE.md` cite encore LE DÉFIEUR à 10 000).
+- BANCS : `dbgEssaiCaisse` (studio, 6 angles, AVANT | APRÈS), course `nuages:midi` et `ville:nuit` en mode photo (`dbgAilesVue`), vignette de
+  boutique `dbgPhotoCar(32)`, sans erreur. Le jeu de ce dossier partagé était cassé ce matin-là par une édition en cours d'une autre session
+  (`LM_N` lu avant d'être déclaré) : bancs faits sur une copie de HEAD + ces blocs.
 ## LA BOUTIQUE PLUS LISIBLE — SE DÉBLOQUE EN GRAND, LES SILHOUETTES ENTIÈRES, LES VIGNETTES DE MISSIONS AGRANDIES (2026-10-17, session MISSIONS — Sacha : « rends la boutique plus lisible : SE DÉBLOQUE en plus gros avec son compteur entier, les silhouettes secrètes pas rognées, et les vignettes de récompense plus grandes dans MISSIONS »)
 - SE DÉBLOQUE (l'étiquette au-dessus d'une caisse ou d'un objet de mission, `#gBqNom .bqM2`, `m2DebloqueHtml`) : texte et compteur de 8 à 10 px
   (`--f1`), compteur en encre noire, jauge de 6 à 8 px et sur TOUTE la largeur de l'étiquette. Sa largeur = la place libre à côté des rayons
