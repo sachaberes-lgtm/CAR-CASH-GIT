@@ -7,6 +7,23 @@
 - `plqPose` ne pose plus que la plaque ARRIÈRE (`PLQ.pos[lvl].ar`) ; plus de rayons tirés vers le nez (`plqCherche(1,…)` n'est plus appelé :
   la pose coûte deux fois moins). L'atelier de la plaque, ses modèles et le profil sont inchangés. `dbgPlaque('pos')` ne liste plus que `ar`.
 
+## LA PELOTE REVIENT DANS LA FORÊT NOIRE — LA ROUTE DÉCOLLÉE DU SOL, LES ÉTAGES QUI SE CROISENT (2026-10-17 soir, Sacha : « j'aime bien la nouvelle forêt mais il refaut le système où la route n'est pas collée au sol et où elle est sens dessus dessous avec les autres »)
+- LA ROUTE : `FOR_ZIG_V` passe à FAUX par défaut — la PELOTE (`forPelote` : trois nœuds en étoile qui descendent, montent, font la vague ; ≥ 32 m
+  entre étages, on saute d'une route à l'autre) redevient la route de la forêt. Tout ce que Léo a fait sur l'image reste : arbres en VITRAIL,
+  mini-cubes, contraste, pleureurs, géants tordus, abeilles et lucioles. Le SLALOM au ras du sol (ses ponts et sa MOUSSE, qui n'existe que
+  sur le slalom : `mousseOk` lit `FORET.zig`) = `?foret=slalom` (ou `?foret=zigzag`). `?foret=pelote` ne sert plus à rien (sans effet).
+  En Node (outils `passation/foret-pelote/`), c'est de nouveau la pelote par défaut.
+- LES GÉANTS PLEUREURS DANS LA PELOTE : ils prennent la place d'un géant taillé pour SA couronne (un séquoia s'ouvre à 178, le rideau d'un saule
+  tombe à 94, celui du hêtre pleureur à 76) — avec les étages, une route passait dans leurs mèches et leurs branches (32 géants sur 220, jusqu'à
+  251 m de feuillage traversé, mesuré). Maintenant, dans la pelote seulement, chaque pleureur est REHAUSSÉ (`sy`, la hauteur seule) jusqu'à ce
+  que le bas de ses rideaux passe 16 m au-dessus de la plus haute route sous sa ramure (la règle de `geantXZ`) ; s'il faut plus de ×1,45, on
+  prend l'autre pleureur ; sinon la clairière reste vide (`g.vide`, deux tirages `fr()` consommés : le décor qui suit ne bouge pas).
+  Le volume des pleureurs : `FOR_PLEUR_VOL` (bas des rideaux, cime, rayon, en unités du prototype). MESURÉ : 0 route dans un feuillage sur
+  228 pleureurs, 2 clairières vides ; construction de la forêt inchangée (~430 ms, comme le slalom au même moment du banc).
+- Banc : `dbgForet('rideaux')` → `{n, dedans, pire, vides, ex}` (une route DANS la couronne d'un pleureur, du bas des rideaux à la cime).
+  Le slalom au même banc : 0 aussi (route au sol, rien au-dessus). L'avertissement « computeBoundingSphere NaN » et deux 404 existaient déjà
+  avant (slalom compris).
+- ⚠ À DIRE À LÉO : le slalom remplaçait la pelote à sa demande (« oui, la remplacer ») ; Sacha la remet. Rien n'est détruit : `?foret=slalom`.
 ## LE PANNEAU DU CANYON DEVIENT « ROUTE 67 » (2026-10-17 soir, Sacha : « le panneau sur la route 66 dans la map canyon doit s'appeler la route 67 »)
 - `cyRoute66` : le grand chiffre du bouclier passe de « 66 » à « 67 ». `CY_FONTE` gagne un `7` en 5 × 7 pavés (barre du haut, puis
   diagonale qui tombe vers la gauche) ; même largeur que le 6 : le texte reste centré. Rien d'autre ne bouge (station-service, mesa,
