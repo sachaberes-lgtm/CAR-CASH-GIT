@@ -15646,7 +15646,7 @@ window.dbgTeinte=function(){const c=typeof LVL!=='undefined'&&LVL.cur;return {on
    sa peinture caméléon d'origine ; les autres reçoivent le rose de la marque, plein la nuit et sous la pluie, ~70 % de jour (jamais blanc ni éteint). */
 const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),nuagesjour:!/[?&]sans=([^&]*,)?nuagesjour(,|&|$)/.test(location.search),jade:!/[?&]sans=([^&]*,)?jade2(,|&|$)/.test(location.search),foret:!/[?&]sans=([^&]*,)?foret2(,|&|$)/.test(location.search),orbite:!/[?&]sans=([^&]*,)?orbite3(,|&|$)/.test(location.search),canyon:!/[?&]sans=([^&]*,)?canyon2(,|&|$)/.test(location.search),nuagesnuit:!/[?&]sans=([^&]*,)?clairdelune(,|&|$)/.test(location.search),banquise:!/[?&]sans=([^&]*,)?banquise2(,|&|$)/.test(location.search),volcan:!/[?&]sans=([^&]*,)?volcan2(,|&|$)/.test(location.search)};
 function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)return false;const b=c.bio[0];
-  return (SIG_V.nuagesnuit&&c.id==='nuages'&&b==='nuagesNuit')||(SIG_V.banquise&&c.id==='banquise')||(SIG_V.volcan&&c.id==='volcan')||(SIG_V.canyon&&c.id==='canyon')||(SIG_V.orbite&&c.id==='espace')||(SIG_V.foret&&c.id==='foret')||(SIG_V.jade&&c.id==='jade')||(SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
+  return (SIG_V.nuagesnuit&&c.id==='nuages'&&b==='nuagesNuit')||(SIG_V.banquise&&c.id==='banquise')||(SIG_V.volcan&&c.id==='volcan')||(SIG_V.canyon&&c.id==='canyon')||(SIG_V.orbite&&c.id==='espace')||(SIG_V.foret&&c.id==='foret')||(SIG_V.jade&&c.id==='jade')||(SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'))||!!c.vitre;} /* (2026-10-17) la VILLE VITRÉE porte la signature */
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
@@ -18044,11 +18044,11 @@ function cySelect(cam){const M=CY.mesh;if(!M||!M.visible)return;
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);try{if(CY.on)cySelect(cam);}catch(e){window.__cyErr=e;}};} // CHAÎNÉ (jamais réassigné)
 /* LE SOLEIL DE L'HEURE — dans la boucle, avant les ombres : SUN_DIR = SUN_DIR0 → la direction de `cyA` (hauteur, azimut depuis +z vers +x),
    au fondu du niveau. Hors du canyon : SUN_DIR0 recopié au bit près (et ses deux vecteurs de base recalculés par les MÊMES opérations). */
-function canyonSoleil(){const k=LVL.canyon||0;
-  if(k<.001){if(!SUN_DIR.equals(SUN_DIR0)){SUN_DIR.copy(SUN_DIR0);SUN_PERP.crossVectors(SUN_DIR,CY_UP).normalize();SUN_UP.crossVectors(SUN_PERP,SUN_DIR).normalize();
+function canyonSoleil(){const k=LVL.canyon||0,kv=VIT.solK||0; // (2026-10-17) + LA VILLE VITRÉE : le soleil de son heure (VIT_MET.sol) ; ailleurs, inchangé au bit près
+  if(k<.001&&kv<.001){if(!SUN_DIR.equals(SUN_DIR0)){SUN_DIR.copy(SUN_DIR0);SUN_PERP.crossVectors(SUN_DIR,CY_UP).normalize();SUN_UP.crossVectors(SUN_PERP,SUN_DIR).normalize();
     RIM_DIR.copy(SUN_DIR).lerp(KICK_DIR,BIO.cur.rimK).normalize();}return;}
-  const a=BIO.cur.cyA||[6,-110,0,0],el=a[0]*Math.PI/180,az=a[1]*Math.PI/180;CY_SD.set(Math.sin(az)*Math.cos(el),Math.sin(el),Math.cos(az)*Math.cos(el));
-  SUN_DIR.copy(SUN_DIR0).lerp(CY_SD,k).normalize();SUN_PERP.crossVectors(SUN_DIR,CY_UP).normalize();SUN_UP.crossVectors(SUN_PERP,SUN_DIR).normalize();
+  const a=k>=kv?(BIO.cur.cyA||[6,-110,0,0]):VIT.sol,el=a[0]*Math.PI/180,az=a[1]*Math.PI/180;CY_SD.set(Math.sin(az)*Math.cos(el),Math.sin(el),Math.cos(az)*Math.cos(el));
+  SUN_DIR.copy(SUN_DIR0).lerp(CY_SD,Math.max(k,kv)).normalize();SUN_PERP.crossVectors(SUN_DIR,CY_UP).normalize();SUN_UP.crossVectors(SUN_PERP,SUN_DIR).normalize();
   RIM_DIR.copy(SUN_DIR).lerp(KICK_DIR,BIO.cur.rimK).normalize();}
 /* chaque image : les lumières de la scène dans la matière du relief, l'ambiance du canyon (BIO.cur.cy*), l'éclair — et l'ombre des parois
    SUR LA CAISSE (la clé baisse quand on passe dans l'ombre, le ciel quand on s'enfonce : seuls écrits du soleil et de l'hémisphère hors de
@@ -21207,6 +21207,226 @@ window.dbgCrypto=function(k,v){ // console : l'état de CRYPTOCITY · ('ath') un
   const S=CRYPTO.sites;return {on:cryptoOn(),ville:!!CITY.root,taureaux:CRYPTO.taureaux.length,bougies:S?S.bougies.length:0,pieces:CRYPTO.pInfo.length,diamants:CRYPTO.dInfo.length,
     dirigeables:CRYPTO.dirig.length,toits:CRYPTO.toits.length/3,reserve:CRYPTO.res.length/3,fusees:CRYPTO.fus.filter(function(f){return f.on;}).length,
     ath:{dans:+CRYPTO.ath.t.toFixed(1),n:CRYPTO.ath.n,prix:CRYPTO.ath.prix},pluie:{dens:+PLA.dens.toFixed(2),surge:+PLA.surge.toFixed(1),n:PLA.N,np:PLA.NP},ville9:CITY.n};};
+/* ================================ LA VILLE VITRÉE — LES TOURS DE VERRE ================================
+   (2026-10-17, Léo : « une nouvelle map VILLE VITRÉE : une ville de tours en VERRE — murs-rideaux à grands carreaux bleus, montants fins,
+   reflets du ciel et des nuages dans les vitres, éclat du soleil, coins de tours biseautés, quelques bandes de béton / lames verticales —
+   comme mes deux photos (tours de bureaux vues d'en bas, ciel bleu, soleil qui éblouit) ; quatre heures : MATIN (soleil bas, reflets
+   dorés), MIDI (ciel bleu et nuages qui se reflètent), COUCHER (les tours qui s'embrasent orange et rose), NUIT (les bureaux allumés) »).
+   LE NIVEAU (`NIV_VITRE` : id 'ville' + vitre:1, comme CRYPTO CITY) : la piste et l'emplacement des tours sont ceux de la VILLE (genCtrl,
+   buildVoxCity, la règle d'or, les tours DURES) — à graine égale c'est la même ville, aucun tirage `vr` ajouté ni retiré. Ce qui change :
+   · LA FAÇADE (`VIT_VERRE`, dans `vitreMatTours`) : le MUR-RIDEAU — un carreau par travée et par étage, des MONTANTS fins d'aluminium
+     (la teinte d'instance, éclairée par la scène), chaque carreau un MIROIR légèrement désaxé (± 1-2° : les reflets se cassent d'une vitre
+     à l'autre, comme sur un vrai mur de verre), Fresnel de verre traité, le CIEL et ses NUAGES renvoyés, l'ÉCLAT du soleil qui saute de
+     carreau en carreau (il passe dans le halo : ça éblouit). Cinq familles tirées de la graine de la tour (la même pour ses retraits) :
+     VERRE BLEU (34 %), BANDEAUX de béton clair (18 %), LAMES verticales blanches et leur ombre (16 %), VERRE SOMBRE à grands carreaux
+     (16 %), VERRE ARGENT presque miroir (16 %). Les étages se comptent depuis le PIED de la tour : ses retraits gardent les mêmes étages.
+     La NUIT : les bureaux allumés derrière le verre, par plateaux (des étages entiers dorment), les plafonniers en haut de chaque baie.
+   · LES COINS BISEAUTÉS (`vitreGeo`) : un prisme à huit pans dont les quatre pans de coin s'écrasent à zéro (un cube, au triangle près) ou
+     s'ouvrent jusqu'à 7 m — décidé au SOMMET par la graine de la tour (60 % des tours). 28 triangles au lieu de 12 (la seule hausse : MESURÉE).
+     Les tours AU LOIN (couleur de brume) gardent le cube.
+   · LES NUAGES (`vitreCiel` + `vitreNuages`) : une couche de cumulus peinte une fois (256², bruit périodique), posée sur un PLAFOND à 1 400 m
+     au-dessus de la caméra — et ce sont LES MÊMES nuages que les vitres renvoient (même plafond, même texture) : on voit dans les tours le
+     ciel qu'on a au-dessus de la tête. Une couche, deux lectures de texture par pixel.
+   · Les ENSEIGNES et les RÉCLAMES de la ville de nuit se taisent (un quartier d'affaires) ; les TUYAUX deviennent des LAMES de béton qui
+     descendent le long des façades ; les couronnes sont des bandeaux de lumière blanche ; les feux d'antenne restent rouges.
+   · LE CIEL (biomes `vitreMatin/vitreMidi/vitreSoir/vitreNuit`) et la route : le jour d'altitude, la route glacée de CRYPTO CITY (`cryptoA`).
+   Que des matières neuves compilées AU MENU (`vitreChauffe`) : 0 programme en course. `?sans=vitree` = la map retirée du tirage.
+   Console : `dbgVitre()` (état), `dbgVitre('nuages',{…})` (les nuages à chaud), `dbgNiveauVitre(meteo)`. */
+const VITRE_V=!/[?&]sans=([^&]*,)?vitree(,|&|$)/.test(location.search);
+const VIT={mat:{},geo:null,tex:null,ciel:null,met:'midi',
+  uT:{value:0},uCam:{value:new THREE.Vector3()},uSun:{value:new THREE.Vector3().copy(SUN_DIR)},uNuit:{value:0},uSunC:{value:new THREE.Vector3(1,1,1)},uSunK:{value:1},
+  uCl:{value:null},uClK:{value:new THREE.Vector4(.50,.76,.9,0)},uClL:{value:new THREE.Vector3(1,1,1)},uClA:{value:new THREE.Vector3(.66,.74,.86)},
+  uClD:{value:new THREE.Vector2()},uClS:{value:new THREE.Vector2()},uClH:{value:1400},uClT:{value:3200},sol:[6,157],solK:0,
+  v1:new THREE.Vector3(),m4:new THREE.Matrix4(),c:new THREE.Color()};
+// LES NUAGES DE CHAQUE HEURE : k = [seuil bas, seuil haut, opacité] de la couverture · l = le côté au soleil · a = le ventre · s = l'éclat du soleil sur le verre
+const VIT_MET={
+  matin:{k:[.54,.80,.78],l:[1,.86,.70],a:[.62,.60,.76],s:1,sol:[9,128]},
+  midi: {k:[.47,.74,.94],l:[1,1,1],a:[.64,.72,.86],s:1,sol:[26,157]},
+  soir: {k:[.56,.82,.72],l:[1,.76,.56],a:[.46,.32,.48],s:1,sol:[4,186]},
+  nuit: {k:[.56,.82,.55],l:[.16,.18,.26],a:[.04,.045,.08],s:0,sol:[32,157]}}; // sol = [hauteur, azimut] du soleil (degrés, l'azimut depuis +z vers +x : 157° = le soleil de toujours)
+function vitreOn(){return !!(LVL.cur&&LVL.cur.vitre&&!PARK.on);}
+function vitreNuages(){ // la toile des nuages : un bruit de valeur PÉRIODIQUE (5 octaves, sans couture), remis sur [0,1], peint une fois
+  if(VIT.tex)return VIT.tex;
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d'),im=x.createImageData(N,N),d=im.data,R=mulberry32(0x7E77E);
+  const G=[4,8,16,32,64].map(function(g){const a=new Float32Array(g*g);for(let i=0;i<a.length;i++)a[i]=R();return [g,a];}),amp=[.5,.26,.13,.07,.04],v=new Float32Array(N*N);
+  let lo=1e9,hi=-1e9;
+  for(let y=0;y<N;y++)for(let x9=0;x9<N;x9++){let s=0;
+    for(let k=0;k<G.length;k++){const g=G[k][0],a=G[k][1],fx=x9/N*g,fy=y/N*g,ix=Math.floor(fx),iy=Math.floor(fy),tx=fx-ix,ty=fy-iy,sx=tx*tx*(3-2*tx),sy=ty*ty*(3-2*ty);
+      const i1=(ix+1)%g,j1=(iy+1)%g,v0=a[iy*g+ix]+(a[iy*g+i1]-a[iy*g+ix])*sx,v1=a[j1*g+ix]+(a[j1*g+i1]-a[j1*g+ix])*sx;s+=(v0+(v1-v0)*sy)*amp[k];}
+    v[y*N+x9]=s;if(s<lo)lo=s;if(s>hi)hi=s;}
+  for(let i=0;i<N*N;i++){const c=Math.round((v[i]-lo)/(hi-lo)*255),o=i*4;d[o]=d[o+1]=d[o+2]=c;d[o+3]=255;}
+  x.putImageData(im,0,0);
+  const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;
+  try{t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());}catch(e){}
+  texLibere(t);VIT.tex=t;VIT.uCl.value=t;return t;}
+/* LE PRISME À COINS BISEAUTÉS : chaque coin porte deux sommets confondus (un sur la face x, un sur la face z) ; `aCh9` dit lequel recule
+   (x ou z) quand le sommet ouvre le biseau. Biseau nul = le cube d'avant (les pans de coin sont plats : rien n'est rastérisé). */
+function vitreGeo(){
+  if(VIT.geo)return VIT.geo;
+  const P=[],Nn=[],C=[],I=[];let n=0;
+  const CO=[[1,1],[-1,1],[-1,-1],[1,-1]];                       // les coins, dans l'ordre du tour (vus de dessus)
+  const vx=function(k,cote,y){const c=CO[k];return {p:[c[0]*.5,y,c[1]*.5],a:cote==='x'?[0,c[1]]:[c[0],0]};}; // 'x' : sur la face x (recule en z) · 'z' : sur la face z (recule en x)
+  const ouvre=function(v){return [v.p[0]-v.a[0]*.1,v.p[1],v.p[2]-v.a[1]*.1];}; // la position biseau ouvert (pour l'ordre des sommets)
+  const quad=function(a,b,c,d,nx,ny,nz){ // a b c d : quatre sommets d'une face plane, normale (nx,ny,nz) vers l'extérieur
+    const A=ouvre(a),B=ouvre(b),Cc=ouvre(c),u=[B[0]-A[0],B[1]-A[1],B[2]-A[2]],w=[Cc[0]-A[0],Cc[1]-A[1],Cc[2]-A[2]];
+    const cr=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]],ok=cr[0]*nx+cr[1]*ny+cr[2]*nz>0;
+    for(const v of [a,b,c,d]){P.push(v.p[0],v.p[1],v.p[2]);Nn.push(nx,ny,nz);C.push(v.a[0],v.a[1]);}
+    if(ok)I.push(n,n+1,n+2,n,n+2,n+3);else I.push(n,n+2,n+1,n,n+3,n+2);n+=4;};
+  const r2=Math.SQRT1_2;
+  quad(vx(3,'x',-.5),vx(0,'x',-.5),vx(0,'x',.5),vx(3,'x',.5),1,0,0);     // +x
+  quad(vx(1,'x',-.5),vx(2,'x',-.5),vx(2,'x',.5),vx(1,'x',.5),-1,0,0);    // -x
+  quad(vx(0,'z',-.5),vx(1,'z',-.5),vx(1,'z',.5),vx(0,'z',.5),0,0,1);     // +z
+  quad(vx(2,'z',-.5),vx(3,'z',-.5),vx(3,'z',.5),vx(2,'z',.5),0,0,-1);    // -z
+  for(let k=0;k<4;k++)quad(vx(k,'x',-.5),vx(k,'z',-.5),vx(k,'z',.5),vx(k,'x',.5),CO[k][0]*r2,0,CO[k][1]*r2); // les quatre pans de coin
+  for(const y of [.5,-.5]){const b=n,R=[];for(let k=0;k<4;k++)R.push(vx(k,'x',y),vx(k,'z',y)); // le toit et le dessous : l'octogone en éventail
+    for(const v of R){P.push(v.p[0],v.p[1],v.p[2]);Nn.push(0,y>0?1:-1,0);C.push(v.a[0],v.a[1]);}
+    for(let k=1;k<7;k++)if(y>0)I.push(b,b+k+1,b+k);else I.push(b,b+k,b+k+1);n+=8;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));
+  g.setAttribute('aCh9',new THREE.Float32BufferAttribute(C,2));g.setIndex(I);g.computeBoundingSphere();g.computeBoundingBox();
+  g.dispose=function(){}; // PARTAGÉE (trackMeshes la jetterait au rebuild) : une seule pour toutes les villes vitrées
+  VIT.geo=g;return g;}
+// LE MUR DE VERRE — au sommet le biseau, au pixel la façade ; la tour de la ville (tri hors champ, portée des lampes, impact) pour le reste
+const VIT_VERRE=
+  '{vec3 an=abs(vNrm9);float fv=step(an.y,.5)*step(9.,min(vSc9.x,vSc9.z));'+
+  'float s1=fract(vSeed9*7.13),s2=fract(vSeed9*13.71),s3=fract(vSeed9*29.37),s4=fract(vSeed9*53.17),sty=s3<.34?0.:s3<.52?1.:s3<.68?2.:s3<.84?3.:4.;'+ // 34 % VERRE BLEU · 18 % BANDEAUX · 16 % LAMES · 16 % SOMBRE · 16 % ARGENT
+  'vec2 nh=normalize(vNrm9.xz+vec2(1e-6,0.));float ux=dot(vLoc9.xz,vec2(-nh.y,nh.x));'+                       // le long de la façade (pans de coin compris), en mètres
+  'float fh=3.9+s2*.5,cw=sty>3.5?3.+s1*.4:sty>2.5?2.5+s1*.7:1.45+s1*.45;'+                                     // l'ÉTAGE et la TRAVÉE
+  'vec2 uv=vec2(ux/cw,(vW9.y+s1*97.)/fh),fw=max(fwidth(uv),vec2(1e-4));'+                                         // les étages comptés dans le MONDE : les volumes empilés d'une tour gardent les mêmes
+  'float tt=step(.5,vNrm9.y)*step(9.,min(vSc9.x,vSc9.z)),de=min(min(vSc9.x*.5-abs(vLoc9.x),vSc9.z*.5-abs(vLoc9.z)),(vSc9.x*.5+vSc9.z*.5-vCh9-abs(vLoc9.x)-abs(vLoc9.z))*.7071),fe=max(fwidth(de),1e-4);'+
+  'vec3 V9=normalize(vW9-uCam9);vec2 id=floor(uv),f=fract(uv);float far=smoothstep(.3,.75,max(fw.x,fw.y));'+
+  'float h1=fract(sin(dot(id+vSeed9*31.,vec2(12.9898,78.233)))*43758.5453),h2=fract(h1*91.7+.13);'+
+  'vec3 N9=vec3(nh.x,0.,nh.y),T9=vec3(-nh.y,0.,nh.x),Np=normalize(N9+(T9*(h1-.5)*.032+vec3(0.,(h2-.5)*.02,0.))*(1.-smoothstep(.06,.22,max(fw.x,fw.y))));'+ // chaque carreau, un miroir un peu désaxé
+  'vec3 R9=reflect(V9,Np);float ry=R9.y,fry=max(fwidth(ry),1e-4);'+
+  'vec2 cp=(vW9.xz+R9.xz*(uClH9+uCam9.y-vW9.y)/max(ry,.02))/uClT9+uClD9;float c1=texture2D(uCl9,cp).r,c2=texture2D(uCl9,cp+uClS9).r;'+ // les NUAGES du plafond (lus hors branche : dérivées sûres)
+  '\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nbool VIS9=fogDepth<fogFar;\n#else\nbool VIS9=true;\n#endif\n'+
+  'if(VIS9){'+
+  ' if(fv>0.){'+
+  '  vec3 sky=ry>0.?mix(mix(uHor9,uMid9,smoothstep(0.,.18,ry)),uZen9,smoothstep(.14,.9,ry)):mix(uHor9*.82,fogColor*.5,smoothstep(0.,-.3,ry));'+ // en dessous : la ville noyée de brume
+  '  float cov=smoothstep(uClK9.x,uClK9.y,c1)*smoothstep(.015,.12,ry)*uClK9.z;sky=mix(sky,mix(uClA9,uClL9,clamp(.55+(c1-c2)*2.4,0.,1.)),cov);'+
+  // LES TOURS D'EN FACE : le verre renvoie aussi la ville — deux rangées de tours sur l'horizon du reflet (72 et 120 par tour d'horizon), plus sombres que le ciel,
+  // leurs étages en filets (et la nuit leurs bureaux) ; c'est ce qui fait un vrai mur de verre (il ne renvoie jamais que du ciel)
+  '  {float az=atan(R9.z,R9.x),a1=floor(az*11.46),a2=floor(az*19.1+.5),q1=fract(sin(a1*12.9898)*43758.5453),q2=fract(sin(a2*78.233+1.7)*43758.5453);'+
+  '   float hs1=.035+.2*q1*q1,hs2=.015+.08*q2,b1=1.-smoothstep(hs1-fry,hs1+fry,ry),b2=1.-smoothstep(hs2-fry,hs2+fry,ry),bb=max(b1,b2)*step(-.02,ry);'+
+  '   vec3 bc=mix(mix(uHor9,uMid9,.35)*mix(.62,.5,b2),fogColor*.9,.25+.35*b2)*(1.-.75*uNuit9);'+               // la tour renvoyée : le ciel assombri (le verre d'en face), le second rang dans la brume
+  '   float wy=fract(ry*90.),wx=fract(az*120.),wn=step(.5,fract(sin(floor(ry*90.)*7.1+floor(az*120.)*3.3)*4375.85));'+
+  '   bc+=vec3(1.,.82,.56)*wn*step(.25,wy)*step(.3,wx)*uNuit9*.55*(1.-far);'+                                    // la NUIT : leurs bureaux allumés
+  '   sky=mix(sky,bc,bb*(1.-.5*b2*(1.-b1)));}'+
+  '  float sd=max(dot(R9,uSun9),0.),gl=(pow(sd,900.)*16.+pow(sd,70.)*.6+pow(sd,6.)*.3)*uSunK9;'+               // l'ÉCLAT du soleil
+  '  vec3 tint=sty<.5?vec3(.40,.66,.96):sty<1.5?vec3(.56,.72,.90):sty<2.5?vec3(.48,.70,.94):sty<3.5?vec3(.30,.50,.60):vec3(.82,.88,.96);'+
+  '  float rb=sty<.5?.5:sty<1.5?.42:sty<2.5?.46:sty<3.5?.64:.8,cv=abs(dot(V9,Np)),fr=mix(rb,1.,pow(1.-cv,4.));'+ // Fresnel du verre traité : il renvoie déjà la moitié de face
+  '  vec3 refl=sky*tint*1.18+gl*uSunC9*mix(tint,vec3(1.),.6);'+
+  // L'INTÉRIEUR : un bureau sombre derrière un verre teinté ; la NUIT, les plateaux allumés (des baies entières, des étages qui dorment, les plafonniers en haut)
+  '  vec2 ib=vec2(floor(id.x/(sty>2.5?2.:4.)),id.y);float hb=fract(sin(dot(ib+vSeed9*17.,vec2(41.3,97.1)))*31758.5453),hf=fract(sin(id.y*91.7+vSeed9*311.)*43758.5453),on=step(.4,hb)*step(.22,hf);'+
+  '  vec3 lc=mix(vec3(1.,.78,.50),vec3(.78,.88,1.),step(.7,fract(s4*3.7+hb*.6)))*(.5+.5*h1);'+
+  '  float spd=(sty<.5||(sty>1.5&&sty<2.5))?1.-smoothstep(.25-fw.y,.25+fw.y,f.y):0.;'+                         // l'ALLÈGE : le bas de chaque étage, verre opaque
+  '  float blind=step(.86,fract(h1*13.7));vec3 ins=tint*.045*(.6+.8*h1)+lc*(.5+.5*hb)*on*(uNuit9*(.32+.5*smoothstep(.3,.92,f.y)+.55*smoothstep(.86,.93,f.y)*(1.-smoothstep(.93,.97,f.y)))*(1.-.6*blind)+.03)*(1.-spd);'+ // le PLAFONNIER : un filet clair en haut de la baie ; un store sur sept
+  '  ins=mix(ins,tint*.045+vec3(1.,.82,.58)*.11*uNuit9,far);'+ // au loin, la lueur moyenne des bureaux (les baies sous le pixel) : une tour sombre qui rougeoie, pas un carton
+  '  vec3 glass=mix(ins,refl,fr*(1.-.35*uNuit9));'+
+  // LES MONTANTS (la teinte d'instance, éclairée) : travée et étage ; BANDEAUX : 1,3-1,7 m de béton par étage ; le parapet en haut de chaque volume
+  '  float mw=sty>3.5?.05:sty>2.5?.09:.075;vec2 hw=vec2(.5-mw/cw,.5-.07/fh);if(sty>.5&&sty<1.5)hw.y=.5-(.65+.2*s2)/fh;'+
+  '  vec2 dd=(hw-abs(f-.5))/fw;float pane=mix(clamp(dd.x+.5,0.,1.)*clamp(dd.y+.5,0.,1.),4.*hw.x*hw.y,far)*(1.-step(vSc9.y-1.5,vB9));'+
+  '  vec3 st=gl_FragColor.rgb*(1.-.6*uNuit9)+sky*tint*.10,colF=mix(st,glass,pane);'+ // (la nuit, le béton et les montants s'éteignent : les bureaux ressortent)
+  // LES LAMES : une toutes les deux travées, plus épaisse en rasant (sa profondeur), son OMBRE du côté opposé au soleil
+  '  if(sty>1.5&&sty<2.5){float fu=(fract(uv.x*.5+.5)-.5)*2.*cw,fwm=fw.x*cw,lw=.18+.45*(1.-cv),fin=1.-clamp((abs(fu)-lw)/(fwm*2.)+.5,0.,1.);'+
+  '   float ss=sign(dot(uSun9.xz,T9.xz)+1e-4),sh=step(0.,-fu*ss)*(1.-smoothstep(lw+.5,lw+.9,abs(fu)));'+
+  '   fin=mix(fin,lw/cw,far);colF*=1.-.45*sh*(1.-uNuit9)*(1.-far);colF=mix(colF,st*1.1,fin);}'+
+  '  gl_FragColor.rgb=colF;'+
+  ' }'+
+  ' if(tt>0.&&fe<1.4)gl_FragColor.rgb+=vec3(.86,.93,1.)*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uNuit9;'+ // la nuit, le parapet s'allume d'un filet blanc
+  '}}\n';
+/* LE PIED DANS LA BRUME : les volumes sont EMPILÉS (voir buildVoxCity), on ne connaît plus le pied de la tour — la brume est une NAPPE posée
+   à ~380 m sous la caméra (la route est à ~330 m au-dessus du pied des tours), fondue sur 300 m ; la nuit, la rue l'éclaire à peine. */
+const VIT_PIED='#ifdef USE_FOG\n{float hB=vW9.y-uCam9.y+380.;if(hB<300.){vec3 mc=fogColor+vec3(.07,.06,.04)*uNuit9*(1.-smoothstep(0.,160.,hB));gl_FragColor.rgb=mix(mc,gl_FragColor.rgb,smoothstep(0.,300.,hB));}}\n#endif';
+function vitreBiseau(cx,cz){const s=((cx*.0131+cz*.0173)%1+1)%1;return ((s*71.3)%1)<=.6;} // la tour (cx,cz) est-elle biseautée ? (le même tirage que le sommet : la graine de son centre)
+function vitreMatToursLoin(){ // la tour AU LOIN (voir villeMatToursLoin) : la couleur de la brume, le pied dans la nappe
+  if(VIT.mat.toursL)return VIT.mat.toursL;
+  const m=new THREE.MeshBasicMaterial({color:0x000000});
+  m.onBeforeCompile=function(sh){sh.uniforms.uNuit9=VIT.uNuit;sh.uniforms.uCam9=VIT.uCam;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vW9;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\nvW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uNuit9;uniform vec3 uCam9;varying vec3 vW9;')
+      .replace('#include <fog_fragment>','#include <fog_fragment>\n'+VIT_PIED);};
+  m.customProgramCacheKey=function(){return 'toursLoinVitre';};m.dispose=function(){};
+  VIT.mat.toursL=m;return m;
+}
+function vitreMatTours(){
+  if(VIT.mat.tours)return VIT.mat.tours;
+  vitreNuages();
+  const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x05070a});
+  m.extensions={derivatives:true};
+  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;varying float vCh9;';
+  m.onBeforeCompile=function(sh){Object.assign(sh.uniforms,{uT9:CITY.uT,uWet9:ROAD_U.uWet,uLum9:CITY.uL,uImp9:IMPACT.u,uImpN9:IMPACT.n,uZen9:skyU.uJZen,uMid9:skyU.uJMid,uHor9:skyU.uJHor,
+      uSun9:VIT.uSun,uCam9:VIT.uCam,uNuit9:VIT.uNuit,uSunC9:VIT.uSunC,uSunK9:VIT.uSunK,uCl9:VIT.uCl,uClK9:VIT.uClK,uClL9:VIT.uClL,uClA9:VIT.uClA,uClD9:VIT.uClD,uClS9:VIT.uClS,uClH9:VIT.uClH,uClT9:VIT.uClT});
+    sh.vertexShader='#undef USE_SHADOWMAP\n'+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+'\nattribute vec2 aCh9;uniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n')
+      .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\n#ifdef USE_INSTANCING\n'+ // le pan de coin : sa vraie normale à 45° (le biseau est en MÈTRES, l'échelle d'instance la fausserait)
+        'if(abs(objectNormal.x)>.1&&abs(objectNormal.z)>.1)objectNormal=vec3(sign(objectNormal.x)*length(instanceMatrix[0].xyz),0.,sign(objectNormal.z)*length(instanceMatrix[2].xyz));\n#endif\n')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
+        'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;\n#endif\n'+
+        'vCh9=step(fract(vSeed9*71.3),.6)*min(min(sc9.x,sc9.z)*.16,7.);transformed.xz-=aCh9*vCh9/sc9.xz;'+ // LE BISEAU : 60 % des tours, 16 % de leur petit côté, 7 m au plus
+        '\n#ifdef USE_INSTANCING\nvW9=(modelMatrix*instanceMatrix*vec4(transformed,1.)).xyz;\n#else\nvW9=(modelMatrix*vec4(transformed,1.)).xyz;\n#endif\n'+
+        'vLoc9=transformed*sc9;vB9=(transformed.y+.5)*sc9.y;vSc9=sc9;vNrm9=normal;if(abs(normal.x)>.1&&abs(normal.z)>.1)vNrm9=vec3(sign(normal.x),0.,sign(normal.z))*.7071;')
+      .replace('#include <project_vertex>','#include <project_vertex>\nbool loin9=false;\n'+VILLE_TRI+
+        '#ifdef USE_INSTANCING\nbool proche9=false;{vec3 w9=(modelMatrix*vec4(instanceMatrix[3].xyz,1.)).xyz;float r9=.5*length(sc9)+1.;'+
+        'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n')
+      .replace('#include <lights_lambert_vertex>','vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
+    sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9,uSunK9,uClH9,uClT9;uniform vec3 uZen9,uMid9,uHor9,uSun9,uSunC9,uClL9,uClA9,uCam9;uniform vec4 uImp9,uImpN9,uClK9;uniform vec2 uClD9,uClS9;uniform sampler2D uCl9;'+DECL)
+      .replace('#include <fog_fragment>',VIT_VERRE+VILLE_IMPACT+'#include <fog_fragment>\n'+VIT_PIED);};
+  m.customProgramCacheKey=function(){return 'toursVitre1';};m.dispose=function(){};
+  VIT.mat.tours=m;return m;
+}
+/* LA COUCHE DE NUAGES DU CIEL : une demi-sphère posée sur la caméra, peinte au plan lointain (comme le dôme), après le ciel et derrière tout
+   le reste. Le plafond est le même que celui que les vitres renvoient. */
+function vitreCiel(){
+  if(VIT.ciel)return VIT.ciel;
+  vitreNuages();
+  const g=new THREE.SphereGeometry(1,40,12,0,Math.PI*2,0,Math.PI*.5);
+  const m=new THREE.ShaderMaterial({uniforms:{uCl:VIT.uCl,uClK:VIT.uClK,uClL:VIT.uClL,uClA:VIT.uClA,uClD:VIT.uClD,uClS:VIT.uClS,uClH:VIT.uClH,uClT:VIT.uClT,uSun:VIT.uSun,uHor:skyU.uJHor},
+    vertexShader:'varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_Position.z=gl_Position.w;}',
+    fragmentShader:'uniform sampler2D uCl;uniform vec4 uClK;uniform vec3 uClL,uClA,uSun,uHor;uniform vec2 uClD,uClS;uniform float uClH,uClT;varying vec3 vD;'+
+      'void main(){vec3 d=normalize(vD);float dy=max(d.y,.008);vec2 cp=(cameraPosition.xz+d.xz*uClH/dy)/uClT+uClD;float c3=texture2D(uCl,cp*3.7+.31).r,c1=texture2D(uCl,cp).r*.78+c3*.22,c2=texture2D(uCl,cp+uClS).r*.78+c3*.2;'+ // une octave fine par-dessus (le grain des cumulus)
+      
+      'float hz=smoothstep(.008,.16,d.y),cov=smoothstep(uClK.x,uClK.y,c1)*uClK.z*hz;if(cov<.003)discard;'+
+      'vec3 col=mix(uClA,uClL,clamp(.55+(c1-c2)*2.4,0.,1.));float sd=max(dot(d,uSun),0.);col+=uClL*pow(sd,12.)*.4*(1.-.6*smoothstep(uClK.x,uClK.y,c1));'+ // la frange d'argent près du soleil
+      'col=mix(uHor,col,.25+.75*smoothstep(.01,.22,d.y));gl_FragColor=vec4(col,cov);}', // à l'horizon, ils se fondent dans la brume du ciel
+    transparent:true,depthWrite:false,depthTest:true,fog:false,side:THREE.BackSide});
+  m.customProgramCacheKey=function(){return 'vitreCiel1';};
+  const o=new THREE.Mesh(g,m);o.name='ville vitrée nuages';o.frustumCulled=false;o.renderOrder=-2;o.scale.setScalar(8000);o.visible=false;scene.add(o);VIT.ciel=o;return o;}
+/* ⚠ three r128 n'envoie PAS `cameraPosition` aux matières Lambert (setProgram : seulement Shader/Phong/Toon/Standard ou avec envMap) — dans le
+   verre il valait (0,0,0) : la direction du regard partait de l'origine du monde. La vraie caméra du rendu, posée avant chaque rendu de la scène. */
+{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);if(cam&&cam.matrixWorld)VIT.uCam.value.setFromMatrixPosition(cam.matrixWorld);};} // CHAÎNÉ (jamais réassigné)
+function vitreTick(dt,sim){
+  const on=vitreOn()&&!!CITY.root;
+  VIT.solK+=((on?1:0)-VIT.solK)*Math.min(1,dt*1.2);if(VIT.solK<.001)VIT.solK=0; // le soleil de l'heure, fondu (lu par canyonSoleil)
+  if(!on){if(VIT.ciel&&VIT.ciel.visible)VIT.ciel.visible=false;return;}
+  const d=sim?dt:0;VIT.uT.value+=d;
+  VIT.uSun.value.copy(SUN_DIR);VIT.uNuit.value=LVL.nuit||0;
+  VIT.uSunC.value.set(sun.color.r,sun.color.g,sun.color.b).multiplyScalar(Math.min(1.6,sun.intensity));
+  const M=VIT_MET[(LVL.cur&&LVL.cur.meteo)||VIT.met]||VIT_MET.midi,k=Math.min(1,dt*1.5+(VIT.neuf?1:0)),K=VIT.uClK.value;VIT.neuf=false; // (au portail : posé d'un coup, ensuite il glisse)
+  K.x+=(M.k[0]-K.x)*k;K.y+=(M.k[1]-K.y)*k;K.z+=(M.k[2]-K.z)*k;VIT.uSunK.value+=(M.s-VIT.uSunK.value)*k;
+  const L=VIT.uClL.value,A=VIT.uClA.value;L.x+=(M.l[0]-L.x)*k;L.y+=(M.l[1]-L.y)*k;L.z+=(M.l[2]-L.z)*k;A.x+=(M.a[0]-A.x)*k;A.y+=(M.a[1]-A.y)*k;A.z+=(M.a[2]-A.z)*k;
+  VIT.sol[0]+=(M.sol[0]-VIT.sol[0])*k;VIT.sol[1]+=(M.sol[1]-VIT.sol[1])*k; // le soleil de l'heure (posé par canyonSoleil)
+  VIT.uClD.value.x+=d*.0016;VIT.uClD.value.y+=d*.0007; // le vent pousse les nuages (et leurs reflets avec eux)
+  {const s=VIT.uSun.value,h=Math.hypot(s.x,s.z)||1;VIT.uClS.value.set(s.x/h*.012,s.z/h*.012);} // le côté au soleil : une lecture décalée vers lui
+  const c=vitreCiel();c.visible=true;c.position.copy(camera.position);
+}
+function vitreChauffe(){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
+  const L9=[],add=function(o){o.position.copy(camera.position);camera.getWorldDirection(VIT.v1);o.position.addScaledVector(VIT.v1,30);scene.add(o);L9.push(o);};
+  {const im=new THREE.InstancedMesh(vitreGeo(),vitreMatTours(),1);im.setMatrixAt(0,VIT.m4.identity());im.setColorAt(0,VIT.c.set(1,1,1));add(im);}
+  {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),vitreMatToursLoin(),1);im.setMatrixAt(0,VIT.m4.identity());add(im);}
+  const c=vitreCiel();c.visible=true;L9.push(c);
+  try{chauffeRendu(L9);}catch(e){}
+  for(const o of L9){if(o===c)c.visible=false;else{scene.remove(o);if(o.geometry!==VIT.geo)o.geometry.dispose();}}
+}
+window.dbgVitre=function(k,v){ // console : l'état de la VILLE VITRÉE · ('nuages',{k:[…],l:[…],a:[…]}) les nuages de l'heure à chaud · ('ciel') cacher/montrer la couche
+  if(k==='nuages'&&v){const M=VIT_MET[(LVL.cur&&LVL.cur.meteo)||'midi'];Object.assign(M,v);VIT.neuf=true;return M;}
+  if(k==='ciel'&&VIT.ciel){VIT.ciel.material.visible=!VIT.ciel.material.visible;return VIT.ciel.material.visible;}
+  if(k==='rayon'){const rc=new THREE.Raycaster();rc.setFromCamera(new THREE.Vector2(v[0]/VP.w*2-1,1-v[1]/VP.h*2),camera);const L=[],M=new THREE.Matrix4(); // (banc) ce qu'il y a sous le pixel (x,y) : quelle pièce de quelle tour
+    for(const F of CITY.fam||[])for(const im of [F.im,F.imL])for(const h of rc.intersectObject(im).slice(0,4)){im.getMatrixAt(h.instanceId,M);const e=M.elements;L.push({im:im===F.im?'pres':'loin',fam:CITY.fam.indexOf(F),id:h.instanceId,d:Math.round(h.distance),
+      taille:[Math.hypot(e[0],e[1],e[2]),Math.hypot(e[4],e[5],e[6]),Math.hypot(e[8],e[9],e[10])].map(Math.round),centre:[e[12],e[13],e[14]].map(Math.round)});}
+    if(!L.length)for(const h of rc.intersectObjects(scene.children,true).slice(0,5))L.push({objet:h.object.name||h.object.type,parent:h.object.parent&&(h.object.parent.name||h.object.parent.type),d:Math.round(h.distance),visible:h.object.visible}); // pas une tour : quoi d'autre ?
+    return L.sort(function(a,b){return a.d-b.d;}).slice(0,6);}
+  return {on:vitreOn(),ville:!!CITY.root,meteo:LVL.cur&&LVL.cur.meteo,ciel:BIO.name,nuages:VIT.uClK.value.toArray().map(function(x){return +x.toFixed(2);}),eclat:+VIT.uSunK.value.toFixed(2),nuit:+VIT.uNuit.value.toFixed(2),
+    couche:!!(VIT.ciel&&VIT.ciel.visible),ville9:CITY.n};};
 /* ======================= LA PLUIE D'ARGENT v2 — `PLA` (2026-10-13, Léo : « ramène la pluie d'argent, et augmente la qualité ») =======================
    L'averse de glyphes (startMoneyRain : des « $ € ¥ » en sprites, 3 s) ne tombait plus que passé 4 000 $ × ECO3.gain dans UNE partie — on ne
    la voyait plus. Elle revient en VRAIS objets : les billets de la pluie de richesse (la série de sept couleurs, recto dessiné, + le billet
@@ -22136,6 +22356,7 @@ const NIV_JADE={graine:(+((/[?&]graine=(\d+)/.exec(location.search)||[])[1])||0x
    change l'air (voir « CRYPTOCITY — LA VILLE EN BULL RUN », après villeMatPub). (2026-10-15, Sacha) une MAP du mode classique au hasard :
    SF_CARTES.crypto (« CRYPTO CITY ») — `?carte=crypto` ou `?niveau=crypto` l'impose au 1er JOUER, `dbgNiveauCrypto(meteo)` aussi. */
 const NIV_CRYPTO={id:'ville',crypto:1,nm:'CRYPTO CITY',bio:['bullrun'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.16,pr:'BULL RUN'};
+const NIV_VITRE={id:'ville',vitre:1,nm:'VILLE VITRÉE',bio:['vitreMidi'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.16,pr:'LE CIEL DANS LES VITRES'}; // (2026-10-17, Léo) LA VILLE VITRÉE : la ville (mêmes tirages), des tours de verre — voir « LA VILLE VITRÉE »
 const JADE={root:null,Q:null,fam:[],col:null,porte:null,pont:null,brume:null,n:{},ms:0,merY:-420,t:0,sig:0,geos:null,cl:null};
 const JADE_U={uSunDir:{value:SUN_DIR},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillD:{value:new THREE.Vector3(0,-1,0)},uFillC:{value:new THREE.Color()},uMist:{value:new THREE.Color(.86,.87,.82)},
@@ -24103,6 +24324,7 @@ function buildVoxCity(seed,accC){
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
+  const VI=!!(LVL.cur&&LVL.cur.vitre);if(VI)VIT.neuf=true; // (2026-10-17) LA VILLE VITRÉE : la même ville (mêmes tirages), des tours de verre — voir « LA VILLE VITRÉE »
   const CR=!!(LVL.cur&&LVL.cur.crypto); // (2026-10-13) CRYPTOCITY : la même ville (mêmes tirages), un autre air — voir cryptoPlace / cryptoTour / cryptoBatit
   const t00=performance.now();
   const vr=mulberry32(seed^0x5EED10C1); // flux DÉRIVÉ (voir ⚠ ci-dessus)
@@ -24134,13 +24356,15 @@ function buildVoxCity(seed,accC){
   // (2026-09-26, vague 2) les ENSEIGNES parlent MAGENTA et CYAN (#ff3ec8 / #3ee8ff et leurs deux voisins) : le jaune, le vert et le violet
   // en faisaient une guirlande. Cinq teintes comme avant (le tirage `vr` ne bouge pas), le feu d'antenne au rouge DANGER, la couronne à l'accent.
   const MJ9=metroJour();CITY.uPied.value=MJ9?.12:1; // (metropole) de jour, plus de voile violet au pied des tours
-  const NEON=CR?[new THREE.Color(0x2bff88),new THREE.Color(0xffd23e),new THREE.Color(0xf7931a),new THREE.Color(0x6dffc8), // CRYPTO CITY : le vert profit, l'or, l'orange bitcoin, la menthe…
+  const NEON=VI?[new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff),new THREE.Color(0xdfeaff), // (VILLE VITRÉE) pas d'enseigne (voir batir) ;
+                 new THREE.Color(0xff3b3b),new THREE.Color(0xe6f0ff)]: // le feu d'antenne rouge, la couronne en bandeau de lumière blanche
+           CR?[new THREE.Color(0x2bff88),new THREE.Color(0xffd23e),new THREE.Color(0xf7931a),new THREE.Color(0x6dffc8), // CRYPTO CITY : le vert profit, l'or, l'orange bitcoin, la menthe…
                  new THREE.Color(0xfff2c8),new THREE.Color(0xff3b5c),new THREE.Color(0xffc63a)]: // …un blanc chaud, le feu d'antenne, la couronne en OR
              (NEONVILLE_V5&&!villeRose())?[new THREE.Color(MJ9?0xffc81e:0xffb04a),new THREE.Color(0xe8eef2),new THREE.Color(0xffb04a),new THREE.Color(0xe8eef2), // (2026-10-14, passe graphismes · facades-jour)
               new THREE.Color(MJ9?0xffc81e:0xffb04a),new THREE.Color(0xe5484d),new THREE.Color(0xe8eef2)]: // DIRECTION §2.2 : enseignes ambre #FFB04A / blanc de bureau #E8EEF2, feu d'antenne rouge de balise #E5484D (l'unique accent saturé), couronne blanche — mêmes indices, même tirage `vr` ; ?sans=neonville rend le magenta/cyan
              [new THREE.Color(0xff3ec8),new THREE.Color(0x3ee8ff),new THREE.Color(0xff4f9e),new THREE.Color(0x52c8ff),
               new THREE.Color(0xff3ec8),new THREE.Color(0xff3b5c),accC];
-  if(VILLE_NUIT_V){const T9=vtCur();if(T9)for(let i=0;i<6;i++)vtCol(NEON[i],T9);} // (2026-10-16) LES TEINTES DE LA VILLE : magenta et rose des enseignes → la couleur de la ville (le cyan et le rouge des balises restent ; accC l'est déjà)
+  if(VILLE_NUIT_V&&!VI){const T9=vtCur();if(T9)for(let i=0;i<6;i++)vtCol(NEON[i],T9);} // (2026-10-16) LES TEINTES DE LA VILLE : magenta et rose des enseignes → la couleur de la ville (le cyan et le rouge des balises restent ; accC l'est déjà)
   let nT=0;
   // UNE TOUR : (cx,cz) son centre, d sa distance à l'axe, yN l'altitude du tronçon qu'elle BORDE, yLo le plus bas de ce tronçon
   /* L'ENTRÉE SURÉLEVÉE (voir VILLE_ENTREE) : `eEnt(i)` vaut 1 le long de la droite, glisse à 0 au pied de la rampe. Les tours qui bordent
@@ -24170,22 +24394,26 @@ function buildVoxCity(seed,accC){
     const H=t-b,km=(b+t)/2;nT++;
     // LES RETRAITS : volumes EMBOÎTÉS qui partent tous du pied (la brume se lit pareil sur tous), plus étroits et plus hauts
     const et=H>260?(vr()<.55?3:2):(vr()<.4?2:1);
-    let wk=w,pk=p;
+    let wk=w,pk=p,yV=b,h0=H; // (VILLE VITRÉE) yV : le haut du dernier volume EMPILÉ · h0 : la hauteur du volume du pied
     for(let k=0;k<et;k++){
       const fr=k===et-1?1:(.5+.36*(k+1)/et+(vr()-.5)*.08);
-      corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);
+      /* (2026-10-17, VILLE VITRÉE) les retraits EMPILÉS, pas emboîtés : la profondeur de l'image est en 16 bits (24 m de pas à 400 m) — un volume
+         caché DANS un autre, dessiné après lui, perçait sa façade par bandes (mesuré au rayon : le mât à 12 m derrière le verre). Même silhouette. */
+      if(VI){const y1=b+H*fr;if(y1>yV+1){corps.push(cx,(yV+y1)/2,cz,wk,y1-yV,pk);genre.push(0);tqC.push(cx,km,cz);}if(k===0)h0=H*fr;yV=Math.max(yV,y1);}
+      else{corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);}
       wk=snap(wk*.72);pk=snap(pk*.72);if(wk<VOX_CITY*2||pk<VOX_CITY*2)break;
     }
     // LES TUYAUX : ils DESCENDENT le long d'une façade jusque dans la brume
     if(H>220&&vr()<(canyon?.7:.5)){
       const nt=1+((vr()*(IS_MOBILE?2:3))|0),tk=snap(3+vr()*2.5);
-      for(let t9=0;t9<nt;t9++){const face=(vr()*4)|0,ht=H*(.5+vr()*.45),gl=(vr()-.5)*.7;
+      for(let t9=0;t9<nt;t9++){const face=(vr()*4)|0,ht=VI?Math.min(H*(.5+vr()*.45),h0):H*(.5+vr()*.45),gl=(vr()-.5)*.7; // (VILLE VITRÉE) la lame s'arrête au toit du volume qu'elle longe
         const ox=face<2?(face?1:-1)*(w/2+tk/2):gl*w,oz=face<2?gl*p:(face===2?1:-1)*(p/2+tk/2);
         corps.push(cx+ox,b+ht/2,cz+oz,tk,ht,tk);genre.push(1);tqC.push(cx,km,cz);}
     }
     // L'ANTENNE et son FEU ROUGE — sinon, parfois, la COURONNE à l'accent de la zone
-    if(H>320&&vr()<.5){const ha=24+vr()*56;corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}
-    else if(vr()<.32){neon.push(cx,t-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}
+    if(H>320&&vr()<.5){const ha=24+vr()*56;if(VI){corps.push(cx,yV+ha/2,cz,2.4,ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,yV+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);} // (VILLE VITRÉE) le mât part du TOIT (il ne traverse plus la tour)
+      else{corps.push(cx,b+(H+ha)/2,cz,2.4,H+ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);}}
+    else if(vr()<.32){if(!VI||!vitreBiseau(cx,cz)){neon.push(cx,(VI?yV:t)-1.4,cz,wk/.72*1.05,2.8,pk/.72*1.05);neonC.push(6);tqN.push(cx,km,cz);}} // (VILLE VITRÉE) pas de couronne carrée sur une tour biseautée
     // (metropole) LA GRUE : sur le toit d'une tour haute sur ~9 (moins sur téléphone) — un mât rouge, une flèche, une contre-flèche, une cabine et un contrepoids jaunes
     if(MJ9&&H>200&&metroH(cx,cz)<(IS_MOBILE?.07:.11)){const h9=metroH(cz,cx),hm=36+h9*40,L9=46+h9*36,ax=h9<.5,sg9=metroH(cx+1,cz)<.5?-1:1,mx=cx+(ax?0:sg9*w*.22),mz=cz+(ax?sg9*p*.22:0),yj=t+hm;
       corps.push(mx,t+hm/2,mz,2.6,hm,2.6);genre.push(3);tqC.push(cx,km,cz);                                                   // le mât
@@ -24196,7 +24424,8 @@ function buildVoxCity(seed,accC){
     // L'ENSEIGNE VERTICALE : le long du canyon, une tour sur deux porte son néon, à hauteur de ROUTE (on la voit passer)
     if(vr()<(canyon?.5:.18)){
       const hs=Math.min(H*.3,30+vr()*60),ys=Math.max(b+hs/2+20,Math.min(t-hs/2-6,yN+(vr()-.3)*80)),fx=vr()<.5,sg=vr()<.5?-1:1;
-      neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push((vr()*5)|0);tqN.push(cx,km,cz);
+      const c5=(vr()*5)|0;if(VI)return; // (VILLE VITRÉE) un quartier d'affaires : pas d'enseigne (le tirage a eu lieu, la suite de la ville ne bouge pas)
+      neon.push(cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?1.8:7.5,hs,fx?7.5:1.8);neonC.push(c5);tqN.push(cx,km,cz);
       if(canyon&&CITY.ens.length<24)CITY.ens.push([cx+(fx?sg*(w/2+1.2):0),ys,cz+(fx?0:sg*(p/2+1.2)),fx?sg:0,fx?0:sg,hs]); // (dev) quelques enseignes à photographier (dbgEnseigne)
     }
     // (CRYPTOCITY) la tour tombe sur un site réservé, ou devient une bougie : bâtie (ses tirages ont eu lieu), puis retirée
@@ -24217,7 +24446,7 @@ function buildVoxCity(seed,accC){
       const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,rw===ROWS[0]?eI:0); // (2026-10-04) seul le MUR (1er rang) passe sous la route à l'entrée — voir ENTRÉE v2
       // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle
       if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
-        (eI>.3||CR&&cryptoReserve(pts[i].x+px*sg*d9+tx*al,pts[i].z+pz*sg*d9+tz*al,pw*.6)?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
+        (eI>.3||VI||CR&&cryptoReserve(pts[i].x+px*sg*d9+tx*al,pts[i].z+pz*sg*d9+tz*al,pw*.6)?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
   }
   // AU LARGE : la forêt du village, par cases au sol (le fond de scène), calée sur le point de piste le plus proche
   const cF=cellules(SF,R_VIL,d=>d>R_CAN),kF=Math.min(1,BUD*.55/Math.max(1,cF.length));
@@ -24237,6 +24466,9 @@ function buildVoxCity(seed,accC){
   const CUBE=new THREE.BoxGeometry(1,1,1),M=new THREE.Matrix4();
   const col=new THREE.Color(),colT=new Float32Array(genre.length*3),colN=new Float32Array(neonC.length*3);
   for(let i=0;i<genre.length;i++){const t9=.8+vr()*.45,g=genre[i]; // (le tirage `vr` dans le MÊME ordre qu'avant : chaque tour garde sa teinte)
+    if(VI){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,q9=(sd9*29.37)%1,st9=q9<.34?0:q9<.52?1:q9<.68?2:q9<.84?3:4,k9=.9+(t9-.8)*.35; // (VILLE VITRÉE) la STRUCTURE (la façade, c'est le shader : mêmes seuils)
+      if(g===0){const P9=[[.66,.70,.76],[.84,.84,.82],[.88,.89,.90],[.20,.22,.25],[.74,.77,.82]][st9];col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // montants d'alu · béton clair · lames blanches · montants noirs · alu argent
+      else if(g===1)col.setRGB(.86*k9,.86*k9,.84*k9);else col.setRGB(.60,.62,.66);col.toArray(colT,i*3);continue;} // les tuyaux deviennent des LAMES de béton clair ; les mâts, acier clair
     if(CR){const o9=i*6,sd9=((corps[o9]*.0131+corps[o9+2]*.0173)%1+1)%1,q9=(sd9*29.37)%1,st9=q9<.26?0:q9<.44?1:q9<.64?2:q9<.80?3:4,k9=Math.min(1.12,t9); // CRYPTO CITY : la STRUCTURE de la tour (la façade, c'est le shader)
       if(g===0){const P9=[[.30,.40,.46],[.74,.62,.36],[.70,.74,.80],[.38,.40,.44],[.94,.94,.92]][st9];col.setRGB(P9[0]*k9,P9[1]*k9,P9[2]*k9);} // VERRE · OR · ARGENT · MÉTAL · BLANC (2026-10-15, Sacha)
       else if(g===1)col.setRGB(.76*k9,.78*k9,.82*k9);else col.setRGB(.16,.16,.18);}               // tuyaux de chrome, mâts sombres
@@ -24254,7 +24486,7 @@ function buildVoxCity(seed,accC){
     else col.setRGB(.10,.10,.12);                                // le mât : une ligne sombre
     col.toArray(colT,i*3);}
   for(let i=0;i<neonC.length;i++)NEON[neonC[i]].toArray(colN,i*3);
-  const fam=(arr,kT,cols,mat,matL)=>{ // une FAMILLE : tableau maître rangé par quartiers + l'instance complète (PRÈS) et l'instance nue (AU LOIN)
+  const fam=(arr,kT,cols,mat,matL,geo)=>{ // (2026-10-17) geo : la géométrie des tours PRÈS (la VILLE VITRÉE : ses coins biseautés) ; au loin, toujours le cube // une FAMILLE : tableau maître rangé par quartiers + l'instance complète (PRÈS) et l'instance nue (AU LOIN)
     // ⚠ le quartier se choisit par la TOUR (kT), pas par le volume : les pièces d'une même tour (retraits emboîtés, tuyaux, mât, néons) restent
     // ensemble et dans leur ordre d'origine — là où deux d'entre elles se croisent, la profondeur tombe à égalité sur une ligne de pixels et
     // c'est l'ORDRE qui tranche (mesuré : 5 pixels changeaient de camp quand un retrait partait dans un autre quartier)
@@ -24269,14 +24501,14 @@ function buildVoxCity(seed,accC){
         x0=Math.min(x0,arr[o]-arr[o+3]/2);x1=Math.max(x1,arr[o]+arr[o+3]/2);y0=Math.min(y0,arr[o+1]-arr[o+4]/2);y1=Math.max(y1,arr[o+1]+arr[o+4]/2);
         z0=Math.min(z0,arr[o+2]-arr[o+5]/2);z1=Math.max(z1,arr[o+2]+arr[o+5]/2);}
       F.Q[j]=a;F.Q[j+1]=p;F.Q[j+2]=(x0+x1)/2;F.Q[j+3]=(y0+y1)/2;F.Q[j+4]=(z0+z1)/2;F.Q[j+5]=Math.hypot(x1-x0,y1-y0,z1-z0)/2+1;j+=6;}
-    F.im=new THREE.InstancedMesh(CUBE,mat,nb);F.imL=new THREE.InstancedMesh(CUBE,matL,nb);
+    F.im=new THREE.InstancedMesh(geo||CUBE,mat,nb);F.imL=new THREE.InstancedMesh(CUBE,matL,nb);
     F.im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(nb*3),3);
     for(const a of [F.im.instanceMatrix,F.im.instanceColor,F.imL.instanceMatrix])a.setUsage(THREE.DynamicDrawUsage);
     for(const x of [F.im,F.imL]){x.frustumCulled=false;root.add(x);trackMeshes.push(x);} // (le tri, c'est villeTri) — ⚠ la GÉOMÉTRIE part au rebuild (trackMeshes), les MATÉRIAUX sont partagés et gardés
     F.e.fill(1);villeRefait(F);villePousse(F); // tout PRÈS tant qu'aucun rendu n'a trié (= la ville d'avant)
     return F;};
   CITY.fam=[];
-  if(corps.length){const F=fam(corps,tqC,colT,CR?cryptoMatTours():villeMatTours(),CR?cryptoMatToursLoin():villeMatToursLoin());CITY.imC=F.im;CITY.fam.push(F);}
+  if(corps.length){const F=fam(corps,tqC,colT,VI?vitreMatTours():CR?cryptoMatTours():villeMatTours(),VI?vitreMatToursLoin():CR?cryptoMatToursLoin():villeMatToursLoin(),VI?vitreGeo():null);CITY.imC=F.im;CITY.fam.push(F);}
   if(neon.length){const F=fam(neon,tqN,colN,villeMatNeon(),villeMatNeonLoin());CITY.imN=F.im;CITY.fam.push(F);}
   if(pubs.length){if(!CR)villePubAtlas(); /* (2026-10-16) repeint si la teinte de la ville a changé */ const Qp=new THREE.Quaternion(),Pp=new THREE.Vector3(),Sp=new THREE.Vector3(),Ay=new THREE.Vector3(0,1,0),PL=new THREE.PlaneGeometry(1,1),n9=pubs.length/6;
     const imP=new THREE.InstancedMesh(PL,CR?cryptoMatPub():villeMatPub(),n9);
@@ -26397,6 +26629,23 @@ BIOMES.cryptoSoir=bioMet(BIOMES.nuagesSoir,{nm:'CRYPTO CITY · SOIR',moon:0,city
 BIOMES.cryptoNuit=bioMet(BIOMES.nuagesNuit,{nm:'CRYPTO CITY · NUIT',moon:0,city:0,stars:1,jZen:[.008,.014,.05],jMid:[.03,.05,.13],jHor:[.14,.13,.22],
   fog:[.08,.08,.16],fogN:620,fogF:4000,fogCj:[.42,.36,.50],hemiG:[.10,.08,.12],kickC:[1,.78,.36],kickI:.16,
   env:[[0,'#04060f'],[.3,'#0c1430'],[.48,'#2a2a52'],[.58,'#6a5a6e'],[.66,'#141a30'],[1,'#05070f']],eS1:[255,210,140,.4],eS2:[90,230,170,.3]});
+/* (2026-10-17, Léo) LA VILLE VITRÉE — LES QUATRE HEURES : le jour d'altitude, un ciel BLEU (le verre le renvoie), la brume claire où se noient les
+   pieds des tours ; le MATIN : soleil bas, horizon doré ; le COUCHER : le ciel orange et rose que les tours renvoient ; la NUIT : bleu profond,
+   les bureaux allumés (uNuit9). Que des uniforms. Les nuages de chaque heure sont dans VIT_MET. */
+BIOMES.vitreMidi=bioMet(BIOMES.bullrun,{nm:'VILLE VITREE · MIDI',jZen:[.08,.30,.78],jMid:[.36,.62,.94],jHor:[.84,.91,.99],jSol:[.62,.74,.88],sunTint:[1,.97,.92],sunC:[1,.97,.92],sunI:1.45,
+  fog:[.80,.87,.96],fogN:640,fogF:3600,fogCj:[.96,.95,.92],fogIn:[.92,.95,1],hemiS:[.78,.88,1],hemiG:[.40,.45,.54],hemiI:.66,fillC:[.58,.74,.98],fillI:.2,kickC:[1,.38,.66],kickI:.14,
+  expo:.85,sat:1.1,con:1.16,hi:[0,.004,.012],vigC:[.03,.05,.09],vigK:.2,
+  env:[[0,'#2a6fd8'],[.3,'#6aa8ec'],[.48,'#e4eefa'],[.58,'#d8e6f6'],[.66,'#8a98ac'],[1,'#4a5668']],eS1:[255,250,240,.55],eS2:[150,200,255,.3]});
+BIOMES.vitreMatin=bioMet(BIOMES.cryptoMatin,{nm:'VILLE VITREE · MATIN',jZen:[.12,.26,.62],jMid:[.50,.60,.88],jHor:[1,.82,.62],jSol:[1,.66,.44],sunTint:[1,.84,.62],sunC:[1,.82,.58],sunI:1.25,
+  fog:[.94,.86,.78],fogCj:[1,.80,.58],fogIn:[1,.92,.86],hemiS:[.86,.84,1],hemiG:[.46,.40,.40],fillC:[.62,.66,.94],kickC:[1,.38,.66],kickI:.14,expo:.9,
+  env:[[0,'#34509e'],[.3,'#8496d6'],[.48,'#ffdcc0'],[.58,'#ffc88e'],[.66,'#a8907c'],[1,'#5e5250']],eS1:[255,214,160,.55],eS2:[160,176,240,.3]});
+BIOMES.vitreSoir=bioMet(BIOMES.cryptoSoir,{nm:'VILLE VITREE · COUCHER',jZen:[.26,.20,.50],jMid:[.94,.52,.46],jHor:[1,.64,.34],jSol:[1,.48,.22],sunTint:[1,.70,.42],sunC:[1,.64,.36],sunI:1.6,
+  fog:[.96,.70,.56],fogN:700,fogF:4200,fogCj:[1,.66,.40],fogIn:[1,.82,.72],hemiS:[.84,.64,.80],hemiG:[.56,.38,.38],kickC:[1,.38,.66],kickI:.16,sat:.98,
+  env:[[0,'#2a2a6e'],[.3,'#9a5a96'],[.48,'#ffa060'],[.58,'#ffc070'],[.66,'#a8706a'],[1,'#5a4458']],eS1:[255,190,120,.6],eS2:[200,130,220,.3]});
+BIOMES.vitreNuit=bioMet(BIOMES.cryptoNuit,{nm:'VILLE VITREE · NUIT',stars:.7,moon:1,jZen:[.005,.008,.03],jMid:[.018,.03,.075],jHor:[.075,.085,.15],jSol:[.03,.035,.06],
+  fog:[.04,.05,.09],fogN:640,fogF:4000,fogCj:[.20,.22,.32],fogIn:[.2,.22,.3],hemiS:[.24,.28,.42],hemiG:[.06,.06,.09],hemiI:.4,sunC:[.55,.62,.82],sunI:.45,
+  fillC:[.30,.34,.50],kickC:[.62,.80,1],kickI:.14,sat:.92,volSky:[.10,.12,.24],volGnd:[.03,.035,.06],
+  env:[[0,'#03050e'],[.3,'#0a1430'],[.48,'#24305a'],[.58,'#4a5a7e'],[.66,'#121a32'],[1,'#04060e']],eS1:[255,226,180,.45],eS2:[120,170,255,.3]});
 // (fin EN ORBITE)
 //
 //
@@ -26576,7 +26825,7 @@ const SF={on:!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
   ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
-  espace:NIVEAUX.find(function(n){return n.id==='espace'&&!n.hard;}),satellites:NIVEAUX.find(function(n){return n.id==='espace'&&n.hard;}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,volcan:NIV_VOLCAN,banquise:NIV_BANQ,crypto:NIV_CRYPTO};
+  espace:NIVEAUX.find(function(n){return n.id==='espace'&&!n.hard;}),satellites:NIVEAUX.find(function(n){return n.id==='espace'&&n.hard;}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,volcan:NIV_VOLCAN,banquise:NIV_BANQ,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
 const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',satellites:'SATELLITES',neige:'NEIGE',blizzard:'BLIZZARD',brouillard:'BROUILLARD'}; // (2026-10-16) BROUILLARD : le temps de la ville (VILLE_NUIT_V) // (2026-10-14) NEIGE et BLIZZARD : les temps de LA BANQUISE
 Object.assign(I18N,{'BROUILLARD':'FOG'}); // (2026-10-16) la météo de la ville, dite au portail
 // une MAP = son niveau de base + ses météos permises (`bio` : l'ambiance, `niv` : un niveau du jeu repris tel quel, `p` : le poids au tirage, 1 par défaut)
@@ -26612,6 +26861,9 @@ const SF_CARTES={
      retirée le 14/10 faute d'être dans le tirage) revient comme MAP : ses taureaux, ses bougies, ses pièces ₿ géantes, ses fusées, ses feux,
      le NOUVEL ATH, la pluie d'argent — et des façades en cinq matières. Quatre temps, jamais de pluie ni d'orage (c'est l'apogée). */
   crypto:{nm:'CRYPTO CITY',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2},nuit:{bio:'cryptoNuit',nuit:1,pr:'LA VILLE NE DORT JAMAIS'}}},
+  /* (2026-10-17, Léo) LA VILLE VITRÉE : quatre heures — le MATIN aux reflets dorés, le MIDI bleu (les nuages dans les vitres), le COUCHER où les tours
+     s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». `?sans=vitree` la retire du tirage. */
+  ...(VITRE_V?{vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'}}}}:{}),
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},midi:{bio:'canyonMidi'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
     pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{})
@@ -26814,7 +27066,7 @@ function lvlBiome(){ // le ciel du niveau : tiré dans SA liste, jamais deux foi
 }
 function lvlGo(dur){ // les deux leviers HORS biome (uSpace, taille de planète) suivent le même fondu que le ciel
   const c=LVL.cur;
-  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'&&!c.crypto?1:0;LVL.cryptoDe=LVL.crypto;LVL.cryptoA=c&&c.crypto?1:0;LVL.nuitDe=LVL.nuit;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.canyonDe=LVL.canyon;LVL.canyonA=c&&c.id==='canyon'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage'||c.crypto)&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
+  LVL.espaceDe=LVL.espace;LVL.planeteDe=LVL.planete;LVL.pluieDe=LVL.pluie;LVL.villeDe=LVL.ville;LVL.villeA=c&&c.id==='ville'&&!c.crypto&&!c.vitre?1:0;LVL.cryptoDe=LVL.crypto;LVL.cryptoA=c&&(c.crypto||c.vitre)?1:0;LVL.nuitDe=LVL.nuit;LVL.parisDe=LVL.paris;LVL.parisA=c&&c.id==='paris'?1:0;LVL.nuitA=c&&c.nuit?1:0;LVL.jadeDe=LVL.jade;LVL.jadeA=c&&c.id==='jade'?1:0;LVL.canyonDe=LVL.canyon;LVL.canyonA=c&&c.id==='canyon'?1:0;LVL.merDe=LVL.mer;LVL.merA=c&&(c.id==='nuages'||c.id==='orage'||c.crypto||c.vitre)&&!c.sansNuages?1:0;LVL.routeDe=LVL.route;LVL.sheenDe=LVL.sheen;
   LVL.brumeDe=LVL.brume;LVL.brumeA=c&&c.brume?c.brume:0;vtGo(); // (2026-10-16) le brouillard de la ville et les couleurs fixes de sa teinte suivent le même fondu
   LVL.espaceA=c?c.espace:0;LVL.planeteA=c?c.planete:0;LVL.pluieA=c?c.pluie:0;LVL.routeA=c&&c.route!=null?c.route:0;LVL.sheenA=c&&c.sheen!=null?c.sheen:.1; // (planète : 0 par défaut — plus de Terre là où le niveau ne la demande pas)
   LVL.symDe=LVL.sym||0;LVL.symA=hautOn()?1:0; // (2026-10-15) LE CIEL SANS DESSOUS : la map NUAGES en course (voir hautOn, uSym)
@@ -36135,6 +36387,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!SANS_METEORE||DEB_ON){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);}for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();},
   function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
+  function(){if(!VITRE_V)return;try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
   function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
   function(){try{volcanChauffe();}catch(e){console.warn('volcanChauffe',e);}}, // (2026-10-14) LE ROYAUME DE FEU : roche, lave, aiguilles, panaches, geysers, braises, cendre, bombes, halos — compilés au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
@@ -42494,7 +42747,7 @@ let BOOMV=BOOM_VARS[0];
    permis), `c-<id>-<n>` en carrière (ses niveaux ne se mêlent pas au cycle). Le temps s'accumule en MÉMOIRE et se verse au changement de
    niveau, à la mort, à la fin de partie et toutes les 20 s (SAVE.mark : c'est le filet des 30 s qui écrit). `dbgMorts()` lit tout ça. */
 const MORTS={c:null,k:'',t:0};
-function mortsCle(c){if(!c)return '';if(c.carr)return 'c-'+c.id+'-'+(c.carr.i+1);if(c.piste==='tuto')return 'ecole';return c.id+(c.crypto?'-crypto':'')+(c.nuit?'-nuit':'')+(c.hard?'-hard':'');}
+function mortsCle(c){if(!c)return '';if(c.carr)return 'c-'+c.id+'-'+(c.carr.i+1);if(c.piste==='tuto')return 'ecole';return c.id+(c.crypto?'-crypto':'')+(c.vitre?'-vitre':'')+(c.nuit?'-nuit':'')+(c.hard?'-hard':'');}
 function mortsEx(){const E=SAVE.d.ex;if(!E.morts||typeof E.morts!=='object')E.morts={};if(!E.temps||typeof E.temps!=='object')E.temps={};return E;}
 function mortsVerse(){if(MORTS.k&&MORTS.t>0){const T=mortsEx().temps;T[MORTS.k]=Math.min(1e8,Math.round(((T[MORTS.k]||0)+MORTS.t)*10)/10);SAVE.mark();}MORTS.t=0;}
 function mortsSuit(){if(LVL.cur!==MORTS.c){mortsVerse();MORTS.c=LVL.cur;MORTS.k=mortsCle(LVL.cur);}} // la clé se calcule UNE fois par niveau (zéro chaîne par image)
@@ -49320,6 +49573,7 @@ function recBattu(){
 function recSurplus(a){const t=avE('avRecT');if(!t)return;const s='+'+fmtAura(Math.max(0,a-CHA.rec))+' '+TR('AU-DESSUS');if(t.textContent!==s)t.textContent=s;}
 // (vague 2) les libellés neufs du HUD de course (police pixel : capitales SANS accent)
 Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TIP'});
+Object.assign(I18N,{'VILLE VITRÉE':'GLASS CITY','LE CIEL DANS LES VITRES':'THE SKY IN THE GLASS','REFLETS DORES':'GOLDEN REFLECTIONS','LES TOURS S EMBRASENT':'THE TOWERS CATCH FIRE','LES BUREAUX BRILLENT':'THE OFFICES GLOW'}); // (2026-10-17) LA VILLE VITRÉE
 Object.assign(I18N,{'NOUVEL ATH !':'NEW ATH!','JACKPOT !':'JACKPOT!','CRYPTOCITY':'CRYPTOCITY','CRYPTO CITY':'CRYPTO CITY','BULL RUN':'BULL RUN','LA VILLE NE DORT JAMAIS':'THE CITY NEVER SLEEPS'}); // (2026-10-13) CRYPTOCITY — (2026-10-15) CRYPTO CITY, une map du tirage
 Object.assign(I18N,{'PLUIE DE BILLETS':'CASH RAIN','AIMANT À PIÈCES':'COIN MAGNET','CAISSE EN FEU':'CAR ON FIRE'}); // (2026-09-30) les capacités moteur, dans le titre de la carte
 function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
@@ -52712,7 +52966,8 @@ function jadeJouer(){ // (2026-10-12) lancer le SOLEIL DE JADE — le chemin de 
   const ici=LVL.cur&&LVL.cur.id==='jade'&&!!JADE.root;
   ecranWipe(function(){runStats.zones=0;if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;}
 window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
-window.dbgNiveauCrypto=function(m){SF.force={carte:'crypto',meteo:m||null};return classiqueJouer();}; // (2026-10-15) CRYPTO CITY tout de suite (une météo : matin, midi, soir, nuit)
+window.dbgNiveauCrypto=function(m){SF.force={carte:'crypto',meteo:m||null};return classiqueJouer();};
+window.dbgNiveauVitre=function(m){SF.force={carte:'vitree',meteo:m||null};return classiqueJouer();}; // (2026-10-17) LA VILLE VITRÉE tout de suite (matin, midi, soir, nuit) // (2026-10-15) CRYPTO CITY tout de suite (une météo : matin, midi, soir, nuit)
 function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU HASARD : la 1re map et sa météo tirées, la piste bâtie sous le voile (le chemin de jadeJouer)
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
   JADE_JEU=false;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
@@ -59713,7 +59968,7 @@ function garVitrine(on){
 /* LE CARTOUCHE DU NIVEAU (2026-10-05, Léo : « le nom du level qui va être lancé, en dessous du play ») : JOUER de l'atelier lance la partie SANS FIN
    (`garJouer` : CARR.actif = null) — son 1er niveau, `NIVEAUX[0]` ; tant que le permis n'est pas passé, c'est l'AUTO-ÉCOLE (tutoArme). Et les
    trois pastilles des MISSIONS (les défis relevés du carnet en cours, `misEtat`). */
-const GV_TEINTE={crypto:'#ffd23e',banquise:'#9fe8ff',nuages:'#5ee6ff',ville:'#ff3ec8',paris:'#ffd75e',espace:'#b9a8ff',orage:'#8a7dff',jade:'#7ddcae'};
+const GV_TEINTE={vitree:'#7fd8ff',crypto:'#ffd23e',banquise:'#9fe8ff',nuages:'#5ee6ff',ville:'#ff3ec8',paris:'#ffd75e',espace:'#b9a8ff',orage:'#8a7dff',jade:'#7ddcae'};
 /* LES VIGNETTES DES NIVEAUX (2026-10-05, Léo : « les niveaux affichés avec leur distance et leur titre — vignette avec un fond imagé
    représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus »). Un paysage en PIXEL ART de 96 × 36, peint une fois par
    monde (cache GV_VIG), le sujet à DROITE (le texte vit à gauche, sur un voile d'encre). La touche kawaii tient en quelques pixels — et
@@ -59783,6 +60038,13 @@ function gvVignette(cle){
     for(const t of T9){R(t[0],t[1],5,H-t[1],t[2]);for(let wy=t[1]+2;wy<H-2;wy+=3)R(t[0]+1,wy,3,1,'rgba(40,60,90,.35)');R(t[0]+1,t[1]+1,1,H-t[1]-2,'rgba(255,255,255,.5)');} // les tours qui reflètent
     for(let i=0;i<7;i++){const h=3+i*2,rg=i===3;R(36+i*3,30-h-i,2,h,rg?'#ff3b5c':'#2bff88');R(36+i*3,29-h-i,1,h+2,rg?'#ff3b5c':'#2bff88');} // le graphique qui monte
     R(0,33,W,3,'#2a2e38');R(0,32,W,1,'#35ff9e');                                       // la route, l'accent vert profit
+  }else if(cle==='vitree'){ // (2026-10-17) LA VILLE VITRÉE : le ciel bleu, un nuage, des tours de verre qui le renvoient, l'éclat du soleil
+    ciel(['#2a6fd8','#5a9ae8','#a8ccf2','#e4eefa']);
+    nuage(50,9,4,'#ffffff','#c8d8ee');
+    const T9=[[58,6,'#4a86d0'],[66,12,'#7fb0e6'],[73,3,'#3a6aa8'],[81,9,'#9cc4ee'],[89,5,'#5a92d8']];
+    for(const t of T9){R(t[0],t[1],7,H-t[1],t[2]);for(let wy=t[1]+2;wy<H-1;wy+=3)R(t[0],wy,7,1,'rgba(220,236,255,.45)');for(let wx=t[0]+2;wx<t[0]+7;wx+=2)R(wx,t[1],1,H-t[1],'rgba(20,40,80,.25)');R(t[0]+1,t[1]+1,2,6,'rgba(255,255,255,.55)');} // les carreaux et leurs montants
+    R(75,8,1,1,'#ffffff');R(74,8,3,1,'rgba(255,255,255,.7)');R(75,7,1,3,'rgba(255,255,255,.7)'); // l'éclat
+    R(0,33,W,3,'#2a2e38');R(0,32,W,1,'#ff5fd0');
   }else if(cle==='jade'){ // (2026-10-13) LES PICS DE JADE : le rouleau — la soie orangée, le soleil vermillon, les piliers de jade au-dessus du fleuve
     ciel(['#7f86b0','#c9a0a8','#f2b07a','#ffcf8a']);
     rond(30,13,5,'#e8482a');
@@ -63768,7 +64030,8 @@ function loop(now){
   if(!mortS9)try{volcanTick(dtA9);}catch(e){window.__volcanErr=e;loopWarn(131072,'volcan',e);} // (2026-10-14) LE ROYAUME DE FEU : lumière, météo, éruptions, bombes, braises, cendre, les voix du volcan
   if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
   if(!JADE.geos)try{jadeGabFond();}catch(e){loopWarn(131072,'gabarits',e);} // (2026-10-14, OPTIMISATION) les gabarits de la jade, taillés au menu (voir LES GABARITS TAILLÉS AU MENU)
-  try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);} // (2026-10-13) CRYPTO CITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
+  try{cryptoTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(32768,'crypto',e);}
+  try{vitreTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(8388608,'vitre',e);} // (2026-10-17) LA VILLE VITRÉE : les nuages et leur reflet, l'éclat du soleil, les bureaux la nuit // (2026-10-13) CRYPTO CITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   try{canyonTick(dt);cyVautours(dt);}catch(e){loopWarn(262144,'canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : les lumières du relief, l'ombre des parois sur la caisse
   if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare

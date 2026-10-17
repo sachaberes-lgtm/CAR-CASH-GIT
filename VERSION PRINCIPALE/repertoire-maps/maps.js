@@ -15,6 +15,9 @@ window.REPERTOIRE = [
   // les trois autres TEINTES sous la pluie — une clé « météo-teinte » = index.html?carte=ville&meteo=<météo>&teinte=<teinte> (banc/photos.py la comprend)
   { id: 'ville',    nom: 'LA VILLE',          couverture: 'pluie',
     meteos: [['pluie', 'PLUIE'], ['nuit', 'NUIT'], ['brouillard', 'BROUILLARD'], ['orage', 'ORAGE'], ['pluie-vert', 'NÉONS VERTS'], ['pluie-jaune', 'NÉONS JAUNES'], ['pluie-bleu', 'BLEU ÉLECTRIQUE']] },
+  // (2026-10-17, Léo) LA VILLE VITRÉE : les tours de verre — quatre heures, jamais de pluie
+  { id: 'vitree',   nom: 'VILLE VITRÉE',      couverture: 'midi',
+    meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'COUCHER'], ['nuit', 'NUIT']] },
   { id: 'jade',     nom: 'PICS DE JADE',      couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'foret',    nom: 'LA FORÊT NOIRE',    couverture: 'soir',

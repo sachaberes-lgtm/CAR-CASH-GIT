@@ -3,6 +3,52 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE VITRÉE — UNE MAP DE TOURS DE VERRE (2026-10-17, Léo : « une nouvelle map VILLE VITRÉE : une ville de tours en VERRE — murs-rideaux à grands carreaux bleus, montants fins, reflets du ciel et des nuages dans les vitres, éclat du soleil, coins de tours biseautés, quelques bandes de béton / lames verticales — comme mes deux photos (tours de bureaux vues d'en bas, ciel bleu, soleil qui éblouit) ; quatre heures tirées au hasard : MATIN, MIDI, COUCHER, NUIT »)
+Une map EN PLUS dans le tirage du JOUER (`SF_CARTES.vitree`) : LA VILLE (la nuit) ne bouge pas. Tout est dans le bloc « LA VILLE VITRÉE — LES TOURS
+DE VERRE » (juste avant LA PLUIE D'ARGENT v2) + des aiguillages `VI` dans `buildVoxCity`.
+- LE NIVEAU (`NIV_VITRE` : id 'ville' + `vitre:1`, comme CRYPTO CITY) : la piste et l'emplacement des tours sont ceux de la VILLE — à graine égale la
+  même ville, aucun tirage `vr` ajouté ni retiré. Quatre heures (`vitreMatin/Midi/Soir/Nuit` dans BIOMES, juste avant la couche commune),
+  jamais de pluie ni d'orage. Route : celle de CRYPTO CITY (`cryptoA` : glacée, anthracite) + la SIGNATURE de la bible (`routeSig`). Ciel :
+  le jour d'altitude (pas celui de la ville de nuit : `villeA`=0), la mer de nuages dessous (`merA`).
+- LA FAÇADE (`VIT_VERRE`, matière `vitreMatTours`) : un MUR-RIDEAU — un carreau par travée et par étage, des montants fins (la teinte d'instance,
+  éclairée par la scène). Chaque carreau est un MIROIR un peu désaxé (± 3°, seulement de près : au loin il fourmillait) — les reflets se cassent
+  d'une vitre à l'autre comme sur un vrai mur de verre. Fresnel de verre traité (il renvoie déjà la moitié de face) ; il renvoie le CIEL, ses
+  NUAGES (le même plafond que la couche du ciel, voir plus bas), les TOURS D'EN FACE (deux rangées de silhouettes sur l'horizon du reflet,
+  72 et 120 par tour d'horizon, plus sombres que le ciel, leurs bureaux allumés la nuit) et l'ÉCLAT du soleil, qui saute de carreau en carreau.
+  Cinq familles, tirées de la graine de la tour : VERRE BLEU 34 % · BANDEAUX de béton clair 18 % · LAMES verticales blanches et leur ombre 16 % ·
+  VERRE SOMBRE à grands carreaux 16 % · VERRE ARGENT presque miroir 16 %. L'ALLÈGE (le bas de chaque étage) en verre opaque. La NUIT : les
+  bureaux par plateaux (des étages entiers dorment), 70 % de lumière chaude, le plafonnier en haut de chaque baie, un store sur sept ; béton
+  et montants s'éteignent.
+- LES COINS BISEAUTÉS (`vitreGeo`) : un prisme à huit pans (28 triangles au lieu de 12) dont les pans de coin s'ouvrent au SOMMET selon la graine
+  (60 % des tours, 16 % de leur petit côté, 7 m au plus) — à zéro c'est le cube au triangle près. Tours au loin : le cube (couleur de brume).
+- LES NUAGES (`vitreCiel`, `vitreNuages`) : une toile de bruit périodique 256² peinte une fois ; une demi-sphère posée sur la caméra, au plan
+  lointain comme le dôme, derrière tout le reste, lit un PLAFOND à 1 400 m au-dessus de la caméra (deux lectures + une octave fine) — et le verre
+  lit LE MÊME plafond : on voit dans les tours le ciel qu'on a au-dessus de la tête. Le vent les pousse. Couverture et couleurs par heure : `VIT_MET`.
+- LE SOLEIL DE L'HEURE (`VIT_MET.sol`, posé par `canyonSoleil`, la mécanique du canyon) : matin 9° à l'est, midi 26°, coucher 4° à l'ouest.
+  Hors de la ville vitrée, `canyonSoleil` rend le soleil d'avant au bit près.
+- Ce qui se TAIT : les enseignes et les réclames (un quartier d'affaires — les tirages ont eu lieu) ; les tuyaux deviennent des LAMES de béton clair
+  (arrêtées au toit du volume qu'elles longent), les mâts sont d'acier clair, les couronnes des bandeaux de lumière blanche (pas sur une tour biseautée).
+- ⚠ DEUX PIÈGES TROUVÉS (vrais pour toute la ville) :
+  · la PROFONDEUR de l'image est en 16 bits (three r128, cibles du compositeur) : ~24 m de pas à 400 m. Un volume caché DANS un autre et dessiné
+    après lui (les retraits emboîtés, le mât qui part du pied) PERCE sa façade par bandes — MESURÉ au rayon (`dbgVitre('rayon',[x,y])`) : le mât à
+    12 m derrière le verre. Invisible dans la ville de nuit (tout est sombre), criant sur du verre clair. Ici : volumes EMPILÉS (même silhouette),
+    mât qui part du toit — les étages se comptent dans le monde, la brume du pied est une NAPPE ~380 m sous la caméra (`VIT_PIED`).
+  · three r128 n'envoie PAS `cameraPosition` aux matières Lambert (seulement Shader/Phong/Toon/Standard, ou avec envMap) : il vaut (0,0,0). Le verre
+    reçoit la vraie caméra par `VIT.uCam` (posée dans un `scene.onBeforeRender` chaîné). ⚠ le verre de CRYPTO CITY (`CRYPTO_VERRE`) et la pluie de la
+    ville (`villePied`) lisent `cameraPosition` : chez eux le regard part de l'origine du monde (pas corrigé ici : pas ma map).
+- MESURÉ (banc Chrome sans fenêtre du Mac, 1280 × 720, DPR 1, pilote automatique, son coupé) : PROGRAMMES — 0 compilé en course (199 → 199 sur 25 s,
+  sur chacune des 4 heures) et 0 au PORTAIL (partie lancée aux NUAGES, portail vers la VILLE VITRÉE soir puis vers JADE, puis vitrée nuit → la VILLE : 198 → 198) ;
+  les trois matières sont compilées au menu (`vitreChauffe`, dans chauffeDivers). PUCE (`dbgCout`, p50 / p90) : ville de nuit 6,65 / 7,28 ms · CRYPTO
+  midi 5,77 / 6,66 · VILLE VITRÉE midi 6,56 / 7,25 · nuit 6,36 / 8,66 ; processeur ~1,9 ms partout. La couche de nuages, A/B à image figée : 7,8-8,1 ms
+  avec, 7,7-8,1 sans (dans le bruit). TRIANGLES d'une image (`dbgAppels`, la scène, trois instants) : ville pluie 159-218 k · ville nuit 247-572 k ·
+  CRYPTO midi 171-530 k · VITRÉE midi 141-612 k · VITRÉE nuit 191-641 k ; les tours PRÈS : 22-34 k (28 triangles par volume) contre 36 k dans la
+  ville de nuit (12 triangles, mais plus de volumes : les cachés). Bancs : scratchpad de la session 9e12b23c, `banc/` (b.py, perf.py, perf2.py,
+  portail.py, ab.py, serie.py, photo.py).
+- LA PLANCHE des quatre heures (en course · vue d'en bas · autre vue) : `photos-gameplay/ville-vitree-4-heures.jpg` (dossier de Léo, hors dépôt).
+- Liens et console : `?carte=vitree&meteo=midi` · `dbgNiveauVitre(meteo)` · `dbgVitre()` (état) · `dbgVitre('nuages',{k,l,a,s,sol})` (une heure à chaud)
+  · `dbgVitre('ciel')` (la couche de nuages) · `dbgVitre('rayon',[x,y])` (ce qu'il y a sous un pixel). `?sans=vitree` retire la map du tirage.
+  L'outil des maps : `repertoire-maps/maps.js` (VILLE VITRÉE, couverture MIDI), photos `img/vitree-*.jpg`.
+
 ## LES TRAÎNÉES QUI DONNENT ENVIE — L'APERÇU EN VRAIE LUMIÈRE, LES SIGNATURES, LES ALLUMAGES (2026-10-16/17, session TRAÎNÉES — Sacha : « lance une grosse session pour améliorer chaque traînée, il faut qu'elle donne toute envie d'acheter, donne-leur le max de soin à chacune »)
 Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : traînée à toute nitro, feu teinté, objets ×2,3) : ici, les VITRINES
 (atelier, inventaire, boutique) et ce qui rend chaque traînée reconnaissable au premier coup d'œil. `?trainee=signal` rend toujours l'avant de la passe du 15/10.
