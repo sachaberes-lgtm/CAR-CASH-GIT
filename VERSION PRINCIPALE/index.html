@@ -7150,6 +7150,22 @@ html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine):not(.shopRet):not
    barre) : dans la console le lingot a la rangée du milieu pour lui — sur un écran étroit (320), c'est le MOT qui se serre, plus les chevrons. */
 html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev{display:inline-flex!important;margin-left:2px}
 @container (max-width:185px){html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .lg{font-size:17px!important}} /* MESURÉ : mot 117 + chevrons 59 + écart 6 = 182 px ; à 390 de large le lingot en offre 210 (mot gardé à 21 px), à 320 il en offre 164 */
+/* LES CHEVRONS DU JOUER, EN GRAND ET EN LUMIÈRE (2026-10-17, Sacha : « les flèches sont trop discrètes : rends-les plus grosses et plus
+   lumineuses, avec une animation qui se voit vraiment ») : ×3 au lieu de ×2, emboîtés l'un dans l'autre (une seule flèche qui file) : au repos
+   en BRUN (celui du mot), celui qui s'allume en BLANC CHAUFFÉ, cerclé de brun (sans ce contour le blanc se noie dans le lingot clair). L'animation est une VAGUE qui
+   court de gauche à droite : chaque chevron s'allume, grossit et avance de 3 px, puis retombe dans le brun. Rien que opacity/transform sur les
+   chevrons (plus leur couleur) ; le contour vit sur le PARENT (.mChev) : un drop-shadow posé sur un élément masqué (.pxi) est rogné par son propre masque.
+   Sous 200 px de lingot (écran de 320-360), ils redescendent à ×2 pour laisser au mot sa place. */
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev{gap:0;margin-left:8px;filter:drop-shadow(1px 0 0 var(--auT)) drop-shadow(-1px 0 0 var(--auT)) drop-shadow(0 -1px 0 var(--auT)) drop-shadow(0 2px 0 var(--auT))}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi{--pxs:3;color:var(--auT);opacity:.55;filter:none;animation:gChevFile .9s var(--ease) infinite}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi+.pxi{margin-left:-7px}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi:nth-child(2){animation-delay:.15s}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi:nth-child(3){animation-delay:.3s}
+@keyframes gChevFile{0%,45%,100%{color:var(--auT);opacity:.55;transform:translateX(0) scale(.9)}18%{color:var(--au0);opacity:1;transform:translateX(3px) scale(1.16)}}
+@container (max-width:200px){html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi{--pxs:2}
+  html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi+.pxi{margin-left:-5px}}
+@media (prefers-reduced-motion:reduce){html body #garage#garage #gAct>#gJouer .mChev .pxi{opacity:1;transform:none}}
+html[data-reduced-motion="1"] body #garage#garage #gAct>#gJouer .mChev .pxi{animation:none;opacity:1;transform:none}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
@@ -41671,7 +41687,7 @@ function tutoTick(dt){
                 if(TUTO.rates>=2)tutoBravo();
                 else{TUTO.i=2;TUTO.air=0;TUTO.t=0;tutoAffiche('RATÉ ! NITRO, VISE LE DESSUS');}}}
             break;
-    /* (v2) LA FIGURE : le double-tap NITRO — au sol la caisse SAUTE et fait sa figure, en l'air elle part tout de suite. Réussie = une figure
+    /* (v2) LA FIGURE : le double-tap NITRO — au sol la caisse fait sa figure SUR LA ROUTE (2026-10-17 : avant, elle sautait), en l'air elle part tout de suite. Réussie = une figure
        FINIE (veqFigFinie pose TUTO.fig). Trois sauts sans figure finie (posée en plein tour) : elle est accordée, la caisse sur ses roues. */
     case 5: if(TUTO.fig||tutoPayees()>(TUTO.p0|0))tutoBravo(); // une figure plantée (v2) — ou finie (`?fig=ancien`)
             else if(TUTO.sauts>=3&&mode==='drive')tutoBravo();
@@ -49207,7 +49223,7 @@ function figRedP(){if(!FX2.redP||performance.now()-FX2.redP<330)return;FX2.redP=
   if(FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);}}
 function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte()))return false; // (2026-10-14) fermé pendant l'auto-école… sauf à son étape FIGURE
-  let ok=false;if(mode==='drive')ok=veqSaut();else if(mode==='fall')ok=veqFigure();
+  let ok=false;if(mode==='drive'){const r9=frLance();ok=r9===null?veqSaut():r9;}else if(mode==='fall')ok=veqFigure(); // (2026-10-17, Sacha) au sol, LA FIGURE SUR LA ROUTE ; rien dans cette direction : le saut nitro
   if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
   return ok;
 }
@@ -49779,6 +49795,105 @@ function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, 
   const sp=CARS[level]||CARS[0],b=Math.pow(Math.sin(Math.PI*x),.75),a=(G.k==='w'?-.46:.34)*b,zp=(G.k==='w'?-1:1)*(sp.l||4.4)*.36;
   G.ax.set(1,0,0).applyQuaternion(q);G.pv.set(0,0,zp).applyQuaternion(q).add(p); // l'axe des roues, le pivot : l'essieu qui reste au sol
   G.q.setFromAxisAngle(G.ax,a);q.premultiply(G.q);p.sub(G.pv).applyQuaternion(G.q).add(G.pv);}
+/* ===== LES FIGURES SUR LA ROUTE (2026-10-17, Sacha : « toutes les figures doivent pouvoir être exécutées sur route, c'est-à-dire sans
+   s'envoler » — au questionnaire : « la caisse reste sur la route et tu gardes le volant ; seule la carrosserie fait un petit bond le temps de
+   la figure, puis retombe sur ses roues ; pas de mode vol »). Avant : au sol, le double-tap NITRO faisait le SAUT NITRO (startFall : la caisse
+   décolle, vole ~0,85 s, se pose) et la figure tournait EN VOL — ailes, chrono, viseur, et la route qui pouvait filer sous la caisse.
+   · S'il y a une figure dans la direction tenue (▲ ou rien = l'avant, ▼ l'arrière, ◄► le côté), elle se fait SUR LA ROUTE : la conduite ne
+     change pas (mode 'drive' : volant, vitesse, obstacles, pièces — la physique ne voit rien, comme les figures au sol du GLISSER) ; seule
+     l'IMAGE de la caisse tourne, menée par le même moteur que le vol (`FIG.Corps`, dans un corps à elle : `FR.C`, le coup net et son planté),
+     et fait un BOND le long de la normale de la route : un arc de saut (`FR.H`, la hauteur qu'il faut à la figure : salto ~1,9 m, tonneau
+     ~0,7 m, toupie 0,35 m — `frHaut`) et jamais moins que ce qui garde la carrosserie hors du bitume (`frDegage` : le coin le plus bas de la
+     boîte tournée). La caméra ne suit que 20 % du bond (`FR_K.cam`) : on VOIT la caisse quitter la route.
+   · La durée (`frDuree`) : 65 % du catalogue, entre 0,4 et 0,72 s (le salto du saut tournait en ~0,36 s) ; le bond dure ×1,12 + le planté.
+   · Le prix et la paie ne bougent pas : 20 % de la jauge au lancement (comme le saut, offert sous NITRO INFINIE, au parc, au mouton, à
+     l'auto-école ; à sec : le « tchk ») ; plantée = `figPaye` (l'aura, le HUD des figures, les missions, la leçon) ; la caisse retombée, la
+     POSE d'un vol est rejouée pour la figure (`frEncaisse` : le combo, les 30 % rendus, les pièces du MOTEUR, le flow, la frénésie armée).
+   · Rien dans la direction tenue : le SAUT NITRO d'avant, sans figure. Une figure sur la route à la fois. Décollage en pleine figure (une
+     crête, le bord) : son corps passe au vol (`frDecolle`/`frVersVol`, dans startFall) et elle finit en l'air.
+   · Le GLISSER de Léo n'est pas changé : au sol, slide 360 / wheelie / stoppie, et son salto part toujours avec le saut (joystick en avant).
+   `?froute=0` = le saut nitro d'avant. Console : `dbgFRoute()` (l'état), `dbgFRoute(x,y)` (un double-tap au sol, le joystick en x, y). */
+const FR_K={k:.65,dMin:.4,dMax:.72,hMin:.35,hMax:2.4,marge:.1,cam:.8};
+const FR={ok:!/[?&]froute=0\b/.test(location.search),on:false,C:window.FIG&&FIG.Corps?new FIG.Corps():null,t:0,D:0,T:0,H:0,s:-1,r:null,f:null,pivK:0,lift:0,liftMax:0,n:0,fini:0,vols:0,
+  qr:new THREE.Quaternion(),dq:new THREE.Quaternion(),pv:new THREE.Vector3(),pv2:new THREE.Vector3(),dv:new THREE.Vector3(),dv2:new THREE.Vector3(),cv:new THREE.Vector3(),
+  p0:new THREE.Vector3(),p0ok:false,vel:new THREE.Vector3()};
+function frDegage(q,zp){const sp=CARS[level]||CARS[0],w=(sp.w||2)*.5,h=sp.h||1.3,l=(sp.l||4.4)*.5,hc=h*.5;let m=0; // de combien le coin le plus bas de la boîte tournée (autour du milieu, ou du nez : zp) passe SOUS le bitume
+  for(let i=0;i<8;i++){FR.dv.set(i&1?w:-w,(i&2?h:0)-hc,(i&4?l:-l)-zp).applyQuaternion(q);const y=FR.dv.y+hc;if(y<m)m=y;}
+  return -m;}
+function frHaut(f){let H=FR_K.hMin; // le sommet du bond : ce qu'il faut à la figure pour tourner sans toucher (chaque axe essayé sur son tour, ou sur l'amplitude d'un battement)
+  for(let i=0;i<f.m.length;i++){const m=f.m[i],a=m.a,L=Math.hypot(a[0],a[1],a[2])||1,amp=m.t!=null?6.2832:Math.abs(m.b||0)*6.2832;FR.dv2.set(a[0]/L,a[1]/L,a[2]/L);
+    for(let k=1;k<=16;k++){FR.dq.setFromAxisAngle(FR.dv2,amp*k/16);H=Math.max(H,frDegage(FR.dq,0)+FR_K.marge);}}
+  return Math.min(FR_K.hMax,H);}
+function frDuree(f){return Math.min(FR_K.dMax,Math.max(FR_K.dMin,figDMin(f,true),f.D*FR_K.k));}
+function frLance(){ // le double-tap au sol : la figure de la direction tenue, SUR LA ROUTE — true lancée · false refusée · null rien dans cette direction (le saut nitro)
+  if(!FR.ok||!FIGV2.on||!FR.C||!window.FIG||mode!=='drive')return null;
+  const S=figSlots();let s=FDIR.on?figDirSlot():FX2.cyc;
+  if(!S[s]){if(FDIR.on&&!TUTO.on)return null;for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;if(!S[s])return null;} // (comme le saut) l'auto-école et ?figdir=0 prennent un emplacement qui existe
+  let f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);if(!f)return null;
+  if(FR.on||GSOL.k||DMT.act||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false; // une à la fois ; pas pendant un geste du GLISSER ni le demi-tour ; l'attente du saut
+  const libre=pwrNitroT>0||PARK.on||startBoostT>0||campMoutonLibre()||TUTO.on,cout=libre?0:NITRO2.figN.cout*nitroCap();
+  if(!libre&&nitroR+nitroX<cout){figRefus(s);return false;}
+  if(cout>0)figNitPaye(cout);
+  let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
+  const st9=FDIR.on&&Math.abs(FDIR.x)>=.3?FDIR.x:steer,sens=Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):(FX2.sensAlt=-FX2.sensAlt); // (comme figLance) elle part du côté du pouce
+  const D=frDuree(f),C=FR.C;
+  FX2.pts=0;FX2.nPay=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.trio=[];FX2.nitF=0;FX2.nitL=0; // un « vol » neuf, sur la route (voir figDepart)
+  C.vide();C.budget=9;C.poseK=0;const r=C.lance(f,sens,D,{douce:true});if(!r)return false; // douce : comme celle du saut — jamais une chute, pas de trio
+  r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
+  {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // la flèche du HUD (voir figLance)
+  FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;
+  figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);fhLance(s,r,{}); // le coup de la figure (son, main, caméra) ; son nom tombe en grand, dans la couleur de son emplacement
+  const p9=carGroup.position,sp9=CARS[level]||CARS[0];for(let k=0;k<14;k++){const a=Math.random()*6.2832; // le souffle contre la route, sous la caisse
+    spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*sp9.w*.5,p9.y+.2,p9.z+Math.sin(a)*sp9.l*.4,FR.vel.x*.8+Math.cos(a)*(3+Math.random()*5),-1-Math.random()*2,FR.vel.z*.8+Math.sin(a)*(3+Math.random()*5),.16+Math.random()*.14);}
+  sparkBurst(sparkGold,p9,8,8);
+  return true;}
+function frBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(14+16*k),vx=FR.vel.x*.86,vy=FR.vel.y*.86,vz=FR.vel.z*.86;figPoint(e); // l'explosion de la figure (figBoum, au sol : le souffle suit la caisse qui roule)
+  for(let i=0;i<n;i++){const s9=8+Math.random()*14*k;spawnP(i%2?flames:flameCore,FX2.v.x,FX2.v.y,FX2.v.z,vx-FX2.d.x*s9+(Math.random()-.5)*6,vy-FX2.d.y*s9+(Math.random()-.5)*6,vz-FX2.d.z*s9+(Math.random()-.5)*6,.14+Math.random()*.2);}
+  sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);}
+function frPaye(r){const c0=chainSeen['fig_'+r.f.id]|0;figPaye(r); // plantée : comme en vol — et le FLOW qu'addTrick ne donne qu'en l'air (celle du saut le nourrissait)
+  if(mode==='drive'){const reps=Math.max(1,r.reps|0),a=(r.f.aura||60)*(reps>1?1+(reps-1)*1.25:1);flowAdd((a>=120||reps>=2?9:6)*Math.pow(.6,c0),'risque');}}
+function frEncaisse(){ // la caisse est retombée sur ses roues : ce que la POSE d'un vol fait pour ses figures (tryLand), sans le vol — grade ordinaire
+  const q=chainVal*Math.min(6,chainMult)*(1+FLOW.lv*.5)*(fever>0?2:1);
+  if(chain>0&&q>0){flowAdd(4,'style','n');runStats.tricks++;poseSndT=performance.now();addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));boost=Math.max(boost,1.2);
+    if(FREN.arme&&FLOW.lv<4)frenDeclenche();} // jauge pleine + figure posée : la FRÉNÉSIE part (comme à la pose)
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
+  figComboEncaisse();const g=figNitRend(true);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
+function frCoupe(){if(FR.C)FR.C.vide();FR.on=false;FR.lift=0;FX2.nitL=0;} // (la course s'arrête, la caisse explose) rien à rendre
+function frFin(){const C=FR.C,P=C.pose();for(let i=0;i<P.payees.length;i++)frPaye(P.payees[i]); // le bond fini : ce qui reste se juge (une figure presque finie compte)
+  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(); // (FX2.nitL gardé : frEncaisse rend ses 30 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
+  sensCoup(0,.6,-1.4);hap([8,18]);try{if(SONV2)sfx('pose.nette',{t:.02});}catch(e){} // elle retombe : la suspension encaisse, le petit son de la pose
+  const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.2,0);carGroup.localToWorld(FX2.v);for(let k=0;k<4;k++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,FR.vel.x*.7+(Math.random()-.5)*5,1+Math.random()*2,FR.vel.z*.7+(Math.random()-.5)*5,.3+Math.random()*.25);}}
+function frTick(dt){if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
+  if(!started||gameOver||mode!=='drive'){frCoupe();return;}
+  if(paused)return;
+  const C=FR.C;FR.t+=dt;C.budget=Math.max(.05,FR.T-FR.t);C.poseK=FR.t>FR.D?1:0; // poseK : sa durée jouée, l'air la range VITE (un battement — le shimmy — mettait 1,3 s à se calmer, puis se recalait d'un coup)
+  const fin=C.tick(dt);
+  for(let i=0;i<C.evts.length;i++)frBoum(C.evts[i]);C.evts.length=0;
+  for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(r.paye)continue; // CHAQUE TOUR SE SENT (comme en vol : le souffle de son axe, un tic dans la main) ; un battement, à chaque aller-retour
+    if(r.mv.length){let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j];
+      const n9=Math.floor(Math.max(0,mm.th)/6.2832+.08);if(n9>(r.tourDit|0)){r.tourDit=n9;try{if(SONV2&&!sfx(figMat(mm.a),{vol:-2,st:echSt()}))sfx('fig.vrille',{vol:-6});}catch(e){}hap(6);}}
+    else if(r.osc&&r.t<r.D){const nb=Math.floor(r.t*r.osc.w/Math.PI);if(nb>(r.batDit|0)){r.batDit=nb;try{if(SONV2)sfx('fig.battement',{var:r.osc.z>.3?1:0,vol:-4,st:sonPdAR(ECH+(nb&1))});}catch(e){}hap(5);}}}
+  {let pv9=0;for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(!r.paye&&r.f&&r.f.piv){pv9=r.f.piv;break;}}FR.pivK+=(pv9-FR.pivK)*Math.min(1,dt*14);} // le TAIL WHIP : le point fixe glisse vers le nez
+  for(let i=0;i<fin.length;i++)frPaye(fin[i]);
+  if(FR.t>=FR.T&&(C.ecart()<.03||FR.t>FR.T+.6))frFin();}
+function frPose(F,dt){const p=carGroup.position; // (conduite, chaque image, après la pose de la caisse sur la route) la figure tourne autour du MILIEU de la caisse, le bond la soulève
+  if(FR.p0ok&&dt>0){FR.vel.subVectors(p,FR.p0).multiplyScalar(1/dt);if(FR.vel.lengthSq()>16e4)FR.vel.set(0,0,0);}FR.p0.copy(p);FR.p0ok=true; // la vitesse de la caisse dans le monde : le souffle des explosions la suit
+  if(!FR.on||mode!=='drive'){FR.lift=0;return;}
+  const q=FR.C.q,sp=CARS[level]||CARS[0],hc=(sp.h||1.3)*.5,zp=FR.pivK*(sp.l||4.4)*.5;let dg=0;
+  if(q[3]<.9999995){FR.qr.set(q[0],q[1],q[2],q[3]);FR.pv.set(0,hc,zp).applyQuaternion(carGroup.quaternion);carGroup.quaternion.multiply(FR.qr);
+    FR.pv2.set(0,hc,zp).applyQuaternion(carGroup.quaternion);p.add(FR.pv).sub(FR.pv2);dg=frDegage(FR.qr,zp);}
+  const x=Math.min(1,FR.t/FR.T);FR.lift=Math.max(FR.H*4*x*(1-x),dg>0?dg+FR_K.marge:0);if(FR.lift>FR.liftMax)FR.liftMax=FR.lift;
+  p.addScaledVector(F.n,FR.lift);}
+function frDecolle(){ // (startFall, AVANT ses remises à zéro) la caisse décolle en pleine figure sur la route
+  if(!FR.on)return null;const k={nitL:0};
+  if(FR.r&&FR.r.paye)frEncaisse();else k.nitL=FX2.nitL|0; // déjà plantée : elle est posée sur la route ; sinon elle part avec le vol (et se paiera à SA pose)
+  return k;}
+function frVersVol(k){ // (startFall, APRÈS figDepart) le corps de la figure devient celui du vol : elle continue de tourner, en l'air
+  const C0=FX2.corps;FX2.corps=FR.C;FR.C=C0;if(C0)C0.vide();FX2.corps.budget=9;FX2.nitL=(FX2.nitL|0)+k.nitL;FR.on=false;FR.lift=0;FR.vols++;}
+window.dbgFRoute=function(x,y){if(x!=null){FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);}
+    return {ok:!!r,route:FR.on,mode:mode,fig:FR.on&&FR.f?FR.f.id:null,saut:!FR.on&&mode==='fall',nit:+(nitroR+nitroX).toFixed(2)};}
+  const C=FR.C;return {ok:FR.ok,on:FR.on,mode:mode,fig:FR.f?FR.f.id:null,t:+FR.t.toFixed(2),T:+FR.T.toFixed(2),H:+FR.H.toFixed(2),lift:+FR.lift.toFixed(2),liftMax:+FR.liftMax.toFixed(2),
+    ecart:C?Math.round(C.ecart()*57.3):0,ecFin:FR.ecFin==null?null:FR.ecFin,lances:FR.n,finies:FR.fini,versVol:FR.vols,payees:FX2.payees|0,nit:+(nitroR+nitroX).toFixed(2)};};
 function figCvX(){const c=FX2.cv;return c.n?Math.min(IMPU.xMax,1+IMPU.xVar*(c.dist-1)+IMPU.xRep*(c.n-c.dist)):1;}
 function figCvTxtX(x){return '×'+String(Math.round(x*100)/100).replace('.',LANG==='en'?'.':',');}
 function figCvNote(f,reps){if(!f)return;const c=FX2.cv;c.n++;if(!c.ids[f.id]){c.ids[f.id]=1;c.dist++;}
@@ -49892,7 +50007,7 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
-  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v);if(v&&FDIR.on)fhArme();
+  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v||FR.on);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
   if(v&&FX2.bts)for(let i=0;i<FX2.bts.length;i++){if(!FX2.bts[i])continue;const r=FX2.slots[i],on=!!(r&&r.tient&&!r.paye);if(FX2.btOn[i]!==on){FX2.btOn[i]=on;FX2.bts[i].classList.toggle('on',on);}}}
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
@@ -52405,7 +52520,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
     spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
 }
-function startFall(impU,impF,bord){dmtCoupe();MOU.on=false;MOU.mort=''; // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
+function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();MOU.on=false;MOU.mort=''; // (2026-10-17) fr9 : une figure SUR LA ROUTE en cours, qui part avec le vol // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
   if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
@@ -52471,6 +52586,7 @@ function startFall(impU,impF,bord){dmtCoupe();MOU.on=false;MOU.mort=''; // bord 
   {airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
   veqDepart(bord,impU,roll0,carGroup.quaternion); // (2026-10-14) LE VOL ÉQUILIBRÉ : verrou du volant, ressorts de la caisse
   figDepart(bord); // (2026-10-14) LES FIGURES v2 : la caisse EMPORTE son élan de rotation (voir LES FIGURES v2)
+  if(fr9)frVersVol(fr9); // (2026-10-17) …et la figure commencée SUR LA ROUTE continue en l'air (son corps devient celui du vol)
   /* (bord v2) L'IMAGE DU DÉCOLLAGE : elle ne passe ni par le placement de la conduite (le mode vient de changer) ni par celui du vol
      (il commence à l'image suivante) — la caisse et la caméra restaient FIGÉES une image puis rattrapaient deux pas d'un coup (2,7 m au
      banc). On les avance ici d'un même pas ; la caméra de vol repart de là (voir le suivi en vol), et la conduite, au retour, repartira
@@ -64503,7 +64619,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<150)figGJoue(d9);}gsolTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<150)veqDouble();}if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<150)figGJoue(d9);}gsolTick(dt);frTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
@@ -64869,6 +64985,7 @@ function loop(now){
           if(DMT.y||DMT.act)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
           gsolPose(F); // (2026-10-15) LES FIGURES AU SOL du GLISSER (slide 360, wheelie, stoppie)
           figMemo(dt); // (2026-10-14, LES FIGURES v2) l'assiette des deux dernières images : au décollage, la caisse emporte sa rotation
+          frPose(F,dt); // (2026-10-17) LA FIGURE SUR LA ROUTE : elle tourne et bondit par-dessus la pose (après figMemo : l'élan emporté reste celui de la route)
           // (conduite v3) LE ROULIS : la caisse s'écrase sur l'extérieur du virage — elle a du POIDS
           // LE ROULIS (v2) : la CARROSSERIE s'écrase sur l'EXTÉRIEUR du virage, à proportion de la charge latérale (lacet × vitesse) —
           // 6° pour un petit virage, 13-15° en plein braquage, +4° en drift. Un RESSORT (ω 14, amortissement .55) : elle plonge, dépasse
@@ -65066,6 +65183,7 @@ function loop(now){
          tmp2.copy(loop._vise).add(carGroup.position);}
         /* (vague 3) LE CABRAGE ANTICIPÉ : tout le plan (place, visée, haut) pivote autour de la caisse d'une part du cabrage de la route
            à venir — la caisse reste à sa place à l'écran, c'est la route devant qui redevient lisible (voir CAM_ROUTE) */
+        if(FR.lift>0){FR.cv.copy(F.n).multiplyScalar(-FR.lift*FR_K.cam);camera.position.add(FR.cv);tmp2.add(FR.cv);} // (2026-10-17, LA FIGURE SUR LA ROUTE) la caméra ne suit que 20 % du bond : on voit la caisse quitter le bitume
         camRouteCabrage(dt,camBack,camH);
         {const q9=CAM_ROUTE.q,c9=carGroup.position;camera.position.sub(c9).applyQuaternion(q9).add(c9);tmp2.sub(c9).applyQuaternion(q9).add(c9);camera.up.applyQuaternion(q9);}
         camera.lookAt(tmp2);

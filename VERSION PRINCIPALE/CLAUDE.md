@@ -125,7 +125,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   LE COUP NET (15/10 soir, `FIG.PHY.elan`, `?elan=0` = la prise d'avant) : une figure = un COUP à 2 × la vitesse moyenne puis un FREIN RÉGULIER
   (`m.acc`) qui l'arrête pile après ses tours (+`eps`, planté) ; durée dosée sur le vol (`figDose`) ; deux rotations = un axe penché en tours
   entiers ; une contraire annule, deux qui se contrarient : la dernière mène ; la fin d'un mélange CONTINUE et ralentit jusqu'à l'endroit
-  (`finVise`, `aF` figé) ; la prise forte = filet. Le SAUT NITRO prend la figure de la direction tenue. HUD des figures v4 : `figNom` (DOUBLE…,
+  (`finVise`, `aF` figé) ; la prise forte = filet. Le SAUT NITRO prend la figure de la direction tenue. **Depuis le 17/10 soir, AU SOL la figure
+  se fait SUR LA ROUTE, sans décoller** (`FR`/`FR_K`, `frLance`/`frTick`/`frPose`/`frEncaisse`, `frDecolle`/`frVersVol` au décollage ;
+  `?froute=0` = le saut d'avant ; `dbgFRoute`) — rien dans la direction tenue : le saut nitro, sans figure. HUD des figures v4 : `figNom` (DOUBLE…,
   TOUPIE 720), flèche du geste (`r.flD`), pastilles + COMBO + RECORD (`SAVE.d.figRec`), extinction sur place, rappel `.arme` (`fhArme`).
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL

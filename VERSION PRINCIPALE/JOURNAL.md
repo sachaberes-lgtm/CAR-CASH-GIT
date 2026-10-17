@@ -16,6 +16,49 @@
   plate ; la pente se lit au paysage et à la vue de côté. Si Sacha veut la VOIR en roulant, il faut redresser la caméra au glacier (à lui de trancher).
 - Banc : `dbgBanq('pente')` → {RH, L, dénivelé, moy, max} ; `dbgBanq('pente',{cote:.45})` = la vue de CÔTÉ à 45 % du parcours (photo, en pause).
 
+## LES FIGURES SUR LA ROUTE — SANS DÉCOLLER (2026-10-17 soir, Sacha : « tout les figure doivent pouvoir etre executer sur route c'est a dire sans s'envoler »)
+- **Le choix de Sacha** (questionnaire, deux lectures possibles : « garder le saut nitro et qu'il réussisse à coup sûr » ou « figure sans
+  décoller ») : **figure sans décoller** — « la caisse reste sur la route et tu gardes le volant ; seule la carrosserie fait un petit bond (1 à
+  2 m) le temps de la figure, puis retombe sur ses roues ; pas de mode vol : pas d'ailes, pas de chrono de vol, aucun risque de tomber ».
+- **Avant** : au sol, le double-tap NITRO faisait le SAUT NITRO (`veqSaut` → `startFall` : la caisse décolle ~0,85 s) et la figure tournait
+  EN VOL. **Maintenant** (`veqDouble` → `frLance`) : s'il y a une figure dans la direction tenue, elle se fait SUR LA ROUTE (bloc « LES
+  FIGURES SUR LA ROUTE », après les figures au sol du GLISSER) :
+  · la conduite ne bouge pas (mode `drive` : volant, vitesse, obstacles, pièces — la physique ne voit rien, comme `GSOL`) ; seule l'IMAGE
+    tourne, menée par le même moteur que le vol (`FIG.Corps`, dans un corps à elle `FR.C` : le coup net, le planté), autour du milieu de la
+    caisse (le nez pour le TAIL WHIP, `FR.pivK`) — `frTick` (la boucle) / `frPose` (après `figMemo`, dans la pose de conduite) ;
+  · le BOND le long de la normale de la route : max(arc de la figure `FR.H`, ce qui garde la boîte tournée hors du bitume `frDegage`) —
+    `frHaut` essaie chaque axe de la figure sur son tour : salto ~1,75 m, tire-bouchon / rodéo / vrille penchée ~1,8-1,9 m, cosmique 1,96 m,
+    chandelle 1,66 m, tonneau 0,75 m, toupie / hélico / tail whip 0,35 m ; la caméra ne suit que 20 % du bond (`FR_K.cam`) ;
+  · la durée (`frDuree`) : 65 % du catalogue entre 0,4 et 0,72 s ; le bond dure ×1,12 + le planté (0,75 à 1,1 s, comme le saut d'avant) ;
+  · le PRIX et la PAIE ne bougent pas : 20 % de la jauge au lancement (offert sous NITRO INFINIE, au parc, au mouton, à l'auto-école ; à sec :
+    le « tchk », `figRefus`) ; plantée = `figPaye` (aura, HUD des figures, missions, leçon) + le FLOW qu'`addTrick` ne donne qu'en l'air
+    (`frPaye`) ; retombée = la POSE d'un vol rejouée pour elle (`frEncaisse` : combo encaissé, 30 % rendus `figNitRend`, pièces du MOTEUR
+    `addCoins`, flow « style », coup de boost 1,2, la FRÉNÉSIE armée part) ; `douce` comme celle du saut (jamais une chute, pas de trio) ;
+  · rien dans la direction tenue (un débutant qui n'a que le tail whip, pouce au repos) : le SAUT NITRO d'avant, sans figure ;
+  · DÉCOLLAGE en pleine figure (une crête, le bord) : `frDecolle` (en tête de `startFall` : déjà plantée → posée sur la route) puis
+    `frVersVol` (après `figDepart`) : son corps DEVIENT celui du vol (`FX2.corps` échangé), elle finit en l'air et se paie à SA pose ;
+  · le HUD des figures reste allumé pendant la figure (`figHud` : `fhTick(v||FR.on)`), le rappel des gestes reste au vol ;
+  · le GLISSER de Léo n'est PAS changé (au sol : slide 360 / wheelie / stoppie, et son salto part toujours avec le saut, joystick en avant).
+- `?froute=0` = le saut nitro d'avant. Console : `dbgFRoute()` (état, `liftMax`, `ecFin` = le recalage de la dernière image en degrés),
+  `dbgFRoute(x,y)` = un double-tap au sol, le joystick en x (côté), y (avant).
+- MESURÉ (banc `C:/Users/sacha/cc-banc/figroute.cjs`, ville midi, 390 × 844, muet, pilote auto, chaque figure dans chacune de ses
+  directions sur du plat) : **16 essais · 16 lancées · 16 payées · 0 passée en mode vol · 0 coin de carrosserie sous le bitume · 0 caisse
+  pas remise à l'endroit · 0 erreur JS** ; la direction vide fait bien le saut nitro (mode `fall`) ; un salto coupé par un décollage à
+  120 ms passe au vol (`versVol` 1, le lancement gardé pour la pose `nitL` 1) et se paie à la pose. Photos : `cc-banc/shots/FIGROUTE/`.
+  Le SHIMMY (un battement) mettait 1,32 s à se calmer puis se recalait d'un coup : sa durée jouée, l'air le range vite (`C.poseK`=1) →
+  0,75 s. 2e passage (fusionné avec main v606) : 16/16 de nouveau, recalage de la dernière image ≤ 1,7° pour toutes (`ecFin`).
+- **À trancher par Sacha** : la caisse qui fait sa figure au-dessus d'un PLOT ou d'une ÉPAVE la percute quand même (elle est sur la route :
+  c'est la règle du « sans décoller ») — avant, le saut nitro passait par-dessus. Et le GLISSER de Léo garde son saut pour le salto.
+
+## LES FLÈCHES DU JOUER DU GARAGE, EN GRAND ET EN LUMIÈRE (2026-10-17 soir, Sacha : « rajoute le bouton jouer avec les trois flèches animées dans le garage », puis « les flèches sont trop discrètes : rends-les plus grosses et plus lumineuses, avec une animation qui se voit vraiment »)
+- Constat (banc, v602, debout 390 et couché 844×390) : les trois chevrons étaient bien là depuis le 15/10, mais à peine lisibles — brun
+  à 45 % sur l'or, un seul « allumé » à la fois dans la MÊME couleur (seule l'opacité changeait), en ×2 (18 px).
+- Désormais (bloc CSS en fin de la barre du garage, `gChevFile`) : chevrons ×3 (27 px), emboîtés (−7 px), au repos en BRUN du mot à 55 % ;
+  une VAGUE court de gauche à droite (0,9 s, décalages 0,15 s) — chacun passe au BLANC CHAUFFÉ, grossit (×1,16) et avance de 3 px, puis
+  retombe. Le contour brun (quatre `drop-shadow`) vit sur le parent `.mChev` : sur le `.pxi` (masqué) le masque rognerait l'ombre.
+- Sous 200 px de lingot (téléphones de 320-360 px), retour à ×2 (−5 px) pour que le mot garde sa place. « Réduire les animations » :
+  chevrons figés, pleinement opaques. Seul le JOUER du garage change (accueil, missions, UX 8 intacts).
+
 ## PLUS DE PLAQUE À L'AVANT (2026-10-17 soir, Sacha : « pas de plaque d'immatriculation à l'avant »)
 - `plqPose` ne pose plus que la plaque ARRIÈRE (`PLQ.pos[lvl].ar`) ; plus de rayons tirés vers le nez (`plqCherche(1,…)` n'est plus appelé :
   la pose coûte deux fois moins). L'atelier de la plaque, ses modèles et le profil sont inchangés. `dbgPlaque('pos')` ne liste plus que `ar`.
@@ -52,6 +95,7 @@
   portions de piste ; au plus un quart des Starlink et un cinquième des débris (les passants, le champ et les trains gardent leur part).
 - Décor pur : `SATOB` est vide, rien à percuter, les pièces ne s'écartent plus, ni liseré rouge ni étoile qui pulse. `?sats=route` (`SAT_OBST_V`)
   rend les obstacles de l'après-midi ; `?sans=satobst` n'existe plus (c'est le défaut).
+
 ## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
 - **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
   la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.
