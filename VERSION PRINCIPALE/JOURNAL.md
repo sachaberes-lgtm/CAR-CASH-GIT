@@ -3,6 +3,153 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
+- RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
+  Ce qui la fait reconnaître : les doubles feux en OBUS POINTUS dans une bague chromée au bout des ailerons, la calandre à BIJOUX devant ET
+  derrière, les grosses NACELLES rondes chromées aux coins du pare-chocs arrière, quatre phares dans un bandeau chromé, la sellerie capitonnée.
+- VU AU BANC AVANT DE TOUCHER : la calandre de face, celle de la poupe et les cerclages des phares étaient posés 2 cm DERRIÈRE le bouchon du
+  loft (le loft se ferme par une face plate en z ±2,90) : invisibles. De dos, on ne voyait que six petits traits chromés sur du rose. Dans la
+  boutique, le volant vu par la tranche ressemblait à un « 0 » posé sur le siège.
+- CE QUI A CHANGÉ (`SHAPES.eldorado`, la silhouette ne bouge pas ; seul le nez passe de 0,88 à 0,93 de demi-largeur : les phares débordaient
+  dans le vide) : calandres et phares SORTIS de la tôle ; la calandre AVANT à 39 bijoux et son second étage dans le pare-chocs (8 bijoux) avec
+  deux feux de position orange ; la calandre ARRIÈRE à 39 bijoux sur fond laqué noir (elle se lit en poursuite) ; les obus pointus (bague
+  chromée, lentille, pointe) et une lame chromée sur le bord de fuite ; les deux nacelles des feux de recul (chrome, fond noir, lentille
+  blanche) ; la mascotte en flèche ; les JOINTS des portières (un fil sombre posé SUR la peau, relu à la section du loft) ; la poignée au bout de
+  la portière ; l'habitacle qu'on voit d'en haut (l'accueil, la poursuite) : moquette prune, deux baquets capitonnés à dossier chromé et leur
+  console, banquette capitonnée à accoudoir, planche de bord à jonc chromé et deux cadrans, volant incliné (jante, cerclage chromé, branches,
+  colonne), essuie-glaces, rétroviseur intérieur.
+- PAS REMIS : les longs joncs chromés de flanc et le skeg (la vraie voiture en a ; Léo les a fait retirer le 13/10 : « ne plus en reposer sans
+  qu'il le demande »). Une ligne les rendrait si Sacha et Léo les veulent.
+- MESURÉ (`dbgEssaiCaisse`, carrosserie + roues visibles) : 4 120 → **5 020 facettes** (+22 % ; un premier jet en boîtes faisait 6 372). Matières :
+  les mêmes six familles qu'avant (laque, chrome, mat, satiné, verre, feux) → **0 appel de dessin et 0 programme de plus** — les clés neuves
+  `G` (fond de calandre), `t` (moquette), `q` (plis du cuir), `O` (feux de position) vivent dans les familles g, m, s, l déjà posées. Ancres
+  `hl`/`tl` inchangées (les lumières de la caisse s'en servent). Bancs : 0 erreur ; garage, boutique, course (pilote automatique), couché,
+  debout, cadre de l'ordi ; `garde-burnout.sh` et `garde-charte.sh` OK.
+- LA MÉTHODE, POUR LA VOITURE SUIVANTE (le banc est dans `outils/banc-caisses/`, lire l'en-tête de `cdp.mjs`) :
+  1. Servir le jeu sur un port à soi ; `jeu.mjs <avant> <index>` (accueil = vue de DESSUS, garage sous trois angles HUD masqué, boutique,
+     course en poursuite) et `studio.mjs avant/studio <gabarit>` (FICHE= sa couleur et ses cotes) AVANT de toucher au gabarit.
+  2. Chercher ce qui se voit VRAIMENT : en course on voit l'ARRIÈRE et le DESSUS (feux, calandre de poupe, habitacle), à l'accueil le DESSUS, au
+     garage les trois-quarts. Les signes du vrai modèle d'abord ; les détails cachés ne servent à rien.
+  3. Écrire le gabarit en texte `function(K){…}` et l'essayer au studio (`dbgEssaiCaisse` le prend tel quel) : on itère sans recharger le jeu ;
+     puis le poser dans index.html et refaire `jeu.mjs`, `planche.mjs avant apres planche.png`, `verif.mjs`.
+  4. LE BUDGET : les mêmes familles de matière (une clé neuve dans une famille déjà posée est gratuite ; une famille neuve = un appel de dessin
+     et un programme à chauffer au menu) ; viser ≤ +25 % de facettes. Un petit détail répété ne se dessine pas en boîte (12 triangles dont on
+     ne voit qu'une face) : un BIJOU = une pointe à quatre facettes (4 triangles, et chaque facette prend sa lumière), un pli ou un joint = une
+     PLAQUE (`P.tri` deux fois, 2 triangles), les tubes à 8-12 pans.
+  5. LES PIÈGES RENCONTRÉS : (a) le BOUCHON du loft cache tout ce qui est posé en deçà de son z : une face (calandre, feux, plaque) se pose 1,5 à
+     3 cm DEHORS ; (b) `echRetire` EFFACE tout tube couché dans l'axe (`cyl`/`lathe` en 'z') sous 60 cm et à moins de 70 cm de la poupe, et les
+     boîtes chromées non tournées de 7 à 25 cm de haut près de la poupe — c'est le relevé des pots : une nacelle, un feu rond bas à l'arrière se
+     posent par `put` avec une `CylinderGeometry` déjà couchée (le `tube` du gabarit : pas de relevé) ; (c) le soleil éclaircit une couleur d'à
+     peu près ×2 : la moquette 0x7c2346 sortait du même rose que la caisse → 0x3b1530 ; (d) une plaque de moins de 1,2 cm de large sort en
+     POINTILLÉS à 844 px (aliasing) → 1,4 cm ; (e) un rx POSITIF baisse le bout avant (le volant penché vers le conducteur = rx négatif) ;
+     (f) la SALLE BLANCHE du studio délave les couleurs et grise les noirs : juger la couleur au garage et en course.
+- VALIDÉE par Sacha le 17/10 sur la planche AVANT | APRÈS (« C'est bon, on garde la nouvelle Eldorado »), joints de portière et moquette prune
+  compris. À montrer à Léo : les joints sont des traits neufs sur le flanc (discrets ; il n'aimait pas les « traits » du 13/10).
+## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
+- **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
+  Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
+  100 000 et LE DÉFIEUR à 120 000 (autres sessions) : le bas de la gamme des rares n'a plus de marche à 6-20 000. À trancher par Sacha si
+  cet ordre lui va. Ce n'est PAS LE CHARGEUR 69 (300 000 $, inchangé).
+- **L'arrière** (`SHAPES.a_chargeur`, bloc « L'ARRIÈRE v2 ») : c'était un mur noir plat, un fil rouge à 8 cases, un trait gris et deux pastilles —
+  la poupe qu'on suit pendant toute la course. Désormais :
+  · **le becquet en canard** : la malle remonte au bout (`yC` : 1,075 à la poupe, 1,13 à −2,47 — elle finissait à 0,98) et porte le 3e feu stop ;
+  · **les hanches** : `xW` s'élargit sur les roues arrière (0,972 à −1,50, la caisse était à 0,95 partout) ; les coins de poupe coupés en biseau
+    (0,86 → 0,915 entre −2,50 et −2,44) ;
+  · **le feu en anneau** d'une aile à l'autre : deux barres de LED (`L`), le verre rouge entre elles (`r`), et les BOUTS RONDS posés sur les
+    biseaux des coins (un demi-tore tourné dans le plan du biseau) : l'anneau tourne le coin, on le voit de trois quarts ;
+  · le **bouclier** dans la couleur et son pli d'ombre, un monogramme de sept lettres chromées SANS nom sous les feux, les catadioptres ;
+  · le **diffuseur** noir à six ailettes, où s'encastrent les deux sorties rectangulaires — **le pot de Léo (`ECH_POTS.a_chargeur`) n'a pas bougé**.
+  · `tl` (les traînées de lumière `CAR_FEUX`) part du bout de l'anneau : `[.74,.95,-2.55]`. L'avant, les flancs et la cabine sont intacts.
+- **Mesuré** : 4 152 → 4 972 facettes (+20 %). Banc en course (sauvegarde muette, la caisse 31 équipée, menu → JOUER → course, pilote auto) :
+  plein écran nuages-midi, cadre de l'ordi ville-pluie, debout jade-soir, téléphone couché 844 × 390 : départ, course, **0 erreur**, `__loopErr` vide.
+- **Le banc photo d'une caisse** : `dbgEssaiCaisse(src, fiche, vues)` sait maintenant (a) porter LE POT d'un gabarit existant (`fiche.pot:'a_chargeur'`,
+  sinon l'essai avait le pot générique et non celui de la caisse) et (b) prendre une vue `[rotation, ×hauteur, ×distance]` (de plus haut comme la
+  poursuite, de plus près pour un détail). Une vue de l'arrière : rotation ≈ 222° (π + 0,73).
+- Reste à faire, si Sacha le veut : la même passe sur l'arrière des autres caisses de la boutique (« chaque voiture, qu'on ait envie de l'acheter »).
+## LE DÉFIEUR EN ROBOT JAUNE — LA CAISSE DE TRANSFORMERS, À 120 000 $ (2026-10-17, Sacha : « rajoute des éléments pour qu'elle ressemble vraiment à la voiture de Transformers et mets-lui la bonne couleur de base ; inspire-toi de la Chevrolet dans Transformers ; rajoute-lui des petits détails pour la rendre plus belle ; et tu mets son prix à 120 000 dollars »)
+- LAQUELLE : aucune caisse ne s'appelait ainsi. C'est LE DÉFIEUR (`shape:'a_defieur'`, index 32 de `CARS`), le coupé muscle de 1970, orange à deux
+  bandes noires : la plus proche du robot jaune du film — VALIDÉ par Sacha le 17/10 : « Oui, c'est bien LE DÉFIEUR, on garde. »
+- LA COULEUR : orange `0xff7a14` → JAUNE RALLYE `0xffd000` (la fiche ET la laque `p` du gabarit ; le joint `j` en ocre `0xa07a00`). `0xffb80c` essayé
+  d'abord : au studio il était jaune, mais en course la lumière chaude le refaisait orange.
+- `SHAPES.a_defieur`, la silhouette ne bouge pas, on AJOUTE : les deux bandes noires ÉLARGIES et presque jointives (un filet jaune de 9 cm au milieu,
+  les points du dessus de section passent de .36/.16 à .31/.045) ; les quatre phares dans des cuvettes noires, cerclés d'un ANNEAU de lumière
+  bleutée (`H`, un tore — les yeux du robot) ; un ÉCUSSON en masque de robot au milieu de la calandre (chrome, fond noir, deux fentes bleues `B` en
+  biais) et le même en petit au milieu de la poupe (c'est elle qu'on voit en course) ; deux barrettes dans la calandre ; LA GRANDE BOUCHE noire du
+  bouclier (trapèze à mailles), ses antibrouillards ronds et ses clignotants ; la lame avant ; deux goupilles de capot chromées ; L'OUÏE de flanc
+  devant la roue arrière (coin noir, trois lames, posée sur la largeur du gabarit `xF`) ; les feux de position latéraux (orange devant, rouge
+  derrière) ; QUATRE feux CARRÉS à l'arrière dans des cadres noirs laqués (des cadres chromés faisaient une barre BLANCHE au soleil) ; le
+  troisième feu au bord du becquet ; la glace des rétros ; des jantes sombres (`0x33363d`) à cinq branches noires. Facettes 3 224 → 4 880.
+- AUCUNE MARQUE : ni nom, ni nœud papillon, ni le logo du film — le masque est dessiné ici. Le nom et la description de la caisse ne changent pas.
+- LE PRIX (`CAR_UNLOCK[32]`) : 10 000 → 120 000 $ (LA VETTE, même rareté, est à 140 000). L'échelle du début perd sa marche à 10 000 : LE CHARGEUR
+  6 000 → LA BAVAROISE 20 000 → L'ELDORADO 40 000 → LE CAÏD 50 000 (`passation/ECONOMIE.md` cite encore LE DÉFIEUR à 10 000).
+- BANCS : `dbgEssaiCaisse` (studio, 6 angles, AVANT | APRÈS), course `nuages:midi` et `ville:nuit` en mode photo (`dbgAilesVue`), vignette de
+  boutique `dbgPhotoCar(32)`, sans erreur. Le jeu de ce dossier partagé était cassé ce matin-là par une édition en cours d'une autre session
+  (`LM_N` lu avant d'être déclaré) : bancs faits sur une copie de HEAD + ces blocs.
+## LA BOUTIQUE PLUS LISIBLE — SE DÉBLOQUE EN GRAND, LES SILHOUETTES ENTIÈRES, LES VIGNETTES DE MISSIONS AGRANDIES (2026-10-17, session MISSIONS — Sacha : « rends la boutique plus lisible : SE DÉBLOQUE en plus gros avec son compteur entier, les silhouettes secrètes pas rognées, et les vignettes de récompense plus grandes dans MISSIONS »)
+- SE DÉBLOQUE (l'étiquette au-dessus d'une caisse ou d'un objet de mission, `#gBqNom .bqM2`, `m2DebloqueHtml`) : texte et compteur de 8 à 10 px
+  (`--f1`), compteur en encre noire, jauge de 6 à 8 px et sur TOUTE la largeur de l'étiquette. Sa largeur = la place libre à côté des rayons
+  (le bloc de placement de `#gBqNom` dans garBq pose `width`, d'après `GBQ.zone`) : couché jusqu'à 8 px de la grille, debout jusqu'au bord. AVANT :
+  couché, l'étiquette faisait 278 px pour ~245 de place — le nom se recalait contre les rayons, la fin de la jauge et le compteur (« 0 / 8 »)
+  passaient SOUS la grille ; la règle couchée de la jauge (230 px) était écrasée par la règle générale écrite après elle (260 px). Debout, elle
+  tenait sur 180 px (quatre lignes) ; désormais 239 px, trois lignes. Mesuré couché : bord droit 413 px, grille à 421 px.
+- LES SILHOUETTES SECRÈTES (rayon VOITURES, `.bqK.m2sec`) : la grille agrandit chaque photo à 118 % et la centre ; or la caisse est en haut de la
+  photo du studio (720 × 440 : x 68-666, y 46-306, mesuré sur les photos) — le toit et les bouts sortaient de la case. En couleur ça se lit, en
+  silhouette noire c'était une tache. Les secrètes seules : photo au plus 110 % de large et 148 % de haut de la case, descendue de 10 % → la
+  caisse ENTIÈRE, ~90 % de la hauteur. L'étiquette SECRÈTE (`.bqKr`) leur couvrait le toit : retirée sur ces cartes (la ligne du bas dit déjà
+  « MISSION SECRÈTE », en magenta) — VALIDÉ par Sacha le 17/10 : « Oui, on garde les silhouettes sans l'étiquette SECRÈTE ». Cette ligne passe sur deux lignes debout (carte de 112 px, il en fallait 117 + marges : elle était coupée en
+  « MISSION SECRÈ… ») et tient sur une couché (marges de 4 px).
+- LES VIGNETTES DE MISSIONS (`.m2R`, `m2Vign`) : 70 × 44 → 88 × 50 (couché bas 62 × 38 → 80 × 46 ; ≤ 360 px 56 × 36 → 70 × 40, rapport ~1,75
+  partout). La photo d'une caisse ou d'une aile est RECADRÉE sur l'objet (`.m2R .m2Ph img` : 115 % de large, décalée de −8,65 %, le débord
+  transparent ne prend pas le doigt) : la caisse passe de ~60 × 26 à ~84 × 37 px. Peintures et traînées (`objFig`) remplissent la case agrandie ;
+  l'icône d'un objet pas encore dans le jeu (la traînée de SANG, `.m2Vide`) passe à `--pxs:3`.
+- Vérifié (copie servie à part, banc du panneau navigateur, muet) : boutique couchée et debout (LA STRATOS, LA DOLORÈS : « 0 / 1 000 KM/H »
+  entier ; 13 silhouettes entières, toutes sur une ligne couché), MISSIONS couché et debout (caisses, aile PHÉNIX, peintures, traînée FOUDRE) ;
+  JOUER → course couché et debout, 0 erreur (seul 404 : dark-triad.mp3, connu).
+
+## LA BAVAROISE EN KIT RALLYE — ET À 100 000 $ (2026-10-17, Sacha : « tu peux lui rajouter plus d'éléments de tuning — c'est inspiré des BMW de rallye : sur les roues, autour des roues, le pare-choc et tout ça ; des trucs un peu plus stylés, plus de détails » · « tu l'as mise en vente à 10 000 dollars : cent mille »)
+- LE KIT RALLYE, un bloc du gabarit `b_bavaroise` posé juste avant `K.commit(P)` (rien d'ancien n'est retouché, la caisse garde sa silhouette) :
+  · DEVANT — la RAMPE de quatre longue-portée sur une barre, devant le bouclier, sous les phares (boîtier noir, cerclage chromé, verre JAUNE :
+    clé `Y`, famille 'l', allumé comme les phares) ; la LAME noire sous le bouclier ; la SANGLE de remorquage rouge et son anneau (et sa sœur
+    derrière, à gauche) ;
+  · DESSUS — deux GOUPILLES de capot, l'ÉCOPE du pavillon (sa bouche noire devant), l'ANTENNE couchée vers l'arrière, l'aileron devenu
+    RÉGLABLE (joues en trapèze aux bouts du becquet, volet noir au bord de fuite) ; le BOUCHON de réservoir à fermeture rapide (aile arrière droite) ;
+  · AUTOUR DES ROUES — le JONC de caoutchouc des élargisseurs, sur le bord de l'arche (il suit le profil `AR` du loft, quatre segments par
+    roue) et ses RIVETS chromés ; une BAVETTE rouge derrière chaque roue ;
+  · SUR LES ROUES — jantes DORÉES (`lpw` : `jante` 0xd4a43a, douze rayons fins au lieu de dix argent ; le flou de jante suit, il lit `jante`) ;
+    derrière les rayons, le DISQUE (clé `D`, mat sombre) et l'ÉTRIER rouge en haut à l'arrière : pièces de CAISSE, posées entre le fond de la
+    jante (x ,745) et ses rayons (x ,768) — ils ne tournent pas avec la roue ; en vol (la caisse monte de ,11 sur ses roues) ils passent derrière le flanc du pneu.
+- Les pièges évités : aucune pièce chromée n'est un tube en z près de la poupe (le relevé des pots, `echRetire`, l'ôterait) ; le rouge des
+  bavettes, étriers et sangles est de la laque (`r`, famille 'p') et pas un feu (`CAR_FEUX` relève le rouge ÉMISSIF de la poupe) ; ni le
+  filet de bas de caisse ni les filets du capot que Léo avait retirés le 13/10 ne reviennent.
+- LE PRIX : `CAR_UNLOCK` 20 000 → 100 000 $ — entre LA SILENCIEUSE (90 000) et LE SAMOURAÏ (120 000). (Sacha l'avait vue « à 10 000 » : dans
+  le code elle était à 20 000 depuis le 14/10 au soir ; LE DÉFIEUR, lui, est à 10 000.) Sa rareté reste écrite (`rar:'rare'`).
+- VÉRIFIÉ au banc (Chrome du Mac sans fenêtre, muet, piloté en CDP) : la vignette de boutique (`dbgPhotoCar`), sept vues dans le repère de la
+  caisse (`dbgAilesVue`), avant / après ; une partie lancée avec elle (JOUER → canyon, soir, 140 km/h) : 0 erreur, rien d'avalé.
+- À trancher par Sacha ou Léo : les élargisseurs bordés de NOIR et rivetés (la sportive d'origine les a couleur caisse) ; les bavettes ROUGES
+  (sinon : le violet des bandes, `v`) ; la rampe jaune toujours allumée.
+- À signaler : la salle blanche (`salle-blanche.html?source=local`) ne lit plus le jeu d'aujourd'hui (« SANS_CARRIERE is not defined », puis
+  « EAU ») — elle évalue des blocs d'index.html qui dépendent maintenant de constantes posées ailleurs. Pas touché ici.
+
+## LES MISSIONS : LES EXPLOITS EN HAUT, L'EN-TÊTE QUI NE PASSE PLUS SOUS LE PANNEAU, PLUS DE CADEAU À 0 MIN (2026-10-17, session MISSIONS — Sacha : « corrige l'ordre de la liste (les exploits en haut, pas les COLLECTE) et les textes coupés en paysage, plus le cadeau à 0 min »)
+Trois retouches de l'écran MISSIONS (v2), vues au jeu le matin même (couché 844 × 390 et debout, dans le cadre de l'ordi).
+- L'ORDRE (`m2Lignes`, `M2_ORDRE`) : À RÉCUPÉRER → SUIVIES → puis les autres PAR FAMILLE — exploit, aura, moteur, exploration, (secrète),
+  argent, collection —, la plus avancée d'abord dans chaque famille, puis l'ordre de la table `M2`. TERMINÉES en bas, inchangé. Avant, le reste
+  se triait à l'AVANCEMENT seul (presque finies ≥ 2/3, en cours, pas commencées) : les COLLECTE, déjà à 1 / 3, 1 / 5… avec la caisse et les
+  habillages du départ, passaient au-dessus des exploits à 0 — un nouveau joueur voyait d'abord une douzaine de « COLLECTE ». Les rangs 2, 3, 4
+  ne servaient qu'au tri (seuls 0 et 9 sont lus ailleurs : `m2Ligne`, `m2Render`).
+- COUCHÉ, L'EN-TÊTE (`gmPlaceL`) : `#gmHead` s'élargit jusqu'à 420 px (`charte4`) ; avec la consigne « TOUCHE UNE MISSION POUR LA SUIVRE · 3 AU
+  PLUS » ou la ligne du cadeau (`#mCadeau`, largeur 100 %), il passait SOUS le panneau des missions (qui commence au bord gauche de JOUER).
+  Couché, sa largeur s'arrête désormais 14 px avant le panneau (`maxWidth` en ligne, rendu à '' debout) : la consigne passe sur deux lignes.
+  Mesuré : bord droit de l'en-tête 364 px, panneau à 378 px (avant : jusqu'à 484 px).
+- LE CADEAU (`cadeauLigne`) : tant que le cadeau n'existe pas (`cadeauEtat().actif` faux : la leçon de l'auto-école pas faite, `?cadeau=0`,
+  horloge absurde), la ligne se TAIT — elle affichait « PROCHAIN CADEAU DANS 0 MIN » sans fin (`dansMs` = 0 quand il n'est pas actif). Et le
+  compte à rebours ne descend jamais sous « 1 MIN ».
+- Vérifié (banc du panneau navigateur, muet, une copie servie à part : le dossier partagé était cassé par un chantier en cours d'une autre
+  session) : l'ordre lu dans le DOM (2 à récupérer, puis les 10 exploits, aura, moteur, exploration, argent, les 16 COLLECTE en dernier) ;
+  couché, consigne et cadeau (« CADEAU PRÊT · TOUCHE », « ×2 SUR TA 1RE PARTIE · PROCHAIN CADEAU DANS 6 H 00 ») à gauche du panneau ; debout,
+  l'en-tête en pleine largeur ; JOUER → course couché et debout, 0 erreur (seul 404 : dark-triad.mp3, connu). Crochets : `dbgMissions('gagne',id)`,
+  `dbgCadeau('pret'|'attente')`.
+
 ## LA BOUTIQUE FLUIDE — LE SOUFFLE DE LUMIÈRE AU LIEU DU GLITCH (2026-10-16, Léo : « le garage dans la boutique, il bug, ça rame de ouf ; j'aime pas trop la transition glitch, trouve plus smooth »)
 - MESURÉ au banc (Chrome sans fenêtre, iPhone 390 × 844 simulé, processeur ×4) : à la 1re ouverture, l'image figeait 1,2 s, puis 5 à 9 images/s
   pendant 8 s. La cause : la grille de la boutique demandait ses 48 PHOTOS de caisses d'un coup, et le studio (`photoTour`) en prenait une par
