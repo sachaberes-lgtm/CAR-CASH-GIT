@@ -25611,9 +25611,15 @@ const HUDCOL={t:0,els:null,p:[]};
    lecture (getComputedStyle, getBoundingClientRect) forçait un recalcul complet des styles — et chaque `top` écrit dans la boucle salissait
    tout pour la lecture suivante (jusqu'à six recalculs par passage, dix fois par seconde : une image sur six payait l'addition).
    Désormais : appelée en tête de `loop` (les styles sont encore propres : le navigateur vient de peindre l'image d'avant), toutes les
-   lectures d'un bloc, puis les écritures — seulement celles qui changent. La colonne suit avec une image de retard : invisible. */
+   lectures d'un bloc, puis les écritures — seulement celles qui changent. La colonne suit avec une image de retard : invisible.
+   (2026-10-17, HUD-MESURE) …mais même en tête d'image, la première lecture forçait encore tout (le HUD est resali entre deux images) :
+   la mesure ne tourne plus ici, elle tombe JUSTE APRÈS la mise en page de l'image, là où lire ne coûte rien — voir apresMiseEnPage. */
 function hudColonne(dt){
   HUDCOL.t-=dt;if(HUDCOL.t>0)return;HUDCOL.t=.1;
+  apresMiseEnPage(hudColMesure,true);
+}
+function hudColMesure(){ // la mesure d'avant, à l'identique
+  if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['cashHud','facVies','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+10:66;P.length=0;
@@ -25621,9 +25627,38 @@ function hudColonne(dt){
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);const h=r.height*(zRect.leg?z:1);if(h<2)continue;
-    P.push(e,(y/z).toFixed(1)+'px');y+=h+8;}
+    P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
+}
+/* LIRE APRÈS LA MISE EN PAGE (2026-10-17, HUD-MESURE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »).
+   MESURÉ (téléphone émulé 390×844, processeur bridé ×4, 12 s de course, édition App Store) : getBoundingClientRect ≈ 600-720 ms de temps
+   propre, ~5-6 % du fil principal, presque tout via hudColonne (son premier rectangle, le ⚙, par zRect) et volgTick. Ce n'est pas la
+   lecture qui coûte, c'est ce qu'elle FORCE : entre deux images le HUD est resali (ses animations avancent, des minuteries écrivent), donc
+   le premier rectangle demandé refait les styles et la mise en page sur-le-champ — et le navigateur les refait une deuxième fois, après
+   les écritures de l'image, pour peindre. Dix fois par seconde.
+   Relire « seulement quand une hauteur change » ne suffisait pas : la colonne dépend aussi de ce qu'aucune taille ne dit (un
+   `visibility:hidden` posé par une classe du <body>, un `transform` qui glisse ou rétrécit un bloc, le ⚙ qui entre en course). Compté au
+   banc sur 20 s de course debout : 14 changements de taille, contre 30 classes du <body>, 29 du compteur, ~20 transitions sur la colonne.
+   Donc les MÊMES lectures, au même rythme, déplacées au seul instant où elles sont gratuites : juste APRÈS la mise en page que le
+   navigateur fait de toute façon avant de peindre (styles et boîtes à jour : lire ne force plus rien). Le moyen : un TÉMOIN invisible
+   observé par un ResizeObserver — on change sa largeur, le navigateur rappelle l'observateur après sa mise en page, dans la même image.
+   Si une écriture suit (un `top` qui change), seule la boîte déplacée se refait. Les lectures passent d'abord, les écritures (`ecrit`)
+   ensuite : une écriture ne resalit pas la lecture d'à côté. Sans ResizeObserver (très vieux WebKit) : fn tout de suite, comme avant. */
+const MEP={el:null,ro:null,l:[],e:[],k:0,att:false,tA:0};
+function apresMiseEnPage(fn,ecrit){
+  if(!MEP.ro){if(!window.ResizeObserver||!document.body){fn();return;}
+    try{const t=document.createElement('div');t.id='mepTemoin';t.setAttribute('aria-hidden','true');
+      t.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;visibility:hidden;pointer-events:none;contain:strict';
+      document.body.appendChild(t);MEP.el=t;MEP.ro=new ResizeObserver(mepRappel);MEP.ro.observe(t);}catch(x){MEP.ro=null;fn();return;}}
+  const q=ecrit?MEP.e:MEP.l;if(q.indexOf(fn)<0)q.push(fn);
+  if(!MEP.el.isConnected)document.body.appendChild(MEP.el); // (si un écran a vidé le <body>, le témoin revient)
+  const now=performance.now();if(MEP.att&&now-MEP.tA<1000)return; // déjà demandé pour cette image (un rappel perdu se redemande au bout d'1 s)
+  MEP.att=true;MEP.tA=now;MEP.k=(MEP.k+1)%8;MEP.el.style.width=(1+MEP.k)+'px'; // le témoin change de taille : l'observateur sera rappelé
+}
+function mepRappel(){
+  MEP.att=false;const l=MEP.l,e=MEP.e;if(!l.length&&!e.length)return;MEP.l=[];MEP.e=[];
+  for(const f of l.concat(e))try{f();}catch(x){if(!MEP.w){MEP.w=1;console.warn('mesure après mise en page · '+(f.name||'?'),x);}} // une panne se dit UNE fois, la suivante tourne quand même
 }
 /* LES « :has() » DU HUD DEVENUS DES CLASSES DU <body> (2026-10-14, passe mobile — « jouer en NETTE sans que ça bug, pour tout le monde »).
    MESURÉ (téléphone émulé, micro-banc : une seule écriture de style sur un seul élément, puis sa lecture) : ~500 µs par écriture
@@ -62116,8 +62151,9 @@ function volgArrive(f,i,muet){
   else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgBat(document.getElementById(f.k==='x'?'nitroX':'nitroR'),a);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
 }
 function volgVide(){for(let i=VOLG.L.length-1;i>=0;i--)volgArrive(VOLG.L[i],i,true);VOLG.n.r=VOLG.n.x=0;}
+function volgMesure(){if(AJ.seg)VOLG.rS=zRect(AJ.seg);const nb=document.getElementById('nitroBar');if(nb)VOLG.rN=zRect(nb);}
 function volgTick(dt){
-  if((VOLG.rT-=dt)<=0){VOLG.rT=.5;if(AJ.seg)VOLG.rS=zRect(AJ.seg);const nb=document.getElementById('nitroBar');if(nb)VOLG.rN=zRect(nb);}
+  if((VOLG.rT-=dt)<=0){VOLG.rT=.5;apresMiseEnPage(volgMesure);} // (2026-10-17, HUD-MESURE) relus en fin d'image, quand ça ne force plus rien (voir apresMiseEnPage)
   if(!VOLG.L.length)return;
   dt=Math.min(dt,.05)*VOLG.k; // (k : le ralenti du banc, `dbgVols('ralenti',.1)`)
   for(let i=VOLG.L.length-1;i>=0;i--){const f=VOLG.L[i];f.t+=dt;

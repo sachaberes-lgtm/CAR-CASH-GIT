@@ -3,6 +3,37 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA COLONNE DU HUD SE MESURE APRÈS LA MISE EN PAGE — getBoundingClientRect 675 → 9 ms EN COURSE (2026-10-17, session HUD-MESURE, lancée par ALLÈGE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »)
+- LE CONSTAT (ALLÈGE, refait ici) : téléphone émulé 390×844, processeur bridé ×4, 12 s de course : `getBoundingClientRect` ≈ 540-675 ms de temps
+  propre debout, 743 couché (~5 % du fil principal), presque tout par `zRect` — `hudColonne` 506-645 ms inclusif, `volgTick` 85-153. Ce ne sont pas
+  les lectures qui coûtent : la PREMIÈRE de chaque passage (le ⚙, via `zRect`) refaisait sur-le-champ styles + mise en page — même en tête d'image,
+  le HUD est resali entre deux images (ses animations avancent, des minuteries écrivent) — puis le navigateur les refaisait pour peindre.
+- POURQUOI PAS « relire seulement quand une hauteur change » (la piste de `passation/ETAT-OPTIMISATION.md`) : compté au banc sur 20 s de course
+  debout (ResizeObserver, MutationObserver et événements d'animation posés sur les six blocs, le ⚙ et la carte du coach) : 14 changements de taille,
+  contre 30 changements de classe du `<body>` (`slamOn`, `ebOn`, `ebPlonge`, `hAirPie`…), 29 du compteur (`b1`/`b2`) et ~20 transitions ou
+  animations sur la colonne (`#pwrChip` qui glisse, `#airHud` `hmPie`, le ⚙ `hmDroite`, `#triade` `trNait`). Un `visibility:hidden` posé par une
+  classe, un `transform` qui déplace ou rétrécit un bloc : aucune taille ne le dit. Des « drapeaux sales » auraient dû tout suivre — et se seraient
+  trompés en silence au premier oubli d'une autre session.
+- CE QUI CHANGE : `apresMiseEnPage(fn,ecrit)` — un TÉMOIN invisible (`#mepTemoin`, 1 à 8 px, `contain:strict`) observé par un ResizeObserver : changer
+  sa largeur fait rappeler l'observateur juste APRÈS la mise en page de l'image, avant la peinture — styles et boîtes à jour, lire ne force plus
+  rien ; si un `top` change, seule la boîte déplacée se refait. `hudColonne` garde son rythme (10 fois par seconde) et confie la mesure — le code
+  d'avant, À L'IDENTIQUE, devenu `hudColMesure` — à ce rappel ; `volgTick` y relit ses deux rectangles (`volgMesure`, 2 fois par seconde). Les
+  lectures passent avant les écritures (`ecrit`). Sans ResizeObserver (très vieux WebKit) : tout de suite, comme avant ; un rappel perdu se
+  redemande au bout d'1 s ; le témoin revient si un écran vide le `<body>`. La colonne suit désormais dans la MÊME image (avant : une de retard).
+- Au passage, le `top` s'écrit « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison réécrivait le même `top` à chaque
+  passage (sans effet dans Chrome ; un recalcul de style possible dans WebKit). Même valeur, même pixel.
+- MESURÉ (banc de la session, 12 s de course en bac à sable, ×4, profil CPU ; cartes tirées au hasard) :
+  · `getBoundingClientRect` : debout 675 → 9 ms et 536 → 11 ms (deux paires de passages), couché 743 → 7 ms ;
+  · `hudColonne` + `hudColMesure` : 617 → 74, 506 → 55, couché 645 → 65 ms ; `volgTick` : 124 → 3, 85 → 2, 153 → 8 ms ;
+  · images en 12 s : 242 → 270, 265 → 278, couché 249 → 294 (indicatif : la carte change d'un passage à l'autre). La mise en page restante est faite
+    UNE fois par image, par le navigateur, au lieu de deux.
+- MÊME PLACEMENT, debout ET couché : l'algorithme d'origine recalculé dans la page en lecture seule toutes les 200 ms et comparé aux `top` posés,
+  pendant un pouvoir, deux pouvoirs, la frénésie, le vol : 0 écart sur 75 échantillons stables debout, 0 sur 80 couché (l'ancien code : 0 sur 76 et
+  76). Rectangles relevés identiques au dixième de pixel pour les mêmes états (debout : bas du ⚙ 103, argent 113, plaques 176,3 / 240,2 / 304,2 ;
+  frénésie 176,3 / 246,3 / 300,2 / 428,1 — couché : 66, 125, 191,2, 257,4). Planches avant | après de la colonne :
+  `passation/hud-mesure-colonne-debout.jpg` et `-couche.jpg`. Fumée commune OK (couché + debout, 0 erreur JS, après fusion de main).
+- Non touchés (au coup par coup, hors boucle) : `pixBurst` et la mesure de la triade. Le reste du coût d'une image est au rendu three.js (ALLÈGE).
+
 ## LA FIGURE SE PAIE — 20 % DE NITRO, 30 % RENDUS À LA POSE, CUMULABLE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage, cumulable »)
 - **La règle** (loi 6 du réservoir, réglages `NITRO2.figN` = `{cout:.2, rend:.3}`, en part de la jauge du moteur) :
   · LANCER une figure en vol (double-tap NITRO, le glissé, un tour EMPILÉ sur le tonneau) coûte **20 %** de la jauge, payés à la jauge
@@ -335,6 +366,7 @@ Complète « LES TRAÎNÉES ET LES AILES QU'ON VEUT » (15/10 soir, la course : 
   sinon l'essai avait le pot générique et non celui de la caisse) et (b) prendre une vue `[rotation, ×hauteur, ×distance]` (de plus haut comme la
   poursuite, de plus près pour un détail). Une vue de l'arrière : rotation ≈ 222° (π + 0,73).
 - Reste à faire, si Sacha le veut : la même passe sur l'arrière des autres caisses de la boutique (« chaque voiture, qu'on ait envie de l'acheter »).
+
 ## LE DÉFIEUR EN ROBOT JAUNE — LA CAISSE DE TRANSFORMERS, À 120 000 $ (2026-10-17, Sacha : « rajoute des éléments pour qu'elle ressemble vraiment à la voiture de Transformers et mets-lui la bonne couleur de base ; inspire-toi de la Chevrolet dans Transformers ; rajoute-lui des petits détails pour la rendre plus belle ; et tu mets son prix à 120 000 dollars »)
 - LAQUELLE : aucune caisse ne s'appelait ainsi. C'est LE DÉFIEUR (`shape:'a_defieur'`, index 32 de `CARS`), le coupé muscle de 1970, orange à deux
   bandes noires : la plus proche du robot jaune du film — VALIDÉ par Sacha le 17/10 : « Oui, c'est bien LE DÉFIEUR, on garde. »
@@ -6460,7 +6492,6 @@ rien de la vitesse. Et les tirets de la ligne centrale (un tous les ~31 m) BÉGA
     DANS la zone sûre et pose la caisse au milieu de la hauteur utile (47 %) ; debout le « un peu à gauche » de la CHUTE passe de
     −0,16 à −0,07 (la caisse plongeante du titre v3 touchait le bord gauche). Vaut aussi pour le vrai iPhone (env()).
   · ⚠ NON TESTÉ : Safari sur Mac (pas de WebKit au banc) — le zoom d'une iframe y est le point fragile.
-
 
 ## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8
 - ⚠⚠ **(2026-10-01, matin, 2e verdict) SACHA : « enlève aussi dans le ciel, enlève tous les trucs Van Gogh »** — TOUT est retiré : la couche
@@ -12780,7 +12811,6 @@ rien de la vitesse. Et les tirets de la ligne centrale (un tous les ~31 m) BÉGA
     DANS la zone sûre et pose la caisse au milieu de la hauteur utile (47 %) ; debout le « un peu à gauche » de la CHUTE passe de
     −0,16 à −0,07 (la caisse plongeante du titre v3 touchait le bord gauche). Vaut aussi pour le vrai iPhone (env()).
   · ⚠ NON TESTÉ : Safari sur Mac (pas de WebKit au banc) — le zoom d'une iframe y est le point fragile.
-
 
 ## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8
 - ⚠⚠ **(2026-10-01, matin, 2e verdict) SACHA : « enlève aussi dans le ciel, enlève tous les trucs Van Gogh »** — TOUT est retiré : la couche
