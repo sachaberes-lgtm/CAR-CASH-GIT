@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Dans la map</title>
+<!-- DANS LA MAP (2026-10-16, Léo : « juste une liste des maps qu'on a sur le jeu, pour que je puisse appuyer dessus, aller voir dedans
+     et te donner des changements à faire »). voir.html?carte=<id>&meteo=<météo> : LE JEU (../index.html, sans une ligne changée) dans un
+     cadre de téléphone couché (844 × 390, comme sur l'ordi ; debout si la fenêtre est plus haute que large), en ?simu=1 (pas d'écran
+     titre). Le JOUER de l'accueil est touché pour toi ; le couple map × météo est gardé ARMÉ (dbgClassique) : le départ, chaque portail
+     et chaque nouvelle partie restent sur CETTE map. Une partie finie repart seule après 3 s. La barre : retour à la liste, le nom,
+     les météos de la map (une touche = on y va). Les touches du clavier frappées hors du cadre partent dans le jeu (comme le cadre du
+     jeu sur l'ordi). La musique du jeu démarre au premier toucher (le navigateur l'exige). -->
+<style>
+  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased}
+  #barre{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;gap:10px;
+    padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));font-size:13px;white-space:nowrap;z-index:2}
+  #retour{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);flex:none}
+  #retour:hover{background:rgba(255,255,255,.22)}
+  svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  #titre{font-weight:650;letter-spacing:.01em;flex:none}
+  #meteos{display:flex;gap:6px;margin-left:auto;overflow-x:auto;scrollbar-width:none;min-width:0}
+  #meteos::-webkit-scrollbar{display:none}
+  #meteos a{height:28px;padding:0 11px;border-radius:999px;font-size:11.5px;font-weight:600;letter-spacing:.05em;color:rgba(255,255,255,.62);
+    text-decoration:none;display:inline-flex;align-items:center;flex:none}
+  #meteos a:hover{background:rgba(255,255,255,.12);color:#fff}
+  #meteos a.on{background:#fff;color:#000}
+  #scene{position:fixed;left:0;right:0;top:44px;bottom:0;display:grid;place-items:center}
+  #jeu{border:0;display:block;background:#000}
+</style>
+</head>
+<body>
+<div id="barre">
+  <a id="retour" href="index.html" aria-label="Retour à la liste des maps"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <b id="titre"></b>
+  <nav id="meteos" aria-label="Météo"></nav>
+</div>
+<div id="scene"><iframe id="jeu" title="Le jeu"></iframe></div>
+<script>
+// (16/10) le service worker du JEU, s'il s'est installé sur cette adresse (voir.html charge le jeu), fait échouer maps.js et les photos dans le
+// navigateur du chat (la liste restait VIDE) : on le retire et on recharge une fois. serveur.py refuse sw.js, il ne revient pas.
+if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => {
+  if (!rs.length) return;
+  Promise.all(rs.map(r => r.unregister())).then(() => { try { if (!sessionStorage.getItem('ccSwRetire')) { sessionStorage.setItem('ccSwRetire', '1'); location.reload(); } } catch (e) {} });
+}).catch(() => {});
+</script>
+<script src="maps.js"></script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id), L = window.REPERTOIRE || [];
+  const q = new URLSearchParams(location.search);
+  const M = L.find(m => m.id === q.get('carte')) || L[0];
+  let met = q.get('meteo'); if (!M.meteos.some(x => x[0] === met)) met = M.couverture;
+  const nomMet = (M.meteos.find(x => x[0] === met) || [met, met])[1];
+  document.title = M.nom + ' · ' + nomMet;
+  $('titre').textContent = M.nom;
+  $('meteos').innerHTML = M.meteos.map(x => '<a href="voir.html?carte=' + M.id + '&meteo=' + x[0] + '"' + (x[0] === met ? ' class="on"' : '') + '>' + x[1] + '</a>').join('');
+  $('meteos').addEventListener('click', e => { const a = e.target.closest('a'); if (a) { e.preventDefault(); location.replace(a.href); } }); // changer de météo n'empile pas l'historique : ◀ revient à la liste
+
+  // la sauvegarde de cette adresse : auto-école passée, pas de question du mode au 1er JOUER (le reste : celle du jeu)
+  try {
+    const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {};
+    d.v = d.v || 2; d.tuto = 1; d.permis = 1; if (d.facile == null) d.facile = 0;
+    localStorage.setItem('cashcarSave', JSON.stringify(d));
+  } catch (e) {}
+
+  // le jeu, à la taille d'un téléphone couché (debout si la fenêtre est plus haute que large)
+  const jeu = $('jeu');
+  function taille(){
+    const W = innerWidth, H = innerHeight - 44, debout = H > W * 1.1, w = debout ? 390 : 844, h = debout ? 844 : 390;
+    jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
+  }
+  addEventListener('resize', taille); taille();
+  // (2026-10-16) une clé « météo-teinte » (LA VILLE : « pluie-vert ») = la météo + la TEINTE ; la ville sans teinte dite = la violette (celle de base)
+  const mt = met.split('-')[0], te = met.split('-')[1] || (M.id === 'ville' ? 'violet' : '');
+  jeu.src = '../index.html?simu=1&carte=' + encodeURIComponent(M.id) + '&meteo=' + encodeURIComponent(mt) + (te ? '&teinte=' + encodeURIComponent(te) : '');
+  const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
+  jeu.addEventListener('load', () => { E.charge = performance.now(); focusJeu(); });
+  document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#barre')) setTimeout(focusJeu, 0); });
+  for (const t of ['keydown', 'keyup']) addEventListener(t, ev => { // une touche frappée hors du cadre part dans le jeu
+    if (ev.target === jeu) return;
+    try { const w = jeu.contentWindow; w.document.dispatchEvent(new w.KeyboardEvent(t, { code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat, bubbles: true, cancelable: true })); } catch (e) {}
+    if (/^(Space|Arrow)/.test(ev.code)) ev.preventDefault();
+  });
+
+  // le départ et la tenue : JOUER touché pour toi, la map gardée armée, une partie finie relancée
+  // (16/10, Léo : « je ne vois rien ») MESURÉ dans le navigateur du chat, plus lent que le banc : JOUER touché à 1,5 s, AVANT que le ciel
+  // du titre soit en place (body.titreCiel), lançait le départ par l'atelier, puis le ciel arrivait par-dessus — le départ restait figé
+  // (#garage.launching) pour toujours. On attend donc le ciel du titre (1 s stable ; 9 s au plus si le jeu n'en montre pas), et un départ
+  // qui n'a pas pris en 12 s recharge le jeu (deux fois au plus).
+  const E = { charge: 0, essai: 0, cielT: 0, relance: 0, finT: 0 };
+  const visible = el => !!(el && el.getClientRects().length);
+  setInterval(() => {
+    let w, st; try { w = jeu.contentWindow; st = w && w.dbgState ? w.dbgState() : null; } catch (e) { st = null; }
+    if (!st) return;
+    const now = performance.now(), d = w.document;
+    try { if (!w.dbgClassique().force) w.dbgClassique(M.id, mt, te || null); } catch (e) {}
+    if (st.started && !st.gameOver) { E.essai = 0; E.finT = 0; return; }
+    if (st.started && st.gameOver) { // la mort : 3 s pour la voir, puis on repart sur la même map
+      if (!E.finT) E.finT = now;
+      if (now - E.finT > 3000 && now - (E.rejoue || 0) > 2500) { E.rejoue = now; try { if (w.dbgEco) w.dbgEco('rejouer'); } catch (e) {} }
+      return;
+    }
+    if (E.essai && now - E.essai > 12000 && E.relance < 2) { // un départ figé : on recharge le jeu
+      E.relance++; E.essai = 0; E.cielT = 0; E.charge = now; jeu.src = jeu.src; return;
+    }
+    if (E.essai) return;
+    if (d.body.classList.contains('titreCiel')) { if (!E.cielT) E.cielT = now; } else E.cielT = 0;
+    const pret = (E.cielT && now - E.cielT > 1000) || now - E.charge > 9000;
+    if (!pret) return;
+    const b = [d.querySelector('[data-m="play"]'), d.getElementById('gJouer')].find(visible);
+    if (b) { E.essai = now; b.click(); }
+  }, 300);
+})();
+</script>
+</body>
+</html>

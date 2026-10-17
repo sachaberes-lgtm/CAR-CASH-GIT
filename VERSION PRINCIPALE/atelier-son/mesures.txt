@@ -323,3 +323,12 @@ fig.monde#6#12	rec	st	0.44 (−0.46)	-29.0	-7.8	4 Ko
 fig.monde#7#12	rec	st	0.57 (−0.33)	-29.0	-6.9	5 Ko	
 fig.monde#8#12	rec	st	0.57 (−0.33)	-29.0	-8.6	9 Ko	
 fig.slide.paye#0#0	rec	mo	0.50 (−0.20)	-32.0	-4.3	3 Ko	
+ailes.xwing#0#0	fx	mo PCM 24000	0.24 (−0.38)	-31.0	-2.3	13 Ko	
+ailes.xwing#1#0	fx	mo PCM 24000	0.24 (−0.38)	-31.0	-2.0	13 Ko	
+ailes.xwingFerme#0#0	fx	mo PCM 24000	0.28 (−0.22)	-35.0	-3.0	15 Ko	
+ailes.xwingFerme#1#0	fx	mo PCM 24000	0.28 (−0.22)	-35.0	-2.2	15 Ko	
+ailes.dragon#0#0	fx	mo PCM 24000	0.50 (−0.25)	-37.0	-6.3	25 Ko	
+ailes.dragon#1#0	fx	mo PCM 24000	0.51 (−0.24)	-37.0	-3.5	25 Ko	
+ailes.dragon#2#0	fx	mo PCM 24000	0.52 (−0.23)	-37.0	-3.9	26 Ko	
+ailes.pigeon#0#0	fx	mo PCM 24000	0.90 (−0.05)	-33.4	-2.0	44 Ko	
+ailes.pigeon#1#0	fx	mo PCM 24000	0.91 (−0.04)	-34.4	-1.9	44 Ko	
