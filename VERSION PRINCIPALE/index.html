@@ -16759,8 +16759,11 @@ const FORET_LARGE=typeof location==='undefined'||!/[?&]foret=serre\b/.test(locat
    droite, 24-46°), des rayons à la mesure du palier (1,7-2,6 × rMin : jamais une épingle, à n'importe quelle vitesse), parfois un virage plus
    long, une courte droite, une RESPIRATION tous les neuf virages, et un géant à la corde de chaque virage (la passe des géants : c'est entre
    leurs troncs qu'on zigzague). Le cap reste à ±70° de l'axe de la vallée : la route ne recoupe JAMAIS sa trace (zéro croisement, zéro étage).
-   Le relief roule doucement (−8 % à +5 %, deux houles). Un seul flux (`gr`, comme la pelote). `?foret=pelote` (ou `serre`) = la pelote de Sacha. */
-const FOR_ZIG_V=typeof location==='undefined'||!/[?&]foret=(pelote|serre)\b/.test(location.search);
+   Le relief roule doucement (−8 % à +5 %, deux houles). Un seul flux (`gr`, comme la pelote).
+   (2026-10-17 soir, Sacha : « j'aime bien la nouvelle forêt mais il refaut le système où la route n'est pas collée au sol et où elle est sens
+   dessus dessous avec les autres ») LA PELOTE REDEVIENT LE DÉFAUT, sous les arbres de Léo (vitrail, pleureurs, mini-cubes) ; le slalom au ras
+   du sol, ses ponts et sa mousse = `?foret=slalom` (ou `zigzag`). */
+const FOR_ZIG_V=typeof location!=='undefined'&&/[?&]foret=(slalom|zigzag)\b/.test(location.search);
 function forZigzag(rnd,kR,kV){
   const rM=63*kR,LT=9000*(.55+.45*kR),LIM=70*Math.PI/180;
   let x=0,z=0,phi=0,s=0,sg=rnd()<.5?-1:1,nV=0;const C=[[0,0]],SC=[0],Q={};
@@ -17244,6 +17247,8 @@ const FOR_GEANTS={
     for(const e of ends){const p=e[0];fbRideau(K,{rg:rg,n:FOR_CUBES_V?(lod?4:7):(lod?6:13),m:lod?2:5,R:Math.hypot(p[0],p[2])+4,L:34,y0:p[1]+6,a0:e[1]-.36,ar:.72,col:FC.pleureur,ytop:H,pli:.1,ev:.05,deux:true,vent:1.6});}
     return {h:H,cr:50,cy:124,C:C,S:S};}};
 const FOR_GEANTS_N=['chene','hetre','epicea','ancien','sequoia'];
+/* (2026-10-17 soir) le VOLUME des géants pleureurs, en unités du prototype : du bas des rideaux (bas) à la cime (h), rayon r — pour la pelote, où une route d'un autre étage peut passer à côté */
+const FOR_PLEUR_VOL={gsaule:{bas:94,h:172,r:48},gpleureur:{bas:76,h:150,r:50}};
 const FOR_GEANTS_PL=['gsaule','gpleureur'],TORDUS_V=!/[?&]sans=([^&]*,)?tordus(,|&|$)/.test(location.search); // TORDUS_V : plus de géant au tronc droit (`?sans=tordus` = les séquoias) // (2026-10-17) les géants PLEUREURS — à part : la liste du tirage des géants (FOR_GEANTS_N) ne bouge pas
 /* LE LOIN (au-delà de la bande moyenne) : la couronne seule — une boule bosselée pour les feuillus, un cône à deux pentes pour les conifères */
 const FOR_LOIN={hetre:[19.5,8.8,.85],chene:[15.5,10.5,.62],bouleau:[16,4.8,1.5],pin:[24.5,6.4,.55],saule:[9.5,9,1],pleureur:[11,11.5,.55]}; // (2026-10-17) les pleureurs : un grand dôme qui touche presque le sol
@@ -17903,6 +17908,14 @@ function buildForet(seed){
   const GES={};for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL))GES[k]=[];
   for(const g of GE){let sp=g.sp;if(PLEUR.on&&(sp==='chene'||sp==='hetre')&&fw()<.85)sp=fw()<.5?'gsaule':'gpleureur'; // (2026-10-17) LES PLEUREURS géants : même place, même échelle, leur flux à eux
     if(TORDUS_V&&(sp==='sequoia'||sp==='epicea'||sp==='chene'||sp==='hetre'))sp=fw()<.5?'gsaule':'gpleureur'; // (2026-10-17, Léo : « enlève tous les arbres qui ont des gros cylindres » → séquoias et épicéas géants) que des géants TORDUS et pleureurs
+    if(!FORET.zig&&FOR_PLEUR_VOL[sp]){ /* (2026-10-17 soir, LA PELOTE REVENUE) le pleureur prend la place d'un géant taillé pour SA couronne (un séquoia
+       s'ouvre à 178, le rideau d'un saule tombe à 94) : une route d'un autre étage passait dans ses mèches. On le REHAUSSE jusqu'à ce que le bas des
+       rideaux passe 16 m au-dessus de la plus haute route sous sa ramure (comme geantXZ) ; au-delà de ×1,45, l'autre pleureur ; sinon la clairière reste vide. */
+      const pl=function(e){const P=FOR_PLEUR_VOL[e],rh=(P.r+8)*g.sxz+ROAD_HALF;let yH=-1e9;proches(g.x,g.z,rh,function(j){const q=pts[j];if(q.y>yH&&Math.hypot(q.x-g.x,q.z-g.z)<rh)yH=q.y;});
+        return yH<-1e8?g.sy:Math.max(g.sy,(yH+16-g.y)/P.bas);};
+      let e9=sp,k9=pl(sp);if(k9>g.sy*1.45){const o9=sp==='gsaule'?'gpleureur':'gsaule',k8=pl(o9);if(k8<k9){e9=o9;k9=k8;}}
+      if(k9>g.sy*1.45||k9>5.6){g.vide=1;g.spV=sp;fr();fr();continue;} // (deux tirages : le décor qui suit ne bouge pas)
+      sp=e9;g.sy=k9;g.top=Math.max(g.top,g.y+FOR_PLEUR_VOL[sp].h*k9);}
     g.spV=sp;const q=qDe(g.x,g.z),meta=PT.geant[sp][0].m;GES[sp].push({q:q,m:mat(g.x,g.y,g.z,g.ry,g.sxz,g.sy,g.sxz),j:[fr(),(fr()*2-1)*.4,0,1]});
     ext(q,g.x,g.y,Math.max(g.top,g.y+meta.h*g.sy),g.z,Math.max(g.cr,meta.cr*g.sxz));colPose(meta,g.x,g.y,g.z,g.ry,g.sxz,g.sy);} // (pas de tampon de canopée : la case de 26 m déborderait sur la route — les gélules et sphères suffisent)
   // les rochers : une famille aussi
@@ -18191,6 +18204,11 @@ window.dbgForet=function(k,o){
   if(k==='meteo'){foretMeteo(o||'nuit',.01);return FORET.met;}
   if(k==='heurt'&&o){FOR_V2.set(o[0],o[1],o[2]);return FORET.root?foretHeurt(FOR_V2):'';} // (la PELOTE, banc des sauts) ce point de l'air tue-t-il ?
   if(k==='loup'){if(FORET.loup)FORET.loup.t=0;return FORET.rocs.length+' rochers';}
+  if(k==='rideaux'){const R={n:0,dedans:0,pire:0,ex:[]},ds=L/(NP-1); // (banc, la pelote sous les pleureurs) une route passe-t-elle DANS la couronne d'un géant pleureur (du bas des rideaux à la cime) ?
+    for(const g of FORET.geants){const P=FOR_PLEUR_VOL[g.spV];if(g.vide)R.vides=(R.vides||0)+1;if(!P||g.vide)continue;R.n++;const rh=(P.r+8)*g.sxz+ROAD_HALF,y0=g.y+P.bas*g.sy-4,y1=g.y+P.h*g.sy;let pi=0;
+      for(let i=0;i<NP;i+=2){const q=pts[i];if(q.y<y0||q.y>y1)continue;if(Math.hypot(q.x-g.x,q.z-g.z)<rh)pi=Math.max(pi,q.y-y0);}
+      if(pi>0){R.dedans++;R.pire=Math.max(R.pire,Math.round(pi));if(R.ex.length<6)R.ex.push([g.sp,g.spV,+g.sy.toFixed(2),Math.round(pi),Math.round(g.i*ds)]);}}
+    return R;}
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);foretTick(0);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   /* les PHOTOS (en pause) : 'geant' = le prochain géant devant (o.d m avant lui, o.h m de haut) · 'loup' = le rocher du loup, le loup dressé · 'arche' */
