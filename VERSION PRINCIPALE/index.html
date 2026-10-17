@@ -27660,6 +27660,8 @@ function trxPlanche(){
    const coeur=function(){x.beginPath();x.moveTo(cx,cy+36);x.bezierCurveTo(cx-52,cy+2,cx-44,cy-46,cx,cy-20);x.bezierCurveTo(cx+44,cy-46,cx+52,cy+2,cx,cy+36);};
    x.shadowColor='#ffffff';x.shadowBlur=18;x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=16;coeur();x.stroke();
    x.shadowBlur=6;x.strokeStyle='#ffffff';x.lineWidth=7;coeur();x.stroke();x.restore();}
+  /* (2026-10-17, TRAÎNÉES) 36 LE PIXEL : un carré plein et son liseré de lueur — ce en quoi LA GRILLE se défait */
+  {const p=O(36);x.fillStyle='rgba(255,255,255,.22)';x.fillRect(p[0]+28,p[1]+28,72,72);x.fillStyle='#ffffff';x.fillRect(p[0]+36,p[1]+36,56,56);}
   return cv;
 }
 function trxBati(){if(TRX)return TRX;
@@ -27698,7 +27700,7 @@ function trxQ(L,md,px,py,pz,a0,a1,a2,a3,b0,b1,b2,cell,r,g,b,al){const Y=TRX.L[L]
    pétales, anneaux, billets, blocs, pastilles) ×2,3 et les LUEURS (couche 1 : code, étincelles, éclats) ×1,6 ; les flammes posées au sol (88 À L'HEURE)
    ×1,2. Le garage (l'aperçu) ne bouge pas. `?trainee=signal` rend aussi les tailles d'avant. */
 const TRX_GROS=/[?&]trainee=signal\b/.test(location.search)?[1.35,1.35]:[2.3,1.6],TRX_DENSE=!/[?&]trainee=signal\b/.test(location.search); // TRX_DENSE : en course, plus de pétales (×1,6), de billets, d'anneaux et de blocs (×1,4-1,5)
-function trxParts(dt){let n=0;const E0=TRX.C.pv?1:TRX_GROS[0],E1=TRX.C.pv?1:TRX_GROS[1]; // en course la caisse est petite dans l'image : les sprites grossissent — (2026-10-15 soir) ×1,35 → les OBJETS ×2,3, les lueurs ×1,6 (voir TRX_GROS)
+function trxParts(dt){let n=0;const sb9=TRX.C.pv&&silBlanc()?1.7:1,E0=TRX.C.pv?sb9:TRX_GROS[0],E1=TRX.C.pv?sb9:TRX_GROS[1]; /* (2026-10-17, TRAÎNÉES) en BOUTIQUE la caméra est loin de la caisse : un pétale de 12 cm, un anneau de 21 cm n'y faisaient que des points — ×1,7 (l'inventaire, caméra proche, ne bouge pas) */ // en course la caisse est petite dans l'image : les sprites grossissent — (2026-10-15 soir) ×1,35 → les OBJETS ×2,3, les lueurs ×1,6 (voir TRX_GROS)
   for(const p of TRX.P){if(!p.v)continue;p.a+=dt;if(p.a>=p.l){p.v=false;if(p.mo)trxMeurt(p);continue;}n++;
     if(p.dr){const e=Math.exp(-p.dr*dt);p.vx*=e;p.vy*=e;p.vz*=e;}
     p.vy+=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
@@ -27743,11 +27745,14 @@ function trxBolt(A,n,f,wk){const C=TRX.C; // un éclair : chaque segment, un HAL
    leurs quads directs (trxQ) ; le chemin, les fantômes et la foudre vivent dans T. */
 const TRX_EMET={
   grille:function(T,C,k,dt,on){ // LA GRILLE — le mur de lumière des motos de néon : un pan par pas du chemin, du bitume à 1,05 m, et son liseré couché
-    const H=T.H,hm=1.05;let px=C.B.x,py=C.B.y,pz=C.B.z,ux=C.U.x,uy=C.U.y,uz=C.U.z,kp=k;
+    const H=T.H,hm=1.3;let px=C.B.x,py=C.B.y,pz=C.B.z,ux=C.U.x,uy=C.U.y,uz=C.U.z,kp=k;
     for(let i=0;i<H.n;i++){const o=i*3,qx=H.b[o],qy=H.b[o+1],qz=H.b[o+2],age=T.t-H.t[i];if(age>TRX_MUR)break;
       const kk=Math.min(kp,H.k[i]),dx=qx-px,dy=qy-py,dz=qz-pz,l=Math.hypot(dx,dy,dz);
       if(kk>.03&&l>.02&&l<8){const f=kk*(1-Math.pow(age/TRX_MUR,2)),hx=dx*.51,hy=dy*.51,hz=dz*.51,cx=(px+qx)*.5,cy=(py+qy)*.5,cz=(pz+qz)*.5,h2=hm*.5;
-        trxQ(1,2,cx+ux*h2,cy+uy*h2,cz+uz*h2,hx,hy,hz,0,ux*h2,uy*h2,uz*h2,3,.22*f,1.25*f,2*f,1);
+        if(age>TRX_MUR*.62&&dt>0&&Math.random()<dt*(C.pv?2.2:3.2)){const d=trxNait(1);if(d){const hh=Math.random()*hm,w=Math.random(); /* (2026-10-17, TRAÎNÉES) LE MUR SE DÉFAIT EN PIXELS : au bout de sa vie, il s'émiette en carrés cyan qui dérivent et clignotent (« celui qui te colle finit en pixels ») */
+          d.x=px+dx*w+ux*hh;d.y=py+dy*w+uy*hh;d.z=pz+dz*w+uz*hh;d.vx=(Math.random()-.5)*.8+ux*.5;d.vy=(Math.random()-.5)*.8+uy*.5;d.vz=(Math.random()-.5)*.8+uz*.5;
+          d.l=.4+Math.random()*.45;d.w=d.h=.06+Math.random()*.07;d.c=36;d.cr=.35;d.cg=1.35;d.cb=2.1;d.fo=.12;d.bk=.25;}}
+        trxQ(1,2,cx+ux*h2,cy+uy*h2,cz+uz*h2,hx,hy,hz,0,ux*h2,uy*h2,uz*h2,3,.3*f,1.5*f,2.4*f,1); /* (2026-10-17) plus haut (1,3 m) et plus franc : de la poursuite on ne voyait qu'un trait */
         let rx=uy*dz-uz*dy,ry=uz*dx-ux*dz,rz=ux*dy-uy*dx;const rw=.09/(Math.hypot(rx,ry,rz)||1);rx*=rw;ry*=rw;rz*=rw; // vu de la poursuite (d'en haut), le mur se lit comme un trait de néon
         trxQ(1,2,cx+ux*hm,cy+uy*hm,cz+uz*hm,hx,hy,hz,0,rx,ry,rz,1,.45*f,1.5*f,2.2*f,1);}
       px=qx;py=qy;pz=qz;kp=H.k[i];ux=H.u[o];uy=H.u[o+1];uz=H.u[o+2];}
@@ -27756,8 +27761,8 @@ const TRX_EMET={
     T.acc+=dt*26*k;while(T.acc>=1){T.acc-=1;const p=trxNait(1);if(!p)break;p.x=C.B.x;p.y=C.B.y;p.z=C.B.z;
       p.vx=(Math.random()-.5)*3+C.U.x*(1+Math.random()*2.5);p.vy=(Math.random()-.5)*3+C.U.y*(1+Math.random()*2.5);p.vz=(Math.random()-.5)*3+C.U.z*(1+Math.random()*2.5);
       trxVit(p,.3);p.g=-9;p.l=.25+Math.random()*.3;p.w=p.h=.06+Math.random()*.05;p.c=0;p.cr=.5;p.cg=1.6;p.cb=2.2;p.fo=.15;}},
-  matrice:function(T,C,k,dt,on){if(!on)return; // MATRICE — des colonnes de code qui tombent : la tête blanche, la traîne verte
-    T.acc+=dt*(C.pv?13:22)*k;
+  matrice:function(T,C,k,dt,on,debut){if(!on)return; // MATRICE — des colonnes de code qui tombent : la tête blanche, la traîne verte
+    T.acc+=dt*(C.pv?13:22)*k;if(debut)T.acc+=C.pv?6:10; /* (2026-10-17, TRAÎNÉES) LE RIDEAU : à l'appui, une averse de colonnes d'un coup (le code « tombe » sur la route) */
     while(T.acc>=1){T.acc-=1;const n=3+((Math.random()*4)|0),lat=(Math.random()-.5)*2.4,up=.15+Math.random()*1.1,ar=Math.random()*.8,l0=.95+Math.random()*.5,vd=1.4+Math.random()*1.2;
       for(let j=0;j<n;j++){const p=trxNait(1);if(!p)return;const h=up+j*.34;
         p.x=C.P.x+C.R.x*lat+C.U.x*h-C.F.x*ar;p.y=C.P.y+C.R.y*lat+C.U.y*h-C.F.y*ar;p.z=C.P.z+C.R.z*lat+C.U.z*h-C.F.z*ar;
@@ -27765,27 +27770,32 @@ const TRX_EMET={
         p.l=l0-j*.07;p.w=p.h=.15;p.c0=4;p.cn=8;p.c=4+((Math.random()*8)|0);p.cf=.05+Math.random()*.1;p.fo=.35;p.fi=.04;
         if(j===0){p.cr=1.3;p.cg=2.1;p.cb=1.4;}else{const f=1-j*.13;p.cr=.12*f;p.cg=1.45*f;p.cb=.35*f;}}}},
   anneaux:function(T,C,k,dt,on,debut){if(!on)return; // ANNEAUX D'OR — ils s'échappent comme d'un hérisson qui vient de se cogner, tournent, rebondissent dans l'air, CLIGNOTENT et disparaissent
-    let nb=0;T.acc+=dt*(C.pv?9:TRX_DENSE?17:12)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?8:14;
-    for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const sl=(Math.random()-.5)*7,su=2.5+Math.random()*3.5,sa=1+Math.random()*2,ol=(Math.random()-.5)*.6;
+    let nb=0;T.acc+=dt*(C.pv?9:TRX_DENSE?17:12)*k;while(T.acc>=1){T.acc-=1;nb++;}const fan=debut?(C.pv?10:16):0;nb+=fan; /* (2026-10-17, TRAÎNÉES) LA FONTAINE : à l'appui, les anneaux jaillissent en ÉVENTAIL RÉGULIER (un demi-cercle parfait, le vrai « perdre ses anneaux ») au lieu d'une poignée au hasard */
+    for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const fq=q<fan,ang=fq?(q/(fan-1)-.5)*2.8:0;
+      const sl=fq?Math.sin(ang)*5.2:(Math.random()-.5)*7,su=fq?2.2+Math.cos(ang)*4.2:2.5+Math.random()*3.5,sa=fq?1.1:1+Math.random()*2,ol=fq?0:(Math.random()-.5)*.6;
       p.x=C.P.x+C.R.x*ol+C.U.x*.25;p.y=C.P.y+C.R.y*ol+C.U.y*.25;p.z=C.P.z+C.R.z*ol+C.U.z*.25;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.88);
       p.g=-11;p.dr=.25;p.l=1.15+Math.random()*.5;p.w=p.h=.21;p.c=12;p.fl=7+Math.random()*5;p.bk=.45;p.fo=.12;
       if(Math.random()<.35){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx*.4;s.vy=p.vy*.4;s.vz=p.vz*.4;s.l=.28;s.w=s.h=.24;s.c=2;s.cr=1.7;s.cg=1.4;s.cb=.5;s.fo=.2;s.vr=6;}}}},
-  glouton:function(T,C,k,dt,on){ // GLOUTON — une ligne de pastilles posée sur le chemin (une SUPER tous les huit), et quatre fantômes qui la suivent
+  glouton:function(T,C,k,dt,on,debut){ // GLOUTON — une ligne de pastilles posée sur le chemin (une SUPER tous les huit), et quatre fantômes qui la suivent
+    if(debut)T.cnt=7; // (2026-10-17, TRAÎNÉES) la ligne COMMENCE par une super-pastille : à l'appui, le premier objet posé est celle qui clignote
     if(on){T.dist+=C.dp;const pas=Math.max(1.05,(dt>0?C.dp/dt:0)*.028);let m=0;while(T.dist>=pas&&m<8){T.dist-=pas;m++;T.cnt++;const p=trxNait(0);if(!p)break;const gros=T.cnt%8===0;
       p.x=C.P.x-C.U.x*.1;p.y=C.P.y-C.U.y*.1;p.z=C.P.z-C.U.z*.1;trxVit(p,0);p.l=2.6;p.c=gros?14:13;p.w=p.h=gros?.2:.15;p.fo=.35;if(gros)p.bk=2.6;}}
     if(on){T.gk=Math.min(1,T.gk+dt*3);T.peur=0;}else if(T.gk>0){T.peur+=dt;if(T.peur>1.1){T.gk=0;T.peur=0;}} // nitro lâchée : ils virent au BLEU, clignotent… et filent
     if(T.gk<=0)return;const v=T.v1,peur=T.peur>0,bl=peur&&T.peur>.7&&((T.t*12)|0)%2;
+    const gz=C.pv?(silBlanc()?.48:.3):.4; // (2026-10-17) en boutique les fantômes ×1,6, comme les objets
     for(let i=0;i<4;i++){if(T.gk*4<i+.5)break;trxLe(1.4+i*.95,v,false);const b=.38+Math.sin(T.t*9+i*1.7)*.07,l=i%2?.55:-.55; // en quinconce, au-dessus du ruban de pastilles
-      trxQ(0,0,v.x+C.U.x*b+C.R.x*l,v.y+C.U.y*b+C.R.y*l,v.z+C.U.z*b+C.R.z*l,0,C.pv?.3:.4,C.pv?.3:.4,0,0,0,0,peur?19:15+i,1,1,1,(bl?.25:1)*Math.min(1,T.gk*4-i));}},
-  hyper:function(T,C,k,dt,on){if(!on)return; // HYPERESPACE — les étoiles s'étirent en filés autour de la caisse, un cœur bleu à la tuyère
+      trxQ(0,0,v.x+C.U.x*b+C.R.x*l,v.y+C.U.y*b+C.R.y*l,v.z+C.U.z*b+C.R.z*l,0,gz,gz,0,0,0,0,peur?19:15+i,1,1,1,(bl?.25:1)*Math.min(1,T.gk*4-i));}},
+  hyper:function(T,C,k,dt,on,debut){if(!on)return; // HYPERESPACE — les étoiles s'étirent en filés autour de la caisse, un cœur bleu à la tuyère
+    if(debut){T.acc+=C.pv?22:48;const f=trxNait(1);if(f){f.x=C.P.x;f.y=C.P.y;f.z=C.P.z;trxVit(f,1);f.l=.3;f.w=f.h=C.pv?2:3.2;f.s1=.35;f.c=0;f.cr=1.1;f.cg=1.4;f.cb=2.6;f.fo=.25;}} /* (2026-10-17, TRAÎNÉES) LE SAUT : à l'appui, un éclair bleu-blanc qui se resserre sur la tuyère et une averse de filés d'un coup — on PASSE en vitesse lumière */
     trxQ(1,0,C.P.x,C.P.y,C.P.z,0,.6*k,.6*k,0,0,0,0,0,.5,.75,2,.7*k);
-    T.acc+=dt*(C.pv?36:80)*k;while(T.acc>=1){T.acc-=1;const p=trxNait(1);if(!p)break;
+    T.acc+=dt*(C.pv?36:130)*k;while(T.acc>=1){T.acc-=1;const p=trxNait(1);if(!p)break; /* (2026-10-17, TRAÎNÉES) en course, 80 filés fins de 4 cm se confondaient avec les lignes de vitesse du jeu : 130/s, deux fois plus épais, plus longs, et ils gardent plus d'élan (on reste DANS le tunnel) */
       const a=Math.random()*6.283,r=1.1+Math.random()*3.6,f=-2+Math.random()*8,ca=Math.cos(a)*r,sa=Math.sin(a)*r*.8;
       p.x=C.P.x+C.R.x*ca+C.U.x*sa+C.F.x*f;p.y=C.P.y+C.R.y*ca+C.U.y*sa+C.F.y*f;p.z=C.P.z+C.R.z*ca+C.U.z*sa+C.F.z*f;
-      trxVit(p,.45);p.md=1;p.dx=C.F.x;p.dy=C.F.y;p.dz=C.F.z;p.ln=4+Math.random()*10;p.gr=.25;p.w=.025+Math.random()*.035;p.c=1;
+      trxVit(p,C.pv?.45:.62);p.md=1;p.dx=C.F.x;p.dy=C.F.y;p.dz=C.F.z;p.ln=C.pv?4+Math.random()*10:6+Math.random()*12;p.gr=.25;p.w=C.pv?.025+Math.random()*.035:.05+Math.random()*.05;p.c=1;
       p.l=.45+Math.random()*.3;p.fi=.06;p.fo=.2;if(Math.random()<.3){p.cr=1.5;p.cg=1.7;p.cb=2.2;}else{p.cr=.55;p.cg=.85;p.cb=2.1;}}},
   retour:function(T,C,k,dt,on,debut){ // 88 À L'HEURE — deux sillons de feu qui restent sur le bitume, et les arcs bleus du départ
+    if(debut){const f=trxNait(1);if(f){f.x=C.P.x+C.U.x*.6;f.y=C.P.y+C.U.y*.6;f.z=C.P.z+C.U.z*.6;trxVit(f,1);f.l=.22;f.w=f.h=C.pv?2.6:3.8;f.s1=1.4;f.c=0;f.cr=1.6;f.cg=1.9;f.cb=2.6;f.fo=.18;}} /* (2026-10-17, TRAÎNÉES) L'ÉCLAIR DU DÉPART : à l'appui, le flash blanc-bleu du saut dans le temps, avant les arcs et les sillons */
     if(debut)for(let q=0;q<16;q++){const p=trxNait(1);if(!p)break;const a=Math.cos(Math.random()*6.283)*1.2,h=.3+Math.random()*.9;
       p.x=C.P.x+C.R.x*a+C.U.x*h;p.y=C.P.y+C.R.y*a+C.U.y*h;p.z=C.P.z+C.R.z*a+C.U.z*h;p.vx=(Math.random()-.5)*4;p.vy=(Math.random()-.5)*4;p.vz=(Math.random()-.5)*4;trxVit(p,.9);
       p.l=.25+Math.random()*.25;p.w=p.h=.35+Math.random()*.3;p.c=2;p.vr=(Math.random()-.5)*10;p.cr=.6;p.cg=1.4;p.cb=2.4;p.fo=.15;}
@@ -27794,30 +27804,49 @@ const TRX_EMET={
       while(T.dist>=pas&&m<12){T.dist-=pas;m++;const f=C.dp>1e-4?Math.min(1,T.dist/C.dp):0; // le long du pas de l'image : des sillons CONTINUS même à pleine vitesse
         for(let sd=0;sd<2;sd++){const W=sd?C.WR:C.WL,W0=sd?T.wr0:T.wl0,p=trxNait(1);if(!p)break;
           p.x=W.x+(W0.x-W.x)*f;p.y=W.y+(W0.y-W.y)*f;p.z=W.z+(W0.z-W.z)*f;trxVit(p,0);p.an=true;p.ux=C.U.x;p.uy=C.U.y;p.uz=C.U.z;
-          p.w=.2;p.h=.3;p.s1=.2;p.l=(1+Math.random()*.4)*Math.max(.5,k);p.c0=32;p.c2=33;p.c=Math.random()<.5?32:33;p.cf=.07;p.cr=1.5;p.cg=1.15;p.cb=.9;p.fo=.25;}}}
+          p.w=.28;p.h=.5;p.s1=.2;p.l=(1+Math.random()*.4)*Math.max(.5,k);p.c0=32; /* (2026-10-17) 30 → 50 cm : de la poursuite, les sillons étaient une ligne */p.c2=33;p.c=Math.random()<.5?32:33;p.cf=.07;p.cr=1.5;p.cg=1.15;p.cb=.9;p.fo=.25;}}}
     else if(on){T.acc+=dt*30;while(T.acc>=1){T.acc-=1;for(let sd=0;sd<2;sd++){const W=sd?C.WR:C.WL,p=trxNait(1);if(!p)break; // en vol : les roues lâchent des braises
         p.x=W.x;p.y=W.y;p.z=W.z;p.vx=(Math.random()-.5)*1.5;p.vy=-1-Math.random()*2;p.vz=(Math.random()-.5)*1.5;trxVit(p,.7);p.g=-6;p.l=.4+Math.random()*.3;p.w=p.h=.1;p.c=0;p.cr=1.6;p.cg=.8;p.cb=.25;p.fo=.2;}}}
     T.wl0.copy(C.WL);T.wr0.copy(C.WR);},
-  foudre:function(T,C,k,dt,on){ // FOUDRE DIVINE — des éclairs tordus le long du chemin, une branche à chaque coup, accrochés à la tuyère
+  foudre:function(T,C,k,dt,on,debut){ // FOUDRE DIVINE — des éclairs tordus le long du chemin, une branche à chaque coup, accrochés à la tuyère
     const v=T.v1;
+    if(on&&debut){let B=null;for(const b of T.bolts)if(!b.on){B=b;break;} /* (2026-10-17, TRAÎNÉES) LA FRAPPE : à l'appui, la foudre TOMBE DU CIEL sur la caisse — un éclair épais de 14 m,
+       une branche, un éclair blanc-violet qui inonde la poupe et une gerbe d'étincelles au sol. La mythique a enfin son coup de tonnerre. */
+      if(B){B.on=true;B.a=0;B.l=.42;B.n=11;B.wk=2.4;T.boltT=.2;const H=C.pv?4.2:8; /* à l'aperçu, la frappe tombe du haut du CADRE (9 m sortaient de l'image) */
+        for(let i=0;i<11;i++){const h=.35+H*(1-i/10),ox=(i&&i<10)?(Math.random()-.5)*1.6:0,oz=(i&&i<10)?(Math.random()-.5)*1.2:0,o=i*3;
+          B.p[o]=C.R.x*ox+C.U.x*h-C.F.x*(.4+oz);B.p[o+1]=C.R.y*ox+C.U.y*h-C.F.y*(.4+oz);B.p[o+2]=C.R.z*ox+C.U.z*h-C.F.z*(.4+oz);}
+        const sx=Math.random()<.5?-1:1;let bx=B.p[12],by=B.p[13],bz=B.p[14];B.bn=0;
+        for(let i=0;i<5;i++){const o=B.bn*3;B.q[o]=bx;B.q[o+1]=by;B.q[o+2]=bz;B.bn++;const dl=.6+Math.random()*.7,dh=-.7-Math.random()*.9;
+          bx+=C.R.x*sx*dl+C.U.x*dh;by+=C.R.y*sx*dl+C.U.y*dh;bz+=C.R.z*sx*dl+C.U.z*dh;}}
+      const f=trxNait(1);if(f){f.x=C.P.x+C.U.x*.7;f.y=C.P.y+C.U.y*.7;f.z=C.P.z+C.U.z*.7;trxVit(f,1);f.l=.24;f.w=f.h=C.pv?2.4:3.6;f.c=0;f.cr=1.3;f.cg=1.05;f.cb=2.6;f.fo=.2;}
+      for(let q=0;q<(C.pv?10:16);q++){const p=trxNait(1);if(!p)break;const a=Math.random()*6.283,sp=2+Math.random()*3;
+        p.x=C.P.x;p.y=C.P.y;p.z=C.P.z;p.vx=C.R.x*Math.cos(a)*sp+C.U.x*(1+Math.random()*2.5)-C.F.x*Math.sin(a)*sp;p.vy=C.R.y*Math.cos(a)*sp+C.U.y*(1+Math.random()*2.5)-C.F.y*Math.sin(a)*sp;p.vz=C.R.z*Math.cos(a)*sp+C.U.z*(1+Math.random()*2.5)-C.F.z*Math.sin(a)*sp;
+        trxVit(p,.9);p.g=-7;p.l=.3+Math.random()*.3;p.w=p.h=.12+Math.random()*.1;p.c=2;p.vr=(Math.random()-.5)*12;p.cr=1.5;p.cg=1.3;p.cb=2.4;p.fo=.15;}}
     if(on){T.boltT-=dt;if(T.boltT<=0){T.boltT=.06+Math.random()*.07;let B=null;for(const b of T.bolts)if(!b.on){B=b;break;}
-      if(B){B.on=true;B.a=0;B.l=.1+Math.random()*.08;B.n=0;const n=10,L=Math.min(9.5,4+6*k);
-        for(let i=0;i<=n;i++){trxLe(L*i/n,v,false);const am=i?.1+.5*i/n:0,ox=(Math.random()-.5)*2*am,oy=(Math.random()-.5)*1.4*am,o=B.n*3;
+      if(B){B.on=true;B.a=0;B.l=.1+Math.random()*.08;B.n=0;B.wk=1;const n=10,L=Math.min(9.5,4+6*k);
+        for(let i=0;i<=n;i++){trxLe(L*i/n,v,false);const am=i?(.1+.5*i/n)*(C.pv?1:1.9):0,ox=(Math.random()-.5)*2*am,oy=(Math.random()-.5)*1.4*am,o=B.n*3;
           B.p[o]=v.x+C.R.x*ox+C.U.x*oy-C.P.x;B.p[o+1]=v.y+C.R.y*ox+C.U.y*oy-C.P.y;B.p[o+2]=v.z+C.R.z*ox+C.U.z*oy-C.P.z;B.n++;}
         const j=3+((Math.random()*5)|0),sx=Math.random()<.5?-1:1;let bx=B.p[j*3],by=B.p[j*3+1],bz=B.p[j*3+2];B.bn=0; // la BRANCHE, d'un coude
         for(let i=0;i<4;i++){const o=B.bn*3;B.q[o]=bx;B.q[o+1]=by;B.q[o+2]=bz;B.bn++;const s=.25+Math.random()*.35,u=(Math.random()-.4)*.5;
           bx+=C.R.x*sx*s+C.U.x*u-C.F.x*.3;by+=C.R.y*sx*s+C.U.y*u-C.F.y*.3;bz+=C.R.z*sx*s+C.U.z*u-C.F.z*.3;}
         const s=trxNait(1);if(s){s.x=B.p[j*3]+C.P.x;s.y=B.p[j*3+1]+C.P.y;s.z=B.p[j*3+2]+C.P.z;trxVit(s,.5);s.l=.22;s.w=s.h=.35;s.c=2;s.cr=1.2;s.cg=1;s.cb=2.4;s.fo=.15;s.vr=8;}}}
       trxQ(1,0,C.P.x,C.P.y,C.P.z,0,.55,.55,0,0,0,0,0,.7,.5,2,.6*k);}
+    const wb=C.pv?(silBlanc()?2:1):1.7; // (2026-10-17) en boutique, sur le blanc, un éclair de 5 cm de cœur ne se voyait pas : ×2 ; en course il se noyait dans le ruban violet : ×1,7 et deux fois plus écarté
     for(const B of T.bolts){if(!B.on)continue;B.a+=dt;if(B.a>=B.l){B.on=false;continue;} // chaque éclair vit 0,1-0,18 s : il éclate à sa naissance et vacille
-      const f=(1-B.a/B.l)*(.7+Math.random()*.3);trxBolt(B.p,B.n,f,1);trxBolt(B.q,B.bn,f*.8,.6);}},
+      const f=(1-B.a/B.l)*(.7+Math.random()*.3);trxBolt(B.p,B.n,f,(B.wk||1)*wb);trxBolt(B.q,B.bn,f*.8,.6*(B.wk||1)*wb);}},
   blocs:function(T,C,k,dt,on,debut){if(!on)return; // PLUIE DE BLOCS — les sept pièces tombent en tournant PAR QUARTS, comme dans le puits
-    let nb=0;T.acc+=dt*(C.pv?7:TRX_DENSE?12:8)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=4;
-    for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*1.4,up=.3+Math.random()*.8,sl=(Math.random()-.5)*3,su=1.5+Math.random()*2.5;
+    let nb=0;T.acc+=dt*(C.pv?7:TRX_DENSE?12:8)*k;while(T.acc>=1){T.acc-=1;nb++;}const fan=debut?7:0;nb+=fan; /* (2026-10-17, TRAÎNÉES) à l'appui, les SEPT pièces jaillissent ensemble en éventail, une de chaque couleur */
+    for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)return;const fq=q<fan,ang=fq?(q/6-.5)*2.4:0,lat=fq?0:(Math.random()-.5)*1.4,up=fq?.55:.3+Math.random()*.8,sl=fq?Math.sin(ang)*4.2:(Math.random()-.5)*3,su=fq?2.4+Math.cos(ang)*2.6:1.5+Math.random()*2.5;
       p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*1.5;p.vy=C.R.y*sl+C.U.y*su-C.F.y*1.5;p.vz=C.R.z*sl+C.U.z*su-C.F.z*1.5;trxVit(p,.86);
-      p.g=-8;p.l=1.5+Math.random()*.4;p.w=p.h=.32;p.c=20+((Math.random()*7)|0);p.r=((Math.random()*4)|0)*1.5708;p.sn=.2;p.sg=Math.random()<.5?1:-1;p.fo=.3;}},
-  sakura:function(T,C,k,dt,on){if(!on)return; // SAKURA — une pluie de pétales qui volettent, tournoient et se balancent en tombant
+      p.g=-8;p.l=1.5+Math.random()*.4;p.w=p.h=.32;p.c=fq?20+q:20+((Math.random()*7)|0);p.r=((Math.random()*4)|0)*1.5708;p.sn=.2;p.sg=Math.random()<.5?1:-1;p.fo=.3;}},
+  sakura:function(T,C,k,dt,on,debut){if(!on)return; // SAKURA — une pluie de pétales qui volettent, tournoient et se balancent en tombant
+    if(debut){const nb=C.pv?18:30;for(let q=0;q<nb;q++){const p=trxNait(0);if(!p)break; /* (2026-10-17, TRAÎNÉES) L'ÉCLOSION : à l'appui, une COROLLE de pétales s'ouvre derrière la poupe (un cercle régulier face à la poursuite), puis retombe en pluie */
+      const a=q/nb*6.2832+Math.random()*.15,sp=2.6+Math.random()*.8,ca=Math.cos(a),sa=Math.sin(a);
+      p.x=C.P.x+C.U.x*.45;p.y=C.P.y+C.U.y*.45;p.z=C.P.z+C.U.z*.45;
+      p.vx=C.R.x*ca*sp+C.U.x*(sa*sp+.8)-C.F.x*.6;p.vy=C.R.y*ca*sp+C.U.y*(sa*sp+.8)-C.F.y*.6;p.vz=C.R.z*ca*sp+C.U.z*(sa*sp+.8)-C.F.z*.6;trxVit(p,.95);
+      p.g=-1.4;p.dr=1.6;p.sw=.9;p.sf=3+Math.random()*2;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*6;p.fl=3+Math.random()*5;
+      p.l=1.6+Math.random()*.7;p.w=p.h=.12+Math.random()*.05;p.c=27+((Math.random()*3)|0);p.fi=.04;p.fo=.6;}}
     T.acc+=dt*(C.pv?20:TRX_DENSE?50:32)*k; /* (2026-10-15 soir) une vraie pluie de pétales en course */
     while(T.acc>=1){T.acc-=1;const p=trxNait(0);if(!p)return;const lat=(Math.random()-.5)*1.6,up=Math.random()*.9,ar=Math.random()*.5,sl=(Math.random()-.5)*2.6,su=.4+Math.random()*1.4,sa=Math.random()*1.2;
       p.x=C.P.x+C.R.x*lat+C.U.x*up-C.F.x*ar;p.y=C.P.y+C.R.y*lat+C.U.y*up-C.F.y*ar;p.z=C.P.z+C.R.z*lat+C.U.z*up-C.F.z*ar;
@@ -27830,7 +27859,8 @@ const TRX_EMET={
       p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.86);
       p.g=-5.5;p.dr=1.4;p.sw=.8;p.sf=4+Math.random()*3;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;p.vr=(Math.random()-.5)*6;p.fl=6+Math.random()*6;
-      p.l=1.8+Math.random()*.6;p.w=p.h=.3;p.c=30;p.c2=31;p.fo=.5;}},
+      p.l=1.8+Math.random()*.6;p.w=p.h=.3;p.c=30;p.c2=31;p.fo=.5;
+      if(Math.random()<(debut&&q<10?.8:.28)){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx*.6;s.vy=p.vy*.6;s.vz=p.vz*.6;s.dr=1;s.l=.35+Math.random()*.25;s.w=s.h=.16+Math.random()*.08;s.c=2;s.vr=7;s.cr=1.7;s.cg=1.55;s.cb=.7;s.fo=.2;s.tw=14+Math.random()*8;}}}}, /* (2026-10-17, TRAÎNÉES) l'ÉCLAT DE L'ARGENT : un billet sur quatre lâche une étincelle d'or qui scintille (presque tous à l'allumage) */
   /* (2026-10-16, session TRAÎNÉES — Sacha : « il faut qu'elle donne toute envie d'acheter ») LES TROIS RUBANS ONT ENFIN LEUR SIGNATURE.
      En course on voit ~3 m de traînée dans l'axe : MENTHE, ROSE NÉON et POUDRE D'OR n'étaient qu'un fil d'une autre couleur à côté du
      feu orange. Chacun gagne ses éclats, lancés SUR LES CÔTÉS et VERS LE HAUT (là où la caméra de poursuite les voit), élan gardé ~0,93. */
@@ -27840,7 +27870,7 @@ const TRX_EMET={
       p.x=C.P.x+C.R.x*lat+C.U.x*up;p.y=C.P.y+C.R.y*lat+C.U.y*up;p.z=C.P.z+C.R.z*lat+C.U.z*up;
       p.vx=C.R.x*sl+C.U.x*su-C.F.x*sa;p.vy=C.R.y*sl+C.U.y*su-C.F.y*sa;p.vz=C.R.z*sl+C.U.z*su-C.F.z*sa;trxVit(p,.975);
       p.g=.5;p.dr=.9;p.sw=.7;p.sf=2+Math.random()*2.5;p.sx=C.R.x;p.sy=C.R.y;p.sz=C.R.z;
-      p.l=1.1+Math.random()*1.2;p.w=p.h=.17+Math.random()*.2;p.s1=1.3;p.c=34;p.fi=.12;p.fo=.06;p.mo=1;}},
+      p.l=1.1+Math.random()*1.2;p.w=p.h=C.pv?.17+Math.random()*.2:.09+Math.random()*.1;p.s1=1.3;p.c=34; /* (2026-10-17) en course les objets sont grossis ×2,3 (TRX_GROS) : une bulle de 85 cm couvrait la poupe — 20 à 45 cm */p.fi=.12;p.fo=.06;p.mo=1;}},
   neon:function(T,C,k,dt,on,debut){if(!on)return; // ROSE NÉON — des cœurs d'enseigne en tube de néon, qui grésillent ; à l'allumage, une volée
     let nb=0;T.acc+=dt*(C.pv?3.2:4.5)*k;while(T.acc>=1){T.acc-=1;nb++;}if(debut)nb+=C.pv?3:5;
     for(let q=0;q<nb;q++){const p=trxNait(1);if(!p)return;const sd=(T.cnt++%2)?1:-1,lat=sd*(.45+Math.random()*.55),up=.45+Math.random()*.7;
@@ -27863,7 +27893,7 @@ const TRX_EMET={
    enseigne qu'on branche (allumé, noir, allumé, noir, puis pour de bon), en 0,42 s. `t` = le temps depuis l'allumage. */
 function neonAllume(t){return t>=.42?1:t<.06?1:t<.13?.08:t<.18?.85:t<.29?.05:t<.34?.6:t<.37?.15:1;}
 function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
-  if(type!==T.type){T.type=type;T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.cnt=0;for(const b of T.bolts)b.on=false;T.wl0.copy(C.WL);T.wr0.copy(C.WR);}
+  if(type!==T.type){if(C.pv){for(const p of T.P)p.v=false;T.kp=0;} /* (2026-10-17, TRAÎNÉES) à l'aperçu, une autre traînée essayée chasse les objets de la précédente (les bulles de MENTHE flottaient encore sur ROSE NÉON) et REJOUE son allumage : on voit le coup de chacune */T.type=type;T.H.n=0;T.gk=0;T.peur=0;T.acc=0;T.dist=0;T.cnt=0;for(const b of T.bolts)b.on=false;T.wl0.copy(C.WL);T.wr0.copy(C.WR);}
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
   T.L[0].n=T.L[1].n=0;
@@ -38282,16 +38312,16 @@ const COSM={
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
     // (2026-10-14) LES TRAÎNÉES POP (voir TRX) — `pop` : son moteur · `rgb` : la couleur du ruban qui l'accompagne · `rubOff` : pas de ruban (l'effet EST la traînée)
-    {id:'sakura',   n:'SAKURA',            p:8000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9], ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
-    {id:'matrice',  n:'MATRICE',           p:11000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
-    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'exotique',  pop:'anneaux',rgb:[1.3,1.05,.25],ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
+    {id:'sakura',   n:'SAKURA',            p:8000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
+    {id:'matrice',  n:'MATRICE',           p:11000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
+    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'exotique',  pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
     {id:'blocs',    n:'PLUIE DE BLOCS',    p:30000, r:'exotique',  pop:'blocs',  rubOff:1,      ico:'tr_blocs',  col:'#3fd0ff',d:'Des pièces de quatre carrés tombent en tournant. Aucune ligne ne disparaît : tout reste à toi.'},
     {id:'glouton',  n:'GLOUTON',           p:40000, r:'exotique',  pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
-    {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.95,1.15,1.6],ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'},
+    {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.95,1.15,1.6],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'},
     {id:'retour',   n:'88 MILES À L\'HEURE',p:140000,r:'epique',   pop:'retour',                ico:'tr_88',     col:'#ff8a2a',d:'Deux sillons de feu restent sur le bitume. Le futur, c\'est toi qui l\'écris.'},
     {id:'grille',   n:'LA GRILLE',         p:350000,r:'legendaire',pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'},
-    {id:'billets',  n:'FAIS PLEUVOIR',     p:500000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
-    {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'mythique',pop:'foudre',rgb:[.85,.55,1.7],ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'}]
+    {id:'billets',  n:'FAIS PLEUVOIR',     p:500000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
+    {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'mythique',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'}]
 };
 /* (2026-10-14, Sacha : « une grande palette de peintures, façon Geometry Dash » — passe graphismes · palette) LA PALETTE : 40 peintures AJOUTÉES après
    les 17 (qui ne bougent pas : prix, carnets, possessions). le PACK les donne TOUTES les 40, argent réel (PALETTE_PACK : 0,99 €, UNIQUEMENT par shopPaye('palette') puis palDonne) ; 30 d'entre elles sont
@@ -54924,6 +54954,7 @@ function silApercu(dt,on,k9){
   const d=cosmSur('trainee'),nf=Math.min(2,CAR_FEUX.length);if(!d||!nf)return false;
   if(!S.s.length)S.s.push(mkSillage(),mkSillage());
   const id=d.id+':'+garageI+':'+nf;if(id!==S.id){S.id=id;S.on=0;}            // une autre traînée, une autre caisse : l'allumage se rejoue
+  if(k9===0){S.on=0;for(const tr of S.s)tr.m.visible=false;return true;} // (2026-10-17) k9 = 0 : la vitrine coupe le moteur — le ruban s'éteint, il rejaillira des feux
   S.on+=dt;S.t+=dt;
   const neo=d.pop==='neon',rgb=d.rgb||[1.38,.62,.17],ku=.74,kk=Math.max(.8,k9==null?1:k9)*(neo?neonAllume(S.on):1),gro=neo?1:Math.min(1,S.on/.28),ign=neo?0:Math.exp(-S.on*4.5),
     L=11*(.12+.88*gro*(2-gro)),Q=SIL_Q,v=S.v,N=34;
@@ -57929,7 +57960,7 @@ function garGlitch(){let el=document.getElementById('gGlitch'); // (essai boutiq
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
   GAR.dtR=dt;try{hubSync();gTourneMaj();gHomePlace();}catch(e){} // (2026-10-06) LE HUB : la barre suit l'onglet — (2026-10-09) la jauge suit la vue
   if(chuteVoulue()||CHUTE.go){chuteRender(dt);return;}if(CHUTE.on)chuteSort(); // (2026-09-30) LA CHUTE : au MENU, la caisse tombe du ciel (voir « LA CHUTE ») ; la boutique et les missions rouvrent l'atelier
-  {const ti9=SHOP.tab==='trainee'?1:(INV&&INV.on&&INV.cat==='trainee')?.55:0;trailApercu(dt,ti9>0,ti9||1);} // (2026-10-04) l'INVENTAIRE ouvert sur ses traînées les montre aussi — plus doucement : la caméra de la vitrine est plus près
+  {const ti9=SHOP.tab==='trainee'?1:(INV&&INV.on&&INV.cat==='trainee')?.55:0;let kc9=ti9||1;if(SHOP.tab==='trainee'){const id9=(cosmSur('trainee')||{}).id;if(id9!==SILPV.cyId){SILPV.cyId=id9;SILPV.cy=0;} /* une traînée qu'on vient de toucher a ses 3,85 s pleines avant la première coupure */SILPV.cy=(SILPV.cy||0)+dt;if(SILPV.cy>4.3)SILPV.cy=0;if(SILPV.cy>3.85)kc9=0;}else SILPV.cy=0;trailApercu(dt,ti9>0,kc9);} /* (2026-10-17, TRAÎNÉES) LE VROMBISSEMENT DE VITRINE : en boutique, la traînée essayée se coupe 0,45 s toutes les 4,3 s et se RALLUME — on revoit son coup d'allumage (la corolle, la fontaine, la frappe, l'enseigne qui clignote…) au lieu de ne le voir qu'une fois */ // (2026-10-04) l'INVENTAIRE ouvert sur ses traînées les montre aussi — plus doucement : la caméra de la vitrine est plus près
   const ay=GARAGE_Y,t9=performance.now()*.001;
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;garArgentMaj(); // (2026-10-01) les tas de billets suivent le compte (une comparaison par image)
