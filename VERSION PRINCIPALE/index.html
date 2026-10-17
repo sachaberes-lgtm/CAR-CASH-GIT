@@ -7150,6 +7150,22 @@ html:not(.c6):not(.ux8g) body #garage:not(.menu):not(.vitrine):not(.shopRet):not
    barre) : dans la console le lingot a la rangée du milieu pour lui — sur un écran étroit (320), c'est le MOT qui se serre, plus les chevrons. */
 html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev{display:inline-flex!important;margin-left:2px}
 @container (max-width:185px){html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .lg{font-size:17px!important}} /* MESURÉ : mot 117 + chevrons 59 + écart 6 = 182 px ; à 390 de large le lingot en offre 210 (mot gardé à 21 px), à 320 il en offre 164 */
+/* LES CHEVRONS DU JOUER, EN GRAND ET EN LUMIÈRE (2026-10-17, Sacha : « les flèches sont trop discrètes : rends-les plus grosses et plus
+   lumineuses, avec une animation qui se voit vraiment ») : ×3 au lieu de ×2, emboîtés l'un dans l'autre (une seule flèche qui file) : au repos
+   en BRUN (celui du mot), celui qui s'allume en BLANC CHAUFFÉ, cerclé de brun (sans ce contour le blanc se noie dans le lingot clair). L'animation est une VAGUE qui
+   court de gauche à droite : chaque chevron s'allume, grossit et avance de 3 px, puis retombe dans le brun. Rien que opacity/transform sur les
+   chevrons (plus leur couleur) ; le contour vit sur le PARENT (.mChev) : un drop-shadow posé sur un élément masqué (.pxi) est rogné par son propre masque.
+   Sous 200 px de lingot (écran de 320-360), ils redescendent à ×2 pour laisser au mot sa place. */
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev{gap:0;margin-left:8px;filter:drop-shadow(1px 0 0 var(--auT)) drop-shadow(-1px 0 0 var(--auT)) drop-shadow(0 -1px 0 var(--auT)) drop-shadow(0 2px 0 var(--auT))}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi{--pxs:3;color:var(--auT);opacity:.55;filter:none;animation:gChevFile .9s var(--ease) infinite}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi+.pxi{margin-left:-7px}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi:nth-child(2){animation-delay:.15s}
+html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi:nth-child(3){animation-delay:.3s}
+@keyframes gChevFile{0%,45%,100%{color:var(--auT);opacity:.55;transform:translateX(0) scale(.9)}18%{color:var(--au0);opacity:1;transform:translateX(3px) scale(1.16)}}
+@container (max-width:200px){html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi{--pxs:2}
+  html body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer .mChev .pxi+.pxi{margin-left:-5px}}
+@media (prefers-reduced-motion:reduce){html body #garage#garage #gAct>#gJouer .mChev .pxi{opacity:1;transform:none}}
+html[data-reduced-motion="1"] body #garage#garage #gAct>#gJouer .mChev .pxi{animation:none;opacity:1;transform:none}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre

@@ -37,6 +37,15 @@
 - **À trancher par Sacha** : la caisse qui fait sa figure au-dessus d'un PLOT ou d'une ÉPAVE la percute quand même (elle est sur la route :
   c'est la règle du « sans décoller ») — avant, le saut nitro passait par-dessus. Et le GLISSER de Léo garde son saut pour le salto.
 
+## LES FLÈCHES DU JOUER DU GARAGE, EN GRAND ET EN LUMIÈRE (2026-10-17 soir, Sacha : « rajoute le bouton jouer avec les trois flèches animées dans le garage », puis « les flèches sont trop discrètes : rends-les plus grosses et plus lumineuses, avec une animation qui se voit vraiment »)
+- Constat (banc, v602, debout 390 et couché 844×390) : les trois chevrons étaient bien là depuis le 15/10, mais à peine lisibles — brun
+  à 45 % sur l'or, un seul « allumé » à la fois dans la MÊME couleur (seule l'opacité changeait), en ×2 (18 px).
+- Désormais (bloc CSS en fin de la barre du garage, `gChevFile`) : chevrons ×3 (27 px), emboîtés (−7 px), au repos en BRUN du mot à 55 % ;
+  une VAGUE court de gauche à droite (0,9 s, décalages 0,15 s) — chacun passe au BLANC CHAUFFÉ, grossit (×1,16) et avance de 3 px, puis
+  retombe. Le contour brun (quatre `drop-shadow`) vit sur le parent `.mChev` : sur le `.pxi` (masqué) le masque rognerait l'ombre.
+- Sous 200 px de lingot (téléphones de 320-360 px), retour à ×2 (−5 px) pour que le mot garde sa place. « Réduire les animations » :
+  chevrons figés, pleinement opaques. Seul le JOUER du garage change (accueil, missions, UX 8 intacts).
+
 ## PLUS DE PLAQUE À L'AVANT (2026-10-17 soir, Sacha : « pas de plaque d'immatriculation à l'avant »)
 - `plqPose` ne pose plus que la plaque ARRIÈRE (`PLQ.pos[lvl].ar`) ; plus de rayons tirés vers le nez (`plqCherche(1,…)` n'est plus appelé :
   la pose coûte deux fois moins). L'atelier de la plaque, ses modèles et le profil sont inchangés. `dbgPlaque('pos')` ne liste plus que `ar`.
@@ -73,6 +82,7 @@
   portions de piste ; au plus un quart des Starlink et un cinquième des débris (les passants, le champ et les trains gardent leur part).
 - Décor pur : `SATOB` est vide, rien à percuter, les pièces ne s'écartent plus, ni liseré rouge ni étoile qui pulse. `?sats=route` (`SAT_OBST_V`)
   rend les obstacles de l'après-midi ; `?sans=satobst` n'existe plus (c'est le défaut).
+
 ## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
 - **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
   la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.
