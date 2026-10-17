@@ -22997,9 +22997,13 @@ function parisMur(dt,cause){ // LES FAÇADES SONT DES MURS : un CHOC par contact
   const va=Math.abs(vA),a=Math.asin(Math.min(1,into/Math.max(1,va))),kmh=va*3.6*SPD,now=performance.now();
   if(a>.52&&kmh>200){impMur(out);explode(cause||'facade');return;} // (2026-10-15) L'IMPACT : la paroi est le bord de la route
   try{impMini(out,a,kmh,into);}catch(e){} // (2026-10-15 soir) L'IMPACT EN MINIATURE : le coup d'épaule, au premier contact (voir IMPM)
-  psi=-psi*.3;yawR=0;slipB=0;vL=0;
+  /* (2026-10-17, session « Physique et gameplay fluides ») LE COUP D'ÉPAULE SANS TÉLÉPORTE : la paroi renvoyait le nez (−30 % du cap) et
+     prenait jusqu'à 30 % de la vitesse en UNE image — 22° de cap d'un coup sur un choc à 17°, partout où la route a des murs (couloirs du
+     canyon, bourrelets du glacier). Même renvoi, même perte : le cap y va en ~50 ms (PARIS.psiR/psiK, appliqué par la conduite juste
+     après le lacet), la vitesse en ~0,2 s (vFrein). Un renvoi en cours n'est pas recalculé par les images de contact qui suivent. */
+  if(!(PARIS.psiK>0)){PARIS.psiR=-psi*.3;PARIS.psiK=1;}yawR=0;slipB=0;vL=0;
   const choc=now-(PARIS.chocT||0)>220;if(choc)PARIS.chocT=now;       // (mesuré : perdre à CHAQUE image faisait tomber de 151 à 20 km/h en 3 s)
-  vA*=choc?1-Math.min(.3,.03+a*.9):1-.3*(dt||.016);
+  if(choc)vFrein(1-Math.min(.3,.03+a*.9));else vA*=1-.3*(dt||.016);
   if(now-PARIS.murT>90){PARIS.murT=now;try{DRIFT_V.set(out*CARS[level].w*.5,.25,.2);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);noiseBurst(.1,.1+a*.3,2600);}catch(e){}
     shake=Math.max(shake,.12+a);hap(8);}
   if(now-PARIS.murAnn>2500&&a>.12){PARIS.murAnn=now;try{popTexte(TR('FROTTE !'),'#ffb36b',0);}catch(e){}}
@@ -39213,7 +39217,7 @@ function popTexte(txt,col,prio){
   const k9=popTexte._k=!popTexte._k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on');
   try{popSuit();}catch(x){} // posé tout de suite sur la caisse (sinon une image au centre de l'écran)
 }
-function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>200;o._viseT=n;return s9;} // la visée repart de zéro après une absence (vol, garage, respawn)
+function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>400;o._viseT=n;return s9;} /* (2026-10-17) 200 → 400 ms, comme CAM_REPRISE : une image qui tousse ne fait plus sauter la visée */ // la visée repart de zéro après une absence (vol, garage, respawn)
 /* ================= LE FLOW — la signature de conduite de CASH CAR (2026-09-25) =================
    User : « pousse encore plus, fais un truc parfait pour qu'on puisse démarquer notre jeu pour ça ». Le jeu avait des
    gestes (drift, rase-bord, figures, bumps, poses parfaites) qui payaient chacun dans leur coin. Le FLOW les TISSE en une
@@ -48598,6 +48602,11 @@ function camRouteCabrage(dt,camBack,camH){ // LE CABRAGE ANTICIPÉ : pose C.q, l
      l'essentiel du 0,65 restant (à ,5 : 0,75) ; 1 = inchangé. */
 const CAM_REGARD={on:true,k:.45,min:35,max:90,por:.3,comp:1,D:35,kV:0}; // D, kV : lus par dbgCamRoute (dernière image)
 const CAM_TAILLE={on:true,fovMax:125,genou:6,recMax:.6,boost:1};
+/* (2026-10-17, LA CAMÉRA SANS SURSAUT) LA REPRISE DE CONDUITE se reconnaît à un trou de plus de CAM_REPRISE ms dans la conduite (garage,
+   pause, respawn ; le retour d'un vol, lui, est signalé par startFall). À 150 ms, une image qui tousse (ramasse-miettes, programme compilé
+   au 1er nitro — sur iPhone 150 à 300 ms) passait pour une reprise : la visée perdait son pivot (`phi=0`), la caméra se recalait d'1,5 m
+   sur le côté et le champ repartait d'ailleurs — un second sursaut juste après le premier. Les vraies absences durent plus d'une seconde. */
+const CAM_REPRISE=400;
 /* LA CAMÉRA HÉROS (2026-09-30, session SON — Sacha : « la voiture est souvent trop petite pour l'écran, surtout sur mobile : trouve des trucs
    de caméra pour la jouabilité et la sensation de vitesse, surtout sur route »). MESURÉ (banc cam-mesure2.js, `dbgCamRoute().caisse`, image
    normale — ⚠ en rendu logiciel chaque image passait pour une « reprise de conduite » et la caméra reculait de v·dt : `dbgCamReprise`) :
@@ -48687,6 +48696,15 @@ function vCroisiere(){return vmaxShow()*1.55;}
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,pitchS=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
+/* LE FREIN ÉTALÉ (2026-10-17, session « Physique et gameplay fluides » — Sacha : « améliore une dernière fois la physique et le gameplay,
+   fluidifie la conduite, la voltige et tout », « la dernière amélioration avant de figer le gameplay »). Une vitesse PERDUE d'un coup
+   (la pose, le choc contre une paroi, la foudre, un débris, un accrochage) tombait en UNE image : jusqu'à −45 % entre deux images, la
+   caisse « freinait au mur » et la caméra sursautait. La même perte, au même total, passe désormais en ~0,2 s : FREIN_L est le
+   LOGARITHME de ce qui reste à perdre (≤ 0), vidé en exponentielle (FREIN_TAU) par la conduite — deux chocs se COMPOSENT comme avant
+   (×0,7 puis ×0,6 = ×0,42). Hors conduite (en vol, vA ne sert pas) la perte reste immédiate ; au décollage le reste est payé d'un coup
+   (startFall). `?frein=0` = l'ancien coup sec, pour comparer. */
+const FREIN_TAU=/[?&]frein=0\b/.test(location.search)?0:.08;let FREIN_L=0;
+function vFrein(k){k=Math.max(.01,Math.min(1,k));if(mode!=='drive'||!FREIN_TAU)vA*=k;else FREIN_L+=Math.log(k);}
 /* ⚠ LE VOL EN VRILLE EST UN PARTI PRIS, PAS UN OUBLI (tranché par le user, 2026-08-05).
    J'ai tenté deux fois de « corriger » la rotation de la caisse en vol — d'abord en la remplaçant
    par une inclinaison de virage pilotant le lacet (trop de latence au braquage), puis en gardant
@@ -48773,7 +48791,7 @@ function veqDepart(bord,impU,roll0,qDep){ // au décollage (startFall)
   figLibreRaz();
   VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;VEQ.ext=0;VEQ.pose=0;VEQ.si=-1;VEQ.rate=false;VEQ.sp=0;VEQ.spV=0;
   VEQ.by=0;VEQ.byV=0;VEQ.bp=0;VEQ.bpV=bord?0:-1.1*THREE.MathUtils.clamp((impU==null?.9:impU)/30,0,1); // un tremplin lève un peu le nez : la balance commence
-  VEQ.br=bord?roll0:0;VEQ.brV=bord?bascDir*4:0; // bord : la caisse BASCULE vers le vide, les ressorts la rattrapent
+  VEQ.br=roll0;VEQ.brV=bord?bascDir*4:0; // bord : la caisse BASCULE vers le vide, les ressorts la rattrapent — (2026-10-17) tout décollage emporte son roulis (il retombait à 0 en une image hors du bord)
   VEQ.qb.copy(qDep);if(VEQ.lect)VEQ.lect.vide();
 }
 function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'efface, tout geste nouveau agit
@@ -50622,6 +50640,10 @@ function fireLaunchBoost(){
   },1900);
 }
 let pwrNitroT=0,pwrAirT=0,pwrSpdT=0; // POUVOIRS : nitro infinie · airtime infini · speed up +60%
+/* (2026-10-17, session « Physique et gameplay fluides ») LE ×2 DE VITESSE QUI SE PREND ET SE REND : l'avance au sol passait de ×1 à ×2 en UNE
+   image au ramassage, et de ×2 à ×1 à l'expiration — un coup de frein de 50 % sans rien toucher. `pwrSpdK` (0 → 1) suit le pouvoir en
+   exponentielle (τ 1/6 s : 95 % en 0,5 s) ; vitMult le lit. Durée du pouvoir inchangée. */
+let pwrSpdK=0;
 let pwrMagT=0,pwrAurT=0;  // (pouvoirs v2) aimant · aura ×2 (le bouclier est retiré le 29/09) — voir PWR_DEFS
 const MAG_R=50; // (2026-09-29, Sacha) le RAYON de l'aimant, en mètres, dans toutes les directions — voir « L'AIMANT v3 »
 let gameOver=false,paused=false,running=false,started=false,best=0;
@@ -51670,7 +51692,7 @@ function respawn(){
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
-  lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;bascT=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
+  lat=0;psi=0;vA=26;vL=0;side=1;FREIN_L=0;PARIS.psiK=0;/* (2026-10-17) ni frein étalé ni renvoi de paroi en cours */driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;bascT=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
   if(SENS)try{SENS_PA.rs=1;}catch(e){} // (2026-10-14, sensations · passages) un replacement vient d'avoir lieu : sensPassages le lit à l'image suivante (rien n'est joué ici — respawn sert aussi au chargement et au départ)
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
@@ -51810,7 +51832,7 @@ const NTR_BOOST=.1,NTR_BOOST_MAX=1.6,NTR_T=2; // (2026-09-29, nuit, Sacha : « �
    Sacha a fixé ×2,6 comme la vitesse la plus haute qui reste pilotable : c'est le plafond de TOUT ce qui multiplie l'avance (NITROOO,
    VITESSE ×2). VITESSE garde tout son effet tant que NITROOO n'est pas lancé (×2), et complète jusqu'à ×2,6 ensuite. Un seul endroit : la
    boucle (spdMult) et la LIGNE PARFAITE (ligneTick) lisent vitMult(). */
-function vitMult(){return Math.min(1+NTR_BOOST_MAX,(pwrSpdT>0?2:1)*(1+NTR.boost));}
+function vitMult(){return Math.min(1+NTR_BOOST_MAX,(1+pwrSpdK)*(1+NTR.boost));} /* (2026-10-17) pwrSpdK : le ×2 de VITESSE monte et retombe en ~0,4 s (voir pwrSpdK) */
 const ntrShellM=jetMat(0xff3a0c,0xfff6d0,0xffffff,.9,1.25,.7),ntrCoreM=jetMat(0xffc050,0xffffff,0xffffff,1,.75,1.1); // (banc) blanc à la racine, corps ROUGE-orange : la caisse orange ne s'y noie plus
 function nitroooPart(){ // le geste est ARMÉ (loop, branche 'drive') : la caisse s'embrase
   if(SANS_NITROOO)return; // (2026-10-15, Sacha) NITROOO coupé : ni comète, ni boost, ni dragon
@@ -52051,6 +52073,8 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
   if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
+  const cap0=psi-slipB-BKV.gl; /* (2026-10-17, LE DÉCOLLAGE SANS SURSAUT) la TRAJECTOIRE au sol, lue avant la remise à zéro : au sol on avance de vA·cos(cap) et l'on dérive de vA·sin(cap) (vL) ; l'éjection prenait vA ENTIER le long de la route PLUS la dérive — à 30° de cap, la caisse décollait 11 % plus vite qu'elle ne roulait, 3° à côté de sa trajectoire */
+  if(FREIN_L<0){vA*=Math.exp(FREIN_L);FREIN_L=0;}PARIS.psiK=0; // (2026-10-17) un FREIN ÉTALÉ en cours se paie d'un coup au décollage ; la paroi lâche la caisse (voir parisMur)
   ECH=0;SVOL.t=0;/* (2026-10-14, session SON) le chrono de la tension repart : un vol neuf monte de zéro (k, lui, retombe tout seul) */figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.wB=0;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
@@ -52079,10 +52103,14 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   frameAt(s,F);
   if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
   // (bord v2) au BORD la caisse part d'où elle est (hopY) : le +0,6 d'origine la faisait monter de 60 cm en une image — le « déclic »
-  fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+(bord?hopY:.6));
+  /* (2026-10-17, LE DÉCOLLAGE SANS SURSAUT) …et plus aucun décollage ne fait ce bond : tremplin, saut nitro, crête, trou — MESURÉ au banc
+     pas à pas (feel.cjs) : la caisse montait de 0,61 m entre deux images (la vitesse de 4 images de montée d'un coup), puis repartait
+     à sa vitesse. Elle part désormais d'où elle roule ; l'impulsion seule la lève. La pose ne peut pas être déclarée avant 0,35 s de vol
+     (0,1 s pour un plan percé) : la caisse a le temps de quitter la dalle. */
+  fallPos.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY);
   FLOW.s0=s;FLOW.p0.copy(fallPos); // (FLOW v2) d'où part le vol — la pose dira si c'était un RACCOURCI
   {const vm9=vitMult(); /* (2026-09-30) l'ÉJECTION = la vitesse d'avance RÉELLE : au sol, NITROOO et VITESSE ×2 multiplient l'avance (vitMult), pas vA — la caisse décollait sans eux */
-  fallVel.copy(F.t).multiplyScalar(vA*driveDir*(impF||1)*vm9).addScaledVector(F.b,vL*driveDir*vm9).addScaledVector(F.n,impU==null?.9:impU);} // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux) — ⚠ (bord v2) `impU==null` et non `impU||` : le bord passe 0 (aucune impulsion), qui valait .9
+  fallVel.copy(F.t).multiplyScalar(vA*Math.cos(cap0)*driveDir*(impF||1)*vm9).addScaledVector(F.b,vL*driveDir*vm9) /* (2026-10-17) ×cos(cap) : la vitesse et le cap du vol sont ceux de la route (voir cap0) */.addScaledVector(F.n,impU==null?.9:impU);} // driveDir : on décolle dans le sens où l'on roulait (le parc autorise les deux) — ⚠ (bord v2) `impU==null` et non `impU||` : le bord passe 0 (aucune impulsion), qui valait .9
   // INERTIE RÉELLE (2026-07-20) : fini le plafond TOTAL de 95 qui bridait l'éjection — éjecté à
   // 300 km/h, on VOLE à 300 km/h (le compteur ne s'effondre plus au décollage), et la gravité en
   // RAJOUTE en descente, comme une vraie chute. Seule la composante VERTICALE est bornée (70) :
@@ -52101,7 +52129,10 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   bascOn=!!bord;bascT=0;bascDir=bord?-(Math.sign(lat)||1):1;levreY=0;
   TBORD.t=bord&&TORD.on?1.1:0;TBORD.on=false; // (LE BORD DE LA ROUTE TORDUE) la gravité de la route, le temps de la bascule
   if(TBORD.t>0){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));curLatOff=lat;curHOff=side<0?-THICK:0;} // le radar part du bord quitté (sinon, à la 1re image, il parle encore du vol d'avant)
-  if(bord){airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
+  /* (2026-10-17, LE DÉCOLLAGE SANS SURSAUT) le roulis de la carrosserie (jusqu'à 24° dans un virage) passe AU VOL pour tout décollage, plus
+     seulement au bord : sur un tremplin pris en courbe, un saut nitro au milieu d'un virage, la caisse se redressait d'un coup à plat en une
+     image ; elle part penchée et les ressorts du VOL ÉQUILIBRÉ la rattrapent en se balançant (VEQ.br, voir veqDepart). */
+  {airRoll=roll0;qTmp.setFromAxisAngle(tmp.set(0,0,1),roll0);carGroup.quaternion.multiply(qTmp);}
   veqDepart(bord,impU,roll0,carGroup.quaternion); // (2026-10-14) LE VOL ÉQUILIBRÉ : verrou du volant, ressorts de la caisse
   figDepart(bord); // (2026-10-14) LES FIGURES v2 : la caisse EMPORTE son élan de rotation (voir LES FIGURES v2)
   /* (bord v2) L'IMAGE DU DÉCOLLAGE : elle ne passe ni par le placement de la conduite (le mode vient de changer) ni par celui du vol
@@ -52109,7 +52140,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
      banc). On les avance ici d'un même pas ; la caméra de vol repart de là (voir le suivi en vol), et la conduite, au retour, repartira
      de la caméra RÉELLE (`_camDriveT`/`_camLatT` périmés) au lieu d'un écart d'avant le saut. */
   {tmp.subVectors(fallPos,carGroup.position);if(tmp.lengthSq()<400){carGroup.position.copy(fallPos);camera.position.add(tmp);}
-   loop._camAirT=0;loop._camDriveT=0;loop._camLatT=0;}
+   loop._camAirT=0;loop._camDriveT=0;loop._camLatT=0;loop._fovBT=0;CAMV.p0ok=false;loop._nk=nitroOn?1:0;} /* (2026-10-17) _fovBT : un vol de moins de 0,4 s ne rend plus à la pose le champ d'AVANT le vol (+9° d'un coup) · p0ok : la caméra de vol repart de la vraie (voir CAMV.p0) · _nk : le plané du nitro part de l'état du sol (voir le réacteur) */
   // chaîne neuve : le vol commence, tout est à prouver
   chain=0;chainVal=rollover;chainMult=1;chainSeen={};spinHalf=0;
   heartBeat.vu=0; // (console de son) la mallette pourra chauffer — et le dire — une fois dans ce vol
@@ -52304,7 +52335,9 @@ function tryLand(dt){
   const figN9=FX2.nitF|0;{const nf9=nitroR;figNitRend(!poseRatee);if(SONV2&&nitroR>nf9+.01&&nf9<=nPose9+.01)sfx('nitro.plein',{t:.2});} // (2026-10-17, LA FIGURE SE PAIE — loi 6) chaque figure plantée rend 30 % à la pose RÉUSSIE ; de travers, à contresens ou en plein tour : perdu — le « plein » sonne une fois, avec celui de la pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
   const landLoss=Math.min(.30,bigness*.15+impact*.008); // un peu plus doux qu'avant — (2026-10-09, Sacha : « plus généreuse ») plafond .52 → .30 : un grand vol ne coûte plus la moitié de la vitesse à la pose
-  vA*=(1-landLoss);vL*=(1-landLoss);
+  /* (2026-10-17, LA POSE QUI MORD AU CONTACT) la perte de vitesse de la pose (même formule, même plafond de 30 %) ne tombe plus à la
+     DÉCLARATION — jusqu'à 3 m au-dessus du bitume, 0,1 à 0,3 s avant les roues, en UNE image : la caisse freinait EN L'AIR. Elle part
+     au contact (touche9, avec le choc, la gerbe et la gomme) et s'étale sur ~0,2 s (vFrein, LE FREIN ÉTALÉ). */
   if(landLoss>.2&&impact>=4.5)dropChip(2); // (2026-10-09) la tôle qui part = une pose DURE : un grand vol posé en douceur (PARFAIT) ne se casse plus
   if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
   if(window.__poseJ)window.__poseJ.push({h:+hOff.toFixed(2),hAvant:+prevH.toFixed(2),lat:+latX9.toFixed(2),vN:+vN.toFixed(1),vT:+fallVel.dot(T[bestI]).toFixed(1),face:sideL,t:+fallT.toFixed(2),vA:+vA.toFixed(1),psi:+psi.toFixed(2)}); /* (banc) le journal des poses */
@@ -52319,6 +52352,7 @@ function tryLand(dt){
   const sensPsi9=psi,sensVer9=fallT>.7||chain>0||chainVal>0; // (2026-10-14, sensations · pose) le crabe de l'arrivée, et « cette pose aura-t-elle un verdict (donc sa vibration) ? » — lus ICI, rendus au contact (sensPose)
   {const hR9=sideL>0?hOff:-THICK-hOff,nI9=bestI,lL9=landLoss,vN9=vN,imp9=impact,sd9=sideL;
    const touche9=function(){
+     vFrein(1-lL9); // (2026-10-17) la pose mord AU CONTACT, en ~0,2 s (voir plus haut)
      veqContact(imp9,nI9,sd9); // (2026-10-14) LE CONTACT : la suspension claque, le nez plonge, la caméra s'enfonce
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
@@ -52876,9 +52910,9 @@ function resetGame(){
   // ni vitesse ni valeur de pièces. `level` est FIXE pour toute la partie (plus de montée en course).
   level=equippedCar();levelCash=0;
   buildCar(CARS[level]);
-  nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
+  nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;FREIN_L=0;PARIS.psiK=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
   coinsGot=0;engTier=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE)
-  pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
+  pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0;FROLE.s0=null; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
@@ -52998,7 +53032,7 @@ function endGame(){
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
   for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;
-  pwrNitroT=pwrAirT=pwrSpdT=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
+  pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
   if(!TUTO.quitte&&!SANDBOX&&!PARK.on)AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes — (2026-09-30) pas une leçon quittée, le bac à sable ni le parc (⚠ QUITTER baisse SANDBOX le temps de cet appel : c'est AIP.tick qui n'y observe rien)
@@ -54917,7 +54951,7 @@ function foudreFrappe(){
   const d=carGroup.position.distanceTo(VFOU.p),dessous=mode==='drive'&&side<0;
   if(mode==='boom')return;
   if(!dessous&&d<VFOU_R+1.2){ // FOUDROYÉ : la vitesse, la nitro et le FLOW prennent la décharge — pas la vie
-    vA*=.55;momT=0;nitroR*=.4;nitroX*=.4;FLOW.v=Math.max(0,FLOW.v-25);FLOW.idle=2;VC.zap=.7;VC.foudN=(VC.foudN|0)+1;
+    vFrein(.55);momT=0;nitroR*=.4;nitroX*=.4;FLOW.v=Math.max(0,FLOW.v-25);FLOW.idle=2;VC.zap=.7;VC.foudN=(VC.foudN|0)+1;
     flashEcran('rgba(215,200,255,.9)');shake=Math.max(shake,.7);hap([40,30,90]);
     popTexte('FOUDROYE !','#b58cff',2);try{if(SONV2)sfx('foudre.touche');else crackle(.8);}catch(e){}
   }else if(dessous){popTexte("A L'ABRI",'#9fe8ff',0);if(SONV2)sfx('abri');}
@@ -55002,7 +55036,7 @@ function debFrappe(){
   if(mode!=='drive'||gameOver)return; // en vol, on l'a survolé
   if(side<0){if(d<DEB_R+9){popTexte("A L'ABRI",'#9fe8ff',0);if(SONV2)sfx('abri');}return;}
   if(d<DEB_R+1.2){ // TOUCHÉ : la vitesse et le flow prennent le choc — pas la vie
-    vA*=.6;momT=0;FLOW.v=Math.max(0,FLOW.v-20);FLOW.idle=2;D.serie=0;
+    vFrein(.6);momT=0;FLOW.v=Math.max(0,FLOW.v-20);FLOW.idle=2;D.serie=0;
     hopV=Math.max(hopV,7.5); // en gravité lunaire, ça plane : on voit ce qu'on a pris
     flashEcran('rgba(255,120,40,.8)');shake=Math.max(shake,1.1);hap([40,30,90]);
     popTexte('TOUCHE !','#ff5a3c',2);try{thud(12);}catch(e){}
@@ -55280,7 +55314,7 @@ function traficChoc(c,dl){ // l'accrochage : la voiture part en toupie, toi tu p
   const sg=(side*lat>=c.lat)?-1:1; // elle part du côté opposé au choc
   c.vel=new THREE.Vector3().copy(VF.t).multiplyScalar(Math.max(c.v,Math.abs(vA)*.55)*SPD).addScaledVector(VF.b,sg*(6+Math.random()*5)).addScaledVector(VF.n,side*(5+Math.random()*4));
   c.w=new THREE.Vector3((Math.random()-.5)*7,(Math.random()-.5)*9,(Math.random()-.5)*7);
-  vA*=.62;momT=0;FLOW.v=Math.max(0,FLOW.v-15);FLOW.idle=2;shake=Math.max(shake,.5);hap([30,20,40]);VTR.chocN++;VC.gel=.3;
+  vFrein(.62);momT=0;FLOW.v=Math.max(0,FLOW.v-15);FLOW.idle=2;shake=Math.max(shake,.5);hap([30,20,40]);VTR.chocN++;VC.gel=.3;
   popTexte('ACCROCHAGE !','#ff5e7a',1);
   try{if(SONV2)sfx('trafic.accroche');else{thud(10);noiseBurst(.2,.12,3200);}}catch(e){}
   try{sparkBurst(sparkGold,carGroup.position,16,10);}catch(e){}
@@ -63993,7 +64027,7 @@ function loop(now){
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
     {const pn9=pwrNitroT>0,ps9=pwrSpdT>0;
     pwrNitroT=Math.max(0,pwrNitroT-dt);
-    pwrSpdT=Math.max(0,pwrSpdT-dt);
+    pwrSpdT=Math.max(0,pwrSpdT-dt);pwrSpdK+=((pwrSpdT>0?1:0)-pwrSpdK)*(1-Math.exp(-dt*6));if(pwrSpdT<=0&&pwrSpdK<.003)pwrSpdK=0; /* (2026-10-17) le ×2 de VITESSE se prend et se rend en douceur (voir pwrSpdK) */
     if(pn9&&pwrNitroT<=0)pwrFinSnd('n');else if(ps9&&pwrSpdT<=0)pwrFinSnd('v');} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille — (pouvoirs v2) avec sa clé (la session SON la lit)
     if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
     if(pwrAirT>0){pwrAirT-=dt*pwrAirK();if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
@@ -64102,6 +64136,7 @@ function loop(now){
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
       vA-=vA*Math.abs(vA)*(acc9/(maxSp*maxSp*5.8))*dt;
       vA*=Math.max(0,1-.03*dt);
+      if(FREIN_L<0){const f9=FREIN_L*(1-Math.exp(-dt/FREIN_TAU));vA*=Math.exp(f9);FREIN_L-=f9;if(FREIN_L>-1e-4){vA*=Math.exp(FREIN_L);FREIN_L=0;}} // (2026-10-17) LE FREIN ÉTALÉ : la perte d'un choc ou d'une pose, en ~0,2 s (voir FREIN_L)
       if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.4*dt);
       if(PARK.on&&vA>PARK_VCAP)vA=PARK_VCAP; // PARC : gouverneur de vitesse — la nitro infinie POUSSE mais ne s'emballe pas (contrôlable)
       if(vA<-16)vA=-16; // (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») -8 → -16 : 13,8 → 27,6 km/h affichés en recul (×3,6×SPD)
@@ -64142,6 +64177,7 @@ function loop(now){
        const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
        slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
+       if(PARIS.psiK>0){PARIS.psiK=Math.max(0,PARIS.psiK-dt/.06);psi+=(PARIS.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir parisMur)
        if(BKV.sur)BKV.gl=THREE.MathUtils.clamp(BKV.gl+yawR*dt,-BK_VG.glMax,BK_VG.glMax); // (2026-10-15 soir) SUR LE VERGLAS le pouce tourne le NEZ, la trajectoire ne suit qu'en BK_VG.tau s (voir banqVerglas) : la caisse GLISSE
        if(facOn()&&!drifte&&Math.abs(steer)<.1)psi*=Math.exp(-dt*FAC_CAP*spdMult); // (MODE FACILE) pouce lâché : le cap revient dans l'axe de la route — (HAUTE VITESSE) en autant de MÈTRES qu'à ×1
        const aB9=Math.abs(yawR/spdMult*vA)*SPD; // (HAUTE VITESSE) la charge latérale de BASE : celle qu'aurait le même virage à ×1
@@ -64517,7 +64553,7 @@ function loop(now){
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
         camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
        camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9;
-        camLean=steer*.065;camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035)
+        camLean=(loop._viseR==null||loop._viseR>=1)?steer*.065:camLean+(steer*.065-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
@@ -64526,7 +64562,7 @@ function loop(now){
         // plantée au milieu de l'image et c'est la route qui coulissait dessous. Elle suit désormais avec un RETARD (~0,35 s) : quand on
         // change de ligne, on VOIT la caisse partir vers le bord de l'écran, puis la caméra la rejoint. Pas de rappel vers l'axe : la cible
         // est TA position (×1), seul le rythme change.
-        {const n9=performance.now();if(loop._camLat==null||n9-(loop._camLatT||0)>(window.dbgCamReprise||150))loop._camLat=lat;loop._camLatT=n9;
+        {const n9=performance.now();if(loop._camLat==null||n9-(loop._camLatT||0)>(window.dbgCamReprise||CAM_REPRISE))loop._camLat=lat;loop._camLatT=n9;
          loop._camLat+=(lat-loop._camLat)*(1-Math.exp(-dt/.22));}
         // ⚠ PLAFONNÉ à 30 % du recul : la caméra n'est qu'à ~4 m derrière — un retard de 4 m montrait la caisse DE PROFIL, collée au bord
         /* ⚠ (2026-09-30) SOUS LA DALLE, LA CAMÉRA DEVANÇAIT LA CAISSE : il y avait ici un `×(side<0?−1:1)` — mais `lat` et `_camLat` vivent
@@ -64537,7 +64573,7 @@ function loop(now){
         tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9);
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
-         if(n9-(loop._camDriveT||0)>(window.dbgCamReprise||150)){ /* (banc) dbgCamReprise : en rendu logiciel (200-300 ms l'image) CHAQUE image passait pour une reprise de conduite et la caméra reculait de v·dt à chaque image */loop._camOff.subVectors(camera.position,loop._carPrev&&loop._carPrev.distanceToSquared(carGroup.position)<900?loop._carPrev:carGroup.position);CAM_ROUTE.phi=0;} /* (2026-10-01, LA POSE) l'écart repart de la caisse de l'image D'AVANT (`_carPrev`) : mesuré à la caisse de CETTE image, il clouait la caméra sur place une image entière (elle n'avançait que de 0,4 m au lieu de 0,8, de 0,6 au lieu de 2,5 à 540 km/h), puis elle rattrapait — l'à-coup de la pose */ // (vague 3) le pivot anticipé repart de zéro, lui aussi
+         if(n9-(loop._camDriveT||0)>(window.dbgCamReprise||CAM_REPRISE)){ /* (banc) dbgCamReprise : en rendu logiciel (200-300 ms l'image) CHAQUE image passait pour une reprise de conduite et la caméra reculait de v·dt à chaque image */loop._camOff.subVectors(camera.position,loop._carPrev&&loop._carPrev.distanceToSquared(carGroup.position)<900?loop._carPrev:carGroup.position);CAM_ROUTE.phi=0;} /* (2026-10-01, LA POSE) l'écart repart de la caisse de l'image D'AVANT (`_carPrev`) : mesuré à la caisse de CETTE image, il clouait la caméra sur place une image entière (elle n'avançait que de 0,4 m au lieu de 0,8, de 0,6 au lieu de 2,5 à 540 km/h), puis elle rattrapait — l'à-coup de la pose */ // (vague 3) le pivot anticipé repart de zéro, lui aussi
          loop._camDriveT=n9;}
         {const off=loop._camOff,cibleOff=tmp2.sub(carGroup.position);        // l'écart VOULU (tmp2 redevient un écart)
          camRouteTonneau(cibleOff,loop._camD,dt); // (vague 3) dessus ↔ dessous : la caméra ROULE et orbite (voir CAM_ROUTE)
@@ -64587,7 +64623,7 @@ function loop(now){
         let fovT=Math.min(160,fovPor(fovPunch*FOVP_K+fb9)); // (portrait : élargi par la tangente, voir fovPor)
         if(ct9){const f09=Math.min(160,fovPor(fb9));fovT=camTailleFov(f09)+(fovT-f09);}
         else if(H9){const H=CAM_HEROS,K=H.fovMaxL-H.genouL,f09=Math.min(160,fovPor(fb9));fovT=(f09<=K?f09:K+H.genouL*(1-Math.exp(-(f09-K)/H.genouL)))+(fovT-f09);} /* (CAM_HEROS) COUCHÉ aussi, le champ tenu passe par un genou (112°) — les coups passent par-dessus */ // (2026-09-30) CAM_TAILLE : le champ tenu passe par le genou, le COUP (fovPunch) passe par-dessus, intact
-        {const n9=performance.now();if(loop._fovB==null||n9-(loop._fovBT||0)>(window.dbgCamReprise||150))loop._fovB=camera.fov;loop._fovBT=n9;} // le champ « de base » repart du vrai champ à chaque reprise de conduite
+        {const n9=performance.now();if(loop._fovB==null||n9-(loop._fovBT||0)>(window.dbgCamReprise||CAM_REPRISE))loop._fovB=camera.fov;loop._fovBT=n9;} // le champ « de base » repart du vrai champ à chaque reprise de conduite
         loop._fovB+=(fovT-loop._fovB)*Math.min(1,dt*(NFX.off>0&&fovT<loop._fovB?2.4:6));
         CAMV.zoom=Math.max(0,CAMV.zoom-dt*2);CAMV.zp=24*CAMV.zoom*CAMV.zoom*FOVP_K; // (2026-09-28) le COUP DE ZOOM d'une pose PARFAITE : sec à l'impact (−24°), relâché en 0,5 s — (2026-09-30) à 30 % sous « Réduire les animations », comme fovPunch
         camera.fov=Math.max(20,loop._fovB-CAMV.zp); // (vague 3) à l'extinction de la nitro le champ RETOMBE en douceur (il s'ouvre toujours sec)
@@ -64652,8 +64688,13 @@ function loop(now){
       const yawIn=veqVolant()*(1.15+Math.min(.6,fallVel.length()*.004))*dtF; // (2026-10-14) le braquage tenu depuis la route ne continue plus le virage en l'air (veqVolant)
       fallVel.applyAxisAngle(FLY_U,yawIn); // (vol libre) autour du haut de la CAISSE — à gauche à l'écran, c'est à gauche, même sur le dos
       yawAcc+=yawIn;
+      /* (2026-10-17, LE RÉACTEUR QUI S'INSTALLE) lâcher le nitro en vol (ou la jauge qui se vide) faisait passer EN UNE IMAGE la gravité de 40 %
+         à 100 % et l'autorité du manche de 1,7 à 0,85 rad/s — la caisse « tombait comme une pierre » et le cabré cassait net. Le plané et
+         l'autorité suivent désormais `nk9`, l'état du réacteur lissé en ~80 ms (τ 1/12 s), dans les deux sens ; le COUP d'allumage (+46 m/s)
+         reste sec, c'est lui qui répond au doigt. Le décollage nitro tenu part réacteur plein (startFall pose `_nk`). */
+      const nk9=loop._nk=(loop._nk||0)+((nitroOn?1:0)-(loop._nk||0))*(1-Math.exp(-dtF*12));
+      if(nk9>.002){if(TBORD.on)fallVel.addScaledVector(TBORD.u,FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF*nk9);else fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF*nk9;} // (LE BORD DE LA ROUTE TORDUE : il plane contre la gravité de la route) (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
-        if(TBORD.on)fallVel.addScaledVector(TBORD.u,FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF);else fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF; // (LE BORD DE LA ROUTE TORDUE : il plane contre la gravité de la route) (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
         /* (2026-09-26, user : « le boost nitro aérien doit VRAIMENT donner une impulsion, indépendamment de la vitesse de départ, qui s'y
            additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
@@ -64682,7 +64723,7 @@ function loop(now){
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
         pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); /* (2026-10-14, sensations) τ 30 ms quand c'est le pouce qui donne l'assiette · (2026-10-09) LE MANCHE LISSÉ COMME LE VOLANT (τ 47 ms) : le lacet passait par le lissage de steer, le tangage attaquait brut — 97°/s d'un coup au clavier, dosage aux petits coups. Plafonds inchangés (1,7 / 0,85 rad/s) */
-        if(Math.abs(pitchS)>1e-4){const a9=-pitchS*1.7*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);}
+        if(Math.abs(pitchS)>1e-4){const a9=-pitchS*(.85+.85*nk9)*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (2026-10-17) 1,7 rad/s réacteur plein (nk9 : voir LE RÉACTEUR QUI S'INSTALLE)
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x5b7dff:pwrNitroT>0?NINF.jet:0xff7a24);    // (vague 3) le RÉACTEUR aux couleurs de la bible : feu #ff7a24, réserve #5b7dff
         flameCore.mesh.material.color.set(nitroBlue?0xd6e2ff:pwrNitroT>0?NINF.core:0xffe4bc); // cœur blanc chaud / blanc bleuté
@@ -64717,7 +64758,7 @@ function loop(now){
         const pitT=TCTL.act?TCTL.sv*volSens():0;
         const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
         pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); // (2026-10-14) τ 30 ms au pouce · (2026-10-09) le même manche lissé (voir le réacteur)
-        if(Math.abs(pitchS)>1e-4){const a9=-pitchS*.85*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas
+        if(Math.abs(pitchS)>1e-4){const a9=-pitchS*(.85+.85*nk9)*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas — (2026-10-17) l'autorité du réacteur s'éteint en ~80 ms (nk9)
       }
       /* (vol v7, 2026-09-25, user : « l'airtime doit être basé sur un principe d'INERTIE, dépendre de la vitesse de la voiture au
          moment de l'éjection, et PAS de sa vitesse max ») : en l'air, la caisse garde la vitesse qu'elle avait en quittant la route —
@@ -64806,14 +64847,19 @@ function loop(now){
          Gardés de l'après-midi : les secousses calmes (sinus, vent ×.42), la remise à zéro du coup de zoom PARFAIT au décollage, et les
          CHOCS en vol (bump, nuage, catapulte) — mais en petit déplacement de la caméra, plus en coup dans le REGARD (il décadrait la visée). */
       const bigAir=THREE.MathUtils.clamp((fallT-0.5)/2.2,0,1); // 0 au décollage → 1 sur un gros air
-      {const n9=performance.now();if(n9-(CAMV.t||0)>150){CAMV.zoom=0;CAMV.vtg=0;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
+      /* (2026-10-17, LA CAMÉRA SANS SURSAUT) au sol la visée pivote du CABRAGE ANTICIPÉ (CAM_ROUTE.q, jusqu'à 24° au sommet d'une crête) ; la
+         caméra de vol gardait le pivot de sa PLACE mais pas celui de sa VISÉE — le regard sautait de 4 à 14° à la 1re image de chaque saut
+         depuis une bosse. La visée de conduite emporte son pivot, puis fond vers la caisse comme avant. */
+      if(!(loop._camAirT>0)&&loop._vise)loop._vise.applyQuaternion(CAM_ROUTE.q);
+      {const n9=performance.now();if(n9-(CAMV.t||0)>400){CAMV.zoom=0;CAMV.vtg=0;CAMV.p0ok=false;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
       tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
       /* (bord v2) LE SUIVI SANS À-COUP : l'ancien `camera.position.lerp(cible)` suivait une cible qui file — à la 1re image de vol la caméra
          passait d'un coup de « roule AVEC la caisse » (conduite : écart lissé) à « reste presque sur place » : la caisse s'échappait. On
          lisse l'ÉCART caisse→caméra, et la TRAÎNE que produisait l'ancien lerp (l'avance de la caisse, `fallVel·SPD·dtF`) s'installe en
          0,6 s — une fois installée, c'est l'ancien suivi au chiffre près (même cible, même raideur, même retard en régime établi). */
       {const oA=CAMV.oA||(CAMV.oA=new THREE.Vector3());loop._camAirT=(loop._camAirT||0)+dt;
-       oA.subVectors(camera.position,fallPos).addScaledVector(fallVel,SPD*dtF*(1-Math.min(1,loop._camAirT/.6))) // l'écart de l'image d'avant, moins la part de traîne pas encore installée
+       const c09=CAMV.p0ok&&CAMV.p0.distanceToSquared(camera.position)<100?CAMV.p0:camera.position; /* (2026-10-17) l'écart se lit sur la place d'AVANT les secousses (CAMV.p0) : relu après elles, chaque coup et le vent étaient réinjectés dans le suivi — ×1,5 à 2 à 60 i/s, ×3 à 120 Hz, et le « vent ×.42 » voulu n'existait plus */
+       oA.subVectors(c09,fallPos).addScaledVector(fallVel,SPD*dtF*(1-Math.min(1,loop._camAirT/.6))) // l'écart de l'image d'avant, moins la part de traîne pas encore installée
          .lerp(tmp2.sub(fallPos),Math.min(1,dt*(3+bigAir*4.5))); // suivi plus vif en gros air : la caméra ne décroche pas
        camera.position.copy(fallPos).add(oA);}
       /* LE BRAS DE LA CAMÉRA (2026-09-28, nuit, Sacha : « sur mobile la voiture devient trop petite en air time — il faut juste pas que ça
@@ -64823,6 +64869,7 @@ function loop(now){
          caisse à sa taille du DÉCOLLAGE (`CAMV.s0`, mesurée à la 1re image du vol) — au champ du moment. Aucun angle ne change.
          Mesuré : 0,17-0,19 tout le vol (75-85 % du sol) au lieu de 0,12 ; la course et l'atterrissage n'ont pas bougé. */
       {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360));CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
+      (CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
       camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
       /* (bord v2) LA VISÉE GLISSE — c'était LE « clic » du bord : au sol la caméra vise ~10 m DEVANT la caisse (`loop._vise`, la caisse en
