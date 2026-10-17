@@ -305,6 +305,11 @@ changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps
 `voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
 portails et aux relances, météos dans la barre. Liste : `repertoire-maps/maps.js`. Une MAP NOUVELLE dans SF_CARTES → une ligne dans
 maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet). Servir VERSION PRINCIPALE en http.
+**Les NOTES DES MAPS** (17/10, Léo : « une page locale sur laquelle je pourrai retoucher chaque map » → « notes seulement ») : dans
+`voir.html`, le panneau NOTES (à droite, ou en bas sur un petit écran) — il écrit ce qu'il veut changer ; chaque note garde la météo et
+l'IMAGE du jeu à cet instant. Servir par `python3 repertoire-maps/serveur.py 9244` (il écrit les notes) ; elles vivent HORS du dépôt dans
+`~/Downloads/CAR-notes-maps/` : `notes-maps.txt` = ce qu'on lit (map par map, [ ] à faire, id, chemin de l'image) ; une note faite dans le
+jeu → `python3 repertoire-maps/serveur.py fait <id>` (coche verte, vue par la page en 5 s). Le compte « n notes » s'affiche sur la liste.
 
 ---
 
