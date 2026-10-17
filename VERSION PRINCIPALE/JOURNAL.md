@@ -29,13 +29,15 @@ Léo préférait « un portail qui montre la map où tu vas » aux « portails d
   centre), la scène est rendue une fois et RECOPIÉE dans une toile plein écran (la fenêtre couvre déjà tout l'écran), la toile avance (zoom CSS,
   joué même quand newTrack bloque), le ciel bascule d'un coup dessous (`bioPortDur`, `PCV.fen`), puis elle SE DÉFAIT EN CUBES (carrés qui
   rétrécissent, du centre vers les bords, 0,44 s) sur la map d'arrivée — la vue même de la carte postale.
-- 2e TOUR, LA TRAVERSÉE (Léo, après l'avoir essayée : « il y a une pause quand on passe dans le portail ; donner encore plus l'impression qu'on
-  change de dimension, que ça reste fluide ; pousser l'aspect traversée multidimensionnelle pixel, sans prendre trop de place ») : la pause, c'est
-  la construction de la map (le script est bloqué) — tout ce qui bouge pendant ce temps est joué par le COMPOSITEUR : l'image avance (×1,3), le
-  monde perd sa définition par PALIERS (petits pixels à 90 ms, puis les GROS PIXELS = les cubes de la traversée à 240 ms ; deux petites toiles
-  tirées une fois de l'image, affichées `pixelated`), un TUNNEL DE PIXELS aux couleurs d'en face (3 petites toiles de 96², `pcTunnel`, qui
-  grandissent en boucle) file vers l'écran, les bords s'allument de sa couleur (`.pcE`). La map bâtie, chaque gros pixel S'ALLUME de la couleur
-  d'en face, rétrécit et part (des `fillRect`, ~0,5 ms par image au processeur bridé ×4). Même durée qu'avant.
+- 2e TOUR (même soir, retiré le soir même) : pendant la construction, le monde se pixelisait par paliers + un tunnel de pixels (CSS). Verdict de
+  Léo : « la pause est beaucoup trop longue ; l'écran figé en changement avec l'animation, c'est moche ; je préférais la première, qui donnait
+  l'impression qu'on changeait de dimension, et on reprenait la main ensuite ». → 3e TOUR : la traversée de la 1re version revient, PLUS COURTE.
+  Le voile comptait, en plus de la construction elle-même, ~830 ms (banc, téléphone simulé, processeur ×4) : un rendu complet en plus au contact,
+  deux images d'attente (l'une redessinait l'ancien monde sous le voile), 220 ms d'attente, puis la chauffe des programmes qui tombait PENDANT les
+  cubes, puis 0,44 s de cubes. Désormais : au sol la copie est prise APRÈS le rendu normal (`pcCopie`, appelée par la boucle), UNE image d'attente
+  qui ne dessine rien (`PCV.fen&&PORTV.att&&!PCV.copie`), la chauffe part tout de suite sous l'image (`CHAUFFE_R.t`), les cubes une image après,
+  en 0,30 s. MESURÉ : ~480 ms en plus de la construction (−42 %) ; voile complet ~0,9 s contre ~1,35 s. La construction de la map (0,4-0,6 s
+  au banc ×4) reste le gros de la pause — la raccourcir = un chantier à part (bâtir la map suivante en avance).
 - `?portail=ancien` : l'ovule et les feux, tels quels. Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgPortailPhoto(d)`,
   `dbgCartePostale()`, `dbgPassage(p)` / `dbgPassage('lent',k)`. Bancs (scratchpad de la session) : `approche.py`, `passage.py`, `cp.py`.
 

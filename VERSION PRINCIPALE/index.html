@@ -51554,78 +51554,50 @@ const PORTV={el:null,att:0,n:0,tS:0,t0:0};
    zoom joué par le compositeur : il continue pendant que newTrack bloque le script) ; le monde neuf bâti, elle se DÉFAIT EN CUBES — des
    carrés qui rétrécissent, du centre vers les bords — sur la vraie map d'arrivée, qui est la vue même de la carte postale. Aucun calcul
    pendant la construction ; ~500 petits dessins par image pendant 0,44 s ensuite. `?portail=ancien` : l'ovule et les feux. */
-/* (2026-10-17, 2e tour — Léo : « il y a une pause quand on passe dans le portail ; donner encore plus l'impression qu'on change de dimension,
-   que ça reste fluide ; pousser l'aspect traversée multidimensionnelle pixel, sans prendre trop de place dans le jeu »). La pause, c'est la
-   construction de la map (newTrack bloque le script 0,2 à 0,7 s) : rien ne peut plus bouger en JavaScript. Tout ce qui bouge pendant ce
-   temps est donc joué par le COMPOSITEUR (transform + opacity seulement) : l'image qu'on traverse avance, et le monde se PIXELISE par
-   paliers — net, petits pixels, puis les gros pixels qui sont les cubes de la traversée —, un TUNNEL DE PIXELS aux couleurs de la map
-   d'arrivée file vers l'écran, les bords s'allument de sa couleur. La map bâtie, ces gros pixels s'allument et partent, du centre vers
-   les bords, sur la vraie map. Même durée qu'avant ; les paliers et la grille sont tirés UNE fois de l'image (deux petites toiles). */
-const PCV={el:null,cv:null,g:null,cm:null,cg:null,tu:null,t0:0,raf:0,tS:0,fen:false,lent:1};
-function pcTunnel(cv,cols,seed){ // un anneau de PIXELS qui file : des cases et de courts traits dans le sens de la fuite, petits au centre, gros au bord
-  const n=cv.width,g=cv.getContext('2d'),c=n/2;g.clearRect(0,0,n,n);let h=(seed>>>0)||1;
-  const al=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;};
-  for(let k=0;k<70;k++){const a=al()*Math.PI*2,r=n*(.13+al()*.35),s=Math.max(1,Math.round(r/n*6)),ca=Math.cos(a),sa=Math.sin(a),L=1+((al()*3)|0);
-    g.fillStyle=cols[(al()*cols.length)|0];for(let i=0;i<L;i++){const rr=r+i*s*1.3;g.fillRect(Math.round(c+ca*rr-s/2),Math.round(c+sa*rr-s/2),s,s);}}}
-function pcVoile(){
+const PCV={el:null,cv:null,g:null,src:null,sg:null,t0:0,raf:0,tS:0,fen:false,copie:false}; // fen : un passage par la fenêtre est en cours (newTrack bascule le ciel d'un coup)
+function pcVoile(rendre){
   let e=PCV.el;
-  if(!e){e=document.createElement('div');e.id='portC';e.setAttribute('aria-hidden','true');
-    e.innerHTML='<div class="pcZ"><canvas></canvas><canvas class="pcM"></canvas><canvas class="pcG"></canvas></div><i class="pcE"></i>'+
-      '<div class="pcTw"><canvas class="pcT" width="96" height="96"></canvas><canvas class="pcT" width="96" height="96"></canvas><canvas class="pcT" width="96" height="96"></canvas></div>';
-    document.body.appendChild(e);const C=e.querySelectorAll('.pcZ canvas');
-    PCV.el=e;PCV.cv=C[0];PCV.g=C[0].getContext('2d');PCV.cm=C[1];PCV.cg=C[2];PCV.tu=e.querySelectorAll('.pcT');
-    const st=document.createElement('style');st.id='portailCubes';const L=function(t){return 'calc('+t+'s*var(--pcL))';};
-    st.textContent='#portC{position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;overflow:hidden;contain:strict;--pcL:1;--pcC:#ff9ad8}'+
-      '#portC .pcZ{position:absolute;inset:0;transform-origin:50% 44%;will-change:transform}'+
-      '#portC .pcZ canvas{position:absolute;left:0;top:0;width:100%;height:100%}'+
-      '#portC .pcM,#portC .pcG{image-rendering:crisp-edges;image-rendering:pixelated;opacity:0}'+
-      '#portC .pcE{position:absolute;inset:0;opacity:0;background:radial-gradient(ellipse 75% 70% at 50% 44%,transparent 45%,var(--pcC) 100%)}'+
-      '#portC .pcTw{position:absolute;inset:0;transition:opacity .2s}'+
-      '#portC .pcT{position:absolute;left:50%;top:44%;width:130vmax;height:130vmax;margin:-65vmax 0 0 -65vmax;image-rendering:crisp-edges;image-rendering:pixelated;opacity:0;will-change:transform,opacity}'+
-      '#portC.go .pcZ{animation:pcAvance '+L(1.2)+' cubic-bezier(.45,0,.55,1) both}@keyframes pcAvance{from{transform:scale(1)}to{transform:scale(1.3)}}'+
-      '#portC.go .pcM{animation:pcPix1 '+L(.4)+' linear both}@keyframes pcPix1{0%,22%{opacity:0}23%,100%{opacity:1}}'+   // le monde perd sa définition par PALIERS
-      '#portC.go .pcG{animation:pcPix2 '+L(.4)+' linear both}@keyframes pcPix2{0%,59%{opacity:0}60%,100%{opacity:1}}'+
-      '#portC.go .pcE{animation:pcBord '+L(.5)+' ease-out both}@keyframes pcBord{0%{opacity:0}30%{opacity:.9}100%{opacity:.4}}'+
-      '#portC.go .pcT{animation:pcTun '+L(.62)+' cubic-bezier(.55,0,1,.65) infinite}#portC.go .pcT:nth-child(2){animation-delay:'+L(-.21)+'}#portC.go .pcT:nth-child(3){animation-delay:'+L(-.42)+'}'+
-      '@keyframes pcTun{0%{transform:scale(.22) rotate(0deg);opacity:0}18%{opacity:1}100%{transform:scale(2.5) rotate(14deg);opacity:0}}'+
-      '#portC.part .pcTw,#portC.part .pcE{opacity:0;transition:opacity .2s}#portC.part .pcM,#portC.part .pcG{visibility:hidden}';
+  if(!e){e=document.createElement('div');e.id='portC';e.setAttribute('aria-hidden','true');const cv=document.createElement('canvas');e.appendChild(cv);document.body.appendChild(e);
+    PCV.el=e;PCV.cv=cv;PCV.g=cv.getContext('2d');PCV.src=document.createElement('canvas');PCV.sg=PCV.src.getContext('2d');
+    const st=document.createElement('style');st.id='portailCubes';
+    st.textContent='#portC{position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;overflow:hidden;contain:strict}'+
+      '#portC canvas{position:absolute;inset:0;width:100%;height:100%;transform-origin:50% 44%;will-change:transform}'+
+      '#portC.go canvas{animation:pcAvance 1.5s cubic-bezier(.25,.55,.35,1) both}@keyframes pcAvance{from{transform:scale(1)}to{transform:scale(1.16)}}';
     document.head.appendChild(st);}
   cancelAnimationFrame(PCV.raf);clearTimeout(PCV.tS);
   const k=Math.min(1.5,window.devicePixelRatio||1),w=Math.max(2,Math.round(VP.w*k)),h=Math.max(2,Math.round(VP.h*k));
-  if(PCV.cv.width!==w||PCV.cv.height!==h){PCV.cv.width=w;PCV.cv.height=h;}
-  try{if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);PCV.g.drawImage(renderer.domElement,0,0,w,h);} // l'image qu'on traverse, telle qu'à l'écran
-  catch(er){PCV.g.fillStyle='#0b0920';PCV.g.fillRect(0,0,w,h);}
-  // LES DEUX PALIERS DE PIXELS : B = un CUBE de la traversée (≈ 1/15 de la petite dimension) ; le palier du milieu en fait le tiers
-  const B=Math.max(12,Math.round(Math.min(w,h)/15)),bm=Math.max(4,Math.round(B/3)),nx=Math.ceil(w/B),ny=Math.ceil(h/B),mx=Math.ceil(w/bm),my=Math.ceil(h/bm);
-  PCV.cm.width=mx;PCV.cm.height=my;PCV.cg.width=nx;PCV.cg.height=ny;
-  PCV.cm.style.width=(mx*bm/w*100)+'%';PCV.cm.style.height=(my*bm/h*100)+'%';PCV.cg.style.width=(nx*B/w*100)+'%';PCV.cg.style.height=(ny*B/h*100)+'%';
-  const gm=PCV.cm.getContext('2d'),gg=PCV.cg.getContext('2d');gm.imageSmoothingQuality='high';gg.imageSmoothingQuality='high';
-  gm.drawImage(PCV.cv,0,0,mx*bm*w/w,my*bm*h/h,0,0,mx,my);gg.drawImage(PCV.cm,0,0,nx*B/bm,ny*B/bm,0,0,nx,ny); // (en deux fois : la moyenne reste juste)
-  PCV.W=w;PCV.H=h;PCV.B=B;PCV.nx=nx;PCV.ny=ny;
-  // LE TUNNEL aux couleurs de la map d'arrivée (+ du blanc)
-  const P=PCUBE.pal||PCUBE_PAL.nuages,hx=function(c){return '#'+('00000'+c.toString(16)).slice(-6);},cols=[hx(P[0]),hx(P[1]),hx(P[2]),'#ffffff'];
-  for(let i=0;i<PCV.tu.length;i++)pcTunnel(PCV.tu[i],cols,(Math.random()*4294967295)>>>0);
-  e.style.setProperty('--pcC',hx(P[2]));e.style.setProperty('--pcL',String(PCV.lent||1));
-  e.style.transition='none';e.style.opacity='1';e.classList.remove('go','part');void e.offsetWidth;if(!REDUCED_MOTION)e.classList.add('go');PCV.t0=performance.now();PCV.fen=true;}
-function pcPrepare(){ // la grille des gros pixels (couleur, éclat) et l'ordre où ils partent : du centre (un peu au-dessus du milieu : la route y file) vers les bords, avec du hasard
-  const W=PCV.W,H=PCV.H,B=PCV.B,nx=PCV.nx,ny=PCV.ny,n=nx*ny,th=new Float32Array(n),col=new Array(n),ecl=new Array(n);
-  let d=null;try{d=PCV.cg.getContext('2d').getImageData(0,0,nx,ny).data;}catch(e){}
-  const G=new THREE.Color((PCUBE.pal||PCUBE_PAL.nuages)[2]),cx=W*.5,cy=H*.44,dm=Math.hypot(Math.max(cx,W-cx),Math.max(cy,H-cy));
-  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const q=j*nx+i,r=d?d[q*4]:20,g=d?d[q*4+1]:10,b=d?d[q*4+2]:30;
-    th[q]=.62*Math.hypot((i+.5)*B-cx,(j+.5)*B-cy)/dm+.38*Math.random();col[q]='rgb('+r+','+g+','+b+')';
-    ecl[q]='rgb('+Math.round(r*.45+G.r*255*.55)+','+Math.round(g*.45+G.g*255*.55)+','+Math.round(b*.45+G.b*255*.55)+')';} // il S'ALLUME de la couleur d'en face en partant
-  PCV.th=th;PCV.col=col;PCV.ecl=ecl;}
-function pcDessine(p){ // p 0 → 1 : chaque gros pixel s'allume, rétrécit sur lui-même, puis s'en va
-  const g=PCV.g,W=PCV.W,H=PCV.H,B=PCV.B,nx=PCV.nx,ny=PCV.ny,th=PCV.th,q=p*1.3-.14;g.clearRect(0,0,W,H);
-  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i,a=(th[k]-q)/.16;if(a<=0)continue;const z=a>=1?B:Math.round(B*a),o=(B-z)>>1;
-    g.fillStyle=a>=1.6?PCV.col[k]:PCV.ecl[k];g.fillRect(i*B+o,j*B+o,z,z);}}
-function pcVoileSort(ms){PCV.fen=false;clearTimeout(PCV.tS);PCV.tS=setTimeout(function(){const e=PCV.el;
-  if(REDUCED_MOTION){e.style.transition='opacity .26s';e.style.opacity='0';return;}
-  pcPrepare();pcDessine(0);e.classList.add('part');const D=420*(PCV.lent||1),t0=performance.now();
-  const f=function(){const p=Math.min(1,(performance.now()-t0)/D);pcDessine(p);
-    if(p<1)PCV.raf=requestAnimationFrame(f);else{e.style.opacity='0';e.classList.remove('go','part');}};
-  PCV.raf=requestAnimationFrame(f);},ms);}
-window.dbgPassage=function(p,k){if(p==='lent'){PCV.lent=k||1;return PCV.lent;}if(p==null){pcVoile();PCV.fen=false;return 'voile posé';}pcPrepare();PCV.el.classList.add('part');pcDessine(+p);return {B:PCV.B,cubes:PCV.nx*PCV.ny};}; // (banc) la toile du passage figée à p
+  if(PCV.cv.width!==w||PCV.cv.height!==h){PCV.cv.width=w;PCV.cv.height=h;PCV.src.width=w;PCV.src.height=h;}
+  PCV.fen=true;
+  /* (3e tour) PAS DE RENDU EN PLUS : au sol, l'image qu'on traverse est recopiée juste APRÈS le rendu normal de cette image (pcCopie, appelée
+     par la boucle) — un rendu complet de moins au moment le plus chargé. En vol, newTrack part tout de suite : là, on rend une fois. */
+  if(rendre){try{if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}catch(er){}pcCopie();}else PCV.copie=true;}
+function pcCopie(){PCV.copie=false;const e=PCV.el,w=PCV.cv.width,h=PCV.cv.height;
+  try{PCV.sg.drawImage(renderer.domElement,0,0,w,h);}catch(er){PCV.sg.fillStyle='#0b0920';PCV.sg.fillRect(0,0,w,h);} // l'image qu'on traverse, telle qu'à l'écran
+  PCV.g.clearRect(0,0,w,h);PCV.g.drawImage(PCV.src,0,0);
+  e.style.opacity='1';e.classList.remove('go');void e.offsetWidth;if(!REDUCED_MOTION)e.classList.add('go');PCV.t0=performance.now();}
+function pcPrepare(){ // la grille des cubes de l'image et l'ordre où ils partent : du centre (un peu au-dessus du milieu : la route y file) vers les bords, avec du hasard
+  const W=PCV.cv.width,H=PCV.cv.height,B=Math.max(12,Math.round(Math.min(W,H)/15)),nx=Math.ceil(W/B),ny=Math.ceil(H/B),th=new Float32Array(nx*ny);
+  const cx=W*.5,cy=H*.44,dm=Math.hypot(Math.max(cx,W-cx),Math.max(cy,H-cy));
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)th[j*nx+i]=.62*Math.hypot((i+.5)*B-cx,(j+.5)*B-cy)/dm+.38*Math.random();
+  PCV.W=W;PCV.H=H;PCV.B=B;PCV.nx=nx;PCV.ny=ny;PCV.th=th;}
+function pcDessine(p){ // p 0 → 1 : chaque cube rétrécit sur lui-même puis s'en va
+  const g=PCV.g,src=PCV.src,W=PCV.W,H=PCV.H,B=PCV.B,nx=PCV.nx,ny=PCV.ny,th=PCV.th,q=p*1.3-.14;g.clearRect(0,0,W,H);
+  if(REDUCED_MOTION){g.globalAlpha=1-p;g.drawImage(src,0,0);g.globalAlpha=1;return;}
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=(th[j*nx+i]-q)/.16;if(a<=0)continue;const z=a>=1?B:B*a,o=(B-z)*.5,x=i*B,y=j*B;g.drawImage(src,x,y,B,B,x+o,y+o,z,z);}}
+/* (2026-10-17, 3e tour — Léo : « la pause est beaucoup trop longue ; je préférais la première, qui donnait l'impression qu'on changeait de
+   dimension, et on reprenait la main ensuite » — la traversée en paliers de pixels + tunnel est RETIRÉE, la 1re revient, plus COURTE) : le
+   voile attendait 220 ms après la construction, puis 120 ms de plus pour la chauffe des programmes, qui tombait PENDANT les cubes (un à-coup
+   au milieu). Désormais la chauffe du monde neuf part TOUT DE SUITE, sous l'image (CHAUFFE_R.t = maintenant), les cubes partent une image
+   plus tard, sur un monde déjà prêt, et se défont en 0,30 s (0,44) ; au sol, plus de rendu en plus ni d'image d'attente de trop (pcCopie). Mesuré au banc : voir le JOURNAL. */
+function pcVoileSort(){PCV.fen=false;cancelAnimationFrame(PCV.raf);clearTimeout(PCV.tS);
+  try{CHAUFFE_R.t=performance.now();}catch(e){}
+  let n=0;const go=function(){if(++n<2){PCV.raf=requestAnimationFrame(go);return;}
+    pcPrepare();const D=(REDUCED_MOTION?260:300)*(PCV.lent||1),t0=performance.now();PCV.tD=t0;
+    const f=function(){const p=Math.min(1,(performance.now()-t0)/D);pcDessine(p);
+      if(p<1)PCV.raf=requestAnimationFrame(f);else{PCV.el.style.opacity='0';PCV.el.classList.remove('go');PCV.tF=performance.now();}};
+    PCV.raf=requestAnimationFrame(f);};
+  PCV.raf=requestAnimationFrame(go);}
+window.dbgPassage=function(p,k){if(p==='lent'){PCV.lent=k||1;return PCV.lent;}if(p==null){pcVoile();PCV.fen=false;return 'voile posé';}pcPrepare();pcDessine(+p);return {B:PCV.B,cubes:PCV.nx*PCV.ny};}; // (banc) la toile du passage figée à p
 function portVoile(){
   let e=PORTV.el;if(!e){e=document.createElement('div');e.id='portV';e.setAttribute('aria-hidden','true');
     e.innerHTML='<div class="pfxW"><div class="pfx"><i></i><i></i><i></i></div></div>';document.body.appendChild(e);PORTV.el=e;} // les FEUX DU DÉPART (voir le CSS de #portV)
@@ -51635,10 +51607,12 @@ function portVoileSort(ms){ms=Math.max(ms,560-(performance.now()-(PORTV.t0||0)))
   e.style.transition='opacity .5s cubic-bezier(.3,.6,.3,1)';e.style.opacity='0';},ms);}
 function portPasseNiveau(){
   const cub=PCUBE.on; // (2026-10-17) le portail de cubes : on passe PAR LA FENÊTRE (pcVoile) au lieu des feux du départ
-  if(cub)pcVoile();else portVoile();try{document.dispatchEvent(new Event('cc:portail'));}catch(e){} // (PERF) voir LES SIGNAUX DE CONSTRUCTION
+  if(cub)pcVoile(mode!=='drive');else portVoile();try{document.dispatchEvent(new Event('cc:portail'));}catch(e){} // (PERF) voir LES SIGNAUX DE CONSTRUCTION
   if(mode!=='drive'){PORTV.att=0;newTrack();if(cub)pcVoileSort(220);else portVoileSort(280);return;}
   const tok=PORTV.att=++PORTV.n;
-  requestAnimationFrame(function(){requestAnimationFrame(function(){
+  // (2026-10-17, 3e tour) avec la fenêtre, UNE image d'attente suffit : la copie et le voile sont posés à la fin de CETTE image (pcCopie), peints avant la suivante
+  const r1=cub?function(f){f();}:requestAnimationFrame;
+  requestAnimationFrame(function(){r1(function(){
     if(PORTV.att!==tok)return;PORTV.att=0;
     if(started&&!gameOver&&!PARK.on&&mode!=='boom')newTrack(); // (2026-10-14, chasse aux bugs) mode!=='boom' : morte dans les 2 images d'attente, la caisse explose ENCORE (gameOver ne tombe qu'à endGame, 1,8 s plus tard) — newTrack lui remettait mode='drive' : plus d'endGame, elle roulait après sa mort
     if(cub)pcVoileSort(220);else portVoileSort(280);});});
@@ -65324,8 +65298,10 @@ function loop(now){
   if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
   try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
   if(mortS9){}else
+  if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
+  if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
