@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GLACIER, 2e TOUR : PISTE BEAUCOUP PLUS LARGE, PENTE BEAUCOUP PLUS FORTE (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue »)
+- LARGEUR : `BK_LARG4` 4,4 → 7 — la piste passe de 123 à 196 m (demi-largeur 98 m). Tout ce qui la borde suit `ROAD_HALF` (bourrelet de
+  neige, glace, becs, pics, mur `parisMur`) ; le plancher des rayons (2,6 demi-largeurs = 255 m) l'emporte souvent : virages plus amples.
+  Le CHAMP de pics est mis à l'échelle (`kRH` = largeur ÷ 123 m) : même densité au m², donc ~1,7× plus de pics sur la piste (65 → 113 au banc).
+- PENTE : `BK_PENTE4` = [virage .58 +.16, droite .68 +.20, retour dans la pente .58, arrivée .46] — 36-58 % → 58-88 %. `LEN` × 0,89 pour v4
+  (il se compte à plat : la pente allongeait la piste de 13 %) → même longueur de course qu'avant (~10 km).
+- MESURÉ — Node (`banq-trace.cjs`, 16 pistes) : pente ~66 % de moyenne, pointes 83-88 %, 5,4-6,2 km de dénivelé, rayon mini 226 m, aucun pli.
+  En jeu (banc headless, même graine) : avant 123 m / 44 % / pointes 56 % / 3,9 km / 65 pics ; après 196 m / 69 % / pointes 86 % / 5,3 km / 113 pics.
+  Vitesse en descente au pilote automatique : pointe 327 km/h contre 325 avant — le moteur domine, la pente n'ajoute qu'un appoint (GRAV·sin).
+- ⚠ CE QUI NE CHANGE PAS : la caméra de course s'incline avec la piste (gelée depuis la passe de fluidité) — à l'écran, la piste paraît toujours
+  plate ; la pente se lit au paysage et à la vue de côté. Si Sacha veut la VOIR en roulant, il faut redresser la caméra au glacier (à lui de trancher).
+- Banc : `dbgBanq('pente')` → {RH, L, dénivelé, moy, max} ; `dbgBanq('pente',{cote:.45})` = la vue de CÔTÉ à 45 % du parcours (photo, en pause).
+
 ## LES SATELLITES FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route »)
 - La passe « les maps comme un tout » (même jour, 15 h 37) avait lu « il faut que ce soit un obstacle à part entière » comme des satellites
   SUR la chaussée (seul, porte, chicane, L'IMPACT au choc). Ce n'était pas la demande : ils quittent la route.

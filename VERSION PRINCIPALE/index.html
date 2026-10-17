@@ -19190,9 +19190,9 @@ const BK_LAC_D=36,BK_LARG=2.4;
    descendante le long d'une montagne, des pics de glace autour et un peu de neige pour décorer, sur les côtés, sur les obstacles ; il faut descendre la
    piste comme une piste de ski, mais sur de la glace : la voiture drifte, elle est compliquée à contrôler ; et de petits tremplins de glace, une sorte de
    petit rebord, qui permettent au joueur de s'envoler — sinon il ne peut pas décoller ») =================
-   · LA PISTE : le ruban reste (la physique, les pièces, la caméra), mais il est LARGE (`BK_LARG4` : 123 m) et il n'a plus rien d'une route — ni béton,
+   · LA PISTE : le ruban reste (la physique, les pièces, la caméra), mais il est LARGE (`BK_LARG4` : 196 m — 123 m avant le 2e tour) et il n'a plus rien d'une route — ni béton,
      ni rails, ni nappe, ni ligne, ni tranche (`bkPisteNue`) : seule la GLACE (le verglas de bkVerglasPose, opaque, sur toute la largeur, sa frange de
-     givre fondue dans la neige). Plus raide (36-58 %, ~45 % de moyenne — « beaucoup plus pentue », Sacha) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
+     givre fondue dans la neige). Plus raide (58-88 %, ~70 % de moyenne — « beaucoup plus pentue », Sacha, deux fois : voir BK_PENTE4) et à grands rayons (≥ 2,6 demi-largeurs : le bord intérieur ne se replie jamais).
    · SES BORDS : la neige se cale AU RAS de la glace puis monte en BOURRELET (13-19 m sur 45 m) — on ne tombe plus de la piste, on COGNE la neige :
      le mur des couloirs du canyon (`parisMur`, coup d'épaule ; mort au-delà de ~30° et 200 km/h). Plus de lacs (ils creusaient la piste).
    · LES PICS SUR LA PISTE (`BANQ.obst`) : des cristaux de glace coiffés de neige, en QUATRE FIGURES qui ouvrent des chemins — la FOURCHE (une arête au
@@ -19203,10 +19203,13 @@ const BK_LAC_D=36,BK_LARG=2.4;
      la poussée suit la vitesse) — souvent juste avant un champ de pics, pour le survoler.
    · LA GLISSE : un cran de plus (grip ,92 → ,86, dérive ,16 → ,21) — et la brume de vallée descend (on VOIT la montagne dévaler sous soi).
    `?glacier=v3` = la grande descente verglacée d'avant (route de 67 m, neige sous la dalle, lacs). */
-const BANQ_V4=!/[?&]glacier=v3\b/.test(location.search),BK_LARG4=4.4;
+/* (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue ») — 2e tour :
+   la piste 123 → 196 m (`BK_LARG4` 4,4 → 7) ; la pente 36-58 % → 58-88 % (`BK_PENTE4` : [virage, +hasard, droite, +hasard, retour dans la pente,
+   arrivée]). La caméra de course s'incline toujours avec la piste (gelée) : la pente se lit au paysage qui plonge et à l'horizon qui monte. */
+const BANQ_V4=!/[?&]glacier=v3\b/.test(location.search),BK_LARG4=7,BK_PENTE4=[.58,.16,.68,.20,.58,.46];
 function genBanq(rnd){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
-  ROAD_HALF=ROAD_HALF0*(BANQ_V4?BK_LARG4:BK_LARG); // (2026-10-15, Sacha : « fais la route un peu plus large ») 56 → 67 m — (v4) la PISTE : 123 m
+  ROAD_HALF=ROAD_HALF0*(BANQ_V4?BK_LARG4:BK_LARG); // (2026-10-15, Sacha : « fais la route un peu plus large ») 56 → 67 m — (v4) la PISTE : 123 m, puis 196 m (« beaucoup plus large »)
   let P=new THREE.Vector3(0,0,0),phi=0,sC=0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
   const segs=[],note=(l,g,ty)=>{segs.push([sC,sC+l,g,ty||0]);sC+=l;};                       // le profil, tronçon par tronçon : [s0, s1, pente, type]
@@ -19216,17 +19219,17 @@ function genBanq(rnd){
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
   const LV=Math.min(3.2,typeof lvPiste==='function'?lvPiste():1),cas=[],spi=[];
   const KR=typeof rayonPalier==='function'?Math.max(1,rayonPalier()/63):LV; // (GAMEPLAY, RACCOURCIS.md) les rayons suivent le rayon tenable du palier (rayonPalier/63) ; sans lui, l'échelle du moteur
-  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BANQ_V4?.36:.18);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
-  const LIB=75*Math.PI/180,LEN=8600*Math.min(1.25,Math.sqrt(KR));
+  const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BANQ_V4?BK_PENTE4[4]:.18);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
+  const LIB=75*Math.PI/180,LEN=8600*Math.min(1.25,Math.sqrt(KR))*(BANQ_V4?.89:1); // (2026-10-17 nuit) LEN se compte À PLAT : la pente du 2e tour allongeait la piste de 13 % — on garde la même course
   push();ici('depart');D(260,.10);
   let sg=rnd()<.5?-1:1;
   while(sC<LEN){
     if(rnd()<.78)sg=-sg;                                                                    // le plus souvent on change de côté ; parfois deux virages du même
-    const big=rnd()<.3,a=big?70+rnd()*40:30+rnd()*40,R=Math.max(ROAD_HALF*2.6,(BANQ_V4?(big?220+rnd()*140:175+rnd()*150):(big?160+rnd()*120:115+rnd()*130))*KR); // (v4) grands rayons : la piste fait 123 m
+    const big=rnd()<.3,a=big?70+rnd()*40:30+rnd()*40,R=Math.max(ROAD_HALF*2.6,(BANQ_V4?(big?220+rnd()*140:175+rnd()*150):(big?160+rnd()*120:115+rnd()*130))*KR); // (v4) grands rayons : la piste fait 196 m (le plancher 2,6 demi-largeurs l'emporte souvent)
     let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}               // le cap reste dans la pente : la route ne se recroise jamais
-    A(sg*Math.min(a,lib),R,(BANQ_V4?.36:.17)+rnd()*(BANQ_V4?.12:.09));
-    D(50+rnd()*140,(BANQ_V4?.42:.19)+rnd()*(BANQ_V4?.16:.09));} // (v4) une piste NOIRE : 36-58 % (2026-10-17, Sacha : « la map montagne neige doit être beaucoup plus pentue » — c'était 22-37 %)
-  if(BANQ_V4){cap(0);D(160,.30);ici('fin');D(120,.06);}else{cap(0);D(160,.14);ici('fin');D(120,.06);} // l'arrivée : dans la pente, puis le replat de la ligne
+    A(sg*Math.min(a,lib),R,(BANQ_V4?BK_PENTE4[0]:.17)+rnd()*(BANQ_V4?BK_PENTE4[1]:.09));
+    D(50+rnd()*140,(BANQ_V4?BK_PENTE4[2]:.19)+rnd()*(BANQ_V4?BK_PENTE4[3]:.09));} // (v4) une piste NOIRE : 58-88 % (2026-10-17 nuit, 2e tour — c'était 36-58 %, et 22-37 % avant)
+  if(BANQ_V4){cap(0);D(160,BK_PENTE4[5]);ici('fin');D(120,.06);}else{cap(0);D(160,.14);ici('fin');D(120,.06);} // l'arrivée : dans la pente, puis le replat de la ligne
   /* LE PROFIL : la pente de chaque tronçon (positive = on descend), lue sur la longueur de la polyligne, adoucie aux raccords (moyenne glissante
      de 60 m) ; les 300 premiers mètres en douceur. Intégrée tous les 10 m : aucun point ne remonte. */
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
@@ -19740,7 +19743,7 @@ function buildBanq(seed){
        const H=600+fr()*900;pose(bkGrappe(x,z,bkSolH(x,z)-40,H,1.5+fr()*1.2,4+((fr()*4)|0),fr,2,520),false,true);nL++;}}}
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures (voir BANQ_V4) ----
   BANQ.obst=[];BANQ.kick=[];
-  if(BANQ_V4){const RH=ROAD_HALF,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
+  if(BANQ_V4){const RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
     const libreK=(s9,la,r)=>{for(const k of KK)if(s9>k.s-50&&s9<k.s+150&&la+r>k.l0-6&&la-r<k.l1+6)return false;for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
     const pic=(s9,la,H,pente)=>{const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R))return false;const q=ou(s9,la);
       const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
@@ -19751,7 +19754,7 @@ function buildBanq(seed){
       if(fr()<.5){bec(sp,(fr()*2-1)*RH*.5,26+fr()*22);sp+=90+fr()*30;} // un BEC, le plus souvent juste avant une figure : on peut la survoler
       if(f<.25){const c=(fr()-.5)*14,n=4+((fr()*4)|0),pas=34+fr()*16; // LA FOURCHE : une arête au milieu, deux couloirs
         for(let j=0;j<n;j++)pic(sp+j*pas,c+(fr()-.5)*8,12+fr()*14,1.7+fr()*.8);sp+=n*pas;}
-      else if(f<.55){const lg=160+fr()*90,n=7+((fr()*5)|0); // LE CHAMP : des pics semés, des trouées
+      else if(f<.55){const lg=160+fr()*90,n=Math.round((7+((fr()*5)|0))*kRH); // LE CHAMP : des pics semés, des trouées — (2026-10-17 nuit) autant de pics au m² sur la piste élargie (kRH : la largeur ÷ celle de 123 m)
         for(let j=0,e=0;j<n&&e<n*4;e++){if(pic(sp+fr()*lg,(fr()*2-1)*(RH-10),6+fr()*14,1.4+fr()*1.2))j++;}sp+=lg;}
       else if(f<.75){const gw=26+fr()*12,g=(fr()*2-1)*(RH*.45); // LA PORTE : deux géants, une trouée à viser
         for(const sg of [-1,1]){const H=26+fr()*14,pe=1.8+fr()*.6;pic(sp+(fr()-.5)*6,g+sg*(gw/2+H/pe*.85),H,pe);}sp+=40;}
@@ -20176,6 +20179,10 @@ function banqChauffe(){
 /* ---------------- LA CONSOLE ---------------- */
 function bkVie(P){if(!P)return -1;let n=0;for(let i=0;i<P.n;i++)if(P.life[i]>0)n++;return n;} // (console) les particules vivantes d'une réserve
 window.dbgBanq=function(k,o){
+  if(k==='pente'){const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};let n=0,m=0,gm=0;for(let s9=300;s9<L-300;s9+=20){frameAt(s9,F9);const g=-F9.t.y/Math.max(1e-6,Math.hypot(F9.t.x,F9.t.z));m+=g;n++;if(g>gm)gm=g;} // (banc, 2026-10-17 nuit) la piste en chiffres : demi-largeur, longueur, dénivelé, pente moyenne et maxi (en %)
+    frameAt(0,F9);const y0=F9.p.y;frameAt(L-1,F9);const R={RH:ROAD_HALF,L:Math.round(L),denivele:Math.round(y0-F9.p.y),moy:Math.round(m/Math.max(1,n)*100),max:Math.round(gm*100)};
+    if(o&&o.cote!=null){frameAt(L*o.cote,F9);const h=Math.hypot(F9.t.x,F9.t.z),d=o.d||1100;R.vue=dbgBanq('vue',{p:[F9.p.x-F9.t.z/h*d,F9.p.y+(o.h||120),F9.p.z+F9.t.x/h*d],c:[F9.p.x,F9.p.y-(o.b||60),F9.p.z],fov:o.fov||55});} // la vue de CÔTÉ : la pente en profil
+    return R;}
   if(k==='piste')return {pics:(BANQ.obst||[]).map(function(q){return [Math.round(q.s),Math.round(q.lat),Math.round(q.r)];}),becs:(BANQ.kick||[]).map(function(q){return [Math.round(q.s),Math.round(q.l0),Math.round(q.l1)];})}; // (v4) la piste : [s, lat, rayon] des pics, [s, l0, l1] des becs
   if(k==='verglas'){const V9=(BANQ.verg||[]).map(function(v){return [Math.round(v.a),Math.round(v.b)];});
     if(o&&(o.s!=null||o.n!=null)){safeS=o.s!=null?o.s:600+(o.n|0)*800;respawn();graceT=0;if(o.v)vA=o.v/(3.6*SPD);}
