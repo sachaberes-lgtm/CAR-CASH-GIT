@@ -45,6 +45,26 @@
   couché + debout, pilote de mesure 45 s). Crochets : `dbgHaut()` (TORD.info : `essai`, `contacts`, `deversMaxDeg` en plus), `dbgHaut('controle')`.
 - À TRANCHER par Sacha : la dose du dévers (`TORD_DEVERS.k`/`max`), la fréquence des modules, et si l'orage (tordu lui aussi) garde ces virages.
 
+## LE VIRAGE SERRÉ EN VOL (2026-10-18, Sacha : « augmente la maniabilité dans les airs, on a du mal a faire des virage serrer »)
+- **Deux freins trouvés** : (1) le lacet en vol plafonnait à ~1,75 rad/s dès 260 km/h — passé ce cap, le rayon grandissait avec la vitesse ;
+  (2) le VERROU du volant au décollage (`veqVolant`, Léo 14/10) effaçait pendant 0,7 s le braquage tenu depuis la route — un saut dure ~1 s.
+- **Réglage** (`VIRVOL`, bloc « LE VIRAGE SERRÉ EN VOL » juste avant `VEQ_K`) : lacet ×1,5, plafond relevé (3,1 rad/s vers 390 km/h), verrou
+  0,35 s (la caisse quitte toujours la route tout droit). UNE formule `lacetVol(v)` pour le vol, la mousse, la poudreuse du glacier et le
+  lacet emporté à la pose (il y avait 5 copies de `1.15+Math.min(.6,…)`). `VEQ_K.latch` a disparu (un réglage, un endroit).
+- **La caméra de vol garde son retard d'avant** : son suivi va plus vite au prorata du lacet gagné (`lacetVolK`, × |volant|) — sans ça, elle
+  restait jusqu'à 28° à l'EXTÉRIEUR du virage (16° avant) et cachait l'intérieur, là où l'on tourne. Volant au centre : suivi inchangé.
+- **MESURÉ** (banc `C:/Users/sacha/cc-banc/volvirage.cjs`, ville, pas à pas 16 ms, caisse à 250 m au-dessus de la route, volant à fond) :
+  | cas | avant (main v609) | après |
+  |---|---|---|
+  | 150 km/h, geste neuf | 87° en 1 s · rayon 24 m | 128° · 17 m |
+  | 300 km/h, geste neuf | 98° · 45 m | 154° · 27 m |
+  | 600 km/h, geste neuf | 97° · 91 m | 171° · 48 m |
+  | 300 km/h, volant TENU depuis la route | 18° à 0,5 s · 68° en 1 s | 52° · 134° |
+  | caméra derrière la trajectoire, 150 / 300 / 600 km/h | 16° / 16° / 10° | 10° / 17° / 16° (sans la compensation : 22° / 28° / 19°) |
+- Effet de bord assumé : la VRILLE (aura par demi-tour de lacet, `yawAcc`) vient plus vite — un 180° tient en ~1,1 s au lieu de ~1,8 s.
+- `?virvol=0` = le vol d'avant au chiffre près (caméra comprise) ; `dbgVirVol(k,cap,latch)` règle en direct.
+- À VÉRIFIER SUR UN VRAI IPHONE : rien de propre au téléphone (même formule au pouce et au clavier).
+
 ## LA VALLÉE DE JADE AU HASARD (2026-10-18 nuit, Sacha : « la génération de map dans les montagnes chinoises est toujours la même, rends-la plus aléatoire »)
 - **Le constat, mesuré** : au mode classique, la graine des PICS DE JADE changeait déjà à chaque partie (`sfNiveau` → `graine:0`) — mais
   `genJade` suivait toujours la même RECETTE : départ, ~2 km de serpentin doux, la Porte, ~2,3 km, le Pont, ~2 km, la chute, l'arrivée ;
