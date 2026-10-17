@@ -3,6 +3,29 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA CAISSE PLUS LOURDE, 2e TOUR — LE SAUT NITRO QUI RETOMBE (2026-10-17 soir, Sacha : « augmente la gravité des voitures : quand on fait une figure sur route on doit retomber sur la route plus vite »)
+- POURQUOI LE ×1,3 DU 15/10 NE SE SENTAIT PLUS : deux heures après lui, « les figures lancées en roulant » (16/10, 0 h) a rallongé chaque
+  saut nitro à figure jusqu'à 90 % de la durée de CATALOGUE de la figure (`sautBesoin` ≥ 1 s, jusqu'à +19 m/s de poussée) — sur du plat
+  aussi. MESURÉ (banc `sautgrav`, ville, les 13 figures dans toutes leurs directions, 2 tours = 32 sauts) : 1,27 s de vol moyen, 1,85 s au
+  plus, 6,5 m de haut — plus long qu'à ×1.
+- `GRAV_K` 1,3 → **1,45** (tout ce qui lit FALL_G suit, comme le 15/10 ; `?grav=1.3` = la veille, `?grav=1` = avant le 15/10). Pas plus :
+  une chute plus lourde porte moins loin, et les RACCOURCIS en dépendent. MESURÉ (`raccourcis.cjs`, graine 1, palier 0, la même trace
+  rejouée à chaque gravité) : CANYON 21 raccourcis rentables à ×1,3 → 20 à ×1,4 → **18 à ×1,45 (0,69/km)** → 15 à ×1,5 (0,57/km, sous la
+  règle des 0,6/km) ; forêt 29-31 et volcan 4 inchangés ; glacier et nuages déjà à 0 à ×1,3.
+- `sautBesoin` ne vise plus le catalogue mais le vol MINIMUM où la figure se plante (`figDMin` + 0,35 s de pose, + 0,06 s de marge).
+- LA FIGURE DU SAUT, PLUS NERVEUSE : `figDMin(f, douce)` — la figure partie toute seule avec le saut (`o.douce`) peut se boucler en
+  max(0,25 s ; 40 % du catalogue) au lieu de max(0,32 s ; la moitié). C'est ce plancher qui fixe la durée du saut. Les figures lancées
+  EN VOL gardent leur plancher.
+- LE PRÉDICTEUR DU SAUT CONNAÎT LA POSE (`sautVolPredit`) : passé 0,35 s, `tryLand` pose la caisse à moins de 3 m du bitume dès qu'elle
+  monte à moins de 4,5 m/s — un petit saut est rattrapé à son SOMMET. Le prédicteur l'ignorait : à ×1,5 le saut de 21 m/s (sommet 2,1 m)
+  était posé à 0,33 s au lieu des 0,85 s prédits, la figure n'avait pas le temps (16 payées sur 32 au premier essai). À ×1,3, le
+  plancher d'1 s le masquait. La poussée se cherche par pas de 1,5 m/s (étaient 3).
+- MESURÉ APRÈS (même banc, ×1,45) : **1,08 s** de vol moyen (**0,85 s sur du plat**, 1,03 la veille), 1,58 s au plus (1,85), 5,6 m de
+  haut (6,5), 30 figures payées sur 32 (26 la veille), 0 chute, 0 erreur. Les deux ratés (hélico, double) ratent aussi la veille.
+- Banc : `C:/Users/sacha/cc-banc/sautgrav.cjs <dossier> <page> <port> [requête]` (son serveur injecte `window.__ev` dans la copie servie
+  pour lire l'intérieur de l'IIFE du jeu — rien dans le fichier livré). `raccourcis.cjs` : la trace s'écrit après la fermeture de Chrome,
+  qui peut caler jusqu'au plafond — une copie qui l'écrit avant a servi ici.
+
 ## LA VILLE VITRÉE v3 — CLEAN CITY (2026-10-17 soir, Léo : « j'abandonne l'idée de la ville au plafond ; rends-la plus distincte — les trucs rouges au-dessus ressemblent trop à Crypto City ; c'est CLEAN CITY : miroir, moderne, le futur, l'avancement, la technologie ; des bâtiments blancs, des logos très minimalistes, un avion-ballon énorme et très moderne ; les lumières sur les côtés de la route en BLEU »)
 - LE PLAFOND (v2) n'est plus le défaut : `VIT_PLAFOND` (`?plafond=1` le rend tel quel : ville à l'envers, ciel en bande, heures et soleil bas de la v2,
   `VIT_MET_PL`). Sans lui : le ciel et ses cumulus de la v1 (`VIT_MET_CL`, la couche `vitreCiel` d'avant) ; le verre renvoie le ciel et ses nuages

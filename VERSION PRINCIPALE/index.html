@@ -48427,8 +48427,14 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;try{document.quer
    FALL_G le porte, donc TOUT ce qui le lit suit d'un bloc (la chute, le vol plané à la nitro qui en reprend 60-75 %, le viseur, la durée
    de la figure du saut nitro, le vol équilibré, la mer de Jade, les filets et la coupe du fantôme tracés au générateur) ; la meute et les
    dos d'âne, qui tombaient à 26 écrit en dur, le prennent aussi. La pente de la route (GRAV) n'y est PAS : elle règle l'élan, pas le vol.
-   ×1,3 : le saut nitro (21) dure 0,98 s au lieu de 1,27 et monte 23 % moins haut. `?grav=1` rend l'ancienne gravité, `?grav=1.5` pour essayer. */
-const GRAV_K=(function(){try{const v=parseFloat(new URLSearchParams(location.search).get('grav'));return v>0&&v<4?v:1.3;}catch(e){return 1.3;}})();
+   ×1,3 : le saut nitro (21) dure 0,98 s au lieu de 1,27 et monte 23 % moins haut. `?grav=1` rend l'ancienne gravité, `?grav=1.5` pour essayer.
+   (2026-10-17, Sacha, une 2e fois : « augmente la gravité des voitures : quand on fait une figure sur route on doit retomber sur la route plus
+   vite ») ×1,3 → ×1,45 — et surtout `sautBesoin`, qui rallongeait le saut à la durée de CATALOGUE de la figure (1,1 à 1,9 s : plus long qu'à
+   ×1 !), ne le rallonge plus que jusqu'au vol MINIMUM où la figure se plante (voir sautBesoin). Pourquoi 1,45 et pas plus : une chute plus
+   lourde porte moins loin, et les RACCOURCIS en dépendent — MESURÉ (raccourcis.cjs, graine 1, palier 0, même trace rejouée) : le CANYON
+   garde 21 raccourcis rentables à ×1,3, 20 à ×1,4, 18 à ×1,45 (0,69/km), 15 à ×1,5 (0,57/km : sous la règle des 0,6/km) ; forêt 29-31,
+   volcan 4, inchangés. `?grav=1.3` = la veille. */
+const GRAV_K=(function(){try{const v=parseFloat(new URLSearchParams(location.search).get('grav'));return v>0&&v<4?v:1.45;}catch(e){return 1.45;}})();
 const GRAV=9.8*.55,FALL_G=33*GRAV_K,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 /* LA GRAVITÉ DE L'ORBITE (2026-09-28, portée de la lignée car-crash) — l'orbite était un décor : mêmes sauts, même jauge qu'aux nuages.
    En ESPACE (niveau EN ORBITE et toute la carrière ESPACE) la gravité est DIVISÉE PAR DEUX : `gK()` est lu par TOUS les intégrateurs
@@ -48889,25 +48895,38 @@ function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; 
    (avant comme arrière) restait à 0,3-0,6 tour, posé sans être payé ; le tonneau aussi (1 sur 5). Et un double-tap fait pendant un petit
    rebond (dos d'âne, la pose qui se tasse : hopY/hopV/POSE_F) était jeté sans un bruit.
    · LE SAUT À LA TAILLE DE LA FIGURE : quand une figure part avec le saut, `sautAllonge` intègre la VRAIE trajectoire (la loi de la chute,
-     comme le viseur) contre la VRAIE route devant (dalleProche) et, si la pose arrive avant `sautBesoin(f)` (de quoi planter la figure à sa
-     durée de catalogue : ≥ 1 s), ajoute juste ce qu'il faut de poussée le long de la normale (+19 m/s au plus : ~11 m de haut au lieu de 5).
+     comme le viseur) contre la VRAIE route devant (dalleProche) et, si la pose arrive avant `sautBesoin(f)` (de quoi planter la figure — au
+     vol MINIMUM depuis le 17/10, plus à sa durée de catalogue), ajoute juste ce qu'il faut de poussée le long de la normale (+19 m/s au plus : ~11 m de haut au lieu de 5).
      Sur du plat rien ne change (le saut fait déjà son vol) ; c'est la route qui remonte qui allonge le saut.
    · LE DOUBLE-TAP GARDÉ : pendant un rebond, la demande attend la fin du rebond (0,4 s au plus, `VEQ.sautAtt`) au lieu d'être perdue.
    Banc : `dbgSautFig(x,y)` (un double-tap, le joystick en x, y), `dbgSautFig('cause')`. ?saut=fixe = le saut d'avant (21 m/s toujours). */
 const SAUT_FIXE=/[?&]saut=fixe\b/.test(location.search),SAUT_P=new THREE.Vector3(),SAUT_V=new THREE.Vector3(),SAUT_N=new THREE.Vector3(),SAUT_D=new THREE.Vector3();
-function sautBesoin(f){return f&&f.D?Math.max(1,.35+f.D*.9/.72):0;} // le vol qu'il faut à la figure pour être plantée à ~90 % de sa durée de catalogue (figDose : D = (vol − 0,35) × 0,72)
+/* (2026-10-17, Sacha : « on doit retomber sur la route plus vite ») LE VOL MINIMUM, PLUS LE VOL DE CATALOGUE : on visait 90 % de la durée
+   de catalogue (≥ 1 s) — sur du plat aussi, si bien que CHAQUE saut nitro à figure montait à 1,1-1,9 s et que la gravité ×1,3 n'y changeait
+   rien. On ne vise plus que le plus court vol où figLance accepte la figure (`figDMin`, figDose D = (vol − 0,35) × 0,72), + 0,06 s de
+   marge : la figure tourne plus vite, la caisse retombe. La route qui remonte reste rattrapée.
+   LA FIGURE DU SAUT, PLUS NERVEUSE : celle-là (`douce` : partie toute seule avec le saut) peut se boucler en max(0,25 s ; 40 % du catalogue)
+   au lieu de max(0,32 s ; la moitié) — c'est ce plancher qui fixe la durée du saut. MESURÉ (banc cc-banc/sautgrav.cjs, ville, 32 sauts,
+   toutes les figures dans toutes leurs directions) : la veille 1,27 s de vol moyen (1,03 s sur du plat), 1,85 s au plus, 6,5 m de haut,
+   26 figures payées ; aujourd'hui (×1,45) 1,08 s (0,85 s sur du plat), 1,58 s au plus, 5,6 m, 30 payées, 0 chute. Les figures lancées
+   EN VOL gardent leur plancher. */
+function figDMin(f,douce){return douce?Math.max(.25,f.D*.4):Math.max(.32,f.D*.5);}
+function sautBesoin(f){return f&&f.D?.35+figDMin(f,true)/.72+.06:0;}
 function sautVolPredit(dv){ // la durée (s) du vol qui vient de partir, avec dv m/s de plus le long de la normale de la route au décollage — 2,4 = pas de pose en vue
   SAUT_P.copy(fallPos);SAUT_V.copy(fallVel).addScaledVector(SAUT_N,dv);if(SAUT_V.y>70)SAUT_V.y=70;
   const g=FALL_G*gK(),h=1/30;let gi=-1;
   for(let k=1;k<=72;k++){SAUT_V.y-=g*h;SAUT_P.addScaledVector(SAUT_V,h*SPD);if(k<3)continue;
     const bi=dalleProche(SAUT_P.x,SAUT_P.y,SAUT_P.z,8,400,gi);if(bi<0)continue;gi=bi-bi%8;
-    SAUT_D.subVectors(SAUT_P,pts[bi]);const hh=SAUT_D.dot(Nn[bi]),l=SAUT_D.dot(B[bi]);
-    if(Math.abs(l)<ROAD_HALF+1&&hh>-THICK-1&&hh<.35&&SAUT_V.dot(Nn[bi])<0)return k*h;}
+    SAUT_D.subVectors(SAUT_P,pts[bi]);const hh=SAUT_D.dot(Nn[bi]),l=SAUT_D.dot(B[bi]),vn=SAUT_V.dot(Nn[bi]);
+    /* (2026-10-17) + LA FENÊTRE DE tryLand : passé 0,35 s, la caisse à moins de 3 m du bitume qui monte à moins de 4,5 m/s est POSÉE — un
+       petit saut est rattrapé au SOMMET. MESURÉ (banc cc-banc/sautgrav.cjs, ville) : à ×1,5 le saut de 21 m/s culmine à 2,1 m, posé à 0,33 s
+       au lieu des 0,85 s prédits — la figure n'avait pas le temps (16 payées sur 32). À ×1,3 le plancher d'1 s le cachait. */
+    if(Math.abs(l)<ROAD_HALF+1&&((hh>-THICK-1&&hh<.35&&vn<0)||(k*h>.35&&hh>-1.2&&hh<3&&vn<4.5)))return k*h;}
   return 2.4;}
 function sautAllonge(f){ // juste après startFall : le saut assez long pour planter `f`
   const need=sautBesoin(f);if(!need||SAUT_FIXE)return 0;
   const t0=sautVolPredit(0);VEQ.tPred=t0;if(t0>=need)return 0;
-  let dv=0;for(const d of [3,6,9,12,15,19]){dv=d;if(sautVolPredit(d)>=need)break;}
+  let dv=0;for(let d=1.5;d<=19.5;d+=1.5){dv=Math.min(19,d);if(sautVolPredit(dv)>=need)break;} // (2026-10-17) par pas de 1,5 m/s (étaient 3) : pas un dixième de vol de trop
   fallVel.addScaledVector(SAUT_N,dv);if(fallVel.y>70)fallVel.y=70;VEQ.allonge=(VEQ.allonge|0)+1;VEQ.dvDer=dv;return dv;}
 function sautFigVisee(fo){ // la figure qui partira avec ce saut (celle du glissé, sinon celle de la direction tenue)
   if(!FIGV2.on||!window.FIG)return null;if(fo&&fo.f)return fo.f;
@@ -49237,7 +49256,7 @@ function figLance(s,o){o=o||{};const C=FX2.corps;if(!FIGV2.on||!C||!window.FIG)r
   const bm9=C.mode==='prise'; // (COMBOS À TROIS) lancée pendant la PRISE de la précédente : l'enchaînement PILE
   let r=null;if(o.empile)for(let i=0;i<C.figs.length;i++){const r9=C.figs[i];if(r9.f===f&&!r9.paye&&r9.s===sens&&r9.mv.length){r=r9;break;}} // (L'IMPULSION) la même figure tourne encore dans ce sens : on EMPILE un tour (sur le tonneau du saut nitro aussi : le joueur le reprend en main, il n'est plus « automatique »)
   if(r){const el9=FIG.PHY&&FIG.PHY.elan,D2=el9?Math.min(f.D*1.35+Math.max(0,r.D-r.t),(bud-.35)*.72):figDose(f,bud-C.reste());if(r.mv[0].tours>=IMPU.max||D2<Math.max(.32,f.D*.5)){figRefus(s);return null;} /* (le coup net) le tour EMPILÉ se dose sur ce qui reste à CETTE figure (D2 = le temps pour TOUT finir) — MESURÉ : réserver le temps des autres figures refusait le DOUBLE SALTO du saut nitro */C.empile(r,D2);r.douce=false;}
-  else{if(C.occupe()>=3||D<Math.max(.32,f.D*.5)){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement ») — (le coup net) jamais en moins de 0,32 s : le coup serait un flou
+  else{if(C.occupe()>=3||D<figDMin(f,o.douce)){figRefus(s);return null;} // trop tard pour la planter : rien ne part (« ça les pose automatiquement ») — (le coup net) jamais en moins de 0,32 s : le coup serait un flou
     r=C.lance(f,sens,D,{tient:s>=0&&!!o.tient&&!!FX2.tenus[s],douce:!!o.douce});if(r)r.bm=bm9;}
   if(s>=0){FX2.slots[s]=r;FX2.cyc=(s+1)%FIG_NB;}FX2.n++;VEQ.n++;
   {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} /* (le TAIL WHIP : la flèche montre le côté où part la POUPE, celui du pouce) */ // (HUD v4) la flèche du geste : ▲ ▼, ou le CÔTÉ où elle part (tonneau : sens −1 = à gauche ; toupie, hélico : +1 = à gauche)
