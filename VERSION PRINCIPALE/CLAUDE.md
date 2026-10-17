@@ -110,7 +110,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (le coup d'épaule contre une paroi, `parisMur` : couloirs du canyon, Paris) = L'IMPACT EN MINIATURE, `impMini`/`IMPM` (étoile + éclats +
   étincelles au PREMIER contact, sa propre réserve, ni cratère ni coup ni boule) ; plots, portes et satellites ne sont plus en jeu.
 - **Conduite** : `TCTL` (volant tactile et souris), `keys`, `steer`, `yawR`, `lacetMax`, `driftYaw`, `momT`, `SPD` (vitesse globale),
-  `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `fovFit`.
+  `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `CAM_REPRISE`, `fovFit`, le frein étalé `vFrein`/`FREIN_L` (17/10).
 - **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G` (= 33 × `GRAV_K` 1,3 depuis le 15/10 : LE bouton de la gravité, `?grav=1` = avant), `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Figures v2** (la physique) : `FIG.Corps`/`FIG.PHY` (figures.js), `FIGV2`/`FX2`, `figLance` (une explosion), `figPose` (chaque image de vol),
@@ -201,7 +201,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   au menu : **zéro programme compilé en course**, à mesurer ; `scene.onBeforeRender` se CHAÎNE ; objets immobiles en
   `matrixAutoUpdate=false`.
 - Un seul écrivain par réglage : `bioApply` pour les lumières, `nitroGain(q,'source')` pour toute nitro, `sfx('famille.nom')`
-  pour tout son (jamais un oscillateur bricolé sur place).
+  pour tout son (jamais un oscillateur bricolé sur place), `vFrein(k)` pour toute vitesse perdue d'un coup (choc, pose : jamais `vA*=k`
+  en conduite, ça saute d'une image à l'autre — « LA DERNIÈRE PASSE DE FLUIDITÉ » au journal).
 - Le hasard de la piste (`rnd`) est consommé en séquence : un tirage neuf dans la génération prend son PROPRE flux
   (`mulberry32(graine^…)`), sinon toute la piste en aval change.
 - On MESURE avant d'affirmer : chiffres ou image, avant / après, et on les note au journal.
@@ -475,6 +476,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
 
 **Conduite, vol, caméra**
+- « LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL » (17/10) — décollage, pose, réacteur, caméra : ce qui sautait d'une image à l'autre
 - « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps
 - « LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP » (14/10) · « LE DERNIER TOUR DES COMMANDES AVANT LE VERROU » (09/10)
 - « EN VOL, POUCE EN HAUT = LA CAISSE MONTE » (10/10) · « LA POSE DÉBOGUÉE » (01/10) · « LA PHYSIQUE DU BORD v2 » (01/10)
