@@ -30922,7 +30922,7 @@ Object.assign(SHAPES,{
   const U=LPU,R=.33,ZF=1.34,ZR=-1.22;
   const P=K.kit({p:{g:'p',c:0xf2f2f0},n:{g:'m',c:0x141518},h:{g:'s',c:0xb4bcc6},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
-    b:{g:'p',c:0x3fa9f5,f:0},v:{g:'p',c:0x3a2a8c,f:0},r:{g:'p',c:0xe0201c,f:0}});
+    b:{g:'p',c:0x3fa9f5,f:0},v:{g:'p',c:0x3a2a8c,f:0},r:{g:'p',c:0xe0201c,f:0},Y:{g:'l',c:0xffd23a},D:{g:'m',c:0x33373e}});
   const AR=[[0,2*R+.04],[R*.82,2*R+.03],[R+.10,.24]];
   const ZT=-2.20,ZN=2.12,ZC=.88,ZM=-1.48;                                         // la poupe, le nez, pied du pare-brise, pied de la lunette
   let zs=[ZT,-2.17,-2.10,-1.90,ZM,-1.42,-1.20,-1.05,-.62,-.47,-.40,0,.30,.36,.74,.80,ZC,.94,1.40,1.80,2.05,ZN];
@@ -30990,9 +30990,48 @@ Object.assign(SHAPES,{
   {const z0=1.00,z1=2.00,hz=(z0+z1)/2,ht=Math.atan2(yC(z0)-yC(z1),z1-z0),hy=yC(hz)+.006;
    /* (13/10) les filets du capot RETIRÉS */}
   for(const x of [.34,.42])P.cyl('c',.042,.12,8,x,.27,ZT-.02,'z');
+  /* (2026-10-17, Sacha : « rajoute-lui plus d'éléments de tuning — c'est inspiré des BMW de rallye : sur les roues, autour des roues, le
+     pare-choc… des trucs un peu plus stylés, plus de détails ») LE KIT RALLYE. Devant : la RAMPE de quatre longue-portée au verre jaune
+     sur le bouclier, la LAME, la SANGLE de remorquage rouge. Dessus : les GOUPILLES du capot, l'ÉCOPE du pavillon, l'ANTENNE, l'aileron
+     devenu réglable (JOUES et VOLET noirs). Autour des roues : les ÉLARGISSEURS bordés de caoutchouc et RIVETÉS, les BAVETTES rouges ;
+     dans les jantes (dorées, voir `lpw`) : les DISQUES et les ÉTRIERS rouges — pièces de caisse, ils ne tournent pas avec la roue.
+     Rien de rouge ne passe par 'l' (les feux arrière se relèvent sur le rouge ÉMISSIF), aucune pièce chromée n'est un tube en z à la
+     poupe (le relevé des pots, `echRetire`, l'ôterait). */
+  {const yl=.515,zl=ZN+.16;
+   P.box('n',1.12,.03,.035,0,yl-.075,zl-.03);                                   // la barre de la rampe, devant le bouclier
+   P.sym(sd=>{
+     for(const x of [.19,.44]){P.cyl('n',.064,.07,14,sd*x,yl,zl-.03,'z');        // le boîtier
+       P.cyl('c',.068,.014,14,sd*x,yl,zl+.008,'z');P.cyl('Y',.054,.012,14,sd*x,yl,zl+.012,'z'); // le cerclage, le verre jaune
+       P.box('n',.024,.05,.024,sd*x,yl-.058,zl-.03);}                            // la patte
+     P.box('n',.03,.03,.10,sd*.31,yl-.075,ZN+.10);                               // les supports, plantés dans le bouclier
+   });}
+  P.box('n',1.58,.022,.15,0,.165,ZN+.08);                                       // la lame, sous le bouclier
+  P.box('r',.04,.10,.012,.48,.25,ZN+.097);P.cyl('c',.016,.03,8,.48,.30,ZN+.10,'z'); // la sangle de remorquage, son anneau
+  P.box('r',.04,.10,.012,-.56,.27,ZT-.092);                                      // et la sienne derrière
+  /* les goupilles du capot, l'écope du pavillon (la bouche noire devant), l'antenne au bout du toit */
+  P.sym(sd=>{const z=1.92,y=yC(z);P.cyl('c',.022,.016,10,sd*.56,y+.006,z,'y');P.box('n',.006,.006,.05,sd*.56,y+.016,z);});
+  P.prism('n',[[.10,1.352],[-.24,1.352],[-.14,1.40],[.10,1.415]],.30,0);P.box('K',.25,.042,.006,0,1.384,.103);
+  {const r=-.32,L=.46;P.box('n',.03,.02,.04,.30,1.345,-.85);P.box('n',.008,L,.008,.30,1.345+L/2*Math.cos(r),-.85+L/2*Math.sin(r),r);}
+  /* l'aileron réglable : les joues aux bouts du becquet, le volet au bord de fuite */
+  P.sym(sd=>P.prism('n',[[-1.90,1.07],[-2.15,1.07],[-2.15,1.15],[-1.96,1.12]],.014,sd*.737));P.box('n',1.44,.035,.01,0,1.136,-2.128);
+  /* le bouchon de réservoir à fermeture rapide, sur l'aile arrière droite */
+  P.cyl('c',.045,.012,12,.802,.62,-1.84,'x');P.cyl('n',.03,.014,10,.806,.62,-1.84,'x');
+  /* AUTOUR DES ROUES : le jonc de caoutchouc des élargisseurs, sur le bord de l'arche (le profil AR : du bas de caisse au sommet),
+     ses rivets, et la bavette derrière chaque roue */
+  {const AP=[[-(R+.10),.24],[-R*.82,2*R+.03],[0,2*R+.04],[R*.82,2*R+.03],[R+.10,.24]],t=.034,xl=.815;
+   for(const w of [ZF,ZR])P.sym(sd=>{
+     for(let i=0;i<AP.length-1;i++){const a=AP[i],b=AP[i+1],dz=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dz,dy),an=Math.atan2(dy,dz),
+         nz=-dy/L,ny=dz/L;                                                       // la normale vers le DEHORS de l'arche
+       P.box('n',.06,t,L+t*.9,sd*xl,(a[1]+b[1])/2+ny*t/2,w+(a[0]+b[0])/2+nz*t/2,-an);
+       for(const u of [.25,.75])P.cyl('c',.011,.012,6,sd*(xl+.031),a[1]+dy*u+ny*t/2,w+a[0]+dz*u+nz*t/2,'x');}  // les rivets
+     P.box('r',.25,.19,.012,sd*.71,.155,w-(R+.13));                              // la bavette
+     /* le disque et l'étrier, entre le fond de la jante (x .745) et ses rayons (x .768) */
+     P.cyl('D',.19,.006,20,sd*.752,R,w,'x');
+     P.box('r',.012,.07,.13,sd*.7615,R+.106,w-.106,-Math.PI/4);
+   });}
   K.commit(P);
   return {hl:[.62,.665,ZN+.03],tl:[.58,.72,ZT-.02],wx:.71,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.24,style:'multi',n:10,jante:0xd6d9de}};
+          lpw:{R:R,w:.24,style:'multi',n:12,jante:0xd4a43a}}; // (2026-10-17, le kit rallye) les jantes à rayons fins DORÉES, douze rayons (dix, argent, avant)
 },
   c_silencieuse:function(K){
   /* (13/10, « plus ressemblante ») la berline électrique de Palo Alto : un nez plus HAUT et ROND vu de dessus (c'était un coin
@@ -36002,7 +36041,7 @@ const CAR_UNLOCK=[
      automatique (`dbgAuto`, aucune figure, aucun nitro) encaisse ~2 600 $ en une minute avant de tomber ;
      un débutant fait 200 à 1 000 $. L'ancien 25 000 $ demandait donc ~30 parties pour la 1re caisse :
      un mur. Cible : la 1re caisse en 10-15 min de jeu (parties + primes de contrat), puis ×6-7 par marche. */
-  {p:3000},             // ELDORADO — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
+  {p:40e3},             // ELDORADO — (2026-10-17, Sacha : « pas 3 000 dollars, elle doit coûter 40 000 dollars » — 3 000 → 40 000 : elle passe entre LA BAVAROISE (20 000) et LE CAÏD (50 000) ; la 1re caisse à l'argent est désormais LE CHARGEUR, 6 000) — (2026-10-14 soir, Sacha : option A de passation/ECONOMIE.md — 10 000 → 3 000 : la 1re caisse en 3-4 parties de joueur moyen, aucun gain ne change) — (2026-10-14, équilibrage : 24 000 → 10 000 — la 1re caisse à l'argent depuis le retrait des communes : un débutant l'avait en ~58 parties, ~22 désormais) — (2026-09-26) RARE : les 14 COMMUNES (1 500 → 15 000 $) prennent le rôle de « première caisse »
   {p:50e3},             // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:2.5e6},            // (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
@@ -36036,7 +36075,7 @@ const CAR_UNLOCK=[
   {p:20000}, // L'AMBASSADEUR — (2026-10-06) RETIRÉE
   {p:60000}, // LE CHARGEUR — (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars » : 6 000 → 60 000) — (2026-10-14 soir, option A : 16 000 → 6 000, la 1re marche de transition ; les communes retirées n'ont plus de modèle) — (2026-10-14, équilibrage : 26 000 → 16 000 — une marche douce ×1,5 au bas de la gamme)
   {p:10000}, // LE DÉFIEUR — (2026-10-14 soir, option A : 24 000 → 10 000, la 2e marche) — (2026-10-14, équilibrage : 32 000 → 24 000)
-  {p:20000}, // LA BAVAROISE — (2026-10-14 soir, PILOTAGE après l'option A : 42 000 → 20 000, la marche à ×2 entre LE DÉFIEUR 10 000 et LE CAÏD 50 000) — (2026-10-06 : 38 000 → 42 000)
+  {p:100000}, // LA BAVAROISE — (2026-10-17, Sacha : « cent mille dollars » — 20 000 → 100 000, le jour du KIT RALLYE : elle passe entre LA SILENCIEUSE 90 000 et LE SAMOURAÏ 120 000) — (2026-10-14 soir, PILOTAGE après l'option A : 42 000 → 20 000, la marche à ×2 entre LE DÉFIEUR 10 000 et LE CAÏD 50 000) — (2026-10-06 : 38 000 → 42 000)
   {p:45000}, // LA SUÉDOISE TURBO — (2026-10-06) RETIRÉE
   {p:52000}, // LE QUATTRO — (2026-10-06) RETIRÉE
   {p:90000}, // LA SILENCIEUSE (2026-10-06 : 70 000 → 90 000)
@@ -37362,7 +37401,7 @@ function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
    pièces. Elles montaient ×10 à ×50 (300 → 80 000 $ la mission) quand une partie, elle, ne rapporte que ~500 à 3 000 $ ; et depuis LA FILE
    (même jour) les missions faciles des carnets suivants tombent sans attendre la difficile, donc ces primes arrivaient en rafale. Désormais
    une mission vaut ~1/3 à 1 partie du joueur qui la remplit : 700 → 4 000 $, +15 à 25 % par carnet. Carnets 1-2 (300-600) INCHANGÉS : c'est
-   le salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie. Total des 6 premiers carnets : 76 800 → 14 400 $. */
+   le salaire d'accueil calé pour l'ELDORADO (3 000 $) vers la 3e-4e partie (depuis le 17/10, l'ELDORADO est à 40 000 $ : la 1re caisse est LE CHARGEUR, 6 000 $). Total des 6 premiers carnets : 76 800 → 14 400 $. */
 const CARNETS=[
   {r:{car:6},m:[{k:'coins',v:25,p:300},{k:'fruits',v:4,p:300},{k:'cash',v:1000,p:400}]},
   {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'nitro',v:10,p:600},{k:'kmh',v:672,p:600}]}, /* (2026-10-07, Sacha : « enlève les défis pose parfaite ») UNE POSE PARFAITE → 10 s de nitro (même prime) */ // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
@@ -45169,8 +45208,8 @@ window.cadeauEtat=cadeauEtat;window.cadeauOuvre=cadeauOuvre;window.jourTexte=jou
    seulement si le texte change ; toucher = cadeauOuvre(). Pas prêt : « PROCHAIN CADEAU DANS 3 H 12 » (et « ×2 SUR TA 1RE PARTIE » si le jour est là). */
 function cadeauLigne(){const el=document.getElementById('mCadeau'),h=document.getElementById('garage');if(!el||!h)return; /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'accueil) le cadeau vit EN TÊTE de l'écran MISSIONS : il ne se montre que MISSIONS ouvert */
   if(!(h.classList.contains('on')&&h.classList.contains('missions'))||typeof cadeauEtat!=='function'){if(!el.hidden)el.hidden=true;return;}
-  let e;try{e=cadeauEtat();}catch(x){return;}if(!e){el.hidden=true;return;}
-  let t;if(e.pret)t=TR('CADEAU PRÊT · TOUCHE');else{const m=Math.max(0,Math.ceil((+e.dansMs||0)/60000)),hh=Math.floor(m/60),mm=m%60;
+  let e;try{e=cadeauEtat();}catch(x){return;}if(!e||!e.actif){if(!el.hidden)el.hidden=true;return;} /* (2026-10-17, Sacha) pas encore de cadeau (la leçon pas faite, ?cadeau=0, horloge absurde) : la ligne se tait — elle disait « PROCHAIN CADEAU DANS 0 MIN » sans fin */
+  let t;if(e.pret)t=TR('CADEAU PRÊT · TOUCHE');else{const m=Math.max(1,Math.ceil((+e.dansMs||0)/60000)),hh=Math.floor(m/60),mm=m%60;
     t=TR('PROCHAIN CADEAU DANS')+' '+(hh?hh+' H '+String(mm).padStart(2,'0'):mm+' MIN');if(e.jour)t=TR('×2 SUR TA 1RE PARTIE')+' · '+t;}
   if((e.serie|0)>1)t=TR('SÉRIE')+' '+(e.serie|0)+' '+TR('JOURS')+' · '+t; /* la SÉRIE de jours (Sacha : « ce qui fait revenir le lendemain ») */
   t=sansAcc(t);const sp=el.querySelector('span');if(sp&&sp.textContent!==t)sp.textContent=t;
@@ -47084,12 +47123,15 @@ function m2NbPret(){const s=m2Etat();let n=0;for(const id of s.ok)if(s.pr.indexO
 function m2SecPal(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];return COSM.peinture.filter(function(d){return d.sec&&o.indexOf('peinture:'+d.id)>=0;});} // les couleurs secrètes TROUVÉES (le pack n'en fait pas des missions… mais on ne sait pas d'où elles viennent : elles comptent)
 function m2Compte(){const s=m2Etat(),p=m2SecPal().length;let vis=0,sec=0;for(const m of M2){if(m.f!=='secret')vis++;else if(s.ok.indexOf(m.id)>=0)sec++;}
   return {ok:s.ok.length+p,tot:vis+sec+p};}
-/* les lignes, triées : 0 à récupérer · 1 suivies · 2 presque finies (≥ 2/3) · 3 en cours · 4 pas commencées · 9 terminées */
-function m2Lignes(){const s=m2Etat(),L=[];
+/* les lignes, triées : 0 à récupérer · 1 suivies · 2 les autres, PAR FAMILLE (M2_ORDRE), la plus avancée d'abord · 9 terminées
+   (2026-10-17, Sacha : « les exploits en haut, pas les COLLECTE ») — avant, le reste se triait à l'avancement seul : les COLLECTE (déjà à
+   1 / 3 avec la caisse du départ) passaient au-dessus des exploits à 0, et un nouveau joueur ne voyait d'abord que des « COLLECTE ». */
+const M2_ORDRE={exploit:0,aura:1,moteur:2,exploration:3,secret:4,argent:5,collection:6}; // ce qui se joue en course d'abord, ce qui s'accumule ensuite
+function m2Lignes(){const s=m2Etat(),L=[],fo=function(x){const o=M2_ORDRE[x.m.f];return o==null?9:o;};
   for(const m of M2){const ok=s.ok.indexOf(m.id)>=0;if(m.f==='secret'&&!ok)continue;let v=0;try{v=m2Val(m);}catch(e){}
     const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t),pr=s.pr.indexOf(m.id)>=0,su=s.su.indexOf(m.id),vide=!!(m.r&&m.r.vide);
-    const rg=ok?(!pr&&!vide?0:9):su>=0?1:p>=.66?2:p>0?3:4;L.push({m:m,v:v,t:t,p:p,ok:ok,pr:pr,su:su,rg:rg});}
-  L.sort(function(a,b){return a.rg-b.rg||(a.rg===1?a.su-b.su:b.p-a.p)||M2.indexOf(a.m)-M2.indexOf(b.m);});return L;}
+    const rg=ok?(!pr&&!vide?0:9):su>=0?1:2;L.push({m:m,v:v,t:t,p:p,ok:ok,pr:pr,su:su,rg:rg});}
+  L.sort(function(a,b){return a.rg-b.rg||(a.rg===1?a.su-b.su:a.rg===2?fo(a)-fo(b):0)||b.p-a.p||M2.indexOf(a.m)-M2.indexOf(b.m);});return L;}
 function m2CarVoir(m){const r=m.r||{};if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i)?{car:i}:null;}
   if(r.cat){const j=(COSM[r.cat]||[]).findIndex(function(x){return x.id===r.id;});return j>=0?{cat:r.cat,i:j}:null;}return null;}
 /* LA VIGNETTE : la caisse en photo (photoFile, une par image, au garage), l'aile en photo sur ta caisse (aileFile), la peinture en pastille
@@ -59951,6 +59993,7 @@ function gmPlaceL(W,H){ // debout : UN panneau entre le titre et JOUER ; couché
   const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
   L.classList.toggle('land',land);
+  if(hd)hd.style.maxWidth=land&&rb&&rb.width?px(Math.max(160,rb.left-g0-14)):''; // (2026-10-17, Sacha) couché, l'en-tête s'arrête avant le panneau : la consigne et la ligne du cadeau (jusqu'à 420 px de large) passaient DESSOUS
   if(land){const tp=rh&&rh.height?rh.top:12,l=rb&&rb.width?rb.left:W*.5,r=rb&&rb.width?W-rb.right:g0,bB=H-(rb&&rb.height?H-rb.bottom:14);
     L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
     if(A){A.style.left=px(l);A.style.right=px(r);A.style.top=px(tp);A.style.maxHeight=px(Math.max(100,bt-12-tp));}

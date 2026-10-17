@@ -83,3 +83,10 @@ tient plus : la reprise ne vaut le coup que si l'on compte gagner plus que ce qu
   6 premiers carnets : 76 800 → 14 400 $. Cadeau plafonné à 2 500 $ (`CADO.max`) — un record de l'ancienne échelle le rendait astronomique.
 - Règle pour la suite : une prime de mission ≈ 1/3 à 1 partie du joueur qui la remplit. Si les missions paraissent maigres, monter tout le
   tableau d'un même facteur par `ECO3.prime` (lu par `carnet()`), pas carnet par carnet.
+
+## 10. L'ELDORADO À 40 000 $ (Sacha, 17/10 : « pas 3 000 dollars, elle doit coûter 40 000 dollars »)
+- ELDORADO 3 000 → **40 000 $** (`CAR_UNLOCK`, ligne de l'ELDORADO). Elle passe entre LA BAVAROISE (20 000) et LE CAÏD (50 000), toujours RARE
+  (`rar:'rare'` sur sa fiche). Ceux qui l'ont déjà la gardent : aucun remboursement ne lit ce prix.
+- Conséquence : la 1re caisse à l'argent est désormais LE CHARGEUR (6 000 $), vers la 9e partie d'un joueur moyen selon le §6, au lieu de
+  l'ELDORADO vers la 3e-4e. Le bas de gamme : 6 000 · 10 000 · 20 000 · 40 000 · 50 000 · 120 000 (×1,25 à ×2,4 par marche).
+- À trancher si le début paraît long : une marche vers 3 000 $ (une autre caisse), ou les gains du début (§6, option B).
