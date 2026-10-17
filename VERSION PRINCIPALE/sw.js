@@ -42,7 +42,7 @@
 //  v54 (2026-10-02) : L'ORIGAMI, la 69e caisse (le pick-up d'inox).
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
-const CACHE = 'cashcar-v605'; // v605 (2026-10-17 soir, Sacha : « il refaut le système où la route n'est pas collée au sol ») : la PELOTE redevient la route de la FORÊT, sous les arbres de Léo ; le slalom = ?foret=slalom
+const CACHE = 'cashcar-v606'; // v606 (2026-10-17 soir, Sacha : « pas de plaque d'immatriculation à l'avant ») : PLUS DE PLAQUE À L'AVANT — plqPose ne pose que la plaque arrière
 // const CACHE = 'cashcar-v604'; // v604 (2026-10-17 soir, Sacha : « le panneau sur la route 66 dans la map canyon doit s'appeler la route 67 ») : le PANNEAU DU CANYON affiche ROUTE 67 (un 7 en pavés ajouté à CY_FONTE)
 // const CACHE = 'cashcar-v603'; // v603 (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route ») : LES SATELLITES FLOTTENT AU BORD — l'orbite n'a plus d'obstacles sur la chaussée, les Starlink et débris dérivent à 4-16 m du bord en tournant lentement (?sats=route = avant)
 // const CACHE = 'cashcar-v602'; // v602 (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro ») : POSER UNE FIGURE RAPPORTE DU NITRO — chaque figure lancée rend ses 30 % à une pose réussie, le trop-plein dans la réserve bleue (rien ne s'évapore)
