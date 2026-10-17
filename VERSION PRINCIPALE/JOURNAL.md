@@ -33,7 +33,7 @@
   photo du studio (720 × 440 : x 68-666, y 46-306, mesuré sur les photos) — le toit et les bouts sortaient de la case. En couleur ça se lit, en
   silhouette noire c'était une tache. Les secrètes seules : photo au plus 110 % de large et 148 % de haut de la case, descendue de 10 % → la
   caisse ENTIÈRE, ~90 % de la hauteur. L'étiquette SECRÈTE (`.bqKr`) leur couvrait le toit : retirée sur ces cartes (la ligne du bas dit déjà
-  « MISSION SECRÈTE », en magenta). Cette ligne passe sur deux lignes debout (carte de 112 px, il en fallait 117 + marges : elle était coupée en
+  « MISSION SECRÈTE », en magenta) — VALIDÉ par Sacha le 17/10 : « Oui, on garde les silhouettes sans l'étiquette SECRÈTE ». Cette ligne passe sur deux lignes debout (carte de 112 px, il en fallait 117 + marges : elle était coupée en
   « MISSION SECRÈ… ») et tient sur une couché (marges de 4 px).
 - LES VIGNETTES DE MISSIONS (`.m2R`, `m2Vign`) : 70 × 44 → 88 × 50 (couché bas 62 × 38 → 80 × 46 ; ≤ 360 px 56 × 36 → 70 × 40, rapport ~1,75
   partout). La photo d'une caisse ou d'une aile est RECADRÉE sur l'objet (`.m2R .m2Ph img` : 115 % de large, décalée de −8,65 %, le débord
