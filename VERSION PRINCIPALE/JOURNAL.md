@@ -26,7 +26,7 @@
   son élan (Sacha, 15/10). Mesuré : 180°, 178° à 200, 149°, 135°, 120° → la caisse reste sur la route ; 14 sauts dans le bon sens → 0
   demi-tour, 0 erreur ; vrai demi-tour au joystick en l'air → posée à 139°, nez du vol à 126°, demi-tour joué.
 - `?demitour=0` = l'ancienne pose. `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie la caisse se poser à contresens ; `dbgDemiTour()` = l'état.
-  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v593.
+  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v596 (essai 2, poussé sur main avec le oui de Léo).
 - **2e ESSAI (même jour)** — Léo l'a vu en vrai : « c'est bof » ; puis « le pivot, le panneau, les lumières faisaient un tour bugué, c'était un
   peu bizarre — les lumières de la voiture » ; questionnaire : pivot « trop sec, trop rapide », panneau « plus petit et discret », le refaire.
   · LES TRAÎNÉES DE LUMIÈRE (les rubans rouges accrochés aux feux, `SILS`) dessinaient une BOUCLE sur la route pendant le pivot : elles se
@@ -36,6 +36,105 @@
   · LE PANNEAU : le texte seul, 8 px, rouge `#ff5e7a` cerné d'encre, fondu d'entrée/sortie — plus de plaque rouge ni de flèche.
   Planche : `photos-gameplay/demi-tour-essai1-essai2.png`. ⚠ L'anneau cyan qu'on voit au sol sur une capture est l'onde de la montée de
   moteur (`swapRing`), sans rapport.
+## LA VILLE VITRÉE v3 — CLEAN CITY (2026-10-17 soir, Léo : « j'abandonne l'idée de la ville au plafond ; rends-la plus distincte — les trucs rouges au-dessus ressemblent trop à Crypto City ; c'est CLEAN CITY : miroir, moderne, le futur, l'avancement, la technologie ; des bâtiments blancs, des logos très minimalistes, un avion-ballon énorme et très moderne ; les lumières sur les côtés de la route en BLEU »)
+- LE PLAFOND (v2) n'est plus le défaut : `VIT_PLAFOND` (`?plafond=1` le rend tel quel : ville à l'envers, ciel en bande, heures et soleil bas de la v2,
+  `VIT_MET_PL`). Sans lui : le ciel et ses cumulus de la v1 (`VIT_MET_CL`, la couche `vitreCiel` d'avant) ; le verre renvoie le ciel et ses nuages
+  vers le haut, la mer de nuages et les tours qui montent vers le bas (la correction des tours noires vues d'en haut est gardée).
+- PLUS DE FEUX ROUGES : les mâts deviennent de fines FLÈCHES BLANCHES (1,4 m) à petit feu BLEU (2,2 m) ; pas de mât sur une LAME.
+- LES TOURS BLANCHES : familles revues — VERRE BLEU 26 % · BLANCHE à bandeaux 24 % (1,8 à 2,4 m de panneau blanc par étage) · LAMES blanches 16 %
+  · VERRE SOMBRE 10 % · ARGENT 24 % ; lames plaquées et flèches en blanc ; toits clairs ; contre-jour en blanc froid (plus de rose : `kickC`).
+- LES LOGOS (`vitreBox`/`vitreTri`, distances signées dans le shader) : sur une tour de FORME sur deux, une marque minimaliste INVENTÉE près du sommet, au
+  milieu des faces droites, jusqu'aux trois quarts de la face — anneau, disque, triangle, deux barres, carré évidé, point + barre ; blanc sur le verre,
+  bleu profond sur les tours blanches ; la nuit ils s'allument (blanc-bleu).
+- LES FILETS BLEUS : une tour sur deux a ses arêtes en LED bleue (à peine le jour, franches la nuit) ; les bureaux de nuit en LED plus froide.
+- LE DIRIGEABLE (`vitreDirigeable`, `vitreDirTick`) : un seul, ÉNORME (230 m), blanc et lisse, une ligne de lumière bleue sur chaque flanc, ailerons,
+  nacelle vitrée, un logo (anneau + point) sur les flancs, feu de navigation bleu qui bat ; ~1 200 triangles, matières de base compilées au menu. Il croise
+  1,7 km devant la caisse sur la piste, 130 m au-dessus, 200 m de côté, et avance lentement ; dépassé, il reprend sa place loin devant, de l'autre côté.
+- LES BORDS DE LA ROUTE EN BLEU (`bordsTick` : rails #2f8cff sur la VILLE VITRÉE ; la nappe suit l'accent `accC` bleu).
+- ⚠ CORRIGÉ EN ROUTE : une tour qui borde un étage de route PLUS HAUT (la piste descend en spirale) avait son pied au-dessus de la caméra — la nappe de
+  brume posée sous la caméra ne le noyait pas : elle FLOTTAIT, dessous visible (ça faisait encore « ville du plafond »). Le volume du pied (et les lames)
+  porte un drapeau dans la couleur d'instance (vert + 8, `vPb9`) : son pied se noie comme dans la ville de nuit, et un pied au-dessus de la caméra se
+  fond dans le CIEL (pas dans la brume de l'horizon, plus claire, qui le découpait).
+- MESURÉ (banc Chrome sans fenêtre, Mac encore chargé) : 0 programme compilé en course (vitrée midi, nuit ; ville pluie en témoin : 198 → 198) ;
+  triangles d'une image 206-667 k (ville pluie 380-472 k ce soir-là). À mesurer sur un vrai iPhone (`?banc=1`).
+- Console en plus : `dbgVitre('dir')` (où est le dirigeable), `dbgVitre('tours',f)` donne aussi le sommet et la graine (les logos).
+- PLANCHE AVANT (v2, le plafond) | APRÈS (CLEAN CITY) + détails : `photos-gameplay/ville-vitree-clean-city-avant-apres.jpg` (dossier de Léo, hors dépôt).
+- POUR APRÈS (Léo : « on verra ça après ») : sur CHAQUE map, les côtés lumineux de la route à la couleur de la map, et qui évoluent avec le boost.
+
+## LA VILLE VITRÉE v2 — LE PLAFOND-MIROIR, LES TOURS DE SHANGHAI, LA PLUIE (2026-10-17, Léo : « plein de reflets magnifiques ; le but c'est la ville avec le plafond de glace, l'effet miroir — une ville où elle est déjà et aussi qui vient du ciel ; il n'y a même pas de ciel, juste un ciel entre les deux ; il pleuvra, adapte la météo ; les bâtiments moins en forme que Crypto City, imagine plutôt Shanghai — surtout pas de stéréotype, l'architecture des bâtiments »)
+Questionnaire : la ville du ciel = LA MÊME VILLE À L'ENVERS · météo = les 4 heures + une PLUIE · bâtiments = des formes travaillées, toujours en verre.
+- LE PLAFOND (`VIT_HC` 150 m, dans buildVoxCity derrière `VI`) : chaque tour (volumes, mât, feux) a son REFLET accroché au plafond — retourné par
+  rapport au plan à 150 m au-dessus de la route qu'elle borde (à 330 m, vu de la caméra de course, il restait hors de l'écran). L'instance est
+  RETOURNÉE (échelle −x, −y = un demi-tour : les faces restent à l'endroit ; `fam(…,flip)`), même centre donc même graine, même façade, même forme.
+  La hauteur des tours d'en bas AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux
+  villes. La règle d'or tient là-haut (tourLibre : un reflet qui couperait un étage de route est écourté par sa pointe, ou omis). Les tours d'en haut
+  sont DURES (CITY.col). Brume : la nappe du pied ET son miroir au-dessus de la ville d'en haut (`VIT_PIED`, couleur du plafond).
+- LE CIEL ENTRE LES DEUX : la couche `vitreCiel` devient le PLAFOND — dans la bande (horizon → ~4°, fondue jusqu'à ~15°) le vrai ciel de l'heure ;
+  au-dessus, la MER DE NUAGES À L'ENVERS (le miroir de celle d'en bas, `VIT_MET.p` + le relief de la toile). Le soleil (`VIT_MET.sol`) descend dans
+  la bande : 4° le matin, 8° à midi, 2,5° au coucher. Plus de lune. Le verre renvoie la même chose, EN MIROIR : vers le haut la bande puis le plafond
+  et les tours qui pendent, vers le bas la bande puis la mer de nuages et les tours qui montent (avant, une tour de verre sombre vue d'en haut
+  sortait NOIRE : elle renvoyait la brume sombre d'en dessous).
+- LES FORMES (`vitreForme`, tirée de la POSITION — aucun tirage `vr` ; rangée dans la couleur d'instance r + 8 × forme, lue au sommet) : DROITE
+  (retraits empilés) · EFFILÉE · VRILLÉE (90-160°) · FUSEAU · RONDE (octogone presque régulier) · LAME (toit en biais). La forme vit dans la moitié
+  HAUTE de la tour (celle qui sort de la brume ; pour la ville d'en haut, son miroir). Une tour de forme = un seul volume, sans lame plaquée ; pas
+  de mât sur une LAME. VRILLÉE et FUSEAU ont leur géométrie à 6 étages (`vitreGeoR`, 108 triangles, deuxième famille d'instances) ; les autres
+  gardent le prisme à 28. La normale suit la forme (vrillée, penchée) : reflets et lumière justes. Aucun monument reconnaissable.
+- LES TOITS, qu'on voit maintenant d'en haut : une dalle sombre, des blocs techniques, le parapet clair (ils sortaient en plaques lavande).
+- LA PLUIE (`SF_CARTES.vitree.m.pluie`, biome `vitrePluie`, « IL PLEUT ENTRE LES VILLES ») : ciel gris-bleu, brume plus proche, le plafond gris.
+- MESURÉ (banc Chrome sans fenêtre, 1280 × 720, Mac très chargé — charge 33, d'autres bancs tournaient : les ms de la puce ne sont PAS fiables
+  aujourd'hui) : PROGRAMMES — 0 compilé en course sur 6 parties (vitrée midi ×3, pluie, soir ; ville pluie, crypto midi en témoin) ; une seule fois,
+  un programme MeshBasic générique est apparu en course, non reproduit (pas une matière de la map). TRIANGLES d'une image (`dbgAppels`) : 320-660 k
+  (v1 : 141-641 k ; ville de nuit : 247-572 k). À vérifier sur un vrai iPhone (`?banc=1`) avant la sortie : la ville d'en haut double les tours à
+  dessiner (le tri par quartiers les écarte hors champ et au loin). Console : `dbgVitre('haut')` masque la ville d'en haut (A/B), `dbgVitre('tours',f)`
+  (les tours d'une forme près de la caisse), `dbgVitre('progs')` (traquer une compilation).
+- LA PLANCHE AVANT | APRÈS : `photos-gameplay/ville-vitree-plafond-avant-apres.jpg` (dossier de Léo, hors dépôt). L'atelier (Maps, ESSAI) sert
+  directement cette copie : la PLUIE y est, rien à relancer.
+
+## LA VILLE VITRÉE — UNE MAP DE TOURS DE VERRE (2026-10-17, Léo : « une nouvelle map VILLE VITRÉE : une ville de tours en VERRE — murs-rideaux à grands carreaux bleus, montants fins, reflets du ciel et des nuages dans les vitres, éclat du soleil, coins de tours biseautés, quelques bandes de béton / lames verticales — comme mes deux photos (tours de bureaux vues d'en bas, ciel bleu, soleil qui éblouit) ; quatre heures tirées au hasard : MATIN, MIDI, COUCHER, NUIT »)
+Une map EN PLUS dans le tirage du JOUER (`SF_CARTES.vitree`) : LA VILLE (la nuit) ne bouge pas. Tout est dans le bloc « LA VILLE VITRÉE — LES TOURS
+DE VERRE » (juste avant LA PLUIE D'ARGENT v2) + des aiguillages `VI` dans `buildVoxCity`.
+- LE NIVEAU (`NIV_VITRE` : id 'ville' + `vitre:1`, comme CRYPTO CITY) : la piste et l'emplacement des tours sont ceux de la VILLE — à graine égale la
+  même ville, aucun tirage `vr` ajouté ni retiré. Quatre heures (`vitreMatin/Midi/Soir/Nuit` dans BIOMES, juste avant la couche commune),
+  jamais de pluie ni d'orage. Route : celle de CRYPTO CITY (`cryptoA` : glacée, anthracite) + la SIGNATURE de la bible (`routeSig`). Ciel :
+  le jour d'altitude (pas celui de la ville de nuit : `villeA`=0), la mer de nuages dessous (`merA`).
+- LA FAÇADE (`VIT_VERRE`, matière `vitreMatTours`) : un MUR-RIDEAU — un carreau par travée et par étage, des montants fins (la teinte d'instance,
+  éclairée par la scène). Chaque carreau est un MIROIR un peu désaxé (± 3°, seulement de près : au loin il fourmillait) — les reflets se cassent
+  d'une vitre à l'autre comme sur un vrai mur de verre. Fresnel de verre traité (il renvoie déjà la moitié de face) ; il renvoie le CIEL, ses
+  NUAGES (le même plafond que la couche du ciel, voir plus bas), les TOURS D'EN FACE (deux rangées de silhouettes sur l'horizon du reflet,
+  72 et 120 par tour d'horizon, plus sombres que le ciel, leurs bureaux allumés la nuit) et l'ÉCLAT du soleil, qui saute de carreau en carreau.
+  Cinq familles, tirées de la graine de la tour : VERRE BLEU 34 % · BANDEAUX de béton clair 18 % · LAMES verticales blanches et leur ombre 16 % ·
+  VERRE SOMBRE à grands carreaux 16 % · VERRE ARGENT presque miroir 16 %. L'ALLÈGE (le bas de chaque étage) en verre opaque. La NUIT : les
+  bureaux par plateaux (des étages entiers dorment), 70 % de lumière chaude, le plafonnier en haut de chaque baie, un store sur sept ; béton
+  et montants s'éteignent.
+- LES COINS BISEAUTÉS (`vitreGeo`) : un prisme à huit pans (28 triangles au lieu de 12) dont les pans de coin s'ouvrent au SOMMET selon la graine
+  (60 % des tours, 16 % de leur petit côté, 7 m au plus) — à zéro c'est le cube au triangle près. Tours au loin : le cube (couleur de brume).
+- LES NUAGES (`vitreCiel`, `vitreNuages`) : une toile de bruit périodique 256² peinte une fois ; une demi-sphère posée sur la caméra, au plan
+  lointain comme le dôme, derrière tout le reste, lit un PLAFOND à 1 400 m au-dessus de la caméra (deux lectures + une octave fine) — et le verre
+  lit LE MÊME plafond : on voit dans les tours le ciel qu'on a au-dessus de la tête. Le vent les pousse. Couverture et couleurs par heure : `VIT_MET`.
+- LE SOLEIL DE L'HEURE (`VIT_MET.sol`, posé par `canyonSoleil`, la mécanique du canyon) : matin 9° à l'est, midi 26°, coucher 4° à l'ouest.
+  Hors de la ville vitrée, `canyonSoleil` rend le soleil d'avant au bit près.
+- Ce qui se TAIT : les enseignes et les réclames (un quartier d'affaires — les tirages ont eu lieu) ; les tuyaux deviennent des LAMES de béton clair
+  (arrêtées au toit du volume qu'elles longent), les mâts sont d'acier clair, les couronnes des bandeaux de lumière blanche (pas sur une tour biseautée).
+- ⚠ DEUX PIÈGES TROUVÉS (vrais pour toute la ville) :
+  · la PROFONDEUR de l'image est en 16 bits (three r128, cibles du compositeur) : ~24 m de pas à 400 m. Un volume caché DANS un autre et dessiné
+    après lui (les retraits emboîtés, le mât qui part du pied) PERCE sa façade par bandes — MESURÉ au rayon (`dbgVitre('rayon',[x,y])`) : le mât à
+    12 m derrière le verre. Invisible dans la ville de nuit (tout est sombre), criant sur du verre clair. Ici : volumes EMPILÉS (même silhouette),
+    mât qui part du toit — les étages se comptent dans le monde, la brume du pied est une NAPPE ~380 m sous la caméra (`VIT_PIED`).
+  · three r128 n'envoie PAS `cameraPosition` aux matières Lambert (seulement Shader/Phong/Toon/Standard, ou avec envMap) : il vaut (0,0,0). Le verre
+    reçoit la vraie caméra par `VIT.uCam` (posée dans un `scene.onBeforeRender` chaîné). ⚠ le verre de CRYPTO CITY (`CRYPTO_VERRE`) et la pluie de la
+    ville (`villePied`) lisent `cameraPosition` : chez eux le regard part de l'origine du monde (pas corrigé ici : pas ma map).
+- MESURÉ (banc Chrome sans fenêtre du Mac, 1280 × 720, DPR 1, pilote automatique, son coupé) : PROGRAMMES — 0 compilé en course (199 → 199 sur 25 s,
+  sur chacune des 4 heures) et 0 au PORTAIL (partie lancée aux NUAGES, portail vers la VILLE VITRÉE soir puis vers JADE, puis vitrée nuit → la VILLE : 198 → 198) ;
+  les trois matières sont compilées au menu (`vitreChauffe`, dans chauffeDivers). PUCE (`dbgCout`, p50 / p90) : ville de nuit 6,65 / 7,28 ms · CRYPTO
+  midi 5,77 / 6,66 · VILLE VITRÉE midi 6,56 / 7,25 · nuit 6,36 / 8,66 ; processeur ~1,9 ms partout. La couche de nuages, A/B à image figée : 7,8-8,1 ms
+  avec, 7,7-8,1 sans (dans le bruit). TRIANGLES d'une image (`dbgAppels`, la scène, trois instants) : ville pluie 159-218 k · ville nuit 247-572 k ·
+  CRYPTO midi 171-530 k · VITRÉE midi 141-612 k · VITRÉE nuit 191-641 k ; les tours PRÈS : 22-34 k (28 triangles par volume) contre 36 k dans la
+  ville de nuit (12 triangles, mais plus de volumes : les cachés). Bancs : scratchpad de la session 9e12b23c, `banc/` (b.py, perf.py, perf2.py,
+  portail.py, ab.py, serie.py, photo.py).
+- LA PLANCHE des quatre heures (en course · vue d'en bas · autre vue) : `photos-gameplay/ville-vitree-4-heures.jpg` (dossier de Léo, hors dépôt).
+- Liens et console : `?carte=vitree&meteo=midi` · `dbgNiveauVitre(meteo)` · `dbgVitre()` (état) · `dbgVitre('nuages',{k,l,a,s,sol})` (une heure à chaud)
+  · `dbgVitre('ciel')` (la couche de nuages) · `dbgVitre('rayon',[x,y])` (ce qu'il y a sous un pixel). `?sans=vitree` retire la map du tirage.
+  L'outil des maps : `repertoire-maps/maps.js` (VILLE VITRÉE, couverture MIDI), photos `img/vitree-*.jpg`.
 ## LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES (2026-10-17, session PORTAIL — Léo : « revoir tout le système de transition entre chaque map : que les portails soient une accumulation de cubes bien disposés, stylés, au bout de la route, avec un peu de transparence, mais qui te laissent comprendre que tu vas aller ailleurs — et qui te donnent une vue sur où tu vas aller »)
 Léo préférait « un portail qui montre la map où tu vas » aux « portails de feu » (repli prévu si c'était trop lourd) : c'est la 1re option, et elle est légère.
 - VU AVANT (banc, debout 390 × 844) : l'OVULE rose (sphère additive de 55 m, la même pour toutes les maps) ne disait rien de la suite ; au passage,
@@ -62,13 +161,15 @@ Léo préférait « un portail qui montre la map où tu vas » aux « portails d
   centre), la scène est rendue une fois et RECOPIÉE dans une toile plein écran (la fenêtre couvre déjà tout l'écran), la toile avance (zoom CSS,
   joué même quand newTrack bloque), le ciel bascule d'un coup dessous (`bioPortDur`, `PCV.fen`), puis elle SE DÉFAIT EN CUBES (carrés qui
   rétrécissent, du centre vers les bords, 0,44 s) sur la map d'arrivée — la vue même de la carte postale.
-- 2e TOUR, LA TRAVERSÉE (Léo, après l'avoir essayée : « il y a une pause quand on passe dans le portail ; donner encore plus l'impression qu'on
-  change de dimension, que ça reste fluide ; pousser l'aspect traversée multidimensionnelle pixel, sans prendre trop de place ») : la pause, c'est
-  la construction de la map (le script est bloqué) — tout ce qui bouge pendant ce temps est joué par le COMPOSITEUR : l'image avance (×1,3), le
-  monde perd sa définition par PALIERS (petits pixels à 90 ms, puis les GROS PIXELS = les cubes de la traversée à 240 ms ; deux petites toiles
-  tirées une fois de l'image, affichées `pixelated`), un TUNNEL DE PIXELS aux couleurs d'en face (3 petites toiles de 96², `pcTunnel`, qui
-  grandissent en boucle) file vers l'écran, les bords s'allument de sa couleur (`.pcE`). La map bâtie, chaque gros pixel S'ALLUME de la couleur
-  d'en face, rétrécit et part (des `fillRect`, ~0,5 ms par image au processeur bridé ×4). Même durée qu'avant.
+- 2e TOUR (même soir, retiré le soir même) : pendant la construction, le monde se pixelisait par paliers + un tunnel de pixels (CSS). Verdict de
+  Léo : « la pause est beaucoup trop longue ; l'écran figé en changement avec l'animation, c'est moche ; je préférais la première, qui donnait
+  l'impression qu'on changeait de dimension, et on reprenait la main ensuite ». → 3e TOUR : la traversée de la 1re version revient, PLUS COURTE.
+  Le voile comptait, en plus de la construction elle-même, ~830 ms (banc, téléphone simulé, processeur ×4) : un rendu complet en plus au contact,
+  deux images d'attente (l'une redessinait l'ancien monde sous le voile), 220 ms d'attente, puis la chauffe des programmes qui tombait PENDANT les
+  cubes, puis 0,44 s de cubes. Désormais : au sol la copie est prise APRÈS le rendu normal (`pcCopie`, appelée par la boucle), UNE image d'attente
+  qui ne dessine rien (`PCV.fen&&PORTV.att&&!PCV.copie`), la chauffe part tout de suite sous l'image (`CHAUFFE_R.t`), les cubes une image après,
+  en 0,30 s. MESURÉ : ~480 ms en plus de la construction (−42 %) ; voile complet ~0,9 s contre ~1,35 s. La construction de la map (0,4-0,6 s
+  au banc ×4) reste le gros de la pause — la raccourcir = un chantier à part (bâtir la map suivante en avance).
 - `?portail=ancien` : l'ovule et les feux, tels quels. Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgPortailPhoto(d)`,
   `dbgCartePostale()`, `dbgPassage(p)` / `dbgPassage('lent',k)`. Bancs (scratchpad de la session) : `approche.py`, `passage.py`, `cp.py`.
 
