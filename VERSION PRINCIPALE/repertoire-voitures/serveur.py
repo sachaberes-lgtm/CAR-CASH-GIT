@@ -5,7 +5,7 @@
 # REMET CE DOSSIER SUR LE MAIN : git fetch, puis checkout du dernier origin/main — seulement si la copie est « détachée » (pas une
 # branche de travail) et propre (aucune modification) : il n'écrase jamais un travail en cours. La liste, elle, lit le main sur GitHub
 # toute seule (moteur.js) ; ceci garde le JEU qu'on ouvre depuis elle au même niveau que la liste.
-import http.server, os, socketserver, subprocess, sys, threading, time
+import http.server, json, os, socketserver, subprocess, sys, threading, time
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9250
 ICI = os.path.dirname(os.path.abspath(__file__))
@@ -27,9 +27,29 @@ def suit_le_main():
             print('suivi du main :', e, flush=True)
         time.sleep(120)
 
+sys.path.insert(0, ICI)
+import notes   # LES NOTES DES VOITURES (17/10) : …/repertoire-voitures/notes, gardées hors du dépôt (voir notes.py)
+
 class Page(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=JEU, **k)
+    def _notes(self, methode):
+        n = int(self.headers.get('Content-Length') or 0) if methode == 'POST' else 0
+        code, d = notes.repond(methode, self.rfile.read(n) if methode == 'POST' else None)
+        b = json.dumps(d, ensure_ascii=False).encode('utf-8')
+        self.send_response(code)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(b)))
+        self.end_headers()
+        self.wfile.write(b)
+    def do_GET(self):
+        if self.path.split('?')[0] == '/repertoire-voitures/notes':
+            return self._notes('GET')
+        super().do_GET()
+    def do_POST(self):
+        if self.path.split('?')[0] == '/repertoire-voitures/notes':
+            return self._notes('POST')
+        self.send_error(404)
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store')
         super().end_headers()

@@ -58,6 +58,8 @@
   .carte .txt{padding:2px 14px 13px}
   .carte b{display:block;font-size:13.5px;font-weight:700;letter-spacing:.04em;line-height:1.25}
   .carte span{display:block;margin-top:3px;font-size:12px;color:var(--gris)}
+  .carte .mod{display:block;margin-top:2px;font-style:normal;font-size:12px;color:var(--encre);opacity:.62;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .carte .mod:empty{display:none}
   .carte .tag{position:absolute;left:10px;top:10px;font-size:10px;font-weight:700;letter-spacing:.08em;padding:4px 8px;border-radius:999px;
     background:#fff;color:var(--c,#0a63d6);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .carte .tag:empty{display:none}
@@ -86,6 +88,8 @@
   #fFam{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.14em}
   #fFam i{width:9px;height:9px;border-radius:50%;background:var(--c)}
   #fNom{font-size:36px;font-weight:700;letter-spacing:-.01em;line-height:1.05;margin-top:8px}
+  #fMod{margin-top:6px;font-size:15px;font-weight:500;color:var(--encre);opacity:.62}
+  #fMod:empty{display:none}
   #fLigne{margin-top:8px;font-size:14px;color:var(--gris)}
   #fDesc{margin-top:10px;font-size:14px;line-height:1.45;color:var(--encre);opacity:.78;max-width:420px}
   #fChg{margin-top:10px;font-size:12.5px;font-weight:600;color:#0a63d6}
@@ -102,6 +106,55 @@
   #toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:9;
     background:var(--encre);color:#fff;font-size:13.5px;padding:11px 18px;border-radius:999px;transition:opacity .3s,transform .3s;pointer-events:none;max-width:calc(100% - 40px)}
   #toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- LES NOTES (17/10, Léo : « une option note à côté de chaque petite voiture ») ---------- */
+  .carte .nt{position:absolute;right:10px;top:10px;height:30px;min-width:30px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.88);
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;color:var(--gris);box-shadow:0 1px 3px rgba(0,0,0,.08);
+    opacity:.75;transition:opacity .15s,background .15s;cursor:pointer;margin:0}
+  .carte .nt svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .carte .nt em{font-style:normal;font-size:12px;font-weight:700;display:none}
+  .carte:hover .nt,.carte .nt:focus-visible{opacity:1}
+  .carte .nt:hover{background:#fff;color:var(--encre)}
+  .carte .nt.a{opacity:1;background:#0a84ff;color:#fff}
+  .carte .nt.a em{display:inline}
+  #fNote{margin-top:16px;margin-left:8px;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:999px;background:#fff;
+    color:var(--encre);font-size:14px;font-weight:600;box-shadow:0 0 0 .5px var(--trait),0 1px 3px rgba(0,0,0,.06)}
+  #fNote svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #fNote em{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0a84ff;color:#fff;font-size:12px;font-weight:700;
+    display:inline-flex;align-items:center;justify-content:center}
+  #fNote em:empty{display:none}
+  #notes{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:20px}
+  #notes[hidden]{display:none}
+  #notes .nFond{position:absolute;inset:0;background:rgba(20,20,22,.32)}
+  #notes .nBoite{position:relative;width:min(520px,100%);max-height:calc(100% - 20px);display:flex;flex-direction:column;background:#fff;border-radius:22px;
+    box-shadow:0 30px 80px rgba(0,0,0,.22);overflow:hidden}
+  #notes .nTete{display:flex;align-items:center;gap:14px;padding:16px 16px 12px 16px}
+  #nPh{width:96px;aspect-ratio:16/10;border-radius:12px;background:var(--carte);object-fit:cover;flex:none}
+  #notes .nTete div{flex:1;min-width:0}
+  #nNom{display:block;font-size:19px;font-weight:700;letter-spacing:.01em;line-height:1.2}
+  #nSous{display:block;margin-top:3px;font-size:12.5px;color:var(--gris)}
+  #nFerme{flex:none;width:34px;height:34px;box-shadow:none;background:var(--carte)}
+  #nL{list-style:none;overflow:auto;padding:0 16px;display:flex;flex-direction:column;gap:6px}
+  #nL:empty{display:none}
+  #nL li{display:flex;align-items:flex-start;gap:10px;padding:10px 10px 10px 8px;border-radius:12px;background:var(--fond);box-shadow:0 0 0 .5px var(--trait)}
+  #nL li.fait p{color:var(--gris2);text-decoration:line-through}
+  #nL li p{flex:1;min-width:0;font-size:14px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+  #nL li small{display:block;margin-top:3px;font-size:11.5px;color:var(--gris2)}
+  #nL .ok,#nL .x{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--gris2)}
+  #nL .ok{box-shadow:inset 0 0 0 1.5px var(--gris2)}
+  #nL li.fait .ok{background:#30c45a;color:#fff;box-shadow:none}
+  #nL .x:hover{background:rgba(0,0,0,.06);color:var(--encre)}
+  #nL svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  #nL li.annule{background:none;box-shadow:none;justify-content:center;font-size:13px;color:var(--gris)}
+  #nL li.annule button{color:#0a63d6;font-weight:600;margin-left:6px}
+  #notes .nEcrit{padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px}
+  #nT{width:100%;min-height:84px;resize:vertical;border:0;border-radius:14px;background:var(--carte);padding:12px 14px;font:inherit;font-size:15px;
+    line-height:1.45;color:var(--encre);outline:none}
+  #nT:focus{box-shadow:0 0 0 2px #0a84ff}
+  #notes .nBas{display:flex;align-items:center;gap:10px}
+  #notes .nBas span{flex:1;font-size:12px;color:var(--gris2)}
+  #nAjoute{height:40px;padding:0 20px;border-radius:999px;background:var(--encre);color:#fff;font-size:14px;font-weight:600}
+  #nAjoute:disabled{opacity:.35;cursor:default}
 
   @media (max-width:560px){
     h1{font-size:28px}
@@ -141,16 +194,30 @@
   <div id="fiche">
     <span id="fFam"><i></i><span></span></span>
     <div id="fNom"></div>
+    <div id="fMod"></div>
     <div id="fLigne"></div>
     <p id="fDesc"></p>
     <div id="fChg"></div>
-    <a id="fJeu" href="#">Voir dans le jeu <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
+    <a id="fJeu" href="#">Voir dans le jeu <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a><button id="fNote"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Note<em></em></button>
+  </div>
+</div>
+<div id="notes" hidden>
+  <div class="nFond"></div>
+  <div class="nBoite" role="dialog" aria-label="Notes de la voiture">
+    <div class="nTete"><img id="nPh" alt=""><div><b id="nNom"></b><span id="nSous"></span></div>
+      <button class="rond" id="nFerme" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <ul id="nL"></ul>
+    <div class="nEcrit">
+      <textarea id="nT" placeholder="Ce que tu veux changer sur cette voiture…"></textarea>
+      <div class="nBas"><span>Entrée pour ajouter · Maj + Entrée pour aller à la ligne</span><button id="nAjoute" disabled>Ajouter</button></div>
+    </div>
   </div>
 </div>
 <div id="toast"></div>
 
 <script src="../vendor/three.min.js"></script>
 <script src="moteur.js"></script>
+<script src="modeles.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -233,13 +300,80 @@ function construireListe(){
     s.querySelector('h2 span').textContent=f.n;s.querySelector('h2 em').textContent=f.L.length;
     const gr=s.querySelector('.grille');
     for(const i of f.L){const b=document.createElement('button');b.className='carte';b.dataset.i=i;
-      b.innerHTML='<canvas width="'+PW+'" height="'+PH+'"></canvas><span class="tag"></span><div class="txt"><b></b><span></span></div>';
+      b.innerHTML='<canvas width="'+PW+'" height="'+PH+'"></canvas><span class="tag"></span>'+
+        '<span class="nt" role="button" tabindex="0" aria-label="Notes">'+CRAYON+'<em></em></span><div class="txt"><b></b><i class="mod"></i><span></span></div>';
       b.querySelector('b').textContent=JEU[i].n;b.querySelector('.txt span').textContent=JEU[i].prix;
+      b.querySelector('.mod').textContent=modeleDe(i);
       const tag=b.querySelector('.tag'),c=CHG_I[i];if(c){tag.textContent=c.quoi==='MODÈLE RETOUCHÉ'?'RETOUCHÉE':c.quoi;tag.style.setProperty('--c',c.coul);}
+      const nt=b.querySelector('.nt');
+      nt.onclick=e=>{e.stopPropagation();notesOuvre(i);};
+      nt.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();notesOuvre(i);}};
       b.onclick=()=>ouvre(i);gr.appendChild(b);
-      VIG.set(i,{el:b,cv:b.querySelector('canvas'),tag});FILE.push(i);}
+      VIG.set(i,{el:b,cv:b.querySelector('canvas'),tag,nt});FILE.push(i);}
     box.appendChild(s);}
-  $('sous').textContent=ORDRE.length+' voitures dans le jeu · '+FAMS.length+' familles';}
+  $('sous').textContent=ORDRE.length+' voitures dans le jeu · '+FAMS.length+' familles';notesMarque();}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LE MODÈLE D'ORIGINE (17/10, Léo : « à côté de chaque voiture et de son nom, le modèle sur lequel elle est inspirée ») —
+   modeles.js (window.MODELES = { 'NOM DU JEU': 'marque modèle (année)' }) : le jeu n'écrit aucune marque, la liste (outil local) si.
+   --------------------------------------------------------------------------------------------------------------------- */
+const modeleDe=i=>{const M=window.MODELES||{},n=JEU[i]&&JEU[i].n;return (n&&M[n])||'';};
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   LES NOTES (17/10, Léo : « une option note à côté de chaque petite voiture ; quand je te le demande, tu lis et tu lances ») —
+   le crayon de chaque carte (et NOTE dans la grande vue) ouvre la feuille de la voiture ; elles s'enregistrent sur le Mac
+   (…/notes → notes.py : ~/Downloads/CAR-notes-voitures/notes-voitures.txt, c'est ce que Claude lit). Rangées par NOM de voiture.
+   --------------------------------------------------------------------------------------------------------------------- */
+const CRAYON='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+let NOTES=[],NOTES_OK=null,NV=-1,RETIREE=null,retireeT=0;  // NV = la voiture dont la feuille est ouverte (-1 = fermée)
+const notesDe=i=>JEU[i]?NOTES.filter(n=>n.voiture===JEU[i].n):[];
+const aFaire=i=>notesDe(i).filter(n=>!n.fait).length;
+async function notesLit(){
+  try{const r=await fetch('notes',{cache:'no-store'});if(!r.ok)throw 0;NOTES=(await r.json()).notes||[];NOTES_OK=true;}catch(e){NOTES_OK=false;}
+  notesMarque();}
+async function notesOp(op){
+  const r=await fetch('notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(op)});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.erreur||('serveur '+r.status));
+  NOTES=d.notes||[];NOTES_OK=true;notesMarque();return d;}
+function notesMarque(){
+  for(const [i,v] of VIG){if(!v.nt)continue;const k=aFaire(i);v.nt.querySelector('em').textContent=k||'';v.nt.classList.toggle('a',k>0);
+    v.nt.setAttribute('aria-label',k?k+' note'+(k>1?'s':'')+' à faire':'Ajouter une note');}
+  if(V.on&&JEU[V.i])$('fNote').querySelector('em').textContent=aFaire(V.i)||'';
+  if(NV>=0)notesRendu();}
+const quandTxt=s=>{const d=new Date(s);return isNaN(d)?'':d.toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});};
+function notesRendu(){
+  const L=$('nL');L.innerHTML='';
+  if(RETIREE&&RETIREE.voiture===(JEU[NV]&&JEU[NV].n)){const li=document.createElement('li');li.className='annule';li.textContent='Note supprimée.';
+    const b=document.createElement('button');b.textContent='Annuler';b.onclick=async()=>{const n=RETIREE;RETIREE=null;try{await notesOp({op:'remet',note:n});}catch(e){toast('Pas enregistré : '+e.message);}};
+    li.appendChild(b);L.appendChild(li);}
+  const ns=notesDe(NV).sort((a,b)=>(a.fait-b.fait)||(a.quand<b.quand?1:-1));
+  for(const n of ns){const li=document.createElement('li');if(n.fait)li.className='fait';
+    li.innerHTML='<button class="ok" aria-label="Fait"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button><p></p><button class="x" aria-label="Supprimer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+    const p=li.querySelector('p');p.textContent=n.t;const sm=document.createElement('small');sm.textContent=quandTxt(n.quand)+(n.fait?' · fait':'');p.appendChild(sm);
+    li.querySelector('.ok').onclick=async()=>{try{await notesOp({op:'fait',id:n.id,v:!n.fait});}catch(e){toast('Pas enregistré : '+e.message);}};
+    li.querySelector('.x').onclick=async()=>{try{await notesOp({op:'retire',id:n.id});RETIREE=n;clearTimeout(retireeT);
+      retireeT=setTimeout(()=>{RETIREE=null;if(NV>=0)notesRendu();},8000);notesRendu();}catch(e){toast('Pas enregistré : '+e.message);}};
+    L.appendChild(li);}}
+function notesOuvre(i){
+  if(!JEU[i])return;NV=i;RETIREE=null;
+  const v=VIG.get(i);$('nPh').src=v&&!v.el.classList.contains('ratee')?v.cv.toDataURL('image/jpeg',.85):'';
+  $('nNom').textContent=JEU[i].n;$('nSous').textContent=[modeleDe(i),famDe(JEU[i].rar).n1].filter(Boolean).join(' · ');
+  $('notes').hidden=false;notesRendu();notesLit();
+  if(NOTES_OK===false)toast('Le serveur des notes ne répond pas : rien ne sera enregistré');
+  $('nT').value=$('nT').dataset['v'+i]||'';$('nAjoute').disabled=!$('nT').value.trim();setTimeout(()=>$('nT').focus(),30);}
+function notesFerme(){if(NV<0)return;$('nT').dataset['v'+NV]=$('nT').value;NV=-1;RETIREE=null;$('notes').hidden=true;}
+async function notesAjoute(){
+  const t=$('nT').value.trim();if(!t||NV<0)return;const i=NV,v=VIG.get(i);
+  $('nAjoute').disabled=true;
+  try{await notesOp({op:'ajoute',voiture:JEU[i].n,i,t,photo:v&&!v.el.classList.contains('ratee')?v.cv.toDataURL('image/jpeg',.85):undefined});
+    $('nT').value='';delete $('nT').dataset['v'+i];toast('Note enregistrée');}
+  catch(e){toast('Pas enregistré : '+e.message);}
+  $('nAjoute').disabled=!$('nT').value.trim();}
+$('nT').addEventListener('input',()=>{$('nAjoute').disabled=!$('nT').value.trim();});
+$('nT').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();notesAjoute();}});
+$('nAjoute').onclick=notesAjoute;$('nFerme').onclick=notesFerme;document.querySelector('#notes .nFond').onclick=notesFerme;
+$('fNote').onclick=()=>{if(V.on)notesOuvre(V.i);};
+addEventListener('keydown',e=>{if(NV>=0&&e.key==='Escape'){notesFerme();e.preventDefault();e.stopImmediatePropagation();}},true);
 function videPhoto(i,txt){const v=VIG.get(i);if(!v)return;const x=v.cv.getContext('2d');x.fillStyle='#f1f1ef';x.fillRect(0,0,PW,PH);
   x.fillStyle='#a1a1a6';x.font='600 30px -apple-system,sans-serif';x.textAlign='center';x.fillText(txt||'?',PW/2,PH/2+10);v.el.classList.add('ratee');}
 
@@ -287,7 +421,7 @@ function montrer(i){
 function fiche(i){
   const n=JEU[i],c=G.CARS[i],f=famDe(n.rar);
   $('fFam').style.setProperty('--c',f.c);$('fFam').querySelector('span').textContent=f.n1;
-  $('fNom').textContent=n.n;
+  $('fNom').textContent=n.n;$('fMod').textContent=modeleDe(i);$('fNote').querySelector('em').textContent=aFaire(i)||'';
   $('fLigne').textContent=n.prix+(c.maxKmh?' · '+c.maxKmh+' km/h':'');
   $('fDesc').textContent=c.desc||'';
   const ch=CHG.filter(x=>x.i===i).map(x=>x.quoi.toLowerCase()+(x.detail?' ('+x.detail+')':''));
@@ -309,7 +443,7 @@ function ferme(){
 function voisine(d){if(!V.on||!ORDRE.length)return;const k=ORDRE.indexOf(V.i);ouvre(ORDRE[(k+d+ORDRE.length)%ORDRE.length]);V.yaw=-.62;V.yawV=0;}
 $('vRetour').onclick=ferme;$('vPrec').onclick=()=>voisine(-1);$('vSuiv').onclick=()=>voisine(1);
 addEventListener('keydown',e=>{
-  if(!V.on)return;
+  if(!V.on||NV>=0)return;   // la feuille des notes est ouverte : les flèches écrivent, elles ne changent pas de voiture
   if(e.key==='Escape'){ferme();e.preventDefault();}
   else if(e.key==='ArrowRight'){voisine(1);e.preventDefault();}
   else if(e.key==='ArrowLeft'){voisine(-1);e.preventDefault();}});
@@ -390,7 +524,8 @@ setInterval(()=>{if(!document.hidden)relire();},120000);
 setInterval(afficheSource,30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-SOURCE.lu>60000)relire();});
 $('source').addEventListener('click',()=>relire(true));
-relire();requestAnimationFrame(boucle);
+relire();requestAnimationFrame(boucle);notesLit();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)notesLit();});
 
 // console : l'état de la page (pour les bancs)
 window.dbgVoitures={etat:()=>({source:{nom:SOURCE.nom,sha:SOURCE.sha.slice(0,8),msg:SOURCE.msg},n:ORDRE.length,familles:FAMS.map(f=>f.id+':'+f.L.length),

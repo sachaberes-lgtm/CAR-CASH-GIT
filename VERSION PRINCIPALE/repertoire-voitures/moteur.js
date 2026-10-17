@@ -181,7 +181,10 @@ function assemble(i){
   //   (le SQUALE montrait des « transparences » partout, Léo 9/10)
   const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=tag(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),g)),kitM=m=>{m.userData.kit=1;return m;};
   const commit=kt=>{const gs=kt.ech?kt.done():G.echRetire(kt.done(),kt.prims,spec.shape);for(const g in gs){if(g!=='l')lpOmbre(gs[g],H9);add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));}}; // (l'ancien embout ôté, voir echRetire)
-  const K={W:W9,H:H9,L:L9,y0,spec,wreck,add,box,prof,cyl,sph,con,kit:pal=>lpKit(pal),commit,
+  // (17/10) K.mats : les matières posées, par groupe — comme buildCar (LA POUPÉE et LA PERLE habillent leurs jantes avec, LA PERLE règle
+  // son vernis : `specular`) ; ici une matière demandée se crée à la volée (sinon la caisse ne se construisait pas : « reading 'm' »)
+  const mats=new Proxy(lpM,{get:(t,g)=>typeof g==='string'&&/^[a-z]{1,3}$/.test(g)?(()=>{const m=lpMatC(g);if(!m.specular)m.specular=new THREE.Color();return m;})():t[g]});
+  const K={W:W9,H:H9,L:L9,y0,spec,wreck,add,box,prof,cyl,sph,con,kit:pal=>lpKit(pal),commit,mats,
     body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
   const A=Object.assign({hl:[W9*.32,y0+H9*.50,L9/2+.16],tl:[W9*.30,y0+H9*.55,-L9/2-.10],wr:1,wx:W9/2,wz:L9/2-.75,wy:0,
     glowX:W9/2+.02,glowY:y0+H9*.42,glowL:L9*.82,glowF:1,sp:1,skirt:1,split:1,doors:0,slats:0,wings:'panel'},SHAPES[spec.shape](K)||{});
