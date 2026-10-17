@@ -3,6 +3,10 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE PLAQUE À L'AVANT (2026-10-17 soir, Sacha : « pas de plaque d'immatriculation à l'avant »)
+- `plqPose` ne pose plus que la plaque ARRIÈRE (`PLQ.pos[lvl].ar`) ; plus de rayons tirés vers le nez (`plqCherche(1,…)` n'est plus appelé :
+  la pose coûte deux fois moins). L'atelier de la plaque, ses modèles et le profil sont inchangés. `dbgPlaque('pos')` ne liste plus que `ar`.
+
 ## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
 - **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
   la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.

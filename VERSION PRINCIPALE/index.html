@@ -37466,8 +37466,8 @@ function buildCar(spec){
      Le corps se règle sur la longueur (multiple de 8 : la police reste nette), une plaque de 2 lettres a de grosses lettres.
    · LA SAUVEGARDE : `SAVE.d.plq` = {m: modèle, x: texte, ok: 1 quand le joueur l'a validée}. `ok` à 0 = l'atelier de la plaque se pose au
      prochain accueil (`plqGuette`, avant la question de bienvenue) — une fois : tout le monde, même une vieille sauvegarde, choisit sa plaque.
-   · SUR LA CAISSE (`plqPose`, appelée par buildCar juste avant que les pièces rejoignent la carrosserie) : une plaque À L'ARRIÈRE et une À
-     L'AVANT de TOUTES les caisses, sans une ligne par gabarit. Des rayons tirés depuis l'arrière (puis l'avant) à dix hauteurs trouvent la
+   · SUR LA CAISSE (`plqPose`, appelée par buildCar juste avant que les pièces rejoignent la carrosserie) : une plaque À L'ARRIÈRE de TOUTES
+     les caisses (plus à l'avant depuis le 17/10 au soir : Sacha), sans une ligne par gabarit. Des rayons tirés depuis l'arrière à dix hauteurs trouvent la
      tôle la plus reculée, hors verre, hors feux et hors néons ; on garde la hauteur la plus proche de celle d'une vraie plaque (40 % de la
      caisse derrière, 30 % devant), où la surface fait face et où deux rayons de côté retrouvent la tôle (la plaque ne pend pas dans le vide).
      Elle s'y colle, penchée comme la tôle (`plqCherche`). Le résultat se garde par caisse (`PLQ.pos`) : la rafale de photos du garage ne
@@ -37607,8 +37607,8 @@ function plqPose(lvl,A,W9,H9,L9,y0,exclus,verre,prims){ // appelée par buildCar
   const pw=Math.max(.5,Math.min(.64,W9*.32)),ph=pw*.25;
   carGroup.updateMatrixWorld(true);
   let P=PLQ.pos[lvl];
-  if(!P||P.L!==L9||P.W!==W9){const t9=performance.now();P=PLQ.pos[lvl]={L:L9,W:W9,ar:plqDessinee(-1,prims)||plqCherche(-1,W9,H9,L9,y0,pw,exclus,verre),av:plqDessinee(1,prims)||plqCherche(1,W9,H9,L9,y0,pw,exclus,verre)};P.ms=Math.round((performance.now()-t9)*10)/10;} // `ms` : le prix des rayons (dbgPlaque('pos'))
-  for(const sd of [-1,1]){const q=sd<0?P.ar:P.av;if(!q)continue;
+  if(!P||P.L!==L9||P.W!==W9){const t9=performance.now();P=PLQ.pos[lvl]={L:L9,W:W9,ar:plqDessinee(-1,prims)||plqCherche(-1,W9,H9,L9,y0,pw,exclus,verre)};P.ms=Math.round((performance.now()-t9)*10)/10;} // `ms` : le prix des rayons (dbgPlaque('pos'))
+  for(const sd of [-1]){const q=P.ar;if(!q)continue; // (2026-10-17, Sacha : « pas de plaque d'immatriculation à l'avant ») : l'arrière seul — plus de rayons tirés vers le nez
     const a=Math.max(-.3,Math.min(.7,Math.atan2(q.ny,Math.abs(q.nz)||1e-3))); // la pente de la tôle (vers le haut = la plaque regarde un peu le ciel)
     const nx9=0,ny9=Math.sin(a),nz9=sd*Math.cos(a);
     for(const k of [0,1]){const m=new THREE.Mesh(k?new THREE.PlaneGeometry(pw,ph):new THREE.BoxGeometry(pw+.035,ph+.035,.02),k?PLQ.matF:PLQ.matC);
