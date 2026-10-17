@@ -10285,6 +10285,7 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
       </div>
     </div>
     <div id="lbBoxG"></div>
+    <div id="gProf" class="pbtn pbCarre" role="button" tabindex="0" aria-label="Profil"><i class="pxi pxi-trophee" aria-hidden="true"></i></div><!-- (2026-10-17, Sacha : « un petit bouton dans le garage avec un logo trophée ») LE PROFIL : la plaque et les chiffres du compte — voir PLQ -->
     <div id="gBottom">
       <div id="gTabs" role="tablist">
         <button class="gTab on" data-tab="voiture" role="tab"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="VOITURES">VOITURES</span></button>
@@ -10425,6 +10426,89 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
   <!-- LES NIVEAUX (2026-09-24) : « NIVEAU n — LIEU » au départ et à chaque portail (voir lvlAnnonce) -->
   <div id="lvlBan" aria-live="polite"><b id="lvlNum"></b><span id="lvlNom"></span></div>
 </div>
+<style id="plaque">
+/* ====== LA PLAQUE D'IMMATRICULATION + LE PROFIL (2026-10-17, Sacha : « une plaque personnalisable au début du jeu, plusieurs templates »
+   puis « un petit bouton dans le garage avec un logo trophée : le joueur peut changer sa plaque et voir des stats sur son compte ») — voir
+   PLQ dans le script. La charte : la laque et le filet des panneaux, des touches .pbtn, UN lingot par écran (VALIDER · CHANGER MA PLAQUE),
+   ce qu'on touche en bas, cibles ≥ 44 px, safe areas, --ease et deux durées, une seule police. Couché : deux colonnes. ====== */
+#plq,#prof{position:fixed;inset:0;z-index:82;display:none;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(var(--sT) + 14px) calc(var(--sR) + var(--gut)) calc(var(--sB) + 14px) calc(var(--sL) + var(--gut));
+  background:var(--fondEcran);font-family:var(--pix);color:var(--tx);-webkit-tap-highlight-color:transparent}
+#prof{z-index:81}
+#plq.on,#prof.on{display:flex;flex-direction:column;align-items:center;animation:plqEntre var(--t-slow) var(--ease) both}
+#plq.sortant,#prof.sortant{animation:plqSort var(--t-fast) var(--ease) both}
+@keyframes plqEntre{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes plqSort{to{opacity:0;transform:translateY(10px)}}
+@media (prefers-reduced-motion:reduce){#plq.on,#prof.on,#plq.sortant,#prof.sortant{animation:none}}
+#plq .plIn,#prof .pfIn{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%;max-width:480px;min-height:100%;margin:0 auto}
+/* LES TITRES : l'or des titres en couleur pleine, son extrusion dessous */
+#plq .plTete,#prof .pfTete{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+#prof .pfTete{flex-direction:row;justify-content:center;gap:10px}
+#plq .plTete b,#prof .pfTete b{font-size:var(--f5);line-height:1.2;letter-spacing:1px;color:var(--au1);text-shadow:0 3px 0 var(--auE),0 4px 0 var(--k0)}
+#prof .pfTete .pxi{--pxs:2;color:var(--au2);filter:drop-shadow(0 2px 0 var(--auE))}
+#plq .plX{font-size:var(--f1);line-height:1.6;color:var(--tx2)}
+/* LA PLAQUE EN GRAND : la même toile que la caisse (plqPeint) ; la toucher, c'est écrire */
+#plq .plVue,#prof .pfPlaque{position:relative;align-self:center;width:100%;max-width:420px;cursor:text}
+#prof .pfPlaque{max-width:360px;cursor:default}
+#plq .plVue canvas,#prof .pfPlaque canvas{display:block;width:100%;height:auto;aspect-ratio:4/1;filter:drop-shadow(0 6px 0 var(--k0)) drop-shadow(0 12px 14px rgba(0,0,0,.55))}
+/* LA SAISIE : une plaque de laque, curseur or, le texte en grand et espacé ; le DÉ (au hasard) à sa droite */
+#plq .plSaisie{display:flex;align-items:stretch;gap:10px}
+#plq #plqTx{flex:1 1 auto;min-width:0;box-sizing:border-box;height:52px;margin:0;padding:0 14px;border:0;border-radius:0;outline:0;
+  font-family:var(--pix);font-size:var(--f4);letter-spacing:3px;text-align:center;text-transform:uppercase;color:var(--tx);caret-color:var(--au2);
+  background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 2px var(--fil),inset 0 2px 0 rgba(0,0,0,.45);
+  transition:box-shadow var(--t-fast) var(--ease)}
+#plq #plqTx:focus{box-shadow:inset 0 0 0 2px var(--au2),inset 0 2px 0 rgba(0,0,0,.45)}
+#plq .plDe{flex:none;width:56px;min-width:56px;height:52px;min-height:52px;padding:0;--nc:var(--neoC)}
+#plq .plDe .pxi,#prof .pfRet .pxi,#plq .plRet .pxi{--pxs:2}
+/* LES MODÈLES : neuf vignettes (la vraie plaque en petit), trois par rangée ; la choisie a le filet cyan */
+#plq .plMods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#plq .plMod{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-height:56px;padding:8px 6px 7px;
+  cursor:pointer;background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 1px var(--fil);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+#plq .plMod canvas{display:block;width:100%;height:auto;aspect-ratio:4/1}
+#plq .plMod b{font-size:var(--f0);line-height:1;color:var(--tx3);white-space:nowrap}
+#plq .plMod.on{box-shadow:inset 0 0 0 2px var(--neoC),inset 0 0 18px -6px var(--neoC)}
+#plq .plMod.on b{color:var(--neoC)}
+#plq .plMod:is(:active,.appui){transform:translateY(2px)}
+#plq .plMod:focus-visible{outline:2px solid var(--neoC);outline-offset:2px}
+/* LE BAS : RETOUR à gauche (la sortie, comme partout), le lingot à droite — au tout premier accueil, il n'y a que VALIDER */
+#plq .plBas,#prof .pfBas{display:flex;gap:12px;margin-top:auto;padding-top:6px}
+#plq .plOk,#prof .pfChg{flex:1 1 auto;min-width:0}
+#plq .plRet,#prof .pfRet{flex:none;gap:8px;padding:0 16px;font-size:var(--f1)}
+#prof .pfChg{padding:0 12px;font-size:var(--f2);letter-spacing:0} /* « CHANGER MA PLAQUE » : 17 signes, il débordait du lingot debout */
+#plq.premier .plRet{display:none}
+/* LE PROFIL : les chiffres du compte, deux par rangée (le temps de jeu en tête, sur toute la largeur) */
+#prof .pfStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
+#prof .pfS{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:7px;align-items:center;box-sizing:border-box;
+  min-height:56px;padding:10px 10px 9px;background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 1px var(--fil)}
+#prof .pfS .pxi{grid-row:1 / span 2;--pxs:2;color:var(--tx3)}
+#prof .pfS i{font-style:normal;font-size:var(--f0);line-height:1.25;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#prof .pfS b{font-size:var(--f2);line-height:1.2;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#prof .pfS.gros{grid-column:1 / -1}
+#prof .pfS.gros b{font-size:var(--f5);color:var(--au1)}
+#prof .pfS.gros .pxi{color:var(--au2)}
+#prof .pfS.cash b{color:var(--cash)}
+#prof .pfS.aura b{color:var(--aura)}
+/* LE PETIT TROPHÉE DU GARAGE : posé par plqGarage au-dessus d'INVENTAIRE, dans le bas de l'écran (la grappe de JOUER) */
+#gProf{position:fixed;z-index:4;left:calc(var(--sL) + 14px);top:50%;display:none;width:52px;min-width:52px;height:48px;min-height:48px;padding:0;
+  --nc:var(--neoA);pointer-events:auto}
+#gProf.on{display:flex}
+#gProf .pxi{--pxs:2}
+/* COUCHÉ (le téléphone tenu en travers, le cadre de l'ordi) : deux colonnes, tout tient sans défiler */
+@media (orientation:landscape) and (max-height:540px){
+  #plq,#prof{padding-top:calc(var(--sT) + 10px);padding-bottom:calc(var(--sB) + 10px)}
+  #plq .plIn{max-width:860px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-rows:auto auto auto 1fr;
+    grid-template-areas:"tete mods" "vue mods" "saisie mods" "bas mods";column-gap:24px;row-gap:10px;align-items:start}
+  #plq .plTete{grid-area:tete;gap:6px}#plq .plVue{grid-area:vue;max-width:340px}#plq .plSaisie{grid-area:saisie}
+  #plq .plMods{grid-area:mods;align-self:center}#plq .plBas{grid-area:bas;align-self:end}
+  #plq .plTete b,#prof .pfTete b{font-size:var(--f4)}
+  #prof .pfIn{max-width:900px;height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.35fr);grid-template-rows:auto 1fr auto;
+    grid-template-areas:"tete stats" "plaque stats" "bas stats";column-gap:22px;row-gap:12px}
+  #prof .pfTete{grid-area:tete}#prof .pfPlaque{grid-area:plaque;align-self:center}#prof .pfBas{grid-area:bas}
+  #prof .pfStats{grid-area:stats;grid-template-columns:repeat(3,minmax(0,1fr));overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;max-height:100%;padding:2px}
+  #prof .pfS.gros{grid-column:auto}#prof .pfS.gros b{font-size:var(--f3)}
+}
+</style>
 <div id="carr" role="dialog" aria-label="Carrière"></div>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -10437,6 +10521,21 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 <div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
 <div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<!-- (2026-10-17, Sacha) LA PLAQUE D'IMMATRICULATION : l'atelier de la plaque (#plq, au premier accueil puis depuis le profil) et le PROFIL du
+     joueur (#prof, le petit trophée du garage, #gProf) — voir PLQ dans le script -->
+<div id="prof" role="dialog" aria-modal="true" aria-labelledby="profT"><div class="pfIn">
+  <div class="pfTete"><i class="pxi pxi-trophee" aria-hidden="true"></i><b id="profT" data-fr="MON PROFIL">MON PROFIL</b></div>
+  <div class="pfPlaque"><canvas id="pfCv" width="512" height="128" role="img" aria-label="Plaque"></canvas></div>
+  <div class="pfStats" id="pfStats"></div>
+  <div class="pfBas"><div class="pbtn pfRet" data-p="ret" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i><span data-fr="RETOUR">RETOUR</span></div><div class="pbtn pb-gold pfChg" data-p="plaque" role="button" tabindex="0"><span data-fr="CHANGER MA PLAQUE">CHANGER MA PLAQUE</span></div></div>
+</div></div>
+<div id="plq" role="dialog" aria-modal="true" aria-labelledby="plqT"><div class="plIn">
+  <div class="plTete"><b id="plqT" data-fr="TA PLAQUE">TA PLAQUE</b><span class="plX" data-fr="Elle roule sur toutes tes caisses">Elle roule sur toutes tes caisses</span></div>
+  <div class="plVue"><canvas id="plqCv" width="512" height="128" role="img" aria-label="Plaque"></canvas></div>
+  <div class="plSaisie"><input id="plqTx" type="text" maxlength="9" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" aria-label="Le texte de ta plaque"><div class="pbtn pbCarre plDe" data-p="hasard" role="button" tabindex="0" aria-label="Au hasard"><i class="pxi pxi-rejouer" aria-hidden="true"></i></div></div>
+  <div class="plMods" id="plqMods" role="radiogroup" aria-label="Modeles"></div>
+  <div class="plBas"><div class="pbtn plRet" data-p="ret" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i><span data-fr="RETOUR">RETOUR</span></div><div class="pbtn pb-gold big plOk" data-p="ok" role="button" tabindex="0"><i class="pxi pxi-coche" aria-hidden="true"></i><span data-fr="VALIDER">VALIDER</span></div></div>
+</div></div>
 <div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
   <div id="mEmbers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
@@ -10823,7 +10922,7 @@ function bienvI18n(){Object.assign(I18N,{'PREMIERE FOIS ICI ?':'FIRST TIME HERE?
   'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.':'One minute on the road to learn, and your LICENSE pays $500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
 function bienvVeut(){const d=SAVE.d;if(/[?&]bienvenue=1\b/.test(location.search))return !BALADE; /* (essai) `?bienvenue=1` la pose quelle que soit la sauvegarde */ return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
 function bienvPret(){const sp=document.getElementById('splash'),md=document.getElementById('modale');
-  return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play');}
+  return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!(PLQ&&PLQ.on);} /* (2026-10-17) LA PLAQUE se choisit d'abord (voir plqGuette) */
 function bienvGuette(){if(BIENV.iv)return;try{bienvI18n();}catch(e){}BIENV.iv=setInterval(function(){try{
   if(BIENV.fait||!bienvVeut()){clearInterval(BIENV.iv);return;}
   if(!bienvPret()){BIENV.t0=0;return;}
@@ -34634,7 +34733,7 @@ function buildCar(spec){
   carGroup.traverse(o=>{if(o.geometry&&!o.isSprite&&o.geometry!==SPH9&&o.geometry!==jetGeo)o.geometry.dispose();
     if(o.isInstancedMesh)o.dispose(); // (2026-10-12, passe qualité) les tampons d'INSTANCES (flammes de LA FOURNAISE, écume de LA DÉFERLANTE, gouttes de LA MERCURE) partaient au ramasse-miettes, pas au GPU
     const mm=Array.isArray(o.material)?o.material:[o.material];
-    for(const m of mm)if(m&&m!==jetShellM&&m!==jetCoreM&&m!==jetGlowM&&CAR_VIEUX.indexOf(m)<0)CAR_VIEUX.push(m);});
+    for(const m of mm)if(m&&m!==jetShellM&&m!==jetCoreM&&m!==jetGlowM&&!(m.userData&&m.userData.plq)&&CAR_VIEUX.indexOf(m)<0)CAR_VIEUX.push(m);}); // (2026-10-17) les deux matières de LA PLAQUE sont partagées par toutes les caisses : jamais libérées (voir PLQ)
   for(const pc of CAR_PIECES)if(!pc[0].parent)pc[0].traverse(o=>{if(o.geometry&&!o.isSprite&&o.geometry!==SPH9&&o.geometry!==jetGeo)o.geometry.dispose();}); // (2026-09-27) les pièces d'origine SOUDÉES (détachées) : leurs matières sont celles des soudures, déjà relevées
   CAR_PIECES.length=0;ESSIEUX.length=0;
   while(carGroup.children.length)carGroup.remove(carGroup.children[0]);
@@ -34971,6 +35070,7 @@ function buildCar(spec){
   if(false)CARPOOL.tail=mkPoolPlane(spec.w*1.6,spec.l*.8,-spec.l/2-spec.l*.34,0xf51a0c,.16); // (2026-09-25) plus petite, plus discrète : « la grosse tache violette est mal gérée »          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
   CARPOOL.jet=null;if(false)CARPOOL.jet=mkPoolPlane(spec.w*1.8,spec.l*2.6,-spec.l/2-spec.l*1.3,0xff7a24,0);  // (2026-09-25) 5×19 m → 3,4×11 m : le halo de nitro ne peint plus la moitié de l'écran              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   if(FACETTE.on&&(FACET_SHAPES[shape]||spec.facette))facetteCaisse(); // (2026-09-29) les classiques de la boutique, taillées en facettes comme la gamme (voir facetteCaisse)
+  try{if(typeof plqPose==='function')plqPose(lvl,A,W9,H9,L9,y0,wheels.concat([carWingL,carWingR],carFins).filter(Boolean),glassM);}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE D'IMMATRICULATION, derrière et devant, sur TOUTES les caisses (voir PLQ)
   // LA CARROSSERIE PENCHE (voir carBody) : on y range tout, sauf les roues et ce qui épouse le bitume (néon, flaques)
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
@@ -34979,6 +35079,275 @@ function buildCar(spec){
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
 }
 /* <<<FIN VOITURES>>> */
+/* ================= LA PLAQUE D'IMMATRICULATION (2026-10-17, Sacha : « rajoute une plaque d'immatriculation personnalisable au début du
+   jeu, fais plusieurs templates, le joueur peut écrire ce qu'il veut sur la plaque, puis elle doit être intégrée à toutes les voitures ») ======
+   · LES MODÈLES (`PLQ_MOD`) : neuf plaques peintes à la main dans une toile 512 × 128 (`plqPeint`) — FRANCE, RETRO (la noire d'avant 93),
+     U.K. (la jaune), USA, COURSE (damier), BILLET (le vert des billets), LINGOT (or sur laque), NEON (le rose et le cyan de la nuit), ARCADE
+     (la plaque des menus du jeu). La MÊME fonction peint la texture 3D et les aperçus de l'écran : ce qu'on choisit est ce qui roule.
+   · LE TEXTE (`plqNet`) : 9 signes au plus, en capitales sans accent (la police pixel n'en a pas) : A-Z, 0-9, espace, - . ! ? $.
+     Le corps se règle sur la longueur (multiple de 8 : la police reste nette), une plaque de 2 lettres a de grosses lettres.
+   · LA SAUVEGARDE : `SAVE.d.plq` = {m: modèle, x: texte, ok: 1 quand le joueur l'a validée}. `ok` à 0 = l'atelier de la plaque se pose au
+     prochain accueil (`plqGuette`, avant la question de bienvenue) — une fois : tout le monde, même une vieille sauvegarde, choisit sa plaque.
+   · SUR LA CAISSE (`plqPose`, appelée par buildCar juste avant que les pièces rejoignent la carrosserie) : une plaque À L'ARRIÈRE et une À
+     L'AVANT de TOUTES les caisses, sans une ligne par gabarit. Des rayons tirés depuis l'arrière (puis l'avant) à dix hauteurs trouvent la
+     tôle la plus reculée, hors verre, hors feux et hors néons ; on garde la hauteur la plus proche de celle d'une vraie plaque (40 % de la
+     caisse derrière, 30 % devant), où la surface fait face et où deux rayons de côté retrouvent la tôle (la plaque ne pend pas dans le vide).
+     Elle s'y colle, penchée comme la tôle (`plqCherche`). Le résultat se garde par caisse (`PLQ.pos`) : la rafale de photos du garage ne
+     relance pas les rayons. Un gabarit peut trancher : `plq:0` dans sa fiche d'ancrages (pas de plaque).
+   · UNE toile, UNE texture, DEUX matières partagées par toutes les caisses (la face peinte, le cadre) : changer la plaque repeint la toile
+     (`needsUpdate`) ; aucune matière ne naît, aucun programme ne se compile en course. buildCar ne les libère jamais (`userData.plq`).
+   · LE PROFIL (`profOuvre`, le petit TROPHÉE du garage) : la plaque en grand, CHANGER MA PLAQUE, et les chiffres du compte (temps de jeu,
+     joueur depuis, parties, figures, plus longue partie, records). Deux compteurs neufs dans `SAVE.d.prof` : `ne` (le jour où le compte est
+     né — pour une sauvegarde d'avant, le jour de cette version), `tA` (les secondes passées dans le jeu, écran visible ; une vieille sauvegarde
+     part de son temps de course déjà compté, `ex.temps`), `dMax` (la plus longue partie, `RUNX.t`, versée par commitExploits).
+   Crochets : `dbgPlaque()` (l'état) · `dbgPlaque('ouvre')` (l'atelier) · `dbgPlaque('fr','AB-123-CD')` (pose sans écran) · `dbgPlaque('raz')`
+   (la plaque redevient « à choisir ») · `dbgPlaque('pos')` (où elle s'est posée sur la caisse) · `dbgProfil()` (ouvre le profil). */
+var PLQ={cv:null,ctx:null,tex:null,matF:null,matC:null,pos:{},ray:null,on:false,mode:'',m:'fr',x:'',iv:0,t0:0,fait:false,prof:false};
+const PLQ_MOD=[{id:'fr',n:'FRANCE'},{id:'retro',n:'RETRO'},{id:'uk',n:'U.K.'},{id:'us',n:'USA'},{id:'course',n:'COURSE'},
+  {id:'billet',n:'BILLET'},{id:'lingot',n:'LINGOT'},{id:'neon',n:'NEON'},{id:'arcade',n:'ARCADE'}];
+const PLQ_MAX=9;
+function plqModOk(m){for(const o of PLQ_MOD)if(o.id===m)return m;return 'fr';}
+function plqNet(s){ // le texte tel qu'il peut se peindre : capitales, sans accent, 9 signes, rien que la police sache dessiner
+  s=String(s==null?'':s).toUpperCase();
+  try{s=s.normalize('NFD').replace(/[̀-ͯ]/g,'');}catch(e){}
+  return s.replace(/[^A-Z0-9 \-.!?$]/g,'').replace(/\s+/g,' ').replace(/^ /,'').slice(0,PLQ_MAX);}
+function plqHasard(){const L='ABCDEFGHJKLMNPQRSTVWXYZ',c=function(){return L[Math.random()*L.length|0];},n=function(){return String(Math.random()*10|0);};
+  return c()+c()+'-'+n()+n()+n()+'-'+c()+c();} // le format d'une vraie plaque française (sans I, O ni U, comme la vraie)
+function plqEtat(){try{const p=SAVE.d&&SAVE.d.plq;if(p&&typeof p==='object')return p;}catch(e){} // (1er buildCar : SAVE n'existe pas encore)
+  return PLQ.def||(PLQ.def={m:'fr',x:plqHasard(),ok:0});}
+/* ---- LE PEINTRE : une plaque dans un contexte 2D de W × H (rapport 4:1). `fond` : la couleur des coins coupés (la texture 3D les
+   remplit de la couleur du cadre ; les aperçus de l'écran les laissent transparents). */
+function plqPeint(x,W,H,m,t,fond){
+  const k=W/512;x.save();x.setTransform(k,0,0,H/128,0,0);x.clearRect(0,0,512,128);
+  if(fond){x.fillStyle=fond;x.fillRect(0,0,512,128);}
+  const oct=function(i,c){const a=Math.max(2,10-i*.5);x.beginPath();x.moveTo(i+a,i);x.lineTo(512-i-a,i);x.lineTo(512-i,i+a);x.lineTo(512-i,128-i-a);
+    x.lineTo(512-i-a,128-i);x.lineTo(i+a,128-i);x.lineTo(i,128-i-a);x.lineTo(i,i+a);x.closePath();if(c){x.fillStyle=c;x.fill();}};
+  const deg=function(y0,y1,a,b){const g=x.createLinearGradient(0,y0,0,y1);g.addColorStop(0,a);g.addColorStop(1,b);return g;};
+  const mot=function(s,px,cx,cy,c){x.font=px+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillStyle=c;x.fillText(s,cx,cy+px*.06);};
+  let zx=28,zw=456,zy=64,col='#111',omb=null,ombY=0,lue=null,cap=56;
+  x.save();
+  switch(m){
+    case 'retro':
+      oct(0,'#c3c8cf');oct(5,'#141416');x.strokeStyle='rgba(205,210,218,.45)';x.lineWidth=2;oct(11);x.stroke();
+      for(const p of [[24,24],[488,24],[24,104],[488,104]]){x.fillStyle='#7d838b';x.beginPath();x.arc(p[0],p[1],6,0,7);x.fill();x.fillStyle='#d9dde2';x.fillRect(p[0]-3,p[1]-3,3,3);}
+      col='#e9ebef';omb='#000';ombY=4;zx=40;zw=432;break;
+    case 'uk':
+      oct(0,'#111');oct(4,'#f7c600');mot('CASH CAR',8,256,116,'#5a4700');col='#121212';zy=60;break;
+    case 'us':
+      oct(0,'#14285e');oct(4,deg(4,124,'#ffffff','#d6e4ff'));
+      x.fillStyle='rgba(20,40,94,.28)';for(const bx of [150,362]){x.beginPath();x.ellipse(bx,16,9,5,0,0,7);x.fill();}
+      mot('CASH CITY',16,256,26,'#c8102e');mot('SPEED STATE',8,256,114,'#14285e');col='#14285e';zy=70;cap=48;break;
+    case 'course':
+      oct(0,'#111');oct(4,'#fafafa');x.save();oct(4);x.clip();
+      for(let r=0;r<10;r++)for(let c=0;c<4;c++){x.fillStyle=(r+c)%2?'#fafafa':'#111';x.fillRect(4+c*12,4+r*12,12,12);x.fillRect(460+c*12,4+r*12,12,12);}
+      x.restore();x.fillStyle='#e0101e';x.fillRect(52,4,4,120);x.fillRect(456,4,4,120);col='#111';zx=60;zw=392;break;
+    case 'billet':
+      oct(0,'#0d4d2a');oct(4,deg(4,124,'#dff3d6','#b8deb0'));
+      x.save();oct(4);x.clip();x.strokeStyle='rgba(13,77,42,.16)';x.lineWidth=2;
+      for(let j=0;j<7;j++){x.beginPath();for(let i=0;i<=64;i++){const px=i*8,py=14+j*17+Math.sin(i*.45+j)*6;if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke();}
+      x.restore();x.strokeStyle='#2f7d4c';x.lineWidth=2;x.strokeRect(13,13,486,102);
+      for(const p of [[30,32],[482,32],[30,98],[482,98]])mot('$',16,p[0],p[1],'#0d4d2a');
+      col='#0b3a20';zx=52;zw=408;break;
+    case 'lingot':
+      oct(0,'#5a3000');oct(3,deg(3,125,'#fff2b8','#e89a12'));oct(8,deg(8,120,'#22180a','#0d0904'));
+      for(const p of [[20,20],[492,20],[20,108],[492,108]]){x.fillStyle='#ffd75e';x.fillRect(p[0]-3,p[1]-3,6,6);}
+      col='#ffd75e';omb='#8a4d00';ombY=4;zx=36;zw=440;break;
+    case 'neon':
+      oct(0,'#05030c');x.save();oct(0);x.clip();x.strokeStyle='rgba(0,234,255,.10)';x.lineWidth=1;
+      for(let i=16;i<512;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,128);x.stroke();}for(let j=16;j<128;j+=16){x.beginPath();x.moveTo(0,j);x.lineTo(512,j);x.stroke();}
+      x.restore();x.shadowColor='#ff3ec8';x.shadowBlur=14;x.strokeStyle='#ff5ad2';x.lineWidth=4;oct(10);x.stroke();x.shadowBlur=0;
+      col='#c8fbff';lue='#00eaff';zx=36;zw=440;break;
+    case 'arcade':
+      oct(0,'#06122e');oct(3,deg(3,125,'#22305c','#141d3a'));
+      x.fillStyle='rgba(255,255,255,.12)';x.fillRect(12,8,488,3);x.fillStyle='rgba(0,0,0,.4)';x.fillRect(12,117,488,3);
+      x.fillStyle='#ff3ec8';x.fillRect(24,106,190,6);x.fillStyle='#00eaff';x.fillRect(236,106,96,6);x.fillStyle='#ffc72a';x.fillRect(354,106,134,6);
+      col='#ffd75e';omb='#7a4400';ombY=4;zx=36;zw=440;zy=58;cap=48;break;
+    default: // 'fr'
+      oct(0,'#16181d');oct(4,'#f4f5f8');
+      x.save();oct(4);x.clip();x.fillStyle='#1d3fae';x.fillRect(0,0,62,128);x.fillRect(450,0,62,128);x.restore();
+      x.fillStyle='#ffd400';for(let i=0;i<12;i++){const a=i/12*Math.PI*2;x.fillRect(Math.round(33+Math.cos(a)*17)-2,Math.round(42+Math.sin(a)*17)-2,4,4);}
+      mot('F',24,33,94,'#fff');
+      x.fillStyle='#ffd400';x.beginPath();x.arc(481,44,15,0,7);x.fill();mot('$',16,481,45,'#1d3fae');mot('CC',16,481,94,'#fff');
+      col='#121418';zx=66;zw=380;
+  }
+  x.restore();
+  t=String(t||'');const n=Math.max(1,t.length);let s=Math.min(cap,Math.floor(zw/n/8)*8);if(s<16)s=16;
+  x.font=s+'px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';
+  const cx=zx+zw/2,cy=zy+s*.06;
+  if(omb){x.fillStyle=omb;x.fillText(t,cx,cy+ombY);}
+  if(lue){x.shadowColor=lue;x.shadowBlur=16;}
+  x.fillStyle=col;x.fillText(t,cx,cy);x.shadowBlur=0;
+  x.restore();
+}
+function plqTex(){if(PLQ.tex)return PLQ.tex;
+  const cv=document.createElement('canvas');cv.width=512;cv.height=128;PLQ.cv=cv;PLQ.ctx=cv.getContext('2d');
+  const t=new THREE.CanvasTexture(cv);try{t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());}catch(e){t.anisotropy=4;}PLQ.tex=t;
+  plqRepeint();try{apresPolice(plqRepeint);}catch(e){}return t;}
+function plqRepeint(){if(!PLQ.ctx)return;const e=plqEtat();plqPeint(PLQ.ctx,512,128,plqModOk(e.m),String(e.x||'').trim(),'#101014');if(PLQ.tex)PLQ.tex.needsUpdate=true;}
+function plqMats(){if(PLQ.matF)return;plqTex();
+  PLQ.matF=new THREE.MeshBasicMaterial({map:PLQ.tex,color:0xd9d9d9});PLQ.matF.userData.plq=1; // la face : elle ne prend pas la lumière, comme une plaque éclairée par sa lampe (lisible de nuit)
+  PLQ.matC=new THREE.MeshPhongMaterial({color:0x101014,shininess:70,specular:0x4a4a4a});PLQ.matC.userData.plq=1;} // le cadre (le programme des plastiques noirs : rien de neuf à compiler)
+/* ---- OÙ POSER LA PLAQUE : des rayons tirés vers la caisse, dans son repère (sd −1 = l'arrière, +1 = l'avant) ---- */
+function plqCherche(sd,W9,H9,L9,y0,pw,exclus,verre){
+  const R=PLQ.ray||(PLQ.ray=new THREE.Raycaster()),o=new THREE.Vector3(),d=new THREE.Vector3(),n=new THREE.Vector3(),
+    M=carGroup.matrixWorld,Mi=new THREE.Matrix4().copy(M).invert(),cib=[];
+  carGroup.traverse(function(m){if(!m.isMesh||m.isSprite||m.isInstancedMesh||!m.geometry||!m.visible)return; /* (les effets instanciés : flammes, écume, gouttes — pas de la tôle, et chers à viser) */const u=m.userData||{};if(u.sol||u.fx||u.noShadow)return;
+    let p=m;while(p&&p!==carGroup){if(exclus.indexOf(p)>=0||!p.visible)return;p=p.parent;}cib.push(m);});
+  const verreOu=function(mt){return !mt||mt===verre||mt.transparent||(mt.userData&&mt.userData.g==='g');}; // ni verre (le kit : g · hors kit : la vitre), ni ce qui se voit à travers
+  const tir=function(px,py){o.set(px,py,sd<0?-L9-3:L9+3).applyMatrix4(M);d.set(0,0,-sd).transformDirection(M);R.set(o,d);R.far=L9*2+6;
+    const h=R.intersectObjects(cib,false)[0];if(!h)return null;
+    const q=h.point.clone().applyMatrix4(Mi),mt=Array.isArray(h.object.material)?h.object.material[0]:h.object.material;
+    n.copy(h.face?h.face.normal:d).transformDirection(h.object.matrixWorld).transformDirection(Mi);
+    if(n.z*-sd>0)n.multiplyScalar(-1); // une face vue de dos (le kit est en double face) : la normale regarde dehors
+    return {q:q,ny:n.y,nz:n.z,verre:verreOu(mt),nu:!!(mt&&mt.isMeshBasicMaterial)};}; // `nu` : une matière sans lumière (feux, néons… ou la peau du chat en pixels, du doge)
+  /* UN SEUL balayage de dix rayons au centre : la tôle d'abord (la hauteur d'une vraie plaque : 40 % derrière, 30 % devant) ; une caisse toute
+     en matière sans lumière (le chat, le doge) n'a que de la peau « nue » : on la prend alors, plaque EN BAS (16 % : sous le museau, pas sur
+     le visage). Puis deux rayons de côté, sur les TROIS meilleures hauteurs au plus (le doge, 47 000 triangles, coûtait 146 ms en deux passages). */
+  const f0=sd<0?.40:.30,C0=[],Cn=[];
+  for(const f of [.14,.20,.26,.32,.38,.44,.50,.56,.62,.70]){const y=y0+H9*f,h=tir(0,y);if(!h||h.verre)continue;
+    if(h.nz*sd<.45||Math.abs(h.ny)>.8)continue; // la tôle doit FAIRE FACE (un toit, un dessous : non)
+    if(h.nu)Cn.push({f:f,y:y,h:h,sc:Math.abs(f-.16)+Math.abs(h.ny)*.35});else C0.push({f:f,y:y,h:h,sc:Math.abs(f-f0)+Math.abs(h.ny)*.35});}
+  const souple=!C0.length,C=souple?Cn:C0;
+  C.sort(function(a,b){return a.sc-b.sc;});
+  for(const c of C.slice(0,3)){const g=tir(-pw*.42,c.y),dr=tir(pw*.42,c.y),ok=function(x){return x&&!x.verre&&(souple||!x.nu)&&Math.abs(x.q.z-c.h.q.z)<=.3;};
+    if(!ok(g)||!ok(dr))continue; // la plaque tient sur la tôle de bout en bout
+    const z=sd<0?Math.min(c.h.q.z,g.q.z,dr.q.z):Math.max(c.h.q.z,g.q.z,dr.q.z);
+    return {y:c.y,z:z,ny:c.h.ny,nz:c.h.nz,src:souple?'souple':'rayons'};}
+  if(C.length)return {y:C[0].y,z:C[0].h.q.z,ny:C[0].h.ny,nz:C[0].h.nz,src:'centre'}; // aucune hauteur assez large : la meilleure au centre
+  const b=new THREE.Box3();for(const m of cib)b.expandByObject(m);if(!b.isEmpty())b.applyMatrix4(Mi); // rien de franc : au ras de la boîte de la caisse
+  return {y:y0+H9*f0,z:b.isEmpty()?sd*L9/2:(sd<0?b.min.z:b.max.z),ny:0,nz:sd,src:'boite'};}
+function plqPose(lvl,A,W9,H9,L9,y0,exclus,verre){ // appelée par buildCar : les deux plaques de la caisse qui se construit (repère caisse)
+  if(A&&A.plq===0)return;plqMats();
+  const pw=Math.max(.5,Math.min(.64,W9*.32)),ph=pw*.25;
+  carGroup.updateMatrixWorld(true);
+  let P=PLQ.pos[lvl];
+  if(!P||P.L!==L9||P.W!==W9){const t9=performance.now();P=PLQ.pos[lvl]={L:L9,W:W9,ar:plqCherche(-1,W9,H9,L9,y0,pw,exclus,verre),av:plqCherche(1,W9,H9,L9,y0,pw,exclus,verre)};P.ms=Math.round((performance.now()-t9)*10)/10;} // `ms` : le prix des rayons (dbgPlaque('pos'))
+  for(const sd of [-1,1]){const q=sd<0?P.ar:P.av;if(!q)continue;
+    const a=Math.max(-.3,Math.min(.7,Math.atan2(q.ny,Math.abs(q.nz)||1e-3))); // la pente de la tôle (vers le haut = la plaque regarde un peu le ciel)
+    const nx9=0,ny9=Math.sin(a),nz9=sd*Math.cos(a);
+    for(const k of [0,1]){const m=new THREE.Mesh(k?new THREE.PlaneGeometry(pw,ph):new THREE.BoxGeometry(pw+.035,ph+.035,.02),k?PLQ.matF:PLQ.matC);
+      const e=k?.024:.011;m.position.set(nx9*e,q.y+ny9*e,q.z+nz9*e);
+      m.rotation.order='YXZ';m.rotation.y=sd<0?Math.PI:0;m.rotation.x=-a;
+      m.userData.noShadow=true;m.userData.plaque=sd<0?'ar':'av';carGroup.add(m);}
+  }
+}
+/* ---- LES ÉCRANS : l'atelier de la plaque (#plq) et le profil (#prof) ---- */
+Object.assign(I18N,{'TA PLAQUE':'YOUR PLATE','Elle roule sur toutes tes caisses':'It rides on all your cars','VALIDER':'CONFIRM','RETOUR':'BACK',
+  'MON PROFIL':'MY PROFILE','CHANGER MA PLAQUE':'CHANGE MY PLATE','TEMPS DE JEU':'PLAY TIME','JOUEUR DEPUIS':'PLAYER SINCE','PARTIES':'RUNS',
+  'FIGURES':'TRICKS','MEILLEUR TEMPS':'BEST TIME','RECORD':'BEST SCORE','FORTUNE MAX':'TOP FORTUNE','VITESSE MAX':'TOP SPEED',
+  'AURA':'AURA','MEILLEURE AURA':'BEST AURA','CAISSES':'CARS','MISSIONS':'MISSIONS','MEILLEUR COMBO':'BEST COMBO','SERIE':'STREAK',
+  'TEMPS EN COURSE':'RACE TIME','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
+  'JOURS':'DAYS','JOUR':'DAY','AUJOURD\'HUI':'TODAY','RETRO':'RETRO','COURSE':'RACING','BILLET':'BANKNOTE','LINGOT':'GOLD BAR','FRANCE':'FRANCE',
+  'PLAQUE ENREGISTREE':'PLATE SAVED'});
+function $p(id){return document.getElementById(id);}
+function plqDuree(s){s=Math.max(0,Math.round(+s||0));const h=Math.floor(s/3600),mn=Math.floor(s%3600/60),sc=s%60;
+  if(h)return h+' H '+String(mn).padStart(2,'0');if(mn)return mn+' MIN '+String(sc).padStart(2,'0');return sc+' S';}
+function plqDate(ms){const d=new Date(+ms||Date.now()),j=String(d.getDate()).padStart(2,'0'),m=String(d.getMonth()+1).padStart(2,'0');
+  return LANG==='fr'?j+'/'+m+'/'+d.getFullYear():d.getFullYear()+'-'+m+'-'+j;}
+function plqApercu(cv,m,t){if(!cv)return;const c=cv.getContext('2d');plqPeint(c,cv.width,cv.height,m,t,null);}
+function plqMods(){const box=$p('plqMods');if(!box)return;
+  if(!box.children.length){box.innerHTML=PLQ_MOD.map(function(o){return '<div class="plMod" role="radio" tabindex="0" data-m="'+o.id+'" aria-label="'+o.n+'"><canvas width="256" height="64"></canvas><b>'+sansAcc(TR(o.n))+'</b></div>';}).join('');
+    box.querySelectorAll('.plMod').forEach(function(el){const go=function(e){if(e)e.stopPropagation();const m=el.getAttribute('data-m');if(m===PLQ.m){uiClic('nav');return;}
+      PLQ.m=m;uiClic('onglet');hap(8);uiPop(el);plqVue();};
+      el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});}
+  const t=(PLQ.x.trim()||'CASH CAR');
+  box.querySelectorAll('.plMod').forEach(function(el){const m=el.getAttribute('data-m'),on=m===PLQ.m;el.classList.toggle('on',on);el.setAttribute('aria-checked',on?'true':'false');
+    const cv=el.querySelector('canvas');if(cv._k!==m+'|'+t){cv._k=m+'|'+t;plqApercu(cv,m,t);}
+    const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;});}
+function plqVue(){plqApercu($p('plqCv'),PLQ.m,PLQ.x.trim());plqMods();}
+function plqOuvre(mode){ // mode : 'premier' (le début du jeu, à valider) · 'profil' (depuis le profil, RETOUR annule)
+  const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
+  el.classList.toggle('premier',PLQ.mode==='premier');
+  const tx=$p('plqTx');if(tx){tx.value=PLQ.x;tx.setAttribute('aria-label',TR('Le texte de ta plaque'));}
+  plqVue();feuilleOuvre(el,'on');try{chuteDoigtMontre(false);}catch(_){}
+}
+function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
+  if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
+    toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
+  PLQ.on=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){}
+  feuilleFerme(el,'on');if(PLQ.prof)profRemplit();}
+function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
+  const tx=$p('plqTx');
+  if(tx){tx.addEventListener('input',function(){const v=plqNet(tx.value);if(v!==tx.value){const p=tx.selectionStart;tx.value=v;try{tx.setSelectionRange(Math.min(p,v.length),Math.min(p,v.length));}catch(_){}}
+      PLQ.x=v;plqVue();});
+    tx.addEventListener('click',function(e){e.stopPropagation();});}
+  const vue=el.querySelector('.plVue');if(vue)vue.addEventListener('click',function(e){e.stopPropagation();try{tx.focus();}catch(_){}});
+  el.querySelectorAll('[data-p]').forEach(function(b){const a=b.getAttribute('data-p'),go=function(e){if(e)e.stopPropagation();
+      if(a==='ok'){uiClic('');hap(14);uiPop(b);plqFerme(true);}
+      else if(a==='ret'){uiClic('retour');hap(6);plqFerme(false);}
+      else if(a==='hasard'){uiClic('onglet');hap(8);uiPop(b);PLQ.x=plqHasard();if(tx)tx.value=PLQ.x;plqVue();}};
+    b.addEventListener('click',go);b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});
+  addEventListener('keydown',function(e){if(!PLQ.on)return;if(e.target===tx)return;if(e.code==='Escape'&&PLQ.mode!=='premier'){e.preventDefault();e.stopImmediatePropagation();plqFerme(false);}
+    else if(e.code==='Enter'){e.preventDefault();e.stopImmediatePropagation();plqFerme(true);}},true);
+}
+/* le clavier qui écrit sur la plaque ne conduit pas : la touche ne descend pas jusqu'au jeu (ESPACE = nitro, P = pause, I = inventaire…) —
+   posé en CAPTURE ici, avant tous les autres gestionnaires du clavier (ce bloc passe avant eux au chargement). La frappe, elle, n'est pas annulée. */
+addEventListener('keydown',function(e){if(e.target&&e.target.id==='plqTx'){e.stopImmediatePropagation();if(e.key==='Enter'){e.preventDefault();e.target.blur();}}},true); // Entrée referme le clavier
+addEventListener('keyup',function(e){if(e.target&&e.target.id==='plqTx')e.stopImmediatePropagation();},true);
+/* LE PREMIER ACCUEIL : la plaque se choisit avant tout le reste (la question de bienvenue attend qu'elle soit refermée, voir bienvPret) */
+function plqVeut(){try{if(/[?&]plaque=1\b/.test(location.search))return !PLQ.fait;if(/[?&](plaque|bienvenue)=0\b/.test(location.search)||navigator.webdriver)return false; /* les BANCS (Puppeteer : navigator.webdriver) partent de sauvegardes neuves : l'atelier leur boucherait l'accueil — `?plaque=1` le rend */
+  return !PLQ.fait&&!(SAVE.d.plq&&SAVE.d.plq.ok)&&!BALADE&&!SIMU_JEU&&!SANDBOX&&!(PARK&&PARK.on);}catch(e){return false;}}
+function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
+  if(!plqVeut()){clearInterval(PLQ.iv);return;}
+  const sp=document.getElementById('splash'),md=document.getElementById('modale');
+  const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
+  if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
+  if(performance.now()-PLQ.t0>600){clearInterval(PLQ.iv);PLQ.fait=true;plqOuvre('premier');}}catch(e){}},250);}
+/* LE PROFIL */
+function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for(const k in (ex.temps||{}))tc+=+ex.temps[k]||0;}catch(e){}
+  let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;tot++;if(i===0||carOwned(i))own++;}}catch(e){}
+  let mis=0,misT=0;try{const s=m2Etat();mis=(s.ok||[]).length;misT=M2.length;}catch(e){}
+  let rang='';try{rang=auraRankName();}catch(e){}
+  return [
+    ['horloge','TEMPS DE JEU',plqDuree(Math.max(p.tA||0,tc)),'gros'],
+    ['etoile','JOUEUR DEPUIS',plqDate(p.ne),''],
+    ['drapeau','PARTIES',String(ex.runs|0),''],
+    ['rotation','FIGURES',String(ex.tricks|0),''],
+    ['horloge','MEILLEUR TEMPS',p.dMax?plqDuree(p.dMax):'—',''],
+    ['volant','TEMPS EN COURSE',plqDuree(tc),''],
+    ['piece','RECORD',fmtC(d.best||0),'cash'],
+    ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
+    ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
+    ['etoile','AURA',String(Math.round(d.aura||0))+(rang?' · '+sansAcc(rang):''),'aura'],
+    ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
+    ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
+    ['voiture','CAISSES',own+' / '+tot,''],
+    ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
+    ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1?'JOURS':'JOUR'),'']];}
+function profRemplit(){const g=$p('pfStats');if(!g)return;
+  g.innerHTML=profChiffres().map(function(c){return '<div class="pfS '+c[3]+'">'+pxi(c[0])+'<i>'+sansAcc(TR(c[1]))+'</i><b>'+c[2]+'</b></div>';}).join('');
+  const e=plqEtat();plqApercu($p('pfCv'),plqModOk(e.m),String(e.x||'').trim());}
+function profOuvre(){const el=$p('prof');if(!el||PLQ.prof)return;PLQ.prof=true;profRemplit();try{const s=el.querySelector('.pfStats');if(s)s.scrollTop=0;}catch(_){}feuilleOuvre(el,'on');}
+function profFerme(){const el=$p('prof');if(!el||!PLQ.prof)return;PLQ.prof=false;feuilleFerme(el,'on');}
+function profBranche(){const el=$p('prof');if(!el||el._b)return;el._b=1;
+  el.querySelectorAll('[data-p]').forEach(function(b){const a=b.getAttribute('data-p'),go=function(e){if(e)e.stopPropagation();
+      if(a==='ret'){uiClic('retour');hap(6);profFerme();}else if(a==='plaque'){uiClic('');hap(10);uiPop(b);plqOuvre('profil');}};
+    b.addEventListener('click',go);b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});
+  addEventListener('keydown',function(e){if(!PLQ.prof||PLQ.on)return;if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();profFerme();}},true);
+  const g=$p('gProf');if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
+    g.addEventListener('click',go);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});}
+}
+/* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran (SAVE.mark : c'est le filet des 30 s qui écrit) */
+function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);SAVE.mark();}catch(e){}}
+/* le trophée ne se montre que sur la vue principale de l'atelier (là où JOUER attend) : ni inventaire ouvert, ni « la voiture seule », ni
+   boutique, ni missions, ni garage-menu — relu 4 fois par seconde, écrit seulement quand ça change. Il se pose AU-DESSUS d'INVENTAIRE (#gvCof) :
+   au coin bas-gauche, il tombait sous la jauge de rotation (couché) et sur le HOME (debout). */
+function plqGarage(){const g=$p('gProf');if(!g)return;let on=false;
+  try{if(garageOn&&!(GAR&&GAR.go)&&!(INV&&INV.on)&&!PLQ.prof&&!PLQ.on&&gEl&&!gEl.classList.contains('vueSeule')&&!gEl.classList.contains('menu')){const j=$p('gJouer'),c=$p('gvCof');
+    if(j&&c&&j.getClientRects().length&&getComputedStyle(j).visibility!=='hidden'){const r=c.getBoundingClientRect();
+      if(r.width>8){on=true;const L=Math.round(r.left)+'px',T=Math.round(r.top-58)+'px';if(g.style.left!==L)g.style.left=L;if(g.style.top!==T)g.style.top=T;}}}}catch(e){}
+  if(g.classList.contains('on')!==on)g.classList.toggle('on',on);} /* (la place : 10 px au-dessus d'INVENTAIRE, à son aplomb gauche — la jauge qui tourne l'atelier et le HOME du bas changent de place selon le sens, la grappe de JOUER non) */
+function plqDemarre(){try{plqBranche();profBranche();}catch(e){console.warn('plaque',e);}
+  try{plqRepeint();}catch(e){}setInterval(plqHorloge,5000);setInterval(plqGarage,250);plqGuette();}
+/* les profils fermés par un changement d'écran (JOUER, accueil) : le garage qui se ferme emporte le profil */
+document.addEventListener('cc:jeu',function(){try{if(PLQ.prof)profFerme();}catch(e){}});
+window.dbgPlaque=function(a,b){
+  if(a==='ouvre'){plqOuvre(b||'profil');return 'ouvert';}
+  if(a==='raz'){SAVE.d.plq.ok=0;SAVE.flush();PLQ.fait=false;return 'à choisir au prochain accueil';}
+  if(a==='pos')return {pos:PLQ.pos,plaques:(function(){const r=[];carGroup.traverse(function(o){if(o.userData&&o.userData.plaque&&o.isMesh)r.push([o.userData.plaque,o.position.toArray().map(function(v){return +v.toFixed(3);})]);});return r;})()};
+  if(a&&b!=null){const p=SAVE.d.plq;p.m=plqModOk(a);p.x=plqNet(b).trim()||p.x;p.ok=1;SAVE.flush();plqRepeint();return p;}
+  return {plq:SAVE.d.plq,prof:SAVE.d.prof,on:PLQ.on,profil:PLQ.prof,caisses:Object.keys(PLQ.pos).length};};
+window.dbgProfil=function(){profOuvre();return profChiffres().map(function(c){return c[1]+' : '+c[2];});};
 /* ---------- VIGNETTE MOTEUR : on VOIT ce qui nous pousse, en 3D, pendant la course ----------
    ⚠ POURQUOI CETTE RÉÉCRITURE. La 1re version dessinait la vignette DIRECTEMENT dans le framebuffer
    principal avec `setViewport`/`setScissor`, entre deux passes du composer. Le composer garde sa
@@ -45312,6 +45681,7 @@ const SAVE={
     bank:0, aura:0, owned:[], auraMax:0, gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
+    plq:{m:'fr',x:(typeof plqHasard==='function'?plqHasard():'CASH CAR'),ok:0},prof:{ne:Date.now(),tA:0,dMax:0}, // (2026-10-17) LA PLAQUE (modèle, texte, validée) et LE PROFIL (né le, temps de jeu, plus longue partie) — voir PLQ
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
@@ -45443,6 +45813,11 @@ const SAVE={
       const cc=s9.c&&typeof s9.c==='object'?s9.c:{};o9.c.morts=Math.round(N9(cc.morts,1e7));o9.c.gagne=N9(cc.gagne,1e30);o9.c.jours=Math.round(N9(cc.jours,1e5));
       o9.c.jd=typeof cc.jd==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(cc.jd)?cc.jd:'';o9.c.cartes=L9(cc.cartes,40);o9.c.cartesP=L9(cc.cartesP,40);o9.c.rejoue=Math.round(N9(cc.rejoue,1e5));}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
+    /* (2026-10-17) LA PLAQUE et LE PROFIL (voir PLQ) — bornés : un code importé ne peint rien d'autre qu'une plaque de 9 signes ; une sauvegarde
+       d'avant le profil part du temps de course qu'elle a déjà (ex.temps), née aujourd'hui. Le typeof : les preuves de sauvegarde n'exécutent que cette zone. */
+    if(typeof plqNet==='function'&&d.plq&&typeof d.plq==='object'){const x9=plqNet(d.plq.x).trim();c.plq={m:plqModOk(d.plq.m),x:x9||c.plq.x,ok:(d.plq.ok&&x9)?1:0};}
+    {const p9=(d.prof&&typeof d.prof==='object')?d.prof:null,n9=function(v,hi){v=+v;return isFinite(v)&&v>0?Math.min(hi,v):0;};let tc9=0;for(const k in c.ex.temps)tc9+=+c.ex.temps[k]||0;
+     c.prof=p9?{ne:Math.min(Date.now(),n9(p9.ne,1e15)||Date.now()),tA:Math.round(n9(p9.tA,1e9)),dMax:Math.round(n9(p9.dMax,1e6)*10)/10}:{ne:Date.now(),tA:Math.round(tc9),dMax:0};}
     return c;
   },
   load(){
@@ -50166,6 +50541,7 @@ function commitExploits(){
   ex.chain=Math.max(ex.chain,runStats.chainMax|0);
   ex.kmh=Math.max(ex.kmh,Math.round(runStats.vmax)||0);
   if(!CHANCE.used)ex.runs++; // (une partie reprise reste UNE partie)
+  try{const p9=SAVE.d.prof;if(p9)p9.dMax=Math.min(1e6,Math.max(p9.dMax||0,Math.round((RUNX.t||0)*10)/10));}catch(e){} // (2026-10-17) LE PROFIL : la plus longue partie (une reprise compte toute la partie, voir PLQ)
   }
   /* ---- LE VIREMENT ET L'AURA PARTENT EN PERSISTANT ------------------------------------------
      ⚠ ON NE VERSE QUE LES GAINS, PAS LE COMPTEUR. `money` démarre à `START_CASH` (1,61 €) à chaque
@@ -55446,7 +55822,7 @@ function chuteDoigtEl(){const D=CH_DOIGT;if(D.el)return D.el;const el=document.g
 function chuteDoigtMontre(v){const D=CH_DOIGT;if(!v)D.t=0;if(D.on===v)return;D.on=v;if(D.el)D.el.classList.toggle('on',v);}
 function chuteDoigtTick(dt,Ck,G){const D=CH_DOIGT;if(D.fini)return;
   if((SAVE.d.ast|0)&D.BIT){D.fini=true;chuteDoigtMontre(false);return;}
-  if(G||!carGroup.visible||TUTO.on||BIENV.on||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
+  if(G||!carGroup.visible||TUTO.on||BIENV.on||PLQ.on||PLQ.prof||ecranWipe._on||!overlay||overlay.getAttribute('data-ecran')!=='home'||document.getElementById('splash')){chuteDoigtMontre(false);return;} /* (pas `overlay.style.display` : au ciel, la feuille du garage-menu montre l'accueil par-dessus un display:none écrit en ligne) */
   const el=chuteDoigtEl();if(!el){D.fini=true;return;}
   D.rT-=dt;if(D.rT<=0||!D.r){D.rT=.5;D.r=renderer.domElement.getBoundingClientRect();} // la place du canevas (le cadre de l'ordi le décale) : relue deux fois par seconde
   const R=D.r;D.v.copy(Ck).project(camera);if(!(R.width>0)||D.v.z>1){chuteDoigtMontre(false);return;}
@@ -60296,7 +60672,7 @@ $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarge
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#ux8,#gC6Tete,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return;
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#ux8,#gC6Tete,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns,#gProf,#prof,#plq'))return; /* (2026-10-17) LA PLAQUE : le trophée et ses deux écrans ne font ni tourner l'atelier ni partir le burn-out */
   if(GBQ.on&&e.target.closest&&e.target.closest('#gBq'))return; /* (2026-10-15) en boutique, la page de vente n'est jamais un glissé du garage : ses boutons gardent leur clic, le reste est la scène de la boutique (bqScene) */ /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
@@ -60358,7 +60734,7 @@ addEventListener('pointermove',e=>{
   gpx=e.clientX;gpy=e.clientY;});
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
-addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
+addEventListener('wheel',e=>{if(!garageOn||PLQ.on||PLQ.prof)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
 addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&gEl.classList.contains('vitrine'))garVitrine(false);else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
@@ -63680,7 +64056,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // `touch-action:none` sur le canvas et le HUD bloque déjà le scroll du navigateur.
     if(garageOn)return;
     const tg=e.target;
-    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#carr,#modale'))&&e.cancelable)e.preventDefault(); // (2026-09-29) la CARRIÈRE et la FENÊTRE sont hors de #overlay : leur contenu ne défilait pas au doigt (les mondes, les niveaux 9-10 restaient sous le RETOUR)
+    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#carr,#modale,#plq,#prof'))&&e.cancelable)e.preventDefault(); /* (2026-10-17) l'atelier de la plaque et le profil défilent au doigt (debout, sur un petit écran) */ // (2026-09-29) la CARRIÈRE et la FENÊTRE sont hors de #overlay : leur contenu ne défilait pas au doigt (les mondes, les niveaux 9-10 restaient sous le RETOUR)
   },{passive:false});
   // ---- GARAGE AU DOIGT : le PINCEMENT remplace la molette (il n'y a pas de molette sur un pouce) ----
   (function(){ let pd=0;
@@ -64342,6 +64718,7 @@ if(BANC_ON)(function(){
   })();
 })();
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
+try{plqDemarre();}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE : ses écrans, l'horloge du compte, et l'atelier au premier accueil (voir PLQ)
 try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)
 requestAnimationFrame(loop);
 })();

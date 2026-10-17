@@ -140,6 +140,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
   low-poly `lpKit`/`lpMat`/`lpWheel`, tuyères `CAR_POTS`/`potMonde`, raretés `RARETES`/`carRar`/`rarListe`/`carOrdre`,
   `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto` (et `aileFile` : la photo d'une aile, sur la caisse équipée).
+- **Plaque d'immatriculation et profil** (17/10) : `PLQ`, les neuf modèles `PLQ_MOD` peints par `plqPeint`, la pose sur TOUTES les caisses
+  `plqPose`/`plqCherche` (des rayons, dans buildCar ; `PLQ.pos` par caisse), l'atelier `#plq`/`plqOuvre` (au premier accueil : `plqGuette`),
+  le profil `#prof`/`profOuvre`/`profChiffres` (le trophée du garage `#gProf`, `plqGarage`), la sauvegarde `SAVE.d.plq` et `SAVE.d.prof` (`plqHorloge`).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
   `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,

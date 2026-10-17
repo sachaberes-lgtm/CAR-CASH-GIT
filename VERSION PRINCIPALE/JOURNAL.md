@@ -3,6 +3,54 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PLAQUE D'IMMATRICULATION + LE PROFIL DU JOUEUR (2026-10-17, Sacha : « rajoute une plaque d'immatriculation personnalisable au début du jeu, fais plusieurs templates et le joueur peut écrire ce qu'il veut sur la plaque, puis elle doit être intégrée à toutes les voitures » puis « rajoute un bouton dans le garage, un petit bouton avec un logo trophée : le joueur peut changer sa plaque et voir des stats sur son compte — il joue depuis combien de temps, combien de figures, meilleur temps, etc. »)
+- **L'atelier de la plaque (`#plq`, `plqOuvre`)** : la plaque en grand (la toile même de la caisse), un champ de 9 signes (capitales sans
+  accent : A-Z, 0-9, espace, `- . ! ? $` — `plqNet` nettoie la frappe, minuscules et accents compris), le DÉ (une plaque au hasard au format
+  français AB-123-CD, `plqHasard`), NEUF MODÈLES en vignettes (`PLQ_MOD`, peints par `plqPeint`) : FRANCE (bandes bleues, étoiles, « F »,
+  la pièce « $ » et « CC » à droite), RETRO (la noire d'avant 93, rivets), U.K. (la jaune), USA (« CASH CITY » en rouge, « SPEED STATE »),
+  COURSE (damiers), BILLET (le vert des billets, guilloches, « $ » aux coins), LINGOT (or sur laque), NEON (rose et cyan de la nuit), ARCADE
+  (la plaque des menus, la livrée magenta · cyan · or). Un lingot : VALIDER. Couché : deux colonnes, tout tient sans défiler.
+- **Au début du jeu** : `plqGuette` pose l'atelier sur l'accueil (600 ms après qu'il est prêt, mêmes conditions que la question de bienvenue)
+  tant que `SAVE.d.plq.ok` vaut 0 — UNE fois, pour tout le monde, vieilles sauvegardes comprises. Sans RETOUR (il faut valider ; la plaque
+  tirée au hasard est déjà là). La question de bienvenue et le doigt TAPE TA CAISSE attendent qu'il soit refermé (`bienvPret`, `chuteDoigt`).
+  Les bancs ne le voient pas (`navigator.webdriver`, ou `?plaque=0` / `?bienvenue=0`) : ils partent de sauvegardes neuves et il leur
+  boucherait l'accueil — `?plaque=1` le repose (à chaque ouverture).
+- **Sur TOUTES les caisses (`plqPose`, dans `buildCar` juste avant `LA CARROSSERIE PENCHE`)** : une plaque derrière ET devant, sans une ligne
+  par gabarit. `plqCherche` tire des rayons (repère caisse) à dix hauteurs, prend la tôle la plus reculée qui FAIT FACE, hors verre (`g`, la
+  vitre hors kit), hors feux et néons (MeshBasic), hors transparents ; il garde la hauteur la plus proche d'une vraie plaque (40 % de la caisse
+  derrière, 30 % devant) où deux rayons de côté retrouvent la tôle à 30 cm près (sinon la meilleure au centre). Une caisse toute en matière
+  sans lumière (le CHAT POP-TART en pixels, LE DOGE, L'ICEBERG, LA FOURNAISE) passe une 2e fois en acceptant cette peau, plaque EN BAS (16 %
+  de la hauteur : sous le museau, pas sur le visage) — `src:'souple'` ; en dernier recours, le bord de sa boîte. Les effets instanciés
+  (flammes, écume, gouttes) ne sont pas visés.
+  La plaque se colle à 2,4 cm, penchée comme la tôle (bornée −17° / +40°), sur un cadre noir de 2 cm. Largeur 32 % de la caisse (50 à 64 cm),
+  rapport 4:1. Le résultat se garde par caisse (`PLQ.pos`) : la rafale de photos ne relance pas les rayons.
+  UNE toile 512 × 128, UNE texture, DEUX matières partagées (face MeshBasic : lisible la nuit comme une plaque éclairée ; cadre Phong noir,
+  le programme des plastiques) créées au tout premier buildCar ; buildCar ne les libère plus (`userData.plq`). Changer la plaque repeint la
+  toile : zéro matière neuve, zéro compilation en course. Les plaques sont des pièces comme les autres : soudées, elles volent à l'explosion.
+- **Le profil (`#prof`, le petit TROPHÉE `#gProf` du garage)** : posé par `plqGarage` (4 fois/s, écrit seulement quand ça change) 10 px
+  AU-DESSUS d'INVENTAIRE (`#gvCof`), à son aplomb gauche — au coin bas-gauche il tombait sous la jauge qui tourne l'atelier (couché) et sur
+  le HOME (debout). Visible seulement sur la vue principale de l'atelier (là où JOUER attend : ni inventaire, ni « la voiture seule », ni
+  boutique, ni missions, ni garage-menu). La plaque en grand, le lingot
+  CHANGER MA PLAQUE (l'atelier en mode profil : RETOUR annule), et quinze chiffres : TEMPS DE JEU, JOUEUR DEPUIS, PARTIES, FIGURES (`ex.tricks`),
+  MEILLEUR TEMPS (la plus longue partie), TEMPS EN COURSE (`ex.temps`), RECORD, FORTUNE MAX, VITESSE MAX, AURA (+ rang), MEILLEURE AURA,
+  MEILLEUR COMBO (`figRec`), CAISSES (possédées / gamme), MISSIONS (réussies / total), SERIE (jours).
+- **La sauvegarde** : `SAVE.d.plq` {m, x, ok} et `SAVE.d.prof` {ne : né le (ms), tA : secondes passées jeu à l'écran, dMax : plus longue
+  partie (s)}, dans `def()` et `san()` (bornés, testés par `typeof` : les preuves de sauvegarde n'exécutent que cette zone). Une vieille
+  sauvegarde naît le jour de cette version et part de son temps de course déjà compté. `tA` monte de 5 s toutes les 5 s d'écran visible
+  (`plqHorloge`, `SAVE.mark`) ; `dMax` est versé par `commitExploits` (`RUNX.t`, une reprise compte toute la partie).
+- **Le clavier** : la frappe dans le champ ne descend pas jusqu'au jeu (ESPACE, P, I, flèches) — un écouteur en CAPTURE posé avant tous les
+  autres (`stopImmediatePropagation`, la frappe n'est pas annulée) ; Entrée referme le clavier ; Échap ferme (sauf au premier accueil).
+  Le glissé dans le garage ignore `#gProf,#prof,#plq` ; `#plq,#prof` défilent au doigt ; la molette ne zoome pas l'atelier derrière.
+- Crochets : `dbgPlaque()` · `dbgPlaque('ouvre')` · `dbgPlaque('fr','AB-123-CD')` · `dbgPlaque('raz')` · `dbgPlaque('pos')` · `dbgProfil()`.
+- **Mesuré** (banc Puppeteer, Chrome de l'ordi, couché 844 × 390 et debout 390 × 844, muet, aucune erreur de page) : l'atelier se pose au
+  premier accueil ; « Sacha é77# » tapé au clavier devient « SACHA E77 » ; VALIDER écrit {m:'neon', x:'SACHA E77', ok:1} ; RETOUR depuis le
+  profil n'écrit rien ; le trophée n'est recouvert par rien (couché 387,183 · debout 21,604) ; en course, la plaque arrière se lit derrière la
+  caisse. Sur les 79 caisses : 71 posées par les rayons des deux côtés, le chat en « peau » des deux côtés ; en repli (centre ou boîte) :
+  LE CHARGEUR, l'avant de LA NOCTAMBULE, de LA RAIE, du MUR DU SON, de LA FOURNAISE et du DOGE, L'ICEBERG. Le prix des rayons, une fois par
+  caisse et par session : médiane 2 ms, LE DOGE 63 ms (146 avant le balayage unique), 270 ms pour les 79.
+- À trancher par Sacha : les noms et dessins des neuf modèles, la taille de la plaque (32 % de la largeur), la plaque sur le front du DOGE et
+  dans la gueule du SQUALE, celle sur la roue de secours du CAÏD.
+
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
   Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
