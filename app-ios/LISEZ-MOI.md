@@ -67,7 +67,15 @@ dans `www/` **seulement** — `VERSION PRINCIPALE/` (le jeu web de `main`, celui
 - **l'accueil sans OFFRES** : sous MISSIONS, deux touches égales GARAGE · RÉGLAGES au lieu de trois (debout et couché) ;
 - **pas de voix livrées** : l'annonceur, le « ewww » et le « WOW » ne sont jamais joués dans l'app (`SANS_VOIX`) ; leurs onze
   fichiers ne sont plus copiés (comme dans l'édition POKI) ;
-- **pas de marque d'autrui dans un texte** : « on vient de doubler une Ferrari » devient « une voiture de course ».
+- **pas de marque d'autrui dans un texte** : « on vient de doubler une Ferrari » devient « une voiture de course » ;
+- **seulement la musique que le jeu peut jouer** (17/10, Sacha : « trop lourd pour l'App Store ») : `assets/audio/music/` est aussi la
+  bibliothèque de Léo (doublons `lobby-chris/`, boucles, paliers pas rangés dans Pouce bleu, musiques du garage retirées le 15/10).
+  `preparer-www.js` garde ce que le CODE du jeu cite (chemin entier ou gabarit `'…chris-'+k+'.m4a'`) et la liste Pouce bleu calculée
+  comme `pouce-bleu-jeu.js` la calcule (paliers rangés « bleu » dans `musique-moteur.json`, instruments du générateur). Mesuré sur main
+  20a26f08 : **184 → 103 Mo** (171 fichiers laissés, 81 Mo). Un palier rangé dans Pouce bleu par Léo part tout seul à la fabrication
+  suivante ; si la règle de Pouce bleu change dans le jeu, un témoin arrête la fabrication ;
+- **Pouce bleu sans ses trois pages** (AURA · 30, RUBIS DE NÉON, ASPHALTE D'ÉMERAUDE : des `direct/*.html` joués en iframe, jamais
+  embarqués) : dans l'app ils ne sont plus tirés — tirés, ils échouaient et la course partait en silence après trois essais.
 
 L'audit complet (« le regard du testeur d'Apple », 14/10) est dans `~/cash-car/pilotage/notes/regard-apple.md` : ses coupes
 C4, C6 à C10 sont faites ; C1, C2, C3 et C5 (CHAT POP-TART, les deux caisses « Batman », ATCHOUM, les noms de vrais modèles)

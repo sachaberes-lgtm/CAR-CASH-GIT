@@ -38,12 +38,47 @@ const JAMAIS=/\.py$|^\.DS_Store$|^Thumbs\.db$/;
    ni chargés ni joués. Les embarquer, c'était distribuer onze fichiers de voix (dont deux d'origine tierce) que personne n'entend.
    Le témoin plus bas vérifie que la règle SANS_VOIX du jeu est toujours celle-là. */
 const SANS_LIVRER=new Set(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3']);
+/* LA MUSIQUE QUE LE JEU PEUT JOUER (2026-10-17, Sacha : « le jeu est trop lourd pour l'App Store, supprime tout ce qui n'est pas utilisé ») —
+   assets/audio/music/ pesait 168 Mo sur les 184 de l'app : c'est AUSSI la bibliothèque de Léo (bibliotheque.html, l'atelier musique), avec
+   ses doublons (lobby-chris/ = lobby/chris-*), ses boucles, les paliers qu'il n'a pas rangés dans Pouce bleu, les trois musiques du garage
+   retirées du jeu le 15/10. L'app n'embarque que ce que le jeu peut jouer, DÉDUIT DE SON CODE à chaque fabrication (aucune liste écrite à
+   la main, donc rien qui vieillisse quand Léo range un morceau) :
+   1. tout chemin de musique écrit en entier dans le code du jeu (la page, Pouce bleu, le lecteur des paliers, les sons, les créatures) ;
+   2. les GABARITS ('…/lobby/chris-'+k+'.m4a', 'direct/musique-trente-'+E.v+'.js') : tout fichier du dossier qui commence pareil ;
+   3. POUCE BLEU, calculé comme le jeu le calcule (pouce-bleu-jeu.js, PB.charge) : les paliers rangés « bleu » et pas supprimés dans
+      musique-moteur.json, et les vrais instruments du générateur (direct/vrais/) dès qu'un module du générateur part.
+   Ne comptent PAS comme « cités » : les TABLES qui nomment des morceaux sans jamais les charger — musique-bus.js (le réglage des basses par
+   morceau), paliers/rendus/index.js (le catalogue de TOUS les paliers, rangés ou non), harmonie.js (les accords de chaque morceau).
+   Les TÉMOINS : si la règle de Pouce bleu change dans le jeu, la fabrication s'arrête (elle ne garderait plus les bons fichiers). */
+const MUS='assets/audio/music/';
+const MUS_GARDE=(()=>{const lit=f=>{const p=path.join(SRC,f);return fs.existsSync(p)?fs.readFileSync(p,'utf8'):'';};
+  const tous=[];const walk=d=>{const p=path.join(SRC,d);if(!fs.existsSync(p))return;for(const n of fs.readdirSync(p)){const r=d+n;if(fs.statSync(path.join(SRC,r)).isDirectory())walk(r+'/');else tous.push(r);}};walk(MUS);
+  const pb=lit('assets/audio/pouce-bleu-jeu.js');
+  for(const t of ["const D = 'assets/audio/music/';","fetch('musique-moteur.json'","if (!W.PALIERS_RENDUS) try { await script(D + 'paliers/rendus/index.js'); }",
+    "if (place[id] !== 'bleu' || suppr.has(id) || !/^pal-/.test(id) || EN_ATTENTE[id]) return; const f = RF[id.slice(4)];"])
+    if(pb.indexOf(t)<0)meurt('témoin perdu — la règle de Pouce bleu (assets/audio/pouce-bleu-jeu.js) a changé : « '+t+' » introuvable. Revoir LA MUSIQUE QUE LE JEU PEUT JOUER.');
+  const cr=fs.existsSync(path.join(SRC,'creatures'))?fs.readdirSync(path.join(SRC,'creatures')).filter(n=>/\.js$/.test(n)).map(n=>'creatures/'+n):[];
+  const code=['index.html','sfx.js','figures.js','musique-paliers.js','assets/audio/pouce-bleu-jeu.js'].concat(cr).map(lit).join('\n');
+  const G=new Set();
+  for(const m of code.matchAll(/['"`](?:\.\/)?((?:assets\/audio\/music\/|(?:direct|paliers|lobby|ciel|ville|boucles|depart)\/)[^'"`\s]*)['"`]\s*(\+)?/g)){
+    let p=m[1].split('?')[0];if(!p.startsWith(MUS))p=MUS+p;
+    if(m[2]){for(const f of tous)if(f.startsWith(p)&&!f.slice(p.length).includes('/'))G.add(f);}else if(tous.includes(p))G.add(p);}
+  let P={};try{P=JSON.parse(lit('musique-moteur.json')||'{}');}catch(e){meurt('musique-moteur.json illisible ('+e.message+')');}
+  const w9={};try{new Function('window',lit(MUS+'paliers/rendus/index.js'))(w9);}catch(e){meurt(MUS+'paliers/rendus/index.js illisible ('+e.message+')');}
+  const RF=w9.PALIERS_RENDUS||{},suppr=new Set(P.suppr||[]),place=P.place||{},pal=[];
+  for(const id of Object.keys(place)){if(place[id]!=='bleu'||suppr.has(id)||!/^pal-/.test(id))continue;const f=RF[id.slice(4)];if(!f||!f.fichiers||!f.fichiers.length)continue;pal.push(id.slice(4));
+    for(const x of f.fichiers){if(!tous.includes(x))meurt('Pouce bleu range '+id+', mais son palier '+x+' manque dans VERSION PRINCIPALE');G.add(x);}
+    for(const t of tous)if(t.startsWith(MUS+'paliers/rendus/'+id.slice(4)+'/'))G.add(t);}
+  if([...G].some(f=>/\/direct\/musique-trente[^/]*\.js$/.test(f)))for(const t of tous)if(t.startsWith(MUS+'direct/vrais/'))G.add(t);
+  G.pal=pal;G.nTous=tous.length;return G;})();
+const MUS_LAISSE={n:0,o:0};
 fs.rmSync(WWW,{recursive:true,force:true});fs.mkdirSync(WWW,{recursive:true});
 let nFic=0,nOct=0;
 /* (2026-10-15) PAS D'AUTRE PAGE QUE LE JEU : l'app n'ouvre que index.html. Les pages de travail rangées dans assets/ (l'atelier musique
    `assets/audio/music/direct/*.html`, qui charge des polices Google en ligne) ne partent pas — sans ça, l'inventaire ci-dessous refusait. */
 const copie=(a,b)=>{const rel=path.relative(SRC,a).split(path.sep).join('/');if(SANS_LIVRER.has(rel)||(/\.html?$/i.test(rel)&&rel!=='index.html'))return;const s=fs.statSync(a);
   if(s.isDirectory()){fs.mkdirSync(b,{recursive:true});for(const n of fs.readdirSync(a))if(!JAMAIS.test(n))copie(path.join(a,n),path.join(b,n));}
+  else if(rel.startsWith(MUS)&&!MUS_GARDE.has(rel)){MUS_LAISSE.n++;MUS_LAISSE.o+=s.size;} // (2026-10-17) LA MUSIQUE QUE LE JEU PEUT JOUER, plus haut
   else{fs.copyFileSync(a,b);nFic++;nOct+=s.size;}};
 for(const n of GARDE){const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('manque '+n+' dans VERSION PRINCIPALE');copie(a,path.join(WWW,n));}
 // (2026-10-14) LES SCRIPTS QUE LA PAGE CHARGE ELLE-MÊME suivent tout seuls : un nouveau fichier du jeu (figures.js, Léo, cette nuit) manquait
@@ -66,6 +101,16 @@ fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg')
 {let n=fs.readFileSync(path.join(ICI,'natif','natif.js'),'utf8');const k=n.split("'"+MAJ_PROD+"'").length-1;
   if(k!==1){console.error('✗ preparer-www : natif.js doit citer l\'adresse des mises à jour une fois exactement ('+k+')');process.exit(1);}
   fs.writeFileSync(path.join(WWW,'natif.js'),n.split("'"+MAJ_PROD+"'").join("'"+MAJ+"'"));nFic++;}
+console.log('  musique : '+MUS_GARDE.size+' fichiers gardés sur '+MUS_GARDE.nTous+' — '+MUS_LAISSE.n+' laissés ('+(MUS_LAISSE.o/1048576).toFixed(1)+' Mo, la bibliothèque) · Pouce bleu : paliers '+(MUS_GARDE.pal.join(', ')||'aucun'));
+/* (2026-10-17) POUCE BLEU SANS SES TROIS PAGES — AURA · 30 PALIERS, RUBIS DE NÉON, ASPHALTE D'ÉMERAUDE sont des PAGES (direct/*.html, jouées
+   dans une iframe cachée) : l'app n'embarque aucune autre page que le jeu (coupe du 15/10, plus haut ; elles chargent des polices en ligne).
+   Tirées au JOUER, elles échouaient (page absente → « page sans #play ») et le jeu en retirait une autre, jusqu'à trois fois : la course
+   partait en silence, et chaque raté montait une iframe pendant le piqué. Dans l'app, elles ne sont plus tirées ; les autres morceaux
+   (générateur, paliers figés) ne changent pas. */
+{const p=path.join(WWW,'assets','audio','pouce-bleu-jeu.js');if(!fs.existsSync(p))meurt('assets/audio/pouce-bleu-jeu.js absent de www/');
+  let t=fs.readFileSync(p,'utf8');const de='const DEFAUT = Object.keys(HTML);',k=t.split(de).length-1;
+  if(k!==1)meurt('Pouce bleu sans ses pages : « '+de+' » trouvé '+k+' fois (1 attendu)');
+  fs.writeFileSync(p,t.replace(de,()=>"const DEFAUT = []; /* (app iOS) les pages direct/*.html ne sont pas embarquées : jamais tirées */"));}
 
 // ---- les retouches de la page ----
 let h=fs.readFileSync(path.join(WWW,'index.html'),'utf8');
@@ -112,7 +157,7 @@ une('we just passed a Ferrari.','we just passed a race car.','phrase « Ferrari 
    d'or, un mot courant), ROSSO 40 (« rouge » en italien), LE DÉFIEUR, ATCHOUM (l'éternuement, la caisse éternue du feu). Chaque nom est
    remplacé PARTOUT (CARS, clés de TR, commentaires) : le compte exact protège d'un nom qui aurait bougé dans le jeu. */
 toutes('LA DAYTONA','LA GRANDE FLÈCHE',4,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
-toutes('LA STRATOS','LA CALE',4,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
+toutes('LA STRATOS','LA CALE',6,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
 toutes('LA VETTE','LA RAPIÈRE',3,'nom LA VETTE (Corvette)');une('"THE VETTE"','"THE RAPIER"','nom LA VETTE en anglais');
 toutes('LE CHARGEUR','LE FORBAN',8,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
 une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
