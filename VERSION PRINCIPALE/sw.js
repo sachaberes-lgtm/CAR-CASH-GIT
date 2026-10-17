@@ -42,7 +42,8 @@
 //  v54 (2026-10-02) : L'ORIGAMI, la 69e caisse (le pick-up d'inox).
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
-const CACHE = 'cashcar-v608'; // v608 (2026-10-17 soir, Sacha : « tout les figure doivent pouvoir etre executer sur route c'est a dire sans s'envoler ») : LES FIGURES SUR LA ROUTE — au sol, le double-tap NITRO fait la figure sans décoller (la carrosserie bondit, la caisse reste en conduite) ; rien dans la direction tenue : le saut nitro
+const CACHE = 'cashcar-v609'; // v609 (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue ») : LE GLACIER, 2e TOUR — piste 123 → 196 m, pente 36-58 % → 58-88 % (~69 % de moyenne en jeu, 5,3 km de dénivelé)
+// const CACHE = 'cashcar-v608'; // v608 (2026-10-17 soir, Sacha : « tout les figure doivent pouvoir etre executer sur route c'est a dire sans s'envoler ») : LES FIGURES SUR LA ROUTE — au sol, le double-tap NITRO fait la figure sans décoller (la carrosserie bondit, la caisse reste en conduite) ; rien dans la direction tenue : le saut nitro
 // const CACHE = 'cashcar-v607'; // v607 (2026-10-17 soir, Sacha : « les flèches sont trop discrètes ») : LES FLÈCHES DU JOUER DU GARAGE plus grosses, brunes au repos, une vague qui les allume en blanc
 // const CACHE = 'cashcar-v606'; // v606 (2026-10-17 soir, Sacha : « pas de plaque d'immatriculation à l'avant ») : PLUS DE PLAQUE À L'AVANT — plqPose ne pose que la plaque arrière
 // const CACHE = 'cashcar-v604'; // v604 (2026-10-17 soir, Sacha : « le panneau sur la route 66 dans la map canyon doit s'appeler la route 67 ») : le PANNEAU DU CANYON affiche ROUTE 67 (un 7 en pavés ajouté à CY_FONTE)
