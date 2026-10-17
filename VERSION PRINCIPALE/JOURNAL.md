@@ -3,6 +3,30 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VALLÉE DE JADE AU HASARD (2026-10-18 nuit, Sacha : « la génération de map dans les montagnes chinoises est toujours la même, rends-la plus aléatoire »)
+- **Le constat, mesuré** : au mode classique, la graine des PICS DE JADE changeait déjà à chaque partie (`sfNiveau` → `graine:0`) — mais
+  `genJade` suivait toujours la même RECETTE : départ, ~2 km de serpentin doux, la Porte, ~2,3 km, le Pont, ~2 km, la chute, l'arrivée ;
+  le tout filant vers le nord (+z), 11 à 13 km, deux ondes de relief. Vus de dessus (plans de 60 graines), tous les tracés se ressemblaient ;
+  et le soleil bas du rouleau (`SUN_DIR`, côté −z) était toujours DANS LE DOS.
+- **Désormais (`genJade`, `JADE_HUMEURS`, `JADE_PENTE`)**, chaque vallée tire :
+  · son AXE : ±45° autour du nord (`phi0` ; la butée de cap ±85° se compte autour de lui — la route ne recroise toujours jamais un tronçon) ;
+  · l'ORDRE des monuments (Porte puis Pont, ou Pont d'abord) et leur PLACE (les trois tronçons de virages se partagent 5,2-8,4 km au hasard) ;
+  · un CARACTÈRE par tronçon, jamais deux fois le même de suite : `vallee` (l'ancienne recette), `serpent` (S serrés, R 280-420 m),
+    `courbes` (R 680-1160 m), `derive` (la vallée part en biais d'un côté jusqu'à la butée), `balcon` (longues droites cassées de coudes),
+    `chicanes` ; le dernier kilomètre (la chute) a le sien aussi ;
+  · son RELIEF : trois ondes aux amplitudes et longueurs d'onde tirées (la 3e une fois sur deux), ramenées sous la pente du pire cas
+    d'avant ; puis `adoucirPentes` (12 %, gardée à 30 % au-delà) — les rampes vers les paliers des monuments montaient jusqu'à ~90 %
+    entre deux points de contrôle, elles plafonnent vers 35 %.
+- MESURÉ (Node, les 300 mêmes graines, avant → après) : longueur 10,7-13,7 → 10-15,1 km ; dénivelé 139-246 → 74-307 m ; virages cumulés
+  643-1060° → 373-1221° ; pente max entre points 19-92 % → 14-36 % ; deux bouts de route à plus de 700 m l'un de l'autre restent à ≥ 551 m
+  (avant 560). Aucun rayon sous 280 m (le minimum d'avant). EN JEU (banc headless, 4 vallées : la 1re au JOUER puis 3 portails) : 11,6 ·
+  11,6 · 13,6 · 13,8 km, axes 13° · −13° · −16° · −39°, deux fois Pont puis Porte, monuments bâtis, construction 1156 · 707 · 734 · 606 ms,
+  zéro erreur JS. (La 1re construction de la session paie les gabarits ; la carte ne se reprend plus de la garde au mode classique — elle
+  ne s'y reprenait déjà pas : la graine y changeait.)
+- Inchangé : départ et arrivée (portiques), l'effondrement (en fraction du parcours), les deux monuments à plat et la Porte dans l'axe, les
+  montagnes et le décor (posés autour de la route, quelle qu'elle soit). `?graine=n` / `?niveau=jade` / la balade gardent une vallée FIXE
+  (0x51ADE) — mais ce n'est plus la même qu'avant (le tirage de `genJade` a changé).
+
 ## LE GLACIER, 2e TOUR : PISTE BEAUCOUP PLUS LARGE, PENTE BEAUCOUP PLUS FORTE (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue »)
 - LARGEUR : `BK_LARG4` 4,4 → 7 — la piste passe de 123 à 196 m (demi-largeur 98 m). Tout ce qui la borde suit `ROAD_HALF` (bourrelet de
   neige, glace, becs, pics, mur `parisMur`) ; le plancher des rayons (2,6 demi-largeurs = 255 m) l'emporte souvent : virages plus amples.
