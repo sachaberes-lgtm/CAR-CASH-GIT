@@ -314,6 +314,8 @@ maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu
 4. La traduction : `Object.assign(I18N,{"LE NOM":"THE NAME","desc française":"english desc"})`.
 Puis `sw.js` +1 et une section au journal. Vérifier : `dbgCar(i)`/`dbgPhoto(i)`, la boutique (`dbgBqVoir(i)` : les mini-ailes ne
 se voient que là), la course (`dbgEquipe(i)`), le garage du jeu (la salle blanche grise les noirs).
+**Retoucher une caisse** (le redesign voiture par voiture, 17/10) : budget, pièges et méthode → « L'ELDORADO v3 » au journal ; le banc
+`outils/banc-caisses/` (le gabarit au studio, la caisse dans le vrai jeu, la planche AVANT | APRÈS, SANS TOUT CASSER).
 ⚠ Jamais retirer ni insérer une ligne au milieu de `CARS`/`CAR_UNLOCK` : la sauvegarde désigne les caisses par leur INDEX.
 Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 
@@ -463,6 +465,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
 - « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
+- « L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE » (17/10) — le redesign voiture par voiture : budget, pièges, banc `outils/banc-caisses/`
 - « LE BLINDÉ NOIR EN PORC-ÉPIC GOTHIQUE » (16/10) — piquants sur le dos, clous chromés devant (`pique`, `clou`, `mue`, ailes en ogive)
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)

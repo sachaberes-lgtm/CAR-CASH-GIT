@@ -15,6 +15,49 @@
   (`hautVide` : l'explosion, l'écran de mort, RECOMMENCER) et disparaît hors manette (`body:not(.play)`).
 - `#misBan` reste aux ASTUCES et aux NOUVEAUX COMBOS (ce ne sont pas des missions).
 
+## L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE (2026-10-17, Sacha : « tu prends la voiture Eldorado et tu essayes de lui rajouter des détails ; on va faire ça pour chaque voiture un peu… sans folie, sans faire trop de ressources »)
+- RÉFÉRENCES : 12 photos de la Biarritz 59 sur Wikimedia Commons (l'API : `list=search&srnamespace=6`, puis `prop=imageinfo&iiurlwidth=640`).
+  Ce qui la fait reconnaître : les doubles feux en OBUS POINTUS dans une bague chromée au bout des ailerons, la calandre à BIJOUX devant ET
+  derrière, les grosses NACELLES rondes chromées aux coins du pare-chocs arrière, quatre phares dans un bandeau chromé, la sellerie capitonnée.
+- VU AU BANC AVANT DE TOUCHER : la calandre de face, celle de la poupe et les cerclages des phares étaient posés 2 cm DERRIÈRE le bouchon du
+  loft (le loft se ferme par une face plate en z ±2,90) : invisibles. De dos, on ne voyait que six petits traits chromés sur du rose. Dans la
+  boutique, le volant vu par la tranche ressemblait à un « 0 » posé sur le siège.
+- CE QUI A CHANGÉ (`SHAPES.eldorado`, la silhouette ne bouge pas ; seul le nez passe de 0,88 à 0,93 de demi-largeur : les phares débordaient
+  dans le vide) : calandres et phares SORTIS de la tôle ; la calandre AVANT à 39 bijoux et son second étage dans le pare-chocs (8 bijoux) avec
+  deux feux de position orange ; la calandre ARRIÈRE à 39 bijoux sur fond laqué noir (elle se lit en poursuite) ; les obus pointus (bague
+  chromée, lentille, pointe) et une lame chromée sur le bord de fuite ; les deux nacelles des feux de recul (chrome, fond noir, lentille
+  blanche) ; la mascotte en flèche ; les JOINTS des portières (un fil sombre posé SUR la peau, relu à la section du loft) ; la poignée au bout de
+  la portière ; l'habitacle qu'on voit d'en haut (l'accueil, la poursuite) : moquette prune, deux baquets capitonnés à dossier chromé et leur
+  console, banquette capitonnée à accoudoir, planche de bord à jonc chromé et deux cadrans, volant incliné (jante, cerclage chromé, branches,
+  colonne), essuie-glaces, rétroviseur intérieur.
+- PAS REMIS : les longs joncs chromés de flanc et le skeg (la vraie voiture en a ; Léo les a fait retirer le 13/10 : « ne plus en reposer sans
+  qu'il le demande »). Une ligne les rendrait si Sacha et Léo les veulent.
+- MESURÉ (`dbgEssaiCaisse`, carrosserie + roues visibles) : 4 120 → **5 020 facettes** (+22 % ; un premier jet en boîtes faisait 6 372). Matières :
+  les mêmes six familles qu'avant (laque, chrome, mat, satiné, verre, feux) → **0 appel de dessin et 0 programme de plus** — les clés neuves
+  `G` (fond de calandre), `t` (moquette), `q` (plis du cuir), `O` (feux de position) vivent dans les familles g, m, s, l déjà posées. Ancres
+  `hl`/`tl` inchangées (les lumières de la caisse s'en servent). Bancs : 0 erreur ; garage, boutique, course (pilote automatique), couché,
+  debout, cadre de l'ordi ; `garde-burnout.sh` et `garde-charte.sh` OK.
+- LA MÉTHODE, POUR LA VOITURE SUIVANTE (le banc est dans `outils/banc-caisses/`, lire l'en-tête de `cdp.mjs`) :
+  1. Servir le jeu sur un port à soi ; `jeu.mjs <avant> <index>` (accueil = vue de DESSUS, garage sous trois angles HUD masqué, boutique,
+     course en poursuite) et `studio.mjs avant/studio <gabarit>` (FICHE= sa couleur et ses cotes) AVANT de toucher au gabarit.
+  2. Chercher ce qui se voit VRAIMENT : en course on voit l'ARRIÈRE et le DESSUS (feux, calandre de poupe, habitacle), à l'accueil le DESSUS, au
+     garage les trois-quarts. Les signes du vrai modèle d'abord ; les détails cachés ne servent à rien.
+  3. Écrire le gabarit en texte `function(K){…}` et l'essayer au studio (`dbgEssaiCaisse` le prend tel quel) : on itère sans recharger le jeu ;
+     puis le poser dans index.html et refaire `jeu.mjs`, `planche.mjs avant apres planche.png`, `verif.mjs`.
+  4. LE BUDGET : les mêmes familles de matière (une clé neuve dans une famille déjà posée est gratuite ; une famille neuve = un appel de dessin
+     et un programme à chauffer au menu) ; viser ≤ +25 % de facettes. Un petit détail répété ne se dessine pas en boîte (12 triangles dont on
+     ne voit qu'une face) : un BIJOU = une pointe à quatre facettes (4 triangles, et chaque facette prend sa lumière), un pli ou un joint = une
+     PLAQUE (`P.tri` deux fois, 2 triangles), les tubes à 8-12 pans.
+  5. LES PIÈGES RENCONTRÉS : (a) le BOUCHON du loft cache tout ce qui est posé en deçà de son z : une face (calandre, feux, plaque) se pose 1,5 à
+     3 cm DEHORS ; (b) `echRetire` EFFACE tout tube couché dans l'axe (`cyl`/`lathe` en 'z') sous 60 cm et à moins de 70 cm de la poupe, et les
+     boîtes chromées non tournées de 7 à 25 cm de haut près de la poupe — c'est le relevé des pots : une nacelle, un feu rond bas à l'arrière se
+     posent par `put` avec une `CylinderGeometry` déjà couchée (le `tube` du gabarit : pas de relevé) ; (c) le soleil éclaircit une couleur d'à
+     peu près ×2 : la moquette 0x7c2346 sortait du même rose que la caisse → 0x3b1530 ; (d) une plaque de moins de 1,2 cm de large sort en
+     POINTILLÉS à 844 px (aliasing) → 1,4 cm ; (e) un rx POSITIF baisse le bout avant (le volant penché vers le conducteur = rx négatif) ;
+     (f) la SALLE BLANCHE du studio délave les couleurs et grise les noirs : juger la couleur au garage et en course.
+- VALIDÉE par Sacha le 17/10 sur la planche AVANT | APRÈS (« C'est bon, on garde la nouvelle Eldorado »), joints de portière et moquette prune
+  compris. À montrer à Léo : les joints sont des traits neufs sur le flanc (discrets ; il n'aimait pas les « traits » du 13/10).
+
 ## LE CHARGEUR À 60 000 $ + SON ARRIÈRE REFAIT (2026-10-17, Sacha : « le chargeur, il doit coûter 60 000 dollars ; et retravaille l'arrière, il n'est pas beau. Il faut que chaque voiture, on ait envie de les acheter »)
 - **Le prix** : `CAR_UNLOCK` de LE CHARGEUR (index 31) **6 000 → 60 000 $**. Il était la 1re marche des rares (option A du 14/10 soir).
   Parmi les caisses à dollars, il passe entre L'ELDORADO (40 000) et LA SILENCIEUSE (90 000) — le même jour, LA BAVAROISE est passée à
