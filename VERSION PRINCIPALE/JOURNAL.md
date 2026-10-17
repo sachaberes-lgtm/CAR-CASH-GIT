@@ -31,7 +31,7 @@
   pendant un pouvoir, deux pouvoirs, la frénésie, le vol : 0 écart sur 75 échantillons stables debout, 0 sur 80 couché (l'ancien code : 0 sur 76 et
   76). Rectangles relevés identiques au dixième de pixel pour les mêmes états (debout : bas du ⚙ 103, argent 113, plaques 176,3 / 240,2 / 304,2 ;
   frénésie 176,3 / 246,3 / 300,2 / 428,1 — couché : 66, 125, 191,2, 257,4). Planches avant | après de la colonne :
-  `passation/hud-mesure-colonne-debout.jpg` et `-couche.jpg`.
+  `passation/hud-mesure-colonne-debout.jpg` et `-couche.jpg`. Fumée commune OK (couché + debout, 0 erreur JS, après fusion de main).
 - Non touchés (au coup par coup, hors boucle) : `pixBurst` et la mesure de la triade. Le reste du coût d'une image est au rendu three.js (ALLÈGE).
 
 ## LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran doit être positionné au bon endroit avec la bonne police ; je veux une animation et un son pour chaque bouton ; soigne les transitions entre chaque écran, qu'elles soient fluides »)
