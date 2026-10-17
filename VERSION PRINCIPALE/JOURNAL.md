@@ -3,6 +3,42 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES (2026-10-17, session PORTAIL — Léo : « revoir tout le système de transition entre chaque map : que les portails soient une accumulation de cubes bien disposés, stylés, au bout de la route, avec un peu de transparence, mais qui te laissent comprendre que tu vas aller ailleurs — et qui te donnent une vue sur où tu vas aller »)
+Léo préférait « un portail qui montre la map où tu vas » aux « portails de feu » (repli prévu si c'était trop lourd) : c'est la 1re option, et elle est légère.
+- VU AVANT (banc, debout 390 × 844) : l'OVULE rose (sphère additive de 55 m, la même pour toutes les maps) ne disait rien de la suite ; au passage,
+  les FEUX DU DÉPART (portique d'or, rouge-rouge-rouge-vert, 15/10) couvraient l'écran pendant la construction.
+- LA MAP D'EN FACE EST TIRÉE D'AVANCE (`portDest`) : en mode classique, la construction d'une piste remplit `SF.tirage[zone+1]` (avec la règle de
+  `sfTire` : jamais la même map deux fois de suite) ; au portail, `lvlChoisir` la REPREND (et en fait `SF.der`). Carrière : le niveau suivant.
+  `dbgClassique(c,m)` en course remplace la suite que le portail montre.
+- L'ANNEAU (`PCUBE`, `pcubeGabarit`/`pcubeInit`/`pcubePose`/`pcubeDest`/`pcubeTick`) : un cercle tracé AU PIXEL (cubes de 5,2 m, Ri 44 · Ro 54,
+  centre 20 m au-dessus du bitume, la route passe dans le bas), trois couches (derrière, le plan, quelques cubes devant), chaque cube à ~90 % de sa
+  case (les JOINTS du vitrail), verre à arêtes claires, une ONDE de lumière qui fait le tour, 34 FLOTTEURS qui tournent autour, 44 FUYARDS qui
+  sortent de la fenêtre vers la caisse ; à ~4 s de la caisse l'anneau se penche vers elle (`uAsp`). UNE instance (285 cubes), mouvement dans le
+  vertex shader, hasard à lui (jamais `rnd()` : la piste est seedée). COULEURS de la map d'en face (`PCUBE_PAL` : jade et or, lave, glace,
+  or et argent, la teinte de la ville…), la PointLight du portail aussi (elle reste : le compte des lumières ne bouge pas).
+- LA FENÊTRE : un disque lu PAR LA DIRECTION DU REGARD (une fenêtre, pas une affiche) sur la CARTE POSTALE de la map d'en face
+  (`assets/portail/<map>-<météo>[-<teinte>].webp`, 640², ~20 Ko, chargée à la construction de la piste). L'œil est RAPPROCHÉ (jamais à plus de
+  34 m, `uDv`) : de loin on voit déjà toute la map d'en face, de près c'est la vraie fenêtre. La carte postale est déjà étalonnée : la fenêtre
+  défait d'avance l'étalonnage du monde d'ici (`versScene`, l'inverse approché de l'ACES avec SES uniformes, partagés) — sans ça le volcan
+  sortait rouge saturé. Au bord, l'image se pixelise. `PCUBE_CP` = la liste des cartes livrées (réécrite par le banc).
+- LES CARTES POSTALES se TIRENT au banc (`dbgCartePostale()` : l'œil de la caméra de poursuite, 3,2 m, 30 m DEVANT la caisse, à l'horizontale,
+  champ carré de `PCUBE_FOV` 116° — en portrait la caméra a ~110° de haut). 59 couples (toutes les maps × météos, la ville × ses 4 teintes).
+  ⚠ UNE MAP NOUVELLE (ou un décor qui change beaucoup) → retirer ses cartes postales ; sans elle, le portail montre ses couleurs seules.
+- LE PASSAGE PAR LA FENÊTRE (`pcVoile`/`pcVoileSort`/`pcPrepare`/`pcDessine`, `#portC`) remplace les feux quand le portail est de cubes : on
+  passe en TRAVERSANT le plan de la fenêtre (`pcubeFranchi`, dans un sens ou dans l'autre, au sol comme en vol — l'ovule se prenait à 48 m de son
+  centre), la scène est rendue une fois et RECOPIÉE dans une toile plein écran (la fenêtre couvre déjà tout l'écran), la toile avance (zoom CSS,
+  joué même quand newTrack bloque), le ciel bascule d'un coup dessous (`bioPortDur`, `PCV.fen`), puis elle SE DÉFAIT EN CUBES (carrés qui
+  rétrécissent, du centre vers les bords, 0,44 s) sur la map d'arrivée — la vue même de la carte postale.
+- 2e TOUR, LA TRAVERSÉE (Léo, après l'avoir essayée : « il y a une pause quand on passe dans le portail ; donner encore plus l'impression qu'on
+  change de dimension, que ça reste fluide ; pousser l'aspect traversée multidimensionnelle pixel, sans prendre trop de place ») : la pause, c'est
+  la construction de la map (le script est bloqué) — tout ce qui bouge pendant ce temps est joué par le COMPOSITEUR : l'image avance (×1,3), le
+  monde perd sa définition par PALIERS (petits pixels à 90 ms, puis les GROS PIXELS = les cubes de la traversée à 240 ms ; deux petites toiles
+  tirées une fois de l'image, affichées `pixelated`), un TUNNEL DE PIXELS aux couleurs d'en face (3 petites toiles de 96², `pcTunnel`, qui
+  grandissent en boucle) file vers l'écran, les bords s'allument de sa couleur (`.pcE`). La map bâtie, chaque gros pixel S'ALLUME de la couleur
+  d'en face, rétrécit et part (des `fillRect`, ~0,5 ms par image au processeur bridé ×4). Même durée qu'avant.
+- `?portail=ancien` : l'ovule et les feux, tels quels. Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgPortailPhoto(d)`,
+  `dbgCartePostale()`, `dbgPassage(p)` / `dbgPassage('lent',k)`. Bancs (scratchpad de la session) : `approche.py`, `passage.py`, `cp.py`.
+
 ## LA PLAQUE D'IMMATRICULATION + LE PROFIL DU JOUEUR (2026-10-17, Sacha : « rajoute une plaque d'immatriculation personnalisable au début du jeu, fais plusieurs templates et le joueur peut écrire ce qu'il veut sur la plaque, puis elle doit être intégrée à toutes les voitures » puis « rajoute un bouton dans le garage, un petit bouton avec un logo trophée : le joueur peut changer sa plaque et voir des stats sur son compte — il joue depuis combien de temps, combien de figures, meilleur temps, etc. »)
 - **L'atelier de la plaque (`#plq`, `plqOuvre`)** : la plaque en grand (la toile même de la caisse), un champ de 9 signes (capitales sans
   accent : A-Z, 0-9, espace, `- . ! ? $` — `plqNet` nettoie la frappe, minuscules et accents compris), le DÉ (une plaque au hasard au format
