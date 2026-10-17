@@ -140,6 +140,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
   low-poly `lpKit`/`lpMat`/`lpWheel`, tuyères `CAR_POTS`/`potMonde`, raretés `RARETES`/`carRar`/`rarListe`/`carOrdre`,
   `carUnlocked`/`carUnlockedVrai`/`carOwned`/`carRetiree`, vignettes `carPhoto` (et `aileFile` : la photo d'une aile, sur la caisse équipée).
+- **Plaque d'immatriculation et profil** (17/10) : `PLQ`, les neuf modèles `PLQ_MOD` peints par `plqPeint`, la pose sur TOUTES les caisses
+  `plqPose`/`plqCherche` (des rayons, dans buildCar ; `PLQ.pos` par caisse), l'atelier `#plq`/`plqOuvre` (au premier accueil : `plqGuette`),
+  le profil `#prof`/`profOuvre`/`profChiffres` (le trophée du garage `#gProf`, `plqGarage`), la sauvegarde `SAVE.d.plq` et `SAVE.d.prof` (`plqHorloge`).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
   `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
@@ -148,12 +151,13 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
   `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend`/`MISSIONS_V2` (sauvegarde `SAVE.d.m2` ;
   l'ancien système des carnets `CARNETS`/`misTick`, coupé : `?missions=v1`).
-- **HUD** : `#hud`, `hudColonne`, `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (jauge d'aura),
+- **HUD** : `#hud`, `hudColonne` (sa mesure `hudColMesure` passe par `apresMiseEnPage`), `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (jauge d'aura),
   `VOLG` (les gains qui volent vers leur jauge), `airPieDraw`, `#tNitro`, pause `#tGear`/`#tPanel`/`panSync`, `HAS_D`/`hasMaj`.
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
-  le grand livre `LIVRE`/`livre`/`dbgLivre`.
+  le grand livre `LIVRE`/`livre`/`dbgLivre`. LA FIGURE SE PAIE (17/10, loi 6, `NITRO2.figN`) : 20 % au lancement en vol, 30 % par figure
+  plantée à la pose réussie, cumulable — `figNitCout`/`figNitPaye`/`figNitRend`, `FX2.nitF`, `dbgFigNit()`.
 - **Lumières de la caisse** (17/10) : phares, feux arrière, feu du nitro, flamme du moteur et traînées ÉCLAIRENT LE BITUME dans son shader (`LUM_GLSL`/`lmRoute`,
   uniformes `LUM_U`, `LM_N` lampes-segments + deux phares ; `lumTick` les pose en monde, `lumVue` — chaîné sur `scene.onBeforeRender` — les passe en vue ; réglages
   `LUMK`) et la lueur des feux allume la CAISSE et sa lunette (`FEU_U`/`FEU_GLSL`, bloc VOITURES) — aucune lumière three. `?sans=lumieres` = avant.
@@ -206,6 +210,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
 - Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
+- LES MAPS COMME UN TOUT (17/10, Sacha) : nuages, canyon, forêt, glacier, volcan et orbite suivent UNE recette par temps (`CONTI` : saturation, vignette,
+  contre-jour rose, bitume commun `rtT`/`rtA`, ciel continu `uCiel2`, la nuit à deux températures) ; la VILLE et le JADE n'y sont jamais (`contiMap()`).
+  Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part. `?sans=continuite` = avant.
+- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : `BANQ_V4` (123 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler) ;
+  `?glacier=v3` = la descente verglacée d'avant. Les satellites sont des obstacles de l'orbite normale (`SAT_OBST_V`, `?sans=satobst`).
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit. `?sans=villenuit` rend l'ancienne.
 - LES MISSIONS v2 (16/10, Sacha : « des MISSIONS libres à la place des carnets ») : toutes ouvertes, une seule liste, des SECRÈTES qui donnent des
@@ -244,6 +253,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Ni `backdrop-filter`, ni dégradé dans un texte (le logo excepté), ni `body:has(…)` pour le HUD (une classe dans `HAS_D`).
 - Chaque appui répond : visuel + `uiClic(rôle)` + `hap(p)` (jamais `navigator.vibrate` en direct).
   Un bouton oublié est rattrapé par le FILET (`uiFiletRole` : il sonne si rien n'a sonné) ; `data-muet` s'en passe. Dans la pause aussi (`pauseSon`).
+  Le VISUEL a son filet aussi (17/10) : L'APPUI POUR TOUS — toute chose touchable hors `APPUI_SEL` se tasse au contact (`scale` ×0,94 par
+  l'API d'animation, sans toucher à ses transitions) ; `?appui=0` l'enlève.
+- Le VOLET pixel (`ecranWipe`) = un changement de DÉCOR (atelier ↔ course, fin → accueil, garage ↔ accueil). Une PAGE posée sur l'accueil
+  (réglages, achat, modes) passe en direct par-dessus l'atelier-menu (`surAccueilCiel`, 17/10) ; `?menupasse=0` = sous le volet.
 - Tout texte affiché passe par `TR('TEXTE FR')` avec son entrée `I18N` (§6).
 - Couché ET debout : l'ordi montre le téléphone couché ; chaque écran se vérifie dans les deux sens.
 
@@ -408,7 +421,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 9. **`scene.onBeforeRender` est déjà pris** (piste, plots, ville, ciel) : chaîner, jamais réassigner.
 10. **`body:has(…)` pour le HUD** rendait chaque écriture de style ~80× plus chère : une classe dans `HAS_D`.
 11. **`innerWidth` lu dans la boucle** force une mise en page complète sur mobile : `VP.w`/`VP.h`. Et `textContent=` recrée le nœud
-    même à valeur égale : écrire seulement si ça change.
+    même à valeur égale : écrire seulement si ça change. Un rectangle ou un style CALCULÉ du HUD lu dans la boucle
+    (`getBoundingClientRect`, `getComputedStyle`, `zRect`) force aussi styles + mise en page : le lire dans `apresMiseEnPage(fn)`
+    (rappelé juste après la mise en page de l'image, où lire ne coûte rien ; `apresMiseEnPage(fn,true)` si fn écrit ensuite).
 12. **La scène est gelée** (`matrixAutoUpdate=false`) : un objet immobile qu'on anime appelle `updateMatrix()` ; un objet caché
     n'est pas mis à jour (pour lire sa position, `SCENE_TOUJOURS`).
 13. **Un fichier changé sans `CACHE` de `sw.js` incrémenté** (ou sans `?v=`) : les joueurs gardent l'ancien, pour toujours.
@@ -502,6 +517,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA CHARTE v5 — LAQUE · OR · NÉON » (28/09) · « LA CHARTE v4 — CARBONE · OR · NÉON » (26/09, sa grammaire reste la loi)
 - « LA CHARTE AU COMPLET » (28/09) · « LA DA DU HUD, UNE SEULE FAMILLE » (28/09) · « LE HUD DE COURSE, MAÎTRISÉ ET EN MOUVEMENT » (28/09)
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
+- « LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT » (17/10) — bancs audit/film/chrono
 
 **Son et musique**
 - « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
