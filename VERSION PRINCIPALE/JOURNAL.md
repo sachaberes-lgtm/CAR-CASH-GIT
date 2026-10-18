@@ -601,6 +601,40 @@
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
 
+## LES JAPONAISES — 4 · LA COROLLA BERLINE 2019, « LA FIDÈLE » (nom provisoire), ARGENT (2026-10-18, discussion JAPONAISES : « la Toyota Corolla berline 2019, COMMUNE »)
+- **Le plan** : dimensions.com « Toyota Corolla (E210) » (SVG vectoriel, berline, quatre vues, 127 unités/m — empattement 2,70 m, 4,63 × 1,78 × 1,44 m) ;
+  276 tracés relevés (`releve_svg.py` → `cor_metres.py` → `cor_plan.py`, ids vus vue par vue avec `trace.py`) : enveloppes (silhouette de côté, largeur,
+  coupes), cadre des vitres 239/238, crête des ailes (bas du tracé 261), et les contours des détails pris TELS QUELS.
+- **La caisse** (`SHAPES.corolla`, index 81, COMMUNE) : loft à 18 points par tranche (flanc qui rentre vers l'épaule, vitres rentrées de 25°, bord du toit
+  sur le haut du cadre des vitres), zones CAPOT / SERRE / MALLE, bouts repliés sur l'axe. Découpés au plan : phares (le contour 158/159, la signature
+  LED 104 en ruban, le projecteur), bandeau noir et logo, grande calandre en trapèze, prises en L (coupées à |x| 0,76, avant que le bouclier tourne),
+  vitres + cadres, montants B et C, écoinçon, poignées chromées et leurs creux, phare et feu vus de côté, feux arrière reliés par leur barre chromée
+  et leur ligne de LED, logo, creux de plaque, bas de bouclier noir, catadioptres, pare-brise (et son cadre : enveloppe convexe, l'encoche du rétro
+  intérieur reste noire), auvent, lunette ; joints portières/capot/malle/boucliers, plis (épaule 126, pli bas 117, arcs d'ailes, nervures du capot).
+  Rétros à la couleur de la caisse avec répétiteur, antenne aileron, essuie-glaces, jantes 17" à cinq doubles branches argent, pot discret à gauche,
+  la plaque du jeu entre les feux. 33 000 facettes.
+- **PLUS FIDÈLE** (Léo : « la corolla plus fidèle », reprise avec la photo sous les yeux, d5d55747) : le NEZ — la grande bouche en trapèze d'un
+  seul tenant et ses sept lames chromées, les prises en L bordées de chrome et l'antibrouillard rond au pied, le jonc chromé sous la bouche, la
+  calandre haute noire bordée de chrome (en V sous le logo) qui file dans les phares, les phares à fond chromé ; le « damier » venait du nez en
+  flèche lu tantôt de face tantôt de côté (toute sa face est désormais lue de face) et de la bande du plancher du loft, qui monte et devient le bas
+  du nez, peinte en noir de dessous de caisse (désormais de la tôle découpée) ; le contour du phare ne monte plus au montant. L'ARRIÈRE comme la
+  vraie : bouclier couleur caisse (le U n'est qu'un creux), catadioptres couchés au pied, pas de barre chromée, feux en rouge fumé émissif avec leur
+  ligne de LED, continus dans le coin (porte de la vue de dos à z < −2.0 + zone « tout le plan » au coin). JANTES : dix doubles branches bicolores.
+  Planche : `photos-gameplay/corolla-plus-fidele-avant-apres.png` (VRAIE | AVANT 3f8c6210 | APRÈS, gros plans du nez).
+- **LE COIN AVANT « IDENTIQUE »** (Léo, sur son recadrage du coin de la vraie, 913ffde0 + suite) : zones 2D taillées dans la tôle vue de face — le
+  PHARE (cerclage noir, fond en verre fumé, bande noire sous l'arête du capot, jonc chromé en crochet le long du bord extérieur puis du bas, filet
+  de LED, projecteur carré cerclé), la PRISE EN L (jonc chromé en relief `creux:-.004`, son creux noir −1,2 cm, qui rejoint le jonc sous la bouche),
+  l'ANTIBROUILLARD (coupelle creusée −2,2 cm, optique en vraie géométrie posée dedans), la BOUCHE creusée −2,6 cm et ses onze lames chromées en
+  vraie géométrie sur la tôle d'origine (`zFace`, la profondeur de la tôle par dichotomie entre tranches, calculée pendant la préchauffe du menu et
+  gardée sur le gabarit, `_prof` : 1re pose 21-34 ms). L'arête du capot est lue de face jusqu'à ny < 0,92 (la bande du phare s'y posait en éclats).
+  Planche : `photos-gameplay/corolla-coin-avant-apres.png` (recadrage de Léo | AVANT a6fb35cc | APRÈS, + 3/4 avant entière).
+- **La teinte** : argent moyen (0x9fa3a9, celui des photos) — au studio des vignettes tous les gris clairs sortent lavande (LA LAME aussi).
+- **Les outils** : `japDecoupe` accepte `ns` en fonction (les normales lissées ne se calculent que si la découpe n'est pas gardée) — 1re pose de la
+  Corolla 79 → 55 ms (la deuxième 28 ms ; le reste est le coût de toute première pose d'une caisse). Les quatre découpes sont préchauffées au menu.
+- Vérifié (après fusion d'origin/main v641) : course ordi/debout/couché, 0 programme compilé en course, aucune erreur ; garage + inventaire ; NA, RF
+  et AE86 inchangées en course. Planche : `photos-gameplay/corolla-vraie-et-nous.png` (deux lectures de « berline 2019 » : la face mondiale du plan /
+  la face sport américaine ; 3 noms : LA FIDÈLE · LA DISCRÈTE · MONSIEUR TOUT-LE-MONDE).
+
 ## LES JAPONAISES — 3 · L'AE86, « LE TOFU » (nom provisoire), LIVRÉE PANDA, PHARES ESCAMOTABLES (2026-10-18, discussion JAPONAISES : « la Sprinter Trueno 3 portes d'Initial D, livrée panda, phares escamotables »)
 - **Le plan** : the-blueprints « Toyota AE86 Sprinter Trueno Zenki » (quatre vues en couleur, 1280 px, 173 px/m calé sur l'empattement de 2,40 m ;
   hors-tout 4,22 m relevé, hauteur du plan 1,275 m — la fiche dit 1,335, le plan et les photos disent plus bas : le plan fait foi). Silhouette,
