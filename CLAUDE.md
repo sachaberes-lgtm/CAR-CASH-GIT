@@ -17,8 +17,8 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
   `main` sans le burn-out (`git push --no-verify` pour passer outre). Vérifier à la main : `sh garde-burnout.sh`.
 - **LA GARDE DE LA CHARTE** (2026-10-14, Sacha) : `garde-charte.sh` (racine), appelée par `vercel-build.sh` juste après `garde-burnout.sh`. Elle refuse
   quand (a) le LOGO de l'accueil change (empreinte sha1 des lignes `.lg`/`.mTitle .lg`/balises `class="lg …"`, celui de `92cb2bb`), (b) la police pixel
-  disparaît (`--pix:'Press Start 2P'`, @font-face, woff2, ou moins de 90 % des emplois `var(--pix)` d'aujourd'hui), (c) la charte 6 redevient le
-  défaut (la ligne `if(/[?&]ui=6/` doit rester). `GARDE_CHARTE=0` la coupe. Changement VOULU du logo : `sh garde-charte.sh --empreinte`, puis mettre
+  disparaît (`--pix:'Press Start 2P'`, @font-face, woff2, ou moins de 90 % des emplois `var(--pix)` d'aujourd'hui) ; la charte 6 (noir et blanc) est retirée du code le
+  18/10 (allègement), son contrôle aussi. `GARDE_CHARTE=0` la coupe. Changement VOULU du logo : `sh garde-charte.sh --empreinte`, puis mettre
   `EMPREINTE_LOGO` à jour dans le même commit. Vérifier à la main : `sh garde-charte.sh`.
 
 ## LA VERSION DE RÉFÉRENCE (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — et qu'on soit à jour avec ça, sans tout casser, parce que la dernière fois ça a tout cassé »)
@@ -34,8 +34,9 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
 - **Ce qui n'est PAS la référence** (ne jamais en repartir, ne jamais les fusionner par-dessus `main`) :
   · les vieilles branches : `version-leolei-2026`, `version-fusion-2026-09`, `fusion*`, `dev`, `v3-*`, `paris`, `campagne-nuages`, `appstore-backlog`… ;
   · `gh-pages` : GitHub Pages, arrêtée au 03/09 ;
-  · le dossier `version-leolei-2026/` à la racine : l'archive de la branche de Léo, 28/09 ;
-  · `AUTRE VERSION/` : l'édition PC, gelée depuis le 25/09 ;
+  · les dossiers `version-leolei-2026/` (l'archive de la branche de Léo, 28/09) et `AUTRE VERSION/` (l'édition PC, gelée depuis le
+    25/09) : RETIRÉS du dépôt le 2026-10-18 (Sacha, allègement) ; ils restent dans l'historique git, étiquette `avant-allegement-2026-10-18`.
+    `node synchro-versions.js` refabrique l'édition PC en local si besoin (ignorée par git) ;
   · toute copie locale, tout zip, tout lien githack figé sur un vieux commit.
 - **Pour savoir quelle version tourne** : ouvrir ⚙ RÉGLAGES et lire la ligne du bas, « VERSION xxxxxxx ». Sur l'ordi, elle est aussi sous
   le téléphone. Depuis le 2026-10-03 au soir, c'est l'EMPREINTE DU JEU publié (les fichiers de `VERSION PRINCIPALE/`), plus le commit :
@@ -74,9 +75,9 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
     JADE direct (le JOUER de Léo du 12/10) = `?play=jade`. Détail : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` dans `index.html`.
   · (2026-10-17, Sacha) LES LUMIÈRES DE LA CAISSE v2 : la nuit, les phares projettent un vrai faisceau sur la route, les feux arrière, le feu du nitro, la
     flamme du moteur et les traînées éclairent le bitume (sous la pluie, chaque feu s'y étire en traînée), la lueur des feux allume la poupe et la lunette ;
-    calculé dans le shader de la route, sans lumière three de plus. `?sans=lumieres` = avant. Détail : `VERSION PRINCIPALE/JOURNAL.md`.
+    calculé dans le shader de la route, sans lumière three de plus. (l'interrupteur `?sans=lumieres` est retiré depuis le 18/10.) Détail : `VERSION PRINCIPALE/JOURNAL.md`.
   · (2026-10-16, Sacha) LA VILLE EST TOUJOURS LA NUIT : plus de ville de jour au JOUER ; la map de base (la pluie au néon) en quatre TEINTES tirées au
-    hasard (violet = la base, vert, jaune, bleu) et quatre temps (pluie, nuit, brouillard, orage). `?sans=villenuit` = avant. Détail : `VERSION PRINCIPALE/JOURNAL.md`.
+    hasard (violet = la base, vert, jaune, bleu) et quatre temps (pluie, nuit, brouillard, orage). (`?sans=villenuit` et les villes de jour sont retirés depuis le 18/10.) Détail : `VERSION PRINCIPALE/JOURNAL.md`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.

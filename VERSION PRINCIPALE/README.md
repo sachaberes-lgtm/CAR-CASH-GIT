@@ -2,18 +2,18 @@
 
 > **Deux dossiers, un seul jeu.** `VERSION PRINCIPALE` = la version **téléphone**, c'est elle qu'on modifie —
 > sur l'ordi aussi, elle s'ouvre directement en version téléphone. `AUTRE VERSION` = la version **PC** (menu
-> desktop) : c'est une COPIE régénérée par `node synchro-versions.js` (racine du dépôt), à une ligne près
-> (`const EDITION='pc'`). Ne jamais la modifier à la main.
+> desktop) : retirée du dépôt le 2026-10-18 ; `node synchro-versions.js` (racine du dépôt) la refabrique en local, à une
+> ligne près (`const EDITION='pc'`), sans la committer.
 
 Le jeu complet issu de la fusion des deux versions : celle de Sacha (branche `appstore-backlog`,
-hors ligne, accessibilité, i18n) et celle de Léo (`version-leolei-2026/` : atelier, ville voxel,
+hors ligne, accessibilité, i18n) et celle de Léo (branche `version-leolei-2026` : atelier, ville voxel,
 garage, radio). Historique détaillé sur la branche `jeu-boucle-argent`.
 
 ## Jouer
 - Mac / Linux : `python3 -m http.server 8000` dans ce dossier, puis http://localhost:8000
 - Windows : double-clic sur `JOUER.bat`
 - **Sur l'ordi, c'est directement la version téléphone** (volant = clic maintenu + glisser dans la moitié gauche,
-  NITRO = bouton ou Espace, ← → au clavier). Le menu PC d'avant : dossier `AUTRE VERSION`, ou `index.html?pc=1`.
+  NITRO = bouton ou Espace, ← → au clavier). Le menu PC d'avant : `index.html?pc=1`.
 - Sur iPhone (même Wi-Fi) : `python3 -m http.server 8000 --bind 0.0.0.0`, puis l'adresse IP du Mac
 
 ## Ce qu'il y a de neuf

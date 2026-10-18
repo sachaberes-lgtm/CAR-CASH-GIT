@@ -18,6 +18,10 @@ window.REPERTOIRE = [
   // (2026-10-17, Léo) LA VILLE VITRÉE : les tours de verre et leur reflet qui pend du ciel — quatre heures et la pluie
   { id: 'vitree',   nom: 'VILLE VITRÉE',      couverture: 'midi',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'COUCHER'], ['nuit', 'NUIT'], ['pluie', 'PLUIE']] },
+  // (2026-10-18, Sacha : « remet la map paris dans le mode classique ») PARIS AU SOL, de la Concorde au Sacré-Cœur : un seul temps — la course
+  // fait tourner l'heure elle-même, de l'or à la nuit
+  { id: 'paris',    nom: 'PARIS',             couverture: 'soir',
+    meteos: [['soir', 'HEURE DORÉE']] },
   { id: 'jade',     nom: 'PICS DE JADE',      couverture: 'matin',
     meteos: [['matin', 'MATIN'], ['midi', 'MIDI'], ['soir', 'SOIR'], ['nuit', 'NUIT'], ['pluie', 'PLUIE'], ['orage', 'ORAGE']] },
   { id: 'foret',    nom: 'LA FORÊT NOIRE',    couverture: 'soir',
