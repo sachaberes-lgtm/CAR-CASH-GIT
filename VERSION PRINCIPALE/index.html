@@ -14058,10 +14058,14 @@ function nuage8Calc(B, base, top, N, opt) {
       let gx = champ(x + e, y, z) - champ(x - e, y, z), gy = champ(x, y + e, z) - champ(x, y - e, z), gz = champ(x, y, z + e) - champ(x, y, z - e);
       const l = Math.hypot(gx, gy, gz) || 1; gx = -gx / l; gy = -gy / l; gz = -gz / l;
       const md = modele(x, y, z, gx, gy, gz), hz = hs(i * 7 + 3, j * 13 + 5, k * 11 + 1);
-      for (const d of DIR) { if (oc(i + d[0], j + d[1], k + d[2])) continue;
-        const ax = d[0] ? 0 : d[1] ? 1 : 2, u = (ax + 1) % 3, w = (ax + 2) % 3, b0 = CP.length / 3;
-        for (const q of QD) { const L9 = [0, 0, 0]; L9[ax] = d[ax]; L9[u] = q[0]; L9[w] = q[1];
-          CP.push(x + L9[0] * sc, y + L9[1] * sc, z + L9[2] * sc); CN.push(d[0], d[1], d[2]); CG.push(gx, gy, gz); CC.push(md[0], md[1], md[2]); CU.push(L9[0], L9[1], L9[2], hz); }
+      // (2026-10-18, « pas comme Minecraft, fais le peintre ») LES TOUCHES : opt.jit > 0 → chaque cube décalé, tourné, à sa taille — la grille se casse, des touches de pinceau
+      const JT = opt.jit || 0, r1 = hs(i * 3 + 11, j * 5 + 2, k * 7 + 9), r2 = hs(i * 17 + 1, j * 3 + 7, k * 5 + 4), r3 = hs(i + 5, j * 19 + 3, k * 2 + 8), sk9 = sc * (1 - JT * .7 * r1);
+      const ox = x + (r2 - .5) * JT * hc, oy = y + (r3 - .5) * JT * hc, oz = z + (r1 - .5) * JT * hc, an = (r2 - .5) * JT * 1.6, bn = (r3 - .5) * JT * 1.6, ca = Math.cos(an), sa = Math.sin(an), cb = Math.cos(bn), sb = Math.sin(bn);
+      const rot = function (v) { const x1 = v[0] * ca - v[2] * sa, z1 = v[0] * sa + v[2] * ca, y2 = v[1] * cb - z1 * sb, z2 = v[1] * sb + z1 * cb; return [x1, y2, z2]; }; // deux petites rotations (lacet, tangage)
+      for (const d of DIR) { if (oc(i + d[0], j + d[1], k + d[2])) continue; // (touches) les faces tournées vers l intérieur restent jetées : entre deux touches, on voit le CŒUR (la lumière)
+        const ax = d[0] ? 0 : d[1] ? 1 : 2, u = (ax + 1) % 3, w = (ax + 2) % 3, b0 = CP.length / 3, dn = JT ? rot(d) : d;
+        for (const q of QD) { const L9 = [0, 0, 0]; L9[ax] = d[ax]; L9[u] = q[0]; L9[w] = q[1]; const P9 = JT ? rot([L9[0] * sk9, L9[1] * sk9, L9[2] * sk9]) : [L9[0] * sc, L9[1] * sc, L9[2] * sc];
+          CP.push(ox + P9[0], oy + P9[1], oz + P9[2]); CN.push(dn[0], dn[1], dn[2]); CG.push(gx, gy, gz); CC.push(md[0], md[1], md[2]); CU.push(L9[0], L9[1], L9[2], hz); }
         if (d[ax] > 0) CI.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3); else CI.push(b0, b0 + 2, b0 + 1, b0, b0 + 3, b0 + 2); } }
     // la peau : l'occupation floutée [¼ ½ ¼] sur les trois axes, puis lue en trilinéaire
     let ob = new Float32Array(occ.length), t9 = new Float32Array(occ.length); for (let q = 0; q < occ.length; q++) ob[q] = occ[q];
@@ -14074,7 +14078,7 @@ function nuage8Calc(B, base, top, N, opt) {
       const l1 = obv(i, j, k) + (obv(i + 1, j, k) - obv(i, j, k)) * a, l2 = obv(i, j + 1, k) + (obv(i + 1, j + 1, k) - obv(i, j + 1, k)) * a,
         l3 = obv(i, j, k + 1) + (obv(i + 1, j, k + 1) - obv(i, j, k + 1)) * a, l4 = obv(i, j + 1, k + 1) + (obv(i + 1, j + 1, k + 1) - obv(i, j + 1, k + 1)) * a;
       const q1 = l1 + (l2 - l1) * b, q2 = l3 + (l4 - l3) * b; return q1 + (q2 - q1) * c; };
-    const hsk = hc * (opt.peau || .9), sX = Math.ceil(cnx * hc / hsk) + 2, sY = Math.ceil(cny * hc / hsk) + 2, sZ = Math.ceil(cnz * hc / hsk) + 2, s0 = hsk, SX = sX + 1, SY = sY + 1, SZ = sZ + 1; // la peau sur SA grille, à la taille des cubes (la finesse de la surface n'y ajoute rien)
+    const hsk = opt.nsk ? Math.max(hc, ext / opt.nsk) : hc * (opt.peau || .9), sX = Math.ceil(cnx * hc / hsk) + 2, sY = Math.ceil(cny * hc / hsk) + 2, sZ = Math.ceil(cnz * hc / hsk) + 2, s0 = hsk, SX = sX + 1, SY = sY + 1, SZ = sZ + 1; // la peau sur SA grille, à la taille des cubes (la finesse de la surface n'y ajoute rien)
     const V2 = new Float32Array(SX * SY * SZ);
     for (let k = 0; k < SZ; k++) for (let j = 0; j < SY; j++) for (let i = 0; i < SX; i++) V2[i + SX * (j + SY * k)] = otri(x0 - s0 + i * hsk, y0 - s0 + j * hsk, z0 - s0 + k * hsk) - ISO;
     const vid2 = new Int32Array(sX * sY * sZ).fill(-1), SP = [];
@@ -14206,7 +14210,7 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function nuage8Async(S,N,cb,vit){ // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
-  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?{vit:vit,iso:NUVIT.iso}:{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
+  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,vit?{vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0}:{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
@@ -14322,12 +14326,13 @@ function nuage8Solo(){ if(COTON.mat8s)return COTON.mat8s; // (v8) la même mati�
      · L'ONDE (`uScan`) qui monte le long du nuage (chacun la sienne) et allume les joints, les arêtes, la peau.
    De LOIN (finesses 0 et 1) : le nuage v8 tel quel (de loin lisse et brillant, de près le pixel — le juste milieu de Léo). Tri, fondu
    près de l'objectif (la trame) et fondu d'une zone neuve gardés. `?sans=nuvit` = la v8 seule ; `dbgNuVit(0|1,{…})` = A/B sur la même image. */
-const NUVIT_V=!/[?&]sans=([^&]*,)?nuvit(,|&|$)/.test(location.search),NUVIT={on:NUVIT_V,nc:36,iso:.3,ang:.09};
-const NV_U={uLueur:{value:1.08},uScan:{value:.7},uScanV:{value:.07},uCoqA0:{value:.5},uCoqA1:{value:.92},uRel:{value:.12},uEcl:{value:1},uBis:{value:.08}};
-const NV_DOSES={doux:{uCoqA0:.5,uCoqA1:.92,uRel:.12,uLueur:1.08,uBis:.08},moyen:{uCoqA0:.3,uCoqA1:.9,uRel:.3,uLueur:1.16,uBis:.13},fort:{uCoqA0:.12,uCoqA1:.85,uRel:.45,uLueur:1.26,uBis:.18}}; // (2026-10-18) trois dosages du vitrail, à montrer à Léo
-{const m9=/[?&]nuvit=(doux|moyen|fort)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:'moyen';for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
+const NUVIT_V=!/[?&]sans=([^&]*,)?nuvit(,|&|$)/.test(location.search),NUVIT={on:NUVIT_V,nc:36,iso:.3,ang:.09,nsk:0,ecart:.47};
+const NV_U={uLueur:{value:1.08},uScan:{value:.7},uScanV:{value:.07},uCoqA0:{value:.5},uCoqA1:{value:.92},uRel:{value:.12},uEcl:{value:1},uBis:{value:.08},uTache:{value:0},uChaud:{value:0},uTrans:{value:0},uBordC:{value:0}};
+const NV_DOSES={doux:{uCoqA0:.5,uCoqA1:.92,uRel:.12,uLueur:1.08,uBis:.08,uTache:0,uChaud:0,uTrans:0,uBordC:0},moyen:{uCoqA0:.3,uCoqA1:.9,uRel:.3,uLueur:1.16,uBis:.13,uTache:0,uChaud:0,uTrans:0,uBordC:0},fort:{uCoqA0:.12,uCoqA1:.85,uRel:.45,uLueur:1.26,uBis:.18,uTache:0,uChaud:0,uTrans:0,uBordC:0},
+  peintre:{uCoqA0:.34,uCoqA1:.9,uRel:.05,uLueur:1.2,uBis:0,uTache:.12,uChaud:.6,uTrans:.55,uBordC:.85}}; // (2026-10-18, Léo : « pas comme Minecraft ; triche pour obtenir une sorte de réalisme ; fais le peintre ») chaque cube une TOUCHE (chaude au soleil, froide à l ombre), plus de faces dures, le contour en vapeur, la lumière qui TRAVERSE à contre-jour // (2026-10-18) trois dosages du vitrail, à montrer à Léo
+{const m9=/[?&]nuvit=(doux|moyen|fort|peintre)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:'peintre';if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
 function nuVitGLSL(){ // les déclarations et la lumière v8 (copie de nuage8Mat : SANS la vapeur du palier 2)
-  return ['uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd'+(NUJOUR_V?',uLav':'')+';uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uTps,uLueur,uScan,uScanV,uCoqA0,uCoqA1,uRel,uEcl,uBis;',
+  return ['uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd'+(NUJOUR_V?',uLav':'')+';uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uTps,uLueur,uScan,uScanV,uCoqA0,uCoqA1,uRel,uEcl,uBis,uTache,uChaud,uTrans,uBordC;',
     'vec3 n8lum(vec3 N,vec3 V,vec3 A,vec3 T,out float fr,out float lit){',
     '  float ao=A.r,tv=A.g,hh=A.b,nl=dot(N,uSunW),sh=smoothstep(-.1,.5,uSunW.y);',
     '  lit=smoothstep(uR.x,uR.y,nl);lit*=mix(1.,tv,.6*sh)*mix(.32,1.,ao);',
@@ -14365,18 +14370,19 @@ function nuVitFS(k){
   const tete=['#include <common>','#include <fog_pars_fragment>',nuVitGLSL(),'varying vec3 vN,vW,vA,vT;varying float vPh;',...(k===0?['varying vec3 vG,vL;varying float vH;']:[])];
   if(k===0)return tete.concat(['void main(){vec3 V=normalize(cameraPosition-vW),N=normalize(mix(normalize(vG),normalize(vN),uRel));float fr,lit;',
     '  vec3 col=n8lum(N,V,vA,vT,fr,lit)*(.96+.08*vH);',                                                                         // chaque écaille sa nuance
+    '  {float h1=fract(vH*13.7),h2=fract(vH*71.3);col*=mix(vec3(1.),mix(vec3(.93,.97,1.07),vec3(1.05,1.01,.93),lit),uChaud);col*=1.+uTache*((h2-.5)*vec3(1.)+(h1-.5)*vec3(.5,.05,-.5));}',
     '  vec3 qb=abs(vL);qb/=max(max(qb.x,max(qb.y,qb.z)),1e-5);float eb=smoothstep(.6,1.,qb.x+qb.y+qb.z-1.-min(qb.x,min(qb.y,qb.z)));',  // le biseau : on lit le cube
     '  float sc=n8onde(vA.b,vPh);vec3 gl=n8glow();',
     '  col=col*(1.-uBis*eb)+gl*(eb*(.04*uLueur+1.1*sc)+sc*.1);',
     '  if(vH>.975)col+=vec3(1.)*pow(.5+.5*sin(uTps*(3.+4.*fract(vH*13.1))+vH*80.),8.)*.6*uEcl;',                                 // un éclat de temps en temps
-    '  float a=uFondu;',NV_TRAME,'  gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}']).join('\n');
+    '  float a=uFondu*(1.-uBordC*smoothstep(.5,.82,1.-abs(dot(normalize(vG),V))));',NV_TRAME,'  gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}']).join('\n');
   if(k===1)return tete.concat(['void main(){vec3 V=normalize(cameraPosition-vW);float fr,lit,sc=n8onde(vA.b,vPh);vec3 gl=n8glow();',
-    '  vec3 col=n8lum(normalize(vN),V,vA,vT,fr,lit)*uLueur*(.93+.07*sin(uTps*1.7+vPh*6.2832))+gl*1.5*sc;',
+    '  vec3 col=n8lum(normalize(vN),V,vA,vT,fr,lit)*uLueur*(.93+.07*sin(uTps*1.7+vPh*6.2832))+gl*1.5*sc+uSunC*uTrans*pow(max(dot(-V,uSunW),0.),3.)*(1.2-vA.r*.6);',
     '  float a=uFondu;',NV_TRAME,'  gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}']).join('\n');
   return tete.concat(['void main(){vec3 V=normalize(cameraPosition-vW),N=normalize(vN);float fr,lit;vec3 base=n8lum(N,V,vA,vT,fr,lit);',
     '  vec3 rf=reflect(-V,N),sky=mix(uGnd*.85,uSky*1.15,smoothstep(-.3,.5,rf.y));float sc=n8onde(vA.b,vPh);',
     '  vec3 col=mix(base,sky,.18*fr)+uSunC*pow(max(dot(rf,uSunW),0.),220.)*1.6+(.5+.5*cos(6.2832*(fr*1.4+vW.y*.004+vec3(0.,.33,.67))))*fr*.05+n8glow()*sc*.25;', // le ciel au bord, l éclat, le film irisé
-    '  float a=min(1.,mix(uCoqA0,uCoqA1,pow(fr,1.5))+sc*.1)*uFondu;',
+    '  float a=min(1.,mix(uCoqA0,uCoqA1,pow(fr,1.5))*(1.-uBordC*.55*smoothstep(.8,1.,fr))+sc*.1)*uFondu;',
     '#ifdef NUAGE8_INST','  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));','#endif',
     '  gl_FragColor=vec4(col,a);','#include <fog_fragment>','}']).join('\n');}
 function nuVitMats(solo){ const cle=solo?'s':'i',K='mv'+cle;if(COTON[K])return COTON[K];
@@ -14388,7 +14394,7 @@ function nuVitMats(solo){ const cle=solo?'s':'i',K='mv'+cle;if(COTON[K])return C
 function nuVitGeo(r,dy){ // les trois maillages d'un calcul (r.vit) — dy : le décalage vertical d'un nuage seul
   const v=r.vit;if(!v)return null;const BA=function(a,n){return new THREE.BufferAttribute(a,n);};
   const c=new THREE.BufferGeometry();c.setAttribute('position',BA(v.cpos,3));c.setAttribute('normal',BA(v.cnor,3));c.setAttribute('aG',BA(v.cg,3));c.setAttribute('color',BA(v.ccol,3));c.setAttribute('aCu',BA(v.ccu,4));c.setIndex(BA(v.cidx,1));
-  const P=new Float32Array(r.pos.length),k9=v.hc*.6;for(let i=0;i<P.length;i++)P[i]=r.pos[i]-r.nor[i]*k9; // le cœur : la surface v8 rentrée
+  const P=new Float32Array(r.pos.length),k9=v.hc*(NUVIT.coeur||.6);for(let i=0;i<P.length;i++)P[i]=r.pos[i]-r.nor[i]*k9; // le cœur : la surface v8 rentrée
   const o=new THREE.BufferGeometry();o.setAttribute('position',BA(P,3));o.setAttribute('normal',BA(r.nor,3));o.setAttribute('color',BA(r.col,3));o.setIndex(BA(r.idx,1));
   const s=new THREE.BufferGeometry();s.setAttribute('position',BA(v.spos,3));s.setAttribute('normal',BA(v.snor,3));s.setAttribute('color',BA(v.scol,3));s.setIndex(BA(v.sidx,1));
   for(const g of [c,o,s]){if(dy)g.translate(0,dy,0);g.computeBoundingSphere();}
@@ -14397,7 +14403,10 @@ function nuVitPose(k,f,r){const V=COTON.vit&&COTON.vit[k*4+f];if(!V)return;const
   V.c.geometry=G.cub;V.o.geometry=G.coe;V.p.geometry=G.pea;V.tri=G.tri;V.ok=true;}
 window.dbgNuVue=function(k,a,p,h){ // (banc) la même vue, vitrail 0/1 : la caméra posée à h m au-dessus de la caisse, tournée de a (rad) par rapport à son cap, levée de p (rad)
   if(started&&!gameOver&&!paused)togglePause();
-  if(a!=null){const cp=carGroup.position,f=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);f.y=0;f.normalize();dbgNuVue.v={x:cp.x,y:cp.y+(+h||6),z:cp.z,yaw:Math.atan2(f.x,f.z)+(+a),p:+p||0};}
+  if(typeof a==='string'&&a.indexOf('nuage')===0){const n9=+a.slice(5)||0,L9=[];for(let j=0;j<COTON.n;j++)L9.push(j);L9.sort(function(x,y){return COTON.I[y*COTON_ST+3]-COTON.I[x*COTON_ST+3];}); // (banc) 'nuageN' : le N-ième plus grand nuage, vu à h × son rayon, de l angle p
+    const o=L9[Math.min(n9,L9.length-1)]*COTON_ST,r=COTON.I[o+3],S=COTON.S[COTON.I[o+5]],cx=COTON.I[o],cz=COTON.I[o+2],cy=COTON.I[o+1]+S.base*r*COTON.I[o+9]+COTON.I[o+7]*.5,d=(+h||2.5)*r,an=+p||0;
+    const x=cx+Math.sin(an)*d,z=cz+Math.cos(an)*d,y=cy+d*.12;dbgNuVue.v={x:x,y:y,z:z,yaw:Math.atan2(cx-x,cz-z),p:Math.atan2(cy-y,Math.hypot(cx-x,cz-z))};}
+  else   if(a!=null){const cp=carGroup.position,f=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);f.y=0;f.normalize();dbgNuVue.v={x:cp.x,y:cp.y+(+h||6),z:cp.z,yaw:Math.atan2(f.x,f.z)+(+a),p:+p||0};}
   const v=dbgNuVue.v;if(v){camera.position.set(v.x,v.y,v.z);camera.up.set(0,1,0);camera.lookAt(v.x+Math.sin(v.yaw)*Math.cos(v.p)*100,v.y+Math.sin(v.p)*100,v.z+Math.cos(v.yaw)*Math.cos(v.p)*100);camera.updateMatrixWorld();}
   return dbgNuVit(k,{rendre:1});};
 window.dbgNuVit=function(k,o){o=o||{};if(k!=null)NUVIT.on=!!+k;if(o.dose&&NV_DOSES[o.dose]){NUVIT.dose=o.dose;for(const q in NV_DOSES[o.dose])NV_U[q].value=NV_DOSES[o.dose][q];}for(const n in o)if(NV_U[n])NV_U[n].value=+o[n]; // (banc) A/B sur la même image : 0 = la v8 seule, 1 = en vitrail ; {uLueur, uScan, uCoqA0, uCoqA1, uRel…}
@@ -14688,7 +14697,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
   if(fin9&&fin9.v8)nuage8Async(fin9.S,r>150?N8_FIN[3]:N8_FIN[2],function(q){if(!g.parent)return;const g2=cotonBuf(q);g2.translate(0,fin9.dyU,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;
     if(q.vit){const G=nuVitGeo(q,fin9.dyU),MS=nuVitMats(true),c9=new THREE.Mesh(G.cub,MS.cub),p9=new THREE.Mesh(G.pea,MS.pea); /* (2026-10-18) LE VITRAIL des bancs, coussins et tours : le maillage du nuage devient son CŒUR, les écailles et la peau sont ses enfants */
       for(const x of [c9,p9]){x.castShadow=x.receiveShadow=false;x.updateMatrix();x.matrixAutoUpdate=false;mesh.add(x);}p9.renderOrder=1;
-      const u9=mesh.userData;u9.vit=[c9,p9];u9.g8=g2;u9.gVit=G.coe;u9.mVit=MS.coe;if(NUVIT.on){mesh.geometry=G.coe;if(mesh.material===nuage8Solo())mesh.material=MS.coe;u9.m8=MS.coe;}else c9.visible=p9.visible=false;}},NUVIT_V?Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))):0);
+      const u9=mesh.userData;u9.vit=[c9,p9];u9.g8=g2;u9.hcw=q.vit.hc*r;u9.gVit=G.coe;u9.mVit=MS.coe;if(NUVIT.on){mesh.geometry=G.coe;if(mesh.material===nuage8Solo())mesh.material=MS.coe;u9.m8=MS.coe;}else c9.visible=p9.visible=false;}},NUVIT_V?Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))):0);
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
@@ -14832,7 +14841,8 @@ function updateClouds(dt,t){
     }
     {const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,
       dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);if(dc<2.6){const q=Math.min(1,(2.6-dc)/1.6);if(q>prox)prox=q;}
-      c.mesh.material=dc<1.1?(c.mesh.userData.m8?CLOUD_MAT_IN8:CLOUD_MAT_IN):(c.mesh.userData.m8||c.mesh.userData.mm||CLOUD_MAT);if(c.mesh.userData.vit&&NUVIT.on){const v9=!(dc<1.1);for(const o9 of c.mesh.userData.vit)o9.visible=v9;}} /* (vitrail) dedans : le white-out seul, sans écailles ni peau */ /* (2026-10-14, œil) mm : la laine plus blanche d'un mouton (moutonTete) */ // (2026-09-26) la caméra DANS l'ellipsoïde : la paroi intérieure se montre (white-out) ; dehors, l'endroit seul
+      c.mesh.material=dc<1.1?(c.mesh.userData.m8?CLOUD_MAT_IN8:CLOUD_MAT_IN):(c.mesh.userData.m8||c.mesh.userData.mm||CLOUD_MAT);if(c.mesh.userData.vit&&NUVIT.on){const u9=c.mesh.userData,dd9=Math.sqrt(ex*ex+ey*ey+ez*ez)-c.r,v9=!(dc<1.1)&&2*(u9.hcw||0)/Math.max(1,dd9)<=NUVIT.ang; // (vitrail) dedans : le white-out seul ; TOUT PRÈS (écaille trop grosse à l écran) : le nuage lisse, comme les instances
+      for(const o9 of u9.vit)o9.visible=v9;if(!(dc<1.1)){const m9=v9?u9.mVit:nuage8Solo(),g9=v9?u9.gVit:u9.g8;if(c.mesh.material!==m9)c.mesh.material=m9;if(c.mesh.geometry!==g9)c.mesh.geometry=g9;}}} /* (vitrail) dedans : le white-out seul, sans écailles ni peau */ /* (2026-10-14, œil) mm : la laine plus blanche d'un mouton (moutonTete) */ // (2026-09-26) la caméra DANS l'ellipsoïde : la paroi intérieure se montre (white-out) ; dehors, l'endroit seul
     c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive au vent
     c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
     if(d2<1){ // ---- DEDANS ----
