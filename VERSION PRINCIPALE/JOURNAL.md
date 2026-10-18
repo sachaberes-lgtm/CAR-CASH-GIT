@@ -675,6 +675,9 @@
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
 
 ## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
+- ⚠ **RETIRÉE LE SOIR MÊME** (Léo : « la rosso revient sur avant c'était mieux ») : le bloc `SHAPES.rosso` et son repère sont ôtés de la zone des
+  JAPONAISES, la ROSSO 40 d'origine reprend la main (ses pots, sa ligne CARS : rien n'avait bougé). La préchauffe repasse à cinq étapes. La source
+  refaite reste au banc (`CAR-bancs/japonaises/rosso.js`) ; ne pas la remettre sans que Léo le redemande. Ce qui suit est l'historique.
 - **Le plan** : the-blueprints « Ferrari F40 (1987) » (aperçu vectoriel en couleur, quatre vues, 172,65 px/m, empattement 2,45 m) + les plans au trait gratuits
   (ouïes du Lexan, feux) ; photos Wikimedia Commons (catégorie « Ferrari F40 »). Relevé au quadrillage métrique (`grille.py`).
 - **Le gabarit** : `SHAPES.rosso=…` dans la zone des JAPONAISES (repère `// <<< SHAPES.rosso (JAPONAISES) >>>`) — il REMPLACE au chargement la méthode
