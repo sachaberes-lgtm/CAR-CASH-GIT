@@ -148,7 +148,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, `NIV_PARIS`/`genParis`/`buildParis`/`PARIS` (PARIS au sol : hors du classique depuis le 18/10 au soir, code gardé), `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, `NIV_PARIS`/`genParis`/`buildParis`/`PARIS` (PARIS au sol : hors du classique depuis le 18/10 au soir, code gardé), `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`, `NIV_GROTTE`/`genGrotte`/`grtTrace`/`buildGrotte`/`GROTTE`/`grtCreuse1`/`grtMailleNets`/`dbgGrotte` (LES PROFONDEURS, 18/10 : les biomes de grotte de Minecraft dans la DA du jeu — un champ de densité creusé autour de la route, une roche low-poly à facettes tirée par « surface nets », une matière `GRT_FS`, lumière cuite en deux canaux, une ambiance par salle — voir le journal),
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`.
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
@@ -231,7 +231,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Éditions et appareils** : `POKI`, `CC_PK`/`KITS`/`pkPasse`, `TEST_CAISSES`, `FACILE_OK`, `IS_MOBILE`, `TEL_NATIF`, `FORCE_TEL`,
   `SIMU_JEU`, `BALADE`.
 - **Perf** : qualité auto `QL`/`QLR`/`qlSonde`, résolution `applyDPR`/`applyQ`/`curDPR`/`DPR_CAP`/`DPR_MIN`, chauffe
-  `chauffeRendu`/`chauffeDivers`/`engChauffe`/`atelierChauffe`, sursis `MAT_SURSIS`/`CAR_GARDE`/`ENG_GARDE`, `SCENE_TOUJOURS`,
+  `chauffeRendu`/`chauffeDivers`/`engChauffe`/`atelierChauffe`, sursis `MAT_SURSIS`/`CAR_GARDE`/`ENG_GARDE`/`PISTE_GARDE`, `SCENE_TOUJOURS`,
   `VP`, `pisteTranches`, `LFB_SANS_PL`, `LFB_ROUTE_LUM`, `atelierLampes`.
 
 ---
@@ -370,6 +370,16 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
   buffer » à l'écran de fin ; `#auraV2` à −4 px (son animation d'entrée) ; les chevauchements voulus `#engBig`×`#slam9` et
   `#dolHud`×`#lvlBan` ; +8 nœuds DOM par partie (le TOP 10).
 
+**PASSE PERF 18/10 — le banc de perf et ce qu'il a trouvé** (le récit et les chiffres : « LA PASSE PERF DU 18/10 » au journal)
+- Banc : Chrome sans fenêtre en iPhone (390 × 844 ×3, tactile, UA iPhone), NETTE, `?palier=2`, processeur ×4 posé APRÈS le menu, `dbgSable(1)`,
+  `dbgQual(0)`, pilote auto sol puis vol. Compter les COMPILATIONS en accrochant `linkProgram` avant le chargement ; nommer un programme neuf en
+  comparant sa clé (`renderer.info.programs`) à la plus proche, champ par champ. Chronométrer SANS le profileur (il déforme les images longues),
+  et seulement au calme (`uptime` < 8) : les compteurs (appels, triangles, compilations) ne dépendent pas de la charge.
+- Corrigé : plus aucun programme compilé en course au CANYON (`canyonChauffe` + les matières double face `cyMonuMats().b/.g`) ni APRÈS LE GLACIER
+  (`PISTE_GARDE` : la 1re matière de route de chaque programme n'est jamais libérée). ⚠ Une map dont la route ou le décor ne reprend pas les
+  matières de la précédente tue leurs programmes : vérifier la map SUIVANTE, pas seulement la sienne.
+- Le reste du coût est le LOOK (appels de dessin) ou la PUCE : il se mesure sur un vrai téléphone, `…/jouer/?banc=1&refaire=1`.
+
 **Crochets de console utiles** : `dbgState()` · `dbgAuto(1,lat,{vol,nit,saut})` (pilote) · `dbgStep(n,ms)` (la boucle à la main)
 · `dbgView(a,d,h)` (mode photo) · `dbgSaut()` (= NIVEAU suivant, pas un saut) · `dbgDauphin(…)` (s'envoler) ·
 `dbgClassique(carte,meteo)` · `dbgNiveauJade()`/`dbgNiveauCrypto()` · `dbgEquipe(i)`/`dbgCar(i)`/
@@ -434,9 +444,14 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT` et `AILV` :
   `n` le boost, `vir`, `mon`, `photo` la pose de la carte). ⚠ Tout groupe ou pièce qui BOUGE passe par `ailB(o)`, sinon `caisseSoude` le vide
   (« LES AILES VIVANTES » au journal) ; un effet hors cadrage photo porte `userData.fx`. Vérifier : `dbgAiles(id)` (0 groupe vidé),
-  `dbgAilesForce({ouvre:1,n:1})` + `dbgAilesVue(az,d,h)` (en course, au boost), `dbgAile(id)` (la photo).
+  `dbgAilesForce({ouvre:1,n:1})` + `dbgAilesVue(az,d,h)` (en course, au boost), `dbgAile(id)` (la photo) ; `dbgAilesVue('reprend')` relance la course entre deux photos.
+  ⚠ Une aile qui ne doit PAS s'étirer avec le pivot (SANS AILES : des buses posées sur la tôle) pose `piv.userData.recale` : la boucle
+  le rappelle juste après avoir posé l'étirement et le dièdre du pivot (voir AILES_POP.air).
 - Traînée : `rgb` = la couleur du ruban ; un EFFET = `pop:'nom'` + un émetteur dans `TRX_EMET` (quads instanciés, planche
   `trxPlanche`), `rubOff:1` s'il remplace le ruban. ⚠ Ce qui doit se voir en course garde ~0,86-0,9 de l'élan (`trxVit`).
+  Commun à toutes (18/10, passe globale) : de JOUR un voile d'encre sous la lumière (`TRJ` : rubans `tr.mi`, TRX `uInk` — `?sans=encrejour`),
+  le halo du feu arrière prend la couleur de la traînée au nitro (`VIT9.trC`/`trK`), la bascule rouge des feux → couleur est rapide (`cw9`) :
+  jamais de mélange RGB entre deux teintes éloignées (MENTHE + rouge = jaune). Juger une traînée de jour ET de nuit.
 - Essayer : `dbgHab(cat,id)` (porté à l'essai), `dbgTrx('nom')` (forcée en course). Banc : photos garage + course, muet.
 
 **Ajouter une figure (un emplacement de vol, le double-tap nitro)**
@@ -545,6 +560,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `PLEUR`, `FOR_ARB_FS` (le slalom `forZigzag` et la mousse ont été retirés le 18/10)
 
 **Débogage, perf, bancs**
+- « LA PASSE PERF DU 18/10 — PLUS AUCUN PROGRAMME COMPILÉ EN COURSE (CANYON, APRÈS LE GLACIER) + LE CLASSEMENT DES POSTES » (18/10) — `PISTE_GARDE`, `canyonChauffe`, le banc ×4, ce qui reste (JOUER, portails, puce)
 - « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
 - « LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE » (14/10) · « LA PASSE QUALITÉ AVANT SORTIE » (12/10)
 - « LA CAMPAGNE DE DEBUG AVANT PUBLICATION » (07/10) · « L'AUDIT AVANT PUBLICATION, ZONE GAMEPLAY » (07/10) · « LA PASSE DE SORTIE » (29/09)
@@ -574,6 +590,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
+- « LES PROFONDEURS — LES BIOMES DE GROTTE DE MINECRAFT, DANS LA DA DU JEU » (18/10) — `genGrotte`, `grtCreuse1`, `grtMailleNets`, `GRT_FS`, `grtBiomes`, `grtConti`, `grotteHeurt`, `dbgGrotte('test')`, bancs Node
 - « LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD » (18/10) — `MODC_ON`, `?sans=modcartes`, `dbgModCartes`, un paquet par générateur
 - « LES MAPS, 2e TOUR — MOINS DE TOUT DROIT, LE VOLCAN REFAIT EN BALADE QUI MONTE, LA FORÊT ALLÉGÉE » (18/10) — `vlcTrace3`, `vlc3Cone`, `rPlancher`, `VILLE_WM`
 - « LA ROUTE DES NUAGES MOINS TORDUE — LES VRILLES REVIENNENT À L'ENDROIT » (18/10) — `NV_CALME`, `?nuages=tordu`, tenues calmes rappelées vers le ciel
