@@ -20290,6 +20290,10 @@ window.dbgBanq=function(k,o){
      direction de soleil est celle de la météo ; la lave éclaire (uLue), l'éruption aussi (uErupt), les phares de la caisse (uPhare).
    Console : `dbgVolcan()` (comptes, temps), `dbgVolcan('eruption')`, `dbgVolcan('meteo','nuit')`, `dbgVolcan('vue',{p,c})`,
    `dbgVolcan('aiguille'|'arche'|'volcan',{d,h})` (photos en pause). Lancer : `?carte=volcan&meteo=soir`. */
+/* (v5, 2026-10-18 — Sacha : « la map volcan est la plus moche, lance une grosse refonte ») LA REFONTE VISUELLE : la route, les boucles, les
+   collisions et le gameplay ne bougent pas ; tout ce qu'on VOIT est refait — la lave en plaques (VLC_LAVE_FS5), la roche en facettes (VLC_SOL_FS5),
+   les ciels, la fumée, les braises. `?volcan=v4` = le volcan d'avant, au pixel. */
+const VLC5=!/[?&]volcan=v4(&|$)/.test(location.search);
 const NIV_VOLCAN={id:'volcan',nm:'LE ROYAUME DE FEU',bio:['volcanSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.26,sheen:.14,piste:'volcan',pr:'LA LAVE NE PARDONNE PAS'};
 const VOLCAN={root:null,Q:null,C:null,K:null,C2:null,K2:null,hand:1,sSp:0,plg:[],sol:null,solM:null,aig:[],arche:null,gcol:null,
   met:'soir',cur:null,de:null,to:null,k:1,dur:1,ms:0,n:{},fx:{},mats:null,graine:0,erup:{t:7,age:-1,n:0,b:0},son:{k:{}},loin:[]};
@@ -20303,6 +20307,16 @@ const VLC_MET={
   nuit: {fu:1,fuF:220,fuC:[.14,.03,.06],el:34,lue:1.9,lav:1.75,cen:.22,bra:1, fum:1,  fumC:[.16,.08,.08],bru:.75,bC:[.36,.07,.03],gey:1.2,eru:1.3,phare:1,  sons:'nuit'},
   pluie:{el:48,lue:1.15,lav:1.12,cen:1,  bra:.45,fum:1, fumC:[.30,.26,.24],bru:.7, bC:[.26,.21,.18],gey:.9, eru:1,  phare:.6, sons:'cendre',fu:1,fuF:230,fuC:[.20,.08,.08]},
   orage:{el:48,lue:1.25,lav:1.18,cen:.55,bra:.85,fum:1, fumC:[.14,.10,.12],bru:.9, bC:[.22,.10,.10],gey:1.1,eru:1.6,phare:.9, sons:'orage',fu:1,fuF:220,fuC:[.13,.04,.09]}};
+/* (v5) LA FUMÉE n'est plus un rouge plat : dans un banc tout l'écran virait au ROUGE PUR (même la route) — un air prune, plus froid que la lave,
+   où les bords néon et la ligne or se lisent encore ; la brume basse des lacs, moins rouge aussi. Les braises et la cendre un cran plus rares. */
+if(VLC5){const F9={matin:[.24,.14,.20],midi:[.32,.27,.29],soir:[.20,.08,.14],nuit:[.08,.04,.11],pluie:[.21,.16,.17],orage:[.10,.06,.12]};
+  for(const k in F9){VLC_MET[k].fuC=F9[k];VLC_MET[k].bra*=.7;VLC_MET[k].cen*=.8;}
+  /* la BRUME BASSE (celle qui stagne sous la route, sur les lacs) passait TOUT ce qui est en contrebas au rouge-brun : la plaine devenait une boue
+     rouge ; elle s'allège de moitié et prend le violet de l'air */
+  const B9={matin:[.18,[.30,.18,.26]],midi:[.10,[.34,.28,.30]],soir:[.16,[.24,.08,.16]],nuit:[.34,[.16,.05,.12]],pluie:[.40,[.24,.19,.20]],orage:[.45,[.14,.07,.14]]};
+  for(const k in B9){VLC_MET[k].bru=B9[k][0];VLC_MET[k].bC=B9[k][1];}
+  /* le PANACHE : des bouffées BRUNES sur ciel orange = des taches de suie collées au ciel ; une cendre claire, lavande au soir, qui prend la lumière */
+  const P9={matin:[.80,.66,.74],midi:[.78,.74,.74],soir:[.66,.42,.52],nuit:[.34,.24,.36],pluie:[.46,.40,.40],orage:[.26,.20,.28]};for(const k in P9)VLC_MET[k].fumC=P9[k];}
 const VLC_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
   uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uLue:{value:1},uLav:{value:1},uErupt:{value:0},
@@ -20439,7 +20453,7 @@ function volcanSol(){
   /* LES CASES, EN TRANCHES (14/10 au soir, règle de PILOTAGE : « construction en tranches < 60 ms ») : ~200 ms de calcul case par case. `S.rangee(j0,j1)`
      calcule des rangées (ou un rectangle de cases) ; buildVolcan fait tout de suite les morceaux du départ, les autres partent dans la file (`vlcTache`) du plus proche au plus loin.
      Une rangée pas encore calculée vaut la MER (H sous ySea, YL = ySea) : jamais de mort sur un sol qui n'existe pas encore. */
-  const H=new Float32Array(N).fill(yS-12),YL=new Float32Array(N).fill(yS),HT=new Float32Array(N),FAIT=new Uint8Array(N),sd9=VOLCAN.graine|0,ss=THREE.MathUtils.smoothstep;
+  const H=new Float32Array(N).fill(yS-12),YL=new Float32Array(N).fill(yS),HT=new Float32Array(N),CF=new Float32Array(N),FAIT=new Uint8Array(N),sd9=VOLCAN.graine|0,ss=THREE.MathUtils.smoothstep;
   const cone=(K9,c9,x,z)=>{const dx=x-c9.x,dz=z-c9.z,r=Math.hypot(dx,dz);if(r>=K9.Rb)return -1e9;let hc=vlcConeY(K9,r);
     if(r>K9.rc){const an=Math.atan2(dx,dz);hc-=22*Math.pow(Math.abs(Math.sin(an*9+vlcB(x/70,z/70,sd9+5,2)*1.6)),.6)*Math.sin(Math.min(1,(r-K9.rc)/300)*Math.PI*.5)*(1-.6*r/K9.Rb); // les RAVINES
       hc+=Math.max(0,1-(r-K9.rc)/26)*9;}                                                                                            // la lèvre du cratère
@@ -20452,12 +20466,13 @@ function volcanSol(){
     h+=78*ss(vlcB(x/900,z/900,sd9+17,3),.30,.52)*ss(d,150,320);                                                          // les MESAS
     if(ym<1e8&&ym>yS+90){const k9=Math.max(.45,(ym-yS-35)/(R1-40));h=Math.max(h,ym-55-k9*Math.max(0,d-40)+18*vlcB(x/160,z/160,sd9+29,2)+10*vlcB(x/55,z/55,sd9+31,2));} // (v4) L'ARÊTE : la route haute descend sur une échine de basalte qui plonge jusqu'à la lave avant 340 m (jamais de route qui flotte à 400 m)
     if(VOLCAN.lac){const lc=VOLCAN.lac,dl=Math.hypot(x-lc.x,z-lc.z)/lc.r+.12*vlcB(x/320,z/320,sd9+23,2);if(dl<1.2)h=yS-14+(h-yS+14)*ss(dl,.8,1.2);} // (v3) LE LAC : ni île ni mesa, la lave ouverte jusqu'à la rive
-    h=Math.max(h,cone(K,VC,x,z));if(VC2)h=Math.max(h,cone(K2,VC2,x,z));
+    {const c1=cone(K,VC,x,z),c2=VC2?cone(K2,VC2,x,z):-1e9,cc=Math.max(c1,c2); // (v5) CF : la part du CÔNE et la hauteur sur lui (0 la mer → 1 le sommet), lue par la roche en facettes
+     if(VLC5&&cc>h-6){const K9=c1>=c2?K:K2;CF[k]=Math.max(.02,Math.min(1,(cc-yS)/Math.max(1,K9.yP-yS)));}h=Math.max(h,cc);}
     h=Math.min(h,ym-16+Math.max(0,d-ROAD_HALF-10)*1.2);                                                                       // jamais sous la dalle (la plus basse)
     H[k]=h;let yl=yS;
     for(const c of [[VC,K],[VC2,K2]])if(c[0]){const r=Math.hypot(x-c[0].x,z-c[0].z);if(r<c[1].rc)yl=Math.max(yl,c[1].yP-c[1].cr*.55);} // le LAC DU CRATÈRE
     YL[k]=yl;HT[k]=Math.max(0,Math.min(1,(yl+16-h)/16));}};
-  return VOLCAN.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yl:YL,ht:HT,riv:new Uint8Array(N),MARG:MARG,fait:FAIT,rangee:rangee,gd:function(x,z){return gBil(GD,x,z);}};
+  return VOLCAN.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yl:YL,ht:HT,cf:CF,riv:new Uint8Array(N),MARG:MARG,fait:FAIT,rangee:rangee,gd:function(x,z){return gBil(GD,x,z);}};
 }
 function vlcBil(A,x,z){const S=VOLCAN.sol;if(!S)return 0;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx;
   return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+n]*(1-u)+A[k+n+1]*u)*v;}
@@ -20519,6 +20534,43 @@ const VLC_SOL_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN;varying vec4 vS;','#inclu
   '  if(vS.w>1.5)em+=vec3(1.,.28,.04)*uLue*smoothstep(.55,1.,ht)*1.4;',  // les coulées des volcans du loin
   '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.65);','  #else','  col+=em;','  #endif', // la braise PERCE le brouillard
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
+/* (v5) LA ROCHE EN FACETTES : le basalte n'est plus un bruit multiplié (du grain partout, illisible de nuit) mais un relief LOW-POLY — la
+   normale de la FACETTE (dFdx/dFdy : chaque triangle de la grille porte sa propre lumière, une valeur un rien différente de sa voisine),
+   adoucie au loin pour que les petites facettes ne scintillent pas. Trois matières, en aplats : le BASALTE indigo (l'ombre bleu nuit commune
+   des maps), la CENDRE mauve sur les plats, l'OXYDE rouille qui monte sur les cônes (aS.w = la part du cône et la hauteur sur lui) jusqu'à
+   une lèvre de soufre ; la rive en verre noir. Deux températures : la braise par en dessous, le ciel froid en liseré. Les FISSURES qui couvent
+   sont de vraies cellules (les bords de plaques de la lave, en plus fin), seulement sur la roche chaude et seulement de près. */
+const VLC_VOR=['vec3 vlcVor(vec2 x){vec2 n=floor(x),f=fract(x);float f1=9.,f2=9.,id=0.;',
+  '  for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 g=vec2(float(i),float(j)),c=n+g,o=vec2(fh2(c),fh2(c+17.31));o=.5+.42*(o-.5);vec2 r=g+o-f;float d=dot(r,r);',
+  '    if(d<f1){f2=f1;f1=d;id=fh2(c+41.7);}else if(d<f2)f2=d;}',
+  '  return vec3(sqrt(f1),sqrt(f2),id);}'].join('\n');
+const VLC_SOL_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW,vN;varying vec4 vS;','#include <fog_pars_fragment>',
+  'void main(){vec3 Ns=normalize(vN),Nf=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(Nf,Ns)<0.)Nf=-Nf;',
+  '  vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec2 q=vW.xz;float loin=smoothstep(280.,1000.,dist);',
+  '  vec3 N=normalize(mix(Nf,Ns,.22+.6*loin));',                                                               // la facette de près, la pente lisse au loin
+  '  float ht=clamp(vS.y,0.,1.),ab=vS.z,cn=vS.w>1.5?.55:clamp(vS.w,0.,1.);',
+  '  float n1=fn2(q*.0042),n2=fn2(q*.016),fv=fh3(floor(Nf*6.)+floor(vW*.019));',                               // fv : la valeur propre de chaque facette
+  '  vec3 alb=vec3(.100,.080,.135)*(.80+.40*fv);',                                                            // le BASALTE indigo (une ardoise : noir sur brume sombre, il ne se lisait plus)
+  '  float plat=smoothstep(.80,.96,N.y);',
+  '  alb=mix(alb,vec3(.29,.225,.245)*(.88+.24*fv),plat*smoothstep(.40,.66,n1+.14*n2)*(1.-smoothstep(.15,.45,cn)));', // la CENDRE sur les plats
+  '  alb=mix(alb,vec3(.15,.055,.05)*(.85+.3*fv),smoothstep(.58,.80,cn)*(1.-plat*.5));',                       // l'OXYDE : une bande sous le sommet (partout, le cône virait au ROUGE sur ciel orange)
+  '  alb=mix(alb,vec3(.42,.27,.06)*(.85+.3*fv),smoothstep(.86,.97,cn)*.85);',                                 // la lèvre de SOUFRE
+  '  alb=mix(alb,vec3(.020,.014,.020),smoothstep(8.,1.,ab));',                                                // la rive : verre noir
+  '  float dif=clamp((dot(N,uSunDir)+.10)/1.10,0.,1.);',
+  '  vec3 col=alb*(uSky*(1.+.45*N.y)+uGnd*(.30-.18*N.y)+uSunC*dif*.85+uFillC*max(dot(N,-uFillD),0.)*.45);',      // (le ciel froid remplit les ombres : l'ombre est indigo, jamais un aplat noir — mesuré : le flanc du grand volcan sortait NOIR PUR au soir, l'étalonnage écrase les sombres)
+  '  float bas=smoothstep(60.,0.,ab)*(.45+.55*(1.-N.y));',
+  '  col+=alb*vec3(1.,.32,.08)*uLue*(bas*2.6+ht*1.1);',                                                       // la LAVE éclaire la roche par en dessous
+  '  col+=alb*(vPhare(vW,N)+vErupt(vW,N)*3.+uFlash*vec3(.8,.82,1.)*1.3);',
+  '  float fre=pow(clamp(1.-dot(N,V),0.,1.),3.);col+=uSky*alb*2.6*fre;',                                         // le liseré froid du ciel (deux températures)
+  '  col=mix(col,uBruC,vBrume(vW,dist));',
+  '  float pres=1.-smoothstep(220.,480.,dist),fis=0.,aq=length(fwidth(q))/23.;',                              // (la largeur d'un pixel, prise HORS du if : une dérivée dans une branche ne vaut rien)
+  '  if(pres>.01){vec3 vo=vlcVor(q/23.+(vec2(fn2(q*.03),fn2(q*.03+5.))-.5)*.8);float e=vo.y-vo.x;',
+  '    fis=(1.-smoothstep(0.,.06+aq*2.2,e))*clamp(ht*1.5+smoothstep(20.,0.,ab)*.8,0.,1.)*pres;}',            // les FISSURES qui couvent
+  '  vec3 feu=mix(vec3(.95,.12,.012),vec3(1.,.55,.10),fn2(q*.07+uTime*.15));',
+  '  vec3 em=feu*uLue*(fis*(1.25+.45*sin(uTime*1.6+n2*14.))+ht*.10*loin+.05*smoothstep(4.,0.,ab));',
+  '  if(vS.w>1.5)em+=vec3(1.,.28,.04)*uLue*smoothstep(.55,1.,ht)*1.4;',                                      // les coulées des volcans du loin
+  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.65);','  #else','  col+=em;','  #endif',
+  '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LA LAVE : aV = (sens de l'écoulement x, z — sa longueur est la vitesse —, profondeur sous la surface (la rive fige), genre) */
 const VLC_LAVE_VS=['attribute vec4 aV;varying vec3 vW;varying vec4 vV;','#include <fog_pars_vertex>',
   'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vV=aV;vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
@@ -20536,6 +20588,38 @@ const VLC_LAVE_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW;varying vec4 vV;','#include
   '  col=mix(col,uBruC,vBrume(vW,dist)*.25);',
   '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.78)*(1.-smoothstep(fogFar*.9,fogFar*1.7,fogDepth));','  #else','  col+=em;','  #endif', // la lave PERCE le brouillard (et s'y fond tout au loin)
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
+/* (v5, 2026-10-18 — Sacha : « la map volcan est la plus moche, lance une grosse refonte ») LA LAVE EN PLAQUES : l'ancienne lave était un bruit
+   noir et orange à grain fin, partout pareil — une PEAU DE LÉOPARD plein écran vue d'en haut, du sel et du poivre au ras de la route. Ici, de
+   GRANDES formes qu'on lit de loin : des PLAQUES de croûte (cellules de ~40 m, bords déformés par un courant lent) qui dérivent dans le sens de
+   la pente, séparées par des FENTES de lave vive (jaune au cœur, orange au bord) ; une cellule sur quatre reste OUVERTE (un bassin de lave
+   claire) ; chaque plaque garde un liseré tiède le long de ses bords et un reflet froid du ciel (le verre noir). La rive fige ; au loin les
+   plaques fondent en une nappe unie (rien ne crépite à 800 m). Les fentes s'élargissent avec la distance à l'écran (fwidth) : aucune ligne
+   d'un pixel qui scintille. Les CHUTES (genre 2) : la même matière, étirée et qui file vers le bas. */
+const VLC_LAVE_FS5=[FG_BRUIT,VLC_LUM,VLC_VOR,'varying vec3 vW;varying vec4 vV;','#include <fog_pars_fragment>',
+  'void main(){vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);float t=uTime;bool chute=vV.w>1.5;',
+  '  vec2 q=chute?vec2((vW.x+vW.z)*2.2,vW.y+t*9.):vW.xz;',
+  '  vec2 fl=chute?vec2(0.):vV.xy;',
+  '  vec2 p=(q-fl*t*.9-vec2(t*.45,-t*.3))/(chute?60.:40.);',                                                  // le courant : tout dérive, lentement, vers le bas
+  '  p+=(vec2(fn2(q*.011+3.1),fn2(q*.011+7.7))-.5)*1.5;',                                                     // des bords organiques (jamais une grille)
+  '  float loin=smoothstep(320.,1100.,dist);vec3 vo=vec3(.45,.75,.5);',
+  '  if(loin<.995)vo=vlcVor(p);float e=vo.y-vo.x,aa=fwidth(e);',                                             // (au-delà de 1,1 km les plaques ont fondu : on ne cherche plus les cellules)
+  '  float ouv=step(.76,vo.z);',                                                                             // une cellule sur quatre : un BASSIN ouvert
+  '  float fente=1.-smoothstep(0.,.13+aa*1.6,e);',                                                           // la fente entre deux plaques
+  '  float pl=(1.-ouv)*smoothstep(.09,.19+aa*1.6,e);',                                                       // la PLAQUE
+  '  pl=max(pl,smoothstep(3.2,.4,vV.z)*.96);pl=mix(pl,.9,loin);',                                           // la rive fige ; au loin les plaques fondent en une croûte sombre veinée
+  '  float h=fn2(q*.006+vec2(t*.008,0.))*.65+fn2(q*.021-vec2(0.,t*.015))*.35;',
+  '  vec3 liq=mix(vec3(1.,.27,.035),vec3(1.,.56,.09),smoothstep(.25,.75,h));',                               // la lave vive : orange → OR (le rouge pur, poussé par l'étalonnage, saturait tout l'écran)
+  '  liq=mix(liq,vec3(1.,.86,.42),fente*fente*(1.-ouv)*.85+ouv*(1.-smoothstep(.05,.62,vo.x))*.55);',         // jaune au cœur des fentes et des bassins
+  '  float bord=smoothstep(.34,.12,e)*pl;',                                                                   // le liseré tiède le long des bords
+  '  vec3 cru=mix(vec3(.085,.055,.095),vec3(.13,.075,.10),vo.z)*(.85+.3*fn2(q*.05));',                     // la croûte : verre noir violacé, une teinte par plaque
+  '  vec3 R=reflect(-V,vec3(0.,1.,0.));float fr=.04+.96*pow(clamp(1.-V.y,0.,1.),5.);',
+  '  vec3 col=cru*(uSky*.8+uGnd*.4+uFlash*1.2+vPhare(vW,vec3(0.,1.,0.)))+mix(uGnd,uSky,clamp(R.y*.5+.5,0.,1.))*fr*.11*pl+uSunC*pow(max(dot(R,uSunDir),0.),60.)*.18*pl;',
+  '  col=mix(col,uBruC,vBrume(vW,dist)*.25);',
+  '  float pul=.88+.12*sin(t*1.1+vo.z*20.+h*6.);',
+  '  vec3 em=(liq*(1.-pl)*pul+vec3(1.,.26,.04)*bord*.30)*uLav*(1.9+(uErupt+uErupt2)*.6);',                    // assez fort pour que la bloom s'en empare
+  '  em=mix(em,liq*uLav*1.9*(.09+.08*smoothstep(.4,.8,h)),loin*.8);',                                       // au loin : une lueur basse — l'orange vif reste aux rivières et aux lacs proches
+  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.78)*(1.-smoothstep(fogFar*.9,fogFar*1.7,fogDepth));','  #else','  col+=em;','  #endif',
+  '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LA ROCHE TAILLÉE (aiguilles, orgues, hornitos, l'arche) : le maillage de l'atelier des arbres (aA = partie, occlusion, hasard, hauteur
    relative ; aC = albédo) ; aI = (hasard, —, pied dans la lave, —). Parties : 0 basalte · 1 OBSIDIENNE (verre noir, veines de feu) ·
    2 orgue · 3 roche chaude (fissures qui luisent). */
@@ -20545,14 +20629,16 @@ const VLC_ROC_VS=['attribute vec4 aA;attribute vec3 aC;attribute vec4 aI;varying
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const VLC_ROC_FS=[FG_BRUIT,VLC_LUM,'varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;','#include <fog_pars_fragment>',
   'void main(){float part=floor(vA.x+.5);vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec3 o=vO;',
+  '#ifdef V5','  vec3 Nf=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(Nf,N)<0.)Nf=-Nf;N=normalize(mix(Nf,N,.3));','#endif', // (v5) les facettes, comme la roche
   '  vec3 alb=vC*(.72+.56*fn3(o*.35));float ao=vA.y,gl=0.;',
+  '#ifdef V5','  alb*=vec3(1.45,1.25,2.05);','#endif',                                                              // (v5) le basalte tiré vers l'indigo commun, une ardoise (l'arche sortait en aplat NOIR au matin)
   '  if(part<.5)alb*=.75+.5*fn3(o*vec3(.5,.12,.5));',
-  '  else if(part<1.5){alb=vec3(.016,.013,.02)*(.8+.4*fn3(o*.4));float vn=abs(fn3(o*.21)-.5)+abs(fn3(o*.57)-.5)*.6;gl=smoothstep(.055,0.,vn)*(.35+.65*smoothstep(.45,0.,vA.w));}',
+  '  else if(part<1.5){alb='+(VLC5?'vec3(.075,.058,.115)':'vec3(.016,.013,.02)')+'*(.8+.4*fn3(o*.4));float vn=abs(fn3(o*.21)-.5)+abs(fn3(o*.57)-.5)*.6;gl=smoothstep(.055,0.,vn)*(.35+.65*smoothstep(.45,0.,vA.w));}',
   '  else if(part<2.5)alb*=.8+.35*fn3(o*.9);',
-  '  else{float vn=abs(fn3(o*.33)-.5);gl=smoothstep(.06,0.,vn)*.85;}',
+  '  else{float vn=abs(fn3(o*'+(VLC5?'.17':'.33')+')-.5);gl=smoothstep('+(VLC5?'.032':'.06')+',0.,vn)*.85;}',  // (v5) des veines plus rares et plus larges : l'arche en peau de léopard redevient une roche fendue
   '  float dif=clamp((dot(N,uSunDir)+.12)/1.12,0.,1.);',
-  '  vec3 col=alb*(uSky*(.42+.36*N.y)*ao+uGnd*(.32-.24*N.y)*ao+uSunC*dif*mix(.5,.92,ao)+uFillC*max(dot(N,-uFillD),0.)*.4);',
-  '  if(part>.5&&part<1.5){vec3 H=normalize(uSunDir+V);col+=uSunC*pow(max(dot(N,H),0.),80.)*.8;float fr=pow(1.-max(dot(N,V),0.),4.);col+=mix(uGnd,uSky,clamp(reflect(-V,N).y*.5+.5,0.,1.))*fr*.30;}', // le VERRE NOIR
+  '  vec3 col=alb*(uSky*('+(VLC5?'.85+.40':'.42+.36')+'*N.y)*ao+uGnd*(.32-.24*N.y)*ao+uSunC*dif*mix(.5,.92,ao)+uFillC*max(dot(N,-uFillD),0.)*.4);', // (v5 : le ciel remplit les ombres, comme la roche)
+  '  if(part>.5&&part<1.5){vec3 H=normalize(uSunDir+V);col+=uSunC*pow(max(dot(N,H),0.),80.)*.8;float fr=pow(1.-max(dot(N,V),0.),4.);col+=mix(uGnd,uSky,clamp(reflect(-V,N).y*.5+.5,0.,1.))*fr*'+(VLC5?'.55':'.30')+';}', // le VERRE NOIR (v5 : un verre violet qui prend le ciel — l'obsidienne noire sur brume sombre ne se lisait plus)
   '  col+=alb*vec3(1.,.30,.07)*uLue*vI.z*(1.-smoothstep(0.,.3,vA.w))*2.2*(.5+.5*(1.-N.y));',                  // le pied dans la lave rougeoie
   '  col+=alb*(vPhare(vW,N)+vErupt(vW,N)*3.+uFlash*vec3(.8,.82,1.)*1.2);',
   '  col=mix(col,uBruC,vBrume(vW,dist));',
@@ -20588,7 +20674,7 @@ const VLC_PART_VS=['attribute vec4 aR;uniform float uTime,uBra,uCen,uPx,uK;unifo
   '  float fl=.5+.5*sin(uTime*(6.+aR.w*9.)+aR.x*40.);',
   '  vA=smoothstep(0.,.08,e)*(uK<.5?uBra*(.35+.65*fl):uCen*(.55+.45*aR.w));',
   '  vC=uK<.5?mix(vec3(1.,.22,.02),vec3(1.,.72,.22),aR.y)*2.2:vec3(.11,.10,.095);',
-  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+(CONTI_V?'.75+aR.z*.6':'1.3+aR.z')+':2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran
+  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=vA<.003?0.:(uK<.5?'+(CONTI_V?'.75+aR.z*.6':'1.3+aR.z')+':2.2+aR.z*1.2)*uPx*300./max(1.,-mv.z);'+(VLC5?'gl_PointSize=min(gl_PointSize,(uK<.5?4.5:7.)*uPx);':'')+'}'].join('\n'); // (continuité) des ÉTINCELLES, plus des pastilles orange plein écran · (v5) plafonnées à quelques pixels : la braise qui frôlait l'objectif devenait un DISQUE rouge de 200 px (les « bulles » des cartes postales)
 const VLC_PART_FS=['uniform float uK;varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;',
   '  if(uK<.5)gl_FragColor=vec4(vC*vA*a,1.);else gl_FragColor=vec4(vC,min(1.,vA*a*1.6));}'].join('\n');
 /* LES GEYSERS DE LAVE (et la FONTAINE du cratère à l'éruption) : chaque goutte vit sa parabole dans le shader ; aG = (période, phase,
@@ -20605,9 +20691,9 @@ const VLC_GEY_FS=['varying vec3 vC;varying float vA;void main(){float d=length(g
 function volcanMats(){if(VOLCAN.mats)return VOLCAN.mats;const U=VLC_U,F=THREE.UniformsLib.fog;
   const sm=(vs,fs,o)=>{const m=new THREE.ShaderMaterial(Object.assign({uniforms:Object.assign(THREE.UniformsUtils.clone(F),U,o&&o.u||{}),vertexShader:vs,fragmentShader:fs,fog:true},o&&o.m||{}));m.dispose=function(){};return m;}; // jamais libérées : un seul jeu pour tous les volcans
   const M={};
-  M.sol=sm(VLC_SOL_VS,VLC_SOL_FS);
-  M.lave=sm(VLC_LAVE_VS,VLC_LAVE_FS);
-  M.roc=sm(VLC_ROC_VS,VLC_ROC_FS);
+  M.sol=VLC5?sm(VLC_SOL_VS,VLC_SOL_FS5,{m:{extensions:{derivatives:true}}}):sm(VLC_SOL_VS,VLC_SOL_FS);
+  M.lave=VLC5?sm(VLC_LAVE_VS,VLC_LAVE_FS5,{m:{extensions:{derivatives:true}}}):sm(VLC_LAVE_VS,VLC_LAVE_FS);
+  M.roc=VLC5?sm(VLC_ROC_VS,VLC_ROC_FS,{m:{extensions:{derivatives:true},defines:{V5:1}}}):sm(VLC_ROC_VS,VLC_ROC_FS);
   M.fum=sm(VLC_FUM_VS,VLC_FUM_FS,{m:{transparent:true,depthWrite:false}});
   M.bra=sm(VLC_PART_VS,VLC_PART_FS,{u:{uK:{value:0}},m:{transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}});
   M.cen=sm(VLC_PART_VS,VLC_PART_FS,{u:{uK:{value:1}},m:{transparent:true,depthWrite:false,fog:false}});
@@ -20661,12 +20747,13 @@ function vlcMorceau(root,ci,cj){
       P[q*3]=x;P[q*3+1]=S.h[k];P[q*3+2]=z;
       const kl=Math.max(0,gi-1)+gj*S.nx,kr=Math.min(S.nx-1,gi+1)+gj*S.nx,kd=gi+Math.max(0,gj-1)*S.nx,ku=gi+Math.min(S.nz-1,gj+1)*S.nx;
       let nx9=S.h[kl]-S.h[kr],ny9=2*S.C,nz9=S.h[kd]-S.h[ku];const l=Math.hypot(nx9,ny9,nz9);Nm[q*3]=nx9/l;Nm[q*3+1]=ny9/l;Nm[q*3+2]=nz9/l;
-      A[q*4]=S.d[k];A[q*4+1]=S.ht[k];A[q*4+2]=S.h[k]-S.yl[k];A[q*4+3]=0;
+      A[q*4]=S.d[k];A[q*4+1]=S.ht[k];A[q*4+2]=S.h[k]-S.yl[k];A[q*4+3]=S.cf?S.cf[k]:0;
       // la LAVE : sa surface, le sens de sa pente (elle coule vers le bas de la vallée), la profondeur (la rive fige)
       PL[q*3]=x;PL[q*3+1]=S.yl[k];PL[q*3+2]=z;let fx=S.yl[kl]-S.yl[kr],fz=S.yl[kd]-S.yl[ku];const fl=Math.hypot(fx,fz);if(fl>.02){fx/=fl;fz/=fl;}else{fx=0;fz=0;}
       AV[q*4]=fx;AV[q*4+1]=fz;AV[q*4+2]=S.yl[k]-S.h[k];AV[q*4+3]=0;}
     for(let j=0;j<hh-1;j++)for(let i=0;i<w-1;i++){const k=(ci+i)+(cj+j)*S.nx,a=i+j*w;if(S.d[k]>S.MARG+120&&S.d[k+1+S.nx]>S.MARG+120)continue;
       I.push(a,a+w,a+1,a+1,a+w,a+w+1);
+      if(VLC5&&Math.max(S.yl[k],S.yl[k+1],S.yl[k+S.nx],S.yl[k+S.nx+1])-Math.min(S.yl[k],S.yl[k+1],S.yl[k+S.nx],S.yl[k+S.nx+1])>6)continue; // (v5) au bord du LAC DU CRATÈRE la surface sautait de la mer au cratère : un MUR de lave de 600 m, rayé, plantait une « tour » noire et orange au sommet du grand volcan (ces cases-là sont sous la roche)
       if(S.h[k]<S.yl[k]+.6||S.h[k+1]<S.yl[k+1]+.6||S.h[k+S.nx]<S.yl[k+S.nx]+.6||S.h[k+S.nx+1]<S.yl[k+S.nx+1]+.6)IL.push(a,a+w,a+1,a+1,a+w,a+w+1);}
     if(!I.length)return;
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(Nm,3));g.setAttribute('aS',new THREE.BufferAttribute(A,4));
@@ -20728,7 +20815,8 @@ function vlcPanaches(root,fr){const nF=PAL_B9('volcanFumee',80),C9=[],P9=[];
    for(const b of VOLCAN.bancs||[]){const n=Math.max(6,Math.round((b.s1-b.s0)*dens));for(let k=0;k<n;k++){const i=Math.max(0,Math.min(NP-1,Math.round((b.s0+R9()*(b.s1-b.s0))/ds9))),t=T[i],hl=Math.hypot(t.x,t.z)||1,lat=(R9()*2-1)*(ROAD_HALF+80),sz=55+R9()*60;
      C9.push(pts[i].x-t.z/hl*lat,pts[i].y-28+R9()*72,pts[i].z+t.x/hl*lat,0);P9.push(R9(),sz,sz,4);}}}
   {const n=TEL_NATIF?6:14;for(let k=0;k<n;k++){const i=Math.round(fr()*(NP-1)),an=fr()*6.283,r=300+fr()*1500,sz=700+fr()*450; // le PLAFOND DE CENDRE
-    C9.push(pts[i].x+Math.sin(an)*r,pts[i].y+620+fr()*320,pts[i].z+Math.cos(an)*r,0);P9.push(fr(),sz,sz,3);}}
+    const y9=pts[i].y+620+fr()*320,ph9=fr();if(VLC5)continue; // (v5) plus de PLAFOND DE CENDRE : ses grandes nappes faisaient des taches brunes dans le ciel (les tirages fr() sont gardés)
+    C9.push(pts[i].x+Math.sin(an)*r,y9,pts[i].z+Math.cos(an)*r,0);P9.push(ph9,sz,sz,3);}}
   const g=new THREE.InstancedBufferGeometry(),pl=new THREE.PlaneGeometry(1,1);g.index=pl.index;g.setAttribute('position',pl.attributes.position);g.setAttribute('uv',pl.attributes.uv);
   g.setAttribute('aC',new THREE.InstancedBufferAttribute(new Float32Array(C9),4));g.setAttribute('aP',new THREE.InstancedBufferAttribute(new Float32Array(P9),4));g.instanceCount=P9.length/4;
   const m=new THREE.Mesh(g,VOLCAN.mats.fum);m.frustumCulled=false;m.matrixAutoUpdate=false;m.renderOrder=3;m.userData.jeter=true;m.name='volcan panaches';root.add(m);VOLCAN.n.bouffees=g.instanceCount;return m;}
@@ -20806,7 +20894,7 @@ function buildVolcan(seed){
   // ---- 3. LES AIGUILLES D'OBSIDIENNE : à la corde des virages de la plaine, au large des S du flanc, en quinconce sur les droites ----
   const AG=[];
   const aiguille=(i,sg,lat)=>{const p=pts[i],l9=lat9(i),x=p.x+l9[0]*sg*lat,z=p.z+l9[1]*sg*lat;if(!horsArche(x,z,140)||!horsSaut(x,z))return false;
-    const base=Math.min(vlcH(x,z),vlcL(x,z))-4,v=(fr()*3)|0,top=p.y+38+fr()*55,sy=Math.max(.8,(top-base)/100),sxz=Math.min(1.5,Math.max(.7,Math.sqrt(sy)*.85*(.85+fr()*.3)));
+    const base=Math.min(vlcH(x,z),vlcL(x,z))-4,v=(fr()*3)|0,top=p.y+38+fr()*55,sy=Math.max(.8,(top-base)/100),sxz=Math.min(1.5,Math.max(.7,Math.sqrt(sy)*.85*(.85+fr()*.3)))*(VLC5?1.6:1); // (v5) des FLÈCHES de basalte trapues (les lames fines se lisaient comme des antennes noires) — la collision suit (rR, COL)
     const uR=Math.max(0,Math.min(1,(p.y-base+12)/(112*sy))),rR=14*Math.pow(1-uR,1.25)*sxz+4;
     if(lat<ROAD_HALF+rR+7||p.y-base>260)return false; // (pas d'aiguille de 600 m sous la route haute du cratère)
     for(const g of AG)if(Math.hypot(g.x-x,g.z-z)<60)return false;
@@ -28030,6 +28118,22 @@ if(CONTI_V){
 if(CONTRASTE_V)for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','foretOrage'])if(BIOMES[k]){const b=BIOMES[k],n9=k==='foretNuit'||k==='foretOrage';
   b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
   if(n9){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}}
+/* (v5, 2026-10-18 — Sacha : « la map volcan est la plus moche, lance une grosse refonte ») LES CIELS DU VOLCAN — APRÈS la continuité (elle réécrit
+   les ciels, les nuits, le grade de toutes les maps) : le SOIR, la carte postale, avait un zénith NOIR et une simple bande orange — il prend le
+   dégradé de la bible (indigo → magenta → braise → or) ; la brume n'est plus un rouge plat qui avale tout, mais un air prune qui laisse lire les
+   silhouettes ; le rebond du sol reste la lave (la caisse éclairée PAR LE BAS) ; la brume recule (3 000 → 4 000-4 600 m) : le GRAND VOLCAN, droit
+   devant le portail à 1,5-3 km, était fondu aux deux tiers dans la brume — c'est le repère de la map, on le voit dès le départ. `?volcan=v4` = avant. */
+if(VLC5){const V9={
+    volcanSoir:{jZen:[.11,.05,.26],jMid:[.46,.09,.27],jHor:[1,.40,.12],jSol:[1,.52,.14],fog:[.26,.08,.15],fogCj:[.80,.30,.14],fogIn:[.44,.15,.24],
+      hemiS:[.50,.36,.70],hemiG:[.46,.12,.04],hemiI:.66,sunC:[1,.54,.28],sunI:1.6,fillC:[.80,.24,.06],fillI:.30,fogN:320,fogF:4300},
+    volcanMatin:{fog:[.38,.24,.34],fogIn:[.58,.42,.52],fogN:300,fogF:4000},
+    volcanMidi:{fog:[.42,.36,.40],hemiG:[.40,.16,.08],fogN:320,fogF:4600},
+    volcanNuit:{jZen:[.05,.04,.20],jMid:[.15,.06,.28],jHor:[.40,.09,.06],fog:[.10,.045,.12],fogIn:[.24,.09,.16],fogN:320,fogF:4000},
+    /* l'ORAGE VOLCANIQUE sortait presque NOIR (ciel L* 2-4, roche et brume au noir) : un orage violet, la nuit de la bible — les éclairs et la lave par-dessus */
+    volcanOrage:{jZen:[.055,.035,.15],jMid:[.13,.06,.21],jHor:[.30,.08,.09],fog:[.09,.045,.11],fogCj:[.30,.12,.14],fogIn:[.20,.10,.20],hemiS:[.36,.30,.58],hemiI:.62,expo:1},
+    /* la PLUIE DE CENDRES était un brun gris (l'interdit de la bible) : une cendre mauve et ocre */
+    volcanCendre:{jZen:[.15,.11,.19],jMid:[.30,.20,.25],jHor:[.54,.33,.26],fog:[.27,.18,.21],fogCj:[.46,.30,.26],fogIn:[.36,.27,.30],hemiS:[.52,.48,.68]}};
+  for(const k in V9)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(V9[k])));}
 /* (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») */ // (2026-10-14, passe graphismes · orbite2) Saturne a SA lumière (voir l'étalonnage EN ORBITE)
 const SATURNE_ANNEAU=true; // (2026-10-14, passe graphismes, accordé par Sacha) l'ANNEAU de Saturne : UN disque (144 triangles), UNE texture de bandes 256×2 peinte une fois ; false = Saturne nue
 /* L'ANNEAU. Un seul MeshBasicMaterial (carte + alphaTest : les trous sont des pixels transparents, donc l'anneau reste dans la liste OPAQUE) posé dans le groupe de la planète.
