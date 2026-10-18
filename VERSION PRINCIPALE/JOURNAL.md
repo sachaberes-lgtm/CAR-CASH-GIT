@@ -601,6 +601,23 @@
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
 
+## LES JAPONAISES — 6 · ROSSO 40 REFAITE AU PLAN (2026-10-18, discussion JAPONAISES, Léo : « complexifie la ROSSO 40, imitation encore plus fidèle et satisfaisante pour les vrais kiffeurs de voiture »)
+- **Le plan** : the-blueprints « Ferrari F40 (1987) » (aperçu vectoriel en couleur, quatre vues, 172,65 px/m, empattement 2,45 m) + les plans au trait gratuits
+  (ouïes du Lexan, feux) ; photos Wikimedia Commons (catégorie « Ferrari F40 »). Relevé au quadrillage métrique (`grille.py`).
+- **Le gabarit** : `SHAPES.rosso=…` dans la zone des JAPONAISES (repère `// <<< SHAPES.rosso (JAPONAISES) >>>`) — il REMPLACE au chargement la méthode
+  `rosso` de l'objet SHAPES, dont le texte reste intact plus haut ; la ligne CARS de ROSSO 40 n'est pas touchée ; les trois sorties de Léo
+  (`ECH_POTS.rosso`) s'appliquent toujours. Loft à 18 points (taille de guêpe : le haut des portières rentre de 18 cm, `TOP`), zones capot / serre /
+  moteur (arcs-boutants, paroi intérieure, Lexan). Découpés : le capot moteur en Lexan fumé et ses 24 ouïes, les deux plénums rouges du V8 dessous ;
+  les trappes des phares escamotables (`ROSSOPH`, à la nitro comme LA CERISE et LE TOFU : deux optiques rondes) ; les feux fixes (lus de dessus sur la
+  pente du nez : cuvette, clignotant, optique) ; NACA du capot et de portière, prise des hanches, bouche grillagée, prises des freins, quatre fentes,
+  panneau arrière grillagé en losanges, quatre feux ronds, catadioptres, cuvette des sorties, bouchons d'essence, vitres, joints, pli de ceinture.
+  Posés : l'aileron intégré (deux dérives penchées, le plan, bord de fuite noir), la lame qui suit le nez, rétros, essuie-glace, diffuseur, plaque.
+  Jantes à cinq branches, écrou central, rebord poli. 4 000 → 26 700 facettes.
+- `'rosso'` ajouté à `japChauffe`, et la préchauffe passe à SIX étapes (une par japonaise — LA BÊTE n'était pas préchauffée : 1re pose 32 ms désormais).
+  1re pose de ROSSO 35-50 ms : l'encastrement des trois pots de Léo (`echEncastre`, une trentaine de rayons contre la caisse) en est la moitié.
+- Vérifié (main fusionné) : course ordi/debout/couché, 0 programme compilé, aucune erreur ; garage + inventaire. Planche :
+  `photos-gameplay/rosso40-avant-apres.png` (VRAIE | AVANT | APRÈS : 3/4 avant, profil, 3/4 arrière, moteur, phares, de près).
+
 ## LES JAPONAISES — 5 · LA PIKES PEAK, « LA BÊTE » (nom provisoire), ÉPIQUE, INDEX 87 — ⚠ LA SUIVANTE DE LA GAMME DEVIENT LA 88 (2026-10-18, discussion JAPONAISES, Léo : « une voiture de rallye de bâtard, inspirée un peu Red Bull »)
 - **Le plan** : the-blueprints « Peugeot 208 T16 Pikes Peak (2013) » (aperçu vectoriel, quatre vues, 172 px/m, empattement 2,695 m, 4,50 × 2,00 × 1,30 m) —
   relevé au quadrillage métrique (`grille.py <image> <sortie> <px/m> <x0> <y0> <su> <sv> <cadre> <échelle>` : 10 cm posés sur le plan).
