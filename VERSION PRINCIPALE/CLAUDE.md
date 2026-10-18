@@ -231,7 +231,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Éditions et appareils** : `POKI`, `CC_PK`/`KITS`/`pkPasse`, `TEST_CAISSES`, `FACILE_OK`, `IS_MOBILE`, `TEL_NATIF`, `FORCE_TEL`,
   `SIMU_JEU`, `BALADE`.
 - **Perf** : qualité auto `QL`/`QLR`/`qlSonde`, résolution `applyDPR`/`applyQ`/`curDPR`/`DPR_CAP`/`DPR_MIN`, chauffe
-  `chauffeRendu`/`chauffeDivers`/`engChauffe`/`atelierChauffe`, sursis `MAT_SURSIS`/`CAR_GARDE`/`ENG_GARDE`, `SCENE_TOUJOURS`,
+  `chauffeRendu`/`chauffeDivers`/`engChauffe`/`atelierChauffe`, sursis `MAT_SURSIS`/`CAR_GARDE`/`ENG_GARDE`/`PISTE_GARDE`, `SCENE_TOUJOURS`,
   `VP`, `pisteTranches`, `LFB_SANS_PL`, `LFB_ROUTE_LUM`, `atelierLampes`.
 
 ---
@@ -369,6 +369,16 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 - **Faux positifs connus** : le 404 de `assets/audio/music/dark-triad.mp3` (repli prévu) ; les avertissements WebGL « READ-usage
   buffer » à l'écran de fin ; `#auraV2` à −4 px (son animation d'entrée) ; les chevauchements voulus `#engBig`×`#slam9` et
   `#dolHud`×`#lvlBan` ; +8 nœuds DOM par partie (le TOP 10).
+
+**PASSE PERF 18/10 — le banc de perf et ce qu'il a trouvé** (le récit et les chiffres : « LA PASSE PERF DU 18/10 » au journal)
+- Banc : Chrome sans fenêtre en iPhone (390 × 844 ×3, tactile, UA iPhone), NETTE, `?palier=2`, processeur ×4 posé APRÈS le menu, `dbgSable(1)`,
+  `dbgQual(0)`, pilote auto sol puis vol. Compter les COMPILATIONS en accrochant `linkProgram` avant le chargement ; nommer un programme neuf en
+  comparant sa clé (`renderer.info.programs`) à la plus proche, champ par champ. Chronométrer SANS le profileur (il déforme les images longues),
+  et seulement au calme (`uptime` < 8) : les compteurs (appels, triangles, compilations) ne dépendent pas de la charge.
+- Corrigé : plus aucun programme compilé en course au CANYON (`canyonChauffe` + les matières double face `cyMonuMats().b/.g`) ni APRÈS LE GLACIER
+  (`PISTE_GARDE` : la 1re matière de route de chaque programme n'est jamais libérée). ⚠ Une map dont la route ou le décor ne reprend pas les
+  matières de la précédente tue leurs programmes : vérifier la map SUIVANTE, pas seulement la sienne.
+- Le reste du coût est le LOOK (appels de dessin) ou la PUCE : il se mesure sur un vrai téléphone, `…/jouer/?banc=1&refaire=1`.
 
 **Crochets de console utiles** : `dbgState()` · `dbgAuto(1,lat,{vol,nit,saut})` (pilote) · `dbgStep(n,ms)` (la boucle à la main)
 · `dbgView(a,d,h)` (mode photo) · `dbgSaut()` (= NIVEAU suivant, pas un saut) · `dbgDauphin(…)` (s'envoler) ·
@@ -550,6 +560,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `PLEUR`, `FOR_ARB_FS` (le slalom `forZigzag` et la mousse ont été retirés le 18/10)
 
 **Débogage, perf, bancs**
+- « LA PASSE PERF DU 18/10 — PLUS AUCUN PROGRAMME COMPILÉ EN COURSE (CANYON, APRÈS LE GLACIER) + LE CLASSEMENT DES POSTES » (18/10) — `PISTE_GARDE`, `canyonChauffe`, le banc ×4, ce qui reste (JOUER, portails, puce)
 - « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
 - « LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE » (14/10) · « LA PASSE QUALITÉ AVANT SORTIE » (12/10)
 - « LA CAMPAGNE DE DEBUG AVANT PUBLICATION » (07/10) · « L'AUDIT AVANT PUBLICATION, ZONE GAMEPLAY » (07/10) · « LA PASSE DE SORTIE » (29/09)

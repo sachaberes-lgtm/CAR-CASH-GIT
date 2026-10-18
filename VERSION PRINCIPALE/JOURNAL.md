@@ -3,12 +3,67 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## CINQ VOITURES DE PLUS SUR LE MAIN (2026-10-19, v662, Léo : « oui, mets les 5 dans le jeu avec les choix ★ »)
+## CINQ VOITURES DE PLUS SUR LE MAIN (2026-10-19, v663, Léo : « oui, mets les 5 dans le jeu avec les choix ★ »)
 - LA QUEUE DE CANARD (RONDES, f84fc25a) et LA GRANDE ANGLAISE (RONDES, 0bfbb75b) refaites au plan ; LE BAROUDEUR en gris Sahara, élargisseurs
   et toit couleur caisse, chaque lumière à sa place (BOÎTES, cba2f543 + 9f04afe8) ; LE CAÏD devient le GMC HUMMER EV pick-up, vert anis
   gardé (BOÎTES, 9e279867 + 20294f96 ; la Classe G n'a jamais été poussée) ; LA BÊTE = la 208 T16 Pikes Peak (JAPONAISES, index 87,
   ÉPIQUE 1 000 000 $, livrée A sans logo). La ROSSO 40 reste celle d'avant (Léo, chez JAPONAISES : « la rosso revient sur avant »).
 - Fusion : un conflit dans `chauffeDivers` (les étapes `japChauffe` ×5 de JAPONAISES + `rondesChauffe` ×2 de RONDES : toutes gardées).
+
+## LA PASSE PERF DU 18/10 — PLUS AUCUN PROGRAMME COMPILÉ EN COURSE (CANYON, APRÈS LE GLACIER) + LE CLASSEMENT DES POSTES (2026-10-18, session PERF — Léo : « démarre une session optimisation des performances » ; le but : « tout le monde doit pouvoir jouer », fluide en NETTE sur iPhone, sans à-coups, sans perte de netteté)
+- **LE BANC** (scratchpad de la session ; la méthode est celle de « LA PASSE MOBILE » du 14/10) : Chrome sans fenêtre déguisé en iPhone (390 × 844 ×3,
+  tactile, UA iPhone → le vrai chemin `TEL_NATIF`), sauvegarde muette en NETTE (`q:'net'`), `?palier=2`, processeur bridé ×4 (posé APRÈS le menu : le
+  petit banc de PAL doit voir la vraie machine), `dbgSable(1)` + `dbgQual(0)` (le cran figé : même travail de la puce d'une manche à l'autre), le
+  pilote auto au sol (`dbgAuto(1,0,{})`) puis en vol (`{vol:1,saut:.3,imp:25,nit:2}`), chaque map du tirage atteinte par `dbgClassique`+`dbgSaut` ;
+  les COMPILATIONS comptées en accrochant `WebGL2RenderingContext.prototype.linkProgram` avant le chargement (avec le shader et l'appelant), les
+  programmes NEUFS nommés en comparant `renderer.info.programs` avant / après (la clé du plus proche, champ par champ : `doubleSided`, `custom`…).
+  Les traversées NATURELLES d'un portail (pré-bâti pris) chronométrées image par image. ⚠ La machine est partagée : sous charge 30-90 (bancs
+  d'autres sessions, mise à jour du système) les ms ne valent rien — les chiffres ci-dessous sont pris au calme (charge 3-7) ; les compteurs
+  (appels, triangles, compilations) ne dépendent pas de la charge. Le profileur à 100 µs déforme les images longues (une image de 567 ms sous
+  profileur = 4 images de 50-67 ms sans) : chronométrer sans lui.
+- **LE CLASSEMENT** (main v657, ×4, au calme) :
+  1. LES COMPILATIONS EN COURSE — chacune fige un iPhone 0,1-0,3 s (piège n° 7) : à CHAQUE 1re visite du CANYON 2 programmes, et à l'entrée de la
+     map qui SUIT LE GLACIER 5 programmes (toujours, dès que le glacier est passé). → corrigé, voir plus bas.
+  2. LE JOUER : 1,1 s d'image figée sous le nuage blanc (1re partie ; 3,6 s sous charge) — la piste tirée (`rebuildMenuScene` → `newTrack`,
+     260 ms) + la 1re image du monde neuf (envois à la puce) + la chauffe 120 ms plus tard. Au JOUER depuis l'ACCUEIL après une partie, la piste
+     est bâtie DEUX FOIS (`sous9` puis `resetGame`, 212 + 240 ms) : la 1re pour rien. Pas touché : sans la 1re, le ciel du départ ne serait plus
+     posé d'un coup (`rebuildMenuScene` baisse `started`, `resetGame` fait le fondu de portail `bioPortDur` + `BIO.dip`) → la 1re seconde
+     changerait d'image. REJOUER : une construction de ~1 s (×4) sous le volet. Piste pour une prochaine passe : bâtir la 1re map PENDANT le menu
+     (et celle du REJOUER pendant l'écran de fin) avec la machine du PRÉ-BÂTI.
+  3. LES PORTAILS (pré-bâti pris) : 4 images de 50-67 ms au passage (nuages → ville : `newTrack` 66 ms, dont `buildVoxCity` — la ville n'est pas
+     pré-bâtie — et la copie de l'image traversée `pcCopie`), pendant que le voile du portail zoome tout seul (compositeur) : le gel y est caché.
+  4. EN COURSE : au calme, 60 i/s presque partout à ×4 ; à-coups au jade (vol p90 50 ms) et aux nuages (p90 33). Le fil principal se partage
+     (canyon en vol) : JS de la boucle 31 % · styles 11 % · peinture + calques ~10 %. Dans le JS, le rendu three.js domine (150-340 ms/s à ×4 :
+     ~60 % le coût PAR APPEL de dessin — `setProgram`, `setup` —, le reste le parcours, l'ombre de la caisse, `updateMatrixWorld`) ; puis `jadeTick`
+     (= `finTravail`, travail de fond borné à 4 ms), `coinPose` (5-23 ms/s : chaque pièce visible tourne et se recopie dans l'instance), `drawSpeedLines`
+     (~10), `pickupsTick`, `chaineTick`, `cashHudTick`. Rien d'énorme à gagner à image égale : le coût suit le nombre d'appels, donc le LOOK
+     (nuages : 110 appels et 1,3 M triangles pour le coton au sol ; jade : 3 passes par famille de verre). Les `:has()` restants (35 règles, dont
+     `html:has(#modale.on) #tPanel`) : −20 % du temps des styles quand on les retire tous à chaud — mais le sélecteur ne coûte presque rien en
+     lui-même (53 ms sur 3 s, `SelectorStats`) : le temps des styles est dans le calcul des ~13 éléments par recalcul (animations du HUD), pas
+     dans le filtrage. Appels de dessin vides : 1 à 3 par image, rien à gagner.
+  La PUCE (chrono `EXT_disjoint_timer_query`, M2 sans bridage) : 4-14 ms par image selon la map en NETTE — sur un iPhone c'est probablement
+  ELLE le goulot (le processeur d'un iPhone récent vaut bien plus qu'un M2 ×4) : à mesurer sur un VRAI téléphone (`?banc=1`).
+- **CE QUI CHANGE** (image identique : on compile plus tôt, on garde en vie, rien d'autre) :
+  · `canyonChauffe` dessine aussi les deux matières DOUBLE FACE des pièces du canyon (`cyMonuMats().b`, le grès des mesas/voûtes, et `.g`, la roche à
+    couleurs des tunnels) — `.g` sur la géométrie colorée des arbres (`cyArbreGeo`) : sans attribut `color`, la clé du programme diffère d'un détail
+    (`vertexAlphas` vide au lieu de `false`) et le programme naissait quand même en course.
+  · `PISTE_GARDE` / `pisteGarde(m)` (à côté de `MAT_SURSIS`) : `matSursisTick` ne libère plus la 1re matière de route vue de chaque programme (bitume
+    `bitumeV5fsL`, tranche `trancheV3`, rails `trait0_1.5` / `trait1_2`, ligne `ligneFile`, comme `CAR_GARDE` pour les caisses). La piste nue du glacier
+    ne les reprenait pas : leurs matières partaient, three DÉTRUISAIT les programmes (piège n° 8) et la map suivante les recompilait.
+- **MESURÉ** (A/B contre le main, mêmes séquences, iPhone simulé ×4, au calme) :
+  · COMPILATIONS EN COURSE (`linkProgram`, programmes neufs dans `renderer.info.programs`) : volcan après le glacier **5 → 0**, canyon (1re visite)
+    **2 → 0** ; une partie de 12 maps avec revisites, sur le main v661 (avec LES PROFONDEURS) — jade, grotte, glacier, grotte, volcan, canyon,
+    nuages-orage, grotte, forêt, glacier, ville, jade : **12 → 0** (5 à la grotte qui suit le glacier, 2 au canyon, 5 à la ville qui suit le 2e glacier) ;
+    trois manches alternées main / passe (glacier → volcan → canyon) : 5/2 à chaque manche → 0/0.
+  · Le TEMPS gagné ne se chronomètre pas sur le Mac (Chrome compile en tâche de fond, WebKit compile ces programmes en quelques ms sur la puce du M2 :
+    l'image d'entrée reste dominée par la construction) ; sur iPhone un programme compilé en course fige l'image 0,1-0,3 s (passes du 26/09 et du
+    14/10, piège n° 7) — c'est cet à-coup qui disparaît, à chaque canyon et à chaque map qui suit un glacier.
+  · EN RÉGIME (ms par image, p50 / p90, sol puis vol) : inchangé, comme attendu (le rendu n'est pas touché) — jade 16,7/33 · 16,7/33-50 ; nuages
+    16,7/33 · 16,7/17-33 ; ville, forêt, glacier, crypto, orbite 16,7/17 (à ×4 !) ; volcan 16,7/33 ; canyon 16,7/17-33 ; les écarts de p90 entre deux
+    tours (16,7 ↔ 33,3) vont dans les deux sens : c'est l'arrondi de l'écran, du bruit. Appels de dessin (sol) : jade 213, nuages 253, ville 155,
+    forêt 159, glacier 111, volcan 181, crypto 197, orbite 114, canyon 152 ; triangles : nuages 1,38 M, canyon 0,83 M, forêt 0,73 M, jade 0,70 M.
+  · JOUER (1re partie, la chauffe du menu finie) : pire image 1,1 s à ×4, 0 compilation ; `?banc=1` vérifié de bout en bout sur ce code (Chrome).
+- **À MESURER SUR UN VRAI iPHONE** : `…/jouer/?banc=1&refaire=1` (3 min sans toucher, puis la capture) — la puce en NETTE, poste par poste.
 
 ## LA VETTE : SES ESCAMOTABLES SE LÈVENT À LA NITRO, ET FERMÉS ELLE N'ÉCLAIRE PLUS (2026-10-18, v661, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phare que quand tu boost »)
 - VU AVANT (banc muet, boutique couchée) : les phares de LA VETTE sont des escamotables rangés à plat dans le capot, mais son point de phare
