@@ -75,6 +75,29 @@
 - BANCS (scratchpad de la session) : `gc-banc.cjs`, `ded-banc.cjs` (planches vue de dessus en PNG, `--qs "?sans=modcartes"`), `acq.cjs`
   (traces du vrai jeu ON/OFF + référence), `ana.cjs`, `parcours.cjs` (les 10 maps roulées dans le jeu).
 
+## LE VOL QUI SUIT LA ROUTE — LES NUAGES SANS HAUT NI BAS, EN L'AIR AUSSI (2026-10-18, Sacha : « dans la map nuage la route fait des rotations et tout mais la voiture a du mal à voler, comme si le jeu n'arrivait pas à savoir de quel côté de la route on va »)
+- LA CAUSE, MESURÉE : la route des nuages se tord dans l'espace (à l'endroit, sur la tranche, à l'envers), mais EN VOL la gravité, le plané du
+  nitro et l'ÉQUILIBRE de la caisse gardaient le bas du MONDE (« En vol la gravité reste », 15/10). Un saut depuis une dalle sur la tranche partait
+  à côté d'elle, depuis une dalle à l'envers il tombait LOIN d'elle ; et l'équilibre redressait caisse et écran vers un ciel qui n'existe pas sur
+  cette map. Banc `volcote.cjs` (saut de 21 m/s, l'impulsion du saut nitro, à 162 km/h, sans toucher au volant, même point de la piste pour
+  l'ancien et le nouveau vol) : posés sur leur route 6/6 à plat, 3/5 penchée (30-75°), 1/6 sur la tranche, 0/6 à l'envers — les autres perdus
+  jusqu'au couperet des 6 s ; l'écran tournait de 73 à 88° pendant un saut depuis une dalle sur la tranche ou à l'envers.
+- LE CORRECTIF (`VOLR`, à côté de `TBORD`) : sur la route sans haut ni bas, le HAUT DU VOL est le ciel de la dalle survolée — la normale du point
+  le plus proche (le radar de tryLand), sur la face quittée ; quand le radar passe à un autre tronçon, la face la plus proche du haut d'avant
+  (jamais plus de 90° d'un coup), lissée en ~0,08 s. Le suivent : la gravité, le plané du nitro, l'équilibre (`veqNiveau`) donc la caméra, le
+  viseur de pose, le plafond de montée (70) et celui de la vitesse « à plat », le BUMP hors bascule, le vertigo du plongeon, les prédictions des
+  figures (`sautVolPredit`, `figBudget`, le coup de rein), l'ombre de pose, le MIRACULÉ, le compteur et les ailes. La dalle à l'envers n'a plus de
+  « plafond » d'où l'on décroche au ralenti. Hors de cette route (`VOLR.on` faux) : les mêmes formules qu'avant, au chiffre près.
+- MESURÉ APRÈS (même banc, mêmes points) : 23/23 sauts posés sur leur route, même face, à ~15 m (0,35-1,6 s de vol), l'écran tourne de 6 à 14°.
+  Sortie par le BORD sans toucher au volant : perdue comme avant, mêmes temps sur dalle à plat (3,09 s contre 3,10).
+  Longs vols NITRO (saut + 1,4 s de nitro, un pilote de banc qui braque vers la route, 2 passages) : 8/13 posés contre 7/13 — et sur la
+  tranche le haut de la caisse reste à 7-17° de celui de la route (110 à 160° avant : elle volait presque à l'envers par rapport à elle).
+  Une route qui VRILLE sous une caisse haute la laisse sur le côté (la route tourne autour de son axe, pas autour de la caisse) : on braque
+  pour revenir — aucune aide ajoutée (verdict « zéro assistance »).
+- `?sans=volroute` = le vol d'avant ; `dbgVolRoute(false|true)` le bascule en direct pour les vols suivants (le banc apparié s'en sert).
+- Banc : `C:/Users/sacha/cc-banc/volcote.cjs <dossier VERSION PRINCIPALE> index.html <port>` (SCEN=saut|bord|nitro, PILOTE=1 = un pilote qui braque
+  vers la route, SEAUX=0..3 = les seaux de roulis, NPT = points par seau, TRACE=1 = la trajectoire image par image ; plafond 7 min : un ou deux seaux par passage).
+
 ## LES NOUVELLES VOITURES — HUIT PLACES RÉSERVÉES, LA BULLE ET LE COMBI EN COMMUNES (2026-10-18, v629, Léo : « actuellement la seule commune du jeu est LA HONTE, ajoute… »)
 - **La demande** : communes = la voiture des Simpson, la Fiat 500 (2007, finition « 1957 » de sa photo : bleu ciel, toit blanc), la Toyota
   Corolla berline (2019), la Jeep Wrangler (2018), la Mazda MX-5 NA (phares escamotables qui se lèvent), LA BULLE refaite (Coccinelle 1962,

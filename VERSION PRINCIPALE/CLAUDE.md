@@ -240,6 +240,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - LA MAP NUAGES EST UNE COURSE (18/10, Sacha : « trop peu de virages… ça reste un jeu de course ») : sur la route sans haut ni bas, zoom `TORD_AMP` 1,1, poids `TORD_W`,
   modules de COURSE (`MODT` : slalom, épingle, double corde, esses, montagnes russes, rayons VRAIS ≥ 1,7 × le rayon du palier), dévers `TORD_DEVERS`, et
   `pisteTordPropre` qui rejoue les vrilles si la route se touche. Une retouche passe par le banc des virages (journal). `?sans=virages` = la route du 15/10.
+  EN L'AIR AUSSI, PAS DE HAUT NI DE BAS (18/10, Sacha : « la voiture a du mal à voler, comme si le jeu n'arrivait pas à savoir de quel côté de la route on va ») :
+  `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
+  survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
+  `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
 - LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : `BANQ_V4` (123 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler) ;
   `?glacier=v3` = la descente verglacée d'avant. Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi ne reviennent qu'avec `?sats=route` (`SAT_OBST_V`).

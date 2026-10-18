@@ -12946,8 +12946,8 @@ function updateContactShadow(){ // appelée juste avant le rendu
     M9.opacity=vitrine?.9:(side<0?1:.72); // (2026-09-26) l'empreinte porte sa propre densité (≤ .46 sous le corps, ~.7 aux roues) ; sous la dalle elle est seule (l'ombre réelle part dans le vide)
     contactShadow.visible=true;
   }else if(mode==='fall'){
-    const hgt=fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage
-    if(hgt>0.4&&hgt<46&&lastNearH2<(ROAD_HALF+1.5)*(ROAD_HALF+1.5)){ // ...mais RIEN à survoler au-dessus d'un trou : pas d'ombre suspendue dans le vide — (route ÷2) 560 = 23,7² était la demi-route ×1,7 d'AVANT : sur la route ÷2 l'ombre « tu es au-dessus du bitume » s'allumait jusqu'à 16 m dans le vide ; désormais la dalle + une demi-caisse
+    const hgt=VOLR.on?curHOff:fallPos.y-lastNearY; // hauteur au-dessus de la route la plus proche → télégraphe d'atterrissage — (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : le long de la normale de la dalle
+    if(hgt>0.4&&hgt<46&&(VOLR.on?curLatOff*curLatOff:lastNearH2)<(ROAD_HALF+1.5)*(ROAD_HALF+1.5)){ // ...mais RIEN à survoler au-dessus d'un trou : pas d'ombre suspendue dans le vide — (route ÷2) 560 = 23,7² était la demi-route ×1,7 d'AVANT : sur la route ÷2 l'ombre « tu es au-dessus du bitume » s'allumait jusqu'à 16 m dans le vide ; désormais la dalle + une demi-caisse
       if(M9.map!==contactTex)M9.map=contactTex; // en vol, le télégraphe d'atterrissage reste le disque qui grandit avec la hauteur
       const bi9=tryLand._bi,k=1+hgt*0.05;
       if(bi9!=null&&bi9>=0&&Nn[bi9]&&curHOff>0){ // (2026-09-28) posée SUR la dalle survolée, dans son plan (sur une pente, le disque à plat s'y enfonçait à moitié)
@@ -15225,7 +15225,7 @@ const SANS_LOOPING=true;
    · `hautOn()` : la map NUAGES (et son orage) en course seulement — le ciel du menu, l'auto-école, la campagne et le parc ne bougent pas.
    · les vrilles ont leur PROPRE flux de hasard (graine ^ 0x70D5E11A) : le reste de la piste est tiré comme avant.
    · départ et portail À L'ENDROIT (on tombe du ciel sur une route droite, on passe le portail debout) ; le reste, libre.
-   · sur cette route la pente ne pousse ni ne retient plus (`hautPente`) : sans haut ni bas, pas de descente. En vol la gravité reste.
+   · sur cette route la pente ne pousse ni ne retient plus (`hautPente`) : sans haut ni bas, pas de descente. En vol la gravité reste — (2026-10-18) celle de LA ROUTE survolée, plus celle du monde (`VOLR`, LE VOL QUI SUIT LA ROUTE).
    · les filets (« la route qui te rattrape ») ne se posent pas ici : leur route d'en dessous n'est plus en dessous.
    `?sans=haut` rend la map d'avant. Crochet : `dbgHaut()` (roulis, normales, contrôle sans vrille).
    ========================================================================== */
@@ -38138,7 +38138,7 @@ var AILES_POP=null;const AIL_TX={};
 var AILV={t:0,n:0,vir:0,mon:0,vitr:0,photo:0,force:null};
 function ailvTick(dt){if(!carWingL)return;AILV.t+=dt; // une fois par image, avant blingTick
   const vol=mode==='fall'&&!garageOn&&!MOU.on,vitr=garageOn&&wingT>.3;AILV.vitr=vitr?1:0;
-  let nT=vol&&nitroOn?1:0,vT=vol?steer:0,mT=vol?Math.max(-1,Math.min(1,fallVel.y*.09)):0;
+  let nT=vol&&nitroOn?1:0,vT=vol?steer:0,mT=vol?Math.max(-1,Math.min(1,volVu(fallVel)*.09)):0;
   if(vitr){const c=AILV.t%7.5;nT=c>3.2&&c<5.8?1:0;vT=.75*Math.sin(AILV.t*.85);mT=.4*Math.sin(AILV.t*.5);} // LA VITRINE : le boost, le virage, la montée
   const F=AILV.force;if(F){if(F.n!=null)nT=F.n;if(F.vir!=null)vT=F.vir;if(F.mon!=null)mT=F.mon;} // (banc) dbgAilesForce
   AILV.n+=(nT-AILV.n)*Math.min(1,dt*(nT>AILV.n?9:2.6));AILV.vir+=(vT-AILV.vir)*Math.min(1,dt*5);AILV.mon+=(mT-AILV.mon)*Math.min(1,dt*2.5);}
@@ -44698,7 +44698,7 @@ function facViesAff(perdu){ // les cœurs du HUD (en haut à droite) : pleins, v
      SENTAIT pas en chiffres. */
 const MIR={t:0,max:0,min:.6};            // t = secondes « perdu d'avance » (lissé), max = le pire du vol
 function mirTick(dt){ // dans la branche 'fall', après le viseur (LM.vu vient d'être posé)
-  const perdu=!LM.vu&&fallT>.4&&fallVel.y<-4&&fallPos.y<lastNearY-10;
+  const perdu=!LM.vu&&fallT>.4&&(VOLR.on?(volVu(fallVel)<-4&&tryLand._bi>=0&&VOLR.c.subVectors(fallPos,pts[tryLand._bi]).dot(VOLR.u)<-10):(fallVel.y<-4&&fallPos.y<lastNearY-10)); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas : 10 m sous la dalle survolée, en tombant vers son dessous
   MIR.t=perdu?MIR.t+dt:Math.max(0,MIR.t-dt*2);if(MIR.t>MIR.max)MIR.max=MIR.t;
 }
 function mirPose(){ // la pose a réussi (tryLand vrai)
@@ -50535,6 +50535,32 @@ let airRoll=0; // vrille visuelle en vol
    droite, la lèvre raccroche, la tranche cogne, et le BUMP renvoie vers le ciel de LA ROUTE (pas vers celui du monde). Au-delà (ou à plus de
    20 m du bord), le vol reprend la gravité du monde. Route droite (TORD éteint) : rien ne change. `TBORD.t` = le temps qu'il reste. */
 const TBORD={t:0,on:false,u:new THREE.Vector3()};
+/* LE VOL QUI SUIT LA ROUTE (2026-10-18, Sacha : « dans la map nuage la route fait des rotations et tout, mais la voiture a du mal à voler,
+   comme si le jeu n'arrivait pas à savoir de quel côté de la route on va »). Sur la route SANS HAUT NI BAS, le vol gardait le bas du MONDE :
+   un saut depuis une dalle couchée partait à côté d'elle, depuis une dalle à l'envers il tombait loin d'elle, et l'ÉQUILIBRE redressait la
+   caisse et l'écran vers un ciel qui n'existe plus sur cette map. MESURÉ (banc volcote.cjs, saut de 21 m/s à 162 km/h, sans toucher aux
+   commandes, mêmes points de la piste avant/après) : posés sur leur route 6/6 sur dalle à plat, 3/5 penchée, 1/6 sur la tranche, 0/6 à
+   l'envers — les autres, perdus dans le vide jusqu'au couperet des 6 s ; l'écran tournait de 73 à 88° pendant un saut depuis une dalle sur
+   la tranche ou à l'envers. APRÈS : 23/23 posés sur leur route, même face, à ~15 m ; l'écran tourne de 6 à 14°.
+   Ici, le HAUT DU VOL (`VOLR.u`) est le ciel de LA ROUTE SURVOLÉE : la normale de la dalle la plus proche (le radar de tryLand), sur la face
+   qu'on a quittée — et quand le radar passe à un autre tronçon, la face la plus proche du haut d'avant (jamais de bascule de plus de 90°),
+   lissée en ~0,08 s. La gravité, le plané du nitro, l'équilibre de la caisse et de l'écran, le viseur de pose, le plafond de vitesse « à
+   plat », le BUMP, le compteur et les prédictions des figures le suivent : on retombe sur la route qu'on survole, quelle que soit sa pose
+   dans l'espace — comme sur une route droite. Les autres maps : le haut du monde, au chiffre près (`VOLR.on` faux). Sortie par le bord :
+   on tombe sous SA dalle et on s'y perd, comme ailleurs (la gravité de la route ne s'arrête plus au bout d'1,1 s — voir TBORD).
+   `?sans=volroute` rend le vol d'avant. */
+let VOLR_ON=!/[?&]sans=([^&]*,)?volroute(,|&|$)/.test(location.search);
+window.dbgVolRoute=function(v){if(v!=null)VOLR_ON=!!v;return {on:VOLR_ON,vol:VOLR.on,u:VOLR.u.toArray().map(function(x){return +x.toFixed(3);})};}; // (banc) dbgVolRoute(false) = le vol d'avant pour les vols suivants
+const VOLR={on:false,k:12,u:new THREE.Vector3(0,1,0),c:new THREE.Vector3()}; // k : la vitesse du lissage (1/s) · u : le haut du vol · c : calcul
+function volrOn(){return VOLR_ON&&TORD.on&&!PARK.on;}
+function volVu(v){return VOLR.on?v.dot(VOLR.u):v.y;} // la part de v vers le haut du vol
+function volMonte(v,d){if(VOLR.on)v.addScaledVector(VOLR.u,d);else v.y+=d;} // + d vers le haut du vol
+function volPlafU(v,m){if(!VOLR.on){if(v.y>m)v.y=m;return;}const k=v.dot(VOLR.u);if(k>m)v.addScaledVector(VOLR.u,m-k);} // la montée bornée à m
+function volH(v){if(!VOLR.on)return Math.hypot(v.x,v.z);const k=v.dot(VOLR.u);return Math.sqrt(Math.max(0,v.lengthSq()-k*k));} // la vitesse « à plat »
+function volHK(v,f){if(!VOLR.on){v.x*=f;v.z*=f;return;}const k=v.dot(VOLR.u);v.addScaledVector(VOLR.u,-k).multiplyScalar(f).addScaledVector(VOLR.u,k);} // la part « à plat » × f
+function volrSuit(dt){if(!VOLR.on)return;if(!TORD.on){VOLR.on=false;VOLR.u.set(0,1,0);return;} // chaque image de vol : le haut suit la dalle survolée (une route qui change en plein vol rend le haut du monde)
+  const i=tryLand._bi;if(!(i>=0)||!Nn[i])return;
+  VOLR.c.copy(Nn[i]);if(VOLR.c.dot(VOLR.u)<0)VOLR.c.negate();VOLR.u.lerp(VOLR.c,1-Math.exp(-dt*VOLR.k)).normalize();}
 let bascOn=false,bascDir=1,levreY=0,bascT=0; /* bascT (1/10, soir) : le temps VÉCU depuis la sortie par le bord — `fallT` est rendu par les bumps, il réarmait la bascule en plein vol */
 const BUMP_VY=16; /* (2026-10-01) la vitesse verticale rendue par un BUMP (voir tryLand) */
 const BUMP_VAL=5; /* (2026-10-15 soir, Sacha) ce que le 1er BUMP d'un vol verse à la chaîne, comme une figure (le RICOCHET sur l'eau : 5) — puis ×0,6 par rebond */
@@ -50620,7 +50646,7 @@ function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'ef
   return VEQ.u=Math.sign(steer)*Math.max(0,Math.abs(steer)-Math.abs(VEQ.l0)*g);
 }
 function veqNiveau(dt,dir){ // L'ÉQUILIBRE : le haut du vol se redresse vers la verticale, autour de la trajectoire `dir`
-  const U9=TBORD.on?TBORD.u:null,sg=(U9?FLY_U.dot(U9):FLY_U.y)>=0?1:-1; // (LE BORD DE LA ROUTE TORDUE) au bord, l'équilibre se fait sur le ciel de LA ROUTE : le volant reste dans le plan de la dalle, on peut revenir cogner sa tranche
+  const U9=TBORD.on?TBORD.u:VOLR.on?VOLR.u:null,sg= /* (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas, l'équilibre se fait sur le ciel de la dalle survolée */(U9?FLY_U.dot(U9):FLY_U.y)>=0?1:-1; // (LE BORD DE LA ROUTE TORDUE) au bord, l'équilibre se fait sur le ciel de LA ROUTE : le volant reste dans le plan de la dalle, on peut revenir cogner sa tranche
   if(U9)VEQ.tv.copy(U9).multiplyScalar(sg).addScaledVector(dir,-sg*U9.dot(dir));else VEQ.tv.set(0,sg,0).addScaledVector(dir,-sg*dir.y);
   const L=VEQ.tv.length();if(L<.15)return; // trajectoire presque verticale : pas d'horizon à retrouver
   VEQ.tv.multiplyScalar(1/L);
@@ -50742,9 +50768,9 @@ const SAUT_FIXE=/[?&]saut=fixe\b/.test(location.search),SAUT_P=new THREE.Vector3
 function figDMin(f,douce){return douce?Math.max(.25,f.D*.4):Math.max(.32,f.D*.5);}
 function sautBesoin(f){return f&&f.D?.35+figDMin(f,true)/.72+.06:0;}
 function sautVolPredit(dv){ // la durée (s) du vol qui vient de partir, avec dv m/s de plus le long de la normale de la route au décollage — 2,4 = pas de pose en vue
-  SAUT_P.copy(fallPos);SAUT_V.copy(fallVel).addScaledVector(SAUT_N,dv);if(SAUT_V.y>70)SAUT_V.y=70;
+  SAUT_P.copy(fallPos);SAUT_V.copy(fallVel).addScaledVector(SAUT_N,dv);volPlafU(SAUT_V,70); /* (LE VOL QUI SUIT LA ROUTE) la montée et la chute le long du haut du vol */
   const g=FALL_G*gK(),h=1/30;let gi=-1;
-  for(let k=1;k<=72;k++){SAUT_V.y-=g*h;SAUT_P.addScaledVector(SAUT_V,h*SPD);if(k<3)continue;
+  for(let k=1;k<=72;k++){volMonte(SAUT_V,-g*h);SAUT_P.addScaledVector(SAUT_V,h*SPD);if(k<3)continue;
     const bi=dalleProche(SAUT_P.x,SAUT_P.y,SAUT_P.z,8,400,gi);if(bi<0)continue;gi=bi-bi%8;
     SAUT_D.subVectors(SAUT_P,pts[bi]);const hh=SAUT_D.dot(Nn[bi]),l=SAUT_D.dot(B[bi]),vn=SAUT_V.dot(Nn[bi]);
     /* (2026-10-17) + LA FENÊTRE DE tryLand : passé 0,35 s, la caisse à moins de 3 m du bitume qui monte à moins de 4,5 m/s est POSÉE — un
@@ -50756,7 +50782,7 @@ function sautAllonge(f){ // juste après startFall : le saut assez long pour pla
   const need=sautBesoin(f);if(!need||SAUT_FIXE)return 0;
   const t0=sautVolPredit(0);VEQ.tPred=t0;if(t0>=need)return 0;
   let dv=0;for(let d=1.5;d<=19.5;d+=1.5){dv=Math.min(19,d);if(sautVolPredit(dv)>=need)break;} // (2026-10-17) par pas de 1,5 m/s (étaient 3) : pas un dixième de vol de trop
-  fallVel.addScaledVector(SAUT_N,dv);if(fallVel.y>70)fallVel.y=70;VEQ.allonge=(VEQ.allonge|0)+1;VEQ.dvDer=dv;return dv;}
+  fallVel.addScaledVector(SAUT_N,dv);volPlafU(fallVel,70);VEQ.allonge=(VEQ.allonge|0)+1;VEQ.dvDer=dv;return dv;}
 function sautFigVisee(fo){ // la figure qui partira avec ce saut (celle du glissé, sinon celle de la direction tenue)
   if(!FIGV2.on||!window.FIG)return null;if(fo&&fo.f)return fo.f;
   const S=figSlots();let k=FDIR.on?figDirSlot():0;if(!S[k]&&!(FDIR.on&&!TUTO.on))for(let j=1;j<FIG_NB&&!S[k];j++)k=(k+1)%FIG_NB;return S[k]?FIG.par[S[k]]:null;}
@@ -51000,7 +51026,7 @@ function figDepart(bord){const C=FX2.corps;FX2.memoN=false;FX2.herite=null;FX2.n
   if(FX2.memo&&FX2.dm>0&&FX2.dm<.1){const d=FX2.qd.copy(FX2.qm1).invert().multiply(FX2.qm0); // ce qu'elle a tourné à la dernière image, dans SON repère
     if(d.w<0){d.x=-d.x;d.y=-d.y;d.z=-d.z;d.w=-d.w;}const s9=Math.hypot(d.x,d.y,d.z),a9=2*Math.atan2(s9,d.w);
     if(s9>1e-7&&a9<.5){const k9=a9/s9/FX2.dm;w[0]=d.x*k9;w[1]=d.y*k9;w[2]=d.z*k9;}}
-  const v2=fallVel.lengthSq();if(v2>4)w[0]-=FALL_G*gK()*Math.hypot(fallVel.x,fallVel.z)/v2; // …moins la rotation du VOL lui-même (la trajectoire plonge, le repère la suit) : on garde l'élan RELATIF
+  const v2=fallVel.lengthSq();if(v2>4)w[0]-=FALL_G*gK()*volH(fallVel)/v2; // …moins la rotation du VOL lui-même (la trajectoire plonge, le repère la suit) : on garde l'élan RELATIF
   FX2.memo=false;
   C.herite([FX2.qr.x,FX2.qr.y,FX2.qr.z,FX2.qr.w],w);FX2.herite=w.map(function(x){return +x.toFixed(2);});
   VEQ.qb.copy(FX2.qf); // (le vol équilibré de Léo) son assiette lissée part de celle du VOL : l'écart est dans le corps, il ne compte pas deux fois
@@ -51019,7 +51045,7 @@ function figBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(18+20*k),vx=fallVe
   for(let j=0,nb=Math.round(10+6*k);j<nb;j++){const a=j/nb*6.2832,c=Math.cos(a),s9=Math.sin(a),v=10+6*k;
     spawnP(j%2?embers:flameCore,FX2.v.x,FX2.v.y,FX2.v.z,vx+(tmp2.x*c+tmp3.x*s9)*v-FX2.d.x*3,vy+(tmp2.y*c+tmp3.y*s9)*v-FX2.d.y*3,vz+(tmp2.z*c+tmp3.z*s9)*v-FX2.d.z*3,.16+Math.random()*.08);}
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);
-  if(FX2.d.y>.2&&mode==='fall')fallVel.y+=FX2.d.y*2.4*k; // le COUP DE REIN : poussée vers le haut, un peu de vol en plus
+  {const du9=volVu(FX2.d);if(du9>.2&&mode==='fall')volMonte(fallVel,du9*2.4*k);} // le COUP DE REIN : poussée vers le haut, un peu de vol en plus
 }
 function figJet(r,dt){const n=emiN('figJet',dt),vx=fallVel.x*SPD*.85,vy=fallVel.y*SPD*.85,vz=fallVel.z*SPD*.85; // la poussée TENUE : le jet brûle tant qu'on tient
   for(let b=0;b<r.boums.length;b++){figPoint(r.boums[b]);
@@ -51037,8 +51063,8 @@ function figBudget(){let vn,gn,h;
   const raw=CAMV.eta<90?Math.max(0,+CAMV.eta):-1,faux=raw>=0&&fallTR<.35&&raw<=.36;
   if(raw>=0&&!faux)return raw;
   const e=9,i=VEQ.si;
-  if(i>=0&&Nn[i]){const n=Nn[i],sd=VEQ.sh>-THICK*.5?1:-1;vn=fallVel.dot(n)*sd;gn=FALL_G*gK()*Math.max(.2,n.y*sd);h=Math.max(0,sd>0?VEQ.sh:-THICK-VEQ.sh)/SPD;}
-  else{vn=fallVel.y;gn=FALL_G*gK();h=Math.max(0,fallPos.y-lastNearY)/SPD;}
+  if(i>=0&&Nn[i]){const n=Nn[i],sd=VEQ.sh>-THICK*.5?1:-1;vn=fallVel.dot(n)*sd;gn=FALL_G*gK()*Math.max(.2,volVu(n)*sd);h=Math.max(0,sd>0?VEQ.sh:-THICK-VEQ.sh)/SPD;}
+  else{vn=volVu(fallVel);gn=FALL_G*gK();h=Math.max(0,fallPos.y-lastNearY)/SPD;}
   if(!(vn>1))return faux?.4:e;if(nitroOn)gn*=nitroBlue?.25:.4;
   return (vn+Math.sqrt(vn*vn+2*gn*h))/gn;}
 /* (2026-10-14, session SON) LA MATIÈRE DU TOUR : chaque axe a son souffle, accordé sur la gamme du vol — x tangage = fig.salto (le wouomp qui passe par-dessus), y lacet = fig.toupie (le frrrt qui tournoie à plat), z roulis = fig.tonneau (l'air qui s'enroule d'une oreille à l'autre) ; un axe penché prend sa composante la plus forte */
@@ -54060,7 +54086,8 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();MOU.on=false
   // (vol balistique max ≈ 4,2 s-sim). L'ancien 3e paramètre capV de la CATAPULTE est retiré : il ne
   // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
-  if(fallVel.y>70)fallVel.y=70;
+  VOLR.on=volrOn();if(VOLR.on){VOLR.u.copy(F.n);tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));}else VOLR.u.set(0,1,0); // (LE VOL QUI SUIT LA ROUTE) le haut du vol part de la face quittée ; le radar part d'ici (sinon il parle encore du vol d'avant)
+  volPlafU(fallVel,70);
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   SCOUP.vp=0;SCOUP.fp=0;SCOUP.fh=0; // (2026-10-14, accord · œil) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
@@ -54330,6 +54357,7 @@ function tryLand(dt){
     fallVel.addScaledVector(B[bestI],-vB*1.65); // réflexion amortie sur la paroi
     fallVel.multiplyScalar(.78);
     if(TBORD.on){const vu9=fallVel.dot(TBORD.u);fallVel.addScaledVector(TBORD.u,Math.max(vu9+2.4,BUMP_VY*Math.sqrt(gK()))-vu9);TBORD.t=1.1;} /* (LE BORD DE LA ROUTE TORDUE) vers le ciel de LA ROUTE, et sa gravité se réarme : le DOUBLE BUMP reste possible */
+    else if(VOLR.on){const vu9=volVu(fallVel);volMonte(fallVel,Math.max(vu9+2.4,BUMP_VY*Math.sqrt(gK()))-vu9);} /* (LE VOL QUI SUIT LA ROUTE) vers le ciel de la dalle survolée */
     else fallVel.y=Math.max(fallVel.y+2.4,BUMP_VY*Math.sqrt(gK())); /* (2026-10-01, LA POSE) la tranche RENVOIE la caisse vers le ciel — POUR DE BON : le +2,4 d'origine (calé sur une autre échelle de vitesse) ne valait plus que 4 cm de montée et s'AJOUTAIT à la chute — un BUMP était une condamnation (relevé par GRAPHISME, MESURÉ au banc : « BUMP (h −0,95) puis tombée », à chaque fois). La vitesse verticale REPART à BUMP_VY : ~1,9 m de montée (gravité monde 15,8 m/s²), ~1 s en l'air — une caisse qui a cogné la tranche à moins de 1,3 m sous le bitume remonte AU-DESSUS de la route et peut revenir s'y poser (le volant commande le vol) ; plus bas, elle reste dessous. √gK : même hauteur en gravité lunaire. */
     // (bord v2) la caisse est remise CONTRE la tranche (sa demi-largeur), là où elle la touche : avant, elle était téléportée à 1,8 m du bord
     // ET recalée sur le point de piste le plus proche (jusqu'à 1,6 m le long du ruban) — un saut d'image, pas un choc
@@ -56783,7 +56811,7 @@ const VF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:ne
 function villeN(){return CAMP.n>10?CAMP.n-10:0;}          // 1..10 dans la campagne VILLE, 0 ailleurs
 function campMeute(){return campN()===14&&!PARK.on;}
 function vPos(){return mode==='fall'?lastNearS:s;}         // où l'on en est le long du ruban, même en vol
-function vKmh(){return (mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)*vitMult())*3.6*SPD;} // (2026-09-30) au sol, la VRAIE vitesse d'avance (× vitMult : NITROOO, VITESSE ×2 — celle du compteur, speedKmh) : tenir NITROOO devant un radar ne changeait rien
+function vKmh(){return (mode==='fall'?volH(fallVel):Math.abs(vA)*vitMult())*3.6*SPD;} // (2026-09-30) au sol, la VRAIE vitesse d'avance (× vitMult : NITROOO, VITESSE ×2 — celle du compteur, speedKmh) : tenir NITROOO devant un radar ne changeait rien
 function vPaie(k,n,src){const g=denom()*k*(fever>0?2:1)*flowMult();money+=g;levelCash+=g;livre(src||'$:ville',g);/* (2026-10-14, GAMEPLAY) src : la ligne du grand livre — LES ÉVÉNEMENTS RARES versent sous '$:evt' */try{checkUpgrade();}catch(e){}if(n)try{flyCash(carGroup.position,n);}catch(e){}frenCash(g,carGroup.position);return g;} // (×3) en frénésie, le butin de la ville se voit aussi
 function vPose(o,sv,lt,h,fy){ // poser un objet sur la route (repère b, n, t), face fy
   frameAt(sv,VF);fy=fy||1;
@@ -66342,7 +66370,7 @@ function loop(now){
         if(graceT<=0)startFall(0,1,true);
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
-      if(graceT<=0&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall();
+      if(graceT<=0&&!volrOn()&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall(); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas, pas de plafond d'où l'on décroche au ralenti : la dalle à l'envers est un sol comme un autre
       // PORTAIL : fin de zone
       if(mode==='drive'&&PARK.on&&((s>L-32&&driveDir>0)||(s<6&&driveDir<0))){ // FREESTYLE : on ne régénère QUE si on sort par le bout vers lequel on roule (les deux sens sont valides, s=0 au spawn ne déclenche rien)
         portalSnd();shake=.35;nitroR=2;
@@ -66781,9 +66809,10 @@ function loop(now){
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
       const gB9=bascOn?Math.min(1,bascT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
+      volrSuit(dtF); // (LE VOL QUI SUIT LA ROUTE) le haut du vol suit la dalle survolée (route sans haut ni bas seulement)
       {const i9=tryLand._bi;if(TBORD.t>0&&(!TORD.on||Math.abs(curLatOff)>ROAD_HALF+20||Math.abs(curHOff)>20))TBORD.t=0; // (LE BORD DE LA ROUTE TORDUE) loin du bord : la gravité du monde reprend
        TBORD.on=TBORD.t>0&&i9>=0&&!!Nn[i9]; // le bas de LA ROUTE, pas celui du monde
-       if(TBORD.on){TBORD.u.copy(Nn[i9]).multiplyScalar(fallStartSide).normalize();TBORD.t-=dtF;fallVel.addScaledVector(TBORD.u,-FALL_G*gK()*gB9*dtF);}else fallVel.y-=FALL_G*gK()*gB9*dtF;} // gK : gravité LUNAIRE en orbite (÷2)
+       if(TBORD.on){TBORD.u.copy(Nn[i9]).multiplyScalar(fallStartSide).normalize();TBORD.t-=dtF;fallVel.addScaledVector(TBORD.u,-FALL_G*gK()*gB9*dtF);}else volMonte(fallVel,-FALL_G*gK()*gB9*dtF);} /* (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas, la gravité est celle de la dalle survolée (VOLR) ; ailleurs, celle du monde */ // gK : gravité LUNAIRE en orbite (÷2)
       // (vol libre, 2026-09-26) l'ANTI-BLOCAGE DU LACET a sauté : il rendait « un minimum d'horizontale » parce que le volant tournait
       // autour de l'axe VERTICAL du monde (mort en trajectoire verticale). Le volant tourne désormais autour du HAUT DE LA CAISSE
       // (FLY_U) : il mord à toutes les assiettes, piqué à pic compris, et il ne redresse plus rien.
@@ -66800,7 +66829,7 @@ function loop(now){
          l'autorité suivent désormais `nk9`, l'état du réacteur lissé en ~80 ms (τ 1/12 s), dans les deux sens ; le COUP d'allumage (+46 m/s)
          reste sec, c'est lui qui répond au doigt. Le décollage nitro tenu part réacteur plein (startFall pose `_nk`). */
       const nk9=loop._nk=(loop._nk||0)+((nitroOn?1:0)-(loop._nk||0))*(1-Math.exp(-dtF*12));
-      if(nk9>.002){if(TBORD.on)fallVel.addScaledVector(TBORD.u,FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF*nk9);else fallVel.y+=FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF*nk9;} // (LE BORD DE LA ROUTE TORDUE : il plane contre la gravité de la route) (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
+      if(nk9>.002){if(TBORD.on)fallVel.addScaledVector(TBORD.u,FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF*nk9);else volMonte(fallVel,FALL_G*gK()*(nitroBlue?.75:.6)*gB9*dtF*nk9);} // (LE BORD DE LA ROUTE TORDUE : il plane contre la gravité de la route) (bord, 1/10 : au prorata de la bascule — jamais de remontée) (vol v7) le RÉACTEUR fait PLANER : il reprend 60 % de la gravité (75 % en réserve bleue)
       if(nitroOn){ // RÉACTEUR : il fait planer et donne l'assiette (piqué/cabré) — il n'accélère plus (vol v7 : inertie)
         /* (2026-09-26, user : « le boost nitro aérien doit VRAIMENT donner une impulsion, indépendamment de la vitesse de départ, qui s'y
            additionne, comme un propulseur ») : à l'ALLUMAGE en vol, un coup de réacteur de +32 m/s (× le palier moteur) dans l'axe du
@@ -66809,14 +66838,14 @@ function loop(now){
           const sp8=fallVel.length(),a8=46*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1); // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») 32 → 46 m/s
           if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
           FLC.t=performance.now();FLC.k=sp8>1?sp8/(sp8+a8):1;FLC.n=nitroR;FLC.ok=true; // (2026-10-14) noté : si c'est le 1er appui d'un DOUBLE-TAP, la figure le rend (figLibreTap)
-          fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));if(pwrNitroT<=0){const av9=nitroR;nitroR=Math.max(0,nitroR-NITRO2.coup*nitroCap()*(FLOW.lv===4?FLOW2.fren.nitro:1));if(LIVRE.on)livre('n-:coup',av9-nitroR);}
+          fallVH0=Math.max(fallVH0,volH(fallVel));if(pwrNitroT<=0){const av9=nitroR;nitroR=Math.max(0,nitroR-NITRO2.coup*nitroCap()*(FLOW.lv===4?FLOW2.fren.nitro:1));if(LIVRE.on)livre('n-:coup',av9-nitroR);}
           FLC.c=Math.max(0,FLC.n-nitroR);fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);} // (vague 3) le reste du coup — onde, bords, WHOOMP, vibreur — vient de `nitroAllume`, qui part à la même image (il le doublait)
         { // (2026-09-26, user : « le nitro en l'air ne sert pas qu'à guider, il faut que ça ACCÉLÈRE vraiment ») : la MÊME poussée qu'au sol
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
           // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») : DEUX FOIS la poussée du sol (60 · 96 en réserve bleue) — rien ne
           // freine en l'air, mais un vol dure 2 à 4 s : à la poussée du sol, on ne sentait presque rien avant de se reposer
           const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*(1+Math.min(.4,NTR.boost))*dtF; // (AIR NITROOO) +10 %/s de poussée tenue, plafonné à +40 % en vol (le viseur n'intègre que 1,7 s : la pose doit rester visible)
-            fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));}}
+            fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,volH(fallVel));}}
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
         // de ~4°/s (« le nitro haut/bas ne marche plus » — surtout au plafond de vitesse du parc). La
@@ -66873,15 +66902,15 @@ function loop(now){
          l'augmenter, et la nitro ne pousse plus en avant (elle fait PLANER : voir plus haut). Garde-fou : l'avance HORIZONTALE ne
          dépasse jamais celle de l'éjection (un cabré qui convertirait la chute en élan ne crée pas de vitesse). Aucune lecture de
          maxSp : la portée d'un saut ne dépend que de la vitesse d'éjection. */
-      {const hx9=Math.hypot(fallVel.x,fallVel.z);if(fallVH0<0)fallVH0=Math.max(hx9,fallVel.length()); // (vol libre) plafond = la vitesse d'ÉJECTION entière : sortir d'un piqué à l'horizontale reste possible (le manche n'a plus de butée), jamais plus vite qu'au décollage
-       if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;fallVel.x*=f9;fallVel.z*=f9;}}
+      {const hx9=volH(fallVel);if(fallVH0<0)fallVH0=Math.max(hx9,fallVel.length()); // (vol libre) plafond = la vitesse d'ÉJECTION entière : sortir d'un piqué à l'horizontale reste possible (le manche n'a plus de butée), jamais plus vite qu'au décollage
+       if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;volHK(fallVel,f9);}} /* (LE VOL QUI SUIT LA ROUTE) « à plat » = perpendiculaire au haut du vol */
       try{jadeEauVol(dt,dtF);}catch(e){loopWarn(8192,'eau',e);} // (2026-10-13) LA MER COMME LE CIEL (voir EAU)
       try{banqSolVol(dt,dtF);}catch(e){loopWarn(262144,'banquise',e);}
       try{foretSolVol(dt,dtF);}catch(e){loopWarn(262144,'mousse',e);} // (2026-10-17) LA FORÊT : la MOUSSE porte la caisse (voir foretSolVol) // (2026-10-14) LA BANQUISE : la poudreuse qui porte et qui avale, la glace où l'on glisse (voir banqSolVol)
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
-      speedKmh=Math.hypot(fallVel.x,fallVel.z)*3.6*SPD; // (vol v6) la vitesse d'AVANCE, comme sur la route — la chute verticale ne gonfle plus les filés ni le compteur
+      speedKmh=volH(fallVel)*3.6*SPD; // (vol v6) la vitesse d'AVANCE, comme sur la route — la chute verticale ne gonfle plus les filés ni le compteur
       pickupsTick(dt); // (2026-09-30) LE RAMASSAGE EN VOL — la caisse est posée à sa place de l'image ; AVANT les figures, qui remettent le radar de dalle (`curNear`) à zéro
       // ---- FIGURES EN VOL : chaque exploit se nomme à la seconde où il naît ----
       {
@@ -67000,7 +67029,7 @@ function loop(now){
          DESCENTE, le champ s'ouvre avec la vitesse de chute (jusqu'à +20°) — et comme le BRAS ci-dessus garde la caisse à sa taille du
          décollage, la caméra se RAPPROCHE d'elle-même : la caisse ne bouge pas, le décor s'étire, la route d'en bas file vers soi (le
          « vertigo » des films). Aucun angle ne change : la visée du 28/09 reste intacte. Montée et sommet : rien. Dans l'eau : rien. */
-      CAMV.vtg+=((JEAU.dans?0:THREE.MathUtils.smoothstep(-fallVel.y,12,70))-CAMV.vtg)*Math.min(1,dt*5);
+      CAMV.vtg+=((JEAU.dans?0:THREE.MathUtils.smoothstep(-volVu(fallVel),12,70))-CAMV.vtg)*Math.min(1,dt*5);
       const fovAir=fovPor(76-bigAir*22+CAMV.vtg*20*FOVP_K+fovPunch*FOVP_K+(nitroOn?(nitroBlue?18:13):0)); // le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air) — et se rouvre dans le plongeon (le vertigo)
       camera.fov+=(fovAir-camera.fov)*Math.min(1,dt*(NFX.off>0&&fovAir<camera.fov?2:4)); // (vague 3) la nitro coupée : le champ retombe en douceur
       camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,0); // (CAM_HEROS) en vol le décentrement s'efface en douceur
@@ -67024,7 +67053,7 @@ function loop(now){
       const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*(1+Math.min(.4,NTR.boost))*.12:0;
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
-        tmp3.y-=FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12;
+        volMonte(tmp3,-FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12); // (LE VOL QUI SUIT LA ROUTE) le viseur tombe comme la caisse : vers la dalle survolée sur la route sans haut ni bas
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
