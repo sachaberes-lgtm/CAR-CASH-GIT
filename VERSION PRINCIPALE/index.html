@@ -5853,9 +5853,6 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!impo
   filter:drop-shadow(1px 0 0 #07050f) drop-shadow(-1px 0 0 #07050f) drop-shadow(0 1px 0 #07050f) drop-shadow(0 -1px 0 #07050f) drop-shadow(0 0 3px var(--rl)) drop-shadow(0 0 7px var(--rl))} /* (2026-10-10, Léo : « enlève le cube qui encadre le pictogramme ») le logo seul, cerné d'encre (sur l'enveloppe : posé sur la .pxi, le masque le rognerait) — (2026-10-11, Léo : « une touche de lueur chacun ») un halo de sa couleur, en deux crans */
 #gStrip .rarLogo .pxi{--pxs:2;color:var(--rl);filter:none}
 #gStrip .rarLogo.r-infini .pxi{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)} /* INFINI : le ∞ en arc-en-ciel */
-#gStrip .gT.gMys{background:#050308!important;box-shadow:inset 0 0 0 1px var(--rc),0 0 12px -4px var(--rc)!important;cursor:pointer}
-#gStrip .gT.gMys .gMysQ{position:absolute;left:0;right:0;top:9px;text-align:center;font-weight:400;font-size:var(--f6);line-height:1;color:var(--rc);text-shadow:0 0 10px var(--rc);transform:skewX(calc(-1 * var(--sk,0deg)))}
-#gStrip .gT.gMys em{color:var(--rc)!important;justify-content:center;letter-spacing:1px}
 #gStrip.fnBande .fnC .rarLogo{top:8px;right:10px}
 /* (2026-10-11) LE COIN DU GARAGE (HOME + l'œil en haut à gauche, l'argent et l'aura à droite) a été essayé puis RETIRÉ le même jour (Léo :
    « reviens comme avant ») : HOME et l'œil restent dans la rangée au-dessus d'INVENTAIRE · BOUTIQUE. Reste : ÉQUIPER AU TOUCHER. */
@@ -6083,18 +6080,6 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{ma
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{margin-top:6px;padding-top:8px}
   #gFigSel .fsNom{min-height:0;white-space:nowrap;text-overflow:ellipsis}}
 /* LA BOUTIQUE INDUSTRIELLE (essai, voir garBqIndus) — le GLITCH, l'EN-TÊTE, les ÉTIQUETTES et leurs FILS */
-#gGlitch{position:fixed;inset:0;z-index:59;pointer-events:none;opacity:0;overflow:hidden}
-#gGlitch.go{animation:gGlitchO .72s linear forwards}
-#gGlitch i{position:absolute;left:-10%;right:-10%;height:6%;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6) 18%,rgba(200,210,222,.55) 52%,rgba(255,106,19,.25) 70%,transparent)}
-#gGlitch i:nth-child(1){top:14%;height:3%}#gGlitch i:nth-child(2){top:31%;height:8%}#gGlitch i:nth-child(3){top:47%;height:2%}#gGlitch i:nth-child(4){top:62%;height:5%}#gGlitch i:nth-child(5){top:80%;height:3%}
-#gGlitch.go i{animation:gGlitchBande .72s steps(7,end)}
-#gGlitch.go i:nth-child(2n){animation-direction:reverse}
-#gGlitch b{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 1px,transparent 1px 3px)}
-@keyframes gGlitchO{0%{opacity:0}6%{opacity:1}14%{opacity:.35}22%{opacity:1}36%{opacity:.9}55%{opacity:.5}78%{opacity:.2}100%{opacity:0}}
-@keyframes gGlitchBande{0%{transform:translateX(-35%)}18%{transform:translateX(14%)}36%{transform:translateX(-9%)}54%{transform:translateX(22%)}72%{transform:translateX(-5%)}100%{transform:translateX(0)}}
-body.gGlitchOn>canvas{animation:gCvJit .5s steps(5,end)}
-@keyframes gCvJit{0%{translate:0 0}20%{translate:-4px 0}40%{translate:5px 1px}60%{translate:-2px -1px}80%{translate:3px 0}100%{translate:0 0}}
-@media (prefers-reduced-motion:reduce){#gGlitch.go i,body.gGlitchOn>canvas{animation:none}}
 #gBq{display:none}
 /* LE SOUFFLE DE LUMIÈRE (2026-10-16, Léo : « j'aime pas trop la transition glitch — trouve une autre transition, plus smooth ») : plus de
    bandes ni de tressauts. Vers la boutique, la lumière NAÎT DE LA CAISSE (un disque blanc posé sur elle, ::before, qui grandit) et le blanc
@@ -38001,8 +37986,7 @@ function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} 
 const RARETES=[
   /* LES SEPT RARETÉS (2026-10-10, Léo : « les voitures DÉFI n'existent plus : il y en aura de plusieurs raretés, selon la difficulté du défi ;
      les principales : communes, rares, exotiques, épiques, légendaires, MYTHIQUE, INFINI » — on pourra en créer d'autres). DÉFI n'est plus une
-     famille : une caisse qui se gagne prend la rareté de la difficulté de son défi (rarDefi). LA HONTE est la seule COMMUNE. Une rareté sans
-     voiture se montre déjà, en blocs noirs « ? » au bout de SEE ALL ITEMS (gMystere). */
+     famille : une caisse qui se gagne prend la rareté de la difficulté de son défi (rarDefi). LA HONTE est la seule COMMUNE. */
   {id:'commun',    n:'COMMUNES',   n1:'COMMUNE',   c:'#b9c4d6'},
   {id:'rare',      n:'RARES',      n1:'RARE',      c:'#4db8ff'},
   {id:'exotique',  n:'EXOTIQUES',  n1:'EXOTIQUE',  c:'#3ee8a8'},
@@ -40009,8 +39993,6 @@ function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. R
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
   if(!(m2LigneDit('col',sansAcc(TR('COULEUR')+' '+TR(d.n)),''))) /* (2026-10-17) en course : la ligne du bas, pas le toast du haut */
     toast(pxi('coche')+' '+TR('MISSION SECRÈTE')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
-function cosmVu(cat,d){ // la VUE d'un habillage pour une liste (contrat avec INTERFACE) : une secrète pas encore gagnée → masquée (les accesseurs le font déjà ; `masque` le dit)
-  if(d&&d.sec&&!window.PAL_REVELE&&!shopOwned(cat,d.id))return {id:d.id,sec:d.sec,n:d.n,d:d.d,c:d.c,g:d.g,r:d.r,ind:d.ind,masque:true};return d;}
 function cosmSwCl(d){return d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'';} // la classe de finition d'une pastille de peinture (une seule table pour toutes les listes)
 /* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
    (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
@@ -56266,12 +56248,6 @@ function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou 
    gemme, flamme, couronne, cible) dans sa couleur, toujours au coin haut droit — le cadenas et le losange de l'équipée restent à gauche. */
 function rarLogoR(r){const c=rarInfo(r).c;return '<span class="rarLogo r-'+r+'" style="--rl:'+c+'" title="'+sansAcc(TR(rarInfo(r).n1))+'">'+pxi(RAR_LOGO[r]||'etoile')+'</span>';}
 function rarLogo(i){return rarLogoR(carRar(i));}
-/* LES RARETÉS À VENIR (2026-10-10, Léo : « pour toutes celles où on n'a pas encore de voiture, des petits blocs noirs avec des points
-   d'interrogation, qui montrent la rareté — comme ça, on imagine déjà ») : au bout de SEE ALL ITEMS (voitures), trois blocs par rareté sans
-   aucune caisse (retirées exclues) — noirs, un « ? » dans sa couleur, son logo au même coin, son nom dessous. Touchés : « BIENTÔT ». */
-function gMystere(){const n={};for(let i=0;i<CARS.length;i++){if(!carRetiree(i))n[carRar(i)]=1;}
-  return RARETES.filter(function(x){return !n[x.id];}).map(function(x){const b='<div class="gT gMys" role="button" aria-label="'+sansAcc(TR(x.n1))+'" style="--rc:'+x.c+'">'
-    +'<b class="gMysQ">?</b>'+rarLogoR(x.id)+'<em>'+sansAcc(TR(x.n1))+'</em></div>';return b+b+b;}).join('');}
 function gStripModeVoitures(){
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;gModeBoutons();
   const m=GMODE.m,eq=SAVE.d.equipped|0,L=gModeListeVoitures(m);
@@ -59189,17 +59165,6 @@ function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;
    BOUTIQUE, et dessous, en petit, la caisse affichée (rareté · nom · ÉDITION LIMITÉE et son compte à rebours) ; l'argent à droite. En bas :
    deux onglets — VOITURES (en pièces, pour tout le monde : bqPieces) d'abord, OFFRES (les éditions limitées de la semaine, en €,
    introuvables en jeu : bqEphemeres) à côté — et la rangée de vignettes ; RETOUR et ACHETER (noir) sous le pouce. */
-function bqEphemeres(){const w=bqSem();if(GBQ.eph&&GBQ.eph.w===w)return GBQ.eph; // quatre caisses premium tirées sur le numéro de la semaine
-  /* (2026-10-13, Léo : « la Nyan Cat n'est plus dans le shop ») L'OFFRE DE LANCEMENT (`une:1` dans CAR_UNLOCK : le CHAT POP-TART) reste
-     TOUJOURS en tête des offres ; le tirage de la semaine ne fait tourner que les trois autres places (avant, les quatre étaient tirées
-     au hasard et elle sortait de la boutique certaines semaines). */
-  const P=bqPayantes(),U=P.filter(function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une&&!carOwned(i);}),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.filter(function(i){return U.indexOf(i)<0;});
-  for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}
-  return GBQ.eph={w:w,l:U.concat(L).slice(0,4)};}
-function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; // (2026-10-12, Léo : « des objets hebdomadaires ») trois habillages tirés sur le numéro de la semaine
-  const T=bqTire(90001+w),pr=function(k){return k[0]==='v'&&CAR_UNLOCK[+k.slice(2)]&&CAR_UNLOCK[+k.slice(2)].k==='premium';}, // (même soir) trois caisses en pièces + trois habillages, en alternance
-    V=T.filter(function(k){return k[0]==='v'&&!pr(k)&&bqValide(k);}).slice(0,3),C=T.filter(function(k){return k[0]!=='v'&&bqValide(k);}).slice(0,3),L=[];
-  for(let i=0;i<3;i++){if(V[i])L.push(V[i]);if(C[i])L.push(C[i]);}return GBQ.sem={w:w,l:L};}
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
   if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
   if(o.cat==='peinture')return '<i class="bqSw" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
@@ -59892,11 +59857,6 @@ window.dbgBqSol=function(){if(!GBQ.grp||!GBQ.grp.visible)return null;carGroup.up
   return {jeu:+(mn-top).toFixed(3),qui:qui,pit:+GBQ.pit.toFixed(2),rol:+(GBQ.rol||0).toFixed(2),yaw:+GBQ.yaw.toFixed(2),leve:+(GBQ.leve||0).toFixed(3)};}; // (banc) l'écart RÉEL entre le point le plus bas de la caisse et le dessus du socle (négatif = elle le traverse)
 window.dbgBqIndus=function(){return {cam:[+camera.position.x.toFixed(2),+camera.position.y.toFixed(2),+camera.position.z.toFixed(2),+camera.fov.toFixed(1)],grpY:GBQ.grp?+GBQ.grp.position.y.toFixed(2):null,veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),rol:+(GBQ.rol||0).toFixed(2),pose:GBQ.pose,platK:+GBQ.platK.toFixed(2),lan:GBQ.lan?[+GBQ.lan.D.toFixed(3),+GBQ.lan.T.toFixed(3),+GBQ.lan.q.toFixed(2)]:null,ang:+garageAng.toFixed(3),cap:+(function(){const v=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);return Math.atan2(v.x,v.z);})().toFixed(4),capV:+(function(){const v=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion).applyQuaternion(camera.quaternion.clone().invert());return Math.atan2(v.x,v.z);})().toFixed(4),ecr:(function(){const v=new THREE.Vector3(0,.55,0);carGroup.updateMatrixWorld(true);carGroup.localToWorld(v);v.project(camera);const r=renderer.domElement.getBoundingClientRect();return [Math.round(r.left+(v.x+1)/2*r.width),Math.round(r.top+(1-v.y)/2*r.height)];})(),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
   rail:[...document.querySelectorAll('#gBqPan .bqK')].map(function(el){const r=el.getBoundingClientRect();return [+el.getAttribute('data-i'),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('sel')];}),zone:GBQ.zone};};
-function garGlitch(){let el=document.getElementById('gGlitch'); // (essai boutique virtuelle, repris) le GLITCH : des bandes qui sautent, l'image qui tressaute, 0,72 s
-  if(!el){el=document.createElement('div');el.id='gGlitch';el.setAttribute('aria-hidden','true');el.innerHTML='<i></i><i></i><i></i><i></i><i></i><b></b>';document.body.appendChild(el);}
-  el.classList.remove('go');document.body.classList.remove('gGlitchOn');void el.offsetWidth;el.classList.add('go');document.body.classList.add('gGlitchOn');
-  try{if(SONV2)sfx('ui.volet');}catch(e){}
-  clearTimeout(garGlitch._t);garGlitch._t=setTimeout(function(){el.classList.remove('go');document.body.classList.remove('gGlitchOn');},760);}
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
   GAR.dtR=dt;try{hubSync();gTourneMaj();gHomePlace();}catch(e){} // (2026-10-06) LE HUB : la barre suit l'onglet — (2026-10-09) la jauge suit la vue
   if(chuteVoulue()||CHUTE.go){chuteRender(dt);return;}if(CHUTE.on)chuteSort(); // (2026-09-30) LA CHUTE : au MENU, la caisse tombe du ciel (voir « LA CHUTE ») ; la boutique et les missions rouvrent l'atelier
@@ -61544,7 +61504,6 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   if(gModeM()==='shop'){GMODE.fam=b.getAttribute('data-r');garageFamilles(GMODE.fam);return;} // (2026-10-09) BOUTIQUE : la famille — (2026-10-10, Léo) elle ne change plus la caisse : seulement la bande, la caisse attend qu'on touche une vignette
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
-  if(t.classList.contains('gMys')){uiClic('refus');toast(pxi('horloge')+' '+sansAcc(TR(t.getAttribute('aria-label')))+' — '+sansAcc(TR('BIENTÔT')));return;} // (2026-10-10) une rareté à venir
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'&&gFigTouche(j)){hap(8);return;} /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */const eq9=garEquipeHabit(SHOP.tab,j);
     if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
