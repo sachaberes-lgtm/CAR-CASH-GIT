@@ -36384,7 +36384,7 @@ SHAPES.perle=function(K){
   const ZC=zonesDe(PLAN.zf),ZCO=zonesDe(PLAN.zc),ZCx=ZC.filter(Z=>Z.o),ZCr=ZC.filter(Z=>Z.r);
   /* LE RIDEAU D'AIR EST CREUX (Léo : « en fait le truc noir c'est un trou, c'est creux ») : la tôle qu'il habille s'ENFONCE de 7 cm sous la
      surface (le long de sa normale lissée). L'enfoncement ne dépend que de la POSITION (vue de face) : nul sur le contour, plein à 8 mm à
-     l'intérieur — le bord devient la PAROI de l'ouverture (gris anthracite : elle prend la lumière), le fond mat et l'ailette sont au fond ; aucun jour entre les
+     l'intérieur — le bord devient la PAROI de l'ouverture (noir mat : seule son ombre dit la profondeur), le fond mat et l'ailette sont au fond ; aucun jour entre les
      morceaux (deux morceaux qui partagent un sommet l'enfoncent pareil). */
   // (CRX : la pente de la paroi, et la direction « vers l'intérieur de l'ouverture » du bord le plus proche — la normale de la paroi
   // en découle, la même pour tous ses morceaux : avec la facette de chacun, elle se froissait)
@@ -36399,11 +36399,11 @@ SHAPES.perle=function(K){
       sgm.push([a[0],a[1],b[0],b[1],Math.min(a[0],b[0]),Math.max(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[1],b[1])]);}return [{k:'K',sg:sgm,bb:[u0,u1,v0,v1]}];})();
   // les matières des morceaux : la tôle (sa peinture), l'interstice d'un joint, le verre, le noir brillant, le noir mat (le fond d'une ouverture)
   // (+ le verre fumé du phare, les LED, le chrome de l'optique, le fond de l'optique, l'ambre du clignotant)
-  const CODE={p:0,gap:1,g:2,K:3,k:4,v:5,W:6,C:7,n:8,O:9,A:10,P:11},GRP_DE=[GP,GP,'g','g',PAL.k.g,'g','l',PAL.C.g,'g','l','g',PAL.k.g];
+  const CODE={p:0,gap:1,g:2,K:3,k:4,v:5,W:6,C:7,n:8,O:9,A:10,P:11},GRP_DE=[GP,GP,'g','g',PAL.k.g,'g','l',PAL.C.g,'g','l','g','l'];
   const peintPlan=(gs,nsm)=>{const G=gs[GP];if(!G)return gs;
     const pa=G.attributes.position.array,na=G.attributes.normal.array,ns=nsm||na,
           KC=[null,new THREE.Color(PAL.J.c),new THREE.Color(PAL.g.c),new THREE.Color(PAL.K.c),new THREE.Color(PAL.k.c),
-              new THREE.Color(0x0e131b),new THREE.Color(PAL.W.c),new THREE.Color(0xb6bcc4),new THREE.Color(0x1a2840),new THREE.Color(0xf08c1e),new THREE.Color(0x2c2e34),new THREE.Color(0x3c3e45)];   // (… l'ailette du rideau, un noir plus clair, brillant ; la paroi du creux, un plastique MAT plus clair : elle prend la lumière, le fond non — brillante, elle renvoyait le ciel en facettes froissées)
+              new THREE.Color(0x0e131b),new THREE.Color(PAL.W.c),new THREE.Color(0xb6bcc4),new THREE.Color(0x1a2840),new THREE.Color(0xf08c1e),new THREE.Color(0x2c2e34),new THREE.Color(0x303137),new THREE.Color(0x0b0b0d)];   // (… l'ailette du rideau, un noir plus clair, brillant ; la paroi du creux : HORS DE LA LUMIÈRE (matière 'l'), un gris anthracite à la lèvre qui tombe au noir du fond — l'ombre d'un vrai trou. Éclairée, elle prenait le liseré de contre-jour du garage, lavande, quelle que soit sa couleur ; brillante, elle renvoyait le ciel en zigzags) — claire, sous la lumière du garage elle prenait la teinte de la carrosserie et le trou se lisait comme une bosse, détaché du phare (Léo))
     const MEM9=(typeof SHAPES==='object'&&SHAPES.perle)||null;let C9=MEM9&&MEM9._tole;
     if(!C9||C9.n!==pa.length){   // (le découpage ne dépend que de la forme : fait une fois par session, gardé sur la fonction)
       const OUT={};for(const g of new Set(GRP_DE))OUT[g]={P:[],N:[],K:[]};
@@ -36448,7 +36448,7 @@ SHAPES.perle=function(K){
             const T3=[],G3=[];let dep=false;
             for(const q of tr){const l0=q[2],l1=q[3],l2=q[4];
               let px=l0*pa[i]+l1*pa[i+3]+l2*pa[i+6],py=l0*pa[i+1]+l1*pa[i+4]+l2*pa[i+7],pz=l0*pa[i+2]+l1*pa[i+5]+l2*pa[i+8];
-              if(rid){const dp=creux(Math.abs(px),py);if(dp>0){let sx=l0*ns[i]+l1*ns[i+3]+l2*ns[i+6],sy=l0*ns[i+1]+l1*ns[i+4]+l2*ns[i+7],sz=l0*ns[i+2]+l1*ns[i+5]+l2*ns[i+8];
+              let dpv=0;if(rid){const dp=creux(Math.abs(px),py);dpv=dp;if(dp>0){let sx=l0*ns[i]+l1*ns[i+3]+l2*ns[i+6],sy=l0*ns[i+1]+l1*ns[i+4]+l2*ns[i+7],sz=l0*ns[i+2]+l1*ns[i+5]+l2*ns[i+8];
                 const sh=Math.hypot(sx,sy,sz)||1;sx/=sh;sy/=sh;sz/=sh;px-=sx*dp;py-=sy*dp;pz-=sz*dp;dep=true;
                 // la normale de la paroi : n + pente × (vers l'intérieur, couché dans la tôle)
                 let gx=CRX.g[0]*(px<0?-1:1),gy=CRX.g[1],gz=0;const gn=gx*sx+gy*sy+gz*sz;gx-=gn*sx;gy-=gn*sy;gz-=gn*sz;const gl=Math.hypot(gx,gy,gz)||1,k9=CREUX/.008;
@@ -36462,7 +36462,7 @@ SHAPES.perle=function(K){
                 const tl=R9.g?-R9.k*Math.max(0,1-(dd-R9.g)/(R9.w-R9.g)):R9.k*Math.max(0,1-dd/R9.w);
                 if(tl){let A=vers3(Lw,r[2]*sgc,r[3]*sgc);const an=A[0]*x+A[1]*y+A[2]*z;A=[A[0]-an*x,A[1]-an*y,A[2]-an*z];const la=Math.hypot(A[0],A[1],A[2]);
                   if(la>1e-6){x+=A[0]/la*tl;y+=A[1]/la*tl;z+=A[2]/la*tl;h=Math.hypot(x,y,z)||1;x/=h;y/=h;z/=h;}}}
-              o.N.push(x,y,z);o.K.push(code);}
+              o.N.push(x,y,z);o.K.push(code===11&&dpv>CREUX*.5?12:code);}   // (la paroi s'assombrit en descendant : au fond, la couleur du fond — l'ombre d'un vrai trou)
             if(dep&&code===11){   // (la paroi du creux : la normale d'un bord de trou — la normale lissée de la surface la laissait éclairée comme un dessus)
               const N9=o.N,b9=N9.length-9;for(let q=0;q<3;q++)if(G3[3*q]!=null){N9[b9+3*q]=G3[3*q];N9[b9+3*q+1]=G3[3*q+1];N9[b9+3*q+2]=G3[3*q+2];}}}}}
       C9={n:pa.length,G:{}};for(const g in OUT)C9.G[g]={P:new Float32Array(OUT[g].P),N:new Float32Array(OUT[g].N),K:new Uint8Array(OUT[g].K)};
