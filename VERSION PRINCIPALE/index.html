@@ -16696,7 +16696,7 @@ function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE
 function prebChampsDe(piste){ // les champs de module qu'écrit la construction de la route : toutes les maps, plus ceux de la génération de CETTE map
   const L9=[[TORD,['on','N','ctrl0','seed','info']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
   if(piste==='jade')L9.push([JADE,['Q']]);
-  else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','zig','zigTer','zigEl','zigL']]);
+  else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel']]);
   else if(piste==='volcan')L9.push([VOLCAN,['K','C','K2','C2','Q','plg','sauts','sSp','ySea','conflits','croise','th0','th1','lac']]);
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep']]);
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi']]);
@@ -17417,60 +17417,12 @@ try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[900,1250,1650],fore
    (palier 22 : 5 → 0). Au palier 10 les pistes s'allongent d'~20 % (mêmes virages, plus grands). Un pas plus loin (plancher 1,62) tuait les virages :
    2,9/km, pistes de 15-17 km. `?foret=serre` = la pelote d'avant. */
 const FORET_LARGE=typeof location==='undefined'||!/[?&]foret=serre\b/.test(location.search);
-/* (2026-10-17, Léo : « à la place, une route qui zigzague entre les arbres, pas trop dur mais amusant à n'importe quelle vitesse » — au
-   questionnaire : « oui, la remplacer ») LE SLALOM DES TRONCS : une seule route, AU RAS DU SOL de la forêt (foretSol : le fond juste sous la
-   dalle ; les arbres de part et d'autre la dépassent, plus de plafond des étages), qui serpente — des S enchaînés (un virage à gauche, un à
-   droite, 24-46°), des rayons à la mesure du palier (1,7-2,6 × rMin : jamais une épingle, à n'importe quelle vitesse), parfois un virage plus
-   long, une courte droite, une RESPIRATION tous les neuf virages, et un géant à la corde de chaque virage (la passe des géants : c'est entre
-   leurs troncs qu'on zigzague). Le cap reste à ±70° de l'axe de la vallée : la route ne recoupe JAMAIS sa trace (zéro croisement, zéro étage).
-   Le relief roule doucement (−8 % à +5 %, deux houles). Un seul flux (`gr`, comme la pelote).
-   (2026-10-17 soir, Sacha : « j'aime bien la nouvelle forêt mais il refaut le système où la route n'est pas collée au sol et où elle est sens
-   dessus dessous avec les autres ») LA PELOTE REDEVIENT LE DÉFAUT, sous les arbres de Léo (vitrail, pleureurs, mini-cubes) ; le slalom au ras
-   du sol, ses ponts et sa mousse = `?foret=slalom` (ou `zigzag`). */
-const FOR_ZIG_V=typeof location!=='undefined'&&/[?&]foret=(slalom|zigzag)\b/.test(location.search);
-function forZigzag(rnd,kR,kV){
-  const rM=63*kR,LT=9000*(.55+.45*kR),LIM=70*Math.PI/180;
-  let x=0,z=0,phi=0,s=0,sg=rnd()<.5?-1:1,nV=0;const C=[[0,0]],SC=[0],Q={};
-  const pas=(nx,nz)=>{s+=Math.hypot(nx-x,nz-z);x=nx;z=nz;C.push([x,z]);SC.push(s);};
-  const droite=l=>{const n=Math.max(1,Math.round(l/30));for(let k=0;k<n;k++)pas(x+Math.sin(phi)*l/n,z+Math.cos(phi)*l/n);};
-  const arc=(aDeg,R)=>{const n=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);for(let k=0;k<n;k++){phi+=st/2;pas(x+Math.sin(phi)*ch,z+Math.cos(phi)*ch);phi+=st/2;}};
-  const ici=k=>{Q[k]={x:x,z:z,phi:phi,s:s};};
-  const zig=len=>{const f=s+len;while(s<f){
-      if(rnd()<.88)sg=-sg;                                                         // le plus souvent on change de côté : c'est un ZIGZAG
-      let a=24+rnd()*22,R=rM*(1.7+rnd()*.9);
-      if(rnd()<.18){a=48+rnd()*24;R=rM*(2.2+rnd()*.6);}                           // un virage plus long, plus large
-      if((LIM-sg*phi)*57.2958<14)sg=-sg;a=Math.max(10,Math.min(a,(LIM-sg*phi)*57.2958)); // le cap reste dans ±70° : jamais de demi-tour, jamais de croisement
-      arc(sg*a,R);nV++;
-      if(rnd()<.26)droite((30+rnd()*50)*kV);                                       // une courte droite entre deux virages
-      if(nV%9===8)droite((120+rnd()*90)*kV);}};                                    // la RESPIRATION : on voit loin entre les troncs
-  const aligne=()=>{const a=-phi*57.2958*.85;if(Math.abs(a)>5)arc(a,Math.max(rM*2.4,220));};
-  ici('depart');droite(300*Math.sqrt(kV));
-  zig(LT*.46);aligne();droite(50);ici('arche0');droite(100);ici('arche');droite(100);ici('arche1');droite(40); // L'ARCHE, à mi-course, sur une droite
-  zig(LT*.46);aligne();droite(180);ici('fin');droite(100);
-  /* LE RELIEF (2026-10-17, Léo : « la route encore en hauteur — la spécialité de cette map, c'est que ça descend, ça monte et ça contourne les
-     arbres » · « en hauteur et au sol ; au sol c'est de la mousse, on roule dessus ») : un TERRAIN de collines douces (`ter`, ±21 m, ≤ 12 % de
-     pente), la route posée DESSUS (au sol), et des PONTS : 330-390 m de rampe, 120-320 m de plateau, 18-30 m au-dessus du sol (`elev`) — on
-     monte entre les troncs puis on redescend sur la mousse. L'arche reste au sol. Lissé (σ 40 m) : aucune cassure qui fasse décoller. */
-  const L=s,nY=Math.ceil(L/10)+2,Y=new Float64Array(nY),tp=[rnd()*6.283,rnd()*6.283,rnd()*6.283];
-  const ter=(x9,z9)=>16*Math.sin(x9*.0036+tp[0])*Math.sin(z9*.0031+tp[1])+5*Math.sin((x9+z9)*.009+tp[2]);
-  const EL=[],sA=Q.arche?Q.arche.s:-1e9;{let s9=650+rnd()*250;while(s9<L-1100){const H=18+rnd()*12,ru=330+rnd()*60,pl=120+rnd()*200,ln=2*ru+pl;
-    if(Math.abs(s9+ln/2-sA)<ln/2+260){s9+=ln+260;continue;}EL.push([s9,ru,pl,H]);s9+=ln+300+rnd()*380;}}
-  const elev=s9=>{let e=0;for(const q of EL){const u=s9-q[0];if(u<0||u>2*q[1]+q[2])continue;const a=u<q[1]?u/q[1]:u>q[1]+q[2]?(2*q[1]+q[2]-u)/q[1]:1;e=Math.max(e,q[3]*a*a*(3-2*a));}return e;};
-  {let c=0;for(let k=0;k<nY;k++){const s9=k*10;while(c<SC.length-2&&SC[c+1]<s9)c++;const w=(s9-SC[c])/Math.max(1e-6,SC[c+1]-SC[c]),xx=C[c][0]+(C[c+1][0]-C[c][0])*Math.min(1,w),zz=C[c][1]+(C[c+1][1]-C[c][1])*Math.min(1,w);
-     Y[k]=ter(xx,zz)+elev(s9)+.4;}}
-  {const r9=12,W=[];let sw=0;for(let k=-r9;k<=r9;k++){const v=Math.exp(-(k*10)*(k*10)/(2*40*40));W.push(v);sw+=v;}const T9=Float64Array.from(Y);
-   for(let k=0;k<nY;k++){let a=0;for(let j=-r9;j<=r9;j++)a+=T9[Math.max(0,Math.min(nY-1,k+j))]*W[j+r9];Y[k]=a/sw;}}
-  const yS=s9=>{const f=s9/10,k=Math.max(0,Math.min(nY-2,Math.floor(f))),w=f-k;return Y[k]*(1-w)+Y[k+1]*w;};
-  const ctrl=C.map((c,k)=>new THREE.Vector3(c[0],yS(SC[k]),c[1]));
-  for(const k in Q){const o=Q[k];Q[k]={p:new THREE.Vector3(o.x,yS(o.s),o.z),phi:o.phi,s:o.s};}
-  return {dsM:0,ctrl:ctrl,Q:Q,BO:[],note:0,croise:0,dyMin:0,L:L,NO:[],nV:nV,ter:ter,elev:elev,EL:EL};}
 function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
   const LV=Math.min(4.4,typeof lvPiste==='function'?lvPiste():1),vP9=70+(LV-1)*100;
   let kR=(40+.3*vP9)/63,kV=vP9/70;try{if(typeof rayonPalier==='function')kR=rayonPalier()/63;if(typeof vPalier==='function')kV=vPalier()/70;}catch(e){}
   kR=Math.max(1,Math.min(2.8,kR||1));kV=Math.max(1,Math.min(3.2,kV||1));
   const gr=mulberry32((rnd()*4294967296)>>>0);let best=null,ne=0;
-  FORET.zig=FOR_ZIG_V;if(FOR_ZIG_V){const r=forZigzag(gr,kR,kV);FORET.Q=r.Q;FORET.plg=[];FORET.boucles=[];FORET.noeuds=[];FORET.pel={zig:1,virages:r.nV,L:Math.round(r.L),ponts:r.EL.length};FORET.zigTer=r.ter;FORET.zigEl=r.elev;FORET.zigL=r.L;return r.ctrl;} // (2026-10-17) LE SLALOM DES TRONCS
   for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;if(!best||r.note<best.note)best=r;if(r.note<1)break;}
   FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.pel={dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L)};
   return best.ctrl;}
@@ -17804,7 +17756,6 @@ const FOR_ESP={
    étages). Les conifères restent : leur sombre fait briller le vert clair des rideaux. `?sans=pleureurs` = la forêt d'avant. */
 const PLEUR_V=!/[?&]sans=([^&]*,)?pleureurs(,|&|$)/.test(location.search),PLEUR={on:PLEUR_V}; // PLEUR.on : le banc (dbgPleureurs) rebâtit la même forêt avec ou sans
 const FOR_ESP_N=['hetre','chene','bouleau','epicea','sapin','pin','saule','pleureur'];
-const FOR_TRONC={hetre:.62,chene:1,bouleau:.32,epicea:.52,sapin:.55,pin:.48,saule:1.05,pleureur:1.75}; // (2026-10-17, la MOUSSE) le rayon du pied de chaque essence (m, au gabarit) : on s'y écrase
 /* ---------------- LES GÉANTS DU CONTE : quatre arbres-monuments (pied = 0, la ROUTE passe vers y ≈ 70) ----------------
    Leurs couronnes commencent vers 95 m (buildForet les met à l'échelle pour qu'elles soient 25-35 m AU-DESSUS de la dalle). Chacun rend
    aussi ses COLLISIONS : des gélules [x0,y0,z0,x1,y1,z1,r] (tronc, branches maîtresses, arche) et des sphères [x,y,z,r] (la couronne,
@@ -18146,23 +18097,18 @@ const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen,uMini,uCon,uVit,uVitL,uVit
    champignons qui luisent. aS = (distance à la route, prairie, densité de forêt, hasard). */
 const FOR_SOL_VS=['attribute vec4 aS;varying vec3 vW,vN;varying vec4 vS;','#include <fog_pars_vertex>',
   'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vN=normal;vS=aS;vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const FOR_SOL_FS=[FG_BRUIT,FG_LUM,'uniform float uMou;varying vec3 vW,vN;varying vec4 vS;','#include <fog_pars_fragment>',
+const FOR_SOL_FS=[FG_BRUIT,FG_LUM,'varying vec3 vW,vN;varying vec4 vS;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);float f=vS.z,pr=vS.y;vec2 q=vW.xz;',
   '  float n1=fn2(q*.031),n2=fn2(q*.12),n3=fn2(q*.55);',
   '  vec3 humus=mix(vec3(.09,.07,.045),vec3(.16,.115,.065),n2),mousse='+(MATIERE_V?'mix(vec3(.06,.14,.065),vec3(.12,.23,.10),n1)':'mix(vec3(.07,.15,.035),vec3(.14,.25,.06),n1)')+',herbe='+(MATIERE_V?'mix(vec3(.09,.21,.09),vec3(.18,.30,.13),n2)*(.84+.32*n1)':'mix(vec3(.17,.30,.07),vec3(.28,.38,.10),n2)')+';',
   '  vec3 alb=mix(mousse,humus,f*.6*(.55+.45*n3));alb=mix(alb,vec3(.11,.22,.05),smoothstep(.55,.75,n2)*(1.-pr)*.55);alb=mix(alb,herbe,pr);', // fougères, prairies
   '  float sl=1.-N.y;alb=mix(alb,vec3(.33,.32,.29)*(.8+.3*n3),smoothstep(.38,.62,sl+n1*.16));',                     // la roche des pentes
-  '  float mk=0.,dome=0.,hc=0.;if(uMou>0.){vec2 mq=q*1.15,mi=floor(mq),mf=fract(mq),mc=mi;float md=9.;',
-  '    for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 g=vec2(float(i),float(j)),r=g+vec2(fh2(mi+g),fh2(mi+g+17.31))*.8+.1-mf;float d=dot(r,r);if(d<md){md=d;mc=mi+g;}}',
-  '    mk=uMou*(1.-smoothstep(28.,85.,dist))*(1.-pr*.7)*(1.-smoothstep(.38,.62,sl));dome=1.-clamp(md*1.7,0.,1.);hc=fh2(mc*1.7);',
-  '    alb*=mix(1.,(.5+.65*dome)*(.84+.34*hc),mk);alb=mix(alb,alb*vec3(1.18,1.3,.78),mk*dome*dome*.55);}',
-  '  vec2 c9=floor(q*1.3),g9=fract(q*1.3)-.5;float h9=fh2(c9),k9=step(1.-pr*.6,h9)*(1.-smoothstep(70.,190.,dist))*(uMou>0.?smoothstep(16.,42.,dist):1.);',  // les FLEURS des prairies, de près…
+  '  vec2 c9=floor(q*1.3),g9=fract(q*1.3)-.5;float h9=fh2(c9),k9=step(1.-pr*.6,h9)*(1.-smoothstep(70.,190.,dist));',  // les FLEURS des prairies, de près…
   '  vec3 fc=h9<.3?vec3(.78,.24,.66):h9<.55?vec3(.98,.84,.12):h9<.8?vec3(.97,.97,.94):vec3(.50,.58,1.);alb=mix(alb,fc,k9*smoothstep(.34,.12,length(g9)));',
   '  alb=mix(alb,alb*vec3(1.10,.96,1.08)+vec3(.05,.03,.04),pr*smoothstep(90.,240.,dist)*.6);',                      // …et une teinte, au loin
   '  float ao=1.-f*.42,dif=clamp((dot(N,uSunDir)+.2)/1.2,0.,1.),ta=smoothstep(.42,.72,fn2(q*.085+vec2(uTime*.02,0.))),omb=mix(1.,.22+.78*ta,f*.85);', // l'ombre de la canopée, percée de taches de soleil
   '  vec3 col=alb*(uSky*(.45+.40*N.y)*ao+uGnd*.18+uSunC*dif*omb*.95);col+=alb*fPhare(vW,N);col+=alb*uFlash*vec3(.8,.85,1.)*1.4;',
   '  float gh=fh2(floor(q*.8));col+=vec3(.2,1.,.72)*step(.982,gh)*f*uHante*.9*(.6+.4*sin(uTime*1.3+gh*30.));',      // la nuit : des champignons qui luisent
-  '  if(mk>0.){col+=uSunC*step(.988,fract(hc*91.7+floor(uTime*.7+hc*9.)*.618))*dome*dome*mk*1.1*(1.-f*.6);col+=vec3(.35,1.,.6)*uHante*step(.975,hc)*dome*mk*.5;}',
   '  col=mix(col,uMistC,fBrume(vW,dist)*1.1);gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
 /* LE TORRENT : un ruban d'eau au fond de la vallée — le ciel s'y reflète, le soleil y scintille, l'écume sur les bords */
 const FOR_EAU_VS=['attribute vec2 aU;varying vec3 vW;varying vec2 vU;','#include <fog_pars_vertex>',
@@ -18209,18 +18155,14 @@ const FOR_PAP_VS=['attribute vec4 aR;attribute vec2 aP;uniform float uTime,uPap,
 const FOR_PAP_FS=['uniform sampler2D uTex;uniform vec3 uSunC,uSky;varying vec2 vUv;varying float vBat;varying vec3 vW;','#include <fog_pars_fragment>',
   'void main(){vec4 t=texture2D(uTex,vUv);if(t.a<.5)discard;vec3 col=vBat>0.?t.rgb*.6:t.rgb*(uSky*.75+uSunC*.75)+t.rgb*.12;gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
 /* LES LUCIOLES (la nuit, vert-jaune, elles clignotent au fond de la vallée) et le POLLEN (le jour, une poussière d'or dans la lumière) */
-/* (2026-10-17, Léo : « la nuit, des petites lucioles » → « plus visibles ») sur le SLALOM DES TRONCS la boîte des lucioles monte à hauteur
-   d'yeux (elle était 18 m sous la caisse : le fond de la pelote), se resserre autour de la route (230 × 32 × 270 m : ~7 fois plus denses), et
-   chaque luciole est plus grosse, plus vive, allumée plus longtemps (uLucK). `?sans=lucioles` = celles d'avant. */
-const LUCIOLES_V=!/[?&]sans=([^&]*,)?lucioles(,|&|$)/.test(location.search);
-const FOR_LUC_VS=['attribute vec4 aR;uniform float uTime,uLuc,uPol,uPx,uLucK;uniform vec3 uBoxL,uBoxB;uniform vec3 uSunC;varying vec3 vC;varying float vA;',
+const FOR_LUC_VS=['attribute vec4 aR;uniform float uTime,uLuc,uPol,uPx;uniform vec3 uBoxL,uBoxB;uniform vec3 uSunC;varying vec3 vC;varying float vA;',
   'void main(){vec3 B=uBoxB;float luc=step(aR.w,.55);',
   '  vec3 pa=vec3(sin(uTime*.23+aR.y*6.)*7.,sin(uTime*.5+aR.x*9.)*3.+uTime*(luc>0.?.6:.25),cos(uTime*.19+aR.z*6.)*7.);',
   '  vec3 rel=mod(aR.xyz*B+pa-uBoxL+B*.5,B)-B*.5,pos=uBoxL+rel;float e=min(min(.5-abs(rel.x)/B.x,.5-abs(rel.y)/B.y),.5-abs(rel.z)/B.z);',
-  '  float bl=pow(max(sin(uTime*(1.1+aR.w*2.4)+aR.x*40.),0.),uLucK>1.?2.5:5.);',
+  '  float bl=pow(max(sin(uTime*(1.1+aR.w*2.4)+aR.x*40.),0.),5.);',
   '  vA=smoothstep(0.,.08,e)*(luc>0.?uLuc*bl:uPol*(.55+.45*sin(uTime*2.+aR.y*30.)));',
-  '  vC=luc>0.?vec3(.70,1.,.28)*2.2*(.55+.45*uLucK):uSunC*vec3(1.,.9,.6)*1.1;',
-  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=min((luc>0.?1.6*uLucK:.7)*uPx*320./max(1.,-mv.z),uLucK>1.?11.*uPx:1e4);}'].join('\n'); // (2026-10-17) une luciole qui frôle l objectif reste un point (11 px au plus), pas une boule verte
+  '  vC=luc>0.?vec3(.70,1.,.28)*2.2:uSunC*vec3(1.,.9,.6)*1.1;',
+  '  vec4 mv=viewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;gl_PointSize=min((luc>0.?1.6:.7)*uPx*320./max(1.,-mv.z),1e4);}'].join('\n');
 const FOR_LUC_FS=['varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;gl_FragColor=vec4(vC*vA*a,1.);}'].join('\n');
 /* LES RAYONS DE SOLEIL : des pans de lumière qui tombent en biais entre les géants (additifs). Leur axe suit la lumière de la forêt ;
    ils s'éteignent à moins de 40 m de l'objectif (sinon un voile plein écran quand la caméra passe dedans). aR = (sommet, largeur) · aL = (longueur, hasard) */
@@ -18258,11 +18200,11 @@ function foretMats(){if(FORET.mats)return FORET.mats;const U=FOR_U,F=THREE.Unifo
   const sm=(vs,fs,o)=>{const m=new THREE.ShaderMaterial(Object.assign({uniforms:Object.assign(THREE.UniformsUtils.clone(F),U,o&&o.u||{}),vertexShader:vs,fragmentShader:fs,fog:true},o&&o.m||{}));m.dispose=function(){};return m;}; // jamais libérées : un seul jeu pour toutes les forêts
   const M={};
   M.arb=sm(FOR_ARB_VS,FOR_ARB_FS,{u:{uFen:{value:0},uMini:{value:MINI_V?1:0},uCon:{value:CONTRASTE_V?1:0},uVit:{value:VITRAIL_V?1:0},uVitL:{value:.95},uVitS:{value:.85},uVitG:{value:new THREE.Color(1,.86,.45)}}});
-  M.sol=sm(FOR_SOL_VS,FOR_SOL_FS,{u:{uMou:{value:0}}});
+  M.sol=sm(FOR_SOL_VS,FOR_SOL_FS);
   M.eau=sm(FOR_EAU_VS,FOR_EAU_FS,{m:{transparent:true,depthWrite:false}});
   M.fleur=sm(FOR_FLEUR_VS,FOR_FLEUR_FS,{u:{uTex:{value:forFleursTex()}},m:{side:THREE.DoubleSide}});
   M.pap=sm(FOR_PAP_VS,FOR_PAP_FS,{u:{uTex:{value:forAilesTex()},uBat:{value:0}},m:{side:THREE.DoubleSide}});
-  M.luc=sm(FOR_LUC_VS,FOR_LUC_FS,{u:{uBoxL:{value:new THREE.Vector3()},uBoxB:{value:new THREE.Vector3(320,110,340)},uLucK:{value:1}},m:{transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}});
+  M.luc=sm(FOR_LUC_VS,FOR_LUC_FS,{u:{uBoxL:{value:new THREE.Vector3()},uBoxB:{value:new THREE.Vector3(320,110,340)}},m:{transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}});
   M.ray=sm(FOR_RAY_VS,FOR_RAY_FS,{m:{transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}});
   M.brume=sm(FOR_BRUME_VS,FOR_BRUME_FS,{m:{transparent:true,depthWrite:false}}); // (la brume est calculée : pas de toile)
   M.lueur=sm(FOR_LUEUR_VS,FOR_LUEUR_FS,{m:{transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}});
@@ -18285,7 +18227,7 @@ function* foretSol(){ // (LE PRÉ-BÂTI) un générateur : rendez-vous à l'éch
   const C=PAL_B9('foretSolC',24),MARG=PAL_B9('foretMarge',2800),R1=520,mont=d=>d<650?.24*d:156+.05*(d-650);
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   x0-=MARG;x1+=MARG;z0-=MARG;z1+=MARG;
-  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e12),HM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(1e5),YB=new Float32Array(N).fill(1e5),IX=new Int32Array(N).fill(-1);
+  const nx=Math.ceil((x1-x0)/C)+1,nz=Math.ceil((z1-z0)/C)+1,N=nx*nz,D=new Float32Array(N).fill(1e12),HM=new Float32Array(N).fill(1e9),YN=new Float32Array(N).fill(1e5),YB=new Float32Array(N).fill(1e5);
   const RS=[],pas=Math.max(1,Math.round(12/(L/(NP-1))));for(let i=0;i<NP;i+=pas)RS.push(i);
   // la grille grossière : distance à la route et enveloppe basse, sur un point de route sur trois — floutée
   const CG=C*4,gx=Math.ceil((x1-x0)/CG)+1,gz=Math.ceil((z1-z0)/CG)+1,GD=new Float32Array(gx*gz),GH=new Float32Array(gx*gz);
@@ -18299,8 +18241,8 @@ function* foretSol(){ // (LE PRÉ-BÂTI) un générateur : rendez-vous à l'éch
   for(const ri of RS){if(performance.now()>JF.lim)yield;const p=pts[ri],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C);
     for(let b=-rC;b<=rC;b++){const j=cj+b;if(j<0||j>=nz)continue;const z=z0+j*C,dz=z-p.z;
       for(let a=-rC;a<=rC;a++){const i=ci+a;if(i<0||i>=nx)continue;const x=x0+i*C,dx=x-p.x,d2=dx*dx+dz*dz;if(d2>R2)continue;const k=i+j*nx;
-        if(d2<D[k]){D[k]=d2;IX[k]=ri;}const h=p.y+.24*Math.sqrt(d2);if(h<HM[k])HM[k]=h;if(d2<B2&&p.y<YB[k]){YB[k]=p.y;if(d2<N2&&p.y<YN[k])YN[k]=p.y;}}}}
-  const H=new Float32Array(N),PR=new Float32Array(N),FD=new Float32Array(N),YD=new Float32Array(N).fill(-1e5),sd9=FORET.graine*.001;
+        if(d2<D[k])D[k]=d2;const h=p.y+.24*Math.sqrt(d2);if(h<HM[k])HM[k]=h;if(d2<B2&&p.y<YB[k]){YB[k]=p.y;if(d2<N2&&p.y<YN[k])YN[k]=p.y;}}}}
+  const H=new Float32Array(N),PR=new Float32Array(N),FD=new Float32Array(N),sd9=FORET.graine*.001;
   /* (2026-10-14, session PERF) LE BRUIT EN DEUX MOITIÉS. Le terme a = sin(x·.0123+s)·sin(z·.0107−.7s) de forBruit ne dépend que de la
      colonne OU de la rangée : ses sinus sont lus dans des tables (une par échelle), calculés avec EXACTEMENT les mêmes opérandes que
      forBruit (x9 = x·e, puis x9·.0123+s) — mêmes flottants au bit ; b et c (mêlés x et z) restent calculés. ~2 sinus sur 4 de moins par appel. */
@@ -18312,17 +18254,12 @@ function* foretSol(){ // (LE PRÉ-BÂTI) un générateur : rendez-vous à l'éch
     if(D[k]<1e11){d=Math.sqrt(D[k]);hb=HM[k];if(d>R1-160){const w=THREE.MathUtils.smoothstep(d,R1-160,R1);hb=Math.min(hb,hb*(1-w)+gBil(GH,x,z)*w);}}
     else{d=Math.max(R1,gBil(GD,x,z));hb=gBil(GH,x,z);}
     D[k]=d;
-    const n1=fB(0,i,j,x,z),D0=FORET.zig?10+2.5*n1:132+13*n1; // la PROFONDEUR sous l'enveloppe : 120-145 m — (2026-10-17, le SLALOM DES TRONCS) 7-12 m : la route roule au fond de la forêt
-    if(d>MARG+150){H[k]=(FORET.zig?FORET.zigTer(x,z)+30*fB(2,i,j,x*.31,z*.31):hb-D0+52*fB(2,i,j,x*.31,z*.31));PR[k]=0;FD[k]=.62;continue;} // hors du maillage : les collines seules (rien d'autre ne lit si loin)
-    if(FORET.zig){ // (2026-10-17) LE SLALOM : le TERRAIN de forZigzag ; près d'une route AU SOL, la mousse vient border la dalle (on passe de l'une à l'autre en roulant) ; sous un PONT, il reste en bas
-      const T0=FORET.zigTer(x,z)+30*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,600,1500)+3.5*fB(3,i,j,x*3.1,z*3.1)*THREE.MathUtils.smoothstep(d,40,140);let Hz=T0;const ri=IX[k];
-      if(ri>=0&&d<ROAD_HALF+60){const e=FORET.zigEl(ri/Math.max(1,NP-1)*FORET.zigL),ry=pts[ri].y,wE=1-THREE.MathUtils.smoothstep(e,.6,5),w=1-THREE.MathUtils.smoothstep(d,ROAD_HALF+2,ROAD_HALF+55);
-        Hz=T0+(ry-.45-T0)*w*wE;if(d<ROAD_HALF+3)Hz=Math.min(Hz,ry-.45-(1-wE)*3);}
-      H[k]=Hz;YD[k]=ri>=0?pts[ri].y:-1e5;}
-    else H[k]=hb-D0+40*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,380,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
+    const n1=fB(0,i,j,x,z),D0=132+13*n1; // la PROFONDEUR sous l'enveloppe : 120-145 m
+    if(d>MARG+150){H[k]=hb-D0+52*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : les collines seules (rien d'autre ne lit si loin)
+    H[k]=hb-D0+40*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,380,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
     const pr=d<220?THREE.MathUtils.smoothstep(fB(4,i,j,x*1.7,z*1.7),.05,.42)*(1-THREE.MathUtils.smoothstep(d,160,220)):0;PR[k]=pr;
-    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+60?(FORET.zig?.42:.25):d<280?(FORET.zig?.6:.45):d<700?.86:.62)+.18*fB(5,i,j,x*2.3,z*2.3)-pr*.9));}
-  return FORET.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yb:YB,yd:YD,pr:PR,f:FD,can:new Float32Array(N).fill(-1e9),MARG:MARG};
+    FD[k]=Math.max(0,Math.min(1,(d<ROAD_HALF+60?.25:d<280?.45:d<700?.86:.62)+.18*fB(5,i,j,x*2.3,z*2.3)-pr*.9));}
+  return FORET.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,yn:YN,yb:YB,pr:PR,f:FD,can:new Float32Array(N).fill(-1e9),MARG:MARG};
 }
 function solBil(A,x,z){const S=FORET.sol;if(!S)return 0;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx;
   return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+n]*(1-u)+A[k+n+1]*u)*v;}
@@ -18454,7 +18391,7 @@ function buildForet(seed){jadeFini(buildForetG(seed));} // (2026-10-17, LE PRÉ-
 function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   foretVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='foret'||!(NP>1))return;
-  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(TEL_NATIF?.8:1)*(FOR_ZIG_V?.82:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=PAL_B9('foretB1',760);M.sol.uniforms.uMou.value=MOUSSE_V&&FORET.zig?1:0;
+  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(TEL_NATIF?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=PAL_B9('foretB1',760);
   FORET.graine=(seed>>>0)%100000;FORET.seed=seed;FORET.zonesNu=[];FORET.met=LVL.cur.meteo||'midi';FORET.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);FORET.root=root;trackMeshes.push(root);
   const S=yield* foretSol(),tS=performance.now();
@@ -18470,8 +18407,6 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   const lat9=i=>{const t=T[i],hl=Math.hypot(t.x,t.z)||1;return [-t.z/hl,t.x/hl];};
-  // ---- (2026-10-17, la MOUSSE) les TRONCS : là où l'on meurt quand on roule sous les arbres (grille de 24 m) ----
-  const TG=FORET.troncs=new Map(),tronc=(x,z,r)=>{const k=Math.floor(x/24)*100003+Math.floor(z/24);let a=TG.get(k);if(!a)TG.set(k,a=[]);a.push(x,z,r);};
   // ---- les zones nues (pas d'arbre ordinaire dedans) : une grille de 60 m ----
   const ZG=new Map(),zone=(x,z,r)=>{FORET.zonesNu.push([x,z,r]);const c=Math.ceil(r/60);for(let a=-c;a<=c;a++)for(let b=-c;b<=c;b++){const k=(Math.floor(x/60)+a)*100003+(Math.floor(z/60)+b);let L9=ZG.get(k);if(!L9)ZG.set(k,L9=[]);L9.push([x,z,r]);}};
   const nu=(x,z,r)=>{const L9=ZG.get(Math.floor(x/60)*100003+Math.floor(z/60));if(L9)for(const o of L9)if(Math.hypot(x-o[0],z-o[1])<o[2]+r)return true;return false;};
@@ -18517,7 +18452,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   /* LA FUTAIE (2026-10-15, LA PELOTE) : partout à moins de 360 m d'une route, un géant tous les ~95 m (une grille décalée) — séquoias,
      chênes, hêtres, épicéas, vieux chênes ; la pelote serpente entre des troncs de 20 à 50 m de diamètre, et l'air entre ses étages
      n'appartient qu'à eux : c'est entre ces fûts qu'on saute d'une route à l'autre. (`foretFutaie` : l'écart de la grille par palier) */
-  {const PF=95*PAL_B9('foretFutaie',1)*(FORET.zig?1.3:1);let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(let i=0;i<NP;i+=8){const p=pts[i];if(p.x<bx0)bx0=p.x;if(p.x>bx1)bx1=p.x;if(p.z<bz0)bz0=p.z;if(p.z>bz1)bz1=p.z;}
+  {const PF=95*PAL_B9('foretFutaie',1);let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(let i=0;i<NP;i+=8){const p=pts[i];if(p.x<bx0)bx0=p.x;if(p.x>bx1)bx1=p.x;if(p.z<bz0)bz0=p.z;if(p.z>bz1)bz1=p.z;}
    for(let gx=bx0-360;gx<bx1+360;gx+=PF)for(let gz=bz0-360;gz<bz1+360;gz+=PF){if(performance.now()>JF.lim)yield;const x=gx+(fr()-.5)*PF*.8,z=gz+(fr()-.5)*PF*.8,d=solBil(S.d,x,z),r=fr();
      if(d>360||d<ROAD_HALF+24)continue;geantXZ(x,z,r<.42?'sequoia':ge[(fr()*ge.length)|0]);}}
   FORET.geants=GE;
@@ -18537,7 +18472,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
      for(let e=0;e<6;e++){const lat=82+fr()*45,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat,y=solH(x,z);
        if(Math.abs(solH(x+9,z)-solH(x-9,z))>5||Math.abs(solH(x,z+9)-solH(x,z-9))>5||nu(x,z,30))continue;
        const m=new THREE.Mesh(geo,M.arb);m.position.set(x,y-.6,z);m.rotation.y=Math.atan2(pts[i].x-x,pts[i].z-z);m.updateMatrix();m.matrixAutoUpdate=false;root.add(m);
-       FORET.chaum.push(m);zone(x,z,30);canTampon(x,z,22,y+18);tronc(x,z,12);break;}}}
+       FORET.chaum.push(m);zone(x,z,30);canTampon(x,z,22,y+18);break;}}}
   if(performance.now()>JF.lim)yield;
   // ---- 5. LA FORÊT ----
   const ESP={},LOINF=[],LOINC=[];for(const k of FOR_ESP_N)ESP[k]=[];
@@ -18557,15 +18492,13 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
     if(d<ROAD_HALF+20)continue;
     if(nu(x,z,me.cr*sxz*.5))continue;
     const y=solH(x,z)-.4;
-    if(FORET.zig){const ci9=Math.round((x-S.x0)/S.C)+Math.round((z-S.z0)/S.C)*S.nx,yd9=S.yd[ci9]||-1e5;
-      if(yd9>-1e4&&yd9-y>10&&d<me.cr*sxz+ROAD_HALF+8){const lim=yd9-7;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.6)continue;sxz=Math.min(sxz,s*1.15);}}} // (slalom) sous un PONT : la cime 7 m sous la dalle
-    else{const yb9=solBil(S.yb,x,z);if(yb9<1e4){const lim=yb9-30;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.6)continue;sxz=Math.min(sxz,s*1.15);}}} // (LA PELOTE) jamais dans l'air libre des étages : 30 m sous la route la plus BASSE à moins de 280 m
+    {const yb9=solBil(S.yb,x,z);if(yb9<1e4){const lim=yb9-30;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.6)continue;sxz=Math.min(sxz,s*1.15);}}} // (LA PELOTE) jamais dans l'air libre des étages : 30 m sous la route la plus BASSE à moins de 280 m
     const ry=fr()*6.2832,q=qDe(x,z),tint=sp==='hetre'&&fr()<.04?2:(fr()*2-1)*.6;
     let spF=sp,sF=s,sxzF=sxz; // (2026-10-17) LES PLEUREURS (PLEUR_V) : tirés de LEUR flux, le flux du décor ne voit rien
     if(PLEUR.on&&(sp==='hetre'||sp==='bouleau'||sp==='chene')&&fw()<(d<175?.9:d<620?.75:.45)){const e9=fw()<.55?'saule':'pleureur',hF=metaE[e9].h;let k9=s*(e9==='saule'?1.3:1.25);
-      const yb9=FORET.zig?1e5:solBil(S.yb,x,z);if(yb9<1e4)k9=Math.min(k9,(yb9-30-y)/hF);if(k9>=.6){spF=e9;sF=k9;sxzF=k9*(sxz/s)*(e9==='pleureur'?1.08:1);}}
+      const yb9=solBil(S.yb,x,z);if(yb9<1e4)k9=Math.min(k9,(yb9-30-y)/hF);if(k9>=.6){spF=e9;sF=k9;sxzF=k9*(sxz/s)*(e9==='pleureur'?1.08:1);}}
     const meF=metaE[spF];
-    ESP[spF].push({q:q,m:mat(x,y,z,ry,sxzF,sF,sxzF),j:[fr(),tint,0,0]});tronc(x,z,(FOR_TRONC[spF]||.6)*sxzF);
+    ESP[spF].push({q:q,m:mat(x,y,z,ry,sxzF,sF,sxzF),j:[fr(),tint,0,0]});
     {const fc=FC[spF],k9=tint>1.5?[1.35,1.12,.7]:[1+tint*.16,1+tint*.06,1-tint*.18],al=[fc[0]*k9[0]*.78,fc[1]*k9[1]*.78,fc[2]*k9[2]*.78],lo=FOR_LOIN[spF];
      if(fr()<.62){const g9=1.12; // au loin, 62 % des arbres, un peu plus gros : la même masse de forêt pour 40 % de triangles en moins
       if(lo)LOINF.push({q:q,m:mat(x,y+lo[0]*sF,z,ry,lo[1]*sxzF*g9,lo[1]*lo[2]*sF*g9,lo[1]*sxzF*g9),j:[fr(),al[0],al[1],al[2]]});
@@ -18576,7 +18509,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   const GES={};for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL))GES[k]=[];
   for(const g of GE){let sp=g.sp;if(PLEUR.on&&(sp==='chene'||sp==='hetre')&&fw()<.85)sp=fw()<.5?'gsaule':'gpleureur'; // (2026-10-17) LES PLEUREURS géants : même place, même échelle, leur flux à eux
     if(TORDUS_V&&(sp==='sequoia'||sp==='epicea'||sp==='chene'||sp==='hetre'))sp=fw()<.5?'gsaule':'gpleureur'; // (2026-10-17, Léo : « enlève tous les arbres qui ont des gros cylindres » → séquoias et épicéas géants) que des géants TORDUS et pleureurs
-    if(!FORET.zig&&FOR_PLEUR_VOL[sp]){ /* (2026-10-17 soir, LA PELOTE REVENUE) le pleureur prend la place d'un géant taillé pour SA couronne (un séquoia
+    if(FOR_PLEUR_VOL[sp]){ /* (2026-10-17 soir, LA PELOTE REVENUE) le pleureur prend la place d'un géant taillé pour SA couronne (un séquoia
        s'ouvre à 178, le rideau d'un saule tombe à 94) : une route d'un autre étage passait dans ses mèches. On le REHAUSSE jusqu'à ce que le bas des
        rideaux passe 16 m au-dessus de la plus haute route sous sa ramure (comme geantXZ) ; au-delà de ×1,45, l'autre pleureur ; sinon la clairière reste vide. */
       const pl=function(e){const P=FOR_PLEUR_VOL[e],rh=(P.r+8)*g.sxz+ROAD_HALF;let yH=-1e9;proches(g.x,g.z,rh,function(j){const q=pts[j];if(q.y>yH&&Math.hypot(q.x-g.x,q.z-g.z)<rh)yH=q.y;});
@@ -18587,7 +18520,6 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
     g.spV=sp;const q=qDe(g.x,g.z),meta=PT.geant[sp][0].m;GES[sp].push({q:q,m:mat(g.x,g.y,g.z,g.ry,g.sxz,g.sy,g.sxz),j:[fr(),(fr()*2-1)*.4,0,1]});
     ext(q,g.x,g.y,Math.max(g.top,g.y+meta.h*g.sy),g.z,Math.max(g.cr,meta.cr*g.sxz));colPose(meta,g.x,g.y,g.z,g.ry,g.sxz,g.sy);} // (pas de tampon de canopée : la case de 26 m déborderait sur la route — les gélules et sphères suffisent)
   // les rochers : une famille aussi
-  for(const r of RO)tronc(r.x,r.z,11*r.sxz); // (la mousse) les rochers du loup
   const ROI=[];for(const r of RO){const q=qDe(r.x,r.z);ROI.push({q:q,m:mat(r.x,r.y,r.z,r.ry,r.sxz,r.sy,r.sxz),j:[fr(),0,0,0]});ext(q,r.x,r.y,r.top,r.z,20*r.sxz);canTampon(r.x,r.z,16*r.sxz,r.top-6);}
   if(performance.now()>JF.lim)yield;
   // ---- 6. LES AMANITES (des ronds de sorcières au fond), LES FLEURS DU BORD, LES PLANTES DU FOND, LE LIERRE ----
@@ -18738,8 +18670,7 @@ function foretTick(dt){
   // la boîte des papillons : 65 m devant la caisse ; celle des lucioles : plus loin, plus bas, dans la vallée
   {const f=U.uCarF.value,p=U.uCarP.value;U.uBoxC.value.set(p.x+f.x*65,p.y+3,p.z+f.z*65);}
   fx.pap.visible=(c.pap>.01||c.hante>.4)&&!(PAL_B9('papillons',1)<.5);
-  fx.luc.visible=c.luc>.01||c.pol>.01;if(fx.luc.visible){const f=U.uCarF.value,p=U.uCarP.value,z9=FORET.zig&&LUCIOLES_V;M.luc.uniforms.uBoxL.value.set(p.x+f.x*(z9?70:90),p.y+(z9?6:-18),p.z+f.z*(z9?70:90));
-    if(z9)M.luc.uniforms.uBoxB.value.set(230,32,270);else M.luc.uniforms.uBoxB.value.set(320,110,340);M.luc.uniforms.uLucK.value=z9?1.75:1;}
+  fx.luc.visible=c.luc>.01||c.pol>.01;if(fx.luc.visible){const f=U.uCarF.value,p=U.uCarP.value;M.luc.uniforms.uBoxL.value.set(p.x+f.x*90,p.y-18,p.z+f.z*90);}
   foretAbeilles(dt,c);
   if(FORET.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of FORET.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+40;if(m.visible!==v)m.visible=v;}}
   if(FORET.rayons)FORET.rayons.visible=U.uRay.value>.01;if(FORET.brume)FORET.brume.visible=c.mist>.01;if(FORET.yeux)FORET.yeux.visible=c.hante>.02;
@@ -18757,7 +18688,7 @@ function fbBoite(K,c,sz,col,part){const h=[sz[0]/2,sz[1]/2,sz[2]/2];
     for(const q of [[-1,-1],[1,-1],[1,1],[-1,1]]){const p=[c[0],c[1],c[2]];p[a]+=sg*h[a];p[u]+=q[0]*h[u];p[v]+=q[1]*h[v];V9.push(fbV(K,p[0],p[1],p[2],n[0],n[1],n[2],[part,.9,0,0],col,[5,0]));}
     if(sg>0)K.I.push(V9[0],V9[1],V9[2],V9[0],V9[2],V9[3]);else K.I.push(V9[0],V9[2],V9[1],V9[0],V9[3],V9[2]);}}
 function foretAbeilles(dt,c){
-  const veut=ABEILLES_V&&(FORET.met==='matin'||FORET.met==='midi')&&!(LVL.pluie>.05)&&FORET.zig!==undefined;
+  const veut=ABEILLES_V&&(FORET.met==='matin'||FORET.met==='midi')&&!(LVL.pluie>.05)&&FORET.pel!==undefined;
   if(!veut){if(ABE.g)ABE.g.visible=false;return;}
   if(!ABE.g){const M=FORET.mats,K=fbNew(),W=fbNew(),noir=[.05,.045,.04],jaune=[.95,.72,.07];
     fbBoite(K,[0,0,.44],[.34,.32,.3],noir,3);fbBoite(K,[0,0,.14],[.42,.4,.36],[.42,.25,.06],3);
@@ -18841,15 +18772,9 @@ function foretHeurt(p){
   if(G){const a=G.G.get(Math.floor(p.x/G.CG)+','+Math.floor(p.z/G.CG));
     if(a)for(let j=0;j<a.length;j++){const c=a[j];
       if(c.g){const ax=c.a[0],ay=c.a[1],az=c.a[2],bx=c.b[0]-ax,by=c.b[1]-ay,bz=c.b[2]-az,l2=bx*bx+by*by+bz*bz;let u=l2>0?((p.x-ax)*bx+(p.y-ay)*by+(p.z-az)*bz)/l2:0;u=Math.max(0,Math.min(1,u));
-        const dx=p.x-ax-bx*u,dy=p.y-ay-by*u,dz=p.z-az-bz*u;if(dx*dx+dy*dy+dz*dz<(c.r+1.2)*(c.r+1.2)){FORET.coup=['geantB',+c.r.toFixed(1),+(p.y-(FORET.sol?solH(p.x,p.z):0)).toFixed(1)];return 'arbre';}}
-      else{const dx=p.x-c.a[0],dy=p.y-c.a[1],dz=p.z-c.a[2];if(dx*dx+dy*dy+dz*dz<c.r*c.r){FORET.coup=['geantS',+c.r.toFixed(1),+(p.y-(FORET.sol?solH(p.x,p.z):0)).toFixed(1)];return 'arbre';}}}}
+        const dx=p.x-ax-bx*u,dy=p.y-ay-by*u,dz=p.z-az-bz*u;if(dx*dx+dy*dy+dz*dz<(c.r+1.2)*(c.r+1.2))return 'arbre';}
+      else{const dx=p.x-c.a[0],dy=p.y-c.a[1],dz=p.z-c.a[2];if(dx*dx+dy*dy+dz*dz<c.r*c.r)return 'arbre';}}}
   const S=FORET.sol;if(p.x<S.x0||p.z<S.z0||p.x>S.x0+S.nx*S.C||p.z>S.z0+S.nz*S.C)return '';
-  if(mousseOk()){ // (2026-10-17) LA MOUSSE : le sol porte ; au ras du sol on meurt sur un TRONC, plus haut dans une cime
-    if(MOU.mort){const m=MOU.mort;MOU.mort='';return m;}
-    const hg=p.y-solH(p.x,p.z);if(hg<-2.5)return 'sousbois';
-    if(hg<11){const T9=FORET.troncs,bx=Math.floor(p.x/24),bz=Math.floor(p.z/24);if(T9)for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const A9=T9.get((bx+a)*100003+bz+b);if(!A9)continue;
-      for(let q=0;q<A9.length;q+=3){const dx=p.x-A9[q],dz=p.z-A9[q+1],r=A9[q+2]+1.3;if(dx*dx+dz*dz<r*r){FORET.coup=['tronc',+A9[q+2].toFixed(2),+hg.toFixed(1)];return 'arbre';}}}return '';}
-    if(p.y<canH(p.x,p.z)){FORET.coup=['cime',+hg.toFixed(1)];return 'arbre';}return '';}
   if(p.y<solH(p.x,p.z)+1.2)return 'sousbois';
   if(p.y<canH(p.x,p.z))return 'arbre';
   return '';}
@@ -20564,46 +20489,6 @@ function banqDecolle(){
   BANQ.glisse=false;BANQ.gFin=performance.now();
   if(BANQ.gT>.25&&fallVel.y*SPD>9){BANQ.figs.trp=(BANQ.figs.trp|0)+1;try{addTrick('bk_trp',sansAcc(TR('TREMPLIN DE GLACE !')),10,2);flowAdd(8,'risque');hap([10,20,30]);}catch(e){}} // l'arête d'un pic : un TREMPLIN
   BANQ.gT=0;}
-/* (2026-10-17, Léo : « au sol et autour de nous c'est de la MOUSSE, on roule dessus » → au questionnaire : « rouler hors de la route ») LA MOUSSE —
-   sur le SLALOM DES TRONCS, le sol de la forêt porte la caisse : sortie de la route (ou tombée d'un pont), elle se POSE sur la mousse au lieu de
-   mourir dans les fougères, y ROULE (le moteur la tient à 72 % de sa croisière, 94 % sous nitro ; la mousse freine si l'on arrive plus vite), y
-   TOURNE (le volant entier), monte et descend avec le terrain, décolle d'une crête, et REMONTE sur la route en roulant (la mousse borde la dalle
-   des routes au sol : tryLand la reprend). On meurt sur un TRONC (les arbres ordinaires ont leurs troncs, `FORET.troncs` ; les géants leurs
-   gélules) ou en tombant de trop haut (> 40 m/s à l'impact). Sur la mousse, ni chrono de vol ni figures. Même chemin que la glace du glacier
-   (branche 'fall', avant que la position avance). `?sans=mousse` = la mousse qui tue (les fougères d'avant). */
-const MOUSSE_V=!/[?&]sans=([^&]*,)?mousse(,|&|$)/.test(location.search),MOU={on:false,t:0,vr:0,tq:-9,mort:'',nS:new THREE.Vector3(0,1,0),pT:0},MOU_PH={vMort:40,vK:.86,vKn:1.04,frein:.9,haut:.62};
-function mousseOk(){return MOUSSE_V&&!!FORET.zig&&!!FORET.root&&!!FORET.sol&&!!LVL.cur&&LVL.cur.id==='foret'&&!PARK.on;}
-function foretSolVol(dt,dtF){
-  if(!mousseOk()){MOU.on=false;return;}
-  const S=FORET.sol,p=fallPos,v=fallVel,k9=dtF*SPD,x=p.x+v.x*k9,z=p.z+v.z*k9;
-  if(x<S.x0+S.C||z<S.z0+S.C||x>S.x0+(S.nx-2)*S.C||z>S.z0+(S.nz-2)*S.C){MOU.on=false;return;}
-  const h=solH(x,z),gx=(solH(x+3,z)-solH(x-3,z))/6,gz=(solH(x,z+3)-solH(x,z-3))/6,nl=Math.hypot(gx,1,gz),nx=-gx/nl,ny=1/nl,nz=-gz/nl;
-  const py=p.y+v.y*k9,d=h+MOU_PH.haut-py,vn=v.x*nx+v.y*ny+v.z*nz;
-  if(!MOU.on){
-    if(d<-.05||vn>2)return;                                                        // pas encore au sol
-    if(-vn*SPD>MOU_PH.vMort){MOU.mort='sousbois';return;}                          // tombée de trop haut : les fougères
-    MOU.on=true;MOU.t=0;MOU.nS.set(nx,ny,nz);MOU.vr=Math.max(Math.hypot(v.x,v.z),vCroisiere()*.6/(3.6*SPD),performance.now()*.001-MOU.tq<2?MOU.vr:0);mousseTouche(-vn*SPD);}
-  else if(d<-2.4||vn>9){MOU.on=false;MOU.tq=performance.now()*.001;return;}                                      // une crête, un saut : on repart en l'air
-  if(vn<0){v.x-=nx*vn;v.y-=ny*vn;v.z-=nz*vn;}                                      // la vitesse qui entrait dans le sol est bue
-  p.y=Math.max(p.y,h+MOU_PH.haut-v.y*k9);                                          // posée SUR la mousse à la fin de l'image
-  {if(nitroOn)MOU.vr=Math.min(MOU.vr+dt*12/SPD,vCroisiere()*1.25/(3.6*SPD));const hv=v.length(),vt=MOU.vr*(nitroOn?MOU_PH.vKn:MOU_PH.vK);if(hv>1){const a=(vt-hv)*(1-Math.exp(-MOU_PH.frein*dtF));v.multiplyScalar(Math.max(0,hv+a)/hv);}
-   else v.set(Math.sin(psi||0),0,Math.cos(psi||0)).multiplyScalar(vt*.3);}           // le moteur la tient à sa vitesse de mousse (la pente fait le reste)
-  {const yi=(steer-veqVolant())*lacetVol(v.length())*dtF;if(yi)v.applyAxisAngle(MOU.nS,yi);} // le VOLANT ENTIER (en l'air, il ne garde que le geste neuf)
-  BK_N.set(nx,ny,nz);MOU.nS.lerp(BK_N,Math.min(1,dt*12)).normalize();FLY_U.copy(MOU.nS);
-  fallVH0=Math.max(fallVH0,Math.hypot(v.x,v.z));fallT=0;fallTR=0;yawAcc=0;spinHalf=0;MIR.t=0;MIR.max=0; // sur la mousse : ni chrono de vol, ni vrille, ni chute « perdue »
-  MOU.t+=dt;
-  if(v.lengthSq()>100&&Math.random()<Math.min(1,dt*30)){const s9=Math.random()<.5?-1:1;tmp2.set(0,0,1).applyQuaternion(carGroup.quaternion);
-    spawnP(dust,p.x-tmp2.x*2+(Math.random()-.5)*2,h+.3,p.z-tmp2.z*2+(Math.random()-.5)*2,(Math.random()-.5)*3,1+Math.random()*2,(Math.random()-.5)*3,.5+Math.random()*.4);}}
-window.dbgPont=function(k,d){if(!FORET.zig||!FORET.zigEl)return 'pas de slalom';if(k==='etat')return [Math.round(s),+FORET.zigEl(s).toFixed(1),mode]; // (banc) la caisse au pied du k-ième pont du slalom (d m avant)
-  let n=0;for(let x=200;x<L-400;x+=10)if(FORET.zigEl(x)>2&&FORET.zigEl(x-10)<=2){if(n++===(k|0)){s=Math.max(0,x-(d==null?120:d));lat=0;prevTvalid=false;mode='drive';return Math.round(x);}}return -1;};
-window.dbgMousse=function(){return {ok:mousseOk(),on:MOU.on,t:+MOU.t.toFixed(1),mode:mode,kmh:Math.round(vKmh()),s:Math.round(s),lat:+(lat||0).toFixed(1),coup:FORET.coup||null,sol:FORET.sol?+(fallPos.y-solH(fallPos.x,fallPos.z)).toFixed(1):null,mort:mortCause};}; // (banc) l'état de la mousse
-function mousseTouche(vw){const k=Math.min(1,vw/40);shake=Math.max(shake,.12+.3*k);fovPunch=Math.max(fovPunch,2+5*k);hap(k>.5?[12,18]:[8]);
-  try{if(SONV2&&!(sfx('foret.mousse',{vol:-8+8*k})))sfx('pose.choc',{vol:-12+6*k});}catch(e){}
-  for(let i=0;i<8+16*k;i++)spawnP(dust,fallPos.x+(Math.random()-.5)*4,fallPos.y-.3,fallPos.z+(Math.random()-.5)*4,(Math.random()-.5)*8,2+Math.random()*4,(Math.random()-.5)*8,.6+Math.random()*.5);}
-function mousseAssiette(dt){ // sur la mousse, la caisse est POSÉE : à plat sur la pente, le nez dans la vitesse, pas de vrille
-  const n=MOU.nS;BK_V.copy(fallVel).addScaledVector(n,-fallVel.dot(n));if(BK_V.lengthSq()<4){BK_V.set(0,0,1).applyQuaternion(carGroup.quaternion);BK_V.addScaledVector(n,-BK_V.dot(n));}
-  BK_V.normalize();BK_R.crossVectors(n,BK_V).normalize();BK_V.crossVectors(BK_R,n).normalize();
-  BK_M4.makeBasis(BK_R,n,BK_V);BK_Q.setFromRotationMatrix(BK_M4);carGroup.quaternion.slerp(BK_Q,Math.min(1,dt*14));airRoll=0;}
 /* LE CONTACT AVEC LA GLACE : le son, la gerbe de givre, la figure */
 function banqTouche(S,vn,vv){
   const k=Math.min(1,vn/40);shake=Math.max(shake,.15+.35*k);fovPunch=Math.max(fovPunch,3+6*k);hap(k>.5?[14,20]:[8]);
@@ -37810,7 +37695,7 @@ const AILE_K={panneaux:1.12,helices:1.3,plumes:1.2,chauve:1.12,pigeon:1.5,origam
 var AILES_POP=null;const AIL_TX={};
 var AILV={t:0,n:0,vir:0,mon:0,vitr:0,photo:0,force:null};
 function ailvTick(dt){if(!carWingL)return;AILV.t+=dt; // une fois par image, avant blingTick
-  const vol=mode==='fall'&&!garageOn&&!MOU.on,vitr=garageOn&&wingT>.3;AILV.vitr=vitr?1:0;
+  const vol=mode==='fall'&&!garageOn,vitr=garageOn&&wingT>.3;AILV.vitr=vitr?1:0;
   let nT=vol&&nitroOn?1:0,vT=vol?steer:0,mT=vol?Math.max(-1,Math.min(1,fallVel.y*.09)):0;
   if(vitr){const c=AILV.t%7.5;nT=c>3.2&&c<5.8?1:0;vT=.75*Math.sin(AILV.t*.85);mT=.4*Math.sin(AILV.t*.5);} // LA VITRINE : le boost, le virage, la montée
   const F=AILV.force;if(F){if(F.n!=null)nT=F.n;if(F.vir!=null)vT=F.vir;if(F.mon!=null)mT=F.mon;} // (banc) dbgAilesForce
@@ -53268,7 +53153,7 @@ function respawn(){
   try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   try{bkSkateRaz();BKV.yaw=0;BKV.gl=0;BKV.gk=0;}catch(e){} // (ICE SKATE) la glisse aussi · (2026-10-15 soir) et la glissade sur le verglas
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
-  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe();MOU.on=false;MOU.mort=''; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
+  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   JEAU.dans=false;JEAU.wB=0; // (2026-10-13) replacé sur la route : plus sous l'eau — (2026-10-14, revue des idées de Léo) et plus redressé par elle : wB restait vers 1 en conduite, et au saut suivant la vrille et le vol équilibré étaient coupés 1-2 s
   momT=0; // (momentum v2) repartir = réserve vide
@@ -53651,7 +53536,7 @@ function sensBumpFlanc(b,t,n,sg,impB){
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
     spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
 }
-function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();MOU.on=false;MOU.mort=''; // (2026-10-17) fr9 : une figure SUR LA ROUTE en cours, qui part avec le vol // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
+function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe(); // (2026-10-17) fr9 : une figure SUR LA ROUTE en cours, qui part avec le vol // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   FX2.drift=FIGV2.on&&driftEnCours&&!bord;FX2.driftS=steer>=0?1:-1; // (2026-10-14, LES FIGURES v2) un DRIFT qui décolle part en toupie — lu AVANT la remise à zéro
   if(bord)secBord();m2Saut(); /* (2026-10-16) LES MISSIONS v2 : un saut neuf, des tours neuves à frôler */ // (2026-10-14) LES DÉFIS SECRETS : FANTÔME — sorti par le bord
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
@@ -54039,7 +53924,7 @@ function tryLand(dt){
   if(landLoss>.2&&impact>=4.5)dropChip(2); // (2026-10-09) la tôle qui part = une pose DURE : un grand vol posé en douceur (PARFAIT) ne se casse plus
   if(landLoss>.28&&fallT>1.6)slowT=Math.max(slowT,.25);
   if(window.__poseJ)window.__poseJ.push({h:+hOff.toFixed(2),hAvant:+prevH.toFixed(2),lat:+latX9.toFixed(2),vN:+vN.toFixed(1),vT:+fallVel.dot(T[bestI]).toFixed(1),face:sideL,t:+fallT.toFixed(2),vA:+vA.toFixed(1),psi:+psi.toFixed(2)}); /* (banc) le journal des poses */
-  prevTvalid=false;mode='drive';MOU.on=false;MOU.tq=-9;duckT=Math.max(duckT,.2*SVOL.k); /* (2026-10-14, session SON) LA RÉSOLUTION : la pose d'un vol tendu creuse les chaînes continues ~80 ms (dk ≥ .9, duckT retombe à 2,6/s) — le verdict (pose.parfait, choc) claque dans ce creux, puis la tension retombe en ~0,2 s (SVOL.k hors du vol) */
+  prevTvalid=false;mode='drive';duckT=Math.max(duckT,.2*SVOL.k); /* (2026-10-14, session SON) LA RÉSOLUTION : la pose d'un vol tendu creuse les chaînes continues ~80 ms (dk ≥ .9, duckT retombe à 2,6/s) — le verdict (pose.parfait, choc) claque dans ce creux, puis la tension retombe en ~0,2 s (SVOL.k hors du vol) */
   /* LA POSE SANS SAUT (2026-10-01, Sacha : « il y a des bugs quand on essaye de se poser sur la route » — MESURÉ au banc des poses,
      da/pose-banc.js, 144 lâchers à 1/60 s) : la pose est DÉCLARÉE dès que la caisse passe sous 3 m de la dalle (la fenêtre élargie), et la
      conduite la posait SUR le bitume à l'image suivante — elle descendait de 2,1 à 2,6 m EN UNE IMAGE (le monde sautait à l'écran, 0,12 à
@@ -54274,7 +54159,7 @@ function newTrack0(){
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
-  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe();MOU.on=false;MOU.mort=''; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
+  for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
@@ -54714,7 +54599,7 @@ function endGame(){
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
   try{if(CARR.actif&&LVL.cur&&LVL.cur.carr)carrSelPose(LVL.cur.carr.b,LVL.cur.carr.i);}catch(e){} // (2026-10-07) …et les PLAY du menu aussi : « le dernier niveau de carrière auquel on a joué »
   try{campStop();}catch(e){} // (2026-09-27) tirs, fumée, éclairs, halos : rien ne reste figé derrière l'écran de fin
-  try{rainbowCoupe();nfeuCoupe();}catch(e){}MOU.on=false;MOU.mort=''; // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
+  try{rainbowCoupe();nfeuCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
@@ -66515,8 +66400,7 @@ function loop(now){
       {const hx9=Math.hypot(fallVel.x,fallVel.z);if(fallVH0<0)fallVH0=Math.max(hx9,fallVel.length()); // (vol libre) plafond = la vitesse d'ÉJECTION entière : sortir d'un piqué à l'horizontale reste possible (le manche n'a plus de butée), jamais plus vite qu'au décollage
        if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;fallVel.x*=f9;fallVel.z*=f9;}}
       try{jadeEauVol(dt,dtF);}catch(e){loopWarn(8192,'eau',e);} // (2026-10-13) LA MER COMME LE CIEL (voir EAU)
-      try{banqSolVol(dt,dtF);}catch(e){loopWarn(262144,'banquise',e);}
-      try{foretSolVol(dt,dtF);}catch(e){loopWarn(262144,'mousse',e);} // (2026-10-17) LA FORÊT : la MOUSSE porte la caisse (voir foretSolVol) // (2026-10-14) LA BANQUISE : la poudreuse qui porte et qui avale, la glace où l'on glisse (voir banqSolVol)
+      try{banqSolVol(dt,dtF);}catch(e){loopWarn(262144,'banquise',e);} // (2026-10-14) LA BANQUISE : la poudreuse qui porte et qui avale, la glace où l'on glisse (voir banqSolVol)
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
@@ -66579,8 +66463,7 @@ function loop(now){
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       }
       if(FIGV2.on)figPose(dt);else veqFigurePose(dt); // LES FIGURES, par-dessus l'assiette — (2026-10-14) v2 : la PHYSIQUE (explosions, inertie, planté)
-      if(BANQ.glisse)try{banqAssiette(dt);}catch(e){}
-      if(MOU.on)try{mousseAssiette(dt);}catch(e){} // (2026-10-17) sur la MOUSSE, la caisse est posée // (2026-10-14) LA BANQUISE : sur la glace, la caisse est posée sur la facette et DÉRIVE (voir banqAssiette)
+      if(BANQ.glisse)try{banqAssiette(dt);}catch(e){} // (2026-10-14) LA BANQUISE : sur la glace, la caisse est posée sur la facette et DÉRIVE (voir banqAssiette)
       if(SENS&&(JEAU.dans||SEAU.pose))try{sensEau(dt);}catch(e){} // (2026-10-14, sensations) L'EAU SE SENT : le bouchon, le bouillon, le creux du plongeon (voir SEAU)
       shadow.position.y=-99999;
       /* ===== LA CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE (2026-09-28, soir, Sacha : « la caméra en air time déconne
@@ -66686,10 +66569,10 @@ function loop(now){
         }
       }
       mirTick(dt);if(JADE.root&&jadeEauOk()){MIR.t=0;MIR.max=0;} // (2026-10-13) au-dessus de la mer, aucune chute n'est perdue d'avance // (2026-09-28) MIRACULÉ : depuis combien de temps cette chute est-elle perdue d'avance ?
-      LM.a+=((LM.vu&&!MOU.on?1:0)-LM.a)*Math.min(1,dt*(LM.vu&&!MOU.on?14:7));landMark.visible=LM.a>.02;landMark.material.opacity=.85*LM.a;
+      LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02;landMark.material.opacity=.85*LM.a;
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
-      if(MOU.on){if(airPie.style.display!=='none')airPie.style.display='none';}else if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-10-17) sur la mousse : pas de chrono de vol // (2026-09-27) une fois par vol, plus à chaque image
+      if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
       const fr=pwrAirT>0?Math.min(1,pwrAirT/PWR_DEFS.a.t):Math.max(0,1-fallTR/airMax()); // jauge en temps RÉEL : 6 s affichées = 6 s vécues · (pouvoirs v2) sur la durée du pouvoir (14 s)
       if(airFlash>0)airFlash=Math.max(0,airFlash-dt);
       airPieDraw(fr,pwrAirT>0?pwrAirT:Math.max(0,airMax()-fallTR),airFlash>0);
@@ -67006,9 +66889,9 @@ function loop(now){
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
       /* (2026-10-14, session SON) LA TENSION DU VOL (voir SVOL) : en l'air elle vise 85 % à 2,5 s de vol + 6 % par geste (30 % au plus),
          plafonnée à 1, et y monte en douceur (taux 2,6/s) ; hors du vol elle retombe (taux 5/s ≈ 0,2 s). Rien d'aléatoire : du lisse. */
-      if(mode==='fall'&&!MOU.on){SVOL.t+=dt;const kT9=Math.min(1,.85*Math.min(1,SVOL.t/2.5)+Math.min(.3,ECH*.06));SVOL.k+=(kT9-SVOL.k)*(1-Math.exp(-dt*2.6));}
+      if(mode==='fall'){SVOL.t+=dt;const kT9=Math.min(1,.85*Math.min(1,SVOL.t/2.5)+Math.min(.3,ECH*.06));SVOL.k+=(kT9-SVOL.k)*(1-Math.exp(-dt*2.6));}
       else if(SVOL.k>0)SVOL.k=SVOL.k<.002?0:SVOL.k*Math.exp(-dt*5);
-      if(osc&&gainN&&(mode==='drive'||MOU.on)){ /* (2026-10-17) sur la MOUSSE le moteur tire comme sur la route */
+      if(osc&&gainN&&mode==='drive'){
         // LE BRUIT DU MOTEUR, C'EST LE MOTEUR — jamais la caisse (règle posée par le user, 2026-08-03).
         // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetTier ci-dessous), mais la
         // ligne suivante lisait encore `ENGINES[level]` : la BOÎTE DE VITESSES, le ralenti et les
@@ -67385,7 +67268,7 @@ function loop(now){
   // mouvement 0..1 : le filtre suit la VITESSE en parallèle — on ralentit, le son se referme progressivement (plein vers ~65 % vmax)
   const musMvt=(running&&!gameOver)?Math.max(0,Math.min(1,(speedKmh/Math.max(1,vmaxShow()))/0.65)):0;
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
-  if(carWingL){const tgt=((mode==='fall'&&!garageOn&&!MOU.on)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile')))||!!(AILV.force&&AILV.force.ouvre))?1:0; /* (banc) dbgAilesForce({ouvre:1}) : dépliées en roulant */ // boutique, onglet AILES : on les montre ouvertes
+  if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile')))||!!(AILV.force&&AILV.force.ouvre))?1:0; /* (banc) dbgAilesForce({ouvre:1}) : dépliées en roulant */ // boutique, onglet AILES : on les montre ouvertes
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
     const sc=.05+.95*wingT;carWingL.scale.x=sc*(carWingL.userData.k||1);carWingR.scale.x=sc*(carWingR.userData.k||1); // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
     carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;  // léger dièdre de planeur une fois sorties
