@@ -155,6 +155,24 @@
 - **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
   des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
 
+## LE BAROUDEUR — LA JEEP WRANGLER JL 4 PORTES RELEVÉE SUR SON ÉLÉVATION (2026-10-18, discussion BOÎTES ; Léo : « le Wrangler moderne, 4 portes »)
+- **Le gabarit** : `SHAPES.wrangler=(function(){…})()` à sa ligne-repère + `ECH_POTS.wrangler` (un pot à droite, comme sur la photo de dos) +
+  le nom anglais par `Object.assign(I18N,{'LE BAROUDEUR':'THE TRAILBLAZER',…})` dans le même emplacement (pas de ligne réservée dans le bloc
+  des noms : zéro conflit). Fiche (index 82) : h 1,85 · w 1,89 · l 4,59, vert « Sarge » `0x4a4d38`.
+- **Le plan** : dimensions.com n'a que le TJ de 1998. Source : l'élévation de côté LIBRE du « Jeep Wrangler Unlimited 2019 »
+  (the-blueprints.com / getoutlines.com, 1 698 px, raster) — échelle **365,7 px/m** prise sur l'empattement officiel 3,008 m (hauteur 1,86 m
+  retrouvée), roues relevées à la grille (`grille.py` : une image quadrillée pour lire les coordonnées). Largeurs : cotes officielles (voie
+  1,598 m, élargisseurs 1,894 m). Face et dos lus sur des photos prises de face (Commons, « Jeep Wrangler Rubicon 4-door … JL Black »).
+  ⚠ vehiclesizes.com est derrière un contrôle anti-robot : ne pas insister.
+- **La construction** : la baignoire, les portes et le hard-top en GRILLE (même outil que LE COMBI : faces planes, coins de 4-6 cm, pare-brise
+  couché de 39°, hard-top qui se resserre), découpée au plan (vitres sur le hard-top noir, portes, hayon, ceinture, panneaux du toit) ; ⚠ la
+  découpe ne travaillait que sur la tôle couleur caisse : `PEINT` porte aussi le hard-top, et un joint sur le noir prend un gris (`GAP`).
+  Tout le reste en PIÈCES, comme le vrai : capot bombé entre des ailes à dessus plat (prismes de profil), élargisseurs (prismes : contour
+  extérieur + arche), calandre (forme à 7 fentes et 2 trous de phare, extrudée et couchée), pare-chocs, marchepieds, charnières, roue de
+  secours, ponts rigides. Teinte : au garage le vert « Sarge » 0x59603f virait au jaune-vert, 0x4a4d38 y reste olive.
+- **Mesuré** : 16 500 triangles, construction 16-25 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune
+  erreur. Planche : `photos-gameplay/wrangler-vraie-et-nous.png` (4 couleurs proposées, 3 noms).
+
 ## LE COMBI — REFAIT AU PLAN COTÉ, FAÇON FILLMORE (2026-10-18, discussion BOÎTES ; Léo : « s'inspirer du combi du film Cars »)
 - **Le gabarit** : `SHAPES.combi=(function(){…})()` à la ligne-repère `// <<< SHAPES.combi (BOITES) >>>` (remplace l'ancien `combi(K)` de
   l'objet SHAPES, que la coordination effacera) + `ECH_POTS.combi` (UN pot, à gauche sous le pare-chocs, comme le T1 vu de dos). Fiche :
