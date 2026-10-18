@@ -148,6 +148,16 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   buildTrack en générateur `pisteRoute` sur un état fantôme (`prebEchange`, `pisteTravail`), installée au passage (`pisteInstalle`) ; les décors
   d'avance (`prebJade`, `prebDecorG`/`prebDecor` : forêt, volcan, glacier) ; `?prebati=0`, `dbgPrebati()`. ⚠ Dans `pisteRoute` : jamais de
   `scene.add`, jamais d'écriture d'un état vivant hors de la liste échangée ; une génération ou un décor NEUF → `prebChampsDe` / `PREB_PISTES` / `prebDecorG`.
+  LES MODULES DE CHAQUE MAP (18/10, Sacha : « au moins 3 par map, sélectionnés automatiquement ») : chaque générateur a SON paquet (≥ 3), mélangé, jamais
+  deux fois de suite, dans un hasard à part né de la graine — genCtrl `MCJ`/`mcTire` (ville `mAngles`/`mBretelle`, crypto `mBougie`/`mDents`, vitrée
+  `mTour`, orbite `mFronde`/`mHoule`, plus `tSlalom`/`tEpingle`/`tCorde`/`tEsses` des nuages), genBanq `bkSlalom`/`bkEsse`/`bkDouble`, vlcTrace
+  `vSlalom`/`vCorde`/`vChicane`/`vHoule`, forPelote `fSlalom`/`fLacets`/`fCorde`/`fRacines`, genCanyon `lien()` → `cSlalom`/`cCorde`/`cWhoops`/`cChicane`,
+  genJade `tronc()` → `jLacets`/`jEpingle`/`jSommet` ; leurs tronçons dans MODMARK. `MODC_ON` (`?sans=modcartes` = les pistes d'avant à l'identique),
+  `dbgModCartes(0|1)`, `dbgTrace().mods`. Un module NEUF : le garder dans les bornes de cap de son générateur et passer par SON hasard (`rf`, `rm`, `rv`,
+  `rf9`, `rj`) — jamais un tirage de plus dans `rnd` quand MODC_ON est éteint. 2e tour (18/10, « trop de tout droit ») : avec les modules, genCtrl serre
+  tout (`RS` ×0,9, `rPlancher` = 1,35 × le rayon tenable dans arc(), `VILLE_WM`, `ESP_ROUTE.wm`, entrée des villes 260 + 320 m en virage), le glacier
+  et Jade aussi ; LE ROYAUME DE FEU est refait : `vlcTrace3` (la balade des flammes puis la spirale qui monte autour du cône, `vlc3Cone` le cône
+  taillé pour elle, portail en haut ; `VLC_BALADE`, `?volcan=v4` = avant, `dbgVolcan('test')` = la règle d'or) ; la forêt allégée (3-4 pointes).
   LA FORÊT (17/10, Léo) : les arbres en VITRAIL dans `FOR_ARB_FS` (`dbgVitrail`) ; le slalom des troncs (`forZigzag`), ses ponts et la mousse ont été retirés le 18/10 (voir le journal).
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
   (`VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
@@ -241,6 +251,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - LA MAP NUAGES EST UNE COURSE (18/10, Sacha : « trop peu de virages… ça reste un jeu de course ») : sur la route sans haut ni bas, zoom `TORD_AMP` 1,1, poids `TORD_W`,
   modules de COURSE (`MODT` : slalom, épingle, double corde, esses, montagnes russes, rayons VRAIS ≥ 1,7 × le rayon du palier), dévers `TORD_DEVERS`, et
   `pisteTordPropre` qui rejoue les vrilles si la route se touche. Une retouche passe par le banc des virages (journal).
+  EN L'AIR AUSSI, PAS DE HAUT NI DE BAS (18/10, Sacha : « la voiture a du mal à voler, comme si le jeu n'arrivait pas à savoir de quel côté de la route on va ») :
+  `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
+  survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
+  `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
 - LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
@@ -479,6 +493,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 21. **Un défaut d'image vu sur iPhone ne se juge qu'au PIXEL** : à l'échelle de l'écran, la trame du flou de vitesse (15/10) était
     invisible ; zoomer ×4 la MÊME image rendue avec et sans (`VARIANTES` du banc). Sur iPhone la 3D est agrandie ×2 (NETTE 1,5 sur ×3).
 
+22. **Un `const` / `let` lu par du code qui tourne AVANT sa ligne est en zone morte** (`ReferenceError`), et un `try/catch` autour de l'appel l'avale :
+    la migration des missions v2 n'a pas tourné du 16 au 18/10 (`M2_COLK`, `M2_RECO` déclarées 1 700 lignes plus bas que le `m2Etat()` du démarrage).
+    Tout ce que le code de démarrage atteint se déclare AVANT lui ; après avoir touché ce bloc, charger le jeu et chercher le `console.warn` du `catch`.
 ---
 
 ## 8. Index du JOURNAL (titres exacts, à chercher avec `grep -n "^## <début du titre>" JOURNAL.md`)
@@ -497,6 +514,8 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES » (18/10, Léo) — `opt.fant`, `nuFantGeo`, `NUFOND_V`/`NU_FOND`, `dbgNuFond`
+- « LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES » (18/10, Sacha) — `NUVIT.fondu`, `nuvPoids`, `COTON.LV`, attribut `aR`, `?sans=nuvitfondu`
+- « LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE » (18/10, Léo) — `NUF_TEX`, `nufIdx`, `nuLibre`, `dbgRamNuages`, `?pistegraine=`
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `PLEUR`, `FOR_ARB_FS` (le slalom `forZigzag` et la mousse ont été retirés le 18/10)
 
 **Débogage, perf, bancs**
@@ -528,6 +547,8 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
+- « LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD » (18/10) — `MODC_ON`, `?sans=modcartes`, `dbgModCartes`, un paquet par générateur
+- « LES MAPS, 2e TOUR — MOINS DE TOUT DROIT, LE VOLCAN REFAIT EN BALADE QUI MONTE, LA FORÊT ALLÉGÉE » (18/10) — `vlcTrace3`, `vlc3Cone`, `rPlancher`, `VILLE_WM`
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
@@ -542,6 +563,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE » (17/10) — le redesign voiture par voiture : budget, pièges, banc `outils/banc-caisses/`
 - « LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN » (18/10) — refaire une vraie voiture d'après son plan coté : banc des écarts, `peintPlan`
 - « LA PERLE — LES TRAITS DANS LA TÔLE, EN FACETTES, LE RIDEAU D'AIR CREUSÉ, LE PHARE REFAIT » (18/10) — `peintPlan`, `PLAN.zf`, `creux`, `PERLE_LISSE`, `perleTraits`
+- « LES NOUVELLES VOITURES — HUIT PLACES RÉSERVÉES, LA BULLE ET LE COMBI EN COMMUNES » (18/10) — index 79-86 réservés (la suivante = 87), qui fait quoi
 - « LE BLINDÉ NOIR EN PORC-ÉPIC GOTHIQUE » (16/10) — piquants sur le dos, clous chromés devant (`pique`, `clou`, `mue`, ailes en ogive)
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
@@ -555,6 +577,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 **Garage, menus, écrans**
 - « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
+- « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE » (18/10) — pourquoi, mesuré sur des sauvegardes d'avant (banc `cc-banc/m2colk/`), ce que le correctif change (rien de dangereux)
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)
