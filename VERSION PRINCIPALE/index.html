@@ -27242,8 +27242,8 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'NOUVELLE 85',shape:'epave',color:0xc9ccd1,accent:0x141416,maxKmh:275,accel:31,turn:3,h:1.24,w:1.73,l:3.92,spoiler:0,rar:'rare',retire:1, // 85 — discussion JAPONAISES : Mazda MX-5 RF (2016), argent (gabarit à venir : SHAPES.mx5rf)
-  desc:'(place réservée)'},
+ {name:'LA LAME',shape:'mx5rf',color:0x868b92,accent:0x141416,maxKmh:275,accel:31,turn:3,h:1.24,w:1.73,l:3.92,spoiler:0,rar:'rare', // 85 — discussion JAPONAISES : le roadster d'Hiroshima en targa « fastback » (la ligne de la Mazda MX-5 RF, 2016), argent, toit fermé : ses deux arceaux et la lunette au fond du tunnel (SHAPES.mx5rf)
+  desc:'Le même petit roadster, avec un toit qui se range en treize secondes. Il ne pleut jamais assez vite pour la rattraper.'},
  /* · */
  /* · */
  /* · */
@@ -27503,6 +27503,7 @@ const I18N={
  'GOUDRON FANTÔME':'GHOST TARMAC','TÊTE CHERCHEUSE':'HOMING HEAD','PLASMA ROYAL':'ROYAL PLASMA','ANTIMATIÈRE':'ANTIMATTER',
  'ÉCLIPSE VII':'ECLIPSE VII','SINGULARITÉ':'SINGULARITY','DIEU-VITESSE 👑':'SPEED GOD 👑',
  'LE SOURIRE':'THE SMILE','Elle ouvre les yeux au départ et ne les ferme plus. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at the start and never closes them. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
+ 'LA LAME':'THE BLADE','Le même petit roadster, avec un toit qui se range en treize secondes. Il ne pleut jamais assez vite pour la rattraper.':'The same little roadster, with a roof that tucks away in thirteen seconds. It never rains fast enough to catch her.', // (JAPONAISES) 85 — la MX-5 RF
  'Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.':'Three cylinders: two coughing, one praying. It starts out of pity. Make cash and forget it fast.',
  'Le moteur d\'une tondeuse, le charisme d\'un caddie. Mais ça roule — et vu d\'où tu viens, c\'est déjà un miracle.':'A lawnmower engine, the charisma of a shopping cart. But it moves — and given where you\'re coming from, that\'s already a miracle.',
  'Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.':'Heated seats, cup holders, zero glory. Built for careful driving. You? Careful? We believe in you, really.',
@@ -37650,6 +37651,18 @@ function japColP(EP){const C=new THREE.Color();return y=>{C.setHex(EP.c);if(EP.g
 function japFusion(A,B){for(const g in B){if(!A[g]){A[g]=B[g];continue;}const a=A[g].attributes,b=B[g].attributes,geo=new THREE.BufferGeometry();
     for(const n of ['position','normal','color']){if(!a[n]||!b[n])continue;const r=new Float32Array(a[n].array.length+b[n].array.length);r.set(a[n].array);r.set(b[n].array,a[n].array.length);geo.setAttribute(n,new THREE.Float32BufferAttribute(r,3));}
     A[g].dispose();B[g].dispose();A[g]=geo;}return A;}
+// un RUBAN autour d'un trait (une bande de LED, un liseré) : le contour à ±w/2 de la polyligne
+function japRuban(P,w){const n=P.length,h=w/2,G=[],D=[];for(let i=0;i<n;i++){const a=P[Math.max(0,i-1)],b=P[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;
+    G.push([P[i][0]-dy/l*h,P[i][1]+dx/l*h]);D.push([P[i][0]+dy/l*h,P[i][1]-dx/l*h]);}return G.concat(D.reverse());}
+// un contour mis à l'échelle autour de son centre (les cercles intérieurs d'un feu)
+function japEchelle(P,k){let cx=0,cy=0;for(const p of P){cx+=p[0];cy+=p[1];}cx/=P.length;cy/=P.length;return P.map(p=>[cx+(p[0]-cx)*k,cy+(p[1]-cy)*k]);}
+/* LA PRÉCHAUFFE (comme `perleTraits`) : la tôle de chaque japonaise découpée au plan une fois, pendant la préchauffe du menu (`chauffeDivers`) —
+   le gabarit tourne dans un chantier muet (`K.muet` : il s'arrête après la tôle) et garde sa découpe sur sa fonction (`_tole`). Une caisse par appel. */
+function japChauffe(){for(const n of ['mx5rf','mx5na','ae86','corolla']){const F=typeof SHAPES==='object'&&SHAPES[n];if(!F||F._tole)continue;
+    const nA=(typeof BLING==='object'&&BLING&&BLING.anim)?BLING.anim.length:-1;
+    try{F({kit:pal=>lpKit(typeof peintPal==='function'?peintPal(pal):pal),commit:kt=>{const gs=kt.done();for(const g in gs)gs[g].dispose();},mats:{},add:o=>o,muet:1});}catch(e){console.warn('japChauffe',n,e);}
+    if(nA>=0&&BLING.anim.length>nA)BLING.anim.length=nA;return true;}
+  return false;}
 /* LES PHARES ESCAMOTABLES DE LA MX-5 NA : quand ils se lèvent (`mode`, à choisir par Léo) — 'course' (levés en course, baissés au garage et au
    menu, un clin d'œil à l'arrivée au garage), 'nitro' (baissés, ils se lèvent à la nitro), 'toujours'. Console : dbgPhares(1|0|null, mode). */
 var MX5PH={mode:'course',force:null};window.dbgPhares=function(v,m){if(m)MX5PH.mode=m;MX5PH.force=v==null?null:+v;return MX5PH;};
@@ -37797,6 +37810,7 @@ SHAPES.mx5na=function(K){
         P.tri('s',a1,b1,b2);P.tri('s',a1,b2,a2);}}
     P.plate('s',[[x0-.22,YF-.02],[x0+.22,YF-.02],[x0+.22,YF+.05],[x0+.17,YF+.085],[x0,YF+.06],[x0-.17,YF+.085],[x0-.22,YF+.05]],.004,.018);});
   P.box('i',.16,.16,.70,0,YF+.06,0);                                                             // la console
+  {const yd=yDessus(.33,.36);P.box('i',.36,.07,.16,-.33,yd+.02,.37);P.box('K',.30,.05,.01,-.33,yd,.29);}   // la casquette du combiné (devant le volant) et le cadran
   P.cyl('k',.012,.16,6,0,YF+.20,.10,'y');                                                        // le levier…
   P.cyl('c',.022,.03,8,0,YF+.29,.10,'y');                                                        // …et son pommeau
   {const g=new THREE.TorusGeometry(.18,.017,6,18);g.rotateX(-.42);P.put('k',g,-.33,.72,.20);   // le volant
@@ -37879,7 +37893,142 @@ SHAPES.mx5na=function(K){
 // · · ·
 // · · ·
 // · · ·
-// <<< SHAPES.mx5rf (JAPONAISES) >>>
+// <<< SHAPES.mx5rf (JAPONAISES) — début >>>
+SHAPES.mx5rf=function(K){
+  /* LA … — le petit roadster d'Hiroshima en TARGA « fastback » (la ligne de la Mazda MX-5 RF, 2016), ARGENT, toit fermé. La caisse vient du
+     PLAN COTÉ VECTORIEL de la quatrième génération (dimensions.com, quatre vues, 140,77 unités/m — la RF partage toute la tôle sous la
+     ceinture) ; le TOIT vient du plan de la RF (the-blueprints, 434 px/m) et des photos de presse : le pavillon à 1,235 m, les deux ARCEAUX
+     (« fastback ») qui descendent jusqu'à la malle, la LUNETTE inclinée au fond du tunnel qu'ils forment, la petite custode. Découpés dans la
+     tôle (`japDecoupe`), les contours mêmes du plan : les phares effilés et leur projecteur, la calandre en trapèze, les antibrouillards, les
+     feux ronds et leur barre, les évents, les répétiteurs, la poignée ; les joints (portières, capot, malle) et les plis (la ligne de
+     caractère qui plonge de l'aile arrière vers le bas de la portière, la crête des ailes avant). Repère : x à droite, y en haut, z vers
+     l'avant, mètres. */
+  const U=LPU,R=.3075,ZF=1.202,ZR=-1.111,ZE=1.9575,ZB=-1.9575;
+  const L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t,lis=t=>t*t*(3-2*t);
+  const ARGENT=0x868b92;
+  const PAL={p:{g:'p',c:ARGENT},k:{g:'m',c:0x121316},K:{g:'g',c:0x0a0a0d},g:{g:'g',c:0x141c26},s:{g:'s',c:0x2a2b30},
+    W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xd0101e},r:{g:'l',c:0x6a0612},c:{g:'c',c:0xd4d8de},O:{g:'g',c:0xe08414},q:{g:'g',c:0xc9cdd3},d:{g:'m',c:0x0d0e11}};
+  const PLAN={"face":{"phare":[[0.406,0.595],[0.526,0.637],[0.622,0.663],[0.657,0.666],[0.685,0.665],[0.754,0.653],[0.738,0.613],[0.718,0.585],[0.696,0.566],[0.659,0.555],[0.624,0.552],[0.589,0.553],[0.54,0.56],[0.464,0.577],[0.415,0.578],[0.408,0.581]],"proj":[[0.579,0.606],[0.585,0.625],[0.595,0.635],[0.608,0.64],[0.621,0.639],[0.634,0.633],[0.643,0.622],[0.647,0.609],[0.645,0.596],[0.639,0.584],[0.628,0.575],[0.615,0.572],[0.601,0.574],[0.589,0.581],[0.581,0.592]],"calandre":[[-0.0,0.236],[-0.128,0.239],[-0.262,0.249],[-0.325,0.259],[-0.366,0.272],[-0.389,0.288],[-0.409,0.308],[-0.429,0.337],[-0.453,0.381],[-0.467,0.414],[-0.474,0.441],[-0.473,0.455],[-0.458,0.469],[-0.424,0.48],[-0.368,0.49],[-0.241,0.503],[-0.106,0.508],[0.092,0.508],[0.248,0.502],[0.361,0.491],[0.445,0.474],[0.464,0.466],[0.473,0.455],[0.474,0.441],[0.467,0.414],[0.429,0.337],[0.394,0.293],[0.359,0.269],[0.311,0.256],[0.234,0.246],[0.128,0.239]],"antib":[[0.566,0.41],[0.595,0.409],[0.615,0.405],[0.664,0.376],[0.695,0.348],[0.714,0.327],[0.725,0.301],[0.721,0.288],[0.708,0.282],[0.687,0.28],[0.581,0.277]],"lignes":{"j":[[[0,0.658],[0.169,0.657],[0.303,0.648],[0.323,0.643],[0.349,0.63],[0.399,0.592]]],"h":[[[0.751,0.241],[0.575,0.231],[0.512,0.231],[0.477,0.235],[0.437,0.247],[0.432,0.252],[0.435,0.258],[0.461,0.27],[0.508,0.285]],[[0.004,0.197],[0.576,0.198],[0.788,0.205]]]},"lames":[[[0,0.394],[0.459,0.394]],[[0.442,0.359],[0.004,0.359]],[[0.41,0.31],[0,0.31]]]},"dos":{"feu":[[0.373,0.72],[0.379,0.747],[0.395,0.77],[0.419,0.785],[0.44,0.789],[0.467,0.785],[0.491,0.77],[0.507,0.747],[0.513,0.72],[0.507,0.692],[0.491,0.669],[0.467,0.655],[0.447,0.65],[0.419,0.654],[0.395,0.669],[0.379,0.692]],"barre":[[0.502,0.757],[0.593,0.75],[0.632,0.738],[0.696,0.709],[0.682,0.685],[0.665,0.675],[0.49,0.668]],"event":[[0.426,0.438],[0.482,0.437],[0.531,0.431],[0.566,0.423],[0.605,0.406],[0.64,0.384],[0.676,0.35],[0.701,0.316],[0.7,0.302],[0.686,0.286],[0.664,0.269],[0.645,0.261],[0.631,0.26],[0.497,0.304],[0.421,0.322],[0.33,0.335],[0.246,0.338]],"stop":[[-0.0,0.915],[-0.184,0.915],[-0.204,0.918],[-0.187,0.929],[-0.159,0.934],[0.145,0.934],[0.186,0.929],[0.204,0.917],[0.198,0.915]],"lignes":{"j":[[[0.004,0.758],[0.385,0.758]],[[0.004,0.856],[0.231,0.852],[0.358,0.842],[0.484,0.819],[0.552,0.8],[0.612,0.779]],[[0.619,0.895],[0.539,0.865],[0.495,0.842],[0.482,0.825],[0.469,0.784]],[[0.004,0.501],[0.208,0.5],[0.243,0.496],[0.271,0.49],[0.296,0.477],[0.322,0.454],[0.35,0.422],[0.396,0.359]]],"h":[[[0,0.624],[0.291,0.623],[0.44,0.617],[0.531,0.602],[0.638,0.566]],[[0.006,0.245],[0.168,0.245]]]}},"cote":{"repet":[[0.825,0.656],[0.802,0.639],[0.788,0.636],[0.749,0.652],[0.738,0.66],[0.738,0.666],[0.758,0.67],[0.815,0.668],[0.827,0.662]],"marqAv":[[1.543,0.508],[1.537,0.511],[1.516,0.511],[1.51,0.507],[1.511,0.5],[1.534,0.457],[1.559,0.385],[1.565,0.38],[1.571,0.383],[1.585,0.398],[1.586,0.405],[1.568,0.458]],"catAr":[[-1.475,0.389],[-1.48,0.385],[-1.486,0.386],[-1.504,0.407],[-1.495,0.44],[-1.476,0.485],[-1.455,0.521],[-1.427,0.52],[-1.422,0.517],[-1.422,0.51],[-1.452,0.455]],"poignee":[[-0.593,0.729],[-0.628,0.733],[-0.646,0.742],[-0.651,0.755],[-0.648,0.768],[-0.628,0.774],[-0.557,0.773],[-0.473,0.766],[-0.439,0.76],[-0.426,0.754],[-0.422,0.748],[-0.423,0.741],[-0.428,0.736],[-0.461,0.725],[-0.474,0.728],[-0.484,0.738],[-0.512,0.741],[-0.568,0.741],[-0.586,0.73]],"lignes":{"j":[[[0.439,0.267],[0.461,0.37],[0.472,0.461],[0.477,0.574],[0.473,0.686],[0.465,0.735],[0.446,0.781],[0.416,0.82],[0.384,0.847]],[[0.834,0.262],[-0.264,0.278],[-0.37,0.288],[-0.425,0.3],[-0.479,0.318],[-0.518,0.335],[-0.555,0.356],[-0.588,0.383],[-0.617,0.414],[-0.643,0.447],[-0.673,0.495],[-0.726,0.604],[-0.742,0.65],[-0.751,0.685],[-0.754,0.72],[-0.752,0.748],[-0.744,0.783],[-0.735,0.802],[-0.718,0.824],[-0.686,0.853]]],"h":[[[-0.976,0.877],[-0.891,0.841],[-0.816,0.801],[-0.732,0.75],[-0.597,0.659],[-0.554,0.635],[-0.509,0.615],[-0.436,0.59],[-0.354,0.569],[-0.243,0.55],[-0.124,0.535]],[[-0.501,0.376],[0.744,0.305]],[[0.484,0.854],[0.704,0.854],[0.874,0.85],[1.029,0.839],[1.169,0.82],[1.287,0.795],[1.416,0.755],[1.52,0.712],[1.57,0.686],[1.612,0.659]],[[-1.797,0.779],[-1.789,0.813],[-1.781,0.833],[-1.771,0.842],[-1.758,0.846],[-1.364,0.895],[-1.258,0.906],[-1.144,0.908],[-1.003,0.899],[-0.624,0.846]],[[-0.702,0.254],[-0.703,0.339],[-0.709,0.381],[-0.719,0.422],[-0.748,0.494],[-0.77,0.531],[-0.795,0.565],[-0.85,0.62],[-0.89,0.65],[-0.92,0.668],[-0.965,0.689],[-0.999,0.7],[-1.075,0.715],[-1.118,0.717],[-1.16,0.714],[-1.236,0.699],[-1.283,0.681],[-1.315,0.666],[-1.345,0.647],[-1.384,0.618],[-1.415,0.588],[-1.443,0.556],[-1.463,0.527],[-1.488,0.484],[-1.504,0.445],[-1.517,0.405],[-1.529,0.328]],[[1.611,0.328],[1.601,0.398],[1.578,0.465],[1.563,0.497],[1.537,0.539],[1.492,0.594],[1.438,0.64],[1.371,0.679],[1.298,0.704],[1.228,0.716],[1.157,0.715],[1.081,0.7],[1.015,0.674],[0.955,0.638],[0.896,0.587],[0.848,0.526],[0.816,0.463],[0.792,0.389]],[[-1.925,0.637],[-1.877,0.629],[-1.837,0.614],[-1.796,0.588],[-1.765,0.559]]]}},"dessus":{"parebrise":[[0.486,0.0],[0.481,-0.177],[0.473,-0.24],[0.458,-0.31],[0.427,-0.411],[0.396,-0.491],[0.36,-0.56],[0.319,-0.618],[0.303,-0.632],[0.283,-0.638],[0.262,-0.638],[0.234,-0.633],[0.16,-0.609],[0.033,-0.563],[0.0,-0.549],[-0.01,-0.54],[-0.016,-0.527],[-0.018,-0.491],[0.003,-0.123],[0.009,-0.111],[0.061,-0.089],[0.078,-0.077],[0.083,-0.064],[0.085,-0.028],[0.085,0.05],[0.078,0.077],[0.061,0.09],[0.009,0.111],[0.003,0.123],[-0.018,0.499],[-0.016,0.527],[-0.005,0.545],[0.026,0.561],[0.113,0.593],[0.207,0.625],[0.248,0.636],[0.269,0.639],[0.29,0.637],[0.309,0.628],[0.324,0.613],[0.36,0.561],[0.396,0.491],[0.431,0.399],[0.458,0.31],[0.473,0.241],[0.481,0.177]],"lignes":{"j":[[[0.424,0.697],[0.521,0.717],[0.605,0.725],[0.697,0.728],[0.86,0.726],[1.15,0.708],[1.601,0.663]],[[1.784,-0.595],[1.737,-0.648],[1.704,-0.675],[1.669,-0.699],[1.599,-0.732],[1.551,-0.747],[1.522,-0.752],[1.634,-0.623],[1.728,-0.508],[1.78,-0.44],[1.79,-0.422],[1.794,-0.408],[1.761,-0.353],[1.756,-0.326],[1.763,-0.028],[1.756,0.334],[1.761,0.354],[1.791,0.402],[1.793,0.416],[1.767,0.458],[1.702,0.542],[1.522,0.752],[1.551,0.748],[1.598,0.733],[1.638,0.716],[1.675,0.696],[1.732,0.653],[1.762,0.623],[1.784,0.595]],[[1.801,0.475],[1.468,0.568],[1.29,0.614],[1.125,0.651],[0.972,0.678]],[[1.298,0.612],[1.328,0.459],[1.343,0.34],[1.351,0.184],[1.354,0.007],[1.351,-0.184],[1.343,-0.339],[1.328,-0.458],[1.298,-0.611]],[[1.831,0.504],[1.776,0.569],[1.712,0.626],[1.634,0.675],[1.608,0.686],[1.587,0.689],[1.68,0.62],[1.732,0.573],[1.78,0.511],[1.813,0.448],[1.837,0.374],[1.854,0.284],[1.862,0.178],[1.865,0.029],[1.863,-0.149],[1.856,-0.262],[1.84,-0.36],[1.818,-0.435],[1.784,-0.505],[1.737,-0.567],[1.685,-0.616],[1.587,-0.688],[1.608,-0.685],[1.634,-0.675],[1.712,-0.625],[1.776,-0.569],[1.831,-0.504]]],"h":[[[0.582,0.639],[0.829,0.659],[0.992,0.666],[1.097,0.662],[1.181,0.646],[1.254,0.62],[1.355,0.568],[1.488,0.488],[1.685,0.363]]]}}};
+  // ---- LES COTES DU PLAN ----
+  const XM=[[ZB,.12],[-1.95,.27],[-1.92,.403],[-1.88,.503],[-1.84,.565],[-1.80,.609],[-1.76,.642],[-1.72,.671],[-1.68,.696],[-1.64,.722],[-1.60,.748],[-1.56,.773],
+            [-1.52,.798],[-1.48,.822],[-1.44,.840],[-1.40,.853],[-1.36,.861],[-1.32,.865],[-1.24,.866],[-1.12,.866],[-1.0,.864],[-.8,.862],[-.6,.860],[-.4,.857],[-.2,.854],
+            [0,.851],[.2,.846],[.4,.840],[.6,.836],[.72,.841],[.8,.852],[.88,.861],[1.0,.865],[1.2,.866],[1.32,.865],[1.40,.863],[1.48,.855],[1.52,.847],[1.56,.833],
+            [1.60,.812],[1.64,.784],[1.68,.751],[1.72,.711],[1.76,.665],[1.80,.611],[1.84,.546],[1.88,.464],[1.92,.349],[1.945,.24],[ZE,.12]],
+        // le haut de la caisse : la CRÊTE des ailes avant, la ceinture des portières, l'épaule de l'aile arrière, le pont de la malle
+        YT=[[ZB,.60],[-1.93,.67],[-1.90,.721],[-1.88,.80],[-1.865,.84],[-1.85,.861],[-1.80,.866],[-1.75,.874],[-1.70,.881],[-1.65,.888],[-1.60,.895],[-1.55,.902],[-1.50,.908],
+            [-1.45,.915],[-1.40,.921],[-1.36,.924],[-1.30,.912],[-1.20,.908],[-1.10,.906],[-1.0,.899],[-.90,.887],[-.80,.871],[-.70,.855],[-.60,.844],[-.50,.840],[-.30,.838],
+            [0,.840],[.15,.841],[.30,.844],[.40,.848],[.45,.851],[.50,.856],[.55,.86],[.60,.864],[.65,.867],[.75,.868],[.85,.866],[.90,.864],[.95,.861],[1.0,.858],[1.05,.853],
+            [1.10,.848],[1.15,.843],[1.20,.835],[1.25,.827],[1.30,.818],[1.35,.808],[1.40,.796],[1.45,.783],[1.50,.769],[1.55,.752],[1.60,.734],[1.65,.714],[1.70,.691],
+            [1.75,.664],[1.80,.634],[1.85,.601],[1.91,.565],[1.94,.535],[ZE,.512]],
+        YB=[[ZB,.55],[-1.95,.517],[-1.93,.40],[-1.91,.32],[-1.90,.301],[-1.85,.221],[-1.75,.225],[-1.65,.224],[-1.55,.213],[-1.50,.211],[-1.45,.20],[-.80,.16],[-.70,.156],
+            [.80,.156],[.85,.17],[1.55,.185],[1.60,.172],[1.70,.175],[1.80,.178],[1.85,.181],[1.91,.186],[1.93,.26],[1.945,.38],[ZE,.49]],
+        AR=[[0,.664],[.05,.66],[.10,.648],[.15,.628],[.20,.599],[.25,.557],[.30,.493],[.33,.43],[.35,.36],[.37,.20],[.375,0]];
+  const xM=z=>L(XM,z),yT=z=>L(YT,z),yB0=z=>L(YB,z);
+  /* LA SERRE ET LE TOIT (z = .486 le pied du pare-brise au milieu, −.03 la traverse, −.875 l'arête arrière du pavillon) : le haut au milieu `yC`
+     (pare-brise puis pavillon), le bord `xR/yR` (le montant de pare-brise, puis le bord du pavillon) ; les ARCEAUX (−.885 → −1.36) : la crête
+     `yF`, ses bords `XFo/XFi`, le fond du tunnel `yTu` (la lunette, puis le couvre-toit). */
+  const ZW=.486,ZH=-.03,ZRf=-.875,ZA=-.885,ZL=-1.025,ZM=-1.36;
+  const YC=[[-.875,1.172],[-.8,1.19],[-.7,1.21],[-.6,1.225],[-.45,1.235],[-.3,1.232],[-.2,1.226],[-.1,1.212],[-.05,1.198],[0,1.165],[.05,1.138],[.10,1.111],[.15,1.083],
+            [.20,1.054],[.25,1.025],[.30,.995],[.35,.965],[.40,.934],[.45,.902],[ZW,.875]],
+        YF=[[ZM,.925],[-1.3,.95],[-1.2,.995],[-1.1,1.04],[-1.0,1.08],[-.95,1.098],[-.92,1.109],[ZA,1.15]],
+        YTU=[[ZM,.93],[-1.2,.95],[ZL,.975],[ZA,1.135]],
+        ZWS=[[0,.486],[.30,.46],[.43,.42],[.52,.38],[.59,.34],[.633,.30]];   // le pied du pare-brise, vu de dessus (|x| → z)
+  const yC=z=>L(YC,z),yF=z=>L(YF,z),yTu=z=>L(YTU,z);
+  const xg=z=>{for(let i=1;i<ZWS.length;i++){const a=ZWS[i-1],b=ZWS[i];if(z<=a[1]&&z>=b[1])return a[0]+(b[0]-a[0])*(a[1]-z)/(a[1]-b[1]);}return z>ZWS[0][1]?0:.633;};
+  const zone=z=>z>ZW?'capot':z>ZRf?'serre':z>=ZM?'arceaux':'malle';
+  // la coupe vue de face (la plus grosse section : demi-largeur .866, du bas .16 à la crête .874) — le flanc rentre vers le bas
+  const COTE=[[.066,.911],[.326,.962],[.632,.997],[.741,.995],[.807,.977],[.891,.920]];
+  const S0=z=>{const xm=xM(z),y0=yB0(z),zo=zone(z),yt=yT(z),H=Math.max(.04,yt-y0),yb=U.arch(z,[ZF,ZR],AR,y0),kx=Math.min(1,xm/.62);
+    const s=[[0,yb],[xm-.11*kx,yb]];
+    for(const q of COTE)s.push([xm-(1-q[1])*.866*kx,y0+q[0]*H]);
+    const xb=xm-.13*kx;   // le haut du flanc : la ceinture (ou la crête de l'aile)
+    if(zo==='capot'){const dd=L([[1.40,.036],[1.62,.02],[1.80,.006]],z);
+      s.push([xm-.06*kx,yt-.03],[xm-.10*kx,yt-.012],[xm-.13*kx,yt],[xm-.19*kx,yt-.012],[xm*.55,yt-dd*.8],[xm*.28,yt-dd*.97],[0,yt-dd]);}
+    else if(zo==='serre'){const yc=yC(z);let xr,yr;
+      if(z>.345){xr=Math.min(xb-.03,xg(z)+.05);yr=yt+.018;}                        // (le pied du pare-brise : le montant n'a pas encore commencé)
+      else if(z>ZH){const t=(.345-z)/(.345-ZH);xr=mix(.69,.60,t);yr=mix(.868,1.15,t);}   // le montant de pare-brise
+      else{xr=L([[ZRf,.582],[-.6,.585],[ZH,.60]],z);yr=yc-.048;}                      // le bord du pavillon
+      s.push([xb,yt],[xb-.012,yt+.012],[mix(xb,xr,.5)+.01,mix(yt,yr,.5)],[xr,yr],[xr*.66,mix(yr,yc,.68)],[xr*.33,mix(yr,yc,.94)],[0,yc]);}
+    else if(zo==='arceaux'){const yf=yF(z),yu=yTu(z),xo=L([[ZM,.60],[-1.2,.615],[ZA,.635]],z),xi=.49;
+      s.push([xb,yt],[mix(xb,xo,.5),mix(yt,yf,.75)],[xo,yf],[xi,yf-.008],[xi-.014,yu+.012],[xi*.5,yu+.003],[0,yu]);}   // (sept points en haut, comme la serre)
+    else{const yd=yt;s.push([xb,yt-.012],[xm-.17*kx,yt-.004],[xm-.22*kx,yd],[xm*.6,yd-.002],[xm*.4,yd-.004],[xm*.2,yd-.006],[0,yd-.006]);}
+    for(let i=1;i<s.length-1;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]+(i===1?0:.002));
+    return s;};
+  const SM=new Map(),S=z=>{const k=Math.round(z*2000);let s=SM.get(k);if(!s){s=S0(k/2000);SM.set(k,s);}return s;};
+  const zs0=[ZB,-1.95,-1.93,-1.91,-1.90,-1.88,-1.865,-1.85,-1.80,-1.72,-1.64,-1.56,-1.48,-1.40,ZM,ZM-.004,-1.30,-1.22,-1.14,-1.06,ZL,-.96,ZA,ZRf,-.80,-.72,-.64,-.56,
+    -.48,-.40,-.30,-.20,-.10,ZH,.06,.14,.22,.30,.345,.40,.45,ZW,ZW+.004,.56,.66,.80,.95,1.10,1.30,1.45,1.55,1.62,1.68,1.74,1.80,1.84,1.88,1.91,1.93,1.945,ZE];
+  for(const w of [ZF,ZR])for(const d of [0,.05,.10,.15,.20,.25,.30,.33,.35,.37,.375])zs0.push(w-d,w+d);
+  zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.003);
+  const NC=2+COTE.length;   // le 1er point du haut
+  const peint=(j,z)=>{if(j<0)return 'p';if(j===0)return z>1.85||z<-1.86?'p':'k';
+    if(zone(z)==='arceaux'&&z>ZL&&j>=NC+4)return 'g';                                   // la LUNETTE, au fond du tunnel
+    return 'p';};
+  const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
+  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  // ---- LA DÉCOUPE AU PLAN ----
+  const MEM=(typeof SHAPES==='object'&&SHAPES.mx5rf)||null;
+  const av=(x,y,z,nx,ny,nz)=>z>1.45&&nz>.15,ar=(x,y,z,nx,ny,nz)=>z<-1.6&&nz<-.15;
+  const F9=PLAN.face,D9=PLAN.dos,C9=PLAN.cote,T9=PLAN.dessus;
+  const ZN={
+    face:japZones([
+      {k:'K',p:F9.phare,gate:av},{k:'W',p:japRuban(F9.phare.slice(Math.floor(F9.phare.length/2)),.008),gate:av,axe:false},
+      {k:'c',p:F9.proj,gate:av},{k:'W',p:japEchelle(F9.proj,.62),gate:av},
+      {k:'K',p:F9.calandre,creux:.045,gate:av},{k:'K',p:F9.antib,creux:.03,gate:av}].concat(F9.lames.map(l=>({k:'s',p:japRuban(l,.012),gate:av,axe:false})))),
+    dos:japZones([
+      {k:'K',p:japEchelle(D9.feu,1.06),gate:ar},{k:'L',p:D9.feu,gate:ar},{k:'r',p:japEchelle(D9.feu,.45),gate:ar},
+      {k:'q',p:D9.barre,gate:ar},{k:'K',p:D9.event,creux:.02,gate:ar},{k:'L',p:D9.stop,gate:(x,y,z,nx,ny,nz)=>z<-1.5}]),
+    cote:japZones([
+      {k:'c',p:C9.repet,gate:(x,y,z)=>z>.6},{k:'O',p:japEchelle(C9.repet,.7),gate:(x,y,z)=>z>.6},
+      {k:'O',p:C9.marqAv,gate:(x,y,z)=>z>1.4},{k:'r',p:C9.catAr,gate:(x,y,z)=>z<-1.3},{k:'c',p:C9.poignee,gate:(x,y,z)=>z>-.8&&z<-.3},
+      // les VITRES : la portière (son bord avant suit le montant), le montant noir, la petite custode — sur la seule serre
+      {k:'g',p:[[.30,.852],[.20,.905],[.10,.98],[0,1.06],[-.05,1.10],[-.10,1.128],[-.20,1.14],[-.40,1.143],[-.595,1.138],[-.595,.848],[-.30,.845],[0,.846],[.30,.852]],gate:(x,y,z)=>y>.84&&z>-.62&&z<.36},
+      {k:'K',p:[[-.595,.848],[-.595,1.138],[-.618,1.135],[-.618,.849]],gate:(x,y,z)=>y>.84},
+      {k:'g',p:[[-.618,.849],[-.70,.851],[-.74,.856],[-.805,.873],[-.84,.899],[-.875,.938],[-.905,.995],[-.896,1.035],[-.874,1.06],[-.805,1.089],[-.736,1.112],[-.666,1.128],[-.618,1.135]],
+       gate:(x,y,z)=>y>.84&&z<-.6&&z>-.93}]),
+    dessus:japZones([{k:'g',p:T9.parebrise,gate:(x,y,z,nx,ny)=>y>.85&&z>-.06&&z<.52&&ny>.3}])};
+  const lig=(L9,k,gate)=>(L9||[]).filter(p=>p.length>1).map(p=>({k:k,p:p,gate:gate}));
+  const LGN={
+    cote:japLignes(lig(C9.lignes.j,'j',(x,y)=>y<.86).concat(lig(C9.lignes.h,'h',(x,y)=>y<.93))),
+    face:japLignes(lig(F9.lignes.j,'j',av).concat(lig(F9.lignes.h,'h',av))),
+    dos:japLignes(lig(D9.lignes.j,'j',ar).concat(lig(D9.lignes.h,'h',ar))),
+    dessus:japLignes(lig(T9.lignes.j,'j',(x,y,z)=>z>.4||z<-1.2))};
+  const CODES={p:{g:GP},gap:{g:GP,c:0x26282c},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},c:{g:'c',c:PAL.c.c,lisse:1},W:{g:'l',c:PAL.W.c},
+    L:{g:'l',c:PAL.L.c},r:{g:'l',c:PAL.r.c},O:{g:'g',c:PAL.O.c,lisse:1},q:{g:'g',c:PAL.q.c,lisse:1},s:{g:'s',c:0x3a3c42}};
+  {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
+    const ns=japLisse(G,32),out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:ns,GP:GP,colP:japColP(EP),cache:MEM,
+      vue:(x,y,z,ax,ay,az,nx,ny,nz)=>z>1.5&&nz>.2&&y<.72?'face':z<-1.62&&nz<-.2&&y<.86?'dos':(y>.84&&z<.40&&z>-.95&&ax>.35&&ay<.85?'cote':null)});
+    G.dispose();delete gs[GP];return japFusion(gs,out);};}
+  K.commit(PL);if(K.muet)return {};   // (la préchauffe du menu : la tôle seule — voir japChauffe)
+  // ---- LES DÉTAILS ----
+  const P=K.kit(PAL);
+  // LES RÉTROVISEURS (du plan : coque de 17 × 13 cm sur un pied noir au coin de la portière)
+  P.sym(sd=>{P.box('k',.05,.04,.10,sd*.775,.835,.13);P.box('k',.04,.05,.035,sd*.80,.86,.10,0,0,-sd*.4);
+    const g=new THREE.SphereGeometry(.065,10,7,0,Math.PI*2,0,Math.PI*.6);g.rotateX(Math.PI/2);P.put('p',g,sd*.88,.885,.075,0,0,0,1.35,1.0,1.1);
+    P.put('K',new THREE.CircleGeometry(.064,12).scale(1.32,.98,1).rotateY(Math.PI),sd*.88,.885,.035);});
+  // LA JOUE DES PASSAGES DE ROUE
+  {const joue=w=>{const o=[];for(let i=AR.length-1;i>=0;i--){const p=AR[i];if(p[1]>=.17)o.push([w-p[0]*1.02,p[1]+.01]);}
+      o.unshift([w-.375,.17]);for(let i=1;i<AR.length;i++){const p=AR[i];if(p[1]>=.17)o.push([w+p[0]*1.02,p[1]+.01]);}o.push([w+.375,.17]);return o;};
+   P.sym(sd=>{for(const w of [ZF,ZR])P.prism('d',joue(w),.02,sd*.60);});}
+  K.commit(P);
+  // LE POT : deux sorties, à droite, sous le diffuseur (du plan)
+  const pts9=[[.235,.24,-1.905],[.315,.24,-1.905]];
+  if(typeof ECHP==='object'&&ECHP.reel&&typeof ECH_PAL==='object'){const E=K.kit(ECH_PAL);E.ech=1;ECHP.reel(E,{r:.034,k:'c',len:.30,pts:pts9});K.commit(E);}
+  // ---- LA JANTE : 17 pouces, sept branches en Y, gris anthracite ; le pneu 205/45 ----
+  const JW=.205,hw=JW/2,fx=hw-.03,RJ=.216,J=lpKit({k:{g:'m',c:0x161719},a:{g:'k',c:0x4a4e55},d:{g:'m',c:0x0f1013},b:{g:'m',c:0x34353a},e:{g:'c',c:0xb8bcc2}});
+  J.lathe('k',[[RJ,-hw],[R*.92,-hw],[R,-hw*.6],[R,hw*.6],[R*.92,hw],[RJ,hw]],24,0,0,0,'x');
+  J.lathe('a',[[RJ,fx-.01],[RJ+.004,fx+.002],[RJ-.012,fx+.006],[RJ-.02,fx-.004]],28,0,0,0,'x');
+  J.lathe('d',[[RJ-.02,-hw+.02],[RJ-.02,fx-.012],[0,fx-.012]],20,0,0,0,'x');
+  J.lathe('b',[[.15,fx-.06],[.07,fx-.06]],20,0,0,0,'x');                                     // le disque
+  {const br=(a0,w0,w1,r0,r1)=>{const sh=new THREE.Shape();sh.moveTo(-w0,r0);sh.lineTo(w0,r0);sh.lineTo(w1,r1);sh.lineTo(-w1,r1);sh.lineTo(-w0,r0);
+      const g=new THREE.ExtrudeGeometry(sh,{depth:.018,bevelEnabled:false});g.rotateY(-Math.PI/2);g.rotateX(a0);g.translate(fx+.006,0,0);J.put('a',g,0,0,0);};
+   for(let q=0;q<7;q++){const a=q/7*Math.PI*2;br(a,.014,.012,.05,.13);br(a+.13,.006,.01,.12,.205);br(a-.13,.006,.01,.12,.205);}}
+  J.lathe('a',[[.055,fx+.004],[.05,fx+.016],[0,fx+.02]],14,0,0,0,'x');J.lathe('e',[[.022,fx+.021],[0,fx+.022]],10,0,0,0,'x');
+  const JG=J.done();
+  return {hl:[.55,.62,1.80],tl:[.44,.72,-1.90],wx:.7475,wzF:ZF,wzR:-ZR,pots:pts9,lamps:0,halos:0,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0x4a4e55}};
+};
+// <<< SHAPES.mx5rf (JAPONAISES) — fin >>>
 // · · ·
 // · · ·
 // · · ·
@@ -39955,6 +40104,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
   function(){try{perleTraits();}catch(e){console.warn('perleTraits',e);}},
   function(){try{perleTraits();   /* (la tôle découpée au plan) */}catch(e){console.warn('perleTraits',e);}},
+  function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}},function(){try{japChauffe();}catch(e){}}, // (2026-10-18, JAPONAISES) la tôle des japonaises découpée au plan, une caisse par étape (voir japChauffe)
   function(){try{bqChauffe(0);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(1);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(2);}catch(e){console.warn('bqChauffe',e);}}, // (2026-10-16, « la boutique rame de ouf ») LA BOUTIQUE bâtie et compilée au menu, en trois étapes : MESURÉ, sa 1re ouverture figeait l'image 1,2 s (10 programmes, la salle blanche, les bras, le trône) // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)

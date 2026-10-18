@@ -155,6 +155,25 @@
 - **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
   des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
 
+## LES JAPONAISES — 2 · LA MX-5 RF, « LA LAME » (nom provisoire), TARGA « FASTBACK » ARGENT (2026-10-18, discussion JAPONAISES, Léo : « en argenté. S'inspirer de la photo de cet article »)
+- **Les plans** : la caisse sur le PLAN VECTORIEL de la ND (dimensions.com, `mazda-mx-5-miata-nd-4th-gen`, deux SVG : capote baissée et levée,
+  140,77 unités/m ; 250 tracés relevés au `getPointAtLength` puis numérotés vue par vue — silhouettes fermées 249-252, phare 84+150, projecteur 29,
+  calandre 124, antibrouillards 163, feux ronds 113 + barre 112, évents 104, portière 198/183, lignes de caractère 36/39) ; le TOIT sur le plan de la RF
+  (the-blueprints, 2645 px, 434 px/m) et les photos de presse de l'article (motor1.com). La RF partage toute la tôle sous la ceinture.
+- **La caisse** (`SHAPES.mx5rf`, index 85, RARE) : loft à 15 points par tranche, quatre zones — CAPOT (crêtes des ailes au-dessus du capot), SERRE
+  (pare-brise puis pavillon : ceinture → vitre rentrante → bord du pavillon à |x| 0,58 → bombé), ARCEAUX (z −0,885 → −1,36 : la coupe se creuse,
+  crête de l'arceau à |x| 0,60-0,64, paroi intérieure, fond du TUNNEL à |x| < 0,49 : la LUNETTE inclinée puis le couvre-toit), MALLE. Découpés au
+  plan (`japDecoupe`) : pare-brise (contour vu de dessus), vitre de portière (son bord avant suit le montant), montant noir, petite custode, phares
+  effilés + projecteur + liseré de LED (`japRuban`), calandre creusée et ses lames, antibrouillards, feux ronds (cerclage, rouge, cœur sombre :
+  `japEchelle`), barres, évents, 3e feu stop, répétiteur chromé d'aile, marqueurs, poignée ; joints (portières, capot, malle) et plis (lignes de
+  caractère, crête des ailes, arcs d'ailes). Jante 17" à 7 branches en Y anthracite, pneu 205/45, double sortie à droite. 22 000 facettes.
+- **La teinte** : en MÉTALLISÉ (`g:'k'`) ou en laque claire, l'argent sortait blanc rosé au studio des vignettes (sa lumière et son gamma) : laque
+  0x868b92 par défaut. « Argenté » a deux lectures (l'argent clair / le gris foncé de la photo de l'article, 0x55585e) : CHOIX DE LÉO sur la planche.
+- **La préchauffe** (`japChauffe`, une caisse par étape, quatre étapes ajoutées dans `chauffeDivers` après `perleTraits`) : la 1re construction de
+  la RF passait de 80-200 ms à 44 ms, la NA de 30-80 à 30 ms. Le gabarit s'arrête après la tôle quand `K.muet` (le chantier de la préchauffe).
+- Vérifié : course ordi/debout/couché, 0 programme compilé en course, aucune erreur ; garage + inventaire (famille rare). Planche :
+  `photos-gameplay/mx5rf-vraie-et-nous.png` (3 noms : LA LAME · L'ARGENTÉE · LA VISIÈRE).
+
 ## LES JAPONAISES — 1 · LA MX-5 NA, « LE SOURIRE » (nom provisoire), PHARES ESCAMOTABLES QUI SE LÈVENT (2026-10-18, discussion JAPONAISES, Léo : « première génération, décapotable, phares escamotables qui se lèvent »)
 - **Le plan** : pas de dimensions.com pour la NA (ni pour l'AE86 : seulement la ND et la Corolla E210) → plans RASTER de the-blueprints.com
   (« Mazda MX-5 Miata 1995 », quatre vues couleur 1280 px, et le plan au trait de l'Eunos Roadster), calés à 172 px/m (3,95 m ; sol, roues et
