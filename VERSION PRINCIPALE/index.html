@@ -10897,7 +10897,7 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=30"></script>
+<script defer src="sons-banque.js?v=31"></script>
 <script defer src="sfx.js?v=6"></script>
 <script>
 (function(){
@@ -47851,7 +47851,7 @@ function sfxOk(){return !!AC&&SND.sfx&&AC.state==='running';}
    · ⚠ LA TONALITÉ SUIT LA MUSIQUE (`sonTonSuit`, appelé par musicTick) : NÉON en fa, VITESSE en si mineur, NOCTURNAL en sol#
      mineur, NOITE en ré# mineur (mesuré) — les sons accordés sont transposés dans la pentatonique du morceau qui joue. */
 var SONV2=false,ECH=0; // `var` et non `let` (débogage 2026-09-29) : lu partout dans le fichier, AVANT sa déclaration — une lecture précoce vaut « faux » au lieu de lever une erreur de zone morte
-const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le PLAFOND du degré (débogage 2026-09-29 : SANS FAUTE ×22 montait à ×10) // les appelants passent un COMPTE : on le convertit en degré
+const SON_PENTA={'jeu.sansFaute':9,'jeu.palierVitesse':7}; // le PLAFOND du degré (débogage 2026-09-29 : SANS FAUTE ×22 montait à ×10) // les appelants passent un COMPTE : on le convertit en degré
 /* LE MIX S'ÉCARTE sous les grands moments (duckT : moteur, vent, flamme reculent jusqu'à −6 dB puis reviennent) — les anciennes fanfares le
    faisaient, leurs remplaçants aussi. La valeur = la profondeur du creux (voir `dk` dans la boucle). */
 /* (2026-10-15, pôle SON, l'audit) LE RECUL SOUS LES SIGNAUX : mesurés dans LEUR bande contre la musique de niveau, ces signaux passaient à
@@ -47862,13 +47862,13 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le
    des sons graves et discrets (la pièce v2) : elles n'ont plus à passer DEVANT la musique. */
 const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
 function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(window.POUCE_JEU)POUCE_JEU.recul();}catch(e){}}
-const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
-  'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
+const SON_DUCK={'frenesie.entre':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
+  'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'pad':.3,'turbo.ultra':.3,
   'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.x':.25,'pwr.triple':.35,
   // (2026-10-15, Sacha : « que les figures fassent plus de bruit ») le DOUM des figures écarte le moteur et le vent un instant (pas la musique)
   'fig.explose':.12,'fig.signe':.18,'combo.sceau':.35,'pose.parfait':.15,'pose.divin':.25,
   // (2026-10-14, session SON) les grands moments qui n'écartaient pas le mix alors qu'ils sonnent aussi fort que ceux du dessus (audit oreille-neuve §6) : chaque id vérifié dans la banque et appelé
-  'aura.x5':.2,'aura.x8':.3,'fig.snake':.3,'fig.essoreuse':.25,'fig.dauphinRoyal':.3,'pwr.double':.25,'frenesie.record':.4,'verdict.1':.15,'argent.gros':.15};
+  'aura.x5':.2,'aura.x8':.3,'fig.essoreuse':.25,'pwr.double':.25,'frenesie.record':.4,'verdict.1':.15,'argent.gros':.15};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
 // (2026-10-14, session SON) passé le 9e degré (+21, le plafond des bases [0,12]), une gamme du vol ne se FIGE plus sur sa note : elle redescend
 // et remonte l'octave haute (degrés 8-7-6-5-6-7-8-9 : +19 +16 +14 +12 +14 +16 +19 +21) — jamais plus haut qu'avant
@@ -47929,7 +47929,7 @@ function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vo
   const sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;
   if(sg!=null){sfx('fig.signe',{st:echSt(),var:sg});return;}
   const sm=FIG_MONDE[id];if(typeof sm==='number'){sfx('fig.monde',{st:echSt(),var:sm});return;} /* (2026-10-14, session SON — étape 2) une figure de MONDE (banquise, eau) sonne SA phrase */ /* (2026-10-14, session SON) une figure du CATALOGUE payée sonne SA phrase (fig.signe), plus le maillon commun aux douze */
-  sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
+  sfx(id==='vrille'?'fig.vrille':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
 /* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE : la variante de `fig.signe` (atelier-son/recettes.js) de chaque figure du catalogue
@@ -48724,7 +48724,7 @@ function sparkle(t,vol){ // poussière d'or : souffle bandpass très bref
 }
 function rewardSfx(key,tier){ // signature courte assortie à chaque récompense
   if(!sfxOk())return;
-  if(SONV2){sfx(key==='meteor'?'verdict.meteor':key==='snakeLoop'?'fig.snake':key==='megaMeteor'?'verdict.mega':'verdict.'+Math.max(1,Math.min(3,tier|0)));return;} // (console) le verdict résout la gamme du vol sur la tonique
+  if(SONV2){sfx('verdict.'+Math.max(1,Math.min(3,tier|0)));return;} // (console) le verdict résout la gamme du vol sur la tonique
   if(key==='meteor'){ // braise qui grésille + double note
     noiseBurst(.4,.14,2400);chimeNote(660,0,.10,.3);chimeNote(990,.07,.10,.32);sparkle(.02,.10);return;
   }
