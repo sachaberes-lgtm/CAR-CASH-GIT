@@ -488,6 +488,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES » (18/10, Léo) — `opt.fant`, `nuFantGeo`, `NUFOND_V`/`NU_FOND`, `dbgNuFond`
+- « LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE » (18/10, Léo) — `NUF_TEX`, `nufIdx`, `nuLibre`, `dbgRamNuages`, `?pistegraine=`
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `VITRAIL_V`, `forZigzag`, `MOUSSE_V`, `TORDUS_V`, `PLEUR_V`, `VILLE_GTA_V`
 
 **Débogage, perf, bancs**
