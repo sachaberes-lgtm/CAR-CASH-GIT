@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## MENTHE ET PLUIE DE BLOCS RETIRÉES, L'ARC-EN-CIEL DANS LE PACK DU CHAT (2026-10-18 soir, session PIXTRAIL — Sacha : « enlève la trainé minth » · « supprime block rain » · « la trainé rainbow doit etre incluse avec le pack nian cat »)
+- Les deux lignes sortent de `COSM.trainee` (et `tr_menthe` / `tr_blocs` de l'atlas de pictogrammes, `menthe` de `ILLU_COS.trainee`). La sauvegarde
+  désigne un habillage par son id (`shop.own` = `cat:id`, `shop.eq[cat]` = id) : aucun index ne bouge, contrairement aux caisses.
+- `HAB_RETIRES` (juste après COSM) : `'cat:id' → {p, n}`. Dans `SAVE.san`, bloc LES CAISSES RETIRÉES : l'id sort de `shop.own`, le prix payé est
+  remboursé dans le MÊME `SAVE.remb` que les caisses (un seul toast « … EST PARTIE : … REMBOURSÉS »), et qui la portait repart avec celle
+  d'origine (`usine` / `panneaux` / `nitro`). Pour retirer un autre habillage : une entrée dans HAB_RETIRES + sa ligne de COSM ôtée.
+- Les émetteurs `TRX_EMET.bulles` et `TRX_EMET.blocs` restent dans le code, appelés par aucune traînée.
+- L'ARC-EN-CIEL DANS LE PACK DU CHAT (Sacha : « la trainé rainbow doit etre incluse avec le pack nian cat ») : la règle existait (`pack:'chat'`,
+  shopOwned → m2Chat : à toi avec le CHAT POP-TART) mais la boutique ne le disait pas — sa carte affichait « MISSION », l'inventaire le prix de la
+  PALETTE (0,99 €), son bouton « À GAGNER ». Désormais (`chatPackI` = la place du chat dans CARS) : carte et inventaire « PACK CHAT », bouton
+  AVEC LE CHAT + le prix du chat (`bqEtat` e:'chat'), qui mène au rayon ACHAT, le chat sur le plateau (`bqAction`) ; la carte du chat porte le
+  bandeau arc-en-ciel « + ARC-EN-CIEL » (`.bqKl.arc`) tant qu'on ne l'a pas. Mots EN : CAT PACK, WITH THE CAT, + RAINBOW.
+
 ## LE GLACIER, 3e TOUR — LA CONGÈRE AU LIEU DU MUR, 40-50° POUR DE VRAI, DE VRAIS TREMPLINS, MOINS DE PICS (2026-10-18, session GLACIER-BORDS — Sacha : « debug la map montagne glace : déjà quand on touche le bord on y reste collé, et il y a des problèmes de collision avec la glace elle-même ; ensuite je t'ai dit 100 fois de faire la map plus pentue, genre 40-50 degrés ; les tremplins doivent être plus beaux, gros et visibles, et moins d'obstacles sur la route » · « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui ralentit beaucoup, mais ça tue pas »)
 - POURQUOI ON RESTAIT COLLÉ : le bord était le mur des couloirs du canyon (`parisMur` : lat bornée à 1,15 m du bord, vL = 0, mort au-delà de 30° et
   200 km/h) et le verglas pousse la caisse vers l'EXTÉRIEUR des virages (`banqVerglas`) : elle y revenait à chaque image. Mesuré (banc, pilote qui
