@@ -27309,6 +27309,12 @@ function trxPlanche(){
    x.shadowBlur=6;x.strokeStyle='#ffffff';x.lineWidth=7;coeur();x.stroke();x.restore();}
   /* (2026-10-17, TRAÎNÉES) 36 LE PIXEL : un carré plein et son liseré de lueur — ce en quoi LA GRILLE se défait */
   {const p=O(36);x.fillStyle='rgba(255,255,255,.22)';x.fillRect(p[0]+28,p[1]+28,72,72);x.fillStyle='#ffffff';x.fillRect(p[0]+36,p[1]+36,56,56);}
+  /* (2026-10-18, HYPERESPACE v2) 37 LE FILÉ D'ÉTOILE : la tête (u = 0, le bout tourné vers la caméra) ronde et pleine, le corps qui s'amincit et
+     s'éteint vers le point de fuite (u = 1) — le centre de l'image (la route devant) reste net, les bords flambent */
+  img(37,function(u,v){const y=(v-.5)/.5,h=Math.exp(-Math.pow((u-.07)/.06,2)),wf=.5+.5*h,yy=y/wf,ef=Math.min(1,u/.025,(1-u)/.05);
+    const lg=.14+.86*Math.pow(1-u,1.25),cs=Math.exp(-yy*yy*26)+.62*Math.exp(-yy*yy*2);return [255,Math.min(1,ef*(cs*lg+h*.55*Math.exp(-y*y*5))*(1-Math.pow(Math.abs(y),8)))];});
+  /* 38 L'ÉCLAT DU SAUT : un trait qui s'effile des deux bouts (gaussien sur sa longueur), l'éclat horizontal d'une optique de cinéma */
+  img(38,function(u,v){const y=(v-.5)/.5,g=Math.exp(-Math.pow((u-.5)/.2,2)),cs=Math.exp(-y*y*40)+.25*Math.exp(-y*y*5);return [255,Math.min(1,g*cs*(1-Math.pow(Math.abs(y),8)))];});
   return cv;
 }
 function trxBati(){if(TRX)return TRX;
@@ -27334,7 +27340,7 @@ function trxBati(){if(TRX)return TRX;
   return TRX;}
 function trxNait(L){const T=TRX;for(let n=0;n<TRX_PN;n++){const i=(T.pi+n)%TRX_PN,p=T.P[i];if(p.v)continue;T.pi=(i+1)%TRX_PN;
   p.v=true;p.L=L;p.md=0;p.vx=p.vy=p.vz=0;p.g=0;p.dr=0;p.a=0;p.l=1;p.s1=1;p.r=0;p.vr=0;p.sn=0;p.st=0;p.sg=1;p.fl=0;p.fp=Math.random()*6.283;
-  p.c2=-1;p.cf=0;p.ct=0;p.cn=0;p.cr=p.cg=p.cb=p.ca=1;p.fi=0;p.fo=.3;p.bk=0;p.an=false;p.sw=0;p.ln=0;p.gr=.3;p.fk=0;p.tw=0;p.mo=0;return p;}return null;}
+  p.c2=-1;p.cf=0;p.ct=0;p.cn=0;p.cr=p.cg=p.cb=p.ca=1;p.fi=0;p.fo=.3;p.bk=0;p.an=false;p.sw=0;p.ln=0;p.gr=.3;p.fk=0;p.tw=0;p.mo=0;p.cw=0;p.sb=0;return p;}return null;}
 function trxMeurt(p){ // (2026-10-16, TRAÎNÉES) ce qui meurt avec un éclat : la bulle de savon CREVE (un anneau de gouttes qui s'ouvre, une étincelle)
   if(p.mo===1){const s=trxNait(1);if(s){s.x=p.x;s.y=p.y;s.z=p.z;s.vx=p.vx;s.vy=p.vy;s.vz=p.vz;s.l=.13;s.w=s.h=p.w*1.6;s.s1=1.8;s.c=2;s.cr=1.2;s.cg=1.7;s.cb=1.5;s.fo=.1;s.vr=4;}
     for(let i=0;i<4;i++){const d=trxNait(1);if(!d)break;const a=i*1.5708+Math.random()*.6;d.x=p.x;d.y=p.y;d.z=p.z;
@@ -27363,8 +27369,14 @@ function trxParts(dt){let n=0;const sb9=TRX.C.pv&&silBlanc()?1.7:1,E0=TRX.C.pv?s
     if(p.fk&&Math.random()<p.fk)al*=.12;                                                              // (2026-10-16) le néon qui GRÉSILLE
     if(p.tw){const w=Math.max(0,Math.sin(p.a*p.tw+p.fp));al*=.25+.75*w*w*w;}                          // (2026-10-16) la paillette qui SCINTILLE
     const sz=1+(p.s1-1)*p.a/p.l;
-    if(p.md===1){const ln=p.ln*Math.min(1,p.a/p.gr)*.5;
-      trxQ(p.L,1,p.x-p.dx*ln,p.y-p.dy*ln,p.z-p.dz*ln,p.dx*ln,p.dy*ln,p.dz*ln,p.w*sz,0,0,0,p.c,p.cr,p.cg,p.cb,al);continue;}
+    if(p.md===1){const ln=p.ln*Math.min(1,p.a/p.gr)*.5,qx=p.x-p.dx*ln,qy=p.y-p.dy*ln,qz=p.z-p.dz*ln,ax=p.dx*ln,ay=p.dy*ln,az=p.dz*ln;
+      /* (2026-10-18, HYPERESPACE v2) un filé a deux lumières : la COULEUR et, dedans, le CŒUR chauffé à blanc (`cw` × la largeur, `kr/kg/kb`) — de jour,
+         le VOILE DE JOUR commun (TRJ, `uInk`) les pose sur une encre de leur couleur. `sb` : à sa naissance, l'ÉTOILE (case 2) brille à la pointe qui
+         s'étire, puis s'éteint en `sb` secondes — on voit l'étoile devenir un trait. */
+      trxQ(p.L,1,qx,qy,qz,ax,ay,az,p.w*sz,0,0,0,p.c,p.cr,p.cg,p.cb,al);
+      if(p.cw)trxQ(p.L,1,qx,qy,qz,ax,ay,az,p.w*sz*p.cw,0,0,0,p.c,p.kr,p.kg,p.kb,al);
+      if(p.sb&&p.a<p.sb){const e=1-p.a/p.sb;trxQ(p.L,0,qx-ax,qy-ay,qz-az,p.fp,p.ss*(.55+.45*e),p.ss*(.55+.45*e),0,0,0,0,2,p.kr,p.kg,p.kb,al*e);}
+      continue;}
     let xs=1,cel=p.c;if(p.fl){const c=Math.cos(p.a*p.fl+p.fp);xs=Math.max(.08,Math.abs(c));if(c<0&&p.c2>=0&&!p.cf)cel=p.c2;} // il TOURNE : écrasé, puis son revers
     const E=p.L?(p.an?1.2:E1):E0,hh=p.h*sz*E;let X=p.x,Y=p.y,Z=p.z;if(p.an){X+=p.ux*hh;Y+=p.uy*hh;Z+=p.uz*hh;}               // posé par le pied (la flamme)
     trxQ(p.L,0,X,Y,Z,p.r,p.w*sz*xs*E,hh,0,0,0,0,cel,p.cr,p.cg,p.cb,al);}
@@ -27388,6 +27400,17 @@ function trxLe(d,out,pied){const H=TRX.H,X=pied?H.b:H.x,C=TRX.C,Q=pied?C.B:C.P;l
   out.set(px,py,pz);return -1;}
 function trxRoues(sp){const C=TRX.C,w=(sp&&sp.w||2)*.4,l=sp&&sp.l||4.4; // les deux roues arrière et le pied de la poupe, en monde
   C.WL.set(w,.03,-l*.3);carGroup.localToWorld(C.WL);C.WR.set(-w,.03,-l*.3);carGroup.localToWorld(C.WR);C.B.set(0,.04,-(l/2+.05));carGroup.localToWorld(C.B);}
+/* (2026-10-18, Sacha : « améliore largement hyper espace ») HYPERESPACE v2 — UN FILÉ (dessiné par trxParts : encre, couleur, cœur, étoile de naissance).
+   Le TUNNEL : plus dense vers l'extérieur (√ du hasard), la caisse reste lisible au milieu ; trois lumières — bleu électrique, cyan, blanc chauffé.
+   `sk` : la VITESSE (×1 à 75 m/s, de ×0,75 à ×2) — les filés s'allongent quand NITROOO accélère, la vitesse lumière se SENT. `saut` : l'averse de
+   l'allumage — nés plus loin devant, plus longs, ils s'étirent deux fois plus vite. */
+function trxHyFile(C,sk,saut){const p=trxNait(1);if(!p)return;const pv=C.pv;
+  const a=Math.random()*6.283,r=(pv?1:1.3)+(pv?3:3.9)*Math.sqrt(Math.random()),f=saut?2+Math.random()*14:-1+Math.random()*10,ca=Math.cos(a)*r,sa=Math.sin(a)*r*.8;
+  p.x=C.P.x+C.R.x*ca+C.U.x*sa+C.F.x*f;p.y=C.P.y+C.R.y*ca+C.U.y*sa+C.F.y*f;p.z=C.P.z+C.R.z*ca+C.U.z*sa+C.F.z*f;
+  trxVit(p,pv?.45:.62);p.md=1;p.dx=C.F.x;p.dy=C.F.y;p.dz=C.F.z;p.ln=(pv?4+Math.random()*10:(6+Math.random()*12)*sk)*(saut?1.45:1);p.gr=saut?.11:.25;
+  p.w=pv?.03+Math.random()*.035:.065+Math.random()*.06;p.c=37;p.l=(saut?.55:.45)+Math.random()*.3;p.fi=.04;p.fo=.22;
+  const q=Math.random();if(q<.1){p.cr=1.3;p.cg=1.6;p.cb=2.4;p.w*=1.1;}else if(q<.42){p.cr=.2;p.cg=1.35;p.cb=2.6;p.cw=.3;}else{p.cr=.25;p.cg=.55;p.cb=2.6;p.cw=.3;}
+  p.kr=1;p.kg=1.4;p.kb=2.4;p.sb=.17;p.ss=pv?.11:.22;}
 function trxBolt(A,n,f,wk){const C=TRX.C; // un éclair : chaque segment, un HALO violet large et un CŒUR blanc-bleu fin (les points sont relatifs à la caisse)
   for(let i=0;i+1<n;i++){const o=i*3,ax=A[o]+C.P.x,ay=A[o+1]+C.P.y,az=A[o+2]+C.P.z,bx=A[o+3]+C.P.x,by=A[o+4]+C.P.y,bz=A[o+5]+C.P.z,
       hx=(bx-ax)*.54,hy=(by-ay)*.54,hz=(bz-az)*.54,cx=(ax+bx)*.5,cy=(ay+by)*.5,cz=(az+bz)*.5;
@@ -27437,14 +27460,23 @@ const TRX_EMET={
     const gz=C.pv?(silBlanc()?.48:.3):.4; // (2026-10-17) en boutique les fantômes ×1,6, comme les objets
     for(let i=0;i<4;i++){if(T.gk*4<i+.5)break;trxLe(1.4+i*.95,v,false);const b=.38+Math.sin(T.t*9+i*1.7)*.07,l=i%2?.55:-.55; // en quinconce, au-dessus du ruban de pastilles
       trxQ(0,0,v.x+C.U.x*b+C.R.x*l,v.y+C.U.y*b+C.R.y*l,v.z+C.U.z*b+C.R.z*l,0,gz,gz,0,0,0,0,peur?19:15+i,1,1,1,(bl?.25:1)*Math.min(1,T.gk*4-i));}},
-  hyper:function(T,C,k,dt,on,debut){if(!on)return; // HYPERESPACE — les étoiles s'étirent en filés autour de la caisse, un cœur bleu à la tuyère
-    if(debut){T.acc+=C.pv?22:48;const f=trxNait(1);if(f){f.x=C.P.x;f.y=C.P.y;f.z=C.P.z;trxVit(f,1);f.l=.3;f.w=f.h=C.pv?2:3.2;f.s1=.35;f.c=0;f.cr=1.1;f.cg=1.4;f.cb=2.6;f.fo=.25;}} /* (2026-10-17, TRAÎNÉES) LE SAUT : à l'appui, un éclair bleu-blanc qui se resserre sur la tuyère et une averse de filés d'un coup — on PASSE en vitesse lumière */
-    trxQ(1,0,C.P.x,C.P.y,C.P.z,0,.6*k,.6*k,0,0,0,0,0,.5,.75,2,.7*k);
-    T.acc+=dt*(C.pv?36:130)*k;while(T.acc>=1){T.acc-=1;const p=trxNait(1);if(!p)break; /* (2026-10-17, TRAÎNÉES) en course, 80 filés fins de 4 cm se confondaient avec les lignes de vitesse du jeu : 130/s, deux fois plus épais, plus longs, et ils gardent plus d'élan (on reste DANS le tunnel) */
-      const a=Math.random()*6.283,r=1.1+Math.random()*3.6,f=-2+Math.random()*8,ca=Math.cos(a)*r,sa=Math.sin(a)*r*.8;
-      p.x=C.P.x+C.R.x*ca+C.U.x*sa+C.F.x*f;p.y=C.P.y+C.R.y*ca+C.U.y*sa+C.F.y*f;p.z=C.P.z+C.R.z*ca+C.U.z*sa+C.F.z*f;
-      trxVit(p,C.pv?.45:.62);p.md=1;p.dx=C.F.x;p.dy=C.F.y;p.dz=C.F.z;p.ln=C.pv?4+Math.random()*10:6+Math.random()*12;p.gr=.25;p.w=C.pv?.025+Math.random()*.035:.05+Math.random()*.05;p.c=1;
-      p.l=.45+Math.random()*.3;p.fi=.06;p.fo=.2;if(Math.random()<.3){p.cr=1.5;p.cg=1.7;p.cb=2.2;}else{p.cr=.55;p.cg=.85;p.cb=2.1;}}},
+  hyper:function(T,C,k,dt,on,debut){if(!on)return; // HYPERESPACE — les étoiles s'étirent en filés autour de la caisse, un cœur bleu à la tuyère (v2 du 2026-10-18 : voir trxHyFile)
+    const pv=C.pv,sk=pv?1:Math.max(.75,Math.min(2,C.V.length()/75)),t=T.t; /* (2026-10-17, TRAÎNÉES) en course, 80 filés fins de 4 cm se confondaient avec les lignes de vitesse du jeu : 130/s, deux fois plus épais, plus longs, et ils gardent plus d'élan (on reste DANS le tunnel) */
+    if(debut){ /* LE SAUT (v2) : l'éclair blanc qui se resserre sur la tuyère, l'onde bleue qui s'ouvre, l'ÉCLAT horizontal d'une optique de cinéma, et toutes les étoiles qui s'étirent d'un coup */
+      const f=trxNait(1);if(f){f.x=C.P.x;f.y=C.P.y;f.z=C.P.z;trxVit(f,1);f.l=.3;f.w=f.h=pv?1.6:2.6;f.s1=.3;f.c=0;f.cr=1.6;f.cg=1.85;f.cb=2.6;f.fo=.25;}
+      const h=trxNait(1);if(h){h.x=C.P.x;h.y=C.P.y;h.z=C.P.z;trxVit(h,1);h.l=.32;h.w=h.h=pv?1.5:2.4;h.s1=1.5;h.c=0;h.cr=.3;h.cg=.62;h.cb=2.4;h.ca=.55;h.fo=.28;}
+      const e=trxNait(1);if(e){const hl=pv?2.6:4.8;e.md=1;e.dx=C.R.x;e.dy=C.R.y;e.dz=C.R.z;e.x=C.P.x+C.R.x*hl;e.y=C.P.y+C.R.y*hl;e.z=C.P.z+C.R.z*hl;trxVit(e,1);
+        e.ln=hl*2;e.gr=.001;e.w=pv?.08:.16;e.s1=.25;e.c=38;e.l=.3;e.fo=.24;e.cr=1.2;e.cg=1.7;e.cb=2.8;e.cw=.3;e.kr=1.8;e.kg=1.9;e.kb=2.3;}
+      for(let i=0;i<(pv?22:56);i++)trxHyFile(C,sk,true);}
+    /* LE CŒUR À LA TUYÈRE (v2) : un halo bleu, un point chauffé à blanc, et le JET — une aiguille de lumière qui sort du pot, plus longue avec la vitesse ;
+       le moteur de saut BAT (des pouls rapides, un frémissement) */
+    const pu=1+.35*Math.pow(Math.max(0,Math.sin(t*15.7)),6)+.06*Math.sin(t*61);
+    trxQ(1,0,C.P.x,C.P.y,C.P.z,0,.75*k*pu,.75*k*pu,0,0,0,0,0,.3,.6,2.3,.62*k);
+    trxQ(1,0,C.P.x,C.P.y,C.P.z,0,.3*k*pu,.3*k*pu,0,0,0,0,0,1.6,1.8,2.3,.95*k);
+    {const hl=(pv?.6:1.15)*Math.sqrt(sk)*k,jx=C.P.x-C.F.x*hl,jy=C.P.y-C.F.y*hl,jz=C.P.z-C.F.z*hl;
+      trxQ(1,1,jx,jy,jz,-C.F.x*hl,-C.F.y*hl,-C.F.z*hl,(pv?.07:.12)*pu,0,0,0,37,.32,.7,2.4,.85*k);
+      trxQ(1,1,jx,jy,jz,-C.F.x*hl,-C.F.y*hl,-C.F.z*hl,(pv?.025:.04)*pu,0,0,0,37,1.6,1.8,2.3,k);}
+    T.acc+=dt*(pv?36:165*(.8+.2*sk))*k;while(T.acc>=1){T.acc-=1;trxHyFile(C,sk,false);}},
   retour:function(T,C,k,dt,on,debut){ // 88 À L'HEURE — deux sillons de feu qui restent sur le bitume, et les arcs bleus du départ
     if(debut){const f=trxNait(1);if(f){f.x=C.P.x+C.U.x*.6;f.y=C.P.y+C.U.y*.6;f.z=C.P.z+C.U.z*.6;trxVit(f,1);f.l=.22;f.w=f.h=C.pv?2.6:3.8;f.s1=1.4;f.c=0;f.cr=1.6;f.cg=1.9;f.cb=2.6;f.fo=.18;}} /* (2026-10-17, TRAÎNÉES) L'ÉCLAIR DU DÉPART : à l'appui, le flash blanc-bleu du saut dans le temps, avant les arcs et les sillons */
     if(debut)for(let q=0;q<16;q++){const p=trxNait(1);if(!p)break;const a=Math.cos(Math.random()*6.283)*1.2,h=.3+Math.random()*.9;
@@ -39317,6 +39349,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{bqChauffe(0);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(1);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(2);}catch(e){console.warn('bqChauffe',e);}}, // (2026-10-16, « la boutique rame de ouf ») LA BOUTIQUE bâtie et compilée au menu, en trois étapes : MESURÉ, sa 1re ouverture figeait l'image 1,2 s (10 programmes, la salle blanche, les bras, le trône) // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
+  function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.pop){const T=trxBati(),M9=T.L.map(function(Y){return Y.m;});for(const m9 of M9)m9.visible=true;chauffeRendu(M9);for(const Y of T.L)Y.m.visible=Y.n>0;renderer.initTexture(T.L[0].m.material.uniforms.uMap.value);}}, /* (2026-10-18, HYPERESPACE v2) LES TRAÎNÉES POP (TRX) : leur programme et leur planche de 1 024 px naissaient à la 1re NITRO — MESURÉ au banc, 1 programme compilé pile au SAUT de l'hyperespace — au menu, seulement si la caisse en porte une */
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
@@ -42149,7 +42182,7 @@ const COSM={
     {id:'matrice',  n:'MATRICE',           p:11000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
     {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
     {id:'glouton',  n:'GLOUTON',           p:40000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
-    {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.95,1.15,1.6],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'},
+    {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
     {id:'grille',   n:'LA GRILLE',         p:200000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
     {id:'billets',  n:'FAIS PLEUVOIR',     p:500000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
     {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'legendaire',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'} /* (2026-10-18, Sacha : « divine ligthing doit etre legendaire ») LÉGENDAIRE (elle était MYTHIQUE) ; son prix `pk` (450 000, Poki) est déjà dans la famille */]

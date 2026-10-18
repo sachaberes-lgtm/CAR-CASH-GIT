@@ -3,6 +3,38 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## HYPERESPACE v2 — LA TRAÎNÉE QUI PASSE VRAIMENT EN VITESSE LUMIÈRE (2026-10-18, nuit, session HYPERESPACE — Sacha : « ameliore largement hyper espace largement »)
+- QUOI : la traînée ÉPIQUE de la boutique HYPERESPACE (90 k, `pop:'hyper'`), pas la map ORBITE (le code tranche : c'est le seul « hyperespace » du
+  jeu). « Améliorer » = l'existant (lumière, couleur, matière, netteté, vitesse, lisibilité) : aucun objet, décor ni mécanique en plus ; le
+  gameplay ne bouge pas (la traînée ne vit qu'à la nitro, comme avant).
+- VU AU BANC AVANT (même piste `?pistegraine=7`, mer de nuages à midi et orbite) : sur le ciel clair les filés étaient PÂLES, noyés dans le blanc
+  (l'additif s'efface sur un fond clair) ; des bâtons uniformes, sans tête ni queue ; ruban et feu de pixels du nitro en blanc bleuté DÉLAVÉ ; et
+  1 programme compilé à la 1re nitro — pile au moment du SAUT.
+- LE FILÉ D'ÉTOILE (case 37 de `trxPlanche`) : une TÊTE ronde et pleine au bout tourné vers la caméra, un corps qui s'amincit et s'éteint vers
+  le point de fuite — les bords de l'écran flambent, le CENTRE (la route devant) reste net.
+- DEUX LUMIÈRES PAR FILÉ (`trxParts`, champs `cw`/`sb`, à zéro pour les autres traînées) : la COULEUR (bleu électrique, cyan, ou blanc chauffé)
+  et, dedans, le CŒUR chauffé à blanc (⅓ de la largeur) — la netteté. De jour, le VOILE DE JOUR commun des traînées (TRJ, `uInk`, la passe
+  globale poussée juste avant) les pose sur une encre de leur couleur : une première version avait sa propre encre, retirée (doublon).
+  L'ÉTOILE DE NAISSANCE : à sa naissance un filé est une étoile (case 2) qui brille à sa pointe et s'éteint en 0,17 s — on VOIT l'étoile devenir
+  un trait (« les étoiles s'étirent en traits », la fiche de la boutique).
+- LE TUNNEL (`trxHyFile`) : plus dense vers l'extérieur (rayon 1,3-5,2 m, √ du hasard), la caisse reste lisible au milieu ; nés de −1 à +9 m ; trois lumières : bleu électrique, cyan, blanc.
+- LA VITESSE SE SENT (`sk`, de ×0,75 à ×2, ×1 à 75 m/s) : les filés s'allongent (et se densifient un peu) quand NITROOO accélère.
+- LE SAUT v2 (l'appui) : l'éclair blanc qui se resserre sur la tuyère, une onde bleue qui s'ouvre, l'ÉCLAT horizontal d'une optique de cinéma
+  (case 38, gaussien des deux bouts), et 56 étoiles nées loin devant qui s'étirent deux fois plus vite.
+- LE CŒUR À LA TUYÈRE v2 : halo bleu + point chauffé à blanc + le JET (une aiguille de lumière qui sort du pot, plus longue avec la vitesse) ;
+  il BAT (des pouls rapides et un frémissement).
+- LE RUBAN ET LE FEU EN BLEU ÉLECTRIQUE : `rgb` .95,1.15,1.6 → .42,.98,2.2 — le ruban, le feu de pixels du nitro (`nfeuPalTrainee`) et les bords
+  de la route au boost (v636/v643) prennent ce bleu franc au lieu d'un blanc bleuté.
+- PERF : aucun programme en plus (les deux cases sont peintes une fois sur la planche). Et LA CHAUFFE :
+  `chauffeDivers` compile au menu le programme des traînées POP et monte leur planche, si la caisse en porte une (sinon rien ne change) —
+  avant, il naissait à la 1re nitro, en course.
+- MESURÉ AU BANC (Puppeteer muet, 844 × 390 couché, DPR 1,5, `?pistegraine=7`, avant = main de la passe globale, après = cette version) :
+  0 programme compilé en course à la nitro sur la mer de nuages (midi) et l'orbite (soir) — avant : 1, le programme TRX ; 0 erreur JS ;
+  TRX ≈ 0,1 ms par image (105-113 particules, ~240 quads ; avant 0,05 ms, ~76) ; la vitrine (INVENTAIRE → TRAÎNÉES) tourne sans erreur.
+- RÉGLÉ EN DEUX PASSES AU BANC : à la 1re, sur l'orbite les filés lisaient BLANCS et fins à côté des gros faisceaux d'avant — cœur passé au bleu
+  glacier (1, 1,4, 2,4), lueur bleue plus pleine (case 37), filés plus larges (6,5-12,5 cm), 10 % de filés blancs au lieu de 22, 165 filés/s.
+- PLANCHE avant/après montrée à Sacha (le saut et 1,1 s après, nuages à midi et orbite le soir).
+
 ## LA GRILLE DES PRIX DES VOITURES (2026-10-19, v671, Léo : « réorganise bien les raretés, c'est le bordel, les prix » → « oui » à la grille)
 - **Le principe** : le prix suit le PRESTIGE DE LA VRAIE VOITURE, et chaque prix reste dans la tranche de sa famille (la règle de Sacha
   pour les habillages, v670 : « son prix dans sa famille »). Communes ≤ 8 000 · rares 25 000 → 300 000 · épiques 550 000 → 4 000 000.
@@ -87,6 +119,7 @@
   (2,2 s sous 40). Banc : trois lâchers dans la neige, aucune mort, ramenée en 2,4-4,8 s.
 - MOINS D'OBSTACLES : une figure tous les 0,6-1 km (0,3-0,5 avant), fourche 3-5 pics, champ 5-7 (11-18), îlot 2-3 : 31-44 pics par piste au lieu de 112.
 - Banc : `dbgBanq('cg',{fx,prof,…})` (la congère : réglages, état, repère). Fumée commune OK (couché + debout, 0 erreur JS).
+
 ## LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER (2026-10-19, v664, Léo : « fais en sorte que chaque trick qui fait un saut en l'air, seulement lorsque la voiture est en l'air, laisse au joueur l'opportunité de décoller de la route en utilisant le joystick qui permet d'orienter le nez de la voiture vers le haut »)
 - **Le questionnaire** (deux lectures possibles, le pouce HAUT choisit déjà la figure AVANT au double-tap) : « un geste PENDANT le bond »
   (le pouce tenu depuis le double-tap ne compte pas) et « comme un avion » (tant qu'on tient le nez en haut elle monte, lâché elle retombe).
