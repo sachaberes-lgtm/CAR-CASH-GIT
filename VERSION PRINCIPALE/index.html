@@ -6431,7 +6431,7 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 :is(#fh,#fhLeg) [data-rp=legendaire]{--rc:#ffd75e;--rk:1.9}
 :is(#fh,#fhLeg) [data-rp=combo]{--rc:#fff7ee;--rk:1}
 #fh .fhNom[data-rp]{--fc:var(--rc)}
-#fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]) b::after{display:none} /* la lèvre claire est calée sur les capitales de Press Start 2P */
+#fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]):not([data-rp=legendaire]) b::after{display:none} /* (2026-10-18, débogage) la légendaire en est exclue : cette règle pesait plus lourd que son reflet (plus bas), qui ne s'est jamais allumé */ /* la lèvre claire est calée sur les capitales de Press Start 2P */
 #fh .fhNom[data-rp=epique] b{text-shadow:var(--fhBord),0 0 26px color-mix(in srgb,var(--fc) 95%,transparent),0 0 8px color-mix(in srgb,var(--fc) 60%,transparent)}
 #fh .fhNom[data-rp=legendaire] b{text-shadow:var(--fhBord),0 0 30px color-mix(in srgb,var(--fc) 85%,transparent)}
 #fh .fhNom[data-rp=legendaire] b::after{display:block;clip-path:none;color:transparent;-webkit-text-fill-color:transparent;
@@ -23823,7 +23823,7 @@ function fmtGta(v){
    un seul rAF pour toutes les plaques, aucun objet alloué par image). Les grands montants tiennent : quand le NOMBRE de signes change, la police
    descend par crans jusqu'à ce que la plaque tienne dans son cadre et dans l'écran (soldeFit, une mesure par changement de longueur, pas par image).
    Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
-function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.round(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');} /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
 const SOLDE={l:[],on:false,D:700};
 function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
   let fs=parseFloat(getComputedStyle(el).fontSize)||14;
@@ -37090,7 +37090,7 @@ function plqClavier(){const el=$p('plq'),tx=$p('plqTx'),vv=window.visualViewport
 function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
   if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
     toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
-  PLQ.on=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){}
+  PLQ.on=false;PLQ.kb=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){} /* (2026-10-18, débogage) PLQ.kb remis ici : plqClavier ne tourne plus une fois l'atelier fermé, et le rattrapage de 400 ms (la page qui revient en haut quand le clavier iOS descend) attendait un PLQ.kb faux qui ne venait jamais */
   feuilleFerme(el,'on');if(PLQ.prof)profRemplit();}
 function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
   const tx=$p('plqTx');
@@ -42124,7 +42124,7 @@ function spinOuvre(){
   requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
   try{if(SONV2&&!sfx('spin.ouvre'))sfx('ui.banniere');}catch(e){}hap(12);} /* (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous ») elle S'ALLUME : relais, néon, ampoules en chenillard */
 function spinFerme(){if(!SPIN.el)return;if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
-  setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{mFill();}catch(e){}}
+  setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{window.__mFill();}catch(e){}} /* (2026-10-18, débogage) mFill vit dans le bloc des menus : on passe par sa porte (le COMPTE de l'écran de fin restait d'avant les gains) */
 function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le levier a claqué, les rouleaux partent
   if(SPIN.roule)return;
   if((SAVE.d.spinJ|0)<=0){spinFerme();return;}
@@ -42187,7 +42187,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
   if(jack){hap([30,60,40,80,60,120,90]);spinFlash(3);spinPluie(46);spinExplose(40);}
   else if(gros){hap([20,40,30]);spinExplose(16);}
   else if(R.i>=0)hap(14);
-  spinLabels();try{mFill();}catch(e){}SPIN.roule=false;}
+  spinLabels();try{window.__mFill();}catch(e){}SPIN.roule=false;}
 function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
   const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
 function spinPluie(n){ // la pluie de billets : des liasses qui tombent sur tout l'écran en se balançant
@@ -48542,7 +48542,7 @@ function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k); /
 function fhTrio(txt){if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
   fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
   const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
-function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON)return; // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
+function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
   FX2.pts+=Math.max(0,pts||0);const neuf=!FX2.cv.ids.bump;figCvNote(BUMP_FIG,1);fhBump(k,neuf);}
 function fhFin(ok){const c=FX2.cv;if(!FH.el||!FH.vu||c.n<1)return;const n=performance.now(); // (la pose) — à appeler AVANT figCvRaz
   if(ok){if(!(FH.trioT>n))FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.el.classList.remove('perdu'); // (v5) un combo NOMMÉ fermé par la pose reste écrit pendant l'encaissement
@@ -52019,7 +52019,7 @@ function endGame(){
   ovSub.textContent=TR('GAME OVER');ovSub.style.display='';
   tagline.textContent=TR(pickL(isTop?END_TOP:END_LINES));tagline.style.display=''; // la punchline de fin — même la mort a du style
   const gagnees=commitExploits();try{m2Fin();}catch(e){console.warn('m2Fin',e);} /* (2026-10-16) LES MISSIONS v2 : la partie entière se juge ici */ // les exploits de la run entrent au compteur À VIE → nouvelles caisses
-  try{RUNX.verse=Math.max(0,Math.round(bank()-(RUNX.bank0||0)));}catch(e){} // (2026-09-29) VERSÉS AU COMPTE figé à la mort : un achat au garage ne le fait plus baisser
+  try{RUNX.verse=Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0));}catch(e){} // (2026-09-29) VERSÉS AU COMPTE figé à la mort : un achat au garage ne le fait plus baisser
   setBestChip();
   runStatsEl.style.display='block';
   /* LE RELEVÉ DE FIN DE PARTIE. L'ordre compte : d'abord ce qu'on a FAIT (les exploits), puis ce que
@@ -63207,7 +63207,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
          la fin de run. (2026-09-28) C'était le seul virement de la course (`_vire`) : « $ 37 VERSÉS » au-dessus d'une barre d'objectif « +$ 537 »,
          qui compte aussi la prime du permis et celles des défis. Même calcul que la barre (objRender) : les deux chiffres ne se contredisent plus. */
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
-      {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))),c9=$t('mCash'),t9=$t('mCashTot');
+      {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0)),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
        if(t9){const j9=jourFinTexte();t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank()); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
         if(j9){const i9=t9.appendChild(document.createElement('i'));i9.className='mJour';i9.appendChild(document.createElement('u')).textContent=' · ';i9.append(j9.replace(/^ · /,''));}} /* (2026-10-15) …mais sur SA ligne (.mJour) : le texte reste « COMPTE : $ N · ×2 DU JOUR », le « · » est seulement masqué */
@@ -63461,6 +63461,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // `__mGo` — le garage envoie en BOUTIQUE au lever de son voile ; `__panBascule` — la touche P passe par le VRAI panneau
   // (la pause nue figeait le jeu sans rien à l'écran — #msg est masqué en coque — et P relançait la course SOUS le panneau).
   window.__mGo=function(id){if(mScr[id])mGo(id);};
+  window.__mFill=function(){mFill();}; // (2026-10-18, débogage) TROISIÈME PORTE : la machine à sous rafraîchit l'écran de fin (le COMPTE après un gain)
   window.__panBascule=function(){
     const md=$t('modale');if(md&&md.classList.contains('on'))return; // une fenêtre ouverte (RECOMMENCER ?, QUITTER ?) garde la main
     if(window.__setPause)return; // (2026-10-14, charte 6) les réglages complets sont ouverts par-dessus la pause : P ne reprend pas la course dessous

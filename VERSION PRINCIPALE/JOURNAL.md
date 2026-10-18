@@ -217,7 +217,8 @@
   ×1,75 ; + TONNEAU + SALTO ARRIÈRE + LE GYROSCOPE en grand, ×2,75 ; posé propre : « COMBO ×2,75 +490 » dans la chaîne. Chute : maillons rouges
   qui tombent. VRAIS BUMPS (caisse poussée hors du bord, ramenée par le pilote auto, 14 sorties) : 6 bumps, 4 entrés dans le combo du vol en plein
   vol (les 2 autres : le pilote les a reposés dans la même image). 0 erreur JS, `__loopErr` vide. Fumée commune : voir le commit.
-- À TRANCHER PAR SACHA : la rareté qui MONTE avec les bumps (DOUBLE rare, TRIPLE exotique, MEGA épique) ; la ligne limitée aux 3-4 derniers noms
+- TRANCHÉ par Sacha le 18/10 : « oui, garde la rareté du bump qui monte à chaque rebond » (DOUBLE rare, TRIPLE exotique, MEGA épique).
+- À TRANCHER PAR SACHA : la ligne limitée aux 3-4 derniers noms
   (taille ×1,2 du corps : plus petit = plus de noms, moins lisibles) ; le BUMP perdu à la chute avec le reste du combo (avant, sa part de chaîne restait).
 ## LA REPRISE DE LA MIGRATION DES MISSIONS v2 — LES SAUVEGARDES MARQUÉES PAR LA PASSE AVORTÉE SONT REJUGÉES UNE FOIS (2026-10-18, session fix-m2 — demandée par la session de contrôle console de Sacha : « faire repasser une fois la migration pour les sauvegardes déjà marquées vc=1 alors qu'elle avait avorté, sans re-créditer deux fois et sans confisquer quoi que ce soit »)
 - SUITE DE « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS » (juste en dessous) : `M2_COLK` / `M2_RECO` remontées (v634), la migration complète tourne pour une
