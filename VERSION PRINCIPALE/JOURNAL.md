@@ -641,6 +641,17 @@
 - Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-vraie-et-nous.png.
   Outils : boites/hummer/ (src, ref, photos), assemble_h.py, integre_h.py, planche_hummer.py.
 
+## LE BAROUDEUR, CHAQUE LUMIÈRE À SA PLACE (2026-10-18, discussion BOÎTES ; Léo : « les lumières ont l'air trop détachées… il y en a deux qui apparaissent au-dessus »)
+- **Les deux « au-dessus »** : le feu de jour (bâtonnet blanc de 22 cm) et le clignotant (languette orange) posés SUR chaque élargisseur avant,
+  qui dépassaient de la tôle au-dessus des roues — une fois l'élargisseur couleur caisse (Sahara), ils flottaient. Désormais une bande de LED de
+  1 cm À FLEUR de l'arête avant de l'élargisseur (`P.prism` sur une bande décalée du contour, 4 mm de relief), blanche en haut, orange au bout.
+- **Les phares** : le cerclage dépassait de 4 cm devant la calandre → il affleure sa face, anneau et lentille en retrait ; `hl` reculé de 4 cm.
+- ⚠ **Le halo rouge et le départ des traînées** : `buildCar` les pose sur la moyenne des pièces ROUGES ALLUMÉES (`g:'l'`) les plus en arrière de
+  chaque côté (fenêtre de 30 cm, voir CAR_FEUX) — les catadioptres rouges du pare-chocs y entraient : halo et traînées 20 cm SOUS les feux.
+  Un catadioptre n'est pas un feu : rouge sombre MAT (`R:{g:'m',c:0x7a1018}`). Règle pour toute caisse : un rouge allumé à l'arrière = un feu.
+- Les feux arrière posés sur la tôle (2,5 cm de relief au lieu de 4). Banc : course couchée et debout 0 programme compilé, garage sans erreur.
+  Planche : photos-gameplay/wrangler-lumieres-avant-apres.png. Banc des lumières : boites/wrangler/lum/, `jour.py` (`CHASE=1` : la vue de poursuite).
+
 ## LE BAROUDEUR EN FINITION SAHARA (2026-10-18, discussion BOÎTES ; Léo, photo d'un JL Sahara gris : « même couleurs, même le truc au-dessus de la roue »)
 - **La teinte** `0x464950` (l'olive `0x4a4d38` part) : mesurée sur la photo (la porte à l'ombre d'un ciel gris : 75 · 76 · 82) puis jugée DANS LE
   JEU, jamais au studio. ⚠ La même base change beaucoup selon la scène : au garage les lampes chaudes la tirent vers le beige (un gris neutre
