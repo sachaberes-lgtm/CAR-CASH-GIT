@@ -70,13 +70,6 @@ if(SANS_CARRIERE)document.documentElement.classList.add('sansCarr');
    l'écran MISSIONS et de la boutique (étape 3, 16/10) ; `?missions=v1` rend les carnets. Voir « LES MISSIONS v2 » au journal. */
 const MISSIONS_V2=!/[?&]missions=v1\b/.test(location.search); // (2026-10-16) la v2 est le DÉFAUT depuis la livraison de l'écran et de la boutique
 if(MISSIONS_V2)document.documentElement.classList.add('misV2');
-/* PLUS DE MODE FACILE (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu ») : même recette que la carrière — COUPÉ,
-   pas arraché. `facOn()` répond toujours non : plus d'aide au virage (FAC_CAP), plus de bord élargi (facBord), plus de 10 s en l'air
-   (FAC_AIR), plus de 3 vies ni de filet (facileSauve) ; le choix FACILE / NORMAL du 1er JOUER ne s'ouvre plus (facChoix rend NORMAL) et la
-   ligne MODE FACILE quitte les réglages (<style id="sansFacile">). La sauvegarde n'est PAS touchée : `SAVE.d.facile` reste ce qu'il était
-   (un joueur en FACILE joue désormais en NORMAL, sans rien perdre — argent, caisses, records). `?facile=1` le rend, pour le tester. */
-const SANS_FACILE=!/[?&]facile=1\b/.test(location.search);
-if(SANS_FACILE)document.documentElement.classList.add('sansFacile');
 /* PLUS DE SNAKE LOOP, DE DAUPHIN, DE NITROOO NI DE DRAGON (2026-10-15, Sacha : « supprime du main le snake loop, le dauphin, le nitrooo
    et les animations 3D qui leur sont attribuées, enlève aussi le dragon chinois de flamme ») : même recette que la carrière — COUPÉS,
    pas arrachés. Aucune de ces figures ne se détecte plus, ne paie plus (aura, flow, chaîne, verdict, son) et leurs créatures 3D (le
@@ -4514,21 +4507,6 @@ html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach 
 /* (29/09, DEBUGGING) « POUCE HAUT EN VOL » passait sur deux lignes avec PLONGE et sur une avec MONTE : la ligne sautait à chaque appui —
    la valeur prend toujours la place de la plus longue, l'interlettrage de la ligne se resserre d'un demi-pixel */
 .mLigne[data-m="volh"],.tp.ligne[data-a="volh"]{letter-spacing:.5px;gap:12px}.mLigne[data-m="volh"]>.pxi,.tp.ligne[data-a="volh"]>.pxi{margin-right:8px} /* (2026-09-30, revue) l'icône rend les 4 px : le libellé retombe dans l'alignement des autres lignes */#mvVolH{min-width:calc(6.6em + 18px);justify-content:flex-end}html:lang(en) #mvVolH{min-width:calc(5.5em + 18px)}html:lang(en) .mLigne[data-m="volh"]{letter-spacing:0}
-/* ---- 27. MODE FACILE (2026-09-29) : les trois vies, en haut à droite, sous la pause (zone de LECTURE) ---- */
-#facVies{display:none}
-html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--hudH) + 120px);right:var(--hudD);z-index:6;gap:5px;pointer-events:none;zoom:var(--hudK);
-  --hudH:calc((var(--ccT,env(safe-area-inset-top,0px)) + var(--hudY0) * (1 - var(--hudK))) / var(--hudK));
-  --hudD:calc((var(--ccR,env(safe-area-inset-right,0px)) + 14px) / var(--hudK))}
-#facVies .pxi{--pxs:1.6;color:var(--neoR);filter:drop-shadow(0 2px 0 var(--k0))}
-@media (orientation:landscape) and (max-height:540px){html body.touch.play.facile #facVies{top:calc(var(--hudH) + 103px)}}
-/* (29/09, re-mesuré) le compteur d'argent a une 2e ligne, le GAIN (« +$ 43 ») : il descend à 111 debout / 97 couché → les vies à 115 / 101.
-   Debout, le chrono de vol (#airHud, 118) prend leur place en l'air : elles s'effacent le temps du vol (couché, le chrono est plus bas). */
-@media not ((orientation:landscape) and (max-height:540px)){html body.touch.hAirPie:not(#ccH) #facVies{visibility:hidden}}
-#facVies .pxi.vide{color:var(--tx3);opacity:.45}
-#facVies .pxi.perd{animation:facPerd var(--t-slow) var(--ease)}
-@keyframes facPerd{from{scale:2;color:#fff}to{scale:1}}
-body.coOn #facVies,body.dead #facVies,body.hTp:not(#ccH) #facVies{visibility:hidden}
-@media (prefers-reduced-motion:reduce){#facVies .pxi.perd{animation:none}}
 /* ---- 29. L'ÉCRAN DE FIN v5 (2026-09-29, Sacha : « cet écran n'est pas joli ; on ne compte pas l'aura, c'est le score d'une partie ;
    l'argent doit être mis plus en avant ») — l'ARGENT est le héros : une plaque verte, le montant au plus gros corps de l'écran, le
    compte dessous ; l'AURA (score) et le MOTEUR en deux cartes sobres ; COUCHÉ : à gauche on lit (titre, argent, cartes, chiffres),
@@ -5271,7 +5249,7 @@ html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!
    cyan en aplat, à 2 px le pixel, sans modelé — à côté de l'éclair en bandes, de l'aile du chrono, de l'AURA et des chiffres cernés d'encre.
    Désormais : 3 px le pixel, TROIS BANDES calées sur ses rangées de pixels (lèvre claire · plein · ombre : jamais une bande coupée en deux
    dans un pixel) et l'ÉPAISSEUR d'encre dessous, comme les chiffres du HUD. Appuyé : la face s'embrase comme la NITRO. Taille et place de
-   la touche inchangées (48 px ; dessous vivent le compteur d'argent et les cœurs du mode FACILE). ---- */
+   la touche inchangées (48 px ; dessous vit le compteur d'argent). ---- */
 :root{--qL:#e2fdff;--qP:var(--neoC);--qS:#0a8fb8}   /* le cyan du ⏸ en trois bandes */
 html body #tGear{--nc:var(--neoC)}
 html body #tGear>.pxi{--pxs:3!important;margin:0!important;transform:skewX(var(--skI));   /* redressé : deux barres hautes penchées de 11° ne sont plus des pixels (les icônes de l'accueil le sont aussi) */
@@ -7866,8 +7844,8 @@ html.c6 #splash #spInvite.on{opacity:1;animation:c6Respire 2.4s ease-in-out .4s 
 @keyframes c6Respire{0%,100%{opacity:1}50%{opacity:.45}}
 @media (prefers-reduced-motion:reduce){html.c6 #splash #spInvite.on{animation:none}}
 
-/* ====== LE CHOIX FACILE / NORMAL (facChoix, 2026-10-14, règles de 6 h) : deux CARTES égales, une ligne de promesse chacune, la conseillée
-   (FACILE) en or — plus de vert (le vert = l'argent). #modale.facC6 : posée par modale() quand on lui passe `cartes`. ====== */
+/* ====== LES CARTES D'UNE MODALE (2026-10-14, règles de 6 h) : deux CARTES égales, une ligne de promesse chacune, la conseillée
+   en or — plus de vert (le vert = l'argent). #modale.facC6 : posée par modale() quand on lui passe `cartes`. ====== */
 html.c6 #modale.facC6 #modX{font-family:var(--sans);font-size:13px;line-height:18px;font-weight:600;color:var(--c6-g1)}
 html.c6 #modale.facC6 #modT{font-size:16px;line-height:20px;letter-spacing:0;text-shadow:none}
 html.c6 #modale.facC6 .modB{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -7883,7 +7861,7 @@ html.c6 #modale.facC6 .modB .pbtn>small{display:block;font-family:var(--sans);fo
 html.c6 #modale.facC6 .modB .pb-gold>small{color:var(--c6-orE)}
 html.c6 #modale.facC6 .modB .pbtn:not(.pb-gold)>small{color:var(--c6-g1)}
 /* ====== LA QUESTION DE BIENVENUE (bienvMontre, 2026-10-16, Léo : « un message à la première ouverture, bien designé, en cohérence avec le
-   reste du jeu, avec une option ne plus répéter ») : les deux CARTES de CHOISIS TON MODE + la case NE PLUS ME DEMANDER (.modCoche, posée par
+   reste du jeu, avec une option ne plus répéter ») : les deux CARTES + la case NE PLUS ME DEMANDER (.modCoche, posée par
    modale() quand on lui passe `coche`) — une case de 20 px qui se remplit d'or, son mot qui s'allume ; 44 px de haut pour le pouce. ====== */
 #modale .modCoche{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin:14px auto 0;padding:0 10px;cursor:pointer;
   font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:#b3b8c4;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
@@ -9302,11 +9280,6 @@ html.c6.hub.sansCarr body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/-1}
   html.hub.sansCarr:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/4}
   html.c6.hub.sansCarr body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/-1}}
 </style>
-<style id="sansFacile">
-/* (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu » — voir SANS_FACILE dans le <head>) la ligne MODE FACILE des
-   réglages disparaît ; les cœurs (#facVies) suivent déjà body.facile, que facDepart ne pose plus. */
-html.sansFacile [data-m="facile"]{display:none!important}
-</style>
 <style id="finalSpin">
 /* LE FINAL SPIN v2 (2026-10-14 soir, Sacha sur la v1 : « c'est ÇA la roulette, sérieux ? ») — la machine à sous de l'écran de fin, voir SPIN.
    Charte : police pixel, laque · or · néon ; l'or pour le seul geste (TIRER / CONTINUER) et les garnitures ; le fond est OPAQUE (plus rien de
@@ -9727,7 +9700,6 @@ html:not(.c6) #mSet .c6Corps .oSauv{order:4}
 html:not(.c6) #mSet .c6Corps>.c6Pied{order:5;margin-top:36px}
 html:not(.c6) #mSet .mSec{font-size:var(--f1)}
 html:not(.c6) #mSet [data-m="imp"]{display:none} /* « RESTAURER UN CODE » : fondu dans « ENTRER UN CODE » */
-html:not(.c6) #mSet [data-m="facile"]{display:none} /* le MODE FACILE est retiré du jeu */
 html:not(.c6) #mSet .volRow{display:flex;align-items:center;gap:12px;padding:0 16px 12px 62px}
 html:not(.c6) #mSet .volRow .volS{flex:1 1 auto;min-width:0;width:auto}
 html:not(.c6) #mSet .volRow .volV{flex:none;min-width:54px;text-align:right;margin:0}
@@ -10461,7 +10433,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
   <div id="cashHud" aria-hidden="true"><b class="chV"><i>$</i><span>0</span></b><em class="chD"></em></div>
-  <div id="facVies" aria-hidden="true"></div><!-- (2026-09-29) MODE FACILE : les trois vies -->
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -10778,7 +10749,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
             <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
             <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
             <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
-            <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
             <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
           </div>
@@ -10969,18 +10939,9 @@ function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{u
   try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   if(document.documentElement.getAttribute('data-reduced-motion')==='1'){el.classList.remove(cls,'sortant');return;}
   el.classList.add('sortant'); el._fermeT=setTimeout(function(){el.classList.remove(cls,'sortant');},170); }
-/* (2026-09-29) LE 1er JOUER DEMANDE LE MODE : FACILE (virages aidés, 10 s en l'air, 3 vies) ou NORMAL. Posé une fois, changeable dans les
-   RÉGLAGES. Échap clique le dernier bouton : NORMAL. */
-function facChoix(){ /* (2026-10-14, charte 6 · règles de 6 h) deux CARTES égales, une promesse chacune ; FACILE (conseillée à un nouveau) en or,
-     NORMAL en encre — plus de vert (le vert = l'argent), plus de paragraphe qui n'expliquait que FACILE. ?ui=5 : l'ancienne fenêtre. */
-  if(SANS_FACILE)return Promise.resolve({v:0}); // (2026-10-14, Sacha) plus de mode facile : pas de question, on part en NORMAL (la sauvegarde n'est pas écrite)
-  if(document.documentElement.classList.contains('c6'))return modale({titre:'CHOISIS TON MODE',texte:'Tu pourras changer dans les réglages.',cartes:true,
-    boutons:[{l:'FACILE',ic:'coeur',cls:'pb-gold',sous:'Virages aidés, 3 vies',v:1},{l:'NORMAL',ic:'eclair',cls:'c6Neutre',sous:'Sans aide, une seule vie',v:0}]}).then(function(r){SAVE.d.facile=r.v?1:0;SAVE.flush();});
-  return modale({titre:'CHOISIS TON MODE',texte:"En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
-  boutons:[{l:'FACILE',ic:'coeur',cls:'pb-green',v:1},{l:'NORMAL',ic:'eclair',v:0}]}).then(function(r){SAVE.d.facile=r.v?1:0;SAVE.flush();});}
 function modale(o){return new Promise(function(res){
   const m=document.getElementById('modale'),c=document.getElementById('modC'),b=m.querySelector('.modB');
-  m.classList.toggle('facC6',!!o.cartes); // (2026-10-14, charte 6) les boutons en CARTES (le choix FACILE / NORMAL)
+  m.classList.toggle('facC6',!!o.cartes); // (2026-10-14, charte 6) les boutons en CARTES
   m.classList.toggle('bienv',o.cls==='bienv'); // (2026-10-16) LA QUESTION DE BIENVENUE (bienvMontre) a son habillage
   let ck=m.querySelector('.modCoche');if(ck)ck.remove();ck=null; // (2026-10-16) `o.coche` : une case « NE PLUS ME DEMANDER » sous les cartes, rendue dans `coche`
   if(o.coche){ck=document.createElement('div');ck.className='modCoche';ck.setAttribute('role','checkbox');ck.setAttribute('aria-checked','false');
@@ -10994,7 +10955,7 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>'+(k.sous?'<small>'+TR(k.sous)+'</small>':''); // (2026-10-14) k.sous : la promesse d'une carte
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE'||o.cls==='bienv')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus (2026-10-16 : la question de bienvenue aussi) */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value,coche:!!(ck&&ck.classList.contains('on'))});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.cls==='bienv')?'':'retour');try{c.blur();}/* (2026-10-16) un bouton v:0 de la question de bienvenue est un CHOIX, pas un ANNULER */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value,coche:!!(ck&&ck.classList.contains('on'))});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
@@ -11002,7 +10963,7 @@ function modale(o){return new Promise(function(res){
    jeu, avec une option ne plus répéter ; et seulement si on dit que c'est la première fois qu'on joue, ça lance la partie guidée pour
    beginner — sinon on peut enlever ce truc pour toujours ») LA QUESTION DE BIENVENUE. Avant : le 1er JOUER d'une sauvegarde neuve lançait
    D'OFFICE l'auto-école (la leçon), même pour qui avait déjà joué sur un autre téléphone. Désormais, à l'ouverture, sur l'accueil, une fenêtre
-   (les deux CARTES de la charte 6, comme CHOISIS TON MODE) demande : PREMIÈRE FOIS ICI ?
+   (les deux CARTES de la charte 6) demande : PREMIÈRE FOIS ICI ?
    · OUI, GUIDE-MOI → la leçon part tout de suite (le JOUER de l'accueil, son chemin et sa musique : voir ECOLE_MUS) ;
    · J'AI DÉJÀ JOUÉ → pas de leçon pour cette ouverture (SAVE.d.tuto = 1, `tutoProv` : la question revient à la prochaine ouverture) ;
    · la case NE PLUS ME DEMANDER (SAVE.d.bienv) : la question ne revient plus — avec J'AI DÉJÀ JOUÉ, la leçon est enlevée pour toujours
@@ -27256,7 +27217,7 @@ function cashEcrit(force){
 /* LA COLONNE DE DROITE S'EMPILE (2026-09-30, voir <style id="hudOrdre">) : ce qui est VISIBLE, dans l'ordre, sous le ⏸, à 8 px l'un de
    l'autre — ce qui est caché ne laisse pas de trou. Un bloc rétréci par `zoom` reçoit un `top` divisé par son zoom (zK), mesuré à l'écran
    (zRect.leg : l'ancien WebKit rend les boîtes divisées par le zoom). Couché, l'emblème DARK TRIAD garde sa place en haut au milieu (la
-   colonne n'a pas la hauteur). Les VIES du mode FACILE (#facVies) prennent leur rang sous l'argent. Dix fois par seconde. */
+   colonne n'a pas la hauteur). Dix fois par seconde. */
 const HUDCOL={t:0,els:null,p:[]};
 /* (2026-10-14, passe mobile) LIRE D'ABORD, ÉCRIRE ENSUITE — et en TÊTE d'image. MESURÉ (profil, téléphone émulé, processeur ×4) : c'était
    la fonction la plus lourde du jeu (8 % du processeur en course). Appelée APRÈS que le HUD de l'image avait écrit ses styles, chaque
@@ -27272,7 +27233,7 @@ function hudColonne(dt){
 }
 function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
-  if(!HUDCOL.els)HUDCOL.els=['cashHud','facVies','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
+  if(!HUDCOL.els)HUDCOL.els=['cashHud','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+10:66;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
@@ -28714,7 +28675,7 @@ let lvlBanT=0;
    carte suivante s'affichait PAR-DESSUS pendant la dernière seconde) et, en priorité 1, une carte MOTEUR (2) la coupait à tout instant :
    la règle du niveau disparaissait au portail, pile quand elle sert. Désormais le couloir est réservé toute sa durée (3,8 s) et VERROUILLÉ
    3 s (`ferme` : même une voix plus forte attend dans la file — la carte moteur passe à 3 s, un record patiente) ; seule la mort la
-   coupe : l'explosion (hautVide) et la vie perdue du mode FACILE (facileSauve). Sans promesse : inchangé (2,8 s, coupable à 1,4 s). */
+   coupe : l'explosion (hautVide). Sans promesse : inchangé (2,8 s, coupable à 1,4 s). */
 const LVL_BAN={ms:2400,msPr:3800,verrou:3000,prom:0,num:0}; // (2026-09-30, Sacha : « trop de texte, laisse juste MER DE NUAGES ») prom / num : la promesse et « NIVEAU n » — éteints ; la bannière ne dit plus que le NOM
 function lvlPromesse(){ // la ligne sous le nom ('' = aucune) — UN seul endroit : le couloir (sa durée) et la bannière (son texte, sa durée) la lisent
   const c=LVL.cur;if(!c||c.piste==='tuto'||!LVL_BAN.prom)return ''; // la piste de l'école hérite des NUAGES : pas de « LES NUAGES CACHENT LES VIRAGES » sous son ciel nu
@@ -29753,7 +29714,7 @@ function carrLancer(bi,i){
     toast(pxi('volant')+' '+TR("PASSE D'ABORD TON PERMIS"));bi=0;i=0;}
   if(started&&!gameOver)return; // (2026-09-28) une course tourne : on n'en lance pas une seconde par-dessus (depuis l'écran de mort, gameOver est vrai : ça passe)
   if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return;
-  if(SAVE.d.facile==null&&!SAVE.d.tuto&&!SANDBOX){facChoix().then(function(){carrLancer(bi,i);});return;} // (2026-10-12, passe qualité) comme le 1er JOUER : un joueur neuf qui commence par la CARRIÈRE n'avait jamais le choix FACILE / NORMAL (après le permis, plus rien ne le posait)
+  if(SAVE.d.facile==null&&!SAVE.d.tuto&&!SANDBOX){Promise.resolve().then(function(){carrLancer(bi,i);});return;} // (2026-10-12, passe qualité) comme le 1er JOUER : un joueur neuf qui commence par la CARRIÈRE n'avait jamais le choix FACILE / NORMAL (après le permis, plus rien ne le posait)
   feuilleFerme(document.getElementById('carr'),'on');
   // (2026-09-29, audit de sortie) la reconstruction de la piste et l'atelier se font SOUS le voile : la feuille se figeait en pleine
   // animation puis on coupait sec sur l'atelier
@@ -41224,7 +41185,7 @@ function misFin(){if(MISSIONS_V2)return null; /* (2026-10-16) LES MISSIONS v2 : 
    · deux événements à moins d'une seconde FUSIONNENT : la carte MOTEUR prend le ruban « RECORD BATTU » au lieu de deux annonces ;
    · l'explosion VIDE tout (`hautVide()` en tête d'`explode`). Toujours piloté par événements : rien dans la boucle.
    · (2026-09-30) un VERROU (`ferme`) : pendant son temps de lecture, PERSONNE ne coupe la voix en place, même plus forte (la bannière
-     de niveau à promesse, voir lvlAnnonce — la mort seule passe : hautVide, facileSauve) ; un record qui arrive derrière voit sa patience
+     de niveau à promesse, voir lvlAnnonce — la mort seule passe : hautVide) ; un record qui arrive derrière voit sa patience
      allongée d'autant. */
 const HAUT={fin:0,q:[],t:0,cur:null};
 const HAUT_MIN={slam:450,rec:1000,eng:900,lvl:1400,mis:2000};   // le temps de lecture garanti de chaque famille (ms)
@@ -42376,7 +42337,7 @@ function tutoFin(passe){
     /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : la grande annonce du centre (tenue 1,6 s, les cartes retenues pendant
        la leçon attendent derrière), puis — à la 1re fois — ce qui vient de changer : fini l'entraînement où l'on ne pouvait pas mourir. */
     hautPasse(function(){slamMontre('PERMIS OBTENU !',paye?'+'+fmtC(500):'','#62e062','#ffd75e',40,22);},1900,'slam',3,{min:1600});
-    if(paye)hautPasse(function(){misBanMontre('ASTUCE',TR((typeof facOn==='function'&&facOn())?"Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono."),'','drapeau');},2800,'mis',3);
+    if(paye)hautPasse(function(){misBanMontre('ASTUCE',TR("Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono."),'','drapeau');},2800,'mis',3);
     try{if(SONV2)sfx('ui.debloque');else fanfare();}catch(e){}hap([20,60,20,60,60]);}
   SAVE.flush();
   hautArme(); // les cartes retenues pendant la leçon passent maintenant, l'une après l'autre (le permis d'abord)
@@ -43523,7 +43484,7 @@ const pwrGeo=new THREE.IcosahedronGeometry(1.9,1),pwrCoreGeo=new THREE.Octahedro
    · LE TIRAGE LIT LE JOUEUR (`pwrTire`) : un débutant voit surtout AIMANT et AIR MAX, et le tout premier cristal de ses premières
      parties est un AIMANT ; un vétéran voit plus d'AURA ×2 et de VITESSE.
    · (2026-09-29, Sacha : « supprime le pouvoir bouclier ») LE BOUCLIER EST RETIRÉ — il y avait six pouvoirs, il en reste CINQ. Plus de
-     chute pardonnée par un cristal (le seul filet qui reste est celui, en OPTION, du MODE FACILE : facileSauve), plus de plots qui
+     chute pardonnée par un cristal (plus aucun filet), plus de plots qui
      « DÉMOLI », plus d'huile neutralisée. Ses poids de tirage sont rendus aux autres (pwrPoids) ; le 1er cristal du débutant est un AIMANT. */
 const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = vitesse ×2 · m = aimant · x = aura ×2 (b = bouclier : retiré le 29/09)
   n:{col:0xffb040,core:0xfff2c8,ico:'',px:'flamme',plq:'NITRO MAX',sp:'or',msg:'NITRO INFINIE — 9 s À FOND !',hud:'NITRO ∞',tint:'#ffb040',t:9,gros:'NITRO ILLIMITEE',sous:'9 S A FOND',c2:'#ff7a24',fx:'rgba(255,176,64,.85)',fx2:'rgba(255,122,36,.35)'},
@@ -43926,34 +43887,6 @@ const PWR_MX=['m','x']; // (2026-10-14, passe perf mobile) la liste des deux min
 function pwrTick(dt){
   if(SONV2){const B9=PWR_V2.bt||(PWR_V2.bt={});for(const k of PWR_ORDRE){const t9=pwrT(k);if(t9>0&&t9<1.5){if(!B9[k]&&pwrVu(k)){B9[k]=1;sfx('pwr.bientot');}}else B9[k]=0;}} // (console de son) le tic-tac de fin de pouvoir, une fois
   for(const k of PWR_MX){const t0=pwrT(k);if(t0>0){const t1=Math.max(0,t0-dt);pwrSet(k,t1);if(t1<=0)pwrFinSnd(k);}}
-}
-/* MODE FACILE — LES 3 VIES : le filet qu'avait le BOUCLIER (retiré le 29/09) — mêmes causes : la caisse, pas le règlement. */
-function facileSauve(cause){
-  if(!facFilet()||gameOver||mode==='boom'||!started)return false;
-  if(cause!=='vide'&&cause!=='air'&&cause!=='tour'&&cause!=='sat'&&cause!=='facade'&&cause!=='seine'&&cause!=='sol'&&cause!=='arbre'&&cause!=='sousbois'&&cause!=='lave'&&cause!=='roche'&&cause!=='poudreuse'&&cause!=='glace')return false; // (2026-09-30) + le satellite percuté (niveau hardcore) + les morts de PARIS (façade, Seine, pavé)
-  FAC.coeurs--;RUNX.vies=(RUNX.vies|0)+1;SFA.n=0;MIR.t=0;MIR.max=0;
-  airPie.style.display='none';airFlash=0;
-  
-  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
-  caseHud.style.opacity=0;caseHud.className='';caseHot=false;
-  const p9=carGroup.position.clone();
-  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
-  nitroR=Math.max(nitroR,nitroCap()*.5); // on repart avec de quoi voler
-  if(HAUT.cur&&HAUT.cur.ferme)HAUT.cur.ferme=false; // (2026-09-30) une vie perdue vaut une mort : comme l'explosion, elle passe le VERROU de la bannière de niveau (voir lvlAnnonce)
-  slam(FAC.coeurs>1?(LANG==='en'?FAC.coeurs+' LIVES LEFT':'PLUS QUE '+FAC.coeurs+' VIES'):'DERNIERE VIE !','ON REPART !','#ff5e7a','#ffd75e',44,3,12);
-  shake=Math.max(shake,.5);hap([30,50,70]);
-  try{if(SONV2)sfx('tuto.rate');else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(0,1),.1,.1,.4);}}catch(e){}
-  sparkBurst(sparkGold,p9,20,12);
-  facViesAff(true);
-  return true;
-}
-window.dbgFacile=function(k){if(k==='mort'&&started&&!gameOver&&mode!=='boom')explode('vide');return {on:facOn(),coeurs:FAC.coeurs,airMax:+airMax().toFixed(2),volSens:volSens(),mode:mode,gameOver:gameOver,psi:+psi.toFixed(3),lat:+lat.toFixed(1),demiRoute:+ROAD_HALF.toFixed(1)};}; // banc : l'état du mode FACILE ; dbgFacile('mort') provoque une chute
-function facDepart(){FAC.coeurs=3;document.body.classList.toggle('facile',facOn());facViesAff(false);}
-function facViesAff(perdu){ // les cœurs du HUD (en haut à droite) : pleins, vides, et celui qu'on vient de perdre qui éclate
-  const e=document.getElementById('facVies');if(!e)return;
-  if(e.childElementCount!==3)e.innerHTML=pxi('coeur')+pxi('coeur')+pxi('coeur');
-  const k=e.children;for(let i=0;i<3;i++)k[i].classList.toggle('vide',i>=FAC.coeurs);
-  if(perdu&&k[FAC.coeurs]){const c=k[FAC.coeurs];c.classList.remove('perd');void c.offsetWidth;c.classList.add('perd');}
 }
 /* ===== LES PETITS TRUCS GRISANTS (2026-09-28, Sacha : « pousse un max de petites modifs en game designer senior pour augmenter le
    fun, l'adrénaline et surtout l'accessibilité ») — trois moments qui n'existaient pas, chacun branché sur ce qui est déjà là :
@@ -45204,7 +45137,7 @@ const BOOM_VARS=[
 let BOOMV=BOOM_VARS[0];
 /* ---- LES MORTS PAR NIVEAU (2026-09-30) — une MESURE, jamais un affichage ------------------------------------------------------
    Aucun chiffre ne disait OÙ l'on meurt : le cycle a six niveaux et leur difficulté se réglait au ressenti. Chaque mort RÉELLE (l'explosion
-   qui mène à l'écran de fin : ni les vies du mode FACILE, ni l'auto-école, ni le bac à sable, ni le parc) compte dans
+   qui mène à l'écran de fin : ni l'auto-école, ni le bac à sable, ni le parc) compte dans
    `SAVE.d.ex.morts[niveau][cause]`, et le temps de course dans `SAVE.d.ex.temps[niveau]` (secondes RÉELLES : pause, explosion et ralenti
    de frénésie n'y changent rien). Clé : l'id + sa variante (`ville-nuit`, `espace-hard`), `ecole` (la piste de la leçon, roulée après le
    permis), `c-<id>-<n>` en carrière (ses niveaux ne se mêlent pas au cycle). Le temps s'accumule en MÉMOIRE et se verse au changement de
@@ -45216,7 +45149,7 @@ function mortsVerse(){if(MORTS.k&&MORTS.t>0){const T=mortsEx().temps;T[MORTS.k]=
 function mortsSuit(){if(LVL.cur!==MORTS.c){mortsVerse();MORTS.c=LVL.cur;MORTS.k=mortsCle(LVL.cur);}} // la clé se calcule UNE fois par niveau (zéro chaîne par image)
 function mortsHors(){return PARK.on||SANDBOX||TUTO.on;} // parc, bac à sable, leçon : on n'y meurt pas pour de vrai
 function mortsTick(dt){if(!started||mode==='boom'||mortsHors())return;mortsSuit();if(MORTS.k){MORTS.t+=dt;if(MORTS.t>20)mortsVerse();}} // chaque image de course (porte de sim de loop : pause exclue)
-function mortsCompte(cause){ // une mort RÉELLE (explode, passé le filet du mode FACILE)
+function mortsCompte(cause){ // une mort RÉELLE (explode)
   if(mortsHors())return;mortsSuit();const k=MORTS.k;if(!k)return;
   const M=mortsEx().morts,c=/^[a-z]{1,12}$/.test(cause)?cause:'autre',o=M[k]||(M[k]={});
   o[c]=Math.min(1e6,(o[c]|0)+1);mortsVerse();SAVE.mark();}
@@ -45237,7 +45170,6 @@ function explode(cause){dmtCoupe();
   try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
   if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
-  if(facileSauve(cause))return; // (MODE FACILE) une vie de moins au lieu de la partie (le BOUCLIER, qui pardonnait une chute, est retiré le 29/09)
   RALENTI.t=0; // (passe qualité) le ralenti de la frénésie s'arrête net à l'explosion : sinon le plan de la mort passait à ×0,3 et l'écran de fin arrivait 2× plus tard
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
@@ -45248,8 +45180,8 @@ function explode(cause){dmtCoupe();
   /* (2026-09-30) LA MUSIQUE MEURT AVEC LA CAISSE : le tape-stop partait d'endGame, 1,8 s APRÈS l'explosion — toute la boule de feu se
      jouait sur la bande à plein (sur iPhone `el.volume` est verrouillé et `duckT` ne creuse que le WebAudio) : le son de mort, la voix
      et le son de cause passaient DESSOUS. Il part ici, sur l'image du crash ; endGame le laisse finir (musicStop) et la musique du menu
-     revient comme avant. Pas au BAC À SABLE ni à l'AUTO-ÉCOLE (endGame replace la caisse, la course continue), ni pour une vie du mode
-     FACILE (facileSauve est sorti plus haut). Après flowReset : une frénésie qui s'éteint ne relance pas la radio par-dessus. */
+     revient comme avant. Pas au BAC À SABLE ni à l'AUTO-ÉCOLE (endGame replace la caisse, la course continue).
+     Après flowReset : une frénésie qui s'éteint ne relance pas la radio par-dessus. */
   if(!SANDBOX&&!TUTO.on)musicStop(true);
   // la chaîne part en fumée avec la caisse — le sel du bank-or-bust
   // (garde mode==='fall' : une explosion au sol après avoir encaissé ne perd rien)
@@ -49291,21 +49223,9 @@ const GRAV=9.8*.55,FALL_G=33*GRAV_K,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
    même impulsion → 13,5 m de haut contre 6,7. Jamais au parc (ses sauts sont réglés à part). */
 const ORB_G=.5,ORB_AIR=5/6; /* (2026-10-14 soir, Sacha : « dans l'espace 5 secondes de air time ») la jauge de l'espace passe de 10,2 s à 5 s (6 × 5/6) : moins que sur Terre, alors que les sauts y montent deux fois plus haut — voulu */
 function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
-/* LE MODE FACILE (2026-09-29, Sacha : « simplifier l'expérience mobile pour un public jeune » — il a choisi lui-même l'EXCEPTION à
-   « zéro assistance », mais EN OPTION : proposée au 1er JOUER, interrupteur dans les RÉGLAGES). Tout passe par facOn() : mode normal
-   = rien ne change, au bit près. Quatre aides, chacune sur UNE ligne du moteur :
-   · VIRAGES — la caisse suit 80 % de chaque virage de la route (FAC_VIRAGE, l'ancien ASSIST_VIRAGE de la conduite v2) et, pouce lâché,
-     son cap revient doucement dans l'axe (FAC_CAP) : lâcher = continuer sur la route, pas en sortir ;
-   · VOL — le chrono passe de 6 à 10 s (airMax) ;
-   · 3 VIES — une chute, un vol trop long, une tour : la caisse repart de sa ligne sûre (facileSauve — le filet du BOUCLIER, pouvoir retiré le 29/09) ;
-   · POSE — 5 m de bitume en plus de chaque côté pour se poser (la caisse est ramenée dans la largeur), angle de pose ratée +30°. */
-const FAC={coeurs:3},FAC_AIR=10/6,FAC_BORD=5,FAC_VIRAGE=.8,FAC_CAP=1.6;
-function facOn(){return !SANS_FACILE&&!!(SAVE.d&&SAVE.d.facile)&&!PARK.on;} // (2026-10-14, Sacha) SANS_FACILE : toujours non — toutes les aides suivent
-function facBord(){return facOn()?FAC_BORD:0;}
-function facFilet(){return facOn()&&FAC.coeurs>1&&!TUTO.on;} // il reste une vie à perdre : la chute perdue d'avance est rattrapée tout de suite
 function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
 function volhBascule(){SAVE.d.volH=volSens()<0?'plonge':'monte';SAVE.flush();} // (2026-09-30, R7-5) LE seul écrivain de « POUCE HAUT EN VOL » : les RÉGLAGES et la PAUSE passent par lui // (2026-09-29) « pouce en HAUT = monte » : l'assiette au pouce s'inverse (le clavier ne change pas)
-function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1)*(facOn()?FAC_AIR:1);}
+function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1);}
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
 // (viseur d'atterrissage + seuils de figures inchangés), mais on passe moins de temps à flotter.
 let fallVH0=-1; // (vol v6) vitesse HORIZONTALE au décollage : au-delà, la traînée de la route s'applique en vol
@@ -53295,7 +53215,7 @@ function tryLand(dt){
   // dalle (interpolé entre l'image d'avant et celle-ci) ; s'il est au-dessus du vide, on tombe. Aucun recentrage.
   if(!sideL)return false;
   const hS9=sideL>0?0:-THICK,dh9=prevH-hOff,f9=Math.abs(dh9)>1e-4?THREE.MathUtils.clamp((prevH-hS9)/dh9,0,1):1,latX9=levre9?levre9*(ROAD_HALF-.05):prevL+(latOff-prevL)*f9; /* (la LÈVRE : posée au bord, roues intérieures sur le bitume) */
-  if(Math.abs(latX9)>=ROAD_HALF+facBord())return false; // (MODE FACILE) 5 m de plus de chaque côté : la caisse est ramenée dans la largeur juste dessous
+  if(Math.abs(latX9)>=ROAD_HALF)return false;
   s=THREE.MathUtils.clamp(bestI/(NP-1)*L+THREE.MathUtils.clamp(dTmp.dot(T[bestI]),-2,2),0,L-1);
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
@@ -53312,7 +53232,7 @@ function tryLand(dt){
      la route. 0° = axé, 90° = en crabe, 180° = à contresens. Au-delà de FLOW2.pose.angle : pose RATÉE — pas de PARFAIT possible, et le
      flow (frénésie comprise) tombe à zéro une fois la pose jugée. Une chute presque verticale (< vMin à plat) n'a pas de cap : jamais ratée. */
   const vT8=fallVel.dot(T[bestI]),vL8=fallVel.dot(B[bestI]),poseAng=Math.hypot(vT8,vL8)>FLOW2.pose.vMin?Math.atan2(Math.abs(vL8),vT8)*57.3:0;
-  const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle+(facOn()?30:0))||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */ FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose — (2026-10-14, revue des idées de Léo) il était collé au commentaire d'avant, donc avalé : jamais écrit
+  const poseRatee=(!PARK.on&&poseAng>FLOW2.pose.angle)||VEQ.rate; /* (2026-10-14) posée en plein SALTO / TOUPIE : ratée */ FLOW.poseA=Math.round(poseAng); // (banc) le dernier angle de pose — (2026-10-14, revue des idées de Léo) il était collé au commentaire d'avant, donc avalé : jamais écrit
   if(DMT.on&&!PARK.on&&poseAng>90)dmtArme(bestI,sideL); // (LE DEMI-TOUR) posée à contresens : la caisse glisse, pivote d'un coup de frein à main et repart — au lieu de filer vers le bord (voir DMT)
   const figN9=FX2.nitL|0;{const nf9=nitroR,g9=figNitRend(!poseRatee);if(SONV2&&g9>.01&&nf9<=nPose9+.01)sfx('nitro.plein',{t:.2});} /* (POSER UNE FIGURE RAPPORTE) le compte = les figures LANCÉES du vol ; le « plein » sonne aussi quand tout part dans la réserve bleue */ // (2026-10-17, LA FIGURE SE PAIE — loi 6) chaque figure plantée rend 30 % à la pose RÉUSSIE ; de travers, à contresens ou en plein tour : perdu — le « plein » sonne une fois, avec celui de la pose
   const bigness=Math.max(0,fallT*gK()-.8); // ×gK : en orbite un même saut dure 2× plus — il ne doit pas coûter 2× plus de vitesse à la pose
@@ -53859,7 +53779,7 @@ function resetGame(){
   try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
-  mortCause='';loop._nAir=false;facDepart(); // (MODE FACILE) trois vies neuves à chaque partie // (2026-09-26) rien ne passe d'une partie à l'autre
+  mortCause='';loop._nAir=false; // (2026-09-26) rien ne passe d'une partie à l'autre
   nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; // (2026-10-14, chasse aux bugs) la NITRO ne passe pas d'une partie à l'autre : la porte de simulation de `loop` se ferme à `gameOver`/`paused`, donc mourir (ou ⏸) en tenant NITRO laissait nitroOn / loop._nOn / nitroHeldT à leur valeur — à la 1re image de la partie neuve le bloc nitro croyait la nitro VIENT de s'éteindre : PSSHT de relâche, langues de feu + pétarade aux pots, nez qui pique + vibration ; et, doigt posé dès le départ, le coup d'allumage était perdu (loop._nOn déjà vrai)
   TUTO.quitte=0;                 // (2026-09-28) la leçon quittée ne concerne que l'écran de fin qui la suit (une carrière relancée ne repasse pas par tutoDebut)
   if(TUTO.on)tutoDebut();        // (2026-09-26) RECOMMENCER à l'auto-école repart de la 1re consigne
@@ -54044,7 +53964,6 @@ function start(){
   loop._rebuildT=performance.now();loop._rebuildD=5000; // (tour 2) le départ hache (1ers shaders Metal, 1res textures) : pas une lenteur — 5 s de grâce
   runxReset(); // les compteurs de CONTRAT partent de zéro dès la 1re partie de la session
   AIP.resetRun(); // (2026-09-30) …et ceux du Drivatar : seul resetGame() les remettait à zéro
-  facDepart(); // (MODE FACILE) la 1re partie de la session passe par start(), pas par resetGame()
   // la caisse ÉQUIPÉE dès la première partie de la session (le rejeu le faisait déjà)
   {const e9=equippedCar();if(level!==e9){level=e9;buildCar(CARS[e9]);}levelCash=0;}
   // ⚠ BUG CORRIGÉ (2026-09-05) : « ça recommence trop haut » (retour du user). `respawn()` remet
@@ -62238,8 +62157,7 @@ $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarg
   ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}); // (2026-09-30) le garage EST le menu : la maison y ramène
 /* LE JOUER DE L'ATELIER (2026-09-29, Léo : « replace mieux le bouton play ») : sous le pouce droit, là où REJOUER attend sur l'écran de
    mort. Il lance LE LÂCHER — la caisse roule dans le rideau de flammes, la course part sur le boost de départ. Ce qui sort par la porte
-   est une caisse À TOI : un essai (caisse fermée, habillage pas encore acheté) rend la main à la tienne avant le départ. Le 1er JOUER
-   demande le mode (facChoix), comme celui de l'accueil. */
+   est une caisse À TOI : un essai (caisse fermée, habillage pas encore acheté) rend la main à la tienne avant le départ. */
 function garJouer(e){
   if(e)e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on||pendingScore!=null||performance.now()<(garJouer._t||0))return;
@@ -62262,7 +62180,7 @@ function garJouer(e){
     if(sfPlayOk()&&!carrPlayOk()){classiqueJouer();return;} // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
     if(carrPlayOk()){carrJouer();return;} // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière, par son départ (le voile, la piste du niveau, sa musique)
     CARR.actif=null;tutoArme();garageLaunch();};
-  if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(part);else if(att9)setTimeout(part,att9);else part();
+  if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(part);else if(att9)setTimeout(part,att9);else part();
 }
 $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
@@ -64951,7 +64869,7 @@ function loop(now){
         // rails — le vrillage du ruban y fabrique un « virage » qui n'en est pas un (mesuré : 8 % des loopings infaisables pouce à fond,
         // 1 % hors de ces parties). Sur la route (dalle < 60°), l'aide reste à ZÉRO.
         const nyR9=side<0?-F.n.y:F.n.y,rails9=TORD.on?0:THREE.MathUtils.clamp((.5-nyR9)/.3,0,1); /* (2026-10-15) sur la route SANS HAUT NI BAS la dalle couchée n'est pas un looping : ses virages sont de vrais virages (pisteTord), le pouce les prend */
-        psi=THREE.MathUtils.clamp(psi-dyaw*(1-Math.max(ASSIST_VIRAGE,rails9,facOn()?FAC_VIRAGE:0)),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
+        psi=THREE.MathUtils.clamp(psi-dyaw*(1-Math.max(ASSIST_VIRAGE,rails9,0)),-1.4,1.4);routeLacet=dt>0?dyaw/dt:0; // (le pilote de mesure s'en sert pour anticiper)
       }
       prevTv.copy(F.t);prevTvalid=true;
       // MOMENTUM : tenir la ligne droite fait monter la puissance en exponentiel
@@ -65014,7 +64932,6 @@ function loop(now){
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
        if(PARIS.psiK>0){PARIS.psiK=Math.max(0,PARIS.psiK-dt/.06);psi+=(PARIS.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir parisMur)
        if(BKV.sur)BKV.gl=THREE.MathUtils.clamp(BKV.gl+yawR*dt,-BK_VG.glMax,BK_VG.glMax); // (2026-10-15 soir) SUR LE VERGLAS le pouce tourne le NEZ, la trajectoire ne suit qu'en BK_VG.tau s (voir banqVerglas) : la caisse GLISSE
-       if(facOn()&&!drifte&&Math.abs(steer)<.1)psi*=Math.exp(-dt*FAC_CAP*spdMult); // (MODE FACILE) pouce lâché : le cap revient dans l'axe de la route — (HAUTE VITESSE) en autant de MÈTRES qu'à ×1
        const aB9=Math.abs(yawR/spdMult*vA)*SPD; // (HAUTE VITESSE) la charge latérale de BASE : celle qu'aurait le même virage à ×1
        glisse9=THREE.MathUtils.clamp(Math.abs(slipB)*2.6+driftT*.5+Math.max(0,aB9-22)/70,0,1)*Math.min(1,Math.abs(vA)/35); // (2026-09-26) la gomme fume et crisse dès que la caisse chasse (power-slide)
        // (aura v2) LE VIRAGE SERRÉ : tenir une grosse charge latérale 0,9 s sur la route — prendre un virage À FOND, ça se paie
@@ -65674,8 +65591,8 @@ function loop(now){
         if(bi>=0){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
-          if(Math.abs(l2)<ROAD_HALF+facBord()&&h2>-THICK-1&&h2<3){
-            landMark.position.copy(pts[bi]).addScaledVector(B[bi],facOn()?THREE.MathUtils.clamp(l2,1-ROAD_HALF,ROAD_HALF-1):l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
+          if(Math.abs(l2)<ROAD_HALF&&h2>-THICK-1&&h2<3){
+            landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],h2>-1.3?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
             LM.vu=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
@@ -65711,7 +65628,7 @@ function loop(now){
       else if(CITY.solY!=null&&LVL.cur&&LVL.cur.vitre&&fallPos.y<CITY.solY+1.4){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(vitreSolDans,'sol',.6);explode('sol');}} // (2026-10-18) LA VILLE VITRÉE AU SOL : le sol est dur
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
-      else if((fallTR>airMax()&&pwrAirT<=0&&!BALADE)||jadeVide(fallPos.y)||(facFilet()&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // (MODE FACILE) avec une vie en réserve, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((fallTR>airMax()&&pwrAirT<=0&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       if(!impCoupTick(dt)){ // (2026-10-15, L'IMPACT) pendant le COUP (0,11 s), la caisse s'écrase contre la paroi : la détonation attend
       boomT+=dt;
@@ -67571,7 +67488,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const i9=$t('mvSnd');const x9=i9&&i9.parentNode.querySelector('.pxi');if(x9)x9.className='pxi pxi-'+(SND.sfx?'son':'muet');} // (2026-09-28) le même haut-parleur que la pause : barré quand le son est coupé
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
-      sv('mvFacile',SAVE.d.facile?'ON':'OFF',!!SAVE.d.facile);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
@@ -67589,7 +67505,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='back'||a==='menu')return 'retour';
     if(a==='mus')return SND.music?'off':'on';
     if(a==='vib')return SND.vib?'off':'on';
-    if(a==='facile')return SAVE.d.facile?'off':'on';
     if(a==='volh'||a==='figg')return 'onglet';
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
@@ -67613,13 +67528,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
-      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
+      if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()&&!carrPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
-      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
+      if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&carrPlayOk()){ const go9=function(){goImmersive();carrJouer();}; // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière (la dernière jouée, ou choisie), par le départ de la carrière — sa musique comprise
-      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); } // le 1er JOUER demande toujours le mode
+      if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, ?menu=leo (carrPlayOk)
-      if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
+      if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){Promise.resolve().then(function(){goImmersive();playViaGarage(true);});}
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
@@ -67655,7 +67570,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
-    else if(a==='facile'&&!SANS_FACILE){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
     else if(a==='volh'){ volhBascule(); mFill(); }
     else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
