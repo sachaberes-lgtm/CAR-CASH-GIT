@@ -18,6 +18,35 @@
 - **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
   des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
 
+## LES JAPONAISES — 1 · LA MX-5 NA, « LE SOURIRE » (nom provisoire), PHARES ESCAMOTABLES QUI SE LÈVENT (2026-10-18, discussion JAPONAISES, Léo : « première génération, décapotable, phares escamotables qui se lèvent »)
+- **Le plan** : pas de dimensions.com pour la NA (ni pour l'AE86 : seulement la ND et la Corolla E210) → plans RASTER de the-blueprints.com
+  (« Mazda MX-5 Miata 1995 », quatre vues couleur 1280 px, et le plan au trait de l'Eunos Roadster), calés à 172 px/m (3,95 m ; sol, roues et
+  hauteur recoupés : 1,235 m capote levée = 1,156 m au pare-brise) ; silhouettes relevées AU PIXEL dans Chrome (`pix.py`). Banc et outils :
+  `~/Downloads/CAR-bancs/japonaises/` (vue sous le plan `regard.py` + `vue/`, studio du jeu `studio.py`, course `jeu.py`, garage `garage.py`, planche).
+- **LES OUTILS DES JAPONAISES** (bloc au repère `SHAPES.mx5na`, partagés par les 4 caisses) : `japDecoupe` = `peintPlan` de LA PERLE rendu
+  GÉNÉRIQUE (zones par vue avec code, porte `gate`, `creux`, `copie` ; joints = interstices, plis = arêtes ; vue forcée par `vue()` ; découpe gardée
+  sur la fonction du gabarit, `_tole`), `japZones`/`japLignes`/`japDemi` (une zone posée sur l'axe : bord droit, sinon le miroir la coupe en deux
+  lobes), `japLisse`, `japFusion`, `japColP` (la couleur de la tôle suit la peinture de la boutique).
+- **La caisse** (`SHAPES.mx5na`, index 83, COMMUNE) : loft à 14 points par tranche (coupe vue de face mise à l'échelle de chaque tranche : flanc
+  droit, PLI à 0,42 m = le haut des boucliers qui court le long des portières, ventre à 0,60, épaule qui roule sur 8 cm), HABITACLE OUVERT
+  (portières, planche de bord, baquets noirs, console, volant, casquette du combiné), couvre-capote noir jusqu'à la malle, pare-brise au cadre
+  rouge continu, rétros en goutte ; découpés au plan : bouche ovale creusée, veilleuses ovales du nez, répétiteurs, feux arrière (recul rond,
+  rouge, orange), 3e feu stop, poignées, joints de capot/malle/portières/boucliers ; jante « marguerite » (8 pétales) ; un pot à droite.
+  17 500 facettes, construction 25-80 ms (découpe comprise, sous les 50 ms en moyenne : pas de préchauffe), 0 programme compilé en course.
+- **LES PHARES ESCAMOTABLES** (`MX5PH`, `dbgPhares(1|0|null, mode)`) : le CAPOT de chaque boîtier = les morceaux mêmes de la tôle découpés dans
+  son logement (`copie:'lid'`) — fermé, il affleure au millimètre (échantillonné sur la courbe, il faisait des carrés plus sombres) ; le logement
+  est creusé de 8,5 cm. Le boîtier pivote de 60° autour d'un axe CALCULÉ (la rotation qui envoie le bas de la face, fermé, au ras du capot,
+  levé) : le phare sort du capot comme sur la vraie (charnière au bord du capot : il se dressait de 26 cm comme une oreille). ⚠ Le disque du
+  phare se pose dans le repère de LA FACE (son bord haut suit la pente du capot) : « à niveau », la moitié passait derrière la face.
+  ⚠ Pas d'ombre cuite (`lpOmbre`) sur une pièce dont les sommets sont dans un repère local (pivot) : elle la noircissait comme un bas de caisse.
+  Quand : mode 'course' par défaut (levés en course, baissés au garage/menu, CLIN D'ŒIL d'un seul phare à l'arrivée au garage) ; 'nitro',
+  'toujours' — CHOIX DE LÉO sur la planche.
+- **Banc** : `dbgEssaiCaisse` évalue le gabarit hors de la portée du jeu (ni `lpMat`, ni `lpOmbre`, ni `peintPal`) → `studio.py` les EXPOSE sur
+  `window` par une pause du débogueur dans `blingTick` avant l'essai. Les 2 programmes compilés au départ sur la carte du CANYON viennent de la
+  carte (mêmes empreintes avec LA PERLE), pas des caisses.
+- Planche : `photos-gameplay/mx5na-vraie-et-nous.png` (la vraie, Wikimedia ; la nôtre au studio, mêmes angles ; phares baissés/levés/en course ;
+  3 noms : LE SOURIRE · LE CLIN D'ŒIL · LA CERISE).
+
 ## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v628, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
 - **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
   puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un
