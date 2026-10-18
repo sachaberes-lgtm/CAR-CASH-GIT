@@ -92,8 +92,9 @@ if(SANS_FACILE)document.documentElement.classList.add('sansFacile');
    (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place dans le jeu — enlève
    tout ce qui est volumineux et inutile : dragon, animaux ») → ARRACHÉS : les dauphins (créatures, figure LE DAUPHIN, étiquette #dolHud,
    aura de la nage au ras), le serpent néon, le dragon de feu de NITROOO (DRG / DFEU), les singes de la course (3 sauts en 5 s). Plus de
-   `?dauphin=1` ni de `?dragon=1`. Le modèle du dauphin, la recette VITRAIL et le singe vivent dans `creatures/*.js` (non chargés par le
-   jeu : les boîtes et ce qui reviendra par map — les singes du SOLEIL DE JADE). Tout le reste : l'historique git (85470fb4 et avant). */
+   `?dauphin=1` ni de `?dragon=1`. Le modèle du dauphin, la recette VITRAIL et le singe vivent dans `creatures/*.js`, CHARGÉS par le
+   jeu (<script> plus bas, et le Worker creatures/atelier.js) pour ce qui est revenu par map — les singes et les dauphins du SOLEIL DE JADE (JSG, JDM) — et lus par
+   les boîtes de Léo. Tout le reste : l'historique git (85470fb4 et avant). */
 const SANS_SNAKE=!/[?&]snake=1\b/.test(location.search);
 const SANS_NITROOO=!/[?&]nitrooo=1\b/.test(location.search);
 /* PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : toute la mécanique météore, jeu web ET ROBLOX) :
@@ -26681,8 +26682,7 @@ const CARS=[
   desc:'Rose bonbon, ailerons de requin et une banquette pour trois avocats.'},
  {name:'LE CAÏD',         shape:'caid',    color:0x86f51c,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:1.95,w:1.98,l:4.84,spoiler:0,
   desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
- {retire:1,name:'SA MAJESTÉ',      shape:'majeste', color:0x2356e8,accent:0xf1e9d8,maxKmh:320,accel:36,turn:2.85,h:1.63,w:2.02,l:5.76,spoiler:0,
-  desc:'Tu ne conduis pas. On te conduit. Même quand c\'est toi qui conduis.'},
+ {retire:1,name:'SA MAJESTÉ'},
  {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,
   desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.'},
  {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
@@ -26704,17 +26704,14 @@ const CARS=[
   // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
- {retire:1,name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
+ {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
   fx:{jet:0x86f2ff,core:0xffffff,trail:[.42,1.30,1.45],light:0x62d8ff,spray:1},
   desc:'Bulle de verre, museau de grand blanc, quatre bras d\'hélices repliés dans les flancs. Au sol il roule. En l\'air, il chasse.'},
  {retire:1,name:'COMÈTE',          shape:'proto',   color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.08,l:5.05,spoiler:1,glow:0xffffff,rocket:1,
   desc:'Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l\'a jamais vue de face.'},
- {retire:1,name:'FORMULE OR',      shape:'formula', color:0xffdf40,accent:0x22242a,maxKmh:494,accel:57,turn:3.15,h:.40,w:2.10,l:4.8,spoiler:0,glow:0xfff0a0,
-  desc:'Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.'},
- {retire:1,name:'LE MANS 24',      shape:'lemans',  color:0xe8ecf2,accent:0xff5a1a,maxKmh:543,accel:62,turn:3.2, h:.46,w:2.18,l:5.35,spoiler:0,
-  desc:'Prototype d\'endurance : quatre phares longue portée, dérive dorsale, aileron de porte-avions. Faite pour rouler une nuit entière.'},
- {retire:1,name:'EL PATRON',       shape:'hyper',   color:0xffc400,accent:0x1a1a1a,maxKmh:449,accel:52,turn:3.1, h:.58,w:2.26,l:4.55,spoiler:1,
-  desc:'Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L\'assurance a été résiliée d\'office.'},
+ {retire:1,name:'FORMULE OR'},
+ {retire:1,name:'LE MANS 24'},
+ {retire:1,name:'EL PATRON'},
  {rar:'epique',name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
   fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
   desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
@@ -26723,65 +26720,48 @@ const CARS=[
     la pizza, le monospace, le break suédois, la boule, le glacier, le tout-terrain soviétique : `retire:1`. Elles ne sont plus NULLE
     PART pour le joueur (garage, compteurs des familles, objectif, pastille « à ta portée », équipement — voir carRetiree). ⚠ Leur
     LIGNE reste : la sauvegarde désigne les caisses par leur INDEX (`equipped`, `owned`) — ôter six lignes ici décalerait toutes les
-    suivantes et donnerait à chacun la caisse d'un autre. Qui en avait acheté une est remboursé au chargement (voir `san`). */
- {retire:1,name:'LA POSTIÈRE',color:0xffd21a,accent:0x1f3b9c,maxKmh:190,accel:21,turn:2.5,h:1.85,w:1.8,l:4,spoiler:0,shape:'a_postiere',rar:'commun',
-  desc:'Elle livre les recommandés à 190 km/h. Le facteur ne sonne plus jamais deux fois.'},
- {retire:1,name:'LA DEUCHE',color:0x7a1426,accent:0x121212,maxKmh:185,accel:20,turn:2.6,h:1.6,w:1.48,l:3.83,spoiler:0,shape:'a_deuche',rar:'commun',
-  desc:'Deux chevaux sous le capot, un moteur de jet dans le coffre. Le toit s\'ouvre, les rivaux se referment.'},
- {retire:1,name:'LE TAXI JAUNE',color:0xffc61a,accent:0x141414,maxKmh:215,accel:24,turn:2.45,h:1.5,w:2,l:5.4,spoiler:0,shape:'a_taxi',rar:'commun',
-  desc:'Le compteur tourne en millions. Tu montes, tu t\'accroches, tu ne négocies pas le prix.'},
+    suivantes et donnerait à chacun la caisse d'un autre. Qui en avait acheté une est remboursé au chargement (voir `san`).
+    (2026-10-18) Toutes les caisses retirées sont RÉDUITES à `{retire:1,name:'…'}` : plus de cotes, de couleurs ni de punchline — aucune boucle
+    ne lit la fiche d'une retirée (carRetiree d'abord). Le NOM reste : la mission qui la donne et le message de remboursement l'écrivent. */
+ {retire:1,name:'LA POSTIÈRE'},
+ {retire:1,name:'LA DEUCHE'},
+ {retire:1,name:'LE TAXI JAUNE'},
  {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
   desc:'30 minutes chrono ou la pizza est offerte. Spoiler : elle n\'a jamais été offerte.'},
- {name:'LE MONOSPACE',color:0x5a7aa0,accent:0x6a6f78,maxKmh:200,accel:22,turn:2.5,h:1.66,w:1.78,l:4.25,spoiler:0,shape:'b_monospace',rar:'commun',retire:1,
-  desc:'Sept places, zéro limite. Les enfants hurlent, mais c\'est de joie : on vient de doubler une Ferrari.'},
- {name:'LE BREAK SUÉDOIS',color:0x1f4a36,accent:0xe9ecf0,maxKmh:210,accel:23,turn:2.4,h:1.46,w:1.72,l:4.8,spoiler:0,shape:'b_breaksuedois',rar:'commun',retire:1,
-  desc:'Carré, lourd, increvable. Il a vu passer trois divorces et deux krachs boursiers, il démarre toujours.'},
- {name:'LA BOULE',color:0x5fd6a4,accent:0x7d838b,maxKmh:190,accel:21,turn:2.9,h:1.42,w:1.63,l:3.43,spoiler:0,shape:'c_boule',rar:'commun',retire:1,
-  desc:'Elle sourit à tout le monde. Même au radar. Surtout au radar.'},
- {name:'LE GLACIER',color:0xffb6d0,accent:0xfaf7f0,maxKmh:180,accel:20,turn:2.4,h:2.5,w:2,l:5,spoiler:0,shape:'c_glacier',rar:'commun',retire:1,
-  desc:'La musique qui fait courir les gamins. Là, c’est toi qui cours derrière. À 180.'},
- {name:'LE TOUT-TERRAIN SOVIÉTIQUE',color:0xc9b58a,accent:0x141414,maxKmh:200,accel:22,turn:2.6,h:1.64,w:1.68,l:3.74,spoiler:0,shape:'c_niva',rar:'commun',retire:1,
-  desc:'Quarante ans sans une retouche de dessin. Pourquoi changer ce qui gagne ?'},
- {retire:1,name:'LE GRILLE-PAIN',color:0xff8a1e,accent:0xb8bec6,maxKmh:190,accel:21,turn:3.1,h:1.55,w:1.56,l:2.7,spoiler:0,shape:'d_grillepain',rar:'commun',
-  desc:'Deux places, zéro coffre, et il se gare en travers. Le parking, c\'est lui qui le mange.'},
+ {retire:1,name:'LE MONOSPACE'},
+ {retire:1,name:'LE BREAK SUÉDOIS'},
+ {retire:1,name:'LA BOULE'},
+ {retire:1,name:'LE GLACIER'},
+ {retire:1,name:'LE TOUT-TERRAIN SOVIÉTIQUE'},
+ {retire:1,name:'LE GRILLE-PAIN'},
  {name:'LE CORBILLARD',color:0x0d0d10,accent:0xe9ecf0,maxKmh:200,accel:22,turn:2.4,h:1.55,w:2,l:6,spoiler:0,shape:'d_corbillard',rar:'rare',
   desc:'Six mètres de classe funèbre. Ceux qu\'il double finissent à l\'arrière, c\'est la tradition.'},
- {retire:1,name:'LA SANS-PERMIS',color:0xf2f2f2,accent:0x2a6ad8,maxKmh:180,accel:20,turn:3.2,h:1.5,w:1.5,l:2.8,spoiler:0,shape:'d_sanspermis',rar:'commun',
-  desc:'Pas de permis, pas de limite. Enfin si, 45 km/h, mais elle ne l\'a jamais su.'},
- {retire:1,name:'L\'AUTO-ÉCOLE',color:0xd4232a,accent:0xf4f4f0,maxKmh:190,accel:21,turn:2.9,h:1.37,w:1.57,l:3.7,spoiler:0,shape:'e_autoecole',rar:'commun',
-  desc:'Double pédale, zéro patience : le moniteur freine, toi tu passes le permis à 190.'},
- {retire:1,name:'LE PICK-UP DU FERMIER',color:0xb0403a,accent:0xf4f1ea,maxKmh:180,accel:20,turn:2.5,h:1.6,w:1.65,l:4.5,spoiler:0,shape:'e_fermier',rar:'commun',
-  desc:'Un million de kilomètres au compteur, une botte de foin dans la benne. Increvable, lui aussi.'},
- {retire:1,name:'L\'AMBASSADEUR',color:0x101218,accent:0xe9ecf0,maxKmh:270,accel:30,turn:2.55,h:1.44,w:1.82,l:5,spoiler:0,shape:'a_ambassadeur',rar:'rare',
-  desc:'Immunité diplomatique sur la bande d\'arrêt d\'urgence. Les radars lui envoient des excuses.'},
+ {retire:1,name:'LA SANS-PERMIS'},
+ {retire:1,name:'L\'AUTO-ÉCOLE'},
+ {retire:1,name:'LE PICK-UP DU FERMIER'},
+ {retire:1,name:'L\'AMBASSADEUR'},
  {name:'LE CHARGEUR',color:0x050608,accent:0x121316,maxKmh:290,accel:32,turn:2.6,h:1.48,w:1.9,l:5.1,spoiler:0,shape:'a_chargeur',rar:'rare',
   desc:'Quatre portes, parce qu\'il faut bien emmener quelqu\'un pour voir la tête des autres.'},
  {name:'LE DÉFIEUR',color:0xffd000,accent:0x121212,maxKmh:310,accel:34,turn:2.5,h:1.45,w:1.92,l:5.02,spoiler:0,shape:'a_defieur',rar:'rare', // (2026-10-17, Sacha : « la voiture de Transformers, la bonne couleur de base ») orange 0xff7a14 → JAUNE RALLYE, voir SHAPES.a_defieur
   desc:'Né en 1970, jamais sorti de la puberté. Il te défie au feu rouge, puis au suivant, puis au suivant.'},
  {name:'LA BAVAROISE',color:0xf2f2f0,accent:0x3a2a8c,maxKmh:280,accel:31,turn:2.9,h:1.37,w:1.68,l:4.35,spoiler:0,shape:'b_bavaroise',rar:'rare',
   desc:'Homologuée pour la route, élevée sur circuit. Elle perd patience avant toi.'},
- {retire:1,name:'LA SUÉDOISE TURBO',color:0x16181c,accent:0x7a7f88,maxKmh:270,accel:30,turn:2.7,h:1.42,w:1.69,l:4.7,spoiler:0,shape:'b_suedoiseturbo',rar:'rare',
-  desc:'Conçue par des gens qui font des avions. Ça se voit au pare-brise, ça se sent quand le turbo arrive.'},
- {retire:1,name:'LE QUATTRO',color:0xefeee8,accent:0x141518,maxKmh:290,accel:32,turn:2.8,h:1.34,w:1.72,l:4.4,spoiler:0,shape:'b_quattro',rar:'rare',
-  desc:'Quatre roues motrices, cinq cylindres, zéro pitié pour la neige. Il a inventé le hors-piste en costume.'},
+ {retire:1,name:'LA SUÉDOISE TURBO'},
+ {retire:1,name:'LE QUATTRO'},
  {name:'LA SILENCIEUSE',color:0xeef0f2,accent:0x121418,maxKmh:290,accel:32,turn:2.7,h:1.45,w:1.96,l:4.97,spoiler:0,shape:'c_silencieuse',rar:'rare',
   desc:'Zéro bruit, zéro goutte d’essence, zéro excuse : ils ne t’entendent même pas les doubler.'},
- {retire:1,name:'LE TRIDENT',color:0x1a2e6a,accent:0xe9ecf0,maxKmh:300,accel:33,turn:2.6,h:1.35,w:1.92,l:4.9,spoiler:0,shape:'c_trident',rar:'rare',
-  desc:'Un V8 qui chante l’opéra à chaque rapport. Les voisins adorent. Enfin, presque.'},
- {retire:1,name:'LA HUIT',color:0xb8bec6,accent:0x16171b,maxKmh:310,accel:34,turn:2.7,h:1.34,w:1.86,l:4.78,spoiler:0,shape:'c_huit',rar:'rare',
-  desc:'Un V12, douze pistons, zéro montant. Les années 90 avaient tout compris.'},
+ {retire:1,name:'LE TRIDENT'},
+ {retire:1,name:'LA HUIT'},
  {name:'LE SAMOURAÏ',color:0x3b2c4e,accent:0x16181c,maxKmh:300,accel:33,turn:2.9,h:1.36,w:1.79,l:4.6,spoiler:0,shape:'d_samourai',rar:'rare',
   desc:'Quatre feux ronds, un aileron, zéro pitié. Tu le vois une fois : dans ton rétro, en train de partir.'},
  {name:'LA VETTE',color:0xd01a22,accent:0x141414,maxKmh:290,accel:32,turn:2.8,h:1.18,w:1.8,l:4.48,spoiler:0,shape:'d_vette',rar:'rare',
   desc:'Phares cachés, V8 pas caché du tout. Elle se lève pour voir la route, puis elle la mange.'},
- {retire:1,name:'LE CHÂTELAIN',color:0x3a5a82,accent:0xf0efe9,maxKmh:260,accel:29,turn:2.5,h:1.78,w:1.78,l:4.47,spoiler:0,shape:'e_chatelain',rar:'rare',
-  desc:'Des bottes en caoutchouc, un pull en cachemire et 260 km/h dans l\'allée du château.'},
+ {retire:1,name:'LE CHÂTELAIN'},
  {name:'LA GRANDE ANGLAISE',color:0x1a3d2a,accent:0xe9ecf0,maxKmh:320,accel:35,turn:2.6,h:1.4,w:1.94,l:4.8,spoiler:0,shape:'e_anglaise',rar:'rare',ordre:1e8, /* (10/10, Léo, salle blanche : la DERNIÈRE des RARES, après LA ZED — son prix ne bouge pas) */
   desc:'Deux tonnes et demie de cuir, de noyer et de W12. Elle ne dépasse pas : elle congédie.'},
  {name:'LE CHARGEUR 69',color:0x0e0e10,accent:0xe9ecf0,maxKmh:360,accel:40,turn:2.55,h:1.35,w:1.95,l:5.28,spoiler:0,shape:'a_chargeur69',rar:'rare',
   desc:'Phares cachés, intentions aussi. Quand la calandre s\'ouvre dans ton rétro, c\'est déjà trop tard.'},
- {retire:1,name:'L\'ÉTALON',color:0x1e3b2c,accent:0xe9ecf0,maxKmh:350,accel:39,turn:2.75,h:1.3,w:1.8,l:4.6,spoiler:0,shape:'a_etalon',rar:'epique',
-  desc:'Poursuivi dans San Francisco en 68, jamais rattrapé depuis. Il saute les bosses, pas les étapes.'},
+ {retire:1,name:'L\'ÉTALON'},
  {name:'LA QUEUE DE CANARD',color:0xf2efe6,accent:0x1f5fd8,maxKmh:340,accel:37,turn:3,h:1.32,w:1.65,l:4.15,spoiler:0,shape:'b_canard',rar:'rare',
   desc:'Le moteur est derrière, le becquet aussi. Toi, tu seras devant — c\'est tout ce qui compte.'},
  {name:'LA DAYTONA',color:0xd01a1a,accent:0x121316,maxKmh:360,accel:40,turn:2.8,h:1.25,w:1.76,l:4.42,spoiler:0,shape:'b_daytona',rar:'epique',
@@ -26792,17 +26772,15 @@ const CARS=[
   desc:'Trois titres mondiaux, un mètre onze de haut. La visière, c’est pour voir les autres dans le rétro.'},
  {name:'LA NOCTAMBULE',color:0xf4f4f0,accent:0x3b2a8c,maxKmh:360,accel:40,turn:2.9,h:1.37,w:1.73,l:4.63,spoiler:0,shape:'d_batmobile',rar:'rare',
   desc:'Un aileron si grand qu\'on l\'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.'},
- {retire:1,name:'LA PAGODE',color:0xf1e9d6,accent:0xb81a22,maxKmh:330,accel:37,turn:2.7,h:1.32,w:1.76,l:4.29,spoiler:0,shape:'d_pagode',rar:'epique',
-  desc:'Son toit est creux, son pedigree ne l\'est pas. Elle te double en gants de cuir, sans transpirer.'},
- {retire:1,name:'LA DÉESSE',color:0x141418,accent:0xe8dcc0,maxKmh:320,accel:36,turn:2.8,h:1.47,w:1.79,l:4.84,spoiler:0,shape:'d_deesse',rar:'epique',
-  desc:'Suspension hydraulique, élégance divine. Elle ne roule pas sur la route : elle la survole, et toi avec.'},
+ {retire:1,name:'LA PAGODE'},
+ {retire:1,name:'LA DÉESSE'},
  {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
  {name:'LA ZED',color:0xff6a14,accent:0x131417,maxKmh:330,accel:37,turn:2.9,h:1.28,w:1.63,l:4.14,spoiler:0,shape:'e_zed',rar:'rare',
   desc:'Six cylindres, un capot d\'un kilomètre et des rétros sur les ailes : le samouraï a troqué le sabre.'},
  {name:'LA FÉLINE',color:0xeee3c6,accent:0xe9ecf0,maxKmh:320,accel:36,turn:2.8,h:1.22,w:1.66,l:4.45,spoiler:0,shape:'e_feline',rar:'legendaire',
   desc:'Un capot si long qu\'il arrive au virage avant toi. Élue plus belle du monde, et elle le sait.'},
- {retire:1,name:'LA RAIE',color:0xc4161c,accent:0x131417,maxKmh:360,accel:40,turn:2.7,h:1.21,w:1.75,l:4.64,spoiler:0,shape:'e_raie',rar:'defi',
+ {name:'LA RAIE',color:0xc4161c,accent:0x131417,maxKmh:360,accel:40,turn:2.7,h:1.21,w:1.75,l:4.64,spoiler:0,shape:'e_raie',rar:'epique', // (2026-10-18, Sacha) REMISE dans le jeu (retirée le 14/10) : épique à 2,5 M, comme avant le 6/10
   desc:'Une taille de guêpe, des hanches de starlette et un V8 sous le capot. Hollywood a pris la route.'},
  {name:'L\'ÉTERNELLE',color:0x1d4fd8,accent:0x121418,maxKmh:620,accel:69,turn:3,h:1.21,w:2.04,l:4.54,spoiler:0,shape:'a_eternelle',rar:'defi',
   desc:'Seize cylindres, quatre turbos, zéro remords. Le temps, lui, attend qu\'elle passe.'},
@@ -26865,14 +26843,10 @@ const CARS=[
   fx:{jet:0xff7a24,core:0xffe0a0,trail:[1.5,.7,.25],light:0xff6a1a},
   desc:'Une croûte de basalte qui se fend sur un cœur de lave, le feu qui coule dans chaque joint. Ne la touche pas.'},
  // (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; quelque chose de vraiment méchant ») LA DÉFERLANTE. RETIRÉE le 2026-10-15 (Sacha : « elle ne respecte pas les règles du low-poly », comme LA MERCURE) : son gabarit est effacé, la ligne reste pour les index.
- {retire:1,name:'LA DÉFERLANTE',shape:'deferlante',color:0x06263c,accent:0x5ee6ff,maxKmh:430,accel:51,turn:3.1,h:1.68,w:2.0,l:4.9,spoiler:0,rar:'epique',
-  fx:{jet:0x5ee6ff,core:0xe8fbff,trail:[.3,1.05,1.5],light:0x3fc8ff},
-  desc:'Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d\'air.'},
+ {retire:1,name:'LA DÉFERLANTE'},
  // (2026-10-11, Léo, « retoucheur de voitures » : la planche générée, « génère la mercure », « génère-la en 3D dans mon jeu ») LA MERCURE
  // : l'hypercar en mercure liquide. RETIRÉE le 2026-10-15 (Sacha : hors des règles du low-poly) : son gabarit est effacé, la ligne reste pour les index.
- {retire:1,name:'LA MERCURE',shape:'mercure',color:0xd9dde6,accent:0x8a4dff,maxKmh:435,accel:52,turn:3.1,h:1.16,w:2.0,l:4.72,spoiler:0,rar:'epique',
-  fx:{jet:0xb46bff,core:0xf3e6ff,trail:[1.1,.55,1.5],light:0xa864ff},
-  desc:'Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.'},
+ {retire:1,name:'LA MERCURE'},
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
  // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
  {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
@@ -26880,9 +26854,9 @@ const CARS=[
   desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
  // (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie », puis « un rose plus pâle, vraiment Cayenne ») LA POUPÉE (voir SHAPES.poupee) :
  // le grand SUV de luxe allemand, en rose poupée pâle. Pas de marque (ni le nom, ni le blason) : un petit cœur à la place. Ajoutée EN DERNIER.
- // (2026-10-17, Léo : « enlève la barbie » → « du jeu ») RETIRÉE : la ligne reste (les index de sauvegarde ne bougent pas), qui l'avait
- // achetée est remboursé (4,2 M$) et repart en LA HONTE s'il roulait avec (voir LES CAISSES RETIRÉES dans SAVE).
- {retire:1,name:'LA POUPÉE',shape:'poupee',color:0xf49bcb,accent:0xfdf0f6,maxKmh:445,accel:54,turn:3.1,h:1.7,w:2.0,l:4.93,spoiler:0,rar:'epique',
+ // (2026-10-17, Léo : « enlève la barbie » → « du jeu ») elle avait été RETIRÉE, et remboursée (4,2 M$) à qui l'avait achetée ; (2026-10-18, Sacha) la
+ // voilà REMISE dans le jeu : les remboursements déjà versés restent acquis, on peut la racheter 4,2 M$.
+ {name:'LA POUPÉE',shape:'poupee',color:0xf49bcb,accent:0xfdf0f6,maxKmh:445,accel:54,turn:3.1,h:1.7,w:2.0,l:4.93,spoiler:0,rar:'epique',
   fx:{jet:0xff5cb0,core:0xffe2f1,trail:[1.5,.5,1.05],light:0xff5cb0},
   desc:'Rose poupée, cuir crème, 650 chevaux. Elle se gare en double file, et c\'est la file qui s\'excuse.'},
  // (2026-10-16, Léo : « Taycan 4S » ; puis « trop style jouet, mimétisme » → « blanche, laquée comme une vraie, lissée, tous les traits
@@ -27135,39 +27109,10 @@ const I18N={
  'ELDORADO':'ELDORADO','LE CAÏD':'THE BOSS','SA MAJESTÉ':'HER MAJESTY','ROSSO 40':'ROSSO 40','POSTER 84':'POSTER 84',
  'Rose bonbon, ailerons de requin et une banquette pour trois avocats.':'Candy pink, shark fins, and a bench seat for three lawyers.',
  'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.':'Three tons of cube. Nobody has ever asked you to move over.',
- 'Tu ne conduis pas. On te conduit. Même quand c\'est toi qui conduis.':'You don\'t drive. You are driven. Even when you\'re the one driving.',
  'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.':'Racing red, a wing like a tray. The dream car: 1.5 million, and every dollar shows.',
  'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.':'She was pinned to your bedroom wall. Now you\'re the one driving her.',
- 'LA HONTE':'THE DISGRACE','CAISSE À SAVON':'SOAPBOX','PAPA MOBILE':'DAD-MOBILE','LE FRELON':'THE HORNET',
- 'DIVA BLANCHE':'WHITE DIVA','GROS BLOC':'BIG BLOCK','SCALPEL VERT':'GREEN SCALPEL','BALLE D\'ARGENT':'SILVER BULLET',
- 'VEUVE NOIRE':'BLACK WIDOW','EL PATRON 🏁':'EL PATRON 🏁','FORMULE OR 🏎️':'GOLD FORMULA 🏎️','NÉON OUTLAW':'NEON OUTLAW',
- 'COMBUSTION 🚀':'COMBUSTION 🚀','COMÈTE 👑':'COMET 👑','INTERDITE':'FORBIDDEN','ONDE DE CHOC':'SHOCKWAVE',
- 'GOUDRON FANTÔME':'GHOST TARMAC','TÊTE CHERCHEUSE':'HOMING HEAD','PLASMA ROYAL':'ROYAL PLASMA','ANTIMATIÈRE':'ANTIMATTER',
- 'ÉCLIPSE VII':'ECLIPSE VII','SINGULARITÉ':'SINGULARITY','DIEU-VITESSE 👑':'SPEED GOD 👑',
- 'Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.':'Three cylinders: two coughing, one praying. It starts out of pity. Make cash and forget it fast.',
- 'Le moteur d\'une tondeuse, le charisme d\'un caddie. Mais ça roule — et vu d\'où tu viens, c\'est déjà un miracle.':'A lawnmower engine, the charisma of a shopping cart. But it moves — and given where you\'re coming from, that\'s already a miracle.',
- 'Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.':'Heated seats, cup holders, zero glory. Built for careful driving. You? Careful? We believe in you, really.',
- 'Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.':'Small, vicious, it crackles like fireworks. The first real smile on the speedo.',
- 'Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.':'It refuses to drive below 200. So do you, now. You two will get along beautifully.',
- 'Un V8 qui boit de l\'essence et crache du respect. L\'écologie te fait coucou dans le rétro. Tu n\'as pas de rétro.':'A V8 that drinks fuel and spits respect. The environment waves at you in the mirror. You have no mirror.',
- 'Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.':'Surgical. It slices corners while everyone else negotiates them. You don\'t negotiate anything any more.',
- 'Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.':'A bullet with seats. The windshield is mostly there to watch the future arrive far too fast.',
- 'Ceux qui l\'ont doublée en parlent encore. Ah non, pardon : personne ne l\'a jamais doublée.':'Those who overtook it still talk about it. Oh, sorry: nobody ever overtook it.',
- 'Le taureau doré. 449 au compteur, l\'assurance résiliée d\'office. C\'est ici que les vrais chiffres commencent.':'The golden bull. 449 on the clock, insurance cancelled on sight. This is where the real numbers begin.',
- 'Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.':'A wing, a bucket seat, and your savings painted gold. The track calls it cheating. We call it talent.',
- 'Prototype volé d\'un labo qui nie son existence. Le néon rose ? Pour qu\'on sache QUI vient de te mettre 3 secondes.':'A prototype stolen from a lab that denies it exists. The pink neon? So everyone knows WHO just put 3 seconds on you.',
- 'Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.':'Road-legal nowhere, registered by mistake. The mirror is optional: nothing ever comes back from behind.',
- '657 km/h. Longtemps la reine incontestée du ciel. Aujourd\'hui : l\'échauffement. Bienvenue dans le vrai jeu.':'657 km/h. Long the undisputed queen of the sky. Today: the warm-up. Welcome to the real game.',
- 'Le dossier d\'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.':'The type-approval file exploded in mid-air. Literally. The first car officially banned in 194 countries.',
- 'Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.':'Its horn is a sonic BOOM. The pigeons filed a complaint. The sound barrier requested a bodyguard.',
- 'Neuf turbines, zéro compromis. L\'ingénieur qui l\'a conçue s\'est enfui en courant. Pas assez vite.':'Nine turbines, zero compromise. The engineer who designed it ran away. Not fast enough.',
- 'Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.':'So fast the speed cameras photograph an empty frame. The fines go to your shadow. It can\'t keep up either.',
- 'Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L\'horizon a officiellement peur.':'Technically a missile with indicators. Never used, obviously. The horizon is officially afraid.',
- 'Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.':'The engine runs on pure plasma and contempt. The windows are tinted to protect the witnesses.',
- 'Deux grammes d\'antimatière et un mépris total des lois de la physique. Newton s\'est retourné. Trop lentement.':'Two grams of antimatter and utter contempt for the laws of physics. Newton turned in his grave. Too slowly.',
- 'Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l\'ont classée phénomène céleste.':'When it crosses the sun: three seconds of night. Astronomers classified it as a celestial event.',
- 'La lumière a demandé un délai. Le temps s\'excuse au passage. Tu ne conduis plus : tu plies la carte.':'Light asked for an extension. Time apologizes as you pass. You\'re not driving any more: you\'re folding the map.',
- 'Plus de route. Plus de son. Plus de rivaux. Juste toi, et l\'univers qui essaie de suivre. Il n\'y arrive pas.':'No more road. No more sound. No more rivals. Just you, and the universe trying to keep up. It can\'t.',
+ 'LA HONTE':'THE DISGRACE',
+ 'ANTIMATIÈRE':'ANTIMATTER',
  // ---- descriptions des modes (menu mobile) ----
  'Sept voitures de police sur la piste, à armes égales. Toutes les 60 secondes, le dernier explose. Une place à prendre : la première.':'Seven police cars on the track, evenly matched. Every 60 seconds, the last one blows up. One spot to take: first place.',
  'Pas de course, pas de police, pas de mort : un terrain de figures avec ses rampes. On y va pour apprendre à voler.':'No race, no cops, no death: a trick park with its ramps. Go there to learn to fly.',
@@ -27190,7 +27135,7 @@ Object.assign(I18N,{"DÉFI RÉUSSI": "CHALLENGE DONE", "DÉFIS RÉUSSIS !": "CHA
 Object.assign(I18N,{"NOUVEAU MOTEUR": "NEW ENGINE"});
 Object.assign(I18N,{"VERSÉS AU COMPTE": "PAID INTO YOUR ACCOUNT", "MOTEUR": "ENGINE", "NOUVEAU RANG !": "NEW RANK!", "RECORD !": "RECORD!", "AURA": "AURA"});
 Object.assign(I18N,{"À TOI": "YOURS", "CHAT POP-TART": "POP-TART CAT", "REQUIN": "SHARK", "COMÈTE": "COMET", "FORMULE OR": "GOLD FORMULA", "LE MANS 24": "LE MANS 24", "EL PATRON": "EL PATRON", "ACIDE": "ACID"});
-Object.assign(I18N,{"Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "An industrial pastry with a cat's head and four little wheels. Nobody asked why. Everybody asked how.", "Bulle de verre, museau de grand blanc, quatre bras d'hélices repliés dans les flancs. Au sol il roule. En l'air, il chasse.": "Glass bubble, great-white snout, four propeller arms folded into its flanks. On the ground it drives. In the air, it hunts.", "Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l'a jamais vue de face.": "Stealth wedge, glass bubble, dorsal fin. Queen of the sky, and she knows it. No one has ever seen her from the front.", "Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.": "One wing, one bucket seat, and your savings painted gold. The track calls it cheating. We call it talent.", "Prototype d'endurance : quatre phares longue portée, dérive dorsale, aileron de porte-avions. Faite pour rouler une nuit entière.": "Endurance prototype: four long-range lights, dorsal fin, aircraft-carrier wing. Built to drive all night.", "Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L'assurance a été résiliée d'office.": "The golden bull, two-tone roof arch and horseshoe grille. The insurance was cancelled on sight.", "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.": "A Japanese compact dipped in acid: glass bonnet over the engine, ironing-board wing, exhaust that spits green."});
+Object.assign(I18N,{"Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "An industrial pastry with a cat's head and four little wheels. Nobody asked why. Everybody asked how.", "Bulle de verre, museau de grand blanc, quatre bras d'hélices repliés dans les flancs. Au sol il roule. En l'air, il chasse.": "Glass bubble, great-white snout, four propeller arms folded into its flanks. On the ground it drives. In the air, it hunts.", "Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l'a jamais vue de face.": "Stealth wedge, glass bubble, dorsal fin. Queen of the sky, and she knows it. No one has ever seen her from the front.", "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.": "A Japanese compact dipped in acid: glass bonnet over the engine, ironing-board wing, exhaust that spits green."});
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});
 Object.assign(I18N,{"FRONDE": "SLINGSHOT"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
@@ -27241,35 +27186,22 @@ Object.assign(I18N,{"LES DEFIS · CHACUN EN UNE PARTIE":"MISSIONS · EACH IN ONE
 // (2026-09-29, relecture de sortie) les 50 fiches du garage : noms et punchlines en anglais
 Object.assign(I18N,{
  "LA POSTIÈRE":"THE MAIL LADY",
- "Elle livre les recommandés à 190 km/h. Le facteur ne sonne plus jamais deux fois.":"Delivers certified mail at 190 km/h. The postman never gets to ring twice.",
  "LA DEUCHE":"THE TIN SNAIL",
- "Deux chevaux sous le capot, un moteur de jet dans le coffre. Le toit s'ouvre, les rivaux se referment.":"Two horsepower under the hood, a jet engine in the trunk. The roof peels open, the rivals fold.",
  "LE TAXI JAUNE":"THE YELLOW CAB",
- "Le compteur tourne en millions. Tu montes, tu t'accroches, tu ne négocies pas le prix.":"The meter runs in millions. Get in, hang on, and don't haggle.",
  "LA PIZZA EXPRESS":"PIZZA EXPRESS",
  "30 minutes chrono ou la pizza est offerte. Spoiler : elle n'a jamais été offerte.":"30 minutes or it's free. Spoiler: it has never been free.",
  "LE MONOSPACE":"THE MINIVAN",
- "Sept places, zéro limite. Les enfants hurlent, mais c'est de joie : on vient de doubler une Ferrari.":"Seven seats, zero limits. The kids are screaming, but it's pure joy: we just passed a Ferrari.",
  "LE BREAK SUÉDOIS":"THE SWEDISH WAGON",
- "Carré, lourd, increvable. Il a vu passer trois divorces et deux krachs boursiers, il démarre toujours.":"Boxy, heavy, unkillable. It's survived three divorces and two market crashes, and it still starts every time.",
  "LA BOULE":"THE BUG",
- "Elle sourit à tout le monde. Même au radar. Surtout au radar.":"It smiles at everyone. Even the speed cameras. Especially the speed cameras.",
  "LE GLACIER":"ICE CREAM TRUCK",
- "La musique qui fait courir les gamins. Là, c’est toi qui cours derrière. À 180.":"The jingle that makes kids run. This time you're the one chasing it. At 180.",
  "LE TOUT-TERRAIN SOVIÉTIQUE":"THE SOVIET 4X4",
- "Quarante ans sans une retouche de dessin. Pourquoi changer ce qui gagne ?":"Forty years without a single redesign. Why change a winner?",
  "LE GRILLE-PAIN":"THE TOASTER",
- "Deux places, zéro coffre, et il se gare en travers. Le parking, c'est lui qui le mange.":"Two seats, zero trunk, and it parks sideways. It doesn't find parking spots. It eats them.",
  "LE CORBILLARD":"THE HEARSE",
  "Six mètres de classe funèbre. Ceux qu'il double finissent à l'arrière, c'est la tradition.":"Twenty feet of funeral class. Whoever it passes ends up in the back. It's tradition.",
  "LA SANS-PERMIS":"THE MICROCAR",
- "Pas de permis, pas de limite. Enfin si, 45 km/h, mais elle ne l'a jamais su.":"No license, no limits. Well, 45 km/h, technically, but nobody ever told her.",
  "L'AUTO-ÉCOLE":"STUDENT DRIVER",
- "Double pédale, zéro patience : le moniteur freine, toi tu passes le permis à 190.":"Dual pedals, zero patience: the instructor hits the brakes, you take your road test at 190.",
  "LE PICK-UP DU FERMIER":"THE FARM TRUCK",
- "Un million de kilomètres au compteur, une botte de foin dans la benne. Increvable, lui aussi.":"A million kilometers on the clock, a bale of hay in the bed. Another one that just won't die.",
  "L'AMBASSADEUR":"THE AMBASSADOR",
- "Immunité diplomatique sur la bande d'arrêt d'urgence. Les radars lui envoient des excuses.":"Diplomatic immunity on the shoulder. Speed cameras send it apology letters.",
  "LE CHARGEUR":"THE CHARGER",
  "Quatre portes, parce qu'il faut bien emmener quelqu'un pour voir la tête des autres.":"Four doors, because somebody has to come along and see the look on everyone's faces.",
  "LE DÉFIEUR":"THE DEFIER",
@@ -27277,27 +27209,21 @@ Object.assign(I18N,{
  "LA BAVAROISE":"THE BAVARIAN",
  "Homologuée pour la route, élevée sur circuit. Elle perd patience avant toi.":"Street-legal, track-bred. It runs out of patience before you do.",
  "LA SUÉDOISE TURBO":"THE SWEDISH TURBO",
- "Conçue par des gens qui font des avions. Ça se voit au pare-brise, ça se sent quand le turbo arrive.":"Designed by people who build airplanes. You can see it in the windshield. You can feel it when the turbo kicks in.",
  "LE QUATTRO":"THE QUATTRO",
- "Quatre roues motrices, cinq cylindres, zéro pitié pour la neige. Il a inventé le hors-piste en costume.":"All-wheel drive, five cylinders, zero mercy for snow. It invented off-roading in a business suit.",
  "LA SILENCIEUSE":"THE SILENT ONE",
  "Zéro bruit, zéro goutte d’essence, zéro excuse : ils ne t’entendent même pas les doubler.":"Zero noise, zero gas, zero excuses: they don't even hear you pass them.",
  "LE TRIDENT":"THE TRIDENT",
- "Un V8 qui chante l’opéra à chaque rapport. Les voisins adorent. Enfin, presque.":"A V8 that sings opera on every gear change. The neighbors love it. Well, almost.",
  "LA HUIT":"THE EIGHT",
- "Un V12, douze pistons, zéro montant. Les années 90 avaient tout compris.":"A V12, twelve pistons, zero pillars. The '90s had it all figured out.",
  "LE SAMOURAÏ":"THE SAMURAI",
  "Quatre feux ronds, un aileron, zéro pitié. Tu le vois une fois : dans ton rétro, en train de partir.":"Four round taillights, one wing, zero mercy. You only see it once: in your mirror, on its way out.",
  "LA VETTE":"THE VETTE",
  "Phares cachés, V8 pas caché du tout. Elle se lève pour voir la route, puis elle la mange.":"Pop-up headlights, and a V8 that hides nothing. It wakes up to look at the road, then eats it.",
  "LE CHÂTELAIN":"THE SQUIRE",
- "Des bottes en caoutchouc, un pull en cachemire et 260 km/h dans l'allée du château.":"Rubber boots, a cashmere sweater, and 260 km/h down the castle driveway.",
  "LA GRANDE ANGLAISE":"THE ENGLISH DAME",
  "Deux tonnes et demie de cuir, de noyer et de W12. Elle ne dépasse pas : elle congédie.":"Two and a half tons of leather, walnut and W12. She doesn't overtake: she dismisses.",
  "LE CHARGEUR 69":"THE CHARGER 69",
  "Phares cachés, intentions aussi. Quand la calandre s'ouvre dans ton rétro, c'est déjà trop tard.":"Hidden headlights, hidden intentions. When that grille opens in your mirror, it's already too late.",
  "L'ÉTALON":"THE STALLION",
- "Poursuivi dans San Francisco en 68, jamais rattrapé depuis. Il saute les bosses, pas les étapes.":"Chased through San Francisco in '68, never caught since. It jumps hills. It never jumps the gun.",
  "LA QUEUE DE CANARD":"THE DUCKTAIL",
  "Le moteur est derrière, le becquet aussi. Toi, tu seras devant — c'est tout ce qui compte.":"The engine's in the back, and so is the spoiler. You'll be up front, and that's all that matters.",
  "LA DAYTONA":"THE DAYTONA",
@@ -27309,9 +27235,7 @@ Object.assign(I18N,{
  "LA NOCTAMBULE":"THE NIGHT OWL",
  "Un aileron si grand qu'on l'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.":"A wing so big it got banned from the road. You drive in the sky: nobody's going to say a word.",
  "LA PAGODE":"THE PAGODA",
- "Son toit est creux, son pedigree ne l'est pas. Elle te double en gants de cuir, sans transpirer.":"Its roof is hollow; its pedigree isn't. It passes you in leather gloves without breaking a sweat.",
  "LA DÉESSE":"THE GODDESS",
- "Suspension hydraulique, élégance divine. Elle ne roule pas sur la route : elle la survole, et toi avec.":"Hydraulic suspension, divine elegance. It doesn't drive on the road: it floats over it, and takes you along.",
  "L'AIGLE DE FEU":"THE FIRE EAGLE",
  "Un oiseau d'or sur le capot, un shérif dans le rétro. Le shérif n'a jamais rattrapé l'oiseau.":"A golden bird on the hood, a sheriff in the mirror. The sheriff never caught the bird.",
  "LA ZED":"THE Z",
@@ -27370,7 +27294,6 @@ Object.assign(I18N,{
 // (2026-10-10) LA DÉFERLANTE
 Object.assign(I18N,{
  "LA DÉFERLANTE":"THE BREAKER",
- "Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d'air.":"A rogue wave that learned to drive. It curls right over the back of your neck, and you breathe inside an air bubble."
 });
 // (2026-10-16) LA PERLE (ex-L'ONYX)
 Object.assign(I18N,{
@@ -27391,7 +27314,6 @@ Object.assign(I18N,{
 // (2026-10-11) LA MERCURE
 Object.assign(I18N,{
  "LA MERCURE":"THE MERCURY",
- "Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.":"A flowing mirror. She reflects the sky and spills a little of it in every corner: behind her, it rains chrome.",
 });
 // (2026-10-10) LA FOURNAISE
 Object.assign(I18N,{
@@ -27426,7 +27348,6 @@ Object.assign(I18N,{
  "PARC FREESTYLE AU PROCHAIN DÉPART":"FREESTYLE PARK ON NEXT RUN",
  "Le garage se visite depuis le menu":"Visit the garage from the menu",
  "Ça se visite depuis le menu":"Open it from the menu",
- "Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L'assurance a été résiliée d'office.":"The golden bull, two-tone roof arch and horseshoe grille. The insurance was canceled on sight.",
  "Le taureau doré. Assurance résiliée d'office.":"The golden bull. Insurance canceled on sight.",
  "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.":"A Japanese compact dipped in acid: glass hood over the engine, ironing-board wing, exhaust that spits green.",
  "Le centre de gravité au ras du bitume.":"Center of gravity scraping the asphalt.",
@@ -32425,7 +32346,6 @@ function lpWheel(o){
   else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
   for(const e of FACES){const fx=e*fx0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
-  if(o.flanc&&!o.sansPneu)K.lathe('b',[[R*.80,e*(hw+.004)],[R*.86,e*(hw+.004)]],24,0,0,0,'x'); // (2026-10-10, LA DÉFERLANTE) un ANNEAU de la couleur de la bande, au bord du flanc
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
     for(let h=0;h<5;h++){const a=h/5*Math.PI*2;K.cyl('d',R*.13,.012,8,fx+e*.004,Math.sin(a)*R*.40,Math.cos(a)*R*.40,'x');}
@@ -32442,24 +32362,13 @@ function lpWheel(o){
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2,d=Math.PI/N*.62;
       K.tri('a',pt(a-d,R*.655,e*(hw+.004)),pt(a+d,R*.655,e*(hw+.004)),pt(a,R*.85,e*(hw+.004)));}
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
-  }else if(o.style==='tourbillon'){
-    // (2026-10-10, LA DÉFERLANTE, Léo : « améliore un peu les roues ») LE TOURBILLON : un fond `fond`, `n` PALES EN SPIRALE (`jante`) qui
-    // partent du moyeu et tournent de 80°, leur pointe BLANCHE (l'écume) ; un moyeu `jante`, un cœur blanc. Lancée, la roue est un vortex.
-    // ⚠ rien ne dépasse fx + 0,022 : le flou de jante (voir ROUES.flou) se pose à fx + 0,024, par-dessus.
-    const n=o.n||7,pt=(a,rr,x)=>[x,Math.sin(a)*rr,Math.cos(a)*rr],X=fx+e*.012,NT=9;
-    K.lathe('d',[[R*.64,fx],[0,fx]],20,0,0,0,'x');
-    for(let s=0;s<n;s++){const a0=s/n*Math.PI*2;
-      for(let k=0;k<NT;k++){const t0=k/NT,t1=(k+1)/NT,r0=R*(.13+.50*t0),r1=R*(.13+.50*t1),q0=a0+1.4*t0,q1=a0+1.4*t1,
-        d0=R*(.11*(1-t0)+.04*t0)/(2*r0),d1=R*(.11*(1-t1)+.04*t1)/(2*r1),c=k>=NT-2?'w':'c';
-        K.tri(c,pt(q0-d0,r0,X),pt(q1-d1,r1,X),pt(q1+d1,r1,X));K.tri(c,pt(q0-d0,r0,X),pt(q1+d1,r1,X),pt(q0+d0,r0,X));}}
-    K.cyl('c',R*.15,.016,10,fx+e*.008,0,0,'x');K.cyl('w',R*.06,.012,8,fx+e*.016,0,0,'x');   // le moyeu, le cœur
   }else{
     const n=o.n||5,multi=o.style==='multi';
     K.lathe('c',[[R*.64,fx],[R*.55,fx]],16,0,0,0,'x');                     // la lèvre
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
   }
-  if(o.style!=='enjoliveur'&&o.style!=='plis'&&o.style!=='tourbillon')K.cyl('c',R*.16,.05,8,fx-e*.01,0,0,'x'); // le moyeu
+  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*.01,0,0,'x'); // le moyeu
   if(o.pique&&e>0){K.cyl('c',R*.15,.14,6,fx+.07,0,0,'x',R*.07);K.cyl('w',R*.07,.12,6,fx+.20,0,0,'x',.004);} // (2026-10-16, LE BLINDÉ NOIR) LE PIC DE MOYEU : le char de Ben-Hur — dans l'axe, il ne tourne pas à l'œil
   }
   return K.done();
@@ -33321,95 +33230,10 @@ const SHAPES={
      Ces gabarits vivaient dans la branche `appstore-backlog` (gamme du 2026-08-05) et ont disparu à la fusion, quand la
      gamme est repartie de zéro. Ils utilisent l'ancienne boîte à outils (`box`/`prof`/`cyl`/`sph`/`con`), dont le `K`
      actuel est un sur-ensemble : ils se construisent TELS QUELS, copiés à l'identique. Les sept plus spectaculaires sont
-     les caisses PREMIUM de la boutique ; les sept « du quotidien » sont prêtes, sans fiche pour l'instant.
+     les caisses PREMIUM de la boutique. (2026-10-18) Les six « du quotidien » restées sans fiche (kei, break, pickup, muscle, berline,
+     wedge) sont retirées : `gt` reste, c'est le repli d'une fiche sans `shape` (voir buildCar).
      ========================================================================================== */
 
-  kei(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.30*H],[.46*L,.55*H],[.30*L,.62*H],[.20*L,1.02*H],[-.44*L,1.06*H],[-.50*L,.92*H]],W*.96,K.body);
-    K.prof([[.18*L,.66*H],[.13*L,1.00*H],[-.40*L,1.03*H],[-.42*L,.66*H]],W*.86,K.glass);
-    B(W*.90,H*.09,L*.62,K.acc,0,y0+H*1.06,-L*.10);
-    for(const sd of [-1,1]){
-      B(.05,.05,L*.50,K.chrome,sd*W*.30,y0+H*1.15,-L*.08);      // longerons de galerie
-      B(.09,.09,.16,K.acc,sd*(W/2+.09),y0+H*.86,L*.16);
-    }
-    for(const zz of [-.26,0,.26])B(W*.66,.04,.05,K.chrome,0,y0+H*1.15,zz*L); // traverses
-    B(W*.62,H*.16,.07,K.dark,0,y0+H*.36,L/2+.06);
-    return {hl:[W*.34,y0+H*.44,L/2+.10],tl:[W*.34,y0+H*.88,-L/2-.06],wr:.84,wz:L/2-.52,doors:1,split:0};
-  },
-  // 3. LE BREAK — long toit DROIT et hayon VERTICAL. Deux traits, et on ne la confond avec rien.
-  break(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.34*H],[.30*L,.40*H],[.14*L,.44*H],[.06*L,.96*H],[-.44*L,.98*H],[-.50*L,.88*H],[-.50*L,.34*H]],W*.96,K.body);
-    K.prof([[.05*L,.52*H],[-.01*L,.93*H],[-.42*L,.95*H],[-.44*L,.52*H]],W*.80,K.glass);
-    B(W*.86,H*.08,L*.52,K.acc,0,y0+H*.98,-L*.16);
-    for(const sd of [-1,1]){
-      B(.06,.07,L*.44,K.chrome,sd*W*.28,y0+H*1.04,-L*.14);      // BARRES DE TOIT : la signature du break
-      B(.09,.09,.16,K.acc,sd*(W/2+.10),y0+H*.80,L*.14);
-      B(.07,H*.20,L*.60,K.acc,sd*(W/2+.02),y0+H*.12,0);
-    }
-    B(W*.58,H*.18,.07,K.dark,0,y0+H*.40,L/2+.08);
-    B(W*.92,H*.10,.06,K.acc,0,y0+H*.86,-L/2-.02);               // baguette de hayon
-    return {hl:[W*.32,y0+H*.46,L/2+.12],tl:[W*.38,y0+H*.72,-L/2-.06],wz:L/2-.82,doors:1,slats:1};
-  },
-  // 4. LE PICK-UP — cabine et BENNE OUVERTE, arceau, pare-buffle, roues de tracteur.
-  //    Le seul creux de la gamme : de trois quarts on voit DEDANS, aucune autre caisse ne fait ça.
-  pickup(K){
-    const {W,H,L,y0,box:B}=K;
-    const ch=y0+.20;                                            // châssis relevé : garde au sol de chantier
-    // TROIS VOLUMES SÉPARÉS — capot, cabine, benne. C'est la SÉPARATION qui fait lire le pick-up ;
-    // ⚠ le premier jet dessinait la cabine d'un seul profil dont les points revenaient en arrière :
-    // le polygone se recoupait et sortait en éclat de tôle. Un profil doit faire le tour SANS croiser.
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.36*H],[.46*L,.46*H],[.15*L,.48*H],[.15*L,.34*H],[-.50*L,.34*H]],W*.96,K.body,ch);
-    K.prof([[.14*L,.46*H],[.05*L,.98*H],[-.21*L,1.00*H],[-.23*L,.46*H]],W*.92,K.body,ch);   // CABINE
-    K.prof([[.11*L,.54*H],[.04*L,.94*H],[-.19*L,.96*H],[-.21*L,.54*H]],W*.78,K.glass,ch);   // vitrage
-    B(W*.94,H*.09,L*.30,K.acc,0,ch+H*1.01,-L*.07);              // toit de cabine
-    // LA BENNE : plancher + trois parois. On voit DEDANS de trois quarts — aucune autre caisse ne fait ça.
-    B(W*.96,.07,L*.48,K.body,0,ch+H*.38,-L*.26);
-    B(W*.96,H*.34,.07,K.body,0,ch+H*.55,-L*.49);
-    for(const sd of [-1,1]){
-      B(.07,H*.34,L*.48,K.body,sd*W*.47,ch+H*.55,-L*.26);
-      B(.10,.10,.18,K.acc,sd*(W/2+.11),ch+H*.80,L*.06);         // rétros de camion
-      B(.06,H*.52,.06,K.chrome,sd*W*.32,ch+H*1.10,-L*.27);      // ARCEAU : deux montants…
-      B(W*.16,H*.26,L*.26,K.body,sd*W*.42,ch+H*.12,L*.32);      // ailes avant proéminentes
-    }
-    B(W*.72,.08,.08,K.chrome,0,ch+H*1.36,-L*.27);               // …et la traverse
-    for(const xx of [-.18,.18])K.cyl(.06,.06,.13,K.chrome,xx*W,ch+H*1.43,-L*.27,10).rotation.x=Math.PI/2; // 2 phares de toit
-    B(W*1.04,H*.24,.14,K.dark,0,ch+H*.20,L*.50);                // PARE-BUFFLE
-    for(const xx of [-.24,0,.24])B(.07,H*.44,.07,K.chrome,xx*W,ch+H*.40,L*.52);
-    return {hl:[W*.34,ch+H*.52,L*.50],tl:[W*.36,ch+H*.52,-L*.50],wr:1.22,wx:W/2+.05,wz:L/2-.98,doors:1,split:0,skirt:0};
-  },
-  // 5. LA MUSCLE US — capot INTERMINABLE, hanches, prise d'air sur le nez.
-  muscle(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.40*H],[.44*L,.52*H],[.02*L,.55*H],[-.30*L,.60*H],[-.46*L,.62*H],[-.50*L,.50*H]],W*.96,K.body);
-    K.prof([[.06*L,.50*H],[-.04*L,.95*H],[-.24*L,.93*H],[-.34*L,.55*H]],W*.70,K.glass);
-    B(W*.56,.05,L*.20,K.acc,0,y0+H*.91,-L*.13).rotation.x=.06;
-    B(W*.30,H*.16,L*.16,K.acc,0,y0+H*.60,L*.22);                 // le SCOOP
-    for(const sd of [-1,1]){
-      B(W*.12,H*.36,L*.30,K.body,sd*(W/2-.01),y0+H*.40,-L*.28);  // hanches
-      B(.09,.09,.16,K.acc,sd*(W/2+.10),y0+H*.92,L*.10);
-      B(.08,H*.22,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
-    }
-    B(W*.55,H*.2,.07,K.dark,0,y0+H*.40,L/2+.08);
-    return {doors:1,slats:1};
-  },
-  // 6. LA BERLINE DE LUXE — trois volumes francs, calandre HAUTE ET DROITE, emblème chromé.
-  berline(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.46*H],[.44*L,.52*H],[.16*L,.54*H],[.02*L,.94*H],[-.28*L,.96*H],[-.40*L,.58*H],[-.50*L,.54*H]],W*.96,K.body);
-    K.prof([[.01*L,.60*H],[-.03*L,.92*H],[-.26*L,.93*H],[-.30*L,.60*H]],W*.80,K.glass);
-    B(W*.72,H*.07,L*.30,K.acc,0,y0+H*.95,-L*.13);
-    B(W*.46,H*.40,.10,K.dark,0,y0+H*.36,L/2+.05);                // LA CALANDRE, droite et haute
-    B(W*.50,H*.44,.05,K.chrome,0,y0+H*.36,L/2+.02);              // son encadrement
-    const em=K.cyl(.07,.07,.03,K.chrome,0,y0+H*.52,L/2+.11,10);em.rotation.x=Math.PI/2; // l'emblème
-    for(const sd of [-1,1]){
-      B(.10,.09,.17,K.chrome,sd*(W/2+.10),y0+H*.86,L*.12);
-      B(.04,.05,L*.50,K.chrome,sd*(W*.40),y0+H*.60,-L*.06);      // encadrement de vitres chromé
-      B(.07,H*.16,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
-    }
-    return {hl:[W*.34,y0+H*.44,L/2+.10],tl:[W*.34,y0+H*.50,-L/2-.08],wz:L/2-.86,doors:1,slats:1};
-  },
   // 7. LA GT À MOTEUR ARRIÈRE — le FASTBACK en goutte d'eau, ailes bombées.
   gt(K){
     const {W,H,L,y0,box:B}=K;
@@ -33422,20 +33246,6 @@ const SHAPES={
       B(.08,H*.22,L*.60,K.acc,sd*(W/2+.02),y0+H*.10,0);
     }
     return {};
-  },
-  // 8. LE COIN — supercar à moteur central : nez au ras du sol, deux ÉCOPES dans les flancs.
-  wedge(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.10*H],[.22*L,.34*H],[-.06*L,.66*H],[-.34*L,.68*H],[-.50*L,.50*H]],W*.96,K.body);
-    K.prof([[.10*L,.44*H],[-.04*L,.86*H],[-.22*L,.84*H],[-.28*L,.56*H]],W*.62,K.glass);
-    for(const sd of [-1,1]){
-      B(.09,H*.30,L*.26,K.dark,sd*(W/2-.01),y0+H*.36,-L*.06);    // LES ÉCOPES, creusées dans le flanc
-      B(.05,H*.10,L*.30,K.acc,sd*(W/2+.03),y0+H*.50,-L*.06);
-      B(.08,H*.16,L*.62,K.acc,sd*(W/2+.02),y0+H*.08,0);
-    }
-    B(W*.62,H*.06,L*.14,K.dark,0,y0+H*.70,-L*.34);               // grille de capot moteur
-    for(const zz of [-.30,-.36,-.42])B(W*.58,.02,.02,K.chrome,0,y0+H*.73,zz*L);
-    return {hl:[W*.34,y0+H*.26,L*.44],tl:[W*.32,y0+H*.60,-L/2-.06]};
   },
   // 9. L'HYPERCAR — l'ARCHE DE TOIT bicolore qui court du nez au coffre, fer à cheval en calandre.
   // 10. LA MONOPLACE — roues DEHORS, pontons, aileron biplan. Aucune carrosserie autour des roues.
@@ -40008,7 +39818,7 @@ const ENG_CAP={billets:12,aimant:15,comete:27};
 const CAR_UNLOCK=[
   /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables. Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
-     `k:'bientot'` = un DÉFI encore à écrire (LA RAIE, COMÈTE, REQUIN : verrouillées, « DÉFI À VENIR ») ; `k:'pubs'` = L'ÉTERNELLE,
+     `k:'bientot'` = un DÉFI encore à écrire (COMÈTE : verrouillée, « DÉFI À VENIR ») ; `k:'pubs'` = L'ÉTERNELLE,
      100 pubs regardées (`SAVE.d.ex.pubs` : seule l'édition des portails, retirée le 14/10, avait des pubs). */
   null,                 // LA HONTE — le point de départ, jamais verrouillée
   /* ⚠ ÉCONOMIE v3 (2026-09-25) — LES PRIX SONT CALÉS SUR UNE MESURE, PLUS SUR UNE INTUITION. Le pilote
@@ -40025,7 +39835,7 @@ const CAR_UNLOCK=[
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
   {k:'premium',eur:'4,20 €',rar:'leg',une:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une
-  {k:'bientot',v:1},                          // REQUIN — (2026-10-06) DÉFI à définir (était en boutique, 9,99 €)
+  {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — (2026-10-18, Sacha) REMIS dans le jeu : de nouveau en boutique à 9,99 € (il était « DÉFI À VENIR » du 6 au 14/10, caché ensuite)
   {k:'bientot',v:1},                          // COMÈTE — (2026-10-06) DÉFI à définir (était en boutique, 4,99 €)
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24 — (2026-10-06) RETIRÉE
@@ -40071,7 +39881,7 @@ const CAR_UNLOCK=[
   {p:800000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:1600000}, // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
-  {k:'bientot',v:1}, // LA RAIE — (2026-10-06) DÉFI à définir (était épique, 2,5 M)
+  {p:2500000}, // LA RAIE — (2026-10-18, Sacha) REMISE dans le jeu : épique à 2,5 M, comme avant le 6/10 (« DÉFI À VENIR » du 6 au 14/10, retirée ensuite)
   {k:'runs',v:100}, // L'ÉTERNELLE — (2026-10-14, PILOTAGE) DÉFI : 100 PARTIES jouées (`ex.runs`, déjà compté : les parties passées valent) — c'était 100 pubs, impossible depuis qu'il n'y a plus de pubs — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
@@ -40259,7 +40069,7 @@ const RARETES=[
   {id:'infini',    n:'INFINIS',    n1:'INFINI',    c:'#ff8af0'}];
 /* la rareté d'une caisse qui se GAGNE = la difficulté de son défi (2026-10-10, posée par Claude, à revoir par Léo dans la salle blanche) :
    contrats 1-3 RARE · 6-7 EXOTIQUE · 8-9 ÉPIQUE ; rang d'aura MYTHE (POSTER 84) LÉGENDAIRE ; les cinq niveaux des NUAGES ÉPIQUE, ceux de la
-   VILLE LÉGENDAIRE ; 100 pubs ÉPIQUE ; défi encore à définir (REQUIN, COMÈTE, LA RAIE) EXOTIQUE. */
+   VILLE LÉGENDAIRE ; 100 pubs ÉPIQUE ; défi encore à définir (COMÈTE) EXOTIQUE. */
 function rarDefi(u){if(u.k==='carnet')return u.v>=8?'epique':u.v>=6?'exotique':'rare';if(u.k==='aura')return u.v>=6?'legendaire':'epique';
   if(u.k==='carrN'||u.k==='pubs'||u.k==='runs')return 'epique';if(u.k==='carrV')return 'legendaire';return 'exotique';}
 function carRar(i){const c=CARS[i];if(c&&c.rar&&c.rar!=='defi')return c.rar;const u=CAR_UNLOCK[i];
@@ -40301,7 +40111,7 @@ function carUnlockedVrai(i){
   const u=CAR_UNLOCK[i];
   if(!u)return true;
   if(u.p||u.k==='premium')return carOwned(i); // caisse à vendre (argent du jeu OU boutique) : possédée ou rien
-  return carOwned(i)||carStat(u.k)>=u.v; // caisse à défi : rang d'aura, carrière, pubs… — (2026-10-06) ACHETÉE avant de devenir un défi (LA RAIE, L'ÉTERNELLE, REQUIN, COMÈTE), elle le reste
+  return carOwned(i)||carStat(u.k)>=u.v; // caisse à défi : rang d'aura, carrière, pubs… — (2026-10-06) ACHETÉE avant de devenir un défi (L'ÉTERNELLE, COMÈTE), elle le reste
 }
 /* ============================================================================
    L'ÉCONOMIE v3 — LES CONTRATS, L'OBJECTIF, LA BOUTIQUE (2026-09-25)
@@ -42887,7 +42697,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
     case 'kmh':   return [ 'ATTEINDRE ','REACH '][L]+v+[ ' KM/H  (record : ',' KM/H  (best: '][L]+cur+')';
     case 'surv':  return [ 'GAGNER UNE PARTIE EN MODE SURVIVANT','WIN A RUN IN SURVIVOR MODE'][L];
     case 'prem':  return [ 'CAISSE PREMIUM — offerte pour l\'instant','PREMIUM CAR — free for now'][L];
-    case 'bientot':return [ 'INTROUVABLE','NOT AVAILABLE'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
+    case 'bientot':return [ 'INTROUVABLE','NOT AVAILABLE'][L]; // (2026-10-06) COMÈTE : le défi reste à écrire (police pixel : pas de capitale accentuée)
     case 'pubs':  return [ 'REGARDE '+v+' PUBS  ('+Math.min(cur,v)+' / '+v+')','WATCH '+v+' ADS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-06) L'ÉTERNELLE
     case 'runs':  return [ 'JOUE '+v+' PARTIES  ('+Math.min(cur,v)+' / '+v+')','PLAY '+v+' RUNS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-14) L'ÉTERNELLE : 100 parties jouées (police pixel : pas d'accent)
   }
@@ -49490,9 +49300,9 @@ const SAVE={
       .map(x=>Math.round(+x)).filter(x=>isFinite(x)&&x>=0&&x<CARS.length))].slice(0,CARS.length);
     /* (2026-10-02) LES CAISSES RETIRÉES (`retire`, voir CARS) : qui en avait acheté une est REMBOURSÉ au prix payé — une mise à jour ne
        confisque pas — et elle sort de `owned` (le remboursement ne joue donc qu'une fois) ; qui roulait avec repart en LA HONTE. */
-    /* (2026-10-14, Sacha) LA RAIE (cachée cette nuit) n'avait plus de prix (`k:'bientot'` depuis le 6/10) : qui l'avait achetée 2,5 M$ la
-       perdait SANS remboursement. Son ancien prix est rendu ici, une fois (elle sort de `owned`), et le menu le DIT (`SAVE.remb`, voir cc:revele). */
-    {let rb=0;const RB_RETIRE={'LA RAIE':2.5e6},nm=[];c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;const p9=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||RB_RETIRE[CARS[x].name]||0;if(p9){rb+=p9;nm.push(CARS[x].name);}return false;});
+    /* (2026-10-14, Sacha) le menu DIT le remboursement (`SAVE.remb`, voir cc:revele). (2026-10-18) LA RAIE, remboursée ainsi le 14/10, est REVENUE dans le
+       jeu : le remboursement versé reste acquis, et plus aucune caisse en vente ne sort de `owned` (seules les `retire` sortent). */
+    {let rb=0;const nm=[];c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;const p9=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||0;if(p9){rb+=p9;nm.push(CARS[x].name);}return false;});
      if(rb){c.bank=Math.min(1e30,c.bank+rb);this.remb={n:nm,v:rb};}if(CARS[c.equipped]&&CARS[c.equipped].retire)c.equipped=0;}
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
       c.ai={air:g('air',.5,0,1),boost:g('boost',.35,0,1),caution:g('caution',.5,0,1),
@@ -49610,7 +49420,7 @@ if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;
 Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});
 if(SAVE.repris)document.addEventListener('cc:revele',function(){const r=SAVE.repris;if(!r||!(r.v>=1||r.a>=1))return;
   try{toast(pxi('coche')+' '+TR('PARTIE INTERROMPUE')+' : +'+(r.v>=1?fmtC(r.v)+' '+TR('VERSÉS AU COMPTE'):fmtAura(r.a)+' '+TR('AURA')));}catch(e){}},{once:true});
-/* (2026-10-14, Sacha) une caisse retirée de la gamme vient d'être remboursée (san) : le menu le DIT, une fois — « LA RAIE EST PARTIE : 2,5 M$ REMBOURSÉS » */
+/* (2026-10-14, Sacha) une caisse retirée de la gamme vient d'être remboursée (san) : le menu le DIT, une fois — « LE QUATTRO EST PARTIE : 52 k$ REMBOURSÉS » */
 Object.assign(I18N,{'EST PARTIE':'IS GONE','SONT PARTIES':'ARE GONE','REMBOURSÉS':'REFUNDED'});
 if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
   try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'SONT PARTIES':'EST PARTIE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
