@@ -35624,7 +35624,7 @@ const cuire=()=>{let C9=CACHE[0];if(C9)return C9;
 const monte=function(K){
   const SP=K.spec||{},CORPS=SP.color!=null?SP.color:0x86f51c;
   const PAL={p:{g:'p',c:CORPS},k:{g:'m',c:0x16171b},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xd4d8de},C:{g:'c',c:0x6c727b},g:{g:'g',c:0x1d2a36},
-    W:{g:'l',c:0xfff6e6},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},Q:{g:'l',c:0xe8e8e8},T:{g:'m',c:0x1e2024},r:{g:'m',c:0xc8102e}};
+    W:{g:'l',c:0xfff6e6},L:{g:'l',c:0xff2a36},O:{g:'l',c:0xffa21a},Q:{g:'l',c:0xe8e8e8},T:{g:'m',c:0x1e2024},r:{g:'m',c:0xc8102e},R:{g:'m',c:0x7a1018}};
   const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
   const CPx=new THREE.Color(),fondu=y=>.80+.20*cl((y-.25)/1.0,0,1),colP=y=>{CPx.setHex(EP.c);if(EP.grad&&typeof lpGrad==='function')lpGrad(EP.grad,y,CPx);
     const s=((EP.g==='p'||EP.g.charAt(0)==='p')&&EP.f!==0)?fondu(y):1;return [CPx.r*s,CPx.g*s,CPx.b*s];};
@@ -35691,7 +35691,7 @@ const monte=function(K){
     P.box('L',.03,.34,.01,sd*.905,1.27,z-.012);P.box('L',.09,.03,.01,sd*.855,1.425,z-.012);P.box('L',.09,.03,.01,sd*.855,1.115,z-.012);P.box('L',.05,.20,.006,sd*.84,1.27,z-.01);
     P.box('L',.01,.30,.05,sd*(W0+.005),1.27,ZT+.035);});
   pave('k',plan([[0,-2.783],[.80,-2.783],[.96,-2.74],[1.0,-2.66],[1.0,-2.52]],1),.557,.90);
-  P.box('Q',.45,.12,.01,0,.74,-2.788);P.sym(sd=>{P.box('K',.13,.10,.02,sd*.42,.69,-2.786);P.box('L',.10,.02,.008,sd*.85,.82,-2.786);});
+  P.box('Q',.45,.12,.01,0,.74,-2.788);P.sym(sd=>{P.box('K',.13,.10,.02,sd*.42,.69,-2.786);P.box('R',.10,.02,.008,sd*.85,.82,-2.786);}); // les catadioptres : rouge MAT (un rouge allumé à l'arrière, le jeu le prend pour un feu : halo et traînées tombaient dessous)
   // l'aileron de pavillon et son 3e feu stop
   P.box('k',1.30,.03,.22,0,YT+.078,-1.02);P.box('L',.40,.02,.015,0,YT+.078,-1.135);
   // dessous : les moteurs électriques, le plancher (la batterie)
@@ -35710,7 +35710,7 @@ const monte=function(K){
   for(let i=0;i<8;i++){const a=i/8*Math.PI*2;J.prism('T',bras(.06,.20,.03,.045,a),.024,fx);}
   J.lathe('T',[[.07,fx-.01],[.066,fx+.014],[.045,fx+.02],[0,fx+.022]],16,0,0,0,'x');J.lathe('C',[[.03,fx+.021],[0,fx+.026]],12,0,0,0,'x');
   const JG=J.done();
-  return {hl:[.86,1.15,2.74],tl:[.855,1.27,-2.74],wx:WX,wzF:ZF,wzR:-ZR,
+  return {hl:[.76,1.155,2.73],tl:[.86,1.27,-2.74],wx:WX,wzF:ZF,wzR:-ZR,
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:TW,style:'nyan',jante:0x1e2024}};
 };

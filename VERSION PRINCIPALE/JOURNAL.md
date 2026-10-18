@@ -638,6 +638,8 @@
   est hors de la zone BOÎTES : le gabarit expose `SHAPES.caid.pre` (la découpe seule, mise en cache) et le bloc l'appelle par
   `requestIdleCallback` (au plus tard 3 s ; repli setTimeout 2,5 s) — la caisse montée ensuite : 15-30 ms (machine chargée).
 - Teintes réelles proposées : INTERSTELLAR WHITE 0xdde1e4 (Edition 1), METEORITE 0x50555c, NEPTUNE BLUE 0x34506e (jugées au garage).
+- Les lumières (la leçon du BAROUDEUR) : catadioptres du bouclier arrière en rouge MAT (ils tiraient le halo et les traînées sous les feux en C),
+  le point des phares au milieu des longs feux (`hl` x .76).
 - Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-vraie-et-nous.png.
   Outils : boites/hummer/ (src, ref, photos), assemble_h.py, integre_h.py, planche_hummer.py.
 
