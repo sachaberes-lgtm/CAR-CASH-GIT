@@ -3,6 +3,16 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA GRILLE DES PRIX DES VOITURES (2026-10-19, v671, Léo : « réorganise bien les raretés, c'est le bordel, les prix » → « oui » à la grille)
+- **Le principe** : le prix suit le PRESTIGE DE LA VRAIE VOITURE, et chaque prix reste dans la tranche de sa famille (la règle de Sacha
+  pour les habillages, v670 : « son prix dans sa famille »). Communes ≤ 8 000 · rares 25 000 → 300 000 · épiques 550 000 → 4 000 000.
+- **Ce qui bouge** (rien d'autre) : LA PUCE (Mini) 400 000 → 30 000 (`PX9[6]`, un prix posé par Claude « à valider par Sacha ») ·
+  LE CAÏD (désormais le Hummer EV) 50 000 → 180 000 · ACIDE (Civic tunée) 750 000 → 550 000 · LA ZED (240Z) 1 600 000 → 600 000 ·
+  LA QUEUE DE CANARD (911 RS) 550 000 → 800 000 · LA TAURINE (Miura) 650 000 → 1 200 000 · LA BÊTE (Pikes Peak) 1 000 000 → 1 500 000 ·
+  LA PERLE (Taycan) 4 400 000 → 2 000 000 · ROSSO 40 (F40) 2 500 000 → 4 000 000 : la caisse de rêve redevient la plus chère à l'argent du jeu.
+- **Gardés tels quels** : les prix posés par Sacha (ELDORADO 40 000, LE CHARGEUR 60 000, LA BAVAROISE 100 000, LE DÉFIEUR 120 000),
+  les communes, les créations (LA RAIE, L'ABSTRAITE, L'ICEBERG…). Personne n'est remboursé ni débité : un prix ne change que l'achat à venir.
+
 ## DEUX TRAÎNÉES CHANGENT DE RARETÉ : LA GRILLE ÉPIQUE, FOUDRE DIVINE LÉGENDAIRE (2026-10-18 soir, Sacha : « the grid doit être epic » · « divine ligthing doit etre legendaire ») — v670
 - THE GRID et DIVINE LIGHTNING sont les noms anglais de deux traînées : **LA GRILLE** (id `grille`, le mur de lumière des motos de néon) et
   **FOUDRE DIVINE** (id `foudre`, les éclairs). Seuls objets du jeu de ces noms (les autres « grille » du code sont des grilles de calcul).
