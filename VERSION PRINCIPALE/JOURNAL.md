@@ -3,6 +3,49 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE HUD DES FIGURES v5 — LA RARETÉ ÉCRITE, LE COMBO QUI SE LIT, LE BUMP FIGURE DU COMBO (2026-10-18, session FIG-RARETÉ — Sacha : « retravaille le système de figure, notamment les combos de figures : c'est pas montré assez clairement ; et puis les bumps sur les bords de la route doivent être une figure à part entière, cumulable dans des combos ; aussi, en fonction de la rareté de la figure, écris-la dans une couleur et une police différente correspondant à la rareté »)
+- CE QUI CLOCHAIT (lu dans le code, main v635) : la ligne du combo n'était qu'une rangée de PASTILLES muettes + « COMBO ×1,5 » — on ne savait pas
+  QUELLES figures la composaient (le nom s'éteignait au bout de 1,9 s) ; les COMBOS À TROIS nommés (LA PERCEUSE, LE GYROSCOPE… 20 familles) ne se
+  voyaient qu'une fois dans sa vie (la bannière NOUVEAU COMBO), ensuite seulement au fond de la chaîne d'aura ; le BUMP entrait dans la chaîne d'aura
+  (15/10) mais PAS dans le combo du vol (`FX2.cv`) : ni au ×, ni dans le HUD des figures, juste « BUMP +30 » sur la caisse ; le nom d'une figure
+  prenait la couleur de son EMPLACEMENT (cyan / vert / magenta), sans rapport avec sa rareté de la boutique.
+- LA RARETÉ ÉCRITE : le nom d'une figure en course prend la couleur ET une police pixel de sa rareté (celle de la boutique, `cosmRar('figure')`, qui
+  suit le prix) — COMMUNE gris Press Start 2P (TAIL WHIP) · RARE bleu Silkscreen (TONNEAU, TOUPIE, SHIMMY, CHANDELLE) · EXOTIQUE vert Jersey 10
+  (SALTOS, DOUBLE TONNEAU) · ÉPIQUE violet Sixtyfour, un halo (TIRE-BOUCHON, HÉLICO 720, VRILLE PENCHÉE) · LÉGENDAIRE or Jacquard 12 — le gothique en
+  pixels —, un reflet blanc qui la traverse (RODÉO, SALTO COSMIQUE). Au quiz, Sacha a choisi « une police par rareté » (toutes en pixels) contre
+  « même police, look différent » : c'est la DEUXIÈME EXCEPTION NOMMÉE de `<style id="policeUnique">` (après le φ du logo), limitée aux porteurs
+  de `data-rp` dans `#fh` et `#fhLeg` — tout le reste du jeu, le « + », le ×, RECORD et COMBO PERDU restent en Press Start 2P. Polices dans
+  `assets/fonts/` (silkscreen, jersey10, sixtyfour, jacquard12 .woff2 — 43 Ko en tout, licence OFL ajoutée à `OFL.txt`), chargées d'avance au menu.
+  Tailles : `FIG_RP` (JS) et `--rk` (feuille) — k = la taille qui donne la même hauteur de capitale que Press Start 2P, w = la largeur d'une lettre
+  à cette taille. MESURÉ au canvas (capitale / chasse, en em) : Silkscreen ,63 / ,69 · Jersey ,54 / ,38 · Sixtyfour ,87 / 1 · Jacquard ,57 / ,56.
+  `figRarH(f,k)` ; le rappel des gestes (#fhLeg) écrit aussi chaque nom dans sa rareté (le liseré et la flèche gardent la couleur du geste).
+- LE COMBO SE LIT (`fhMaillon`, `fhCsCale`) : la ligne des pastilles devient la ligne des NOMS — TONNEAU + SALTO AVANT + BUMP —, chaque maillon dans sa
+  rareté, le × en grand dessous (+ RECORD). Trop long : les plus anciens sortent, « … » devant (estimé sur la chasse de chaque police, aucune mise en
+  page lue). À la POSE, les maillons s'allument l'un après l'autre (70 ms d'écart : on lit ce qu'on encaisse), puis le × claque ; l'ensemble s'éteint
+  sur place (1 s + 70 ms par maillon). À la CHUTE, ils virent au rouge et tombent, « COMBO PERDU ». À la plantée, le nom ne passe plus en or (l'or,
+  c'est la légendaire) : il claque dans sa rareté et son maillon tombe dans la ligne.
+- LE COMBO À TROIS NOMMÉ (`fhTrio`, appelé par `comboNote`) : à CHAQUE fois (plus seulement la première), son nom s'écrit en grand, en arc-en-ciel,
+  et ses trois maillons se soulignent d'or. La bannière NOUVEAU COMBO de la première fois reste.
+- LE BUMP, FIGURE À PART ENTIÈRE (`figBumpNote`, au rebond sur la tranche, en vol ; `BUMP_FIG`) : il entre au COMBO DU VOL comme une figure plantée —
+  au × (neuf +0,5, redite +0,25, plafond ×4 inchangé), ses points de chaîne dans `FX2.pts` (multipliés à la pose propre, perdus à la chute comme ceux
+  des figures) ; son nom s'écrit en haut (plus de « BUMP +30 » sur la caisse : `CHA.sansPop`) ; un BUMP qui suit un BUMP GRANDIT sur place, et sa
+  rareté avec : BUMP (commune) → DOUBLE BUMP (rare) → TRIPLE BUMP (exotique) → MEGA BUMP (épique). Inchangés : sa physique, son nitro
+  (`nitroBumpDe`), sa valeur de chaîne (`BUMP_VAL` 5, ×0,6 par rebond), les missions/défis qui le comptent. Il n'entre pas dans les COMBOS À TROIS
+  (ils comptent des axes de rotation). `?bumpfig=0` = le bump d'avant (hors du combo, son texte sur la caisse).
+- CORRIGÉ EN PASSANT : une figure lancée pendant que la ligne du vol précédent s'éteignait (moins d'une seconde après une pose) partait INVISIBLE — le
+  fondu « forwards » restait posé sur #fh ; `fhLance`/`fhPlante`/`fhBump` repartent désormais à neuf (`fhRaz`).
+- LA LIGNE NAÎT À DEUX FIGURES (`fhSeule`) : une figure SEULE s'écrit une fois, en grand ; dès la 2e, la ligne des noms apparaît et le grand nom
+  d'une figure déjà rangée dans la ligne s'éteint (`FH.nomPl`) — une figure lancée, encore en l'air, garde son grand nom. Le grand nom se tait aussi
+  pendant un verdict de pose (`body.verdOn`, « une voix au centre ») ; RECORD ne reste plus seul à l'écran quand #fh se cache (`visibility:inherit`).
+- MESURÉ (banc `banc-figv5.cjs` du scratchpad de la session, cc-banc, son coupé, nuages midi, couché 844 × 390 et debout 390 × 844, 3 passages) :
+  les quatre polices chargées au menu (`document.fonts.check` vrai) ; tailles calculées : légendaire 49 px en grand / 22,8 px dans la ligne, rare
+  41 / 19, exotique 22,2, épique 13,8 dans la ligne ; couché, la ligne garde les 3 derniers noms (« … » devant) avec les polices les plus larges,
+  debout aussi (HELICO 720 + BUMP + RODEO). Vol à figures : SALTO COSMIQUE planté → BUMP → « COMBO ×1,5 » ; DOUBLE BUMP grandit sur place,
+  ×1,75 ; + TONNEAU + SALTO ARRIÈRE + LE GYROSCOPE en grand, ×2,75 ; posé propre : « COMBO ×2,75 +490 » dans la chaîne. Chute : maillons rouges
+  qui tombent. VRAIS BUMPS (caisse poussée hors du bord, ramenée par le pilote auto, 14 sorties) : 6 bumps, 4 entrés dans le combo du vol en plein
+  vol (les 2 autres : le pilote les a reposés dans la même image). 0 erreur JS, `__loopErr` vide. Fumée commune : voir le commit.
+- À TRANCHER PAR SACHA : la rareté qui MONTE avec les bumps (DOUBLE rare, TRIPLE exotique, MEGA épique) ; la ligne limitée aux 3-4 derniers noms
+  (taille ×1,2 du corps : plus petit = plus de noms, moins lisibles) ; le BUMP perdu à la chute avec le reste du combo (avant, sa part de chaîne restait).
 ## LA REPRISE DE LA MIGRATION DES MISSIONS v2 — LES SAUVEGARDES MARQUÉES PAR LA PASSE AVORTÉE SONT REJUGÉES UNE FOIS (2026-10-18, session fix-m2 — demandée par la session de contrôle console de Sacha : « faire repasser une fois la migration pour les sauvegardes déjà marquées vc=1 alors qu'elle avait avorté, sans re-créditer deux fois et sans confisquer quoi que ce soit »)
 - SUITE DE « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS » (juste en dessous) : `M2_COLK` / `M2_RECO` remontées (v634), la migration complète tourne pour une
   sauvegarde neuve ou d'avant les missions v2. Mais une sauvegarde ouverte entre le 16/10 18:26 et le 18/10 ~19 h garde `vc=1` posé par la passe AVORTÉE : jamais
