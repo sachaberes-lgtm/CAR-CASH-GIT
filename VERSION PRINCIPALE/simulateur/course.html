@@ -8,8 +8,8 @@
      Rien n'est refait : c'est LE JEU (../index.html, tel que sur le main, sans une ligne changée) dans un cadre, à la taille d'un
      téléphone couché (844 × 390, comme le jeu sur l'ordi), lancé directement sur le niveau choisi. Autour :
      · la sauvegarde du jeu SUR CETTE ADRESSE : sa musique coupée (on n'entend que celle du niveau), l'auto-école déjà faite ;
-     · le DÉPART : au premier toucher (l'écran titre du jeu le demande), le niveau part tout seul — la carrière par dbgCampagne(n, monde),
-       la partie sans fin par le JOUER de l'accueil ; une partie finie (mort, fin de monde) repart d'elle-même sur le même niveau ;
+     · le DÉPART : au premier toucher (l'écran titre du jeu le demande), le niveau part tout seul — la partie sans fin par le JOUER de
+       l'accueil, le SOLEIL DE JADE et CRYPTOCITY par leur dbg* ; une partie finie (mort) repart d'elle-même sur le même niveau ;
      · LA MUSIQUE DU NIVEAU (Léo, 12/10 soir : « tester mes sons dans les maps pour choisir où ils vont, et l'intensité proportionnelle au
        palier moteur ») — deux formats, un seul pilote (MUS) :
          - une PAGE .html à jauge (le French Touch), jouée telle quelle dans un cadre invisible : son #play, sa jauge #speed (0-100), son #bpm ;
@@ -120,7 +120,7 @@ function peinsTitre() {
   $('titre').textContent = (SEQ.on ? 'PLAY ' + SEQ.n + ' · ' : '') + nomMap(MAP) + num + ' · ' + nomNiv(NIV);
   document.title = (SEQ.on ? 'PLAY · ' : '') + nomMap(MAP) + num + ' · simulateur';
 }
-function niveauPose(id) { const T = niveauDe(id) || niveauDe('v1'); MAP = T.map; NIV = T.niv; L = NIV.lance; peinsTitre(); }
+function niveauPose(id) { const T = niveauDe(id) || niveauDe('mer'); MAP = T.map; NIV = T.niv; L = NIV.lance; peinsTitre(); }
 niveauPose(Q.get('niv'));
 const erreur = m => { const e = $('err'); e.textContent = String(m).slice(0, 400); e.hidden = false; };
 
@@ -312,7 +312,6 @@ function lancer() {
     if (b) b.click();
   } else if (L.jade) w.dbgNiveauJade(); // le SOLEIL DE JADE (la map des PICS DE JADE en vrai niveau)
   else if (L.crypto) w.dbgNiveauCrypto(); // CRYPTOCITY (la ville générée, en bull run)
-  else w.dbgCampagne(L.n, L.monde);
 }
 let der = performance.now();
 function boucle(now) {

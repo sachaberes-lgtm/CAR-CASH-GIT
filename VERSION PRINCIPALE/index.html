@@ -12886,7 +12886,7 @@ const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0x
   canyon:[0xff9a3d,0xd8442a,0xffd09a],paris:[0xffd75e,0x5e8bff,0xfff0c0],ville:[0xb04cff,0xff3ec8,0xf0b0ff],
   'ville-violet':[0xb04cff,0xff3ec8,0xf0b0ff],'ville-vert':[0x3dff9a,0x00d2ff,0xb8ffe0],'ville-jaune':[0xffd23d,0xff8a1c,0xfff0b0],'ville-bleu':[0x3d8bff,0x5ee6ff,0xc0e0ff],vitree:[0x2f8cff,0xffffff,0xcfe8ff]}; // (2026-10-18) la VILLE VITRÉE : verre bleu, blanc, glace
 /* LES CARTES POSTALES LIVRÉES (assets/portail/) — la liste est réécrite par le banc qui les tire (outils : carte-postale.py) */
-const PCUBE_CP=new Set(['banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','foret-matin','foret-midi','foret-nuit','foret-orage','foret-pluie','foret-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']);
+const PCUBE_CP=new Set(['banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','foret-matin','foret-midi','foret-nuit','foret-orage','foret-pluie','foret-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']);
 function pcubeGabarit(){ // la disposition, UNE fois — repère du portail : x à droite, y en haut, z vers la caisse qui arrive
   const S=PCUBE.S,Ri=PCUBE.Ri,Ro=PCUBE.Ro,L9=[];let h=0x2545f491;
   const al=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;}; // un hasard À LUI : jamais rnd() (la piste est seedée)
@@ -29078,7 +29078,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
   const tire=w=>{let u=r()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){u-=w[i];if(u<=0)return i;}return w.length-1;};
   const dS=L/(NP-1);
   /* 0 bis. LES SATELLITES QUI FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je
-     voulais juste qu'ils flottent proche de la route »). Les obstacles de l'après-midi (sur la chaussée, retirés le 18/10) quittent la chaussée : les
+     voulais juste qu'ils flottent proche de la route »). Les obstacles de l'après-midi quittent la chaussée (ceux posés dessus sont retirés le 18/10) : les
      mêmes grands engins — Starlink de 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, petit satellite d'or — DÉRIVENT à 4-16 m
      du bord, de 8 m sous la dalle à 16 m au-dessus (repère de la route : F.b en travers, F.n vers le haut), et tournent lentement sur
      eux-mêmes. Trois figures : le SEUL (un côté), la PORTE (un de chaque côté, la route passe entre les deux) et la FILE (deux ou trois à la suite du
@@ -61071,7 +61071,7 @@ const GV_TEINTE={vitree:'#7fd8ff',crypto:'#ffd23e',banquise:'#9fe8ff',nuages:'#5
    regarde, un nuage d'orage EN COLÈRE, des phares dans le noir, un satellite K.-O. qui tombe en feu, un plot d'auto-école qui fait la tête.
    LES DISTANCES (GV_KM) : la longueur MOYENNE des pistes de chaque niveau (elles sont tirées à chaque partie), mesurée au banc
    (lvlL.mjs, `dbgPas().L` × SPD) — d'où « ≈ ». */
-const GV_VIG={},GV_KM={nuages:8.3,ville:7.9,villeN:8.0,paris:7.1,espace:9.4,espaceH:9.4,orage:8.5};
+const GV_VIG={},GV_KM={nuages:8.3,ville:7.9,villeN:8.0,paris:7.1,espace:9.4,orage:8.5};
 function gvVignette(cle){
   if(GV_VIG[cle])return GV_VIG[cle];
   const W=96,H=36,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
@@ -61119,13 +61119,6 @@ function gvVignette(cle){
     anneau(false);rond(px,py,11,'#3b2d8a');for(let y=-10;y<=10;y+=4){const w=Math.round(Math.sqrt(121-y*y));R(px-w,py+y,2*w+1,2,'#5541b8');} // la planète et ses bandes
     rond(px-4,py-4,3,'rgba(190,175,255,.55)');anneau(true);
     rond(46,7,3,'#e8e6ff');R(45,7,1,1,'#3a2a55');R(47,7,1,1,'#3a2a55');               // la petite lune qui regarde
-  }else if(cle==='espaceH'){
-    ciel(['#05041a','#0b0828','#140d3a','#1c1248']);
-    etoiles(34,['#ffffff','#9ad8ff']);
-    const sat=function(sx,sy,ko){for(let i=1;i<10;i++)R(sx-i,sy-i,1,1,i<4?'#ffd75e':i<7?'#ff7a2a':'rgba(255,60,40,.55)'); // la traînée de feu
-      R(sx-1,sy-1,3,3,'#c9cbd6');R(sx-5,sy,3,1,'#4a8cff');R(sx+3,sy,3,1,'#4a8cff');
-      if(ko){R(sx-1,sy-1,1,1,'#3a2a55');R(sx+1,sy-1,1,1,'#3a2a55');}};
-    sat(60,14,false);sat(86,26,true);sat(74,6,false);                                 // l'un d'eux est K.-O.
   }else if(cle==='crypto'){ // (2026-10-15) CRYPTO CITY : l'azur et l'or, des tours d'or, d'argent et de blanc, la pièce ₿ dans le ciel, les bougies vertes
     ciel(['#3f86d8','#7ab6ea','#f2ecd8','#ffe6a8']);
     rond(50,9,5,'#f7931a');R(49,6,1,7,'#fff1d0');R(49,6,3,1,'#fff1d0');R(49,9,3,1,'#fff1d0');R(49,12,3,1,'#fff1d0');R(52,7,1,2,'#fff1d0');R(52,10,1,2,'#fff1d0'); // la lune ₿
@@ -61171,7 +61164,7 @@ function gvVignette(cle){
 function gvListe(){ // la suite d'une partie : l'auto-école (tant que le permis manque, ou passée), puis NIVEAUX dans l'ordre — `ok` = terminé
   const tuto=!SAVE.d.tuto,fait=Math.max(0,(SAVE.d.ex&&SAVE.d.ex.zones)|0),L=[];
   if(tuto||SAVE.d.permis)L.push({cle:'tuto',n:'P',t:'AUTO-ECOLE',d:sansAcc(TR('PERMIS')),c:'#7dff9b',ok:!tuto&&!!SAVE.d.permis});
-  NIVEAUX.forEach(function(v,k){const cle=v.id+(v.nuit?'N':'')+(v.hard?'H':''),km=GV_KM[cle]||GV_KM[v.id]||0;
+  NIVEAUX.forEach(function(v,k){const cle=v.id+(v.nuit?'N':''),km=GV_KM[cle]||GV_KM[v.id]||0;
     L.push({cle:cle,n:String(k+1),t:v.nm,d:km.toFixed(1).replace('.',',')+' KM',c:GV_TEINTE[v.id]||'#5ee6ff',ok:!tuto&&fait>k});});
   return L;
 }
@@ -61180,12 +61173,12 @@ function gvTuile(o,k){let im='';try{im=gvVignette(o.cle);}catch(e){}
     '<span class="gvTx"><b class="gvN">'+o.n+'</b><span class="gvT">'+sansAcc(TR(o.t))+'</span><em class="gvD">'+o.d+'</em></span>'+(o.ok?'<i class="gvOk pxi pxi-coche" aria-hidden="true"></i>':'')+'</div>';}
 function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGNETTE du niveau que JOUER lance — et les pastilles des MISSIONS (branchées à JOUER)
   {const el9=$('gvLvl');if(el9&&sfPlayOk()&&!jadePlayOk()){ // (2026-10-13) MODE CLASSIQUE : la vignette annonce le couple que JOUER va lancer (tiré d'avance, classiqueJouer le prend)
-    if(!SF.prochain)SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);const t=SF.prochain,cle=t.meteo==='orage'&&t.carte==='nuages'?'orage':t.meteo==='nuit'&&t.carte==='ville'?'villeN':t.meteo==='satellites'?'espaceH':t.carte;
+    if(!SF.prochain)SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);const t=SF.prochain,cle=t.meteo==='orage'&&t.carte==='nuages'?'orage':t.meteo==='nuit'&&t.carte==='ville'?'villeN':t.carte;
     el9.querySelector('.gvN').textContent='1';el9.querySelector('.gvT').textContent=sansAcc(TR(SF_CARTES[t.carte].nm));el9.querySelector('.gvD').textContent=sansAcc(TR(SF_METEOS[t.meteo]));
     el9.style.setProperty('--lc',GV_TEINTE[t.carte]||'#5ee6ff');try{el9.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}
     gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();const p9=misPips(s9);pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!p9[k]);});}catch(e){}try{m2Portes();}catch(e){}
     return;}}
-  const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
+  const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
     el.querySelector('.gvN').textContent=tuto?'P':'1';
     el.querySelector('.gvT').textContent=sansAcc(TR(tuto?'AUTO-ECOLE':L0.nm));
     el.querySelector('.gvD').textContent=tuto?sansAcc(TR('PERMIS')):km.toFixed(1).replace('.',',')+' KM';
