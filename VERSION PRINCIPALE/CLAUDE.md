@@ -434,7 +434,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   contours à plat par `ailForme`, tiges `ailTige`, textures cuites une fois `ailTex`, mouvement par `ailAnime` (lit `wingT` et `AILV` :
   `n` le boost, `vir`, `mon`, `photo` la pose de la carte). ⚠ Tout groupe ou pièce qui BOUGE passe par `ailB(o)`, sinon `caisseSoude` le vide
   (« LES AILES VIVANTES » au journal) ; un effet hors cadrage photo porte `userData.fx`. Vérifier : `dbgAiles(id)` (0 groupe vidé),
-  `dbgAilesForce({ouvre:1,n:1})` + `dbgAilesVue(az,d,h)` (en course, au boost), `dbgAile(id)` (la photo).
+  `dbgAilesForce({ouvre:1,n:1})` + `dbgAilesVue(az,d,h)` (en course, au boost), `dbgAile(id)` (la photo) ; `dbgAilesVue('reprend')` relance la course entre deux photos.
+  ⚠ Une aile qui ne doit PAS s'étirer avec le pivot (SANS AILES : des buses posées sur la tôle) pose `piv.userData.recale` : la boucle
+  le rappelle juste après avoir posé l'étirement et le dièdre du pivot (voir AILES_POP.air).
 - Traînée : `rgb` = la couleur du ruban ; un EFFET = `pop:'nom'` + un émetteur dans `TRX_EMET` (quads instanciés, planche
   `trxPlanche`), `rubOff:1` s'il remplace le ruban. ⚠ Ce qui doit se voir en course garde ~0,86-0,9 de l'élan (`trxVit`).
 - Essayer : `dbgHab(cat,id)` (porté à l'essai), `dbgTrx('nom')` (forcée en course). Banc : photos garage + course, muet.

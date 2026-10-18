@@ -3,6 +3,24 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## SANS AILES — L'AILE QUI N'A PAS D'AILE (2026-10-18, Léo : « essaie de créer un nouveau type d'aile, mais en fait la blague c'est qu'il n'y a pas d'aile : c'est juste le système de propulsion qu'a présenté Elon Musk très récemment, qui permet à une voiture de pivoter et voler »)
+- LA RÉFÉRENCE : le Roadster présenté le 15/10/2026 — des propulseurs à GAZ FROID (air comprimé, dix buses) qui soulèvent la caisse et la font
+  pivoter en l'air. Aucune marque dans le jeu (revue App Store) : le nom dit la blague, « SANS AILES » (EN « NO WINGS »), et la fiche finit par
+  « Bon. Ça a marché. » (le mot de la démo). LÉGENDAIRE à 500 000 : l'aile la plus chère de la boutique… n'a pas d'aile.
+- LE DESSIN (`AILES_POP.air`) : rien qui dépasse — cinq BUSES par côté (fût d'acier, bouche noire, anneau qui s'allume quand elle souffle), posées
+  SUR la tôle de CHAQUE caisse par un rayon qui cherche sa carrosserie (`Raycaster` sur les maillages déjà posés, à la construction seulement) :
+  flanc avant, flanc arrière, poupe, deux sous le bas de caisse. Elles crachent des bouffées BLANCHES en CUBES (`ailEtincelles`, fondu normal,
+  la vapeur qui gonfle — la grammaire des flammes du jeu) : la POUPE au boost, les FLANCS quand on tourne en l'air (l'avant d'un côté, l'arrière
+  de l'autre : ce sont elles qui font pivoter la caisse), le DESSOUS quand on monte, un « pfft » de stabilisation de temps en temps, et une
+  bouffée de TOUTES à la sortie (elle « se gonfle »). La photo de la boutique : toutes soufflent (la vignette montre l'air).
+- ⚠ LE PIVOT S'ÉTIRE : la boucle pose `scale.x` (5 % → 100 %) et un dièdre sur le pivot des ailes ; des buses dedans glissaient hors de la tôle.
+  `g1`/`g2` l'annulent, rappelés par `piv.userData.recale` juste après que la boucle les pose (une ligne dans la boucle) — et par la photo.
+- MESURÉ au banc (vol réel, caméra du jeu) : le jet de la poupe à 20 m/s pendant 0,45 s montait jusqu'à l'objectif (7-9 m derrière) et
+  couvrait le tiers de l'écran → vie 0,26-0,52 s, vent relatif ÷ 2 : ~5 m de jet. 0 erreur, 0 groupe vidé par la soudure.
+- LE SON `ailes.air` (recette dans le bloc AILES de `atelier-son/recettes.js`, cuit en PCM, banque `v=33`) : la vanne, le PSCHHT froid d'une
+  bonbonne, le corps sourd du jet — à la sortie et au boost, EN VOL seulement (ailSon).
+- Pictogramme `ai_air` = le panneau INTERDIT. Hooks : `dbgAiles('air')`, `dbgAilesForce({ouvre:1,vir:1})`, `dbgAilesVue('reprend')` (nouveau).
+
 ## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
 - L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
   ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —

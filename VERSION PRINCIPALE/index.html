@@ -8055,7 +8055,7 @@ html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=32"></script>
+<script defer src="sons-banque.js?v=33"></script>
 <script defer src="sfx.js?v=6"></script>
 <script>
 (function(){
@@ -8093,6 +8093,7 @@ Object.assign(PXI_G,{ // (2026-10-14) LES TRAÎNÉES ET LES AILES POP : un picto
   ai_xwing:'#.......#|##.....##|.##...##.|..##.##..|...###...|..##.##..|.##...##.|##.....##|#.......#',
   ai_baron:'.........|#########|.#.....#.|.#.....#.|#########|....#....|...###...|.........|.........',
   ai_monarque:'##.....##|###...###|####.####|.###.###.|..##.##..|.###.###.|.##.#.##.|.#.....#.|.........',
+  ai_air:'..#####..|.##...##.|##....###|#....##.#|#...##..#|#..##...#|###....##|.##...##.|..#####..', // (2026-10-18) SANS AILES : le panneau INTERDIT
   ai_dragon:'#........|##.......|###....#.|####..##.|#########|#.#######|#..#.####|#...#.#.#|.........',
   ai_fee:'##.....##|###...###|.###.###.|...#.#...|....#....|...#.#...|.##...##.|.##...##.|.........',
   ai_rouages:'...#.#...|.#######.|.##...##.|###.#.###|.#.###.#.|###.#.###|.##...##.|.#######.|...#.#...',
@@ -36188,6 +36189,43 @@ AILES_POP={
       const ar=Math.max(0,Math.min(1,x));arme.color.setRGB(.5+2.3*ar*(.7+.3*Math.sin(t*14)),.06+.3*ar,.05+.22*ar); // les canons armés
       const k=.72+.14*Math.sin(t*31)+1.1*n;feu.color.setRGB(2.4*k,.62*k,.5*k);
       const L=.25+1.3*n+.07*Math.sin(t*40);for(const j of jets)j.scale.z=L;jetM.opacity=.22+.6*n;});},
+  air:function(piv,sd,W9,L9,H9,y0){ // SANS AILES (2026-10-18, Léo : « un nouveau type d'aile, mais la blague c'est qu'il n'y a pas d'aile : juste le système de
+    // propulsion présenté tout récemment, qui permet à une voiture de pivoter et voler ») — AUCUNE aile : cinq BUSES À AIR COMPRIMÉ par côté, dix en tout,
+    // posées SUR la tôle de la caisse (un rayon cherche sa carrosserie : le flanc avant, le flanc arrière, la poupe, deux sous le bas de caisse). Elles
+    // crachent des bouffées BLANCHES en cubes (la grammaire des flammes du jeu) : la poupe au BOOST, les flancs quand on tourne EN L'AIR — l'avant d'un
+    // côté, l'arrière de l'autre : ce sont elles qui font PIVOTER la caisse —, le dessous quand on monte, un petit « pfft » de stabilisation de temps en
+    // temps, et une bouffée de TOUTES à la sortie (elle « se gonfle »). L'anneau de chaque buse s'allume quand elle souffle.
+    // Le pivot s'étire et penche au déploiement (scale.x, dièdre) : `g1`/`g2` l'annulent (`piv.userData.recale`, rappelé par la boucle juste après
+    // qu'elle les pose, et par la photo) — les buses restent en vrais mètres, collées à la tôle.
+    const V=THREE.Vector3,g1=ailB(new THREE.Group()),g2=ailB(new THREE.Group());piv.add(g1);g1.add(g2);const P0=piv.position.clone();
+    const recale=function(){const s=piv.scale;g1.scale.set(1/Math.max(.01,s.x),1/Math.max(.01,s.y),1/Math.max(.01,s.z));g2.rotation.z=-piv.rotation.z;};piv.userData.recale=recale;
+    const cib=[];carGroup.updateMatrixWorld(true); // LA TÔLE : ce que la caisse a déjà posé (ni verre, ni halos, ni flaques au sol — les roues et les ailes ne sont pas encore là)
+    carGroup.traverse(function(o){if(o.isMesh&&o.visible&&!(o.userData&&o.userData.sol)&&o.material&&!o.material.transparent&&o.material.blending!==THREE.AdditiveBlending)cib.push(o);});
+    const Mw=carGroup.matrixWorld,Mi=new THREE.Matrix4().copy(Mw).invert(),rc=new THREE.Raycaster();
+    const tire=function(o,d,lim){rc.set(o.applyMatrix4(Mw),d.transformDirection(Mw));rc.far=lim||12;const h=cib.length?rc.intersectObjects(cib,false)[0]:null;return h?h.point.applyMatrix4(Mi):null;}; // le 1er point de tôle sur ce rayon (repère caisse)
+    const flanc=function(z){for(const k of [1,.93,.86,.78]){const p=tire(new V(sd*6,y0+H9*.42,z*k),new V(-sd,0,0));if(p)return p;}return new V(sd*W9*.5,y0+H9*.42,z);};
+    const dessous=function(z){return tire(new V(sd*W9*.3,y0-3,z),new V(0,1,0),3+H9*.4)||new V(sd*W9*.3,y0+.05,z);};
+    let po=null;for(const k of [1,.8,.6]){po=tire(new V(sd*W9*.3*k,y0+H9*.45,-L9*2),new V(0,0,1));if(po)break;}if(!po)po=new V(sd*W9*.3,y0+H9*.45,-L9*.5);
+    const X=new V(sd,0,0),B=[{p:flanc(L9*.44),d:X},{p:flanc(-L9*.44),d:X},{p:po,d:new V(0,0,-1)},{p:dessous(L9*.3),d:new V(0,-1,0)},{p:dessous(-L9*.3),d:new V(0,-1,0)}]; // 0 flanc AVANT · 1 flanc ARRIÈRE · 2 POUPE · 3-4 DESSOUS
+    const mBu=ailMat({color:0x30343c,shininess:110,specular:0x9aa0aa}),mTr=new THREE.MeshBasicMaterial({color:0x06070a}),
+      gBu=new THREE.CylinderGeometry(.1,.115,.07,10),gTr=new THREE.CircleGeometry(.064,10),gLe=new THREE.TorusGeometry(.083,.013,4,14),Y=new V(0,1,0),Z=new V(0,0,1),leds=[];
+    for(const b of B){const o=b.p.clone().sub(P0);b.o=o; // (dans g2 : la caisse, à l'origine du pivot)
+      const c=new THREE.Mesh(gBu,mBu);c.quaternion.setFromUnitVectors(Y,b.d);c.position.copy(o).addScaledVector(b.d,.01);g2.add(c);        // le fût, à moitié dans la tôle
+      const t=new THREE.Mesh(gTr,mTr);t.quaternion.setFromUnitVectors(Z,b.d);t.position.copy(o).addScaledVector(b.d,.047);g2.add(t);       // la bouche
+      const lm=new THREE.MeshBasicMaterial({color:new THREE.Color(.12,.35,.5)}),l=ailB(new THREE.Mesh(gLe,lm));l.quaternion.setFromUnitVectors(Z,b.d);l.position.copy(o).addScaledVector(b.d,.049);g2.add(l);leds.push(lm);} // son anneau
+    const fum=ailEtincelles(g2,150,.25,0xeef5ff,{normal:1,grow:1,op:.82}),E=B.map(function(){return {a:0,f:0};}),nv=[0,0,0,0,0];let e0=0,n0=0,pf=.6;
+    const souffle=function(i,n,v,s,vent,vie){const b=B[i],o=b.o,d=b.d,j=v*.35;vie=vie||.3; // (la vie courte de la poupe : sa bouffée ne doit pas monter jusqu'à l'objectif, 7-9 m derrière — MESURÉ au banc : à 20 m/s et 0,45 s elle couvrait le tiers de l'écran)
+      for(let k=0;k<n;k++)fum.pousse(o.x+d.x*.06,o.y+d.y*.06,o.z+d.z*.06,d.x*v+(Math.random()-.5)*j,d.y*v+(Math.random()-.5)*j+.4,d.z*v+(Math.random()-.5)*j-vent,vie+Math.random()*vie,s*(.7+Math.random()*.6));};
+    ailAnime(function(t,e,dt){recale();
+      const vol=mode==='fall'&&!garageOn,vent=vol?5:1.2,n=AILV.n,vr=AILV.vir,mo=AILV.mon,cl=function(x){return x<0?0:x>1?1:x;};
+      if(AILV.photo){nv[0]=nv[1]=nv[3]=nv[4]=.7;nv[2]=.8;} // LA PHOTO de la boutique : toutes soufflent — la vignette montre l'air, pas l'aile
+      else{nv[0]=cl((-sd*vr-.12)*1.8);nv[1]=cl((sd*vr-.12)*1.8);nv[2]=n;nv[3]=nv[4]=cl(mo*1.6);} // le virage (+ = à gauche) : l'avant DROIT et l'arrière GAUCHE soufflent, et inversement
+      if(e0<.55&&e>=.55){for(let i=0;i<5;i++){souffle(i,i===2?5:8,5,2.3,vent,.25);E[i].f=1;}if(sd>0)ailSon('ailes.air',e);}e0=e; // LA SORTIE : elle se gonfle
+      if(n0<.5&&n>=.5&&sd>0&&!AILV.photo)ailSon('ailes.air',e,-4);n0=n;                                                     // le boost : la poupe lâche tout
+      if(e>.9&&!AILV.photo){pf-=dt;if(pf<0){pf=.45+Math.random()*.9;const i=[0,1,3,4][Math.floor(Math.random()*4)];if(nv[i]<.1){souffle(i,3,3.5,1.5,vent);E[i].f=Math.max(E[i].f,.6);}}} // la stabilisation : pfft
+      for(let i=0;i<5;i++){const q=E[i];q.a+=nv[i]*(i===2?60:40)*dt;while(q.a>=1){q.a-=1;if(i===2)souffle(2,1,10,2.4,vent*.6,.26);else souffle(i,1,7,2,vent);}
+        q.f=Math.max(nv[i],q.f-dt*4);leds[i].color.setRGB(.12+.75*q.f,.35+1.55*q.f,.5+2.1*q.f);}
+      fum.pas(dt,.3,1.1);});},
   baron:function(piv,sd,W9){ // BARON ROUGE — un biplan de toile rouge entoilée (nervures, coutures, une pièce rapiécée, des taches d'huile), des mâts de bois,
     // des haubans en croix, les AILERONS qui suivent le virage et L'ÉCHARPE DU PILOTE nouée au mât, qui claque au vent (fort au boost)
     const S=W9*1.02,tex=ailTex('baron',function(x,w,h){x.fillStyle='#b5181c';x.fillRect(0,0,w,h);
@@ -39931,6 +39969,7 @@ window.dbgAiles=function(id){ /* (banc, 2026-10-16, LES AILES VIVANTES) porter u
   for(const w of [carWingL,carWingR]){if(!w)continue;let gb=0,pb=0,vides=0,maillages=0;w.traverse(function(o){if(o.isMesh)maillages++;if(o!==w&&o.userData.bouge){if(o.isGroup){gb++;if(!o.children.length)vides++;}else pb++;}});L.push({enfants:w.children.length,maillages:maillages,groupes:gb,pieces:pb,vides:vides});}
   return {aile:id||null,cotes:L,anim:BLING.anim.length,AILV:{t:+AILV.t.toFixed(2),n:+AILV.n.toFixed(2),vir:+AILV.vir.toFixed(2),mon:+AILV.mon.toFixed(2),vitr:AILV.vitr},wingT:+wingT.toFixed(2)};};
 window.dbgAilesVue=function(az,d,h){ /* (banc) MODE PHOTO dans le repère de la CAISSE : az = 0 derrière elle, ±π/2 de côté, π devant ; d = distance, h = hauteur — en pause, une image (les ailes continuent de vivre : la rappeler) */
+  if(az==='reprend'){if(started&&!gameOver&&paused)togglePause();return 'reprend';} // (2026-10-18, banc SANS AILES) la course repart : les ailes revivent entre deux photos
   if(started&&!gameOver&&!paused)togglePause();carGroup.updateMatrixWorld(true);
   const p=new THREE.Vector3().setFromMatrixPosition(carGroup.matrixWorld),q=new THREE.Quaternion().setFromRotationMatrix(carGroup.matrixWorld),
     o=new THREE.Vector3(Math.sin(az||0)*(d||7),h==null?2.2:h,-Math.cos(az||0)*(d||7)).applyQuaternion(q),up=new THREE.Vector3(0,1,0).applyQuaternion(q);
@@ -40276,6 +40315,7 @@ const COSM={
     {id:'xwing',    n:'AILES EN X',        p:120000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
     {id:'fee',      n:'FÉE',               p:160000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
     {id:'dragon',   n:'DRAGON',            p:450000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
+    {id:'air',      n:'SANS AILES',        p:500000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
     {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'mythique',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
   trainee:[
     {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
@@ -40481,7 +40521,7 @@ if(PEINT_V2){
     "FLOWER POWER":"FLOWER POWER","Des marguerites sur fond rose. Peace, love et nitro.":"Daisies on pink. Peace, love and nitro.",
     "CAMOUFLAGE":"CAMO","Kaki, brun, vert sapin. Invisible en forêt. À 900 à l'heure, un peu moins.":"Khaki, brown, pine green. Invisible in the woods. At 900 km/h, a bit less.",
     "DAMIER":"CHEQUERED","Le drapeau d'arrivée peint sur toute la caisse. Tu as déjà gagné.":"The finish flag painted all over the car. You've already won.",
-    "PEAU DE DRAGON":"DRAGON SKIN","Des écailles vertes cerclées d'or. Le dragon a mué : la peau est à toi.":"Green scales rimmed with gold. The dragon shed its skin: it's yours now.",
+    "SANS AILES":"NO WINGS","Les ailes, c'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s'envole. Bon. Ça a marché.":"Wings are for pigeons. Ten compressed-air nozzles hidden in the bodywork: it spits white puffs, spins on the spot and takes off. Well. It worked.","PEAU DE DRAGON":"DRAGON SKIN","Des écailles vertes cerclées d'or. Le dragon a mué : la peau est à toi.":"Green scales rimmed with gold. The dragon shed its skin: it's yours now.",
     "COCCINELLE":"LADYBUG","Rouge vif, pois noirs. Porte-bonheur, et en plus elle va vite.":"Bright red, black dots. A lucky charm, and fast too.",
     "GALAXIE":"GALAXY","Des nébuleuses et mille étoiles sur la carrosserie. Le ciel de nuit, en laque.":"Nebulae and a thousand stars on your bodywork. The night sky, lacquered.",
     "PLEIN AUX AS":"LOADED","Des dollars d'or sur fond vert billet. Discret ? Non.":"Gold dollars on cash green. Subtle? No.",
@@ -62118,6 +62158,7 @@ function loop(now){
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
     const sc=.05+.95*wingT;carWingL.scale.x=sc*(carWingL.userData.k||1);carWingR.scale.x=sc*(carWingR.userData.k||1); // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
     carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;  // léger dièdre de planeur une fois sorties
+    if(carWingL.userData.recale){carWingL.userData.recale();carWingR.userData.recale();} // (2026-10-18) SANS AILES : les buses annulent l'étirement et le dièdre du pivot (voir AILES_POP.air)
     /* (2026-10-13, Léo : « ces barres chelou blanches et d'autres couleurs, check chaque voiture ») RENTRÉES, ELLES DISPARAISSENT : écrasées à
        5 % de leur largeur, les ailes restaient un panneau de 8 cm × 1,5 m à la couleur d'ACCENT de la caisse, posé à mi-hauteur du flanc — tant
        que la coque était large, il y était caché ; depuis que les vitres rentrent (les vrais modèles), il sortait à travers la ceinture et les
