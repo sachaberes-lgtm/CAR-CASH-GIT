@@ -62,8 +62,11 @@
   · Le minimum de TROIS est tenu sur 20-24 graines × 4 paliers (0, 5, 10, 15) pour chaque map (la forêt le garantit par sa note, voir plus haut).
   · DANS LE VRAI JEU (Chrome du banc, `dbgTrace`) : les 20 pistes `dbgModCartes(0)` (10 maps × 2 graines) sont identiques AU BIT à celles
     d'origin/main ; les 20 pistes ON portent leurs modules (`mods`). Parcours (JOUER, puis chaque map forcée par dbgClassique + dbgSaut, pilote
-    de mesure 9 s) : les 10 maps se bâtissent et se roulent sans erreur JS ni __loopErr ; au canyon, la règle d'or dbgCanyon('test') : 0 rocher
-    sur ni sous la route, marge 9,1 m.
+    de mesure 9 s) : les 10 maps se bâtissent et se roulent sans __loopErr ; au canyon, la règle d'or dbgCanyon('test') : 0 rocher sur ni sous la
+    route, marge 9,1 m. Le pilote de mesure meurt sur 4 maps sur 10 dans les premières centaines de mètres — AVEC les modules (crypto 261 m,
+    orbite 414, forêt 466, glacier 579) comme SANS (passage témoin `dbgModCartes(0)` : orbite 404, forêt 781, glacier 503, canyon 312) : c'est le
+    pilote, pas les modules (ces morts tombent toutes avant le premier module ; le début de la crypto est le même tracé dans les deux cas). Une
+    erreur « computeBoundingSphere : NaN » en forêt venait du double `fbBoite` (les chaumières), réparé sur main entre-temps : absente du témoin.
   · Les niveaux du VOLCAN, de la FORÊT et de JADE sont un peu plus LONGS (+17 %, +16 %, +13 % au palier 0) : leurs modules prennent la place de
     virages, mais sont plus longs qu'eux (ils s'allongeaient de 30 à 50 % avant qu'on les fasse prendre la place de la route : Jade retire la
     longueur du module de son tronçon, le volcan lui donne une case entière de virages, la forêt ne les pose que si la cible est loin).
