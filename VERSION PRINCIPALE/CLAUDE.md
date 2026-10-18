@@ -439,6 +439,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   le rappelle juste après avoir posé l'étirement et le dièdre du pivot (voir AILES_POP.air).
 - Traînée : `rgb` = la couleur du ruban ; un EFFET = `pop:'nom'` + un émetteur dans `TRX_EMET` (quads instanciés, planche
   `trxPlanche`), `rubOff:1` s'il remplace le ruban. ⚠ Ce qui doit se voir en course garde ~0,86-0,9 de l'élan (`trxVit`).
+  Commun à toutes (18/10, passe globale) : de JOUR un voile d'encre sous la lumière (`TRJ` : rubans `tr.mi`, TRX `uInk` — `?sans=encrejour`),
+  le halo du feu arrière prend la couleur de la traînée au nitro (`VIT9.trC`/`trK`), la bascule rouge des feux → couleur est rapide (`cw9`) :
+  jamais de mélange RGB entre deux teintes éloignées (MENTHE + rouge = jaune). Juger une traînée de jour ET de nuit.
 - Essayer : `dbgHab(cat,id)` (porté à l'essai), `dbgTrx('nom')` (forcée en course). Banc : photos garage + course, muet.
 
 **Ajouter une figure (un emplacement de vol, le double-tap nitro)**

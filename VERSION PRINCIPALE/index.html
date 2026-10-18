@@ -6431,7 +6431,7 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 :is(#fh,#fhLeg) [data-rp=legendaire]{--rc:#ffd75e;--rk:1.9}
 :is(#fh,#fhLeg) [data-rp=combo]{--rc:#fff7ee;--rk:1}
 #fh .fhNom[data-rp]{--fc:var(--rc)}
-#fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]) b::after{display:none} /* la lèvre claire est calée sur les capitales de Press Start 2P */
+#fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]):not([data-rp=legendaire]) b::after{display:none} /* (2026-10-18, débogage) la légendaire en est exclue : cette règle pesait plus lourd que son reflet (plus bas), qui ne s'est jamais allumé */ /* la lèvre claire est calée sur les capitales de Press Start 2P */
 #fh .fhNom[data-rp=epique] b{text-shadow:var(--fhBord),0 0 26px color-mix(in srgb,var(--fc) 95%,transparent),0 0 8px color-mix(in srgb,var(--fc) 60%,transparent)}
 #fh .fhNom[data-rp=legendaire] b{text-shadow:var(--fhBord),0 0 30px color-mix(in srgb,var(--fc) 85%,transparent)}
 #fh .fhNom[data-rp=legendaire] b::after{display:block;clip-path:none;color:transparent;-webkit-text-fill-color:transparent;
@@ -10059,7 +10059,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
    LES FEUX : un phare n'éblouit que celui qui le regarde EN FACE (vu de profil, un point ; vu de dos, rien) ; les feux arrière
    brillent vers la caméra de poursuite et S'EMBRASENT au frein — pouce tiré vers le bas (drift) ou ↓. La nuit (ville, orbite)
    les halos s'élargissent. Zéro allocation : tout passe par VIT9. */
-const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),clB:1,clW:-1,phT:{matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
+const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),trC:new THREE.Color(0xff2818),trK:0,clB:1,clW:-1,phT:{matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
 function carVit(dt){
   const boom=mode==='boom';
   if(!running||garageOn||boom)ROUES.v=0;
@@ -10118,8 +10118,13 @@ function carVit(dt){
   if(CARPOOL.head){
     if(bqV){if(CARPOOL.head.visible){CARPOOL.head.visible=false;VIT9.phBq=1;}}else if(VIT9.phBq){CARPOOL.head.visible=true;VIT9.phBq=0;}}
   HALO.tM.opacity=boom?0:Math.min(1,.85*(.35+.65*ar)+.2*fr9);
-  HALO.tM.color.copy(VIT9.tC).lerp(VIT9.tF,fr9);
-  for(const s9 of HALO.t){const k=s9.userData.k*(.85+.2*ar+.65*fr9)*(1+.2*nuit);s9.scale.set(k,k,1);}
+  /* (2026-10-18, traînées — Sacha : « améliore toutes les traînées ») LE FEU PREND LA COULEUR DE SA TRAÎNÉE : la traînée naît dans le feu arrière,
+     mais au nitro un ruban vert, rose ou bleu sortait d'une boule ROUGE — la source et sa lumière ne se répondaient pas. Le halo du feu prend la
+     teinte de la traînée à la mesure de son énergie (`VIT9.trK`/`trC`, posés par la boucle avec les traînées de lumière) et enfle d'un tiers :
+     la lumière sort d'une lampe de sa couleur. Lâché, il retourne au rouge avec elle ; au garage et à l'explosion, rien ne change. */
+  const tk9=(running&&!garageOn&&!boom)?VIT9.trK:0;
+  HALO.tM.color.copy(VIT9.tC).lerp(VIT9.tF,fr9);if(tk9>.01)HALO.tM.color.lerp(VIT9.trC,tk9);
+  for(const s9 of HALO.t){const k=s9.userData.k*(.85+.2*ar+.65*fr9)*(1+.2*nuit)*(1+.35*tk9);s9.scale.set(k,k,1);}
 }
 /* LES LUMIÈRES DE LA CAISSE v2 — LE PILOTE (2026-10-17, voir LUM_GLSL). `lumTick` pose chaque image, EN COORDONNÉES MONDE, ce que la caisse éclaire :
    les phares, les deux feux arrière, le feu du nitro (un trait par côté), les traînées de lumière (trois traits chacune) ; `lumVue`, chaîné sur
@@ -23824,7 +23829,7 @@ function fmtGta(v){
    un seul rAF pour toutes les plaques, aucun objet alloué par image). Les grands montants tiennent : quand le NOMBRE de signes change, la police
    descend par crans jusqu'à ce que la plaque tienne dans son cadre et dans l'écran (soldeFit, une mesure par changement de longueur, pas par image).
    Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
-function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.round(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');} /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
 const SOLDE={l:[],on:false,D:700};
 function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
   let fs=parseFloat(getComputedStyle(el).fontSize)||14;
@@ -26101,6 +26106,15 @@ const SIL={N:200,SUB:2,PAS:.6,DTM:1/45,LONG:100,QUEUE:24, /* (v6b, 29/09 soir, S
      qu'elles crachent sur leur longueur ; en refroidissant elles suivent la palette des cubes (orange → vermillon → rouge profond) ;
    · la lumière est ENREGISTRÉE au passage (comme une photo de nuit) : le morceau de nitro file derrière, brillant, puis la queue l'avale. */
 const LUMT={k:.58,kF:.7,lg:46,w:.72,r:[1.5,.1,.07],rF:[1.75,.16,.08],rDn:30};
+/* LA TRAÎNÉE SE LIT DE JOUR (2026-10-18, Sacha : « améliore toutes les traînées en cherchant globalement à les améliorer ») — une passe
+   COMMUNE à toutes les traînées. De jour, une lumière ADDITIVE posée sur du bitume clair ou sur le ciel ne fait qu'éclaircir : la traînée
+   virait au pastel (l'orange du nitro en beige, MENTHE en blanc verdâtre), alors que la nuit elle brille. Sous le halo de chaque ruban, un
+   voile d'ENCRE (la même que la salle blanche, `silEncre`) teinte le fond de la couleur de la traînée — le bitume gris devient orange sous
+   l'orange — puis la lumière s'y pose : de jour on lit une couleur FRANCHE, comme un néon en plein soleil. Le voile suit la lumière du lieu
+   (`LUM.nuit`, la même que les phares) : nul la nuit (rien ne change), plein en plein jour. Même chose pour ce qui brille dans les traînées
+   POP (code, foudre, filés, paillettes, néons : `uInk` du maillage additif de TRX). Mêmes programmes (le mélange n'entre pas dans leur clé),
+   un appel de dessin de plus par ruban visible. `?sans=encrejour` = avant. */
+const TRJ={on:!/[?&]sans=encrejour\b/.test(location.search),k:1.15,max:.78,trx:1.1};
 const SIL_TEX=(function(){ // le profil EN TRAVERS : moitié gauche = le HALO (gaussienne large), moitié droite = le CŒUR (gaussienne serrée + une jupe)
   const cv=document.createElement('canvas');cv.width=128;cv.height=2;const c=cv.getContext('2d'),im=c.createImageData(128,2);
   for(let x=0;x<128;x++){const h=x<64,u=((h?x:x-64)+.5)/32-1,v=h?Math.exp(-u*u*4.5):Math.exp(-u*u*10)+.3*Math.exp(-u*u*2.5);
@@ -26118,8 +26132,12 @@ function mkSillage(){
   g.setIndex(idx);g.setDrawRange(0,0);
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:SIL_TEX,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
   m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
+  const gi=new THREE.BufferGeometry(),coli=new Float32Array(Rm*12); // (2026-10-18) LE VOILE DE JOUR (voir TRJ) : la même géométrie, ses couleurs à lui
+  gi.setAttribute('position',g.attributes.position);gi.setAttribute('uv',g.attributes.uv);gi.setAttribute('color',new THREE.BufferAttribute(coli,3));gi.setIndex(g.index);gi.setDrawRange(0,0);
+  const mi=new THREE.Mesh(gi,new THREE.MeshBasicMaterial({map:SIL_TEX,vertexColors:true,transparent:true,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.ZeroFactor,blendDst:THREE.OneMinusSrcColorFactor,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  mi.frustumCulled=false;mi.visible=false;mi.renderOrder=1;m.add(mi);
   const F=function(){return new Float32Array(SIL.N);};
-  return {m,pos,col,X:F(),Y:F(),Z:F(),T:F(),K:F(),CR:F(),CG:F(),CB:F(),n:0,emit:false,clk:0,init:false,cut:SIL.cutB,g:0,tOff:0,long:0,dOk:false,dX:0,dY:0,dZ:-1,lg:LUMT.lg,hk:0};
+  return {m,mi,coli,pos,col,X:F(),Y:F(),Z:F(),T:F(),K:F(),CR:F(),CG:F(),CB:F(),n:0,emit:false,clk:0,init:false,cut:SIL.cutB,g:0,tOff:0,long:0,dOk:false,dX:0,dY:0,dZ:-1,lg:LUMT.lg,hk:0};
 }
 const SILS=[mkSillage(),mkSillage(),mkSillage(),mkSillage()],trailL=SILS[0],trailR=SILS[1];let trailK=0; // (2026-09-29) les sillages DU JOUEUR, un par pot (4 au plus, comme les plumes) ; mkTrail/trailStep restent ceux de la meute, du fantôme et du fourgon
 /* ---- L'ARC-EN-CIEL DU CHAT POP-TART, EN CUBES DE FEU (2026-10-07, Léo : « le boost de la Nyan Cat avec la méthode des flammes de la
@@ -26370,8 +26388,10 @@ const TRX_VS='attribute vec4 iP;attribute vec4 iA;attribute vec4 iB;attribute ve
  +' gl_Position=projectionMatrix*mv;\n'
  +' float cl=floor(mod(iB.w+.5,8.)),rw=floor((iB.w+.5)/8.);vUv=vec2((cl+q.x*.5+.5)/8.,(7.-rw+q.y*.5+.5)/8.);\n'
  +' vC=iC;vC.a*=smoothstep(uNear.x,uNear.y,-mv.z);}'; // près de l'objectif, tout s'efface : la caméra de poursuite roule DANS la traînée
-const TRX_FS='uniform sampler2D uMap;varying vec2 vUv;varying vec4 vC;\n'
- +'void main(){vec4 t=texture2D(uMap,vUv);float a=t.a*vC.a;if(a<.004)discard;gl_FragColor=vec4(t.rgb*vC.rgb*a,a);}'; // (2026-10-16, TRAÎNÉES) PRÉMULTIPLIÉ : le mélange se règle sans toucher au programme (additif ↔ encre de la salle blanche, voir trxEncre)
+const TRX_FS='uniform sampler2D uMap;uniform float uInk;varying vec2 vUv;varying vec4 vC;\n'
+ +'void main(){vec4 t=texture2D(uMap,vUv);float a=t.a*vC.a;if(a<.004)discard;vec3 c=t.rgb*vC.rgb;\n'
+ +' if(uInk>0.){float m=max(max(c.r,c.g),max(c.b,1e-4));gl_FragColor=vec4(clamp(1.05-c/m,0.,1.)*min(1.,m*a*uInk),a);return;}\n'
+ +' gl_FragColor=vec4(c*a,a);}'; /* (2026-10-18) uInk : le VOILE DE JOUR du maillage qui brille (voir TRJ) — même programme, un uniforme de plus */ // (2026-10-16, TRAÎNÉES) PRÉMULTIPLIÉ : le mélange se règle sans toucher au programme (additif ↔ encre de la salle blanche, voir trxEncre)
 /* LA PLANCHE : 64 cases de 128 px, chacune garde une marge (les mipmaps ne débordent pas chez la voisine).
    0 halo · 1 trait (foudre, filés) · 2 étincelle · 3 mur de lumière · 4-11 glyphes · 12 anneau d'or · 13 pastille · 14 super-pastille ·
    15-18 fantômes (rouge, rose, cyan, orange) · 19 fantôme apeuré · 20-26 les sept pièces de quatre carrés · 27-29 pétales · 30-31 billet
@@ -26481,9 +26501,13 @@ function trxBati(){if(TRX)return TRX;
     g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([-1,-1,0,1,-1,0,1,1,0,-1,1,0]),3));g.setIndex([0,1,2,0,2,3]);
     for(const k of ['iP','iA','iB','iC']){const at=new THREE.InstancedBufferAttribute(new Float32Array(TRX_N*4),4);at.setUsage(THREE.DynamicDrawUsage);g.setAttribute(k,at);a[k]=at.array;}
     g.instanceCount=0;
-    const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:{uMap:{value:tx},uNear:{value:new THREE.Vector2(.9,2.1)}/* (2026-10-16, TRAÎNÉES) 1,2-3,4 → 0,9-2,1 m : ce qui entoure la caisse est à 3-5 m de la poursuite, il s'effaçait */},vertexShader:TRX_VS,fragmentShader:TRX_FS,
+    const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:{uInk:{value:0},uMap:{value:tx},uNear:{value:new THREE.Vector2(.9,2.1)}/* (2026-10-16, TRAÎNÉES) 1,2-3,4 → 0,9-2,1 m : ce qui entoure la caisse est à 3-5 m de la poursuite, il s'effaçait */},vertexShader:TRX_VS,fragmentShader:TRX_FS,
       transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:add?THREE.OneFactor:THREE.OneMinusSrcAlphaFactor,side:THREE.DoubleSide}));
-    m.frustumCulled=false;m.renderOrder=add?4:3;m.visible=false;scene.add(m);return {m:m,g:g,a:a,n:0,add:add};};
+    m.frustumCulled=false;m.renderOrder=add?4:3;m.visible=false;scene.add(m);
+    let mi=null;if(add){const U=m.material.uniforms;mi=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:{uInk:{value:0},uMap:U.uMap,uNear:U.uNear},vertexShader:TRX_VS,fragmentShader:TRX_FS, // (2026-10-18) LE VOILE DE JOUR (voir TRJ) : la même géométrie, sous la lumière
+      transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.ZeroFactor,blendDst:THREE.OneMinusSrcColorFactor,side:THREE.DoubleSide}));
+      mi.frustumCulled=false;mi.renderOrder=3.5;mi.visible=false;m.add(mi);}
+    return {m:m,mi:mi,g:g,a:a,n:0,add:add};};
   const V=function(){return new THREE.Vector3();};
   TRX={L:[mk(false),mk(true)],P:[],pi:0,type:null,n:0,t:0,acc:0,dist:0,cnt:0,kp:0,gk:0,peur:0,boltT:0,ms:0,apercu:false,
     C:{P:V(),F:V(),U:V(),R:V(),V:V(),B:V(),WL:V(),WR:V(),pv:false,dp:0,sol:true},v1:V(),wl0:V(),wr0:V(),pP:V(),bolts:[],
@@ -26716,6 +26740,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
     if(!!M._encre!==enc){M._encre=enc;M.blendSrc=enc?THREE.ZeroFactor:THREE.OneFactor;M.blendDst=enc?THREE.OneMinusSrcColorFactor:THREE.OneFactor;}
     if(enc){const c=Y.a.iC;for(let i=0;i<Y.n;i++){const o=i*4,r=c[o],g=c[o+1],b=c[o+2],m=Math.max(r,g,b,1e-4),s=Math.min(1,m*.85);
       c[o]=Math.min(1,1.1-r/m)*s;c[o+1]=Math.min(1,1.1-g/m)*s;c[o+2]=Math.min(1,1.1-b/m)*s;}}}
+  {const Yi=T.L[1];if(Yi.mi){const ik=(TRJ.on&&!C.pv&&running&&!garageOn)?(1-LUM.nuit)*TRJ.trx:0;Yi.mi.material.uniforms.uInk.value=ik;Yi.mi.visible=ik>.02;}} // (2026-10-18) LE VOILE DE JOUR de ce qui brille (voir TRJ)
   for(const Y of T.L){const n=Y.n;Y.g.instanceCount=n;Y.m.visible=n>0;
     if(n)for(const nm of ['iP','iA','iB','iC']){const at=Y.g.attributes[nm];at.updateRange.offset=0;at.updateRange.count=n*4;at.needsUpdate=true;}}
   T.n=np+T.L[0].n+T.L[1].n+nb+(T.gk>0?1:0); // tant qu'il reste quelque chose (même un mur qui s'éteint), la boucle continue d'appeler
@@ -26913,7 +26938,7 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   tr.m.geometry.attributes.position.needsUpdate=true;
   tr.m.geometry.attributes.color.needsUpdate=true;
 }
-const SV=new THREE.Vector3(),SD=new THREE.Vector3(),SS=new THREE.Vector3(); // (sillage) réutilisés : zéro allocation
+const SV=new THREE.Vector3(),SD=new THREE.Vector3(),SS=new THREE.Vector3(),SP=new THREE.Vector3(); // (sillage) réutilisés : zéro allocation
 function silPousse(tr){for(const a of [tr.X,tr.Y,tr.Z,tr.T,tr.K,tr.CR,tr.CG,tr.CB])a.copyWithin(1,0,SIL.N-1);tr.n=Math.min(SIL.N,tr.n+1);} // un cran : la case 0 se libère pour la tête
 function silPose(tr,i,x,y,z,k,r,g,b){tr.X[i]=x;tr.Y[i]=y;tr.Z[i]=z;tr.T[i]=tr.clk;tr.K[i]=k;tr.CR[i]=r;tr.CG[i]=g;tr.CB[i]=b;}
 function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement de la TÊTE (nitro, allumage) · wu : la largeur de TOUT le sillage (un pot seul : plus large)
@@ -26968,6 +26993,7 @@ function silEncre(m,on){const M=m.material;if(!!M._encre===on)return;M._encre=on
   else M.blending=THREE.AdditiveBlending;}
 function silRuban(tr,R9,emet,dt,wm,wu){
   const Q=SIL_Q;silEncre(tr.m,SIL_ENCRE);
+  const dk=(TRJ.on&&!SIL_ENCRE&&running&&!garageOn)?(1-LUM.nuit)*TRJ.k:0,CI=tr.coli; // (2026-10-18) LE VOILE DE JOUR (voir TRJ) : nul la nuit, au garage et en salle blanche
   // 2) LE RUBAN : face caméra, halo + cœur ; en vol, coupé à l'écran quand il PEND sous sa tuyère
   const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1,wa=wu||1,LG=Math.max(4,tr.lg),QU=SIL.QUEUE*LG/SIL.LONG;
   TR_PJ.set(Q[0],Q[1],Q[2]).project(camera);const yh=TR_PJ.y,xh=TR_PJ.x,asp=camera.aspect||.5;
@@ -26981,7 +27007,8 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     if(r>0){const ex=x-Q[o-8],ey=y-Q[o-7],ez=z-Q[o-6];arc+=Math.sqrt(ex*ex+ey*ey+ez*ez);}
     SD.set(Q[rb]-Q[ra],Q[rb+1]-Q[ra+1],Q[rb+2]-Q[ra+2]);SV.set(x-cam.x,y-cam.y,z-cam.z);SS.crossVectors(SD,SV);
     const l2=SS.lengthSq(),dC=SV.length(),lD=SD.length();let sA=0;
-    if(l2>1e-12){const l9=Math.sqrt(l2);sA=(lD>1e-6&&dC>1e-6)?l9/(lD*dC):0;SS.multiplyScalar(1/l9);}else SS.set(0,0,0);
+    if(l2>1e-12){const l9=Math.sqrt(l2);sA=(lD>1e-6&&dC>1e-6)?l9/(lD*dC):0;SS.multiplyScalar(1/l9);
+      if(r>0&&SS.x*SP.x+SS.y*SP.y+SS.z*SP.z<0)SS.negate();SP.copy(SS);}else SS.set(0,0,0); /* (2026-10-18) le côté GARDE son sens d'une rangée à l'autre : là où le ruban passe dans l'axe du regard (vol, vrilles, sous l'objectif), le côté s'inversait et la bande se pinçait en nœud papillon */
     const al=Math.min(1,arc/LG);
     let f=Q[o+3]*tr.g*(1-.22*al)*SM(arc,0,.35)*(mode==='fall'?SM(sA,SIL.axeV*.25,SIL.axeV):SM(sA,.05,.22))*(1-SM(arc,LG-QU,LG)); // (v6) en vol, vu dans l'axe il RESTE (la caméra suit le vol) // RÉGULIER sur 40 m, la queue s'éteint sur les 10 derniers ; la tête naît sous la plume ; vu PILE dans l'axe, il s'efface (le « tapis »)
     let fin=r>0&&arc>=LG;
@@ -27012,11 +27039,14 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     P[v]=x+SS.x*wg;P[v+1]=y+SS.y*wg;P[v+2]=z+SS.z*wg;P[v+3]=x-SS.x*wg;P[v+4]=y-SS.y*wg;P[v+5]=z-SS.z*wg;
     P[v+6]=x+SS.x*wc;P[v+7]=y+SS.y*wc;P[v+8]=z+SS.z*wc;P[v+9]=x-SS.x*wc;P[v+10]=y-SS.y*wc;P[v+11]=z-SS.z*wc;
     C[v]=C[v+3]=gr;C[v+1]=C[v+4]=gg;C[v+2]=C[v+5]=gb;C[v+6]=C[v+9]=kr;C[v+7]=C[v+10]=kg;C[v+8]=C[v+11]=kb;
+    if(dk>0){const mq=Math.max(qr,qg,qb,1e-4),s9=Math.min(TRJ.max,fG*hk*dk*(.3+.7*tr.hk)); // le voile sous le HALO — surtout au nitro : le simple trait des feux arrière reste discret de jour : le fond perd ce qui n'est pas la couleur de la traînée (le cœur n'en a pas : il brille par-dessus)
+      CI[v]=CI[v+3]=(1-qr/mq)*s9;CI[v+1]=CI[v+4]=(1-qg/mq)*s9;CI[v+2]=CI[v+5]=(1-qb/mq)*s9;CI[v+6]=CI[v+7]=CI[v+8]=CI[v+9]=CI[v+10]=CI[v+11]=0;}
     if(fin){Rf=r+1;break;}
   }
   tr.m.geometry.setDrawRange(0,Math.max(0,Rf-1)*12);tr.m.visible=Rf>1;
   {const a9=tr.m.geometry.attributes,c9=Math.max(1,Rf)*12;a9.position.updateRange.offset=0;a9.position.updateRange.count=c9;a9.color.updateRange.offset=0;a9.color.updateRange.count=c9; // (revue GAMEPLAY) on n'envoie que les rangées dessinées — sans updateRange, three renvoyait les 2 × 19 Ko du tampon à chaque image, par pot
    a9.position.needsUpdate=true;a9.color.needsUpdate=true;}
+  tr.mi.visible=dk>0&&Rf>1;if(tr.mi.visible){const gi=tr.mi.geometry,ci=gi.attributes.color;gi.setDrawRange(0,Math.max(0,Rf-1)*12);ci.updateRange.offset=0;ci.updateRange.count=Math.max(1,Rf)*12;ci.needsUpdate=true;}
 }
 /* <<<VOITURES>>> ---------------------------------------------------------------------------
    LA CARROSSERIE — tout ce qui fabrique une caisse, des matériaux jusqu'aux flaques au sol.
@@ -37128,7 +37158,7 @@ function plqClavier(){const el=$p('plq'),tx=$p('plqTx'),vv=window.visualViewport
 function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
   if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
     toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
-  PLQ.on=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){}
+  PLQ.on=false;PLQ.kb=false;const tx=$p('plqTx');try{if(tx)tx.blur();}catch(_){} /* (2026-10-18, débogage) PLQ.kb remis ici : plqClavier ne tourne plus une fois l'atelier fermé, et le rattrapage de 400 ms (la page qui revient en haut quand le clavier iOS descend) attendait un PLQ.kb faux qui ne venait jamais */
   feuilleFerme(el,'on');if(PLQ.prof)profRemplit();}
 function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
   const tx=$p('plqTx');
@@ -42164,7 +42194,7 @@ function spinOuvre(){
   requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
   try{if(SONV2&&!sfx('spin.ouvre'))sfx('ui.banniere');}catch(e){}hap(12);} /* (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous ») elle S'ALLUME : relais, néon, ampoules en chenillard */
 function spinFerme(){if(!SPIN.el)return;if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
-  setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{mFill();}catch(e){}}
+  setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{window.__mFill();}catch(e){}} /* (2026-10-18, débogage) mFill vit dans le bloc des menus : on passe par sa porte (le COMPTE de l'écran de fin restait d'avant les gains) */
 function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le levier a claqué, les rouleaux partent
   if(SPIN.roule)return;
   if((SAVE.d.spinJ|0)<=0){spinFerme();return;}
@@ -42227,7 +42257,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
   if(jack){hap([30,60,40,80,60,120,90]);spinFlash(3);spinPluie(46);spinExplose(40);}
   else if(gros){hap([20,40,30]);spinExplose(16);}
   else if(R.i>=0)hap(14);
-  spinLabels();try{mFill();}catch(e){}SPIN.roule=false;}
+  spinLabels();try{window.__mFill();}catch(e){}SPIN.roule=false;}
 function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
   const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
 function spinPluie(n){ // la pluie de billets : des liasses qui tombent sur tout l'écran en se balançant
@@ -48582,7 +48612,7 @@ function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k); /
 function fhTrio(txt){if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
   fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
   const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
-function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON)return; // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
+function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
   FX2.pts+=Math.max(0,pts||0);const neuf=!FX2.cv.ids.bump;figCvNote(BUMP_FIG,1);fhBump(k,neuf);}
 function fhFin(ok){const c=FX2.cv;if(!FH.el||!FH.vu||c.n<1)return;const n=performance.now(); // (la pose) — à appeler AVANT figCvRaz
   if(ok){if(!(FH.trioT>n))FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.el.classList.remove('perdu'); // (v5) un combo NOMMÉ fermé par la pose reste écrit pendant l'encaissement
@@ -52059,7 +52089,7 @@ function endGame(){
   ovSub.textContent=TR('GAME OVER');ovSub.style.display='';
   tagline.textContent=TR(pickL(isTop?END_TOP:END_LINES));tagline.style.display=''; // la punchline de fin — même la mort a du style
   const gagnees=commitExploits();try{m2Fin();}catch(e){console.warn('m2Fin',e);} /* (2026-10-16) LES MISSIONS v2 : la partie entière se juge ici */ // les exploits de la run entrent au compteur À VIE → nouvelles caisses
-  try{RUNX.verse=Math.max(0,Math.round(bank()-(RUNX.bank0||0)));}catch(e){} // (2026-09-29) VERSÉS AU COMPTE figé à la mort : un achat au garage ne le fait plus baisser
+  try{RUNX.verse=Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0));}catch(e){} // (2026-09-29) VERSÉS AU COMPTE figé à la mort : un achat au garage ne le fait plus baisser
   setBestChip();
   runStatsEl.style.display='block';
   /* LE RELEVÉ DE FIN DE PARTIE. L'ordre compte : d'abord ce qu'on a FAIT (les exploits), puis ce que
@@ -61704,9 +61734,15 @@ function loop(now){
       const nf9=Math.min(2,CAR_FEUX.length),wu9=nf9===1?SIL.un:1,ku9=.74; // ×.74 (2026-09-25) : additif + bloom, le ruban faisait un faisceau AVEUGLANT sur la route
       const arc9=(NYAN.on&&!FX_EFF)||!!(FXT&&FXT.rainbow)||!!(FXT&&FXT.rubOff),sig9=trSig9&&(nitroBlue||pwrNitroT>0); // (2026-10-07) l'ARC-EN-CIEL est la traînée de nitro du chat : la lumière se tait au nitro (sauf réserve bleue / nitro infinie, des SIGNAUX)
       const fx9=(arc9&&!sig9)?0:trailK,roule9=running&&mode!=='boom'&&Math.abs(speedKmh)>12,fr9=VIT9.frein*(1-fx9);
+      VIT9.trK=DMT.act?0:fx9;if(fx9>.01){const m9=Math.max(tcr,tcg,tcb,1e-4);VIT9.trC.setRGB(tcr/m9,tcg/m9,tcb/m9);} // (2026-10-18) le halo du feu prend la couleur de sa traînée (voir carVit)
       const kB=(arc9&&!sig9&&trailK>.05)?0:roule9?LUMT.k*(1+LUMT.kF*fr9):0,kT=kB+(1-kB)*fx9; // la lumière des feux, puis l'énergie du nitro par-dessus
       const lr=LUMT.r[0]+(LUMT.rF[0]-LUMT.r[0])*fr9,lg=LUMT.r[1]+(LUMT.rF[1]-LUMT.r[1])*fr9,lb=LUMT.r[2]+(LUMT.rF[2]-LUMT.r[2])*fr9; // rouge des feux, plus vif au frein
-      const cr9=(lr+(tcr-lr)*fx9)*ku9,cg9=(lg+(tcg-lg)*fx9)*ku9,cb9=(lb+(tcb-lb)*fx9)*ku9,wm9=1+(tw9-1)*fx9,wl9=wu9*(LUMT.w+(1-LUMT.w)*fx9);
+      /* (2026-10-18, traînées) LA TRAÎNÉE GARDE SA COULEUR : le passage du rouge des feux à la couleur de la traînée était un mélange RGB à la mesure
+         de l'énergie — or après le nitro elle reste à mi-énergie tant que dure le boost (trailK vise ,5) : MENTHE + rouge = un JAUNE doré, HYPERESPACE
+         + rouge = un violet, la traînée en avait l'air d'une autre (VU au banc). La couleur bascule désormais vite (`cw9` : pleine dès 38 % d'énergie)
+         et le court passage creuse l'éclat au lieu de montrer la teinte boueuse ; l'ÉNERGIE (longueur, chaleur, pouls) suit toujours fx9. */
+      const cw9=THREE.MathUtils.smoothstep(fx9,.03,.38),cl9=(1-cw9)*(1-cw9),ct9=cw9*cw9;
+      const cr9=(lr*cl9+tcr*ct9)*ku9,cg9=(lg*cl9+tcg*ct9)*ku9,cb9=(lb*cl9+tcb*ct9)*ku9,wm9=1+(tw9-1)*fx9,wl9=wu9*(LUMT.w+(1-LUMT.w)*fx9);
       loop._nOnT=nitroOn?(loop._nOnT||0)+dt:0;let kT9=DMT.act?0:kT; /* (LE DEMI-TOUR) pendant la manœuvre les traînées se taisent : accrochées aux feux, elles dessinaient une boucle sur la route */if(FXT&&FXT.pop==='neon'&&!sig9&&fx9>.05)kT9*=neonAllume(loop._nOnT); // (2026-10-16, TRAÎNÉES) ROSE NÉON : l'enseigne qui s'allume en clignotant
       SIL_STY=(FXT&&FXT.sil&&!sig9&&fx9>.4)?FXT.sil:null;
       const lgT=LUMT.lg+(SIL.LONG-LUMT.lg)*fx9;
@@ -63248,7 +63284,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
          la fin de run. (2026-09-28) C'était le seul virement de la course (`_vire`) : « $ 37 VERSÉS » au-dessus d'une barre d'objectif « +$ 537 »,
          qui compte aussi la prime du permis et celles des défis. Même calcul que la barre (objRender) : les deux chiffres ne se contredisent plus. */
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
-      {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))),c9=$t('mCash'),t9=$t('mCashTot');
+      {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0)),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
        if(t9){const j9=jourFinTexte();t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank()); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
         if(j9){const i9=t9.appendChild(document.createElement('i'));i9.className='mJour';i9.appendChild(document.createElement('u')).textContent=' · ';i9.append(j9.replace(/^ · /,''));}} /* (2026-10-15) …mais sur SA ligne (.mJour) : le texte reste « COMPTE : $ N · ×2 DU JOUR », le « · » est seulement masqué */
@@ -63502,6 +63538,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // `__mGo` — le garage envoie en BOUTIQUE au lever de son voile ; `__panBascule` — la touche P passe par le VRAI panneau
   // (la pause nue figeait le jeu sans rien à l'écran — #msg est masqué en coque — et P relançait la course SOUS le panneau).
   window.__mGo=function(id){if(mScr[id])mGo(id);};
+  window.__mFill=function(){mFill();}; // (2026-10-18, débogage) TROISIÈME PORTE : la machine à sous rafraîchit l'écran de fin (le COMPTE après un gain)
   window.__panBascule=function(){
     const md=$t('modale');if(md&&md.classList.contains('on'))return; // une fenêtre ouverte (RECOMMENCER ?, QUITTER ?) garde la main
     if(window.__setPause)return; // (2026-10-14, charte 6) les réglages complets sont ouverts par-dessus la pause : P ne reprend pas la course dessous
