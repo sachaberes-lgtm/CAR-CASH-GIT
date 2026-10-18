@@ -27505,6 +27505,7 @@ window.dbgFlamme=function(o){ // (banc) l'état du moteur simulé et du feu ; db
    point de sortie) : `CAR_POTS` ; la traînée s'accroche à la moyenne des pots de chaque côté (`CAR_POT_L/R`), ou à un SEUL
    ruban si les pots sont d'un côté ou au centre (`CAR_POT_1`) ; `potMonde` les suit à travers le roulis de la carrosserie. */
 const CAR_POTS=[],CAR_POT_L=new THREE.Vector3(),CAR_POT_R=new THREE.Vector3(),CAR_POT_C=new THREE.Vector3();
+const CAR_POT_DIR=[],POT_DIR_ON=!/[?&]potdir=0\b/.test(location.search); /* (2026-10-18, VOITURES-REVUE) l'AXE de chaque pot (repère caisse, (0,0,−1) = vers l'arrière) : un pot latéral ou un collecteur dressé crache DANS SON AXE ; ?potdir=0 = la flamme toujours vers l'arrière, comme avant */
 let CAR_POT_1=false,CAR_POT_SRC='canon';
 /* LES FEUX ARRIÈRE (2026-10-15, Sacha : « les traînées doivent maintenant partir des feux arrière — ce sont des TRAÎNÉES DE LUMIÈRE ; adapte
    cette règle au feu arrière de toutes les voitures ») : `buildCar` relève les VRAIS feux rouges de la caisse (les pièces `l` rouges du kit,
@@ -27512,6 +27513,108 @@ let CAR_POT_1=false,CAR_POT_SRC='canon';
    (`SILS`) et les halos des feux (`HALO.t`) s'y accrochent ; `potMonde` les suit à travers le roulis. */
 const CAR_FEUX=[];let CAR_FEUX_SRC='gabarit';
 window.dbgFeux=function(){const d9=new THREE.Vector3();carGroup.getWorldDirection(d9);return {cap:+Math.atan2(d9.x,d9.z).toFixed(3),src:CAR_FEUX_SRC,feux:CAR_FEUX.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),pots:CAR_POTS.length,sils:SILS.map(function(t){return {n:t.n,lg:+t.lg.toFixed(1),hk:+t.hk.toFixed(2),vis:t.m.visible};})};}; // (banc) où naissent les traînées de lumière
+window.dbgCaisseEnCourse=function(i){ /* (banc, 2026-10-18, VOITURES-REVUE) change de caisse EN COURSE, sans repasser par le menu : les photos de poursuite de toute la gamme dans une seule partie (dbgEquipe refuse en course) */
+  if(!(started&&!gameOver))return 'pas en course';const sp=CARS[i|0];if(!sp||sp.retire)return null;level=i|0;buildCar(sp);return sp.name;};
+window.dbgAncrages=function(i,o){ /* (banc, 2026-10-18, session VOITURES-REVUE) LA CAISSE i AU STUDIO, SES ANCRAGES MESURÉS CONTRE SA TÔLE : les tuyères du nitro (CAR_POTS),
+     les feux arrière d'où partent les traînées (CAR_FEUX, et leurs halos HALO.t), les phares (HALO.h, posés sur A.hl du gabarit) et la plaque (PLQ).
+     Pour chaque point : `ds` = la distance à la tôle la plus proche (m), `enf` = de combien il est ENFOUI derrière la surface que l'on voit
+     (> 0 : caché dans la caisse ; < 0 : il dépasse), et pour les phares/feux la distance au VRAI feu dessiné (les facettes en matière `l`).
+     o = {photos:1, vues:[…], jpg:.82} : photos du studio avec des repères (orange = tuyère, rouge = feu, jaune = phare, cyan = plaque). */
+  if(started&&!gameOver)return {err:'en course'};
+  o=o||{};i=i|0;const sp=CARS[i];if(!sp||sp.retire)return {err:'pas de caisse '+i};
+  const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible,out={i:i,nom:sp.name,shape:sp.shape};
+  try{
+    carPhoto(0);
+    buildCar(sp);
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,0,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();
+    carGroup.updateMatrixWorld(true);
+    const T=[],TL=[],cA=new THREE.Color(),va=new THREE.Vector3(),vb=new THREE.Vector3(),vc=new THREE.Vector3(),plq=[],roues=new Set();
+    carGroup.traverse(function(m){if(m.userData&&m.userData.R)roues.add(m);});
+    carGroup.traverse(function(m){
+      if(!m.isMesh||m.isInstancedMesh||!m.geometry||!m.geometry.attributes.position)return;
+      for(let q=m;q;q=q.parent)if(!q.visible)return;
+      const u=m.userData||{};if(u.plaque){plq.push(m);return;}
+      if(u.sol||u.fx)return;const mt=Array.isArray(m.material)?m.material[0]:m.material;if(!mt||mt.blending===THREE.AdditiveBlending)return;
+      let roue=false;for(let q=m;q;q=q.parent)if(roues.has(q)){roue=true;break;}
+      const lum=(mt.userData&&mt.userData.g==='l')||(mt.isMeshBasicMaterial&&!mt.transparent&&!mt.map); /* les feux du kit (famille l) et les feux-boîtes hors kit */
+      const g=m.geometry,P=g.attributes.position,C=g.attributes.color,I=g.index,n=I?I.count:P.count,M=m.matrixWorld;
+      for(let k=0;k<n;k+=3){const a=I?I.getX(k):k,b=I?I.getX(k+1):k+1,c=I?I.getX(k+2):k+2;
+        va.fromBufferAttribute(P,a).applyMatrix4(M);vb.fromBufferAttribute(P,b).applyMatrix4(M);vc.fromBufferAttribute(P,c).applyMatrix4(M);
+        T.push(va.x,va.y,va.z,vb.x,vb.y,vb.z,vc.x,vc.y,vc.z,roue?1:0);
+        if(lum){if(C&&mt.vertexColors)cA.fromBufferAttribute(C,a);else cA.copy(mt.color);
+          TL.push((va.x+vb.x+vc.x)/3,(va.y+vb.y+vc.y)/3,(va.z+vb.z+vc.z)/3,cA.r,cA.g,cA.b);}}
+    });
+    const NT=T.length/10;out.tri=NT;
+    let zmin=1e9,zmax=-1e9,xmax=0,ymax=0;for(let k=0;k<T.length;k+=10)if(!T[k+9])for(let j=0;j<9;j+=3){zmin=Math.min(zmin,T[k+j+2]);zmax=Math.max(zmax,T[k+j+2]);xmax=Math.max(xmax,Math.abs(T[k+j]));ymax=Math.max(ymax,T[k+j+1]);}
+    out.boite={zmin:+zmin.toFixed(2),zmax:+zmax.toFixed(2),xmax:+xmax.toFixed(2),ymax:+ymax.toFixed(2)};
+    const zHits=function(x,y,sansRoue){const h=[]; /* les z où la verticale (x,y) le long de l'axe de la caisse traverse une facette */
+      for(let k=0;k<T.length;k+=10){if(sansRoue&&T[k+9])continue;const ax=T[k],ay=T[k+1],bx=T[k+3],by=T[k+4],cx=T[k+6],cy=T[k+7];
+        const d=(by-cy)*(ax-cx)+(cx-bx)*(ay-cy);if(Math.abs(d)<1e-12)continue;
+        const l1=((by-cy)*(x-cx)+(cx-bx)*(y-cy))/d,l2=((cy-ay)*(x-cx)+(ax-cx)*(y-cy))/d,l3=1-l1-l2;
+        if(l1<-1e-6||l2<-1e-6||l3<-1e-6)continue;h.push(l1*T[k+2]+l2*T[k+5]+l3*T[k+8]);}
+      return h;};
+    const tr=new THREE.Triangle(),cp=new THREE.Vector3(),pt=new THREE.Vector3();
+    const dSurf=function(p){let best=1e9;pt.copy(p);
+      for(let k=0;k<T.length;k+=10){if(T[k+9])continue;const dz=Math.min(Math.abs(T[k+2]-p.z),Math.abs(T[k+5]-p.z),Math.abs(T[k+8]-p.z));if(dz>best&&Math.min(Math.abs(T[k+1]-p.y),Math.abs(T[k+4]-p.y),Math.abs(T[k+7]-p.y))>best)continue;
+        tr.a.set(T[k],T[k+1],T[k+2]);tr.b.set(T[k+3],T[k+4],T[k+5]);tr.c.set(T[k+6],T[k+7],T[k+8]);tr.closestPointToPoint(pt,cp);const d=cp.distanceTo(pt);if(d<best)best=d;}
+      return best;};
+    const r2=function(v){return +(+v).toFixed(2);},r3=function(v){return +(+v).toFixed(3);};
+    const arriere=function(p,cle){const h=zHits(p.x,p.y,true);const zr=h.length?Math.min.apply(null,h):null;
+      return Object.assign({p:[r2(p.x),r2(p.y),r2(p.z)],ds:r3(dSurf(p)),enf:zr==null?null:r3(p.z-zr)},cle||{});};
+    const avant=function(p,cle){const h=zHits(p.x,p.y,true);const zf=h.length?Math.max.apply(null,h):null;
+      return Object.assign({p:[r2(p.x),r2(p.y),r2(p.z)],ds:r3(dSurf(p)),enf:zf==null?null:r3(zf-p.z)},cle||{});};
+    /* les feux DESSINÉS : rouges à l'arrière, blancs/jaunes à l'avant, par côté (boîte + centre) */
+    const rouge=function(r,g,b){return r>.5&&g<.43&&b<.47&&r>=g*1.9;},ambre=function(r,g,b){return r>.75&&g>.35&&g<.72&&b<.3;};
+    const grp={fg:[],fd:[],rg:[],rd:[],rc:[]};
+    for(let k=0;k<TL.length;k+=6){const x=TL[k],y=TL[k+1],z=TL[k+2],r=TL[k+3],g=TL[k+4],b=TL[k+5];
+      if(rouge(r,g,b)&&z<0)(x<-.05?grp.rg:x>.05?grp.rd:grp.rc).push([x,y,z]);
+      else if(!rouge(r,g,b)&&!ambre(r,g,b)&&z>(zmax-zmin)*.15&&Math.min(r,g)>.55)(x<-.05?grp.fg:x>.05?grp.fd:grp.rc).push([x,y,z]);}
+    const boiteDe=function(a){if(!a.length)return null;const b=new THREE.Box3();for(const q of a)b.expandByPoint(va.set(q[0],q[1],q[2]));return b;};
+    const B={};for(const k in grp)B[k]=boiteDe(grp[k]);
+    out.dessin={};for(const k in B)if(B[k])out.dessin[k]={min:B[k].min.toArray().map(r2),max:B[k].max.toArray().map(r2),n:grp[k].length};
+    out.bout={};for(const k of ['rg','rd','fg','fd']){const a=grp[k];if(!a.length)continue;const av=k.charAt(0)==='f'; /* la grappe la plus EN BOUT (6 cm) : là où le feu se voit de derrière, le phare de devant */
+      let ze=av?-1e9:1e9;for(const q of a)ze=av?Math.max(ze,q[2]):Math.min(ze,q[2]);const s=a.filter(function(q){return Math.abs(q[2]-ze)<.06;}),b=boiteDe(s),c=b.getCenter(new THREE.Vector3());
+      out.bout[k]={c:c.toArray().map(r2),min:b.min.toArray().map(r2),max:b.max.toArray().map(r2),n:s.length};}
+    const versBoite=function(p,b){return b?r3(b.distanceToPoint(p)):null;};
+    out.pots={src:CAR_POT_SRC,l:CAR_POTS.map(function(p,k){return arriere(p,{tuy:k<4});})};
+    out.feux={src:CAR_FEUX_SRC,l:CAR_FEUX.map(function(p){return arriere(p,{dessin:versBoite(p,p.x<-.05?B.rg||B.rc:p.x>.05?B.rd||B.rc:B.rc||B.rg||B.rd)});})};
+    out.halosT=HALO.t.map(function(s){return arriere(s.position);});
+    out.phares=HALO.h.map(function(s){const p=s.position.clone();p.z-=.08;return avant(p,{dessin:versBoite(p,p.x<-.05?B.fg:p.x>.05?B.fd:B.fg||B.fd)});});
+    out.plaque=plq.filter(function(m){return m.geometry.type==='PlaneGeometry';}).map(function(m){
+      const b=new THREE.Box3().setFromObject(m),c=b.getCenter(new THREE.Vector3()),w=b.max.x-b.min.x,h=b.max.y-b.min.y;let cach=0,flot=0,n9=0;
+      for(const fx of [-.4,0,.4])for(const fy of [-.3,0,.3]){const x=c.x+fx*w,y=c.y+fy*h,zz=zHits(x,y,false);n9++;
+        const zr=zz.length?Math.min.apply(null,zz):null;if(zr!=null&&zr<b.min.z-.004)cach++;
+        const zd=zz.filter(function(z){return z>=b.min.z-.004;});if(!zd.length||Math.min.apply(null,zd)-b.max.z>.06)flot++;}
+      const pres=CAR_POTS.filter(function(p){return Math.abs(p.x-c.x)<w/2+.05&&Math.abs(p.y-c.y)<h/2+.05;}).length;
+      let lum9=0;for(let k=0;k<TL.length;k+=6){const x=TL[k],y=TL[k+1],z=TL[k+2];if(z<0&&Math.abs(x-c.x)<w/2&&Math.abs(y-c.y)<h/2&&Math.abs(z-c.z)<.12&&!(TL[k+3]>.85&&TL[k+4]>.85&&TL[k+5]>.85))lum9++;}
+      return {c:c.toArray().map(r2),w:r2(w),h:r2(h),cache:cach+'/'+n9,flotte:flot+'/'+n9,pots:pres,feux:lum9,src:(PLQ.pos[i]&&PLQ.pos[i].ar||{}).src};});
+    if(o.photos){
+      const W=o.W||720,H=o.H||440,cols={pot:0xff8a00,feu:0xff1f4b,ph:0xd8ff00,pl:0x18e6ff};
+      if(!PHOTO.rt2){PHOTO.rt2=new THREE.WebGLRenderTarget(720,440);PHOTO.cam2=new THREE.PerspectiveCamera(30,720/440,.1,200);}
+      if(PHOTO.rt2.width!==W||PHOTO.rt2.height!==H){PHOTO.rt2.setSize(W,H);PHOTO.cam2.aspect=W/H;PHOTO.cam2.updateProjectionMatrix();}
+      const mk=[],geo=new THREE.SphereGeometry(.055,12,8),put=function(p,c){const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:c,depthTest:false,transparent:true,opacity:.95}));m.position.copy(p);m.renderOrder=999;carGroup.add(m);mk.push(m);};
+      for(const p of CAR_POTS.slice(0,4))put(p,cols.pot);for(const p of CAR_FEUX)put(p,cols.feu);
+      for(const s of HALO.h){const p=s.position.clone();p.z-=.08;put(p,cols.ph);}
+      for(const m of plq)if(m.geometry.type==='PlaneGeometry')put(new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()),cols.pl);
+      const L=Math.max(3.2,sp.l||4.5,(sp.h||1.3)*1.7),yv=Math.max(.62,(sp.h||1.3)*.45);out.photos=[];
+      const vues=o.vues||[[3.86,1,1,1],[3.86,1,1,0],[2.6,1.1,1,0],[0.72,1,1,1],[0.0,1,1,0]];
+      for(const v of vues){for(const m of mk)m.visible=!!v[3];
+        carGroup.rotation.set(0,v[0],0);carGroup.updateMatrixWorld(true);PHOTO.cam2.position.set(L*1.05*v[2],L*.42*v[1]*v[2],L*1.18*v[2]);PHOTO.cam2.lookAt(0,yv,0);
+        const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
+        renderer.setRenderTarget(PHOTO.rt2);renderer.setClearColor(0x2a2140,1);renderer.clear();renderer.render(PHOTO.scene,PHOTO.cam2);
+        const buf=new Uint8Array(W*H*4);renderer.readRenderTargetPixels(PHOTO.rt2,0,0,W,H,buf);renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);
+        const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H);
+        for(let y=0;y<H;y++){const s0=(H-1-y)*W*4;for(let k=0;k<W*4;k++){let v2=buf[s0+k];if((k&3)!==3)v2=Math.min(255,Math.pow(v2/255,1/1.3)*255);im.data[y*W*4+k]=v2;}}
+        x.putImageData(im,0,0);out.photos.push(cv.toDataURL('image/jpeg',o.jpg||.82));}
+      for(const m of mk){carGroup.remove(m);m.material.dispose();}geo.dispose();carGroup.rotation.set(0,0,0);
+    }
+  }catch(e){out.err=String(e&&e.message||e)+' | '+String(e&&e.stack||'').split('\n').slice(1,3).join(' ¶ ');}
+  finally{
+    if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
+    if(!o.garde)try{buildCar(CARS[equippedCar()]);}catch(e){}
+  }
+  return out;
+};
 function potMonde(v,out){ // un point du repère caisse → monde, À TRAVERS la carrosserie qui penche (carBody) : le pot bouge avec elle
   return out.copy(v).applyEuler(carBody.rotation).add(carBody.position).multiply(carGroup.scale).applyQuaternion(carGroup.quaternion).add(carGroup.position);}
 function potAuHasard(out){return potMonde(CAR_POTS.length?CAR_POTS[(Math.random()*CAR_POTS.length)|0]:CAR_POT_C,out);}
@@ -27750,6 +27853,10 @@ const ECHP=(()=>{
   // UNE PIÈCE POSÉE À LA BOUCHE : la géométrie est écrite dans le repère de la bouche (axe +z = vers l'intérieur de la caisse), puis
   // tournée AUTOUR DE LA BOUCHE (rx penche vers le sol, ry vers le dehors, rz tourne la section) et posée en (x,y,z)
   const pose=(E,k,g,q,sx,sy)=>E.put(k,g,q.x,q.y,q.z,q.rx||0,q.ry||0,q.rz||0,sx||1,sy||1,1);
+  // (2026-10-18, VOITURES-REVUE) L'AXE DE LA BOUCHE, quand elle est tournée (le gaz sort par −z du repère de la bouche) : la 4e valeur de la bouche,
+  // lue par buildCar (CAR_POT_DIR) — la flamme du nitro sort dans l'axe du pot, puis le vent la couche (voir « LA FLAMME SUIT LA LIGNE »)
+  const potAxe=o=>{if(!(o.rx||o.ry||o.rz))return null;const v=new THREE.Vector3(0,0,-1).applyEuler(new THREE.Euler(o.rx||0,o.ry||0,o.rz||0));return [v.x,v.y,v.z];};
+  const bouche=(x,y,z,o)=>{const a=potAxe(o);return a?[x,y,z,a]:[x,y,z];};
   const tubeG=(r1,r2,len,n,z0)=>{const g=new THREE.CylinderGeometry(r2,r1,len,n||12,1,false);g.rotateX(PI/2);g.translate(0,0,(z0||0)+len/2);return g;};
   const bagueG=(r,e,n,z0)=>{const g=new THREE.TorusGeometry(r,e,4,n||14);g.translate(0,0,z0||0);return g;};
   // LA SORTIE RONDE : tube, âme noire en retrait (sauf `ame:0`), bague au bord ; `ev` évase la sortie, `dbl` double paroi, `bout` = un
@@ -27761,7 +27868,7 @@ const ECHP=(()=>{
     if(o.ame!==0)pose(E,'k',tubeG(r*ev*(o.dbl?.58:.80),r*ev*(o.dbl?.58:.80),.05,n,o.dbl?.03:.008),q,sx,sy);
     if(o.bague!==0)pose(E,o.kb||k,bagueG(r*ev*.94,Math.max(.006,r*.12),n),q,sx,sy);
     if(o.lueur)pose(E,o.lueur,tubeG(r*ev*.45,r*ev*.45,.01,n,.06),q,sx,sy);
-    return [x,y,z];};
+    return bouche(x,y,z,o);};
   // LA BOUCHE RECTANGULAIRE (boîte creuse) : largeur w, hauteur h ; `cloison` = deux sorties dans la même bouche
   const rect=(E,x,y,z,o)=>{const w=o.w||.16,h=o.h||.07,L=o.len||.3,k=o.k||'c',e=o.e||.016;
     E.box(k,w,e,L,x,y+h/2-e/2,z+L/2);E.box(k,w,e,L,x,y-h/2+e/2,z+L/2);E.box(k,e,h,L,x-w/2+e/2,y,z+L/2);E.box(k,e,h,L,x+w/2-e/2,y,z+L/2);
@@ -27786,7 +27893,7 @@ const ECHP=(()=>{
       pose(E,k,bagueG(r*1.03,Math.max(.003,r*.07),n,L*.72),Q);            // le cordon de soudure
       {const g=new THREE.CylinderGeometry(r*.8,r*.8,.4,10);g.rotateX(PI/2);g.rotateX(-.22);g.translate(0,-.03,L+.17);pose(E,'f',g,Q);} // le tuyau qui repart sous la caisse
       {const g=new THREE.BoxGeometry(r*.7,r*1.6,.024);g.translate(0,r*1.2,L*.86);pose(E,'s',g,Q);} // le collier de fixation
-      return [x,y,z];}),
+      return bouche(x,y,z,o2);}),
     rect:(E,o)=>o.pts.map(q=>rect(E,q[0],q[1],q[2],Object.assign({},o,q[3]||{}))),
     // UN ÉCRIN derrière les sorties (feuille d'or, laque noire…) : x,y,z centre, w,h
     plaque:(E,o)=>{E.box(o.k||'o',o.w,o.h,.012,o.x||0,o.y,o.z);return [];},
@@ -27816,7 +27923,7 @@ const ECHP=(()=>{
     lateral:(E,o)=>o.pts.map(q=>{const [x,y,z]=q,sd=Math.sign(x)||1,r=o.r||.05,L=o.len||.4;
       const g=tubeG(r,r,L,o.n||12);E.put(o.k||'c',g,x,y,z,0,-sd*PI/2,0);
       E.put('k',tubeG(r*.78,r*.78,.05,o.n||12,.008),x,y,z,0,-sd*PI/2,0);E.put(o.k||'c',bagueG(r*.95,Math.max(.006,r*.12),o.n||12),x,y,z,0,-sd*PI/2,0);
-      return [x+sd*.01,y,z-.02];}),
+      return [x+sd*.01,y,z-.02,[sd,0,0]];}), /* (2026-10-18) la bouche regarde DEHORS : la flamme aussi */
     // LE POT LATÉRAL : un long tube chromé le long du bas de caisse, son écran perforé, la sortie devant la roue arrière
     sidepipe:(E,o)=>o.pts.map(q=>{const [x,y,z1,z0]=q,sd=Math.sign(x)||1,r=o.r,L=z1-z0,X=x+sd*(r+.012);
       pose(E,o.k||'c',tubeG(r,r,L,12),{x:X,y,z:z0});pose(E,'k',tubeG(r*.78,r*.78,.04,12,.008),{x:X,y,z:z0});pose(E,o.k||'c',bagueG(r*.95,.007,12),{x:X,y,z:z0});
@@ -27839,7 +27946,7 @@ const ECHP=(()=>{
         {const d=[v.x/.17,v.y/.17,v.z/.17],t=(Math.abs(x)-.23)/Math.abs(d[0]);   // (2026-10-15) LES POTS ENCASTRÉS : le collecteur entre dans le flanc du bloc (x ±0,23) par sa LUMIÈRE,
           P.encoche(E,{f:'r',x:sd*.23,y:y-d[1]*t,z:zz-d[2]*t,rx:.034,ry:.062,d:[sd,0,0]});   // une encoche rectangulaire à jonc, comme la bride d'un vrai V8 (le tube la traverse en biais)
           E.box('k',.006,2*(.062+ECH_ENC.jeu),2*(.034+ECH_ENC.jeu),sd*.233,y-d[1]*t,zz-d[2]*t);}  // et son FOND NOIR : la face du bloc n'est pas percée, sans lui la lumière restait rouge
-        if(i===1||i===3)M.push([x,y,zz]);}
+        if(i===1||i===3)M.push([x,y,zz,[v.x/.17,v.y/.17,v.z/.17]]);} /* (2026-10-18) l'axe du collecteur : la flamme monte et s'écarte, au lieu de traverser le pare-brise */
       return M;},
     // LE NUAGE : une bouche sombre dans une couronne de petits nuages
     nuage:(E,o)=>o.pts.map(q=>{const [x,y,z]=q,r=o.r,Q={x,y,z};pose(E,'C',tubeG(r*.8,r*.8,.2,10,.02),Q);pose(E,'k',tubeG(r*.62,r*.62,.04,10,.01),Q);
@@ -33661,7 +33768,7 @@ SHAPES.corolla=function(K){
   J.lathe('s',[[.064,fx-.03],[.062,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');
   J.lathe('a',[[.034,fx+.012],[.03,fx+.022],[0,fx+.025]],12,0,0,0,'x');
   const JG=J.done();
-  return {hl:[.60,.65,2.20],tl:[.62,.93,-2.23],wx:.765,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,halos:0,
+  return {hl:[.60,.65,2.20],tl:[.62,.93,-2.23],wx:.765,wzF:ZF,wzR:-ZR,pots:pots,lamps:0, /* (2026-10-18, VOITURES-REVUE) plus de halos:0 : ses phares FIXES éclairent la route la nuit et ses feux ont leur halo, comme toutes les caisses */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xc4c8ce}};
 };
@@ -34180,7 +34287,7 @@ SHAPES.mx5rf=function(K){
    for(let q=0;q<7;q++){const a=q/7*Math.PI*2;br(a,.014,.012,.05,.13);br(a+.13,.006,.01,.12,.205);br(a-.13,.006,.01,.12,.205);}}
   J.lathe('a',[[.055,fx+.004],[.05,fx+.016],[0,fx+.02]],14,0,0,0,'x');J.lathe('e',[[.022,fx+.021],[0,fx+.022]],10,0,0,0,'x');
   const JG=J.done();
-  return {hl:[.55,.62,1.80],tl:[.44,.72,-1.90],wx:.7475,wzF:ZF,wzR:-ZR,pots:pts9,lamps:0,halos:0,
+  return {hl:[.55,.62,1.80],tl:[.44,.72,-1.90],wx:.7475,wzF:ZF,wzR:-ZR,pots:pts9,lamps:0, /* (2026-10-18, VOITURES-REVUE) plus de halos:0 : ses phares FIXES éclairent la route la nuit et ses feux ont leur halo, comme toutes les caisses */
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0x4a4e55}};
 };
@@ -36783,9 +36890,9 @@ function buildCar(spec){
      2. sinon on les RETROUVE dans les pièces du kit : cylindres/tours couchés dans l'axe (z) de petit rayon, et boîtes chromées
         pas plus grosses qu'une sortie, dont le bout arrière est dans les 70 cm de la poupe — ni verre ni feux ;
      3. sinon (caisse sans pots dessinés) : sous le pare-chocs, AU RAS de la poupe réelle — plus jamais dans le vide derrière. */
-  CAR_POTS.length=0;CAR_POT_SRC='canon';
+  CAR_POTS.length=0;CAR_POT_DIR.length=0;CAR_POT_SRC='canon';
   const zPoupe=lpZmin<1e8?lpZmin:-L9/2-(A.pipes!==0?.31:0);
-  if(A.pots){for(const p of A.pots)CAR_POTS.push(new THREE.Vector3(p[0],p[1],p[2]));CAR_POT_SRC='fiche';}
+  if(A.pots){for(const p of A.pots){CAR_POTS.push(new THREE.Vector3(p[0],p[1],p[2]));CAR_POT_DIR.push(Array.isArray(p[3])?new THREE.Vector3(p[3][0],p[3][1],p[3][2]).normalize():new THREE.Vector3(0,0,-1));}CAR_POT_SRC='fiche';}
   else if(spec.rocket){for(const sd of [-1,1])CAR_POTS.push(new THREE.Vector3(sd*W9*.26,y0+H9*.55,-L9/2-.87));CAR_POT_SRC='fusee';} // les tuyères des propulseurs d'appoint
   else if(lpPrims.length){
     const cand=[];
@@ -36806,6 +36913,8 @@ function buildCar(spec){
     if(CAR_POTS.length)CAR_POT_SRC='releve';
   }
   if(!CAR_POTS.length)for(const sd of [-1,1])CAR_POTS.push(new THREE.Vector3(sd*W9*.22,y0+.08,A.pipes!==0&&!(lpZmin<1e8)?-L9/2-.31:zPoupe-.02));
+  CAR_POT_DIR.length=Math.min(CAR_POT_DIR.length,CAR_POTS.length);while(CAR_POT_DIR.length<CAR_POTS.length)CAR_POT_DIR.push(new THREE.Vector3(0,0,-1)); /* (relevé, repli : vers l'arrière) */
+  for(let i=0;i<4;i++)JET_DIR[i].copy(POT_DIR_ON&&CAR_POT_DIR[i]?CAR_POT_DIR[i]:JET_NZ); /* la flamme part déjà dans l'axe (sans balayer depuis celui de l'ancienne caisse) */
   { // la traînée : un ruban par côté (moyenne des pots de ce côté) — un seul si les pots sont d'un côté ou au centre
     const g=[],d=[];CAR_POT_C.set(0,0,0);
     for(const p of CAR_POTS){CAR_POT_C.add(p);if(p.x<-.05)g.push(p);else if(p.x>.05)d.push(p);}
@@ -36832,7 +36941,7 @@ function buildCar(spec){
   }
   for(const pt of (A.tuyeres===0?[]:CAR_POTS.slice(0,4))){ // une TUYÈRE par pot (sauf `tuyeres:0` : le chat pop-tart ne crache pas de feu) (4 au plus : chacune coûte deux maillages et un halo)
     const js9=new THREE.Mesh(jetGeo,jetShellM),jc9=new THREE.Mesh(jetGeo,jetCoreM);
-    js9.position.set(pt.x,pt.y,pt.z+.03);jc9.position.copy(js9.position); // la flamme NAÎT dans la bouche du pot
+    {const d9=POT_DIR_ON?CAR_POT_DIR[CAR_POTS.indexOf(pt)]:null;js9.position.copy(pt);if(d9)js9.position.addScaledVector(d9,-.03);else js9.position.z+=.03;}jc9.position.copy(js9.position); // la flamme NAÎT dans la bouche du pot (3 cm dedans, le long de son axe)
     js9.scale.set(.1,.1,.02);jc9.scale.set(.05,.05,.02);
     js9.visible=jc9.visible=false;
     js9.userData.noShadow=jc9.userData.noShadow=true;js9.renderOrder=jc9.renderOrder=3;
@@ -61630,6 +61739,7 @@ function loop(now){
         if(jOn&&sl9&&sl9.dOk){JET_V.set(sl9.dX,sl9.dY,sl9.dZ).applyQuaternion(JET_QI);
           if(JET_V.z>-.34){const q9=Math.sqrt((1-.34*.34)/Math.max(1e-6,JET_V.x*JET_V.x+JET_V.y*JET_V.y));JET_V.x*=q9;JET_V.y*=q9;JET_V.z=-.34;}}
         else JET_V.copy(JET_NZ);
+        {const pd9=POT_DIR_ON?CAR_POT_DIR[i9]:null;if(pd9&&pd9.z>-.95)JET_V.addScaledVector(pd9,1.25).normalize();} /* (2026-10-18) un pot latéral ou dressé : son AXE mène, le vent (la ligne du sillage) la couche — elle ne traverse plus la roue ni le pare-brise */
         dl9.lerp(JET_V,Math.min(1,dt*16)).normalize();
         m9.quaternion.setFromUnitVectors(JET_NZ,dl9).multiply(JET_QS.setFromAxisAngle(JET_Z,t*7.3)); // (plume v2) l'enveloppe TOURNE sur son axe
         if(c9){c9.visible=jOn&&!ecl9;c9.scale.set(jr*.48*(FM9?rr9:1),jr*.48*(FM9?rr9:1),jl*.72*(FM9?f9:.9+.1*f9));c9.quaternion.setFromUnitVectors(JET_NZ,dl9);}}
