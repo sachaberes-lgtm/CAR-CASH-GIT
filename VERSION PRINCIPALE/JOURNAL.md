@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v627, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
+## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v628, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
 - **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
   puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un
   nuage changeait de peau d'une image à l'autre en franchissant un seuil. Les nuages seuls fantômes (bancs, coussins, tours) basculaient
@@ -36,6 +36,25 @@
 - `?sans=nuvitfondu` = les bascules d'avant ; `dbgNuVit(1,{fondu:0|1,rendre:1})` = A/B sur la même image (retourne `fondu`). Banc (scratchpad
   de la session) : `nuvit-approche.cjs` (le ciel GELÉ — `cotonTick` court-circuité — d'un pas au suivant : seul le changement de peau compte),
   `nuvit-solo.cjs`, `nuvit-vue.cjs`, `nuvit-cout.cjs`.
+
+## LA CHAUMIÈRE RETROUVE SES MURS — fbBoite EN DOUBLE, L'ALERTE « RADIUS IS NaN » (2026-10-18, débogage : « trouver l'origine de l'alerte computeBoundingSphere NaN au passage canyon → forêt bâti par le pré-bâti »)
+- **La cause** : deux `function fbBoite` dans la même portée (l'IIFE du jeu). Celle de la CHAUMIÈRE (14/10, `fbBoite(K,x0,y0,z0,x1,y1,z1,col,part,ytop)` :
+  par ses coins) et celle des ABEILLES (17/10, `fbBoite(K,c,sz,col,part)` : par son centre et sa taille). Deux déclarations du même nom : la
+  DERNIÈRE gagne, sans erreur. Depuis le 17/10, `foretChaumiereGeo` appelait celle des abeilles avec des nombres (`c[0]`, `sz[0]` = undefined) :
+  les 1 056 sommets de ses 44 boîtes (murs, colombages, fenêtres, géraniums, porte, cheminée) en NaN ; seuls les cinq pans du toit (posés à la
+  main, `pan`) restaient : un toit seul, posé dans l'herbe. Three le disait une fois par session : « THREE.BufferGeometry.computeBoundingSphere():
+  Computed radius is NaN » (dans `fbGeo`, la géométrie est gardée dans `FORET.geoChaum`).
+- **Ce n'était pas le pré-bâti** : la même alerte avec `?prebati=0`, et dès un départ direct en forêt (`?carte=foret`) — toute forêt bâtie.
+  Le pré-bâti la faisait seulement apparaître pendant la course vers le portail (le décor de la forêt s'y bâtit d'avance).
+- **Le correctif** : celle des abeilles devient `abeBoite` (sa déclaration et ses dix appels, dans `foretAbeilles`) ; la chaumière retrouve
+  la sienne. Rien d'autre ne change : les abeilles sont les mêmes au sommet près.
+- **Mesuré** (banc Chrome sans fenêtre muet ; crochets sur `BufferGeometry.computeBoundingSphere` et `Frustum.intersectsObject` pour nommer la
+  géométrie et son maillage) : passage canyon soir → forêt nuit, AVANT 1 alerte (pré-bâti et `?prebati=0`), APRÈS 0 ; programmes 212 → 212.
+  Revérifié couché, debout, cadre de l'ordi à la souris (plaque CONFIRM, JOUER, puis un portail vers la forêt nuit bâti d'avance) : 0 alerte,
+  0 exception, programmes 210 au menu = 210 en course = 210 en forêt. Gardes du burn-out et de la charte : OK.
+- **Le filet** : un balayage de TOUT `index.html` (acorn : les déclarations de fonction d'une même portée) ne trouve plus aucun doublon — c'était le seul.
+- **À voir par Léo/Sacha** : la chaumière (le dessin de Sacha du 14/10) réapparaît en entier dans la forêt — murs de pierre et d'enduit,
+  colombages, fenêtres qui luisent la nuit, cheminée. Planche : `photos-gameplay/chaumiere-nan-avant-apres.png` (même graine, même place).
 
 ## LA PERLE — LE REFLET DU PARE-BRISE SANS CASSURE (2026-10-18, Léo : « petit bug de reflet au niveau du bas de la vitre avant… je parlais de la vitre avant tout simplement » — le pare-brise)
 - **Le défaut** : au bas du pare-brise (et au pied du montant avant, sur la vitre de porte), le reflet du ciel CASSAIT en diagonale — un

@@ -18821,7 +18821,8 @@ function foretTick(dt){
    plus loin. Le matin et à midi, jamais sous la pluie. Le programme des arbres (M.arb, maillage simple : déjà compilé au menu) ; 9 petits
    maillages. Frôlée : `sfx('foret.abeille')` (le bourdonnement — à cuire par la session SON). `?sans=abeilles` = pas d'abeilles. */
 const ABEILLES_V=!/[?&]sans=([^&]*,)?abeilles(,|&|$)/.test(location.search),ABE={g:null,L:[]};
-function fbBoite(K,c,sz,col,part){const h=[sz[0]/2,sz[1]/2,sz[2]/2];
+/* (2026-10-18, débogage NaN) ABEBOITE : la boîte des ABEILLES, par son centre et sa taille. Elle s'appelait fbBoite, comme celle de la CHAUMIÈRE (par ses coins) : deux déclarations du même nom dans la même portée, la DERNIÈRE gagne en silence — depuis le 17/10 la chaumière appelait celle-ci, ses murs sortaient en NaN (THREE : « Computed radius is NaN ») et il n'en restait que le toit. */
+function abeBoite(K,c,sz,col,part){const h=[sz[0]/2,sz[1]/2,sz[2]/2];
   for(let a=0;a<3;a++)for(const sg of [-1,1]){const n=[0,0,0];n[a]=sg;const u=(a+1)%3,v=(a+2)%3,V9=[];
     for(const q of [[-1,-1],[1,-1],[1,1],[-1,1]]){const p=[c[0],c[1],c[2]];p[a]+=sg*h[a];p[u]+=q[0]*h[u];p[v]+=q[1]*h[v];V9.push(fbV(K,p[0],p[1],p[2],n[0],n[1],n[2],[part,.9,0,0],col,[5,0]));}
     if(sg>0)K.I.push(V9[0],V9[1],V9[2],V9[0],V9[2],V9[3]);else K.I.push(V9[0],V9[2],V9[1],V9[0],V9[3],V9[2]);}}
@@ -18829,10 +18830,10 @@ function foretAbeilles(dt,c){
   const veut=ABEILLES_V&&(FORET.met==='matin'||FORET.met==='midi')&&!(LVL.pluie>.05)&&FORET.zig!==undefined;
   if(!veut){if(ABE.g)ABE.g.visible=false;return;}
   if(!ABE.g){const M=FORET.mats,K=fbNew(),W=fbNew(),noir=[.05,.045,.04],jaune=[.95,.72,.07];
-    fbBoite(K,[0,0,.44],[.34,.32,.3],noir,3);fbBoite(K,[0,0,.14],[.42,.4,.36],[.42,.25,.06],3);
-    fbBoite(K,[0,-.01,-.16],[.46,.42,.24],jaune,3);fbBoite(K,[0,-.02,-.38],[.44,.4,.22],noir,3);fbBoite(K,[0,-.03,-.58],[.36,.32,.2],jaune,3);fbBoite(K,[0,-.04,-.74],[.14,.14,.14],noir,3);
-    fbBoite(K,[.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3);fbBoite(K,[-.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3); // les yeux
-    fbBoite(W,[.3,0,0],[.6,.025,.3],[.86,.92,1.],3);const W2=fbNew();fbBoite(W2,[-.3,0,0],[.6,.025,.3],[.86,.92,1.],3); // (l'aile gauche bâtie en miroir : une échelle négative retournerait ses faces)
+    abeBoite(K,[0,0,.44],[.34,.32,.3],noir,3);abeBoite(K,[0,0,.14],[.42,.4,.36],[.42,.25,.06],3);
+    abeBoite(K,[0,-.01,-.16],[.46,.42,.24],jaune,3);abeBoite(K,[0,-.02,-.38],[.44,.4,.22],noir,3);abeBoite(K,[0,-.03,-.58],[.36,.32,.2],jaune,3);abeBoite(K,[0,-.04,-.74],[.14,.14,.14],noir,3);
+    abeBoite(K,[.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3);abeBoite(K,[-.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3); // les yeux
+    abeBoite(W,[.3,0,0],[.6,.025,.3],[.86,.92,1.],3);const W2=fbNew();abeBoite(W2,[-.3,0,0],[.6,.025,.3],[.86,.92,1.],3); // (l'aile gauche bâtie en miroir : une échelle négative retournerait ses faces)
     const gC=fbGeo(K),gW=fbGeo(W),gW2=fbGeo(W2);ABE.g=new THREE.Group();ABE.g.name='forêt abeilles';scene.add(ABE.g);
     for(let k=0;k<3;k++){const b=new THREE.Group(),co=new THREE.Mesh(gC,M.arb),a1=new THREE.Mesh(gW,M.arb),a2=new THREE.Mesh(gW2,M.arb);
       a1.position.set(.12,.2,.14);a2.position.set(-.12,.2,.14);b.add(co,a1,a2);b.scale.setScalar(1.6);b.visible=false;ABE.g.add(b);
