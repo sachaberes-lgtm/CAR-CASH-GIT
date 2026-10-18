@@ -34,8 +34,9 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
 - **Ce qui n'est PAS la référence** (ne jamais en repartir, ne jamais les fusionner par-dessus `main`) :
   · les vieilles branches : `version-leolei-2026`, `version-fusion-2026-09`, `fusion*`, `dev`, `v3-*`, `paris`, `campagne-nuages`, `appstore-backlog`… ;
   · `gh-pages` : GitHub Pages, arrêtée au 03/09 ;
-  · le dossier `version-leolei-2026/` à la racine : l'archive de la branche de Léo, 28/09 ;
-  · `AUTRE VERSION/` : l'édition PC, gelée depuis le 25/09 ;
+  · les dossiers `version-leolei-2026/` (l'archive de la branche de Léo, 28/09) et `AUTRE VERSION/` (l'édition PC, gelée depuis le
+    25/09) : RETIRÉS du dépôt le 2026-10-18 (Sacha, allègement) ; ils restent dans l'historique git, étiquette `avant-allegement-2026-10-18`.
+    `node synchro-versions.js` refabrique l'édition PC en local si besoin (ignorée par git) ;
   · toute copie locale, tout zip, tout lien githack figé sur un vieux commit.
 - **Pour savoir quelle version tourne** : ouvrir ⚙ RÉGLAGES et lire la ligne du bas, « VERSION xxxxxxx ». Sur l'ordi, elle est aussi sous
   le téléphone. Depuis le 2026-10-03 au soir, c'est l'EMPREINTE DU JEU publié (les fichiers de `VERSION PRINCIPALE/`), plus le commit :

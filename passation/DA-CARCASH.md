@@ -31,9 +31,9 @@ Chaque map ajoute UN accent secondaire, le sien : ville = cyan #3EE8FF · nuages
 - **Béton** : L* 35-50 de jour, 22-30 au soir, 14-22 la nuit ; mouillé = reflets des néons roses.
 
 ## 3 bis. Règles gravées par Sacha (14/10 au soir)
-- **LA VILLE LA NUIT = ROSE, intouchable (comme le logo)** : nuit, pluie et orage de la ville gardent le rendu néon rose (`villeRose()`, `?sans=villerose`).
+- **LA VILLE LA NUIT = ROSE, intouchable (comme le logo)** : nuit, pluie et orage de la ville gardent le rendu néon rose (`villeRose()`).
 - **LA NUIT = BLEU ET VIOLET PURS, CLAIR DE LUNE, JAMAIS GRIS** : ciel bleu profond → indigo → violet, lune et étoiles nettes, sommets argent-bleu, ventres violets,
-  mer bleu nuit lumineuse, route au reflet bleuté avec la signature rose + or (`?sans=clairdelune` pour la mer de nuages).
+  mer bleu nuit lumineuse, route au reflet bleuté avec la signature rose + or.
 
 - **JAMAIS DE TEXTURE ÉTIRÉE NI DE BRUIT PLEIN CADRE DANS UN CIEL** (Sacha, 14/10 au soir) : un ciel de jour = un DÉGRADÉ propre (azur saturé → pêche à l'horizon)
   + quelques nuages hauts NETS et rares, de vraies formes ; aucun motif répété (pommelé, grille, quinconce) ni « peinture » étalée. Se vérifie EN VOL, caméra levée.
@@ -50,4 +50,4 @@ Gris dominant (ciel ou brume de chroma < 8) · délavé (saturation effective < 
 3. Jade (matin, midi, soir) : accorder sa palette au trio, horizon pêche au soir.
 4. Forêt : garder sa force, la relier au trio (néon rose de route, or).
 5. Orbite : signature de route rose + or sur le noir, exposition remontée.
-Chaque étape derrière un `?sans=<nom>`, coût nul (des nombres et des uniformes, aucun programme de plus).
+Coût nul (des nombres et des uniformes, aucun programme de plus). Les interrupteurs `?sans=<nom>` ont été retirés le 18/10.
