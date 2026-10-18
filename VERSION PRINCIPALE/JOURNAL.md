@@ -3,6 +3,45 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE TAUREAU v2 DE CRYPTO CITY — LA POSE DU « CHARGING BULL », L'OR POLI, ET UNE HITBOX QUI EST LA FORME (2026-10-18, session TAUREAU — Sacha : « dans la map crypto city retravaille le design du toreau géant et vérifie bien que la hit box dans la map fonctionne »)
+- LA HITBOX D'AVANT, MESURÉE (audit hors ligne : la forme dessinée testée volume par volume par parité de rayon, contre les neuf boîtes de
+  `cryptoHeurt`, au pas de 5,4 m) : **6,7 % du taureau visible se traversait** — l'ENCOLURE (un trou de 35 m entre la boîte du corps et celle de la
+  tête), les CORNES (aucune collision), le haut des pattes (prismes penchés, boîtes droites) — et **les boîtes débordaient de 75 % du volume
+  visible** : des murs FANTÔMES autour des pattes (88 m de profondeur pour une patte de 60), sous la croupe, au-dessus du flanc. On mourait dans le vide.
+  Et à la pose (`cryptoPlace`), seul un cercle de 280 m autour du centre était gardé libre : sur une graine du banc, la ROUTE passait à **4 m** de la tête.
+- LA RECETTE : UNE seule description pour voir ET heurter. `taureauForme(pl)` rend des VOLUMES — des anneaux le long d'un axe (`crAnneau` : centre,
+  demi-largeur, demi-hauteurs dessus/dessous, tangage de l'axe ; une section super-ellipse `crSection` par volume) ou le long d'une courbe
+  (`crTubeV` : cornes, oreilles, queue). `crVolume` en tire les triangles (faces dehors, `crTri`), `crDans` dit si un point est dedans (le point se
+  place entre deux anneaux par ses distances à leurs plans, l'anneau est interpolé là, le point est comparé au polygone de la section : exactement la
+  surface dessinée). `taureauDur(F,x,y,z,m)` = l'union. `cryptoHeurt` passe la caisse dans le repère du taureau et appelle `taureauDur` (marge 0,7 m).
+  Retoucher la forme déplace la collision avec elle. `crLoft`/`crPatte` (les anciennes formes) sont partis.
+- LA FORME (repère local, ×1,35 = `TAUREAU_K`) : la pose du taureau de Wall Street — penché de 7° vers l'avant (`Y`, la croupe haute, le mufle bas),
+  croupe ronde, hanches larges, taille creusée, poitrail profond sous la BOSSE du garrot (le plus haut : ~320 m au-dessus de la route), TÊTE BASSE
+  et large (axe à 74°, le front face à la caisse), CORNES grosses à la base qui sortent de côté puis viennent EN AVANT, oreilles dessous, queue en S
+  et sa touffe. Les pattes sont des pattes jusqu'au sabot (l'avant lancée, genou plié ; l'arrière qui pousse, jarret en arrière), puis chaque sabot
+  pose sur le TOIT D'UNE TOUR (corniche, puis un fût à vitres qui s'élargit en trois gradins Art déco jusqu'au pied, dans la brume). Une route juste
+  sous le taureau coupe pattes et tours au pied (`crCoupe`). Yeux laser et anneau du mufle posés par la forme (`F.yeux`, `F.nez`). ~2 700 triangles.
+- LA MATIÈRE (`TAUREAU_VERRE`, programme `taureauCrypto2`, attribut `aVit`) : le CORPS est une statue d'OR POLI à facettes — presque plus de diffus,
+  le ciel teinté d'or au carré (l'horizon clair et le zénith sombre se séparent : chaque facette tranche sur sa voisine), Fresnel, l'éclat du soleil ;
+  la nuit, des projecteurs d'en bas (`CRYPTO.uNuit`). Les VITRES (une baie tous les 3,4 m) ne sont plus que sur les TOURS (`aVit` = 1), bureaux
+  allumés la nuit. (La grille de baies sur le corps, vue de 300 m, ne faisait qu'un grain orange.) Le ruban de cours vert à hauteur de route : gardé.
+- LA POSE : `taureauLibre` — aucun point de la route (au bitume et 6 m au-dessus) à moins de 30 m de la forme posée ; sinon le candidat suivant (les
+  tirages `cr` d'un candidat refusé sont les mêmes qu'avant : seules les graines où la route frôlait le taureau changent). Une route JUSTE DESSOUS
+  (le pied à moins de 250 m sous le ventre : 2 taureaux sur 10 au banc) coupait les pattes en moignons : ce candidat n'est plus pris qu'en dernier
+  recours, et le bout d'une patte ou d'une tour coupée s'effile (`crPointe`) — le taureau pose alors sur quatre socles. La forme calculée à la pose
+  est gardée (`t.F`) et reprise par `cryptoTaureau`.
+- MESURÉ — hors ligne (`proto.cjs` + `audit-hitbox.cjs`, scratchpad de la session) : visible mais pas dur **0,03 %**, dur mais invisible **0,19 %**
+  (une peau, et l'échantillonnage pile sur un plan de bouchon). Au banc (Chrome, 844 × 390, muet, `?carte=crypto&meteo=midi`) : `dbgCrypto('dur')`
+  — le repère de la collision = celui du maillage (`worldToLocal`) : **0 écart sur 8 000 points** ; la route à plus de 81 m des deux taureaux (31 m
+  sur la graine qui donnait 4 m). LES TIRS (`dbgCrypto('tir',…)`, la caisse lancée en vol dans la vraie boucle, bouclier de la seconde chance pour
+  enchaîner) : **14 / 14** — touché à 0,3-0,8 m de la surface VUE (raycast sur le maillage) sur l'encolure, le flanc, la bosse, le front, la corne,
+  la queue, le genou, la tour (2,4 m sur la fine pointe de corne) ; PASSÉ sans heurt devant les pattes avant (l'ancien mur fantôme), sous le ventre,
+  entre les pattes avant, entre les cornes, à côté d'une tour. Puis une VRAIE mort sur la corne : cause `tour`, L'IMPACT et la boule, comme partout.
+  Aucune erreur de page, `__loopErr` nul, `dbgCrypto('progs')` vide.
+- Console : `dbgCrypto('cadre',{n,vue})` (photo du taureau n : profil, face, trois, dos, dessous, haut, cote, route, arrive), `dbgCrypto('dur')`,
+  `dbgCrypto('tir',{n,cible,dir,d,vit,passe,bouclier})`, `dbgCrypto('taureaux')` (avec `pied`). Bancs : `banc-tirs.cjs`, `banc-photos.cjs`.
+- À TRANCHER (Sacha) : la tête tournée vers la route (comme la statue, qui regarde de côté) — pas fait, elle rapprocherait les cornes de la route.
+
 ## LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD (2026-10-18, session MODULES — Sacha : « pour l'instant dans les générations de map il n'y a pas beaucoup de modules, il faut que tu rajoutes des modules adaptés au gameplay de chaque map, il en faut au moins 3 par map qui seront sélectionnés automatiquement ; pour l'instant il y a trop de tout droit et trop peu de modules »)
 - AVANT : seuls les NUAGES (et leur orage) avaient des modules (le matin même : tSlalom, tEpingle, tCorde, tEsses, tRusses). Les neuf autres maps
   du tirage n'avaient AUCUN module : des virages génériques et, en ville comme en orbite, des « grands virages » si larges qu'ils se prenaient
