@@ -47,7 +47,7 @@ fois, livrée au fil de l'eau, pas en lot.
 - **Vérifier** : la syntaxe (§5), puis menu → JOUER → course SANS ERREUR, couché ET debout ET dans le cadre de l'ordi.
   `sh garde-burnout.sh` ET `sh garde-charte.sh` (racine) doivent répondre OK.
 - **Versions** : `CACHE` de `sw.js` +1 (`'cashcar-vNNN'`, avec sa ligne de commentaire) dans chaque commit qui touche le jeu.
-  Un fichier chargé avec `?v=N` (`sons-banque.js`, `sfx.js`, `figures.js`, `harmonie.js`) : N +1 quand il change.
+  Un fichier chargé avec `?v=N` (`sons-banque.js`, `sfx.js`, `figures.js`, `musique-bus.js`) : N +1 quand il change.
   Sinon les joueurs gardent l'ancien fichier, indéfiniment, sans erreur.
 - **Commit** : `git add "VERSION PRINCIPALE/<fichiers>"`. **Jamais `git add -A`** : des fichiers d'autres sessions traînent (ml/,
   données de Léo). Message en français qui cite la demande.
@@ -186,8 +186,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
   Le son de la NITRO : LE FEU QUI RUGIT (16/10) — `RUG`/`rugTampons`/`rugPas`/`rugAllume`/`rugPetarade`, `RUG_NIV`, `dbgRug()` ; `?nitroson=ancien` = avant.
   Le CRISSEMENT de la course : LA GOMME DOUCE (16/10) — `GOM`/`gomBatit`/`gomPas`, `GOM_NIV`, `dbgGomme()` ; `?crisse=ancien` = avant (l'ancien `skidG` reste au burn-out).
-- **Musique** : `MUSIC`/`MUSIC_LOBBY`, `musicTick`, `musicJoue`, `playMusic`, `musicLieuVoulu`, `MUS_TAIT`, `DEPMUS`,
-  `JMUS_NIV` (GLISSE V2 : `assets/audio/music/musique-glisse-v2.js`), `INSTRU` (coupé).
+- **Musique** : en course, POUCE BLEU joue seul (`pbjRegne`, `assets/audio/pouce-bleu-jeu.js`) ; `MENU_MUS` (le ciel et le garage du menu),
+  `ECOLE_MUS` (PREMIER MATIN, l'auto-école), `MUSIC_TRACKS` (le pool de la radio : UN morceau, ne pas le vider — l'auto-école ne partirait pas),
+  `musicTick`, `musicJoue`, `playMusic`, `musicLieuVoulu`, `MUS_TAIT`, `DEPMUS`, `INSTRU` (coupé). La radio des niveaux, GLISSE V2 (JMUS),
+  `?musique=niveaux` et `?ecole=` sont partis (allègement du 18/10).
 - **Sauvegarde** : `SAVE` (clé localStorage `cashcarSave`, `def()`, `san()`, `flush()`, `mark()`, `export()`/`import()`),
   le code caché `codeCousin`/`cousin()`.
 - **Langue** : `LANG`, `TR`, `I18N`, `I18N_ZH`, `applyLangDOM` (`data-fr`), `majPix`, `sansAcc`.
@@ -416,8 +418,8 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie
   entre 150 et 500 Hz, sinon il n'existe pas au haut-parleur d'un téléphone (mesurer la sonie après un passe-haut 200 Hz : perte ≤ 5 dB).
   Les sons FRÉQUENTS de la route restent bas et brefs (la pièce : −35, « LES SONS GRAVES ET DISCRETS » au journal) ; les figures passent au-dessus.
-- Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `musicLieuVoulu`
-  (ou `MUSIC_LOBBY` pour le lobby).
+- Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `MENU_MUS` (le menu) ou
+  `musicLieuVoulu` (un lieu précis) ; en course, c'est Pouce bleu (`musique-moteur.json`, la bibliothèque).
 
 **Ajouter un niveau (une map)**
 - Mode classique : une entrée dans `SF_CARTES` (`base` = son niveau, `m` = ses météos `{bio, pluie, nuit, orage, niv, p}`) ; ses
