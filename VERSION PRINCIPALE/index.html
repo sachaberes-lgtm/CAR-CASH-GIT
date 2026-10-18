@@ -7933,7 +7933,7 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
 </div>
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=9"></script>
-<script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=1"></script><script src="creatures/dauphin.js?v=1"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
+<script src="creatures/vitrail.js?v=1"></script><script src="creatures/singe.js?v=2"></script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html -->
 <script src="assets/audio/musique-bus.js?v=5"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=4"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -42175,7 +42175,7 @@ function jsgAtelierRepli(){const L9=JSG.atW||[];JSG.at=null;JSG.atW=null;for(con
 function jsgAtelier(){JSG.at=null;try{if(typeof Worker!=='function'||location.protocol==='file:')return;
   const lots=[['bonjour','mangue'],['bord','course']]; // DEUX ouvriers en parallèle (les téléphones ont plusieurs cœurs) : ~0,9 s par forme, deux formes chacun
   let reste=lots.length;JSG.atW=[];JSG.at='calcule';JSG.atT=performance.now();
-  for(const lot of lots){const W=new Worker('creatures/atelier.js?v=1');JSG.atW.push(W);
+  for(const lot of lots){const W=new Worker('creatures/atelier.js?v=2');JSG.atW.push(W);
     W.onerror=function(ev){try{if(ev&&ev.preventDefault)ev.preventDefault();}catch(e){}if(JSG.atW&&JSG.atW.indexOf(W)>=0)jsgAtelierRepli();};
     W.onmessage=function(e){if(!JSG.atW||JSG.atW.indexOf(W)<0)return;try{for(const o of e.data){const F=o.n==='course'?SINGE_FC:singePoseForme(o.n);if(!F._geo)F._geo={lisse:jsgGeo(o.lisse),ecailles:jsgGeo(o.ecailles)};}}catch(er){jsgAtelierRepli();return;}
       try{W.terminate();}catch(e){}if(--reste===0){JSG.at='fini';JSG.atW=null;}};

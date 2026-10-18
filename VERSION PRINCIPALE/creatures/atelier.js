@@ -4,7 +4,7 @@
    paie rien et les formes sont prêtes en quelques secondes. Le jeu envoie {formes:['bonjour',…,'course']} et reçoit, pour chacune, les
    tableaux des deux géométries (lisse, écailles) — transférés, pas copiés ; il refait les BufferGeometry (jsgGeo, dans index.html).
    Sans Worker (file://, refus du navigateur, erreur ici) le jeu repasse au calcul en tranches d'avant : rien ne casse. */
-importScripts('../vendor/three.min.js','vitrail.js?v=1','singe.js?v=1');
+importScripts('../vendor/three.min.js','vitrail.js?v=1','singe.js?v=2');
 function paquet(G){const a={};for(const k in G.attributes){const A=G.attributes[k];a[k]=[A.array,A.itemSize];}
   const s=G.boundingSphere;return {a:a,i:G.index.array,bs:[s.center.x,s.center.y,s.center.z,s.radius]};}
 onmessage=function(e){
