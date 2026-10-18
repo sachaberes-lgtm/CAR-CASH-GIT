@@ -10619,6 +10619,26 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
   #prof .pfS{grid-template-columns:minmax(0,1fr);padding:9px 10px 8px}#prof .pfS .pxi{display:none}
   #prof .pfRet{width:56px;min-width:56px;padding:0}#prof .pfRet span{display:none} /* la flèche seule : le lingot garde sa ligne entière */
 }
+/* (2026-10-18, Sacha : « regarde comment la version mobile est gérée avec le clavier ») LE CLAVIER DU TÉLÉPHONE OUVERT : il se pose PAR-DESSUS
+   la page (couché, il ne reste que ~150 px visibles) — iOS faisait glisser l'écran pour montrer le champ : la plaque coupée, VALIDER sous les
+   touches. Tant qu'on écrit, l'atelier se pose sur la partie VISIBLE (plqClavier : top/height = visualViewport) et ne garde que l'essentiel :
+   la plaque qui s'écrit, le champ et son dé, RETOUR · VALIDER juste au-dessus des touches. Debout, les modèles restent s'ils tiennent (sinon
+   .serre les range, posé par plqClavier) ; couché, ils reviennent quand le clavier se range. `?plqclavier=0` = comme avant. */
+#plq.clavier{bottom:auto;padding-bottom:10px}
+#plq.clavier .plX,#plq.clavier.serre .plMods{display:none}
+#plq.clavier .plIn{height:auto;min-height:100%;gap:10px}
+#plq.clavier .plTete{margin-top:auto} /* le groupe se pose sur le clavier (une marge auto : s'il déborde, on le fait défiler sans rien perdre en haut) */
+#plq.clavier .plBas{margin-top:0;padding-top:0}
+#plq.clavier #plqTx,#plq.clavier .plDe{height:48px;min-height:48px}
+#plq.clavier .plBas .pbtn{min-height:48px}
+@media (orientation:landscape) and (max-height:540px){
+  #plq.clavier{padding-top:10px}
+  #plq.clavier .plIn{height:100%;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr auto auto 1fr;
+    grid-template-areas:"vue ." "vue saisie" "vue bas" "vue .";row-gap:8px;align-items:center}
+  #plq.clavier .plTete,#plq.clavier .plMods{display:none}
+  #plq.clavier .plVue{max-width:none}
+  #plq.clavier .plBas{align-self:auto}
+}
 </style>
 <div id="carr" role="dialog" aria-label="Carrière"></div>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
@@ -40433,9 +40453,25 @@ function plqVue(){plqApercu($p('plqCv'),PLQ.m,PLQ.x.trim());plqMods();}
 function plqOuvre(mode){ // mode : 'premier' (le début du jeu, à valider) · 'profil' (depuis le profil, RETOUR annule)
   const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
   el.classList.toggle('premier',PLQ.mode==='premier');
+  el.classList.remove('clavier');el.style.top=el.style.height='';PLQ.kb=false;PLQ.kbFaux=0;PLQ.h0=plqH0(); /* (2026-10-18) la pose du clavier repart de zéro */
   const tx=$p('plqTx');if(tx){tx.value=PLQ.x;tx.setAttribute('aria-label',TR('Le texte de ta plaque'));}
   plqVue();feuilleOuvre(el,'on');try{chuteDoigtMontre(false);}catch(_){}
 }
+/* (2026-10-18) LE CLAVIER DU TÉLÉPHONE (voir #plq.clavier) : iOS et Android posent le clavier PAR-DESSUS la page — seule la partie visible
+   (visualViewport) rétrécit, la mise en page ne bouge pas. Tant que le champ a le focus et que la partie visible a perdu plus de 90 px,
+   l'atelier se pose exactement sur elle. Sur l'ordi (clavier physique) rien ne rétrécit : rien ne change. Un iPad au clavier physique n'a que
+   sa barre de raccourcis (< 90 px) : rien ne change non plus. `dbgPlaque('clavier',h)` simule un clavier qui laisse h px visibles (bancs). */
+const PLQ_KB=!/[?&]plqclavier=0\b/.test(location.search);
+function plqH0(){const vv=window.visualViewport;return Math.max(innerHeight||0,document.documentElement.clientHeight||0,vv&&!PLQ.kb?vv.height:0);} /* la hauteur SANS clavier */
+function plqClavier(){const el=$p('plq'),tx=$p('plqTx'),vv=window.visualViewport;if(!el||!PLQ.on)return; /* l'atelier qui se referme garde sa pose pendant son fondu */
+  let on=false,top=0,h=0;
+  if(PLQ.kbFaux){on=true;h=PLQ.kbFaux;}
+  else if(PLQ_KB&&vv&&tx&&document.activeElement===tx){const h0=Math.max(PLQ.h0||0,document.documentElement.clientHeight||0);
+    if(h0-vv.height>90){on=true;top=Math.max(0,vv.offsetTop);h=vv.height;}}
+  PLQ.kb=on;
+  if(on){const T=Math.round(top)+'px',H=Math.round(h)+'px',neuf=!el.classList.contains('clavier')||el.style.height!==H;if(el.style.top!==T)el.style.top=T;if(el.style.height!==H)el.style.height=H;
+    if(neuf){el.classList.add('clavier');el.classList.remove('serre');if(el.scrollHeight>el.clientHeight+2)el.classList.add('serre');el.scrollTop=el.scrollHeight;}} /* debout, les modèles restent s'ils tiennent ; le champ et VALIDER, toujours au ras du clavier */
+  else if(el.classList.contains('clavier')){el.classList.remove('clavier','serre');el.style.top=el.style.height='';}}
 function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
   if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
     toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
@@ -40445,12 +40481,22 @@ function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
   const tx=$p('plqTx');
   if(tx){tx.addEventListener('input',function(){const v=plqNet(tx.value);if(v!==tx.value){const p=tx.selectionStart;tx.value=v;try{tx.setSelectionRange(Math.min(p,v.length),Math.min(p,v.length));}catch(_){}}
       PLQ.x=v;plqVue();});
-    tx.addEventListener('click',function(e){e.stopPropagation();});}
+    tx.addEventListener('click',function(e){e.stopPropagation();});
+    /* (2026-10-18) LE CLAVIER DU TÉLÉPHONE : on suit la partie visible ; au départ du clavier, la page revient en haut (iOS la laissait
+       remontée : le même correctif que le nom du TOP 10) ; le retour à l'écran entier attend 120 ms (le doigt qui touche VALIDER : la feuille
+       ne bouge pas sous lui) */
+    tx.addEventListener('focus',function(){clearTimeout(PLQ.kbT);plqClavier();PLQ.kbT=setTimeout(plqClavier,350);});
+    tx.addEventListener('blur',function(){clearTimeout(PLQ.kbT);PLQ.kbT=setTimeout(plqClavier,120);
+      setTimeout(function(){try{scrollTo(0,0);}catch(_){}},60);setTimeout(function(){try{if(!PLQ.kb)scrollTo(0,0);}catch(_){}},400);});
+    if(window.visualViewport){const vvGo=function(){if(!PLQ.on)return;if(document.activeElement!==tx&&!PLQ.kbFaux)PLQ.h0=plqH0();plqClavier();};
+      visualViewport.addEventListener('resize',vvGo);visualViewport.addEventListener('scroll',vvGo);}}
   const vue=el.querySelector('.plVue');if(vue)vue.addEventListener('click',function(e){e.stopPropagation();try{tx.focus();}catch(_){}});
+  const de=el.querySelector('.plDe');if(de)de.addEventListener('mousedown',function(e){if(document.activeElement===tx)e.preventDefault();}); /* le dé n'emporte pas le focus : le clavier reste ouvert */
   el.querySelectorAll('[data-p]').forEach(function(b){const a=b.getAttribute('data-p'),go=function(e){if(e)e.stopPropagation();
       if(a==='ok'){uiClic('');hap(14);uiPop(b);plqFerme(true);}
       else if(a==='ret'){uiClic('retour');hap(6);plqFerme(false);}
-      else if(a==='hasard'){uiClic('onglet');hap(8);uiPop(b);PLQ.x=plqHasard();if(tx)tx.value=PLQ.x;plqVue();}};
+      else if(a==='hasard'){const ecrit=PLQ.kb||document.activeElement===tx;uiClic('onglet');hap(8);uiPop(b);PLQ.x=plqHasard();if(tx)tx.value=PLQ.x;plqVue();
+        if(ecrit&&tx)try{tx.focus();tx.setSelectionRange(tx.value.length,tx.value.length);}catch(_){}}}; /* on écrivait : on continue d'écrire, au bout du texte tiré */
     b.addEventListener('click',go);b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});
   addEventListener('keydown',function(e){if(!PLQ.on)return;if(e.target===tx)return;if(e.code==='Escape'&&PLQ.mode!=='premier'){e.preventDefault();e.stopImmediatePropagation();plqFerme(false);}
     else if(e.code==='Enter'){e.preventDefault();e.stopImmediatePropagation();plqFerme(true);}},true);
@@ -40519,6 +40565,8 @@ function plqDemarre(){try{plqBranche();profBranche();}catch(e){console.warn('pla
 document.addEventListener('cc:jeu',function(){try{if(PLQ.prof)profFerme();}catch(e){}});
 window.dbgPlaque=function(a,b){
   if(a==='ouvre'){plqOuvre(b||'profil');return 'ouvert';}
+  if(a==='clavier'){PLQ.kbFaux=Math.max(0,+b||0);plqClavier();const el=$p('plq'),bx=function(s){const n=el.querySelector(s),r=n&&n.getBoundingClientRect();return r&&r.width?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null;};
+    return {clavier:el.classList.contains('clavier'),top:el.style.top,h:el.style.height,vue:bx('.plVue'),champ:bx('#plqTx'),de:bx('.plDe'),ret:bx('.plRet'),ok:bx('.plOk'),titre:bx('.plTete'),mods:bx('.plMods')};}
   if(a==='raz'){SAVE.d.plq.ok=0;SAVE.flush();PLQ.fait=false;return 'à choisir au prochain accueil';}
   if(a==='pos')return {pos:PLQ.pos,plaques:(function(){const r=[];carGroup.traverse(function(o){if(o.userData&&o.userData.plaque&&o.isMesh)r.push([o.userData.plaque,o.position.toArray().map(function(v){return +v.toFixed(3);})]);});return r;})()};
   if(a&&b!=null){const p=SAVE.d.plq;p.m=plqModOk(a);p.x=plqNet(b).trim()||p.x;p.ok=1;SAVE.flush();plqRepeint();return p;}
