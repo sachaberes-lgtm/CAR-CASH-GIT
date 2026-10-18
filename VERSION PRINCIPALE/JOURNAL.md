@@ -154,6 +154,91 @@
   ⚠ La prochaine caisse d'une autre demande prend l'index **87**.
 - **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
   des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
+- **1er lot SUR LE MAIN (v633, oui de Léo sur les planches)** : LA BULLE devient **LE SCARABÉE** (nom, mission `fig5`, EN « THE SCARAB » —
+  pas « THE BEETLE », la marque) · LE COMBI en lecture **A** (la livrée de Fillmore seule, sans `yeux:1`) · la MX-5 NA s'appelle **LA CERISE**
+  (EN « THE CHERRY ») et ses phares se lèvent **à la nitro** (`MX5PH.mode='nitro'` ; le clin d'œil à l'arrivée au garage reste).
+
+## LA BULLE REFAITE SUR LE PLAN COTÉ DE LA COCCINELLE 1962 (2026-10-18, discussion RONDES — Léo : « à refaire, avec le même soin que LA PERLE ; s'inspirer de la photo de cette annonce (combikombi, VW Beetle 1962) ; bleu ciel »)
+- **Le plan** : dimensions.com « Volkswagen Beetle Type 1 » (SVG 4 vues, 213,6 unités/m, étalon = l'empattement de 2,40 m), relevé en mètres
+  (repère du jeu, z = 0 au milieu de la longueur). Bancs et relevés : `~/Downloads/CAR-bancs/nouvelles-voitures/rondes/` (releve.py, trace.py,
+  extrait.py, l'outil de vue `vue/index.html` + regard.py/voir.sh = la caisse en gris SOUS le plan rose, studio.py/photos.py = le studio du
+  jeu, jeu.py = démarrage/garage/inventaire/course/programmes, vues.py = mode photo en course, planche.py). Photos : l'annonce (combikombi).
+- **Le gabarit** (`SHAPES.bulle=` à son repère, qui remplace l'ancienne méthode `bulle(K)` de l'objet SHAPES) : la COQUE en loft (le dessus
+  dans l'axe, la plus grande largeur, la gouttière, le capot avant relevés au plan ; la jupe avant entre les ailes) · QUATRE AILES séparées
+  (tubes fermés hors axe, points répartis PAR TRONÇON — rééchantillonnés au périmètre ils glissaient et la tôle se froissait), l'aile avant se
+  referme en NACELLE autour du phare penché de 25° (sections qui portent un 3e terme : leur pente) · marchepieds caoutchouc à jonc chromé ·
+  pare-chocs à lame, butoirs et « porte-serviettes » (l'annonce) · phares en cerclage chromé, feux en nacelle couleur caisse, bosse de
+  l'éclairage de plaque, nervure du capot moteur, clignotants obus, rétros ronds, essuie-glaces · roues : flanc blanc, jante couleur caisse
+  (la peinture de la boutique la suit), enjoliveur dôme · `ECH_POTS.bulle` : les deux « sarbacanes » sous le pare-chocs.
+- **La tôle découpée au plan** (`bulleOutils.decoupe`, la méthode de LA PERLE en outil générique, pour les trois RONDES) : vitres + cadre
+  chromé (contour gonflé), déflecteur, pare-brise, lunette, baguette de ceinture, joints (portes, capot, capot moteur), ouïes — chaque contour
+  dans SA vue (`al` : la tôle doit regarder la vue). Les morceaux restent dans leur facette (normales intactes) ; le verre lissé par groupes.
+  Gardée sur la fonction (`SHAPES.bulle._tole`) avec un CODE par sommet : une peinture de la boutique repeint sans redécouper.
+- **Mesuré** : construction 25-30 ms (LA PERLE 72-83 ms), ~22 000 facettes ; 0 programme compilé en course (213 → 213) ; démarrage, garage,
+  inventaire (vignette), course debout / couché / plein : les mêmes 30 avertissements que le main (flatShading ×29, M2_COLK). Peintures
+  menthe, couchant (dégradé), chrome, noir, gotham : OK. La fiche : h 1,55 · w 1,57 · l 4,07 (cotes réelles), le bleu de l'annonce 0x93cfd6.
+- ⚠ Le studio du jeu (`dbgEssaiCaisse`) BLANCHIT les teintes claires (l'ancienne BULLE aussi) : juger une couleur en course ou au garage.
+- Planche : `photos-gameplay/bulle-vraie-et-nous.png` (vraie | avant | après | en course). Noms : LA BULLE (gardé) · LA DRAGÉE · LE SCARABÉE.
+
+## LE COMBI — REFAIT AU PLAN COTÉ, FAÇON FILLMORE (2026-10-18, discussion BOÎTES ; Léo : « s'inspirer du combi du film Cars »)
+- **Le gabarit** : `SHAPES.combi=(function(){…})()` à la ligne-repère `// <<< SHAPES.combi (BOITES) >>>` (remplace l'ancien `combi(K)` de
+  l'objet SHAPES, que la coordination effacera) + `ECH_POTS.combi` (UN pot, à gauche sous le pare-chocs, comme le T1 vu de dos). Fiche :
+  h 1,94 · w 1,72 · l 4,28, vert d'eau `0x86c9b1` (au garage, une menthe plus soutenue virait au vert fluo ; au studio, plus pâle, au blanc).
+- **Le plan** : dimensions.com « Volkswagen Type 2 Microbus » (SVG 1000×725, **126,19 u/m** mesurés sur l'empattement 2,40 m). C'est une
+  **Samba** (23 vitres, lucarnes, toit ouvrant) ; Fillmore est un **Microbus** : 3 vitres sur le flanc, toit lisse, ouïes EN HAUT derrière la
+  dernière vitre (sur la Samba elles sont sous la ceinture) — la caisse est celle du plan, le vitrage celui du Microbus. ⚠ La vue de DESSUS du
+  plan est 4 % trop large (0,878 contre 0,844 de face et de dos, qui s'accordent) : elle ne sert qu'aux formes. ⚠ Le coin du pare-brise se
+  contredit de quelques cm entre vues (le déflecteur vu de côté passe devant le coin du pare-brise vu de dessus) : compromis jugé à l'image.
+- **LA TÔLE EN GRILLE** (pas un loft par tranches) : une RANGÉE par hauteur (bas de caisse, flancs, bandeau de ceinture, vitres, gouttière,
+  puis le pavillon en dôme par fractions de largeur), chaque rangée suit SA courbe en plan — le nez en **quart d'ellipse de 36 cm** (le V,
+  les phares et la porte avant, croisés face + côté, tombent dessus à 1-2 cm près), les pans du pare-brise en V (pente 0,25) et un coin de
+  12 cm, la poupe à coins de 24,5 cm. Les colonnes : poupe | flancs (stations communes, serrées aux passages de roue) | nez. ⚠ Au nez et à la
+  poupe, la 1re moitié des colonnes suit le COIN (en z) et la 2e la FACE (en x) pour TOUTES les rangées : au même pas en arc, des rangées de
+  coins différents se décalaient → facettes en dents de scie au montant du pare-brise. Le pavillon retombe sur la visière (profil de côté)
+  et la visière déborde de 6 cm (une pièce à part : une rangée qui déborde rendrait la section non convexe).
+- **LA DÉCOUPE** (même principe que `peintPlan` de LA PERLE, réécrite générique : `zone`/`joint`/`pli` par vue, « le dernier contour qui
+  contient le morceau le peint », `sur:[codes]` = ne peint que sur ces peintures — la paupière ne déborde jamais du pare-brise) : vitres
+  + caoutchouc, portes (avant des deux côtés, portes battantes côté trottoir seulement), ouïes, trappe à essence, capot moteur, hayon,
+  bandeau et V en arêtes de lumière, et tout le DÉCOR (arc-en-ciel, signe de la paix, fleurs, étoiles) DANS la tôle. Les contours sont rangés
+  par tranches de 10 cm (une facette n'interroge que ceux de ses tranches) : 160-230 ms → **~45 ms** sur le Mac, gardé en cache par session.
+- **LES DEUX LECTURES** : A = la livrée seule (défaut) ; B = `yeux:1` dans la fiche → le pare-brise devient le blanc des yeux, iris, pupille,
+  reflet, paupières lourdes couleur caisse (comme Fillmore). ⚠ Blanc et iris en matière MATE (`m`) : en satiné, sous la lampe du studio,
+  l'iris d'un œil virait au beige. Pas d'essuie-glaces en B.
+- **La plaque** : une boîte `l` blanche dans le renfoncement du capot moteur → `plqDessinee` y pose LA plaque du joueur. Pas de plaque avant.
+- **Mesuré** : 38 000 triangles (LA PERLE ~52 000) ; construction ~55-60 ms (LA PERLE 40-75 ms) ; menu → course : 211 programmes partout
+  (0 compilé), A et B, debout et couché ; garage 211 → 212 comme le main ; aucune erreur. Planche : `photos-gameplay/combi-vraie-et-nous.png`.
+- **Outils** (`~/Downloads/CAR-bancs/nouvelles-voitures/boites/`) : `releve.py` (le SVG → toutes ses lignes en unités), `traits.py` (→ mètres
+  par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
+  (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
+
+## LES JAPONAISES — 1 · LA MX-5 NA, « LE SOURIRE » (nom provisoire), PHARES ESCAMOTABLES QUI SE LÈVENT (2026-10-18, discussion JAPONAISES, Léo : « première génération, décapotable, phares escamotables qui se lèvent »)
+- **Le plan** : pas de dimensions.com pour la NA (ni pour l'AE86 : seulement la ND et la Corolla E210) → plans RASTER de the-blueprints.com
+  (« Mazda MX-5 Miata 1995 », quatre vues couleur 1280 px, et le plan au trait de l'Eunos Roadster), calés à 172 px/m (3,95 m ; sol, roues et
+  hauteur recoupés : 1,235 m capote levée = 1,156 m au pare-brise) ; silhouettes relevées AU PIXEL dans Chrome (`pix.py`). Banc et outils :
+  `~/Downloads/CAR-bancs/japonaises/` (vue sous le plan `regard.py` + `vue/`, studio du jeu `studio.py`, course `jeu.py`, garage `garage.py`, planche).
+- **LES OUTILS DES JAPONAISES** (bloc au repère `SHAPES.mx5na`, partagés par les 4 caisses) : `japDecoupe` = `peintPlan` de LA PERLE rendu
+  GÉNÉRIQUE (zones par vue avec code, porte `gate`, `creux`, `copie` ; joints = interstices, plis = arêtes ; vue forcée par `vue()` ; découpe gardée
+  sur la fonction du gabarit, `_tole`), `japZones`/`japLignes`/`japDemi` (une zone posée sur l'axe : bord droit, sinon le miroir la coupe en deux
+  lobes), `japLisse`, `japFusion`, `japColP` (la couleur de la tôle suit la peinture de la boutique).
+- **La caisse** (`SHAPES.mx5na`, index 83, COMMUNE) : loft à 14 points par tranche (coupe vue de face mise à l'échelle de chaque tranche : flanc
+  droit, PLI à 0,42 m = le haut des boucliers qui court le long des portières, ventre à 0,60, épaule qui roule sur 8 cm), HABITACLE OUVERT
+  (portières, planche de bord, baquets noirs, console, volant, casquette du combiné), couvre-capote noir jusqu'à la malle, pare-brise au cadre
+  rouge continu, rétros en goutte ; découpés au plan : bouche ovale creusée, veilleuses ovales du nez, répétiteurs, feux arrière (recul rond,
+  rouge, orange), 3e feu stop, poignées, joints de capot/malle/portières/boucliers ; jante « marguerite » (8 pétales) ; un pot à droite.
+  17 500 facettes, construction 25-80 ms (découpe comprise, sous les 50 ms en moyenne : pas de préchauffe), 0 programme compilé en course.
+- **LES PHARES ESCAMOTABLES** (`MX5PH`, `dbgPhares(1|0|null, mode)`) : le CAPOT de chaque boîtier = les morceaux mêmes de la tôle découpés dans
+  son logement (`copie:'lid'`) — fermé, il affleure au millimètre (échantillonné sur la courbe, il faisait des carrés plus sombres) ; le logement
+  est creusé de 8,5 cm. Le boîtier pivote de 60° autour d'un axe CALCULÉ (la rotation qui envoie le bas de la face, fermé, au ras du capot,
+  levé) : le phare sort du capot comme sur la vraie (charnière au bord du capot : il se dressait de 26 cm comme une oreille). ⚠ Le disque du
+  phare se pose dans le repère de LA FACE (son bord haut suit la pente du capot) : « à niveau », la moitié passait derrière la face.
+  ⚠ Pas d'ombre cuite (`lpOmbre`) sur une pièce dont les sommets sont dans un repère local (pivot) : elle la noircissait comme un bas de caisse.
+  Quand : mode 'course' par défaut (levés en course, baissés au garage/menu, CLIN D'ŒIL d'un seul phare à l'arrivée au garage) ; 'nitro',
+  'toujours' — CHOIX DE LÉO sur la planche.
+- **Banc** : `dbgEssaiCaisse` évalue le gabarit hors de la portée du jeu (ni `lpMat`, ni `lpOmbre`, ni `peintPal`) → `studio.py` les EXPOSE sur
+  `window` par une pause du débogueur dans `blingTick` avant l'essai. Les 2 programmes compilés au départ sur la carte du CANYON viennent de la
+  carte (mêmes empreintes avec LA PERLE), pas des caisses.
+- Planche : `photos-gameplay/mx5na-vraie-et-nous.png` (la vraie, Wikimedia ; la nôtre au studio, mêmes angles ; phares baissés/levés/en course ;
+  3 noms : LE SOURIRE · LE CLIN D'ŒIL · LA CERISE).
 
 ## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v628, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
 - **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
