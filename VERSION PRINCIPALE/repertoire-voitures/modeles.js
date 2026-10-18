@@ -15,8 +15,9 @@ window.MODELES = {
   "LA QUEUE DE CANARD": "Porsche 911 Carrera RS 2.7 (1973)",
   "LA ZED": "Datsun 240Z (1969)",
   "LA GRANDE ANGLAISE": "Bentley Continental GT (2003)",
+  "LE SCARABÉE": "Volkswagen Coccinelle (1962)",
   "LA BULLE": "Volkswagen Coccinelle (années 60)",
-  "LE COMBI": "Volkswagen Combi T1 (années 60)",
+  "LE COMBI": "Volkswagen Combi T1 (années 60), façon Fillmore (Cars)",
   "LA DOLORÈS": "DeLorean DMC-12 (1981)",
   "LE CORBILLARD": "? Corbillard Cadillac (1969-70)",
   "LA SILENCIEUSE": "Tesla Model S (2012)",
@@ -53,4 +54,5 @@ window.MODELES = {
   "LE SPECTRE": "? Koenigsegg (Agera / One:1)",
   "LE MUR DU SON": "? ThrustSSC (1997)",
   "LA POUPÉE": "Porsche Cayenne (2018)",
+  "LA CERISE": "Mazda MX-5 NA (1989)",
 };
