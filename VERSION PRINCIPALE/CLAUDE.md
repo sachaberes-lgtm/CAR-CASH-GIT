@@ -21,7 +21,8 @@ le BURN-OUT du garage est à Léo (une garde bloque toute publication sans lui) 
 - **Éditions tirées de ce seul fichier** : `node poki-construire.js [crazy|itch|playgama]` (racine) fabrique `POKI/`, `CRAZY/`,
   `ITCH/`, `PLAYGAMA/` et leurs zips (ignorés par git, à refaire après chaque changement). L'app iPhone (Capacitor) vit sur la
   branche `ios-capacitor` (`app-ios/`, son `www/` est régénéré depuis ce dossier).
-- **`AUTRE VERSION/`** (l'édition PC) est GELÉE depuis le 25/09 : on n'y touche pas. **`ROBLOX/`** est un autre jeu.
+- **`AUTRE VERSION/`** (l'édition PC, gelée depuis le 25/09) n'est plus dans le dépôt depuis le 2026-10-18 (étiquette git
+  `avant-allegement-2026-10-18`) ; `node synchro-versions.js` la refabrique en local, sans la committer. **`ROBLOX/`** est un autre jeu.
 - **En ligne** : chaque push sur `main` publie https://car-cash-git.vercel.app/jouer/ (`vercel-build.sh`, ~1 min). C'est là que
   Sacha et Léo jouent sur téléphone. Le numéro « VERSION xxxxxxx » des réglages = l'empreinte du jeu publié.
   ⚠ LA COPIE EN LIGNE EST ALLÉGÉE (2026-10-18, `outils/publie-allege.cjs`) : sans commentaires (même nombre de lignes : les numéros
