@@ -398,6 +398,11 @@
 - **1er lot SUR LE MAIN (v633, oui de Léo sur les planches)** : LA BULLE devient **LE SCARABÉE** (nom, mission `fig5`, EN « THE SCARAB » —
   pas « THE BEETLE », la marque) · LE COMBI en lecture **A** (la livrée de Fillmore seule, sans `yeux:1`) · la MX-5 NA s'appelle **LA CERISE**
   (EN « THE CHERRY ») et ses phares se lèvent **à la nitro** (`MX5PH.mode='nitro'` ; le clin d'œil à l'arrivée au garage reste).
+- **2e lot SUR LE MAIN (v644, Léo : « vas-y push » sur la planche des dix)** avec les choix par défaut des discussions : LA DOLCE VITA
+  (500, bleu « un cran plus bleu » 0x8eb2df, ses 4 retouches : capot, rétro, jante « 1957 », barre au nez) · LE BAROUDEUR (vert Sarge) ·
+  LA CABOSSÉE · LE ROUGE-GORGE · LA LAME (argent clair) · LE TOFU (phares à la nitro, jantes bronze). La Corolla (81) reste cachée :
+  Léo la veut « plus fidèle » (en reprise chez JAPONAISES). Fusion : seul conflit, le bloc des traductions que l'allègement de Sacha
+  avait vidé — son ménage gardé, nos deux noms (LA LAME, LE TOFU) ajoutés.
 
 ## LE ROUGE-GORGE — LA RELIANT ROBIN Mk1, TROIS ROUES, LA ROUE AVANT AU MILIEU (2026-10-18, discussion RONDES — la trois-roues anglaise des années 70, fibre de verre ; index 84, RARE)
 - **Pas de plan vectoriel libre** (dimensions.com n'a pas la Robin, getoutlines sur devis) : le plan raster de the-blueprints.com (côté +
