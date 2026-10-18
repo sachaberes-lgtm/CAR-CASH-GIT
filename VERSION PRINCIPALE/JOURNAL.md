@@ -3,6 +3,32 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER (2026-10-19, v664, Léo : « fais en sorte que chaque trick qui fait un saut en l'air, seulement lorsque la voiture est en l'air, laisse au joueur l'opportunité de décoller de la route en utilisant le joystick qui permet d'orienter le nez de la voiture vers le haut »)
+- **Le questionnaire** (deux lectures possibles, le pouce HAUT choisit déjà la figure AVANT au double-tap) : « un geste PENDANT le bond »
+  (le pouce tenu depuis le double-tap ne compte pas) et « comme un avion » (tant qu'on tient le nez en haut elle monte, lâché elle retombe).
+- **Avant** : depuis le 17/10 (Sacha), une figure lancée au sol se fait SUR LA ROUTE — la carrosserie fait un bond de 0,35 à 2,4 m (`FR`,
+  `frPose`), la conduite ne bouge pas, et rien ne pouvait la faire quitter la route (seule une crête le faisait).
+- **Maintenant** (bloc « LE DÉCOLLAGE AU MANCHE », juste après `frVersVol`) : pendant le bond (`FR.on`, bond ≥ 20 cm), le manche du VOL poussé
+  au-delà de 55 % de sa course (`frNez` = la même lecture que pitT/wPitch en vol : pouce HAUT par défaut, pouce BAS en réglage PLONGE,
+  ↓ au clavier) fait décoller : `frEnvol` (appelé par `frTick`) → `startFall(max(6, vitesse du bond), 1)`, la figure continue en l'air
+  (`frDecolle`/`frVersVol`, le chemin d'une crête) et se paie à SA pose ; le cabré du vol fait ensuite monter la caisse tant que le pouce tient.
+  · LE GESTE NEUF (`FDC.a`) : armé au lancement seulement si le manche est sous 30 % ; sinon il doit d'abord y repasser. Sans geste : la figure
+    reste sur la route, comme avant (le choix de Sacha est intact pour qui ne fait rien).
+  · Pas sous la dalle (`side<0` : décoller = tomber dans le vide, comme le saut nitro), ni à l'auto-école, ni pendant un rebond (hopY, POSE_F)
+    ou le demi-tour. Gratuit (la figure a payé ses 20 %) ; `VEQ.sautF` (la pose rend la nitro d'un saut nitro), volant non verrouillé.
+  · `frDecolle` rend aussi `lift` : TOUT décollage en pleine figure sur la route (crête comprise) part d'où la caisse EST, le bond compris
+    (`fallPos` + `fr9.lift`) — elle retombait d'un coup de 1-2 m sur le bitume à l'image du décollage.
+- `?fdecolle=0` = sans. Console : `dbgFDecolle()` (état : armé, manche, décollages, `dv`, bond au décollage), `dbgFDecolle(v)` force le manche
+  (null rend la main au pouce). Réglages : `FDC` (`arme` .3, `seuil` .55, `haut` .2 m, `imp` 6).
+- MESURÉ (banc muet, Chrome sans fenêtre 390 × 844, VRAIS touchers — pouce gauche sur le volant + double-tap NITRO —, pilote auto au volant) :
+  pouce tenu en haut depuis le double-tap → 0 décollage ; pouce au repos puis poussé pendant le bond → décolle (bond 1,6-1,8 m au décollage) ;
+  pouce en haut, revenu, repoussé → décolle ; aucun geste ou pouce vers le bas → 0 ; réglage PLONGE : pouce BAS décolle, HAUT non ; clavier : ↓
+  décolle, ↑ non. Hors bac à sable, `?carte=nuages`, 3 essais (pouce tenu 0,7 s) : 3 décollages, 3 figures payées à la pose, 0 mort, 0 erreur JS ;
+  après la fusion du main (v663) : 2 décollages payés, puis une mort au CHRONO (`air` : vol > 6 s, la route des nuages qui descend sous la
+  caisse — le pilote du banc ne pique jamais). C'est la règle de tout vol : tenir le nez en haut longtemps, c'est monter haut.
+  La caisse ne saute pas au décollage (vitesse continue d'une image à l'autre) ; la caméra traîne 2-3 images comme sur tout saut (mesuré aussi
+  sur un saut de `startFall(21)` sans figure). Pouce tenu 1,2 s : 3,3-4,8 s de vol (le chrono et la pose comme tout vol).
+
 ## CINQ VOITURES DE PLUS SUR LE MAIN (2026-10-19, v663, Léo : « oui, mets les 5 dans le jeu avec les choix ★ »)
 - LA QUEUE DE CANARD (RONDES, f84fc25a) et LA GRANDE ANGLAISE (RONDES, 0bfbb75b) refaites au plan ; LE BAROUDEUR en gris Sahara, élargisseurs
   et toit couleur caisse, chaque lumière à sa place (BOÎTES, cba2f543 + 9f04afe8) ; LE CAÏD devient le GMC HUMMER EV pick-up, vert anis

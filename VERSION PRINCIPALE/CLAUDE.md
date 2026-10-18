@@ -139,7 +139,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   entiers ; une contraire annule, deux qui se contrarient : la dernière mène ; la fin d'un mélange CONTINUE et ralentit jusqu'à l'endroit
   (`finVise`, `aF` figé) ; la prise forte = filet. Le SAUT NITRO prend la figure de la direction tenue. **Depuis le 17/10 soir, AU SOL la figure
   se fait SUR LA ROUTE, sans décoller** (`FR`/`FR_K`, `frLance`/`frTick`/`frPose`/`frEncaisse`, `frDecolle`/`frVersVol` au décollage ;
-  `?froute=0` = le saut d'avant ; `dbgFRoute`) — rien dans la direction tenue : le saut nitro, sans figure. HUD des figures v4 : `figNom` (DOUBLE…,
+  `?froute=0` = le saut d'avant ; `dbgFRoute`) — rien dans la direction tenue : le saut nitro, sans figure. **Depuis le 19/10 (Léo), LE DÉCOLLAGE AU MANCHE** : pendant ce bond, le manche du vol
+  poussé « nez en haut » (un geste NEUF : le pouce qui a choisi la figure ne compte pas) fait décoller pour de bon (`FDC`, `frNez`, `frEnvol`,
+  `?fdecolle=0`, `dbgFDecolle`) ; la figure finit en l'air. HUD des figures v4 : `figNom` (DOUBLE…,
   TOUPIE 720), flèche du geste (`r.flD`), pastilles + COMBO + RECORD (`SAVE.d.figRec`), extinction sur place, rappel `.arme` (`fhArme`).
   **HUD v5 (18/10)** : le nom dans la couleur et la police de sa RARETÉ (`figRarH`, `FIG_RP`, `data-rp`) ; la ligne du combo = les NOMS des
   figures plantées (`fhMaillon`/`fhCsCale`, dès 2 figures ; seule, elle s'écrit une fois en grand : `fhSeule`) ; combo à trois nommé `fhTrio` ;
@@ -567,6 +569,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
 
 **Conduite, vol, caméra**
+- « LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER » (19/10, Léo) — `FDC`, `frEnvol`, le geste neuf pendant le bond
 - « LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL » (17/10) — décollage, pose, réacteur, caméra : ce qui sautait d'une image à l'autre
 - « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps
 - « LE HUD DES FIGURES v5 — LA RARETÉ ÉCRITE, LE COMBO QUI SE LIT, LE BUMP FIGURE DU COMBO » (18/10) — polices par rareté, ligne des noms, `figBumpNote`

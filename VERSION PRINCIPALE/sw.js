@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v663'; // v663 (2026-10-19, Léo : « mets les 5 dans le jeu ») : LA QUEUE DE CANARD et LA GRANDE ANGLAISE refaites au plan, LE BAROUDEUR gris Sahara (lumières à leur place), LE CAÏD devient le HUMMER EV (vert anis), LA BÊTE (la Pikes Peak, épique, livrée A)
+const CACHE = 'cashcar-v664'; // v664 (2026-10-19, Léo : « chaque figure qui fait un saut en l'air laisse l'opportunité de décoller avec le joystick qui oriente le nez vers le haut ») : LE DÉCOLLAGE AU MANCHE — pendant le bond d'une figure sur la route, le pouce poussé « nez en haut » fait décoller la caisse, qui monte comme un avion
 // const CACHE = 'cashcar-v662'; // v662 (2026-10-18, Léo : « optimisation des performances ») : plus aucun shader compilé en pleine course au CANYON ni à la map qui suit le GLACIER (PISTE_GARDE, chauffe du canyon) — image identique
 // const CACHE = 'cashcar-v661'; // v661 (2026-10-18 soir, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phare que quand tu boost ») : LA VETTE lève ses escamotables à la nitro seulement ; fermés, ni halo, ni nappe, ni lumière sur la route (CAR_PHK)
 // const CACHE = 'cashcar-v657'; // v657 (2026-10-18 soir, Sacha : « lance une grosse session de debuging ») : la machine à sous rafraîchit le COMPTE de l'écran de fin, le solde tronqué partout, le reflet de la légendaire, la plaque et le clavier iOS, pas de combo de bump pendant l'auto-école
