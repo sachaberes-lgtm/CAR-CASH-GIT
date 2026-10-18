@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE FILM D'UNE FIGURE — UNE MINI ANIMATION AU RALENTI PAR CARTE (2026-10-18, Sacha : « pour la boutique des tricks fais des mini animation ralenti pour voir la figure plutot que les image stop motion que tu as mis »)
+- **Avant** (15/10 soir) : chaque carte du rayon FIGURES montrait une PHOTO-SÉQUENCE — cinq à sept poses figées de la caisse sur une seule image
+  (`figPhoto`, `PHOTO_FIG`, retirés).
+- **Maintenant** : un petit FILM AU RALENTI qui tourne en boucle dans la carte (`figFile` → `figFilm`, cache `fa:<figure>:<sens>:<caisse>`) :
+  la caisse ÉQUIPÉE, même studio et même pellicule que les photos des caisses, fait la VRAIE figure (`FIG.quat`, sens de la carte par
+  `FIG.oriente`) le long d'un petit saut, vue de trois quarts avant (de plus haut pour une figure à plat : toupie, tail whip, hélico).
+  32 images sur une PLANCHE 8 × 4 de 224 × 112 ; le temps du geste à mi-chemin d'une rotation régulière (`regu`) ; son OMBRE au sol.
+  Le saut est PETIT, presque sur place (`span` .3, `haut` .22 longueur de caisse) : la case fait 113 × 50 en couché, un grand saut (essayé
+  à .85 / .62) rapetissait la caisse au cinquième de la case ; le pointillé du saut, essayé aussi, flottait au-dessus de la caisse posée.
+- Prises d'une traite sur la puce : chaque image rendue au double puis développée/réduite par le programme de la pellicule (`photoDevPrep`,
+  sorti de `photoDev`) dans SA case de la planche, une seule lecture à la fin — plus de boucle de pixels en JavaScript.
+- La carte JOUE la planche dans une toile `.fgFilm` (`filmPose`, puis `filmJoue` à chaque image depuis `garBqPanneau`, rayon FIGURES seulement) :
+  `avant` 450 ms posée, le geste à `ms` 62 ms par image (`ms2` 76 pour deux tours et plus — environ 3 × plus lent qu'en course), `apres`
+  800 ms posée, en boucle ; un FONDU entre deux images (`fondu`) ; une carte hors de vue ne se redessine pas. « Réduire les animations » :
+  une image fixe au milieu du geste. Réglages : `FILM_FIG` ; banc : `dbgFigFilm(id, sens, o)` (rend la planche et les temps).
+
 ## HYPERESPACE v2 — LA TRAÎNÉE QUI PASSE VRAIMENT EN VITESSE LUMIÈRE (2026-10-18, nuit, session HYPERESPACE — Sacha : « ameliore largement hyper espace largement »)
 - QUOI : la traînée ÉPIQUE de la boutique HYPERESPACE (90 k, `pop:'hyper'`), pas la map ORBITE (le code tranche : c'est le seul « hyperespace » du
   jeu). « Améliorer » = l'existant (lumière, couleur, matière, netteté, vitesse, lisibilité) : aucun objet, décor ni mécanique en plus ; le

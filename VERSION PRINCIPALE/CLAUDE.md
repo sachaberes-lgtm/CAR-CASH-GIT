@@ -194,7 +194,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
   `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
-  `figAchat`/`figPossede`, la photo-séquence d'une carte FIGURES `figFile`/`figPhoto` (studio commun `photoStudio`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
+  `figAchat`/`figPossede`, le FILM AU RALENTI d'une carte FIGURES `figFile`/`figFilm` → `filmPose`/`filmJoue` (studio commun `photoStudio`, pellicule `photoDevPrep`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
   `hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
   `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend` (sauvegarde `SAVE.d.m2` ;
@@ -464,7 +464,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
   nom COURT du bouton (8 lettres). Depuis LES FIGURES v2, un mouvement `t` est une EXPLOSION qui donne `t` tours en ~`D` s autour de l'axe `a`
   (le point d'explosion se déduit de l'axe : `boums`), un battement est un ressort lancé. Le nom anglais `en` entre seul dans `I18N`. Elle apparaît
   au shop et à l'inventaire (`COSM.figure`) — son DESSIN dans les vignettes et le sélecteur des trois figures : une ligne dans `ILLU_FIG`
-  (index.html : anneau, sens, vue de la caisse, geste joué ; sans elle, l'anneau du salto) ; en BOUTIQUE, sa PHOTO-SÉQUENCE se calcule seule de son mouvement (`figFile`, `dbgFigPhoto`) —, s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
+  (index.html : anneau, sens, vue de la caisse, geste joué ; sans elle, l'anneau du salto) ; en BOUTIQUE, son FILM AU RALENTI se calcule seul de son mouvement (`figFile` → `figFilm`, `dbgFigFilm`) —, s'équipe dans un emplacement de SES DIRECTIONS : `dir:['avant']`, `['arriere']`, `['cote']` ou
   `['avant','arriere']` (un salto + autre chose : le geste choisit le sens du salto) ; sans `dir`, `FIG.dirs` la range par la règle de
   figures.js (que l'axe des roues → son sens ; aucun mouvement sur x → côté ; les deux → avant et arrière). `figures.js?v=` +1 dans index.html ET boite-figures.html,
   `sw.js` +1. On la regarde dans `boite-figures.html` (la même physique), on la règle au banc Node du corps (Journal, LES FIGURES v2).
@@ -609,7 +609,8 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 **Caisses, boutique, habillages**
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
 - « LES GESTES DES AILES ONT LEUR SON — … » (16/10) — `ailSon`, `ailes.xwing`/`xwingFerme`/`dragon`/`pigeon`, rangés en PCM
-- « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (`figFile`/`figPhoto`)
+- « LE FILM D'UNE FIGURE — UNE MINI ANIMATION AU RALENTI PAR CARTE » (18/10) — remplace la photo-séquence du 15/10 (`figFilm`, `filmPose`/`filmJoue`, `FILM_FIG`)
+- « LA PHOTO D'UNE FIGURE — UNE ILLUSTRATION PAR CARTE DANS LA BOUTIQUE » (15/10 soir) — la photo-séquence de chaque figure (remplacée le 18/10 par le film)
 - « LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE » (14/10) — 30 habillages, l'économie, les textes
 - « L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE » (17/10) — le redesign voiture par voiture : budget, pièges, banc `outils/banc-caisses/`
 - « LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN » (18/10) — refaire une vraie voiture d'après son plan coté : banc des écarts, `peintPlan`
