@@ -481,6 +481,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 21. **Un défaut d'image vu sur iPhone ne se juge qu'au PIXEL** : à l'échelle de l'écran, la trame du flou de vitesse (15/10) était
     invisible ; zoomer ×4 la MÊME image rendue avec et sans (`VARIANTES` du banc). Sur iPhone la 3D est agrandie ×2 (NETTE 1,5 sur ×3).
 
+22. **Un `const` / `let` lu par du code qui tourne AVANT sa ligne est en zone morte** (`ReferenceError`), et un `try/catch` autour de l'appel l'avale :
+    la migration des missions v2 n'a pas tourné du 16 au 18/10 (`M2_COLK`, `M2_RECO` déclarées 1 700 lignes plus bas que le `m2Etat()` du démarrage).
+    Tout ce que le code de démarrage atteint se déclare AVANT lui ; après avoir touché ce bloc, charger le jeu et chercher le `console.warn` du `catch`.
 ---
 
 ## 8. Index du JOURNAL (titres exacts, à chercher avec `grep -n "^## <début du titre>" JOURNAL.md`)
@@ -561,6 +564,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 **Garage, menus, écrans**
 - « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
+- « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE » (18/10) — pourquoi, mesuré sur des sauvegardes d'avant (banc `cc-banc/m2colk/`), ce que le correctif change (rien de dangereux)
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)

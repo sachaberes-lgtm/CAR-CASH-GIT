@@ -3,6 +3,58 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE (2026-10-18, session m2colk — trouvé en passant par la session CHAUMIÈRES : « missions v2 : migration ReferenceError: Cannot access 'M2_COLK' before initialization » dans la console de `main`)
+- LE DÉFAUT : l'appel du démarrage `try{m2Etat();}catch(e){console.warn('missions v2 : migration',e);}` (juste après `SAVE.load()`) s'exécute ~1 700 lignes AVANT
+  `const M2_COLK` et `let M2_RECO` (le bloc des fonctions `m2*`). Lus avant leur ligne, ils sont en zone morte : `ReferenceError`, avalée par le `try/catch`.
+  `m2MigreV2` pose `s.vc=1` en toute première ligne : la migration n'est donc jamais retentée, et l'état à moitié fait est écrit au disque à jamais.
+  Ce qui s'est vraiment passé à la première ouverture de chaque sauvegarde (mesuré, voir plus bas) : `m2Migre` (les compteurs : morts, argent accumulé,
+  jours) a tourné ; `m2MigreV2` a posé dans `owned` les caisses déjà acquises sous l'ancienne règle (carnets, 100 parties…), puis jugé les missions DANS L'ORDRE de la
+  table `M2` jusqu'à `carall` (la 1re `v:'tot'` de collection : `m2Seuil` lit `M2_COLK` hors du `try` de `m2Val`) — et s'est arrêtée là. Les missions de
+  collection (`car5`, `car10`…`figall`, `toutall`), `maps` et les 19 secrètes n'ont pas été jugées au démarrage ; la 1re vérification du jeu (`m2Verifie(false)`,
+  dans `m2Fin`, à la fin d'une partie) les a rattrapées.
+- DEPUIS QUAND (`git log -S`) : `da4500fa` (16/10 15:43, étape 1 des missions v2) a écrit l'appel avant la constante. Invisible jusqu'à `854c32fe` (16/10 18:26, « la
+  v2 devient le défaut ») : avant, `MISSIONS_V2` était faux sans `?missions=v2`, `m2MigreV2` ne tournait pas, et `m2Migre` (les compteurs) ne lit pas `M2_COLK`.
+  Donc en ligne depuis ~48 h. L'avertissement ne sort qu'UNE fois par sauvegarde (v=1/vc=1 posés ; 2e démarrage mesuré sans avertissement) : « à chaque
+  chargement » = un profil Chrome neuf à chaque banc.
+- LE PIÈGE DU CORRECTIF : remonter `M2_COLK` seule NE SUFFIT PAS — la migration tombe alors sur `M2_RECO` (`let`, le cache de `m2Reco`, déclaré lui aussi plus
+  bas) : « Cannot access 'M2_RECO' before initialization » (mesuré). Les deux sont maintenant déclarées juste après `const M2K` (avant l'appel), avec un commentaire
+  qui dit pourquoi ; à leur ancienne place, un commentaire renvoie là. Aucune autre déclaration n'est atteinte par la migration (traces de décision de chacune des 58
+  missions au démarrage, sur deux sauvegardes : zéro `valErr`, zéro seuil à 0 / NaN, les seuils `'tot'` au bon compte — 10 maps, 30 voitures, 53 couleurs…).
+- LE RISQUE POUR LES SAUVEGARDES, MESURÉ AVANT DE CORRIGER (banc `C:\Users\sacha\cc-banc\m2colk\` : `fabrique.cjs` fait la variante A = `main` tel quel et
+  B = le correctif ; `m2colk-banc.cjs` charge chaque sauvegarde de départ dans Chrome headless muet, sous le créneau du banc commun, lit `SAVE.d` par le crochet `__ev`,
+  appelle `m2Verifie(false)` comme le fait la fin d'une partie, vide la sauvegarde sur disque, puis RECHARGE ; `tableau.cjs` fait le tableau, `res/` garde les résultats).
+  Sauvegardes d'AVANT les missions v2 fabriquées d'après la sonde (ids réels de `COSM`, `FIG`, `CAR_UNLOCK`) : neuf (aucune), débutant (6 parties), milieu de partie
+  (140 parties, 8 caisses, 5 carnets remplis, 85 k$ : 12 caisses après la migration), très avancé (900 parties, 9 carnets, 5 M$, aura 61 k : 27 caisses et 25 habillages), les deux derniers aussi à l'état « compteurs
+  déjà migrés en v1 mais pas la v2 » (celui des builds du 16/10 entre 15:43 et 18:26), plus les sauvegardes que A et B laissent sur disque.
+
+  | sauvegarde de départ | A (avant) au démarrage → après la 1re vérification | B (corrigé) au démarrage → après la 1re vérification |
+  |---|---|---|
+  | neuf, débutant | 0 réussie → 0 | 0 → 0 |
+  | milieu de partie | 5 réussies → 8 | 8 → 8 |
+  | très avancé | 11 → 27 (dont 1 offerte « à récupérer » alors qu'on la possède : voir ci-dessous) | 27 → 27 |
+  | déjà passée par A (migration à moitié, `vc=1`) | inchangée à la relecture | **inchangée à la relecture** (le correctif ne la rejoue pas) |
+  | déjà passée par B | inchangée | inchangée |
+
+  · Après la 1re vérification du jeu, **A et B donnent le MÊME état** : mêmes missions réussies, même banque, mêmes caisses (`owned`), mêmes habillages, mêmes
+    compteurs, même argent à récupérer (203 000 $ pour le milieu de partie, 689 000 $ pour le très avancé). Aucune prime en argent n'est versée par la migration
+    (il faut `m2Prend`) ni doublée : les primes des missions hors collection sont comptées « prises » (`deja`) dans les deux cas — ce sont les seules d'avant `carall`.
+  · Les DEUX différences, toutes deux favorables : (1) les missions de collection sont reconnues dès le démarrage et non à la fin de la 1re partie ; (2) une
+    récompense que le joueur possède déjà est comptée « prise » et ne s'affiche plus « à récupérer » (mesuré : `jours30`, L'ÉTERNELLE, gagnée par les 100 parties de l'ancienne
+    règle — avant, elle brillait « à récupérer » alors que `m2Prend` n'aurait rien donné).
+  · Donc **pas de changement de données dangereux** : seules les sauvegardes qui n'ont JAMAIS passé le démarrage v2 (un joueur absent depuis le 16/10, un nouvel
+    appareil) reçoivent la migration complète, celle que Sacha avait décrite (« une mise à jour ne confisque rien », « sans redonner de primes déjà touchées »).
+    Les sauvegardes déjà passées (Sacha, Léo, les testeurs) gardent leur état à moitié fait — il converge, voir ci-dessus — et ne sont pas touchées.
+- PROUVÉ SUR LE FICHIER FINAL (merge d'origin/main v633) : console de `main` avec « missions v2 : migration ReferenceError » ; console corrigée SANS cet avertissement
+  (neuf, débutant, milieu, très avancé, v1-migrée ; au 1er comme au 2e démarrage) et sans AUCUNE autre erreur ni avertissement nouveau (restent les connus : le 404 de
+  `dark-triad.mp3`, « flatShading » de three) ; parcours menu → JOUER → course → mort → REJOUER → course → mort → accueil (`cc-banc/fumee.cjs`, couché + debout) : voir
+  la fin de l'entrée.
+- LA FUMÉE (`cc-banc/fumee.cjs`, couché + debout, sur le dossier final = main v633 + ce correctif + cache v634) : **FUMÉE OK, 0 erreur JS** (138 s) ; syntaxe (`chk.js`, 5 blocs) et gardes burn-out / charte OK. Contrôle du banc refait sur ce fichier fusionné : neuf, milieu, très avancé, v1-migré, déjà-passé-par-A — aucun avertissement de migration, au 1er comme au 2e démarrage.
+- À SAVOIR / À TRANCHER PAR SACHA (pas un bug du correctif, une règle déjà en ligne) : la migration (comme le jeu de toute façon, à la fin de la 1re partie) rend « à récupérer »
+  les primes en ARGENT des missions de COLLECTION pour un joueur ancien — 203 000 $ pour un milieu de partie (`car5` 50 k + `car10` 150 k + `fig3` 3 k), 689 000 $ pour un très avancé —
+  c'est le « ne verse la prime en ARGENT que pour la COLLECTION » de l'étape 1, mais le total tombe d'un coup à la première ouverture. À regarder si l'économie le supporte.
+- LA RÈGLE (guide, piège 22) : tout `const` / `let` que le code de démarrage atteint se déclare AVANT lui ; un `try/catch` autour d'un appel de démarrage cache le défaut —
+  chercher son `console.warn` après un changement de ce bloc.
+
 ## LE TAUREAU v2 DE CRYPTO CITY — LA POSE DU « CHARGING BULL », L'OR POLI, ET UNE HITBOX QUI EST LA FORME (2026-10-18, session TAUREAU — Sacha : « dans la map crypto city retravaille le design du toreau géant et vérifie bien que la hit box dans la map fonctionne »)
 - LA HITBOX D'AVANT, MESURÉE (audit hors ligne : la forme dessinée testée volume par volume par parité de rayon, contre les neuf boîtes de
   `cryptoHeurt`, au pas de 5,4 m) : **6,7 % du taureau visible se traversait** — l'ENCOLURE (un trou de 35 m entre la boîte du corps et celle de la
