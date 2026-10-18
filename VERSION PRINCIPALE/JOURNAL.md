@@ -5,7 +5,8 @@
 
 ## DEUX PLACES RÉSERVÉES : 87 LA PIKES PEAK, 88 LA CLASSE G (2026-10-18, v653)
 - Cachées (`retire:1`, « NOUVELLE 87/88 ») : 87 = la 208 T16 Pikes Peak (JAPONAISES), 88 = la Classe G que BOÎTES avait faite pour LE CAÏD (Léo :
-  « le boss » voulait dire un GMC → LE CAÏD devient un HUMMER EV ; la G est gardée à part, « améliore-la »). ⚠ La suivante = **89**.
+  « le boss » voulait dire un GMC → LE CAÏD devient un HUMMER EV). Puis Léo : « enlève la Classe G » (« améliore-la » parlait de LA JEEP) →
+  la place 88 reste réservée mais LIBRE : **la prochaine caisse prend la 88**.
 
 ## LA FIDÈLE DANS LE JEU, LA POUPÉE RETIRÉE À NOUVEAU (2026-10-18, v652, Léo : « yes » / « on l'enlève »)
 - **LA FIDÈLE** (index 81, COMMUNE, 4 000 $) : la Corolla berline 2019 de JAPONAISES, reprise « plus fidèle » (le nez) puis le coin avant
