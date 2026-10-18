@@ -24,6 +24,10 @@ le BURN-OUT du garage est à Léo (une garde bloque toute publication sans lui) 
 - **`AUTRE VERSION/`** (l'édition PC) est GELÉE depuis le 25/09 : on n'y touche pas. **`ROBLOX/`** est un autre jeu.
 - **En ligne** : chaque push sur `main` publie https://car-cash-git.vercel.app/jouer/ (`vercel-build.sh`, ~1 min). C'est là que
   Sacha et Léo jouent sur téléphone. Le numéro « VERSION xxxxxxx » des réglages = l'empreinte du jeu publié.
+  ⚠ LA COPIE EN LIGNE EST ALLÉGÉE (2026-10-18, `outils/publie-allege.cjs`) : sans commentaires (même nombre de lignes : les numéros
+  d'erreur sont ceux du source) et sans les crochets `window.dbgX` que rien de publié n'appelle. Les bancs travaillent sur le source
+  local : pour un crochet sur /jouer/, il faut qu'un code publié le nomme. Un nouveau commentaire ou un nouveau dbg ne coûte donc rien
+  aux joueurs.
 - **Sur son PC, Sacha joue une COPIE** : `C:\Users\sacha\Downloads\CAR-CASH-GIT-main\CAR-CASH-GIT-main\VERSION PRINCIPALE\`
   (JOUER.bat → localhost:8000), à la souris, dans le cadre d'un iPhone couché (844 × 390).
 
@@ -46,14 +50,15 @@ Les sessions Claude de Sacha portent un nom (GRAPHISME, GAMEPLAY, SON, INTERFACE
 fois, livrée au fil de l'eau, pas en lot.
 - **Vérifier** : la syntaxe (§5), puis menu → JOUER → course SANS ERREUR, couché ET debout ET dans le cadre de l'ordi.
   `sh garde-burnout.sh` ET `sh garde-charte.sh` (racine) doivent répondre OK.
-- **Versions** : `CACHE` de `sw.js` +1 (`'cashcar-vNNN'`, avec sa ligne de commentaire) dans chaque commit qui touche le jeu.
+- **Versions** : `CACHE` de `sw.js` +1 (`'cashcar-vNNN'`) dans chaque commit qui touche le jeu. Depuis le 2026-10-18 on REMPLACE la
+  ligne `const CACHE` (une note courte), sans garder l'ancienne en commentaire : l'historique v2 → v624 est à la fin de JOURNAL.md.
   Un fichier chargé avec `?v=N` (`sons-banque.js`, `sfx.js`, `figures.js`, `harmonie.js`) : N +1 quand il change.
   Sinon les joueurs gardent l'ancien fichier, indéfiniment, sans erreur.
 - **Commit** : `git add "VERSION PRINCIPALE/<fichiers>"`. **Jamais `git add -A`** : des fichiers d'autres sessions traînent (ml/,
   données de Léo). Message en français qui cite la demande.
 - **Intégrer** : `git fetch origin` puis `git rebase origin/main` (ou `git merge origin/main`). Jamais `--force`, jamais de `reset`
   ni de revert du travail de l'autre ; dans un conflit on garde les deux. Conflit habituel : la ligne `CACHE` de `sw.js` → le plus
-  grand +1, les deux commentaires gardés. Revérifier après l'intégration.
+  grand +1, une seule ligne (les notes vont au journal). Revérifier après l'intégration.
 - **Pousser** : `git push origin <nom>:main`. Refusé (quelqu'un a poussé entre-temps) : refetch, rebase, revérifier, repousser.
 - **Recopier** (sinon Sacha ne voit rien) : seulement si le push est passé et qu'aucun conflit n'est ouvert
   (`git diff --diff-filter=U` vide, aucun marqueur `<<<<<<<` dans les fichiers copiés). Copier TOUS les fichiers suivis de

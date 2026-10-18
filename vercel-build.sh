@@ -33,6 +33,11 @@ find .vercel-static/jouer -name '*.py' -delete
 # (2026-10-14, pôle SON) L'ATELIER DE LA MUSIQUE reste un outil LOCAL (Léo : « pour toi ») : la page musique-moteur.html (elle fige les
 # morceaux par le serveur de la page) et les sources des morceaux à paliers (paliers/*.html). La BIBLIOTHÈQUE, elle, est publiée.
 rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio/music/paliers/*.html
+# (2026-10-18, Sacha : « retirer les commentaires de la copie mise en ligne » + « les outils de test dbg… ») LA COPIE ALLÉGÉE : la copie
+# publiée perd ses commentaires (index.html 7,6 → 4,5 Mo, ≈ −1 Mo téléchargé par joueur) et les crochets window.dbgX que rien de publié
+# n'appelle ; le SOURCE garde tout. Chaque fichier n'est réécrit que si ses jetons restent identiques (voir outils/publie-allege.cjs) ;
+# en cas d'échec, la copie part telle quelle. AVANT l'empreinte : elle couvre donc ce qui est vraiment publié.
+node outils/publie-allege.cjs .vercel-static/jouer || echo "⚠ publie-allege : échec, la copie part avec ses commentaires"
 # LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo) : le commit publié est gravé dans le jeu (jeton __CC_BUILD__ de
 # index.html) et posé dans version.json ; le jeu compare les deux et se recharge tout seul s'il est en retard.
 # ⚠ (2026-10-03, Léo : « le jeu coupe bizarrement la musique ») L'EMPREINTE DU JEU, PLUS LE COMMIT : graver le commit faisait croire à une
