@@ -115,7 +115,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Figures v2** (la physique) : `FIG.Corps`/`FIG.PHY` (figures.js), `FIGV2`/`FX2`, `figLance` (une explosion), `figPose` (chaque image de vol),
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
-  les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo. Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
+  les boutons `#tFig`/`figHud`. Le lecteur de Léo (`?fig=ancien`) et les figures libres (`?fig=libre`) sont retirés (18/10). Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
   double-tap NITRO (`FDIR`/`figDirSlot` : avant = 1, côté = 2 ; `?figdir=0` rend les boutons), le HUD des figures `#fh` (`fhLance`/`fhPlante`/
   `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO. Depuis le 15/10 soir : TROIS DIRECTIONS, TROIS EMPLACEMENTS
   (`FIG_NB`=3 ; `FIG.dirs`/`FIG.oriente` dans figures.js ; `FIG_DIR`/`FIG_FAM`/`figPeut`/`figSlots`/`figRange`, `SAVE.d.figEq3`) — ↑ pouce en
@@ -134,7 +134,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
   mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
-  `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
+  `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`.
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
   `pcubeFranchi` ; `?portail=ancien` (l'ovule et les feux), `?portail=vite`. ⚠ Une map nouvelle ou refaite → refaire ses cartes postales.
@@ -182,7 +182,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
   les éclats `ECLATS`).
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
-  `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
+  `SON_TON`/`sonTonSuit`, `ECH`/`echSt`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
   Le son de la NITRO : LE FEU QUI RUGIT (16/10) — `RUG`/`rugTampons`/`rugPas`/`rugAllume`/`rugPetarade`, `RUG_NIV`, `dbgRug()` ; `?nitroson=ancien` = avant.
   Le CRISSEMENT de la course : LA GOMME DOUCE (16/10) — `GOM`/`gomBatit`/`gomPas`, `GOM_NIV`, `dbgGomme()` ; `?crisse=ancien` = avant (l'ancien `skidG` reste au burn-out).
@@ -218,7 +218,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 
 **Jeu (verdicts tenus — ne pas les défaire sans demande)**
 - Zéro assistance de conduite (`ASSIST_VIRAGE=0`, `AIR_ASSIST=0`) : pouce lâché, la caisse garde son cap et sort dans les virages.
-  Le mode FACILE (la seule exception) est COUPÉ depuis le 14/10 : `SANS_FACILE`, `?facile=1` le rend.
+  Le mode FACILE (la seule exception) est retiré (coupé le 14/10, code arraché le 18/10) ; `SAVE.d.facile` reste seulement lu à la sauvegarde.
 - `AIR_RATE=1` : le temps du vol n'est pas accéléré. Le virage en vol ne suit pas la vitesse (voulu).
   Son autorité, elle, a monté (18/10, Sacha : « des virages serrés ») : UNE formule, `lacetVol` (`VIRVOL` : lacet ×1,5, plafond plus haut,
   verrou du volant au décollage 0,35 s) ; `?virvol=0` = avant, `dbgVirVol(k,cap,latch)` pour régler en direct.
@@ -226,7 +226,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - La loi du réservoir : le vol dépense la nitro, la route la remplit — sauf les FIGURES PLANTÉES, qui en rendent tout de suite (Asphalt 8, 14/10).
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
-- Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
+- Plus aucun looping (code retiré le 18/10) ; Paris hors de la partie sans fin (carrière seulement).
 - LES MAPS COMME UN TOUT (17/10, Sacha) : nuages, canyon, forêt, glacier, volcan et orbite suivent UNE recette par temps (`CONTI` : saturation, vignette,
   contre-jour rose, bitume commun `rtT`/`rtA`, ciel continu `uCiel2`, la nuit à deux températures) ; la VILLE et le JADE n'y sont jamais (`contiMap()`).
   Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part. `?sans=continuite` = avant.
@@ -242,8 +242,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   caisses (silhouettes noires en boutique, jamais en 3D avant d'être gagnées) ; un objet de mission ne s'achète plus. `?missions=v1` rend les carnets.
 - Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
   vit sur la branche `garde/carriere`. Les missions restent.
-- Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
-- Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
+- Plus aucune VOIX : ni annonceur, ni réplique, ni synthèse vocale (code retiré le 18/10 : `annSpeak` ne rend plus que le texte, `SAVE.d.vox` reste lu).
+- Plus de SNAKE LOOP, de NITROOO / PURE SPEED / AIR NITROOO, de MÉTÉORE (ni cratère ni pluie de débris) : coupés le 15/10, arrachés le 18/10 (`vitMult` garde le plafond ×2,6).
 - PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
   serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
   recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (lus par les boîtes, et
@@ -445,7 +445,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 7. **Une matière qui naît en course** compile un shader en pleine partie : 0,1-0,3 s figé sur iPhone. La chauffer au menu.
 8. **Libérer la dernière matière d'un programme** : three détruit le shader, il faudra le recompiler. D'où `MAT_SURSIS`,
    `CAR_GARDE`, `ENG_GARDE`.
-9. **`scene.onBeforeRender` est déjà pris** (piste, plots, ville, ciel) : chaîner, jamais réassigner.
+9. **`scene.onBeforeRender` est déjà pris** (piste, ville, ciel) : chaîner, jamais réassigner.
 10. **`body:has(…)` pour le HUD** rendait chaque écriture de style ~80× plus chère : une classe dans `HAS_D`.
 11. **`innerWidth` lu dans la boucle** force une mise en page complète sur mobile : `VP.w`/`VP.h`. Et `textContent=` recrée le nœud
     même à valeur égale : écrire seulement si ça change. Un rectangle ou un style CALCULÉ du HUD lu dans la boucle

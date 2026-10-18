@@ -50627,7 +50627,6 @@ function rugBq(t,f,q,g,sr){ // les coefficients d'un biquad (RBJ) : 'lp' 'hp' 'b
   else if(t==='bp'){b0=al;b1=0;b2=-al;a0=1+al;a1=-2*c;a2=1-al;}
   else{b0=1+al*A;b1=-2*c;b2=1-al*A;a0=1+al/A;a1=-2*c;a2=1-al/A;}
   return {b0:b0/a0,b1:b1/a0,b2:b2/a0,a1:a1/a0,a2:a2/a0,x1:0,x2:0,y1:0,y2:0};}
-function rugBqSet(o,t,f,q,g,sr){const c=rugBq(t,f,q,g,sr);o.b0=c.b0;o.b1=c.b1;o.b2=c.b2;o.a1=c.a1;o.a2=c.a2;} // un filtre qui BOUGE garde sa mémoire
 function rugRun(o,x){const y=o.b0*x+o.b1*o.x1+o.b2*o.x2-o.a1*o.y1-o.a2*o.y2;o.x2=o.x1;o.x1=x;o.y2=o.y1;o.y1=y;return y;}
 function rugRose(){let b0=0,b1=0,b2=0;return function(){const w=Math.random()*2-1;b0=.99765*b0+w*.099046;b1=.963*b1+w*.2965164;b2=.57*b2+w*1.0526913;return (b0+b1+b2+w*.1848)*.2;};} // Kellett
 function rugNorme(X,pic){let m=0;for(let i=0;i<X.length;i++){const a=Math.abs(X[i]);if(a>m)m=a;}const g=pic/(m||1);for(let i=0;i<X.length;i++)X[i]*=g;return X;}
@@ -55007,7 +55006,7 @@ window.dbgQuitte=function(){ // (2026-10-12, le simulateur) finir la course en c
 window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
   b=Math.max(0,Math.min(CARRIERE.length-1,b|0));n=Math.max(1,Math.min(CARRIERE[b].niveaux.length,n|0));if(started&&!gameOver)return 'en course';carrLancer(b,n-1);return CARRIERE[b].id+' '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
-  bancs:CAMP.bancs.map(function(b){return Math.round(b.s);}),nuagesCamp:CLOUDS.filter(function(c){return c.camp;}).map(function(c){return {r:Math.round(c.r),ry:Math.round(c.ry),sc:+c.g.scale.x.toFixed(2),vis:c.g.visible&&c.mesh.visible,d:Math.round(c.g.position.distanceTo(carGroup.position)),dc:Math.round(c.g.position.distanceTo(camera.position)),nv:c.mesh.geometry.index?c.mesh.geometry.index.count:0,op:+c.mesh.material.opacity.toFixed(2)};}),portes:CAMP.portes.length,portesOk:CAMP.porteOk,portesPassees:CAMP.portes.filter(function(p){return p.fait;}).length,portesS:CAMP.portes.map(function(p){return Math.round(p.s)+(p.fait?(p.touche?'x':'✓'):'')+'@'+p.c;}),plaque:VC.chip,portailFerme:CAMP.portFerme,raccourcis:CAMP.coupesN,
+  bancs:CAMP.bancs.map(function(b){return Math.round(b.s);}),nuagesCamp:CLOUDS.filter(function(c){return c.camp;}).map(function(c){return {r:Math.round(c.r),ry:Math.round(c.ry),sc:+c.g.scale.x.toFixed(2),vis:c.g.visible&&c.mesh.visible,d:Math.round(c.g.position.distanceTo(carGroup.position)),dc:Math.round(c.g.position.distanceTo(camera.position)),nv:c.mesh.geometry.index?c.mesh.geometry.index.count:0,op:+c.mesh.material.opacity.toFixed(2)};}),portes:CAMP.portes.length,portesS:CAMP.portes.map(function(p){return Math.round(p.s)+'@'+p.c;}),plaque:VC.chip,portailFerme:CAMP.portFerme,raccourcis:CAMP.coupesN,
   fantome:GH.on?{s:Math.round(GH.s),lat:+GH.lat.toFixed(1),v:Math.round(GH.v*SPD*3.6),air:GH.air,prise:+GH.prise.toFixed(2),pris:GH.pris,fini:GH.fini,ecart:Math.round(GH.s-s)}:null,
   vol:mode==='fall'?{h:+curHOff.toFixed(1),lat:+curLatOff.toFixed(1),sNear:Math.round(lastNearS),t:+fallT.toFixed(2),vy:+fallVel.y.toFixed(1)}:null,
   cause:mortCause,niv:LVL.n,
