@@ -26761,9 +26761,9 @@ const CARS=[
  // carnet de trois missions (voir `CARNETS`). Des silhouettes que tout le monde reconnaît de loin, sans
  // leur nom ni leur logo : la bulle, le combi, l'inox à portes papillon. Ajoutées EN FIN de gamme : les
  // index 0-5 des sauvegardes existantes ne bougent pas.
- {name:'LA BULLE',        shape:'bulle',   color:0x8fd6ff,accent:0xf3ead6,maxKmh:215,accel:24,turn:2.75,h:1.53,w:1.90,l:4.20,spoiler:0,
+ {name:'LA BULLE',        shape:'bulle',   color:0x8fd6ff,accent:0xf3ead6,maxKmh:215,accel:24,turn:2.75,h:1.53,w:1.90,l:4.20,spoiler:0,rar:'commun', // (2026-10-18, Léo) COMMUNE (était RARE : contrat 1)
   desc:'Ronde comme un sou neuf. Tout le monde lui sourit, même la police.'},
- {name:'LE COMBI',        shape:'combi',   color:0x35c2bb,accent:0xf4ecd8,maxKmh:245,accel:27,turn:2.55,h:1.98,w:1.76,l:4.40,spoiler:0,
+ {name:'LE COMBI',        shape:'combi',   color:0x35c2bb,accent:0xf4ecd8,maxKmh:245,accel:27,turn:2.55,h:1.98,w:1.76,l:4.40,spoiler:0,rar:'commun', // (2026-10-18, Léo : « il est rare actuellement : le passer en commune »)
   desc:'Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.'},
  {name:'LA DOLORÈS',      shape:'dolores', color:0xc3c7cc,accent:0x141518,maxKmh:360,accel:40,turn:2.9, h:1.14,w:1.86,l:4.22,spoiler:0,
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
@@ -26961,6 +26961,50 @@ const CARS=[
  {name:'LA PERLE',shape:'perle',color:0xf3f3f1,accent:0xd31f2a,maxKmh:450,accel:56,turn:3.2,h:1.38,w:1.97,l:4.96,spoiler:0,rar:'epique',
   fx:{jet:0x6fd6ff,core:0xe8fbff,trail:[.3,1.0,1.5],light:0x46c8ff},
   desc:'Blanc laqué, zéro bruit, 571 chevaux. Elle passe sans un son, et tout le monde se retourne quand même.'},
+ /* ===== LES NOUVELLES VOITURES (2026-10-18, Léo : « actuellement la seule commune du jeu est LA HONTE, ajoute… ») — HUIT PLACES RÉSERVÉES
+    (index 79-86), CACHÉES (`retire:1`) jusqu'à ce que la discussion qui modèle la caisse la livre : elle remplace SA ligne (nom, gabarit,
+    fiche) et retire `retire:1`. Les commentaires « · » entre les places sont là pour que trois discussions en parallèle fusionnent sans conflit.
+    ⚠ NE PAS prendre ces index pour une autre caisse : la suivante est la 87. ===== */
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 79',shape:'epave',color:0xf08fb4,accent:0x2a2a2e,maxKmh:205,accel:23,turn:2.5,h:1.40,w:1.85,l:5.00,spoiler:0,rar:'commun',retire:1, // 79 — discussion BOITES : la berline rose des Simpson (gabarit à venir : SHAPES.simpson)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 80',shape:'epave',color:0xaec3e0,accent:0xf4f1ea,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.57,spoiler:0,rar:'commun',retire:1, // 80 — discussion RONDES : Fiat 500 (2007), finition « 1957 » de la photo de Léo : bleu ciel, toit blanc, enjoliveurs crème (gabarit à venir : SHAPES.cinq)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 81',shape:'epave',color:0xd8dade,accent:0x17181b,maxKmh:215,accel:24,turn:2.7,h:1.44,w:1.78,l:4.63,spoiler:0,rar:'commun',retire:1, // 81 — discussion JAPONAISES : Toyota Corolla berline (2019) (gabarit à venir : SHAPES.corolla)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 82',shape:'epave',color:0x2f5d3a,accent:0x141414,maxKmh:210,accel:23,turn:2.4,h:1.85,w:1.89,l:4.79,spoiler:0,rar:'commun',retire:1, // 82 — discussion BOITES : Jeep Wrangler JL (2018) (gabarit à venir : SHAPES.wrangler)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 83',shape:'epave',color:0xc8151d,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun',retire:1, // 83 — discussion JAPONAISES : Mazda MX-5 NA (1989), phares escamotables (gabarit à venir : SHAPES.mx5na)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 84',shape:'epave',color:0x3c78c8,accent:0x1a1a1d,maxKmh:230,accel:26,turn:2.6,h:1.40,w:1.42,l:3.33,spoiler:0,rar:'rare',retire:1, // 84 — discussion RONDES : Reliant Robin (trois roues) (gabarit à venir : SHAPES.robin)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 85',shape:'epave',color:0xc9ccd1,accent:0x141416,maxKmh:275,accel:31,turn:3,h:1.24,w:1.73,l:3.92,spoiler:0,rar:'rare',retire:1, // 85 — discussion JAPONAISES : Mazda MX-5 RF (2016), argent (gabarit à venir : SHAPES.mx5rf)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 86',shape:'epave',color:0xf2f2ee,accent:0x141414,maxKmh:280,accel:32,turn:3.1,h:1.34,w:1.63,l:4.18,spoiler:0,rar:'rare',retire:1, // 86 — discussion JAPONAISES : Toyota AE86 (1983) (gabarit à venir : SHAPES.ae86)
+  desc:'(place réservée)'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -37205,6 +37249,51 @@ SHAPES.perle=function(K){
 function perleTraits(){const F=SHAPES.perle,nul=()=>{};if(F._tri&&F._tole)return;
   if(!F._tri){const P9=new Proxy({},{get:()=>nul});F({kit:()=>P9,commit:nul,mats:{}});return;}
   F({kit:pal=>lpKit(typeof peintPal==='function'?peintPal(pal):pal),commit:kt=>{const gs=kt.done();for(const g in gs)gs[g].dispose();},mats:{}});}
+/* ===== LES NOUVELLES VOITURES (2026-10-18) — UN EMPLACEMENT PAR GABARIT : chaque discussion remplace SA ligne-repère par son
+   `SHAPES.x=function(K){…}` (LA BULLE et LE COMBI refaits : `SHAPES.bulle=` / `SHAPES.combi=` ici, qui remplacent les anciens de l'objet SHAPES). ===== */
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.bulle (RONDES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.cinq (RONDES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.robin (RONDES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.corolla (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.mx5na (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.mx5rf (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.ae86 (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.combi (BOITES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.wrangler (BOITES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.simpson (BOITES) >>>
+// · · ·
+// · · ·
+// · · ·
 SHAPES.origami=function(K){
   const U=LPU,R=.44,ZF=1.92,ZR=-1.72,ZN=2.74,ZT=-2.74,TB=.64,KL=.10,E=.006;
   const P=K.kit({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
@@ -40186,6 +40275,39 @@ const CAR_UNLOCK=[
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
   {p:4400000}, // (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
+  /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */
+  /* · */
+  /* · */
+  /* · */
+  {p:2500}, // 79 — COMMUNE : la berline rose des Simpson
+  /* · */
+  /* · */
+  /* · */
+  {p:3000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
+  /* · */
+  /* · */
+  /* · */
+  {p:4000}, // 81 — COMMUNE : Toyota Corolla berline (2019)
+  /* · */
+  /* · */
+  /* · */
+  {p:8000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
+  /* · */
+  /* · */
+  /* · */
+  {p:6000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  /* · */
+  /* · */
+  /* · */
+  {p:25000}, // 84 — RARE : Reliant Robin (trois roues)
+  /* · */
+  /* · */
+  /* · */
+  {p:50000}, // 85 — RARE : Mazda MX-5 RF (2016), argent
+  /* · */
+  /* · */
+  /* · */
+  {p:40000}, // 86 — RARE : Toyota AE86 (1983)
 ]
 /* (2026-10-14, Sacha) SANS CARRIÈRE : ses deux trophées passent à l'argent du jeu, aux prix de l'ancienne édition Poki (en haut des épiques ;
    leur famille suit le prix, comme chez Poki). `exK`/`exV` gardent l'ancienne condition : une caisse déjà GAGNÉE en carrière entre dans

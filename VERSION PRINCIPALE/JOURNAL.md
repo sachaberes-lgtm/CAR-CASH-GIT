@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NOUVELLES VOITURES — HUIT PLACES RÉSERVÉES, LA BULLE ET LE COMBI EN COMMUNES (2026-10-18, v629, Léo : « actuellement la seule commune du jeu est LA HONTE, ajoute… »)
+- **La demande** : communes = la voiture des Simpson, la Fiat 500 (2007, finition « 1957 » de sa photo : bleu ciel, toit blanc), la Toyota
+  Corolla berline (2019), la Jeep Wrangler (2018), la Mazda MX-5 NA (phares escamotables qui se lèvent), LA BULLE refaite (Coccinelle 1962,
+  bleu ciel), LE COMBI refait façon *Cars* ; rares = la Reliant Robin, la Mazda MX-5 RF (argent), la Toyota AE86 (1983). Toutes « au
+  niveau de LA PERLE » : construites sur le plan coté de la vraie (méthode : `~/Downloads/CAR-bancs/plan-voiture/LISEZMOI.txt`).
+- **L'organisation** : trois discussions en parallèle — RONDES (LA BULLE, Fiat 500, Reliant Robin), JAPONAISES (Corolla, MX-5 NA, MX-5 RF,
+  AE86), BOÎTES (LE COMBI, Wrangler, Simpson) ; la discussion « 🚗 Nouvelles voitures » coordonne et pousse.
+- **Les places** : `CARS[79…86]` et `CAR_UNLOCK[79…86]` sont RÉSERVÉES (`retire:1`, gabarit `epave` provisoire, nom « NOUVELLE n ») —
+  79 Simpson · 80 Fiat 500 · 81 Corolla · 82 Wrangler · 83 MX-5 NA · 84 Reliant Robin · 85 MX-5 RF · 86 AE86. Chaque discussion remplace
+  SA ligne et SA ligne-repère `// <<< SHAPES.x >>>` (après `perleTraits`) ; les commentaires « · » entre les places évitent les conflits
+  de fusion. LA BULLE / LE COMBI refaits = `SHAPES.bulle=` / `SHAPES.combi=` à leur repère (les anciens de l'objet SHAPES s'effacent à la fin).
+  ⚠ La prochaine caisse d'une autre demande prend l'index **87**.
+- **Prix provisoires** (à régler dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $. LA BULLE et LE COMBI restent
+  des récompenses de mission, mais leur famille est COMMUNE (`rar:'commun'` : elles étaient RARES par leur contrat 1 et 2).
+
 ## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v628, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
 - **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
   puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un

@@ -535,6 +535,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE » (17/10) — le redesign voiture par voiture : budget, pièges, banc `outils/banc-caisses/`
 - « LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN » (18/10) — refaire une vraie voiture d'après son plan coté : banc des écarts, `peintPlan`
 - « LA PERLE — LES TRAITS DANS LA TÔLE, EN FACETTES, LE RIDEAU D'AIR CREUSÉ, LE PHARE REFAIT » (18/10) — `peintPlan`, `PLAN.zf`, `creux`, `PERLE_LISSE`, `perleTraits`
+- « LES NOUVELLES VOITURES — HUIT PLACES RÉSERVÉES, LA BULLE ET LE COMBI EN COMMUNES » (18/10) — index 79-86 réservés (la suivante = 87), qui fait quoi
 - « LE BLINDÉ NOIR EN PORC-ÉPIC GOTHIQUE » (16/10) — piquants sur le dos, clous chromés devant (`pique`, `clou`, `mue`, ailes en ogive)
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
