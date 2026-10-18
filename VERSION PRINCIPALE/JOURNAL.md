@@ -637,7 +637,7 @@
   AILERONS qui plongent dans la benne autour de la lunette en retrait) ; la cabine noire par code (26 + vitres) sauf les ailerons (code 0).
 - **La découpe en moment creux** : sur ce gabarit elle coûte ~30 ms (1re construction ~40-60 ms, au-dessus des 50 de la règle). `chauffeDivers`
   est hors de la zone BOÎTES : le gabarit expose `SHAPES.caid.pre` (la découpe seule, mise en cache) et le bloc l'appelle par
-  `requestIdleCallback` (repli setTimeout 4 s) — la caisse montée ensuite : 15-30 ms (machine chargée).
+  `requestIdleCallback` (au plus tard 3 s ; repli setTimeout 2,5 s) — la caisse montée ensuite : 15-30 ms (machine chargée).
 - Teintes réelles proposées : INTERSTELLAR WHITE 0xdde1e4 (Edition 1), METEORITE 0x50555c, NEPTUNE BLUE 0x34506e (jugées au garage).
 - Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-vraie-et-nous.png.
   Outils : boites/hummer/ (src, ref, photos), assemble_h.py, integre_h.py, planche_hummer.py.
