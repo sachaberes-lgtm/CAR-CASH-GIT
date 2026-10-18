@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PARIS SORT DU MODE CLASSIQUE (2026-10-18 soir, Sacha : « enfait enlève paris du mode classique ») — v649
+- Remis l'après-midi par l'allègement (v642), retiré le soir : plus d'entrée `paris` dans `SF_CARTES` (le tirage du JOUER, les portails,
+  `?carte=paris` qui retombe sur une autre map), plus de `parisChauffe` dans `chauffeDivers` (16 programmes compilés au menu pour rien).
+- Les missions « chaque map » (`cartes`, `cartesP`) ne comptent que les maps encore tirées : un PARIS déjà vu ne fait pas gagner une map d'avance.
+- Le code de Paris (genParis, buildParis, NIV_PARIS, ses ciels) reste dans le fichier : pour le remettre, rendre l'entrée de `SF_CARTES` et la chauffe.
+
+## LA QUEUE DE CANARD PASSE ÉPIQUE (2026-10-18, v648, Léo : « mets-la en Epic ») — sa refonte au plan coté (« même technique et même rigueur que la Taycan ») est confiée à la discussion RONDES
+- `rar:'epique'` sur sa fiche (index 45) ; prix inchangé (460 000 $).
+
+## LA DAYTONA RETIRÉE DU JEU (2026-10-18, v647, Léo : « enlève la daytona du main »)
+- `retire:1` sur sa ligne de CARS (index gardé) : plus en vente ni au garage ; qui l'avait achetée est remboursé (550 000 $, le
+  remboursement de `SAVE` — LES CAISSES RETIRÉES) et repart en LA HONTE s'il roulait avec. Le gabarit `b_daytona` reste dans le code.
+
 ## LE GARAGE : LE TROPHÉE EN HAUT À DROITE, LA BOUTIQUE DEUX FOIS PLUS LARGE (2026-10-18 soir, Sacha, capture couchée de la ROSSO 40 : « la disposition des boutons sur cet écran est catastrophique : boutique doit être plus gros et le trophée doit être en haut à droite ») — v646
 - **Le trophée** (`#gProf`) quitte la grappe de JOUER : coin haut-droit, en MIROIR du compte `#gCompteur` (même marge au bord, centré sur
   sa hauteur), recalé à 4 Hz par `plqGarage` ; la place CSS (`right/top`) n'est que le premier cadre. Mesuré : marge 69 px des deux côtés
