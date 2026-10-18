@@ -42345,7 +42345,7 @@ function tutoFin(passe){
 /* (2026-09-28) QUITTER N'EST PAS PASSER. Les deux passaient par tutoFin(true), qui écrit SAVE.d.tuto=1 : quitter la partie au milieu de
    la leçon la marquait faite POUR TOUJOURS. Ici on range la leçon pareil, mais elle sera reproposée au prochain JOUER — PASSER (le bouton
    de la carte) reste le seul abandon définitif. Le drapeau `quitte` dit à l'écran de mort que ce n'est pas une partie (pas de record). */
-window.dbgTuto=function(k){if(k==='permis'&&TUTO.on)tutoFin(false);if(k==='etape'&&TUTO.on){TUTO.accueilVu=1;tutoAffiche();}if(typeof k==='number'&&TUTO.on){TUTO.i=Math.max(0,Math.min(TUTO_ETAPES.length-1,k|0));TUTO.accueilVu=1;TUTO.t=0;TUTO.fig=0;TUTO.sauts=0;tutoAffiche();} /* dbgTuto(n) : aller à l'étape n */ // banc : l'état de la leçon ; dbgTuto('permis') la termine comme une réussite
+window.dbgTuto=function(k){if(k==='permis'&&TUTO.on)tutoFin(false);if(k==='etape'&&TUTO.on){TUTO.accueilVu=1;tutoAffiche();}if(typeof k==='number'&&TUTO.on){TUTO.i=Math.max(0,Math.min(TUTO_ETAPES.length-1,k|0));TUTO.accueilVu=1;TUTO.t=0;TUTO.sauts=0;tutoAffiche();} /* dbgTuto(n) : aller à l'étape n */ // banc : l'état de la leçon ; dbgTuto('permis') la termine comme une réussite
   return {on:TUTO.on,i:TUTO.i,tuto:SAVE.d.tuto,permis:SAVE.d.permis,bank:bank(),fig:TUTO.fig,sauts:TUTO.sauts};};
 function tutoQuitte(){tutoFin(true);SAVE.d.tuto=0;TUTO.quitte=1;SAVE.flush();}
 function tutoPayees(){try{return (typeof FX2!=='undefined'&&FX2&&FX2.payees)|0;}catch(e){return 0;}} // FIGURES v2 (GAMEPLAY) : +1 par figure PLANTÉE
@@ -42382,8 +42382,8 @@ function tutoTick(dt){
                 else{TUTO.i=2;TUTO.air=0;TUTO.t=0;tutoAffiche('RATÉ ! NITRO, VISE LE DESSUS');}}}
             break;
     /* (v2) LA FIGURE : le double-tap NITRO — au sol la caisse fait sa figure SUR LA ROUTE (2026-10-17 : avant, elle sautait), en l'air elle part tout de suite. Réussie = une figure
-       FINIE (veqFigFinie pose TUTO.fig). Trois sauts sans figure finie (posée en plein tour) : elle est accordée, la caisse sur ses roues. */
-    case 5: if(TUTO.fig||tutoPayees()>(TUTO.p0|0))tutoBravo(); // une figure plantée (v2) — ou finie (`?fig=ancien`)
+       plantée. Trois sauts sans figure plantée (posée en plein tour) : elle est accordée, la caisse sur ses roues. */
+    case 5: if(tutoPayees()>(TUTO.p0|0))tutoBravo(); // une figure plantée (v2)
             else if(TUTO.sauts>=3&&mode==='drive')tutoBravo();
             else if(mode==='fall'&&TUTO.t>12){sandRevive();TUTO.t=0;tutoAffiche(figGlisseOn()?'GLISSE DEPUIS NITRO, LACHE':'TAPE 2 FOIS VITE SUR NITRO');}
             break;
@@ -49575,15 +49575,14 @@ const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0
   qb:new THREE.Quaternion(),qp:new THREE.Quaternion(),qo:new THREE.Quaternion(),qd:new THREE.Quaternion(),eu:new THREE.Euler(0,0,0,'YXZ'),
   tv:new THREE.Vector3(),tc:new THREE.Vector3(),n9:new THREE.Vector3(),f9:new THREE.Vector3(),g9:new THREE.Vector3(),m4:new THREE.Matrix4(),
   si:-1,sh:0,sl:0,sd:1e9,pose:0,      // le radar de la dalle (tryLand) · pose : l'alignement de pose en cours (0-1)
-  lect:window.FIG?new FIG.Lecteur():null,sautT:-9,sautF:-1,rate:false,dReq:false,dDn:0,dUp:0,n:0,
+  sautT:-9,sautF:-1,rate:false,dReq:false,dDn:0,dUp:0,n:0,
   sp:0,spV:0,camT:-1,camA:0,volT:0,   // le nez qui rebondit à la pose · la caméra qui s'enfonce
   pv:new THREE.Vector3(),pv2:new THREE.Vector3(),ax:new THREE.Vector3(),qr:new THREE.Quaternion()};
 function veqDepart(bord,impU,roll0,qDep){ // au décollage (startFall)
-  figLibreRaz();
   VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;VEQ.ext=0;VEQ.pose=0;VEQ.si=-1;VEQ.rate=false;VEQ.sp=0;VEQ.spV=0;
   VEQ.by=0;VEQ.byV=0;VEQ.bp=0;VEQ.bpV=bord?0:-1.1*THREE.MathUtils.clamp((impU==null?.9:impU)/30,0,1); // un tremplin lève un peu le nez : la balance commence
   VEQ.br=roll0;VEQ.brV=bord?bascDir*4:0; // bord : la caisse BASCULE vers le vide, les ressorts la rattrapent — (2026-10-17) tout décollage emporte son roulis (il retombait à 0 en une image hors du bord)
-  VEQ.qb.copy(qDep);if(VEQ.lect)VEQ.lect.vide();
+  VEQ.qb.copy(qDep);
 }
 function veqVolant(){ // LE VOLANT EN L'AIR : la part tenue depuis la route s'efface, tout geste nouveau agit
   if(!VEQ.on)return steer;
@@ -49640,14 +49639,7 @@ function veqPose(bI,sd){ // la caisse se pose (tryLand, lèvre) : ce qui reste d
     for(let i=0;i<j.payees.length;i++)figPaye(j.payees[i]);if(j.ratee)VEQ.rate=true;FX2.trio=[]; /* (COMBOS À TROIS) la pose ferme le vol : un trio entamé ne passe pas au vol suivant */
     corps=j.ecart>.002;if(corps){VEQ.qd.set(C.q[0],C.q[1],C.q[2],C.q[3]);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');rx+=VEQ.eu.x;ry+=VEQ.eu.y;rz+=VEQ.eu.z;}
     FX2.wPose=C.w[2];C.vide();}
-  const L9=VEQ.lect,enCours=!!(L9&&L9.occupe());
-  if(enCours){ // posée en plein tour
-    const e9=L9.ecart();
-    if(e9<.35)L9.actifs.forEach(function(a){veqFigFinie(a.f);}); // à moins de 20° de la fin : elle compte (posée au ras)
-    else{VEQ.qd.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);VEQ.eu.setFromQuaternion(VEQ.qd,'YXZ');rx+=VEQ.eu.x;ry+=VEQ.eu.y;rz+=VEQ.eu.z;if(e9>.9)VEQ.rate=true;} // au-delà de 50° : POSE RATÉE
-    L9.vide();}
-  if(FL.actif||FL.dem[0]||FL.dem[1]||FL.dem[2]){const r9=figLibrePose();rx+=r9[1];ry+=r9[2];rz+=r9[3];if(r9[0]>.9)VEQ.rate=true;} // les FIGURES LIBRES : posée en plein tour, même jugement
-  if(!VEQ.on&&!enCours&&!corps)return;
+  if(!VEQ.on&&!corps)return;
   driftYaw=THREE.MathUtils.clamp(ry,-.35,.35);carRoll9=THREE.MathUtils.clamp(rz,-.42,.42);
   if(VEQ.on){rollV=THREE.MathUtils.clamp(VEQ.brV*.5+FX2.wPose*.4,-4,4);FX2.wPose=0;pitch9=0;VEQ.sp=THREE.MathUtils.clamp(rx,-.35,.35);VEQ.spV=0;}
 }
@@ -49758,135 +49750,13 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
   try{if(SONV2)sfx('nitro.plein',{vol:-6});}catch(e){}
   VEQ.n++;return true;
 }
-/* ===== LES FIGURES LIBRES (2026-10-14, Sacha : « les figures de Léo ne sont pas assez satisfaisantes : il faudrait qu'elles rapportent du
-   NITRO et qu'elles soient inspirées d'Asphalt 8 / 9 dans la physique, beaucoup plus LOURDE — au lieu d'animations prédéfinies, que tu puisses
-   les COMBINER dans les airs : un spin à 180° en X, puis un 180° en Y, et que les deux s'accumulent ; je veux que ce soit jouissif, explosif,
-   de faire des figures en martelant le double-tap sur le nitro ») — par-dessus le système de Léo, dont rien n'est retiré (catalogue, shop,
-   inventaire, boîte, SAUT NITRO, jugement de la pose) : `?fig=script` rend son lecteur en vol.
-   · UN DOUBLE-TAP = UN DEMI-TOUR ENGAGÉ, pas une animation : la caisse s'engage d'un demi-tour (180°) sur l'axe que donne le POUCE à cet
-     instant — pouce au neutre : TONNEAU (roulis, le sens alterne, ou continue celui qui tourne déjà) · pouce à gauche / à droite : TOUPIE (lacet)
-     de ce côté · pouce en haut / en bas : SALTO arrière / avant · en diagonale : les deux à la fois. Elle y va sur un RESSORT par axe
-     (`FLK.K/C` = son inertie : le tonneau part vite, le salto est lourd) : elle prend son élan, file, freine — du poids, pas un déclic.
-   · LES DEMI-TOURS S'EMPILENT : marteler = tourner plus loin et plus vite ; changer d'axe en plein tour = la rotation se COMPOSE pour de bon (un vrai
-     quaternion intégré dans le repère de la caisse : un demi-salto puis une demi-toupie laissent la caisse en demi-tonneau).
-   · LE DOUBLE-TAP N'EST PAS UN BOOST : son 1er appui déclenchait le coup de réacteur (+46 m/s, 12 % de la jauge) — il est RENDU (vitesse et
-     nitro) dès que le 2e appui fait la figure. Un appui seul reste le boost ; marteler le double-tap fait tourner, pas filer.
-   · CHAQUE DEMI-TOUR PAIE DU NITRO, tout de suite (`nit` de la jauge, +50 % par axe différent déjà tourné dans ce vol, plafond `nitMax` par
-     vol ; × 0,3 dans un SAUT NITRO, la règle de Léo) : étincelles, coup dans la main. Chaque TOUR COMPLET entre dans la chaîne sous son nom
-     (TONNEAU, DOUBLE TONNEAU, TOUPIE 360, HELICO 720, SALTO AVANT / ARRIERE…) ; à la pose, deux axes tournés = la figure combinée du
-     catalogue de Léo (TIRE-BOUCHON, RODEO, VRILLE PENCHEE, SALTO COSMIQUE pour les trois).
-   · LE SHOP GARDE SON SENS : une figure du catalogue qu'on POSSÈDE (achetée, `veqFigsAMoi`), réussie à la main, paie moitié plus d'aura et
-     un supplément de nitro (`nitAMoi`). Tout le monde peut tout tourner ; posséder la figure, c'est en tirer plus.
-   · LE RATTRAPAGE : à `rec` s de la pose (le viseur, CAMV.eta) un ressort lourd ramène la caisse à l'endroit par le plus court chemin ; sans
-     pose en vue, elle se redresse seule quand on a cessé de marteler depuis `repos` s. Trop d'élan trop près du sol = posée de travers : le
-     jugement de Léo (moins de 20° = bon, plus de 50° = « FIGURE RATEE ! », le flow tombe). Le risque est réel, le nitro gagné reste gagné.
-   Console : `dbgFigL()` (élan, angle, demi-tours, nitro du vol), `dbgFigL("tap",gauche,haut)`. ⚠ Réglé à la lecture : à juger en jeu. */
-const FLK={on:/[?&]fig=libre\b/.test(location.search), /* (2026-10-14, Sacha via PILOTAGE) LES FIGURES v2 sont le défaut ; les LIBRES reviennent avec ?fig=libre */K:[60,75,110],C:[12.4,13.9,16.8],wMax:24,rec:.46,kRec:150,cRec:21,repos:1.1,kRep:26,cRep:8,nit:.05,nitVar:.5,nitMax:.6,nitAMoi:.03};
-const FLC={t:-9e9,k:1,n:0,c:0,ok:false}; // le coup de réacteur du 1er appui, à rendre si l'appui était le début d'un double-tap
-const FL={actif:false,long:false,w:new THREE.Vector3(),wC:new THREE.Vector3(),e:new THREE.Vector3(),q:new THREE.Quaternion(),dq:new THREE.Quaternion(),ax:new THREE.Vector3(),ang:[0,0,0],dem:[0,0,0],tr:[0,0,0],sg:[0,0,0],nit:0,tTap:-9,sensZ:1,taps:0,cum:[0,0,0],cumN:0,eu:new THREE.Euler(0,0,0,'YXZ')}; // cum / cumN : les demi-tours et le nitro de la SESSION (banc)
-function figLibreRaz(){FL.actif=false;FL.w.set(0,0,0);FL.wC.set(0,0,0);FL.q.set(0,0,0,1);FL.ang[0]=FL.ang[1]=FL.ang[2]=0;FL.dem[0]=FL.dem[1]=FL.dem[2]=0;FL.tr[0]=FL.tr[1]=FL.tr[2]=0;FL.nit=0;FL.taps=0;}
-function figLibreAngle(){return 2*Math.acos(Math.min(1,Math.abs(FL.q.w)));} // l'écart à « à l'endroit », en radians
-function figLibreTap(gx,hy){ // le double-tap en vol : un coup de reins sur l'axe du pouce (gx : gauche +, hy : haut +)
-  if(mode!=='fall'||gameOver)return false;
-  const sx=gx!=null?gx:steer,sy=hy!=null?hy:pitchS,cx=Math.abs(sx)>.35,cy=Math.abs(sy)>.35,k=cx&&cy?.78:1;
-  const P=Math.PI*k; // UN DOUBLE-TAP = UN DEMI-TOUR engagé sur l'axe du pouce (FL.wC = ce qui reste à tourner, rad, repère de la caisse)
-  if(!cx&&!cy){if(Math.abs(FL.w.z)>1.5||Math.abs(FL.wC.z)>.5)FL.sensZ=Math.sign(Math.abs(FL.wC.z)>.5?FL.wC.z:FL.w.z);else FL.sensZ=-FL.sensZ;FL.wC.z+=FL.sensZ*Math.PI;}
-  if(cx)FL.wC.y+=Math.sign(sx)*P;
-  if(cy)FL.wC.x-=Math.sign(sy)*P;
-  FL.long=false;
-  if(FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // LE DOUBLE-TAP N'EST PAS UN BOOST : le coup de réacteur de son 1er appui est rendu (vitesse et nitro) — marteler fait tourner, pas filer
-  FL.actif=true;FL.tTap=performance.now();FL.taps++;FL.cumT=(FL.cumT||0)+1;VEQ.n++;
-  const p=carGroup.position; // le souffle des tuyères qui la font tourner
-  /* (2026-10-14, gameplay · accord) DANS LE SAUT NITRO, la figure part à la même image que le saut (veqSaut → veqFigure) : le souffle du
-     booster de Léo (26 flammes contre la route) et son motif dans la main ([12,30,18]) disent déjà le coup — les tuyères et leur
-     vibration ici le doublaient. Elles se taisent ; le son de la vrille reste (la caisse se met bien à tourner). */
-  const sautN9=SENS&&performance.now()-VEQ.sautT<60; // (`?sens=0` : comme avant)
-  if(!sautN9)for(let j=0;j<10;j++)spawnP(j%3?flames:flameCore,p.x+(Math.random()-.5)*1.6,p.y+.5+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*1.6,(Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14,.12+Math.random()*.12);
-  shake=Math.max(shake,.22);fovPunch=Math.max(fovPunch,3.5);if(!sautN9)hap([10,22,14]);
-  try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}
-  return true;
-}
-function figLibreDemi(i){ // un demi-tour de plus sur l'axe i (0 salto · 1 toupie · 2 tonneau) : le nitro tombe, le tour complet se nomme
-  FL.cum[i]++;const n=++FL.dem[i],axes=(FL.dem[0]?1:0)+(FL.dem[1]?1:0)+(FL.dem[2]?1:0),p=carGroup.position;
-  const g=Math.min(Math.max(0,FLK.nitMax-FL.nit),FLK.nit*(1+FLK.nitVar*(axes-1)))*veqNitK();
-  if(g>0){FL.nit+=g;FL.cumN+=g;try{nitroPct(g,'figure');}catch(e){}}
-  sparkBurst(n%2?sparkBlue:sparkGold,p,n%2?7:16,n%2?7:11);if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<(n%2?1:2))hap(n%2?7:[8,14,10]); // (2026-10-14, accord) un demi-tour en DIAGONALE se finit sur deux axes à la même image : une vibration, pas deux (ni par-dessus le coup du double-tap)
-  if(n%2)return;
-  const t=n/2;fovPunch=Math.max(fovPunch,4+Math.min(4,t));shake=Math.max(shake,.25);
-  let nom;
-  if(i===2)nom=t===1?'TONNEAU':t===2?'DOUBLE TONNEAU':'TONNEAU ×'+t;
-  else if(i===1)nom=t===1?'TOUPIE 360':t===2?'HELICO 720':'TOUPIE '+(t*360);
-  else{const av=FL.sg[0]>0;nom=(t===1?'SALTO ':t===2?'DOUBLE SALTO ':'SALTO ×'+t+' ')+(av?'AVANT':'ARRIERE');}
-  const id=i===2?(t===1?'tonneau':t===2?'double':''):i===1?(t===1?'toupie':t===2?'helico':''):t===1?(FL.sg[0]>0?'saltov':'saltoa'):'',mien=figLibreAMoi(id);
-  try{addTrick('fl'+i+'_'+t,nom,Math.round([6,4,3][i]*t*(mien?1.5:1)),t>=2||i===0||mien?2:1,true);}catch(e){}
-  if(mien){const g2=Math.min(Math.max(0,FLK.nitMax-FL.nit),FLK.nitAMoi)*veqNitK();if(g2>0){FL.nit+=g2;try{nitroPct(g2,'figure');}catch(e){}}}
-}
-function figLibreAMoi(id){if(!id)return false;try{return veqFigsAMoi().indexOf(id)>=0;}catch(e){return false;}} // une figure du CATALOGUE qu'on possède (shop, inventaire) : réussie à la main, elle paie moitié plus d'aura et un supplément de nitro
-function figLibreTick(dt){ // en vol, chaque image, une fois la caisse placée (veqFigurePose)
-  if(gameOver||mode!=='fall'){figLibreRaz();return;}
-  const d=Math.min(dt,1/20),w=FL.w,q=FL.q,R=FL.wC,K=FLK.K,C=FLK.C;
-  const eta=CAMV.eta<90?CAMV.eta:99,depuis=(performance.now()-FL.tTap)/1000,rec=eta<FLK.rec||JEAU.dans,rep=!rec&&depuis>FLK.repos&&R.lengthSq()<.04;
-  if(rec||rep){ // LE RATTRAPAGE : ce qui reste à tourner devient le chemin vers « à l'endroit » — dans le SENS où elle tourne si elle tourne vite
-    if(q.w<0){q.x=-q.x;q.y=-q.y;q.z=-q.z;q.w=-q.w;}
-    const th=2*Math.acos(Math.min(1,q.w)),sn=Math.sqrt(Math.max(1e-9,1-q.w*q.w));
-    FL.e.set(-q.x/sn*th,-q.y/sn*th,-q.z/sn*th); // le plus court chemin (≤ 180°)
-    if(th>.05&&FL.e.dot(w)<0&&w.length()>3&&(FL.long||!FL.recV)){FL.long=true;FL.e.multiplyScalar(-(6.2832-th)/th);} // elle tourne de l'autre côté : elle FINIT son tour au lieu de le défaire
-    else FL.long=false;
-    FL.recV=true;R.copy(FL.e);
-    const k9=rec?FLK.kRec:FLK.kRep,c9=rec?FLK.cRec:FLK.cRep;
-    w.x+=(k9*R.x-c9*w.x)*d;w.y+=(k9*R.y-c9*w.y)*d;w.z+=(k9*R.z-c9*w.z)*d;}
-  else{FL.recV=false; // LE DEMI-TOUR ENGAGÉ : un ressort par axe (raideur = l'inertie : le tonneau part vite, le salto est lourd)
-    w.x+=(K[0]*R.x-C[0]*w.x)*d;w.y+=(K[1]*R.y-C[1]*w.y)*d;w.z+=(K[2]*R.z-C[2]*w.z)*d;}
-  const L=w.length();if(L>FLK.wMax)w.multiplyScalar(FLK.wMax/L);
-  if(!rec&&!rep)R.addScaledVector(w,-d); // ce qui est tourné n'est plus à tourner
-  if(L>1e-4){FL.ax.copy(w).multiplyScalar(1/L);FL.dq.setFromAxisAngle(FL.ax,Math.min(L,FLK.wMax)*d);q.multiply(FL.dq).normalize();}
-  for(let i=0;i<3;i++){const wi=i===0?w.x:i===1?w.y:w.z;FL.ang[i]+=wi*d;if(Math.abs(wi)>1)FL.sg[i]=Math.sign(wi);
-    const h=Math.floor(Math.abs(FL.ang[i])/3.0); // (3,0 rad ≈ 172° : le demi-tour se paie quand il est fait, pas une image trop tard)
-    if(h>FL.tr[i]){FL.tr[i]=h;figLibreDemi(i);}}
-  if(R.lengthSq()<.004&&w.lengthSq()<.06&&figLibreAngle()<.03&&depuis>.35){q.set(0,0,0,1);w.set(0,0,0);FL.actif=false;return;} // elle est posée dans l'air : plus rien à tourner
-  const hc=(CARS[level].h||1.3)*.5; // autour du MILIEU de la caisse (le pivot de Léo)
-  VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.quaternion.multiply(q);
-  VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);
-}
-function figLibrePose(){ // à la pose (veqPose) : rend [écart en rad, x, y, z] de ce qui reste de la figure — et la figure combinée, si elle est tenue
-  const e9=FL.actif?figLibreAngle():0;let rx=0,ry=0,rz=0;
-  if(e9>=.35){if(FL.q.w<0)FL.q.set(-FL.q.x,-FL.q.y,-FL.q.z,-FL.q.w);FL.eu.setFromQuaternion(FL.q,'YXZ');rx=FL.eu.x;ry=FL.eu.y;rz=FL.eu.z;}
-  if(e9<=.9){const a=FL.dem[0]>=2,b=FL.dem[1]>=2,c=FL.dem[2]>=2,nb=(a?1:0)+(b?1:0)+(c?1:0);
-    if(nb>=2){const nom=nb===3?'SALTO COSMIQUE':a&&c?'TIRE-BOUCHON':a&&b?'RODEO':'VRILLE PENCHEE';const mien=figLibreAMoi(nb===3?'cosmique':a&&c?'tirebouchon':a&&b?'rodeo':'penche');try{addTrick('flc_'+nom,nom,Math.round((nb===3?14:9)*(mien?1.5:1)),2,true);if(mien)nitroPct(FLK.nitAMoi*2*veqNitK(),'figure');}catch(e){}}}
-  figLibreRaz();FL.pose=[e9,rx,ry,rz];return FL.pose;
-}
-window.dbgFigL=function(a,gx,hy){if(a==="tap")return figLibreTap(gx||0,hy||0);
-  return {libre:FLK.on,actif:FL.actif,w:[+FL.w.x.toFixed(2),+FL.w.y.toFixed(2),+FL.w.z.toFixed(2)],ecartDeg:Math.round(figLibreAngle()*57.3),demi:FL.dem.slice(),nitro:+FL.nit.toFixed(3),cum:FL.cum.slice(),cumN:+FL.cumN.toFixed(3),cumT:FL.cumT||0,cause:mortCause,taps:FL.taps,eta:+(CAMV.eta<90?CAMV.eta:99).toFixed(2),pose:FL.pose||null,rate:VEQ.rate,mode:mode};};
+const FLC={t:-9e9,k:1,n:0,c:0,ok:false}; // le coup de réacteur du 1er appui, à rendre si l'appui était le début d'un double-tap (voir figLance)
 function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){return f.id;});const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tailwhip'];}
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
-  if(FIGV2.on){if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
+  if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
     if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
     if(FDIR.on&&dispo!=null)return !!figLance(figDirSlot(),{dispo:dispo,dx:FDIR.x,strict:!TUTO.on,muet:true}); // (2026-10-15 soir, Sacha : « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance ») le SAUT NITRO aussi : la figure de la direction tenue — rien dans cette direction : le saut part sans figure, sans bruit de refus
     return !!figLance(FX2.cyc,{dispo:dispo,double:dispo==null});} // (2026-10-14, LES FIGURES v2) l'emplacement SUIVANT, en vraie physique (le saut nitro ; ?impu=0 : aussi le double-tap en vol)
-  if(FLK.on)return figLibreTap(); // (2026-10-14, Sacha) les FIGURES LIBRES : un coup de reins sur l'axe du pouce, pas une animation tirée au sort
-  const L9=VEQ.lect;if(!L9||!window.FIG||L9.occupe()>=3)return false;
-  const f=FIG.tire(veqFigsAMoi(),L9.der);
-  // « ça les pose automatiquement » : elle finit avant la pose — raccourcie jusqu'à 55 % de sa durée, sinon elle ne part pas
-  let t=dispo!=null?dispo:(CAMV.eta<90?CAMV.eta:9);
-  if(L9.occupe()){const d9=L9.actifs[L9.actifs.length-1];let deb=d9?Math.max(0,d9.D*FIG.CHEV-d9.t):0;for(const e of L9.file)deb+=e.D*FIG.CHEV;t-=deb;}
-  const D=Math.min(f.D,t-.08);
-  if(D<f.D*.55){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
-  L9.lance(f,Math.random()<.5?-1:1,D);
-  VEQ.n++;try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}hap([10,30,10]);
-  return true;
-}
-function veqFigFinie(f){addTrick('fig_'+f.id,f.n,Math.round(f.aura/16),f.aura>=120?2:1);if(TUTO.on)TUTO.fig=1;} // (2026-10-14) …et à l'auto-école, l'étape FIGURE est réussie // la figure finie entre dans la CHAÎNE (son aura, payée à la pose)
-function veqFigurePose(dt){ // en vol, chaque image, une fois la caisse placée : les figures en cours tournent autour du MILIEU de la caisse
-  if(FL.actif)figLibreTick(dt); // les FIGURES LIBRES (l'élan du double-tap)
-  const L9=VEQ.lect;if(!L9||!L9.occupe())return;
-  if(gameOver||mode!=='fall'){L9.vide();return;}
-  const fin=L9.tick(dt);
-  if(L9.actifs.length){const hc=(CARS[level].h||1.3)*.5;
-    VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
-    VEQ.qr.set(L9.q[0],L9.q[1],L9.q[2],L9.q[3]);carGroup.quaternion.multiply(VEQ.qr);
-    VEQ.pv2.set(0,hc,0).applyQuaternion(carGroup.quaternion);carGroup.position.add(VEQ.pv).sub(VEQ.pv2);}
-  for(const f of fin)veqFigFinie(f);
-}
 window.dbgVol=function(a){
   if(a==='ancien'||a==='neuf'){VEQ.on=a==='neuf';return VEQ.on?'vol équilibré':'vol d’avant';}
   if(a==='double')return veqDouble();
@@ -49894,7 +49764,7 @@ window.dbgVol=function(a){
   if(a==='rien'){SAVE.d.figs=['tailwhip'];SAVE.d.figT0=0;SAVE.flush();return SAVE.d.figs;}
   return {on:VEQ.on,mode:mode,u:+VEQ.u.toFixed(3),steer:+steer.toFixed(3),verrou:+VEQ.l0.toFixed(3),lT:+VEQ.lT.toFixed(2),
     lacet:+(VEQ.by*57.3).toFixed(1),tangage:+(VEQ.bp*57.3).toFixed(1),roulis:+(VEQ.br*57.3).toFixed(1),pose:+VEQ.pose.toFixed(2),ext:+VEQ.ext.toFixed(3),
-    haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),figures_en_cours:VEQ.lect?VEQ.lect.actifs.map(function(a){return a.f.id+' '+a.t.toFixed(2)+'/'+a.D.toFixed(2);}).concat(VEQ.lect.file.map(function(a){return '+'+a.f.id;})):null,aMoi:veqFigsAMoi(),
+    haut:FLY_U.toArray().map(function(v){return +v.toFixed(3);}),aMoi:veqFigsAMoi(),
     figures:VEQ.n,rate:VEQ.rate,nez:+(VEQ.sp*57.3).toFixed(1),camT:+VEQ.camT.toFixed(2),hopY:+hopY.toFixed(2),carRoll:+(carRoll9*57.3).toFixed(1),
     cap:+(Math.atan2(fallVel.x,fallVel.z)*57.3).toFixed(1),radar:[VEQ.si,+VEQ.sh.toFixed(1),+VEQ.sl.toFixed(1),Math.round(VEQ.sd)],vy:+fallVel.y.toFixed(1),eta:+(+CAMV.eta).toFixed(2),hautCaisse:+VEQ.pv.set(0,1,0).applyQuaternion(carGroup.quaternion).y.toFixed(3),fallT:+fallTR.toFixed(2),nitro:+(nitroR+nitroX).toFixed(2)};};
 /* ===== LES FIGURES v2 — LA PHYSIQUE (2026-10-14, Sacha : « refonte totale du système de figures : on doit pouvoir en équiper jusqu'à 3,
@@ -49919,8 +49789,8 @@ window.dbgVol=function(a){
    · LA PAIE (`figPaye`) : une figure PLANTÉE (revenue à l'endroit) entre dans la chaîne d'aura avec ses tours (TOUPIE 360 ×2 : son aura
      × 2,25) et rend du NITRO tout de suite (`NITRO2.figAir`, de moins en moins dans un même vol). Comme au BMX, l'aura n'est GAGNÉE qu'à la
      pose : posée en plein tour (> 52°), c'est la CHUTE — les figures de ce vol quittent la chaîne (`figChute`) et le flow tombe.
-   `?fig=ancien` (ou `dbgFig('ancien')`) rend les figures de Léo (le lecteur animé, au hasard parmi celles qu'on possède). Console : `dbgFig()`. */
-const FIGV2={on:!/[?&]fig=(ancien|script|libre)\b/.test(location.search)}; // ?fig=libre : les FIGURES LIBRES de GAMEPLAY (nuit du 14/10) · ?fig=script / ?fig=ancien : le lecteur de Léo
+   Console : `dbgFig()`. */
+const FIGV2={on:true}; // les figures v2 (la physique) sont les SEULES : plus de lecteur de Léo (?fig=ancien) ni de figures libres (?fig=libre)
 if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
 function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
@@ -50494,7 +50364,6 @@ try{Object.assign(I18N,{'COMBO PERDU':'COMBO LOST','En vol, tape 2 fois NITRO : 
 try{Object.assign(I18N,{'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !':'In the air, tap a TRICK: it blasts and spins the car. Hold for one more turn!','TOUPIE DE DRIFT':'DRIFT SPIN','EMPLACEMENTS':'SLOTS','ÉQUIPÉE':'EQUIPPED','REMPLACE':'REPLACES','RETIRÉE':'REMOVED',
   'IL EN FAUT UNE':'KEEP AT LEAST ONE','EMPLACEMENT':'SLOT'});}catch(e){}
 window.dbgFig=function(a,b){
-  if(a==='ancien'||a==='neuf'){FIGV2.on=a==='neuf';FX2.cle='';return FIGV2.on?'figures v2 (la physique)':'figures de Léo (le lecteur animé)';}
   if(a==='lance')return !!figLance(b|0,{});
   if(a==='equipe')return figEquipe(b);
   if(a==='phy')return FIG.PHY;
@@ -53799,7 +53668,7 @@ function resetGame(){
   rampCd=0;deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit(); // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
-  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe();if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
+  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0};runxReset();
@@ -65368,7 +65237,7 @@ function loop(now){
         if(!loop._nAir&&nitroOn&&(performance.now()-(loop._nAirT||0))>500){loop._nAirT=performance.now();loop._nAir=true;
           const sp8=fallVel.length(),a8=46*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1); // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») 32 → 46 m/s
           if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
-          FLC.t=performance.now();FLC.k=sp8>1?sp8/(sp8+a8):1;FLC.n=nitroR;FLC.ok=true; // (2026-10-14) noté : si c'est le 1er appui d'un DOUBLE-TAP, la figure le rend (figLibreTap)
+          FLC.t=performance.now();FLC.k=sp8>1?sp8/(sp8+a8):1;FLC.n=nitroR;FLC.ok=true; // (2026-10-14) noté : si c'est le 1er appui d'un DOUBLE-TAP, la figure le rend (figLance)
           fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z));if(pwrNitroT<=0){const av9=nitroR;nitroR=Math.max(0,nitroR-NITRO2.coup*nitroCap()*(FLOW.lv===4?FLOW2.fren.nitro:1));if(LIVRE.on)livre('n-:coup',av9-nitroR);}
           FLC.c=Math.max(0,FLC.n-nitroR);fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);} // (vague 3) le reste du coup — onde, bords, WHOOMP, vibreur — vient de `nitroAllume`, qui part à la même image (il le doublait)
         { // (2026-09-26, user : « le nitro en l'air ne sert pas qu'à guider, il faut que ça ACCÉLÈRE vraiment ») : la MÊME poussée qu'au sol
@@ -65498,7 +65367,7 @@ function loop(now){
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
       }
-      if(FIGV2.on)figPose(dt);else veqFigurePose(dt); // LES FIGURES, par-dessus l'assiette — (2026-10-14) v2 : la PHYSIQUE (explosions, inertie, planté)
+      figPose(dt); // LES FIGURES, par-dessus l'assiette — (2026-10-14) v2 : la PHYSIQUE (explosions, inertie, planté)
       if(BANQ.glisse)try{banqAssiette(dt);}catch(e){}
       if(MOU.on)try{mousseAssiette(dt);}catch(e){} // (2026-10-17) sur la MOUSSE, la caisse est posée // (2026-10-14) LA BANQUISE : sur la glace, la caisse est posée sur la facette et DÉRIVE (voir banqAssiette)
       if(SENS&&(JEAU.dans||SEAU.pose))try{sensEau(dt);}catch(e){} // (2026-10-14, sensations) L'EAU SE SENT : le bouchon, le bouillon, le creux du plongeon (voir SEAU)
