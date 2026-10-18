@@ -59,3 +59,6 @@ VERSION PRINCIPALE/salle-blanche/sauvegardes/
 VERSION PRINCIPALE/assets/audio/music/inspi-generateur/
 VERSION PRINCIPALE/atelier-son/studio/references/
 VERSION PRINCIPALE/atelier-son/boite/mp3/
+
+# --- (2026-10-18) l édition PC n est plus dans le dépôt : synchro-versions.js la refabrique en local si besoin, sans la committer ---
+AUTRE VERSION/
