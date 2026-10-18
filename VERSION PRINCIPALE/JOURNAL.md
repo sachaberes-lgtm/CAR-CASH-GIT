@@ -158,6 +158,27 @@
   pas « THE BEETLE », la marque) · LE COMBI en lecture **A** (la livrée de Fillmore seule, sans `yeux:1`) · la MX-5 NA s'appelle **LA CERISE**
   (EN « THE CHERRY ») et ses phares se lèvent **à la nitro** (`MX5PH.mode='nitro'` ; le clin d'œil à l'arrivée au garage reste).
 
+## LE ROUGE-GORGE — LA RELIANT ROBIN Mk1, TROIS ROUES, LA ROUE AVANT AU MILIEU (2026-10-18, discussion RONDES — la trois-roues anglaise des années 70, fibre de verre ; index 84, RARE)
+- **Pas de plan vectoriel libre** (dimensions.com n'a pas la Robin, getoutlines sur devis) : le plan raster de the-blueprints.com (côté +
+  dessus, étalonné sur l'EMPATTEMENT de 2,159 m — 170 px/m), relu en mètres du jeu, + les cotes officielles de la Mk1 (3,33 × 1,42 × 1,37 m)
+  et les photos de Mk1 de Wikimedia Commons pour le nez, la poupe et le hayon. ⚠ Le plan est celui d'une Robin PLUS TARDIVE (pare-chocs
+  enveloppants, 3,41 m) : la poupe a été ramenée à la Mk1 (8 cm plus courte, lunette-hayon plus couchée) — 3,37 m de caisse, 3,44 hors-tout.
+- **Le gabarit** `SHAPES.robin` : une coque en loft sur les courbes du plan (profil, largeur, ceinture, bord du pavillon, bord du hayon).
+  La roue AVANT seule au milieu = le système du SQUALE (`w1F:1`, `roueDeco` qui saute la roue avant gauche) dans un TUNNEL au fond de la
+  caisse ; les roues arrière dans des passages découpés dans les flancs. ⚠ Nez et poupe sont PLATS : un bouchon de loft rogné au profil se
+  chevauchait (la calandre ne se voyait qu'en un fil) → on les referme en BANDES (la largeur `xM` tombe à 4 cm sur les 5 derniers mm).
+  ⚠ Le montant du hayon garde la pente des vitres (`xr = xbt − 0,21·(yr − ybt)` vers la poupe) : rapproché de l'axe, il se couchait en
+  corniche tordue qui accrochait la lumière en éclats.
+- **Découpé** (`bulleOutils.decoupe`) : vitres et joints caoutchouc noirs (gonflés de 1,8 cm), pare-brise vu de dessus, grande lunette-hayon
+  vue de dos, joints de portes / capot / hayon ; la calandre noire à trois lames chromées, les clignotants ambre sous les phares, les feux
+  rectangulaires rouge + ambre. **En relief** : phares ronds cerclés de chrome posés SUR la tôle, pare-chocs à lame chromée fine (la Mk1 ;
+  `zBout` : la tranche du bout trouvée par dichotomie — le balayage pas à pas coûtait 30 ms), petits rétros noirs, poignées, essuie-glaces,
+  jantes tôle 10 pouces argent à enjoliveur. `ECH_POTS.robin` : une sortie à droite sous la lame. Traduction : son bloc `I18N`.
+- **Mesuré** : ~12 800 facettes ; construite en 6-11 ms, 27 ms la toute première fois (LA PERLE : 59) — pas de préchauffe ; 0 programme
+  compilé en course (couché, debout ; un +2 vu une fois en debout = la carte tirée au hasard, 213 → 213 aux deux passages suivants) ; mêmes
+  30 avertissements que le main ; garage, inventaire OK.
+- Planche : `photos-gameplay/robin-vraie-et-nous.png`. Noms : LE ROUGE-GORGE (posé : « robin » en anglais) · LE TABOURET · LE TRICYCLE.
+
 ## LA DOLCE VITA — LA 500 « 1957 » SUR LE PLAN COTÉ (2026-10-18, discussion RONDES — la photo de Léo : la 500 de 2007 en finition « 1957 Edition »)
 - **Le plan** : dimensions.com « Fiat 500 » (2015, même caisse que 2007 ; 154,67 unités/m, étalon = l'empattement de 2,30 m). Photos de
   référence : Wikimedia Commons (« Fiat 500 "1957" Edition », « Vintage '57 », « Azzurro Cuor Leggero »). Index 80, COMMUNE, `SHAPES.cinq`.
