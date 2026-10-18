@@ -177,6 +177,37 @@
 - ⚠ Le studio du jeu (`dbgEssaiCaisse`) BLANCHIT les teintes claires (l'ancienne BULLE aussi) : juger une couleur en course ou au garage.
 - Planche : `photos-gameplay/bulle-vraie-et-nous.png` (vraie | avant | après | en course). Noms : LA BULLE (gardé) · LA DRAGÉE · LE SCARABÉE.
 
+## LE COMBI — REFAIT AU PLAN COTÉ, FAÇON FILLMORE (2026-10-18, discussion BOÎTES ; Léo : « s'inspirer du combi du film Cars »)
+- **Le gabarit** : `SHAPES.combi=(function(){…})()` à la ligne-repère `// <<< SHAPES.combi (BOITES) >>>` (remplace l'ancien `combi(K)` de
+  l'objet SHAPES, que la coordination effacera) + `ECH_POTS.combi` (UN pot, à gauche sous le pare-chocs, comme le T1 vu de dos). Fiche :
+  h 1,94 · w 1,72 · l 4,28, vert d'eau `0x86c9b1` (au garage, une menthe plus soutenue virait au vert fluo ; au studio, plus pâle, au blanc).
+- **Le plan** : dimensions.com « Volkswagen Type 2 Microbus » (SVG 1000×725, **126,19 u/m** mesurés sur l'empattement 2,40 m). C'est une
+  **Samba** (23 vitres, lucarnes, toit ouvrant) ; Fillmore est un **Microbus** : 3 vitres sur le flanc, toit lisse, ouïes EN HAUT derrière la
+  dernière vitre (sur la Samba elles sont sous la ceinture) — la caisse est celle du plan, le vitrage celui du Microbus. ⚠ La vue de DESSUS du
+  plan est 4 % trop large (0,878 contre 0,844 de face et de dos, qui s'accordent) : elle ne sert qu'aux formes. ⚠ Le coin du pare-brise se
+  contredit de quelques cm entre vues (le déflecteur vu de côté passe devant le coin du pare-brise vu de dessus) : compromis jugé à l'image.
+- **LA TÔLE EN GRILLE** (pas un loft par tranches) : une RANGÉE par hauteur (bas de caisse, flancs, bandeau de ceinture, vitres, gouttière,
+  puis le pavillon en dôme par fractions de largeur), chaque rangée suit SA courbe en plan — le nez en **quart d'ellipse de 36 cm** (le V,
+  les phares et la porte avant, croisés face + côté, tombent dessus à 1-2 cm près), les pans du pare-brise en V (pente 0,25) et un coin de
+  12 cm, la poupe à coins de 24,5 cm. Les colonnes : poupe | flancs (stations communes, serrées aux passages de roue) | nez. ⚠ Au nez et à la
+  poupe, la 1re moitié des colonnes suit le COIN (en z) et la 2e la FACE (en x) pour TOUTES les rangées : au même pas en arc, des rangées de
+  coins différents se décalaient → facettes en dents de scie au montant du pare-brise. Le pavillon retombe sur la visière (profil de côté)
+  et la visière déborde de 6 cm (une pièce à part : une rangée qui déborde rendrait la section non convexe).
+- **LA DÉCOUPE** (même principe que `peintPlan` de LA PERLE, réécrite générique : `zone`/`joint`/`pli` par vue, « le dernier contour qui
+  contient le morceau le peint », `sur:[codes]` = ne peint que sur ces peintures — la paupière ne déborde jamais du pare-brise) : vitres
+  + caoutchouc, portes (avant des deux côtés, portes battantes côté trottoir seulement), ouïes, trappe à essence, capot moteur, hayon,
+  bandeau et V en arêtes de lumière, et tout le DÉCOR (arc-en-ciel, signe de la paix, fleurs, étoiles) DANS la tôle. Les contours sont rangés
+  par tranches de 10 cm (une facette n'interroge que ceux de ses tranches) : 160-230 ms → **~45 ms** sur le Mac, gardé en cache par session.
+- **LES DEUX LECTURES** : A = la livrée seule (défaut) ; B = `yeux:1` dans la fiche → le pare-brise devient le blanc des yeux, iris, pupille,
+  reflet, paupières lourdes couleur caisse (comme Fillmore). ⚠ Blanc et iris en matière MATE (`m`) : en satiné, sous la lampe du studio,
+  l'iris d'un œil virait au beige. Pas d'essuie-glaces en B.
+- **La plaque** : une boîte `l` blanche dans le renfoncement du capot moteur → `plqDessinee` y pose LA plaque du joueur. Pas de plaque avant.
+- **Mesuré** : 38 000 triangles (LA PERLE ~52 000) ; construction ~55-60 ms (LA PERLE 40-75 ms) ; menu → course : 211 programmes partout
+  (0 compilé), A et B, debout et couché ; garage 211 → 212 comme le main ; aucune erreur. Planche : `photos-gameplay/combi-vraie-et-nous.png`.
+- **Outils** (`~/Downloads/CAR-bancs/nouvelles-voitures/boites/`) : `releve.py` (le SVG → toutes ses lignes en unités), `traits.py` (→ mètres
+  par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
+  (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
+
 ## LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES (2026-10-18, v628, Sacha : « c'est bien l'effet des nuages pixeliser mais ca bug par moment, quand on s'eloigne ou on se raproche les nuage on parfois l'ancienne texture parfois les pixel »)
 - **La cause** : `cotonTick` rangeait chaque nuage dans UN aspect selon sa distance, par seuils, sans transition : de loin la v8 (lots 0-1),
   puis le vitrail (ou 40 % des fantômes au lot 2, puis tous au lot 3), et TOUT PRÈS de nouveau la v8 (cube > `NUVIT.ang` à l'écran) ; un
