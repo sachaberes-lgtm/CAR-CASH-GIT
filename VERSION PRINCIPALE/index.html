@@ -14113,18 +14113,34 @@ function nuage8Calc(B, base, top, N, opt) {
      variables (ext / opt.fsz), chacun son voile (q.y : plus faible dehors), son hasard (q.z, la teinte du peintre) et sa profondeur (q.w). */
   let fant = null;
   if (opt.fant) {
-    const per = Math.max(1, Math.round(opt.fant / Math.max(1, nv))), sz = ext / (opt.fsz || 110), n4 = nv * per;
+    /* (2026-10-18, Léo : « éparpille mieux les cubes ») LE TIRAGE ÉPARPILLÉ : plus un paquet par sommet de la surface (une grille : des rangées et
+       des grappes régulières) — chaque cube tombe au HASARD sur la surface (un triangle tiré selon son aire, un point dedans), avec des GRAPPES et des
+       TROUÉES (un bruit de densité : on garde plus de cubes là où il est haut), une VAPEUR qui part plus loin (dehors, de plus en plus rare et
+       légère) et des tailles très variées. Tirés dans le désordre : un lot lointain qui n'en dessine qu'une partie garde le même éparpillement. */
+    const n4 = opt.fant, sz = ext / (opt.fsz || 110), nt = idx.length / 3, AC = new Float64Array(nt);
+    let at = 0; for (let f = 0; f < nt; f++) { const a = idx[f * 3] * 3, b = idx[f * 3 + 1] * 3, c = idx[f * 3 + 2] * 3;
+      const ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2], vx = pos[c] - pos[a], vy = pos[c + 1] - pos[a + 1], vz = pos[c + 2] - pos[a + 2];
+      at += .5 * Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx); AC[f] = at; }
+    let s9 = ((opt.seed || 1) * 2654435761) | 0; const rnd = function () { s9 = (s9 * 1664525 + 1013904223) | 0; return (s9 >>> 0) / 4294967296; };
     const FP = new Float32Array(n4 * 3), FN = new Float32Array(n4 * 3), FC = new Float32Array(n4 * 3), FQ = new Float32Array(n4 * 4);
-    for (let v = 0; v < nv; v++) { const x = pos[v * 3], y = pos[v * 3 + 1], z = pos[v * 3 + 2], a = nor[v * 3], b = nor[v * 3 + 1], c = nor[v * 3 + 2];
-      let ux = b, uy = -a, uz = 0; if (Math.abs(c) < .9) { ux = -c; uy = 0; uz = a; } // une tangente (perpendiculaire à la normale)
-      let ul = Math.hypot(ux, uy, uz) || 1; ux /= ul; uy /= ul; uz /= ul; const wx = b * uz - c * uy, wy = c * ux - a * uz, wz = a * uy - b * ux;
-      for (let k = 0; k < per; k++) { const q = k * nv + v, // (rangés par passe : les premiers n/per sont UNE passe sur toute la surface — un lot lointain n'en dessine qu'une partie)
-        r1 = hs(v * 3 + k * 7, k * 11 + 5, v + 9), r2 = hs(v + 17, v * 5 + k * 3, k + 2), r3 = hs(k * 13 + v, v * 7 + 1, 3), r4 = hs(v * 11 + 4, k * 17 + 9, v * 3 + k);
-        const dep = r1 < .72 ? -Math.pow(r2, 1.4) * 7 : r2 * 2.6, ju = (r3 - .5) * h * 1.1, jw = (r4 - .5) * h * 1.1; // la profondeur (en tailles de cube) : dedans le corps, dehors la vapeur
-        FP[q * 3] = x + a * dep * sz + ux * ju + wx * jw; FP[q * 3 + 1] = y + b * dep * sz + uy * ju + wy * jw; FP[q * 3 + 2] = z + c * dep * sz + uz * ju + wz * jw;
-        FN[q * 3] = a; FN[q * 3 + 1] = b; FN[q * 3 + 2] = c; FC[q * 3] = col[v * 3]; FC[q * 3 + 1] = col[v * 3 + 1]; FC[q * 3 + 2] = col[v * 3 + 2];
-        FQ[q * 4] = sz * (.55 + .9 * r3 * r4); FQ[q * 4 + 1] = dep > 0 ? .1 + .22 * (1 - dep / 2.6) : .26 + .3 * r4; FQ[q * 4 + 2] = r3; FQ[q * 4 + 3] = dep; } }
-    fant = { pos: FP, nor: FN, col: FC, q: FQ, k: sz * 3 }; // k : de combien le CORPS du nuage rentre (les fantômes du dessus se voient)
+    let q = 0, essais = 0;
+    while (q < n4 && essais < n4 * 6) { essais++;
+      const u = rnd() * at; let lo = 0, hi = nt - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (AC[m] < u) lo = m + 1; else hi = m; } // le triangle, selon son aire
+      let b1 = rnd(), b2 = rnd(); if (b1 + b2 > 1) { b1 = 1 - b1; b2 = 1 - b2; } const b0 = 1 - b1 - b2, A = idx[lo * 3] * 3, B = idx[lo * 3 + 1] * 3, C = idx[lo * 3 + 2] * 3;
+      const x = pos[A] * b0 + pos[B] * b1 + pos[C] * b2, y = pos[A + 1] * b0 + pos[B + 1] * b1 + pos[C + 1] * b2, z = pos[A + 2] * b0 + pos[B + 2] * b1 + pos[C + 2] * b2;
+      let a = nor[A] * b0 + nor[B] * b1 + nor[C] * b2, b = nor[A + 1] * b0 + nor[B + 1] * b1 + nor[C + 1] * b2, c = nor[A + 2] * b0 + nor[B + 2] * b1 + nor[C + 2] * b2; const nl = Math.hypot(a, b, c) || 1; a /= nl; b /= nl; c /= nl;
+      const dn = vn(x * 5.3 + 11, y * 5.3, z * 5.3 - 7) * .65 + vn(x * 13.1, y * 13.1 + 3, z * 13.1) * .35; // les grappes et les trouées
+      if (rnd() > .55 + .45 * Math.min(1, Math.max(0, (dn - .3) * 2.2))) continue; // des grappes légères : jamais de grande trouée lisse
+      const r1 = rnd(), r2 = rnd(), r3 = rnd(), r4 = rnd();
+      const dep = r1 < .66 ? -Math.pow(r2, 1.3) * 7.5 : Math.pow(r2, 1.7) * 6; // la profondeur (en tailles de cube) : le corps dedans, la VAPEUR dehors (plus loin, plus rare)
+      const jx = (rnd() - .5) * sz * 2.2, jy = (rnd() - .5) * sz * 2.2, jz = (rnd() - .5) * sz * 2.2; // un peu de désordre en 3D
+      FP[q * 3] = x + a * dep * sz + jx; FP[q * 3 + 1] = y + b * dep * sz + jy; FP[q * 3 + 2] = z + c * dep * sz + jz;
+      FN[q * 3] = a; FN[q * 3 + 1] = b; FN[q * 3 + 2] = c;
+      FC[q * 3] = col[A] * b0 + col[B] * b1 + col[C] * b2; FC[q * 3 + 1] = col[A + 1] * b0 + col[B + 1] * b1 + col[C + 1] * b2; FC[q * 3 + 2] = col[A + 2] * b0 + col[B + 2] * b1 + col[C + 2] * b2;
+      FQ[q * 4] = sz * (.35 + 1.25 * Math.pow(r3, 1.6)) * (dep > 0 ? .8 : 1); FQ[q * 4 + 1] = dep > 0 ? (.07 + .2 * r4) * (1 - dep / 6.5) : .24 + .32 * r4; FQ[q * 4 + 2] = r4; FQ[q * 4 + 3] = dep;
+      q++; }
+    const fin = function (A9, k) { return A9.subarray(0, q * k); };
+    fant = { pos: fin(FP, 3), nor: fin(FN, 3), col: fin(FC, 3), q: fin(FQ, 4), k: sz * 3 }; // k : de combien le CORPS du nuage rentre (les fantômes du dessus se voient)
   }
   return { pos: pos, nor: nor, col: col, idx: idx, vit: vit, fant: fant };
 }
@@ -14350,7 +14366,7 @@ const NV_U={uLueur:{value:1.08},uScan:{value:.7},uScanV:{value:.07},uCoqA0:{valu
 const NV_DOSES={doux:{uCoqA0:.5,uCoqA1:.92,uRel:.12,uLueur:1.08,uBis:.08,uTache:0,uChaud:0,uTrans:0,uBordC:0},moyen:{uCoqA0:.3,uCoqA1:.9,uRel:.3,uLueur:1.16,uBis:.13,uTache:0,uChaud:0,uTrans:0,uBordC:0},fort:{uCoqA0:.12,uCoqA1:.85,uRel:.45,uLueur:1.26,uBis:.18,uTache:0,uChaud:0,uTrans:0,uBordC:0},
   fantome:{uFant:1,uPeint:1}, // (2026-10-18, Léo : « encore plus minuscules, encore plus fantomatiques, construire de nouveaux nuages, les teintes comme un peintre »)
   peintre:{uCoqA0:.34,uCoqA1:.9,uRel:.05,uLueur:1.2,uBis:0,uTache:.12,uChaud:.6,uTrans:.55,uBordC:.85}}; // (2026-10-18, Léo : « pas comme Minecraft ; triche pour obtenir une sorte de réalisme ; fais le peintre ») chaque cube une TOUCHE (chaude au soleil, froide à l ombre), plus de faces dures, le contour en vapeur, la lumière qui TRAVERSE à contre-jour // (2026-10-18) trois dosages du vitrail, à montrer à Léo
-{const m9=/[?&]nuvit=(doux|moyen|fort|peintre|fantome)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:'fantome';if(NUVIT.dose==='fantome'){NUVIT.fant=7000;NUVIT.fsz=110;NUVIT.loin=.4;}if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
+{const m9=/[?&]nuvit=(doux|moyen|fort|peintre|fantome)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:'fantome';if(NUVIT.dose==='fantome'){NUVIT.fant=8000;NUVIT.fsz=110;NUVIT.loin=.4;}if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
 function nuVitGLSL(){ // les déclarations et la lumière v8 (copie de nuage8Mat : SANS la vapeur du palier 2)
   return ['uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd'+(NUJOUR_V?',uLav':'')+';uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uTps,uLueur,uScan,uScanV,uCoqA0,uCoqA1,uRel,uEcl,uBis,uTache,uChaud,uTrans,uBordC,uFant,uPeint;',
     'vec3 n8lum(vec3 N,vec3 V,vec3 A,vec3 T,out float fr,out float lit){',
