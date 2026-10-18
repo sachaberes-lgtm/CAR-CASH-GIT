@@ -11107,7 +11107,6 @@ const JADE_EAU_GLSL='const float JMS=4.;float jMerH(vec2 c){vec2 p=c*JMS;float r
    filés, lueur) passe du bleu-violet/violet ultra à un BLANC-OR chaud (la réserve bleue reste un bleu froid DÉSATURÉ), force des bords ≤ .4, bords
    qui ne recolorent plus qu'un quart de l'image ; (B) le plafond de nuages de la ville sous pluie/orage perd son lilas fixe (+.06,.02,.06) et son
    éclair lilas. Que des couleurs et des constantes. `?sans=neon` (ou `…,neon,…`) = l'image d'avant. */
-const NEON_V=!/[?&]sans=([^&]*,)?neon(,|&|$)/.test(location.search);
 /* (2026-10-15, Sacha : « rajoute de la couleur dans l'espace — nébuleuses, voie lactée, étoiles, du violet, du bleu — mais que ça reste beau,
    réaliste et spatial, juste un ciel un peu moins vide ») LE CIEL DE L'ORBITE N'EST PLUS UN TROU NOIR : une VOIE LACTÉE en écharpe (bleutée, cœur
    chaud, rubans de poussière sombre), deux NÉBULEUSES (violette et bleue, magenta où elles se croisent) et une POUSSIÈRE D'ÉTOILES fines qui
@@ -11258,10 +11257,10 @@ const skyDome=(function(){
       '  if(y>.0108&&uPluie>.001){',                               // ---- LE PLAFOND ---- (vague 2 : calculé SEULEMENT sous la pluie — sans elle, haut = ciel au pixel près)
       '    float t=520./max(y,.01);vec2 p=d.xz*t+uCam.xz+vec2(uTime*7.,uTime*3.),q=p/650.;',
       '    float n=vfbm(q+.6*vec2(vn(q*.45+3.7),vn(q*.45-5.1))),dn=smoothstep(.34,.74,n);',
-      '    vec3 cc=mix(F*.62+vec3(0.,.004,.02),F*1.3+'+(NEON_V?'mix(vec3(.045,.03,.03),uVc[0],uRose)':'uVc[0]')+'*nuit,dn);', // trouées plus sombres, ventres éclairés par la ville — (2026-10-14, neon-residuel) la lueur est un gris chaud NEUTRE (le lilas fixe +.06,.02,.06 teintait tout le plafond de l'orage et de la pluie, C 14 teinte 281 → C 9 teinte 245 : ardoise)
+      '    vec3 cc=mix(F*.62+vec3(0.,.004,.02),F*1.3+'+('mix(vec3(.045,.03,.03),uVc[0],uRose)')+'*nuit,dn);', // trouées plus sombres, ventres éclairés par la ville — (2026-10-14, neon-residuel) la lueur est un gris chaud NEUTRE (le lilas fixe +.06,.02,.06 teintait tout le plafond de l'orage et de la pluie, C 14 teinte 281 → C 9 teinte 245 : ardoise)
       '    if(lv*nuit>0.){float wv=.5+.5*sin(dot(p,vec2(.0019,.0011))-uWave*6.2831853);',
       '    cc+=A*dn*wv*wv*.22*lv*nuit;}',                                             // les néons de la ville ondulent sous les nuages
-      '    if(uBeatK*uLvl>0.)cc+='+(NEON_V?'mix(vec3(.62,.62,.72),uVc[1],uRose)':'uVc[1]')+'*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
+      '    if(uBeatK*uLvl>0.)cc+='+('mix(vec3(.62,.62,.72),uVc[1],uRose)')+'*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
       '    haut=mix(ciel,mix(F,cc,exp(-t/4200.)),uPluie);}',                          // au loin, le plafond se fond dans la brume
       // (2026-09-27, passe perf iPhone) sous 0,6° (t > 48 km) le plafond pèse exp(-t/4200) < 1e-5 : c est la brume, sans ses 7 bruits
       '  else if(y>-.03&&uPluie>.001)haut=mix(ciel,F,uPluie);',
@@ -12600,7 +12599,7 @@ const ACESShader={
     // (vague 3, NITRO) LES BORDS S'ALLUMENT DE LA COULEUR DE LA POUSSÉE — une LUEUR ajoutée (pas un voile : un mélange vers l'orange
     // délavait le rose en brun, mesuré), plus forte sur le sombre que sur le clair (elle ne brûle jamais le ciel), + le COUP d'allumage.
     // Le centre (la caisse, la route devant) reste intact : tout se joue au-delà du quart de l'image. Zéro lecture de texture.
-    '{float ne=smoothstep('+(NEON_V?'0.46,0.80':'0.36,0.74')+',r);c+=uNit.rgb*(ne*(uNit.a*(1.0-0.6*min(1.0,dot(c,LUM)))+uNitF));}}',
+    '{float ne=smoothstep('+('0.46,0.80')+',r);c+=uNit.rgb*(ne*(uNit.a*(1.0-0.6*min(1.0,dot(c,LUM)))+uNitF));}}',
     // = saturate(1.12) contrast(1.05) brightness(.97) du CSS, même ordre — mix(l,c,1.12) = 1.12c − .12l ; ((c−.5)·1.05+.5)·.97 = 1.0185c − .02425
     GRADE_ACES?'c=max(c,0.);c=max(c*1.12-dot(c,LUM)*.12,0.);c=max(c*1.0185-.02425,0.);':'',
     // LA VIGNETTE (2026-09-26, vague 2) — c'était un calque DOM plein écran (#vig) : violet, fixe à 52 %, même en plein jour cobalt. Elle
@@ -12631,9 +12630,7 @@ ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uni
      la route devant et le point de fuite restent nets, seuls les bords filent ;
    · force max (uFv.y) et warp (uFv.z) à ~la moitié d'avant ; aberration chromatique (ordi seul) ÷ 2,5 et repoussée au bord ; tunnel
      .55 → .30 et plus loin du centre.
-   Même nombre de lectures, même programme pour tous les paliers (palier 0 : FLOU_OK coupe déjà tout), aucune compilation en course.
-   `?sans=flou` → FLOU_V2 faux : le programme d'avant au caractère près. Banc : dbgFlou({v,s,fv}). */
-const FLOU_V2=!/[?&]sans=flou\b/.test(location.search);
+   Même nombre de lectures, même programme pour tous les paliers (palier 0 : FLOU_OK coupe déjà tout), aucune compilation en course. Banc : dbgFlou({v,s,fv}). */
 ACESShader.uniforms.uFv={value:new THREE.Vector4(.26,2.0,.8,.25)}; // rayon où le flou commence · force · warp · courbe de vitesse (part linéaire)
 const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 uFv;'],
   ['  if(uSpeed>0.004){','  float sp=uSpeed*(uFv.w+(1.0-uFv.w)*uSpeed); if(sp>0.02){'],
@@ -12643,7 +12640,7 @@ const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 
   FLOU_RO=[['ca=dc*amt*0.015*smoothstep(.45,.9,rb);','ca=dc*amt*0.006*smoothstep(.55,.95,rb);']]; // (ordi seul : absente du programme du téléphone)
 function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
   for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
-if(FLOU_V2)ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
+ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
 /* (2026-10-13, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une petite toile de
    NORMALES (LENS.cvN, au tiers de l'écran : R/G = le décalage de chaque pixel, en pixels de la toile ÷ 16) dit où chaque goutte et la nappe
    dévient l'image — la goutte agit comme une lentille (l'image derrière elle est retournée et grossie), la nappe qui s'égoutte ondule. Une
@@ -13750,7 +13747,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
   nuageChaud=true;cotonInit(); // (ciel de coton) ses instances sont dans la scène : renderer.compile les prend avec
   const g=mergeSpheres([[0,0,0,.6,1],[.4,.1,0,.45,1]],2,2,2),a=new THREE.Mesh(g,CLOUD_MAT),b=new THREE.Mesh(g,CLOUD_MAT_IN),c9=new THREE.Mesh(g,nuage8Solo()),d9=new THREE.Mesh(g,CLOUD_MAT_IN8);
   a.position.copy(camera.position);b.position.copy(camera.position);a.frustumCulled=b.frustumCulled=false;if(c9){c9.position.copy(camera.position);c9.frustumCulled=false;scene.add(c9);d9.position.copy(camera.position);d9.frustumCulled=false;scene.add(d9);} // (v8) la matière des maillages seuls
-  const vt9=[];if(NUVIT_V){const MS=nuVitMats(true);for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
+  const vt9=[];{const MS=nuVitMats(true);for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
   scene.add(a);scene.add(b);try{renderer.compile(scene,camera);}catch(e){}scene.remove(a);scene.remove(b);if(c9){scene.remove(c9);scene.remove(d9);}for(const x of vt9)scene.remove(x);g.dispose();
 }
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
@@ -14205,15 +14202,14 @@ function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'éba
        (bruit 3D de valeur en une lecture : deux tranches côte à côte dans la toile) — les bords s'effilochent sur 3-8 % du rayon, le cœur
        prend un grain de vapeur ; éteint au loin (une cellule sous ~3 px : pas de scintillement) ; paliers 0-1 = le programme d'aujourd'hui ;
    (3) la lisière d'OR seulement à contre-jour (de face, l'allègement du bord reste blanc neutre). Réglage à chaud : `dbgCotonV2({…})`. */
-const COTON_V2=!/[?&]sans=coton\b/.test(location.search),N8_VAP=COTON_V2&&PAL.n===2;
-const NUJOUR_V=!/[?&]sans=nujour\b/.test(location.search); // (2026-10-14, passe graphismes · nuages-jour) INTERRUPTEUR : `?sans=nujour` = l'image d'avant (cumulus de jour, ombre lavande figée dans le GLSL, valeurs des ambiances matin/midi/soir)
+const N8_VAP=PAL.n===2;
 function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=mulberry32(0x7A9E5C01);
   for(let i=0;i<N*N;i++)A[i]=(rg()*256)|0;
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=y*N+x;D[i*2]=A[i];D[i*2+1]=A[((y+17)&255)*N+((x+37)&255)];} // L = la tranche z, A = la tranche z+1 (décalée de 37,17)
   const t=new THREE.DataTexture(D,N,N,THREE.LuminanceAlphaFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
-if(NUJOUR_V)N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
+N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
 /* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
    LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
    qui s'allège, le fondu près de l'objectif, le fondu d'une zone neuve) mais il ÉCRIT sa profondeur ; les nuages sont rangés en ~100 lots
@@ -14283,7 +14279,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  gl_FragColor=vec4(col,a);',
       '#include <fog_fragment>',
       '}'].join('\n')});
-  if(NUJOUR_V){m.fragmentShader=m.fragmentShader.replace('uniform vec3 uSunW,','uniform vec3 uLav,uSunW,').replace('vec3(.72,.78,.97)','uLav');m.uniforms.uLav=N8_U.uLav;} // (2026-10-14, passe graphismes · nuages-jour) même coût (un uniforme au lieu d'une constante), source différente = programme à part ; `?sans=nujour` garde l'ancien source
+  {m.fragmentShader=m.fragmentShader.replace('uniform vec3 uSunW,','uniform vec3 uLav,uSunW,').replace('vec3(.72,.78,.97)','uLav');m.uniforms.uLav=N8_U.uLav;} // (2026-10-14, passe graphismes · nuages-jour) même coût (un uniforme au lieu d'une constante), source différente = programme à part ; `?sans=nujour` garde l'ancien source
   m.defines={NUAGE8_INST:''};m.customProgramCacheKey=function(){return N8_VAP?'nuage8inst2':'nuage8inst';}; /* (coton-blanc) la solo garde 'nuage8solo' : le titre (CHUTE.nuM) en partage le programme — sa source change déjà la clé de three */
   return (COTON.mat8=m);}
 function nuage8Solo(){ if(COTON.mat8s)return COTON.mat8s; // (v8) la même matière pour un maillage seul (bancs de route, coussins de vol, tours) — chauffée au menu (nuageChauffe)
@@ -14302,20 +14298,20 @@ function nuage8Solo(){ if(COTON.mat8s)return COTON.mat8s; // (v8) la même mati�
      · L'ONDE (`uScan`) qui monte le long du nuage (chacun la sienne) et allume les joints, les arêtes, la peau.
    De LOIN (finesses 0 et 1) : le nuage v8 tel quel (de loin lisse et brillant, de près le pixel — le juste milieu de Léo). Tri, fondu
    près de l'objectif (la trame) et fondu d'une zone neuve gardés. `?sans=nuvit` = la v8 seule ; `dbgNuVit(0|1,{…})` = A/B sur la même image. */
-const NUVIT_V=!/[?&]sans=([^&]*,)?nuvit(,|&|$)/.test(location.search),NUVIT={on:NUVIT_V,nc:36,iso:.3,ang:.09,nsk:0,ecart:.47};
+const NUVIT={on:true,nc:36,iso:.3,ang:.09,nsk:0,ecart:.47};
 const NV_U={uLueur:{value:1.08},uScan:{value:.7},uScanV:{value:.07},uCoqA0:{value:.5},uCoqA1:{value:.92},uRel:{value:.12},uEcl:{value:1},uBis:{value:.08},uTache:{value:0},uChaud:{value:0},uTrans:{value:0},uBordC:{value:0},uFant:{value:1},uPeint:{value:1}};
 const NV_DOSES={doux:{uCoqA0:.5,uCoqA1:.92,uRel:.12,uLueur:1.08,uBis:.08,uTache:0,uChaud:0,uTrans:0,uBordC:0},moyen:{uCoqA0:.3,uCoqA1:.9,uRel:.3,uLueur:1.16,uBis:.13,uTache:0,uChaud:0,uTrans:0,uBordC:0},fort:{uCoqA0:.12,uCoqA1:.85,uRel:.45,uLueur:1.26,uBis:.18,uTache:0,uChaud:0,uTrans:0,uBordC:0},
   fantome:{uFant:1,uPeint:1}, // (2026-10-18, Léo : « encore plus minuscules, encore plus fantomatiques, construire de nouveaux nuages, les teintes comme un peintre »)
   peintre:{uCoqA0:.34,uCoqA1:.9,uRel:.05,uLueur:1.2,uBis:0,uTache:.12,uChaud:.6,uTrans:.55,uBordC:.85}}; // (2026-10-18, Léo : « pas comme Minecraft ; triche pour obtenir une sorte de réalisme ; fais le peintre ») chaque cube une TOUCHE (chaude au soleil, froide à l ombre), plus de faces dures, le contour en vapeur, la lumière qui TRAVERSE à contre-jour // (2026-10-18) trois dosages du vitrail, à montrer à Léo
 {const m9=/[?&]nuvit=(doux|moyen|fort|peintre|fantome)\b/.exec(location.search);NUVIT.dose=m9?m9[1]:'fantome';if(NUVIT.dose==='fantome'){NUVIT.fant=8000;NUVIT.fsz=110;NUVIT.loin=.4;}if(NUVIT.dose==='peintre'){NUVIT.nc=48;NUVIT.nsk=34;NUVIT.ecart=.52;NUVIT.jit=.3;NUVIT.coeur=.25;} /* (2026-10-18, Léo : « essaie en mode vitrail » → au questionnaire : PLUS VISIBLE, le dosage FORT par défaut — MOYEN le 18/10 au matin) */for(const q in NV_DOSES[NUVIT.dose])NV_U[q].value=NV_DOSES[NUVIT.dose][q];} // ?nuvit=doux|moyen|fort
 function nuVitGLSL(){ // les déclarations et la lumière v8 (copie de nuage8Mat : SANS la vapeur du palier 2)
-  return ['uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd'+(NUJOUR_V?',uLav':'')+';uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uTps,uLueur,uScan,uScanV,uCoqA0,uCoqA1,uRel,uEcl,uBis,uTache,uChaud,uTrans,uBordC,uFant,uPeint;',
+  return ['uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd'+(',uLav')+';uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu,uTps,uLueur,uScan,uScanV,uCoqA0,uCoqA1,uRel,uEcl,uBis,uTache,uChaud,uTrans,uBordC,uFant,uPeint;',
     'vec3 n8lum(vec3 N,vec3 V,vec3 A,vec3 T,out float fr,out float lit){',
     '  float ao=A.r,tv=A.g,hh=A.b,nl=dot(N,uSunW),sh=smoothstep(-.1,.5,uSunW.y);',
     '  lit=smoothstep(uR.x,uR.y,nl);lit*=mix(1.,tv,.6*sh)*mix(.32,1.,ao);',
     '  vec3 alb=uAlb*mix(vec3(1.),T,.3)*uK.x;',
     '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
-    '  vec3 ciel=mix('+(NUJOUR_V?'uLav':'vec3(.72,.78,.97)')+'*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',
+    '  vec3 ciel=mix('+('uLav')+'*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',
     '  vec3 Fd=normalize(vec3(-uSunW.x,.55,-uSunW.z));float fl=.72+.38*max(dot(N,Fd),0.)+.12*max(-N.y,0.);',
     '  vec3 ombre=ciel*uR.z*fl*mix(.55,1.,ao)*mix(.84,1.,hh);',
     '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',
@@ -14426,16 +14422,16 @@ window.dbgNuVit=function(k,o){o=o||{};if(k!=null)NUVIT.on=!!+k;if(o.dose&&NV_DOS
   if(o.detail&&COTON.vit){const D=[];for(let q=0;q<COTON.vit.length;q++){const V=COTON.vit[q];if(V&&V.ok)D.push([q>>2,q&3,V.c.geometry.index.count/3,V.o.geometry.index.count/3,V.p.geometry.index.count/3,COTON.im[q].userData.tri]);}return D;} // (banc) [gabarit, finesse, écailles, cœur, peau, v8]
   return {on:NUVIT.on,lotsPrets:n,tri:COTON.tri,seuls:CLOUDS.filter(function(c){return c.mesh&&c.mesh.userData.vit;}).length,u:Object.keys(NV_U).reduce(function(a,q){a[q]=NV_U[q].value;return a;},{})};};
 window.dbgNet=function(on){FLOU_OK=!on;if(on&&acesPass)acesPass.uniforms.uSpeed.value=0;return !FLOU_OK;}; // (dev) une image NETTE pour les bancs (le flou de vitesse coupé)
-let FLOU_ON=FLOU_V2;window.dbgFlou=function(o){o=o||{};if(!acesPass)return null;const U=acesPass.uniforms; // (2026-10-14, flou-vitesse) BANC : v = le flou v2/v1 (une recompilation : jamais en course), s = une vitesse d'effet forcée sur l'image figée, fv = [rayon,force,warp,courbe]
+let FLOU_ON=true;window.dbgFlou=function(o){o=o||{};if(!acesPass)return null;const U=acesPass.uniforms; // (2026-10-14, flou-vitesse) BANC : v = le flou v2/v1 (une recompilation : jamais en course), s = une vitesse d'effet forcée sur l'image figée, fv = [rayon,force,warp,courbe]
   if(o.v!=null&&!!o.v!==FLOU_ON){FLOU_ON=!!o.v;acesPass.material.fragmentShader=flouFS(acesPass.material.fragmentShader,FLOU_ON);acesPass.material.needsUpdate=true;}
   if(o.fv)U.uFv.value.fromArray(o.fv);if(o.s!=null){loop._sfx=+o.s;U.uSpeed.value=+o.s;postCaisse(U);}
   if(o.s!=null&&paused&&POST_ON&&composer)composer.render();return {v:FLOU_ON,s:+U.uSpeed.value.toFixed(3),fv:U.uFv.value.toArray()};};
-window.dbgCotonV2=function(o){if(o&&N8_U.uVapK)for(const k of ['x','y','z','w'])if(o[k]!=null)N8_U.uVapK.value[k]=o[k];return {v2:COTON_V2,vap:N8_VAP,palier:PAL.n,k:N8_U.uVapK?N8_U.uVapK.value.toArray():null,tex:!!(N8_U.uVap&&N8_U.uVap.value)};}; // (banc, coton-blanc) doses de la vapeur à chaud : x érosion · y grain · z or · w tout
+window.dbgCotonV2=function(o){if(o&&N8_U.uVapK)for(const k of ['x','y','z','w'])if(o[k]!=null)N8_U.uVapK.value[k]=o[k];return {vap:N8_VAP,palier:PAL.n,k:N8_U.uVapK?N8_U.uVapK.value.toArray():null,tex:!!(N8_U.uVap&&N8_U.uVap.value)};}; // (banc, coton-blanc) doses de la vapeur à chaud : x érosion · y grain · z or · w tout
 function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarits × 4 finesses, en instances
   COTON.t0=performance.now();COTON.pret=new Uint8Array(COTON_KINDS*4);
   const rg=mulberry32(0xC07070),SPH=COTON.SEG.map(function(s){return new THREE.SphereGeometry(1,s[0],s[1]);}),m=nuage8Mat();
   COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
-  COTON.vit=[];const MV=NUVIT_V?nuVitMats(false):null; // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
+  COTON.vit=[];const MV=nuVitMats(false); // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
   const rgC=mulberry32(0xC0F1E5); // (v7) le hasard du chou-fleur, à part
   for(let k=0;k<COTON_KINDS;k++){let S;{S=cumulus8(k===24?'cumulonimbus':k<6?N8_GENRE6[k]:(N8_GENRE_V[COTON_GENRES[k-6]]||COTON_GENRES[k-6]),rg);S.fin=1;}COTON.S.push(S);
     const g0=cotonGeo(({B:S.B.slice(0,12),base:S.base,top:S.top}),SPH[0]);COTON.pret[k*4]=1; /* (v8) l'ébauche sur les 12 premiers lobes (base et dôme) : 70 lobes coûtaient 160 ms au lancement */ // (2026-09-30) la finesse la plus LÉGÈRE tout de suite (7 % du calcul) : elle tient la place des trois autres, qui arrivent de l'ouvrier
@@ -14447,7 +14443,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
         for(const q9 of [['c',MV.cub],['o',MV.coe],['p',MV.pea],['b',MV.corps],['g',MV.fan]]){const x=new THREE.InstancedMesh(g0,q9[1],COTON.cap);x.instanceMatrix=V.A;x.instanceColor=V.C; // les trois maillages partagent LEURS instances (les nuages trop proches restent dans le lot v8)
         x.frustumCulled=false;x.count=0;x.visible=false;x.castShadow=x.receiveShadow=false;x.matrixAutoUpdate=false;COTON.root.add(x);V[q9[0]]=x;}COTON.vit[k*4+f9]=V;}}}
   {for(let k=0;k<COTON_KINDS;k++)COTON.S[k].seed=k*7+1;COTON.pret.fill(0); // (v8) les QUATRE finesses de la surface arrivent de l'ouvrier ; l'ébauche en sphères tient la place
-    for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){cotonFinesse(k,f,cotonBuf(r));if(r.vit){nuVitPose(k,2,r);nuVitPose(k,3,r);}if(r.fant){nuFantPose(k,2,r);nuFantPose(k,3,r);}},(NUVIT_V&&f===2)?NUVIT.nc:0);} // (vitrail) calculé UNE fois par gabarit (avec la finesse 2 : le cœur n'est vu que dans les joints), les deux lots fins le partagent // les plus légères d'abord : le ciel s'affine en quelques instants, sans jamais geler
+    for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){cotonFinesse(k,f,cotonBuf(r));if(r.vit){nuVitPose(k,2,r);nuVitPose(k,3,r);}if(r.fant){nuFantPose(k,2,r);nuFantPose(k,3,r);}},f===2?NUVIT.nc:0);} // (vitrail) calculé UNE fois par gabarit (avec la finesse 2 : le cœur n'est vu que dans les joints), les deux lots fins le partagent // les plus légères d'abord : le ciel s'affine en quelques instants, sans jamais geler
   for(const s of SPH)s.dispose();COTON.I=new Float32Array(COTON.cap*COTON_ST);COTON.msInit=performance.now()-COTON.t0;
 }
 function cotonGrille(){ // la piste en cases de 120 m : un point tous les ~18 m (la garde ne teste que les cases voisines)
@@ -14464,7 +14460,7 @@ function cotonPose(x,yB,z,r,k,cr,syF){ // un nuage dont le DESSOUS est à yB —
   const gn=cotonGenre(k),sx=.86+cr()*.44,sy0=(gn==='fractus'||gn==='altocumulus'||gn==='stratocumulus')?.75+cr()*.25:.85+cr()*.3,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
   if(cotonTouche(x,yB+h*.5,z,r*1.02*sx,h*.5+r*.05))return false;
   const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;
-  {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;if(COTON_V2){const g9=(.88+(l9-.82)*.727)*(lourd?.94:1);I[o+10]=I[o+11]=I[o+12]=g9;}else{I[o+10]=l9*(1+.2*w9)*(lourd?.8:1);I[o+11]=l9*(1+.02*w9)*(lourd?.83:1);I[o+12]=l9*(1-.22*w9)*(lourd?.95:1);}} /* (coton-blanc) un BLANC neutre .83-1,04 (vu à 30 % par le shader : ±3 % de luminance, 0 % de teinte) — mêmes trois tirages `cr` ; ?sans=coton = le sable et la lavande d'avant */ // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
+  {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;{const g9=(.88+(l9-.82)*.727)*(lourd?.94:1);I[o+10]=I[o+11]=I[o+12]=g9;}} /* (coton-blanc) un BLANC neutre .83-1,04 (vu à 30 % par le shader : ±3 % de luminance, 0 % de teinte) — mêmes trois tirages `cr` */ // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
   COTON.n++;return true;}
 function cotonVide(){COTON.n=0;if(COTON.root){COTON.root.visible=false;for(const im of COTON.im)im.count=0;}}
 // classique · bas · tour · flocon · banc · double | (v4) humilis ×2 · mediocris ×2 · congestus ×2 · castellanus · fractus
@@ -14709,7 +14705,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
       const u9=mesh.userData;u9.vit=[c9,p9];u9.g8=g2;u9.hcw=q.vit.hc*r;u9.gVit=G.coe;u9.mVit=MS.coe;if(NUVIT.on){mesh.geometry=G.coe;if(mesh.material===nuage8Solo())mesh.material=MS.coe;u9.m8=MS.coe;}else c9.visible=p9.visible=false;}
     else if(q.fant){const G=nuFantGeo(q,fin9.dyU),MS=nuVitMats(true),f9=new THREE.Mesh(G.fan,MS.fan); /* (fantôme) les bancs, coussins et tours : le maillage devient le CORPS rentré, les cubes fantômes sont son enfant */
       f9.castShadow=f9.receiveShadow=false;f9.updateMatrix();f9.matrixAutoUpdate=false;mesh.add(f9);
-      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},NUVIT_V?Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))):0);
+      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))));
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
@@ -27434,7 +27430,7 @@ const BIO_ETAL0={wb:[1,1,1],sh:[0,.004,.03],hi:[.024,.014,-.008],con:1.16,bloomS
    seules nuagesNuit et tempete reçoivent une valeur (section MER DE NUAGES de l'étalonnage). `?sans=mernuit` = l'image d'avant (rien n'est écrit). */
 const MN_T9=new THREE.Color();
 Object.assign(BIO_ETAL0,{mzH:[1,.985,.96,0],mzO:[.4,.5,.66,0],nuA:[1,1,1]}); // rgb = la teinte d'avant (le fondu d'un portail glisse vers elle), w 0 = inerte · nuA = l'albédo des nuages × 1 (inchangé)
-if(NUJOUR_V)Object.assign(BIO_ETAL0,{nuLav:[.72,.78,.97],nuR:[-.25,.5,.64,1],nuK:[1,1,1,1]}); // (2026-10-14, passe graphismes · nuages-jour) LA MATIÈRE DES CUMULUS PAR AMBIANCE : nuLav = la teinte de l'ombre (GLSL uLav), nuR = uR (frontière d'ombre, clarté de l'ombre), nuK = uK (albédo, soleil, lisière, bord) ; les défauts = les valeurs d'avant, inertes
+Object.assign(BIO_ETAL0,{nuLav:[.72,.78,.97],nuR:[-.25,.5,.64,1],nuK:[1,1,1,1]}); // (2026-10-14, passe graphismes · nuages-jour) LA MATIÈRE DES CUMULUS PAR AMBIANCE : nuLav = la teinte de l'ombre (GLSL uLav), nuR = uR (frontière d'ombre, clarté de l'ombre), nuK = uK (albédo, soleil, lisière, bord) ; les défauts = les valeurs d'avant, inertes
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{bloomS:.55,bloomT:.88,rimK:1,rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],sh:[.008,.008,.03],hi:[.03,.03,.03],con:1.28,bloomS:.50,bloomT:.90,vigK:.42,vigC:[.05,.012,.09],rimK:0,rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
@@ -27766,9 +27762,9 @@ Object.assign(BIOMES.nuagesSoir,{rtK:1.05,hemiG:[.54,.44,.48],hemiS:[.7,.66,.82]
 Object.assign(BIOMES.nuagesNuit,{sat:1.04,con:1.14,expo:1.0,hemiI:.55,hemiS:[.4,.45,.6],sunI:.74,sunC:[.7,.76,.9],fillI:.26,fillC:[.4,.46,.64],kickC:[.48,.52,.75],jZen:[.004,.008,.035],jMid:[.008,.014,.055],jHor:[.013,.024,.09],fog:[.02,.03,.08],fogN:600,fogF:4000,volSky:[.22,.28,.5],volGnd:[.1,.12,.22],vigK:.34}); // (2026-10-14, passe graphismes) NUIT : sat/con 1,12/1,21 (≤1,15/1,25) ; lumière qui éclaire le béton remontée (hemi .5 → .58, lune .75 → .8 en #B3C2E6, fill .22 → .26, expo .92 → 1,0) : béton L* 18-34 mesuré selon l'angle avec .65/.9/.3 (avant : trou noir), puis allégé d'un cran — non revérifié, ciel linéaire charte #0B1230 → #1E2A52 (plus sombre que la route), brume bleu sombre = horizon. Reste : la mer de nuages (GLSL merZ) garde des sommets blancs
 Object.assign(BIOMES.nuagesNuit,{sunI:.4,hemiI:.5,volSun:[.4,.46,.7],volSky:[.14,.18,.34]}); // (2026-10-14, passe graphismes · hasard-beaute) NUAGES NUIT : les cumulus ne sont plus éclairés comme en plein jour (volSun/volSky plus bas, lune .74 → .4, hemi .55 → .5) ; la mer (GLSL) reste claire, béton toujours lisible
 Object.assign(BIOMES.nuagesPluie,{sat:.96,con:1.10,expo:.97,sunC:[.84,.87,.92],hemiG:[.26,.29,.38],jZen:[.2,.24,.3],jMid:[.3,.34,.4],jHor:[.42,.45,.5],fog:[.46,.5,.56],fogIn:[.5,.53,.58],fogCj:[.46,.48,.54],vigK:.3,vigC:[.05,.06,.09]}); // (2026-10-14, passe graphismes) PLUIE : sat/con 1,04/1,17 (≤1,05/1,18), gris perle (ciel et brume du même gris-bleu, plus de pervenche clair), clé diffuse #D5DEEA, la route mouillée garde le spectacle
-if(NUJOUR_V)Object.assign(BIOMES.matin,{nuLav:[.82,.89,.95],nuR:[-.3,.45,.78,1],nuK:[1,1.15,1,1],volSun:[2.75,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MATIN : les cumulus ne sont plus gris-lavande. Cause : l'ombre des cumulus (GLSL nuage8Mat) était un bleu-lavande FIGÉ vec3(.72,.78,.97) × .64 ; elle devient un bleu-gris clair vert-bleuté (L* ventre ~65 au lieu de ~55, plus de teinte 280°), frontière d'ombre plus douce (pas de liseré), soleil ×1,15 et albédo ~1 (sommets L* ~88-90). Valeurs seulement ; `?sans=nujour` = avant. (Le fond de dalle ne s'estompe pas par fogN/fogF : la route a sa propre brume, essayé 200/1100 → 320/1900, sans effet à l'horizon.)
-if(NUJOUR_V)Object.assign(BIOMES.midi,{nuLav:[.80,.89,.97],nuR:[-.3,.45,.78,1],nuK:[1,1.08,1,1],volSun:[2.7,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MIDI : cumulus BLANCS au soleil (sommets L* ~90, soleil ×1,08 pour garder le modelé ; ventres bleu-gris clair (L* ~60-65, ex. lavande L* ~45-55 d'orage), ombre douce sans liseré ; même mécanisme que le matin
-if(NUJOUR_V)Object.assign(BIOMES.nuagesSoir,{jZen:[.14,.14,.42],jHor:[.95,.70,.58],fog:[.93,.78,.70],sat:1.08,con:1.14,nuLav:[.84,.72,.78],nuR:[-.3,.45,.74,1],nuK:[1,1.12,.5,.5],volSun:[2.5,2.25,2.0],hemiS:[.76,.69,.8]}); // (2026-10-14, passe graphismes · nuages-jour) SOIR (course) : même famille que le titre SOIR/GOLDEN (zénith mauve doux [.14,.14,.42], horizon pêche [.95,.70,.58], sat 1,08 / con 1,14) ; cumulus pêche crème, ventres prune rosée désaturée (nuLav), lisière de contre-jour adoucie (nuK.z .5), plus de galets orange-mauve ; hemiS un peu moins bleu (le dessus des cumulus à l'ombre). N'écrit QUE nuagesSoir (copie figée de titreGolden au chargement : le titre ne bouge pas)
+Object.assign(BIOMES.matin,{nuLav:[.82,.89,.95],nuR:[-.3,.45,.78,1],nuK:[1,1.15,1,1],volSun:[2.75,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MATIN : les cumulus ne sont plus gris-lavande. Cause : l'ombre des cumulus (GLSL nuage8Mat) était un bleu-lavande FIGÉ vec3(.72,.78,.97) × .64 ; elle devient un bleu-gris clair vert-bleuté (L* ventre ~65 au lieu de ~55, plus de teinte 280°), frontière d'ombre plus douce (pas de liseré), soleil ×1,15 et albédo ~1 (sommets L* ~88-90). Valeurs seulement ; `?sans=nujour` = avant. (Le fond de dalle ne s'estompe pas par fogN/fogF : la route a sa propre brume, essayé 200/1100 → 320/1900, sans effet à l'horizon.)
+Object.assign(BIOMES.midi,{nuLav:[.80,.89,.97],nuR:[-.3,.45,.78,1],nuK:[1,1.08,1,1],volSun:[2.7,2.7,2.65]}); // (2026-10-14, passe graphismes · nuages-jour) MIDI : cumulus BLANCS au soleil (sommets L* ~90, soleil ×1,08 pour garder le modelé ; ventres bleu-gris clair (L* ~60-65, ex. lavande L* ~45-55 d'orage), ombre douce sans liseré ; même mécanisme que le matin
+Object.assign(BIOMES.nuagesSoir,{jZen:[.14,.14,.42],jHor:[.95,.70,.58],fog:[.93,.78,.70],sat:1.08,con:1.14,nuLav:[.84,.72,.78],nuR:[-.3,.45,.74,1],nuK:[1,1.12,.5,.5],volSun:[2.5,2.25,2.0],hemiS:[.76,.69,.8]}); // (2026-10-14, passe graphismes · nuages-jour) SOIR (course) : même famille que le titre SOIR/GOLDEN (zénith mauve doux [.14,.14,.42], horizon pêche [.95,.70,.58], sat 1,08 / con 1,14) ; cumulus pêche crème, ventres prune rosée désaturée (nuLav), lisière de contre-jour adoucie (nuK.z .5), plus de galets orange-mauve ; hemiS un peu moins bleu (le dessus des cumulus à l'ombre). N'écrit QUE nuagesSoir (copie figée de titreGolden au chargement : le titre ne bouge pas)
 Object.assign(BIOMES.nuagesSoir,{jZen:[.10,.14,.32],jMid:[.42,.38,.46],sat:1.06,con:1.24,rtK:.90,mzH:[.95,.68,.52,.8],mzO:[.13,.11,.13,.8],nuLav:[.66,.60,.64],nuR:[-.3,.45,.56,1],nuK:[1,1.3,.5,.5]}); // (2026-10-14, passe graphismes · soir2) SOIR, en VALEURS (le passage d'avant n'avait changé que la teinte) : la mer de nuages avait un seul étage clair (sommets crème, creux bleu-violet pâle, tout à L* 45-65) → sommets pêche chaud (mzH .95,.68,.52, part .8) et CREUX prune désaturée sombre (mzO .15,.10,.14, part .8) : l'étagement sommet/creux se lit enfin, comme au titre SOIR/GOLDEN (pêche → prune) ; cumulus : clé ×1,12 → ×1,3 (sommets plus clairs), ventres plus sombres et moins bleus (nuLav .84,.72,.78 → .70,.58,.66, clarté d'ombre nuR.z .74 → .56) ; béton rtK 1,05 → .90 (L* mesuré 32 → ~25, charte 22-30 : la caisse orange se détache) ; con 1,14 → 1,24 (≤1,32), sat 1,08 → 1,06 (réel 1,28 ≤ 1,30) ; zénith un cran moins violet (jZen .14,.14,.42 → .16,.15,.36, non revérifié à l'image). N'écrit QUE nuagesSoir (copie figée de titreGolden : le titre ne bouge pas, mesuré identique). ⚠ mzT n'est PAS un champ d'ambiance (bioLerp lit BIO.from[k][0] : TypeError) — ne pas l'ajouter. `?sans=soir2` = l'image d'avant."
 Object.assign(BIOMES.tempete,{sat:1.0,jour:1,jZen:[.012,.017,.05],jMid:[.025,.03,.07],jHor:[.07,.08,.14],jSol:[0,0,0],hemiS:[.38,.42,.52],hemiG:[.1,.12,.2],sunC:[.6,.66,.77],fillC:[.3,.4,.6],kickC:[.4,.5,.7],kickI:.2,fog:[.17,.2,.28],fogIn:[.3,.34,.42],fogCj:[.28,.31,.4],volSun:[1.1,1.18,1.35],volSky:[.34,.38,.5],volGnd:[.1,.11,.17],sh:[0,.008,.03],vigK:.5,vigC:[.02,.025,.045],eS1:[190,205,235,.3],eS2:[120,140,180,.25],env:[[0,'#1B2236'],[.3,'#2A3348'],[.48,'#4A5670'],[.58,'#6A7690'],[.66,'#2A3144'],[1,'#10131C']]}); // (2026-10-14, passe graphismes) ORAGE (niveau L'ORAGE) : ARDOISE — le ciel passe de l'ancien dégradé Vice City (violet/magenta, orange au zénith sous skyMul) au « jour d'altitude » gris-bleu #1E2740 → #4A5670 (jour:1, comme les 5 autres météos), contre-jour violet → bleu-gris, hemi/fill/brume/vignette sans violet, sat 1,0 × 1,08 = 1,08 (≤1,10) ; mêmes fogN/fogF (visibilité du niveau)
 Object.assign(BIOMES.tempete,{sunI:.4,hemiI:.46,volSun:[.45,.5,.72],volSky:[.2,.23,.34]}); // (2026-10-14, passe graphismes · hasard-beaute) ORAGE (nuages) : cumulus ardoise sombres au lieu de blanc-lavande lumineux (volSun/volSky plus bas, clé .8 → .4)
@@ -27986,7 +27982,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   {if(c.mzH&&c.mzO&&!(CHUTE&&CHUTE.on)){skyU.uMzH.value.fromArray(c.mzH);skyU.uMzO.value.fromArray(c.mzO);}if(c.nuA)CLOUD_MAT.color.multiply(MN_T9.fromArray(c.nuA));} // (2026-10-14, passe graphismes · mer-nuit) la mer de nuages suit l'heure (hors titre : chuteRender pose ses mzH/mzO et les rend à la sortie) ; nuA éteint la ouate la nuit (l'albédo plancher .55 la gardait éclairée comme de jour) — CLOUD_MAT.color = N8_U.uAlb, tous les nuages
   {const nz=function(a,u,k){const l=Math.max(.01,a[0]*.299+a[1]*.587+a[2]*.114);u.set(1+(a[0]/l-1)*k,1+(a[1]/l-1)*k,1+(a[2]/l-1)*k);}; // (Dragons) la teinte seule (luminance 1), adoucie vers le blanc de k
    nz(c.volSun,GFX_U.uNuSun.value,1.25);nz(c.volSky,GFX_U.uNuSky.value,.62);nz(c.volGnd,GFX_U.uNuGnd.value,.85);}
-  if(NUJOUR_V&&c.nuLav){N8_U.uLav.value.fromArray(c.nuLav);N8_U.uR.value.fromArray(c.nuR);N8_U.uK.value.fromArray(c.nuK);} // (2026-10-14, passe graphismes · nuages-jour) la matière des cumulus de la course (le titre a ses propres uK/uR) ; valeurs par défaut = l'ancien réglage
+  if(c.nuLav){N8_U.uLav.value.fromArray(c.nuLav);N8_U.uR.value.fromArray(c.nuR);N8_U.uK.value.fromArray(c.nuK);} // (2026-10-14, passe graphismes · nuages-jour) la matière des cumulus de la course (le titre a ses propres uK/uR) ; valeurs par défaut = l'ancien réglage
   POST_EXPO=c.expo*(DA.on?DA.expo*(c.daExpo==null?1:c.daExpo):1); // (DA) l'exposition du niveau × celle de la couche DA (× la retouche de l'ambiance)
   // (2026-09-26, vague 2) L'ÉTALONNAGE DU NIVEAU (voir BIO_ETAL0) : balance, ombres d'encre, hautes lumières, contraste, vignette
   if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);} // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
@@ -43306,7 +43302,7 @@ Object.assign(PWR_DEFS.n,{col:0xa45cff,core:0xf1e2ff,tint:'#b06bff',c2:'#7b34f0'
    (9 captures sur 24 à l'audit) : la palette de la météo disparaissait. Leur force (l'alpha) est divisée par 2,5 dans une copie `bd`/`bd2`,
    lue seulement par les bords TENUS ; l'éclair bref du ramassage (`flashEcran(d.fx)`) garde la sienne. Revenir : PWR_BORD_K=1. */
 const PWR_BORD_K=1/2.5;for(const k9 in PWR_DEFS){const d9=PWR_DEFS[k9],f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};d9.bd=f9(d9.fx);d9.bd2=f9(d9.fx2);}
-const NINF={jet:0x9d4dff,core:0xf3e6ff,lum:0xa050ff,rac:0xd8b8ff,trail:[.95,.45,1.6]}; // la nitro infinie dans le monde : plume, cœur, reflet, racine du brûleur, ruban
+const NINF={jet:0x9d4dff,core:0xf3e6ff,rac:0xd8b8ff,trail:[.95,.45,1.6]}; // la nitro infinie dans le monde : plume, cœur, racine du brûleur, ruban
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
   d.coreM=new THREE.MeshBasicMaterial({color:d.core});
@@ -51086,7 +51082,7 @@ let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
    ⚠ la POUSSÉE et la CONSOMMATION ne bougent pas d'un iota : ici on ne travaille que le RESSENTI. */
 /* (2026-10-14, passe graphismes · neon-residuel) LA COULEUR DE LA POUSSÉE sur l'image (bords, onde) : blanc-or chaud ; la réserve bleue reste un bleu froid
    DÉSATURÉ (#aebfd8, teinte 215°) ; la nitro infinie (violet #9d4dff avant) y devient un blanc-or plus clair : son violet reste dans la plume et le HUD. */
-const NFX_C=NEON_V?{n:0xffcf8a,b:0xaebfd8,i:0xffe3bd,p:0xffd98a}:{n:0xff7a24,b:0x5b7dff,i:null,p:0xffd75e};
+const NFX_C={n:0xffcf8a,b:0xaebfd8,i:0xffe3bd,p:0xffd98a};
 const NFX={ign:0,ignK:1,air:false,off:0,t0:-9,sT:-9,len:0,edge:0,col:new THREE.Color(0xff7a24),cT:new THREE.Color(),blanc:new THREE.Color(0xffffff),ringT:9,ringK:1,
   vAcc:0,s:0x2f6b1a3,v:new THREE.Vector3(),d:new THREE.Vector3(),cR:new THREE.Vector3(),cU:new THREE.Vector3(),ring:null};
 { // L'ONDE D'ALLUMAGE : un anneau de choc peint (liseré franc + lueur intérieure), posé à la tuyère DANS le plan perpendiculaire à la
@@ -51580,14 +51576,14 @@ function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des b
     R.material.opacity=(1-u)*(1-u)*1.7*NFX.ringK;R.material.color.copy(NFX.col);}
   else if(NFX.ring.visible)NFX.ring.visible=false;
   // LES BORDS DE L'IMAGE prennent la couleur de la poussée — orange feu, bleu réserve, or du pad turbo (plus discret)
-  const eT=vit?(nitroOn?(NEON_V?(nitroBlue?.26:.28):(nitroBlue?.36:.3)):(boost>0?(NEON_V?.12:.14):0)):0; // (neon-residuel) bords ≤ .3 : de la lueur chaude, plus un voile de couleur
+  const eT=vit?(nitroOn?((nitroBlue?.26:.28)):(boost>0?(.12):0)):0; // (neon-residuel) bords ≤ .3 : de la lueur chaude, plus un voile de couleur
   NFX.edge+=(eT-NFX.edge)*Math.min(1,dt*(eT>NFX.edge?8:2.6));
-  NFX.cT.setHex(nitroBlue?NFX_C.b:(nitroOn?(pwrNitroT>0?(NEON_V?NFX_C.i:NINF.jet):NFX_C.n):NFX_C.p));
+  NFX.cT.setHex(nitroBlue?NFX_C.b:(nitroOn?(pwrNitroT>0?(NFX_C.i):NFX_C.n):NFX_C.p));
   if(NYAN.on&&!FX_EFF&&nitroOn&&!nitroBlue&&!(pwrNitroT>0))NFX.cT.setHSL((performance.now()*.00045)%1,1,.58); // (2026-10-07) LE BOOST DU CHAT : l'onde et les bords de l'image tournent dans l'arc-en-ciel
   NFX.col.lerp(NFX.cT,Math.min(1,dt*12));
   if(acesPass){const U=acesPass.uniforms,b9=NFX.dbgB==null?1:NFX.dbgB;
     U.uNit.value.set(NFX.col.r,NFX.col.g,NFX.col.b,NFX.edge*(REDUCED_MOTION?.5:1)*b9);
-    U.uNitF.value=vit?NFX.ign*NFX.ign*NFX.ignK*(REDUCED_MOTION?.25:(NEON_V?.4:.7))*b9:0;} // le COUP : un éclair de couleur sur tout le cadre, parti en ~0,3 s
+    U.uNitF.value=vit?NFX.ign*NFX.ign*NFX.ignK*(REDUCED_MOTION?.25:(.4))*b9:0;} // le COUP : un éclair de couleur sur tout le cadre, parti en ~0,3 s
 }
 // LE BOOST DE DÉPART (2026-09-05) : 3 s de nitro OFFERTE au lancement d'une partie (voir
 // `resetGame`) — ne consomme PAS `nitroR` (même garde que `pwrNitroT`, le pouvoir « nitro infinie »)
@@ -51662,7 +51658,7 @@ function drawSpeedLines(kmh,nitro,dt){ // speed lines façon anime : traits radi
   const spr=drawSpeedLines.spr||(drawSpeedLines.spr=(function(){const mk=function(r,g,b){const c=document.createElement('canvas');c.width=128;c.height=8;
     const x=c.getContext('2d'),gr=x.createLinearGradient(0,0,128,0),q='rgba('+r+','+g+','+b+',';
     gr.addColorStop(0,q+'0)');gr.addColorStop(.55,q+'.55)');gr.addColorStop(.86,q+'1)');gr.addColorStop(1,q+'0)');
-    x.fillStyle=gr;x.fillRect(0,2,128,4);x.globalAlpha=.35;x.fillRect(0,1,128,6);return c;};return NEON_V?{w:mk(255,248,236),c:mk(255,226,184),b:mk(176,190,212)}:{w:mk(255,248,236),c:mk(255,208,160),b:mk(178,196,255)};})());
+    x.fillStyle=gr;x.fillRect(0,2,128,4);x.globalAlpha=.35;x.fillRect(0,1,128,6);return c;};return {w:mk(255,248,236),c:mk(255,226,184),b:mk(176,190,212)};})());
   const im9=nitro?(nitroBlue?spr.b:spr.c):spr.w;          // NITRO : filés chauffés à la couleur de la poussée — (vague 3) feu / réserve bleue de la bible (ils étaient cyan néon)
   slCtx.globalCompositeOperation='lighter';
   let viv=0;
@@ -55257,7 +55253,7 @@ function eclEcrit(){
       CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
       P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
       P[o+6]=b.x-CV4.x;P[o+7]=b.y-CV4.y;P[o+8]=b.z-CV4.z;P[o+9]=b.x+CV4.x;P[o+10]=b.y+CV4.y;P[o+11]=b.z+CV4.z;
-      const f=fl*(w>6?1.5:1.05);for(let k=0;k<4;k++){if(NEON_V){C[o+k*3]=.95*f;C[o+k*3+1]=.97*f;C[o+k*3+2]=1.18*f;}else{C[o+k*3]=.92*f;C[o+k*3+1]=.86*f;C[o+k*3+2]=1.35*f;}}}} // (2026-10-14, neon-residuel) l'éclair : blanc-bleu (la charte), plus lilas
+      const f=fl*(w>6?1.5:1.05);for(let k=0;k<4;k++){C[o+k*3]=.95*f;C[o+k*3+1]=.97*f;C[o+k*3+2]=1.18*f;}}} // (2026-10-14, neon-residuel) l'éclair : blanc-bleu (la charte), plus lilas
   for(let i=n;i<ECL.N;i++){const o=i*12;if(P[o+1]===-99999)continue;for(let k=0;k<4;k++){P[o+k*3+1]=-99999;C[o+k*3]=C[o+k*3+1]=C[o+k*3+2]=0;}}
   if(on||ECL.viv){const at=ECL.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
   ECL.viv=on;
@@ -66241,7 +66237,7 @@ function loop(now){
     const nTgt=((mode==='boom')?0:(nitroOn?(nitroBlue?1.5:1.25):(boost>0?.8:0)))*(1+NFX.ign*NFX.ignK*.5); // (vague 3) l'allumage ÉCLAIRE la poupe un instant — un éclair, pas une flaque qui reste // (2026-09-26, audit rendu) AU REPOS : 0 — le reflet rouge permanent était la « tache rouge » derrière la caisse // (2026-09-25) ÷1,5 à ÷2 : additionnée aux flaques et au bloom, elle faisait la « tache violette » // .68 au repos (était .8) : les FEUX ARRIÈRE posent leur reflet rouge en permanence — braise posée, plus le point chaud qui perçait
     nitroLight.intensity+=(nTgt*(.82+.18*Math.sin(t*43))-nitroLight.intensity)*Math.min(1,dt*14); // flamme qui tremble, fondu doux
     {const FL9=CARS[level].fx,fxL=(FL9&&FL9.light!=null&&!nitroBlue)?FL9.light:null; // la signature n'éclaire QUE sous poussée
-     if(nitroOn)nitroLight.color.setHex(nitroBlue?NFX_C.b:(pwrNitroT>0?(NEON_V?NFX_C.i:NINF.lum):(fxL!=null?fxL:0xff7a24))); // orange nitro / bleu réserve (mêmes teintes que les particules) / VIOLET de la nitro infinie
+     if(nitroOn)nitroLight.color.setHex(nitroBlue?NFX_C.b:(pwrNitroT>0?(NFX_C.i):(fxL!=null?fxL:0xff7a24))); // orange nitro / bleu réserve (mêmes teintes que les particules) / VIOLET de la nitro infinie
      else if(boost>0)nitroLight.color.setHex(fxL!=null?fxL:0xffd75e); // pad turbo : coup d'or (vague 3 : l'or de la bible)
      else nitroLight.color.setHex(0xf21808);} // repos : rouge feux arrière PROFOND (la signature ne vit qu'à la nitro)
     if(NYAN.on&&!FX_EFF&&(nitroOn||boost>0)&&!nitroBlue&&!(pwrNitroT>0))nitroLight.color.setHSL((t*.55)%1,1,.6); // (2026-10-07) LE BOOST DU CHAT : son reflet passe par toutes les couleurs de l'arc-en-ciel
@@ -66273,7 +66269,7 @@ function loop(now){
       else if(nfK9>.02&&!inf9&&!nitroBlue)jetShellM.color.lerp(NFX.blanc,.35*nfK9); // (2026-10-15) au nitro, la torche chauffée à blanc
       jetGlowM.color.copy(jetShellM.color).lerp(NFX.blanc,NFX.len*.45);jetGlowM.opacity=Math.min(1,JETS.k*.95*(FM9?FM9.glow:fl9)+iK9*.5); // (vague 3) à la nitro la tuyère est chauffée à BLANC : le point le plus chaud de la flamme
       JET_T.value=t; // (2026-09-28) la flamme vivante : son bruit coule avec le temps de jeu (figé en pause)
-      jetCoreM.uniforms.uRac.value.setHex(nitroBlue?(NEON_V?0xc6d0e6:0xc9b8ff):inf9?NINF.rac:0x6f8cff); // la racine de brûleur : bleue sous le feu, lilas sous la réserve (et sous la nitro infinie)
+      jetCoreM.uniforms.uRac.value.setHex(nitroBlue?(0xc6d0e6):inf9?NINF.rac:0x6f8cff); // la racine de brûleur : bleue sous le feu, lilas sous la réserve (et sous la nitro infinie)
       JET_QI.copy(carGroup.quaternion).invert();
       for(let i9=0;i9<JETS.shells.length;i9++){ // chaque pot VIT pour lui : sa longueur bat à son rythme (deux pots en phase = un décor)
         const f9=FM9?FM9.L[i9&3]:.84+.16*Math.sin(t*31+i9*2.4)*Math.sin(t*13.7+i9*1.7),m9=JETS.shells[i9],c9=JETS.cores[i9],rr9=FM9?FM9.R[i9&3]:1.1-.1*f9; // (2026-10-15) les bouffées du MOTEUR SIMULÉ, pot par pot (plus de sinus)
@@ -66768,7 +66764,7 @@ function loop(now){
   RIM_U.uSunV.value.transformDirection(camera.matrixWorldInverse);
   GFX_U.uUpV.value.set(0,1,0).transformDirection(camera.matrixWorldInverse); // (Dragons) le haut en espace vue : ventre lavande / flancs bleu ciel
   if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);
-  else if(nitroOn)RIM_U.uRimC.value.setHex(nitroBlue?(NEON_V?0xb9c5dc:0xa9b8ff):0xffb886); // (vague 3) la caisse prend le liseré de SA flamme (il était cyan : un néon, pas la nitro de la bible)
+  else if(nitroOn)RIM_U.uRimC.value.setHex(nitroBlue?(0xb9c5dc):0xffb886); // (vague 3) la caisse prend le liseré de SA flamme (il était cyan : un néon, pas la nitro de la bible)
   else{RIM_U.uRimC.value.copy(RIM_C0);if(LVL.espace>.001)RIM_U.uRimC.value.lerp(ESP_RIM,LVL.espace);}
   updateContactShadow();
   carVit(dt); // (2026-09-26) roues, flou de jante, halos des phares et des feux (frein)
