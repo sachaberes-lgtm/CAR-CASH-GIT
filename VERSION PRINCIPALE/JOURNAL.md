@@ -580,6 +580,14 @@
   intérieur reste noire), auvent, lunette ; joints portières/capot/malle/boucliers, plis (épaule 126, pli bas 117, arcs d'ailes, nervures du capot).
   Rétros à la couleur de la caisse avec répétiteur, antenne aileron, essuie-glaces, jantes 17" à cinq doubles branches argent, pot discret à gauche,
   la plaque du jeu entre les feux. 33 000 facettes.
+- **PLUS FIDÈLE** (Léo : « la corolla plus fidèle », reprise avec la photo sous les yeux, d5d55747) : le NEZ — la grande bouche en trapèze d'un
+  seul tenant et ses sept lames chromées, les prises en L bordées de chrome et l'antibrouillard rond au pied, le jonc chromé sous la bouche, la
+  calandre haute noire bordée de chrome (en V sous le logo) qui file dans les phares, les phares à fond chromé ; le « damier » venait du nez en
+  flèche lu tantôt de face tantôt de côté (toute sa face est désormais lue de face) et de la bande du plancher du loft, qui monte et devient le bas
+  du nez, peinte en noir de dessous de caisse (désormais de la tôle découpée) ; le contour du phare ne monte plus au montant. L'ARRIÈRE comme la
+  vraie : bouclier couleur caisse (le U n'est qu'un creux), catadioptres couchés au pied, pas de barre chromée, feux en rouge fumé émissif avec leur
+  ligne de LED, continus dans le coin (porte de la vue de dos à z < −2.0 + zone « tout le plan » au coin). JANTES : dix doubles branches bicolores.
+  Planche : `photos-gameplay/corolla-plus-fidele-avant-apres.png` (VRAIE | AVANT 3f8c6210 | APRÈS, gros plans du nez).
 - **La teinte** : argent moyen (0x9fa3a9, celui des photos) — au studio des vignettes tous les gris clairs sortent lavande (LA LAME aussi).
 - **Les outils** : `japDecoupe` accepte `ns` en fonction (les normales lissées ne se calculent que si la découpe n'est pas gardée) — 1re pose de la
   Corolla 79 → 55 ms (la deuxième 28 ms ; le reste est le coût de toute première pose d'une caisse). Les quatre découpes sont préchauffées au menu.
