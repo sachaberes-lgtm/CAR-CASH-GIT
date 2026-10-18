@@ -789,6 +789,49 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD DEVIENT LE GMC HUMMER EV PICK-UP (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC »)
+- **Où** : le même `SHAPES.caid=…` de la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) ; l'ancienne méthode `caid(K)`
+  reste en place (la coordination l'effacera). `ECH_POTS.caid` : électrique, deux FENTES qui luisent au bas du bouclier arrière (comme LA PERLE).
+  Ligne CARS 2 : seulement h 2,01, w 2,20, l 5,51 (cotes réelles) ; nom, rareté, vert anis 0x86f51c gardés.
+- **Le plan** : dimensions.com « GMC Hummer EV Pickup (1st Gen) » (SVG : profil, face, dos, dessus ; 104,9 unités/m sur l'empattement 3,45 m).
+  Photos de Commons (Edition 1 Interstellar White, Ethan Llamas ; Meteorite ; Neptune Blue).
+- **Méthode** : la grille de LA CABOSSÉE (+ `bout`/`fx` : le nez en marches ; `plafond(z)` : les rangées couchées sur l'épaule des ailes) + `boutD`/`fxd` (le contour de la POUPE de la cabine par rangée, ses colonnes aux x donnés : les deux
+  AILERONS qui plongent dans la benne autour de la lunette en retrait) ; la cabine noire par code (26 + vitres) sauf les ailerons (code 0).
+- **La découpe en moment creux** : sur ce gabarit elle coûte ~30 ms (1re construction ~40-60 ms, au-dessus des 50 de la règle). `chauffeDivers`
+  est hors de la zone BOÎTES : le gabarit expose `SHAPES.caid.pre` (la découpe seule, mise en cache) et le bloc l'appelle par
+  `requestIdleCallback` (au plus tard 3 s ; repli setTimeout 2,5 s) — la caisse montée ensuite : 15-30 ms (machine chargée).
+- Teintes réelles proposées : INTERSTELLAR WHITE 0xdde1e4 (Edition 1), METEORITE 0x50555c, NEPTUNE BLUE 0x34506e (jugées au garage).
+- Les lumières (la leçon du BAROUDEUR) : catadioptres du bouclier arrière en rouge MAT (ils tiraient le halo et les traînées sous les feux en C),
+  le point des phares au milieu des longs feux (`hl` x .76).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-vraie-et-nous.png.
+  Outils : boites/hummer/ (src, ref, photos), assemble_h.py, integre_h.py, planche_hummer.py.
+
+## LE BAROUDEUR, CHAQUE LUMIÈRE À SA PLACE (2026-10-18, discussion BOÎTES ; Léo : « les lumières ont l'air trop détachées… il y en a deux qui apparaissent au-dessus »)
+- **Les deux « au-dessus »** : le feu de jour (bâtonnet blanc de 22 cm) et le clignotant (languette orange) posés SUR chaque élargisseur avant,
+  qui dépassaient de la tôle au-dessus des roues — une fois l'élargisseur couleur caisse (Sahara), ils flottaient. Désormais une bande de LED de
+  1 cm À FLEUR de l'arête avant de l'élargisseur (`P.prism` sur une bande décalée du contour, 4 mm de relief), blanche en haut, orange au bout.
+- **Les phares** : le cerclage dépassait de 4 cm devant la calandre → il affleure sa face, anneau et lentille en retrait ; `hl` reculé de 4 cm.
+- ⚠ **Le halo rouge et le départ des traînées** : `buildCar` les pose sur la moyenne des pièces ROUGES ALLUMÉES (`g:'l'`) les plus en arrière de
+  chaque côté (fenêtre de 30 cm, voir CAR_FEUX) — les catadioptres rouges du pare-chocs y entraient : halo et traînées 20 cm SOUS les feux.
+  Un catadioptre n'est pas un feu : rouge sombre MAT (`R:{g:'m',c:0x7a1018}`). Règle pour toute caisse : un rouge allumé à l'arrière = un feu.
+- Les feux arrière posés sur la tôle (2,5 cm de relief au lieu de 4). Banc : course couchée et debout 0 programme compilé, garage sans erreur.
+  Planche : photos-gameplay/wrangler-lumieres-avant-apres.png. Banc des lumières : boites/wrangler/lum/, `jour.py` (`CHASE=1` : la vue de poursuite).
+
+## LE BAROUDEUR EN FINITION SAHARA (2026-10-18, discussion BOÎTES ; Léo, photo d'un JL Sahara gris : « même couleurs, même le truc au-dessus de la roue »)
+- **La teinte** `0x464950` (l'olive `0x4a4d38` part) : mesurée sur la photo (la porte à l'ombre d'un ciel gris : 75 · 76 · 82) puis jugée DANS LE
+  JEU, jamais au studio. ⚠ La même base change beaucoup selon la scène : au garage les lampes chaudes la tirent vers le beige (un gris neutre
+  `0x5c5d60` y sortait crème, 149 · 129 · 120), la VILLE VITRÉE la bleuit (une porte en `0x6c7077` mesurée 62 · 92 · 140 alors qu'à l'œil elle
+  semblait grise : mesurer les pixels, l'entourage bleu trompe). D'où un gris moyen à peine bleuté : gris au garage, le poids de la photo à
+  PICS DE JADE à midi. Scène de jour fixe pour un AVANT/APRÈS : `?carte=jade&meteo=midi` (le 1er couple du mode classique est imposé).
+- **Couleur caisse** : élargisseurs (prismes `ELAV`/`ELAR` en `p`), hard-top (code 26 → `{g:'#'}`, sans joint propre : la découpe retombe sur
+  le code 1), charnières. Noirs : poignées, rétroviseurs, pare-chocs, marchepieds (déjà comme la photo). La glissière de la vitre arrière passe
+  au code 23 (noir) pour ne pas devenir couleur caisse.
+- **Jantes Sahara** : cinq branches en trapèze poli (`J.prism` dans le plan de la roue : contour [z,y] extrudé en x), une gorge grise en relief au
+  milieu de chaque branche, rebord poli large, moyeu gris (`P` mat `0x3d4047`) ; la roue de secours a la même (ExtrudeGeometry dans le plan x-y).
+- Banc : `jour.py` (CAR-bancs/nouvelles-voitures/boites) — course, pause, photos dans le repère de la caisse (`dbgLumVue`), HUD et jus masqués
+  en `opacity:0` (en `visibility` leurs enfants revenaient). Course couchée et debout : 0 programme compilé ; garage sans erreur ; ~30 ms à bâtir.
+  Planche : photos-gameplay/wrangler-sahara-avant-apres.png.
+
 ## LE BAROUDEUR — LA JEEP WRANGLER JL 4 PORTES RELEVÉE SUR SON ÉLÉVATION (2026-10-18, discussion BOÎTES ; Léo : « le Wrangler moderne, 4 portes »)
 - **Le gabarit** : `SHAPES.wrangler=(function(){…})()` à sa ligne-repère + `ECH_POTS.wrangler` (un pot à droite, comme sur la photo de dos) +
   le nom anglais par `Object.assign(I18N,{'LE BAROUDEUR':'THE TRAILBLAZER',…})` dans le même emplacement (pas de ligne réservée dans le bloc
