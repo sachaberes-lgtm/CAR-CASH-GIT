@@ -3,7 +3,7 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
-## LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES (2026-10-18, v643 — essayée sur un lien à part, puis Léo : « c'est bon, mets la durée des maps sur le main » ; la demande : « trouve la longueur parfaite des maps : fluide, sur téléphone, ni trop courte ni trop longue ; plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions »)
+## LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES (2026-10-18, v644 — essayée sur un lien à part, puis Léo : « c'est bon, mets la durée des maps sur le main » ; la demande : « trouve la longueur parfaite des maps : fluide, sur téléphone, ni trop courte ni trop longue ; plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions »)
 - **MESURÉ AVANT** (banc muet, main v628, pilote auto + nitro au sol, bac à sable) : une map du JOUER durait de ~70 s (jade, forêt) à plus de 3 min
   (canyon 195 s, nuages ~170 s, glacier ~160 s) ; une partie traversée : 92 s → 100 s → 127 s → 129 s pour les 4 premières maps. Et la map
   S'ALLONGEAIT avec la vitesse : les générateurs grandissaient plus vite que le palier (genCtrl ×2,5, canyon ×2,3, forêt ×2,7) ; seule la jade
@@ -26,6 +26,15 @@
 - **AVEC L'ALLÈGEMENT ET LES MODULES DE SACHA (v642)** : ses changements gardés tels quels (abords de la Porte et du Pont raccourcis, modules
   resserrés, forêt à 3-4 pointes) ; seules les bornes « au moins un module » et le budget de la jade (`FX9` ~2,4 km de pièces fixes, ~1 km par
   module, un seul module au départ) suivent la durée visée.
+## LES BORDS DE LA ROUTE AU BOOST : LE JEU DE LUMIÈRE DE LA TRAÎNÉE (2026-10-18, Sacha : v636 « change le rgb que Léo a mis sur le bord de la route pour qu'il soit de la même couleur que la traînée choisie par le joueur » ; v643 « il faut aussi que les côtés de la route clignotent mais surtout il faut le même jeu de lumière que la traînée : si la traînée a 70 % de pixels roses et 30 % de blancs il faut le même jeu de clignotement »)
+- Au boost (nitro), les rails et leur nappe ne passent plus à l'arc-en-ciel de Léo : chaque tronçon de 2 m devient un PIXEL du feu de la traînée.
+  Il change ~8 fois par seconde, chacun à son temps, et tire une des 10 nuances du feu (`NFEU.pal` : cœur blanc, couleur pleine, braise, fumée)
+  dans la part qu'elle a DANS LE FEU à cet instant (`NFEU.part`, comptée par `nfeuPas` sur la surface des cubes, lissée ~0,12 s), éclat ± 8 %.
+  Réserve bleue et nitro infinie : le feu change de palette, les bords aussi. Voir `bmapTrainee` et le commentaire de `BMAP`.
+- Gardé : la traînée ARC-EN-CIEL (et le chat) garde l'arc-en-ciel de Léo, intact ; `?bordsboost=rgb` = l'arc-en-ciel pour toutes ; `?bordsboost=0` = rien.
+- Banc (son coupé, vrai nitro, mer de nuages midi) : ROSE NÉON mesuré ~10 % blanc rosé, ~24 % rose pâle, le reste en roses vifs à profonds ;
+  NITRO 10 % blanc, 22 % jaune pâle, puis l'or et l'orange. `dbgBordsMap()` → `trainee` donne la palette et les parts.
+
 ## L'ALLÈGEMENT — 65 LIGNES D'AUDIT, LA COPIE EN LIGNE SANS COMMENTAIRES, PARIS DANS LE MODE CLASSIQUE, TROIS CAISSES REVENUES (2026-10-18, Sacha : « petite session d'allègement du code du jeu, essaie de faire un audit et une liste très claire et exhaustive des éléments qu'on peut supprimer » · « fais les lignes 1 et 2 » · « 3 et 4 aussi » · « enlève l'élément saute-mouton, le snake loop, les sons des bêtes, les bouts morts de creature, retire la charte, remet la map Paris dans le mode classique, enlève tous les trucs du mode carrière, l'ancien menu de Léo, enlève tous les trucs de 25 à 46 » · « remet dans le jeu les modèles 3D de LA POUPÉE, du REQUIN et de LA RAIE » · « enlève 48 à 65 »)
 - **L'audit** : https://claude.ai/artifact/5etvYKNBcHb4EhbiPXQUKG (65 lignes numérotées, sur main 359f9fb8). Sacha a choisi par numéros ; le travail
   a été fait en 6 lots parallèles (B carrière + Paris, C interface, D fonctions coupées, E maps, F caisses, G musique), un worktree chacun,
