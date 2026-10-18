@@ -12987,7 +12987,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
    LES FEUX : un phare n'éblouit que celui qui le regarde EN FACE (vu de profil, un point ; vu de dos, rien) ; les feux arrière
    brillent vers la caméra de poursuite et S'EMBRASENT au frein — pouce tiré vers le bas (drift) ou ↓. La nuit (ville, orbite)
    les halos s'élargissent. Zéro allocation : tout passe par VIT9. */
-const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),clB:1,clW:-1}; // clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
+const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),clB:1,clW:-1,phT:{matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
 function carVit(dt){
   const boom=mode==='boom';
   if(!running||garageOn||boom)ROUES.v=0;
@@ -13026,7 +13026,16 @@ function carVit(dt){
      le phare reste. `VIT9.bqK` fond le passage (0,25 s) ; en course et au garage, rien ne change. */
   const bqV=garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut||Math.abs(GBQ.lev||0)>.02);
   VIT9.bqK=(VIT9.bqK||0)+((bqV?1:0)-(VIT9.bqK||0))*Math.min(1,dt*4);const bk9=VIT9.bqK,av2=av*av;
-  HALO.hM.opacity=boom?0:.95*(.3+.7*av)*(1-bk9)+.9*av2*bk9;
+  /* (2026-10-18, Sacha : « en journée les phares avant des voitures n'ont pas besoin d'être allumés ») LES PHARES S'ÉTEIGNENT AU SOLEIL : le halo
+     des phares suit la NUIT DU LIEU — en course celle des lumières v2 (`LUM.nuit` : la lumière du ciel mesurée + le drapeau `nuit` du niveau,
+     0 de jour, ~0,4 au soir et sous la pluie, 1 la nuit) ; sur l'écran titre (⚠ `garageOn` y vaut VRAI : le titre passe par garageRender) l'HEURE
+     du titre (`VIT9.phT` : éteints du matin à l'après-midi, en veilleuse à la golden hour, allumés le soir et la nuit) ; ailleurs (la mort) le
+     jour lu au ciel (`j9`). Ils s'allument à la nuit tombante, en fondu (`VIT9.ph`). Au garage et en boutique, rien ne change (le choix de Léo
+     du 16/10). Les feux arrière restent. */
+  const phT=CHUTE.on?VIT9.phT[TITRE_HF.h]:null;
+  const ph9=phT!=null?phT:garageOn?1:LUM_V2&&LUM.actif?LUM.nuit:1-j9;VIT9.ph=VIT9.ph==null||garageOn?ph9:VIT9.ph+(ph9-VIT9.ph)*Math.min(1,dt*3);
+  HALO.hM.opacity=boom?0:(.95*(.3+.7*av)*(1-bk9)+.9*av2*bk9)*VIT9.ph;
+  for(const s9 of HALO.h)s9.visible=HALO.hM.opacity>.01;
   for(const s9 of HALO.h){const k=s9.userData.k*((.55+.5*av)*(1-bk9)+(.3+.6*av2)*bk9)*(1+.3*nuit)*(1+.45*LVL.nuit);s9.scale.set(k,k,1);} // (2026-09-30) MINUIT EN VILLE : des phares PUISSANTS
   // LES FAISCEAUX AU SOL (CARPOOL.head) : en plein jour, un phare ne dessine rien sur le bitume — la nappe chaude se retire de moitié ;
   // la nuit (ville, orbite) elle mord pour de bon. Ce sont les seuls à rester au sol, et ils sont DEVANT la caisse.
@@ -13125,7 +13134,7 @@ window.dbgLumVue=function(d,h,az,vise){ // (banc) MODE PHOTO dans le repère de 
 window.dbgLumReprise=function(){if(paused)togglePause();return paused;}; // (banc) la photo a mis en pause : on repart
 window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum({hl:12000,…}) règle LUMK à chaud ; dbgLum({hlK:[…],lmW:[…]}) les uniformes
   if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
-  return {v2:LUM_V2,actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
+  return {v2:LUM_V2,actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
 /* ============ fin TRIPTYQUE ============ */
