@@ -142,6 +142,13 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   buildTrack en générateur `pisteRoute` sur un état fantôme (`prebEchange`, `pisteTravail`), installée au passage (`pisteInstalle`) ; les décors
   d'avance (`prebJade`, `prebDecorG`/`prebDecor` : forêt, volcan, glacier) ; `?prebati=0`, `dbgPrebati()`. ⚠ Dans `pisteRoute` : jamais de
   `scene.add`, jamais d'écriture d'un état vivant hors de la liste échangée ; une génération ou un décor NEUF → `prebChampsDe` / `PREB_PISTES` / `prebDecorG`.
+  LES MODULES DE CHAQUE MAP (18/10, Sacha : « au moins 3 par map, sélectionnés automatiquement ») : chaque générateur a SON paquet (≥ 3), mélangé, jamais
+  deux fois de suite, dans un hasard à part né de la graine — genCtrl `MCJ`/`mcTire` (ville `mAngles`/`mBretelle`, crypto `mBougie`/`mDents`, vitrée
+  `mTour`, orbite `mFronde`/`mHoule`, plus `tSlalom`/`tEpingle`/`tCorde`/`tEsses` des nuages), genBanq `bkSlalom`/`bkEsse`/`bkDouble`, vlcTrace
+  `vSlalom`/`vCorde`/`vChicane`/`vHoule`, forPelote `fSlalom`/`fLacets`/`fCorde`/`fRacines`, genCanyon `lien()` → `cSlalom`/`cCorde`/`cWhoops`/`cChicane`,
+  genJade `tronc()` → `jLacets`/`jEpingle`/`jSommet` ; leurs tronçons dans MODMARK. `MODC_ON` (`?sans=modcartes` = les pistes d'avant à l'identique),
+  `dbgModCartes(0|1)`, `dbgTrace().mods`. Un module NEUF : le garder dans les bornes de cap de son générateur et passer par SON hasard (`rf`, `rm`, `rv`,
+  `rf9`, `rj`) — jamais un tirage de plus dans `rnd` quand MODC_ON est éteint.
   LA FORÊT (17/10, Léo) : le slalom `forZigzag` (ponts de 18-30 m, `dbgPont`), les arbres en VITRAIL dans `FOR_ARB_FS` (`VITRAIL_V`, `dbgVitrail`),
   la MOUSSE où l'on roule hors de la route (`foretSolVol`, `MOU`, `dbgMousse`) — voir le journal.
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
@@ -233,6 +240,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - LA MAP NUAGES EST UNE COURSE (18/10, Sacha : « trop peu de virages… ça reste un jeu de course ») : sur la route sans haut ni bas, zoom `TORD_AMP` 1,1, poids `TORD_W`,
   modules de COURSE (`MODT` : slalom, épingle, double corde, esses, montagnes russes, rayons VRAIS ≥ 1,7 × le rayon du palier), dévers `TORD_DEVERS`, et
   `pisteTordPropre` qui rejoue les vrilles si la route se touche. Une retouche passe par le banc des virages (journal). `?sans=virages` = la route du 15/10.
+  EN L'AIR AUSSI, PAS DE HAUT NI DE BAS (18/10, Sacha : « la voiture a du mal à voler, comme si le jeu n'arrivait pas à savoir de quel côté de la route on va ») :
+  `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
+  survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
+  `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
 - LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : `BANQ_V4` (123 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler) ;
   `?glacier=v3` = la descente verglacée d'avant. Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi ne reviennent qu'avec `?sats=route` (`SAT_OBST_V`).
@@ -488,6 +499,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES » (18/10, Léo) — `opt.fant`, `nuFantGeo`, `NUFOND_V`/`NU_FOND`, `dbgNuFond`
+- « LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES » (18/10, Sacha) — `NUVIT.fondu`, `nuvPoids`, `COTON.LV`, attribut `aR`, `?sans=nuvitfondu`
 - « LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE » (18/10, Léo) — `NUF_TEX`, `nufIdx`, `nuLibre`, `dbgRamNuages`, `?pistegraine=`
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `VITRAIL_V`, `forZigzag`, `MOUSSE_V`, `TORDUS_V`, `PLEUR_V`, `VILLE_GTA_V`
 
@@ -520,6 +532,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
+- « LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD » (18/10) — `MODC_ON`, `?sans=modcartes`, `dbgModCartes`, un paquet par générateur
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
@@ -534,6 +547,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « L'ELDORADO v3 — LES DÉTAILS DE LA BIARRITZ 59, ET LA MÉTHODE POUR REFAIRE CHAQUE VOITURE » (17/10) — le redesign voiture par voiture : budget, pièges, banc `outils/banc-caisses/`
 - « LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN » (18/10) — refaire une vraie voiture d'après son plan coté : banc des écarts, `peintPlan`
 - « LA PERLE — LES TRAITS DANS LA TÔLE, EN FACETTES, LE RIDEAU D'AIR CREUSÉ, LE PHARE REFAIT » (18/10) — `peintPlan`, `PLAN.zf`, `creux`, `PERLE_LISSE`, `perleTraits`
+- « LES NOUVELLES VOITURES — HUIT PLACES RÉSERVÉES, LA BULLE ET LE COMBI EN COMMUNES » (18/10) — index 79-86 réservés (la suivante = 87), qui fait quoi
 - « LE BLINDÉ NOIR EN PORC-ÉPIC GOTHIQUE » (16/10) — piquants sur le dos, clous chromés devant (`pique`, `clou`, `mue`, ailes en ogive)
 - « LE DOGE » (14/10, deux sections) · « LES VRAIS MODÈLES, PLUS RESSEMBLANTS » (13/10) · « LA MERCURE v2 » (11/10)
 - « LA SALLE BLANCHE » (09/10) · « LE SQUALE » (08/10) · « LE CHAT POP-TART EN VOXELS » (06/10) · « L'ORIGAMI — LE PICK-UP D'INOX » (02/10)
