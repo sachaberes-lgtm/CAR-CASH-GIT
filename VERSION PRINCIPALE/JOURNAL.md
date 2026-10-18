@@ -54,6 +54,55 @@
   c'est le « ne verse la prime en ARGENT que pour la COLLECTION » de l'étape 1, mais le total tombe d'un coup à la première ouverture. À regarder si l'économie le supporte.
 - LA RÈGLE (guide, piège 22) : tout `const` / `let` que le code de démarrage atteint se déclare AVANT lui ; un `try/catch` autour d'un appel de démarrage cache le défaut —
   chercher son `console.warn` après un changement de ce bloc.
+## LES MAPS, 2e TOUR — MOINS DE TOUT DROIT, LE VOLCAN REFAIT EN BALADE QUI MONTE, LA FORÊT ALLÉGÉE (2026-10-18, session MODULES — Sacha : « non j'aime pas ces générations de terrain : pour les 3 villes il y a trop de moments où il faut faire du tout droit, il faut que ça reste fun et jouable, il faut des tout droit mais pas autant ; c'est pareil pour orbite, glacier et pic de jade où il n'y a presque pas de virages ; royaume de feu est de loin le plus nul : refonte totale de la map, je veux qu'on se balade dans le royaume des flammes mais avec des virages, et où on monte autour du volcan et tout ; la forêt noire à l'inverse est un peu trop complexe ; le canyon est bien »)
+- LA MESURE qui colle au ressenti : au 1er tour, un « virage » comptait jusqu'à 4 × le rayon tenable (252 m au palier 0) ; les grandes courbes de 200
+  à 300 m passaient pour des virages — au volant, ce sont des droites. Ce tour se juge à 3 × (190 m au palier 0) pour les villes, l'orbite, le volcan
+  et la forêt, à 5 × pour le glacier et Jade (piste de 196 m, rayons de 170 m au moins).
+- LES TROIS VILLES (genCtrl, avec leurs modules) : `RS` ×0,9 au lieu de ×1,25 et un PLANCHER (`rPlancher` dans arc() : jamais sous 1,35 × le rayon
+  tenable) ; les poids `VILLE_WM` (épingles, esses, chicanes ×1,6-1,8 ; lignes de momentum ×0,3, grands balayages ×0,5, plongeons ×0,6, vagues
+  ×0,5, le « gap » sans tremplin — une droite de 140-290 m — ×0,2) ; des esses d'au moins 40° ; un module tous les 0,3-0,6 km × LV, jusqu'à
+  0,6 km du portail, et la zone se CLÔT par un module (les signatures FLOW, ALPIN… étaient de grandes courbes ou des droites) ; L'ENTRÉE raccourcie :
+  260 m de droite au lieu de 420, puis la grande rampe de 320 m au lieu de 520 qui plonge EN VIRAGE (48-62°) ; LA BOUGIE de la crypto plus courte
+  (0,3-0,4 km), son pump qui tourne.
+- L'ORBITE : les mêmes règles (RS, plancher, module tous les 0,3-0,6 km, clôture par un module) ; `ESP_ROUTE.wm` (épingles ×1, esses et chicanes
+  ×1,6, momentum ×0,25, balayages ×0,35, gap ×0,2) ; grands virages 85-155 × RS (au lieu de 100-200) ; la fronde à 1,9-2,4 rP, la houle à 2-2,4 rP.
+- LE GLACIER : la boucle de base tourne 30 % de plus (jusqu'à 125°, toujours bornée à 75° de la pente) et 28 % plus serré (plancher 2 demi-largeurs
+  au lieu de 2,6 : 196 m — le bord intérieur ne se replie pas, c'est 1,7 × le rayon tenable sur le verglas), droites 65 % plus courtes, modules
+  tous les 0,35-0,65 km.
+- JADE : les humeurs 2 × plus serrées (jamais sous `jRm` = 1,4 × le rayon tenable, 170 m au moins) et 25 % plus tournées, droites 60 % plus courtes,
+  départ 220 m, abords de la Porte et du Pont raccourcis (230/170 et 200/140 m ; la Porte garde ses 520 m), l'arrivée 420 m ; les trois modules plus
+  serrés (lacets 190-250 m, épingle 200-240, double sommet 250-300).
+- LE ROYAUME DE FEU REFAIT (`vlcTrace3`, `VLC_BALADE` ; `?volcan=v4` = la descente emmêlée du 1er tour) : LA BALADE DES FLAMMES puis LA MONTÉE DU
+  VOLCAN. La balade (~4,5 km × KV) louvoie dans la plaine de lave (virages de 36-64°, cap ± 72°, une droite sur cinq), l'ARCHE tôt, deux FUMERONS et
+  leurs bancs, le LAC DE LAVE en quatre courbes, trois modules (vSlalom, vCorde, vChicane, vHoule) ; on se met en travers de l'axe et l'on entre
+  en tangente dans une SPIRALE qui grimpe autour du grand cône : 1,2-1,45 tour, rayon de ~460 à ~260 m (× palier), ONDULÉE (six lobes par tour, la
+  même à chaque tour : `AW(r)`, jamais un rayon sous 1,5 rM), 5,5-6,5 % de montée (~170 m). LE CÔNE EST TAILLÉ POUR ELLE (`vlc3Cone`) : le plus grand
+  exposant (2,8 → 1,4) dont le profil passe 24 m sous le premier et le dernier tour et dont le pied plonge sous la lave ; le cratère ~200 m au-dessus
+  du dernier tour. Le portail est en haut, sur la dernière corniche (l'arrivée est courte : plus longue, elle repassait au-dessus du tour d'en dessous).
+  Plus de boucles à raccourci (sauts vide), plus de second volcan (K2/C2 null) ; th0/th1 = l'angle de la spirale (les coulées passent dessous) ; sSp
+  = la fin de la spirale (le grand volcan gronde tout le niveau). Crochet : `dbgVolcan('test')` — la règle d'or, comme au canyon.
+- LA FORÊT NOIRE ALLÉGÉE (avec les modules) : 3-4 pointes par nœud au lieu de 4-5, une boucle complète 3 fois sur 10 au lieu de 5,5, 0,7 croisement/km
+  suffit (au lieu de 1,1), plus de LACETS en Z dans son paquet (fSlalom, fCorde, fRacines).
+- LE CANYON : inchangé (« le canyon est bien »).
+- MESURÉ (bancs Node sur les vrais générateurs, 12 graines ; avant = main 5641267f → après ; palier 0 · palier 10) :
+  | map | virages/km | plus longue droite | longueur p0 |
+  |---|---|---|---|
+  | VILLE (3 ×) | 2,46 → 3,80 · 1,50 → 2,58 | hors entrée 11,3 → 4,9 s · 8,1 → 2,9 s ; entrée 15 → 8,9 s | 16,2 → 16,7 km |
+  | CRYPTO (3 ×) | 2,51 → 4,32 · 1,51 → 2,82 | hors entrée 15,3 → 5,8 s · 11,4 → 4,9 s | 16,2 → 16,7 km |
+  | VITRÉE (3 ×) | 2,35 → 3,67 · 1,49 → 2,54 | hors entrée 11,0 → 4,7 s · 8,4 → 2,9 s | 16,2 → 16,8 km |
+  | ORBITE (3 ×) | 1,20 → 3,00 · 0,66 → 1,82 | 24,2 → 7,3 s · 16,4 → 5,4 s | 18,9 → 19,4 km |
+  | GLACIER (5 ×) | 0,82 → 2,55 · 0,67 → 2,11 | 14,3 → 4,1 s · 6,6 → 2,0 s | 10,1 → 9,9 km |
+  | JADE (5 ×) | 0,37 → 2,40 · 1,20 → 2,60 | 41,5 → 16,3 s (la Porte) · 15,4 → 6,0 s | 13,9 → 11,7 km |
+  | VOLCAN (3 ×) | 2,31 → 3,81 · 2,01 → 3,70 | 19,3 → 10,9 s (le 1er tour de spirale) · 7,5 → 2,5 s | 11,5 → 7,9 km |
+  | FORÊT (3 ×) | 3,75 → 4,14 · 2,89 → 3,16 | 8,1 → 8,2 s · 2,5 → 2,5 s ; croisements ÷ 2 (362 → 196) | 15,0 → 11,7 km |
+  Aucun virage infranchissable (le seul vu au banc — un raccord d'entrée de spirale — est corrigé). Volcan : 0 conflit sur 36 pistes (12 graines ×
+  3 paliers), le flanc 13-23 m sous la route (le terrain la borne de toute façon : règle d'or de volcanSol), construction 2-8 ms.
+  DANS LE VRAI JEU : les 9 maps (le canyon compris) se bâtissent et se roulent sans erreur JS ni __loopErr ; `dbgVolcan('test')` : 0 roche sur
+  ni sous la route, marge 9,5-12 m ; `dbgCanyon('test')` toujours 0/0. Les morts du pilote de mesure au début des villes (209 et 289 m au parcours)
+  ne se reproduisent pas : 12 essais ciblés (ville, vitrée, crypto, avec et sans modules), 0 mort. Photos du nouveau volcan : banc `photo-volcan.cjs`. Avec
+  `?sans=modcartes`, toutes les pistes redeviennent celles d'avant les modules (vérifié au banc, au tirage près).
+- À TRANCHER par Sacha : le volcan finit EN HAUT (on monte jusqu'au portail) — s'il veut une redescente de l'autre côté, c'est la suite naturelle ;
+  la dose des virages des villes (VILLE_WM, rPlancher) ; l'entrée des villes (260 + 320 m) ; Jade garde la longue droite de la Porte (le monument).
 
 ## LE TAUREAU v2 DE CRYPTO CITY — LA POSE DU « CHARGING BULL », L'OR POLI, ET UNE HITBOX QUI EST LA FORME (2026-10-18, session TAUREAU — Sacha : « dans la map crypto city retravaille le design du toreau géant et vérifie bien que la hit box dans la map fonctionne »)
 - LA HITBOX D'AVANT, MESURÉE (audit hors ligne : la forme dessinée testée volume par volume par parité de rayon, contre les neuf boîtes de

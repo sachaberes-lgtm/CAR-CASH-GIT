@@ -148,7 +148,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `vSlalom`/`vCorde`/`vChicane`/`vHoule`, forPelote `fSlalom`/`fLacets`/`fCorde`/`fRacines`, genCanyon `lien()` → `cSlalom`/`cCorde`/`cWhoops`/`cChicane`,
   genJade `tronc()` → `jLacets`/`jEpingle`/`jSommet` ; leurs tronçons dans MODMARK. `MODC_ON` (`?sans=modcartes` = les pistes d'avant à l'identique),
   `dbgModCartes(0|1)`, `dbgTrace().mods`. Un module NEUF : le garder dans les bornes de cap de son générateur et passer par SON hasard (`rf`, `rm`, `rv`,
-  `rf9`, `rj`) — jamais un tirage de plus dans `rnd` quand MODC_ON est éteint.
+  `rf9`, `rj`) — jamais un tirage de plus dans `rnd` quand MODC_ON est éteint. 2e tour (18/10, « trop de tout droit ») : avec les modules, genCtrl serre
+  tout (`RS` ×0,9, `rPlancher` = 1,35 × le rayon tenable dans arc(), `VILLE_WM`, `ESP_ROUTE.wm`, entrée des villes 260 + 320 m en virage), le glacier
+  et Jade aussi ; LE ROYAUME DE FEU est refait : `vlcTrace3` (la balade des flammes puis la spirale qui monte autour du cône, `vlc3Cone` le cône
+  taillé pour elle, portail en haut ; `VLC_BALADE`, `?volcan=v4` = avant, `dbgVolcan('test')` = la règle d'or) ; la forêt allégée (3-4 pointes).
   LA FORÊT (17/10, Léo) : le slalom `forZigzag` (ponts de 18-30 m, `dbgPont`), les arbres en VITRAIL dans `FOR_ARB_FS` (`VITRAIL_V`, `dbgVitrail`),
   la MOUSSE où l'on roule hors de la route (`foretSolVol`, `MOU`, `dbgMousse`) — voir le journal.
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
@@ -536,6 +539,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
 - « LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD » (18/10) — `MODC_ON`, `?sans=modcartes`, `dbgModCartes`, un paquet par générateur
+- « LES MAPS, 2e TOUR — MOINS DE TOUT DROIT, LE VOLCAN REFAIT EN BALADE QUI MONTE, LA FORÊT ALLÉGÉE » (18/10) — `vlcTrace3`, `vlc3Cone`, `rPlancher`, `VILLE_WM`
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
