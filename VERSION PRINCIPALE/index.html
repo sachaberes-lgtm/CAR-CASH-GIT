@@ -22292,16 +22292,19 @@ function cryptoPlace(seed,proches){
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
   const ix=function(f){return Math.min(NP-2,Math.max(iE+6,Math.floor(f*NP)));};
   // LES TAUREAUX : à 30 % et à 70 % de la piste, à ~230 m de l'axe, le ventre 70 m sous la route (le dos 120 m au-dessus, les cornes 230)
-  for(const F0 of [.3,.7]){
+  const poseT=function(t){t.ph=cr()*6.28;S.taureaux.push(t);CRYPTO.res.push(t.x,t.z,330);const p=pts[t.i];
+    for(const f of [.3,.52,.74])CRYPTO.res.push(t.x+(p.x-t.x)*f,t.z+(p.z-t.z)*f,95);}; // L'ESPLANADE : pas une tour entre le taureau et la route qu'il regarde
+  for(const F0 of [.3,.7]){let rep=null,ok=false;
     for(let k=0;k<14;k++){const i=ix(F0+(cr()-.5)*.2),c=cadre(i),sg=cr()<.5?-1:1,lat=ROAD_HALF+300+cr()*80;
       const x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,yb=pts[i].y-70;
       if(cryptoReserve(x,z,330)||!libre(x,z,280,yb-20,yb+440))continue;
       const pied=Math.max(yb-820,dessous(x,z,280,yb)+70),a=.45; // la tête : vers la caisse qui arrive (−T), tournée vers la route (−sg·B)
       const hx=-c.tx*Math.cos(a)-sg*c.px*Math.sin(a),hz=-c.tz*Math.cos(a)-sg*c.pz*Math.sin(a),cap=Math.atan2(hx,hz),F9=taureauForme((pied-yb)/TAUREAU_K);
       if(!taureauLibre(F9,x,yb,z,cap,proches))continue; // (2026-10-18) la ROUTE ne passe à moins de 30 m d'AUCUNE partie du taureau — mesuré : le cercle de 280 m laissait la route à 4 m de sa tête
-      S.taureaux.push({x:x,z:z,y:yb,pied:pied,cap:cap,F:F9,ph:cr()*6.28,s:i*dS});CRYPTO.res.push(x,z,330);
-      for(const f of [.3,.52,.74])CRYPTO.res.push(x+(pts[i].x-x)*f,z+(pts[i].z-z)*f,95); // L'ESPLANADE : pas une tour entre le taureau et la route qu'il regarde
-      break;}}
+      const t={x:x,z:z,y:yb,pied:pied,cap:cap,F:F9,s:i*dS,i:i};
+      if(pied>yb-250){if(!rep)rep=t;continue;} // (2026-10-18) une route passe juste dessous : ses pattes s'arrêteraient en moignons — on cherche une place où elles plongent, celle-ci en dernier recours
+      poseT(t);ok=true;break;}
+    if(!ok&&rep)poseT(rep);}
   // LE GRAPHIQUE : trois rangées de bougies qui MONTENT le long de la route (une bougie tous les ~42 m), deux petites rouges dans chaque
   for(const F0 of [.13,.5,.88]){const i0=ix(F0+(cr()-.5)*.05),sg=cr()<.5?-1:1,lat0=ROAD_HALF+115+cr()*90,pas=Math.max(1,Math.round(42/dS)),n=10+((cr()*4)|0),r1=2+((cr()*4)|0);
     let niv=pts[i0].y-150;
@@ -22493,7 +22496,7 @@ const TAUREAU_VERRE=
   'gl_FragColor.rgb=mix(gl_FragColor.rgb,glass,pane*.86);'+
   // L'OR POLI du corps : un MÉTAL — presque plus de diffus, le ciel teinté d'or (au carré : l'horizon clair et le zénith sombre se séparent, chaque
   // facette tranche sur sa voisine), plus fort de biais (Fresnel), l'éclat franc du soleil ; la nuit, des projecteurs l'éclairent d'en bas
-  'float st=1.-vV9,L9=rf.x;vec3 orP=vec3(1.,.70,.26)*(.10+1.35*L9*L9)*(.75+.55*fr)+gl*vec3(1.,.9,.66)*1.8+uNuit9*vec3(.5,.32,.1)*(.35+.65*clamp(.5-.5*N9.y,0.,1.));'+
+  'float st=1.-vV9,L9=rf.x;vec3 orP=vec3(1.,.78,.36)*(.10+1.35*L9*L9)*(.75+.55*fr)+gl*vec3(1.,.9,.66)*1.8+uNuit9*vec3(.5,.32,.1)*(.35+.65*clamp(.5-.5*N9.y,0.,1.));'+
   'gl_FragColor.rgb=mix(gl_FragColor.rgb,orP,st*.85);'+
   // LE BANDEAU DU TAUREAU : un ruban de cours vert tout autour du ventre (à hauteur de route : on le lit en passant)
   'float yy=vW9.y-uBand9;if(abs(yy)<4.2&&vert>.5){float ps=1.15,gx=(dot(vW9,Th)-uT9*14.)/ps,gy=floor((yy+4.)/ps),ch=floor(gx/6.),cx=floor(mod(gx,6.));'+
@@ -22585,6 +22588,10 @@ function crCoupe(R,pl){const o=[];for(let i=0;i<R.length;i++){const r=R[i];if(r.
       o.push({c:[a.c[0]+(r.c[0]-a.c[0])*t,pl,a.c[2]+(r.c[2]-a.c[2])*t],w:L('w'),hT:L('hT'),hB:L('hB'),f:r.f,u:r.u,v:r.v});}
     break;}
   return o.length>1?o:null;}
+// coupé au pied, le bout d'une patte ou d'une tour s'effile (×k sur les 14 derniers mètres du repère) : une pointe suspendue, pas une coupe franche
+function crPointe(R,pl,k){const L=R[R.length-1],P=R[R.length-2];if(L.c[1]!==pl||P.c[1]-pl<24)return R;
+  const t=14/(P.c[1]-pl),M={c:[L.c[0]+(P.c[0]-L.c[0])*t,pl+14,L.c[2]+(P.c[2]-L.c[2])*t],w:L.w,hT:L.hT,hB:L.hB,f:L.f,u:L.u,v:L.v};
+  return R.slice(0,-1).concat([M,{c:L.c,w:L.w*k,hT:L.hT*k,hB:L.hB*k,f:L.f,u:L.u,v:L.v}]);}
 /* LE TAUREAU QUI CHARGE (celui de Wall Street, en gratte-ciel d'or) — repère local : +z = la tête, +y = le haut, le dessous du poitrail à y ≈ 0.
    La silhouette : une croupe ronde, des hanches larges, la taille qui se creuse, un poitrail profond sous la BOSSE du garrot (le plus haut),
    l'encolure épaisse, et la TÊTE BASSE (son axe plonge à 63°) : le front fait face à la caisse, le mufle est en bas. Les cornes sortent de
@@ -22608,10 +22615,10 @@ function taureauForme(pl){
     // l'arrière qui POUSSE (le jarret en arrière, le canon qui revient)
     const av=[[54,Y(118,100),100,50,62,62,1.2],[55,Y(40,128),128,46,52,56,1.2],[56,-14,150,37,41,43,1.25],[57,-34,158,38,41,41,1.5],[57,-66,162,30,32,34,1.62],[57,-84,160,29,31,31,1.62],[57,-96,159,31,33,33,1.57]],
       ar=[[56,Y(132,-128),-128,56,72,72,1.95],[57,Y(56,-160),-160,50,58,62,1.95],[58,4,-186,37,40,46,1.9],[58,-22,-194,35,37,44,1.6],[59,-60,-184,29,31,31,1.33],[59,-84,-178,28,29,29,1.45],[59,-96,-176,30,31,31,1.57]];
-    for(const P9 of [av,ar]){const R=crCoupe(P9.map(function(r){return crAnneau(s*r[0],r[1],r[2],r[3],r[4],r[5],r[6]);}),pl);if(R)F.push(crVol(R,S12,0));
+    for(const P9 of [av,ar]){const R=crCoupe(P9.map(function(r){return crAnneau(s*r[0],r[1],r[2],r[3],r[4],r[5],r[6]);}),pl);if(R)F.push(crVol(crPointe(R,pl,.55),S12,0));
       // …le sabot pose sur LE TOIT D'UNE TOUR : la corniche, puis le fût à vitres (cl 1) qui s'élargit par gradins jusqu'au pied, dans la brume
       const h=P9[P9.length-1],T=[[-92,30],[-96,46],[-104,46],[-105,40],[-180,40],[-181,46],[-290,46],[-291,52],[-1e4,56]],x=s*h[0],z=h[2];
-      const RT=crCoupe(T.map(function(r){return crAnneau(x,r[0],z,r[1],r[1],r[1],PI2);}),pl);if(RT)F.push(crVol(RT,S8,1));}
+      const RT=crCoupe(T.map(function(r){return crAnneau(x,r[0],z,r[1],r[1],r[1],PI2);}),pl);if(RT)F.push(crVol(crPointe(RT,pl,.4),S8,1));}
     // LA CORNE : grosse à la base, sur les coins du front, de côté puis en AVANT, la pointe qui remonte vers le centre (ivoire, cl 2)
     F.push(crTubeV([[64,146,208],[108,154,210],[148,170,226],[166,194,254],[160,220,286],[136,234,312]].map(function(q){return [s*q[0],Y(q[1],q[2]),q[2]];}),30,4,16,2,.85));
     // L'OREILLE, sous la corne
