@@ -3,6 +3,15 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA TRAÎNÉE 88 MILES À L'HEURE RETIRÉE (2026-10-18 soir, session RETRAIT-88MPH — Sacha : « 88 mph enlève ») — v668
+- « 88 MPH » = le nom anglais de la traînée **88 MILES À L'HEURE** (id `retour`, 140 000 $, épique) ; aucun autre objet ne porte ce nom.
+- Même méthode que MENTHE et PLUIE DE BLOCS (section ci-dessous) : sa ligne sort de `COSM.trainee`, son pictogramme `tr_88` de l'atlas, et
+  `HAB_RETIRES` reçoit `'trainee:retour' → {p:140000, n:'LA TRAÎNÉE 88 MILES À L'HEURE'}` (+ sa clé `I18N` : « THE 88 MPH TRAIL », pour le
+  message de remboursement en anglais). Les deux clés `I18N` de l'ancienne fiche (« 88 MILES À L'HEURE » → « 88 MPH » et sa description)
+  sortent aussi : plus rien ne les appelle. L'émetteur `TRX_EMET.retour` (les sillons de feu, `dbgTrx('retour')`) reste dans le code.
+- Qui l'avait achetée : 140 000 $ rendus au chargement par `SAVE.san` (le même toast que les caisses), l'id sort de `shop.own` ; qui la portait
+  repart avec NITRO. Aucune mission ne la donnait. Pour la remettre : rendre sa ligne de COSM (git) et ôter son entrée de HAB_RETIRES.
+
 ## MENTHE ET PLUIE DE BLOCS RETIRÉES, L'ARC-EN-CIEL DANS LE PACK DU CHAT (2026-10-18 soir, session PIXTRAIL — Sacha : « enlève la trainé minth » · « supprime block rain » · « la trainé rainbow doit etre incluse avec le pack nian cat »)
 - Les deux lignes sortent de `COSM.trainee` (et `tr_menthe` / `tr_blocs` de l'atlas de pictogrammes, `menthe` de `ILLU_COS.trainee`). La sauvegarde
   désigne un habillage par son id (`shop.own` = `cat:id`, `shop.eq[cat]` = id) : aucun index ne bouge, contrairement aux caisses.
