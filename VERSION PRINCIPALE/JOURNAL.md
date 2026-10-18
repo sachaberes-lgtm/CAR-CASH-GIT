@@ -3,6 +3,21 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## DEUX TRAÎNÉES CHANGENT DE RARETÉ : LA GRILLE ÉPIQUE, FOUDRE DIVINE LÉGENDAIRE (2026-10-18 soir, Sacha : « the grid doit être epic » · « divine ligthing doit etre legendaire ») — v670
+- THE GRID et DIVINE LIGHTNING sont les noms anglais de deux traînées : **LA GRILLE** (id `grille`, le mur de lumière des motos de néon) et
+  **FOUDRE DIVINE** (id `foudre`, les éclairs). Seuls objets du jeu de ces noms (les autres « grille » du code sont des grilles de calcul).
+- **LA GRILLE** : `r:'epique'` (elle était `legendaire`) et son **prix dans sa famille**, comme LA ZED et LA QUEUE DE CANARD (v651) :
+  350 000 → **200 000 $** — la tranche ÉPIQUE de `cosmRar` s'arrête sous 250 000 ; elle reste la plus chère des traînées épiques
+  et sous les légendaires (FAIS PLEUVOIR 500 000). Qui l'avait achetée la garde (rien n'est remboursé).
+- **FOUDRE DIVINE** : `r:'legendaire'` (elle était `mythique`). Elle se gagne toujours par sa mission (`mis2`) ; son prix `pk`
+  (450 000, celui de l'édition Poki) est déjà dans la tranche LÉGENDAIRE (250 000 – 900 000) : il ne bouge pas.
+- Ni id, ni effet, ni place dans la liste : le rayon TRAÎNÉES suit l'ordre de `COSM`, où LA GRILLE est déjà entre les épiques et les
+  légendaires, et FOUDRE DIVINE juste après FAIS PLEUVOIR, la dernière légendaire (plus aucune traînée MYTHIQUE).
+- Vérifié au banc muet (couché et debout) : rayon TRAÎNÉES de la boutique — HYPERESPACE et LA GRILLE en ÉPIQUE (violet, 200 000 $), puis
+  FAIS PLEUVOIR et FOUDRE DIVINE en LÉGENDAIRE (or, « MISSION ») ; 0 erreur JS ; fumée commune OK (couché + debout). Rebasée ensuite sur le
+  retrait de 88 MILES À L'HEURE, MENTHE et PLUIE DE BLOCS (v667-v668) : les deux fiches restent voisines dans `COSM.trainee`.
+
+
 ## LA TRAÎNÉE 88 MILES À L'HEURE RETIRÉE (2026-10-18 soir, session RETRAIT-88MPH — Sacha : « 88 mph enlève ») — v668
 - « 88 MPH » = le nom anglais de la traînée **88 MILES À L'HEURE** (id `retour`, 140 000 $, épique) ; aucun autre objet ne porte ce nom.
 - Même méthode que MENTHE et PLUIE DE BLOCS (section ci-dessous) : sa ligne sort de `COSM.trainee`, son pictogramme `tr_88` de l'atlas, et
