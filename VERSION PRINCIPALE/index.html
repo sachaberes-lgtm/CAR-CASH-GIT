@@ -15134,13 +15134,6 @@ function pgpTick(dt,t){
   if(frr>0&&t-P.frT>.35){P.frT=t;pgFrrr(frr);}
   P.imB.instanceMatrix.needsUpdate=P.imW.instanceMatrix.needsUpdate=true;P.imB.visible=P.imW.visible=P.n>0;
 }
-/* ⚠ PLUS AUCUN LOOPING (2026-09-28, Sacha : « enlève tous les loopings du jeu »). UN interrupteur, lu par les QUATRE endroits qui en
-   posaient : le motif « looping » de genCtrl (il devient le GRAND VIRAGE, comme en ville depuis le 26/09), la signature de fin des
-   zones VOLTIGE (une longue descente), le looping de l'auto-école / niveau 1 (genTuto : un grand plongeon), et le module LOOP
-   VERTICAL du Parc freestyle (retiré de la liste). Les pistes des NUAGES et de l'ORBITE changent donc à partir du 1er motif
-   concerné (tirages `rnd` différents) ; la VILLE (déjà sans looping) et les niveaux dessinés de la campagne ne bougent pas.
-   `false` = les loopings reviennent tels qu'avant. Le SNAKE LOOP (passer SOUS la route) est une figure, pas un looping : intact. */
-const SANS_LOOPING=true;
 /* ============================================================================
    LA ROUTE SANS HAUT NI BAS (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, il doit y avoir les
    nuages ou sinon le ciel partout, rien d'autre — pour faire ça il faut aussi changer la génération de la route pour qu'elle se torde, se
@@ -15329,9 +15322,6 @@ function genTuto(){
   const straight=(l,dy=0,n=2)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}};
   const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}};
-  const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
-    for(let k=1;k<=8;k++){const th=k*Math.PI/4;
-      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*(th-Math.sin(th))/(2*Math.PI),base.y+R*(1-Math.cos(th)),base.z+d.z*R*Math.sin(th)+sz*shift*(th-Math.sin(th))/(2*Math.PI));push();}};
   push();
   /* (2026-10-14, gameplay — relevé du banc, BACKLOG P3) LA LEÇON « TOURNE » TOMBAIT DANS LE VIRAGE : la carte paraît 1,9 s après le départ
      (fin du logo), à ~256 km/h, ~100 m avant la fin des 300 m de droite ; le 1er virage (R 190) sortait de la route ~3 s plus tard sans un
@@ -15347,8 +15337,7 @@ function genTuto(){
   straight(360,-24,3);          // 1re ligne droite en légère descente : « appuie sur NITRO »
   arc(-90,210,7);               // le grand virage grisant
   straight(420,0,4);            // on reprend de la vitesse…
-  if(SANS_LOOPING)straight(240,-80,4);                     // …LE GRAND PLONGEON (18°, l'ancien looping — voir SANS_LOOPING)
-  else{straight(60,-45);loop(42,36);straight(60,-42);}      // …LE LOOPING
+  straight(240,-80,4);          // …LE GRAND PLONGEON (18°)
   straight(380,0,3);            // la ligne droite de récompense : nitro à fond
   arc(55,170,5);arc(-55,170,5); // les esses, douces
   straight(300,20,3);
@@ -15599,7 +15588,7 @@ function genCtrl(rnd,startPos,startPhi){
   const level=0;
   const ctrl=[];
   GAPMARK.length=0; // les lèvres de tremplin de la zone précédente ne survivent pas à la nouvelle piste
-  let P=startPos.clone(),phi=startPhi,approx=0,lastLoop=-500;
+  let P=startPos.clone(),phi=startPhi,approx=0;
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
   const push=()=>ctrl.push(P.clone());
   push();
@@ -15612,15 +15601,6 @@ function genCtrl(rnd,startPos,startPhi){
   const courbe=(l,dy,aDeg,n)=>{const a=Math.max(4,Math.abs(aDeg)),s9=aDeg<0?-1:1;arc(s9*a,l/(a*Math.PI/180),n||2,dy);};
   // (2026-09-26, user : « enlève les loopings » dans la VILLE) : le niveau ville n'en a plus aucun (motif ET signature de fin)
   const sansLoop=typeof LVL!=='undefined'&&LVL.cur&&(LVL.cur.id==='ville'||LVL.cur.id==='paris'); // (Paris : on survole les toits, pas de looping)
-  const LOOPI=new Set(); // les points des loopings : l'adoucissement des crêtes n'y touche pas (le haut d'un loop EST une crête, voulue)
-  const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
-    for(let q=ctrl.length-2;q<ctrl.length+10;q++)LOOPI.add(q);
-    for(let k=1;k<=8;k++){const th=k*Math.PI/4;
-      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*(th-Math.sin(th))/(2*Math.PI),
-            base.y+R*(1-Math.cos(th)),
-            base.z+d.z*R*Math.sin(th)+sz*shift*(th-Math.sin(th))/(2*Math.PI));
-      push();}
-    approx+=2*Math.PI*R;};
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
   // LV : la vitesse de la caisse élargit TOUS les rayons (praticable même à 1500 km/h) et allonge les respirations.
   const ESPON=typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='espace'&&!(typeof PARK!=='undefined'&&PARK.on)&&!window.dbgEspOff; // (2026-09-30) L'AUTOROUTE ORBITALE (voir ESP_ROUTE) — `dbgEspOff=true` : l'ancien terrain, pour comparer au banc
@@ -15647,7 +15627,7 @@ function genCtrl(rnd,startPos,startPhi){
     {nm:'GRAND8', w:[4,0,7,18,8,24,6,6,8,14,1,0,0],    wv:[4,0,5,16,8,34,3,3,6,24,1,0,0],  rs:1,   vt:1}    // mixte équilibré
   ][Math.floor(rnd()*5)];
   zoneArch=AR.nm; // exporté pour les BIOMES
-  const RS=AR.rs*(NV_ON&&hautOn()?(40+.3*(70+(LV-1)*100))/61:LV)*1.25,VT=AR.vt,LOOPS=1+(LV-1)*.35; // (2026-10-18) sur la route TORDUE des nuages, les rayons suivent le rayon que la caisse tient au palier (40 + 0,3·v, passation/RACCOURCIS.md) au lieu de LV : LV grandissait plus vite que lui, au palier 12 plus aucun virage ne demandait le volant // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas // les loops grossissent doucement (un loop de 120 m reste un loop)
+  const RS=AR.rs*(NV_ON&&hautOn()?(40+.3*(70+(LV-1)*100))/61:LV)*1.25,VT=AR.vt; // (2026-10-18) sur la route TORDUE des nuages, les rayons suivent le rayon que la caisse tient au palier (40 + 0,3·v, passation/RACCOURCIS.md) au lieu de LV : LV grandissait plus vite que lui, au palier 12 plus aucun virage ne demandait le volant // ×1,25 (route v2) : des rayons plus larges — les courbes se prennent, elles ne se subissent pas
   const hand=rnd()<.33?-1:(rnd()<.5?0:1);        // LATÉRALITÉ : une piste qui spirale à gauche ne ressemble pas à une équilibrée
   const sgn=()=>rnd()<.5+hand*.22?1:-1;
   // ---- HUMEUR DE LA ZONE : deux FLOW ne doivent PAS se ressembler ----
@@ -15817,12 +15797,10 @@ function genCtrl(rnd,startPos,startPhi){
       modNext=approx+(1600+rf()*1000)*LV;continue;}
     const mo=(!MODON&&!MODT&&filN<filMax&&approx>filNext&&approx<LEN-2600*LV)?-7:pick(); // (2026-10-18) pas de filet sur la route tordue (MODT) : sa route d'en dessous n'est plus en dessous
     if(mo===-7){filet();filN++;filNext=approx+(1500+rf()*1300)*LV;} // LE VIRAGE À FILET (voir FILET)
-    else if(mo===0&&!sansLoop&&!SANS_LOOPING&&approx-lastLoop>1600){ // UN looping, de temps en temps (route v3 : 1,6 km mini entre deux, plus de doublé) — JAMAIS en ville, et plus nulle part (SANS_LOOPING)
-      straight(60+rnd()*50,-30);loop((30+rnd()*34)*LOOPS,30+rnd()*22);straight(60+rnd()*50,-30);lastLoop=approx;
-    }else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
+    else if(mo===9){ // (route v3b) LE GRAND BALAYAGE : un virage long et LARGE, 100-150°, qui descend doucement — on le prend à fond, on le SENT
       const sg=sgn(),R9=(ESPON?160+rnd()*160:110+rnd()*90)*RS,a9=Math.min(100+rnd()*60,(ESPON?64000:52000)/R9); // (2026-09-30) l'ESPACE a les rayons de la ville // (vague 3) plus LARGE en VILLE : R 160-320 (ailleurs 110-200)
       arc(sg*a9,R9,Math.max(5,Math.round(a9/14)),-(a9*Math.PI/180*R9*(.12+rnd()*.12)));
-    }else if(mo===0||mo===1||mo===11||mo===12){ // (route v3) looping trop proche du précédent — et les motifs retirés, par sûreté : un GRAND VIRAGE
+    }else if(mo===0||mo===1||mo===11||mo===12){ // (route v3) le motif looping et les motifs retirés : un GRAND VIRAGE
       const sg=sgn(),R2=(80+rnd()*120)*RS,a2=Math.min(45+rnd()*65,46000/R2);
       arc(sg*a2,R2,3,-(a2*Math.PI/180*R2*(.35+rnd()*.3)));
     }else if(mo===2){ // épingle OUVERTE — s'évase avec le niveau (praticable à toute vitesse)
@@ -15865,7 +15843,7 @@ function genCtrl(rnd,startPos,startPhi){
     straight(0,0,0);{const l9=(50+rnd()*40)*LV,a9=16+rnd()*20;arc(sgn()*a9,l9/(a9*Math.PI/180),4,-(8+rnd()*8)*LV);} // (route v3c) 16-36° : la liaison TOURNE // (piste v6/v7) la RESPIRATION est un virage de liaison (60-110 m, 8-22°, 4 points : 35 m sur 2 points faisait un coude)
   }
   // SIGNATURE DE FIN : chaque archétype clôt SA zone par SON geste — la zone se retient
-  if(AR.nm==='VOLTIGE'){if(!sansLoop&&!SANS_LOOPING&&approx-lastLoop>900){straight(60,-30);loop(34*LOOPS,34);straight(60,-30);}else straight(120,-30,2);} // (route v3) UN looping, plus le doublé — plus aucun depuis SANS_LOOPING
+  if(AR.nm==='VOLTIGE'){straight(120,-30,2);}
   else if(AR.nm==='ALPIN'){straight(90,-50);straight(80,26);gapRun(1);} // ALPIN se clôt SUR LE VIDE : arrivée surélevée, dernier engagement avant le portail
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
@@ -15873,9 +15851,9 @@ function genCtrl(rnd,startPos,startPhi){
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
    // (vague 3) en VILLE l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat (NUAGES et ORBITE : la pente d'avant, voir `wv`)
   if(sansLoop)adoucirPentes(ctrl,VILLE_PENTE); // (vague 3) la VILLE descend moins raide — AVANT les lissages, qui arrondissent le résultat
-  lisserRaccords(ctrl,LOOPI);   // (route v3b) plus de cassure de pente d'un motif à l'autre
+  lisserRaccords(ctrl,null);   // (route v3b) plus de cassure de pente d'un motif à l'autre
   if(ESPON)adoucirPentes(ctrl,ESP_ROUTE.pente); // (2026-09-30) l'ESPACE en houle : les pentes raides comprimées (AVANT les lissages)
-  adoucirCretes(ctrl,LOOPI,ESPON?ESP_ROUTE.cretes:1);    // plus de crête AVEUGLE (voir la fonction) — en ESPACE, arrondies 2,5× plus
+  adoucirCretes(ctrl,null,ESPON?ESP_ROUTE.cretes:1);    // plus de crête AVEUGLE (voir la fonction) — en ESPACE, arrondies 2,5× plus
   if(sansLoop&&LVL.cur.vitre&&VIT_SOL)vitreAplanir(ctrl); // (2026-10-18) LA VILLE VITRÉE AU SOL : la route ne descend plus, des ponts où elle se recroise (voir VIT_SOL)
   if(AMP!==1){const o=ctrl[0].clone(),vu=new Set(),zoom=function(v){if(v&&v.isVector3&&!vu.has(v)){vu.add(v);v.sub(o).multiplyScalar(AMP).add(o);}}; // LE ZOOM, autour du départ : mêmes formes, mêmes pentes, AMP fois plus grandes
     for(const c of ctrl)zoom(c);for(const g of GAPMARK)for(const k in g)zoom(g[k]);for(const f of FILETMARK)for(const k in f)zoom(f[k]);}
@@ -15931,18 +15909,11 @@ function genPark(rnd){
   const straight=(l,dy=0,n=1)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}approx+=Math.hypot(l,dy);};
   const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}approx+=Math.abs(a)*R;};
-  const loop=(R,shift)=>{const base=P.clone(),d=dir(),sx=Math.cos(phi),sz=-Math.sin(phi);
-    for(let k=1;k<=8;k++){const th=k*Math.PI/4;
-      P.set(base.x+d.x*R*Math.sin(th)+sx*shift*th/(2*Math.PI),
-            base.y+R*(1-Math.cos(th)),
-            base.z+d.z*R*Math.sin(th)+sz*shift*th/(2*Math.PI));
-      push();}approx+=2*Math.PI*R;};
   let sg=rnd()<.5?1:-1;               // latéralité courante — on ALTERNE souvent → le ruban reste dans la zone
   const flip=()=>{sg=-sg;};
   straight(210,-70,3);                // LARGAGE : tapis d'atterrissage pour l'intro, puis pente douce
   const modules=[
     ()=>{ arc(sg*(50+rnd()*70),175+rnd()*110,5,(rnd()*2-1)*46); flip(); },                        // GRAND SWEEPER : virage qui chante
-    ...(SANS_LOOPING?[]:[()=>{ straight(52+rnd()*28,-30); loop(44+rnd()*30,32+rnd()*24); straight(50+rnd()*28,-28); }]),  // LOOP VERTICAL — retiré de la liste (SANS_LOOPING)
     ()=>{ arc(sg*(300+rnd()*260),100+rnd()*65,12,-(70+rnd()*100)); flip(); },                      // HÉLICE / TIRE-BOUCHON : la route s'empile
     ()=>{ arc(sg*(360+rnd()*280),160+rnd()*80,14,(rnd()<.5?-1:1)*(80+rnd()*110)); flip(); },       // SPIRALE GÉANTE : monte OU descend (remplit la boule)
     ()=>{ straight(52+rnd()*26,-(14+rnd()*12)); straight(58+rnd()*26,24+rnd()*14); straight(66+rnd()*32,-(42+rnd()*34)); }, // VAGUES à sauter (airtime)
