@@ -17,8 +17,8 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
   `main` sans le burn-out (`git push --no-verify` pour passer outre). Vérifier à la main : `sh garde-burnout.sh`.
 - **LA GARDE DE LA CHARTE** (2026-10-14, Sacha) : `garde-charte.sh` (racine), appelée par `vercel-build.sh` juste après `garde-burnout.sh`. Elle refuse
   quand (a) le LOGO de l'accueil change (empreinte sha1 des lignes `.lg`/`.mTitle .lg`/balises `class="lg …"`, celui de `92cb2bb`), (b) la police pixel
-  disparaît (`--pix:'Press Start 2P'`, @font-face, woff2, ou moins de 90 % des emplois `var(--pix)` d'aujourd'hui), (c) la charte 6 redevient le
-  défaut (la ligne `if(/[?&]ui=6/` doit rester). `GARDE_CHARTE=0` la coupe. Changement VOULU du logo : `sh garde-charte.sh --empreinte`, puis mettre
+  disparaît (`--pix:'Press Start 2P'`, @font-face, woff2, ou moins de 90 % des emplois `var(--pix)` d'aujourd'hui) ; la charte 6 (noir et blanc) est retirée du code le
+  18/10 (allègement), son contrôle aussi. `GARDE_CHARTE=0` la coupe. Changement VOULU du logo : `sh garde-charte.sh --empreinte`, puis mettre
   `EMPREINTE_LOGO` à jour dans le même commit. Vérifier à la main : `sh garde-charte.sh`.
 
 ## LA VERSION DE RÉFÉRENCE (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — et qu'on soit à jour avec ça, sans tout casser, parce que la dernière fois ça a tout cassé »)
