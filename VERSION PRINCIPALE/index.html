@@ -54,12 +54,6 @@ if(/[?&]ui=6\b/.test(location.search))document.documentElement.classList.add('c6
 /* (14/10, retour Léo) le cadre UX 8 du GARAGE et de la BOUTIQUE est ÉTEINT par défaut : le garage et la boutique de Léo reviennent tels quels ; ?ux8g=1 le rallume pour comparer */
 if(/[?&]ux8g=1\b/.test(location.search))document.documentElement.classList.add('ux8g');
 const UX8G=document.documentElement.classList.contains('ux8g');
-/* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'ancienne édition Poki
-   vaut désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
-   et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
-   dépôt ; les sons de SYNTHÈSE (chœurs, cri stylisé du dauphin, intro 1.61) ne sont pas des voix : ils restent. `?voix=1` les rend. */
-const SANS_VOIX=!/[?&]voix=1\b/.test(location.search);
-if(SANS_VOIX)document.documentElement.classList.add('sansVoix');
 /* PLUS DE CARRIÈRE, POUR LA SORTIE (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » · « non,
    carrière c'est les niveaux, les missions c'est bien » · « on le fera dans des MAJ, donc garde-le dans le git quelque part ») : comme
    les voix, la carrière est COUPÉE, pas arrachée — aucune porte ne mène plus à elle (la carte CARRIÈRE de l'accueil, l'onglet du hub,
@@ -629,7 +623,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   .sndBtn:hover{background:rgba(15,60,100,.9)}
   .sndBtn.off{color:#5a6a78;border-color:#3a4a58;box-shadow:none;text-shadow:none;background:rgba(20,26,34,.85)}
   #sndBtn{right:150px}
-  #voxBtn{right:280px}
   #musBtn{right:410px}
   #speedo{position:absolute;bottom:210px;right:20px;text-align:right;min-width:150px}
   #minimap{position:absolute;bottom:20px;right:20px;width:176px;height:176px;border:2px solid #9aa0aa;border-radius:4px;background:rgba(18,18,24,.5);box-shadow:0 0 12px rgba(0,0,0,.25)}
@@ -1070,13 +1063,13 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
      (2026-09-05) : retour du user — « enlève la mini app, déplace tous les boutons du gameplay,
      par un petit logo réglages qui inclue tous les boutons qu'on vient de supprimer ». `#minimap`
      était déjà masquée côté mobile (l'écran nu, juste au-dessus) ; DESKTOP suit maintenant la même
-     route, ET les 4 boutons (`#resetBtn`/`#sndBtn`/`#voxBtn`/`#musBtn`) rejoignent le même sort — ils
+     route, ET les 3 boutons (`#resetBtn`/`#sndBtn`/`#musBtn`) rejoignent le même sort — ils
      ne DISPARAISSENT PAS du code (`sndBtnEl.click()` etc restent le point de vérité unique, voir
      `panOpen`/le panneau plus bas), ils deviennent juste invisibles PARTOUT : `#tGear`/`#tPanel`
      (déjà construit pour le mobile) est le SEUL point d'entrée visuel désormais, sur les deux
      plateformes. Un élément `display:none` répond toujours à `.click()` appelé depuis le JS — rien
      à changer côté logique, seulement côté vue. */
-  #minimap,#resetBtn,#sndBtn,#voxBtn,#musBtn{display:none!important}
+  #minimap,#resetBtn,#sndBtn,#musBtn{display:none!important}
   /* ------- LE BOUTON DE RÉGLAGES : un seul, en haut à droite, et son panneau — DESKTOP COMPRIS
      (2026-09-05) : gaté sur `body.play` (déjà synchronisé pour les DEUX plateformes par le tick de
      `setInterval` plus bas) plutôt que sur `body.touch` — ce N'ÉTAIT PAS un bouton tactile, c'était
@@ -1132,7 +1125,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     .sndBtn,#resetBtn{font-size:15px;padding:7px 9px;border-width:1px;line-height:1}
     #resetBtn{top:12px;right:10px}
     #sndBtn{top:12px;right:54px}
-    #voxBtn{top:12px;right:98px}
     #musBtn{top:12px;right:142px}
     /* feedbacks : plus petits pour ne pas barrer tout l'écran */
     #msg{font-size:15px}
@@ -7200,10 +7192,6 @@ html[data-reduced-motion="1"] body #garage#garage #gAct>#gJouer .mChev .pxi{anim
 #carr .carrNiv .carrSel{position:absolute;z-index:2;top:-8px;right:10px} /* à cheval sur le bord haut, comme la pastille NEW de la boutique : debout, la case est étroite et son numéro est centré */
 #carr .carrPied .carrSel{flex:none}
 </style>
-<style id="sansVoix">
-/* (2026-10-07, Sacha) plus de voix nulle part : les mêmes réglages disparaissent de la version principale (voir SANS_VOIX) */
-html.sansVoix [data-m="vox"],html.sansVoix #mVolRowVox,html.sansVoix [data-a="vox"],html.sansVoix #voxBtn,html.sansVoix [data-tg="voxBtn"],html.sansVoix #volRowVox,html.sansVoix #volLock{display:none!important}
-</style>
 <style id="uxPasse">
 /* LA PASSE UX/UI (2026-10-11, session GRAPHISME — Sacha : « la disposition des boutons dans chaque écran du jeu est super moche : mets-toi
    dans la peau d'un designer UX/UI senior et règle ça en regardant page par page » · « l'écran d'accueil c'est moche, et le garage est bof :
@@ -10511,7 +10499,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
   <div id="record"></div>
   <button id="resetBtn">⟲ <span class="blabel">RESET</span></button>
   <button id="sndBtn" class="sndBtn"><i class="pxi pxi-son" aria-hidden="true"></i> <span class="blabel">SON</span></button>
-  <button id="voxBtn" class="sndBtn"><i class="pxi pxi-voix" aria-hidden="true"></i> <span class="blabel">VOIX</span></button>
   <button id="musBtn" class="sndBtn"><i class="pxi pxi-musique" aria-hidden="true"></i> <span class="blabel">MUS</span></button>
   <div id="speedo" class="panel"><div id="speedVal">0</div><div id="speedUnit">km/h</div></div>
   <div id="cpInfo" class="panel">Prochaine voiture à <span id="cpDist"></span><div id="cpBar"><div id="cpFill"></div></div></div>
@@ -10776,8 +10763,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
             <div class="volRow" id="mVolRowSfx"><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100" aria-label="Volume du son"><b class="volV" id="mVolSfxV">100%</b></div>
             <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
             <div class="volRow" id="mVolRowMus"><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62" aria-label="Volume de la musique"><b class="volV" id="mVolMusV">62%</b></div>
-            <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
-            <div class="volRow" id="mVolRowVox"><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100" aria-label="Volume des voix"><b class="volV" id="mVolVoxV">100%</b></div>
             <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
           </div>
           <div class="mSec oSauv">SAUVEGARDE</div>
@@ -10823,12 +10808,9 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
-    <div class="setRow" data-tg="voxBtn"><span>Voix de l'annonceur</span><b id="tgVox">ON</b></div>
     <div class="setSec">Volumes</div>
     <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">62%</b></div><input type="range" class="volS" id="volMus" min="0" max="100" step="5" value="62"></div>
     <div class="setRow volRow" id="volRowSfx"><div class="volHd"><span data-fr="Effets et moteur">Effets et moteur</span><b id="volSfxV">100%</b></div><input type="range" class="volS" id="volSfx" min="0" max="100" step="5" value="100"></div>
-    <div class="setRow volRow" id="volRowVox"><div class="volHd"><span data-fr="Voix">Voix</span><b id="volVoxV">100%</b></div><input type="range" class="volS" id="volVox" min="0" max="100" step="5" value="100"></div>
-    <div class="volNote" id="volLock" style="display:none" data-fr="Sur iPhone, le volume de la voix est verrouillé par le système.">Sur iPhone, le volume de la voix est verrouillé par le système.</div>
     <div class="setSec">Commandes</div>
     <div class="setKeys" id="setKb">
       <span><i data-fr="Z Q S D">Z Q S D</i> / <i><i class="pxi pxi-gauche" aria-hidden="true"></i><i class="pxi pxi-haut" aria-hidden="true"></i><i class="pxi pxi-bas" aria-hidden="true"></i><i class="pxi pxi-droite" aria-hidden="true"></i></i></span><span>conduire · piloter en vol</span>
@@ -10872,7 +10854,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
     <div class="tpPanel">
     <div class="tp ligne" data-a="snd"><i class="pxi pxi-son" aria-hidden="true"></i> SON</div>
     <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
-    <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
     <div class="tp ligne" data-a="volh"><i class="pxi pxi-aile" aria-hidden="true"></i> POUCE HAUT EN VOL</div><!-- (2026-09-30, R7-5) ce réglage n'agit qu'en VOL : c'est en pleine partie qu'on découvre qu'on préfère l'autre sens -->
     <div class="tp ligne" data-a="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i> FIGURES</div><!-- (2026-10-15, Léo) la FIGURE : 2 TAPS ou GLISSER — en pleine partie, c'est là qu'on l'essaie -->
@@ -10911,7 +10892,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
    dessinée à la main, convertie UNE fois en SVG et posée en MASQUE CSS : elle prend la couleur de son
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
-const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',horloge:'..#####..|.#..#..#.|#...#...#|#...#...#|#...###.#|#.......#|#.......#|.#.....#.|..#####..',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
+const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',horloge:'..#####..|.#..#..#.|#...#...#|#...#...#|#...###.#|#.......#|#.......#|.#.....#.|..#####..',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 PXI_G.reglages='....###....|.##.###.##.|.#########.|..#######..|####...####|####...####|####...####|..#######..|.#########.|.##.###.##.|....###....'; // (2026-10-15, Sacha : « fais un truc qui ressemble vraiment à un engrenage ») l'ancien 9 × 9 lisait un SOLEIL (huit rayons d'un pixel) ; un rouage, ce sont des DENTS carrées séparées par des creux et un MOYEU percé — il faut 11 × 11 pour que les trois tiennent
 PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#...#|#.......#|#########'; // (2026-10-05) le COFFRE : l'inventaire (le coffre de la caisse)
 PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
@@ -40609,7 +40590,7 @@ function frenDeclenche(){
   // (×3, 2026-09-29) passé la 1re de la session (la règle des trois traits), le sous-titre dit TOUJOURS ce que ça paie — et le record à battre à côté
   const cash9='CASH ×'+fmtMul(flowMult());
   slam('FRÉNÉSIE !',!FREN.vu?'TIENS LES TROIS TRAITS':rc9?cash9+' · '+TR('RECORD')+' '+frenDuree(rc9):cash9,FLOW_COL[4],'#ffb000',44,2,22);FREN.vu=true;flashEcran('rgba(255,42,61,.6)');
-  try{annSpeak('frenesie',5,true);}catch(e){} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
+  try{annSpeak('frenesie');}catch(e){} // (2026-09-28, Sacha : « ça doit déclencher la voix TRIPLE MONSTRE quand la frénésie est atteinte ») — à chaque fois, hors règle du 1/3 ; l'interrupteur VOIX reste maître
   try{frenMus(true);}catch(e){} // …et SON morceau tombe (THE DARK TRIAD — voir MUSIC_FREN)
   flowPunch();
   hap([20,40,20,40,40]);try{flowSnd(4);}catch(e){}
@@ -45292,10 +45273,10 @@ function boomDetone(){ // (2026-10-15) LA DÉTONATION — tout de suite (vide, a
   /* (2026-09-28) PENDANT L'AUTO-ÉCOLE, un crash n'est qu'un RATÉ (endGame replace la caisse) : ni la voix « EARLY DEAD » — qui se
      présentait là pour la toute 1re fois, à un joueur qui n'est même pas mort —, ni le son de mort. L'explosion et le « RATÉ » du coach suffisent. */
   /* (2026-09-30) « EARLY DEAD » NE SE MOQUE PLUS À CONTRETEMPS : elle tombait sur la toute 1re mort de chaque joueur (`first:1` : la voix
-     se présente à sa 1re occurrence), sur une partie que l'écran de mort allait couronner « NOUVEAU RECORD ! », et en mode FACILE (le
-     public jeune). Elle se tait donc à la 1re partie, sur un record (partieRecord) et en FACILE — où le « ewww » est écarté aussi. */
-  const fac9=facOn(),tx9=engTier<23&&!TUTO.on&&!fac9&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0&&!partieRecord()?annSpeak('earlyDead',6):null; // (2026-09-26, audit son) la VOIX d'abord : si elle parle, le tirage du son de mort écarte le « ewww »
-  if(!TUTO.on)deathSound(!!ANN.playing||fac9); // …et LE SON DE MORT, tiré au sort — il tombe sur l'image de l'explosion, pas après
+     se présente à sa 1re occurrence), sur une partie que l'écran de mort allait couronner « NOUVEAU RECORD ! ». Elle se tait donc à la 1re
+     partie et sur un record (partieRecord). */
+  const tx9=engTier<23&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0&&!partieRecord()?annSpeak('earlyDead'):null;
+  if(!TUTO.on)deathSound(); // LE SON DE MORT, tiré au sort — il tombe sur l'image de l'explosion, pas après
   if(tx9)trickMsg(tx9,3); // mort avant le haut de l'échelle — indexé sur le MOTEUR (le niveau de caisse n'est plus une progression mais un choix de garage)
   carGroup.visible=false;shadow.position.y=-99999;landMark.visible=false;
   const spec=CARS[level];
@@ -46071,8 +46052,7 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
    ⚠ `VOL` est un MULTIPLICATEUR sur des niveaux déjà accordés, jamais un remplacement : à 100 %
    chaque famille retrouve exactement le mixage d'origine, et un curseur à fond ne peut donc pas
    faire hurler le jeu. */
-const VOL={mus:.62,sfx:1,vox:1};
-const ANN_MUS_DUCK=.88; // la voix parle → la bande-son recule à peine (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique » — c'était .34, −9 dB, la musique semblait s'arrêter à chaque pose)
+const VOL={mus:.62,sfx:1};
 const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
 /* (2026-10-14, session SON) SUR IPHONE, LES EFFETS NE RECULENT PLUS SOUS LA MUSIQUE. Le −3 dB de `SFX_SOUS_MUS` a été réglé à l'ordi, où la
    musique joue à `musVol()` × .62-1 (−4 à −8 dB sous son fichier). Sur iPhone le volume d'un <audio> est en lecture seule : la musique y sort
@@ -46764,16 +46744,15 @@ function musicTick(dt,mvt){
      ⚠ ET LES DEUX BRANCHES SONT GARDÉES PAR `musicMode` : le fondu de fin (`musicStop`) pose
      `musicMode='none'` AVANT de rampiller vers zéro — sans cette garde, la
      boucle réécrirait le gain à chaque image et le fondu ne descendrait jamais. */
-  const mDuck=(typeof ANN!=='undefined'&&ANN&&ANN.duck)?ANN_MUS_DUCK:1;
   // v4 : le VOLUME de l'élément fait tout (iOS l'ignore — le son y joue à plein, c'est le bouton du téléphone qui règle)
   try{distTick(dt);}catch(e){}
-  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
+  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
   if(window.POUCE_JEU&&POUCE_JEU.joue()){ /* (15/10) POUCE BLEU : son niveau = celui qu'aurait la radio (le curseur, le souffle du mouvement, l'annonceur), le moteur du jeu le pilote ; la musique coupée l'éteint */
     if(!SND.music)POUCE_JEU.fin(false);
     else{const fr9=musicMode==='run'&&!!FRENM.sw; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient */
-      const b9=VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62)*mDuck;
+      const b9=VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62);
       POUCE_JEU.niveau(fr9?0:b9*pbjPlancher(dt,b9,PBJ_FORCE||(musicMode==='run'&&running?engTier+1:1))); /* (2026-10-16) LE PLANCHER DU DÉPART (pbjPlancher) */if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||engTier+1);if(!fr9)musicVolCible=0;}}}
-  else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
+  else if(musicMode==='menu'){musicVolCible=musVol()*.5;                   // le menu : en fond
     if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
   {const bq9=!BQ_MUSIQUE&&musicMode==='menu'&&typeof GBQ!=='undefined'&&!!GBQ.veut; /* (2026-10-16, Sacha) la musique SUIT en boutique : ce silence ne vaut plus qu'avec ?boutique=muette (voir BQ_MUSIQUE) */ /* (2026-10-13, Léo, dans la boutique : « le sound design est terrifiant, change ou enlève ») LA BOUTIQUE SE TAIT : la musique du
@@ -47697,7 +47676,7 @@ function sonSlide(etat,k){
     if(Math.abs(k-SLDS.k)>.02){SLDS.k=k;SLDS.h.gain(sldDb(k),.08);SLDS.h.rate(sldRate(k),.08);}return;}
   if(etat==='fin'){const eu=!!SLDS.h,k0=SLDS.k;sonSlideStop(.06);if(eu)sfx('fig.slide.fin',{vol:-8+5*Math.min(1,k0),rate:.85+.3*Math.min(1,k0)});}
 }
-/* ---- LES VOIX ET LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
+/* ---- LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
    ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
    réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;
    les sons de mort et le WOW pareil. Quand la page est SERVIE (http, https, capacitor — pas en file://, où fetch est refusé), chaque
@@ -47705,7 +47684,6 @@ function sonSlide(etat,k){
    curseur EFFETS. Tant qu'un fichier n'est pas décodé (ou s'il échoue), le chemin HTMLAudio d'origine joue, intact.
    Les voix sont aussi RAMENÉES À LA MÊME SONIE (mesuré : −7,8 à −10,4 LUFS, early_dead −15,1) : cible −10, early_dead −12. */
 const WA_BUF={};
-const VOIX_NORM={'monstre.mp3':.4,'double_monstre.mp3':-.6,'triple_monstre.mp3':-2.2,'meteor.mp3':-1.5,'mega_meteor.mp3':-.4,'snake_loop.mp3':.2,'pure_speed.mp3':-.9,'launch400.mp3':-1,'early_dead.mp3':3.1};
 function waCharge(url){
   if(WA_BUF[url]!==undefined)return;WA_BUF[url]=null;
   if(location.protocol==='file:'||!AC||typeof fetch!=='function')return;
@@ -47713,26 +47691,8 @@ function waCharge(url){
     .then(function(ab){return new Promise(function(ok,ko){const p=AC.decodeAudioData(ab,ok,ko);if(p&&p.then)p.then(ok,ko);});})
     .then(function(b){WA_BUF[url]=b;}).catch(function(){delete WA_BUF[url];});}catch(e){delete WA_BUF[url];}
 }
-function waPrecharge(){try{if(!SANS_VOIX){for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);waCharge(FX_DIR+FX_WOW.f);}for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);}catch(e){}} // (SANS_VOIX) ni annonceur ni « WOW » : pas livrés
-function voixWA(e,prio){ // l'annonceur en WebAudio : voix + doublure démon (tierce dessous) + échos d'or 162/324 ms — même recette que les 4 <audio>
-  const u9=ANN_DIR+e.f,b=WA_BUF[u9];if(!b){try{waCharge(u9);}catch(x){}return false;}if(!AC||AC.state!=='running')return false;
-  try{
-    const V=VOL.vox*Math.pow(10,(VOIX_NORM[e.f]||0)/20),t0=AC.currentTime,els=[];
-    const joue=function(rate,vol,ms){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;
-      s.connect(g);g.connect(MASTER&&MASTER._limIn||AC.destination);s.start(t0+ms/1000);
-      els.push({pause:function(){try{g.gain.cancelScheduledValues(AC.currentTime);g.gain.setTargetAtTime(0,AC.currentTime,.02);s.stop(AC.currentTime+.12);}catch(x){}}});return s;};
-    const main=joue(ANN_RATE,ANN_VOICE_VOL*V,0);
-    joue(ANN_DEMON_RATE,ANN_DEMON_VOL*V,25);joue(ANN_RATE,.15*V,ANN_ECHO1);joue(ANN_RATE,.06*V,ANN_ECHO2);
-    ANN.playing={els:els,prio:prio};ANN.duck=true;
-    setTimeout(function(){if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}},7000);
-    main.onended=function(){
-      if(!(ANN.playing&&ANN.playing.els===els))return;
-      ANN.playing=null;ANN.duck=false;
-      if(ANN.queue&&performance.now()-ANN.queue.at<1800){const q=ANN.queue;ANN.queue=null;annSpeak(q.key,q.prio,true);}else ANN.queue=null;};
-    return true;
-  }catch(x){return false;}
-}
-function sampleWA(url,v,max,liste){ // un sample (mort, WOW) en WebAudio : même niveau que l'<audio> d'origine (sortie directe × curseur EFFETS), fondu de 450 ms
+function waPrecharge(){try{for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);}catch(e){}}
+function sampleWA(url,v,max,liste){ // un sample (mort, argent) en WebAudio : même niveau que l'<audio> d'origine (sortie directe × curseur EFFETS), fondu de 450 ms
   const b=WA_BUF[url];if(!b){try{waCharge(url);}catch(x){}return false;}if(!AC||AC.state!=='running'||!MASTER||!MASTER._vol)return false;
   try{const t0=AC.currentTime,s=AC.createBufferSource(),g=AC.createGain(),fin=t0+Math.min(max,b.duration);
     s.buffer=b;g.gain.setValueAtTime(v,t0);g.gain.setValueAtTime(v,Math.max(t0,fin-.45));g.gain.linearRampToValueAtTime(0,fin);
@@ -48559,46 +48519,9 @@ function boomSnd(){ // explosion : souffle + sub + crépitement
 }
 // (musique supprimée — ambiance moteur/vent uniquement)
 
-// ---------- ANNOUNCER : voix épiques façon Mortal Kombat (assets/audio/announcer/) ----------
-// Effet vocal « à la 1.61 » : voix légèrement ralentie/graves renforcés + DOUBLURE DÉMON pitchée
-// une tierce en dessous + ÉCHOS D'OR calés sur φ (161,8 ms puis 323,6 ms) — l'arène répond en nombre d'or.
-// Fichier manquant/illisible → flag dead, silence total, JAMAIS de plantage. Le texte s'affiche quand même.
-const ANN_DIR='assets/audio/announcer/';
-// LA RÈGLE : chaque condition (donnée par le TITRE du fichier) déclenche sa voix 1 fois sur 3.
-// Renforcement à ratio variable : dans chaque paquet de 3 déclenchements, la voix tombe UNE fois,
-// à une place tirée au sort — imprévisible mais garanti. Les répliques épiques (first:1) sortent
-// dès leur toute première occurrence : on présente la voix, ensuite elle se mérite.
-const ANN_RATE=.94,ANN_DEMON_RATE=.80,ANN_DEMON_VOL=.26,ANN_ECHO1=162,ANN_ECHO2=324,
-      ANN_DUCK=.5,ANN_VOICE_VOL=.42; // volume dompté : la voix impressionne sans écraser le mix
-const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurrence, puis se mérite (1/3)
-  m1:        {f:'monstre.mp3',       txt:'MONSTRE',cd:2500,first:1},         // figure simple à l'atterrissage
-  m2:        {f:'double_monstre.mp3',txt:'DOUBLE MONSTRE',cd:2500,first:1},  // gros multiplicateur
-  m3:        {f:'triple_monstre.mp3',txt:'TRIPLE MONSTRE',cd:2500,first:1},  // multiplicateur monstrueux
-  meteor:    {f:'meteor.mp3',        txt:'METEOR',cd:2500,first:1},          // impact en pleine poussée nitro (>1 s)
-  megaMeteor:{f:'mega_meteor.mp3',   txt:'MEGA METEOR',cd:2500,first:1},     // >5 s de réacteur dans la chute
-  snakeLoop: {f:'snake_loop.mp3',    txt:'SNAKE LOOP',cd:2500,first:1},      // passé SOUS la route, reposé face de départ (voir tryLand)
-  pureSpeed: {f:'pure_speed.mp3',    txt:'PURE SPEED',cd:6000,first:1},      // >3 s de nitro au sol à +400 km/h
-  launch400: {f:'launch400.mp3',     txt:null,cd:6000,first:1},              // éjecté à +400 km/h
-  earlyDead: {f:'early_dead.mp3',    txt:'EARLY DEAD',first:1},              // explose avant le top 5 (level<9)
-  frenesie:  {f:'triple_monstre.mp3',txt:'TRIPLE MONSTRE',cd:2500,first:1},  // (2026-09-28, Sacha) la FRÉNÉSIE atteinte — À CHAQUE FOIS (forcée, voir flowAdd) ; sa propre entrée : elle ne vole pas le tirage des vrais TRIPLE MONSTRE
-};
-/* (POKI, 2026-10-05, Sacha : « enlève toutes les voix de cette version ») : l'édition Poki n'a PLUS AUCUNE VOIX — l'annonceur naît `dead`
-   (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts et le « WOW » des combos sont retirés plus
-   bas, l'interrupteur VOIX disparaît des réglages. Les sons de SYNTHÈSE (chœurs,
-   cri stylisé du dauphin) ne sont pas des voix : ils restent. */
-for(const k in ANN_LIB){const e=ANN_LIB[k];e.dead=SANS_VOIX;e.cool=0;e.n=0;e.slot=e.first?0:Math.floor(Math.random()*3);}
-const ANN={playing:null,queue:null,duck:false};
-function annRoll(e){ // « 1 sur 3 » : dans chaque paquet de 3 déclenchements, UNE voix, place aléatoire
-  if(e.n>0&&e.n%3===0)e.slot=Math.floor(Math.random()*3);
-  const hit=(e.n%3)===e.slot;
-  e.n++;
-  return hit;
-}
-function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix part sans latence
-  if(!SANS_VOIX)try{for(const k in ANN_LIB){const a=new Audio(ANN_DIR+ANN_LIB[k].f);a.preload='auto';a.load();}}catch(e){} // (SANS_VOIX) pas de voix
-  deathPreload(); // …et les sons de mort avec elles : une mort qui arrive en retard ne fait pas rire
-  fxPreload();    // …et les samples d'evenement : un « WOW » en retard tombe sur le combo suivant
-}
+// ---------- LES MOTS DE L'ANNONCEUR : le texte s'affiche (2026-10-07 : plus aucune voix, les fichiers audio ne sont plus joués) ----------
+const ANN_TXT={m1:'MONSTRE',m2:'DOUBLE MONSTRE',m3:'TRIPLE MONSTRE',earlyDead:'EARLY DEAD',frenesie:'TRIPLE MONSTRE'}; // m1/m2/m3 : les verdicts de pose · frenesie : la FRÉNÉSIE atteinte · earlyDead : explose avant le top 5
+function annSpeak(key){return ANN_TXT[key]||null;}
 /* ---------- LES SONS DE MORT — un au hasard quand la caisse explose (2026-08-11) ----------
    Quatre samples, tirés au sort à chaque explosion. Le sel, c'est le mélange des registres : deux
    explosions, une réaction de dégoût, un gong. On ne sait jamais lequel tombe, et c'est ça la blague.
@@ -48620,10 +48543,8 @@ const DEATH_DIR='assets/audio/death/';
 const DEATH_LIB=[
   {f:'minecraft.m4a', v:.68, max:2.6},  // boum pixelisé (synthèse — placeholder)
   {f:'explosion.m4a', v:.95, max:4.5},  // déflagration (synthèse — placeholder)
-  {f:'eww.m4a',       v:.95, max:2.3, voix:1},  // « ewwwww » (voix TTS — placeholder) · `voix` : écarté quand l'annonceur parle
   {f:'gong.m4a',      v:.72, max:3.6}   // gong (synthèse — placeholder)
 ];
-if(SANS_VOIX)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (SANS_VOIX) pas de voix : le « ewww » part, les trois sons de synthèse restent
 let deathLast=-1,deathEls=[];
 function deathPreload(){
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
@@ -48639,7 +48560,6 @@ function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se c
    en trois minutes. Deux garde-fous, donc : un SEUIL (il faut mériter le son) et une PÉRIODE
    RÉFRACTAIRE (même mérité, il ne repart pas tout de suite). Le silence est ce qui lui rend sa valeur. */
 const FX_DIR='assets/audio/fx/';
-const FX_WOW={f:'wow.mp3',v:.80,max:2.2,dead:SANS_VOIX}; // (SANS_VOIX) pas de voix : le « WOW » se tait (fxPlay sort sur `dead`)
 /* ⚠ PAS DE VOIX ICI (2026-08-18). Les répliques parlées — « shut up and take my money », le
    « fight money » de Balrog, le medic de TF2, « loads of money » — ont été retirées : une phrase
    se reconnaît, donc elle s'use, et sur un jeu où l'argent tombe toutes les dix secondes elle finit
@@ -48655,10 +48575,10 @@ const FX_ARGENT=[
   {f:'compteuse.mp3', v:.7,max:2.6},  // la machine à compter
   {f:'compteur.mp3',  v:.7,max:2.8}   // le compteur à billets
 ];
-let fxEls=[],fxArgLast=-1,fxWowCd=0,fxArgCd=0;
+let fxEls=[],fxArgLast=-1,fxArgCd=0;
 function fxStop(){for(const a of fxEls){try{a.pause();}catch(e){}}fxEls.length=0;}
 function fxPreload(){try{
-  const t=(SANS_VOIX?[]:[FX_WOW]).concat(FX_ARGENT); // (SANS_VOIX) le « WOW » n'est pas livré
+  const t=FX_ARGENT;
   for(const d of t){const a=new Audio(FX_DIR+d.f);a.preload='auto';a.load();}
 }catch(e){}}
 function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui mange l'événement suivant
@@ -48681,12 +48601,6 @@ function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui m
     if(t>lim-fade)a.volume=Math.max(0,d.v*sfxVol()*(lim-t)/fade);
   },50);
 }
-/* LE « WOW » — réservé aux combos qui le méritent. Seuil à 5 maillons (en dessous, ce n'est pas un
-   exploit) et 12 s de réfractaire : sur une belle série on l'entend une fois, pas six. */
-function fxWow(combo){
-  if(combo<5||fxWowCd>0)return;
-  fxWowCd=12;fxPlay(FX_WOW);
-}
 /* L'ARGENT — tirage sans doublon consécutif (même règle que les morts : un doublon ne se lit pas
    comme du hasard mais comme un bug) et 6 s de réfractaire, parce que l'argent tombe souvent. */
 function fxArgent(force){
@@ -48699,15 +48613,13 @@ function fxArgent(force){
   fxArgLast=i;fxPlay(FX_ARGENT[i]);
 }
 function fxTick(dt){ // les réfractaires s'égrènent — hors gate de sim, sinon ils gèlent en pause
-  if(fxWowCd>0)fxWowCd=Math.max(0,fxWowCd-dt);
   if(fxArgCd>0)fxArgCd=Math.max(0,fxArgCd-dt);
 }
-function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de seconde voix (le « ewww ») par-dessus
+function deathSound(){
   if(!SND.sfx)return;
   const n=DEATH_LIB.length;
   let i=Math.floor(Math.random()*n);
   if(n>1&&i===deathLast)i=(i+1+Math.floor(Math.random()*(n-1)))%n; // le tirage évite le dernier joué
-  if(sansVoix&&DEATH_LIB[i].voix){i=(i+1)%n;if(i===deathLast)i=(i+1)%n;}
   deathLast=i;
   const d=DEATH_LIB[i];
   if(d.dead)return;                       // fichier absent : on ne réessaie pas, et surtout on ne plante pas
@@ -48729,64 +48641,8 @@ function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de
 // ⚠ iOS : `volume` est en LECTURE SEULE sur HTMLAudio. Sans ce test, les trois doublures se jouent
 // toutes à plein volume : au lieu d'une voix habillée, un MUR de quatre voix. Mieux vaut la voix nue.
 const VOL_LOCKED=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
-function annPlayLayers(e,prio){
-  if(voixWA(e,prio))return; // (console de son) la voix décodée passe par WebAudio : son habillage et son curseur, iPhone compris
-  const els=[];
-  const mk=function(rate,vol,delay){
-    let a;try{a=new Audio(ANN_DIR+e.f);}catch(err){e.dead=true;return null;}
-    try{a.preservesPitch=false;a.webkitPreservesPitch=false;a.mozPreservesPitch=false;}catch(err){}
-    a.playbackRate=rate;a.volume=vol;
-    a.addEventListener('error',function(){e.dead=true;if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}});
-    if(delay>0)setTimeout(function(){if(ANN.playing&&ANN.playing.els===els){try{a.play().catch(function(){});}catch(err){}}},delay);
-    else{try{a.play().catch(function(er){if(er&&er.name==='NotSupportedError')e.dead=true;if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}});}catch(err){e.dead=true;}}
-    els.push(a);return a;
-  };
-  /* ⚠ LE CURSEUR MULTIPLIE LES QUATRE COUCHES D'UN SEUL COUP, jamais la principale toute seule :
-     la doublure démon et les deux échos d'or sont ce qui HABILLE la voix. Ne baisser que la voix
-     principale rapprocherait les échos d'elle jusqu'à l'enterrer sous son propre écho. */
-  const V=VOL.vox;
-  const main=mk(ANN_RATE,ANN_VOICE_VOL*V,0); // voix principale, à peine ralentie → plus massive
-  if(!main)return;
-  if(!VOL_LOCKED){ // pas de mixage possible (iOS) → pas de couches : une voix nue vaut mieux qu'un mur
-    mk(ANN_DEMON_RATE,ANN_DEMON_VOL*V,25);  // DOUBLURE DÉMON : colle à la voix, une tierce plus bas
-    mk(ANN_RATE,.15*V,ANN_ECHO1);           // ÉCHO D'OR n°1 : 161,8 ms = φ — la signature 1.61
-    mk(ANN_RATE,.06*V,ANN_ECHO2);           // ÉCHO D'OR n°2 : 2φ — l'arène répond
-  }
-  ANN.playing={els:els,prio:prio};ANN.duck=true;
-  // (2026-09-26) iOS peut METTRE EN PAUSE la voix (appel, retour d'appli) sans jamais émettre `ended` : le mix restait creusé et
-  // la file des voix bloquée jusqu'à la partie suivante. La pause libère aussi, et un filet de 7 s rattrape tout le reste.
-  const libere=function(){if(ANN.playing&&ANN.playing.els===els){ANN.playing=null;ANN.duck=false;}};
-  main.addEventListener('pause',libere);setTimeout(libere,7000);
-  main.addEventListener('ended',function(){
-    ANN.playing=null;ANN.duck=false;
-    if(ANN.queue&&performance.now()-ANN.queue.at<1800){const q=ANN.queue;ANN.queue=null;annSpeak(q.key,q.prio,true);}
-    else ANN.queue=null;
-  });
-}
-function annSpeak(key,prio,forced){ // renvoie TOUJOURS le texte à afficher (voix ou pas)
-  const e=ANN_LIB[key];
-  if(!e)return null;
-  if(!SND.voice)return e.txt; // VOIX coupée : le texte s'affiche, le tirage n'est pas consommé
-  if(e.dead)return e.txt;
-  const now=performance.now();
-  if(now<e.cool)return e.txt;           // anti-doublon rapproché (ne consomme PAS le tirage)
-  if(!forced&&!annRoll(e))return e.txt; // LA règle : la voix tombe 1 déclenchement sur 3
-  if(ANN.playing){
-    if(prio>ANN.playing.prio){                // un plus gros trick COUPE la parole (façon MK)
-      for(const a of ANN.playing.els){try{a.pause();}catch(err){}}
-      ANN.playing=null;
-    }else{ANN.queue={key:key,prio:prio,at:now};return e.txt;} // sinon file d'attente (1 place)
-  }
-  e.cool=now+(e.cd||2500);
-  annPlayLayers(e,prio);
-  return e.txt;
-}
-function annStop(){
-  if(ANN.playing){for(const a of ANN.playing.els){try{a.pause();}catch(err){}}ANN.playing=null;}
-  ANN.queue=null;ANN.duck=false;
-}
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
-const SND={sfx:true,voice:true,music:true,vib:true};
+const SND={sfx:true,music:true,vib:true};
 /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo ; interrupteur ?jour=0 » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road ») LE RETOUR DU JOUR ET LE CADEAU — UN SEUL barème (le modèle : outils/jour-modele.cjs, dont les constantes sont LUES ici).
    LE PRINCIPE : une partie moyenne (R, ~175 $ avant le relèvement du début) sert d'étalon. Le QUOTIDIEN est le gros rendez-vous (~1 R par jour, plus la série : jusqu'à 0,6 R), le CADEAU le petit (~0,25 R, une ou deux fois par jour), ECOD reste le relèvement du début : rien ne le double.
    1. LE ×2 DU JOUR — le jour = la date LOCALE de l'appareil ('AAAA-MM-JJ'). La 1re partie COMPTÉE de ce jour paie ×2 sur l'argent de COURSE : même robinet que ECOD (denom() × ECOD.k), donc ECOD.k = MAX(relèvement du début, ×2) et JAMAIS leur produit
@@ -49179,8 +49035,8 @@ Object.assign(I18N,{'EST PARTIE':'IS GONE','SONT PARTIES':'ARE GONE','REMBOURSÉ
 if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
   try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'SONT PARTIES':'EST PARTIE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
-SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
-VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
+SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
+VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;
 /* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
    doit se réactiver dans les réglages ») LA MUSIQUE REVIENT APRÈS UNE LONGUE ABSENCE. Au lancement et au retour d'arrière-plan : si la
    dernière visite (`SAVE.d.vu`, posée au départ en arrière-plan — le flush du départ l'écrit) date de plus de MUS_RETOUR_H heures et que
@@ -49205,7 +49061,7 @@ musRetour(true);
 document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE.d.vu=Date.now();SAVE.mark();}else musRetour(false);}); // départ : le flush de l'arrière-plan (plus bas) l'écrit
 window.dbgMusRetour=function(simH){ // (banc) l'état ; dbgMusRetour(26) simule un retour d'arrière-plan après 26 h d'absence
   if(simH>0){SAVE.d.vu=Date.now()-simH*36e5;musRetour(false);}
-  return {vu:SAVE.d.vu,mus:SND.music,vol:VOL.mus,sfx:VOL.sfx,vox:VOL.vox,n:MUSRET.n,dernier:MUSRET.dernier,test:MUS_RETOUR_TEST,mode:musicMode,voulue:musicVoulue};};
+  return {vu:SAVE.d.vu,mus:SND.music,vol:VOL.mus,sfx:VOL.sfx,n:MUSRET.n,dernier:MUSRET.dernier,test:MUS_RETOUR_TEST,mode:musicMode,voulue:musicVoulue};};
 /* ---- LES CURSEURS : appliquer au graphe · repeindre les deux interfaces · retenir --------------
    ⚠ `volApply` ne touche QUE ce qui n'est pas déjà repiloté chaque image. La musique en course est
    réécrite par `musicTick` à chaque frame (filtre-mouvement + ducking) : y poser une valeur ici
@@ -49225,9 +49081,6 @@ function volUI(){ // les deux écrans de réglages affichent le MÊME état — 
   };
   set('volMus','volMusV','volRowMus',VOL.mus,SND.music); set('mVolMus','mVolMusV','mVolRowMus',VOL.mus,SND.music);
   set('volSfx','volSfxV','volRowSfx',VOL.sfx,SND.sfx);   set('mVolSfx','mVolSfxV','mVolRowSfx',VOL.sfx,SND.sfx);
-  set('volVox','volVoxV','volRowVox',VOL.vox,SND.voice); set('mVolVox','mVolVoxV','mVolRowVox',VOL.vox,SND.voice);
-  // iOS verrouille `HTMLAudio.volume` : le dire plutôt que laisser croire à un curseur mort
-  const nt=document.getElementById('volLock');if(nt)nt.style.display=VOL_LOCKED?'':'none';
 }
 function volSet(k,pc){
   VOL[k]=Math.min(1,Math.max(0,pc/100));
@@ -49276,8 +49129,8 @@ window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait 
     e.addEventListener('click',function(ev){ev.stopPropagation();}); // ⚠ sinon le clic remonte à la ligne .setRow et rouvre/bascule autre chose
     e.addEventListener('pointerdown',function(ev){ev.stopPropagation();});
   };
-  bind('volMus','mus');bind('volSfx','sfx');bind('volVox','vox');
-  bind('mVolMus','mus');bind('mVolSfx','sfx');bind('mVolVox','vox');
+  bind('volMus','mus');bind('volSfx','sfx');
+  bind('mVolMus','mus');bind('mVolSfx','sfx');
 })();
 // ÉTAL : on recharge les réglages boost/fréquence par-dessus les valeurs d'usine
 // ⚠ indexés par NOM, pas par position : changer la liste des fruits ne doit PAS coller les réglages
@@ -49285,18 +49138,15 @@ window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait 
 (function(){const fr=SAVE.d.fruits;if(!fr||!fr.length)return;
   for(const d of FRUIT_DEFS){const e=fr.find(z=>z.n===d.n);if(e){d.boost=e.b;d.freq=e.f;}}})();
 function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({n:f.n,b:f.boost,f:f.freq}));SAVE.flush();}
-const sndBtnEl=document.getElementById('sndBtn'),voxBtnEl=document.getElementById('voxBtn'),musBtnEl=document.getElementById('musBtn');
+const sndBtnEl=document.getElementById('sndBtn'),musBtnEl=document.getElementById('musBtn');
 function sndRefresh(){
   sndBtnEl.innerHTML=pxi(SND.sfx?'son':'muet')+' <span class="blabel">'+TR('SON')+'</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile ; TR() sinon le libellé revient au français à chaque bascule, même en anglais
-  voxBtnEl.innerHTML=pxi('voix')+' <span class="blabel">'+TR('VOIX')+'</span>';voxBtnEl.classList.toggle('off',!SND.voice);
   if(musBtnEl){musBtnEl.innerHTML=pxi('musique')+' <span class="blabel">'+TR('MUS')+'</span>';musBtnEl.classList.toggle('off',!SND.music);} // ⚠ plus de « LVL 1 » (radio à morceau unique par niveau supprimée) : ce libellé est RECONSTRUIT à chaque bascule
   try{if(AC){if(musGraphe())musWaSon();else if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} /* (2026-10-14, session SON) musique branchée : SON ne suspend plus le contexte, il ferme l'entrée des effets (musWaSon) */ // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
-  if(!SND.voice)annStop();
-  if(!SND.sfx){deathStop();fxStop();if(ANN.playing&&ANN.playing.els[0]&&!(ANN.playing.els[0] instanceof HTMLMediaElement))annStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
+  if(!SND.sfx){deathStop();fxStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
 }
 sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
-voxBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.voice=!SND.voice;SAVE.d.vox=SND.voice;SAVE.flush();sndRefresh();});
 function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh(); // (2026-10-14, session SON) LA bascule MUSIQUE : le bouton et le retour d'une longue absence (musRetour) passent par elle
   musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend
   if(SND.music){ if(started&&running&&!gameOver){if(paused&&pbjRegne())MUSREP.att=true;else musicStartRun(false,true);} else musicMenu(); } // rallumée : relance selon le contexte — (2026-10-15) en course c'est le MÊME morceau qui revient (reprise), et dans la pause il attend la reprise (MUSREP)
@@ -53508,7 +53358,6 @@ function tryLand(dt){
       flowAdd(extreme?20:12,'risque'); // (FLOW v2) le geste le plus tendu du jeu : on a joué avec la mort — la triade adore
       if(TCTL.on)popTexte(extreme?'AU CHEVEU !!':'ARRACHÉE !','#ff5ec8',3); // (2026-09-25) le geste le plus tendu du jeu se LIT aussi sur téléphone
       trickMsg(TR(extreme?'⏱ AU CHEVEU —':'⏱ À L\'ARRACHÉE —')+' '+decFr(reste,2)+' s'+(extreme?(LANG==='fr'?' !!':'!!'):''),3);
-      if(extreme){hitT=.10;shake=Math.max(shake,.5);try{fxWow(9);}catch(e){}} // le WOW est mérité : on a joué avec la mort
       sparkBurst(sparkGold,carGroup.position,extreme?30:16,14);
     }
   }
@@ -53562,8 +53411,8 @@ function tryLand(dt){
       // ---- ANNOUNCER : la réplique la plus RARE l'emporte (chacune tombe 1 fois sur 3) ----
       const q=qG; // (vague 3) la valeur du GESTE, pas celle du dollar (voir qG)
       let vKey=q>=140?'m3':(q>=45?'m2':'m1');
-      let vTier=q>=140?3:(q>=45?2:1),vPrio=vTier;
-      const vTxt=annSpeak(vKey,vPrio)||'MONSTRE';
+      let vTier=q>=140?3:(q>=45?2:1);
+      const vTxt=annSpeak(vKey)||'MONSTRE';
       trickMsg(gTxt+vTxt,vTier); // (2026-09-29) plus de « +$ » : la figure paie en aura (la chaîne le dit)
       // LES FIGURES RAPPORTENT DES PIÈCES : une belle chaîne fait progresser le MOTEUR, pas seulement
       // le portefeuille. 2 pièces pour une figure honnête, jusqu'à ~18 pour un enchaînement monstrueux.
@@ -54027,7 +53876,7 @@ function resetGame(){
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
-  rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
+  rampCd=0;deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit(); // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
   VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe();if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
@@ -54219,7 +54068,7 @@ function start(){
   // boutons SON/MUSIQUE/VOIX (qui n'agissent que sur le `AC` COURANT) — un son qui ne s'éteint
   // jamais, quoi qu'on coche. `if(!AC)` est le même garde déjà posé sur `playMusic`/`musicStartRun`.
   if(!AC){try{initAudio();}catch(e){}}
-  annPreload(); // les voix sont prêtes avant le premier trick
+  deathPreload();fxPreload(); // les sons de mort et d'argent sont prêts avant le premier trick
   overlay.style.display='none';
   running=true;
   paintMoney(); // la mise de départ et la bonne devise, tout de suite
@@ -56805,7 +56654,7 @@ function rebuildMenuScene(){
 function accueilRetour(){try{m2Menu();}catch(e){} /* (2026-10-16) LES MISSIONS v2 : retour au menu, la série des REJOUER repart */
   if(!(started&&gameOver)||MENUV.retour)return;
   MENUV.retour=true;
-  clearBoom();try{deathStop();annStop();}catch(e){}
+  clearBoom();try{deathStop();}catch(e){}
   survMenage();SURV.on=false;survHudEl.style.display='none';lastAlertEl.style.display='none';
   CARR.actif=null;runStats.zones=0; // JOUER, de l'accueil, lance la course libre (la CARRIÈRE a sa porte)
   SF.pret=false;SF.tirage=[]; // (2026-10-13) le menu reprend SA piste et SON ciel (NIVEAUX[0]) : le prochain JOUER tirera la sienne
@@ -62266,7 +62115,7 @@ window.dbgGarObj=function(){return GAR;}; // banc (2026-10-14, passe graphismes 
 const setEl=$('settings');
 function setRefresh(){
   const put=(id,on)=>{const b=$(id);if(b){b.textContent=on?'ON':'OFF';b.className=on?'':'off';}};
-  put('tgSnd',SND.sfx);put('tgMus',SND.music);put('tgVox',SND.voice);
+  put('tgSnd',SND.sfx);put('tgMus',SND.music);
   const lg=$('tgLang');if(lg){lg.textContent=LANG.toUpperCase();lg.className='';}
   volUI();
 }
@@ -66143,7 +65992,7 @@ function loop(now){
     if(AC){
       const spd3=speedKmh;
       if(duckT>0)duckT=Math.max(0,duckT-dt*2.6); // les gros événements creusent le mix, puis il respire
-      const dk=(1-.5*duckT)*(ANN.duck?ANN_DUCK:1);
+      const dk=(1-.5*duckT);
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
       /* (2026-10-14, session SON) LA TENSION DU VOL (voir SVOL) : en l'air elle vise 85 % à 2,5 s de vol + 6 % par geste (30 % au plus),
          plafonnée à 1, et y monte en douceur (taux 2,6/s) ; hors du vol elle retombe (taux 5/s ≈ 0,2 s). Rien d'aléatoire : du lisse. */
@@ -67017,7 +66866,7 @@ function togglePause(){ if(!started||gameOver)return;
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx||musGraphe())AC.resume();} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
-  if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
+  if(paused){fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
@@ -67353,7 +67202,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(g)e.style.display=((g==='run')===run)?'':'none'; // « LA PARTIE » n'existe qu'en jeu
       if(a==='close')e.innerHTML=run?tpLbl('lecture','REPRENDRE'):tpLbl('croix','FERMER');
       else if(a==='snd')e.innerHTML=tpLbl(SND.sfx?'son':'muet','SON',SND.sfx?'ON':'OFF',SND.sfx);
-      else if(a==='vox')e.innerHTML=tpLbl('voix','VOIX',SND.voice?'ON':'OFF',SND.voice);
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
       else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
@@ -67399,7 +67247,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const a=el.getAttribute('data-a');
     if(a==='close')panOpen(false,true);
     else if(a==='snd'){clic(sndBtnEl);panSync();}
-    else if(a==='vox'){clic(voxBtnEl);panSync();}
     else if(a==='mus'){clic(musBtnEl);panSync();}
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=false;
@@ -67424,7 +67271,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
             else{ecranWipe(function(){if(started&&!gameOver){carrIci();resetGame();}});
               if(r9&&r9.then&&SONV2)r9.then(function(){try{if(ecranWipe._on)sfx('ui.volet');}catch(e){}},function(){});} } }; // le son du volet, perdu sur le contexte encore endormi, part au réveil
         f9(); }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
-    uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh'||a==='figg')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
+    uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh'||a==='figg')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   /* (2026-10-14, chasse aux bugs) LE ⏸ AU DEUXIÈME DOIGT. Un doigt qui tape ⏸ pendant qu'un autre TIENT le volant ou la NITRO ne produit AUCUN `click`
      (le navigateur n'en synthétise pas pour un toucher secondaire en multi-touch — Chrome comme Safari iOS) : impossible de mettre en pause sans lâcher la
@@ -67723,7 +67570,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvSnd',SND.sfx?'ON':'OFF',SND.sfx);
       {const i9=$t('mvSnd');const x9=i9&&i9.parentNode.querySelector('.pxi');if(x9)x9.className='pxi pxi-'+(SND.sfx?'son':'muet');} // (2026-09-28) le même haut-parleur que la pause : barré quand le son est coupé
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
-      sv('mvVox',SND.voice?'ON':'OFF',SND.voice);
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvFacile',SAVE.d.facile?'ON':'OFF',!!SAVE.d.facile);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
@@ -67742,7 +67588,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='play'||a==='replay')return 'jouer'; // (2026-10-16, Sacha) le bruit de MOTEUR (ui.jouer)
     if(a==='back'||a==='menu')return 'retour';
     if(a==='mus')return SND.music?'off':'on';
-    if(a==='vox')return SND.voice?'off':'on';
     if(a==='vib')return SND.vib?'off':'on';
     if(a==='facile')return SAVE.d.facile?'off':'on';
     if(a==='volh'||a==='figg')return 'onglet';
@@ -67808,7 +67653,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
     else if(a==='snd'){ clic(sndBtnEl); uiClic(SND.sfx?'on':'off'); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
-    else if(a==='vox'){ clic(voxBtnEl); mFill(); }
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='facile'&&!SANS_FACILE){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
@@ -67953,7 +67797,6 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
       if(g)e.style.display=((g==='run')===run)?'':'none';
       if(a==='close')e.innerHTML=run?tpLbl('lecture','REPRENDRE'):tpLbl('croix','FERMER');
       else if(a==='snd')e.innerHTML=tpLbl(SND.sfx?'son':'muet','SON',SND.sfx?'ON':'OFF',SND.sfx);
-      else if(a==='vox')e.innerHTML=tpLbl('voix','VOIX',SND.voice?'ON':'OFF',SND.voice);
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
       else if(a==='volh'||a==='figg')e.style.display='none'; /* (2026-10-15 : FIGURES aussi — une touche ne glisse pas) (R7-5) au clavier ce réglage ne change rien (volSens ne touche que le pouce) : pas de ligne qui ment */
@@ -67971,7 +67814,6 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     const a=el.getAttribute('data-a');
     if(a==='close')dPanOpen(false);
     else if(a==='snd'){dClic(sndBtnEl);dPanSync();}
-    else if(a==='vox'){dClic(voxBtnEl);dPanSync();}
     else if(a==='mus'){dClic(musBtnEl);dPanSync();}
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q==='fast'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
