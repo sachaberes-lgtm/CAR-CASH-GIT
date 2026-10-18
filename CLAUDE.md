@@ -75,9 +75,9 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
     JADE direct (le JOUER de Léo du 12/10) = `?play=jade`. Détail : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` dans `index.html`.
   · (2026-10-17, Sacha) LES LUMIÈRES DE LA CAISSE v2 : la nuit, les phares projettent un vrai faisceau sur la route, les feux arrière, le feu du nitro, la
     flamme du moteur et les traînées éclairent le bitume (sous la pluie, chaque feu s'y étire en traînée), la lueur des feux allume la poupe et la lunette ;
-    calculé dans le shader de la route, sans lumière three de plus. `?sans=lumieres` = avant. Détail : `VERSION PRINCIPALE/JOURNAL.md`.
+    calculé dans le shader de la route, sans lumière three de plus. (l'interrupteur `?sans=lumieres` est retiré depuis le 18/10.) Détail : `VERSION PRINCIPALE/JOURNAL.md`.
   · (2026-10-16, Sacha) LA VILLE EST TOUJOURS LA NUIT : plus de ville de jour au JOUER ; la map de base (la pluie au néon) en quatre TEINTES tirées au
-    hasard (violet = la base, vert, jaune, bleu) et quatre temps (pluie, nuit, brouillard, orage). `?sans=villenuit` = avant. Détail : `VERSION PRINCIPALE/JOURNAL.md`.
+    hasard (violet = la base, vert, jaune, bleu) et quatre temps (pluie, nuit, brouillard, orage). (`?sans=villenuit` et les villes de jour sont retirés depuis le 18/10.) Détail : `VERSION PRINCIPALE/JOURNAL.md`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
