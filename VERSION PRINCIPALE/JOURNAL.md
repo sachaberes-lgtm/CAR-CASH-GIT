@@ -3,6 +3,98 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA CHAUMIÈRE RETROUVE SES MURS — fbBoite EN DOUBLE, L'ALERTE « RADIUS IS NaN » (2026-10-18, débogage : « trouver l'origine de l'alerte computeBoundingSphere NaN au passage canyon → forêt bâti par le pré-bâti »)
+- **La cause** : deux `function fbBoite` dans la même portée (l'IIFE du jeu). Celle de la CHAUMIÈRE (14/10, `fbBoite(K,x0,y0,z0,x1,y1,z1,col,part,ytop)` :
+  par ses coins) et celle des ABEILLES (17/10, `fbBoite(K,c,sz,col,part)` : par son centre et sa taille). Deux déclarations du même nom : la
+  DERNIÈRE gagne, sans erreur. Depuis le 17/10, `foretChaumiereGeo` appelait celle des abeilles avec des nombres (`c[0]`, `sz[0]` = undefined) :
+  les 1 056 sommets de ses 44 boîtes (murs, colombages, fenêtres, géraniums, porte, cheminée) en NaN ; seuls les cinq pans du toit (posés à la
+  main, `pan`) restaient : un toit seul, posé dans l'herbe. Three le disait une fois par session : « THREE.BufferGeometry.computeBoundingSphere():
+  Computed radius is NaN » (dans `fbGeo`, la géométrie est gardée dans `FORET.geoChaum`).
+- **Ce n'était pas le pré-bâti** : la même alerte avec `?prebati=0`, et dès un départ direct en forêt (`?carte=foret`) — toute forêt bâtie.
+  Le pré-bâti la faisait seulement apparaître pendant la course vers le portail (le décor de la forêt s'y bâtit d'avance).
+- **Le correctif** : celle des abeilles devient `abeBoite` (sa déclaration et ses dix appels, dans `foretAbeilles`) ; la chaumière retrouve
+  la sienne. Rien d'autre ne change : les abeilles sont les mêmes au sommet près.
+- **Mesuré** (banc Chrome sans fenêtre muet ; crochets sur `BufferGeometry.computeBoundingSphere` et `Frustum.intersectsObject` pour nommer la
+  géométrie et son maillage) : passage canyon soir → forêt nuit, AVANT 1 alerte (pré-bâti et `?prebati=0`), APRÈS 0 ; programmes 212 → 212.
+  Revérifié couché, debout, cadre de l'ordi à la souris (plaque CONFIRM, JOUER, puis un portail vers la forêt nuit bâti d'avance) : 0 alerte,
+  0 exception, programmes 210 au menu = 210 en course = 210 en forêt. Gardes du burn-out et de la charte : OK.
+- **Le filet** : un balayage de TOUT `index.html` (acorn : les déclarations de fonction d'une même portée) ne trouve plus aucun doublon — c'était le seul.
+- **À voir par Léo/Sacha** : la chaumière (le dessin de Sacha du 14/10) réapparaît en entier dans la forêt — murs de pierre et d'enduit,
+  colombages, fenêtres qui luisent la nuit, cheminée. Planche : `photos-gameplay/chaumiere-nan-avant-apres.png` (même graine, même place).
+
+## LA PERLE — LE REFLET DU PARE-BRISE SANS CASSURE (2026-10-18, Léo : « petit bug de reflet au niveau du bas de la vitre avant… je parlais de la vitre avant tout simplement » — le pare-brise)
+- **Le défaut** : au bas du pare-brise (et au pied du montant avant, sur la vitre de porte), le reflet du ciel CASSAIT en diagonale — un
+  « V » blanc à bord net au studio du garage. La normale lissée de la serre (`lisse`, sous 32°) se calcule PAR COIN de triangle, chacun
+  avec les voisins proches de SA facette : là où la tôle se vrille, deux triangles voisins ne choisissaient pas les mêmes voisins, donc pas
+  la même normale. ⚠ L'outil de vue le montre à peine : le ciel du studio du jeu le révèle (et `MeshNormalMaterial`).
+- **Corrigé** (`peintPlan`, « LE REFLET DES VITRES SANS CASSURE ») : en chaque POINT de la tôle, les facettes qui s'y touchent sont réunies
+  en GROUPES (moins de 35° de proche en proche) ; chaque groupe a UNE normale, partagée par tous ses triangles. Appliqué au verre et au
+  noir brillant de la serre. Plus de cassure, et l'arête capot / pare-brise reste nette (une moyenne simple par point y faisait un liseré
+  clair). La forme ne bouge pas ; 0 NaN ; studio et courses sans erreur. Planche : photos-gameplay/perle-reflet-parebrise-avant-apres.png.
+
+## LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE (2026-10-18, Léo : « trouver un moyen d'avoir le même rendu, mais avec moins de RAM — je n'ai pas essayé si ça RAM ou pas »)
+- MESURÉ d'abord (`dbgRamNuages()` : octets des tampons et textures des nuages au GPU, uniques, + copies JavaScript ; banc `ram.py`) : avec les cubes
+  fantômes 105 Mo au GPU + 105 Mo de copies JS (sans eux 17 + 16). Chaque cube était écrit 4 fois (un sommet par coin, 240 octets) et tout restait en double.
+- `NUF_TEX` (WebGL2 ; `?fant=attr` = l'ancien chemin) : un cube = 3 texels RGBA en DEMI-PRÉCISION (24 octets : place + taille, normale + voile,
+  modelé + teinte) dans UNE texture par gabarit (`nuFantGeo`, `THREE.DataUtils.toHalfFloat`) ; le sommet retrouve son cube et son coin par
+  `gl_VertexID` (`nuFantVS(tex)`) ; UN tampon d'indices pour tous (`nufIdx`, 10 920 carrés) ; une matière par gabarit, même programme (`nufMat`).
+  ⚠ Le tampon d'indices partagé ne doit JAMAIS être détruit : un nuage seul qui disparaît passe par `nufJette` (index détaché, texture et matière jetées).
+  Sans attribut de position three ne calcule pas la sphère englobante : elle est posée à la main.
+- Le CORPS rentré PARTAGE normales, modelé et indices de la surface v8 (seules ses positions sont à lui) — au passage, le corps des nuages seuls
+  (bancs, coussins, tours) n'est plus décalé deux fois vers le bas (la v8 était déjà à sa place).
+- `nuLibre(attr)` : la copie JavaScript d'un tampon est jetée une fois envoyée au GPU (`onUpload`), pour toutes les surfaces de nuage (`cotonBuf`)
+  et les fantômes ; la texture jette la sienne (`onUpdate`). ⚠ Ne plus lire `geometry.attributes.*.array` d'un nuage après son premier rendu.
+- RÉSULTAT (même piste, `?pistegraine=777`) : GPU 105 → 23 Mo, JS 105 → 14 Mo (le reste = des finesses pas encore dessinées) ; image identique
+  (écart moyen 0,7/255 : l'animation qui respire n'était pas au même instant) ; même temps d'image ; 0 programme compilé en course.
+  Nouveau paramètre de banc : `?pistegraine=n` (la même piste à chaque chargement, pour comparer deux versions au pixel).
+
+## LA PERLE — LES TRAITS DANS LA TÔLE, EN FACETTES, LE RIDEAU D'AIR CREUSÉ, LE PHARE REFAIT (2026-10-18, Léo, en quatre temps : « la vitre en dessous du phare un peu chelou » · « plus de gris chelou, mais qu'on voie chaque partie : les traits définissent des parties » · « check sur internet c'est quoi le composant (un truc noir non identifiable) ; s'il existe des modèles sans, enlève ; plus aucun bout pointu ; rends-la poly en gardant le résultat » · « voilà où tu as le plus de mal, le phare : ça doit être beau » · « le truc noir c'est un trou, c'est creux »)
+- **LES TRAITS DANS LA TÔLE** (`peintPlan`, `LGN`, `RLF`) : plus de rubans gris posés dessus. Les lignes du plan COUPENT la tôle : un JOINT
+  (portières, capot, malle, pare-chocs) = un fin interstice sombre (`PAL.J`) dont les bords penchent vers lui ; un PLI = une arête de
+  lumière (les normales s'écartent du trait), seulement sur les grands panneaux vus de face (sinon mosaïque sur la hanche et le nez).
+  Une ligne est taillée dans TOUTES les vues qui regardent assez la tôle (morceaux en barycentres) : plus de joints en pointillés là où
+  la vue dominante changeait d'un triangle à l'autre. Restent en décalcomanie les lignes de couleur (feux, LED…).
+- **EN FACETTES** (`PERLE_LISSE=false`) : la carrosserie a ses facettes plates comme toute la gamme (une tranche tous les 15 cm ; à
+  7,5 cm elle se rayait) ; vitres et noirs gardent un reflet lisse (`lisseN`), les décalcomanies aussi (`lisseDecal`, 70°). La forme ne
+  bouge pas. `PERLE_LISSE=true` rend la laque lissée du 16/10.
+- **LE RIDEAU D'AIR** (« air curtain » de Porsche, sur TOUTES les Taycan — le restylage 2024 le sépare seulement du phare) : le noir sous
+  le phare est une OUVERTURE ; l'air y entre, longe la roue avant et ressort derrière elle. Découpé dans la tôle (`PLAN.zf`, préparé au
+  banc par plan_phares.py), bas arrondi en U, une ailette en travers, et CREUSÉ : la tôle s'enfonce de 7 cm le long de sa normale
+  lissée (`creux`, fonction de la seule position : aucun jour entre les morceaux). La PAROI est hors éclairage (matière 'l') : gris
+  anthracite à la lèvre, noir du fond en descendant. ⚠ Éclairée, toute surface vue en rasant prend le liseré de contre-jour du garage
+  (lavande) QUELLE QUE SOIT sa couleur : le trou se lisait comme une poche couleur carrosserie (Léo) ; brillante, elle renvoyait le ciel
+  en zigzags. Juger une matière AU STUDIO DU JEU, pas seulement dans l'outil de vue.
+- **LE PHARE** (photos Wikimedia de la vraie + presse Porsche) : un œil en goutte cerclé de NOIR BRILLANT (9 mm), VERRE FUMÉ, la signature
+  « quatre points » (quatre lames de LED plates et larges, `W`) autour d'une optique ronde cerclée de chrome ; la pointe intérieure
+  émoussée (une aiguille dans le plan). Il remplace le plein de verre bleu, l'anneau blanc gribouillé (`W` du plan) et le cerne gris.
+  Le CLIGNOTANT latéral est une pilule ambre sur l'aile (trait 176 vu de côté) — dessiné de face, il s'étirait en « 7 » sur l'aile.
+  ⚠ Le phare vu de CÔTÉ (traits 181/180) ne tombe pas au même endroit de notre tôle que celui de face : raccordés, marches et
+  languettes — une zone = UNE vue, elle se referme sur son contour ; et ces contours de côté sont retirés des PLIS (« )) » clairs).
+- **Le reste** : le nez à la largeur du plan vu de dessus (il était jusqu'à 20 cm trop carré aux coins), le bandeau des feux taillé dans
+  la tôle (`PLAN.feux` : autocollant, il se fendait au coin), la pointe des vitres sans tranches serrées (elles faisaient des éclats).
+- Mesuré : 33 100 triangles (comme avant), découpe ~0,1 s faite au préchargement (`perleTraits`, gardée sur `SHAPES.perle._tole`),
+  zéro NaN, studio et course (couché, debout, plein écran) sans erreur. Outils et méthode : ~/Downloads/CAR-bancs/plan-voiture
+  (LISEZMOI.txt). Planches : photos-gameplay/perle-pieces-, perle-rideau-poly-, perle-phare-, perle-rideau-creux-, perle-creux-noir-avant-apres.png.
+
+## LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES (2026-10-18, Léo, après LES NUAGES EN VITRAIL : « essaie en mode vitrail » → « plus visible » → « mais pas comme Minecraft ; triche pour une sorte de réalisme ; fais le peintre » → « travaille le fond comme pour le menu, là c'est un peu bleu ; sois un peintre réaliste expressionniste et designer digital » → « pas mal le fond du matin » → « les cubes encore plus minuscules, encore plus fantomatiques, pour vraiment construire de nouveaux nuages ; joue sur les teintes comme un peintre » → « éparpille mieux les cubes » → oui)
+- LE DOSAGE PAR DÉFAUT devient `fantome` (`NV_DOSES` ; `?nuvit=moyen` = la v612, `?nuvit=peintre` = les touches irrégulières de l'essai, `?sans=nuvit`).
+  Ni écailles ni peau : l'ouvrier (`nuage8Calc`, `opt.fant`/`opt.fsz`) tire 8 000 cubes par gabarit AU HASARD sur la surface v8 (triangle choisi
+  selon son aire, point dedans — plus un paquet par sommet : une grille faisait des rangées), en grappes légères (bruit de densité, plancher .55 ;
+  à .18 de grandes trouées lisses montraient le corps), les deux tiers DEDANS (jusqu'à 7,5 tailles), le reste en VAPEUR dehors (jusqu'à 6 tailles,
+  plus rare, plus légère), tailles .35-1,6 × ext/110, un peu de désordre en 3D, tirés dans le désordre (le lot lointain en dessine 40 % :
+  `NUVIT.loin`, drawRange sur les mêmes tampons). Chaque cube = un carré face à l'objectif (`nuFantVS/FS`, `nuFantGeo`), à demi transparent,
+  éclairé par la lumière v8 (`n8lum`), qui respire ; TEINTE DE PEINTRE par cube (crème ou rose au soleil, lavande ou bleu ciel à l'ombre) ;
+  biseau léger. Le CORPS v8 est rentré de 3 tailles (sinon il cachait les cubes du dedans). Tout près (cube trop gros à l'écran) : la v8.
+  Bancs/coussins/tours (`mkCloud`) : les cubes en enfant, le maillage devient le corps rentré. MESURÉ : triangles ×2, +0 à 3 ms/image sur le
+  Mac (bruité), 0 programme compilé en course (2 de plus au menu).
+- LE FOND PEINT (`NUFOND_V`, `?sans=nufond`, `NU_FOND`, `nuFondTick` dans la boucle, `dbgNuFond(0|1,probe)`) : en course sur la mer de nuages,
+  la couche peinte du MENU (`cielTitre`, `uTi`…) allumée avec SA palette matin/midi/soir (zénith rabattu lilas, horizon pêche-crème, lueur et
+  rayons du soleil, cirrus), apparition en 0,7 s ; la brume des biomes = l'horizon peint ; sat/con rabattus (1,04/1,14 au matin et à midi : le
+  bleu électrique venait aussi de l'étalonnage). La NUIT garde son clair de lune (la couche la noircissait), pluie et orage leur ciel. 0 compilé.
+- Bancs (scratchpad de la session) : `banc.py` (KS=0,1,2,3 plusieurs états, SEEDRAND = Math.random figé pour la même piste), `dbgNuVue('nuageN',a,d)`
+  (le N-ième plus grand nuage en portrait), `perfnuv.py`, `cpcarte.py` (cartes postales). ⚠ En pause le jeu ne redessine pas : un crochet A/B rend lui-même.
+  Planches photos-gameplay/nuages-peintre-, fond-nuages-peint-, nuages-fantomes-, nuages-eparpilles-avant-apres.png.
+
 ## LA VILLE VITRÉE AU SOL — SOUS DES GÉANTES (2026-10-18, Léo : « parfois je vois des formes de ville dans le ciel à l'envers, enlève s'il en reste dans le main ; et la vitrée je la trouve pas assez différente — celle-là on reste au sol, effet Shanghai vu d'en bas, mais sur des trucs immenses » ; questionnaire : vues DANS la ville vitrée · la route descend aussi au pied des tours)
 - LA VILLE À L'ENVERS, MESURÉE : la route de la ville descend en SPIRALE (5,7 km de chute sur 16,7 km). D'un étage du bas, les tours bâties autour
   des étages du haut PENDAIENT dans le ciel, leur pied fondu dans le bleu (capture : la ville éclatée au-dessus de la tête). La ville au sol l'enlève
