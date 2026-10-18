@@ -374,7 +374,8 @@ se voient que là), la course (`dbgEquipe(i)`), le garage du jeu (la salle blanc
 **D'après un plan coté** (une vraie voiture) : la tôle CONSTRUITE sur les courbes du plan et les vitres DÉCOUPÉES le long de ses contours
 (`peintPlan`), contrôlées au banc des écarts → « LA PERLE AU PLAN » au journal.
 ⚠ Jamais retirer ni insérer une ligne au milieu de `CARS`/`CAR_UNLOCK` : la sauvegarde désigne les caisses par leur INDEX.
-Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
+Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs), puis réduire la fiche à `{retire:1,name:'…'}` : le nom suffit
+(index des sauvegardes, mission qui la donne, message de remboursement) ; en la remettant dans le jeu, retaper sa fiche (git) et son prix dans `CAR_UNLOCK`.
 
 **Ajouter un obstacle qui tue** (« L'IMPACT » au journal) : son test `xxxHeurt(p)` PUR (vrai dans l'obstacle), puis dans la chaîne de vol
 `impPrep(xxxHeurt,cause,marge);explode(cause);` — `marge` = de combien le test déborde de la vraie paroi. Rien d'autre : la même animation
