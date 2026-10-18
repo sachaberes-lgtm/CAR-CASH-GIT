@@ -70,25 +70,12 @@ if(SANS_CARRIERE)document.documentElement.classList.add('sansCarr');
    l'écran MISSIONS et de la boutique (étape 3, 16/10) ; `?missions=v1` rend les carnets. Voir « LES MISSIONS v2 » au journal. */
 const MISSIONS_V2=!/[?&]missions=v1\b/.test(location.search); // (2026-10-16) la v2 est le DÉFAUT depuis la livraison de l'écran et de la boutique
 if(MISSIONS_V2)document.documentElement.classList.add('misV2');
-/* PLUS DE SNAKE LOOP, DE DAUPHIN, DE NITROOO NI DE DRAGON (2026-10-15, Sacha : « supprime du main le snake loop, le dauphin, le nitrooo
-   et les animations 3D qui leur sont attribuées, enlève aussi le dragon chinois de flamme ») : même recette que la carrière — COUPÉS,
-   pas arrachés. Aucune de ces figures ne se détecte plus, ne paie plus (aura, flow, chaîne, verdict, son) et leurs créatures 3D (le
-   serpent néon, l'escorte des dauphins, la comète de NITROOO, le dragon de papier en feu de pixels) ne sont plus ajoutées à la scène :
-   rien ne se compile, rien ne tourne par image. Le nitro ordinaire (réservoir, feu de pixels NFEU, plumes, sillages) ne bouge pas.
-   Pour les rendre, chacune : `?snake=1`, `?nitrooo=1`.
-   (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place dans le jeu — enlève
-   tout ce qui est volumineux et inutile : dragon, animaux ») → ARRACHÉS : les dauphins (créatures, figure LE DAUPHIN, étiquette #dolHud,
-   aura de la nage au ras), le serpent néon, le dragon de feu de NITROOO (DRG / DFEU), les singes de la course (3 sauts en 5 s). Plus de
-   `?dauphin=1` ni de `?dragon=1`. Le modèle du dauphin, la recette VITRAIL et le singe vivent dans `creatures/*.js` (non chargés par le
-   jeu : les boîtes et ce qui reviendra par map — les singes du SOLEIL DE JADE). Tout le reste : l'historique git (85470fb4 et avant). */
-const SANS_SNAKE=!/[?&]snake=1\b/.test(location.search);
-const SANS_NITROOO=!/[?&]nitrooo=1\b/.test(location.search);
-/* PLUS DE MÉTÉORE (2026-10-15, Sacha : « enlève impact metorite de main », puis : toute la mécanique météore, jeu web ET ROBLOX) :
-   même recette que la carrière — COUPÉ, pas arraché. Plus de figure MÉTÉORE en vol (nitro tenue 1,2 s), plus de verdict METEOR /
-   MEGA METEOR à la pose (mot, voix, son, rang), plus de CRATÈRE ni d'« IMPACT METEORE » quand on pique dans la dalle en nitro, et ses
-   maillages ne se préparent plus au menu. La pose garde ses verdicts MONSTRE / DOUBLE / TRIPLE ; le cratère léger des DÉBRIS de
-   l'orbite (`?debris=1`) ne bouge pas. Pour le rendre : `?meteore=1`. */
-const SANS_METEORE=!/[?&]meteore=1\b/.test(location.search);
+/* (2026-10-15, Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place dans le jeu — enlève
+tout ce qui est volumineux et inutile : dragon, animaux ») → ARRACHÉS : les dauphins (créatures, figure LE DAUPHIN, étiquette #dolHud, aura de la
+nage au ras), le serpent néon, le dragon de feu de NITROOO (DRG / DFEU), les singes de la course (3 sauts en 5 s). Le modèle du dauphin, la recette
+VITRAIL et le singe vivent dans `creatures/*.js` (non chargés par le jeu : les boîtes et ce qui reviendra par map — les singes du SOLEIL DE JADE).
+(2026-10-18, allègement) coupés le 15/10, arrachés à leur tour : le SNAKE LOOP, NITROOO / PURE SPEED / AIR NITROOO, le MÉTÉORE et son cratère,
+la pluie de débris de l'orbite — plus de `?snake=1`, `?nitrooo=1`, `?meteore=1`, `?debris=1`. Tout le reste : l'historique git (85470fb4 et avant). */
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
@@ -40604,10 +40591,8 @@ function flowHudMaj(rest){
    2. LA POSE rend ses 20 % pour un VRAI vol : pleine à partir de `pose.plein` secondes, au prorata en dessous (les sautillements au
       bord de la route ne sont pas une pompe).
    3. LE BUMP rend ,35 au 1er rebond d'un vol, puis ×,6 à chaque suivant, rien au-delà du 4e — et rien réacteur allumé.
-   4. NITROOO ne brûle moins qu'AU SOL (là où elle se gagne, sur la ligne), et les trois quarts au lieu de la moitié : à ,5 il suffisait
-      de prendre un objet sur trois de la LIGNE PARFAITE pour ne plus jamais l'éteindre ; à ,75 il en faut un sur deux pour presque
-      tenir, quatre sur cinq pour tenir. EN L'AIR elle brûle plein. La FRÉNÉSIE garde son
-      nitro qui dure 2× partout (demande de Sacha, FLOW v3) : c'est l'état des maîtres, et il se perd tout seul.
+   4. (RETIRÉE, 18/10, avec NITROOO : le réservoir brûlait moins pendant la comète.) La FRÉNÉSIE garde son nitro qui dure 2× partout
+      (demande de Sacha, FLOW v3) : c'est l'état des maîtres, et il se perd tout seul.
    5. LE RASE-BORD (,22/s) ne remplit que nitro COUPÉE : rien ne se remplit en continu pendant que ça brûle.
    6. LA FIGURE SE PAIE (2026-10-17, Sacha : « faire une figure doit coûter 20 % de nitro mais rapporter 30 % avec un bon atterrissage,
       cumulable »). La lancer en vol coûte `figN.cout` (20 % de la jauge) — pas assez dans la jauge : elle ne part pas (le « tchk » de la
@@ -44130,11 +44115,9 @@ const bpTmpC=new THREE.Color(),bvA=new THREE.Vector3();
 // LA FUMÉE : en fin de vie, la volute vire au CHARBON (le feu retombe en fumée noire) — ce contraste feu/suie fait « dessin »
 const BOOM_SMOKE=new THREE.Color(0x2e2428);
 /* (2026-10-15) LA TEINTE DE LA BOULE : `feu` = celle de l'airtime, pour TOUTES les morts (Sacha, le soir même : « il faut que ça soit la
-   MÊME animation » — la matière par obstacle de l'après-midi, bois · roche · glace · lave…, est retirée, voir L'IMPACT) ; `plot` = la
-   miniature d'un plot ou d'une porte percutés au sol (`boomMini`). fu = fumée de fin de vie · da = dards (rgb 0-1) */
+   MÊME animation » — la matière par obstacle de l'après-midi, bois · roche · glace · lave…, est retirée, voir L'IMPACT). fu = fumée de fin de vie · da = dards (rgb 0-1) */
 const BOOM_MAT={
-  feu:  {fu:0x2e2428,da:[1,.816,.541]},
-  plot: {fu:0x3a2620,da:[1,.7,.35]}
+  feu:  {fu:0x2e2428,da:[1,.816,.541]}
 };
 for(const k in BOOM_MAT)BOOM_MAT[k].fuC=new THREE.Color(BOOM_MAT[k].fu);
 /* ================= L'IMPACT (2026-10-15) — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE =================
@@ -44832,12 +44815,9 @@ let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GA
    l'AURA battue en course (CHA.recB), le MOTEUR (un palier jamais atteint avant cette partie). explode s'en sert pour ne pas se moquer
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
 function partieRecord(){try{return !SANDBOX&&((money>(RUNX.best0||0)&&money>START_CASH+.5)||!!CHA.recB||engTier>(RUNX.engAvant|0));}catch(e){return false;}}
-/* (2026-10-15) LE PLOT, LA PORTE PERCUTÉS : la même boule dessinée en MINIATURE (un tiers), qui file un instant avec la caisse puis
-   décroche — on voit l'obstacle sauter, pas trois étincelles. Une porte DURE pète plus gros. */
-function boomMini(pos,power,mat){try{spawnBoomArt(pos,power,mat||BOOM_MAT.plot,true,PT_U.uVc.value);}catch(e){}}
-// console : dbgExplo(cause) → la mort par cette cause, SANS impact (la boule de l'airtime) ; dbgExplo('plot'|'porte') → la miniature d'un plot percuté — un vrai choc contre une paroi : dbgImpact()
+// console : dbgExplo(cause) → la mort par cette cause, SANS impact (la boule de l'airtime) — un vrai choc contre une paroi : dbgImpact()
 window.dbgExplo=function(c){const v=+PT_U.uVc.value.length().toFixed(1),m=mode;
-  if(c==='plot'||c==='porte')boomMini(carGroup.position.clone(),c==='porte'?.42:.3);else explode(c);
+  explode(c);
   return {avant:m,v:v,volutes:VOLU.filter(function(p){return p.on;}).length,dards:DARD.filter(function(p){return p.on;}).length,debris:debris.length};};
 function explode(cause){dmtCoupe();
   try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
@@ -45117,7 +45097,7 @@ function sparkBurst(pool,pos,n,sp){
     ix+(Math.random()-.5)*sp,iy+Math.random()*sp*.7,iz+(Math.random()-.5)*sp,.28+Math.random()*.22);
 }
 const crV1=new THREE.Vector3(),crV2=new THREE.Vector3(); // (2026-10-15) deux vecteurs de travail partagés (ils vivaient avec les dauphins)
-function triNoir(){return FLOW.lv===4&&!PARK.on;} // la DARK TRIAD tourne (la comète de NITROOO passe au sang)
+function triNoir(){return FLOW.lv===4&&!PARK.on;} // la DARK TRIAD tourne
 /* LES SINGES DU SOLEIL DE JADE (2026-10-15, Léo : « on va les replacer par map : les singes apparaîtront quelques fois sur les montagnes où on
    peut les voir dire bonjour ; on les voit quelques fois, de manière random comme la map, sur la route, en train de courir ou de manger une
    mangue, ou penchés sur le bord de la route et sur les montagnes — qu'on en voie quelques fois seulement, mais qu'on les voie quand même »).
@@ -51003,7 +50983,7 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
 /* LES VERSIONS D'ÉCOUTE (2026-10-03, Léo : « ça ne doit pas passer par-dessus la musique, ça accompagne ; il y a une partie qui gêne —
    trouvons-la ») : `?boost=` dans l'adresse coupe UNE couche du boost, pour l'isoler à l'oreille :
    sans (pas de phrase) · arpege (l'arpège seul) · melodie (la mélodie seule) · feu0 (la flamme du nitro muette : grondement, pops,
-   turbo) · nitrooo0 (les sons de NITROOO muets). */
+   turbo). */
 const BTEST=(function(){try{return new URLSearchParams(location.search).get('boost')||'';}catch(e){return '';}})();
 function instruMusiqueOk(){ // la phrase du boost n'existe que sur la musique pour laquelle elle est dessinée : le CIEL (niveaux 1 à 5, et le morceau entier)
   /* (2026-10-08, Léo : « les boosts n'ont plus leur musique ») depuis 822cdf9, PLAY lance la partie SANS FIN, qui joue le CIEL ENTIER
