@@ -22,6 +22,16 @@
 - **À voir par Léo/Sacha** : la chaumière (le dessin de Sacha du 14/10) réapparaît en entier dans la forêt — murs de pierre et d'enduit,
   colombages, fenêtres qui luisent la nuit, cheminée. Planche : `photos-gameplay/chaumiere-nan-avant-apres.png` (même graine, même place).
 
+## LA PERLE — LE REFLET DU PARE-BRISE SANS CASSURE (2026-10-18, Léo : « petit bug de reflet au niveau du bas de la vitre avant… je parlais de la vitre avant tout simplement » — le pare-brise)
+- **Le défaut** : au bas du pare-brise (et au pied du montant avant, sur la vitre de porte), le reflet du ciel CASSAIT en diagonale — un
+  « V » blanc à bord net au studio du garage. La normale lissée de la serre (`lisse`, sous 32°) se calcule PAR COIN de triangle, chacun
+  avec les voisins proches de SA facette : là où la tôle se vrille, deux triangles voisins ne choisissaient pas les mêmes voisins, donc pas
+  la même normale. ⚠ L'outil de vue le montre à peine : le ciel du studio du jeu le révèle (et `MeshNormalMaterial`).
+- **Corrigé** (`peintPlan`, « LE REFLET DES VITRES SANS CASSURE ») : en chaque POINT de la tôle, les facettes qui s'y touchent sont réunies
+  en GROUPES (moins de 35° de proche en proche) ; chaque groupe a UNE normale, partagée par tous ses triangles. Appliqué au verre et au
+  noir brillant de la serre. Plus de cassure, et l'arête capot / pare-brise reste nette (une moyenne simple par point y faisait un liseré
+  clair). La forme ne bouge pas ; 0 NaN ; studio et courses sans erreur. Planche : photos-gameplay/perle-reflet-parebrise-avant-apres.png.
+
 ## LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE (2026-10-18, Léo : « trouver un moyen d'avoir le même rendu, mais avec moins de RAM — je n'ai pas essayé si ça RAM ou pas »)
 - MESURÉ d'abord (`dbgRamNuages()` : octets des tampons et textures des nuages au GPU, uniques, + copies JavaScript ; banc `ram.py`) : avec les cubes
   fantômes 105 Mo au GPU + 105 Mo de copies JS (sans eux 17 + 16). Chaque cube était écrit 4 fois (un sommet par coin, 240 octets) et tout restait en double.
