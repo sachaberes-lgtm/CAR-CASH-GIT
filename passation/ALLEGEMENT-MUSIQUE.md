@@ -42,3 +42,10 @@ radar (`radarSnd`) · trafic.accroche (`traficChoc`) · abri (`campBancSorti`, `
 - Non demandés mais candidats : `lobby/garage-{atelier,huile,cle}.m4a` (8,4 Mo, « ne jouent plus dans le jeu »), `rendus/penthouse/` (3 Mo), `INSTRU` (coupé) + `instruMusiqueOk`.
 - `MUSIC_FREN` pointe vers `music/dark-triad.mp3`, absent (le morceau est `boucles/dark-triad.m4a`) : NON corrigé, comme demandé ; la frénésie ne change pas de morceau.
 - Si Pouce bleu ne se charge pas (`POUCE_JEU` absent), la course joue maintenant PREMIER MATIN en boucle (avant : la radio lvl1…) au lieu de rien/radio.
+
+## 2e passe (sur l'ensemble assemblé, branche al-musique2)
+- **Banque −11 sons** (sons-banque.js 7,01 → 6,72 Mo, ?v=32) : fig.gap, dosdane, debris.esquive, banq.bris, flaque.sec, portail.ouvre, foudre.touche, aura.moyenne, ui.carnet,
+  mort.feu, mort.foudre (aucune mort n'a la cause « feu » ni « sat »). foret.mousse n'était déjà plus dans la banque. Les `sfx` des sons retirés à la 1re passe ont disparu du code avec les lots B/D/E.
+- **assets/audio/announcer, fx/wow.mp3, death/eww.m4a** : déjà absents du dépôt depuis 990b4ce5, aucun chemin ne les demande (rien à supprimer).
+- **La bibliothèque n'est plus publiée** (ligne 63) : `vercel-build.sh` + `outils/publie-audio.cjs` (règle de Pouce bleu relue dans musique-moteur.json) + `outils/vrais-jeu.json`
+  (preuve des échantillons, refaite par `node outils/preuve-vrais/rejoue.mjs` ; si l'empreinte ne colle plus, vrais/ reste entier). Copie en ligne : 94,7 → 36,3 Mo (621 → 235 fichiers).
