@@ -7480,6 +7480,30 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct:has(>#gEquip.achat)>#gShopBas#gShopBas{height:44px!important;min-height:44px!important}} /* couché, les trois portes du haut à 44 px, comme d'habitude */
 </style>
+<style id="garShop">
+/* LA BOUTIQUE PLUS GROSSE (2026-10-18 soir, Sacha, capture couchée de la ROSSO 40 : « la disposition des boutons sur cet écran est
+   catastrophique : boutique doit être plus gros et le trophée doit être en haut à droite » — sur trois maquettes, il a choisi LARGE) :
+   le trophée est parti en haut à droite (plqGarage, en miroir du compte) ; en haut de la grappe, INVENTAIRE · MISSIONS · BOUTIQUE, et la
+   BOUTIQUE vaut les deux autres réunies (couché ; debout, 10 colonnes sur 24 : INVENTAIRE en garde 7, son libellé sous l'icône tient encore).
+   La grille passe de 6 à 24 colonnes : à écart égal, 4 colonnes de 24 valent exactement 1 colonne de 6 — HOME · JOUER · ŒIL gardent leurs
+   largeurs au pixel près. La BOUTIQUE prend la laque magenta (celle du lingot de la caisse à vendre, 15/10), son panier ×3 et un libellé un
+   cran au-dessus ; les portes du haut montent de 44 à 48 (couché) et de 52 à 56 (debout). Vaut pour une caisse à toi ET une caisse à vendre
+   (la barre ne change plus de forme). `?garjouer=0` = la barre d'avant. */
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct{grid-template-columns:repeat(24,minmax(0,1fr))!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct #gRang1>#gHomeBas{grid-column:1/5!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>:is(#gJouer,#gEquip){grid-column:5/21!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct #gRang1>#gOeil{grid-column:21/25!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>#gvCof#gvCof{grid-row:1!important;grid-column:1/8!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>#gvMis#gvMis{grid-row:1!important;grid-column:8/15!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>#gShopBas#gShopBas{grid-row:1!important;grid-column:15/25!important;gap:10px!important;padding:0 6px!important;font-size:var(--f1)!important;letter-spacing:1px!important;
+  background:linear-gradient(115deg,rgba(255,255,255,.16) 0 18%,transparent 18% 100%),linear-gradient(180deg,color-mix(in srgb,var(--pc) 40%,#1b1440),color-mix(in srgb,var(--pc) 14%,#0e0b1e))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -4px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 0 18px -6px var(--pc)!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{--pxs:3!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>:is(#gvCof#gvCof,#gvMis#gvMis,#gShopBas#gShopBas){height:56px!important;min-height:56px!important}
+html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>:is(#gvCof#gvCof,#gvMis#gvMis){flex-direction:column!important;gap:5px!important;padding:0 4px!important;letter-spacing:0!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>:is(#gvCof#gvCof,#gvMis#gvMis,#gShopBas#gShopBas){height:48px!important;min-height:48px!important}}
+</style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -7733,8 +7757,9 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
 #prof .pfS.gros .pxi{color:var(--au2)}
 #prof .pfS.cash b{color:var(--cash)}
 #prof .pfS.aura b{color:var(--aura)}
-/* LE PETIT TROPHÉE DU GARAGE : posé par plqGarage au-dessus d'INVENTAIRE, dans le bas de l'écran (la grappe de JOUER) */
-#gProf{position:fixed;z-index:4;left:calc(var(--sL) + 14px);top:50%;display:none;width:52px;min-width:52px;height:48px;min-height:48px;padding:0;
+/* LE PETIT TROPHÉE DU GARAGE : en haut à droite (2026-10-18 soir, Sacha : « le trophée doit être en haut à droite »), en miroir du compte —
+   plqGarage le recale sur #gCompteur ; cette place-ci n'est que le premier cadre */
+#gProf{position:fixed;z-index:4;right:calc(var(--sR) + 26px);top:calc(var(--sT) + 9px);display:none;width:52px;min-width:52px;height:48px;min-height:48px;padding:0;
   --nc:var(--neoA);pointer-events:auto}
 #gProf.on{display:flex}
 #gProf .pxi{--pxs:2}
@@ -36835,13 +36860,16 @@ function profBranche(){const el=$p('prof');if(!el||el._b)return;el._b=1;
 /* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran (SAVE.mark : c'est le filet des 30 s qui écrit) */
 function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);SAVE.mark();}catch(e){}}
 /* le trophée ne se montre que sur la vue principale de l'atelier (là où JOUER attend) : ni inventaire ouvert, ni « la voiture seule », ni
-   boutique, ni missions, ni garage-menu — relu 4 fois par seconde, écrit seulement quand ça change. Il se pose AU-DESSUS d'INVENTAIRE (#gvCof) :
-   au coin bas-gauche, il tombait sous la jauge de rotation (couché) et sur le HOME (debout). */
+   boutique, ni missions, ni garage-menu — relu 4 fois par seconde, écrit seulement quand ça change. Sa place (2026-10-18 soir, Sacha : « la
+   disposition des boutons est catastrophique… le trophée doit être en haut à droite ») : le coin HAUT-DROIT, en MIROIR du compte (#gCompteur
+   tient le haut-gauche) — même marge au bord, centré sur sa hauteur. Les boîtes lues sont les boîtes penchées : la pente est comptée. */
 function plqGarage(){const g=$p('gProf');if(!g)return;let on=false;
-  try{if(garageOn&&!(GAR&&GAR.go)&&!(INV&&INV.on)&&!PLQ.prof&&!PLQ.on&&gEl&&!gEl.classList.contains('vueSeule')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('atelierInv')&&!gEl.classList.contains('shopRet')){const j=$p('gJouer'),c=$p('gvCof'); /* (2026-10-18) JOUER vit aussi dans l'inventaire et la boutique : ce ne sont pas la vue principale */
-    if(j&&c&&j.getClientRects().length&&getComputedStyle(j).visibility!=='hidden'){const r=c.getBoundingClientRect();
-      if(r.width>8){on=true;const L=Math.round(r.left)+'px',T=Math.round(r.top-58)+'px';if(g.style.left!==L)g.style.left=L;if(g.style.top!==T)g.style.top=T;}}}}catch(e){}
-  if(g.classList.contains('on')!==on)g.classList.toggle('on',on);} /* (la place : 10 px au-dessus d'INVENTAIRE, à son aplomb gauche — la jauge qui tourne l'atelier et le HOME du bas changent de place selon le sens, la grappe de JOUER non) */
+  try{if(garageOn&&!(GAR&&GAR.go)&&!(INV&&INV.on)&&!PLQ.prof&&!PLQ.on&&gEl&&!gEl.classList.contains('vueSeule')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('atelierInv')&&!gEl.classList.contains('shopRet')){const j=$p('gJouer'); /* (2026-10-18) JOUER vit aussi dans l'inventaire et la boutique : ce ne sont pas la vue principale */
+    if(j&&j.getClientRects().length&&getComputedStyle(j).visibility!=='hidden')on=true;}}catch(e){}
+  if(g.classList.contains('on')!==on)g.classList.toggle('on',on);
+  if(on&&!g.matches(':active,.appui'))try{const c=$p('gCompteur'),r=c&&c.getBoundingClientRect();
+    if(r&&r.width>8&&r.bottom>0){const b=g.getBoundingClientRect(),dx=Math.round((innerWidth-r.left)-b.right),dy=Math.round((r.top+r.height/2)-(b.top+b.height/2));
+      if(dx||dy){g.style.left=(g.offsetLeft+dx)+'px';g.style.top=(g.offsetTop+dy)+'px';}}}catch(e){}}
 function plqDemarre(){try{plqBranche();profBranche();}catch(e){console.warn('plaque',e);}
   try{plqRepeint();}catch(e){}setInterval(plqHorloge,5000);setInterval(plqGarage,250);plqGuette();}
 /* les profils fermés par un changement d'écran (JOUER, accueil) : le garage qui se ferme emporte le profil */
