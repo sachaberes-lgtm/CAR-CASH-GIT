@@ -786,6 +786,17 @@ Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par tra
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD, LE NEZ ARRONDI DU HUMMER EV (2026-10-19, discussion BOÎTES ; Léo : « plus arrondi le devant, et respirant le même air que le modèle original »)
+- **Le capot** : plus une nappe posée à plat sur l'épaule (des angles vifs tout autour) — une nappe BOMBÉE sur toute l'empreinte du nez (en plan,
+  un rectangle aux coins arrondis de RC 30 cm) qui S'ENROULE en quart de cercle vers ses bords (`rB(z)` : 0 au pare-brise, 15 cm devant) ; les
+  rangées du bas (flancs, face) montent jusqu'au pied de l'enroulé (`PL = tB − rB`) : les épaules coulent dans les ailes, le capot tombe sur
+  le bandeau. `dN(x,z)` = la distance au bord de l'empreinte arrondie ; `wN(z)` = sa demi-largeur.
+- **Le panneau noir mat** au fond du capot (le grand panneau central de la photo de Léo), le dôme devant lui.
+- **La face** : bandeau un cran plus bas, six segments séparés, les longs phares aux bouts et leur COIN AMBRE en 7 pastilles qui tournent sur
+  l'arrondi ; le sabot gris (`C`). **Le toit** : les CINQ FEUX AMBRE sur le bord avant du pavillon. L'arrière reste le pick-up.
+- Photos SUV de Commons (la face est la même) : OWS Photography (CC BY 4.0). Banc : 0 programme compilé couché/debout, garage sans erreur.
+  Planche : photos-gameplay/hummer-nez-avant-apres.png. ⚠ `dbgLumVue(d,h,az,vise)` : `vise=0` vaut 4 (`vise||4`) — viser le nez = 2.
+
 ## LE CAÏD DEVIENT LE GMC HUMMER EV PICK-UP (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC »)
 - **Où** : le même `SHAPES.caid=…` de la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) ; l'ancienne méthode `caid(K)`
   reste en place (la coordination l'effacera). `ECH_POTS.caid` : électrique, deux FENTES qui luisent au bas du bouclier arrière (comme LA PERLE).
