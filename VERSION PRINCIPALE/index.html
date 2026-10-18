@@ -14286,11 +14286,11 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
   U.uSunC.value=sun.color;U.uSky.value=hemi.color;U.uGnd.value=hemi.groundColor;
   if(N8_VAP)U.uVap.value=n8Vap(); // (coton-blanc) fabriquée une fois, à la 1re matière (au menu : nuageChauffe → cotonInit)
   const m=new THREE.ShaderMaterial({uniforms:U,vertexColors:true,fog:true,transparent:true,depthWrite:true,
-    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW,vA,vT;uniform float uTps;',...(N8_VAP?['varying vec3 vP;varying float vQ;']:[]),
+    vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW,vA,vT;varying float vNvF;uniform float uTps;',...(N8_VAP?['varying vec3 vP;varying float vQ;']:[]),
       'void main(){vec3 tr=position;vec3 nn=normal;vT=vec3(1.);',
-      '  float ph=0.;',
+      '  float ph=0.;vNvF=0.;',
       '#ifdef USE_INSTANCING',
-      '  ph=dot(instanceMatrix[3].xyz,vec3(.013,.007,.011));',
+      '  ph=dot(instanceMatrix[3].xyz,vec3(.013,.007,.011));vNvF=instanceMatrix[0][3];',
       '#endif',
       ...(N8_VAP?['  vP=position*13.+vec3(fract(ph*.71),fract(ph*.53),fract(ph*.37))*256.;']:[]), /* (coton-blanc) la vapeur ACCROCHÉE au nuage (avant le bouillonnement) : une cellule = 7,7 % du rayon ; chaque nuage son décalage */
       /* LA OUATE QUI BOUILLONNE (v8) : chaque lobe gonfle et se retire très lentement (deux ondes lentes le long de la normale, 1,5 % du nuage),
@@ -14309,7 +14309,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
@@ -14336,7 +14336,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
       '#ifdef NUAGE8_INST',
       '  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
-      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125)discard;a=1.;}']:[]), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */
+      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125||(vNvF<0.?-vNvF<=b9+.03125:vNvF>b9+.03125))discard;a=1.;}']:['  a*=vNvF<0.?-vNvF:1.-vNvF;']), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */ /* (2026-10-18, LE FONDU) la v8 (part ≥ 0) cède ces points-là ; le corps rentré d'un fantôme (part < 0) les prend */
       '#endif',
       ...(N8_VAP?['  if(e9>.01&&a<.02)discard;']:[]), /* (coton-blanc) un bord effiloché n écrit pas sa profondeur : le lobe de derrière le remplit */
       '  gl_FragColor=vec4(col,a);',
@@ -14361,7 +14361,28 @@ function nuage8Solo(){ if(COTON.mat8s)return COTON.mat8s; // (v8) la même mati�
      · L'ONDE (`uScan`) qui monte le long du nuage (chacun la sienne) et allume les joints, les arêtes, la peau.
    De LOIN (finesses 0 et 1) : le nuage v8 tel quel (de loin lisse et brillant, de près le pixel — le juste milieu de Léo). Tri, fondu
    près de l'objectif (la trame) et fondu d'une zone neuve gardés. `?sans=nuvit` = la v8 seule ; `dbgNuVit(0|1,{…})` = A/B sur la même image. */
-const NUVIT_V=!/[?&]sans=([^&]*,)?nuvit(,|&|$)/.test(location.search),NUVIT={on:NUVIT_V,nc:36,iso:.3,ang:.09,nsk:0,ecart:.47};
+/* LE FONDU (2026-10-18, Sacha : « c'est bien l'effet des nuages pixelisés mais ça bug par moment, quand on s'éloigne ou on se rapproche les
+   nuages ont parfois l'ancienne texture parfois les pixels ») : les seuils de distance (de loin → la v8, puis 40 % des fantômes, puis tous ;
+   tout près → la v8) BASCULAIENT un nuage d'une image à l'autre — mesuré : ~100 nuages bien vus basculés d'un coup sur 4 km de route, autant en vol.
+   Chaque nuage a maintenant DEUX PARTS (`nuvPoids`, x = (d−R)/R, c = un cube à l'écran en rad) : celle du CORPS (v8 → corps rentré, ou
+   vitrail) et celle des CUBES. En vitrail, une seule rampe, de x = `bLoin` (4,06 : l'ancien seuil du lot 2) à 2,53. En fantôme, les deux
+   PALIERS de Léo gardés, en fondu : 0 → 37 % des cubes (et le corps) de x 4,06 à 3,5, puis 37 → 100 % de 2,05 à 1,78 (l'ancien seuil du
+   lot 3) — le lot lointain (40 % des fantômes) prend tout le palier : le coût reste celui d'avant. Tout près, tout redescend quand un cube
+   dépasse `bPres` à l'écran (vitrail 0,06 → 0,09 rad ; fantôme 0,035 → 0,09 : ses cubes sont petits, la rampe en mètres serait trop
+   courte) ; jamais plus gros qu'avant. Entre les deux, la v8 et le corps (ou le vitrail) se partagent les points de la MÊME trame
+   (complémentaires : jamais deux fois le même point) ; les fantômes arrivent un par un dans leur ordre tiré au hasard (le rang : `cu/uFN`
+   dans la texture `NUF_TEX`, l'attribut `aR` sinon ; un cube se montre quand la part le dépasse) ; la peau du vitrail suit en alpha. Les parts voyagent dans la ligne du bas de la matrice
+   d'instance (inutilisée : les shaders ne gardent que xyz) : [0][3] = le corps (≥ 0 pour la v8, en négatif pour le corps rentré et le
+   vitrail), [1][3] = −les cubes ; une matrice ordinaire = rien ne change. Nuages seuls fantômes (`mkCloud`) : les cubes
+   s'effacent tout près (`uNvW`, posé par objet dans `onBeforeRender`), le corps reste. Écarté : le vitrail PARTOUT (dalles grises de près,
+   bords carrés de loin, jusqu'à ×6 triangles). `?sans=nuvitfondu` = les bascules d'avant ; `dbgNuVit(1,{fondu:0|1})` = A/B. */
+const NUVIT_V=!/[?&]sans=([^&]*,)?nuvit(,|&|$)/.test(location.search),NUVIT={on:NUVIT_V,nc:36,iso:.3,ang:.09,nsk:0,ecart:.47,
+  fondu:!/[?&]sans=([^&]*,)?nuvitfondu(,|&|$)/.test(location.search),bLoin:4.06,bPres:[.06,.09],bPresF:[.035,.09]}; // (2026-10-18) LE FONDU : voir au-dessus
+function nuvLisse(a,b,v){const q=Math.min(1,Math.max(0,(v-a)/(b-a)));return q*q*(3-2*q);}
+const NUVP=new Float32Array(2); // [le corps, les cubes]
+function nuvPoids(x,c){const b=NUVIT.fant?NUVIT.bPresF:NUVIT.bPres,n=1-nuvLisse(b[0],b[1],c); // les deux parts d'un nuage (dans NUVP) : x = (d−R)/R, c = un cube à l'écran (rad)
+  if(NUVIT.fant){const p=NUVIT.loin*.93,wc=p*(1-nuvLisse(3.5,NUVIT.bLoin,x))+(1-p)*(1-nuvLisse(1.78,2.05,x));NUVP[0]=Math.min(1,wc/p)*n;NUVP[1]=wc*n;} // les paliers de Léo, en fondu (p < 40 % : le lot lointain suffit)
+  else NUVP[0]=NUVP[1]=(1-nuvLisse(2.53,NUVIT.bLoin,x))*n;return NUVP;}
 const NV_U={uLueur:{value:1.08},uScan:{value:.7},uScanV:{value:.07},uCoqA0:{value:.5},uCoqA1:{value:.92},uRel:{value:.12},uEcl:{value:1},uBis:{value:.08},uTache:{value:0},uChaud:{value:0},uTrans:{value:0},uBordC:{value:0},uFant:{value:1},uPeint:{value:1}};
 const NV_DOSES={doux:{uCoqA0:.5,uCoqA1:.92,uRel:.12,uLueur:1.08,uBis:.08,uTache:0,uChaud:0,uTrans:0,uBordC:0},moyen:{uCoqA0:.3,uCoqA1:.9,uRel:.3,uLueur:1.16,uBis:.13,uTache:0,uChaud:0,uTrans:0,uBordC:0},fort:{uCoqA0:.12,uCoqA1:.85,uRel:.45,uLueur:1.26,uBis:.18,uTache:0,uChaud:0,uTrans:0,uBordC:0},
   fantome:{uFant:1,uPeint:1}, // (2026-10-18, Léo : « encore plus minuscules, encore plus fantomatiques, construire de nouveaux nuages, les teintes comme un peintre »)
@@ -14387,9 +14408,9 @@ function nuVitGLSL(){ // les déclarations et la lumière v8 (copie de nuage8Mat
     'vec3 n8glow(){return mix(vec3(1.,.97,.9),uSunC/max(max(uSunC.r,uSunC.g),.01),.35)*(.4+.75*min(1.,dot(uSunC,vec3(.3,.59,.11))));}', // le cœur : la lumière de l ambiance (la nuit, plus sourde)
     'float n8onde(float h,float ph){return uScan*exp(-pow((h-fract(uTps*uScanV+ph))/.09,2.));}'].join('\n');}
 function nuVitVS(k){ // k : 0 écailles · 1 cœur · 2 peau
-  return ['#include <common>','#include <fog_pars_vertex>','uniform float uTps;varying vec3 vN,vW,vA,vT;varying float vPh;',...(k===0?['attribute vec3 aG;attribute vec4 aCu;varying vec3 vG,vL;varying float vH;']:[]),
-    'void main(){vec3 tr=position;vec3 nn=normal;vT=vec3(1.);float ph=0.;',
-    '#ifdef USE_INSTANCING','  ph=dot(instanceMatrix[3].xyz,vec3(.013,.007,.011));','#endif',
+  return ['#include <common>','#include <fog_pars_vertex>','uniform float uTps;varying vec3 vN,vW,vA,vT;varying float vPh,vNvF;',...(k===0?['attribute vec3 aG;attribute vec4 aCu;varying vec3 vG,vL;varying float vH;']:[]),
+    'void main(){vec3 tr=position;vec3 nn=normal;vT=vec3(1.);float ph=0.;vNvF=1.;',
+    '#ifdef USE_INSTANCING','  ph=dot(instanceMatrix[3].xyz,vec3(.013,.007,.011));{float s9=instanceMatrix[0][3];vNvF=s9<0.?-s9:1.;}','#endif',
     ...(k?['  tr+=nn*(sin(uTps*.33+ph+dot(position,vec3(3.1,4.7,2.3)))*.011+sin(uTps*.19-ph+dot(position,vec3(-5.3,2.9,3.7)))*.007)*step(-.33,position.y);']:[]), // la ouate qui bouillonne (pas les cubes : leurs faces se sépareraient)
     ...(k===0?['  vec3 gg=aG;vL=aCu.xyz;vH=aCu.w;']:[]),
     '#ifdef USE_INSTANCING',
@@ -14403,7 +14424,7 @@ function nuVitVS(k){ // k : 0 écailles · 1 cœur · 2 peau
 const NV_TRAME=['#ifdef NUAGE8_INST','  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));','#endif',
   '  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125)discard;}'].join('\n'); // opaque ou jeté (la trame de la v8 : l ordre de dessin ne compte pas)
 function nuVitFS(k){
-  const tete=['#include <common>','#include <fog_pars_fragment>',nuVitGLSL(),'varying vec3 vN,vW,vA,vT;varying float vPh;',...(k===0?['varying vec3 vG,vL;varying float vH;']:[])];
+  const tete=['#include <common>','#include <fog_pars_fragment>',nuVitGLSL(),'varying vec3 vN,vW,vA,vT;varying float vPh,vNvF;',...(k===0?['varying vec3 vG,vL;varying float vH;']:[])];
   if(k===0)return tete.concat(['void main(){vec3 V=normalize(cameraPosition-vW),N=normalize(mix(normalize(vG),normalize(vN),uRel));float fr,lit;',
     '  vec3 col=n8lum(N,V,vA,vT,fr,lit)*(.96+.08*vH);',                                                                         // chaque écaille sa nuance
     '  {float h1=fract(vH*13.7),h2=fract(vH*71.3);col*=mix(vec3(1.),mix(vec3(.93,.97,1.07),vec3(1.05,1.01,.93),lit),uChaud);col*=1.+uTache*((h2-.5)*vec3(1.)+(h1-.5)*vec3(.5,.05,-.5));}',
@@ -14411,14 +14432,14 @@ function nuVitFS(k){
     '  float sc=n8onde(vA.b,vPh);vec3 gl=n8glow();',
     '  col=col*(1.-uBis*eb)+gl*(eb*(.04*uLueur+1.1*sc)+sc*.1);',
     '  if(vH>.975)col+=vec3(1.)*pow(.5+.5*sin(uTps*(3.+4.*fract(vH*13.1))+vH*80.),8.)*.6*uEcl;',                                 // un éclat de temps en temps
-    '  float a=uFondu*(1.-uBordC*smoothstep(.5,.82,1.-abs(dot(normalize(vG),V))));',NV_TRAME,'  gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}']).join('\n');
+    '  float a=uFondu*vNvF*(1.-uBordC*smoothstep(.5,.82,1.-abs(dot(normalize(vG),V))));',NV_TRAME,'  gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}']).join('\n');
   if(k===1)return tete.concat(['void main(){vec3 V=normalize(cameraPosition-vW);float fr,lit,sc=n8onde(vA.b,vPh);vec3 gl=n8glow();',
     '  vec3 col=n8lum(normalize(vN),V,vA,vT,fr,lit)*uLueur*(.93+.07*sin(uTps*1.7+vPh*6.2832))+gl*1.5*sc+uSunC*uTrans*pow(max(dot(-V,uSunW),0.),3.)*(1.2-vA.r*.6);',
-    '  float a=uFondu;',NV_TRAME,'  gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}']).join('\n');
+    '  float a=uFondu*vNvF;',NV_TRAME,'  gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}']).join('\n');
   return tete.concat(['void main(){vec3 V=normalize(cameraPosition-vW),N=normalize(vN);float fr,lit;vec3 base=n8lum(N,V,vA,vT,fr,lit);',
     '  vec3 rf=reflect(-V,N),sky=mix(uGnd*.85,uSky*1.15,smoothstep(-.3,.5,rf.y));float sc=n8onde(vA.b,vPh);',
     '  vec3 col=mix(base,sky,.18*fr)+uSunC*pow(max(dot(rf,uSunW),0.),220.)*1.6+(.5+.5*cos(6.2832*(fr*1.4+vW.y*.004+vec3(0.,.33,.67))))*fr*.05+n8glow()*sc*.25;', // le ciel au bord, l éclat, le film irisé
-    '  float a=min(1.,mix(uCoqA0,uCoqA1,pow(fr,1.5))*(1.-uBordC*.55*smoothstep(.8,1.,fr))+sc*.1)*uFondu;',
+    '  float a=min(1.,mix(uCoqA0,uCoqA1,pow(fr,1.5))*(1.-uBordC*.55*smoothstep(.8,1.,fr))+sc*.1)*uFondu*vNvF;',
     '#ifdef NUAGE8_INST','  a*=smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));','#endif',
     '  gl_FragColor=vec4(col,a);','#include <fog_fragment>','}']).join('\n');}
 /* (2026-10-18, Léo : « le même rendu avec moins de RAM ») LES FANTÔMES EN TEXTURE (`NUF_TEX`, WebGL2) : MESURÉ, les cubes fantômes coûtaient
@@ -14432,22 +14453,22 @@ function nuLibre(a){if(a&&a.array&&!a.__bpe){a.__bpe=a.array.BYTES_PER_ELEMENT;a
 let NUF_IDX=null;
 function nufIdx(){if(NUF_IDX)return NUF_IDX;const M=10920,I=new Uint16Array(M*6); // les indices de 10 920 carrés : UN tampon pour tous les nuages
   for(let i=0;i<M;i++){const b=i*4,o=i*6;I[o]=b;I[o+1]=b+1;I[o+2]=b+2;I[o+3]=b;I[o+4]=b+2;I[o+5]=b+3;}return (NUF_IDX=nuLibre(new THREE.BufferAttribute(I,1)));}
-function nuFantVS(tex){return ['#include <common>','#include <fog_pars_vertex>','uniform float uTps;varying vec3 vN,vW,vA,vT;varying vec4 vQ;varying vec2 vUv;varying float vPh;',
-  ...(tex?['uniform highp sampler2D uFTex;']:['attribute vec4 aQ;attribute vec2 aCo;']),
+function nuFantVS(tex){return ['#include <common>','#include <fog_pars_vertex>','uniform float uTps,uNvW;varying vec3 vN,vW,vA,vT;varying vec4 vQ;varying vec2 vUv;varying float vPh;',
+  ...(tex?['uniform highp sampler2D uFTex;uniform float uFN;']:['attribute vec4 aQ;attribute vec2 aCo;attribute float aR;']),
   'void main(){',
   ...(tex?['  int cu=gl_VertexID/4,co=gl_VertexID-cu*4,t9=cu*3;',
            '  vec4 T0=texelFetch(uFTex,ivec2(t9%'+NUF_W+',t9/'+NUF_W+'),0),T1=texelFetch(uFTex,ivec2((t9+1)%'+NUF_W+',(t9+1)/'+NUF_W+'),0),T2=texelFetch(uFTex,ivec2((t9+2)%'+NUF_W+',(t9+2)/'+NUF_W+'),0);',
-           '  vec3 P9=T0.xyz,N9=T1.xyz,C9=T2.xyz;vec4 Q9=vec4(T0.w,T1.w,T2.w,0.);vec2 O9=vec2(co==1||co==2?1.:-1.,co>=2?1.:-1.);']  // le cube : sa place et sa taille, sa normale et son voile, son modelé et sa teinte ; le coin
-        :['  vec3 P9=position,N9=normal,C9=color;vec4 Q9=aQ;vec2 O9=aCo;']),
-  '  vec3 tr=P9;vec3 nn=N9;vT=vec3(1.);float ph=0.,sc=1.;',
-  '#ifdef USE_INSTANCING','  ph=dot(instanceMatrix[3].xyz,vec3(.013,.007,.011));','#endif',
+           '  vec3 P9=T0.xyz,N9=T1.xyz,C9=T2.xyz;vec4 Q9=vec4(T0.w,T1.w,T2.w,0.);vec2 O9=vec2(co==1||co==2?1.:-1.,co>=2?1.:-1.);float rk=float(cu)/uFN;']  // le cube : sa place et sa taille, sa normale et son voile, son modelé et sa teinte ; le coin
+        :['  vec3 P9=position,N9=normal,C9=color;vec4 Q9=aQ;vec2 O9=aCo;float rk=aR;']), // rk : le RANG du cube (ils sont tirés dans le désordre) — le fondu les montre un par un
+  '  vec3 tr=P9;vec3 nn=N9;vT=vec3(1.);float ph=0.,sc=1.,w9=uNvW;',
+  '#ifdef USE_INSTANCING','  ph=dot(instanceMatrix[3].xyz,vec3(.013,.007,.011));{float s9=instanceMatrix[1][3];w9=s9<0.?-s9:1.;}','#endif',
   '  tr+=nn*sin(uTps*.45+Q9.z*31.+ph)*Q9.x*.7;',                                                         // le fantôme RESPIRE (chacun son temps)
   '#ifdef USE_INSTANCING',
   '  vec3 c0=instanceMatrix[0].xyz,c1=instanceMatrix[1].xyz,c2=instanceMatrix[2].xyz,iv=1./vec3(dot(c0,c0),dot(c1,c1),dot(c2,c2));nn=mat3(instanceMatrix)*(nn*iv);tr=(instanceMatrix*vec4(tr,1.)).xyz;sc=length(c0);',
   '#endif',
   '#ifdef USE_INSTANCING_COLOR','  vT=instanceColor;','#endif',
-  '  vA=C9;vQ=Q9;vUv=O9;vPh=fract(ph*3.7);vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);sc*=length(modelMatrix[0].xyz);',
-  '  vec4 mvPosition=viewMatrix*wp;mvPosition.xy+=O9*Q9.x*sc;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');}  // un petit carré face à l objectif : le cube minuscule
+  '  vA=C9;vQ=Q9;vQ.y*=clamp((w9*1.06-rk)/.06,0.,1.);vUv=O9;vPh=fract(ph*3.7);vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);sc*=length(modelMatrix[0].xyz);',
+  '  vec4 mvPosition=viewMatrix*wp;mvPosition.xy+=O9*Q9.x*sc;gl_Position=projectionMatrix*mvPosition;if(vQ.y<=0.)gl_Position=vec4(2.,2.,2.,1.);','#include <fog_vertex>','}'].join('\n');}  // un petit carré face à l objectif : le cube minuscule
 function nuFantFS(){return ['#include <common>','#include <fog_pars_fragment>',nuVitGLSL(),'varying vec3 vN,vW,vA,vT;varying vec4 vQ;varying vec2 vUv;varying float vPh;',
   'void main(){vec3 V=normalize(cameraPosition-vW);float fr,lit;vec3 col=n8lum(normalize(vN),V,vA,vT,fr,lit);',
   '  float r=vQ.z;vec3 chaud=mix(vec3(1.08,1.,.9),vec3(1.06,.93,.97),step(.74,r)),froid=mix(vec3(.9,.92,1.05),vec3(.92,.99,1.05),step(.5,r));', // LES TEINTES DU PEINTRE : crème ou rose au soleil, lavande ou bleu ciel à l ombre
@@ -14466,10 +14487,10 @@ function nuFantGeo(r,dy,g8){ // les cubes fantômes d'un calcul (r.fant) et le C
     tex=new THREE.DataTexture(D,NUF_W,H,THREE.RGBAFormat,THREE.HalfFloatType);tex.minFilter=tex.magFilter=THREE.NearestFilter;tex.generateMipmaps=false;tex.needsUpdate=true;
     tex.onUpdate=function(x){x.image.data=null;}; // (la copie JavaScript jetée une fois envoyée)
     g.setIndex(nufIdx());g.setDrawRange(0,n*6);g.userData.idxPartage=true;}
-  else{const P=new Float32Array(n*12),N=new Float32Array(n*12),C=new Float32Array(n*12),Q=new Float32Array(n*16),O=new Float32Array(n*8),I=n*4<65535?new Uint16Array(n*6):new Uint32Array(n*6),CO=[-1,-1,1,-1,1,1,-1,1];
-    for(let i=0;i<n;i++){for(let c=0;c<4;c++){const v=i*4+c;for(let j=0;j<3;j++){P[v*3+j]=F.pos[i*3+j]+(j===1?(dy||0):0);N[v*3+j]=F.nor[i*3+j];C[v*3+j]=F.col[i*3+j];}for(let j=0;j<4;j++)Q[v*4+j]=F.q[i*4+j];O[v*2]=CO[c*2];O[v*2+1]=CO[c*2+1];}
+  else{const P=new Float32Array(n*12),N=new Float32Array(n*12),C=new Float32Array(n*12),Q=new Float32Array(n*16),O=new Float32Array(n*8),RK=new Float32Array(n*4),I=n*4<65535?new Uint16Array(n*6):new Uint32Array(n*6),CO=[-1,-1,1,-1,1,1,-1,1];
+    for(let i=0;i<n;i++){for(let c=0;c<4;c++){const v=i*4+c;for(let j=0;j<3;j++){P[v*3+j]=F.pos[i*3+j]+(j===1?(dy||0):0);N[v*3+j]=F.nor[i*3+j];C[v*3+j]=F.col[i*3+j];}for(let j=0;j<4;j++)Q[v*4+j]=F.q[i*4+j];O[v*2]=CO[c*2];O[v*2+1]=CO[c*2+1];RK[v]=i/n;}
       const b=i*4,o=i*6;I[o]=b;I[o+1]=b+1;I[o+2]=b+2;I[o+3]=b;I[o+4]=b+2;I[o+5]=b+3;}
-    g.setAttribute('position',BA(P,3));g.setAttribute('normal',BA(N,3));g.setAttribute('color',BA(C,3));g.setAttribute('aQ',BA(Q,4));g.setAttribute('aCo',BA(O,2));g.setIndex(BA(I,1));}
+    g.setAttribute('position',BA(P,3));g.setAttribute('normal',BA(N,3));g.setAttribute('color',BA(C,3));g.setAttribute('aQ',BA(Q,4));g.setAttribute('aCo',BA(O,2));g.setAttribute('aR',BA(RK,1));g.setIndex(BA(I,1));}
   const e9=F.k*3;g.boundingSphere=new THREE.Sphere(new THREE.Vector3((x0+x1)/2,(y0+y1)/2,(z0+z1)/2),Math.hypot(x1-x0,y1-y0,z1-z0)/2+e9); // (posée à la main : sans attribut de position three ne la calcule pas)
   const c=new THREE.BufferGeometry();
   if(g8){const P0=g8.attributes.position.array,N0=g8.attributes.normal.array,PB=new Float32Array(P0.length);for(let i=0;i<PB.length;i++)PB[i]=P0[i]-N0[i]*F.k; // le corps PARTAGE normales, modelé et indices de la surface v8 (déjà à sa place)
@@ -14478,11 +14499,11 @@ function nuFantGeo(r,dy,g8){ // les cubes fantômes d'un calcul (r.fant) et le C
   c.computeBoundingSphere();
   return {fan:g,corps:c,tex:tex,n:n,tri:(n*6+(c.index.count))/3};}
 function nufMat(base,G){if(!G.tex)return base;const K=base===nuVitMats(true).fan?'mS':'mI';if(G[K])return G[K]; // la matière d'un gabarit : la même (même programme), avec SA texture
-  const m=base.clone();m.uniforms=Object.assign({},base.uniforms,{uFTex:{value:G.tex}});m.defines=Object.assign({},base.defines);m.customProgramCacheKey=base.customProgramCacheKey;return (G[K]=m);}
+  const m=base.clone();m.uniforms=Object.assign({},base.uniforms,{uFTex:{value:G.tex},uFN:{value:G.n}});m.defines=Object.assign({},base.defines);m.customProgramCacheKey=base.customProgramCacheKey;return (G[K]=m);}
 function nufJette(m){ // un nuage seul qui disparaît : sa texture, sa matière ; le tampon d'indices partagé n'est JAMAIS détruit
   const g=m.geometry;if(g&&g.userData.idxPartage)g.setIndex(null);const u=m.material&&m.material.uniforms;if(u&&u.uFTex&&u.uFTex.value){u.uFTex.value.dispose();m.material.dispose();}}
 function nuVitMats(solo){ const cle=solo?'s':'i',K='mv'+cle;if(COTON[K])return COTON[K];
-  const m8=nuage8Mat(),U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k in N8_U)U[k]=m8.uniforms[k]||N8_U[k];for(const k in NV_U)U[k]=NV_U[k];
+  const m8=nuage8Mat(),U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k in N8_U)U[k]=m8.uniforms[k]||N8_U[k];for(const k in NV_U)U[k]=NV_U[k];U.uNvW={value:1}; /* (2026-10-18, fondu) la part de cubes d'un nuage SEUL (posée par objet) */
   const R={};['cub','coe','pea','fan'].forEach(function(n,k){
     const tx=k===3&&NUF_TEX;if(tx)U.uFTex={value:null};
     const m=new THREE.ShaderMaterial({uniforms:U,vertexColors:!tx,fog:true,transparent:k>=2,depthWrite:k<2,vertexShader:k===3?nuFantVS(tx):nuVitVS(k),fragmentShader:k===3?nuFantFS():nuVitFS(k)});
@@ -14517,13 +14538,13 @@ window.dbgNuVue=function(k,a,p,h){ // (banc) la même vue, vitrail 0/1 : la cam�
   else   if(a!=null){const cp=carGroup.position,f=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);f.y=0;f.normalize();dbgNuVue.v={x:cp.x,y:cp.y+(+h||6),z:cp.z,yaw:Math.atan2(f.x,f.z)+(+a),p:+p||0};}
   const v=dbgNuVue.v;if(v){camera.position.set(v.x,v.y,v.z);camera.up.set(0,1,0);camera.lookAt(v.x+Math.sin(v.yaw)*Math.cos(v.p)*100,v.y+Math.sin(v.p)*100,v.z+Math.cos(v.yaw)*Math.cos(v.p)*100);camera.updateMatrixWorld();}
   return dbgNuVit(k,{rendre:1});};
-window.dbgNuVit=function(k,o){o=o||{};if(k!=null)NUVIT.on=!!+k;if(o.dose&&NV_DOSES[o.dose]){NUVIT.dose=o.dose;for(const q in NV_DOSES[o.dose])NV_U[q].value=NV_DOSES[o.dose][q];}for(const n in o)if(NV_U[n])NV_U[n].value=+o[n]; // (banc) A/B sur la même image : 0 = la v8 seule, 1 = en vitrail ; {uLueur, uScan, uCoqA0, uCoqA1, uRel…}
+window.dbgNuVit=function(k,o){o=o||{};if(k!=null)NUVIT.on=!!+k;if(o.fondu!=null)NUVIT.fondu=!!+o.fondu; /* (banc) fondu 0 = les bascules d'avant */if(o.dose&&NV_DOSES[o.dose]){NUVIT.dose=o.dose;for(const q in NV_DOSES[o.dose])NV_U[q].value=NV_DOSES[o.dose][q];}for(const n in o)if(NV_U[n])NV_U[n].value=+o[n]; // (banc) A/B sur la même image : 0 = la v8 seule, 1 = en vitrail ; {uLueur, uScan, uCoqA0, uCoqA1, uRel…}
   for(const c of CLOUDS){const m=c.mesh;if(!m||!m.userData.vit)continue;const on=NUVIT.on;m.userData.vitOn=on;for(const o9 of m.userData.vit)o9.visible=on;m.geometry=on?m.userData.gVit:m.userData.g8;m.material=on?m.userData.mVit:nuage8Solo();m.userData.m8=m.material;}
   if(COTON.root)cotonTick(camera);if(paused||o.rendre){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
   if(o.banc){const gl=renderer.getContext(),px=new Uint8Array(4),T=[];for(let i=0;i<o.banc;i++){const t0=performance.now();if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);T.push(performance.now()-t0);}T.sort((a,b)=>a-b);return +T[T.length>>1].toFixed(1);} // (banc) ms d une image synchronisée
   let n=0;if(COTON.vit)for(const V of COTON.vit)if(V&&V.ok)n++;
   if(o.detail&&COTON.vit){const D=[];for(let q=0;q<COTON.vit.length;q++){const V=COTON.vit[q];if(V&&V.ok)D.push([q>>2,q&3,V.c.geometry.index.count/3,V.o.geometry.index.count/3,V.p.geometry.index.count/3,COTON.im[q].userData.tri]);}return D;} // (banc) [gabarit, finesse, écailles, cœur, peau, v8]
-  return {on:NUVIT.on,lotsPrets:n,tri:COTON.tri,seuls:CLOUDS.filter(function(c){return c.mesh&&c.mesh.userData.vit;}).length,u:Object.keys(NV_U).reduce(function(a,q){a[q]=NV_U[q].value;return a;},{})};};
+  return {on:NUVIT.on,fondu:NUVIT.fondu,lotsPrets:n,tri:COTON.tri,seuls:CLOUDS.filter(function(c){return c.mesh&&c.mesh.userData.vit;}).length,u:Object.keys(NV_U).reduce(function(a,q){a[q]=NV_U[q].value;return a;},{})};};
 window.dbgNet=function(on){FLOU_OK=!on;if(on&&acesPass)acesPass.uniforms.uSpeed.value=0;return !FLOU_OK;}; // (dev) une image NETTE pour les bancs (le flou de vitesse coupé)
 let FLOU_ON=FLOU_V2;window.dbgFlou=function(o){o=o||{};if(!acesPass)return null;const U=acesPass.uniforms; // (2026-10-14, flou-vitesse) BANC : v = le flou v2/v1 (une recompilation : jamais en course), s = une vitesse d'effet forcée sur l'image figée, fv = [rayon,force,warp,courbe]
   if(o.v!=null&&!!o.v!==FLOU_ON){FLOU_ON=!!o.v;acesPass.material.fragmentShader=flouFS(acesPass.material.fragmentShader,FLOU_ON);acesPass.material.needsUpdate=true;}
@@ -14535,6 +14556,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
   const rg=mulberry32(0xC07070),SPH=COTON.SEG.map(function(s){return new THREE.SphereGeometry(1,s[0],s[1]);}),m=nuage8Mat();
   COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
   COTON.vit=[];const MV=NUVIT_V?nuVitMats(false):null; // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
+  COTON.W=new Float32Array(COTON.cap);COTON.WC=new Float32Array(COTON.cap);COTON.LV=MV?Array.from({length:COTON_KINDS*2},function(){return {i:new Int32Array(COTON.cap),d:new Float32Array(COTON.cap),n:0};}):null; // (2026-10-18, LE FONDU) les parts (corps, cubes) de chaque nuage, et, par jeu de cubes (gabarit × lot 2|3), ceux qui en ont une
   const rgC=mulberry32(0xC0F1E5); // (v7) le hasard du chou-fleur, à part
   for(let k=0;k<COTON_KINDS;k++){let S;{S=cumulus8(k===24?'cumulonimbus':k<6?N8_GENRE6[k]:(N8_GENRE_V[COTON_GENRES[k-6]]||COTON_GENRES[k-6]),rg);S.fin=1;}COTON.S.push(S);
     const g0=cotonGeo(({B:S.B.slice(0,12),base:S.base,top:S.top}),SPH[0]);COTON.pret[k*4]=1; /* (v8) l'ébauche sur les 12 premiers lobes (base et dôme) : 70 lobes coûtaient 160 ms au lancement */ // (2026-09-30) la finesse la plus LÉGÈRE tout de suite (7 % du calcul) : elle tient la place des trois autres, qui arrivent de l'ouvrier
@@ -14654,33 +14676,39 @@ function buildCoton(cr){
   COTON.root.visible=COTON.n>0;
 }
 const COTON_T0=performance.now();
+function cotonInst(o,A,C,b,tt){const I=COTON.I,r=I[o+3];C[b*3]=I[o+10];C[b*3+1]=I[o+11];C[b*3+2]=I[o+12]; // une instance de nuage : sa teinte, la dérive au vent, son cap
+  COTON.P.set(I[o]+Math.sin(tt*.05+I[o+6])*6,I[o+1],I[o+2]+Math.cos(tt*.04+I[o+6])*6);COTON.Q.setFromAxisAngle(COTON.Y,I[o+4]);COTON.Sc.set(r*I[o+8],r*I[o+9],r); // (v4) l'étirement du nuage
+  COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(A,b*16);}
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
   const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:3,n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
+  const LV=(NUVIT.on&&!J&&COTON.LV)?COTON.LV:null,W9=COTON.W,WC9=COTON.WC;if(LV)for(const Lv of LV)Lv.n=0; // (2026-10-18, LE FONDU) pas aux Pics de Jade
   const fF=((J||(LVL.cur&&LVL.cur.id==='orage'))&&scene.fog)?scene.fog.far*1.02:1e9; // (2026-09-29) L'ORAGE : sa brume est à ~1 km — un nuage ENTIÈREMENT au-delà est de la brume pure : pas envoyé (mesuré : 407k triangles → voir CLAUDE.md) ; l'éclair qui ouvre la brume les fait revenir
   for(let j=0;j<n;j++){const o=j*COTON_ST,r=I[o+3],h=I[o+7],ph=I[o+6],k=I[o+5],S=COTON.S[k];
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
     if(!vis)continue;
     const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
-    const Lq=Ls[k*4+Math.min(fm,(sg<=10?0:sg<=16?1:sg<=32?2:3))]; /* (v8) la surface : ~10 px par cellule à l'écran */Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}
+    const fq=Math.min(fm,(sg<=10?0:sg<=16?1:sg<=32?2:3)),Lq=Ls[k*4+fq]; /* (v8) la surface : ~10 px par cellule à l'écran */
+    let w=0,wc=0,vq=3;if(LV){const V9=COTON.vit[k*4+3];if(V9&&V9.ok){const x=Math.max(1,d-R)/R,c=2/((NUVIT.fant?NUVIT.fsz:NUVIT.nc)*x); /* (2026-10-18, Sacha) LE FONDU : les parts du corps (w) et des cubes (wc) ; avant, des bascules (lot 2 : 40 % des fantômes, lot 3 : tous, tout près : la v8) */
+      if(NUVIT.fondu){const P9=nuvPoids(x,c);w=P9[0];wc=P9[1];vq=(NUVIT.fant&&wc*1.06<=NUVIT.loin)?2:3;}else if(fq>=2&&c<=NUVIT.ang){w=wc=1;vq=fq;}}} // le lot lointain (40 % des fantômes) suffit tant que les cubes n'en demandent pas plus
+    W9[j]=w;WC9[j]=wc;if(w<1){Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}if(w>0){const Lv=LV[k*2+vq-2];Lv.i[Lv.n]=j;Lv.d[Lv.n]=d;Lv.n++;}}
   let nN=0,nF=0,tri=0;
   for(let q=0;q<Ls.length;q++){const Lq=Ls[q],im=COTON.im[q],A=im.instanceMatrix.array,ii=Lq.i,dd=Lq.d,m=Lq.n;
     for(let a=1;a<m;a++){const vi=ii[a],vd=dd[a];let b=a-1;while(b>=0&&dd[b]<vd){ii[b+1]=ii[b];dd[b+1]=dd[b];b--;}ii[b+1]=vi;dd[b+1]=vd;} // du plus LOIN au plus près
-    const Cq=im.instanceColor.array,V9=COTON.vit&&COTON.vit[q],vo9=!!(V9&&V9.ok&&NUVIT.on&&!J),AB=vo9?V9.A.array:null,CB=vo9?V9.C.array:null; // (vitrail) pas aux Pics de Jade
-    let mA=0,mB=0;
-    for(let a=0;a<m;a++){const o=ii[a]*COTON_ST,r=I[o+3];
-      let v8=true;if(vo9){const R9=Math.max(r*1.08*I[o+8],I[o+7]*.56);v8=2*R9/(NUVIT.fant?NUVIT.fsz:NUVIT.nc)>NUVIT.ang*Math.max(1,dd[a]-R9);} // (vitrail) un nuage dont les écailles seraient trop GROSSES à l'écran (tout près) reste en v8 : de près, des cubes de 15 m faisaient des éclats de verre
-      const AA=v8?A:AB,CC=v8?Cq:CB,b=v8?mA++:mB++;CC[b*3]=I[o+10];CC[b*3+1]=I[o+11];CC[b*3+2]=I[o+12];
-      COTON.P.set(I[o]+Math.sin(tt*.05+I[o+6])*6,I[o+1],I[o+2]+Math.cos(tt*.04+I[o+6])*6);COTON.Q.setFromAxisAngle(COTON.Y,I[o+4]);COTON.Sc.set(r*I[o+8],r*I[o+9],r); // (v4) l'étirement du nuage
-      COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(AA,b*16);}
+    const Cq=im.instanceColor.array;let mA=0;
+    for(let a=0;a<m;a++){const j9=ii[a];cotonInst(j9*COTON_ST,A,Cq,mA,tt);A[mA*16+3]=W9[j9];mA++;} // (2026-10-18, LE FONDU) la part de cubes dans la ligne du bas de la matrice : la v8 leur cède autant de points de sa trame
     im.count=mA;im.visible=mA>0;if(mA){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=mA*16;im.instanceMatrix.needsUpdate=true;
       im.instanceColor.updateRange.offset=0;im.instanceColor.updateRange.count=mA*3;im.instanceColor.needsUpdate=true;} // (vide : pas d'appel de dessin)
-    if(V9){const fa9=!!V9.fan;V9.c.count=V9.o.count=V9.p.count=V9.b.count=V9.g.count=mB;V9.c.visible=V9.o.visible=V9.p.visible=!fa9&&vo9&&mB>0;V9.b.visible=V9.g.visible=fa9&&vo9&&mB>0; // (vitrail) les maillages partagent LEURS instances ; (fantôme) le corps rentré + les cubes fantômes
-      if(mB){V9.A.updateRange.offset=0;V9.A.updateRange.count=mB*16;V9.A.needsUpdate=true;V9.C.updateRange.offset=0;V9.C.updateRange.count=mB*3;V9.C.needsUpdate=true;}}
-    if((q&3)>=2)nN+=m;else nF+=m;tri+=mA*im.userData.tri+mB*(V9?V9.tri:0);}
+    if((q&3)>=2)nN+=m;else nF+=m;tri+=mA*im.userData.tri;}
+  if(COTON.vit)for(let q=0;q<COTON.vit.length;q++){const V9=COTON.vit[q];if(!V9)continue;const Lv=LV?LV[(q>>2)*2+(q&3)-2]:null,ii=Lv?Lv.i:null,dd=Lv?Lv.d:null,m=Lv?Lv.n:0; // (vitrail / fantôme) un jeu par gabarit et par lot fin : ses maillages partagent LEURS instances
+    for(let a=1;a<m;a++){const vi=ii[a],vd=dd[a];let b=a-1;while(b>=0&&dd[b]<vd){ii[b+1]=ii[b];dd[b+1]=dd[b];b--;}ii[b+1]=vi;dd[b+1]=vd;} // du plus LOIN au plus près (la peau, les fantômes sont transparents)
+    const AB=V9.A.array,CB=V9.C.array;for(let a=0;a<m;a++){const j9=ii[a];cotonInst(j9*COTON_ST,AB,CB,a,tt);AB[a*16+3]=-W9[j9];AB[a*16+7]=-WC9[j9];} // les parts en NÉGATIF : le corps rentré (matière v8) prend les points que la v8 cède ; les cubes, leur rang
+    const fa9=!!V9.fan;V9.c.count=V9.o.count=V9.p.count=V9.b.count=V9.g.count=m;V9.c.visible=V9.o.visible=V9.p.visible=!fa9&&m>0;V9.b.visible=V9.g.visible=fa9&&m>0; // (fantôme) le corps rentré + les cubes fantômes
+    if(m){V9.A.updateRange.offset=0;V9.A.updateRange.count=m*16;V9.A.needsUpdate=true;V9.C.updateRange.offset=0;V9.C.updateRange.count=m*3;V9.C.needsUpdate=true;}
+    tri+=m*V9.tri;}
   COTON.nN=nN;COTON.nF=nF;COTON.tri=tri;COTON.ms=COTON.ms*.95+(performance.now()-t00)*.05;
 }
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);cotonTick(cam);};} // CHAÎNÉ (jamais réassigné)
@@ -14808,7 +14836,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
       const u9=mesh.userData;u9.vit=[c9,p9];u9.g8=g2;u9.hcw=q.vit.hc*r;u9.gVit=G.coe;u9.mVit=MS.coe;if(NUVIT.on){mesh.geometry=G.coe;if(mesh.material===nuage8Solo())mesh.material=MS.coe;u9.m8=MS.coe;}else c9.visible=p9.visible=false;}
     else if(q.fant){const G=nuFantGeo(q,fin9.dyU,g2),MS=nuVitMats(true),f9=new THREE.Mesh(G.fan,nufMat(MS.fan,G)); /* (fantôme) les bancs, coussins et tours : le maillage devient le CORPS rentré, les cubes fantômes sont son enfant */
       f9.castShadow=f9.receiveShadow=false;f9.updateMatrix();f9.matrixAutoUpdate=false;mesh.add(f9);
-      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},NUVIT_V?Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))):0);
+      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},NUVIT_V?Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))):0);
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
@@ -14952,8 +14980,9 @@ function updateClouds(dt,t){
     }
     {const ex=camera.position.x-c.g.position.x,ey=camera.position.y-c.g.position.y,ez=camera.position.z-c.g.position.z,
       dc=(ex*ex+ez*ez)/(c.r*c.r)+(ey*ey)/(c.ry*c.ry);if(dc<2.6){const q=Math.min(1,(2.6-dc)/1.6);if(q>prox)prox=q;}
-      c.mesh.material=dc<1.1?(c.mesh.userData.m8?CLOUD_MAT_IN8:CLOUD_MAT_IN):(c.mesh.userData.m8||c.mesh.userData.mm||CLOUD_MAT);if(c.mesh.userData.vit&&NUVIT.on){const u9=c.mesh.userData,dd9=Math.sqrt(ex*ex+ey*ey+ez*ez)-c.r,v9=!(dc<1.1)&&2*(u9.hcw||0)/Math.max(1,dd9)<=NUVIT.ang; // (vitrail) dedans : le white-out seul ; TOUT PRÈS (écaille trop grosse à l écran) : le nuage lisse, comme les instances
-      for(const o9 of u9.vit)o9.visible=v9;if(!(dc<1.1)){const m9=v9?u9.mVit:nuage8Solo(),g9=v9?u9.gVit:u9.g8;if(c.mesh.material!==m9)c.mesh.material=m9;if(c.mesh.geometry!==g9)c.mesh.geometry=g9;}}} /* (vitrail) dedans : le white-out seul, sans écailles ni peau */ /* (2026-10-14, œil) mm : la laine plus blanche d'un mouton (moutonTete) */ // (2026-09-26) la caméra DANS l'ellipsoïde : la paroi intérieure se montre (white-out) ; dehors, l'endroit seul
+      c.mesh.material=dc<1.1?(c.mesh.userData.m8?CLOUD_MAT_IN8:CLOUD_MAT_IN):(c.mesh.userData.m8||c.mesh.userData.mm||CLOUD_MAT);if(c.mesh.userData.vit&&NUVIT.on){const u9=c.mesh.userData,dd9=Math.sqrt(ex*ex+ey*ey+ez*ez)-c.r,cq9=2*(u9.hcw||0)/Math.max(1,dd9),v9=!(dc<1.1)&&cq9<=NUVIT.ang;
+      if(u9.fan&&NUVIT.fondu){u9.nvw=dc<1.1?0:1-nuvLisse(NUVIT.bPresF[0],NUVIT.bPresF[1],cq9);for(const o9 of u9.vit)o9.visible=u9.nvw>0;if(!(dc<1.1)&&c.mesh.geometry!==u9.gVit){c.mesh.geometry=u9.gVit;c.mesh.material=u9.mVit;}}else{ /* (2026-10-18, LE FONDU) le fantôme seul : ses cubes s'effacent en approchant, le corps reste (plus de bascule vers la v8) */ // (vitrail) dedans : le white-out seul ; TOUT PRÈS (écaille trop grosse à l écran) : le nuage lisse, comme les instances
+      for(const o9 of u9.vit)o9.visible=v9;if(!(dc<1.1)){const m9=v9?u9.mVit:nuage8Solo(),g9=v9?u9.gVit:u9.g8;if(c.mesh.material!==m9)c.mesh.material=m9;if(c.mesh.geometry!==g9)c.mesh.geometry=g9;}}}} /* (vitrail) dedans : le white-out seul, sans écailles ni peau */ /* (2026-10-14, œil) mm : la laine plus blanche d'un mouton (moutonTete) */ // (2026-09-26) la caméra DANS l'ellipsoïde : la paroi intérieure se montre (white-out) ; dehors, l'endroit seul
     c.g.position.x=c.c.x+Math.sin(t*.07+c.ph)*4;   // le banc respire et dérive au vent
     c.g.position.z=c.c.z+Math.cos(t*.05+c.ph)*4;
     if(d2<1){ // ---- DEDANS ----
@@ -18856,7 +18885,8 @@ function foretTick(dt){
    plus loin. Le matin et à midi, jamais sous la pluie. Le programme des arbres (M.arb, maillage simple : déjà compilé au menu) ; 9 petits
    maillages. Frôlée : `sfx('foret.abeille')` (le bourdonnement — à cuire par la session SON). `?sans=abeilles` = pas d'abeilles. */
 const ABEILLES_V=!/[?&]sans=([^&]*,)?abeilles(,|&|$)/.test(location.search),ABE={g:null,L:[]};
-function fbBoite(K,c,sz,col,part){const h=[sz[0]/2,sz[1]/2,sz[2]/2];
+/* (2026-10-18, débogage NaN) ABEBOITE : la boîte des ABEILLES, par son centre et sa taille. Elle s'appelait fbBoite, comme celle de la CHAUMIÈRE (par ses coins) : deux déclarations du même nom dans la même portée, la DERNIÈRE gagne en silence — depuis le 17/10 la chaumière appelait celle-ci, ses murs sortaient en NaN (THREE : « Computed radius is NaN ») et il n'en restait que le toit. */
+function abeBoite(K,c,sz,col,part){const h=[sz[0]/2,sz[1]/2,sz[2]/2];
   for(let a=0;a<3;a++)for(const sg of [-1,1]){const n=[0,0,0];n[a]=sg;const u=(a+1)%3,v=(a+2)%3,V9=[];
     for(const q of [[-1,-1],[1,-1],[1,1],[-1,1]]){const p=[c[0],c[1],c[2]];p[a]+=sg*h[a];p[u]+=q[0]*h[u];p[v]+=q[1]*h[v];V9.push(fbV(K,p[0],p[1],p[2],n[0],n[1],n[2],[part,.9,0,0],col,[5,0]));}
     if(sg>0)K.I.push(V9[0],V9[1],V9[2],V9[0],V9[2],V9[3]);else K.I.push(V9[0],V9[2],V9[1],V9[0],V9[3],V9[2]);}}
@@ -18864,10 +18894,10 @@ function foretAbeilles(dt,c){
   const veut=ABEILLES_V&&(FORET.met==='matin'||FORET.met==='midi')&&!(LVL.pluie>.05)&&FORET.zig!==undefined;
   if(!veut){if(ABE.g)ABE.g.visible=false;return;}
   if(!ABE.g){const M=FORET.mats,K=fbNew(),W=fbNew(),noir=[.05,.045,.04],jaune=[.95,.72,.07];
-    fbBoite(K,[0,0,.44],[.34,.32,.3],noir,3);fbBoite(K,[0,0,.14],[.42,.4,.36],[.42,.25,.06],3);
-    fbBoite(K,[0,-.01,-.16],[.46,.42,.24],jaune,3);fbBoite(K,[0,-.02,-.38],[.44,.4,.22],noir,3);fbBoite(K,[0,-.03,-.58],[.36,.32,.2],jaune,3);fbBoite(K,[0,-.04,-.74],[.14,.14,.14],noir,3);
-    fbBoite(K,[.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3);fbBoite(K,[-.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3); // les yeux
-    fbBoite(W,[.3,0,0],[.6,.025,.3],[.86,.92,1.],3);const W2=fbNew();fbBoite(W2,[-.3,0,0],[.6,.025,.3],[.86,.92,1.],3); // (l'aile gauche bâtie en miroir : une échelle négative retournerait ses faces)
+    abeBoite(K,[0,0,.44],[.34,.32,.3],noir,3);abeBoite(K,[0,0,.14],[.42,.4,.36],[.42,.25,.06],3);
+    abeBoite(K,[0,-.01,-.16],[.46,.42,.24],jaune,3);abeBoite(K,[0,-.02,-.38],[.44,.4,.22],noir,3);abeBoite(K,[0,-.03,-.58],[.36,.32,.2],jaune,3);abeBoite(K,[0,-.04,-.74],[.14,.14,.14],noir,3);
+    abeBoite(K,[.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3);abeBoite(K,[-.13,.06,.56],[.1,.1,.06],[.02,.02,.02],3); // les yeux
+    abeBoite(W,[.3,0,0],[.6,.025,.3],[.86,.92,1.],3);const W2=fbNew();abeBoite(W2,[-.3,0,0],[.6,.025,.3],[.86,.92,1.],3); // (l'aile gauche bâtie en miroir : une échelle négative retournerait ses faces)
     const gC=fbGeo(K),gW=fbGeo(W),gW2=fbGeo(W2);ABE.g=new THREE.Group();ABE.g.name='forêt abeilles';scene.add(ABE.g);
     for(let k=0;k<3;k++){const b=new THREE.Group(),co=new THREE.Mesh(gC,M.arb),a1=new THREE.Mesh(gW,M.arb),a2=new THREE.Mesh(gW2,M.arb);
       a1.position.set(.12,.2,.14);a2.position.set(-.12,.2,.14);b.add(co,a1,a2);b.scale.setScalar(1.6);b.visible=false;ABE.g.add(b);
@@ -26879,9 +26909,9 @@ const CARS=[
  // carnet de trois missions (voir `CARNETS`). Des silhouettes que tout le monde reconnaît de loin, sans
  // leur nom ni leur logo : la bulle, le combi, l'inox à portes papillon. Ajoutées EN FIN de gamme : les
  // index 0-5 des sauvegardes existantes ne bougent pas.
- {name:'LA BULLE',        shape:'bulle',   color:0x8fd6ff,accent:0xf3ead6,maxKmh:215,accel:24,turn:2.75,h:1.53,w:1.90,l:4.20,spoiler:0,
+ {name:'LA BULLE',        shape:'bulle',   color:0x8fd6ff,accent:0xf3ead6,maxKmh:215,accel:24,turn:2.75,h:1.53,w:1.90,l:4.20,spoiler:0,rar:'commun', // (2026-10-18, Léo) COMMUNE (était RARE : contrat 1)
   desc:'Ronde comme un sou neuf. Tout le monde lui sourit, même la police.'},
- {name:'LE COMBI',        shape:'combi',   color:0x35c2bb,accent:0xf4ecd8,maxKmh:245,accel:27,turn:2.55,h:1.98,w:1.76,l:4.40,spoiler:0,
+ {name:'LE COMBI',        shape:'combi',   color:0x35c2bb,accent:0xf4ecd8,maxKmh:245,accel:27,turn:2.55,h:1.98,w:1.76,l:4.40,spoiler:0,rar:'commun', // (2026-10-18, Léo : « il est rare actuellement : le passer en commune »)
   desc:'Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.'},
  {name:'LA DOLORÈS',      shape:'dolores', color:0xc3c7cc,accent:0x141518,maxKmh:360,accel:40,turn:2.9, h:1.14,w:1.86,l:4.22,spoiler:0,
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
@@ -27079,6 +27109,50 @@ const CARS=[
  {name:'LA PERLE',shape:'perle',color:0xf3f3f1,accent:0xd31f2a,maxKmh:450,accel:56,turn:3.2,h:1.38,w:1.97,l:4.96,spoiler:0,rar:'epique',
   fx:{jet:0x6fd6ff,core:0xe8fbff,trail:[.3,1.0,1.5],light:0x46c8ff},
   desc:'Blanc laqué, zéro bruit, 571 chevaux. Elle passe sans un son, et tout le monde se retourne quand même.'},
+ /* ===== LES NOUVELLES VOITURES (2026-10-18, Léo : « actuellement la seule commune du jeu est LA HONTE, ajoute… ») — HUIT PLACES RÉSERVÉES
+    (index 79-86), CACHÉES (`retire:1`) jusqu'à ce que la discussion qui modèle la caisse la livre : elle remplace SA ligne (nom, gabarit,
+    fiche) et retire `retire:1`. Les commentaires « · » entre les places sont là pour que trois discussions en parallèle fusionnent sans conflit.
+    ⚠ NE PAS prendre ces index pour une autre caisse : la suivante est la 87. ===== */
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 79',shape:'epave',color:0xf08fb4,accent:0x2a2a2e,maxKmh:205,accel:23,turn:2.5,h:1.40,w:1.85,l:5.00,spoiler:0,rar:'commun',retire:1, // 79 — discussion BOITES : la berline rose des Simpson (gabarit à venir : SHAPES.simpson)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 80',shape:'epave',color:0xaec3e0,accent:0xf4f1ea,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.57,spoiler:0,rar:'commun',retire:1, // 80 — discussion RONDES : Fiat 500 (2007), finition « 1957 » de la photo de Léo : bleu ciel, toit blanc, enjoliveurs crème (gabarit à venir : SHAPES.cinq)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 81',shape:'epave',color:0xd8dade,accent:0x17181b,maxKmh:215,accel:24,turn:2.7,h:1.44,w:1.78,l:4.63,spoiler:0,rar:'commun',retire:1, // 81 — discussion JAPONAISES : Toyota Corolla berline (2019) (gabarit à venir : SHAPES.corolla)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 82',shape:'epave',color:0x2f5d3a,accent:0x141414,maxKmh:210,accel:23,turn:2.4,h:1.85,w:1.89,l:4.79,spoiler:0,rar:'commun',retire:1, // 82 — discussion BOITES : Jeep Wrangler JL (2018) (gabarit à venir : SHAPES.wrangler)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 83',shape:'epave',color:0xc8151d,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun',retire:1, // 83 — discussion JAPONAISES : Mazda MX-5 NA (1989), phares escamotables (gabarit à venir : SHAPES.mx5na)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 84',shape:'epave',color:0x3c78c8,accent:0x1a1a1d,maxKmh:230,accel:26,turn:2.6,h:1.40,w:1.42,l:3.33,spoiler:0,rar:'rare',retire:1, // 84 — discussion RONDES : Reliant Robin (trois roues) (gabarit à venir : SHAPES.robin)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 85',shape:'epave',color:0xc9ccd1,accent:0x141416,maxKmh:275,accel:31,turn:3,h:1.24,w:1.73,l:3.92,spoiler:0,rar:'rare',retire:1, // 85 — discussion JAPONAISES : Mazda MX-5 RF (2016), argent (gabarit à venir : SHAPES.mx5rf)
+  desc:'(place réservée)'},
+ /* · */
+ /* · */
+ /* · */
+ {name:'NOUVELLE 86',shape:'epave',color:0xf2f2ee,accent:0x141414,maxKmh:280,accel:32,turn:3.1,h:1.34,w:1.63,l:4.18,spoiler:0,rar:'rare',retire:1, // 86 — discussion JAPONAISES : Toyota AE86 (1983) (gabarit à venir : SHAPES.ae86)
+  desc:'(place réservée)'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -37323,6 +37397,51 @@ SHAPES.perle=function(K){
 function perleTraits(){const F=SHAPES.perle,nul=()=>{};if(F._tri&&F._tole)return;
   if(!F._tri){const P9=new Proxy({},{get:()=>nul});F({kit:()=>P9,commit:nul,mats:{}});return;}
   F({kit:pal=>lpKit(typeof peintPal==='function'?peintPal(pal):pal),commit:kt=>{const gs=kt.done();for(const g in gs)gs[g].dispose();},mats:{}});}
+/* ===== LES NOUVELLES VOITURES (2026-10-18) — UN EMPLACEMENT PAR GABARIT : chaque discussion remplace SA ligne-repère par son
+   `SHAPES.x=function(K){…}` (LA BULLE et LE COMBI refaits : `SHAPES.bulle=` / `SHAPES.combi=` ici, qui remplacent les anciens de l'objet SHAPES). ===== */
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.bulle (RONDES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.cinq (RONDES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.robin (RONDES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.corolla (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.mx5na (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.mx5rf (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.ae86 (JAPONAISES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.combi (BOITES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.wrangler (BOITES) >>>
+// · · ·
+// · · ·
+// · · ·
+// <<< SHAPES.simpson (BOITES) >>>
+// · · ·
+// · · ·
+// · · ·
 SHAPES.origami=function(K){
   const U=LPU,R=.44,ZF=1.92,ZR=-1.72,ZN=2.74,ZT=-2.74,TB=.64,KL=.10,E=.006;
   const P=K.kit({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
@@ -40304,6 +40423,39 @@ const CAR_UNLOCK=[
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
   {p:4400000}, // (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
+  /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */
+  /* · */
+  /* · */
+  /* · */
+  {p:2500}, // 79 — COMMUNE : la berline rose des Simpson
+  /* · */
+  /* · */
+  /* · */
+  {p:3000}, // 80 — COMMUNE : Fiat 500 (2007), finition « 1957 »
+  /* · */
+  /* · */
+  /* · */
+  {p:4000}, // 81 — COMMUNE : Toyota Corolla berline (2019)
+  /* · */
+  /* · */
+  /* · */
+  {p:8000}, // 82 — COMMUNE : Jeep Wrangler JL (2018)
+  /* · */
+  /* · */
+  /* · */
+  {p:6000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  /* · */
+  /* · */
+  /* · */
+  {p:25000}, // 84 — RARE : Reliant Robin (trois roues)
+  /* · */
+  /* · */
+  /* · */
+  {p:50000}, // 85 — RARE : Mazda MX-5 RF (2016), argent
+  /* · */
+  /* · */
+  /* · */
+  {p:40000}, // 86 — RARE : Toyota AE86 (1983)
 ]
 /* (2026-10-14, Sacha) SANS CARRIÈRE : ses deux trophées passent à l'argent du jeu, aux prix de l'ancienne édition Poki (en haut des épiques ;
    leur famille suit le prix, comme chez Poki). `exK`/`exV` gardent l'ancienne condition : une caisse déjà GAGNÉE en carrière entre dans
