@@ -29465,7 +29465,7 @@ const SHAPES={
       if(o.isMesh&&!vu.has(o.geometry)){vu.add(o.geometry);o.geometry.scale(NY_K,NY_K,NY_K);}});
      NYAN.arc.multiplyScalar(NY_K);}
     const kk=NY_K,mk=a=>a.map(v=>v*kk);
-    return {hl:mk([.5,.45,2.5]),tl:mk([.65,.8-NY_BAS,-1.1]),lpw:{R:.25*kk,w:.18*kk,style:'nyan'},wx:NY_VOIE*kk,wzF:.95*kk,wzR:.45*kk,wy:0, // (v13) les roues sous les pattes, au centre des passages · (2026-10-08) 50 cm, dessinées par le gabarit (voir 6.)
+    return {plq:[.17,-1.026,0,.44], /* (18/10) LA PLAQUE sur le pare-chocs noir, SOUS la queue (elle se posait sur la queue qui bat) */hl:mk([.5,.45,2.5]),tl:mk([.65,.8-NY_BAS,-1.1]),lpw:{R:.25*kk,w:.18*kk,style:'nyan'},wx:NY_VOIE*kk,wzF:.95*kk,wzR:.45*kk,wy:0, // (v13) les roues sous les pattes, au centre des passages · (2026-10-08) 50 cm, dessinées par le gabarit (voir 6.)
             split:0,skirt:0,sp:0,doors:0,wings:'none',glowF:0,halos:0,tuyeres:0,pots:[mk([0,.75-NY_BAS,-1.03])]};
   },
   // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
@@ -29526,7 +29526,7 @@ const SHAPES={
       // CARÉNAGES DE ROUE : sans eux les roues pendent sous un corps qui s'affine à ses extrémités
       for(const fz of [1,-1])K.sph(W*.14,H*.26,L*.18,peau,sd*(W/2-.14),y0+H*.30,fz*(L/2-.72));
     }
-    return {hl:[W*.22,y0+H*.34,L*.40],tl:[W*.26,y0+H*.56,-L*.42],wr:.90,wx:W/2-.02,wz:L/2-.72,
+    return {plq:[1.10,-1.05,0,.40], /* (18/10) LA PLAQUE au bout du corps (les rayons passaient sous le ventre : elle finissait cachée dessous) */hl:[W*.22,y0+H*.34,L*.40],tl:[W*.26,y0+H*.56,-L*.42],wr:.90,wx:W/2-.02,wz:L/2-.72,
             split:0,skirt:0,sp:0,doors:0,wings:'props',glowX:W*.44,glowY:y0+H*.14,glowL:L*.62,glowF:0};
   }
 };
@@ -29676,7 +29676,7 @@ Object.assign(SHAPES,{
     P.cyl('c',.05,.08,8,sd*.44,.36,-2.94,'z');
   });
   K.commit(P);
-  return {hl:[.67,.75,2.93],tl:[.84,.78,-2.93],wx:.84,wzF:ZF,wzR:-ZR,
+  return {plq:[.49,-3.02,0,.50], /* (18/10) LA PLAQUE dans le support noir du pare-chocs (elle montait sur les rideaux de la lunette) */hl:[.67,.75,2.93],tl:[.84,.78,-2.93],wx:.84,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.27,style:'enjoliveur',jante:0xe9ecf0,blanc:1}};
 },
   a_chargeur:function(K){
@@ -29774,7 +29774,7 @@ Object.assign(SHAPES,{
    P.prism('p',[[za,ha-.02],[zb,hb-.02],[zb,hb+.07],[za,ha+.004]],.50,0);
    P.box('K',.42,.055,.01,0,hb+.03,zb+.002);}
   K.commit(P);
-  return {hl:[.56,.745,2.51],tl:[.74,.95,-2.55],wx:.82,wzF:ZF,wzR:-ZR,
+  return {plq:[.71,-2.55], /* (18/10) LA PLAQUE sur le bouclier, sous la barre des feux (le noir laqué est en famille g, celle du verre : les rayons ne le voyaient pas, la barre la cachait) */hl:[.56,.745,2.51],tl:[.74,.95,-2.55],wx:.82,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xa7adb5,accent:0x1b1c20}};
  },
   a_defieur:function(K){
@@ -29985,7 +29985,7 @@ Object.assign(SHAPES,{
      P.box('r',.012,.07,.13,sd*.7615,R+.106,w-.106,-Math.PI/4);
    });}
   K.commit(P);
-  return {hl:[.62,.665,ZN+.03],tl:[.58,.72,ZT-.02],wx:.71,wzF:ZF,wzR:-ZR,
+  return {plq:[.58,-2.216,0,.48], /* (18/10) LA PLAQUE dans son logement noir entre les feux (elle montait sur la malle) */hl:[.62,.665,ZN+.03],tl:[.58,.72,ZT-.02],wx:.71,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.24,style:'multi',n:12,jante:0xd4a43a}}; // (2026-10-17, le kit rallye) les jantes à rayons fins DORÉES, douze rayons (dix, argent, avant)
 },
   c_silencieuse:function(K){
@@ -31348,7 +31348,7 @@ Object.assign(SHAPES,{
   // LE BÉLIER (3e jet) : cinq clous droit devant sur le bouclier, le plus long au milieu — la bête charge
   [[0,.30],[.15,.22],[.29,.15]].forEach(([x,L])=>clou([x,.46,2.29],[0,-.06,1],L,.045,x?1:0));
   K.commit(P);
-  return {hl:[.20,.58,2.28],tl:[.36,1.00,-2.26],wx:WX,wzF:ZF,wzR:-ZR,pots:[[0,.80,-2.47]], // (pots) LA TURBINE centrale, à 80 cm : le relevé s'arrête à 60
+  return {plq:[.54,-2.465,0,.44], /* (18/10) LA PLAQUE sur la lèvre basse de la turbine (elle en couvrait le haut) */hl:[.20,.58,2.28],tl:[.36,1.00,-2.26],wx:WX,wzF:ZF,wzR:-ZR,pots:[[0,.80,-2.47]], // (pots) LA TURBINE centrale, à 80 cm : le relevé s'arrête à 60
           lpw:{R:R,w:TW,style:'rayons',n:5,jante:0x6a6e76,accent:0x2a2c31,crampons:1,pique:1}};
 },
   e_murduson:function(K){
@@ -31525,7 +31525,7 @@ Object.assign(SHAPES,{
       P.tri('F',[x,ya,z0],[x,yb,z0],[x,yt,zt]);P.tri('Y',[x,ya+.03,z0],[x,yb-.03,z0],[x,yt,(zt+z0)/2]);}
   });
   K.commit(P);
-  return {hl:[.74,1.86,ZE+.03],tl:[.86,1.86,-ZE-.03],wx:1.00,wzF:ZF,wzR:-ZR,pots:[[-.57,.50,-2.39],[.57,.50,-2.39]], // (pots) la bouche des deux pots qui plongent
+  return {plq:[1.675,-2.36,0,.52], /* (18/10) LA PLAQUE sur le hayon bleu, entre la barre et la lèvre du haut (elle pendait dessous, à moitié cachée) */hl:[.74,1.86,ZE+.03],tl:[.86,1.86,-ZE-.03],wx:1.00,wzF:ZF,wzR:-ZR,pots:[[-.57,.50,-2.39],[.57,.50,-2.39]], // (pots) la bouche des deux pots qui plongent
           lpw:{R:R,w:.62,style:'rayons',n:5,jante:0xe6e9ee,accent:0xe6e9ee,crampons:1}};
  },
   b_groupeb:function(K){
@@ -31880,7 +31880,7 @@ Object.assign(SHAPES,{
       const m=new THREE.Mesh(em.geometry,em2);m.position.set(q[0],q[1],q[2]);m.renderOrder=3;
       m.userData.ph=et.length*2.39;m.userData.r=1.3+(et.length*.37)%1.1;m.userData.s=.8+(et.length%3)*.25;eg.add(m);et.push(m);}
     if(typeof BLING==='object'&&BLING)BLING.s=et;
-    return {hl:[.78,.44,2.34],tl:[.78,.86,-2.28],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.11,.31,-2.32],[-.11,.31,-2.32]],
+    return {plq:[.49,-2.30,0,.56], /* (18/10) LA PLAQUE debout sur le bout du fuselage, entre les deux blocs (la glace est transparente : elle flottait derrière) */hl:[.78,.44,2.34],tl:[.78,.86,-2.28],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.11,.31,-2.32],[-.11,.31,-2.32]],
             lpw:{R:R,w:.26,style:'multi',n:10,jante:0xd8f3ff,accent:0xd8f3ff,pneu:0x0e1a24}};
   },
 /* LA FOURNAISE (2026-10-10, Léo : « une voiture FLAMME — vas-y dur ; une autre technique ; une forme de voiture originale, associée au feu »
@@ -32000,7 +32000,7 @@ Object.assign(SHAPES,{
       const e=.72+.28*Math.abs(Math.sin(t*5.3)*Math.sin(t*3.1+.7))+.2*UF.uF.value;em.color.setRGB(e,e,e);acc9+=dt;if(acc9>=1/12){acc9=0;pasFeu(UF.uF.value);}};
     g.userData.anime=anime;anime(1/30);
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.30,.51,2.36],tl:[.40,.78,-2.36],wx:.80,wzF:ZF,wzR:-ZR,pots:[[.30,.48,-2.37],[-.30,.48,-2.37]],
+    return {plq:[.63,-2.292,0,.46], /* (18/10) LA PLAQUE sur la croûte, au-dessus des gueules de forge (elle s'enfonçait dans un trou de lave, entre les cubes) */hl:[.30,.51,2.36],tl:[.40,.78,-2.36],wx:.80,wzF:ZF,wzR:-ZR,pots:[[.30,.48,-2.37],[-.30,.48,-2.37]],
             lpw:{R:R,w:.26,style:'multi',n:8,jante:0xff7a24,accent:0xff7a24,pneu:0x120d0c}}; // (Léo : « je préférais avant, avec les roues noires »)
   },
 /* LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — après les essais (gros voxels ;
@@ -32283,7 +32283,7 @@ SHAPES.poupee=function(K){
   for(let i=0;i<5;i++){const a=i/5*Math.PI*2;for(const e of [-1,1])branche(a+e*.06,a+e*.24,R*.16,RJ*.95,.040,.030);}
   J.cyl('c',R*.17,.03,10,fx+.002,0,0,'x');J.cyl('d',R*.11,.012,10,fx+.018,0,0,'x');           // le moyeu, son cache
   const JG=J.done();
-  return {hl:[.66,.90,2.42],tl:[.72,1.11,-2.47],wx:.83,wzF:ZF,wzR:-ZR,
+  return {plq:[.80,-2.485], /* (18/10) LA PLAQUE sur la plaque peinte (un decal : plqDessinee ne le lit pas — il en restait deux, et le cœur chromé était couvert) */hl:[.66,.90,2.42],tl:[.72,1.11,-2.47],wx:.83,wzF:ZF,wzR:-ZR,
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
 };
@@ -37016,7 +37016,9 @@ function plqCherche(sd,W9,H9,L9,y0,pw,exclus,verre){
     const z=sd<0?Math.min(c.h.q.z,g.q.z,dr.q.z):Math.max(c.h.q.z,g.q.z,dr.q.z);
     return {y:c.y,z:z,ny:c.h.ny,nz:c.h.nz,src:souple?'souple':'rayons'};}
   if(C.length)return {y:C[0].y,z:C[0].h.q.z,ny:C[0].h.ny,nz:C[0].h.nz,src:'centre'}; // aucune hauteur assez large : la meilleure au centre
-  const b=new THREE.Box3();for(const m of cib)b.expandByObject(m);if(!b.isEmpty())b.applyMatrix4(Mi); // rien de franc : au ras de la boîte de la caisse
+  const b=new THREE.Box3(),b9=new THREE.Box3(),M9=new THREE.Matrix4(); // rien de franc : au ras de la boîte de la caisse — (18/10) mesurée DANS son repère : la boîte du monde d'une caisse
+  for(const m of cib){const g9=m.geometry;if(!g9.boundingBox)g9.computeBoundingBox(); // tournée (le plateau du garage) gonflait, la plaque flottait 80 cm derrière L'ICEBERG
+    b9.copy(g9.boundingBox).applyMatrix4(M9.multiplyMatrices(Mi,m.matrixWorld));if(isFinite(b9.min.z)&&isFinite(b9.max.z))b.union(b9);}
   return {y:y0+H9*f0,z:b.isEmpty()?sd*L9/2:(sd<0?b.min.z:b.max.z),ny:0,nz:sd,src:'boite'};}
 /* LA PLAQUE DÉJÀ DESSINÉE (17/10, LES POUPES REFAITES) : des gabarits refaits posent une plaque blanche éclairée dans leur pare-chocs
    (une boîte du kit en famille `l`, presque blanche, quatre fois plus large que haute, au milieu). La nôtre se pose PILE dessus, un peu
@@ -37026,12 +37028,20 @@ function plqDessinee(sd,prims){let b=null;
     const r9=p.c>>16&255,g9=p.c>>8&255,b9=p.c&255,k=p.w/p.h;if(r9<185||g9<185||b9<185||k<2.6||k>6.5||Math.abs(p.x)>.06||p.z*sd<=0)continue;
     const zf=p.z+sd*p.d/2;if(!b||zf*sd>b.z*sd)b={y:p.y,z:zf,ny:0,nz:sd,src:'dessinee'};}
   return b;}
+/* LA PLAQUE DONNÉE PAR LA FICHE (18/10, Sacha : « vérifie que toutes les plaques d'immatriculation se mettent bien sur les voitures » — le banc
+   des caisses de la gamme) : là où les rayons se trompent (une queue de chat au milieu de la poupe, une croûte de cubes, un requin sans poupe,
+   une barre de feux qui dépasse, un support noir que plqDessinee ne lit pas…), le gabarit dit lui-même où va la plaque : `plq:[y, z, pente,
+   largeur]` dans sa fiche d'ancrages, en repère caisse — y le centre, z la tôle (la plaque se pose 2 cm devant), pente en radians (> 0 : elle
+   regarde un peu le ciel), largeur en m (sinon celle de toutes les caisses). */
+function plqFiche(A){const f=A&&A.plq;if(!Array.isArray(f)||f.length<2)return null;const a=+f[2]||0;
+  return {y:+f[0],z:+f[1],ny:Math.sin(a),nz:-Math.cos(a),w:+f[3]||0,src:'fiche'};}
 function plqPose(lvl,A,W9,H9,L9,y0,exclus,verre,prims){ // appelée par buildCar : les deux plaques de la caisse qui se construit (repère caisse)
   if(A&&A.plq===0)return;plqMats();
-  const pw=Math.max(.5,Math.min(.64,W9*.32)),ph=pw*.25;
+  let pw=Math.max(.5,Math.min(.64,W9*.32));
   carGroup.updateMatrixWorld(true);
   let P=PLQ.pos[lvl];
-  if(!P||P.L!==L9||P.W!==W9){const t9=performance.now();P=PLQ.pos[lvl]={L:L9,W:W9,ar:plqDessinee(-1,prims)||plqCherche(-1,W9,H9,L9,y0,pw,exclus,verre)};P.ms=Math.round((performance.now()-t9)*10)/10;} // `ms` : le prix des rayons (dbgPlaque('pos'))
+  if(!P||P.L!==L9||P.W!==W9){const t9=performance.now();P=PLQ.pos[lvl]={L:L9,W:W9,ar:plqFiche(A)||plqDessinee(-1,prims)||plqCherche(-1,W9,H9,L9,y0,pw,exclus,verre)};P.ms=Math.round((performance.now()-t9)*10)/10;} // `ms` : le prix des rayons (dbgPlaque('pos'))
+  if(P.ar&&P.ar.w)pw=P.ar.w;const ph=pw*.25;
   for(const sd of [-1]){const q=P.ar;if(!q)continue; // (2026-10-17, Sacha : « pas de plaque d'immatriculation à l'avant ») : l'arrière seul — plus de rayons tirés vers le nez
     const a=Math.max(-.3,Math.min(.7,Math.atan2(q.ny,Math.abs(q.nz)||1e-3))); // la pente de la tôle (vers le haut = la plaque regarde un peu le ciel)
     const nx9=0,ny9=Math.sin(a),nz9=sd*Math.cos(a);
