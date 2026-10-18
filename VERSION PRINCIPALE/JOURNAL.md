@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS AUCUN OBJET EXOTIQUE : TOUT PASSE RARE (2026-10-18 soir, Sacha : « tout les item exotique doivent etre passer en rare ») — v655
+- **Les fiches** : les 8 habillages posés EXOTIQUES (peintures BANANA, NUIT DE GOTHAM, MONDE À L'ENVERS ; ailes 8-BIT, BARON ROUGE ;
+  traînées ANNEAUX D'OR, PLUIE DE BLOCS, GLOUTON) sont `r:'rare'` ; les 10 peintures métallisées de la palette aussi (elles étaient déjà
+  recalculées par `peintRegle`). Les PRIX ne bougent pas.
+- **Les raretés calculées** : `rarDefi` — les contrats 6-7 et le défi encore à définir (COMÈTE) donnent RARE ; `cosmRar` — la tranche
+  EXOTIQUE du prix (figures 4-12 k, habillages 16-60 k) et les missions 6-7 donnent RARE.
+- **Le garage** : `RAR_FAM` (= `RARETES` sans EXOTIQUE) fait la barre des familles, `garageListe` et `gShopFam` : plus d'onglet vide.
+  EXOTIQUE reste dans `RARETES` (couleur, police, logo palmier) pour le BUMP ×3 de la course (`figRarH`), qui n'est pas un objet.
+- **LA GROUPE B RETIRÉE** (même soir, Sacha : « enlève la groupe B ») : sa fiche est réduite à `{retire:1,name:'LA GROUPE B'}` (la ligne reste :
+  index de sauvegarde) ; qui l'avait est remboursé au chargement par `san` (500 000, son prix depuis la fin des carnets) et qui roulait
+  avec repart en LA HONTE. Son gabarit `b_groupeb` et son pot (`ECH_POTS`) restent dans le code : elle peut revenir.
+- **LE LINGOT RETIRÉ** (même soir, Sacha : « enlève la gold bar » — THE GOLD BAR est son nom anglais ; la plaque LINGOT/GOLD BAR, elle,
+  reste) : même traitement (remboursé 2,2 M par `san`). ⚠ Le bloc SANS CARRIÈRE (trophée VILLE gagné → `owned`) saute désormais les
+  retirées (`carRetiree`) : sans ça, il la reposait à chaque lancement et `san` la remboursait à chaque fois.
+- Vérifié : aucune rareté calculée ne sort EXOTIQUE (toutes les entrées balayées), barre du garage et boutique sans EXOTIQUE, fumée commune.
+
 ## DEUX PLACES RÉSERVÉES : 87 LA PIKES PEAK, 88 LA CLASSE G (2026-10-18, v653)
 - Cachées (`retire:1`, « NOUVELLE 87/88 ») : 87 = la 208 T16 Pikes Peak (JAPONAISES), 88 = la Classe G que BOÎTES avait faite pour LE CAÏD (Léo :
   « le boss » voulait dire un GMC → LE CAÏD devient un HUMMER EV). Puis Léo : « enlève la Classe G » (« améliore-la » parlait de LA JEEP) →
@@ -17606,6 +17622,7 @@ Depuis le 2026-10-18, `sw.js` ne garde qu'UNE ligne `const CACHE` ; chaque versi
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
 const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou, qu'on voie chaque partie » · « c'est quoi le composant noir, plus aucun bout pointu, rends-la poly » · « le phare, ça doit être beau » · « le truc noir c'est un trou, c'est creux ») : LA PERLE — les traits du plan DANS la tôle (joints en interstices, plis en arêtes), en facettes, le rideau d'air creusé, le phare refait (cerclage, verre fumé, quatre points de LED, optique), le clignotant à sa place
+// const CACHE = 'cashcar-v646'; // v646 (2026-10-18 soir, Sacha : « la disposition des boutons sur cet écran est catastrophique : boutique doit être plus gros et le trophée doit être en haut à droite ») : LE GARAGE — le trophée en haut à droite, en miroir du compte ; la BOUTIQUE deux fois plus large en haut de la grappe (maquette 1 LARGE, choisie sur trois). Voir <style id="garShop">.
 // const CACHE = 'cashcar-v645'; // v645 (2026-10-18, Léo : « vas-y push ») : LES NOUVELLES VOITURES, 2e lot — LA DOLCE VITA (Fiat 500 « 1957 », avec ses 4 retouches), LE BAROUDEUR (Wrangler JL), LA CABOSSÉE (la voiture des Simpson), LE ROUGE-GORGE (Reliant Robin), LA LAME (MX-5 RF), LE TOFU (AE86) ; la Corolla reste cachée (en reprise)
 // const CACHE = 'cashcar-v623'; // v623 (2026-10-18, Léo : « des cubes encore plus minuscules, encore plus fantomatiques, des teintes de peintre ; éparpille mieux » · « travaille le fond comme le menu, là c'est un peu bleu ») : LES NUAGES FANTÔMES — des milliers de cubes minuscules à demi transparents éparpillés sur chaque nuage, teintes de peintre, vapeur au bord — et LE FOND PEINT de la mer de nuages (le ciel du menu en course, matin/midi/soir)
 // const CACHE = 'cashcar-v622'; // v622 (2026-10-18, Léo : « des formes de ville dans le ciel à l'envers » + « la vitrée : on reste au sol, effet Shanghai vu d'en bas, sur des trucs immenses ») : LA VILLE VITRÉE AU SOL — la route à plat à 26 m d'un vrai sol (avenues, parvis, pelouses, bassins), des ponts sur piliers où elle se recroise, des géantes de verre de 170 m à 1,3 km posées au sol ; plus de ville qui pend dans le ciel ; toucher le sol = la mort. `?vitre=spirale` = avant.

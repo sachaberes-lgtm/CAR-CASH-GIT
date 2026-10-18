@@ -23000,8 +23000,7 @@ const CARS=[
   desc:'Il dormait sur un tas d\'or. Maintenant il roule dessus, et il crache du feu à chaque rapport.'},
  {name:'LE MASTODONTE',color:0x1463ff,accent:0xff7a14,maxKmh:280,accel:31,turn:2.4,h:3,w:2.6,l:4.8,spoiler:0,shape:'a_mastodonte',rar:'defi',
   desc:'Il ne double personne : il passe dessus. Les dos d\'âne, c\'est lui qui les fabrique.'},
- {name:'LA GROUPE B',color:0xf4f4f0,accent:0xd8261e,maxKmh:380,accel:42,turn:3.2,h:1.35,w:1.67,l:3.83,spoiler:0,shape:'b_groupeb',rar:'defi',
-  desc:'Tellement rapide qu\'on l\'a interdite. Ici, personne n\'interdit rien : bon courage pour la rattraper.'},
+ {retire:1,name:'LA GROUPE B'}, /* (2026-10-18 soir, Sacha : « enlève la groupe B ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit b_groupeb reste dans SHAPES */
  {name:'LE HOT ROD',color:0x121212,accent:0xff6a14,maxKmh:380,accel:42,turn:2.5,h:1.4,w:1.7,l:3.9,spoiler:0,shape:'c_hotrod',rar:'defi',
   desc:'Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.'},
  {name:'LA PUCE',color:0xc8141e,accent:0xf4f4f0,maxKmh:320,accel:36,turn:3.2,h:1.35,w:1.41,l:3.05,spoiler:0,shape:'d_puce',rar:'defi',
@@ -23015,9 +23014,7 @@ const CARS=[
   desc:'Douce comme un nuage, elle file comme un orage. Un coucher de soleil, rien que pour toi.'},
  // (2026-09-27) LE LINGOT — la récompense de la CAMPAGNE VILLE : un lingot d'or de 1 kg (poinçon 999,9) monté sur roues. Il ne s'achète
  // pas : on le GAGNE en battant le banquier au portail du niveau 10 (voir banquierTick). Ajouté en dernier : aucun index ne bouge.
- {name:'LE LINGOT',shape:'lingot',color:0xffc33a,accent:0x3a2400,maxKmh:380,accel:42,turn:2.9,h:1.5,w:2.1,l:4.3,spoiler:0,rar:'defi',
-  fx:{jet:0xffd75e,core:0xffffff,trail:[1.35,1.02,.36],light:0xffd27a},
-  desc:'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.'},
+ {retire:1,name:'LE LINGOT'}, /* (2026-10-18 soir, Sacha : « enlève la gold bar ») RETIRÉ : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit `lingot` reste dans SHAPES */
  // (2026-10-02) L'ORIGAMI — Sacha, photo du pick-up d'inox : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et parfaite ».
  // Le pick-up plié dans une feuille d'acier, sans son nom ni son logo (comme toute la gamme). Cotes réelles : 5,68 × 2,03 × 1,79 m.
  // Ajoutée EN DERNIER : aucun index de sauvegarde ne bouge. Son sillage est un courant froid (elle est électrique).
@@ -38493,11 +38490,12 @@ const RARETES=[
   {id:'legendaire',n:'LÉGENDAIRES',n1:'LÉGENDAIRE',c:'#ffd75e'},
   {id:'mythique',  n:'MYTHIQUES',  n1:'MYTHIQUE',  c:'#ff4d6d'},
   {id:'infini',    n:'INFINIS',    n1:'INFINI',    c:'#ff8af0'}];
+const RAR_FAM=RARETES.filter(function(x){return x.id!=='exotique';}); /* (2026-10-18, Sacha) les familles du garage : EXOTIQUE n'a plus d'objet (tout est passé RARE) — elle reste dans RARETES pour le BUMP x3 de la course */
 /* la rareté d'une caisse qui se GAGNE = la difficulté de son défi (2026-10-10, posée par Claude, à revoir par Léo dans la salle blanche) :
    contrats 1-3 RARE · 6-7 EXOTIQUE · 8-9 ÉPIQUE ; rang d'aura MYTHE (POSTER 84) LÉGENDAIRE ; 100 pubs ÉPIQUE ; défi encore à définir
    (COMÈTE) EXOTIQUE. (La CAISSE-NUAGE et LE LINGOT, ex-trophées de la carrière, sont à l'argent du jeu : leur famille suit le prix.) */
-function rarDefi(u){if(u.k==='carnet')return u.v>=8?'epique':u.v>=6?'exotique':'rare';if(u.k==='aura')return u.v>=6?'legendaire':'epique';
-  if(u.k==='pubs'||u.k==='runs')return 'epique';return 'exotique';}
+function rarDefi(u){if(u.k==='carnet')return u.v>=8?'epique':'rare'; /* (2026-10-18, Sacha : « tout les item exotique doivent etre passer en rare ») plus d'EXOTIQUE : les contrats 6-7 et le défi à définir sont RARES */if(u.k==='aura')return u.v>=6?'legendaire':'epique';
+  if(u.k==='pubs'||u.k==='runs')return 'epique';return 'rare';}
 function carRar(i){const c=CARS[i];if(c&&c.rar&&c.rar!=='defi')return c.rar;const u=CAR_UNLOCK[i];
   if(!u)return 'commun';if(u.k==='premium')return 'legendaire';if(u.k)return rarDefi(u);return u.p>=1e6?'epique':u.p>=20e3?'rare':'commun';}
 function carOrdre(i){const c9=CARS[i];if(c9&&c9.ordre!=null)return c9.ordre;return carPrixOrdre(i);} // DANS UNE FAMILLE : un rang posé à la main (la salle
@@ -40167,9 +40165,9 @@ const COSM={
     {id:'ogre',     n:'VERT OGRE',         p:5000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
     {id:'herisson', n:'BLEU HÉRISSON',     p:7000,  r:'rare',      c:0x1e50e6,d:'Le bleu d\'un hérisson pressé. Les anneaux sont en option.'},
     {id:'poupee',   n:'ROSE POUPÉE',       p:9000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
-    {id:'banana',   n:'BANANA',            p:20000, r:'exotique',  grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
-    {id:'gotham',   n:'NUIT DE GOTHAM',    p:32000, r:'exotique',  c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
-    {id:'envers',   n:'MONDE À L\'ENVERS', p:42000, r:'exotique',  grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
+    {id:'banana',   n:'BANANA',            p:20000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
+    {id:'gotham',   n:'NUIT DE GOTHAM',    p:32000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
+    {id:'envers',   n:'MONDE À L\'ENVERS', p:42000, r:'rare',      grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
     {id:'vaporwave',n:'VAPORWAVE',         p:85000, r:'epique',    grad:[0x2bd9e8,0xff5ec8,0x7a2bff],d:'Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.'},
     {id:'lave',     n:'LAVE',              p:130000,r:'epique',    grad:[0x1a0500,0xd8340a,0xffb21a],d:'Du volcan au toit, la coulée ne refroidit jamais. N\'y jette pas d\'anneau.'},
     {id:'holo',     n:'HOLOGRAMME',        p:300000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
@@ -40183,8 +40181,8 @@ const COSM={
     {id:'pigeon',   n:'PIGEON',            p:6000,  r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
     {id:'origami',  n:'AVION EN PAPIER',   p:9000,  r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
     {id:'monarque', n:'MONARQUE',          p:12000, r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
-    {id:'pixel',    n:'8-BIT',             p:25000, r:'exotique',  ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
-    {id:'baron',    n:'BARON ROUGE',       p:38000, r:'exotique',  ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
+    {id:'pixel',    n:'8-BIT',             p:25000, r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
+    {id:'baron',    n:'BARON ROUGE',       p:38000, r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
     {id:'rouages',  n:'ENGRENAGES',        p:100000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
     {id:'xwing',    n:'AILES EN X',        p:120000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
     {id:'fee',      n:'FÉE',               p:160000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
@@ -40200,9 +40198,9 @@ const COSM={
     // (2026-10-14) LES TRAÎNÉES POP (voir TRX) — `pop` : son moteur · `rgb` : la couleur du ruban qui l'accompagne · `rubOff` : pas de ruban (l'effet EST la traînée)
     {id:'sakura',   n:'SAKURA',            p:8000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
     {id:'matrice',  n:'MATRICE',           p:11000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
-    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'exotique',  pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
-    {id:'blocs',    n:'PLUIE DE BLOCS',    p:30000, r:'exotique',  pop:'blocs',  rubOff:1,      ico:'tr_blocs',  col:'#3fd0ff',d:'Des pièces de quatre carrés tombent en tournant. Aucune ligne ne disparaît : tout reste à toi.'},
-    {id:'glouton',  n:'GLOUTON',           p:40000, r:'exotique',  pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
+    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
+    {id:'blocs',    n:'PLUIE DE BLOCS',    p:30000, r:'rare',      pop:'blocs',  rubOff:1,      ico:'tr_blocs',  col:'#3fd0ff',d:'Des pièces de quatre carrés tombent en tournant. Aucune ligne ne disparaît : tout reste à toi.'},
+    {id:'glouton',  n:'GLOUTON',           p:40000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
     {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.95,1.15,1.6],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'},
     {id:'retour',   n:'88 MILES À L\'HEURE',p:140000,r:'epique',   pop:'retour',                ico:'tr_88',     col:'#ff8a2a',d:'Deux sillons de feu restent sur le bitume. Le futur, c\'est toi qui l\'écris.'},
     {id:'grille',   n:'LA GRILLE',         p:350000,r:'legendaire',pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'},
@@ -40242,16 +40240,16 @@ if(PALETTE_ON){
     ["royal","VIOLET ROYAL",0x7a3cf0,null,"rare","La couleur des rois. Et de ceux qui roulent comme eux."],
     ["fuchsia","FUCHSIA",0xe61e78,null,"rare","Trop voyant ? Juste assez."],
     ["argent","ARGENT BROSS\u00c9",0x8b8f95,"k","rare","M\u00e9tal bross\u00e9, reflet discret. L'argent ne crie pas, il brille."],
-    ["bordeaux","BORDEAUX",0x3c0811,"k","exotique","Un grand cru, mis en bouteille dans de la t\u00f4le."],
-    ["cuivre","CUIVRE",0x5d2810,"k","exotique","Le m\u00e9tal des vieux tuyaux. Pass\u00e9 au polish."],
-    ["bronze","BRONZE",0x4e3b13,"k","exotique","La troisi\u00e8me marche du podium ? Pas ce soir."],
-    ["olive","OLIVE",0x2e330f,"k","exotique","Du kaki m\u00e9tallis\u00e9. Une jeep qui serait all\u00e9e \u00e0 l'op\u00e9ra."],
-    ["anglais","VERT ANGLAIS",0x08291a,"k","exotique","Le vert des bolides d'avant-guerre. Le th\u00e9 est en option."],
-    ["petrole","BLEU P\u00c9TROLE",0x062b31,"k","exotique","Profond comme une nappe de p\u00e9trole. En plus propre."],
-    ["abysse","BLEU ABYSSE",0x0c1733,"k","exotique","Le bleu du fond des oc\u00e9ans. Personne ne t'y trouve."],
-    ["aubergine","AUBERGINE",0x210e2c,"k","exotique","Un violet presque noir. Classe sans le faire expr\u00e8s."],
-    ["framboise","FRAMBOISE",0x450a25,"k","exotique","Un rouge m\u00fbri au soleil. Sucr\u00e9, pas mou."],
-    ["graphite","GRAPHITE",0x1c1e22,"k","exotique","Le gris des voitures de direction. Celles qui ne s'arr\u00eatent jamais."],
+    ["bordeaux","BORDEAUX",0x3c0811,"k","rare","Un grand cru, mis en bouteille dans de la t\u00f4le."],
+    ["cuivre","CUIVRE",0x5d2810,"k","rare","Le m\u00e9tal des vieux tuyaux. Pass\u00e9 au polish."],
+    ["bronze","BRONZE",0x4e3b13,"k","rare","La troisi\u00e8me marche du podium ? Pas ce soir."],
+    ["olive","OLIVE",0x2e330f,"k","rare","Du kaki m\u00e9tallis\u00e9. Une jeep qui serait all\u00e9e \u00e0 l'op\u00e9ra."],
+    ["anglais","VERT ANGLAIS",0x08291a,"k","rare","Le vert des bolides d'avant-guerre. Le th\u00e9 est en option."],
+    ["petrole","BLEU P\u00c9TROLE",0x062b31,"k","rare","Profond comme une nappe de p\u00e9trole. En plus propre."],
+    ["abysse","BLEU ABYSSE",0x0c1733,"k","rare","Le bleu du fond des oc\u00e9ans. Personne ne t'y trouve."],
+    ["aubergine","AUBERGINE",0x210e2c,"k","rare","Un violet presque noir. Classe sans le faire expr\u00e8s."],
+    ["framboise","FRAMBOISE",0x450a25,"k","rare","Un rouge m\u00fbri au soleil. Sucr\u00e9, pas mou."],
+    ["graphite","GRAPHITE",0x1c1e22,"k","rare","Le gris des voitures de direction. Celles qui ne s'arr\u00eatent jamais."],
   ]){COSM.peinture.push(Object.assign({id:e[0],n:e[1],c:e[2],r:e[4],pack:'palette',d:e[5]},e[3]?{g:e[3]}:{}));PALETTE_PACK.ids.push(e[0]);}
   for(const e of [ // [id, nom, couleur | dégradé [bas, milieu, haut], finition, rareté, description, INDICE]
     ["prisme","PRISME",[0xff4a3a,0xffd23a,0x3a8cff],"c","legendaire","La lumi\u00e8re se casse en trois sur ta carrosserie.","Six en l'air, sans toucher terre."],
@@ -47053,7 +47051,7 @@ if(SAVE.d.tutoProv){SAVE.d.tutoProv=0;if(!SAVE.d.bienv&&!SAVE.d.permis)SAVE.d.tu
 /* (2026-10-14, Sacha) SANS CARRIÈRE : un trophée de la carrière déjà GAGNÉ (5 niveaux de SKY HIGH → LA CAISSE-NUAGE, 5 de la VILLE → LE LINGOT)
    entre dans `owned` — il est à toi partout, boutique comprise (elle ne te le revend pas). Voir `exK`/`exV` dans CAR_UNLOCK. */
 try{const mo9={carrN:'nuages',carrV:'ville'};let m9=false;
-  CAR_UNLOCK.forEach(function(u,i){if(u&&u.exK&&mo9[u.exK]&&(((SAVE.d.carr||{})[mo9[u.exK]])|0)>=u.exV&&!carOwned(i)){SAVE.d.owned.push(i);m9=true;}});
+  CAR_UNLOCK.forEach(function(u,i){if(u&&u.exK&&mo9[u.exK]&&!carRetiree(i)&&(((SAVE.d.carr||{})[mo9[u.exK]])|0)>=u.exV&&!carOwned(i)){SAVE.d.owned.push(i);m9=true;}}); /* (2026-10-18) jamais une RETIRÉE (LE LINGOT) : san la rembourserait à chaque lancement */
   if(m9)SAVE.mark();}catch(e){}
 try{m2Etat();}catch(e){console.warn('missions v2 : migration',e);} // (2026-10-16) LES MISSIONS v2 : la migration de la sauvegarde, une fois (voir m2Migre / m2MigreV2) — (2026-10-18) tout `const` / `let` qu'elle atteint doit être déclaré AVANT cette ligne (M2_COLK, M2_RECO : à côté de M2K)
 if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;SAVE.flush=function(){};SAVE.mark=function(){};} // (2026-10-09) LA BALADE n'écrit rien : ni leçon, ni question du mode, ni sauvegarde
@@ -54267,7 +54265,7 @@ function garageImpact(){
    elles n'entrent au garage qu'une fois achetées. `garageListe()` = les index visibles, dans l'ordre de la gamme. */
 // (2026-09-26) LES CINQ FAMILLES, dans l'ordre (communes → défis), chacune du plus accessible au plus dur. Les LÉGENDAIRES y sont
 // toutes : on les VOIT tourner sur le plateau (l'envie naît là) — leur bouton mène à la BOUTIQUE, seul endroit où elles s'achètent.
-function garageListe(){let L=[];for(const r of RARETES)L=L.concat(rarListe(r.id));return L;}
+function garageListe(){let L=[];for(const r of RAR_FAM)L=L.concat(rarListe(r.id));return L;}
 function garageVoisin(i,d){const L=garageListe();let k=L.indexOf(i);if(k<0)k=0;return L[((k+d)%L.length+L.length)%L.length];}
 function garageShow(i){
   i=((i%CARS.length)+CARS.length)%CARS.length;if(garageListe().indexOf(i)<0)i=garageVoisin(i,0);
@@ -54332,9 +54330,9 @@ function garageFamilles(r){
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}bar.classList.remove('gModeBar');
   const eq=SAVE.d.equipped|0,shop=md==='shop';
   const nbV=function(L){let n=0;for(const i of L)if(gAVendre(i))n++;return n;}; // BOUTIQUE : chaque famille dit combien il en reste à ACHETER
-  const cles=md+':'+RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;return x.id+a+'/'+L.length+(shop?'v'+nbV(L):'');}).join('|')+'#'+r;
+  const cles=md+':'+RAR_FAM.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;return x.id+a+'/'+L.length+(shop?'v'+nbV(L):'');}).join('|')+'#'+r;
   if(bar._k!==cles){bar._k=cles;
-    bar.innerHTML=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;const v=shop?nbV(L):0,lb=shop?String(v):a+'/'+L.length;
+    bar.innerHTML=RAR_FAM.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;const v=shop?nbV(L):0,lb=shop?String(v):a+'/'+L.length;
       const nm9=sansAcc(TR(x.n)); // (garage v6) la famille se dit en COULEUR : son nom reste pour le lecteur d'écran et l'info-bulle
       return '<button class="gR'+(x.id===r?' on':'')+(shop&&!v?' vide':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" aria-label="'+nm9+' '+lb+'" title="'+nm9+'" style="--rc:'+x.c+'"><span class="gRn">'+nm9+'</span>'+pxi(RAR_LOGO[x.id]||'etoile')+'</button>';}).join('');} // (2026-10-09) le LOGO de la famille, plus de compte
   {const ro=bar.querySelector('.gR.on');if(ro&&bar._on!==r){bar._on=r;const x=ro.offsetLeft-(bar.clientWidth-ro.offsetWidth)/2;try{bar.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){bar.scrollLeft=x;}}} // la famille active vient se montrer
@@ -54366,7 +54364,7 @@ var GMODE={m:'tout',fam:null,paye:false};
 var GATL={on:false,c:0,cs:0,l:0,lb:0,p:0,cle:'',g:null,pinces:[],sonL:0,sonP:0,dim:-1}; // L'ATELIER FERMÉ de l'INVENTAIRE (voir gAtelier)
 /* (2026-10-10) LA FAMILLE DE LA BOUTIQUE : celle de la caisse affichée si elle a encore quelque chose à vendre, sinon la 1re qui en a. La caisse,
    elle, ne bouge pas tant qu'on ne touche pas une vignette ; une puce de famille ne change que la bande. */
-function gShopFam(){const r0=carRar(garageI),a=function(r){return rarListe(r).some(gAVendre);};if(a(r0))return r0;for(const x of RARETES)if(a(x.id))return x.id;return r0;}
+function gShopFam(){const r0=carRar(garageI),a=function(r){return rarListe(r).some(gAVendre);};if(a(r0))return r0;for(const x of RAR_FAM)if(a(x.id))return x.id;return r0;}
 function gAVendre(i){const u=CAR_UNLOCK[i];return !carRetiree(i)&&i!==(SAVE.d.equipped|0)&&!carUnlockedVrai(i)&&!!u&&(!!u.p||u.k==='premium');} // (2026-10-09) à acheter : argent du jeu ou boutique (€), pas encore à toi
 function gModeConsole(){return !!gEl&&!gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu');}
 function gModeM(){return GMODE&&gModeConsole()?GMODE.m:'tout';} // (GMODE est un var : lu avant sa ligne au chargement, il vaut undefined → 'tout')
@@ -58756,8 +58754,8 @@ try{const b9=document.querySelector('#gOutils [data-go="set"]'),s9=b9&&b9.queryS
    `dbgInv()` : état · `dbgInv('ouvre'|'ferme')` · `dbgInv('cat','peinture')`. */
 var INV={on:false,cat:'voiture',hold:null,mange:null,raf:0,D0:.12,D:.45};
 const INV_RANG={infini:6,mythique:5,legendaire:4,epique:3,exotique:2,defi:2,rare:1,commun:0},INV_LUEUR={commun:.35,rare:.6,exotique:.7,epique:.82,defi:.7,legendaire:1,mythique:1,infini:1};
-function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=4000?'rare':d.p<=12000?'exotique':d.p<=25000?'epique':'legendaire'; // (2026-10-14) une figure : sa rareté suit son prix
-if(d.mis)return d.mis>=8?'epique':d.mis>=6?'exotique':'rare';if(!d.p)return 'commun';return d.p<4000?'commun':d.p<16000?'rare':d.p<60000?'exotique':d.p<250000?'epique':d.p<900000?'legendaire':'mythique';} /* (2026-10-14) la grille de l'équilibrage : commune < 4 k · rare < 16 k · exotique < 60 k · épique < 250 k · légendaire < 900 k (`r` sur la fiche a le dernier mot) */
+function cosmRar(cat,d){if(!d)return 'commun';if(d.r)return d.r;if(cat==='figure')return !d.p?'commun':d.p<=12000?'rare':d.p<=25000?'epique':'legendaire'; // (2026-10-14) une figure : sa rareté suit son prix
+if(d.mis)return d.mis>=8?'epique':'rare';if(!d.p)return 'commun';return d.p<4000?'commun':d.p<60000?'rare':d.p<250000?'epique':d.p<900000?'legendaire':'mythique';} /* (2026-10-14) la grille de l'équilibrage : commune < 4 k · rare < 60 k (l'ex-tranche EXOTIQUE 16-60 k est RARE depuis le 2026-10-18, Sacha) · épique < 250 k · légendaire < 900 k (`r` sur la fiche a le dernier mot) */
 function invListe(cat){
   if(cat==='voiture'){const eq=equippedCar(),L=[];for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&(i===eq||carUnlockedVrai(i)))L.push({cat:cat,i:i,r:carRar(i),eq:i===eq});
     return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||(carOrdre(b.i)-carOrdre(a.i));});}
