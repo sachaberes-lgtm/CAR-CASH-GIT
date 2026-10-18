@@ -175,6 +175,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   LA FORÊT (17/10, Léo) : les arbres en VITRAIL dans `FOR_ARB_FS` (`dbgVitrail`) ; le slalom des troncs (`forZigzag`), ses ponts et la mousse ont été retirés le 18/10 (voir le journal).
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
   (`VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
+  LA VILLE, NÉON ET VERRE (18/10, Sacha) : les GÉANTES DE VERRE de la ville vitrée poussent dans la ville au néon (le skyline) — `VILLE_VERRE_V`,
+  `villeVerreTour` (tiré de la position, aucun `vr`), `VIt` dans batir, `vitreMatFab(true)`/`vitreMatToursNeon`/`vitreMatToursNeonLoin`, `VV`/`villeVerreTick`,
+  `vitreVerre(CB)` (le verre de la vitrée = `VIT_VERRE`, inchangé), `VV_VERRE` ; la vitrée quitte le JOUER (`SF_HORS`, `?vitree=1`) ; `dbgVilleVerre()`.
 - **Ciel et décor** : `BIOMES`/`bioApply` (le SEUL écrivain des lumières), `skyDome`, `CIEL2`, `COTON`/`CLOUDS`/`buildClouds`/
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
@@ -276,6 +279,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit.
+  LA VILLE VITRÉE N'EST PLUS UNE MAP DU JOUER (18/10, Sacha : « fusionne les maps ville et ville vitrée ») : ses géantes de verre vivent dans LA VILLE,
+  le néon au pied, le verre dans le ciel ; `?carte=vitree` la joue encore, `?vitree=1` la remet au tirage. Une map hors du tirage → `SF_HORS`.
 - LES MISSIONS v2 (16/10, Sacha : « des MISSIONS libres à la place des carnets ») : toutes ouvertes, une seule liste, des SECRÈTES qui donnent des
   caisses (silhouettes noires en boutique, jamais en 3D avant d'être gagnées) ; un objet de mission ne s'achète plus. (Les carnets, `?missions=v1`, sont retirés le 18/10.)
 - Plus de CARRIÈRE : coupée le 14/10, retirée du code le 18/10 (niveaux, écrans, campagnes NUAGES et VILLE, SAUTE-MOUTON) ; la carrière
