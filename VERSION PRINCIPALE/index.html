@@ -59203,6 +59203,36 @@ if(TITRE_V2){
 function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);if(!on)return T;
   U.uTZen.value.fromArray(T.z);U.uTMid.value.fromArray(T.m);U.uTHor.value.fromArray(T.h);U.uTSol.value.fromArray(T.s);
   U.uTMerH.value.fromArray(T.mh);U.uTMerO.value.fromArray(T.mo);U.uTCir.value.fromArray(T.c);return T;}
+/* LE FOND PEINT DE LA MER DE NUAGES (2026-10-18, Léo : « travaille le fond, comme pour le menu ; là c'est un peu bleu ; sois un peintre réaliste
+   expressionniste et designer digital »). En course, le ciel d'altitude (cielJour : jZen/jMid/jHor) faisait un aplat d'azur électrique : on y
+   ALLUME la couche peinte du menu (`cielTitre` : dégradé sans palier, l'air épais sur l'horizon, la lueur et les rayons du soleil, les cirrus au
+   vent, la mer de nuages aux ombres portées et sa perspective aérienne) avec SA palette par heure — le réalisme de l'air (le bleu s'éteint vers
+   l'horizon dans une brume chaude, les lointains s'y noient), l'expression du peintre (l'or du soleil contre les ombres bleues de la mer,
+   un zénith profond mais rabattu, jamais cobalt) — et la BRUME des cumulus prend la couleur de cet horizon (sinon les lointains se découpent).
+   Que des uniforms (le même programme du ciel) : 0 compilé. La nuit (clair de lune), la pluie et l'orage gardent leur ciel. `?sans=nufond` = le ciel d'avant ; `dbgNuFond(0|1)`. */
+const NUFOND_V=!/[?&]sans=([^&]*,)?nufond(,|&|$)/.test(location.search);
+const NU_FOND={ // z zénith, m milieu, h horizon (et la brume), s lueur du soleil, mh/mo la mer au soleil/à l'ombre, c les cirrus, ca leur part, hz la distance de l'air, tw/ry/cr les rayons
+  matin:{tw:.9,ry:.4,cr:.38,z:[.22,.27,.50],m:[.62,.64,.76],h:[1,.88,.76],s:[.74,.48,.26],mh:[1,.92,.82],mo:[.40,.47,.70],c:[1,.94,.88],ca:.42,hz:.75,sat:1.04,con:1.14},
+  midi: {tw:.75,ry:.25,cr:.4,z:[.19,.27,.52],m:[.56,.65,.82],h:[.97,.93,.86],s:[.60,.48,.32],mh:[1.02,1,.96],mo:[.46,.55,.76],c:[1,1,1],ca:.36,hz:.8,sat:1.04,con:1.14},
+  soir: {tw:1,ry:.75,cr:.34,z:[.12,.16,.40],m:[.56,.48,.60],h:[1,.76,.56],s:[.64,.34,.14],mh:[1,.82,.62],mo:[.40,.34,.52],c:[1,.80,.64],ca:.5,hz:.8,sat:1.22},
+  /* nuit : PAS de fond peint — la couche du menu la noircissait (le CLAIR DE LUNE bleu-violet de Sacha, 14/10, reste) */};
+const NUF={k:0,on:false,T:null,force:null,av:{},ap:{}};
+if(NUFOND_V)for(const m9 in NU_FOND){const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio],P9=NU_FOND[m9];if(!B9)continue; // la brume des cumulus = l'horizon peint ; l'étalonnage rabattu (le bleu électrique venait AUSSI de là : sat 1,14 · con 1,24)
+  NUF.av[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};B9.fog=P9.h.slice();if(P9.sat)B9.sat=P9.sat;if(P9.con)B9.con=P9.con;NUF.ap[m9]={fog:B9.fog.slice(),sat:B9.sat,con:B9.con};}
+function nuFondPose(P,k){const U=skyU;U.uTi.value.set(k,P.ca,0,P.hz);U.uTi2.value.set(P.tw||0,P.ry||0,P.cr||.35,0);
+  U.uTZen.value.fromArray(P.z);U.uTMid.value.fromArray(P.m);U.uTHor.value.fromArray(P.h);U.uTSol.value.fromArray(P.s);U.uTMerH.value.fromArray(P.mh);U.uTMerO.value.fromArray(P.mo);U.uTCir.value.fromArray(P.c);}
+function nuFondTick(dt){ // à chaque image : la mer de nuages en course → le fond peint (il APPARAÎT en 0,7 s au portail) ; ailleurs, éteint
+  if(!NUFOND_V||(typeof CHUTE!=='undefined'&&CHUTE.on))return; // (le menu peint son ciel lui-même)
+  const c=LVL&&LVL.cur,T=(NUF.force!==0)&&c&&c.carte==='nuages'&&!PARK.on?NU_FOND[c.meteo]:null;if(T)NUF.T=T;
+  NUF.k+=((T?1:0)-NUF.k)*(NUF.force!=null?1:Math.min(1,dt*1.5));
+  if(!T&&NUF.k<.002){if(NUF.on){skyU.uTi.value.x=0;NUF.on=false;}NUF.k=0;return;}
+  if(NUF.T){nuFondPose(NUF.T,NUF.k);NUF.on=true;}}
+window.dbgNuFond=function(k){NUF.force=k==null?null:+k; // (banc) même image : 0 = le ciel d'avant (et sa brume), 1 = le fond peint
+  const c=LVL&&LVL.cur,m9=c&&c.meteo,S9=SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio],E9=(+k===0?NUF.av:NUF.ap)[m9];
+  if(B9&&E9){Object.assign(B9,JSON.parse(JSON.stringify(E9)));bioGo(S9.bio,.01);bioStep(1);}nuFondTick(1);
+  if(paused||arguments[1]){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
+  let px=null;if(arguments[1]){const gl=renderer.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,b=new Uint8Array(4);px=[];for(const q of [[.1,.9],[.5,.95],[.9,.9],[.1,.6]]){gl.readPixels(Math.round(q[0]*W),Math.round(q[1]*H),1,1,gl.RGBA,gl.UNSIGNED_BYTE,b);px.push([b[0],b[1],b[2]]);}} // (banc) des pixels du haut de l image
+  return {on:NUF.on,k:+NUF.k.toFixed(2),meteo:m9,uTi:+skyU.uTi.value.x.toFixed(2),px:px};};
 // l'heure du TÉLÉPHONE → l'ambiance : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 · soir 19 h 30-22 h
 function titreHeureDe(d){const h=d.getHours()+d.getMinutes()/60;return h<5?'nuit':h<10?'matin':h<14?'midi':h<17?'aprem':h<19.5?'golden':h<22?'soir':'nuit';}
 const TITRE_HF={h:null,force:null,tc:0,tcol:new THREE.Color(1,1,1)};
@@ -64961,6 +64991,7 @@ function loop(now){
   ailvTick(dt); // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
   blingTick(dt); // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
