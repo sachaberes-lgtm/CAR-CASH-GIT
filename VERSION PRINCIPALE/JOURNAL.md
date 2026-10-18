@@ -3,6 +3,17 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LE GARAGE : LE TROPHÉE EN HAUT À DROITE, LA BOUTIQUE DEUX FOIS PLUS LARGE (2026-10-18 soir, Sacha, capture couchée de la ROSSO 40 : « la disposition des boutons sur cet écran est catastrophique : boutique doit être plus gros et le trophée doit être en haut à droite ») — v646
+- **Le trophée** (`#gProf`) quitte la grappe de JOUER : coin haut-droit, en MIROIR du compte `#gCompteur` (même marge au bord, centré sur
+  sa hauteur), recalé à 4 Hz par `plqGarage` ; la place CSS (`right/top`) n'est que le premier cadre. Mesuré : marge 69 px des deux côtés
+  couché (844×390), 18 px debout (390×844), centres à la même hauteur.
+- **La BOUTIQUE** : trois maquettes montrées (1 LARGE · 2 SA RANGÉE · 3 LA TUILE), Sacha a pris la 1. `<style id="garShop">` : la grille du
+  bas passe de 6 à 24 colonnes (à écart égal, 4 colonnes de 24 = 1 de 6 : HOME · JOUER · ŒIL inchangés au pixel) ; en haut INVENTAIRE (1/8)
+  · MISSIONS (8/15) · BOUTIQUE (15/25) — couché 116 · 116 · 164 px — libellés d'INVENTAIRE/MISSIONS sous l'icône ; la BOUTIQUE en laque
+  magenta, panier ×3, libellé 10 px ; portes 48 px couché, 56 debout. Vaut pour une caisse à toi ET à vendre. `?garjouer=0` = l'ancienne barre.
+- Vérifié : fumée commune OK (couché + debout), SHOP ouvre la boutique, INVENTAIRE l'inventaire, le trophée le profil ; libellés FR et EN
+  sans débordement en 844×390, 667×375, 390×844.
+
 ## LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES (2026-10-18, v644 — essayée sur un lien à part, puis Léo : « c'est bon, mets la durée des maps sur le main » ; la demande : « trouve la longueur parfaite des maps : fluide, sur téléphone, ni trop courte ni trop longue ; plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions »)
 - **MESURÉ AVANT** (banc muet, main v628, pilote auto + nitro au sol, bac à sable) : une map du JOUER durait de ~70 s (jade, forêt) à plus de 3 min
   (canyon 195 s, nuages ~170 s, glacier ~160 s) ; une partie traversée : 92 s → 100 s → 127 s → 129 s pour les 4 premières maps. Et la map
@@ -17555,6 +17566,7 @@ Depuis le 2026-10-18, `sw.js` ne garde qu'UNE ligne `const CACHE` ; chaque versi
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
 const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou, qu'on voie chaque partie » · « c'est quoi le composant noir, plus aucun bout pointu, rends-la poly » · « le phare, ça doit être beau » · « le truc noir c'est un trou, c'est creux ») : LA PERLE — les traits du plan DANS la tôle (joints en interstices, plis en arêtes), en facettes, le rideau d'air creusé, le phare refait (cerclage, verre fumé, quatre points de LED, optique), le clignotant à sa place
+// const CACHE = 'cashcar-v645'; // v645 (2026-10-18, Léo : « vas-y push ») : LES NOUVELLES VOITURES, 2e lot — LA DOLCE VITA (Fiat 500 « 1957 », avec ses 4 retouches), LE BAROUDEUR (Wrangler JL), LA CABOSSÉE (la voiture des Simpson), LE ROUGE-GORGE (Reliant Robin), LA LAME (MX-5 RF), LE TOFU (AE86) ; la Corolla reste cachée (en reprise)
 // const CACHE = 'cashcar-v623'; // v623 (2026-10-18, Léo : « des cubes encore plus minuscules, encore plus fantomatiques, des teintes de peintre ; éparpille mieux » · « travaille le fond comme le menu, là c'est un peu bleu ») : LES NUAGES FANTÔMES — des milliers de cubes minuscules à demi transparents éparpillés sur chaque nuage, teintes de peintre, vapeur au bord — et LE FOND PEINT de la mer de nuages (le ciel du menu en course, matin/midi/soir)
 // const CACHE = 'cashcar-v622'; // v622 (2026-10-18, Léo : « des formes de ville dans le ciel à l'envers » + « la vitrée : on reste au sol, effet Shanghai vu d'en bas, sur des trucs immenses ») : LA VILLE VITRÉE AU SOL — la route à plat à 26 m d'un vrai sol (avenues, parvis, pelouses, bassins), des ponts sur piliers où elle se recroise, des géantes de verre de 170 m à 1,3 km posées au sol ; plus de ville qui pend dans le ciel ; toucher le sol = la mort. `?vitre=spirale` = avant.
 // const CACHE = 'cashcar-v621'; // v621 (2026-10-18, Léo : « les côtés lumineux de la route en fonction de la map » puis « quand on booste, les côtés scintillent un peu en mode RGB, mais chaque niveau a sa couleur de base ») : LES BORDS DE LA MAP — une couleur de base par map (nuages rose, jade vert, forêt luciole, volcan soufre, crypto or, orbite violet, canyon turquoise, vitrée bleu ; la ville garde ses teintes) et au boost un arc-en-ciel qui court le long de la route et scintille
