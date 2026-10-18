@@ -530,6 +530,21 @@
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE BAROUDEUR EN FINITION SAHARA (2026-10-18, discussion BOÎTES ; Léo, photo d'un JL Sahara gris : « même couleurs, même le truc au-dessus de la roue »)
+- **La teinte** `0x464950` (l'olive `0x4a4d38` part) : mesurée sur la photo (la porte à l'ombre d'un ciel gris : 75 · 76 · 82) puis jugée DANS LE
+  JEU, jamais au studio. ⚠ La même base change beaucoup selon la scène : au garage les lampes chaudes la tirent vers le beige (un gris neutre
+  `0x5c5d60` y sortait crème, 149 · 129 · 120), la VILLE VITRÉE la bleuit (une porte en `0x6c7077` mesurée 62 · 92 · 140 alors qu'à l'œil elle
+  semblait grise : mesurer les pixels, l'entourage bleu trompe). D'où un gris moyen à peine bleuté : gris au garage, le poids de la photo à
+  PICS DE JADE à midi. Scène de jour fixe pour un AVANT/APRÈS : `?carte=jade&meteo=midi` (le 1er couple du mode classique est imposé).
+- **Couleur caisse** : élargisseurs (prismes `ELAV`/`ELAR` en `p`), hard-top (code 26 → `{g:'#'}`, sans joint propre : la découpe retombe sur
+  le code 1), charnières. Noirs : poignées, rétroviseurs, pare-chocs, marchepieds (déjà comme la photo). La glissière de la vitre arrière passe
+  au code 23 (noir) pour ne pas devenir couleur caisse.
+- **Jantes Sahara** : cinq branches en trapèze poli (`J.prism` dans le plan de la roue : contour [z,y] extrudé en x), une gorge grise en relief au
+  milieu de chaque branche, rebord poli large, moyeu gris (`P` mat `0x3d4047`) ; la roue de secours a la même (ExtrudeGeometry dans le plan x-y).
+- Banc : `jour.py` (CAR-bancs/nouvelles-voitures/boites) — course, pause, photos dans le repère de la caisse (`dbgLumVue`), HUD et jus masqués
+  en `opacity:0` (en `visibility` leurs enfants revenaient). Course couchée et debout : 0 programme compilé ; garage sans erreur ; ~30 ms à bâtir.
+  Planche : photos-gameplay/wrangler-sahara-avant-apres.png.
+
 ## LE BAROUDEUR — LA JEEP WRANGLER JL 4 PORTES RELEVÉE SUR SON ÉLÉVATION (2026-10-18, discussion BOÎTES ; Léo : « le Wrangler moderne, 4 portes »)
 - **Le gabarit** : `SHAPES.wrangler=(function(){…})()` à sa ligne-repère + `ECH_POTS.wrangler` (un pot à droite, comme sur la photo de dos) +
   le nom anglais par `Object.assign(I18N,{'LE BAROUDEUR':'THE TRAILBLAZER',…})` dans le même emplacement (pas de ligne réservée dans le bloc
