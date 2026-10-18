@@ -3,6 +3,14 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA BOUTIQUE RANGÉE PAR RARETÉ (2026-10-18, v650, Léo : « mets avec les communes le scarabée et le camper, organise bien la rareté »)
+- **Avant** : le rayon VOITURES était trié au PRIX seul, puis toutes les caisses des MISSIONS à la fin — LE SCARABÉE et LE COMBI (communes)
+  tombaient après LA PERLE, LA ZED (rare, 1,6 M$) au milieu des épiques, LA QUEUE DE CANARD (épique) entre deux exotiques.
+- **Maintenant** (`bqPieces`, `bqVoitRail`, `bqRarSec`) : par RARETÉ dans l'ordre de `RARETES` ; dans chaque famille celles qui s'achètent
+  (du prix le plus bas au plus haut) puis celles des missions ; les missions secrètes à la fin, sous leur propre intertitre (leur place ne
+  trahit pas leur famille). Un INTERTITRE `.bqSec.bqRarS` ouvre chaque famille, comme ceux des figures : le logo de la rareté (`RAR_LOGO`)
+  à sa couleur, son nom, le nombre de caisses, un filet de sa couleur. Planche : `photos-gameplay/boutique-rarete-avant-apres.png`.
+
 ## PARIS SORT DU MODE CLASSIQUE (2026-10-18 soir, Sacha : « enfait enlève paris du mode classique ») — v649
 - Remis l'après-midi par l'allègement (v642), retiré le soir : plus d'entrée `paris` dans `SF_CARTES` (le tirage du JOUER, les portails,
   `?carte=paris` qui retombe sur une autre map), plus de `parisChauffe` dans `chauffeDivers` (16 programmes compilés au menu pour rien).
