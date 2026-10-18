@@ -3,6 +3,22 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE (2026-10-18, Léo : « trouver un moyen d'avoir le même rendu, mais avec moins de RAM — je n'ai pas essayé si ça RAM ou pas »)
+- MESURÉ d'abord (`dbgRamNuages()` : octets des tampons et textures des nuages au GPU, uniques, + copies JavaScript ; banc `ram.py`) : avec les cubes
+  fantômes 105 Mo au GPU + 105 Mo de copies JS (sans eux 17 + 16). Chaque cube était écrit 4 fois (un sommet par coin, 240 octets) et tout restait en double.
+- `NUF_TEX` (WebGL2 ; `?fant=attr` = l'ancien chemin) : un cube = 3 texels RGBA en DEMI-PRÉCISION (24 octets : place + taille, normale + voile,
+  modelé + teinte) dans UNE texture par gabarit (`nuFantGeo`, `THREE.DataUtils.toHalfFloat`) ; le sommet retrouve son cube et son coin par
+  `gl_VertexID` (`nuFantVS(tex)`) ; UN tampon d'indices pour tous (`nufIdx`, 10 920 carrés) ; une matière par gabarit, même programme (`nufMat`).
+  ⚠ Le tampon d'indices partagé ne doit JAMAIS être détruit : un nuage seul qui disparaît passe par `nufJette` (index détaché, texture et matière jetées).
+  Sans attribut de position three ne calcule pas la sphère englobante : elle est posée à la main.
+- Le CORPS rentré PARTAGE normales, modelé et indices de la surface v8 (seules ses positions sont à lui) — au passage, le corps des nuages seuls
+  (bancs, coussins, tours) n'est plus décalé deux fois vers le bas (la v8 était déjà à sa place).
+- `nuLibre(attr)` : la copie JavaScript d'un tampon est jetée une fois envoyée au GPU (`onUpload`), pour toutes les surfaces de nuage (`cotonBuf`)
+  et les fantômes ; la texture jette la sienne (`onUpdate`). ⚠ Ne plus lire `geometry.attributes.*.array` d'un nuage après son premier rendu.
+- RÉSULTAT (même piste, `?pistegraine=777`) : GPU 105 → 23 Mo, JS 105 → 14 Mo (le reste = des finesses pas encore dessinées) ; image identique
+  (écart moyen 0,7/255 : l'animation qui respire n'était pas au même instant) ; même temps d'image ; 0 programme compilé en course.
+  Nouveau paramètre de banc : `?pistegraine=n` (la même piste à chaque chargement, pour comparer deux versions au pixel).
+
 ## LA PERLE — LES TRAITS DANS LA TÔLE, EN FACETTES, LE RIDEAU D'AIR CREUSÉ, LE PHARE REFAIT (2026-10-18, Léo, en quatre temps : « la vitre en dessous du phare un peu chelou » · « plus de gris chelou, mais qu'on voie chaque partie : les traits définissent des parties » · « check sur internet c'est quoi le composant (un truc noir non identifiable) ; s'il existe des modèles sans, enlève ; plus aucun bout pointu ; rends-la poly en gardant le résultat » · « voilà où tu as le plus de mal, le phare : ça doit être beau » · « le truc noir c'est un trou, c'est creux »)
 - **LES TRAITS DANS LA TÔLE** (`peintPlan`, `LGN`, `RLF`) : plus de rubans gris posés dessus. Les lignes du plan COUPENT la tôle : un JOINT
   (portières, capot, malle, pare-chocs) = un fin interstice sombre (`PAL.J`) dont les bords penchent vers lui ; un PLI = une arête de
