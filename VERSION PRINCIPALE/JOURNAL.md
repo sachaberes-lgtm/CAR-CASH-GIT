@@ -540,6 +540,48 @@
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
 
+## LES JAPONAISES — 3 · L'AE86, « LE TOFU » (nom provisoire), LIVRÉE PANDA, PHARES ESCAMOTABLES (2026-10-18, discussion JAPONAISES : « la Sprinter Trueno 3 portes d'Initial D, livrée panda, phares escamotables »)
+- **Le plan** : the-blueprints « Toyota AE86 Sprinter Trueno Zenki » (quatre vues en couleur, 1280 px, 173 px/m calé sur l'empattement de 2,40 m ;
+  hors-tout 4,22 m relevé, hauteur du plan 1,275 m — la fiche dit 1,335, le plan et les photos disent plus bas : le plan fait foi). Silhouette,
+  largeurs, coupes et vitres relevées au pixel dans Chrome (`pix.py` ; vitres par remplissage du gris du plan, 235).
+- **La caisse** (`SHAPES.ae86`, index 86, RARE) : loft à 17 points par tranche — le flanc à hauteurs ABSOLUES (bas, bande blanche 0,448-0,503,
+  ligne PANDA 0,556 ; au nez le bandeau noir monte à 0,66, à la poupe le bouclier à 0,59 : des arêtes, le trait reste net) puis relatives jusqu'à
+  l'épaule ; trois zones : CAPOT, SERRE (pare-brise, gouttière, hayon ; le bord du toit dans le PLAN DES VITRES rentré de 29°), MALLE (le pont du
+  hayon, le panneau des feux en pente). Les deux bouts se replient sur l'axe (la face du nez et de la poupe sont des bandes du loft : un bouchon à
+  cheval sur l'axe se découpait mal). Découpés au plan : vitres + cadres, triangle de rétro, custode, pare-brise, lunette, grille d'auvent, calandre à
+  lames + monogramme, clignotants, feu de coin, feux arrière (rouge, clignotant, recul), bandeau noir, bande blanche du bouclier, serrure,
+  poignée ; joints portière/capot/hayon, plis du capot. Le NOIR : zones « tout le plan » en tête de chaque vue, portées par le centre du triangle
+  — portières et bas de caisse en noir LAQUÉ (`g`), boucliers et bandeau en plastique SATINÉ (`s`) : en laque de carrosserie, le noir renvoyait le
+  ciel rose du studio. La plaque du jeu se pose entre les feux (une boîte claire que `plqDessinee` reconnaît). Jantes 13" à huit bâtons, BRONZE
+  (celles du plan), pneu 185/70, un pot à gauche. Rétros noirs, essuie-glaces. 21 200 facettes.
+- **Les phares** (`AE86PH`, même recette que LA CERISE) : boîtier noir, capot = les morceaux de la tôle découpés dans le logement, verre carré et
+  phare rond ; pivot CALCULÉ (40°, face droite une fois levée, au ras du bord du capot : sur le plan, le capot levé monte à 0,84 m au nez).
+  `'nitro'` par défaut (le choix de Léo pour LA CERISE) ; `dbgPhares` (celui de LA CERISE) force les deux.
+- **Les outils** : `japDecoupe` prend `colTri` (la couleur de la tôle au centre de chaque triangle) et revalide sa découpe gardée si les codes
+  changent (au studio, le gabarit d'essai trouvait la découpe du jeu : mêmes facettes, zones d'avant). NA et RF inchangées (vérifiées en course).
+- Vérifié : course ordi/debout/couché (glacier, ville), 0 programme compilé en course, aucune erreur ; garage + inventaire debout/couché ; 1re
+  construction 32-50 ms (préchauffée par `japChauffe`). Planche : `photos-gameplay/ae86-vraie-et-nous.png` (phares A/B/C, jantes bronze/noires,
+  3 noms : LE TOFU · LE PANDA · LA DESCENTE).
+
+## LES JAPONAISES — 2 · LA MX-5 RF, « LA LAME » (nom provisoire), TARGA « FASTBACK » ARGENT (2026-10-18, discussion JAPONAISES, Léo : « en argenté. S'inspirer de la photo de cet article »)
+- **Les plans** : la caisse sur le PLAN VECTORIEL de la ND (dimensions.com, `mazda-mx-5-miata-nd-4th-gen`, deux SVG : capote baissée et levée,
+  140,77 unités/m ; 250 tracés relevés au `getPointAtLength` puis numérotés vue par vue — silhouettes fermées 249-252, phare 84+150, projecteur 29,
+  calandre 124, antibrouillards 163, feux ronds 113 + barre 112, évents 104, portière 198/183, lignes de caractère 36/39) ; le TOIT sur le plan de la RF
+  (the-blueprints, 2645 px, 434 px/m) et les photos de presse de l'article (motor1.com). La RF partage toute la tôle sous la ceinture.
+- **La caisse** (`SHAPES.mx5rf`, index 85, RARE) : loft à 15 points par tranche, quatre zones — CAPOT (crêtes des ailes au-dessus du capot), SERRE
+  (pare-brise puis pavillon : ceinture → vitre rentrante → bord du pavillon à |x| 0,58 → bombé), ARCEAUX (z −0,885 → −1,36 : la coupe se creuse,
+  crête de l'arceau à |x| 0,60-0,64, paroi intérieure, fond du TUNNEL à |x| < 0,49 : la LUNETTE inclinée puis le couvre-toit), MALLE. Découpés au
+  plan (`japDecoupe`) : pare-brise (contour vu de dessus), vitre de portière (son bord avant suit le montant), montant noir, petite custode, phares
+  effilés + projecteur + liseré de LED (`japRuban`), calandre creusée et ses lames, antibrouillards, feux ronds (cerclage, rouge, cœur sombre :
+  `japEchelle`), barres, évents, 3e feu stop, répétiteur chromé d'aile, marqueurs, poignée ; joints (portières, capot, malle) et plis (lignes de
+  caractère, crête des ailes, arcs d'ailes). Jante 17" à 7 branches en Y anthracite, pneu 205/45, double sortie à droite. 22 000 facettes.
+- **La teinte** : en MÉTALLISÉ (`g:'k'`) ou en laque claire, l'argent sortait blanc rosé au studio des vignettes (sa lumière et son gamma) : laque
+  0x868b92 par défaut. « Argenté » a deux lectures (l'argent clair / le gris foncé de la photo de l'article, 0x55585e) : CHOIX DE LÉO sur la planche.
+- **La préchauffe** (`japChauffe`, une caisse par étape, quatre étapes ajoutées dans `chauffeDivers` après `perleTraits`) : la 1re construction de
+  la RF passait de 80-200 ms à 44 ms, la NA de 30-80 à 30 ms. Le gabarit s'arrête après la tôle quand `K.muet` (le chantier de la préchauffe).
+- Vérifié : course ordi/debout/couché, 0 programme compilé en course, aucune erreur ; garage + inventaire (famille rare). Planche :
+  `photos-gameplay/mx5rf-vraie-et-nous.png` (3 noms : LA LAME · L'ARGENTÉE · LA VISIÈRE).
+
 ## LES JAPONAISES — 1 · LA MX-5 NA, « LE SOURIRE » (nom provisoire), PHARES ESCAMOTABLES QUI SE LÈVENT (2026-10-18, discussion JAPONAISES, Léo : « première génération, décapotable, phares escamotables qui se lèvent »)
 - **Le plan** : pas de dimensions.com pour la NA (ni pour l'AE86 : seulement la ND et la Corolla E210) → plans RASTER de the-blueprints.com
   (« Mazda MX-5 Miata 1995 », quatre vues couleur 1280 px, et le plan au trait de l'Eunos Roadster), calés à 172 px/m (3,95 m ; sol, roues et
