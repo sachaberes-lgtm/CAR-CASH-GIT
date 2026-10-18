@@ -11,7 +11,7 @@
       Au-dessus de ~120 Hz rien ne bouge : l'attaque du kick (le clic, le corps vers 80-100 Hz à peine touché) et les harmoniques de la basse
       — ce qu'on entend d'elle au haut-parleur d'un téléphone — restent entières. On ne monte jamais rien.
       MESURÉ (atelier : la part d'énergie sous 60 Hz, sous 150 Hz, la sonie BS.1770, ce qui reste après un coupe-bas de téléphone à 180 Hz) :
-      les musiques de NIVEAU passaient 40 à 65 % de leur énergie sous 60 Hz (NOITE 65 %, GLASSY 57 %, ADDICTIVE 56 %, CIEL 1-5 ~ 47-50 %) ;
+      les musiques de NIVEAU d'alors passaient 40 à 65 % de leur énergie sous 60 Hz (NOITE 65 %, GLASSY 57 %, ADDICTIVE 56 %, CIEL 1-5 ~ 47-50 %) ;
       les lobby, le ciel et le garage restent sous 10 % : on n'y touche pas. Cible : ≤ 36 % sous 60 Hz, ≤ 65 % sous 150 Hz, coupes bornées
       à −5 dB (plateau ; −7 pour GLISSE, un sub presque pur) et −2 dB (cloche : au-delà, le corps du kick s'en va). `FORCE` règle tout d'un coup (1 = les réglages mesurés, .5 = moitié, 0 = brut).
    2. (LA NITRO QUI COLORE LA MUSIQUE — essayée le 15/10 dans la bibliothèque, RETIRÉE à l'écoute, Léo : « enlève nitro musique augmentée ».
@@ -26,14 +26,10 @@
 (function (W) {
   'use strict';
   var PRESETS = {   // dB · mesurés le 15/10 (atelier : part d'énergie sous 60 / 150 Hz du fichier entier ; les sons en direct, joués au banc) — absent = rien ne change
-    // LE JEU — les musiques de niveau (les lobby Chris, le ciel et le garage du menu restent sous 10 % : rien)
-    'ciel-n1': { sub: -4 }, 'ciel-n2': { sub: -3 }, 'ciel-n3': { sub: -4.5, bas: -2 }, 'ciel-n4': { sub: -1.5 }, 'ciel-n5': { sub: -3.5, bas: -1.5 },
-    'ciel-complet': { sub: -3 }, 'ville-n3': { sub: -3.5 }, 'ville-n4': { sub: -3 }, 'ville-n5': { sub: -2 },
-    'noite-de-velocidade': { sub: -5 }, 'glassy-plucks': { sub: -5 }, 'swag-cash-car': { sub: -2.5, bas: -2 }, 'lvl1-neon-cash-car': { bas: -1.5 },
-    'lvl2-cash-car-vitesse': { sub: -1.5, bas: -2 }, 'addictive-loop': { sub: -5, bas: -2 },
-    'musique-glisse': { sub: -7, bas: -2 },   // GLISSE (le SOLEIL DE JADE) : 85 % de son énergie sous 60 Hz — le plus lourd de tout, le seul au-delà de −5
+    // LE JEU — le ciel et le garage du menu, les lobby Chris restent sous 10 % : rien (18/10 : les réglages des musiques de niveau parties — NOITE, GLASSY, SWAG, LVL 1-2, ADDICTIVE, CIEL 1-5, VILLE — sont retirés)
+    'musique-glisse': { sub: -7, bas: -2 },   // GLISSE (la bibliothèque ; au jeu elle jouait au SOLEIL DE JADE, jusqu'au 18/10) : 85 % de son énergie sous 60 Hz — le plus lourd de tout, le seul au-delà de −5
     // LA BIBLIOTHÈQUE (hors jeu) — ni les petits sons, ni ce qui est rangé dans Pouce bleu (Léo, 15/10 : « touche à rien », il trie lui-même)
-    'paliers/rendus/ciel/': { sub: -3.5 }, 'paliers/rendus/ciel-30/': { sub: -3.5 }, 'boucles/pluie-neon--': { sub: -2, bas: -2 }, 'boucles/niv-altitude--': { sub: -2, bas: -2 }, 'boucles/neon-drive-2--': { sub: -1.5, bas: -2 },
+    'paliers/rendus/ciel-30/': { sub: -3.5 }, 'boucles/pluie-neon--': { sub: -2, bas: -2 }, 'boucles/niv-altitude--': { sub: -2, bas: -2 }, 'boucles/neon-drive-2--': { sub: -1.5, bas: -2 },
     'boucles/vapeur-nuages': { bas: -2 }, 'boucles/vapeur-orage': { bas: -2 }, 'boucles/vapeur-ciel': { bas: -2 }, 'boucles/niv-altitude.m4a': { sub: -2.5, bas: -2 },
     'boucles/niv-neon-noir.m4a': { sub: -1 }, 'boucles/niv-metro': { bas: -2 }, 'boucles/niv-satellite': { sub: -5, bas: -2 }, 'boucles/niv-monstre': { bas: -2 },
     'boucles/neon-drive.m4a': { sub: -3, bas: -2 }, 'boucles/pluie-neon.m4a': { sub: -2, bas: -2 }, 'dark-triad': { bas: -2 }, 'boucles/caisse-enregistreuse': { sub: -1.5, bas: -2 },

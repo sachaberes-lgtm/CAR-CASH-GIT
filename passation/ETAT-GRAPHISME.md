@@ -1,5 +1,7 @@
 # ÉTAT — session GRAPHISME (PC) · 14/10/2026, 17 h
 
+> **18/10/2026 — la convention `?sans=<nom>` N'EXISTE PLUS.** Tous les interrupteurs de couleurs et d'images ont été retirés du jeu (`passation/ALLEGEMENT-MAPS.md`) : seules les valeurs « après » restent. Ce qui suit est l'historique du chantier.
+
 Branche `gfx-integration` (worktree `C:/Users/sacha/Documents/GitHub/CCG-gfx-integration`). Je pousse moi-même sur main (protocole PILOTAGE : fumée → cc-push.lock → merge → syntaxe + garde → push → recopie Downloads → « POUSSÉ »).
 La passation longue (règles, plafonds de la charte, outils dbg) reste `passation/GRAPHISME.md`.
 

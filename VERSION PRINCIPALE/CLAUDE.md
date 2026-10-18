@@ -21,9 +21,20 @@ le BURN-OUT du garage est à Léo (une garde bloque toute publication sans lui) 
 - **Éditions tirées de ce seul fichier** : `node poki-construire.js [crazy|itch|playgama]` (racine) fabrique `POKI/`, `CRAZY/`,
   `ITCH/`, `PLAYGAMA/` et leurs zips (ignorés par git, à refaire après chaque changement). L'app iPhone (Capacitor) vit sur la
   branche `ios-capacitor` (`app-ios/`, son `www/` est régénéré depuis ce dossier).
-- **`AUTRE VERSION/`** (l'édition PC) est GELÉE depuis le 25/09 : on n'y touche pas. **`ROBLOX/`** est un autre jeu.
+- **`AUTRE VERSION/`** (l'édition PC, gelée depuis le 25/09) n'est plus dans le dépôt depuis le 2026-10-18 (étiquette git
+  `avant-allegement-2026-10-18`) ; `node synchro-versions.js` la refabrique en local, sans la committer. **`ROBLOX/`** est un autre jeu.
 - **En ligne** : chaque push sur `main` publie https://car-cash-git.vercel.app/jouer/ (`vercel-build.sh`, ~1 min). C'est là que
   Sacha et Léo jouent sur téléphone. Le numéro « VERSION xxxxxxx » des réglages = l'empreinte du jeu publié.
+  ⚠ LA COPIE EN LIGNE EST ALLÉGÉE (2026-10-18, `outils/publie-allege.cjs`) : sans commentaires (même nombre de lignes : les numéros
+  d'erreur sont ceux du source) et sans les crochets `window.dbgX` que rien de publié n'appelle. Les bancs travaillent sur le source
+  local : pour un crochet sur /jouer/, il faut qu'un code publié le nomme. Un nouveau commentaire ou un nouveau dbg ne coûte donc rien
+  aux joueurs.
+  ⚠ ELLE NE PORTE QUE LES SONS QUE LE JEU PEUT DEMANDER (2026-10-18, Sacha ; `vercel-build.sh` + `outils/publie-audio.cjs`) : ni la bibliothèque
+  des sons (`bibliotheque.html`, outil local) ni ses boucles/catalogues ; pour Pouce bleu, seulement les dossiers de `paliers/rendus/` des morceaux
+  rangés « bleu », les générateurs `direct/musique-trente-<v>.js` que les 👍 rejouent et les échantillons `direct/vrais/` du REJEU de ces musiques
+  (`outils/vrais-jeu.json`). ⚠ Quand Léo range un nouveau morceau dans Pouce bleu (`musique-moteur.json`) : `node outils/preuve-vrais/rejoue.mjs`
+  refait la liste des échantillons (sinon le build ne retire plus rien de `vrais/` et le dit). Un nouveau fichier de musique lu par le jeu
+  hors Pouce bleu (ciel, auto-école, frénésie…) ne doit PAS être dans les `rm` de `vercel-build.sh`.
 - **Sur son PC, Sacha joue une COPIE** : `C:\Users\sacha\Downloads\CAR-CASH-GIT-main\CAR-CASH-GIT-main\VERSION PRINCIPALE\`
   (JOUER.bat → localhost:8000), à la souris, dans le cadre d'un iPhone couché (844 × 390).
 
@@ -46,14 +57,15 @@ Les sessions Claude de Sacha portent un nom (GRAPHISME, GAMEPLAY, SON, INTERFACE
 fois, livrée au fil de l'eau, pas en lot.
 - **Vérifier** : la syntaxe (§5), puis menu → JOUER → course SANS ERREUR, couché ET debout ET dans le cadre de l'ordi.
   `sh garde-burnout.sh` ET `sh garde-charte.sh` (racine) doivent répondre OK.
-- **Versions** : `CACHE` de `sw.js` +1 (`'cashcar-vNNN'`, avec sa ligne de commentaire) dans chaque commit qui touche le jeu.
-  Un fichier chargé avec `?v=N` (`sons-banque.js`, `sfx.js`, `figures.js`, `harmonie.js`) : N +1 quand il change.
+- **Versions** : `CACHE` de `sw.js` +1 (`'cashcar-vNNN'`) dans chaque commit qui touche le jeu. Depuis le 2026-10-18 on REMPLACE la
+  ligne `const CACHE` (une note courte), sans garder l'ancienne en commentaire : l'historique v2 → v624 est à la fin de JOURNAL.md.
+  Un fichier chargé avec `?v=N` (`sons-banque.js`, `sfx.js`, `figures.js`, `musique-bus.js`) : N +1 quand il change.
   Sinon les joueurs gardent l'ancien fichier, indéfiniment, sans erreur.
 - **Commit** : `git add "VERSION PRINCIPALE/<fichiers>"`. **Jamais `git add -A`** : des fichiers d'autres sessions traînent (ml/,
   données de Léo). Message en français qui cite la demande.
 - **Intégrer** : `git fetch origin` puis `git rebase origin/main` (ou `git merge origin/main`). Jamais `--force`, jamais de `reset`
   ni de revert du travail de l'autre ; dans un conflit on garde les deux. Conflit habituel : la ligne `CACHE` de `sw.js` → le plus
-  grand +1, les deux commentaires gardés. Revérifier après l'intégration.
+  grand +1, une seule ligne (les notes vont au journal). Revérifier après l'intégration.
 - **Pousser** : `git push origin <nom>:main`. Refusé (quelqu'un a poussé entre-temps) : refetch, rebase, revérifier, repousser.
 - **Recopier** (sinon Sacha ne voit rien) : seulement si le push est passé et qu'aucun conflit n'est ouvert
   (`git diff --diff-filter=U` vide, aucun marqueur `<<<<<<<` dans les fichiers copiés). Copier TOUS les fichiers suivis de
@@ -67,8 +79,8 @@ fois, livrée au fil de l'eau, pas en lot.
 - Le **BURN-OUT** du garage est à Léo (`BURN`, `DON`, `burnPart`, `burnGeste`, `burnDerape`, `burnCubes`, `BURN_TENU`,
   `BURN_FS_FUM`) : ni supprimé, ni remplacé, ni écrasé par une vieille copie. Le changer = demander à Léo.
 - Les choix de Sacha et de Léo coexistent derrière UN booléen ou un paramètre d'adresse ; rien n'est détruit. Par défaut : le menu
-  de Sacha (`MENU_SACHA`, celui de Léo = `?menu=leo`), JOUER = le mode classique au hasard (le Soleil de jade direct = `?play=jade`,
-  la carrière au PLAY = `?play=carriere`), l'iPhone avec encoche sur l'ordi (`ENCOCHE_DEFAUT`, écran nu = `?encoche=0`).
+  de Sacha (celui de Léo, `?menu=leo`, est retiré le 18/10), JOUER = le mode classique au hasard (le Soleil de jade direct = `?play=jade`),
+  l'iPhone avec encoche sur l'ordi (`ENCOCHE_DEFAUT`, écran nu = `?encoche=0`).
 - Une session (ou Léo) a rebasculé un choix de l'autre ? On le SIGNALE à Sacha, on ne rebascule pas. Le rangement du garage du
   11/10 a été annulé par Léo : ne pas le remettre sans lui.
 - Données de Léo à ne pas écraser en test : `simulateur/choix-musiques.json`, `simulateur/play.json`, `maps-ciel/sauvegarde.json`.
@@ -92,7 +104,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - `<head>` : un premier `<script>` pose les aiguillages globaux — `EDITION`, `POKI_BUILD`/`POKI`, `PORTAIL_SDK`, `CC_PK` (kits
   des portails), `CC_BUILD` (jeton de version), `ENCOCHE_DEFAUT`, le cadre de l'ordi (`CC_COLONNE`).
 - CSS : la feuille historique, puis des blocs nommés `<style id="…">` dans le `<body>`, qui gagnent dans l'ordre : `charte4`
-  (la charte v4/v5 : tous les écrans hors course), `hudMaitrise`, `hudDA`, `garageV7`, `garageVitrine`, `hubGarage`, `carriereV2`,
+  (la charte v4/v5 : tous les écrans hors course), `hudMaitrise`, `hudDA`, `garageV7`, `garageVitrine`, `hubGarage`,
   `poki`, `uxPasse`, `nitroEclair`, `auraJauge`, `passeMobile`. Un chantier d'interface = son propre bloc nommé, après ceux qu'il surcharge.
 - JS : le grand script est une IIFE (`(function(){'use strict'; … requestAnimationFrame(loop);})()`). Rien n'est global, sauf les
   crochets de console `window.dbg*`.
@@ -115,7 +127,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `veqDouble`/`veqSaut` (double-tap nitro), `FIG` (figures.js), `addTrick`, `trackMinY`, `dalleProche`.
 - **Figures v2** (la physique) : `FIG.Corps`/`FIG.PHY` (figures.js), `FIGV2`/`FX2`, `figLance` (une explosion), `figPose` (chaque image de vol),
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
-  les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo. Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
+  les boutons `#tFig`/`figHud`. Le lecteur de Léo (`?fig=ancien`) et les figures libres (`?fig=libre`) sont retirés (18/10). Depuis le 15/10 : DEUX emplacements (`FIG_NB`), choisis au joystick sur le
   double-tap NITRO (`FDIR`/`figDirSlot` : avant = 1, côté = 2 ; `?figdir=0` rend les boutons), le HUD des figures `#fh` (`fhLance`/`fhPlante`/
   `fhFin`/`fhTick`, bloc `figuresHud`) et le rappel `#fhLeg` à côté de NITRO. Depuis le 15/10 soir : TROIS DIRECTIONS, TROIS EMPLACEMENTS
   (`FIG_NB`=3 ; `FIG.dirs`/`FIG.oriente` dans figures.js ; `FIG_DIR`/`FIG_FAM`/`figPeut`/`figSlots`/`figRange`, `SAVE.d.figEq3`) — ↑ pouce en
@@ -129,15 +141,18 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   se fait SUR LA ROUTE, sans décoller** (`FR`/`FR_K`, `frLance`/`frTick`/`frPose`/`frEncaisse`, `frDecolle`/`frVersVol` au décollage ;
   `?froute=0` = le saut d'avant ; `dbgFRoute`) — rien dans la direction tenue : le saut nitro, sans figure. HUD des figures v4 : `figNom` (DOUBLE…,
   TOUPIE 720), flèche du geste (`r.flD`), pastilles + COMBO + RECORD (`SAVE.d.figRec`), extinction sur place, rappel `.arme` (`fhArme`).
+  **HUD v5 (18/10)** : le nom dans la couleur et la police de sa RARETÉ (`figRarH`, `FIG_RP`, `data-rp`) ; la ligne du combo = les NOMS des
+  figures plantées (`fhMaillon`/`fhCsCale`, dès 2 figures ; seule, elle s'écrit une fois en grand : `fhSeule`) ; combo à trois nommé `fhTrio` ;
+  le BUMP compte au combo du vol comme une figure (`figBumpNote`/`BUMP_FIG`/`fhBump`, BUMP → DOUBLE → TRIPLE → MEGA, `?bumpfig=0` = avant).
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
-  `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, `NIV_PARIS`/`genParis`/`buildParis`/`PARIS` (PARIS au sol, une map du classique depuis le 18/10), `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
+  `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`.
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
-  `pcubeFranchi` ; `?portail=ancien` (l'ovule et les feux), `?portail=vite`. ⚠ Une map nouvelle ou refaite → refaire ses cartes postales.
+  `pcubeFranchi` ; `?portail=vite`. L'ancien ovule rose ne reste que dans le PARC (Freestyle). ⚠ Une map nouvelle ou refaite → refaire ses cartes postales.
   LE PRÉ-BÂTI (18/10, Léo) : la map d'en face se BÂTIT pendant qu'on roule vers le portail — `PREB`, `prebTick`/`prebTravaille`, la route de
   buildTrack en générateur `pisteRoute` sur un état fantôme (`prebEchange`, `pisteTravail`), installée au passage (`pisteInstalle`) ; les décors
   d'avance (`prebJade`, `prebDecorG`/`prebDecor` : forêt, volcan, glacier) ; `?prebati=0`, `dbgPrebati()`. ⚠ Dans `pisteRoute` : jamais de
@@ -148,11 +163,18 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `vSlalom`/`vCorde`/`vChicane`/`vHoule`, forPelote `fSlalom`/`fLacets`/`fCorde`/`fRacines`, genCanyon `lien()` → `cSlalom`/`cCorde`/`cWhoops`/`cChicane`,
   genJade `tronc()` → `jLacets`/`jEpingle`/`jSommet` ; leurs tronçons dans MODMARK. `MODC_ON` (`?sans=modcartes` = les pistes d'avant à l'identique),
   `dbgModCartes(0|1)`, `dbgTrace().mods`. Un module NEUF : le garder dans les bornes de cap de son générateur et passer par SON hasard (`rf`, `rm`, `rv`,
-  `rf9`, `rj`) — jamais un tirage de plus dans `rnd` quand MODC_ON est éteint.
-  LA FORÊT (17/10, Léo) : le slalom `forZigzag` (ponts de 18-30 m, `dbgPont`), les arbres en VITRAIL dans `FOR_ARB_FS` (`VITRAIL_V`, `dbgVitrail`),
-  la MOUSSE où l'on roule hors de la route (`foretSolVol`, `MOU`, `dbgMousse`) — voir le journal.
+  `rf9`, `rj`) — jamais un tirage de plus dans `rnd` quand MODC_ON est éteint. 2e tour (18/10, « trop de tout droit ») : avec les modules, genCtrl serre
+  tout (`RS` ×0,9, `rPlancher` = 1,35 × le rayon tenable dans arc(), `VILLE_WM`, `ESP_ROUTE.wm`, entrée des villes 260 + 320 m en virage), le glacier
+  et Jade aussi ; LE ROYAUME DE FEU est refait : `vlcTrace3` (la balade des flammes puis la spirale qui monte autour du cône, `vlc3Cone` le cône
+  taillé pour elle, portail en haut ; `VLC_BALADE`, `?volcan=v4` = avant, `dbgVolcan('test')` = la règle d'or) ; la forêt allégée (3-4 pointes).
+  LA DURÉE DES MAPS (18/10, Léo, v643) : au JOUER une map se compte en SECONDES — 45 s au palier 0, 20 s au palier 25 et au-delà (`DUREE`,
+  `dureeCible`, `longueurCible` = durée × `vPalier` × `DUREE_ELAN` × `DUREE_ALLURE[carte]`, le glacier par `DUREE_V`). Chaque générateur lit
+  `longueurCible()` (0 hors du JOUER : tout reste à l'identique) et ne raccourcit que le remplissage — genCtrl LEN, glacier LEN à plat, jade
+  `jmN`/`FX9`, forêt `nN`, volcan `bal()` (vlcTrace3) / `tient()` (vlcTrace), canyon `tient()` ; PARIS (tracé dessiné) n'y est pas.
+  `?duree=ancien`, `?duree=40-18`, `dbgDuree()`. ⚠ Une map NEUVE du JOUER : lui faire lire `longueurCible()` et caler son allure au banc.
+  LA FORÊT (17/10, Léo) : les arbres en VITRAIL dans `FOR_ARB_FS` (`dbgVitrail`) ; le slalom des troncs (`forZigzag`), ses ponts et la mousse ont été retirés le 18/10 (voir le journal).
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
-  (`VILLE_NUIT_V`, `VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
+  (`VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
 - **Ciel et décor** : `BIOMES`/`bioApply` (le SEUL écrivain des lumières), `skyDome`, `CIEL2`, `COTON`/`CLOUDS`/`buildClouds`/
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
@@ -161,15 +183,18 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Plaque d'immatriculation et profil** (17/10) : `PLQ`, les neuf modèles `PLQ_MOD` peints par `plqPeint`, la pose sur TOUTES les caisses
   `plqPose`/`plqCherche` (des rayons, dans buildCar ; `PLQ.pos` par caisse), l'atelier `#plq`/`plqOuvre` (au premier accueil : `plqGuette`),
   le profil `#prof`/`profOuvre`/`profChiffres` (le trophée du garage `#gProf`, `plqGarage`), la sauvegarde `SAVE.d.plq` et `SAVE.d.prof` (`plqHorloge`).
+  Le CLAVIER du téléphone (18/10) : tant qu'on écrit, l'atelier se pose sur la partie visible (`plqClavier`, `#plq.clavier`, `visualViewport`) —
+  la plaque, le champ et son dé, RETOUR · VALIDER ; le dé garde le clavier ouvert ; la page revient en haut quand il se range. `?plqclavier=0`
+  = comme avant ; `dbgPlaque('clavier',h)` simule un clavier qui laisse h px visibles (le banc n'a pas de clavier virtuel).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
   `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
   `figAchat`/`figPossede`, la photo-séquence d'une carte FIGURES `figFile`/`figPhoto` (studio commun `photoStudio`), `eurTxt`, `shopPaye` (la porte StoreKit : elle refuse tout aujourd'hui).
 - **Garage et menus** : `openGarage`/`closeGarage`/`garageRender`, `garMode`/`GMODE`, `GAR`, `garLibre`/`garCadre`, `invOuvre`,
-  `MENU_SACHA`, `HUB`/`hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
-  `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, carrière `#carr`/`carrVue`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend`/`MISSIONS_V2` (sauvegarde `SAVE.d.m2` ;
-  l'ancien système des carnets `CARNETS`/`misTick`, coupé : `?missions=v1`).
-- **HUD** : `#hud`, `hudColonne` (sa mesure `hudColMesure` passe par `apresMiseEnPage`), `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (jauge d'aura),
+  `hubSync`, l'accueil au ciel `chuteRender`/`CHUTE`/`TITRE_H`, la coque `#mob` (`mGo`, `mTap`, `#mHome`,
+  `#mDead`), `ecranWipe`, `modale`, `toast`, `uiGarde`, MISSIONS v2 `M2`/`m2Etat`/`m2Val`/`m2Tick`/`m2Prend` (sauvegarde `SAVE.d.m2` ;
+  l'ancien système des carnets est retiré le 18/10 : `SAVE.d.mis` reste lu par `carStat('carnet')`, `m2MigreV2` et le cadeau `popCarnets`/`misPop`).
+- **HUD** : `#hud`, `hudColonne` (sa mesure `hudColMesure` passe par `apresMiseEnPage`), `hautPasse` (une carte à la fois), `slam`, `trickMsg`, `flowHudMaj`, `ajTick` (la couche `#ajVols` des éclairs de nitro),
   `VOLG` (les gains qui volent vers leur jauge), `airPieDraw`, `#tNitro`, pause `#tGear`/`#tPanel`/`panSync`, `HAS_D`/`hasMaj`.
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
@@ -178,10 +203,10 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   LANCÉE à la pose réussie (30 % jusqu'au 18/10), cumulable, le trop-plein dans la réserve bleue (17/10 soir) — `figNitCout`/`figNitPaye`/`figNitRend`, `FX2.nitL`
   (lancements) / `FX2.nitF` (plantées), `dbgFigNit()`.
 - **Bords de la route** (18/10, Léo) : une couleur de BASE par map (`BMAP_PAL`, `bmapCle`, `bmapPeint` dans `bordsTick` : rails, nappe, liseré `ROAD_U.uAcc` ;
-  la ville garde ses teintes) et au boost le SCINTILLEMENT RGB (`bmapBoost`, `BMAP_U`, peint par `traitMat` sur l'abscisse `aS`). `?sans=bordsmap`, `?bordsboost=0`, `dbgBordsMap()`.
+  la ville garde ses teintes) et au boost le SCINTILLEMENT RGB (`bmapBoost`, `BMAP_U`, peint par `traitMat` sur l'abscisse `aS`). `?bordsboost=0`, `dbgBordsMap()`.
 - **Lumières de la caisse** (17/10) : phares, feux arrière, feu du nitro, flamme du moteur et traînées ÉCLAIRENT LE BITUME dans son shader (`LUM_GLSL`/`lmRoute`,
   uniformes `LUM_U`, `LM_N` lampes-segments + deux phares ; `lumTick` les pose en monde, `lumVue` — chaîné sur `scene.onBeforeRender` — les passe en vue ; réglages
-  `LUMK`) et la lueur des feux allume la CAISSE et sa lunette (`FEU_U`/`FEU_GLSL`, bloc VOITURES) — aucune lumière three. `?sans=lumieres` = avant.
+  `LUMK`) et la lueur des feux allume la CAISSE et sa lunette (`FEU_U`/`FEU_GLSL`, bloc VOITURES) — aucune lumière three.
 - **Effets** : traînées de lumière `LUMT` nées des feux arrière `CAR_FEUX` (`dbgFeux`), sillages `SILS`/`mkSillage`/`sillageStep`/`trailStep`, plumes `JETS`, `rainbow`, `WOWT`/`wowStep`, les TRAÎNÉES POP
   `TRX`/`TRX_EMET`/`trxStep`/`trxApercu`/`trxPlanche` (17/10 : chacune son ALLUMAGE `debut`, son ruban à tempérament `sil` → `SIL_STY`), l'aperçu des rubans en vraie lumière depuis les feux `silApercu`/`silRuban`, la salle blanche en ENCRE `SIL_ENCRE`/`silBlanc`, la vitrine qui vrombit `SILPV.cy`, les AILES `AILES_POP`/`ailForme`/`ailAnime` et LES AILES VIVANTES (16/10 : l'état commun `AILV`/`ailvTick` — boost, virage, montée, vitrine du garage —, `ailB` = ce qui bouge, que la soudure laisse en place, `ailBat`, `ailCoupe`, `ailEtincelles`, la pose de photo `ailvPose` ; leurs SONS `ailSon` → `ailes.*`, en vol seulement),
   pluies d'argent `PLA`/`RICH`, particules `makePool`/`spawnP`, la flamme des pots `JETS` menée par le
@@ -189,12 +214,14 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   même feu en minuscule pour le MOTEUR (`NFEU_MINI`, `?moteur=goutte` ; une gerbe de petits cubes qui crépite dans tous les sens — il remplace
   les éclats `ECLATS`).
 - **Son** : `sfx(id,o)`, `son(id,repli)`, `SONV2`, `uiClic(rôle)`, `hap(p)`, `MASTER`, `PORTES`/`stt`, `initAudio`,
-  `SON_TON`/`sonTonSuit`, `ECH`/`echSt`, `SANS_VOIX`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
+  `SON_TON`/`sonTonSuit`, `ECH`/`echSt`. Fichiers : `sfx.js` (lecteur), `sons-banque.js` (banque cuite),
   `atelier-son/` (`recettes.js`, `cuire.js`), `sons.html` (banc d'écoute).
   Le son de la NITRO : LE FEU QUI RUGIT (16/10) — `RUG`/`rugTampons`/`rugPas`/`rugAllume`/`rugPetarade`, `RUG_NIV`, `dbgRug()` ; `?nitroson=ancien` = avant.
   Le CRISSEMENT de la course : LA GOMME DOUCE (16/10) — `GOM`/`gomBatit`/`gomPas`, `GOM_NIV`, `dbgGomme()` ; `?crisse=ancien` = avant (l'ancien `skidG` reste au burn-out).
-- **Musique** : `MUSIC`/`MUSIC_LOBBY`, `musicTick`, `musicJoue`, `playMusic`, `musicLieuVoulu`, `MUS_TAIT`, `DEPMUS`,
-  `JMUS_NIV` (GLISSE V2 : `assets/audio/music/musique-glisse-v2.js`), `INSTRU` (coupé).
+- **Musique** : en course, POUCE BLEU joue seul (`pbjRegne`, `assets/audio/pouce-bleu-jeu.js`) ; `MENU_MUS` (le ciel et le garage du menu),
+  `ECOLE_MUS` (PREMIER MATIN, l'auto-école), `MUSIC_TRACKS` (le pool de la radio : UN morceau, ne pas le vider — l'auto-école ne partirait pas),
+  `musicTick`, `musicJoue`, `playMusic`, `musicLieuVoulu`, `MUS_TAIT`, `DEPMUS`, `INSTRU` (coupé). La radio des niveaux, GLISSE V2 (JMUS),
+  `?musique=niveaux` et `?ecole=` sont partis (allègement du 18/10).
 - **Sauvegarde** : `SAVE` (clé localStorage `cashcarSave`, `def()`, `san()`, `flush()`, `mark()`, `export()`/`import()`),
   le code caché `codeCousin`/`cousin()`.
 - **Langue** : `LANG`, `TR`, `I18N`, `I18N_ZH`, `applyLangDOM` (`data-fr`), `majPix`, `sansAcc`.
@@ -225,7 +252,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 
 **Jeu (verdicts tenus — ne pas les défaire sans demande)**
 - Zéro assistance de conduite (`ASSIST_VIRAGE=0`, `AIR_ASSIST=0`) : pouce lâché, la caisse garde son cap et sort dans les virages.
-  Le mode FACILE (la seule exception) est COUPÉ depuis le 14/10 : `SANS_FACILE`, `?facile=1` le rend.
+  Le mode FACILE (la seule exception) est retiré (coupé le 14/10, code arraché le 18/10) ; `SAVE.d.facile` reste seulement lu à la sauvegarde.
 - `AIR_RATE=1` : le temps du vol n'est pas accéléré. Le virage en vol ne suit pas la vitesse (voulu).
   Son autorité, elle, a monté (18/10, Sacha : « des virages serrés ») : UNE formule, `lacetVol` (`VIRVOL` : lacet ×1,5, plafond plus haut,
   verrou du volant au décollage 0,35 s) ; `?virvol=0` = avant, `dbgVirVol(k,cap,latch)` pour régler en direct.
@@ -233,28 +260,29 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - La loi du réservoir : le vol dépense la nitro, la route la remplit — sauf les FIGURES PLANTÉES, qui en rendent tout de suite (Asphalt 8, 14/10).
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
-- Plus aucun looping (`SANS_LOOPING`) ; Paris hors de la partie sans fin (carrière seulement).
+- Plus aucun looping (code retiré le 18/10) ; PARIS est une map du mode classique (18/10, Sacha : « remet la map paris dans le mode classique » :
+  `SF_CARTES.paris`, un seul temps, l'heure tourne le long de la course).
 - LES MAPS COMME UN TOUT (17/10, Sacha) : nuages, canyon, forêt, glacier, volcan et orbite suivent UNE recette par temps (`CONTI` : saturation, vignette,
   contre-jour rose, bitume commun `rtT`/`rtA`, ciel continu `uCiel2`, la nuit à deux températures) ; la VILLE et le JADE n'y sont jamais (`contiMap()`).
-  Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part. `?sans=continuite` = avant.
+  Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part.
 - LA MAP NUAGES EST UNE COURSE (18/10, Sacha : « trop peu de virages… ça reste un jeu de course ») : sur la route sans haut ni bas, zoom `TORD_AMP` 1,1, poids `TORD_W`,
   modules de COURSE (`MODT` : slalom, épingle, double corde, esses, montagnes russes, rayons VRAIS ≥ 1,7 × le rayon du palier), dévers `TORD_DEVERS`, et
-  `pisteTordPropre` qui rejoue les vrilles si la route se touche. Une retouche passe par le banc des virages (journal). `?sans=virages` = la route du 15/10.
+  `pisteTordPropre` qui rejoue les vrilles si la route se touche. Une retouche passe par le banc des virages (journal).
   EN L'AIR AUSSI, PAS DE HAUT NI DE BAS (18/10, Sacha : « la voiture a du mal à voler, comme si le jeu n'arrivait pas à savoir de quel côté de la route on va ») :
   `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
   survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
   `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
-- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : `BANQ_V4` (123 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler) ;
-  `?glacier=v3` = la descente verglacée d'avant. Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
-  `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi ne reviennent qu'avec `?sats=route` (`SAT_OBST_V`).
+- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
+  `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
-  JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit. `?sans=villenuit` rend l'ancienne.
+  JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit.
 - LES MISSIONS v2 (16/10, Sacha : « des MISSIONS libres à la place des carnets ») : toutes ouvertes, une seule liste, des SECRÈTES qui donnent des
-  caisses (silhouettes noires en boutique, jamais en 3D avant d'être gagnées) ; un objet de mission ne s'achète plus. `?missions=v1` rend les carnets.
-- Plus de CARRIÈRE (`SANS_CARRIERE`, 14/10) : aucune porte n'y mène, Paris ne se joue plus ; `?carriere=1` la rend, la carrière d'avant
-  vit sur la branche `garde/carriere`. Les missions restent.
-- Plus aucune VOIX (`SANS_VOIX`) : ni annonceur, ni réplique, ni synthèse vocale. `?voix=1` les rend pour écouter.
-- Plus de SNAKE LOOP ni de NITROOO (15/10, Sacha) : `SANS_SNAKE` / `SANS_NITROOO`, coupés pas arrachés — `?snake=1`, `?nitrooo=1` les rendent.
+  caisses (silhouettes noires en boutique, jamais en 3D avant d'être gagnées) ; un objet de mission ne s'achète plus. (Les carnets, `?missions=v1`, sont retirés le 18/10.)
+- Plus de CARRIÈRE : coupée le 14/10, retirée du code le 18/10 (niveaux, écrans, campagnes NUAGES et VILLE, SAUTE-MOUTON) ; la carrière
+  d'avant vit sur la branche `garde/carriere`. Les missions restent ; LA CAISSE-NUAGE et LE LINGOT s'achètent (1,8 M / 2,2 M), gagnées en
+  carrière = à toi (`exK`/`exV`, `SAVE.d.carr` reste lisible).
+- Plus aucune VOIX : ni annonceur, ni réplique, ni synthèse vocale (code retiré le 18/10 : `annSpeak` ne rend plus que le texte, `SAVE.d.vox` reste lu).
+- Plus de SNAKE LOOP, de NITROOO / PURE SPEED / AIR NITROOO, de MÉTÉORE (ni cratère ni pluie de débris) : coupés le 15/10, arrachés le 18/10 (`vitMult` garde le plafond ×2,6).
 - PLUS D'ANIMAUX (15/10, Léo : « avec les figures ça n'a plus sa place, ça prend trop de place ») : dauphins (créatures + figure LE DAUPHIN + #dolHud),
   serpent néon, dragon de feu de NITROOO (`DRG`/`DFEU`), singes de la course : ARRACHÉS du jeu (index.html −215 Ko). Le modèle du dauphin, la
   recette VITRAIL et le singe vivent dans `creatures/dauphin.js`, `creatures/vitrail.js`, `creatures/singe.js` (lus par les boîtes, et
@@ -269,7 +297,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   route puis suit. Balistique dans le repère de la route (`jsgBouge`, `jsgReveil`). `dbgJadeSinges('mangue','saute')`.
 - Textes au centre de l'écran rayés par Sacha (VIRAGE SERRÉ, FRÔLÉ, PORTE, RASE-BORD, MINI/SUPER/ULTRA TURBO, pastilles sous
   le verdict ; le 15/10 : « +X AURA » de la chaîne, « ×5 EN FEU / ×8 / ×10 », le « ★ +N AURA » du dauphin, « FIGURE +N » sur la caisse) : on ne les rallume pas ; un nouveau texte au centre se propose d'abord.
-- HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (`?jauge=1` la rend, `JAUGE_AURA`), plus de
+- HUD de course allégé par Sacha (15/10, `<style id="hudAllege">`) : plus de jauge d'aura « MOY » (retirée le 18/10 avec `?jauge=1`), plus de
   liste des figures sous la chaîne, plus de « $×1 » au palier 0 du flow, plus de nom du pouvoir au centre. On ne les rallume pas sans lui.
 
 **Interface (charte v4/v5 — pour tout écran neuf ou retouché ; de vieilles règles CSS y dérogent encore)**
@@ -281,6 +309,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - UNE SEULE POLICE, PARTOUT : Press Start 2P (locale, `--pix`) — aucun texte du jeu dans une autre police, écran, bannière, champ de saisie
   ou texture (Sacha, 15/10 : « il faut pas que je te le répète »). Deux FILETS la garantissent : `<style id="policeUnique">` (tout élément,
   tout champ, en `var(--pix)!important`) et `UNE_POLICE` (tout `ctx.font` de canvas réécrit en pixel, à 62 % du corps, sans gras) ;
+  SEULE EXCEPTION VOULUE (18/10, Sacha, au quiz : « une police par rareté ») : le NOM des figures en course (`#fh`, `#fhLeg`, porteurs de
+  `data-rp`) prend une police PIXEL selon sa rareté — Silkscreen, Jersey 10, Sixtyfour, Jacquard 12 (`assets/fonts/`) ; ne pas l'étendre ailleurs sans lui.
   `apresPolice(f)` redessine une texture peinte avant que la police soit chargée ; `garde-charte.sh` refuse une version sans eux. Un texte
   long : `--f1` (10 px), interligne 1,6-1,7, graisse 400 ; une note : `--f0`. Seule exception, nommée : le φ de `#spPhi` (logo).
   Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
@@ -337,18 +367,19 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
 
 **Crochets de console utiles** : `dbgState()` · `dbgAuto(1,lat,{vol,nit,saut})` (pilote) · `dbgStep(n,ms)` (la boucle à la main)
 · `dbgView(a,d,h)` (mode photo) · `dbgSaut()` (= NIVEAU suivant, pas un saut) · `dbgDauphin(…)` (s'envoler) ·
-`dbgClassique(carte,meteo)` · `dbgCampagne(n,monde)` · `dbgNiveauJade()`/`dbgNiveauCrypto()` · `dbgEquipe(i)`/`dbgCar(i)`/
+`dbgClassique(carte,meteo)` · `dbgNiveauJade()`/`dbgNiveauCrypto()` · `dbgEquipe(i)`/`dbgCar(i)`/
 `dbgPhoto(i)`/`dbgBqVoir(i)` · `dbgSon(id)`/`dbgVu()` · `dbgLivre('ouvre')` · `dbgFren()` · `dbgVol()` · `dbgBurn()` · `dbgFlamme()` ·
 `dbgQual()`/`dbgDPR()`/`dbgPerf()` · `dbgAppels(n)`/`dbgProgsListe()` (traquer une compilation en course) · `dbgMaj()` · `dbgPoki()` ·
 `dbgLum({…})` (les lumières de la caisse : état, réglages `LUMK` à chaud, `off`/`frein`/`nitF` pour les bancs) · `dbgLumVue(d,h,az)` (photo de poursuite dans le
 repère de la caisse) · `dbgLumReprise()`.
 
 **Adresses utiles** : `?perf=1` (moniteur) · `?banc=1` (le banc de perf à lancer sur un VRAI téléphone) · `?poki=1`, `?crazy=1` ·
-`?menu=leo` · `?carte=jade&meteo=orage` · `?carte=canyon&meteo=soir` (`?cyw=0` : sans travailleur) · `?niveau=jade`, `?niveau=crypto` · `?heure=nuit` · `?simu=1`.
+`?carte=jade&meteo=orage` · `?carte=canyon&meteo=soir` (`?cyw=0` : sans travailleur) · `?niveau=jade`, `?niveau=crypto` · `?heure=nuit` · `?simu=1`.
 
 **Les outils de Léo** (locaux, retirés du site par `vercel-build.sh` et des portails par `poki-construire.js`) : `simulateur.html`
 (`python3 simulateur/serveur.py 9101`), `maps-ciel.html` (`python3 maps-ciel/serveur.py 9019`), `salle-blanche.html`,
-`boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
+`boite-dauphins.html`, `boite-singe.html` (elles lisent `creatures/*.js`), `bibliotheque.html` (la bibliothèque des sons, avec son serveur
+`atelier-son/serveur-moteur.py` ; plus publiée depuis le 18/10). `boite-figures.html` est EN LIGNE (/jouer/boite-figures.html).
 **Les MAPS DU JEU** (15-16/10, Léo : « une liste des maps qu'on a sur le jeu, pour appuyer dessus, aller voir dedans et te donner des
 changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps que JOUER tire au hasard (`SF_CARTES`) ; un toucher →
 `voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
@@ -379,7 +410,8 @@ se voient que là), la course (`dbgEquipe(i)`), le garage du jeu (la salle blanc
 **D'après un plan coté** (une vraie voiture) : la tôle CONSTRUITE sur les courbes du plan et les vitres DÉCOUPÉES le long de ses contours
 (`peintPlan`), contrôlées au banc des écarts → « LA PERLE AU PLAN » au journal.
 ⚠ Jamais retirer ni insérer une ligne au milieu de `CARS`/`CAR_UNLOCK` : la sauvegarde désigne les caisses par leur INDEX.
-Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
+Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs), puis réduire la fiche à `{retire:1,name:'…'}` : le nom suffit
+(index des sauvegardes, mission qui la donne, message de remboursement) ; en la remettant dans le jeu, retaper sa fiche (git) et son prix dans `CAR_UNLOCK`.
 
 **Ajouter un obstacle qui tue** (« L'IMPACT » au journal) : son test `xxxHeurt(p)` PUR (vrai dans l'obstacle), puis dans la chaîne de vol
 `impPrep(xxxHeurt,cause,marge);explode(cause);` — `marge` = de combien le test déborde de la vraie paroi. Rien d'autre : la même animation
@@ -427,13 +459,13 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Un son GRAVE (le DOUM des figures, 15/10) : les outils `doum`/`basse`/`wouom` de `recettes.js` (`G.CCSON_GRAVE`) ; il lui faut de l'énergie
   entre 150 et 500 Hz, sinon il n'existe pas au haut-parleur d'un téléphone (mesurer la sonie après un passe-haut 200 Hz : perte ≤ 5 dB).
   Les sons FRÉQUENTS de la route restent bas et brefs (la pièce : −35, « LES SONS GRAVES ET DISCRETS » au journal) ; les figures passent au-dessus.
-- Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `musicLieuVoulu`
-  (ou `MUSIC_LOBBY` pour le lobby).
+- Une musique : le fichier dans `assets/audio/music/`, sa tonalité dans `SON_TON`, son branchement dans `MENU_MUS` (le menu) ou
+  `musicLieuVoulu` (un lieu précis) ; en course, c'est Pouce bleu (`musique-moteur.json`, la bibliothèque).
 
 **Ajouter un niveau (une map)**
 - Mode classique : une entrée dans `SF_CARTES` (`base` = son niveau, `m` = ses météos `{bio, pluie, nuit, orage, niv, p}`) ; ses
   ambiances dans `BIOMES` ; son niveau de base dans `NIVEAUX` (le cycle fixe de Poki et `?classique=cycle`) ou à part, comme
-  `NIV_JADE`/`NIV_CRYPTO`, branché dans `lvlChoisir`. Carrière : `CARRIERE`, fabriquée par `carNiveau`.
+  `NIV_JADE`/`NIV_CRYPTO`/`NIV_PARIS`, branché dans `lvlChoisir`.
 - Son décor se bâtit depuis `newTrack` ; ses matières se chauffent au menu (`chauffeDivers`, sur le modèle de `cryptoChauffe`,
   `parisChauffe`) ; `dbgProgsListe()` doit montrer 0 programme neuf en course.
 - Ses tirages ont leur propre flux de hasard. Sa musique : `musicLieuVoulu`. Côté Léo : `simulateur/maps.js` et la page maps-ciel.
@@ -456,7 +488,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 7. **Une matière qui naît en course** compile un shader en pleine partie : 0,1-0,3 s figé sur iPhone. La chauffer au menu.
 8. **Libérer la dernière matière d'un programme** : three détruit le shader, il faudra le recompiler. D'où `MAT_SURSIS`,
    `CAR_GARDE`, `ENG_GARDE`.
-9. **`scene.onBeforeRender` est déjà pris** (piste, plots, ville, ciel) : chaîner, jamais réassigner.
+9. **`scene.onBeforeRender` est déjà pris** (piste, ville, ciel) : chaîner, jamais réassigner.
 10. **`body:has(…)` pour le HUD** rendait chaque écriture de style ~80× plus chère : une classe dans `HAS_D`.
 11. **`innerWidth` lu dans la boucle** force une mise en page complète sur mobile : `VP.w`/`VP.h`. Et `textContent=` recrée le nœud
     même à valeur égale : écrire seulement si ça change. Un rectangle ou un style CALCULÉ du HUD lu dans la boucle
@@ -472,7 +504,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 16. **`san()` reconstruit la sauvegarde champ par champ** : un champ neuf de `SAVE.d` (ou de `SAVE.d.ex`) qui n'y est pas ajouté
     disparaît au chargement suivant.
 17. **Les gains d'une chaîne audio continue** s'écrivent par `stt`/`setTargetAtTime` : un `.value=` n'ouvre pas sa porte (`PORTES`).
-18. **`TEST_CAISSES` et `TEST_CARRIERE` sont vrais sur main** : tout est ouvert (pastille TEST). C'est à Sacha de les couper avant
+18. **`TEST_CAISSES` est vrai sur main** : tout est ouvert (pastille TEST). C'est à Sacha de le couper avant
     une sortie — ne pas conclure d'un banc qu'une caisse « se débloque ».
 19. **La recopie après une boucle de rebase arrêtée sur un conflit** a déjà emporté des marqueurs `<<<<<<<` chez Sacha.
 20. **Les jugements de rendu** : la salle blanche grise les noirs (juger au garage du jeu) ; les mini-ailes repliées
@@ -481,6 +513,9 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 21. **Un défaut d'image vu sur iPhone ne se juge qu'au PIXEL** : à l'échelle de l'écran, la trame du flou de vitesse (15/10) était
     invisible ; zoomer ×4 la MÊME image rendue avec et sans (`VARIANTES` du banc). Sur iPhone la 3D est agrandie ×2 (NETTE 1,5 sur ×3).
 
+22. **Un `const` / `let` lu par du code qui tourne AVANT sa ligne est en zone morte** (`ReferenceError`), et un `try/catch` autour de l'appel l'avale :
+    la migration des missions v2 n'a pas tourné du 16 au 18/10 (`M2_COLK`, `M2_RECO` déclarées 1 700 lignes plus bas que le `m2Etat()` du démarrage).
+    Tout ce que le code de démarrage atteint se déclare AVANT lui ; après avoir touché ce bloc, charger le jeu et chercher le `console.warn` du `catch`.
 ---
 
 ## 8. Index du JOURNAL (titres exacts, à chercher avec `grep -n "^## <début du titre>" JOURNAL.md`)
@@ -496,12 +531,13 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 - « LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES » (17/10, Léo)
 - « LES BORDS DE LA MAP — UNE COULEUR PAR MAP, LE SCINTILLEMENT RGB AU BOOST » (18/10, Léo) — `BMAP_PAL`, `bmapPeint`, `bmapBoost`, `BMAP_U`, `dbgBordsMap`
+- « LA DURÉE DES MAPS — UNE MAP SE COMPTE EN SECONDES » (18/10, Léo) — `DUREE`, `longueurCible`, `DUREE_ALLURE`, `?duree=ancien`, `dbgDuree`
 - « LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE » (18/10, Léo) — `PREB`, `pisteRoute`, `prebEchange`, `prebDecorG`, `?prebati=0`, `dbgPrebati`
 - « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LES NUAGES FANTÔMES + LE FOND PEINT DE LA MER DE NUAGES » (18/10, Léo) — `opt.fant`, `nuFantGeo`, `NUFOND_V`/`NU_FOND`, `dbgNuFond`
 - « LE FONDU DES NUAGES — PLUS DE BASCULE ENTRE LA OUATE ET LES CUBES » (18/10, Sacha) — `NUVIT.fondu`, `nuvPoids`, `COTON.LV`, attribut `aR`, `?sans=nuvitfondu`
 - « LES NUAGES FANTÔMES EN TEXTURE — LE MÊME RENDU, 5× MOINS DE MÉMOIRE » (18/10, Léo) — `NUF_TEX`, `nufIdx`, `nuLibre`, `dbgRamNuages`, `?pistegraine=`
-- « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `VITRAIL_V`, `forZigzag`, `MOUSSE_V`, `TORDUS_V`, `PLEUR_V`, `VILLE_GTA_V`
+- « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `PLEUR`, `FOR_ARB_FS` (le slalom `forZigzag` et la mousse ont été retirés le 18/10)
 
 **Débogage, perf, bancs**
 - « LES PIXELS QUI SE RÉPÈTENT — LE FLOU DE VITESSE SANS MOTIF » (15/10) — `FLOU_MIPS`, `flouMips`, `?flou=ancien` (compose avec `FLOU_V2`) ; le BANC WEBKIT
@@ -512,6 +548,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 **Conduite, vol, caméra**
 - « LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL » (17/10) — décollage, pose, réacteur, caméra : ce qui sautait d'une image à l'autre
 - « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps
+- « LE HUD DES FIGURES v5 — LA RARETÉ ÉCRITE, LE COMBO QUI SE LIT, LE BUMP FIGURE DU COMBO » (18/10) — polices par rareté, ligne des noms, `figBumpNote`
 - « LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP » (14/10) · « LE DERNIER TOUR DES COMMANDES AVANT LE VERROU » (09/10)
 - « EN VOL, POUCE EN HAUT = LA CAISSE MONTE » (10/10) · « LA POSE DÉBOGUÉE » (01/10) · « LA PHYSIQUE DU BORD v2 » (01/10)
 - « LE VOL À LA VITESSE D'ÉJECTION » (30/09) · « LA CAMÉRA HÉROS » (30/09) · « LA VITESSE QU'ON SENT » (07/10)
@@ -526,18 +563,20 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 **Niveaux et maps**
 - « LA VILLE TOUJOURS LA NUIT — QUATRE TEINTES, QUATRE TEMPS » (16/10) — plus de ville de jour ; violet/vert/jaune/bleu, le brouillard, le remappage sélectif
 - « LE GLACIER — LA FACE EN LACETS QUI SE SUPERPOSENT » (14/10 soir) — ex-banquise : spirales ovales superposées, raccourcis par le bord aval
-- « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (14/10) — la route qui dévale, la poudreuse qui porte et qui avale, la glisse sur les lacs gelés et les pics, les aurores
+- « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (14/10) — la route qui dévale, la poudreuse qui porte et qui avale, la glisse sur les pics (les lacs gelés ont été retirés le 18/10), les aurores
 - « LE ROYAUME DE FEU — LA MAP DU VOLCAN » (14/10) — le flanc qui descend, les lacs et les coulées de lave, les éruptions, les six temps
 - « LA FORÊT NOIRE — LA MAP DES CONTES » (14/10) — la vallée en slalom qui descend, les géants, le jour fleuri, la nuit hantée, le loup-garou
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
 - « LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD » (18/10) — `MODC_ON`, `?sans=modcartes`, `dbgModCartes`, un paquet par générateur
+- « LES MAPS, 2e TOUR — MOINS DE TOUT DROIT, LE VOLCAN REFAIT EN BALADE QUI MONTE, LA FORÊT ALLÉGÉE » (18/10) — `vlcTrace3`, `vlc3Cone`, `rPlancher`, `VILLE_WM`
+- « LA ROUTE DES NUAGES MOINS TORDUE — LES VRILLES REVIENNENT À L'ENDROIT » (18/10) — `NV_CALME`, `?nuages=tordu`, tenues calmes rappelées vers le ciel
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
 **Lumière**
-- « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`, `?sans=lumieres`
+- « LES LUMIÈRES DE LA CAISSE v2 — PHARES, FEUX, NITRO ET TRAÎNÉES ÉCLAIRENT LA ROUTE » (17/10) — `LUM_GLSL`, `lumTick`/`lumVue`, `FEU_U`, `LUMK`
 
 **Caisses, boutique, habillages**
 - « LES AILES VIVANTES — QUATORZE AILES, CHACUNE SON GESTE » (16/10) — les ailes en X au boost, battements, la soudure qui les figeait
@@ -561,6 +600,8 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 
 **Garage, menus, écrans**
 - « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
+- « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE » (18/10) — pourquoi, mesuré sur des sauvegardes d'avant (banc `cc-banc/m2colk/`), ce que le correctif change (rien de dangereux)
+- « LA REPRISE DE LA MIGRATION DES MISSIONS v2 » (18/10) — le drapeau `vr`, les sauvegardes marquées par la passe avortée rejugées une fois, sans confisquer (banc `m2rep.cjs`)
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)
@@ -579,7 +620,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LES SONS GRAVES ET DISCRETS + LE DOUM DES FIGURES » (15/10 soir) — la pièce « tchic » grave, la gamme dans l'octave, les figures en doum
 - « LA CONSOLE DE SON » (28/09) · « LE SON EN COURSE REMIS D'APLOMB » (12/10) · « LE LOBBY « CHRIS » » (14/10)
 - « LE DÉPART EN MUSIQUE » (04/10) · « PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ » (03/10) · « LA MUSIQUE DE LÉO SUR MAIN » (29/09)
-- « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — en ligne /jouer/bibliotheque.html
+- « LA MUSIQUE DU CIEL ET DU GARAGE » (14/10) · « LA BIBLIOTHÈQUE DES SONS — `bibliotheque.html` » (14/10) — outil LOCAL depuis le 18/10 (plus publiée : `python3 atelier-son/serveur-moteur.py 9141`)
 
 **Archives** : le bas du journal (« ⚠ FUSION SACHA × LÉO + NIVEAUX — 2026-09-24 », « ⚠ FUSION DU 2026-08-30 », puis « Le jeu »,
 « Architecture », « Conventions »…) décrit des lignées anciennes. Une section plus récente l'emporte toujours sur une plus ancienne.

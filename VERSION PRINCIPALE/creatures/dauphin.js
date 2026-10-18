@@ -1,7 +1,9 @@
 /* LE DAUPHIN — sorti d'index.html le 2026-10-15 (Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place
    dans le jeu ») — puis REVENU le jour même, par map (Léo : « les dauphins jouent, viennent dire coucou à la voiture dans l'eau du SOLEIL DE JADE ») :
    le JEU charge ce fichier pour mkDauphin et le banc (index.html : « LES DAUPHINS DE LA MER DE JADE ») ; ⚠ un nom global d'ici ne doit pas exister dans index.html.
-   Le modèle du grand dauphin en VITRAIL (profil, cubes, peau, cœur, nage) et ses chorés ; la boîte à dauphins l'exécute à part (avec ses dolphins, dolTrail, dolSplash). Il a besoin de THREE. */
+   Le modèle du grand dauphin en VITRAIL (profil, cubes, peau, cœur, nage) ; la boîte à dauphins l'exécute à part. Il a besoin de THREE.
+   (2026-10-18) Les CHORÉS du banc (DOL_CHORE, dolChorePose, DOL_CYCLE), la texture des étoiles du sillage (DOL_ETOILE, qui peignait une toile à chaque
+   chargement du jeu) et dolNoirMaj (le jeu a la sienne : jdmNoirMaj) sont RETIRÉS d'ici : la boîte n'a plus que la vue d'un dauphin, et porte elle-même ses étoiles. */
 /* ============================================================================
    CRÉATURES DE FIGURE — UN BANC DE 3 DAUPHINS (LE DAUPHIN) + 1 SERPENT (SNAKE LOOP)
    Procédurales, oniriques. Montées UNE fois, cachées, animées seulement pendant
@@ -48,7 +50,7 @@
      son reflet. Par-dessus : la NACRE (un arc-en-ciel pastel qui glisse avec l'angle de vue), le liseré irisé (rose dessus, cyan
      dessous — la dark triad le passe au rouge sang) et des PAILLETTES qui scintillent (une case de 3 cm sur cinq en porte une ; elles
      s'allument selon le regard et l'horloge de la nage — sous le pixel, elles grossissent et pâlissent au lieu de clignoter).
-   · LES ÉTOILES : le sillage est fait d'étoiles à quatre branches (`DOL_ETOILE`) nées le long du corps.
+   · LES ÉTOILES : le sillage de la boîte est fait d'étoiles à quatre branches nées le long du corps (la toile vit dans boite-dauphins.html).
    PERF : ~4 900 triangles par dauphin (six : ~29 k, le jeu en dessine 250 k), une matière par dauphin, UN programme (`dauphin5`). */
 const DOL_L=3.2; // longueur du corps (rostre → pédoncule) — le nez en +x, la queue en −x (le sillage, la chorégraphie et les photos s'y calent)
 // LE PROFIL du grand dauphin, du bout du rostre (u 0) au pédoncule (u 1) : [u, dessus, dessous, demi-largeur]
@@ -177,25 +179,11 @@ function dolCubes(src,h){
 const DOL_COQUE={on:true,coeur:true};
 const DOL_NU=typeof SANS_DAUPHIN!=='undefined'&&SANS_DAUPHIN; // (2026-10-15, Sacha) dauphin coupé : rien à bâtir (typeof : la boîte à dauphins exécute ce bloc sans l'interrupteur)
 const DOL_GEO=DOL_NU?null:DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX):mkDolphinGeo(),DOL_GEO_L=DOL_NU?null:DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX_L):DOL_GEO,DOL_GEO_S=DOL_NU?null:DOL_VOX>0?mkDolphinGeo():null; // la coque : le dauphin lisse // ~24 800 et ~8 000 triangles
-// LES ÉTOILES du sillage : quatre branches fines + deux petites en biais, cœur doux (texture des particules)
-const DOL_ETOILE=(function(){const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
-  const coeur=c.createRadialGradient(32,32,0,32,32,11);coeur.addColorStop(0,'rgba(255,255,255,1)');coeur.addColorStop(.35,'rgba(255,255,255,.5)');coeur.addColorStop(1,'rgba(255,255,255,0)');
-  c.fillStyle=coeur;c.fillRect(0,0,64,64);
-  for(const [a,l,w] of [[0,31,2.6],[Math.PI/2,31,2.6],[Math.PI/4,15,1.7],[-Math.PI/4,15,1.7]]){
-    c.save();c.translate(32,32);c.rotate(a);const g=c.createLinearGradient(-l,0,l,0);
-    g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,1)');g.addColorStop(1,'rgba(255,255,255,0)');
-    c.fillStyle=g;c.beginPath();c.moveTo(-l,0);c.lineTo(0,-w);c.lineTo(l,0);c.lineTo(0,w);c.closePath();c.fill();c.restore();}
-  return new THREE.CanvasTexture(cv);})();
 // uniforms PARTAGÉS : largeur de la ligne d'écume (m — suit la taille du banc) · force du liseré · ses couleurs (ventre, dos) et celle de l'écume
 const DOL_U={uEcume:{value:.2},uRimK:{value:1.5},uRimA:{value:new THREE.Color(.55,.9,1)},uRimB:{value:new THREE.Color(1,.6,.88)},uEcC:{value:new THREE.Color(.75,.97,1)},
   uLum:{value:new THREE.Vector3(.3,1,.25).normalize()},uScene:{value:.5},
   uCoqA0:{value:.43},uCoqA1:{value:.95},uCoqP:{value:1.4},uCoqG:{value:DOL_VOX*1.3}, // la COQUE : opacité de face · sur la silhouette · courbe · gonflement (m)
-  uEcart:{value:.89},uVague:{value:DOL_VOX*.45},uLueur:{value:1.4},uScan:{value:1},uCoeurIn:{value:DOL_VOX*1.6},uNoir:{value:0}}; // LA STRUCTURE (valeurs = le JUSTE MILIEU réglé par Léo dans la boîte, 10/10 : de face .43, écailles .89, vague .45 cube) : taille des écailles (1 = jointives) · leur vague (m) · la lumière du cœur · l'onde qui parcourt le corps · le cœur rentré sous les écailles (m) /* (2026-10-09, « plus réel ») uLum : SA lumière (direction MONDE : le haut du banc, un peu vers la caméra — posée par updateDolphins) ; uScene : la part des lumières du niveau qu'il garde */ /* la DARK TRIAD les passe au rouge sang, la robe au noir (dolNoirMaj) */
-let dolNoir=false;
-function dolNoirMaj(){const n=triNoir();if(n===dolNoir)return;dolNoir=n; /* (Sacha : « en dark triad […] les dauphins […] doivent être noirs ») uniforms et couleurs seulement : même programme */
-  DOL_U.uNoir.value=n?1:0;DOL_U.uRimA.value.setRGB(n?1:.55,n?.08:.9,n?.14:1);DOL_U.uRimB.value.setRGB(n?.75:1,n?0:.6,n?.08:.88);DOL_U.uEcC.value.setRGB(n?1:.75,n?.22:.97,n?.28:1);
-  for(const d of dolphins){d.material.color.setHex(n?0x0e0d12:0xffffff);if(d.userData.coque)d.userData.coque.material.color.setHex(n?0x0e0d12:0xffffff);}
-  dolTrail.mesh.material.color.setHex(n?0xff1a30:0xffe6fb);dolSplash.mesh.material.color.setHex(n?0xb01424:0xd6faff);}
+  uEcart:{value:.89},uVague:{value:DOL_VOX*.45},uLueur:{value:1.4},uScan:{value:1},uCoeurIn:{value:DOL_VOX*1.6},uNoir:{value:0}}; // LA STRUCTURE (valeurs = le JUSTE MILIEU réglé par Léo dans la boîte, 10/10 : de face .43, écailles .89, vague .45 cube) : taille des écailles (1 = jointives) · leur vague (m) · la lumière du cœur · l'onde qui parcourt le corps · le cœur rentré sous les écailles (m) /* (2026-10-09, « plus réel ») uLum : SA lumière (direction MONDE : le haut du banc, un peu vers la caméra — posée par updateDolphins) ; uScene : la part des lumières du niveau qu'il garde */ /* la DARK TRIAD les passe au rouge sang, la robe au noir (jdmNoirMaj, dans index.html) */
 const DOL_G3=c=>'vec3('+c.r.toFixed(4)+','+c.g.toFixed(4)+','+c.b.toFixed(4)+')',DOL_F=v=>(+v).toFixed(4);
 function dolShader(sh){ // nage + surface d'eau + PEAU peinte + nacre, liseré, paillettes — appelée en méthode : `this` = la matière du dauphin, ses uniforms à lui
   const m=this.userData,C=DOL_C,E=DOL_OEIL,cq=!!m.coque,co=!!m.coeur;for(const k of ['uEcart','uVague','uLueur','uScan','uCoeurIn','uNoir'])sh.uniforms[k]=DOL_U[k];sh.uniforms.uCoqA0=DOL_U.uCoqA0;sh.uniforms.uCoqA1=DOL_U.uCoqA1;sh.uniforms.uCoqP=DOL_U.uCoqP;sh.uniforms.uCoqG=DOL_U.uCoqG;sh.uniforms.uLum=DOL_U.uLum;sh.uniforms.uScene=DOL_U.uScene;sh.uniforms.uDol=m.uDol;sh.uniforms.uSurf=m.uSurf;sh.uniforms.uEcume=DOL_U.uEcume;sh.uniforms.uRimK=DOL_U.uRimK;sh.uniforms.uRimA=DOL_U.uRimA;sh.uniforms.uRimB=DOL_U.uRimB;sh.uniforms.uEcC=DOL_U.uEcC;
@@ -293,38 +281,7 @@ function mkDauphin(){ // UN mesh, SA matière (clone) : le programme est partag�
 /* (2026-10-09, Léo : « moins de dauphins, animations plus jolies ») TROIS au lieu de six, et ils sautent EN FORMATION : même tempo, chacun
    `lag` de cycle derrière le chef (le chef perce, le 2e le suit, le 3e ferme la vague), une plongée de durée fixe entre deux sauts (le
    rythme se tient au lieu de s'émietter), un qui rejoint attend sa place dans la vague. La vrille : une fois sur quatre, jamais deux à la fois. */
-const DOL_CYCLE=1.6; // un cycle de nage : le saut (p 0 → 1,2) + la plongée (0,4)
 const DOL_BANC=[
   {speed:.30,amp:3.6,base:-1.6,z:0,   scale:1.15,p0:0,   lag:0},
   {speed:.30,amp:3.0,base:-1.3,z:-3.2,scale:.88, p0:-.24,lag:.24},
   {speed:.30,amp:3.3,base:-1.5,z:2.4, scale:.95, p0:-.48,lag:.48}];
-/* LES CHORÉS (2026-10-09, Léo : « donne-leur plusieurs chorés possibles ») — le banc en tire UNE à chaque apparition (jamais deux fois de
-   suite la même). ⚠ Puis : « ils ne peuvent pas aller de la droite vers la gauche… celles qui viennent du milieu vont transpercer la route »
-   → les dauphins nagent DE PART ET D'AUTRE de la route et sautent LE LONG d'elle (comme on escorte un bateau) : aucun ne la traverse, aucun
-   ne sort du milieu. Pour le dauphin i : son côté `s` (±1, retourné d'une apparition à l'autre), sa distance au BORD du bitume (x0 → x1, en m
-   × la taille du banc ; il peut s'écarter, jamais revenir sur la route), son saut le long de la route (z0 → z1, en longueurs W, + = devant,
-   − = vers la caméra), sa hauteur (`a`), son retard dans la vague (`lag`, en cycle), ses tours forcés (`v`). Par choré : la chance d'une
-   vrille par saut (`vr`, jamais deux à la fois), `sync` (les vrilles se décident ensemble). */
-const DOL_CHORE=[
-  {n:"L'ESCORTE",d:[{s:1,x:2.5,z0:-1,z1:1,a:1,lag:0},{s:-1,x:2.5,z0:-1.3,z1:.7,a:.9,lag:.24},{s:1,x:7,z0:-1.6,z1:.4,a:.85,lag:.48}],vr:.25},
-  {n:"L'UNISSON",d:[{s:1,x:2.5,z0:-1,z1:1,a:1,lag:0},{s:1,x:6.5,z0:-1.25,z1:.75,a:1,lag:0},{s:1,x:10.5,z0:-1.5,z1:.5,a:1,lag:0}],vr:.3,sync:1},
-  {n:'LE MIROIR',d:[{s:1,x:3,z0:-1,z1:1,a:1,lag:0},{s:-1,x:3,z0:-1,z1:1,a:1,lag:0},{s:1,x:9,z0:-.12,z1:.12,a:1.3,lag:.5,v:2}],vr:0,sync:1},
-  {n:'LE SAUTE-MOUTON',d:[{s:1,x:4,z0:-.5,z1:.5,a:.42,lag:0},{s:1,x:4,z0:-1,z1:1,a:1.25,lag:0},{s:1,x:4,z0:-.5,z1:.5,a:.42,lag:.5}],vr:.2},
-  {n:'LE CROISEMENT',d:[{s:1,x:3,z0:-1,z1:1,a:1,lag:0},{s:-1,x:3,z0:1.2,z1:-.8,a:1,lag:.15},{s:1,x:8,z0:1.4,z1:-.6,a:.9,lag:.4}],vr:.15},
-  {n:"L'ÉVENTAIL",d:[{s:1,x0:1.5,x1:7,z0:-1,z1:.6,a:1,lag:0},{s:-1,x0:1.5,x1:7,z0:-1,z1:.6,a:1,lag:.12},{s:1,x0:5,x1:10,z0:-.6,z1:1,a:.9,lag:.3}],vr:.2},
-  {n:"L'ESCALIER",d:[{s:1,x:3,z0:-1.3,z1:-.45,a:.5,lag:0},{s:1,x:4.5,z0:-.6,z1:.45,a:.85,lag:.2},{s:1,x:6,z0:0,z1:1.4,a:1.35,lag:.4,v:1}],vr:0},
-  {n:'LA FONTAINE',d:[{s:1,x:3,z0:-.06,z1:.06,a:1.15,lag:0,v:1},{s:-1,x:3,z0:.34,z1:.46,a:1.4,lag:.33,v:2},{s:1,x:8,z0:.74,z1:.86,a:1.15,lag:.66,v:1}],vr:0},
-  // (2026-10-09, Léo : « remets au moins deux chorés où ça passe au-dessus de la route, au-dessus de la voiture, comme avant ») — en travers
-  // de l'écran (ax0 → ax1 : en demi-largeurs de l'écran), AU-DESSUS : la tranche des sauts est relevée hors de la route (dolHY), ils ne la touchent jamais
-  {n:'LE PONT',d:[{ax0:-1,ax1:1,z:0,a:1.15,lag:0},{ax0:-1,ax1:1,z0:-.35,z1:-.35,a:1,lag:.22},{ax0:-1,ax1:1,z0:.3,z1:.3,a:.95,lag:.44}],vr:.25},
-  {n:'LES CISEAUX',d:[{ax0:-1,ax1:1,z0:.3,z1:.3,a:1.15,lag:0},{ax0:1,ax1:-1,z0:-.3,z1:-.3,a:1.15,lag:0},{ax0:-1,ax1:1,z:0,a:1.45,lag:.5,v:1}],vr:0}];
-// la POSE du dauphin i de la choré C à la phase p (repère du banc : x en travers, z le long de la route) : position, cap, tangage (le nez
-// suit la trajectoire), l'axe du nez (nx,ny,nz), la portée horizontale du saut (hz : la cambrure) ; R = le demi-bitume + la marge, xr = l'axe
-// de la route (en x du banc). Quand il vient vers la caméra, au sommet il tourne un peu la tête. Partagée par le jeu et la boîte.
-function dolChorePose(C,i,b,p,k,W,dir,o,R,xr,ku,hx){ // ku : l'unité des écarts au bord (par défaut la taille du banc) · hx : la demi-largeur de la traversée (ax0/ax1)
-  const c=C.d[i]||C.d[0],sd=(c.s||1)*dir,xa=c.x0!=null?c.x0:(c.x||3),xb=c.x1!=null?c.x1:(c.x||3),u9=ku||k,H9=hx||W,tr=c.ax0!=null,
-    x0=(xr||0)+(tr?dir*c.ax0*H9:sd*((R||0)+xa*u9)),x1=(xr||0)+(tr?dir*c.ax1*H9:sd*((R||0)+xb*u9)),z0=(c.z0||0)*W,z1=(c.z1||0)*W,amp=b.amp*k*(c.a||1),base=b.base*k,arc=Math.sin(p*Math.PI);
-  o.x=x0+(x1-x0)*p;o.z=z0+(z1-z0)*p;o.y=base+arc*amp;o.arc=arc;o.amp=amp;o.base=base;
-  const vx=x1-x0,vz=z1-z0,vy=Math.cos(p*Math.PI)*amp*Math.PI,hz=Math.max(.05,Math.hypot(vx,vz));o.hz=hz;
-  o.yaw=Math.atan2(-vz,vx);o.pitch=Math.atan2(vy,hz*.8);o.yaw+=.22*Math.max(0,arc)*Math.cos(o.yaw);
-  const cp=Math.cos(o.pitch);o.nx=cp*Math.cos(o.yaw);o.ny=Math.sin(o.pitch);o.nz=-cp*Math.sin(o.yaw);return o;}

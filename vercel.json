@@ -6,8 +6,7 @@
   "git": {
     "deploymentEnabled": {
       "**": false,
-      "main": true,
-      "longueur-maps": true
+      "main": true
     }
   },
   "redirects": [

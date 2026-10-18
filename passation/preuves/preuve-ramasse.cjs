@@ -46,7 +46,7 @@ const SPD=XV.spd;
 
 // ---------- LE PLAFOND DE VITESSE (TRANSCRIT de preuve-balayage.cjs : la traînée équilibre la poussée, puis ×vitMult ≤ 2,6) ----------
 function plafonds(t){
-  const NTR=+/NTR_BOOST_MAX=([0-9.]+)/.exec(t)[1];
+  const NTR=+/function vitMult\(\)\{return Math\.min\(([0-9.]+),/.exec(t)[1]-1; /* (18/10) le plafond ×2,6 : NTR_BOOST_MAX est parti avec NITROOO, vitMult porte le 2,6 */
   const iC=t.indexOf('const CARS=');const mC=/maxKmh:([0-9.]+),accel:([0-9.]+)/.exec(t.slice(iC<0?0:iC));const maxKmh=+mC[1],accel=+mC[2];
   const iE=unique(t,'const ENGINE_TIERS=[');const blocE=t.slice(iE,t.indexOf('\n];',iE));const push=(blocE.match(/push:([0-9.]+)/g)||[]).map(x=>+x.slice(5));
   const P=(tier,th,nit)=>{const p=push[tier],late=1+Math.min(.5,Math.max(0,tier-8)*.035),maxSp=maxKmh/3.6*late*p,acc9=accel*late*(1+(p-1)*.6);

@@ -51,9 +51,9 @@ function semaine(P,opt,rnd){
       const rr=partie(Pn,K,rnd,0),gagne=Math.max(0,rr.money);out.parties++;if(jourOn)out.x2++;
       let v=gagne;if(n===1)v+=PERMIS;
       const val={coins:rr.coins,fruits:rr.fruits,cash:gagne,tricks:0,nitro:0,kmh:rr.kmh};
-      for(let j=0;j<3;j++)if(!okC1[j]&&val[C1[j].k]>=C1[j].v){okC1[j]=1;v+=C1[j].p;}
-      if(okC1.every(x=>x)&&opt.c2){const pr={tricks:opt.c2.tricks,nitro:opt.c2.nitro,kmh:opt.c2.kmh};
-        for(let j=0;j<3;j++)if(!okC2[j]&&rnd()<pr[C2[j].k]){okC2[j]=1;v+=C2[j].p;}}
+      for(let j=0;j<C1.length;j++)if(!okC1[j]&&val[C1[j].k]>=C1[j].v){okC1[j]=1;v+=C1[j].p;}
+      if(C1.length&&okC1.every(x=>x)&&opt.c2){const pr={tricks:opt.c2.tricks,nitro:opt.c2.nitro,kmh:opt.c2.kmh};
+        for(let j=0;j<C2.length;j++)if(!okC2[j]&&rnd()<pr[C2[j].k]){okC2[j]=1;v+=C2[j].p;}}
       if(J&&premiere&&rr.t>=J.tMin){ // la partie COMPTE (assez longue) : le jour est marque, la serie monte, la prime est versee
         serie=sNext;dernier=d;
         const pr=J.prime[Math.min(serie,J.prime.length)-1]||0;v+=pr;out.primes+=pr;}

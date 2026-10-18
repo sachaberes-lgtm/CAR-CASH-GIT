@@ -10,16 +10,14 @@ const SRC=fs.readFileSync(FILE,'utf8');
 // ---------- 1. LES CONSTANTES DU JEU, lues dans le code ----------
 function bloc(deb,fin){const i=SRC.indexOf(deb);if(i<0)throw new Error('introuvable : '+deb);const j=SRC.indexOf(fin,i);if(j<0)throw new Error('fin introuvable : '+fin);return SRC.slice(i,j+fin.length);}
 function ligne(deb){const i=SRC.indexOf(deb);if(i<0)throw new Error('introuvable : '+deb);return SRC.slice(i,SRC.indexOf('\n',i));}
-const GAP_ON=false; // index.html : `const GAP_ON=false` (tremplins coupes) — relu ci-dessous
-if(!/const GAP_ON=false;/.test(SRC))throw new Error('GAP_ON a change : revoir le modele');
-const G=new Function('GAP_ON',
+const G=new Function(
   bloc('const DENOMS=[','];')+'\n'+
   bloc('const ECO3={','\n};')+'\n'+
   bloc('const ENGINE_TIERS=[','\n];')+'\n'+
   bloc('const COSM={','\n};')+'\n'+
-  bloc('const CARNETS=[','\n];')+'\n'+
-  ligne('function ecoRond(')+'\n'+ligne('function ecoCash(')+'\n'+
-  'return {DENOMS,ECO3,ENGINE_TIERS,COSM,CARNETS,ecoRond,ecoCash};')(GAP_ON);
+  (SRC.includes('const CARNETS=[')?bloc('const CARNETS=[','\n];'):'const CARNETS=[];')+'\n'+ // (2026-10-18) les carnets (missions v1) sont retirés du jeu : le modèle ne compte plus leurs primes
+  ligne('function ecoRond(')+'\n'+(SRC.includes('function ecoCash(')?ligne('function ecoCash('):'function ecoCash(v){return v;}')+'\n'+
+  'return {DENOMS,ECO3,ENGINE_TIERS,COSM,CARNETS,ecoRond,ecoCash};')();
 const {DENOMS,ECO3,ENGINE_TIERS,COSM,CARNETS,ecoRond,ecoCash}=G;
 const PERMIS=+/if\(paye\)\{SAVE\.d\.permis=1;SAVE\.d\.bank=Math\.min\(1e30,bank\(\)\+(\d+)\)/.exec(SRC)[1]; // tutoFin : prime du permis (une fois)
 const START_CASH=+/const START_CASH=([\d.]+);/.exec(SRC)[1];
@@ -69,8 +67,8 @@ function partie(P,K,rnd,r){const R=ROUTES[(rnd()*ROUTES.length)|0],dt=.1;let t=0
   return {money,coins,fruits,t,s,tier,kmh:vmax*3.6};}
 
 // ---------- 4. UNE CARRIERE : les parties s'enchainent, la banque monte, on achète quand on peut ----------
-const C1=[0,1,2].map(i=>({k:CARNETS[0].m[i].k,v:CARNETS[0].m[i].k==='cash'?ecoCash(CARNETS[0].m[i].v):CARNETS[0].m[i].v,p:ecoRond(CARNETS[0].m[i].p*ECO3.prime)}));
-const C2=[0,1,2].map(i=>({k:CARNETS[1].m[i].k,v:CARNETS[1].m[i].v,p:ecoRond(CARNETS[1].m[i].p*ECO3.prime)}));
+const C1=!CARNETS[0]?[]:[0,1,2].map(i=>({k:CARNETS[0].m[i].k,v:CARNETS[0].m[i].k==='cash'?ecoCash(CARNETS[0].m[i].v):CARNETS[0].m[i].v,p:ecoRond(CARNETS[0].m[i].p*ECO3.prime)}));
+const C2=!CARNETS[1]?[]:[0,1,2].map(i=>({k:CARNETS[1].m[i].k,v:CARNETS[1].m[i].v,p:ecoRond(CARNETS[1].m[i].p*ECO3.prime)}));
 function carriere(P,opt,rnd){ // opt : {K:relevement (0/1 = ancien), prix:objet vise, c2:probas des defis du carnet 2, lecon:true}
   let bank=0,runs=0,achat=0,okC1=[0,0,0],okC2=[0,0,0],tab=[],boostActif=true;const prixMin=PEINTURE_MIN.p;
   for(let n=1;n<=30;n++){
@@ -82,10 +80,10 @@ function carriere(P,opt,rnd){ // opt : {K:relevement (0/1 = ancien), prix:objet 
     bank+=gagne;runs=n;
     // CARNET 1 : chaque defi se coche DANS une partie (misVal) ; prime versee en banque a l'instant
     const val={coins:r.coins,fruits:r.fruits,cash:gagne,tricks:0,nitro:0,kmh:r.kmh};
-    for(let j=0;j<3;j++)if(!okC1[j]&&val[C1[j].k]>=C1[j].v){okC1[j]=1;bank+=C1[j].p;}
-    if(okC1.every(x=>x)&&opt.c2){ // CARNET 2 (optionnel) : figures, nitro, km/h — probas par partie
+    for(let j=0;j<C1.length;j++)if(!okC1[j]&&val[C1[j].k]>=C1[j].v){okC1[j]=1;bank+=C1[j].p;}
+    if(C1.length&&okC1.every(x=>x)&&opt.c2){ // CARNET 2 (optionnel) : figures, nitro, km/h — probas par partie
       const pr={tricks:opt.c2.tricks,nitro:opt.c2.nitro,kmh:opt.c2.kmh};
-      for(let j=0;j<3;j++)if(!okC2[j]&&rnd()<pr[C2[j].k]){okC2[j]=1;bank+=C2[j].p;}}
+      for(let j=0;j<C2.length;j++)if(!okC2[j]&&rnd()<pr[C2[j].k]){okC2[j]=1;bank+=C2[j].p;}}
     tab.push(Math.round(bank));
     if(!achat&&bank>=opt.prix)achat=n;
     if(achat&&tab.length>=Math.max(achat,6))break;}
