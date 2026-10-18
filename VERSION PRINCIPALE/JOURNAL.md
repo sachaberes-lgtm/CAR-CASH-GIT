@@ -399,6 +399,58 @@
   pas « THE BEETLE », la marque) · LE COMBI en lecture **A** (la livrée de Fillmore seule, sans `yeux:1`) · la MX-5 NA s'appelle **LA CERISE**
   (EN « THE CHERRY ») et ses phares se lèvent **à la nitro** (`MX5PH.mode='nitro'` ; le clin d'œil à l'arrivée au garage reste).
 
+## LE ROUGE-GORGE — LA RELIANT ROBIN Mk1, TROIS ROUES, LA ROUE AVANT AU MILIEU (2026-10-18, discussion RONDES — la trois-roues anglaise des années 70, fibre de verre ; index 84, RARE)
+- **Pas de plan vectoriel libre** (dimensions.com n'a pas la Robin, getoutlines sur devis) : le plan raster de the-blueprints.com (côté +
+  dessus, étalonné sur l'EMPATTEMENT de 2,159 m — 170 px/m), relu en mètres du jeu, + les cotes officielles de la Mk1 (3,33 × 1,42 × 1,37 m)
+  et les photos de Mk1 de Wikimedia Commons pour le nez, la poupe et le hayon. ⚠ Le plan est celui d'une Robin PLUS TARDIVE (pare-chocs
+  enveloppants, 3,41 m) : la poupe a été ramenée à la Mk1 (8 cm plus courte, lunette-hayon plus couchée) — 3,37 m de caisse, 3,44 hors-tout.
+- **Le gabarit** `SHAPES.robin` : une coque en loft sur les courbes du plan (profil, largeur, ceinture, bord du pavillon, bord du hayon).
+  La roue AVANT seule au milieu = le système du SQUALE (`w1F:1`, `roueDeco` qui saute la roue avant gauche) dans un TUNNEL au fond de la
+  caisse ; les roues arrière dans des passages découpés dans les flancs. ⚠ Nez et poupe sont PLATS : un bouchon de loft rogné au profil se
+  chevauchait (la calandre ne se voyait qu'en un fil) → on les referme en BANDES (la largeur `xM` tombe à 4 cm sur les 5 derniers mm).
+  ⚠ Le montant du hayon garde la pente des vitres (`xr = xbt − 0,21·(yr − ybt)` vers la poupe) : rapproché de l'axe, il se couchait en
+  corniche tordue qui accrochait la lumière en éclats.
+- **Découpé** (`bulleOutils.decoupe`) : vitres et joints caoutchouc noirs (gonflés de 1,8 cm), pare-brise vu de dessus, grande lunette-hayon
+  vue de dos, joints de portes / capot / hayon ; la calandre noire à trois lames chromées, les clignotants ambre sous les phares, les feux
+  rectangulaires rouge + ambre. **En relief** : phares ronds cerclés de chrome posés SUR la tôle, pare-chocs à lame chromée fine (la Mk1 ;
+  `zBout` : la tranche du bout trouvée par dichotomie — le balayage pas à pas coûtait 30 ms), petits rétros noirs, poignées, essuie-glaces,
+  jantes tôle 10 pouces argent à enjoliveur. `ECH_POTS.robin` : une sortie à droite sous la lame. Traduction : son bloc `I18N`.
+- **Mesuré** : ~12 800 facettes ; construite en 6-11 ms, 27 ms la toute première fois (LA PERLE : 59) — pas de préchauffe ; 0 programme
+  compilé en course (couché, debout ; un +2 vu une fois en debout = la carte tirée au hasard, 213 → 213 aux deux passages suivants) ; mêmes
+  30 avertissements que le main ; garage, inventaire OK.
+- Planche : `photos-gameplay/robin-vraie-et-nous.png`. Noms : LE ROUGE-GORGE (posé : « robin » en anglais) · LE TABOURET · LE TRICYCLE.
+
+## LA DOLCE VITA — LA 500 « 1957 » SUR LE PLAN COTÉ (2026-10-18, discussion RONDES — la photo de Léo : la 500 de 2007 en finition « 1957 Edition »)
+- **Le plan** : dimensions.com « Fiat 500 » (2015, même caisse que 2007 ; 154,67 unités/m, étalon = l'empattement de 2,30 m). Photos de
+  référence : Wikimedia Commons (« Fiat 500 "1957" Edition », « Vintage '57 », « Azzurro Cuor Leggero »). Index 80, COMMUNE, `SHAPES.cinq`.
+- **Le gabarit** : UNE coque (la 500 est un œuf) en loft sur les courbes du plan — profil, plus grande largeur, PLI D'ÉPAULE (du feu au phare),
+  ceinture, bord du pavillon, coquille du capot. ⚠ Le nez et la poupe : au-delà de AV / en deçà de AP, la dernière section complète est
+  RÉDUITE en largeur et ROGNÉE au profil (la méthode de LA PERLE) — rétrécies point par point, les tranches finissaient en pointe et le
+  bouclier se pinçait en losange. ⚠ Le bord avant de la coquille du capot est un JOINT découpé au plan, pas une arête de la tôle : le faire
+  rentrer vers l'axe en 7 cm froissait tout le nez.
+- **Découpé au plan** (`bulleOutils.decoupe`) : vitres et cadres noirs, montant central noir, custode, pare-brise, lunette, baguettes chromées
+  (porte, bouclier arrière, poignée du hayon), moustache et « sourire », bouche noire, clignotants, feux arrière (l'îlot couleur caisse au
+  milieu), joints (coquille, portes, hayon) et le TOIT BLANC (clé `R`, hors peinture de la boutique : au-dessus du bord du pavillon — un point
+  de chaque section, la limite tombe sur une arête, sans dents ; derrière, bornée au trait du becquet vu de dessus).
+- **En relief** : phares ronds et antibrouillards cerclés de chrome, posés SUR la tôle (`zAvant` : la tranche la plus en avant dont la section
+  contient le point) et tournés comme sur le plan (vus de dessus, en biais à ~40°) ; rétros à coque blanche ; poignées ; antenne ; jantes rétro
+  couleur caisse à large cercle crème + moyeu chromé (sans logo). `ECH_POTS.cinq` : une sortie à gauche. Traduction : son bloc `I18N`.
+- **Couleur** : le bleu très pâle de la photo (0xaac4e2) se confondait avec le toit blanc dans la lumière du jeu → 0x8eb2df (un cran plus
+  bleu) ; la planche montre les deux (A / B), à trancher par Léo.
+- **Mesuré** : ~21 000 facettes, construite en 20-30 ms ; 0 programme compilé en course (couché, debout, plein — un +2 vu une fois en plein
+  écran venait de la carte tirée au hasard : 4 passages LA HONTE / 500 à 213 → 213) ; mêmes 30 avertissements que le main ; garage, inventaire OK.
+- Planche : `photos-gameplay/cinq-vraie-et-nous.png`. Noms : LA DOLCE VITA (posé) · LA BONBONNIÈRE · LE SORBET.
+- **Les quatre retouches de Léo** (même jour, sur la planche) : (1) LE CAPOT — « les traits noirs se mélangent » : le bord de la coquille
+  était tracé deux fois (vue de dessus ET vue de face) et les deux traits ne tombaient pas au même endroit sur le nez. Le plan (trait 160)
+  et la photo de 3/4 avant le disent : le bord DESCEND du pied du montant de pare-brise, rejoint le PLI D'ÉPAULE et le suit jusque sous le
+  phare → UN trait par côté, découpé en vue de côté ; devant, un seul trait entre les phares (face, y 0,745) ; le V en vue de dessus devant
+  le pare-brise est remplacé par la grille d'auvent noire + deux essuie-glaces (la photo). ⚠ Un trait qui fait le tour d'un coin se découpe
+  dans UNE vue par tronçon, jamais deux vues sur le même tronçon. (2) LE RÉTRO était déjà à la place du plan (z 0,41-0,55) : c'est sa forme
+  qui trompait (un œuf sur la vitre, le bras caché dedans) → coque « en savon » (sphère poussée en carré aux coins ronds), glace vers
+  l'arrière, PIED noir qui sort de la porte sous la ceinture (trait 173), barre noire du déflecteur devant (trait 174). (3) LA JANTE
+  « 1957 » : le cercle crème au BORD de la jante, bombé, une gorge, le disque couleur caisse, l'embase à quatre crans, le moyeu bombé.
+  (4) DEVANT : les deux moustaches reliées par une seule barre chromée, plus de logo. Planche : `photos-gameplay/cinq-retouches-avant-apres.png`.
+
 ## LA BULLE REFAITE SUR LE PLAN COTÉ DE LA COCCINELLE 1962 (2026-10-18, discussion RONDES — Léo : « à refaire, avec le même soin que LA PERLE ; s'inspirer de la photo de cette annonce (combikombi, VW Beetle 1962) ; bleu ciel »)
 - **Le plan** : dimensions.com « Volkswagen Beetle Type 1 » (SVG 4 vues, 213,6 unités/m, étalon = l'empattement de 2,40 m), relevé en mètres
   (repère du jeu, z = 0 au milieu de la longueur). Bancs et relevés : `~/Downloads/CAR-bancs/nouvelles-voitures/rondes/` (releve.py, trace.py,
