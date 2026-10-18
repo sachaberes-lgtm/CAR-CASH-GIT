@@ -15,7 +15,8 @@
      · Tout le reste : NIVEAUX, LOBBY, ANCIENS, PETITS SONS — les catalogues de boucles.html (*-donnees.js), en boucle.
      · MODIFIER : renommer, retirer (et remettre) un son — musique-moteur.json via atelier-son/serveur-moteur.py, sinon ce navigateur.
      Servie par : python3 atelier-son/serveur-moteur.py 9141 (depuis VERSION PRINCIPALE) → http://127.0.0.1:9141/bibliotheque.html
-     · EN LIGNE (2026-10-14, sur le main : car-cash-git.vercel.app/jouer/bibliotheque.html) : pas de serveur Python. La page le sait par
+     · PLUS PUBLIÉE (2026-10-18, Sacha : outil LOCAL, retirée de la copie en ligne par vercel-build.sh ; elle fut en ligne à /jouer/bibliotheque.html
+       du 14 au 18/10) : sans serveur Python (un simple http.server). La page le sait par
        l'en-tête X-Serveur-Moteur (posé par serveur-moteur.py sur chaque réponse) : sans lui, elle n'envoie RIEN (ni noms, ni goûts, ni
        inspirations), musique-moteur.json est l'instantané des choix de Léo, et les 👍 / noms / suppressions d'un visiteur restent dans
        SON navigateur. Les INSPIRATIONS (morceaux d'artistes réels) et OG GINOBILI ne sont pas sur le main : le main est public. -->
@@ -208,9 +209,6 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
   <section id="secBleu"><h2>Pouce bleu <span id="nBleu"></span></h2>
     <p class="aide">Tes morceaux préférés de la bibliothèque (glisse un son sur l'onglet pour l'y ranger), puis les musiques du générateur que tu as aimées (👍), chacune rejouée par la version qui l'a faite — leur moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier). Le crayon ✎ ajoute une note sur n'importe quel son.</p>
     <div class="liste" id="gBleu"></div></section>
-  <section id="secNeuf"><h2>Nouveaux <span id="nNeuf"></span></h2>
-    <p class="aide">ZEPPELIN D’OR et ses deux suites (II : avec deux instruments new wave · III : l’orchestre d’époque seul), qui suivent le moteur en 30 paliers. Le moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier).</p>
-    <div class="liste" id="gNeuf"></div></section>
   <section id="secIns"><h2>Inspirations <span id="nIns"></span></h2>
     <p class="aide">Les sons qui te donnent une idée pour le générateur. Dépose-les ici et écris ce qui te plaît dedans : je m'en sers pour le faire évoluer.</p>
     <label class="depot" id="depot">Glisse un son ici, ou <u>choisis un fichier</u> (mp3, m4a, wav…)<input type="file" id="depF" accept="audio/*,video/*" multiple hidden></label>
@@ -235,7 +233,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
 <div id="annule"><span id="annT"></span><button id="annB">Annuler</button></div>
 
 <script src="musique-paliers.js?v=14"></script>
-<script src="assets/audio/musique-bus.js?v=3"></script><!-- (15/10) LE BUS DE LA MUSIQUE : basses régulées + nitro, le MÊME réglage que le jeu -->
+<script src="assets/audio/musique-bus.js?v=4"></script><!-- (15/10) LE BUS DE LA MUSIQUE : basses régulées + nitro, le MÊME réglage que le jeu -->
 <script src="assets/audio/music/paliers/rendus/index.js?v=1"></script>
 <script src="assets/audio/music/boucles/boucles-donnees.js"></script>
 <script src="assets/audio/music/boucles/couches-jeu.js"></script>
@@ -243,12 +241,10 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
 <script src="assets/audio/music/boucles/vapeurs-donnees.js?v=8"></script>
 <script src="assets/audio/music/depart/depart-donnees.js?v=1"></script>
 <script src="assets/audio/music/boucles/lobby5-donnees.js?v=4"></script>
-<script src="assets/audio/music/ciel/ciel-donnees.js?v=3"></script>
 <script src="assets/audio/music/boucles/inspi-donnees.js?v=1"></script>
-<script src="assets/audio/music/lobby-chris/chris-donnees.js?v=5"></script>
+<script src="assets/audio/music/lobby/chris-donnees.js?v=6"></script>
 <script src="assets/audio/music/lobby/menu-donnees.js?v=1"></script>
 <script src="assets/audio/music/petites-musiques/petites-donnees.js?v=2"></script>
-<script src="assets/audio/music/ville/ville-donnees.js?v=4"></script>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -271,9 +267,9 @@ const fmtDur = d => d ? (d >= 60 ? Math.floor(d / 60) + ' min ' + String(Math.ro
 
 // ================================================================ LE CATALOGUE : toute la bibliothèque, chaque son une seule fois
 const CAT = [], VU = new Set();
-/* (2026-10-15) RETIRÉS DU MAIN : Sacha a supprimé du jeu les fichiers « jamais joués » (commit 990b4ce5) — ces six-là n'existent plus en
+/* (2026-10-15) RETIRÉS DU MAIN : Sacha a supprimé du jeu les fichiers « jamais joués » (commit 990b4ce5) — ces six-là n'existaient plus en
    ligne ; la bibliothèque ne les montre plus (une ligne qui ne joue pas). Ils restent dans l'historique git et sur la branche musique-2026-10. */
-const RETIRES_DU_MAIN = new Set(['a-nocturnal', 'ville-n6', 'ville-n7', 'ville-n8', 'ville-n9', 'ville-n10']);
+const RETIRES_DU_MAIN = new Set(['a-nocturnal']);   // (18/10 : le catalogue VILLE_N, d'où venaient ville-n6…n10, est parti)
 const ajoute = s => { if (RETIRES_DU_MAIN.has(s.id)) return; const k = s.cle1 || sansV(s.f) || s.id; if (VU.has(k) || VU.has(s.id)) return; VU.add(k); VU.add(s.id); CAT.push(s); };
 // — SUIVENT LE MOTEUR —
 // LE SYSTÈME GÉNÉRATIF À 30 PALIERS (13/10) : en tête — un instrument, un effet ou une matière de plus à chaque moteur
@@ -286,18 +282,15 @@ Object.values(window.PALIERS_RENDUS || {}).sort((x, y) => String(y.fige || '').l
 ajoute({ id: 'dir-french-touch', sec: 'moteur', type: 'html', titre: 'MOTEUR FRENCH TOUCH', style: 'Ton moteur en direct · Daft Punk, funk, SF (map Ville du simulateur)', nb: 0,
   f: 'assets/audio/music/direct/french-touch.html' });
 // (2026-10-15, Léo, dans sa note sur AURA : « incroyable, juste transformer en 30 paliers comme les autres ») — le même AURA, en direct, en 30 moteurs
-ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIERS', style: 'le même AURA, en 30 moteurs comme les musiques du générateur : chaque moteur ajoute un élément ou pousse un cran (l’AURA en 8 paliers reste à côté)', nb: 0,
+ajoute({ id: 'pal-aura-30', sec: 'bleu', type: 'html', titre: 'AURA · 30 PALIERS', style: 'le même AURA, en 30 moteurs comme les musiques du générateur : chaque moteur ajoute un élément ou pousse un cran', nb: 0,
   f: 'assets/audio/music/direct/aura-30.html' });
-// (2026-10-15, pôle SON › trois nouveaux sons ; Léo : « rajoute-moi trois nouveaux sons qui ont tout autant la qualité de tous les sons que j'ai
-// déjà likés dans les pouces bleus, mais juste une autre idée originale » → « les trois, vas-y ») : trois morceaux ÉCRITS, rejoués par
-// assets/audio/music/direct/musique-trente-trio.js (le générateur v6-0 figé + leurs instruments, `O.style`) ; le moteur à la main, comme Pouce bleu
-// (2026-10-15, Léo : « garde juste Zeppelin d'Or, j'aime beaucoup… laisse Zeppelin d'Or et fais aussi un troisième » — CARNAVAL D'OR et LE CASSE
-// retirés de la page, leur code reste dans musique-trente-trio.js) : le premier tel quel, II (new wave) et III (old school), même numéro, même mélodie
-[['zeppelin', 1999, 'ZEPPELIN D’OR', 'électro swing · clarinette, trompette bouchée, contrebasse qui marche, piano en pompe, la house dessous · le gramophone qui s’ouvre, le champagne · la mineur, 122 → 127 BPM'],
- ['zeppelin2', 1999, 'ZEPPELIN D’OR II', 'la même structure ; au 10e la machine de 1983 prend la main : tout devient droit, la batterie se syncope, la basse new wave martèle en croches, le piano plaque en 3-3-2 · l’arpège analogique (14e), la contrebasse qui répond (17e) · le tempo et la tonalité ne montent pas · la mineur, 122 BPM'],
- ['zeppelin3', 1999, 'ZEPPELIN D’OR III', 'la même structure, rien que l’orchestre d’époque : dès le 10e, la contrebasse marche puis passe en croches, le piano en stride puis en pompe de croches, les cuivres en rafales — le tempo et la tonalité ne montent plus · la mineur, 122 BPM']]
-  .forEach(([st, n, titre, style]) => ajoute({ id: 'neuf-' + st, sec: 'neuf', type: 'genv', titre, style, n, W: { clarte: .85 }, v: 'trio', da: 'trio', o9: { style: st } }));
-ajoute({ id: 'dir-glisse-v2', sec: 'moteur', type: 'js', titre: 'GLISSE v2', style: 'Module en direct · Pics de jade', nb: 5, f: 'assets/audio/music/direct/musique-glisse-v2.js' });
+// (2026-10-16, pôle SON ; Léo : « réécris complètement RUBIS DE NÉON, juste le nom garde-le » · « oublie le générateur, juste le système de
+// musique évolutive jusqu'à 30 ») — écrit à la main au format des morceaux à paliers (comme AURA), rangé d'office dans Pouce bleu
+ajoute({ id: 'pal-rubis-neon', sec: 'bleu', type: 'html', titre: 'RUBIS DE NÉON', style: 'réécrit à la main, sans le générateur : house de nuit rêveuse en fa mineur, SANS BASSE — piano feutré, nappe de verre fumé, chœur, cordes en tenue, harmonie qui évolue, 30 moteurs', nb: 0,
+  f: 'assets/audio/music/direct/rubis-de-neon.html' });
+// (2026-10-16, pôle SON ; Léo : « refonte complète de ASPHALTE D'ÉMERAUDE ») — réécrit à la main, comme RUBIS DE NÉON
+ajoute({ id: 'pal-asphalte', sec: 'bleu', type: 'html', titre: 'ASPHALTE D’ÉMERAUDE', style: 'réécrit à la main, sans le générateur : techno mélodique de nuit en mi mineur — la basse qui roule, la séquence d’émeraude qui s’ouvre, 30 moteurs', nb: 0,
+  f: 'assets/audio/music/direct/asphalte-emeraude.html' });
 ajoute({ id: 'dir-glisse', sec: 'moteur', type: 'js', titre: 'GLISSE', style: 'Module en direct (1re version)', nb: 5, f: 'assets/audio/music/direct/musique-glisse.js' });
 (window.BOUCLES || []).filter(b => b.sequence).forEach(b => ajoute({ id: 'seq-' + b.id, sec: 'moteur', type: 'phrases', titre: b.titre,
   style: 'Phrases qui changent avec la vitesse (ancien système du jeu)', bpm: b.bpm, nb: b.sequence.sections.length, seq: b.sequence, dur: b.dur, f: b.sequence.f }));
@@ -310,11 +303,9 @@ Object.entries(window.COUCHES_JEU || {}).filter(([k, c]) => !c.sequence && c.cou
 });
 // — LES BOUCLES (les catalogues de boucles.html) —
 const G9 = { lobby: 'LOBBY · 8 SECONDES', niv: 'NIVEAUX · 8 SECONDES', longues: 'LONGUES · 16 MESURES' };
-(window.CIEL || []).forEach(p => ajoute({ id: p.id, sec: 'niv', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
-(window.VILLE_N || []).forEach(p => ajoute({ id: p.id, sec: 'niv', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
 (window.VAPEURS || []).filter(p => p.onglet === 'niv').forEach(p => ajoute({ id: p.id, sec: 'niv', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
 (window.BOUCLES || []).filter(b => b.f && !b.sequence && b.groupe === G9.niv).forEach(b => ajoute({ id: b.id, sec: 'niv', type: 'boucle', titre: b.titre, style: (b.pour || '').split('·').pop().trim(), bpm: b.bpm, cle: b.cle, dur: b.dur, f: b.f }));
-// LE LOBBY « CHRIS » (14/10) : cinq versions dans l'esprit de Chris (C418), longues — leur section À PART (« fais ça séparément »)
+// LE LOBBY « CHRIS » (14/10) : des versions dans l'esprit de Chris (C418), longues — leur section À PART (« fais ça séparément ») ; depuis le 18/10 il ne reste que PREMIER MATIN (la leçon de l'auto-école)
 (window.CHRIS || []).forEach(p => ajoute({ id: p.id, sec: 'chris', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
 // LE CIEL ET LE GARAGE (14/10, Léo : « une musique légère pour le ciel et le garage, dans l'esprit des Lobby Chris, calme ») — ce que le jeu joue au menu
 (window.MENU_MUS || []).forEach(p => ajoute({ id: p.id, sec: 'menu', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
@@ -326,13 +317,7 @@ const G9 = { lobby: 'LOBBY · 8 SECONDES', niv: 'NIVEAUX · 8 SECONDES', longues
 (window.BOUCLES || []).filter(b => b.f && !b.sequence && b.groupe === G9.lobby).forEach(b => ajoute({ id: b.id, sec: 'lobby', type: 'boucle', titre: b.titre, style: (b.pour || '').split('·').pop().trim(), bpm: b.bpm, cle: b.cle, dur: b.dur, f: b.f }));
 const M9 = 'assets/audio/music/', B9 = M9 + 'boucles/', C9 = M9 + 'compo/';
 [['a-nocturnal', 'NOCTURNAL GROOVE', 'Ancien lobby · jeu de Sacha (jusqu’au 02/10)', M9 + 'nocturnal-groove.mp3', 'sol# mineur'],
- ['a-swag', 'SWAG CASH CAR', 'Ancien lobby · ta version du 27/09', M9 + 'swag-cash-car-2.m4a', 'do mineur'],
- ['a-glassy', 'GLASSY PLUCKS', 'Lobby de la branche musique · ton Suno', M9 + 'glassy-plucks-boucle.m4a', 'do# dorien', 150.3, 70.24333],
- ['a-noite', 'NOITE DE VELOCIDADE', 'Musique des Nuages · jeu de Sacha', M9 + 'noite-de-velocidade.mp3', 'sol# mineur', 132],
- ['a-neon3', 'NEON CASH CAR v3', 'Ancienne musique du niveau 1', M9 + 'lvl1-neon-cash-car-v3.mp3', 'fa mineur'],
  ['a-neon', 'NEON CASH CAR', 'Ancienne musique du niveau 1 (1re version)', M9 + 'lvl1-neon-cash-car.mp3', 'fa mineur'],
- ['a-vitesse', 'CASH CAR VITESSE', 'Ancienne musique du niveau 2', M9 + 'lvl2-cash-car-vitesse.mp3', 'si mineur'],
- ['a-addictive', 'ADDICTIVE LOOP', 'Musique de la Ville · ton morceau', M9 + 'addictive-loop.m4a', 'la mineur', 130],
  ['a-chrome', 'CHROME LEDGER', 'Ancienne musique du niveau 1 (août)', M9 + 'lvl1-chrome-ledger.mp3', ''],
  // (IN DA BACK, BOR, NOTHING LIKE U : morceaux d'artistes réels, gardés sur la branche musique-2026-10, jamais sur le main public ;
  //  leurs traits restent dans TRAITS : les 👍 de Léo continuent d'apprendre au générateur)
@@ -439,7 +424,7 @@ function badge(S) {
   return '<div class="badge"><span class="points">' + '<i></i>'.repeat(S.nb) + '</span>' + S.nb + ' paliers moteur</div>';
 }
 function dessine() {
-  const secs = { inspi: $('gIns'), bleu: $('gBleu'), neuf: $('gNeuf'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), menu: $('gMenu'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
+  const secs = { inspi: $('gIns'), bleu: $('gBleu'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), menu: $('gMenu'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
   catsSections().forEach(c => { secs['cat-' + c.id] = $('gCat-' + c.id); });   // (14/10) les catégories de Léo
   Object.values(secs).forEach(x => { if (!x) return; x.innerHTML = ''; x.classList.toggle('edit', EDIT); });   // (14/10 : « Petites musiques » et « Lobby » retirées)
   for (const S of CAT) {
@@ -471,7 +456,7 @@ function dessine() {
   }
   PREF.cats.forEach(c => { const x = $('nCat-' + c.id); if (x) x.textContent = n['cat-' + c.id] || 0; });
   dessineBleus(); if ($('gIns')) { $('nIns').textContent = n.inspi || ''; $('gIns').hidden = !n.inspi; }   // (en ligne, la section des inspirations n'existe pas)
-  if ($('nNeuf')) $('nNeuf').textContent = n.neuf || 0; $('nMot').textContent = n.moteur || 0; $('nNiv').textContent = n.niv || 0; $('nChr').textContent = n.chris || 0; $('nMenu').textContent = n.menu || 0; if ($('nPm')) $('nPm').textContent = n.pm || 0; if ($('nLob')) $('nLob').textContent = n.lobby || 0; $('nAnc').textContent = n.anciens || 0; $('nPet').textContent = n.petits || 0;
+  $('nMot').textContent = n.moteur || 0; $('nNiv').textContent = n.niv || 0; $('nChr').textContent = n.chris || 0; $('nMenu').textContent = n.menu || 0; if ($('nPm')) $('nPm').textContent = n.pm || 0; if ($('nLob')) $('nLob').textContent = n.lobby || 0; $('nAnc').textContent = n.anciens || 0; $('nPet').textContent = n.petits || 0;
   $('compte').textContent = CAT.filter(S => !retire(S) && S.sec !== 'inspi').length + ' sons · tout est déjà prêt, rien ne se calcule' + (SERVEUR ? '' : ' · en ligne : tes 👍 et tes changements restent sur cet appareil (« Copier mes choix » pour me les envoyer)'); copieMaj();
   const r = CAT.filter(retire), c = $('corb');
   c.innerHTML = '' && r.length ? '<a id="corbA">Sons supprimés (' + r.length + ') — les remettre</a><div class="l">' + r.map(S => '<div><span></span><button data-id="' + S.id + '">Remettre</button></div>').join('') + '</div>' : '';
@@ -488,9 +473,9 @@ $('filtre').onclick = () => { FILTRE = !FILTRE; dessine(); };
 // titre, « Retirer la catégorie » renvoie ses sons chez eux. Le rangement va dans musique-moteur.json (PREF.place : id → catégorie ;
 // PREF.cats : les catégories de Léo). Le son ne change pas de nature : un morceau qui suit le moteur se joue toujours en montant.
 const GL = { S: null, el: null };
-const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gNeuf: 'neuf', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gMenu: 'menu', gAnc: 'anciens', gPet: 'petits' };
+const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gMenu: 'menu', gAnc: 'anciens', gPet: 'petits' };
 // (2026-10-15) les V2 des notes de Léo se rangent d'office à côté de leur original (Léo peut toujours les déplacer)
-const PLACE_DEF = { 'pal-penthouse-v2': 'bleu' };
+const PLACE_DEF = {};   // (18/10 : PENTHOUSE · V2, la seule rangée d'office, est partie)
 function placeDe(S, secs) { const p = (PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]; return p && secs[p] ? p : S.sec; }
 function secCle(sec) { const l = sec && sec.querySelector('.liste,.grille'); if (!l) return null; return sec.dataset.cat ? 'cat-' + sec.dataset.cat : SEC_DE[l.id] || null; }
 function catsSections() {   // une <section> par catégorie de Léo (au bout de la page : la barre d'onglets la voit toute seule)
@@ -536,7 +521,7 @@ function supprime(S) {
 }
 // RETIRER DE POUCE BLEU (15/10, Léo : « permets-moi de supprimer tous les sons des pouces bleus, on en a 36 ») : la corbeille de chaque son de
 // Pouce bleu, un toucher, « Annuler » 6 s. Une musique du générateur (là par son 👍) perd son 👍 ; un morceau que Léo y avait glissé retourne
-// dans sa catégorie ; ce qui n'existe que là (les V2, AURA · 30 PALIERS, PENTHOUSE · V2) s'efface.
+// dans sa catégorie ; ce qui n'existe que là (les V2, AURA · 30 PALIERS) s'efface.
 function retireDeBleu(S) {
   if (J.S === S) stop();
   let defaire;
@@ -644,12 +629,13 @@ const LECTEURS = {
 };
 LECTEURS.unique = LECTEURS.boucle;
 LECTEURS.genv = async S => {   // une musique 👍 du générateur, rejouée par SA version
-  const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: maitre, renouvelle: 0, da: S.da || 'cashcar' });
+  const R0 = S.v2 || S.retouche, dep = R0 && +R0.depart || 0, gc = dep ? ac.createGain() : null, depG = k => Math.pow(10, dep * (1 - Math.min(1, Math.max(0, (k - 1) / 17))) / 20);   // (16/10) le départ compensé (retouches-bleu.js, `depart`)
+  if (gc) { gc.gain.value = depG(1); gc.connect(maitre); }
+  const mod = await import(new URL(fichierVersion(S.v) + frais(), location.href).href), inst = mod.createTrenteMusic({ audioContext: ac, destination: gc || maitre, renouvelle: 0, da: S.da || 'cashcar' });
   const O = {}; if (/^hyb:/.test(String(S.e && S.e.style || ''))) O.style = S.e.style;   // (15/10) la couleur de l'avis : sans elle, une musique v6 en devenait une autre
   const R9 = S.v2 || S.retouche; if (R9) { O.retouche = R9.retouche; O.voix = R9.voix; O.acc = R9.acc; }   // une V2, ou la retouche posée sur la musique elle-même
-  if (S.o9) Object.assign(O, S.o9);   // (trio) Nouveaux : le morceau écrit
   inst.setTier(1, 30); inst.start(S.n, S.W || undefined, O); let cur = 1;
-  return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); } }, arret() { try { inst.stop(); } catch (e) {} }, palier: () => cur - 1,
+  return { regle(p, m) { const k = (m || 0) + 1; if (k !== cur) { cur = k; inst.setTier(k, 30); if (gc) gc.gain.setTargetAtTime(depG(k), ac.currentTime, .3); } }, arret() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, palier: () => cur - 1,
     info: () => inst.nomElement ? '+ ' + inst.nomElement(inst.tier) : '', inst };
 };
 // LES POUCES BLEUS (14/10, Léo : « récupère tous ceux que j'ai bien aimés, mets-les dans une nouvelle catégorie » → « seulement les
@@ -687,6 +673,22 @@ function dessineBleus() {
     if (J.S === S) { el.classList.add('joue'); el.querySelector('.play').innerHTML = STOP; }
     L.appendChild(el); });
   $('nBleu').textContent = L.children.length || 0;
+  nouveauxMarque();
+}
+/* (16/10, Léo : « j'ai enlevé les sons qui n'étaient pas top ; remplace-moi ça par trois sons qui ont le niveau de ceux qui ont été laissés ») LES
+   NOUVEAUX DE CLAUDE : tirés par le générateur avec ses goûts appris, choisis au banc d'écoute du pôle SON (parmi 24) pour avoir le profil des morceaux
+   qu'il a GARDÉS (une vraie montée avec le moteur, une harmonie qui bouge, peu de répétition) — pas celui des trois qu'il a retirés. Ils entrent dans
+   Pouce bleu comme les autres (leur 👍 dans musique-moteur.json) ; la mention « Nouveau » les signale en tête, le temps qu'il les écoute. */
+const NOUVEAUX_BLEU = {   // (16/10, Léo : « surprends-moi : de nouveaux sons, de nouveaux instruments ») — TONNERRE DELUXE gardé ; les deux SONS NEUFS (retouches-bleu.js)
+  'bleu-6104': 'GARDÉ — le seul que tu as gardé des nouveaux (nuit lo-fi en vrais instruments : piano, clarinette, contrebasse)',
+  'pal-asphalte': 'refonte complète, à la main : techno mélodique de nuit — la basse qui roule, la séquence d’émeraude qui s’ouvre moteur après moteur',
+  'pal-rubis-neon': 'réécrit à la main, sans basse : piano feutré, chœur « ou » qui s’ouvre, cordes en tenue, harmonie de nappe à 5 voix — fa mineur, 30 moteurs',
+};
+function nouveauxMarque() {
+  const L = $('gBleu'); if (!L) return; const prem = L.querySelector(':scope>.genv');
+  [...CAT, ...BLEUS.values()].filter(S => S.el && S.el.parentNode === L && NOUVEAUX_BLEU[S.id]).forEach(S => {
+    if (!S.el.querySelector('.pourquoi')) { const q = document.createElement('div'); q.className = 'pourquoi'; q.textContent = 'Nouveau · ' + NOUVEAUX_BLEU[S.id]; S.el.querySelector('.txt').appendChild(q); }
+    S.el.classList.add('nouveau'); if (prem && prem !== S.el) L.insertBefore(S.el, prem); });
 }
 
 // ================================================================ UNE LECTURE À LA FOIS (le jeton : un clic rapide sur un autre son annule celle en cours)
@@ -711,10 +713,10 @@ function stop() { J.jeton++; if (J.L) try { J.L.arret(); } catch (e) {} const S 
 // LE LECTEUR DU BAS : le moteur qui monte, le palier, − / +
 // (14/10, Léo : « en 30 paliers comme les autres ») : un morceau rangé dans POUCE BLEU se pilote comme les musiques du générateur — moteur 1 à
 // 30 À LA MAIN (− / +, flèches). Le son ne change pas : ses vraies étapes (8 figées, réparties sur les 30 moteurs) changent aux mêmes moteurs.
-const aLaMain = S => !!S && (S.sec === 'bleu' || S.sec === 'neuf' || ((PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]) === 'bleu');   // (15/10 : les V2 rangées d'office comptent aussi)
+const aLaMain = S => !!S && (S.sec === 'bleu' || ((PREF.place && PREF.place[S.id]) || PLACE_DEF[S.id]) === 'bleu');   // (15/10 : les V2 rangées d'office comptent aussi)
 function lecteurPose() {
   const S = J.S, on = !!(S && J.L); $('lect').classList.toggle('on', on); if (!on) return;
-  $('lNom').textContent = nomDe(S); const mt = S.sec === 'moteur' || S.sec === 'bleu' || S.sec === 'neuf';   // (Pouce bleu : le moteur à la main)
+  $('lNom').textContent = nomDe(S); const mt = S.sec === 'moteur' || S.sec === 'bleu';   // (Pouce bleu : le moteur à la main)
   $('lPm').hidden = !mt; $('lPts').hidden = !mt || !S.nb; $('lBarre').hidden = !mt;
   $('lPts').innerHTML = mt && S.nb ? J.deb.map((d, i) => '<button data-i="' + i + '" aria-label="Palier ' + (i + 1) + '"></button>').join('') : '';
   lecteurMaj();
@@ -722,7 +724,7 @@ function lecteurPose() {
 function palierDuMoteur() { return J.deb ? palPalierDe(J.deb, J.mot) : 0; }
 function lecteurMaj() {
   const S = J.S; if (!S || !J.L) return;
-  if (S.sec === 'bleu' || S.sec === 'neuf') { $('lMot').textContent = 'Moteur ' + (J.mot + 1) + ' / 30 · à la main : − / + (ou les flèches)' + (J.L.info && J.L.info() ? ' · ' + J.L.info() : ''); $('lBarre').firstChild.style.width = (J.mot / 29 * 100).toFixed(1) + '%'; return; }
+  if (S.sec === 'bleu') { $('lMot').textContent = 'Moteur ' + (J.mot + 1) + ' / 30 · à la main : − / + (ou les flèches)' + (J.L.info && J.L.info() ? ' · ' + J.L.info() : ''); $('lBarre').firstChild.style.width = (J.mot / 29 * 100).toFixed(1) + '%'; return; }
   if (S.sec !== 'moteur') { $('lMot').textContent = meta(S); return; }
   const p = palierDuMoteur(), intro = J.L.enIntro && J.L.enIntro();
   $('lMot').textContent = (intro ? 'Intro · ' : '') + 'Moteur ' + (J.mot + 1) + ' / 30 · ' + MOT[J.mot] + (S.nb ? ' · palier ' + (p + 1) + ' / ' + S.nb : ' · jauge ' + Math.round(J.mot / 29 * 100) + ' %') + (J.L.info && J.L.info() ? ' · ' + J.L.info() : '') + (aLaMain(S) ? ' · à la main : − / +' : '');
@@ -744,7 +746,7 @@ let der = performance.now();
 function tic(force) {
   const now = performance.now(), dt = Math.min(1, (now - der) / 1000); der = now;
   const S = J.S, L = J.L; if (!S || !L) return;
-  if (S.sec === 'moteur' || S.sec === 'bleu' || S.sec === 'neuf') {
+  if (S.sec === 'moteur' || S.sec === 'bleu') {
     if (!force && S.sec === 'moteur' && !aLaMain(S) && !(L.enIntro && L.enIntro())) J.t += dt;   // le moteur attend la fin de l'intro pour monter (Pouce bleu : seulement à la main)
     J.mot = Math.max(0, Math.min(29, Math.floor(J.t / PAS)));
     try { L.regle(palierDuMoteur(), J.mot); } catch (e) {}
@@ -964,6 +966,7 @@ Promise.all([prefLit().then(inspiLit), mesuresLit()]).then(() => import(new URL(
      Bloc à part, posé après le script de la page : il ne touche ni au catalogue ni à dessine(). -->
 <style>
 .ligne.genv.v2{margin-left:18px;border-left:3px solid var(--tx3)}
+.ligne .pourquoi{margin-top:2px;font-size:12px;color:var(--tx3)}.ligne.nouveau .pourquoi{color:var(--bleu);font-weight:600}
 #onglets{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--fond) 88%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--fil)}
 #onglets{margin:18px -16px 0}
 #onglets .in{padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px}
@@ -983,7 +986,7 @@ main.onglets:not(.pouces)>section.vue{margin-top:22px}
 (() => {
   const main = document.querySelector('main.page'); let secs = [...main.querySelectorAll(':scope>section')];
   const slug = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const AIDE = { gChr: 'Les musiques de lobby dans l’esprit de Chris (C418), chacune son monde — et le SIFFLEUR. De 1 à 2 minutes et demie.',
+  const AIDE = { gChr: 'PREMIER MATIN, dans l’esprit de Chris (C418) : la musique de l’auto-école (1 min 48). Les autres lobbys Chris sont partis (18/10).',
     gMenu: 'Ce que le jeu joue au menu : UN morceau du CIEL tiré au lancement, le même au ciel (très discret, derrière le vent) et au garage (un peu plus fort). Les trois du GARAGE (le léger filtre d’atelier compris) ne jouent plus dans le jeu : ils restent ici.' };
   secs.forEach(s => { const h = s.querySelector('h2'); s.dataset.nom = (h && h.firstChild ? h.firstChild.textContent : s.id).trim(); s.dataset.cle = slug(s.dataset.nom);
     const l = s.querySelector('.liste,.grille'); if (l && AIDE[l.id] && !s.querySelector('.aide')) { const p = document.createElement('p'); p.className = 'aide'; p.textContent = AIDE[l.id]; h.after(p); } });

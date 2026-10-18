@@ -47,23 +47,16 @@ fig.salto#1#0	rec	st	0.42 (−0.18)	-30.0	-6.6	4 Ko
 fig.salto#0#12	rec	st	0.39 (−0.21)	-30.0	-6.1	3 Ko	
 fig.salto#1#12	rec	st	0.39 (−0.21)	-30.0	-6.5	4 Ko	
 fig.essoreuse#0#0	rec	st	0.84 (−0.46)	-27.0	-7.7	9 Ko	
-fig.meteore#0#0	rec	st	0.64 (−0.36)	-30.0	-8.7	6 Ko	
-fig.meteore#0#12	rec	st	0.66 (−0.34)	-30.0	-10.8	6 Ko	
 fig.bigair#0#0	rec	st	1.02 (−0.08)	-30.0	-12.8	9 Ko	
 fig.bigair#0#12	rec	st	1.02 (−0.08)	-30.0	-11.5	9 Ko	
 fig.monstre#0#0	rec	st	1.46 (−0.14)	-28.0	-11.1	12 Ko	
 fig.monstre#0#12	rec	st	1.42 (−0.18)	-28.0	-10.9	12 Ko	
-fig.dauphin#0#0	rec	st	0.52 (−0.38)	-30.0	-8.7	7 Ko	
-fig.dauphin#0#12	rec	st	0.48 (−0.42)	-30.0	-8.6	6 Ko	
-fig.dauphinRoyal#0#0	rec	st	1.30	-28.0	-7.7	15 Ko	
 fig.goutte#0#0	rec	mo	0.10 (−0.08)	-42.3	-2.1	1 Ko	
 fig.goutte#0#12	rec	mo	0.10 (−0.08)	-42.1	-2.2	2 Ko	
 dauphin.banc#0#0	amb	st	1.13 (−0.07)	-36.0	-9.1	13 Ko	
-singe.troupe#0#0	amb	st	0.94 (−0.11)	-36.0	-11.4	15 Ko	
 fig.bump#0#0	rec	mo	0.41 (−0.29)	-30.0	-4.3	3 Ko	
 fig.bump#0#12	rec	mo	0.44 (−0.26)	-30.0	-4.1	3 Ko	
 air.regain#0#0	rec	mo	0.27 (−0.13)	-35.0	-4.2	3 Ko	
-fig.snake#0#0	rec	st	1.29 (−0.11)	-27.0	-13.4	14 Ko	
 fig.palier#0#0	rec	st	0.56 (−0.34)	-29.0	-8.3	7 Ko	
 fig.palier#0#12	rec	st	0.55 (−0.35)	-29.0	-4.8	7 Ko	
 fig.jackpot#0#0	rec	st	2.00 (−0.20)	-24.0	-8.7	24 Ko	
@@ -78,8 +71,6 @@ cratere#0#0	fx	st	1.92 (−0.28)	-21.0	-11.5	17 Ko
 verdict.1#0#0	rec	st	1.40	-28.0	-14.5	10 Ko	
 verdict.2#0#0	rec	st	1.44 (−0.36)	-26.0	-13.3	19 Ko	
 verdict.3#0#0	rec	st	1.79 (−0.61)	-24.0	-10.7	28 Ko	
-verdict.meteor#0#0	rec	st	1.49 (−0.31)	-25.0	-13.0	14 Ko	
-verdict.mega#0#0	rec	st	2.64 (−0.36)	-22.0	-12.1	32 Ko	
 argent.gros#0#0	rec	mo	1.49 (−0.31)	-29.0	-11.5	9 Ko	
 argent.gros#1#0	rec	mo	1.80	-29.0	-10.9	15 Ko	
 argent.gros#2#0	rec	mo	1.46 (−0.34)	-29.0	-12.2	14 Ko	
@@ -88,7 +79,6 @@ piece.serie#0#0	rec	st	0.70	-33.0	-9.6	7 Ko
 billet.vole#0#0	rec	mo←st	0.10 (−0.02)	-44.0	-2.2	2 Ko	
 pluie.billets#0#0	amb	st	2.62 (−0.18)	-30.0	-9.5	46 Ko	
 report#0#0	rec	mo←st	0.46 (−0.04)	-35.0	-12.8	4 Ko	
-mallette.chaude#0#0	rec	st	1.15 (−0.05)	-32.0	-7.2	13 Ko	
 aura.geste#0#0	rec	mo	0.39 (−0.06)	-33.0	-6.6	3 Ko	
 aura.geste#0#12	rec	mo	0.39 (−0.06)	-33.0	-6.9	3 Ko	
 aura.x5#0#0	rec	st	0.73 (−0.37)	-28.0	-11.2	9 Ko	
@@ -98,7 +88,6 @@ aura.encaisse1#0#0	rec	mo←st	0.71 (−0.19)	-30.0	-10.3	5 Ko
 aura.encaisse2#0#0	rec	st	0.75 (−0.45)	-28.0	-10.7	9 Ko	
 aura.encaisse3#0#0	rec	st	1.18 (−0.42)	-26.0	-9.4	14 Ko	
 aura.record#0#0	rec	st	1.08 (−0.22)	-27.0	-12.6	12 Ko	
-aura.moyenne#0#0	rec	st	0.90	-29.0	-13.0	7 Ko	
 aura.perdue#0#0	rec	mo←st	0.52 (−0.38)	-32.0	-13.2	4 Ko	
 flow.1#0#0	rec	st	1.30 (−0.30)	-30.0	-12.7	11 Ko	
 flow.2#0#0	rec	st	1.26 (−0.34)	-29.0	-13.1	13 Ko	
@@ -127,13 +116,9 @@ pwr.v#0#0	rec	st	0.69 (−0.31)	-28.0	-9.2	9 Ko
 pwr.bientot#0#0	fx	mo←st	0.43 (−0.07)	-34.0	-5.5	4 Ko	
 pwr.fin#0#0	rec	mo←st	0.55 (−0.26)	-30.0	-14.0	4 Ko	
 pad#0#0	fx	st	0.51 (−0.29)	-28.0	-4.2	7 Ko	
-pad.neon#0#0	fx	mo	0.40 (−0.10)	-30.0	-3.1	4 Ko	
-pad.neon#0#12	fx	mo	0.36 (−0.14)	-30.0	-2.3	4 Ko	
 turbo.mini#0#0	fx	mo←st	0.31 (−0.19)	-30.0	-7.9	4 Ko	
 turbo.super#0#0	fx	st	0.52 (−0.28)	-28.0	-11.3	6 Ko	
 turbo.ultra#0#0	fx	st	0.80 (−0.40)	-26.0	-12.2	10 Ko	
-vitesse.pure#0#0	fx	st	0.74 (−0.26)	-29.0	-11.2	9 Ko	
-vitesse.pure#0#12	fx	st	0.74 (−0.26)	-29.0	-11.8	9 Ko	
 virage#0#0	fx	mo←st	0.20 (−0.10)	-39.0	-2.4	3 Ko	
 arret.tic#0#0	fx	mo←st	0.11 (−0.09)	-33.0	-3.7	2 Ko	
 portail#0#0	rec	st	1.84 (−0.36)	-25.0	-10.8	25 Ko	
@@ -143,19 +128,12 @@ nuage.entre#0#0	amb	mo←st	0.51 (−0.09)	-32.0	-6.8	4 Ko
 nuage.sort#0#0	amb	mo←st	0.40 (−0.10)	-38.0	-9.0	4 Ko	
 nuage.defonce#0#0	amb	st	0.65 (−0.25)	-28.0	-4.4	7 Ko	
 chute#0#0	fx	mo←st	1.06 (−0.14)	-29.0	-12.5	8 Ko	
-dosdane#0#0	fx	mo←st	0.32 (−0.13)	-30.0	-7.8	5 Ko	
 flaque.huile#0#0	fx	mo←st	0.56 (−0.24)	-29.0	-7.8	6 Ko	
 flaque.eau#0#0	fx	st	0.49 (−0.31)	-29.0	-7.1	9 Ko	
-plot#0#0	fx	mo←st	0.36 (−0.14)	-30.0	-2.6	4 Ko	
-plot#1#0	fx	mo←st	0.36 (−0.14)	-30.0	-3.3	4 Ko	
-plot#2#0	fx	mo←st	0.36 (−0.14)	-30.0	-2.8	4 Ko	
-porte#0#0	fx	mo←st	0.34 (−0.26)	-28.0	-4.9	4 Ko	
 frole#0#0	rec	mo	0.42 (−0.13)	-32.0	-5.6	3 Ko	
 frole#0#12	rec	mo	0.42 (−0.13)	-32.0	-6.1	3 Ko	
 debris.tole#0#0	fx	mo	0.21 (−0.09)	-40.0	-2.5	3 Ko	
 debris.tole#1#0	fx	mo	0.21 (−0.09)	-40.0	-2.2	3 Ko	
-debris.esquive#0#0	rec	mo	0.40	-33.0	-6.3	3 Ko	
-debris.esquive#0#12	rec	mo	0.40	-33.0	-7.4	3 Ko	
 decollage#0#0	fx	mo←st	0.57 (−0.03)	-33.0	-7.1	6 Ko	
 fruit.peche#0#0	fx	mo	0.22 (−0.28)	-29.0	-3.4	2 Ko	
 fruit.banane#0#0	fx	mo	0.29 (−0.21)	-29.0	-4.9	3 Ko	
@@ -171,25 +149,15 @@ mort.vide#0#0	fx	mo←st	0.85 (−0.05)	-26.0	-16.2	6 Ko
 mort.arret#0#0	fx	mo←st	1.00	-26.0	-6.5	6 Ko	
 mort.air#0#0	fx	mo←st	0.65 (−0.15)	-26.0	-15.5	7 Ko	
 mort.police#0#0	fx	mo←st	0.65 (−0.35)	-26.0	-7.4	5 Ko	
-mort.feu#0#0	fx	st	1.10 (−0.10)	-26.0	-10.7	12 Ko	
-mort.foudre#0#0	fx	mo←st	0.54 (−0.36)	-26.0	-10.9	9 Ko	
 victoire#0#0	rec	st	1.62 (−0.18)	-26.0	-9.1	19 Ko	
 defaite#0#0	rec	st	1.06 (−0.54)	-27.0	-9.9	10 Ko	
-monde.fin#0#0	rec	st	3.37 (−0.43)	-22.0	-8.5	59 Ko	
-rival.devant#0#0	rec	st	0.51 (−0.09)	-33.0	-9.3	6 Ko	
-rival.passe#0#0	rec	st	0.80 (−0.10)	-31.0	-9.5	12 Ko	
 fantome.accroche#0#0	rec	mo←st	0.59 (−0.11)	-30.0	-10.0	6 Ko	
 alerte.dernier#0#0	fx	mo←st	0.16 (−0.04)	-31.0	-10.0	2 Ko	
 rival.boum#0#0	fx	mo←st	0.65 (−0.26)	-30.0	-9.4	4 Ko	
-radar#0#0	fx	mo←st	0.40 (−0.20)	-30.0	-5.5	4 Ko	
 foudre.eclair#0#0	fx	mo←st	0.62 (−0.38)	-24.0	-9.6	6 Ko	
 foudre.eclair#1#0	fx	mo←st	0.61 (−0.39)	-24.0	-9.5	6 Ko	
 tonnerre#0#0	amb	st	2.88 (−0.12)	-26.0	-9.6	14 Ko	
 tonnerre#1#0	amb	st	2.88 (−0.12)	-26.0	-10.6	14 Ko	
-abri#0#0	rec	mo←st	0.60	-33.0	-11.2	6 Ko	
-panne.gresille#0#0	fx	st	0.67 (−0.03)	-34.0	-10.5	8 Ko	
-panne.gresille#1#0	fx	st	0.70	-34.0	-10.2	9 Ko	
-trafic.accroche#0#0	fx	st	0.48 (−0.32)	-27.0	-6.8	5 Ko	
 fourgon.porte#0#0	fx	mo←st	0.66 (−0.04)	-30.0	-7.9	5 Ko	
 orbite.entre#0#0	rec	st	2.40	-25.0	-11.5	27 Ko	
 orbite.sort#0#0	fx	st	2.46 (−0.14)	-26.0	-9.2	24 Ko	
@@ -202,7 +170,6 @@ ui.erreur#0#0	ui	mo	0.26 (−0.04)	-35.0	-9.5	3 Ko
 ui.danger#0#0	ui	mo	0.16 (−0.14)	-33.2	-2.0	2 Ko	
 ui.lettre#0#0	ui	mo	0.06	-46.4	-1.9	1 Ko	
 ui.jauge#0#0	ui	mo←st	1.10 (−0.05)	-40.0	-12.9	14 Ko	
-ui.carnet#0#0	rec	st	3.12 (−0.08)	-24.0	-9.2	46 Ko	
 garage.bascule#0#0	ui	st	0.96 (−0.14)	-35.0	-3.9	11 Ko	
 garage.tole#0#0	ui	mo	0.39 (−0.11)	-35.0	-2.6	3 Ko	
 garage.tole#1#0	ui	mo	0.39 (−0.11)	-35.0	-2.9	3 Ko	
@@ -225,8 +192,6 @@ jeu.palierVitesse#0#0	fx	st	0.81 (−0.29)	-28.0	-9.2	10 Ko
 jeu.palierVitesse#0#12	fx	st	0.81 (−0.29)	-28.0	-8.8	9 Ko	
 jeu.sansFaute#0#0	rec	mo	0.60	-30.0	-9.3	4 Ko	
 jeu.sansFaute#0#12	rec	mo	0.60	-30.0	-10.9	4 Ko	
-jeu.dauphin#0#0	rec	mo	0.56 (−0.14)	-33.0	-5.4	4 Ko	
-jeu.dauphin#0#12	rec	mo	0.49 (−0.21)	-33.0	-4.9	4 Ko	
 impact.immeuble#0#0	fx	st	2.29 (−0.11)	-24.0	-7.4	32 Ko	
 ui.tampon#0#0	ui	mo	0.18 (−0.17)	-31.1	-2.3	2 Ko	
 ui.compteur#0#0	ui	mo←st	0.95 (−0.05)	-39.0	-4.6	20 Ko	
@@ -235,7 +200,6 @@ moteur.cylindre#0#0	rec	mo	0.16 (−0.09)	-38.0	-4.4	2 Ko
 moteur.cylindre#0#12	rec	mo	0.16 (−0.09)	-38.0	-4.6	2 Ko	
 moteur.palier#0#0	rec	st	2.06 (−0.34)	-26.0	-9.7	24 Ko	
 garage.ambiance#0#0	amb	st	6.40	-42.0	-9.5	82 Ko	
-flaque.sec#0#0	fx	mo	0.50	-34.0	-8.8	4 Ko	
 drift.charge#0#0	fx	mo	0.33 (−0.07)	-34.0	-4.2	3 Ko	
 drift.charge#0#12	fx	mo	0.33 (−0.07)	-34.0	-6.6	3 Ko	
 fantome.prise#0#0	rec	mo	0.20	-39.1	-2.4	2 Ko	
@@ -243,8 +207,6 @@ fantome.prise#0#12	rec	mo	0.20	-39.0	-2.5	2 Ko
 fourgon.billets#0#0	fx	mo	0.27 (−0.03)	-41.0	-4.9	3 Ko	
 fourgon.billets#1#0	fx	mo	0.27 (−0.03)	-41.0	-4.4	3 Ko	
 fourgon.billets#2#0	fx	mo	0.27 (−0.03)	-41.0	-6.1	3 Ko	
-portail.ouvre#0#0	rec	st	1.30	-29.0	-13.1	15 Ko	
-foudre.touche#0#0	fx	mo←st	0.49 (−0.31)	-28.0	-7.2	9 Ko	
 frenesie.pose#0#0	fx	mo	0.82 (−0.08)	-33.0	-8.5	5 Ko	
 frenesie.cash#0#0	rec	st	0.30 (−0.05)	-38.0	-7.5	5 Ko	
 frenesie.cash#1#0	rec	st	0.30 (−0.05)	-38.0	-7.5	5 Ko	
@@ -299,10 +261,6 @@ fig.battement#0#12	rec	st	0.17 (−0.23)	-30.0	-2.8	3 Ko
 fig.battement#1#12	rec	st	0.40	-30.0	-9.0	4 Ko	
 fig.explose#0#0	fx	st	0.24 (−0.56)	-26.0	-8.0	4 Ko	
 fig.explose#1#0	fx	st	0.42 (−0.38)	-26.0	-10.7	5 Ko	
-fig.gap#0#0	rec	st	0.91 (−0.69)	-29.0	-9.5	8 Ko	
-fig.gap#1#0	rec	st	1.22 (−0.38)	-29.0	-8.2	17 Ko	
-fig.gap#0#12	rec	st	0.92 (−0.69)	-29.0	-9.4	9 Ko	
-fig.gap#1#12	rec	st	1.22 (−0.38)	-29.0	-6.4	17 Ko	
 pose.nette#0#0	rec	mo	0.28 (−0.17)	-33.0	-2.8	2 Ko	
 fig.monde#0#0	rec	mo←st	0.81 (−0.09)	-29.0	-9.4	5 Ko	
 fig.monde#1#0	rec	st	0.49 (−0.41)	-29.0	-7.9	4 Ko	
@@ -323,3 +281,12 @@ fig.monde#6#12	rec	st	0.44 (−0.46)	-29.0	-7.8	4 Ko
 fig.monde#7#12	rec	st	0.57 (−0.33)	-29.0	-6.9	5 Ko	
 fig.monde#8#12	rec	st	0.57 (−0.33)	-29.0	-8.6	9 Ko	
 fig.slide.paye#0#0	rec	mo	0.50 (−0.20)	-32.0	-4.3	3 Ko	
+ailes.xwing#0#0	fx	mo PCM 24000	0.24 (−0.38)	-31.0	-2.3	13 Ko	
+ailes.xwing#1#0	fx	mo PCM 24000	0.24 (−0.38)	-31.0	-2.0	13 Ko	
+ailes.xwingFerme#0#0	fx	mo PCM 24000	0.28 (−0.22)	-35.0	-3.0	15 Ko	
+ailes.xwingFerme#1#0	fx	mo PCM 24000	0.28 (−0.22)	-35.0	-2.2	15 Ko	
+ailes.dragon#0#0	fx	mo PCM 24000	0.50 (−0.25)	-37.0	-6.3	25 Ko	
+ailes.dragon#1#0	fx	mo PCM 24000	0.51 (−0.24)	-37.0	-3.5	25 Ko	
+ailes.dragon#2#0	fx	mo PCM 24000	0.52 (−0.23)	-37.0	-3.9	26 Ko	
+ailes.pigeon#0#0	fx	mo PCM 24000	0.90 (−0.05)	-33.4	-2.0	44 Ko	
+ailes.pigeon#1#0	fx	mo PCM 24000	0.91 (−0.04)	-34.4	-1.9	44 Ko	

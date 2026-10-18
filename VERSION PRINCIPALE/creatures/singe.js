@@ -1,13 +1,10 @@
 /* LE SINGE — sorti d'index.html le 2026-10-15 (Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place
-   dans le jeu ») : ses volumes, ses poses (pendu par la queue, par les mains, à quatre pattes) et son galop ; il demande vitrail.js. Le JEU ne charge PAS ce fichier ; il vit pour la boîte et pour ce qui reviendra par map (les singes du SOLEIL DE JADE,
-   les dauphins plus tard). Il a besoin de THREE (vendor/three.min.js). */
-/* <<<SINGE>>> LE SINGE PENDU (2026-10-10, Léo choisit « le 2 » : quand on passe SOUS la route, un singe pend à l'envers sous la dalle,
-   accroché par la queue, et te regarde passer — il tend la main quand tu passes tout près). Fait en VITRAIL.
-   Modelé DEBOUT (la tête en haut, le visage vers +z) puis retourné : dans son repère, la queue s'accroche en (0,0,0) sous la dalle, le corps
-   pend vers −y (≈ 2,1 m jusqu'au bout des mains, qui pendent sous la tête). Des volumes simples soudés en douceur (ellipsoïdes, capsules) ;
-   la couleur dit qui est le volume le plus proche (fourrure caramel, visage, ventre, mains et pieds pêche, yeux noirs à reflet, sourire).
-   Trois OS : la TÊTE (elle suit la cible), le BRAS droit et le BRAS gauche (celui du côté de la caisse se tend vers elle). */
-const SG_YA=-.70; // la hauteur (debout) du haut de la crosse de la queue : elle devient le point d'accroche (0,0,0)
+   dans le jeu ») : ses volumes, ses poses du décor (bonjour, mangue, bord) et son galop ; il demande vitrail.js. Le JEU le charge (les singes du SOLEIL DE JADE, `jsgTick`) ainsi que
+   le Worker creatures/atelier.js ; la boîte à singe le lit aussi. Il a besoin de THREE (vendor/three.min.js). */
+/* <<<SINGE>>> LE SINGE (2026-10-10, Léo choisit « le 2 » : d'abord un singe PENDU par la queue sous la route, puis par les mains — ces deux poses sont
+   RETIRÉES le 2026-10-18 ; il reste le modèle debout, ses poses du décor (SG_POSES) et son galop en course). Fait en VITRAIL.
+   Modelé DEBOUT (la tête en haut, le visage vers +z) : des volumes simples soudés en douceur (ellipsoïdes, capsules) ; la couleur dit qui
+   est le volume le plus proche (fourrure caramel, visage, ventre, mains et pieds pêche, yeux noirs à reflet, sourire). */
 const SG_P=[ // [forme, rôle, os, soudure, …] — 'e' ellipsoïde (centre, rayons) · 'c' capsule (a, b, rayon a, rayon b)
   ['e','four',0,0,[0,.36,0],[.25,.34,.21]],          // le torse
   ['e','four',0,.08,[0,.08,-.01],[.22,.17,.19]],     // le bassin
@@ -31,13 +28,7 @@ function sgPrim(q,X,Y,Z){
   const a=q[4],b=q[5],px=X-a[0],py=Y-a[1],pz=Z-a[2],bx=b[0]-a[0],by=b[1]-a[1],bz=b[2]-a[2],t=Math.max(0,Math.min(1,(px*bx+py*by+pz*bz)/(bx*bx+by*by+bz*bz)));
   return Math.hypot(px-bx*t,py-by*t,pz-bz*t)-(q[6]+(q[7]-q[6])*t);
 }
-function sgDebout(x,y,z){ // le champ, debout ; remplit SG_D (la distance à chaque volume) et rend l'union soudée
-  let d=1e9;for(let i=0;i<SG_P.length;i++){const q=SG_P[i],di=sgPrim(q,x,y,z);SG_D[i]=di;
-    if(i===0)d=di;else{const k=q[3];if(k<=0)d=Math.min(d,di);else{const hh=Math.max(k-Math.abs(d-di),0)/k;d=Math.min(d,di)-hh*hh*k*.25;}}}
-  return d;
-}
 function sgProche(){let b=0;for(let i=1;i<SG_P.length;i++)if(SG_D[i]<SG_D[b])b=i;return b;}
-function sgCol(X,Y,Z,o){sgDebout(X,Y,Z);sgColQ(SG_P[sgProche()],X,Y,Z,o);} // la couleur (repère DEBOUT)
 function sgColQ(q,X,Y,Z,o){let r=q[1]; // la couleur du volume q au point (X,Y,Z) du singe DEBOUT (aussi pour la pose en course : chaque partie y est ramenée)
     if(r==='oeil'){const c=q[4];r=Math.hypot(X-c[0]-.014*Math.sign(c[0]),Y-c[1]-.02,Z-c[2]-.045)<.024?'reflet':'oeil';} /* le reflet : en haut, vers l'extérieur */
     else if(r==='museau'){if(Z>.24&&Math.abs(X)<.095&&Math.abs(Y-(.815+2.4*X*X))<.018)r='bouche'; // son vrai sourire (pendu par la queue, il se lit comme 🙃)
@@ -49,55 +40,13 @@ function sgColQ(q,X,Y,Z,o){let r=q[1]; // la couleur du volume q au point (X,Y,Z
     else if(r==='queue')r=Y<-.6?'dos':'four';
     else if(r==='mangue'&&Z-q[4][2]>.025)r='mangueR'; /* (15/10) la joue rouge de la mangue, côté visage */
     o[0]=SG_RGB[r][0];o[1]=SG_RGB[r][1];o[2]=SG_RGB[r][2];}
-function sgOs(X,Y,Z,o){sgDebout(X,Y,Z);const q=SG_P[sgProche()],b=q[2];o[0]=o[1]=o[2]=0; // les os (repère DEBOUT) : 0 la tête · 1 le bras +x · 2 le bras −x
-    if(b===1)o[0]=1;else if(b===0&&q[1]==='four'&&Y>.6&&Math.abs(X)<.16)o[0]=Math.max(0,Math.min(1,(Y-.62)/.16));
-    else if(b===2)o[1]=Math.max(0,Math.min(1,(Math.hypot(X-.22,Y-.6,Z-.02)-.03)/.13));
-    else if(b===3)o[2]=Math.max(0,Math.min(1,(Math.hypot(X+.22,Y-.6,Z-.02)-.03)/.13));}
-/* LES DEUX POSES (2026-10-10, Léo : « il peut également se tenir sur les mains ») — le même singe, deux repères d'accroche (0,0,0 sous la dalle) :
-   · 'queue' : pendu PAR LA QUEUE, à l'envers (x = −x debout, y = SG_YA − y debout) — la tête en bas, les bras ballants sous la tête ;
-   · 'mains' : pendu PAR LES MAINS, à l'endroit (x = x debout, y = y debout − SG_YH) — les mains agrippées à la dalle, la queue pend dessous. */
-const SG_YH=1.36; // la hauteur (debout) du haut des mains
-function singeForme(mode){const Q=mode!=='mains',ux=x=>Q?-x:x,uy=y=>Q?SG_YA-y:SG_YH+y;
-  return {mode:Q?'queue':'mains',min:[-.74,-2.18,-.44],max:[.74,.1,.44],hs:.034,h:.024,
-    sdf:(x,y,z)=>sgDebout(ux(x),uy(y),z),s:(x,y,z)=>Math.max(0,Math.min(1,-y/2.05)), // l'onde part de l'accroche et descend
-    col:(x,y,z,o)=>sgCol(ux(x),uy(y),z,o),os:(x,y,z,o)=>sgOs(ux(x),uy(y),z,o),
-    pt:(X,Y,Z)=>new THREE.Vector3(Q?-X:X,Q?SG_YA-Y:Y-SG_YH,Z),vec:(X,Y,Z)=>new THREE.Vector3(Q?-X:X,Q?-Y:Y,Z).normalize()};}
-const SINGE_F=singeForme('queue'),SINGE_FM=singeForme('mains');
-const SG_QI=new THREE.Quaternion();
-function singeNouveau(cle,mode){ // un singe : son groupe (accroché en 0,0,0), ses réglages, son état — mode 'queue' (défaut) ou 'mains' — ou 'course' (à quatre pattes, les pieds en 0,0,0)
+function singeNouveau(cle,mode){ // un singe : son groupe, ses réglages, son état — une pose de SG_POSES (bonjour · mangue · bord) ou 'course' (à quatre pattes, les pieds en 0,0,0)
   if(SG_POSES[mode]){const F=singePoseForme(mode),U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}});
     U.uP0.value.copy(F.piv[0]);U.uP1.value.copy(F.piv[1]);U.uP2.value.copy(F.piv[2]);
     return {grp:vitrailObjet(F,U,cle||'singe'),U,F,mode,e:{t:0,ph:0,k:Math.random()*6.28,hy:0,hp:0,m4:new THREE.Matrix4(),eu:new THREE.Euler()}};}
   if(mode==='course'){const F=SINGE_FC,U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}});
     U.uP0.value.copy(F.cou);U.uP1.value.copy(F.epaules);U.uP2.value.copy(F.hanches);
     return {grp:vitrailObjet(F,U,cle||'singe'),U,F,mode:'course',e:{t:0,ph:0,k:Math.random()*6.28,hy:0,hp:0,m4:new THREE.Matrix4(),eu:new THREE.Euler()}};}
-  const F=mode==='mains'?SINGE_FM:SINGE_F;
-  const U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}}); // le cœur : l'or de la banane → l'ambre
-  const ep=[F.pt(.22,.6,.02),F.pt(-.22,.6,.02)],re=[F.vec(.28,.62,.1),F.vec(-.28,.62,.1)]; // les épaules (os 1 et 2) et leurs bras au repos (épaule → main)
-  U.uP0.value.copy(F.pt(0,.72,0));U.uP1.value.copy(ep[0]);U.uP2.value.copy(ep[1]);
-  const grp=vitrailObjet(F,U,cle||'singe'); // (les deux poses partagent leurs programmes : même shader)
-  return {grp,U,F,mode:F.mode,ep,re,cou:U.uP0.value.clone(),e:{t:0,ax:0,vx:0,az:0,vz:0,hy:0,hp:0,r:0,q:new THREE.Quaternion(),m4:new THREE.Matrix4(),eu:new THREE.Euler(),v:new THREE.Vector3()}};
-}
-function singeTape(S,vx,vz){S.e.vx+=vx;S.e.vz+=vz;} // un coup de vent : la caisse vient de passer sous lui
-function singeAnime(S,dt,cible,proche){ // cible : la caisse dans le repère du singe (null = personne) · proche : 0 → 1 quand elle passe tout près
-  const e=S.e,U=S.U,Q=S.mode==='queue';e.t+=dt;U.uT.value=e.t;
-  // LE BALANCIER : un pendule amorti autour de l'accroche (x : d'avant en arrière, z : de côté) + une respiration
-  e.vx+=(-8*e.ax-1.2*e.vx)*dt;e.ax+=e.vx*dt;e.vz+=(-8*e.az-1.2*e.vz)*dt;e.az+=e.vz*dt;
-  S.grp.rotation.set(e.ax+.05*Math.sin(e.t*1.25),0,e.az+.035*Math.sin(e.t*.85+1));
-  // LA TÊTE suit la cible (pendu par la queue, elle est à l'envers : regarder « vers le sol », c'est regarder vers le haut de son crâne)
-  let fy=.35*Math.sin(e.t*.6),fp=.1*Math.sin(e.t*.9);
-  if(cible){e.v.copy(cible).sub(S.cou).normalize();fy=Math.max(-1.15,Math.min(1.15,Math.atan2(e.v.x,e.v.z)));fp=Math.max(-.5,Math.min(.75,Math.asin(Math.max(-1,Math.min(1,-e.v.y)))));}
-  const a9=Math.min(1,dt*6);e.hy+=(fy-e.hy)*a9;e.hp+=(fp-e.hp)*a9;
-  U.uM0.value.setFromMatrix4(e.m4.makeRotationFromEuler(e.eu.set(e.hp,e.hy,0,'YXZ')));
-  // LES BRAS : celui du côté de la caisse se tend vers elle (pendu par les mains, il LÂCHE la dalle pour taper) ; l'autre pend (queue) ou tient (mains)
-  e.r+=((cible?proche:0)-e.r)*Math.min(1,dt*(Q?5:3.5));
-  const lui=cible?(cible.distanceToSquared(S.ep[0])<=cible.distanceToSquared(S.ep[1])?0:1):-1;
-  for(let b=0;b<2;b++){const mu=b?U.uM2:U.uM1;
-    if(b===lui&&e.r>.01){e.v.copy(cible).sub(S.ep[b]).normalize();e.q.setFromUnitVectors(S.re[b],e.v);
-      const w=Math.min(.95,e.r)*(1+.12*Math.sin(e.t*14)*Math.max(0,e.r-.6));e.q.slerp(SG_QI,1-Math.min(1,w));e.m4.makeRotationFromQuaternion(e.q);}
-    else if(Q)e.m4.makeRotationFromEuler(e.eu.set(.18*Math.sin(e.t*1.1+b*2),0,(b?-1:1)*(.12+.08*Math.sin(e.t*.8)),'XYZ'));
-    else e.m4.identity();
-    mu.value.setFromMatrix4(e.m4);}
 }
 /* LA POSE EN COURSE (2026-10-11, Léo : « les singes apparaissent quand on fait 3 sauts en 5 s : ils sautent avec nous sur la route, courent
    un peu avec nous et repartent ») — le MÊME singe, à QUATRE PATTES (au sol, un singe galope comme ça). Chaque partie du singe debout (corps,

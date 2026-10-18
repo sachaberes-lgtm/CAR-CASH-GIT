@@ -4,7 +4,7 @@
 #   (a) LE LOGO de l'accueil (celui de 92cb2bb) : HTML (`class="lg …"`), CSS (`.lg`, `.lg.gold`, `.lg.grad`, `::before`, `::after`,
 #       lgShine, `.mTitle .lg`) — l'EMPREINTE (sha1) de ces lignes est figée ci-dessous ;
 #   (b) LA POLICE PIXEL : `--pix:'Press Start 2P'`, son @font-face + le fichier woff2, et au moins SEUIL emplois de var(--pix) ;
-#   (c) LA CHARTE 6 reste un OPT-IN : la ligne `if(/[?&]ui=6\b/` (classe c6 posée seulement par ?ui=6) doit rester ;
+#   (c) (retiré le 2026-10-18, allègement : la charte 6 n'existe plus dans le code — plus rien à garder de ce côté) ;
 #   (d) UNE SEULE POLICE (2026-10-15, Sacha : « il faut pas que je te le répète ») : le filet CSS `<style id="policeUnique">` (tout élément en
 #       var(--pix)!important) et le filet des canvas `UNE_POLICE` (tout ctx.font réécrit en Press Start 2P) doivent rester.
 # Usage : sh garde-charte.sh [fichier]            (par défaut : VERSION PRINCIPALE/index.html)
@@ -12,7 +12,7 @@
 # Appelée par vercel-build.sh juste après garde-burnout.sh, et par la procédure de poussée (CLAUDE.md du jeu).
 # Pour publier quand même (on a VRAIMENT décidé de changer le logo — avec Sacha) : GARDE_CHARTE=0 dans les variables de Vercel,
 # ou mettre EMPREINTE_LOGO / SEUIL_PIX à jour dans le même commit (sh garde-charte.sh --empreinte).
-EMPREINTE_LOGO="67a08866ce29db69af6a6d91908934b03275e31b"
+EMPREINTE_LOGO="ae275166afc3d44114a5756a655871e8a321a3dc"
 SEUIL_PIX=135
 MODE=""
 [ "$1" = "--empreinte" ] && { MODE="emp"; shift; }
@@ -48,12 +48,10 @@ grep -qF '<style id="policeUnique">' "$F" && grep -qF '*,*::before,*::after{font
     · le filet CSS d'UNE SEULE POLICE (<style id=\"policeUnique\">, *{font-family:var(--pix)!important}) a disparu"
 grep -qF 'function UNE_POLICE(' "$F" && grep -qF 'function apresPolice(' "$F" || PROBLEMES="$PROBLEMES
     · le filet des canvas d'UNE SEULE POLICE (UNE_POLICE, apresPolice) a disparu"
-grep -qF 'if(/[?&]ui=6\b/' "$F" || PROBLEMES="$PROBLEMES
-    · la ligne « if(/[?&]ui=6\b/ » a disparu : la charte 6 ne doit s'allumer que par ?ui=6"
 if [ -n "$PROBLEMES" ]; then
   echo "
   ✋ LA CHARTE EST CASSÉE dans $F :$PROBLEMES
-  Le logo de l'accueil est INTOUCHABLE (92cb2bb), la police pixel reste — et c'est la SEULE police du jeu —, la charte 6 reste un opt-in (?ui=6).
+  Le logo de l'accueil est INTOUCHABLE (92cb2bb), la police pixel reste — et c'est la SEULE police du jeu.
   Remettre : git checkout <dernier bon commit> -- \"VERSION PRINCIPALE/index.html\" (ou refusionner en gardant ces blocs).
   Si le changement est VOULU (décidé avec Sacha) : sh garde-charte.sh --empreinte, puis mettre à jour EMPREINTE_LOGO / SEUIL_PIX ici.
 "
