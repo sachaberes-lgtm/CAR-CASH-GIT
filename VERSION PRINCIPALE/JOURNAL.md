@@ -3,6 +3,59 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES PROFONDEURS — LES BIOMES DE GROTTE DE MINECRAFT, DANS LA DA DU JEU (2026-10-18, Sacha : « fais une nouvelle map en mode dans les grottes, en mode minecraft mais ça bien, mets-toi dans la peau d'un designer senior de jeu vidéo et fais un truc parfait » · au premier banc, en cubes : « non arrête ça fait pas minecraft — je veux une grotte, les biomes de grotte dans minecraft, mais avec la même DA que les autres maps »)
+- **L'idée** : une DESCENTE sous la terre à travers les biomes de grotte de Minecraft, chacun SA lumière — l'œil sait toujours où il est, et la
+  roche qui défile à côté de la caisse donne la vitesse. 0 · L'ENTRÉE ET LA MINE (galerie carrée, cadres de bois, torches) · 1 · LA GROTTE
+  LUXURIANTE (mousse, lianes aux baies qui luisent, azalées fleuries, lac d'eau) · 2 · LE PUITS DE LA GÉODE (la pièce maîtresse : la route entre en
+  tangente dans un entonnoir et fait 1¼ tour autour d'un pilier dont le cœur est une GÉODE d'améthyste géante hérissée de cristaux ; chaque tour
+  passe ~60 m sous le précédent et 34 m plus à l'intérieur — sauter du bord INTÉRIEUR fait retomber sur le tour d'en dessous : LE RACCOURCI ;
+  on ressort dans l'axe) · 3 · LES STALACTITES (cathédrale ocre, concrétions en cônes à six pans, colonnes en sablier) · 4 · LE LAC DE LAVE
+  (lave PLATE ~48 m sous la route, à plaques de croûte, chutes de lave, piliers de basalte, rivage de magma) · 5 · LES ABYSSES (le noir bleuté,
+  le sculk qui pulse en cyan, les capteurs, les piliers d'une cité oubliée et leurs feux d'âme, la salle du portail). Des grappes de DIAMANTS et
+  d'OR luisent dans les parois près de la route (c'est CASH CAR).
+- **LA DA** (le premier jet en cubes et texture pixel a été arrêté par Sacha au premier banc, jamais poussé) : la roche est LOW-POLY À FACETTES,
+  comme les pics du glacier et le cône du volcan ; chaque salle a sa paroi et son sol en couleurs pleines (`GRT_MUR`/`GRT_SOL` : brun chaud, sarcelle
+  et vert mousse, violet, ocre, basalte indigo et pourpre, bleu ardoise et sarcelle) avec des strates douces, aucune texture ; une matière par
+  facette ; la grotte suit LA RECETTE COMMUNE des maps (`contiMap` + `grtConti` : saturation, contraste, vignette, contre-jour rose, bitume commun
+  par temps).
+- **La route** (`genGrotte` → `grtTrace`) : descend de ~230-330 m ; les aides de la balade du volcan (cap borné ±68° par un axe), ≥ 1 module du
+  paquet `gSlalom`/`gCorde`/`gChicane`/`gHoule` (2 à 5 selon la place), leur propre hasard ; contrôle des croisements (0 conflit sur 12 graines).
+  **LA DURÉE DES MAPS** : entrée + mine + puits + salle du portail fixes, les quatre autres salles se partagent le reste de `longueurCible()`
+  (27/20/30/23 %) ; `DUREE_ALLURE.grotte` .85. MESURÉ (banc Node, 4 graines) : palier 0 → 5,4-5,6 km (visé 5,4) ; palier 10 → ~7 km ; palier 25 →
+  8,4-9,2 km (visé 7,1 : la spirale tient 1,9 × le rayon tenable, ~24 s à fond, comme le volcan).
+- **La roche** (`grtCreuse1`, `grtPuits`, `grtLacs`, `grtPiliers`) : un CHAMP DE DENSITÉ (~ la distance signée à la paroi, en mètres × 1,6) sur une
+  grille de 8 m stockée en tronçons de 16³ cases ; chaque échantillon de route (tous les rh/3,2 m) creuse un ellipsoïde par salle (`GRT_FORME` :
+  demi-largeur, plafond, fond, exposant — la mine est CARRÉE —, morsure du bruit), fondu sur ±90 m aux frontières ; le puits (cône, pilier, géode,
+  bassin), les lacs (surfaces plates), les piliers. RÈGLE D'OR : un NOYAU vide autour de la route (ROAD_HALF + 10 m, 30 m dessus, THICK + 9
+  dessous) — `dbgGrotte('test')` : 0 roche, 0 décor (12 graines en Node, et dans le jeu).
+- **Le rendu** (`grtMailleNets`, `GRT_FS`) : la surface est tirée du champ par « surface nets » (un sommet par cube traversé, facettes de ~8 m),
+  une maille par tronçon cachée au-delà du brouillard ; la normale de la FACETTE vient des dérivées ; l'OCCLUSION (la part de roche autour du
+  sommet) ; la lumière CUITE aux sommets en deux canaux — TORCHES et LUMIÈRE DU LIEU (l'air de la salle, la lave par en dessous, la géode, l'eau,
+  les baies, les chutes, les capteurs, les feux d'âme, les gemmes) —, dosée par la météo ; la LANTERNE de la caisse allume la roche autour
+  d'elle. Les décors (`grtDecors` : prismes, boîtes, octaèdres) sont dans la même matière. Les POUSSIÈRES (700 points ronds : poussière, spores,
+  paillettes, gouttes, braises, âmes) changent avec la salle. Zéro image, zéro lumière three, deux programmes (chauffés au menu).
+- **Piège trouvé au banc** : un numéro de matière INTERPOLÉ sur un triangle à cheval entre deux matières (roche 0 → améthyste 3) passe par toutes
+  les matières entre les deux — un liseré arc-en-ciel le long des bords. Les sommets de la roche sont dédoublés par triangle, la facette prend la
+  matière de la majorité de ses coins.
+- **Les temps** (`SF_CARTES.grotte`, `GRT_MET`) : TORCHES (matin), CRISTAUX (midi : peu de torches, minerais et améthyste à pleine lumière),
+  MAGMA (soir), NOIR COMPLET (nuit : torches éteintes — les bâtons restent —, tes phares et la lave). Chaque SALLE a son ambiance par temps
+  (`grtBiomes` : 24 ambiances `grt-<temps>-<salle>`, brume teal / violette / ambre / pourpre / noir bleuté, jamais grise), fondue en 2,4 s à
+  l'entrée de la salle (bioGo, après le fondu du portail) : la caisse prend la couleur du lieu. Pas de soleil « 1.61 » (`LVL.grotte`), pas de nuage.
+- **Ce qui tue** (`grotteHeurt`) : en vol, la densité au point (la surface qu'on voit), la lave ('lave'), l'eau ('eau' : « AU FOND DE L EAU »), les
+  gros décors (boîtes orientées, grille de 64 m). La route n'a aucun obstacle de plus.
+- **La construction** : au pré-bâti (`PREB_PISTES`, `prebChampsDe`, `prebJob`, `prebDecor`) en tranches ; en direct (le 1er portail, un rejouer) :
+  creuser + les 1 100 premiers mètres tout de suite (~0,5-0,6 s sur le PC), le reste ~4 ms par image (`grtTranches`). ~200 k triangles, ~460
+  tronçons, ~8 Mo de grille. À SURVEILLER sur iPhone : la construction directe (×3 ?) et le remplissage (la roche couvre l'écran).
+- **Branché** : `NIV_GROTTE`, `SF_NIV`, `SF_CARTES.grotte`, `DUREE_ALLURE`, `pisteRoute`, buildTrack, le pré-bâti, `lvlNuageOk`, `LVL.grotte`
+  (bioApply : le soleil), `contiMap`/`grtConti`, `impTestIci` et la chaîne de vol, `CAUSES.eau`, la chauffe (`grotteChauffe`), la boucle
+  (`grotteTick`), l'accent du bitume et les bords au bleu DIAMANT (`BMAP_PAL`, accC), les cubes du portail (`PCUBE_PAL`) et ses cartes postales
+  (`assets/portail/grotte-*.webp`, tirées par le banc avec `dbgCartePostale`), `repertoire-maps/maps.js`.
+- Console : `dbgGrotte()` · `dbgGrotte('test')` · `dbgGrotte('salle',{k,d,h,r,fov})` · `dbgGrotte('puits',{h})` · `dbgGrotte('meteo','nuit')` ·
+  `?carte=grotte&meteo=matin|midi|soir|nuit` (consommé avant le JOUER : au banc, `dbgClassique('grotte',m)` puis `dbgSaut()`). Bancs (scratchpad de
+  la session bf86b413) : `grotte/node-banc.cjs` (tracé + construction en Node, sans Chrome : `node node-banc.cjs 1,2,3 <palier> --tout --svg d`),
+  `grotte/plan.py` (plan + profil), `grotte/grotte-banc.cjs` (le vrai jeu, muet : photos par salle, course au pilote, cartes postales).
+- **À trancher par Sacha / Léo** : le nom ; la musique (Pouce bleu joue partout aujourd'hui) ; un 2e raccourci (une boucle au-dessus du lac de
+  lave, la mécanique du volcan) si la map paraît trop linéaire.
 ## SANS AILES — L'AILE QUI N'A PAS D'AILE (2026-10-18, Léo : « essaie de créer un nouveau type d'aile, mais en fait la blague c'est qu'il n'y a pas d'aile : c'est juste le système de propulsion qu'a présenté Elon Musk très récemment, qui permet à une voiture de pivoter et voler »)
 - LA RÉFÉRENCE : le Roadster présenté le 15/10/2026 — des propulseurs à GAZ FROID (air comprimé, dix buses) qui soulèvent la caisse et la font
   pivoter en l'air. Aucune marque dans le jeu (revue App Store) : le nom dit la blague, « SANS AILES » (EN « NO WINGS »), et la fiche finit par
