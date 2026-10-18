@@ -10625,7 +10625,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
   <div class="go" id="goTxt"></div>
   <div id="saveRow">
     <button id="setBtn" class="saveBtn">Réglages</button>
-    <button id="parkBtn" class="saveBtn">Freestyle · off</button>
     <button id="survBtn" class="saveBtn">Survivant · off</button>
   </div>
   <div id="butin"></div>
@@ -10687,8 +10686,6 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
         <div class="mmT"><span><i class="pxi pxi-drapeau" aria-hidden="true"></i> SURVIVANT</span><span class="mmS" id="mmSurvS">OFF</span></div>
         <div class="mmD">Sept voitures de police sur la piste, à armes égales. Toutes les 60 secondes, le dernier explose. Une place à prendre : la première.</div>
       </div>
-      <div class="mMode off" id="mmPark" data-m="park">
-        <div class="mmT"><span><i class="pxi pxi-rampe" aria-hidden="true"></i> PARC FREESTYLE</span><span class="mmS" id="mmParkS">OFF</span></div>
         <div class="mmD">Pas de course, pas de police, pas de mort : un terrain de figures avec ses rampes. On y va pour apprendre à voler.</div>
       </div>
       <div class="mMode off" id="mmSand" data-m="sand">
@@ -15679,61 +15676,6 @@ function adoucirCretes(P,k){ // k : l'exigence (1 = la règle d'origine ; .4 en 
     }
     if(!bouge)break;}
 }
-// ---------- MODE FREESTYLE : LE PARC DE FIGURES (pas une course) ----------
-// Un IMMENSE ruban qui s'enroule sur lui-même — loops, hélices, tire-bouchons, spirales, vagues,
-// rampes — tissé dans une zone BORNÉE : il se recroise partout, ça se lit comme un enchevêtrement de
-// routes. AUCUN trou mortel, rayons GÉNÉREUX (fun à rider), très long. La mort est neutralisée
-// ailleurs (respawn). Pensé pour le MULTI : tout le monde riderait CE parc (le netcode = chantier serveur).
-function genPark(rnd){
-  zoneArch='PARK';
-  const ctrl=[];
-  let P=new THREE.Vector3(0,0,0),phi=0,approx=0;
-  const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
-  const push=()=>ctrl.push(P.clone());
-  push();
-  const straight=(l,dy=0,n=1)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}approx+=Math.hypot(l,dy);};
-  const arc=(aDeg,R,n,dy=0)=>{const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
-    for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}approx+=Math.abs(a)*R;};
-  let sg=rnd()<.5?1:-1;               // latéralité courante — on ALTERNE souvent → le ruban reste dans la zone
-  const flip=()=>{sg=-sg;};
-  straight(210,-70,3);                // LARGAGE : tapis d'atterrissage pour l'intro, puis pente douce
-  const modules=[
-    ()=>{ arc(sg*(50+rnd()*70),175+rnd()*110,5,(rnd()*2-1)*46); flip(); },                        // GRAND SWEEPER : virage qui chante
-    ()=>{ arc(sg*(300+rnd()*260),100+rnd()*65,12,-(70+rnd()*100)); flip(); },                      // HÉLICE / TIRE-BOUCHON : la route s'empile
-    ()=>{ arc(sg*(360+rnd()*280),160+rnd()*80,14,(rnd()<.5?-1:1)*(80+rnd()*110)); flip(); },       // SPIRALE GÉANTE : monte OU descend (remplit la boule)
-    ()=>{ straight(52+rnd()*26,-(14+rnd()*12)); straight(58+rnd()*26,24+rnd()*14); straight(66+rnd()*32,-(42+rnd()*34)); }, // VAGUES à sauter (airtime)
-    ()=>{ straight(110+rnd()*44,-6,2); straight(40,18+rnd()*10); straight(24,10); straight(135+rnd()*50,-12,2); }, // RAMPE DE LANCEMENT + réception
-    ()=>{ const a=28+rnd()*28,R=135+rnd()*80; arc(sg*a,R,3,(rnd()*2-1)*24); arc(-sg*a,R,3,(rnd()*2-1)*24); flip(); }, // ESSES AMPLES
-    ()=>{ arc(sg*(150+rnd()*70),88+rnd()*46,6,(rnd()*2-1)*30); flip(); },                          // DEMI-TOUR SERRÉ : ramène le ruban → croisements
-  ];
-  // ============ LA SPHÈRE : une ÉNORME BOULE de routes dans le ciel ============
-  // Le ruban ne se replie plus dans un DISQUE plat mais dans une SPHÈRE 3D : dès qu'il sort de la boule,
-  // on le RAMÈNE vers le cœur en tournant ET en montant/descendant vers le centre ; entre-temps on
-  // l'envoie explorer la moitié OPPOSÉE en hauteur. Résultat : des routes PARTOUT, au-dessus comme en
-  // dessous, entrelacées dans tous les sens — une planète de bitume flottant dans le ciel.
-  const R=1200;                        // RAYON de la sphère (immense — 2,4 km de diamètre)
-  // CONFINEMENT HORIZONTAL : on tourne vers le centre en gardant l'altitude — le rayon horizontal
-  // ADMISSIBLE rétrécit vers le haut/bas de la boule (√(R²−y²)) → l'enveloppe est bien une SPHÈRE.
-  const homeHoriz=()=>{
-    let want=Math.atan2(-P.x,-P.z),d=want-phi;
-    while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
-    const deg=d*180/Math.PI,Rr=110+rnd()*70;
-    arc(deg,Rr,Math.max(3,Math.ceil(Math.abs(deg)/26)),0);
-  };
-  // REMPLISSAGE VERTICAL : on VISE une altitude cible (n'importe où dans la boule) et on grimpe/plonge
-  // vers elle en rampe. C'est ça qui étale les routes du HAUT au BAS de la sphère (sinon : disque plat).
-  let yTarget=(rnd()*2-1)*R*.88,tcd=1;
-  const TARGET=34000;                  // ÉNORME et DENSE : ~34 km de ruban plié dans la boule
-  while(approx<TARGET){
-    modules[Math.floor(rnd()*modules.length)]();          // une FIGURE (tricks + tangle local)
-    if(--tcd<=0||Math.abs(P.y-yTarget)<110){yTarget=(rnd()*2-1)*R*.9;tcd=2+Math.floor(rnd()*3);} // nouvelle cible d'altitude (jusqu'aux pôles de la boule)
-    straight(150+rnd()*55,THREE.MathUtils.clamp(yTarget-P.y,-215,215),2); // rampe FRANCHE vers la cible → remplit vraiment la hauteur (≈52°, ridable)
-    const rMax=Math.sqrt(Math.max(0,R*R-P.y*P.y))*.96;    // rayon horizontal admissible à CETTE hauteur
-    if(Math.hypot(P.x,P.z)>rMax)homeHoriz();              // hors de la sphère : on rentre (en gardant l'altitude)
-  }
-  straight(150,-30,2);                 // SORTIE propre (le bouclage se fait par newTrack → nouveau secteur)
-  return ctrl;
-}
 /* ================= LE BITUME v2 (2026-09-25) =================
    User : « retravaille complètement les shaders, j'aime pas cette tache rose sur la route ». MESURÉ en rendu, source par
    source (inventaire : scratchpad/lumieres.md) : la grosse tache rose à cœur blanc derrière la caisse était le reflet de
@@ -16603,7 +16545,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
      12 cm plus haut sur la route en pièces (JADE_LEVE : sur le plan, elle avait l'air enfoncée dans les pièces). Partout ailleurs : 2,6 m. */
   {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:THICK_ROUTE;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
-  let ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?(yield* genForet(rnd)):(LVL.cur&&LVL.cur.piste==='volcan')?(yield* genVolcan(rnd)):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?(yield* genForet(rnd)):(LVL.cur&&LVL.cur.piste==='volcan')?(yield* genVolcan(rnd)):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   TORD.on=false;TORD.N=null;if(hautOn()){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=NV_ON?pisteTordPropre(ctrl,seed|0):pisteTord(ctrl,seed|0);ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;} // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord)
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
@@ -16942,7 +16884,6 @@ function buildTrack(seed){
   scene.add(plight);trackMeshes.push(plight);PORTAL.lum=plight;
   if(PCUBE.on){pcubeDest();plight.intensity=1.1;} // les couleurs et la vue de la map d'en face (tirée d'avance) · une lumière un peu plus douce que l'ovule (de près, elle blanchissait le bitume)
   campPortail(); // (2026-09-27) CAMPAGNE 10 : le portail n'existe pas tant que la caisse-nuage n'est pas à toi (no-op ailleurs)
-  buildParkGround(); // FREESTYLE : la prairie sous la boule (no-op en course)
   buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
   try{buildParis(seed);}catch(e){window.__parisErr=e;console.warn('Paris',e);}
   try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
@@ -26063,65 +26004,6 @@ function cityTick(dt,camY){
 window.dbgVille=function(){const r=renderer.info,d=camera.getWorldDirection(new THREE.Vector3());
   r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true; // UNE passe de scène mesurée seule (le composer remettrait les compteurs à zéro à chaque passe)
   return {appels:r.render.calls,triangles:r.render.triangles,programmes:r.programs?r.programs.length:null,cap:+Math.atan2(-d.x,-d.z).toFixed(3),site:+Math.asin(d.y).toFixed(3),pluie:+LVL.pluie.toFixed(2),route:+LVL.route.toFixed(2)};};
-// ---------- PARC : LE SOL — une prairie d'HERBE LONGUE animée par le vent ----------
-// Un grand tapis vert texturé (qui prend l'éclairage des biomes) SOUS la sphère, planté de dizaines de
-// milliers de brins instanciés qu'un shader ploie au vent. Tout part dans trackMeshes → disposé au rebuild.
-let parkGrassMat=null,_grassTex=null;
-function grassGroundTex(){
-  if(_grassTex)return _grassTex; // une seule fois : pas de fuite VRAM à chaque parc
-  const cv=document.createElement('canvas');cv.width=256;cv.height=256;const c=cv.getContext('2d');
-  c.fillStyle='#4f8a3a';c.fillRect(0,0,256,256);
-  for(let i=0;i<4600;i++){ // micro-brins peints : le tapis a du grain
-    const x=Math.random()*256,y=Math.random()*256,l=3+Math.random()*8,g=70+Math.random()*90|0;
-    c.strokeStyle='rgba('+(28+Math.random()*40|0)+','+g+','+(28+Math.random()*30|0)+','+(.22+Math.random()*.5).toFixed(2)+')';
-    c.lineWidth=1;c.beginPath();c.moveTo(x,y);c.lineTo(x+(Math.random()-.5)*3,y-l);c.stroke();
-  }
-  _grassTex=new THREE.CanvasTexture(cv);_grassTex.wrapS=_grassTex.wrapT=THREE.RepeatWrapping;_grassTex.repeat.set(70,70);
-  return _grassTex;
-}
-function buildParkGround(){
-  parkGrassMat=null;
-  if(!PARK.on)return;
-  const gy=(isFinite(trackMinY)?trackMinY:-1200)-160; // le SOL, un cran sous la route la plus basse de la boule
-  // 1) LA PRAIRIE : grand tapis texturé (MeshLambert → il vit avec les biomes, sombre la nuit)
-  const gmesh=new THREE.Mesh(new THREE.PlaneGeometry(16000,16000),
-    new THREE.MeshLambertMaterial({map:grassGroundTex(),color:0x86c766}));
-  gmesh.rotation.x=-Math.PI/2;gmesh.position.set(0,gy,0);gmesh.receiveShadow=true;
-  scene.add(gmesh);trackMeshes.push(gmesh);
-  // 2) L'HERBE LONGUE : brins instanciés, ondulés par le vent dans un shader (30 000 brins = 1 draw call)
-  const seg=3,vp=[],vi=[];
-  for(let i=0;i<=seg;i++){const y=i/seg,w=.95*(1-y*.8);vp.push(-w,y,0, w,y,0);}
-  for(let i=0;i<seg;i++){const a=i*2;vi.push(a,a+2,a+1, a+1,a+2,a+3);}
-  const bg=new THREE.InstancedBufferGeometry();
-  bg.setAttribute('position',new THREE.Float32BufferAttribute(vp,3));
-  bg.setIndex(vi);
-  const N=30000,ap=new Float32Array(N*3),ar=new Float32Array(N),ah=new Float32Array(N),aph=new Float32Array(N);
-  for(let i=0;i<N;i++){
-    const rad=Math.sqrt(Math.random())*2700,an=Math.random()*6.2832; // disque : dense au centre
-    ap[i*3]=Math.cos(an)*rad;ap[i*3+1]=gy;ap[i*3+2]=Math.sin(an)*rad;
-    ar[i]=Math.random()*6.2832;ah[i]=24+Math.random()*30;aph[i]=Math.random()*6.2832; // HERBE LONGUE : 24-54 de haut
-  }
-  bg.setAttribute('aPos',new THREE.InstancedBufferAttribute(ap,3));
-  bg.setAttribute('aRot',new THREE.InstancedBufferAttribute(ar,1));
-  bg.setAttribute('aH',new THREE.InstancedBufferAttribute(ah,1));
-  bg.setAttribute('aPh',new THREE.InstancedBufferAttribute(aph,1));
-  bg.instanceCount=N;
-  parkGrassMat=new THREE.ShaderMaterial({
-    uniforms:{uTime:{value:0}},side:THREE.DoubleSide,
-    vertexShader:'attribute vec3 aPos;attribute float aRot;attribute float aH;attribute float aPh;'+
-      'uniform float uTime;varying float vY;void main(){vY=position.y;'+
-      'float c=cos(aRot),s=sin(aRot);vec3 rw=vec3(position.x*c,0.0,position.x*s);'+
-      'float w=sin(uTime*1.6+aPh+aPos.x*0.006+aPos.z*0.006)+0.5*sin(uTime*2.7+aPh*1.7);'+ // vagues de vent qui roulent
-      'float bend=w*position.y*position.y*3.4;'+ // ploie vers la POINTE (y²)
-      'vec3 world=aPos+rw+vec3(bend,position.y*aH,bend*0.5);'+
-      'gl_Position=projectionMatrix*modelViewMatrix*vec4(world,1.0);}',
-    fragmentShader:'varying float vY;void main(){'+
-      'vec3 root=vec3(0.11,0.26,0.07),tip=vec3(0.52,0.82,0.32);'+ // racine sombre → pointe claire
-      'gl_FragColor=vec4(mix(root,tip,vY),1.0);}'
-  });
-  const gm=new THREE.Mesh(bg,parkGrassMat);gm.frustumCulled=false;
-  scene.add(gm);trackMeshes.push(gm);
-}
 /* LA LIGNE PARFAITE (2026-09-29, Sacha : « il faut alterner la génération d'items entre fruit et booster pour pouvoir aller à fond tout
    le temps si on a une trajectoire de route parfaite »). Avant : des pads au hasard tous les 280-560 m, des fruits glissés au hasard dans
    les motifs de pièces — même en prenant TOUT, la nitro tenue (−1/s, +0,2/s de recharge) finissait par s'éteindre. Désormais UNE file :
@@ -27093,12 +26975,11 @@ function TR(s){ // traduction EXACTE, repli français silencieux
    « sans emoji » du 18/08 en avait ratées la moitié, si bien que le libellé changeait de tête selon
    le chemin par lequel on venait de le toucher. Les pictogrammes sont revenus avec la DA borne
    (2026-08-30) et ils ne reviennent qu'ICI.
-   ⚠ on relit les boutons par `$()` et pas par les constantes `parkBtnEl`/`survBtnEl` : `applyLangDOM`
+   ⚠ on relit le bouton par `$()` et pas par la constante `survBtnEl` : `applyLangDOM`
    peut tourner avant que la liste des éléments ne soit construite, et une `const` pas encore
    initialisée lève une ReferenceError qui tuerait tout le démarrage. */
 function modeLbl(){
-  const pb=$('parkBtn'),sb=$('survBtn');
-  if(pb)pb.innerHTML=pxi('rampe')+' '+TR('Freestyle')+' · '+(PARK.on?TR('on'):TR('off'));
+  const sb=$('survBtn');
   if(sb)sb.innerHTML=pxi('drapeau')+' '+TR('Survivant')+' · '+(SURV.armed?TR('on'):TR('off'));
   try{carrPlayMaj();}catch(e){} // (2026-10-07) parc ou Survivant armés : les PLAY repassent en partie sans fin, leur petite ligne s'efface
 }
@@ -54086,7 +53967,7 @@ const AIP={
   }
 };
 AIP.load();
-const survHudEl=$('survHud'),survBtnEl=$('survBtn'),parkBtnEl=$('parkBtn'),lastAlertEl=$('lastAlert');
+const survHudEl=$('survHud'),survBtnEl=$('survBtn'),lastAlertEl=$('lastAlert');
 let svClkCtx=null,svRowsEl=null,svSecsEl=null;
 // ---- carrosserie police : géométries/matériaux PARTAGÉS, 3 livrées pour casser les clones ----
 const pcGlassM=new THREE.MeshPhongMaterial({color:0x0d1620,shininess:280,specular:0xffffff});
@@ -56455,14 +56336,6 @@ survBtnEl.addEventListener('click',e=>{e.stopPropagation();
   if(SURV.armed&&PARK.on){PARK.on=false;if(!started)rebuildMenuScene();} // course + police : on quitte le parc
   modeLbl();
   if(started&&!gameOver)showMsg(SURV.armed?'MODE SURVIVANT AU PROCHAIN DÉPART':'SURVIVANT DÉSARMÉ');
-});
-// ---- MODE FREESTYLE : le parc de figures (pas une course, pas de mort, pas de police) ----
-parkBtnEl.addEventListener('click',e=>{e.stopPropagation();
-  PARK.on=!PARK.on;
-  if(PARK.on&&SURV.armed)SURV.armed=false; // parc = pas de police
-  modeLbl();
-  if(!started)rebuildMenuScene(); // au menu : on montre déjà le parc (et le prochain départ y roulera)
-  else showMsg(PARK.on?'🛝 PARC FREESTYLE AU PROCHAIN DÉPART':'RETOUR À LA COURSE');
 });
 
 // ---------- GARAGE : showroom pour revoir CHAQUE caisse (réutilise buildCar → toujours les VRAIES voitures) ----------
@@ -64615,7 +64488,6 @@ function loop(now){
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
-  if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
   try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
   if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
@@ -67349,7 +67221,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
       set9('mmSurv','mmSurvS',SURV.armed);
-      set9('mmPark','mmParkS',PARK.on);
       set9('mmSand','mmSandS',SANDBOX);
     }else if(mCur==='set'){
       const sv=function(id,txt,on){const e=$t(id);if(e){e.textContent=txt;e.parentNode.classList.toggle('off',!on);}};
@@ -67433,7 +67304,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        (MENUV.retour) → le bouton ne faisait RIEN jusqu'à la partie suivante. L'atelier déjà ouvert (garageOn) = on y va tout droit. */
     else if(a==='garage'){ if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); if(!MENU_SACHA)garVitrine(true); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
-    else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
     else if(a==='snd'){ clic(sndBtnEl); uiClic(SND.sfx?'on':'off'); mFill(); } // (2026-09-28) cliqué AVANT la bascule, le clic tombait sur SND.sfx encore faux : RALLUMER le son était muet et sans vibration (couper, lui, se tait — c'est juste)
     else if(a==='mus'){ clic(musBtnEl); mFill(); }
