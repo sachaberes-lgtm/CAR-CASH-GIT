@@ -17993,7 +17993,7 @@ function foretArche(root,fr,M){const Q=FORET.Q;if(!Q||!Q.arche)return null;
   for(let k=0;k<14;k++){const q=cp[2+((fr()*(n-4))|0)],r=rad[n>>1];fbTouffe(K,[q[0]+(fr()-.5)*r,q[1]+r*.85,q[2]+(fr()-.5)*r],.9+fr()*.8,1,{rg:fr,cc:[q[0],q[1]+r,q[2]],cr:2,col:[.78,.08,.04],ytop:1e4,part:6,sq:.5,bos:.05,mix:.4,fixe:1});}
   const m=new THREE.Mesh(fbGeo(K),M.arb);m.position.set(o[0],0,o[2]);m.updateMatrix();m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);
   // le lierre qui pend sous l'arche (jamais plus bas que 12 m au-dessus de la dalle)
-  const LI=[];if(0)for(let k=2;k<n-1;k++){const q=cp[k],r=rad[k];for(let j=0;j<3;j++){const x=q[0]+o[0]+(fr()-.5)*r*1.4,z=q[2]+o[2]+(fr()-.5)*r*1.4,y=q[1]-r*.7,lg=Math.min(14,y-(p.y+12));if(lg>3)LI.push([x,y,z,lg]);}}
+  const LI=[];
   FORET.zonesNu.push([o[0],o[2],60]);FORET.zonesNu.push([A[0],A[2],45]);FORET.zonesNu.push([B9[0],B9[2],45]);
   return {C:C,LI:LI,c:new THREE.Vector3(o[0],top,o[2])};}
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la forêt) ---------------- */
@@ -37933,12 +37933,7 @@ function buildCar(spec){
     const tg=new THREE.Sprite(HALO.tM);
     tg.scale.set(.62,.62,1);tg.userData.k=.62;tg.position.set(sd*tlX,tlY,tlZ-.06);if(CAR_FEUX_SRC==='releve'&&CAR_FEUX.length===2)tg.position.copy(CAR_FEUX[sd<0?0:1]).z-=.04;carGroup.add(tg);HALO.t.push(tg); // (2026-10-15) le halo sur le VRAI feu, là où naît la traînée
   }
-  if(false){ // (2026-09-26, audit rendu) NÉON SOUS CAISSE RETIRÉ : c'était l'une des taches roses sous la caisse (verdict du 25/09 : « plus de tache ronde »)
-    const ug=new THREE.Mesh(new THREE.PlaneGeometry(spec.w*2.4,spec.l*1.7),
-      new THREE.MeshBasicMaterial({map:poolTex,color:0xff2e9e,transparent:true,opacity:.10,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})); // (2026-09-25) .30 → .10 : une lueur sous la caisse, plus une jupe ROSE sur la route
-    ug.rotation.x=-Math.PI/2;ug.position.set(0,.07,0);ug.userData.noShadow=true;ug.userData.sol=1;carGroup.add(ug);
-  }
-  // FLAQUES DE LUMIÈRE AU SOL — la caisse ÉCLAIRE la route (même recette que le néon : plan additif qui épouse le bitume).
+    // FLAQUES DE LUMIÈRE AU SOL — la caisse ÉCLAIRE la route (même recette que le néon : plan additif qui épouse le bitume).
   // Le SpotLight/PointLight font répondre le spéculaire ; ces flaques garantissent la LECTURE, même sur bitume mat ou au loin.
   function mkPoolPlane(wid,len,zc,col,op,tex){
     const m9=new THREE.Mesh(new THREE.PlaneGeometry(wid,len),
@@ -37949,8 +37944,7 @@ function buildCar(spec){
   // PHARES : les deux FAISCEAUX peints partent du pare-chocs et fondent vers l'avant (beamTex : le bord haut = la caisse)
   CARPOOL.head=mkPoolPlane(spec.w*2.9,spec.l*3.3,spec.l/2+spec.l*1.62,0xffd9a6,wreck?.24:.55,beamTex);CARPOOL.head.userData.op=wreck?.24:.55; // (2026-09-26) l'opacité de base : la boucle la dose jour/nuit (voir carVit)
   CARPOOL.tail=null; // (2026-09-26, audit rendu) la flaque rouge des feux et le halo nitro plaqués au sol faisaient les taches rondes rouges/orangées derrière la caisse — retirés ; seuls les FAISCEAUX des phares restent
-  if(false)CARPOOL.tail=mkPoolPlane(spec.w*1.6,spec.l*.8,-spec.l/2-spec.l*.34,0xf51a0c,.16); // (2026-09-25) plus petite, plus discrète : « la grosse tache violette est mal gérée »          // les feux saignent leur rouge DERRIÈRE — rouge PROFOND (le bleu résiduel de 0xff2418 rosissait la flaque sur le bitume violet)
-  CARPOOL.jet=null;if(false)CARPOOL.jet=mkPoolPlane(spec.w*1.8,spec.l*2.6,-spec.l/2-spec.l*1.3,0xff7a24,0);  // (2026-09-25) 5×19 m → 3,4×11 m : le halo de nitro ne peint plus la moitié de l'écran              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
+  CARPOOL.jet=null;  // (2026-09-25) 5×19 m → 3,4×11 m : le halo de nitro ne peint plus la moitié de l'écran              // le halo de la nitro/traînée (opacité pilotée par JETS.k dans la boucle)
   if(FACETTE.on&&(FACET_SHAPES[shape]||spec.facette))facetteCaisse(); // (2026-09-29) les classiques de la boutique, taillées en facettes comme la gamme (voir facetteCaisse)
   try{if(typeof plqPose==='function')plqPose(lvl,A,W9,H9,L9,y0,wheels.concat([carWingL,carWingR],carFins).filter(Boolean),glassM,lpPrims);}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE D'IMMATRICULATION, derrière et devant, sur TOUTES les caisses (voir PLQ)
   // LA CARROSSERIE PENCHE (voir carBody) : on y range tout, sauf les roues et ce qui épouse le bitume (néon, flaques)
@@ -40592,68 +40586,6 @@ function flowHudMaj(rest){
     h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
-}
-/* LA JAUGE EN FEU (2026-09-26, user : « barre de nitro avec des flammes animées quand nitro infini ») — refaite le 2026-09-28
-   (Sacha : « en nitro infini les flammes de la barre ressemblent trop à Minecraft, fais un truc premium »). Le feu de DOOM en
-   96 × 18 cases agrandies faisait des PAVÉS. Désormais un vrai feu de particules, au pixel de l'écran : des bouffées douces (un
-   sprite radial cuit une fois par teinte, du blanc brûlant au rouge sombre) qui naissent sur la tranche de la jauge, montent en
-   accélérant (la chaleur tire), ondulent et refroidissent en rapetissant ; en additif, elles se fondent en LANGUES là où la
-   jauge est la plus chaude (des foyers qui glissent le long de la barre) ; des étincelles s'en échappent, et une lueur chauffe
-   la tranche. Réserve fixe de 220 bouffées (zéro allocation en jeu), rien quand il est éteint : NITRO MAX = le brasier plein ;
-   à la fin du pouvoir on ne coupe rien — plus rien ne naît, ce qui brûle finit de brûler. */
-const FEU={cv:null,cx:null,src:0,vif:false,t:0,acc:0,w:0,h:0,dpr:1,N:220,n:0,spr:null,
-  x:null,y:null,vx:null,vy:null,age:null,vie:null,taille:null,st:null,eti:null};
-const FEU_RAMPE=[[255,250,255],[244,222,255],[222,176,255],[196,130,255],[168,92,255],[132,56,236],[96,30,184],[56,14,110]]; // du cœur à la fumée — (2026-09-28, Sacha) VIOLET : c'est le feu de la NITRO INFINIE, la couleur du pouvoir
-const FEU_H=60,FEU_BAS=24; // hauteur du foyer (px CSS) et part posée SUR la jauge : la barre EST le foyer (au téléphone, 18 px d'écran seulement au-dessus d'elle)
-function feuSprites(){ // une bouffée par teinte, 64 px : cœur plein, bord qui s'évanouit (jamais de disque à arête)
-  return FEU_RAMPE.map(function(c){const k=document.createElement('canvas');k.width=k.height=64;const x=k.getContext('2d');
-    const g=x.createRadialGradient(32,32,0,32,32,32),r=c[0]+','+c[1]+','+c[2];
-    g.addColorStop(0,'rgba('+r+',1)');g.addColorStop(.3,'rgba('+r+',.62)');g.addColorStop(.62,'rgba('+r+',.18)');g.addColorStop(1,'rgba('+r+',0)');
-    x.fillStyle=g;x.fillRect(0,0,64,64);return k;});}
-function feuChaud(x,t){return .5+.28*Math.sin(x*.047+t*2.3)+.22*Math.sin(x*.113-t*3.4);} // les FOYERS : là où la jauge brûle le plus, ils glissent
-function feuNait(eti){const F=FEU;if(F.n>=F.N)return;const i=F.n++;
-  let x=0,c=0;for(let k=0;k<4;k++){x=Math.random()*F.w;c=feuChaud(x,F.t);if(Math.random()<c*c*1.4)break;} // tirée vers les foyers
-  F.x[i]=x;F.y[i]=F.h-FEU_BAS*(.15+Math.random()*.6);F.eti[i]=eti?1:0;
-  if(eti){F.vx[i]=(Math.random()-.5)*40;F.vy[i]=-(90+Math.random()*70);F.vie[i]=.45+Math.random()*.4;F.taille[i]=2.2+Math.random()*1.6;F.st[i]=0;}
-  else{F.vx[i]=(Math.random()-.5)*14;F.vy[i]=-(26+Math.random()*30)*(.8+c*.6);F.vie[i]=.4+Math.random()*.3+c*.25;
-    F.taille[i]=(11+Math.random()*8)*(.7+c*.6);F.st[i]=c>.68?0:1;}
-  F.age[i]=0;}
-function nitroFeu(dt){
-  return; // (2026-10-12, Léo : « enlève l'électricité de la jauge ») : le feu de NITRO MAX sur la barre est coupé — la barre est en CASES (voir <style id="auraJauge">)
-  const F=FEU,cible=(pwrNitroT>0&&running&&!gameOver&&mode!=='boom')?1:0; /* (2026-09-28) la caisse explose : la jauge cesse de brûler */ // (2026-09-26, user : « les flammes sur la barre, c'est QUE en nitro infini »)
-  F.src+=(cible-F.src)*Math.min(1,dt*7);
-  if(!F.vif&&F.src<.03)return;
-  if(!F.cv){const nb=document.getElementById('nitroBar');if(!nb)return;
-    const c=document.createElement('canvas');c.id='nitroFeu';c.setAttribute('aria-hidden','true');nb.appendChild(c);
-    F.cv=c;F.cx=c.getContext('2d');F.spr=feuSprites();
-    for(const k of ['x','y','vx','vy','age','vie','taille'])F[k]=new Float32Array(F.N);F.st=new Uint8Array(F.N);F.eti=new Uint8Array(F.N);}
-  const w=F.cv.clientWidth||F.cv.parentNode.clientWidth,d9=Math.min(2.5,window.devicePixelRatio||1);
-  if(!w)return;
-  if(w!==F.w||d9!==F.dpr){F.w=w;F.h=FEU_H;F.dpr=d9;F.cv.width=Math.round(w*d9);F.cv.height=Math.round(FEU_H*d9);F.n=0;} // (tourner le téléphone recale le foyer)
-  const h=Math.min(dt,.05);F.t+=h;
-  // NAISSANCES : ~190 bouffées/s au brasier plein (sur 280 px), et quelques étincelles
-  F.acc+=h*F.src*330*(F.w/280);while(F.acc>=1){F.acc-=1;feuNait(Math.random()<.07);}
-  // LA VIE : la chaleur tire vers le haut, le remous fait onduler, on refroidit en rapetissant ; on compacte la réserve sur place
-  let j=0;
-  for(let i=0;i<F.n;i++){let a=F.age[i]+h/F.vie[i];if(a>=1)continue;
-    let vx=F.vx[i],vy=F.vy[i];const y=F.y[i];
-    vy-=(F.eti[i]?30:62)*h;vx+=Math.sin(y*.09+F.t*6.3+i)*(F.eti[i]?90:46)*h;vx*=1-1.6*h;
-    if(j!==i){F.st[j]=F.st[i];F.eti[j]=F.eti[i];F.vie[j]=F.vie[i];F.taille[j]=F.taille[i];}
-    F.x[j]=F.x[i]+vx*h;F.y[j]=y+vy*h;F.vx[j]=vx;F.vy[j]=vy;F.age[j]=a;j++;}
-  F.n=j;
-  const cx=F.cx;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,F.cv.width,F.cv.height);
-  if(F.n){cx.setTransform(F.dpr,0,0,F.dpr,0,0);cx.globalCompositeOperation='lighter';
-    // la tranche CHAUFFE : une lueur basse qui respire avec le brasier
-    const g=cx.createLinearGradient(0,F.h,0,F.h-FEU_BAS*2.6);g.addColorStop(0,'rgba(176,100,255,'+(.42*F.src).toFixed(3)+')');g.addColorStop(1,'rgba(120,50,240,0)');
-    cx.globalAlpha=1;cx.fillStyle=g;cx.fillRect(0,F.h-FEU_BAS*2.6,F.w,FEU_BAS*2.6);
-    const S=F.spr,nS=S.length-1;
-    for(let i=0;i<F.n;i++){const a=F.age[i];
-      const st=Math.min(nS,F.st[i]+Math.floor(a*(F.eti[i]?3:nS+.99-F.st[i])));
-      const al=(a<.1?a/.1:1)*Math.pow(1-a,1.15)*(F.eti[i]?1:.72);if(al<.02)continue;
-      const z=F.taille[i]*(F.eti[i]?1:(1-.55*a)),zy=F.eti[i]?z:z*(1.5+.6*a); // étirée vers le haut : une LANGUE, pas une boule
-      cx.globalAlpha=al;cx.drawImage(S[st],F.x[i]-z*.5,F.y[i]-zy*.62,z,zy);}
-    cx.globalAlpha=1;cx.globalCompositeOperation='source-over';}
-  const vif=F.n>0;if(vif!==F.vif){F.vif=vif;F.cv.classList.toggle('on',vif);}
 }
 /* <<<NITRO2>>> ==============================================================
    LA LOI DU RÉSERVOIR (2026-10-01, Sacha : « il y a un gros problème de gameplay avec le nitro […] on peut avoir du nitro infini en
@@ -44070,7 +44002,6 @@ flameCore.mesh.material.blending=THREE.AdditiveBlending;flameCore.mesh.material.
 const embers=makePool(120,.24,0xffb24a,.8,true,{a:[.06,.5,1,.45],etire:1,str:.05,v:.6});
 const silBraises=makePool(180,.2,0xffb24a,.85,true,{a:[.06,.5,1,.45],etire:1,str:.05,v:.6}); // (sillage v6) les braises du SILLAGE (réserve à part : celle des flammes reste aux flammes) — même recette, même programme // braises fines qui s'échappent du feu et montent — (2026-09-25) .55 → .32 : près de la caméra une braise de .55 m faisait un rond de 200 px
 embers.mesh.material.blending=THREE.AdditiveBlending;embers.mesh.material.map=sparkTex;
-const exSmoke=null; // (vague 2) le voile de fumée d'échappement n'est plus émis depuis le 26/09 (le DÔME) : la réserve n'est plus créée — les deux `if(false)spawnP(exSmoke,…)` de la boucle restent lettre morte
 // ---------- EXPLOSION ----------
 /* (vague 2, « L'ENCRE ET L'OR ») LES RÉSERVES DE L'EXPLOSION suivent les trois formes de la bible : le CORPS de la boule, ce sont les
    VOLUTES (panneaux ombrés, plus bas) ; ici il ne reste que des TRAITS (langues de feu, éclats, braises) et des BOUFFÉES de charbon.
@@ -50677,11 +50608,8 @@ function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vites
    du 12/10) + des « plops » bruns à 600 Hz : sur un haut-parleur de téléphone, un « ffff » sourd, toujours pareil, qui ne monte jamais.
    L'allumage avait son WHOOMP ; la coupure, quelques pops de bruit filtré.
    LE NITRO EN QUATRE TEMPS — ce qui rend le geste jouissif, c'est l'ATTENTE qui monte puis la RÉCOMPENSE de fin :
-   · L'ALLUMAGE (`rugAllume`) : le PSSHT du protoxyde (bruit blanc, une bande qui descend 6,5 → 2,6 kHz : LE son du nitro), puis 15 ms
-     après la BOULE DE FEU (`RUG.boules`) — le gaz qui s'enflamme : un passe-bas qui s'ouvre d'un coup à 3,7 kHz et se referme, un coup
-     de sinus qui plonge 170 → 48 Hz SATURÉ (ses harmoniques 200-600 Hz sont ce qu'un téléphone rend du « BWOUMF »), un crépitement de
-     naissance. Le coup de poitrine (subBoom), la ruée d'air et le sifflet du 2e étage restent ceux d'avant.
-   · LA GORGE (`RUG.roar`) : le RUGISSEMENT de la flamme, la couche qui manquait — un bruit rose agité par deux turbulences (5 et 21 Hz :
+   · L'ALLUMAGE (`rugAllume`) : le PSSHT du protoxyde (bruit blanc, une bande qui descend 6,5 → 2,6 kHz : LE son du nitro) ; le coup de poitrine (subBoom), la ruée d'air et le sifflet du 2e étage sont ceux d'avant.
+    · LA GORGE (`RUG.roar`) : le RUGISSEMENT de la flamme, la couche qui manquait — un bruit rose agité par deux turbulences (5 et 21 Hz :
      la flamme n'est jamais stable), percé de pointes de jet (le « crackle » d'une tuyère : des pointes positives, loi de Pareto — beaucoup
      de petites, quelques grosses), deux bosses de résonance (250 Hz le corps, 1,15 kHz la déchirure), saturé (la tôle). Une boucle de
      3,7 s jouée DEUX fois à deux endroits, l'une à gauche, l'autre à droite : large, et jamais deux fois la même seconde.
@@ -50697,22 +50625,21 @@ function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vites
    Les gains suivent `dk` (les grands moments creusent le mix) et passent par les PORTES (débranchés hors nitro : coût nul).
    `?nitroson=ancien` = le son d'avant, intact. */
 const RUG_SON=!/[?&]nitroson=ancien/.test(location.search);
-const RUG_NIV={rg:.14,cr:.14,pssht:.05,boule:.2,pap:.15,bang:.2}; // les niveaux (voir le journal : mesurés contre l'ancien au banc)
+const RUG_NIV={rg:.14,cr:.14,pssht:.05,pap:.15,bang:.2}; // les niveaux (voir le journal : mesurés contre l'ancien au banc)
 /* (2026-10-17, Léo : « dès que j'appuie, ça explose et ça fait un bruit qui n'a aucun rapport avec le boost, qui pourrait détruire les
    oreilles des joueurs — écouteurs », sur iPhone ET sur Mac). MESURÉ au banc muet avec SA sauvegarde : deux sons d'EXPLOSION se mêlaient au boost.
-   · LA BOULE DE FEU à chaque appui (`rugBoule` : un BWOUMF saturé, son coup grave qui plonge 170 → 48 Hz, par-dessus le subBoom) — c'est
-     une explosion, pas un boost. COUPÉE (`RUG_BOULE`) : l'allumage garde le PSSHT, le coup de poitrine et la ruée d'air. `?boule=1` la rend.
+   · LA BOULE DE FEU à chaque appui (un BWOUMF saturé, son coup grave qui plonge 170 → 48 Hz, par-dessus le subBoom) — c'est
+     une explosion, pas un boost. RETIRÉE : l'allumage garde le PSSHT, le coup de poitrine et la ruée d'air.
    · LA PANNE SÈCHE SOUS LE DOIGT (`NSEC`) : le nitro tenu vide la jauge en ~4-6 s, puis se coupe et se rallume en boucle (hystérésis à ,3)
      — à chaque coupure la pétarade (BANG + pap-pap) et la soupape, à chaque rallumage un coup d'allumage complet : une explosion toutes les
      ~1,5 s tant qu'on tient. Désormais, tant que le doigt ne s'est pas levé : la toux `nitro.sec` seule à la coupure, la gorge qui reprend
      au rallumage — la pétarade et le coup d'allumage reviennent au prochain VRAI appui / à la vraie relâche. */
-const RUG_BOULE=/[?&]boule=1\b/.test(location.search);
 const NSEC={sous:false,etage:false}; // sous : la jauge a lâché sous le doigt, et ce doigt n'est pas encore levé · etage : le 2e étage (réserve bleue) a déjà sonné pendant cet appui
 /* (même jour) LE 2e ÉTAGE NE SE REJOUE PAS EN BOUCLE : un fruit ramassé nitro tenu remplit un peu la jauge, on ressort de la réserve bleue, on y
    retombe une seconde plus tard — et le coup d'allumage du 2e étage repartait à CHAQUE fruit (MESURÉ : 7 à 12 coups en 30 s de nitro tenu).
    Il sonne désormais une fois par appui ; le reste (onde, champ, couleur) suit comme avant. */
 const RUG_CORPS=.7; // le grondement brun d'avant (`jrG`, le corps de la flamme) à 70 % quand la gorge chante : sinon la tenue passait 6 dB au-dessus de l'ancienne
-const RUG={pret:false,ac:null,d:null,tel:false,h:0,k:0,rs:[],cs:[],boules:null,paps:null,bangs:null,blanc:null,stt:null};
+const RUG={pret:false,ac:null,d:null,tel:false,h:0,k:0,rs:[],cs:[],paps:null,bangs:null,blanc:null,stt:null};
 function rugBq(t,f,q,g,sr){ // les coefficients d'un biquad (RBJ) : 'lp' 'hp' 'bp' 'pk'
   const w=2*Math.PI*Math.min(f,sr*.45)/sr,c=Math.cos(w),s=Math.sin(w),al=s/(2*q),A=Math.pow(10,(g||0)/40);let b0,b1,b2,a0,a1,a2;
   if(t==='lp'){b0=(1-c)/2;b1=1-c;b2=b0;a0=1+al;a1=-2*c;a2=1-al;}
@@ -50751,17 +50678,6 @@ function rugCrep(sr,dur){ // LE CRÉPITEMENT : la boucle des pops (une queue qui
     pose((R()*n)|0,Math.round(L*5),function(j){ph+=2*Math.PI*f0/sr;return (rugRun(l,R()*2-1)*1.6+Math.sin(ph)*.25)*a*Math.exp(-j/L)*(1-Math.exp(-j/(sr*.0004)));});}
   let s=0;for(let i=0;i<n;i++)s+=X[i]*X[i];const g=.1/(Math.sqrt(s/n)||1);for(let i=0;i<n;i++)X[i]=Math.tanh(X[i]*g*2.2)/2.2; // −20 dB RMS, crêtes arrondies
   return X;}
-function rugBoule(sr){ // LA BOULE DE FEU de l'allumage (le BWOUMF)
-  const n=Math.round(sr*1.1),X=new Float32Array(n),R=Math.random,rose=rugRose(),lp=rugBq('lp',300,.9,0,sr),lp2=rugBq('lp',300,.7,0,sr),hp=rugBq('hp',60,.7,0,sr),bp=rugBq('bp',1900,1.1,0,sr);
-  let ph=0,cr=0;const dc=Math.exp(-1/(sr*.0007));
-  for(let i=0;i<n;i++){const t=i/sr;
-    if((i&31)===0){const fc=420+3300*(1-Math.exp(-t/.018))*Math.exp(-t/.22);rugBqSet(lp,'lp',fc,.9,0,sr);rugBqSet(lp2,'lp',fc*1.3,.7,0,sr);} // le passe-bas S'OUVRE d'un coup puis se referme
-    let x=rugRun(lp2,rugRun(lp,rose()))*(1-Math.exp(-t/.007))*(.75*Math.exp(-t/.24)+.25*Math.exp(-t/.6))*2.4;
-    if(R()<160*Math.exp(-t/.14)/sr)cr+=(R()<.5?-1:1)*Math.min(1,.15*Math.pow(R()+1e-6,-.6));cr*=dc;x+=rugRun(bp,cr)*1.6; // elle CRÉPITE en naissant
-    const f=48+122*Math.exp(-t/.055);ph+=2*Math.PI*f/sr;x+=Math.sin(ph)*Math.exp(-t/.11)*.95*(1-Math.exp(-t/.002)); // le COUP qui plonge
-    X[i]=Math.tanh(rugRun(hp,x)*1.6);}
-  const F=Math.round(.03*sr);for(let i=0;i<F;i++)X[n-1-i]*=i/F;
-  return rugNorme(X,.95);}
 function rugPap(sr,gros){ // un PET d'échappement : le CLAC, le PAP (bande), la bouffée, le coup sourd
   const n=Math.round(sr*(gros?.32:.12)),X=new Float32Array(n),R=Math.random;
   const bp=rugBq('bp',gros?420+R()*200:560+R()*420,1.2,0,sr),lp=rugBq('lp',gros?1500:2400,.7,0,sr),hc=rugBq('hp',2000,.7,0,sr);
@@ -50801,7 +50717,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       RUG.pret=true;},
     function(){ // l'allumage
       const w=new Float32Array(Math.round(sr*.3));for(let i=0;i<w.length;i++)w[i]=Math.random()*2-1;RUG.blanc=mk(w);
-      RUG.boules=[mk(rugBoule(sr)),mk(rugBoule(sr)),mk(rugBoule(sr))];},
+      },
     function(){ // la pétarade
       RUG.paps=[mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0))];RUG.bangs=[mk(rugPap(sr,1)),mk(rugPap(sr,1))];}];
   let i=0;const suite=function(){try{etapes[i++]();}catch(e){console.warn('feu qui rugit',e);return;}if(i<etapes.length)setTimeout(suite,o.vite?0:30);};
@@ -50816,14 +50732,12 @@ function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
   S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
   S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
   const rc=on?.88+.3*k+b*.12:.9;S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
-function rugAllume(k,bleu,air){ // LE PSSHT + LA BOULE DE FEU (le reste du coup d'allumage est dans nitroWhoomp)
-  if(!RUG.boules)return false;const ac=RUG.ac,t0=ac.currentTime,R=Math.random;
+function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
+  if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;
    f.frequency.setValueAtTime(bleu?7600:6500,t0);f.frequency.exponentialRampToValueAtTime(2600,t0+.18);
    const g=ac.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(Math.max(.0002,RUG_NIV.pssht*k),t0+.004);g.gain.exponentialRampToValueAtTime(.001,t0+.22);
    s.connect(f);f.connect(g);g.connect(RUG.d);s.start(t0);s.stop(t0+.25);}
-  if(RUG_BOULE){const s=ac.createBufferSource();s.buffer=RUG.boules[(R()*RUG.boules.length)|0];s.playbackRate.value=(bleu?1.1:1)*(.96+.08*R())*(air?1.04:1);
-   const g=ac.createGain();g.gain.value=RUG_NIV.boule*k;s.connect(g);g.connect(RUG.d);s.start(t0+.015);} // (2026-10-17) coupée : voir RUG_BOULE
   return true;}
 function rugPetarade(q){ // LA PÉTARADE de la coupure : q 0..1, ce qu'on a brûlé
   if(!RUG.paps)return false;const ac=RUG.ac,t0=ac.currentTime+.02,R=Math.random;let t=0;
@@ -50832,7 +50746,7 @@ function rugPetarade(q){ // LA PÉTARADE de la coupure : q 0..1, ce qu'on a brû
   if(q>.3){joue(RUG.bangs[(R()*RUG.bangs.length)|0],0,RUG_NIV.bang*(.7+.3*q),(R()-.5)*.3);t=.075+R()*.03;}
   for(let i=0,n=2+Math.round(q*5+R()*1.5);i<n;i++){joue(RUG.paps[(R()*RUG.paps.length)|0],t,RUG_NIV.pap*Math.pow(.84,i)*(.7+.3*R()),(R()-.5)*.8);t+=.04+.025*R()+i*i*.006;}
   return true;}
-window.dbgRug=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {son:RUG_SON,pret:RUG.pret,tampons:!!(RUG.boules&&RUG.paps),h:+RUG.h.toFixed(2),k:+RUG.k.toFixed(2),gorge:r(RUG.rgG&&RUG.rgG.gain,4),crepite:r(RUG.crG&&RUG.crG.gain,4),pulse:r(RUG.thO&&RUG.thO.frequency,1),fc:r(RUG.rgF&&RUG.rgF.frequency,0)};}; // l'état du rugissement (banc, console)
+window.dbgRug=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {son:RUG_SON,pret:RUG.pret,tampons:!!(RUG.blanc&&RUG.paps),h:+RUG.h.toFixed(2),k:+RUG.k.toFixed(2),gorge:r(RUG.rgG&&RUG.rgG.gain,4),crepite:r(RUG.crG&&RUG.crG.gain,4),pulse:r(RUG.thO&&RUG.thO.frequency,1),fc:r(RUG.rgF&&RUG.rgF.frequency,0)};}; // l'état du rugissement (banc, console)
 /* <<<FIN FEU QUI RUGIT>>> */
 function nitroWhoomp(k,bleu,air){ // LE « WHOOMP » d'allumage — 8 à 10 nœuds, tous arrêtés en moins d'une seconde (rien ne s'empile)
   if(!sfxOk())return;
@@ -64762,9 +64676,6 @@ function loop(now){
           spawnP(flames,tmp2.x+(Math.random()-.5)*.10,tmp2.y+(Math.random()-.5)*.10,tmp2.z+(Math.random()-.5)*.10,
             EXV.x-fwdW.x*(13+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp,EXV.y+F.n.y*.5+(Math.random()-.5)*vsp,EXV.z-fwdW.z*(13+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp, // ≤ 2,5 m derrière le pot : la caméra est 3 m plus loin
             .05+(nitroOn?.04:0)+Math.random()*.05);
-          if(false)spawnP(exSmoke,tmp2.x,tmp2.y+.2,tmp2.z, // (2026-09-26) COUPÉ : laissée derrière, la fumée était TRAVERSÉE par la caméra de poursuite — chaque point grossissait jusqu'à un DÔME gris-blanc derrière la caisse (la « tache ronde » bannie)
-            -fwdW.x*3+(Math.random()-.5)*1.5,.8+Math.random(),-fwdW.z*3+(Math.random()-.5)*1.5,
-            .4+Math.random()*.35);
           if(Math.random()<.3)spawnP(embers,tmp2.x,tmp2.y,tmp2.z,
             EXV.x-fwdW.x*(2+Math.random()*4)+(Math.random()-.5)*3,EXV.y+1+Math.random()*3,EXV.z-fwdW.z*(2+Math.random()*4)+(Math.random()-.5)*3,
             .15+Math.random()*.15);
@@ -65014,10 +64925,6 @@ function loop(now){
             -tmp3.x*(pw+7)+(Math.random()-.5)*.9,-tmp3.y*(pw+7)+(Math.random()-.5)*.9,-tmp3.z*(pw+7)+(Math.random()-.5)*.9,
             .05+Math.random()*.07);
         }
-        if(false)spawnP(exSmoke, // (2026-09-26) coupé, même raison qu'au sol : la caméra du vol traversait ce voile
-          carGroup.position.x-tmp3.x*3.4,carGroup.position.y-tmp3.y*3.4,carGroup.position.z-tmp3.z*3.4,
-          -tmp3.x*5+(Math.random()-.5)*2,-tmp3.y*5+1,-tmp3.z*5+(Math.random()-.5)*2,
-          .5+Math.random()*.6);
         if(Math.random()<.5)spawnP(embers, // (vague 3) les braises du réacteur (elles étaient CYAN néon, même en nitro orange : deux signaux contradictoires)
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
@@ -65772,7 +65679,6 @@ function loop(now){
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
      const pl=(nR8+nX8)>=mx8-.01;
      if(loop._npl!==pl){loop._npl=pl;elNR.parentNode.classList.toggle('plein',pl);if(elNB)elNB.classList.toggle('plein',pl);}
-     try{nitroFeu(dt);}catch(e){} // (2026-09-26) LA JAUGE EN FEU
      {const inf=pwrNitroT>0;if(loop._ninf!==inf){loop._ninf=inf;elNR.parentNode.classList.toggle('inf',inf);if(elNB)elNB.classList.toggle('inf',inf);}} // (2026-09-28) le bouton NITRO porte l'état lui aussi (violet)
      // LA JAUGE VIT : elle file quand on boost (rayures qui défilent, halo), vire au bleu en réserve, clignote rouge à sec
      {const st=(nitroOn?(nitroBlue?'bleu':'boost'):'')+((nR8+nX8)<.35?' bas':'');
