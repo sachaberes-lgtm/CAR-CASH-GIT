@@ -33454,23 +33454,30 @@ SHAPES.corolla=function(K){
   //  ses triangles changent de vue selon leur pente et passaient entre les deux contours)
   const COIN={k:'r',p:[[-3,-1],[3,-1],[3,2],[-3,2]],axe:false,gate:(x,y,z,nx,ny,nz)=>z<-2.0&&Math.abs(x)>.56&&y>.83&&y<.976&&nz<-.3&&Math.abs(nx)>.3};
   const FEU=D9.feu.map(p=>[p[0]>.72?p[0]+(p[0]-.72)*2.2:p[0],p[1]]);
-  // les LAMES de la grande bouche : des bandes chromées horizontales, arrêtées à 2,5 cm du bord de la bouche (relevé à chaque hauteur)
+  // ---- LE COIN AVANT, taillé d'après la photo (Léo, sur le recadrage du coin de la vraie : « identique ») — vue de face (|x|, y) ----
+  const decale=(P9,d)=>P9.map((p,i)=>{const a=P9[Math.max(0,i-1)],b=P9[Math.min(P9.length-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [p[0]+dy/l*d,p[1]-dx/l*d];});   // (décalé à droite du sens de marche)
+  const aire9=P9=>{let a=0;for(let i=0;i<P9.length;i++){const p=P9[i],q=P9[(i+1)%P9.length];a+=p[0]*q[1]-q[0]*p[1];}return a/2;};
+  const rentre9=(P9,d)=>{const n=P9.length,sg=aire9(P9)>0?1:-1;return P9.map((p,i)=>{const a=P9[(i-1+n)%n],b=P9[(i+1)%n],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [p[0]-sg*dy/l*d,p[1]+sg*dx/l*d];});};
+  const PH=F9.phare,PHbas=PH.slice(1,16),PHhaut=PH.slice(16,24);   // le contour du phare : le bord extérieur puis le bas (vers la pointe intérieure) · le haut (vers l'aile)
+  const BANDE=(()=>{const A=decale(PHhaut,.006),n=PHhaut.length,B=PHhaut.map((p,i)=>decale(PHhaut,.022+.03*i/(n-1))[i]);return A.concat(B.reverse());})();   // la bande noire du haut du phare
+  const JONC_L=[[.615,.529],[.70,.523],[.758,.517],[.779,.507],[.787,.484],[.79,.40],[.792,.322],[.787,.275],[.769,.256],[.70,.248],[.60,.243]];   // le jonc chromé de la prise en L
+  const CREUX_L=[[.632,.507],[.70,.502],[.748,.497],[.762,.488],[.767,.465],[.769,.40],[.77,.345]];                                               // son creux noir, dedans
   const xBord=(P9,y)=>{let m=0;for(let i=0;i<P9.length;i++){const a=P9[i],b=P9[(i+1)%P9.length];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
-  const LAMES=[];for(let k=0;k<7;k++){const y=.288+k*.036,xm=xBord(F9.grille,y)-.025;if(xm>.05)LAMES.push({k:'l2',p:japDemi(xm,y-.0055,y+.0055,.003,1),gate:av});}
   const ZN={
     face:japZones([
-      {k:'h',p:F9.phare,gate:av},{k:'W',p:japRuban(F9.phareHaut,.016),gate:av,axe:false},                       // le PHARE : fond chromé sombre, signature de LED…
-      {k:'c',p:F9.projo,gate:av},{k:'W',p:japEchelle(F9.projo,.62),gate:av},                                   // …le projecteur
+      {k:'K',p:PH,gate:av},{k:'h',p:rentre9(PH,.006),gate:av},{k:'K',p:BANDE,gate:av},                         // le PHARE : son cerclage noir, le fond chromé, la bande noire du haut…
+      {k:'c',p:japRuban(decale(PHbas,.015),.009),gate:av,axe:false},{k:'W',p:japRuban(F9.phareHaut,.012),gate:av,axe:false},   // …le jonc chromé du bas, le crochet de LED…
+      {k:'c',p:japRect(.636,.635,.714,.7,.012,3),gate:av},{k:'K',p:japRect(.645,.643,.705,.692,.009,3),gate:av},   // …le projecteur, carré, cerclé de chrome
       {k:'K',p:F9.grilleHaut,gate:av},{k:'c',p:japRuban(F9.joncHaut,.013),gate:av,axe:false},                   // la CALANDRE HAUTE noire, bordée de chrome (il file dans les phares)…
       {k:'c',p:japRuban(F9.joncV,.011),gate:av,axe:false},{k:'c',p:F9.logo,gate:av},                            // …le V chromé et le logo
-      {k:'K',p:F9.grille,gate:av}].concat(LAMES,[                                                               // la GRANDE BOUCHE en trapèze, d'un seul tenant, et ses lames
-      {k:'K',p:F9.prise,gate:av},{k:'c',p:japRuban(F9.joncPrise,.012),gate:av,axe:false},                       // les PRISES EN L, bordées de chrome…
-      {k:'c',p:japOvale(.70,.302,.042,.042,14),gate:av},{k:'q',p:japOvale(.70,.302,.033,.033,14),gate:av},     // …l'antibrouillard rond au pied
-      {k:'c',p:japRuban([[0,.233],[.30,.233],[.59,.231]],.011),gate:av,axe:false}])),                          // le jonc chromé sous la bouche
+      {k:'K',p:F9.grille,creux:.026,gate:av},                                                                    // la GRANDE BOUCHE, creusée (ses lames sont posées devant, plus bas)
+      {k:'c',p:japRuban(JONC_L,.025),creux:-.004,gate:av,axe:false},{k:'K',p:japRuban(CREUX_L,.017),creux:.012,gate:av,axe:false},   // la PRISE EN L : le jonc chromé en relief, son creux noir
+      {k:'K',p:japOvale(.725,.298,.05,.046,18),creux:.022,gate:av},                                             // la coupelle de l'antibrouillard (l'optique est posée dedans, plus bas)
+      {k:'c',p:japRuban([[0,.234],[.30,.234],[.60,.238]],.012),creux:-.003,gate:av,axe:false}]),               // le jonc chromé sous la bouche, qui rejoint le pied du L
     cote:japZones([
       {k:'K',p:C9.cadre,gate:cs},{k:'g',p:C9.vitre,gate:cs},{k:'K',p:C9.montantB,gate:cs},{k:'K',p:C9.montantC,gate:cs},{k:'K',p:C9.ecoinc,gate:cs},
       {k:'c',p:C9.poigneeAr,gate:cs},{k:'c',p:C9.poigneeAv,gate:cs},{k:'K',p:C9.creuxAr,creux:.008,gate:cs},{k:'K',p:C9.creuxAv,creux:.008,gate:cs},
-      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,{k:'K',p:C9.phare,gate:(x,y,z,nx,ny,nz)=>z>1.6}]),
+      {k:'r',p:C9.feu.map(p=>[p[0]<-2.12?p[0]-.07:p[0],p[1]]),gate:(x,y,z,nx,ny,nz)=>z<-1.6},COIN,{k:'K',p:C9.phare,gate:(x,y,z,nx,ny,nz)=>z>1.6},{k:'h',p:rentre9(C9.phare,.006),gate:(x,y,z,nx,ny,nz)=>z>1.6}]),
     dos:japZones([
       {k:'r',p:FEU,gate:ar},COIN,{k:'L',p:japRuban(D9.feuLigne,.016),gate:ar,axe:false},{k:'p',p:japDemi(.37,.904,.936,.003,1),gate:ar},
       {k:'c',p:D9.logo,gate:ar},{k:'r',p:japRect(.56,.252,.80,.274,.006,2),gate:ar}]),   // le logo ; les catadioptres, couchés au pied du bouclier (comme sur la vraie)
@@ -33482,10 +33489,10 @@ SHAPES.corolla=function(K){
   const LGN={cote:LG('cote'),face:japLignes([].concat(F9.lignes.j.map(p=>({k:'j',p:p,gate:av})),F9.lignes.h.map(p=>({k:'h',p:p,gate:av})),[{k:'j',p:F9.capot,gate:av}])),
     dos:japLignes([].concat(D9.lignes.j.map(p=>({k:'j',p:p,gate:ar})),D9.lignes.h.map(p=>({k:'h',p:p,gate:ar})),[{k:'j',p:D9.plaque,gate:ar},{k:'h',p:bas.slice(0,-2),gate:ar}])),dessus:LG('dessus')};
   const CODES={p:{g:GP},gap:{g:GP,c:0x26282c},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},c:{g:'c',c:0xd4d8de},W:{g:'l',c:0xf2f6ff},
-    h:{g:'c',c:0x3c4048},l2:{g:'c',c:0x9aa0a8},L:{g:'l',c:0xd8101e},r:{g:'l',c:0x7a0a14}   /* (le corps des feux : rouge sombre émissif — en verre, une grande facette du coin renvoyait le ciel en blanc) */,b:{g:'s',c:0x151518},O:{g:'g',c:PAL.O.c,lisse:1}};
+    h:{g:'g',c:0x2e323a,lisse:1},l2:{g:'c',c:0x9aa0a8},L:{g:'l',c:0xd8101e},r:{g:'l',c:0x7a0a14}   /* (le corps des feux : rouge sombre émissif — en verre, une grande facette du coin renvoyait le ciel en blanc) */,b:{g:'s',c:0x151518},O:{g:'g',c:PAL.O.c,lisse:1}};
   {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
     const out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:()=>japLisse(G,32),GP:GP,colP:japColP(EP),cache:MEM,
-      vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.0&&nz>.3&&ny<.75&&y<.84)return 'face';   // (le bouclier en flèche : toute sa face est lue vue de face — sinon les zones s'y posaient en damier)if(z<-1.95&&y>.80&&y<1.0&&Math.abs(x)>.5)return -nz>Math.abs(nx)?'dos':'cote';   // (le coin des feux : jamais vu de dessus, il est vu de dos ou de côté)
+      vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.0&&nz>.2&&ny<.92&&y<.84)return 'face';   // (le bouclier en flèche : toute sa face est lue vue de face — sinon les zones s'y posaient en damier)if(z<-1.95&&y>.80&&y<1.0&&Math.abs(x)>.5)return -nz>Math.abs(nx)?'dos':'cote';   // (le coin des feux : jamais vu de dessus, il est vu de dos ou de côté)
         if(z<-2.15&&nz<-.3&&ny<.75&&y<1.05)return 'dos';
         if(z<ZW&&z>ZHT&&y>.9&&ny>.2){const s9=S(z);if(Math.abs(x)<s9[NC+3][0]-.004)return 'dessus';}
         return null;}});
@@ -33505,6 +33512,22 @@ SHAPES.corolla=function(K){
     P.box('O',.08,.012,.02,cx+sd*.03,cy-.04,cz+.07,0,sd*.18,0);});
   // L'ANTENNE en aileron, sur le pavillon
   {const g=new THREE.CylinderGeometry(.018,.03,.13,6);g.rotateX(Math.PI/2);P.put('n',g,0,yDessus(0,-1.08)+.03,-1.08,.12,0,0,1,1.2,1);}
+  // LES LAMES DE LA BOUCHE : onze barres chromées sur la tôle d'origine, devant le fond noir creusé — elles suivent le nez en flèche (`zFace` : la
+  // profondeur de la tôle en (x, y), cherchée tranche à tranche) ; l'OPTIQUE de l'antibrouillard, posée au fond de sa coupelle
+  {const xCote=(s9,y)=>{let m=0;for(let i=1;i<s9.length;i++){const a=s9[i-1],b=s9[i];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1]){const x=a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);if(x>m)m=x;}}return m;};
+   const zFace=(x,y)=>{let a=1.9,b=ZE;for(let k=0;k<26;k++){const m=(a+b)/2;if(xCote(T(m),y)>x)a=m;else b=m;}return (a+b)/2;};
+   const LA=K.kit({c:{g:'c',c:0xc7ccd3},q:{g:'g',c:0xd9dde2},K:{g:'g',c:0x0b0b0e}}),h=.0036,ep=.018,N=12;
+   for(let k=0;k<11;k++){const y=.274+k*.0275,xe=xBord(F9.grille,y)-.016;if(xe<.05)continue;
+     for(const sd of [1,-1]){let pv=null;for(let i=0;i<=N;i++){const x=xe*i/N,p=[sd*x,y,zFace(x,y)+.004];
+       if(pv){LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y-h,p[2]],[p[0],y+h,p[2]]);LA.tri('c',[pv[0],y-h,pv[2]],[p[0],y+h,p[2]],[pv[0],y+h,pv[2]]);
+         LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]],[p[0],y+h,p[2]-ep]);LA.tri('c',[pv[0],y+h,pv[2]],[p[0],y+h,p[2]-ep],[pv[0],y+h,pv[2]-ep]);}
+       pv=p;}}}
+   for(const sd of [1,-1]){const x0=.725,y0=.298,z0=zFace(x0,y0),dzx=(zFace(x0+.01,y0)-zFace(x0-.01,y0))/.02,dzy=(zFace(x0,y0+.01)-zFace(x0,y0-.01))/.02;
+     const n=new THREE.Vector3(-sd*dzx,-dzy,1).normalize(),q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),n),e=new THREE.Euler().setFromQuaternion(q),c=new THREE.Vector3(sd*x0,y0,z0).addScaledVector(n,-.009);
+     LA.put('K',new THREE.CylinderGeometry(.043,.043,.02,18).rotateX(Math.PI/2),c.x-n.x*.006,c.y-n.y*.006,c.z-n.z*.006,e.x,e.y,e.z);                       // le fond de l'optique
+     LA.put('c',new THREE.TorusGeometry(.034,.006,6,18),c.x+n.x*.007,c.y+n.y*.007,c.z+n.z*.007,e.x,e.y,e.z);                     // son cerclage chromé
+     LA.put('q',new THREE.CircleGeometry(.03,18),c.x+n.x*.008,c.y+n.y*.008,c.z+n.z*.008,e.x,e.y,e.z);}                          // la glace
+   K.commit(LA);}
   // LES ESSUIE-GLACES, couchés sur la grille d'auvent
   for(const x of [-.36,.12])P.box('k',.56,.012,.018,x,yDessus(Math.abs(x),1.17)+.012,1.17,0,-.08,0);
   // LE SUPPORT DE PLAQUE, entre les feux : une boîte claire que la plaque du jeu reconnaît (`plqDessinee`)
