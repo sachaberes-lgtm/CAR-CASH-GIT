@@ -239,8 +239,6 @@ html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:10px/1
 html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
 html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
-html.colonne.labNuages:not(.debout) #tourne{left:calc((100% - var(--labPW,0px))/2)} /* (atelier des nuages) sous le téléphone, pas sous le panneau */
-html.colonne.labNuages.debout #tourne{right:calc(var(--labPW,0px) + 16px)}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
@@ -250,12 +248,6 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
 /* L'ATELIER DES NUAGES (?nuages=1) : l'interface du menu reste EN PLACE (la caisse se cadre sur elle) mais invisible et intouchable */
-html.labNuages #overlay>*{opacity:0!important;transition:opacity .25s} /* les BOUTONS s'effacent, pas le voile bleu de l'écran (#overlay::after) : le bas de l'image reste celui du menu */
-html.labNuages body.touch.titreCiel #overlay[data-ecran="home"]::after{opacity:var(--labV1,1)} /* LE CIEL EN BAS : les deux voiles du menu, dosables */
-html.labNuages #garage.menu.ciel::after{opacity:var(--labV2,1)}
-html.labNuages #overlay,html.labNuages #overlay *{pointer-events:none!important} /* ⚠ les [data-m] de l'accueil reprennent le doigt d'eux-mêmes : on les éteint UN PAR UN (sans ça, un JOUER invisible lançait la partie) */
-html.labNuages.labBoutons #overlay>*{opacity:1!important}
-html.labNuages #tSet,html.labNuages #tGear{display:none!important}
 #mSet p.ccVer{margin:14px 0 2px;text-align:center;font:8px/1.6 var(--pix);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
   html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
@@ -319,12 +311,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
      ressortir le dessus vers la lumière au pic du geste. */
   @keyframes pxScale{0%{transform:rotateX(0deg) translateZ(0)}35%{transform:rotateX(-58deg) translateZ(9px)}100%{transform:rotateX(0deg) translateZ(0)}}
   #gPlayMain .lg.pxScale{animation:pxScale .5s cubic-bezier(.36,1.4,.4,1);transform-origin:50% 100%;backface-visibility:hidden}
-  /* ---- FLÈCHES DISCRÈTES (2026-09-05) : au repos elles s'effacent (la caisse elle-même invite au
-     geste — glisser ou taper) ; elles reprennent tout leur éclat pile quand on vient de TAPER la
-     caisse (`.hint`, posée par `garageImpact`, ~1,8 s) — c'est LE moment où « comment on choisit »
-     se pose, pas avant. Scopé à `#gBottom` : `.gNav` sert aussi à l'étal des fruits, qui n'a pas
-     cette logique de tap. */
-  @keyframes gNavHint{0%{transform:scale(1.22);box-shadow:0 0 22px rgba(0,234,255,.75)}100%{transform:scale(1);box-shadow:0 0 0 rgba(0,234,255,0)}}
   /* LE COMPTE EN BANQUE au garage : vert billet, comme le compteur en jeu — c'est le MÊME argent,
      il doit se reconnaître d'un coup d'œil. L'aura, elle, est or : une autre monnaie, une autre teinte. */
   /* L'AURA EN JEU : sous l'argent, en OR, volontairement plus petite que lui. Deux monnaies visibles
@@ -872,10 +858,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   .lbTitle{font-size:11px;letter-spacing:3px;color:#ffd75e;text-shadow:none;margin-bottom:8px}
   .lbRow{border-bottom:1px solid rgba(255,255,255,.06);color:#c8dcf2;font-size:9px}
   .lbRow.hl{background:rgba(255,176,0,.12);box-shadow:none;border-radius:6px}
-  #ctrlRow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:560px;margin:18px 0 4px}
-  .kc{font-family:var(--pix);font-size:9px;letter-spacing:1px;color:#dfeeff;text-align:center;
-    background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 13px 7px;line-height:1.1}
-  .kc i{display:block;font-style:normal;font-family:var(--pix);font-size:8px;color:#8fa4c4;letter-spacing:.5px;margin-top:5px;text-transform:lowercase}
   /* le gros bouton doré devient une simple INVITE sous le logo : c'est le titre qu'on clique */
   #overlay .go{margin-top:12px;font-size:11px;letter-spacing:5px;color:#ffcf6a;background:none;
     border:none;padding:4px 10px;animation:pulse 1.8s infinite;cursor:pointer;
@@ -905,23 +887,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
      battait avec « 1.61 » — on ne lisait plus ni l'un ni l'autre. Elle se pose donc SOUS le nombre,
      petite, comme un sceau : c'est ce qu'on a demandé (« un petit logo de la suite Fibonacci »).
      Elle grandit légèrement en se traçant, puis se fige. */
-  /* ---- φ : LE SYMBOLE DU NOMBRE D'OR, À CÔTÉ DU NOMBRE -------------------------------------
-     C'est ça qui était demandé — le glyphe mathématique, pas un schéma. (J'avais d'abord construit
-     tout le rectangle d'or avec les carrés de Fibonacci : joli, mais hors sujet, et ça mangeait le
-     nombre.)
-     ⚠ EN SERIF ITALIQUE, ET C'EST DÉLIBÉRÉ. « Press Start 2P » n'a pas le grec — φ y tomberait en
-     fallback silencieux, avec une chasse au hasard. On assume donc le contraste : des chiffres
-     pixel et un φ de manuel de maths. C'est exactement comme ça qu'on écrit le nombre d'or, et le
-     contraste fait signature au lieu de faire accident. */
-  #spPhi{font-family:"Times New Roman",Georgia,serif;font-style:italic;font-weight:400;
-    /* ⚠ CALÉ À L'ŒIL, PAS À LA THÉORIE : à .52em / .30em il tombait en INDICE, comme une note de
-       bas de page. Le φ doit ACCOMPAGNER le nombre, à peu près à sa hauteur de capitale — donc plus
-       gros et remonté. Les métriques de la police pixel et celles du serif n'ont aucun rapport,
-       il n'y a pas de valeur « juste » à calculer : on regarde et on ajuste. */
-    font-size:.74em;margin-left:.14em;vertical-align:.26em;letter-spacing:0;
-    background:linear-gradient(180deg,#fffdf2,#ffd75e 55%,#c98a10);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 .22em rgba(255,200,90,.65))}
   /* ---- 1.61 GAMING : LA SIGNATURE DU STUDIO, et elle passe EN DERNIER (ordre inverse, 2026-09-03).
      Elle est ABSOLUE et centree sur l'etage : elle se leve donc EXACTEMENT la ou le titre vient
      d'exploser — c'est ce recouvrement de place qui fait lire une signature et non un deuxieme ecran. */
@@ -1078,16 +1043,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
      PAD TACTILE en joystick — zéro sens sans écran tactile. SON/VOIX/MUSIQUE/IMAGE/SURVIVANT/
      RECOMMENCER restent universels ; seul CE bouton-là est spécifique au doigt. */
   body:not(.touch) [data-a="ctl"]{display:none}
-  /* ================= LES ÉCRANS MOBILES (accueil · mort · modes · réglages) =================
-     Un routeur d'écrans minuscule (une classe .on) plutôt qu'un menu qui déroule tout d'un bloc.
-     C'est la grammaire des jeux mobiles qui marchent : UN écran = UNE décision, un bouton qui saute
-     aux yeux, le reste rangé derrière des icônes. Le classement a disparu (il ne servait à rien sur
-     téléphone) ; le GARAGE le remplace — mais c'est le VRAI garage 3D qui s'ouvre, pas une grille :
-     l'atelier existe, autant y entrer. */
-  .mChip{font-family:var(--pix);font-size:9px;letter-spacing:2px;color:#ffd75e;
-    background:rgba(255,215,94,.09);padding:9px 15px;margin-bottom:16px;text-align:center;line-height:1.8;
-    clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
-  .mChip b{color:#fff}
   /* la jauge de nitro monte SOUS le ciel : en bas elle barrait la caisse en travers, en haut elle ne
      masque rien et se lit d'un coup d'œil. C'est le dernier élément de HUD. */
   body.touch:not(.play) #nitroWrap,body.touch:not(.play) #airPie{display:none} /* hors partie, l'écran n'appartient qu'au menu */
@@ -1161,7 +1116,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   /* ---- LES PLAQUES CARRÉES : croix de fermeture, flèches, retour — la même touche d'arcade, en carré ---- */
   #settings #setClose{width:46px;height:46px;border:0;border-radius:0;
     background:var(--plaque);color:var(--cyan);font-size:0;clip-path:var(--coupe7)}
-  @keyframes gNavHint{0%{transform:scale(1.18)}100%{transform:scale(1)}}
   /* ---- LES TITRES D'ÉCRAN : ils parlent comme le logo ---- */
   #setHead>span{font-family:var(--pix);font-weight:400;letter-spacing:4px;
     background:var(--ttrOr);-webkit-background-clip:text;background-clip:text;color:transparent;
@@ -1172,8 +1126,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   .lbTitle .pxi{--pxs:1;margin-right:4px}
   .lbEmpty{font-family:var(--pix);font-size:7px;line-height:2;color:var(--texteF)}
   .lbRow.hl{border-radius:0}
-  /* une ligne de réglage « coupée » reste une plaque normale : c'est sa PASTILLE qui dit OFF */
-  .mChip{background:var(--cadre);box-shadow:var(--biseau)}
   /* ---- LE PANNEAU ⚙ / PAUSE : icône · libellé · pastille, alignés comme une ligne de menu d'arcade ---- */
   #tGear,#tSet #tGear{--pxs:2;font-size:0}
   .tbtn{--pxs:3}
@@ -1210,9 +1162,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   /* ======================= LA PASSE UX (2026-09-24) — audit mobile, 17 points =======================
      Tailles : 44 pt partout (Apple). Textes : 8 px minimum. Parcours : menu d'abord, REJOUER direct.
      Transitions : 180 ms, JAMAIS sous « Réduire les animations ». */
-  /* le menu : JOUER, puis la CARRIÈRE, puis la rangée d'icônes */
-  .mChip b{margin-left:.7em} /* le monde se devine derrière le menu : c'est lui qui donne l'âme de l'écran */
-  .mCarr{margin-top:12px;font-size:12px;letter-spacing:3px;padding:16px 18px;--pxs:2}
   /* la carrière : jauge de progression par biome, verrous qui secouent */
   @keyframes secoue{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
   /* le VOLANT se montre au premier départ : un anneau-fantôme là où naît le stick, jusqu'au premier braquage */
@@ -1257,10 +1206,8 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #tNitro{--fc:#ff7415;--fc2:#ff8d2e;--hi:#ffd58f;--lo:#ad4200;--ol:#2a0e00;--tx:#2a0e00;--txs:rgba(255,226,170,.75)}
   /* les tailles : une échelle, pas des cas particuliers */
   #settings #setClose{width:50px!important;height:50px!important}
-  /* ---- LE MENU : un rythme vertical, pas un empilement ---- */
-  .mCarr{margin:0 0 24px!important;min-height:62px!important;font-size:13px!important;letter-spacing:4px!important}
   /* ---- LES PANNEAUX : ce qui se LIT ---- */
-  .mChip,#lbBox,#setCard{
+  #lbBox,#setCard{
     clip-path:none!important;border-radius:0!important;border:0!important;
     background:linear-gradient(180deg,#1c2552,#131a3d)!important;
     box-shadow:inset 0 var(--px) 0 0 #313f86,inset 0 calc(var(--px)*-1) 0 0 #0b1030,
@@ -1273,10 +1220,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
      Même grammaire que la charte v2 : contour 3 px par ombres décalées, face deux tons, or = ce qui paie. */
   /* -- le panneau des CONTRATS (menu + écran de mort) -- */
   .mShop{margin:0 0 18px!important;min-height:58px!important;font-size:12px!important;letter-spacing:4px!important}
-  /* -- l'OBJECTIF de l'écran de mort -- */
-  .mRec{font-family:var(--pix);font-size:7px;letter-spacing:2px;color:#8f97c8;margin-top:10px}
-  .mRec b{color:var(--or);margin-left:.6em}
-  .mRow4{gap:10px!important}
   /* -- la BANNIÈRE de succès (v2) -- */
   #misBan{position:fixed;left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 74px);z-index:70;width:min(360px,calc(100vw - 28px));box-sizing:border-box;
     display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;pointer-events:none;overflow:hidden;
@@ -1324,44 +1267,21 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     box-shadow:inset 0 3px 0 #313f86,inset 0 -3px 0 #0b1030,0 -3px 0 #04061a,0 3px 0 #04061a,-3px 0 0 #04061a,3px 0 0 #04061a,0 9px 0 rgba(0,0,0,.35);
     transition:transform var(--t-slow) var(--ease),opacity var(--t-fast) var(--ease)}
   #coach.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
-  #coach .coTop{display:flex;justify-content:space-between;align-items:center;font-size:8px;letter-spacing:1px;color:#aab4ff;margin-bottom:10px}
   #coach .coSkip{font:inherit;font-size:8px;letter-spacing:1px;color:#c9c2ff;background:none;border:0;cursor:pointer;min-width:44px;min-height:44px;
     display:inline-flex;align-items:center;justify-content:flex-end;padding:0 14px;margin:-12px -14px -12px 0} /* PASSER : 44 px de cible, dans le padding de la carte (elle ne grandit pas) */
   #coach.rate .coN{color:#ff6b7d} /* un raté se dit DANS la carte, là où l'œil regarde — plus sous les pouces */
-  #coach .coRow{display:flex;align-items:center;gap:12px}
-  #coach .coIco{flex:none;--pxs:4;color:var(--or)}
-  #coach .coTx b{display:block;font-size:14px;letter-spacing:2px;color:var(--or);text-shadow:0 2px 0 #7a4400;margin-bottom:8px}
-  #coach .coTx span{display:block;font-size:8px;line-height:1.8;letter-spacing:.5px;color:#eef2ff}
-  #coach .coPips{display:flex;gap:6px;margin-top:12px}
-  #coach .coPips i{flex:1;height:6px;background:#2a3263;box-shadow:0 0 0 1px #04061a}
-  #coach .coPips i.ok{background:#2dbb53}#coach .coPips i.on{background:var(--or)}
   @keyframes coEntre{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
   #coach.on.entre{animation:coEntre var(--t-slow) var(--ease)} /* la courbe unique, sans rebond : la démo du geste garde ses pixels, pas la carte */
   #coach.bravo{box-shadow:inset 0 3px 0 #a2f7b6,inset 0 -3px 0 #0f6427,0 -3px 0 #04200d,0 3px 0 #04200d,-3px 0 0 #04200d,3px 0 0 #04200d,0 9px 0 rgba(0,0,0,.35);
     background:linear-gradient(180deg,#2dbb53 0 50%,#24a246 50%)}
-  #coach.bravo .coTx b,#coach.bravo .coIco{color:#fff;text-shadow:0 2px 0 #0f6427}
-  /* la DÉMO du geste : un petit film en pixels sous le texte */
-  #coach .coGeste{position:relative;height:30px;margin-top:10px;overflow:hidden}
-  #coach .coGeste::before{content:'';position:absolute;top:3px;left:calc(50% - 12px);width:24px;height:24px;background:#fff;
-    -webkit-mask:var(--pxi-pouce) center/100% 100% no-repeat;mask:var(--pxi-pouce) center/100% 100% no-repeat}
-  @keyframes coGlisse{0%,100%{transform:translateX(-60px)}50%{transform:translateX(60px)}}
-  @keyframes coAppui{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
-  @keyframes coBord{0%{transform:translateX(0);opacity:1}80%{transform:translateX(110px);opacity:1}100%{transform:translateX(130px);opacity:0}}
-  @keyframes coCible{0%,100%{transform:scale(.8)}50%{transform:scale(1.15)}}
-  #coach .g-glisse::before{animation:coGlisse 1.6s steps(16) infinite}
-  #coach .g-nitro::before{animation:coAppui .5s steps(2) infinite;-webkit-mask-image:var(--pxi-eclair);mask-image:var(--pxi-eclair);background:#ff8d2e}
-  #coach .g-bord::before{animation:coBord 1.2s steps(12) infinite;-webkit-mask-image:var(--pxi-droite);mask-image:var(--pxi-droite)}
-  #coach .g-pose::before{animation:coCible .8s steps(4) infinite;-webkit-mask-image:var(--pxi-cible);mask-image:var(--pxi-cible);background:#7dff9a}
   /* le bouton NITRO appelle le pouce pendant les étapes nitro */
   @keyframes coAnneau{0%{box-shadow:0 0 0 0 rgba(255,215,94,.9)}100%{box-shadow:0 0 0 18px rgba(255,215,94,0)}}
   body.coNitro #tNitro::after{content:'';position:absolute;inset:-14px;border-radius:50%;pointer-events:none;animation:coAnneau 1s steps(6) infinite;display:block!important}
-  @media (prefers-reduced-motion:reduce){#coach,#coach.on.entre,#coach .coGeste::before,body.coNitro #tNitro::after{animation:none!important;transition:none}}
+  @media (prefers-reduced-motion:reduce){#coach,#coach.on.entre,body.coNitro #tNitro::after{animation:none!important;transition:none}}
   /* LA GERBE DE PIXELS (réussites, achats) */
   @keyframes pxBurst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 60px)) scale(.4);opacity:0}} /* la pause passe DEVANT tout : la carte de l'auto-école attend derrière */
   body.coOn #lvlBan,body.coOn #tSteerHint{opacity:0!important;visibility:hidden} /* la carte de l'auto-école parle seule : ni bannière de niveau dessous, ni aide en double */
   .pxBurst{position:fixed;z-index:120;width:6px;height:6px;margin:-3px 0 0 -3px;pointer-events:none;animation:pxBurst .7s steps(10) forwards;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
-  /* les PASTILLES : un chiffre rouge au coin, comme partout — « il y a quelque chose pour toi ici » */
-  @keyframes badge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
   /* JOUER RESPIRE : un reflet balaie la plaque toutes les 3 s */
   @keyframes reflet{0%{background-position:160% 0,0 0}45%,100%{background-position:-60% 0,0 0}}
   /* L'ENTRÉE EN CASCADE : chaque bloc de l'écran tombe à sa place, un temps après le précédent */
@@ -1396,7 +1316,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #tNitro{--fc:#ff6a0e;--fc2:#ffa545;--lo:#bf4a00;--ol:#431600;--tx:#fff;--txs:#431600}
   #tGear{--rb:14px}
   /* LES PANNEAUX (ce qui se lit) : verre sombre arrondi, liseré clair, ombre douce */
-  .mChip,#setCard,#coach:not(.bravo),#lbBox{
+  #setCard,#coach:not(.bravo),#lbBox{
     border-radius:20px!important;border:2px solid rgba(170,160,255,.28)!important;
     background:linear-gradient(180deg,rgba(40,34,104,.92),rgba(22,18,62,.94))!important;
     box-shadow:inset 0 2px 0 rgba(255,255,255,.10),0 10px 24px rgba(0,0,0,.40)!important;overflow:hidden}
@@ -1437,33 +1357,14 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #engBig.on{visibility:visible;animation:ebVie 2.3s cubic-bezier(.3,1.5,.5,1) forwards}
   @keyframes ebVie{0%{transform:translate(-50%,-100%) scale(.2) rotate(-6deg);opacity:0}14%{transform:translate(-50%,-100%) scale(1.08) rotate(1deg);opacity:1}
     22%{transform:translate(-50%,-100%) scale(1) rotate(0)}82%{transform:translate(-50%,-100%) scale(1);opacity:1}100%{transform:translate(-50%,-125%) scale(.7);opacity:0}}
-  #engBig .ebHalo{position:absolute;left:50%;top:55%;width:115%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
-    background:radial-gradient(circle,color-mix(in srgb,var(--ec) 42%,transparent) 0,color-mix(in srgb,var(--ec) 14%,transparent) 38%,transparent 64%)}
-  @keyframes ebFlotte{from{transform:translateY(-9px) rotate(-1.6deg)}to{transform:translateY(9px) rotate(1.6deg)}}
-  #engBig .ebNum{font-size:58px;line-height:1;color:#fff8dc;letter-spacing:2px;margin:2px 0 -18px;position:relative;z-index:1;
-    text-shadow:0 0 16px rgba(255,215,94,1),0 0 38px rgba(255,160,20,.75),0 4px 0 #7a4e00,0 6px 14px rgba(0,0,0,.6)} /* LE NUMÉRO, comme le badge de Léo : c'est lui qu'on lit en un dixième de seconde */
-  #engBig .ebNum i{display:block;font-style:normal;font-size:10px;letter-spacing:3px;color:#ffd75e;margin-bottom:10px;text-shadow:0 0 10px rgba(255,215,94,.8),0 2px 0 #000}
-  #engBig .ebRayons{position:absolute;left:50%;top:50%;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;opacity:.55;
-    background:repeating-conic-gradient(from 0deg,var(--ec) 0 8deg,transparent 8deg 24deg);
-    -webkit-mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 0,#000 18%,transparent 62%);animation:ebTourne 6s linear infinite}
-  @keyframes ebTourne{to{transform:rotate(360deg)}}
-  #engBig .eb3d{display:block;width:min(380px,92vw);flex:none;height:auto;aspect-ratio:480/321;margin:-6% 0 -10%;image-rendering:auto; /* (2026-09-26) posé SUR la voiture : assez grand pour se lire, sans manger la route */
-    animation:ebFlotte 1.5s ease-in-out infinite alternate;
-    filter:contrast(1.22) saturate(1.4) drop-shadow(0 22px 16px rgba(0,0,0,.5)) drop-shadow(0 0 18px var(--ec))} /* il FLOTTE : il monte, redescend, se balance — l'ombre portée le décolle du décor */ /* (2026-09-25) le MODÈLE 3D du moteur, au cœur de la carte — relevé : la recopie sort pâle */
   #engBig .ebCarte{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;
     font-family:var(--pix);text-align:center;color:#fff} /* plus de fond ni de cadre : le moteur flotte dans le décor */
   #engBig small{font-size:9px;letter-spacing:3px;color:var(--ec);text-shadow:0 2px 0 #000,0 0 10px rgba(0,0,0,.9)}
   #engBig b{font-size:22px;line-height:1.35;letter-spacing:1px;background:linear-gradient(180deg,#fffbe8,#ffd75e 45%,#ff9d2e);
     -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #4d2300)}
-  #engBig .ebDesc{font-size:7px;line-height:1.8;color:#d9d4ff;max-width:280px}
-  #engBig .ebCyl{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
-  #engBig .ebCyl i{width:12px;height:18px;border-radius:4px;background:#2a2268;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
-  #engBig.on .ebCyl i{animation:ebCyl .18s steps(2) forwards}
-  @keyframes ebCyl{to{background:var(--ec);box-shadow:0 0 10px var(--ec),inset 0 -4px 0 rgba(0,0,0,.25)}}
-  #engBig.rec .ebNum{color:#fff;text-shadow:0 0 18px #fff,0 0 46px rgba(255,215,94,1),0 4px 0 #7a4e00}
   #engBig.rec small{color:#ffd75e}
   #engBig em{font-style:normal;font-size:8px;letter-spacing:2px;color:#fff;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.08)}
-  @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,-100%)}#engBig .eb3d{animation:none}}
+  @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,-100%)}}
   /* -- LA JAUGE DE NITRO v3 : vivante -- */
   body.touch #nitroBar{height:24px!important;transition:box-shadow .15s}
   body.touch #nitroBar::after{inset:3px;border-radius:9px;background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%) no-repeat!important;
@@ -1762,7 +1663,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
      Les blocs du 25/09 (contrats, objectif, boutique, fin v3) étaient redescendus à 6-7 px. Press Start 2P est dessinée sur une
      grille de 8 : en dessous, ses pixels tombent ENTRE deux pixels d'écran et bavent. Une variable, pour que la règle ne se perde plus. */
   :root{--fs-min:8px}
-  #misBan .mbTx small,#engBig small,#engBig .ebDesc{font-size:var(--fs-min)!important}           /* « NOUVEAU RANG ! » : sinon le « ! » passe à la ligne à 375 */   /* la bande descend jusqu'au bord bas de la carte */
+  #misBan .mbTx small,#engBig small{font-size:var(--fs-min)!important}           /* « NOUVEAU RANG ! » : sinon le « ! » passe à la ligne à 375 */   /* la bande descend jusqu'au bord bas de la carte */
   /* ======================= LE MOUVEMENT — NIVEAU APP STORE (2026-09-25) =======================
      User : « améliore l'ergonomie, que les transitions entre les écrans soient niveau App Store ». Le passage précédent
      animait tout en `steps()` (« on anime en PIXELS, pas en fondus mous ») : à 6 images par geste, l'œil lit des SACCADES,
@@ -1801,8 +1702,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   /* ================= PASSE DE FINITION (2026-09-26) — audits son · interface · ergonomie · rendu =================
      Dernier bloc : il gagne sur l'historique. Chaque règle dit quel défaut mesuré elle corrige. */
   /* L'AUTO-ÉCOLE SE LIT EN CONDUISANT — la consigne était en 8 px de pixel ; la carte finit bien au-dessus de l'horizon, la place existe */
-  #coach .coTx span{font-size:11px;line-height:1.7}
-  #coach .coTop,#coach .coSkip{font-size:10px}
+  #coach .coSkip{font-size:10px}
   #spNote{font-size:10px}#spNote.on{opacity:1;animation:spBreath2 2.4s ease-in-out infinite}
   @keyframes spBreath2{50%{opacity:.72}}
   /* LA ZONE NITRO — une surface invisible sous le disque : tout le coin bas-droit (hors de la moitié du volant) répond au pouce */
@@ -1811,7 +1711,6 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent} /* sans z-index : le disque, posé après, reste dessus */
   body.touch.tpad #tNitroZone{display:none}
   /* POURQUOI ON EST MORT — sous GAME OVER, dans la même langue pixel, sans voler la vedette au titre */
-  #coach .coTop{align-items:flex-start;line-height:1.6} /* un raté sur deux lignes ne se chevauche plus */
   #slam9.compte.on{animation:slamCompte .3s var(--ease) forwards}
   @keyframes slamCompte{0%{opacity:0;transform:translate(-50%,-50%) scale(1.6)}35%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:1;transform:translate(-50%,-50%) scale(.94)}}
   /* ---- INTERFACE PREMIUM (lot 6) ---- */
@@ -1843,21 +1742,13 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430}
   body #engBig.rec .ebTit{color:#ffd75e}
   body #engBig .ebScene{position:relative;flex:none;width:220px;height:147px;margin:-4px 0 -18px}
-  body #engBig .ebNum{position:absolute;left:-16px;top:10px;z-index:2;margin:0;font-size:40px;line-height:1;letter-spacing:0;text-align:left;color:#fff3b0;
-    text-shadow:3px 0 0 #1c0430,-3px 0 0 #1c0430,0 3px 0 #1c0430,0 -3px 0 #1c0430,3px 3px 0 #1c0430,-3px 3px 0 #1c0430,3px -3px 0 #1c0430,
-      -3px -3px 0 #1c0430,0 7px 0 #1c0430,0 0 20px color-mix(in srgb,var(--ec) 70%,transparent)}
-  body #engBig.rec .ebNum{color:#ffd75e}
-  body #engBig .ebNum i{display:block;font-style:normal;font-size:var(--fs-min);letter-spacing:2px;margin:0 0 7px 3px;color:var(--ec);
-    text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430}   /* 8 px : le contour seul (une épaisseur de 4 px dédoublait le mot) */
   body #engBig .ebCarte>b{position:relative;z-index:2;display:block;font-size:17px;line-height:1.2;letter-spacing:1px;white-space:nowrap;
     background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#ffd75e;-webkit-text-fill-color:currentColor;filter:none;
     text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
       -2px -2px 0 #1c0430,0 5px 0 #1c0430}
   body #engBig .ebCarte>b::after,body #slam9 b::after{content:attr(data-t);position:absolute;left:0;top:0;right:0;pointer-events:none;
     color:#fff3b0;-webkit-text-fill-color:currentColor;text-shadow:none;clip-path:inset(0 0 calc(100% - .225em) 0)}
-  body #engBig .ebCyl{margin:8px 0 0 3px;gap:3px;max-width:50px;justify-content:flex-start}
-  body #engBig .ebCyl i{width:8px;height:10px;border-radius:0;background:#2a2268;box-shadow:inset 0 0 0 2px #1c0430}
-  body #engBig.ruban .ebTit,body #engBig.mini .ebTit,body #engBig.mini .ebNum i{visibility:hidden}
+  body #engBig.ruban .ebTit,body #engBig.mini .ebTit{visibility:hidden}
   body #engBig .ebRuban{position:absolute;left:-18px;right:-18px;top:-14px;z-index:3;display:flex;align-items:baseline;justify-content:center;gap:10px;
     padding:8px 12px 10px;clip-path:var(--oct);transform:rotate(-4deg);
     background:linear-gradient(180deg,#fff3b0 0 3px,#ffd75e 3px 58%,#f0a818 58%);box-shadow:inset 0 0 0 3px #1c0430,inset 0 -6px 0 #b8860b;
@@ -1872,19 +1763,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     background:color-mix(in srgb,var(--ec) 82%,#fff);color:#1c0430;text-shadow:none}
   body #engBig.rec .ebTit{background:#ffd75e;color:#2a0e00}
   body #engBig .ebCarte>b{font-size:22px;margin:0}
-  body #engBig .ebInfo{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}
-  body #engBig .ebPal,body #engBig .ebGain{font-size:10px;letter-spacing:2px;line-height:1;padding:6px 9px;clip-path:var(--oct)}
-  body #engBig .ebPal{color:#fff3b0;background:#1c0430;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ec) 75%,transparent)}
-  body #engBig .ebGain{color:#0b2a14;background:var(--cashV);opacity:0;transform:scale(1.5)}
-  body #engBig.gain .ebGain{animation:ebGain var(--t-slow) var(--ease) both}
-  @keyframes ebGain{0%{opacity:0;transform:scale(1.5)}60%{opacity:1}100%{opacity:1;transform:none}}
-  body #engBig .ebCarte>.ebCyl{position:relative;z-index:2;display:flex;flex-wrap:nowrap;justify-content:center;gap:4px;max-width:none;margin:9px 0 0}
-  body #engBig .ebCarte>.ebCyl i{width:9px;height:12px}
-  body #engBig .ebCarte>.ebCyl.dense{gap:2px}
-  body #engBig .ebCarte>.ebCyl.dense i{width:6px;height:11px}
   body #engBig .ebScene{margin:0 0 -18px}
-  body #engBig.mini .ebInfo{margin-top:6px}
-  @media (prefers-reduced-motion:reduce){body #engBig.gain .ebGain{animation:none;opacity:1;transform:none}}
   /* tant que la carte parle, le couloir se tait (filet de la file) ; pendant la plongée, le geste attend encore */
   body.ebOn #lvlBan,body.ebOn #slam9,body.ebOn #misBan,body.ebOn #launchLogo,body.ebOn #avRec,body.ebPlonge #popTxt{visibility:hidden}
   @media (prefers-reduced-motion:reduce){body #engBig.on .ebCarte,body #engBig.plonge .ebCarte,body #engBig .ebRuban{animation:none}
@@ -2296,7 +2175,6 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
 .mHead::after{content:'';display:block;width:96px;height:4px;margin-left:4px;transform:skewX(var(--sk));background:var(--livree);
   filter:drop-shadow(0 0 6px rgba(255,62,200,.55))}
 .mHead h3::before{content:none}
-.mHead .mSpacer{display:none}
 /* les TITRES DE SECTION : petites capitales espacées, un filet qui file vers la droite */
 .mSec,.tpH{display:flex;align-items:center;gap:12px;width:100%;margin:24px 0 10px;font-family:var(--pix);font-size:var(--f0);letter-spacing:2px;color:var(--tx3);text-align:left}
 .mSec::after,.tpH::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--fil),transparent)}
@@ -2419,8 +2297,6 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 .hNx{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;font-size:var(--f0);line-height:1.8;letter-spacing:1px;color:var(--tx3)}
 .hNx .pxi{--pxs:1;color:var(--tx3)}
 .hNx.hPres{color:var(--au1)}
-.hBar{width:86%;height:6px;margin-top:4px;background:var(--k0);transform:skewX(var(--sk));box-shadow:0 0 0 1px var(--kl)}
-.hBar u{display:block;height:100%;width:0;min-width:6px;background:linear-gradient(90deg,#b34bff,var(--aura));box-shadow:0 0 10px rgba(255,122,213,.6);transition:width 1.1s var(--ease)}
 .hMot{--hc:var(--ec,var(--au2))}
 .hMot3 .hMotCv{display:block;width:128%;max-width:none;height:auto;aspect-ratio:480/321;margin:-12% -14% -8%;
   filter:drop-shadow(0 10px 8px rgba(0,0,0,.45)) drop-shadow(0 0 12px var(--ec));animation:k4Flotte 1.8s var(--ease) infinite alternate}
@@ -2471,8 +2347,6 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 .obBar i,.obBar s{position:absolute;left:0;top:0;bottom:0;display:block}
 .obBar i{background:linear-gradient(90deg,var(--au3),var(--au1));box-shadow:0 0 10px var(--auG);transition:width 1.1s var(--ease);z-index:1}
 .obBar s{background:#7a5a18;opacity:.6;z-index:2}
-.obShop{display:flex;align-items:center;gap:8px;padding-top:4px;font-size:var(--f0);letter-spacing:1px;color:var(--neoC);cursor:pointer}
-.obShop .pxi{--pxs:1}
 #mDead [data-m="replay"]{margin:0}
 #mDead .mEsp{flex:1 0 20px;max-height:64px}                  /* le ressort : REJOUER descend sous le pouce, sans creuser un trou au milieu */
 #mDead{justify-content:center}
@@ -2513,12 +2387,6 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 /* ---------------------------------------------- RÉGLAGES ------------------------------------------------------------ */
 .mSet{display:flex;flex-direction:column;width:100%}
 .mSet>.mSec:first-child{margin-top:0}
-/* chaque section a SA couleur d'icône : l'AUDIO en cyan, le JEU en violet, la SAUVEGARDE en lavande */
-.mWipe{align-self:center;width:auto!important;margin:30px 0 8px;min-height:52px;padding:0 22px;font-size:var(--f1);--nc:var(--neoR);color:var(--neoR);
-  background:var(--laque);text-shadow:0 2px 0 var(--txO);
-  box-shadow:inset 3px 0 0 var(--neoR),inset 34px 0 30px -28px rgba(255,74,100,.7),var(--levre),inset 0 0 0 1px rgba(255,74,100,.18),0 0 0 1px var(--anneau),0 5px 0 0 var(--tranche),0 5px 0 1px var(--anneau),var(--ombreSol)}
-.mWipe .pxi{--pxs:2;color:var(--neoR);filter:none}
-.mWipe:active,.mWipe.appui{box-shadow:inset 3px 0 0 var(--neoR),inset 60px 0 44px -34px rgba(255,74,100,.7),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)}
 
 /* ---------------------------------------------- LA BOUTIQUE -------------------------------------------------------- */
 /* L'OFFRE À LA UNE : une vitrine de légende — cadre magenta qui scintille, la caisse qui flotte sur son socle de lumière */
@@ -2531,8 +2399,6 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 .shUneCadre{position:relative;display:flex;flex-direction:column;gap:12px;padding:18px 18px 18px;overflow:hidden;
   clip-path:polygon(19px 0,100% 0,100% calc(100% - 19px),calc(100% - 19px) 100%,0 100%,0 19px);
   background:radial-gradient(90% 60% at 50% 42%,rgba(255,62,200,.30),transparent 70%),var(--matrice),linear-gradient(180deg,#221044,#0d0820)}
-.shRuban{align-self:flex-start;padding:7px 12px 6px;font-family:var(--pix);font-size:var(--f0);letter-spacing:2px;color:#fff;
-  background:var(--neoM);box-shadow:0 0 0 1px var(--anneau),0 0 16px rgba(255,62,200,.55);text-shadow:0 1px 0 #5a0040}
 .shPhoto{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:36/20}
 .shPhoto::before{content:'';position:absolute;left:4%;right:4%;top:18%;bottom:4%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,62,200,.24),transparent)} /* (2026-09-30) plus de barre rose sous la caisse : une lueur large, derrière (l'ombre et le reflet sont dans la photo) */
 .shPhoto.big::after{content:'';position:absolute;left:50%;top:55%;width:130%;aspect-ratio:1;translate:-50% -50%;z-index:-1;
@@ -2540,8 +2406,6 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
   animation:k4Rayons 40s linear infinite}
 .shPhoto.big{isolation:isolate}
 @keyframes k4Rayons{0%{rotate:0deg}100%{rotate:360deg}}
-.shRemise{position:absolute;right:18px;top:18px;z-index:2;padding:8px 10px 7px;font-family:var(--pix);font-size:var(--f4);color:#fff;
-  background:var(--neoM);box-shadow:0 0 0 1px var(--anneau),0 0 18px rgba(255,62,200,.6);text-shadow:0 2px 0 #5a0040}
 .shPhoto img{position:relative;width:112%;max-width:none;height:auto;animation:k4Flotte 2.4s var(--ease) infinite alternate}
 .shPhoto .pxi{--pxs:6;color:var(--tx3)}
 .shUneTx{display:flex;flex-direction:column;gap:8px;text-align:left}
@@ -2924,10 +2788,6 @@ html.misS #gMis::before{background:repeating-linear-gradient(0deg,rgba(95,240,25
 html.misS #gmFils path{stroke-width:1.2;stroke-dasharray:none;animation:none}
 html.misS #gmFils path.ch{stroke-dasharray:3 6;opacity:.32;animation:gmFlux 2.2s linear infinite} /* la constellation : discrète, elle ne barre plus les cartes */
 html.misS #gmFils path.ch.r{stroke:#ffd75e;opacity:.42}
-html.misS .gmP{display:flex;align-items:center;gap:6px;margin:6px 0 4px}html.misS .gmP u{flex:1;min-width:0;margin:0}html.misS .gmP b{flex:none;font-weight:400;font-size:7px;color:var(--cash,#5ee37a);white-space:nowrap}
-html.misS .gmRw{display:flex;align-items:center;gap:10px;margin:2px 0 4px}   /* la récompense : l'image À GAUCHE, le nom à droite */
-html.misS .gmNext{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(143,132,200,.35);font-size:7px;letter-spacing:1px;color:#b9b2e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html.misS .gmNext .pxi{--pxs:1;color:#8f84c8}
 html.misS #gmHead small{line-height:1.6}
 /* L'ÉCRAN MISSIONS EN LISTE (2026-10-15, Sacha : « plus de petits groupes de trois, l'interface la plus claire possible, toujours dans
    l'écran caméra de surveillance du garage ») — un seul panneau opaque, posé sur la vue caméra (sa trame et son balayage restent autour) :
@@ -3226,11 +3086,7 @@ html body #coach,html body #coach:not(.bravo){border:0!important;border-radius:0
 html body #coach.bravo{border:0!important;border-radius:0!important;
   background:linear-gradient(90deg,rgba(94,227,122,.30),rgba(94,227,122,0) 70%),var(--plaqueH)!important;
   box-shadow:inset 4px 0 0 var(--neoV),inset 0 0 0 2px rgba(94,227,122,.55),var(--filetH)!important}
-html body #coach.bravo .coTx b,html body #coach.bravo .coIco{color:var(--neoV);text-shadow:0 2px 0 var(--txO)}
-html body #coach .coTop,html body #coach .coSkip{color:var(--tx2)}
-html body #coach .coTx span{font-family:var(--pix);font-size:var(--f1);line-height:1.6;font-weight:400;letter-spacing:0;color:var(--tx)}
-html body #coach .coPips i{background:var(--k0);box-shadow:0 0 0 1px var(--kl)}
-html body #coach .coPips i.ok{background:var(--neoV)}
+html body #coach .coSkip{color:var(--tx2)}
 /* l'OBJECTIF DE CAMPAGNE (#campChip) : même plaque, filet à la couleur de l'objectif ; rangé dans la COLONNE DE DROITE, sous la
    case du chrono de vol (centré, il tombait sur la ligne AURA — capture VILLE 4) */
 html body.touch #campChip{left:auto;right:var(--hudD);top:calc(var(--hudH) + 184px);transform:none;max-width:52vw;text-align:left;
@@ -3503,10 +3359,8 @@ html body.touch #airPie.danger{animation:k6PieDanger .12s steps(2) infinite}
   html .mSet>.mSec:nth-child(1),html .mSet>.mPanel:nth-child(2){grid-column:1}
   html .mSet>.mPanel:nth-child(2){grid-row:2/span 6}
   html .mSet>.mSec:nth-child(3){margin-top:0}
-  html .mSet>.mWipe{justify-self:start;margin:22px 0 0 6px}
   html .shGrille{grid-template-columns:repeat(4,minmax(0,1fr))}
   html .shUneCadre{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-areas:"ruban ruban" "photo tx" "photo bas";column-gap:18px;align-items:center}
-  html .shUneCadre .shRuban{grid-area:ruban;justify-self:start}
   html .shUneCadre .shPhoto{grid-area:photo}
   html .shUneCadre .shUneTx{grid-area:tx}
   html .shUneCadre .shUneBas{grid-area:bas}
@@ -3673,7 +3527,6 @@ html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 236px)}
 }
 /* ---- 15. LA VIGNETTE DE L'OBJECTIF (écran de mort, objFig) : à droite du ticket « TU PEUX TE L'OFFRIR », droite (on la lit), sur son
    socle de lumière cyan — la même matière que les vignettes du garage : photo de studio, nuancier, ruban ou aile */
-.mObj.aFig{padding-right:108px}
 .obFig{position:absolute;right:14px;top:50%;width:84px;height:54px;margin-top:-27px;display:flex;align-items:center;justify-content:center;font-style:normal;pointer-events:none;
   background:radial-gradient(60% 40% at 50% 82%,rgba(0,234,255,.3),transparent 72%)}
 .obFig img{width:118%;max-width:none;height:auto;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
@@ -3833,7 +3686,6 @@ html[data-reduced-motion="1"] #mHome .pb-gold,html[data-reduced-motion="1"] #mHo
 html #mDead .hCard.hAura>b{white-space:nowrap;font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))} /* une ligne, toujours : la police pixel a des chasses de 1 em */
 html #mDead .mStat.mFren.zero b{color:var(--tx3);text-shadow:0 2px 0 var(--txO)} /* pas de frénésie : une case éteinte, pas une alarme */
 .obFig .obRub+.pxi{--pxs:2;margin-left:-3px;color:var(--tx)}  /* le ruban part d'une caisse */
-.hBar.hMax u{background:linear-gradient(90deg,var(--au2,#ffb000),var(--au1,#ffd75e));box-shadow:0 0 10px rgba(255,215,94,.55)} /* le rang maximum : la jauge pleine est d'OR */
 @media (orientation:landscape) and (max-height:540px){
   html #mDead .mOver{align-self:end}             /* le verdict et sa cause se tiennent (la rangée de l'objectif les écartait) */
   html #mDead .mCause{align-self:start}
@@ -4072,7 +3924,7 @@ html #carr .carrBiome .mmT::after{background:var(--neoC)}
 .gR{position:relative}
 .gR::after{content:'';position:absolute;left:0;right:0;top:-4px;bottom:-4px}
 /* les PHRASES : plus de mot orphelin en fin de paragraphe (« comment. » seul sur sa ligne), invite de l'écran titre équilibrée */
-#mob .mmD,#mob .shUneTx span,#modX,#gDesc,.misRegle,#carr .mmD{text-wrap:pretty}
+#mob .mmD,#mob .shUneTx span,#modX,#gDesc,#carr .mmD{text-wrap:pretty}
 #spNote{text-wrap:wrap} /* (29/09) pas de balance ici : elle coupait « TOUCHE CASH CAR — LE / SON… » (article orphelin) ; au remplissage, « — LE SON » reste ensemble */
 /* (reprise) les FILTRES d'habillage tiennent à trois dans la largeur d'un téléphone (« A ACHETER 5 » était coupé contre le bord, dans le
    fondu) ; À ACHETER en cyan (« aller voir ») — en vert billet il se confondait avec À MOI, vert néon */
@@ -4111,7 +3963,6 @@ html #mDead .mHero{margin-top:18px}
   html #mDead .hCard.hAura>b{font-size:min(var(--f7),calc((100cqi - 18px) / var(--n,6)))}
   html #mDead .hMot3 .hMotCv{width:76%;margin:-7% 0 -6%}
   html #mDead .hMotN{font-size:var(--f6)}
-  html #mDead .hBar{margin-top:2px}
   html #mDead .mObj{grid-area:obj;align-self:start;margin:0}
   html #mDead .mCashL{grid-area:cash;align-self:end;margin:0}
   html #mDead .mStats{grid-area:stats;align-self:end}
@@ -4185,13 +4036,10 @@ html body #tRight{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,
   html #mShop .shUneCadre .shPhoto img{height:112px}
   html #mShop .shUneTx span{font-size:12px;line-height:1.4}
   html #mShop .shCase{padding:9px 10px 10px;gap:6px}
-  html #mShop .shRemise{top:10px;right:12px}
   html #mShop .shUneTx{margin-top:12px}
 }
 /* « AFFICHAGE AGRANDI » d'iOS et petits iPhone (320 pt de large) — mesuré au banc 320 × 693 */
 @media (max-width:360px){
-  .shRuban{letter-spacing:0;padding:6px 8px 5px}
-  .shRemise{font-size:var(--f3);padding:6px 8px 5px;right:12px}
   .shUneBas{flex-wrap:wrap;gap:6px 10px}
   .shUneBas s,.shUneBas em{white-space:nowrap}
   #mDead .mStat span{white-space:normal;line-height:1.5}
@@ -4210,9 +4058,6 @@ html body #tRight{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,
   html .carrBiome .mmT{flex-wrap:wrap;row-gap:8px}
   html .carrBiome .mmT>span:first-child{flex:1 0 100%}
   html .carrBiome .mmT>.mmP{margin-left:0}
-  /* boutique : ruban et -50 % ne se touchent plus dans la colonne de la vitrine */
-  html #mShop .shRuban{letter-spacing:0;padding:6px 8px 5px}
-  html #mShop .shRemise{font-size:var(--f3);padding:6px 8px 5px}
 }
 /* ---- 26. LES DIX PREMIÈRES MINUTES (2026-09-29, audit d'un joueur neuf) ---- */
 /* PASSER demande : « VRAIMENT ? » en rouge (le destructeur), l'en-tête dit en or ce qu'on laisse */
@@ -4592,7 +4437,6 @@ html body #avList li:first-child{--tc:#ffd75e}
 html body #pwrChip .pw span small{--tc:#ece6ff}
 html body #tSteerHint{--tc:#c9bdf0}
 html body #misBan .mbTx small{--tc:var(--mbC,#62e062)}
-html body #coach .coTx b{--tc:var(--or,#ffd75e)}
 html body #campChip b{--tc:var(--cc,#fff7ee)}
 html body #campChip small{--tc:#c9bdf0}
 html body #tNitro span{--tc:#fff3e0}
@@ -4694,7 +4538,6 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
 /* le contenu */
 .spRare{align-self:flex-start;padding:5px 8px 4px;font-family:var(--pix);font-size:var(--f0);line-height:1;letter-spacing:2px;color:var(--neoM);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--neoM) 60%,transparent)}
-.spCarte .spRemise{top:16px;right:18px;font-size:var(--f3)}
 .spCarte .shPhoto{margin:0 -8px}
 .spCarte .shPhoto img{width:108%}
 .spNom{font-family:var(--pix);font-weight:400;font-size:var(--f6);line-height:1.4;letter-spacing:1px;color:var(--tx);
@@ -4974,7 +4817,6 @@ html body #engBig.on .ebCarte{animation:daEbVie .22s var(--ease) both}
 @media (prefers-reduced-motion:reduce){html body #engBig.on .ebCarte{animation:none}}
 html[data-reduced-motion="1"] body #engBig.on .ebCarte{animation:none}
 html body #engBig.mini .ebTit{visibility:inherit!important}   /* l'étiquette reste (la vieille règle la taisait sous .8) ; inherit : elle part avec la carte */
-html body #engBig .ebInfo,html body #engBig .ebCyl{display:none!important}
 html body #engBig .ebRuban{top:-22px!important;left:-10px!important;right:-10px!important}
 /* ---- 8. LE ⏸ DE COURSE, DANS LA FAMILLE (2026-09-30, session SON) — Sacha : « le bouton pause n'a pas le même design pixel que le reste
    de l'HUD ». La plaque était déjà sœur de la NITRO (laque, bande à gauche, tranche) ; c'est le PICTOGRAMME qui détonnait : deux barres
@@ -5345,7 +5187,7 @@ html body #garage:not(.menu) .gTab.on:is(:active,.appui){background:linear-gradi
   background:radial-gradient(120% 95% at 50% 52%,rgba(7,5,15,0) 48%,rgba(7,5,15,.28) 74%,rgba(7,5,15,.6) 100%)}
 @media (orientation:landscape){#gVig{background:radial-gradient(95% 125% at 34% 60%,rgba(7,5,15,0) 44%,rgba(7,5,15,.3) 72%,rgba(7,5,15,.62) 100%)}}
 /* (même soir, Léo : « mets le bouton home en haut à droite avec les settings ») #gClose était caché ici — (2026-10-06) il revient en bas : voir LE SHOP COUPÉ */
-#gvNiv,#gvMis,#gvCof,#gvLvls{display:none} /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
+#gvMis,#gvCof{display:none} /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
 /* (2026-10-05, Léo : « missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance et leur titre — vignette
    avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus ») : MISSIONS prend la place BRANCHÉE
    sous JOUER (les deux conducteurs d'or où le courant monte, le flux qui court sur sa tranche) ; le NIVEAU devient une VIGNETTE illustrée
@@ -5819,7 +5661,6 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!importan
   -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent)} /* (même jour) une GRILLE qui défile vers le BAS : on en voit une rangée et demie, le bas se fond — il y a une suite, pas tout le catalogue */
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.finBas{-webkit-mask:none;mask:none}
 html body #garage.consoleCachee:not(.menu):not(.vitrine) #gStrip.fnBande{display:none!important} /* (2026-10-10, Léo : « le shop, quand je rappuie dessus, ne disparaît pas ») la grille de la vitrine (display:grid!important) passait devant le repli */
-#gStrip.fnBande .fnSecOr{color:#ffd75e}#gStrip.fnBande .fnSecOr s{background:linear-gradient(90deg,rgba(255,215,94,.6),transparent)}
 /* LA PORTE DES OFFRES (2026-10-10, Léo : « juste sous LIMITED OFFERS, le carré avec les voitures payantes, qui mène à l'écran rose ») : en tête
    de la boutique du jour, une plaque d'or sur toute la largeur — OFFRES, « toutes les voitures payantes », le nombre, trois d'entre elles en
    éventail. Touchée : la page OFFRES de l'accueil (gOffresPage). Voir « LA BOUTIQUE DU GARAGE, SON PLAN ». */
@@ -5829,15 +5670,6 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte{position:rel
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 #gStrip.fnBande .fnPorte>*{pointer-events:none}
 #gStrip.fnBande .fnPorte .fnFond{opacity:.35}
-#gStrip.fnBande .fpPh{position:absolute;top:22px;bottom:0;right:-4%;width:46%}
-#gStrip.fnBande .fpPh i{position:absolute;top:50%;width:52%;transform:translate(-50%,-50%) skewX(calc(-1 * var(--sk)))}
-#gStrip.fnBande .fpPh i:nth-child(1){left:30%;top:58%;z-index:1}#gStrip.fnBande .fpPh i:nth-child(2){left:56%;top:40%;z-index:2;width:62%}#gStrip.fnBande .fpPh i:nth-child(3){left:82%;top:60%;z-index:1}
-#gStrip.fnBande .fpPh img{display:block;width:100%;height:auto;filter:drop-shadow(0 5px 4px rgba(0,0,0,.6))}
-#gStrip.fnBande .fpT{position:absolute;left:14px;top:12px;z-index:3;display:flex;align-items:center;gap:8px;font-weight:400;font-size:var(--f3);letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 rgba(7,5,15,.95),0 0 10px rgba(255,194,58,.55)}
-#gStrip.fnBande .fpT .pxi{--pxs:2;color:#ffd75e}
-#gStrip.fnBande .fpS{position:absolute;left:14px;top:38px;z-index:3;width:56%;font-size:var(--f0);line-height:1.6;letter-spacing:1px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.95)}
-#gStrip.fnBande .fpN{position:absolute;left:14px;bottom:10px;z-index:3;display:flex;align-items:center;gap:6px;font-style:normal;font-size:var(--f0);letter-spacing:1px;color:#ffd75e;text-shadow:0 1px 0 rgba(7,5,15,.95)}
-#gStrip.fnBande .fpN .pxi{--pxs:1;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;margin:0 -4px 0 -6px;pointer-events:auto;cursor:pointer;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour .pxi{--pxs:2;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnCompte{color:#ffd75e}
@@ -6111,15 +5943,11 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
 /* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
-#gBqFlash{position:fixed;inset:0;z-index:59;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--fx,50%) var(--fy,45%),#fff 0,#fff 34%,rgba(255,255,255,.95) 62%,rgba(250,251,253,.9) 100%)}
-#gBqFlash.go{animation:bqEclat var(--d,.6s) cubic-bezier(.3,.7,.3,1) forwards}
-@keyframes bqEclat{0%{opacity:0}22%{opacity:1}100%{opacity:0}}
 #gBqTete{position:absolute;left:16px;right:16px;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
 @keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
 #gBqTete .bqT1{display:flex;flex-direction:column;align-items:flex-start;gap:9px}
 #gBqTete .bqT1 b{display:block;font-weight:400;font-size:18px;letter-spacing:4px;color:#14171c}
 #gBqTete .bqTl>b::after{content:'';display:block;width:26px;height:3px;margin-top:8px;background:#3d4bff}
-#gBqTete .bqSel{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 #gBqTete .bqRar{display:inline-flex;align-items:center;gap:6px;font-size:8px;letter-spacing:2px;color:#8a929c}
 #gBqTete .bqRar::before{content:'';width:7px;height:7px;background:var(--rc)}
 #gBqTete .bqNom{font-size:10px;letter-spacing:1px;color:#14171c}
@@ -6131,38 +5959,6 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqTete .bqArg{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.06);color:#14171c;font-size:11px;letter-spacing:1px}
 #gBqTete .bqArg b{font-weight:400}
 #gBqTete .bqArg .pxi{--pxs:2;color:#14171c}
-/* À LA UNE : le bandeau qui défile (la piste est doublée : elle boucle sans couture) */
-#gBqUne{position:absolute;display:none;flex-direction:column;gap:8px;pointer-events:none;font-family:var(--pix)}
-#gBq.pan #gBqUne{display:flex;animation:bqPan .5s var(--ease) .3s both}
-#gBqUne .bqUt{display:flex;align-items:center;gap:10px;padding:0 16px}
-#gBqUne.cote .bqUt{padding:0}
-#gBqUne .bqUt b{display:flex;align-items:center;gap:8px;font-weight:400;font-size:8px;letter-spacing:2px;color:#14171c}
-#gBqUne .bqUt b::before{content:'';width:14px;height:2px;background:#3d4bff}
-#gBqUne .bqUt em{margin-left:auto;display:flex;align-items:center;gap:5px;font-style:normal;font-size:8px;letter-spacing:1px;color:#8a929c;font-variant-numeric:tabular-nums}
-#gBqUne .bqUt em .pxi{--pxs:1;color:#8a929c}
-#gBqUne .bqUv{overflow:hidden;pointer-events:auto;-webkit-mask:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
-#gBqUne .bqUr{display:flex;gap:10px;width:max-content;padding:2px 10px 8px 0;animation:bqDefile calc(var(--n,7) * 3.4s) linear infinite}
-#gBqUne .bqUv:is(:hover,:active) .bqUr{animation-play-state:paused}
-@keyframes bqDefile{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-#gBqUne .bqU{position:relative;flex:none;width:116px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #e1e4e8,0 6px 16px rgba(30,40,55,.06);cursor:pointer;transition:translate .15s,box-shadow .15s}
-#gBqUne .bqU::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--rc)}
-#gBqUne .bqUf{height:52px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#fbfbfc,#f1f3f5)}
-#gBqUne .bqUph{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
-#gBqUne .bqUph img{width:116%;max-width:none}
-#gBqUne .bqUf .bqSw{width:24px;height:24px;box-shadow:0 0 0 1px rgba(20,23,28,.15),inset 0 0 0 2px rgba(255,255,255,.35)}
-#gBqUne .bqUf .bqRub{width:46px;height:8px;box-shadow:0 0 0 1px rgba(20,23,28,.15)}
-#gBqUne .bqUf .pxi{--pxs:2;color:#14171c}
-#gBqUne .bqUl{position:absolute;top:5px;left:5px;padding:3px 5px;font-size:8px;letter-spacing:1px;background:#14171c;color:#fff}
-#gBqUne .bqU.lim .bqUl{background:#3d4bff}
-#gBqUne .bqUn{padding:6px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#gBqUne .bqUp{display:flex;align-items:center;gap:4px;padding:5px 7px 8px;font-size:8px;color:#14171c;white-space:nowrap}
-#gBqUne .bqUp .pxi{--pxs:1;color:#14171c}
-#gBqUne .bqU.lim .bqUp{color:#3d4bff}
-#gBqUne .bqUp.acq{color:#8a929c}
-#gBqUne .bqU.sel{box-shadow:0 0 0 2px #14171c,0 8px 18px rgba(30,40,55,.14)}
-#gBqUne.cote .bqU{width:104px}
-#gBqUne.cote .bqUf{height:44px}
-@media (prefers-reduced-motion:reduce){#gBqUne .bqUr{animation:none}}
 /* LES RAYONS DE LA BOUTIQUE (2026-10-15, Sacha : « enlève CETTE SEMAINE ; à la place, les pictogrammes — voiture, peinture, aile, traînée,
    figure — qui sont pour l'instant dans une petite flèche ultra cachée ; on clique dessus, on arrive dans l'onglet ») : la colonne de gauche
    = un rayon par ligne, pictogramme + nom, le rayon ouvert en noir avec son liseré bleu. ACHAT (les caisses payantes) a son panier bleu.
@@ -6212,37 +6008,12 @@ html:not([lang=fr]) #gBqTete .bqLim::before,html:not([lang=fr]) #gBqNom .bqLim::
 #gBqTete .bqTl .bqArg{padding:7px 10px;font-size:10px;align-self:flex-start;margin-top:-4px}
 #gBqTete .bqTl .bqArg b{display:inline;font-size:10px;letter-spacing:1px}
 #gBqTete .bqTl .bqArg .pxi{--pxs:1}
-#gBqPan .bqOng button .pxi{--pxs:1;color:currentColor}
-#gBqPan .bqOng button[data-o="cat"]{gap:7px}
-#gBqPan .bqChev{display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;margin-left:2px;transition:rotate .2s}
-#gBqPan.menu .bqChev{rotate:180deg}
 #gBqPan{position:absolute}
-#gBqPan .bqMenu{position:absolute;left:4px;top:52px;z-index:5;display:none;flex-direction:column;min-width:200px;padding:4px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 18px 40px rgba(20,23,28,.18);pointer-events:auto}
-#gBqPan.menu .bqMenu{display:flex;animation:bqMenu .18s var(--ease) both}
-@keyframes bqMenu{from{opacity:0;translate:0 -6px}to{opacity:1;translate:0 0}}
-#gBqPan .bqMenu button{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 12px;border:0;background:none;font-family:var(--pix);font-size:9px;letter-spacing:2px;color:#14171c;cursor:pointer;text-align:left}
-#gBqPan .bqMenu button .pxi{--pxs:2;color:#14171c}
-#gBqPan .bqMenu button i:not(.pxi){margin-left:auto;font-style:normal;font-size:8px;color:#3d4bff}
-#gBqPan .bqMenu button.on{background:#14171c;color:#fff}
-#gBqPan .bqMenu button.on .pxi{color:#fff}
 #gBqPan .bqK.hab .bqKph .bqSw{width:30px;height:30px;box-shadow:0 0 0 1px rgba(20,23,28,.15),inset 0 0 0 2px rgba(255,255,255,.35)}
 #gBqPan .bqK.hab .bqKph .bqRub{width:62%;height:10px;box-shadow:0 0 0 1px rgba(20,23,28,.15)}
 #gBqPan .bqK.hab .bqKph .pxi{--pxs:3;color:#14171c}
 #gBqPan .bqK .bqKph .pxi.bqTrIc{filter:drop-shadow(1px 1px 0 rgba(20,23,28,.6))} /* (2026-10-16, TRAÎNÉES) le pictogramme d'une traînée garde SA couleur sur la salle blanche : un trait d'ombre dur (pixel) pour que le menthe et l'or se lisent sur le blanc */
 #gBqPan .bqK .bqKp.pc{color:#14171c}
-/* (2026-10-12) À LA UNE EN COLONNE, sur le bord : le titre et le compte à rebours en tête, les objets montent en boucle */
-#gBqUne.vert{gap:10px}
-#gBqUne.vert .bqUt{flex-direction:column;align-items:flex-start;gap:7px;padding:0;white-space:nowrap}
-#gBqUne.vert .bqUt b{letter-spacing:1px}
-#gBqUne.vert .bqUt b::before{width:8px}
-#gBqUne.vert .bqUt em{letter-spacing:0}
-#gBqUne.vert .bqUt em{margin-left:0}
-#gBqUne.vert .bqUv{flex:1;min-height:0;-webkit-mask:linear-gradient(180deg,transparent,#000 6%,#000 92%,transparent);mask:linear-gradient(180deg,transparent,#000 6%,#000 92%,transparent)}
-#gBqUne.vert .bqUr{flex-direction:column;width:auto;padding:4px 2px 10px;animation-name:bqDefileV}
-@keyframes bqDefileV{from{transform:translateY(0)}to{transform:translateY(-50%)}}
-#gBqUne.vert .bqU{width:auto}
-#gBqUne.vert .bqUf{height:46px}
-#gBqUne.vert .bqUl{top:4px;left:4px;padding:2px 4px}
 /* LA BOUTIQUE EN GRILLE (debout comme couché) : trois de large, elle défile vers le bas */
 #gBqPan.grille .bqRail{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;min-height:0;flex:1;align-content:flex-start;scroll-snap-type:y proximity}
 #gBqPan.grille .bqK,#gBqPan.grille .bqK.off{width:calc((100% - 20px) / 3)}
@@ -6287,11 +6058,6 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan{position:absolute;display:none;flex-direction:column;justify-content:flex-end;gap:12px;pointer-events:none}
 #gBq.pan #gBqPan{display:flex;animation:bqPan .5s var(--ease) .2s both}
 @keyframes bqPan{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
-#gBqPan .bqOng{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.8);box-shadow:0 0 0 1px #dde1e6;pointer-events:auto}
-#gBqPan .bqOng button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 6px;border:0;background:none;font-family:var(--pix);font-size:9px;letter-spacing:2px;color:#7f8893;cursor:pointer}
-#gBqPan .bqOng button.on{background:#14171c;color:#fff}
-#gBqPan .bqOng button i{font-style:normal;font-size:8px;color:#3d4bff}
-#gBqPan .bqOng button.on i{color:#9aa3ff}
 #gBqPan .bqRail{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;scroll-snap-type:x proximity;touch-action:pan-x;overscroll-behavior:contain;pointer-events:auto;scrollbar-width:none}
 #gBqPan .bqRail::-webkit-scrollbar{display:none}
 #gBqPan.cote .bqRail{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;min-height:0;flex:1;align-content:flex-start;scroll-snap-type:y proximity}
@@ -6315,10 +6081,9 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan.cote .bqK .bqKph,#gBqPan.cote .bqK.off .bqKph{height:46px}
 #gBqPan.cote .bqK .bqKl{top:4px;left:4px;padding:3px 4px}
 #gBqPan.cote{gap:9px}
-#gBqPan.cote .bqOng button{min-height:34px}
 #gBqPan .bqK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.16);translate:0 -2px}
 #gBqPan .bqK:is(:active,.appui){translate:0 2px}
-@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete,#gBqFlash.go{animation:none}}
+@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete{animation:none}}
 /* RETOUR et ACHETER, aux couleurs du magasin : droits, noir et orange */
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat){background:rgba(255,255,255,.92)!important;background-image:none!important;outline:2px solid #16181c;outline-offset:-2px;box-shadow:0 5px 0 rgba(10,11,13,.35)!important;filter:none!important;clip-path:none!important;transform:none!important;translate:none!important;color:#fff}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::before,html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::after{display:none!important}
@@ -6833,8 +6598,6 @@ html body.touch #nitroBar.boost #nitroR::after,html body.touch #nitroBar.inf #ni
 html body.touch #nitroFeu{display:none!important}
 /* ---- 2. LA JAUGE D'AURA = la barre flow d'origine ---- */
 #ajVols{display:none}
-/* l'aura qui arrive : la cellule en cours s'éclaire, la barre bat */
-@keyframes ajBat{0%{scale:1 1.3}100%{scale:1 1}}
 /* ---- 3. LE FLOW EN TOUT PETIT, juste dessous (toute sa logique intacte) ---- */
 html body.touch #flowHud{top:calc(var(--hudH) + 69px)!important;right:calc(var(--hudD) + 70px)!important;padding:0 var(--nxV) 0 34px!important;
   grid-template-rows:6px!important;gap:0!important}
@@ -6974,8 +6737,6 @@ html body.touch.play.figVol #tFig{display:flex;position:fixed;z-index:3;gap:var(
 .tFigB.non{--fgC:var(--neoR);animation:fgNon var(--t-slow) steps(4)}
 @keyframes fgNon{25%{margin-left:-5px}50%{margin-left:5px}75%{margin-left:-3px}}
 @media (prefers-reduced-motion:reduce){html body.touch.play.figVol #tFig,.tFigB.boum,.tFigB.non{animation:none}}
-/* L'INVENTAIRE : une figure équipée porte le NUMÉRO de son emplacement (là où les autres objets ont leur coche) */
-.ivT u .ivNum{display:block;font-style:normal;font-family:var(--pix);font-size:var(--f1);line-height:1;min-width:10px;text-align:center}
 </style>
 <style id="figuresHud">
 /* ===== LE HUD DES FIGURES v3 (2026-10-15, Sacha : « retravaille l'HUD pour le système de figure, il est buggé et trop discret ; enlève certaines
@@ -7015,15 +6776,12 @@ body.fhOn #lvlBan{visibility:hidden} /* une voix en haut : la figure passe devan
 /* LA LIGNE DU COMBO : les pastilles (une par figure plantée, la couleur de son emplacement) et le × */
 #fh .fhLigne{display:flex;align-items:center;justify-content:center;gap:10px;max-width:100%;min-height:calc(var(--fhXs) * 1.2)}
 #fh .fhCs{display:flex;gap:6px;flex-wrap:nowrap}
-#fh .fhC{--cc:var(--fh0);display:block;font-style:normal;font-size:var(--fhCh);line-height:1;letter-spacing:1px;padding:6px 8px 5px;color:var(--cc);
-  background:var(--fhE);box-shadow:inset 0 0 0 2px var(--cc),inset 0 3px 0 rgba(255,255,255,.14),0 0 14px color-mix(in srgb,var(--cc) 45%,transparent);clip-path:var(--fhCoupe)}
 #fh .fhX{--xc:var(--fh0);font-style:normal;font-size:var(--fhXs);line-height:1;letter-spacing:1px;color:var(--xc);
   text-shadow:var(--fhBord2),0 0 16px color-mix(in srgb,var(--xc) 70%,transparent)}
 #fh .fhX:empty{display:none}
 #fh .fhX.max{animation:fhMax .48s steps(1) infinite}
 @keyframes fhMax{0%{color:var(--fh1)}33%{color:var(--fh2)}66%{color:var(--fh0)}}
-#fh.paye .fhC{--cc:var(--fh0)}
-#fh.perdu .fhC,#fh.perdu .fhX{--cc:var(--fhKo);--xc:var(--fhKo);animation:none}
+#fh.perdu .fhX{--cc:var(--fhKo);--xc:var(--fhKo);animation:none}
 /* LE RAPPEL : ↑ figure 1 · ◄► figure 2 — en vol seulement, à côté de NITRO (la place des anciens boutons) ; on le lit, on ne le touche pas */
 #fhLeg{display:none}
 html body.touch.play.figVol.figDir #tFig{display:none!important}
@@ -7434,20 +7192,10 @@ html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr{font-size:8px;top:4px;r
 html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKr.lg{font-size:8px;padding:3px 4px 2px} /* (2026-10-15) LÉGENDAIRE (10 lettres) débordait de sa carte et se coupait */
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr.lg{font-size:7px;padding:2px 3px 1px}
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKp{padding:4px 5px 7px}
-html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl,html:not(.c6):not(.ux8g) #gBqUne .bqUl{font-size:8px}
-html:not(.c6):not(.ux8g) #gBqUne .bqUt b{font-size:10px;letter-spacing:1px}
-html:not(.c6):not(.ux8g) #gBqUne .bqUt em{font-size:10px}
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl{font-size:8px}
 html:not(.c6):not(.ux8g) #gBqNom .bqRar{font-size:10px;letter-spacing:1px}
 html:not(.c6):not(.ux8g) #gBqNom .bqRar::before{width:9px;height:9px}
 html:not(.c6):not(.ux8g) #gBqNom .bqNom{font-size:14px;letter-spacing:1px}
-/* LES ONGLETS : rien ne se coupe (la flèche de VOITURES reste celle de Léo) */
-html:not(.c6):not(.ux8g) #gBqPan .bqOng button{min-width:0;white-space:nowrap;font-size:10px;letter-spacing:1px;gap:6px;padding:0 4px;min-height:44px}
-html:not(.c6):not(.ux8g) #gBqPan .bqOng button .bqOc{overflow:hidden;text-overflow:clip}
-html:not(.c6):not(.ux8g) #gBqPan .bqOng button i{font-size:10px}
-html:not(.c6):not(.ux8g) #gBqPan .bqOng button[data-o="cat"]{flex:1.35}
-html:not(.c6):not(.ux8g) #gBqPan .bqMenu button{font-size:10px;letter-spacing:1px;min-height:44px}
-html:not(.c6):not(.ux8g) #gBqPan .bqMenu button i:not(.pxi){font-size:10px}
-@media (max-width:380px){html:not(.c6):not(.ux8g) #gBqPan .bqOng button{font-size:9px;letter-spacing:0}}
 /* L'ACTION SUIT L'ÉTAT : ACHETER (or) · ÉQUIPER · ÉQUIPÉE ✓ (discret) · IL TE MANQUE (éteint) */
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn{font-size:11px;letter-spacing:1px;gap:8px;flex-wrap:nowrap;white-space:nowrap;position:relative;overflow:hidden}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b{font-size:12px;letter-spacing:0}
@@ -7552,9 +7300,7 @@ html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) tran
 /* ===== 4. L'ÉCRAN DE FIN — OFFRES · REGLAGES partent ; une seule plaque d'or ; textes lisibles ; la place de la SECONDE CHANCE ===== */
 html:not(.c6) #mDead>.mRow{display:none}
 html:not(.c6) #mDead .mOver{white-space:normal;overflow-wrap:anywhere;min-width:0}
-html:not(.c6) #mDead .hCard small,html:not(.c6) #mDead .hAura>span,html:not(.c6) #mDead .hCard em,html:not(.c6) #mDead .hNx,html:not(.c6) #mDead .hMotN i,
-html:not(.c6) #mDead .mCause,html:not(.c6) #mDead .mNew,html:not(.c6) #mDead .mCashL span,html:not(.c6) #mDead .mCashL small,html:not(.c6) #mDead .mCashL em.mCashRec,
-html:not(.c6) #mDead .obHd,html:not(.c6) #mDead .obFt,html:not(.c6) #mDead .obShop{font-size:var(--f1)}
+html:not(.c6) #mDead .hCard small,html:not(.c6) #mDead .hAura>span,html:not(.c6) #mDead .hCard em,html:not(.c6) #mDead .hNx,html:not(.c6) #mDead .hMotN i,html:not(.c6) #mDead .mCause,html:not(.c6) #mDead .mNew,html:not(.c6) #mDead .mCashL span,html:not(.c6) #mDead .mCashL small,html:not(.c6) #mDead .mCashL em.mCashRec,html:not(.c6) #mDead .obHd,html:not(.c6) #mDead .obFt{font-size:var(--f1)}
 html:not(.c6) #mDead .mStat span{font-size:var(--f1);letter-spacing:0;line-height:1.4;text-align:center;white-space:normal}
 html:not(.c6) #mDead .mFin>.pbCarre{flex:none;width:56px;min-width:56px;min-height:56px;padding:0}
 html:not(.c6) #mDead #mChance{order:2;margin:14px 0 0;width:100%;min-height:52px;font-size:var(--f1)}
@@ -7830,7 +7576,6 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
    (#spPhi) — c'est le logo, et la police pixel n'a pas de φ. Les textes des canvas ont leur filet (UNE_POLICE, premier script du body). */
 *,*::before,*::after{font-family:var(--pix)!important}
 ::placeholder{font-family:var(--pix)!important}
-#spPhi{font-family:"Times New Roman",Georgia,serif!important}
 </style>
 <style id="missionsV2">
 /* LES MISSIONS v2 — L'ÉCRAN (2026-10-16, Sacha : « un écran MISSIONS magnifique, bâti à partir de la vue garage » · « une seule liste,
