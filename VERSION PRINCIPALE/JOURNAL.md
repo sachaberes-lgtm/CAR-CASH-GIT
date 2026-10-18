@@ -3,6 +3,19 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VETTE : SES ESCAMOTABLES SE LÈVENT À LA NITRO, ET FERMÉS ELLE N'ÉCLAIRE PLUS (2026-10-18, v661, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phare que quand tu boost »)
+- VU AVANT (banc muet, boutique couchée) : les phares de LA VETTE sont des escamotables rangés à plat dans le capot, mais son point de phare
+  (`hl`) était posé SUR le capot : en boutique, de face, le halo des phares (HALO.h) brillait par-dessus les couvercles fermés (0,9).
+- LES ESCAMOTABLES (SHAPES.d_vette) : le couvercle soudé devient un BOÎTIER par côté — dessus le couvercle rouge (fermé, il affleure comme
+  avant), dessous la face noire et ses DEUX PHARES RONDS (cerclage chromé, glace). À la NITRO il pivote d'un bloc (101° autour d'un axe calculé
+  pour que la face se dresse droite au bord avant du logement), le couvercle passe derrière : les quatre yeux de la C3. Le logement noir reste
+  dans la caisse. Au garage, en boutique, au menu : fermés ; pas de clin d'œil (celui de LA CERISE). `dbgPhares(1|0|null)` les force.
+- `CAR_PHK` (nouveau, à côté de HALO) : combien les phares de la caisse sont levés, 0 → 1 ; null = phares fixes (toutes les autres caisses,
+  rien ne change pour elles). Il multiplie le halo des phares et leur nappe au sol (carVit) et leur lumière sur la route (`LUM.hl`, lumTick).
+  buildCar le remet à null ; `dbgLum().phK` le lit. LA CERISE et LE TOFU (escamotables de Léo) ne le posent pas : leur lumière reste comme avant.
+- MESURÉ (banc muet) : boutique fermée halo 0 (phK 0), forcée levée halo 0,9 ; course de nuit (pilote auto) sans nitro phK 0 et phares 0,
+  nitro tenue phK 1 en 0,5 s et phares 0,99, lâchée phK 0. Aucune erreur.
+
 ## LES PROFONDEURS — LES BIOMES DE GROTTE DE MINECRAFT, DANS LA DA DU JEU (2026-10-18, Sacha : « fais une nouvelle map en mode dans les grottes, en mode minecraft mais ça bien, mets-toi dans la peau d'un designer senior de jeu vidéo et fais un truc parfait » · au premier banc, en cubes : « non arrête ça fait pas minecraft — je veux une grotte, les biomes de grotte dans minecraft, mais avec la même DA que les autres maps »)
 - **L'idée** : une DESCENTE sous la terre à travers les biomes de grotte de Minecraft, chacun SA lumière — l'œil sait toujours où il est, et la
   roche qui défile à côté de la caisse donne la vitesse. 0 · L'ENTRÉE ET LA MINE (galerie carrée, cadres de bois, torches) · 1 · LA GROTTE
