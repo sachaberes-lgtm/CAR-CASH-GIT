@@ -180,6 +180,24 @@
 - ⚠ Le studio du jeu (`dbgEssaiCaisse`) BLANCHIT les teintes claires (l'ancienne BULLE aussi) : juger une couleur en course ou au garage.
 - Planche : `photos-gameplay/bulle-vraie-et-nous.png` (vraie | avant | après | en course). Noms : LA BULLE (gardé) · LA DRAGÉE · LE SCARABÉE.
 
+## LA CABOSSÉE — LA VOITURE DES SIMPSON, « IDENTIQUE » (2026-10-18, discussion BOÎTES ; Léo : « la voiture des Simpson, identique »)
+- **Le gabarit** : `SHAPES.simpson=(function(){…})()` à sa ligne-repère + `ECH_POTS.simpson` (un pot à droite) + le nom anglais
+  (`Object.assign(I18N,{'LA CABOSSÉE':'THE BEATER',…})`, dans le même emplacement). Fiche (index 79) : h 1,56 · w 1,84 · l 4,95, rose lilas
+  `0xd090d0`. ⚠ Dessin protégé (comme le CHAT POP-TART) : Léo est prévenu.
+- **Les références** (pas de plan coté) : Wikisimpsons « Pink Sedan » (la capture d'origine, la version Tapped Out, et le texte : « minor damage
+  on the LEFT front fender (never repaired) », « a bent up radio aerial », rétro parfois, plaque sans inscription ; « 1986 Plymouth
+  Junkerolla », dessin venu de la Valiant et de la Fiat 1500), l'affiche officielle récente (Fortnite) et les versions 3D (Hit & Run, Rocket
+  League). Couleur relevée au pixel : #e18cc8 (récente), #bc8dc2 (d'origine).
+- **La construction** : DEUX grilles (l'outil du COMBI, rendu générique : `grille(D)`) — la caisse basse (flancs, capot qui descend vers le
+  nez, coffre dont les BORDS se relèvent en ailerons : le dessus en dôme par fractions de largeur, l'aileron ne monte que sur les fractions
+  extérieures) et la serre posée dessus (pare-brise couché, pavillon, lunette). L'AILE AVANT GAUCHE FROISSÉE = les points de la grille
+  déplacés en vagues côté x > 0 seulement (on émet le côté gauche déformé, le droit en miroir non déformé : aucune fissure au milieu) + un
+  joint ondulé. ⚠ Proportions : à la Valiant (toit 1,42) elle sortait trop basse — dans le dessin les vitres sont aussi hautes que la tôle sous
+  la ceinture : serre remontée de 14 cm. ⚠ Pied du pare-brise en dents de scie : les facettes basses de la vitre (centre sous 0,88 m)
+  basculaient en vue « dessus » → règle de vue abaissée à 0,83 m.
+- **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
+  Planche : `photos-gameplay/simpson-serie-et-nous.png`.
+
 ## LE BAROUDEUR — LA JEEP WRANGLER JL 4 PORTES RELEVÉE SUR SON ÉLÉVATION (2026-10-18, discussion BOÎTES ; Léo : « le Wrangler moderne, 4 portes »)
 - **Le gabarit** : `SHAPES.wrangler=(function(){…})()` à sa ligne-repère + `ECH_POTS.wrangler` (un pot à droite, comme sur la photo de dos) +
   le nom anglais par `Object.assign(I18N,{'LE BAROUDEUR':'THE TRAILBLAZER',…})` dans le même emplacement (pas de ligne réservée dans le bloc
