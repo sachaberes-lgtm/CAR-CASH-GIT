@@ -24,9 +24,20 @@
   surtout au vol, aux pics qui penchent et à la vue de côté. Essayé `garde` 4 / `max` 40 : vue rasante, caisse à moitié cachée — non retenu.
 - LES TREMPLINS (`BK_BEC`, `bkBecMesh`, `bkBecTex`) : le bec de 8 × 1,1 m, blanc sur glace blanche, était invisible (photo). Désormais une rampe de
   36 m qui monte en courbe à 7 m (~18° à la lèvre), glace blanche à CHEVRONS ORANGE, lèvre qui brille, flancs bleu nuit, deux BALISES orange de
-  15 m ; la caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre (poussée ,26 × la vitesse, ,2 avant). Mesuré : décollage à
-  215 km/h, 1,6 s de vol, posée. Un tremplin avant deux figures sur trois + un seul au milieu d'une longue descente sur deux (8-14 par piste).
-  Les pièces s'écartent d'un tremplin, les pics de sa retombée (260 m).
+  15 m ; la caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre (poussée ,18 × la vitesse, ,2 avant), DANS L'AXE de la piste
+  (`BK_BEC.axe` : 65 % de la vitesse de travers redressée). ⚠ À 45°, la caisse accélère en vol (rien ne la freine) : avec ,26 puis ,22, les
+  vols duraient 3-6 s et couvraient ~450 m — la piste tournait dessous et la caisse retombait à côté (2 morts sur 9 au banc, « vide » et un pic du
+  décor). D'où : poussée ,18, et un tremplin n'est posé que devant `BK_BEC.droit` (260 m) de piste presque droite (< 31° de cap), cherchée jusqu'à
+  240 m plus loin ; 60 m d'approche sans pic dans son couloir. Un tremplin avant deux figures sur trois + un seul au milieu d'une longue descente sur deux. Les pièces s'écartent d'un
+  tremplin, les pics de sa retombée (260 m). ⚠ Au banc, le pilote `dbgAuto` BRAQUE EN VOL avec une lat périmée (il fait tourner le vol) :
+  mesurer les vols volant lâché (`LACHE=1`, `dbgAuto(0)` au décollage).
+- LA GLACE QU'ON TRAVERSAIT EN VOL : `tryLand` ne regardait la pose qu'à moins de 40 m du centre de la piste (`bd>1600`, la règle des routes de
+  56 m) — sur les 196 m du glacier, une caisse qui retombait à plus de 40 m du centre PASSAIT À TRAVERS LA GLACE et tombait dessous (dans la neige,
+  « vide », un pic). Au glacier, la pose se cherche désormais sur toute la largeur et la congère. Banc (9 tremplins, volant lâché en vol) : avant,
+  4 vols de 6-7 s finis hors piste et 1 mort ; après, 8 posés en 1,2-3 s (le 9e : un pic percuté en visant la rampe → 60 m d'approche dégagés).
+- LA NEIGE HORS PISTE, EN VOL (`BK_PH`) : plus de planing (lift ,0 — une caisse sortie en vol touchait le bourrelet à 200 km/h, la poudre la
+  relançait à 47 m et elle mourait « trop longtemps en l'air »), freinage fort (kT ,6, kTp 2,2), la montagne ramène après 1,4 s sous 60
+  (2,2 s sous 40). Banc : trois lâchers dans la neige, aucune mort, ramenée en 2,4-4,8 s.
 - MOINS D'OBSTACLES : une figure tous les 0,6-1 km (0,3-0,5 avant), fourche 3-5 pics, champ 5-7 (11-18), îlot 2-3 : 31-44 pics par piste au lieu de 112.
 - Banc : `dbgBanq('cg',{fx,prof,…})` (la congère : réglages, état, repère). Fumée commune OK (couché + debout, 0 erreur JS).
 ## LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER (2026-10-19, v664, Léo : « fais en sorte que chaque trick qui fait un saut en l'air, seulement lorsque la voiture est en l'air, laisse au joueur l'opportunité de décoller de la route en utilisant le joystick qui permet d'orienter le nez de la voiture vers le haut »)
