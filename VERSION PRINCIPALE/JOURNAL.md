@@ -3,6 +3,429 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN (2026-10-18, Léo : « corrige encore la Porsche ; faut qu'on apprenne à générer parfaitement les voitures, pour qu'à la fin la seule limite soit l'imagination — les traits gris mettent en avant les défauts : au niveau de la vitre, le trait est clairement arrondi alors que la voiture est encore un peu carrée »)
+- **Le diagnostic** : les traits gris de LA PERLE sont les lignes du PLAN COTÉ de la vraie (projetées sur la tôle, voir « LA PERLE » du
+  16/10). Là où la tôle ne les suit pas, ils trahissent l'écart. Mesuré tranche par tranche contre le plan : vitres, cadres, montant B,
+  pare-brise et lunette peints PAR TRANCHES (des rectangles : bords carrés aux bouts, montant B vertical à −0,43 au lieu d'incliné entre
+  −0,20 et −0,42), serre aussi large derrière qu'au milieu (la vraie se resserre : jusqu'à 10 cm d'écart à −1,2), haut des portes jusqu'à
+  5 cm trop bas devant, pavillon qui tombait sur le flanc en UNE arête, lunette plate (6 cm de bombé manquants), haut des hanches arrière
+  jusqu'à 7,5 cm trop large et 9 cm trop haut.
+- **LA SERRE CONSTRUITE SUR LE PLAN** (`SHAPES.perle`, `GH` = les courbes relevées, simplifiées à 1,5 mm) : chaque tranche de l'habitacle
+  sort de fonctions du plan — `Bz` la CEINTURE (le pli de hanche derrière, le bas du cadre au milieu), le FLANC passant par le bas et le
+  haut de la vitre (hauteurs vues de côté, largeurs vues de dessus), l'ÉPAULE en Bézier tangente au flanc et au bombé, `Rz` la GOUTTIÈRE
+  (bord du pavillon, puis de la lunette derrière, du montant A devant), le BOMBÉ (`bombe` : plat au pavillon et à la lunette, plus rond au
+  pare-brise), `s7z` le ROULÉ DE LA HANCHE. 19 points par tranche partout (le capot et la poupe gardent leur tôle, recoupée aux mêmes
+  rangs) ; habitacle tous les 7,5 cm, plus serré au coin du pare-brise et à la pointe des vitres.
+- **LA PEINTURE AU PLAN** (`peintPlan`, `ZP`) : vitres, cadre noir, montant B, séparation de custode, pourtour noir du pare-brise et de la
+  lunette ne sont plus des bandes de tranches — chaque triangle de la serre est projeté dans la vue qui le regarde le plus en face (côté
+  ou dessus), recoupé par les segments des contours du plan (morceaux convexes), et chaque morceau prend la peinture du dernier contour
+  qui le contient ; normales LISSÉES et couleurs reprises par barycentres. Le trait et le bord de la vitre tombent au même endroit,
+  arrondis compris. Générique : marche sur toute caisse en loft. ⚠ Le tampon de la tôle se lit par `peintPal(PAL).p.g` (`GP`) : une
+  peinture à motif de la boutique le renomme — jamais `gs.p` en dur.
+- **UNE SEULE VUE PAR TÔLE, AUSSI POUR LES PLEINS** : un plein (bandeau des feux, bouches…) ne se pose plus sur une tôle qui ne regarde
+  pas sa vue (le bandeau des feux, dessiné de dos, filait sur le haut de la hanche une fois celle-ci repliée).
+- **MESURÉ** — le BANC DES ÉCARTS (une ligne vue dans deux plans = sa position 3D ; écart de la tôle) : gouttière 0-1,2 cm, pli de hanche
+  0-0,3 cm, roulé de hanche 7,5 cm → 0, arête capot/aile ≤ 1 cm (déjà juste). ⚠ Le plan se contredit parfois : la nervure du capot vue
+  de face passe au-dessus du profil de l'aile vu de côté (impossible) — paire écartée. Coût : 22 400 → 30 900 triangles, ~6-10 ms de
+  plus à la construction (ordi). Vérifié : menu → JOUER → course sans erreur en plein écran, cadre couché et debout ; studio photo du jeu.
+- **Outils** (Mac de Léo) : `~/Downloads/CAR-bancs/plan-voiture/` (LISEZMOI : vue sous le plan, relevé des lignes par id, banc des
+  écarts, assemblage du gabarit, studio et course avant/après). Planche : `photos-gameplay/perle-serre-avant-apres.png` (CAR CAHS V3).
+- **Reste, si Léo le veut** : le coin avant du bouclier (arête verticale), la malle et les feux arrière (lignes de dos et de dessus).
+
+## JOUER RESTE QUAND LA CAISSE EST À VENDRE (2026-10-18, session UI-REVUE, Sacha, capture couchée de la ROSSO 40 au garage : « je veux le bouton jouer sur cet écran »)
+- AVANT (règle du 15/10, « LA BARRE DU GARAGE ») : une caisse à vendre à l'écran effaçait JOUER (`#gAct:has(>#gEquip.achat)>#gJouer`) et la
+  BOUTIQUE descendait à sa place, lingot magenta du milieu ; INVENTAIRE et MISSIONS se partageaient le haut.
+- DÉSORMAIS (fin de `<style id="jouerGarage">`) : la barre ne change plus de forme selon la caisse — en haut INVENTAIRE · MISSIONS · BOUTIQUE à parts
+  égales, en bas HOME · JOUER à chevrons · l'ŒIL, comme pour une caisse à toi. ACHETER reste caché à cet endroit (on achète par la BOUTIQUE).
+  JOUER part avec ta caisse ÉQUIPÉE : `garJouer` rend la tienne avant le départ (`if(!carUnlocked(garageI))garageShow(equippedCar())`, déjà là).
+- Le petit trophée du profil revient sur cette vue (c'est la vue principale). `?garjouer=0` = la barre d'avant.
+- BANC : `garjouer3.cjs` (FMT, LANCE=1 : flèche droite jusqu'à une caisse `#gEquip.achat`, relevé de la barre, puis JOUER → la course part).
+## LA CAMÉRA DU GLACIER : ON VOIT LA PENTE EN ROULANT (2026-10-18, Sacha : « oui : redresse la caméra sur le glacier seulement, pour qu'on voie la pente en roulant »)
+- Réponse à la question laissée par le 2e tour (ci-dessous) : la caméra de course s'inclinait avec la piste, la glace à 70 % remplissait l'écran
+  comme un parking plat. `CAM_GLACIER` (`k` .8, `max` 30°, `garde` 12°) + `camGlacier()` : au glacier v4, SUR la piste, le CABRAGE ANTICIPÉ
+  (`camRouteCabrage`) prend en plus 80 % de la pente sous la caisse — tout le plan pivote autour de la caisse, nez levé vers l'horizon : la caisse
+  reste à sa place à l'écran, la glace plonge sous le milieu de l'image, les pics se redressent. Borné par la garde (la caméra reste 12° au-dessus
+  de la glace derrière la caisse) et par 30°. Hors glacier, en vol, sous la dalle : zéro.
+- MESURÉ (banc headless, `dbgBanq('cam')`) : debout, regard −41/−45° → −20/−23° sous l'horizon (pivot 23-24°), caisse au même endroit de
+  l'écran (NDC −0,24 → −0,22) ; couché, −40° → −29° (pivot 10°, la garde l'arrête : la caméra couchée est plus basse).
+- ESSAYÉ ET RETIRÉ : monter la caméra pour redresser plus (couché surtout) — la caisse descendait et rapetissait à l'écran ; une garde de 7°
+  — vue rasante, les roues passaient derrière la glace.
+- `?glaciercam=0` = la caméra d'avant. Banc : `dbgBanq('cam',{k:…})` règle à chaud et rend {g, phi, site, caisseY}. Aucune physique touchée.
+- Vérifié au passage : les morts du pilote de mesure au glacier élargi sont TOUTES des pics de la piste (cause « glace » : il vise le centre
+  sans esquiver) — pas de pic du décor entré sur la piste.
+
+## LE JOUER PARTOUT DANS LE GARAGE — INVENTAIRE ET BOUTIQUE (2026-10-18, session UI-REVUE, Sacha : « rajoute le bouton jouer avec les 3 flèches animées dans le garage » ; à la question « où ? » : « inventaire + boutique »)
+- CONSTAT (banc, v609, debout + couché) : le JOUER à chevrons était sur la vue principale du garage (chevrons en grand depuis v607) et dans les
+  MISSIONS (petite flèche à pas, `k4Chev`) ; l'INVENTAIRE n'avait que RETOUR (l'atelier fermé de Léo, 12/10) et la BOUTIQUE RETOUR + ÉQUIPER/ACHETER.
+- DÉSORMAIS (`<style id="jouerGarage">`, après « uiRevue ») : la rangée du bas dit la même chose partout dans le garage — la sortie à gauche,
+  JOUER en or à droite avec la VAGUE de chevrons (`gChevFile`). Inventaire : JOUER prend la 2e colonne de la barre, vide jusqu'ici (52 px,
+  l'entrée `atRet` de RETOUR). Boutique : ÉQUIPER / ACHETER monte sur sa propre rangée pleine largeur, RETOUR | JOUER en dessous, tous deux à 52 px.
+  Le JOUER des MISSIONS prend la même vague. Lingot court (~220 px debout) : chevrons ×2 sous 200 px, mot à 17 px sous 185 (seuils du JOUER principal).
+- LE DÉPART (`garJouer`) : depuis l'inventaire, l'atelier se rouvre d'abord (`gAtelier(false)` : la porte remonte en 0,7 s, les pinces lâchent les
+  roues) puis la caisse part à 450 ms ; depuis la boutique, `gGarageReplie` rend l'atelier sous le voile de nuit puis départ à 650 ms. Clic, moteur
+  (`ui.jouer`) et jaillissement au toucher ; un 2e toucher pendant l'attente est ignoré (`garJouer._t`).
+- Le petit TROPHÉE du profil (`plqGarage`) se fiait à « JOUER visible » pour reconnaître la vue principale : il ne s'affiche plus dans
+  l'inventaire ni la boutique (il se posait sur la vignette de la caisse).
+- `?garjouer=0` (classe `html.sansGarJouer`, posée dans le `<head>`) = la barre d'avant. L'atelier fermé « seul RETOUR » était un choix de Léo
+  (12/10) : changé sur demande directe de Sacha, l'ancien rendu reste derrière ce paramètre.
+- BANC : `garjouer2.cjs` (FMT=debout|couche, LANCE=1 = toucher JOUER et vérifier que la course part) — scratchpad de la session ed900fe4.
+## LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS (2026-10-18, Sacha : « trop peu de virage dans la map nuage, rajoute des virages et des modules cool à rider, ça reste un jeu de course »)
+- LA CAUSE (mesurée) : sur la route SANS HAUT NI BAS, le zoom `TORD_AMP` ×2,4 du 15/10 (« EN GRAND ») gonflait chaque virage au-delà du seuil où l'on
+  tourne le volant. Règle COURSE de `passation/RACCOURCIS.md` (un virage = un cap qui tourne de 20° ou plus à un rayon < 4 × le rayon que la caisse tient
+  à fond, `40 + 0,3·v`) : **0,01 virage par km** au palier de départ (la règle en veut 2,5), des « droites » de 134 s en moyenne, rayon médian 680 m,
+  un seul module par zone.
+- CE QUI CHANGE (route tordue des nuages et de son orage seulement ; `NV_ON`, `?sans=virages` rend la route du 15/10) :
+  · LE ZOOM redescend : `TORD_AMP` 2,4 → **1,1**. Les VRILLES ne bougent pas (leur longueur se compte en secondes de croisière) : on garde les grandes
+    torsions lentes, on rend les virages.
+  · LES RAYONS suivent le palier (`RS` de genCtrl) : sur cette route ils grandissent comme `40 + 0,3·v` au lieu de `LV`, qui grandissait plus vite
+    (au palier 12, plus aucun virage ne demandait le volant).
+  · LES POIDS des motifs (`TORD_W`) : esses ×2, chicanes ×2,2 (et leurs coups de volant francs, 26-40° au lieu de 16-30°), épingles ×1,8, virages ×1,8 ;
+    droites ×0,2, plongeons ×0,25 (sans haut ni bas, une pente ne pousse ni ne retient : un plongeon n'y est qu'une droite). Même nombre de tirages `rnd`.
+  · LES MODULES DE COURSE (`MODT`, genCtrl : `tSlalom`, `tEpingle`, `tCorde`, `tEsses`, `tRusses`) remplacent ceux de la gravité (filet, lacets, plongeon,
+    dos de chameau) : LE SLALOM (5-7 virages alternés de 38-52°), L'ÉPINGLE (demi-tour de 165-185° à 1,7-2 × le rayon du palier), LA DOUBLE CORDE (deux
+    virages de 80-105° du même côté), LES ESSES (trois grands virages alternés), LES MONTAGNES RUSSES (3-4 bosses rondes en courbe). Tous les 0,5-0,9 km
+    × LV, paquet mélangé, jamais deux fois de suite, hasard `rf` du filet. Leurs rayons sont VRAIS (ils échappent au zoom : ×1/AMP) — jamais sous
+    1,7 × le rayon du palier : serré, jamais infranchissable. Nus de plots (`MODMARK` → `MODS`). Plus de filet sur cette route (sa route d'en dessous
+    n'y est plus en dessous).
+  · LE DÉVERS (`TORD_DEVERS`, pisteTord « 2 bis ») : dans chaque virage la dalle se couche vers l'intérieur, 0,75 × l'angle d'un virage relevé à la
+    croisière (atan v²/gR), plafonné à 50°, lissé ~1 s, au plus 30°/s ; elle se couche AVANT le virage et se redresse en sortant. Au volant rien ne
+    change (le virage est rejoué dans le plan de la dalle) : c'est l'horizon qui bascule dans le sens du virage, comme un avion qui s'incline.
+    Le roulis TOTAL (vrilles + dévers) est borné à 62°/s (le retard se rattrape dans la tenue qui suit).
+  · LA ROUTE QUI NE SE TOUCHE PAS (`tordContacts`, `pisteTordPropre`) : plus serrée, la piste enroulée dans l'espace repassait parfois à travers
+    elle-même (banc : 10 contacts sur 30 zones au palier 0, deux dalles à 2-23 m). À la construction, si deux dalles se touchent (moins de 16 m de
+    vide sur la normale et moins de 62 m de côté), les VRILLES sont rejouées avec un autre tirage (même graine : tout le monde a la même route), jusqu'à
+    5 fois ; le tracé ressenti ne bouge pas. La courbe et le repère d'origine sont gardés d'un essai à l'autre (`pisteTord._c1`).
+- MESURÉ (banc Node de genCtrl + pisteTord tirés du jeu, 6 graines, avant → après) :
+  | palier (LV) | virages/km | enchaînements/km | plus longue « droite » | rayon médian | tours de vrille/km | pic de roulis |
+  |---|---|---|---|---|---|---|
+  | 0 (1,08) | 0,01 → **2,27** | 0 → 1,55 | 134 → 15 s | 678 → 287 m | 0,50 → 0,78 | 89 → 93°/s |
+  | ~5 (1,35) | 0 → **1,91** | 0 → 1,27 | 153 → 15 s | 846 → 327 m | 0,39 → 0,62 | 64 → 88°/s |
+  | ~10 (1,88) | 0 → **1,45** | 0 → 0,81 | 156 → 14 s | 1 167 → 412 m | 0,26 → 0,42 | 78 → 76°/s |
+  | ~15 (2,66) | 0 → **1,04** | 0 → 0,56 | 129 → 12 s | 1 624 → 526 m | 0,18 → 0,30 | 74 → 85°/s |
+  En TEMPS, un virage toutes les 4-6 s à tous les paliers (0,18 → 0,25 virage/s). 6-6,5 modules par zone (1 avant). Virages SERRÉS (< 1,5 rMin) : 0,7
+  par zone, INFRANCHISSABLES : 0. Toujours ~33 % de la route à l'envers et ~33 % sur la tranche. Portail : même redressement qu'avant (Ny 0,87).
+  Contacts : 0 sur 180 zones (60 graines × 3 paliers) ; 3 zones sur 4 passent au premier tirage ; pisteTord + garde : 15-34 ms la zone en médiane,
+  p95 41-69 ms, pire 86 ms (PC, Node).
+- BANCS (scratchpad de la session) : `virages-banc.cjs` (virages ressentis, vrilles, passages proches, planche vue de dessus en PNG),
+  `proches-detail.cjs` (chaque passage < 60 m : vide sur la normale, écart latéral), `essais.cjs` (rejeux et temps), `nuages-course.cjs` (le vrai jeu,
+  couché + debout, pilote de mesure 45 s). Crochets : `dbgHaut()` (TORD.info : `essai`, `contacts`, `deversMaxDeg` en plus), `dbgHaut('controle')`.
+- À TRANCHER par Sacha : la dose du dévers (`TORD_DEVERS.k`/`max`), la fréquence des modules, et si l'orage (tordu lui aussi) garde ces virages.
+
+## LE VIRAGE SERRÉ EN VOL (2026-10-18, Sacha : « augmente la maniabilité dans les airs, on a du mal a faire des virage serrer »)
+- **Deux freins trouvés** : (1) le lacet en vol plafonnait à ~1,75 rad/s dès 260 km/h — passé ce cap, le rayon grandissait avec la vitesse ;
+  (2) le VERROU du volant au décollage (`veqVolant`, Léo 14/10) effaçait pendant 0,7 s le braquage tenu depuis la route — un saut dure ~1 s.
+- **Réglage** (`VIRVOL`, bloc « LE VIRAGE SERRÉ EN VOL » juste avant `VEQ_K`) : lacet ×1,5, plafond relevé (3,1 rad/s vers 390 km/h), verrou
+  0,35 s (la caisse quitte toujours la route tout droit). UNE formule `lacetVol(v)` pour le vol, la mousse, la poudreuse du glacier et le
+  lacet emporté à la pose (il y avait 5 copies de `1.15+Math.min(.6,…)`). `VEQ_K.latch` a disparu (un réglage, un endroit).
+- **La caméra de vol garde son retard d'avant** : son suivi va plus vite au prorata du lacet gagné (`lacetVolK`, × |volant|) — sans ça, elle
+  restait jusqu'à 28° à l'EXTÉRIEUR du virage (16° avant) et cachait l'intérieur, là où l'on tourne. Volant au centre : suivi inchangé.
+- **MESURÉ** (banc `C:/Users/sacha/cc-banc/volvirage.cjs`, ville, pas à pas 16 ms, caisse à 250 m au-dessus de la route, volant à fond) :
+  | cas | avant (main v609) | après |
+  |---|---|---|
+  | 150 km/h, geste neuf | 87° en 1 s · rayon 24 m | 128° · 17 m |
+  | 300 km/h, geste neuf | 98° · 45 m | 154° · 27 m |
+  | 600 km/h, geste neuf | 97° · 91 m | 171° · 48 m |
+  | 300 km/h, volant TENU depuis la route | 18° à 0,5 s · 68° en 1 s | 52° · 134° |
+  | caméra derrière la trajectoire, 150 / 300 / 600 km/h | 16° / 16° / 10° | 10° / 17° / 16° (sans la compensation : 22° / 28° / 19°) |
+- Effet de bord assumé : la VRILLE (aura par demi-tour de lacet, `yawAcc`) vient plus vite — un 180° tient en ~1,1 s au lieu de ~1,8 s.
+- `?virvol=0` = le vol d'avant au chiffre près (caméra comprise) ; `dbgVirVol(k,cap,latch)` règle en direct.
+- À VÉRIFIER SUR UN VRAI IPHONE : rien de propre au téléphone (même formule au pouce et au clavier).
+
+## LA VALLÉE DE JADE AU HASARD (2026-10-18 nuit, Sacha : « la génération de map dans les montagnes chinoises est toujours la même, rends-la plus aléatoire »)
+- **Le constat, mesuré** : au mode classique, la graine des PICS DE JADE changeait déjà à chaque partie (`sfNiveau` → `graine:0`) — mais
+  `genJade` suivait toujours la même RECETTE : départ, ~2 km de serpentin doux, la Porte, ~2,3 km, le Pont, ~2 km, la chute, l'arrivée ;
+  le tout filant vers le nord (+z), 11 à 13 km, deux ondes de relief. Vus de dessus (plans de 60 graines), tous les tracés se ressemblaient ;
+  et le soleil bas du rouleau (`SUN_DIR`, côté −z) était toujours DANS LE DOS.
+- **Désormais (`genJade`, `JADE_HUMEURS`, `JADE_PENTE`)**, chaque vallée tire :
+  · son AXE : ±45° autour du nord (`phi0` ; la butée de cap ±85° se compte autour de lui — la route ne recroise toujours jamais un tronçon) ;
+  · l'ORDRE des monuments (Porte puis Pont, ou Pont d'abord) et leur PLACE (les trois tronçons de virages se partagent 5,2-8,4 km au hasard) ;
+  · un CARACTÈRE par tronçon, jamais deux fois le même de suite : `vallee` (l'ancienne recette), `serpent` (S serrés, R 280-420 m),
+    `courbes` (R 680-1160 m), `derive` (la vallée part en biais d'un côté jusqu'à la butée), `balcon` (longues droites cassées de coudes),
+    `chicanes` ; le dernier kilomètre (la chute) a le sien aussi ;
+  · son RELIEF : trois ondes aux amplitudes et longueurs d'onde tirées (la 3e une fois sur deux), ramenées sous la pente du pire cas
+    d'avant ; puis `adoucirPentes` (12 %, gardée à 30 % au-delà) — les rampes vers les paliers des monuments montaient jusqu'à ~90 %
+    entre deux points de contrôle, elles plafonnent vers 35 %.
+- MESURÉ (Node, les 300 mêmes graines, avant → après) : longueur 10,7-13,7 → 10-15,1 km ; dénivelé 139-246 → 74-307 m ; virages cumulés
+  643-1060° → 373-1221° ; pente max entre points 19-92 % → 14-36 % ; deux bouts de route à plus de 700 m l'un de l'autre restent à ≥ 551 m
+  (avant 560). Aucun rayon sous 280 m (le minimum d'avant). EN JEU (banc headless, 4 vallées : la 1re au JOUER puis 3 portails) : 11,6 ·
+  11,6 · 13,6 · 13,8 km, axes 13° · −13° · −16° · −39°, deux fois Pont puis Porte, monuments bâtis, construction 1156 · 707 · 734 · 606 ms,
+  zéro erreur JS. (La 1re construction de la session paie les gabarits ; la carte ne se reprend plus de la garde au mode classique — elle
+  ne s'y reprenait déjà pas : la graine y changeait.)
+- Inchangé : départ et arrivée (portiques), l'effondrement (en fraction du parcours), les deux monuments à plat et la Porte dans l'axe, les
+  montagnes et le décor (posés autour de la route, quelle qu'elle soit). `?graine=n` / `?niveau=jade` / la balade gardent une vallée FIXE
+  (0x51ADE) — mais ce n'est plus la même qu'avant (le tirage de `genJade` a changé).
+
+## LES NUAGES EN VITRAIL (2026-10-18, Léo : « Sacha avait beaucoup de mal à avoir les nuages comme il voulait ; essaie la technique des mini-cubes et de la couche transparente lisse — la glisse transparente peut EMBRASSER la forme des cubes ; garde toutes les qualités qu'on a déjà, encore plus de relief, de profondeur, d'immersion » → questionnaire : TOUS les nuages ; planche de trois dosages → MOYEN)
+- La recette VITRAIL (cœur de lumière, écailles en cubes, peau de verre, onde) tirée du MÊME champ que la surface v8 (`nuage8Calc`, option
+  `opt.vit` = nombre de cubes sur la plus grande dimension, dans l'ouvrier) : ÉCAILLES = les cases de `ext/NUVIT.nc` dont le centre est dedans et
+  qui touchent le dehors, faces extérieures seules, à 94 % (`opt.ecart`) ; une écaille = UNE normale (le gradient du champ en son centre), un
+  modelé, un hasard (`aG`, `aCu`). PEAU = l'isosurface de l'occupation des cubes floutée [¼ ½ ¼] (seuil `NUVIT.iso`) sur SA grille (~1 case par
+  cube) : elle a la FORME des cubes mais la LUMIÈRE du champ lisse (normale mêlée à 65 % — sinon chaque marche faisait un liseré blanc, un
+  filet). CŒUR = la surface v8 rentrée de 0,6 cube, éclairée comme le nuage × `uLueur` (l'ombre reste une ombre).
+- Les trois matières (`nuVitMats`, `nuVitVS/FS`, la lumière v8 en fonction `n8lum`) ; instances : trois maillages par lot fin (finesses 2 et 3,
+  MÊME vitrail calculé une fois par gabarit), avec LEURS instances : `cotonTick` range dans le lot v8 les nuages dont l'écaille serait trop
+  grosse à l'écran (> `NUVIT.ang` rad : de près, des cubes de 15 m faisaient des éclats de verre) ; de loin (finesses 0-1) la v8. Bancs,
+  coussins, tours (`mkCloud`) : écailles et peau en ENFANTS, le maillage devient le cœur ; dedans (white-out) les enfants se cachent.
+  Pas aux Pics de Jade (`J`). Trame du bord et fondu près de l'objectif gardés (écailles, cœur) ; la peau se fond (alpha).
+- Dosages `NV_DOSES` (doux · MOYEN par défaut · fort ; `?nuvit=`), `?sans=nuvit` = la v8 seule, `dbgNuVit(0|1,{dose,detail,banc})`, `dbgNuVue(k,a,p,h)`
+  (même vue A/B), `dbgProgs('h')`. MESURÉ : nuages ×2,3 en triangles, +1 à 1,7 ms/image sur le Mac (~+25 % sur la map) — la peau transparente
+  coûte ; 0 programme compilé en course (au menu, une fois la préparation finie). Écarté : cubes de ext/22 (façades en briques de verre),
+  faces très marquées (damier « boule disco »), peau laiteuse à 50 % (nuage aplati).
+
+## LA FIGURE POSÉE RAPPORTE 40 % (2026-10-18, Sacha : « les figures une fois posées doivent rapporter du nitro » puis « on peut faire -20 +40 »)
+- **Le constat** (dit à Sacha) : la règle −20 % / +30 % tournait (banc `figroute` : 16/16 figures sur la route payées), mais elle ne
+  rapportait que **+10 % net** par figure, et en vol la pose remplit souvent la jauge d'abord : le gain de la figure part alors dans la
+  réserve bleue, et on ne le voit presque pas.
+- **Le choix de Sacha** : garder le prix (20 % au lancement, le « tchk » à sec, la pose ratée qui perd tout), rendre **40 %** au lieu de 30 %
+  — `NITRO2.figN.rend` 0,3 → 0,4, le seul réglage. Soit **+20 % net** par figure posée ; deux figures = 80 %, trois = 120 %.
+  Rien d'autre ne bouge (pas d'affichage ajouté : il a écarté le « +30 % NITRO » sur la barre).
+- MESURÉ (banc en vraie partie, `fig40.cjs`, jauge à 30 % avant chaque figure, grand livre `LIVRE`) : salto avant, salto arrière,
+  tonneau, salto avant → −0,20 / +0,40 chacun (en part de la jauge), rien de perdu ; la 1re, au départ, est offerte (`startBoostT`, comme avant).
+  Fumée OK couche + debout, 0 erreur JS.
+
+## LE CANYON SANS VITESSE ×2 (2026-10-18, Sacha : « met pas de power up vitesse x2 dans le canyon »)
+- Au CANYON DES GÉANTS, plus aucun cristal ⚡ VITESSE ×2 : `pwrPoids` met sa part à 0 et la rend aux quatre autres (NITRO MAX, AIR MAX,
+  AIMANT, AURA ×2) au prorata. Toujours UN seul `rnd()` par cristal : mêmes emplacements, même nombre de cristaux, même piste — seul le
+  pouvoir change. Le parc freestyle n'est pas concerné (`!PARK.on`), les autres maps gardent leur VITESSE ×2.
+- MESURÉ (banc headless, 10 graines, `dbgTrace` + `dbgPwr('cristaux')`) : avant 26 (débutant) / 33 (vétéran) cristaux VITESSE ×2 sur 199 ;
+  après 0 sur 199 ; au nuages ils restent (15 / 21). `dbgPwr().poids` montre `v:0` au canyon.
+
+## LE GLACIER, 2e TOUR : PISTE BEAUCOUP PLUS LARGE, PENTE BEAUCOUP PLUS FORTE (2026-10-17 nuit, Sacha : « la route de glace doit être beaucoup plus large et la map de glace doit être beaucoup plus pentue »)
+- LARGEUR : `BK_LARG4` 4,4 → 7 — la piste passe de 123 à 196 m (demi-largeur 98 m). Tout ce qui la borde suit `ROAD_HALF` (bourrelet de
+  neige, glace, becs, pics, mur `parisMur`) ; le plancher des rayons (2,6 demi-largeurs = 255 m) l'emporte souvent : virages plus amples.
+  Le CHAMP de pics est mis à l'échelle (`kRH` = largeur ÷ 123 m) : même densité au m², donc ~1,7× plus de pics sur la piste (65 → 113 au banc).
+- PENTE : `BK_PENTE4` = [virage .58 +.16, droite .68 +.20, retour dans la pente .58, arrivée .46] — 36-58 % → 58-88 %. `LEN` × 0,89 pour v4
+  (il se compte à plat : la pente allongeait la piste de 13 %) → même longueur de course qu'avant (~10 km).
+- MESURÉ — Node (`banq-trace.cjs`, 16 pistes) : pente ~66 % de moyenne, pointes 83-88 %, 5,4-6,2 km de dénivelé, rayon mini 226 m, aucun pli.
+  En jeu (banc headless, même graine) : avant 123 m / 44 % / pointes 56 % / 3,9 km / 65 pics ; après 196 m / 69 % / pointes 86 % / 5,3 km / 113 pics.
+  Vitesse en descente au pilote automatique : pointe 327 km/h contre 325 avant — le moteur domine, la pente n'ajoute qu'un appoint (GRAV·sin).
+- ⚠ CE QUI NE CHANGE PAS : la caméra de course s'incline avec la piste (gelée depuis la passe de fluidité) — à l'écran, la piste paraît toujours
+  plate ; la pente se lit au paysage et à la vue de côté. Si Sacha veut la VOIR en roulant, il faut redresser la caméra au glacier (à lui de trancher).
+- Banc : `dbgBanq('pente')` → {RH, L, dénivelé, moy, max} ; `dbgBanq('pente',{cote:.45})` = la vue de CÔTÉ à 45 % du parcours (photo, en pause).
+
+## LES FIGURES SUR LA ROUTE — SANS DÉCOLLER (2026-10-17 soir, Sacha : « tout les figure doivent pouvoir etre executer sur route c'est a dire sans s'envoler »)
+- **Le choix de Sacha** (questionnaire, deux lectures possibles : « garder le saut nitro et qu'il réussisse à coup sûr » ou « figure sans
+  décoller ») : **figure sans décoller** — « la caisse reste sur la route et tu gardes le volant ; seule la carrosserie fait un petit bond (1 à
+  2 m) le temps de la figure, puis retombe sur ses roues ; pas de mode vol : pas d'ailes, pas de chrono de vol, aucun risque de tomber ».
+- **Avant** : au sol, le double-tap NITRO faisait le SAUT NITRO (`veqSaut` → `startFall` : la caisse décolle ~0,85 s) et la figure tournait
+  EN VOL. **Maintenant** (`veqDouble` → `frLance`) : s'il y a une figure dans la direction tenue, elle se fait SUR LA ROUTE (bloc « LES
+  FIGURES SUR LA ROUTE », après les figures au sol du GLISSER) :
+  · la conduite ne bouge pas (mode `drive` : volant, vitesse, obstacles, pièces — la physique ne voit rien, comme `GSOL`) ; seule l'IMAGE
+    tourne, menée par le même moteur que le vol (`FIG.Corps`, dans un corps à elle `FR.C` : le coup net, le planté), autour du milieu de la
+    caisse (le nez pour le TAIL WHIP, `FR.pivK`) — `frTick` (la boucle) / `frPose` (après `figMemo`, dans la pose de conduite) ;
+  · le BOND le long de la normale de la route : max(arc de la figure `FR.H`, ce qui garde la boîte tournée hors du bitume `frDegage`) —
+    `frHaut` essaie chaque axe de la figure sur son tour : salto ~1,75 m, tire-bouchon / rodéo / vrille penchée ~1,8-1,9 m, cosmique 1,96 m,
+    chandelle 1,66 m, tonneau 0,75 m, toupie / hélico / tail whip 0,35 m ; la caméra ne suit que 20 % du bond (`FR_K.cam`) ;
+  · la durée (`frDuree`) : 65 % du catalogue entre 0,4 et 0,72 s ; le bond dure ×1,12 + le planté (0,75 à 1,1 s, comme le saut d'avant) ;
+  · le PRIX et la PAIE ne bougent pas : 20 % de la jauge au lancement (offert sous NITRO INFINIE, au parc, au mouton, à l'auto-école ; à sec :
+    le « tchk », `figRefus`) ; plantée = `figPaye` (aura, HUD des figures, missions, leçon) + le FLOW qu'`addTrick` ne donne qu'en l'air
+    (`frPaye`) ; retombée = la POSE d'un vol rejouée pour elle (`frEncaisse` : combo encaissé, 30 % rendus `figNitRend`, pièces du MOTEUR
+    `addCoins`, flow « style », coup de boost 1,2, la FRÉNÉSIE armée part) ; `douce` comme celle du saut (jamais une chute, pas de trio) ;
+  · rien dans la direction tenue (un débutant qui n'a que le tail whip, pouce au repos) : le SAUT NITRO d'avant, sans figure ;
+  · DÉCOLLAGE en pleine figure (une crête, le bord) : `frDecolle` (en tête de `startFall` : déjà plantée → posée sur la route) puis
+    `frVersVol` (après `figDepart`) : son corps DEVIENT celui du vol (`FX2.corps` échangé), elle finit en l'air et se paie à SA pose ;
+  · le HUD des figures reste allumé pendant la figure (`figHud` : `fhTick(v||FR.on)`), le rappel des gestes reste au vol ;
+  · le GLISSER de Léo n'est PAS changé (au sol : slide 360 / wheelie / stoppie, et son salto part toujours avec le saut, joystick en avant).
+- `?froute=0` = le saut nitro d'avant. Console : `dbgFRoute()` (état, `liftMax`, `ecFin` = le recalage de la dernière image en degrés),
+  `dbgFRoute(x,y)` = un double-tap au sol, le joystick en x (côté), y (avant).
+- MESURÉ (banc `C:/Users/sacha/cc-banc/figroute.cjs`, ville midi, 390 × 844, muet, pilote auto, chaque figure dans chacune de ses
+  directions sur du plat) : **16 essais · 16 lancées · 16 payées · 0 passée en mode vol · 0 coin de carrosserie sous le bitume · 0 caisse
+  pas remise à l'endroit · 0 erreur JS** ; la direction vide fait bien le saut nitro (mode `fall`) ; un salto coupé par un décollage à
+  120 ms passe au vol (`versVol` 1, le lancement gardé pour la pose `nitL` 1) et se paie à la pose. Photos : `cc-banc/shots/FIGROUTE/`.
+  Le SHIMMY (un battement) mettait 1,32 s à se calmer puis se recalait d'un coup : sa durée jouée, l'air le range vite (`C.poseK`=1) →
+  0,75 s. 2e passage (fusionné avec main v606) : 16/16 de nouveau, recalage de la dernière image ≤ 1,7° pour toutes (`ecFin`).
+- **À trancher par Sacha** : la caisse qui fait sa figure au-dessus d'un PLOT ou d'une ÉPAVE la percute quand même (elle est sur la route :
+  c'est la règle du « sans décoller ») — avant, le saut nitro passait par-dessus. Et le GLISSER de Léo garde son saut pour le salto.
+
+## LES FLÈCHES DU JOUER DU GARAGE, EN GRAND ET EN LUMIÈRE (2026-10-17 soir, Sacha : « rajoute le bouton jouer avec les trois flèches animées dans le garage », puis « les flèches sont trop discrètes : rends-les plus grosses et plus lumineuses, avec une animation qui se voit vraiment »)
+- Constat (banc, v602, debout 390 et couché 844×390) : les trois chevrons étaient bien là depuis le 15/10, mais à peine lisibles — brun
+  à 45 % sur l'or, un seul « allumé » à la fois dans la MÊME couleur (seule l'opacité changeait), en ×2 (18 px).
+- Désormais (bloc CSS en fin de la barre du garage, `gChevFile`) : chevrons ×3 (27 px), emboîtés (−7 px), au repos en BRUN du mot à 55 % ;
+  une VAGUE court de gauche à droite (0,9 s, décalages 0,15 s) — chacun passe au BLANC CHAUFFÉ, grossit (×1,16) et avance de 3 px, puis
+  retombe. Le contour brun (quatre `drop-shadow`) vit sur le parent `.mChev` : sur le `.pxi` (masqué) le masque rognerait l'ombre.
+- Sous 200 px de lingot (téléphones de 320-360 px), retour à ×2 (−5 px) pour que le mot garde sa place. « Réduire les animations » :
+  chevrons figés, pleinement opaques. Seul le JOUER du garage change (accueil, missions, UX 8 intacts).
+
+## PLUS DE PLAQUE À L'AVANT (2026-10-17 soir, Sacha : « pas de plaque d'immatriculation à l'avant »)
+- `plqPose` ne pose plus que la plaque ARRIÈRE (`PLQ.pos[lvl].ar`) ; plus de rayons tirés vers le nez (`plqCherche(1,…)` n'est plus appelé :
+  la pose coûte deux fois moins). L'atelier de la plaque, ses modèles et le profil sont inchangés. `dbgPlaque('pos')` ne liste plus que `ar`.
+
+## LA PELOTE REVIENT DANS LA FORÊT NOIRE — LA ROUTE DÉCOLLÉE DU SOL, LES ÉTAGES QUI SE CROISENT (2026-10-17 soir, Sacha : « j'aime bien la nouvelle forêt mais il refaut le système où la route n'est pas collée au sol et où elle est sens dessus dessous avec les autres »)
+- LA ROUTE : `FOR_ZIG_V` passe à FAUX par défaut — la PELOTE (`forPelote` : trois nœuds en étoile qui descendent, montent, font la vague ; ≥ 32 m
+  entre étages, on saute d'une route à l'autre) redevient la route de la forêt. Tout ce que Léo a fait sur l'image reste : arbres en VITRAIL,
+  mini-cubes, contraste, pleureurs, géants tordus, abeilles et lucioles. Le SLALOM au ras du sol (ses ponts et sa MOUSSE, qui n'existe que
+  sur le slalom : `mousseOk` lit `FORET.zig`) = `?foret=slalom` (ou `?foret=zigzag`). `?foret=pelote` ne sert plus à rien (sans effet).
+  En Node (outils `passation/foret-pelote/`), c'est de nouveau la pelote par défaut.
+- LES GÉANTS PLEUREURS DANS LA PELOTE : ils prennent la place d'un géant taillé pour SA couronne (un séquoia s'ouvre à 178, le rideau d'un saule
+  tombe à 94, celui du hêtre pleureur à 76) — avec les étages, une route passait dans leurs mèches et leurs branches (32 géants sur 220, jusqu'à
+  251 m de feuillage traversé, mesuré). Maintenant, dans la pelote seulement, chaque pleureur est REHAUSSÉ (`sy`, la hauteur seule) jusqu'à ce
+  que le bas de ses rideaux passe 16 m au-dessus de la plus haute route sous sa ramure (la règle de `geantXZ`) ; s'il faut plus de ×1,45, on
+  prend l'autre pleureur ; sinon la clairière reste vide (`g.vide`, deux tirages `fr()` consommés : le décor qui suit ne bouge pas).
+  Le volume des pleureurs : `FOR_PLEUR_VOL` (bas des rideaux, cime, rayon, en unités du prototype). MESURÉ : 0 route dans un feuillage sur
+  228 pleureurs, 2 clairières vides ; construction de la forêt inchangée (~430 ms, comme le slalom au même moment du banc).
+- Banc : `dbgForet('rideaux')` → `{n, dedans, pire, vides, ex}` (une route DANS la couronne d'un pleureur, du bas des rideaux à la cime).
+  Le slalom au même banc : 0 aussi (route au sol, rien au-dessus). L'avertissement « computeBoundingSphere NaN » et deux 404 existaient déjà
+  avant (slalom compris).
+- ⚠ À DIRE À LÉO : le slalom remplaçait la pelote à sa demande (« oui, la remplacer ») ; Sacha la remet. Rien n'est détruit : `?foret=slalom`.
+## LE PANNEAU DU CANYON DEVIENT « ROUTE 67 » (2026-10-17 soir, Sacha : « le panneau sur la route 66 dans la map canyon doit s'appeler la route 67 »)
+- `cyRoute66` : le grand chiffre du bouclier passe de « 66 » à « 67 ». `CY_FONTE` gagne un `7` en 5 × 7 pavés (barre du haut, puis
+  diagonale qui tombe vers la gauche) ; même largeur que le 6 : le texte reste centré. Rien d'autre ne bouge (station-service, mesa,
+  tirages de la piste) ; les noms internes (`cyRoute66`, `CY.r66`, `dbgCanyon('r66')`) sont gardés tels quels.
+
+## LES SATELLITES FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je voulais juste qu'ils flottent proche de la route »)
+- La passe « les maps comme un tout » (même jour, 15 h 37) avait lu « il faut que ce soit un obstacle à part entière » comme des satellites
+  SUR la chaussée (seul, porte, chicane, L'IMPACT au choc). Ce n'était pas la demande : ils quittent la route.
+- `orbiteBuild` §0 bis : les mêmes grands engins (Starlink 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, petit satellite
+  d'or) DÉRIVENT à 4-16 m du bord, de 8 m sous la dalle à 16 m au-dessus (repère de la route F.b/F.n : juste sur le côté, même dans les
+  virages relevés ; plus bas, la caméra plongeante ne les voyait plus, la route les cachait), et tournent lentement sur eux-mêmes. Trois figures, toutes les 200-400 m × la croisière : le SEUL, la PORTE (un de chaque
+  côté, la route passe entre les deux), la FILE (2-3 à la suite du même côté, en escalier). `libre` les tient loin de toutes les AUTRES
+  portions de piste ; au plus un quart des Starlink et un cinquième des débris (les passants, le champ et les trains gardent leur part).
+- Décor pur : `SATOB` est vide, rien à percuter, les pièces ne s'écartent plus, ni liseré rouge ni étoile qui pulse. `?sats=route` (`SAT_OBST_V`)
+  rend les obstacles de l'après-midi ; `?sans=satobst` n'existe plus (c'est le défaut).
+
+## POSER UNE FIGURE RAPPORTE DU NITRO — PLUS RIEN NE S'ÉVAPORE (2026-10-17 soir, Sacha : « poser une figure doit rapporter du nitro »)
+- **Ce qui se passait** (MESURÉ en vraie partie, banc `fignit.cjs` de la loi 6, UA iPhone, muet, pilote auto, saut nitro + double-tap en vol) :
+  la règle de la loi 6 tournait (−20 % au lancement, +30 % par figure à la pose réussie), mais le joueur ne la sentait pas, pour deux raisons.
+  · LE PLAFOND : à la pose la jauge est presque pleine (la pose de 20 % passe d'abord) — 1,2 à rendre, **0,57** crédités, le reste perdu.
+  · LA FIGURE PAS BOUCLÉE : un tour empilé (ou relayé) dont le dernier quart n'était pas fini au contact (fréquent depuis la gravité ×1,45)
+    avait payé ses 20 % et ne rendait RIEN, sans un mot — trois double-taps, une seule figure rendue (**0,77** au lieu de ~2).
+- **La règle, précisée** : chaque figure LANCÉE dans le vol (celle qui a payé, comptée par `FX2.nitL` dans `figLance`) rend ses 30 % à une pose
+  réussie — plantée ou pas tout à fait. Pose ratée (en plein tour, de travers, à contresens) : rien, comme avant. Ce qui ne tient plus dans la
+  jauge passe dans la **RÉSERVE BLEUE** (`nitroX`, plafond 2 comme les fruits) et vole vers la partie bleue de la barre (`volgNitro('x')`).
+  La toupie automatique du drift (lancée hors de `figLance`) ne coûte ni ne rapporte. Le « plein » sonne aussi quand tout part en réserve.
+- **Code** : `figNitRend(ok)` (rend le nitro crédité, jauge + réserve), `FX2.nitL` remis à zéro par `figDepart` ; `tryLand` et la lèvre lisent
+  le crédit rendu pour le son ; `figN9` (le vol « à figures » qui ne prend pas la recharge de chaîne) compte les lancements.
+  `dbgFigNit()` : `aRendre` = les lancements, `plantees` = les figures finies, `rendSiPose`, jauge, réserve.
+- **Mesuré, avant → après** (mêmes sauts, réserve vidée avant chaque saut) : une figure en vol + celle du saut 0,57 · 0,57 · 0,66 → **1,30 ·
+  1,27 · 1,43 · 1,37** (= les 2 × 30 % + la pose du saut) ; trois double-taps 0,77 · 1,01 → **1,92 · 2,12** (4 lancements comptés, borné
+  par la jauge ET la réserve pleines) ; figure refusée faute de nitro : rien de prélevé, la figure du saut rend quand même ; 0 erreur JS.
+- À juger par Sacha en jouant : faire des figures remplit maintenant vite la réserve bleue (nitro plus puissant) — si c'est trop généreux,
+  `NITRO2.figN.rend` (0,3) est le seul réglage.
+## LE GLACIER BEAUCOUP PLUS PENTU (2026-10-17, Sacha : « la map montagne neige doit être beaucoup plus pentue »)
+- `genBanq` (v4) : virages 36-48 % (22-32 %), droites 42-58 % (25-37 %), retour dans la pente et arrivée à 36 % / 30 %. MESURÉ en Node
+  (`banq-trace.cjs`, 8 graines) : pente moyenne ~27 % → ~43 % (pointes à 57 %), dénivelé 2,4-2,5 km → 3,8-4,1 km sur ~10 km ; aucun pli (rayon mini
+  155 m pour 62 m de demi-largeur). Les pics de la piste ont un pied plus profond (`prof` 9 m ou R × 1,1) : sur la pente raide, leur côté aval ne flotte pas.
+- RÉPARÉ : depuis la v587, un commentaire `//` posé en milieu de ligne (« plus de lacs ») avalait `const tS=` dans `buildBanq` → `tS is not defined`
+  à la toute fin de la construction (la météo du glacier n'y était plus posée). Audit de tous les commentaires de la session : plus rien d'avalé.
+- À TRANCHER par Sacha : la caméra de course s'incline avec la route (gelée depuis la passe de fluidité) — une pente, même à 43 %, se lit donc
+  surtout à la vitesse et au paysage qui plonge, pas à l'image. Une caméra qui resterait un peu plus à niveau AU GLACIER montrerait la pente.
+
+## LA CAISSE PLUS LOURDE, 2e TOUR — LE SAUT NITRO QUI RETOMBE (2026-10-17 soir, Sacha : « augmente la gravité des voitures : quand on fait une figure sur route on doit retomber sur la route plus vite »)
+- POURQUOI LE ×1,3 DU 15/10 NE SE SENTAIT PLUS : deux heures après lui, « les figures lancées en roulant » (16/10, 0 h) a rallongé chaque
+  saut nitro à figure jusqu'à 90 % de la durée de CATALOGUE de la figure (`sautBesoin` ≥ 1 s, jusqu'à +19 m/s de poussée) — sur du plat
+  aussi. MESURÉ (banc `sautgrav`, ville, les 13 figures dans toutes leurs directions, 2 tours = 32 sauts) : 1,27 s de vol moyen, 1,85 s au
+  plus, 6,5 m de haut — plus long qu'à ×1.
+- `GRAV_K` 1,3 → **1,45** (tout ce qui lit FALL_G suit, comme le 15/10 ; `?grav=1.3` = la veille, `?grav=1` = avant le 15/10). Pas plus :
+  une chute plus lourde porte moins loin, et les RACCOURCIS en dépendent. MESURÉ (`raccourcis.cjs`, graine 1, palier 0, la même trace
+  rejouée à chaque gravité) : CANYON 21 raccourcis rentables à ×1,3 → 20 à ×1,4 → **18 à ×1,45 (0,69/km)** → 15 à ×1,5 (0,57/km, sous la
+  règle des 0,6/km) ; forêt 29-31 et volcan 4 inchangés ; glacier et nuages déjà à 0 à ×1,3.
+- `sautBesoin` ne vise plus le catalogue mais le vol MINIMUM où la figure se plante (`figDMin` + 0,35 s de pose, + 0,06 s de marge).
+- LA FIGURE DU SAUT, PLUS NERVEUSE : `figDMin(f, douce)` — la figure partie toute seule avec le saut (`o.douce`) peut se boucler en
+  max(0,25 s ; 40 % du catalogue) au lieu de max(0,32 s ; la moitié). C'est ce plancher qui fixe la durée du saut. Les figures lancées
+  EN VOL gardent leur plancher.
+- LE PRÉDICTEUR DU SAUT CONNAÎT LA POSE (`sautVolPredit`) : passé 0,35 s, `tryLand` pose la caisse à moins de 3 m du bitume dès qu'elle
+  monte à moins de 4,5 m/s — un petit saut est rattrapé à son SOMMET. Le prédicteur l'ignorait : à ×1,5 le saut de 21 m/s (sommet 2,1 m)
+  était posé à 0,33 s au lieu des 0,85 s prédits, la figure n'avait pas le temps (16 payées sur 32 au premier essai). À ×1,3, le
+  plancher d'1 s le masquait. La poussée se cherche par pas de 1,5 m/s (étaient 3).
+- MESURÉ APRÈS (même banc, ×1,45) : **1,08 s** de vol moyen (**0,85 s sur du plat**, 1,03 la veille), 1,58 s au plus (1,85), 5,6 m de
+  haut (6,5), 30 figures payées sur 32 (26 la veille), 0 chute, 0 erreur. Les deux ratés (hélico, double) ratent aussi la veille.
+- Banc : `C:/Users/sacha/cc-banc/sautgrav.cjs <dossier> <page> <port> [requête]` (son serveur injecte `window.__ev` dans la copie servie
+  pour lire l'intérieur de l'IIFE du jeu — rien dans le fichier livré). `raccourcis.cjs` : la trace s'écrit après la fermeture de Chrome,
+  qui peut caler jusqu'au plafond — une copie qui l'écrit avant a servi ici.
+## LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL (2026-10-17, session « Physique et gameplay fluides » — Sacha : « améliore une dernière fois la physique et le gameplay, mets-toi dans la peau d'un game designer senior, fluidifie la conduite, la voltige et tout » · « il faut que ça soit la dernière amélioration avant de figer le gameplay »)
+Une passe de CONTINUITÉ, pas de règles : aucune constante de jeu, aucun verdict n'a bougé (zéro assistance, AIR_RATE 1, virage en vol non
+× vitMult, pouce haut = monte, pose généreuse 30 %, gravité de la session GRAVITÉ). On a chassé ce qui SAUTE d'une image à l'autre. Audit en
+trois lectures (conduite, vol/pose, caméra), puis banc pas à pas `feel.cjs` (scratchpad de la session) : la boucle gelée, menée par
+`dbgAuto` (sauts, nitro en vol, grand air, sortie par le bord, à 16 et 33 ms l'image), la caméra et la CARROSSERIE (`carBody` en monde)
+relevées à chaque image, comparées à la même copie d'avant.
+- **LE DÉCOLLAGE SANS SURSAUT** (`startFall`) : (1) plus de bond de 0,6 m (`fallPos` part de `hopY`, comme le bord v2) — MESURÉ 0,70 m de
+  saut entre deux images → 0,11 m (le reste est l'impulsion) ; (2) l'éjection = la vitesse RÉELLE au sol : `vA·cos(cap)` le long de la
+  route + la dérive `vL` (`cap0` = psi − slipB − BKV.gl, lu avant la remise à zéro) — avant, vA entier PLUS la dérive : +11 % de vitesse et
+  3° de cap à côté à 30° de cap ; (3) le roulis de la carrosserie passe au vol pour TOUT décollage (`VEQ.br`, `airRoll`, plus seulement au
+  bord) — MESURÉ : la carrosserie pivotait de 5 à 12° en une image au décollage d'un virage, 0,3 à 2,6° après.
+- **LA POSE QUI MORD AU CONTACT** (`tryLand` → `touche9`) : la perte de vitesse (même formule, plafond 30 %) tombait à la DÉCLARATION, jusqu'à
+  3 m au-dessus du bitume, en une image (MESURÉ : 30 à 52 % de vitesse en une image) ; elle part au contact et s'étale sur ~0,2 s.
+- **LE FREIN ÉTALÉ** (`FREIN_L`, `FREIN_TAU` .08, `vFrein(k)`) : toute perte de vitesse D'UN COUP passe par là — la pose, le coup d'épaule
+  d'une paroi, la foudre, un débris, un accrochage. Même total (les chocs se composent), en ~0,2 s. En vol, immédiat (vA n'y sert pas) ;
+  au décollage le reste est payé d'un coup. `?frein=0` = le coup sec d'avant.
+- **LE COUP D'ÉPAULE** (`parisMur` : couloirs du canyon, bourrelets du glacier, Paris) : le renvoi du nez (−30 % du cap) en ~50 ms
+  (`PARIS.psiR`/`psiK`, appliqué juste après le lacet) au lieu d'une image ; un renvoi en cours n'est pas recalculé.
+- **LE RÉACTEUR QUI S'INSTALLE** (bloc 'fall', `loop._nk` → `nk9`) : lâcher le nitro en vol (ou la jauge vide) passait la gravité de 40 % à
+  100 % et le manche de 1,7 à 0,85 rad/s en UNE image ; le plané et l'autorité suivent l'état du réacteur lissé (τ 1/12 s). Le coup
+  d'allumage (+46 m/s) reste sec. Décollage nitro tenu : réacteur plein dès la 1re image.
+- **LA CAMÉRA SANS SURSAUT** : (1) au décollage la visée de conduite emporte le pivot du CABRAGE ANTICIPÉ (`CAM_ROUTE.q`) — le regard sautait
+  de 4 à 14° depuis une bosse ; (2) en vol le suivi lit la place d'AVANT les secousses (`CAMV.p0`/`p0ok`) : les coups et le vent étaient
+  réinjectés (×1,5-2 à 60 i/s, ×3 à 120 Hz) ; (3) `CAM_REPRISE` = 400 ms (était 150, comme `n9Saut` 200 → 400 et la 1re image du vol) : une image
+  qui tousse sur iPhone ne passe plus pour une reprise (visée, place latérale et champ recalés : un 2e sursaut) ; (4) `loop._fovBT=0` au
+  décollage : un vol < 0,4 s ne rend plus le champ d'avant (+9°) ; (5) la penche (`camLean`) revient en ~0,1 s à la pose (elle sautait de ≤ 3,7°).
+- **LE ×2 DE VITESSE QUI SE PREND ET SE REND** (`pwrSpdK`, lu par `vitMult`) : 0 → 1 en ~0,4 s au ramassage, et retour en douceur à la fin
+  (c'était un coup de frein de 50 % sans rien toucher). Durée inchangée.
+- **Essayé puis RETIRÉ** : la fin de descente d'une pose (`POSE_F`) à la gravité du vol (au lieu du ×1,64 du dos d'âne) — la caisse flottait
+  jusqu'à 0,5 s en mode conduite au-dessus du bitume (plus de 1 s nitro tenu) ; on garde `26*GRAV_K`.
+- **Laissés tels quels, à trancher par Sacha s'il le veut** (des RÈGLES, pas des à-coups) : le BUMP coûte 22 % de toute la vitesse, frôlement
+  comme gros choc ; une pose dont le CENTRE dépasse le bord tombe même si la moitié de la caisse est sur le bitume ; le coup de zoom PARFAIT
+  (−24° en une image) est voulu « sec » ; une pose très en travers (150° d'écart au sol, mesurée aussi AVANT) se redresse d'un coup.
+- Banc : 0 erreur, couché, 16 et 33 ms ; sortie par le bord identique à avant (bascule, lèvre) ; `fumee.cjs` couché + debout OK.
+
+## LE DEMI-TOUR — LA POSE À CONTRESENS NE TOMBE PLUS (2026-10-17, Léo : « quand tu ratterris sur la route mais dans le mauvais sens, la voiture ne reste pas sur la route, elle continue juste de tomber — qu'elle arrive à l'envers, "mauvais sens" écrit discrètement mais stylé, un dérapage demi-tour un peu en burn-out (pas trop), elle revient sur la route automatiquement, et ça reprend »)
+- **Le bug, MESURÉ** (banc, pose forcée à 149°) : à la pose, `psi = atan2(vLat,|vT|)` gardait un cap de 30° vers le BORD, le moteur relançait la
+  caisse vers l'avant et elle sortait par le côté en ~1 s → chute, mort (sur la même map, avant : au bord à 2 s, dans le vide à 2,6 s). À 180°
+  pile, elle virait face à la route en UNE image et la caméra de vol la perdait (caisse coupée au coin de l'écran).
+- **Bloc « LE DEMI-TOUR »** (`DMT`, juste avant `tryLand`) : toute pose À CONTRESENS (> 90°, hors PARC) appelle `dmtArme` dans tryLand. ~1 s :
+  la caisse garde le cap de son ARRIVÉE (le nez du vol à plat dans la dalle, angle autour de la normale = `dmtAng`), GLISSE en arrière sur
+  son élan (`vb`, ≤ 0,9 vmax) que les pneus mangent en 0,5 s, pivote sur un RESSORT (ω 6,5, ζ .6 : ~15° de dépassement ; presque pile à
+  l'envers, le nez part vers le milieu de la route), puis BURN-OUT léger 0,5 s (roues qui patinent, fumée qui crache par l'arrière, la
+  caisse s'accroupit) et repart à la moitié de l'élan (entre 40 et 80 % de la vmax du moteur). Pendant ce temps `dmtConduite` tient le cap
+  (0), la vitesse et la ligne (ramenée dans la largeur), et `graceT` empêche bord, dessous et « ROULE OU CRÈVE ».
+- **Le lacet est VISUEL** (`dmtPose` : rotation de carGroup autour de F.n, après le power-slide, comme le SLIDE 360) : la physique roule dans
+  l'axe. À la fin, le reste du lacet passe à `driftYaw`, qui le rend en douceur.
+- **La caméra ORBITE** : `DMT.cam` part de là où regarde la caméra de vol et suit le cap de la caisse (τ .13 s : on voit son flanc pendant le
+  pivot) ; la place (`loop._camOff`) et la visée (`loop._vise`) tournent D'UN BLOC de `DMT.dc` à chaque image — avec le lissage lent d'après
+  le vol, elle traînait de 60-90° et coupait la caisse au bord de l'image. Tournée vers l'arrière, elle ne cherche pas la route devant (kV).
+- **« MAUVAIS SENS »** (`dmtSigne`, `#dmtSigne`, son style injecté `<style id="demiTour">`) : un petit panneau routier (rouge, double liseré
+  blanc, cerné d'encre, son épaisseur dessous, police pixel 9 px, flèche de demi-tour dans le sens où la caisse tourne), au-dessus du toit ;
+  il tombe en place en trois crans, clignote deux fois, se plie quand elle repart. EN : « WRONG WAY ». Il remplace le « À CONTRESENS ! » de
+  `flowCasse` (le son `pose.contresens` reste). Sons : `fig.slide` à la pose, `turbo.mini` au burn-out (banque existante).
+- **La règle ne bouge pas** (Sacha, v4) : pose ratée = flow à zéro, pas de PARFAIT. De TRAVERS (55-90°), rien ne change : la coupe garde
+  son élan (Sacha, 15/10). Mesuré : 180°, 178° à 200, 149°, 135°, 120° → la caisse reste sur la route ; 14 sauts dans le bon sens → 0
+  demi-tour, 0 erreur ; vrai demi-tour au joystick en l'air → posée à 139°, nez du vol à 126°, demi-tour joué.
+- `?demitour=0` = l'ancienne pose. `dbgDemiTour(angle°, vitesse, lat, hauteur)` envoie la caisse se poser à contresens ; `dbgDemiTour()` = l'état.
+  Planche : `photos-gameplay/demi-tour-contresens-avant-apres.png` (dossier de Léo). sw.js v598 (essai 2, poussé sur main avec le oui de Léo).
+- **2e ESSAI (même jour)** — Léo l'a vu en vrai : « c'est bof » ; puis « le pivot, le panneau, les lumières faisaient un tour bugué, c'était un
+  peu bizarre — les lumières de la voiture » ; questionnaire : pivot « trop sec, trop rapide », panneau « plus petit et discret », le refaire.
+  · LES TRAÎNÉES DE LUMIÈRE (les rubans rouges accrochés aux feux, `SILS`) dessinaient une BOUCLE sur la route pendant le pivot : elles se
+    TAISENT pendant la manœuvre (`kT9=0`, et l'arc-en-ciel `rk=0`), s'éteignent en 0,9 s (`SIL.OFF`) et repartent coupées net à la fin.
+  · LE PIVOT : plus de ressort (180° en 0,43 s, 17° de dépassement) — une courbe smootherstep sur 1,1 s (`DMT.TR`, pointe ~5 rad/s), sans
+    dépassement ; la glisse dure 0,8 s, la manœuvre 1,45 s ; la caméra suit à τ .16 s.
+  · LE PANNEAU : le texte seul, 8 px, rouge `#ff5e7a` cerné d'encre, fondu d'entrée/sortie — plus de plaque rouge ni de flèche.
+  Planche : `photos-gameplay/demi-tour-essai1-essai2.png`. ⚠ L'anneau cyan qu'on voit au sol sur une capture est l'onde de la montée de
+  moteur (`swapRing`), sans rapport.
+## LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) (2026-10-17, session FORÊT — Léo, en quatre tours : « la ville plus GTA, les immeubles plus cyberpunk réaliste ; la forêt noire, des arbres PLEUREURS » · « les arbres en cubes comme la mer ; une route qui zigzague entre les arbres, amusante à toute vitesse ; des abeilles le jour, des lucioles la nuit » · « moins Minecraft : troncs à peu près cylindriques, des mini-cubes, plus de brillance, une belle obscurité, du contraste » · « la même technique que les singes et les dauphins — tes cylindres sont tout lisses ; enlève les arbres à gros cylindres ; la route encore en hauteur, elle descend, monte, contourne les arbres ; au sol c'est de la mousse, on roule dessus »)
+- LA VILLE (v589) : `VILLE_GTA_V` (`?sans=villegta`, `dbgVilleGta(0|1)` = A/B sur la même image) dans `villeMatTours` — verre teinté qui reflète,
+  bureaux en mur-rideau allumés par plateaux, croisées des logements, rideaux chauds 1/8, LED d'arêtes 1 tour/5, feux d'obstacle.
+- LES PLEUREURS (v589) : `PLEUR_V` (`?sans=pleureurs`, `dbgPleureurs(0|1)`) — essences `saule`/`pleureur`, géants `gsaule`/`gpleureur`
+  (`FOR_GEANTS_PL`, À PART de `FOR_GEANTS_N` : sinon le tirage des géants change), `fbRideau` = mèches séparées (aB.x = 1). Flux `fw` à part.
+- LE SLALOM (remplace la PELOTE de Sacha ; `?foret=pelote` la rend) : `FOR_ZIG_V`, `forZigzag` — virages entre les troncs, relief (`ter`) et
+  4-5 PONTS de 18-30 m (`EL`, `elev`, rampes de 330-390 m, jamais sur une arche) ; `foretSol` suit `FORET.zigTer` et creuse sous la route au sol ;
+  sous un pont les arbres ordinaires restent 7 m sous la dalle. `dbgPont(k,d)` met la caisse au pied du k-ième pont, `dbgPont('etat')`.
+- ABEILLES ET LUCIOLES : `ABE` (`ABEILLES_V`, `dbgAbeilles`, `sfx('foret.abeille')` à cuire par la session SON) ; lucioles à hauteur d'yeux (11 px max).
+- PLUS DE GÉANT À FÛT DROIT : `TORDUS_V` (`?sans=tordus`) — séquoias, épicéas, chênes et hêtres géants deviennent `gsaule`/`gpleureur` (flux `fw`).
+- LES ARBRES EN VITRAIL (`VITRAIL_V`, `?sans=vitrail`, `dbgVitrail(0|1,{L,S,banc})`) — dans le shader des arbres (`FOR_ARB_FS`), ZÉRO géométrie :
+  écailles de 42 cm (1,45 m sur les géants : `aI.w` = 1) lues au centre de leur case (une écaille = une teinte, une facette, un biseau sombre) ;
+  JOINTS de 5 % MESURÉS SUR LA SURFACE (÷ √(1−n²) : une grille rasante ne fait plus de taches) qui PÂLISSENT sous le pixel au lieu de grossir
+  (sinon « grillage doré ») et prennent la lumière du jour (`dif`) ; le CŒUR = la couleur de l'arbre en lumière (`uVitG` or) ; la PEAU DE VERRE
+  sur la normale LISSE (ciel au bord, éclat de soleil, film irisé, liseré clair) ; l'ONDE qui monte le long de chaque arbre (`uVitS`).
+  La nuit les fils de lumière s'éteignent au-delà de ~30-100 m : l'obscurité reste. Les mini-cubes (`MINI_V`) et le contraste (`CONTRASTE_V`,
+  APRÈS la passe CONTI de Sacha) restent. MESURÉ : +0,3 ms/image (~4 %), 0 programme de plus.
+- LA MOUSSE (`MOUSSE_V`, `?sans=mousse`, `dbgMousse()`) : hors de la route, la caisse se POSE et ROULE (`foretSolVol`, sur le modèle de
+  `banqSolVol` du glacier ; `MOU`, `mousseTouche`, `mousseAssiette`) — vitesse de la route (`MOU.vr`, gardée d'une bosse à l'autre), volant
+  entier, nitro ; mort sur un TRONC (`FORET.troncs`, grille de 24 m, `FOR_TRONC`), une cime, ou une chute de plus de 40 m/s (un pont).
+  Sur la mousse : ni chrono de vol, ni ailes (`wingT`), ni viseur, ni « tension du vol » ; le moteur tire comme au sol. Le sol a ses COUSSINETS
+  (`uMou` dans `FOR_SOL_FS`, rosée qui s'allume) et les fleurs peintes s'effacent de près (elles faisaient des pois de 50 cm).
+- Bancs (scratchpad de la session) : `banc.py` (A/B par crochet, ⚠ ports 9586/9587 — 9497 était pris par une autre session), `film.py`
+  (une prise par seconde + suivi), `roule.py` (pilote auto, morts), `perfvit.py` (ms synchronisées A/B). Planches photos-gameplay/
+  ville-gta-avant-apres, foret-pleureurs-, foret-cubes-zigzag-, foret-minicubes-, foret-vitrail-avant-apres.png.
+
 ## LA VILLE VITRÉE v3 — CLEAN CITY (2026-10-17 soir, Léo : « j'abandonne l'idée de la ville au plafond ; rends-la plus distincte — les trucs rouges au-dessus ressemblent trop à Crypto City ; c'est CLEAN CITY : miroir, moderne, le futur, l'avancement, la technologie ; des bâtiments blancs, des logos très minimalistes, un avion-ballon énorme et très moderne ; les lumières sur les côtés de la route en BLEU »)
 - LE PLAFOND (v2) n'est plus le défaut : `VIT_PLAFOND` (`?plafond=1` le rend tel quel : ville à l'envers, ciel en bande, heures et soleil bas de la v2,
   `VIT_MET_PL`). Sans lui : le ciel et ses cumulus de la v1 (`VIT_MET_CL`, la couche `vitreCiel` d'avant) ; le verre renvoie le ciel et ses nuages
