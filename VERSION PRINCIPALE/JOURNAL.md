@@ -592,6 +592,24 @@
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
 
+## LES JAPONAISES — 5 · LA PIKES PEAK, « LA BÊTE » (nom provisoire), ÉPIQUE, INDEX 87 — ⚠ LA SUIVANTE DE LA GAMME DEVIENT LA 88 (2026-10-18, discussion JAPONAISES, Léo : « une voiture de rallye de bâtard, inspirée un peu Red Bull »)
+- **Le plan** : the-blueprints « Peugeot 208 T16 Pikes Peak (2013) » (aperçu vectoriel, quatre vues, 172 px/m, empattement 2,695 m, 4,50 × 2,00 × 1,30 m) —
+  relevé au quadrillage métrique (`grille.py <image> <sortie> <px/m> <x0> <y0> <su> <sv> <cadre> <échelle>` : 10 cm posés sur le plan).
+- **La caisse** (`SHAPES.pikes`) : loft à 18 points par tranche — ailes de ±0,985 aux roues, ±0,925 aux portières, épaule à ±0,86, capot plus bas que la crête
+  des ailes (le creux est permis dans la zone du capot), pare-brise très couché (1,26 → 0,42), pavillon 1,275, serre et hayon d'une même formule (pas
+  d'arête à la jonction). Posés dessus : le BOUCLIER-LAME (plateau au ras du sol + deux lames verticales rayées, bandes découpées dans la lame par un
+  `clip` de Sutherland-Hodgman), l'AILERON (deux éléments en profil d'aile, 1,97 m, joues de 50 cm, deux cols de cygne en plaques de carbone), le becquet
+  de pavillon et son feu stop, l'écope de toit et son antenne, rétros de course, canards, diffuseur et dérives, bavettes, bas de caisse ; découpés au
+  plan : vitres et montants, phares (filet de LED, deux optiques), feux, grande bouche et radiateurs à lames, ouïes du capot et des ailes, joints et plis.
+  Jantes 18" à 14 branches, écrou doré, slicks 32 cm. ~21 000 facettes.
+- **La livrée, SANS logo ni lettrage** (`LIVREE`) : A proche de l'originale (blanc devant, bas de caisse et poupe bleu nuit mat, filet rouge, nez rouge,
+  trapèze bleu nuit sur le capot, soleil jaune sur la portière, bas de caisse argent, rayures bleu/rouge/jaune des lames) — par défaut ; B plus libre
+  (tout bleu nuit mat, argent en bas, deux filets rouges, grand soleil cerclé de rouge).
+- Place : CARS 87 après LE TOFU (`rar:'epique'`), CAR_UNLOCK `{p:1000000}` (prix provisoire), traduction à côté de LA LAME / LE TOFU, `'pikes'` ajouté à
+  `japChauffe` (la tôle découpée pendant la préchauffe du menu).
+- Vérifié (origin/main v649 fusionné) : course ordi/debout/couché, 0 programme compilé en course, aucune erreur ; garage + inventaire ; LE TOFU et LA FIDÈLE
+  inchangées. Planche : `photos-gameplay/pikes-vraie-et-nous.png` (A | B, 3 noms : LA BÊTE · LE SOMMET · AUX NUAGES).
+
 ## LES JAPONAISES — 4 · LA COROLLA BERLINE 2019, « LA FIDÈLE » (nom provisoire), ARGENT (2026-10-18, discussion JAPONAISES : « la Toyota Corolla berline 2019, COMMUNE »)
 - **Le plan** : dimensions.com « Toyota Corolla (E210) » (SVG vectoriel, berline, quatre vues, 127 unités/m — empattement 2,70 m, 4,63 × 1,78 × 1,44 m) ;
   276 tracés relevés (`releve_svg.py` → `cor_metres.py` → `cor_plan.py`, ids vus vue par vue avec `trace.py`) : enveloppes (silhouette de côté, largeur,

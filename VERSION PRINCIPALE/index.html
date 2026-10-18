@@ -23110,6 +23110,8 @@ const CARS=[
  /* · */
  {name:'LE TOFU',shape:'ae86',color:0xf2f2ee,accent:0x141414,maxKmh:280,accel:32,turn:3.1,h:1.28,w:1.68,l:4.22,spoiler:0,rar:'rare', // 86 — discussion JAPONAISES : le petit coupé à hayon de 1983 (la ligne de la Toyota Sprinter Trueno AE86, 3 portes GT-APEX), livrée panda, phares escamotables (SHAPES.ae86)
   desc:'Livreur de tofu au petit matin, roi de la descente la nuit. Le verre d\'eau posé sur le tableau de bord ne se renverse jamais.'},
+ {name:'LA BÊTE',shape:'pikes',color:0xf1f2f4,accent:0x1a2240,maxKmh:380,accel:46,turn:3.2,h:1.30,w:2.0,l:4.5,spoiler:0,rar:'epique', // 87 — discussion JAPONAISES : la bête de course de côte de 2013 (la ligne de la Peugeot 208 T16 Pikes Peak), livrée « un peu boisson énergisante » sans logo (SHAPES.pikes)
+  desc:'875 chevaux pour 875 kilos, et un aileron plus large qu\'un canapé. Elle a avalé la montagne en huit minutes : le sommet ne s\'en est jamais remis.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -23361,6 +23363,7 @@ const I18N={
  'ANTIMATIÈRE':'ANTIMATTER',
  'LA LAME':'THE BLADE','Le même petit roadster, avec un toit qui se range en treize secondes. Il ne pleut jamais assez vite pour la rattraper.':'The same little roadster, with a roof that tucks away in thirteen seconds. It never rains fast enough to catch her.', // (JAPONAISES) 85 — la MX-5 RF
  'LE TOFU':'THE TOFU','Livreur de tofu au petit matin, roi de la descente la nuit. Le verre d\'eau posé sur le tableau de bord ne se renverse jamais.':'Tofu delivery boy at dawn, king of the downhill at night. The glass of water on the dashboard never spills.',
+ 'LA BÊTE':'THE BEAST','875 chevaux pour 875 kilos, et un aileron plus large qu\'un canapé. Elle a avalé la montagne en huit minutes : le sommet ne s\'en est jamais remis.':'875 horsepower for 875 kilos, and a wing wider than a sofa. It swallowed the mountain in eight minutes: the summit never got over it.',
  'LA FIDÈLE':'THE FAITHFUL','La voiture la plus vendue de la planète. Elle ne tombe jamais en panne, ce qui est presque suspect.':'The best-selling car on the planet. It never breaks down, which is almost suspicious.',
  // ---- descriptions des modes (menu mobile) ----
  'Sept voitures de police sur la piste, à armes égales. Toutes les 60 secondes, le dernier explose. Une place à prendre : la première.':'Seven police cars on the track, evenly matched. Every 60 seconds, the last one blows up. One spot to take: first place.',
@@ -33565,6 +33568,186 @@ SHAPES.corolla=function(K){
           lpw:{R:R,w:JW,style:'nyan',jante:0xc4c8ce}};
 };
 // <<< SHAPES.corolla (JAPONAISES) — fin >>>
+// <<< SHAPES.pikes (JAPONAISES) — début >>>
+SHAPES.pikes=function(K){
+  /* LA BÊTE — la bête de course de côte de 2013 (la ligne de la Peugeot 208 T16 Pikes Peak : 875 chevaux pour 875 kilos, le record de la
+     montagne en 8 min 13 s), en livrée « un peu boisson énergisante » SANS AUCUN logo ni lettrage : bleu nuit mat, rouge, argent, le soleil
+     jaune. Tout vient de son PLAN COTÉ (the-blueprints, quatre vues, 172 px/m, empattement 2,695 m, 4,50 × 2,00 × 1,30 m) : la caisse de
+     citadine à trois portes étirée sur des ailes de 2 m, le pare-brise très couché (1,26 → 0,42), le pavillon à 1,275 m, le hayon qui plonge ;
+     puis, posés dessus, LE GRAND BOUCLIER-LAME (un plateau au ras du sol qui dépasse de 25 cm, deux lames verticales aux coins), L'ÉNORME
+     AILERON (1,97 m, deux éléments, joues de 50 cm, sur deux cols de cygne plantés dans le hayon), l'écope de toit et son antenne, le becquet de
+     pavillon, les ouïes du capot et des ailes, le diffuseur et ses dérives. Découpés dans la tôle (`japDecoupe`) : vitres, montants, phares,
+     feux, la grande bouche et ses radiateurs, les ouïes ; joints et plis ; et la livrée (`LIVREE`). Jantes multibranches 18", écrou doré.
+     Repère : x à droite, y en haut, z vers l'avant, mètres. */
+  const U=LPU,R=.355,ZF=1.347,ZR=-1.347,ZE=2.14,ZB=-2.0;
+  const L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,mix=(a,b,t)=>a+(b-a)*t;
+  // LA LIVRÉE (à choisir par Léo) : 'A' proche de l'originale (le blanc devant, le bleu nuit derrière, la vague rouge, le soleil) ·
+  // 'B' plus libre (tout en bleu nuit mat, l'argent en bas, deux filets rouges, un grand soleil cerclé de rouge)
+  const LIVREE='A';
+  const NUIT=0x1a2240,BLANC=0xf1f2f4,ROUGE=0xd51029,JAUNE=0xffc21a,ARG=0xb5bac3;
+  const PAL={p:LIVREE==='A'?{g:'p',c:BLANC}:{g:'s',c:NUIT},k:{g:'m',c:0x111214},C:{g:'s',c:0x1b1c21},K:{g:'g',c:0x0b0b0e},g:{g:'g',c:0x141c26},
+    n:{g:'g',c:0x0e0f12},W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xd0101e},a:{g:'k',c:ARG},o:{g:'o',c:0xd9a520},d:{g:'m',c:0x0d0e11},
+    R:{g:'p',c:ROUGE},Y:{g:'p',c:JAUNE},N:{g:'s',c:NUIT},B:{g:'p',c:0x1e78d8},w:{g:'p',c:BLANC},Q:{g:'l',c:0xe6e6e6}};
+  // ---- LES COTES DU PLAN (mètres) ----
+  const XM=[[ZB,.70],[-1.99,.80],[-1.97,.88],[-1.94,.94],[-1.90,.97],[-1.84,.985],[-.95,.985],[-.86,.95],[-.75,.925],[.80,.925],[.92,.95],[1.0,.985],
+            [1.80,.985],[1.92,.975],[2.0,.955],[2.06,.92],[2.10,.86],[2.125,.78],[ZE,.68]],
+        YT=[[ZB,.50],[-1.99,.56],[-1.97,.60],[-1.93,.66],[-1.88,.71],[-1.80,.76],[-1.65,.83],[-1.50,.88],[-1.30,.92],[-1.10,.93],[-.90,.915],[-.60,.90],
+            [0,.885],[.60,.88],[.95,.885],[1.0,.92],[1.15,.925],[1.35,.912],[1.50,.885],[1.60,.86],[1.70,.82],[1.80,.765],[1.88,.725],[1.95,.69],
+            [2.03,.65],[2.08,.62],[2.11,.58],[ZE,.54]],
+        YC=[[ZB,.53],[-1.99,.56],[-1.96,.63],[-1.90,.71],[-1.80,.79],[-1.70,.85],[-1.55,.93],[-1.40,1.01],[-1.25,1.10],[-1.10,1.17],[-1.0,1.215],[-.85,1.24],
+            [-.60,1.258],[-.30,1.27],[0,1.275],[.20,1.27],[.42,1.258],[1.26,.90],[1.40,.86],[1.60,.82],[1.80,.775],[1.95,.72],[2.05,.66],[2.10,.61],[ZE,.55]],
+        YB=[[ZB,.15],[-1.97,.09],[-1.80,.075],[1.80,.075],[2.0,.09],[ZE,.13]],
+        ARF=[[0,.77],[.10,.757],[.20,.72],[.28,.672],[.34,.61],[.38,.53],[.405,.44],[.415,.35],[.418,0]],
+        ARR=[[0,.73],[.10,.718],[.20,.684],[.28,.636],[.34,.574],[.375,.50],[.40,.41],[.41,.33],[.412,0]];
+  const xM=z=>L(XM,z),yT=z=>L(YT,z),yB0=z=>L(YB,z),yC=z=>L(YC,z);
+  /* LA SERRE (z = 1.26 le pied du pare-brise, −1.0 le haut du hayon) : le bord du toit `YR` (le haut des vitres latérales + 2 cm), posé dans
+     le plan des vitres (rentrée de ~37°, relevée vue de face : épaule à ±0,86, pavillon à ±0,55) ; devant, le montant de pare-brise. */
+  const ZW=1.26,ZHT=-1.0;
+  const YR=[[-1.12,1.10],[-.97,1.19],[-.70,1.23],[-.38,1.245],[.10,1.245],[.42,1.235]];
+  const zone=z=>z>ZW?'capot':z>=ZHT?'serre':'hayon';
+  const DX=[[0,.05],[.06,.02],[.15,0],[.55,0],[.65,.012],[.75,.035],[.85,.07],[.93,.10],[1.0,.12]];
+  const TS=[.04,.12,.25,.40,.55,.68,.78,.87,.94],NC=2+TS.length;
+  const S0=z=>{const xm=xM(z),y0=yB0(z),yt=yT(z),zo=zone(z),kx=Math.min(1,xm/.62),H=Math.max(.04,yt-y0);
+    const yb=Math.max(y0,L(ARF,Math.abs(z-ZF)),L(ARR,Math.abs(z-ZR)));
+    const s=[[0,yb],[xm-.10*kx,yb]];
+    let pr=yb;for(let i=0;i<TS.length;i++){let h=Math.max(y0+TS[i]*H,pr+.0015);h=Math.min(h,yt-(TS.length-i)*.0015);if(h<pr+.0005)h=pr+.0005;pr=h;s.push([xm-L(DX,cl((h-y0)/H,0,1))*kx,h]);}
+    const xb=xm-.12*kx;
+    if(zo==='capot'){const yh=yC(z);   // la crête des ailes, puis le capot qui se creuse entre elles (il est plus bas que les ailes : vu de face, .80 contre .87)
+      s.push([xb+.004,yt+.004],[xm*.80,yt-.012],[xm*.66,mix(yt,yh,.55)],[xm*.50,yh+.012],[xm*.33,yh+.004],[xm*.16,yh],[0,yh]);}
+    else{   // la serre, puis le hayon (mêmes formules : la jonction ne fait pas d'arête) — au hayon, le bord du toit descend avec la lunette
+      let yr=z>.42?mix(1.235,yt+.01,(z-.42)/(ZW-.42)):z>=-1.12?L(YR,z):mix(yt,yC(z),.82);yr=Math.max(yr,yt+.01);
+      const xr=Math.min(xb-.012,xb-.75*(yr-yt)),yc=Math.max(yC(z),yr+.004);
+      s.push([xb,yt],[xb-.008,yt+.012],[mix(xb,xr,.5)+.004,mix(yt,yr,.5)],[xr,yr],[xr-.06,yr+(yc-yr)*.64],[xr*.58,yc-.005],[0,yc]);}
+    if(zo!=='capot')for(let i=NC+1;i<s.length;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]);
+    if(z>=ZE-1e-6||z<=ZB+1e-6)for(const q of s)q[0]*=.02;   // (les deux bouts se replient sur l'axe : la face est une bande du loft)
+    return s;};
+  const SM=new Map(),S=z=>{const k=Math.round(z*2000);let s=SM.get(k);if(!s){s=S0(k/2000);SM.set(k,s);}return s;};
+  const zs0=[ZB,ZB+.003,-1.99,-1.98,-1.97,-1.955,-1.94,-1.92,-1.90,-1.87,-1.84,-1.80,-1.75,-1.70,-1.62,-1.55,-1.48,-1.40,-1.32,-1.25,-1.18,-1.10,ZHT,ZHT-.004,
+    -.95,-.90,-.85,-.75,-.65,-.55,-.45,-.35,-.25,-.15,-.05,.05,.15,.25,.35,.42,.50,.60,.70,.80,.88,.95,1.0,1.06,1.12,1.18,ZW,ZW+.004,1.32,1.40,1.48,1.56,
+    1.64,1.72,1.80,1.86,1.92,1.97,2.01,2.04,2.07,2.09,2.105,2.115,2.125,2.132,ZE-.003,ZE];
+  for(const [w,a] of [[ZF,.418],[ZR,.412]])for(const f of [0,.2,.4,.55,.7,.8,.88,.95,.99,1])zs0.push(w-a*f,w+a*f);
+  zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.002);
+  const peint=(j,z)=>j===0&&z<2.10&&z>-1.96?'k':'p';
+  const EP=(typeof peintPal==='function'?peintPal(PAL):PAL).p,GP=EP.g;
+  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  // ---- LA DÉCOUPE AU PLAN (`japDecoupe`) ----
+  const MEM=(typeof SHAPES==='object'&&SHAPES.pikes)||null;
+  const av=(x,y,z,nx,ny,nz)=>z>1.95&&nz>.2,ar=(x,y,z,nx,ny,nz)=>z<-1.8&&nz<-.2,cs=(x,y,z,nx,ny,nz)=>Math.abs(nx)>.45;
+  const TOUT=[[-3,-1],[3,-1],[3,2],[-3,2]];
+  const VAGUE=[[2.20,.32],[1.80,.40],[1.40,.47],[.90,.50],[.30,.53],[-.20,.58],[-.45,.66],[-.58,.80],[-.62,1.0],[-.60,1.45]];   // la limite du bleu nuit (lecture A)
+  // la livrée, vue par vue (en tête de liste : les vitres, les feux et les ouïes passent devant)
+  const LV=LIVREE==='A'?{
+    cote:[{k:'N',p:[[2.5,-.2],[2.5,.30]].concat(VAGUE,[[-2.5,1.45],[-2.5,-.2]]),axe:false},                                    // le bleu nuit : le bas de caisse, puis toute la poupe…
+          {k:'R',p:japRuban(VAGUE.slice(0,-1).map(p=>[p[0]+.02,p[1]+.035]),.04),axe:false},                                        // …souligné du filet rouge
+          {k:'Y',p:japOvale(-.08,.31,.17,.17,28),axe:false},                                                                       // le soleil jaune, sur la portière
+          {k:'a',p:[[2.5,-.2],[-2.5,-.2],[-2.5,.165],[2.5,.165]],axe:false}],                                                      // le bas de caisse argent
+    dessus:[{k:'N',p:[[.20,0],[.20,1.3],[-2.5,1.3],[-2.5,0]]},{k:'N',p:[[1.29,0],[1.29,.44],[1.92,.64],[1.92,0]]},                // le pavillon et le trapèze du capot…
+            {k:'R',p:[[2.25,0],[2.25,1.1],[1.95,1.1],[1.92,0]]}],                                                                 // …et le nez rouge
+    face:[{k:'R',p:[[0,.57],[.58,.595],[.64,.655],[.60,.70],[0,.685]]},
+          {k:'B',p:[[.66,.13],[.74,.13],[.99,.47],[.99,.58],[.92,.58]],axe:false},{k:'R',p:[[.74,.13],[.82,.13],[.99,.36],[.99,.47]],axe:false},
+          {k:'Y',p:[[.82,.13],[.90,.13],[.99,.25],[.99,.36]],axe:false}],
+    dos:[{k:'N',p:TOUT,axe:false,gate:(x,y,z)=>z<-.9}]}:{
+    cote:[{k:'a',p:[[2.5,-.2],[-2.5,-.2],[-2.5,.20],[2.5,.20]],axe:false},
+          {k:'R',p:japRuban([[2.10,.60],[1.80,.74],[1.40,.84],[.90,.845],[0,.835],[-.90,.85],[-1.40,.86],[-1.75,.77],[-1.97,.62]],.02),axe:false},
+          {k:'R',p:japOvale(.02,.555,.285,.285,32),axe:false},{k:'Y',p:japOvale(.02,.555,.255,.255,32),axe:false}],
+    dessus:[{k:'R',p:[[2.3,.065],[-2.3,.065],[-2.3,.115],[2.3,.115]]}],
+    face:[{k:'R',p:[[0,.57],[.58,.595],[.64,.655],[.60,.70],[0,.685]]},{k:'a',p:[[0,.12],[.99,.12],[.99,.185],[0,.185]]}],
+    dos:[{k:'R',p:japDemi(.99,.50,.545,.004,1)},{k:'a',p:[[0,.12],[.99,.12],[.99,.20],[0,.20]]}]};
+  const SL=[];for(let y=.235;y<.48;y+=.03)SL.push({k:'a',p:japRect(.055,y-.0045,.375,y+.0045,.003,1),gate:av});   // les lames des radiateurs
+  const LOU=[];for(const z0 of [1.12,1.19,1.26,1.33,1.40])LOU.push({k:'K',p:japRect(z0,.66,z0+.04,.84,.01,2),gate:(x,y,z,nx,ny,nz)=>ny>.4&&z>1.0&&z<1.5});   // les ouïes des ailes
+  const ZN={
+    face:japZones(LV.face.map(q=>Object.assign({gate:av},q)).concat([
+      {k:'K',p:[[0,.18],[.42,.18],[.48,.21],[.50,.27],[.50,.47],[.47,.52],[0,.52]],gate:av},                                    // la GRANDE BOUCHE…
+      {k:'n',p:japRect(.05,.22,.38,.49,.01,2),gate:av}],SL,[                                                                   // …ses deux radiateurs et leurs lames
+      {k:'K',p:[[.60,.70],[.65,.765],[.76,.785],[.86,.75],[.87,.67],[.80,.62],[.68,.615]],gate:av},                            // les PHARES…
+      {k:'W',p:japOvale(.70,.70,.034,.034,14),gate:av},{k:'W',p:japOvale(.80,.705,.03,.03,14),gate:av},                       // …leurs deux optiques
+      {k:'W',p:japRuban([[.62,.72],[.70,.76],[.82,.755]],.01),gate:av,axe:false}])),                                          // …et leur filet de LED
+    cote:japZones(LV.cote.map(q=>Object.assign({gate:cs},q)).concat([
+      {k:'K',p:[[.95,.90],[.47,1.13],[.71,.865]],gate:cs},                                                                     // le triangle du montant
+      {k:'g',p:[[.47,1.13],[.30,1.19],[.10,1.215],[-.15,1.22],[-.19,.915],[.30,.885],[.71,.865]],gate:cs},                     // la vitre de portière
+      {k:'K',p:[[-.15,1.225],[-.38,1.225],[-.35,.91],[-.19,.915]],gate:cs},                                                    // le montant milieu
+      {k:'g',p:[[-.38,1.225],[-.70,1.21],[-.97,1.165],[-1.06,1.11],[-1.10,1.065],[-.89,.99],[-.35,.91]],gate:cs},              // la custode
+      {k:'K',p:[[2.08,.70],[1.95,.75],[1.80,.765],[1.77,.735],[1.85,.65],[1.97,.59],[2.07,.61]],gate:(x,y,z,nx,ny,nz)=>z>1.7},  // le phare vu de côté…
+      {k:'W',p:japRuban([[2.03,.66],[1.93,.71],[1.82,.735]],.012),gate:(x,y,z,nx,ny,nz)=>z>1.7,axe:false},                     // …son filet de LED
+      {k:'L',p:[[-1.55,.86],[-1.67,.845],[-1.78,.76],[-1.86,.64],[-1.80,.63],[-1.68,.70],[-1.58,.77]],gate:(x,y,z,nx,ny,nz)=>z<-1.45}])),   // le feu
+    dos:japZones(LV.dos.map(q=>Object.assign({gate:ar},q)).concat([
+      {k:'g',p:[[0,1.20],[.48,1.195],[.60,1.14],[.64,1.0],[.60,.92],[0,.91]],gate:(x,y,z,nx,ny,nz)=>z<-.95&&nz<-.1},          // la LUNETTE du hayon
+      {k:'L',p:[[.52,.70],[.55,.80],[.66,.86],[.80,.87],[.89,.84],[.92,.74],[.86,.63],[.72,.585],[.60,.60]],gate:ar},          // les FEUX
+      {k:'K',p:japRect(0,.53,.34,.71,.04,3),gate:ar}])),                                                                       // le creux de la plaque
+    dessus:japZones(LV.dessus.map(q=>Object.assign({gate:(x,y,z,nx,ny,nz)=>ny>.2},q)).concat([
+      {k:'g',p:[[1.27,0],[1.25,.30],[1.18,.52],[1.08,.60],[.90,.61],[.72,.53],[.71,0]],gate:(x,y,z,nx,ny,nz)=>z>.6&&z<1.3&&ny>.2},   // le PARE-BRISE…
+      {k:'K',p:[[.71,0],[.72,.53],[.55,.51],[.42,.47],[.42,0]],gate:(x,y,z,nx,ny,nz)=>z>.38&&z<.75&&ny>.2},                    // …son bandeau teinté
+      {k:'K',p:[[1.84,.52],[1.58,.60],[1.52,.32],[1.70,.26]],creux:.02,gate:(x,y,z,nx,ny,nz)=>z>1.45&&ny>.3}],LOU))};           // les OUÏES du capot
+  const LGN={
+    cote:japLignes([{k:'j',p:[[.82,.30],[.83,.60],[.82,.88]]},{k:'j',p:[[-.48,.30],[-.50,.60],[-.47,.91]]},{k:'j',p:[[.82,.30],[-.48,.30]]},
+      {k:'h',p:[[.68,.39],[-.42,.88]]}]),
+    dessus:japLignes([{k:'j',p:[[1.29,0],[1.29,.50],[1.40,.66],[2.10,.70]]},{k:'j',p:[[-1.0,0],[-1.0,.55]]}]),
+    face:japLignes([]),dos:japLignes([{k:'j',p:[[0,.88],[.62,.88],[.72,.92]],gate:ar}])};
+  const CODES={p:{g:GP},gap:{g:GP,c:0x202228},K:{g:'g',c:PAL.K.c,lisse:1},g:{g:'g',c:PAL.g.c,lisse:1},n:{g:'g',c:PAL.n.c},W:{g:'l',c:0xf2f6ff},
+    L:{g:'l',c:0xc80c1c},a:{g:'k',c:ARG},R:{g:'p',c:ROUGE},Y:{g:'p',c:JAUNE},N:{g:'s',c:NUIT},B:{g:'p',c:0x1e78d8}};
+  {const f2=PL.done;PL.done=()=>{const gs=f2(),G=gs[GP];if(!G)return gs;
+    const out=japDecoupe(G,{zones:ZN,lignes:LGN,codes:CODES,ns:()=>japLisse(G,32),GP:GP,colP:japColP(EP),cache:MEM,
+      vue:(x,y,z,ax,ay,az,nx,ny,nz)=>{if(z>2.0&&nz>.3&&ny<.85&&y<.80)return 'face';
+        if(z<-.95&&y>.86&&nz<-.1){const s9=S(z);if(Math.abs(x)<s9[NC+3][0]-.004)return 'dos';}   // (le hayon : la lunette est lue de dos)
+        if(z<-1.8&&nz<-.3&&y<.95)return 'dos';
+        if(z<ZW&&z>ZHT&&y>.9&&ny>.2){const s9=S(z);if(Math.abs(x)<s9[NC+3][0]-.004)return 'dessus';}
+        return null;}});
+    G.dispose();delete gs[GP];return japFusion(gs,out);};}
+  K.commit(PL);if(K.muet)return {};
+  // ---- LES PIÈCES POSÉES ----
+  const P=K.kit(PAL);
+  const clip=(Sb,Cp)=>{let o=Sb;for(let i=0;i<Cp.length;i++){const a=Cp[i],b=Cp[(i+1)%Cp.length],ins=p=>(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0,I=[];
+      for(let j=0;j<o.length;j++){const p=o[j],q=o[(j+1)%o.length],ip=ins(p),iq=ins(q);if(ip)I.push(p);
+        if(ip!==iq){const dx=q[0]-p[0],dy=q[1]-p[1],ex=b[0]-a[0],ey=b[1]-a[1],t=(ex*(p[1]-a[1])-ey*(p[0]-a[0]))/(ey*dx-ex*dy);I.push([p[0]+dx*t,p[1]+dy*t]);}}o=I;if(!o.length)break;}return o;};
+  // LE BOUCLIER-LAME : le plateau au ras du sol, et les deux lames verticales de ses coins (rayées de couleurs)
+  P.box('k',1.96,.024,.46,0,.088,2.15);P.box('C',1.96,.03,.02,0,.098,2.375);
+  const LAME=[[1.76,.10],[2.38,.10],[2.37,.29],[1.87,.52],[1.76,.52]];
+  const RAY=LIVREE==='A'?[['B',1.96],['R',2.03],['Y',2.10]]:[['R',2.0],['Y',2.08]];
+  P.sym(sd=>{P.prism(LIVREE==='A'?'w':'a',LAME,.024,sd*.972);
+    for(const [k,c] of RAY){const st=[[c,.10],[c+.065,.10],[c+.065-.25,.55],[c-.25,.55]],q=clip(st,LAME);if(q.length>2)P.prism(k,q,.006,sd*(.972+.015));}});
+  // L'AILERON : deux éléments en profil d'aile (1,97 m), les joues, les deux cols de cygne plantés dans le hayon
+  P.prism('C',[[-1.86,1.53],[-1.92,1.565],[-2.02,1.585],[-2.17,1.62],[-2.17,1.60],[-2.02,1.556],[-1.92,1.524]],1.97,0);
+  P.prism(LIVREE==='A'?'N':'R',[[-2.06,1.632],[-2.12,1.665],[-2.185,1.70],[-2.19,1.686],[-2.11,1.647],[-2.06,1.622]],1.97,0);
+  P.sym(sd=>{P.prism('C',[[-1.85,1.70],[-2.20,1.70],[-2.20,1.19],[-2.05,1.19],[-1.84,1.47]],.012,sd*.99);
+    P.prism('C',[[-1.63,.97],[-1.79,.97],[-2.03,1.535],[-1.87,1.535]],.02,sd*.13);});   // (les cols de cygne : deux grandes plaques de carbone)
+  // LE BECQUET DE PAVILLON, son feu stop ; L'ÉCOPE DE TOIT et son antenne
+  P.prism(LIVREE==='A'?'N':'p',[[-.92,1.235],[-1.52,1.232],[-1.53,1.215],[-1.30,1.198],[-.96,1.205]],1.20,0);
+  P.box('L',.30,.018,.02,0,1.236,-1.50);
+  P.prism(LIVREE==='A'?'N':'a',[[-.28,1.262],[-.30,1.40],[-.36,1.416],[-.60,1.402],[-.86,1.29],[-.88,1.258]],.28,0);
+  P.box('K',.24,.105,.012,0,1.338,-.287);P.cyl('k',.006,.16,6,0,1.47,-.48,'y');
+  // LES RÉTROVISEURS de course : un pied, une coque carbone, la glace
+  P.sym(sd=>{P.box('C',.10,.03,.05,sd*.86,.97,.80);P.box('C',.14,.08,.07,sd*.95,1.0,.79,0,sd*.12,0);P.box('K',.12,.065,.006,sd*.952,1.0,.753,0,sd*.12,0);});
+  // LE DIFFUSEUR et ses dérives, les bavettes derrière les roues, les bas de caisse
+  P.box('k',1.30,.02,.48,0,.16,-1.80,-.25,0,0);
+  for(const x of [-.45,-.20,.20,.45])P.box('k',.012,.17,.48,x,.15,-1.82);
+  P.sym(sd=>{P.box('k',.02,.36,.26,sd*.965,.22,-1.80);P.box('k',.05,.05,2.05,sd*.905,.085,0);
+    P.box('C',.16,.012,.11,sd*.90,.40,2.07,0,0,sd*.12);P.box('C',.14,.012,.10,sd*.91,.30,2.08,0,0,sd*.10);});   // (les canards du bouclier)
+  // LE SUPPORT DE PLAQUE (la plaque du jeu le reconnaît : `plqDessinee`)
+  P.box('Q',.40,.11,.006,0,.62,-2.003);
+  // LA JOUE DES PASSAGES DE ROUE
+  {const joue=(w,A9)=>{const o=[],a9=A9[A9.length-1][0];for(let i=A9.length-1;i>=0;i--){const p=A9[i];if(p[1]>=.17)o.push([w-p[0]*1.02,p[1]+.01]);}
+      o.unshift([w-a9,.17]);for(let i=1;i<A9.length;i++){const p=A9[i];if(p[1]>=.17)o.push([w+p[0]*1.02,p[1]+.01]);}o.push([w+a9,.17]);return o;};
+   P.sym(sd=>{P.prism('d',joue(ZF,ARF),.02,sd*.66);P.prism('d',joue(ZR,ARR),.02,sd*.66);});}
+  K.commit(P);
+  // ---- LE POT : un gros tube au centre-droit, sous le diffuseur ----
+  let pots=[[.30,.30,-1.99]];
+  if(typeof ECHP==='object'&&ECHP.reel&&typeof ECH_PAL==='object'){const E=K.kit(ECH_PAL);E.ech=1;ECHP.reel(E,{r:.045,k:'c',len:.32,pts:[[.30,.30,-1.99]]});K.commit(E);}
+  // ---- LA JANTE MULTIBRANCHE (18 pouces), argent, l'écrou central doré ; le pneu slick 30/68 ----
+  const JW=.32,hw=JW/2,fx=hw-.03,RJ=.235,J=lpKit({k:{g:'m',c:0x161719},a:{g:'k',c:0xc0c4cb},o:{g:'o',c:0xd9a520},d:{g:'m',c:0x0f1013},s:{g:'s',c:0x3a3c42}});
+  J.lathe('k',[[RJ,-hw],[R*.92,-hw],[R,-hw*.66],[R,hw*.66],[R*.92,hw],[RJ,hw]],26,0,0,0,'x');
+  J.lathe('a',[[RJ,fx-.012],[RJ+.004,fx+.002],[RJ-.01,fx+.006],[RJ-.018,fx-.006]],26,0,0,0,'x');
+  J.lathe('d',[[RJ-.02,-hw+.02],[RJ-.02,fx-.02],[.06,fx-.04],[0,fx-.04]],20,0,0,0,'x');
+  {const sh=new THREE.Shape();sh.moveTo(-.008,.055);sh.lineTo(.008,.055);sh.lineTo(.005,.222);sh.lineTo(-.005,.222);sh.lineTo(-.008,.055);
+   for(let q=0;q<14;q++){const g=new THREE.ExtrudeGeometry(sh,{depth:.02,bevelEnabled:true,bevelThickness:.003,bevelSize:.002,bevelSegments:1,curveSegments:1});
+     g.rotateY(-Math.PI/2);g.rotateX(q/14*Math.PI*2);g.translate(fx-.002,0,0);J.put('a',g,0,0,0);}}
+  J.lathe('s',[[.066,fx-.03],[.064,fx+.004],[.05,fx+.012],[0,fx+.014]],16,0,0,0,'x');
+  J.lathe('o',[[.036,fx+.012],[.034,fx+.03],[.02,fx+.036],[0,fx+.036]],6,0,0,0,'x');   // l'écrou central, hexagonal, doré
+  const JG=J.done();
+  return {hl:[.74,.70,2.07],tl:[.74,.73,-1.93],wx:.82,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,halos:0,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0xc0c4cb}};
+};
+// <<< SHAPES.pikes (JAPONAISES) — fin >>>
 // · · ·
 // · · ·
 // · · ·
@@ -33712,7 +33895,7 @@ function japRuban(P,w){const n=P.length,h=w/2,G=[],D=[];for(let i=0;i<n;i++){con
 function japEchelle(P,k){let cx=0,cy=0;for(const p of P){cx+=p[0];cy+=p[1];}cx/=P.length;cy/=P.length;return P.map(p=>[cx+(p[0]-cx)*k,cy+(p[1]-cy)*k]);}
 /* LA PRÉCHAUFFE (comme `perleTraits`) : la tôle de chaque japonaise découpée au plan une fois, pendant la préchauffe du menu (`chauffeDivers`) —
    le gabarit tourne dans un chantier muet (`K.muet` : il s'arrête après la tôle) et garde sa découpe sur sa fonction (`_tole`). Une caisse par appel. */
-function japChauffe(){for(const n of ['mx5rf','mx5na','ae86','corolla']){const F=typeof SHAPES==='object'&&SHAPES[n];if(!F||F._tole)continue;
+function japChauffe(){for(const n of ['mx5rf','mx5na','ae86','corolla','pikes']){const F=typeof SHAPES==='object'&&SHAPES[n];if(!F||F._tole)continue;
     const nA=(typeof BLING==='object'&&BLING&&BLING.anim)?BLING.anim.length:-1;
     try{F({kit:pal=>lpKit(typeof peintPal==='function'?peintPal(pal):pal),commit:kt=>{const gs=kt.done();for(const g in gs)gs[g].dispose();},mats:{},add:o=>o,muet:1});}catch(e){console.warn('japChauffe',n,e);}
     if(nA>=0&&BLING.anim.length>nA)BLING.anim.length=nA;return true;}
@@ -38311,6 +38494,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   {p:40000}, // 86 — RARE : Toyota AE86 (1983)
+  {p:1000000}, // 87 — ÉPIQUE : Peugeot 208 T16 Pikes Peak (2013) — prix provisoire
 ]
 /* ===== LES MISSIONS v2 — LA TABLE (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des
    MISSIONS libres ; toutes les missions sont ouvertes en même temps, sans ordre imposé ») =====
