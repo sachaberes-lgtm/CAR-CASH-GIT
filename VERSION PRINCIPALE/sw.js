@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v642'; // v642 (2026-10-18, Sacha) : L'ALLÈGEMENT — carrière, charte 6, menu de Léo et les fonctions coupées retirés, Paris dans le mode classique, LA POUPÉE, LE REQUIN et LA RAIE revenues, la copie en ligne sans commentaires (voir le journal)
+const CACHE = 'cashcar-v643'; // v643 (2026-10-18, Sacha) : au boost, les bords de la route clignotent avec le JEU DE LUMIÈRE de la traînée — les nuances de son feu, dans les mêmes parts (voir le journal)
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
