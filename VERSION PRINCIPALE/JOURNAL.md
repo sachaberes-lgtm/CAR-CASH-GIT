@@ -3,6 +3,94 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
+- L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
+  ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —
+  le skyline, ce qu'on voit défiler et ce qu'on survole — deviennent, pour une part, les GÉANTES DE VERRE de la ville vitrée. Le béton couvert de
+  néons reste en bas et autour ; les tours de verre, propres, sans enseigne, renvoient la ville. Les deux maps n'en font plus qu'une.
+- QUI DEVIENT DE VERRE (`villeVerreTour`, tiré de la POSITION de la tour : aucun tirage `vr` de plus ni de moins — à graine égale c'est la même
+  ville) : le long de la route, une tour sur deux parmi celles dont le toit passe la route de plus de 190 m, une sur trois de 60 à 190 m ; au large,
+  une sur trois de celles qui dépassent la route de 30 m. Les toits sous la route, les murs de l'entrée surélevée restent en béton.
+- CE QU'ELLES PRENNENT À LA VILLE VITRÉE : la construction (`VIt` dans `batir` : retraits EMPILÉS — la profondeur est en 16 bits —, les FORMES de
+  `vitreForme` : effilée, vrillée, fuseau, ronde, lame ; le mât qui part du toit, pas de lame plaquée sur une tour de forme, pas de couronne carrée
+  sur un biseau), les coins biseautés (`vitreGeo`/`vitreGeoR`), le MUR-RIDEAU (`vitreVerre`) : carreaux désaxés, bureaux allumés par plateaux,
+  plafonniers, stores, les tours d'en face dans le reflet, les filets de LED et les logos minimalistes. Pas d'enseigne ni de réclame sur elles
+  (`gvDer` : le tirage a lieu, la réclame n'est pas posée).
+- CE QUI CHANGE POUR ÊTRE EN NÉON (`vitreMatToursNeon` = `vitreMatFab(true)`, clé `toursVerreNeon1`) :
+  · le CIEL RENVOYÉ : `VV` (uniformes à part — ceux de la vitrée ne bougent pas), posé à chaque image par `villeVerreTick` d'après la BRUME de la
+    ville (sa teinte, son temps) : sombre au zénith, la lueur des rues à l'horizon, un voile du néon de la teinte ; les nuages éclairés par en dessous
+    (`VV_MET` : leur couverture par temps) ; vers le bas, la brume et la lueur des rues (`VV_CIEL_B`) au lieu des dalles de la ville au sol ;
+  · les FILETS de LED des arêtes et les LOGOS prennent le néon de la TEINTE (`uAcc9` = l'enseigne magenta remappée : violet, vert, jaune, bleu) ;
+  · plus de verre que de blanc (`VV_STY` : 34 % verre bleu, 22 % sombre, 22 % argent, 12 % lames, 10 % blanche à bandeaux — les mêmes seuils pour
+    la structure dans buildVoxCity) ;
+  · le PIED dans la brume : le code de `villePied` (celui des tours de béton, au caractère près), compté depuis le pied de la tour — seul le volume
+    du pied (vert + 8) a un pied à noyer (`vvPied`) ; AU LOIN, `vitreMatToursNeonLoin` (la géante lointaine a sa couleur par instance : `fam(…,colL)`,
+    `villeMet`/`villePousse` la copient).
+  Le texte du verre de la VILLE VITRÉE est le même au caractère près (`vitreVerre(VIT_CIEL_B)`, vérifié par banc Node sur ses trois variantes).
+- LES FAMILLES : la ville bâtit le béton (villeMatTours), puis le verre droit, puis le verre à étages (vrillée, fuseau) ; chaque tour garde ses
+  pièces ensemble et dans leur ordre. La chauffe (`villeChauffe`) compile le verre APRÈS les tours et AVANT les néons (l'ordre de compilation fait
+  l'ordre de dessin : une couronne au ras d'un toit reste au néon).
+- LA VILLE VITRÉE QUITTE LE JOUER (`SF_HORS.vitree`) : elle vit dans la ville. `sfTire` ne la tire plus ; `?carte=vitree`, `dbgNiveauVitre`,
+  `dbgClassique('vitree',…)` la jouent toujours, telle quelle (`sfImpose` tire la météo DANS la map imposée : une map hors du tirage ne sortait
+  jamais de sfTire). Les MISSIONS « chaque map » (`m2Cartes`, `m2Vues`) ne la comptent plus — une partie jouée là-bas ne compte plus non plus.
+  `?vitree=1` la remet au tirage.
+- MESURÉ (banc : Chrome sans fenêtre, muet, couché 844 × 390, `?pistegraine=` pour la même piste ; avant l'allègement, revérifié après — voir la fin) : 15 à 19 % des tours deviennent de verre
+  (253 sur 1 328 à la pluie violette, 231 sur 1 414 la nuit bleue, 199 sur 1 360 au brouillard vert) ; programmes 213 au menu = 213 en course
+  (0 compilé en course ; 2 de plus qu'avant, le verre et sa géante au loin, compilés au MENU par villeChauffe) ; aucune erreur JS ; la VILLE VITRÉE
+  (`?carte=vitree&meteo=nuit`) tourne telle quelle. 1re passe REFAITE : les géantes sortaient PLUS SOMBRES que les tours au néon (elles éteignaient
+  le skyline) — verre plus neutre (le bleu du jour mangeait le violet), bureaux ×1,55 et leur lueur au loin ×2, filets sur trois tours sur quatre,
+  parapet au néon de la teinte, ciel renvoyé plus clair à l'horizon (la lueur des rues et des néons).
+- LE PORTAIL : les 16 cartes postales de la ville (`assets/portail/ville-<temps>-<teinte>.webp`) sont GARDÉES. Retirées au banc (dbgCartePostale,
+  début de piste), les neuves montraient l'entrée surélevée — beaucoup de ciel, le 1er rang sous la route, à peine une géante de verre — et une
+  route plus sombre : les anciennes disent mieux la ville, et elles restent vraies (le verre ne vit que dans le skyline).
+- Crochets : `VILLE_VERRE_V=false` (la ville néon d'avant, la vitrée revient au tirage — pas d'interrupteur d'adresse : allègement du 18/10 ; l'image
+  d'avant = le commit bf09e346) · `?vitree=1` (la vitrée au tirage, avec la ville néon et verre) · `dbgVilleVerre()` (tours, géantes, part, néon de la teinte, familles, retouches du verre posées). Planche :
+  `passation/ville-neon-verre-avant-apres.jpg`.
+- À TRANCHER : la part de verre (`villeVerreTour` : ½ des plus hautes, ⅓ des autres) ; le dirigeable de la vitrée n'est PAS venu (ce n'est pas
+  un bâtiment) — à proposer ; LÉO : sa ville vitrée n'est plus tirée au JOUER (`?vitree=1` la rend), à lui dire.
+- RÉ-APPLIQUÉE sur le main allégé (bf09e346, v646 : `VITRE_V`, l'impact d'immeuble dans le shader des tours, les villes de jour étaient partis) : revérifié au banc — 128 géantes sur 713 tours (18 %, les pistes plus courtes de LA DURÉE DES MAPS), programmes 229 au menu = 229 en course, aucune erreur JS, la vitrée (`?carte=vitree&meteo=nuit`) intacte ; le verre de la vitrée identique au caractère près (banc Node, trois variantes) ; la copie allégée (outils/publie-allege.cjs) se fabrique (jetons identiques).
+## PLUS AUCUN OBJET EXOTIQUE : TOUT PASSE RARE (2026-10-18 soir, Sacha : « tout les item exotique doivent etre passer en rare ») — v655
+- **Les fiches** : les 8 habillages posés EXOTIQUES (peintures BANANA, NUIT DE GOTHAM, MONDE À L'ENVERS ; ailes 8-BIT, BARON ROUGE ;
+  traînées ANNEAUX D'OR, PLUIE DE BLOCS, GLOUTON) sont `r:'rare'` ; les 10 peintures métallisées de la palette aussi (elles étaient déjà
+  recalculées par `peintRegle`). Les PRIX ne bougent pas.
+- **Les raretés calculées** : `rarDefi` — les contrats 6-7 et le défi encore à définir (COMÈTE) donnent RARE ; `cosmRar` — la tranche
+  EXOTIQUE du prix (figures 4-12 k, habillages 16-60 k) et les missions 6-7 donnent RARE.
+- **Le garage** : `RAR_FAM` (= `RARETES` sans EXOTIQUE) fait la barre des familles, `garageListe` et `gShopFam` : plus d'onglet vide.
+  EXOTIQUE reste dans `RARETES` (couleur, police, logo palmier) pour le BUMP ×3 de la course (`figRarH`), qui n'est pas un objet.
+- **LA GROUPE B RETIRÉE** (même soir, Sacha : « enlève la groupe B ») : sa fiche est réduite à `{retire:1,name:'LA GROUPE B'}` (la ligne reste :
+  index de sauvegarde) ; qui l'avait est remboursé au chargement par `san` (500 000, son prix depuis la fin des carnets) et qui roulait
+  avec repart en LA HONTE. Son gabarit `b_groupeb` et son pot (`ECH_POTS`) restent dans le code : elle peut revenir.
+- **LE LINGOT RETIRÉ** (même soir, Sacha : « enlève la gold bar » — THE GOLD BAR est son nom anglais ; la plaque LINGOT/GOLD BAR, elle,
+  reste) : même traitement (remboursé 2,2 M par `san`). ⚠ Le bloc SANS CARRIÈRE (trophée VILLE gagné → `owned`) saute désormais les
+  retirées (`carRetiree`) : sans ça, il la reposait à chaque lancement et `san` la remboursait à chaque fois.
+- Vérifié : aucune rareté calculée ne sort EXOTIQUE (toutes les entrées balayées), barre du garage et boutique sans EXOTIQUE, fumée commune.
+
+## DEUX PLACES RÉSERVÉES : 87 LA PIKES PEAK, 88 LA CLASSE G (2026-10-18, v653)
+- Cachées (`retire:1`, « NOUVELLE 87/88 ») : 87 = la 208 T16 Pikes Peak (JAPONAISES), 88 = la Classe G que BOÎTES avait faite pour LE CAÏD (Léo :
+  « le boss » voulait dire un GMC → LE CAÏD devient un HUMMER EV). Puis Léo : « enlève la Classe G » (« améliore-la » parlait de LA JEEP) →
+  la place 88 reste réservée mais LIBRE : **la prochaine caisse prend la 88**.
+
+## LA FIDÈLE DANS LE JEU, LA POUPÉE RETIRÉE À NOUVEAU (2026-10-18, v652, Léo : « yes » / « on l'enlève »)
+- **LA FIDÈLE** (index 81, COMMUNE, 4 000 $) : la Corolla berline 2019 de JAPONAISES, reprise « plus fidèle » (le nez) puis le coin avant
+  « identique » au recadrage de Léo (phare, prise en L, antibrouillard, bouche) — commits 913ffde0 + 221df91f.
+- **LA POUPÉE** (index 77) : Léo l'avait fait retirer le 17/10 (716ff989) ; l'allègement de Sacha l'a remise le 18/10 (20cda983) ; Léo,
+  prévenu : « on l'enlève ». `retire:1` de nouveau (remboursement de SAVE, comme LA DAYTONA). ⚠ Ne pas la remettre sans Léo.
+
+## LA BOUTIQUE RANGÉE PAR RARETÉ (2026-10-18, v650, Léo : « mets avec les communes le scarabée et le camper, organise bien la rareté »)
+- **Avant** : le rayon VOITURES était trié au PRIX seul, puis toutes les caisses des MISSIONS à la fin — LE SCARABÉE et LE COMBI (communes)
+  tombaient après LA PERLE, LA ZED (rare, 1,6 M$) au milieu des épiques, LA QUEUE DE CANARD (épique) entre deux exotiques.
+- **Maintenant** (`bqPieces`, `bqVoitRail`, `bqRarSec`) : par RARETÉ dans l'ordre de `RARETES` ; dans chaque famille celles qui s'achètent
+  (du prix le plus bas au plus haut) puis celles des missions ; les missions secrètes à la fin, sous leur propre intertitre (leur place ne
+  trahit pas leur famille). Un INTERTITRE `.bqSec.bqRarS` ouvre chaque famille, comme ceux des figures : le logo de la rareté (`RAR_LOGO`)
+  à sa couleur, son nom, le nombre de caisses, un filet de sa couleur. Planche : `photos-gameplay/boutique-rarete-avant-apres.png`.
+- (v651, Léo : « oui ») les deux prix qui sortaient de leur famille : LA ZED passe ÉPIQUE (1,6 M$), LA QUEUE DE CANARD 460 000 → 550 000 $.
+
+## PARIS SORT DU MODE CLASSIQUE (2026-10-18 soir, Sacha : « enfait enlève paris du mode classique ») — v649
+- Remis l'après-midi par l'allègement (v642), retiré le soir : plus d'entrée `paris` dans `SF_CARTES` (le tirage du JOUER, les portails,
+  `?carte=paris` qui retombe sur une autre map), plus de `parisChauffe` dans `chauffeDivers` (16 programmes compilés au menu pour rien).
+- Les missions « chaque map » (`cartes`, `cartesP`) ne comptent que les maps encore tirées : un PARIS déjà vu ne fait pas gagner une map d'avance.
+- Le code de Paris (genParis, buildParis, NIV_PARIS, ses ciels) reste dans le fichier : pour le remettre, rendre l'entrée de `SF_CARTES` et la chauffe.
+
 ## LA QUEUE DE CANARD PASSE ÉPIQUE (2026-10-18, v648, Léo : « mets-la en Epic ») — sa refonte au plan coté (« même technique et même rigueur que la Taycan ») est confiée à la discussion RONDES
 - `rar:'epique'` sur sa fiche (index 45) ; prix inchangé (460 000 $).
 
@@ -618,6 +706,40 @@
 - **Outils** (`~/Downloads/CAR-bancs/nouvelles-voitures/boites/`) : `releve.py` (le SVG → toutes ses lignes en unités), `traits.py` (→ mètres
   par vue), `trace.py` (lignes numérotées), `regard2.py` + `vue/index.html` (la caisse sous le plan, paramétré par plan), `studio2.py`
   (studio du jeu, plusieurs fiches), `banc_jeu.py` / `banc_garage.py` (cadre de l'ordi, programmes), `cpuprof.py` (profil de la construction).
+
+## LES JAPONAISES — 4 · LA COROLLA BERLINE 2019, « LA FIDÈLE » (nom provisoire), ARGENT (2026-10-18, discussion JAPONAISES : « la Toyota Corolla berline 2019, COMMUNE »)
+- **Le plan** : dimensions.com « Toyota Corolla (E210) » (SVG vectoriel, berline, quatre vues, 127 unités/m — empattement 2,70 m, 4,63 × 1,78 × 1,44 m) ;
+  276 tracés relevés (`releve_svg.py` → `cor_metres.py` → `cor_plan.py`, ids vus vue par vue avec `trace.py`) : enveloppes (silhouette de côté, largeur,
+  coupes), cadre des vitres 239/238, crête des ailes (bas du tracé 261), et les contours des détails pris TELS QUELS.
+- **La caisse** (`SHAPES.corolla`, index 81, COMMUNE) : loft à 18 points par tranche (flanc qui rentre vers l'épaule, vitres rentrées de 25°, bord du toit
+  sur le haut du cadre des vitres), zones CAPOT / SERRE / MALLE, bouts repliés sur l'axe. Découpés au plan : phares (le contour 158/159, la signature
+  LED 104 en ruban, le projecteur), bandeau noir et logo, grande calandre en trapèze, prises en L (coupées à |x| 0,76, avant que le bouclier tourne),
+  vitres + cadres, montants B et C, écoinçon, poignées chromées et leurs creux, phare et feu vus de côté, feux arrière reliés par leur barre chromée
+  et leur ligne de LED, logo, creux de plaque, bas de bouclier noir, catadioptres, pare-brise (et son cadre : enveloppe convexe, l'encoche du rétro
+  intérieur reste noire), auvent, lunette ; joints portières/capot/malle/boucliers, plis (épaule 126, pli bas 117, arcs d'ailes, nervures du capot).
+  Rétros à la couleur de la caisse avec répétiteur, antenne aileron, essuie-glaces, jantes 17" à cinq doubles branches argent, pot discret à gauche,
+  la plaque du jeu entre les feux. 33 000 facettes.
+- **PLUS FIDÈLE** (Léo : « la corolla plus fidèle », reprise avec la photo sous les yeux, d5d55747) : le NEZ — la grande bouche en trapèze d'un
+  seul tenant et ses sept lames chromées, les prises en L bordées de chrome et l'antibrouillard rond au pied, le jonc chromé sous la bouche, la
+  calandre haute noire bordée de chrome (en V sous le logo) qui file dans les phares, les phares à fond chromé ; le « damier » venait du nez en
+  flèche lu tantôt de face tantôt de côté (toute sa face est désormais lue de face) et de la bande du plancher du loft, qui monte et devient le bas
+  du nez, peinte en noir de dessous de caisse (désormais de la tôle découpée) ; le contour du phare ne monte plus au montant. L'ARRIÈRE comme la
+  vraie : bouclier couleur caisse (le U n'est qu'un creux), catadioptres couchés au pied, pas de barre chromée, feux en rouge fumé émissif avec leur
+  ligne de LED, continus dans le coin (porte de la vue de dos à z < −2.0 + zone « tout le plan » au coin). JANTES : dix doubles branches bicolores.
+  Planche : `photos-gameplay/corolla-plus-fidele-avant-apres.png` (VRAIE | AVANT 3f8c6210 | APRÈS, gros plans du nez).
+- **LE COIN AVANT « IDENTIQUE »** (Léo, sur son recadrage du coin de la vraie, 913ffde0 + suite) : zones 2D taillées dans la tôle vue de face — le
+  PHARE (cerclage noir, fond en verre fumé, bande noire sous l'arête du capot, jonc chromé en crochet le long du bord extérieur puis du bas, filet
+  de LED, projecteur carré cerclé), la PRISE EN L (jonc chromé en relief `creux:-.004`, son creux noir −1,2 cm, qui rejoint le jonc sous la bouche),
+  l'ANTIBROUILLARD (coupelle creusée −2,2 cm, optique en vraie géométrie posée dedans), la BOUCHE creusée −2,6 cm et ses onze lames chromées en
+  vraie géométrie sur la tôle d'origine (`zFace`, la profondeur de la tôle par dichotomie entre tranches, calculée pendant la préchauffe du menu et
+  gardée sur le gabarit, `_prof` : 1re pose 21-34 ms). L'arête du capot est lue de face jusqu'à ny < 0,92 (la bande du phare s'y posait en éclats).
+  Planche : `photos-gameplay/corolla-coin-avant-apres.png` (recadrage de Léo | AVANT a6fb35cc | APRÈS, + 3/4 avant entière).
+- **La teinte** : argent moyen (0x9fa3a9, celui des photos) — au studio des vignettes tous les gris clairs sortent lavande (LA LAME aussi).
+- **Les outils** : `japDecoupe` accepte `ns` en fonction (les normales lissées ne se calculent que si la découpe n'est pas gardée) — 1re pose de la
+  Corolla 79 → 55 ms (la deuxième 28 ms ; le reste est le coût de toute première pose d'une caisse). Les quatre découpes sont préchauffées au menu.
+- Vérifié (après fusion d'origin/main v641) : course ordi/debout/couché, 0 programme compilé en course, aucune erreur ; garage + inventaire ; NA, RF
+  et AE86 inchangées en course. Planche : `photos-gameplay/corolla-vraie-et-nous.png` (deux lectures de « berline 2019 » : la face mondiale du plan /
+  la face sport américaine ; 3 noms : LA FIDÈLE · LA DISCRÈTE · MONSIEUR TOUT-LE-MONDE).
 
 ## LES JAPONAISES — 3 · L'AE86, « LE TOFU » (nom provisoire), LIVRÉE PANDA, PHARES ESCAMOTABLES (2026-10-18, discussion JAPONAISES : « la Sprinter Trueno 3 portes d'Initial D, livrée panda, phares escamotables »)
 - **Le plan** : the-blueprints « Toyota AE86 Sprinter Trueno Zenki » (quatre vues en couleur, 1280 px, 173 px/m calé sur l'empattement de 2,40 m ;
@@ -17579,6 +17701,7 @@ Depuis le 2026-10-18, `sw.js` ne garde qu'UNE ligne `const CACHE` ; chaque versi
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
 const CACHE = 'cashcar-v624'; // v624 (2026-10-18, Léo : « plus de gris chelou, qu'on voie chaque partie » · « c'est quoi le composant noir, plus aucun bout pointu, rends-la poly » · « le phare, ça doit être beau » · « le truc noir c'est un trou, c'est creux ») : LA PERLE — les traits du plan DANS la tôle (joints en interstices, plis en arêtes), en facettes, le rideau d'air creusé, le phare refait (cerclage, verre fumé, quatre points de LED, optique), le clignotant à sa place
+// const CACHE = 'cashcar-v646'; // v646 (2026-10-18 soir, Sacha : « la disposition des boutons sur cet écran est catastrophique : boutique doit être plus gros et le trophée doit être en haut à droite ») : LE GARAGE — le trophée en haut à droite, en miroir du compte ; la BOUTIQUE deux fois plus large en haut de la grappe (maquette 1 LARGE, choisie sur trois). Voir <style id="garShop">.
 // const CACHE = 'cashcar-v645'; // v645 (2026-10-18, Léo : « vas-y push ») : LES NOUVELLES VOITURES, 2e lot — LA DOLCE VITA (Fiat 500 « 1957 », avec ses 4 retouches), LE BAROUDEUR (Wrangler JL), LA CABOSSÉE (la voiture des Simpson), LE ROUGE-GORGE (Reliant Robin), LA LAME (MX-5 RF), LE TOFU (AE86) ; la Corolla reste cachée (en reprise)
 // const CACHE = 'cashcar-v623'; // v623 (2026-10-18, Léo : « des cubes encore plus minuscules, encore plus fantomatiques, des teintes de peintre ; éparpille mieux » · « travaille le fond comme le menu, là c'est un peu bleu ») : LES NUAGES FANTÔMES — des milliers de cubes minuscules à demi transparents éparpillés sur chaque nuage, teintes de peintre, vapeur au bord — et LE FOND PEINT de la mer de nuages (le ciel du menu en course, matin/midi/soir)
 // const CACHE = 'cashcar-v622'; // v622 (2026-10-18, Léo : « des formes de ville dans le ciel à l'envers » + « la vitrée : on reste au sol, effet Shanghai vu d'en bas, sur des trucs immenses ») : LA VILLE VITRÉE AU SOL — la route à plat à 26 m d'un vrai sol (avenues, parvis, pelouses, bassins), des ponts sur piliers où elle se recroise, des géantes de verre de 170 m à 1,3 km posées au sol ; plus de ville qui pend dans le ciel ; toucher le sol = la mort. `?vitre=spirale` = avant.

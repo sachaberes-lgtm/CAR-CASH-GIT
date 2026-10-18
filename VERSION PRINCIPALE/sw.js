@@ -10,7 +10,15 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v648'; // v648 (2026-10-18, Léo : « mets-la en Epic ») : LA QUEUE DE CANARD passe ÉPIQUE (sa refonte au plan suit)
+const CACHE = 'cashcar-v656'; // v656 (2026-10-18, Sacha : « fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée ») : LA VILLE, NÉON ET VERRE — les géantes de verre de la ville vitrée dans la ville au néon (le skyline) ; la ville vitrée quitte le JOUER (?vitree=1 la remet)
+// const CACHE = 'cashcar-v655'; // v655 (2026-10-18 soir, Sacha : « tout les item exotique doivent etre passer en rare ») : plus aucun objet EXOTIQUE — ailes, traînées, peintures, caisses à défi et figures passent RARES ; la famille EXOTIQUES quitte la barre du garage · « enlève la groupe B » / « la gold bar » : LA GROUPE B et LE LINGOT sont RETIRÉS (voir le journal)
+// const CACHE = 'cashcar-v654'; // v654 (2026-10-18, Léo : « enlève la Classe G ») : la place 88 reste réservée mais libre ; rien ne change à l'écran
+// const CACHE = 'cashcar-v653'; // v653 (2026-10-18) : deux places RÉSERVÉES et cachées dans la gamme — 87 la Pikes Peak (JAPONAISES), 88 la Classe G (BOÎTES) ; rien ne change à l'écran
+// const CACHE = 'cashcar-v652'; // v652 (2026-10-18, Léo) : LA FIDÈLE (la Corolla berline 2019, plus fidèle, le coin avant « identique ») entre dans le jeu, COMMUNE ; LA POUPÉE retirée à nouveau (« on l'enlève »)
+// const CACHE = 'cashcar-v651'; // v651 (2026-10-18, Léo) : LA ZED passe ÉPIQUE, LA QUEUE DE CANARD à 550 000 $ (chaque prix dans sa famille)
+// const CACHE = 'cashcar-v650'; // v650 (2026-10-18, Léo : « mets avec les communes le scarabée et le camper, organise bien la rareté ») : la BOUTIQUE range les voitures PAR RARETÉ, un intertitre par famille (les caisses des missions dans la leur, les secrètes à la fin)
+// const CACHE = 'cashcar-v649'; // v649 (2026-10-18 soir, Sacha : « enfait enlève paris du mode classique ») : PARIS ressort du tirage du mode classique (et de la chauffe au menu) ; les missions « chaque map » ne comptent que les maps tirées.
+// const CACHE = 'cashcar-v648'; // v648 (2026-10-18, Léo : « mets-la en Epic ») : LA QUEUE DE CANARD passe ÉPIQUE (sa refonte au plan suit)
 // const CACHE = 'cashcar-v647'; // v647 (2026-10-18, Léo : « enlève la daytona du main ») : LA DAYTONA RETIRÉE du jeu (retire:1, remboursée à qui l'avait achetée)
 // const CACHE = 'cashcar-v646'; // v646 (2026-10-18 soir, Sacha : « la disposition des boutons sur cet écran est catastrophique : boutique doit être plus gros et le trophée doit être en haut à droite ») : LE GARAGE — le trophée en haut à droite, en miroir du compte ; la BOUTIQUE deux fois plus large en haut de la grappe (maquette 1 LARGE, choisie sur trois). Voir <style id="garShop">.
 // const CACHE = 'cashcar-v644'; // v644 (2026-10-18, Léo) : LA DURÉE DES MAPS — au JOUER une map se compte en secondes, 45 s au départ, 20 s à fond (?duree=ancien = avant)

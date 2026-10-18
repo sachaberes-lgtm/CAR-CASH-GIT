@@ -148,7 +148,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, `NIV_PARIS`/`genParis`/`buildParis`/`PARIS` (PARIS au sol, une map du classique depuis le 18/10), `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, `NIV_PARIS`/`genParis`/`buildParis`/`PARIS` (PARIS au sol : hors du classique depuis le 18/10 au soir, code gardé), `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable`/`vitreAplanir`/`vitreSolMat`/`vitreSolPose` (LA VILLE VITRÉE = CLEAN CITY AU SOL : la route à plat à 26 m du sol, des ponts sur piliers où elle se recroise, des géantes de verre posées sur le sol, logos minimalistes, un dirigeable ; toucher le sol = la mort ; `?vitre=spirale` la ville d'avant ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`.
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
@@ -175,6 +175,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   LA FORÊT (17/10, Léo) : les arbres en VITRAIL dans `FOR_ARB_FS` (`dbgVitrail`) ; le slalom des troncs (`forZigzag`), ses ponts et la mousse ont été retirés le 18/10 (voir le journal).
   LA VILLE (16/10) : toujours la nuit, quatre temps (pluie, nuit, brouillard `villeBrume`/`LVL.brume`, orage) × quatre TEINTES tirées au hasard
   (`VTEINTES`, `vtRgb`/`vtBio`/`vtGo`/`vtPose`, uniforms `skyU.uFd`/`uVc`, `CITY.uPiedC`, `ROAD_U.uBmM` ; `?teinte=`, `dbgTeinte()`).
+  LA VILLE, NÉON ET VERRE (18/10, Sacha) : les GÉANTES DE VERRE de la ville vitrée poussent dans la ville au néon (le skyline) — `VILLE_VERRE_V`,
+  `villeVerreTour` (tiré de la position, aucun `vr`), `VIt` dans batir, `vitreMatFab(true)`/`vitreMatToursNeon`/`vitreMatToursNeonLoin`, `VV`/`villeVerreTick`,
+  `vitreVerre(CB)` (le verre de la vitrée = `VIT_VERRE`, inchangé), `VV_VERRE` ; la vitrée quitte le JOUER (`SF_HORS`, `?vitree=1`) ; `dbgVilleVerre()`.
 - **Ciel et décor** : `BIOMES`/`bioApply` (le SEUL écrivain des lumières), `skyDome`, `CIEL2`, `COTON`/`CLOUDS`/`buildClouds`/
   `updateClouds`, `paintEnv`.
 - **Caisses** : `CARS` (les fiches), `CAR_UNLOCK` (prix et conditions, même index), `SHAPES` (les gabarits), `buildCar`, le kit
@@ -260,8 +263,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - La loi du réservoir : le vol dépense la nitro, la route la remplit — sauf les FIGURES PLANTÉES, qui en rendent tout de suite (Asphalt 8, 14/10).
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
 - Les figures paient en AURA ; l'argent vient des pièces, des portails et des primes.
-- Plus aucun looping (code retiré le 18/10) ; PARIS est une map du mode classique (18/10, Sacha : « remet la map paris dans le mode classique » :
-  `SF_CARTES.paris`, un seul temps, l'heure tourne le long de la course).
+- Plus aucun looping (code retiré le 18/10) ; PARIS n'est PLUS une map du mode classique (18/10 au soir, Sacha : « enfait enlève paris du mode classique ») :
+  pas d'entrée dans `SF_CARTES`, pas de chauffe au menu ; son code reste (voir NIV_PARIS pour le remettre).
 - LES MAPS COMME UN TOUT (17/10, Sacha) : nuages, canyon, forêt, glacier, volcan et orbite suivent UNE recette par temps (`CONTI` : saturation, vignette,
   contre-jour rose, bitume commun `rtT`/`rtA`, ciel continu `uCiel2`, la nuit à deux températures) ; la VILLE et le JADE n'y sont jamais (`contiMap()`).
   Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part.
@@ -276,6 +279,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit.
+  LA VILLE VITRÉE N'EST PLUS UNE MAP DU JOUER (18/10, Sacha : « fusionne les maps ville et ville vitrée ») : ses géantes de verre vivent dans LA VILLE,
+  le néon au pied, le verre dans le ciel ; `?carte=vitree` la joue encore, `?vitree=1` la remet au tirage. Une map hors du tirage → `SF_HORS`.
 - LES MISSIONS v2 (16/10, Sacha : « des MISSIONS libres à la place des carnets ») : toutes ouvertes, une seule liste, des SECRÈTES qui donnent des
   caisses (silhouettes noires en boutique, jamais en 3D avant d'être gagnées) ; un objet de mission ne s'achète plus. (Les carnets, `?missions=v1`, sont retirés le 18/10.)
 - Plus de CARRIÈRE : coupée le 14/10, retirée du code le 18/10 (niveaux, écrans, campagnes NUAGES et VILLE, SAUTE-MOUTON) ; la carrière

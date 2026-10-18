@@ -78,6 +78,9 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
     calculé dans le shader de la route, sans lumière three de plus. (l'interrupteur `?sans=lumieres` est retiré depuis le 18/10.) Détail : `VERSION PRINCIPALE/JOURNAL.md`.
   · (2026-10-16, Sacha) LA VILLE EST TOUJOURS LA NUIT : plus de ville de jour au JOUER ; la map de base (la pluie au néon) en quatre TEINTES tirées au
     hasard (violet = la base, vert, jaune, bleu) et quatre temps (pluie, nuit, brouillard, orage). (`?sans=villenuit` et les villes de jour sont retirés depuis le 18/10.) Détail : `VERSION PRINCIPALE/JOURNAL.md`.
+  · (2026-10-18, Sacha) LA VILLE, NÉON ET VERRE : la ville et la ville vitrée FUSIONNENT — la ville au néon garde tout (nuit, teintes, enseignes,
+    réclames, pluie) et ses tours les plus hautes deviennent, pour une part, les géantes de verre de la VILLE VITRÉE (formes, biseaux, mur-rideau, bureaux
+    allumés), en néon. La ville vitrée n'est plus tirée au JOUER (`?vitree=1` la remet, `?carte=vitree` la joue telle quelle). Détail : `VERSION PRINCIPALE/JOURNAL.md`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
