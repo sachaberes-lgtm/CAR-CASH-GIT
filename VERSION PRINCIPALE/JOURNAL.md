@@ -3,6 +3,116 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA GRILLE DES PRIX DES VOITURES (2026-10-19, v671, Léo : « réorganise bien les raretés, c'est le bordel, les prix » → « oui » à la grille)
+- **Le principe** : le prix suit le PRESTIGE DE LA VRAIE VOITURE, et chaque prix reste dans la tranche de sa famille (la règle de Sacha
+  pour les habillages, v670 : « son prix dans sa famille »). Communes ≤ 8 000 · rares 25 000 → 300 000 · épiques 550 000 → 4 000 000.
+- **Ce qui bouge** (rien d'autre) : LA PUCE (Mini) 400 000 → 30 000 (`PX9[6]`, un prix posé par Claude « à valider par Sacha ») ·
+  LE CAÏD (désormais le Hummer EV) 50 000 → 180 000 · ACIDE (Civic tunée) 750 000 → 550 000 · LA ZED (240Z) 1 600 000 → 600 000 ·
+  LA QUEUE DE CANARD (911 RS) 550 000 → 800 000 · LA TAURINE (Miura) 650 000 → 1 200 000 · LA BÊTE (Pikes Peak) 1 000 000 → 1 500 000 ·
+  LA PERLE (Taycan) 4 400 000 → 2 000 000 · ROSSO 40 (F40) 2 500 000 → 4 000 000 : la caisse de rêve redevient la plus chère à l'argent du jeu.
+- **Gardés tels quels** : les prix posés par Sacha (ELDORADO 40 000, LE CHARGEUR 60 000, LA BAVAROISE 100 000, LE DÉFIEUR 120 000),
+  les communes, les créations (LA RAIE, L'ABSTRAITE, L'ICEBERG…). Personne n'est remboursé ni débité : un prix ne change que l'achat à venir.
+
+## DEUX TRAÎNÉES CHANGENT DE RARETÉ : LA GRILLE ÉPIQUE, FOUDRE DIVINE LÉGENDAIRE (2026-10-18 soir, Sacha : « the grid doit être epic » · « divine ligthing doit etre legendaire ») — v670
+- THE GRID et DIVINE LIGHTNING sont les noms anglais de deux traînées : **LA GRILLE** (id `grille`, le mur de lumière des motos de néon) et
+  **FOUDRE DIVINE** (id `foudre`, les éclairs). Seuls objets du jeu de ces noms (les autres « grille » du code sont des grilles de calcul).
+- **LA GRILLE** : `r:'epique'` (elle était `legendaire`) et son **prix dans sa famille**, comme LA ZED et LA QUEUE DE CANARD (v651) :
+  350 000 → **200 000 $** — la tranche ÉPIQUE de `cosmRar` s'arrête sous 250 000 ; elle reste la plus chère des traînées épiques
+  et sous les légendaires (FAIS PLEUVOIR 500 000). Qui l'avait achetée la garde (rien n'est remboursé).
+- **FOUDRE DIVINE** : `r:'legendaire'` (elle était `mythique`). Elle se gagne toujours par sa mission (`mis2`) ; son prix `pk`
+  (450 000, celui de l'édition Poki) est déjà dans la tranche LÉGENDAIRE (250 000 – 900 000) : il ne bouge pas.
+- Ni id, ni effet, ni place dans la liste : le rayon TRAÎNÉES suit l'ordre de `COSM`, où LA GRILLE est déjà entre les épiques et les
+  légendaires, et FOUDRE DIVINE juste après FAIS PLEUVOIR, la dernière légendaire (plus aucune traînée MYTHIQUE).
+- Vérifié au banc muet (couché et debout) : rayon TRAÎNÉES de la boutique — HYPERESPACE et LA GRILLE en ÉPIQUE (violet, 200 000 $), puis
+  FAIS PLEUVOIR et FOUDRE DIVINE en LÉGENDAIRE (or, « MISSION ») ; 0 erreur JS ; fumée commune OK (couché + debout). Rebasée ensuite sur le
+  retrait de 88 MILES À L'HEURE, MENTHE et PLUIE DE BLOCS (v667-v668) : les deux fiches restent voisines dans `COSM.trainee`.
+
+
+## LA TRAÎNÉE 88 MILES À L'HEURE RETIRÉE (2026-10-18 soir, session RETRAIT-88MPH — Sacha : « 88 mph enlève ») — v668
+- « 88 MPH » = le nom anglais de la traînée **88 MILES À L'HEURE** (id `retour`, 140 000 $, épique) ; aucun autre objet ne porte ce nom.
+- Même méthode que MENTHE et PLUIE DE BLOCS (section ci-dessous) : sa ligne sort de `COSM.trainee`, son pictogramme `tr_88` de l'atlas, et
+  `HAB_RETIRES` reçoit `'trainee:retour' → {p:140000, n:'LA TRAÎNÉE 88 MILES À L'HEURE'}` (+ sa clé `I18N` : « THE 88 MPH TRAIL », pour le
+  message de remboursement en anglais). Les deux clés `I18N` de l'ancienne fiche (« 88 MILES À L'HEURE » → « 88 MPH » et sa description)
+  sortent aussi : plus rien ne les appelle. L'émetteur `TRX_EMET.retour` (les sillons de feu, `dbgTrx('retour')`) reste dans le code.
+- Qui l'avait achetée : 140 000 $ rendus au chargement par `SAVE.san` (le même toast que les caisses), l'id sort de `shop.own` ; qui la portait
+  repart avec NITRO. Aucune mission ne la donnait. Pour la remettre : rendre sa ligne de COSM (git) et ôter son entrée de HAB_RETIRES.
+
+## MENTHE ET PLUIE DE BLOCS RETIRÉES, L'ARC-EN-CIEL DANS LE PACK DU CHAT (2026-10-18 soir, session PIXTRAIL — Sacha : « enlève la trainé minth » · « supprime block rain » · « la trainé rainbow doit etre incluse avec le pack nian cat »)
+- Les deux lignes sortent de `COSM.trainee` (et `tr_menthe` / `tr_blocs` de l'atlas de pictogrammes, `menthe` de `ILLU_COS.trainee`). La sauvegarde
+  désigne un habillage par son id (`shop.own` = `cat:id`, `shop.eq[cat]` = id) : aucun index ne bouge, contrairement aux caisses.
+- `HAB_RETIRES` (juste après COSM) : `'cat:id' → {p, n}`. Dans `SAVE.san`, bloc LES CAISSES RETIRÉES : l'id sort de `shop.own`, le prix payé est
+  remboursé dans le MÊME `SAVE.remb` que les caisses (un seul toast « … EST PARTIE : … REMBOURSÉS »), et qui la portait repart avec celle
+  d'origine (`usine` / `panneaux` / `nitro`). Pour retirer un autre habillage : une entrée dans HAB_RETIRES + sa ligne de COSM ôtée.
+- Les émetteurs `TRX_EMET.bulles` et `TRX_EMET.blocs` restent dans le code, appelés par aucune traînée.
+- L'ARC-EN-CIEL DANS LE PACK DU CHAT (Sacha : « la trainé rainbow doit etre incluse avec le pack nian cat ») : la règle existait (`pack:'chat'`,
+  shopOwned → m2Chat : à toi avec le CHAT POP-TART) mais la boutique ne le disait pas — sa carte affichait « MISSION », l'inventaire le prix de la
+  PALETTE (0,99 €), son bouton « À GAGNER ». Désormais (`chatPackI` = la place du chat dans CARS) : carte et inventaire « PACK CHAT », bouton
+  AVEC LE CHAT + le prix du chat (`bqEtat` e:'chat'), qui mène au rayon ACHAT, le chat sur le plateau (`bqAction`) ; la carte du chat porte le
+  bandeau arc-en-ciel « + ARC-EN-CIEL » (`.bqKl.arc`) tant qu'on ne l'a pas. Mots EN : CAT PACK, WITH THE CAT, + RAINBOW.
+
+## LE GLACIER, 3e TOUR — LA CONGÈRE AU LIEU DU MUR, 40-50° POUR DE VRAI, DE VRAIS TREMPLINS, MOINS DE PICS (2026-10-18, session GLACIER-BORDS — Sacha : « debug la map montagne glace : déjà quand on touche le bord on y reste collé, et il y a des problèmes de collision avec la glace elle-même ; ensuite je t'ai dit 100 fois de faire la map plus pentue, genre 40-50 degrés ; les tremplins doivent être plus beaux, gros et visibles, et moins d'obstacles sur la route » · « quand on touche le bord on doit pas mourir : on s'enfonce dans la neige, ce qui ralentit beaucoup, mais ça tue pas »)
+- POURQUOI ON RESTAIT COLLÉ : le bord était le mur des couloirs du canyon (`parisMur` : lat bornée à 1,15 m du bord, vL = 0, mort au-delà de 30° et
+  200 km/h) et le verglas pousse la caisse vers l'EXTÉRIEUR des virages (`banqVerglas`) : elle y revenait à chaque image. Mesuré (banc, pilote qui
+  vise le bord) : plaquée entre 91 et 95 m, 286 → 183 km/h.
+- LA CONGÈRE (`bkCongere`, `BK_CG`, `BKB`) : au-delà de la glace, 16 m de neige profonde de chaque côté. La caisse y entre (plouf, gerbe jetée vers
+  l'extérieur), s'y enfonce (`BKB.enf`, 38 cm), freine fort (vers 32 % de la vmax ; la nitro laboure mieux), la neige la remet dans l'axe et la
+  repousse vers la glace (6 m/s) ; le volant y mord entier. Jamais de mort, jamais de mur (au bout des 16 m, la lat est bornée). Mesuré : on entre
+  jusqu'à 6 m dans la neige, 210 → 95-105 km/h, puis retour sur la glace en ~2 s. Le ruban (`bkCongerePose`, profil `BK_CG_X/Y`, matière de la
+  neige) est posé sur le repère de la piste : la grille de neige (cases de 34-40 m) ne savait pas dessiner un bord net.
+- LES COLLISIONS AVEC LA GLACE : (1) la grille de neige montait son bourrelet dès le bord — interpolée sur 34-40 m, elle crevait la glace par
+  endroits (la caisse roulait « dans » la neige, et EN VOL `banqSolVol` y voyait de la poudreuse au-dessus de la piste : freinage, mort
+  « poudreuse » en l'air) → le bourrelet part après la congère (34 → 82 m du bord), et en vol, au-dessus de la piste et de sa congère, seule la
+  piste reçoit (tryLand s'y pose, plus de tranche à cogner) ; la poudre du glacier ne tue plus (on y est tenu à 27 cm sous la surface).
+  (2) à 45°, le flanc AVAL d'un pic peu raide devenait presque parallèle à la glace : une lame basse de 30-50 m qu'on croyait franchir et qui
+  tuait → chaque pic de la piste ajoute la pente locale à la sienne (`pic()` : sa face aval garde, par rapport à la piste, la raideur du plat).
+- LA PENTE : `BK_PENTE4` est une TANGENTE — « 58-88 % » ne faisait que 30-41° (33° de moyenne, mesuré). Désormais virages 42-46°, droites 46-51° :
+  43° de moyenne, 49-50° au plus (Node `banq-trace.cjs` sur 16 pistes ; en jeu `dbgBanq('pente')` : moy 100 %, max 115-120 %), ~6,8 km de
+  dénivelé ; LEN ×,75 (même longueur 3D). ⚠ À l'écran, la caméra de course suit la piste (CAM_GLACIER ne redresse que ~11°) : la pente se lit
+  surtout au vol, aux pics qui penchent et à la vue de côté. Essayé `garde` 4 / `max` 40 : vue rasante, caisse à moitié cachée — non retenu.
+- LES TREMPLINS (`BK_BEC`, `bkBecMesh`, `bkBecTex`) : le bec de 8 × 1,1 m, blanc sur glace blanche, était invisible (photo). Désormais une rampe de
+  36 m qui monte en courbe à 7 m (~18° à la lèvre), glace blanche à CHEVRONS ORANGE, lèvre qui brille, flancs bleu nuit, deux BALISES orange de
+  15 m ; la caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre (poussée ,18 × la vitesse, ,2 avant), DANS L'AXE de la piste
+  (`BK_BEC.axe` : 65 % de la vitesse de travers redressée). ⚠ À 45°, la caisse accélère en vol (rien ne la freine) : avec ,26 puis ,22, les
+  vols duraient 3-6 s et couvraient ~450 m — la piste tournait dessous et la caisse retombait à côté (2 morts sur 9 au banc, « vide » et un pic du
+  décor). D'où : poussée ,18, et un tremplin n'est posé que devant `BK_BEC.droit` (260 m) de piste presque droite (< 31° de cap), cherchée jusqu'à
+  240 m plus loin ; 60 m d'approche sans pic dans son couloir. Un tremplin avant deux figures sur trois + un seul au milieu d'une longue descente sur deux. Les pièces s'écartent d'un
+  tremplin, les pics de sa retombée (260 m). ⚠ Au banc, le pilote `dbgAuto` BRAQUE EN VOL avec une lat périmée (il fait tourner le vol) :
+  mesurer les vols volant lâché (`LACHE=1`, `dbgAuto(0)` au décollage).
+- LA GLACE QU'ON TRAVERSAIT EN VOL : `tryLand` ne regardait la pose qu'à moins de 40 m du centre de la piste (`bd>1600`, la règle des routes de
+  56 m) — sur les 196 m du glacier, une caisse qui retombait à plus de 40 m du centre PASSAIT À TRAVERS LA GLACE et tombait dessous (dans la neige,
+  « vide », un pic). Au glacier, la pose se cherche désormais sur toute la largeur et la congère. Banc (9 tremplins, volant lâché en vol) : avant,
+  4 vols de 6-7 s finis hors piste et 1 mort ; après, 8 posés en 1,2-3 s (le 9e : un pic percuté en visant la rampe → 60 m d'approche dégagés).
+- LA NEIGE HORS PISTE, EN VOL (`BK_PH`) : plus de planing (lift ,0 — une caisse sortie en vol touchait le bourrelet à 200 km/h, la poudre la
+  relançait à 47 m et elle mourait « trop longtemps en l'air »), freinage fort (kT ,6, kTp 2,2), la montagne ramène après 1,4 s sous 60
+  (2,2 s sous 40). Banc : trois lâchers dans la neige, aucune mort, ramenée en 2,4-4,8 s.
+- MOINS D'OBSTACLES : une figure tous les 0,6-1 km (0,3-0,5 avant), fourche 3-5 pics, champ 5-7 (11-18), îlot 2-3 : 31-44 pics par piste au lieu de 112.
+- Banc : `dbgBanq('cg',{fx,prof,…})` (la congère : réglages, état, repère). Fumée commune OK (couché + debout, 0 erreur JS).
+## LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER (2026-10-19, v664, Léo : « fais en sorte que chaque trick qui fait un saut en l'air, seulement lorsque la voiture est en l'air, laisse au joueur l'opportunité de décoller de la route en utilisant le joystick qui permet d'orienter le nez de la voiture vers le haut »)
+- **Le questionnaire** (deux lectures possibles, le pouce HAUT choisit déjà la figure AVANT au double-tap) : « un geste PENDANT le bond »
+  (le pouce tenu depuis le double-tap ne compte pas) et « comme un avion » (tant qu'on tient le nez en haut elle monte, lâché elle retombe).
+- **Avant** : depuis le 17/10 (Sacha), une figure lancée au sol se fait SUR LA ROUTE — la carrosserie fait un bond de 0,35 à 2,4 m (`FR`,
+  `frPose`), la conduite ne bouge pas, et rien ne pouvait la faire quitter la route (seule une crête le faisait).
+- **Maintenant** (bloc « LE DÉCOLLAGE AU MANCHE », juste après `frVersVol`) : pendant le bond (`FR.on`, bond ≥ 20 cm), le manche du VOL poussé
+  au-delà de 55 % de sa course (`frNez` = la même lecture que pitT/wPitch en vol : pouce HAUT par défaut, pouce BAS en réglage PLONGE,
+  ↓ au clavier) fait décoller : `frEnvol` (appelé par `frTick`) → `startFall(max(6, vitesse du bond), 1)`, la figure continue en l'air
+  (`frDecolle`/`frVersVol`, le chemin d'une crête) et se paie à SA pose ; le cabré du vol fait ensuite monter la caisse tant que le pouce tient.
+  · LE GESTE NEUF (`FDC.a`) : armé au lancement seulement si le manche est sous 30 % ; sinon il doit d'abord y repasser. Sans geste : la figure
+    reste sur la route, comme avant (le choix de Sacha est intact pour qui ne fait rien).
+  · Pas sous la dalle (`side<0` : décoller = tomber dans le vide, comme le saut nitro), ni à l'auto-école, ni pendant un rebond (hopY, POSE_F)
+    ou le demi-tour. Gratuit (la figure a payé ses 20 %) ; `VEQ.sautF` (la pose rend la nitro d'un saut nitro), volant non verrouillé.
+  · `frDecolle` rend aussi `lift` : TOUT décollage en pleine figure sur la route (crête comprise) part d'où la caisse EST, le bond compris
+    (`fallPos` + `fr9.lift`) — elle retombait d'un coup de 1-2 m sur le bitume à l'image du décollage.
+- `?fdecolle=0` = sans. Console : `dbgFDecolle()` (état : armé, manche, décollages, `dv`, bond au décollage), `dbgFDecolle(v)` force le manche
+  (null rend la main au pouce). Réglages : `FDC` (`arme` .3, `seuil` .55, `haut` .2 m, `imp` 6).
+- MESURÉ (banc muet, Chrome sans fenêtre 390 × 844, VRAIS touchers — pouce gauche sur le volant + double-tap NITRO —, pilote auto au volant) :
+  pouce tenu en haut depuis le double-tap → 0 décollage ; pouce au repos puis poussé pendant le bond → décolle (bond 1,6-1,8 m au décollage) ;
+  pouce en haut, revenu, repoussé → décolle ; aucun geste ou pouce vers le bas → 0 ; réglage PLONGE : pouce BAS décolle, HAUT non ; clavier : ↓
+  décolle, ↑ non. Hors bac à sable, `?carte=nuages`, 3 essais (pouce tenu 0,7 s) : 3 décollages, 3 figures payées à la pose, 0 mort, 0 erreur JS ;
+  après la fusion du main (v663) : 2 décollages payés, puis une mort au CHRONO (`air` : vol > 6 s, la route des nuages qui descend sous la
+  caisse — le pilote du banc ne pique jamais). C'est la règle de tout vol : tenir le nez en haut longtemps, c'est monter haut.
+  La caisse ne saute pas au décollage (vitesse continue d'une image à l'autre) ; la caméra traîne 2-3 images comme sur tout saut (mesuré aussi
+  sur un saut de `startFall(21)` sans figure). Pouce tenu 1,2 s : 3,3-4,8 s de vol (le chrono et la pose comme tout vol).
+
 ## CINQ VOITURES DE PLUS SUR LE MAIN (2026-10-19, v663, Léo : « oui, mets les 5 dans le jeu avec les choix ★ »)
 - LA QUEUE DE CANARD (RONDES, f84fc25a) et LA GRANDE ANGLAISE (RONDES, 0bfbb75b) refaites au plan ; LE BAROUDEUR en gris Sahara, élargisseurs
   et toit couleur caisse, chaque lumière à sa place (BOÎTES, cba2f543 + 9f04afe8) ; LE CAÏD devient le GMC HUMMER EV pick-up, vert anis

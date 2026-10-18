@@ -139,7 +139,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   entiers ; une contraire annule, deux qui se contrarient : la dernière mène ; la fin d'un mélange CONTINUE et ralentit jusqu'à l'endroit
   (`finVise`, `aF` figé) ; la prise forte = filet. Le SAUT NITRO prend la figure de la direction tenue. **Depuis le 17/10 soir, AU SOL la figure
   se fait SUR LA ROUTE, sans décoller** (`FR`/`FR_K`, `frLance`/`frTick`/`frPose`/`frEncaisse`, `frDecolle`/`frVersVol` au décollage ;
-  `?froute=0` = le saut d'avant ; `dbgFRoute`) — rien dans la direction tenue : le saut nitro, sans figure. HUD des figures v4 : `figNom` (DOUBLE…,
+  `?froute=0` = le saut d'avant ; `dbgFRoute`) — rien dans la direction tenue : le saut nitro, sans figure. **Depuis le 19/10 (Léo), LE DÉCOLLAGE AU MANCHE** : pendant ce bond, le manche du vol
+  poussé « nez en haut » (un geste NEUF : le pouce qui a choisi la figure ne compte pas) fait décoller pour de bon (`FDC`, `frNez`, `frEnvol`,
+  `?fdecolle=0`, `dbgFDecolle`) ; la figure finit en l'air. HUD des figures v4 : `figNom` (DOUBLE…,
   TOUPIE 720), flèche du geste (`r.flD`), pastilles + COMBO + RECORD (`SAVE.d.figRec`), extinction sur place, rappel `.arme` (`fhArme`).
   **HUD v5 (18/10)** : le nom dans la couleur et la police de sa RARETÉ (`figRarH`, `FIG_RP`, `data-rp`) ; la ligne du combo = les NOMS des
   figures plantées (`fhMaillon`/`fhCsCale`, dès 2 figures ; seule, elle s'écrit une fois en grand : `fhSeule`) ; combo à trois nommé `fhTrio` ;
@@ -275,8 +277,11 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `VOLR` — en vol, gravité, plané du nitro, équilibre de la caisse et de l'écran, viseur, BUMP et prédictions des figures suivent la normale de la dalle
   survolée (face quittée) ; on retombe sur sa route qu'elle soit à plat, sur la tranche ou à l'envers. Ailleurs, le bas du monde au chiffre près.
   `?sans=volroute` = avant, `dbgVolRoute(false)` en direct. Banc apparié : `cc-banc/volcote.cjs` (journal).
-- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
+- LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : (196 m, pics sur la piste, tremplins pour s'envoler ; plus de lacs gelés ni de stalactites depuis le 18/10). Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi sont retirés (18/10).
+  (18/10, 3e tour) le bord n'est PLUS un mur : LA CONGÈRE (`bkCongere`, `BK_CG`) — 16 m de neige profonde où l'on s'enfonce et ralentit fort,
+  jamais de mort (Sacha : « on doit pas mourir ») ; pente 40-50° pour de vrai (`BK_PENTE4` est une TANGENTE : 43° de moyenne) ; TREMPLINS
+  de 36 m × 7 m à chevrons orange et balises (`BK_BEC`, `bkBecMesh`) ; ~4 × moins de pics ;
 - LA VILLE EST TOUJOURS LA NUIT (16/10, Sacha : « la ville-jour, ça marche pas : on abandonne toutes les maps ville-jour ») : ni matin, ni midi, ni soir au
   JOUER ; ses variations sont des TEINTES (violet = la base, vert, jaune, bleu) et des temps de nuit.
   LA VILLE VITRÉE N'EST PLUS UNE MAP DU JOUER (18/10, Sacha : « fusionne les maps ville et ville vitrée ») : ses géantes de verre vivent dans LA VILLE,
@@ -567,6 +572,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « PASSE PERF iPHONE » (27/09) · « PASSE DÉBOGAGE / PERF » (26/09) · « PASSE DE FINITION » (26/09) · « LA SONDE QUI NE FIGE PLUS » (08/10)
 
 **Conduite, vol, caméra**
+- « LE DÉCOLLAGE AU MANCHE — LA FIGURE SUR LA ROUTE PEUT S'ENVOLER » (19/10, Léo) — `FDC`, `frEnvol`, le geste neuf pendant le bond
 - « LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL » (17/10) — décollage, pose, réacteur, caméra : ce qui sautait d'une image à l'autre
 - « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps
 - « LE HUD DES FIGURES v5 — LA RARETÉ ÉCRITE, LE COMBO QUI SE LIT, LE BUMP FIGURE DU COMBO » (18/10) — polices par rareté, ligne des noms, `figBumpNote`
