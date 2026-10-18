@@ -10106,12 +10106,13 @@ function carVit(dt){
      du 16/10). Les feux arrière restent. */
   const phT=CHUTE.on?VIT9.phT[TITRE_HF.h]:null;
   const ph9=phT!=null?phT:garageOn?1:LUM.actif?LUM.nuit:1-j9;VIT9.ph=VIT9.ph==null||garageOn?ph9:VIT9.ph+(ph9-VIT9.ph)*Math.min(1,dt*3);
-  HALO.hM.opacity=boom?0:(.95*(.3+.7*av)*(1-bk9)+.9*av2*bk9)*VIT9.ph;
+  const phK=CAR_PHK==null?1:CAR_PHK; // (2026-10-18) des phares ESCAMOTABLES n'éclairent que levés (LA VETTE, voir CAR_PHK)
+  HALO.hM.opacity=boom?0:(.95*(.3+.7*av)*(1-bk9)+.9*av2*bk9)*VIT9.ph*phK;
   for(const s9 of HALO.h)s9.visible=HALO.hM.opacity>.01;
   for(const s9 of HALO.h){const k=s9.userData.k*((.55+.5*av)*(1-bk9)+(.3+.6*av2)*bk9)*(1+.3*nuit)*(1+.45*LVL.nuit);s9.scale.set(k,k,1);} // (2026-09-30) MINUIT EN VILLE : des phares PUISSANTS
   // LES FAISCEAUX AU SOL (CARPOOL.head) : en plein jour, un phare ne dessine rien sur le bitume — la nappe chaude se retire de moitié ;
   // la nuit (ville, orbite) elle mord pour de bon. Ce sont les seuls à rester au sol, et ils sont DEVANT la caisse.
-  if(CARPOOL.head&&CARPOOL.head.userData.op!=null)CARPOOL.head.material.opacity=Math.min(1,CARPOOL.head.userData.op*(.5+.6*nuit)*(1+1.1*LVL.nuit));
+  if(CARPOOL.head&&CARPOOL.head.userData.op!=null)CARPOOL.head.material.opacity=Math.min(1,CARPOOL.head.userData.op*(.5+.6*nuit)*(1+1.1*LVL.nuit))*phK;
   /* (2026-10-16, Léo : « dans la boutique, enlève le rayon plat lumineux des phares ; les phares doivent rester un peu lumineux ») EN BOUTIQUE la
      nappe des faisceaux se retire : la caisse lévite, le plan peint restait au ras du plateau et traînait un rayon sur le sol blanc. Les HALOS des
      phares (HALO.h, plus haut) restent, adoucis : ce sont eux qui gardent les phares allumés. Rendue à la sortie (la course la repose de toute façon). */
@@ -10156,7 +10157,7 @@ function lumTick(dt,kmh){
   LUM.k.copy(LUM.hF).negate(); // l'ARRIÈRE de la caisse : le lobe des feux
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
-  LUM.hl+=(((boom?0:1)*nu)-LUM.hl)*Math.min(1,dt*(boom?12:3));
+  LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
   if(HALO.h.length===1)LUM.hP[1].copy(LUM.hP[0]);
@@ -10210,7 +10211,7 @@ window.dbgLumVue=function(d,h,az,vise){ // (banc) MODE PHOTO dans le repère de 
 window.dbgLumReprise=function(){if(paused)togglePause();return paused;}; // (banc) la photo a mis en pause : on repart
 window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum({hl:12000,…}) règle LUMK à chaud ; dbgLum({hlK:[…],lmW:[…]}) les uniformes
   if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
-  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
+  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
 /* ============ fin TRIPTYQUE ============ */
@@ -27863,6 +27864,10 @@ const lampTex=(function(){
    `userData.k` = la taille d'origine du sprite, que la boucle module sans jamais la perdre. */
 const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false}),
             tM:new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}),h:[],t:[]};
+/* LES PHARES ESCAMOTABLES ALLUMÉS SEULEMENT LEVÉS (2026-10-18, LA VETTE) : `CAR_PHK` = combien les phares de la caisse sont levés, de 0 (rangés)
+   à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il
+   multiplie le halo des phares, leur nappe au sol (carVit) et leur lumière sur la route (lumTick). buildCar le remet à null. */
+var CAR_PHK=null;
 /* LE FLOU DE JANTE (2026-09-26) — au-delà de ~20 km/h, cinq rayons tournent plus vite que l'image : l'œil voit la roue
    BÉGAYER, repartir en arrière (effet stroboscopique). Un disque peint par-dessus la jante — ce qu'une photo voit d'une roue
    lancée : moyeu clair, voile gris des rayons moyennés, lèvre brillante, stries concentriques — monte en opacité avec la
@@ -30877,9 +30882,9 @@ Object.assign(SHAPES,{
 },
   d_vette:function(K){
   const U=LPU,R=.33,ZF=1.19,ZR=-1.25;
-  const P=K.kit({p:{g:'p',c:0xd01a22},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},
+  const PAL={p:{g:'p',c:0xd01a22},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
-    r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}}); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus
+    r:{g:'l',c:0x9a0f1a},w:{g:'l',c:0xd9dce0}},P=K.kit(PAL); // (17/10, l'arrière v2) r, w (la plaque éclairée) — aucune famille de plus · (18/10) PAL nommée : les escamotables la reprennent
   const AR=[[0,2*R+.04],[R*.70,2*R+.02],[R+.06,R*1.12],[R+.14,.26]];
   const zs=[-2.24,-2.20,-2.10,-1.85,-.90,-.80,-.30,.40,.45,1.80,2.10,2.20,2.24];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.06,R+.14])zs.push(w-d,w+d);
@@ -30902,8 +30907,8 @@ Object.assign(SHAPES,{
     if(j===5)return z<.40?'g':'p';                                            // vitre de portière, et LA BULLE qui s'enroule
     return (z<-.90||z>-.30)?'g':'p';});                                       // bulle, toit targa, pare-brise
   P.sym(sd=>{
-    // LES ESCAMOTABLES, rangés à plat dans le capot
-    P.box('k',.34,.012,.36,sd*.60,.677,1.90,.20);P.box('p',.31,.02,.33,sd*.60,.682,1.90,.20);
+    // LES ESCAMOTABLES, rangés à plat dans le capot : ici leur LOGEMENT noir ; le couvercle rouge et les phares pivotent (plus bas, après K.commit)
+    P.box('k',.34,.012,.36,sd*.60,.677,1.90,.20);
     // les ouïes derrière les roues avant
     P.box('K',.02,.16,.18,sd*.905,.58,.60);
     for(let i=0;i<4;i++)P.box('k',.03,.018,.19,sd*.912,.52+i*.04,.60);
@@ -30934,7 +30939,32 @@ Object.assign(SHAPES,{
   P.box('L',.30,.02,.012,0,.885,-2.247);                                                     // le 3e feu stop
   P.box('K',.30,.012,.14,0,.905,.46,-.35);                                   // essuie-glace caché
   K.commit(P);
-  return {hl:[.60,.68,1.95],tl:[.63,.72,-2.26],wx:.77,wzF:ZF,wzR:-ZR,
+  /* LES ESCAMOTABLES SE LÈVENT À LA NITRO (2026-10-18, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phares
+     que quand tu boost ») — c'était un couvercle soudé au capot, et le halo des phares brillait PAR-DESSUS (en boutique, de face). Désormais
+     chaque escamotable est un BOÎTIER : dessus le couvercle rouge (fermé, il affleure le capot comme avant), dessous la face noire et ses DEUX
+     PHARES RONDS. À la nitro il pivote d'un bloc (101° autour d'un axe calculé pour que la face se dresse DROITE, son bas arrière posé au bord
+     avant du logement), le couvercle passe derrière : les quatre yeux de la C3. Fermés, rien n'éclaire : `CAR_PHK` (0 → 1, le levé) éteint le
+     halo des phares, leur nappe au sol et leur lumière sur la route (voir carVit, lumTick). Au garage, en boutique, au menu : fermés ; pas de
+     clin d'œil (celui de LA CERISE). `dbgPhares(1|0|null)` les force (le crochet de LA CERISE, partagé). */
+  {const TH=Math.PI/2+.20,HB=.15,D=.16,PHV=[],PHG=K.add(new THREE.Group());
+   const A0=[-D,-HB-.01],A1=[.14,-.14],dz=A1[0]-A0[0],dy=A1[1]-A0[1],d9=Math.hypot(dz,dy),h9=(d9/2)/Math.tan(TH/2),
+         Pz=(A0[0]+A1[0])/2-dy/d9*h9,Py=(A0[1]+A1[1])/2+dz/d9*h9; // l'axe (repère du capot, z-y) qui envoie le bas arrière de la face, A0, sur A1
+   for(const sd of [1,-1]){const Q=K.kit(PAL),T9=new THREE.Group(),piv=new THREE.Group(),bras=new THREE.Group();
+     Q.box('p',.31,.02,.33,0,0,0);                                                // le couvercle : la tôle du capot
+     Q.box('k',.30,HB,.32,0,-HB/2-.01,0);                                         // le boîtier
+     for(const x of [-.072,.072]){Q.cyl('c',.063,.016,16,x,-HB-.016,.08);Q.cyl('W',.052,.01,16,x,-HB-.021,.08);Q.cyl('c',.014,.006,8,x,-HB-.028,.08);} // les deux phares ronds : cerclage, glace, moyeu
+     const gs=Q.done();for(const g in gs){const m=new THREE.Mesh(gs[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;bras.add(m);}
+     T9.position.set(sd*.60,.682,1.90);T9.rotation.x=.20;piv.position.set(0,Py,Pz);bras.position.set(0,-Py,-Pz); // T9 : le repère du capot (sa pente)
+     piv.add(bras);T9.add(piv);PHG.add(T9);PHV.push(piv);}
+   let k=0,vu0=false;const lis=t=>t*t*(3-2*t);
+   const anime=dt=>{dt=Math.min(dt||0,.1);let ni=false;try{ni=typeof nitroOn!=='undefined'&&nitroOn&&typeof started!=='undefined'&&started&&!gameOver;}catch(_){}
+     const fo=(typeof MX5PH==='object'&&MX5PH&&typeof MX5PH.force==='number')?MX5PH.force:null,vise=fo!=null?fo:ni?1:0;
+     k+=(vise-k)*Math.min(1,dt*5.5);if(fo!=null&&!vu0)k=fo;vu0=true;
+     const kk=lis(Math.min(1,Math.max(0,k)));for(const p of PHV)p.rotation.x=-TH*kk;
+     if(typeof CAR_PHK!=='undefined')CAR_PHK=kk;};
+   anime(1/30);PHG.userData.anime=anime;
+   if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
+  return {hl:[.60,.757,2.03],tl:[.63,.72,-2.26],wx:.77,wzF:ZF,wzR:-ZR, // hl : les phares LEVÉS (la face droite au bord avant du logement)
           lpw:{R:R,w:.28,style:'multi',n:12,jante:0xc3c8cf}};
 },
   e_anglaise:function(K){
@@ -37332,7 +37362,7 @@ function buildCar(spec){
   ATCH.on=false;ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*2; // (2026-10-06) ATCHOUM s'allume dans son gabarit
   BLING.s=[];BLING.anim=[]; // (2026-10-10) L'ICEBERG pose ses éclats, LA FOURNAISE son feu, pendant leur gabarit
   WOWT.caisse=false;NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.roues.length=0;NYAN.rf='';NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
-  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse
+  HALO.h.length=0;HALO.t.length=0;ROUES.flou=null;CAR_PHK=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse · (2026-10-18) ses escamotables (voir CAR_PHK)
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
   // (2026-09-26, audit rendu) PLAFONNÉS : `lvl` est l'INDEX de la caisse (0-65), plus une progression — la formule donnait un reflet à .98
