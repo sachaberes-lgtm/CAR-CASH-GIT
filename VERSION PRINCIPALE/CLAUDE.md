@@ -133,7 +133,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable` (LA VILLE VITRÉE = CLEAN CITY : tours de verre et blanches, logos minimalistes, un dirigeable, bords de route bleus ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`genJade`/`JADE_HUMEURS`/`buildJade` (la vallée de jade tirée au hasard : axe, ordre des monuments, caractère des tronçons, relief), `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_VOLCAN`/`genVolcan`/`buildVolcan`/`VOLCAN` (le volcan), `NIV_CRYPTO`, `NIV_VITRE`/`VIT`/`vitreMatTours`/`vitreGeo`/`vitreGeoR`/`vitreForme`/`vitreCiel`/`vitreDirigeable` (LA VILLE VITRÉE = CLEAN CITY : tours de verre et blanches, logos minimalistes, un dirigeable, bords de route bleus ; le plafond-miroir derrière `?plafond=1` ; ⚠ dans la ville la profondeur est en 16 bits — rien de caché DANS une tour, voir le journal), `NIV_CANYON`/`genCanyon`/`buildCanyon`/`dbgCanyon`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
   LE PORTAIL DE CUBES (17/10, Léo) : `PCUBE` (l'anneau, `pcubePose`/`pcubeDest`/`pcubeTick`), `portDest` (la map d'en face TIRÉE D'AVANCE dans
   `SF.tirage[zone+1]`), la fenêtre sur `assets/portail/*.webp` (`PCUBE_CP`, `dbgCartePostale`), le passage `pcVoile`/`pcVoileSort` (`#portC`),
@@ -163,8 +163,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Économie** : `bank()` (= `SAVE.d.bank`), `DENOMS`/`ECO3`/`denom()`, rangs d'aura `AURA_RANKS`/`auraRank` (13 depuis le 14/10), moteur `ENGINE_TIERS`/`engTier`/`coinsGot`/`addCoins`,
   aura `CHA`/`chaineAura`/`CHA_VIE`, flow `FLOW`/`FLOW2`/`FREN`/`flowAdd`/`flowMult()`, pouvoirs `PWR_DEFS`.
 - **Nitro** : le bloc `<<<NITRO2>>>` (la loi du réservoir), `NIT`, `nitroGain(q,src)`, `nitroTientDe`, `nitroOn`, `NFX`/`nitroAllume`,
-  le grand livre `LIVRE`/`livre`/`dbgLivre`. LA FIGURE SE PAIE (17/10, loi 6, `NITRO2.figN`) : 20 % au lancement en vol, 30 % par figure
-  LANCÉE à la pose réussie, cumulable, le trop-plein dans la réserve bleue (17/10 soir) — `figNitCout`/`figNitPaye`/`figNitRend`, `FX2.nitL`
+  le grand livre `LIVRE`/`livre`/`dbgLivre`. LA FIGURE SE PAIE (17/10, loi 6, `NITRO2.figN`) : 20 % au lancement, 40 % par figure
+  LANCÉE à la pose réussie (30 % jusqu'au 18/10), cumulable, le trop-plein dans la réserve bleue (17/10 soir) — `figNitCout`/`figNitPaye`/`figNitRend`, `FX2.nitL`
   (lancements) / `FX2.nitF` (plantées), `dbgFigNit()`.
 - **Lumières de la caisse** (17/10) : phares, feux arrière, feu du nitro, flamme du moteur et traînées ÉCLAIRENT LE BITUME dans son shader (`LUM_GLSL`/`lmRoute`,
   uniformes `LUM_U`, `LM_N` lampes-segments + deux phares ; `lumTick` les pose en monde, `lumVue` — chaîné sur `scene.onBeforeRender` — les passe en vue ; réglages
@@ -214,6 +214,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - Zéro assistance de conduite (`ASSIST_VIRAGE=0`, `AIR_ASSIST=0`) : pouce lâché, la caisse garde son cap et sort dans les virages.
   Le mode FACILE (la seule exception) est COUPÉ depuis le 14/10 : `SANS_FACILE`, `?facile=1` le rend.
 - `AIR_RATE=1` : le temps du vol n'est pas accéléré. Le virage en vol ne suit pas la vitesse (voulu).
+  Son autorité, elle, a monté (18/10, Sacha : « des virages serrés ») : UNE formule, `lacetVol` (`VIRVOL` : lacet ×1,5, plafond plus haut,
+  verrou du volant au décollage 0,35 s) ; `?virvol=0` = avant, `dbgVirVol(k,cap,latch)` pour régler en direct.
 - En vol, pouce HAUT = la caisse MONTE (`volSens`) ; au clavier ↑ piqué, ↓ cabré.
 - La loi du réservoir : le vol dépense la nitro, la route la remplit — sauf les FIGURES PLANTÉES, qui en rendent tout de suite (Asphalt 8, 14/10).
 - Les figures sont de la PHYSIQUE (14/10, Sacha) : des explosions qui s'additionnent, l'inertie, le planté ; l'aura des figures n'est gagnée qu'à la pose.
@@ -222,6 +224,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - LES MAPS COMME UN TOUT (17/10, Sacha) : nuages, canyon, forêt, glacier, volcan et orbite suivent UNE recette par temps (`CONTI` : saturation, vignette,
   contre-jour rose, bitume commun `rtT`/`rtA`, ciel continu `uCiel2`, la nuit à deux températures) ; la VILLE et le JADE n'y sont jamais (`contiMap()`).
   Une retouche de couleur d'une de ces six maps se fait DANS `CONTI` (temps, nuits, cielJ, jours), pas dans une passe à part. `?sans=continuite` = avant.
+- LA MAP NUAGES EST UNE COURSE (18/10, Sacha : « trop peu de virages… ça reste un jeu de course ») : sur la route sans haut ni bas, zoom `TORD_AMP` 1,1, poids `TORD_W`,
+  modules de COURSE (`MODT` : slalom, épingle, double corde, esses, montagnes russes, rayons VRAIS ≥ 1,7 × le rayon du palier), dévers `TORD_DEVERS`, et
+  `pisteTordPropre` qui rejoue les vrilles si la route se touche. Une retouche passe par le banc des virages (journal). `?sans=virages` = la route du 15/10.
 - LE GLACIER EST UNE PISTE DE GLACE (17/10, Sacha : « plus de route ») : `BANQ_V4` (123 m, bourrelets de neige = murs, pics sur la piste, becs pour s'envoler) ;
   `?glacier=v3` = la descente verglacée d'avant. Les satellites de l'orbite FLOTTENT au bord de la route, décor pur (17/10 soir, Sacha : « je voulais juste qu'ils flottent proche de la route » —
   `orbiteBuild` §0 bis) ; les obstacles SUR la route de l'après-midi ne reviennent qu'avec `?sats=route` (`SAT_OBST_V`).
@@ -471,6 +476,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 - « LE PORTAIL DE CUBES — LA FENÊTRE SUR LA MAP D'EN FACE, LE PASSAGE QUI SE DÉFAIT EN CUBES » (17/10, Léo)
+- « LES NUAGES EN VITRAIL » (18/10, Léo) — `nuage8Calc` opt.vit, `nuVitMats`, `NUVIT`/`NV_DOSES`, `dbgNuVit`
 - « LA FORÊT NOIRE EN VITRAIL — PONTS, MOUSSE, PLEUREURS (+ LA VILLE AUX FAÇADES GTA) » (17/10, Léo) — `VITRAIL_V`, `forZigzag`, `MOUSSE_V`, `TORDUS_V`, `PLEUR_V`, `VILLE_GTA_V`
 
 **Débogage, perf, bancs**
@@ -501,6 +507,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA FORÊT NOIRE — LA MAP DES CONTES » (14/10) — la vallée en slalom qui descend, les géants, le jour fleuri, la nuit hantée, le loup-garou
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10) · « CRYPTO CITY — LA VILLE DU BULL RUN ENTRE DANS LE TIRAGE » (15/10) · « LE CANYON DES GÉANTS » (14/10) · « LE CANYON v2 — RACCOURCIS, COULOIR DE PRÉCISION… » (14/10 soir)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
+- « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
@@ -536,6 +543,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA CHARTE AU COMPLET » (28/09) · « LA DA DU HUD, UNE SEULE FAMILLE » (28/09) · « LE HUD DE COURSE, MAÎTRISÉ ET EN MOUVEMENT » (28/09)
 - « LE MOUVEMENT DE L'INTERFACE + MISSIONS v2 » (28/09) · « LA TAILLE DU HUD » (28/09) · « L'ORDRE DU HUD » (30/09)
 - « LA REVUE DE L'INTERFACE — CHAQUE BOUTON MESURÉ, L'APPUI POUR TOUS, LE PASSAGE DIRECT » (17/10) — bancs audit/film/chrono
+- « LE JOUER PARTOUT DANS LE GARAGE — INVENTAIRE ET BOUTIQUE » (18/10) — `?garjouer=0`
 
 **Son et musique**
 - « LA GOMME DOUCE — LE CRISSEMENT QUI CHUCHOTE » (16/10) — le crissement des pneus refait, doux, sous la musique · « LE FEU QUI RUGIT » (16/10) — le son du nitro
