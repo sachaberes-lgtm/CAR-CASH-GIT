@@ -558,6 +558,22 @@
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD DEVIENT LE GMC HUMMER EV PICK-UP (2026-10-18, discussion BOÎTES ; Léo : « une magnifique GMC » — le « CLASS G » était une erreur de dictée)
+- **Où** : le même `SHAPES.caid=…` de la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) ; l'ancienne méthode `caid(K)`
+  reste en place (la coordination l'effacera). `ECH_POTS.caid` : électrique, deux FENTES qui luisent au bas du bouclier arrière (comme LA PERLE).
+  Ligne CARS 2 : seulement h 2,01, w 2,20, l 5,51 (cotes réelles) ; nom, rareté, vert anis 0x86f51c gardés.
+- **La Classe G (section suivante) n'est PAS jetée** : commit aaeb19c1 et le dossier de banc `boites/classeG/` (Léo n'a pas dit s'il la garde en plus).
+- **Le plan** : dimensions.com « GMC Hummer EV Pickup (1st Gen) » (SVG : profil, face, dos, dessus ; 104,9 unités/m sur l'empattement 3,45 m).
+  Photos de Commons (Edition 1 Interstellar White, Ethan Llamas ; Meteorite ; Neptune Blue).
+- **Méthode** : la grille de la Classe G + `boutD`/`fxd` (le contour de la POUPE de la cabine par rangée, ses colonnes aux x donnés : les deux
+  AILERONS qui plongent dans la benne autour de la lunette en retrait) ; la cabine noire par code (26 + vitres) sauf les ailerons (code 0).
+- **La découpe en moment creux** : sur ce gabarit elle coûte ~30 ms (1re construction ~40-60 ms, au-dessus des 50 de la règle). `chauffeDivers`
+  est hors de la zone BOÎTES : le gabarit expose `SHAPES.caid.pre` (la découpe seule, mise en cache) et le bloc l'appelle par
+  `requestIdleCallback` (repli setTimeout 4 s) — la caisse montée ensuite : 15-30 ms (machine chargée).
+- Teintes réelles proposées : INTERSTELLAR WHITE 0xdde1e4 (Edition 1), METEORITE 0x50555c, NEPTUNE BLUE 0x34506e (jugées au garage).
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur. Planche : photos-gameplay/hummer-vraie-et-nous.png.
+  Outils : boites/hummer/ (src, ref, photos), assemble_h.py, integre_h.py, planche_hummer.py.
+
 ## LE CAÏD DEVIENT UNE CLASSE G — LA G 63 (W463A) RELEVÉE AU PLAN (2026-10-18, discussion BOÎTES ; Léo : « le boss devient un CLASS G »)
 - **Où** : `SHAPES.caid=…` dans la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) — il remplace l'ancienne méthode
   `caid(K)` de l'objet SHAPES, LAISSÉE en place (la coordination l'effacera). `ECH_POTS.caid` y est redéfini : quatre sorties `lateral` sous le
