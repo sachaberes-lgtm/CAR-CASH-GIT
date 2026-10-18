@@ -27,19 +27,22 @@ function essai(chemin){
   const unique=rep=>{const i=src.indexOf(rep);if(i<0)throw new Error('repère introuvable : '+rep);if(src.indexOf(rep,i+1)>=0)throw new Error('repère non unique : '+rep);return i;};
   const fonction=ent=>{const i=unique(ent);return src.slice(i,finBloc(src,i+ent.length-1,'{','}'));};
   const iSave=unique('const SAVE={'),iFin=unique('if(BALADE){SAVE.d.tuto=1');
-  const iC=unique('const CARNETS=['),carnets=src.slice(iC,finBloc(src,iC+'const CARNETS='.length,'[',']'))+';';
+  /* (2026-10-18, allègement) les carnets (missions v1) sont retirés : ne restent que CARNETS_POP, popCarnets et misPop (appelé une fois par m2Etat) */
+  const neuf=src.indexOf('function misEtat(){')<0;
+  const iC=unique(neuf?'const CARNETS_POP=[':'const CARNETS=['),carnets=src.slice(iC,finBloc(src,iC+(neuf?'const CARNETS_POP=':'const CARNETS=').length,'[',']'))+';';
   const iE=unique('const ENGINE_TIERS=[')+'const ENGINE_TIERS='.length,NE=(function(){const t=src.slice(iE,finBloc(src,iE,'[',']'));let n=0,d=0;
     for(let i=0;i<t.length;i++){const s=sauteTexte(t,i);if(s>=0){i=s;continue;}if(t[i]==='{'){if(d===1)n++;d++;}else if(t[i]==='}')d--;else if(t[i]==='[')d=d||1;}return n;})();
   const eco=/const ECO3=\{\s*gain:([\d.]+)/.exec(src);
-  const code=carnets+'\n'+src.slice(iSave,iFin)+'\n'+fonction('function misEtat(){')+'\n'+fonction('function popCarnets(s){');
+  const code=carnets+'\n'+src.slice(iSave,iFin)+'\n'+(neuf?fonction('function popCarnets(s){')+'\n'+fonction('function misPop(){'):fonction('function misEtat(){')+'\n'+fonction('function popCarnets(s){'));
   const KO=[];const v=(c,cas,detail)=>{console.log('  '+(c?'ok':'KO')+'  '+cas+(detail?' — '+detail:''));if(!c)KO.push(cas);};
   // un lancement du jeu : localStorage donné → SAVE.load() (dans le bloc) → misEtat() (1er appel de la session) → ce qu'on lit
   function lance(store){
     const ls=new Proxy(store,{get(t,p){if(p==='getItem')return k=>(k in t?t[k]:null);if(p==='setItem')return (k,x)=>{t[k]=String(x);};if(p==='removeItem')return k=>{delete t[k];};return t[p];},set(t,p,x){t[p]=String(x);return true;}});
     const sb={localStorage:ls,window:{},location:{reload(){}},console,THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:eco?+eco[1]:.25},
-      ENGINE_TIERS:new Array(NE).fill(0),CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),GAP_ON:false,pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}};
+      ENGINE_TIERS:new Array(NE).fill(0),CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),GAP_ON:false,pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d},m2Vierge:()=>({v:0,ok:[],pr:[],su:[],vu:{},nv:[],fl:[],r:{},c:{}})}; // (2026-10-18) m2Vierge : la sauvegarde des missions v2 (la preuve ne tournait plus depuis le 16/10)
     const ctx=vm.createContext(sb);vm.runInContext(code,ctx);
-    return vm.runInContext('(function(){const s=misEtat();SAVE.flush();return {s:JSON.parse(JSON.stringify(s)),own:SAVE.d.shop.own.slice(),N:CARNETS.length};})()',ctx);}
+    return vm.runInContext(neuf?'(function(){misPop();SAVE.flush();const s=SAVE.d.mis||{n:0,ok:[0,0,0],best:[0,0,0]};return {s:JSON.parse(JSON.stringify(s)),own:SAVE.d.shop.own.slice(),N:9+CARNETS_POP.length};})()'
+      :'(function(){const s=misEtat();SAVE.flush();return {s:JSON.parse(JSON.stringify(s)),own:SAVE.d.shop.own.slice(),N:CARNETS.length};})()',ctx);}
   // une sauvegarde écrite par la version d'AVANT les carnets POP (pas de `pop`)
   const vieille=(n,ok,best,own)=>({cashcarSave:JSON.stringify({v:2,best:0,leaders:[],mis:{n:n,ok:ok,best:best,f:1},shop:{own:own||[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}},gamme:3,eco:3})});
   let r;
