@@ -40,3 +40,9 @@
 ## Octets (7 660 148 → 7 635 516 pour index.html, −24,6 Ko net)
 index.html : fiches CARS −5,9 Ko (net des commentaires de la remise) · I18N −11,0 Ko · roues −1,3 Ko · six formes −6,4 Ko ; creatures/dauphin.js −5,5 Ko, singe.js −5,1 Ko ;
 boite-dauphins.html −8,0 Ko, boite-singe.html −0,8 Ko. Guide : une ligne (« Retirer une caisse »). sw.js non touché.
+
+## Preuves
+verif.cjs OK · preuve-remises.cjs OK (l'ancien fichier échoue aux cas de remise) · creatures/*.js évalués dans un bac vm : champs des poses et de la course du singe identiques au bit près
+· banc par la file (2 passages, le 1er coupé par le plafond de 8 min) : les trois caisses au garage ET en course sans erreur, les deux boîtes de Léo ouvertes sans erreur.
+⚠ ROBLOX/outils/cuire-caisses.js lit toutes les fiches CARS : les 27 réduites passent par `garder` (fiche précédente) comme avant ; au prochain cuisage les trois remises
+reviennent aussi sur Roblox (`retire = true` levé) — à republier si Sacha le veut.
