@@ -3,6 +3,31 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE VITRÉE AU SOL — SOUS DES GÉANTES (2026-10-18, Léo : « parfois je vois des formes de ville dans le ciel à l'envers, enlève s'il en reste dans le main ; et la vitrée je la trouve pas assez différente — celle-là on reste au sol, effet Shanghai vu d'en bas, mais sur des trucs immenses » ; questionnaire : vues DANS la ville vitrée · la route descend aussi au pied des tours)
+- LA VILLE À L'ENVERS, MESURÉE : la route de la ville descend en SPIRALE (5,7 km de chute sur 16,7 km). D'un étage du bas, les tours bâties autour
+  des étages du haut PENDAIENT dans le ciel, leur pied fondu dans le bleu (capture : la ville éclatée au-dessus de la tête). La ville au sol l'enlève
+  par construction : plus d'étage au-dessus d'un autre, sauf les ponts. `?vitre=spirale` = la ville d'avant (pour comparer).
+- LA ROUTE À PLAT (`vitreAplanir`, appelée en fin de genCtrl pour la ville vitrée seulement) : l'altitude des points de contrôle est réécrite — une
+  houle de ±14 m — et partout où la route repasse (en plan) sur un bout déjà posé, le passage suivant MONTE en PONT (rampe en S de ~550 m, ≤ ~7°,
+  `VIT_SEP` 46 m au-dessus) ; on recommence jusqu'à ce qu'aucun croisement ne reste. Tracé en plan inchangé, aucun tirage `rnd`. Mesuré : routes
+  entre −14 et +56 m (un pont), parfois des échangeurs à plusieurs niveaux.
+- LE SOL (`vitreSolMat`, un plan sous toute la piste + 7 km, `VIT_SOL_H` 26 m sous le point le plus bas) : îlots de 240 m, avenues de 36 m
+  (asphalte, lignes, tirets), parvis en dalles de 6 m, pelouses tondues, bassins qui renvoient le ciel et le soleil ; la nuit, LED bleues le long
+  des avenues, réverbères, bassins éclairés ; dalle mouillée sous la pluie ; couleur par heure (`VIT_SOLC`). TOUCHER LE SOL EN VOL = l'explosion
+  (cause `sol`, « AU PIED DES TOURS ») ; `CITY.solY` (null hors ville vitrée).
+- LES PILIERS (`vitreSolPose`) : un fût de 7 m et un chapiteau en T sous le tablier tous les ~64 m (pas là où une autre route passe dessous) ;
+  la nuit un anneau de LED bleue tous les 16 m. Visuels seulement (on peut toujours rouler sous la route).
+- LES GÉANTES : posées sur le sol (pied à `CITY.solY`, plus de brume au pied), 170 m à 1,3 km au bord de la route (une sur six passe le kilomètre ;
+  le 1er rang un peu moins haut, les géantes de derrière se lisent au-dessus), 90 à 470 m au large ; plus larges (30-72 m) et plus loin (le ciel
+  et leurs pieds se voient entre elles) ; aucune ne chevauche une autre (16 bits de profondeur) ni ne pousse sous une route. Le verre renvoie le
+  SOL vers le bas. Le DIRIGEABLE croise au-dessus des géantes qui l'entourent (jamais dans une tour).
+- LE PORTAIL : 5 cartes postales `assets/portail/vitree-<heure>.webp` (tirées par `dbgCartePostale`), la palette des cubes `PCUBE_PAL.vitree`.
+  Liste des maps : les 5 photos refaites (`repertoire-maps/banc/photos.py vitree`).
+- MESURÉ (banc, téléphone 390 × 844) : 0 programme compilé en course, au départ comme après le portail pré-bâti (208 → 208) ; puce p50 5,4 ms (la
+  spirale 5,7, la ville de nuit 4,6) ; triangles d'une image 279 k (la spirale 626 k). À mesurer sur un vrai iPhone (`?banc=1`).
+- Console : `dbgVitre('sol')` (sol, ponts, piliers, cause de la mort), `dbgVitre('pts',n)` (la route, un point sur n).
+- Planche : `photos-gameplay/ville-vitree-au-sol-avant-apres.jpg` (dossier de Léo, hors dépôt).
+
 ## LE PRÉ-BÂTI — LA MAP D'EN FACE SE BÂTIT PENDANT QU'ON ROULE (2026-10-18, Léo : « super push » ; demandé le 2026-10-17 soir, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour)
 - MESURÉ AVANT (banc : téléphone simulé 390 × 844, processeur ×4) : au passage, newTrack bloquait le script d'un bloc — 0,35 à 1,35 s (la jade 1,35 s,
   le canyon et la forêt 0,75 s) : la ROUTE (génération, courbe, repères, bitume, flancs, rails, nappe, ligne) puis le DÉCOR. Voile 0,8 à 1,9 s.
