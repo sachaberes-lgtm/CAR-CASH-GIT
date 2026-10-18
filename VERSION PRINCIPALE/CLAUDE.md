@@ -141,6 +141,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   se fait SUR LA ROUTE, sans décoller** (`FR`/`FR_K`, `frLance`/`frTick`/`frPose`/`frEncaisse`, `frDecolle`/`frVersVol` au décollage ;
   `?froute=0` = le saut d'avant ; `dbgFRoute`) — rien dans la direction tenue : le saut nitro, sans figure. HUD des figures v4 : `figNom` (DOUBLE…,
   TOUPIE 720), flèche du geste (`r.flD`), pastilles + COMBO + RECORD (`SAVE.d.figRec`), extinction sur place, rappel `.arme` (`fhArme`).
+  **HUD v5 (18/10)** : le nom dans la couleur et la police de sa RARETÉ (`figRarH`, `FIG_RP`, `data-rp`) ; la ligne du combo = les NOMS des
+  figures plantées (`fhMaillon`/`fhCsCale`, dès 2 figures ; seule, elle s'écrit une fois en grand : `fhSeule`) ; combo à trois nommé `fhTrio` ;
+  le BUMP compte au combo du vol comme une figure (`figBumpNote`/`BUMP_FIG`/`fhBump`, BUMP → DOUBLE → TRIPLE → MEGA, `?bumpfig=0` = avant).
   RÉGLAGE FIGURES (15/10, Léo) : `SAVE.d.figG` 'tap' (le double-tap ci-dessus, d'origine) · 'glisse' = depuis NITRO, glisser puis lâcher
   (`GLI`, `figGJoue`, `figGVoit`/`#figGl` la flèche, `figGBascule` seul écrivain). En l'air ← → TAIL WHIP (15/10 soir, `FIG.par.tailwhip`, `piv` : le nez fixe ; offert, le tonneau à 1 500, `SAVE.d.figT0`), ↑ salto arrière, ↓ salto avant ; AU SOL
   `GSOL` (`gsolLance`/`gsolTick`/`gsolPose`) : ← → SLIDE 360, ↑ WHEELIE, ↓ STOPPIE, joystick avant pendant l'amorce = `veqSaut(fo)` + salto.
@@ -175,6 +178,9 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - **Plaque d'immatriculation et profil** (17/10) : `PLQ`, les neuf modèles `PLQ_MOD` peints par `plqPeint`, la pose sur TOUTES les caisses
   `plqPose`/`plqCherche` (des rayons, dans buildCar ; `PLQ.pos` par caisse), l'atelier `#plq`/`plqOuvre` (au premier accueil : `plqGuette`),
   le profil `#prof`/`profOuvre`/`profChiffres` (le trophée du garage `#gProf`, `plqGarage`), la sauvegarde `SAVE.d.plq` et `SAVE.d.prof` (`plqHorloge`).
+  Le CLAVIER du téléphone (18/10) : tant qu'on écrit, l'atelier se pose sur la partie visible (`plqClavier`, `#plq.clavier`, `visualViewport`) —
+  la plaque, le champ et son dé, RETOUR · VALIDER ; le dé garde le clavier ouvert ; la page revient en haut quand il se range. `?plqclavier=0`
+  = comme avant ; `dbgPlaque('clavier',h)` simule un clavier qui laisse h px visibles (le banc n'a pas de clavier virtuel).
 - **Boutique, habillages, figures** : `COSM` (peinture · aile · trainee · figure), `SHOP`, `shopBuy`, `shopOwned`, `shopEquip`, `cosm`,
   `FX_EFF`, `BQ_CATS` (les RAYONS de la colonne de gauche : VOITURES · ACHAT · PEINTURES · AILES · TRAÎNÉES · FIGURES ; `bqRayons`), `bqAchat`
   (toutes les caisses payantes), `bqEphemeres` (les quatre de la semaine, plus montrées en boutique), la salle blanche 3D `GBQ`/`garBqBatit`/`garBqPanneau`, `gShopJour`,
@@ -298,6 +304,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 - UNE SEULE POLICE, PARTOUT : Press Start 2P (locale, `--pix`) — aucun texte du jeu dans une autre police, écran, bannière, champ de saisie
   ou texture (Sacha, 15/10 : « il faut pas que je te le répète »). Deux FILETS la garantissent : `<style id="policeUnique">` (tout élément,
   tout champ, en `var(--pix)!important`) et `UNE_POLICE` (tout `ctx.font` de canvas réécrit en pixel, à 62 % du corps, sans gras) ;
+  SEULE EXCEPTION VOULUE (18/10, Sacha, au quiz : « une police par rareté ») : le NOM des figures en course (`#fh`, `#fhLeg`, porteurs de
+  `data-rp`) prend une police PIXEL selon sa rareté — Silkscreen, Jersey 10, Sixtyfour, Jacquard 12 (`assets/fonts/`) ; ne pas l'étendre ailleurs sans lui.
   `apresPolice(f)` redessine une texture peinte avant que la police soit chargée ; `garde-charte.sh` refuse une version sans eux. Un texte
   long : `--f1` (10 px), interligne 1,6-1,7, graisse 400 ; une note : `--f0`. Seule exception, nommée : le φ de `#spPhi` (logo).
   Elle n'a PAS de capitales accentuées : tout libellé passe par `TR()` (qui applique
@@ -534,6 +542,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 **Conduite, vol, caméra**
 - « LA DERNIÈRE PASSE DE FLUIDITÉ AVANT LE GEL » (17/10) — décollage, pose, réacteur, caméra : ce qui sautait d'une image à l'autre
 - « L'IMPACT — UNE SEULE ANIMATION POUR TOUT CE QU'ON PERCUTE » (15/10) — la mort contre une paroi, toutes les maps
+- « LE HUD DES FIGURES v5 — LA RARETÉ ÉCRITE, LE COMBO QUI SE LIT, LE BUMP FIGURE DU COMBO » (18/10) — polices par rareté, ligne des noms, `figBumpNote`
 - « LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP » (14/10) · « LE DERNIER TOUR DES COMMANDES AVANT LE VERROU » (09/10)
 - « EN VOL, POUCE EN HAUT = LA CAISSE MONTE » (10/10) · « LA POSE DÉBOGUÉE » (01/10) · « LA PHYSIQUE DU BORD v2 » (01/10)
 - « LE VOL À LA VITESSE D'ÉJECTION » (30/09) · « LA CAMÉRA HÉROS » (30/09) · « LA VITESSE QU'ON SENT » (07/10)
@@ -556,6 +565,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 - « LA MAP NUAGES, DES VIRAGES DE COURSE — CINQ MODULES À RIDER, LE DÉVERS, LA ROUTE QUI NE SE TOUCHE PLUS » (18/10) — `TORD_AMP`, `TORD_W`, `MODT`, `TORD_DEVERS`, `pisteTordPropre`
 - « LES MODULES DE CHAQUE MAP — AU MOINS TROIS PAR MAP, TIRÉS AU HASARD » (18/10) — `MODC_ON`, `?sans=modcartes`, `dbgModCartes`, un paquet par générateur
 - « LES MAPS, 2e TOUR — MOINS DE TOUT DROIT, LE VOLCAN REFAIT EN BALADE QUI MONTE, LA FORÊT ALLÉGÉE » (18/10) — `vlcTrace3`, `vlc3Cone`, `rPlancher`, `VILLE_WM`
+- « LA ROUTE DES NUAGES MOINS TORDUE — LES VRILLES REVIENNENT À L'ENDROIT » (18/10) — `NV_CALME`, `?nuages=tordu`, tenues calmes rappelées vers le ciel
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
 - « LA CAMPAGNE NUAGES » et « LA CAMPAGNE VILLE » (27/09) · « LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS » (04/10)
 
@@ -585,6 +595,7 @@ partout. Un mur EN CONDUITE : `impMur(out)` avant `explode`. Vérifier : `dbgImp
 **Garage, menus, écrans**
 - « LES MISSIONS v2 — DES MISSIONS LIBRES À LA PLACE DES CARNETS » (16/10) — `M2`, `SAVE.d.m2`, la migration, les secrètes, les mesures des seuils
 - « LA MIGRATION DES MISSIONS v2 NE TOURNAIT PAS — M2_COLK ET M2_RECO EN ZONE MORTE » (18/10) — pourquoi, mesuré sur des sauvegardes d'avant (banc `cc-banc/m2colk/`), ce que le correctif change (rien de dangereux)
+- « LA REPRISE DE LA MIGRATION DES MISSIONS v2 » (18/10) — le drapeau `vr`, les sauvegardes marquées par la passe avortée rejugées une fois, sans confisquer (banc `m2rep.cjs`)
 - « LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS » (11/10) · « LE GARAGE, HUB DES TROIS » (06/10)
 - « LA VUE DE LÉO DANS LA CONSOLE DE SACHA » (06/10) · « LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS » (08/10)
 - « L'ÉCRAN TITRE v3 » (01/10) · « LE CIEL DE L'ÉCRAN TITRE v4 » (06/10) · « LES HEURES DU TITRE » (05/10)

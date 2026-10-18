@@ -208,6 +208,12 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+/* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
+   une police PIXEL par rareté, pour le NOM des figures en course seulement ; voir <style id="policeUnique"> et <style id="figuresHud"> v5). Licence OFL : assets/fonts/OFL.txt */
+@font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/silkscreen.woff2') format('woff2');}
+@font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jersey10.woff2') format('woff2');}
+@font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/sixtyfour.woff2') format('woff2');}
+@font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jacquard12.woff2') format('woff2');}
 :root{--pix:'Press Start 2P',monospace}
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
@@ -6406,6 +6412,49 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 .fhL.arme{opacity:1;transform:translateX(-8px);background:color-mix(in srgb,var(--fc) 28%,var(--fhE));
   box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 55%,transparent)}
 @media (prefers-reduced-motion:reduce){#fh .fhRec.on{animation:none}.fhL{transition:none}}
+/* ===== v5 (2026-10-18, Sacha : « retravaille le système de figure, notamment les combos de figures : c'est pas montré assez clairement ; les
+   bumps sur les bords de la route doivent être une figure à part entière, cumulable dans des combos ; en fonction de la rareté de la figure,
+   écris-la dans une couleur et une police différente correspondant à la rareté »). Le récit est au-dessus de FIG_RP.
+   · LA RARETÉ ÉCRITE (data-rp) : la couleur de la boutique (RARETES) et une police pixel par rareté (déclarées dans <style id="policeUnique">) ;
+     --rk = la taille qui donne la même hauteur de capitale que Press Start 2P (MESURÉ : Silkscreen ,63 em · Jersey ,54 · Sixtyfour ,87 ·
+     Jacquard ,57) ; la LÉGENDAIRE un cran plus grande, et un reflet blanc qui la traverse ; l'ÉPIQUE un halo.
+   · LA LIGNE DU COMBO SE LIT : plus de pastilles muettes — le NOM de chaque figure plantée, dans sa rareté, reliés par « + » ; « … » devant
+     quand la ligne déborde (les plus anciennes sortent). Dessous, LE × en grand + RECORD. Un combo à trois NOMMÉ (LA PERCEUSE…) s'écrit en grand,
+     en arc-en-ciel, et ses trois maillons se soulignent d'or. */
+:is(#fh,#fhLeg) [data-rp]{--rc:#b9c4d6;--rk:1}
+:is(#fh,#fhLeg) [data-rp=rare]{--rc:#4db8ff;--rk:1.59}
+:is(#fh,#fhLeg) [data-rp=exotique]{--rc:#3ee8a8;--rk:1.85}
+:is(#fh,#fhLeg) [data-rp=epique]{--rc:#c77dff;--rk:1.15}
+:is(#fh,#fhLeg) [data-rp=legendaire]{--rc:#ffd75e;--rk:1.9}
+:is(#fh,#fhLeg) [data-rp=combo]{--rc:#fff7ee;--rk:1}
+#fh .fhNom[data-rp]{--fc:var(--rc)}
+#fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]) b::after{display:none} /* la lèvre claire est calée sur les capitales de Press Start 2P */
+#fh .fhNom[data-rp=epique] b{text-shadow:var(--fhBord),0 0 26px color-mix(in srgb,var(--fc) 95%,transparent),0 0 8px color-mix(in srgb,var(--fc) 60%,transparent)}
+#fh .fhNom[data-rp=legendaire] b{text-shadow:var(--fhBord),0 0 30px color-mix(in srgb,var(--fc) 85%,transparent)}
+#fh .fhNom[data-rp=legendaire] b::after{display:block;clip-path:none;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(105deg,transparent 0 42%,rgba(255,255,255,.95) 47% 53%,transparent 58% 100%) 0 0/300% 100% no-repeat;
+  -webkit-background-clip:text;background-clip:text;animation:fhReflet 1.5s steps(9) infinite}
+@keyframes fhReflet{from{background-position:100% 0}to{background-position:-60% 0}}
+#fh .fhNom[data-rp=combo] b{animation:fhMax .48s steps(1) infinite}
+/* la ligne du combo : les maillons */
+#fh .fhLigne{gap:0;min-height:0;align-items:baseline}
+#fh .fhCs{gap:0;align-items:baseline}
+#fh .fhMore{font-family:var(--pix);font-size:var(--fhCh);line-height:1;text-decoration:none;color:var(--tx,#fff7ee);opacity:.7;text-shadow:var(--fhBord2);margin-right:.45em}
+#fh .fhMore:empty{display:none}
+#fh .fhM{display:block;font-style:normal;font-weight:400;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--rc);
+  font-size:calc(var(--fhCh) * 1.2 * var(--rk));text-shadow:var(--fhBord2),0 0 12px color-mix(in srgb,var(--rc) 55%,transparent)}
+#fh .fhM+.fhM::before,#fh .fhMore:not(:empty)+.fhCs .fhM:first-child::before{content:'+';display:inline-block;font-size:var(--fhCh);color:var(--tx,#fff7ee);margin:0 .5em;
+  vertical-align:.1em;text-shadow:var(--fhBord2)}
+#fh .fhM.trio{box-shadow:0 4px 0 -1px var(--fh0)}
+#fh.perdu .fhM[data-rp]{--rc:var(--fhKo)}
+#fh .fhBas{display:flex;align-items:center;justify-content:center;gap:10px;min-height:calc(var(--fhXs) * 1.2)}
+#fh .fhBas:not(:has(.fhX:not(:empty))){min-height:0}
+#fh:not(.combo) .fhLigne{display:none} /* une figure seule s'écrit UNE fois, en grand : la ligne naît à la 2e (MESURÉ au banc : « BUMP » en grand ET « BUMP » dessous) */
+#fh .fhRec.on{visibility:inherit} /* (corrigé) en « visible », RECORD restait seul à l'écran quand #fh se cachait (carte moteur, fin de partie…) */
+body.verdOn #fh .fhNom{visibility:hidden} /* UNE voix au centre : le verdict de la pose passe devant le grand nom ; la ligne du combo et le × restent */
+/* le rappel des gestes : le nom de chaque figure dans sa rareté */
+.fhL b[data-rp]{color:var(--rc);font-size:calc(var(--f0,8px) * var(--rk))}
+@media (prefers-reduced-motion:reduce){#fh .fhNom[data-rp=legendaire] b::after,#fh .fhNom[data-rp=combo] b{animation:none}}
 </style>
 <style id="ecoleV2">
 /* ==============================================================================================================
@@ -7158,6 +7207,17 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
    (#spPhi) — c'est le logo, et la police pixel n'a pas de φ. Les textes des canvas ont leur filet (UNE_POLICE, premier script du body). */
 *,*::before,*::after{font-family:var(--pix)!important}
 ::placeholder{font-family:var(--pix)!important}
+/* DEUXIÈME EXCEPTION, NOMMÉE (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente
+   correspondant à la rareté » — au quiz : « une police par rareté », toutes en PIXELS) : le NOM d'une figure en course, et lui seul — le HUD des
+   figures (#fh : le nom en grand, les maillons du combo) et le rappel des gestes (#fhLeg). Tout porteur de data-rp : COMMUNE Press Start 2P ·
+   RARE Silkscreen · EXOTIQUE Jersey 10 · ÉPIQUE Sixtyfour · LÉGENDAIRE Jacquard 12 (le gothique en pixels). Le « + », le × du combo, RECORD,
+   COMBO PERDU et tout le reste du jeu restent en Press Start 2P. Les couleurs et tailles sont dans <style id="figuresHud"> (v5). */
+:is(#fh,#fhLeg) [data-rp]{--rpf:'Press Start 2P'}
+:is(#fh,#fhLeg) [data-rp=rare]{--rpf:'CC Silkscreen'}
+:is(#fh,#fhLeg) [data-rp=exotique]{--rpf:'CC Jersey'}
+:is(#fh,#fhLeg) [data-rp=epique]{--rpf:'CC Sixtyfour'}
+:is(#fh,#fhLeg) [data-rp=legendaire]{--rpf:'CC Jacquard'}
+:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P',monospace!important}
 </style>
 <style id="missionsV2">
 /* LES MISSIONS v2 — L'ÉCRAN (2026-10-16, Sacha : « un écran MISSIONS magnifique, bâti à partir de la vue garage » · « une seule liste,
@@ -7693,6 +7753,26 @@ html:not(.sansGarJouer) body #garage#garage:not(.menu):not(.vitrine):not(.shopRe
   #prof .pfS.gros{grid-column:auto}#prof .pfS.gros b{font-size:var(--f3)}
   #prof .pfS{grid-template-columns:minmax(0,1fr);padding:9px 10px 8px}#prof .pfS .pxi{display:none}
   #prof .pfRet{width:56px;min-width:56px;padding:0}#prof .pfRet span{display:none} /* la flèche seule : le lingot garde sa ligne entière */
+}
+/* (2026-10-18, Sacha : « regarde comment la version mobile est gérée avec le clavier ») LE CLAVIER DU TÉLÉPHONE OUVERT : il se pose PAR-DESSUS
+   la page (couché, il ne reste que ~150 px visibles) — iOS faisait glisser l'écran pour montrer le champ : la plaque coupée, VALIDER sous les
+   touches. Tant qu'on écrit, l'atelier se pose sur la partie VISIBLE (plqClavier : top/height = visualViewport) et ne garde que l'essentiel :
+   la plaque qui s'écrit, le champ et son dé, RETOUR · VALIDER juste au-dessus des touches. Debout, les modèles restent s'ils tiennent (sinon
+   .serre les range, posé par plqClavier) ; couché, ils reviennent quand le clavier se range. `?plqclavier=0` = comme avant. */
+#plq.clavier{bottom:auto;padding-bottom:10px}
+#plq.clavier .plX,#plq.clavier.serre .plMods{display:none}
+#plq.clavier .plIn{height:auto;min-height:100%;gap:10px}
+#plq.clavier .plTete{margin-top:auto} /* le groupe se pose sur le clavier (une marge auto : s'il déborde, on le fait défiler sans rien perdre en haut) */
+#plq.clavier .plBas{margin-top:0;padding-top:0}
+#plq.clavier #plqTx,#plq.clavier .plDe{height:48px;min-height:48px}
+#plq.clavier .plBas .pbtn{min-height:48px}
+@media (orientation:landscape) and (max-height:540px){
+  #plq.clavier{padding-top:10px}
+  #plq.clavier .plIn{height:100%;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr auto auto 1fr;
+    grid-template-areas:"vue ." "vue saisie" "vue bas" "vue .";row-gap:8px;align-items:center}
+  #plq.clavier .plTete,#plq.clavier .plMods{display:none}
+  #plq.clavier .plVue{max-width:none}
+  #plq.clavier .plBas{align-self:auto}
 }
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
@@ -9950,7 +10030,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
    LES FEUX : un phare n'éblouit que celui qui le regarde EN FACE (vu de profil, un point ; vu de dos, rien) ; les feux arrière
    brillent vers la caméra de poursuite et S'EMBRASENT au frein — pouce tiré vers le bas (drift) ou ↓. La nuit (ville, orbite)
    les halos s'élargissent. Zéro allocation : tout passe par VIT9. */
-const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),clB:1,clW:-1}; // clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
+const VIT9={f:new THREE.Vector3(),v:new THREE.Vector3(),frein:0,tC:new THREE.Color(0xff2818),tF:new THREE.Color(0xff5a36),clB:1,clW:-1,phT:{matin:0,midi:0,aprem:0,golden:.3,soir:1,nuit:1}}; // phT : les phares selon l'heure du titre (voir plus bas) · clB/clW : la lampe de carrosserie (valeur posée par la boucle / valeur dosée)
 function carVit(dt){
   const boom=mode==='boom';
   if(!running||garageOn||boom)ROUES.v=0;
@@ -9989,7 +10069,16 @@ function carVit(dt){
      le phare reste. `VIT9.bqK` fond le passage (0,25 s) ; en course et au garage, rien ne change. */
   const bqV=garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut||Math.abs(GBQ.lev||0)>.02);
   VIT9.bqK=(VIT9.bqK||0)+((bqV?1:0)-(VIT9.bqK||0))*Math.min(1,dt*4);const bk9=VIT9.bqK,av2=av*av;
-  HALO.hM.opacity=boom?0:.95*(.3+.7*av)*(1-bk9)+.9*av2*bk9;
+  /* (2026-10-18, Sacha : « en journée les phares avant des voitures n'ont pas besoin d'être allumés ») LES PHARES S'ÉTEIGNENT AU SOLEIL : le halo
+     des phares suit la NUIT DU LIEU — en course celle des lumières v2 (`LUM.nuit` : la lumière du ciel mesurée + le drapeau `nuit` du niveau,
+     0 de jour, ~0,4 au soir et sous la pluie, 1 la nuit) ; sur l'écran titre (⚠ `garageOn` y vaut VRAI : le titre passe par garageRender) l'HEURE
+     du titre (`VIT9.phT` : éteints du matin à l'après-midi, en veilleuse à la golden hour, allumés le soir et la nuit) ; ailleurs (la mort) le
+     jour lu au ciel (`j9`). Ils s'allument à la nuit tombante, en fondu (`VIT9.ph`). Au garage et en boutique, rien ne change (le choix de Léo
+     du 16/10). Les feux arrière restent. */
+  const phT=CHUTE.on?VIT9.phT[TITRE_HF.h]:null;
+  const ph9=phT!=null?phT:garageOn?1:LUM.actif?LUM.nuit:1-j9;VIT9.ph=VIT9.ph==null||garageOn?ph9:VIT9.ph+(ph9-VIT9.ph)*Math.min(1,dt*3);
+  HALO.hM.opacity=boom?0:(.95*(.3+.7*av)*(1-bk9)+.9*av2*bk9)*VIT9.ph;
+  for(const s9 of HALO.h)s9.visible=HALO.hM.opacity>.01;
   for(const s9 of HALO.h){const k=s9.userData.k*((.55+.5*av)*(1-bk9)+(.3+.6*av2)*bk9)*(1+.3*nuit)*(1+.45*LVL.nuit);s9.scale.set(k,k,1);} // (2026-09-30) MINUIT EN VILLE : des phares PUISSANTS
   // LES FAISCEAUX AU SOL (CARPOOL.head) : en plein jour, un phare ne dessine rien sur le bitume — la nappe chaude se retire de moitié ;
   // la nuit (ville, orbite) elle mord pour de bon. Ce sont les seuls à rester au sol, et ils sont DEVANT la caisse.
@@ -10087,7 +10176,7 @@ window.dbgLumVue=function(d,h,az,vise){ // (banc) MODE PHOTO dans le repère de 
 window.dbgLumReprise=function(){if(paused)togglePause();return paused;}; // (banc) la photo a mis en pause : on repart
 window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum({hl:12000,…}) règle LUMK à chaud ; dbgLum({hlK:[…],lmW:[…]}) les uniformes
   if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
-  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
+  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
 /* ============ fin TRIPTYQUE ============ */
@@ -12072,6 +12161,14 @@ function pgpTick(dt,t){
    · le DÉVERS (`TORD_DEVERS`, pisteTord) : la dalle se COUCHE dans le virage, vers l'intérieur, de l'angle d'un virage relevé à la croisière.
    */
 const TORD_AMP=1.1;
+/* MOINS TORDUE (2026-10-18 soir, Sacha : « la map nuage, la route est un peu trop tordue et en spirale — ça doit arriver, mais moins que ça »).
+   MESURÉ (banc Node genCtrl + pisteTord, 12 graines) : la route n'était À L'ENDROIT que 32 % du temps (37 % sur la tranche, 31 % à l'envers), on
+   restait jusqu'à 87 s d'affilée hors de l'endroit — les vrilles s'enchaînaient sans jamais revenir. `NV_CALME` : la route revient TOUJOURS à
+   l'endroit après une vrille (par le plus court, parfois après 2-4 s de tenue là-haut), les tenues À L'ENDROIT sont longues (6-12 s), un quart de
+   tour six fois sur dix, un demi-tour 35 %, le tonneau complet 5 %. Les vrilles restent lentes (mêmes durées). ⚠ Revenir au même angle ne suffit pas
+   (sur la tranche, chaque virage fait tourner tout le repère) : pendant les tenues à l'endroit, la dalle est RAPPELÉE vers le ciel (penchée du
+   dévers, au plus un demi-tour en 4 s) et sa pente revient doucement à celle de la piste d'origine — comme avant le portail. `?nuages=tordu` = avant. */
+const NV_CALME=!/[?&]nuages=tordu\b/.test(location.search);
 const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
 const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s)
 const TORD={on:false,N:null,info:null};
@@ -12107,7 +12204,12 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
   let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
   while(!sansVrille&&s<fin-120){
     const r=rg();let len,amt=0;
-    if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
+    if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
+      if(Math.abs(w)>.3){if(r<.35)len=Math.max(250,vC*(2+rg()*2)); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
+        else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
+      else if(r<.6){len=Math.max(450,vC*(6+rg()*6));const v9=len;len=Math.min(len,fin-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.6?Math.PI/2:k<.95?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
+    else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
     const veut=len;len=Math.min(len,fin-s);if(len<60)break;
     if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant le portail : on tient, on ne la serre pas
@@ -12115,6 +12217,7 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);}
+  const calme=new Uint8Array(n1+1);if(!sansVrille&&NV_CALME)for(const g of seg)if(g.calme)for(let i=Math.max(0,Math.ceil(g.s0/h));i<=Math.min(n1,Math.floor(g.s1/h));i++)calme[i]=1; // (MOINS TORDUE) les tenues à l'endroit
   /* 2 bis) LE DÉVERS (2026-10-18) : dans chaque virage la dalle se couche vers l'INTÉRIEUR, de l'angle qu'aurait un virage relevé pris
      à la croisière (atan v²/gR, plafonné) — l'épingle se prend presque sur la tranche, le grand balayage à peine penché. Le lacet est relevé dans le
      plan de la dalle d'origine (lissé sur ~30 m), la cible lissée sur ~1 s puis bornée en vitesse de roulis (deux passes, aller et retour : la
@@ -12141,10 +12244,12 @@ function pisteTord(ctrl,seed,sansVrille,essai){ // essai : (2026-10-18) le n° d
     T2.normalize();N2.addScaledVector(T2,-N2.dot(T2)).normalize();
     const rN=rhoAt((i+1)*h)+dev[i+1];let rl; // (2026-10-18) + le DÉVERS (2 bis)
     {const mR=TORD_DEVERS.roulis/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
+    if(calme[i+1]&&!droit[i+1]){const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize();up.applyAxisAngle(T2,dev[i+1]); // (MOINS TORDUE) le ciel, penché du dévers
+      const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(4*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);rhoP=rN;}}} // au plus un demi-tour en 4 s de croisière : la route se REMET à l'endroit pendant la tenue
     if(droit[i+1]){rl=0;const ty=Math.abs(T2.y);if(ty<.95){up.set(-T2.x*T2.y,1-T2.y*T2.y,-T2.z*T2.y);if(up.lengthSq()>1e-8){up.normalize(); // le rappel vers le ciel, sans la condition « pas à l'envers » — (EN GRAND) et jusque dans les montées raides (.7 → .95) : un rappel plus doux doit pouvoir agir partout
       const th=Math.atan2(c9.crossVectors(N2,up).dot(T2),N2.dot(up)),mx=Math.min(.05,Math.PI/(3*vC))*h*Math.min(1,(.95-ty)/.25);rl=THREE.MathUtils.clamp(th,-mx,mx);}}} /* au plus un demi-tour en 3 s de croisière (EN GRAND ; c'était 1,3 s : un coup de vrille sec avant chaque trou) */
     rMax=Math.max(rMax,Math.abs(rl)/h);N2.applyAxisAngle(T2,rl);
-    if(droit[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
+    if(droit[i+1]||calme[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (MOINS TORDUE : aussi dans les tenues calmes) (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
       dans les tronçons droits elle revient DOUCEMENT à celle de la piste d'origine (≤ un quart de tour en 8 s de croisière : une bosse de ~400 m de rayon, pas un coude) */
       const pm=Math.PI/(16*vC)*h,a=THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(Tv[i+1].y,-1,1))-Math.asin(THREE.MathUtils.clamp(T2.y,-1,1)),-pm,pm);T2.applyAxisAngle(ax,a).normalize();N2.applyAxisAngle(ax,a);}}
     N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(N2.clone());}
@@ -12818,16 +12923,16 @@ const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
    pixel à 1 m de l'œil) est écrit par routeTick. Coût : une poignée d'opérations par SOMMET, zéro par pixel.
    `pal` : 0 = opaque (on assombrit), 1 = additif (on divise l'énergie), 2 = alpha (on éclaircit l'alpha). */
 const TRAIT_U={uPx:{value:.002}};
-const BMAP_U={uRgb:{value:0},uRgbT:{value:0},uRgbK:{value:0}}; // (2026-10-18, Léo) LE BOOST RGB des bords (voir BMAP) : part d'arc-en-ciel, défilement (tours), pas du scintillement
+const BMAP_U={uRgb:{value:0},uRgbT:{value:0},uRgbK:{value:0},uRgbC:{value:new THREE.Vector3(1,.45,.12)},uRgbM:{value:1}}; // (2026-10-18, Léo) LE BOOST RGB des bords (voir BMAP) : part d'arc-en-ciel, défilement (tours), pas du scintillement — (2026-10-18, Sacha) uRgbC : la couleur de la TRAÎNÉE du joueur, uRgbM : 1 = cette couleur, 0 = l'arc-en-ciel
 function traitMat(m,minPx,pal){
   const rgb9=pal<2; // (2026-10-18, Léo : « quand on booste, les côtés scintillent un peu en mode RGB ») les RAILS (0) et la NAPPE (1) — les seuls à porter ces deux programmes — peignent l'arc-en-ciel du boost (BMAP_U, à 0 hors boost : rien ne change)
-  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;if(rgb9){sh.uniforms.uRgb9=BMAP_U.uRgb;sh.uniforms.uRgbT9=BMAP_U.uRgbT;sh.uniforms.uRgbK9=BMAP_U.uRgbK;}
+  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;if(rgb9){sh.uniforms.uRgb9=BMAP_U.uRgb;sh.uniforms.uRgbT9=BMAP_U.uRgbT;sh.uniforms.uRgbK9=BMAP_U.uRgbK;sh.uniforms.uRgbC9=BMAP_U.uRgbC;sh.uniforms.uRgbM9=BMAP_U.uRgbM;}
     sh.vertexShader='attribute vec3 aLat;uniform float uPx9;varying float vK9;\n'+(rgb9?'attribute float aS;varying float vS9;\n':'')+sh.vertexShader.replace('#include <begin_vertex>',
       '#include <begin_vertex>\n{float hw9=max(length(aLat),1e-4),d9=max(0.,-(modelViewMatrix*vec4(position,1.)).z);'+
       'float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.);vK9=1./k9;}'+(rgb9?'vS9=aS;':''));
-    sh.fragmentShader='varying float vK9;\n'+(rgb9?'varying float vS9;uniform float uRgb9,uRgbT9,uRgbK9;\n':'')+sh.fragmentShader.replace('#include <fog_fragment>',
+    sh.fragmentShader='varying float vK9;\n'+(rgb9?'varying float vS9;uniform float uRgb9,uRgbT9,uRgbK9,uRgbM9;uniform vec3 uRgbC9;\n':'')+sh.fragmentShader.replace('#include <fog_fragment>',
       (pal===0?'gl_FragColor.rgb*=.35+.65*sqrt(vK9);':pal===1?'gl_FragColor.rgb*=vK9;':'gl_FragColor.a*=.25+.75*vK9;')+
-      (rgb9?'if(uRgb9>.001){float h9=fract(vS9*.016+uRgbT9);vec3 c9=clamp(abs(mod(h9*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);'+ // la teinte de l'arc-en-ciel à cet endroit de la route (tout le spectre en ~60 m)
+      (rgb9?'if(uRgb9>.001){float h9=fract(vS9*.016+uRgbT9);vec3 c9=mix(clamp(abs(mod(h9*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.),uRgbC9,uRgbM9);'+ // la teinte de l'arc-en-ciel à cet endroit de la route (tout le spectre en ~60 m) — (2026-10-18, Sacha) ou la couleur de la traînée du joueur (uRgbM9 = 1)
         'float n9=fract(sin(mod(floor(vS9*.4),997.)*12.9898+uRgbK9*78.233)*43758.5453);'+ // le SCINTILLEMENT : chaque tronçon de ~2,5 m tire son éclat, 16 fois par seconde — un sur sept ÉCLATE (blanc vif) : le flou de vitesse du boost avalait un simple frémissement (vu au banc)
         'float I9=max(max(gl_FragColor.r,gl_FragColor.g),gl_FragColor.b);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(c9,vec3(1.),.45*step(.86,n9))*I9*(.7+.3*n9+1.4*step(.86,n9)),uRgb9);}':'')+'\n#include <fog_fragment>');
   };
@@ -12938,9 +13043,14 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
    SCINTILLE (chaque tronçon de ~2,5 m tire son éclat 16 fois par seconde, un sur sept éclate en blanc) ; ils s'allument un peu plus fort (la lueur prend) ; lâché, la
    couleur de la map revient en ~0,3 s. C'est le trait des bords (`traitMat`, rails et nappe : leurs programmes à eux seuls) qui le peint, mené par
    trois uniformes (`BMAP_U`) : aucun programme de plus (mesuré : dbgProgs). `?bordsboost=0` = pas d'effet au boost. `dbgBordsMap()` (ce qui est posé),
-   `dbgBordsMap('canyon',0x22e0c2)` (essayer une couleur), `dbgBordsMap('rgb',1)` (l'arc-en-ciel sans boost, pour les photos). */
+   `dbgBordsMap('canyon',0x22e0c2)` (essayer une couleur), `dbgBordsMap('rgb',1)` (l'arc-en-ciel sans boost, pour les photos).
+   (2026-10-18, Sacha : « change le RGB que Léo a mis sur le bord de la route pour qu'il soit de la même couleur que la traînée choisie par le joueur »)
+   LA COULEUR DE LA TRAÎNÉE : au boost, les bords prennent la couleur de la traînée que porte la caisse (`bmapTrainee` : celle de la boutique, sinon la
+   signature de la caisse, sinon l'orange du nitro) au lieu de l'arc-en-ciel ; le SCINTILLEMENT et les éclats blancs restent. La traînée ARC-EN-CIEL
+   (et le chat) garde l'arc-en-ciel. `?bordsboost=rgb` = l'arc-en-ciel pour toutes (la version de Léo). Deux uniformes de plus, aucun programme de plus. */
 const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,foret:0xc8f03c,banquise:0x52d8ff,volcan:0xffe03a,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff};
 const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);
+const BMAP_ARC=/[?&]bordsboost=rgb\b/.test(location.search),BMAP_NITRO=[1.38,.62,.17]; // ?bordsboost=rgb : l'arc-en-ciel de Léo pour toutes les traînées (comparer) ; l'orange du ruban de nitro (voir la boucle : « couleurs FRANCHES »)
 const BMAP={c:new THREE.Color(),g:new THREE.Color(),t:0,ph:0,cle:null,i:0,rgb:0,force:null};
 function bmapCle(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||PARK.on)return null; // la map de la palette (null : la ville au néon, le parc, une map sans couleur)
   const k=c.carte||(c.crypto?'crypto':c.vitre?'vitree':c.id==='orage'?'nuages':c.id);return BMAP_PAL[k]!=null&&c.id!=='paris'?k:null;}
@@ -12951,7 +13061,15 @@ function bmapBoost(){ // L'ÉLAN DU BOOST → BMAP.rgb (part d'arc-en-ciel), BMA
   if(!BMAP_B)e=ig=pad=0;if(BMAP.force!=null)e=BMAP.force;
   BMAP.rgb=Math.min(1,.82*e+.3*ig);BMAP.i=.6*e+.15*pad; // NFX.len : il s'ouvre en ~0,1 s, se referme en ~0,3 s — le pad turbo allume un peu, sans arc-en-ciel
   BMAP.ph=(BMAP.ph+dt*(.45+.5*e))%1; // l'arc-en-ciel défile vers l'arrière (il double la vitesse de la caisse)
-  BMAP_U.uRgb.value=BMAP.rgb;BMAP_U.uRgbT.value=BMAP.ph;BMAP_U.uRgbK.value=Math.floor(BMAP.t*16)%997;}
+  BMAP_U.uRgb.value=BMAP.rgb;BMAP_U.uRgbT.value=BMAP.ph;BMAP_U.uRgbK.value=Math.floor(BMAP.t*16)%997;
+  if(BMAP.rgb>.001)bmapTrainee();}
+function bmapTrainee(){ // (2026-10-18, Sacha : « le RGB du bord de la route, de la même couleur que la traînée choisie par le joueur ») → BMAP_U.uRgbC / uRgbM
+  let F=null,c=null,arc=BMAP_ARC;
+  try{F=FX_EFF||(CARS[level]&&CARS[level].fx)||null;if((NYAN.on&&!FX_EFF)||(F&&F.rainbow))arc=true; // la traînée ARC-EN-CIEL (ou le chat) : les bords gardent l'arc-en-ciel de Léo
+    c=(FX_EFF&&FX_EFF.teinte)||(F&&F.trail)||null;}catch(x){} // la même règle que le ruban de nitro : la traînée de la boutique, sinon la signature de la caisse ; les traînées sans ruban (blocs, glouton, grille) : la couleur de leur vignette (teinte)
+  if(arc){BMAP_U.uRgbM.value=0;return;}
+  if(!c)c=BMAP_NITRO; // la traînée NITRO sur une caisse sans signature : l'orange du ruban
+  const m=Math.max(c[0],c[1],c[2],1e-3);BMAP_U.uRgbC.value.set(c[0]/m,c[1]/m,c[2]/m);BMAP_U.uRgbM.value=1;} // à pleine force, comme une teinte de l'arc-en-ciel : le scintillement et l'éclat restent ceux de Léo
 function bmapPeint(k){ // remplace la peinture des bords pour une map de la palette (appelée par bordsTick, à chaque image)
   const jf=(1-LVL.nuit)*(1-Math.min(1,LVL.pluie*1.5));BORDS.jf=jf;BMAP.cle=k;bmapBoost();
   let kk=1;if(!contiMap())try{const kv=1-.6*LVL.nuit;if(kv<.999)kk=1/(.07+.93*kv);}catch(e){} // villeApres baissera les rails ×kr et la nappe ×kr² (les PICS DE JADE et CRYPTO CITY ne sont pas des six maps) : on l'annule d'avance — pleins la nuit
@@ -12964,7 +13082,7 @@ function bmapPeint(k){ // remplace la peinture des bords pour une map de la pale
   for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i];if(m.userData.base!=null){m.color.copy(BMAP.g);m.opacity=Math.min(1,og);}}}
 window.dbgBordsMap=function(k,hex){if(k==='rgb'){BMAP.force=hex==null?null:+hex;}else if(k&&hex!=null){BMAP_PAL[k]=hex;}if(k){bordsTick();try{villeApres();}catch(e){}if(paused&&POST_ON&&composer)composer.render();}
   return {boost:BMAP_B,cle:BMAP.cle,pal:Object.keys(BMAP_PAL).map(function(n){return n+' #'+('00000'+BMAP_PAL[n].toString(16)).slice(-6);}),
-  rgb:+BMAP.rgb.toFixed(2),i:+BMAP.i.toFixed(2),force:BMAP.force,u:[+BMAP_U.uRgb.value.toFixed(2),+BMAP_U.uRgbT.value.toFixed(2),BMAP_U.uRgbK.value],rail:NEON_RAILS[0]?NEON_RAILS[0].color.toArray().map(function(x){return +x.toFixed(3);}):null,
+  rgb:+BMAP.rgb.toFixed(2),i:+BMAP.i.toFixed(2),force:BMAP.force,u:[+BMAP_U.uRgb.value.toFixed(2),+BMAP_U.uRgbT.value.toFixed(2),BMAP_U.uRgbK.value],trainee:BMAP_U.uRgbM.value?BMAP_U.uRgbC.value.toArray().map(function(x){return +x.toFixed(3);}):'arc-en-ciel',rail:NEON_RAILS[0]?NEON_RAILS[0].color.toArray().map(function(x){return +x.toFixed(3);}):null,
   nappe:NEON_GLOW[0]?NEON_GLOW[0].color.toArray().map(function(x){return +x.toFixed(3);}).concat([+NEON_GLOW[0].opacity.toFixed(3)]):null};};
 function bordsTick(){ // appelée par musicTick, APRÈS la peinture « caméléon » des rails et de la nappe
   skyU.uRose.value=villeRose()?1:0; // (plafrose, Sacha : « la ville la nuit = ROSE ») le plafond de la pluie et de l'orage retrouve sa lueur LILAS et son éclair violet en ville au néon
@@ -35282,9 +35400,25 @@ function plqVue(){plqApercu($p('plqCv'),PLQ.m,PLQ.x.trim());plqMods();}
 function plqOuvre(mode){ // mode : 'premier' (le début du jeu, à valider) · 'profil' (depuis le profil, RETOUR annule)
   const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
   el.classList.toggle('premier',PLQ.mode==='premier');
+  el.classList.remove('clavier');el.style.top=el.style.height='';PLQ.kb=false;PLQ.kbFaux=0;PLQ.h0=plqH0(); /* (2026-10-18) la pose du clavier repart de zéro */
   const tx=$p('plqTx');if(tx){tx.value=PLQ.x;tx.setAttribute('aria-label',TR('Le texte de ta plaque'));}
   plqVue();feuilleOuvre(el,'on');try{chuteDoigtMontre(false);}catch(_){}
 }
+/* (2026-10-18) LE CLAVIER DU TÉLÉPHONE (voir #plq.clavier) : iOS et Android posent le clavier PAR-DESSUS la page — seule la partie visible
+   (visualViewport) rétrécit, la mise en page ne bouge pas. Tant que le champ a le focus et que la partie visible a perdu plus de 90 px,
+   l'atelier se pose exactement sur elle. Sur l'ordi (clavier physique) rien ne rétrécit : rien ne change. Un iPad au clavier physique n'a que
+   sa barre de raccourcis (< 90 px) : rien ne change non plus. `dbgPlaque('clavier',h)` simule un clavier qui laisse h px visibles (bancs). */
+const PLQ_KB=!/[?&]plqclavier=0\b/.test(location.search);
+function plqH0(){const vv=window.visualViewport;return Math.max(innerHeight||0,document.documentElement.clientHeight||0,vv&&!PLQ.kb?vv.height:0);} /* la hauteur SANS clavier */
+function plqClavier(){const el=$p('plq'),tx=$p('plqTx'),vv=window.visualViewport;if(!el||!PLQ.on)return; /* l'atelier qui se referme garde sa pose pendant son fondu */
+  let on=false,top=0,h=0;
+  if(PLQ.kbFaux){on=true;h=PLQ.kbFaux;}
+  else if(PLQ_KB&&vv&&tx&&document.activeElement===tx){const h0=Math.max(PLQ.h0||0,document.documentElement.clientHeight||0);
+    if(h0-vv.height>90){on=true;top=Math.max(0,vv.offsetTop);h=vv.height;}}
+  PLQ.kb=on;
+  if(on){const T=Math.round(top)+'px',H=Math.round(h)+'px',neuf=!el.classList.contains('clavier')||el.style.height!==H;if(el.style.top!==T)el.style.top=T;if(el.style.height!==H)el.style.height=H;
+    if(neuf){el.classList.add('clavier');el.classList.remove('serre');if(el.scrollHeight>el.clientHeight+2)el.classList.add('serre');el.scrollTop=el.scrollHeight;}} /* debout, les modèles restent s'ils tiennent ; le champ et VALIDER, toujours au ras du clavier */
+  else if(el.classList.contains('clavier')){el.classList.remove('clavier','serre');el.style.top=el.style.height='';}}
 function plqFerme(ok){const el=$p('plq');if(!el||!PLQ.on)return;
   if(ok){const p=SAVE.d.plq||(SAVE.d.plq={});p.m=PLQ.m;p.x=plqNet(PLQ.x).trim()||plqHasard();p.ok=1;SAVE.flush();plqRepeint();
     toast(pxi('coche')+' '+TR('PLAQUE ENREGISTREE'),true);}
@@ -35294,12 +35428,22 @@ function plqBranche(){const el=$p('plq');if(!el||el._b)return;el._b=1;
   const tx=$p('plqTx');
   if(tx){tx.addEventListener('input',function(){const v=plqNet(tx.value);if(v!==tx.value){const p=tx.selectionStart;tx.value=v;try{tx.setSelectionRange(Math.min(p,v.length),Math.min(p,v.length));}catch(_){}}
       PLQ.x=v;plqVue();});
-    tx.addEventListener('click',function(e){e.stopPropagation();});}
+    tx.addEventListener('click',function(e){e.stopPropagation();});
+    /* (2026-10-18) LE CLAVIER DU TÉLÉPHONE : on suit la partie visible ; au départ du clavier, la page revient en haut (iOS la laissait
+       remontée : le même correctif que le nom du TOP 10) ; le retour à l'écran entier attend 120 ms (le doigt qui touche VALIDER : la feuille
+       ne bouge pas sous lui) */
+    tx.addEventListener('focus',function(){clearTimeout(PLQ.kbT);plqClavier();PLQ.kbT=setTimeout(plqClavier,350);});
+    tx.addEventListener('blur',function(){clearTimeout(PLQ.kbT);PLQ.kbT=setTimeout(plqClavier,120);
+      setTimeout(function(){try{scrollTo(0,0);}catch(_){}},60);setTimeout(function(){try{if(!PLQ.kb)scrollTo(0,0);}catch(_){}},400);});
+    if(window.visualViewport){const vvGo=function(){if(!PLQ.on)return;if(document.activeElement!==tx&&!PLQ.kbFaux)PLQ.h0=plqH0();plqClavier();};
+      visualViewport.addEventListener('resize',vvGo);visualViewport.addEventListener('scroll',vvGo);}}
   const vue=el.querySelector('.plVue');if(vue)vue.addEventListener('click',function(e){e.stopPropagation();try{tx.focus();}catch(_){}});
+  const de=el.querySelector('.plDe');if(de)de.addEventListener('mousedown',function(e){if(document.activeElement===tx)e.preventDefault();}); /* le dé n'emporte pas le focus : le clavier reste ouvert */
   el.querySelectorAll('[data-p]').forEach(function(b){const a=b.getAttribute('data-p'),go=function(e){if(e)e.stopPropagation();
       if(a==='ok'){uiClic('');hap(14);uiPop(b);plqFerme(true);}
       else if(a==='ret'){uiClic('retour');hap(6);plqFerme(false);}
-      else if(a==='hasard'){uiClic('onglet');hap(8);uiPop(b);PLQ.x=plqHasard();if(tx)tx.value=PLQ.x;plqVue();}};
+      else if(a==='hasard'){const ecrit=PLQ.kb||document.activeElement===tx;uiClic('onglet');hap(8);uiPop(b);PLQ.x=plqHasard();if(tx)tx.value=PLQ.x;plqVue();
+        if(ecrit&&tx)try{tx.focus();tx.setSelectionRange(tx.value.length,tx.value.length);}catch(_){}}}; /* on écrivait : on continue d'écrire, au bout du texte tiré */
     b.addEventListener('click',go);b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});});
   addEventListener('keydown',function(e){if(!PLQ.on)return;if(e.target===tx)return;if(e.code==='Escape'&&PLQ.mode!=='premier'){e.preventDefault();e.stopImmediatePropagation();plqFerme(false);}
     else if(e.code==='Enter'){e.preventDefault();e.stopImmediatePropagation();plqFerme(true);}},true);
@@ -35368,6 +35512,8 @@ function plqDemarre(){try{plqBranche();profBranche();}catch(e){console.warn('pla
 document.addEventListener('cc:jeu',function(){try{if(PLQ.prof)profFerme();}catch(e){}});
 window.dbgPlaque=function(a,b){
   if(a==='ouvre'){plqOuvre(b||'profil');return 'ouvert';}
+  if(a==='clavier'){PLQ.kbFaux=Math.max(0,+b||0);plqClavier();const el=$p('plq'),bx=function(s){const n=el.querySelector(s),r=n&&n.getBoundingClientRect();return r&&r.width?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null;};
+    return {clavier:el.classList.contains('clavier'),top:el.style.top,h:el.style.height,vue:bx('.plVue'),champ:bx('#plqTx'),de:bx('.plDe'),ret:bx('.plRet'),ok:bx('.plOk'),titre:bx('.plTete'),mods:bx('.plMods')};}
   if(a==='raz'){SAVE.d.plq.ok=0;SAVE.flush();PLQ.fait=false;return 'à choisir au prochain accueil';}
   if(a==='pos')return {pos:PLQ.pos,plaques:(function(){const r=[];carGroup.traverse(function(o){if(o.userData&&o.userData.plaque&&o.isMesh)r.push([o.userData.plaque,o.position.toArray().map(function(v){return +v.toFixed(3);})]);});return r;})()};
   if(a&&b!=null){const p=SAVE.d.plq;p.m=plqModOk(a);p.x=plqNet(b).trim()||p.x;p.ok=1;SAVE.flush();plqRepeint();return p;}
@@ -45234,7 +45380,7 @@ const SAVE={
     /* (2026-10-16) LES MISSIONS v2 : bornées comme le reste — ids a-z0-9 (2 à 12), listes courtes, nombres finis ; un code importé ne coche rien qu'il ne saurait dire */
     if(d.m2&&typeof d.m2==='object'){const s9=d.m2,o9=c.m2,I9=/^[a-z0-9]{2,12}$/,L9=function(a,n){return Array.isArray(a)?[...new Set(a.filter(function(x){return typeof x==='string'&&I9.test(x);}))].slice(0,n):[];},
       N9=function(x,hi){x=+x;return isFinite(x)?Math.max(0,Math.min(hi,x)):0;};
-      o9.v=s9.v===1?1:0;if(s9.vc===1)o9.vc=1;o9.ok=L9(s9.ok,200);o9.pr=L9(s9.pr,200);o9.su=L9(s9.su,3);o9.nv=L9(s9.nv,200);o9.fl=L9(s9.fl,60);
+      o9.v=s9.v===1?1:0;if(s9.vc===1)o9.vc=1;if(s9.vr===1)o9.vr=1;/* (2026-10-18) la reprise de la migration, faite */o9.ok=L9(s9.ok,200);o9.pr=L9(s9.pr,200);o9.su=L9(s9.su,3);o9.nv=L9(s9.nv,200);o9.fl=L9(s9.fl,60);
       if(s9.vu&&typeof s9.vu==='object')for(const k of Object.keys(s9.vu).slice(0,200))if(I9.test(k))o9.vu[k]=N9(s9.vu[k],1e30);
       if(s9.r&&typeof s9.r==='object')for(const k of ['fig','airP','parf','frenN','frenT','kmh','vie','tours','vol','lac','rejoue','prof'])if(s9.r[k]!=null)o9.r[k]=N9(s9.r[k],1e7);
       const cc=s9.c&&typeof s9.c==='object'?s9.c:{};o9.c.morts=Math.round(N9(cc.morts,1e7));o9.c.gagne=N9(cc.gagne,1e30);o9.c.jours=Math.round(N9(cc.jours,1e5));
@@ -46370,6 +46516,7 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
   FX2.aura=aura;const c0=CHA.pts;
   addTrick('fig_combo_'+cle,txt,Math.round(aura/16),3); // (dans la chaîne comme une figure : sa famille s'use à la redite, ×0,7)
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.combos=(FX2.combos|0)+1;
+  try{fhTrio(en?nm[1]:nm[0]);}catch(e){} // (2026-10-18, HUD des figures v5) le combo nommé s'ÉCRIT en grand, ses trois maillons soulignés — avant, seul le tout premier se voyait (la bannière NOUVEAU COMBO)
   hap([14,30,14,30,40]);
   try{sonCombo(cle,neuf);}catch(e){} // (SON) la signature sonore du combo : livrée par la session SON — muet tant qu'elle n'existe pas
   if(neuf){const n=Object.keys(D).filter(function(k){return COMBO_NOMS[k];}).length;
@@ -46639,55 +46786,99 @@ function figNom(f,reps,lg){lg=lg||(LANG==='en'?'en':'fr');let n=sansAcc(lg==='en
   if(/^DOUBLE /.test(n)){n=n.slice(7);k*=2;} // DOUBLE TONNEAU doublé → QUADRUPLE TONNEAU
   const M=FIG_MULT[lg==='en'?'en':'fr'];return (M[k]||k+'X ')+n;}
 function figRepsEnCours(r){const m=r&&r.mv&&r.mv[0];return m?Math.max(1,Math.round(m.tours/(r.base||m.tours))):1;} // les répétitions prévues (le tour EMPILÉ au double-tap compte)
-const FH={el:null,nom:null,b:null,d:null,cs:null,x:null,rec:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null,arme:-2,recBat:false};
+/* ===== LE HUD DES FIGURES v5 (2026-10-18, Sacha : « retravaille le système de figure, notamment les combos de figures : c'est pas montré
+   assez clairement ; et puis les bumps sur les bords de la route doivent être une figure à part entière, cumulable dans des combos ; aussi, en
+   fonction de la rareté de la figure, écris-la dans une couleur et une police différente correspondant à la rareté » — au quiz : « une police
+   par rareté », toutes en pixels, pour le nom des figures en course seulement). Le dessin est dans <style id="figuresHud"> (v5).
+   · LA RARETÉ ÉCRITE (`figRarH`) : celle de la boutique (`cosmRar('figure')`, qui suit le prix) — COMMUNE gris Press Start 2P · RARE bleu
+     Silkscreen · EXOTIQUE vert Jersey · ÉPIQUE violet Sixtyfour (halo) · LÉGENDAIRE or Jacquard, le gothique en pixels (un reflet la traverse).
+     `FIG_RP` : par rareté, k = la taille qui égale la hauteur de capitale de Press Start 2P, w = la largeur d'une lettre à cette taille
+     (MESURÉ au canvas : capitale ,63 / ,54 / ,87 / ,57 em ; chasse ,69 / ,38 / 1 / ,56 em) — même nombres que --rk dans la feuille.
+   · LA LIGNE DU COMBO SE LIT (`fhMaillon`, `fhCsCale`) : les pastilles muettes de la v4 sont remplacées par le NOM de chaque figure plantée,
+     dans sa rareté, reliés par « + » — TONNEAU + SALTO AVANT + BUMP ; le × du combo en grand dessous ; « … » devant quand la ligne déborde.
+     À LA POSE, les maillons s'allument l'un après l'autre (on voit ce qu'on encaisse) et le × claque ; à la chute, ils tombent en rouge.
+   · LE COMBO À TROIS NOMMÉ (`fhTrio`, depuis comboNote) : LA PERCEUSE… s'écrit en grand, en arc-en-ciel, ses trois maillons soulignés d'or.
+   · LE BUMP, FIGURE À PART ENTIÈRE (`figBumpNote`, au rebond sur la tranche, en vol) : il entre au COMBO DU VOL comme une figure (neuf +0,5 au ×,
+     redite +0,25), ses points de chaîne entrent dans FX2.pts (multipliés à la pose, perdus à la chute, comme les autres) ; son nom s'écrit en
+     haut (plus de « BUMP +30 » sur la caisse) ; un BUMP qui suit un BUMP grandit sur place : BUMP (commune) → DOUBLE BUMP (rare) → TRIPLE BUMP
+     (exotique) → MEGA BUMP (épique). Le nitro et la valeur du bump (BUMP_VAL, ×0,6 par rebond) ne changent pas. `?bumpfig=0` = avant. */
+const FIG_RP={commun:{k:1,w:1},rare:{k:1.59,w:1.1},exotique:{k:1.85,w:.7},epique:{k:1.15,w:1.15},legendaire:{k:1.9,w:1.07},combo:{k:1,w:1}};
+const BUMP_FIG={id:'bump',n:'BUMP',en:'BUMP',aura:30};
+const BUMP_FIG_ON=!/[?&]bumpfig=0\b/.test(location.search);
+try{if(document.fonts&&document.fonts.load)setTimeout(function(){['CC Silkscreen','CC Jersey','CC Sixtyfour','CC Jacquard'].forEach(function(f){document.fonts.load('20px "'+f+'"','BUMP').catch(function(){});});},2500);}catch(e){} // les quatre polices chargées d'avance (au menu) : la 1re figure rare ne s'écrit pas d'abord en Press Start 2P
+function bumpNomH(k){return k>=4?'MEGA BUMP':k===3?'TRIPLE BUMP':k===2?'DOUBLE BUMP':'BUMP';}
+function figRarH(f,k){if(!f)return 'commun';if(f.id==='bump')return k>=4?'epique':k===3?'exotique':k===2?'rare':'commun';
+  let r='commun';try{r=cosmRar('figure',f);}catch(e){}return FIG_RP[r]?r:'commun';}
+const FH={el:null,nom:null,b:null,d:null,cs:null,more:null,x:null,rec:null,legs:null,legCle:'',vu:false,nomT:0,fin:'',finT:0,xv:-1,ease:'',va:null,arme:-2,recBat:false,rp:'',rpT:'-',horsN:0,trioT:0,nomPl:false};
 const FH_COUL=['var(--fh1)','var(--fhVert)','var(--fh2)','var(--fh0)']; // l'emplacement 1 (l'avant, cyan) · le 2 (l'arrière, vert — 2026-10-15 soir) · le 3 (le côté, magenta) · la figure que la caisse fait SEULE (or)
 const FH_N=[26,22]; // le corps du nom (px) : couché · debout — plafonné par la largeur (police pixel : 1 em par lettre)
 function fhEase(){if(!FH.ease){try{FH.ease=getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();}catch(e){}FH.ease=FH.ease||'ease-out';}return FH.ease;}
 function fhAnime(el,k,ms,o){if(!el||!el.animate)return null;if(REDUCED_MOTION&&!(o&&o.rm))return null; // « Réduire les animations » (iOS) : l'état final s'affiche, sans le mouvement
   try{return el.animate(k,Object.assign({duration:ms,easing:fhEase()},o||{}));}catch(e){return null;}}
 function fhEl(){if(FH.el)return FH.el;const e=document.createElement('div');e.id='fh';e.setAttribute('aria-hidden','true');
-  e.innerHTML='<div class="fhNom"><i class="pxi fhD"></i><b></b></div><div class="fhLigne"><span class="fhCs"></span><em class="fhX"></em><u class="fhRec"></u></div>';document.body.appendChild(e);
-  FH.el=e;FH.nom=e.firstChild;FH.d=FH.nom.firstChild;FH.b=FH.nom.lastChild;FH.cs=e.querySelector('.fhCs');FH.x=e.querySelector('.fhX');FH.rec=e.querySelector('.fhRec');return e;}
+  e.innerHTML='<div class="fhNom"><i class="pxi fhD"></i><b></b></div><div class="fhLigne"><u class="fhMore"></u><span class="fhCs"></span></div><div class="fhBas"><em class="fhX"></em><u class="fhRec"></u></div>';document.body.appendChild(e); /* (v5) la ligne des NOMS du combo, puis le × dessous */
+  FH.el=e;FH.nom=e.firstChild;FH.d=FH.nom.firstChild;FH.b=FH.nom.lastChild;FH.cs=e.querySelector('.fhCs');FH.more=e.querySelector('.fhMore');FH.x=e.querySelector('.fhX');FH.rec=e.querySelector('.fhRec');return e;}
 function fhNet(t){return sansAcc(String(t)).replace(/[<>&"]/g,'');}
-function fhNom(t,c,g,dir){const e=fhEl();t=fhNet(t);const b=FH.b;
+function fhNom(t,c,g,dir,rp){const e=fhEl();t=fhNet(t);const b=FH.b;
   if(dir!==undefined){FH.d.className='pxi fhD'+(dir?' pxi-'+dir:' vide');} // (v4) la flèche du geste : ▲ ▼ ◄ ► (undefined = on garde celle d'avant : la plantée, le combo perdu)
-  if(b.textContent!==t){b.textContent=t;b.setAttribute('data-t',t);
-    b.style.fontSize=Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,t.length+1.5))-2))+'px';}
-  FH.nom.style.setProperty('--fc',c);FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
+  if(rp!==undefined){FH.rp=rp||'';if(rp)FH.nom.setAttribute('data-rp',rp);else FH.nom.removeAttribute('data-rp');} // (v5) la RARETÉ du nom : sa couleur et sa police ('' = Press Start 2P, la couleur c)
+  if(b.textContent!==t||FH.rpT!==FH.rp){const K=FIG_RP[FH.rp]||FIG_RP.commun;FH.rpT=FH.rp;b.textContent=t;b.setAttribute('data-t',t); /* (v5) même hauteur de capitale que Press Start 2P (k), la largeur selon la chasse de SA police (w) */
+    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
+  if(c)FH.nom.style.setProperty('--fc',c);else FH.nom.style.removeProperty('--fc');FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
   if(g==='in')fhAnime(FH.nom,[{transform:'scale(2.3) rotate(-7deg)',opacity:0,filter:'brightness(3)'},{transform:'scale(.92) rotate(2deg)',opacity:1,filter:'brightness(1.6)',offset:.45},
     {transform:'scale(1.05) rotate(0deg)',offset:.72},{transform:'none',opacity:1,filter:'none'}],460);
   else if(g==='pl')fhAnime(FH.nom,[{transform:'scale(1.4)',filter:'brightness(3.2)'},{transform:'scale(.94)',filter:'brightness(1.5)',offset:.5},{transform:'none',filter:'none'}],400);
   else if(g==='ko')fhAnime(FH.nom,[{transform:'none'},{transform:'translateX(-10px) rotate(-3deg)'},{transform:'translateX(9px) rotate(2deg)'},{transform:'translateX(-6px)'},{transform:'translateX(4px)'},{transform:'none'}],460,{easing:'steps(6)'});}
-function fhChip(neuf,c){fhEl();const i=document.createElement('i');i.className='fhP'+(neuf?' neuf':'');i.style.setProperty('--cc',c);FH.cs.appendChild(i); // (v4) une PASTILLE muette par figure plantée : le nom est déjà écrit au-dessus, une fois
-  while(FH.cs.childElementCount>8)FH.cs.firstChild.remove();
-  fhAnime(i,[{transform:'translateY(-30px) scale(2.4)',opacity:0,filter:'brightness(3)'},{transform:'translateY(2px) scale(.9)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],420);}
+function fhMaillon(t,rp,o){fhEl();o=o||{};const i=document.createElement('i');i.className='fhM'; // (v5) un MAILLON par figure plantée : son nom, dans sa rareté (remplace la pastille muette de la v4)
+  i.setAttribute('data-rp',rp);if(o.b)i.setAttribute('data-b','1');if(o.d)i.setAttribute('data-d','1');i.textContent=fhNet(t);FH.cs.appendChild(i);fhCsCale();
+  fhAnime(i,[{transform:'translateY(-26px) scale('+(o.neuf?2.2:1.7)+')',opacity:0,filter:'brightness(3)'},{transform:'translateY(2px) scale(.94)',opacity:1,offset:.55},{transform:'none',opacity:1,filter:'none'}],420);return i;}
+function fhMaillonMaj(i,t,rp){i.setAttribute('data-rp',rp);i.textContent=fhNet(t);fhCsCale(); // (v5) le BUMP qui suit un BUMP : le même maillon grandit (DOUBLE BUMP…)
+  fhAnime(i,[{transform:'scale(1.7)',filter:'brightness(3)'},{transform:'scale(.94)',offset:.5},{transform:'none',filter:'none'}],380);}
+function fhCsCale(){const L=FH.cs.children,ch=VP.w>VP.h?10:8,lim=Math.min(VP.w*.94,680)*.92; // (v5) la ligne tient en largeur : les plus anciens maillons sortent, « … » devant (estimé sur la chasse de chaque police — --fhCh, ×1,2, « + » et ses marges = 2 corps : aucune mise en page lue)
+  let w=0,k=L.length;while(k>0){const e=L[k-1],n=e.textContent.length,K=FIG_RP[e.getAttribute('data-rp')]||FIG_RP.commun,ww=(n*K.w*1.2+2)*ch+n;if(k<L.length&&(w+ww>lim||L.length-k>=6))break;w+=ww;k--;}
+  if(k>0){for(let j=0;j<k;j++)L[0].remove();FH.horsN+=k;}
+  const m=FH.horsN?'…':'';if(FH.more.textContent!==m)FH.more.textContent=m;}
 function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} // le meilleur combo jamais POSÉ (le × du vol)
-function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x;fhEl();
+function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;fhEl();FH.el.classList.toggle('combo',c.n>=2);if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x; /* (v5) la ligne des noms n'existe qu'à partir de DEUX figures : une figure seule s'écrit une fois, en grand */
   FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
   {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
 function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
-  fhNom(figNom(r.f,figRepsEnCours(r)),FH_COUL[c],'in',r.flD||null);FH.nomT=performance.now()+1900; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste */
-  if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
+  if(FH.fin)fhRaz(); /* (v5) la ligne du vol d'avant s'éteignait encore : on repart à neuf (avant, son fondu « forwards » restait posé sur #fh — la figure suivante partait invisible) */
+  fhNom(figNom(r.f,figRepsEnCours(r)),null,'in',r.flD||null,figRarH(r.f));FH.nomT=performance.now()+1900;FH.nomPl=false; /* (v4) le nom bien écrit (plus « HELICO 720 ×2 » pour un hélico simple) et la flèche du geste — (v5) dans la couleur et la police de SA RARETÉ (plus celle de l'emplacement) */
   if(s>=0)fhLegFx(s,false);}
-function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const c=FH_COUL[r&&r.fhc!=null?r.fhc:3],t=figNom(f,reps); // (figPaye) plantée : elle claque et tombe dans la ligne
-  if(FH.fin){FH.fin='';if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}FH.el.classList.remove('paye','perdu');}
-  fhNom(t,'var(--fh0)','pl');fhChip(neuf,c);fhXMaj();FH.nomT=performance.now()+1000; /* (v4) plantée : le nom passe en OR un instant (c'est fait), une pastille de sa couleur — pas un 2e texte */
-  try{pixBurst(FH.b,Math.min(12,6+2*FX2.cv.n));}catch(e){}}
+function fhPlante(r,f,reps,neuf){if(!f||!window.FIG)return;const t=figNom(f,reps),rp=figRarH(f); // (figPaye) plantée : elle claque et tombe dans la ligne
+  if(FH.fin)fhRaz();
+  const m=fhMaillon(t,rp,{neuf:neuf,d:!!(r&&r.douce)});fhXMaj(); /* (v5) son MAILLON entre dans la ligne du combo */
+  fhSeule(t,rp,undefined,1000,m,Math.min(12,6+2*FX2.cv.n));}
+function fhSeule(t,rp,dir,ms,m,nb){const n=performance.now(); // (v5) une figure SEULE claque en grand dans sa rareté (la ligne n'existe pas encore) ; dans un COMBO, le grand nom tombe dans la ligne
+  if(FX2.cv.n<2){fhNom(t,null,'pl',dir,rp);FH.nomT=n+ms;FH.nomPl=true;try{pixBurst(FH.b,nb);}catch(e){}return;} //   (il s'éteint, son maillon arrive) : jamais écrit deux fois — Sacha, 15/10 : « là c'est écrit en double »
+  if(FH.nom.classList.contains('on')&&FH.nomT>n+140&&(FH.nomPl||FH.b.textContent===fhNet(t)))FH.nomT=n+140; // le grand nom est celui d'une figure DÉJÀ dans la ligne (nomPl) : il s'éteint — une figure lancée, encore en l'air, garde le sien
+  try{pixBurst(m,nb);}catch(e){}}
+function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k); // (v5) LE BUMP s'écrit comme une figure plantée : en grand s'il est seul, son maillon dans la ligne
+  if(FH.fin)fhRaz();
+  const L=FH.cs.lastElementChild;let m=L;if(k>1&&L&&L.getAttribute('data-b'))fhMaillonMaj(L,t,rp);else m=fhMaillon(t,rp,{neuf:neuf,b:1}); // collé au BUMP d'avant : le même maillon grandit
+  fhXMaj();fhSeule(t,rp,null,1100,m,Math.min(10,4+2*k));}
+function fhTrio(txt){if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
+  fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
+  const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
+function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON)return; // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
+  FX2.pts+=Math.max(0,pts||0);const neuf=!FX2.cv.ids.bump;figCvNote(BUMP_FIG,1);fhBump(k,neuf);}
 function fhFin(ok){const c=FX2.cv;if(!FH.el||!FH.vu||c.n<1)return;const n=performance.now(); // (la pose) — à appeler AVANT figCvRaz
-  if(ok){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.el.classList.remove('perdu');
-    if(FH.xv>0)fhAnime(FH.x,[{transform:'scale(1.9)',filter:'brightness(3)'},{transform:'scale(1)',filter:'none'}],300);
-    fhAnime(FH.cs,[{filter:'brightness(3)'},{filter:'none'}],300);
+  if(ok){if(!(FH.trioT>n))FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.el.classList.remove('perdu'); // (v5) un combo NOMMÉ fermé par la pose reste écrit pendant l'encaissement
+    const M=FH.cs.children,D=c.n>=2?1000+70*M.length:600;
+    if(FH.xv>0)fhAnime(FH.x,[{transform:'scale(1)',filter:'none'},{transform:'scale(2)',filter:'brightness(3)',offset:.35},{transform:'scale(1)',filter:'none'}],420,{delay:70*M.length});
+    for(let i=0;i<M.length;i++)fhAnime(M[i],[{transform:'none',filter:'none'},{transform:'translateY(-5px) scale(1.15)',filter:'brightness(3)',offset:.4},{transform:'none',filter:'none'}],300,{delay:i*70}); /* (v5) les maillons s'allument l'un après l'autre : on lit ce qu'on encaisse, puis le × claque */
     {const x=c.n>=2?figCvX():0;if(x>figRec()+1e-6){SAVE.d.figRec=Math.round(x*100)/100;SAVE.mark();}} // (v4) le RECORD battu à la pose est gardé
-    FH.fin='efface';FH.finT=n+(c.n>=2?900:500);fhAnime(FH.el,[{opacity:1},{opacity:1,offset:.6},{opacity:0}],c.n>=2?900:500,{fill:'forwards',rm:true});} /* (v4) elle s'éteint SUR PLACE : plus de vol à travers l'écran par-dessus la carte moteur */
-  else{if(c.n>=2)fhNom(TR('COMBO PERDU'),'var(--fhKo)','ko');else FH.nom.classList.remove('on'); /* une figure seule : « FIGURE RATÉE ! » le dit déjà sur la caisse (flowCasse) — les pastilles tombent, sans un 2e texte */
+    FH.fin='efface';FH.finT=n+D;fhAnime(FH.el,[{opacity:1},{opacity:1,offset:.7},{opacity:0}],D,{fill:'forwards',rm:true});} /* (v4) elle s'éteint SUR PLACE : plus de vol à travers l'écran par-dessus la carte moteur */
+  else{if(c.n>=2)fhNom(TR('COMBO PERDU'),'var(--fhKo)','ko',undefined,'');else FH.nom.classList.remove('on'); /* une figure seule : « FIGURE RATÉE ! » le dit déjà sur la caisse (flowCasse) — les maillons tombent, sans un 2e texte */
     FH.el.classList.add('perdu');FH.el.classList.remove('paye');
     const L=FH.cs.children;for(let i=0;i<L.length;i++)fhAnime(L[i],[{transform:'none',opacity:1},{transform:'translateY(46px) rotate('+(i%2?18:-16)+'deg)',opacity:0}],520,{delay:120+i*70,fill:'forwards',easing:'steps(5)'});
     FH.fin='efface';FH.finT=n+1050;}}
 /* (v4) fhVole retirée : la ligne du combo ne traverse plus l'écran (elle passait par-dessus la carte moteur) */
-function fhRaz(){if(FH.vu)document.body.classList.remove('fhOn');FH.vu=false;FH.fin='';FH.nomT=0;FH.xv=-1;FH.recBat=false;if(!FH.el)return;if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}
+function fhRaz(){if(FH.vu)document.body.classList.remove('fhOn');FH.vu=false;FH.fin='';FH.nomT=0;FH.xv=-1;FH.recBat=false;FH.horsN=0;FH.trioT=0;if(!FH.el)return;if(FH.va){try{FH.va.cancel();}catch(e){}FH.va=null;}
   try{FH.el.getAnimations().forEach(function(a){a.cancel();});}catch(e){}
-  FH.el.className='';FH.nom.className='fhNom';FH.cs.textContent='';FH.x.textContent='';FH.x.classList.remove('max');FH.rec.textContent='';FH.rec.classList.remove('on');}
+  FH.el.className='';FH.nom.className='fhNom';FH.cs.textContent='';FH.more.textContent='';FH.x.textContent='';FH.x.classList.remove('max');FH.rec.textContent='';FH.rec.classList.remove('on');}
 function fhTick(vol){if(!FH.vu)return;const n=performance.now(); // (chaque image, depuis figHud) rien n'est écrit tant que rien ne change
   if(FH.fin){if(n<FH.finT)return;fhRaz();return;}
   if(!vol){if(mode==='drive'&&!gameOver&&FH.cs.firstChild){FH.nom.classList.remove('on');FH.el.classList.add('paye');FH.fin='efface';FH.finT=n+500;fhAnime(FH.el,[{opacity:1},{opacity:0}],500,{fill:'forwards',rm:true});return;}fhRaz();return;} // (les figures plantées sont déjà dans la chaîne)
@@ -46695,7 +46886,7 @@ function fhTick(vol){if(!FH.vu)return;const n=performance.now(); // (chaque imag
   if(!FH.nomT&&!FH.cs.firstChild)fhRaz();}
 function fhLegMaj(){const el=document.getElementById('fhLeg');if(!el||!window.FIG)return;const S=figSlots(),cle=S.join(',')+'|'+LANG;if(FH.legCle===cle)return;FH.legCle=cle; // (en vol) ↑ figure 1 · ◄► figure 2
   const I=['haut','bas','fleches']; // (2026-10-15, les directions) chaque figure avec le geste et la couleur de SON emplacement ; un emplacement vide ne s'affiche pas (le tonneau ne part que de côté)
-  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b>'+fhNet(figNom(f,1))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
+  el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b data-rp="'+figRarH(f)+'">'+fhNet(figNom(f,1))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
   FH.legs=[];FH.arme=-2;[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
 function fhArme(){if(!FH.legs||figGlisseOn())return;const s=figDirSlot();if(s===FH.arme)return; // (v4, chaque image en vol) le geste que vise le pouce s'ALLUME
   const a=FH.legs[FH.arme];if(a)a.classList.remove('arme');FH.arme=s;const b=FH.legs[s];if(b)b.classList.add('arme');}
@@ -46799,7 +46990,7 @@ window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}cons
    juge sur la conduite depuis le DÉPART, « partie entière sans… » sur toute la partie) ; seule la vie repart (« tiens 5 min sans
    mourir » : on est mort). Rien en BALADE, au BAC À SABLE, au PARC ni à l'AUTO-ÉCOLE. */
 function m2Vierge(){return {v:0,ok:[],pr:[],su:[],vu:{},nv:[],fl:[],r:{},c:{morts:0,gagne:0,jours:0,jd:'',cartes:[],cartesP:[],rejoue:0}};}
-function m2Etat(){const d=SAVE.d;if(!m2Etat._pop){m2Etat._pop=1;misPop();} /* (2026-10-18) le cadeau des carnets POP, une fois, avant la migration */let s=d.m2;if(!s||typeof s!=='object'||!s.c)s=d.m2=m2Vierge();if(s.v!==1)m2Migre(s);if(s.vc!==1)m2MigreV2(s);return s;}
+function m2Etat(){const d=SAVE.d;if(!m2Etat._pop){m2Etat._pop=1;misPop();} /* (2026-10-18) le cadeau des carnets POP, une fois, avant la migration */let s=d.m2;if(!s||typeof s!=='object'||!s.c)s=d.m2=m2Vierge();if(s.v!==1)m2Migre(s);if(s.vc!==1)m2MigreV2(s);else if(s.vr!==1)m2MigreV2(s,1);return s;} /* (2026-10-18) vr : la REPRISE de la migration avortée (voir m2MigreV2) */
 function m2EnC(){try{return !!(started&&!gameOver);}catch(e){return false;}} // (les `let` de la course naissent APRÈS SAVE.load : la migration passe avant)
 function m2Ok(){try{return started&&!gameOver&&!BALADE&&!SANDBOX&&!(PARK&&PARK.on)&&!TUTO.on;}catch(e){return false;}}
 function m2Def(id){for(let i=0;i<M2.length;i++)if(M2[i].id===id)return M2[i];return null;}
@@ -46865,15 +47056,22 @@ function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x
    2. m2MigreV2 (une fois, à la première ouverture en v2) — les CAISSES déjà acquises sous l'ancienne règle (carnet relevé, 100 parties,
       achat) entrent dans `owned` : à toi pour toujours ; une mission DÉJÀ remplie à ce moment est réussie ; sa récompense est donnée si
       c'est un OBJET qu'on n'a pas ; sa prime en ARGENT n'est versée que pour la COLLECTION — les exploits, l'aura, l'argent et le moteur
-      avaient leurs primes dans les carnets (« sans redonner de primes déjà touchées ») ; ce qu'on a déjà est marqué pris. */
+      avaient leurs primes dans les carnets (« sans redonner de primes déjà touchées ») ; ce qu'on a déjà est marqué pris.
+   3. (2026-10-18) LA REPRISE — m2MigreV2(s,1), une fois, pour une sauvegarde déjà marquée `vc` sans `vr` : du 16 au 18/10 la passe 2 avortait
+      (M2_COLK / M2_RECO en zone morte) APRÈS avoir posé `vc` — les caisses de l'ancienne règle étaient faites, les missions jugées jusqu'à `carall`
+      seulement (car5…car20 vues à 0, toute la collection, `maps` et les secrètes jamais jugées). La reprise ne refait PAS les caisses et ne juge
+      que les missions pas encore réussies ; une prime en ARGENT n'y est JAMAIS marquée prise : les seules hors collection (fig2, air5, fren,
+      aura10k/20k, eng10/20) ont été bien jugées par la passe avortée, et si l'une est remplie depuis, c'est en jouant en v2 — elle se touche.
+      Un OBJET déjà à soi est marqué pris (RÉCUPÈRE ne donnerait rien). Rien n'est retiré, rien n'est versé ici. Une sauvegarde migrée en entier
+      (v634 et après) y passe aussi : sans effet. `vr` posé avec `vc`, gardé par `san`. */
 function m2Migre(s){const d=SAVE.d,ex=d.ex||{},c=s.c;
   let mo=0;try{for(const k in (ex.morts||{}))for(const q in ex.morts[k])mo+=ex.morts[k][q]|0;}catch(e){}c.morts=Math.max(c.morts|0,mo);
   c.gagne=Math.max(c.gagne||0,m2GagneEstime());
   const j=d.jour||{};if(!c.jd&&j.d)c.jd=String(j.d);c.jours=Math.max(c.jours|0,j.n|0,(ex.runs|0)>0?1:0);
   s.v=1;SAVE.mark();}
-function m2MigreV2(s){const d=SAVE.d;s.vc=1; /* posé d'abord : m2Val rappelle m2Etat */
+function m2MigreV2(s,rep){const d=SAVE.d;s.vc=1;s.vr=1; /* posés d'abord : m2Val rappelle m2Etat — rep : la reprise (voir 3. plus haut) */
   if(!Array.isArray(d.owned))d.owned=[];
-  for(let i=0;i<CAR_UNLOCK.length;i++){const u=CAR_UNLOCK[i];if(!u||carRetiree(i)||carOwned(i))continue;let a=false;
+  if(!rep)for(let i=0;i<CAR_UNLOCK.length;i++){const u=CAR_UNLOCK[i];if(!u||carRetiree(i)||carOwned(i))continue;let a=false;
     if(u.k==='mis'){const o=u.av;if(o&&o.k&&!o.p&&o.k!=='premium'&&!o.eur)try{a=carStat(o.k)>=o.v;}catch(e){}}
     else if(u.exK==='carnet')try{a=carStat('carnet')>=u.exV;}catch(e){}
     if(a)d.owned.push(i);}
@@ -46881,7 +47079,7 @@ function m2MigreV2(s){const d=SAVE.d;s.vc=1; /* posé d'abord : m2Val rappelle m
     s.ok.push(m.id);const r=m.r||{};let deja=false;
     if(r.car){const i=m2CarIdx(r.car);deja=i>=0&&carOwned(i);}
     else if(r.cat)deja=d.shop.own.indexOf(r.cat+':'+r.id)>=0;
-    else if(r.cash)deja=m.f!=='collection';
+    else if(r.cash)deja=!rep&&m.f!=='collection'; /* la reprise ne marque jamais une prime en argent prise */
     (deja?s.pr:s.nv).push(m.id);}
   SAVE.mark();}
 function m2GagneEstime(){const d=SAVE.d;let t=bank();
@@ -49404,8 +49602,10 @@ function tryLand(dt){
     bounceN++;runStats.bumps++;secBord(); /* (DÉFIS SECRETS) FANTÔME : la tranche touchée */
     hap(24);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
-    addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
-      BUMP_VAL*Math.pow(.6,bounceN-1),Math.min(3,bounceN),true); // (2026-10-15 soir) plus `free` : il PAIE dans la chaîne (mallette + multiplicateur), la redite s'use ici (raw : le nom porte déjà le compte)
+    {const bf9=FIGV2.on&&BUMP_FIG_ON,c09=CHA.pts,s09=CHA.sansPop;if(bf9)CHA.sansPop=true; // (2026-10-18, HUD des figures v5) LE BUMP EST UNE FIGURE DU COMBO : son nom s'écrit en haut (plus « BUMP +30 » sur la caisse), il compte au ×
+    try{addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
+      BUMP_VAL*Math.pow(.6,bounceN-1),Math.min(3,bounceN),true);}finally{CHA.sansPop=s09;} // (2026-10-15 soir) plus `free` : il PAIE dans la chaîne (mallette + multiplicateur), la redite s'use ici (raw : le nom porte déjà le compte)
+    if(bf9)try{figBumpNote(bounceN,CHA.pts-c09);}catch(e){}}
     bumpSfx(bounceN);
     thud(impB);if(!SONV2)noiseBurst(.14,.09,1100); // choc + froissement de tôle (console : pose.choc le porte)
     shake=Math.min(1.3,.3+impB*.03);
