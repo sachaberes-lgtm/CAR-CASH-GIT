@@ -3,6 +3,111 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VETTE : SES ESCAMOTABLES SE LÈVENT À LA NITRO, ET FERMÉS ELLE N'ÉCLAIRE PLUS (2026-10-18, v661, Sacha : « la vette ne doit pas faire de lumière dans le shop et doit ouvrir ses phare que quand tu boost »)
+- VU AVANT (banc muet, boutique couchée) : les phares de LA VETTE sont des escamotables rangés à plat dans le capot, mais son point de phare
+  (`hl`) était posé SUR le capot : en boutique, de face, le halo des phares (HALO.h) brillait par-dessus les couvercles fermés (0,9).
+- LES ESCAMOTABLES (SHAPES.d_vette) : le couvercle soudé devient un BOÎTIER par côté — dessus le couvercle rouge (fermé, il affleure comme
+  avant), dessous la face noire et ses DEUX PHARES RONDS (cerclage chromé, glace). À la NITRO il pivote d'un bloc (101° autour d'un axe calculé
+  pour que la face se dresse droite au bord avant du logement), le couvercle passe derrière : les quatre yeux de la C3. Le logement noir reste
+  dans la caisse. Au garage, en boutique, au menu : fermés ; pas de clin d'œil (celui de LA CERISE). `dbgPhares(1|0|null)` les force.
+- `CAR_PHK` (nouveau, à côté de HALO) : combien les phares de la caisse sont levés, 0 → 1 ; null = phares fixes (toutes les autres caisses,
+  rien ne change pour elles). Il multiplie le halo des phares et leur nappe au sol (carVit) et leur lumière sur la route (`LUM.hl`, lumTick).
+  buildCar le remet à null ; `dbgLum().phK` le lit. LA CERISE et LE TOFU (escamotables de Léo) ne le posent pas : leur lumière reste comme avant.
+- MESURÉ (banc muet) : boutique fermée halo 0 (phK 0), forcée levée halo 0,9 ; course de nuit (pilote auto) sans nitro phK 0 et phares 0,
+  nitro tenue phK 1 en 0,5 s et phares 0,99, lâchée phK 0. Aucune erreur.
+
+## LES PROFONDEURS — LES BIOMES DE GROTTE DE MINECRAFT, DANS LA DA DU JEU (2026-10-18, Sacha : « fais une nouvelle map en mode dans les grottes, en mode minecraft mais ça bien, mets-toi dans la peau d'un designer senior de jeu vidéo et fais un truc parfait » · au premier banc, en cubes : « non arrête ça fait pas minecraft — je veux une grotte, les biomes de grotte dans minecraft, mais avec la même DA que les autres maps »)
+- **L'idée** : une DESCENTE sous la terre à travers les biomes de grotte de Minecraft, chacun SA lumière — l'œil sait toujours où il est, et la
+  roche qui défile à côté de la caisse donne la vitesse. 0 · L'ENTRÉE ET LA MINE (galerie carrée, cadres de bois, torches) · 1 · LA GROTTE
+  LUXURIANTE (mousse, lianes aux baies qui luisent, azalées fleuries, lac d'eau) · 2 · LE PUITS DE LA GÉODE (la pièce maîtresse : la route entre en
+  tangente dans un entonnoir et fait 1¼ tour autour d'un pilier dont le cœur est une GÉODE d'améthyste géante hérissée de cristaux ; chaque tour
+  passe ~60 m sous le précédent et 34 m plus à l'intérieur — sauter du bord INTÉRIEUR fait retomber sur le tour d'en dessous : LE RACCOURCI ;
+  on ressort dans l'axe) · 3 · LES STALACTITES (cathédrale ocre, concrétions en cônes à six pans, colonnes en sablier) · 4 · LE LAC DE LAVE
+  (lave PLATE ~48 m sous la route, à plaques de croûte, chutes de lave, piliers de basalte, rivage de magma) · 5 · LES ABYSSES (le noir bleuté,
+  le sculk qui pulse en cyan, les capteurs, les piliers d'une cité oubliée et leurs feux d'âme, la salle du portail). Des grappes de DIAMANTS et
+  d'OR luisent dans les parois près de la route (c'est CASH CAR).
+- **LA DA** (le premier jet en cubes et texture pixel a été arrêté par Sacha au premier banc, jamais poussé) : la roche est LOW-POLY À FACETTES,
+  comme les pics du glacier et le cône du volcan ; chaque salle a sa paroi et son sol en couleurs pleines (`GRT_MUR`/`GRT_SOL` : brun chaud, sarcelle
+  et vert mousse, violet, ocre, basalte indigo et pourpre, bleu ardoise et sarcelle) avec des strates douces, aucune texture ; une matière par
+  facette ; la grotte suit LA RECETTE COMMUNE des maps (`contiMap` + `grtConti` : saturation, contraste, vignette, contre-jour rose, bitume commun
+  par temps).
+- **La route** (`genGrotte` → `grtTrace`) : descend de ~230-330 m ; les aides de la balade du volcan (cap borné ±68° par un axe), ≥ 1 module du
+  paquet `gSlalom`/`gCorde`/`gChicane`/`gHoule` (2 à 5 selon la place), leur propre hasard ; contrôle des croisements (0 conflit sur 12 graines).
+  **LA DURÉE DES MAPS** : entrée + mine + puits + salle du portail fixes, les quatre autres salles se partagent le reste de `longueurCible()`
+  (27/20/30/23 %) ; `DUREE_ALLURE.grotte` .85. MESURÉ (banc Node, 4 graines) : palier 0 → 5,4-5,6 km (visé 5,4) ; palier 10 → ~7 km ; palier 25 →
+  8,4-9,2 km (visé 7,1 : la spirale tient 1,9 × le rayon tenable, ~24 s à fond, comme le volcan).
+- **La roche** (`grtCreuse1`, `grtPuits`, `grtLacs`, `grtPiliers`) : un CHAMP DE DENSITÉ (~ la distance signée à la paroi, en mètres × 1,6) sur une
+  grille de 8 m stockée en tronçons de 16³ cases ; chaque échantillon de route (tous les rh/3,2 m) creuse un ellipsoïde par salle (`GRT_FORME` :
+  demi-largeur, plafond, fond, exposant — la mine est CARRÉE —, morsure du bruit), fondu sur ±90 m aux frontières ; le puits (cône, pilier, géode,
+  bassin), les lacs (surfaces plates), les piliers. RÈGLE D'OR : un NOYAU vide autour de la route (ROAD_HALF + 10 m, 30 m dessus, THICK + 9
+  dessous) — `dbgGrotte('test')` : 0 roche, 0 décor (12 graines en Node, et dans le jeu).
+- **Le rendu** (`grtMailleNets`, `GRT_FS`) : la surface est tirée du champ par « surface nets » (un sommet par cube traversé, facettes de ~8 m),
+  une maille par tronçon cachée au-delà du brouillard ; la normale de la FACETTE vient des dérivées ; l'OCCLUSION (la part de roche autour du
+  sommet) ; la lumière CUITE aux sommets en deux canaux — TORCHES et LUMIÈRE DU LIEU (l'air de la salle, la lave par en dessous, la géode, l'eau,
+  les baies, les chutes, les capteurs, les feux d'âme, les gemmes) —, dosée par la météo ; la LANTERNE de la caisse allume la roche autour
+  d'elle. Les décors (`grtDecors` : prismes, boîtes, octaèdres) sont dans la même matière. Les POUSSIÈRES (700 points ronds : poussière, spores,
+  paillettes, gouttes, braises, âmes) changent avec la salle. Zéro image, zéro lumière three, deux programmes (chauffés au menu).
+- **Piège trouvé au banc** : un numéro de matière INTERPOLÉ sur un triangle à cheval entre deux matières (roche 0 → améthyste 3) passe par toutes
+  les matières entre les deux — un liseré arc-en-ciel le long des bords. Les sommets de la roche sont dédoublés par triangle, la facette prend la
+  matière de la majorité de ses coins.
+- **Les temps** (`SF_CARTES.grotte`, `GRT_MET`) : TORCHES (matin), CRISTAUX (midi : peu de torches, minerais et améthyste à pleine lumière),
+  MAGMA (soir), NOIR COMPLET (nuit : torches éteintes — les bâtons restent —, tes phares et la lave). Chaque SALLE a son ambiance par temps
+  (`grtBiomes` : 24 ambiances `grt-<temps>-<salle>`, brume teal / violette / ambre / pourpre / noir bleuté, jamais grise), fondue en 2,4 s à
+  l'entrée de la salle (bioGo, après le fondu du portail) : la caisse prend la couleur du lieu. Pas de soleil « 1.61 » (`LVL.grotte`), pas de nuage.
+- **Ce qui tue** (`grotteHeurt`) : en vol, la densité au point (la surface qu'on voit), la lave ('lave'), l'eau ('eau' : « AU FOND DE L EAU »), les
+  gros décors (boîtes orientées, grille de 64 m). La route n'a aucun obstacle de plus.
+- **La construction** : au pré-bâti (`PREB_PISTES`, `prebChampsDe`, `prebJob`, `prebDecor`) en tranches ; en direct (le 1er portail, un rejouer) :
+  creuser + les 1 100 premiers mètres tout de suite (~0,5-0,6 s sur le PC), le reste ~4 ms par image (`grtTranches`). ~200 k triangles, ~460
+  tronçons, ~8 Mo de grille. À SURVEILLER sur iPhone : la construction directe (×3 ?) et le remplissage (la roche couvre l'écran).
+- **Branché** : `NIV_GROTTE`, `SF_NIV`, `SF_CARTES.grotte`, `DUREE_ALLURE`, `pisteRoute`, buildTrack, le pré-bâti, `lvlNuageOk`, `LVL.grotte`
+  (bioApply : le soleil), `contiMap`/`grtConti`, `impTestIci` et la chaîne de vol, `CAUSES.eau`, la chauffe (`grotteChauffe`), la boucle
+  (`grotteTick`), l'accent du bitume et les bords au bleu DIAMANT (`BMAP_PAL`, accC), les cubes du portail (`PCUBE_PAL`) et ses cartes postales
+  (`assets/portail/grotte-*.webp`, tirées par le banc avec `dbgCartePostale`), `repertoire-maps/maps.js`.
+- Console : `dbgGrotte()` · `dbgGrotte('test')` · `dbgGrotte('salle',{k,d,h,r,fov})` · `dbgGrotte('puits',{h})` · `dbgGrotte('meteo','nuit')` ·
+  `?carte=grotte&meteo=matin|midi|soir|nuit` (consommé avant le JOUER : au banc, `dbgClassique('grotte',m)` puis `dbgSaut()`). Bancs (scratchpad de
+  la session bf86b413) : `grotte/node-banc.cjs` (tracé + construction en Node, sans Chrome : `node node-banc.cjs 1,2,3 <palier> --tout --svg d`),
+  `grotte/plan.py` (plan + profil), `grotte/grotte-banc.cjs` (le vrai jeu, muet : photos par salle, course au pilote, cartes postales).
+- **À trancher par Sacha / Léo** : le nom ; la musique (Pouce bleu joue partout aujourd'hui) ; un 2e raccourci (une boucle au-dessus du lac de
+  lave, la mécanique du volcan) si la map paraît trop linéaire.
+## SANS AILES — L'AILE QUI N'A PAS D'AILE (2026-10-18, Léo : « essaie de créer un nouveau type d'aile, mais en fait la blague c'est qu'il n'y a pas d'aile : c'est juste le système de propulsion qu'a présenté Elon Musk très récemment, qui permet à une voiture de pivoter et voler »)
+- LA RÉFÉRENCE : le Roadster présenté le 15/10/2026 — des propulseurs à GAZ FROID (air comprimé, dix buses) qui soulèvent la caisse et la font
+  pivoter en l'air. Aucune marque dans le jeu (revue App Store) : le nom dit la blague, « SANS AILES » (EN « NO WINGS »), et la fiche finit par
+  « Bon. Ça a marché. » (le mot de la démo). LÉGENDAIRE à 500 000 : l'aile la plus chère de la boutique… n'a pas d'aile.
+- LE DESSIN (`AILES_POP.air`) : rien qui dépasse — cinq BUSES par côté (fût d'acier, bouche noire, anneau qui s'allume quand elle souffle), posées
+  SUR la tôle de CHAQUE caisse par un rayon qui cherche sa carrosserie (`Raycaster` sur les maillages déjà posés, à la construction seulement) :
+  flanc avant, flanc arrière, poupe, deux sous le bas de caisse. Elles crachent des bouffées BLANCHES en CUBES (`ailEtincelles`, fondu normal,
+  la vapeur qui gonfle — la grammaire des flammes du jeu) : la POUPE au boost, les FLANCS quand on tourne en l'air (l'avant d'un côté, l'arrière
+  de l'autre : ce sont elles qui font pivoter la caisse), le DESSOUS quand on monte, un « pfft » de stabilisation de temps en temps, et une
+  bouffée de TOUTES à la sortie (elle « se gonfle »). La photo de la boutique : toutes soufflent (la vignette montre l'air).
+- ⚠ LE PIVOT S'ÉTIRE : la boucle pose `scale.x` (5 % → 100 %) et un dièdre sur le pivot des ailes ; des buses dedans glissaient hors de la tôle.
+  `g1`/`g2` l'annulent, rappelés par `piv.userData.recale` juste après que la boucle les pose (une ligne dans la boucle) — et par la photo.
+- MESURÉ au banc (vol réel, caméra du jeu) : le jet de la poupe à 20 m/s pendant 0,45 s montait jusqu'à l'objectif (7-9 m derrière) et
+  couvrait le tiers de l'écran → vie 0,26-0,52 s, vent relatif ÷ 2 : ~5 m de jet. 0 erreur, 0 groupe vidé par la soudure.
+- LE SON `ailes.air` (recette dans le bloc AILES de `atelier-son/recettes.js`, cuit en PCM, banque `v=33`) : la vanne, le PSCHHT froid d'une
+  bonbonne, le corps sourd du jet — à la sortie et au boost, EN VOL seulement (ailSon).
+- Pictogramme `ai_air` = le panneau INTERDIT. Hooks : `dbgAiles('air')`, `dbgAilesForce({ouvre:1,vir:1})`, `dbgAilesVue('reprend')` (nouveau).
+
+## LES TRAÎNÉES, PASSE GLOBALE : LISIBLES DE JOUR, LE FEU À LEUR COULEUR, LA COULEUR GARDÉE (2026-10-18, v658, Sacha : « améliore toutes les traînées en cherchant globalement à les améliorer »)
+Une passe COMMUNE (le ruban de lumière et le moteur TRX), pas traînée par traînée : la session du 16-17/10 avait soigné chacune.
+- VU AVANT (banc muet : les 16 en mer de nuages midi, puis A/B même code ± la passe) : (1) de JOUR, ce qui brille dans les traînées POP — filés
+  d'HYPERESPACE, code de MATRICE, éclairs, paillettes, cœurs de néon — s'effaçait sur le ciel clair et les nuages (une lumière additive ne fait
+  qu'éclaircir le blanc), et les rubans pâlissaient dès qu'ils passaient sur le ciel (en vol) ; (2) au nitro, un ruban vert, rose ou bleu sortait
+  d'une boule de feu ROUGE ; (3) après le nitro, tant que dure le boost, la traînée reste à mi-énergie et sa couleur se MÉLANGEAIT au rouge des
+  feux : MENTHE devenait jaune doré (on aurait dit POUDRE D'OR), HYPERESPACE violacé ; (4) là où le ruban passe dans l'axe du regard (vol,
+  vrilles), son côté s'inversait d'une rangée à l'autre et la bande se pinçait en nœud papillon.
+- (1) LE VOILE DE JOUR (`TRJ`) : sous le halo de chaque ruban, un voile d'ENCRE (la salle blanche, `silEncre`) teinte le fond de la couleur de la
+  traînée, puis la lumière s'y pose — le gris devient vert sous MENTHE, le ciel bleu nuit sous les filés. Il suit `LUM.nuit` (la lumière du lieu,
+  celle des phares) : NUL la nuit, plein en plein jour ; surtout au nitro (le trait des feux arrière reste discret de jour). Rubans : un maillage
+  enfant `tr.mi` (même géométrie, ses couleurs, cœur exclu) ; TRX : un enfant du maillage additif, même programme (`uInk` dans TRX_FS).
+  `?sans=encrejour` = avant. Au garage et en boutique, rien ne change.
+- (2) LE FEU À SA COULEUR : au nitro le halo du feu arrière (`HALO.t`) prend la teinte de la traînée à la mesure de son énergie et enfle d'un tiers
+  (`VIT9.trC`/`trK`, posés par la boucle, lus par `carVit`) ; il retourne au rouge avec elle. Réserve bleue et nitro infinie : bleu, violet.
+- (3) LA COULEUR GARDÉE (`cw9`) : la bascule rouge des feux → couleur de la traînée est pleine dès 38 % d'énergie, et le court passage creuse
+  l'éclat au lieu de montrer la teinte boueuse. L'énergie (longueur, chaleur, pouls) suit toujours `trailK`.
+- (4) Le côté du ruban garde son sens d'une rangée à l'autre (`SP` dans `silRuban`).
+- MESURÉ : A/B jour (6 traînées, sol + vol) et extinction ; temps par image inchangé au banc ; aucun programme compilé en plus
+  (le mélange n'entre pas dans la clé des programmes de three r128) ; +1 appel de dessin par ruban visible, de jour seulement.
+
 ## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
 - L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
   ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —
