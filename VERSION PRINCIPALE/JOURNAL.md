@@ -10,6 +10,7 @@
   (du prix le plus bas au plus haut) puis celles des missions ; les missions secrètes à la fin, sous leur propre intertitre (leur place ne
   trahit pas leur famille). Un INTERTITRE `.bqSec.bqRarS` ouvre chaque famille, comme ceux des figures : le logo de la rareté (`RAR_LOGO`)
   à sa couleur, son nom, le nombre de caisses, un filet de sa couleur. Planche : `photos-gameplay/boutique-rarete-avant-apres.png`.
+- (v651, Léo : « oui ») les deux prix qui sortaient de leur famille : LA ZED passe ÉPIQUE (1,6 M$), LA QUEUE DE CANARD 460 000 → 550 000 $.
 
 ## PARIS SORT DU MODE CLASSIQUE (2026-10-18 soir, Sacha : « enfait enlève paris du mode classique ») — v649
 - Remis l'après-midi par l'allègement (v642), retiré le soir : plus d'entrée `paris` dans `SF_CARTES` (le tirage du JOUER, les portails,
