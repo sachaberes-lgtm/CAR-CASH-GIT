@@ -3,6 +3,52 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
+- L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
+  ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —
+  le skyline, ce qu'on voit défiler et ce qu'on survole — deviennent, pour une part, les GÉANTES DE VERRE de la ville vitrée. Le béton couvert de
+  néons reste en bas et autour ; les tours de verre, propres, sans enseigne, renvoient la ville. Les deux maps n'en font plus qu'une.
+- QUI DEVIENT DE VERRE (`villeVerreTour`, tiré de la POSITION de la tour : aucun tirage `vr` de plus ni de moins — à graine égale c'est la même
+  ville) : le long de la route, une tour sur deux parmi celles dont le toit passe la route de plus de 190 m, une sur trois de 60 à 190 m ; au large,
+  une sur trois de celles qui dépassent la route de 30 m. Les toits sous la route, les murs de l'entrée surélevée restent en béton.
+- CE QU'ELLES PRENNENT À LA VILLE VITRÉE : la construction (`VIt` dans `batir` : retraits EMPILÉS — la profondeur est en 16 bits —, les FORMES de
+  `vitreForme` : effilée, vrillée, fuseau, ronde, lame ; le mât qui part du toit, pas de lame plaquée sur une tour de forme, pas de couronne carrée
+  sur un biseau), les coins biseautés (`vitreGeo`/`vitreGeoR`), le MUR-RIDEAU (`vitreVerre`) : carreaux désaxés, bureaux allumés par plateaux,
+  plafonniers, stores, les tours d'en face dans le reflet, les filets de LED et les logos minimalistes. Pas d'enseigne ni de réclame sur elles
+  (`gvDer` : le tirage a lieu, la réclame n'est pas posée).
+- CE QUI CHANGE POUR ÊTRE EN NÉON (`vitreMatToursNeon` = `vitreMatFab(true)`, clé `toursVerreNeon1`) :
+  · le CIEL RENVOYÉ : `VV` (uniformes à part — ceux de la vitrée ne bougent pas), posé à chaque image par `villeVerreTick` d'après la BRUME de la
+    ville (sa teinte, son temps) : sombre au zénith, la lueur des rues à l'horizon, un voile du néon de la teinte ; les nuages éclairés par en dessous
+    (`VV_MET` : leur couverture par temps) ; vers le bas, la brume et la lueur des rues (`VV_CIEL_B`) au lieu des dalles de la ville au sol ;
+  · les FILETS de LED des arêtes et les LOGOS prennent le néon de la TEINTE (`uAcc9` = l'enseigne magenta remappée : violet, vert, jaune, bleu) ;
+  · plus de verre que de blanc (`VV_STY` : 34 % verre bleu, 22 % sombre, 22 % argent, 12 % lames, 10 % blanche à bandeaux — les mêmes seuils pour
+    la structure dans buildVoxCity) ;
+  · le PIED dans la brume : le code de `villePied` (celui des tours de béton, au caractère près), compté depuis le pied de la tour — seul le volume
+    du pied (vert + 8) a un pied à noyer (`vvPied`) ; AU LOIN, `vitreMatToursNeonLoin` (la géante lointaine a sa couleur par instance : `fam(…,colL)`,
+    `villeMet`/`villePousse` la copient).
+  Le texte du verre de la VILLE VITRÉE est le même au caractère près (`vitreVerre(VIT_CIEL_B)`, vérifié par banc Node sur ses trois variantes).
+- LES FAMILLES : la ville bâtit le béton (villeMatTours), puis le verre droit, puis le verre à étages (vrillée, fuseau) ; chaque tour garde ses
+  pièces ensemble et dans leur ordre. La chauffe (`villeChauffe`) compile le verre APRÈS les tours et AVANT les néons (l'ordre de compilation fait
+  l'ordre de dessin : une couronne au ras d'un toit reste au néon).
+- LA VILLE VITRÉE QUITTE LE JOUER (`SF_HORS.vitree`) : elle vit dans la ville. `sfTire` ne la tire plus ; `?carte=vitree`, `dbgNiveauVitre`,
+  `dbgClassique('vitree',…)` la jouent toujours, telle quelle (`sfImpose` tire la météo DANS la map imposée : une map hors du tirage ne sortait
+  jamais de sfTire). Les MISSIONS « chaque map » (`m2Cartes`, `m2Vues`) ne la comptent plus — une partie jouée là-bas ne compte plus non plus.
+  `?vitree=1` la remet au tirage.
+- MESURÉ (banc : Chrome sans fenêtre, muet, couché 844 × 390, `?pistegraine=` pour la même piste ; avant l'allègement, revérifié après — voir la fin) : 15 à 19 % des tours deviennent de verre
+  (253 sur 1 328 à la pluie violette, 231 sur 1 414 la nuit bleue, 199 sur 1 360 au brouillard vert) ; programmes 213 au menu = 213 en course
+  (0 compilé en course ; 2 de plus qu'avant, le verre et sa géante au loin, compilés au MENU par villeChauffe) ; aucune erreur JS ; la VILLE VITRÉE
+  (`?carte=vitree&meteo=nuit`) tourne telle quelle. 1re passe REFAITE : les géantes sortaient PLUS SOMBRES que les tours au néon (elles éteignaient
+  le skyline) — verre plus neutre (le bleu du jour mangeait le violet), bureaux ×1,55 et leur lueur au loin ×2, filets sur trois tours sur quatre,
+  parapet au néon de la teinte, ciel renvoyé plus clair à l'horizon (la lueur des rues et des néons).
+- LE PORTAIL : les 16 cartes postales de la ville (`assets/portail/ville-<temps>-<teinte>.webp`) sont GARDÉES. Retirées au banc (dbgCartePostale,
+  début de piste), les neuves montraient l'entrée surélevée — beaucoup de ciel, le 1er rang sous la route, à peine une géante de verre — et une
+  route plus sombre : les anciennes disent mieux la ville, et elles restent vraies (le verre ne vit que dans le skyline).
+- Crochets : `VILLE_VERRE_V=false` (la ville néon d'avant, la vitrée revient au tirage — pas d'interrupteur d'adresse : allègement du 18/10 ; l'image
+  d'avant = le commit bf09e346) · `?vitree=1` (la vitrée au tirage, avec la ville néon et verre) · `dbgVilleVerre()` (tours, géantes, part, néon de la teinte, familles, retouches du verre posées). Planche :
+  `passation/ville-neon-verre-avant-apres.jpg`.
+- À TRANCHER : la part de verre (`villeVerreTour` : ½ des plus hautes, ⅓ des autres) ; le dirigeable de la vitrée n'est PAS venu (ce n'est pas
+  un bâtiment) — à proposer ; LÉO : sa ville vitrée n'est plus tirée au JOUER (`?vitree=1` la rend), à lui dire.
+- RÉ-APPLIQUÉE sur le main allégé (bf09e346, v646 : `VITRE_V`, l'impact d'immeuble dans le shader des tours, les villes de jour étaient partis) : revérifié au banc — 128 géantes sur 713 tours (18 %, les pistes plus courtes de LA DURÉE DES MAPS), programmes 229 au menu = 229 en course, aucune erreur JS, la vitrée (`?carte=vitree&meteo=nuit`) intacte ; le verre de la vitrée identique au caractère près (banc Node, trois variantes) ; la copie allégée (outils/publie-allege.cjs) se fabrique (jetons identiques).
 ## PLUS AUCUN OBJET EXOTIQUE : TOUT PASSE RARE (2026-10-18 soir, Sacha : « tout les item exotique doivent etre passer en rare ») — v655
 - **Les fiches** : les 8 habillages posés EXOTIQUES (peintures BANANA, NUIT DE GOTHAM, MONDE À L'ENVERS ; ailes 8-BIT, BARON ROUGE ;
   traînées ANNEAUX D'OR, PLUIE DE BLOCS, GLOUTON) sont `r:'rare'` ; les 10 peintures métallisées de la palette aussi (elles étaient déjà
