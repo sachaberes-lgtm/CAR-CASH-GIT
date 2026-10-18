@@ -3,6 +3,35 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA PERLE AU PLAN — LA SERRE CONSTRUITE SUR LES TRAITS, LES VITRES DÉCOUPÉES AU PLAN (2026-10-18, Léo : « corrige encore la Porsche ; faut qu'on apprenne à générer parfaitement les voitures, pour qu'à la fin la seule limite soit l'imagination — les traits gris mettent en avant les défauts : au niveau de la vitre, le trait est clairement arrondi alors que la voiture est encore un peu carrée »)
+- **Le diagnostic** : les traits gris de LA PERLE sont les lignes du PLAN COTÉ de la vraie (projetées sur la tôle, voir « LA PERLE » du
+  16/10). Là où la tôle ne les suit pas, ils trahissent l'écart. Mesuré tranche par tranche contre le plan : vitres, cadres, montant B,
+  pare-brise et lunette peints PAR TRANCHES (des rectangles : bords carrés aux bouts, montant B vertical à −0,43 au lieu d'incliné entre
+  −0,20 et −0,42), serre aussi large derrière qu'au milieu (la vraie se resserre : jusqu'à 10 cm d'écart à −1,2), haut des portes jusqu'à
+  5 cm trop bas devant, pavillon qui tombait sur le flanc en UNE arête, lunette plate (6 cm de bombé manquants), haut des hanches arrière
+  jusqu'à 7,5 cm trop large et 9 cm trop haut.
+- **LA SERRE CONSTRUITE SUR LE PLAN** (`SHAPES.perle`, `GH` = les courbes relevées, simplifiées à 1,5 mm) : chaque tranche de l'habitacle
+  sort de fonctions du plan — `Bz` la CEINTURE (le pli de hanche derrière, le bas du cadre au milieu), le FLANC passant par le bas et le
+  haut de la vitre (hauteurs vues de côté, largeurs vues de dessus), l'ÉPAULE en Bézier tangente au flanc et au bombé, `Rz` la GOUTTIÈRE
+  (bord du pavillon, puis de la lunette derrière, du montant A devant), le BOMBÉ (`bombe` : plat au pavillon et à la lunette, plus rond au
+  pare-brise), `s7z` le ROULÉ DE LA HANCHE. 19 points par tranche partout (le capot et la poupe gardent leur tôle, recoupée aux mêmes
+  rangs) ; habitacle tous les 7,5 cm, plus serré au coin du pare-brise et à la pointe des vitres.
+- **LA PEINTURE AU PLAN** (`peintPlan`, `ZP`) : vitres, cadre noir, montant B, séparation de custode, pourtour noir du pare-brise et de la
+  lunette ne sont plus des bandes de tranches — chaque triangle de la serre est projeté dans la vue qui le regarde le plus en face (côté
+  ou dessus), recoupé par les segments des contours du plan (morceaux convexes), et chaque morceau prend la peinture du dernier contour
+  qui le contient ; normales LISSÉES et couleurs reprises par barycentres. Le trait et le bord de la vitre tombent au même endroit,
+  arrondis compris. Générique : marche sur toute caisse en loft. ⚠ Le tampon de la tôle se lit par `peintPal(PAL).p.g` (`GP`) : une
+  peinture à motif de la boutique le renomme — jamais `gs.p` en dur.
+- **UNE SEULE VUE PAR TÔLE, AUSSI POUR LES PLEINS** : un plein (bandeau des feux, bouches…) ne se pose plus sur une tôle qui ne regarde
+  pas sa vue (le bandeau des feux, dessiné de dos, filait sur le haut de la hanche une fois celle-ci repliée).
+- **MESURÉ** — le BANC DES ÉCARTS (une ligne vue dans deux plans = sa position 3D ; écart de la tôle) : gouttière 0-1,2 cm, pli de hanche
+  0-0,3 cm, roulé de hanche 7,5 cm → 0, arête capot/aile ≤ 1 cm (déjà juste). ⚠ Le plan se contredit parfois : la nervure du capot vue
+  de face passe au-dessus du profil de l'aile vu de côté (impossible) — paire écartée. Coût : 22 400 → 30 900 triangles, ~6-10 ms de
+  plus à la construction (ordi). Vérifié : menu → JOUER → course sans erreur en plein écran, cadre couché et debout ; studio photo du jeu.
+- **Outils** (Mac de Léo) : `~/Downloads/CAR-bancs/plan-voiture/` (LISEZMOI : vue sous le plan, relevé des lignes par id, banc des
+  écarts, assemblage du gabarit, studio et course avant/après). Planche : `photos-gameplay/perle-serre-avant-apres.png` (CAR CAHS V3).
+- **Reste, si Léo le veut** : le coin avant du bouclier (arête verticale), la malle et les feux arrière (lignes de dos et de dessus).
+
 ## JOUER RESTE QUAND LA CAISSE EST À VENDRE (2026-10-18, session UI-REVUE, Sacha, capture couchée de la ROSSO 40 au garage : « je veux le bouton jouer sur cet écran »)
 - AVANT (règle du 15/10, « LA BARRE DU GARAGE ») : une caisse à vendre à l'écran effaçait JOUER (`#gAct:has(>#gEquip.achat)>#gJouer`) et la
   BOUTIQUE descendait à sa place, lingot magenta du milieu ; INVENTAIRE et MISSIONS se partageaient le haut.
