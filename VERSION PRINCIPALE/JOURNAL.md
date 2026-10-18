@@ -543,6 +543,26 @@
 - **Mesuré** : 15 500 triangles, construction 5-14 ms ; 0 programme compilé en course, debout et couché ; garage comme le main ; aucune erreur.
   Planche : `photos-gameplay/simpson-serie-et-nous.png`.
 
+## LE CAÏD DEVIENT UNE CLASSE G — LA G 63 (W463A) RELEVÉE AU PLAN (2026-10-18, discussion BOÎTES ; Léo : « le boss devient un CLASS G »)
+- **Où** : `SHAPES.caid=…` dans la zone BOÎTES (repère `// <<< SHAPES.caid (BOITES) >>>`, après LA CABOSSÉE) — il remplace l'ancienne méthode
+  `caid(K)` de l'objet SHAPES, LAISSÉE en place (la coordination l'effacera). `ECH_POTS.caid` y est redéfini : quatre sorties `lateral` sous le
+  marchepied, devant les roues arrière (plus d'`ote` : rien à percer). Ligne CARS 2 : seulement h 1,97 et l 4,87 (cotes réelles) ; nom, rareté,
+  vert anis 0x86f51c gardés.
+- **Le plan** : dimensions.com n'a PAS de Classe G (ni dans sa collection Mercedes ni dans les SUV). L'élévation « 2018 AMG G63 » de getoutlines
+  (aperçu libre, GIF 1091 × 1424 : profil, face, dos, dessus au même pas, 207 px/m — empattement 2,890 m = 598 px) + les cotes constructeur
+  (hauteur 1,966, voie 1,650, largeur aux élargisseurs 1,984, 275/50 R20 → R .395). Les détails sur les photos de Commons (Damian B Oh).
+- **La porte arrière** : charnières à GAUCHE de la caisse (vu de derrière, à gauche), poignée à droite, roue de secours décalée de 15 cm vers les
+  charnières — le plan et une photo de dos le disent (l'ancien CAÏD l'avait à droite).
+- **Méthode** : deux grilles (la grille générique de LA CABOSSÉE, + `bout(r)` : le contour du nez par rangée — boîtiers des phares en saillie,
+  calandre 3 cm en retrait — avec ses colonnes aux x donnés `fx` ; + `plafond(z)` : au-dessus de l'épaule des ailes avant, les rangées du bas
+  se couchent dessus). Le capot (qui s'élargit de 53 à 84 cm vers le pare-brise) et le dessus des ailes sont une nappe posée sur l'épaule.
+- ⚠ **Les phares ronds** : un fond noir + une petite lentille blanche au centre = deux YEUX de dessin animé. Réflecteur chromé, lentille sombre,
+  l'anneau de LED blanc : c'est un phare.
+- ⚠ **Vitres roses** sur une prise de profil à PICS DE JADE : le reflet de la planète rose de la map (passager) — une autre prise, vitres normales.
+- Teintes réelles de G 63 jugées au garage (les verts y saturent fort) : GREEN HELL MAGNO 0x45753c, POLAR WHITE 0xd6dadd, OBSIDIAN BLACK 0x1e2125.
+- Banc : course couchée et debout 0 programme compilé, garage sans erreur ; 1re construction 48 ms (découpe en cache), puis 10-14 ms.
+  Planche : photos-gameplay/caid-vraie-et-nous.png. Outils : boites/caid/ (src, ref, photos), assemble_c.py, integre_c.py, planche_caid.py.
+
 ## LE BAROUDEUR EN FINITION SAHARA (2026-10-18, discussion BOÎTES ; Léo, photo d'un JL Sahara gris : « même couleurs, même le truc au-dessus de la roue »)
 - **La teinte** `0x464950` (l'olive `0x4a4d38` part) : mesurée sur la photo (la porte à l'ombre d'un ciel gris : 75 · 76 · 82) puis jugée DANS LE
   JEU, jamais au studio. ⚠ La même base change beaucoup selon la scène : au garage les lampes chaudes la tirent vers le beige (un gris neutre
