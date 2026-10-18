@@ -3,6 +3,30 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA RAIE RÉPARÉE, À 1,5 M (2026-10-18 soir, Sacha : « la voiture the ray est buggée et son prix doit être de 1,5 M »)
+- **Le prix** : `CAR_UNLOCK` de LA RAIE (THE RAY en anglais, `CARS[55]`, `shape:'e_raie'`) passe de 2,5 M$ à **1,5 M$**. Toujours épique.
+- **Ce qui était buggé** (vu au banc, `outils/banc-caisses/` + une analyse de la géométrie du gabarit hors navigateur) : la RAIE v2 du 13/10
+  a pincé la taille de la v1 (la « bouteille » `xW`) sans reprendre les pièces posées autour, qui sont restées en l'air ou dans la tôle :
+  · les POTS LATÉRAUX (`ECH_POTS.e_raie`, posés le 10/10 sur la v1) flottaient à 10 cm du bas de caisse, pattes dans le vide : en poursuite,
+    deux tubes chromés qui dépassaient des deux côtés (hors tout 2,01 m pour une caisse de 1,75 m) ;
+  · le RÉTROVISEUR flottait 5 cm au-dessus de la portière, sur une tige qui ne touchait rien ;
+  · les TRAPPES DES PHARES (deux boîtes) penchaient de ,12 sur un capot qui tombe de ,28 : une marche noire de 4 cm devant, enterrées derrière ;
+  · les LAMES D'ANGLE du nez, droites à côté d'un nez courbe, sortaient en palettes ; la CALANDRE pendait 2,5 cm sous le nez ;
+  · la BAGUETTE de bas de caisse, une boîte droite sur un flanc en bouteille, n'affleurait qu'au milieu en se battant avec la tôle ;
+  · les OUÏES d'aile sortaient d'1 cm (une boîte collée, des faces qui se battaient avec leurs barrettes) ;
+  · les LAMES DE LA POUPE sortaient en biais du dos plat ; la PLAQUE (posée par les rayons de `plqCherche`) se mettait à cheval sur le bord
+    du coffre, sa moitié haute au-dessus de la caisse.
+- **Ce qui a changé** (`SHAPES.e_raie`, la silhouette ne bouge pas) : le gabarit garde sa section `S` et lit la tôle telle que le loft la pose
+  (`sec(z)` interpolée entre deux stations, `flanc(z,y)`, `dessus(x,z)`). Dessus sont posés : les JOINTS des trappes (un fil noir de 1,4 cm,
+  3 mm au-dessus du capot — la trappe EST la tôle), les OUÏES (fond noir et trois barrettes plaqués sur l'aile), les JONCS chromés (`jonc`) :
+  celui du nez suit le V et traverse la face, ceux de la poupe épousent le dos et prennent le coin, en laissant la place de la plaque.
+  Le bas de caisse noir est la bande 1 du loft elle-même entre les roues (zéro facette). Le rétro est planté dans le haut de la portière.
+  La calandre est rentrée sous la lame. La plaque a sa place dessinée (une boîte `W` claire au milieu de la poupe : `plqDessinee` y pose la
+  plaque du joueur). Les pots : `x` ,8905 → **,766** et le tube finit à ,72 (avant l'arche avant) : il frôle le bas de caisse (1 mm), ses
+  pattes touchent la tôle.
+- MESURÉ : (à compléter)
+- Banc sur ce PC : le banc des caisses est écrit pour le Mac (`cdp.mjs` lance le Chrome du Mac) — sur le PC de Sacha, copie à part avec
+  le Chrome de Windows et le verrou commun `cc-banc/lib.cjs`.
 ## LA VILLE, NÉON ET VERRE — LES GÉANTES DE LA VILLE VITRÉE DANS LA VILLE AU NÉON (2026-10-18, session VILLE-NEON — Sacha : « mets-toi dans la peau d'une designer de jeux vidéo senior et fusionne les maps ville et ville vitrée ; on garde l'ambiance néon et tout, mais avec certains bâtiments qui viennent de la ville vitrée »)
 - L'IDÉE (le parti de designer) : LE NÉON AU PIED, LE VERRE DANS LE CIEL. La ville garde tout ce qui fait son identité (la nuit, ses quatre temps,
   ses quatre teintes, les enseignes, les réclames, la pluie, la descente en spirale, GLASSY PLUCKS) ; les tours qui MONTENT au-dessus de la route —
